@@ -1,0 +1,7 @@
+memory.o: memory.c memory.h
+nil.o: nil.c memory.h object.h nil.h
+object.o: object.c object.h
+pair.o: pair.c memory.h object.h pair.h
+printer.o: printer.c memory.h printer.h
+string.o: string.c memory.h object.h string.h
+symbol.o: symbol.c memory.h object.h symbol.h

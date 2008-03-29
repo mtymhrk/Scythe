@@ -1,0 +1,2 @@
+SOURCES  = memory.c nil.c object.c pair.c printer.c string.c symbol.c hash.c \
+           integer.c reader.c parser.c basiclist.c
