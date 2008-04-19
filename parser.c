@@ -356,169 +356,175 @@ scm_lexer_tokenize_char(ScmLexer *lexer)
 
 /* #define IS_VALID_NUMBER_CHAR_SET(specified, actual)  ((actual) <= (specified)) */
 
-static int
-scm_lexer_tokenize_numeric_unsigned_integer(ScmLexer *lexer,
-                                            const char **charset)
-{
-  int current;
-  int nr_shift;
+/* static int */
+/* scm_lexer_tokenize_numeric_unsigned_integer(ScmLexer *lexer, */
+/*                                             const char **charset) */
+/* { */
+/*   int current; */
+/*   int nr_shift; */
 
-  assert(lexer != NULL);
-  assert(charset != NULL && *charset != NULL);
+/*   assert(lexer != NULL); */
+/*   assert(charset != NULL && *charset != NULL); */
 
-  nr_shift = 0;
-  current = scm_reader_head_char(lexer->reader);
-  while (strchr(*charset, current) != NULL) {
-    if (strchr(NUMERIC_INDEX_MARKER_CHARS, current) != NULL &&
-        strchr("+-", scm_reader_forecast(lexer->reader, 1)) != NULL)
-      return nr_shift;
+/*   nr_shift = 0; */
+/*   current = scm_reader_head_char(lexer->reader); */
+/*   while (strchr(*charset, current) != NULL) { */
+/*     if (strchr(NUMERIC_INDEX_MARKER_CHARS, current) != NULL && */
+/*         strchr("+-", scm_reader_forecast(lexer->reader, 1)) != NULL) */
+/*       return nr_shift; */
 
-    if (current == '#') *charset = "#";
-    scm_lexer_push_char(lexer, current);
-    scm_reader_shift_char(lexer->reader);
-    nr_shift++;
-  }
+/*     if (current == '#') *charset = "#"; */
+/*     scm_lexer_push_char(lexer, current); */
+/*     scm_reader_shift_char(lexer->reader); */
+/*     nr_shift++; */
+/*   } */
 
-  return nr_shift;
-}
+/*   return nr_shift; */
+/* } */
 
-static int
-scm_lexer_tokenize_numeric_unsigned_real(ScmLexer *lexer,
-                                         const char* charset)
-{
-  unsigned char current;
-  int nr_shift;
+/* static int */
+/* scm_lexer_tokenize_numeric_unsigned_real(ScmLexer *lexer, */
+/*                                          const char* charset) */
+/* { */
+/*   unsigned char current; */
+/*   int nr_shift; */
 
-  assert(lexer != NULL);
-  assert(charset != NULL);
+/*   assert(lexer != NULL); */
+/*   assert(charset != NULL); */
 
-  /* integer part  */
+/*   /\* integer part  *\/ */
 
-  nr_shift = scm_lexer_tokenize_numeric_unsigned_integer(lexer, &charset);
+/*   nr_shift = scm_lexer_tokenize_numeric_unsigned_integer(lexer, &charset); */
 
-  current = scm_reader_head_char(lexer->reader);
-  if (current == '/' && nr_shift) {
-  }
-  if (current == '.') {
+/*   current = scm_reader_head_char(lexer->reader); */
+/*   if (current == '/' && nr_shift) { */
+/*   } */
+/*   if (current == '.') { */
     
-    // small number
-  }
-  else if (current == '/') {
-    // ratinal 
-  }
-}
+/*     // small number */
+/*   } */
+/*   else if (current == '/') { */
+/*     // ratinal  */
+/*   } */
+/* } */
 
-static int
-scm_lexer_tokenize_numeric_complex(ScmLexer *lexer, const char *charset)
-{
-  unsigned char current, sign;
+/* static int */
+/* scm_lexer_tokenize_numeric_complex(ScmLexer *lexer, const char *charset) */
+/* { */
+/*   unsigned char current, sign; */
 
-  assert(lexer != NULL);
+/*   assert(lexer != NULL); */
 
-  current = scm_reader_head_char(lexer->reader);
+/*   current = scm_reader_head_char(lexer->reader); */
 
-  sign = '\0';
-  if (strchr("+-", current) != NULL) {
-    scm_reader_shift_char(lexer->reader);
-    scm_lexer_push_char(lexer, current);
-    sign = current;
-  }
+/*   sign = '\0'; */
+/*   if (strchr("+-", current) != NULL) { */
+/*     scm_reader_shift_char(lexer->reader); */
+/*     scm_lexer_push_char(lexer, current); */
+/*     sign = current; */
+/*   } */
 
-  scm_lexer_tokenize_numeric_unsigned_real(lexer, charset);
-}
+/*   scm_lexer_tokenize_numeric_unsigned_real(lexer, charset); */
+/* } */
 
-const char *
-cardinal2charset(unsigned char cardinal)
-{
-  const char *charset;
+/* const char * */
+/* cardinal2charset(unsigned char cardinal) */
+/* { */
+/*   const char *charset; */
 
-  switch (cardinal) {
-  case 'b':
-    charset = BINARY_DIGIT_CHARSET;
-    break;
-  case 'o':
-    charset = OCTAL_DIGIT_CHARSET;
-    break;
-  case 'd':
-    charset = DECIMAL_DIGIT_CHARSET;
-    break;
-  case 'x':
-    charset = HEXADECIMAL_DIGIT_CHARSET;
-    break;
-  default:
-    charset = DECIMAL_DIGIT_CHARSET;
-  }
+/*   switch (cardinal) { */
+/*   case 'b': */
+/*     charset = BINARY_DIGIT_CHARSET; */
+/*     break; */
+/*   case 'o': */
+/*     charset = OCTAL_DIGIT_CHARSET; */
+/*     break; */
+/*   case 'd': */
+/*     charset = DECIMAL_DIGIT_CHARSET; */
+/*     break; */
+/*   case 'x': */
+/*     charset = HEXADECIMAL_DIGIT_CHARSET; */
+/*     break; */
+/*   default: */
+/*     charset = DECIMAL_DIGIT_CHARSET; */
+/*   } */
 
-  return charset;
-}
+/*   return charset; */
+/* } */
 
-static int
-scm_lexer_tokenize_numeric_start(ScmLexer *lexer,
-				 unsigned char cardinal, unsigned char strict)
-{
+/* static int */
+/* scm_lexer_tokenize_numeric_start(ScmLexer *lexer, */
+/* 				 unsigned char cardinal, unsigned char strict) */
+/* { */
   
-  unsigned char current;
+/*   unsigned char current; */
 
-  assert(lexer != NULL);
-  assert(cardinal == '\0' || strchr("bodx", cardinal) != NULL);
-  assert(strict == '\0' || strchr("ie", strict) != NULL);
+/*   assert(lexer != NULL); */
+/*   assert(cardinal == '\0' || strchr("bodx", cardinal) != NULL); */
+/*   assert(strict == '\0' || strchr("ie", strict) != NULL); */
   
-  current = scm_reader_head_char(lexer->reader);
+/*   current = scm_reader_head_char(lexer->reader); */
 
-  if (strchr("bodx", current) != NULL) { // cardinal
-    if (cardinal == '\0') {
-      scm_reader_shift_char(lexer->reader);
-      scm_lexer_push_char(lexer, current);
-      cardinal = current;
-      current = scm_reader_head_char(lexer->reader);  
-    }
-    else
-      goto not_numeric;
-  }
-  else if (strchr("ie", current) != NULL) { // strictness
-    if (strict == '\0') {
-      scm_reader_shift_char(lexer->reader);
-      scm_lexer_push_char(lexer, current);
-      strict = current;
-      current = scm_reader_head_char(lexer->reader);  
-    }
-    else
-      goto not_numeric;
-  }
+/*   if (strchr("bodx", current) != NULL) { // cardinal */
+/*     if (cardinal == '\0') { */
+/*       scm_reader_shift_char(lexer->reader); */
+/*       scm_lexer_push_char(lexer, current); */
+/*       cardinal = current; */
+/*       current = scm_reader_head_char(lexer->reader);   */
+/*     } */
+/*     else */
+/*       goto not_numeric; */
+/*   } */
+/*   else if (strchr("ie", current) != NULL) { // strictness */
+/*     if (strict == '\0') { */
+/*       scm_reader_shift_char(lexer->reader); */
+/*       scm_lexer_push_char(lexer, current); */
+/*       strict = current; */
+/*       current = scm_reader_head_char(lexer->reader);   */
+/*     } */
+/*     else */
+/*       goto not_numeric; */
+/*   } */
 
-  if (current == '#') {
-    scm_reader_shift_char(lexer->reader);
-    scm_lexer_push_char(lexer, current);
-    return scm_lexer_tokenize_numeric_start(lexer, cardinal, strict);
-  }
-  else
-    return scm_lexer_tokenize_numeric_complex(lexer,
-					      cardinal2charset(cardinal));
+/*   if (current == '#') { */
+/*     scm_reader_shift_char(lexer->reader); */
+/*     scm_lexer_push_char(lexer, current); */
+/*     return scm_lexer_tokenize_numeric_start(lexer, cardinal, strict); */
+/*   } */
+/*   else */
+/*     return scm_lexer_tokenize_numeric_complex(lexer, */
+/* 					      cardinal2charset(cardinal)); */
 
- not_numeric:
-  scm_reader_shift_char(lexer->reader);
-  scm_lexer_push_char(lexer, current);
-  lexer->token_type = SCM_TOKEN_TYPE_IDENTIFIER;
-  return LEXER_STATE_IDENTIFIER;
-}
+/*  not_numeric: */
+/*   scm_reader_shift_char(lexer->reader); */
+/*   scm_lexer_push_char(lexer, current); */
+/*   lexer->token_type = SCM_TOKEN_TYPE_IDENTIFIER; */
+/*   return LEXER_STATE_IDENTIFIER; */
+/* } */
 
 static int
 scm_lexer_tokenize_numeric(ScmLexer *lexer)
 {
+  /* TODO: write appropriate implementation  */
+
   int current;
 
   assert(lexer != NULL);
   //  return scm_lexer_tokenize_number(lexer, '\0', '\0');
 
   current = scm_reader_head_char(lexer->reader);
-  while (isxdigit(current)) {
+  while (isdigit(current)) {
     scm_reader_shift_char(lexer->reader);
     scm_lexer_push_char(lexer, current);
     current = scm_reader_head_char(lexer->reader);
   }
 
-  scm_lexer_set_token_type(lexer, SCM_TOKEN_TYPE_NUMERIC);
-  return LEXER_STATE_DONE;
+  if ( ! isspace(current))
+    return LEXER_STATE_IDENTIFIER;
+  else {
+    scm_lexer_set_token_type(lexer, SCM_TOKEN_TYPE_NUMERIC);
+    return LEXER_STATE_DONE;
+  }
 }
 
 static void
