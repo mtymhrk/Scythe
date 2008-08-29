@@ -72,26 +72,19 @@ static int
 read_line_from_string(ScmIBuffer *ibuffer, char *buffer, size_t size)
 {
   ScmStringIBuffer *str_ibuffer = (ScmStringIBuffer *)ibuffer;
-  const char *tail;
-  size_t readlen;
+  int i;
 
   assert(str_ibuffer != NULL);
 
-  tail = strchr(str_ibuffer->ptr, '\n');
-  if (tail == NULL)
-    tail = str_ibuffer->string + str_ibuffer->len;
-  else
-    tail++;
+  for (i = 0; i < size - 1 && str_ibuffer->ptr[i] != '\n'; i++)
+     buffer[i] = str_ibuffer->ptr[i];
 
-  readlen = str_ibuffer->ptr - tail;
-  if (readlen >= size)
-    readlen = size - 1;
+  if (i < size - 1) buffer[i] = str_ibuffer->ptr[i++];
 
-  strncpy(buffer, str_ibuffer->ptr, readlen);
-  buffer[readlen] = '\0';
-  str_ibuffer->ptr += readlen;
+  buffer[i] = '\0';
+  str_ibuffer->ptr += i;
 
-  return readlen;
+  return i;
 }
 
 static int
@@ -101,7 +94,7 @@ read_char_from_string(ScmIBuffer *ibuffer)
 
   assert(str_ibuffer != NULL);
 
-  if (str_ibuffer->string - str_ibuffer->ptr >= str_ibuffer->len)
+  if (str_ibuffer->ptr - str_ibuffer->string >= str_ibuffer->len)
     return EOF;
 
   return (int)(*str_ibuffer->ptr++);
@@ -112,7 +105,7 @@ is_string_eof(ScmIBuffer *ibuffer)
 {
   ScmStringIBuffer *str_ibuffer = (ScmStringIBuffer *)ibuffer;
   assert(str_ibuffer != NULL);
-  return (str_ibuffer->string - str_ibuffer->ptr >= str_ibuffer->len) ? true : false;
+  return (str_ibuffer->ptr - str_ibuffer->string >= str_ibuffer->len) ? true : false;
 }
 
 static void
@@ -166,25 +159,21 @@ scm_ibuffer_chuck_off_char(ScmIBuffer* ibuffer)
 static int
 scm_ibuffer_access(ScmIBuffer *ibuffer, size_t index)
 {
-  size_t offset;
-
   assert(ibuffer != NULL);
 
-  if (ibuffer->head + index >= ibuffer->used) {
+  while (ibuffer->head + index >= ibuffer->used) {
+    int len;
+
     if (ibuffer->is_eof(ibuffer)) return EOF;
 
     scm_ibuffer_chuck_off_char(ibuffer);
     scm_ibuffer_normalize_buffer(ibuffer, index + 1);
-    ibuffer->readline(ibuffer, (char *)ibuffer->buffer + ibuffer->used,
-                     ibuffer->size - ibuffer->used);
-    ibuffer->used = strlen((char *)ibuffer->buffer);
+    len = ibuffer->readline(ibuffer, (char *)ibuffer->buffer + ibuffer->used,
+                      ibuffer->size - ibuffer->used);
+    ibuffer->used += len;
   }
 
-  offset = ibuffer->head + index;
-  if (offset >= ibuffer->used)
-    return EOF;
-  else
-    return ibuffer->buffer[offset];
+  return ibuffer->buffer[ibuffer->head + index];
 }
 
 static void

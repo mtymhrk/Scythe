@@ -10,8 +10,9 @@ TEST_CASE_LIB_DIR = .lib
 include $(TEST_TARGET_DIR)/Makefile.sources
 
 TEST_TARGET_SRC = $(addprefix $(TEST_TARGET_DIR)/, $(SOURCES))
-TEST_CASE_SRC = test_pair.c test_string.c test_symbol.c test_nil.c test_hash.c \
-                test_integer.c test_pretty_print.c test_basiclist.c
+TEST_CASE_SRC = test_pair.c test_string.c test_symbol.c test_nil.c \
+                test_hash.c test_integer.c test_pretty_print.c \
+                test_basiclist.c test_ibuffer.c
 TEST_TARGET_OBJ = $(TEST_TARGET_SRC:.c=.o) 
 TEST_CASE_OBJ = $(TEST_CASE_SRC:.c=.o) 
 TEST_CASE_LIB = $(TEST_CASE_SRC:.c=.so)
