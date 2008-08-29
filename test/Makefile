@@ -22,7 +22,7 @@ all: $(TEST_CASE_LIB)
 
 test_pair.so : test_pair.o $(TEST_TARGET_OBJ)
 test_string.so : test_string.o $(TEST_TARGET_OBJ)
-test_symbol.so : test_symbol.o main.o $(TEST_TARGET_OBJ)
+test_symbol.so : test_symbol.o $(TEST_TARGET_OBJ)
 test_nil.so : test_nil.o $(TEST_TARGET_OBJ)
 test_hash.so : test_hash.o $(TEST_TARGET_OBJ)
 test_integer.so : test_integer.o $(TEST_TARGET_OBJ)
