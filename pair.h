@@ -5,7 +5,7 @@
 
 typedef struct ScmPairRec ScmPair;
 
-#define SCM_PAIR(ojb) ((ScmPair *)(obj))
+#define SCM_PAIR(obj) ((ScmPair *)(obj))
 
 #include "object.h"
 

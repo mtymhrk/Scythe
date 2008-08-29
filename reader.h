@@ -6,6 +6,7 @@
 typedef struct ScmReaderRec ScmReader;
 
 ScmReader *scm_reader_construct(FILE *input);
+ScmReader *scm_reader_construct_from_string(const char *string);
 int scm_reader_head_char(ScmReader *reader);
 int scm_reader_forecast(ScmReader *reader, size_t look_ahead);
 void scm_reader_shift_char(ScmReader *reader);
