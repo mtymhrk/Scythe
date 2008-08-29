@@ -8,22 +8,5 @@ symbol.o: ../symbol.c ../memory.h ../object.h ../printer.h ../hash.h \
   ../symbol.h
 hash.o: ../hash.c ../memory.h ../hash.h
 integer.o: ../integer.c ../memory.h ../object.h ../printer.h ../integer.h
-reader.o: ../reader.c ../memory.h ../reader.h
-parser.o: ../parser.c ../memory.h ../basiclist.h ../reader.h ../parser.h
+ibuffer.o: ../ibuffer.c ../memory.h ../ibuffer.h
 basiclist.o: ../basiclist.c ../memory.h ../basiclist.h
-main.o: main.c
-test_pair.o: test_pair.c ../object.h ../printer.h ../nil.h ../pair.h \
-  ../object.h
-test_string.o: test_string.c ../object.h ../printer.h ../nil.h \
-  ../string.h ../object.h
-test_symbol.o: test_symbol.c ../object.h ../printer.h ../nil.h \
-  ../symbol.h ../object.h
-test_nil.o: test_nil.c ../object.h ../printer.h ../pair.h ../object.h \
-  ../nil.h
-test_hash.o: test_hash.c ../hash.h
-test_integer.o: test_integer.c ../object.h ../printer.h ../nil.h \
-  ../integer.h
-test_pretty_print.o: test_pretty_print.c ../object.h ../printer.h \
-  ../nil.h ../integer.h ../string.h ../object.h ../symbol.h ../pair.h \
-  ../printer.h
-test_basiclist.o: test_basiclist.c ../basiclist.h

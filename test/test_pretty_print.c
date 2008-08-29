@@ -1,4 +1,4 @@
-#include <CUnit/CUnit.h>
+#include <cutter.h>
 
 #include "object.h"
 #include "nil.h"
@@ -15,7 +15,7 @@ test_pretty_print_nil(void)
   ScmObj nil = SCM_OBJ(scm_nil_instance());
 
   scm_printer_pretty_print_scm_obj(printer, nil, SCM_PRINTER_MODE_CLEAR);
-  CU_ASSERT_STRING_EQUAL("()", scm_printer_buffer(printer));
+  cut_assert_equal_string("()", scm_printer_buffer(printer));
 }
 
 void
@@ -25,7 +25,7 @@ test_pretty_print_integer(void)
   ScmObj integer = SCM_OBJ(scm_integer_construct(100));
 
   scm_printer_pretty_print_scm_obj(printer, integer, SCM_PRINTER_MODE_CLEAR);
-  CU_ASSERT_STRING_EQUAL("100", scm_printer_buffer(printer));
+  cut_assert_equal_string("100", scm_printer_buffer(printer));
 }
 
 void
@@ -35,7 +35,7 @@ test_pretty_print_string(void)
   ScmObj string = SCM_OBJ(scm_string_construct("abc\\def"));
 
   scm_printer_pretty_print_scm_obj(printer, string, SCM_PRINTER_MODE_CLEAR);
-  CU_ASSERT_STRING_EQUAL("\"abc\\\\def\"", scm_printer_buffer(printer));
+  cut_assert_equal_string("\"abc\\\\def\"", scm_printer_buffer(printer));
 }
 
 void
@@ -45,7 +45,7 @@ test_pretty_print_symbol(void)
   ScmObj symbol = SCM_OBJ(scm_symbol_instance("abc\\def"));
 
   scm_printer_pretty_print_scm_obj(printer, symbol, SCM_PRINTER_MODE_CLEAR);
-  CU_ASSERT_STRING_EQUAL("abc\\def", scm_printer_buffer(printer));
+  cut_assert_equal_string("abc\\def", scm_printer_buffer(printer));
 }
 
 void
@@ -57,7 +57,7 @@ test_pretty_print_perfect_list(void)
   ScmObj pair = SCM_OBJ(scm_pair_construct(car, cdr));
 
   scm_printer_pretty_print_scm_obj(printer, pair, SCM_PRINTER_MODE_CLEAR);
-  CU_ASSERT_STRING_EQUAL("(abc)", scm_printer_buffer(printer));
+  cut_assert_equal_string("(abc)", scm_printer_buffer(printer));
 }
 
 void
@@ -69,7 +69,7 @@ test_pretty_print_imperfect_list(void)
   ScmObj pair = SCM_OBJ(scm_pair_construct(car, cdr));
 
   scm_printer_pretty_print_scm_obj(printer, pair, SCM_PRINTER_MODE_CLEAR);
-  CU_ASSERT_STRING_EQUAL("(abc . def)", scm_printer_buffer(printer));
+  cut_assert_equal_string("(abc . def)", scm_printer_buffer(printer));
 }
 
 void
@@ -83,26 +83,5 @@ test_pretty_print_nesting_list(void)
   ScmObj pair2 = SCM_OBJ(scm_pair_construct(pair1, cdr));
 
   scm_printer_pretty_print_scm_obj(printer, pair2, SCM_PRINTER_MODE_CLEAR);
-  CU_ASSERT_STRING_EQUAL("((abc) . def)", scm_printer_buffer(printer));
-}
-
-CU_ErrorCode
-register_test_case(void)
-{
-  CU_TestInfo testcases[] = {
-    { "Pretty Print NIL", test_pretty_print_nil },
-    { "Pretty Print INTEGER", test_pretty_print_integer },
-    { "Pretty Print STRING", test_pretty_print_string },
-    { "Pretty Print SYMBOL", test_pretty_print_symbol },
-    { "Pretty Print Imperfect LIST", test_pretty_print_imperfect_list },
-    { "Pretty Print Perfect LIST", test_pretty_print_perfect_list },
-    { "Pretty Print Nesting LIST", test_pretty_print_nesting_list },
-    CU_TEST_INFO_NULL
-  };
-  CU_SuiteInfo suites[] = {
-    {"Pretty Print", NULL, NULL, testcases},
-    CU_SUITE_INFO_NULL
-  };
- 
-  return  CU_register_suites(suites);
+  cut_assert_equal_string("((abc) . def)", scm_printer_buffer(printer));
 }

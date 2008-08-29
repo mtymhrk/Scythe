@@ -5,7 +5,7 @@
 
 #include "memory.h"
 #include "basiclist.h"
-#include "reader.h"
+#include "ibuffer.h"
 #include "parser.h"
 
 extern int isblank(int c);
@@ -15,7 +15,7 @@ struct ScmParserRec {
 };
 
 struct ScmLexerRec {
-  ScmReader *reader;
+  ScmIBuffer *ibuffer;
   unsigned char *buffer;
   size_t buf_size;
   size_t buf_used;
@@ -141,25 +141,25 @@ scm_lexer_tokenize_kick_off(ScmLexer *lexer)
 
   assert(lexer != NULL);
 
-  current = scm_reader_head_char(lexer->reader);
+  current = scm_ibuffer_head_char(lexer->ibuffer);
 
   if (current == EOF) {
     scm_lexer_set_token_type(lexer, SCM_TOKEN_TYPE_EOF);
     state = LEXER_STATE_DONE;
   }
   else if (isblank(current)) {
-    scm_reader_shift_char(lexer->reader);
+    scm_ibuffer_shift_char(lexer->ibuffer);
     state = LEXER_STATE_DISREGARD;
   }
   else if ((p = strchr(one_char_token_chars, current))) {
-    scm_reader_shift_char(lexer->reader);
+    scm_ibuffer_shift_char(lexer->ibuffer);
     scm_lexer_push_char(lexer, current);
     scm_lexer_set_token_type(lexer,
 			     one_char_token_types[p - one_char_token_chars]);
     state = LEXER_STATE_DONE;
   }
   else if (IS_IDENTIFIER_START_CHAR(current)) {
-    scm_reader_shift_char(lexer->reader);
+    scm_ibuffer_shift_char(lexer->ibuffer);
     scm_lexer_push_char(lexer, current);
     state = LEXER_STATE_IDENTIFIER;
   }
@@ -173,14 +173,14 @@ scm_lexer_tokenize_kick_off(ScmLexer *lexer)
   else {
     switch (current) {
     case ';':
-      scm_reader_shift_char(lexer->reader);
+      scm_ibuffer_shift_char(lexer->ibuffer);
       state = LEXER_STATE_COMMENT;
       break;
     case ',':
-      scm_reader_shift_char(lexer->reader);
+      scm_ibuffer_shift_char(lexer->ibuffer);
       scm_lexer_push_char(lexer, current);
-      if (scm_reader_head_char(lexer->reader) == '@') {
-	scm_reader_shift_char(lexer->reader);
+      if (scm_ibuffer_head_char(lexer->ibuffer) == '@') {
+	scm_ibuffer_shift_char(lexer->ibuffer);
 	scm_lexer_push_char(lexer, '@');
 	scm_lexer_set_token_type(lexer, SCM_TOKEN_TYPE_UNQUOTE_SPLICING);
       }
@@ -190,12 +190,12 @@ scm_lexer_tokenize_kick_off(ScmLexer *lexer)
       state = LEXER_STATE_DONE;
       break;
     case '#':
-      scm_reader_shift_char(lexer->reader);
+      scm_ibuffer_shift_char(lexer->ibuffer);
       scm_lexer_push_char(lexer, current);
       state = LEXER_STATE_NUMBER_SIGN;
       break;
     case '"':
-      scm_reader_shift_char(lexer->reader);
+      scm_ibuffer_shift_char(lexer->ibuffer);
       /* scm_lexer_push_char(lexer, current); */
       state = LEXER_STATE_STRING;
       break;
@@ -215,10 +215,10 @@ scm_lexer_tokenize_identifier(ScmLexer *lexer)
 
   assert(lexer != NULL);
 
-  current = scm_reader_head_char(lexer->reader);
+  current = scm_ibuffer_head_char(lexer->ibuffer);
 
   if (IS_IDENTIFIER_FOLLOW_ON_CHAR(current)) {
-    scm_reader_shift_char(lexer->reader);
+    scm_ibuffer_shift_char(lexer->ibuffer);
     scm_lexer_push_char(lexer, current);
     return LEXER_STATE_IDENTIFIER;
   }
@@ -235,8 +235,8 @@ scm_lexer_tokenize_comment(ScmLexer *lexer)
 
   assert(lexer != NULL);
 
-  current = scm_reader_head_char(lexer->reader);
-  scm_reader_shift_char(lexer->reader);
+  current = scm_ibuffer_head_char(lexer->ibuffer);
+  scm_ibuffer_shift_char(lexer->ibuffer);
 
   if (IS_LINE_FEED(current)) {
     /* TODO: write process for line feed */
@@ -257,7 +257,7 @@ scm_lexer_tokenize_number_sign(ScmLexer *lexer)
 
   assert(lexer != NULL);
 
-  current = scm_reader_head_char(lexer->reader);
+  current = scm_ibuffer_head_char(lexer->ibuffer);
 
   switch (tolower(current)) {
   case 't':
@@ -281,7 +281,7 @@ scm_lexer_tokenize_number_sign(ScmLexer *lexer)
   }
 
   if (state != LEXER_STATE_NUMERIC) {
-    scm_reader_shift_char(lexer->reader);
+    scm_ibuffer_shift_char(lexer->ibuffer);
     scm_lexer_push_char(lexer, current);
   }
 
@@ -295,8 +295,8 @@ scm_lexer_tokenize_string(ScmLexer *lexer)
 
   assert(lexer != NULL);
 
-  current = scm_reader_head_char(lexer->reader);
-  scm_reader_shift_char(lexer->reader);
+  current = scm_ibuffer_head_char(lexer->ibuffer);
+  scm_ibuffer_shift_char(lexer->ibuffer);
 
   if (current == '"') {
     scm_lexer_set_token_type(lexer, SCM_TOKEN_TYPE_STRING);
@@ -307,8 +307,8 @@ scm_lexer_tokenize_string(ScmLexer *lexer)
   }
 
   if (current == '\\') {
-    current = scm_reader_head_char(lexer->reader);
-    scm_reader_shift_char(lexer->reader);
+    current = scm_ibuffer_head_char(lexer->ibuffer);
+    scm_ibuffer_shift_char(lexer->ibuffer);
   }
 
   scm_lexer_push_char(lexer, current);
@@ -324,15 +324,15 @@ scm_lexer_tokenize_char(ScmLexer *lexer)
   
   assert(lexer != NULL);
 
-  current = scm_reader_head_char(lexer->reader);
-  scm_reader_shift_char(lexer->reader);
+  current = scm_ibuffer_head_char(lexer->ibuffer);
+  scm_ibuffer_shift_char(lexer->ibuffer);
   scm_lexer_push_char(lexer, current);
 
-  current = scm_reader_head_char(lexer->reader);
+  current = scm_ibuffer_head_char(lexer->ibuffer);
   while (strchr(terminations, current) != NULL || current != EOF) {
-    scm_reader_shift_char(lexer->reader);
+    scm_ibuffer_shift_char(lexer->ibuffer);
     scm_lexer_push_char(lexer, current);
-    current = scm_reader_head_char(lexer->reader);
+    current = scm_ibuffer_head_char(lexer->ibuffer);
   }
 
   scm_lexer_set_token_type(lexer, SCM_TOKEN_TYPE_CHAR);
@@ -367,15 +367,15 @@ scm_lexer_tokenize_char(ScmLexer *lexer)
 /*   assert(charset != NULL && *charset != NULL); */
 
 /*   nr_shift = 0; */
-/*   current = scm_reader_head_char(lexer->reader); */
+/*   current = scm_ibuffer_head_char(lexer->ibuffer); */
 /*   while (strchr(*charset, current) != NULL) { */
 /*     if (strchr(NUMERIC_INDEX_MARKER_CHARS, current) != NULL && */
-/*         strchr("+-", scm_reader_forecast(lexer->reader, 1)) != NULL) */
+/*         strchr("+-", scm_ibuffer_forecast(lexer->ibuffer, 1)) != NULL) */
 /*       return nr_shift; */
 
 /*     if (current == '#') *charset = "#"; */
 /*     scm_lexer_push_char(lexer, current); */
-/*     scm_reader_shift_char(lexer->reader); */
+/*     scm_ibuffer_shift_char(lexer->ibuffer); */
 /*     nr_shift++; */
 /*   } */
 
@@ -396,7 +396,7 @@ scm_lexer_tokenize_char(ScmLexer *lexer)
 
 /*   nr_shift = scm_lexer_tokenize_numeric_unsigned_integer(lexer, &charset); */
 
-/*   current = scm_reader_head_char(lexer->reader); */
+/*   current = scm_ibuffer_head_char(lexer->ibuffer); */
 /*   if (current == '/' && nr_shift) { */
 /*   } */
 /*   if (current == '.') { */
@@ -415,11 +415,11 @@ scm_lexer_tokenize_char(ScmLexer *lexer)
 
 /*   assert(lexer != NULL); */
 
-/*   current = scm_reader_head_char(lexer->reader); */
+/*   current = scm_ibuffer_head_char(lexer->ibuffer); */
 
 /*   sign = '\0'; */
 /*   if (strchr("+-", current) != NULL) { */
-/*     scm_reader_shift_char(lexer->reader); */
+/*     scm_ibuffer_shift_char(lexer->ibuffer); */
 /*     scm_lexer_push_char(lexer, current); */
 /*     sign = current; */
 /*   } */
@@ -463,31 +463,31 @@ scm_lexer_tokenize_char(ScmLexer *lexer)
 /*   assert(cardinal == '\0' || strchr("bodx", cardinal) != NULL); */
 /*   assert(strict == '\0' || strchr("ie", strict) != NULL); */
   
-/*   current = scm_reader_head_char(lexer->reader); */
+/*   current = scm_ibuffer_head_char(lexer->ibuffer); */
 
 /*   if (strchr("bodx", current) != NULL) { // cardinal */
 /*     if (cardinal == '\0') { */
-/*       scm_reader_shift_char(lexer->reader); */
+/*       scm_ibuffer_shift_char(lexer->ibuffer); */
 /*       scm_lexer_push_char(lexer, current); */
 /*       cardinal = current; */
-/*       current = scm_reader_head_char(lexer->reader);   */
+/*       current = scm_ibuffer_head_char(lexer->ibuffer);   */
 /*     } */
 /*     else */
 /*       goto not_numeric; */
 /*   } */
 /*   else if (strchr("ie", current) != NULL) { // strictness */
 /*     if (strict == '\0') { */
-/*       scm_reader_shift_char(lexer->reader); */
+/*       scm_ibuffer_shift_char(lexer->ibuffer); */
 /*       scm_lexer_push_char(lexer, current); */
 /*       strict = current; */
-/*       current = scm_reader_head_char(lexer->reader);   */
+/*       current = scm_ibuffer_head_char(lexer->ibuffer);   */
 /*     } */
 /*     else */
 /*       goto not_numeric; */
 /*   } */
 
 /*   if (current == '#') { */
-/*     scm_reader_shift_char(lexer->reader); */
+/*     scm_ibuffer_shift_char(lexer->ibuffer); */
 /*     scm_lexer_push_char(lexer, current); */
 /*     return scm_lexer_tokenize_numeric_start(lexer, cardinal, strict); */
 /*   } */
@@ -496,7 +496,7 @@ scm_lexer_tokenize_char(ScmLexer *lexer)
 /* 					      cardinal2charset(cardinal)); */
 
 /*  not_numeric: */
-/*   scm_reader_shift_char(lexer->reader); */
+/*   scm_ibuffer_shift_char(lexer->ibuffer); */
 /*   scm_lexer_push_char(lexer, current); */
 /*   lexer->token_type = SCM_TOKEN_TYPE_IDENTIFIER; */
 /*   return LEXER_STATE_IDENTIFIER; */
@@ -512,11 +512,11 @@ scm_lexer_tokenize_numeric(ScmLexer *lexer)
   assert(lexer != NULL);
   //  return scm_lexer_tokenize_number(lexer, '\0', '\0');
 
-  current = scm_reader_head_char(lexer->reader);
+  current = scm_ibuffer_head_char(lexer->ibuffer);
   while (isdigit(current)) {
-    scm_reader_shift_char(lexer->reader);
+    scm_ibuffer_shift_char(lexer->ibuffer);
     scm_lexer_push_char(lexer, current);
-    current = scm_reader_head_char(lexer->reader);
+    current = scm_ibuffer_head_char(lexer->ibuffer);
   }
 
   if ( ! isspace(current))
@@ -592,14 +592,14 @@ scm_lexer_tokenize(ScmLexer *lexer)
 
 
 ScmLexer *
-scm_lexer_construct(ScmReader *reader)
+scm_lexer_construct(ScmIBuffer *ibuffer)
 {
   ScmLexer *lexer;
 
-  assert(reader != NULL);
+  assert(ibuffer != NULL);
 
   lexer = scm_memory_allocate(sizeof(ScmLexer));
-  lexer->reader = reader;
+  lexer->ibuffer = ibuffer;
   lexer->tokens = scm_basic_list_construct();
   scm_lexer_state_clear(lexer);
 
