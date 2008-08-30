@@ -8,5 +8,5 @@ symbol.o: symbol.c memory.h object.h printer.h hash.h symbol.h
 hash.o: hash.c memory.h hash.h
 integer.o: integer.c memory.h object.h printer.h integer.h
 ibuffer.o: ibuffer.c memory.h ibuffer.h
-parser.o: parser.c memory.h basiclist.h ibuffer.h parser.h
 basiclist.o: basiclist.c memory.h basiclist.h
+parser.o: parser.c memory.h basiclist.h ibuffer.h parser.h

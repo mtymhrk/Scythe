@@ -81,7 +81,7 @@ scm_lexer_expand_buffer_if_needed(ScmLexer *lexer, size_t needed_size)
   for (new_size = lexer->buf_size; new_size < needed_size; new_size *= 2)
     ;
 
-  if (new_size > lexer->buf_size) {
+  if (new_size > lexer->buf_size || lexer->buffer == NULL) {
     new_buffer = (unsigned char *)(scm_memory_allocate(new_size));
     if (lexer->buffer != NULL) {
       memcpy(new_buffer, lexer->buffer, lexer->buf_used + 1);
@@ -289,6 +289,27 @@ scm_lexer_tokenize_number_sign(ScmLexer *lexer)
 }
 
 static int
+scm_lexer_tokenize_string_escaped(ScmLexer *lexer)
+{
+  const char *control_chars_escape = "abtnvfr";
+  const char *control_chars = "\a\b\t\n\v\f\r";
+  int current;
+  char *p;
+
+  assert(lexer != NULL);
+
+  current = scm_ibuffer_head_char(lexer->ibuffer);
+  scm_ibuffer_shift_char(lexer->ibuffer);
+
+  if ((p = strchr(control_chars_escape, current)))
+    scm_lexer_push_char(lexer, control_chars[p - control_chars_escape]);
+  else
+    scm_lexer_push_char(lexer, current);
+
+  return LEXER_STATE_STRING;
+}
+
+static int
 scm_lexer_tokenize_string(ScmLexer *lexer)
 {
   int current;
@@ -305,11 +326,8 @@ scm_lexer_tokenize_string(ScmLexer *lexer)
   else if (current == EOF) {
     return LEXER_STATE_ERROR;
   }
-
-  if (current == '\\') {
-    current = scm_ibuffer_head_char(lexer->ibuffer);
-    scm_ibuffer_shift_char(lexer->ibuffer);
-  }
+  else if (current == '\\')
+    return scm_lexer_tokenize_string_escaped(lexer);
 
   scm_lexer_push_char(lexer, current);
 
@@ -329,7 +347,8 @@ scm_lexer_tokenize_char(ScmLexer *lexer)
   scm_lexer_push_char(lexer, current);
 
   current = scm_ibuffer_head_char(lexer->ibuffer);
-  while (strchr(terminations, current) != NULL || current != EOF) {
+  while (strchr(terminations, current) != NULL &&
+         !isspace(current) && current != EOF ) {
     scm_ibuffer_shift_char(lexer->ibuffer);
     scm_lexer_push_char(lexer, current);
     current = scm_ibuffer_head_char(lexer->ibuffer);
@@ -519,11 +538,12 @@ scm_lexer_tokenize_numeric(ScmLexer *lexer)
     current = scm_ibuffer_head_char(lexer->ibuffer);
   }
 
-  if ( ! isspace(current))
-    return LEXER_STATE_IDENTIFIER;
-  else {
+  if (current == EOF || isspace(current)) {
     scm_lexer_set_token_type(lexer, SCM_TOKEN_TYPE_NUMERIC);
     return LEXER_STATE_DONE;
+  }
+  else {
+    return LEXER_STATE_IDENTIFIER;
   }
 }
 
@@ -550,7 +570,7 @@ scm_lexer_tokenize(ScmLexer *lexer)
   assert(lexer->token_type == SCM_TOKEN_TYPE_NONE);
 
   state = LEXER_STATE_KICK_OFF;
-  while (state != LEXER_STATE_DONE || state != LEXER_STATE_ERROR) {
+  while (state != LEXER_STATE_DONE && state != LEXER_STATE_ERROR) {
     switch (state) {
     case LEXER_STATE_KICK_OFF:
     case LEXER_STATE_DISREGARD:

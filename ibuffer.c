@@ -72,14 +72,21 @@ static int
 read_line_from_string(ScmIBuffer *ibuffer, char *buffer, size_t size)
 {
   ScmStringIBuffer *str_ibuffer = (ScmStringIBuffer *)ibuffer;
-  int i;
+  size_t i;
 
   assert(str_ibuffer != NULL);
 
-  for (i = 0; i < size - 1 && str_ibuffer->ptr[i] != '\n'; i++)
-     buffer[i] = str_ibuffer->ptr[i];
+  for (i = 0; i < size - 1; i++) {
+    if (str_ibuffer->ptr[i] != '\n') break;
+    if (str_ibuffer->ptr[i] != '\0') break;
 
-  if (i < size - 1) buffer[i] = str_ibuffer->ptr[i++];
+     buffer[i] = str_ibuffer->ptr[i];
+  }
+
+  if (i < size - 1) {
+    buffer[i] = str_ibuffer->ptr[i];
+    i++;
+  }
 
   buffer[i] = '\0';
   str_ibuffer->ptr += i;
