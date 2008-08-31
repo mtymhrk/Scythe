@@ -51,6 +51,8 @@ scm_basic_list_pop(ScmBasicList *list)
   assert(list != NULL);
 
   if (list->tail != NULL) {
+    ScmBasicListEntry *p = list->tail;
+
     if (list->tail == list->head) {
       list->head = list->tail = NULL;
     }
@@ -58,6 +60,7 @@ scm_basic_list_pop(ScmBasicList *list)
       list->tail = list->tail->before;
       list->tail->next = NULL;
     }
+    scm_memory_release(p);
     list->length--;
   }
 }
@@ -91,6 +94,8 @@ scm_basic_list_shift(ScmBasicList *list)
   assert(list != NULL);
   
   if (list->head != NULL) {
+    ScmBasicListEntry *p = list->head;
+
     if (list->head == list->tail) {
       list->head = list->tail = NULL;
     }
@@ -98,6 +103,7 @@ scm_basic_list_shift(ScmBasicList *list)
       list->head = list->head->next;
       list->head->before = NULL;
     }
+    scm_memory_release(p);
     list->length--;
   }
 }
@@ -136,3 +142,22 @@ scm_basic_list_construct()
   return list;
 }
 
+
+void
+scm_basic_list_cleanup(ScmBasicList *list)
+{
+  ScmBasicListEntry *p;
+
+  assert(list != NULL);
+
+  p = list->head;
+  while (p != NULL) {
+    ScmBasicListEntry *next = p->next;
+    scm_memory_release(p);
+    p = next;
+  }
+
+  list->head = NULL;
+  list->tail = NULL;
+  list->length = 0;
+}
