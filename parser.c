@@ -54,7 +54,7 @@ struct ScmTokenRec {
 
 typedef enum {
   LEXER_STATE_DONE,
-  LEXER_STATE_KICK_OFF,
+  LEXER_STATE_INIT,
   LEXER_STATE_DISREGARD,
   LEXER_STATE_IDENTIFIER,
   LEXER_STATE_NUMERIC,
@@ -130,7 +130,7 @@ scm_lexer_buffer(ScmLexer *lexer)
 }
 
 static int
-scm_lexer_tokenize_kick_off(ScmLexer *lexer)
+scm_lexer_tokenize_init(ScmLexer *lexer)
 {
   const char *one_char_token_chars = "().'`";
   const SCM_TOKEN_TYPE_T one_char_token_types[] =
@@ -569,12 +569,12 @@ scm_lexer_tokenize(ScmLexer *lexer)
   assert(lexer->buf_used == 0);
   assert(lexer->token_type == SCM_TOKEN_TYPE_NONE);
 
-  state = LEXER_STATE_KICK_OFF;
+  state = LEXER_STATE_INIT;
   while (state != LEXER_STATE_DONE && state != LEXER_STATE_ERROR) {
     switch (state) {
-    case LEXER_STATE_KICK_OFF:
+    case LEXER_STATE_INIT:
     case LEXER_STATE_DISREGARD:
-      state = scm_lexer_tokenize_kick_off(lexer);
+      state = scm_lexer_tokenize_init(lexer);
       break;
     case LEXER_STATE_IDENTIFIER:
       state = scm_lexer_tokenize_identifier(lexer);
