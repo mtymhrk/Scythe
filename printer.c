@@ -155,3 +155,12 @@ scm_printer_construct(FILE *output)
 
   return printer;
 }
+
+void
+scm_printer_destruct(ScmPrinter *printer)
+{
+  assert(printer != NULL);
+
+  scm_memory_release(printer->buffer);
+  scm_memory_release(printer);
+}

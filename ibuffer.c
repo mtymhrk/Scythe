@@ -217,6 +217,15 @@ scm_ibuffer_construct(FILE *input)
   return (ScmIBuffer *)ibuffer;
 }
 
+void
+scm_ibuffer_destruct(ScmIBuffer *ibuffer)
+{
+  assert(ibuffer != ibuffer);
+
+  scm_memory_release(ibuffer->buffer);
+  scm_memory_release(ibuffer);
+}
+
 ScmIBuffer *
 scm_ibuffer_construct_from_string(const char *string)
 {

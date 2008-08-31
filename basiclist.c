@@ -129,20 +129,6 @@ scm_basic_list_length(ScmBasicList *list)
   return list->length;
 }
 
-ScmBasicList *
-scm_basic_list_construct()
-{
-  ScmBasicList *list;
-
-  list = scm_memory_allocate(sizeof(ScmBasicList));
-  list->head = NULL;
-  list->tail = NULL;
-  list->length = 0;
-
-  return list;
-}
-
-
 void
 scm_basic_list_cleanup(ScmBasicList *list)
 {
@@ -160,4 +146,26 @@ scm_basic_list_cleanup(ScmBasicList *list)
   list->head = NULL;
   list->tail = NULL;
   list->length = 0;
+}
+
+ScmBasicList *
+scm_basic_list_construct()
+{
+  ScmBasicList *list;
+
+  list = scm_memory_allocate(sizeof(ScmBasicList));
+  list->head = NULL;
+  list->tail = NULL;
+  list->length = 0;
+
+  return list;
+}
+
+void
+scm_basic_list_destruct(ScmBasicList *list)
+{
+  assert(list != NULL);
+
+  scm_basic_list_cleanup(list);
+  scm_memory_release(list);
 }

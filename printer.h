@@ -22,5 +22,6 @@ size_t scm_printer_length(ScmPrinter *printer);
 void scm_printer_copy_buffer(ScmPrinter *printer, char *dst, size_t len);
 char *scm_printer_buffer(ScmPrinter *printer);
 ScmPrinter *scm_printer_construct(FILE *output);
+void scm_printer_destruct(ScmPrinter *printer);
 
 #endif /* INCLUDE_PRINTER_H__ */
