@@ -5,7 +5,7 @@
 #include "memory.h"
 #include "object.h"
 #include "printer.h"
-#include "hash.h"
+#include "basichash.h"
 #include "symbol.h"
 
 #define SCM_SYMBOL_TABLE_SIZE 256
@@ -16,7 +16,7 @@ struct ScmSymbolRec {
   size_t length;
 };
 
-static ScmHashTable *symbol_table = NULL;
+static ScmBasicHashTable *symbol_table = NULL;
 
 static void
 scm_symbol_pretty_print(ScmObj obj, ScmPrinter *printer)
@@ -28,7 +28,7 @@ scm_symbol_pretty_print(ScmObj obj, ScmPrinter *printer)
 }
 
 static unsigned int
-scm_symbol_table_hash_func(ScmHashKey key)
+scm_symbol_table_hash_func(ScmBasicHashKey key)
 {
   char *name = (char *)key;
   unsigned int hash;
@@ -44,7 +44,7 @@ scm_symbol_table_hash_func(ScmHashKey key)
 }
 
 static bool
-scm_symbol_table_comp_func(ScmHashKey key1, ScmHashKey key2)
+scm_symbol_table_comp_func(ScmBasicHashKey key1, ScmBasicHashKey key2)
 {
   char *name1 = (char *)key1;
   char *name2 = (char *)key2;
@@ -95,20 +95,21 @@ scm_symbol_is_symbol(ScmObj obj)
 ScmSymbol *
 scm_symbol_instance(const char *name)
 {
-  ScmHashEntry *entry;
+  ScmBasicHashEntry *entry;
   ScmSymbol *symbol;
 
   if (symbol_table == NULL)
-    symbol_table = scm_hash_construct(SCM_SYMBOL_TABLE_SIZE,
-				      scm_symbol_table_hash_func,
-				      scm_symbol_table_comp_func);
+    symbol_table = scm_basic_hash_construct(SCM_SYMBOL_TABLE_SIZE,
+                                            scm_symbol_table_hash_func,
+                                            scm_symbol_table_comp_func);
 
-  entry = scm_hash_get(symbol_table, SCM_HASH_KEY(name));
+  entry = scm_basic_hash_get(symbol_table, SCM_BASIC_HASH_KEY(name));
   if (entry == NULL) {
     symbol = scm_symbol_construct(name);
-    scm_hash_put(symbol_table, SCM_HASH_KEY(name), SCM_HASH_VALUE(symbol));
+    scm_basic_hash_put(symbol_table,
+                       SCM_BASIC_HASH_KEY(name), SCM_BASIC_HASH_VALUE(symbol));
   } else 
-    symbol = (ScmSymbol *)SCM_HASH_ENTRY_VALUE(entry);
+    symbol = (ScmSymbol *)SCM_BASIC_HASH_ENTRY_VALUE(entry);
 
   return symbol;
 }
