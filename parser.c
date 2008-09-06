@@ -11,7 +11,7 @@
 extern int isblank(int c);
 
 struct ScmParserRec {
-  int dummy;
+  ScmLexer* lexer;
 };
 
 struct ScmLexerRec {
@@ -637,7 +637,7 @@ scm_lexer_head_token(ScmLexer *lexer)
     scm_lexer_tokenize(lexer);
 
   entry = scm_basic_list_head(lexer->tokens);
-  return (entry != NULL) ? scm_basic_list_entry_value(entry) : NULL;
+  return (entry != NULL) ? SCM_BASIC_LIST_ENTRY_VALUE(entry) : NULL;
 }
 
 void
@@ -693,3 +693,21 @@ scm_token_string(ScmToken *token)
   assert(token != NULL);
   return token->string;
 }
+
+ScmParser *
+scm_parser_construct(ScmLexer *lexer)
+{
+  ScmParser *parser;
+
+  assert(lexer != NULL);
+
+  parser = scm_memory_allocate(sizeof(ScmParser));
+  parser->lexer = lexer;
+
+  return parser;
+}
+
+/* ScmObj */
+/* scm_parser_expression(ScmParser *parser) */
+/* { */
+/* } */

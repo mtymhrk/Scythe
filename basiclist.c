@@ -9,19 +9,6 @@ struct ScmBasicListRec {
   size_t length;
 };
 
-struct ScmBasicListEntryRec {
-  ScmBasicListEntry *next;
-  ScmBasicListEntry *before;
-  ScmBasicListValue value;
-};
-
-ScmBasicListValue
-scm_basic_list_entry_value(ScmBasicListEntry *entry)
-{
-  assert(entry != NULL);
-  return entry->value;
-}
-
 void
 scm_basic_list_push(ScmBasicList *list, ScmBasicListValue value)
 {

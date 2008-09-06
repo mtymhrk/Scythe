@@ -33,5 +33,6 @@ ScmToken *scm_lexer_head_token(ScmLexer *lexer);
 void scm_lexer_push_token(ScmLexer *lexer, ScmToken *token);
 void scm_lexer_shift_token(ScmLexer *lexer);
 void scm_lexer_unshift_token(ScmLexer *lexer, ScmToken *token);
+ScmParser *scm_parser_construct(ScmLexer *lexer);
 
 #endif /* INCLUDE_PARSER_H__ */

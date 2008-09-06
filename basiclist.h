@@ -5,9 +5,16 @@ typedef struct ScmBasicListRec ScmBasicList;
 typedef struct ScmBasicListEntryRec ScmBasicListEntry;
 typedef void *ScmBasicListValue;
 
-#define SCM_BASIC_LIST_VALUE(v) ((ScmBasicListValue)(v))
+struct ScmBasicListEntryRec {
+  ScmBasicListEntry *next;
+  ScmBasicListEntry *before;
+  ScmBasicListValue value;
+};
 
-ScmBasicListValue scm_basic_list_entry_value(ScmBasicListEntry *entry);
+#define SCM_BASIC_LIST_VALUE(v) ((ScmBasicListValue)(v))
+#define SCM_BASIC_LIST_ENTRY_VALUE(entry) ((entry)->value)
+
+
 void scm_basic_list_push(ScmBasicList *list, ScmBasicListValue value);
 void scm_basic_list_pop(ScmBasicList *list);
 void scm_basic_list_unshift(ScmBasicList *list, ScmBasicListValue value);
