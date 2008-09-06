@@ -633,7 +633,10 @@ scm_lexer_head_token(ScmLexer *lexer)
     scm_lexer_tokenize(lexer);
 
   entry = scm_basic_list_head(lexer->tokens);
-  return (entry != NULL) ? SCM_BASIC_LIST_ENTRY_VALUE(entry) : NULL;
+
+  assert(entry != NULL);
+
+  return SCM_BASIC_LIST_ENTRY_VALUE(entry);
 }
 
 void
@@ -648,9 +651,15 @@ scm_lexer_push_token(ScmLexer *lexer, ScmToken *token)
 void
 scm_lexer_shift_token(ScmLexer *lexer)
 {
+  ScmBasicListEntry *entry;
+
   assert(lexer != NULL);
 
-  scm_basic_list_shift(lexer->tokens);
+  if ((entry = scm_basic_list_head(lexer->tokens))) {
+    ScmToken *token = SCM_TOKEN(SCM_BASIC_LIST_ENTRY_VALUE(entry));
+    scm_basic_list_shift(lexer->tokens);
+    scm_token_destruct(token);
+  }
 }
 
 void
@@ -674,6 +683,13 @@ scm_token_construct(SCM_TOKEN_TYPE_T type, unsigned char *string)
   token->string = string;
 
   return token;
+}
+
+void
+scm_token_destruct(ScmToken *token)
+{
+  assert(token != NULL);
+  scm_memory_release(token);
 }
 
 ScmParser *
