@@ -37,6 +37,7 @@ struct ScmTokenRec {
 ScmToken *scm_token_construct(SCM_TOKEN_TYPE_T type, unsigned char *string);
 void scm_token_destruct(ScmToken *token);
 ScmLexer *scm_lexer_construct(ScmIBuffer *reader);
+ScmLexer *scm_lexer_destruct(ScmLexer *lexer);
 ScmToken *scm_lexer_head_token(ScmLexer *lexer);
 void scm_lexer_push_token(ScmLexer *lexer, ScmToken *token);
 void scm_lexer_shift_token(ScmLexer *lexer);

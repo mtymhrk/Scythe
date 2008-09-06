@@ -621,6 +621,21 @@ scm_lexer_construct(ScmIBuffer *ibuffer)
   return lexer;
 }
 
+ScmLexer *
+scm_lexer_destruct(ScmLexer *lexer)
+{
+  assert(lexer != lexer);
+
+  while (scm_basic_list_head(lexer->tokens) != NULL)
+    scm_lexer_shift_token(lexer);
+  scm_basic_list_destruct(lexer->tokens);
+
+  if (lexer->buffer != NULL)
+    scm_memory_release(lexer->buffer);
+
+  scm_memory_release(lexer);
+}
+
 ScmToken *
 scm_lexer_head_token(ScmLexer *lexer)
 {
