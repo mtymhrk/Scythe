@@ -8,6 +8,8 @@
 
 #define BUFFER_SIZE 128
 
+#define IS_NEWLINE(c) ((c) == '\n')
+
 typedef int (*ReadLineFunc)(ScmIBuffer *ibuffer, char *buffer, size_t size);
 typedef int (*ReadCharFunc)(ScmIBuffer *ibuffer);
 typedef bool (*IsEOFFunc)(ScmIBuffer *ibuffer);
@@ -35,6 +37,7 @@ typedef struct {
   size_t len;
   const char *ptr;
 } ScmStringIBuffer;
+
 
 
 static int
@@ -196,6 +199,8 @@ scm_initialize_base(ScmIBuffer *ibuffer,
   ibuffer->buffer[0] = '\0';
   ibuffer->head = 0;
   ibuffer->used = 0;
+  ibuffer->line = 1;
+  ibuffer->column = 1;
   ibuffer->readline = readline;
   ibuffer->readchar = readchar;
   ibuffer->is_eof = is_eof;
@@ -261,7 +266,19 @@ scm_ibuffer_forecast(ScmIBuffer *ibuffer, size_t look_ahead)
 void
 scm_ibuffer_shift_char(ScmIBuffer *ibuffer)
 {
+  int c;
+
   assert(ibuffer != NULL);
+
+  c = scm_ibuffer_head_char(ibuffer);
+  if (IS_NEWLINE(c)) {
+    ibuffer->line++;
+    ibuffer->column = 1;
+  }
+  else if (c != EOF) {
+    ibuffer->column++;
+  }
+
   ibuffer->head++;
 }
 
@@ -270,4 +287,18 @@ scm_ibuffer_is_eof(ScmIBuffer *ibuffer)
 {
   assert(ibuffer != NULL);
   return (scm_ibuffer_access(ibuffer, 0) == EOF) ? true : false;
+}
+
+int
+scm_ibuffer_current_line_num(ScmIBuffer *ibuffer)
+{
+  assert(ibuffer != NULL);
+  return ibuffer->line;
+}
+
+int
+scm_ibuffer_current_column_num(ScmIBuffer *ibuffer)
+{
+  assert(ibuffer != NULL);
+  return ibuffer->column;
 }

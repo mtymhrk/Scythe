@@ -689,15 +689,44 @@ scm_parser_construct(ScmLexer *lexer)
   return parser;
 }
 
-/* ScmObj */
-/* scm_parser_expression(ScmParser *parser) */
-/* { */
-/*   ScmToken *token; */
+void /* ScmObj */
+scm_parser_expression(ScmParser *parser)
+{
+  ScmToken *token;
 
-/*   assert(parser != parser); */
+  assert(parser != NULL);
 
-/*   token = scm_lexer_head_token(lexer); */
-/*   switch (scm_ */
-
-
-/* } */
+  token = scm_lexer_head_token(parser->lexer);
+  switch (SCM_TOKEN_TYPE(token)) {
+  case SCM_TOKEN_TYPE_LPAREN:
+    break;
+  case SCM_TOKEN_TYPE_RPAREN:
+    break;
+  case SCM_TOKEN_TYPE_DOT:
+    break;
+  case SCM_TOKEN_TYPE_QUOTE:
+    break;
+  case SCM_TOKEN_TYPE_QUASIQUOTE:
+    break;
+  case SCM_TOKEN_TYPE_UNQUOTE:
+    break;
+  case SCM_TOKEN_TYPE_UNQUOTE_SPLICING:
+    break;
+  case SCM_TOKEN_TYPE_STRING:
+    break;
+  case SCM_TOKEN_TYPE_IDENTIFIER:
+    break;
+  case SCM_TOKEN_TYPE_NUMERIC:
+    break;
+  case SCM_TOKEN_TYPE_BOOL:
+    break;
+  case SCM_TOKEN_TYPE_VECTOR_START:
+    break;
+  case SCM_TOKEN_TYPE_CHAR:
+    break;
+  case SCM_TOKEN_TYPE_EOF:
+    break;
+  default:
+    break;
+  }
+}

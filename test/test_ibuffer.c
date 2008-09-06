@@ -56,6 +56,8 @@ test_scm_ibuffer_construct(void)
 {
   ScmIBuffer *ibuffer = scm_ibuffer_construct(test_file);
   cut_assert_not_null(ibuffer);
+  cut_assert_equal_int(1, scm_ibuffer_current_line_num(ibuffer));
+  cut_assert_equal_int(1, scm_ibuffer_current_column_num(ibuffer));
 }
 
 void
@@ -71,32 +73,86 @@ test_scm_ibuffer_interleave_shift_and_head_char_for_file(void)
   ScmIBuffer *ibuffer = scm_ibuffer_construct(test_file);
 
   cut_assert_equal_int('h', scm_ibuffer_head_char(ibuffer));
+  cut_assert_equal_int(1, scm_ibuffer_current_line_num(ibuffer));
+  cut_assert_equal_int(1, scm_ibuffer_current_column_num(ibuffer));
+
   scm_ibuffer_shift_char(ibuffer);
+
   cut_assert_equal_int('e', scm_ibuffer_head_char(ibuffer));
+  cut_assert_equal_int(1, scm_ibuffer_current_line_num(ibuffer));
+  cut_assert_equal_int(2, scm_ibuffer_current_column_num(ibuffer));
+
   scm_ibuffer_shift_char(ibuffer);
+
   cut_assert_equal_int('l', scm_ibuffer_head_char(ibuffer));
+  cut_assert_equal_int(1, scm_ibuffer_current_line_num(ibuffer));
+  cut_assert_equal_int(3, scm_ibuffer_current_column_num(ibuffer));
+
   scm_ibuffer_shift_char(ibuffer);
+
   cut_assert_equal_int('l', scm_ibuffer_head_char(ibuffer));
+  cut_assert_equal_int(1, scm_ibuffer_current_line_num(ibuffer));
+  cut_assert_equal_int(4, scm_ibuffer_current_column_num(ibuffer));
+
   scm_ibuffer_shift_char(ibuffer);
+
   cut_assert_equal_int('o', scm_ibuffer_head_char(ibuffer));
+  cut_assert_equal_int(1, scm_ibuffer_current_line_num(ibuffer));
+  cut_assert_equal_int(5, scm_ibuffer_current_column_num(ibuffer));
+
   scm_ibuffer_shift_char(ibuffer);
+
   cut_assert_equal_int(',', scm_ibuffer_head_char(ibuffer));
+  cut_assert_equal_int(1, scm_ibuffer_current_line_num(ibuffer));
+  cut_assert_equal_int(6, scm_ibuffer_current_column_num(ibuffer));
+
   scm_ibuffer_shift_char(ibuffer);
+
   cut_assert_equal_int(' ', scm_ibuffer_head_char(ibuffer));
+  cut_assert_equal_int(1, scm_ibuffer_current_line_num(ibuffer));
+  cut_assert_equal_int(7, scm_ibuffer_current_column_num(ibuffer));
+
   scm_ibuffer_shift_char(ibuffer);
+
   cut_assert_equal_int('w', scm_ibuffer_head_char(ibuffer));
+  cut_assert_equal_int(1, scm_ibuffer_current_line_num(ibuffer));
+  cut_assert_equal_int(8, scm_ibuffer_current_column_num(ibuffer));
+
   scm_ibuffer_shift_char(ibuffer);
+
   cut_assert_equal_int('o', scm_ibuffer_head_char(ibuffer));
+  cut_assert_equal_int(1, scm_ibuffer_current_line_num(ibuffer));
+  cut_assert_equal_int(9, scm_ibuffer_current_column_num(ibuffer));
+
   scm_ibuffer_shift_char(ibuffer);
+
   cut_assert_equal_int('r', scm_ibuffer_head_char(ibuffer));
+  cut_assert_equal_int(1, scm_ibuffer_current_line_num(ibuffer));
+  cut_assert_equal_int(10, scm_ibuffer_current_column_num(ibuffer));
+
   scm_ibuffer_shift_char(ibuffer);
+
   cut_assert_equal_int('l', scm_ibuffer_head_char(ibuffer));
+  cut_assert_equal_int(1, scm_ibuffer_current_line_num(ibuffer));
+  cut_assert_equal_int(11, scm_ibuffer_current_column_num(ibuffer));
+
   scm_ibuffer_shift_char(ibuffer);
+
   cut_assert_equal_int('d', scm_ibuffer_head_char(ibuffer));
+  cut_assert_equal_int(1, scm_ibuffer_current_line_num(ibuffer));
+  cut_assert_equal_int(12, scm_ibuffer_current_column_num(ibuffer));
+
   scm_ibuffer_shift_char(ibuffer);
   cut_assert_equal_int('\n', scm_ibuffer_head_char(ibuffer));
+  cut_assert_equal_int(1, scm_ibuffer_current_line_num(ibuffer));
+  cut_assert_equal_int(13, scm_ibuffer_current_column_num(ibuffer));
+
   scm_ibuffer_shift_char(ibuffer);
+
   cut_assert_equal_int(EOF, scm_ibuffer_head_char(ibuffer));
+  cut_assert_equal_int(2, scm_ibuffer_current_line_num(ibuffer));
+  cut_assert_equal_int(1, scm_ibuffer_current_column_num(ibuffer));
+
   scm_ibuffer_shift_char(ibuffer);
   cut_assert_true(scm_ibuffer_is_eof(ibuffer));
 }
@@ -107,32 +163,86 @@ test_scm_ibuffer_interleave_shift_and_head_char_for_string(void)
   ScmIBuffer *ibuffer = scm_ibuffer_construct_from_string("hello, world\n");
 
   cut_assert_equal_int('h', scm_ibuffer_head_char(ibuffer));
+  cut_assert_equal_int(1, scm_ibuffer_current_line_num(ibuffer));
+  cut_assert_equal_int(1, scm_ibuffer_current_column_num(ibuffer));
+
   scm_ibuffer_shift_char(ibuffer);
+
   cut_assert_equal_int('e', scm_ibuffer_head_char(ibuffer));
+  cut_assert_equal_int(1, scm_ibuffer_current_line_num(ibuffer));
+  cut_assert_equal_int(2, scm_ibuffer_current_column_num(ibuffer));
+
   scm_ibuffer_shift_char(ibuffer);
+
   cut_assert_equal_int('l', scm_ibuffer_head_char(ibuffer));
+  cut_assert_equal_int(1, scm_ibuffer_current_line_num(ibuffer));
+  cut_assert_equal_int(3, scm_ibuffer_current_column_num(ibuffer));
+
   scm_ibuffer_shift_char(ibuffer);
+
   cut_assert_equal_int('l', scm_ibuffer_head_char(ibuffer));
+  cut_assert_equal_int(1, scm_ibuffer_current_line_num(ibuffer));
+  cut_assert_equal_int(4, scm_ibuffer_current_column_num(ibuffer));
+
   scm_ibuffer_shift_char(ibuffer);
+
   cut_assert_equal_int('o', scm_ibuffer_head_char(ibuffer));
+  cut_assert_equal_int(1, scm_ibuffer_current_line_num(ibuffer));
+  cut_assert_equal_int(5, scm_ibuffer_current_column_num(ibuffer));
+
   scm_ibuffer_shift_char(ibuffer);
+
   cut_assert_equal_int(',', scm_ibuffer_head_char(ibuffer));
+  cut_assert_equal_int(1, scm_ibuffer_current_line_num(ibuffer));
+  cut_assert_equal_int(6, scm_ibuffer_current_column_num(ibuffer));
+
   scm_ibuffer_shift_char(ibuffer);
+
   cut_assert_equal_int(' ', scm_ibuffer_head_char(ibuffer));
+  cut_assert_equal_int(1, scm_ibuffer_current_line_num(ibuffer));
+  cut_assert_equal_int(7, scm_ibuffer_current_column_num(ibuffer));
+
   scm_ibuffer_shift_char(ibuffer);
+
   cut_assert_equal_int('w', scm_ibuffer_head_char(ibuffer));
+  cut_assert_equal_int(1, scm_ibuffer_current_line_num(ibuffer));
+  cut_assert_equal_int(8, scm_ibuffer_current_column_num(ibuffer));
+
   scm_ibuffer_shift_char(ibuffer);
+
   cut_assert_equal_int('o', scm_ibuffer_head_char(ibuffer));
+  cut_assert_equal_int(1, scm_ibuffer_current_line_num(ibuffer));
+  cut_assert_equal_int(9, scm_ibuffer_current_column_num(ibuffer));
+
   scm_ibuffer_shift_char(ibuffer);
+
   cut_assert_equal_int('r', scm_ibuffer_head_char(ibuffer));
+  cut_assert_equal_int(1, scm_ibuffer_current_line_num(ibuffer));
+  cut_assert_equal_int(10, scm_ibuffer_current_column_num(ibuffer));
+
   scm_ibuffer_shift_char(ibuffer);
+
   cut_assert_equal_int('l', scm_ibuffer_head_char(ibuffer));
+  cut_assert_equal_int(1, scm_ibuffer_current_line_num(ibuffer));
+  cut_assert_equal_int(11, scm_ibuffer_current_column_num(ibuffer));
+
   scm_ibuffer_shift_char(ibuffer);
+
   cut_assert_equal_int('d', scm_ibuffer_head_char(ibuffer));
+  cut_assert_equal_int(1, scm_ibuffer_current_line_num(ibuffer));
+  cut_assert_equal_int(12, scm_ibuffer_current_column_num(ibuffer));
+
   scm_ibuffer_shift_char(ibuffer);
   cut_assert_equal_int('\n', scm_ibuffer_head_char(ibuffer));
+  cut_assert_equal_int(1, scm_ibuffer_current_line_num(ibuffer));
+  cut_assert_equal_int(13, scm_ibuffer_current_column_num(ibuffer));
+
   scm_ibuffer_shift_char(ibuffer);
+
   cut_assert_equal_int(EOF, scm_ibuffer_head_char(ibuffer));
+  cut_assert_equal_int(2, scm_ibuffer_current_line_num(ibuffer));
+  cut_assert_equal_int(1, scm_ibuffer_current_column_num(ibuffer));
+
   scm_ibuffer_shift_char(ibuffer);
   cut_assert_true(scm_ibuffer_is_eof(ibuffer));
 }
