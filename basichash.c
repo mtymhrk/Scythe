@@ -88,12 +88,15 @@ scm_basic_hash_put(ScmBasicHashTable *table,
   return scm_basic_hash_access(table, key, value, UPDATE);
 }
 
-ScmBasicHashEntry *
+void
 scm_basic_hash_delete(ScmBasicHashTable *table, ScmBasicHashKey key)
 {
+  ScmBasicHashEntry *entry;
+
   assert(table != NULL);
 
-  return scm_basic_hash_access(table, key, NULL, DELETE);
+  entry = scm_basic_hash_access(table, key, NULL, DELETE);
+  if (entry != NULL) scm_memory_release(entry);
 }
 
 ScmBasicHashEntry *
@@ -163,3 +166,23 @@ scm_basic_hash_construct(size_t size,
   return table;
 }
 
+void
+scm_basci_hash_destruct(ScmBasicHashTable *table)
+{
+
+  int i;
+
+  assert(table != NULL);
+
+  for (i = 0; i < table->tbl_size; i++) {
+    ScmBasicHashEntry *entry = table->buckets[i];   
+    while (entry != NULL) {
+      ScmBasicHashEntry *next = entry->next;
+      scm_memory_release(entry);
+      entry = next;
+    }
+  }
+
+  scm_memory_release(table->buckets);
+  scm_memory_release(table);
+}

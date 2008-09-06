@@ -33,8 +33,7 @@ ScmBasicHashEntry *scm_basic_hash_insert(ScmBasicHashTable *table,
 ScmBasicHashEntry *scm_basic_hash_put(ScmBasicHashTable *table,
                                       ScmBasicHashKey key,
                                       ScmBasicHashValue value);
-ScmBasicHashEntry *scm_basic_hash_delete(ScmBasicHashTable *table,
-                                         ScmBasicHashKey key);
+void scm_basic_hash_delete(ScmBasicHashTable *table, ScmBasicHashKey key);
 ScmBasicHashEntry *scm_basic_hash_get(ScmBasicHashTable *table,
                                       ScmBasicHashKey key);
 void *scm_basic_hash_iterate(ScmBasicHashTable *table,
@@ -44,5 +43,6 @@ void *scm_basic_hash_inject(ScmBasicHashTable *table,
 ScmBasicHashTable *scm_basic_hash_construct(size_t size,
                                             ScmBasicHashFunc hash_func,
                                             ScmBasicHashCompFunc comp_func);
+void scm_basci_hash_destruct(ScmBasicHashTable *table);
 
 #endif /* INCLUDE_HASH_H__ */

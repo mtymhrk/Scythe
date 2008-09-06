@@ -90,8 +90,10 @@ test_scm_basic_hash_delete_nonexistent_key()
 {
   ScmBasicHashTable *table = scm_basic_hash_construct(256,
                                                       hash_func, comp_func);
-  ScmBasicHashEntry *entry = scm_basic_hash_delete(table,
-                                                   SCM_BASIC_HASH_KEY(1));
+  ScmBasicHashEntry *entry;
+
+  scm_basic_hash_delete(table, SCM_BASIC_HASH_KEY(1));
+  entry = scm_basic_hash_get(table, SCM_BASIC_HASH_KEY(1));
 
   cut_assert_null(entry);
 }
@@ -105,9 +107,8 @@ test_scm_basic_hash_delete_existent_key()
 
   scm_basic_hash_insert(table,
                         SCM_BASIC_HASH_KEY(1), SCM_BASIC_HASH_VALUE(100));
-  entry = scm_basic_hash_delete(table, SCM_BASIC_HASH_KEY(1));
-  cut_assert_not_null(entry);
+  scm_basic_hash_delete(table, SCM_BASIC_HASH_KEY(1));
+  entry = scm_basic_hash_get(table, SCM_BASIC_HASH_KEY(1));
 
-  cut_assert_equal_int(1, (int)SCM_BASIC_HASH_ENTRY_KEY(entry));
-  cut_assert_equal_int(100, (int)SCM_BASIC_HASH_ENTRY_VALUE(entry));
+  cut_assert_null(entry);
 }
