@@ -12,7 +12,8 @@ typedef enum {
   SCM_OBJ_TYPE_STRING,
   SCM_OBJ_TYPE_SYMBOL,
   SCM_OBJ_TYPE_NIL,
-  SCM_OBJ_TYPE_INTEGER
+  SCM_OBJ_TYPE_INTEGER,
+  SCM_OBJ_TYPE_VECTOR
 } SCM_OBJ_TYPE_T;
 
 typedef void (*ScmPrettyPrintFunction)(ScmObj obj,
@@ -35,6 +36,6 @@ void scm_obj_init(ScmObj obj, SCM_OBJ_TYPE_T type,
 		  ScmPrettyPrintFunction ppfunc);
 SCM_OBJ_TYPE_T scm_obj_type(ScmObj obj);
 void scm_obj_pretty_print(ScmObj obj, ScmPrinter *printer);
-int scm_is_same_instance(ScmObj obj1, ScmObj obj2);
+int scm_obj_is_same_instance(ScmObj obj1, ScmObj obj2);
 
 #endif /* INCLUDE_OBJECT_H__ */

@@ -710,4 +710,5 @@ scm_parser_construct(ScmLexer *lexer)
 /* ScmObj */
 /* scm_parser_expression(ScmParser *parser) */
 /* { */
+/*   assert(parser != parser); */
 /* } */

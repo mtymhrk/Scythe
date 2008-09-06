@@ -12,7 +12,8 @@ include $(TEST_TARGET_DIR)/Makefile.sources
 TEST_TARGET_SRC = $(addprefix $(TEST_TARGET_DIR)/, $(SOURCES))
 TEST_CASE_SRC = test_pair.c test_string.c test_symbol.c test_nil.c \
                 test_basichash.c test_integer.c test_pretty_print.c \
-                test_basiclist.c test_ibuffer.c test_lexer.c test_parser.c
+                test_basiclist.c test_ibuffer.c test_lexer.c test_parser.c \
+                test_vector.c
 TEST_TARGET_OBJ = $(TEST_TARGET_SRC:.c=.o) 
 TEST_CASE_OBJ = $(TEST_CASE_SRC:.c=.o) 
 TEST_CASE_LIB = $(TEST_CASE_SRC:.c=.so)
@@ -32,7 +33,7 @@ test_basiclist.so : test_basiclist.o $(TEST_TARGET_OBJ)
 test_ibuffer.so : test_ibuffer.o $(TEST_TARGET_OBJ)
 test_lexer.so : test_lexer.o $(TEST_TARGET_OBJ)
 test_parser.so : test_parser.o $(TEST_TARGET_OBJ)
-
+test_vector.so : test_vector.o $(TEST_TARGET_OBJ)
 .c.o:
 	$(CC) -c -o $@ $(INCLUDES) $(CFLAGS) $<
 
