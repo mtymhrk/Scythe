@@ -143,7 +143,7 @@ scm_lexer_tokenize_init(ScmLexer *lexer)
     scm_lexer_set_token_type(lexer, SCM_TOKEN_TYPE_EOF);
     state = LEXER_STATE_DONE;
   }
-  else if (isblank(current)) {
+  else if (isspace(current)) {
     scm_ibuffer_shift_char(lexer->ibuffer);
     state = LEXER_STATE_DISREGARD;
   }
@@ -548,8 +548,6 @@ scm_lexer_state_clear(ScmLexer *lexer)
 {
   assert(lexer != NULL);
 
-  lexer->buffer = NULL;
-  lexer->buf_size = 0;
   lexer->buf_used = 0;
   lexer->token_type = SCM_TOKEN_TYPE_NONE;
 }
@@ -560,8 +558,6 @@ scm_lexer_tokenize(ScmLexer *lexer)
   int state;
 
   assert(lexer != NULL);
-  assert(lexer->buffer == NULL);
-  assert(lexer->buf_size == 0);
   assert(lexer->buf_used == 0);
   assert(lexer->token_type == SCM_TOKEN_TYPE_NONE);
 
@@ -617,6 +613,9 @@ scm_lexer_construct(ScmIBuffer *ibuffer)
   lexer = scm_memory_allocate(sizeof(ScmLexer));
   lexer->ibuffer = ibuffer;
   lexer->tokens = scm_basic_list_construct();
+  lexer->buffer = NULL;
+  lexer->buf_size = 0;
+
   scm_lexer_state_clear(lexer);
 
   return lexer;
@@ -680,7 +679,9 @@ scm_token_construct(SCM_TOKEN_TYPE_T type, unsigned char *string)
 
   token = scm_memory_allocate(sizeof(ScmToken));
   token->type = type;
-  token->string = string;
+
+  token->string = scm_memory_allocate(strlen((char *)string) + 1);
+  strcpy((char *)token->string, (char *)string);
 
   return token;
 }
@@ -689,6 +690,7 @@ void
 scm_token_destruct(ScmToken *token)
 {
   assert(token != NULL);
+  scm_memory_release(token->string);
   scm_memory_release(token);
 }
 

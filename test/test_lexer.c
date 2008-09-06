@@ -278,10 +278,33 @@ test_lexer_tokenize_eof(void)
 void
 test_lexer_tokenize_commnet(void)
 {
-  ScmIBuffer *buffer = scm_ibuffer_construct_from_string(" ; abc \n ( ");
+  ScmIBuffer *buffer = scm_ibuffer_construct_from_string(" ; comment \n ( ");
   ScmLexer *lexer = scm_lexer_construct(buffer);
   ScmToken *token = scm_lexer_head_token(lexer);
 
+  cut_assert_not_null(token);
+  cut_assert_equal_int(SCM_TOKEN_TYPE_LPAREN, SCM_TOKEN_TYPE(token));
+
+  scm_lexer_shift_token(lexer);
+
+  token = scm_lexer_head_token(lexer);
+  cut_assert_not_null(token);
+  cut_assert_equal_int(SCM_TOKEN_TYPE_EOF, SCM_TOKEN_TYPE(token));
+}
+
+void
+test_lexer_tokenize_twich(void)
+{
+  ScmIBuffer *buffer = scm_ibuffer_construct_from_string("  symbol \n ( ");
+  ScmLexer *lexer = scm_lexer_construct(buffer);  
+  ScmToken *token = scm_lexer_head_token(lexer);
+
+  cut_assert_not_null(token);
+  cut_assert_equal_int(SCM_TOKEN_TYPE_IDENTIFIER, SCM_TOKEN_TYPE(token));
+
+  scm_lexer_shift_token(lexer);
+
+  token = scm_lexer_head_token(lexer);
   cut_assert_not_null(token);
   cut_assert_equal_int(SCM_TOKEN_TYPE_LPAREN, SCM_TOKEN_TYPE(token));
 
