@@ -23,10 +23,6 @@ struct ScmLexerRec {
   ScmBasicList *tokens;
 };
 
-struct ScmTokenRec {
-  SCM_TOKEN_TYPE_T type;
-  unsigned char *string;
-};
 
 #define SCM_LEXER_INITIAL_BUFFER_SIZE 256
 
@@ -680,20 +676,6 @@ scm_token_construct(SCM_TOKEN_TYPE_T type, unsigned char *string)
   return token;
 }
 
-SCM_TOKEN_TYPE_T
-scm_token_type(ScmToken *token)
-{
-  assert(token != NULL);
-  return token->type;
-}
-
-const unsigned char *
-scm_token_string(ScmToken *token)
-{
-  assert(token != NULL);
-  return token->string;
-}
-
 ScmParser *
 scm_parser_construct(ScmLexer *lexer)
 {
@@ -710,5 +692,12 @@ scm_parser_construct(ScmLexer *lexer)
 /* ScmObj */
 /* scm_parser_expression(ScmParser *parser) */
 /* { */
+/*   ScmToken *token; */
+
 /*   assert(parser != parser); */
+
+/*   token = scm_lexer_head_token(lexer); */
+/*   switch (scm_ */
+
+
 /* } */

@@ -25,9 +25,15 @@ typedef enum {
   SCM_TOKEN_TYPE_EOF
 } SCM_TOKEN_TYPE_T;
 
+struct ScmTokenRec {
+  SCM_TOKEN_TYPE_T type;
+  unsigned char *string;
+};
+
+#define SCM_TOKEN_TYPE(token) ((token)->type)
+#define SCM_TOKEN_STRING(token) ((token)->string)
+
 ScmToken *scm_token_construct(SCM_TOKEN_TYPE_T type, unsigned char *string);
-SCM_TOKEN_TYPE_T scm_token_type(ScmToken *token);
-const unsigned char *scm_token_string(ScmToken *token);
 ScmLexer *scm_lexer_construct(ScmIBuffer *reader);
 ScmToken *scm_lexer_head_token(ScmLexer *lexer);
 void scm_lexer_push_token(ScmLexer *lexer, ScmToken *token);
