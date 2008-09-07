@@ -13,3 +13,5 @@ basiclist.o: ../basiclist.c ../memory.h ../basiclist.h
 parser.o: ../parser.c ../memory.h ../basiclist.h ../ibuffer.h ../parser.h
 vector.o: ../vector.c ../memory.h ../object.h ../printer.h ../nil.h \
   ../vector.h
+miscobjects.o: ../miscobjects.c ../object.h ../printer.h ../memory.h \
+  ../miscobjects.h

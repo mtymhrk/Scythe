@@ -7,6 +7,7 @@
 #include "symbol.h"
 #include "pair.h"
 #include "vector.h"
+#include "miscobjects.h"
 #include "printer.h"
 
 void
@@ -108,4 +109,16 @@ test_pretty_print_vector(void)
                                    SCM_OBJ(vector), SCM_PRINTER_MODE_CLEAR);
   cut_assert_equal_string("#(abc def 123 \"ghi\" ())",
                           scm_printer_buffer(printer));
+}
+
+void
+test_pretty_print_eof(void)
+{
+  ScmPrinter *printer = scm_printer_construct(stdout);
+  ScmEOF *eof = scm_eof_instance();
+
+  scm_printer_pretty_print_scm_obj(printer,
+                                   SCM_OBJ(eof), SCM_PRINTER_MODE_CLEAR);
+  
+  cut_assert_equal_string("#<eof>", scm_printer_buffer(printer));
 }
