@@ -6,6 +6,7 @@
 #include "string.h"
 #include "symbol.h"
 #include "pair.h"
+#include "vector.h"
 #include "printer.h"
 
 void
@@ -84,4 +85,27 @@ test_pretty_print_nesting_list(void)
 
   scm_printer_pretty_print_scm_obj(printer, pair2, SCM_PRINTER_MODE_CLEAR);
   cut_assert_equal_string("((abc) . def)", scm_printer_buffer(printer));
+}
+
+void
+test_pretty_print_vector(void)
+{
+  ScmPrinter *printer = scm_printer_construct(stdout);
+  ScmVector *vector = scm_vector_construct(5);
+  ScmObj e0 = SCM_OBJ(scm_symbol_instance("abc"));
+  ScmObj e1 = SCM_OBJ(scm_symbol_instance("def"));
+  ScmObj e2 = SCM_OBJ(scm_integer_construct(123));
+  ScmObj e3 = SCM_OBJ(scm_string_construct("ghi"));
+  ScmObj e4 = SCM_OBJ(scm_nil_instance());
+
+  scm_vector_set(vector, 0, e0);
+  scm_vector_set(vector, 1, e1);
+  scm_vector_set(vector, 2, e2);
+  scm_vector_set(vector, 3, e3);
+  scm_vector_set(vector, 4, e4);
+
+  scm_printer_pretty_print_scm_obj(printer,
+                                   SCM_OBJ(vector), SCM_PRINTER_MODE_CLEAR);
+  cut_assert_equal_string("#(abc def 123 \"ghi\" ())",
+                          scm_printer_buffer(printer));
 }

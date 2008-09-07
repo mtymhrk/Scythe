@@ -809,7 +809,10 @@ scm_parser_expression(ScmParser *parser)
     break;
   case SCM_TOKEN_TYPE_EOF:
     break;
+  case SCM_TOKEN_TYPE_TOKENIZE_ERR:
+    break;
   default:
+    assert(false); /* must not happen */
     break;
   }
 }
