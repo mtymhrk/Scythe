@@ -34,7 +34,9 @@ struct ScmTokenRec {
 };
 
 typedef enum {
-  SCM_LEXER_ERR_TYPE_NONE
+  SCM_LEXER_ERR_TYPE_NONE,
+  SCM_LEXER_ERR_TYPE_UNEXPECTED_CHAR,
+  SCM_LEXER_ERR_TYPE_UNEXPECTED_EOF,
 } SCM_LEXER_ERR_TYPE_T;
 
 #define SCM_TOKEN(obj) ((ScmToken *)(obj))

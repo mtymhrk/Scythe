@@ -314,3 +314,65 @@ test_lexer_tokenize_twich(void)
   cut_assert_not_null(token);
   cut_assert_equal_int(SCM_TOKEN_TYPE_EOF, SCM_TOKEN_TYPE(token));
 }
+
+void
+test_lexer_tokenize_string_unexpected_eof(void)
+{
+  ScmIBuffer *buffer = scm_ibuffer_construct_from_string(" \n \"abcdef");
+  ScmLexer *lexer = scm_lexer_construct(buffer);  
+  ScmToken *token = scm_lexer_head_token(lexer);
+
+  cut_assert_not_null(token);
+  cut_assert_equal_int(SCM_TOKEN_TYPE_TOKENIZE_ERR, SCM_TOKEN_TYPE(token));
+
+  cut_assert_true(scm_lexer_has_error(lexer));
+  cut_assert_equal_int((int)SCM_LEXER_ERR_TYPE_UNEXPECTED_EOF,
+                       (int)scm_lexer_error_type(lexer));
+  cut_assert_equal_int(2, scm_lexer_error_line(lexer));
+  cut_assert_equal_int(9, scm_lexer_error_column(lexer));
+}
+
+void
+test_lexer_tokenize_numeric_sign_unexpected_eor(void)
+{
+  ScmIBuffer *buffer = scm_ibuffer_construct_from_string(" \n \n #");
+  ScmLexer *lexer = scm_lexer_construct(buffer);  
+  ScmToken *token = scm_lexer_head_token(lexer);
+
+  cut_assert_not_null(token);
+  cut_assert_equal_int(SCM_TOKEN_TYPE_TOKENIZE_ERR, SCM_TOKEN_TYPE(token));
+
+  cut_assert_true(scm_lexer_has_error(lexer));
+  cut_assert_equal_int((int)SCM_LEXER_ERR_TYPE_UNEXPECTED_EOF,
+                       (int)scm_lexer_error_type(lexer));
+  cut_assert_equal_int(3, scm_lexer_error_line(lexer));
+  cut_assert_equal_int(3, scm_lexer_error_column(lexer));
+}
+
+void
+test_lexer_tokenize_error_cannot_shift_until_error_state_cleared(void)
+{
+  ScmIBuffer *buffer = scm_ibuffer_construct_from_string(" \n \"abcdef");
+  ScmLexer *lexer = scm_lexer_construct(buffer);  
+  ScmToken *token = scm_lexer_head_token(lexer);
+
+  cut_assert_not_null(token);
+  cut_assert_equal_int(SCM_TOKEN_TYPE_TOKENIZE_ERR, SCM_TOKEN_TYPE(token));
+  cut_assert_true(scm_lexer_has_error(lexer));
+
+  scm_lexer_shift_token(lexer);
+  token = scm_lexer_head_token(lexer);
+
+  cut_assert_not_null(token);
+  cut_assert_equal_int(SCM_TOKEN_TYPE_TOKENIZE_ERR, SCM_TOKEN_TYPE(token));
+
+  scm_lexer_error_state_clear(lexer);
+
+  cut_assert_false(scm_lexer_has_error(lexer));
+
+  scm_lexer_shift_token(lexer);
+  token = scm_lexer_head_token(lexer);
+
+  cut_assert_not_null(token);
+  cut_assert_equal_int(SCM_TOKEN_TYPE_EOF, SCM_TOKEN_TYPE(token));
+}

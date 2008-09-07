@@ -129,6 +129,17 @@ scm_lexer_buffer(ScmLexer *lexer)
   return lexer->buffer;
 }
 
+static void
+scm_lexer_setup_error_state(ScmLexer *lexer, SCM_LEXER_ERR_TYPE_T error)
+{
+  assert(lexer != NULL);
+
+  scm_lexer_set_token_type(lexer, SCM_TOKEN_TYPE_TOKENIZE_ERR);
+  lexer->error_type = error;
+  lexer->error_line = scm_ibuffer_current_line_num(lexer->ibuffer);
+  lexer->error_column = scm_ibuffer_current_column_num(lexer->ibuffer);
+}
+
 static int
 scm_lexer_tokenize_init(ScmLexer *lexer)
 {
@@ -196,6 +207,7 @@ scm_lexer_tokenize_init(ScmLexer *lexer)
       state = LEXER_STATE_STRING;
       break;
     default:
+      scm_lexer_setup_error_state(lexer, SCM_LEXER_ERR_TYPE_UNEXPECTED_CHAR);
       state = LEXER_STATE_ERROR;
       break;
     }
@@ -254,6 +266,11 @@ scm_lexer_tokenize_number_sign(ScmLexer *lexer)
 
   current = scm_ibuffer_head_char(lexer->ibuffer);
 
+  if (current == EOF) {
+    scm_lexer_setup_error_state(lexer, SCM_LEXER_ERR_TYPE_UNEXPECTED_EOF);
+    return LEXER_STATE_ERROR;
+  }
+
   switch (tolower(current)) {
   case 't':
   case 'f':
@@ -266,9 +283,6 @@ scm_lexer_tokenize_number_sign(ScmLexer *lexer)
   case '(':
     scm_lexer_set_token_type(lexer, SCM_TOKEN_TYPE_VECTOR_START);
     state = LEXER_STATE_DONE;
-    break;
-  case EOF:
-    state = LEXER_STATE_ERROR;
     break;
   default:
     state = LEXER_STATE_NUMERIC;
@@ -312,14 +326,17 @@ scm_lexer_tokenize_string(ScmLexer *lexer)
   assert(lexer != NULL);
 
   current = scm_ibuffer_head_char(lexer->ibuffer);
+
+  if (current == EOF) {
+    scm_lexer_setup_error_state(lexer, SCM_LEXER_ERR_TYPE_UNEXPECTED_EOF);
+    return LEXER_STATE_ERROR;
+  }
+
   scm_ibuffer_shift_char(lexer->ibuffer);
 
   if (current == '"') {
     scm_lexer_set_token_type(lexer, SCM_TOKEN_TYPE_STRING);
     return LEXER_STATE_DONE;
-  }
-  else if (current == EOF) {
-    return LEXER_STATE_ERROR;
   }
   else if (current == '\\')
     return scm_lexer_tokenize_string_escaped(lexer);
