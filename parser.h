@@ -1,6 +1,8 @@
 #ifndef INCLUDE_PARSER_H__
 #define INCLUDE_PARSER_H__
 
+#include <stdbool.h>
+
 #include "ibuffer.h"
 
 typedef struct ScmParserRec ScmParser;
@@ -22,13 +24,18 @@ typedef enum {
   SCM_TOKEN_TYPE_BOOL,
   SCM_TOKEN_TYPE_VECTOR_START,
   SCM_TOKEN_TYPE_CHAR,
-  SCM_TOKEN_TYPE_EOF
+  SCM_TOKEN_TYPE_EOF,
+  SCM_TOKEN_TYPE_TOKENIZE_ERR
 } SCM_TOKEN_TYPE_T;
 
 struct ScmTokenRec {
   SCM_TOKEN_TYPE_T type;
   unsigned char *string;
 };
+
+typedef enum {
+  SCM_LEXER_ERR_TYPE_NONE
+} SCM_LEXER_ERR_TYPE_T;
 
 #define SCM_TOKEN(obj) ((ScmToken *)(obj))
 #define SCM_TOKEN_TYPE(token) ((token)->type)
@@ -39,9 +46,13 @@ void scm_token_destruct(ScmToken *token);
 ScmLexer *scm_lexer_construct(ScmIBuffer *reader);
 ScmLexer *scm_lexer_destruct(ScmLexer *lexer);
 ScmToken *scm_lexer_head_token(ScmLexer *lexer);
-void scm_lexer_push_token(ScmLexer *lexer, ScmToken *token);
 void scm_lexer_shift_token(ScmLexer *lexer);
 void scm_lexer_unshift_token(ScmLexer *lexer, ScmToken *token);
+void scm_lexer_error_state_clear(ScmLexer *lexer);
+bool scm_lexer_has_error(ScmLexer *lexer);
+SCM_LEXER_ERR_TYPE_T scm_lexer_error_type(ScmLexer *lexer);
+int scm_lexer_error_line(ScmLexer *lexer);
+int scm_lexer_error_column(ScmLexer *lexer);
 ScmParser *scm_parser_construct(ScmLexer *lexer);
 
 #endif /* INCLUDE_PARSER_H__ */

@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdbool.h>
 #include <string.h>
 #include <ctype.h>
 #include <assert.h>
@@ -21,6 +22,9 @@ struct ScmLexerRec {
   size_t buf_used;
   SCM_TOKEN_TYPE_T token_type;
   ScmBasicList *tokens;
+  SCM_LEXER_ERR_TYPE_T error_type;
+  int error_line;
+  int error_column;
 };
 
 
@@ -162,10 +166,6 @@ scm_lexer_tokenize_init(ScmLexer *lexer)
   else if (IS_NUMERIC_START_CHAR(current)) {
     state = LEXER_STATE_NUMERIC;
   }
-  else if (IS_LINE_FEED(current)) {
-    /* TODO: write process for line feed */
-    state = LEXER_STATE_DISREGARD;
-  }
   else {
     switch (current) {
     case ';':
@@ -235,7 +235,6 @@ scm_lexer_tokenize_comment(ScmLexer *lexer)
   scm_ibuffer_shift_char(lexer->ibuffer);
 
   if (IS_LINE_FEED(current)) {
-    /* TODO: write process for line feed */
     return LEXER_STATE_DISREGARD;
   }
   else if (current == EOF) {
@@ -549,7 +548,17 @@ scm_lexer_state_clear(ScmLexer *lexer)
   assert(lexer != NULL);
 
   lexer->buf_used = 0;
+  if (lexer->buffer != NULL) lexer->buffer[0] = '\0';
   lexer->token_type = SCM_TOKEN_TYPE_NONE;
+}
+
+static void
+scm_lexer_push_token(ScmLexer *lexer, ScmToken *token)
+{
+  assert(lexer != NULL);
+  assert(token != NULL);
+
+  scm_basic_list_push(lexer->tokens, SCM_BASIC_LIST_VALUE(token));
 }
 
 static void
@@ -560,6 +569,9 @@ scm_lexer_tokenize(ScmLexer *lexer)
   assert(lexer != NULL);
   assert(lexer->buf_used == 0);
   assert(lexer->token_type == SCM_TOKEN_TYPE_NONE);
+
+  if (lexer->error_type != SCM_LEXER_ERR_TYPE_NONE)
+    return;
 
   state = LEXER_STATE_INIT;
   while (state != LEXER_STATE_DONE && state != LEXER_STATE_ERROR) {
@@ -587,19 +599,16 @@ scm_lexer_tokenize(ScmLexer *lexer)
       state = scm_lexer_tokenize_numeric(lexer);
       break;
     default:
+      assert(false); // must not happen
       break;
     }
   }
 
-  if (state == LEXER_STATE_DONE) {
-    scm_lexer_push_token(lexer,
-			 scm_token_construct(scm_lexer_token_type(lexer),
-					     scm_lexer_buffer(lexer)));
-    scm_lexer_state_clear(lexer);
-  }
-  else {
-    // TODO : process for Error 
-  }
+  scm_lexer_push_token(lexer,
+                       scm_token_construct(scm_lexer_token_type(lexer),
+                                           scm_lexer_buffer(lexer)));
+
+  scm_lexer_state_clear(lexer);
 }
 
 
@@ -617,6 +626,7 @@ scm_lexer_construct(ScmIBuffer *ibuffer)
   lexer->buf_size = 0;
 
   scm_lexer_state_clear(lexer);
+  scm_lexer_error_state_clear(lexer);
 
   return lexer;
 }
@@ -654,15 +664,6 @@ scm_lexer_head_token(ScmLexer *lexer)
 }
 
 void
-scm_lexer_push_token(ScmLexer *lexer, ScmToken *token)
-{
-  assert(lexer != NULL);
-  assert(token != NULL);
-
-  scm_basic_list_push(lexer->tokens, SCM_BASIC_LIST_VALUE(token));
-}
-
-void
 scm_lexer_shift_token(ScmLexer *lexer)
 {
   ScmBasicListEntry *entry;
@@ -671,18 +672,50 @@ scm_lexer_shift_token(ScmLexer *lexer)
 
   if ((entry = scm_basic_list_head(lexer->tokens))) {
     ScmToken *token = SCM_TOKEN(SCM_BASIC_LIST_ENTRY_VALUE(entry));
-    scm_basic_list_shift(lexer->tokens);
-    scm_token_destruct(token);
+    if (!scm_lexer_has_error(lexer)
+        || SCM_TOKEN_TYPE(token) != SCM_TOKEN_TYPE_TOKENIZE_ERR) {
+      scm_basic_list_shift(lexer->tokens);
+      scm_token_destruct(token);
+    }
   }
 }
 
 void
-scm_lexer_unshift_token(ScmLexer *lexer, ScmToken *token)
+scm_lexer_error_state_clear(ScmLexer *lexer)
 {
   assert(lexer != NULL);
-  assert(token != NULL);
 
-  scm_basic_list_unshift(lexer->tokens, SCM_BASIC_LIST_VALUE(token));
+  lexer->error_type = SCM_LEXER_ERR_TYPE_NONE;
+  lexer->error_line = 0;
+  lexer->error_column = 0;
+}
+
+bool
+scm_lexer_has_error(ScmLexer *lexer)
+{
+  assert(lexer != NULL);
+  return (lexer->error_type != SCM_LEXER_ERR_TYPE_NONE);
+}
+
+SCM_LEXER_ERR_TYPE_T
+scm_lexer_error_type(ScmLexer *lexer)
+{
+  assert(lexer != NULL);
+  return lexer->error_type;
+}
+
+int
+scm_lexer_error_line(ScmLexer *lexer)
+{
+  assert(lexer != NULL);
+  return lexer->error_line;
+}
+
+int
+scm_lexer_error_column(ScmLexer *lexer)
+{
+  assert(lexer != NULL);
+  return lexer->error_column;
 }
 
 ScmToken *
