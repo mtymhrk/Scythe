@@ -1,4 +1,4 @@
 SOURCES  = memory.c nil.c object.c pair.c printer.c string.c symbol.c \
            basichash.c integer.c ibuffer.c basiclist.c parser.c vector.c \
-           miscobjects.c
+           miscobjects.c bool.c char.c
 

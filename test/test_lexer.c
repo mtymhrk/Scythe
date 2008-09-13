@@ -5,8 +5,7 @@
 void
 test_token_construct(void)
 {
-  ScmToken *token = scm_token_construct(SCM_TOKEN_TYPE_LPAREN,
-                                        (unsigned char *)"(");
+  ScmToken *token = scm_token_construct(SCM_TOKEN_TYPE_LPAREN, "(");
 
   cut_assert_not_null(token);
   cut_assert_equal_int(SCM_TOKEN_TYPE_LPAREN, SCM_TOKEN_TYPE(token));

@@ -8,6 +8,16 @@
 #include "basiclist.h"
 #include "ibuffer.h"
 #include "parser.h"
+#include "object.h"
+#include "bool.h"
+#include "char.h"
+#include "integer.h"
+#include "miscobjects.h"
+#include "nil.h"
+#include "pair.h"
+#include "string.h"
+#include "symbol.h"
+#include "vector.h"
 
 extern int isblank(int c);
 
@@ -17,7 +27,7 @@ struct ScmParserRec {
 
 struct ScmLexerRec {
   ScmIBuffer *ibuffer;
-  unsigned char *buffer;
+  char *buffer;
   size_t buf_size;
   size_t buf_used;
   SCM_TOKEN_TYPE_T token_type;
@@ -71,7 +81,7 @@ static void
 scm_lexer_expand_buffer_if_needed(ScmLexer *lexer, size_t needed_size)
 {
   size_t new_size;
-  unsigned char *new_buffer = NULL;
+  char *new_buffer = NULL;
 
   assert(lexer != NULL);
 
@@ -82,7 +92,7 @@ scm_lexer_expand_buffer_if_needed(ScmLexer *lexer, size_t needed_size)
     ;
 
   if (new_size > lexer->buf_size || lexer->buffer == NULL) {
-    new_buffer = (unsigned char *)(scm_memory_allocate(new_size));
+    new_buffer = (char *)(scm_memory_allocate(new_size));
     if (lexer->buffer != NULL) {
       memcpy(new_buffer, lexer->buffer, lexer->buf_used + 1);
       scm_memory_release(lexer->buffer);
@@ -96,7 +106,7 @@ scm_lexer_expand_buffer_if_needed(ScmLexer *lexer, size_t needed_size)
 }
 
 static void
-scm_lexer_push_char(ScmLexer *lexer, unsigned char c)
+scm_lexer_push_char(ScmLexer *lexer, char c)
 {
   assert(lexer != NULL);
 
@@ -120,7 +130,7 @@ scm_lexer_token_type(ScmLexer *lexer)
   return lexer->token_type;
 }
 
-static unsigned char *
+static char *
 scm_lexer_buffer(ScmLexer *lexer)
 {
   assert(lexer != NULL);
@@ -736,7 +746,7 @@ scm_lexer_error_column(ScmLexer *lexer)
 }
 
 ScmToken *
-scm_token_construct(SCM_TOKEN_TYPE_T type, unsigned char *string)
+scm_token_construct(SCM_TOKEN_TYPE_T type, char *string)
 {
   ScmToken *token;
 
@@ -759,6 +769,251 @@ scm_token_destruct(ScmToken *token)
   scm_memory_release(token);
 }
 
+static ScmObj
+scm_parser_parse_list(ScmParser *parser)
+{
+  ScmObj car, cdr;
+
+  assert(parser != NULL);
+
+  scm_lexer_shift_token(parser->lexer);  
+
+  if (SCM_TOKEN_TYPE(scm_lexer_head_token(parser->lexer))
+      == SCM_TOKEN_TYPE_RPAREN) {
+    scm_lexer_shift_token(parser->lexer);
+    return SCM_OBJ(scm_nil_instance());
+  }
+  
+  car = scm_parser_parse_expression(parser);
+
+  /* TODO: error handling */
+  switch (scm_obj_type(car)) {
+  case SCM_OBJ_TYPE_EOF:
+    break;
+  default:
+    break;
+  }
+
+  if (SCM_TOKEN_TYPE(scm_lexer_head_token(parser->lexer))
+      == SCM_TOKEN_TYPE_DOT) {
+    scm_lexer_shift_token(parser->lexer);
+    cdr = scm_parser_parse_expression(parser);
+  }
+  else 
+    cdr = scm_parser_parse_list(parser);
+
+  /* TODO: error handling */
+  switch (scm_obj_type(cdr)) {
+  case SCM_OBJ_TYPE_EOF:
+    break;
+  default:
+    break;
+  }
+
+  return SCM_OBJ(scm_pair_construct(car, cdr));
+}
+
+static ScmObj
+scm_parser_parse_quote(ScmParser *parser)
+{
+  ScmObj quote;
+  ScmObj quoted;
+
+  assert(parser != NULL);
+
+  switch (SCM_TOKEN_TYPE(scm_lexer_head_token(parser->lexer))) {
+  case SCM_TOKEN_TYPE_QUOTE:
+    quote = SCM_OBJ(scm_symbol_instance("quote"));
+    break;
+  case SCM_TOKEN_TYPE_QUASIQUOTE:
+    quote = SCM_OBJ(scm_symbol_instance("quasiquote"));
+    break;
+  case SCM_TOKEN_TYPE_UNQUOTE:
+    quote = SCM_OBJ(scm_symbol_instance("unquote"));
+    break;
+  case SCM_TOKEN_TYPE_UNQUOTE_SPLICING:
+    quote = SCM_OBJ(scm_symbol_instance("unquote-splicing"));
+    break;
+  default:
+    return SCM_OBJ(scm_nil_instance()); // dummy;
+    /* TODO: error handling */
+    break;
+  }
+
+  scm_lexer_shift_token(parser->lexer);
+  quoted = scm_parser_parse_expression(parser);
+
+  /* TODO: error handling */
+  switch (scm_obj_type(quoted)) {
+  case SCM_OBJ_TYPE_EOF:
+    break;
+  default:
+    break;
+  }
+
+  return SCM_OBJ(scm_pair_construct(quote, quoted));
+}
+
+static ScmObj
+scm_parser_parse_string(ScmParser *parser)
+{
+  ScmObj obj;
+
+  assert(parser != NULL);
+
+  obj = SCM_OBJ(scm_string_construct(SCM_TOKEN_STRING(scm_lexer_head_token(parser->lexer))));
+  scm_lexer_shift_token(parser->lexer);
+  return obj;
+}
+
+static ScmObj
+scm_parser_parse_identifier(ScmParser *parser)
+{
+  ScmObj obj;
+
+  assert(parser != NULL);
+
+  obj = SCM_OBJ(scm_symbol_instance(SCM_TOKEN_STRING(scm_lexer_head_token(parser->lexer))));
+  scm_lexer_shift_token(parser->lexer);
+
+  return obj;  
+}
+
+static ScmObj
+scm_parser_parse_numeric(ScmParser *parser)
+{
+  ScmObj obj;
+  long long num;
+
+  assert(parser != NULL);
+
+  sscanf(SCM_TOKEN_STRING(scm_lexer_head_token(parser->lexer)),
+         "%lld", &num);
+  obj = SCM_OBJ(scm_integer_construct(num));
+  scm_lexer_shift_token(parser->lexer);
+
+  return obj;
+}
+
+static ScmObj
+scm_parser_parse_bool(ScmParser *parser)
+{
+  ScmObj obj;
+
+  assert(parser != NULL);
+
+  if (strcasecmp("#t", SCM_TOKEN_STRING(scm_lexer_head_token(parser->lexer)))
+      == 0)
+    obj = SCM_OBJ(scm_bool_construct(true));
+  else
+    obj = SCM_OBJ(scm_bool_construct(false));
+
+  scm_lexer_shift_token(parser->lexer);
+
+  return obj;
+}
+
+static ScmObj
+scm_parser_parse_vector_aux(ScmParser *parser, size_t *len)
+{
+  ScmObj car, cdr;
+
+  assert(parser != NULL);
+  assert(len != NULL);
+
+  scm_lexer_shift_token(parser->lexer);
+
+  if (SCM_TOKEN_TYPE(scm_lexer_head_token(parser->lexer))
+      == SCM_TOKEN_TYPE_RPAREN) {
+    scm_lexer_shift_token(parser->lexer);
+    return SCM_OBJ(scm_nil_instance());
+  }
+
+  car = scm_parser_parse_expression(parser);
+
+  /* TODO: error handling */
+  switch (scm_obj_type(car)) {
+  case SCM_OBJ_TYPE_EOF:
+    break;
+  default:
+    break;
+  }
+
+  scm_lexer_shift_token(parser->lexer);
+  *len += 1;
+  cdr = scm_parser_parse_vector_aux(parser, len);
+  
+  /* TODO: error handling */
+  switch (scm_obj_type(cdr)) {
+  case SCM_OBJ_TYPE_EOF:
+    break;
+  default:
+    break;
+  }
+
+  return SCM_OBJ(scm_pair_construct(car, cdr));
+}
+
+static ScmObj
+scm_parser_parse_vector(ScmParser *parser)
+{
+  ScmVector *vector;
+  ScmObj elements;
+  size_t len, idx;
+
+  assert(parser != NULL);
+
+  len = 0;
+  elements = scm_parser_parse_vector_aux(parser, &len);
+  vector = scm_vector_construct(len);
+
+  for (idx = 0; idx < len; idx++) {
+    scm_vector_set(vector, idx, scm_pair_car(SCM_PAIR(elements)));
+    elements = scm_pair_cdr(SCM_PAIR(elements));
+  }
+
+  return SCM_OBJ(vector);
+}
+
+
+static ScmObj
+scm_parser_parse_char(ScmParser *parser)
+{
+  char *p;
+  ScmObj obj;
+
+  assert(parser != NULL);
+
+  p = SCM_TOKEN_STRING(scm_lexer_head_token(parser->lexer));
+  if (strcasecmp("#\\newline", p) == 0)
+    obj = SCM_OBJ(scm_char_construct('\n'));
+  else if (strcasecmp("#\\space", p) == 0)
+    obj = SCM_OBJ(scm_char_construct(' '));
+  else if (strlen(p) == 3)
+    obj = SCM_OBJ(scm_char_construct(p[2]));
+  else if (strncasecmp("#\\0x", p, 4) == 0) {
+    unsigned int v;
+    sscanf(p + 4, "%x", &v);
+    obj = SCM_OBJ(scm_char_construct(v));
+  }
+  else {
+    // TODO: error handling
+    obj = SCM_OBJ(scm_nil_instance()); // dummy
+  }
+      
+  scm_lexer_shift_token(parser->lexer);
+  return obj;
+}
+
+static ScmObj
+scm_parser_parse_eof(ScmParser *parser)
+{
+  assert(parser != NULL);
+
+  scm_lexer_shift_token(parser->lexer);
+  return SCM_OBJ(scm_eof_instance());
+}
+
 ScmParser *
 scm_parser_construct(ScmLexer *lexer)
 {
@@ -772,9 +1027,10 @@ scm_parser_construct(ScmLexer *lexer)
   return parser;
 }
 
-void /* ScmObj */
-scm_parser_expression(ScmParser *parser)
+ScmObj
+scm_parser_parse_expression(ScmParser *parser)
 {
+  ScmObj result;
   ScmToken *token;
 
   assert(parser != NULL);
@@ -782,37 +1038,57 @@ scm_parser_expression(ScmParser *parser)
   token = scm_lexer_head_token(parser->lexer);
   switch (SCM_TOKEN_TYPE(token)) {
   case SCM_TOKEN_TYPE_LPAREN:
+    result = scm_parser_parse_list(parser);
     break;
   case SCM_TOKEN_TYPE_RPAREN:
+    // error
+    result = SCM_OBJ(scm_nil_instance()); // dummy;
     break;
   case SCM_TOKEN_TYPE_DOT:
+    // error
+    result = SCM_OBJ(scm_nil_instance()); // dummy;
     break;
   case SCM_TOKEN_TYPE_QUOTE:
+    result = scm_parser_parse_quote(parser);
     break;
   case SCM_TOKEN_TYPE_QUASIQUOTE:
+    result = scm_parser_parse_quote(parser);
     break;
   case SCM_TOKEN_TYPE_UNQUOTE:
+    result = scm_parser_parse_quote(parser);
     break;
   case SCM_TOKEN_TYPE_UNQUOTE_SPLICING:
+    result = scm_parser_parse_quote(parser);
     break;
   case SCM_TOKEN_TYPE_STRING:
+    result = scm_parser_parse_string(parser);
     break;
   case SCM_TOKEN_TYPE_IDENTIFIER:
+    result = scm_parser_parse_identifier(parser);
     break;
   case SCM_TOKEN_TYPE_NUMERIC:
+    result = scm_parser_parse_numeric(parser);
     break;
   case SCM_TOKEN_TYPE_BOOL:
+    result = scm_parser_parse_bool(parser);
     break;
   case SCM_TOKEN_TYPE_VECTOR_START:
+    result = scm_parser_parse_vector(parser);
     break;
   case SCM_TOKEN_TYPE_CHAR:
+    result = scm_parser_parse_char(parser);
     break;
   case SCM_TOKEN_TYPE_EOF:
+    result = scm_parser_parse_eof(parser);
     break;
   case SCM_TOKEN_TYPE_TOKENIZE_ERR:
+    // error
+    result = SCM_OBJ(scm_nil_instance()); // dummy;
     break;
   default:
     assert(false); /* must not happen */
     break;
   }
+
+  return result;
 }
