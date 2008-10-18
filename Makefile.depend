@@ -16,3 +16,4 @@ vector.o: vector.c memory.h object.h printer.h nil.h vector.h
 miscobjects.o: miscobjects.c object.h printer.h memory.h miscobjects.h
 bool.o: bool.c memory.h object.h printer.h bool.h
 char.o: char.c memory.h object.h printer.h char.h
+port.o: port.c memory.h object.h printer.h port.h

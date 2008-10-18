@@ -16,7 +16,8 @@ typedef enum {
   SCM_OBJ_TYPE_VECTOR,
   SCM_OBJ_TYPE_BOOL,
   SCM_OBJ_TYPE_CHAR,
-  SCM_OBJ_TYPE_EOF
+  SCM_OBJ_TYPE_EOF,
+  SCM_OBJ_TYPE_PORT
 } SCM_OBJ_TYPE_T;
 
 typedef void (*ScmPrettyPrintFunction)(ScmObj obj,
