@@ -1,6 +1,9 @@
 #ifndef INCLUDE_PORT_H__
 #define INCLUDE_PORT_H__
 
+#include <sys/types.h>
+#include <unistd.h>
+
 typedef struct ScmIORec ScmIO;
 typedef struct ScmFileIORec ScmFileIO;
 typedef struct ScmStringIORec ScmStringIO;
@@ -13,7 +16,8 @@ typedef struct ScmPortRec ScmPort;
 typedef enum {
   SCM_PORT_BUF_FULL,
   SCM_PORT_BUF_LINE,
-  SCM_PORT_BUF_NONE
+  SCM_PORT_BUF_NONE,
+  SCM_PORT_BUF_DEFAULT
 } SCM_PORT_BUF_MODE;
 
 typedef enum {
@@ -27,7 +31,7 @@ void scm_io_destruct(ScmIO *io);
 ssize_t scm_io_read(ScmIO *io, void *buf, size_t size);
 ssize_t scm_io_write(ScmIO *io, const void *buf, size_t size);
 bool scm_io_seek(ScmIO *io, off_t offset, int whence);
-void scm_io_close(ScmIO *io);
+int scm_io_close(ScmIO *io);
 void scm_io_clear_error(ScmIO *io);
 bool scm_io_is_ready(ScmIO *io);
 bool scm_io_is_closed(ScmIO *io);
@@ -71,12 +75,16 @@ bool scm_port_is_writable(ScmPort *port);
 bool scm_port_is_file_port(ScmPort *port);
 bool scm_port_is_string_port(ScmPort *port);
 bool scm_port_is_port(ScmObj obj);
-ScmPort *scm_port_construct_input_port(const char *path);
-ScmPort *scm_port_construct_output_port(const char *path);
+ScmPort *scm_port_construct_input_port(const char *path,
+                                       SCM_PORT_BUF_MODE buf_mode);
+ScmPort *scm_port_construct_output_port(const char *path,
+                                        SCM_PORT_BUF_MODE buf_mode);
+void scm_port_destruct(ScmPort *port);
 bool scm_port_is_closed(ScmPort *port);
 bool scm_port_is_ready(ScmPort *port);
 bool scm_port_is_eof(ScmPort *port);
 int scm_port_flush(ScmPort *port);
+int scm_port_close(ScmPort *port);
 ssize_t scm_port_read_prim(ScmPort *port, void *buf, size_t size);
 ssize_t scm_port_write_prim(ScmPort *port, const void *buf, size_t size);
 int scm_port_seek(ScmPort *port, off_t offset, int whence);

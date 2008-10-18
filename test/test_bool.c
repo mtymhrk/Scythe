@@ -1,6 +1,8 @@
 #include <cutter.h>
 
 #include "object.h"
+#include "nil.h"
+#include "char.h"
 #include "bool.h"
 
 void

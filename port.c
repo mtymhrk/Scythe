@@ -142,12 +142,11 @@ scm_io_seek(ScmIO *io, off_t offset, int whence)
   return (io->seek != NULL) ? io->seek(io, offset, whence) : -1;
 }
 
-void
+int
 scm_io_close(ScmIO *io)
 {
   assert(io != NULL);
-  if (io->close != NULL)
-    io->close(io);
+  return (io->close != NULL) ? io->close(io) : -1;
 }
 
 void
@@ -690,11 +689,15 @@ scm_port_initialize(ScmPort *port, SCM_PORT_ATTR attr)
 }
 
 static void
-scm_port_init_buffer(ScmPort *port)
+scm_port_init_buffer(ScmPort *port, SCM_PORT_BUF_MODE buf_mode)
 {
-  assert(port == NULL);
+  assert(port != NULL);
 
-  port->buffer_mode = scm_io_default_buffer_mode(port->io);
+  if (buf_mode == SCM_PORT_BUF_DEFAULT)
+    port->buffer_mode = scm_io_default_buffer_mode(port->io);
+  else
+    port->buffer_mode = buf_mode;
+
   port->pos = 0;
   port->used = 0;
   switch (port->buffer_mode) {
@@ -723,7 +726,8 @@ scm_port_init_buffer(ScmPort *port)
 }
 
 ScmPort *
-scm_port_construct_input_port(const char *path)
+scm_port_construct_input_port(const char *path,
+                              SCM_PORT_BUF_MODE buf_mode)
 {
   ScmPort *port;
 
@@ -736,12 +740,13 @@ scm_port_construct_input_port(const char *path)
     return NULL;
   }
   scm_port_initialize(port, SCM_PORT_ATTR_READABLE | SCM_PORT_ATTR_FILE);
-  scm_port_init_buffer(port);
+  scm_port_init_buffer(port, buf_mode);
   return port;
 }
 
 ScmPort *
-scm_port_construct_output_port(const char *path)
+scm_port_construct_output_port(const char *path,
+                               SCM_PORT_BUF_MODE buf_mode)
 {
   ScmPort *port;
 
@@ -754,9 +759,20 @@ scm_port_construct_output_port(const char *path)
     return NULL;
   }
   scm_port_initialize(port, SCM_PORT_ATTR_WRITABLE | SCM_PORT_ATTR_FILE);
-  scm_port_init_buffer(port);
+  scm_port_init_buffer(port, buf_mode);
 
   return port;
+}
+
+void
+scm_port_destruct(ScmPort *port)
+{
+  assert(port != NULL);
+
+  scm_port_close(port);
+  scm_memory_release(port->buffer);
+  scm_io_destruct(port->io);
+  scm_memory_release(port);
 }
 
 bool
@@ -808,6 +824,19 @@ scm_port_flush(ScmPort *port)
   }
 
   return 0;
+}
+
+int
+scm_port_close(ScmPort *port)
+{
+  assert(port != NULL);
+
+  if (scm_port_is_closed(port)) return 0;
+
+  if (scm_port_is_writable(port))
+    scm_port_flush(port);
+
+  return scm_io_close(port->io);
 }
 
 static void
@@ -883,7 +912,9 @@ scm_port_read_prim_buf(ScmPort *port, void *buf, size_t size, bool wait_all)
     if (n < 0) return -1; // error
     p += n;
     
-  } while ((wait_all && (p < size)) || (!wait_all && scm_port_is_ready(port)));
+    if (p >= size) break;
+
+  } while (wait_all || (!wait_all && scm_port_is_ready(port)));
 
   return p;
 }
@@ -1011,14 +1042,13 @@ scm_port_seek(ScmPort *port, off_t offset, int whence)
   if (scm_port_is_writable(port))
     scm_port_flush(port);
 
-
   switch (whence) {
   case SEEK_SET:
     result = scm_io_seek(port->io, offset, whence);
     break;
   case SEEK_CUR:
     off = offset - (port->used - port->pos);
-      result = scm_io_seek(port->io, offset, whence);
+    result = scm_io_seek(port->io, off, whence);
     break;
   case SEEK_END:
     result = scm_io_seek(port->io, offset, whence);
