@@ -612,6 +612,20 @@ scm_stringio_errno(ScmStringIO *strio)
   return 0;
 }
 
+char *
+scm_stringio_buffer(ScmStringIO *strio)
+{
+  assert(strio != NULL);
+  return strio->string;
+}
+
+size_t
+scm_stringio_length(ScmStringIO *strio)
+{
+  assert(strio != NULL);
+  return strio->length;
+}
+
 static void
 scm_port_pretty_print(ScmObj obj, ScmPrinter *printer)
 {
@@ -976,33 +990,20 @@ scm_port_write_prim_buf_full(ScmPort *port, const void *buf, size_t size)
 static ssize_t
 scm_port_write_prim_buf_line(ScmPort *port, const void *buf, size_t size)
 {
-  const char *p;
-  const void *q;
-  int n;
+  int i, n;
   
   assert(port != NULL);
   assert(buf != NULL);
   assert(scm_port_is_writable(port));
   assert(!scm_port_is_closed(port));
 
-  q = buf;
-  p = strchr(buf, '\n');
-  while (p != NULL) {
-    n = ((const void *)p - q) + 1;
-    n = scm_port_write_prim_buf_full(port, q, n);
+  for (i = 0; i < size; i++) {
+    n = scm_port_write_prim_buf_full(port, buf + i, 1);
     if (n < 0) return -1;
-    scm_port_flush(port);
-    q += n;
-    p = strchr(q, '\n');
+    if (((const char *)buf)[i] == '\n') scm_port_flush(port);
   }
 
-  if (q - buf > 0) {
-    n = scm_port_write_prim_buf_full(port, q, q - buf);
-    if (n < 0) return -1;
-    q += n;
-  }
-
-  return q - buf;
+  return i;
 }
 
 ssize_t

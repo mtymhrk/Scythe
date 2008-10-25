@@ -69,6 +69,8 @@ bool scm_stringio_is_eof(ScmStringIO *strio);
 void scm_stringio_clear_error(ScmStringIO *strio);
 bool scm_stringio_has_error(ScmStringIO *strio);
 int scm_stringio_errno(ScmStringIO *strio);
+char *scm_stringio_buffer(ScmStringIO *strio);
+size_t scm_stringio_length(ScmStringIO *strio);
 
 bool scm_port_is_readable(ScmPort *port);
 bool scm_port_is_writable(ScmPort *port);
