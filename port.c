@@ -937,7 +937,6 @@ ssize_t
 scm_port_read_prim(ScmPort *port, void *buf, size_t size)
 {
   const bool wait_all = true;
-  const bool dont_wait = false;
 
   assert(port != NULL);
   assert(buf != NULL);
@@ -946,11 +945,9 @@ scm_port_read_prim(ScmPort *port, void *buf, size_t size)
   if (scm_port_is_closed(port)) return -1;
 
   switch (port->buffer_mode) {
-  case SCM_PORT_BUF_FULL:
-    return scm_port_read_prim_buf(port, buf, size, wait_all);
-    break;
+  case SCM_PORT_BUF_FULL: /* fall through */
   case SCM_PORT_BUF_LINE:
-    return scm_port_read_prim_buf(port, buf, size, dont_wait);
+    return scm_port_read_prim_buf(port, buf, size, wait_all);
     break;
   case SCM_PORT_BUF_NONE:
     return scm_io_read(port->io, buf, size);

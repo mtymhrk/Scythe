@@ -280,7 +280,7 @@ test_scm_port_read_big_data(void)
 void
 test_scm_port_close_input_port(void)
 {
-  int ret;
+  int ret, data;
   ScmPort *port = scm_port_construct_input_port(TEST_TEXT_FILE,
                                                 SCM_PORT_BUF_DEFAULT);
 
@@ -290,6 +290,9 @@ test_scm_port_close_input_port(void)
 
   cut_assert_equal_int(0, ret);
   cut_assert_true(scm_port_is_closed(port));
+
+  cut_assert_equal_int(-1, scm_port_read_prim(port, &data, sizeof(data)));
+  cut_assert_equal_int(-1, scm_port_seek(port, 0, SEEK_SET));
 }
 
 bool
@@ -297,7 +300,6 @@ is_file_contents_same(const char *file, const void *contents, size_t size)
 {
   FILE *fp;
   char data[size];
-  int i;
   size_t n;
 
   memset(data, 0, size);
@@ -308,8 +310,30 @@ is_file_contents_same(const char *file, const void *contents, size_t size)
 
   cut_assert_equal_int(1, n);
 
-  for(i = 0; i < size; i++)
-    cut_assert_equal_int(((char *)contents)[i], data[i]);
+  cut_assert_true(memcmp(contents, data, size) == 0);
+
+  return true;
+}
+
+bool
+is_file_contents_same2(const char *file1, const char *file2, size_t size)
+{
+  FILE *fp1, *fp2;
+  char data1[size], data2[size];
+  int n1, n2;
+
+
+  fp1 = fopen(file1, "rb");
+  fp2 = fopen(file2, "rb");
+  n1 = fread(data1, size, 1, fp1);
+  n2 = fread(data2, size, 1, fp2);
+  fclose(fp1);
+  fclose(fp2);
+
+  cut_assert_equal_int(1, n1);
+  cut_assert_equal_int(1, n2);
+
+  cut_assert_true(memcmp(data1, data2, size) == 0);
 
   return true;
 }
@@ -436,4 +460,60 @@ test_scm_port_interleave_write_and_seek_full_buffer(void)
                                                  SCM_PORT_BUF_FULL);
 
   xxx_test_scm_port_interleave_write_and_seek(port);
+}
+
+void
+test_scm_port_interleave_write_and_seek_line_buffer(void)
+{
+  ScmPort *port = scm_port_construct_output_port(TEST_OUTPUT_FILE,
+                                                 SCM_PORT_BUF_LINE);
+
+  xxx_test_scm_port_interleave_write_and_seek(port);
+}
+
+void
+test_scm_port_interleave_write_and_seek_none_buffer(void)
+{
+  ScmPort *port = scm_port_construct_output_port(TEST_OUTPUT_FILE,
+                                                 SCM_PORT_BUF_LINE);
+
+  xxx_test_scm_port_interleave_write_and_seek(port);
+}
+
+void
+test_scm_port_write_big_data(void)
+{
+  int i;
+
+  ScmPort *port = scm_port_construct_output_port(TEST_OUTPUT_FILE,
+                                                 SCM_PORT_BUF_FULL);
+
+
+  for (i = 0; i < (TEST_BIG_FILE_SIZE / sizeof(i)); i++)
+    cut_assert_equal_int(sizeof(i),
+                         scm_port_write_prim(port, &i, sizeof(i)));
+  
+  cut_assert_equal_int(0, scm_port_close(port));
+
+  cut_assert_true(is_file_contents_same2(TEST_BIG_FILE,
+                                         TEST_OUTPUT_FILE,
+                                         TEST_BIG_FILE_SIZE));
+}
+
+void
+test_scm_port_close_output_port(void)
+{
+  int ret, data;
+  ScmPort *port = scm_port_construct_output_port(TEST_OUTPUT_FILE,
+                                                 SCM_PORT_BUF_DEFAULT);
+
+  cut_assert_false(scm_port_is_closed(port));
+
+  ret = scm_port_close(port);
+
+  cut_assert_equal_int(0, ret);
+  cut_assert_true(scm_port_is_closed(port));
+
+  cut_assert_equal_int(-1, scm_port_write_prim(port, &data, sizeof(data)));
+  cut_assert_equal_int(-1, scm_port_seek(port, 0, SEEK_SET));
 }

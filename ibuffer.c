@@ -176,7 +176,7 @@ scm_ibuffer_access(ScmIBuffer *ibuffer, size_t index)
 
     if (ibuffer->is_eof(ibuffer)) return EOF;
 
-    scm_ibuffer_chuck_off_char(ibuffer);
+    scm_ibuffer_chuck_off_char(ibuffer); /* This call is unnecessary */
     scm_ibuffer_normalize_buffer(ibuffer, index + 1);
     len = ibuffer->readline(ibuffer, (char *)ibuffer->buffer + ibuffer->used,
                       ibuffer->size - ibuffer->used);
