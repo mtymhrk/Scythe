@@ -295,6 +295,44 @@ test_scm_port_close_input_port(void)
   cut_assert_equal_int(-1, scm_port_seek(port, 0, SEEK_SET));
 }
 
+void
+xxx_test_scm_port_construct_output_file_port(ScmPort *port)
+{
+  cut_assert_not_null(port);
+  cut_assert_false(scm_port_is_readable(port));
+  cut_assert_true(scm_port_is_writable(port));
+  cut_assert_true(scm_port_is_file_port(port));
+  cut_assert_false(scm_port_is_string_port(port));
+  cut_assert_false(scm_port_is_closed(port));
+}
+
+void
+test_scm_port_construct_output_file_port_ful_buffer(void)
+{
+  ScmPort *port = scm_port_construct_output_port(TEST_OUTPUT_FILE,
+                                                 SCM_PORT_BUF_FULL);
+
+  xxx_test_scm_port_construct_output_file_port(port);
+}
+
+void
+test_scm_port_construct_output_file_port_line_buffer(void)
+{
+  ScmPort *port = scm_port_construct_output_port(TEST_OUTPUT_FILE,
+                                                 SCM_PORT_BUF_LINE);
+
+  xxx_test_scm_port_construct_output_file_port(port);
+}
+
+void
+test_scm_port_construct_output_file_port_none_buffer(void)
+{
+  ScmPort *port = scm_port_construct_output_port(TEST_OUTPUT_FILE,
+                                                 SCM_PORT_BUF_NONE);
+
+  xxx_test_scm_port_construct_output_file_port(port);
+}
+
 bool
 is_file_contents_same(const char *file, const void *contents, size_t size)
 {

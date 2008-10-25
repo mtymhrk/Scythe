@@ -469,7 +469,7 @@ scm_stringio_construct(const char *str, size_t len)
                     (IsReadyFunc)scm_stringio_is_ready,
                     (IsClosedFunc)scm_stringio_is_closed,
                     (IsEOFFunc)scm_stringio_is_eof,
-                    (BufferModeFunc)NULL,
+                    (BufferModeFunc)scm_stringio_default_buffer_mode,
                     (BlockSizeFunc)NULL,
                     (HasErrorFunc)scm_stringio_has_error,
                     (ErrnoFunc)scm_stringio_errno);
@@ -477,6 +477,8 @@ scm_stringio_construct(const char *str, size_t len)
   strio->capacity = 0;
   strio->length = 0;
   strio->pos = 0;
+  strio->is_closed = false;
+
   if (str != NULL) {
     scm_stringio_expand_buffer(strio, len);
     memcpy(strio->string, str, len);
@@ -500,14 +502,18 @@ size_t
 scm_stringio_read(ScmStringIO *strio, void *buf, size_t size)
 {
   size_t n;
+  size_t rest;
 
   assert(strio != NULL);
   assert(buf != NULL);
 
   if (strio->is_closed) return -1;
 
-  n = (size <= strio->length) ? size : strio->length;
-  memcpy(buf, strio->string, n);
+  rest = strio->length - strio->pos;
+  if (rest <= 0) return 0;
+
+  n = (size <= rest) ? size : rest;
+  memcpy(buf, strio->string + strio->pos, n);
   strio->pos += n;
 
   return n;
@@ -596,6 +602,13 @@ void
 scm_stringio_clear_error(ScmStringIO *strio)
 {
   assert(strio != NULL);
+}
+
+SCM_PORT_BUF_MODE
+scm_stringio_default_buffer_mode(ScmStringIO *strio)
+{
+  assert(strio != NULL);
+  return SCM_PORT_BUF_NONE;
 }
 
 bool
@@ -774,6 +787,42 @@ scm_port_construct_output_port(const char *path,
   }
   scm_port_initialize(port, SCM_PORT_ATTR_WRITABLE | SCM_PORT_ATTR_FILE);
   scm_port_init_buffer(port, buf_mode);
+
+  return port;
+}
+
+ScmPort *
+scm_port_construct_input_string_port(const void *string, size_t size)
+{
+  ScmPort *port;
+
+  assert(string != NULL);
+
+  port = scm_memory_allocate(sizeof(ScmPort));
+  port->io = (ScmIO *)scm_stringio_construct(string, size);
+  if (port->io == NULL) {
+    scm_memory_release(port);
+    return NULL;
+  }
+  scm_port_initialize(port, SCM_PORT_ATTR_READABLE | SCM_PORT_ATTR_STRING);
+  scm_port_init_buffer(port, SCM_PORT_BUF_DEFAULT);
+
+  return port;
+}
+
+ScmPort *
+scm_port_construct_output_string_port(void)
+{
+  ScmPort *port;
+
+  port = scm_memory_allocate(sizeof(ScmPort));
+  port->io = (ScmIO *)scm_stringio_construct(NULL, 0);
+  if (port->io == NULL) {
+    scm_memory_release(port);
+    return NULL;
+  }
+  scm_port_initialize(port, SCM_PORT_ATTR_WRITABLE | SCM_PORT_ATTR_STRING);
+  scm_port_init_buffer(port, SCM_PORT_BUF_DEFAULT);
 
   return port;
 }
@@ -984,24 +1033,24 @@ scm_port_write_prim_buf_full(ScmPort *port, const void *buf, size_t size)
   return i;
 }
 
-static ssize_t
-scm_port_write_prim_buf_line(ScmPort *port, const void *buf, size_t size)
-{
-  int i, n;
+/* static ssize_t */
+/* scm_port_write_prim_buf_line(ScmPort *port, const void *buf, size_t size) */
+/* { */
+/*   int i, n; */
   
-  assert(port != NULL);
-  assert(buf != NULL);
-  assert(scm_port_is_writable(port));
-  assert(!scm_port_is_closed(port));
+/*   assert(port != NULL); */
+/*   assert(buf != NULL); */
+/*   assert(scm_port_is_writable(port)); */
+/*   assert(!scm_port_is_closed(port)); */
 
-  for (i = 0; i < size; i++) {
-    n = scm_port_write_prim_buf_full(port, buf + i, 1);
-    if (n < 0) return -1;
-    if (((const char *)buf)[i] == '\n') scm_port_flush(port);
-  }
+/*   for (i = 0; i < size; i++) { */
+/*     n = scm_port_write_prim_buf_full(port, buf + i, 1); */
+/*     if (n < 0) return -1; */
+/*     if (((const char *)buf)[i] == '\n') scm_port_flush(port); */
+/*   } */
 
-  return i;
-}
+/*   return i; */
+/* } */
 
 ssize_t
 scm_port_write_prim(ScmPort *port, const void *buf, size_t size)
@@ -1013,11 +1062,9 @@ scm_port_write_prim(ScmPort *port, const void *buf, size_t size)
   if (scm_port_is_closed(port)) return -1;
 
   switch (port->buffer_mode) {
-  case SCM_PORT_BUF_FULL:
-    return scm_port_write_prim_buf_full(port, buf, size);
-    break;
+  case SCM_PORT_BUF_FULL: /* fall through  */
   case SCM_PORT_BUF_LINE:
-    return scm_port_write_prim_buf_line(port, buf, size);
+    return scm_port_write_prim_buf_full(port, buf, size);
     break;
   case SCM_PORT_BUF_NONE:
     return scm_io_write(port->io, buf, size);
@@ -1060,4 +1107,24 @@ scm_port_seek(ScmPort *port, off_t offset, int whence)
     scm_port_clear_buffer(port);
 
   return (result < 0) ? result : 0;
+}
+
+void *
+scm_port_string_buffer(ScmPort *port)
+{
+  assert(port != NULL);
+
+  if (!scm_port_is_string_port(port)) return NULL;
+
+  return (void *)scm_stringio_buffer((ScmStringIO *)port->io);
+}
+
+ssize_t
+scm_port_string_buffer_length(ScmPort *port)
+{
+  assert(port != NULL);
+
+  if (!scm_port_is_string_port(port)) return -1;
+
+  return scm_stringio_length((ScmStringIO *)port->io);
 }

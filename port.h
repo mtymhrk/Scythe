@@ -67,6 +67,7 @@ int scm_stringio_close(ScmStringIO *strio);
 bool scm_stringio_is_closed(ScmStringIO *strio);
 bool scm_stringio_is_eof(ScmStringIO *strio);
 void scm_stringio_clear_error(ScmStringIO *strio);
+SCM_PORT_BUF_MODE scm_stringio_default_buffer_mode(ScmStringIO *strio);
 bool scm_stringio_has_error(ScmStringIO *strio);
 int scm_stringio_errno(ScmStringIO *strio);
 char *scm_stringio_buffer(ScmStringIO *strio);
@@ -81,6 +82,8 @@ ScmPort *scm_port_construct_input_port(const char *path,
                                        SCM_PORT_BUF_MODE buf_mode);
 ScmPort *scm_port_construct_output_port(const char *path,
                                         SCM_PORT_BUF_MODE buf_mode);
+ScmPort *scm_port_construct_input_string_port(const void *string, size_t size);
+ScmPort *scm_port_construct_output_string_port(void);
 void scm_port_destruct(ScmPort *port);
 bool scm_port_is_closed(ScmPort *port);
 bool scm_port_is_ready(ScmPort *port);
@@ -90,5 +93,7 @@ int scm_port_close(ScmPort *port);
 ssize_t scm_port_read_prim(ScmPort *port, void *buf, size_t size);
 ssize_t scm_port_write_prim(ScmPort *port, const void *buf, size_t size);
 int scm_port_seek(ScmPort *port, off_t offset, int whence);
+void * scm_port_string_buffer(ScmPort *port);
+ssize_t scm_port_string_buffer_length(ScmPort *port);
 
 #endif /*  INCLUDE_PORT_H__ */
