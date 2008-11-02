@@ -80,6 +80,27 @@ test_parser_parse_integer(void)
 }
 
 void
+test_parser_parse_signed_integer(void)
+{
+  ScmParser *parser = construct_parser_from_string(" +100 -100 ");
+  ScmObj obj;
+  
+  obj = scm_parser_parse_expression(parser);
+  
+  cut_assert_true(scm_integer_is_integer(obj));
+  cut_assert_equal_int(100, scm_integer_value(SCM_INTEGER(obj)));
+
+  obj = scm_parser_parse_expression(parser);
+  
+  cut_assert_true(scm_integer_is_integer(obj));
+  cut_assert_equal_int(-100, scm_integer_value(SCM_INTEGER(obj)));
+
+  obj = scm_parser_parse_expression(parser);
+  cut_assert_true(scm_eof_is_eof(obj));
+}
+
+
+void
 test_parser_parse_bool_true(void)
 {
   ScmParser *parser = construct_parser_from_string(" #t ");
@@ -391,6 +412,31 @@ test_parser_parse_nexted_list(void)
 }
 
 void
+test_parse_parse_list_inserted_comment(void)
+{
+  ScmParser *parser = construct_parser_from_string("(<abc> ; comment \n 123)");
+  ScmObj obj, car, cdr;
+
+  obj = scm_parser_parse_expression(parser);
+
+  cut_assert_true(scm_pair_is_pair(obj));
+  car = scm_pair_car(SCM_PAIR(obj));
+  cdr = scm_pair_cdr(SCM_PAIR(obj));
+
+  cut_assert_true(scm_symbol_is_symbol(car));
+  cut_assert_equal_string("<abc>", scm_symbol_name(SCM_SYMBOL(car)));
+
+  cut_assert_true(scm_pair_is_pair(cdr));
+  car = scm_pair_car(SCM_PAIR(cdr));
+  cdr = scm_pair_cdr(SCM_PAIR(cdr));
+
+  cut_assert_true(scm_integer_is_integer(car));
+  cut_assert_equal_int(123, scm_integer_value(SCM_INTEGER(car)));
+
+  cut_assert_true(scm_nil_is_nil(cdr));
+}
+
+void
 test_parser_parse_empty_vector(void)
 {
   ScmParser *parser = construct_parser_from_string(" #() ");
@@ -400,5 +446,43 @@ test_parser_parse_empty_vector(void)
 
   cut_assert_true(scm_vector_is_vector(obj));
   cut_assert_equal_int(0, scm_vector_length(SCM_VECTOR(obj)));
+
+  obj = scm_parser_parse_expression(parser);
+  cut_assert_true(scm_eof_is_eof(obj));
 }
 
+void
+test_parser_parse_vector(void)
+{
+  ScmParser *parser =
+    construct_parser_from_string(" #(<abc> 123 \"str\" #()) ");
+  ScmObj vector, obj;
+
+  vector = scm_parser_parse_expression(parser);
+
+  cut_assert_true(scm_vector_is_vector(vector));
+  cut_assert_equal_int(4, scm_vector_length(SCM_VECTOR(vector)));
+
+  obj = scm_vector_ref(SCM_VECTOR(vector), 0);
+
+  cut_assert_true(scm_symbol_is_symbol(obj));
+  cut_assert_equal_string("<abc>", scm_symbol_name(SCM_SYMBOL(obj)));
+
+  obj = scm_vector_ref(SCM_VECTOR(vector), 1);
+
+  cut_assert_true(scm_integer_is_integer(obj));
+  cut_assert_equal_int(123, scm_integer_value(SCM_INTEGER(obj)));
+
+  obj = scm_vector_ref(SCM_VECTOR(vector), 2);
+
+  cut_assert_true(scm_string_is_string(obj));
+  cut_assert_equal_string("str", scm_string_string(SCM_STRING(obj)));
+
+  obj = scm_vector_ref(SCM_VECTOR(vector), 3);
+
+  cut_assert_true(scm_vector_is_vector(obj));
+  cut_assert_equal_int(0, scm_vector_length(SCM_VECTOR(obj)));
+
+  obj = scm_parser_parse_expression(parser);
+  cut_assert_true(scm_eof_is_eof(obj));
+}
