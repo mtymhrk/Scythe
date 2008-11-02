@@ -7,11 +7,11 @@ string.o: string.c memory.h object.h printer.h string.h
 symbol.o: symbol.c memory.h object.h printer.h basichash.h symbol.h
 basichash.o: basichash.c memory.h basichash.h
 integer.o: integer.c memory.h object.h printer.h integer.h
-ibuffer.o: ibuffer.c memory.h ibuffer.h
+ibuffer.o: ibuffer.c memory.h port.h object.h printer.h ibuffer.h
 basiclist.o: basiclist.c memory.h basiclist.h
-parser.o: parser.c memory.h basiclist.h ibuffer.h parser.h object.h \
-  printer.h bool.h char.h integer.h miscobjects.h nil.h pair.h string.h \
-  symbol.h vector.h
+parser.o: parser.c memory.h basiclist.h ibuffer.h port.h object.h \
+  printer.h parser.h bool.h char.h integer.h miscobjects.h nil.h pair.h \
+  string.h symbol.h vector.h
 vector.o: vector.c memory.h object.h printer.h nil.h vector.h
 miscobjects.o: miscobjects.c object.h printer.h memory.h miscobjects.h
 bool.o: bool.c memory.h object.h printer.h bool.h

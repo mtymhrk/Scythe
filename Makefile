@@ -15,12 +15,16 @@ $(TARGET) $(OBJS): Makefile
 	$(CC) -c -o $@ $(INCLUDES) $(CFLAGS) $<
 
 
-.PHONY: clean depend
+.PHONY: clean depend test
 
 clean:
 	-rm $(TARGET) $(OBJS)
+	$(MAKE) -C ./test clean
 
 depend:
 	$(CC) -MM $(INCLUDES) $(CFLAGS) $(SOURCES) > Makefile.depend
+
+test:
+	$(MAKE) -C ./test all run
 
 include Makefile.depend

@@ -4,9 +4,11 @@
 #include <assert.h>
 
 #include "memory.h"
+#include "port.h"
 #include "ibuffer.h"
 
 #define BUFFER_SIZE 128
+#define BLOCK_SIZE 64
 
 #define IS_NEWLINE(c) ((c) == '\n')
 
@@ -21,102 +23,86 @@ struct ScmIBufferRec {
   size_t used;
   int line;
   int column;
-  ReadLineFunc readline;
-  ReadCharFunc readchar;
-  IsEOFFunc    is_eof;
+  ScmPort *port;
 };
 
-typedef struct {
-  ScmIBuffer base;
-  FILE *input;
-} ScmFileIBuffer;
+/* static int */
+/* read_line_from_file(ScmIBuffer *ibuffer, char *buffer, size_t size) */
+/* { */
+/*   ScmFileIBuffer *file_ibuffer = (ScmFileIBuffer *)ibuffer; */
+/*   char *p; */
 
-typedef struct {
-  ScmIBuffer base;
-  const char *string;
-  size_t len;
-  const char *ptr;
-} ScmStringIBuffer;
+/*   assert(file_ibuffer != NULL); */
 
+/*   p = fgets(buffer, size, file_ibuffer->input); */
+/*   if (p == NULL) */
+/*     return 0; */
+/*   else */
+/*     return strlen(p); */
+/* } */
 
+/* static int */
+/* read_char_from_file(ScmIBuffer *ibuffer) */
+/* { */
+/*   ScmFileIBuffer *file_ibuffer = (ScmFileIBuffer *)ibuffer; */
+/*   assert(file_ibuffer != NULL); */
+/*   return fgetc(file_ibuffer->input); */
+/* } */
 
-static int
-read_line_from_file(ScmIBuffer *ibuffer, char *buffer, size_t size)
-{
-  ScmFileIBuffer *file_ibuffer = (ScmFileIBuffer *)ibuffer;
-  char *p;
+/* static bool */
+/* is_file_eof(ScmIBuffer *ibuffer) */
+/* { */
+/*   ScmFileIBuffer *file_ibuffer = (ScmFileIBuffer *)ibuffer; */
+/*   assert(file_ibuffer != NULL); */
+/*   return (feof(file_ibuffer->input) ? true : false); */
+/* } */
 
-  assert(file_ibuffer != NULL);
+/* static int */
+/* read_line_from_string(ScmIBuffer *ibuffer, char *buffer, size_t size) */
+/* { */
+/*   ScmStringIBuffer *str_ibuffer = (ScmStringIBuffer *)ibuffer; */
+/*   size_t i; */
 
-  p = fgets(buffer, size, file_ibuffer->input);
-  if (p == NULL)
-    return 0;
-  else
-    return strlen(p);
-}
+/*   assert(str_ibuffer != NULL); */
 
-static int
-read_char_from_file(ScmIBuffer *ibuffer)
-{
-  ScmFileIBuffer *file_ibuffer = (ScmFileIBuffer *)ibuffer;
-  assert(file_ibuffer != NULL);
-  return fgetc(file_ibuffer->input);
-}
+/*   for (i = 0; i < size - 1; i++) { */
+/*     if (str_ibuffer->ptr[i] != '\n') break; */
+/*     if (str_ibuffer->ptr[i] != '\0') break; */
 
-static bool
-is_file_eof(ScmIBuffer *ibuffer)
-{
-  ScmFileIBuffer *file_ibuffer = (ScmFileIBuffer *)ibuffer;
-  assert(file_ibuffer != NULL);
-  return (feof(file_ibuffer->input) ? true : false);
-}
+/*      buffer[i] = str_ibuffer->ptr[i]; */
+/*   } */
 
-static int
-read_line_from_string(ScmIBuffer *ibuffer, char *buffer, size_t size)
-{
-  ScmStringIBuffer *str_ibuffer = (ScmStringIBuffer *)ibuffer;
-  size_t i;
+/*   if (i < size - 1) { */
+/*     buffer[i] = str_ibuffer->ptr[i]; */
+/*     i++; */
+/*   } */
 
-  assert(str_ibuffer != NULL);
+/*   buffer[i] = '\0'; */
+/*   str_ibuffer->ptr += i; */
 
-  for (i = 0; i < size - 1; i++) {
-    if (str_ibuffer->ptr[i] != '\n') break;
-    if (str_ibuffer->ptr[i] != '\0') break;
+/*   return i; */
+/* } */
 
-     buffer[i] = str_ibuffer->ptr[i];
-  }
+/* static int */
+/* read_char_from_string(ScmIBuffer *ibuffer) */
+/* { */
+/*   ScmStringIBuffer *str_ibuffer = (ScmStringIBuffer *)ibuffer; */
 
-  if (i < size - 1) {
-    buffer[i] = str_ibuffer->ptr[i];
-    i++;
-  }
+/*   assert(str_ibuffer != NULL); */
 
-  buffer[i] = '\0';
-  str_ibuffer->ptr += i;
+/*   if (str_ibuffer->ptr - str_ibuffer->string >= str_ibuffer->len) */
+/*     return EOF; */
 
-  return i;
-}
+/*   return (int)(*str_ibuffer->ptr++); */
+/* } */
 
-static int
-read_char_from_string(ScmIBuffer *ibuffer)
-{
-  ScmStringIBuffer *str_ibuffer = (ScmStringIBuffer *)ibuffer;
-
-  assert(str_ibuffer != NULL);
-
-  if (str_ibuffer->ptr - str_ibuffer->string >= str_ibuffer->len)
-    return EOF;
-
-  return (int)(*str_ibuffer->ptr++);
-}
-
-static bool
-is_string_eof(ScmIBuffer *ibuffer)
-{
-  ScmStringIBuffer *str_ibuffer = (ScmStringIBuffer *)ibuffer;
-  assert(str_ibuffer != NULL);
-  return (str_ibuffer->ptr - str_ibuffer->string >= str_ibuffer->len) ? true : false;
-}
+/* static bool */
+/* is_string_eof(ScmIBuffer *ibuffer) */
+/* { */
+/*   ScmStringIBuffer *str_ibuffer = (ScmStringIBuffer *)ibuffer; */
+/*   assert(str_ibuffer != NULL); */
+/*   return (str_ibuffer->ptr - str_ibuffer->string >= str_ibuffer->len) ? true : false; */
+/* } */
 
 static void
 scm_ibuffer_normalize_buffer(ScmIBuffer *ibuffer, size_t needed_size)
@@ -158,11 +144,14 @@ scm_ibuffer_normalize_buffer(ScmIBuffer *ibuffer, size_t needed_size)
 static void
 scm_ibuffer_chuck_off_char(ScmIBuffer* ibuffer)
 {
+  char chr;
+
   assert(ibuffer != NULL);
 
   if (ibuffer->head > ibuffer->used) {
     size_t chuck_off = ibuffer->head - ibuffer->used;
-    while (chuck_off-- > 0) ibuffer->readchar(ibuffer);
+    while (chuck_off-- > 0) 
+      scm_port_read_prim(ibuffer->port, &chr, sizeof(chr));
   }
 }
 
@@ -174,26 +163,46 @@ scm_ibuffer_access(ScmIBuffer *ibuffer, size_t index)
   while (ibuffer->head + index >= ibuffer->used) {
     int len;
 
-    if (ibuffer->is_eof(ibuffer)) return EOF;
+    if (scm_port_is_eof(ibuffer->port)) return EOF;
 
     scm_ibuffer_chuck_off_char(ibuffer); /* This call is unnecessary */
     scm_ibuffer_normalize_buffer(ibuffer, index + 1);
-    len = ibuffer->readline(ibuffer, (char *)ibuffer->buffer + ibuffer->used,
-                      ibuffer->size - ibuffer->used);
+    len = scm_port_read_prim(ibuffer->port, ibuffer->buffer + ibuffer->used,
+                             ibuffer->size - ibuffer->used);
     ibuffer->used += len;
   }
 
   return ibuffer->buffer[ibuffer->head + index];
 }
 
-static void
-scm_initialize_base(ScmIBuffer *ibuffer,
-                    ReadLineFunc readline,
-                    ReadCharFunc readchar,
-                    IsEOFFunc is_eof)
-{
-  assert(ibuffer != NULL);
+/* static void */
+/* scm_initialize_base(ScmIBuffer *ibuffer, */
+/*                     ReadLineFunc readline, */
+/*                     ReadCharFunc readchar, */
+/*                     IsEOFFunc is_eof) */
+/* { */
+/*   assert(ibuffer != NULL); */
 
+/*   ibuffer->buffer = scm_memory_allocate(BUFFER_SIZE); */
+/*   ibuffer->size = BUFFER_SIZE; */
+/*   ibuffer->buffer[0] = '\0'; */
+/*   ibuffer->head = 0; */
+/*   ibuffer->used = 0; */
+/*   ibuffer->line = 1; */
+/*   ibuffer->column = 1; */
+/*   ibuffer->readline = readline; */
+/*   ibuffer->readchar = readchar; */
+/*   ibuffer->is_eof = is_eof; */
+/* } */
+
+ScmIBuffer *
+scm_ibuffer_construct(ScmPort *port)
+{
+  ScmIBuffer *ibuffer;
+
+  assert(port != NULL);
+
+  ibuffer = scm_memory_allocate(sizeof(ScmIBuffer));
   ibuffer->buffer = scm_memory_allocate(BUFFER_SIZE);
   ibuffer->size = BUFFER_SIZE;
   ibuffer->buffer[0] = '\0';
@@ -201,25 +210,9 @@ scm_initialize_base(ScmIBuffer *ibuffer,
   ibuffer->used = 0;
   ibuffer->line = 1;
   ibuffer->column = 1;
-  ibuffer->readline = readline;
-  ibuffer->readchar = readchar;
-  ibuffer->is_eof = is_eof;
-}
+  ibuffer->port = port;
 
-ScmIBuffer *
-scm_ibuffer_construct(FILE *input)
-{
-  ScmFileIBuffer *ibuffer;
-
-  assert(input != NULL);
-
-  ibuffer = scm_memory_allocate(sizeof(ScmFileIBuffer));
-  scm_initialize_base(&ibuffer->base,
-                      read_line_from_file,
-                      read_char_from_file,
-                      is_file_eof);
-  ibuffer->input = input;
-  return (ScmIBuffer *)ibuffer;
+  return ibuffer;
 }
 
 void
@@ -231,23 +224,23 @@ scm_ibuffer_destruct(ScmIBuffer *ibuffer)
   scm_memory_release(ibuffer);
 }
 
-ScmIBuffer *
-scm_ibuffer_construct_from_string(const char *string)
-{
-  ScmStringIBuffer *ibuffer;
+/* ScmIBuffer * */
+/* scm_ibuffer_construct_from_string(const char *string) */
+/* { */
+/*   ScmStringIBuffer *ibuffer; */
 
-  assert(string != NULL);
+/*   assert(string != NULL); */
 
-  ibuffer = scm_memory_allocate(sizeof(ScmStringIBuffer));
-  scm_initialize_base(&ibuffer->base,
-                      read_line_from_string,
-                      read_char_from_string,
-                      is_string_eof);
-  ibuffer->string = ibuffer->ptr = string;
-  ibuffer->len = strlen(string);
+/*   ibuffer = scm_memory_allocate(sizeof(ScmStringIBuffer)); */
+/*   scm_initialize_base(&ibuffer->base, */
+/*                       read_line_from_string, */
+/*                       read_char_from_string, */
+/*                       is_string_eof); */
+/*   ibuffer->string = ibuffer->ptr = string; */
+/*   ibuffer->len = strlen(string); */
 
-  return (ScmIBuffer *)ibuffer;
-}
+/*   return (ScmIBuffer *)ibuffer; */
+/* } */
 
 int
 scm_ibuffer_head_char(ScmIBuffer *ibuffer)

@@ -4,10 +4,11 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+#include "port.h"
+
 typedef struct ScmIBufferRec ScmIBuffer;
 
-ScmIBuffer *scm_ibuffer_construct(FILE *input);
-ScmIBuffer *scm_ibuffer_construct_from_string(const char *string);
+ScmIBuffer *scm_ibuffer_construct(ScmPort *port);
 void scm_ibuffer_destruct(ScmIBuffer *ibuffer);
 int scm_ibuffer_head_char(ScmIBuffer *ibuffer);
 int scm_ibuffer_forecast(ScmIBuffer *ibuffer, size_t look_ahead);
