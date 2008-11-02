@@ -311,24 +311,24 @@ test_parser_parse_proper_list(void)
   cut_assert_true(scm_eof_is_eof(obj));
 }
 
-/* void */
-/* test_parser_parse_improper_list(void) */
-/* { */
-/*   ScmParser *parser = construct_parser_from_string(" (<abc> . 123) "); */
-/*   ScmObj obj, car, cdr; */
+void
+test_parser_parse_improper_list(void)
+{
+  ScmParser *parser = construct_parser_from_string(" (<abc> . 123) ");
+  ScmObj obj, car, cdr;
 
-/*   obj = scm_parser_parse_expression(parser); */
+  obj = scm_parser_parse_expression(parser);
 
-/*   cut_assert_true(scm_pair_is_pair(obj)); */
-/*   car = scm_pair_car(SCM_PAIR(obj)); */
-/*   cdr = scm_pair_cdr(SCM_PAIR(obj)); */
+  cut_assert_true(scm_pair_is_pair(obj));
+  car = scm_pair_car(SCM_PAIR(obj));
+  cdr = scm_pair_cdr(SCM_PAIR(obj));
 
-/*   cut_assert_true(scm_symbol_is_symbol(car)); */
-/*   cut_assert_equal_string("<abc>", scm_symbol_name(SCM_SYMBOL(car))); */
+  cut_assert_true(scm_symbol_is_symbol(car));
+  cut_assert_equal_string("<abc>", scm_symbol_name(SCM_SYMBOL(car)));
 
-/*   cut_assert_true(scm_integer_is_integer(cdr)); */
-/*   cut_assert_equal_int(123, scm_integer_value(SCM_INTEGER(cdr))); */
+  cut_assert_true(scm_integer_is_integer(cdr));
+  cut_assert_equal_int(123, scm_integer_value(SCM_INTEGER(cdr)));
 
-/*   obj = scm_parser_parse_expression(parser); */
-/*   cut_assert_true(scm_eof_is_eof(obj));   */
-/* } */
+  obj = scm_parser_parse_expression(parser);
+  cut_assert_true(scm_eof_is_eof(obj));
+}

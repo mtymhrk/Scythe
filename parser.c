@@ -560,12 +560,14 @@ scm_lexer_tokenize_numeric(ScmLexer *lexer)
     current = scm_ibuffer_head_char(lexer->ibuffer);
   }
 
-  if (current == EOF || isspace(current)) {
-    scm_lexer_set_token_type(lexer, SCM_TOKEN_TYPE_NUMERIC);
-    return LEXER_STATE_DONE;
+  if (IS_IDENTIFIER_START_CHAR(current)) {
+    scm_lexer_push_char(lexer, current);
+    scm_ibuffer_shift_char(lexer->ibuffer);
+    return LEXER_STATE_IDENTIFIER;
   }
   else {
-    return LEXER_STATE_IDENTIFIER;
+    scm_lexer_set_token_type(lexer, SCM_TOKEN_TYPE_NUMERIC);
+    return LEXER_STATE_DONE;
   }
 }
 
