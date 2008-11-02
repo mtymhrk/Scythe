@@ -10,6 +10,7 @@
 #include "char.h"
 #include "nil.h"
 #include "pair.h"
+#include "vector.h"
 #include "miscobjects.h"
 
 ScmParser *
@@ -332,3 +333,72 @@ test_parser_parse_improper_list(void)
   obj = scm_parser_parse_expression(parser);
   cut_assert_true(scm_eof_is_eof(obj));
 }
+
+void
+test_parser_parse_nexted_list(void)
+{
+  ScmParser *parser =
+    construct_parser_from_string(" (+ (? ! _) *) ");
+  ScmObj obj, car, cdr, car_n, cdr_n;
+
+  obj = scm_parser_parse_expression(parser);
+
+  cut_assert_true(scm_pair_is_pair(obj));
+  car = scm_pair_car(SCM_PAIR(obj));
+  cdr = scm_pair_cdr(SCM_PAIR(obj));
+
+  cut_assert_true(scm_symbol_is_symbol(car));
+  cut_assert_equal_string("+", scm_symbol_name(SCM_SYMBOL(car)));
+
+  cut_assert_true(scm_pair_is_pair(cdr));
+  car = scm_pair_car(SCM_PAIR(cdr));
+  cdr = scm_pair_cdr(SCM_PAIR(cdr));
+
+  cut_assert_true(scm_pair_is_pair(car));
+  car_n = scm_pair_car(SCM_PAIR(car));
+  cdr_n = scm_pair_cdr(SCM_PAIR(car));
+
+  cut_assert_true(scm_symbol_is_symbol(car_n));
+  cut_assert_equal_string("?", scm_symbol_name(SCM_SYMBOL(car_n)));
+  
+  cut_assert_true(scm_pair_is_pair(cdr_n));
+  car_n = scm_pair_car(SCM_PAIR(cdr_n));
+  cdr_n = scm_pair_cdr(SCM_PAIR(cdr_n));
+
+  cut_assert_true(scm_symbol_is_symbol(car_n));
+  cut_assert_equal_string("!", scm_symbol_name(SCM_SYMBOL(car_n)));
+
+  cut_assert_true(scm_pair_is_pair(cdr_n));
+  car_n = scm_pair_car(SCM_PAIR(cdr_n));
+  cdr_n = scm_pair_cdr(SCM_PAIR(cdr_n));
+
+  cut_assert_true(scm_symbol_is_symbol(car_n));
+  cut_assert_equal_string("_", scm_symbol_name(SCM_SYMBOL(car_n)));
+
+  cut_assert_true(scm_nil_is_nil(cdr_n));
+
+  cut_assert_true(scm_pair_is_pair(cdr));
+  car = scm_pair_car(SCM_PAIR(cdr));
+  cdr = scm_pair_cdr(SCM_PAIR(cdr));
+
+  cut_assert_true(scm_symbol_is_symbol(car));
+  cut_assert_equal_string("*", scm_symbol_name(SCM_SYMBOL(car)));
+
+  cut_assert_true(scm_nil_is_nil(cdr));
+
+  obj = scm_parser_parse_expression(parser);
+  cut_assert_true(scm_eof_is_eof(obj));
+}
+
+void
+test_parser_parse_empty_vector(void)
+{
+  ScmParser *parser = construct_parser_from_string(" #() ");
+  ScmObj obj;
+
+  obj = scm_parser_parse_expression(parser);
+
+  cut_assert_true(scm_vector_is_vector(obj));
+  cut_assert_equal_int(0, scm_vector_length(SCM_VECTOR(obj)));
+}
+

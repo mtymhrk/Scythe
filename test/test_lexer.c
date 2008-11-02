@@ -173,6 +173,40 @@ test_lexer_tokenize_identifier(void)
 }
 
 void
+test_lexer_tokenize_idintifier_spec(void)
+{
+  ScmIBuffer *buffer = construct_ibuffer_from_string(" + - ... ");
+  ScmLexer *lexer = scm_lexer_construct(buffer);
+  ScmToken *token;
+
+  token=  scm_lexer_head_token(lexer);
+
+  cut_assert_not_null(token);
+  cut_assert_equal_int(SCM_TOKEN_TYPE_IDENTIFIER, SCM_TOKEN_TYPE(token));
+  cut_assert_equal_string("+", (char *)SCM_TOKEN_STRING(token));
+
+  scm_lexer_shift_token(lexer);
+  token = scm_lexer_head_token(lexer);
+
+  cut_assert_not_null(token);
+  cut_assert_equal_int(SCM_TOKEN_TYPE_IDENTIFIER, SCM_TOKEN_TYPE(token));
+  cut_assert_equal_string("-", (char *)SCM_TOKEN_STRING(token));
+
+  scm_lexer_shift_token(lexer);
+  token = scm_lexer_head_token(lexer);
+
+  cut_assert_not_null(token);
+  cut_assert_equal_int(SCM_TOKEN_TYPE_IDENTIFIER, SCM_TOKEN_TYPE(token));
+  cut_assert_equal_string("...", (char *)SCM_TOKEN_STRING(token));
+
+  scm_lexer_shift_token(lexer);
+  token = scm_lexer_head_token(lexer);
+
+  cut_assert_not_null(token);
+  cut_assert_equal_int(SCM_TOKEN_TYPE_EOF, SCM_TOKEN_TYPE(token));
+}
+
+void
 test_lexer_tokenize_numeric(void)
 {
   ScmIBuffer *buffer = construct_ibuffer_from_string("123456");
@@ -188,6 +222,24 @@ test_lexer_tokenize_numeric(void)
   token = scm_lexer_head_token(lexer);
   cut_assert_not_null(token);
   cut_assert_equal_int(SCM_TOKEN_TYPE_EOF, SCM_TOKEN_TYPE(token));
+}
+
+void
+test_lexer_tokenize_numeric_following_not_numeric_char(void)
+{
+  ScmIBuffer *buffer = construct_ibuffer_from_string("123456)");
+  ScmLexer *lexer = scm_lexer_construct(buffer);
+  ScmToken *token = scm_lexer_head_token(lexer);
+
+  cut_assert_not_null(token);
+  cut_assert_equal_int(SCM_TOKEN_TYPE_NUMERIC, SCM_TOKEN_TYPE(token));
+  cut_assert_equal_string("123456", (char *)SCM_TOKEN_STRING(token));
+
+  scm_lexer_shift_token(lexer);
+
+  token = scm_lexer_head_token(lexer);
+  cut_assert_not_null(token);
+  cut_assert_equal_int(SCM_TOKEN_TYPE_RPAREN, SCM_TOKEN_TYPE(token));
 }
 
 void
@@ -415,4 +467,21 @@ test_lexer_tokenize_error_cannot_shift_until_error_state_cleared(void)
 
   cut_assert_not_null(token);
   cut_assert_equal_int(SCM_TOKEN_TYPE_EOF, SCM_TOKEN_TYPE(token));
+}
+
+void
+test_lexer_tokenize_nested_list(void)
+{
+  ScmIBuffer *buffer = construct_ibuffer_from_string(" (+ (? ! _) *) ");
+  ScmLexer *lexer = scm_lexer_construct(buffer);  
+
+  scm_lexer_shift_token(lexer);
+  scm_lexer_shift_token(lexer);
+  scm_lexer_shift_token(lexer);
+  scm_lexer_shift_token(lexer);
+  scm_lexer_shift_token(lexer);
+  scm_lexer_shift_token(lexer);
+  scm_lexer_shift_token(lexer);
+  scm_lexer_shift_token(lexer);
+  scm_lexer_shift_token(lexer);
 }

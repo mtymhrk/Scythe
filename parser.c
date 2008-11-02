@@ -67,6 +67,7 @@ typedef enum {
   LEXER_STATE_INIT,
   LEXER_STATE_DISREGARD,
   LEXER_STATE_IDENTIFIER,
+  LEXER_STATE_DOT,
   LEXER_STATE_NUMERIC,
   LEXER_STATE_COMMENT,
   LEXER_STATE_NUMBER_SIGN,
@@ -153,9 +154,9 @@ scm_lexer_setup_error_state(ScmLexer *lexer, SCM_LEXER_ERR_TYPE_T error)
 static int
 scm_lexer_tokenize_init(ScmLexer *lexer)
 {
-  const char *one_char_token_chars = "().'`";
+  const char *one_char_token_chars = "()'`";
   const SCM_TOKEN_TYPE_T one_char_token_types[] =
-    { SCM_TOKEN_TYPE_LPAREN, SCM_TOKEN_TYPE_RPAREN, SCM_TOKEN_TYPE_DOT,
+    { SCM_TOKEN_TYPE_LPAREN, SCM_TOKEN_TYPE_RPAREN,
       SCM_TOKEN_TYPE_QUOTE, SCM_TOKEN_TYPE_QUASIQUOTE };
   int current, state;
   char *p;
@@ -189,6 +190,11 @@ scm_lexer_tokenize_init(ScmLexer *lexer)
   }
   else {
     switch (current) {
+    case '.':
+      scm_ibuffer_shift_char(lexer->ibuffer);
+      scm_lexer_push_char(lexer, current);
+      state = LEXER_STATE_DOT;
+      break;
     case ';':
       scm_ibuffer_shift_char(lexer->ibuffer);
       state = LEXER_STATE_COMMENT;
@@ -243,6 +249,26 @@ scm_lexer_tokenize_identifier(ScmLexer *lexer)
   else {
     scm_lexer_set_token_type(lexer, SCM_TOKEN_TYPE_IDENTIFIER);
     return LEXER_STATE_DONE;
+  }
+}
+
+static int
+scm_lexer_tokenize_dot(ScmLexer *lexer)
+{
+  int current;
+
+  assert(lexer != NULL);
+
+  current = scm_ibuffer_head_char(lexer->ibuffer);
+
+  if (IS_IDENTIFIER_FOLLOW_ON_CHAR(current)) {
+    scm_ibuffer_shift_char(lexer->ibuffer);
+    scm_lexer_push_char(lexer, current);
+    return LEXER_STATE_IDENTIFIER;
+  }
+  else {
+    scm_lexer_set_token_type(lexer, SCM_TOKEN_TYPE_DOT);
+    return  LEXER_STATE_DONE;
   }
 }
 
@@ -554,15 +580,24 @@ scm_lexer_tokenize_numeric(ScmLexer *lexer)
   //  return scm_lexer_tokenize_number(lexer, '\0', '\0');
 
   current = scm_ibuffer_head_char(lexer->ibuffer);
+  if (IS_NUMERIC_START_CHAR(current)) {
+    scm_ibuffer_shift_char(lexer->ibuffer);
+    scm_lexer_push_char(lexer, current);
+
+    if (!isdigit(scm_ibuffer_head_char(lexer->ibuffer)))
+      return LEXER_STATE_IDENTIFIER;
+  }
+
+  current = scm_ibuffer_head_char(lexer->ibuffer);
   while (isdigit(current)) {
     scm_ibuffer_shift_char(lexer->ibuffer);
     scm_lexer_push_char(lexer, current);
     current = scm_ibuffer_head_char(lexer->ibuffer);
   }
 
-  if (IS_IDENTIFIER_START_CHAR(current)) {
-    scm_lexer_push_char(lexer, current);
+  if (IS_IDENTIFIER_FOLLOW_ON_CHAR(current)) {
     scm_ibuffer_shift_char(lexer->ibuffer);
+    scm_lexer_push_char(lexer, current);
     return LEXER_STATE_IDENTIFIER;
   }
   else {
@@ -611,6 +646,9 @@ scm_lexer_tokenize(ScmLexer *lexer)
       break;
     case LEXER_STATE_IDENTIFIER:
       state = scm_lexer_tokenize_identifier(lexer);
+      break;
+    case LEXER_STATE_DOT:
+      state = scm_lexer_tokenize_dot(lexer);
       break;
     case LEXER_STATE_COMMENT:
       state = scm_lexer_tokenize_comment(lexer);
@@ -783,7 +821,7 @@ scm_parser_parse_list(ScmParser *parser)
     scm_lexer_shift_token(parser->lexer);
     return SCM_OBJ(scm_nil_instance());
   }
-  
+
   car = scm_parser_parse_expression(parser);
 
   /* TODO: error handling */
