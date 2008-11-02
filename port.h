@@ -16,6 +16,7 @@ typedef struct ScmPortRec ScmPort;
 typedef enum {
   SCM_PORT_BUF_FULL,
   SCM_PORT_BUF_LINE,
+  SCM_PORT_BUF_MODEST,
   SCM_PORT_BUF_NONE,
   SCM_PORT_BUF_DEFAULT
 } SCM_PORT_BUF_MODE;

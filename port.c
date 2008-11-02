@@ -389,10 +389,26 @@ scm_fileio_clear_error(ScmFileIO *fileio)
 SCM_PORT_BUF_MODE
 scm_fileio_default_buffer_mode(ScmFileIO *fileio)
 {
+  struct stat st;
+  int ret;
+
   assert(fileio != NULL);
 
   if (isatty(fileio->fd))
-    return SCM_PORT_BUF_LINE;
+    return SCM_PORT_BUF_MODEST;
+
+  SCM_SYSCALL(ret, fstat(fileio->fd, &st));
+  if (ret < 0) {
+    fileio->error_no = errno;
+    return SCM_PORT_BUF_FULL;
+  }
+
+  if (S_ISFIFO(st.st_mode))
+    return SCM_PORT_BUF_MODEST;
+  else if (S_ISSOCK(st.st_mode))
+    return SCM_PORT_BUF_MODEST;
+  else if (S_ISCHR(st.st_mode))
+    return SCM_PORT_BUF_MODEST;
   else
     return SCM_PORT_BUF_FULL;
 }
@@ -734,6 +750,9 @@ scm_port_init_buffer(ScmPort *port, SCM_PORT_BUF_MODE buf_mode)
   case SCM_PORT_BUF_LINE:
     port->capacity = scm_io_block_size(port->io);
     break;
+  case SCM_PORT_BUF_MODEST:
+    port->capacity = scm_io_block_size(port->io);
+    break;
   case SCM_PORT_BUF_NONE:
     port->capacity = 0;
     break;
@@ -986,6 +1005,7 @@ ssize_t
 scm_port_read_prim(ScmPort *port, void *buf, size_t size)
 {
   const bool wait_all = true;
+  const bool dont_wait = false;
 
   assert(port != NULL);
   assert(buf != NULL);
@@ -997,6 +1017,9 @@ scm_port_read_prim(ScmPort *port, void *buf, size_t size)
   case SCM_PORT_BUF_FULL: /* fall through */
   case SCM_PORT_BUF_LINE:
     return scm_port_read_prim_buf(port, buf, size, wait_all);
+    break;
+  case SCM_PORT_BUF_MODEST:
+    return scm_port_read_prim_buf(port, buf, size, dont_wait);
     break;
   case SCM_PORT_BUF_NONE:
     return scm_io_read(port->io, buf, size);
@@ -1062,8 +1085,9 @@ scm_port_write_prim(ScmPort *port, const void *buf, size_t size)
   if (scm_port_is_closed(port)) return -1;
 
   switch (port->buffer_mode) {
-  case SCM_PORT_BUF_FULL: /* fall through  */
-  case SCM_PORT_BUF_LINE:
+  case SCM_PORT_BUF_FULL: /* fall through */
+  case SCM_PORT_BUF_LINE: /* fall through */
+  case SCM_PORT_BUF_MODEST:
     return scm_port_write_prim_buf_full(port, buf, size);
     break;
   case SCM_PORT_BUF_NONE:

@@ -70,6 +70,15 @@ test_scm_port_construct_input_file_port_line_buffer(void)
 }
 
 void
+test_scm_port_construct_input_file_port_modest_buffer(void)
+{
+  ScmPort *port = scm_port_construct_input_port(TEST_TEXT_FILE,
+                                                SCM_PORT_BUF_MODEST);
+
+  xxx_test_scm_port_construct_input_file_port(port);
+}
+
+void
 test_scm_port_construct_input_file_port_none_buffer(void)
 {
   ScmPort *port = scm_port_construct_input_port(TEST_TEXT_FILE,
@@ -79,7 +88,7 @@ test_scm_port_construct_input_file_port_none_buffer(void)
 }
 
 void
-xxx_test_scm_port_read_per_bye(ScmPort *port)
+xxx_test_scm_port_read_per_byte(ScmPort *port)
 {
   char expected_chars[] = TEST_TEXT_FILE_CONTENTS;
   char byte;
@@ -98,27 +107,35 @@ xxx_test_scm_port_read_per_bye(ScmPort *port)
 }
 
 void
-test_scm_port_read_per_bye_full_buffer(void)
+test_scm_port_read_per_byte_full_buffer(void)
 {
   ScmPort *port = scm_port_construct_input_port(TEST_TEXT_FILE,
                                                 SCM_PORT_BUF_FULL);
-  xxx_test_scm_port_read_per_bye(port);
+  xxx_test_scm_port_read_per_byte(port);
 }
 
 void
-test_scm_port_read_per_bye_line_buffer(void)
+test_scm_port_read_per_byte_line_buffer(void)
 {
   ScmPort *port = scm_port_construct_input_port(TEST_TEXT_FILE,
                                                 SCM_PORT_BUF_LINE);
-  xxx_test_scm_port_read_per_bye(port);
+  xxx_test_scm_port_read_per_byte(port);
 }
 
 void
-test_scm_port_read_per_bye_none_buffer(void)
+test_scm_port_read_per_byte_modest_buffer(void)
+{
+  ScmPort *port = scm_port_construct_input_port(TEST_TEXT_FILE,
+                                                SCM_PORT_BUF_MODEST);
+  xxx_test_scm_port_read_per_byte(port);
+}
+
+void
+test_scm_port_read_per_byte_none_buffer(void)
 {
   ScmPort *port = scm_port_construct_input_port(TEST_TEXT_FILE,
                                                 SCM_PORT_BUF_NONE);
-  xxx_test_scm_port_read_per_bye(port);
+  xxx_test_scm_port_read_per_byte(port);
 }
 
 void
@@ -212,6 +229,14 @@ test_scm_port_interleave_read_and_seek_line_buffer(void)
 }
 
 void
+test_scm_port_interleave_read_and_seek_modest_buffer(void)
+{
+  ScmPort *port = scm_port_construct_input_port(TEST_TEXT_FILE,
+                                                SCM_PORT_BUF_MODEST);
+  xxx_test_scm_port_interleave_read_and_seek(port);
+}
+
+void
 test_scm_port_interleave_read_and_seek_none_buffer(void)
 {
   ScmPort *port = scm_port_construct_input_port(TEST_TEXT_FILE,
@@ -249,6 +274,15 @@ test_scm_port_read_big_file_line_buffer(void)
 {
   ScmPort *port = scm_port_construct_input_port(TEST_BIG_FILE,
                                                 SCM_PORT_BUF_LINE);
+
+  xxx_test_scm_port_read_big_file(port);
+}
+
+void
+test_scm_port_read_big_file_modest_buffer(void)
+{
+  ScmPort *port = scm_port_construct_input_port(TEST_BIG_FILE,
+                                                SCM_PORT_BUF_MODEST);
 
   xxx_test_scm_port_read_big_file(port);
 }
@@ -320,6 +354,15 @@ test_scm_port_construct_output_file_port_line_buffer(void)
 {
   ScmPort *port = scm_port_construct_output_port(TEST_OUTPUT_FILE,
                                                  SCM_PORT_BUF_LINE);
+
+  xxx_test_scm_port_construct_output_file_port(port);
+}
+
+void
+test_scm_port_construct_output_file_port_modest_buffer(void)
+{
+  ScmPort *port = scm_port_construct_output_port(TEST_OUTPUT_FILE,
+                                                 SCM_PORT_BUF_MODEST);
 
   xxx_test_scm_port_construct_output_file_port(port);
 }
@@ -407,6 +450,15 @@ test_scm_port_write_per_byte_line_buffer(void)
 {
   ScmPort *port = scm_port_construct_output_port(TEST_OUTPUT_FILE,
                                                  SCM_PORT_BUF_LINE);
+
+  xxx_test_scm_port_write_per_byte(port);
+}
+
+void
+test_scm_port_write_per_byte_modest_buffer(void)
+{
+  ScmPort *port = scm_port_construct_output_port(TEST_OUTPUT_FILE,
+                                                 SCM_PORT_BUF_MODEST);
 
   xxx_test_scm_port_write_per_byte(port);
 }
@@ -505,6 +557,15 @@ test_scm_port_interleave_write_and_seek_line_buffer(void)
 {
   ScmPort *port = scm_port_construct_output_port(TEST_OUTPUT_FILE,
                                                  SCM_PORT_BUF_LINE);
+
+  xxx_test_scm_port_interleave_write_and_seek(port);
+}
+
+void
+test_scm_port_interleave_write_and_seek_modest_buffer(void)
+{
+  ScmPort *port = scm_port_construct_output_port(TEST_OUTPUT_FILE,
+                                                 SCM_PORT_BUF_MODEST);
 
   xxx_test_scm_port_interleave_write_and_seek(port);
 }
