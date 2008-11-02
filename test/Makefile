@@ -1,8 +1,8 @@
 CC       = gcc
 LD       = ld
-CFLAGS   = -O2 -Wall -fPIC
+CFLAGS   = -O2 -Wall -fPIC -g
 INCLUDES = -I/usr/local/include/cutter -iquote ..
-LDFLAGS  = -lcunit
+LDFLAGS  = -lcunit -g
 CUTTER   = cutter
 TEST_TARGET_DIR = ..
 TEST_CASE_LIB_DIR = .lib

@@ -262,6 +262,41 @@ test_lexer_tokenize_char(void)
   cut_assert_equal_int(SCM_TOKEN_TYPE_EOF, SCM_TOKEN_TYPE(token));
 }
 
+void
+test_lexer_tokenize_char_newline(void)
+{
+  ScmIBuffer *buffer = construct_ibuffer_from_string(" #\\newline ");
+  ScmLexer *lexer = scm_lexer_construct(buffer);
+  ScmToken *token = scm_lexer_head_token(lexer);
+
+  cut_assert_not_null(token);
+  cut_assert_equal_int(SCM_TOKEN_TYPE_CHAR, SCM_TOKEN_TYPE(token));
+  cut_assert_equal_string("#\\newline", (char *)SCM_TOKEN_STRING(token));
+
+  scm_lexer_shift_token(lexer);
+
+  token = scm_lexer_head_token(lexer);
+  cut_assert_not_null(token);
+  cut_assert_equal_int(SCM_TOKEN_TYPE_EOF, SCM_TOKEN_TYPE(token));
+}
+
+void
+test_lexer_tokenize_char_spece(void)
+{
+  ScmIBuffer *buffer = construct_ibuffer_from_string(" #\\space ");
+  ScmLexer *lexer = scm_lexer_construct(buffer);
+  ScmToken *token = scm_lexer_head_token(lexer);
+
+  cut_assert_not_null(token);
+  cut_assert_equal_int(SCM_TOKEN_TYPE_CHAR, SCM_TOKEN_TYPE(token));
+  cut_assert_equal_string("#\\space", (char *)SCM_TOKEN_STRING(token));
+
+  scm_lexer_shift_token(lexer);
+
+  token = scm_lexer_head_token(lexer);
+  cut_assert_not_null(token);
+  cut_assert_equal_int(SCM_TOKEN_TYPE_EOF, SCM_TOKEN_TYPE(token));
+}
 
 void
 test_lexer_tokenize_eof(void)

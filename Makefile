@@ -25,6 +25,7 @@ depend:
 	$(CC) -MM $(INCLUDES) $(CFLAGS) $(SOURCES) > Makefile.depend
 
 test:
+	$(MAKE) CFLAGS="-Wall -g"
 	$(MAKE) -C ./test all run
 
 include Makefile.depend

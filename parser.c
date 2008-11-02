@@ -369,7 +369,7 @@ scm_lexer_tokenize_char(ScmLexer *lexer)
   scm_lexer_push_char(lexer, current);
 
   current = scm_ibuffer_head_char(lexer->ibuffer);
-  while (strchr(terminations, current) != NULL &&
+  while (strchr(terminations, current) == NULL &&
          !isspace(current) && current != EOF ) {
     scm_ibuffer_shift_char(lexer->ibuffer);
     scm_lexer_push_char(lexer, current);
@@ -776,8 +776,6 @@ scm_parser_parse_list(ScmParser *parser)
 
   assert(parser != NULL);
 
-  scm_lexer_shift_token(parser->lexer);  
-
   if (SCM_TOKEN_TYPE(scm_lexer_head_token(parser->lexer))
       == SCM_TOKEN_TYPE_RPAREN) {
     scm_lexer_shift_token(parser->lexer);
@@ -797,7 +795,16 @@ scm_parser_parse_list(ScmParser *parser)
   if (SCM_TOKEN_TYPE(scm_lexer_head_token(parser->lexer))
       == SCM_TOKEN_TYPE_DOT) {
     scm_lexer_shift_token(parser->lexer);
+
     cdr = scm_parser_parse_expression(parser);
+
+    if (SCM_TOKEN_TYPE(scm_lexer_head_token(parser->lexer))
+        != SCM_TOKEN_TYPE_RPAREN) {
+      /* TODO: error handling */
+      return SCM_OBJ(scm_nil_instance());
+    }
+
+    scm_lexer_shift_token(parser->lexer);
   }
   else 
     cdr = scm_parser_parse_list(parser);
@@ -851,6 +858,8 @@ scm_parser_parse_quote(ScmParser *parser)
     break;
   }
 
+  quoted = SCM_OBJ(scm_pair_construct(quoted,
+                                      SCM_OBJ(scm_nil_instance())));
   return SCM_OBJ(scm_pair_construct(quote, quoted));
 }
 
@@ -1038,6 +1047,7 @@ scm_parser_parse_expression(ScmParser *parser)
   token = scm_lexer_head_token(parser->lexer);
   switch (SCM_TOKEN_TYPE(token)) {
   case SCM_TOKEN_TYPE_LPAREN:
+    scm_lexer_shift_token(parser->lexer);  
     result = scm_parser_parse_list(parser);
     break;
   case SCM_TOKEN_TYPE_RPAREN:
