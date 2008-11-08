@@ -18,7 +18,8 @@ typedef enum {
   SCM_PORT_BUF_LINE,
   SCM_PORT_BUF_MODEST,
   SCM_PORT_BUF_NONE,
-  SCM_PORT_BUF_DEFAULT
+  SCM_PORT_BUF_DEFAULT,
+  SCM_PORT_NR_BUF_MODE
 } SCM_PORT_BUF_MODE;
 
 typedef enum {
@@ -99,7 +100,9 @@ int scm_port_close(ScmPort *port);
 ssize_t scm_port_read_prim(ScmPort *port, void *buf, size_t size);
 ssize_t scm_port_write_prim(ScmPort *port, const void *buf, size_t size);
 int scm_port_seek(ScmPort *port, off_t offset, int whence);
-void * scm_port_string_buffer(ScmPort *port);
+bool scm_port_has_error(ScmPort *port);
+int scm_port_errno(ScmPort *port);
+void *scm_port_string_buffer(ScmPort *port);
 ssize_t scm_port_string_buffer_length(ScmPort *port);
 
 #endif /*  INCLUDE_PORT_H__ */

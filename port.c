@@ -20,7 +20,7 @@
 #define BIT_IS_SETED(val, bit) (((val) & (bit)) ? true : false)
 
 #define SCM_STRINGIO_INIT_BUF_SIZE 64
-#define SCM_PORT_INIT_BUF_SIZE 64
+#define SCM_PORT_DEFAULT_BUF_SIZE 256
 
 typedef void (*DestructFunc)(ScmIO *io);
 typedef ssize_t (*ReadFunc)(ScmIO *io, void *buf, size_t size);
@@ -681,6 +681,7 @@ static void
 scm_port_init_buffer(ScmPort *port, SCM_PORT_BUF_MODE buf_mode)
 {
   assert(port != NULL);
+  assert(buf_mode >= 0 && buf_mode < SCM_PORT_NR_BUF_MODE);
 
   if (buf_mode == SCM_PORT_BUF_DEFAULT)
     port->buffer_mode = scm_io_default_buffer_mode(port->io);
@@ -690,26 +691,22 @@ scm_port_init_buffer(ScmPort *port, SCM_PORT_BUF_MODE buf_mode)
   port->pos = 0;
   port->used = 0;
   switch (port->buffer_mode) {
-  case SCM_PORT_BUF_FULL:
+  case SCM_PORT_BUF_FULL:   /* fall through */
+  case SCM_PORT_BUF_LINE:   /* fall through */
+  case SCM_PORT_BUF_MODEST: /* fall through */
     port->capacity = scm_io_block_size(port->io);
-    break;
-  case SCM_PORT_BUF_LINE:
-    port->capacity = scm_io_block_size(port->io);
-    break;
-  case SCM_PORT_BUF_MODEST:
-    port->capacity = scm_io_block_size(port->io);
+    if (port->capacity < 0) 
+      port->capacity = SCM_PORT_DEFAULT_BUF_SIZE;
     break;
   case SCM_PORT_BUF_NONE:
     port->capacity = 0;
     break;
   default:
-    return; /* error */ /* TODO: write error handling */
+    port->capacity = 0; /* must not happen */
     break;
   }
 
-  /* When port->capacity is less than 0, it means error has occurred */
-  /* TODO: write error handling */
-  if (port->capacity <= 0) {
+  if (port->capacity == 0) {
     port->buffer = NULL;
     return;
   }
@@ -1137,6 +1134,22 @@ scm_port_seek(ScmPort *port, off_t offset, int whence)
     scm_port_clear_buffer(port);
 
   return (result < 0) ? result : 0;
+}
+
+bool
+scm_port_has_error(ScmPort *port)
+{
+  assert(port != NULL);
+
+  return scm_io_has_error(port->io);
+}
+
+int
+scm_port_errno(ScmPort *port)
+{
+  assert(port != NULL);
+
+  return scm_io_errno(port->io);
 }
 
 void *
