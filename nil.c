@@ -15,9 +15,9 @@ struct ScmNilRec {
 static ScmNil *nil_instance = NULL;
 
 static void
-scm_nil_pretty_print(ScmObj obj, ScmPrinter *printer)
+scm_nil_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
 {
-  scm_printer_concatenate_string(printer, "()");
+  scm_obuffer_concatenate_string(obuffer, "()");
 }
 
 ScmNil *

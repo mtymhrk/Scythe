@@ -14,27 +14,27 @@ struct ScmVectorRec {
 };
 
 static void
-scm_vector_pretty_print(ScmObj obj, ScmPrinter *printer)
+scm_vector_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
 {
   ScmVector *vector;
 
 
   assert(obj != NULL); assert(scm_vector_is_vector(obj));
-  assert(printer != NULL);
+  assert(obuffer != NULL);
 
   vector = SCM_VECTOR(obj);
 
-  scm_printer_concatenate_string(printer, "#(");
+  scm_obuffer_concatenate_string(obuffer, "#(");
   if (vector->length > 0) {
     size_t nloop = vector->length - 1;
     size_t i;
     for (i = 0; i < nloop; i++) {
-      scm_obj_pretty_print(vector->array[i], printer);
-      scm_printer_concatenate_char(printer, ' ');
+      scm_obj_pretty_print(vector->array[i], obuffer);
+      scm_obuffer_concatenate_char(obuffer, ' ');
     }
-    scm_obj_pretty_print(vector->array[i], printer);
+    scm_obj_pretty_print(vector->array[i], obuffer);
   }
-  scm_printer_concatenate_char(printer, ')');
+  scm_obuffer_concatenate_char(obuffer, ')');
 }
 
 ScmVector *

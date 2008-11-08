@@ -9,7 +9,7 @@
 
 #define INITIAL_BUFFER_SIZE 256
 
-struct ScmPrinterRec {
+struct ScmOBufferRec {
   FILE *output;
   char *buffer;
   size_t size;
@@ -17,150 +17,150 @@ struct ScmPrinterRec {
 };
 
 static void
-expand_buffer_if_needed(ScmPrinter *printer, size_t needed_size)
+expand_buffer_if_needed(ScmOBuffer *obuffer, size_t needed_size)
 {
   size_t new_size;
   char *new_buffer = NULL;
 
-  for (new_size = printer->size; new_size < needed_size; new_size *= 2)
+  for (new_size = obuffer->size; new_size < needed_size; new_size *= 2)
     ;
 
-  if (new_size > printer->size) {
+  if (new_size > obuffer->size) {
     new_buffer = (char *)scm_memory_allocate(new_size);
-    memcpy(new_buffer, printer->buffer, printer->used);
-    scm_memory_release(printer->buffer);
-    printer->buffer = new_buffer;
-    printer->size = new_size;
+    memcpy(new_buffer, obuffer->buffer, obuffer->used);
+    scm_memory_release(obuffer->buffer);
+    obuffer->buffer = new_buffer;
+    obuffer->size = new_size;
   }
 }
 
 
 void
-scm_printer_concatenate_string(ScmPrinter *printer, const char *str)
+scm_obuffer_concatenate_string(ScmOBuffer *obuffer, const char *str)
 {
   size_t len = 0;
 
-  assert(printer != NULL); assert(str != NULL);
+  assert(obuffer != NULL); assert(str != NULL);
 
   len = strlen(str);
-  expand_buffer_if_needed(printer, printer->used + len);
-  memcpy(printer->buffer + printer->used - 1, str, len + 1);
-  printer->used += len;
+  expand_buffer_if_needed(obuffer, obuffer->used + len);
+  memcpy(obuffer->buffer + obuffer->used - 1, str, len + 1);
+  obuffer->used += len;
 }
 
 void
-scm_printer_concatenate_char(ScmPrinter *printer, char c)
+scm_obuffer_concatenate_char(ScmOBuffer *obuffer, char c)
 {
-  assert(printer != NULL);
+  assert(obuffer != NULL);
 
-  expand_buffer_if_needed(printer, printer->used + 1);
-  printer->buffer[printer->used - 1] = c;
-  printer->buffer[printer->used] = '\0';
-  printer->used += 1;
+  expand_buffer_if_needed(obuffer, obuffer->used + 1);
+  obuffer->buffer[obuffer->used - 1] = c;
+  obuffer->buffer[obuffer->used] = '\0';
+  obuffer->used += 1;
 }
 
 void
-scm_printer_truncate_buffer(ScmPrinter *printer, int size)
+scm_obuffer_truncate_buffer(ScmOBuffer *obuffer, int size)
 {
-  assert(printer != NULL);
+  assert(obuffer != NULL);
 
   if (size >= 0) {
-    printer->size = size + 1;
-    printer->buffer[size] = '\0';
+    obuffer->size = size + 1;
+    obuffer->buffer[size] = '\0';
   } 
   else {
-    printer->size -= size;
-    if (printer->size < 1) printer->size = 1;
-    printer->buffer[size - 1] = '\0';
+    obuffer->size -= size;
+    if (obuffer->size < 1) obuffer->size = 1;
+    obuffer->buffer[size - 1] = '\0';
   }
 }
 
 void
-scm_printer_clear(ScmPrinter *printer)
+scm_obuffer_clear(ScmOBuffer *obuffer)
 {
-  assert(printer != NULL);
+  assert(obuffer != NULL);
 
-  printer->buffer[0] = '\0';
-  printer->size = 1;
+  obuffer->buffer[0] = '\0';
+  obuffer->size = 1;
 }
 
 void
-scm_printer_flush(ScmPrinter *printer)
+scm_obuffer_flush(ScmOBuffer *obuffer)
 {
-  assert(printer != NULL);
+  assert(obuffer != NULL);
 
-  fputs(printer->buffer, printer->output);
+  fputs(obuffer->buffer, obuffer->output);
 }
 
 void
-scm_printer_line_feed(ScmPrinter *printer)
+scm_obuffer_line_feed(ScmOBuffer *obuffer)
 {
-  assert(printer != NULL);
-  scm_printer_concatenate_char(printer, '\n');
+  assert(obuffer != NULL);
+  scm_obuffer_concatenate_char(obuffer, '\n');
 }
 
 void
-scm_printer_pretty_print_scm_obj(ScmPrinter *printer,
+scm_obuffer_pretty_print_scm_obj(ScmOBuffer *obuffer,
 				 ScmObj obj, unsigned int mode)
 {
-  assert(printer != NULL); assert(obj != NULL);
+  assert(obuffer != NULL); assert(obj != NULL);
 
-  if ((mode & SCM_PRINTER_MODE_CLEAR) != 0)
-    scm_printer_clear(printer);
+  if ((mode & SCM_OBUFFER_MODE_CLEAR) != 0)
+    scm_obuffer_clear(obuffer);
 
-  scm_obj_pretty_print(obj, printer);
+  scm_obj_pretty_print(obj, obuffer);
 
-  if ((mode & SCM_PRINTER_MODE_FLUSH) != 0)
-    scm_printer_flush(printer);
+  if ((mode & SCM_OBUFFER_MODE_FLUSH) != 0)
+    scm_obuffer_flush(obuffer);
 }
 
 size_t
-scm_printer_length(ScmPrinter *printer)
+scm_obuffer_length(ScmOBuffer *obuffer)
 {
-  assert(printer != NULL);
+  assert(obuffer != NULL);
 
-  return printer->used - 1;
+  return obuffer->used - 1;
 }
 
 void
-scm_printer_copy_buffer(ScmPrinter *printer, char *dst, size_t len)
+scm_obuffer_copy_buffer(ScmOBuffer *obuffer, char *dst, size_t len)
 {
-  assert(printer != NULL);
+  assert(obuffer != NULL);
 
-  strncpy(dst, printer->buffer, len);
+  strncpy(dst, obuffer->buffer, len);
   dst[len - 1] = '\n';
 }
 
 char *
-scm_printer_buffer(ScmPrinter *printer)
+scm_obuffer_buffer(ScmOBuffer *obuffer)
 {
-  assert(printer != NULL);
+  assert(obuffer != NULL);
 
-  return printer->buffer;
+  return obuffer->buffer;
 }
 
-ScmPrinter *
-scm_printer_construct(FILE *output)
+ScmOBuffer *
+scm_obuffer_construct(FILE *output)
 {
-  ScmPrinter *printer = NULL;
+  ScmOBuffer *obuffer = NULL;
 
   assert(output != NULL);
 
-  printer = scm_memory_allocate(sizeof(ScmPrinter));
-  printer->output = output;
-  printer->buffer = scm_memory_allocate(INITIAL_BUFFER_SIZE);
-  printer->buffer[0] = '\0';
-  printer->size = INITIAL_BUFFER_SIZE;
-  printer->used = 1; // Include NULL character;
+  obuffer = scm_memory_allocate(sizeof(ScmOBuffer));
+  obuffer->output = output;
+  obuffer->buffer = scm_memory_allocate(INITIAL_BUFFER_SIZE);
+  obuffer->buffer[0] = '\0';
+  obuffer->size = INITIAL_BUFFER_SIZE;
+  obuffer->used = 1; // Include NULL character;
 
-  return printer;
+  return obuffer;
 }
 
 void
-scm_printer_destruct(ScmPrinter *printer)
+scm_obuffer_destruct(ScmOBuffer *obuffer)
 {
-  assert(printer != NULL);
+  assert(obuffer != NULL);
 
-  scm_memory_release(printer->buffer);
-  scm_memory_release(printer);
+  scm_memory_release(obuffer->buffer);
+  scm_memory_release(obuffer);
 }

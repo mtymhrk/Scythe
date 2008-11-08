@@ -13,12 +13,12 @@ struct ScmEOFRec {
 static ScmEOF *eof_instance = NULL;
 
 static void
-scm_eof_pretty_print(ScmObj obj, ScmPrinter *printer)
+scm_eof_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
 {
   assert(obj != NULL); assert(scm_eof_is_eof(obj));
-  assert(printer != NULL);
+  assert(obuffer != NULL);
 
-  scm_printer_concatenate_string(printer, "#<eof>");
+  scm_obuffer_concatenate_string(obuffer, "#<eof>");
 }
 
 ScmEOF *

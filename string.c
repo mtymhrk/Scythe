@@ -22,23 +22,23 @@ scm_string_is_char_to_be_escaped(char c)
 }
 
 static void
-scm_string_pretty_print(ScmObj obj, ScmPrinter *printer)
+scm_string_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
 {
   ScmString *string = NULL;
   char *p;
 
   assert(obj != NULL); assert(scm_string_is_string(obj));
-  assert(printer != NULL);
+  assert(obuffer != NULL);
 
   string = SCM_STRING(obj);
 
-  scm_printer_concatenate_char(printer, '"');
+  scm_obuffer_concatenate_char(obuffer, '"');
   for (p = string->string; *p != '\0'; p++) {
     if (scm_string_is_char_to_be_escaped(*p))
-      scm_printer_concatenate_char(printer, '\\');
-    scm_printer_concatenate_char(printer, *p);
+      scm_obuffer_concatenate_char(obuffer, '\\');
+    scm_obuffer_concatenate_char(obuffer, *p);
   }
-  scm_printer_concatenate_char(printer, '"');
+  scm_obuffer_concatenate_char(obuffer, '"');
 }
 
 ScmString *

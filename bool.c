@@ -12,19 +12,19 @@ struct ScmBoolRec {
 };
 
 static void
-scm_bool_pretty_print(ScmObj obj, ScmPrinter *printer)
+scm_bool_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
 {
   ScmBool *boolv;
 
   assert(obj != NULL); assert(scm_bool_is_bool(obj));
-  assert(printer != NULL);
+  assert(obuffer != NULL);
 
   boolv = SCM_BOOL(obj);
 
   if (boolv->value)
-    scm_printer_concatenate_string(printer, "#t");
+    scm_obuffer_concatenate_string(obuffer, "#t");
   else
-    scm_printer_concatenate_string(printer, "#f");
+    scm_obuffer_concatenate_string(obuffer, "#f");
 }
 
 ScmBool *

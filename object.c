@@ -21,11 +21,11 @@ scm_obj_type(ScmObj obj)
 }
 
 void
-scm_obj_pretty_print(ScmObj obj, ScmPrinter *printer)
+scm_obj_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
 {
-  assert(obj != NULL); assert(printer != NULL);
+  assert(obj != NULL); assert(obuffer != NULL);
 
-  obj->header.pretty_print(obj, printer);
+  obj->header.pretty_print(obj, obuffer);
 }
 
 int

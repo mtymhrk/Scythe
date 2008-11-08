@@ -13,18 +13,18 @@ struct ScmIntegerRec {
 };
 
 static void
-scm_integer_pretty_print(ScmObj obj, ScmPrinter *printer)
+scm_integer_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
 {
   ScmInteger *integer;
   char str[21];
 
   assert(obj != NULL); assert(scm_integer_is_integer(obj));
-  assert(printer != NULL);
+  assert(obuffer != NULL);
 
   integer = SCM_INTEGER(obj);
 
   snprintf(str, sizeof(str), "%lld", integer->value);
-  scm_printer_concatenate_string(printer, str);
+  scm_obuffer_concatenate_string(obuffer, str);
 }
 
 ScmInteger *

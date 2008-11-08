@@ -14,13 +14,13 @@ struct ScmCharRec {
 };
 
 static void
-scm_char_pretty_print(ScmObj obj, ScmPrinter *printer)
+scm_char_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
 {
   char str[32];
   ScmChar *charv;
 
   assert(obj != NULL); assert(scm_char_is_char(obj));
-  assert(printer != NULL);
+  assert(obuffer != NULL);
 
   charv = SCM_CHAR(obj);
 
@@ -37,7 +37,7 @@ scm_char_pretty_print(ScmObj obj, ScmPrinter *printer)
   else
     snprintf(str, sizeof(str), "#\\%#08x", charv->value);
 
-  scm_printer_concatenate_string(printer, str);
+  scm_obuffer_concatenate_string(obuffer, str);
 }
 
 ScmChar *

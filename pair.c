@@ -15,29 +15,29 @@ struct ScmPairRec {
 };
 
 static void
-scm_pair_pretty_print(ScmObj obj, ScmPrinter *printer)
+scm_pair_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
 {
   ScmPair *pair = NULL;
 
   assert(obj != NULL); assert(scm_pair_is_pair(obj));
-  assert(printer != NULL);
+  assert(obuffer != NULL);
 
   pair = SCM_PAIR(obj);
 
-  scm_printer_concatenate_char(printer, '(');
-  scm_obj_pretty_print(pair->car, printer);
+  scm_obuffer_concatenate_char(obuffer, '(');
+  scm_obj_pretty_print(pair->car, obuffer);
   while (scm_pair_is_pair(pair->cdr)) {
     pair = SCM_PAIR(pair->cdr);
-    scm_printer_concatenate_char(printer, ' ');
-    scm_obj_pretty_print(pair->car, printer);
+    scm_obuffer_concatenate_char(obuffer, ' ');
+    scm_obj_pretty_print(pair->car, obuffer);
   }
 
   if (scm_nil_is_nil(pair->cdr))
-    scm_printer_concatenate_char(printer, ')');
+    scm_obuffer_concatenate_char(obuffer, ')');
   else {
-    scm_printer_concatenate_string(printer, " . ");
-    scm_obj_pretty_print(pair->cdr, printer);
-    scm_printer_concatenate_char(printer, ')');
+    scm_obuffer_concatenate_string(obuffer, " . ");
+    scm_obj_pretty_print(pair->cdr, obuffer);
+    scm_obuffer_concatenate_char(obuffer, ')');
   }
 }
 

@@ -656,25 +656,25 @@ scm_stringio_length(ScmStringIO *strio)
 }
 
 static void
-scm_port_pretty_print(ScmObj obj, ScmPrinter *printer)
+scm_port_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
 {
   ScmPort *port;
 
   assert(obj != NULL); assert(scm_port_is_port(obj));
-  assert(printer != NULL);
+  assert(obuffer != NULL);
 
   port = SCM_PORT(obj);
 
-  scm_printer_concatenate_string(printer, "#<port:");
+  scm_obuffer_concatenate_string(obuffer, "#<port:");
   if (scm_port_is_readable(port))
-    scm_printer_concatenate_string(printer, " readable");
+    scm_obuffer_concatenate_string(obuffer, " readable");
   if (scm_port_is_writable(port))
-    scm_printer_concatenate_string(printer, " writable");
+    scm_obuffer_concatenate_string(obuffer, " writable");
   if (scm_port_is_file_port(port))
-    scm_printer_concatenate_string(printer, " file");
+    scm_obuffer_concatenate_string(obuffer, " file");
   if (scm_port_is_string_port(port))
-    scm_printer_concatenate_string(printer, " string");
-  scm_printer_concatenate_char(printer, '>');
+    scm_obuffer_concatenate_string(obuffer, " string");
+  scm_obuffer_concatenate_char(obuffer, '>');
 }
 
 static void

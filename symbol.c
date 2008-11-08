@@ -19,12 +19,12 @@ struct ScmSymbolRec {
 static ScmBasicHashTable *symbol_table = NULL;
 
 static void
-scm_symbol_pretty_print(ScmObj obj, ScmPrinter *printer)
+scm_symbol_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
 {
   assert(obj != NULL); assert(scm_symbol_is_symbol(obj));
-  assert(printer != NULL);
+  assert(obuffer != NULL);
 
-  scm_printer_concatenate_string(printer, SCM_SYMBOL(obj)->name);
+  scm_obuffer_concatenate_string(obuffer, SCM_SYMBOL(obj)->name);
 }
 
 static unsigned int

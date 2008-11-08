@@ -13,85 +13,85 @@
 void
 test_pretty_print_nil(void)
 {
-  ScmPrinter *printer = scm_printer_construct(stdout);
+  ScmOBuffer *obuffer = scm_obuffer_construct(stdout);
   ScmObj nil = SCM_OBJ(scm_nil_instance());
 
-  scm_printer_pretty_print_scm_obj(printer, nil, SCM_PRINTER_MODE_CLEAR);
-  cut_assert_equal_string("()", scm_printer_buffer(printer));
+  scm_obuffer_pretty_print_scm_obj(obuffer, nil, SCM_OBUFFER_MODE_CLEAR);
+  cut_assert_equal_string("()", scm_obuffer_buffer(obuffer));
 }
 
 void
 test_pretty_print_integer(void)
 {
-  ScmPrinter *printer = scm_printer_construct(stdout);
+  ScmOBuffer *obuffer = scm_obuffer_construct(stdout);
   ScmObj integer = SCM_OBJ(scm_integer_construct(100));
 
-  scm_printer_pretty_print_scm_obj(printer, integer, SCM_PRINTER_MODE_CLEAR);
-  cut_assert_equal_string("100", scm_printer_buffer(printer));
+  scm_obuffer_pretty_print_scm_obj(obuffer, integer, SCM_OBUFFER_MODE_CLEAR);
+  cut_assert_equal_string("100", scm_obuffer_buffer(obuffer));
 }
 
 void
 test_pretty_print_string(void)
 {
-  ScmPrinter *printer = scm_printer_construct(stdout);
+  ScmOBuffer *obuffer = scm_obuffer_construct(stdout);
   ScmObj string = SCM_OBJ(scm_string_construct("abc\\def"));
 
-  scm_printer_pretty_print_scm_obj(printer, string, SCM_PRINTER_MODE_CLEAR);
-  cut_assert_equal_string("\"abc\\\\def\"", scm_printer_buffer(printer));
+  scm_obuffer_pretty_print_scm_obj(obuffer, string, SCM_OBUFFER_MODE_CLEAR);
+  cut_assert_equal_string("\"abc\\\\def\"", scm_obuffer_buffer(obuffer));
 }
 
 void
 test_pretty_print_symbol(void)
 {
-  ScmPrinter *printer = scm_printer_construct(stdout);
+  ScmOBuffer *obuffer = scm_obuffer_construct(stdout);
   ScmObj symbol = SCM_OBJ(scm_symbol_instance("abc\\def"));
 
-  scm_printer_pretty_print_scm_obj(printer, symbol, SCM_PRINTER_MODE_CLEAR);
-  cut_assert_equal_string("abc\\def", scm_printer_buffer(printer));
+  scm_obuffer_pretty_print_scm_obj(obuffer, symbol, SCM_OBUFFER_MODE_CLEAR);
+  cut_assert_equal_string("abc\\def", scm_obuffer_buffer(obuffer));
 }
 
 void
 test_pretty_print_perfect_list(void)
 {
-  ScmPrinter *printer = scm_printer_construct(stdout);
+  ScmOBuffer *obuffer = scm_obuffer_construct(stdout);
   ScmObj car = SCM_OBJ(scm_symbol_instance("abc"));
   ScmObj cdr = SCM_OBJ(scm_nil_instance());
   ScmObj pair = SCM_OBJ(scm_pair_construct(car, cdr));
 
-  scm_printer_pretty_print_scm_obj(printer, pair, SCM_PRINTER_MODE_CLEAR);
-  cut_assert_equal_string("(abc)", scm_printer_buffer(printer));
+  scm_obuffer_pretty_print_scm_obj(obuffer, pair, SCM_OBUFFER_MODE_CLEAR);
+  cut_assert_equal_string("(abc)", scm_obuffer_buffer(obuffer));
 }
 
 void
 test_pretty_print_imperfect_list(void)
 {
-  ScmPrinter *printer = scm_printer_construct(stdout);
+  ScmOBuffer *obuffer = scm_obuffer_construct(stdout);
   ScmObj car = SCM_OBJ(scm_symbol_instance("abc"));
   ScmObj cdr = SCM_OBJ(scm_symbol_instance("def"));
   ScmObj pair = SCM_OBJ(scm_pair_construct(car, cdr));
 
-  scm_printer_pretty_print_scm_obj(printer, pair, SCM_PRINTER_MODE_CLEAR);
-  cut_assert_equal_string("(abc . def)", scm_printer_buffer(printer));
+  scm_obuffer_pretty_print_scm_obj(obuffer, pair, SCM_OBUFFER_MODE_CLEAR);
+  cut_assert_equal_string("(abc . def)", scm_obuffer_buffer(obuffer));
 }
 
 void
 test_pretty_print_nesting_list(void)
 {
-  ScmPrinter *printer = scm_printer_construct(stdout);
+  ScmOBuffer *obuffer = scm_obuffer_construct(stdout);
   ScmObj nil = SCM_OBJ(scm_nil_instance());
   ScmObj car = SCM_OBJ(scm_symbol_instance("abc"));
   ScmObj cdr = SCM_OBJ(scm_symbol_instance("def"));
   ScmObj pair1 = SCM_OBJ(scm_pair_construct(car, nil));
   ScmObj pair2 = SCM_OBJ(scm_pair_construct(pair1, cdr));
 
-  scm_printer_pretty_print_scm_obj(printer, pair2, SCM_PRINTER_MODE_CLEAR);
-  cut_assert_equal_string("((abc) . def)", scm_printer_buffer(printer));
+  scm_obuffer_pretty_print_scm_obj(obuffer, pair2, SCM_OBUFFER_MODE_CLEAR);
+  cut_assert_equal_string("((abc) . def)", scm_obuffer_buffer(obuffer));
 }
 
 void
 test_pretty_print_vector(void)
 {
-  ScmPrinter *printer = scm_printer_construct(stdout);
+  ScmOBuffer *obuffer = scm_obuffer_construct(stdout);
   ScmVector *vector = scm_vector_construct(5);
   ScmObj e0 = SCM_OBJ(scm_symbol_instance("abc"));
   ScmObj e1 = SCM_OBJ(scm_symbol_instance("def"));
@@ -105,20 +105,20 @@ test_pretty_print_vector(void)
   scm_vector_set(vector, 3, e3);
   scm_vector_set(vector, 4, e4);
 
-  scm_printer_pretty_print_scm_obj(printer,
-                                   SCM_OBJ(vector), SCM_PRINTER_MODE_CLEAR);
+  scm_obuffer_pretty_print_scm_obj(obuffer,
+                                   SCM_OBJ(vector), SCM_OBUFFER_MODE_CLEAR);
   cut_assert_equal_string("#(abc def 123 \"ghi\" ())",
-                          scm_printer_buffer(printer));
+                          scm_obuffer_buffer(obuffer));
 }
 
 void
 test_pretty_print_eof(void)
 {
-  ScmPrinter *printer = scm_printer_construct(stdout);
+  ScmOBuffer *obuffer = scm_obuffer_construct(stdout);
   ScmEOF *eof = scm_eof_instance();
 
-  scm_printer_pretty_print_scm_obj(printer,
-                                   SCM_OBJ(eof), SCM_PRINTER_MODE_CLEAR);
+  scm_obuffer_pretty_print_scm_obj(obuffer,
+                                   SCM_OBJ(eof), SCM_OBUFFER_MODE_CLEAR);
   
-  cut_assert_equal_string("#<eof>", scm_printer_buffer(printer));
+  cut_assert_equal_string("#<eof>", scm_obuffer_buffer(obuffer));
 }
