@@ -74,18 +74,23 @@ int scm_stringio_errno(ScmStringIO *strio);
 char *scm_stringio_buffer(ScmStringIO *strio);
 size_t scm_stringio_length(ScmStringIO *strio);
 
+
+ScmPort *scm_port_open_input(ScmIO *io,
+                             SCM_PORT_ATTR attr, SCM_PORT_BUF_MODE buf_mode);
+ScmPort *scm_port_open_output(ScmIO *io,
+                              SCM_PORT_ATTR attr, SCM_PORT_BUF_MODE buf_mode);
+ScmPort *scm_port_open_input_file(const char *path,
+                                  SCM_PORT_BUF_MODE buf_mode);
+ScmPort *scm_port_open_output_file(const char *path,
+                                   SCM_PORT_BUF_MODE buf_mode);
+ScmPort *scm_port_open_input_string(const void *string, size_t size);
+ScmPort *scm_port_open_output_string(void);
+void scm_port_destruct(ScmPort *port);
 bool scm_port_is_readable(ScmPort *port);
 bool scm_port_is_writable(ScmPort *port);
 bool scm_port_is_file_port(ScmPort *port);
 bool scm_port_is_string_port(ScmPort *port);
 bool scm_port_is_port(ScmObj obj);
-ScmPort *scm_port_construct_input_port(const char *path,
-                                       SCM_PORT_BUF_MODE buf_mode);
-ScmPort *scm_port_construct_output_port(const char *path,
-                                        SCM_PORT_BUF_MODE buf_mode);
-ScmPort *scm_port_construct_input_string_port(const void *string, size_t size);
-ScmPort *scm_port_construct_output_string_port(void);
-void scm_port_destruct(ScmPort *port);
 bool scm_port_is_closed(ScmPort *port);
 bool scm_port_is_ready(ScmPort *port);
 bool scm_port_is_eof(ScmPort *port);

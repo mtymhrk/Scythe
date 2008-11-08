@@ -15,7 +15,7 @@ void
 startup(void)
 {
   FILE *fp;
-  int i;
+  int i, n;
 
   fp = fopen(TEST_TEXT_FILE, "w");
   fputs(TEST_TEXT_FILE_CONTENTS, fp);
@@ -23,7 +23,7 @@ startup(void)
 
   fp = fopen(TEST_BIG_FILE, "w");
   for (i = 0; i < (TEST_BIG_FILE_SIZE / sizeof(i)); i++)
-    fwrite(&i, sizeof(i), 1, fp);
+    n = fwrite(&i, sizeof(i), 1, fp);
   fclose(fp);
 }
 
@@ -54,8 +54,8 @@ xxx_test_scm_port_construct_input_file_port(ScmPort *port)
 void
 test_scm_port_construct_input_file_port_ful_buffer(void)
 {
-  ScmPort *port = scm_port_construct_input_port(TEST_TEXT_FILE,
-                                                SCM_PORT_BUF_FULL);
+  ScmPort *port = scm_port_open_input_file(TEST_TEXT_FILE,
+                                           SCM_PORT_BUF_FULL);
 
   xxx_test_scm_port_construct_input_file_port(port);
 }
@@ -63,8 +63,8 @@ test_scm_port_construct_input_file_port_ful_buffer(void)
 void
 test_scm_port_construct_input_file_port_line_buffer(void)
 {
-  ScmPort *port = scm_port_construct_input_port(TEST_TEXT_FILE,
-                                                SCM_PORT_BUF_LINE);
+  ScmPort *port = scm_port_open_input_file(TEST_TEXT_FILE,
+                                           SCM_PORT_BUF_LINE);
 
   xxx_test_scm_port_construct_input_file_port(port);
 }
@@ -72,8 +72,8 @@ test_scm_port_construct_input_file_port_line_buffer(void)
 void
 test_scm_port_construct_input_file_port_modest_buffer(void)
 {
-  ScmPort *port = scm_port_construct_input_port(TEST_TEXT_FILE,
-                                                SCM_PORT_BUF_MODEST);
+  ScmPort *port = scm_port_open_input_file(TEST_TEXT_FILE,
+                                           SCM_PORT_BUF_MODEST);
 
   xxx_test_scm_port_construct_input_file_port(port);
 }
@@ -81,8 +81,8 @@ test_scm_port_construct_input_file_port_modest_buffer(void)
 void
 test_scm_port_construct_input_file_port_none_buffer(void)
 {
-  ScmPort *port = scm_port_construct_input_port(TEST_TEXT_FILE,
-                                                SCM_PORT_BUF_NONE);
+  ScmPort *port = scm_port_open_input_file(TEST_TEXT_FILE,
+                                           SCM_PORT_BUF_NONE);
 
   xxx_test_scm_port_construct_input_file_port(port);
 }
@@ -109,32 +109,32 @@ xxx_test_scm_port_read_per_byte(ScmPort *port)
 void
 test_scm_port_read_per_byte_full_buffer(void)
 {
-  ScmPort *port = scm_port_construct_input_port(TEST_TEXT_FILE,
-                                                SCM_PORT_BUF_FULL);
+  ScmPort *port = scm_port_open_input_file(TEST_TEXT_FILE,
+                                           SCM_PORT_BUF_FULL);
   xxx_test_scm_port_read_per_byte(port);
 }
 
 void
 test_scm_port_read_per_byte_line_buffer(void)
 {
-  ScmPort *port = scm_port_construct_input_port(TEST_TEXT_FILE,
-                                                SCM_PORT_BUF_LINE);
+  ScmPort *port = scm_port_open_input_file(TEST_TEXT_FILE,
+                                           SCM_PORT_BUF_LINE);
   xxx_test_scm_port_read_per_byte(port);
 }
 
 void
 test_scm_port_read_per_byte_modest_buffer(void)
 {
-  ScmPort *port = scm_port_construct_input_port(TEST_TEXT_FILE,
-                                                SCM_PORT_BUF_MODEST);
+  ScmPort *port = scm_port_open_input_file(TEST_TEXT_FILE,
+                                           SCM_PORT_BUF_MODEST);
   xxx_test_scm_port_read_per_byte(port);
 }
 
 void
 test_scm_port_read_per_byte_none_buffer(void)
 {
-  ScmPort *port = scm_port_construct_input_port(TEST_TEXT_FILE,
-                                                SCM_PORT_BUF_NONE);
+  ScmPort *port = scm_port_open_input_file(TEST_TEXT_FILE,
+                                           SCM_PORT_BUF_NONE);
   xxx_test_scm_port_read_per_byte(port);
 }
 
@@ -215,32 +215,32 @@ xxx_test_scm_port_interleave_read_and_seek(ScmPort *port)
 void
 test_scm_port_interleave_read_and_seek_full_buffer(void)
 {
-  ScmPort *port = scm_port_construct_input_port(TEST_TEXT_FILE,
-                                                SCM_PORT_BUF_FULL);
+  ScmPort *port = scm_port_open_input_file(TEST_TEXT_FILE,
+                                           SCM_PORT_BUF_FULL);
   xxx_test_scm_port_interleave_read_and_seek(port);
 }
 
 void
 test_scm_port_interleave_read_and_seek_line_buffer(void)
 {
-  ScmPort *port = scm_port_construct_input_port(TEST_TEXT_FILE,
-                                                SCM_PORT_BUF_LINE);
+  ScmPort *port = scm_port_open_input_file(TEST_TEXT_FILE,
+                                           SCM_PORT_BUF_LINE);
   xxx_test_scm_port_interleave_read_and_seek(port);
 }
 
 void
 test_scm_port_interleave_read_and_seek_modest_buffer(void)
 {
-  ScmPort *port = scm_port_construct_input_port(TEST_TEXT_FILE,
-                                                SCM_PORT_BUF_MODEST);
+  ScmPort *port = scm_port_open_input_file(TEST_TEXT_FILE,
+                                           SCM_PORT_BUF_MODEST);
   xxx_test_scm_port_interleave_read_and_seek(port);
 }
 
 void
 test_scm_port_interleave_read_and_seek_none_buffer(void)
 {
-  ScmPort *port = scm_port_construct_input_port(TEST_TEXT_FILE,
-                                                SCM_PORT_BUF_NONE);
+  ScmPort *port = scm_port_open_input_file(TEST_TEXT_FILE,
+                                           SCM_PORT_BUF_NONE);
   xxx_test_scm_port_interleave_read_and_seek(port);
 }
 
@@ -263,8 +263,8 @@ xxx_test_scm_port_read_big_file(ScmPort *port)
 void
 test_scm_port_read_big_file_full_buffer(void)
 {
-  ScmPort *port = scm_port_construct_input_port(TEST_BIG_FILE,
-                                                SCM_PORT_BUF_FULL);
+  ScmPort *port = scm_port_open_input_file(TEST_BIG_FILE,
+                                           SCM_PORT_BUF_FULL);
 
   xxx_test_scm_port_read_big_file(port);
 }
@@ -272,8 +272,8 @@ test_scm_port_read_big_file_full_buffer(void)
 void
 test_scm_port_read_big_file_line_buffer(void)
 {
-  ScmPort *port = scm_port_construct_input_port(TEST_BIG_FILE,
-                                                SCM_PORT_BUF_LINE);
+  ScmPort *port = scm_port_open_input_file(TEST_BIG_FILE,
+                                           SCM_PORT_BUF_LINE);
 
   xxx_test_scm_port_read_big_file(port);
 }
@@ -281,8 +281,8 @@ test_scm_port_read_big_file_line_buffer(void)
 void
 test_scm_port_read_big_file_modest_buffer(void)
 {
-  ScmPort *port = scm_port_construct_input_port(TEST_BIG_FILE,
-                                                SCM_PORT_BUF_MODEST);
+  ScmPort *port = scm_port_open_input_file(TEST_BIG_FILE,
+                                           SCM_PORT_BUF_MODEST);
 
   xxx_test_scm_port_read_big_file(port);
 }
@@ -290,8 +290,8 @@ test_scm_port_read_big_file_modest_buffer(void)
 void
 test_scm_port_read_big_file_none_buffer(void)
 {
-  ScmPort *port = scm_port_construct_input_port(TEST_BIG_FILE,
-                                                SCM_PORT_BUF_NONE);
+  ScmPort *port = scm_port_open_input_file(TEST_BIG_FILE,
+                                           SCM_PORT_BUF_NONE);
 
   xxx_test_scm_port_read_big_file(port);
 }
@@ -301,8 +301,8 @@ test_scm_port_read_big_data(void)
 {
   int data[TEST_BIG_FILE_SIZE / sizeof(int)];
   int i, ret;
-  ScmPort *port = scm_port_construct_input_port(TEST_BIG_FILE,
-                                                SCM_PORT_BUF_FULL);
+  ScmPort *port = scm_port_open_input_file(TEST_BIG_FILE,
+                                           SCM_PORT_BUF_FULL);
 
   ret = scm_port_read_prim(port, data, TEST_BIG_FILE_SIZE);
   cut_assert_equal_int(TEST_BIG_FILE_SIZE, ret);
@@ -315,8 +315,8 @@ void
 test_scm_port_close_input_port(void)
 {
   int ret, data;
-  ScmPort *port = scm_port_construct_input_port(TEST_TEXT_FILE,
-                                                SCM_PORT_BUF_DEFAULT);
+  ScmPort *port = scm_port_open_input_file(TEST_TEXT_FILE,
+                                           SCM_PORT_BUF_DEFAULT);
 
   cut_assert_false(scm_port_is_closed(port));
 
@@ -343,8 +343,8 @@ xxx_test_scm_port_construct_output_file_port(ScmPort *port)
 void
 test_scm_port_construct_output_file_port_ful_buffer(void)
 {
-  ScmPort *port = scm_port_construct_output_port(TEST_OUTPUT_FILE,
-                                                 SCM_PORT_BUF_FULL);
+  ScmPort *port = scm_port_open_output_file(TEST_OUTPUT_FILE,
+                                            SCM_PORT_BUF_FULL);
 
   xxx_test_scm_port_construct_output_file_port(port);
 }
@@ -352,8 +352,8 @@ test_scm_port_construct_output_file_port_ful_buffer(void)
 void
 test_scm_port_construct_output_file_port_line_buffer(void)
 {
-  ScmPort *port = scm_port_construct_output_port(TEST_OUTPUT_FILE,
-                                                 SCM_PORT_BUF_LINE);
+  ScmPort *port = scm_port_open_output_file(TEST_OUTPUT_FILE,
+                                            SCM_PORT_BUF_LINE);
 
   xxx_test_scm_port_construct_output_file_port(port);
 }
@@ -361,8 +361,8 @@ test_scm_port_construct_output_file_port_line_buffer(void)
 void
 test_scm_port_construct_output_file_port_modest_buffer(void)
 {
-  ScmPort *port = scm_port_construct_output_port(TEST_OUTPUT_FILE,
-                                                 SCM_PORT_BUF_MODEST);
+  ScmPort *port = scm_port_open_output_file(TEST_OUTPUT_FILE,
+                                            SCM_PORT_BUF_MODEST);
 
   xxx_test_scm_port_construct_output_file_port(port);
 }
@@ -370,8 +370,8 @@ test_scm_port_construct_output_file_port_modest_buffer(void)
 void
 test_scm_port_construct_output_file_port_none_buffer(void)
 {
-  ScmPort *port = scm_port_construct_output_port(TEST_OUTPUT_FILE,
-                                                 SCM_PORT_BUF_NONE);
+  ScmPort *port = scm_port_open_output_file(TEST_OUTPUT_FILE,
+                                            SCM_PORT_BUF_NONE);
 
   xxx_test_scm_port_construct_output_file_port(port);
 }
@@ -439,8 +439,8 @@ xxx_test_scm_port_write_per_byte(ScmPort *port)
 void
 test_scm_port_write_per_byte_full_buffer(void)
 {
-  ScmPort *port = scm_port_construct_output_port(TEST_OUTPUT_FILE,
-                                                 SCM_PORT_BUF_FULL);
+  ScmPort *port = scm_port_open_output_file(TEST_OUTPUT_FILE,
+                                            SCM_PORT_BUF_FULL);
 
   xxx_test_scm_port_write_per_byte(port);
 }
@@ -448,8 +448,8 @@ test_scm_port_write_per_byte_full_buffer(void)
 void
 test_scm_port_write_per_byte_line_buffer(void)
 {
-  ScmPort *port = scm_port_construct_output_port(TEST_OUTPUT_FILE,
-                                                 SCM_PORT_BUF_LINE);
+  ScmPort *port = scm_port_open_output_file(TEST_OUTPUT_FILE,
+                                            SCM_PORT_BUF_LINE);
 
   xxx_test_scm_port_write_per_byte(port);
 }
@@ -457,8 +457,8 @@ test_scm_port_write_per_byte_line_buffer(void)
 void
 test_scm_port_write_per_byte_modest_buffer(void)
 {
-  ScmPort *port = scm_port_construct_output_port(TEST_OUTPUT_FILE,
-                                                 SCM_PORT_BUF_MODEST);
+  ScmPort *port = scm_port_open_output_file(TEST_OUTPUT_FILE,
+                                            SCM_PORT_BUF_MODEST);
 
   xxx_test_scm_port_write_per_byte(port);
 }
@@ -466,8 +466,8 @@ test_scm_port_write_per_byte_modest_buffer(void)
 void
 test_scm_port_write_per_byte_none_buffer(void)
 {
-  ScmPort *port = scm_port_construct_output_port(TEST_OUTPUT_FILE,
-                                                 SCM_PORT_BUF_NONE);
+  ScmPort *port = scm_port_open_output_file(TEST_OUTPUT_FILE,
+                                            SCM_PORT_BUF_NONE);
 
   xxx_test_scm_port_write_per_byte(port);
 }
@@ -546,8 +546,8 @@ xxx_test_scm_port_interleave_write_and_seek(ScmPort *port)
 void
 test_scm_port_interleave_write_and_seek_full_buffer(void)
 {
-  ScmPort *port = scm_port_construct_output_port(TEST_OUTPUT_FILE,
-                                                 SCM_PORT_BUF_FULL);
+  ScmPort *port = scm_port_open_output_file(TEST_OUTPUT_FILE,
+                                            SCM_PORT_BUF_FULL);
 
   xxx_test_scm_port_interleave_write_and_seek(port);
 }
@@ -555,8 +555,8 @@ test_scm_port_interleave_write_and_seek_full_buffer(void)
 void
 test_scm_port_interleave_write_and_seek_line_buffer(void)
 {
-  ScmPort *port = scm_port_construct_output_port(TEST_OUTPUT_FILE,
-                                                 SCM_PORT_BUF_LINE);
+  ScmPort *port = scm_port_open_output_file(TEST_OUTPUT_FILE,
+                                            SCM_PORT_BUF_LINE);
 
   xxx_test_scm_port_interleave_write_and_seek(port);
 }
@@ -564,8 +564,8 @@ test_scm_port_interleave_write_and_seek_line_buffer(void)
 void
 test_scm_port_interleave_write_and_seek_modest_buffer(void)
 {
-  ScmPort *port = scm_port_construct_output_port(TEST_OUTPUT_FILE,
-                                                 SCM_PORT_BUF_MODEST);
+  ScmPort *port = scm_port_open_output_file(TEST_OUTPUT_FILE,
+                                            SCM_PORT_BUF_MODEST);
 
   xxx_test_scm_port_interleave_write_and_seek(port);
 }
@@ -573,8 +573,8 @@ test_scm_port_interleave_write_and_seek_modest_buffer(void)
 void
 test_scm_port_interleave_write_and_seek_none_buffer(void)
 {
-  ScmPort *port = scm_port_construct_output_port(TEST_OUTPUT_FILE,
-                                                 SCM_PORT_BUF_LINE);
+  ScmPort *port = scm_port_open_output_file(TEST_OUTPUT_FILE,
+                                            SCM_PORT_BUF_LINE);
 
   xxx_test_scm_port_interleave_write_and_seek(port);
 }
@@ -584,8 +584,8 @@ test_scm_port_write_big_data(void)
 {
   int i;
 
-  ScmPort *port = scm_port_construct_output_port(TEST_OUTPUT_FILE,
-                                                 SCM_PORT_BUF_FULL);
+  ScmPort *port = scm_port_open_output_file(TEST_OUTPUT_FILE,
+                                            SCM_PORT_BUF_FULL);
 
 
   for (i = 0; i < (TEST_BIG_FILE_SIZE / sizeof(i)); i++)
@@ -603,8 +603,8 @@ void
 test_scm_port_close_output_port(void)
 {
   int ret, data;
-  ScmPort *port = scm_port_construct_output_port(TEST_OUTPUT_FILE,
-                                                 SCM_PORT_BUF_DEFAULT);
+  ScmPort *port = scm_port_open_output_file(TEST_OUTPUT_FILE,
+                                            SCM_PORT_BUF_DEFAULT);
 
   cut_assert_false(scm_port_is_closed(port));
 

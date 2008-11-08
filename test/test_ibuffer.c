@@ -40,11 +40,11 @@ shutdown(void)
 void
 setup(void)
 {
-  test_port = scm_port_construct_input_port(TEST_DATA_FILE,
+  test_port = scm_port_open_input_file(TEST_DATA_FILE,
                                            SCM_PORT_BUF_DEFAULT);
-  test_big_file_port = scm_port_construct_input_port(TEST_DATA_BIG_FILE,
+  test_big_file_port = scm_port_open_input_file(TEST_DATA_BIG_FILE,
                                                     SCM_PORT_BUF_DEFAULT);
-  test_string_port = scm_port_construct_input_string_port("hello, world\n", 13);
+  test_string_port = scm_port_open_input_string("hello, world\n", 13);
 }
 
 void
@@ -298,12 +298,12 @@ void
 test_scm_ibuffer_interleave_shift_and_forecast_for_file(void)
 {
   FILE *fp;
-  char content[256];
+  char content[256], *p;
   size_t size;
   unsigned int shift, forecast;
 
   fp = fopen(TEST_DATA_FILE, "r");
-  fgets(content, sizeof(content), fp);
+  p = fgets(content, sizeof(content), fp);
   fclose(fp);
   size = strlen(content);
 

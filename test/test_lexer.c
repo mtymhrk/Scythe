@@ -5,7 +5,7 @@
 ScmIBuffer *
 construct_ibuffer_from_string(const char *str)
 {
-  return scm_ibuffer_construct(scm_port_construct_input_string_port(str, strlen(str)));
+  return scm_ibuffer_construct(scm_port_open_input_string(str, strlen(str)));
 }
 
 void

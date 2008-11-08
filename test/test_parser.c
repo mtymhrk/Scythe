@@ -16,7 +16,7 @@
 ScmParser *
 construct_parser_from_string(const char *str)
 {
-  ScmPort *port = scm_port_construct_input_string_port(str, strlen(str));
+  ScmPort *port = scm_port_open_input_string(str, strlen(str));
   ScmIBuffer *ibuffer = scm_ibuffer_construct(port);
   ScmLexer *lexer = scm_lexer_construct(ibuffer);
   ScmParser *parser = scm_parser_construct(lexer);
@@ -27,7 +27,7 @@ construct_parser_from_string(const char *str)
 void
 test_parser_construct(void)
 {
-  ScmPort *port = scm_port_construct_input_string_port("", 0);
+  ScmPort *port = scm_port_open_input_string("", 0);
   ScmIBuffer *ibuffer = scm_ibuffer_construct(port);
   ScmLexer *lexer = scm_lexer_construct(ibuffer);
   ScmParser *parser = scm_parser_construct(lexer);

@@ -677,60 +677,6 @@ scm_port_pretty_print(ScmObj obj, ScmPrinter *printer)
   scm_printer_concatenate_char(printer, '>');
 }
 
-bool
-scm_port_is_readable(ScmPort *port)
-{
-  assert(port != NULL);
-
-  return BIT_IS_SETED(port->attr, SCM_PORT_ATTR_READABLE);
-}
-
-bool
-scm_port_is_writable(ScmPort *port)
-{
-  assert(port != NULL);
-
-  return BIT_IS_SETED(port->attr, SCM_PORT_ATTR_WRITABLE);
-}
-
-bool
-scm_port_is_file_port(ScmPort *port)
-{
-  assert(port != NULL);
-
-  return BIT_IS_SETED(port->attr, SCM_PORT_ATTR_FILE);
-}
-
-bool
-scm_port_is_string_port(ScmPort *port)
-{
-  assert(port != NULL);
-
-  return BIT_IS_SETED(port->attr, SCM_PORT_ATTR_STRING);  
-}
-
-bool
-scm_port_is_port(ScmObj obj)
-{
-  assert(obj != NULL);
-
-  return (scm_obj_type(obj) == SCM_OBJ_TYPE_PORT);
-}
-
-static void
-scm_port_initialize(ScmPort *port, SCM_PORT_ATTR attr)
-{
-  assert(port != NULL);
-
-  scm_obj_init(SCM_OBJ(port), SCM_OBJ_TYPE_PORT, scm_port_pretty_print);
-  port->attr = attr;
-  port->buffer_mode = SCM_PORT_BUF_NONE;
-  port->buffer = NULL;
-  port->capacity = 0;
-  port->pos = 0;
-  port->used = 0;
-}
-
 static void
 scm_port_init_buffer(ScmPort *port, SCM_PORT_BUF_MODE buf_mode)
 {
@@ -771,79 +717,99 @@ scm_port_init_buffer(ScmPort *port, SCM_PORT_BUF_MODE buf_mode)
   port->buffer = scm_memory_allocate(port->capacity);
 }
 
-ScmPort *
-scm_port_construct_input_port(const char *path,
-                              SCM_PORT_BUF_MODE buf_mode)
+static void
+scm_port_initialize(ScmPort *port,
+                    SCM_PORT_ATTR attr, SCM_PORT_BUF_MODE buf_mode)
 {
-  ScmPort *port;
+  assert(port != NULL);
 
-  assert(path != NULL);
+  scm_obj_init(SCM_OBJ(port), SCM_OBJ_TYPE_PORT, scm_port_pretty_print);
+  port->attr = attr;
+  port->buffer_mode = SCM_PORT_BUF_NONE;
+  port->buffer = NULL;
+  port->capacity = 0;
+  port->pos = 0;
+  port->used = 0;
 
-  port = scm_memory_allocate(sizeof(ScmPort));
-  port->io = (ScmIO *)scm_fileio_open(path, O_RDONLY, 0);
-  if (port->io == NULL) {
-    scm_memory_release(port);
-    return NULL;
-  }
-  scm_port_initialize(port, SCM_PORT_ATTR_READABLE | SCM_PORT_ATTR_FILE);
   scm_port_init_buffer(port, buf_mode);
-  return port;
 }
 
 ScmPort *
-scm_port_construct_output_port(const char *path,
-                               SCM_PORT_BUF_MODE buf_mode)
+scm_port_open_input(ScmIO *io, SCM_PORT_ATTR attr, SCM_PORT_BUF_MODE buf_mode)
 {
   ScmPort *port;
 
-  assert(path != NULL);
+  assert(io != NULL);
 
   port = scm_memory_allocate(sizeof(ScmPort));
-  port->io = (ScmIO *)scm_fileio_open(path, O_WRONLY | O_CREAT, 00644);
-  if (port->io == NULL) {
-    scm_memory_release(port);
-    return NULL;
-  }
-  scm_port_initialize(port, SCM_PORT_ATTR_WRITABLE | SCM_PORT_ATTR_FILE);
-  scm_port_init_buffer(port, buf_mode);
+  port->io = io;
+  scm_port_initialize(port, attr | SCM_PORT_ATTR_READABLE, buf_mode);
 
   return port;
 }
 
 ScmPort *
-scm_port_construct_input_string_port(const void *string, size_t size)
+scm_port_open_output(ScmIO *io, SCM_PORT_ATTR attr, SCM_PORT_BUF_MODE buf_mode)
 {
   ScmPort *port;
+
+  assert(io != NULL);
+
+  port = scm_memory_allocate(sizeof(ScmPort));
+  port->io = io;
+  scm_port_initialize(port, attr | SCM_PORT_ATTR_WRITABLE, buf_mode);
+
+  return port;
+}
+
+ScmPort *
+scm_port_open_input_file(const char *path, SCM_PORT_BUF_MODE buf_mode)
+{
+  ScmIO *io;
+
+  assert(path != NULL);
+
+  io = (ScmIO *)scm_fileio_open(path, O_RDONLY, 0);
+  if (io == NULL) return NULL;
+
+  return scm_port_open_input(io, SCM_PORT_ATTR_FILE, buf_mode);
+}
+
+ScmPort *
+scm_port_open_output_file(const char *path, SCM_PORT_BUF_MODE buf_mode)
+{
+  ScmIO *io;
+
+  assert(path != NULL);
+
+  io = (ScmIO *)scm_fileio_open(path, O_WRONLY | O_CREAT, 00644);
+  if (io == NULL) return NULL;
+
+  return scm_port_open_output(io, SCM_PORT_ATTR_FILE, buf_mode);
+}
+
+ScmPort *
+scm_port_open_input_string(const void *string, size_t size)
+{
+  ScmIO *io;
 
   assert(string != NULL);
 
-  port = scm_memory_allocate(sizeof(ScmPort));
-  port->io = (ScmIO *)scm_stringio_construct(string, size);
-  if (port->io == NULL) {
-    scm_memory_release(port);
-    return NULL;
-  }
-  scm_port_initialize(port, SCM_PORT_ATTR_READABLE | SCM_PORT_ATTR_STRING);
-  scm_port_init_buffer(port, SCM_PORT_BUF_DEFAULT);
+  io = (ScmIO *)scm_stringio_construct(string, size);
+  if (io == NULL) return NULL;
 
-  return port;
+  return scm_port_open_input(io, SCM_PORT_ATTR_STRING, SCM_PORT_BUF_DEFAULT);
 }
 
 ScmPort *
-scm_port_construct_output_string_port(void)
+scm_port_open_output_string(void)
 {
-  ScmPort *port;
+  ScmIO *io;
 
-  port = scm_memory_allocate(sizeof(ScmPort));
-  port->io = (ScmIO *)scm_stringio_construct(NULL, 0);
-  if (port->io == NULL) {
-    scm_memory_release(port);
-    return NULL;
-  }
-  scm_port_initialize(port, SCM_PORT_ATTR_WRITABLE | SCM_PORT_ATTR_STRING);
-  scm_port_init_buffer(port, SCM_PORT_BUF_DEFAULT);
+  io = (ScmIO *)scm_stringio_construct(NULL, 0);
+  if (io == NULL) return NULL;
 
-  return port;
+  return scm_port_open_output(io, SCM_PORT_ATTR_STRING, SCM_PORT_BUF_DEFAULT);
 }
 
 void
@@ -855,6 +821,46 @@ scm_port_destruct(ScmPort *port)
   scm_memory_release(port->buffer);
   scm_io_destruct(port->io);
   scm_memory_release(port);
+}
+
+bool
+scm_port_is_readable(ScmPort *port)
+{
+  assert(port != NULL);
+
+  return BIT_IS_SETED(port->attr, SCM_PORT_ATTR_READABLE);
+}
+
+bool
+scm_port_is_writable(ScmPort *port)
+{
+  assert(port != NULL);
+
+  return BIT_IS_SETED(port->attr, SCM_PORT_ATTR_WRITABLE);
+}
+
+bool
+scm_port_is_file_port(ScmPort *port)
+{
+  assert(port != NULL);
+
+  return BIT_IS_SETED(port->attr, SCM_PORT_ATTR_FILE);
+}
+
+bool
+scm_port_is_string_port(ScmPort *port)
+{
+  assert(port != NULL);
+
+  return BIT_IS_SETED(port->attr, SCM_PORT_ATTR_STRING);  
+}
+
+bool
+scm_port_is_port(ScmObj obj)
+{
+  assert(obj != NULL);
+
+  return (scm_obj_type(obj) == SCM_OBJ_TYPE_PORT);
 }
 
 bool

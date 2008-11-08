@@ -11,7 +11,7 @@ void
 test_scm_string_port_construct_input_port(void)
 {
   ScmPort *port =
-    scm_port_construct_input_string_port(TEST_TEXT_CONTENTS,
+    scm_port_open_input_string(TEST_TEXT_CONTENTS,
                                          sizeof(TEST_TEXT_CONTENTS) - 1);
 
   cut_assert_not_null(port);
@@ -31,7 +31,7 @@ test_scm_string_port_read_per_bye(void)
   int i;
 
   ScmPort *port =
-    scm_port_construct_input_string_port(TEST_TEXT_CONTENTS,
+    scm_port_open_input_string(TEST_TEXT_CONTENTS,
                                          sizeof(TEST_TEXT_CONTENTS) - 1);
 
   for (i = 0; i < sizeof(expected_chars) - 1; i++) {
@@ -54,7 +54,7 @@ test_scm_string_port_interleave_read_and_seek(void)
   int i;
 
   ScmPort *port =
-    scm_port_construct_input_string_port(TEST_TEXT_CONTENTS,
+    scm_port_open_input_string(TEST_TEXT_CONTENTS,
                                          sizeof(TEST_TEXT_CONTENTS) - 1);
 
 
@@ -129,7 +129,7 @@ test_scm_string_port_close_input_port(void)
 {
   int ret, data;
   ScmPort *port =
-    scm_port_construct_input_string_port(TEST_TEXT_CONTENTS,
+    scm_port_open_input_string(TEST_TEXT_CONTENTS,
                                          sizeof(TEST_TEXT_CONTENTS) - 1);
 
   cut_assert_false(scm_port_is_closed(port));
@@ -146,7 +146,7 @@ test_scm_string_port_close_input_port(void)
 void
 test_scm_string_port_construct_output_port(void)
 {
-  ScmPort *port = scm_port_construct_output_string_port();
+  ScmPort *port = scm_port_open_output_string();
 
   cut_assert_not_null(port);
   cut_assert_false(scm_port_is_readable(port));
@@ -162,7 +162,7 @@ test_scm_string_port_write_per_byte(void)
   char data[] = TEST_TEXT_CONTENTS;
   int i, ret;
 
-  ScmPort *port = scm_port_construct_output_string_port();
+  ScmPort *port = scm_port_open_output_string();
 
   for (i = 0; i < sizeof(data) - 1; i++) {
     ret = scm_port_write_prim(port, data + i, sizeof(char));
@@ -184,7 +184,7 @@ test_scm_string_port_interleave_write_and_seek(void)
   ssize_t ret;
   int i;
 
-  ScmPort *port = scm_port_construct_output_string_port();
+  ScmPort *port = scm_port_open_output_string();
 
   i = 0;
   while (true) {
@@ -257,7 +257,7 @@ void
 test_scm_string_port_close_output_port(void)
 {
   int ret, data;
-  ScmPort *port = scm_port_construct_output_string_port();
+  ScmPort *port = scm_port_open_output_string();
 
   cut_assert_false(scm_port_is_closed(port));
 
