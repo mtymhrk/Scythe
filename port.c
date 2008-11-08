@@ -769,7 +769,9 @@ scm_port_open_input_file(const char *path, SCM_PORT_BUF_MODE buf_mode)
   io = (ScmIO *)scm_fileio_open(path, O_RDONLY, 0);
   if (io == NULL) return NULL;
 
-  return scm_port_open_input(io, SCM_PORT_ATTR_FILE, buf_mode);
+  return scm_port_open_input(io,
+                             SCM_PORT_ATTR_FILE | SCM_PORT_ATTR_DESTRUCT_IO,
+                             buf_mode);
 }
 
 ScmPort *
@@ -782,7 +784,9 @@ scm_port_open_output_file(const char *path, SCM_PORT_BUF_MODE buf_mode)
   io = (ScmIO *)scm_fileio_open(path, O_WRONLY | O_CREAT, 00644);
   if (io == NULL) return NULL;
 
-  return scm_port_open_output(io, SCM_PORT_ATTR_FILE, buf_mode);
+  return scm_port_open_output(io,
+                              SCM_PORT_ATTR_FILE | SCM_PORT_ATTR_DESTRUCT_IO,
+                              buf_mode);
 }
 
 ScmPort *
@@ -795,7 +799,9 @@ scm_port_open_input_string(const void *string, size_t size)
   io = (ScmIO *)scm_stringio_construct(string, size);
   if (io == NULL) return NULL;
 
-  return scm_port_open_input(io, SCM_PORT_ATTR_STRING, SCM_PORT_BUF_DEFAULT);
+  return scm_port_open_input(io,
+                             SCM_PORT_ATTR_STRING | SCM_PORT_ATTR_DESTRUCT_IO,
+                             SCM_PORT_BUF_DEFAULT);
 }
 
 ScmPort *
@@ -806,7 +812,9 @@ scm_port_open_output_string(void)
   io = (ScmIO *)scm_stringio_construct(NULL, 0);
   if (io == NULL) return NULL;
 
-  return scm_port_open_output(io, SCM_PORT_ATTR_STRING, SCM_PORT_BUF_DEFAULT);
+  return scm_port_open_output(io,
+                              SCM_PORT_ATTR_STRING | SCM_PORT_ATTR_DESTRUCT_IO,
+                              SCM_PORT_BUF_DEFAULT);
 }
 
 void
@@ -814,9 +822,12 @@ scm_port_destruct(ScmPort *port)
 {
   assert(port != NULL);
 
-  scm_port_close(port);
+  scm_port_flush(port);
+  if (BIT_IS_SETED(port->attr, SCM_PORT_ATTR_DESTRUCT_IO)) {
+    scm_port_close(port);
+    scm_io_destruct(port->io);
+  }
   scm_memory_release(port->buffer);
-  scm_io_destruct(port->io);
   scm_memory_release(port);
 }
 
