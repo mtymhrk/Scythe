@@ -31,11 +31,11 @@ scm_char_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
   else if (isprint(charv->value))
     snprintf(str, sizeof(str), "#\\%c", charv->value);
   else if (charv->value <= 0xff)
-    snprintf(str, sizeof(str), "#\\%#02x", charv->value);
+    snprintf(str, sizeof(str), "#\\0x%02x", charv->value);
   else if (charv->value <= 0xffff)
-    snprintf(str, sizeof(str), "#\\%#04x", charv->value);
+    snprintf(str, sizeof(str), "#\\0x%04x", charv->value);
   else
-    snprintf(str, sizeof(str), "#\\%#08x", charv->value);
+    snprintf(str, sizeof(str), "#\\0x%08x", charv->value);
 
   scm_obuffer_concatenate_string(obuffer, str);
 }

@@ -26,6 +26,6 @@ depend:
 
 test:
 	$(MAKE) CFLAGS="-Wall -g"
-	$(MAKE) -C ./test all run
+	$(MAKE) -C ./test depend all run
 
 include Makefile.depend

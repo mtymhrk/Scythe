@@ -7,6 +7,9 @@
 #include "symbol.h"
 #include "pair.h"
 #include "vector.h"
+#include "char.h"
+#include "port.h"
+#include "bool.h"
 #include "miscobjects.h"
 #include "obuffer.h"
 
@@ -121,4 +124,105 @@ test_pretty_print_eof(void)
                                    SCM_OBJ(eof), SCM_OBUFFER_MODE_CLEAR);
   
   cut_assert_equal_string("#<eof>", scm_obuffer_buffer(obuffer));
+}
+
+void
+test_pretty_print_char_printable(void)
+{
+  ScmOBuffer *obuffer = scm_obuffer_construct(stdout);
+  ScmChar *chr = scm_char_construct('a');
+  
+  scm_obuffer_pretty_print_scm_obj(obuffer,
+                                   SCM_OBJ(chr), SCM_OBUFFER_MODE_CLEAR);
+  cut_assert_equal_string("#\\a", scm_obuffer_buffer(obuffer));
+}
+
+void
+test_pretty_print_char_newline(void)
+{
+  ScmOBuffer *obuffer = scm_obuffer_construct(stdout);
+  ScmChar *chr = scm_char_construct('\n');
+  
+  scm_obuffer_pretty_print_scm_obj(obuffer,
+                                   SCM_OBJ(chr), SCM_OBUFFER_MODE_CLEAR);
+  cut_assert_equal_string("#\\newline", scm_obuffer_buffer(obuffer));
+}
+
+void
+test_pretty_print_char_space(void)
+{
+  ScmOBuffer *obuffer = scm_obuffer_construct(stdout);
+  ScmChar *chr = scm_char_construct(' ');
+  
+  scm_obuffer_pretty_print_scm_obj(obuffer,
+                                   SCM_OBJ(chr), SCM_OBUFFER_MODE_CLEAR);
+  cut_assert_equal_string("#\\space", scm_obuffer_buffer(obuffer));
+}
+
+void
+test_pretty_print_char_control(void)
+{
+  ScmOBuffer *obuffer = scm_obuffer_construct(stdout);
+  ScmChar *chr2d = scm_char_construct(0x0b);
+  ScmChar *chr4d = scm_char_construct(0x10b);
+  ScmChar *chr8d = scm_char_construct(0x2010b);
+
+  scm_obuffer_pretty_print_scm_obj(obuffer,
+                                   SCM_OBJ(chr2d), SCM_OBUFFER_MODE_CLEAR);
+  cut_assert_equal_string("#\\0x0b", scm_obuffer_buffer(obuffer));
+
+
+  scm_obuffer_pretty_print_scm_obj(obuffer,
+                                   SCM_OBJ(chr4d), SCM_OBUFFER_MODE_CLEAR);
+  cut_assert_equal_string("#\\0x010b", scm_obuffer_buffer(obuffer));
+
+  scm_obuffer_pretty_print_scm_obj(obuffer,
+                                   SCM_OBJ(chr8d), SCM_OBUFFER_MODE_CLEAR);
+  cut_assert_equal_string("#\\0x0002010b", scm_obuffer_buffer(obuffer));
+}
+
+void
+test_pretty_print_input_string_port(void)
+{
+  ScmOBuffer *obuffer = scm_obuffer_construct(stdout);
+  ScmPort *port = scm_port_open_input_string("", 1);
+
+  scm_obuffer_pretty_print_scm_obj(obuffer,
+                                   SCM_OBJ(port), SCM_OBUFFER_MODE_CLEAR);
+  cut_assert_equal_string("#<port: readable string>",
+                          scm_obuffer_buffer(obuffer));
+}
+
+void
+test_pretty_print_output_string_port(void)
+{
+  ScmOBuffer *obuffer = scm_obuffer_construct(stdout);
+  ScmPort *port = scm_port_open_output_string();
+
+  scm_obuffer_pretty_print_scm_obj(obuffer,
+                                   SCM_OBJ(port), SCM_OBUFFER_MODE_CLEAR);
+  cut_assert_equal_string("#<port: writable string>",
+                          scm_obuffer_buffer(obuffer));
+}
+
+void
+test_pretty_print_bool_true(void)
+{
+  ScmOBuffer *obuffer = scm_obuffer_construct(stdout);
+  ScmBool *bool_true = scm_bool_construct(true);
+
+  scm_obuffer_pretty_print_scm_obj(obuffer,
+                                   SCM_OBJ(bool_true), SCM_OBUFFER_MODE_CLEAR);
+  cut_assert_equal_string("#t", scm_obuffer_buffer(obuffer));  
+}
+
+void
+test_pretty_print_bool_false(void)
+{
+  ScmOBuffer *obuffer = scm_obuffer_construct(stdout);
+  ScmBool *bool_false = scm_bool_construct(false);
+
+  scm_obuffer_pretty_print_scm_obj(obuffer,
+                                   SCM_OBJ(bool_false), SCM_OBUFFER_MODE_CLEAR);
+  cut_assert_equal_string("#f", scm_obuffer_buffer(obuffer));  
 }

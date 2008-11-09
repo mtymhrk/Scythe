@@ -81,7 +81,7 @@ scm_obuffer_clear(ScmOBuffer *obuffer)
   assert(obuffer != NULL);
 
   obuffer->buffer[0] = '\0';
-  obuffer->size = 1;
+  obuffer->used = 1;
 }
 
 void
