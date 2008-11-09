@@ -5,7 +5,7 @@
 
 #include "memory.h"
 #include "object.h"
-#include "printer.h"
+#include "obuffer.h"
 
 #define INITIAL_BUFFER_SIZE 256
 

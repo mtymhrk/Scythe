@@ -3,7 +3,7 @@
 
 #include "memory.h"
 #include "object.h"
-#include "printer.h"
+#include "obuffer.h"
 #include "nil.h"
 
 #define SCM_NIL(obj) ((ScmNil *)(obj))

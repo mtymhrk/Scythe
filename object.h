@@ -5,7 +5,7 @@ typedef struct ScmObjHeaderRec ScmObjHeader;
 typedef struct ScmAtomRec ScmAtom;
 typedef ScmAtom *ScmObj;
 
-#include "printer.h"
+#include "obuffer.h"
 
 typedef enum {
   SCM_OBJ_TYPE_PAIR,

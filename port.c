@@ -9,7 +9,7 @@
 
 #include "memory.h"
 #include "object.h"
-#include "printer.h"
+#include "obuffer.h"
 #include "port.h"
 
 #define SCM_SYSCALL(result, expr)                 \

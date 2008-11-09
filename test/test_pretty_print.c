@@ -8,7 +8,7 @@
 #include "pair.h"
 #include "vector.h"
 #include "miscobjects.h"
-#include "printer.h"
+#include "obuffer.h"
 
 void
 test_pretty_print_nil(void)

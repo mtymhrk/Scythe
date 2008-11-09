@@ -5,7 +5,7 @@
 #include "object.h"
 #include "nil.h"
 #include "vector.h"
-#include "printer.h"
+#include "obuffer.h"
 
 struct ScmVectorRec {
   ScmObjHeader header;

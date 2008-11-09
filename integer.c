@@ -4,7 +4,7 @@
 
 #include "memory.h"
 #include "object.h"
-#include "printer.h"
+#include "obuffer.h"
 #include "integer.h"
 
 struct ScmIntegerRec {

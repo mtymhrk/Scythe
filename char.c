@@ -5,7 +5,7 @@
 
 #include "memory.h"
 #include "object.h"
-#include "printer.h"
+#include "obuffer.h"
 #include "char.h"
 
 struct ScmCharRec {

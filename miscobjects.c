@@ -2,7 +2,7 @@
 #include <assert.h>
 
 #include "object.h"
-#include "printer.h"
+#include "obuffer.h"
 #include "memory.h"
 #include "miscobjects.h"
 

@@ -5,7 +5,7 @@
 #include "object.h"
 #include "pair.h"
 #include "nil.h"
-#include "printer.h"
+#include "obuffer.h"
 
 
 struct ScmPairRec {
