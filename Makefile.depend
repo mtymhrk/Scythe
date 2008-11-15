@@ -17,3 +17,4 @@ miscobjects.o: miscobjects.c object.h obuffer.h memory.h miscobjects.h
 bool.o: bool.c memory.h object.h obuffer.h bool.h
 char.o: char.c memory.h object.h obuffer.h char.h
 port.o: port.c memory.h object.h obuffer.h port.h
+charconv.o: charconv.c memory.h charconv.h
