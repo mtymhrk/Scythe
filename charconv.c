@@ -124,7 +124,7 @@ scm_charconv_convert_aux(ScmCharConv *conv, bool terminate)
   outbytesleft = conv->cnv_capacity - conv->cnv_len;
 
   ret = iconv(conv->icd, &inbuf, &inbytesleft, &outbuf, &outbytesleft);
-  result = (ret < 0) ? errno : 0;
+  result = (ret == (size_t)-1) ? errno : 0;
 
   conv->cnv_len = conv->cnv_capacity - outbytesleft;
 
