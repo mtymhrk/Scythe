@@ -93,3 +93,56 @@ test_convert_utf8_to_jis_and_jis_to_utf8(void)
   scm_charconv_destruct(conv_to_jis);
   scm_charconv_destruct(conv_to_utf8);
 }
+
+void
+test_convert_utf8_to_sjis_and_sjis_to_utf8(void)
+{
+  char utf8_src[] = "およそ語られうることは明晰に語られうる。そして、論じえないことについては、人は沈黙せねばならない";
+  char utf8_dst[sizeof(utf8_src)];
+  char sjis[256];
+  size_t ret, len_sjis, len_utf8;
+
+  ScmCharConv *conv_to_sjis = scm_charconv_construct("UTF8","SHIFT-JIS");
+  ScmCharConv *conv_to_utf8 = scm_charconv_construct("SHIFT-JIS", "UTF8");
+
+  ret = scm_charconv_convert(conv_to_sjis,
+                             utf8_src, sizeof(utf8_src) - 1,
+                             sjis, sizeof(sjis) - 1);
+
+  cut_assert(ret >= 0);
+
+  len_sjis = ret;
+  ret = scm_charconv_terminate(conv_to_sjis,
+                               sjis + len_sjis, sizeof(sjis) - 1 - len_sjis);
+
+  cut_assert(ret >= 0);
+
+  len_sjis += ret;
+  sjis[len_sjis] = '\0';
+
+  cut_assert_false(scm_charconv_has_error(conv_to_sjis));
+  cut_assert_false(scm_charconv_ready(conv_to_sjis));
+  
+  ret = scm_charconv_convert(conv_to_utf8,
+                             sjis, len_sjis, utf8_dst, sizeof(utf8_dst) - 1);
+
+  cut_assert(ret >= 0);
+
+  len_utf8 = ret;
+  ret = scm_charconv_terminate(conv_to_utf8,
+                               utf8_dst + len_utf8,
+                               sizeof(utf8_dst) - 1 - len_utf8);
+
+  cut_assert(ret >= 0);
+
+  len_utf8 += ret;
+  utf8_dst[len_utf8] = '\0';
+
+  cut_assert_false(scm_charconv_has_error(conv_to_utf8));
+  cut_assert_false(scm_charconv_ready(conv_to_utf8));
+
+  cut_assert_equal_string(utf8_src, utf8_dst);
+
+  scm_charconv_destruct(conv_to_sjis);
+  scm_charconv_destruct(conv_to_utf8);
+}

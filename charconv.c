@@ -11,6 +11,7 @@
 
 struct ScmCharConvRec {
   iconv_t icd;
+  SCM_CHARCONV_TYPE_T type;
   char *converted;
   char *unconverted;
   size_t cnv_capacity;
@@ -36,6 +37,7 @@ scm_charconv_construct(const char *from, const char* to)
     return NULL;
   }
 
+  conv->type = SCM_CHARCONV_OMIT;
   conv->converted = scm_memory_allocate(INIT_BUF_SIZE);
   conv->unconverted = scm_memory_allocate(INIT_BUF_SIZE);
   conv->cnv_capacity = INIT_BUF_SIZE;
@@ -159,15 +161,19 @@ scm_charconv_convert(ScmCharConv *conv,
   size_t rest, room;
   bool retry;
 
+  assert(conv != NULL);
+  assert(output != NULL);
+
+  if (input == NULL || in_size == 0)
+    return scm_charconv_put_out_converted(conv, output, out_size);
+
   inp = input; outp = output;
   rest = in_size; room = out_size;
   retry = false;
 
-  while (rest > 0 || retry) {
+  do {
     size_t ret;
     int error_no;
-
-    retry = false;
 
     ret = scm_charconv_put_in_unconverted(conv, inp, rest);
     rest -= ret;
@@ -175,26 +181,34 @@ scm_charconv_convert(ScmCharConv *conv,
 
     error_no = scm_charconv_convert_aux(conv, DONT_TERMINATE);
 
-    if (conv->uncnv_len > 0 && error_no != EINVAL)
-      retry = true;
-    else if (error_no == E2BIG) /* absence of converted buffer size */
-      retry = true;
-    else if (error_no == EILSEQ) {
-      conv->error = error_no;
-      break;
+    if (error_no == EILSEQ) {
+      switch (conv->type) {
+      case SCM_CHARCONV_OMIT:
+        retry = true;
+        scm_charconv_shift_unconverted(conv, 1);
+        break;
+      case SCM_CHARCONV_ERROR:
+        retry = false;
+        conv->error = error_no;
+        break;
+      }
     }
+    else if (conv->uncnv_len > 0 && error_no != EINVAL) {
+      /* absence of converted buffer size */
+      retry = true;
+      if (room == 0)
+        scm_charconv_expand_converted(conv);
+    }
+    else if (rest > 0)
+      retry = true;
+    else
+      retry = false;
 
-    if (room == 0) {
-      /* if output buffer dosen't have empty space, 
-         then rest of converted charactars are saved to converted buffer */
-      scm_charconv_expand_converted(conv);
-    }
-    else {
-      ret = scm_charconv_put_out_converted(conv, outp, room);
-      room -= ret;
-      outp += ret;
-    }
-  }
+    ret = scm_charconv_put_out_converted(conv, outp, room);
+    room -= ret;
+    outp += ret;
+
+  } while (retry);
 
   if (conv->error != 0)
     return -1;
