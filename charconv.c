@@ -98,7 +98,8 @@ scm_charconv_put_out_converted(ScmCharConv *conv, void *out, size_t size)
   size_t len;
 
   assert(conv != NULL);
-  assert(out != NULL);
+
+  if (out == NULL) return 0;
 
   len = (size < conv->cnv_len) ? size : conv->cnv_len;
   memcpy(out, conv->converted, len);
@@ -162,7 +163,6 @@ scm_charconv_convert(ScmCharConv *conv,
   bool retry;
 
   assert(conv != NULL);
-  assert(output != NULL);
 
   if (input == NULL || in_size == 0)
     return scm_charconv_put_out_converted(conv, output, out_size);
@@ -214,6 +214,22 @@ scm_charconv_convert(ScmCharConv *conv,
     return -1;
   else
     return out_size - room;
+}
+
+void
+scm_charconv_put(ScmCharConv *conv, const void *input, size_t size)
+{
+  assert(conv != NULL);
+
+  scm_charconv_convert(conv, input, size, NULL, 0);
+}
+
+ssize_t
+scm_charconv_get(ScmCharConv *conv, void *output, size_t size)
+{
+  assert(conv != NULL);
+
+  return scm_charconv_convert(conv, NULL, 0, output, size);
 }
 
 ssize_t
