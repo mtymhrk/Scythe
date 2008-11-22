@@ -12,6 +12,8 @@
 struct ScmCharConvRec {
   iconv_t icd;
   SCM_CHARCONV_TYPE_T type;
+  char *src_encode;
+  char *dst_encode;
   char *converted;
   char *unconverted;
   size_t cnv_capacity;
@@ -23,7 +25,8 @@ struct ScmCharConvRec {
 
 
 ScmCharConv *
-scm_charconv_construct(const char *from, const char* to)
+scm_charconv_construct(const char *from, const char* to,
+                       SCM_CHARCONV_TYPE_T type)
 {
   ScmCharConv *conv;
   
@@ -37,7 +40,11 @@ scm_charconv_construct(const char *from, const char* to)
     return NULL;
   }
 
-  conv->type = SCM_CHARCONV_OMIT;
+  conv->type = type;
+  conv->src_encode = scm_memory_allocate(strlen(from) + 1);
+  strncpy(conv->src_encode, from, strlen(from) + 1);
+  conv->dst_encode = scm_memory_allocate(strlen(to) + 1);
+  strncpy(conv->dst_encode, to, strlen(to) + 1);
   conv->converted = scm_memory_allocate(INIT_BUF_SIZE);
   conv->unconverted = scm_memory_allocate(INIT_BUF_SIZE);
   conv->cnv_capacity = INIT_BUF_SIZE;
@@ -56,9 +63,25 @@ scm_charconv_destruct(ScmCharConv *conv)
 
   iconv_close(conv->icd);
 
+  scm_memory_release(conv->src_encode);
+  scm_memory_release(conv->dst_encode);
   scm_memory_release(conv->converted);
   scm_memory_release(conv->unconverted);
   scm_memory_release(conv);
+}
+
+const char *
+scm_charconv_src_encoding(ScmCharConv *conv)
+{
+  assert(conv != NULL);
+  return conv->src_encode;
+}
+
+const char *
+scm_charconv_dst_encoding(ScmCharConv *conv)
+{
+  assert(conv != NULL);
+  return conv->dst_encode;  
 }
 
 
@@ -210,10 +233,7 @@ scm_charconv_convert(ScmCharConv *conv,
 
   } while (retry);
 
-  if (conv->error != 0)
-    return -1;
-  else
-    return out_size - room;
+  return out_size - room;
 }
 
 void
@@ -241,15 +261,12 @@ scm_charconv_terminate(ScmCharConv *conv, void *output, size_t out_size)
   assert(conv != NULL);
   assert(output != NULL);
 
+  conv->uncnv_len = 0;
+  conv->error = 0;
   while (1) {
     error_no = scm_charconv_convert_aux(conv, TERMINATE);
     if (error_no != E2BIG) break;
     scm_charconv_expand_converted(conv);
-  } 
-
-  if (error_no == EILSEQ) {
-    conv->error = error_no;
-    return -1;
   }
 
   return scm_charconv_put_out_converted(conv, output, out_size);

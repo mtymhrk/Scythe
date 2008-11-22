@@ -12,8 +12,11 @@ typedef enum {
   SCM_CHARCONV_ERROR
 } SCM_CHARCONV_TYPE_T;
 
-ScmCharConv *scm_charconv_construct(const char *from, const char* to);
+ScmCharConv * scm_charconv_construct(const char *from, const char* to,
+                                     SCM_CHARCONV_TYPE_T type);
 void scm_charconv_destruct(ScmCharConv *conv);
+const char *scm_charconv_src_encoding(ScmCharConv *conv);
+const char *scm_charconv_dst_encoding(ScmCharConv *conv);
 ssize_t scm_charconv_convert(ScmCharConv *conv,
                              const void *input, size_t in_size,
                              void *output, size_t out_size);
