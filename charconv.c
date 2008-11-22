@@ -273,7 +273,7 @@ scm_charconv_terminate(ScmCharConv *conv, void *output, size_t out_size)
 }
 
 bool
-scm_charconv_ready(ScmCharConv *conv)
+scm_charconv_is_ready(ScmCharConv *conv)
 {
   assert(conv != NULL);
 

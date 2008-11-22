@@ -11,7 +11,7 @@ test_charconv_construct(void)
   cut_assert_not_null(conv);
   cut_assert_equal_string("EUC-JP", scm_charconv_src_encoding(conv));
   cut_assert_equal_string("UTF-8", scm_charconv_dst_encoding(conv));
-  cut_assert_false(scm_charconv_ready(conv));
+  cut_assert_false(scm_charconv_is_ready(conv));
   cut_assert_false(scm_charconv_has_error(conv));
 
   scm_charconv_destruct(conv);
@@ -40,7 +40,7 @@ test_convert_eucjp_to_utf8_ascii(void)
 
   cut_assert_equal_string(input, output);
   cut_assert_false(scm_charconv_has_error(conv));
-  cut_assert_false(scm_charconv_ready(conv));
+  cut_assert_false(scm_charconv_is_ready(conv));
 
   scm_charconv_destruct(conv);
 }
@@ -74,7 +74,7 @@ test_convert_utf8_to_jis_and_jis_to_utf8(void)
   jis[len_jis] = '\0';
 
   cut_assert_false(scm_charconv_has_error(conv_to_jis));
-  cut_assert_false(scm_charconv_ready(conv_to_jis));
+  cut_assert_false(scm_charconv_is_ready(conv_to_jis));
   
   ret = scm_charconv_convert(conv_to_utf8,
                              jis, len_jis, utf8_dst, sizeof(utf8_dst) - 1);
@@ -92,7 +92,7 @@ test_convert_utf8_to_jis_and_jis_to_utf8(void)
   utf8_dst[len_utf8] = '\0';
 
   cut_assert_false(scm_charconv_has_error(conv_to_utf8));
-  cut_assert_false(scm_charconv_ready(conv_to_utf8));
+  cut_assert_false(scm_charconv_is_ready(conv_to_utf8));
 
   cut_assert_equal_string(utf8_src, utf8_dst);
 
@@ -129,7 +129,7 @@ test_convert_utf8_to_sjis_and_sjis_to_utf8(void)
   sjis[len_sjis] = '\0';
 
   cut_assert_false(scm_charconv_has_error(conv_to_sjis));
-  cut_assert_false(scm_charconv_ready(conv_to_sjis));
+  cut_assert_false(scm_charconv_is_ready(conv_to_sjis));
   
   ret = scm_charconv_convert(conv_to_utf8,
                              sjis, len_sjis, utf8_dst, sizeof(utf8_dst) - 1);
@@ -147,7 +147,7 @@ test_convert_utf8_to_sjis_and_sjis_to_utf8(void)
   utf8_dst[len_utf8] = '\0';
 
   cut_assert_false(scm_charconv_has_error(conv_to_utf8));
-  cut_assert_false(scm_charconv_ready(conv_to_utf8));
+  cut_assert_false(scm_charconv_is_ready(conv_to_utf8));
 
   cut_assert_equal_string(utf8_src, utf8_dst);
 
@@ -184,7 +184,7 @@ test_convert_utf8_to_eucjp_and_eucjp_to_utf8(void)
   eucjp[len_eucjp] = '\0';
 
   cut_assert_false(scm_charconv_has_error(conv_to_eucjp));
-  cut_assert_false(scm_charconv_ready(conv_to_eucjp));
+  cut_assert_false(scm_charconv_is_ready(conv_to_eucjp));
   
   ret = scm_charconv_convert(conv_to_utf8,
                              eucjp, len_eucjp, utf8_dst, sizeof(utf8_dst) - 1);
@@ -202,7 +202,7 @@ test_convert_utf8_to_eucjp_and_eucjp_to_utf8(void)
   utf8_dst[len_utf8] = '\0';
 
   cut_assert_false(scm_charconv_has_error(conv_to_utf8));
-  cut_assert_false(scm_charconv_ready(conv_to_utf8));
+  cut_assert_false(scm_charconv_is_ready(conv_to_utf8));
 
   cut_assert_equal_string(utf8_src, utf8_dst);
 
@@ -239,7 +239,7 @@ test_convert_invalid_sequence_omit(void)
   eucjp[len_eucjp] = '\0';
 
   cut_assert_false(scm_charconv_has_error(conv_to_eucjp));
-  cut_assert_false(scm_charconv_ready(conv_to_eucjp));
+  cut_assert_false(scm_charconv_is_ready(conv_to_eucjp));
   
   ret = scm_charconv_convert(conv_to_utf8,
                              eucjp, len_eucjp, utf8_dst, sizeof(utf8_dst) - 1);
@@ -257,7 +257,7 @@ test_convert_invalid_sequence_omit(void)
   utf8_dst[len_utf8] = '\0';
 
   cut_assert_false(scm_charconv_has_error(conv_to_utf8));
-  cut_assert_false(scm_charconv_ready(conv_to_utf8));
+  cut_assert_false(scm_charconv_is_ready(conv_to_utf8));
 
   cut_assert_equal_string("およそ語られうることは明晰に語られうる。そして、論じえないことについては、人は沈黙せねばならない", utf8_dst);
 
@@ -312,7 +312,7 @@ test_convert_invalid_sequence_error(void)
   utf8_dst[len_utf8] = '\0';
 
   cut_assert_false(scm_charconv_has_error(conv_to_utf8));
-  cut_assert_false(scm_charconv_ready(conv_to_utf8));
+  cut_assert_false(scm_charconv_is_ready(conv_to_utf8));
 
   cut_assert_equal_string("およそ語られうることは明晰に語られうる。そして、論じえないこと", utf8_dst);
 

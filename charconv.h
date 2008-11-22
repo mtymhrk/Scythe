@@ -24,7 +24,7 @@ void scm_charconv_put(ScmCharConv *conv, const void *input, size_t size);
 ssize_t scm_charconv_get(ScmCharConv *conv, void *output, size_t size);
 ssize_t scm_charconv_terminate(ScmCharConv *conv,
                                void *output, size_t out_size);
-bool scm_charconv_ready(ScmCharConv *conv);
+bool scm_charconv_is_ready(ScmCharConv *conv);
 bool scm_charconv_has_error(ScmCharConv *conv);
 int scm_charconv_errorno(ScmCharConv *conv);
 
