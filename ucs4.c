@@ -258,10 +258,10 @@ ucs4str_copy_and_expand(const Ucs4String *src, size_t size)
   str = ucs4str(NULL, size);
   if (str == NULL) return NULL;
 
-  str->length = (size > src->length) ? size : src->length;
-  memcpy(str->head, src->head, str->length);
+  str->length = (size < src->length) ? size : src->length;
+  memcpy(str->head, src->head, str->length * sizeof(ucs4chr_t));
 
-  return NULL;
+  return str;
 }
 
 static void
@@ -362,12 +362,12 @@ ucs4str_push(Ucs4String *str, ucs4chr_t c)
 }
 
 Ucs4String *
-ucs4Str_append(Ucs4String *str, Ucs4String *append)
+ucs4str_append(Ucs4String *str, const Ucs4String *append)
 {
   if (str == NULL) return NULL;
   if (append == NULL) return str;
 
-  if ((*str->ref_cnt > 1) || ROOM_FOR_APPEND(str) >= append->length) {
+  if ((*str->ref_cnt > 1) || ROOM_FOR_APPEND(str) < append->length) {
     Ucs4String *tmp = ucs4str_copy_and_expand(str,
                                               str->length + append->length);
     if (tmp == NULL) return NULL;
@@ -375,10 +375,47 @@ ucs4Str_append(Ucs4String *str, Ucs4String *append)
     ucs4str_destruct(tmp);
   }
 
-  memcpy(str->head + str->length, append->head, append->length);
+  memcpy(str->head + str->length, append->head,
+         append->length * sizeof(ucs4chr_t));
   str->length += append->length;
 
   return str;
+}
+
+Ucs4String *
+ucs4str_append_ascii(Ucs4String *str, const char *append)
+{
+  Ucs4String *apnd, *rslt;
+
+  if (str == NULL) return NULL;
+  if (append == NULL) return str;
+
+  apnd = ucs4str_from_ascii(append);
+  if (apnd == NULL) return NULL;
+
+  rslt = ucs4str_append(str, apnd);
+
+  ucs4str_destruct(apnd);
+
+  return rslt;
+}
+
+Ucs4String *
+ucs4str_append_utf8(Ucs4String *str, const utf8_t *append)
+{
+  Ucs4String *apnd, *rslt;
+
+  if (str == NULL) return NULL;
+  if (append == NULL) return str;
+
+  apnd = ucs4str_from_utf8(append);
+  if (apnd == NULL) return NULL;
+
+  rslt = ucs4str_append(str, apnd);
+
+  ucs4str_destruct(apnd);
+
+  return rslt;
 }
 
 ucs4chr_t
@@ -465,24 +502,30 @@ int
 ucs4str_match_ascii(const Ucs4String *str, const char *ascii_pat)
 {
   Ucs4String *pat;
+  int rslt;
 
   if (str == NULL || ascii_pat == NULL) return -1;
 
   pat = ucs4str_from_ascii(ascii_pat);
   if (pat == NULL) return -1;
-  return ucs4str_match(str, pat);
+  rslt = ucs4str_match(str, pat);
+  ucs4str_destruct(pat);
+  return rslt;
 }
 
 int
 ucs4str_match_utf8(const Ucs4String *str, const utf8_t *utf8_pat)
 {
   Ucs4String *pat;
+  int rslt;
 
   if (str == NULL || utf8_pat == NULL) return -1;
 
   pat = ucs4str_from_utf8(utf8_pat);
   if (pat == NULL) return -1;
-  return ucs4str_match(str, pat);
+  rslt = ucs4str_match(str, pat);
+  ucs4str_destruct(pat);
+  return rslt;
 }
 
 int
