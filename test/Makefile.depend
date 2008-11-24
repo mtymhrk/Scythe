@@ -22,3 +22,4 @@ bool.o: ../bool.c ../memory.h ../object.h ../obuffer.h ../bool.h
 char.o: ../char.c ../memory.h ../object.h ../obuffer.h ../char.h
 port.o: ../port.c ../memory.h ../object.h ../obuffer.h ../port.h
 charconv.o: ../charconv.c ../memory.h ../charconv.h
+ucs4.o: ../ucs4.c ../ucs4.h
