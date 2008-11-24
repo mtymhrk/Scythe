@@ -9,6 +9,7 @@ typedef uint8_t utf8_t;
 typedef struct Ucs4StringRec Ucs4String;
 
 #define UCS4CHR(c) ((ucs4chr_t)(c))
+#define UCS4EOF ((ucs4chr_t)0xffffffffu)
 
 void ucs4str_destruct(Ucs4String *str);
 Ucs4String *ucs4str_from_ascii(const char *ascii);

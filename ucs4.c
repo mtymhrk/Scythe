@@ -421,8 +421,8 @@ ucs4str_append_utf8(Ucs4String *str, const utf8_t *append)
 ucs4chr_t
 ucs4str_get(const Ucs4String *str, unsigned int pos)
 {
-  if (str == NULL) return UCS4CHR(0);
-  if (pos >= str->length) return UCS4CHR(0);
+  if (str == NULL) return UCS4EOF;
+  if (pos >= str->length) return UCS4EOF;
 
   return str->head[pos];
 }
