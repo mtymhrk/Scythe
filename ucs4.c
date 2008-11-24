@@ -528,7 +528,7 @@ ucs4str_match_utf8(const Ucs4String *str, const utf8_t *utf8_pat)
   return rslt;
 }
 
-int
+ssize_t
 ucs4str_to_ascii(const Ucs4String *str, char *ascii, size_t size)
 {
   char *p;
@@ -550,7 +550,7 @@ ucs4str_to_ascii(const Ucs4String *str, char *ascii, size_t size)
   return size - rest;
 }
 
-int
+ssize_t
 ucs4str_to_utf8(const Ucs4String *str, utf8_t *utf8, size_t size)
 {
   utf8_t *p;
@@ -571,4 +571,19 @@ ucs4str_to_utf8(const Ucs4String *str, utf8_t *utf8, size_t size)
   }
 
   return size - rest;
+}
+
+ssize_t
+ucs4str_dump(const Ucs4String *str, void *buf, size_t size)
+{
+  ssize_t len;
+
+  if (str == NULL || buf == NULL) return -1;
+
+  len = str->length * sizeof(ucs4chr_t);
+  if (size < len) len = size;
+
+  memcpy(buf, str->head, len);
+
+  return len;
 }

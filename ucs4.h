@@ -30,7 +30,8 @@ int ucs4str_find_chr(const Ucs4String *str, ucs4chr_t c);
 int ucs4str_match(const Ucs4String *str, const Ucs4String *pat);
 int ucs4str_match_ascii(const Ucs4String *str, const char *ascii_pat);
 int ucs4str_match_utf8(const Ucs4String *str, const utf8_t *utf8_pat);
-int ucs4str_to_ascii(const Ucs4String *str, char *ascii, size_t size);
-int ucs4str_to_utf8(const Ucs4String *str, utf8_t *utf8, size_t size);
+ssize_t ucs4str_to_ascii(const Ucs4String *str, char *ascii, size_t size);
+ssize_t ucs4str_to_utf8(const Ucs4String *str, utf8_t *utf8, size_t size);
+ssize_t ucs4str_dump(const Ucs4String *str, void *buf, size_t size);
 
 #endif /* INCLUDE_UCS4_H__ */
