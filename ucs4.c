@@ -453,7 +453,7 @@ ucs4str_fill(Ucs4String *str, unsigned int pos, size_t len, ucs4chr_t c)
   if (str == NULL) return NULL;
   if (pos > str->length) return NULL; /* permit append to tail */
 
-  length = (CAPACITY(str) < pos + len) ? pos + len : str->length;  
+  length = (str->length > pos + len) ? str->length : pos + len;
   if ((*str->ref_cnt > 1) || (CAPACITY(str) < length)) {
     Ucs4String *tmp = ucs4str_copy_and_expand(str, length);
     if (tmp == NULL) return NULL;

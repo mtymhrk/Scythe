@@ -131,6 +131,44 @@ test_ucs4str_get(void)
 }
 
 void
+test_ucs4str_set(void)
+{
+  Ucs4String *str;
+  utf8_t *src = (utf8_t *)"わたしは一つの実体であり、その本質ないし本性は考えるということだけにあって、存在するためにどんな場所も要せず、いかなる物質的なものにも依存しない";
+  ucs4chr_t expected[] = {
+    0x308f, 0x305f, 0x3057, 0x306f, 0x4e00, 0x3064, 0x306e, 0x5b9f, 0x4f53,
+    0x3067, 0x3042, 0x308a, 0x3001, 0x305d, 0x306e, 0x672c, 0x8cea, 0x306a,
+    0x3044, 0x3057, 0x672c, 0x6027, 0x306f, 0x8003, 0x3048, 0x308b, 0x3068,
+    0x3044, 0x3046, 0x3053, 0x3068, 0x3060, 0x3051, 0x306b, 0x3042, 0x3063,
+    0x3066, 0x3001, 0x5b58, 0x5728, 0x3059, 0x308b, 0x305f, 0x3081, 0x306b,
+    0x3069, 0x3093, 0x306a, 0x5834, 0x6240, 0x3082, 0x8981, 0x305b, 0x305a,
+    0x3001, 0x3044, 0x304b, 0x306a, 0x308b, 0x7269, 0x8cea, 0x7684, 0x306a,
+    0x3082, 0x306e, 0x306b, 0x3082, 0x4f9d, 0x5b58, 0x3057, 0x306a, 0x3044 };
+  ucs4chr_t actual[256];
+  int i;
+  
+  str = ucs4str_from_utf8(src);
+
+  for (i = 0; i < sizeof(expected)/sizeof(expected[0]); i++) {
+    ucs4chr_t tmp;
+    tmp = expected[i];
+    expected[i] = expected[sizeof(expected)/sizeof(expected[0]) - 1 - i];
+    expected[sizeof(expected)/sizeof(expected[0]) - 1 - i] = tmp;
+  }
+
+  for (i = 0; i < ucs4str_length(str); i++) {
+    ucs4chr_t tmp;
+    tmp = ucs4str_get(str, i);
+    ucs4str_set(str, i, ucs4str_get(str, ucs4str_length(str) - 1 - i));
+    ucs4str_set(str, i, tmp);
+  }
+
+  cut_assert_equal_int(sizeof(expected),
+                       ucs4str_dump(str, actual, sizeof(actual)));
+  cut_assert_equal_int(0, memcmp(expected, actual, sizeof(expected)));
+}
+
+void
 test_ucs4str_copy(void)
 {
   Ucs4String *str1, *str2;
@@ -202,7 +240,7 @@ test_ucs4str_dup(void)
 }
 
 void
-test_cus4str_dup_and_modify(void)
+test_ucs4str_dup_and_modify(void)
 {
   Ucs4String *str1, *str2;
   utf8_t utf8[512];
@@ -228,5 +266,47 @@ test_cus4str_dup_and_modify(void)
 
   ucs4str_destruct(str1);
   ucs4str_destruct(str2);
+}
+
+void
+test_ucs4str_push(void)
+{
+  Ucs4String *str;
+  ucs4chr_t chr = 0x3002; /* "。"*/
+  utf8_t *expected = (utf8_t *)"わたしたちがきわめて明晰かつ判明に捉えることはすべて真である。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。";
+  utf8_t actual[256];
+  int i;
+
+  str = ucs4str_from_utf8((utf8_t *)"わたしたちがきわめて明晰かつ判明に捉えることはすべて真である");
+
+  cut_assert_not_null(str);
+
+  for (i = 0; i < 40; i++) 
+    cut_assert_equal_pointer(str, ucs4str_push(str, chr));
+
+  cut_assert_equal_int(70, ucs4str_length(str));
+
+  cut_assert(ucs4str_to_utf8(str, actual, sizeof(actual)) >= 0);
+  cut_assert_equal_string((char *)expected, (char *)actual);
+}
+
+void
+test_ucs4str_fill(void)
+{
+  Ucs4String *str;
+  ucs4chr_t chr = 0x3002; /* "。"*/
+  utf8_t *expected = (utf8_t *)"わたしたちがきわめて明晰かつ判明に捉えることはすべて真である。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。";
+  utf8_t actual[256];
+
+  str = ucs4str_from_utf8((utf8_t *)"わたしたちがきわめて明晰かつ判明に捉えることはすべて真である");
+
+  cut_assert_not_null(str);
+
+  cut_assert_equal_pointer(str, ucs4str_fill(str, 30, 40, chr));
+
+  cut_assert_equal_int(70, ucs4str_length(str));
+
+  cut_assert(ucs4str_to_utf8(str, actual, sizeof(actual)) >= 0);
+  cut_assert_equal_string((char *)expected, (char *)actual);
 }
 
