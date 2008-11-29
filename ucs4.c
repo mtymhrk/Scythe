@@ -8,6 +8,8 @@
 
 #define UCS4_STR_BLOCK_SIZE 64
 
+typedef uint8_t utf8_t;
+
 struct Ucs4StringRec {
   ucs4chr_t *buffer;
   ucs4chr_t *head;
@@ -209,14 +211,15 @@ ucs4str_from_ascii(const char *ascii)
 }
 
 Ucs4String *
-ucs4str_from_utf8(const utf8_t *utf8)
+ucs4str_from_utf8(const void *utf8)
 {
   Ucs4String *str;
+  utf8_t *utf8_str = (utf8_t *)utf8;
   int utf8_len;
 
   utf8_len = 0;
-  if (utf8 != NULL) {
-    utf8_len = strlen((const char *)utf8);
+  if (utf8_str != NULL) {
+    utf8_len = strlen((const char *)utf8_str);
     str = ucs4str(NULL,  utf8_len);
   }
   else
@@ -224,7 +227,7 @@ ucs4str_from_utf8(const utf8_t *utf8)
 
   if (str == NULL) return NULL;
 
-  if (utf8 != NULL) {
+  if (utf8_str != NULL) {
     int utf8_idx;
 
     utf8_idx = 0;
@@ -233,7 +236,7 @@ ucs4str_from_utf8(const utf8_t *utf8)
       int n;
 
       if (str->length >= CAPACITY(str)) goto err;
-      n = utf8chr_to_ucs4chr(utf8 + utf8_idx, utf8_len - utf8_idx,
+      n = utf8chr_to_ucs4chr(utf8_str + utf8_idx, utf8_len - utf8_idx,
                              str->head + str->length);
       if (n < 0) goto err;
       utf8_idx += n;
@@ -401,14 +404,14 @@ ucs4str_append_ascii(Ucs4String *str, const char *append)
 }
 
 Ucs4String *
-ucs4str_append_utf8(Ucs4String *str, const utf8_t *append)
+ucs4str_append_utf8(Ucs4String *str, const void *append)
 {
   Ucs4String *apnd, *rslt;
 
   if (str == NULL) return NULL;
   if (append == NULL) return str;
 
-  apnd = ucs4str_from_utf8(append);
+  apnd = ucs4str_from_utf8((utf8_t *)append);
   if (apnd == NULL) return NULL;
 
   rslt = ucs4str_append(str, apnd);
@@ -517,14 +520,14 @@ ucs4str_match_ascii(const Ucs4String *str, const char *ascii_pat)
 }
 
 int
-ucs4str_match_utf8(const Ucs4String *str, const utf8_t *utf8_pat)
+ucs4str_match_utf8(const Ucs4String *str, const void *utf8_pat)
 {
   Ucs4String *pat;
   int rslt;
 
   if (str == NULL || utf8_pat == NULL) return -1;
 
-  pat = ucs4str_from_utf8(utf8_pat);
+  pat = ucs4str_from_utf8((utf8_t *)utf8_pat);
   if (pat == NULL) return -1;
   rslt = ucs4str_match(str, pat);
   ucs4str_destruct(pat);
@@ -554,7 +557,7 @@ ucs4str_to_ascii(const Ucs4String *str, char *ascii, size_t size)
 }
 
 ssize_t
-ucs4str_to_utf8(const Ucs4String *str, utf8_t *utf8, size_t size)
+ucs4str_to_utf8(const Ucs4String *str, void *utf8, size_t size)
 {
   utf8_t *p;
   int i, rest;
@@ -562,7 +565,7 @@ ucs4str_to_utf8(const Ucs4String *str, utf8_t *utf8, size_t size)
   if (str == NULL || utf8 == NULL) return -1;
 
   rest = size;
-  p = utf8;
+  p = (utf8_t *)utf8;
   for (i = 0; i < str->length; i++) {
     int n;
 

@@ -24,15 +24,15 @@ void
 test_ucs4str_from_utf8(void)
 {
   Ucs4String *str;
-  utf8_t utf8[512];
+  char utf8[512];
 
-  str = ucs4str_from_utf8((utf8_t *)"わたしは一つの実体であり、その本質ないし本性は考えるということだけにあって、存在するためにどんな場所も要せず、いかなる物質的なものにも依存しない");
+  str = ucs4str_from_utf8("わたしは一つの実体であり、その本質ないし本性は考えるということだけにあって、存在するためにどんな場所も要せず、いかなる物質的なものにも依存しない");
 
   cut_assert_not_null(str);
   cut_assert_equal_int(72, ucs4str_length(str));
 
   cut_assert(ucs4str_to_utf8(str, utf8, sizeof(utf8)) >= 0);
-  cut_assert_equal_string("わたしは一つの実体であり、その本質ないし本性は考えるということだけにあって、存在するためにどんな場所も要せず、いかなる物質的なものにも依存しない", (char *)utf8);
+  cut_assert_equal_string("わたしは一つの実体であり、その本質ないし本性は考えるということだけにあって、存在するためにどんな場所も要せず、いかなる物質的なものにも依存しない", utf8);
 
   ucs4str_destruct(str);
 }
@@ -41,7 +41,7 @@ void
 test_ucs4str_convert_from_utf8_to_ucs4(void)
 {
   Ucs4String *str;
-  utf8_t *src = (utf8_t *)"わたしは一つの実体であり、その本質ないし本性は考えるということだけにあって、存在するためにどんな場所も要せず、いかなる物質的なものにも依存しない";
+  char *src = "わたしは一つの実体であり、その本質ないし本性は考えるということだけにあって、存在するためにどんな場所も要せず、いかなる物質的なものにも依存しない";
   ucs4chr_t expected[] = {
     0x308f, 0x305f, 0x3057, 0x306f, 0x4e00, 0x3064, 0x306e, 0x5b9f, 0x4f53,
     0x3067, 0x3042, 0x308a, 0x3001, 0x305d, 0x306e, 0x672c, 0x8cea, 0x306a,
@@ -111,7 +111,7 @@ void
 test_ucs4str_get(void)
 {
   Ucs4String *str;
-  utf8_t *src = (utf8_t *)"わたしは一つの実体であり、その本質ないし本性は考えるということだけにあって、存在するためにどんな場所も要せず、いかなる物質的なものにも依存しない";
+  char *src = "わたしは一つの実体であり、その本質ないし本性は考えるということだけにあって、存在するためにどんな場所も要せず、いかなる物質的なものにも依存しない";
   ucs4chr_t expected[] = {
     0x308f, 0x305f, 0x3057, 0x306f, 0x4e00, 0x3064, 0x306e, 0x5b9f, 0x4f53,
     0x3067, 0x3042, 0x308a, 0x3001, 0x305d, 0x306e, 0x672c, 0x8cea, 0x306a,
@@ -134,7 +134,7 @@ void
 test_ucs4str_set(void)
 {
   Ucs4String *str;
-  utf8_t *src = (utf8_t *)"わたしは一つの実体であり、その本質ないし本性は考えるということだけにあって、存在するためにどんな場所も要せず、いかなる物質的なものにも依存しない";
+  char *src = "わたしは一つの実体であり、その本質ないし本性は考えるということだけにあって、存在するためにどんな場所も要せず、いかなる物質的なものにも依存しない";
   ucs4chr_t expected[] = {
     0x308f, 0x305f, 0x3057, 0x306f, 0x4e00, 0x3064, 0x306e, 0x5b9f, 0x4f53,
     0x3067, 0x3042, 0x308a, 0x3001, 0x305d, 0x306e, 0x672c, 0x8cea, 0x306a,
@@ -173,7 +173,7 @@ test_ucs4str_copy(void)
 {
   Ucs4String *str1, *str2;
 
-  str1 = ucs4str_from_utf8((utf8_t *)"わたしたちがきわめて明晰かつ判明に捉えることはすべて真である");
+  str1 = ucs4str_from_utf8("わたしたちがきわめて明晰かつ判明に捉えることはすべて真である");
 
   cut_assert_not_null(str1);
 
@@ -193,9 +193,9 @@ void
 test_cus4str_copy_and_modify(void)
 {
   Ucs4String *str1, *str2;
-  utf8_t utf8[512];
-
-  str1 = ucs4str_from_utf8((utf8_t *)"わたしたちがきわめて明晰かつ判明に捉えることはすべて真である");
+  char utf8[512];
+  
+  str1 = ucs4str_from_utf8("わたしたちがきわめて明晰かつ判明に捉えることはすべて真である");
 
   cut_assert_not_null(str1);
 
@@ -204,13 +204,13 @@ test_cus4str_copy_and_modify(void)
   cut_assert_not_null(str2);
 
   cut_assert_not_null(ucs4str_append_utf8(str2,
-                                          (utf8_t *)"、これを一般的な規則としてよい"));
+                                          "、これを一般的な規則としてよい"));
 
   cut_assert(ucs4str_to_utf8(str1, utf8, sizeof(utf8)) >= 0);
-  cut_assert_equal_string("わたしたちがきわめて明晰かつ判明に捉えることはすべて真である", (char *)utf8);
+  cut_assert_equal_string("わたしたちがきわめて明晰かつ判明に捉えることはすべて真である", utf8);
 
   cut_assert(ucs4str_to_utf8(str2, utf8, sizeof(utf8)) >= 0);
-  cut_assert_equal_string("わたしたちがきわめて明晰かつ判明に捉えることはすべて真である、これを一般的な規則としてよい", (char *)utf8);
+  cut_assert_equal_string("わたしたちがきわめて明晰かつ判明に捉えることはすべて真である、これを一般的な規則としてよい", utf8);
 
   cut_assert_false(ucs4str_is_equal(str1, str2));
 
@@ -223,7 +223,7 @@ test_ucs4str_dup(void)
 {
   Ucs4String *str1, *str2;
 
-  str1 = ucs4str_from_utf8((utf8_t *)"わたしたちがきわめて明晰かつ判明に捉えることはすべて真である");
+  str1 = ucs4str_from_utf8("わたしたちがきわめて明晰かつ判明に捉えることはすべて真である");
 
   cut_assert_not_null(str1);
 
@@ -243,9 +243,9 @@ void
 test_ucs4str_dup_and_modify(void)
 {
   Ucs4String *str1, *str2;
-  utf8_t utf8[512];
+  char utf8[512];
 
-  str1 = ucs4str_from_utf8((utf8_t *)"わたしたちがきわめて明晰かつ判明に捉えることはすべて真である");
+  str1 = ucs4str_from_utf8("わたしたちがきわめて明晰かつ判明に捉えることはすべて真である");
 
   cut_assert_not_null(str1);
 
@@ -254,13 +254,13 @@ test_ucs4str_dup_and_modify(void)
   cut_assert_not_null(str2);
 
   cut_assert_not_null(ucs4str_append_utf8(str2,
-                                          (utf8_t *)"、これを一般的な規則としてよい"));
+                                          "、これを一般的な規則としてよい"));
 
   cut_assert(ucs4str_to_utf8(str1, utf8, sizeof(utf8)) >= 0);
-  cut_assert_equal_string("わたしたちがきわめて明晰かつ判明に捉えることはすべて真である", (char *)utf8);
+  cut_assert_equal_string("わたしたちがきわめて明晰かつ判明に捉えることはすべて真である", utf8);
 
   cut_assert(ucs4str_to_utf8(str2, utf8, sizeof(utf8)) >= 0);
-  cut_assert_equal_string("わたしたちがきわめて明晰かつ判明に捉えることはすべて真である、これを一般的な規則としてよい", (char *)utf8);
+  cut_assert_equal_string("わたしたちがきわめて明晰かつ判明に捉えることはすべて真である、これを一般的な規則としてよい", utf8);
 
   cut_assert_false(ucs4str_is_equal(str1, str2));
 
@@ -273,11 +273,11 @@ test_ucs4str_push(void)
 {
   Ucs4String *str;
   ucs4chr_t chr = 0x3002; /* "。"*/
-  utf8_t *expected = (utf8_t *)"わたしたちがきわめて明晰かつ判明に捉えることはすべて真である。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。";
-  utf8_t actual[256];
+  char *expected = "わたしたちがきわめて明晰かつ判明に捉えることはすべて真である。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。";
+  char actual[256];
   int i;
 
-  str = ucs4str_from_utf8((utf8_t *)"わたしたちがきわめて明晰かつ判明に捉えることはすべて真である");
+  str = ucs4str_from_utf8("わたしたちがきわめて明晰かつ判明に捉えることはすべて真である");
 
   cut_assert_not_null(str);
 
@@ -287,7 +287,7 @@ test_ucs4str_push(void)
   cut_assert_equal_int(70, ucs4str_length(str));
 
   cut_assert(ucs4str_to_utf8(str, actual, sizeof(actual)) >= 0);
-  cut_assert_equal_string((char *)expected, (char *)actual);
+  cut_assert_equal_string(expected, actual);
 }
 
 void
@@ -295,10 +295,10 @@ test_ucs4str_fill(void)
 {
   Ucs4String *str;
   ucs4chr_t chr = 0x3002; /* "。"*/
-  utf8_t *expected = (utf8_t *)"わたしたちがきわめて明晰かつ判明に捉えることはすべて真である。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。";
-  utf8_t actual[256];
+  char *expected = "わたしたちがきわめて明晰かつ判明に捉えることはすべて真である。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。";
+  char actual[256];
 
-  str = ucs4str_from_utf8((utf8_t *)"わたしたちがきわめて明晰かつ判明に捉えることはすべて真である");
+  str = ucs4str_from_utf8("わたしたちがきわめて明晰かつ判明に捉えることはすべて真である");
 
   cut_assert_not_null(str);
 
@@ -307,7 +307,7 @@ test_ucs4str_fill(void)
   cut_assert_equal_int(70, ucs4str_length(str));
 
   cut_assert(ucs4str_to_utf8(str, actual, sizeof(actual)) >= 0);
-  cut_assert_equal_string((char *)expected, (char *)actual);
+  cut_assert_equal_string(expected, actual);
 }
 
 void
@@ -315,7 +315,8 @@ test_ucs4str_find_chr_fund(void)
 {
   Ucs4String *str;
   ucs4chr_t exist = 0x3042; /* "あ" */
-  str = ucs4str_from_utf8((utf8_t *)"わたしたちがきわめて明晰かつ判明に捉えることはすべて真である");
+
+  str = ucs4str_from_utf8("わたしたちがきわめて明晰かつ判明に捉えることはすべて真である");
 
   cut_assert_equal_int(28, ucs4str_find_chr(str, exist));
   cut_assert_equal_int(exist, ucs4str_get(str, 28));
@@ -326,7 +327,7 @@ test_ucs4str_find_chr_not_found(void)
 {
   Ucs4String *str;
   ucs4chr_t not_exist = 0x305a; /* "ず" */
-  str = ucs4str_from_utf8((utf8_t *)"わたしたちがきわめて明晰かつ判明に捉えることはすべて真である");
+  str = ucs4str_from_utf8("わたしたちがきわめて明晰かつ判明に捉えることはすべて真である");
 
   cut_assert_equal_int(-1, ucs4str_find_chr(str, not_exist));
 }
@@ -336,9 +337,9 @@ test_ucs4str_match_match(void)
 {
   Ucs4String *str;
 
-  str = ucs4str_from_utf8((utf8_t *)"わたしたちがきわめて明晰かつ判明に捉えることはすべて真である");
+  str = ucs4str_from_utf8("わたしたちがきわめて明晰かつ判明に捉えることはすべて真である");
 
-  cut_assert_equal_int(9, ucs4str_match_utf8(str, (utf8_t *)"て明晰かつ判"));
+  cut_assert_equal_int(9, ucs4str_match_utf8(str, "て明晰かつ判"));
 }
 
 void
@@ -346,7 +347,7 @@ test_ucs4str_match_unmatch(void)
 {
   Ucs4String *str;
 
-  str = ucs4str_from_utf8((utf8_t *)"わたしたちがきわめて明晰かつ判明に捉えることはすべて真である");
+  str = ucs4str_from_utf8("わたしたちがきわめて明晰かつ判明に捉えることはすべて真である");
 
-  cut_assert_equal_int(-1, ucs4str_match_utf8(str, (utf8_t *)"て明晰かつ明"));
+  cut_assert_equal_int(-1, ucs4str_match_utf8(str, "て明晰かつ明"));
 }
