@@ -60,6 +60,8 @@ test_ucs4str_convert_from_utf8_to_ucs4(void)
   cut_assert_equal_int(72 * sizeof(ucs4chr_t),
                        ucs4str_dump(str, actual, sizeof(actual)));
   cut_assert_equal_int(0, memcmp(expected, actual, sizeof(expected)));
+
+  ucs4str_destruct(str);
 }
 
 void
@@ -105,6 +107,8 @@ test_ucs4str_convert_from_ascii_to_ucs4(void)
   cut_assert_equal_int((sizeof(src)/sizeof(src[0]) - 1) * sizeof(ucs4chr_t),
                        ucs4str_dump(str, actual, sizeof(actual)));
   cut_assert_equal_int(0, memcmp(expected, actual, sizeof(expected)));
+
+  ucs4str_destruct(str);
 }
 
 void
@@ -128,6 +132,8 @@ test_ucs4str_get(void)
   for (i = 0; i < sizeof(expected)/sizeof(expected[0]); i++)
     cut_assert_equal_int(expected[i], ucs4str_get(str, i));
   cut_assert_equal_int(UCS4EOF, ucs4str_get(str, i));
+
+  ucs4str_destruct(str);
 }
 
 void
@@ -166,6 +172,8 @@ test_ucs4str_set(void)
   cut_assert_equal_int(sizeof(expected),
                        ucs4str_dump(str, actual, sizeof(actual)));
   cut_assert_equal_int(0, memcmp(expected, actual, sizeof(expected)));
+
+  ucs4str_destruct(str);
 }
 
 void
@@ -288,6 +296,8 @@ test_ucs4str_push(void)
 
   cut_assert(ucs4str_to_utf8(str, actual, sizeof(actual)) >= 0);
   cut_assert_equal_string(expected, actual);
+
+  ucs4str_destruct(str);
 }
 
 void
@@ -308,6 +318,8 @@ test_ucs4str_fill(void)
 
   cut_assert(ucs4str_to_utf8(str, actual, sizeof(actual)) >= 0);
   cut_assert_equal_string(expected, actual);
+
+  ucs4str_destruct(str);
 }
 
 void
@@ -320,6 +332,8 @@ test_ucs4str_find_chr_fund(void)
 
   cut_assert_equal_int(28, ucs4str_find_chr(str, exist));
   cut_assert_equal_int(exist, ucs4str_get(str, 28));
+
+  ucs4str_destruct(str);
 }
 
 void
@@ -340,6 +354,8 @@ test_ucs4str_match_match(void)
   str = ucs4str_from_utf8("わたしたちがきわめて明晰かつ判明に捉えることはすべて真である");
 
   cut_assert_equal_int(9, ucs4str_match_utf8(str, "て明晰かつ判"));
+
+  ucs4str_destruct(str);
 }
 
 void
@@ -350,4 +366,6 @@ test_ucs4str_match_unmatch(void)
   str = ucs4str_from_utf8("わたしたちがきわめて明晰かつ判明に捉えることはすべて真である");
 
   cut_assert_equal_int(-1, ucs4str_match_utf8(str, "て明晰かつ明"));
+
+  ucs4str_destruct(str);
 }
