@@ -310,3 +310,43 @@ test_ucs4str_fill(void)
   cut_assert_equal_string((char *)expected, (char *)actual);
 }
 
+void
+test_ucs4str_find_chr_fund(void)
+{
+  Ucs4String *str;
+  ucs4chr_t exist = 0x3042; /* "あ" */
+  str = ucs4str_from_utf8((utf8_t *)"わたしたちがきわめて明晰かつ判明に捉えることはすべて真である");
+
+  cut_assert_equal_int(28, ucs4str_find_chr(str, exist));
+  cut_assert_equal_int(exist, ucs4str_get(str, 28));
+}
+
+void
+test_ucs4str_find_chr_not_found(void)
+{
+  Ucs4String *str;
+  ucs4chr_t not_exist = 0x305a; /* "ず" */
+  str = ucs4str_from_utf8((utf8_t *)"わたしたちがきわめて明晰かつ判明に捉えることはすべて真である");
+
+  cut_assert_equal_int(-1, ucs4str_find_chr(str, not_exist));
+}
+
+void
+test_ucs4str_match_match(void)
+{
+  Ucs4String *str;
+
+  str = ucs4str_from_utf8((utf8_t *)"わたしたちがきわめて明晰かつ判明に捉えることはすべて真である");
+
+  cut_assert_equal_int(9, ucs4str_match_utf8(str, (utf8_t *)"て明晰かつ判"));
+}
+
+void
+test_ucs4str_match_unmatch(void)
+{
+  Ucs4String *str;
+
+  str = ucs4str_from_utf8((utf8_t *)"わたしたちがきわめて明晰かつ判明に捉えることはすべて真である");
+
+  cut_assert_equal_int(-1, ucs4str_match_utf8(str, (utf8_t *)"て明晰かつ明"));
+}

@@ -490,10 +490,13 @@ ucs4str_match(const Ucs4String *str, const Ucs4String *pat)
   if (str == NULL || pat == NULL) return -1;
 
   n = str->length - pat->length + 1;
-  for (i = 0; i < n; i++)
+  for (i = 0; i < n; i++) {
     for (j = 0; j < pat->length; j++)
-      if (str->head[i + j] == pat->head[j])
-        return i;
+      if (str->head[i + j] != pat->head[j])
+        break;
+    if (j >= pat->length)
+      return i;
+  }
 
   return -1;
 }
