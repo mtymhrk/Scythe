@@ -10,6 +10,7 @@
 #include "memory.h"
 #include "object.h"
 #include "obuffer.h"
+#include "charconv.h"
 #include "port.h"
 
 #define SCM_SYSCALL(result, expr)                 \
@@ -21,6 +22,7 @@
 
 #define SCM_STRINGIO_INIT_BUF_SIZE 64
 #define SCM_PORT_DEFAULT_BUF_SIZE 256
+#define SCM_CHARCONVIO_DEFAULT_BLOCK_SIZE 256
 
 typedef void (*DestructFunc)(ScmIO *io);
 typedef ssize_t (*ReadFunc)(ScmIO *io, void *buf, size_t size);
@@ -50,6 +52,7 @@ struct ScmIORec {
   BlockSizeFunc block_size;
   HasErrorFunc has_error;
   ErrnoFunc error_no;
+  int ref_cnt;
 };
 
 struct ScmFileIORec {
@@ -67,6 +70,16 @@ struct ScmStringIORec {
   size_t length;
   size_t pos;
   bool is_closed;
+};
+
+struct ScmCharConvIORec {
+  ScmIO io_base;
+  ScmIO *io;
+  ScmCharConv *in_conv;
+  ScmCharConv *out_conv;
+  size_t block_size;
+  bool is_closed;
+  bool is_owner;
 };
 
 struct ScmPortRec {
@@ -111,13 +124,23 @@ scm_io_initialize(ScmIO *io,
   io->block_size = block_size;
   io->has_error = has_error;
   io->error_no = error_no;
+
+  io->ref_cnt = 1;
+}
+
+void
+scm_io_referred(ScmIO *io)
+{
+  assert(io != NULL);
+  io->ref_cnt++;
 }
 
 void
 scm_io_destruct(ScmIO *io)
 {
   assert(io != NULL);
-  if (io->destruct != NULL)
+  io->ref_cnt--;
+  if (io->ref_cnt <= 0 && io->destruct != NULL)
     io->destruct(io);
 }
 
@@ -655,6 +678,265 @@ scm_stringio_length(ScmStringIO *strio)
   return strio->length;
 }
 
+ScmCharConvIO *
+scm_charconvio_construct(ScmIO *io,
+                         const char *internal_encode,
+                         const char *external_encode,
+                         bool owner)
+{
+  ScmCharConvIO *convio;
+
+  assert(io != NULL);
+
+  convio = scm_memory_allocate(sizeof(ScmCharConvIO));
+  scm_io_initialize((ScmIO *)convio,
+                    (DestructFunc)scm_charconvio_destruct,
+                    (ReadFunc)scm_charconvio_read,
+                    (WriteFunc)scm_charconvio_write,
+                    (SeekFunc)scm_charconvio_seek,
+                    (CloseFunc)scm_charconvio_close,
+                    (ClearErrorFunc)scm_charconvio_clear_error,
+                    (IsReadyFunc)scm_charconvio_is_ready,
+                    (IsClosedFunc)scm_charconvio_is_closed,
+                    (IsEOFFunc)scm_charconvio_is_eof,
+                    (BufferModeFunc)scm_charconvio_default_buffer_mode,
+                    (BlockSizeFunc)scm_charconvio_block_size,
+                    (HasErrorFunc)scm_charconvio_has_error,
+                    (ErrnoFunc)scm_charconvio_errno);
+
+  convio->io = io;
+  convio->is_closed = false;
+  convio->is_owner = owner;
+
+  convio->in_conv = scm_charconv_construct(external_encode, internal_encode,
+                                           SCM_CHARCONV_ERROR);
+  if (convio->in_conv == NULL) {
+    scm_memory_release(convio);
+    return NULL;
+  }
+
+  convio->out_conv = scm_charconv_construct(internal_encode, external_encode,
+                                            SCM_CHARCONV_ERROR);
+  if (convio->out_conv == NULL) {
+    scm_charconv_destruct(convio->in_conv);
+    scm_memory_release(convio);
+    return NULL;
+  }
+
+  convio->block_size = scm_io_block_size(convio->io);
+  if (convio->block_size <= 0)
+    convio->block_size = SCM_CHARCONVIO_DEFAULT_BLOCK_SIZE;
+
+  scm_io_referred(convio->io);
+
+  return convio;
+}
+
+void
+scm_charconvio_destruct(ScmCharConvIO *convio)
+{
+  assert(convio != NULL);
+
+  scm_io_destruct(convio->io);
+  scm_charconv_destruct(convio->in_conv);
+  scm_charconv_destruct(convio->out_conv);
+  scm_memory_release(convio);
+}
+
+ssize_t
+scm_charconvio_read(ScmCharConvIO *convio, void *buf, size_t size)
+{
+  ssize_t rest, nread, nconv;
+  void *ptr;
+
+  assert(convio != NULL);
+  assert(buf != NULL);
+
+  if (scm_io_is_closed(convio->io)) return -1;
+  if (scm_io_has_error(convio->io)) return -1;
+  if (convio->is_closed) return -1;
+
+  rest = size;
+  ptr = buf;
+
+  nconv = scm_charconv_get(convio->in_conv, ptr, rest);
+  if (nconv < 0)
+    return -1;
+
+  ptr += nconv;
+  rest -= nconv;
+
+  while (rest > 0 && !scm_io_is_eof(convio->io)) {
+    char block[convio->block_size];
+
+    nread = scm_io_read(convio->io, block, convio->block_size);
+    if (nread < 0)
+      return -1;
+
+    if (nread == 0)
+      scm_charconv_terminate(convio->in_conv, NULL, 0);
+    else
+      scm_charconv_put(convio->in_conv, block, nread);
+
+    nconv = scm_charconv_get(convio->in_conv, ptr, rest);
+    ptr += nconv;
+    rest -= nconv;
+
+    if (scm_charconv_has_error(convio->in_conv))
+      return -1;
+
+    if (nread < convio->block_size)
+      break;
+  }
+
+  return size - rest;
+}
+
+ssize_t
+scm_charconvio_write(ScmCharConvIO *convio, const void *buf, size_t size)
+{
+  ssize_t nconv, nwrite;
+  
+  assert(convio != NULL);
+  assert(buf != NULL);
+
+  if (scm_io_is_closed(convio->io)) return -1;
+  if (scm_io_has_error(convio->io)) return -1;
+  if (convio->is_closed) return -1;
+
+  scm_charconv_put(convio->out_conv, buf, size);
+  if (scm_charconv_has_error(convio->out_conv))
+    return -1;
+
+  do {
+    char block[convio->block_size];
+    
+    nconv = scm_charconv_get(convio->out_conv, block, convio->block_size);
+    nwrite = scm_io_write(convio->io, block, nconv);
+    if (nwrite < 0)
+      return -1;
+
+  } while (nconv > 0);
+
+  return size;
+}
+
+bool
+scm_charconvio_is_ready(ScmCharConvIO *convio)
+{
+  assert(convio != NULL);
+
+  if (convio->io == NULL) return false;
+  if (convio->is_closed) return false;
+  if (scm_charconv_has_error(convio->in_conv)) return false;
+
+  if (scm_charconv_is_ready(convio->in_conv)) return true;
+  if (scm_io_is_ready(convio->io)) return true;
+
+  return false;
+}
+
+off_t
+scm_charconvio_seek(ScmCharConvIO *convio, off_t offset, int whence)
+{
+  off_t n;
+  assert(convio != NULL);
+
+  n = scm_io_seek(convio->io, offset, whence);
+  if (n < 0) return n;
+
+  scm_charconv_clear(convio->in_conv);
+  scm_charconv_clear(convio->out_conv);
+
+  return n;
+}
+
+int
+scm_charconvio_close(ScmCharConvIO *convio)
+{
+  assert(convio != NULL);
+
+  if (convio->is_closed) return 0;
+  if (!scm_charconv_has_error(convio->out_conv)
+      && !scm_io_has_error(convio->io)) {
+    char block[convio->block_size];
+    ssize_t nconv, nwrite;
+
+    scm_charconv_terminate(convio->out_conv, NULL, 0);
+    while ((nconv = scm_charconv_get(convio->out_conv,
+                                     block, convio->block_size))
+           > 0) {
+      nwrite = scm_io_write(convio->io, block, nconv);
+      if (nwrite < nconv) break;
+    }
+  }
+
+  convio->is_closed = true;
+  if (convio->is_owner) scm_io_close(convio->io);
+
+  return 0;
+}
+
+bool
+scm_charconvio_is_closed(ScmCharConvIO *convio)
+{
+  assert(convio != NULL);
+  return convio->is_closed;
+}
+
+bool
+scm_charconvio_is_eof(ScmCharConvIO *convio)
+{
+  assert(convio != NULL);
+  return (scm_io_is_eof(convio->io) && !scm_charconv_is_ready(convio->in_conv));
+}
+
+void
+scm_charconvio_clear_error(ScmCharConvIO *convio)
+{
+  assert(convio != NULL);
+
+  if (scm_io_has_error(convio->io))
+    scm_io_clear_error(convio->io);
+}
+
+SCM_PORT_BUF_MODE
+scm_charconvio_default_buffer_mode(ScmCharConvIO *convio)
+{
+  assert(convio != NULL);
+  return scm_io_default_buffer_mode(convio->io);
+}
+
+int
+scm_charconvio_block_size(ScmCharConvIO *convio)
+{
+  assert(convio != NULL);
+  return scm_io_block_size(convio->io);
+}
+
+bool
+scm_charconvio_has_error(ScmCharConvIO *convio)
+{
+  assert(convio != NULL);
+  return (scm_io_has_error(convio->io)
+          || scm_charconv_has_error(convio->in_conv)
+          || scm_charconv_has_error(convio->out_conv));
+}
+
+int
+scm_charconvio_errno(ScmCharConvIO *convio)
+{
+  assert(convio != NULL);
+  if (scm_charconv_has_error(convio->in_conv))
+    return scm_charconv_errorno(convio->in_conv);
+  else if (scm_charconv_has_error(convio->out_conv))
+    return scm_charconv_errorno(convio->out_conv);
+  else if (scm_io_has_error(convio->io))
+    return scm_io_errno(convio->io);
+  else
+    return 0;
+}
+
 static void
 scm_port_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
 {
@@ -760,7 +1042,10 @@ scm_port_open_output(ScmIO *io, SCM_PORT_ATTR attr, SCM_PORT_BUF_MODE buf_mode)
 }
 
 ScmPort *
-scm_port_open_input_file(const char *path, SCM_PORT_BUF_MODE buf_mode)
+scm_port_open_input_file_with_charconv(const char *path,
+                                       SCM_PORT_BUF_MODE buf_mode,
+                                       const char *internal_encode,
+                                       const char *external_encode)
 {
   ScmIO *io;
 
@@ -769,13 +1054,33 @@ scm_port_open_input_file(const char *path, SCM_PORT_BUF_MODE buf_mode)
   io = (ScmIO *)scm_fileio_open(path, O_RDONLY, 0);
   if (io == NULL) return NULL;
 
+  if (internal_encode != NULL && external_encode != NULL
+      && strcmp(internal_encode, external_encode) != 0) {
+    const bool OWNER = true;
+    ScmIO *convio;
+
+    convio = (ScmIO *)scm_charconvio_construct(io,
+                                               internal_encode, external_encode,
+                                               OWNER);
+    if (convio == NULL) {
+      scm_io_destruct(io);
+      return NULL;
+    }
+
+    io = convio;
+  }
+
   return scm_port_open_input(io,
                              SCM_PORT_ATTR_FILE | SCM_PORT_ATTR_DESTRUCT_IO,
                              buf_mode);
 }
 
 ScmPort *
-scm_port_open_output_file(const char *path, SCM_PORT_BUF_MODE buf_mode)
+scm_port_open_output_file_with_charconv(const char *path,
+                                        SCM_PORT_BUF_MODE buf_mode,
+                                        const char *internal_encode,
+                                        const char *external_encode)
+
 {
   ScmIO *io;
 
@@ -784,11 +1089,39 @@ scm_port_open_output_file(const char *path, SCM_PORT_BUF_MODE buf_mode)
   io = (ScmIO *)scm_fileio_open(path, O_WRONLY | O_CREAT, 00644);
   if (io == NULL) return NULL;
 
+  if (internal_encode != NULL && external_encode != NULL
+      && strcmp(internal_encode, external_encode) != 0) {
+    const bool OWNER = true;
+    ScmIO *convio;
+
+    convio = (ScmIO *)scm_charconvio_construct(io,
+                                               internal_encode, external_encode,
+                                               OWNER);
+    if (convio == NULL) {
+      scm_io_destruct(io);
+      return NULL;
+    }
+
+    io = convio;
+  }
+
   return scm_port_open_output(io,
                               SCM_PORT_ATTR_FILE | SCM_PORT_ATTR_DESTRUCT_IO,
                               buf_mode);
 }
 
+ScmPort *
+scm_port_open_input_file(const char *path, SCM_PORT_BUF_MODE buf_mode)
+{
+  return scm_port_open_input_file_with_charconv(path, buf_mode, NULL, NULL);
+}
+
+ScmPort *
+scm_port_open_output_file(const char *path, SCM_PORT_BUF_MODE buf_mode)
+{
+  return scm_port_open_output_file_with_charconv(path, buf_mode, NULL, NULL);
+}
+ 
 ScmPort *
 scm_port_open_input_string(const void *string, size_t size)
 {

@@ -7,6 +7,7 @@
 typedef struct ScmIORec ScmIO;
 typedef struct ScmFileIORec ScmFileIO;
 typedef struct ScmStringIORec ScmStringIO;
+typedef struct ScmCharConvIORec ScmCharConvIO;
 typedef struct ScmPortRec ScmPort;
 
 #define SCM_PORT(obj) ((ScmPort *)(obj))
@@ -30,6 +31,7 @@ typedef enum {
   SCM_PORT_ATTR_DESTRUCT_IO = 0x0010,
 } SCM_PORT_ATTR;
 
+void scm_io_referred(ScmIO *io);
 void scm_io_destruct(ScmIO *io);
 ssize_t scm_io_read(ScmIO *io, void *buf, size_t size);
 ssize_t scm_io_write(ScmIO *io, const void *buf, size_t size);
@@ -76,11 +78,37 @@ int scm_stringio_errno(ScmStringIO *strio);
 char *scm_stringio_buffer(ScmStringIO *strio);
 size_t scm_stringio_length(ScmStringIO *strio);
 
+ScmCharConvIO *scm_charconvio_construct(ScmIO *io,
+                                        const char *internal_encode,
+                                        const char *external_encode,
+                                        bool owner);
+void scm_charconvio_destruct(ScmCharConvIO *convio);
+ssize_t scm_charconvio_read(ScmCharConvIO *convio, void *buf, size_t size);
+ssize_t scm_charconvio_write(ScmCharConvIO *convio,
+                             const void *buf, size_t size);
+bool scm_charconvio_is_ready(ScmCharConvIO *convio);
+off_t scm_charconvio_seek(ScmCharConvIO *convio, off_t offset, int whence);
+int scm_charconvio_close(ScmCharConvIO *convio);
+bool scm_charconvio_is_closed(ScmCharConvIO *convio);
+bool scm_charconvio_is_eof(ScmCharConvIO *convio);
+void scm_charconvio_clear_error(ScmCharConvIO *convio);
+SCM_PORT_BUF_MODE scm_charconvio_default_buffer_mode(ScmCharConvIO *convio);
+int scm_charconvio_block_size(ScmCharConvIO *convio);
+bool scm_charconvio_has_error(ScmCharConvIO *convio);
+int scm_charconvio_errno(ScmCharConvIO *convio);
 
 ScmPort *scm_port_open_input(ScmIO *io,
                              SCM_PORT_ATTR attr, SCM_PORT_BUF_MODE buf_mode);
 ScmPort *scm_port_open_output(ScmIO *io,
                               SCM_PORT_ATTR attr, SCM_PORT_BUF_MODE buf_mode);
+ScmPort *scm_port_open_input_file_with_charconv(const char *path,
+                                                SCM_PORT_BUF_MODE buf_mode,
+                                                const char *internal_encode,
+                                                const char *external_encode);
+ScmPort *scm_port_open_output_file_with_charconv(const char *path,
+                                                 SCM_PORT_BUF_MODE buf_mode,
+                                                 const char *internal_encode,
+                                                 const char *external_encode);
 ScmPort *scm_port_open_input_file(const char *path,
                                   SCM_PORT_BUF_MODE buf_mode);
 ScmPort *scm_port_open_output_file(const char *path,

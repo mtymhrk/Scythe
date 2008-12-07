@@ -27,5 +27,6 @@ ssize_t scm_charconv_terminate(ScmCharConv *conv,
 bool scm_charconv_is_ready(ScmCharConv *conv);
 bool scm_charconv_has_error(ScmCharConv *conv);
 int scm_charconv_errorno(ScmCharConv *conv);
+void scm_charconv_clear(ScmCharConv *conv);
 
 #endif /* INCLUDE_CHARCONV_H__ */

@@ -295,3 +295,14 @@ scm_charconv_errorno(ScmCharConv *conv)
 
   return conv->error;
 }
+
+void
+scm_charconv_clear(ScmCharConv *conv)
+{
+  assert(conv != NULL);
+
+  iconv(conv->icd, NULL, NULL, NULL, NULL);
+  conv->cnv_len = 0;
+  conv->uncnv_len = 0;
+  conv->error = 0;
+}
