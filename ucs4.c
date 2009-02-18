@@ -2,7 +2,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include <assert.h>
 
 #include "ucs4.h"
 
@@ -126,6 +125,8 @@ ucs4chr_to_utf8chr(ucs4chr_t ucs4chr, utf8_t *utf8, size_t size)
   }
 }
 
+/* TODO: change meaning of 2nd argument ``len''       */
+/*       from number of charactors to size of ``src'' */
 static Ucs4String *
 ucs4str(const void *src, size_t len)
 {
@@ -270,8 +271,7 @@ ucs4str_copy_and_expand(const Ucs4String *src, size_t size)
 static void
 ucs4str_replace_contents(Ucs4String *target, Ucs4String *src)
 {
-  assert(target != NULL);
-  assert(target != NULL);
+  if (target == NULL || src == NULL) return;
 
   if (*target->ref_cnt > 1) {
     (*target->ref_cnt)--;

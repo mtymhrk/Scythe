@@ -24,3 +24,4 @@ port.o: ../port.c ../memory.h ../object.h ../obuffer.h ../charconv.h \
   ../port.h
 charconv.o: ../charconv.c ../memory.h ../charconv.h
 ucs4.o: ../ucs4.c ../ucs4.h
+utf8.o: ../utf8.c ../utf8.h
