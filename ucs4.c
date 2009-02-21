@@ -14,11 +14,14 @@ struct Ucs4StringRec {
   ucs4chr_t *head;
   size_t capacity;
   size_t length;
+  size_t bytesize;
   int *ref_cnt;
 };
 
-#define CAPACITY(str) ((str)->capacity - ((str)->head - (str)->buffer))
-#define ROOM_FOR_APPEND(str) (CAPACITY(str) - (str)->length)
+#define CAPACITY(str) \
+  ((str)->capacity                              \
+   - ((str)->head - (str)->buffer) * sizeof(ucs4chr_t))
+#define ROOM_FOR_APPEND(str) (CAPACITY(str) - (str)->bytesize)
 
 #define IS_VALID_ASCII(ascii) \
   (0x00 <= (unsigned int)(ascii) && (unsigned int)(ascii) <= 0x7f)
@@ -125,8 +128,14 @@ ucs4chr_to_utf8chr(ucs4chr_t ucs4chr, utf8_t *utf8, size_t size)
   }
 }
 
-/* TODO: change meaning of 2nd argument ``len''       */
-/*       from number of charactors to size of ``src'' */
+static ssize_t
+bytearray2ucs4str(ucs4chr_t *dst, const void *src, size_t len)
+{
+  if (len % sizeof(ucs4chr_t) != 0) return -1;
+  memcpy(dst, src, len);
+  return len / sizeof(ucs4chr_t);
+}
+
 static Ucs4String *
 ucs4str(const void *src, size_t len)
 {
@@ -142,7 +151,7 @@ ucs4str(const void *src, size_t len)
        str->capacity *= 2)
     ;
 
-  str->head = str->buffer = malloc(sizeof(ucs4chr_t) * str->capacity);
+  str->head = str->buffer = malloc(str->capacity);
   if (str->buffer == NULL) goto err;
 
   str->ref_cnt = malloc(sizeof(*str->ref_cnt));
@@ -150,11 +159,13 @@ ucs4str(const void *src, size_t len)
   *str->ref_cnt = 1;
 
   if (src != NULL) {
-    memcpy(str->buffer, src, len * sizeof(ucs4chr_t));
-    str->length = len;
+    str->length = bytearray2ucs4str(str->buffer, src, len);
+    if (str->length < 0) goto err;
+    str->bytesize = len;
   }
   else {
     str->length = 0;
+    str->bytesize = 0;
   }
   
   return str;
@@ -189,7 +200,7 @@ ucs4str_from_ascii(const char *ascii)
   Ucs4String *str;
 
   if (ascii != NULL)
-    str = ucs4str(NULL, strlen(ascii));
+    str = ucs4str(NULL, strlen(ascii) * sizeof(ucs4chr_t));
   else
     str = ucs4str(NULL, UCS4_STR_BLOCK_SIZE);
 
@@ -198,6 +209,7 @@ ucs4str_from_ascii(const char *ascii)
   if (ascii != NULL) {
     size_t i;
     str->length = strlen(ascii);
+    str->bytesize = str->length * sizeof(ucs4chr_t);
     for (i = 0; i < str->length; i++) {
       if (!IS_VALID_ASCII(ascii[i])) goto err;
       str->head[i] = UCS4CHR(ascii[i]);
@@ -221,7 +233,7 @@ ucs4str_from_utf8(const void *utf8)
   utf8_len = 0;
   if (utf8_str != NULL) {
     utf8_len = strlen((const char *)utf8_str);
-    str = ucs4str(NULL,  utf8_len);
+    str = ucs4str(NULL,  utf8_len * sizeof(ucs4chr_t));
   }
   else
     str = ucs4str(NULL, UCS4_STR_BLOCK_SIZE);
@@ -233,15 +245,17 @@ ucs4str_from_utf8(const void *utf8)
 
     utf8_idx = 0;
     str->length = 0;
+    str->bytesize = 0;
     while (utf8_idx < utf8_len) {
       int n;
 
-      if (str->length >= CAPACITY(str)) goto err;
+      if (str->bytesize >= CAPACITY(str)) goto err;
       n = utf8chr_to_ucs4chr(utf8_str + utf8_idx, utf8_len - utf8_idx,
                              str->head + str->length);
       if (n < 0) goto err;
       utf8_idx += n;
       str->length++;
+      str->bytesize += sizeof(ucs4chr_t);
     }
   }
 
@@ -262,8 +276,12 @@ ucs4str_copy_and_expand(const Ucs4String *src, size_t size)
   str = ucs4str(NULL, size);
   if (str == NULL) return NULL;
 
-  str->length = (size < src->length) ? size : src->length;
-  memcpy(str->head, src->head, str->length * sizeof(ucs4chr_t));
+  str->bytesize = (size < src->bytesize) ? size : src->bytesize;
+  str->length = bytearray2ucs4str(str->buffer, src->head, str->bytesize);
+  if (str->length < 0) {
+    ucs4str_destruct(str);
+    return NULL;
+  }
 
   return str;
 }
@@ -292,7 +310,7 @@ ucs4str_copy(const Ucs4String *src)
 
   if (src == NULL) return NULL;
 
-  str = ucs4str(src->head, src->length);
+  str = ucs4str(src->head, src->bytesize);
   return (str == NULL) ? NULL : str;
 }
 
@@ -327,7 +345,7 @@ ucs4str_is_equal(Ucs4String *str1, Ucs4String *str2)
 
   if (str1->length != str2->length) return false;
   if (str1->head == str2->head) return true;
-  return (memcmp(str1->head, str2->head, str1->length) == 0);
+  return (memcmp(str1->head, str2->head, str1->bytesize) == 0);
 }
 
 Ucs4String *
@@ -341,6 +359,7 @@ ucs4str_substr(Ucs4String *str, unsigned int pos, size_t len)
   substr = ucs4str_dup(str);
   substr->head = substr->buffer + pos;
   substr->length = len;
+  substr->bytesize = len * sizeof(ucs4chr_t);
 
   return substr;
 }
@@ -351,15 +370,16 @@ ucs4str_push(Ucs4String *str, ucs4chr_t c)
   if (str == NULL) return NULL;
   if (!IS_VALID_UCS4(c)) return NULL;
 
-  if ((*str->ref_cnt > 1) || ROOM_FOR_APPEND(str) >= 1) {
+  if ((*str->ref_cnt > 1) || ROOM_FOR_APPEND(str) >= sizeof(ucs4chr_t)) {
     Ucs4String *tmp =
-      ucs4str_copy_and_expand(str, str->length + 1);
+      ucs4str_copy_and_expand(str, str->bytesize + sizeof(ucs4chr_t));
     if (tmp == NULL) return NULL;
     ucs4str_replace_contents(str, tmp);
     ucs4str_destruct(tmp);
   }
 
   str->head[str->length++] = c;
+  str->bytesize += sizeof(ucs4chr_t);
 
   return str;
 }
@@ -370,17 +390,18 @@ ucs4str_append(Ucs4String *str, const Ucs4String *append)
   if (str == NULL) return NULL;
   if (append == NULL) return str;
 
-  if ((*str->ref_cnt > 1) || ROOM_FOR_APPEND(str) < append->length) {
+
+  if ((*str->ref_cnt > 1) || ROOM_FOR_APPEND(str) < append->bytesize) {
     Ucs4String *tmp = ucs4str_copy_and_expand(str,
-                                              str->length + append->length);
+                                              str->bytesize + append->bytesize);
     if (tmp == NULL) return NULL;
     ucs4str_replace_contents(str, tmp);
     ucs4str_destruct(tmp);
   }
 
-  memcpy(str->head + str->length, append->head,
-         append->length * sizeof(ucs4chr_t));
+  memcpy(str->head + str->length, append->head, append->bytesize);
   str->length += append->length;
+  str->bytesize += append->bytesize;
 
   return str;
 }
@@ -457,8 +478,8 @@ ucs4str_fill(Ucs4String *str, unsigned int pos, size_t len, ucs4chr_t c)
   if (pos > str->length) return NULL; /* permit append to tail */
 
   length = (str->length > pos + len) ? str->length : pos + len;
-  if ((*str->ref_cnt > 1) || (CAPACITY(str) < length)) {
-    Ucs4String *tmp = ucs4str_copy_and_expand(str, length);
+  if ((*str->ref_cnt > 1) || (CAPACITY(str) < length * sizeof(ucs4chr_t))) {
+    Ucs4String *tmp = ucs4str_copy_and_expand(str, length * sizeof(ucs4chr_t));
     if (tmp == NULL) return NULL;
     ucs4str_replace_contents(str, tmp);
     ucs4str_destruct(tmp);
@@ -467,6 +488,7 @@ ucs4str_fill(Ucs4String *str, unsigned int pos, size_t len, ucs4chr_t c)
   for (i = 0; i < len; i++)
     str->head[pos + i] = c;
   str->length = length;
+  str->bytesize = length * sizeof(ucs4chr_t);
 
   return str;
 }
@@ -586,10 +608,8 @@ ucs4str_dump(const Ucs4String *str, void *buf, size_t size)
 
   if (str == NULL || buf == NULL) return -1;
 
-  len = str->length * sizeof(ucs4chr_t);
-  if (size < len) len = size;
-
-  memcpy(buf, str->head, len);
+  len = (size < str->bytesize) ? size : str->bytesize;
+  memcpy(buf, str->head, len / sizeof(ucs4chr_t) * sizeof(ucs4chr_t));
 
   return len;
 }
