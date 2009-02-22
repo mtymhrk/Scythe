@@ -19,6 +19,7 @@ typedef struct StrIterRec {
 #define ITER_REST(iter) ((iter)->rest)
 #define ITER_WIDTH(iter) ((iter)->char_width(ITER_PTR(iter), ITER_REST(iter)))
 #define ITER_COPY(iter, copy) (*(copy) = *(iter))
+#define ITER_OFFSET(iter, head) ((uint8_t *)ITER_PTR(iter) -  (uint8_t *)head);
 
 /* encoding depending function table */
 typedef struct ScmStrVirtualFunc {
@@ -450,55 +451,77 @@ utf8str_get(Utf8String *str, unsigned int pos)
   return c;
 }
 
+static Utf8String*
+utf8str_set_less_or_same_width_char(Utf8String *str,
+                                    const ScmStrIter *iter, const Utf8Chr *c)
+{
+  size_t offset;
+  size_t rest;
+  int iw, cw;
+
+  assert(str != NULL);
+  assert(iter != NULL);
+  assert(c != NULL);
+
+  offset = ITER_OFFSET(iter, str->head);
+  rest = ITER_REST(iter);
+  iw = ITER_WIDTH(iter);
+  cw = UTF8VFUNC.char_width(c->chr, sizeof(*c));
+
+  if (*str->ref_cnt > 1) {
+    Utf8String *tmp = utf8str_copy(str);
+    if (tmp == NULL) return NULL;
+    utf8str_replace_contents(str, tmp);
+    utf8str_destruct(tmp);    
+  }
+
+  memcpy(str->head + offset, c->chr, cw);
+  if (cw < iw) {
+    memmove(str->head + offset + cw, str->head + offset + iw, rest - iw);
+    str->bytesize -= iw - cw;
+  }
+
+  return str;
+}
+
+
+
 Utf8String *
 utf8str_set(Utf8String *str, unsigned int pos, const Utf8Chr *c)
 {
-  //  ScmStrIter iter;
+  ScmStrIter iter;
   Utf8String *rslt, *front, *rear;
-  //  int cw;
-
-  rslt = front = rear = NULL;
+  int cw;
 
   if (str == NULL) return NULL;
   if (c == NULL) return NULL;
   if (pos >= str->length) return NULL;
 
-  /* UTF8VFUNC.index2iter(&iter, str->head, str->bytesize, pos); */
-  /* if (scm_str_iter_is_error(&iter)) return NULL; */
+  UTF8VFUNC.index2iter(&iter, str->head, str->bytesize, pos);
+  if (scm_str_iter_is_error(&iter)) return NULL;
 
-  /* cw = UTF8VFUNC.char_width(c->chr, sizeof(*c)); */
+  cw = UTF8VFUNC.char_width(c->chr, sizeof(*c));
 
-  /* if (cw == ITER_WIDTH(&iter)) { */
-  /*   memcpy(ITER_PTR(&iter), c->chr, cw); */
-  /*   return str; */
-  /* } */
-  /* else if (cw < ITER_WIDTH(&iter)) { */
-  /*   int diff = ITER_WIDTH(&iter) - cw; */
-  /*   memmove((uint8_t *)ITER_PTR(&iter) + cw, */
-  /*           (uint8_t *)ITER_PTR(&iter) + ITER_WIDTH(&iter), */
-  /*           ITER_REST(&iter) - ITER_WIDTH(&iter)); */
-  /*   memcpy(ITER_PTR(&iter), c->chr, cw); */
-  /*   str->bytesize -= diff; */
-  /*   return str; */
-  /* } */
-  /* else { */
+  if (cw <= ITER_WIDTH(&iter))
+    return utf8str_set_less_or_same_width_char(str, &iter, c);
 
-    front = utf8str_substr(str, 0, pos);
-    rear = utf8str_substr(str, pos + 1, str->length - pos - 1);
+  rslt = front = rear = NULL;
 
-    if (front == NULL || rear == NULL) goto end;
-
-    if (utf8str_push(front, c) == NULL) goto end;
-    if (utf8str_append(front, rear) == NULL) goto end;
-
-    utf8str_replace_contents(str, front);
-    rslt = str;
-
-  end:
-    utf8str_destruct(front);
-    utf8str_destruct(rear);
-    return rslt;
-    //  }
+  front = utf8str_substr(str, 0, pos);
+  rear = utf8str_substr(str, pos + 1, str->length - pos - 1);
+  
+  if (front == NULL || rear == NULL) goto end;
+  
+  if (utf8str_push(front, c) == NULL) goto end;
+  if (utf8str_append(front, rear) == NULL) goto end;
+  
+  utf8str_replace_contents(str, front);
+  rslt = str;
+  
+ end:
+  utf8str_destruct(front);
+  utf8str_destruct(rear);
+  return rslt;
 }
 
 Utf8String *

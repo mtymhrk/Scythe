@@ -246,7 +246,7 @@ test_utf8str_get(void)
 }
 
 void
-test_utf8str_set(void)
+test_utf8str_set_less_width(void)
 {
   char expected[] = "テaト";
   char actual[256];
@@ -254,6 +254,50 @@ test_utf8str_set(void)
   int len;
 
   Utf8String *str = utf8str("テスト", sizeof("テスト") - 1);
+
+  cut_assert_not_null(utf8str_set(str, 1, &c));
+
+  cut_assert_equal_int(3, utf8str_length(str));
+  cut_assert_equal_int(sizeof(expected) - 1, utf8str_bytesize(str));
+
+  len = utf8str_dump(str, actual, sizeof(actual));
+  cut_assert_equal_int(sizeof(expected) - 1, len);
+  cut_assert_equal_int(0, memcmp(expected, actual, len));
+
+  utf8str_destruct(str);
+}
+
+void
+test_utf8str_set_same_width(void)
+{
+  char expected[] = "テント";
+  char actual[256];
+  Utf8Chr c = { "ン" };
+  int len;
+
+  Utf8String *str = utf8str("テスト", sizeof("テスト") - 1);
+
+  cut_assert_not_null(utf8str_set(str, 1, &c));
+
+  cut_assert_equal_int(3, utf8str_length(str));
+  cut_assert_equal_int(sizeof(expected) - 1, utf8str_bytesize(str));
+
+  len = utf8str_dump(str, actual, sizeof(actual));
+  cut_assert_equal_int(sizeof(expected) - 1, len);
+  cut_assert_equal_int(0, memcmp(expected, actual, len));
+
+  utf8str_destruct(str);
+}
+
+void
+test_utf8str_set_greater_width(void)
+{
+  char expected[] = "aあc";
+  char actual[256];
+  Utf8Chr c = { "あ" };
+  int len;
+
+  Utf8String *str = utf8str("abc", sizeof("abc") - 1);
 
   cut_assert_not_null(utf8str_set(str, 1, &c));
 
