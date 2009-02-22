@@ -37,7 +37,8 @@ struct Utf8StringRec {
   int *ref_cnt;
 };
 
-#define CAPACITY(str) ((str)->capacity - ((str)->head - (str)->buffer))
+#define CAPACITY(str) \
+  ((str)->capacity - ((uint8_t *)(str)->head - (uint8_t *)(str)->buffer))
 #define ROOM_FOR_APPEND(str) (CAPACITY(str) - (str)->bytesize)
 
 /* from RFC3629 */
