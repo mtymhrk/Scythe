@@ -8,6 +8,24 @@
 
 #define UTF8_STR_BLOCK_SIZE 64
 
+
+typedef struct StrIterRec {
+  void *p;
+  size_t rest;
+  size_t width;
+  int (*char_width)(const void *p, size_t size);
+} ScmStrIter;
+
+#define ITER_PTR(iter) ((iter)->p)
+#define ITER_WIDTH(iter) ((iter)->width)
+#define ITER_REST(iter) ((iter)->rest)
+#define ITER_COPY(iter, copy) (*(copy) = *(iter))
+
+/* encoding depending function table */
+typedef struct ScmStrVirtualFunc {
+  int (*char_width)(const void *p, size_t size);
+} ScmStrVirtualFunc;
+
 struct Utf8StringRec {
   utf8chr_t *buffer;
   utf8chr_t *head;
@@ -44,8 +62,110 @@ struct Utf8StringRec {
 
 
 static int
-utf8chr_width(const utf8chr_t *utf8, size_t len)
+scm_str_iter_begin(ScmStrIter *iter,
+                   void *p, size_t size, ScmStrVirtualFunc *vf)
 {
+  if (iter == NULL) return -1;
+
+  iter->p = p;
+  iter->rest = size;
+
+  if (vf == NULL) {
+    iter->char_width = NULL;
+    iter->width = -1;
+    return -1;
+  }
+  else {
+    iter->char_width = vf->char_width;
+  }
+
+  if (iter->rest > 0) {
+    iter->width = iter->char_width(p, size);
+    if (iter->width < 0) return -1;
+  }
+  else
+    iter->width = 0;
+
+  return 0;
+}
+
+static int
+scm_str_iter_next(ScmStrIter *iter)
+{
+  if (iter == NULL) return -1;
+  if (iter->width < 0) return -1;
+
+  iter->p = (uint8_t *)iter->p + iter->width;
+  iter->rest -= iter->width;
+
+  if (iter->rest > 0) {
+    iter->width = iter->char_width(iter->p, iter->rest);
+    if (iter->width < 0) return -1;
+  }
+  else
+    iter->width = 0;
+
+  return 0;
+}
+
+static bool
+scm_str_iter_is_end(ScmStrIter *iter)
+{
+  if (iter == NULL) return true;
+
+  return (iter->rest <= 0) ? true : false;
+}
+
+static bool
+scm_str_iter_is_error(ScmStrIter *iter)
+{
+  if (iter == NULL) return true;
+
+  return (iter->width < 0) ? true : false;
+}
+
+static ssize_t
+scm_str_check_bytes(const void *str, size_t size, ScmStrVirtualFunc* vf)
+{
+  ScmStrIter iter;
+  ssize_t len;
+
+  if (str == NULL || vf == NULL) return -1;
+
+  scm_str_iter_begin(&iter, (void *)str, size, vf);
+  if (scm_str_iter_is_error(&iter)) return -1;
+
+  len = 0;
+  while (!scm_str_iter_is_end(&iter)) {
+    len++;
+    scm_str_iter_next(&iter);
+    if (scm_str_iter_is_error(&iter)) return -1;
+  }
+
+  return len;
+}
+
+static ssize_t
+scm_str_copy_bytes_with_checking_validity(void *dst,
+                                          const void *src, size_t size,
+                                          ScmStrVirtualFunc* vf)
+{
+  ssize_t len;
+
+  if (dst == NULL || src == NULL || vf == NULL) return -1;
+
+  len = scm_str_check_bytes(src, size, vf);
+  if (len < 0) return -1;
+
+  memcpy(dst, src, size);
+  return len;
+}
+
+static int
+utf8str_char_width(const void *str, size_t len)
+{
+  const utf8chr_t *utf8 = str;
+
   if (utf8 == NULL) {
     return 0;
   }
@@ -69,26 +189,7 @@ utf8chr_width(const utf8chr_t *utf8, size_t len)
   }    
 }
 
-static ssize_t
-bytearray2utf8str(utf8chr_t *dst, const void *src, size_t len)
-{
-  int i;
-  size_t utf8len;
-
-  utf8len = 0;
-  i = 0;
-  while (i < len) {
-    int width;
-    width = utf8chr_width(src + i, len - i);
-    if (width < 0) return -1;
-    utf8len++;
-    i += width;
-  }
-
-  memcpy(dst, src, len);
-
-  return utf8len;
-}
+ScmStrVirtualFunc UTF8VFUNC = { utf8str_char_width };
 
 Utf8String *
 utf8str(const void *src, size_t len)
@@ -113,7 +214,9 @@ utf8str(const void *src, size_t len)
   *str->ref_cnt = 1;
 
   if (src != NULL) {
-    str->length = bytearray2utf8str(str->buffer, src, len);
+    str->length = scm_str_copy_bytes_with_checking_validity(str->buffer,
+                                                            src, len,
+                                                            &UTF8VFUNC);
     if (str->length < 0) goto err;
     str->bytesize = len;
   }
@@ -158,7 +261,10 @@ utf8str_copy_and_expand(const Utf8String *src, size_t size)
   if (str == NULL) return NULL;
 
   str->bytesize = (size < src->bytesize) ? size : src->bytesize;
-  str->length = bytearray2utf8str(str->buffer, src->head, str->bytesize);
+  str->length = scm_str_copy_bytes_with_checking_validity(str->buffer,
+                                                          src->head,
+                                                          src->bytesize,
+                                                          &UTF8VFUNC);
   if (str->length < 0) {
     utf8str_destruct(str);
     return NULL;
@@ -194,7 +300,7 @@ utf8str_pos2ptr(Utf8String *str, unsigned int pos)
 
   idx = 0;
   for (nc = 0; nc < pos; nc++) {
-    int w = utf8chr_width(str->head + idx, str->bytesize - idx);
+    int w = UTF8VFUNC.char_width(str->head + idx, str->bytesize - idx);
     if (w < 0) return NULL;
     idx += w;
   }
@@ -283,7 +389,7 @@ utf8str_push(Utf8String *str, const Utf8Chr *c)
   if (str == NULL) return NULL;
   if (c == NULL) return NULL;
 
-  width = utf8chr_width(c->chr, sizeof(*c));
+  width = UTF8VFUNC.char_width(c->chr, sizeof(*c));
   if (width < 0) return NULL;
 
   if ((*str->ref_cnt > 1) || ROOM_FOR_APPEND(str) >= width) {
@@ -335,7 +441,7 @@ utf8str_get(Utf8String *str, unsigned int pos)
   if (pos >= str->length) return c;
 
   p = utf8str_pos2ptr(str, pos);
-  w = utf8chr_width(p, str->bytesize - (p - str->head));
+  w = UTF8VFUNC.char_width(p, str->bytesize - (p - str->head));
   if (p == NULL || w < 0) return c;
 
   memcpy(c.chr, p, w);
@@ -384,7 +490,7 @@ utf8str_fill(Utf8String *str, unsigned int pos, size_t len, const Utf8Chr *c)
   if (c == NULL) return NULL;
   if (pos > str->length) return NULL;
 
-  filledsize = utf8chr_width(c->chr, sizeof(Utf8Chr)) * len;
+  filledsize = UTF8VFUNC.char_width(c->chr, sizeof(Utf8Chr)) * len;
   if (filledsize < 0) return 0;
 
   front = utf8str_substr(str, 0, pos);
@@ -420,12 +526,12 @@ utf8str_find_chr(const Utf8String *str, const Utf8Chr *c)
   if (str == NULL) return -1;
   if (c == NULL) return -1;
 
-  cw = utf8chr_width(c->chr, sizeof(Utf8Chr));
+  cw = UTF8VFUNC.char_width(c->chr, sizeof(Utf8Chr));
   if (cw < 0) return -1;
 
   p = str->head;
   for (i = 0; i < str->length; i++) {
-    int w = utf8chr_width(p, str->bytesize - (p - str->head));
+    int w = UTF8VFUNC.char_width(p, str->bytesize - (p - str->head));
     if (w < 0) return -1;
 
     if (cw == w && (memcmp(c->chr, p, cw) == 0))
@@ -439,35 +545,47 @@ utf8str_find_chr(const Utf8String *str, const Utf8Chr *c)
 int
 utf8str_match(const Utf8String *str, const Utf8String *pat)
 {
-  int i, j, n, pw, qw, rw;
-  utf8chr_t *p, *q, *r;
+  ScmStrIter iter_str_ext, iter_pat;
+  int pos;
 
-  if (str == NULL) return -1;
-  if (pat == NULL) return -1;
+  pos = 0;
 
-  n = str->length - pat->length + 1;
-  p = str->head;
-  for (i = 0; i < n; i++) {
-    pw = utf8chr_width(p, str->bytesize - (p - str->head));
-    if (pw < 0) return -1;
+  scm_str_iter_begin(&iter_str_ext, str->head, str->bytesize, &UTF8VFUNC);
+  if (scm_str_iter_is_error(&iter_str_ext)) return -1;
 
-    q = p;
-    r = pat->head;
-    for (j = 0; j < pat->length; j++) {
-      qw = utf8chr_width(p, str->bytesize - (q - str->head));
-      rw = utf8chr_width(r, pat->bytesize - (r - pat->head));
+  while (!scm_str_iter_is_end(&iter_str_ext)) {
+    ScmStrIter iter_str_inn;
 
-      if (qw != rw || (memcmp(q, r, qw) != 0))
+    ITER_COPY(&iter_str_ext, &iter_str_inn);
+
+    scm_str_iter_begin(&iter_pat, pat->head, pat->bytesize, &UTF8VFUNC);
+    if (scm_str_iter_is_error(&iter_pat)) return -1;
+
+    if (ITER_REST(&iter_str_ext) < ITER_REST(&iter_pat))
+      return -1;
+
+    while (!scm_str_iter_is_end(&iter_str_inn)
+           && !scm_str_iter_is_end(&iter_pat)) {
+
+      if (ITER_WIDTH(&iter_str_inn) != ITER_WIDTH(&iter_pat)) break;
+      if (memcmp(ITER_PTR(&iter_str_inn), ITER_PTR(&iter_pat),
+                 ITER_WIDTH(&iter_str_inn)) != 0)
         break;
 
-      q += qw;
-      r += rw;
+      scm_str_iter_next(&iter_str_inn);
+      if (scm_str_iter_is_error(&iter_str_inn)) return -1;
+
+      scm_str_iter_next(&iter_pat);
+      if (scm_str_iter_is_error(&iter_pat)) return -1;
     }
 
-    if (j >= pat->length)
-      return i;
+    if (scm_str_iter_is_end(&iter_pat))
+      return pos;
 
-    p += pw;
+    scm_str_iter_next(&iter_str_ext);
+    if (scm_str_iter_is_error(&iter_str_ext)) return -1;;
+
+    pos++;
   }
 
   return -1;
