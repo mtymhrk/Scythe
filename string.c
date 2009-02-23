@@ -444,7 +444,7 @@ scm_string_substr(ScmString *str, unsigned int pos, size_t len)
 }
 
 ScmString *
-scm_string_push(ScmString *str, const void *c, size_t csize)
+scm_string_push(ScmString *str, const scm_char_t *c)
 {
   int (*char_width)(const void *p, size_t size);
   int width;
@@ -453,8 +453,8 @@ scm_string_push(ScmString *str, const void *c, size_t csize)
   assert(c != NULL);
 
   char_width = SCM_STRING_VFUNC_CHAR_WIDTH(str->enc);
-  width = char_width(c, csize);
-  if (width < 0 || width != csize) return NULL;
+  width = char_width(c, sizeof(*c));
+  if (width < 0) return NULL;
 
   if ((*str->ref_cnt > 1) || ROOM_FOR_APPEND(str) >= width) {
     ScmString *tmp
@@ -464,9 +464,9 @@ scm_string_push(ScmString *str, const void *c, size_t csize)
     scm_string_destruct(tmp);
   }
 
-  memcpy(str->head + str->bytesize, c, csize);
+  memcpy(str->head + str->bytesize, c, width);
   str->length += 1;
-  str->bytesize += csize;
+  str->bytesize += width;
 
   return str;
 }
@@ -517,7 +517,7 @@ scm_string_append(ScmString *str, const ScmString *append)
 static ScmString*
 scm_string_set_less_or_same_width_char(ScmString *str,
                                        const ScmStrIter *iter,
-                                       const void *c, size_t cw)
+                                       const scm_char_t *c, size_t cw)
 {
   size_t offset;
   size_t rest;
@@ -548,7 +548,7 @@ scm_string_set_less_or_same_width_char(ScmString *str,
 }
 
 ScmString *
-scm_string_set(ScmString *str, unsigned int pos, const void *c, size_t cw)
+scm_string_set(ScmString *str, unsigned int pos, const scm_char_t *c)
 {
   int (*char_width)(const void *p, size_t size);
   int (*index2iter)(ScmStrIter *iter,
@@ -568,11 +568,11 @@ scm_string_set(ScmString *str, unsigned int pos, const void *c, size_t cw)
   index2iter(&iter, str->head, str->bytesize, pos);
   if (scm_str_iter_is_error(&iter)) return NULL;
 
-  w = char_width(c, cw);
-  if (w != cw) return NULL;
+  w = char_width(c, sizeof(*c));
+  if (w < 0) return NULL;
 
-  if (cw <= ITER_WIDTH(&iter))
-    return scm_string_set_less_or_same_width_char(str, &iter, c, cw);
+  if (w <= ITER_WIDTH(&iter))
+    return scm_string_set_less_or_same_width_char(str, &iter, c, w);
 
   rslt = front = rear = NULL;
 
@@ -581,7 +581,7 @@ scm_string_set(ScmString *str, unsigned int pos, const void *c, size_t cw)
   
   if (front == NULL || rear == NULL) goto end;
   
-  if (scm_string_push(front, c, cw) == NULL) goto end;
+  if (scm_string_push(front, c) == NULL) goto end;
   if (scm_string_append(front, rear) == NULL) goto end;
   
   scm_string_replace_contents(str, front);

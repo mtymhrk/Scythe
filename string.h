@@ -2,9 +2,11 @@
 #define INCLUDE_STRING_H__
 
 #include <unistd.h>
+#include <stdint.h>
 #include <stdbool.h>
 
 typedef struct ScmStringRec ScmString;
+typedef uint32_t scm_char_t;
 
 typedef enum {
   SCM_STRING_UTF8,
@@ -24,10 +26,10 @@ size_t scm_string_length(ScmString *str);
 size_t scm_string_bytesize(ScmString *str);
 bool scm_string_is_equal(ScmString *str1, ScmString *str2);
 ScmString *scm_string_substr(ScmString *str, unsigned int pos, size_t len);
-ScmString *scm_string_push(ScmString *str, const void *c, size_t csize);
+ScmString *scm_string_push(ScmString *str, const scm_char_t *c);
 ScmString *scm_string_append(ScmString *str, const ScmString *append);
-ScmString *scm_string_set(ScmString *str,
-                          unsigned int pos, const void *c, size_t cw);
+ScmString *scm_string_set(ScmString *str, unsigned int pos,
+                          const scm_char_t *c);
 bool scm_string_is_string(ScmObj obj);
 
 #endif /* INCLUDE_STRING_H__ */
