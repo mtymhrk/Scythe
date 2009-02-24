@@ -262,7 +262,7 @@ scm_string_copy_and_expand(const ScmString *src, size_t size)
 
   assert(src != NULL);
 
-  str = scm_string_construct(NULL, size, src->enc);
+  str = scm_string_construct_new(NULL, size, src->enc);
   if (str == NULL) return NULL;
 
   str->bytesize = (size < src->bytesize) ? size : src->bytesize;
@@ -296,12 +296,20 @@ scm_string_replace_contents(ScmString *target, ScmString *src)
   (*target->ref_cnt)++;
 }
 
+/* XXX: old interface */
+/* TODO: replace scm_string_construct_new */
 ScmString *
-scm_string_construct(const void *src, size_t size, SCM_STRING_ENC_T enc)
+scm_string_construct(const char *src)
+{
+  return scm_string_construct_new(src, strlen(src), SCM_STRING_UTF8);
+}
+
+ScmString *
+scm_string_construct_new(const void *src, size_t size, SCM_STRING_ENC_T enc)
 {
   ScmString *str = NULL;
 
-  assert(0 < enc && enc < SMC_STRING_NR_ENC);
+  assert(0 <= enc && enc < SMC_STRING_NR_ENC);
 
   str = (ScmString *)scm_memory_allocate(sizeof(ScmString));
   scm_obj_init(SCM_OBJ(str), SCM_OBJ_TYPE_STRING, scm_string_pretty_print);
@@ -365,7 +373,7 @@ scm_string_copy(const ScmString *src)
 {
   assert(src != NULL);
   
-  return scm_string_construct(src->head, src->bytesize, src->enc);
+  return scm_string_construct_new(src->head, src->bytesize, src->enc);
 }
 
 ScmString *
@@ -444,16 +452,15 @@ scm_string_substr(ScmString *str, unsigned int pos, size_t len)
 }
 
 ScmString *
-scm_string_push(ScmString *str, const scm_char_t *c)
+scm_string_push(ScmString *str, const scm_char_t c)
 {
   int (*char_width)(const void *p, size_t size);
   int width;
 
   assert(str != NULL);
-  assert(c != NULL);
 
   char_width = SCM_STRING_VFUNC_CHAR_WIDTH(str->enc);
-  width = char_width(c, sizeof(*c));
+  width = char_width(&c, sizeof(c));
   if (width < 0) return NULL;
 
   if ((*str->ref_cnt > 1) || ROOM_FOR_APPEND(str) >= width) {
@@ -464,7 +471,7 @@ scm_string_push(ScmString *str, const scm_char_t *c)
     scm_string_destruct(tmp);
   }
 
-  memcpy(str->head + str->bytesize, c, width);
+  memcpy(str->head + str->bytesize, &c, width);
   str->length += 1;
   str->bytesize += width;
 
@@ -517,7 +524,7 @@ scm_string_append(ScmString *str, const ScmString *append)
 static ScmString*
 scm_string_set_less_or_same_width_char(ScmString *str,
                                        const ScmStrIter *iter,
-                                       const scm_char_t *c, size_t cw)
+                                       const scm_char_t c, size_t cw)
 {
   size_t offset;
   size_t rest;
@@ -525,7 +532,6 @@ scm_string_set_less_or_same_width_char(ScmString *str,
 
   assert(str != NULL);
   assert(iter != NULL);
-  assert(c != NULL);
 
   offset = ITER_OFFSET(iter, str->head);
   rest = ITER_REST(iter);
@@ -538,7 +544,7 @@ scm_string_set_less_or_same_width_char(ScmString *str,
     scm_string_destruct(tmp);    
   }
 
-  memcpy(str->head + offset, c, cw);
+  memcpy(str->head + offset, &c, cw);
   if (cw < iw) {
     memmove(str->head + offset + cw, str->head + offset + iw, rest - iw);
     str->bytesize -= iw - cw;
@@ -548,7 +554,7 @@ scm_string_set_less_or_same_width_char(ScmString *str,
 }
 
 ScmString *
-scm_string_set(ScmString *str, unsigned int pos, const scm_char_t *c)
+scm_string_set(ScmString *str, unsigned int pos, const scm_char_t c)
 {
   int (*char_width)(const void *p, size_t size);
   int (*index2iter)(ScmStrIter *iter,
@@ -558,7 +564,6 @@ scm_string_set(ScmString *str, unsigned int pos, const scm_char_t *c)
   int w;
 
   assert(str != NULL);
-  assert(c != NULL);
 
   if (pos >= str->length) return NULL;
 
@@ -568,7 +573,7 @@ scm_string_set(ScmString *str, unsigned int pos, const scm_char_t *c)
   index2iter(&iter, str->head, str->bytesize, pos);
   if (scm_str_iter_is_error(&iter)) return NULL;
 
-  w = char_width(c, sizeof(*c));
+  w = char_width(&c, sizeof(c));
   if (w < 0) return NULL;
 
   if (w <= ITER_WIDTH(&iter))
