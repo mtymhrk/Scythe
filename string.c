@@ -44,33 +44,6 @@ struct ScmStringRec {
 #define CAPACITY(str)((str)->capacity - ((str)->head - (str)->buffer))
 #define ROOM_FOR_APPEND(str) (CAPACITY(str) - (str)->bytesize)
 
-// TODO: change to be encdoing depende function
-static bool
-scm_string_is_char_to_be_escaped(char c)
-{
-  return (strchr("\\\"", c) != NULL);
-}
-
-// TODO: change to be encdoing depende function
-static void
-scm_string_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
-{
-  ScmString *string = NULL;
-  uint8_t *p;
-
-  assert(obj != NULL); assert(scm_string_is_string(obj));
-  assert(obuffer != NULL);
-
-  string = SCM_STRING(obj);
-
-  scm_obuffer_concatenate_char(obuffer, '"');
-  for (p = string->head; *p != '\0'; p++) {
-    if (scm_string_is_char_to_be_escaped(*p))
-      scm_obuffer_concatenate_char(obuffer, '\\');
-    scm_obuffer_concatenate_char(obuffer, *p);
-  }
-  scm_obuffer_concatenate_char(obuffer, '"');
-}
 
 static ScmStrIter 
 scm_str_iter_begin(void *p, size_t size,
@@ -254,6 +227,49 @@ static ScmStrVirtualFunc *SCM_STRING_VFUNC_TBL[] =
 #define SCM_STRING_VFUNC(enc) (SCM_STRING_VFUNC_TBL[enc])
 #define SCM_STRING_VFUNC_CHAR_WIDTH(enc) (SCM_STRING_VFUNC(enc)->char_width)
 #define SCM_STRING_VFUNC_INDEX2ITER(enc) (SCM_STRING_VFUNC(enc)->index2iter)
+
+// TODO: change to be encdoing depende function
+static bool
+scm_string_is_char_to_be_escaped(char c)
+{
+  return (strchr("\\\"", c) != NULL);
+}
+
+// TODO: change to be encdoing depende function
+static void
+scm_string_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
+{
+  int (*char_width)(const void *p, size_t size);
+  ScmString *str = NULL;
+  ScmStrIter iter;
+
+  assert(obj != NULL); assert(scm_string_is_string(obj));
+  assert(obuffer != NULL);
+
+  str = SCM_STRING(obj);
+
+  char_width = SCM_STRING_VFUNC_CHAR_WIDTH(str->enc);
+  iter = scm_str_iter_begin(str->head, str->bytesize, char_width);
+  if (scm_str_iter_is_error(&iter)) return;
+
+  scm_obuffer_concatenate_char(obuffer, '"');
+  while (!scm_str_iter_is_end(&iter)) {
+    int i, w = ITER_WIDTH(&iter);
+
+    if (w == 1
+        && scm_string_is_char_to_be_escaped(((char *)ITER_PTR(&iter))[0]))
+      scm_obuffer_concatenate_char(obuffer, '\\');
+    
+    for (i = 0; i < w; i++)
+      scm_obuffer_concatenate_char(obuffer,
+                                   ((char *)ITER_PTR(&iter))[i]);
+
+    iter = scm_str_iter_next(&iter);
+    if (scm_str_iter_is_error(&iter)) return;
+  }
+
+  scm_obuffer_concatenate_char(obuffer, '"');
+}
 
 static ScmString *
 scm_string_copy_and_expand(const ScmString *src, size_t size)
@@ -499,27 +515,28 @@ scm_string_append(ScmString *str, const ScmString *append)
   return str;
 }
 
-/* TODO: define object for Charactor */
-/* ScmChar */
-/* scm_string_ref(Utf8String *str, unsigned int pos) */
-/* { */
-/*   ScmStrIter iter; */
-/*   ScmChar c; */
-/*   int (*index2iter)(ScmStrIter *iter, */
-/*                     void *p, size_t size, unsigned int idx); */
+scm_char_t
+scm_string_ref(ScmString *str, unsigned int pos)
+{
+  ScmStrIter iter;
+  scm_char_t c;
+  int (*index2iter)(ScmStrIter *iter,
+                    void *p, size_t size, unsigned int idx);
 
-/*   assert(str != NUL); */
+  assert(str != NULL);
 
-/*   if (pos >= str->length) return c; */
+  c = 0;
+  if (pos >= str->length) return c;
 
-/*   index2iter = SCM_STRING_VFUNC_INDEX2ITER(str->enc); */
-/*   index2iter(&iter, str->head, str->bytesize, pos); */
-/*   if (scm_str_iter_is_end(&iter)) return c; */
+  index2iter = SCM_STRING_VFUNC_INDEX2ITER(str->enc);
+  index2iter(&iter, str->head, str->bytesize, pos);
+  if (scm_str_iter_is_error(&iter)) return c;
+  if (scm_str_iter_is_end(&iter)) return c;
+  
+  memcpy(&c, ITER_PTR(&iter), ITER_WIDTH(&iter));
 
-/*   memcpy(c.chr, ITER_PTR(&iter), ITER_WIDTH(&iter)); */
-
-/*   return c; */
-/* } */
+  return c;
+}
 
 static ScmString*
 scm_string_set_less_or_same_width_char(ScmString *str,
@@ -636,8 +653,8 @@ scm_string_fill(ScmString *str, unsigned int pos, size_t len, scm_char_t c)
   rslt = str;
 
  end:
-  scm_string_destruct(front);
-  scm_string_destruct(rear);
+  if (front != NULL) scm_string_destruct(front);
+  if (rear != NULL) scm_string_destruct(rear);
   return rslt;
 }
 
@@ -729,6 +746,27 @@ scm_string_match(const ScmString *str, const ScmString *pat)
   }
 
   return -1;
+}
+
+ssize_t
+scm_string_dump(const ScmString *str, void *buf, size_t size)
+{
+  ssize_t len;
+
+  assert(str != NULL);
+  assert(buf != NULL);
+
+  len = (size < str->bytesize) ? size : str->bytesize;
+  memcpy(buf, str->head, len); // XXX
+
+  return len;
+}
+
+void *
+scm_string_content(const ScmString *str)
+{
+  assert(str != NULL);
+  return str->head;
 }
 
 bool

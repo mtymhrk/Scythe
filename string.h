@@ -34,12 +34,15 @@ bool scm_string_is_equal(ScmString *str1, ScmString *str2);
 ScmString *scm_string_substr(ScmString *str, unsigned int pos, size_t len);
 ScmString *scm_string_push(ScmString *str, const scm_char_t c);
 ScmString *scm_string_append(ScmString *str, const ScmString *append);
+scm_char_t scm_string_ref(ScmString *str, unsigned int pos);
 ScmString *scm_string_set(ScmString *str, unsigned int pos,
                           const scm_char_t c);
 ScmString *scm_string_fill(ScmString *str, unsigned int pos,
                            size_t len, scm_char_t c);
 int scm_string_find_chr(const ScmString *str, scm_char_t c);
 int scm_string_match(const ScmString *str, const ScmString *pat);
+ssize_t scm_string_dump(const ScmString *str, void *buf, size_t size);
+void *scm_string_content(const ScmString *str);
 bool scm_string_is_string(ScmObj obj);
 
 #endif /* INCLUDE_STRING_H__ */
