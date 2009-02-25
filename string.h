@@ -9,7 +9,12 @@ typedef struct ScmStringRec ScmString;
 typedef uint32_t scm_char_t;
 
 typedef enum {
+  //  SCM_STRING_ASCII,
+  //  SCM_STRING_BINARY,
+  //  SCM_STRING_UCS4,
   SCM_STRING_UTF8,
+  //  SCM_STRING_EUCJP,
+  //  SCM_STRING_SJIS,
   SMC_STRING_NR_ENC
 } SCM_STRING_ENC_T;
 
@@ -31,6 +36,10 @@ ScmString *scm_string_push(ScmString *str, const scm_char_t c);
 ScmString *scm_string_append(ScmString *str, const ScmString *append);
 ScmString *scm_string_set(ScmString *str, unsigned int pos,
                           const scm_char_t c);
+ScmString *scm_string_fill(ScmString *str, unsigned int pos,
+                           size_t len, scm_char_t c);
+int scm_string_find_chr(const ScmString *str, scm_char_t c);
+int scm_string_match(const ScmString *str, const ScmString *pat);
 bool scm_string_is_string(ScmObj obj);
 
 #endif /* INCLUDE_STRING_H__ */
