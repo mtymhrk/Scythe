@@ -48,7 +48,7 @@ scm_str_itr_next(const ScmStrItr *iter)
 /***********************************************************************/
 
 #define IS_VALID_UTF8_1(utf8)                   \
-  (0x00 <= (utf8)[0] && (utf8)[0] <= 0x7f)
+  (/*0x00 <= (utf8)[0] && */(utf8)[0] <= 0x7f)
 #define IS_VALID_UTF8_2(utf8)                                           \
   ((0xc2 <= (utf8)[0] && (utf8)[0] <= 0xdf) && IS_VALID_UTF8_TAIL((utf8)[1]))
 #define IS_VALID_UTF8_3(utf8)                                           \
@@ -77,7 +77,8 @@ scm_enc_char_width_utf8(const void *str, size_t len)
     return 0;
   }
   else if ((utf8[0] & 0x80) == 0x00) {
-    return (len >= 1) ? 1 : -1;
+    if (len < 1 || !IS_VALID_UTF8_1(utf8)) return -1;
+    return 1;
   }
   else if ((utf8[0] & 0xe0) == 0xc0) {
     if (len < 2 || !IS_VALID_UTF8_2(utf8)) return -1;
