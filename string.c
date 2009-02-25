@@ -25,8 +25,7 @@ typedef struct StrIterRec {
 /* TODO: change index2iter return value to ScmStrIter */
 typedef struct ScmStrVirtualFunc {
   int (*char_width)(const void *p, size_t size);
-  int (*index2iter)(ScmStrIter *iter,
-                    void *p, size_t size, unsigned int idx);
+  ScmStrIter (*index2iter)(void *p, size_t size, unsigned int idx);
 } ScmStrVirtualFunc;
 
 struct ScmStringRec {
@@ -194,28 +193,23 @@ utf8str_char_width(const void *str, size_t len)
   }    
 }
 
-static int
-utf8str_index2iter(ScmStrIter *iter, void *str, size_t size, unsigned int idx)
+static ScmStrIter 
+utf8str_index2iter(void *str, size_t size, unsigned int idx)
 {
+  ScmStrIter iter;
   int i;
 
-  if (iter == NULL) return -1;
-
-  *iter = scm_str_iter_begin(str, size, utf8str_char_width);
-  if (scm_str_iter_is_error(iter)) return -1;
+  iter = scm_str_iter_begin(str, size, utf8str_char_width);
+  if (scm_str_iter_is_error(&iter)) return iter;
 
   i = 0;
-  while (!scm_str_iter_is_end(iter) && i < idx) {
-    *iter = scm_str_iter_next(iter);
-    if (scm_str_iter_is_error(iter)) return -1;
+  while (!scm_str_iter_is_end(&iter) && i < idx) {
+    iter = scm_str_iter_next(&iter);
+    if (scm_str_iter_is_error(&iter)) return iter;
     i++;
   }
 
-  if (scm_str_iter_is_end(iter)) {
-    return (i == idx) ? 0 : -1;
-  }
-  else
-    return 0;
+  return iter;
 }
 
 static ScmStrVirtualFunc SCM_STRING_VFUNC_UTF8 =
@@ -445,16 +439,15 @@ scm_string_substr(ScmString *str, unsigned int pos, size_t len)
 {
   ScmString *substr;
   ScmStrIter head, tail;
-  int (*index2iter)(ScmStrIter *iter,
-                    void *p, size_t size, unsigned int idx);
+  ScmStrIter (*index2iter)(void *p, size_t size, unsigned int idx);
 
   assert(str != NULL);
 
   if (pos + len > str->length) return NULL;
 
   index2iter = SCM_STRING_VFUNC_INDEX2ITER(str->enc);
-  index2iter(&head, str->head, str->bytesize, pos);
-  index2iter(&tail, str->head, str->bytesize, pos + len);
+  head = index2iter(str->head, str->bytesize, pos);
+  tail = index2iter(str->head, str->bytesize, pos + len);
 
   if (scm_str_iter_is_error(&head) || scm_str_iter_is_error(&tail))
     return NULL;
@@ -520,8 +513,7 @@ scm_string_ref(ScmString *str, unsigned int pos)
 {
   ScmStrIter iter;
   scm_char_t c;
-  int (*index2iter)(ScmStrIter *iter,
-                    void *p, size_t size, unsigned int idx);
+  ScmStrIter (*index2iter)(void *p, size_t size, unsigned int idx);
 
   assert(str != NULL);
 
@@ -529,7 +521,7 @@ scm_string_ref(ScmString *str, unsigned int pos)
   if (pos >= str->length) return c;
 
   index2iter = SCM_STRING_VFUNC_INDEX2ITER(str->enc);
-  index2iter(&iter, str->head, str->bytesize, pos);
+  iter = index2iter(str->head, str->bytesize, pos);
   if (scm_str_iter_is_error(&iter)) return c;
   if (scm_str_iter_is_end(&iter)) return c;
   
@@ -574,8 +566,7 @@ ScmString *
 scm_string_set(ScmString *str, unsigned int pos, const scm_char_t c)
 {
   int (*char_width)(const void *p, size_t size);
-  int (*index2iter)(ScmStrIter *iter,
-                    void *p, size_t size, unsigned int idx);
+  ScmStrIter (*index2iter)(void *p, size_t size, unsigned int idx);
   ScmStrIter iter;
   ScmString *rslt, *front, *rear;
   int w;
@@ -587,7 +578,7 @@ scm_string_set(ScmString *str, unsigned int pos, const scm_char_t c)
   index2iter = SCM_STRING_VFUNC_INDEX2ITER(str->enc);
   char_width = SCM_STRING_VFUNC_CHAR_WIDTH(str->enc);
 
-  index2iter(&iter, str->head, str->bytesize, pos);
+  iter = index2iter(str->head, str->bytesize, pos);
   if (scm_str_iter_is_error(&iter)) return NULL;
 
   w = char_width(&c, sizeof(c));
