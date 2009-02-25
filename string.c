@@ -25,7 +25,7 @@ struct ScmStringRec {
   size_t bytesize;
   size_t length;
   int *ref_cnt;
-  SCM_STRING_ENC_T enc;
+  SCM_ENCODING_T enc;
 };
 
 #define SCM_STRING_BLOCK_SIZE  64
@@ -167,15 +167,15 @@ scm_string_replace_contents(ScmString *target, ScmString *src)
 ScmString *
 scm_string_construct(const char *src)
 {
-  return scm_string_construct_new(src, strlen(src), SCM_STRING_UTF8);
+  return scm_string_construct_new(src, strlen(src), SCM_ENCODING_UTF8);
 }
 
 ScmString *
-scm_string_construct_new(const void *src, size_t size, SCM_STRING_ENC_T enc)
+scm_string_construct_new(const void *src, size_t size, SCM_ENCODING_T enc)
 {
   ScmString *str = NULL;
 
-  assert(0 <= enc && enc < SMC_STRING_NR_ENC);
+  assert(0 <= enc && enc < SMC_ENCODING_NR_ENC);
 
   str = (ScmString *)scm_memory_allocate(sizeof(ScmString));
   scm_obj_init(SCM_OBJ(str), SCM_OBJ_TYPE_STRING, scm_string_pretty_print);

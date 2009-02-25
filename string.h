@@ -5,18 +5,10 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include "encoding.h"
+
 typedef struct ScmStringRec ScmString;
 typedef uint32_t scm_char_t;
-
-typedef enum {
-  //  SCM_STRING_ASCII,
-  //  SCM_STRING_BINARY,
-  //  SCM_STRING_UCS4,
-  SCM_STRING_UTF8,
-  //  SCM_STRING_EUCJP,
-  //  SCM_STRING_SJIS,
-  SMC_STRING_NR_ENC
-} SCM_STRING_ENC_T;
 
 #define SCM_STRING(obj) ((ScmString *)(obj))
 
@@ -24,7 +16,7 @@ typedef enum {
 
 ScmString *scm_string_construct(const char *src);
 ScmString *scm_string_construct_new(const void *src,
-                                    size_t size, SCM_STRING_ENC_T enc);
+                                    size_t size, SCM_ENCODING_T enc);
 void scm_string_destruct(ScmString *str);
 ScmString *scm_string_copy(const ScmString *src);
 ScmString *scm_string_dup(ScmString *src);

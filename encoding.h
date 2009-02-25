@@ -5,6 +5,16 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
+typedef enum {
+  //  SCM_STRING_ASCII,
+  //  SCM_STRING_BINARY,
+  //  SCM_STRING_UCS4,
+  SCM_ENCODING_UTF8,
+  //  SCM_STRING_EUCJP,
+  //  SCM_STRING_SJIS,
+  SMC_ENCODING_NR_ENC
+} SCM_ENCODING_T;
+
 typedef struct ScmStrItrRec {
   void *p;
   size_t rest;
