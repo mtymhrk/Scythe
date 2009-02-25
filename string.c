@@ -7,25 +7,14 @@
 #include "memory.h"
 #include "object.h"
 #include "obuffer.h"
+#include "encoding.h"
 #include "string.h"
-
-typedef struct StrIterRec {
-  void *p;
-  size_t rest;
-  int (*char_width)(const void *p, size_t size);
-} ScmStrIter;
-
-#define ITER_PTR(iter) ((iter)->p)
-#define ITER_REST(iter) ((iter)->rest)
-#define ITER_WIDTH(iter) ((iter)->char_width(ITER_PTR(iter), ITER_REST(iter)))
-#define ITER_COPY(iter, copy) (*(copy) = *(iter))
-#define ITER_OFFSET(iter, head) ((uint8_t *)ITER_PTR(iter) -  (uint8_t *)head);
 
 /* encoding depending function table */
 /* TODO: change index2iter return value to ScmStrIter */
 typedef struct ScmStrVirtualFunc {
   int (*char_width)(const void *p, size_t size);
-  ScmStrIter (*index2iter)(void *p, size_t size, unsigned int idx);
+  ScmStrItr (*index2iter)(void *p, size_t size, unsigned int idx);
 } ScmStrVirtualFunc;
 
 struct ScmStringRec {
@@ -44,176 +33,8 @@ struct ScmStringRec {
 #define ROOM_FOR_APPEND(str) (CAPACITY(str) - (str)->bytesize)
 
 
-static ScmStrIter 
-scm_str_iter_begin(void *p, size_t size,
-                   int (*char_width)(const void *p, size_t size))
-{
-  ScmStrIter iter;
-
-  iter.p = p;
-  iter.rest = size;
-
-  if (char_width == NULL) {
-    iter.char_width = NULL;
-    iter.rest = -1;
-    return iter;
-  }
-  else {
-    iter.char_width = char_width;
-  }
-
-  return iter;
-}
-
-static ScmStrIter
-scm_str_iter_next(const ScmStrIter *iter)
-{
-  ScmStrIter next;
-  int w;
-
-  next.p = NULL;
-  next.rest = -1;
-  next.char_width = NULL;
-
-  if (iter == NULL) return next;
-  if (iter->rest <= 0) return *iter;
-
-  w = ITER_WIDTH(iter);
-  next.p = (uint8_t *)iter->p + w;
-  next.rest = iter->rest - w;
-  next.char_width = iter->char_width;
-
-  return next;
-}
-
-static bool
-scm_str_iter_is_end(const ScmStrIter *iter)
-{
-  if (iter == NULL) return true;
-
-  return (iter->rest == 0) ? true : false;
-}
-
-static bool
-scm_str_iter_is_error(const ScmStrIter *iter)
-{
-  if (iter == NULL) return true;
-
-  return (iter->rest < 0) ? true : false;
-}
-
-static ssize_t
-scm_str_check_bytes(const void *str, size_t size, ScmStrVirtualFunc *vf)
-{
-  ScmStrIter iter;
-  ssize_t len;
-
-  if (str == NULL || vf == NULL) return -1;
-
-  iter = scm_str_iter_begin((void *)str, size, vf->char_width);
-  if (scm_str_iter_is_error(&iter)) return -1;
-
-  len = 0;
-  while (!scm_str_iter_is_end(&iter)) {
-    len++;
-    iter = scm_str_iter_next(&iter);
-    if (scm_str_iter_is_error(&iter)) return -1;
-  }
-
-  return len;
-}
-
-static ssize_t
-scm_str_copy_bytes_with_checking_validity(void *dst,
-                                          const void *src, size_t size,
-                                          ScmStrVirtualFunc *vf)
-{
-  ssize_t len;
-
-  if (dst == NULL || src == NULL || vf == NULL) return -1;
-
-  len = scm_str_check_bytes(src, size, vf);
-  if (len < 0) return -1;
-
-  memcpy(dst, src, size);
-  return len;
-}
-
-
-/***********************************************************************
- * encoding depende functions
- ***********************************************************************/
-
-#define IS_VALID_UTF8_1(utf8)                   \
-  (0x00 <= (utf8)[0] && (utf8)[0] <= 0x7f)
-#define IS_VALID_UTF8_2(utf8)                                           \
-  ((0xc2 <= (utf8)[0] && (utf8)[0] <= 0xdf) && IS_VALID_UTF8_TAIL((utf8)[1]))
-#define IS_VALID_UTF8_3(utf8)                                           \
-  ((((utf8)[0] == 0xe0 && (0xa0 <= (utf8)[1] && (utf8)[1] <= 0xbf))     \
-    || ((0xe1 <= (utf8)[0] && (utf8)[0] <= 0xec)                        \
-        && IS_VALID_UTF8_TAIL((utf8)[1]))                               \
-    || ((utf8)[0] == 0xed && (0x80 <= (utf8)[1] && (utf8)[1] <= 0x9f))  \
-    || ((0xee <= (utf8)[0] && (utf8)[0] <= 0xef)                        \
-        && IS_VALID_UTF8_TAIL((utf8)[1])))                              \
-   && IS_VALID_UTF8_TAIL((utf8)[2]))
-#define IS_VALID_UTF8_4(utf8)                                           \
-  ((((utf8)[0] == 0xf0 && (0x90 <= (utf8)[1] && (utf8)[1] <= 0xbf))     \
-    || ((0xf1 <= (utf8)[0] && (utf8)[0] <= 0xf3)                        \
-        && IS_VALID_UTF8_TAIL((utf8)[1]))                               \
-    || ((utf8)[0] == 0xf4 && (0x80 <= (utf8)[1] && (utf8)[1] <= 0x8f))) \
-   && IS_VALID_UTF8_TAIL((utf8)[2]) && IS_VALID_UTF8_TAIL((utf8)[3]))
-#define IS_VALID_UTF8_TAIL(utf8chr)             \
-  (0x80 <= (utf8chr) && (utf8chr) <= 0xbf)
-
-static int
-utf8str_char_width(const void *str, size_t len)
-{
-  const uint8_t *utf8 = str;
-
-  if (utf8 == NULL) {
-    return 0;
-  }
-  else if ((utf8[0] & 0x80) == 0x00) {
-    return (len >= 1) ? 1 : -1;
-  }
-  else if ((utf8[0] & 0xe0) == 0xc0) {
-    if (len < 2 || !IS_VALID_UTF8_2(utf8)) return -1;
-    return 2;
-  }
-  else if ((utf8[0] & 0xf0) == 0xe0) {
-    if (len < 3 || !IS_VALID_UTF8_3(utf8)) return -1;
-    return 3;
-  }
-  else if ((utf8[0] & 0xf8) == 0xf0) {
-    if (len < 4 || !IS_VALID_UTF8_4(utf8)) return -1;
-    return 4;
-  }
-  else {
-    return -1;
-  }    
-}
-
-static ScmStrIter 
-utf8str_index2iter(void *str, size_t size, unsigned int idx)
-{
-  ScmStrIter iter;
-  int i;
-
-  iter = scm_str_iter_begin(str, size, utf8str_char_width);
-  if (scm_str_iter_is_error(&iter)) return iter;
-
-  i = 0;
-  while (!scm_str_iter_is_end(&iter) && i < idx) {
-    iter = scm_str_iter_next(&iter);
-    if (scm_str_iter_is_error(&iter)) return iter;
-    i++;
-  }
-
-  return iter;
-}
-
 static ScmStrVirtualFunc SCM_STRING_VFUNC_UTF8 =
-  { utf8str_char_width, utf8str_index2iter };
+  { scm_enc_char_width_utf8, scm_enc_index2itr_utf8 };
 
 static ScmStrVirtualFunc *SCM_STRING_VFUNC_TBL[] =
   { &SCM_STRING_VFUNC_UTF8 };
@@ -221,6 +42,43 @@ static ScmStrVirtualFunc *SCM_STRING_VFUNC_TBL[] =
 #define SCM_STRING_VFUNC(enc) (SCM_STRING_VFUNC_TBL[enc])
 #define SCM_STRING_VFUNC_CHAR_WIDTH(enc) (SCM_STRING_VFUNC(enc)->char_width)
 #define SCM_STRING_VFUNC_INDEX2ITER(enc) (SCM_STRING_VFUNC(enc)->index2iter)
+
+
+static ssize_t
+scm_string_check_bytes(const void *str, size_t size, ScmStrVirtualFunc *vf)
+{
+  ScmStrItr iter;
+  ssize_t len;
+
+  if (str == NULL || vf == NULL) return -1;
+
+  iter = scm_str_itr_begin((void *)str, size, vf->char_width);
+  if (SCM_STR_ITR_IS_ERR(&iter)) return -1;
+
+  len = 0;
+  while (!SCM_STR_ITR_IS_END(&iter)) {
+    len++;
+    iter = scm_str_itr_next(&iter);
+    if (SCM_STR_ITR_IS_ERR(&iter)) return -1;
+  }
+
+  return len;
+}
+
+static ssize_t
+scm_string_copy_bytes_with_check(void *dst, const void *src, size_t size,
+                                 ScmStrVirtualFunc *vf)
+{
+  ssize_t len;
+
+  if (dst == NULL || src == NULL || vf == NULL) return -1;
+
+  len = scm_string_check_bytes(src, size, vf);
+  if (len < 0) return -1;
+
+  memcpy(dst, src, size);
+  return len;
+}
 
 // TODO: change to be encdoing depende function
 static bool
@@ -235,7 +93,7 @@ scm_string_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
 {
   int (*char_width)(const void *p, size_t size);
   ScmString *str = NULL;
-  ScmStrIter iter;
+  ScmStrItr iter;
 
   assert(obj != NULL); assert(scm_string_is_string(obj));
   assert(obuffer != NULL);
@@ -243,23 +101,23 @@ scm_string_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
   str = SCM_STRING(obj);
 
   char_width = SCM_STRING_VFUNC_CHAR_WIDTH(str->enc);
-  iter = scm_str_iter_begin(str->head, str->bytesize, char_width);
-  if (scm_str_iter_is_error(&iter)) return;
+  iter = scm_str_itr_begin(str->head, str->bytesize, char_width);
+  if (SCM_STR_ITR_IS_ERR(&iter)) return;
 
   scm_obuffer_concatenate_char(obuffer, '"');
-  while (!scm_str_iter_is_end(&iter)) {
-    int i, w = ITER_WIDTH(&iter);
+  while (!SCM_STR_ITR_IS_END(&iter)) {
+    int i, w = SCM_STR_ITR_WIDTH(&iter);
 
     if (w == 1
-        && scm_string_is_char_to_be_escaped(((char *)ITER_PTR(&iter))[0]))
+        && scm_string_is_char_to_be_escaped(((char *)SCM_STR_ITR_PTR(&iter))[0]))
       scm_obuffer_concatenate_char(obuffer, '\\');
     
     for (i = 0; i < w; i++)
       scm_obuffer_concatenate_char(obuffer,
-                                   ((char *)ITER_PTR(&iter))[i]);
+                                   ((char *)SCM_STR_ITR_PTR(&iter))[i]);
 
-    iter = scm_str_iter_next(&iter);
-    if (scm_str_iter_is_error(&iter)) return;
+    iter = scm_str_itr_next(&iter);
+    if (SCM_STR_ITR_IS_ERR(&iter)) return;
   }
 
   scm_obuffer_concatenate_char(obuffer, '"');
@@ -277,10 +135,8 @@ scm_string_copy_and_expand(const ScmString *src, size_t size)
 
   str->bytesize = (size < src->bytesize) ? size : src->bytesize;
   str->length
-    = scm_str_copy_bytes_with_checking_validity(str->buffer,
-                                                src->head,
-                                                src->bytesize,
-                                                SCM_STRING_VFUNC(src->enc));
+    = scm_string_copy_bytes_with_check(str->buffer, src->head, src->bytesize,
+                                       SCM_STRING_VFUNC(src->enc));
   if (str->length < 0) {
     scm_string_destruct(str);
     return NULL;
@@ -342,9 +198,8 @@ scm_string_construct_new(const void *src, size_t size, SCM_STRING_ENC_T enc)
 
   if (src != NULL) {
     str->length
-      = scm_str_copy_bytes_with_checking_validity(str->buffer,
-                                                  src, size,
-                                                  SCM_STRING_VFUNC(enc));
+      = scm_string_copy_bytes_with_check(str->buffer, src, size,
+                                         SCM_STRING_VFUNC(enc));
     if (str->length < 0) goto err;
     str->bytesize = size;
   }
@@ -438,8 +293,8 @@ ScmString *
 scm_string_substr(ScmString *str, unsigned int pos, size_t len)
 {
   ScmString *substr;
-  ScmStrIter head, tail;
-  ScmStrIter (*index2iter)(void *p, size_t size, unsigned int idx);
+  ScmStrItr head, tail;
+  ScmStrItr (*index2iter)(void *p, size_t size, unsigned int idx);
 
   assert(str != NULL);
 
@@ -449,13 +304,14 @@ scm_string_substr(ScmString *str, unsigned int pos, size_t len)
   head = index2iter(str->head, str->bytesize, pos);
   tail = index2iter(str->head, str->bytesize, pos + len);
 
-  if (scm_str_iter_is_error(&head) || scm_str_iter_is_error(&tail))
+  if (SCM_STR_ITR_IS_ERR(&head) || SCM_STR_ITR_IS_ERR(&tail))
     return NULL;
 
   substr = scm_string_dup(str);
-  substr->head = (uint8_t *)ITER_PTR(&head);
+  substr->head = (uint8_t *)SCM_STR_ITR_PTR(&head);
   substr->length = len;
-  substr->bytesize = (uint8_t *)ITER_PTR(&tail) - (uint8_t *)ITER_PTR(&head);
+  substr->bytesize
+    = (uint8_t *)SCM_STR_ITR_PTR(&tail) - (uint8_t *)SCM_STR_ITR_PTR(&head);
 
   return substr;
 }
@@ -472,7 +328,7 @@ scm_string_push(ScmString *str, const scm_char_t c)
   width = char_width(&c, sizeof(c));
   if (width < 0) return NULL;
 
-  if ((*str->ref_cnt > 1) || ROOM_FOR_APPEND(str) >= width) {
+  if ((*str->ref_cnt > 1) || ROOM_FOR_APPEND(str) < width) {
     ScmString *tmp
       = scm_string_copy_and_expand(str, str->bytesize + width);
     if (tmp == NULL) return NULL;
@@ -511,9 +367,9 @@ scm_string_append(ScmString *str, const ScmString *append)
 scm_char_t
 scm_string_ref(ScmString *str, unsigned int pos)
 {
-  ScmStrIter iter;
+  ScmStrItr iter;
   scm_char_t c;
-  ScmStrIter (*index2iter)(void *p, size_t size, unsigned int idx);
+  ScmStrItr (*index2iter)(void *p, size_t size, unsigned int idx);
 
   assert(str != NULL);
 
@@ -522,17 +378,17 @@ scm_string_ref(ScmString *str, unsigned int pos)
 
   index2iter = SCM_STRING_VFUNC_INDEX2ITER(str->enc);
   iter = index2iter(str->head, str->bytesize, pos);
-  if (scm_str_iter_is_error(&iter)) return c;
-  if (scm_str_iter_is_end(&iter)) return c;
+  if (SCM_STR_ITR_IS_ERR(&iter)) return c;
+  if (SCM_STR_ITR_IS_END(&iter)) return c;
   
-  memcpy(&c, ITER_PTR(&iter), ITER_WIDTH(&iter));
+  memcpy(&c, SCM_STR_ITR_PTR(&iter), SCM_STR_ITR_WIDTH(&iter));
 
   return c;
 }
 
 static ScmString*
 scm_string_set_less_or_same_width_char(ScmString *str,
-                                       const ScmStrIter *iter,
+                                       const ScmStrItr *iter,
                                        const scm_char_t c, size_t cw)
 {
   size_t offset;
@@ -542,9 +398,9 @@ scm_string_set_less_or_same_width_char(ScmString *str,
   assert(str != NULL);
   assert(iter != NULL);
 
-  offset = ITER_OFFSET(iter, str->head);
-  rest = ITER_REST(iter);
-  iw = ITER_WIDTH(iter);
+  offset = SCM_STR_ITR_OFFSET(iter, str->head);
+  rest = SCM_STR_ITR_REST(iter);
+  iw = SCM_STR_ITR_WIDTH(iter);
 
   if (*str->ref_cnt > 1) {
     ScmString *tmp = scm_string_copy(str);
@@ -566,8 +422,8 @@ ScmString *
 scm_string_set(ScmString *str, unsigned int pos, const scm_char_t c)
 {
   int (*char_width)(const void *p, size_t size);
-  ScmStrIter (*index2iter)(void *p, size_t size, unsigned int idx);
-  ScmStrIter iter;
+  ScmStrItr (*index2iter)(void *p, size_t size, unsigned int idx);
+  ScmStrItr iter;
   ScmString *rslt, *front, *rear;
   int w;
 
@@ -579,12 +435,12 @@ scm_string_set(ScmString *str, unsigned int pos, const scm_char_t c)
   char_width = SCM_STRING_VFUNC_CHAR_WIDTH(str->enc);
 
   iter = index2iter(str->head, str->bytesize, pos);
-  if (scm_str_iter_is_error(&iter)) return NULL;
+  if (SCM_STR_ITR_IS_ERR(&iter)) return NULL;
 
   w = char_width(&c, sizeof(c));
   if (w < 0) return NULL;
 
-  if (w <= ITER_WIDTH(&iter))
+  if (w <= SCM_STR_ITR_WIDTH(&iter))
     return scm_string_set_less_or_same_width_char(str, &iter, c, w);
 
   rslt = front = rear = NULL;
@@ -653,7 +509,7 @@ int
 scm_string_find_chr(const ScmString *str, scm_char_t c)
 {
   int (*char_width)(const void *p, size_t size);
-  ScmStrIter iter;
+  ScmStrItr iter;
   int cw, pos;
 
   assert(str != NULL);
@@ -662,18 +518,18 @@ scm_string_find_chr(const ScmString *str, scm_char_t c)
   cw = char_width(&c, sizeof(c));
   if (cw < 0) return -1;
 
-  iter = scm_str_iter_begin(str->head, str->bytesize, char_width);
-  if (scm_str_iter_is_error(&iter)) return -1;
+  iter = scm_str_itr_begin(str->head, str->bytesize, char_width);
+  if (SCM_STR_ITR_IS_ERR(&iter)) return -1;
 
   pos = 0;
-  while (!scm_str_iter_is_end(&iter)) {
-    int w = ITER_WIDTH(&iter);
+  while (!SCM_STR_ITR_IS_END(&iter)) {
+    int w = SCM_STR_ITR_WIDTH(&iter);
     if (w < 0) return -1;
-    if ((cw == w) && (memcmp(&c, ITER_PTR(&iter), cw) == 0))
+    if ((cw == w) && (memcmp(&c, SCM_STR_ITR_PTR(&iter), cw) == 0))
       return pos;
 
-    iter = scm_str_iter_next(&iter);
-    if (scm_str_iter_is_error(&iter)) return -1;
+    iter = scm_str_itr_next(&iter);
+    if (SCM_STR_ITR_IS_ERR(&iter)) return -1;
 
     pos++;
   }
@@ -685,7 +541,7 @@ int
 scm_string_match(const ScmString *str, const ScmString *pat)
 {
   int (*char_width)(const void *p, size_t size);
-  ScmStrIter iter_str_ext, iter_pat;
+  ScmStrItr iter_str_ext, iter_pat;
   int pos;
 
   pos = 0;
@@ -698,40 +554,42 @@ scm_string_match(const ScmString *str, const ScmString *pat)
   
   char_width = SCM_STRING_VFUNC_CHAR_WIDTH(str->enc);
 
-  iter_str_ext = scm_str_iter_begin(str->head, str->bytesize, char_width);
-  if (scm_str_iter_is_error(&iter_str_ext)) return -1;
+  iter_str_ext = scm_str_itr_begin(str->head, str->bytesize, char_width);
+  if (SCM_STR_ITR_IS_ERR(&iter_str_ext)) return -1;
 
-  while (!scm_str_iter_is_end(&iter_str_ext)) {
-    ScmStrIter iter_str_inn;
+  while (!SCM_STR_ITR_IS_END(&iter_str_ext)) {
+    ScmStrItr iter_str_inn;
 
-    ITER_COPY(&iter_str_ext, &iter_str_inn);
+    SCM_STR_ITR_COPY(&iter_str_ext, &iter_str_inn);
 
-    iter_pat = scm_str_iter_begin(pat->head, pat->bytesize, char_width);
-    if (scm_str_iter_is_error(&iter_pat)) return -1;
+    iter_pat = scm_str_itr_begin(pat->head, pat->bytesize, char_width);
+    if (SCM_STR_ITR_IS_ERR(&iter_pat)) return -1;
 
-    if (ITER_REST(&iter_str_ext) < ITER_REST(&iter_pat))
+    if (SCM_STR_ITR_REST(&iter_str_ext) < SCM_STR_ITR_REST(&iter_pat))
       return -1;
 
-    while (!scm_str_iter_is_end(&iter_str_inn)
-           && !scm_str_iter_is_end(&iter_pat)) {
+    while (!SCM_STR_ITR_IS_END(&iter_str_inn)
+           && !SCM_STR_ITR_IS_END(&iter_pat)) {
 
-      if (ITER_WIDTH(&iter_str_inn) != ITER_WIDTH(&iter_pat)) break;
-      if (memcmp(ITER_PTR(&iter_str_inn), ITER_PTR(&iter_pat),
-                 ITER_WIDTH(&iter_str_inn)) != 0)
+      if (SCM_STR_ITR_WIDTH(&iter_str_inn) != SCM_STR_ITR_WIDTH(&iter_pat))
         break;
 
-      iter_str_inn = scm_str_iter_next(&iter_str_inn);
-      if (scm_str_iter_is_error(&iter_str_inn)) return -1;
+      if (memcmp(SCM_STR_ITR_PTR(&iter_str_inn), SCM_STR_ITR_PTR(&iter_pat),
+                 SCM_STR_ITR_WIDTH(&iter_str_inn)) != 0)
+        break;
 
-      iter_pat = scm_str_iter_next(&iter_pat);
-      if (scm_str_iter_is_error(&iter_pat)) return -1;
+      iter_str_inn = scm_str_itr_next(&iter_str_inn);
+      if (SCM_STR_ITR_IS_ERR(&iter_str_inn)) return -1;
+
+      iter_pat = scm_str_itr_next(&iter_pat);
+      if (SCM_STR_ITR_IS_ERR(&iter_pat)) return -1;
     }
 
-    if (scm_str_iter_is_end(&iter_pat))
+    if (SCM_STR_ITR_IS_END(&iter_pat))
       return pos;
 
-    iter_str_ext = scm_str_iter_next(&iter_str_ext);
-    if (scm_str_iter_is_error(&iter_str_ext)) return -1;;
+    iter_str_ext = scm_str_itr_next(&iter_str_ext);
+    if (SCM_STR_ITR_IS_ERR(&iter_str_ext)) return -1;;
 
     pos++;
   }

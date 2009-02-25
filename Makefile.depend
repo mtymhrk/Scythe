@@ -3,7 +3,7 @@ nil.o: nil.c memory.h object.h obuffer.h nil.h
 object.o: object.c object.h obuffer.h
 pair.o: pair.c memory.h object.h obuffer.h pair.h nil.h
 obuffer.o: obuffer.c memory.h object.h obuffer.h
-string.o: string.c memory.h object.h obuffer.h string.h
+string.o: string.c memory.h object.h obuffer.h encoding.h string.h
 symbol.o: symbol.c memory.h object.h obuffer.h basichash.h symbol.h
 basichash.o: basichash.c memory.h basichash.h
 integer.o: integer.c memory.h object.h obuffer.h integer.h
@@ -20,3 +20,4 @@ port.o: port.c memory.h object.h obuffer.h charconv.h port.h
 charconv.o: charconv.c memory.h charconv.h
 ucs4.o: ucs4.c ucs4.h
 utf8.o: utf8.c utf8.h
+encoding.o: encoding.c encoding.h
