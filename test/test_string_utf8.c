@@ -182,12 +182,12 @@ test_scm_string_push(void)
 void
 test_scm_string_append(void)
 {
-  char expected[] = "この文字列は正しい。前の文は誤りである。";
+  char expected[] = "次の文は正しい。前の文は誤りである。";
   char actual[256];
   int len;
 
-  ScmString *str = scm_string_construct_new("この文字列は正しい。",
-                                            sizeof("この文字列は正しい。") - 1,
+  ScmString *str = scm_string_construct_new("次の文は正しい。",
+                                            sizeof("次の文は正しい。") - 1,
                                             SCM_ENCODING_UTF8);
   ScmString *apnd = scm_string_construct_new("前の文は誤りである。",
                                              sizeof("前の文は誤りである。") - 1,
@@ -195,7 +195,7 @@ test_scm_string_append(void)
 
   cut_assert_not_null(scm_string_append(str, apnd));
 
-  cut_assert_equal_int(20, scm_string_length(str));
+  cut_assert_equal_int(18, scm_string_length(str));
   cut_assert_equal_int(sizeof(expected) - 1, scm_string_bytesize(str));
 
   len = scm_string_dump(str, actual, sizeof(actual));

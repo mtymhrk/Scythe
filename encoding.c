@@ -171,7 +171,7 @@ scm_enc_index2itr_ucs4(void *str, size_t size, unsigned int idx)
     SCM_STR_ITR_MAKE_ERR(&iter);  
     return iter;
   }
-  else if (offset + sizeof(*ucs4) > size) {
+  else if (offset > size) {
     SCM_STR_ITR_MAKE_ERR(&iter);  
     return iter;
   }
@@ -185,9 +185,12 @@ ssize_t
 scm_enc_utf8_to_ucs4(const uint8_t *utf8, size_t utf8_len, uint32_t *ucs4)
 {
   if (utf8 == NULL) return -1;
-  if (utf8_len == 0) return 0;
 
-  if ((utf8[0] & 0x80) == 0x00) {
+  if (utf8_len == 0) {
+    *ucs4 = 0;
+    return 0;
+  }
+  else if ((utf8[0] & 0x80) == 0x00) {
     *ucs4 = UCS4CHR(utf8[0]);
     return 1;
   }
