@@ -1,5 +1,12 @@
 #include "encoding.h"
 
+#define SCM_STR_ITR_MAKE_ERR(iter)              \
+  do {                                          \
+    (iter)->p = NULL;                           \
+    (iter)->rest = -1;                          \
+    (iter)->char_width = NULL;                  \
+  } while(0)
+
 ScmStrItr 
 scm_str_itr_begin(void *p, size_t size,
                   int (*char_width)(const void *p, size_t size))
@@ -9,7 +16,7 @@ scm_str_itr_begin(void *p, size_t size,
   iter.p = p;
   iter.rest = size;
 
-  if (char_width == NULL) {
+  if (p == NULL || char_width == NULL) {
     iter.char_width = NULL;
     iter.rest = -1;
     return iter;
@@ -35,6 +42,8 @@ scm_str_itr_next(const ScmStrItr *iter)
   if (iter->rest <= 0) return *iter;
 
   w = SCM_STR_ITR_WIDTH(iter);
+  if (w < 0) return next;
+
   next.p = (uint8_t *)iter->p + w;
   next.rest = iter->rest - w;
   next.char_width = iter->char_width;
@@ -96,7 +105,7 @@ scm_enc_char_width_utf8(const void *str, size_t len)
   const uint8_t *utf8 = str;
 
   if (utf8 == NULL) {
-    return 0;
+    return -1;
   }
   else if ((utf8[0] & 0x80) == 0x00) {
     if (len < 1 || !IS_VALID_UTF8_1(utf8)) return -1;
@@ -124,4 +133,86 @@ scm_enc_index2itr_utf8(void *str, size_t size, unsigned int idx)
 {
   return scm_enc_index2itr_variable_width(str, size, idx,
                                           scm_enc_char_width_utf8);
+}
+
+
+/***********************************************************************/
+/*   UCS4                                                              */
+/***********************************************************************/
+
+/* XXX: is this correct ? */
+#define IS_VALID_UCS4(ucs4) \
+  (ucs4 <= 0xd7ff || (0xe000 <= ucs4 && ucs4 <= 0xfffd) \
+   || (0x10000 <= ucs4 && ucs4 <= 0x10ffff))
+
+int
+scm_enc_char_width_ucs4(const void *str, size_t len)
+{
+  const uint32_t *ucs4 = str;
+
+  if (ucs4 == NULL)
+    return -1;
+  else if (len >= 4 && IS_VALID_UCS4(*ucs4))
+    return 4;
+  else
+    return -1;
+}
+
+ScmStrItr
+scm_enc_index2itr_ucs4(void *str, size_t size, unsigned int idx)
+{
+  ScmStrItr iter;
+  uint32_t *ucs4 = str;
+  size_t offset;
+
+  offset = sizeof(*ucs4) * idx;
+
+  if (ucs4 == NULL) {
+    SCM_STR_ITR_MAKE_ERR(&iter);  
+    return iter;
+  }
+  else if (offset + sizeof(*ucs4) > size) {
+    SCM_STR_ITR_MAKE_ERR(&iter);  
+    return iter;
+  }
+  
+  return scm_str_itr_begin(ucs4 + idx, size - offset, scm_enc_char_width_ucs4);
+}
+
+#define UCS4CHR(c) ((uint32_t)(c))
+
+ssize_t
+scm_enc_utf8_to_ucs4(const uint8_t *utf8, size_t utf8_len, uint32_t *ucs4)
+{
+  if (utf8 == NULL) return -1;
+  if (utf8_len == 0) return 0;
+
+  if ((utf8[0] & 0x80) == 0x00) {
+    *ucs4 = UCS4CHR(utf8[0]);
+    return 1;
+  }
+  else if ((utf8[0] & 0xe0) == 0xc0) {
+    if (utf8_len < 2 || !IS_VALID_UTF8_2(utf8)) return -1;
+    *ucs4 = UCS4CHR(utf8[0] & 0x1f) << 6;
+    *ucs4 |= UCS4CHR(utf8[1] & 0x3f);
+    return 2;
+  }
+  else if ((utf8[0] & 0xf0) == 0xe0) {
+    if (utf8_len < 3 || !IS_VALID_UTF8_3(utf8)) return -1;
+    *ucs4 = UCS4CHR(utf8[0] & 0x0f) << 12;
+    *ucs4 |= UCS4CHR(utf8[1] & 0x3f) << 6;
+    *ucs4 |= UCS4CHR(utf8[2] & 0x3f);
+    return 3;
+  }
+  else if ((utf8[0] & 0xf8) == 0xf0) {
+    if (utf8_len < 4 || !IS_VALID_UTF8_4(utf8)) return -1;
+    *ucs4 = UCS4CHR(utf8[0] & 0x07) << 18;
+    *ucs4 |= UCS4CHR(utf8[1] & 0x3f) << 12;
+    *ucs4 |= UCS4CHR(utf8[2] & 0x3f) << 6;
+    *ucs4 |= UCS4CHR(utf8[3] & 0x3f);
+    return 4;
+  }
+  else {
+    return -1;
+  }
 }

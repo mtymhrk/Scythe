@@ -36,8 +36,12 @@ struct ScmStringRec {
 static ScmStrVirtualFunc SCM_STRING_VFUNC_UTF8 =
   { scm_enc_char_width_utf8, scm_enc_index2itr_utf8 };
 
+static ScmStrVirtualFunc SCM_STRING_VFUNC_UCS4 =
+  { scm_enc_char_width_ucs4, scm_enc_index2itr_ucs4 };
+
 static ScmStrVirtualFunc *SCM_STRING_VFUNC_TBL[] =
-  { &SCM_STRING_VFUNC_UTF8 };
+  { &SCM_STRING_VFUNC_UCS4,
+    &SCM_STRING_VFUNC_UTF8 };
 
 #define SCM_STRING_VFUNC(enc) (SCM_STRING_VFUNC_TBL[enc])
 #define SCM_STRING_VFUNC_CHAR_WIDTH(enc) (SCM_STRING_VFUNC(enc)->char_width)
@@ -127,6 +131,7 @@ static ScmString *
 scm_string_copy_and_expand(const ScmString *src, size_t size)
 {
   ScmString *str;
+  ssize_t len;
 
   assert(src != NULL);
 
@@ -134,13 +139,14 @@ scm_string_copy_and_expand(const ScmString *src, size_t size)
   if (str == NULL) return NULL;
 
   str->bytesize = (size < src->bytesize) ? size : src->bytesize;
-  str->length
-    = scm_string_copy_bytes_with_check(str->buffer, src->head, src->bytesize,
-                                       SCM_STRING_VFUNC(src->enc));
-  if (str->length < 0) {
+  len = scm_string_copy_bytes_with_check(str->buffer, src->head, src->bytesize,
+                                         SCM_STRING_VFUNC(src->enc));
+  if (len < 0) {
     scm_string_destruct(str);
     return NULL;
   }
+
+  str->length = len;
 
   return str;
 }
@@ -197,10 +203,10 @@ scm_string_construct_new(const void *src, size_t size, SCM_ENCODING_T enc)
   *str->ref_cnt = 1;
 
   if (src != NULL) {
-    str->length
-      = scm_string_copy_bytes_with_check(str->buffer, src, size,
-                                         SCM_STRING_VFUNC(enc));
-    if (str->length < 0) goto err;
+    ssize_t len = scm_string_copy_bytes_with_check(str->buffer, src, size,
+                                                   SCM_STRING_VFUNC(enc));
+    if (len < 0) goto err;
+    str->length = len;
     str->bytesize = size;
   }
   else {
