@@ -68,6 +68,28 @@ scm_str_itr_next(const ScmStrItr *iter)
 #define IS_VALID_UTF8_TAIL(utf8chr)             \
   (0x80 <= (utf8chr) && (utf8chr) <= 0xbf)
 
+static ScmStrItr
+scm_enc_index2itr_variable_width(void *str, size_t size,
+                                 unsigned int idx, 
+                                 int (*char_width)(const void *str, size_t len))
+{
+  ScmStrItr iter;
+  int i;
+
+  iter = scm_str_itr_begin(str, size, char_width);
+  if (SCM_STR_ITR_IS_ERR(&iter)) return iter;
+
+  i = 0;
+  while (!SCM_STR_ITR_IS_END(&iter) && i < idx) {
+    iter = scm_str_itr_next(&iter);
+    if (SCM_STR_ITR_IS_ERR(&iter)) return iter;
+    i++;
+  }
+
+  return iter;
+}
+
+
 int
 scm_enc_char_width_utf8(const void *str, size_t len)
 {
@@ -100,18 +122,6 @@ scm_enc_char_width_utf8(const void *str, size_t len)
 ScmStrItr 
 scm_enc_index2itr_utf8(void *str, size_t size, unsigned int idx)
 {
-  ScmStrItr iter;
-  int i;
-
-  iter = scm_str_itr_begin(str, size, scm_enc_char_width_utf8);
-  if (SCM_STR_ITR_IS_ERR(&iter)) return iter;
-
-  i = 0;
-  while (!SCM_STR_ITR_IS_END(&iter) && i < idx) {
-    iter = scm_str_itr_next(&iter);
-    if (SCM_STR_ITR_IS_ERR(&iter)) return iter;
-    i++;
-  }
-
-  return iter;
+  return scm_enc_index2itr_variable_width(str, size, idx,
+                                          scm_enc_char_width_utf8);
 }
