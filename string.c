@@ -392,46 +392,13 @@ scm_string_ref(ScmString *str, unsigned int pos)
   return c;
 }
 
-static ScmString*
-scm_string_set_less_or_same_width_char(ScmString *str,
-                                       const ScmStrItr *iter,
-                                       const scm_char_t c, size_t cw)
-{
-  size_t offset;
-  size_t rest;
-  int iw;
-
-  assert(str != NULL);
-  assert(iter != NULL);
-
-  offset = SCM_STR_ITR_OFFSET(iter, str->head);
-  rest = SCM_STR_ITR_REST(iter);
-  iw = SCM_STR_ITR_WIDTH(iter);
-
-  if (*str->ref_cnt > 1) {
-    ScmString *tmp = scm_string_copy(str);
-    if (tmp == NULL) return NULL;
-    scm_string_replace_contents(str, tmp);
-    scm_string_destruct(tmp);    
-  }
-
-  memcpy(str->head + offset, &c, cw);
-  if (cw < iw) {
-    memmove(str->head + offset + cw, str->head + offset + iw, rest - iw);
-    str->bytesize -= iw - cw;
-  }
-
-  return str;
-}
-
 ScmString *
 scm_string_set(ScmString *str, unsigned int pos, const scm_char_t c)
 {
   int (*char_width)(const void *p, size_t size);
   ScmStrItr (*index2iter)(void *p, size_t size, unsigned int idx);
   ScmStrItr iter;
-  ScmString *rslt, *front, *rear;
-  int w;
+  int cw, iw;
 
   assert(str != NULL);
 
@@ -443,29 +410,45 @@ scm_string_set(ScmString *str, unsigned int pos, const scm_char_t c)
   iter = index2iter(str->head, str->bytesize, pos);
   if (SCM_STR_ITR_IS_ERR(&iter)) return NULL;
 
-  w = char_width(&c, sizeof(c));
-  if (w < 0) return NULL;
+  cw = char_width(&c, sizeof(c));
+  if (cw < 0) return NULL;
 
-  if (w <= SCM_STR_ITR_WIDTH(&iter))
-    return scm_string_set_less_or_same_width_char(str, &iter, c, w);
+  iw = SCM_STR_ITR_WIDTH(&iter);
+  if (iw < 0) return NULL;
 
-  rslt = front = rear = NULL;
+  if (*str->ref_cnt == 1 && ROOM_FOR_APPEND(str) >= (cw - iw)) {
+    size_t rest = SCM_STR_ITR_REST(&iter);
+    size_t offset = SCM_STR_ITR_OFFSET(&iter, str->head);
 
-  front = scm_string_substr(str, 0, pos);
-  rear = scm_string_substr(str, pos + 1, str->length - pos - 1);
+    if (cw != iw) {
+      memmove(str->head + offset + cw, str->head + offset + iw, rest - iw);
+      str->bytesize += cw - iw;
+    }
+    memcpy(str->head + offset, &c, cw);
+
+    return str;
+  }
+  else {
+    ScmString *rslt, *front, *rear;
+
+    rslt = front = rear = NULL;
+
+    front = scm_string_substr(str, 0, pos);
+    rear = scm_string_substr(str, pos + 1, str->length - pos - 1);
   
-  if (front == NULL || rear == NULL) goto end;
+    if (front == NULL || rear == NULL) goto end;
   
-  if (scm_string_push(front, c) == NULL) goto end;
-  if (scm_string_append(front, rear) == NULL) goto end;
+    if (scm_string_push(front, c) == NULL) goto end;
+    if (scm_string_append(front, rear) == NULL) goto end;
   
-  scm_string_replace_contents(str, front);
-  rslt = str;
+    scm_string_replace_contents(str, front);
+    rslt = str;
   
- end:
-  scm_string_destruct(front);
-  scm_string_destruct(rear);
-  return rslt;
+  end:
+    scm_string_destruct(front);
+    scm_string_destruct(rear);
+    return rslt;
+  }
 }
 
 /* TODO: optimize */
