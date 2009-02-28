@@ -379,7 +379,7 @@ scm_string_ref(ScmString *str, unsigned int pos)
 
   assert(str != NULL);
 
-  c = 0;
+  c = SCM_CHR_ZERO;
   if (pos >= str->length) return c;
 
   index2iter = SCM_STRING_VFUNC_INDEX2ITER(str->enc);

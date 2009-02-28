@@ -299,7 +299,7 @@ test_scm_string_ref_ucs4(void)
 
   for (i = 0; i < sizeof(expected)/sizeof(expected[1]); i++)
     utf8str_to_ucs4str(tmp[i], strlen(tmp[i]), expected + i);
-  expected[11] = 0;
+  expected[11] = SCM_CHR_ZERO;
 
   row_len = utf8str_to_ucs4str("この文字列は誤りである",
                                sizeof("この文字列は誤りである") - 1,

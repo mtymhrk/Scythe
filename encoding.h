@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <string.h>
 
 typedef enum {
   //  SCM_STRING_ASCII,
@@ -21,7 +22,17 @@ typedef struct ScmStrItrRec {
   int (*char_width)(const void *p, size_t size);
 } ScmStrItr;
 
-typedef uint32_t scm_char_t;
+typedef uint32_t scm_char_utf8_t;
+typedef uint32_t scm_char_ucs4_t;
+typedef union {
+  scm_char_utf8_t utf8;
+  scm_char_ucs4_t ucs4;
+} scm_char_t;
+
+extern scm_char_t SCM_CHR_ZERO;
+
+#define SCM_CHR_IS_ZERO(c) \
+  ((memcmp(&(c), &SCM_CHR_ZERO, sizeof(scm_char_t)) == 0) ? true : false)
 
 #define SCM_STR_ITR_PTR(iter) ((iter)->p)
 #define SCM_STR_ITR_REST(iter) ((iter)->rest)

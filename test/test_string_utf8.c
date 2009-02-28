@@ -218,6 +218,7 @@ test_scm_string_ref(void)
   memset(expected, 0, sizeof(expected));
   for (i = 0; i < sizeof(expected)/sizeof(expected[1]); i++)
     memcpy(expected + i, tmp[i], strlen(tmp[i]));
+  expected[11] = SCM_CHR_ZERO;
 
   ScmString *str = scm_string_construct_new("この文字列は誤りである",
                                             sizeof("この文字列は誤りである") - 1,

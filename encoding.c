@@ -1,5 +1,7 @@
 #include "encoding.h"
 
+scm_char_t SCM_CHR_ZERO;
+
 #define SCM_STR_ITR_MAKE_ERR(iter)              \
   do {                                          \
     (iter)->p = NULL;                           \
