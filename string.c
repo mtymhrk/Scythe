@@ -455,8 +455,8 @@ scm_string_set(ScmString *str, unsigned int pos, const scm_char_t c)
     rslt = str;
   
   end:
-    scm_string_destruct(front);
-    scm_string_destruct(rear);
+    if (front != NULL) scm_string_destruct(front);
+    if (rear != NULL) scm_string_destruct(rear);
     return rslt;
   }
 }
