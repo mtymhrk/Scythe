@@ -7,7 +7,8 @@
 void
 test_scm_string_construct(void)
 {
-  ScmString *string = scm_string_construct("foo");
+  ScmString *string = scm_string_construct("foo", sizeof("foo") - 1,
+                                           SCM_ENCODING_ASCII);
 
   cut_assert_not_null(string);
 }
@@ -15,7 +16,8 @@ test_scm_string_construct(void)
 void
 test_scm_string_is_string(void)
 {
-  ScmString *string = scm_string_construct("foo");
+  ScmString *string = scm_string_construct("foo", sizeof("foo") - 1,
+                                           SCM_ENCODING_ASCII);
   ScmNil *nil = scm_nil_construct();
 
   cut_assert_true(scm_string_is_string(SCM_OBJ(string)));

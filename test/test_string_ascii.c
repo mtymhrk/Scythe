@@ -9,8 +9,8 @@ test_scm_string_ascii(void)
   char actual[256];
   size_t len;
 
-  ScmString *str = scm_string_construct_new(expected, sizeof(expected) - 1,
-                                            SCM_ENCODING_ASCII);
+  ScmString *str = scm_string_construct(expected, sizeof(expected) - 1,
+                                        SCM_ENCODING_ASCII);
 
   cut_assert_not_null(str);
   cut_assert_equal_int(11, scm_string_length(str));
@@ -28,9 +28,9 @@ test_scm_string_copy_ascii(void)
 {
   char expected[] = "this string is fault";
   
-  ScmString *str = scm_string_construct_new(expected,
-                                            sizeof(expected) - 1,
-                                            SCM_ENCODING_ASCII);
+  ScmString *str = scm_string_construct(expected,
+                                        sizeof(expected) - 1,
+                                        SCM_ENCODING_ASCII);
   ScmString *copy = scm_string_copy(str);
   char actual[256];
   size_t len;
@@ -51,8 +51,8 @@ test_scm_string_dup_ascii(void)
 {
   char expected[] = "this string is fault";
   
-  ScmString *str = scm_string_construct_new(expected, sizeof(expected) - 1,
-                                            SCM_ENCODING_ASCII);
+  ScmString *str = scm_string_construct(expected, sizeof(expected) - 1,
+                                        SCM_ENCODING_ASCII);
   ScmString *copy = scm_string_dup(str);
   char actual[256];
   size_t len;
@@ -71,12 +71,12 @@ test_scm_string_dup_ascii(void)
 void
 test_scm_string_is_equal_compare_with_same_string_ascii(void)
 {
-  ScmString *str1 = scm_string_construct_new("this string is fault",
-                                             sizeof("this string is fault") - 1,
-                                             SCM_ENCODING_ASCII);
-  ScmString *str2 = scm_string_construct_new("this string is fault",
-                                             sizeof("this string is fault") - 1,
-                                             SCM_ENCODING_ASCII);
+  ScmString *str1 = scm_string_construct("this string is fault",
+                                         sizeof("this string is fault") - 1,
+                                         SCM_ENCODING_ASCII);
+  ScmString *str2 = scm_string_construct("this string is fault",
+                                         sizeof("this string is fault") - 1,
+                                         SCM_ENCODING_ASCII);
 
   cut_assert_true(scm_string_is_equal(str1, str2));
 
@@ -87,12 +87,12 @@ test_scm_string_is_equal_compare_with_same_string_ascii(void)
 void
 test_scm_string_is_equal_compare_with_different_string_ascii(void)
 {
-  ScmString *str1 = scm_string_construct_new("this string is fault",
-                                             sizeof("this string is fault") - 1,
-                                             SCM_ENCODING_ASCII);
-  ScmString *str2 = scm_string_construct_new("this string is not fault",
-                                             sizeof("this string is not fault") - 1,
-                                             SCM_ENCODING_ASCII);
+  ScmString *str1 = scm_string_construct("this string is fault",
+                                         sizeof("this string is fault") - 1,
+                                         SCM_ENCODING_ASCII);
+  ScmString *str2 = scm_string_construct("this string is not fault",
+                                         sizeof("this string is not fault") - 1,
+                                         SCM_ENCODING_ASCII);
 
   cut_assert_false(scm_string_is_equal(str1, str2));
 
@@ -103,9 +103,9 @@ test_scm_string_is_equal_compare_with_different_string_ascii(void)
 void
 test_scm_string_is_equal_compare_with_copy_string_ascii(void)
 {
-  ScmString *str1 = scm_string_construct_new("this string is fault",
-                                             sizeof("this string is fault") - 1,
-                                             SCM_ENCODING_ASCII);
+  ScmString *str1 = scm_string_construct("this string is fault",
+                                         sizeof("this string is fault") - 1,
+                                         SCM_ENCODING_ASCII);
   ScmString *str2 = scm_string_copy(str1);
 
   cut_assert_true(scm_string_is_equal(str1, str2));
@@ -117,9 +117,9 @@ test_scm_string_is_equal_compare_with_copy_string_ascii(void)
 void
 test_scm_string_is_equal_compare_with_duplicate_string_ascii(void)
 {
-  ScmString *str1 = scm_string_construct_new("this string is fault",
-                                             sizeof("this string is fault") - 1,
-                                             SCM_ENCODING_ASCII);
+  ScmString *str1 = scm_string_construct("this string is fault",
+                                         sizeof("this string is fault") - 1,
+                                         SCM_ENCODING_ASCII);
   ScmString *str2 = scm_string_dup(str1);
 
   cut_assert_true(scm_string_is_equal(str1, str2));
@@ -135,9 +135,9 @@ test_scm_string_substr_ascii(void)
   char actual[256];
   int len;
 
-  ScmString *str = scm_string_construct_new("this string is fault",
-                                            sizeof("this string is fault") - 1,
-                                            SCM_ENCODING_ASCII);
+  ScmString *str = scm_string_construct("this string is fault",
+                                        sizeof("this string is fault") - 1,
+                                        SCM_ENCODING_ASCII);
   ScmString *sub = scm_string_substr(str, 12, 8);
 
   cut_assert_not_null(sub);
@@ -163,9 +163,9 @@ test_scm_string_push_ascii(void)
   memset(&pushed, 0, sizeof(pushed));
   memcpy(&pushed, ".", 3);
 
-  ScmString *str = scm_string_construct_new("this string is fault",
-                                            sizeof("this string is fault") - 1,
-                                            SCM_ENCODING_ASCII);
+  ScmString *str = scm_string_construct("this string is fault",
+                                        sizeof("this string is fault") - 1,
+                                        SCM_ENCODING_ASCII);
 
   cut_assert_not_null(scm_string_push(str, pushed));
 
@@ -186,12 +186,12 @@ test_scm_string_append_ascii(void)
   char actual[256];
   int len;
 
-  ScmString *str = scm_string_construct_new("next sentence is right.",
-                                            sizeof("next sentence is right.") - 1,
-                                            SCM_ENCODING_ASCII);
-  ScmString *apnd = scm_string_construct_new(" previous sentence is fault",
-                                             sizeof(" previous sentence is fault") - 1,
-                                             SCM_ENCODING_ASCII);
+  ScmString *str = scm_string_construct("next sentence is right.",
+                                        sizeof("next sentence is right.") - 1,
+                                        SCM_ENCODING_ASCII);
+  ScmString *apnd = scm_string_construct(" previous sentence is fault",
+                                         sizeof(" previous sentence is fault") - 1,
+                                         SCM_ENCODING_ASCII);
 
   cut_assert_not_null(scm_string_append(str, apnd));
 
@@ -220,9 +220,9 @@ test_scm_string_ref_ascii(void)
     memcpy(expected + i, tmp[i], strlen(tmp[i]));
   expected[i - 1] = SCM_CHR_ZERO;
 
-  ScmString *str = scm_string_construct_new("this string is fault",
-                                            sizeof("this string is fault") - 1,
-                                            SCM_ENCODING_ASCII);
+  ScmString *str = scm_string_construct("this string is fault",
+                                        sizeof("this string is fault") - 1,
+                                        SCM_ENCODING_ASCII);
 
   actual = scm_string_ref(str, 0);
   cut_assert_equal_int(0, memcmp(expected + 0, &actual, sizeof(scm_char_t)));
@@ -299,9 +299,9 @@ test_scm_string_set_same_width_ascii(void)
   memset(&c, 0, sizeof(c));
   memcpy(&c, "d", 1);
 
-  ScmString *str = scm_string_construct_new("abc",
-                                            sizeof("abc") - 1,
-                                            SCM_ENCODING_ASCII);
+  ScmString *str = scm_string_construct("abc",
+                                        sizeof("abc") - 1,
+                                        SCM_ENCODING_ASCII);
 
   cut_assert_not_null(scm_string_set(str, 1, c));
 
@@ -326,9 +326,9 @@ test_scm_string_fill_ascii(void)
   memset(&c, 0, sizeof(c));
   memcpy(&c, "a", 1);
 
-  ScmString *str = scm_string_construct_new("next sentence is right. previous sentence is fault",
-                                            sizeof("next sentence is right. previous sentence is fault") - 1,
-                                            SCM_ENCODING_ASCII);
+  ScmString *str = scm_string_construct("next sentence is right. previous sentence is fault",
+                                        sizeof("next sentence is right. previous sentence is fault") - 1,
+                                        SCM_ENCODING_ASCII);
 
   cut_assert_not_null(scm_string_fill(str, 17, 5, c));
 
@@ -353,9 +353,9 @@ test_scm_string_fill_append_ascii(void)
   memset(&c, 0, sizeof(c));
   memcpy(&c, "a", 1);
 
-  ScmString *str = scm_string_construct_new("next sentence is right. previous sentence is fault",
-                                            sizeof("next sentence is right. previous sentence is fault") - 1,
-                                            SCM_ENCODING_ASCII);
+  ScmString *str = scm_string_construct("next sentence is right. previous sentence is fault",
+                                        sizeof("next sentence is right. previous sentence is fault") - 1,
+                                        SCM_ENCODING_ASCII);
 
 
   cut_assert_not_null(scm_string_fill(str, 48, 5, c));
@@ -378,9 +378,9 @@ test_scm_string_find_chr_found_ascii(void)
   memset(&c, 0, sizeof(c));
   memcpy(&c, "r", 1);
 
-  ScmString *str = scm_string_construct_new("this string is fault",
-                                            sizeof("this string is fault") - 1,
-                                            SCM_ENCODING_ASCII);
+  ScmString *str = scm_string_construct("this string is fault",
+                                        sizeof("this string is fault") - 1,
+                                        SCM_ENCODING_ASCII);
 
   cut_assert_equal_int(7, scm_string_find_chr(str, c));
 
@@ -395,9 +395,9 @@ test_scm_string_find_chr_not_found_ascii(void)
   memset(&c, 0, sizeof(c));
   memcpy(&c, "z", 1);
 
-  ScmString *str = scm_string_construct_new("this string is fault",
-                                            sizeof("this string is fault") - 1,
-                                            SCM_ENCODING_ASCII);
+  ScmString *str = scm_string_construct("this string is fault",
+                                        sizeof("this string is fault") - 1,
+                                        SCM_ENCODING_ASCII);
 
   cut_assert_equal_int(-1, scm_string_find_chr(str, c));
 
@@ -407,12 +407,12 @@ test_scm_string_find_chr_not_found_ascii(void)
 void
 test_scm_string_match_matched_ascii(void)
 {
-  ScmString *str = scm_string_construct_new("this string is fault",
-                                            sizeof("this string is fault") - 1,
-                                            SCM_ENCODING_ASCII);
-  ScmString *pat = scm_string_construct_new("g is f",
-                                            sizeof("g is f") - 1,
-                                            SCM_ENCODING_ASCII);
+  ScmString *str = scm_string_construct("this string is fault",
+                                        sizeof("this string is fault") - 1,
+                                        SCM_ENCODING_ASCII);
+  ScmString *pat = scm_string_construct("g is f",
+                                        sizeof("g is f") - 1,
+                                        SCM_ENCODING_ASCII);
 
   cut_assert_equal_int(10, scm_string_match(str, pat));
 
@@ -423,12 +423,12 @@ test_scm_string_match_matched_ascii(void)
 void
 test_scm_string_match_unmatched_ascii(void)
 {
-  ScmString *str = scm_string_construct_new("this string is fault",
-                                            sizeof("this string is fault") - 1,
-                                            SCM_ENCODING_ASCII);
-  ScmString *pat = scm_string_construct_new("g-is-f",
-                                            sizeof("g-is-f") - 1,
-                                            SCM_ENCODING_ASCII);
+  ScmString *str = scm_string_construct("this string is fault",
+                                        sizeof("this string is fault") - 1,
+                                        SCM_ENCODING_ASCII);
+  ScmString *pat = scm_string_construct("g-is-f",
+                                        sizeof("g-is-f") - 1,
+                                        SCM_ENCODING_ASCII);
 
   cut_assert_equal_int(-1, scm_string_match(str, pat));
 

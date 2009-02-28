@@ -906,11 +906,13 @@ scm_parser_parse_quote(ScmParser *parser)
 static ScmObj
 scm_parser_parse_string(ScmParser *parser)
 {
+  char *p;
   ScmObj obj;
 
   assert(parser != NULL);
 
-  obj = SCM_OBJ(scm_string_construct(SCM_TOKEN_STRING(scm_lexer_head_token(parser->lexer))));
+  p = SCM_TOKEN_STRING(scm_lexer_head_token(parser->lexer));
+  obj = SCM_OBJ(scm_string_construct(p, strlen(p), SCM_ENCODING_ASCII));
   scm_lexer_shift_token(parser->lexer);
   return obj;
 }

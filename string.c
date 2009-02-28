@@ -137,7 +137,7 @@ scm_string_copy_and_expand(const ScmString *src, size_t size)
 
   assert(src != NULL);
 
-  str = scm_string_construct_new(NULL, size, src->enc);
+  str = scm_string_construct(NULL, size, src->enc);
   if (str == NULL) return NULL;
 
   str->bytesize = (size < src->bytesize) ? size : src->bytesize;
@@ -170,16 +170,8 @@ scm_string_replace_contents(ScmString *target, ScmString *src)
   (*target->ref_cnt)++;
 }
 
-/* XXX: old interface */
-/* TODO: replace scm_string_construct_new */
 ScmString *
-scm_string_construct(const char *src)
-{
-  return scm_string_construct_new(src, strlen(src), SCM_ENCODING_UTF8);
-}
-
-ScmString *
-scm_string_construct_new(const void *src, size_t size, SCM_ENCODING_T enc)
+scm_string_construct(const void *src, size_t size, SCM_ENCODING_T enc)
 {
   ScmString *str = NULL;
 
@@ -246,7 +238,7 @@ scm_string_copy(const ScmString *src)
 {
   assert(src != NULL);
   
-  return scm_string_construct_new(src->head, src->bytesize, src->enc);
+  return scm_string_construct(src->head, src->bytesize, src->enc);
 }
 
 ScmString *

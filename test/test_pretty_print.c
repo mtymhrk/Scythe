@@ -37,7 +37,9 @@ void
 test_pretty_print_string(void)
 {
   ScmOBuffer *obuffer = scm_obuffer_construct(stdout);
-  ScmObj string = SCM_OBJ(scm_string_construct("abc\\def"));
+  ScmObj string = SCM_OBJ(scm_string_construct("abc\\def",
+                                               sizeof("abc\\def") - 1,
+                                               SCM_ENCODING_ASCII));
 
   scm_obuffer_pretty_print_scm_obj(obuffer, string, SCM_OBUFFER_MODE_CLEAR);
   cut_assert_equal_string("\"abc\\\\def\"", scm_obuffer_buffer(obuffer));
@@ -99,7 +101,7 @@ test_pretty_print_vector(void)
   ScmObj e0 = SCM_OBJ(scm_symbol_instance("abc"));
   ScmObj e1 = SCM_OBJ(scm_symbol_instance("def"));
   ScmObj e2 = SCM_OBJ(scm_integer_construct(123));
-  ScmObj e3 = SCM_OBJ(scm_string_construct("ghi"));
+  ScmObj e3 = SCM_OBJ(scm_string_construct("ghi", 3, SCM_ENCODING_ASCII));
   ScmObj e4 = SCM_OBJ(scm_nil_instance());
 
   scm_vector_set(vector, 0, e0);

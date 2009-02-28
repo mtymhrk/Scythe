@@ -13,9 +13,8 @@ typedef struct ScmStringRec ScmString;
 
 #include "object.h"
 
-ScmString *scm_string_construct(const char *src);
-ScmString *scm_string_construct_new(const void *src,
-                                    size_t size, SCM_ENCODING_T enc);
+ScmString *scm_string_construct(const void *src,
+                                size_t size, SCM_ENCODING_T enc);
 void scm_string_destruct(ScmString *str);
 ScmString *scm_string_copy(const ScmString *src);
 ScmString *scm_string_dup(ScmString *src);
