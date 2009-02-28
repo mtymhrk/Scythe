@@ -283,3 +283,57 @@ scm_enc_utf8_to_ucs4(const uint8_t *utf8, size_t utf8_len, uint32_t *ucs4)
     return -1;
   }
 }
+
+
+/***********************************************************************/
+/*   EUC-JP                                                             */
+/***********************************************************************/
+
+/* XXX: inexact? */
+#define IS_VALID_EUC_JP_ASCII(euc)              \
+  (/* 0x00 <= (euc)[0] && */(euc)[0] <= 0x7f)
+#define IS_EUC_JP_SS2(byte) ((byte) == 0x8e)
+#define IS_EUC_JP_SS3(byte) ((byte) == 0x8f)
+#define IS_VALID_EUC_JP_JIS_X_0201(euc)                                 \
+  (IS_EUC_JP_SS2(euc[0]) && (0xa1 <= (euc)[1] && (euc)[1] <= 0xdf))
+#define IS_VALID_EUC_JP_JIS_X_0208(euc)         \
+  ((0xa1 <= (euc)[0] && (euc)[0] <= 0xfe)       \
+   && (0xa1 <= (euc)[1] && (euc)[1] <= 0xfe))
+#define IS_VALID_EUC_JP_JIS_X_0212(euc)         \
+  (IS_EUC_JP_SS3(euc[0])                        \
+   && (0xa1 <= (euc)[1] && (euc)[1] <= 0xfe)    \
+   && (0xa1 <= (euc)[2] && (euc)[2] <= 0xfe))
+
+int
+scm_enc_char_width_eucjp(const void *str, size_t len)
+{
+  const uint8_t *euc = str;
+
+  if (euc == NULL || len <= 0) {
+    return -1;
+  }
+  else if (IS_VALID_EUC_JP_ASCII(euc)) {
+    return 1;
+  }
+  else if (IS_EUC_JP_SS2(euc[0])) {
+    if (len < 2 || !IS_VALID_EUC_JP_JIS_X_0201(euc)) return -1;
+    return 2;
+  }
+  else if (len >= 2 && IS_VALID_EUC_JP_JIS_X_0208(euc)) {
+    return 2;
+  }
+  else if (IS_EUC_JP_SS3(euc[0])) {
+    if (len < 3 || !IS_VALID_EUC_JP_JIS_X_0212(euc)) return -1;
+    return 3;
+  }
+  else {
+    return -1;
+  }    
+}
+
+ScmStrItr 
+scm_enc_index2itr_eucjp(void *str, size_t size, unsigned int idx)
+{
+  return scm_enc_index2itr_variable_width(str, size, idx,
+                                          scm_enc_char_width_eucjp);
+}

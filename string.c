@@ -43,11 +43,15 @@ static ScmStrVirtualFunc SCM_STRING_VFUNC_UTF8 =
 static ScmStrVirtualFunc SCM_STRING_VFUNC_UCS4 =
   { scm_enc_char_width_ucs4, scm_enc_index2itr_ucs4 };
 
+static ScmStrVirtualFunc SCM_STRING_VFUNC_EUCJP =
+  { scm_enc_char_width_eucjp, scm_enc_index2itr_eucjp };
+
 static ScmStrVirtualFunc *SCM_STRING_VFUNC_TBL[] =
   { &SCM_STRING_VFUNC_ASCII,
     &SCM_STRING_VFUNC_BIN,
     &SCM_STRING_VFUNC_UCS4,
-    &SCM_STRING_VFUNC_UTF8 };
+    &SCM_STRING_VFUNC_UTF8,
+    &SCM_STRING_VFUNC_EUCJP };
 
 #define SCM_STRING_VFUNC(enc) (SCM_STRING_VFUNC_TBL[enc])
 #define SCM_STRING_VFUNC_CHAR_WIDTH(enc) (SCM_STRING_VFUNC(enc)->char_width)
