@@ -21,6 +21,8 @@ typedef struct ScmStrItrRec {
   int (*char_width)(const void *p, size_t size);
 } ScmStrItr;
 
+typedef uint32_t scm_char_t;
+
 #define SCM_STR_ITR_PTR(iter) ((iter)->p)
 #define SCM_STR_ITR_REST(iter) ((iter)->rest)
 #define SCM_STR_ITR_WIDTH(iter) \

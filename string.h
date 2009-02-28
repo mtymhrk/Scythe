@@ -8,7 +8,6 @@
 #include "encoding.h"
 
 typedef struct ScmStringRec ScmString;
-typedef uint32_t scm_char_t;
 
 #define SCM_STRING(obj) ((ScmString *)(obj))
 
