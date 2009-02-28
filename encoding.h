@@ -12,7 +12,7 @@ typedef enum {
   SCM_ENCODING_UCS4,
   SCM_ENCODING_UTF8,
   SCM_ENCODING_EUCJP,
-  //  SCM_STRING_SJIS,
+  SCM_ENCODING_SJIS,
   SMC_ENCODING_NR_ENC
 } SCM_ENCODING_T;
 
@@ -27,6 +27,7 @@ typedef uint8_t scm_char_bin_t;
 typedef uint32_t scm_char_utf8_t;
 typedef uint32_t scm_char_ucs4_t;
 typedef uint32_t scm_char_eucjp_t;
+typedef uint16_t scm_char_sjis_t;
 
 typedef union {
   scm_char_ascii_t ascii;
@@ -34,6 +35,7 @@ typedef union {
   scm_char_utf8_t utf8;
   scm_char_ucs4_t ucs4;
   scm_char_eucjp_t eucjp;
+  scm_char_sjis_t sjis;
 } scm_char_t;
 
 extern const scm_char_t SCM_CHR_ZERO;
@@ -78,5 +80,9 @@ ssize_t scm_enc_utf8_to_ucs4(const uint8_t *utf8, size_t utf8_len,
 /* EUC-JP */
 int scm_enc_char_width_eucjp(const void *str, size_t len);
 ScmStrItr scm_enc_index2itr_eucjp(void *str, size_t size, unsigned int idx);
+
+/* SJIS */
+int scm_enc_char_width_sjis(const void *str, size_t len);
+ScmStrItr scm_enc_index2itr_sjis(void *str, size_t size, unsigned int idx);
 
 #endif /* INCLUDED_ENCODING_H__ */

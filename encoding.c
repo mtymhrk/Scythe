@@ -337,3 +337,49 @@ scm_enc_index2itr_eucjp(void *str, size_t size, unsigned int idx)
   return scm_enc_index2itr_variable_width(str, size, idx,
                                           scm_enc_char_width_eucjp);
 }
+
+
+/***********************************************************************/
+/*   SJIS                                                              */
+/***********************************************************************/
+
+/* XXX: inexact? */
+#define IS_VALID_SJIS_ASCII(sjis)               \
+  (/* 0x00 <= (euc)[0] && */(sjis)[0] <= 0x7f)
+#define IS_VALID_SJIS_KANA(sjis)                \
+  (0xa1 <= (sjis)[0] && (sjis)[0] <= 0xdf)
+#define IS_VALID_SJIS_2(sjis)                             \
+  (((0x81 <= (sjis)[0] && (sjis)[0] <= 0x9f)              \
+    || (0xe0 <= (sjis)[0] && (sjis)[0] <= 0xef))          \
+   && ((0x40 <= (sjis)[1] && (sjis)[1] <= 0x7e)           \
+       || (0x80 <= (sjis)[1] && (sjis)[1] <= 0xfc)))
+
+int
+scm_enc_char_width_sjis(const void *str, size_t len)
+{
+  const uint8_t *sjis = str;
+
+  if (sjis == NULL || len <= 0) {
+    return -1;
+  }
+  else if (IS_VALID_SJIS_ASCII(sjis)) {
+
+    return 1;
+  }
+  else if (IS_VALID_SJIS_KANA(sjis)) {
+    return 1;
+  }
+  else if (len >= 2 && IS_VALID_SJIS_2(sjis)) {
+    return 2;
+  }
+  else {
+    return -1;
+  }    
+}
+
+ScmStrItr 
+scm_enc_index2itr_sjis(void *str, size_t size, unsigned int idx)
+{
+  return scm_enc_index2itr_variable_width(str, size, idx,
+                                          scm_enc_char_width_sjis);
+}

@@ -16,7 +16,7 @@ TEST_CASE_SRC = test_pair.c test_string.c test_symbol.c test_nil.c \
                 test_vector.c test_eof.c test_bool.c test_char.c \
                 test_fileport.c test_stringport.c test_charconv.c test_ucs4.c \
                 test_utf8.c test_string_utf8.c test_string_ucs4.c \
-                test_string_ascii.c test_string_eucjp.c
+                test_string_ascii.c test_string_eucjp.c test_string_sjis.c
 TEST_TARGET_OBJ = $(TEST_TARGET_SRC:.c=.o) 
 TEST_CASE_OBJ = $(TEST_CASE_SRC:.c=.o) 
 TEST_CASE_LIB = $(TEST_CASE_SRC:.c=.so)
@@ -49,6 +49,7 @@ test_string_utf8.so : test_string_utf8.o $(TEST_TARGET_OBJ)
 test_string_ucs4.so : test_string_ucs4.o $(TEST_TARGET_OBJ)
 test_string_ascii.so : test_string_ascii.o $(TEST_TARGET_OBJ)
 test_string_eucjp.so : test_string_eucjp.o $(TEST_TARGET_OBJ)
+test_string_sjis.so : test_string_sjis.o $(TEST_TARGET_OBJ)
 
 .c.o:
 	$(CC) -c -o $@ $(INCLUDES) $(CFLAGS) $<
