@@ -345,34 +345,6 @@ test_scm_string_ref_ucs4(void)
 }
 
 void
-test_scm_string_set_less_width_utf4(void)
-{
-  char row[256], expected[256];
-  int row_len, expected_len;
-  char actual[256];
-  int len;
-  scm_char_t c;
-  ScmString *str;
-
-  row_len = utf8str_to_ucs4str("テスト", sizeof("テスト") - 1, row);
-  expected_len = utf8str_to_ucs4str("テaト", sizeof("テaト") - 1, expected);
-  utf8str_to_ucs4str("a", sizeof("a") - 1, &c);
-
-  str = scm_string_construct_new(row, row_len, SCM_ENCODING_UCS4);
-
-  cut_assert_not_null(scm_string_set(str, 1, c));
-
-  cut_assert_equal_int(3, scm_string_length(str));
-  cut_assert_equal_int(expected_len, scm_string_bytesize(str));
-
-  len = scm_string_dump(str, actual, sizeof(actual));
-  cut_assert_equal_int(expected_len, len);
-  cut_assert_equal_int(0, memcmp(expected, actual, len));
-
-  scm_string_destruct(str);
-}
-
-void
 test_scm_string_set_same_width_utf4(void)
 {
   char row[256], expected[256];
@@ -385,34 +357,6 @@ test_scm_string_set_same_width_utf4(void)
   row_len = utf8str_to_ucs4str("テスト", sizeof("テスト") - 1, row);
   expected_len = utf8str_to_ucs4str("テント", sizeof("テント") - 1, expected);
   utf8str_to_ucs4str("ン", sizeof("ン") - 1, &c);
-
-  str = scm_string_construct_new(row, row_len, SCM_ENCODING_UCS4);
-
-  cut_assert_not_null(scm_string_set(str, 1, c));
-
-  cut_assert_equal_int(3, scm_string_length(str));
-  cut_assert_equal_int(expected_len, scm_string_bytesize(str));
-
-  len = scm_string_dump(str, actual, sizeof(actual));
-  cut_assert_equal_int(expected_len, len);
-  cut_assert_equal_int(0, memcmp(expected, actual, len));
-
-  scm_string_destruct(str);
-}
-
-void
-test_scm_string_set_greater_width_ucs4(void)
-{
-  char row[256], expected[256];
-  int row_len, expected_len;
-  char actual[256];
-  int len;
-  scm_char_t c;
-  ScmString *str;
-
-  row_len = utf8str_to_ucs4str("abc", sizeof("abc") - 1, row);
-  expected_len = utf8str_to_ucs4str("aあc", sizeof("aあc") - 1, expected);
-  utf8str_to_ucs4str("あ", sizeof("あ") - 1, &c);
 
   str = scm_string_construct_new(row, row_len, SCM_ENCODING_UCS4);
 

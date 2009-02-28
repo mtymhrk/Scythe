@@ -24,7 +24,7 @@ test_scm_string_utf8(void)
 }
 
 void
-test_str8str_copy(void)
+test_scm_string_copy_utf8(void)
 {
   char expected[] = "この文字列は誤りである";
   
@@ -47,7 +47,7 @@ test_str8str_copy(void)
 }
 
 void
-test_str8str_dup(void)
+test_string_dup_utf8(void)
 {
   char expected[] = "この文字列は誤りである";
   
@@ -69,7 +69,7 @@ test_str8str_dup(void)
 }
 
 void
-test_str8str_is_equal_compare_with_same_string(void)
+test_scm_string_is_equal_compare_with_same_string_utf8(void)
 {
   ScmString *str1 = scm_string_construct_new("この文字列は誤りである",
                                              sizeof("この文字列は誤りである") - 1,
@@ -85,7 +85,7 @@ test_str8str_is_equal_compare_with_same_string(void)
 }
 
 void
-test_str8str_is_equal_compare_with_different_string(void)
+test_scm_string_is_equal_compare_with_different_string_utf8(void)
 {
   ScmString *str1 = scm_string_construct_new("この文字列は誤りである",
                                              sizeof("この文字列は誤りである") - 1,
@@ -101,7 +101,7 @@ test_str8str_is_equal_compare_with_different_string(void)
 }
 
 void
-test_str8str_is_equal_compare_with_copy_string(void)
+test_scm_string_is_equal_compare_with_copy_string_utf8(void)
 {
   ScmString *str1 = scm_string_construct_new("この文字列は誤りである",
                                              sizeof("この文字列は誤りである") - 1,
@@ -115,7 +115,7 @@ test_str8str_is_equal_compare_with_copy_string(void)
 }
 
 void
-test_str8str_is_equal_compare_with_duplicate_string(void)
+test_scm_string_is_equal_compare_with_duplicate_string_utf8(void)
 {
   ScmString *str1 = scm_string_construct_new("この文字列は誤りである",
                                              sizeof("この文字列は誤りである") - 1,
@@ -129,7 +129,7 @@ test_str8str_is_equal_compare_with_duplicate_string(void)
 }
 
 void
-test_str8str_substr(void)
+test_scm_string_substr_utf8(void)
 {
   char expected[] = "誤りである";
   char actual[256];
@@ -153,7 +153,7 @@ test_str8str_substr(void)
 }
 
 void
-test_scm_string_push(void)
+test_scm_string_push_utf8(void)
 {
   char expected[] = "この文字列は誤りである。";
   scm_char_t pushed;
@@ -180,7 +180,7 @@ test_scm_string_push(void)
 }
 
 void
-test_scm_string_append(void)
+test_scm_string_append_utf8(void)
 {
   char expected[] = "次の文は正しい。前の文は誤りである。";
   char actual[256];
@@ -207,7 +207,7 @@ test_scm_string_append(void)
 }
 
 void
-test_scm_string_ref(void)
+test_scm_string_ref_utf8(void)
 {
   int i;
   scm_char_t actual;
@@ -262,7 +262,7 @@ test_scm_string_ref(void)
 }
 
 void
-test_scm_string_set_less_width(void)
+test_scm_string_set_less_width_utf8(void)
 {
   char expected[] = "テaト";
   char actual[256];
@@ -288,7 +288,7 @@ test_scm_string_set_less_width(void)
 }
 
 void
-test_scm_string_set_same_width(void)
+test_scm_string_set_same_width_utf8(void)
 {
   char expected[] = "テント";
   char actual[256];
@@ -315,7 +315,7 @@ test_scm_string_set_same_width(void)
 }
 
 void
-test_scm_string_set_greater_width(void)
+test_scm_string_set_greater_width_utf8(void)
 {
   char expected[] = "aあc";
   char actual[256];
@@ -341,7 +341,7 @@ test_scm_string_set_greater_width(void)
 }
 
 void
-test_scm_string_fill(void)
+test_scm_string_fill_utf8(void)
 {
   char expected[] = "この文字列は正しaaaの文は誤りである。";
   char actual[256];
@@ -368,7 +368,7 @@ test_scm_string_fill(void)
 }
 
 void
-test_scm_string_fill_append(void)
+test_scm_string_fill_append_utf8(void)
 {
   char expected[] = "この文字列は正しい。前の文は誤りであaaaaa";
   char actual[256];
@@ -395,7 +395,7 @@ test_scm_string_fill_append(void)
 }
 
 void
-test_scm_string_find_chr_found(void)
+test_scm_string_find_chr_found_utf8(void)
 {
   scm_char_t c;
 
@@ -412,7 +412,7 @@ test_scm_string_find_chr_found(void)
 }
 
 void
-test_scm_string_find_chr_not_found(void)
+test_scm_string_find_chr_not_found_utf8(void)
 {
   scm_char_t c;
 
@@ -429,7 +429,7 @@ test_scm_string_find_chr_not_found(void)
 }
 
 void
-test_scm_string_match_matched(void)
+test_scm_string_match_matched_utf8(void)
 {
   ScmString *str = scm_string_construct_new("この文字列は正しい。前の文は誤りである。",
                                             sizeof("この文字列は正しい。前の文は誤りである。") - 1,
@@ -445,7 +445,7 @@ test_scm_string_match_matched(void)
 }
 
 void
-test_scm_string_match_unmatched(void)
+test_scm_string_match_unmatched_utf8(void)
 {
   ScmString *str = scm_string_construct_new("この文字列は正しい。前の文は誤りである。",
                                             sizeof("この文字列は正しい。前の文は誤りである。") - 1,
