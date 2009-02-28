@@ -1,6 +1,6 @@
 #include "encoding.h"
 
-scm_char_t SCM_CHR_ZERO;
+const scm_char_t SCM_CHR_ZERO;
 
 #define SCM_STR_ITR_MAKE_ERR(iter)              \
   do {                                          \
@@ -116,8 +116,6 @@ scm_enc_char_width_ascii(const void *str, size_t len)
   else
     return -1;
 }
-
-
 
 ScmStrItr
 scm_enc_index2itr_ascii(void *str, size_t size, unsigned int idx)

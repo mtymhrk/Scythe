@@ -7,7 +7,7 @@
 #include <string.h>
 
 typedef enum {
-  //  SCM_ENCODING_ASCII,
+  SCM_ENCODING_ASCII,
   //  SCM_STRING_BINARY,
   SCM_ENCODING_UCS4,
   SCM_ENCODING_UTF8,
@@ -31,7 +31,7 @@ typedef union {
   scm_char_ucs4_t ucs4;
 } scm_char_t;
 
-extern scm_char_t SCM_CHR_ZERO;
+extern const scm_char_t SCM_CHR_ZERO;
 
 #define SCM_CHR_IS_ZERO(c) \
   ((memcmp(&(c), &SCM_CHR_ZERO, sizeof(scm_char_t)) == 0) ? true : false)
@@ -50,6 +50,11 @@ extern scm_char_t SCM_CHR_ZERO;
 ScmStrItr scm_str_itr_begin(void *p, size_t size,
                              int (*char_width)(const void *p, size_t size));
 ScmStrItr scm_str_itr_next(const ScmStrItr *iter);
+
+
+/* ASCII */
+int scm_enc_char_width_ascii(const void *str, size_t len);
+ScmStrItr scm_enc_index2itr_ascii(void *str, size_t size, unsigned int idx);
 
 /* UTF-8 */
 int scm_enc_char_width_utf8(const void *str, size_t len);

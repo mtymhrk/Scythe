@@ -11,7 +11,6 @@
 #include "string.h"
 
 /* encoding depending function table */
-/* TODO: change index2iter return value to ScmStrIter */
 typedef struct ScmStrVirtualFunc {
   int (*char_width)(const void *p, size_t size);
   ScmStrItr (*index2iter)(void *p, size_t size, unsigned int idx);
@@ -32,6 +31,8 @@ struct ScmStringRec {
 #define CAPACITY(str)((str)->capacity - ((str)->head - (str)->buffer))
 #define ROOM_FOR_APPEND(str) (CAPACITY(str) - (str)->bytesize)
 
+static ScmStrVirtualFunc SCM_STRING_VFUNC_ASCII =
+  { scm_enc_char_width_ascii, scm_enc_index2itr_ascii };
 
 static ScmStrVirtualFunc SCM_STRING_VFUNC_UTF8 =
   { scm_enc_char_width_utf8, scm_enc_index2itr_utf8 };
@@ -40,7 +41,8 @@ static ScmStrVirtualFunc SCM_STRING_VFUNC_UCS4 =
   { scm_enc_char_width_ucs4, scm_enc_index2itr_ucs4 };
 
 static ScmStrVirtualFunc *SCM_STRING_VFUNC_TBL[] =
-  { &SCM_STRING_VFUNC_UCS4,
+  { &SCM_STRING_VFUNC_ASCII,
+    &SCM_STRING_VFUNC_UCS4,
     &SCM_STRING_VFUNC_UTF8 };
 
 #define SCM_STRING_VFUNC(enc) (SCM_STRING_VFUNC_TBL[enc])
