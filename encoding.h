@@ -7,7 +7,7 @@
 #include <string.h>
 
 typedef enum {
-  //  SCM_STRING_ASCII,
+  //  SCM_ENCODING_ASCII,
   //  SCM_STRING_BINARY,
   SCM_ENCODING_UCS4,
   SCM_ENCODING_UTF8,
@@ -22,9 +22,11 @@ typedef struct ScmStrItrRec {
   int (*char_width)(const void *p, size_t size);
 } ScmStrItr;
 
+typedef uint8_t scm_char_ascii_t;
 typedef uint32_t scm_char_utf8_t;
 typedef uint32_t scm_char_ucs4_t;
 typedef union {
+  scm_char_ascii_t ascii;
   scm_char_utf8_t utf8;
   scm_char_ucs4_t ucs4;
 } scm_char_t;

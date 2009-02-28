@@ -53,6 +53,79 @@ scm_str_itr_next(const ScmStrItr *iter)
   return next;
 }
 
+static ScmStrItr
+scm_enc_index2itr_fixed_width(void *str, size_t size,
+                              unsigned int idx, size_t width,
+                              int (*char_width)(const void *str, size_t len))
+{
+  ScmStrItr iter;
+  uint8_t *p = str;
+  size_t offset;
+
+  offset = width * idx;
+
+  if (p == NULL) {
+    SCM_STR_ITR_MAKE_ERR(&iter);  
+    return iter;
+  }
+  else if (offset > size) {
+    SCM_STR_ITR_MAKE_ERR(&iter);  
+    return iter;
+  }
+  
+  return scm_str_itr_begin(p + offset, size - offset, char_width);
+}
+
+static ScmStrItr
+scm_enc_index2itr_variable_width(void *str, size_t size,
+                                 unsigned int idx, 
+                                 int (*char_width)(const void *str, size_t len))
+{
+  ScmStrItr iter;
+  int i;
+
+  iter = scm_str_itr_begin(str, size, char_width);
+  if (SCM_STR_ITR_IS_ERR(&iter)) return iter;
+
+  i = 0;
+  while (!SCM_STR_ITR_IS_END(&iter) && i < idx) {
+    iter = scm_str_itr_next(&iter);
+    if (SCM_STR_ITR_IS_ERR(&iter)) return iter;
+    i++;
+  }
+
+  return iter;
+}
+
+
+/***********************************************************************/
+/*   ASCII                                                             */
+/***********************************************************************/
+
+#define IS_VALID_ASCII(ascii) ((ascii) <= 0x7f)
+
+int
+scm_enc_char_width_ascii(const void *str, size_t len)
+{
+  const scm_char_ascii_t *ascii = str;
+
+  if (ascii == NULL)
+    return -1;
+  else if (len >= 1 && IS_VALID_ASCII(*ascii))
+    return 1;
+  else
+    return -1;
+}
+
+
+
+ScmStrItr
+scm_enc_index2itr_ascii(void *str, size_t size, unsigned int idx)
+{
+  return scm_enc_index2itr_fixed_width(str, size, idx, sizeof(scm_char_ascii_t),
+                                       scm_enc_char_width_ascii);
+}
+
 
 /***********************************************************************/
 /*   UTF-8                                                             */
@@ -78,27 +151,6 @@ scm_str_itr_next(const ScmStrItr *iter)
    && IS_VALID_UTF8_TAIL((utf8)[2]) && IS_VALID_UTF8_TAIL((utf8)[3]))
 #define IS_VALID_UTF8_TAIL(utf8chr)             \
   (0x80 <= (utf8chr) && (utf8chr) <= 0xbf)
-
-static ScmStrItr
-scm_enc_index2itr_variable_width(void *str, size_t size,
-                                 unsigned int idx, 
-                                 int (*char_width)(const void *str, size_t len))
-{
-  ScmStrItr iter;
-  int i;
-
-  iter = scm_str_itr_begin(str, size, char_width);
-  if (SCM_STR_ITR_IS_ERR(&iter)) return iter;
-
-  i = 0;
-  while (!SCM_STR_ITR_IS_END(&iter) && i < idx) {
-    iter = scm_str_itr_next(&iter);
-    if (SCM_STR_ITR_IS_ERR(&iter)) return iter;
-    i++;
-  }
-
-  return iter;
-}
 
 
 int
@@ -163,22 +215,27 @@ scm_enc_char_width_ucs4(const void *str, size_t len)
 ScmStrItr
 scm_enc_index2itr_ucs4(void *str, size_t size, unsigned int idx)
 {
-  ScmStrItr iter;
-  uint32_t *ucs4 = str;
-  size_t offset;
 
-  offset = sizeof(*ucs4) * idx;
+  return scm_enc_index2itr_fixed_width(str, size, idx, sizeof(scm_char_ucs4_t),
+                                       scm_enc_char_width_ucs4);
 
-  if (ucs4 == NULL) {
-    SCM_STR_ITR_MAKE_ERR(&iter);  
-    return iter;
-  }
-  else if (offset > size) {
-    SCM_STR_ITR_MAKE_ERR(&iter);  
-    return iter;
-  }
+
+  /* ScmStrItr iter; */
+  /* uint32_t *ucs4 = str; */
+  /* size_t offset; */
+
+  /* offset = sizeof(*ucs4) * idx; */
+
+  /* if (ucs4 == NULL) { */
+  /*   SCM_STR_ITR_MAKE_ERR(&iter);   */
+  /*   return iter; */
+  /* } */
+  /* else if (offset > size) { */
+  /*   SCM_STR_ITR_MAKE_ERR(&iter);   */
+  /*   return iter; */
+  /* } */
   
-  return scm_str_itr_begin(ucs4 + idx, size - offset, scm_enc_char_width_ucs4);
+  /* return scm_str_itr_begin(ucs4 + idx, size - offset, scm_enc_char_width_ucs4); */
 }
 
 #define UCS4CHR(c) ((uint32_t)(c))
