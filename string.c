@@ -428,6 +428,16 @@ scm_string_set(ScmString *str, unsigned int pos, const scm_char_t c)
 
     return str;
   }
+  else if (cw == iw) {
+    ScmString *tmp = scm_string_copy(str);
+    size_t offset = SCM_STR_ITR_OFFSET(&iter, str->head);
+
+    if (tmp == NULL) return NULL;
+    memcpy(str->head + offset, &c, cw);
+    scm_string_replace_contents(str, tmp);
+
+    return str;
+  }
   else {
     ScmString *rslt, *front, *rear;
 
