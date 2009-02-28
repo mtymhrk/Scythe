@@ -126,6 +126,31 @@ scm_enc_index2itr_ascii(void *str, size_t size, unsigned int idx)
 
 
 /***********************************************************************/
+/*   BINARY                                                            */
+/***********************************************************************/
+
+int
+scm_enc_char_width_bin(const void *str, size_t len)
+{
+  const scm_char_bin_t *ascii = str;
+
+  if (ascii == NULL)
+    return -1;
+  else if (len >= 1)
+    return 1;
+  else
+    return -1;
+}
+
+ScmStrItr
+scm_enc_index2itr_bin(void *str, size_t size, unsigned int idx)
+{
+  return scm_enc_index2itr_fixed_width(str, size, idx, sizeof(scm_char_bin_t),
+                                       scm_enc_char_width_ascii);
+}
+
+
+/***********************************************************************/
 /*   UTF-8                                                             */
 /***********************************************************************/
 
@@ -216,24 +241,6 @@ scm_enc_index2itr_ucs4(void *str, size_t size, unsigned int idx)
 
   return scm_enc_index2itr_fixed_width(str, size, idx, sizeof(scm_char_ucs4_t),
                                        scm_enc_char_width_ucs4);
-
-
-  /* ScmStrItr iter; */
-  /* uint32_t *ucs4 = str; */
-  /* size_t offset; */
-
-  /* offset = sizeof(*ucs4) * idx; */
-
-  /* if (ucs4 == NULL) { */
-  /*   SCM_STR_ITR_MAKE_ERR(&iter);   */
-  /*   return iter; */
-  /* } */
-  /* else if (offset > size) { */
-  /*   SCM_STR_ITR_MAKE_ERR(&iter);   */
-  /*   return iter; */
-  /* } */
-  
-  /* return scm_str_itr_begin(ucs4 + idx, size - offset, scm_enc_char_width_ucs4); */
 }
 
 #define UCS4CHR(c) ((uint32_t)(c))

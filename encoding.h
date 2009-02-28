@@ -8,7 +8,7 @@
 
 typedef enum {
   SCM_ENCODING_ASCII,
-  //  SCM_STRING_BINARY,
+  SCM_STRING_BINARY,
   SCM_ENCODING_UCS4,
   SCM_ENCODING_UTF8,
   //  SCM_STRING_EUCJP,
@@ -23,10 +23,12 @@ typedef struct ScmStrItrRec {
 } ScmStrItr;
 
 typedef uint8_t scm_char_ascii_t;
+typedef uint8_t scm_char_bin_t;
 typedef uint32_t scm_char_utf8_t;
 typedef uint32_t scm_char_ucs4_t;
 typedef union {
   scm_char_ascii_t ascii;
+  scm_char_bin_t bin;
   scm_char_utf8_t utf8;
   scm_char_ucs4_t ucs4;
 } scm_char_t;
@@ -55,6 +57,10 @@ ScmStrItr scm_str_itr_next(const ScmStrItr *iter);
 /* ASCII */
 int scm_enc_char_width_ascii(const void *str, size_t len);
 ScmStrItr scm_enc_index2itr_ascii(void *str, size_t size, unsigned int idx);
+
+/* BINARY */
+int scm_enc_char_width_bin(const void *str, size_t len);
+ScmStrItr scm_enc_index2itr_bin(void *str, size_t size, unsigned int idx);
 
 /* UTF-8 */
 int scm_enc_char_width_utf8(const void *str, size_t len);

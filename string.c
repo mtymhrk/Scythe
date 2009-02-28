@@ -34,6 +34,9 @@ struct ScmStringRec {
 static ScmStrVirtualFunc SCM_STRING_VFUNC_ASCII =
   { scm_enc_char_width_ascii, scm_enc_index2itr_ascii };
 
+static ScmStrVirtualFunc SCM_STRING_VFUNC_BIN =
+  { scm_enc_char_width_bin, scm_enc_index2itr_bin };
+
 static ScmStrVirtualFunc SCM_STRING_VFUNC_UTF8 =
   { scm_enc_char_width_utf8, scm_enc_index2itr_utf8 };
 
@@ -42,6 +45,7 @@ static ScmStrVirtualFunc SCM_STRING_VFUNC_UCS4 =
 
 static ScmStrVirtualFunc *SCM_STRING_VFUNC_TBL[] =
   { &SCM_STRING_VFUNC_ASCII,
+    &SCM_STRING_VFUNC_BIN,
     &SCM_STRING_VFUNC_UCS4,
     &SCM_STRING_VFUNC_UTF8 };
 
