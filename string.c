@@ -608,6 +608,14 @@ scm_string_dump(const ScmString *str, void *buf, size_t size)
   return len;
 }
 
+SCM_ENCODING_T
+scm_string_encoding(const ScmString *str)
+{
+  assert(str != NULL);
+
+  return str->enc;
+}
+
 void *
 scm_string_content(const ScmString *str)
 {

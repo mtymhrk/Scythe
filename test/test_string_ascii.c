@@ -13,6 +13,7 @@ test_scm_string_ascii(void)
                                         SCM_ENCODING_ASCII);
 
   cut_assert_not_null(str);
+  cut_assert_equal_int(SCM_ENCODING_ASCII, scm_string_encoding(str));
   cut_assert_equal_int(11, scm_string_length(str));
   cut_assert_equal_int(sizeof(expected) - 1, scm_string_bytesize(str));
 

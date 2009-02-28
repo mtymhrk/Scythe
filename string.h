@@ -32,6 +32,7 @@ ScmString *scm_string_fill(ScmString *str, unsigned int pos,
 int scm_string_find_chr(const ScmString *str, scm_char_t c);
 int scm_string_match(const ScmString *str, const ScmString *pat);
 ssize_t scm_string_dump(const ScmString *str, void *buf, size_t size);
+SCM_ENCODING_T scm_string_encoding(const ScmString *str);
 void *scm_string_content(const ScmString *str);
 bool scm_string_is_string(ScmObj obj);
 

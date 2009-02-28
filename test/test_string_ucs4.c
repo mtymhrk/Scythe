@@ -34,6 +34,7 @@ test_scm_string_ucs4(void)
   str = scm_string_construct(expected, expected_len, SCM_ENCODING_UCS4);
 
   cut_assert_not_null(str);
+  cut_assert_equal_int(SCM_ENCODING_UCS4, scm_string_encoding(str));
   cut_assert_equal_int(6, scm_string_length(str));
   cut_assert_equal_int(expected_len, scm_string_bytesize(str));
 
