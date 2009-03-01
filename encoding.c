@@ -2,6 +2,32 @@
 
 const scm_char_t SCM_CHR_ZERO;
 
+const ScmEncVirtualFunc SCM_ENCODING_VFUNC_ASCII =
+  { scm_enc_char_width_ascii, scm_enc_index2itr_ascii };
+
+const ScmEncVirtualFunc SCM_ENCODING_VFUNC_BIN =
+  { scm_enc_char_width_bin, scm_enc_index2itr_bin };
+
+const ScmEncVirtualFunc SCM_ENCODING_VFUNC_UTF8 =
+  { scm_enc_char_width_utf8, scm_enc_index2itr_utf8 };
+
+const ScmEncVirtualFunc SCM_ENCODING_VFUNC_UCS4 =
+  { scm_enc_char_width_ucs4, scm_enc_index2itr_ucs4 };
+
+const ScmEncVirtualFunc SCM_ENCODING_VFUNC_EUCJP =
+  { scm_enc_char_width_eucjp, scm_enc_index2itr_eucjp };
+
+const ScmEncVirtualFunc SCM_ENCODING_VFUNC_SJIS =
+  { scm_enc_char_width_sjis, scm_enc_index2itr_sjis };
+
+const ScmEncVirtualFunc *SCM_ENCODING_VFUNC_TBL[] =
+  { &SCM_ENCODING_VFUNC_ASCII,
+    &SCM_ENCODING_VFUNC_BIN,
+    &SCM_ENCODING_VFUNC_UCS4,
+    &SCM_ENCODING_VFUNC_UTF8,
+    &SCM_ENCODING_VFUNC_EUCJP,
+    &SCM_ENCODING_VFUNC_SJIS };
+
 #define SCM_STR_ITR_MAKE_ERR(iter)              \
   do {                                          \
     (iter)->p = NULL;                           \

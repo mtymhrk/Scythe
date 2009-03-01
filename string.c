@@ -10,12 +10,6 @@
 #include "encoding.h"
 #include "string.h"
 
-/* encoding depending function table */
-typedef struct ScmStrVirtualFunc {
-  int (*char_width)(const void *p, size_t size);
-  ScmStrItr (*index2iter)(void *p, size_t size, unsigned int idx);
-} ScmStrVirtualFunc;
-
 struct ScmStringRec {
   ScmObjHeader header;
   uint8_t *buffer;
@@ -31,39 +25,10 @@ struct ScmStringRec {
 #define CAPACITY(str)((str)->capacity - ((str)->head - (str)->buffer))
 #define ROOM_FOR_APPEND(str) (CAPACITY(str) - (str)->bytesize)
 
-static ScmStrVirtualFunc SCM_STRING_VFUNC_ASCII =
-  { scm_enc_char_width_ascii, scm_enc_index2itr_ascii };
-
-static ScmStrVirtualFunc SCM_STRING_VFUNC_BIN =
-  { scm_enc_char_width_bin, scm_enc_index2itr_bin };
-
-static ScmStrVirtualFunc SCM_STRING_VFUNC_UTF8 =
-  { scm_enc_char_width_utf8, scm_enc_index2itr_utf8 };
-
-static ScmStrVirtualFunc SCM_STRING_VFUNC_UCS4 =
-  { scm_enc_char_width_ucs4, scm_enc_index2itr_ucs4 };
-
-static ScmStrVirtualFunc SCM_STRING_VFUNC_EUCJP =
-  { scm_enc_char_width_eucjp, scm_enc_index2itr_eucjp };
-
-static ScmStrVirtualFunc SCM_STRING_VFUNC_SJIS =
-  { scm_enc_char_width_sjis, scm_enc_index2itr_sjis };
-
-static ScmStrVirtualFunc *SCM_STRING_VFUNC_TBL[] =
-  { &SCM_STRING_VFUNC_ASCII,
-    &SCM_STRING_VFUNC_BIN,
-    &SCM_STRING_VFUNC_UCS4,
-    &SCM_STRING_VFUNC_UTF8,
-    &SCM_STRING_VFUNC_EUCJP,
-    &SCM_STRING_VFUNC_SJIS };
-
-#define SCM_STRING_VFUNC(enc) (SCM_STRING_VFUNC_TBL[enc])
-#define SCM_STRING_VFUNC_CHAR_WIDTH(enc) (SCM_STRING_VFUNC(enc)->char_width)
-#define SCM_STRING_VFUNC_INDEX2ITER(enc) (SCM_STRING_VFUNC(enc)->index2iter)
-
 
 static ssize_t
-scm_string_check_bytes(const void *str, size_t size, ScmStrVirtualFunc *vf)
+scm_string_check_bytes(const void *str, size_t size,
+                       const ScmEncVirtualFunc *vf)
 {
   ScmStrItr iter;
   ssize_t len;
@@ -85,7 +50,7 @@ scm_string_check_bytes(const void *str, size_t size, ScmStrVirtualFunc *vf)
 
 static ssize_t
 scm_string_copy_bytes_with_check(void *dst, const void *src, size_t size,
-                                 ScmStrVirtualFunc *vf)
+                                 const ScmEncVirtualFunc *vf)
 {
   ssize_t len;
 
@@ -118,7 +83,7 @@ scm_string_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
 
   str = SCM_STRING(obj);
 
-  char_width = SCM_STRING_VFUNC_CHAR_WIDTH(str->enc);
+  char_width = SCM_ENCODING_VFUNC_CHAR_WIDTH(str->enc);
   iter = scm_str_itr_begin(str->head, str->bytesize, char_width);
   if (SCM_STR_ITR_IS_ERR(&iter)) return;
 
@@ -154,7 +119,7 @@ scm_string_copy_and_expand(const ScmString *src, size_t size)
 
   str->bytesize = (size < src->bytesize) ? size : src->bytesize;
   len = scm_string_copy_bytes_with_check(str->buffer, src->head, src->bytesize,
-                                         SCM_STRING_VFUNC(src->enc));
+                                         SCM_ENCODING_VFUNC(src->enc));
   if (len < 0) {
     scm_string_destruct(str);
     return NULL;
@@ -210,7 +175,7 @@ scm_string_construct(const void *src, size_t size, SCM_ENCODING_T enc)
 
   if (src != NULL) {
     ssize_t len = scm_string_copy_bytes_with_check(str->buffer, src, size,
-                                                   SCM_STRING_VFUNC(enc));
+                                                   SCM_ENCODING_VFUNC(enc));
     if (len < 0) goto err;
     str->length = len;
     str->bytesize = size;
@@ -312,7 +277,7 @@ scm_string_substr(ScmString *str, unsigned int pos, size_t len)
 
   if (pos + len > str->length) return NULL;
 
-  index2iter = SCM_STRING_VFUNC_INDEX2ITER(str->enc);
+  index2iter = SCM_ENCODING_VFUNC_INDEX2ITER(str->enc);
   head = index2iter(str->head, str->bytesize, pos);
   tail = index2iter(str->head, str->bytesize, pos + len);
 
@@ -336,7 +301,7 @@ scm_string_push(ScmString *str, const scm_char_t c)
 
   assert(str != NULL);
 
-  char_width = SCM_STRING_VFUNC_CHAR_WIDTH(str->enc);
+  char_width = SCM_ENCODING_VFUNC_CHAR_WIDTH(str->enc);
   width = char_width(&c, sizeof(c));
   if (width < 0) return NULL;
 
@@ -388,7 +353,7 @@ scm_string_ref(ScmString *str, unsigned int pos)
   c = SCM_CHR_ZERO;
   if (pos >= str->length) return c;
 
-  index2iter = SCM_STRING_VFUNC_INDEX2ITER(str->enc);
+  index2iter = SCM_ENCODING_VFUNC_INDEX2ITER(str->enc);
   iter = index2iter(str->head, str->bytesize, pos);
   if (SCM_STR_ITR_IS_ERR(&iter)) return c;
   if (SCM_STR_ITR_IS_END(&iter)) return c;
@@ -410,8 +375,8 @@ scm_string_set(ScmString *str, unsigned int pos, const scm_char_t c)
 
   if (pos >= str->length) return NULL;
 
-  index2iter = SCM_STRING_VFUNC_INDEX2ITER(str->enc);
-  char_width = SCM_STRING_VFUNC_CHAR_WIDTH(str->enc);
+  index2iter = SCM_ENCODING_VFUNC_INDEX2ITER(str->enc);
+  char_width = SCM_ENCODING_VFUNC_CHAR_WIDTH(str->enc);
 
   iter = index2iter(str->head, str->bytesize, pos);
   if (SCM_STR_ITR_IS_ERR(&iter)) return NULL;
@@ -486,7 +451,7 @@ scm_string_fill(ScmString *str, unsigned int pos, size_t len, scm_char_t c)
 
   rslt = front = rear = tmp = NULL;
 
-  char_width = SCM_STRING_VFUNC_CHAR_WIDTH(str->enc);
+  char_width = SCM_ENCODING_VFUNC_CHAR_WIDTH(str->enc);
 
   filledsize = char_width(&c, sizeof(c)) * len;
   if (filledsize < 0) return 0;
@@ -531,7 +496,7 @@ scm_string_find_chr(const ScmString *str, scm_char_t c)
 
   assert(str != NULL);
 
-  char_width = SCM_STRING_VFUNC_CHAR_WIDTH(str->enc);
+  char_width = SCM_ENCODING_VFUNC_CHAR_WIDTH(str->enc);
   cw = char_width(&c, sizeof(c));
   if (cw < 0) return -1;
 
@@ -569,7 +534,7 @@ scm_string_match(const ScmString *str, const ScmString *pat)
   if (str->enc != pat->enc)
     return -1;
   
-  char_width = SCM_STRING_VFUNC_CHAR_WIDTH(str->enc);
+  char_width = SCM_ENCODING_VFUNC_CHAR_WIDTH(str->enc);
 
   iter_str_ext = scm_str_itr_begin(str->head, str->bytesize, char_width);
   if (SCM_STR_ITR_IS_ERR(&iter_str_ext)) return -1;
