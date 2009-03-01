@@ -478,13 +478,13 @@ scm_string_fill(ScmString *str, unsigned int pos, size_t len, scm_char_t c)
   int (*char_width)(const void *p, size_t size);
   int filledsize;
   size_t i;
-  ScmString *rslt, *front, *rear;
+  ScmString *rslt, *front, *rear, *tmp;
 
   assert(str != NULL);
 
   if (pos > str->length) return NULL;
 
-  rslt = front = rear = NULL;
+  rslt = front = rear = tmp = NULL;
 
   char_width = SCM_STRING_VFUNC_CHAR_WIDTH(str->enc);
 
@@ -492,25 +492,33 @@ scm_string_fill(ScmString *str, unsigned int pos, size_t len, scm_char_t c)
   if (filledsize < 0) return 0;
 
   front = scm_string_substr(str, 0, pos);
+  if (front == NULL) goto end;
+
   if (pos + len < str->length) {
     rear = scm_string_substr(str, pos + len, str->length - pos - len);
     if (rear == NULL) goto end;
   }
 
+  tmp = scm_string_copy_and_expand(front,
+                                   front->bytesize + len
+                                   + ((rear == NULL)? 0 : rear->bytesize));
+  if (tmp == NULL) goto end;
+
   for (i = 0; i < len; i++)
-    if (scm_string_push(front, c) == NULL)
+    if (scm_string_push(tmp, c) == NULL)
       goto end;
 
   if (rear != NULL)
-    if (scm_string_append(front, rear) == NULL)
+    if (scm_string_append(tmp, rear) == NULL)
       goto end;
 
-  scm_string_replace_contents(str, front);
+  scm_string_replace_contents(str, tmp);
   rslt = str;
 
  end:
   if (front != NULL) scm_string_destruct(front);
   if (rear != NULL) scm_string_destruct(rear);
+  if (tmp != NULL) scm_string_destruct(tmp);
   return rslt;
 }
 
