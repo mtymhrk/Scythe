@@ -445,24 +445,28 @@ scm_string_set(ScmString *str, unsigned int pos, const scm_char_t c)
     return str;
   }
   else {
-    ScmString *rslt, *front, *rear;
+    ScmString *rslt, *front, *rear, *tmp;
 
-    rslt = front = rear = NULL;
+    rslt = front = rear = tmp = NULL;
 
     front = scm_string_substr(str, 0, pos);
     rear = scm_string_substr(str, pos + 1, str->length - pos - 1);
   
     if (front == NULL || rear == NULL) goto end;
+
+    tmp = scm_string_copy_and_expand(front,
+                                     front->bytesize + cw + rear->bytesize);
+    if (tmp == NULL) goto end;
+    if (scm_string_push(tmp, c) == NULL) goto end;
+    if (scm_string_append(tmp, rear) == NULL) goto end;
   
-    if (scm_string_push(front, c) == NULL) goto end;
-    if (scm_string_append(front, rear) == NULL) goto end;
-  
-    scm_string_replace_contents(str, front);
+    scm_string_replace_contents(str, tmp);
     rslt = str;
   
   end:
     if (front != NULL) scm_string_destruct(front);
     if (rear != NULL) scm_string_destruct(rear);
+    if (tmp != NULL) scm_string_destruct(tmp);
     return rslt;
   }
 }
