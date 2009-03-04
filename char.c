@@ -6,11 +6,13 @@
 #include "memory.h"
 #include "object.h"
 #include "obuffer.h"
+#include "encoding.h"
 #include "char.h"
 
 struct ScmCharRec {
   ScmObjHeader header;
-  unsigned int value;
+  SCM_ENCODING_T enc;
+  scm_char_t value;
 };
 
 static void
@@ -24,35 +26,36 @@ scm_char_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
 
   charv = SCM_CHAR(obj);
 
-  if (charv->value == '\n')
-    strncpy(str, "#\\newline", sizeof(str));
-  else if (charv->value == ' ')
-    strncpy(str, "#\\space", sizeof(str));
-  else if (isprint(charv->value))
-    snprintf(str, sizeof(str), "#\\%c", charv->value);
-  else if (charv->value <= 0xff)
-    snprintf(str, sizeof(str), "#\\0x%02x", charv->value);
-  else if (charv->value <= 0xffff)
-    snprintf(str, sizeof(str), "#\\0x%04x", charv->value);
-  else
-    snprintf(str, sizeof(str), "#\\0x%08x", charv->value);
+  /* if (charv->value == '\n') */
+  /*   strncpy(str, "#\\newline", sizeof(str)); */
+  /* else if (charv->value == ' ') */
+  /*   strncpy(str, "#\\space", sizeof(str)); */
+  /* else if (isprint(charv->value)) */
+  /*   snprintf(str, sizeof(str), "#\\%c", charv->value); */
+  /* else if (charv->value <= 0xff) */
+  /*   snprintf(str, sizeof(str), "#\\0x%02x", charv->value); */
+  /* else if (charv->value <= 0xffff) */
+  /*   snprintf(str, sizeof(str), "#\\0x%04x", charv->value); */
+  /* else */
+  /*   snprintf(str, sizeof(str), "#\\0x%08x", charv->value); */
 
-  scm_obuffer_concatenate_string(obuffer, str);
+  /* scm_obuffer_concatenate_string(obuffer, str); */
 }
 
 ScmChar *
-scm_char_construct(unsigned int value)
+scm_char_construct(scm_char_t value, SCM_ENCODING_T enc)
 {
   ScmChar *charv;
 
   charv = scm_memory_allocate(sizeof(ScmChar));
   scm_obj_init(SCM_OBJ(charv), SCM_OBJ_TYPE_CHAR, scm_char_pretty_print);
+  charv->enc = enc;
   charv->value = value;
 
   return charv;
 }
 
-unsigned int
+scm_char_t
 scm_char_value(ScmChar *charv)
 {
   assert(charv != NULL);

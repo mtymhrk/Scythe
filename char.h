@@ -8,9 +8,10 @@ typedef struct ScmCharRec ScmChar;
 #define SCM_CHAR(obj) ((ScmChar *)(obj))
 
 #include "object.h"
+#include "encoding.h"
 
-ScmChar *scm_char_construct(unsigned int value);
-unsigned int scm_char_value(ScmChar *charv);
+ScmChar *scm_char_construct(scm_char_t value, SCM_ENCODING_T enc);
+scm_char_t scm_char_value(ScmChar *charv);
 bool scm_char_is_char(ScmObj obj);
 
 
