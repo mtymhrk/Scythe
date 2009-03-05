@@ -91,6 +91,13 @@ scm_char_value(ScmChar *charv)
   return charv->value;
 }
 
+SCM_ENCODING_T
+scm_char_encoding(ScmChar *charv)
+{
+  assert(charv != NULL);
+  return charv->enc;
+}
+
 bool
 scm_char_is_char(ScmObj obj)
 {

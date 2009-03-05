@@ -14,6 +14,7 @@ ScmChar *scm_char_construct(scm_char_t value, SCM_ENCODING_T enc);
 ScmChar *scm_char_construct_newline(SCM_ENCODING_T enc);
 ScmChar *scm_char_construct_space(SCM_ENCODING_T enc);
 scm_char_t scm_char_value(ScmChar *charv);
+SCM_ENCODING_T scm_char_encoding(ScmChar *charv);
 bool scm_char_is_char(ScmObj obj);
 
 
