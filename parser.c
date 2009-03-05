@@ -1036,16 +1036,24 @@ scm_parser_parse_char(ScmParser *parser)
   assert(parser != NULL);
 
   p = SCM_TOKEN_STRING(scm_lexer_head_token(parser->lexer));
-  if (strcasecmp("#\\newline", p) == 0)
-    obj = SCM_OBJ(scm_char_construct('\n'));
-  else if (strcasecmp("#\\space", p) == 0)
-    obj = SCM_OBJ(scm_char_construct(' '));
-  else if (strlen(p) == 3)
-    obj = SCM_OBJ(scm_char_construct(p[2]));
+  if (strcasecmp("#\\newline", p) == 0) {
+    obj = SCM_OBJ(scm_char_construct_newline(SCM_ENCODING_ASCII));
+  }
+  else if (strcasecmp("#\\space", p) == 0) {
+    obj = SCM_OBJ(scm_char_construct_space(SCM_ENCODING_ASCII));
+  }
+  else if (strlen(p) == 3) {
+    scm_char_t c;
+    c.ascii = p[2];
+    obj = SCM_OBJ(scm_char_construct(c, SCM_ENCODING_ASCII));
+  }
   else if (strncasecmp("#\\0x", p, 4) == 0) {
-    unsigned int v;
-    sscanf(p + 4, "%x", &v);
-    obj = SCM_OBJ(scm_char_construct(v));
+    unsigned int i;
+    scm_char_t c;
+
+    sscanf(p + 4, "%x", &i);
+    c.ascii = i;
+    obj = SCM_OBJ(scm_char_construct(c, SCM_ENCODING_ASCII));
   }
   else {
     // TODO: error handling

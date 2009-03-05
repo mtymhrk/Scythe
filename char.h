@@ -11,6 +11,8 @@ typedef struct ScmCharRec ScmChar;
 #include "encoding.h"
 
 ScmChar *scm_char_construct(scm_char_t value, SCM_ENCODING_T enc);
+ScmChar *scm_char_construct_newline(SCM_ENCODING_T enc);
+ScmChar *scm_char_construct_space(SCM_ENCODING_T enc);
 scm_char_t scm_char_value(ScmChar *charv);
 bool scm_char_is_char(ScmObj obj);
 

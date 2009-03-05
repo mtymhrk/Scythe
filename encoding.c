@@ -1,24 +1,74 @@
 #include "encoding.h"
 
-const scm_char_t SCM_CHR_ZERO;
+const scm_char_t SCM_CHR_ZERO = {{ 0x00, 0x00, 0x00, 0x00 }};
+
+/* ASCII */
+const ScmEncConstants SCM_ENCODING_CONST_ASCII =
+  { {{'\n', 0x00, 0x00, 0x00}},
+    {{' ', 0x00, 0x00, 0x00}}   };
 
 const ScmEncVirtualFunc SCM_ENCODING_VFUNC_ASCII =
-  { scm_enc_char_width_ascii, scm_enc_index2itr_ascii };
+  { scm_enc_char_width_ascii, scm_enc_index2itr_ascii,
+    scm_enc_is_lf_ascii, scm_enc_is_space_ascii };
+
+
+/* Binary */
+const ScmEncConstants SCM_ENCODING_CONST_BIN =
+  { {{0x00, 0x00, 0x00, 0x00}},
+    {{0x00, 0x00, 0x00, 0x00}}  };
 
 const ScmEncVirtualFunc SCM_ENCODING_VFUNC_BIN =
-  { scm_enc_char_width_bin, scm_enc_index2itr_bin };
+  { scm_enc_char_width_bin, scm_enc_index2itr_bin,
+    scm_enc_is_lf_bin, scm_enc_is_space_bin };
+
+
+/* UTF-8 */
+const ScmEncConstants SCM_ENCODING_CONST_UTF8 =
+  { {{'\n', 0x00, 0x00, 0x00}},
+    {{' ', 0x00, 0x00, 0x00}}   };
 
 const ScmEncVirtualFunc SCM_ENCODING_VFUNC_UTF8 =
-  { scm_enc_char_width_utf8, scm_enc_index2itr_utf8 };
+  { scm_enc_char_width_utf8, scm_enc_index2itr_utf8,
+    scm_enc_is_lf_ascii, scm_enc_is_space_ascii };
+
+
+/* UCS4 */
+const ScmEncConstants SCM_ENCODING_CONST_UCS4 =
+  { {{0x00, 0x00, 0x00, '\n'}},
+    {{0x00, 0x00, 0x00, ' '}}   };
 
 const ScmEncVirtualFunc SCM_ENCODING_VFUNC_UCS4 =
-  { scm_enc_char_width_ucs4, scm_enc_index2itr_ucs4 };
+  { scm_enc_char_width_ucs4, scm_enc_index2itr_ucs4,
+    scm_enc_is_lf_ucs4, scm_enc_is_space_ucs4 };
+
+
+/* EUC-JP */
+const ScmEncConstants SCM_ENCODING_CONST_EUCJP =
+  { {{'\n', 0x00, 0x00, 0x00}},
+    {{' ', 0x00, 0x00, 0x00}}   };
 
 const ScmEncVirtualFunc SCM_ENCODING_VFUNC_EUCJP =
-  { scm_enc_char_width_eucjp, scm_enc_index2itr_eucjp };
+  { scm_enc_char_width_eucjp, scm_enc_index2itr_eucjp,
+    scm_enc_is_lf_ascii, scm_enc_is_space_ascii };
+
+
+/* SJIS */
+const ScmEncConstants SCM_ENCODING_CONST_SJIS =
+  { {{'\n', 0x00, 0x00, 0x00}},
+    {{' ', 0x00, 0x00, 0x00}}   };
 
 const ScmEncVirtualFunc SCM_ENCODING_VFUNC_SJIS =
-  { scm_enc_char_width_sjis, scm_enc_index2itr_sjis };
+  { scm_enc_char_width_sjis, scm_enc_index2itr_sjis,
+    scm_enc_is_lf_ascii, scm_enc_is_space_ascii };
+
+
+const ScmEncConstants *SCM_ENCODING_CONST_TBL[] =
+  { &SCM_ENCODING_CONST_ASCII,
+    &SCM_ENCODING_CONST_BIN,
+    &SCM_ENCODING_CONST_UCS4,
+    &SCM_ENCODING_CONST_UTF8,
+    &SCM_ENCODING_CONST_EUCJP,
+    &SCM_ENCODING_CONST_SJIS };
 
 const ScmEncVirtualFunc *SCM_ENCODING_VFUNC_TBL[] =
   { &SCM_ENCODING_VFUNC_ASCII,
@@ -150,6 +200,18 @@ scm_enc_index2itr_ascii(void *str, size_t size, unsigned int idx)
                                        scm_enc_char_width_ascii);
 }
 
+bool
+scm_enc_is_lf_ascii(scm_char_t c)
+{
+  return (c.ascii == 'a') ? true : false;
+}
+
+bool
+scm_enc_is_space_ascii(scm_char_t c)
+{
+  return (c.ascii == ' ') ? true : false;
+}
+
 
 /***********************************************************************/
 /*   BINARY                                                            */
@@ -173,6 +235,18 @@ scm_enc_index2itr_bin(void *str, size_t size, unsigned int idx)
 {
   return scm_enc_index2itr_fixed_width(str, size, idx, sizeof(scm_char_bin_t),
                                        scm_enc_char_width_ascii);
+}
+
+bool
+scm_enc_is_lf_bin(scm_char_t c)
+{
+  return false;
+}
+
+bool
+scm_enc_is_space_bin(scm_char_t c)
+{
+  return false;
 }
 
 
@@ -310,6 +384,17 @@ scm_enc_utf8_to_ucs4(const uint8_t *utf8, size_t utf8_len, uint32_t *ucs4)
   }
 }
 
+bool
+scm_enc_is_lf_ucs4(scm_char_t c)
+{
+  return (c.ucs4 == '\n') ? true : false;
+}
+
+bool
+scm_enc_is_space_ucs4(scm_char_t c)
+{
+  return (c.ucs4 == ' ') ? true : false;
+}
 
 /***********************************************************************/
 /*   EUC-JP                                                             */

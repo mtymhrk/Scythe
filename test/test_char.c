@@ -10,7 +10,7 @@ test_scm_char_construct(void)
   scm_char_t c;
   ScmChar *charv;
 
-  c.ascii = 'a';
+  SCM_CHR_SET_ASCII(c, 'a');
   charv = scm_char_construct(c, SCM_ENCODING_ASCII);
 
   cut_assert_not_null(charv);
@@ -24,7 +24,7 @@ test_scm_char_value_a(void)
   scm_char_t c;
   ScmChar *charv;
 
-  c.ascii = 'a';
+  SCM_CHR_SET_ASCII(c, 'a');
   charv = scm_char_construct(c, SCM_ENCODING_ASCII);
 
   cut_assert_not_null(charv);
@@ -39,7 +39,7 @@ test_scm_char_is_char(void)
   scm_char_t c;
   ScmChar *charv;
 
-  c.ascii = 'a';
+  SCM_CHR_SET_ASCII(c, 'a');
   charv = scm_char_construct(c, SCM_ENCODING_ASCII);
 
   cut_assert_true(scm_char_is_char(SCM_OBJ(charv)));

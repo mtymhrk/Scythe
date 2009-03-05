@@ -15,6 +15,11 @@ struct ScmCharRec {
   scm_char_t value;
 };
 
+#define SCM_CHAR_IS_LF(c) \
+  SCM_CHR_IS_EQUAL((c)->value, SCM_ENCODING_CONST_LF_CHAR((c)->enc))
+#define SCM_CHAR_IS_SPACE(c) \
+  SCM_CHR_IS_EQUAL((c)->value, SCM_ENCODING_CONST_SPACE_CHAR((c)->enc))
+
 static void
 scm_char_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
 {
@@ -26,20 +31,30 @@ scm_char_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
 
   charv = SCM_CHAR(obj);
 
-  /* if (charv->value == '\n') */
-  /*   strncpy(str, "#\\newline", sizeof(str)); */
-  /* else if (charv->value == ' ') */
-  /*   strncpy(str, "#\\space", sizeof(str)); */
-  /* else if (isprint(charv->value)) */
-  /*   snprintf(str, sizeof(str), "#\\%c", charv->value); */
-  /* else if (charv->value <= 0xff) */
-  /*   snprintf(str, sizeof(str), "#\\0x%02x", charv->value); */
-  /* else if (charv->value <= 0xffff) */
-  /*   snprintf(str, sizeof(str), "#\\0x%04x", charv->value); */
-  /* else */
-  /*   snprintf(str, sizeof(str), "#\\0x%08x", charv->value); */
+  if (SCM_CHAR_IS_LF(charv)) {
+    strncpy(str, "#\\newline", sizeof(str));
+  }
+  else if (SCM_CHAR_IS_SPACE(charv)) {
+    strncpy(str, "#\\space", sizeof(str));
+  }
+  else if (charv->enc == SCM_ENCODING_ASCII
+           && SCM_CHR_ASCII(charv->value) < 0x20) {
+    snprintf(str, sizeof(str), "#\\0x%02x", SCM_CHR_ASCII(charv->value));
+  }
+  else {
+    int (*char_width)(const void *p, size_t size);
+    char tmp[sizeof(charv->value)];
+    int w;
 
-  /* scm_obuffer_concatenate_string(obuffer, str); */
+    char_width = SCM_ENCODING_VFUNC_CHAR_WIDTH(charv->enc);
+    w = char_width(&charv->value, sizeof(charv->value));
+    memcpy(tmp, &charv->value, w);
+    tmp[w] = '\0';
+
+    snprintf(str, sizeof(str), "#\\%s", tmp);
+  }
+
+  scm_obuffer_concatenate_string(obuffer, str);
 }
 
 ScmChar *
@@ -47,12 +62,26 @@ scm_char_construct(scm_char_t value, SCM_ENCODING_T enc)
 {
   ScmChar *charv;
 
+  assert(0 <= enc && enc < SMC_ENCODING_NR_ENC);
+
   charv = scm_memory_allocate(sizeof(ScmChar));
   scm_obj_init(SCM_OBJ(charv), SCM_OBJ_TYPE_CHAR, scm_char_pretty_print);
   charv->enc = enc;
   charv->value = value;
 
   return charv;
+}
+
+ScmChar *
+scm_char_construct_newline(SCM_ENCODING_T enc)
+{
+  return scm_char_construct(SCM_ENCODING_CONST_LF_CHAR(enc), enc);
+}
+
+ScmChar *
+scm_char_construct_space(SCM_ENCODING_T enc)
+{
+  return scm_char_construct(SCM_ENCODING_CONST_SPACE_CHAR(enc), enc);
 }
 
 scm_char_t

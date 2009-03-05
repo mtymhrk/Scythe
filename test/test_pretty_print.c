@@ -132,7 +132,11 @@ void
 test_pretty_print_char_printable(void)
 {
   ScmOBuffer *obuffer = scm_obuffer_construct(stdout);
-  ScmChar *chr = scm_char_construct('a');
+  scm_char_t c;
+  ScmChar *chr;
+
+  SCM_CHR_SET_ASCII(c, 'a');
+  chr = scm_char_construct(c, SCM_ENCODING_ASCII);
   
   scm_obuffer_pretty_print_scm_obj(obuffer,
                                    SCM_OBJ(chr), SCM_OBUFFER_MODE_CLEAR);
@@ -143,7 +147,7 @@ void
 test_pretty_print_char_newline(void)
 {
   ScmOBuffer *obuffer = scm_obuffer_construct(stdout);
-  ScmChar *chr = scm_char_construct('\n');
+  ScmChar *chr = scm_char_construct_newline(SCM_ENCODING_ASCII);
   
   scm_obuffer_pretty_print_scm_obj(obuffer,
                                    SCM_OBJ(chr), SCM_OBUFFER_MODE_CLEAR);
@@ -154,7 +158,7 @@ void
 test_pretty_print_char_space(void)
 {
   ScmOBuffer *obuffer = scm_obuffer_construct(stdout);
-  ScmChar *chr = scm_char_construct(' ');
+  ScmChar *chr = scm_char_construct_space(SCM_ENCODING_ASCII);
   
   scm_obuffer_pretty_print_scm_obj(obuffer,
                                    SCM_OBJ(chr), SCM_OBUFFER_MODE_CLEAR);
@@ -165,22 +169,15 @@ void
 test_pretty_print_char_control(void)
 {
   ScmOBuffer *obuffer = scm_obuffer_construct(stdout);
-  ScmChar *chr2d = scm_char_construct(0x0b);
-  ScmChar *chr4d = scm_char_construct(0x10b);
-  ScmChar *chr8d = scm_char_construct(0x2010b);
+  scm_char_t c;
+  ScmChar *chr2d;
+
+  SCM_CHR_SET_ASCII(c, 0x0b);
+  chr2d = scm_char_construct(c, SCM_ENCODING_ASCII);
 
   scm_obuffer_pretty_print_scm_obj(obuffer,
                                    SCM_OBJ(chr2d), SCM_OBUFFER_MODE_CLEAR);
   cut_assert_equal_string("#\\0x0b", scm_obuffer_buffer(obuffer));
-
-
-  scm_obuffer_pretty_print_scm_obj(obuffer,
-                                   SCM_OBJ(chr4d), SCM_OBUFFER_MODE_CLEAR);
-  cut_assert_equal_string("#\\0x010b", scm_obuffer_buffer(obuffer));
-
-  scm_obuffer_pretty_print_scm_obj(obuffer,
-                                   SCM_OBJ(chr8d), SCM_OBUFFER_MODE_CLEAR);
-  cut_assert_equal_string("#\\0x0002010b", scm_obuffer_buffer(obuffer));
 }
 
 void

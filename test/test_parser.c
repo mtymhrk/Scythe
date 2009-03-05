@@ -147,11 +147,11 @@ test_parser_parse_char_newline(void)
   obj = scm_parser_parse_expression(parser);
   
   cut_assert_true(scm_char_is_char(obj));
-  cut_assert_equal_int('\n', scm_char_value(SCM_CHAR(obj)));
+  cut_assert_equal_int('\n', SCM_CHR_ASCII(scm_char_value(SCM_CHAR(obj))));
 
   obj = scm_parser_parse_expression(parser);
   cut_assert_true(scm_char_is_char(obj));
-  cut_assert_equal_int('\n', scm_char_value(SCM_CHAR(obj)));
+  cut_assert_equal_int('\n', SCM_CHR_ASCII(scm_char_value(SCM_CHAR(obj))));
 
   obj = scm_parser_parse_expression(parser);
   cut_assert_true(scm_eof_is_eof(obj));  
@@ -166,11 +166,11 @@ test_parser_parse_char_space(void)
   obj = scm_parser_parse_expression(parser);
   
   cut_assert_true(scm_char_is_char(obj));
-  cut_assert_equal_int(' ', scm_char_value(SCM_CHAR(obj)));
+  cut_assert_equal_int(' ', SCM_CHR_ASCII(scm_char_value(SCM_CHAR(obj))));
 
   obj = scm_parser_parse_expression(parser);
   cut_assert_true(scm_char_is_char(obj));
-  cut_assert_equal_int(' ', scm_char_value(SCM_CHAR(obj)));
+  cut_assert_equal_int(' ', SCM_CHR_ASCII(scm_char_value(SCM_CHAR(obj))));
 
   obj = scm_parser_parse_expression(parser);
   cut_assert_true(scm_eof_is_eof(obj));  
