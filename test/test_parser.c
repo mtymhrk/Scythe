@@ -25,6 +25,14 @@ construct_parser_from_string(const char *str)
 }
 
 void
+string_content_to_null_terminate_string(ScmString *str, char *buf)
+{
+  memcpy(buf, scm_string_content(str),
+         scm_string_bytesize(str));
+  buf[scm_string_bytesize(str)] = '\0';
+}
+
+void
 test_parser_construct(void)
 {
   ScmPort *port = scm_port_open_input_string("", 0);
@@ -38,12 +46,14 @@ test_parser_construct(void)
 void
 test_parser_parse_string(void)
 {
+  char actual[256];
   ScmParser *parser = construct_parser_from_string(" \"this is string\" ");
 
   ScmObj obj = scm_parser_parse_expression(parser);
   
   cut_assert_true(scm_string_is_string(obj));
-  cut_assert_equal_string("this is string", scm_string_string(SCM_STRING(obj)));
+  string_content_to_null_terminate_string(SCM_STRING(obj), actual);
+  cut_assert_equal_string("this is string", actual);
   cut_assert_equal_int(14, scm_string_length(SCM_STRING(obj)));
 
   obj = scm_parser_parse_expression(parser);
@@ -137,11 +147,11 @@ test_parser_parse_char_newline(void)
   obj = scm_parser_parse_expression(parser);
   
   cut_assert_true(scm_char_is_char(obj));
-  cut_assert_equal_int('\n', scm_char_value(SCM_CHAR(obj)));
+  cut_assert_equal_int('\n', SCM_CHR_ASCII(scm_char_value(SCM_CHAR(obj))));
 
   obj = scm_parser_parse_expression(parser);
   cut_assert_true(scm_char_is_char(obj));
-  cut_assert_equal_int('\n', scm_char_value(SCM_CHAR(obj)));
+  cut_assert_equal_int('\n', SCM_CHR_ASCII(scm_char_value(SCM_CHAR(obj))));
 
   obj = scm_parser_parse_expression(parser);
   cut_assert_true(scm_eof_is_eof(obj));  
@@ -156,11 +166,11 @@ test_parser_parse_char_space(void)
   obj = scm_parser_parse_expression(parser);
   
   cut_assert_true(scm_char_is_char(obj));
-  cut_assert_equal_int(' ', scm_char_value(SCM_CHAR(obj)));
+  cut_assert_equal_int(' ', SCM_CHR_ASCII(scm_char_value(SCM_CHAR(obj))));
 
   obj = scm_parser_parse_expression(parser);
   cut_assert_true(scm_char_is_char(obj));
-  cut_assert_equal_int(' ', scm_char_value(SCM_CHAR(obj)));
+  cut_assert_equal_int(' ', SCM_CHR_ASCII(scm_char_value(SCM_CHAR(obj))));
 
   obj = scm_parser_parse_expression(parser);
   cut_assert_true(scm_eof_is_eof(obj));  
@@ -294,6 +304,7 @@ test_parser_parse_empty_list(void)
 void
 test_parser_parse_proper_list(void)
 {
+  char actual[256];
   ScmParser *parser = construct_parser_from_string("(<abc> 123 \"str\" :def:)");
   ScmObj obj, car, cdr;
 
@@ -318,7 +329,8 @@ test_parser_parse_proper_list(void)
   cdr = scm_pair_cdr(SCM_PAIR(cdr));
 
   cut_assert_true(scm_string_is_string(car));
-  cut_assert_equal_string("str", scm_string_string(SCM_STRING(car)));
+  string_content_to_null_terminate_string(SCM_STRING(car), actual);
+  cut_assert_equal_string("str", actual);
 
   cut_assert_true(scm_pair_is_pair(cdr));
   car = scm_pair_car(SCM_PAIR(cdr));
@@ -454,6 +466,7 @@ test_parser_parse_empty_vector(void)
 void
 test_parser_parse_vector(void)
 {
+  char actual[256];
   ScmParser *parser =
     construct_parser_from_string(" #(<abc> 123 \"str\" #()) ");
   ScmObj vector, obj;
@@ -476,7 +489,8 @@ test_parser_parse_vector(void)
   obj = scm_vector_ref(SCM_VECTOR(vector), 2);
 
   cut_assert_true(scm_string_is_string(obj));
-  cut_assert_equal_string("str", scm_string_string(SCM_STRING(obj)));
+  string_content_to_null_terminate_string(SCM_STRING(obj), actual);
+  cut_assert_equal_string("str", actual);
 
   obj = scm_vector_ref(SCM_VECTOR(vector), 3);
 

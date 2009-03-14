@@ -24,11 +24,11 @@ void
 test_scm_vector_set_and_ref(void)
 {
   ScmVector *vector = scm_vector_construct(5);
-  ScmString *str1 = scm_string_construct("str1");
-  ScmString *str2 = scm_string_construct("str2");
-  ScmString *str3 = scm_string_construct("str3");
-  ScmString *str4 = scm_string_construct("str4");
-  ScmString *str5 = scm_string_construct("str5");
+  ScmString *str1 = scm_string_construct("str1", 4, SCM_ENCODING_ASCII);
+  ScmString *str2 = scm_string_construct("str2", 4, SCM_ENCODING_ASCII);
+  ScmString *str3 = scm_string_construct("str3", 4, SCM_ENCODING_ASCII);
+  ScmString *str4 = scm_string_construct("str4", 4, SCM_ENCODING_ASCII);
+  ScmString *str5 = scm_string_construct("str5", 4, SCM_ENCODING_ASCII);
 
   scm_vector_set(vector, 0, SCM_OBJ(str1));
   scm_vector_set(vector, 1, SCM_OBJ(str2));
