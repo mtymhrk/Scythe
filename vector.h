@@ -18,5 +18,6 @@ ScmObj scm_vector_ref(ScmVector *vector, size_t index);
 ScmObj scm_vector_set(ScmVector *vector, size_t index, ScmObj obj);
 bool scm_vector_is_vector(ScmObj obj);
 void scm_vector_pretty_print(ScmObj obj, ScmOBuffer *obuffer);
+void scm_vector_gc_finalize(ScmObj obj);
 
 #endif /* INCLUDE_VECTOR_H__ */

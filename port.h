@@ -136,5 +136,6 @@ int scm_port_errno(ScmPort *port);
 void *scm_port_string_buffer(ScmPort *port);
 ssize_t scm_port_string_buffer_length(ScmPort *port);
 void scm_port_pretty_print(ScmObj obj, ScmOBuffer *obuffer);
+void scm_port_gc_finalize(ScmObj obj);
 
 #endif /*  INCLUDE_PORT_H__ */

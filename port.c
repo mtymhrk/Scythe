@@ -94,9 +94,10 @@ struct ScmPortRec {
 };
 
 const ScmTypeInfo SCM_PORT_TYPE_INFO = {
-  SCM_OBJ_TYPE_PORT,          /* type     */
-  scm_port_pretty_print,      /* pp_func  */
-  sizeof(ScmPort)             /* obj_size */
+  SCM_OBJ_TYPE_PORT,          /* type        */
+  scm_port_pretty_print,      /* pp_func     */
+  sizeof(ScmPort),            /* obj_size    */
+  scm_port_gc_finalize        /* gc_fin_func */
 };
 
 static void
@@ -997,6 +998,19 @@ scm_port_initialize(ScmPort *port,
   scm_port_init_buffer(port, buf_mode);
 }
 
+static void
+scm_port_finalize(ScmPort *port)
+{
+  assert(port != NULL);
+
+  scm_port_flush(port);
+  if (BIT_IS_SETED(port->attr, SCM_PORT_ATTR_DESTRUCT_IO)) {
+    scm_port_close(port);
+    scm_io_destruct(port->io);
+  }
+  scm_memory_release(port->buffer);
+}
+
 ScmPort *
 scm_port_open_input(ScmIO *io, SCM_PORT_ATTR attr, SCM_PORT_BUF_MODE buf_mode)
 {
@@ -1139,12 +1153,7 @@ scm_port_destruct(ScmPort *port)
 {
   assert(port != NULL);
 
-  scm_port_flush(port);
-  if (BIT_IS_SETED(port->attr, SCM_PORT_ATTR_DESTRUCT_IO)) {
-    scm_port_close(port);
-    scm_io_destruct(port->io);
-  }
-  scm_memory_release(port->buffer);
+  scm_port_finalize(port);
   scm_memory_release(port);
 }
 
@@ -1520,4 +1529,10 @@ scm_port_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
   if (scm_port_is_string_port(port))
     scm_obuffer_concatenate_string(obuffer, " string");
   scm_obuffer_concatenate_char(obuffer, '>');
+}
+
+void
+scm_port_gc_finalize(ScmObj obj)
+{
+  scm_port_finalize(SCM_PORT(obj));
 }

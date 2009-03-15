@@ -12,6 +12,7 @@ typedef struct ScmPairRec ScmPair;
 extern const ScmTypeInfo SCM_PAIR_TYPE_INFO;
 
 ScmPair *scm_pair_construct(ScmObj car, ScmObj cdr);
+void scm_pair_desturct(ScmPair *pair);
 ScmObj scm_pair_car(const ScmPair *pair);
 ScmObj scm_pair_cdr(const ScmPair *pair);
 bool scm_pair_is_pair(const ScmObj obj);

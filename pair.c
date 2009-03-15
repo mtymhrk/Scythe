@@ -15,9 +15,10 @@ struct ScmPairRec {
 };
 
 const ScmTypeInfo SCM_PAIR_TYPE_INFO = {
-  SCM_OBJ_TYPE_PAIR,          /* type     */
-  scm_pair_pretty_print,      /* pp_func  */
-  sizeof(ScmPair)             /* obj_size */
+  SCM_OBJ_TYPE_PAIR,          /* type        */
+  scm_pair_pretty_print,      /* pp_func     */
+  sizeof(ScmPair),            /* obj_size    */
+  NULL                        /* gc_fin_func */
 };
 
 
@@ -35,6 +36,14 @@ scm_pair_construct(ScmObj car, ScmObj cdr)
   pair->cdr = cdr;
 
   return pair;
+}
+
+void
+scm_pair_desturct(ScmPair *pair)
+{
+  assert(pair != NULL);
+
+  scm_memory_release(pair);
 }
 
 ScmObj

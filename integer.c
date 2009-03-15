@@ -13,11 +13,11 @@ struct ScmIntegerRec {
 };
 
 const ScmTypeInfo SCM_INTEGER_TYPE_INFO = {
-  SCM_OBJ_TYPE_INTEGER,          /* type     */
-  scm_integer_pretty_print,      /* pp_func  */
-  sizeof(ScmInteger)             /* obj_size */
+  SCM_OBJ_TYPE_INTEGER,          /* type        */
+  scm_integer_pretty_print,      /* pp_func     */
+  sizeof(ScmInteger),            /* obj_size    */
+  NULL                           /* gc_fin_func */
 };
-
 
 
 ScmInteger *
@@ -31,6 +31,13 @@ scm_integer_construct(long long value)
   integer->value = value;
 
   return integer;
+}
+
+void
+scm_integer_destruct(ScmInteger *integer)
+{
+  assert(integer != NULL);
+  scm_memory_release(integer);
 }
 
 long long

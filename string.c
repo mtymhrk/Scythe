@@ -26,9 +26,10 @@ struct ScmStringRec {
 #define ROOM_FOR_APPEND(str) (CAPACITY(str) - (str)->bytesize)
 
 const ScmTypeInfo SCM_STRING_TYPE_INFO = {
-  SCM_OBJ_TYPE_STRING,          /* type     */
-  scm_string_pretty_print,      /* pp_func  */
-  sizeof(ScmString)             /* obj_size */
+  SCM_OBJ_TYPE_STRING,          /* type        */
+  scm_string_pretty_print,      /* pp_func     */
+  sizeof(ScmString),            /* obj_size    */
+  scm_string_gc_finalize        /* gc_fin_func */
 };
 
 static ssize_t
@@ -116,6 +117,19 @@ scm_string_replace_contents(ScmString *target, ScmString *src)
   (*target->ref_cnt)++;
 }
 
+static void
+scm_string_finalize(ScmString *str)
+{
+  assert(str != NULL);
+
+  if (*str->ref_cnt > 1)
+    (*str->ref_cnt)--;
+  else {
+    scm_memory_release(str->buffer);
+    scm_memory_release(str->ref_cnt);
+  }
+}
+
 ScmString *
 scm_string_construct(const void *src, size_t size, SCM_ENCODING_T enc)
 {
@@ -169,17 +183,9 @@ scm_string_destruct(ScmString *str)
 {
   assert(str != NULL);
 
-  if (*str->ref_cnt > 1)
-    (*str->ref_cnt)--;
-  else {
-    scm_memory_release(str->buffer);
-    scm_memory_release(str->ref_cnt);
-  }
-
+  scm_string_finalize(str);
   scm_memory_release(str);
 }
-
-
 
 ScmString *
 scm_string_copy(const ScmString *src)
@@ -622,3 +628,10 @@ scm_string_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
 
   scm_obuffer_concatenate_char(obuffer, '"');
 }
+
+void
+scm_string_gc_finalize(ScmObj obj)
+{
+  scm_string_finalize(SCM_STRING(obj));
+}
+

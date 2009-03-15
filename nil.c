@@ -13,9 +13,10 @@ struct ScmNilRec {
 };
 
 const ScmTypeInfo SCM_NIL_TYPE_INFO = {
-  SCM_OBJ_TYPE_NIL,          /* type     */
-  scm_nil_pretty_print,      /* pp_func  */
-  sizeof(ScmNil)             /* obj_size */
+  SCM_OBJ_TYPE_NIL,          /* type        */
+  scm_nil_pretty_print,      /* pp_func     */
+  sizeof(ScmNil),            /* obj_size    */
+  NULL                       /* gc_fin_func */
 };
 
 
@@ -27,6 +28,13 @@ scm_nil_construct(void)
   ScmNil *nil = scm_memory_allocate(sizeof(ScmNil));
   scm_obj_init(SCM_OBJ(nil), SCM_OBJ_TYPE_NIL, scm_nil_pretty_print);
   return nil;
+}
+
+void
+scm_nil_destruct(ScmNil *nil)
+{
+  assert(nil != NULL);
+  scm_memory_release(nil);
 }
 
 ScmNil *

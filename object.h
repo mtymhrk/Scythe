@@ -29,6 +29,7 @@ extern const ScmTypeInfo const *SCM_TYPE_INFO_TBL[SCM_OBJ_NR_TYPE];
 
 typedef void (*ScmPrettyPrintFunction)(ScmObj obj,
 				       ScmOBuffer *obuffer);
+typedef void (*ScmGCFinalizeFunc)(ScmObj obj);
 
 /* TODO: throw out pretty print function of ScmObj */
 struct ScmObjHeaderRec {
@@ -44,7 +45,13 @@ struct ScmTypeInfoRec {
   SCM_OBJ_TYPE_T type;
   ScmPrettyPrintFunction pp_func;
   size_t obj_size;
+  ScmGCFinalizeFunc gc_fin_func;
 };
+
+#define SCM_TYPE_INFO_PP(type) (SCM_TYPE_INFO_TBL[(type)]->pp_func)
+#define SCM_TYPE_INFO_OBJ_SIZE(type) (SCM_TYPE_INFO_TBL[(type)]->obj_size)
+#define SCM_TYPE_INFO_GC_FIN(type) (SCM_TYPE_INFO_TBL[(type)]->gc_fin_func)
+#define SCM_TYPE_INFO_HAS_GC_FIN(type) (SCM_TYPE_INFO_GC_FIN(type) != NULL)
 
 #define SCM_ATOM(obj) ((ScmAtom *)(obj))
 #define SCM_OBJ(obj) ((ScmObj)(obj))

@@ -14,11 +14,18 @@ struct ScmVectorRec {
 };
 
 const ScmTypeInfo SCM_VECTOR_TYPE_INFO = {
-  SCM_OBJ_TYPE_VECTOR,          /* type     */
-  scm_vector_pretty_print,      /* pp_func  */
-  sizeof(ScmVector)             /* obj_size */
+  SCM_OBJ_TYPE_VECTOR,          /* type        */
+  scm_vector_pretty_print,      /* pp_func     */
+  sizeof(ScmVector),            /* obj_size    */
+  scm_vector_gc_finalize        /* gc_fin_func */
 };
 
+static void
+scm_vector_finalize(ScmVector *vector)
+{
+  assert(vector != NULL);
+  scm_memory_release(vector->array);
+}
 
 ScmVector *
 scm_vector_construct(size_t length)
@@ -49,7 +56,7 @@ scm_vector_destruct(ScmVector *vector)
 {
   assert(vector != NULL);
 
-  scm_memory_release(vector->array);
+  scm_vector_finalize(vector);
   scm_memory_release(vector);
 }
 
@@ -108,4 +115,10 @@ scm_vector_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
     scm_obj_pretty_print(vector->array[i], obuffer);
   }
   scm_obuffer_concatenate_char(obuffer, ')');
+}
+
+void
+scm_vector_gc_finalize(ScmObj obj)
+{
+  scm_vector_finalize(SCM_VECTOR(obj));
 }

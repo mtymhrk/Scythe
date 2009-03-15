@@ -12,6 +12,7 @@ typedef struct ScmBoolRec ScmBool;
 extern const ScmTypeInfo SCM_BOOL_TYPE_INFO;
 
 ScmBool *scm_bool_construct(bool value);
+void scm_bool_destruct(ScmBool *boolv);
 bool scm_bool_value(ScmBool *boolv);
 bool scm_bool_is_bool(ScmObj obj);
 void scm_bool_pretty_print(ScmObj obj, ScmOBuffer *obuffer);

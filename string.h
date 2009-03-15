@@ -37,5 +37,6 @@ SCM_ENCODING_T scm_string_encoding(const ScmString *str);
 void *scm_string_content(const ScmString *str);
 bool scm_string_is_string(ScmObj obj);
 void scm_string_pretty_print(ScmObj obj, ScmOBuffer *obuffer);
+void scm_string_gc_finalize(ScmObj obj);
 
 #endif /* INCLUDE_STRING_H__ */

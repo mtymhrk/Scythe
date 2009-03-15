@@ -42,6 +42,7 @@ scm_obj_is_same_instance(ScmObj obj1, ScmObj obj2)
 #include "pair.h"
 #include "string.h"
 #include "symbol.h"
+#include "nil.h"
 #include "integer.h"
 #include "vector.h"
 #include "bool.h"
@@ -51,16 +52,16 @@ scm_obj_is_same_instance(ScmObj obj1, ScmObj obj2)
 
 const ScmTypeInfo const * SCM_TYPE_INFO_TBL[SCM_OBJ_NR_TYPE] = {
   &SCM_FORWARD_TYPE_INFO,
-  NULL,
-  NULL,
+  &SCM_PAIR_TYPE_INFO,
   &SCM_STRING_TYPE_INFO,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL
+  &SCM_SYMBOL_TYPE_INFO,
+  &SCM_NIL_TYPE_INFO,
+  &SCM_INTEGER_TYPE_INFO,
+  &SCM_VECTOR_TYPE_INFO,
+  &SCM_BOOL_TYPE_INFO,
+  &SCM_CHAR_TYPE_INFO,
+  &SCM_EOF_TYPE_INFO,
+  &SCM_PORT_TYPE_INFO
 };
 
 /* for debug */

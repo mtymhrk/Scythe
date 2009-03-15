@@ -17,9 +17,10 @@ struct ScmSymbolRec {
 };
 
 const ScmTypeInfo SCM_SYMBOL_TYPE_INFO = {
-  SCM_OBJ_TYPE_SYMBOL,          /* type     */
-  scm_symbol_pretty_print,      /* pp_func  */
-  sizeof(ScmSymbol)             /* obj_size */
+  SCM_OBJ_TYPE_SYMBOL,          /* type        */
+  scm_symbol_pretty_print,      /* pp_func     */
+  sizeof(ScmSymbol),            /* obj_size    */
+  scm_symbol_gc_finalize        /* gc_fin_func */
 };
 
 
@@ -50,6 +51,13 @@ scm_symbol_table_comp_func(ScmBasicHashKey key1, ScmBasicHashKey key2)
   return (strcmp(name1, name2) == 0) ? true : false;
 }
 
+static void
+scm_symbol_finalize(ScmSymbol *symbol)
+{
+  assert(symbol != NULL);
+  scm_memory_release(symbol->name);
+}
+
 ScmSymbol *
 scm_symbol_construct(const char *str)
 {
@@ -64,6 +72,14 @@ scm_symbol_construct(const char *str)
   strncpy(symbol->name, str, symbol->length + 1);
 
   return symbol;
+}
+
+void
+scm_symbol_destruct(ScmSymbol *symbol)
+{
+  assert(symbol != NULL);
+  scm_symbol_finalize(symbol);
+  scm_memory_release(symbol);
 }
 
 char *
@@ -121,3 +137,8 @@ scm_symbol_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
   scm_obuffer_concatenate_string(obuffer, SCM_SYMBOL(obj)->name);
 }
 
+void
+scm_symbol_gc_finalize(ScmObj obj)
+{
+  scm_symbol_finalize(SCM_SYMBOL(obj));
+}

@@ -21,9 +21,10 @@ struct ScmCharRec {
   SCM_CHR_IS_EQUAL((c)->value, SCM_ENCODING_CONST_SPACE_CHAR((c)->enc))
 
 const ScmTypeInfo SCM_CHAR_TYPE_INFO = {
-  SCM_OBJ_TYPE_CHAR,          /* type     */
-  scm_char_pretty_print,      /* pp_func  */
-  sizeof(ScmChar)             /* obj_size */
+  SCM_OBJ_TYPE_CHAR,          /* type        */
+  scm_char_pretty_print,      /* pp_func     */
+  sizeof(ScmChar),            /* obj_size    */
+  NULL                        /* gc_fin_func */
 };
 
 
@@ -40,6 +41,13 @@ scm_char_construct(scm_char_t value, SCM_ENCODING_T enc)
   charv->value = value;
 
   return charv;
+}
+
+void
+scm_char_destruct(ScmChar *charv)
+{
+  assert(charv != NULL);
+  scm_memory_release(charv);
 }
 
 ScmChar *
