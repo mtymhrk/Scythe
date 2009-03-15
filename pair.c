@@ -30,7 +30,7 @@ scm_pair_construct(ScmObj car, ScmObj cdr)
   assert(car != NULL); assert(cdr != NULL);
 
   pair = (ScmPair *)scm_memory_allocate(sizeof(ScmPair));
-  scm_obj_init(SCM_OBJ(pair), SCM_OBJ_TYPE_PAIR, scm_pair_pretty_print);
+  scm_obj_init(SCM_OBJ(pair), SCM_OBJ_TYPE_PAIR);
 
   pair->car = car;
   pair->cdr = cdr;

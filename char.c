@@ -36,7 +36,7 @@ scm_char_construct(scm_char_t value, SCM_ENCODING_T enc)
   assert(0 <= enc && enc < SMC_ENCODING_NR_ENC);
 
   charv = scm_memory_allocate(sizeof(ScmChar));
-  scm_obj_init(SCM_OBJ(charv), SCM_OBJ_TYPE_CHAR, scm_char_pretty_print);
+  scm_obj_init(SCM_OBJ(charv), SCM_OBJ_TYPE_CHAR);
   charv->enc = enc;
   charv->value = value;
 

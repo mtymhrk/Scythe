@@ -54,8 +54,7 @@ struct ScmTypeInfoRec {
 #define SCM_ATOM(obj) ((ScmAtom *)(obj))
 #define SCM_OBJ(obj) ((ScmObj)(obj))
 
-void scm_obj_init(ScmObj obj, SCM_OBJ_TYPE_T type,
-		  ScmPrettyPrintFunction ppfunc);
+void scm_obj_init(ScmObj obj, SCM_OBJ_TYPE_T type);
 SCM_OBJ_TYPE_T scm_obj_type(ScmObj obj);
 void scm_obj_pretty_print(ScmObj obj, ScmOBuffer *obuffer);
 int scm_obj_is_same_instance(ScmObj obj1, ScmObj obj2);

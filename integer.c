@@ -26,8 +26,7 @@ scm_integer_construct(long long value)
   ScmInteger *integer;
 
   integer = scm_memory_allocate(sizeof(ScmInteger));
-  scm_obj_init(SCM_OBJ(integer), SCM_OBJ_TYPE_INTEGER,
-	       scm_integer_pretty_print);
+  scm_obj_init(SCM_OBJ(integer), SCM_OBJ_TYPE_INTEGER);
   integer->value = value;
 
   return integer;

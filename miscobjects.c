@@ -26,7 +26,7 @@ scm_eof_construct(void)
   ScmEOF *eof;
 
   eof = scm_memory_allocate(sizeof(ScmEOF));
-  scm_obj_init(SCM_OBJ(eof), SCM_OBJ_TYPE_EOF, scm_eof_pretty_print);
+  scm_obj_init(SCM_OBJ(eof), SCM_OBJ_TYPE_EOF);
 
   return eof;
 }

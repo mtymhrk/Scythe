@@ -138,7 +138,7 @@ scm_string_construct(const void *src, size_t size, SCM_ENCODING_T enc)
   assert(0 <= enc && enc < SMC_ENCODING_NR_ENC);
 
   str = (ScmString *)scm_memory_allocate(sizeof(ScmString));
-  scm_obj_init(SCM_OBJ(str), SCM_OBJ_TYPE_STRING, scm_string_pretty_print);
+  scm_obj_init(SCM_OBJ(str), SCM_OBJ_TYPE_STRING);
 
   str->buffer = NULL;
   str->ref_cnt = NULL;
@@ -203,7 +203,7 @@ scm_string_dup(ScmString *src)
   assert(src != NULL);
 
   str = (ScmString *)scm_memory_allocate(sizeof(ScmString));
-  scm_obj_init(SCM_OBJ(str), SCM_OBJ_TYPE_STRING, scm_string_pretty_print);
+  scm_obj_init(SCM_OBJ(str), SCM_OBJ_TYPE_STRING);
   
   str->buffer = src->buffer;
   str->head = src->head;

@@ -66,7 +66,7 @@ scm_symbol_construct(const char *str)
   assert(str != NULL);
 
   symbol = (ScmSymbol *)scm_memory_allocate(sizeof(ScmSymbol));
-  scm_obj_init(SCM_OBJ(symbol), SCM_OBJ_TYPE_SYMBOL, scm_symbol_pretty_print);
+  scm_obj_init(SCM_OBJ(symbol), SCM_OBJ_TYPE_SYMBOL);
   symbol->length = strlen(str);
   symbol->name = scm_memory_allocate(symbol->length + 1);
   strncpy(symbol->name, str, symbol->length + 1);

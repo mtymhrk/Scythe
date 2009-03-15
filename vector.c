@@ -34,7 +34,7 @@ scm_vector_construct(size_t length)
   int i;
 
   vector = scm_memory_allocate(sizeof(ScmVector));
-  scm_obj_init(SCM_OBJ(vector), SCM_OBJ_TYPE_VECTOR, scm_vector_pretty_print);
+  scm_obj_init(SCM_OBJ(vector), SCM_OBJ_TYPE_VECTOR);
 
   if (length > 0)
     vector->array = scm_memory_allocate(sizeof(ScmObj) * length);

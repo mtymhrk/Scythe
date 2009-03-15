@@ -5,7 +5,7 @@
 #include "object.h"
 
 void
-scm_obj_init(ScmObj obj, SCM_OBJ_TYPE_T type, ScmPrettyPrintFunction ppfunc)
+scm_obj_init(ScmObj obj, SCM_OBJ_TYPE_T type)
 {
   assert(obj != NULL);
 

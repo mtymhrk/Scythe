@@ -987,7 +987,7 @@ scm_port_initialize(ScmPort *port,
 {
   assert(port != NULL);
 
-  scm_obj_init(SCM_OBJ(port), SCM_OBJ_TYPE_PORT, scm_port_pretty_print);
+  scm_obj_init(SCM_OBJ(port), SCM_OBJ_TYPE_PORT);
   port->attr = attr;
   port->buffer_mode = SCM_PORT_BUF_NONE;
   port->buffer = NULL;

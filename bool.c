@@ -25,7 +25,7 @@ scm_bool_construct(bool value)
   ScmBool *boolv;
 
   boolv = scm_memory_allocate(sizeof(ScmBool));
-  scm_obj_init(SCM_OBJ(boolv), SCM_OBJ_TYPE_BOOL, scm_bool_pretty_print);
+  scm_obj_init(SCM_OBJ(boolv), SCM_OBJ_TYPE_BOOL);
   boolv->value = value;
 
   return boolv;

@@ -26,7 +26,7 @@ ScmNil *
 scm_nil_construct(void)
 {
   ScmNil *nil = scm_memory_allocate(sizeof(ScmNil));
-  scm_obj_init(SCM_OBJ(nil), SCM_OBJ_TYPE_NIL, scm_nil_pretty_print);
+  scm_obj_init(SCM_OBJ(nil), SCM_OBJ_TYPE_NIL);
   return nil;
 }
 
