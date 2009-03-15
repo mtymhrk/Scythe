@@ -12,13 +12,14 @@ struct ScmNilRec {
   ScmObjHeader header;
 };
 
-static ScmNil *nil_instance = NULL;
+const ScmTypeInfo SCM_NIL_TYPE_INFO = {
+  SCM_OBJ_TYPE_NIL,          /* type     */
+  scm_nil_pretty_print,      /* pp_func  */
+  sizeof(ScmNil)             /* obj_size */
+};
 
-static void
-scm_nil_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
-{
-  scm_obuffer_concatenate_string(obuffer, "()");
-}
+
+static ScmNil *nil_instance = NULL;
 
 ScmNil *
 scm_nil_construct(void)
@@ -43,5 +44,11 @@ scm_nil_is_nil(ScmObj obj)
   assert(obj != NULL);
 
   return (scm_obj_type(obj) == SCM_OBJ_TYPE_NIL);
+}
+
+void
+scm_nil_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
+{
+  scm_obuffer_concatenate_string(obuffer, "()");
 }
 

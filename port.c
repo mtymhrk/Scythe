@@ -93,6 +93,12 @@ struct ScmPortRec {
   size_t used;
 };
 
+const ScmTypeInfo SCM_PORT_TYPE_INFO = {
+  SCM_OBJ_TYPE_PORT,          /* type     */
+  scm_port_pretty_print,      /* pp_func  */
+  sizeof(ScmPort)             /* obj_size */
+};
+
 static void
 scm_io_initialize(ScmIO *io,
                   DestructFunc destruct,
@@ -938,28 +944,6 @@ scm_charconvio_errno(ScmCharConvIO *convio)
 }
 
 static void
-scm_port_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
-{
-  ScmPort *port;
-
-  assert(obj != NULL); assert(scm_port_is_port(obj));
-  assert(obuffer != NULL);
-
-  port = SCM_PORT(obj);
-
-  scm_obuffer_concatenate_string(obuffer, "#<port:");
-  if (scm_port_is_readable(port))
-    scm_obuffer_concatenate_string(obuffer, " readable");
-  if (scm_port_is_writable(port))
-    scm_obuffer_concatenate_string(obuffer, " writable");
-  if (scm_port_is_file_port(port))
-    scm_obuffer_concatenate_string(obuffer, " file");
-  if (scm_port_is_string_port(port))
-    scm_obuffer_concatenate_string(obuffer, " string");
-  scm_obuffer_concatenate_char(obuffer, '>');
-}
-
-static void
 scm_port_init_buffer(ScmPort *port, SCM_PORT_BUF_MODE buf_mode)
 {
   assert(port != NULL);
@@ -1514,4 +1498,26 @@ scm_port_string_buffer_length(ScmPort *port)
   if (!scm_port_is_string_port(port)) return -1;
 
   return scm_stringio_length((ScmStringIO *)port->io);
+}
+
+void
+scm_port_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
+{
+  ScmPort *port;
+
+  assert(obj != NULL); assert(scm_port_is_port(obj));
+  assert(obuffer != NULL);
+
+  port = SCM_PORT(obj);
+
+  scm_obuffer_concatenate_string(obuffer, "#<port:");
+  if (scm_port_is_readable(port))
+    scm_obuffer_concatenate_string(obuffer, " readable");
+  if (scm_port_is_writable(port))
+    scm_obuffer_concatenate_string(obuffer, " writable");
+  if (scm_port_is_file_port(port))
+    scm_obuffer_concatenate_string(obuffer, " file");
+  if (scm_port_is_string_port(port))
+    scm_obuffer_concatenate_string(obuffer, " string");
+  scm_obuffer_concatenate_char(obuffer, '>');
 }

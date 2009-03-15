@@ -9,11 +9,14 @@ typedef struct ScmVectorRec ScmVector;
 
 #include "object.h"
 
+extern const ScmTypeInfo SCM_VECTOR_TYPE_INFO;
+
 ScmVector *scm_vector_construct(size_t length);
 void scm_vector_destruct(ScmVector *vector);
 size_t scm_vector_length(ScmVector *vector);
 ScmObj scm_vector_ref(ScmVector *vector, size_t index);
 ScmObj scm_vector_set(ScmVector *vector, size_t index, ScmObj obj);
 bool scm_vector_is_vector(ScmObj obj);
+void scm_vector_pretty_print(ScmObj obj, ScmOBuffer *obuffer);
 
 #endif /* INCLUDE_VECTOR_H__ */

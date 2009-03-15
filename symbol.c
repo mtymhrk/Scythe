@@ -16,16 +16,14 @@ struct ScmSymbolRec {
   size_t length;
 };
 
+const ScmTypeInfo SCM_SYMBOL_TYPE_INFO = {
+  SCM_OBJ_TYPE_SYMBOL,          /* type     */
+  scm_symbol_pretty_print,      /* pp_func  */
+  sizeof(ScmSymbol)             /* obj_size */
+};
+
+
 static ScmBasicHashTable *symbol_table = NULL;
-
-static void
-scm_symbol_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
-{
-  assert(obj != NULL); assert(scm_symbol_is_symbol(obj));
-  assert(obuffer != NULL);
-
-  scm_obuffer_concatenate_string(obuffer, SCM_SYMBOL(obj)->name);
-}
 
 static unsigned int
 scm_symbol_table_hash_func(ScmBasicHashKey key)
@@ -113,3 +111,13 @@ scm_symbol_instance(const char *name)
 
   return symbol;
 }
+
+void
+scm_symbol_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
+{
+  assert(obj != NULL); assert(scm_symbol_is_symbol(obj));
+  assert(obuffer != NULL);
+
+  scm_obuffer_concatenate_string(obuffer, SCM_SYMBOL(obj)->name);
+}
+

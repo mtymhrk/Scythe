@@ -25,6 +25,11 @@ struct ScmStringRec {
 #define CAPACITY(str)((str)->capacity - ((str)->head - (str)->buffer))
 #define ROOM_FOR_APPEND(str) (CAPACITY(str) - (str)->bytesize)
 
+const ScmTypeInfo SCM_STRING_TYPE_INFO = {
+  SCM_OBJ_TYPE_STRING,          /* type     */
+  scm_string_pretty_print,      /* pp_func  */
+  sizeof(ScmString)             /* obj_size */
+};
 
 static ssize_t
 scm_string_check_bytes(const void *str, size_t size,
@@ -68,42 +73,6 @@ static bool
 scm_string_is_char_to_be_escaped(char c)
 {
   return (strchr("\\\"", c) != NULL);
-}
-
-// TODO: change to be encdoing depende function
-static void
-scm_string_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
-{
-  int (*char_width)(const void *p, size_t size);
-  ScmString *str = NULL;
-  ScmStrItr iter;
-
-  assert(obj != NULL); assert(scm_string_is_string(obj));
-  assert(obuffer != NULL);
-
-  str = SCM_STRING(obj);
-
-  char_width = SCM_ENCODING_VFUNC_CHAR_WIDTH(str->enc);
-  iter = scm_str_itr_begin(str->head, str->bytesize, char_width);
-  if (SCM_STR_ITR_IS_ERR(&iter)) return;
-
-  scm_obuffer_concatenate_char(obuffer, '"');
-  while (!SCM_STR_ITR_IS_END(&iter)) {
-    int i, w = SCM_STR_ITR_WIDTH(&iter);
-
-    if (w == 1
-        && scm_string_is_char_to_be_escaped(((char *)SCM_STR_ITR_PTR(&iter))[0]))
-      scm_obuffer_concatenate_char(obuffer, '\\');
-    
-    for (i = 0; i < w; i++)
-      scm_obuffer_concatenate_char(obuffer,
-                                   ((char *)SCM_STR_ITR_PTR(&iter))[i]);
-
-    iter = scm_str_itr_next(&iter);
-    if (SCM_STR_ITR_IS_ERR(&iter)) return;
-  }
-
-  scm_obuffer_concatenate_char(obuffer, '"');
 }
 
 static ScmString *
@@ -209,6 +178,8 @@ scm_string_destruct(ScmString *str)
 
   scm_memory_release(str);
 }
+
+
 
 ScmString *
 scm_string_copy(const ScmString *src)
@@ -614,4 +585,40 @@ scm_string_is_string(ScmObj obj)
   assert(obj != NULL);
 
   return (scm_obj_type(obj) == SCM_OBJ_TYPE_STRING);
+}
+
+// TODO: change to be encdoing depende function
+void
+scm_string_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
+{
+  int (*char_width)(const void *p, size_t size);
+  ScmString *str = NULL;
+  ScmStrItr iter;
+
+  assert(obj != NULL); assert(scm_string_is_string(obj));
+  assert(obuffer != NULL);
+
+  str = SCM_STRING(obj);
+
+  char_width = SCM_ENCODING_VFUNC_CHAR_WIDTH(str->enc);
+  iter = scm_str_itr_begin(str->head, str->bytesize, char_width);
+  if (SCM_STR_ITR_IS_ERR(&iter)) return;
+
+  scm_obuffer_concatenate_char(obuffer, '"');
+  while (!SCM_STR_ITR_IS_END(&iter)) {
+    int i, w = SCM_STR_ITR_WIDTH(&iter);
+
+    if (w == 1
+        && scm_string_is_char_to_be_escaped(((char *)SCM_STR_ITR_PTR(&iter))[0]))
+      scm_obuffer_concatenate_char(obuffer, '\\');
+    
+    for (i = 0; i < w; i++)
+      scm_obuffer_concatenate_char(obuffer,
+                                   ((char *)SCM_STR_ITR_PTR(&iter))[i]);
+
+    iter = scm_str_itr_next(&iter);
+    if (SCM_STR_ITR_IS_ERR(&iter)) return;
+  }
+
+  scm_obuffer_concatenate_char(obuffer, '"');
 }

@@ -11,21 +11,12 @@ struct ScmBoolRec {
   bool value;
 };
 
-static void
-scm_bool_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
-{
-  ScmBool *boolv;
+const ScmTypeInfo SCM_BOOL_TYPE_INFO = {
+  SCM_OBJ_TYPE_BOOL,          /* type     */
+  scm_bool_pretty_print,      /* pp_func  */
+  sizeof(ScmBool)             /* obj_size */
+};
 
-  assert(obj != NULL); assert(scm_bool_is_bool(obj));
-  assert(obuffer != NULL);
-
-  boolv = SCM_BOOL(obj);
-
-  if (boolv->value)
-    scm_obuffer_concatenate_string(obuffer, "#t");
-  else
-    scm_obuffer_concatenate_string(obuffer, "#f");
-}
 
 ScmBool *
 scm_bool_construct(bool value)
@@ -51,4 +42,20 @@ scm_bool_is_bool(ScmObj obj)
 {
   assert(obj != NULL);
   return (scm_obj_type(obj) == SCM_OBJ_TYPE_BOOL);
+}
+
+void
+scm_bool_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
+{
+  ScmBool *boolv;
+
+  assert(obj != NULL); assert(scm_bool_is_bool(obj));
+  assert(obuffer != NULL);
+
+  boolv = SCM_BOOL(obj);
+
+  if (boolv->value)
+    scm_obuffer_concatenate_string(obuffer, "#t");
+  else
+    scm_obuffer_concatenate_string(obuffer, "#f");
 }

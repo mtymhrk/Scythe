@@ -14,6 +14,8 @@ typedef struct ScmPortRec ScmPort;
 
 #include "object.h"
 
+extern const ScmTypeInfo SCM_PORT_TYPE_INFO;
+
 typedef enum {
   SCM_PORT_BUF_FULL,
   SCM_PORT_BUF_LINE,
@@ -133,5 +135,6 @@ bool scm_port_has_error(ScmPort *port);
 int scm_port_errno(ScmPort *port);
 void *scm_port_string_buffer(ScmPort *port);
 ssize_t scm_port_string_buffer_length(ScmPort *port);
+void scm_port_pretty_print(ScmObj obj, ScmOBuffer *obuffer);
 
 #endif /*  INCLUDE_PORT_H__ */

@@ -9,10 +9,13 @@ typedef struct ScmSymbolRec ScmSymbol;
 
 #include "object.h"
 
+extern const ScmTypeInfo SCM_SYMBOL_TYPE_INFO;
+
 ScmSymbol *scm_symbol_construct(const char *str);
 ScmSymbol *scm_symbol_instance(const char *name);
 char *scm_symbol_name(const ScmSymbol *symbol);
 size_t scm_symbol_length(const ScmSymbol *symbol);
 bool scm_symbol_is_symbol(ScmObj obj);
+void scm_symbol_pretty_print(ScmObj obj, ScmOBuffer *obuffer);
 
 #endif /* INCLUDE_SYMBOL_H__ */

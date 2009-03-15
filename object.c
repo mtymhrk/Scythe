@@ -1,4 +1,5 @@
 #include <unistd.h>
+#include <stdbool.h>
 #include <assert.h>
 
 #include "object.h"
@@ -34,4 +35,45 @@ scm_obj_is_same_instance(ScmObj obj1, ScmObj obj2)
   assert(obj1 != NULL); assert(obj2 != NULL);
 
   return (obj1 == obj2) ? 1 : 0;
+}
+
+
+#include "memory.h"
+#include "pair.h"
+#include "string.h"
+#include "symbol.h"
+#include "integer.h"
+#include "vector.h"
+#include "bool.h"
+#include "char.h"
+#include "port.h"
+#include "miscobjects.h"
+
+const ScmTypeInfo const * SCM_TYPE_INFO_TBL[SCM_OBJ_NR_TYPE] = {
+  &SCM_FORWARD_TYPE_INFO,
+  NULL,
+  NULL,
+  &SCM_STRING_TYPE_INFO,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL
+};
+
+/* for debug */
+bool
+smc_obj_is_valid_type_info_tbl(void)
+{
+  int i;
+
+  for (i = 0; i < SCM_OBJ_NR_TYPE; i++) {
+    if (SCM_TYPE_INFO_TBL[i] == NULL
+        || i != SCM_TYPE_INFO_TBL[i]->type)
+      return false;
+  }
+
+  return true;
 }

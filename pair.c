@@ -14,32 +14,12 @@ struct ScmPairRec {
   ScmObj cdr;
 };
 
-static void
-scm_pair_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
-{
-  ScmPair *pair = NULL;
+const ScmTypeInfo SCM_PAIR_TYPE_INFO = {
+  SCM_OBJ_TYPE_PAIR,          /* type     */
+  scm_pair_pretty_print,      /* pp_func  */
+  sizeof(ScmPair)             /* obj_size */
+};
 
-  assert(obj != NULL); assert(scm_pair_is_pair(obj));
-  assert(obuffer != NULL);
-
-  pair = SCM_PAIR(obj);
-
-  scm_obuffer_concatenate_char(obuffer, '(');
-  scm_obj_pretty_print(pair->car, obuffer);
-  while (scm_pair_is_pair(pair->cdr)) {
-    pair = SCM_PAIR(pair->cdr);
-    scm_obuffer_concatenate_char(obuffer, ' ');
-    scm_obj_pretty_print(pair->car, obuffer);
-  }
-
-  if (scm_nil_is_nil(pair->cdr))
-    scm_obuffer_concatenate_char(obuffer, ')');
-  else {
-    scm_obuffer_concatenate_string(obuffer, " . ");
-    scm_obj_pretty_print(pair->cdr, obuffer);
-    scm_obuffer_concatenate_char(obuffer, ')');
-  }
-}
 
 ScmPair *
 scm_pair_construct(ScmObj car, ScmObj cdr)
@@ -80,3 +60,31 @@ scm_pair_is_pair(const ScmObj obj)
 
   return (scm_obj_type(obj) == SCM_OBJ_TYPE_PAIR);
 }
+
+void
+scm_pair_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
+{
+  ScmPair *pair = NULL;
+
+  assert(obj != NULL); assert(scm_pair_is_pair(obj));
+  assert(obuffer != NULL);
+
+  pair = SCM_PAIR(obj);
+
+  scm_obuffer_concatenate_char(obuffer, '(');
+  scm_obj_pretty_print(pair->car, obuffer);
+  while (scm_pair_is_pair(pair->cdr)) {
+    pair = SCM_PAIR(pair->cdr);
+    scm_obuffer_concatenate_char(obuffer, ' ');
+    scm_obj_pretty_print(pair->car, obuffer);
+  }
+
+  if (scm_nil_is_nil(pair->cdr))
+    scm_obuffer_concatenate_char(obuffer, ')');
+  else {
+    scm_obuffer_concatenate_string(obuffer, " . ");
+    scm_obj_pretty_print(pair->cdr, obuffer);
+    scm_obuffer_concatenate_char(obuffer, ')');
+  }
+}
+

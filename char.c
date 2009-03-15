@@ -20,42 +20,12 @@ struct ScmCharRec {
 #define SCM_CHAR_IS_SPACE(c) \
   SCM_CHR_IS_EQUAL((c)->value, SCM_ENCODING_CONST_SPACE_CHAR((c)->enc))
 
-static void
-scm_char_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
-{
-  char str[32];
-  ScmChar *charv;
+const ScmTypeInfo SCM_CHAR_TYPE_INFO = {
+  SCM_OBJ_TYPE_CHAR,          /* type     */
+  scm_char_pretty_print,      /* pp_func  */
+  sizeof(ScmChar)             /* obj_size */
+};
 
-  assert(obj != NULL); assert(scm_char_is_char(obj));
-  assert(obuffer != NULL);
-
-  charv = SCM_CHAR(obj);
-
-  if (SCM_CHAR_IS_LF(charv)) {
-    strncpy(str, "#\\newline", sizeof(str));
-  }
-  else if (SCM_CHAR_IS_SPACE(charv)) {
-    strncpy(str, "#\\space", sizeof(str));
-  }
-  else if (charv->enc == SCM_ENCODING_ASCII
-           && SCM_CHR_ASCII(charv->value) < 0x20) {
-    snprintf(str, sizeof(str), "#\\0x%02x", SCM_CHR_ASCII(charv->value));
-  }
-  else {
-    int (*char_width)(const void *p, size_t size);
-    char tmp[sizeof(charv->value)];
-    int w;
-
-    char_width = SCM_ENCODING_VFUNC_CHAR_WIDTH(charv->enc);
-    w = char_width(&charv->value, sizeof(charv->value));
-    memcpy(tmp, &charv->value, w);
-    tmp[w] = '\0';
-
-    snprintf(str, sizeof(str), "#\\%s", tmp);
-  }
-
-  scm_obuffer_concatenate_string(obuffer, str);
-}
 
 ScmChar *
 scm_char_construct(scm_char_t value, SCM_ENCODING_T enc)
@@ -103,4 +73,41 @@ scm_char_is_char(ScmObj obj)
 {
   assert(obj != NULL);
   return (scm_obj_type(obj) == SCM_OBJ_TYPE_CHAR);
+}
+
+void
+scm_char_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
+{
+  char str[32];
+  ScmChar *charv;
+
+  assert(obj != NULL); assert(scm_char_is_char(obj));
+  assert(obuffer != NULL);
+
+  charv = SCM_CHAR(obj);
+
+  if (SCM_CHAR_IS_LF(charv)) {
+    strncpy(str, "#\\newline", sizeof(str));
+  }
+  else if (SCM_CHAR_IS_SPACE(charv)) {
+    strncpy(str, "#\\space", sizeof(str));
+  }
+  else if (charv->enc == SCM_ENCODING_ASCII
+           && SCM_CHR_ASCII(charv->value) < 0x20) {
+    snprintf(str, sizeof(str), "#\\0x%02x", SCM_CHR_ASCII(charv->value));
+  }
+  else {
+    int (*char_width)(const void *p, size_t size);
+    char tmp[sizeof(charv->value)];
+    int w;
+
+    char_width = SCM_ENCODING_VFUNC_CHAR_WIDTH(charv->enc);
+    w = char_width(&charv->value, sizeof(charv->value));
+    memcpy(tmp, &charv->value, w);
+    tmp[w] = '\0';
+
+    snprintf(str, sizeof(str), "#\\%s", tmp);
+  }
+
+  scm_obuffer_concatenate_string(obuffer, str);
 }

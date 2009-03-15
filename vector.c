@@ -13,29 +13,12 @@ struct ScmVectorRec {
   size_t length;
 };
 
-static void
-scm_vector_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
-{
-  ScmVector *vector;
+const ScmTypeInfo SCM_VECTOR_TYPE_INFO = {
+  SCM_OBJ_TYPE_VECTOR,          /* type     */
+  scm_vector_pretty_print,      /* pp_func  */
+  sizeof(ScmVector)             /* obj_size */
+};
 
-
-  assert(obj != NULL); assert(scm_vector_is_vector(obj));
-  assert(obuffer != NULL);
-
-  vector = SCM_VECTOR(obj);
-
-  scm_obuffer_concatenate_string(obuffer, "#(");
-  if (vector->length > 0) {
-    size_t nloop = vector->length - 1;
-    size_t i;
-    for (i = 0; i < nloop; i++) {
-      scm_obj_pretty_print(vector->array[i], obuffer);
-      scm_obuffer_concatenate_char(obuffer, ' ');
-    }
-    scm_obj_pretty_print(vector->array[i], obuffer);
-  }
-  scm_obuffer_concatenate_char(obuffer, ')');
-}
 
 ScmVector *
 scm_vector_construct(size_t length)
@@ -101,4 +84,28 @@ scm_vector_is_vector(ScmObj obj)
   assert(obj != NULL);
 
   return (scm_obj_type(obj) == SCM_OBJ_TYPE_VECTOR);
+}
+
+void
+scm_vector_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
+{
+  ScmVector *vector;
+
+
+  assert(obj != NULL); assert(scm_vector_is_vector(obj));
+  assert(obuffer != NULL);
+
+  vector = SCM_VECTOR(obj);
+
+  scm_obuffer_concatenate_string(obuffer, "#(");
+  if (vector->length > 0) {
+    size_t nloop = vector->length - 1;
+    size_t i;
+    for (i = 0; i < nloop; i++) {
+      scm_obj_pretty_print(vector->array[i], obuffer);
+      scm_obuffer_concatenate_char(obuffer, ' ');
+    }
+    scm_obj_pretty_print(vector->array[i], obuffer);
+  }
+  scm_obuffer_concatenate_char(obuffer, ')');
 }
