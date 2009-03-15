@@ -10,7 +10,6 @@ scm_obj_init(ScmObj obj, SCM_OBJ_TYPE_T type, ScmPrettyPrintFunction ppfunc)
   assert(obj != NULL);
 
   obj->header.type = type;
-  obj->header.pretty_print = ppfunc;
 }
 
 SCM_OBJ_TYPE_T
@@ -24,9 +23,12 @@ scm_obj_type(ScmObj obj)
 void
 scm_obj_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
 {
+  ScmPrettyPrintFunction pp_func;
+
   assert(obj != NULL); assert(obuffer != NULL);
 
-  obj->header.pretty_print(obj, obuffer);
+  pp_func = SCM_TYPE_INFO_PP(obj->header.type);
+  pp_func(obj, obuffer);
 }
 
 int

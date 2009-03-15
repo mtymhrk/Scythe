@@ -31,10 +31,8 @@ typedef void (*ScmPrettyPrintFunction)(ScmObj obj,
 				       ScmOBuffer *obuffer);
 typedef void (*ScmGCFinalizeFunc)(ScmObj obj);
 
-/* TODO: throw out pretty print function of ScmObj */
 struct ScmObjHeaderRec {
   SCM_OBJ_TYPE_T type;
-  ScmPrettyPrintFunction pretty_print;
 };
 
 struct ScmAtomRec {
