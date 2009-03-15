@@ -199,13 +199,10 @@ scm_mem_expand_heap(ScmMem *mem, size_t inc_block)
   return i;
 }
 
-ScmMem *
-scm_mem_construct(void)
+static ScmMem *
+scm_mem_initialize(ScmMem *mem)
 {
-  ScmMem *mem = NULL;
-
-  mem = malloc(sizeof(*mem));
-  if (mem == NULL) return NULL;
+  assert(mem != NULL);
 
   mem->to_obj_tbl = NULL;
   mem->from_obj_tbl = NULL;
@@ -239,15 +236,37 @@ scm_mem_construct(void)
   return NULL;
 }
 
-ScmMem *
-scm_mem_destruct(ScmMem *mem)
+static ScmMem *
+scm_mem_finalize(ScmMem *mem)
 {
-  if (mem == NULL) return NULL;
+  assert(mem != NULL);
 
   if (mem->to_obj_tbl) scm_basci_hash_destruct(mem->to_obj_tbl);
   if (mem->from_obj_tbl) scm_basci_hash_destruct(mem->from_obj_tbl);
   if (mem->to_heap != NULL) scm_mem_delete_heap(mem->to_heap);
   if (mem->from_heap != NULL) scm_mem_delete_heap(mem->from_heap);  
+
+  return NULL;
+}
+
+ScmMem *
+scm_mem_construct(void)
+{
+  ScmMem *mem = NULL;
+
+  mem = malloc(sizeof(*mem));
+  if (mem == NULL) return NULL;
+
+  return scm_mem_initialize(mem);
+}
+
+ScmMem *
+scm_mem_destruct(ScmMem *mem)
+{
+  if (mem == NULL) return NULL;
+
+  scm_mem_finalize(mem);
+  free(mem);
 
   return NULL;
 }
