@@ -1,8 +1,8 @@
 memory.o: memory.c basichash.h memory.h object.h obuffer.h
 nil.o: nil.c memory.h basichash.h object.h obuffer.h nil.h
 object.o: object.c object.h obuffer.h memory.h basichash.h pair.h \
-  string.h encoding.h symbol.h integer.h vector.h bool.h char.h port.h \
-  miscobjects.h
+  string.h encoding.h symbol.h nil.h integer.h vector.h bool.h char.h \
+  port.h miscobjects.h
 pair.o: pair.c memory.h basichash.h object.h obuffer.h pair.h nil.h
 obuffer.o: obuffer.c memory.h basichash.h object.h obuffer.h
 string.o: string.c memory.h basichash.h object.h obuffer.h encoding.h \

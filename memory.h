@@ -22,6 +22,7 @@ void *scm_memory_release(void *block);
 
 ScmMem *scm_mem_construct(void);
 ScmMem *scm_mem_destruct(ScmMem *mem);
-ScmObj scm_mem_alloc(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmObj *box);
+ScmMem *scm_mem_alloc(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmObj *box);
+void scm_mem_gc_start(ScmMem *mem);
 
 #endif /* INCLUDED_MEMORY_H__ */

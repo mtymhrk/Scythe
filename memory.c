@@ -1,6 +1,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <assert.h>
 
 #include "basichash.h"
@@ -41,6 +42,8 @@ struct ScmMemHeapRec {
   ScmMemHeapBlock *current;
   void *free;
   size_t rest_in_cur;
+  int nr_block;
+  int nr_free_block;
 };
 
 #define SCM_MEM_HEAP_ADD_BLOCK(heap, block)            \
@@ -51,6 +54,8 @@ struct ScmMemHeapRec {
       (heap)->tail->next = (block);                    \
     (heap)->tail = (block);                            \
     (block)->next = NULL;                              \
+    (heap)->nr_block++;                                \
+    (heap)->nr_free_block++;                           \
   } while(0)
 
 #define SCM_MEM_HEAP_RELEASE_BLOCKS(heap, block, prev)   \
@@ -59,12 +64,46 @@ struct ScmMemHeapRec {
     for (p = (block); p != NULL; p = q) {                \
       q = p->next;                                       \
       SCM_MEM_HEAP_DELEATE_BLOCK(p);                     \
+      (heap)->nr_block--;                                \
+      (heap)->nr_free_block--;                           \
     }                                                    \
     if ((heap)->head == (block))                         \
       (heap)->head = (heap)->tail = NULL;                \
     else                                                 \
       (heap)->tail = (prev);                             \
   } while(0)
+
+#define SCM_MEM_HEAP_NEXT(heap)                                         \
+  do {                                                                  \
+    if ((heap)->current != NULL) {                                      \
+      (heap)->current = SCM_MEM_HEAP_BLOCK_NEXT((heap)->current);       \
+      if ((heap)->current == NULL) {                                    \
+        (heap)->free = NULL;                                            \
+        (heap)->rest_in_cur = 0;                                        \
+      }                                                                 \
+      else {                                                            \
+        (heap)->free = (heap)->current;                                 \
+        (heap)->rest_in_cur = SCM_MEM_HEAP_BLOCK_SIZE((heap)->current); \
+        (heap)->nr_free_block--;                                        \
+      }                                                                 \
+    }                                                                   \
+  } while(0)
+
+#define SCM_MEM_HEAP_ALLOC(heap, size, ptr)              \
+  do {                                                   \
+    *(ptr) = NULL;                                       \
+    while ((heap)->current != NULL && *(ptr) == NULL) {  \
+      if ((size) <= (heap)->rest_in_cur) {               \
+        *(ptr) = (heap)->free;                           \
+        (heap)->free = (uint8_t *)(heap)->free + (size); \
+        (heap)->rest_in_cur -= (size);                   \
+      }                                                  \
+      else {                                             \
+        SCM_MEM_HEAP_NEXT(heap);                         \
+      }                                                  \
+    }                                                    \
+  } while(0)
+
 
 struct ScmMemRec {
   ScmBasicHashTable *to_obj_tbl;
@@ -158,6 +197,8 @@ scm_mem_new_heap(int nr_block, size_t size)
   heap->current = NULL;
   heap->free = NULL;
   heap->rest_in_cur = 0;
+  heap->nr_block = nr_block;
+  heap->nr_free_block = nr_block - 1;
 
   for (i = 0; i < nr_block; i++) {
     ScmMemHeapBlock *block;
@@ -273,11 +314,32 @@ scm_mem_destruct(ScmMem *mem)
   return NULL;
 }
 
-ScmObj
+ScmMem *
 scm_mem_alloc(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmObj *box)
 {
-  /* TODO: write me */
-  return NULL;
+  size_t size;
+
+  *box = NULL;
+  
+  if (mem == NULL) return NULL;
+  if (type >= SCM_OBJ_NR_TYPE) return NULL;
+
+  size = SCM_TYPE_INFO_OBJ_SIZE(type);
+  SCM_MEM_HEAP_ALLOC(mem->to_heap, size, box);
+  if (*box == NULL) {
+    scm_mem_gc_start(mem);
+    SCM_MEM_HEAP_ALLOC(mem->to_heap, size, box);
+    if (*box == NULL) {
+      ; /* TODO: wirte me (fail to allocate memory) */
+      return NULL;
+    }
+  }
+
+  return mem;
 }
 
-
+void
+scm_mem_gc_start(ScmMem *mem)
+{
+  ; // TODO: write me
+}
