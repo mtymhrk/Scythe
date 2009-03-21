@@ -17,5 +17,7 @@ ScmObj scm_pair_car(const ScmPair *pair);
 ScmObj scm_pair_cdr(const ScmPair *pair);
 bool scm_pair_is_pair(const ScmObj obj);
 void scm_pair_pretty_print(ScmObj obj, ScmOBuffer *obuffer);
+ScmGCRefItr scm_pair_gc_ref_iter_begin(ScmObj obj);
+ScmGCRefItr scm_pair_gc_ref_itr_next(const ScmGCRefItr *itr);
 
 #endif /* INCLUDE_PAIR_H__ */

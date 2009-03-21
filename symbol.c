@@ -17,10 +17,11 @@ struct ScmSymbolRec {
 };
 
 const ScmTypeInfo SCM_SYMBOL_TYPE_INFO = {
-  SCM_OBJ_TYPE_SYMBOL,          /* type        */
-  scm_symbol_pretty_print,      /* pp_func     */
-  sizeof(ScmSymbol),            /* obj_size    */
-  scm_symbol_gc_finalize        /* gc_fin_func */
+  SCM_OBJ_TYPE_SYMBOL,          /* type            */
+  scm_symbol_pretty_print,      /* pp_func         */
+  sizeof(ScmSymbol),            /* obj_size        */
+  scm_symbol_gc_finalize,       /* gc_fin_func     */
+  NULL                          /* gc_ref_itr_func */
 };
 
 

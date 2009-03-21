@@ -81,9 +81,11 @@ struct ScmForwardRec {
 #define SCM_MEM_MINIMUM_OBJ_SIZE sizeof(ScmForward)
 
 const ScmTypeInfo SCM_FORWARD_TYPE_INFO = {
-  SCM_OBJ_TYPE_FORWARD,    /* type     */
-  NULL,                    /* pp_func  */
-  sizeof(ScmForward)       /* obj_size */
+  SCM_OBJ_TYPE_FORWARD,    /* type            */
+  NULL,                    /* pp_func         */
+  sizeof(ScmForward),      /* obj_size        */
+  NULL,                    /* gc_fin_func     */
+  NULL                     /* gc_ref_itr_func */
 };
 
 

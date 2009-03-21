@@ -14,10 +14,11 @@ struct ScmVectorRec {
 };
 
 const ScmTypeInfo SCM_VECTOR_TYPE_INFO = {
-  SCM_OBJ_TYPE_VECTOR,          /* type        */
-  scm_vector_pretty_print,      /* pp_func     */
-  sizeof(ScmVector),            /* obj_size    */
-  scm_vector_gc_finalize        /* gc_fin_func */
+  SCM_OBJ_TYPE_VECTOR,          /* type            */
+  scm_vector_pretty_print,      /* pp_func         */
+  sizeof(ScmVector),            /* obj_size        */
+  scm_vector_gc_finalize,       /* gc_fin_func     */
+  scm_vector_gc_ref_iter_begin  /* gc_ref_itr_func */
 };
 
 static void
@@ -121,4 +122,43 @@ void
 scm_vector_gc_finalize(ScmObj obj)
 {
   scm_vector_finalize(SCM_VECTOR(obj));
+}
+
+ScmGCRefItr
+scm_vector_gc_ref_iter_begin(ScmObj obj)
+{
+  ScmGCRefItr itr;
+  ScmVector *vec;
+
+  assert(obj != NULL);
+
+  vec = SCM_VECTOR(obj);
+  
+  itr.ptr = &(vec->array[0]);
+  itr.src = obj;
+  itr.next = scm_vector_gc_ref_iter_next;
+
+  return itr;
+}
+
+ScmGCRefItr
+scm_vector_gc_ref_iter_next(const ScmGCRefItr *itr)
+{
+  ScmGCRefItr nxt_itr;
+  ScmVector *vec;
+
+  assert(itr != NULL);
+
+  vec = SCM_VECTOR(itr->src);
+  nxt_itr.src = itr->src;
+  nxt_itr.next = scm_vector_gc_ref_iter_next;
+  if (itr->ptr == NULL)
+    nxt_itr.ptr = NULL;
+  else {
+    nxt_itr.ptr = itr->ptr + 1;
+    if (nxt_itr.ptr - vec->array >= vec->length)
+      nxt_itr.ptr = NULL;
+  }
+
+  return nxt_itr;
 }

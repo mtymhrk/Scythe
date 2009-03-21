@@ -13,10 +13,11 @@ struct ScmNilRec {
 };
 
 const ScmTypeInfo SCM_NIL_TYPE_INFO = {
-  SCM_OBJ_TYPE_NIL,          /* type        */
-  scm_nil_pretty_print,      /* pp_func     */
-  sizeof(ScmNil),            /* obj_size    */
-  NULL                       /* gc_fin_func */
+  SCM_OBJ_TYPE_NIL,          /* type            */
+  scm_nil_pretty_print,      /* pp_func         */
+  sizeof(ScmNil),            /* obj_size        */
+  NULL,                      /* gc_fin_func     */
+  NULL                       /* gc_ref_itr_func */
 };
 
 

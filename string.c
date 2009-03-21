@@ -26,10 +26,11 @@ struct ScmStringRec {
 #define ROOM_FOR_APPEND(str) (CAPACITY(str) - (str)->bytesize)
 
 const ScmTypeInfo SCM_STRING_TYPE_INFO = {
-  SCM_OBJ_TYPE_STRING,          /* type        */
-  scm_string_pretty_print,      /* pp_func     */
-  sizeof(ScmString),            /* obj_size    */
-  scm_string_gc_finalize        /* gc_fin_func */
+  SCM_OBJ_TYPE_STRING,          /* type            */
+  scm_string_pretty_print,      /* pp_func         */
+  sizeof(ScmString),            /* obj_size        */
+  scm_string_gc_finalize,       /* gc_fin_func     */
+  NULL                          /* gc_ref_itr_func */
 };
 
 static ssize_t

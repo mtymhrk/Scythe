@@ -15,10 +15,11 @@ struct ScmPairRec {
 };
 
 const ScmTypeInfo SCM_PAIR_TYPE_INFO = {
-  SCM_OBJ_TYPE_PAIR,          /* type        */
-  scm_pair_pretty_print,      /* pp_func     */
-  sizeof(ScmPair),            /* obj_size    */
-  NULL                        /* gc_fin_func */
+  SCM_OBJ_TYPE_PAIR,          /* type            */
+  scm_pair_pretty_print,      /* pp_func         */
+  sizeof(ScmPair),            /* obj_size        */
+  NULL,                       /* gc_fin_func     */
+  scm_pair_gc_ref_iter_begin  /* gc_ref_itr_func */
 };
 
 
@@ -97,3 +98,37 @@ scm_pair_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
   }
 }
 
+ScmGCRefItr
+scm_pair_gc_ref_iter_begin(ScmObj obj)
+{
+  ScmGCRefItr itr;
+  ScmPair *pair;
+
+  assert(obj != NULL);
+
+  pair = SCM_PAIR(obj);
+  itr.ptr = &pair->car;
+  itr.src = obj;
+  itr.next = scm_pair_gc_ref_itr_next;
+
+  return itr;
+}
+
+ScmGCRefItr
+scm_pair_gc_ref_itr_next(const ScmGCRefItr *itr)
+{
+  ScmGCRefItr nxt_itr;
+  ScmPair *pair;
+
+  assert(itr != NULL);
+
+  pair = SCM_PAIR(itr->src);
+  nxt_itr.src = itr->src;
+  nxt_itr.next = scm_pair_gc_ref_itr_next;
+  if (itr->ptr == &pair->car)
+    nxt_itr.ptr = &pair->cdr;
+  else
+    nxt_itr.ptr = NULL;
+
+  return nxt_itr;
+}

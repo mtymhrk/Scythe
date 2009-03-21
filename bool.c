@@ -12,10 +12,11 @@ struct ScmBoolRec {
 };
 
 const ScmTypeInfo SCM_BOOL_TYPE_INFO = {
-  SCM_OBJ_TYPE_BOOL,          /* type        */
-  scm_bool_pretty_print,      /* pp_func     */
-  sizeof(ScmBool),            /* obj_size    */
-  NULL                        /* gc_fin_func */
+  SCM_OBJ_TYPE_BOOL,          /* type            */
+  scm_bool_pretty_print,      /* pp_func         */
+  sizeof(ScmBool),            /* obj_size        */
+  NULL,                       /* gc_fin_func     */
+  NULL                        /* gc_ref_itr_func */
 };
 
 

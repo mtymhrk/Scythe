@@ -13,6 +13,9 @@
 #include "charconv.h"
 #include "port.h"
 
+/* XXX: implementation of encoding translation port has issue of GC */
+
+
 #define SCM_SYSCALL(result, expr)                 \
   do {                                            \
     (result) = (expr);                            \
@@ -97,7 +100,8 @@ const ScmTypeInfo SCM_PORT_TYPE_INFO = {
   SCM_OBJ_TYPE_PORT,          /* type        */
   scm_port_pretty_print,      /* pp_func     */
   sizeof(ScmPort),            /* obj_size    */
-  scm_port_gc_finalize        /* gc_fin_func */
+  scm_port_gc_finalize,       /* gc_fin_func */
+  NULL                        /* gc_ref_itr_func */
 };
 
 static void
