@@ -110,6 +110,7 @@ struct ScmMemRec {
   ScmBasicHashTable *from_obj_tbl;
   ScmMemHeap *to_heap;
   ScmMemHeap *from_heap;
+  ScmMemHeap *persistent;
 };
 
 struct ScmForwardRec {
@@ -222,7 +223,7 @@ scm_mem_expand_heap(ScmMem *mem, size_t inc_block)
   int i;
   ScmMemHeapBlock *to_block, *from_block;
 
-  if (mem == NULL) return -1;
+  assert(mem != NULL);
 
   for (i = 0; i < inc_block; i++) {
     SCM_MEM_HEAP_NEW_BLOCK(to_block, SCM_MEM_HEAP_INIT_BLOCK_SIZE);
@@ -241,6 +242,24 @@ scm_mem_expand_heap(ScmMem *mem, size_t inc_block)
   if (from_block != NULL) free(from_block);
   return i;
 }
+
+static int
+scm_mem_expand_persistent(ScmMem *mem, size_t inc_block)
+{
+  int i;
+  ScmMemHeapBlock *block;
+
+  assert(mem != NULL);
+
+  for (i = 0; i < inc_block; i++) {
+    SCM_MEM_HEAP_NEW_BLOCK(block, SCM_MEM_HEAP_INIT_BLOCK_SIZE);
+    if (block == NULL) return i;
+    SCM_MEM_HEAP_ADD_BLOCK(mem->persistent, block);
+  }
+
+  return i;
+}
+
 
 static ScmMem *
 scm_mem_initialize(ScmMem *mem)
@@ -268,13 +287,17 @@ scm_mem_initialize(ScmMem *mem)
   mem->from_heap = scm_mem_new_heap(1, SCM_MEM_HEAP_INIT_BLOCK_SIZE);
   if (mem->from_heap == NULL) goto err;
 
+  mem->persistent = scm_mem_new_heap(1, SCM_MEM_HEAP_INIT_BLOCK_SIZE);
+  if (mem->persistent == NULL) goto err;
+
   return mem;
 
  err:
-  if (mem->to_obj_tbl) scm_basci_hash_destruct(mem->to_obj_tbl);
-  if (mem->from_obj_tbl) scm_basci_hash_destruct(mem->from_obj_tbl);
+  if (mem->to_obj_tbl != NULL) scm_basci_hash_destruct(mem->to_obj_tbl);
+  if (mem->from_obj_tbl != NULL) scm_basci_hash_destruct(mem->from_obj_tbl);
   if (mem->to_heap != NULL) scm_mem_delete_heap(mem->to_heap);
   if (mem->from_heap != NULL) scm_mem_delete_heap(mem->from_heap);
+  if (mem->persistent != NULL) scm_mem_delete_heap(mem->persistent);
 
   return NULL;
 }
@@ -319,10 +342,10 @@ scm_mem_alloc(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmObj *box)
 {
   size_t size;
 
+  assert(mem != NULL);
+  assert(type < SCM_OBJ_NR_TYPE);
+
   *box = NULL;
-  
-  if (mem == NULL) return NULL;
-  if (type >= SCM_OBJ_NR_TYPE) return NULL;
 
   size = SCM_TYPE_INFO_OBJ_SIZE(type);
   SCM_MEM_HEAP_ALLOC(mem->to_heap, size, box);
@@ -334,6 +357,35 @@ scm_mem_alloc(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmObj *box)
       return NULL;
     }
   }
+
+  scm_obj_init(*box, type);
+
+  return mem;
+}
+
+ScmMem *
+scm_mem_alloc_persist(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmObj *box)
+{
+  size_t size;
+
+  assert(mem != NULL);
+  assert(type < SCM_OBJ_NR_TYPE);
+
+  size = SCM_TYPE_INFO_OBJ_SIZE(type);
+  SCM_MEM_HEAP_ALLOC(mem->persistent, size, box);
+  if (*box == NULL) {
+    if (scm_mem_expand_persistent(mem, 1) != 1) {
+      ; /* TODO: wirte me (fail to allocate memory) */
+      return NULL;
+    }
+    SCM_MEM_HEAP_ALLOC(mem->persistent, size, box);
+    if (*box == NULL) {
+      ; /* TODO: wirte me (fail to allocate memory) */
+      return NULL;
+    }
+  }
+
+  scm_obj_init(*box, type);
 
   return mem;
 }

@@ -24,5 +24,6 @@ ScmMem *scm_mem_construct(void);
 ScmMem *scm_mem_destruct(ScmMem *mem);
 ScmMem *scm_mem_alloc(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmObj *box);
 void scm_mem_gc_start(ScmMem *mem);
+ScmMem *scm_mem_alloc_persist(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmObj *box);
 
 #endif /* INCLUDED_MEMORY_H__ */
