@@ -59,6 +59,12 @@ struct ScmTypeInfoRec {
 #define SCM_TYPE_INFO_GC_REF_ITR(type) \
   (SCM_TYPE_INFO_TBL[(type)]->gc_ref_itr_func)
 #define SCM_TYPE_INFO_HAS_REF_ITR(type) (SCM_TYPE_INFO_GC_REF_ITR(type) != NULL)
+#define SCM_TYPE_INFO_OBJ_SIZE_FROM_OBJ(obj) \
+  SCM_TYPE_INFO_OBJ_SIZE(scm_obj_type(obj))
+#define SCM_TYPE_INFO_GC_FIN_FROM_OBJ(obj) \
+  SCM_TYPE_INFO_GC_FIN(scm_obj_type(obj))
+#define SCM_TYPE_INFO_HAS_GC_FIN_FROM_OBJ(obj) \
+  SCM_TYPE_INFO_HAS_GC_FIN(scm_obj_type(obj))
 
 struct ScmGCRefItrRec {
   ScmObj *ptr;

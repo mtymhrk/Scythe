@@ -107,6 +107,21 @@ scm_basic_hash_get(ScmBasicHashTable *table, ScmBasicHashKey key)
   return scm_basic_hash_access(table, key, NULL, FIND);
 }
 
+void
+scm_basic_hash_clear(ScmBasicHashTable *table)
+{
+  ScmBasicHashEntry *entry, *next;
+  int i;
+
+  for (i = 0; i < table->tbl_size; i++) {
+    for (entry = table->buckets[i]; entry != NULL; entry = next) {
+      next = entry->next;
+      scm_memory_release(entry);
+    }
+    table->buckets[i] = NULL;
+  }
+}
+
 void *
 scm_basic_hash_iterate(ScmBasicHashTable *table, ScmBasicHashIterBlock block)
 {
@@ -142,6 +157,47 @@ scm_basic_hash_inject(ScmBasicHashTable *table,
       result = block(entry, result);
 
   return result;
+}
+
+ScmBasicHashItr
+scm_basic_hash_itr_begin(ScmBasicHashTable *table)
+{
+  ScmBasicHashItr itr;
+
+  assert(table != NULL);
+
+  itr.tbl = table;
+  itr.idx = 0;
+  itr.entry = table->buckets[0];
+
+  return itr;
+}
+
+ScmBasicHashItr
+scm_basic_hash_itr_next(const ScmBasicHashItr *itr)
+{
+  ScmBasicHashItr nxt_itr;
+
+  assert(itr != NULL);
+
+  nxt_itr.tbl = itr->tbl;
+  if (itr->entry == NULL) {
+    nxt_itr.idx = itr->idx;
+    nxt_itr.entry = itr->entry;
+  }
+  else if (itr->entry->next != NULL) {
+    nxt_itr.idx = itr->idx;
+    nxt_itr.entry = itr->entry->next;
+  }
+  else {
+    nxt_itr.idx = itr->idx + 1;
+    if (nxt_itr.idx < itr->tbl->tbl_size)
+      nxt_itr.entry = itr->tbl->buckets[nxt_itr.idx];
+    else
+      nxt_itr.entry = NULL;
+  }
+
+  return nxt_itr;
 }
 
 ScmBasicHashTable *
