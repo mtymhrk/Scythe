@@ -47,6 +47,7 @@ struct ScmMemHeapBlockRec {
 #define SCM_MEM_HEAP_BLOCK_FREE(block) ((block)->size - (block)->used)
 #define SCM_MEM_HEAP_BLOCK_HEAD(block) ((block)->heap)
 #define SCM_MEM_HEAP_BLOCK_ALLOCATED(block, sz) ((block)->used += (sz))
+#define SCM_MEM_HEAP_BLOCK_DEALLOCATED(block, sz) ((block)->used -= (sz))
 #define SCM_MEM_HEAP_BLOCK_FREE_PTR(block) \
   ((void *)((block)->heap + (block)->used))
 #define SCM_MEM_HEAP_BLOCK_PTR_OFFSET(block, ptr) \
@@ -169,6 +170,12 @@ struct ScmMemHeapRec {
         SCM_MEM_HEAP_SHIFT(heap);                                       \
       }                                                                 \
     }                                                                   \
+  } while(0)
+
+#define SCM_MEM_HEAP_CANCEL_ALLOC(heap, size)                           \
+  do {                                                                  \
+    SCM_MEM_HEAP_BLOCK_DEALLOCATED((heap)->current, (size));            \
+    (heap)->free = SCM_MEM_HEAP_BLOCK_FREE_PTR((heap)->current);        \
   } while(0)
 
 #define SCM_MEM_HEAP_FOR_EACH_BLOCK(heap, block) \
@@ -380,6 +387,15 @@ scm_mem_register_obj_if_needed(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmObj obj)
 }
 
 static void
+scm_mem_unregister_obj(ScmMem *mem, ScmObj obj)
+{
+  assert(mem != NULL);
+
+  if (SCM_TYPE_INFO_HAS_GC_FIN_FROM_OBJ(obj))
+    scm_basic_hash_delete(mem->from_obj_tbl, SCM_BASIC_HASH_KEY(obj));
+}
+
+static void
 scm_mem_finalize_obj(ScmMem *mem, ScmObj obj)
 {
   assert(mem != NULL);
@@ -508,6 +524,13 @@ scm_mem_alloc_mem(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmObj *box)
   size = (size > SCM_MEM_MIN_OBJ_SIZE) ? size : SCM_MEM_MIN_OBJ_SIZE;
 
   SCM_MEM_HEAP_ALLOC(mem->to_heap, size, box);
+  if (*box == NULL) return;
+
+  if (scm_mem_register_obj_if_needed(mem, type, *box) < 0) {
+    SCM_MEM_HEAP_CANCEL_ALLOC(mem->to_heap, size);
+    *box = NULL;
+    return;
+  }
 }
 
 static ScmObj
@@ -539,6 +562,7 @@ scm_mem_copy_obj(ScmMem *mem, ScmObj obj)
     }
   }
   memcpy(box, obj, SCM_TYPE_INFO_OBJ_SIZE(type));
+  scm_mem_unregister_obj(mem, obj);
   SCM_FORWARD_INITIALIZE(obj, box);
 
   return box;
@@ -738,10 +762,6 @@ scm_mem_alloc(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmObj *box)
   }
 
   scm_obj_init(*box, type);
-  if (scm_mem_register_obj_if_needed(mem, type, *box) < 0) {
-    ; /* TODO: write error handling */
-    return NULL;
-  }
 
   return mem;
 }
