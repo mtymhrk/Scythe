@@ -81,44 +81,48 @@ struct ScmMemHeapRec {
 #define SCM_MEM_HEAP_NR_USED_BLOCK(heap) \
   ((heap)->nr_block - (heap)->nr_free_block)
 
-#define SCM_MEM_HEAP_ADD_BLOCK(heap, block)            \
-  do {                                                 \
-    if ((heap)->head == NULL)                          \
-      (heap)->head = (block);                          \
-    else                                               \
-      (heap)->tail->next = (block);                    \
-    (block)->prev = (heap)->tail;                      \
-    (heap)->tail = (block);                            \
-    (block)->next = NULL;                              \
-    (heap)->nr_block++;                                \
-    if ((heap)->current == NULL)                       \
-      (heap)->current = (block);                       \
-    else                                               \
-      (heap)->nr_free_block++;                         \
+#define SCM_MEM_HEAP_ADD_BLOCK(heap, block)                             \
+  do {                                                                  \
+    if ((heap)->head == NULL)                                           \
+      (heap)->head = (block);                                           \
+    else                                                                \
+      (heap)->tail->next = (block);                                     \
+    (block)->next = NULL;                                               \
+    (block)->prev = (heap)->tail;                                       \
+    (heap)->tail = (block);                                             \
+    (heap)->nr_block++;                                                 \
+    if ((heap)->current == NULL) {                                      \
+      (heap)->current = (block);                                        \
+      (heap)->free = SCM_MEM_HEAP_BLOCK_FREE_PTR((heap)->current);      \
+    }                                                                   \
+    else                                                                \
+      (heap)->nr_free_block++;                                          \
   } while(0)
 
-#define SCM_MEM_HEAP_DEL_BLOCK(heap)                   \
-  do {                                                 \
-    if ((heap)->tail != NULL) {                        \
-      ScmMemHeapBlock *b = (heap)->tail;               \
-                                                       \
-      if (SCM_MEM_HEAP_IS_CUR_BLOCK_TAIL(heap))        \
-        (heap)->current = SCM_MEM_HEAP_BLOCK_PREV(b);  \
-      else                                             \
-        (heap)->nr_free_block--;                       \
-                                                       \
-      if (SCM_MEM_HEAP_BLOCK_PREV(b) == NULL) {        \
-        (heap)->head = NULL;                           \
-        (heap)->tail = NULL;                           \
-      }                                                \
-      else {                                           \
-        (heap)->tail = SCM_MEM_HEAP_BLOCK_PREV(b);     \
-        (heap)->tail->next = NULL;                     \
-      }                                                \
-      (heap)->nr_block--;                              \
-                                                       \
-      SCM_MEM_HEAP_DELEATE_BLOCK(b);                   \
-    }                                                  \
+#define SCM_MEM_HEAP_DEL_BLOCK(heap)                                    \
+  do {                                                                  \
+    if ((heap)->tail != NULL) {                                         \
+      ScmMemHeapBlock *b = (heap)->tail;                                \
+                                                                        \
+      if (SCM_MEM_HEAP_IS_CUR_BLOCK_TAIL(heap)) {                       \
+        (heap)->current = SCM_MEM_HEAP_BLOCK_PREV(b);                   \
+        (heap)->free = SCM_MEM_HEAP_BLOCK_FREE_PTR((heap)->current);    \
+      }                                                                 \
+      else                                                              \
+        (heap)->nr_free_block--;                                        \
+                                                                        \
+      if (SCM_MEM_HEAP_BLOCK_PREV(b) == NULL) {                         \
+        (heap)->head = NULL;                                            \
+        (heap)->tail = NULL;                                            \
+      }                                                                 \
+      else {                                                            \
+        (heap)->tail = SCM_MEM_HEAP_BLOCK_PREV(b);                      \
+        (heap)->tail->next = NULL;                                      \
+      }                                                                 \
+      (heap)->nr_block--;                                               \
+                                                                        \
+      SCM_MEM_HEAP_DELEATE_BLOCK(b);                                    \
+    }                                                                   \
   } while(0)                                     
 
 #define SCM_MEM_HEAP_RELEASE_BLOCKS(heap, nr_leave)             \
@@ -142,13 +146,14 @@ struct ScmMemHeapRec {
     }                                                                   \
   } while(0)
 
-#define SCM_MEM_HEAP_REWIND(heap)                       \
-  do {                                                  \
-    (heap)->current = (heap)->head;                     \
-    if ((heap)->nr_block > 1)                           \
-      (heap)->nr_free_block = (heap)->nr_block - 1;     \
-    else                                                \
-      (heap)->nr_free_block = 0;                        \
+#define SCM_MEM_HEAP_REWIND(heap)                                       \
+  do {                                                                  \
+    (heap)->current = (heap)->head;                                     \
+    (heap)->free = SCM_MEM_HEAP_BLOCK_FREE_PTR((heap)->current);        \
+    if ((heap)->nr_block > 1)                                           \
+      (heap)->nr_free_block = (heap)->nr_block - 1;                     \
+    else                                                                \
+      (heap)->nr_free_block = 0;                                        \
   } while(0)
 
 #define SCM_MEM_HEAP_ALLOC(heap, size, ptr)                             \
