@@ -17,6 +17,7 @@ enum { TO_HEAP, FROM_HEAP };
 
 struct ScmMemHeapBlockRec {
   struct ScmMemHeapBlockRec *next;
+  struct ScmMemHeapBlockRec *prev;
   size_t size;
   size_t used;
   uint8_t heap[0];
@@ -27,6 +28,7 @@ struct ScmMemHeapBlockRec {
     (block) = malloc(sizeof(ScmMemHeapBlock) + (sz));  \
     if ((block) != NULL) {                             \
       (block)->next = NULL;                            \
+      (block)->prev = NULL;                            \
       (block)->size = (sz);                            \
       (block)->used = 0;                               \
     }                                                  \
@@ -39,6 +41,7 @@ struct ScmMemHeapBlockRec {
   } while(0)
 
 #define SCM_MEM_HEAP_BLOCK_NEXT(block) ((block)->next)
+#define SCM_MEM_HEAP_BLOCK_PREV(block) ((block)->prev)
 #define SCM_MEM_HEAP_BLOCK_SIZE(block) ((block)->size)
 #define SCM_MEM_HEAP_BLOCK_USED(block) ((block)->used)
 #define SCM_MEM_HEAP_BLOCK_FREE(block) ((block)->size - (block)->used)
@@ -73,6 +76,10 @@ struct ScmMemHeapRec {
 #define SCM_MEM_HEAP_CUR_BLOCK_FREE_SIZE(heap) \
   (((heap)->current == NULL) ? 0 : SCM_MEM_HEAP_BLOCK_FREE((heap)->current))
 #define SCM_MEM_HEAP_IS_CUR_BLOCK_TAIL(heap)  ((heap)->current == (heap)->tail)
+#define SCM_MEM_HEAP_NR_BLOCK(heap) ((heap)->nr_block)
+#define SCM_MEM_HEAP_NR_FREE_BLOCK(heap) ((heap)->nr_free_block)
+#define SCM_MEM_HEAP_NR_USED_BLOCK(heap) \
+  ((heap)->nr_block - (heap)->nr_free_block)
 
 #define SCM_MEM_HEAP_ADD_BLOCK(heap, block)            \
   do {                                                 \
@@ -80,28 +87,48 @@ struct ScmMemHeapRec {
       (heap)->head = (block);                          \
     else                                               \
       (heap)->tail->next = (block);                    \
+    (block)->prev = (heap)->tail;                      \
     (heap)->tail = (block);                            \
     (block)->next = NULL;                              \
     (heap)->nr_block++;                                \
-    (heap)->nr_free_block++;                           \
+    if ((heap)->current == NULL)                       \
+      (heap)->current = (block);                       \
+    else                                               \
+      (heap)->nr_free_block++;                         \
   } while(0)
 
-#define SCM_MEM_HEAP_RELEASE_BLOCKS(heap, block, prev)   \
-  do {                                                   \
-    ScmMemHeapBlock *p, *q;                              \
-    for (p = (block); p != NULL; p = q) {                \
-      q = p->next;                                       \
-      SCM_MEM_HEAP_DELEATE_BLOCK(p);                     \
-      (heap)->nr_block--;                                \
-      (heap)->nr_free_block--;                           \
-    }                                                    \
-    if ((heap)->head == (block))                         \
-      (heap)->head = (heap)->tail = NULL;                \
-    else                                                 \
-      (heap)->tail = (prev);                             \
+#define SCM_MEM_HEAP_DEL_BLOCK(heap)                   \
+  do {                                                 \
+    if ((heap)->tail != NULL) {                        \
+      ScmMemHeapBlock *b = (heap)->tail;               \
+                                                       \
+      if (SCM_MEM_HEAP_IS_CUR_BLOCK_TAIL(heap))        \
+        (heap)->current = SCM_MEM_HEAP_BLOCK_PREV(b);  \
+      else                                             \
+        (heap)->nr_free_block--;                       \
+                                                       \
+      if (SCM_MEM_HEAP_BLOCK_PREV(b) == NULL) {        \
+        (heap)->head = NULL;                           \
+        (heap)->tail = NULL;                           \
+      }                                                \
+      else {                                           \
+        (heap)->tail = SCM_MEM_HEAP_BLOCK_PREV(b);     \
+        (heap)->tail->next = NULL;                     \
+      }                                                \
+      (heap)->nr_block--;                              \
+                                                       \
+      SCM_MEM_HEAP_DELEATE_BLOCK(b);                   \
+    }                                                  \
+  } while(0)                                     
+
+#define SCM_MEM_HEAP_RELEASE_BLOCKS(heap, nr_leave)             \
+  do {                                                          \
+    int i, n = SCM_MEM_HEAP_NR_BLOCK(heap) - (nr_leave);        \
+    for (i = 0; i < n; i++)                                     \
+      SCM_MEM_HEAP_DEL_BLOCK(heap);                             \
   } while(0)
 
-#define SCM_MEM_HEAP_NEXT(heap)                                         \
+#define SCM_MEM_HEAP_SHIFT(heap)                                        \
   do {                                                                  \
     if ((heap)->current != NULL) {                                      \
       (heap)->current = SCM_MEM_HEAP_BLOCK_NEXT((heap)->current);       \
@@ -115,6 +142,15 @@ struct ScmMemHeapRec {
     }                                                                   \
   } while(0)
 
+#define SCM_MEM_HEAP_REWIND(heap)                       \
+  do {                                                  \
+    (heap)->current = (heap)->head;                     \
+    if ((heap)->nr_block > 1)                           \
+      (heap)->nr_free_block = (heap)->nr_block - 1;     \
+    else                                                \
+      (heap)->nr_free_block = 0;                        \
+  } while(0)
+
 #define SCM_MEM_HEAP_ALLOC(heap, size, ptr)                             \
   do {                                                                  \
     *(ptr) = NULL;                                                      \
@@ -125,7 +161,7 @@ struct ScmMemHeapRec {
         (heap)->free = SCM_MEM_HEAP_BLOCK_FREE_PTR((heap)->current);    \
       }                                                                 \
       else {                                                            \
-        SCM_MEM_HEAP_NEXT(heap);                                        \
+        SCM_MEM_HEAP_SHIFT(heap);                                       \
       }                                                                 \
     }                                                                   \
   } while(0)
@@ -223,7 +259,7 @@ scm_mem_delete_heap(ScmMemHeap *heap)
 {
   if (heap == NULL) return;
 
-  SCM_MEM_HEAP_RELEASE_BLOCKS(heap, heap->head, NULL);
+  SCM_MEM_HEAP_RELEASE_BLOCKS(heap, 0);
   free(heap);
 }
 
@@ -239,8 +275,8 @@ scm_mem_new_heap(int nr_block, size_t size)
   heap->tail = NULL;
   heap->current = NULL;
   heap->free = NULL;
-  heap->nr_block = nr_block;
-  heap->nr_free_block = nr_block - 1;
+  heap->nr_block = 0;
+  heap->nr_free_block = 0;
 
   for (i = 0; i < nr_block; i++) {
     ScmMemHeapBlock *block;
@@ -281,6 +317,25 @@ scm_mem_expand_heap(ScmMem *mem, size_t inc_block)
   if (to_block != NULL) free(to_block);
   if (from_block != NULL) free(from_block);
   return i;
+}
+
+static int
+scm_mem_release_redundancy_heap_blocks(ScmMem *mem, int nr_margin)
+{
+  int nr_release;
+  int nr_leave;
+
+  assert(mem != NULL);
+  assert(nr_margin >= 0);
+
+  nr_release = SCM_MEM_HEAP_NR_FREE_BLOCK(mem->to_heap) - nr_margin;
+  nr_release = (nr_release < 0) ? 0 : nr_release;
+  nr_leave = SCM_MEM_HEAP_NR_BLOCK(mem->to_heap) - nr_release;
+
+  SCM_MEM_HEAP_RELEASE_BLOCKS(mem->to_heap, nr_leave);
+  SCM_MEM_HEAP_RELEASE_BLOCKS(mem->from_heap, nr_leave);
+
+  return nr_leave;
 }
 
 static int
@@ -373,6 +428,7 @@ scm_mem_cleanup_heap(ScmMem *mem, int which)
   SCM_MEM_HEAP_FOR_EACH_BLOCK(heap, block) {
     SCM_MEM_HEAP_BLOCK_CLEAN(block);
   }
+  SCM_MEM_HEAP_REWIND(heap);
 }
 
 static void
@@ -389,6 +445,7 @@ scm_mem_cleanup_persistent(ScmMem *mem)
     }
     SCM_MEM_HEAP_BLOCK_CLEAN(block);
   }
+  SCM_MEM_HEAP_REWIND(mem->persistent);
 
   assert(mem != NULL);
 }
@@ -696,6 +753,8 @@ scm_mem_alloc_persist(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmObj *box)
 void
 scm_mem_gc_start(ScmMem *mem)
 {
+  size_t nr_free;
+
   assert(mem != NULL);
 
   scm_mem_switch_heap(mem);
@@ -703,6 +762,9 @@ scm_mem_gc_start(ScmMem *mem)
   scm_mem_scan_obj(mem);
   scm_mem_cleanup_heap(mem, FROM_HEAP);
 
-  if (SCM_MEM_HEAP_IS_CUR_BLOCK_TAIL(mem->to_heap))
+  nr_free = SCM_MEM_HEAP_NR_FREE_BLOCK(mem->to_heap);
+  if (nr_free == 0)
     scm_mem_expand_heap(mem, 1);
+  else if (nr_free > 1) 
+    scm_mem_release_redundancy_heap_blocks(mem, 1);
 }
