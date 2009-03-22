@@ -56,7 +56,11 @@ struct ScmMemHeapBlockRec {
   for ((obj) = SCM_OBJ(SCM_MEM_HEAP_BLOCK_HEAD(block));                 \
        SCM_MEM_HEAP_BLOCK_PTR_IS_ALLOCATED(block, obj);                 \
        obj = SCM_MEM_HEAP_BLOCK_NEXT_OBJ(block, obj))
-#define SCM_MEM_HEAP_BLOCK_CLEAN(block) ((block)->used = 0)                                                      
+#define SCM_MEM_HEAP_BLOCK_CLEAN(block) ((block)->used = 0)
+#define SCM_MEM_HEAP_BLOCK_IS_OBJ_IN_BLOCK(block, obj) \
+  ((block)->heap <= (uint8_t *)obj \
+   && (uint8_t *)obj < (block)->heap + (block)->used)
+
 struct ScmMemHeapRec {
   ScmMemHeapBlock *head;
   ScmMemHeapBlock *tail;
@@ -406,6 +410,29 @@ scm_mem_switch_heap(ScmMem *mem)
   mem->to_heap = tmp_heap;
 }
 
+static bool
+scm_mem_is_obj_in_heap(ScmMem *mem, ScmObj obj, int which)
+{
+  ScmMemHeap *heap;
+  ScmMemHeapBlock *block;
+
+  assert(mem != NULL);
+  assert(obj != NULL);
+  assert(which == TO_HEAP || which == FROM_HEAP);
+
+  if (which == TO_HEAP)
+    heap = mem->to_heap;
+  else
+    heap = mem->from_heap;
+
+  SCM_MEM_HEAP_FOR_EACH_BLOCK(heap, block) {
+    if (SCM_MEM_HEAP_BLOCK_IS_OBJ_IN_BLOCK(block, obj))
+      return true;
+  }
+
+  return false;
+}
+
 static ScmObj
 scm_mem_copy_obj(ScmMem *mem, ScmObj obj)
 {
@@ -414,6 +441,9 @@ scm_mem_copy_obj(ScmMem *mem, ScmObj obj)
 
   assert(mem != NULL);
   assert(obj != NULL);
+
+  if (!scm_mem_is_obj_in_heap(mem, obj, FROM_HEAP))
+    return obj;
 
   type = scm_obj_type(obj);
   if (type == SCM_OBJ_TYPE_FORWARD) 
@@ -466,6 +496,19 @@ scm_mem_copy_extra_root_obj(ScmMem *mem)
 }
 
 static void
+scm_mem_copy_children_of_persistent(ScmMem *mem)
+{
+  ScmMemHeapBlock *block;
+  ScmObj obj;
+
+  SCM_MEM_HEAP_FOR_EACH_BLOCK(mem->persistent, block) {
+    SCM_MEM_HEAP_BLOCK_FOR_EACH_OBJ(block, obj) {
+      scm_mem_copy_children(mem, obj);
+    }
+  }
+}
+
+static void
 scm_mem_copy_root_obj(ScmMem *mem)
 {
   assert(mem != NULL);
@@ -473,6 +516,7 @@ scm_mem_copy_root_obj(ScmMem *mem)
   /* TODO: copy objects in  VM's stack frame, register, and so on. */
 
   scm_mem_copy_extra_root_obj(mem);
+  scm_mem_copy_children_of_persistent(mem);
 }
 
 static void
