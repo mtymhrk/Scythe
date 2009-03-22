@@ -59,7 +59,7 @@ test_string_sjis.so : test_string_sjis.o $(TEST_TARGET_OBJ)
 	$(CC) -shared -o $(TEST_CASE_LIB_DIR)/$@ $^
 
 .SUFFIXES: .c .o .so
-.PHONY: run clean depend
+.PHONY: run clean depend check-syntax
 
 run:
 	$(CUTTER) $(TEST_CASE_LIB_DIR)/
@@ -70,5 +70,8 @@ clean:
 
 depend:
 	$(CC) -MM $(INCLUDES) $(CFLAGS) $(TEST_TARGET_SRC) $(TEST_CODE_SRC) > Makefile.depend
+
+check-syntax:
+	$(CC) -fsyntax-only $(INCLUDES) $(CFLAGS) $(CHK_SOURCES)
 
 include Makefile.depend

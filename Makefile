@@ -15,7 +15,7 @@ $(TARGET) $(OBJS): Makefile
 	$(CC) -c -o $@ $(INCLUDES) $(CFLAGS) $<
 
 
-.PHONY: clean depend test
+.PHONY: clean depend test check-syntax
 
 clean:
 	-rm $(TARGET) $(OBJS)
@@ -27,5 +27,8 @@ depend:
 test:
 	$(MAKE) CFLAGS="-Wall -g"
 	$(MAKE) -C ./test depend all run
+
+check-syntax:
+	$(CC) -fsyntax-only $(INCLUDES) $(CFLAGS) $(CHK_SOURCES)
 
 include Makefile.depend
