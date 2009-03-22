@@ -51,7 +51,7 @@ struct ScmMemHeapBlockRec {
 #define SCM_MEM_HEAP_BLOCK_FREE_PTR(block) \
   ((void *)((block)->heap + (block)->used))
 #define SCM_MEM_HEAP_BLOCK_PTR_OFFSET(block, ptr) \
-  ((uint8_t *)(ptr) - block->heap)
+  ((size_t)((uint8_t *)(ptr) - block->heap))
 #define SCM_MEM_HEAP_BLOCK_PTR_IS_ALLOCATED(block, ptr) \
   (SCM_MEM_HEAP_BLOCK_PTR_OFFSET(block, ptr) < SCM_MEM_HEAP_BLOCK_USED(block))
 #define SCM_MEM_HEAP_BLOCK_NEXT_OBJ(block, obj) \
@@ -306,12 +306,13 @@ scm_mem_new_heap(int nr_block, size_t size)
 }
 
 static int
-scm_mem_expand_heap(ScmMem *mem, size_t inc_block)
+scm_mem_expand_heap(ScmMem *mem, int inc_block)
 {
   int i;
   ScmMemHeapBlock *to_block, *from_block;
 
   assert(mem != NULL);
+  assert(inc_block >= 0);
 
   for (i = 0; i < inc_block; i++) {
     SCM_MEM_HEAP_NEW_BLOCK(to_block, SCM_MEM_HEAP_INIT_BLOCK_SIZE);
@@ -351,12 +352,13 @@ scm_mem_release_redundancy_heap_blocks(ScmMem *mem, int nr_margin)
 }
 
 static int
-scm_mem_expand_persistent(ScmMem *mem, size_t inc_block)
+scm_mem_expand_persistent(ScmMem *mem, int inc_block)
 {
   int i;
   ScmMemHeapBlock *block;
 
   assert(mem != NULL);
+  assert(inc_block >= 0);
 
   for (i = 0; i < inc_block; i++) {
     SCM_MEM_HEAP_NEW_BLOCK(block, SCM_MEM_HEAP_INIT_BLOCK_SIZE);
