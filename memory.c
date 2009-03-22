@@ -1,5 +1,6 @@
 #include <unistd.h>
 #include <stdlib.h>
+#include <string.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <assert.h>
@@ -11,6 +12,8 @@
 #define SCM_MEM_HEAP_INIT_BLOCK_SIZE 4096
 #define SCM_MEM_OBJ_TBL_HASH_SIZE 1024
 #define SCM_MEM_EXTRA_ROOT_SET_SIZE 256
+
+enum { TO_HEAP, FROM_HEAP };
 
 struct ScmMemHeapBlockRec {
   struct ScmMemHeapBlockRec *next;
@@ -53,7 +56,7 @@ struct ScmMemHeapBlockRec {
   for ((obj) = SCM_OBJ(SCM_MEM_HEAP_BLOCK_HEAD(block));                 \
        SCM_MEM_HEAP_BLOCK_PTR_IS_ALLOCATED(block, obj);                 \
        obj = SCM_MEM_HEAP_BLOCK_NEXT_OBJ(block, obj))
-                                                      
+#define SCM_MEM_HEAP_BLOCK_CLEAN(block) ((block)->used = 0)                                                      
 struct ScmMemHeapRec {
   ScmMemHeapBlock *head;
   ScmMemHeapBlock *tail;
@@ -65,6 +68,7 @@ struct ScmMemHeapRec {
 
 #define SCM_MEM_HEAP_CUR_BLOCK_FREE_SIZE(heap) \
   (((heap)->current == NULL) ? 0 : SCM_MEM_HEAP_BLOCK_FREE((heap)->current))
+#define SCM_MEM_HEAP_IS_CUR_BLOCK_TAIL(heap)  ((heap)->current == (heap)->tail)
 
 #define SCM_MEM_HEAP_ADD_BLOCK(heap, block)            \
   do {                                                 \
@@ -142,6 +146,15 @@ struct ScmForwardRec {
   ScmObjHeader header;
   ScmObj forward;
 };
+
+#define SCM_FORWARD(obj) ((ScmForward *)(obj))
+#define SCM_FORWARD_FORWARD(obj) (SCM_FORWARD(obj)->forward)
+#define SCM_FORWARD_INITIALIZE(obj, fwd) \
+  do { \
+    scm_obj_init(obj, SCM_OBJ_TYPE_FORWARD);    \
+    SCM_FORWARD(obj)->forward = fwd;            \
+  } while(0)
+
 
 #define SCM_MEM_MIN_OBJ_SIZE sizeof(ScmForward)
 
@@ -315,21 +328,51 @@ scm_mem_finalize_obj(ScmMem *mem, ScmObj obj)
 }
 
 static void
-scm_mem_fianlize_from_heap_obj(ScmMem *mem)
+scm_mem_finalize_heap_obj(ScmMem *mem, int which)
 {
   ScmBasicHashItr itr;
+  ScmBasicHashTable *tbl;
 
-  for (itr = SCM_BASIC_HASH_ITR_BEGIN(mem->from_obj_tbl);
+  assert(mem != NULL);
+  assert(which == TO_HEAP || which == FROM_HEAP);
+
+  if (which == TO_HEAP)
+    tbl = mem->to_obj_tbl;
+  else
+    tbl = mem->from_obj_tbl;
+
+  for (itr = SCM_BASIC_HASH_ITR_BEGIN(tbl);
        !SCM_BASIC_HASH_ITR_IS_END(itr);
        itr = SCM_BASIC_HASH_ITR_NEXT(itr)) {
     scm_mem_finalize_obj(mem, SCM_OBJ(SCM_BASIC_HASH_ITR_KEY(itr)));
   }
 
-  scm_basic_hash_clear(mem->from_obj_tbl);
+  scm_basic_hash_clear(tbl);
 }
 
 static void
-scm_mem_finalize_persistent_obj(ScmMem *mem)
+scm_mem_cleanup_heap(ScmMem *mem, int which)
+{
+  ScmMemHeap *heap;
+  ScmMemHeapBlock *block;
+
+  assert(mem != NULL);
+  assert(which == TO_HEAP || which == FROM_HEAP);
+
+  scm_mem_finalize_heap_obj(mem, which);
+
+  if (which == TO_HEAP)
+    heap = mem->to_heap;
+  else
+    heap = mem->from_heap;
+
+  SCM_MEM_HEAP_FOR_EACH_BLOCK(heap, block) {
+    SCM_MEM_HEAP_BLOCK_CLEAN(block);
+  }
+}
+
+static void
+scm_mem_cleanup_persistent(ScmMem *mem)
 {
   ScmMemHeapBlock *block;
   ScmObj obj;
@@ -340,9 +383,111 @@ scm_mem_finalize_persistent_obj(ScmMem *mem)
     SCM_MEM_HEAP_BLOCK_FOR_EACH_OBJ(block, obj) {
       scm_mem_finalize_obj(mem, obj);
     }
+    SCM_MEM_HEAP_BLOCK_CLEAN(block);
   }
 
   assert(mem != NULL);
+}
+
+static void
+scm_mem_switch_heap(ScmMem *mem)
+{
+  ScmBasicHashTable *tmp_tbl;
+  ScmMemHeap *tmp_heap;
+
+  assert(mem != NULL);
+
+  tmp_tbl = mem->from_obj_tbl;
+  mem->from_obj_tbl = mem->to_obj_tbl;
+  mem->to_obj_tbl = tmp_tbl;
+
+  tmp_heap = mem->from_heap;
+  mem->from_heap = mem->to_heap;
+  mem->to_heap = tmp_heap;
+}
+
+static ScmObj
+scm_mem_copy_obj(ScmMem *mem, ScmObj obj)
+{
+  ScmObj box;
+  SCM_OBJ_TYPE_T type;
+
+  assert(mem != NULL);
+  assert(obj != NULL);
+
+  type = scm_obj_type(obj);
+  if (type == SCM_OBJ_TYPE_FORWARD) 
+    return SCM_FORWARD_FORWARD(obj);
+  
+  scm_mem_alloc(mem, type, &box);
+  if (box == NULL) {
+    /* TODO: write error handling */
+    return NULL;
+  }
+  memcpy(box, obj, SCM_TYPE_INFO_OBJ_SIZE(type));
+  SCM_FORWARD_INITIALIZE(obj, box);
+
+  return box;
+}
+
+static void
+scm_mem_copy_children(ScmMem *mem, ScmObj obj)
+{
+  assert(mem != NULL);
+  assert(obj != NULL);
+
+  if (SCM_TYPE_INFO_HAS_REF_ITR_FROM_OBJ(obj)) {
+    ScmGCRefItrFunc itr_begin = SCM_TYPE_INFO_GC_REF_ITR_FROM_OBJ(obj);
+    ScmGCRefItr itr;
+
+    for (itr = itr_begin(obj);
+         SCM_GC_REF_ITR_IS_END(itr);
+         itr = SCM_GC_REF_ITR_NEXT(itr)) {
+      ScmObj c = scm_mem_copy_obj(mem, obj);
+      if (c == NULL) {
+        ; /* TODO: write error handling */
+      }
+      SCM_GC_REF_ITR_SET(itr, c);
+    }
+  }
+}
+
+static void
+scm_mem_copy_extra_root_obj(ScmMem *mem)
+{
+  int i;
+
+  assert(mem != NULL);
+
+  for (i = 0; i < mem->nr_extra_root; i++) {
+    if (mem->extra_root_set[i] != NULL)
+      *mem->extra_root_set[i] = scm_mem_copy_obj(mem, *mem->extra_root_set[i]);
+  }
+}
+
+static void
+scm_mem_copy_root_obj(ScmMem *mem)
+{
+  assert(mem != NULL);
+
+  /* TODO: copy objects in  VM's stack frame, register, and so on. */
+
+  scm_mem_copy_extra_root_obj(mem);
+}
+
+static void
+scm_mem_scan_obj(ScmMem *mem)
+{
+  ScmMemHeapBlock *block;
+  ScmObj obj;
+ 
+  assert(mem != NULL);
+ 
+  SCM_MEM_HEAP_FOR_EACH_BLOCK(mem->to_heap, block) {
+    SCM_MEM_HEAP_BLOCK_FOR_EACH_OBJ(block, obj) {
+      scm_mem_copy_children(mem, obj);
+    }
+  }
 }
 
 static ScmMem *
@@ -396,7 +541,8 @@ scm_mem_finalize(ScmMem *mem)
 {
   assert(mem != NULL);
 
-  scm_mem_finalize_persistent_obj(mem);
+  scm_mem_cleanup_persistent(mem);
+  scm_mem_cleanup_heap(mem, TO_HEAP);
 
   if (mem->to_obj_tbl) scm_basci_hash_destruct(mem->to_obj_tbl);
   if (mem->from_obj_tbl) scm_basci_hash_destruct(mem->from_obj_tbl);
@@ -428,6 +574,20 @@ scm_mem_destruct(ScmMem *mem)
   free(mem);
 
   return NULL;
+}
+
+ScmMem *
+scm_mem_register_root(ScmMem *mem, ScmObj *box)
+{
+  assert(mem != NULL);
+  
+  if (mem->nr_extra_root < SCM_MEM_EXTRA_ROOT_SET_SIZE) {
+    mem->extra_root_set[mem->nr_extra_root++] = box;
+    return mem;
+  }
+  else
+    return NULL;
+    
 }
 
 ScmMem *
@@ -492,5 +652,13 @@ scm_mem_alloc_persist(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmObj *box)
 void
 scm_mem_gc_start(ScmMem *mem)
 {
-  ; // TODO: write me
+  assert(mem != NULL);
+
+  scm_mem_switch_heap(mem);
+  scm_mem_copy_root_obj(mem);
+  scm_mem_scan_obj(mem);
+  scm_mem_cleanup_heap(mem, FROM_HEAP);
+
+  if (SCM_MEM_HEAP_IS_CUR_BLOCK_TAIL(mem->to_heap))
+    scm_mem_expand_heap(mem, 1);
 }
