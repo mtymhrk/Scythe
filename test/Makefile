@@ -72,6 +72,6 @@ depend:
 	$(CC) -MM $(INCLUDES) $(CFLAGS) $(TEST_TARGET_SRC) $(TEST_CODE_SRC) > Makefile.depend
 
 check-syntax:
-	$(CC) -fsyntax-only $(INCLUDES) $(CFLAGS) $(CHK_SOURCES)
+	LANG=C $(CC) -fsyntax-only $(INCLUDES) $(CFLAGS) $(CHK_SOURCES)
 
 include Makefile.depend

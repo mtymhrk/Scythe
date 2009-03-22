@@ -810,6 +810,4 @@ scm_mem_gc_start(ScmMem *mem)
     scm_mem_expand_heap(mem, 1);
   else if (nr_free > 1) 
     scm_mem_release_redundancy_heap_blocks(mem, 1);
-
-
 }
