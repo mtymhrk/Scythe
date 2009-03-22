@@ -29,6 +29,6 @@ test:
 	$(MAKE) -C ./test depend all run
 
 check-syntax:
-	LANG=C $(CC) -fsyntax-only $(INCLUDES) $(CFLAGS) $(CHK_SOURCES)
+	LANG=C $(CC) -fsyntax-only $(INCLUDES) $(CFLAGS) -Wextra $(CHK_SOURCES)
 
 include Makefile.depend
