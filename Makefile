@@ -27,7 +27,7 @@ depend:
 	$(CC) -MM $(INCLUDES) $(CFLAGS) $(SOURCES) > Makefile.depend
 
 test:
-	$(MAKE) CFLAGS="-Wall -g"
+	$(MAKE) CFLAGS="$(CFLAGS) -g"
 	$(MAKE) -C ./test depend all run
 
 check-syntax:
