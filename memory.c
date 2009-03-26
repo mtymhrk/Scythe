@@ -15,184 +15,6 @@
 
 enum { TO_HEAP, FROM_HEAP };
 
-struct ScmMemHeapBlockRec {
-  struct ScmMemHeapBlockRec *next;
-  struct ScmMemHeapBlockRec *prev;
-  size_t size;
-  size_t used;
-  uint8_t heap[0];
-};
-
-#define SCM_MEM_HEAP_NEW_BLOCK(block, sz)              \
-  do {                                                 \
-    (block) = malloc(sizeof(ScmMemHeapBlock) + (sz));  \
-    if ((block) != NULL) {                             \
-      (block)->next = NULL;                            \
-      (block)->prev = NULL;                            \
-      (block)->size = (sz);                            \
-      (block)->used = 0;                               \
-    }                                                  \
-  } while(0)
-
-#define SCM_MEM_HEAP_DELEATE_BLOCK(block)            \
-  do {                                               \
-    free(block);                                     \
-    (block) = NULL;                                  \
-  } while(0)
-
-#define SCM_MEM_HEAP_BLOCK_NEXT(block) ((block)->next)
-#define SCM_MEM_HEAP_BLOCK_PREV(block) ((block)->prev)
-#define SCM_MEM_HEAP_BLOCK_SIZE(block) ((block)->size)
-#define SCM_MEM_HEAP_BLOCK_USED(block) ((block)->used)
-#define SCM_MEM_HEAP_BLOCK_FREE(block) ((block)->size - (block)->used)
-#define SCM_MEM_HEAP_BLOCK_HEAD(block) ((block)->heap)
-#define SCM_MEM_HEAP_BLOCK_ALLOCATED(block, sz) ((block)->used += (sz))
-#define SCM_MEM_HEAP_BLOCK_DEALLOCATED(block, sz) ((block)->used -= (sz))
-#define SCM_MEM_HEAP_BLOCK_FREE_PTR(block) \
-  ((void *)((block)->heap + (block)->used))
-#define SCM_MEM_HEAP_BLOCK_PTR_OFFSET(block, ptr) \
-  ((size_t)((uint8_t *)(ptr) - block->heap))
-#define SCM_MEM_HEAP_BLOCK_PTR_IS_ALLOCATED(block, ptr) \
-  (SCM_MEM_HEAP_BLOCK_PTR_OFFSET(block, ptr) < SCM_MEM_HEAP_BLOCK_USED(block))
-#define SCM_MEM_HEAP_BLOCK_NEXT_OBJ(block, obj) \
-  SCM_OBJ((uint8_t *)obj + SCM_TYPE_INFO_OBJ_SIZE_FROM_OBJ(obj))
-#define SCM_MEM_HEAP_BLOCK_FOR_EACH_OBJ(block, obj)                     \
-  for ((obj) = SCM_OBJ(SCM_MEM_HEAP_BLOCK_HEAD(block));                 \
-       SCM_MEM_HEAP_BLOCK_PTR_IS_ALLOCATED(block, obj);                 \
-       obj = SCM_MEM_HEAP_BLOCK_NEXT_OBJ(block, obj))
-#define SCM_MEM_HEAP_BLOCK_CLEAN(block) ((block)->used = 0)
-#define SCM_MEM_HEAP_BLOCK_IS_OBJ_IN_BLOCK(block, obj) \
-  ((block)->heap <= (uint8_t *)obj \
-   && (uint8_t *)obj < (block)->heap + (block)->used)
-
-struct ScmMemHeapRec {
-  ScmMemHeapBlock *head;
-  ScmMemHeapBlock *tail;
-  ScmMemHeapBlock *current;
-  void *free;
-  int nr_block;
-  int nr_free_block;
-};
-
-#define SCM_MEM_HEAP_CUR_BLOCK_FREE_SIZE(heap) \
-  (((heap)->current == NULL) ? 0 : SCM_MEM_HEAP_BLOCK_FREE((heap)->current))
-#define SCM_MEM_HEAP_IS_CUR_BLOCK_TAIL(heap)  ((heap)->current == (heap)->tail)
-#define SCM_MEM_HEAP_NR_BLOCK(heap) ((heap)->nr_block)
-#define SCM_MEM_HEAP_NR_FREE_BLOCK(heap) ((heap)->nr_free_block)
-#define SCM_MEM_HEAP_NR_USED_BLOCK(heap) \
-  ((heap)->nr_block - (heap)->nr_free_block)
-
-#define SCM_MEM_HEAP_ADD_BLOCK(heap, block)                             \
-  do {                                                                  \
-    if ((heap)->head == NULL)                                           \
-      (heap)->head = (block);                                           \
-    else                                                                \
-      (heap)->tail->next = (block);                                     \
-    (block)->next = NULL;                                               \
-    (block)->prev = (heap)->tail;                                       \
-    (heap)->tail = (block);                                             \
-    (heap)->nr_block++;                                                 \
-    if ((heap)->current == NULL) {                                      \
-      (heap)->current = (block);                                        \
-      (heap)->free = SCM_MEM_HEAP_BLOCK_FREE_PTR((heap)->current);      \
-    }                                                                   \
-    else                                                                \
-      (heap)->nr_free_block++;                                          \
-  } while(0)
-
-#define SCM_MEM_HEAP_DEL_BLOCK(heap)                                    \
-  do {                                                                  \
-    if ((heap)->tail != NULL) {                                         \
-      ScmMemHeapBlock *b = (heap)->tail;                                \
-                                                                        \
-      if (SCM_MEM_HEAP_IS_CUR_BLOCK_TAIL(heap)) {                       \
-        (heap)->current = SCM_MEM_HEAP_BLOCK_PREV(b);                   \
-        (heap)->free = SCM_MEM_HEAP_BLOCK_FREE_PTR((heap)->current);    \
-      }                                                                 \
-      else                                                              \
-        (heap)->nr_free_block--;                                        \
-                                                                        \
-      if (SCM_MEM_HEAP_BLOCK_PREV(b) == NULL) {                         \
-        (heap)->head = NULL;                                            \
-        (heap)->tail = NULL;                                            \
-      }                                                                 \
-      else {                                                            \
-        (heap)->tail = SCM_MEM_HEAP_BLOCK_PREV(b);                      \
-        (heap)->tail->next = NULL;                                      \
-      }                                                                 \
-      (heap)->nr_block--;                                               \
-                                                                        \
-      SCM_MEM_HEAP_DELEATE_BLOCK(b);                                    \
-    }                                                                   \
-  } while(0)                                     
-
-#define SCM_MEM_HEAP_RELEASE_BLOCKS(heap, nr_leave)             \
-  do {                                                          \
-    int i, n = SCM_MEM_HEAP_NR_BLOCK(heap) - (nr_leave);        \
-    for (i = 0; i < n; i++)                                     \
-      SCM_MEM_HEAP_DEL_BLOCK(heap);                             \
-  } while(0)
-
-#define SCM_MEM_HEAP_SHIFT(heap)                                        \
-  do {                                                                  \
-    if ((heap)->current != NULL) {                                      \
-      (heap)->current = SCM_MEM_HEAP_BLOCK_NEXT((heap)->current);       \
-      if ((heap)->current == NULL) {                                    \
-        (heap)->free = NULL;                                            \
-      }                                                                 \
-      else {                                                            \
-        (heap)->free = SCM_MEM_HEAP_BLOCK_FREE_PTR((heap)->current);    \
-        (heap)->nr_free_block--;                                        \
-      }                                                                 \
-    }                                                                   \
-  } while(0)
-
-#define SCM_MEM_HEAP_REWIND(heap)                                       \
-  do {                                                                  \
-    (heap)->current = (heap)->head;                                     \
-    (heap)->free = SCM_MEM_HEAP_BLOCK_FREE_PTR((heap)->current);        \
-    if ((heap)->nr_block > 1)                                           \
-      (heap)->nr_free_block = (heap)->nr_block - 1;                     \
-    else                                                                \
-      (heap)->nr_free_block = 0;                                        \
-  } while(0)
-
-#define SCM_MEM_HEAP_ALLOC(heap, size, ptr)                             \
-  do {                                                                  \
-    *(ptr) = NULL;                                                      \
-    while ((heap)->current != NULL && *(ptr) == NULL) {                 \
-      if ((size) <= SCM_MEM_HEAP_CUR_BLOCK_FREE_SIZE(heap)) {           \
-        *(ptr) = (heap)->free;                                          \
-        SCM_MEM_HEAP_BLOCK_ALLOCATED((heap)->current, (size));          \
-        (heap)->free = SCM_MEM_HEAP_BLOCK_FREE_PTR((heap)->current);    \
-      }                                                                 \
-      else {                                                            \
-        SCM_MEM_HEAP_SHIFT(heap);                                       \
-      }                                                                 \
-    }                                                                   \
-  } while(0)
-
-#define SCM_MEM_HEAP_CANCEL_ALLOC(heap, size)                           \
-  do {                                                                  \
-    SCM_MEM_HEAP_BLOCK_DEALLOCATED((heap)->current, (size));            \
-    (heap)->free = SCM_MEM_HEAP_BLOCK_FREE_PTR((heap)->current);        \
-  } while(0)
-
-#define SCM_MEM_HEAP_FOR_EACH_BLOCK(heap, block) \
-  for ((block) = heap->head;                     \
-       (block) != NULL;                          \
-       (block) = SCM_MEM_HEAP_BLOCK_NEXT(block))
-
-
-struct ScmMemRec {
-  ScmBasicHashTable *to_obj_tbl;
-  ScmBasicHashTable *from_obj_tbl;
-  ScmMemHeap *to_heap;
-  ScmMemHeap *from_heap;
-  ScmMemHeap *persistent;
-  ScmObj **extra_root_set;
-  int nr_extra_root;
-};
 
 struct ScmForwardRec {
   ScmObjHeader header;
@@ -264,45 +86,6 @@ static bool
 object_table_comp_func(ScmBasicHashKey key1, ScmBasicHashKey key2)
 {
   return (key1 == key2) ? true : false;
-}
-
-static void
-scm_mem_delete_heap(ScmMemHeap *heap)
-{
-  if (heap == NULL) return;
-
-  SCM_MEM_HEAP_RELEASE_BLOCKS(heap, 0);
-  free(heap);
-}
-
-static ScmMemHeap *
-scm_mem_new_heap(int nr_block, size_t size)
-{
-  ScmMemHeap *heap;
-  int i;
-
-  heap = malloc(sizeof(*heap));
-  if (heap == NULL) return NULL;
-  heap->head = NULL;
-  heap->tail = NULL;
-  heap->current = NULL;
-  heap->free = NULL;
-  heap->nr_block = 0;
-  heap->nr_free_block = 0;
-
-  for (i = 0; i < nr_block; i++) {
-    ScmMemHeapBlock *block;
-    SCM_MEM_HEAP_NEW_BLOCK(block, size);
-    if (block == NULL) {
-      scm_mem_delete_heap(heap);
-      return NULL;
-    }
-    SCM_MEM_HEAP_ADD_BLOCK(heap, block);
-  }
-
-  heap->current = heap->head;
-
-  return heap;
 }
 
 static int
@@ -663,13 +446,13 @@ scm_mem_initialize(ScmMem *mem)
                                                object_table_comp_func);
   if (mem->from_obj_tbl == NULL) goto err;
 
-  mem->to_heap = scm_mem_new_heap(1, SCM_MEM_HEAP_INIT_BLOCK_SIZE);
+  SCM_MEM_HEAP_NEW_HEAP(mem->to_heap, 1, SCM_MEM_HEAP_INIT_BLOCK_SIZE);
   if (mem->to_heap == NULL) goto err;
 
-  mem->from_heap = scm_mem_new_heap(1, SCM_MEM_HEAP_INIT_BLOCK_SIZE);
+  SCM_MEM_HEAP_NEW_HEAP(mem->from_heap, 1, SCM_MEM_HEAP_INIT_BLOCK_SIZE);
   if (mem->from_heap == NULL) goto err;
 
-  mem->persistent = scm_mem_new_heap(1, SCM_MEM_HEAP_INIT_BLOCK_SIZE);
+  SCM_MEM_HEAP_NEW_HEAP(mem->persistent, 1, SCM_MEM_HEAP_INIT_BLOCK_SIZE);
   if (mem->persistent == NULL) goto err;
 
   mem->extra_root_set = malloc(sizeof(ScmObj *) * SCM_MEM_EXTRA_ROOT_SET_SIZE);
@@ -681,9 +464,9 @@ scm_mem_initialize(ScmMem *mem)
  err:
   if (mem->to_obj_tbl != NULL) scm_basci_hash_destruct(mem->to_obj_tbl);
   if (mem->from_obj_tbl != NULL) scm_basci_hash_destruct(mem->from_obj_tbl);
-  if (mem->to_heap != NULL) scm_mem_delete_heap(mem->to_heap);
-  if (mem->from_heap != NULL) scm_mem_delete_heap(mem->from_heap);
-  if (mem->persistent != NULL) scm_mem_delete_heap(mem->persistent);
+  if (mem->to_heap != NULL) SCM_MEM_HEAP_DELETE_HEAP(mem->to_heap);
+  if (mem->from_heap != NULL) SCM_MEM_HEAP_DELETE_HEAP(mem->from_heap);
+  if (mem->persistent != NULL) SCM_MEM_HEAP_DELETE_HEAP(mem->persistent);
   if (mem->extra_root_set != NULL) free(mem->extra_root_set);
 
   return NULL;
@@ -699,9 +482,9 @@ scm_mem_finalize(ScmMem *mem)
 
   if (mem->to_obj_tbl) scm_basci_hash_destruct(mem->to_obj_tbl);
   if (mem->from_obj_tbl) scm_basci_hash_destruct(mem->from_obj_tbl);
-  if (mem->to_heap != NULL) scm_mem_delete_heap(mem->to_heap);
-  if (mem->from_heap != NULL) scm_mem_delete_heap(mem->from_heap);  
-  if (mem->persistent != NULL) scm_mem_delete_heap(mem->persistent);
+  if (mem->to_heap != NULL) SCM_MEM_HEAP_DELETE_HEAP(mem->to_heap);
+  if (mem->from_heap != NULL) SCM_MEM_HEAP_DELETE_HEAP(mem->from_heap);
+  if (mem->persistent != NULL) SCM_MEM_HEAP_DELETE_HEAP(mem->persistent);
   if (mem->extra_root_set != NULL) free(mem->extra_root_set);
 
   return NULL;
