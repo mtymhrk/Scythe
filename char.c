@@ -34,7 +34,7 @@ scm_char_construct(scm_char_t value, SCM_ENCODING_T enc)
 {
   ScmChar *charv;
 
-  assert(0 <= enc && enc < SMC_ENCODING_NR_ENC);
+  assert(/* 0 <= enc && */ enc < SMC_ENCODING_NR_ENC);
 
   charv = scm_memory_allocate(sizeof(ScmChar));
   scm_obj_init(SCM_OBJ(charv), SCM_OBJ_TYPE_CHAR);
@@ -112,7 +112,7 @@ scm_char_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
 
     char_width = SCM_ENCODING_VFUNC_CHAR_WIDTH(charv->enc);
     w = char_width(&charv->value, sizeof(charv->value));
-    memcpy(tmp, &charv->value, w);
+    memcpy(tmp, &charv->value, (size_t)w);
     tmp[w] = '\0';
 
     snprintf(str, sizeof(str), "#\\%s", tmp);

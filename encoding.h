@@ -28,7 +28,7 @@ typedef struct ScmStrItrRec {
 #define SCM_STR_ITR_PTR(iter) ((iter)->p)
 #define SCM_STR_ITR_REST(iter) ((iter)->rest)
 #define SCM_STR_ITR_WIDTH(iter) \
-  ((iter)->char_width(SCM_STR_ITR_PTR(iter), SCM_STR_ITR_REST(iter)))
+  ((iter)->char_width(SCM_STR_ITR_PTR(iter), (size_t)SCM_STR_ITR_REST(iter)))
 #define SCM_STR_ITR_COPY(iter, copy) (*(copy) = *(iter))
 #define SCM_STR_ITR_OFFSET(iter, head) \
   ((uint8_t *)SCM_STR_ITR_PTR(iter) -  (uint8_t *)head);

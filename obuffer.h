@@ -11,7 +11,7 @@ typedef enum {
 } SCM_OBUFFER_MODE_T;
 
 void scm_obuffer_concatenate_string(ScmOBuffer *obuffer, const char *str);
-void scm_obuffer_concatenate_char(ScmOBuffer *obuffer, char c);
+void scm_obuffer_concatenate_char(ScmOBuffer *obuffer, int c);
 void scm_obuffer_truncate_buffer(ScmOBuffer *obuffer, int size);
 void scm_obuffer_clear(ScmOBuffer *obuffer);
 void scm_obuffer_flush(ScmOBuffer *obuffer);

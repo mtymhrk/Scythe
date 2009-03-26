@@ -49,7 +49,7 @@ scm_obuffer_concatenate_string(ScmOBuffer *obuffer, const char *str)
 }
 
 void
-scm_obuffer_concatenate_char(ScmOBuffer *obuffer, char c)
+scm_obuffer_concatenate_char(ScmOBuffer *obuffer, int c)
 {
   assert(obuffer != NULL);
 

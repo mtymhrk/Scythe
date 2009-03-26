@@ -70,7 +70,7 @@ const ScmTypeInfo const * SCM_TYPE_INFO_TBL[SCM_OBJ_NR_TYPE] = {
 bool
 smc_obj_is_valid_type_info_tbl(void)
 {
-  int i;
+  unsigned int i;
 
   for (i = 0; i < SCM_OBJ_NR_TYPE; i++) {
     if (SCM_TYPE_INFO_TBL[i] == NULL
