@@ -32,7 +32,7 @@ ScmVector *
 scm_vector_construct(size_t length)
 {
   ScmVector *vector;
-  int i;
+  size_t i;
 
   vector = scm_memory_allocate(sizeof(ScmVector));
   scm_obj_init(SCM_OBJ(vector), SCM_OBJ_TYPE_VECTOR);
@@ -124,25 +124,25 @@ scm_vector_gc_finalize(ScmObj obj)
   scm_vector_finalize(SCM_VECTOR(obj));
 }
 
-ScmGCRefItr
-scm_vector_gc_ref_iter_begin(ScmObj obj)
+int
+scm_vector_gc_ref_iter_begin(ScmObj obj, ScmGCRefItr *itr)
 {
-  ScmGCRefItr itr;
   ScmVector *vec;
 
   assert(obj != NULL);
+  assert(itr != NULL);
 
   vec = SCM_VECTOR(obj);
   
-  itr.ptr = &(vec->array[0]);
-  itr.src = obj;
-  itr.next = scm_vector_gc_ref_iter_next;
+  itr->ptr = &(vec->array[0]);
+  itr->src = obj;
+  itr->next = scm_vector_gc_ref_iter_next;
 
-  return itr;
+  return 0;
 }
 
-ScmGCRefItr
-scm_vector_gc_ref_iter_next(const ScmGCRefItr *itr)
+int
+scm_vector_gc_ref_iter_next(ScmGCRefItr *itr)
 {
   ScmGCRefItr nxt_itr;
   ScmVector *vec;
@@ -150,15 +150,13 @@ scm_vector_gc_ref_iter_next(const ScmGCRefItr *itr)
   assert(itr != NULL);
 
   vec = SCM_VECTOR(itr->src);
-  nxt_itr.src = itr->src;
-  nxt_itr.next = scm_vector_gc_ref_iter_next;
-  if (itr->ptr == NULL)
+  if (itr->ptr != NULL)
     nxt_itr.ptr = NULL;
   else {
-    nxt_itr.ptr = itr->ptr + 1;
-    if (nxt_itr.ptr - vec->array >= vec->length)
-      nxt_itr.ptr = NULL;
+    itr->ptr++;
+    if ((size_t)(nxt_itr.ptr - vec->array) >= vec->length)
+      itr->ptr = NULL;
   }
 
-  return nxt_itr;
+  return 0;
 }

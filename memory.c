@@ -576,13 +576,12 @@ scm_mem_copy_children(ScmMem *mem, ScmObj obj)
   assert(mem != NULL);
   assert(obj != NULL);
 
-  if (SCM_TYPE_INFO_HAS_REF_ITR_FROM_OBJ(obj)) {
-    ScmGCRefItrFunc itr_begin = SCM_TYPE_INFO_GC_REF_ITR_FROM_OBJ(obj);
+  if (SCM_TYPE_INFO_HAS_GC_REF_ITR_FROM_OBJ(obj)) {
     ScmGCRefItr itr;
 
-    for (itr = itr_begin(obj);
-         SCM_GC_REF_ITR_IS_END(itr);
-         itr = SCM_GC_REF_ITR_NEXT(itr)) {
+    for (SCM_GC_REF_ITR_BEGIN(obj, itr);
+         !SCM_GC_REF_ITR_IS_END(itr);
+         SCM_GC_REF_ITR_NEXT(itr)) {
       ScmObj c = scm_mem_copy_obj(mem, obj);
       if (c == NULL) {
         ; /* TODO: write error handling */

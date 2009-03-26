@@ -34,7 +34,7 @@ extern const ScmTypeInfo const *SCM_TYPE_INFO_TBL[SCM_OBJ_NR_TYPE];
 typedef void (*ScmPrettyPrintFunction)(ScmObj obj,
 				       ScmOBuffer *obuffer);
 typedef void (*ScmGCFinalizeFunc)(ScmObj obj);
-typedef ScmGCRefItr (*ScmGCRefItrFunc)(ScmObj obj);
+typedef int (*ScmGCRefItrFunc)(ScmObj obj, ScmGCRefItr *itr);
 
 struct ScmObjHeaderRec {
   SCM_OBJ_TYPE_T type;
@@ -68,19 +68,22 @@ struct ScmTypeInfoRec {
   SCM_TYPE_INFO_HAS_GC_FIN(scm_obj_type(obj))
 #define SCM_TYPE_INFO_GC_REF_ITR_FROM_OBJ(obj) \
   SCM_TYPE_INFO_GC_REF_ITR(scm_obj_type(obj))
-#define SCM_TYPE_INFO_HAS_REF_ITR_FROM_OBJ(obj) \
+#define SCM_TYPE_INFO_HAS_GC_REF_ITR_FROM_OBJ(obj) \
   SCM_TYPE_INFO_HAS_REF_ITR(scm_obj_type(obj))
 
 struct ScmGCRefItrRec {
   ScmObj *ptr;
   ScmObj src;
-  ScmGCRefItr (*next)(const ScmGCRefItr *itr);
+  int (*next)(ScmGCRefItr *itr);
 };
 
+#define SCM_GC_REF_ITR_BEGIN(obj, itr) \
+  (SCM_TYPE_INFO_GC_REF_ITR_FROM_OBJ(obj))(obj, &(itr))
 #define SCM_GC_REF_ITR_NEXT(itr) ((itr).next(&(itr)))
 #define SCM_GC_REF_ITR_IS_END(itr) ((itr).ptr == NULL)
 #define SCM_GC_REF_ITR_REF(itr) (*(itr).ptr)
 #define SCM_GC_REF_ITR_SET(itr, p) (*(itr).ptr = (p))
+#define SCM_GC_REF_ITR_COPY(src, dst) ((src) = (dst))
 
 void scm_obj_init(ScmObj obj, SCM_OBJ_TYPE_T type);
 SCM_OBJ_TYPE_T scm_obj_type(ScmObj obj);
