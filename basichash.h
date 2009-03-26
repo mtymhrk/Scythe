@@ -24,12 +24,14 @@ struct ScmBasicHashItrRec {
   ScmBasicHashEntry *entry;
 };
 
-#define SCM_BASIC_HASH_ITR_BEGIN(tbl) (scm_basic_hash_itr_begin(tbl))
+#define SCM_BASIC_HASH_ITR_BEGIN(tbl, itr) \
+  (scm_basic_hash_itr_begin(tbl, &(itr)))
 #define SCM_BASIC_HASH_ITR_ENTRY(itr) ((itr).entry)
 #define SCM_BASIC_HASH_ITR_KEY(itr) ((itr).entry->key)
 #define SCM_BASIC_HASH_ITR_VALUE(itr) ((itr).entry->value)
 #define SCM_BASIC_HASH_ITR_NEXT(itr) (scm_basic_hash_itr_next(&(itr)))
 #define SCM_BASIC_HASH_ITR_IS_END(itr) ((itr).entry == NULL)
+#define SCM_BASIC_HASH_ITR_COPY(src, dst) ((src) = (dst))
 
 typedef unsigned int (*ScmBasicHashFunc)(ScmBasicHashKey key);
 typedef bool (*ScmBasicHashCompFunc)(ScmBasicHashKey key1,
@@ -55,8 +57,8 @@ void *scm_basic_hash_iterate(ScmBasicHashTable *table,
                              ScmBasicHashIterBlock block);
 void *scm_basic_hash_inject(ScmBasicHashTable *table,
                             ScmBasicHashInjectBlock block, void *init);
-ScmBasicHashItr scm_basic_hash_itr_begin(ScmBasicHashTable *table);
-ScmBasicHashItr scm_basic_hash_itr_next(const ScmBasicHashItr *itr);
+int scm_basic_hash_itr_begin(ScmBasicHashTable *table, ScmBasicHashItr *itr);
+int scm_basic_hash_itr_next(ScmBasicHashItr *itr);
 ScmBasicHashTable *scm_basic_hash_construct(size_t size,
                                             ScmBasicHashFunc hash_func,
                                             ScmBasicHashCompFunc comp_func);

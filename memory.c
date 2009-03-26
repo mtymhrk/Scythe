@@ -423,9 +423,9 @@ scm_mem_finalize_heap_obj(ScmMem *mem, int which)
   else
     tbl = mem->from_obj_tbl;
 
-  for (itr = SCM_BASIC_HASH_ITR_BEGIN(tbl);
+  for (SCM_BASIC_HASH_ITR_BEGIN(tbl, itr);
        !SCM_BASIC_HASH_ITR_IS_END(itr);
-       itr = SCM_BASIC_HASH_ITR_NEXT(itr)) {
+       SCM_BASIC_HASH_ITR_NEXT(itr)) {
     scm_mem_finalize_obj(mem, SCM_OBJ(SCM_BASIC_HASH_ITR_KEY(itr)));
   }
 
