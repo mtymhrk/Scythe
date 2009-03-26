@@ -1,5 +1,7 @@
 CC       = gcc
-CFLAGS   = -O2 -Wall
+CFLAGS   = -O2 -Wall -Wextra -Wformat=2 -Wstrict-aliasing=2 -Wcast-qual \
+           -Wcast-align -Wwrite-strings -Wconversion -Wfloat-equal \
+           -Wpointer-arith -Wswitch-enum -Wno-unused-parameter
 INCLUDES =
 SOURCES  = 
 OBJS     = $(SOURCES:.c=.o)
@@ -29,6 +31,6 @@ test:
 	$(MAKE) -C ./test depend all run
 
 check-syntax:
-	LANG=C $(CC) -fsyntax-only $(INCLUDES) $(CFLAGS) -Wextra $(CHK_SOURCES)
+	LANG=C $(CC) -fsyntax-only $(INCLUDES) $(CFLAGS) $(CHK_SOURCES)
 
 include Makefile.depend
