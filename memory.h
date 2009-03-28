@@ -110,7 +110,10 @@ struct ScmMemHeapRec {
                                                                         \
       if (SCM_MEM_HEAP_IS_CUR_BLOCK_TAIL(heap)) {                       \
         (heap)->current = SCM_MEM_HEAP_BLOCK_PREV(b);                   \
-        (heap)->free = SCM_MEM_HEAP_BLOCK_FREE_PTR((heap)->current);    \
+        if ((heap)->current == NULL)                                    \
+          (heap)->free = NULL;                                          \
+        else                                                            \
+          (heap)->free = SCM_MEM_HEAP_BLOCK_FREE_PTR((heap)->current);  \
       }                                                                 \
       else                                                              \
         (heap)->nr_free_block--;                                        \
