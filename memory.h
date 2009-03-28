@@ -215,6 +215,11 @@ struct ScmMemHeapRec {
   do {                                                                  \
     SCM_MEM_HEAP_BLOCK_DEALLOCATED((heap)->current, (size));            \
     (heap)->free = SCM_MEM_HEAP_BLOCK_FREE_PTR((heap)->current);        \
+    if ((heap)->free == SCM_MEM_HEAP_BLOCK_HEAD((heap)->current)        \
+        && (heap)->current != (heap)->head) {                           \
+      (heap)->current = SCM_MEM_HEAP_BLOCK_PREV((heap)->current);       \
+      (heap)->free = SCM_MEM_HEAP_BLOCK_FREE_PTR((heap)->current);      \
+    }                                                                   \
   } while(0)
 
 #define SCM_MEM_HEAP_FOR_EACH_BLOCK(heap, block) \
