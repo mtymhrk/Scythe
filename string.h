@@ -5,13 +5,14 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "encoding.h"
-
 typedef struct ScmStringRec ScmString;
 
 #define SCM_STRING(obj) ((ScmString *)(obj))
 
 #include "object.h"
+#include "encoding.h"
+
+extern const ScmTypeInfo SCM_STRING_TYPE_INFO;
 
 ScmString *scm_string_construct(const void *src,
                                 size_t size, SCM_ENCODING_T enc);
@@ -35,5 +36,7 @@ ssize_t scm_string_dump(const ScmString *str, void *buf, size_t size);
 SCM_ENCODING_T scm_string_encoding(const ScmString *str);
 void *scm_string_content(const ScmString *str);
 bool scm_string_is_string(ScmObj obj);
+void scm_string_pretty_print(ScmObj obj, ScmOBuffer *obuffer);
+void scm_string_gc_finalize(ScmObj obj);
 
 #endif /* INCLUDE_STRING_H__ */

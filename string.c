@@ -25,9 +25,16 @@ struct ScmStringRec {
 #define CAPACITY(str)((str)->capacity - ((str)->head - (str)->buffer))
 #define ROOM_FOR_APPEND(str) (CAPACITY(str) - (str)->bytesize)
 
+const ScmTypeInfo SCM_STRING_TYPE_INFO = {
+  SCM_OBJ_TYPE_STRING,          /* type            */
+  scm_string_pretty_print,      /* pp_func         */
+  sizeof(ScmString),            /* obj_size        */
+  scm_string_gc_finalize,       /* gc_fin_func     */
+  NULL                          /* gc_ref_itr_func */
+};
 
 static ssize_t
-scm_string_check_bytes(const void *str, size_t size,
+scm_string_check_bytes(void *str, size_t size,
                        const ScmEncVirtualFunc *vf)
 {
   ScmStrItr iter;
@@ -56,54 +63,18 @@ scm_string_copy_bytes_with_check(void *dst, const void *src, size_t size,
 
   if (dst == NULL || src == NULL || vf == NULL) return -1;
 
-  len = scm_string_check_bytes(src, size, vf);
+  memcpy(dst, src, size);
+  len = scm_string_check_bytes(dst, size, vf);
   if (len < 0) return -1;
 
-  memcpy(dst, src, size);
   return len;
 }
 
 // TODO: change to be encdoing depende function
 static bool
-scm_string_is_char_to_be_escaped(char c)
+scm_string_is_char_to_be_escaped(int c)
 {
   return (strchr("\\\"", c) != NULL);
-}
-
-// TODO: change to be encdoing depende function
-static void
-scm_string_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
-{
-  int (*char_width)(const void *p, size_t size);
-  ScmString *str = NULL;
-  ScmStrItr iter;
-
-  assert(obj != NULL); assert(scm_string_is_string(obj));
-  assert(obuffer != NULL);
-
-  str = SCM_STRING(obj);
-
-  char_width = SCM_ENCODING_VFUNC_CHAR_WIDTH(str->enc);
-  iter = scm_str_itr_begin(str->head, str->bytesize, char_width);
-  if (SCM_STR_ITR_IS_ERR(&iter)) return;
-
-  scm_obuffer_concatenate_char(obuffer, '"');
-  while (!SCM_STR_ITR_IS_END(&iter)) {
-    int i, w = SCM_STR_ITR_WIDTH(&iter);
-
-    if (w == 1
-        && scm_string_is_char_to_be_escaped(((char *)SCM_STR_ITR_PTR(&iter))[0]))
-      scm_obuffer_concatenate_char(obuffer, '\\');
-    
-    for (i = 0; i < w; i++)
-      scm_obuffer_concatenate_char(obuffer,
-                                   ((char *)SCM_STR_ITR_PTR(&iter))[i]);
-
-    iter = scm_str_itr_next(&iter);
-    if (SCM_STR_ITR_IS_ERR(&iter)) return;
-  }
-
-  scm_obuffer_concatenate_char(obuffer, '"');
 }
 
 static ScmString *
@@ -147,15 +118,28 @@ scm_string_replace_contents(ScmString *target, ScmString *src)
   (*target->ref_cnt)++;
 }
 
+static void
+scm_string_finalize(ScmString *str)
+{
+  assert(str != NULL);
+
+  if (*str->ref_cnt > 1)
+    (*str->ref_cnt)--;
+  else {
+    scm_memory_release(str->buffer);
+    scm_memory_release(str->ref_cnt);
+  }
+}
+
 ScmString *
 scm_string_construct(const void *src, size_t size, SCM_ENCODING_T enc)
 {
   ScmString *str = NULL;
 
-  assert(0 <= enc && enc < SMC_ENCODING_NR_ENC);
+  assert(/*0 <= enc && */enc < SMC_ENCODING_NR_ENC);
 
   str = (ScmString *)scm_memory_allocate(sizeof(ScmString));
-  scm_obj_init(SCM_OBJ(str), SCM_OBJ_TYPE_STRING, scm_string_pretty_print);
+  scm_obj_init(SCM_OBJ(str), SCM_OBJ_TYPE_STRING);
 
   str->buffer = NULL;
   str->ref_cnt = NULL;
@@ -200,13 +184,7 @@ scm_string_destruct(ScmString *str)
 {
   assert(str != NULL);
 
-  if (*str->ref_cnt > 1)
-    (*str->ref_cnt)--;
-  else {
-    scm_memory_release(str->buffer);
-    scm_memory_release(str->ref_cnt);
-  }
-
+  scm_string_finalize(str);
   scm_memory_release(str);
 }
 
@@ -226,7 +204,7 @@ scm_string_dup(ScmString *src)
   assert(src != NULL);
 
   str = (ScmString *)scm_memory_allocate(sizeof(ScmString));
-  scm_obj_init(SCM_OBJ(str), SCM_OBJ_TYPE_STRING, scm_string_pretty_print);
+  scm_obj_init(SCM_OBJ(str), SCM_OBJ_TYPE_STRING);
   
   str->buffer = src->buffer;
   str->head = src->head;
@@ -305,7 +283,7 @@ scm_string_push(ScmString *str, const scm_char_t c)
   width = char_width(&c, sizeof(c));
   if (width < 0) return NULL;
 
-  if ((*str->ref_cnt > 1) || ROOM_FOR_APPEND(str) < width) {
+  if ((*str->ref_cnt > 1) || ROOM_FOR_APPEND(str) < (size_t)width) {
     ScmString *tmp
       = scm_string_copy_and_expand(str, str->bytesize + width);
     if (tmp == NULL) return NULL;
@@ -313,7 +291,7 @@ scm_string_push(ScmString *str, const scm_char_t c)
     scm_string_destruct(tmp);
   }
 
-  memcpy(str->head + str->bytesize, &c, width);
+  memcpy(str->head + str->bytesize, &c, (size_t)width);
   str->length += 1;
   str->bytesize += width;
 
@@ -358,7 +336,7 @@ scm_string_ref(ScmString *str, unsigned int pos)
   if (SCM_STR_ITR_IS_ERR(&iter)) return c;
   if (SCM_STR_ITR_IS_END(&iter)) return c;
   
-  memcpy(&c, SCM_STR_ITR_PTR(&iter), SCM_STR_ITR_WIDTH(&iter));
+  memcpy(&c, SCM_STR_ITR_PTR(&iter), (size_t)SCM_STR_ITR_WIDTH(&iter));
 
   return c;
 }
@@ -387,7 +365,8 @@ scm_string_set(ScmString *str, unsigned int pos, const scm_char_t c)
   iw = SCM_STR_ITR_WIDTH(&iter);
   if (iw < 0) return NULL;
 
-  if (*str->ref_cnt == 1 && ROOM_FOR_APPEND(str) >= (cw - iw)) {
+  if (*str->ref_cnt == 1
+      && (iw < cw || ROOM_FOR_APPEND(str) >= (size_t)(cw - iw))) {
     size_t rest = SCM_STR_ITR_REST(&iter);
     size_t offset = SCM_STR_ITR_OFFSET(&iter, str->head);
 
@@ -395,7 +374,7 @@ scm_string_set(ScmString *str, unsigned int pos, const scm_char_t c)
       memmove(str->head + offset + cw, str->head + offset + iw, rest - iw);
       str->bytesize += cw - iw;
     }
-    memcpy(str->head + offset, &c, cw);
+    memcpy(str->head + offset, &c, (size_t)cw);
 
     return str;
   }
@@ -404,7 +383,7 @@ scm_string_set(ScmString *str, unsigned int pos, const scm_char_t c)
     size_t offset = SCM_STR_ITR_OFFSET(&iter, str->head);
 
     if (tmp == NULL) return NULL;
-    memcpy(str->head + offset, &c, cw);
+    memcpy(str->head + offset, &c, (size_t)cw);
     scm_string_replace_contents(str, tmp);
 
     return str;
@@ -507,7 +486,7 @@ scm_string_find_chr(const ScmString *str, scm_char_t c)
   while (!SCM_STR_ITR_IS_END(&iter)) {
     int w = SCM_STR_ITR_WIDTH(&iter);
     if (w < 0) return -1;
-    if ((cw == w) && (memcmp(&c, SCM_STR_ITR_PTR(&iter), cw) == 0))
+    if ((cw == w) && (memcmp(&c, SCM_STR_ITR_PTR(&iter), (size_t)cw) == 0))
       return pos;
 
     iter = scm_str_itr_next(&iter);
@@ -557,7 +536,7 @@ scm_string_match(const ScmString *str, const ScmString *pat)
         break;
 
       if (memcmp(SCM_STR_ITR_PTR(&iter_str_inn), SCM_STR_ITR_PTR(&iter_pat),
-                 SCM_STR_ITR_WIDTH(&iter_str_inn)) != 0)
+                 (size_t)SCM_STR_ITR_WIDTH(&iter_str_inn)) != 0)
         break;
 
       iter_str_inn = scm_str_itr_next(&iter_str_inn);
@@ -582,7 +561,7 @@ scm_string_match(const ScmString *str, const ScmString *pat)
 ssize_t
 scm_string_dump(const ScmString *str, void *buf, size_t size)
 {
-  ssize_t len;
+  size_t len;
 
   assert(str != NULL);
   assert(buf != NULL);
@@ -615,3 +594,46 @@ scm_string_is_string(ScmObj obj)
 
   return (scm_obj_type(obj) == SCM_OBJ_TYPE_STRING);
 }
+
+// TODO: change to be encdoing depende function
+void
+scm_string_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
+{
+  int (*char_width)(const void *p, size_t size);
+  ScmString *str = NULL;
+  ScmStrItr iter;
+
+  assert(obj != NULL); assert(scm_string_is_string(obj));
+  assert(obuffer != NULL);
+
+  str = SCM_STRING(obj);
+
+  char_width = SCM_ENCODING_VFUNC_CHAR_WIDTH(str->enc);
+  iter = scm_str_itr_begin(str->head, str->bytesize, char_width);
+  if (SCM_STR_ITR_IS_ERR(&iter)) return;
+
+  scm_obuffer_concatenate_char(obuffer, '"');
+  while (!SCM_STR_ITR_IS_END(&iter)) {
+    int i, w = SCM_STR_ITR_WIDTH(&iter);
+
+    if (w == 1
+        && scm_string_is_char_to_be_escaped(((char *)SCM_STR_ITR_PTR(&iter))[0]))
+      scm_obuffer_concatenate_char(obuffer, '\\');
+    
+    for (i = 0; i < w; i++)
+      scm_obuffer_concatenate_char(obuffer,
+                                   ((char *)SCM_STR_ITR_PTR(&iter))[i]);
+
+    iter = scm_str_itr_next(&iter);
+    if (SCM_STR_ITR_IS_ERR(&iter)) return;
+  }
+
+  scm_obuffer_concatenate_char(obuffer, '"');
+}
+
+void
+scm_string_gc_finalize(ScmObj obj)
+{
+  scm_string_finalize(SCM_STRING(obj));
+}
+

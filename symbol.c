@@ -16,16 +16,16 @@ struct ScmSymbolRec {
   size_t length;
 };
 
+const ScmTypeInfo SCM_SYMBOL_TYPE_INFO = {
+  SCM_OBJ_TYPE_SYMBOL,          /* type            */
+  scm_symbol_pretty_print,      /* pp_func         */
+  sizeof(ScmSymbol),            /* obj_size        */
+  scm_symbol_gc_finalize,       /* gc_fin_func     */
+  NULL                          /* gc_ref_itr_func */
+};
+
+
 static ScmBasicHashTable *symbol_table = NULL;
-
-static void
-scm_symbol_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
-{
-  assert(obj != NULL); assert(scm_symbol_is_symbol(obj));
-  assert(obuffer != NULL);
-
-  scm_obuffer_concatenate_string(obuffer, SCM_SYMBOL(obj)->name);
-}
 
 static unsigned int
 scm_symbol_table_hash_func(ScmBasicHashKey key)
@@ -52,6 +52,13 @@ scm_symbol_table_comp_func(ScmBasicHashKey key1, ScmBasicHashKey key2)
   return (strcmp(name1, name2) == 0) ? true : false;
 }
 
+static void
+scm_symbol_finalize(ScmSymbol *symbol)
+{
+  assert(symbol != NULL);
+  scm_memory_release(symbol->name);
+}
+
 ScmSymbol *
 scm_symbol_construct(const char *str)
 {
@@ -60,12 +67,20 @@ scm_symbol_construct(const char *str)
   assert(str != NULL);
 
   symbol = (ScmSymbol *)scm_memory_allocate(sizeof(ScmSymbol));
-  scm_obj_init(SCM_OBJ(symbol), SCM_OBJ_TYPE_SYMBOL, scm_symbol_pretty_print);
+  scm_obj_init(SCM_OBJ(symbol), SCM_OBJ_TYPE_SYMBOL);
   symbol->length = strlen(str);
   symbol->name = scm_memory_allocate(symbol->length + 1);
   strncpy(symbol->name, str, symbol->length + 1);
 
   return symbol;
+}
+
+void
+scm_symbol_destruct(ScmSymbol *symbol)
+{
+  assert(symbol != NULL);
+  scm_symbol_finalize(symbol);
+  scm_memory_release(symbol);
 }
 
 char *
@@ -112,4 +127,19 @@ scm_symbol_instance(const char *name)
     symbol = (ScmSymbol *)SCM_BASIC_HASH_ENTRY_VALUE(entry);
 
   return symbol;
+}
+
+void
+scm_symbol_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
+{
+  assert(obj != NULL); assert(scm_symbol_is_symbol(obj));
+  assert(obuffer != NULL);
+
+  scm_obuffer_concatenate_string(obuffer, SCM_SYMBOL(obj)->name);
+}
+
+void
+scm_symbol_gc_finalize(ScmObj obj)
+{
+  scm_symbol_finalize(SCM_SYMBOL(obj));
 }

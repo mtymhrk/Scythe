@@ -1,6 +1,9 @@
 CC       = gcc
 LD       = ld
-CFLAGS   = -O2 -Wall -fPIC -g
+CFLAGS   = -O2 -Wall -Wextra -Wformat=2 -Wstrict-aliasing=2 -Wcast-qual \
+           -Wcast-align -Wwrite-strings -Wconversion -Wfloat-equal \
+           -Wpointer-arith -Wswitch-enum -Wno-unused-parameter \
+           -fPIC -g
 INCLUDES = -I/usr/local/include/cutter -iquote ..
 LDFLAGS  = -lcunit -g
 CUTTER   = cutter
@@ -16,7 +19,8 @@ TEST_CASE_SRC = test_pair.c test_string.c test_symbol.c test_nil.c \
                 test_vector.c test_eof.c test_bool.c test_char.c \
                 test_fileport.c test_stringport.c test_charconv.c test_ucs4.c \
                 test_utf8.c test_string_utf8.c test_string_ucs4.c \
-                test_string_ascii.c test_string_eucjp.c test_string_sjis.c
+                test_string_ascii.c test_string_eucjp.c test_string_sjis.c \
+                test_memory.c
 TEST_TARGET_OBJ = $(TEST_TARGET_SRC:.c=.o) 
 TEST_CASE_OBJ = $(TEST_CASE_SRC:.c=.o) 
 TEST_CASE_LIB = $(TEST_CASE_SRC:.c=.so)
@@ -50,6 +54,7 @@ test_string_ucs4.so : test_string_ucs4.o $(TEST_TARGET_OBJ)
 test_string_ascii.so : test_string_ascii.o $(TEST_TARGET_OBJ)
 test_string_eucjp.so : test_string_eucjp.o $(TEST_TARGET_OBJ)
 test_string_sjis.so : test_string_sjis.o $(TEST_TARGET_OBJ)
+test_memory.so : test_memory.o $(TEST_TARGET_OBJ)
 
 .c.o:
 	$(CC) -c -o $@ $(INCLUDES) $(CFLAGS) $<
@@ -59,7 +64,7 @@ test_string_sjis.so : test_string_sjis.o $(TEST_TARGET_OBJ)
 	$(CC) -shared -o $(TEST_CASE_LIB_DIR)/$@ $^
 
 .SUFFIXES: .c .o .so
-.PHONY: run clean depend
+.PHONY: run clean depend check-syntax
 
 run:
 	$(CUTTER) $(TEST_CASE_LIB_DIR)/
@@ -69,6 +74,9 @@ clean:
 	-cd $(TEST_CASE_LIB_DIR); rm $(TEST_CASE_LIB)
 
 depend:
-	$(CC) -MM $(INCLUDES) $(CFLAGS) $(TEST_TARGET_SRC) $(TEST_CODE_SRC) > Makefile.depend
+	$(CC) -MM $(INCLUDES) $(CFLAGS) $(TEST_TARGET_SRC) $(TEST_CASE_SRC) > Makefile.depend
+
+check-syntax:
+	LANG=C $(CC) -fsyntax-only $(INCLUDES) $(CFLAGS) $(CHK_SOURCES)
 
 include Makefile.depend

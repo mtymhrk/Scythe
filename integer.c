@@ -12,20 +12,14 @@ struct ScmIntegerRec {
   long long value;
 };
 
-static void
-scm_integer_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
-{
-  ScmInteger *integer;
-  char str[21];
+const ScmTypeInfo SCM_INTEGER_TYPE_INFO = {
+  SCM_OBJ_TYPE_INTEGER,          /* type            */
+  scm_integer_pretty_print,      /* pp_func         */
+  sizeof(ScmInteger),            /* obj_size        */
+  NULL,                          /* gc_fin_func     */
+  NULL                           /* gc_ref_itr_func */
+};
 
-  assert(obj != NULL); assert(scm_integer_is_integer(obj));
-  assert(obuffer != NULL);
-
-  integer = SCM_INTEGER(obj);
-
-  snprintf(str, sizeof(str), "%lld", integer->value);
-  scm_obuffer_concatenate_string(obuffer, str);
-}
 
 ScmInteger *
 scm_integer_construct(long long value)
@@ -33,11 +27,17 @@ scm_integer_construct(long long value)
   ScmInteger *integer;
 
   integer = scm_memory_allocate(sizeof(ScmInteger));
-  scm_obj_init(SCM_OBJ(integer), SCM_OBJ_TYPE_INTEGER,
-	       scm_integer_pretty_print);
+  scm_obj_init(SCM_OBJ(integer), SCM_OBJ_TYPE_INTEGER);
   integer->value = value;
 
   return integer;
+}
+
+void
+scm_integer_destruct(ScmInteger *integer)
+{
+  assert(integer != NULL);
+  scm_memory_release(integer);
 }
 
 long long
@@ -98,4 +98,19 @@ scm_integer_reminder(ScmInteger *val1, ScmInteger *val2)
   assert(val2 != NULL);
 
   return scm_integer_construct(val1->value % val2->value);
+}
+
+void
+scm_integer_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
+{
+  ScmInteger *integer;
+  char str[21];
+
+  assert(obj != NULL); assert(scm_integer_is_integer(obj));
+  assert(obuffer != NULL);
+
+  integer = SCM_INTEGER(obj);
+
+  snprintf(str, sizeof(str), "%lld", integer->value);
+  scm_obuffer_concatenate_string(obuffer, str);
 }

@@ -107,12 +107,27 @@ scm_basic_hash_get(ScmBasicHashTable *table, ScmBasicHashKey key)
   return scm_basic_hash_access(table, key, NULL, FIND);
 }
 
+void
+scm_basic_hash_clear(ScmBasicHashTable *table)
+{
+  ScmBasicHashEntry *entry, *next;
+  size_t i;
+
+  for (i = 0; i < table->tbl_size; i++) {
+    for (entry = table->buckets[i]; entry != NULL; entry = next) {
+      next = entry->next;
+      scm_memory_release(entry);
+    }
+    table->buckets[i] = NULL;
+  }
+}
+
 void *
 scm_basic_hash_iterate(ScmBasicHashTable *table, ScmBasicHashIterBlock block)
 {
   ScmBasicHashEntry *entry;
   void *result;
-  int i;
+  size_t i;
   
   assert(table != NULL);
   assert(block != NULL);
@@ -131,7 +146,7 @@ scm_basic_hash_inject(ScmBasicHashTable *table,
 {
   ScmBasicHashEntry *entry;
   void *result;
-  int i;
+  size_t i;
   
   assert(table != NULL);
   assert(block != NULL);
@@ -144,13 +159,49 @@ scm_basic_hash_inject(ScmBasicHashTable *table,
   return result;
 }
 
+int
+scm_basic_hash_itr_begin(ScmBasicHashTable *table, ScmBasicHashItr *itr)
+{
+  assert(table != NULL);
+  assert(itr != NULL);
+
+  itr->tbl = table;
+  itr->idx = 0;
+  itr->entry = table->buckets[0];
+
+  return 0;
+}
+
+int
+scm_basic_hash_itr_next(ScmBasicHashItr *itr)
+{
+  ScmBasicHashItr nxt_itr;
+
+  assert(itr != NULL);
+
+  if (itr->entry != NULL) {
+    if (itr->entry->next != NULL) {
+      itr->entry = itr->entry->next;
+    }
+    else {
+      itr->idx++;
+      if ((size_t)itr->idx < itr->tbl->tbl_size)
+        itr->entry = itr->tbl->buckets[itr->idx];
+      else
+        nxt_itr.entry = NULL;
+    }
+  }
+
+  return 0;
+}
+
 ScmBasicHashTable *
 scm_basic_hash_construct(size_t size,
                          ScmBasicHashFunc hash_func,
                          ScmBasicHashCompFunc comp_func)
 {
   ScmBasicHashTable *table = NULL;
-  int i;
+  size_t i;
 
   assert(hash_func != NULL); assert(comp_func != NULL);
 
@@ -169,8 +220,7 @@ scm_basic_hash_construct(size_t size,
 void
 scm_basci_hash_destruct(ScmBasicHashTable *table)
 {
-
-  int i;
+  size_t i;
 
   assert(table != NULL);
 

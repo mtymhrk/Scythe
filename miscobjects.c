@@ -12,14 +12,14 @@ struct ScmEOFRec {
 
 static ScmEOF *eof_instance = NULL;
 
-static void
-scm_eof_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
-{
-  assert(obj != NULL); assert(scm_eof_is_eof(obj));
-  assert(obuffer != NULL);
+const ScmTypeInfo SCM_EOF_TYPE_INFO = {
+  SCM_OBJ_TYPE_EOF,          /* type            */
+  scm_eof_pretty_print,      /* pp_func         */
+  sizeof(ScmEOF),            /* obj_size        */
+  NULL,                      /* gc_fin_func     */
+  NULL                       /* gc_ref_itr_func */
+};
 
-  scm_obuffer_concatenate_string(obuffer, "#<eof>");
-}
 
 ScmEOF *
 scm_eof_construct(void)
@@ -27,9 +27,16 @@ scm_eof_construct(void)
   ScmEOF *eof;
 
   eof = scm_memory_allocate(sizeof(ScmEOF));
-  scm_obj_init(SCM_OBJ(eof), SCM_OBJ_TYPE_EOF, scm_eof_pretty_print);
+  scm_obj_init(SCM_OBJ(eof), SCM_OBJ_TYPE_EOF);
 
   return eof;
+}
+
+void
+scm_eof_destruct(ScmEOF *eof)
+{
+  assert(eof != NULL);
+  scm_memory_release(eof);
 }
 
 ScmEOF *
@@ -48,3 +55,13 @@ scm_eof_is_eof(ScmObj obj)
 
   return (scm_obj_type(obj) == SCM_OBJ_TYPE_EOF);
 }
+
+void
+scm_eof_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
+{
+  assert(obj != NULL); assert(scm_eof_is_eof(obj));
+  assert(obuffer != NULL);
+
+  scm_obuffer_concatenate_string(obuffer, "#<eof>");
+}
+

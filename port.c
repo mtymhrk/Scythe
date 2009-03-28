@@ -13,6 +13,9 @@
 #include "charconv.h"
 #include "port.h"
 
+/* XXX: implementation of encoding translation port has issue of GC */
+
+
 #define SCM_SYSCALL(result, expr)                 \
   do {                                            \
     (result) = (expr);                            \
@@ -91,6 +94,14 @@ struct ScmPortRec {
   size_t capacity;
   size_t pos;
   size_t used;
+};
+
+const ScmTypeInfo SCM_PORT_TYPE_INFO = {
+  SCM_OBJ_TYPE_PORT,          /* type        */
+  scm_port_pretty_print,      /* pp_func     */
+  sizeof(ScmPort),            /* obj_size    */
+  scm_port_gc_finalize,       /* gc_fin_func */
+  NULL                        /* gc_ref_itr_func */
 };
 
 static void
@@ -938,28 +949,6 @@ scm_charconvio_errno(ScmCharConvIO *convio)
 }
 
 static void
-scm_port_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
-{
-  ScmPort *port;
-
-  assert(obj != NULL); assert(scm_port_is_port(obj));
-  assert(obuffer != NULL);
-
-  port = SCM_PORT(obj);
-
-  scm_obuffer_concatenate_string(obuffer, "#<port:");
-  if (scm_port_is_readable(port))
-    scm_obuffer_concatenate_string(obuffer, " readable");
-  if (scm_port_is_writable(port))
-    scm_obuffer_concatenate_string(obuffer, " writable");
-  if (scm_port_is_file_port(port))
-    scm_obuffer_concatenate_string(obuffer, " file");
-  if (scm_port_is_string_port(port))
-    scm_obuffer_concatenate_string(obuffer, " string");
-  scm_obuffer_concatenate_char(obuffer, '>');
-}
-
-static void
 scm_port_init_buffer(ScmPort *port, SCM_PORT_BUF_MODE buf_mode)
 {
   assert(port != NULL);
@@ -1002,7 +991,7 @@ scm_port_initialize(ScmPort *port,
 {
   assert(port != NULL);
 
-  scm_obj_init(SCM_OBJ(port), SCM_OBJ_TYPE_PORT, scm_port_pretty_print);
+  scm_obj_init(SCM_OBJ(port), SCM_OBJ_TYPE_PORT);
   port->attr = attr;
   port->buffer_mode = SCM_PORT_BUF_NONE;
   port->buffer = NULL;
@@ -1011,6 +1000,19 @@ scm_port_initialize(ScmPort *port,
   port->used = 0;
 
   scm_port_init_buffer(port, buf_mode);
+}
+
+static void
+scm_port_finalize(ScmPort *port)
+{
+  assert(port != NULL);
+
+  scm_port_flush(port);
+  if (BIT_IS_SETED(port->attr, SCM_PORT_ATTR_DESTRUCT_IO)) {
+    scm_port_close(port);
+    scm_io_destruct(port->io);
+  }
+  scm_memory_release(port->buffer);
 }
 
 ScmPort *
@@ -1155,12 +1157,7 @@ scm_port_destruct(ScmPort *port)
 {
   assert(port != NULL);
 
-  scm_port_flush(port);
-  if (BIT_IS_SETED(port->attr, SCM_PORT_ATTR_DESTRUCT_IO)) {
-    scm_port_close(port);
-    scm_io_destruct(port->io);
-  }
-  scm_memory_release(port->buffer);
+  scm_port_finalize(port);
   scm_memory_release(port);
 }
 
@@ -1514,4 +1511,32 @@ scm_port_string_buffer_length(ScmPort *port)
   if (!scm_port_is_string_port(port)) return -1;
 
   return scm_stringio_length((ScmStringIO *)port->io);
+}
+
+void
+scm_port_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
+{
+  ScmPort *port;
+
+  assert(obj != NULL); assert(scm_port_is_port(obj));
+  assert(obuffer != NULL);
+
+  port = SCM_PORT(obj);
+
+  scm_obuffer_concatenate_string(obuffer, "#<port:");
+  if (scm_port_is_readable(port))
+    scm_obuffer_concatenate_string(obuffer, " readable");
+  if (scm_port_is_writable(port))
+    scm_obuffer_concatenate_string(obuffer, " writable");
+  if (scm_port_is_file_port(port))
+    scm_obuffer_concatenate_string(obuffer, " file");
+  if (scm_port_is_string_port(port))
+    scm_obuffer_concatenate_string(obuffer, " string");
+  scm_obuffer_concatenate_char(obuffer, '>');
+}
+
+void
+scm_port_gc_finalize(ScmObj obj)
+{
+  scm_port_finalize(SCM_PORT(obj));
 }

@@ -13,38 +13,29 @@ struct ScmVectorRec {
   size_t length;
 };
 
+const ScmTypeInfo SCM_VECTOR_TYPE_INFO = {
+  SCM_OBJ_TYPE_VECTOR,          /* type            */
+  scm_vector_pretty_print,      /* pp_func         */
+  sizeof(ScmVector),            /* obj_size        */
+  scm_vector_gc_finalize,       /* gc_fin_func     */
+  scm_vector_gc_ref_iter_begin  /* gc_ref_itr_func */
+};
+
 static void
-scm_vector_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
+scm_vector_finalize(ScmVector *vector)
 {
-  ScmVector *vector;
-
-
-  assert(obj != NULL); assert(scm_vector_is_vector(obj));
-  assert(obuffer != NULL);
-
-  vector = SCM_VECTOR(obj);
-
-  scm_obuffer_concatenate_string(obuffer, "#(");
-  if (vector->length > 0) {
-    size_t nloop = vector->length - 1;
-    size_t i;
-    for (i = 0; i < nloop; i++) {
-      scm_obj_pretty_print(vector->array[i], obuffer);
-      scm_obuffer_concatenate_char(obuffer, ' ');
-    }
-    scm_obj_pretty_print(vector->array[i], obuffer);
-  }
-  scm_obuffer_concatenate_char(obuffer, ')');
+  assert(vector != NULL);
+  scm_memory_release(vector->array);
 }
 
 ScmVector *
 scm_vector_construct(size_t length)
 {
   ScmVector *vector;
-  int i;
+  size_t i;
 
   vector = scm_memory_allocate(sizeof(ScmVector));
-  scm_obj_init(SCM_OBJ(vector), SCM_OBJ_TYPE_VECTOR, scm_vector_pretty_print);
+  scm_obj_init(SCM_OBJ(vector), SCM_OBJ_TYPE_VECTOR);
 
   if (length > 0)
     vector->array = scm_memory_allocate(sizeof(ScmObj) * length);
@@ -66,7 +57,7 @@ scm_vector_destruct(ScmVector *vector)
 {
   assert(vector != NULL);
 
-  scm_memory_release(vector->array);
+  scm_vector_finalize(vector);
   scm_memory_release(vector);
 }
 
@@ -101,4 +92,71 @@ scm_vector_is_vector(ScmObj obj)
   assert(obj != NULL);
 
   return (scm_obj_type(obj) == SCM_OBJ_TYPE_VECTOR);
+}
+
+void
+scm_vector_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
+{
+  ScmVector *vector;
+
+
+  assert(obj != NULL); assert(scm_vector_is_vector(obj));
+  assert(obuffer != NULL);
+
+  vector = SCM_VECTOR(obj);
+
+  scm_obuffer_concatenate_string(obuffer, "#(");
+  if (vector->length > 0) {
+    size_t nloop = vector->length - 1;
+    size_t i;
+    for (i = 0; i < nloop; i++) {
+      scm_obj_pretty_print(vector->array[i], obuffer);
+      scm_obuffer_concatenate_char(obuffer, ' ');
+    }
+    scm_obj_pretty_print(vector->array[i], obuffer);
+  }
+  scm_obuffer_concatenate_char(obuffer, ')');
+}
+
+void
+scm_vector_gc_finalize(ScmObj obj)
+{
+  scm_vector_finalize(SCM_VECTOR(obj));
+}
+
+int
+scm_vector_gc_ref_iter_begin(ScmObj obj, ScmGCRefItr *itr)
+{
+  ScmVector *vec;
+
+  assert(obj != NULL);
+  assert(itr != NULL);
+
+  vec = SCM_VECTOR(obj);
+  
+  itr->ptr = &(vec->array[0]);
+  itr->src = obj;
+  itr->next = scm_vector_gc_ref_iter_next;
+
+  return 0;
+}
+
+int
+scm_vector_gc_ref_iter_next(ScmGCRefItr *itr)
+{
+  ScmGCRefItr nxt_itr;
+  ScmVector *vec;
+
+  assert(itr != NULL);
+
+  vec = SCM_VECTOR(itr->src);
+  if (itr->ptr != NULL)
+    nxt_itr.ptr = NULL;
+  else {
+    itr->ptr++;
+    if ((size_t)(nxt_itr.ptr - vec->array) >= vec->length)
+      itr->ptr = NULL;
+  }
+
+  return 0;
 }
