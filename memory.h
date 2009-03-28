@@ -71,7 +71,6 @@ struct ScmMemHeapRec {
   ScmMemHeapBlock *head;
   ScmMemHeapBlock *tail;
   ScmMemHeapBlock *current;
-  void *free;
   int nr_block;
   int nr_free_block;
 };
@@ -97,7 +96,6 @@ struct ScmMemHeapRec {
     (heap)->nr_block++;                                                 \
     if ((heap)->current == NULL) {                                      \
       (heap)->current = (block);                                        \
-      (heap)->free = SCM_MEM_HEAP_BLOCK_FREE_PTR((heap)->current);      \
     }                                                                   \
     else                                                                \
       (heap)->nr_free_block++;                                          \
@@ -108,13 +106,8 @@ struct ScmMemHeapRec {
     if ((heap)->tail != NULL) {                                         \
       ScmMemHeapBlock *b = (heap)->tail;                                \
                                                                         \
-      if (SCM_MEM_HEAP_IS_CUR_BLOCK_TAIL(heap)) {                       \
+      if (SCM_MEM_HEAP_IS_CUR_BLOCK_TAIL(heap))                         \
         (heap)->current = SCM_MEM_HEAP_BLOCK_PREV(b);                   \
-        if ((heap)->current == NULL)                                    \
-          (heap)->free = NULL;                                          \
-        else                                                            \
-          (heap)->free = SCM_MEM_HEAP_BLOCK_FREE_PTR((heap)->current);  \
-      }                                                                 \
       else                                                              \
         (heap)->nr_free_block--;                                        \
                                                                         \
@@ -155,7 +148,6 @@ struct ScmMemHeapRec {
       (heap)->head = NULL;                          \
       (heap)->tail = NULL;                          \
       (heap)->current = NULL;                       \
-      (heap)->free = NULL;                          \
       (heap)->nr_block = 0;                         \
       (heap)->nr_free_block = 0;                    \
                                                     \
@@ -179,20 +171,28 @@ struct ScmMemHeapRec {
   do {                                                                  \
     if ((heap)->current != NULL) {                                      \
       (heap)->current = SCM_MEM_HEAP_BLOCK_NEXT((heap)->current);       \
+      if ((heap)->current != NULL)                                      \
+        (heap)->nr_free_block--;                                        \
+    }                                                                   \
+  } while(0)
+
+#define SCM_MEM_HEAP_UNSHIFT(heap)                                      \
+  do {                                                                  \
+    if ((heap)->current != (heap)->head) {                              \
       if ((heap)->current == NULL) {                                    \
-        (heap)->free = NULL;                                            \
+        (heap)->current = (heap)->tail;                                 \
       }                                                                 \
       else {                                                            \
-        (heap)->free = SCM_MEM_HEAP_BLOCK_FREE_PTR((heap)->current);    \
-        (heap)->nr_free_block--;                                        \
+        (heap)->current = SCM_MEM_HEAP_BLOCK_PREV((heap)->current);     \
+        (heap)->nr_free_block++;                                        \
       }                                                                 \
     }                                                                   \
   } while(0)
 
+
 #define SCM_MEM_HEAP_REWIND(heap)                                       \
   do {                                                                  \
     (heap)->current = (heap)->head;                                     \
-    (heap)->free = SCM_MEM_HEAP_BLOCK_FREE_PTR((heap)->current);        \
     if ((heap)->nr_block > 1)                                           \
       (heap)->nr_free_block = (heap)->nr_block - 1;                     \
     else                                                                \
@@ -204,25 +204,30 @@ struct ScmMemHeapRec {
     *(ptr) = NULL;                                                      \
     while ((heap)->current != NULL && *(ptr) == NULL) {                 \
       if ((size) <= SCM_MEM_HEAP_CUR_BLOCK_FREE_SIZE(heap)) {           \
-        *(ptr) = (heap)->free;                                          \
+        *(ptr) = SCM_MEM_HEAP_BLOCK_FREE_PTR((heap)->current);          \
         SCM_MEM_HEAP_BLOCK_ALLOCATED((heap)->current, (size));          \
-        (heap)->free = SCM_MEM_HEAP_BLOCK_FREE_PTR((heap)->current);    \
       }                                                                 \
       else {                                                            \
         SCM_MEM_HEAP_SHIFT(heap);                                       \
       }                                                                 \
     }                                                                   \
+    if (*(ptr) == NULL)                                                 \
+      SCM_MEM_HEAP_CANCEL_ALLOC(heap, 0);                               \
   } while(0)
 
 #define SCM_MEM_HEAP_CANCEL_ALLOC(heap, size)                           \
   do {                                                                  \
-    SCM_MEM_HEAP_BLOCK_DEALLOCATED((heap)->current, (size));            \
-    (heap)->free = SCM_MEM_HEAP_BLOCK_FREE_PTR((heap)->current);        \
-    if ((heap)->free == SCM_MEM_HEAP_BLOCK_HEAD((heap)->current)        \
-        && (heap)->current != (heap)->head) {                           \
-      (heap)->current = SCM_MEM_HEAP_BLOCK_PREV((heap)->current);       \
-      (heap)->free = SCM_MEM_HEAP_BLOCK_FREE_PTR((heap)->current);      \
-      (heap)->nr_free_block++;                                          \
+    if ((heap)->nr_block > 0) {                                         \
+      size_t sz = (size);                                               \
+      if ((heap)->current == NULL)                                      \
+        SCM_MEM_HEAP_UNSHIFT(heap);                                     \
+      if (sz > SCM_MEM_HEAP_BLOCK_USED((heap)->current))                \
+        sz = SCM_MEM_HEAP_BLOCK_USED((heap)->current);                  \
+      SCM_MEM_HEAP_BLOCK_DEALLOCATED((heap)->current, sz);              \
+      while (SCM_MEM_HEAP_BLOCK_USED((heap)->current) == 0              \
+             && (heap)->current != (heap)->head) {                      \
+        SCM_MEM_HEAP_UNSHIFT(heap);                                     \
+      }                                                                 \
     }                                                                   \
   } while(0)
 
