@@ -39,3 +39,317 @@ charconv.o: ../charconv.c ../memory.h ../basichash.h ../object.h \
 ucs4.o: ../ucs4.c ../ucs4.h
 utf8.o: ../utf8.c ../utf8.h
 encoding.o: ../encoding.c ../encoding.h
+test_pair.o: test_pair.c /usr/local/include/cutter/cutter.h \
+  /usr/local/include/cutter/cutter/cut-version.h \
+  /usr/local/include/cutter/cutter/cut-hidden-definitions.h \
+  /usr/local/include/cutter/cutter/cut-public.h \
+  /usr/local/include/cutter/cutter/cut-types.h \
+  /usr/local/include/cutter/cutter/cut-macros.h \
+  /usr/local/include/cutter/cutter/cut-multi-process.h \
+  /usr/local/include/cutter/cutter/cut-assertions.h \
+  /usr/local/include/cutter/cutter/cut-test-utils.h \
+  /usr/local/include/cutter/cutter/cut-assertions-helper.h \
+  /usr/local/include/cutter/cutter/cut-experimental.h ../object.h \
+  ../obuffer.h ../nil.h ../pair.h ../object.h
+test_string.o: test_string.c /usr/local/include/cutter/cutter.h \
+  /usr/local/include/cutter/cutter/cut-version.h \
+  /usr/local/include/cutter/cutter/cut-hidden-definitions.h \
+  /usr/local/include/cutter/cutter/cut-public.h \
+  /usr/local/include/cutter/cutter/cut-types.h \
+  /usr/local/include/cutter/cutter/cut-macros.h \
+  /usr/local/include/cutter/cutter/cut-multi-process.h \
+  /usr/local/include/cutter/cutter/cut-assertions.h \
+  /usr/local/include/cutter/cutter/cut-test-utils.h \
+  /usr/local/include/cutter/cutter/cut-assertions-helper.h \
+  /usr/local/include/cutter/cutter/cut-experimental.h ../object.h \
+  ../obuffer.h ../nil.h ../string.h ../object.h ../encoding.h
+test_symbol.o: test_symbol.c /usr/local/include/cutter/cutter.h \
+  /usr/local/include/cutter/cutter/cut-version.h \
+  /usr/local/include/cutter/cutter/cut-hidden-definitions.h \
+  /usr/local/include/cutter/cutter/cut-public.h \
+  /usr/local/include/cutter/cutter/cut-types.h \
+  /usr/local/include/cutter/cutter/cut-macros.h \
+  /usr/local/include/cutter/cutter/cut-multi-process.h \
+  /usr/local/include/cutter/cutter/cut-assertions.h \
+  /usr/local/include/cutter/cutter/cut-test-utils.h \
+  /usr/local/include/cutter/cutter/cut-assertions-helper.h \
+  /usr/local/include/cutter/cutter/cut-experimental.h ../object.h \
+  ../obuffer.h ../nil.h ../symbol.h ../object.h
+test_nil.o: test_nil.c /usr/local/include/cutter/cutter.h \
+  /usr/local/include/cutter/cutter/cut-version.h \
+  /usr/local/include/cutter/cutter/cut-hidden-definitions.h \
+  /usr/local/include/cutter/cutter/cut-public.h \
+  /usr/local/include/cutter/cutter/cut-types.h \
+  /usr/local/include/cutter/cutter/cut-macros.h \
+  /usr/local/include/cutter/cutter/cut-multi-process.h \
+  /usr/local/include/cutter/cutter/cut-assertions.h \
+  /usr/local/include/cutter/cutter/cut-test-utils.h \
+  /usr/local/include/cutter/cutter/cut-assertions-helper.h \
+  /usr/local/include/cutter/cutter/cut-experimental.h ../object.h \
+  ../obuffer.h ../pair.h ../object.h ../nil.h
+test_basichash.o: test_basichash.c /usr/local/include/cutter/cutter.h \
+  /usr/local/include/cutter/cutter/cut-version.h \
+  /usr/local/include/cutter/cutter/cut-hidden-definitions.h \
+  /usr/local/include/cutter/cutter/cut-public.h \
+  /usr/local/include/cutter/cutter/cut-types.h \
+  /usr/local/include/cutter/cutter/cut-macros.h \
+  /usr/local/include/cutter/cutter/cut-multi-process.h \
+  /usr/local/include/cutter/cutter/cut-assertions.h \
+  /usr/local/include/cutter/cutter/cut-test-utils.h \
+  /usr/local/include/cutter/cutter/cut-assertions-helper.h \
+  /usr/local/include/cutter/cutter/cut-experimental.h ../basichash.h
+test_integer.o: test_integer.c /usr/local/include/cutter/cutter.h \
+  /usr/local/include/cutter/cutter/cut-version.h \
+  /usr/local/include/cutter/cutter/cut-hidden-definitions.h \
+  /usr/local/include/cutter/cutter/cut-public.h \
+  /usr/local/include/cutter/cutter/cut-types.h \
+  /usr/local/include/cutter/cutter/cut-macros.h \
+  /usr/local/include/cutter/cutter/cut-multi-process.h \
+  /usr/local/include/cutter/cutter/cut-assertions.h \
+  /usr/local/include/cutter/cutter/cut-test-utils.h \
+  /usr/local/include/cutter/cutter/cut-assertions-helper.h \
+  /usr/local/include/cutter/cutter/cut-experimental.h ../object.h \
+  ../obuffer.h ../nil.h ../integer.h ../object.h
+test_pretty_print.o: test_pretty_print.c \
+  /usr/local/include/cutter/cutter.h \
+  /usr/local/include/cutter/cutter/cut-version.h \
+  /usr/local/include/cutter/cutter/cut-hidden-definitions.h \
+  /usr/local/include/cutter/cutter/cut-public.h \
+  /usr/local/include/cutter/cutter/cut-types.h \
+  /usr/local/include/cutter/cutter/cut-macros.h \
+  /usr/local/include/cutter/cutter/cut-multi-process.h \
+  /usr/local/include/cutter/cutter/cut-assertions.h \
+  /usr/local/include/cutter/cutter/cut-test-utils.h \
+  /usr/local/include/cutter/cutter/cut-assertions-helper.h \
+  /usr/local/include/cutter/cutter/cut-experimental.h ../object.h \
+  ../obuffer.h ../nil.h ../integer.h ../object.h ../string.h \
+  ../encoding.h ../symbol.h ../pair.h ../vector.h ../char.h ../port.h \
+  ../bool.h ../miscobjects.h ../obuffer.h
+test_basiclist.o: test_basiclist.c /usr/local/include/cutter/cutter.h \
+  /usr/local/include/cutter/cutter/cut-version.h \
+  /usr/local/include/cutter/cutter/cut-hidden-definitions.h \
+  /usr/local/include/cutter/cutter/cut-public.h \
+  /usr/local/include/cutter/cutter/cut-types.h \
+  /usr/local/include/cutter/cutter/cut-macros.h \
+  /usr/local/include/cutter/cutter/cut-multi-process.h \
+  /usr/local/include/cutter/cutter/cut-assertions.h \
+  /usr/local/include/cutter/cutter/cut-test-utils.h \
+  /usr/local/include/cutter/cutter/cut-assertions-helper.h \
+  /usr/local/include/cutter/cutter/cut-experimental.h ../basiclist.h
+test_ibuffer.o: test_ibuffer.c /usr/local/include/cutter/cutter.h \
+  /usr/local/include/cutter/cutter/cut-version.h \
+  /usr/local/include/cutter/cutter/cut-hidden-definitions.h \
+  /usr/local/include/cutter/cutter/cut-public.h \
+  /usr/local/include/cutter/cutter/cut-types.h \
+  /usr/local/include/cutter/cutter/cut-macros.h \
+  /usr/local/include/cutter/cutter/cut-multi-process.h \
+  /usr/local/include/cutter/cutter/cut-assertions.h \
+  /usr/local/include/cutter/cutter/cut-test-utils.h \
+  /usr/local/include/cutter/cutter/cut-assertions-helper.h \
+  /usr/local/include/cutter/cutter/cut-experimental.h ../ibuffer.h \
+  ../port.h ../object.h ../obuffer.h
+test_lexer.o: test_lexer.c /usr/local/include/cutter/cutter.h \
+  /usr/local/include/cutter/cutter/cut-version.h \
+  /usr/local/include/cutter/cutter/cut-hidden-definitions.h \
+  /usr/local/include/cutter/cutter/cut-public.h \
+  /usr/local/include/cutter/cutter/cut-types.h \
+  /usr/local/include/cutter/cutter/cut-macros.h \
+  /usr/local/include/cutter/cutter/cut-multi-process.h \
+  /usr/local/include/cutter/cutter/cut-assertions.h \
+  /usr/local/include/cutter/cutter/cut-test-utils.h \
+  /usr/local/include/cutter/cutter/cut-assertions-helper.h \
+  /usr/local/include/cutter/cutter/cut-experimental.h ../parser.h \
+  ../ibuffer.h ../port.h ../object.h ../obuffer.h
+test_parser.o: test_parser.c /usr/local/include/cutter/cutter.h \
+  /usr/local/include/cutter/cutter/cut-version.h \
+  /usr/local/include/cutter/cutter/cut-hidden-definitions.h \
+  /usr/local/include/cutter/cutter/cut-public.h \
+  /usr/local/include/cutter/cutter/cut-types.h \
+  /usr/local/include/cutter/cutter/cut-macros.h \
+  /usr/local/include/cutter/cutter/cut-multi-process.h \
+  /usr/local/include/cutter/cutter/cut-assertions.h \
+  /usr/local/include/cutter/cutter/cut-test-utils.h \
+  /usr/local/include/cutter/cutter/cut-assertions-helper.h \
+  /usr/local/include/cutter/cutter/cut-experimental.h ../parser.h \
+  ../ibuffer.h ../port.h ../object.h ../obuffer.h ../port.h ../object.h \
+  ../string.h ../encoding.h ../symbol.h ../integer.h ../bool.h ../char.h \
+  ../nil.h ../pair.h ../vector.h ../miscobjects.h
+test_vector.o: test_vector.c /usr/local/include/cutter/cutter.h \
+  /usr/local/include/cutter/cutter/cut-version.h \
+  /usr/local/include/cutter/cutter/cut-hidden-definitions.h \
+  /usr/local/include/cutter/cutter/cut-public.h \
+  /usr/local/include/cutter/cutter/cut-types.h \
+  /usr/local/include/cutter/cutter/cut-macros.h \
+  /usr/local/include/cutter/cutter/cut-multi-process.h \
+  /usr/local/include/cutter/cutter/cut-assertions.h \
+  /usr/local/include/cutter/cutter/cut-test-utils.h \
+  /usr/local/include/cutter/cutter/cut-assertions-helper.h \
+  /usr/local/include/cutter/cutter/cut-experimental.h ../vector.h \
+  ../object.h ../obuffer.h ../object.h ../string.h ../encoding.h ../nil.h
+test_eof.o: test_eof.c /usr/local/include/cutter/cutter.h \
+  /usr/local/include/cutter/cutter/cut-version.h \
+  /usr/local/include/cutter/cutter/cut-hidden-definitions.h \
+  /usr/local/include/cutter/cutter/cut-public.h \
+  /usr/local/include/cutter/cutter/cut-types.h \
+  /usr/local/include/cutter/cutter/cut-macros.h \
+  /usr/local/include/cutter/cutter/cut-multi-process.h \
+  /usr/local/include/cutter/cutter/cut-assertions.h \
+  /usr/local/include/cutter/cutter/cut-test-utils.h \
+  /usr/local/include/cutter/cutter/cut-assertions-helper.h \
+  /usr/local/include/cutter/cutter/cut-experimental.h ../object.h \
+  ../obuffer.h ../nil.h ../miscobjects.h ../object.h
+test_bool.o: test_bool.c /usr/local/include/cutter/cutter.h \
+  /usr/local/include/cutter/cutter/cut-version.h \
+  /usr/local/include/cutter/cutter/cut-hidden-definitions.h \
+  /usr/local/include/cutter/cutter/cut-public.h \
+  /usr/local/include/cutter/cutter/cut-types.h \
+  /usr/local/include/cutter/cutter/cut-macros.h \
+  /usr/local/include/cutter/cutter/cut-multi-process.h \
+  /usr/local/include/cutter/cutter/cut-assertions.h \
+  /usr/local/include/cutter/cutter/cut-test-utils.h \
+  /usr/local/include/cutter/cutter/cut-assertions-helper.h \
+  /usr/local/include/cutter/cutter/cut-experimental.h ../object.h \
+  ../obuffer.h ../nil.h ../char.h ../object.h ../encoding.h ../bool.h
+test_char.o: test_char.c /usr/local/include/cutter/cutter.h \
+  /usr/local/include/cutter/cutter/cut-version.h \
+  /usr/local/include/cutter/cutter/cut-hidden-definitions.h \
+  /usr/local/include/cutter/cutter/cut-public.h \
+  /usr/local/include/cutter/cutter/cut-types.h \
+  /usr/local/include/cutter/cutter/cut-macros.h \
+  /usr/local/include/cutter/cutter/cut-multi-process.h \
+  /usr/local/include/cutter/cutter/cut-assertions.h \
+  /usr/local/include/cutter/cutter/cut-test-utils.h \
+  /usr/local/include/cutter/cutter/cut-assertions-helper.h \
+  /usr/local/include/cutter/cutter/cut-experimental.h ../object.h \
+  ../obuffer.h ../nil.h ../char.h ../object.h ../encoding.h
+test_fileport.o: test_fileport.c /usr/local/include/cutter/cutter.h \
+  /usr/local/include/cutter/cutter/cut-version.h \
+  /usr/local/include/cutter/cutter/cut-hidden-definitions.h \
+  /usr/local/include/cutter/cutter/cut-public.h \
+  /usr/local/include/cutter/cutter/cut-types.h \
+  /usr/local/include/cutter/cutter/cut-macros.h \
+  /usr/local/include/cutter/cutter/cut-multi-process.h \
+  /usr/local/include/cutter/cutter/cut-assertions.h \
+  /usr/local/include/cutter/cutter/cut-test-utils.h \
+  /usr/local/include/cutter/cutter/cut-assertions-helper.h \
+  /usr/local/include/cutter/cutter/cut-experimental.h ../port.h \
+  ../object.h ../obuffer.h
+test_stringport.o: test_stringport.c /usr/local/include/cutter/cutter.h \
+  /usr/local/include/cutter/cutter/cut-version.h \
+  /usr/local/include/cutter/cutter/cut-hidden-definitions.h \
+  /usr/local/include/cutter/cutter/cut-public.h \
+  /usr/local/include/cutter/cutter/cut-types.h \
+  /usr/local/include/cutter/cutter/cut-macros.h \
+  /usr/local/include/cutter/cutter/cut-multi-process.h \
+  /usr/local/include/cutter/cutter/cut-assertions.h \
+  /usr/local/include/cutter/cutter/cut-test-utils.h \
+  /usr/local/include/cutter/cutter/cut-assertions-helper.h \
+  /usr/local/include/cutter/cutter/cut-experimental.h ../port.h \
+  ../object.h ../obuffer.h
+test_charconv.o: test_charconv.c /usr/local/include/cutter/cutter.h \
+  /usr/local/include/cutter/cutter/cut-version.h \
+  /usr/local/include/cutter/cutter/cut-hidden-definitions.h \
+  /usr/local/include/cutter/cutter/cut-public.h \
+  /usr/local/include/cutter/cutter/cut-types.h \
+  /usr/local/include/cutter/cutter/cut-macros.h \
+  /usr/local/include/cutter/cutter/cut-multi-process.h \
+  /usr/local/include/cutter/cutter/cut-assertions.h \
+  /usr/local/include/cutter/cutter/cut-test-utils.h \
+  /usr/local/include/cutter/cutter/cut-assertions-helper.h \
+  /usr/local/include/cutter/cutter/cut-experimental.h ../charconv.h
+test_ucs4.o: test_ucs4.c /usr/local/include/cutter/cutter.h \
+  /usr/local/include/cutter/cutter/cut-version.h \
+  /usr/local/include/cutter/cutter/cut-hidden-definitions.h \
+  /usr/local/include/cutter/cutter/cut-public.h \
+  /usr/local/include/cutter/cutter/cut-types.h \
+  /usr/local/include/cutter/cutter/cut-macros.h \
+  /usr/local/include/cutter/cutter/cut-multi-process.h \
+  /usr/local/include/cutter/cutter/cut-assertions.h \
+  /usr/local/include/cutter/cutter/cut-test-utils.h \
+  /usr/local/include/cutter/cutter/cut-assertions-helper.h \
+  /usr/local/include/cutter/cutter/cut-experimental.h ../ucs4.h
+test_utf8.o: test_utf8.c /usr/local/include/cutter/cutter.h \
+  /usr/local/include/cutter/cutter/cut-version.h \
+  /usr/local/include/cutter/cutter/cut-hidden-definitions.h \
+  /usr/local/include/cutter/cutter/cut-public.h \
+  /usr/local/include/cutter/cutter/cut-types.h \
+  /usr/local/include/cutter/cutter/cut-macros.h \
+  /usr/local/include/cutter/cutter/cut-multi-process.h \
+  /usr/local/include/cutter/cutter/cut-assertions.h \
+  /usr/local/include/cutter/cutter/cut-test-utils.h \
+  /usr/local/include/cutter/cutter/cut-assertions-helper.h \
+  /usr/local/include/cutter/cutter/cut-experimental.h ../utf8.h
+test_string_utf8.o: test_string_utf8.c /usr/local/include/cutter/cutter.h \
+  /usr/local/include/cutter/cutter/cut-version.h \
+  /usr/local/include/cutter/cutter/cut-hidden-definitions.h \
+  /usr/local/include/cutter/cutter/cut-public.h \
+  /usr/local/include/cutter/cutter/cut-types.h \
+  /usr/local/include/cutter/cutter/cut-macros.h \
+  /usr/local/include/cutter/cutter/cut-multi-process.h \
+  /usr/local/include/cutter/cutter/cut-assertions.h \
+  /usr/local/include/cutter/cutter/cut-test-utils.h \
+  /usr/local/include/cutter/cutter/cut-assertions-helper.h \
+  /usr/local/include/cutter/cutter/cut-experimental.h ../string.h \
+  ../object.h ../obuffer.h ../encoding.h
+test_string_ucs4.o: test_string_ucs4.c /usr/local/include/cutter/cutter.h \
+  /usr/local/include/cutter/cutter/cut-version.h \
+  /usr/local/include/cutter/cutter/cut-hidden-definitions.h \
+  /usr/local/include/cutter/cutter/cut-public.h \
+  /usr/local/include/cutter/cutter/cut-types.h \
+  /usr/local/include/cutter/cutter/cut-macros.h \
+  /usr/local/include/cutter/cutter/cut-multi-process.h \
+  /usr/local/include/cutter/cutter/cut-assertions.h \
+  /usr/local/include/cutter/cutter/cut-test-utils.h \
+  /usr/local/include/cutter/cutter/cut-assertions-helper.h \
+  /usr/local/include/cutter/cutter/cut-experimental.h ../string.h \
+  ../object.h ../obuffer.h ../encoding.h
+test_string_ascii.o: test_string_ascii.c \
+  /usr/local/include/cutter/cutter.h \
+  /usr/local/include/cutter/cutter/cut-version.h \
+  /usr/local/include/cutter/cutter/cut-hidden-definitions.h \
+  /usr/local/include/cutter/cutter/cut-public.h \
+  /usr/local/include/cutter/cutter/cut-types.h \
+  /usr/local/include/cutter/cutter/cut-macros.h \
+  /usr/local/include/cutter/cutter/cut-multi-process.h \
+  /usr/local/include/cutter/cutter/cut-assertions.h \
+  /usr/local/include/cutter/cutter/cut-test-utils.h \
+  /usr/local/include/cutter/cutter/cut-assertions-helper.h \
+  /usr/local/include/cutter/cutter/cut-experimental.h ../string.h \
+  ../object.h ../obuffer.h ../encoding.h
+test_string_eucjp.o: test_string_eucjp.c \
+  /usr/local/include/cutter/cutter.h \
+  /usr/local/include/cutter/cutter/cut-version.h \
+  /usr/local/include/cutter/cutter/cut-hidden-definitions.h \
+  /usr/local/include/cutter/cutter/cut-public.h \
+  /usr/local/include/cutter/cutter/cut-types.h \
+  /usr/local/include/cutter/cutter/cut-macros.h \
+  /usr/local/include/cutter/cutter/cut-multi-process.h \
+  /usr/local/include/cutter/cutter/cut-assertions.h \
+  /usr/local/include/cutter/cutter/cut-test-utils.h \
+  /usr/local/include/cutter/cutter/cut-assertions-helper.h \
+  /usr/local/include/cutter/cutter/cut-experimental.h ../string.h \
+  ../object.h ../obuffer.h ../encoding.h
+test_string_sjis.o: test_string_sjis.c /usr/local/include/cutter/cutter.h \
+  /usr/local/include/cutter/cutter/cut-version.h \
+  /usr/local/include/cutter/cutter/cut-hidden-definitions.h \
+  /usr/local/include/cutter/cutter/cut-public.h \
+  /usr/local/include/cutter/cutter/cut-types.h \
+  /usr/local/include/cutter/cutter/cut-macros.h \
+  /usr/local/include/cutter/cutter/cut-multi-process.h \
+  /usr/local/include/cutter/cutter/cut-assertions.h \
+  /usr/local/include/cutter/cutter/cut-test-utils.h \
+  /usr/local/include/cutter/cutter/cut-assertions-helper.h \
+  /usr/local/include/cutter/cutter/cut-experimental.h ../string.h \
+  ../object.h ../obuffer.h ../encoding.h
+test_memory.o: test_memory.c /usr/local/include/cutter/cutter.h \
+  /usr/local/include/cutter/cutter/cut-version.h \
+  /usr/local/include/cutter/cutter/cut-hidden-definitions.h \
+  /usr/local/include/cutter/cutter/cut-public.h \
+  /usr/local/include/cutter/cutter/cut-types.h \
+  /usr/local/include/cutter/cutter/cut-macros.h \
+  /usr/local/include/cutter/cutter/cut-multi-process.h \
+  /usr/local/include/cutter/cutter/cut-assertions.h \
+  /usr/local/include/cutter/cutter/cut-test-utils.h \
+  /usr/local/include/cutter/cutter/cut-assertions-helper.h \
+  /usr/local/include/cutter/cutter/cut-experimental.h ../memory.h \
+  ../basichash.h ../object.h ../obuffer.h
