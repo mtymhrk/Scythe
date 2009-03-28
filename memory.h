@@ -247,6 +247,9 @@ struct ScmMemRec {
   int nr_extra_root;
 };
 
+#define SCM_MEM_HEAP_INIT_BLOCK_SIZE 4096
+#define SCM_MEM_OBJ_TBL_HASH_SIZE 1024
+#define SCM_MEM_EXTRA_ROOT_SET_SIZE 256
 
 extern const ScmTypeInfo SCM_FORWARD_TYPE_INFO;
 
@@ -255,6 +258,7 @@ void *scm_memory_release(void *block);
 
 ScmMem *scm_mem_construct(void);
 ScmMem *scm_mem_destruct(ScmMem *mem);
+ScmMem *scm_mem_register_root(ScmMem *mem, ScmObj *box);
 ScmMem *scm_mem_alloc(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmObj *box);
 void scm_mem_gc_start(ScmMem *mem);
 ScmMem *scm_mem_alloc_persist(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmObj *box);

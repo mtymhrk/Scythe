@@ -9,12 +9,7 @@
 #include "memory.h"
 #include "object.h"
 
-#define SCM_MEM_HEAP_INIT_BLOCK_SIZE 4096
-#define SCM_MEM_OBJ_TBL_HASH_SIZE 1024
-#define SCM_MEM_EXTRA_ROOT_SET_SIZE 256
-
 enum { TO_HEAP, FROM_HEAP };
-
 
 struct ScmForwardRec {
   ScmObjHeader header;

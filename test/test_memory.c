@@ -3,7 +3,7 @@
 #include "memory.h"
 
 void
-test_new_mem_block(void)
+test_scm_new_mem_block(void)
 {
   ScmMemHeapBlock *block;
 
@@ -24,7 +24,7 @@ test_new_mem_block(void)
 }
 
 void
-test_mem_block_allocated(void)
+test_scm_mem_block_allocated(void)
 {
   ScmMemHeapBlock *block;
 
@@ -51,7 +51,7 @@ test_mem_block_allocated(void)
 }
 
 void
-test_mem_block_deallocated(void)
+test_scm_mem_block_deallocated(void)
 {
   ScmMemHeapBlock *block;
 
@@ -80,7 +80,7 @@ test_mem_block_deallocated(void)
 }
 
 void
-test_mem_block_ptr_is_allocated(void)
+test_scm_mem_block_ptr_is_allocated(void)
 {
   ScmMemHeapBlock *block;
   uint8_t *ptr;
@@ -105,7 +105,7 @@ test_mem_block_ptr_is_allocated(void)
 }
 
 void
-test_mem_block_clean(void)
+test_scm_mem_block_clean(void)
 {
   ScmMemHeapBlock *block;
 
@@ -125,7 +125,7 @@ test_mem_block_clean(void)
 }
 
 void
-test_mem_block_for_each_obj(void)
+test_scm_mem_block_for_each_obj(void)
 {
   ScmMemHeapBlock *block;
   SCM_OBJ_TYPE_T types[] = { SCM_OBJ_TYPE_PAIR,
@@ -158,7 +158,7 @@ test_mem_block_for_each_obj(void)
 }
 
 void
-test_mem_block_for_each_obj_deallocated_last_obj(void)
+test_scm_mem_block_for_each_obj_deallocated_last_obj(void)
 {
   ScmMemHeapBlock *block;
   SCM_OBJ_TYPE_T types[] = { SCM_OBJ_TYPE_PAIR,
@@ -195,7 +195,7 @@ test_mem_block_for_each_obj_deallocated_last_obj(void)
 }
 
 void
-test_mem_block_is_obj_in_block(void)
+test_scm_mem_block_is_obj_in_block(void)
 {
   ScmMemHeapBlock *block1;
   ScmMemHeapBlock *block2;
@@ -226,7 +226,7 @@ test_mem_block_is_obj_in_block(void)
 }
 
 void
-test_new_mem_heap_have_no_block(void)
+test_scm_new_mem_heap_have_no_block(void)
 {
   ScmMemHeap *heap;
 
@@ -244,7 +244,7 @@ test_new_mem_heap_have_no_block(void)
 }
 
 void
-test_mem_heap_add_block(void)
+test_scm_mem_heap_add_block(void)
 {
   ScmMemHeapBlock *block1;
   ScmMemHeapBlock *block2;
@@ -276,7 +276,7 @@ test_mem_heap_add_block(void)
 }
 
 void
-test_mem_heap_del_block(void)
+test_scm_mem_heap_del_block(void)
 {
   ScmMemHeapBlock *block1;
   ScmMemHeapBlock *block2;
@@ -312,7 +312,7 @@ test_mem_heap_del_block(void)
 }
 
 void
-test_new_mem_heap_have_block(void)
+test_scm_new_mem_heap_have_block(void)
 {
   ScmMemHeap *heap;
 
@@ -333,7 +333,7 @@ test_new_mem_heap_have_block(void)
 }
 
 void
-test_mem_heap_shift(void)
+test_scm_mem_heap_shift(void)
 {
   ScmMemHeap *heap;
 
@@ -359,7 +359,7 @@ test_mem_heap_shift(void)
 }
 
 void
-test_mem_heap_unshift(void)
+test_scm_mem_heap_unshift(void)
 {
   ScmMemHeap *heap;
 
@@ -399,7 +399,7 @@ test_mem_heap_unshift(void)
 }
 
 void
-test_mem_heap_rewind(void)
+test_scm_mem_heap_rewind(void)
 {
   ScmMemHeap *heap;
 
@@ -424,7 +424,7 @@ test_mem_heap_rewind(void)
 }
 
 void
-test_mem_heap_del_current_block(void)
+test_scm_mem_heap_del_current_block(void)
 {
   ScmMemHeapBlock *block1;
   ScmMemHeapBlock *block2;
@@ -452,7 +452,7 @@ test_mem_heap_del_current_block(void)
 }
 
 void
-test_mem_heap_alloc(void)
+test_scm_mem_heap_alloc(void)
 {
   ScmMemHeap *heap;
   ScmObj obj;
@@ -468,7 +468,7 @@ test_mem_heap_alloc(void)
 }
 
 void
-test_mem_heap_alloc_next_block(void)
+test_scm_mem_heap_alloc_next_block(void)
 {
   ScmMemHeap *heap;
   ScmObj obj1, obj2;
@@ -488,7 +488,7 @@ test_mem_heap_alloc_next_block(void)
 }
 
 void
-test_mem_heap_alloc_fail_to_allocate(void)
+test_scm_mem_heap_alloc_fail_to_allocate(void)
 {
   ScmMemHeapBlock *expected_current;
   size_t expected_used;
@@ -527,7 +527,7 @@ test_mem_heap_alloc_fail_to_allocate(void)
 }
 
 void
-test_mem_heap_cancel_alloc(void)
+test_scm_mem_heap_cancel_alloc(void)
 {
   ScmMemHeapBlock *expected_current;
   size_t expected_used;
@@ -560,7 +560,7 @@ test_mem_heap_cancel_alloc(void)
 }
 
 void
-test_mem_heap_cancel_alloc_not_allocated(void)
+test_scm_mem_heap_cancel_alloc_not_allocated(void)
 {
   ScmMemHeapBlock *expected_current;
   size_t expected_used;
@@ -588,7 +588,7 @@ test_mem_heap_cancel_alloc_not_allocated(void)
 }
 
 void
-test_mem_heap_cancel_alloc_shoud_unshift(void)
+test_scm_mem_heap_cancel_alloc_shoud_unshift(void)
 {
   ScmMemHeapBlock *expected_current;
   size_t expected_used;
@@ -624,7 +624,7 @@ test_mem_heap_cancel_alloc_shoud_unshift(void)
 }
 
 void
-test_mem_heap_for_each_block(void)
+test_scm_mem_heap_for_each_block(void)
 {
   ScmMemHeapBlock *blocks[3];
   ScmMemHeapBlock *block;
@@ -650,7 +650,7 @@ test_mem_heap_for_each_block(void)
 }
 
 void
-test_mem_heap_for_each_block_delete_last_block(void)
+test_scm_mem_heap_for_each_block_delete_last_block(void)
 {
   ScmMemHeapBlock *blocks[3];
   ScmMemHeapBlock *block;
@@ -675,4 +675,31 @@ test_mem_heap_for_each_block_delete_last_block(void)
   cut_assert_equal_uint(sizeof(blocks)/sizeof(blocks[0]) - 1, i);
 
   SCM_MEM_HEAP_DELETE_HEAP(heap);
+}
+
+void
+test_scm_mem_construct(void)
+{
+  ScmMem *mem;
+
+  mem = scm_mem_construct();
+  
+  cut_assert_not_null(mem);
+  cut_assert_not_null(mem->to_obj_tbl);
+  cut_assert_not_null(mem->from_obj_tbl);
+  cut_assert_not_null(mem->to_heap);
+  cut_assert_not_null(mem->from_heap);
+  cut_assert_not_null(mem->persistent);
+  cut_assert_not_null(mem->extra_root_set);
+  cut_assert_equal_int(0, mem->nr_extra_root);
+
+
+  cut_assert_equal_int(1, SCM_MEM_HEAP_NR_BLOCK(mem->to_heap));
+  cut_assert_equal_int(1, SCM_MEM_HEAP_NR_BLOCK(mem->from_heap));
+  cut_assert_equal_uint(SCM_MEM_HEAP_INIT_BLOCK_SIZE,
+                        SCM_MEM_HEAP_BLOCK_SIZE(mem->to_heap->head));
+  cut_assert_equal_uint(SCM_MEM_HEAP_INIT_BLOCK_SIZE,
+                        SCM_MEM_HEAP_BLOCK_SIZE(mem->from_heap->head));
+  
+  scm_mem_destruct(mem);
 }
