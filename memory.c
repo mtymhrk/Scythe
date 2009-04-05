@@ -473,8 +473,7 @@ scm_mem_finalize(ScmMem *mem)
 {
   assert(mem != NULL);
 
-  scm_mem_clean_persistent(mem);
-  scm_mem_clean_heap(mem, TO_HEAP);
+  scm_mem_clean(mem);
 
   if (mem->to_obj_tbl) scm_basci_hash_destruct(mem->to_obj_tbl);
   if (mem->from_obj_tbl) scm_basci_hash_destruct(mem->from_obj_tbl);
@@ -506,6 +505,15 @@ scm_mem_destruct(ScmMem *mem)
   free(mem);
 
   return NULL;
+}
+
+ScmMem *
+scm_mem_clean(ScmMem *mem)
+{
+  scm_mem_clean_persistent(mem);
+  scm_mem_clean_heap(mem, TO_HEAP);
+  scm_mem_clean_heap(mem, FROM_HEAP);
+  return mem;
 }
 
 ScmMem *

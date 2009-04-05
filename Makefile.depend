@@ -1,29 +1,35 @@
-memory.o: memory.c basichash.h memory.h object.h obuffer.h
-nil.o: nil.c memory.h basichash.h object.h obuffer.h nil.h
-object.o: object.c object.h obuffer.h memory.h basichash.h pair.h \
+memory.o: memory.c basichash.h memory.h object.h obuffer.h vm.h
+nil.o: nil.c memory.h basichash.h object.h obuffer.h vm.h nil.h
+object.o: object.c object.h obuffer.h memory.h basichash.h vm.h pair.h \
   string.h encoding.h symbol.h nil.h integer.h vector.h bool.h char.h \
   port.h miscobjects.h
-pair.o: pair.c memory.h basichash.h object.h obuffer.h pair.h nil.h
-obuffer.o: obuffer.c memory.h basichash.h object.h obuffer.h
-string.o: string.c memory.h basichash.h object.h obuffer.h encoding.h \
-  string.h
-symbol.o: symbol.c memory.h basichash.h object.h obuffer.h symbol.h
-basichash.o: basichash.c memory.h basichash.h object.h obuffer.h
-integer.o: integer.c memory.h basichash.h object.h obuffer.h integer.h
-ibuffer.o: ibuffer.c memory.h basichash.h object.h obuffer.h port.h \
+pair.o: pair.c memory.h basichash.h object.h obuffer.h vm.h pair.h nil.h
+obuffer.o: obuffer.c memory.h basichash.h object.h obuffer.h vm.h
+string.o: string.c memory.h basichash.h object.h obuffer.h vm.h \
+  encoding.h string.h
+symbol.o: symbol.c memory.h basichash.h object.h obuffer.h vm.h symbol.h
+basichash.o: basichash.c memory.h basichash.h object.h obuffer.h vm.h
+integer.o: integer.c memory.h basichash.h object.h obuffer.h vm.h \
+  integer.h
+ibuffer.o: ibuffer.c memory.h basichash.h object.h obuffer.h vm.h port.h \
   ibuffer.h
-basiclist.o: basiclist.c memory.h basichash.h object.h obuffer.h \
+basiclist.o: basiclist.c memory.h basichash.h object.h obuffer.h vm.h \
   basiclist.h
-parser.o: parser.c memory.h basichash.h object.h obuffer.h basiclist.h \
-  ibuffer.h port.h parser.h bool.h char.h encoding.h integer.h \
-  miscobjects.h nil.h pair.h string.h symbol.h vector.h
-vector.o: vector.c memory.h basichash.h object.h obuffer.h nil.h vector.h
-miscobjects.o: miscobjects.c object.h obuffer.h memory.h basichash.h \
+parser.o: parser.c memory.h basichash.h object.h obuffer.h vm.h \
+  basiclist.h ibuffer.h port.h parser.h bool.h char.h encoding.h \
+  integer.h miscobjects.h nil.h pair.h string.h symbol.h vector.h
+vector.o: vector.c memory.h basichash.h object.h obuffer.h vm.h nil.h \
+  vector.h
+miscobjects.o: miscobjects.c object.h obuffer.h memory.h basichash.h vm.h \
   miscobjects.h
-bool.o: bool.c memory.h basichash.h object.h obuffer.h bool.h
-char.o: char.c memory.h basichash.h object.h obuffer.h encoding.h char.h
-port.o: port.c memory.h basichash.h object.h obuffer.h charconv.h port.h
-charconv.o: charconv.c memory.h basichash.h object.h obuffer.h charconv.h
+bool.o: bool.c memory.h basichash.h object.h obuffer.h vm.h bool.h
+char.o: char.c memory.h basichash.h object.h obuffer.h vm.h encoding.h \
+  char.h
+port.o: port.c memory.h basichash.h object.h obuffer.h vm.h charconv.h \
+  port.h
+charconv.o: charconv.c memory.h basichash.h object.h obuffer.h vm.h \
+  charconv.h
 ucs4.o: ucs4.c ucs4.h
 utf8.o: utf8.c utf8.h
 encoding.o: encoding.c encoding.h
+vm.o: vm.c vm.h object.h obuffer.h memory.h basichash.h

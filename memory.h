@@ -260,6 +260,7 @@ void *scm_memory_release(void *block);
 
 ScmMem *scm_mem_construct(void);
 ScmMem *scm_mem_destruct(ScmMem *mem);
+ScmMem *scm_mem_clean(ScmMem *mem);
 ScmMem *scm_mem_register_root(ScmMem *mem, ScmObj *box);
 ScmMem *scm_mem_attach_vm(ScmMem *mem, ScmVM *vm);
 ScmMem *scm_mem_alloc(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmObj *box);
