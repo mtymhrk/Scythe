@@ -14,6 +14,7 @@ typedef struct ScmForwardRec ScmForward;
 
 #include "basichash.h"
 #include "object.h"
+#include "vm.h"
 
 typedef void (*SCM_MEM_FINALIZER)(ScmObj obj);
 
@@ -245,6 +246,7 @@ struct ScmMemRec {
   ScmMemHeap *persistent;
   ScmObj **extra_root_set;
   int nr_extra_root;
+  ScmVM *vm;
 };
 
 #define SCM_MEM_HEAP_INIT_BLOCK_SIZE 4096
@@ -259,6 +261,7 @@ void *scm_memory_release(void *block);
 ScmMem *scm_mem_construct(void);
 ScmMem *scm_mem_destruct(ScmMem *mem);
 ScmMem *scm_mem_register_root(ScmMem *mem, ScmObj *box);
+ScmMem *scm_mem_attach_vm(ScmMem *mem, ScmVM *vm);
 ScmMem *scm_mem_alloc(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmObj *box);
 void scm_mem_gc_start(ScmMem *mem);
 ScmMem *scm_mem_alloc_persist(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmObj *box);

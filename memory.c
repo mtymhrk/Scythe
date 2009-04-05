@@ -211,7 +211,7 @@ scm_mem_finalize_heap_obj(ScmMem *mem, int which)
 }
 
 static void
-scm_mem_cleanup_heap(ScmMem *mem, int which)
+scm_mem_clean_heap(ScmMem *mem, int which)
 {
   ScmMemHeap *heap;
   ScmMemHeapBlock *block;
@@ -233,7 +233,7 @@ scm_mem_cleanup_heap(ScmMem *mem, int which)
 }
 
 static void
-scm_mem_cleanup_persistent(ScmMem *mem)
+scm_mem_clean_persistent(ScmMem *mem)
 {
   ScmMemHeapBlock *block;
   ScmObj obj;
@@ -430,6 +430,7 @@ scm_mem_initialize(ScmMem *mem)
   mem->from_obj_tbl = NULL;
   mem->to_heap = NULL;
   mem->from_heap = NULL;
+  mem->vm = NULL;
 
   mem->to_obj_tbl = scm_basic_hash_construct(SCM_MEM_OBJ_TBL_HASH_SIZE,
                                              object_table_hash_func,
@@ -472,8 +473,8 @@ scm_mem_finalize(ScmMem *mem)
 {
   assert(mem != NULL);
 
-  scm_mem_cleanup_persistent(mem);
-  scm_mem_cleanup_heap(mem, TO_HEAP);
+  scm_mem_clean_persistent(mem);
+  scm_mem_clean_heap(mem, TO_HEAP);
 
   if (mem->to_obj_tbl) scm_basci_hash_destruct(mem->to_obj_tbl);
   if (mem->from_obj_tbl) scm_basci_hash_destruct(mem->from_obj_tbl);
@@ -519,6 +520,16 @@ scm_mem_register_root(ScmMem *mem, ScmObj *box)
   else
     return NULL;
     
+}
+
+ScmMem *
+scm_mem_attach_vm(ScmMem *mem, ScmVM *vm)
+{
+  assert(mem != NULL);
+  assert(vm != NULL);
+
+  mem->vm = vm;
+  return mem;
 }
 
 ScmMem *
@@ -582,7 +593,7 @@ scm_mem_gc_start(ScmMem *mem)
   scm_mem_switch_heap(mem);
   scm_mem_copy_root_obj(mem);
   scm_mem_scan_obj(mem);
-  scm_mem_cleanup_heap(mem, FROM_HEAP);
+  scm_mem_clean_heap(mem, FROM_HEAP);
 
   nr_free = SCM_MEM_HEAP_NR_FREE_BLOCK(mem->to_heap);
   if (nr_free == 0)
