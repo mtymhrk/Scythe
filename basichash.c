@@ -16,14 +16,32 @@ struct ScmBasicHashTableRec {
 enum { ADD, UPDATE, DELETE, FIND };
 
 static ScmBasicHashEntry *
-scm_basic_hash_entry_construct(ScmBasicHashKey key,
-                               ScmBasicHashValue value, ScmBasicHashEntry *next)
+scm_basic_hash_entry_construct(ScmBasicHashKey key, ScmBasicHashValue value,
+                               unsigned int hash,
+                               ScmBasicHashEntry *prev, ScmBasicHashEntry *next)
 {
   ScmBasicHashEntry *entry = scm_memory_allocate(sizeof(ScmBasicHashEntry));
   entry->key = key;
   entry->value = value;
+  entry->hash = hash;
+  entry->prev = prev;
   entry->next = next;
   return entry;
+}
+
+static void
+scm_basic_hash_purge_entry(ScmBasicHashTable *table, ScmBasicHashEntry *entry)
+{
+  assert(table != NULL);
+  assert(entry != NULL);
+
+  if (entry->prev != NULL)
+    entry->prev->next = entry->next;
+  else
+    table->buckets[entry->hash] = entry->next;
+
+  if (entry->next != NULL)
+    entry->next->prev = entry->prev;
 }
 
 static ScmBasicHashEntry *
@@ -31,14 +49,12 @@ scm_basic_hash_access(ScmBasicHashTable *table,
                       ScmBasicHashKey key, ScmBasicHashValue value, int mode)
 {
   ScmBasicHashEntry *entry;
-  ScmBasicHashEntry **prev_next;
   unsigned int hash;
 
   assert(table != NULL);
   
   hash = table->hash_func(key) % table->tbl_size;
 
-  prev_next = table->buckets + hash;
   for (entry = table->buckets[hash]; entry != NULL; entry = entry->next) {
     if (table->comp_func(key, entry->key)) {
       switch (mode) {
@@ -51,7 +67,7 @@ scm_basic_hash_access(ScmBasicHashTable *table,
 	return entry;
 	break;
       case DELETE:
-	*prev_next = entry->next;
+        scm_basic_hash_purge_entry(table, entry);
 	return entry;
 	break;
       case FIND:
@@ -62,12 +78,12 @@ scm_basic_hash_access(ScmBasicHashTable *table,
 	break;
       }
     }
-    prev_next = &(entry->next);
   }
 
   if (mode == ADD || mode == UPDATE)
     return (table->buckets[hash]
-	    = scm_basic_hash_entry_construct(key, value, table->buckets[hash]));
+	    = scm_basic_hash_entry_construct(key, value, hash,
+                                             NULL, table->buckets[hash]));
   else 
     return NULL;
 }
@@ -88,6 +104,18 @@ scm_basic_hash_put(ScmBasicHashTable *table,
   return scm_basic_hash_access(table, key, value, UPDATE);
 }
 
+ScmBasicHashEntry *
+scm_basic_hash_update_entry(ScmBasicHashTable *table,
+                            ScmBasicHashEntry *entry, ScmBasicHashValue value)
+{
+  assert(table != NULL);
+  assert(entry != NULL);
+
+  entry->value = value;
+
+  return entry;
+}
+
 void
 scm_basic_hash_delete(ScmBasicHashTable *table, ScmBasicHashKey key)
 {
@@ -95,8 +123,18 @@ scm_basic_hash_delete(ScmBasicHashTable *table, ScmBasicHashKey key)
 
   assert(table != NULL);
 
-  entry = scm_basic_hash_access(table, key, NULL, DELETE);
+  entry = scm_basic_hash_access(table, key, 0, DELETE);
   if (entry != NULL) scm_memory_release(entry);
+}
+
+void
+scm_basic_hash_delete_entry(ScmBasicHashTable *table, ScmBasicHashEntry *entry)
+{
+  assert(table != NULL);
+  assert(entry != NULL);
+
+  scm_basic_hash_purge_entry(table, entry);
+  scm_memory_release(entry);
 }
 
 ScmBasicHashEntry *
@@ -104,7 +142,7 @@ scm_basic_hash_get(ScmBasicHashTable *table, ScmBasicHashKey key)
 {
   assert(table != NULL);
 
-  return scm_basic_hash_access(table, key, NULL, FIND);
+  return scm_basic_hash_access(table, key, 0, FIND);
 }
 
 void
@@ -218,7 +256,7 @@ scm_basic_hash_construct(size_t size,
 }
 
 void
-scm_basci_hash_destruct(ScmBasicHashTable *table)
+scm_basic_hash_destruct(ScmBasicHashTable *table)
 {
   size_t i;
 

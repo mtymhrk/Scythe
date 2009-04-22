@@ -51,6 +51,8 @@ scm_obj_is_same_instance(ScmObj obj1, ScmObj obj2)
 #include "char.h"
 #include "port.h"
 #include "miscobjects.h"
+#include "procedure.h"
+#include "binding.h"
 
 const ScmTypeInfo const * SCM_TYPE_INFO_TBL[SCM_OBJ_NR_TYPE] = {
   &SCM_FORWARD_TYPE_INFO,
@@ -63,7 +65,9 @@ const ScmTypeInfo const * SCM_TYPE_INFO_TBL[SCM_OBJ_NR_TYPE] = {
   &SCM_BOOL_TYPE_INFO,
   &SCM_CHAR_TYPE_INFO,
   &SCM_EOF_TYPE_INFO,
-  &SCM_PORT_TYPE_INFO
+  &SCM_PORT_TYPE_INFO,
+  &SCM_PRIM_PROC_TYPE_INFO,
+  &SCM_BIND_REF_TYPE_INFO
 };
 
 /* for debug */

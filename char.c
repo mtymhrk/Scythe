@@ -24,6 +24,7 @@ const ScmTypeInfo SCM_CHAR_TYPE_INFO = {
   SCM_OBJ_TYPE_CHAR,          /* type            */
   scm_char_pretty_print,      /* pp_func         */
   sizeof(ScmChar),            /* obj_size        */
+  NULL,                       /* gc_ini_func     */
   NULL,                       /* gc_fin_func     */
   NULL                        /* gc_ref_itr_func */
 };

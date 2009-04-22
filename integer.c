@@ -16,6 +16,7 @@ const ScmTypeInfo SCM_INTEGER_TYPE_INFO = {
   SCM_OBJ_TYPE_INTEGER,          /* type            */
   scm_integer_pretty_print,      /* pp_func         */
   sizeof(ScmInteger),            /* obj_size        */
+  NULL,                          /* gc_ini_func     */
   NULL,                          /* gc_fin_func     */
   NULL                           /* gc_ref_itr_func */
 };

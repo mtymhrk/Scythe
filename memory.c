@@ -31,6 +31,7 @@ const ScmTypeInfo SCM_FORWARD_TYPE_INFO = {
   SCM_OBJ_TYPE_FORWARD,    /* type            */
   NULL,                    /* pp_func         */
   sizeof(ScmForward),      /* obj_size        */
+  NULL,                    /* gc_ini_func     */
   NULL,                    /* gc_fin_func     */
   NULL                     /* gc_ref_itr_func */
 };
@@ -252,6 +253,19 @@ scm_mem_clean_persistent(ScmMem *mem)
 }
 
 static void
+scm_mem_free_all_obj_in_root_set(ScmMem *mem)
+{
+  ScmMemRootBlock *block;
+
+  assert(mem != NULL);
+
+  for (block = mem->roots; block != NULL; block = mem->roots) {
+    ScmObj obj = SCM_MEM_ROOT_BLOCK_OBJECT(block);
+    scm_mem_free_root(mem, obj);
+  }
+}
+
+static void
 scm_mem_switch_heap(ScmMem *mem)
 {
   ScmBasicHashTable *tmp_tbl;
@@ -313,6 +327,20 @@ scm_mem_alloc_mem(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmObj *box)
   }
 }
 
+static void
+scm_mem_obj_init(ScmMem *mem, ScmObj obj, SCM_OBJ_TYPE_T type)
+{
+  assert(mem != NULL);
+  assert(obj != NULL);
+  assert(type < SCM_OBJ_NR_TYPE);
+
+  scm_obj_init(obj, type);
+  if (SCM_TYPE_INFO_HAS_GC_INI(type)) {
+    ScmGCInitializeFunc ini = SCM_TYPE_INFO_GC_INI(type);
+    ini(obj, mem);
+  }
+}
+
 static ScmObj
 scm_mem_copy_obj(ScmMem *mem, ScmObj obj)
 {
@@ -360,11 +388,14 @@ scm_mem_copy_children(ScmMem *mem, ScmObj obj)
     for (SCM_GC_REF_ITR_BEGIN(obj, itr);
          !SCM_GC_REF_ITR_IS_END(itr);
          SCM_GC_REF_ITR_NEXT(itr)) {
-      ScmObj c = scm_mem_copy_obj(mem, obj);
-      if (c == NULL) {
-        ; /* TODO: write error handling */
+      ScmObj chd = SCM_GC_REF_ITR_REF(itr);
+      if (chd != NULL) {
+        ScmObj cpy = scm_mem_copy_obj(mem, chd);
+        if (cpy == NULL) {
+          ; /* TODO: write error handling */
+        }
+        SCM_GC_REF_ITR_SET(itr, cpy);
       }
-      SCM_GC_REF_ITR_SET(itr, c);
     }
   }
 }
@@ -377,7 +408,8 @@ scm_mem_copy_extra_root_obj(ScmMem *mem)
   assert(mem != NULL);
 
   for (i = 0; i < mem->nr_extra_root; i++) {
-    if (mem->extra_root_set[i] != NULL)
+    if (mem->extra_root_set[i] != NULL
+        && *mem->extra_root_set[i] != NULL)
       *mem->extra_root_set[i] = scm_mem_copy_obj(mem, *mem->extra_root_set[i]);
   }
 }
@@ -430,7 +462,7 @@ scm_mem_initialize(ScmMem *mem)
   mem->from_obj_tbl = NULL;
   mem->to_heap = NULL;
   mem->from_heap = NULL;
-  mem->vm = NULL;
+  mem->roots = NULL;
 
   mem->to_obj_tbl = scm_basic_hash_construct(SCM_MEM_OBJ_TBL_HASH_SIZE,
                                              object_table_hash_func,
@@ -458,8 +490,8 @@ scm_mem_initialize(ScmMem *mem)
   return mem;
 
  err:
-  if (mem->to_obj_tbl != NULL) scm_basci_hash_destruct(mem->to_obj_tbl);
-  if (mem->from_obj_tbl != NULL) scm_basci_hash_destruct(mem->from_obj_tbl);
+  if (mem->to_obj_tbl != NULL) scm_basic_hash_destruct(mem->to_obj_tbl);
+  if (mem->from_obj_tbl != NULL) scm_basic_hash_destruct(mem->from_obj_tbl);
   if (mem->to_heap != NULL) SCM_MEM_HEAP_DELETE_HEAP(mem->to_heap);
   if (mem->from_heap != NULL) SCM_MEM_HEAP_DELETE_HEAP(mem->from_heap);
   if (mem->persistent != NULL) SCM_MEM_HEAP_DELETE_HEAP(mem->persistent);
@@ -473,10 +505,11 @@ scm_mem_finalize(ScmMem *mem)
 {
   assert(mem != NULL);
 
+  scm_mem_free_all_obj_in_root_set(mem);
   scm_mem_clean(mem);
 
-  if (mem->to_obj_tbl) scm_basci_hash_destruct(mem->to_obj_tbl);
-  if (mem->from_obj_tbl) scm_basci_hash_destruct(mem->from_obj_tbl);
+  if (mem->to_obj_tbl) scm_basic_hash_destruct(mem->to_obj_tbl);
+  if (mem->from_obj_tbl) scm_basic_hash_destruct(mem->from_obj_tbl);
   if (mem->to_heap != NULL) SCM_MEM_HEAP_DELETE_HEAP(mem->to_heap);
   if (mem->from_heap != NULL) SCM_MEM_HEAP_DELETE_HEAP(mem->from_heap);
   if (mem->persistent != NULL) SCM_MEM_HEAP_DELETE_HEAP(mem->persistent);
@@ -530,13 +563,14 @@ scm_mem_register_root(ScmMem *mem, ScmObj *box)
     
 }
 
+/* TODO: delete this functions */
 ScmMem *
 scm_mem_attach_vm(ScmMem *mem, ScmVM *vm)
 {
   assert(mem != NULL);
   assert(vm != NULL);
 
-  mem->vm = vm;
+  //  mem->vm = vm;
   return mem;
 }
 
@@ -559,7 +593,7 @@ scm_mem_alloc(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmObj *box)
     }
   }
 
-  scm_obj_init(*box, type);
+  scm_mem_obj_init(mem, *box, type);
 
   return mem;
 }
@@ -586,7 +620,47 @@ scm_mem_alloc_persist(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmObj *box)
     }
   }
 
-  scm_obj_init(*box, type);
+  scm_mem_obj_init(mem, *box, type);
+
+  return mem;
+}
+
+ScmMem *
+scm_mem_alloc_root(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmObj *box)
+{
+  ScmMemRootBlock *block;
+
+  assert(mem != NULL);
+  assert(type < SCM_OBJ_NR_TYPE);
+  assert(box != NULL);
+
+  *box = NULL;
+
+  block = malloc(SCM_TYPE_INFO_OBJ_SIZE(type) + sizeof(ScmMemRootBlock));
+  if (block == NULL)
+    return NULL;
+
+  *box = SCM_MEM_ROOT_BLOCK_OBJECT(block);
+  scm_mem_obj_init(mem, *box, type);
+
+  SCM_MEM_ADD_TO_ROOT_SET(mem, block);
+
+  return mem;
+}
+
+ScmMem *
+scm_mem_free_root(ScmMem *mem, ScmObj obj)
+{
+  ScmMemRootBlock *block;
+
+  assert(mem != NULL);
+  assert(SCM_MEM_ROOT_BLOCK_IS_OBJ_IN_BLOK(obj));
+
+  block = SCM_MEM_ROOT_BLOCK_HEADER(obj);
+  SCM_MEM_DEL_FROM_ROOT_SET(mem, block);
+
+  scm_mem_finalize_obj(mem, obj);
+  free(block);
 
   return mem;
 }

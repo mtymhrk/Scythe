@@ -10,6 +10,8 @@ typedef enum {
   SCM_OBUFFER_MODE_FLUSH = 0x02
 } SCM_OBUFFER_MODE_T;
 
+#include "object.h"
+
 void scm_obuffer_concatenate_string(ScmOBuffer *obuffer, const char *str);
 void scm_obuffer_concatenate_char(ScmOBuffer *obuffer, int c);
 void scm_obuffer_truncate_buffer(ScmOBuffer *obuffer, int size);

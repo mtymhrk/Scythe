@@ -17,6 +17,7 @@ const ScmTypeInfo SCM_VECTOR_TYPE_INFO = {
   SCM_OBJ_TYPE_VECTOR,          /* type            */
   scm_vector_pretty_print,      /* pp_func         */
   sizeof(ScmVector),            /* obj_size        */
+  scm_vector_gc_initialize,     /* gc_ini_func     */
   scm_vector_gc_finalize,       /* gc_fin_func     */
   scm_vector_gc_ref_iter_begin  /* gc_ref_itr_func */
 };
@@ -119,6 +120,18 @@ scm_vector_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
 }
 
 void
+scm_vector_gc_initialize(ScmObj obj, ScmMem *mem)
+{
+  ScmVector *vec;
+
+  assert(obj != NULL);
+  assert(mem != NULL);
+
+  vec = SCM_VECTOR(obj);
+  vec->length = 0;
+}
+
+void
 scm_vector_gc_finalize(ScmObj obj)
 {
   scm_vector_finalize(SCM_VECTOR(obj));
@@ -134,7 +147,7 @@ scm_vector_gc_ref_iter_begin(ScmObj obj, ScmGCRefItr *itr)
 
   vec = SCM_VECTOR(obj);
   
-  itr->ptr = &(vec->array[0]);
+  itr->ptr = (vec->length > 0) ? &(vec->array[0]) : NULL;
   itr->src = obj;
   itr->next = scm_vector_gc_ref_iter_next;
 

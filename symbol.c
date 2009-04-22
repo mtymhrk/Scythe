@@ -20,6 +20,7 @@ const ScmTypeInfo SCM_SYMBOL_TYPE_INFO = {
   SCM_OBJ_TYPE_SYMBOL,          /* type            */
   scm_symbol_pretty_print,      /* pp_func         */
   sizeof(ScmSymbol),            /* obj_size        */
+  NULL,                         /* gc_ini_func     */
   scm_symbol_gc_finalize,       /* gc_fin_func     */
   NULL                          /* gc_ref_itr_func */
 };
@@ -59,6 +60,18 @@ scm_symbol_finalize(ScmSymbol *symbol)
   scm_memory_release(symbol->name);
 }
 
+void
+scm_symbol_initialize(ScmSymbol *symbol, const char *str)
+{
+  assert(symbol != NULL);
+  assert(str != NULL);
+
+  scm_obj_init(SCM_OBJ(symbol), SCM_OBJ_TYPE_SYMBOL);
+  symbol->length = strlen(str);
+  symbol->name = scm_memory_allocate(symbol->length + 1);
+  strncpy(symbol->name, str, symbol->length + 1);
+}
+
 ScmSymbol *
 scm_symbol_construct(const char *str)
 {
@@ -67,10 +80,7 @@ scm_symbol_construct(const char *str)
   assert(str != NULL);
 
   symbol = (ScmSymbol *)scm_memory_allocate(sizeof(ScmSymbol));
-  scm_obj_init(SCM_OBJ(symbol), SCM_OBJ_TYPE_SYMBOL);
-  symbol->length = strlen(str);
-  symbol->name = scm_memory_allocate(symbol->length + 1);
-  strncpy(symbol->name, str, symbol->length + 1);
+  scm_symbol_initialize(symbol, str);
 
   return symbol;
 }
@@ -122,7 +132,8 @@ scm_symbol_instance(const char *name)
   if (entry == NULL) {
     symbol = scm_symbol_construct(name);
     scm_basic_hash_put(symbol_table,
-                       SCM_BASIC_HASH_KEY(name), SCM_BASIC_HASH_VALUE(symbol));
+                       SCM_BASIC_HASH_KEY(symbol->name),
+                       SCM_BASIC_HASH_VALUE(symbol));
   } else 
     symbol = (ScmSymbol *)SCM_BASIC_HASH_ENTRY_VALUE(entry);
 

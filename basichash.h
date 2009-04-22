@@ -1,17 +1,20 @@
 #ifndef INCLUDE_HASH_H__
 #define INCLUDE_HASH_H__
 
+#include <stdint.h>
 #include <stdbool.h>
 
 typedef struct ScmBasicHashTableRec ScmBasicHashTable;
 typedef struct ScmBasicHashEntryRec ScmBasicHashEntry;
 typedef struct ScmBasicHashItrRec ScmBasicHashItr;
-typedef void *ScmBasicHashKey;
-typedef void *ScmBasicHashValue;
+typedef uintptr_t ScmBasicHashKey;
+typedef uintptr_t ScmBasicHashValue;
 
 struct ScmBasicHashEntryRec {
   ScmBasicHashKey key;
   ScmBasicHashValue value;
+  unsigned int hash;
+  struct ScmBasicHashEntryRec *prev;
   struct ScmBasicHashEntryRec *next;
 }; 
 
@@ -49,7 +52,12 @@ ScmBasicHashEntry *scm_basic_hash_insert(ScmBasicHashTable *table,
 ScmBasicHashEntry *scm_basic_hash_put(ScmBasicHashTable *table,
                                       ScmBasicHashKey key,
                                       ScmBasicHashValue value);
+ScmBasicHashEntry *scm_basic_hash_update_entry(ScmBasicHashTable *table,
+                                               ScmBasicHashEntry *entry,
+                                               ScmBasicHashValue value);
 void scm_basic_hash_delete(ScmBasicHashTable *table, ScmBasicHashKey key);
+void scm_basic_hash_delete_entry(ScmBasicHashTable *table,
+                                 ScmBasicHashEntry *entry);
 ScmBasicHashEntry *scm_basic_hash_get(ScmBasicHashTable *table,
                                       ScmBasicHashKey key);
 void scm_basic_hash_clear(ScmBasicHashTable *table);
@@ -62,6 +70,6 @@ int scm_basic_hash_itr_next(ScmBasicHashItr *itr);
 ScmBasicHashTable *scm_basic_hash_construct(size_t size,
                                             ScmBasicHashFunc hash_func,
                                             ScmBasicHashCompFunc comp_func);
-void scm_basci_hash_destruct(ScmBasicHashTable *table);
+void scm_basic_hash_destruct(ScmBasicHashTable *table);
 
 #endif /* INCLUDE_HASH_H__ */

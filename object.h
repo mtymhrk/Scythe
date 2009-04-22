@@ -24,15 +24,19 @@ typedef enum {
   SCM_OBJ_TYPE_CHAR,
   SCM_OBJ_TYPE_EOF,
   SCM_OBJ_TYPE_PORT,
+  SCM_OBJ_TYPE_PRIM_PROC,
+  SCM_OBJ_TYPE_BIND_REF,
   SCM_OBJ_NR_TYPE
 } SCM_OBJ_TYPE_T;
 
 extern const ScmTypeInfo const *SCM_TYPE_INFO_TBL[SCM_OBJ_NR_TYPE];
 
 #include "obuffer.h"
+#include "memory.h"
 
 typedef void (*ScmPrettyPrintFunction)(ScmObj obj,
 				       ScmOBuffer *obuffer);
+typedef void (*ScmGCInitializeFunc)(ScmObj obj, ScmMem *mem);
 typedef void (*ScmGCFinalizeFunc)(ScmObj obj);
 typedef int (*ScmGCRefItrFunc)(ScmObj obj, ScmGCRefItr *itr);
 
@@ -48,12 +52,15 @@ struct ScmTypeInfoRec {
   SCM_OBJ_TYPE_T type;
   ScmPrettyPrintFunction pp_func;
   size_t obj_size;
+  ScmGCInitializeFunc gc_ini_func;
   ScmGCFinalizeFunc gc_fin_func;
   ScmGCRefItrFunc gc_ref_itr_func;
 };
 
 #define SCM_TYPE_INFO_PP(type) (SCM_TYPE_INFO_TBL[(type)]->pp_func)
 #define SCM_TYPE_INFO_OBJ_SIZE(type) (SCM_TYPE_INFO_TBL[(type)]->obj_size)
+#define SCM_TYPE_INFO_GC_INI(type) (SCM_TYPE_INFO_TBL[(type)]->gc_ini_func)
+#define SCM_TYPE_INFO_HAS_GC_INI(type) (SCM_TYPE_INFO_GC_INI(type) != NULL)
 #define SCM_TYPE_INFO_GC_FIN(type) (SCM_TYPE_INFO_TBL[(type)]->gc_fin_func)
 #define SCM_TYPE_INFO_HAS_GC_FIN(type) (SCM_TYPE_INFO_GC_FIN(type) != NULL)
 #define SCM_TYPE_INFO_GC_REF_ITR(type) \
@@ -62,6 +69,10 @@ struct ScmTypeInfoRec {
 
 #define SCM_TYPE_INFO_OBJ_SIZE_FROM_OBJ(obj) \
   SCM_TYPE_INFO_OBJ_SIZE(scm_obj_type(obj))
+#define SCM_TYPE_INFO_GC_INI_FROM_OBJ(obj) \
+  SCM_TYPE_INFO_GC_INI(scm_obj_type(obj))
+#define SCM_TYPE_INFO_HAS_GC_INI_FROM_OBJ(obj) \
+  SCM_TYPE_INFO_HAS_GC_INI(scm_obj_type(obj))
 #define SCM_TYPE_INFO_GC_FIN_FROM_OBJ(obj) \
   SCM_TYPE_INFO_GC_FIN(scm_obj_type(obj))
 #define SCM_TYPE_INFO_HAS_GC_FIN_FROM_OBJ(obj) \

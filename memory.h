@@ -7,6 +7,7 @@
 
 typedef struct ScmMemHeapBlockRec ScmMemHeapBlock;
 typedef struct ScmMemHeapRec ScmMemHeap;
+typedef struct ScmMemRootBlockRec ScmMemRootBlock;
 typedef struct ScmMemRec ScmMem;
 typedef struct ScmForwardRec ScmForward;
 
@@ -238,16 +239,51 @@ struct ScmMemHeapRec {
        (block) = SCM_MEM_HEAP_BLOCK_NEXT(block))
 
 
+struct ScmMemRootBlockRec {
+  ScmMemRootBlock *next;
+  ScmMemRootBlock *prev;
+  uint8_t object[0];
+};
+
+#define SCM_MEM_ROOT_BLOCK_NEXT(block) ((block)->next)
+#define SCM_MEM_ROOT_BLOCK_PREV(block) ((block)->prev)
+#define SCM_MEM_ROOT_BLOCK_OBJECT(block) (SCM_OBJ((block)->object))
+#define SCM_MEM_ROOT_BLOCK_HEADER(obj) ((ScmMemRootBlock *)((uint8_t *)obj - 8))
+#define SCM_MEM_ROOT_BLOCK_IS_OBJ_IN_BLOK(obj) ((unsigned int)(obj) > 8U)
+
 struct ScmMemRec {
   ScmBasicHashTable *to_obj_tbl;
   ScmBasicHashTable *from_obj_tbl;
   ScmMemHeap *to_heap;
   ScmMemHeap *from_heap;
   ScmMemHeap *persistent;
+  ScmMemRootBlock *roots;
   ScmObj **extra_root_set;
   int nr_extra_root;
-  ScmVM *vm;
 };
+
+#define SCM_MEM_ADD_TO_ROOT_SET(mem, block)     \
+  do {                                          \
+    (block)->next = (mem)->roots;               \
+    (block)->prev = NULL;                       \
+    if ((mem)->roots != NULL)                   \
+      (mem)->roots->prev = (block);             \
+    (mem)->roots = (block);                     \
+  } while(0)
+
+#define SCM_MEM_DEL_FROM_ROOT_SET(mem, block)                    \
+  do {                                                           \
+    ScmMemRootBlock *nxt = SCM_MEM_ROOT_BLOCK_NEXT(block);       \
+    ScmMemRootBlock *prv = SCM_MEM_ROOT_BLOCK_PREV(block);       \
+                                                                 \
+    if (prv == NULL)                                             \
+      (mem)->roots = nxt;                                        \
+    else                                                         \
+      prv->next = nxt;                                           \
+                                                                 \
+    if (nxt != NULL)                                             \
+      nxt->prev = NULL;                                          \
+  } while(0)
 
 #define SCM_MEM_HEAP_INIT_BLOCK_SIZE 4096
 #define SCM_MEM_OBJ_TBL_HASH_SIZE 1024
@@ -264,6 +300,8 @@ ScmMem *scm_mem_clean(ScmMem *mem);
 ScmMem *scm_mem_register_root(ScmMem *mem, ScmObj *box);
 ScmMem *scm_mem_attach_vm(ScmMem *mem, ScmVM *vm);
 ScmMem *scm_mem_alloc(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmObj *box);
+ScmMem * scm_mem_alloc_root(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmObj *box);
+ScmMem *scm_mem_free_root(ScmMem *mem, ScmObj obj);
 void scm_mem_gc_start(ScmMem *mem);
 ScmMem *scm_mem_alloc_persist(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmObj *box);
 
