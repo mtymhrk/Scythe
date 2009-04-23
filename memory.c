@@ -36,7 +36,7 @@ const ScmTypeInfo SCM_FORWARD_TYPE_INFO = {
   NULL                     /* gc_ref_itr_func */
 };
 
-
+static ScmMemRootBlock *shared_roots = NULL;
 
 /* struct ScmMemoryRec { */
 /*   int dummy; */
@@ -56,6 +56,7 @@ const ScmTypeInfo SCM_FORWARD_TYPE_INFO = {
 /*   return memory_instance; */
 /* } */
 
+
 void *
 scm_memory_allocate(size_t size)
 {
@@ -69,6 +70,7 @@ scm_memory_release(void *block)
   free(block);
   return NULL;
 }
+
 
 
 
@@ -88,19 +90,25 @@ static int
 scm_mem_expand_heap(ScmMem *mem, int inc_block)
 {
   int i;
+  size_t sz;
   ScmMemHeapBlock *to_block, *from_block;
 
   assert(mem != NULL);
   assert(inc_block >= 0);
 
+  sz = SCM_MEM_HEAP_TAIL_BLOCK_SIZE(mem->to_heap) * 2;
+  if (sz == 0) sz = SCM_MEM_HEAP_INIT_BLOCK_SIZE;
+
   for (i = 0; i < inc_block; i++) {
-    SCM_MEM_HEAP_NEW_BLOCK(to_block, SCM_MEM_HEAP_INIT_BLOCK_SIZE);
-    SCM_MEM_HEAP_NEW_BLOCK(from_block, SCM_MEM_HEAP_INIT_BLOCK_SIZE);
+    SCM_MEM_HEAP_NEW_BLOCK(to_block, sz);
+    SCM_MEM_HEAP_NEW_BLOCK(from_block, sz);
     if (to_block == NULL || from_block == NULL)
       goto err;
 
     SCM_MEM_HEAP_ADD_BLOCK(mem->to_heap, to_block);
     SCM_MEM_HEAP_ADD_BLOCK(mem->from_heap, from_block);
+
+    sz *= 2;
   }
 
   return i;
@@ -250,19 +258,6 @@ scm_mem_clean_persistent(ScmMem *mem)
   SCM_MEM_HEAP_REWIND(mem->persistent);
 
   assert(mem != NULL);
-}
-
-static void
-scm_mem_free_all_obj_in_root_set(ScmMem *mem)
-{
-  ScmMemRootBlock *block;
-
-  assert(mem != NULL);
-
-  for (block = mem->roots; block != NULL; block = mem->roots) {
-    ScmObj obj = SCM_MEM_ROOT_BLOCK_OBJECT(block);
-    scm_mem_free_root(mem, obj);
-  }
 }
 
 static void
@@ -420,6 +415,8 @@ scm_mem_copy_children_of_persistent(ScmMem *mem)
   ScmMemHeapBlock *block;
   ScmObj obj;
 
+  assert(mem != NULL);
+
   SCM_MEM_HEAP_FOR_EACH_BLOCK(mem->persistent, block) {
     SCM_MEM_HEAP_BLOCK_FOR_EACH_OBJ(block, obj) {
       scm_mem_copy_children(mem, obj);
@@ -428,12 +425,35 @@ scm_mem_copy_children_of_persistent(ScmMem *mem)
 }
 
 static void
+scm_mem_copy_children_of_root_obj(ScmMem *mem, ScmMemRootBlock *head)
+{
+  ScmMemRootBlock *block;
+
+  for (block = head; block != NULL; block = SCM_MEM_ROOT_BLOCK_NEXT(block)) {
+    ScmObj obj = SCM_MEM_ROOT_BLOCK_OBJECT(block);
+    scm_mem_copy_children(mem, obj);
+  }
+}
+
+static void
+scm_mem_copy_children_of_shared_root(ScmMem *mem)
+{
+  scm_mem_copy_children_of_root_obj(mem, shared_roots);
+}
+
+static void
+scm_mem_copy_children_of_root(ScmMem *mem)
+{
+  scm_mem_copy_children_of_root_obj(mem, mem->roots);
+}
+
+static void
 scm_mem_copy_root_obj(ScmMem *mem)
 {
   assert(mem != NULL);
 
-  /* TODO: copy objects in  VM's stack frame, register, and so on. */
-
+  scm_mem_copy_children_of_shared_root(mem);
+  scm_mem_copy_children_of_root(mem);
   scm_mem_copy_extra_root_obj(mem);
   scm_mem_copy_children_of_persistent(mem);
 }
@@ -450,6 +470,57 @@ scm_mem_scan_obj(ScmMem *mem)
     SCM_MEM_HEAP_BLOCK_FOR_EACH_OBJ(block, obj) {
       scm_mem_copy_children(mem, obj);
     }
+  }
+}
+
+static ScmObj
+scm_mem_alloc_root_obj(SCM_OBJ_TYPE_T type, ScmMem *mem, ScmMemRootBlock **head)
+{
+  ScmMemRootBlock *block;
+  ScmObj obj;
+
+  assert(type < SCM_OBJ_NR_TYPE);
+  assert(head != NULL);
+
+  block = malloc(SCM_TYPE_INFO_OBJ_SIZE(type) + sizeof(ScmMemRootBlock));
+  if (block == NULL)
+    return NULL;
+
+  obj = SCM_MEM_ROOT_BLOCK_OBJECT(block);
+  scm_mem_obj_init(mem, obj, type);
+
+  SCM_MEM_ADD_TO_ROOT_SET(*head, block);
+
+  return obj;
+}
+
+static ScmObj
+scm_mem_free_root_obj(ScmObj obj, ScmMem *mem, ScmMemRootBlock **head)
+{
+  ScmMemRootBlock *block;
+
+  assert(mem != NULL);
+  assert(SCM_MEM_ROOT_BLOCK_IS_OBJ_IN_BLOK(obj));
+
+  block = SCM_MEM_ROOT_BLOCK_HEADER(obj);
+  SCM_MEM_DEL_FROM_ROOT_SET(*head, block);
+
+  scm_mem_finalize_obj(mem, obj);
+  free(block);
+
+  return NULL;
+}
+
+static void
+scm_mem_free_all_obj_in_root_set(ScmMem *mem, ScmMemRootBlock **head)
+{
+  ScmMemRootBlock *block;
+
+  assert(mem != NULL);
+
+  for (block = *head; block != NULL; block = *head) {
+    ScmObj obj = SCM_MEM_ROOT_BLOCK_OBJECT(block);
+    scm_mem_free_root_obj(obj, mem, head);
   }
 }
 
@@ -505,7 +576,7 @@ scm_mem_finalize(ScmMem *mem)
 {
   assert(mem != NULL);
 
-  scm_mem_free_all_obj_in_root_set(mem);
+  scm_mem_free_all_obj_in_root_set(mem, &mem->roots);
   scm_mem_clean(mem);
 
   if (mem->to_obj_tbl) scm_basic_hash_destruct(mem->to_obj_tbl);
@@ -628,22 +699,12 @@ scm_mem_alloc_persist(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmObj *box)
 ScmMem *
 scm_mem_alloc_root(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmObj *box)
 {
-  ScmMemRootBlock *block;
-
   assert(mem != NULL);
   assert(type < SCM_OBJ_NR_TYPE);
   assert(box != NULL);
 
-  *box = NULL;
-
-  block = malloc(SCM_TYPE_INFO_OBJ_SIZE(type) + sizeof(ScmMemRootBlock));
-  if (block == NULL)
-    return NULL;
-
-  *box = SCM_MEM_ROOT_BLOCK_OBJECT(block);
-  scm_mem_obj_init(mem, *box, type);
-
-  SCM_MEM_ADD_TO_ROOT_SET(mem, block);
+  *box = scm_mem_alloc_root_obj(type, mem, &mem->roots);
+  if (*box == NULL) return NULL;
 
   return mem;
 }
@@ -651,16 +712,10 @@ scm_mem_alloc_root(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmObj *box)
 ScmMem *
 scm_mem_free_root(ScmMem *mem, ScmObj obj)
 {
-  ScmMemRootBlock *block;
-
   assert(mem != NULL);
   assert(SCM_MEM_ROOT_BLOCK_IS_OBJ_IN_BLOK(obj));
 
-  block = SCM_MEM_ROOT_BLOCK_HEADER(obj);
-  SCM_MEM_DEL_FROM_ROOT_SET(mem, block);
-
-  scm_mem_finalize_obj(mem, obj);
-  free(block);
+  scm_mem_free_root_obj(obj, mem, &mem->roots);
 
   return mem;
 }
@@ -682,4 +737,24 @@ scm_mem_gc_start(ScmMem *mem)
     scm_mem_expand_heap(mem, 1);
   else if (nr_free > 1) 
     scm_mem_release_redundancy_heap_blocks(mem, 1);
+}
+
+
+ScmObj
+scm_memory_alloc_shared_root(SCM_OBJ_TYPE_T type)
+{
+  return scm_mem_alloc_root_obj(type, NULL, &shared_roots);
+}
+
+ScmObj
+scm_memory_free_shared_root(ScmObj obj)
+{
+  return scm_mem_free_root_obj(obj, NULL, &shared_roots);
+}
+
+void
+scm_memory_free_all_shared_root(void)
+{
+  scm_mem_free_all_obj_in_root_set(NULL, &shared_roots);
+  return;
 }

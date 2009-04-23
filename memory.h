@@ -84,6 +84,8 @@ struct ScmMemHeapRec {
 #define SCM_MEM_HEAP_NR_FREE_BLOCK(heap) ((heap)->nr_free_block)
 #define SCM_MEM_HEAP_NR_USED_BLOCK(heap) \
   ((heap)->nr_block - (heap)->nr_free_block)
+#define SCM_MEM_HEAP_TAIL_BLOCK_SIZE(heap) \
+  (((heap)->tail == NULL) ? 0U : SCM_MEM_HEAP_BLOCK_SIZE((heap)->tail))
 
 
 #define SCM_MEM_HEAP_ADD_BLOCK(heap, block)                             \
@@ -262,27 +264,27 @@ struct ScmMemRec {
   int nr_extra_root;
 };
 
-#define SCM_MEM_ADD_TO_ROOT_SET(mem, block)     \
+#define SCM_MEM_ADD_TO_ROOT_SET(head, block)    \
   do {                                          \
-    (block)->next = (mem)->roots;               \
+    (block)->next = (head);                     \
     (block)->prev = NULL;                       \
-    if ((mem)->roots != NULL)                   \
-      (mem)->roots->prev = (block);             \
-    (mem)->roots = (block);                     \
+    if ((head) != NULL)                         \
+      (head)->prev = (block);                   \
+    (head) = (block);                           \
   } while(0)
 
-#define SCM_MEM_DEL_FROM_ROOT_SET(mem, block)                    \
+#define SCM_MEM_DEL_FROM_ROOT_SET(head, block)                   \
   do {                                                           \
     ScmMemRootBlock *nxt = SCM_MEM_ROOT_BLOCK_NEXT(block);       \
     ScmMemRootBlock *prv = SCM_MEM_ROOT_BLOCK_PREV(block);       \
                                                                  \
     if (prv == NULL)                                             \
-      (mem)->roots = nxt;                                        \
+      (head) = nxt;                                              \
     else                                                         \
       prv->next = nxt;                                           \
                                                                  \
     if (nxt != NULL)                                             \
-      nxt->prev = NULL;                                          \
+      nxt->prev = prv;                                           \
   } while(0)
 
 #define SCM_MEM_HEAP_INIT_BLOCK_SIZE 4096
@@ -304,5 +306,9 @@ ScmMem * scm_mem_alloc_root(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmObj *box);
 ScmMem *scm_mem_free_root(ScmMem *mem, ScmObj obj);
 void scm_mem_gc_start(ScmMem *mem);
 ScmMem *scm_mem_alloc_persist(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmObj *box);
+
+ScmObj scm_memory_alloc_shared_root(SCM_OBJ_TYPE_T type);
+ScmObj scm_memory_free_shared_root(ScmObj obj);
+void scm_memory_free_all_shared_root(void);
 
 #endif /* INCLUDED_MEMORY_H__ */
