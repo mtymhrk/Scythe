@@ -690,8 +690,6 @@ test_scm_mem_construct(void)
   cut_assert_not_null(mem->to_heap);
   cut_assert_not_null(mem->from_heap);
   cut_assert_not_null(mem->persistent);
-  cut_assert_not_null(mem->extra_root_set);
-  cut_assert_equal_int(0, mem->nr_extra_root);
 
 
   cut_assert_equal_int(1, SCM_MEM_HEAP_NR_BLOCK(mem->to_heap));

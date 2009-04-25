@@ -396,20 +396,6 @@ scm_mem_copy_children(ScmMem *mem, ScmObj obj)
 }
 
 static void
-scm_mem_copy_extra_root_obj(ScmMem *mem)
-{
-  int i;
-
-  assert(mem != NULL);
-
-  for (i = 0; i < mem->nr_extra_root; i++) {
-    if (mem->extra_root_set[i] != NULL
-        && *mem->extra_root_set[i] != NULL)
-      *mem->extra_root_set[i] = scm_mem_copy_obj(mem, *mem->extra_root_set[i]);
-  }
-}
-
-static void
 scm_mem_copy_children_of_persistent(ScmMem *mem)
 {
   ScmMemHeapBlock *block;
@@ -454,7 +440,6 @@ scm_mem_copy_root_obj(ScmMem *mem)
 
   scm_mem_copy_children_of_shared_root(mem);
   scm_mem_copy_children_of_root(mem);
-  scm_mem_copy_extra_root_obj(mem);
   scm_mem_copy_children_of_persistent(mem);
 }
 
@@ -554,10 +539,6 @@ scm_mem_initialize(ScmMem *mem)
   SCM_MEM_HEAP_NEW_HEAP(mem->persistent, 1, SCM_MEM_HEAP_INIT_BLOCK_SIZE);
   if (mem->persistent == NULL) goto err;
 
-  mem->extra_root_set = malloc(sizeof(ScmObj *) * SCM_MEM_EXTRA_ROOT_SET_SIZE);
-  if (mem->extra_root_set == NULL) goto err;
-  mem->nr_extra_root = 0;
-
   return mem;
 
  err:
@@ -566,7 +547,6 @@ scm_mem_initialize(ScmMem *mem)
   if (mem->to_heap != NULL) SCM_MEM_HEAP_DELETE_HEAP(mem->to_heap);
   if (mem->from_heap != NULL) SCM_MEM_HEAP_DELETE_HEAP(mem->from_heap);
   if (mem->persistent != NULL) SCM_MEM_HEAP_DELETE_HEAP(mem->persistent);
-  if (mem->extra_root_set != NULL) free(mem->extra_root_set);
 
   return NULL;
 }
@@ -584,7 +564,6 @@ scm_mem_finalize(ScmMem *mem)
   if (mem->to_heap != NULL) SCM_MEM_HEAP_DELETE_HEAP(mem->to_heap);
   if (mem->from_heap != NULL) SCM_MEM_HEAP_DELETE_HEAP(mem->from_heap);
   if (mem->persistent != NULL) SCM_MEM_HEAP_DELETE_HEAP(mem->persistent);
-  if (mem->extra_root_set != NULL) free(mem->extra_root_set);
 
   return NULL;
 }
@@ -620,19 +599,6 @@ scm_mem_clean(ScmMem *mem)
   return mem;
 }
 
-ScmMem *
-scm_mem_register_root(ScmMem *mem, ScmObj *box)
-{
-  assert(mem != NULL);
-  
-  if (mem->nr_extra_root < SCM_MEM_EXTRA_ROOT_SET_SIZE) {
-    mem->extra_root_set[mem->nr_extra_root++] = box;
-    return mem;
-  }
-  else
-    return NULL;
-    
-}
 
 /* TODO: delete this functions */
 ScmMem *

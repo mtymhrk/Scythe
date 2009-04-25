@@ -260,8 +260,6 @@ struct ScmMemRec {
   ScmMemHeap *from_heap;
   ScmMemHeap *persistent;
   ScmMemRootBlock *roots;
-  ScmObj **extra_root_set;
-  int nr_extra_root;
 };
 
 #define SCM_MEM_ADD_TO_ROOT_SET(head, block)    \
@@ -299,7 +297,6 @@ void *scm_memory_release(void *block);
 ScmMem *scm_mem_construct(void);
 ScmMem *scm_mem_destruct(ScmMem *mem);
 ScmMem *scm_mem_clean(ScmMem *mem);
-ScmMem *scm_mem_register_root(ScmMem *mem, ScmObj *box);
 ScmMem *scm_mem_attach_vm(ScmMem *mem, ScmVM *vm);
 ScmMem *scm_mem_alloc(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmObj *box);
 ScmMem * scm_mem_alloc_root(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmObj *box);
