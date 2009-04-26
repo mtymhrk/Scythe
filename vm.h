@@ -10,9 +10,11 @@ typedef struct ScmVMRec ScmVM;
 
 #include "object.h"
 #include "memory.h"
+#include "reference.h"
 
 ScmVM *scm_vm_current_vm(void);
 ScmVM *scm_vm_set_current_vm(ScmVM *vm);
 ScmMem *scm_vm_current_mm(void);
+ScmRefStack *scm_vm_current_ref_stack(void);
 
 #endif /* INCLUDE_VM_H__ */

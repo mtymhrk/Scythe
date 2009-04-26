@@ -1,6 +1,5 @@
 #include <unistd.h>
 #include <stdlib.h>
-#include <stdarg.h>
 #include <string.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -38,121 +37,6 @@ const ScmTypeInfo SCM_FORWARD_TYPE_INFO = {
 };
 
 static ScmMemRootBlock *shared_roots = NULL;
-
-
-static ScmObjStack *
-scm_obj_stack_add_new_block(ScmObjStack *stack, size_t size)
-{
-  ScmObjStackBlock *block;
-
-  assert(stack != NULL);
-
-  SCM_OBJ_STACK_NEW_BLOCK(block, size);
-  if (block == NULL) return NULL;
-
-  SCM_OBJ_STACK_ADD_BLOCK(stack, block);
-
-  return stack;
-}
-
-static ScmObjStack *
-scm_obj_stack_growth_if_needed(ScmObjStack *stack)
-{
-  if (SCM_OBJ_STACK_BLOCK_IS_FULL(stack->current)) {
-    if (stack->current == stack->tail) {
-      size_t size = SCM_OBJ_STACK_BLOCK_SIZE(stack->tail);
-      if (scm_obj_stack_add_new_block(stack, size) == NULL)
-        return NULL;
-    }
-    stack->current = SCM_OBJ_STACK_BLOCK_NEXT(stack->current);
-  }
-
-  return stack;
-}
-
-
-static ScmObjStack *
-scm_obj_stack_initialize(ScmObjStack *stack, size_t size)
-{
-  assert(stack != NULL);
-
-  stack->head = stack->tail = stack->current = NULL;
-  return scm_obj_stack_add_new_block(stack, size);
-}
-
-static void
-scm_obj_stack_finalize(ScmObjStack *stack)
-{
-  assert(stack != NULL);
-
-  do {
-    ScmObjStackBlock *block;
-    SCM_OBJ_STACK_DEL_BLOCK(stack, block);
-    if (block != NULL) scm_memory_release(block);
-  } while(stack->head != NULL);
-}
-
-ScmObjStack *
-scm_obj_stack_construct(size_t size)
-{
-  ScmObjStack *stack;
-
-  stack = scm_memory_allocate(sizeof(ScmObjStack));
-  if (stack == NULL) return NULL;
-
-  if (scm_obj_stack_initialize(stack, size) == NULL) {
-    scm_memory_release(stack);
-    return NULL;
-  }
-
-  stack->tail = stack->current = stack->head;
-  return stack;
-}
-
-void
-scm_obj_stack_destruct(ScmObjStack *stack)
-{
-  assert(stack != NULL);
-
-  scm_obj_stack_finalize(stack);
-  scm_memory_release(stack);
-}
-
-ScmObjStack *
-scm_obj_stack_push(ScmObjStack *stack, ...)
-{
-  va_list ap;
-  ScmObj *ptr;
-
-  assert(stack != NULL);
-
-  va_start(ap, stack);
-  while ((ptr = va_arg(ap, ScmObj *)) != NULL) {
-    if (scm_obj_stack_growth_if_needed(stack) == NULL)
-      goto err;
-
-    SCM_OBJ_STACK_BLOCK_PUSH(stack->current, ptr);
-  }
-
-  va_end(ap);
-  return stack;
-
- err:
-  va_end(ap);
-  return NULL;
-}
-
-ScmObjRef
-scm_obj_stack_alloc(ScmObjStack *stack, ScmObj init)
-{
-  ScmObjRef ref;
-
-  if (scm_obj_stack_growth_if_needed(stack) == NULL)
-    return SCM_OBJ_REF_NULL;
-
-  SCM_OBJ_STACK_BLOCK_ALLOC(stack->current, ref, init);
-  return ref;
-}
 
 
 

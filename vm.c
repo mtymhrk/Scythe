@@ -5,6 +5,7 @@
 
 #include "vm.h"
 #include "memory.h"
+#include "reference.h"
 #include "object.h"
 
 #define SCM_VM_STACK_SIZE 1024
@@ -43,6 +44,7 @@ struct ScmVMRec {
   ScmObj val;                   /* value register */
   ScmVMInst *iseq;
   ScmMem *mem;
+  ScmRefStack *ref_stack;
 };
 
 #define SCM_VM_CHECK_STACK_OVER_FLOW(vm) \
@@ -160,4 +162,10 @@ ScmMem *
 scm_vm_current_mm(void)
 {
   return (global_env == NULL) ? NULL : global_env->mem;
+}
+
+ScmRefStack *
+scm_vm_current_ref_stack(void)
+{
+  return (current_vm == NULL) ? NULL : current_vm->ref_stack;
 }
