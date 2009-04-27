@@ -9,6 +9,7 @@
 #include "object.h"
 
 #define SCM_VM_STACK_SIZE 1024
+#define SCM_VM_REF_STACK_INIT_SIZE 512
 
 typedef enum {
   SCM_VM_INST_CODE_NOOP,
@@ -35,6 +36,7 @@ struct ScmVMInstRec {
 #define SCM_VM_INST_FETCH_OBJ(iseq, ip, obj) (obj) = *(ScmObj *)(ip++)
 
 struct ScmVMRec {
+  ScmObjHeader header;
   ScmObj *stack;                /* stack */
   size_t stack_size;            /* stack size */
   ScmObj *sp;                   /* stack pointer */
@@ -45,6 +47,7 @@ struct ScmVMRec {
   ScmVMInst *iseq;
   ScmMem *mem;
   ScmRefStack *ref_stack;
+  ScmVM *parent;
 };
 
 #define SCM_VM_CHECK_STACK_OVER_FLOW(vm) \
@@ -62,55 +65,95 @@ scm_vm_inst_call(ScmVM *vm)
   ;
 }
 
-static ScmVM *
+ScmVM *
 scm_vm_initialize(ScmVM *vm, ScmVM *parent)
 {
   assert(vm != NULL);
 
-  vm->stack = malloc(sizeof(ScmObj) * SCM_VM_STACK_SIZE);
-  if (vm->stack == NULL) return NULL;
+  scm_obj_init(SCM_OBJ(vm), SCM_OBJ_TYPE_VM);
 
-  vm->stack_size = SCM_VM_STACK_SIZE;
-  vm->sp = vm->stack;
+  vm->sp = NULL;
   vm->fp = NULL;
   vm->cp = NULL;
   vm->ip = NULL;
   vm->val = NULL;
   vm->iseq = NULL;
-  if (scm_mem_attach_vm(global_env->mem, vm) == NULL) goto err;
+  vm->stack = NULL;
+  vm->parent = parent;
 
+  vm->stack = scm_mem_alloc_plain(vm->mem, sizeof(ScmObj) * SCM_VM_STACK_SIZE);
+  if (vm->stack == NULL) goto err;
+
+  vm->stack_size = SCM_VM_STACK_SIZE;  
+  vm->sp = vm->stack;
+
+  vm->ref_stack = scm_ref_stack_construct(SCM_VM_REF_STACK_INIT_SIZE);
+  if (vm->ref_stack == NULL) goto err;
+  
   return vm;
 
  err:
-  free(vm->stack);
+  if (vm->stack != NULL) {
+    vm->stack = scm_mem_free_plain(vm->mem, vm->stack);
+    vm->sp = NULL;
+  }
+  if (vm->ref_stack != NULL) {
+    scm_ref_stack_destruct(vm->ref_stack);
+    vm->ref_stack = NULL;
+  }
   return NULL;
 }
 
 ScmVM *
-scm_vm_construct(ScmVMEnv *env)
+scm_vm_finalize(ScmVM *vm)
 {
-  ScmVM *vm;
+  vm->stack = scm_mem_free_plain(vm->mem, vm->stack);
+  scm_ref_stack_destruct(vm->ref_stack);
+  vm->ref_stack = NULL;
 
+  return vm;
+}
+
+ScmVM *
+scm_vm_construct(void)
+{
+  ScmMem *mem;
+  ScmObj vm;
+
+  mem = scm_mem_construct();
+  if (mem == NULL) return NULL;
+
+  scm_mem_alloc_root(mem, SCM_OBJ_TYPE_VM, &vm);
   vm = malloc(sizeof(ScmVM));
   if (vm == NULL) return NULL;
 
-  if (scm_vm_initialize(vm, NULL) == NULL) {
-    free(vm);
+  if (scm_vm_initialize(SCM_VM(vm), NULL) == NULL) {
+    scm_mem_free_root(mem, vm);
+    scm_mem_destruct(mem);
     return NULL;
   }
 
-  return vm;
+  return SCM_VM(vm);
 }
 
 void
 scm_vm_destruct(ScmVM *vm)
 {
+  ScmMem *mem;
+
   assert(vm != NULL);
 
-  //  scm_mem_clean(vm->mem);
+  scm_vm_finalize(vm);
 
-  free(vm->stack);
-  free(vm);
+  if (vm->parent == NULL)
+    mem = vm->mem;
+  else
+    mem = NULL;
+
+  scm_mem_free_root(vm->mem, SCM_OBJ(vm));
+
+  if (mem != NULL)
+    scm_mem_destruct(vm->mem);
 }
 
 void

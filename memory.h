@@ -244,14 +244,16 @@ struct ScmMemHeapRec {
 struct ScmMemRootBlockRec {
   ScmMemRootBlock *next;
   ScmMemRootBlock *prev;
-  uint8_t object[0];
+  uint8_t object[];
 };
 
 #define SCM_MEM_ROOT_BLOCK_NEXT(block) ((block)->next)
 #define SCM_MEM_ROOT_BLOCK_PREV(block) ((block)->prev)
 #define SCM_MEM_ROOT_BLOCK_OBJECT(block) (SCM_OBJ((block)->object))
-#define SCM_MEM_ROOT_BLOCK_HEADER(obj) ((ScmMemRootBlock *)((uint8_t *)obj - 8))
-#define SCM_MEM_ROOT_BLOCK_IS_OBJ_IN_BLOK(obj) ((unsigned int)(obj) > 8U)
+#define SCM_MEM_ROOT_BLOCK_HEADER(obj) \
+  ((ScmMemRootBlock *)((uint8_t *)obj - sizeof(ScmMemRootBlock)))
+#define SCM_MEM_ROOT_BLOCK_IS_OBJ_IN_BLOK(obj) \
+  ((unsigned int)(obj) > sizeof(ScmMemRootBlock))
 
 struct ScmMemRec {
   ScmBasicHashTable *to_obj_tbl;
@@ -298,12 +300,13 @@ ScmMem *scm_mem_construct(void);
 ScmMem *scm_mem_destruct(ScmMem *mem);
 ScmMem *scm_mem_clean(ScmMem *mem);
 ScmMem *scm_mem_attach_vm(ScmMem *mem, ScmVM *vm);
-ScmMem *scm_mem_alloc(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmObj *box);
-ScmMem * scm_mem_alloc_root(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmObj *box);
+ScmMem *scm_mem_alloc_heap(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmObj *box);
+ScmMem *scm_mem_alloc_root(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmObj *box);
 ScmMem *scm_mem_free_root(ScmMem *mem, ScmObj obj);
+void *scm_mem_alloc_plain(ScmMem *mem, size_t size);
+void *scm_mem_free_plain(ScmMem *mem, void *p);
 void scm_mem_gc_start(ScmMem *mem);
 ScmMem *scm_mem_alloc_persist(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmObj *box);
-
 ScmObj scm_memory_alloc_shared_root(SCM_OBJ_TYPE_T type);
 ScmObj scm_memory_free_shared_root(ScmObj obj);
 void scm_memory_free_all_shared_root(void);

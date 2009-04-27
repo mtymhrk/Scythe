@@ -1,7 +1,7 @@
 #ifndef INCLUDE_REFERENCE_H__
 #define INCLUDE_REFERENCE_H__
 
-typedef uintptr_t ScmObjRef;
+typedef uintptr_t ScmRef;
 typedef struct ScmRefStackElemRec ScmRefStackElem;
 typedef struct ScmRefStackBlockRec ScmRefStackBlock;
 typedef struct ScmRefStackInfoRec ScmRefStackInfo;
@@ -10,10 +10,10 @@ typedef struct ScmRefStackRec ScmRefStack;
 #include "object.h"
 #include "vm.h"
 
-#define SCM_OBJ_REF_MAKE(obj) ((ScmObjRef)&(obj))
-#define SCM_OBJ_REF_NULL ((ScmObjRef)NULL)
-#define SCM_OBJ_REF_OBJ(ref) (*((ScmObj *)(ref)))
-#define SCM_OBJ_REF_UPDATE(ref, obj) (*((ScmObj *)(ref)) = (obj))
+#define SCM_REF_MAKE(obj) ((ScmRef)&(obj))
+#define SCM_REF_NULL ((ScmRef)NULL)
+#define SCM_REF_OBJ(ref) (*((ScmObj *)(ref)))
+#define SCM_REF_UPDATE(ref, obj) (*((ScmObj *)(ref)) = (obj))
 
 enum { SCM_REF_STACK_ELEM_OBJ, SCM_REF_STACK_ELEM_PTR };
 
@@ -39,7 +39,7 @@ struct ScmRefStackElemRec {
     }                                                       \
   } while(0)
 
-#define SCM_REF_STACK_ELEM_TO_OBJ_REF(elem) (SCM_OBJ_REF_MAKE((elem)->val.obj))
+#define SCM_REF_STACK_ELEM_TO_OBJ_REF(elem) (SCM_REF_MAKE((elem)->val.obj))
 
 #define SCM_REF_STACK_ELEM_SET_VAL(elem, value)             \
   do {                                                      \
@@ -157,11 +157,11 @@ struct ScmRefStackInfoRec {
 ScmRefStack *scm_ref_stack_construct(size_t size);
 void scm_ref_stack_destruct(ScmRefStack *stack);
 ScmRefStack *scm_ref_stack_push(ScmRefStack *stack, ...);
-ScmObjRef scm_ref_stack_alloc(ScmRefStack *stack, ScmObj init);
-inline void scm_ref_stack_save(ScmRefStack *stack, ScmRefStackInfo *info);
-inline void scm_ref_stack_restore(ScmRefStack *stack, ScmRefStackInfo *info);
-inline void scm_ref_stack_save_current_stack(ScmRefStackInfo *info);
-inline void scm_ref_stack_restore_current_stack(ScmRefStackInfo *info);
+ScmRef scm_ref_stack_alloc(ScmRefStack *stack, ScmObj init);
+void scm_ref_stack_save(ScmRefStack *stack, ScmRefStackInfo *info);
+void scm_ref_stack_restore(ScmRefStack *stack, ScmRefStackInfo *info);
+void scm_ref_stack_save_current_stack(ScmRefStackInfo *info);
+void scm_ref_stack_restore_current_stack(ScmRefStackInfo *info);
 
 #define SCM_REF_STACK_CONCAT2__(x, y) x##y
 #define SCM_REF_STACK_CONCAT__(x, y) SCM_REF_STACK_CONCAT2__(x, y)

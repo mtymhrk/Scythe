@@ -107,19 +107,19 @@ scm_ref_stack_push(ScmRefStack *stack, ...)
   return NULL;
 }
 
-ScmObjRef
+ScmRef
 scm_ref_stack_alloc(ScmRefStack *stack, ScmObj init)
 {
-  ScmObjRef ref;
+  ScmRef ref;
 
   if (scm_ref_stack_growth_if_needed(stack) == NULL)
-    return SCM_OBJ_REF_NULL;
+    return SCM_REF_NULL;
 
   SCM_REF_STACK_BLOCK_ALLOC(stack->current, ref, init);
   return ref;
 }
 
-inline void
+void
 scm_ref_stack_save(ScmRefStack *stack, ScmRefStackInfo *info)
 {
   assert(stack != NULL);
@@ -129,7 +129,7 @@ scm_ref_stack_save(ScmRefStack *stack, ScmRefStackInfo *info)
   info->sp = SCM_REF_STACK_BLOCK_SP(stack->current);
 }
 
-inline void
+void
 scm_ref_stack_restore(ScmRefStack *stack, ScmRefStackInfo *info)
 {
   assert(stack != NULL);
@@ -139,13 +139,13 @@ scm_ref_stack_restore(ScmRefStack *stack, ScmRefStackInfo *info)
   SCM_REF_STACK_BLOCK_SET_SP(stack->current, info->sp);
 }
 
-inline void
+void
 scm_ref_stack_save_current_stack(ScmRefStackInfo *info)
 {
   scm_ref_stack_save(scm_vm_current_ref_stack(), info);
 }
 
-inline void
+void
 scm_ref_stack_restore_current_stack(ScmRefStackInfo *info)
 {
   scm_ref_stack_restore(scm_vm_current_ref_stack(), info);
