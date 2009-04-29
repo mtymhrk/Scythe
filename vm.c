@@ -41,8 +41,8 @@ struct ScmVMRec {
   ScmObj *stack;                /* stack */
   size_t stack_size;            /* stack size */
   ScmObj *sp;                   /* stack pointer */
-  ScmObj *fp;                   /* frame pointer */
-  ScmObj *cp;                   /* closure pointer */
+  ScmObj *fp;                    /* frame pointer */
+  ScmObj cp;                    /* closure pointer */
   scm_vm_inst_t *ip;            /* instruction pointer */
   ScmObj val;                   /* value register */
   ScmVMInst *iseq;
@@ -251,10 +251,8 @@ scm_vm_gc_accept(ScmObj obj, ScmMem *mem, ScmGCRefHandlerFunc handler)
     if (SCM_GC_IS_REF_HANDLER_FAILURE(rslt)) return rslt;
   }
 
-  if (vm->cp != NULL) {
-    rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, *vm->cp, mem);
-    if (SCM_GC_IS_REF_HANDLER_FAILURE(rslt)) return rslt;
-  }
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, vm->cp, mem);
+  if (SCM_GC_IS_REF_HANDLER_FAILURE(rslt)) return rslt;
 
   rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, vm->parent, mem);
   if (SCM_GC_IS_REF_HANDLER_FAILURE(rslt)) return rslt;
@@ -262,9 +260,18 @@ scm_vm_gc_accept(ScmObj obj, ScmMem *mem, ScmGCRefHandlerFunc handler)
   rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, vm->prev_vm, mem);
   if (SCM_GC_IS_REF_HANDLER_FAILURE(rslt)) return rslt;
 
-  /* TODO: write call handler for vm->stack */
   /* TODO: write call handler for vm->iseq */
-  /* TODO: write call handler for vm->ref_stack */
+
+  if (vm->stack != NULL) {
+    ScmObj *p;
+    for (p = vm->stack; p != vm->sp; p++) {
+      rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, *p, mem);
+      if (SCM_GC_IS_REF_HANDLER_FAILURE(rslt)) return rslt;
+    }
+  }
+
+  rslt = scm_ref_stack_gc_accept(vm->ref_stack, obj, mem, handler);
+  if (SCM_GC_IS_REF_HANDLER_FAILURE(rslt)) return rslt;
 
   return rslt;
 }

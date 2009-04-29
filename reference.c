@@ -3,6 +3,7 @@
 #include <assert.h>
 
 #include "reference.h"
+#include "memory.h"
 #include "object.h"
 
 static ScmRefStack *
@@ -23,13 +24,13 @@ scm_ref_stack_add_new_block(ScmRefStack *stack, size_t size)
 static ScmRefStack *
 scm_ref_stack_growth_if_needed(ScmRefStack *stack)
 {
-  if (SCM_REF_STACK_BLOCK_IS_FULL(stack->current)) {
-    if (stack->current == stack->tail) {
+  if (stack->current == stack->tail) {
+    if (SCM_REF_STACK_BLOCK_IS_FULL(stack->current)) {
       size_t size = SCM_REF_STACK_BLOCK_SIZE(stack->tail);
       if (scm_ref_stack_add_new_block(stack, size) == NULL)
         return NULL;
     }
-    stack->current = SCM_REF_STACK_BLOCK_NEXT(stack->current);
+    stack->current = stack->tail;
   }
 
   return stack;
@@ -149,4 +150,31 @@ void
 scm_ref_stack_restore_current_stack(ScmRefStackInfo *info)
 {
   scm_ref_stack_restore(scm_vm_current_ref_stack(), info);
+}
+
+int
+scm_ref_stack_gc_accept(ScmRefStack *stack, ScmObj owner,
+                        ScmMem *mem, ScmGCRefHandlerFunc handler)
+{
+  ScmRefStackBlock *block;
+  int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
+
+  for (block = stack->head;
+       block != NULL && SCM_REF_STACK_BLOCK_PREV(block) != stack->current;
+       block = SCM_REF_STACK_BLOCK_NEXT(block)) {
+    ScmRefStackElem *ep;
+
+    for (ep = SCM_REF_STACK_BLOCK_BOTTOM(block);
+         ep != SCM_REF_STACK_BLOCK_SP(block);
+         ep++) {
+      ScmRef ref;
+
+      SCM_REF_STACK_ELEM_MAKE_SCM_REF(ep, ref);
+      rslt = SCM_GC_CALL_REF_HANDLER(handler, owner, SCM_REF_OBJ(ref), mem);
+      if (SCM_GC_IS_REF_HANDLER_FAILURE(rslt))
+        return rslt;
+    }
+  }
+
+  return rslt;
 }

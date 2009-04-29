@@ -12,13 +12,13 @@ typedef struct ScmRefStackRec ScmRefStack;
 #include "object.h"
 #include "vm.h"
 
-enum { SCM_REF_STACK_ELEM_OBJ, SCM_REF_STACK_ELEM_PTR };
+enum { SCM_REF_STACK_ELEM_OBJ, SCM_REF_STACK_ELEM_REF };
 
 struct ScmRefStackElemRec {
   int type;
   union {
     ScmObj obj;
-    ScmObj *ptr;
+    ScmRef ref;
   } val;
 };
 
@@ -30,13 +30,13 @@ struct ScmRefStackElemRec {
     case SCM_REF_STACK_ELEM_OBJ:                            \
       SCM_OBJ(value) = (elem)->val.obj;                     \
       break;                                                \
-    case SCM_REF_STACK_ELEM_PTR:                            \
-      (ScmObj *)(value) = (elem)->val.ptr;                  \
+    case SCM_REF_STACK_ELEM_REF:                            \
+      SCM_REF_MAKE_FROM_PTR(value) = (elem)->val.ref;       \
       break;                                                \
     }                                                       \
   } while(0)
 
-#define SCM_REF_STACK_ELEM_TO_OBJ_REF(elem) (SCM_REF_MAKE((elem)->val.obj))
+#define SCM_REF_STACK_ELEM_TO_REF(elem) (SCM_REF_MAKE((elem)->val.obj))
 
 #define SCM_REF_STACK_ELEM_SET_VAL(elem, value)             \
   do {                                                      \
@@ -44,12 +44,23 @@ struct ScmRefStackElemRec {
     case SCM_REF_STACK_ELEM_OBJ:                            \
       (elem)->val.obj = SCM_OBJ((value));                   \
       break;                                                \
-    case SCM_REF_STACK_ELEM_PTR:                            \
-      (elem)->val.ptr = (ScmObj *)(value);                  \
+    case SCM_REF_STACK_ELEM_REF:                            \
+      (elem)->val.ref = SCM_REF_MAKE_FROM_PTR(value);       \
       break;                                                \
     }                                                       \
   } while(0)
 
+#define SCM_REF_STACK_ELEM_MAKE_SCM_REF(elem, ref)          \
+  do { \
+    switch ((elem)->type) {                                 \
+    case SCM_REF_STACK_ELEM_OBJ:                            \
+      (ref) = SCM_REF_MAKE((elem)->val.obj);                \
+      break;                                                \
+    case SCM_REF_STACK_ELEM_REF:                            \
+      (ref) = (elem)->val.ref;                              \
+      break;                                                \
+    }                                                       \
+  } while(0)
 
 #define SCM_REF_STACK_ELEM_INIT_TO_OBJ(elem, v)             \
   do {                                                      \
@@ -57,10 +68,10 @@ struct ScmRefStackElemRec {
     (elem)->val.obj = SCM_OBJ(v);                           \
   } while(0)
 
-#define SCM_REF_STACK_ELEM_INIT_TO_PTR(elem, v)             \
+#define SCM_REF_STACK_ELEM_INIT_TO_REF(elem, v)             \
   do {                                                      \
-    (elem)->type = SCM_REF_STACK_ELEM_OBJ;                  \
-    (elem)->val.ptr = (ScmObj *)(v);                        \
+    (elem)->type = SCM_REF_STACK_ELEM_REF;                  \
+    (elem)->val.ref = SCM_REF_MAKE_FROM_PTR(v);                          \
   } while(0)
 
 struct ScmRefStackBlockRec {
@@ -98,16 +109,16 @@ struct ScmRefStackBlockRec {
     }                                                                   \
   } while(0)
 
-#define SCM_REF_STACK_BLOCK_PUSH(block, obj_ptr)                        \
+#define SCM_REF_STACK_BLOCK_PUSH(block, ref)                            \
   do {                                                                  \
-    SCM_REF_STACK_ELEM_INIT_TO_PTR((block)->sp, obj_ptr);               \
+    SCM_REF_STACK_ELEM_INIT_TO_REF((block)->sp, ref);                   \
     (block)->sp++;                                                      \
   } while(0)
 
-#define SCM_REF_STACK_BLOCK_ALLOC(block, obj_ref, init)                 \
+#define SCM_REF_STACK_BLOCK_ALLOC(block, ref, init)                     \
   do {                                                                  \
     SCM_REF_STACK_ELEM_INIT_TO_OBJ((block)->sp, init);                  \
-    (obj_ref) = SCM_REF_STACK_ELEM_TO_OBJ_REF((block)->sp);             \
+    (ref) = SCM_REF_STACK_ELEM_TO_REF((block)->sp);                     \
     (block)->sp++;                                                      \
   } while(0)
 
@@ -159,6 +170,8 @@ void scm_ref_stack_save(ScmRefStack *stack, ScmRefStackInfo *info);
 void scm_ref_stack_restore(ScmRefStack *stack, ScmRefStackInfo *info);
 void scm_ref_stack_save_current_stack(ScmRefStackInfo *info);
 void scm_ref_stack_restore_current_stack(ScmRefStackInfo *info);
+int scm_ref_stack_gc_accept(ScmRefStack *stack, ScmObj owner,
+                            ScmMem *mem, ScmGCRefHandlerFunc handler);
 
 #define SCM_REF_STACK_CONCAT2__(x, y) x##y
 #define SCM_REF_STACK_CONCAT__(x, y) SCM_REF_STACK_CONCAT2__(x, y)

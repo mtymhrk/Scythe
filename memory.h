@@ -18,6 +18,7 @@ typedef struct ScmForwardRec ScmForward;
 #include "basichash.h"
 
 #define SCM_REF_MAKE(obj) ((ScmRef)&(obj))
+#define SCM_REF_MAKE_FROM_PTR(ptr) ((ScmRef)(ptr))
 #define SCM_REF_NULL ((ScmRef)NULL)
 #define SCM_REF_OBJ(ref) (*((ScmObj *)(ref)))
 #define SCM_REF_UPDATE(ref, obj) (*((ScmObj *)(ref)) = (obj))

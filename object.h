@@ -39,7 +39,6 @@ typedef void (*ScmPrettyPrintFunction)(ScmObj obj,
 				       ScmOBuffer *obuffer);
 typedef void (*ScmGCInitializeFunc)(ScmObj obj, ScmMem *mem);
 typedef void (*ScmGCFinalizeFunc)(ScmObj obj);
-typedef int (*ScmGCRefItrFunc)(ScmObj obj, ScmGCRefItr *itr);
 typedef int (*ScmGCRefHandlerFunc)(ScmMem *vm, ScmObj obj, ScmRef child);
 typedef int (*ScmGCAcceptFunc)(ScmObj obj,
                                ScmMem *vm, ScmGCRefHandlerFunc handler);
