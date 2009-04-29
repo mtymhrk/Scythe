@@ -20,7 +20,6 @@ bool scm_vector_is_vector(ScmObj obj);
 void scm_vector_pretty_print(ScmObj obj, ScmOBuffer *obuffer);
 void scm_vector_gc_initialize(ScmObj obj, ScmMem *mem);
 void scm_vector_gc_finalize(ScmObj obj);
-int scm_vector_gc_ref_iter_begin(ScmObj obj, ScmGCRefItr *itr);
-int scm_vector_gc_ref_iter_next(ScmGCRefItr *itr);
+int scm_vector_gc_accept(ScmObj obj, ScmMem *mem, ScmGCRefHandlerFunc handler);
 
 #endif /* INCLUDE_VECTOR_H__ */

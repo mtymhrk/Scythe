@@ -33,7 +33,7 @@ const ScmTypeInfo SCM_BIND_REF_TYPE_INFO = {
   sizeof(ScmBindRef),           /* obj_size        */
   NULL,                         /* gc_ini_func     */
   NULL,                         /* gc_fin_func     */
-  NULL                          /* gc_ref_itr_func */
+  NULL                          /* gc_accept_func  */
 };
 
 static bool

@@ -7,6 +7,7 @@
 #include "memory.h"
 #include "reference.h"
 #include "object.h"
+#include "obuffer.h"
 
 #define SCM_VM_STACK_SIZE 1024
 #define SCM_VM_REF_STACK_INIT_SIZE 512
@@ -48,6 +49,7 @@ struct ScmVMRec {
   ScmMem *mem;
   ScmRefStack *ref_stack;
   ScmVM *parent;
+  ScmVM *prev_vm;
 };
 
 #define SCM_VM_CHECK_STACK_OVER_FLOW(vm) \
@@ -55,6 +57,15 @@ struct ScmVMRec {
 #define SCM_VM_CHECK_STACK_UNDER_FLOW(vm) ((size_t)((vm)->sp - (vm)->stack) < 1)
 #define SCM_VM_PUSH_TO_STACK(vm, obj) (*((vm)->sp++) = obj)
 #define SCM_VM_POP_FROM_STACK(vm, obj) (obj = *(--(vm)->sp) )
+
+const ScmTypeInfo SCM_VM_TYPE_INFO = {
+  SCM_OBJ_TYPE_STRING,          /* type            */
+  scm_vm_pretty_print,          /* pp_func         */
+  sizeof(ScmVM),                /* obj_size        */
+  scm_vm_gc_initialize,         /* gc_ini_func     */
+  scm_vm_gc_finalize,           /* gc_fin_func     */
+  scm_vm_gc_accept              /* gc_accept_func */
+};
 
 static ScmVMEnv *global_env;
 static ScmVM *current_vm;
@@ -80,6 +91,7 @@ scm_vm_initialize(ScmVM *vm, ScmVM *parent)
   vm->iseq = NULL;
   vm->stack = NULL;
   vm->parent = parent;
+  vm->prev_vm = NULL;
 
   vm->stack = scm_mem_alloc_plain(vm->mem, sizeof(ScmObj) * SCM_VM_STACK_SIZE);
   if (vm->stack == NULL) goto err;
@@ -124,7 +136,6 @@ scm_vm_construct(void)
   if (mem == NULL) return NULL;
 
   scm_mem_alloc_root(mem, SCM_OBJ_TYPE_VM, &vm);
-  vm = malloc(sizeof(ScmVM));
   if (vm == NULL) return NULL;
 
   if (scm_vm_initialize(SCM_VM(vm), NULL) == NULL) {
@@ -189,16 +200,94 @@ scm_vm_run(ScmVM *vm)
   }
 }
 
+void
+scm_vm_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
+{
+  scm_obuffer_concatenate_string(obuffer, "#<VM>");
+}
+
+void
+scm_vm_gc_initialize(ScmObj obj, ScmMem *mem)
+{
+  ScmVM *vm;
+
+  assert(obj != NULL);
+  assert(mem != NULL);
+
+  vm = SCM_VM(obj);
+  vm->mem = mem;
+
+  vm->sp = NULL;
+  vm->fp = NULL;
+  vm->cp = NULL;
+  vm->ip = NULL;
+  vm->val = NULL;
+  vm->iseq = NULL;
+  vm->stack = NULL;
+  vm->parent = NULL;
+  vm->prev_vm = NULL;
+}
+
+void
+scm_vm_gc_finalize(ScmObj obj)
+{
+  scm_vm_finalize(SCM_VM(obj));
+}
+
+int
+scm_vm_gc_accept(ScmObj obj, ScmMem *mem, ScmGCRefHandlerFunc handler)
+{
+  ScmVM *vm;
+  int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
+
+  assert(obj != NULL);
+  assert(mem != NULL);
+  assert(handler != NULL);
+
+  vm = SCM_VM(obj);
+
+  if (vm->fp != NULL) {
+    rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, *vm->fp, mem);
+    if (SCM_GC_IS_REF_HANDLER_FAILURE(rslt)) return rslt;
+  }
+
+  if (vm->cp != NULL) {
+    rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, *vm->cp, mem);
+    if (SCM_GC_IS_REF_HANDLER_FAILURE(rslt)) return rslt;
+  }
+
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, vm->parent, mem);
+  if (SCM_GC_IS_REF_HANDLER_FAILURE(rslt)) return rslt;
+
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, vm->prev_vm, mem);
+  if (SCM_GC_IS_REF_HANDLER_FAILURE(rslt)) return rslt;
+
+  /* TODO: write call handler for vm->stack */
+  /* TODO: write call handler for vm->iseq */
+  /* TODO: write call handler for vm->ref_stack */
+
+  return rslt;
+}
+
+void
+scm_vm_switch_vm(ScmVM *vm)
+{
+  assert(vm != NULL);
+  vm->prev_vm = current_vm;
+  current_vm = vm;
+}
+
+void
+scm_vm_revert_vm(void)
+{
+  if (current_vm != NULL)
+    current_vm = current_vm->prev_vm;
+}
+
 ScmVM *
 scm_vm_current_vm(void)
 {
   return current_vm;
-}
-
-ScmVM *
-scm_vm_set_current_vm(ScmVM *vm)
-{
-  return (current_vm = vm);
 }
 
 ScmMem *

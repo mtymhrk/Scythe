@@ -1,19 +1,16 @@
 #ifndef INCLUDE_REFERENCE_H__
 #define INCLUDE_REFERENCE_H__
 
-typedef uintptr_t ScmRef;
+#include <stdint.h>
+
 typedef struct ScmRefStackElemRec ScmRefStackElem;
 typedef struct ScmRefStackBlockRec ScmRefStackBlock;
 typedef struct ScmRefStackInfoRec ScmRefStackInfo;
 typedef struct ScmRefStackRec ScmRefStack;
 
+#include "memory.h"
 #include "object.h"
 #include "vm.h"
-
-#define SCM_REF_MAKE(obj) ((ScmRef)&(obj))
-#define SCM_REF_NULL ((ScmRef)NULL)
-#define SCM_REF_OBJ(ref) (*((ScmObj *)(ref)))
-#define SCM_REF_UPDATE(ref, obj) (*((ScmObj *)(ref)) = (obj))
 
 enum { SCM_REF_STACK_ELEM_OBJ, SCM_REF_STACK_ELEM_PTR };
 
@@ -175,6 +172,6 @@ void scm_ref_stack_restore_current_stack(ScmRefStackInfo *info);
 #define SCM_STACK_PUSH(...)                                             \
   scm_ref_stack_push(scm_vm_current_ref_stack(), __VA_ARGS__, NULL)
 #define SCM_STACK_ALLOC(v)                              \
-  scm_ref_stack_alloc(scm-vm_current_ref_stack(), v)
+  scm_ref_stack_alloc(scm_vm_current_ref_stack(), v)
 
 #endif /* INCLUDE_REFERENCE_H__ */

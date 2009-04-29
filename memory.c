@@ -354,26 +354,33 @@ scm_mem_copy_obj(ScmMem *mem, ScmObj obj)
   return box;
 }
 
+static int
+scm_mem_copy_children_func(ScmMem *mem, ScmObj obj, ScmRef child)
+{
+  assert(mem != NULL);
+  assert(obj != NULL);
+  assert(child != SCM_REF_NULL);
+
+  if (SCM_REF_OBJ(child) != NULL) {
+    ScmObj cpy = scm_mem_copy_obj(mem, SCM_REF_OBJ(child));
+    if (cpy == NULL)  return -1; // error
+    SCM_REF_UPDATE(child, cpy);
+  }
+
+  return 0;
+}
+
 static void
 scm_mem_copy_children(ScmMem *mem, ScmObj obj)
 {
   assert(mem != NULL);
   assert(obj != NULL);
 
-  if (SCM_TYPE_INFO_HAS_GC_REF_ITR_FROM_OBJ(obj)) {
-    ScmGCRefItr itr;
-
-    for (SCM_GC_REF_ITR_BEGIN(obj, itr);
-         !SCM_GC_REF_ITR_IS_END(itr);
-         SCM_GC_REF_ITR_NEXT(itr)) {
-      ScmObj chd = SCM_GC_REF_ITR_REF(itr);
-      if (chd != NULL) {
-        ScmObj cpy = scm_mem_copy_obj(mem, chd);
-        if (cpy == NULL) {
-          ; /* TODO: write error handling */
-        }
-        SCM_GC_REF_ITR_SET(itr, cpy);
-      }
+  if (SCM_TYPE_INFO_HAS_GC_ACCEPT_FUNC_FROM_OBJ(obj)) {
+    ScmGCAcceptFunc func = SCM_TYPE_INFO_GC_ACCEPT_FUNC_FROM_OBJ(obj);
+    int rslt = func(obj, mem, scm_mem_copy_children_func);
+    if (SCM_GC_IS_REF_HANDLER_FAILURE(rslt)) {
+      ; /* TODO: write error handling */
     }
   }
 }
@@ -582,17 +589,6 @@ scm_mem_clean(ScmMem *mem)
   return mem;
 }
 
-
-/* TODO: delete this functions */
-ScmMem *
-scm_mem_attach_vm(ScmMem *mem, ScmVM *vm)
-{
-  assert(mem != NULL);
-  assert(vm != NULL);
-
-  //  mem->vm = vm;
-  return mem;
-}
 
 ScmMem *
 scm_mem_alloc_heap(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmObj *box)

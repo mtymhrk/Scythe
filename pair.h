@@ -18,7 +18,6 @@ ScmObj scm_pair_cdr(const ScmPair *pair);
 bool scm_pair_is_pair(const ScmObj obj);
 void scm_pair_pretty_print(ScmObj obj, ScmOBuffer *obuffer);
 void scm_pair_gc_initialize(ScmObj obj, ScmMem *mem);
-int scm_pair_gc_ref_iter_begin(ScmObj obj, ScmGCRefItr *itr);
-int scm_pair_gc_ref_itr_next(ScmGCRefItr *itr);
+int scm_pair_gc_accpet(ScmObj obj, ScmMem *mem, ScmGCRefHandlerFunc handler);
 
 #endif /* INCLUDE_PAIR_H__ */

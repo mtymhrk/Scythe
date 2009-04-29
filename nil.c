@@ -18,7 +18,7 @@ const ScmTypeInfo SCM_NIL_TYPE_INFO = {
   sizeof(ScmNil),            /* obj_size        */
   NULL,                      /* gc_ini_func     */
   NULL,                      /* gc_fin_func     */
-  NULL                       /* gc_ref_itr_func */
+  NULL                       /* gc_accept_func  */
 };
 
 

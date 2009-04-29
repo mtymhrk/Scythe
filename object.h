@@ -40,6 +40,14 @@ typedef void (*ScmPrettyPrintFunction)(ScmObj obj,
 typedef void (*ScmGCInitializeFunc)(ScmObj obj, ScmMem *mem);
 typedef void (*ScmGCFinalizeFunc)(ScmObj obj);
 typedef int (*ScmGCRefItrFunc)(ScmObj obj, ScmGCRefItr *itr);
+typedef int (*ScmGCRefHandlerFunc)(ScmMem *vm, ScmObj obj, ScmRef child);
+typedef int (*ScmGCAcceptFunc)(ScmObj obj,
+                               ScmMem *vm, ScmGCRefHandlerFunc handler);
+
+#define SCM_GC_CALL_REF_HANDLER(handler, obj, child, mem) \
+  (handler(mem, obj, SCM_REF_MAKE(child)))
+#define SCM_GC_IS_REF_HANDLER_FAILURE(rslt) ((rslt) < 0)
+#define SCM_GC_REF_HANDLER_VAL_INIT 0
 
 struct ScmObjHeaderRec {
   SCM_OBJ_TYPE_T type;
@@ -55,7 +63,7 @@ struct ScmTypeInfoRec {
   size_t obj_size;
   ScmGCInitializeFunc gc_ini_func;
   ScmGCFinalizeFunc gc_fin_func;
-  ScmGCRefItrFunc gc_ref_itr_func;
+  ScmGCAcceptFunc gc_accept_func;
 };
 
 #define SCM_TYPE_INFO_PP(type) (SCM_TYPE_INFO_TBL[(type)]->pp_func)
@@ -64,9 +72,10 @@ struct ScmTypeInfoRec {
 #define SCM_TYPE_INFO_HAS_GC_INI(type) (SCM_TYPE_INFO_GC_INI(type) != NULL)
 #define SCM_TYPE_INFO_GC_FIN(type) (SCM_TYPE_INFO_TBL[(type)]->gc_fin_func)
 #define SCM_TYPE_INFO_HAS_GC_FIN(type) (SCM_TYPE_INFO_GC_FIN(type) != NULL)
-#define SCM_TYPE_INFO_GC_REF_ITR(type) \
-  (SCM_TYPE_INFO_TBL[(type)]->gc_ref_itr_func)
-#define SCM_TYPE_INFO_HAS_REF_ITR(type) (SCM_TYPE_INFO_GC_REF_ITR(type) != NULL)
+#define SCM_TYPE_INFO_GC_ACCEPT_FUNC(type)      \
+  (SCM_TYPE_INFO_TBL[(type)]->gc_accept_func)
+#define SCM_TYPE_INFO_HAS_GC_ACCEPT_FUNC(type)  \
+  (SCM_TYPE_INFO_GC_ACCEPT_FUNC(type) != NULL)
 
 #define SCM_TYPE_INFO_OBJ_SIZE_FROM_OBJ(obj) \
   SCM_TYPE_INFO_OBJ_SIZE(scm_obj_type(obj))
@@ -78,24 +87,11 @@ struct ScmTypeInfoRec {
   SCM_TYPE_INFO_GC_FIN(scm_obj_type(obj))
 #define SCM_TYPE_INFO_HAS_GC_FIN_FROM_OBJ(obj) \
   SCM_TYPE_INFO_HAS_GC_FIN(scm_obj_type(obj))
-#define SCM_TYPE_INFO_GC_REF_ITR_FROM_OBJ(obj) \
-  SCM_TYPE_INFO_GC_REF_ITR(scm_obj_type(obj))
-#define SCM_TYPE_INFO_HAS_GC_REF_ITR_FROM_OBJ(obj) \
-  SCM_TYPE_INFO_HAS_REF_ITR(scm_obj_type(obj))
+#define SCM_TYPE_INFO_GC_ACCEPT_FUNC_FROM_OBJ(obj) \
+  SCM_TYPE_INFO_GC_ACCEPT_FUNC(scm_obj_type(obj))
+#define SCM_TYPE_INFO_HAS_GC_ACCEPT_FUNC_FROM_OBJ(obj) \
+  SCM_TYPE_INFO_HAS_GC_ACCEPT_FUNC(scm_obj_type(obj))
 
-struct ScmGCRefItrRec {
-  ScmObj *ptr;
-  ScmObj src;
-  int (*next)(ScmGCRefItr *itr);
-};
-
-#define SCM_GC_REF_ITR_BEGIN(obj, itr) \
-  (SCM_TYPE_INFO_GC_REF_ITR_FROM_OBJ(obj))(obj, &(itr))
-#define SCM_GC_REF_ITR_NEXT(itr) ((itr).next(&(itr)))
-#define SCM_GC_REF_ITR_IS_END(itr) ((itr).ptr == NULL)
-#define SCM_GC_REF_ITR_REF(itr) (*(itr).ptr)
-#define SCM_GC_REF_ITR_SET(itr, p) (*(itr).ptr = (p))
-#define SCM_GC_REF_ITR_COPY(src, dst) ((src) = (dst))
 
 void scm_obj_init(ScmObj obj, SCM_OBJ_TYPE_T type);
 SCM_OBJ_TYPE_T scm_obj_type(ScmObj obj);

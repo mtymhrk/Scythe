@@ -56,6 +56,7 @@ test_string_eucjp.so : test_string_eucjp.o $(TEST_TARGET_OBJ)
 test_string_sjis.so : test_string_sjis.o $(TEST_TARGET_OBJ)
 test_memory.so : test_memory.o $(TEST_TARGET_OBJ)
 test_binding.so : test_binding.o $(TEST_TARGET_OBJ)
+perform_refstack: perform_refstack.o $(TEST_TARGET_OBJ)
 
 .c.o:
 	$(CC) -c -o $@ $(INCLUDES) $(CFLAGS) $<

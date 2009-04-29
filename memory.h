@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+typedef uintptr_t ScmRef;
 typedef struct ScmMemHeapBlockRec ScmMemHeapBlock;
 typedef struct ScmMemHeapRec ScmMemHeap;
 typedef struct ScmMemRootBlockRec ScmMemRootBlock;
@@ -13,9 +14,13 @@ typedef struct ScmForwardRec ScmForward;
 
 #define SCM_FORWORD(obj) ((ScmFoward *)(obj))
 
-#include "basichash.h"
 #include "object.h"
-#include "vm.h"
+#include "basichash.h"
+
+#define SCM_REF_MAKE(obj) ((ScmRef)&(obj))
+#define SCM_REF_NULL ((ScmRef)NULL)
+#define SCM_REF_OBJ(ref) (*((ScmObj *)(ref)))
+#define SCM_REF_UPDATE(ref, obj) (*((ScmObj *)(ref)) = (obj))
 
 typedef void (*SCM_MEM_FINALIZER)(ScmObj obj);
 
@@ -299,7 +304,6 @@ void *scm_memory_release(void *block);
 ScmMem *scm_mem_construct(void);
 ScmMem *scm_mem_destruct(ScmMem *mem);
 ScmMem *scm_mem_clean(ScmMem *mem);
-ScmMem *scm_mem_attach_vm(ScmMem *mem, ScmVM *vm);
 ScmMem *scm_mem_alloc_heap(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmObj *box);
 ScmMem *scm_mem_alloc_root(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmObj *box);
 ScmMem *scm_mem_free_root(ScmMem *mem, ScmObj obj);

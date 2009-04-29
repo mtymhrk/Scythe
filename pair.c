@@ -20,7 +20,7 @@ const ScmTypeInfo SCM_PAIR_TYPE_INFO = {
   sizeof(ScmPair),            /* obj_size        */
   scm_pair_gc_initialize,     /* gc_ini_func     */
   NULL,                       /* gc_fin_func     */
-  scm_pair_gc_ref_iter_begin  /* gc_ref_itr_func */
+  scm_pair_gc_accpet          /* gc_accept_func */
 };
 
 
@@ -112,38 +112,20 @@ scm_pair_gc_initialize(ScmObj obj, ScmMem *mem)
 }
 
 int
-scm_pair_gc_ref_iter_begin(ScmObj obj, ScmGCRefItr *itr)
+scm_pair_gc_accpet(ScmObj obj, ScmMem *mem, ScmGCRefHandlerFunc handler)
 {
   ScmPair *pair;
+  int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
 
   assert(obj != NULL);
-  assert(itr != NULL);
+  assert(mem != NULL);
+  assert(handler != NULL);
 
   pair = SCM_PAIR(obj);
-  if (pair->car != NULL)
-    itr->ptr = &pair->car;
-  else if (pair->cdr != NULL)
-    itr->ptr = &pair->cdr;
-  else
-    itr->ptr = NULL;
-  itr->src = obj;
-  itr->next = scm_pair_gc_ref_itr_next;
 
-  return 0;
-}
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, pair->car, mem);
+  if (SCM_GC_IS_REF_HANDLER_FAILURE(rslt)) return rslt;
 
-int
-scm_pair_gc_ref_itr_next(ScmGCRefItr *itr)
-{
-  ScmPair *pair;
-
-  assert(itr != NULL);
-
-  pair = SCM_PAIR(itr->src);
-  if (itr->ptr == &pair->car && pair->cdr != NULL)
-    itr->ptr = &pair->cdr;
-  else
-    itr->ptr = NULL;
-
-  return 0;
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, pair->cdr, mem);
+  return rslt;
 }
