@@ -135,16 +135,21 @@ scm_vm_construct(void)
   mem = scm_mem_construct();
   if (mem == NULL) return NULL;
 
-  scm_mem_alloc_root(mem, SCM_OBJ_TYPE_VM, &vm);
-  if (vm == NULL) return NULL;
+  if (scm_mem_register_extra_rfrn(mem, SCM_REF_MAKE(current_vm))
+      != SCM_REF_NULL)
+    goto err;
 
-  if (scm_vm_initialize(SCM_VM(vm), NULL) == NULL) {
-    scm_mem_free_root(mem, vm);
-    scm_mem_destruct(mem);
-    return NULL;
-  }
+  scm_mem_alloc_root(mem, SCM_OBJ_TYPE_VM, &vm);
+  if (vm == NULL) goto err;
+
+  if (scm_vm_initialize(SCM_VM(vm), NULL) == NULL)
+    goto err;
 
   return SCM_VM(vm);
+
+ err:
+  scm_mem_destruct(mem);
+  return NULL;
 }
 
 void

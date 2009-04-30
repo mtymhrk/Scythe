@@ -26,6 +26,7 @@ struct ScmForwardRec {
 
 
 #define SCM_MEM_MIN_OBJ_SIZE sizeof(ScmForward)
+#define SCM_MEM_EXTRA_RFRN_SIZE 32
 
 const ScmTypeInfo SCM_FORWARD_TYPE_INFO = {
   SCM_OBJ_TYPE_FORWARD,    /* type            */
@@ -424,12 +425,31 @@ scm_mem_copy_children_of_root(ScmMem *mem)
 }
 
 static void
+scm_mem_copy_extra_obj(ScmMem *mem)
+{
+  size_t i;
+
+  assert(mem != NULL);
+
+  for (i = 0; i < mem->nr_extra; i++) {
+    if (SCM_REF_OBJ(mem->extra_rfrn[i]) != NULL) {
+      ScmObj cpy = scm_mem_copy_obj(mem, SCM_REF_OBJ(mem->extra_rfrn[i]));
+      if (cpy == NULL) {
+        ; /* TODO: wirte error handling */
+      }
+      SCM_REF_UPDATE(mem->extra_rfrn[i], cpy);
+    }
+  }
+}
+
+static void
 scm_mem_copy_root_obj(ScmMem *mem)
 {
   assert(mem != NULL);
 
   scm_mem_copy_children_of_shared_root(mem);
   scm_mem_copy_children_of_root(mem);
+  scm_mem_copy_extra_obj(mem);
   scm_mem_copy_children_of_persistent(mem);
 }
 
@@ -509,6 +529,7 @@ scm_mem_initialize(ScmMem *mem)
   mem->to_heap = NULL;
   mem->from_heap = NULL;
   mem->roots = NULL;
+  mem->extra_rfrn = NULL;
 
   mem->to_obj_tbl = scm_basic_hash_construct(SCM_MEM_OBJ_TBL_HASH_SIZE,
                                              object_table_hash_func,
@@ -529,6 +550,10 @@ scm_mem_initialize(ScmMem *mem)
   SCM_MEM_HEAP_NEW_HEAP(mem->persistent, 1, SCM_MEM_HEAP_INIT_BLOCK_SIZE);
   if (mem->persistent == NULL) goto err;
 
+  mem->extra_rfrn = malloc(sizeof(ScmRef) * SCM_MEM_EXTRA_RFRN_SIZE);
+  if (mem->extra_rfrn == NULL) goto err;
+  mem->nr_extra = 0;
+
   return mem;
 
  err:
@@ -537,6 +562,7 @@ scm_mem_initialize(ScmMem *mem)
   if (mem->to_heap != NULL) SCM_MEM_HEAP_DELETE_HEAP(mem->to_heap);
   if (mem->from_heap != NULL) SCM_MEM_HEAP_DELETE_HEAP(mem->from_heap);
   if (mem->persistent != NULL) SCM_MEM_HEAP_DELETE_HEAP(mem->persistent);
+  if (mem->extra_rfrn != NULL) free(mem->extra_rfrn);
 
   return NULL;
 }
@@ -554,6 +580,7 @@ scm_mem_finalize(ScmMem *mem)
   if (mem->to_heap != NULL) SCM_MEM_HEAP_DELETE_HEAP(mem->to_heap);
   if (mem->from_heap != NULL) SCM_MEM_HEAP_DELETE_HEAP(mem->from_heap);
   if (mem->persistent != NULL) SCM_MEM_HEAP_DELETE_HEAP(mem->persistent);
+  if (mem->extra_rfrn != NULL) free(mem->extra_rfrn);
 
   return NULL;
 }
@@ -682,6 +709,19 @@ scm_mem_free_plain(ScmMem *mem, void *p)
   return NULL;
 }
 
+ScmRef
+scm_mem_register_extra_rfrn(ScmMem *mem, ScmRef ref)
+{
+  assert(mem != NULL);
+  assert(ref != SCM_REF_NULL);
+
+  if (mem->nr_extra >= SCM_MEM_EXTRA_RFRN_SIZE)
+    return SCM_REF_NULL;
+
+  mem->extra_rfrn[mem->nr_extra++] = ref;
+
+  return ref;
+}
 
 void
 scm_mem_gc_start(ScmMem *mem)

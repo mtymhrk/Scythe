@@ -268,6 +268,8 @@ struct ScmMemRec {
   ScmMemHeap *from_heap;
   ScmMemHeap *persistent;
   ScmMemRootBlock *roots;
+  ScmRef *extra_rfrn;
+  size_t nr_extra;
 };
 
 #define SCM_MEM_ADD_TO_ROOT_SET(head, block)    \
@@ -312,6 +314,7 @@ void *scm_mem_alloc_plain(ScmMem *mem, size_t size);
 void *scm_mem_free_plain(ScmMem *mem, void *p);
 void scm_mem_gc_start(ScmMem *mem);
 ScmMem *scm_mem_alloc_persist(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmObj *box);
+ScmRef scm_mem_register_extra_rfrn(ScmMem *mem, ScmRef ref);
 ScmObj scm_memory_alloc_shared_root(SCM_OBJ_TYPE_T type);
 ScmObj scm_memory_free_shared_root(ScmObj obj);
 void scm_memory_free_all_shared_root(void);
