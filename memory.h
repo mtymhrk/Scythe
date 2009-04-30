@@ -19,6 +19,7 @@ typedef struct ScmForwardRec ScmForward;
 
 #define SCM_REF_MAKE(obj) ((ScmRef)&(obj))
 #define SCM_REF_MAKE_FROM_PTR(ptr) ((ScmRef)(ptr))
+#define SCM_REF_TO_PTR(ref) ((ScmObj *)(ref))
 #define SCM_REF_NULL ((ScmRef)NULL)
 #define SCM_REF_OBJ(ref) (*((ScmObj *)(ref)))
 #define SCM_REF_UPDATE(ref, obj) (*((ScmObj *)(ref)) = (obj))
@@ -307,13 +308,13 @@ void *scm_memory_release(void *block);
 ScmMem *scm_mem_construct(void);
 ScmMem *scm_mem_destruct(ScmMem *mem);
 ScmMem *scm_mem_clean(ScmMem *mem);
-ScmMem *scm_mem_alloc_heap(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmObj *box);
-ScmMem *scm_mem_alloc_root(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmObj *box);
+ScmMem *scm_mem_alloc_heap(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmRef ref);
+ScmMem *scm_mem_alloc_root(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmRef ref);
 ScmMem *scm_mem_free_root(ScmMem *mem, ScmObj obj);
 void *scm_mem_alloc_plain(ScmMem *mem, size_t size);
 void *scm_mem_free_plain(ScmMem *mem, void *p);
 void scm_mem_gc_start(ScmMem *mem);
-ScmMem *scm_mem_alloc_persist(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmObj *box);
+ScmMem *scm_mem_alloc_persist(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmRef ref);
 ScmRef scm_mem_register_extra_rfrn(ScmMem *mem, ScmRef ref);
 ScmObj scm_memory_alloc_shared_root(SCM_OBJ_TYPE_T type);
 ScmObj scm_memory_free_shared_root(ScmObj obj);

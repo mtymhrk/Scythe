@@ -139,7 +139,7 @@ scm_vm_construct(void)
       != SCM_REF_NULL)
     goto err;
 
-  scm_mem_alloc_root(mem, SCM_OBJ_TYPE_VM, &vm);
+  scm_mem_alloc_root(mem, SCM_OBJ_TYPE_VM, SCM_REF_MAKE(vm));
   if (vm == NULL) goto err;
 
   if (scm_vm_initialize(SCM_VM(vm), NULL) == NULL)

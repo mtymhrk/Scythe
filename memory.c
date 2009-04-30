@@ -285,23 +285,23 @@ scm_mem_is_obj_in_heap(ScmMem *mem, ScmObj obj, int which)
 }
 
 static void
-scm_mem_alloc_heap_mem(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmObj *box)
+scm_mem_alloc_heap_mem(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmRef ref)
 {
   size_t size;
 
   assert(mem != NULL);
   assert(type < SCM_OBJ_NR_TYPE);
-  assert(box != NULL);
+  assert(ref != SCM_REF_NULL);
 
   size = SCM_TYPE_INFO_OBJ_SIZE(type);
   size = (size > SCM_MEM_MIN_OBJ_SIZE) ? size : SCM_MEM_MIN_OBJ_SIZE;
 
-  SCM_MEM_HEAP_ALLOC(mem->to_heap, size, box);
-  if (*box == NULL) return;
+  SCM_MEM_HEAP_ALLOC(mem->to_heap, size, SCM_REF_TO_PTR(ref));
+  if (SCM_REF_OBJ(ref) == NULL) return;
 
-  if (scm_mem_register_obj_if_needed(mem, type, *box) < 0) {
+  if (scm_mem_register_obj_if_needed(mem, type, SCM_REF_OBJ(ref)) < 0) {
     SCM_MEM_HEAP_CANCEL_ALLOC(mem->to_heap, size);
-    *box = NULL;
+    SCM_REF_UPDATE(ref,  NULL);
     return;
   }
 }
@@ -336,13 +336,13 @@ scm_mem_copy_obj(ScmMem *mem, ScmObj obj)
   if (type == SCM_OBJ_TYPE_FORWARD) 
     return SCM_FORWARD_FORWARD(obj);
 
-  scm_mem_alloc_heap_mem(mem, type, &box);
+  scm_mem_alloc_heap_mem(mem, type, SCM_REF_MAKE(box));
   if (box == NULL) {
     if (scm_mem_expand_heap(mem, 1) != 1) {
       /* TODO: write error handling (fail to allocate memory)*/
       return NULL;
     }
-    scm_mem_alloc_heap_mem(mem, type, &box);
+    scm_mem_alloc_heap_mem(mem, type, SCM_REF_MAKE(box));
     if (box == NULL) {
       /* TODO: write error handling (fail to allocate memory)*/
       return NULL;
@@ -618,65 +618,66 @@ scm_mem_clean(ScmMem *mem)
 
 
 ScmMem *
-scm_mem_alloc_heap(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmObj *box)
+scm_mem_alloc_heap(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmRef ref)
 {
   assert(mem != NULL);
   assert(type < SCM_OBJ_NR_TYPE);
-  assert(box != NULL);
+  assert(ref != SCM_REF_NULL);
 
-  *box = NULL;
+  SCM_REF_UPDATE(ref, NULL);
 
-  scm_mem_alloc_heap_mem(mem, type, box);
-  if (*box == NULL) {
+  scm_mem_alloc_heap_mem(mem, type, ref);
+  if (SCM_REF_OBJ(ref) == NULL) {
     scm_mem_gc_start(mem);
-    scm_mem_alloc_heap_mem(mem, type, box);
-    if (*box == NULL) {
+    scm_mem_alloc_heap_mem(mem, type, ref);
+    if (SCM_REF_OBJ(ref) == NULL) {
       ; /* TODO: write error handling (fail to allocate memory) */
       return NULL;
     }
   }
 
-  scm_mem_obj_init(mem, *box, type);
+  scm_mem_obj_init(mem, SCM_REF_OBJ(ref), type);
 
   return mem;
 }
 
 ScmMem *
-scm_mem_alloc_persist(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmObj *box)
+scm_mem_alloc_persist(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmRef ref)
 {
   size_t size;
 
   assert(mem != NULL);
   assert(type < SCM_OBJ_NR_TYPE);
+  assert(ref != SCM_REF_NULL);
 
   size = SCM_TYPE_INFO_OBJ_SIZE(type);
-  SCM_MEM_HEAP_ALLOC(mem->persistent, size, box);
-  if (*box == NULL) {
+  SCM_MEM_HEAP_ALLOC(mem->persistent, size, SCM_REF_TO_PTR(ref));
+  if (SCM_REF_OBJ(ref) == NULL) {
     if (scm_mem_expand_persistent(mem, 1) != 1) {
       ; /* TODO: write error handling (fail to allocate memory) */
       return NULL;
     }
-    SCM_MEM_HEAP_ALLOC(mem->persistent, size, box);
-    if (*box == NULL) {
+    SCM_MEM_HEAP_ALLOC(mem->persistent, size, SCM_REF_TO_PTR(ref));
+    if (SCM_REF_OBJ(ref) == NULL) {
       ; /* TODO: write error handling (fail to allocate memory) */
       return NULL;
     }
   }
 
-  scm_mem_obj_init(mem, *box, type);
+  scm_mem_obj_init(mem, SCM_REF_OBJ(ref), type);
 
   return mem;
 }
 
 ScmMem *
-scm_mem_alloc_root(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmObj *box)
+scm_mem_alloc_root(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmRef ref)
 {
   assert(mem != NULL);
   assert(type < SCM_OBJ_NR_TYPE);
-  assert(box != NULL);
+  assert(ref != SCM_REF_NULL);
 
-  *box = scm_mem_alloc_root_obj(type, mem, &mem->roots);
-  if (*box == NULL) return NULL;
+  SCM_REF_UPDATE(ref, scm_mem_alloc_root_obj(type, mem, &mem->roots));
+  if (SCM_REF_OBJ(ref) == NULL) return NULL;
 
   return mem;
 }
