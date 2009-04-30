@@ -14,6 +14,14 @@ typedef struct ScmForwardRec ScmForward;
 
 #define SCM_FORWORD(obj) ((ScmFoward *)(obj))
 
+typedef enum {
+  SCM_MEM_ALLOC_PLAIN,
+  SCM_MEM_ALLOC_HEAP,
+  SCM_MEM_ALLOC_ROOT,
+  SCM_MEM_ALLOC_SHARED_ROOT,
+  SCM_MEM_NR_ALLOC_TYPE
+} SCM_MEM_ALLOC_TYPE_T;
+
 #include "object.h"
 #include "basichash.h"
 
@@ -310,11 +318,13 @@ ScmMem *scm_mem_destruct(ScmMem *mem);
 ScmMem *scm_mem_clean(ScmMem *mem);
 ScmMem *scm_mem_alloc_heap(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmRef ref);
 ScmMem *scm_mem_alloc_root(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmRef ref);
-ScmMem *scm_mem_free_root(ScmMem *mem, ScmObj obj);
-void *scm_mem_alloc_plain(ScmMem *mem, size_t size);
-void *scm_mem_free_plain(ScmMem *mem, void *p);
+ScmObj scm_mem_free_root(ScmMem *mem, ScmObj obj);
+ScmMem *scm_mem_alloc_plain(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmRef ref);
+ScmObj scm_mem_free_plain(ScmMem *mem, ScmObj obj);
 void scm_mem_gc_start(ScmMem *mem);
 ScmMem *scm_mem_alloc_persist(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmRef ref);
+ScmMem *scm_mem_alloc(ScmMem *mem, SCM_OBJ_TYPE_T type,
+                      SCM_MEM_ALLOC_TYPE_T alloc, ScmRef ref);
 ScmRef scm_mem_register_extra_rfrn(ScmMem *mem, ScmRef ref);
 ScmObj scm_memory_alloc_shared_root(SCM_OBJ_TYPE_T type);
 ScmObj scm_memory_free_shared_root(ScmObj obj);

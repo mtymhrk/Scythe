@@ -93,7 +93,7 @@ scm_vm_initialize(ScmVM *vm, ScmVM *parent)
   vm->parent = parent;
   vm->prev_vm = NULL;
 
-  vm->stack = scm_mem_alloc_plain(vm->mem, sizeof(ScmObj) * SCM_VM_STACK_SIZE);
+  vm->stack = scm_memory_allocate(sizeof(ScmObj) * SCM_VM_STACK_SIZE);
   if (vm->stack == NULL) goto err;
 
   vm->stack_size = SCM_VM_STACK_SIZE;  
@@ -106,7 +106,7 @@ scm_vm_initialize(ScmVM *vm, ScmVM *parent)
 
  err:
   if (vm->stack != NULL) {
-    vm->stack = scm_mem_free_plain(vm->mem, vm->stack);
+    vm->stack = scm_memory_release(vm->stack);
     vm->sp = NULL;
   }
   if (vm->ref_stack != NULL) {
@@ -119,7 +119,7 @@ scm_vm_initialize(ScmVM *vm, ScmVM *parent)
 ScmVM *
 scm_vm_finalize(ScmVM *vm)
 {
-  vm->stack = scm_mem_free_plain(vm->mem, vm->stack);
+  vm->stack = scm_memory_release(vm->stack);
   scm_ref_stack_destruct(vm->ref_stack);
   vm->ref_stack = NULL;
 

@@ -500,7 +500,6 @@ scm_mem_free_root_obj(ScmObj obj, ScmMem *mem, ScmMemRootBlock **head)
   block = SCM_MEM_ROOT_BLOCK_HEADER(obj);
   SCM_MEM_DEL_FROM_ROOT_SET(*head, block);
 
-  scm_mem_finalize_obj(mem, obj);
   free(block);
 
   return NULL;
@@ -682,31 +681,44 @@ scm_mem_alloc_root(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmRef ref)
   return mem;
 }
 
-ScmMem *
+ScmObj
 scm_mem_free_root(ScmMem *mem, ScmObj obj)
 {
   assert(mem != NULL);
   assert(SCM_MEM_ROOT_BLOCK_IS_OBJ_IN_BLOK(obj));
 
-  scm_mem_free_root_obj(obj, mem, &mem->roots);
+  return scm_mem_free_root_obj(obj, mem, &mem->roots);
+}
+
+ScmMem *
+scm_mem_alloc_plain(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmRef ref)
+{
+  ScmObj obj;
+
+  assert(mem != NULL);
+  assert(type < SCM_OBJ_NR_TYPE);
+  assert(ref != SCM_REF_NULL);
+
+  SCM_REF_UPDATE(ref, NULL);
+
+  obj = malloc(SCM_TYPE_INFO_OBJ_SIZE(type));
+  if (obj == NULL) return NULL;
+
+  SCM_REF_UPDATE(ref, obj);
+
+  scm_mem_obj_init(mem, obj, type);
 
   return mem;
 }
 
-void *
-scm_mem_alloc_plain(ScmMem *mem, size_t size)
+ScmObj 
+scm_mem_free_plain(ScmMem *mem, ScmObj obj)
 {
   assert(mem != NULL);
+  assert(obj != NULL);
 
-  return malloc(size);
-}
+  free(obj);
 
-void *
-scm_mem_free_plain(ScmMem *mem, void *p)
-{
-  assert(mem != NULL);
-
-  free(p);
   return NULL;
 }
 
@@ -722,6 +734,37 @@ scm_mem_register_extra_rfrn(ScmMem *mem, ScmRef ref)
   mem->extra_rfrn[mem->nr_extra++] = ref;
 
   return ref;
+}
+
+ScmMem *
+scm_mem_alloc(ScmMem *mem, SCM_OBJ_TYPE_T type,
+              SCM_MEM_ALLOC_TYPE_T alloc, ScmRef ref)
+{
+  assert(mem != NULL);
+  assert(type < SCM_OBJ_NR_TYPE);
+  assert(alloc <  SCM_MEM_NR_ALLOC_TYPE);
+  assert(ref != SCM_REF_NULL);
+
+  switch(alloc) {
+  case SCM_MEM_ALLOC_PLAIN:
+    return scm_mem_alloc_plain(mem, type, ref);
+    break;
+  case SCM_MEM_ALLOC_HEAP:
+    return scm_mem_alloc_heap(mem, type, ref);
+    break;
+  case SCM_MEM_ALLOC_ROOT:
+    return scm_mem_alloc_root(mem, type, ref);
+    break;
+  case SCM_MEM_ALLOC_SHARED_ROOT:
+    SCM_REF_UPDATE(ref, scm_memory_alloc_shared_root(type));
+    return (SCM_REF_OBJ(ref) == NULL) ? NULL : mem;
+    break;
+  case SCM_MEM_NR_ALLOC_TYPE:
+    return NULL;
+    break;
+  }
+  
+  return NULL;
 }
 
 void
