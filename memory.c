@@ -443,7 +443,7 @@ scm_mem_copy_extra_obj(ScmMem *mem)
 }
 
 static void
-scm_mem_copy_root_obj(ScmMem *mem)
+scm_mem_copy_obj_referred_by_root(ScmMem *mem)
 {
   assert(mem != NULL);
 
@@ -529,7 +529,7 @@ scm_mem_initialize(ScmMem *mem)
   mem->from_heap = NULL;
   mem->roots = NULL;
   mem->extra_rfrn = NULL;
-
+  
   mem->to_obj_tbl = scm_basic_hash_construct(SCM_MEM_OBJ_TBL_HASH_SIZE,
                                              object_table_hash_func,
                                              object_table_comp_func);
@@ -580,7 +580,7 @@ scm_mem_finalize(ScmMem *mem)
   if (mem->from_heap != NULL) SCM_MEM_HEAP_DELETE_HEAP(mem->from_heap);
   if (mem->persistent != NULL) SCM_MEM_HEAP_DELETE_HEAP(mem->persistent);
   if (mem->extra_rfrn != NULL) free(mem->extra_rfrn);
-
+  
   return NULL;
 }
 
@@ -775,7 +775,7 @@ scm_mem_gc_start(ScmMem *mem)
   assert(mem != NULL);
 
   scm_mem_switch_heap(mem);
-  scm_mem_copy_root_obj(mem);
+  scm_mem_copy_obj_referred_by_root(mem);
   scm_mem_scan_obj(mem);
   scm_mem_clean_heap(mem, FROM_HEAP);
 
