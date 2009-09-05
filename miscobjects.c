@@ -18,7 +18,8 @@ const ScmTypeInfo SCM_EOF_TYPE_INFO = {
   sizeof(ScmEOF),            /* obj_size        */
   NULL,                      /* gc_ini_func     */
   NULL,                      /* gc_fin_func     */
-  NULL                       /* gc_accept_func */
+  NULL,                      /* gc_accept_func */
+  false                      /* has_weak_ref    */
 };
 
 

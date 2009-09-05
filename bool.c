@@ -17,7 +17,8 @@ const ScmTypeInfo SCM_BOOL_TYPE_INFO = {
   sizeof(ScmBool),            /* obj_size        */
   NULL,                       /* gc_ini_func     */
   NULL,                       /* gc_fin_func     */
-  NULL                        /* gc_accept_func  */
+  NULL,                       /* gc_accept_func  */
+  false                       /* has_weak_ref    */
 };
 
 

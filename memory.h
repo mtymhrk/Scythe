@@ -32,8 +32,6 @@ typedef enum {
 #define SCM_REF_OBJ(ref) (*((ScmObj *)(ref)))
 #define SCM_REF_UPDATE(ref, obj) (*((ScmObj *)(ref)) = (obj))
 
-typedef void (*SCM_MEM_FINALIZER)(ScmObj obj);
-
 struct ScmMemHeapBlockRec {
   struct ScmMemHeapBlockRec *next;
   struct ScmMemHeapBlockRec *prev;

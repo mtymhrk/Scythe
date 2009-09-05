@@ -31,7 +31,8 @@ const ScmTypeInfo SCM_STRING_TYPE_INFO = {
   sizeof(ScmString),            /* obj_size        */
   NULL,                         /* gc_ini_func     */
   scm_string_gc_finalize,       /* gc_fin_func     */
-  NULL                          /* gc_accept_func  */
+  NULL,                         /* gc_accept_func  */
+  false                         /* has_weak_ref    */
 };
 
 static ssize_t

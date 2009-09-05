@@ -22,7 +22,8 @@ const ScmTypeInfo SCM_SYMBOL_TYPE_INFO = {
   sizeof(ScmSymbol),            /* obj_size        */
   NULL,                         /* gc_ini_func     */
   scm_symbol_gc_finalize,       /* gc_fin_func     */
-  NULL                          /* gc_accept_func  */
+  NULL,                         /* gc_accept_func  */
+  false                         /* has_weak_ref    */
 };
 
 

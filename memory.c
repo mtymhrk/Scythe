@@ -24,7 +24,6 @@ struct ScmForwardRec {
     SCM_FORWARD(obj)->forward = fwd;            \
   } while(0)
 
-
 #define SCM_MEM_MIN_OBJ_SIZE sizeof(ScmForward)
 #define SCM_MEM_EXTRA_RFRN_SIZE 32
 
@@ -34,7 +33,8 @@ const ScmTypeInfo SCM_FORWARD_TYPE_INFO = {
   sizeof(ScmForward),      /* obj_size        */
   NULL,                    /* gc_ini_func     */
   NULL,                    /* gc_fin_func     */
-  NULL                     /* gc_ref_itr_func */
+  NULL,                    /* gc_ref_itr_func */
+  false                    /* has_weak_ref    */
 };
 
 static ScmMemRootBlock *shared_roots = NULL;

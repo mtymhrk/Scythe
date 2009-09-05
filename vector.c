@@ -19,7 +19,8 @@ const ScmTypeInfo SCM_VECTOR_TYPE_INFO = {
   sizeof(ScmVector),            /* obj_size        */
   scm_vector_gc_initialize,     /* gc_ini_func     */
   scm_vector_gc_finalize,       /* gc_fin_func     */
-  scm_vector_gc_accept          /* gc_accept_func  */
+  scm_vector_gc_accept,         /* gc_accept_func  */
+  false,                        /* has_weak_ref    */
 };
 
 static void

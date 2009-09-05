@@ -20,7 +20,8 @@ const ScmTypeInfo SCM_PAIR_TYPE_INFO = {
   sizeof(ScmPair),            /* obj_size        */
   scm_pair_gc_initialize,     /* gc_ini_func     */
   NULL,                       /* gc_fin_func     */
-  scm_pair_gc_accpet          /* gc_accept_func */
+  scm_pair_gc_accpet,         /* gc_accept_func */
+  false,                      /* has_weak_ref    */
 };
 
 

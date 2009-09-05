@@ -63,7 +63,11 @@ struct ScmTypeInfoRec {
   ScmGCInitializeFunc gc_ini_func;
   ScmGCFinalizeFunc gc_fin_func;
   ScmGCAcceptFunc gc_accept_func;
+  bool has_weak_ref;
 };
+
+/* TODO: replace scm_obj_type() to following macro function */
+#define SCM_OBJ_TYPE(obj) ((obj)->header.type)
 
 #define SCM_TYPE_INFO_PP(type) (SCM_TYPE_INFO_TBL[(type)]->pp_func)
 #define SCM_TYPE_INFO_OBJ_SIZE(type) (SCM_TYPE_INFO_TBL[(type)]->obj_size)
@@ -75,6 +79,8 @@ struct ScmTypeInfoRec {
   (SCM_TYPE_INFO_TBL[(type)]->gc_accept_func)
 #define SCM_TYPE_INFO_HAS_GC_ACCEPT_FUNC(type)  \
   (SCM_TYPE_INFO_GC_ACCEPT_FUNC(type) != NULL)
+#define SCM_TYPE_INFO_HAS_WEAK_REF(type) \
+  (SCM_TYPE_INFO_TBL[(type)]->has_weak_ref)
 
 #define SCM_TYPE_INFO_OBJ_SIZE_FROM_OBJ(obj) \
   SCM_TYPE_INFO_OBJ_SIZE(scm_obj_type(obj))
@@ -90,7 +96,8 @@ struct ScmTypeInfoRec {
   SCM_TYPE_INFO_GC_ACCEPT_FUNC(scm_obj_type(obj))
 #define SCM_TYPE_INFO_HAS_GC_ACCEPT_FUNC_FROM_OBJ(obj) \
   SCM_TYPE_INFO_HAS_GC_ACCEPT_FUNC(scm_obj_type(obj))
-
+#define SCM_TYPE_INFO_HAS_WEAK_REF_FROM_OBJ(obj) \
+  SCM_TYPE_INFO_HAS_WEAK_REF(scm_obj_type(obj))
 
 void scm_obj_init(ScmObj obj, SCM_OBJ_TYPE_T type);
 SCM_OBJ_TYPE_T scm_obj_type(ScmObj obj);

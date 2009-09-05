@@ -18,7 +18,8 @@ const ScmTypeInfo SCM_INTEGER_TYPE_INFO = {
   sizeof(ScmInteger),            /* obj_size        */
   NULL,                          /* gc_ini_func     */
   NULL,                          /* gc_fin_func     */
-  NULL                           /* gc_accept_func  */
+  NULL,                          /* gc_accept_func  */
+  false                          /* has_weak_ref    */
 };
 
 

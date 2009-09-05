@@ -64,7 +64,8 @@ const ScmTypeInfo SCM_VM_TYPE_INFO = {
   sizeof(ScmVM),                /* obj_size        */
   scm_vm_gc_initialize,         /* gc_ini_func     */
   scm_vm_gc_finalize,           /* gc_fin_func     */
-  scm_vm_gc_accept              /* gc_accept_func */
+  scm_vm_gc_accept,             /* gc_accept_func */
+  false                         /* has_weak_ref    */
 };
 
 static ScmVMEnv *global_env;

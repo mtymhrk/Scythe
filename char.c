@@ -26,7 +26,8 @@ const ScmTypeInfo SCM_CHAR_TYPE_INFO = {
   sizeof(ScmChar),            /* obj_size        */
   NULL,                       /* gc_ini_func     */
   NULL,                       /* gc_fin_func     */
-  NULL                        /* gc_accept_func  */
+  NULL,                       /* gc_accept_func  */
+  false                       /* has_weak_ref    */
 };
 
 
