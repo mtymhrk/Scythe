@@ -223,6 +223,8 @@ scm_mem_clean_heap(ScmMem *mem, int which)
     SCM_MEM_HEAP_BLOCK_CLEAN(block);
   }
   SCM_MEM_HEAP_REWIND(heap);
+
+  SCM_MEM_HEAP_SET_WEAK_LIST(heap, NULL);
 }
 
 static void
@@ -467,6 +469,78 @@ scm_mem_scan_obj(ScmMem *mem)
       scm_mem_copy_children(mem, obj);
     }
   }
+}
+
+static int
+scm_mem_adjust_weak_ref_of_obj_func(ScmMem *mem, ScmObj obj, ScmRef child)
+{
+  ScmObj co;
+
+  assert(mem != NULL);
+  assert(obj != NULL);
+  assert(child != SCM_REF_NULL);
+
+  co = SCM_REF_OBJ(child);
+  if (co != NULL) {
+    if (!scm_mem_is_obj_in_heap(mem, co, FROM_HEAP)) {
+      SCM_OBJ_TYPE_T type = scm_obj_type(co);
+      if (type == SCM_OBJ_TYPE_FORWARD)
+        SCM_REF_UPDATE(child, SCM_FORWARD_FORWARD(co));
+      else
+        SCM_REF_UPDATE(child, NULL);
+    }
+  }
+
+  return 0;
+}
+
+static void
+scm_mem_adjust_weak_ref_of_obj(ScmMem *mem, ScmObj obj)
+{
+  assert(mem != NULL);
+  assert(obj != NULL);
+
+  if (SCM_TYPE_INFO_HAS_WEAK_REF_FROM_OBJ(obj)) {
+    ScmGCAcceptFunc func = SCM_TYPE_INFO_GC_ACCEPT_FUNC_WEAK_FROM_OBJ(obj);
+    int rslt = func(obj, mem, scm_mem_adjust_weak_ref_of_obj_func);
+    if (SCM_GC_IS_REF_HANDLER_FAILURE(rslt)) {
+      ; /* TODO: write error handling */
+    }
+  }
+}
+
+static void
+scm_mem_adjust_weak_ref_of_root_obj(ScmMem *mem, ScmMemRootBlock *head)
+{
+  ScmMemRootBlock *block;
+
+  for (block = head; block != NULL; block = SCM_MEM_ROOT_BLOCK_NEXT(block)) {
+    ScmObj obj = SCM_MEM_ROOT_BLOCK_OBJECT(block);
+    scm_mem_adjust_weak_ref_of_obj(mem, obj);
+  }
+}
+
+static void
+scm_mem_adjust_weak_ref_of_heap_obj(ScmMem *mem)
+{
+  ScmObj obj;
+  assert(mem != NULL);
+
+  for (obj = SCM_MEM_HEAP_WEAK_LIST(mem->to_heap);
+       obj != NULL;
+       obj = SCM_REF_OBJ(SCM_MEM_NEXT_OBJ_HAS_WEAK_REF(obj))) {
+    scm_mem_adjust_weak_ref_of_obj(mem, obj);
+  }
+}
+
+static void
+scm_mem_adjust_weak_ref(ScmMem *mem)
+{
+  assert(mem != NULL);
+
+  scm_mem_adjust_weak_ref_of_root_obj(mem, shared_roots);
+  scm_mem_adjust_weak_ref_of_root_obj(mem, mem->roots);
+  scm_mem_adjust_weak_ref_of_heap_obj(mem);
 }
 
 static ScmObj
@@ -783,6 +857,7 @@ scm_mem_gc_start(ScmMem *mem)
   scm_mem_switch_heap(mem);
   scm_mem_copy_obj_referred_by_root(mem);
   scm_mem_scan_obj(mem);
+  scm_mem_adjust_weak_ref(mem);
   scm_mem_clean_heap(mem, FROM_HEAP);
 
   nr_free = SCM_MEM_HEAP_NR_FREE_BLOCK(mem->to_heap);

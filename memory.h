@@ -32,6 +32,7 @@ typedef enum {
 #define SCM_REF_OBJ(ref) (*((ScmObj *)(ref)))
 #define SCM_REF_UPDATE(ref, obj) (*((ScmObj *)(ref)) = (obj))
 
+
 struct ScmMemHeapBlockRec {
   struct ScmMemHeapBlockRec *next;
   struct ScmMemHeapBlockRec *prev;
@@ -319,6 +320,7 @@ struct ScmMemRec {
     *(rslt) = SCM_TYPE_INFO_OBJ_SIZE(type);                             \
     if (SCM_TYPE_INFO_HAS_WEAK_REF(type))                               \
       *(rslt) = SCM_MEM_SIZE_OF_OBJ_HAS_WEAK_REF(*rslt);                \
+    /* XXX: SCM_MEM_MIN_OBJ_SIZE is defined in memory.c */              \
     if (*(rslt) < SCM_MEM_MIN_OBJ_SIZE)                                 \
       *(rslt) = SCM_MEM_MIN_OBJ_SIZE;                                   \
   } while(0)
