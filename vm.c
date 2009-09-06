@@ -59,13 +59,13 @@ struct ScmVMRec {
 #define SCM_VM_POP_FROM_STACK(vm, obj) (obj = *(--(vm)->sp) )
 
 const ScmTypeInfo SCM_VM_TYPE_INFO = {
-  SCM_OBJ_TYPE_STRING,          /* type            */
-  scm_vm_pretty_print,          /* pp_func         */
-  sizeof(ScmVM),                /* obj_size        */
-  scm_vm_gc_initialize,         /* gc_ini_func     */
-  scm_vm_gc_finalize,           /* gc_fin_func     */
-  scm_vm_gc_accept,             /* gc_accept_func */
-  false                         /* has_weak_ref    */
+  SCM_OBJ_TYPE_STRING,          /* type                 */
+  scm_vm_pretty_print,          /* pp_func              */
+  sizeof(ScmVM),                /* obj_size             */
+  scm_vm_gc_initialize,         /* gc_ini_func          */
+  scm_vm_gc_finalize,           /* gc_fin_func          */
+  scm_vm_gc_accept,             /* gc_accept_func       */
+  NULL,                         /* gc_accpet_func_weak  */
 };
 
 static ScmVMEnv *global_env;

@@ -86,6 +86,7 @@ struct ScmMemHeapRec {
   ScmMemHeapBlock *head;
   ScmMemHeapBlock *tail;
   ScmMemHeapBlock *current;
+  void *weak_list;
   int nr_block;
   int nr_free_block;
 };
@@ -93,6 +94,8 @@ struct ScmMemHeapRec {
 #define SCM_MEM_HEAP_CUR_BLOCK_FREE_SIZE(heap) \
   (((heap)->current == NULL) ? 0 : SCM_MEM_HEAP_BLOCK_FREE((heap)->current))
 #define SCM_MEM_HEAP_IS_CUR_BLOCK_TAIL(heap)  ((heap)->current == (heap)->tail)
+#define SCM_MEM_HEAP_WEAK_LIST(heap) ((heap)->weak_list)
+#define SCM_MEM_HEAP_SET_WEAK_LIST(heap, p) ((heap)->weak_list = (p))
 #define SCM_MEM_HEAP_NR_BLOCK(heap) ((heap)->nr_block)
 #define SCM_MEM_HEAP_NR_FREE_BLOCK(heap) ((heap)->nr_free_block)
 #define SCM_MEM_HEAP_NR_USED_BLOCK(heap) \
@@ -165,6 +168,7 @@ struct ScmMemHeapRec {
       (heap)->head = NULL;                          \
       (heap)->tail = NULL;                          \
       (heap)->current = NULL;                       \
+      (heap)->weak_list = NULL;                     \
       (heap)->nr_block = 0;                         \
       (heap)->nr_free_block = 0;                    \
                                                     \
@@ -301,6 +305,31 @@ struct ScmMemRec {
     if (nxt != NULL)                                             \
       nxt->prev = prv;                                           \
   } while(0)
+
+#define SCM_MEM_SIZE_OF_OBJ_HAS_WEAK_REF(size) ((size) + sizeof(ScmObj))
+#define SCM_MEM_NEXT_OBJ_HAS_WEAK_REF(obj) \
+  ((ScmRef)((uintptr_t)(obj) + SCM_TYPE_INFO_OBJ_SIZE_FROM_OBJ(obj)))
+#define SCM_MEM_SET_NEXT_OBJ_HAS_WEAK_REF(obj, nxt)     \
+  do {                                                  \
+    ScmRef r = SCM_MEM_NEXT_OBJ_HAS_WEAK_REF(obj);      \
+    SCM_REF_UPDATE(r, nxt);                             \
+  } while(0)
+#define SCM_MEM_ALLOCATION_SIZE_OF_OBJ(type, rslt)                      \
+  do {                                                                  \
+    *(rslt) = SCM_TYPE_INFO_OBJ_SIZE(type);                             \
+    if (SCM_TYPE_INFO_HAS_WEAK_REF(type))                               \
+      *(rslt) = SCM_MEM_SIZE_OF_OBJ_HAS_WEAK_REF(*rslt);                \
+    if (*(rslt) < SCM_MEM_MIN_OBJ_SIZE)                                 \
+      *(rslt) = SCM_MEM_MIN_OBJ_SIZE;                                   \
+  } while(0)
+#define SCM_MEM_ADD_OBJ_TO_WEAK_LIST(heap, ref)                         \
+  do {                                                                  \
+    ScmObj obj = SCM_REF_OBJ(ref);                                      \
+    ScmObj nxt = SCM_OBJ(SCM_MEM_HEAP_WEAK_LIST(heap));                 \
+    SCM_MEM_SET_NEXT_OBJ_HAS_WEAK_REF(obj, nxt);                        \
+    SCM_MEM_HEAP_SET_WEAK_LIST(heap, obj);                              \
+  } while(0)
+  
 
 #define SCM_MEM_HEAP_INIT_BLOCK_SIZE 4096
 #define SCM_MEM_OBJ_TBL_HASH_SIZE 1024

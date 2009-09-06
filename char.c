@@ -21,13 +21,13 @@ struct ScmCharRec {
   SCM_CHR_IS_EQUAL((c)->value, SCM_ENCODING_CONST_SPACE_CHAR((c)->enc))
 
 const ScmTypeInfo SCM_CHAR_TYPE_INFO = {
-  SCM_OBJ_TYPE_CHAR,          /* type            */
-  scm_char_pretty_print,      /* pp_func         */
-  sizeof(ScmChar),            /* obj_size        */
-  NULL,                       /* gc_ini_func     */
-  NULL,                       /* gc_fin_func     */
-  NULL,                       /* gc_accept_func  */
-  false                       /* has_weak_ref    */
+  SCM_OBJ_TYPE_CHAR,          /* type                 */
+  scm_char_pretty_print,      /* pp_func              */
+  sizeof(ScmChar),            /* obj_size             */
+  NULL,                       /* gc_ini_func          */
+  NULL,                       /* gc_fin_func          */
+  NULL,                       /* gc_accept_func       */
+  NULL,                       /* gc_accpet_func_weak  */
 };
 
 

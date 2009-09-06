@@ -14,13 +14,13 @@ struct ScmVectorRec {
 };
 
 const ScmTypeInfo SCM_VECTOR_TYPE_INFO = {
-  SCM_OBJ_TYPE_VECTOR,          /* type            */
-  scm_vector_pretty_print,      /* pp_func         */
-  sizeof(ScmVector),            /* obj_size        */
-  scm_vector_gc_initialize,     /* gc_ini_func     */
-  scm_vector_gc_finalize,       /* gc_fin_func     */
-  scm_vector_gc_accept,         /* gc_accept_func  */
-  false,                        /* has_weak_ref    */
+  SCM_OBJ_TYPE_VECTOR,          /* type                 */
+  scm_vector_pretty_print,      /* pp_func              */
+  sizeof(ScmVector),            /* obj_size             */
+  scm_vector_gc_initialize,     /* gc_ini_func          */
+  scm_vector_gc_finalize,       /* gc_fin_func          */
+  scm_vector_gc_accept,         /* gc_accept_func       */
+  NULL,                         /* gc_accpet_func_weak  */
 };
 
 static void

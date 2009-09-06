@@ -28,13 +28,13 @@ struct ScmForwardRec {
 #define SCM_MEM_EXTRA_RFRN_SIZE 32
 
 const ScmTypeInfo SCM_FORWARD_TYPE_INFO = {
-  SCM_OBJ_TYPE_FORWARD,    /* type            */
-  NULL,                    /* pp_func         */
-  sizeof(ScmForward),      /* obj_size        */
-  NULL,                    /* gc_ini_func     */
-  NULL,                    /* gc_fin_func     */
-  NULL,                    /* gc_ref_itr_func */
-  false                    /* has_weak_ref    */
+  SCM_OBJ_TYPE_FORWARD,    /* type                 */
+  NULL,                    /* pp_func              */
+  sizeof(ScmForward),      /* obj_size             */
+  NULL,                    /* gc_ini_func          */
+  NULL,                    /* gc_fin_func          */
+  NULL,                    /* gc_accept_func       */
+  NULL,                    /* gc_accpet_func_weak  */
 };
 
 static ScmMemRootBlock *shared_roots = NULL;
@@ -293,9 +293,7 @@ scm_mem_alloc_heap_mem(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmRef ref)
   assert(type < SCM_OBJ_NR_TYPE);
   assert(ref != SCM_REF_NULL);
 
-  size = SCM_TYPE_INFO_OBJ_SIZE(type);
-  size = (size > SCM_MEM_MIN_OBJ_SIZE) ? size : SCM_MEM_MIN_OBJ_SIZE;
-
+  SCM_MEM_ALLOCATION_SIZE_OF_OBJ(type, &size);
   SCM_MEM_HEAP_ALLOC(mem->to_heap, size, SCM_REF_TO_PTR(ref));
   if (SCM_REF_OBJ(ref) == NULL) return;
 
@@ -304,6 +302,9 @@ scm_mem_alloc_heap_mem(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmRef ref)
     SCM_REF_UPDATE(ref,  NULL);
     return;
   }
+
+  if (SCM_TYPE_INFO_HAS_WEAK_REF(type))
+    SCM_MEM_ADD_OBJ_TO_WEAK_LIST(mem->to_heap, ref);
 }
 
 static void
@@ -649,7 +650,7 @@ scm_mem_alloc_persist(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmRef ref)
   assert(type < SCM_OBJ_NR_TYPE);
   assert(ref != SCM_REF_NULL);
 
-  size = SCM_TYPE_INFO_OBJ_SIZE(type);
+  SCM_MEM_ALLOCATION_SIZE_OF_OBJ(type, &size);
   SCM_MEM_HEAP_ALLOC(mem->persistent, size, SCM_REF_TO_PTR(ref));
   if (SCM_REF_OBJ(ref) == NULL) {
     if (scm_mem_expand_persistent(mem, 1) != 1) {
@@ -662,6 +663,9 @@ scm_mem_alloc_persist(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmRef ref)
       return NULL;
     }
   }
+
+  if (SCM_TYPE_INFO_HAS_WEAK_REF(type))
+    SCM_MEM_ADD_OBJ_TO_WEAK_LIST(mem->persistent, ref);
 
   scm_mem_obj_init(mem, SCM_REF_OBJ(ref), type);
 
@@ -746,8 +750,10 @@ scm_mem_alloc(ScmMem *mem, SCM_OBJ_TYPE_T type,
   assert(ref != SCM_REF_NULL);
 
   switch(alloc) {
-  case SCM_MEM_ALLOC_PLAIN:
-    return scm_mem_alloc_plain(mem, type, ref);
+  case SCM_MEM_ALLOC_PLAIN: /* TODO: delete this function         */
+                            /*       this functions is not needed */
+    /* return scm_mem_alloc_plain(mem, type, ref); */
+    return NULL;
     break;
   case SCM_MEM_ALLOC_HEAP:
     return scm_mem_alloc_heap(mem, type, ref);

@@ -5,6 +5,18 @@
 #include "reference.h"
 #include "memory.h"
 #include "object.h"
+#include "obuffer.h"
+
+const ScmTypeInfo SCM_WEAK_REF_TYPE_INFO = {
+  SCM_OBJ_TYPE_WEAK_REF,         /* type                 */
+  scm_weak_ref_pretty_print,     /* pp_func              */
+  sizeof(ScmWeakRef),            /* obj_size             */
+  NULL,                          /* gc_ini_func          */
+  NULL,                          /* gc_fin_func          */
+  NULL,                          /* gc_accept_func       */
+  scm_weak_ref_gc_accept_weak    /* gc_accpet_func_weak  */
+};
+
 
 static ScmRefStack *
 scm_ref_stack_add_new_block(ScmRefStack *stack, size_t size)
@@ -177,4 +189,52 @@ scm_ref_stack_gc_accept(ScmRefStack *stack, ScmObj owner,
   }
 
   return rslt;
+}
+
+
+bool
+scm_weak_ref_is_weak_ref(ScmObj obj)
+{
+  assert(obj != NULL);
+
+  return (scm_obj_type(obj) == SCM_OBJ_TYPE_WEAK_REF);
+}
+
+void
+scm_weak_ref_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
+{
+  assert(obj != NULL); assert(scm_weak_ref_is_weak_ref(obj));
+  assert(obuffer != NULL);
+
+  scm_obuffer_concatenate_string(obuffer, "<weak reference>");
+}
+
+void
+scm_weak_ref_set(ScmWeakRef *wref, ScmObj obj)
+{
+  assert(wref != NULL);
+
+  SCM_WEAK_REF_SET(wref, obj);
+}
+
+ScmObj
+scm_weak_ref_get(ScmWeakRef *wref)
+{
+  assert(wref != NULL);
+
+  return SCM_WEAK_REF_GET(wref);
+}
+
+int
+scm_weak_ref_gc_accept_weak(ScmObj obj, ScmMem *mem,
+                            ScmGCRefHandlerFunc handler)
+{
+  ScmWeakRef *wref;
+
+  assert(obj != NULL);
+  assert(mem != NULL);
+  assert(handler != NULL);
+
+  wref = SCM_WEAK_REF(obj);
+  return SCM_GC_CALL_REF_HANDLER(handler, obj, wref->obj, mem);
 }
