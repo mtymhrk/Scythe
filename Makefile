@@ -6,6 +6,8 @@ INCLUDES =
 SOURCES  = 
 OBJS     = $(SOURCES:.c=.o)
 TARGET   =
+DOXYGEN  = doxygen
+DOXYGEN_CONF = doxygen.conf
 
 include Makefile.sources
 
@@ -17,7 +19,7 @@ $(TARGET) $(OBJS): Makefile
 	$(CC) -c -o $@ $(INCLUDES) $(CFLAGS) $<
 
 
-.PHONY: clean depend test check-syntax
+.PHONY: clean depend test doxgen check-syntax
 
 clean:
 	-rm $(TARGET) $(OBJS)
@@ -29,6 +31,9 @@ depend:
 test:
 	$(MAKE) CFLAGS="$(CFLAGS) -g"
 	$(MAKE) -C ./test depend all run
+
+doxygen:
+	$(DOXYGEN) $(DOXYGEN_CONF)
 
 check-syntax:
 	LANG=C $(CC) -fsyntax-only $(INCLUDES) $(CFLAGS) $(CHK_SOURCES)
