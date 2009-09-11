@@ -9,7 +9,7 @@ typedef struct ScmPairRec ScmPair;
 
 #include "object.h"
 
-extern const ScmTypeInfo SCM_PAIR_TYPE_INFO;
+extern ScmTypeInfo SCM_PAIR_TYPE_INFO;
 
 ScmPair *scm_pair_construct(ScmObj car, ScmObj cdr);
 void scm_pair_desturct(ScmPair *pair);

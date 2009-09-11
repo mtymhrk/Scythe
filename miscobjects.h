@@ -7,7 +7,7 @@ typedef struct ScmEOFRec ScmEOF;
 
 #include "object.h"
 
-extern const ScmTypeInfo SCM_EOF_TYPE_INFO;
+extern ScmTypeInfo SCM_EOF_TYPE_INFO;
 
 ScmEOF *scm_eof_construct(void);
 void scm_eof_destruct(ScmEOF *eof);

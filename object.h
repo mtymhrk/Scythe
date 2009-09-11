@@ -12,27 +12,6 @@ typedef struct ScmGCRefItrRec ScmGCRefItr;
 #define SCM_ATOM(obj) ((ScmAtom *)(obj))
 #define SCM_OBJ(obj) ((ScmObj)(obj))
 
-typedef enum {
-  SCM_OBJ_TYPE_FORWARD,
-  SCM_OBJ_TYPE_PAIR,
-  SCM_OBJ_TYPE_STRING,
-  SCM_OBJ_TYPE_SYMBOL,
-  SCM_OBJ_TYPE_NIL,
-  SCM_OBJ_TYPE_INTEGER,
-  SCM_OBJ_TYPE_VECTOR,
-  SCM_OBJ_TYPE_BOOL,
-  SCM_OBJ_TYPE_CHAR,
-  SCM_OBJ_TYPE_EOF,
-  SCM_OBJ_TYPE_PORT,
-  SCM_OBJ_TYPE_PRIM_PROC,
-  SCM_OBJ_TYPE_BIND_REF,
-  SCM_OBJ_TYPE_VM,
-  SCM_OBJ_TYPE_WEAK_REF,
-  SCM_OBJ_NR_TYPE,
-} SCM_OBJ_TYPE_T;
-
-extern const ScmTypeInfo const *SCM_TYPE_INFO_TBL[SCM_OBJ_NR_TYPE];
-
 #include "obuffer.h"
 #include "memory.h"
 
@@ -40,25 +19,17 @@ typedef void (*ScmPrettyPrintFunction)(ScmObj obj,
 				       ScmOBuffer *obuffer);
 typedef void (*ScmGCInitializeFunc)(ScmObj obj, ScmMem *mem);
 typedef void (*ScmGCFinalizeFunc)(ScmObj obj);
-typedef int (*ScmGCRefHandlerFunc)(ScmMem *vm, ScmObj obj, ScmRef child);
+typedef int (*ScmGCRefHandlerFunc)(ScmMem *mem, ScmObj obj, ScmRef child);
 typedef int (*ScmGCAcceptFunc)(ScmObj obj,
-                               ScmMem *vm, ScmGCRefHandlerFunc handler);
+                               ScmMem *mem, ScmGCRefHandlerFunc handler);
 
 #define SCM_GC_CALL_REF_HANDLER(handler, obj, child, mem) \
   (handler(mem, obj, SCM_REF_MAKE(child)))
 #define SCM_GC_IS_REF_HANDLER_FAILURE(rslt) ((rslt) < 0)
 #define SCM_GC_REF_HANDLER_VAL_INIT 0
 
-struct ScmObjHeaderRec {
-  SCM_OBJ_TYPE_T type;
-};
-
-struct ScmAtomRec {
-  ScmObjHeader header;
-};
 
 struct ScmTypeInfoRec {
-  SCM_OBJ_TYPE_T type;
   ScmPrettyPrintFunction pp_func;
   size_t obj_size;
   ScmGCInitializeFunc gc_ini_func;
@@ -67,49 +38,52 @@ struct ScmTypeInfoRec {
   ScmGCAcceptFunc gc_accept_func_weak;
 };
 
-/* TODO: replace scm_obj_type() to following macro function */
-#define SCM_OBJ_TYPE(obj) ((obj)->header.type)
 
-#define SCM_TYPE_INFO_PP(type) (SCM_TYPE_INFO_TBL[(type)]->pp_func)
-#define SCM_TYPE_INFO_OBJ_SIZE(type) (SCM_TYPE_INFO_TBL[(type)]->obj_size)
-#define SCM_TYPE_INFO_GC_INI(type) (SCM_TYPE_INFO_TBL[(type)]->gc_ini_func)
+#define SCM_TYPE_INFO_IS_SAME(t1, t2) ((t1) == (t2))
+#define SCM_TYPE_INFO_PP(type) ((type)->pp_func)
+#define SCM_TYPE_INFO_OBJ_SIZE(type) ((type)->obj_size)
+#define SCM_TYPE_INFO_GC_INI(type) ((type)->gc_ini_func)
 #define SCM_TYPE_INFO_HAS_GC_INI(type) (SCM_TYPE_INFO_GC_INI(type) != NULL)
-#define SCM_TYPE_INFO_GC_FIN(type) (SCM_TYPE_INFO_TBL[(type)]->gc_fin_func)
+#define SCM_TYPE_INFO_GC_FIN(type) ((type)->gc_fin_func)
 #define SCM_TYPE_INFO_HAS_GC_FIN(type) (SCM_TYPE_INFO_GC_FIN(type) != NULL)
-#define SCM_TYPE_INFO_GC_ACCEPT_FUNC(type)      \
-  (SCM_TYPE_INFO_TBL[(type)]->gc_accept_func)
-#define SCM_TYPE_INFO_HAS_GC_ACCEPT_FUNC(type)  \
+#define SCM_TYPE_INFO_GC_ACCEPT_FUNC(type) ((type)->gc_accept_func)
+#define SCM_TYPE_INFO_HAS_GC_ACCEPT_FUNC(type) \
   (SCM_TYPE_INFO_GC_ACCEPT_FUNC(type) != NULL)
-#define SCM_TYPE_INFO_GC_ACCEPT_FUNC_WEAK(type) \
-  (SCM_TYPE_INFO_TBL[(type)]->gc_accept_func_weak)
+#define SCM_TYPE_INFO_GC_ACCEPT_FUNC_WEAK(type) ((type)->gc_accept_func_weak)
 #define SCM_TYPE_INFO_HAS_WEAK_REF(type) \
   (SCM_TYPE_INFO_GC_ACCEPT_FUNC_WEAK(type) != NULL)
 
 
-#define SCM_TYPE_INFO_OBJ_SIZE_FROM_OBJ(obj) \
-  SCM_TYPE_INFO_OBJ_SIZE(scm_obj_type(obj))
-#define SCM_TYPE_INFO_GC_INI_FROM_OBJ(obj) \
-  SCM_TYPE_INFO_GC_INI(scm_obj_type(obj))
-#define SCM_TYPE_INFO_HAS_GC_INI_FROM_OBJ(obj) \
-  SCM_TYPE_INFO_HAS_GC_INI(scm_obj_type(obj))
-#define SCM_TYPE_INFO_GC_FIN_FROM_OBJ(obj) \
-  SCM_TYPE_INFO_GC_FIN(scm_obj_type(obj))
-#define SCM_TYPE_INFO_HAS_GC_FIN_FROM_OBJ(obj) \
-  SCM_TYPE_INFO_HAS_GC_FIN(scm_obj_type(obj))
-#define SCM_TYPE_INFO_GC_ACCEPT_FUNC_FROM_OBJ(obj) \
-  SCM_TYPE_INFO_GC_ACCEPT_FUNC(scm_obj_type(obj))
-#define SCM_TYPE_INFO_HAS_GC_ACCEPT_FUNC_FROM_OBJ(obj) \
-  SCM_TYPE_INFO_HAS_GC_ACCEPT_FUNC(scm_obj_type(obj))
-#define SCM_TYPE_INFO_GC_ACCEPT_FUNC_WEAK_FROM_OBJ(obj) \
-  SCM_TYPE_INFO_GC_ACCEPT_FUNC_WEAK(scm_obj_type(obj))
-#define SCM_TYPE_INFO_HAS_WEAK_REF_FROM_OBJ(obj) \
-  SCM_TYPE_INFO_HAS_WEAK_REF(scm_obj_type(obj))
+struct ScmObjHeaderRec {
+  ScmTypeInfo *type;
+};
+
+struct ScmAtomRec {
+  ScmObjHeader header;
+};
+
+/* TODO: replace scm_obj_type() to following macro function */
+#define SCM_OBJ_TYPE(obj) ((obj)->header.type)
+#define SCM_OBJ_IS_TYPE(obj, type) \
+  (SCM_TYPE_INFO_IS_SAME(SCM_OBJ_TYPE(obj), type))
+#define SCM_OBJ_SIZE(obj) (SCM_TYPE_INFO_OBJ_SIZE(SCM_OBJ_TYPE(obj)))
+#define SCM_OBJ_GC_INI(obj) (SCM_TYPE_INFO_GC_INI(SCM_OBJ_TYPE(obj)))
+#define SCM_OBJ_HAS_GC_INI(obj) (SCM_TYPE_INFO_HAS_GC_INI(SCM_OBJ_TYPE(obj))
+#define SCM_OBJ_GC_FIN(obj) (SCM_TYPE_INFO_GC_FIN(SCM_OBJ_TYPE(obj)))
+#define SCM_OBJ_HAS_GC_FIN(obj) (SCM_TYPE_INFO_HAS_GC_FIN(SCM_OBJ_TYPE(obj)))
+#define SCM_OBJ_GC_ACCEPT_FUNC(obj) \
+  (SCM_TYPE_INFO_GC_ACCEPT_FUNC(SCM_OBJ_TYPE(obj)))
+#define SCM_OBJ_HAS_GC_ACCEPT_FUNC(obj) \
+  (SCM_TYPE_INFO_HAS_GC_ACCEPT_FUNC(SCM_OBJ_TYPE(obj)))
+#define SCM_OBJ_GC_ACCEPT_FUNC_WEAK(obj) \
+  (SCM_TYPE_INFO_GC_ACCEPT_FUNC_WEAK(SCM_OBJ_TYPE(obj)))
+#define SCM_OBJ_HAS_WEAK_REF(obj) \
+  (SCM_TYPE_INFO_HAS_WEAK_REF(SCM_OBJ_TYPE(obj)))
 
 
-void scm_obj_init(ScmObj obj, SCM_OBJ_TYPE_T type);
-SCM_OBJ_TYPE_T scm_obj_type(ScmObj obj);
+void scm_obj_init(ScmObj obj, ScmTypeInfo *type);
+ScmTypeInfo *scm_obj_type(ScmObj obj);
 void scm_obj_pretty_print(ScmObj obj, ScmOBuffer *obuffer);
 int scm_obj_is_same_instance(ScmObj obj1, ScmObj obj2);
-bool smc_obj_is_valid_type_info_tbl(void);
 
 #endif /* INCLUDE_OBJECT_H__ */

@@ -5,8 +5,7 @@
 
 ScmPrimProc *SCM_PRIM_PROC_CONS;
 
-const ScmTypeInfo SCM_PRIM_PROC_TYPE_INFO = {
-  SCM_OBJ_TYPE_PRIM_PROC,       /* type                 */
+ScmTypeInfo SCM_PRIM_PROC_TYPE_INFO = {
   scm_prim_proc_pretty_print,   /* pp_func              */
   sizeof(ScmPrimProc),          /* obj_size             */
   NULL,                         /* gc_ini_func          */

@@ -9,7 +9,7 @@ typedef struct ScmSymbolRec ScmSymbol;
 
 #include "object.h"
 
-extern const ScmTypeInfo SCM_SYMBOL_TYPE_INFO;
+extern ScmTypeInfo SCM_SYMBOL_TYPE_INFO;
 
 void scm_symbol_initialize(ScmSymbol *symbol, const char *str);
 ScmSymbol *scm_symbol_construct(const char *str);

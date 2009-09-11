@@ -12,8 +12,7 @@ struct ScmIntegerRec {
   long long value;
 };
 
-const ScmTypeInfo SCM_INTEGER_TYPE_INFO = {
-  SCM_OBJ_TYPE_INTEGER,          /* type                 */
+ScmTypeInfo SCM_INTEGER_TYPE_INFO = {
   scm_integer_pretty_print,      /* pp_func              */
   sizeof(ScmInteger),            /* obj_size             */
   NULL,                          /* gc_ini_func          */
@@ -29,7 +28,7 @@ scm_integer_construct(long long value)
   ScmInteger *integer;
 
   integer = scm_memory_allocate(sizeof(ScmInteger));
-  scm_obj_init(SCM_OBJ(integer), SCM_OBJ_TYPE_INTEGER);
+  scm_obj_init(SCM_OBJ(integer), &SCM_INTEGER_TYPE_INFO);
   integer->value = value;
 
   return integer;
@@ -54,7 +53,7 @@ scm_integer_is_integer(ScmObj obj)
 {
   assert(obj != NULL);
 
-  return (scm_obj_type(obj) == SCM_OBJ_TYPE_INTEGER);
+  return SCM_OBJ_IS_TYPE(obj, &SCM_INTEGER_TYPE_INFO);
 }
 
 ScmInteger *

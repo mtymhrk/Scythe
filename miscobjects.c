@@ -12,8 +12,7 @@ struct ScmEOFRec {
 
 static ScmEOF *eof_instance = NULL;
 
-const ScmTypeInfo SCM_EOF_TYPE_INFO = {
-  SCM_OBJ_TYPE_EOF,          /* type            */
+ScmTypeInfo SCM_EOF_TYPE_INFO = {
   scm_eof_pretty_print,      /* pp_func         */
   sizeof(ScmEOF),            /* obj_size        */
   NULL,                      /* gc_ini_func     */
@@ -29,7 +28,7 @@ scm_eof_construct(void)
   ScmEOF *eof;
 
   eof = scm_memory_allocate(sizeof(ScmEOF));
-  scm_obj_init(SCM_OBJ(eof), SCM_OBJ_TYPE_EOF);
+  scm_obj_init(SCM_OBJ(eof), &SCM_EOF_TYPE_INFO);
 
   return eof;
 }
@@ -55,7 +54,7 @@ scm_eof_is_eof(ScmObj obj)
 {
   assert(obj != NULL);
 
-  return (scm_obj_type(obj) == SCM_OBJ_TYPE_EOF);
+  return SCM_OBJ_IS_TYPE(obj, &SCM_EOF_TYPE_INFO);
 }
 
 void

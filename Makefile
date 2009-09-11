@@ -19,7 +19,7 @@ $(TARGET) $(OBJS): Makefile
 	$(CC) -c -o $@ $(INCLUDES) $(CFLAGS) $<
 
 
-.PHONY: clean depend test doxgen check-syntax
+.PHONY: clean depend test doxygen check-syntax
 
 clean:
 	-rm $(TARGET) $(OBJS)
@@ -29,7 +29,7 @@ depend:
 	$(CC) -MM $(INCLUDES) $(CFLAGS) $(SOURCES) > Makefile.depend
 
 test:
-	$(MAKE) CFLAGS="$(CFLAGS) -g"
+	$(MAKE)
 	$(MAKE) -C ./test depend all run
 
 doxygen:

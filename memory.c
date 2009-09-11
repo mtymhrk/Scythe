@@ -16,19 +16,7 @@ struct ScmForwardRec {
   ScmObj forward;
 };
 
-#define SCM_FORWARD(obj) ((ScmForward *)(obj))
-#define SCM_FORWARD_FORWARD(obj) (SCM_FORWARD(obj)->forward)
-#define SCM_FORWARD_INITIALIZE(obj, fwd) \
-  do { \
-    scm_obj_init(obj, SCM_OBJ_TYPE_FORWARD);    \
-    SCM_FORWARD(obj)->forward = fwd;            \
-  } while(0)
-
-#define SCM_MEM_MIN_OBJ_SIZE sizeof(ScmForward)
-#define SCM_MEM_EXTRA_RFRN_SIZE 32
-
-const ScmTypeInfo SCM_FORWARD_TYPE_INFO = {
-  SCM_OBJ_TYPE_FORWARD,    /* type                 */
+ScmTypeInfo SCM_FORWARD_TYPE_INFO = {
   NULL,                    /* pp_func              */
   sizeof(ScmForward),      /* obj_size             */
   NULL,                    /* gc_ini_func          */
@@ -36,6 +24,18 @@ const ScmTypeInfo SCM_FORWARD_TYPE_INFO = {
   NULL,                    /* gc_accept_func       */
   NULL,                    /* gc_accpet_func_weak  */
 };
+
+#define SCM_FORWARD(obj) ((ScmForward *)(obj))
+#define SCM_FORWARD_FORWARD(obj) (SCM_FORWARD(obj)->forward)
+#define SCM_FORWARD_INITIALIZE(obj, fwd) \
+  do { \
+    scm_obj_init(obj, &SCM_FORWARD_TYPE_INFO);    \
+    SCM_FORWARD(obj)->forward = fwd;            \
+  } while(0)
+
+#define SCM_MEM_MIN_OBJ_SIZE sizeof(ScmForward)
+#define SCM_MEM_EXTRA_RFRN_SIZE 32
+
 
 static ScmMemRootBlock *shared_roots = NULL;
 
@@ -141,10 +141,10 @@ scm_mem_expand_persistent(ScmMem *mem, int inc_block)
 }
 
 static int
-scm_mem_register_obj_if_needed(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmObj obj)
+scm_mem_register_obj_if_needed(ScmMem *mem, ScmTypeInfo *type, ScmObj obj)
 {
   assert(mem != NULL);
-  assert(type < SCM_OBJ_NR_TYPE);
+  assert(type != NULL);
 
   if (SCM_TYPE_INFO_HAS_GC_FIN(type)) {
     ScmBasicHashEntry *e;
@@ -164,7 +164,7 @@ scm_mem_unregister_obj(ScmMem *mem, ScmObj obj)
 {
   assert(mem != NULL);
 
-  if (SCM_TYPE_INFO_HAS_GC_FIN_FROM_OBJ(obj))
+  if (SCM_OBJ_HAS_GC_FIN(obj))
     scm_basic_hash_delete(mem->from_obj_tbl, SCM_BASIC_HASH_KEY(obj));
 }
 
@@ -174,8 +174,8 @@ scm_mem_finalize_obj(ScmMem *mem, ScmObj obj)
   assert(mem != NULL);
   assert(obj != NULL);
 
-  if (SCM_TYPE_INFO_HAS_GC_FIN_FROM_OBJ(obj)) {
-    ScmGCFinalizeFunc fin = SCM_TYPE_INFO_GC_FIN_FROM_OBJ(obj);
+  if (SCM_OBJ_HAS_GC_FIN(obj)) {
+    ScmGCFinalizeFunc fin = SCM_OBJ_GC_FIN(obj);
     fin(obj);
   }
 }
@@ -287,12 +287,12 @@ scm_mem_is_obj_in_heap(ScmMem *mem, ScmObj obj, int which)
 }
 
 static void
-scm_mem_alloc_heap_mem(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmRef ref)
+scm_mem_alloc_heap_mem(ScmMem *mem, ScmTypeInfo *type, ScmRef ref)
 {
   size_t size;
 
   assert(mem != NULL);
-  assert(type < SCM_OBJ_NR_TYPE);
+  assert(type != NULL);
   assert(ref != SCM_REF_NULL);
 
   SCM_MEM_ALLOCATION_SIZE_OF_OBJ(type, &size);
@@ -310,11 +310,11 @@ scm_mem_alloc_heap_mem(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmRef ref)
 }
 
 static void
-scm_mem_obj_init(ScmMem *mem, ScmObj obj, SCM_OBJ_TYPE_T type)
+scm_mem_obj_init(ScmMem *mem, ScmObj obj, ScmTypeInfo *type)
 {
   assert(mem != NULL);
   assert(obj != NULL);
-  assert(type < SCM_OBJ_NR_TYPE);
+  assert(type != NULL);
 
   scm_obj_init(obj, type);
   if (SCM_TYPE_INFO_HAS_GC_INI(type)) {
@@ -327,7 +327,7 @@ static ScmObj
 scm_mem_copy_obj(ScmMem *mem, ScmObj obj)
 {
   ScmObj box;
-  SCM_OBJ_TYPE_T type;
+  ScmTypeInfo *type;
 
   assert(mem != NULL);
   assert(obj != NULL);
@@ -336,7 +336,7 @@ scm_mem_copy_obj(ScmMem *mem, ScmObj obj)
     return obj;
 
   type = scm_obj_type(obj);
-  if (type == SCM_OBJ_TYPE_FORWARD) 
+  if (SCM_TYPE_INFO_IS_SAME(type, &SCM_FORWARD_TYPE_INFO))
     return SCM_FORWARD_FORWARD(obj);
 
   scm_mem_alloc_heap_mem(mem, type, SCM_REF_MAKE(box));
@@ -380,8 +380,8 @@ scm_mem_copy_children(ScmMem *mem, ScmObj obj)
   assert(mem != NULL);
   assert(obj != NULL);
 
-  if (SCM_TYPE_INFO_HAS_GC_ACCEPT_FUNC_FROM_OBJ(obj)) {
-    ScmGCAcceptFunc func = SCM_TYPE_INFO_GC_ACCEPT_FUNC_FROM_OBJ(obj);
+  if (SCM_OBJ_HAS_GC_ACCEPT_FUNC(obj)) {
+    ScmGCAcceptFunc func = SCM_OBJ_GC_ACCEPT_FUNC(obj);
     int rslt = func(obj, mem, scm_mem_copy_children_func);
     if (SCM_GC_IS_REF_HANDLER_FAILURE(rslt)) {
       ; /* TODO: write error handling */
@@ -483,8 +483,8 @@ scm_mem_adjust_weak_ref_of_obj_func(ScmMem *mem, ScmObj obj, ScmRef child)
   co = SCM_REF_OBJ(child);
   if (co != NULL) {
     if (!scm_mem_is_obj_in_heap(mem, co, FROM_HEAP)) {
-      SCM_OBJ_TYPE_T type = scm_obj_type(co);
-      if (type == SCM_OBJ_TYPE_FORWARD)
+      ScmTypeInfo *type = scm_obj_type(co);
+      if (SCM_TYPE_INFO_IS_SAME(type, &SCM_FORWARD_TYPE_INFO))
         SCM_REF_UPDATE(child, SCM_FORWARD_FORWARD(co));
       else
         SCM_REF_UPDATE(child, NULL);
@@ -500,8 +500,8 @@ scm_mem_adjust_weak_ref_of_obj(ScmMem *mem, ScmObj obj)
   assert(mem != NULL);
   assert(obj != NULL);
 
-  if (SCM_TYPE_INFO_HAS_WEAK_REF_FROM_OBJ(obj)) {
-    ScmGCAcceptFunc func = SCM_TYPE_INFO_GC_ACCEPT_FUNC_WEAK_FROM_OBJ(obj);
+  if (SCM_OBJ_HAS_WEAK_REF(obj)) {
+    ScmGCAcceptFunc func = SCM_OBJ_GC_ACCEPT_FUNC_WEAK(obj);
     int rslt = func(obj, mem, scm_mem_adjust_weak_ref_of_obj_func);
     if (SCM_GC_IS_REF_HANDLER_FAILURE(rslt)) {
       ; /* TODO: write error handling */
@@ -544,12 +544,12 @@ scm_mem_adjust_weak_ref(ScmMem *mem)
 }
 
 static ScmObj
-scm_mem_alloc_root_obj(SCM_OBJ_TYPE_T type, ScmMem *mem, ScmMemRootBlock **head)
+scm_mem_alloc_root_obj(ScmTypeInfo *type, ScmMem *mem, ScmMemRootBlock **head)
 {
   ScmMemRootBlock *block;
   ScmObj obj;
 
-  assert(type < SCM_OBJ_NR_TYPE);
+  assert(type != NULL);
   assert(head != NULL);
 
   block = malloc(SCM_TYPE_INFO_OBJ_SIZE(type) + sizeof(ScmMemRootBlock));
@@ -692,10 +692,10 @@ scm_mem_clean(ScmMem *mem)
 
 
 ScmMem *
-scm_mem_alloc_heap(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmRef ref)
+scm_mem_alloc_heap(ScmMem *mem, ScmTypeInfo *type, ScmRef ref)
 {
   assert(mem != NULL);
-  assert(type < SCM_OBJ_NR_TYPE);
+  assert(type != NULL);
   assert(ref != SCM_REF_NULL);
 
   SCM_REF_UPDATE(ref, NULL);
@@ -716,12 +716,12 @@ scm_mem_alloc_heap(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmRef ref)
 }
 
 ScmMem *
-scm_mem_alloc_persist(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmRef ref)
+scm_mem_alloc_persist(ScmMem *mem, ScmTypeInfo *type, ScmRef ref)
 {
   size_t size;
 
   assert(mem != NULL);
-  assert(type < SCM_OBJ_NR_TYPE);
+  assert(type != NULL);
   assert(ref != SCM_REF_NULL);
 
   SCM_MEM_ALLOCATION_SIZE_OF_OBJ(type, &size);
@@ -747,10 +747,10 @@ scm_mem_alloc_persist(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmRef ref)
 }
 
 ScmMem *
-scm_mem_alloc_root(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmRef ref)
+scm_mem_alloc_root(ScmMem *mem, ScmTypeInfo *type, ScmRef ref)
 {
   assert(mem != NULL);
-  assert(type < SCM_OBJ_NR_TYPE);
+  assert(type != NULL);
   assert(ref != SCM_REF_NULL);
 
   SCM_REF_UPDATE(ref, scm_mem_alloc_root_obj(type, mem, &mem->roots));
@@ -769,12 +769,12 @@ scm_mem_free_root(ScmMem *mem, ScmObj obj)
 }
 
 ScmMem *
-scm_mem_alloc_plain(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmRef ref)
+scm_mem_alloc_plain(ScmMem *mem, ScmTypeInfo *type, ScmRef ref)
 {
   ScmObj obj;
 
   assert(mem != NULL);
-  assert(type < SCM_OBJ_NR_TYPE);
+  assert(type != NULL);
   assert(ref != SCM_REF_NULL);
 
   SCM_REF_UPDATE(ref, NULL);
@@ -815,11 +815,11 @@ scm_mem_register_extra_rfrn(ScmMem *mem, ScmRef ref)
 }
 
 ScmMem *
-scm_mem_alloc(ScmMem *mem, SCM_OBJ_TYPE_T type,
+scm_mem_alloc(ScmMem *mem, ScmTypeInfo *type,
               SCM_MEM_ALLOC_TYPE_T alloc, ScmRef ref)
 {
   assert(mem != NULL);
-  assert(type < SCM_OBJ_NR_TYPE);
+  assert(type != NULL);
   assert(alloc <  SCM_MEM_NR_ALLOC_TYPE);
   assert(ref != SCM_REF_NULL);
 
@@ -869,7 +869,7 @@ scm_mem_gc_start(ScmMem *mem)
 
 
 ScmObj
-scm_memory_alloc_shared_root(SCM_OBJ_TYPE_T type)
+scm_memory_alloc_shared_root(ScmTypeInfo *type)
 {
   return scm_mem_alloc_root_obj(type, NULL, &shared_roots);
 }

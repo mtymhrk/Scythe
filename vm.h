@@ -15,7 +15,7 @@ typedef struct ScmVMRec ScmVM;
 #include "reference.h"
 #include "obuffer.h"
 
-const ScmTypeInfo SCM_VM_TYPE_INFO;
+extern ScmTypeInfo SCM_VM_TYPE_INFO;
 
 ScmVM *scm_vm_initialize(ScmVM *vm, ScmVM *parent);
 ScmVM *scm_vm_finalize(ScmVM *vm);

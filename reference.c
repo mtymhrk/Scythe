@@ -7,8 +7,7 @@
 #include "object.h"
 #include "obuffer.h"
 
-const ScmTypeInfo SCM_WEAK_REF_TYPE_INFO = {
-  SCM_OBJ_TYPE_WEAK_REF,         /* type                 */
+ScmTypeInfo SCM_WEAK_REF_TYPE_INFO = {
   scm_weak_ref_pretty_print,     /* pp_func              */
   sizeof(ScmWeakRef),            /* obj_size             */
   NULL,                          /* gc_ini_func          */
@@ -197,7 +196,7 @@ scm_weak_ref_is_weak_ref(ScmObj obj)
 {
   assert(obj != NULL);
 
-  return (scm_obj_type(obj) == SCM_OBJ_TYPE_WEAK_REF);
+  return SCM_OBJ_IS_TYPE(obj, &SCM_WEAK_REF_TYPE_INFO);
 }
 
 void

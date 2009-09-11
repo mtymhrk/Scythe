@@ -1,4 +1,5 @@
 #include <cutter.h>
+#include <stdbool.h>
 
 #include "object.h"
 #include "nil.h"
@@ -11,8 +12,7 @@ test_scm_bool_construct(void)
   ScmBool *boolt = scm_bool_construct(true);
 
   cut_assert_not_null(boolt);
-  cut_assert_equal_int(SCM_OBJ_TYPE_BOOL,
-                       scm_obj_type(SCM_OBJ(boolt)));
+  cut_assert(SCM_OBJ_IS_TYPE(SCM_OBJ(boolt), &SCM_BOOL_TYPE_INFO));
 }
 
 void

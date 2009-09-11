@@ -73,7 +73,7 @@ struct ScmMemHeapBlockRec {
 #define SCM_MEM_HEAP_BLOCK_PTR_IS_ALLOCATED(block, ptr) \
   (SCM_MEM_HEAP_BLOCK_PTR_OFFSET(block, ptr) < SCM_MEM_HEAP_BLOCK_USED(block))
 #define SCM_MEM_HEAP_BLOCK_NEXT_OBJ(block, obj) \
-  SCM_OBJ((uint8_t *)obj + SCM_TYPE_INFO_OBJ_SIZE_FROM_OBJ(obj))
+  SCM_OBJ((uint8_t *)obj + SCM_OBJ_SIZE(obj))
 #define SCM_MEM_HEAP_BLOCK_FOR_EACH_OBJ(block, obj)                     \
   for ((obj) = SCM_OBJ(SCM_MEM_HEAP_BLOCK_HEAD(block));                 \
        SCM_MEM_HEAP_BLOCK_PTR_IS_ALLOCATED(block, obj);                 \
@@ -309,7 +309,7 @@ struct ScmMemRec {
 
 #define SCM_MEM_SIZE_OF_OBJ_HAS_WEAK_REF(size) ((size) + sizeof(ScmObj))
 #define SCM_MEM_NEXT_OBJ_HAS_WEAK_REF(obj) \
-  ((ScmRef)((uintptr_t)(obj) + SCM_TYPE_INFO_OBJ_SIZE_FROM_OBJ(obj)))
+  ((ScmRef)((uintptr_t)(obj) + SCM_OBJ_SIZE(obj)))
 #define SCM_MEM_SET_NEXT_OBJ_HAS_WEAK_REF(obj, nxt)     \
   do {                                                  \
     ScmRef r = SCM_MEM_NEXT_OBJ_HAS_WEAK_REF(obj);      \
@@ -319,7 +319,7 @@ struct ScmMemRec {
   do {                                                                  \
     *(rslt) = SCM_TYPE_INFO_OBJ_SIZE(type);                             \
     if (SCM_TYPE_INFO_HAS_WEAK_REF(type))                               \
-      *(rslt) = SCM_MEM_SIZE_OF_OBJ_HAS_WEAK_REF(*rslt);                \
+      *(rslt) = SCM_MEM_SIZE_OF_OBJ_HAS_WEAK_REF(*(rslt));              \
     /* XXX: SCM_MEM_MIN_OBJ_SIZE is defined in memory.c */              \
     if (*(rslt) < SCM_MEM_MIN_OBJ_SIZE)                                 \
       *(rslt) = SCM_MEM_MIN_OBJ_SIZE;                                   \
@@ -337,7 +337,7 @@ struct ScmMemRec {
 #define SCM_MEM_OBJ_TBL_HASH_SIZE 1024
 #define SCM_MEM_EXTRA_ROOT_SET_SIZE 256
 
-extern const ScmTypeInfo SCM_FORWARD_TYPE_INFO;
+extern ScmTypeInfo SCM_FORWARD_TYPE_INFO;
 
 void *scm_memory_allocate(size_t size);
 void *scm_memory_release(void *block);
@@ -345,17 +345,17 @@ void *scm_memory_release(void *block);
 ScmMem *scm_mem_construct(void);
 ScmMem *scm_mem_destruct(ScmMem *mem);
 ScmMem *scm_mem_clean(ScmMem *mem);
-ScmMem *scm_mem_alloc_heap(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmRef ref);
-ScmMem *scm_mem_alloc_root(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmRef ref);
+ScmMem *scm_mem_alloc_heap(ScmMem *mem, ScmTypeInfo *type, ScmRef ref);
+ScmMem *scm_mem_alloc_root(ScmMem *mem, ScmTypeInfo *type, ScmRef ref);
 ScmObj scm_mem_free_root(ScmMem *mem, ScmObj obj);
-ScmMem *scm_mem_alloc_plain(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmRef ref);
+ScmMem *scm_mem_alloc_plain(ScmMem *mem, ScmTypeInfo *type, ScmRef ref);
 ScmObj scm_mem_free_plain(ScmMem *mem, ScmObj obj);
 void scm_mem_gc_start(ScmMem *mem);
-ScmMem *scm_mem_alloc_persist(ScmMem *mem, SCM_OBJ_TYPE_T type, ScmRef ref);
-ScmMem *scm_mem_alloc(ScmMem *mem, SCM_OBJ_TYPE_T type,
+ScmMem *scm_mem_alloc_persist(ScmMem *mem, ScmTypeInfo *type, ScmRef ref);
+ScmMem *scm_mem_alloc(ScmMem *mem, ScmTypeInfo *type,
                       SCM_MEM_ALLOC_TYPE_T alloc, ScmRef ref);
 ScmRef scm_mem_register_extra_rfrn(ScmMem *mem, ScmRef ref);
-ScmObj scm_memory_alloc_shared_root(SCM_OBJ_TYPE_T type);
+ScmObj scm_memory_alloc_shared_root(ScmTypeInfo *type);
 ScmObj scm_memory_free_shared_root(ScmObj obj);
 void scm_memory_free_all_shared_root(void);
 

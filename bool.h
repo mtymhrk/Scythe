@@ -9,7 +9,7 @@ typedef struct ScmBoolRec ScmBool;
 
 #include "object.h"
 
-extern const ScmTypeInfo SCM_BOOL_TYPE_INFO;
+extern ScmTypeInfo SCM_BOOL_TYPE_INFO;
 
 ScmBool *scm_bool_construct(bool value);
 void scm_bool_destruct(ScmBool *boolv);

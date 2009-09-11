@@ -11,7 +11,7 @@ typedef struct ScmBindTableRec ScmBindTable;
 
 #define SCM_BIND_REF(obj) (ScmBindRef *)(obj)
 
-extern const ScmTypeInfo SCM_BIND_REF_TYPE_INFO;
+extern ScmTypeInfo SCM_BIND_REF_TYPE_INFO;
 
 void scm_bind_ref_initialize(ScmBindRef *ref, ScmObj sym, ScmObj val);
 void scm_bind_ref_finalize(ScmBindRef *ref);

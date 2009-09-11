@@ -13,8 +13,7 @@ struct ScmVectorRec {
   size_t length;
 };
 
-const ScmTypeInfo SCM_VECTOR_TYPE_INFO = {
-  SCM_OBJ_TYPE_VECTOR,          /* type                 */
+ScmTypeInfo SCM_VECTOR_TYPE_INFO = {
   scm_vector_pretty_print,      /* pp_func              */
   sizeof(ScmVector),            /* obj_size             */
   scm_vector_gc_initialize,     /* gc_ini_func          */
@@ -37,7 +36,7 @@ scm_vector_construct(size_t length)
   size_t i;
 
   vector = scm_memory_allocate(sizeof(ScmVector));
-  scm_obj_init(SCM_OBJ(vector), SCM_OBJ_TYPE_VECTOR);
+  scm_obj_init(SCM_OBJ(vector), &SCM_VECTOR_TYPE_INFO);
 
   if (length > 0)
     vector->array = scm_memory_allocate(sizeof(ScmObj) * length);
@@ -93,7 +92,7 @@ scm_vector_is_vector(ScmObj obj)
 {
   assert(obj != NULL);
 
-  return (scm_obj_type(obj) == SCM_OBJ_TYPE_VECTOR);
+  return SCM_OBJ_IS_TYPE(obj, &SCM_VECTOR_TYPE_INFO);
 }
 
 void

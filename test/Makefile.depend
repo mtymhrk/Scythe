@@ -1,10 +1,7 @@
 memory.o: ../memory.c ../basichash.h ../memory.h ../object.h ../obuffer.h
 nil.o: ../nil.c ../memory.h ../object.h ../obuffer.h ../basichash.h \
   ../nil.h
-object.o: ../object.c ../object.h ../obuffer.h ../memory.h ../basichash.h \
-  ../pair.h ../string.h ../encoding.h ../symbol.h ../nil.h ../integer.h \
-  ../vector.h ../bool.h ../char.h ../port.h ../miscobjects.h \
-  ../procedure.h ../vm.h ../reference.h ../binding.h
+object.o: ../object.c ../object.h ../obuffer.h ../memory.h ../basichash.h
 pair.o: ../pair.c ../memory.h ../object.h ../obuffer.h ../basichash.h \
   ../pair.h ../nil.h
 obuffer.o: ../obuffer.c ../memory.h ../object.h ../obuffer.h \
@@ -370,7 +367,8 @@ test_memory.o: test_memory.c /usr/local/include/cutter/cutter.h \
   /usr/local/include/cutter/cutter/cut-test-utils.h \
   /usr/local/include/cutter/cutter/cut-assertions-helper.h \
   /usr/local/include/cutter/cutter/cut-experimental.h ../memory.h \
-  ../object.h ../obuffer.h ../memory.h ../basichash.h
+  ../object.h ../obuffer.h ../memory.h ../basichash.h ../pair.h \
+  ../string.h ../encoding.h ../symbol.h
 test_binding.o: test_binding.c /usr/local/include/cutter/cutter.h \
   /usr/local/include/cutter/cutter/cut-version.h \
   /usr/local/include/cutter/cutter/cut-hidden-definitions.h \

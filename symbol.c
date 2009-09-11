@@ -16,8 +16,7 @@ struct ScmSymbolRec {
   size_t length;
 };
 
-const ScmTypeInfo SCM_SYMBOL_TYPE_INFO = {
-  SCM_OBJ_TYPE_SYMBOL,          /* type                 */
+ScmTypeInfo SCM_SYMBOL_TYPE_INFO = {
   scm_symbol_pretty_print,      /* pp_func              */
   sizeof(ScmSymbol),            /* obj_size             */
   NULL,                         /* gc_ini_func          */
@@ -67,7 +66,7 @@ scm_symbol_initialize(ScmSymbol *symbol, const char *str)
   assert(symbol != NULL);
   assert(str != NULL);
 
-  scm_obj_init(SCM_OBJ(symbol), SCM_OBJ_TYPE_SYMBOL);
+  scm_obj_init(SCM_OBJ(symbol), &SCM_SYMBOL_TYPE_INFO);
   symbol->length = strlen(str);
   symbol->name = scm_memory_allocate(symbol->length + 1);
   strncpy(symbol->name, str, symbol->length + 1);
@@ -115,7 +114,7 @@ scm_symbol_is_symbol(ScmObj obj)
 {
   assert(obj != NULL);
 
-  return (scm_obj_type(obj) == SCM_OBJ_TYPE_SYMBOL);
+  return  SCM_OBJ_IS_TYPE(obj, &SCM_SYMBOL_TYPE_INFO);
 }
 
 ScmSymbol *

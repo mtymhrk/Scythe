@@ -11,8 +11,7 @@ struct ScmBoolRec {
   bool value;
 };
 
-const ScmTypeInfo SCM_BOOL_TYPE_INFO = {
-  SCM_OBJ_TYPE_BOOL,          /* type                 */
+ScmTypeInfo SCM_BOOL_TYPE_INFO = {
   scm_bool_pretty_print,      /* pp_func              */
   sizeof(ScmBool),            /* obj_size             */
   NULL,                       /* gc_ini_func          */
@@ -28,7 +27,7 @@ scm_bool_construct(bool value)
   ScmBool *boolv;
 
   boolv = scm_memory_allocate(sizeof(ScmBool));
-  scm_obj_init(SCM_OBJ(boolv), SCM_OBJ_TYPE_BOOL);
+  scm_obj_init(SCM_OBJ(boolv), &SCM_BOOL_TYPE_INFO);
   boolv->value = value;
 
   return boolv;
@@ -52,7 +51,8 @@ bool
 scm_bool_is_bool(ScmObj obj)
 {
   assert(obj != NULL);
-  return (scm_obj_type(obj) == SCM_OBJ_TYPE_BOOL);
+
+  return SCM_OBJ_IS_TYPE(obj, &SCM_BOOL_TYPE_INFO);
 }
 
 void

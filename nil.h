@@ -5,7 +5,7 @@
 
 typedef struct ScmNilRec ScmNil;
 
-extern const ScmTypeInfo SCM_NIL_TYPE_INFO;
+extern ScmTypeInfo SCM_NIL_TYPE_INFO;
 
 ScmNil *scm_nil_construct(void);
 void scm_nil_destruct(ScmNil *nil);

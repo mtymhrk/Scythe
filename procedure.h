@@ -9,7 +9,7 @@ typedef struct ScmPrimProcRec ScmPrimProc;
 
 typedef void (*PrimProcFunc)(int argc, ScmObj *argv, ScmVM *vm);
 
-extern const ScmTypeInfo SCM_PRIM_PROC_TYPE_INFO;
+extern ScmTypeInfo SCM_PRIM_PROC_TYPE_INFO;
 
 struct ScmPrimProcRec {
   ScmObjHeader header;

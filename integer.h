@@ -9,7 +9,7 @@ typedef struct ScmIntegerRec ScmInteger;
 
 #include "object.h"
 
-extern const ScmTypeInfo SCM_INTEGER_TYPE_INFO;
+extern ScmTypeInfo SCM_INTEGER_TYPE_INFO;
 
 ScmInteger *scm_integer_construct(long long value);
 long long scm_integer_value(ScmInteger *integer);

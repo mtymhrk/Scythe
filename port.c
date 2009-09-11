@@ -96,8 +96,7 @@ struct ScmPortRec {
   size_t used;
 };
 
-const ScmTypeInfo SCM_PORT_TYPE_INFO = {
-  SCM_OBJ_TYPE_PORT,          /* type                 */
+ScmTypeInfo SCM_PORT_TYPE_INFO = {
   scm_port_pretty_print,      /* pp_func              */
   sizeof(ScmPort),            /* obj_size             */
   NULL,                       /* gc_ini_func          */
@@ -993,7 +992,7 @@ scm_port_initialize(ScmPort *port,
 {
   assert(port != NULL);
 
-  scm_obj_init(SCM_OBJ(port), SCM_OBJ_TYPE_PORT);
+  scm_obj_init(SCM_OBJ(port), &SCM_PORT_TYPE_INFO);
   port->attr = attr;
   port->buffer_mode = SCM_PORT_BUF_NONE;
   port->buffer = NULL;
@@ -1200,7 +1199,7 @@ scm_port_is_port(ScmObj obj)
 {
   assert(obj != NULL);
 
-  return (scm_obj_type(obj) == SCM_OBJ_TYPE_PORT);
+  return SCM_OBJ_IS_TYPE(obj, &SCM_PORT_TYPE_INFO);
 }
 
 bool

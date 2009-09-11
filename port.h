@@ -14,7 +14,7 @@ typedef struct ScmPortRec ScmPort;
 
 #include "object.h"
 
-extern const ScmTypeInfo SCM_PORT_TYPE_INFO;
+extern ScmTypeInfo SCM_PORT_TYPE_INFO;
 
 typedef enum {
   SCM_PORT_BUF_FULL,

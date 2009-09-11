@@ -12,7 +12,7 @@ typedef struct ScmStringRec ScmString;
 #include "object.h"
 #include "encoding.h"
 
-extern const ScmTypeInfo SCM_STRING_TYPE_INFO;
+extern ScmTypeInfo SCM_STRING_TYPE_INFO;
 
 ScmString *scm_string_construct(const void *src,
                                 size_t size, SCM_ENCODING_T enc);

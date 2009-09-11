@@ -27,8 +27,7 @@ hash_func(ScmBasicHashKey key)
   return (unsigned int)key;
 }
 
-const ScmTypeInfo SCM_BIND_REF_TYPE_INFO = {
-  SCM_OBJ_TYPE_BIND_REF,        /* type                 */
+ScmTypeInfo SCM_BIND_REF_TYPE_INFO = {
   scm_bind_ref_pretty_print,    /* pp_func              */
   sizeof(ScmBindRef),           /* obj_size             */
   NULL,                         /* gc_ini_func          */
@@ -48,7 +47,7 @@ scm_bind_ref_initialize(ScmBindRef *ref, ScmObj sym, ScmObj val)
 {
   assert(ref != NULL);
 
-  scm_obj_init(SCM_OBJ(ref), SCM_OBJ_TYPE_BIND_REF);
+  scm_obj_init(SCM_OBJ(ref), &SCM_BIND_REF_TYPE_INFO);
   ref->sym = sym;
   ref->val = val;
 }

@@ -14,8 +14,7 @@ test_scm_char_construct(void)
   charv = scm_char_construct(c, SCM_ENCODING_ASCII);
 
   cut_assert_not_null(charv);
-  cut_assert_equal_int(SCM_OBJ_TYPE_CHAR,
-                       scm_obj_type(SCM_OBJ(charv)));
+  cut_assert(SCM_OBJ_IS_TYPE(SCM_OBJ(charv), &SCM_CHAR_TYPE_INFO));
 }
 
 void

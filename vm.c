@@ -58,8 +58,7 @@ struct ScmVMRec {
 #define SCM_VM_PUSH_TO_STACK(vm, obj) (*((vm)->sp++) = obj)
 #define SCM_VM_POP_FROM_STACK(vm, obj) (obj = *(--(vm)->sp) )
 
-const ScmTypeInfo SCM_VM_TYPE_INFO = {
-  SCM_OBJ_TYPE_STRING,          /* type                 */
+ScmTypeInfo SCM_VM_TYPE_INFO = {
   scm_vm_pretty_print,          /* pp_func              */
   sizeof(ScmVM),                /* obj_size             */
   scm_vm_gc_initialize,         /* gc_ini_func          */
@@ -82,7 +81,7 @@ scm_vm_initialize(ScmVM *vm, ScmVM *parent)
 {
   assert(vm != NULL);
 
-  scm_obj_init(SCM_OBJ(vm), SCM_OBJ_TYPE_VM);
+  scm_obj_init(SCM_OBJ(vm), &SCM_VM_TYPE_INFO);
 
   vm->sp = NULL;
   vm->fp = NULL;
@@ -140,7 +139,7 @@ scm_vm_construct(void)
       != SCM_REF_NULL)
     goto err;
 
-  scm_mem_alloc_root(mem, SCM_OBJ_TYPE_VM, SCM_REF_MAKE(vm));
+  scm_mem_alloc_root(mem, &SCM_VM_TYPE_INFO, SCM_REF_MAKE(vm));
   if (vm == NULL) goto err;
 
   if (scm_vm_initialize(SCM_VM(vm), NULL) == NULL)

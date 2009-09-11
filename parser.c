@@ -825,11 +825,8 @@ scm_parser_parse_list(ScmParser *parser)
   car = scm_parser_parse_expression(parser);
 
   /* TODO: error handling */
-  switch (scm_obj_type(car)) {
-  case SCM_OBJ_TYPE_EOF:
-    break;
-  default:
-    break;
+  if (SCM_OBJ_IS_TYPE(car, &SCM_EOF_TYPE_INFO)) {
+    ;
   }
 
   if (SCM_TOKEN_TYPE(scm_lexer_head_token(parser->lexer))
@@ -850,11 +847,8 @@ scm_parser_parse_list(ScmParser *parser)
     cdr = scm_parser_parse_list(parser);
 
   /* TODO: error handling */
-  switch (scm_obj_type(cdr)) {
-  case SCM_OBJ_TYPE_EOF:
-    break;
-  default:
-    break;
+  if (SCM_OBJ_IS_TYPE(cdr, &SCM_EOF_TYPE_INFO)) {
+      ;
   }
 
   return SCM_OBJ(scm_pair_construct(car, cdr));
@@ -891,11 +885,8 @@ scm_parser_parse_quote(ScmParser *parser)
   quoted = scm_parser_parse_expression(parser);
 
   /* TODO: error handling */
-  switch (scm_obj_type(quoted)) {
-  case SCM_OBJ_TYPE_EOF:
-    break;
-  default:
-    break;
+  if (SCM_OBJ_IS_TYPE(quoted, &SCM_EOF_TYPE_INFO)) {
+    ;
   }
 
   quoted = SCM_OBJ(scm_pair_construct(quoted,
@@ -983,11 +974,8 @@ scm_parser_parse_vector_aux(ScmParser *parser, size_t *len)
   car = scm_parser_parse_expression(parser);
 
   /* TODO: error handling */
-  switch (scm_obj_type(car)) {
-  case SCM_OBJ_TYPE_EOF:
-    break;
-  default:
-    break;
+  if (SCM_OBJ_IS_TYPE(car, &SCM_EOF_TYPE_INFO)) {
+    ;
   }
 
   scm_lexer_shift_token(parser->lexer);
@@ -995,11 +983,8 @@ scm_parser_parse_vector_aux(ScmParser *parser, size_t *len)
   cdr = scm_parser_parse_vector_aux(parser, len);
   
   /* TODO: error handling */
-  switch (scm_obj_type(cdr)) {
-  case SCM_OBJ_TYPE_EOF:
-    break;
-  default:
-    break;
+  if (SCM_OBJ_IS_TYPE(cdr, &SCM_EOF_TYPE_INFO)) {
+    ;
   }
 
   return SCM_OBJ(scm_pair_construct(car, cdr));

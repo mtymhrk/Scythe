@@ -25,8 +25,7 @@ struct ScmStringRec {
 #define CAPACITY(str)((str)->capacity - ((str)->head - (str)->buffer))
 #define ROOM_FOR_APPEND(str) (CAPACITY(str) - (str)->bytesize)
 
-const ScmTypeInfo SCM_STRING_TYPE_INFO = {
-  SCM_OBJ_TYPE_STRING,          /* type                 */
+ScmTypeInfo SCM_STRING_TYPE_INFO = {
   scm_string_pretty_print,      /* pp_func              */
   sizeof(ScmString),            /* obj_size             */
   NULL,                         /* gc_ini_func          */
@@ -141,7 +140,7 @@ scm_string_construct(const void *src, size_t size, SCM_ENCODING_T enc)
   assert(/*0 <= enc && */enc < SMC_ENCODING_NR_ENC);
 
   str = (ScmString *)scm_memory_allocate(sizeof(ScmString));
-  scm_obj_init(SCM_OBJ(str), SCM_OBJ_TYPE_STRING);
+  scm_obj_init(SCM_OBJ(str), &SCM_STRING_TYPE_INFO);
 
   str->buffer = NULL;
   str->ref_cnt = NULL;
@@ -206,7 +205,7 @@ scm_string_dup(ScmString *src)
   assert(src != NULL);
 
   str = (ScmString *)scm_memory_allocate(sizeof(ScmString));
-  scm_obj_init(SCM_OBJ(str), SCM_OBJ_TYPE_STRING);
+  scm_obj_init(SCM_OBJ(str), &SCM_STRING_TYPE_INFO);
   
   str->buffer = src->buffer;
   str->head = src->head;
@@ -594,7 +593,7 @@ scm_string_is_string(ScmObj obj)
 {
   assert(obj != NULL);
 
-  return (scm_obj_type(obj) == SCM_OBJ_TYPE_STRING);
+  return SCM_OBJ_IS_TYPE(obj, &SCM_STRING_TYPE_INFO);
 }
 
 // TODO: change to be encdoing depende function

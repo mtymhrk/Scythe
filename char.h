@@ -10,7 +10,7 @@ typedef struct ScmCharRec ScmChar;
 #include "object.h"
 #include "encoding.h"
 
-extern const ScmTypeInfo SCM_CHAR_TYPE_INFO;
+extern ScmTypeInfo SCM_CHAR_TYPE_INFO;
 
 ScmChar *scm_char_construct(scm_char_t value, SCM_ENCODING_T enc);
 void scm_char_destruct(ScmChar *charv);
