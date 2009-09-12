@@ -1,7 +1,8 @@
 #include <cutter.h>
+#include <assert.h>
 
-#include "object.h"
 #include "memory.h"
+#include "object.h"
 #include "pair.h"
 #include "string.h"
 #include "symbol.h"
@@ -10,11 +11,80 @@ typedef struct StubObjRc {
   ScmObjHeader header;
   ScmObj obj;
   ScmObj weak_obj;
+  int obj_num;
   int  nr_call_ini_func;
   int  nr_call_fin_func;
   int  nr_call_accept_func;
   int  nr_call_accept_func_weak;
 } StubObj;
+
+enum { MAX_STUB_OBJ = 1024 };
+StubObj stub_obj_table[MAX_STUB_OBJ];
+static int nr_stub_obj = 0;
+
+void
+stub_obj_gc_init_func(ScmObj obj, ScmObj mem)
+{
+  StubObj *so = (StubObj *)obj;
+
+  assert(obj != NULL);
+  assert(mem != NULL);
+
+  so->obj = NULL;
+  so->weak_obj = NULL;
+  so->obj_num = nr_stub_obj++;
+  so->nr_call_ini_func = 0;
+  so->nr_call_fin_func = 0;
+  so->nr_call_accept_func = 0;
+  so->nr_call_accept_func_weak = 0;
+
+  so->nr_call_ini_func++;
+
+  memcpy(stub_obj_table + so->obj_num, so, sizeof(StubObj));
+}
+
+void
+stub_obj_gc_fin_func(ScmObj obj)
+{
+  StubObj *so = (StubObj *)obj;
+
+  assert(obj != NULL);
+
+  so->nr_call_fin_func++;
+  memcpy(stub_obj_table + so->obj_num, so, sizeof(StubObj));
+}
+
+int
+stub_obj_gc_accept_func(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
+{
+  StubObj *so = (StubObj *)obj;
+  int rslt;
+
+  so->nr_call_accept_func++;
+
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, so->obj, mem);
+
+  memcpy(stub_obj_table + so->obj_num, so, sizeof(StubObj));
+
+  return rslt;
+}
+
+int
+stub_obj_gc_accept_func_weak(ScmObj obj, ScmObj mem,
+                             ScmGCRefHandlerFunc handler)
+{
+  StubObj *so = (StubObj *)obj;
+  int rslt;
+
+  so->nr_call_accept_func_weak++;
+
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, so->weak_obj, mem);
+
+  memcpy(stub_obj_table + so->obj_num, so, sizeof(StubObj));
+
+  return rslt;
+}
+
 
 void
 test_scm_new_mem_block(void)
@@ -526,7 +596,31 @@ test_scm_mem_heap_alloc(void)
 
   /* postcondition check */
   cut_assert_not_null(obj);
+  cut_assert_equal_uint(0u, (uintptr_t)obj & 0x03);
   cut_assert_equal_uint(256, SCM_MEM_HEAP_BLOCK_USED(heap->head));
+
+  /* postprocess */
+  SCM_MEM_HEAP_DELETE_HEAP(heap);
+}
+
+void
+test_scm_mem_heap_alloc_aligned(void)
+{
+  ScmMemHeap *heap;
+  ScmObj obj1,obj2;
+
+  /* preproces */
+  SCM_MEM_HEAP_NEW_HEAP(heap, 2, 1024);
+
+  /* action */
+  SCM_MEM_HEAP_ALLOC(heap, 17, &obj1);
+  SCM_MEM_HEAP_ALLOC(heap, 16, &obj2);
+
+  /* postcondition check */
+  cut_assert_not_null(obj1);
+  cut_assert_equal_uint(0u, (uintptr_t)obj1 & 0x03);
+  cut_assert_not_null(obj2);
+  cut_assert_equal_uint(0u, (uintptr_t)obj2 & 0x03);
 
   /* postprocess */
   SCM_MEM_HEAP_DELETE_HEAP(heap);
@@ -797,3 +891,136 @@ test_scm_mem_construct(void)
 }
 
 
+void
+test_scm_mem_allocation_size_of_obj_in_heap__size_is_smaller_then_forward(void)
+{
+  ScmTypeInfo type = {
+    NULL,                     /* pp_func              */
+    sizeof(ScmForward) - 1,   /* obj_size             */
+    NULL,                     /* gc_ini_func          */
+    NULL,                     /* gc_fin_func          */
+    NULL,                     /* gc_accept_func       */
+    NULL,                     /* gc_accpet_func_weak  */
+  };
+  size_t actual_size;
+  
+  /* action */
+  SCM_MEM_ALLOCATION_SIZE_OF_OBJ_IN_HEAP(&type, &actual_size);
+
+  /* postcondition check */
+  cut_assert_equal_uint(sizeof(ScmForward), actual_size);
+}
+                                            
+void
+test_scm_mem_allocation_size_of_obj_in_heap__size_is_greater_then_forward(void)
+{
+  size_t expected_size = sizeof(ScmForward) + 1;
+  ScmTypeInfo type = {
+    NULL,                     /* pp_func              */
+    expected_size,            /* obj_size             */
+    NULL,                     /* gc_ini_func          */
+    NULL,                     /* gc_fin_func          */
+    NULL,                     /* gc_accept_func       */
+    NULL,                     /* gc_accpet_func_weak  */
+  };
+  size_t actual_size;
+  
+  /* action */
+  SCM_MEM_ALLOCATION_SIZE_OF_OBJ_IN_HEAP(&type, &actual_size);
+
+  /* postcondition check */
+  cut_assert_equal_uint(expected_size, actual_size);
+}
+
+void
+test_scm_mem_allocation_size_of_obj_in_heap__obj_has_weak_ref(void)
+{
+  ScmTypeInfo type = {
+    NULL,                          /* pp_func              */
+    sizeof(StubObj),               /* obj_size             */
+    NULL,                          /* gc_ini_func          */
+    NULL,                          /* gc_fin_func          */
+    NULL,                          /* gc_accept_func       */
+    stub_obj_gc_accept_func_weak   /* gc_accpet_func_weak  */
+  };
+  size_t actual_size;
+
+  /* action */
+  SCM_MEM_ALLOCATION_SIZE_OF_OBJ_IN_HEAP(&type, &actual_size);
+
+  /* postcondition check */
+  cut_assert_equal_uint(sizeof(StubObj) + sizeof(void *), actual_size);
+}
+
+void
+test_scm_mem_allocation_size_of_obj_in_root__size_is_smaller_than_atom(void)
+{
+  ScmTypeInfo type = {
+    NULL,                     /* pp_func              */
+    sizeof(ScmAtom) - 1,      /* obj_size             */
+    NULL,                     /* gc_ini_func          */
+    NULL,                     /* gc_fin_func          */
+    NULL,                     /* gc_accept_func       */
+    NULL,                     /* gc_accpet_func_weak  */
+  };
+  size_t actual_size;
+  
+  /* action */
+  SCM_MEM_ALLOCATION_SIZE_OF_OBJ_IN_ROOT(&type, &actual_size);
+
+  /* postcondition check */
+  cut_assert_equal_uint(sizeof(ScmAtom) + sizeof(ScmMemRootBlock),
+                        actual_size);
+}
+
+void
+test_scm_mem_allocation_size_of_obj_in_root__size_is_greater_than_atom(void)
+{
+  size_t obj_size = sizeof(ScmAtom) * 2;
+  ScmTypeInfo type = {
+    NULL,                     /* pp_func              */
+    obj_size,                 /* obj_size             */
+    NULL,                     /* gc_ini_func          */
+    NULL,                     /* gc_fin_func          */
+    NULL,                     /* gc_accept_func       */
+    NULL,                     /* gc_accpet_func_weak  */
+  };
+  size_t actual_size;
+  
+  /* action */
+  SCM_MEM_ALLOCATION_SIZE_OF_OBJ_IN_ROOT(&type, &actual_size);
+
+  /* postcondition check */
+  cut_assert_equal_uint(obj_size + sizeof(ScmMemRootBlock), actual_size);
+}
+
+void
+test_scm_mem_alloc_heap(void)
+{
+  ScmTypeInfo type = {
+    NULL,                     /* pp_func              */
+    sizeof(StubObj),          /* obj_size             */
+    stub_obj_gc_init_func,    /* gc_ini_func          */
+    stub_obj_gc_fin_func,     /* gc_fin_func          */
+    stub_obj_gc_accept_func,  /* gc_accept_func       */
+    NULL,                     /* gc_accpet_func_weak  */
+  };
+  ScmMem *mem;
+  ScmObj obj = NULL;
+
+  /* preprocess */
+  mem = scm_mem_construct();
+
+  scm_mem_register_extra_rfrn(mem, SCM_REF_MAKE(obj));
+
+  /* action */
+  scm_mem_alloc_heap(mem, &type, SCM_REF_MAKE(obj));
+
+  /* postcondition check */
+  cut_assert_not_null(obj);
+  cut_assert(SCM_OBJ_IS_TYPE(obj, &type));
+  cut_assert_equal_int(1, ((StubObj *)obj)->nr_call_ini_func);
+  cut_assert_equal_int(0, ((StubObj *)obj)->nr_call_fin_func);
+  cut_assert_equal_int(0, ((StubObj *)obj)->nr_call_accept_func);
+  cut_assert_equal_int(0, ((StubObj *)obj)->nr_call_accept_func_weak);
+}

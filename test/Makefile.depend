@@ -357,8 +357,8 @@ test_memory.o: test_memory.c /usr/local/include/cutter/cutter.h \
   /usr/local/include/cutter/cutter/cut-assertions.h \
   /usr/local/include/cutter/cutter/cut-test-utils.h \
   /usr/local/include/cutter/cutter/cut-assertions-helper.h \
-  /usr/local/include/cutter/cutter/cut-experimental.h ../object.h \
-  ../obuffer.h ../object.h ../memory.h ../basichash.h ../pair.h \
+  /usr/local/include/cutter/cutter/cut-experimental.h ../memory.h \
+  ../object.h ../obuffer.h ../basichash.h ../object.h ../pair.h \
   ../string.h ../encoding.h ../symbol.h
 test_binding.o: test_binding.c /usr/local/include/cutter/cutter.h \
   /usr/local/include/cutter/cutter/cut-version.h \

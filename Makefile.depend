@@ -1,8 +1,6 @@
 memory.o: memory.c basichash.h memory.h object.h obuffer.h
 nil.o: nil.c memory.h object.h obuffer.h basichash.h nil.h
-object.o: object.c object.h obuffer.h memory.h basichash.h pair.h \
-  string.h encoding.h symbol.h nil.h integer.h vector.h bool.h char.h \
-  port.h miscobjects.h procedure.h vm.h reference.h binding.h
+object.o: object.c object.h obuffer.h
 pair.o: pair.c memory.h object.h obuffer.h basichash.h pair.h nil.h
 obuffer.o: obuffer.c memory.h object.h obuffer.h basichash.h
 string.o: string.c memory.h object.h obuffer.h basichash.h encoding.h \
@@ -28,9 +26,9 @@ ucs4.o: ucs4.c ucs4.h
 utf8.o: utf8.c utf8.h
 encoding.o: encoding.c encoding.h
 vm.o: vm.c vm.h object.h obuffer.h memory.h basichash.h reference.h
-procedure.o: procedure.c procedure.h object.h obuffer.h memory.h \
-  basichash.h vm.h reference.h
-binding.o: binding.c basichash.h obuffer.h object.h memory.h binding.h \
+procedure.o: procedure.c procedure.h object.h obuffer.h vm.h memory.h \
+  basichash.h reference.h
+binding.o: binding.c basichash.h obuffer.h object.h binding.h memory.h \
   vm.h reference.h symbol.h
-reference.o: reference.c reference.h memory.h object.h obuffer.h \
-  basichash.h vm.h
+reference.o: reference.c reference.h object.h obuffer.h vm.h memory.h \
+  basichash.h

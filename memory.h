@@ -111,7 +111,20 @@ struct ScmMemHeapRec {
   ((heap)->nr_block - (heap)->nr_free_block)
 #define SCM_MEM_HEAP_TAIL_BLOCK_SIZE(heap) \
   (((heap)->tail == NULL) ? 0U : SCM_MEM_HEAP_BLOCK_SIZE((heap)->tail))
+#define SCM_MEM_HEAP_ALIGN_SIZE(size) \
+  (((size) % 4 == 0) ? (size) : (size) + 4 - (size) % 4)
 
+#define SCM_MEM_HEAP_ALIGN_CURRENT_BLOCK_SIZE(heap)                     \
+  do {                                                                  \
+    if ((heap)->current != NULL) {                                      \
+      size_t of;                                                        \
+      uint8_t* s = SCM_MEM_HEAP_BLOCK_FREE_PTR((heap)->current);        \
+      s = (uint8_t *)SCM_MEM_HEAP_ALIGN_SIZE((size_t)s);                \
+      of = SCM_MEM_HEAP_BLOCK_PTR_OFFSET((heap)->current, s);           \
+      if (of <= SCM_MEM_HEAP_BLOCK_FREE((heap)->current)) \
+        SCM_MEM_HEAP_BLOCK_ALLOCATED((heap)->current, of);              \
+    }                                                                   \
+  } while(0)
 
 #define SCM_MEM_HEAP_ADD_BLOCK(heap, block)                             \
   do {                                                                  \
@@ -168,7 +181,7 @@ struct ScmMemHeapRec {
     (heap) = NULL;                              \
   } while(0)
 
-#define SCM_MEM_HEAP_NEW_HEAP(heap, nr_blk, sz) \
+#define SCM_MEM_HEAP_NEW_HEAP(heap, nr_blk, sz)     \
   do {                                              \
     int i;                                          \
                                                     \
@@ -191,18 +204,21 @@ struct ScmMemHeapRec {
         SCM_MEM_HEAP_ADD_BLOCK(heap, block);        \
       }                                             \
                                                     \
-      if ((heap) != NULL)                           \
-        (heap)->current = (heap)->head;             \
-                                                    \
-    }                                               \
+      if ((heap) != NULL) {                             \
+        (heap)->current = (heap)->head;                 \
+        SCM_MEM_HEAP_ALIGN_CURRENT_BLOCK_SIZE(heap);    \
+      }                                                 \
+    }                                                   \
   } while(0)
 
 #define SCM_MEM_HEAP_SHIFT(heap)                                        \
   do {                                                                  \
     if ((heap)->current != NULL) {                                      \
       (heap)->current = SCM_MEM_HEAP_BLOCK_NEXT((heap)->current);       \
-      if ((heap)->current != NULL)                                      \
+      if ((heap)->current != NULL) {                                    \
         (heap)->nr_free_block--;                                        \
+        SCM_MEM_HEAP_ALIGN_CURRENT_BLOCK_SIZE(heap);                    \
+      }                                                                 \
     }                                                                   \
   } while(0)
 
@@ -231,11 +247,12 @@ struct ScmMemHeapRec {
 
 #define SCM_MEM_HEAP_ALLOC(heap, size, ptr)                             \
   do {                                                                  \
+    size_t alloc_size = SCM_MEM_HEAP_ALIGN_SIZE(size);                  \
     *(ptr) = NULL;                                                      \
     while ((heap)->current != NULL && *(ptr) == NULL) {                 \
-      if ((size) <= SCM_MEM_HEAP_CUR_BLOCK_FREE_SIZE(heap)) {           \
+      if (alloc_size <= SCM_MEM_HEAP_CUR_BLOCK_FREE_SIZE(heap)) {     \
         *(ptr) = SCM_MEM_HEAP_BLOCK_FREE_PTR((heap)->current);          \
-        SCM_MEM_HEAP_BLOCK_ALLOCATED((heap)->current, (size));          \
+        SCM_MEM_HEAP_BLOCK_ALLOCATED((heap)->current, alloc_size);      \
       }                                                                 \
       else {                                                            \
         SCM_MEM_HEAP_SHIFT(heap);                                       \
@@ -248,7 +265,7 @@ struct ScmMemHeapRec {
 #define SCM_MEM_HEAP_CANCEL_ALLOC(heap, size)                           \
   do {                                                                  \
     if ((heap)->nr_block > 0) {                                         \
-      size_t sz = (size);                                               \
+      size_t sz = SCM_MEM_HEAP_ALIGN_SIZE(size);                        \
       if ((heap)->current == NULL)                                      \
         SCM_MEM_HEAP_UNSHIFT(heap);                                     \
       if (sz > SCM_MEM_HEAP_BLOCK_USED((heap)->current))                \
@@ -331,6 +348,8 @@ struct ScmMemRec {
 #define SCM_MEM_ALLOCATION_SIZE_OF_OBJ_IN_HEAP(type, rslt)              \
   do {                                                                  \
     *(rslt) = SCM_TYPE_INFO_OBJ_SIZE(type);                             \
+    if (*(rslt) < sizeof(ScmAtom))                                      \
+      *(rslt) = sizeof(ScmAtom);                                        \
     if (SCM_TYPE_INFO_HAS_WEAK_REF(type))                               \
       *(rslt) = SCM_MEM_SIZE_OF_OBJ_HAS_WEAK_REF(*(rslt));              \
     if (*(rslt) < SCM_MEM_MIN_OBJ_SIZE)                                 \
