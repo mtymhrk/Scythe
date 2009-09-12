@@ -336,6 +336,13 @@ struct ScmMemRec {
     if (*(rslt) < SCM_MEM_MIN_OBJ_SIZE)                                 \
       *(rslt) = SCM_MEM_MIN_OBJ_SIZE;                                   \
   } while(0)
+#define SCM_MEM_ALLOCATION_SIZE_OF_OBJ_IN_ROOT(type, rslt)              \
+  do {                                                                  \
+    *(rslt) = SCM_TYPE_INFO_OBJ_SIZE(type);                             \
+    if (*(rslt) < sizeof(ScmAtom))                                      \
+      *(rslt) = sizeof(ScmAtom);                                        \
+    *(rslt) += sizeof(ScmMemRootBlock);                                 \
+  } while(0)
 #define SCM_MEM_ADD_OBJ_TO_WEAK_LIST(heap, ref)                         \
   do {                                                                  \
     ScmObj obj = SCM_REF_OBJ(ref);                                      \

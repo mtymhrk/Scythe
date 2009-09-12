@@ -546,11 +546,13 @@ scm_mem_alloc_root_obj(ScmTypeInfo *type, ScmMem *mem, ScmMemRootBlock **head)
 {
   ScmMemRootBlock *block;
   ScmObj obj;
+  size_t size;
 
   assert(type != NULL);
   assert(head != NULL);
 
-  block = malloc(SCM_TYPE_INFO_OBJ_SIZE(type) + sizeof(ScmMemRootBlock));
+  SCM_MEM_ALLOCATION_SIZE_OF_OBJ_IN_ROOT(type, &size);
+  block = malloc(size);
   if (block == NULL)
     return NULL;
 
