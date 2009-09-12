@@ -2,26 +2,34 @@
 #define INCLUDE_OBJECT_H__
 
 #include <stdbool.h>
+#include <stdint.h>
 
 typedef struct ScmObjHeaderRec ScmObjHeader;
 typedef struct ScmAtomRec ScmAtom;
 typedef ScmAtom *ScmObj;
 typedef struct ScmTypeInfoRec ScmTypeInfo;
 typedef struct ScmGCRefItrRec ScmGCRefItr;
+typedef uintptr_t ScmRef;
 
 #define SCM_ATOM(obj) ((ScmAtom *)(obj))
 #define SCM_OBJ(obj) ((ScmObj)(obj))
 
+#define SCM_REF_MAKE(obj) ((ScmRef)&(obj))
+#define SCM_REF_MAKE_FROM_PTR(ptr) ((ScmRef)(ptr))
+#define SCM_REF_TO_PTR(ref) ((ScmObj *)(ref))
+#define SCM_REF_NULL ((ScmRef)NULL)
+#define SCM_REF_OBJ(ref) (*((ScmObj *)(ref)))
+#define SCM_REF_UPDATE(ref, obj) (*((ScmObj *)(ref)) = (obj))
+
 #include "obuffer.h"
-#include "memory.h"
 
 typedef void (*ScmPrettyPrintFunction)(ScmObj obj,
 				       ScmOBuffer *obuffer);
-typedef void (*ScmGCInitializeFunc)(ScmObj obj, ScmMem *mem);
+typedef void (*ScmGCInitializeFunc)(ScmObj obj, ScmObj mem);
 typedef void (*ScmGCFinalizeFunc)(ScmObj obj);
-typedef int (*ScmGCRefHandlerFunc)(ScmMem *mem, ScmObj obj, ScmRef child);
+typedef int (*ScmGCRefHandlerFunc)(ScmObj mem, ScmObj obj, ScmRef child);
 typedef int (*ScmGCAcceptFunc)(ScmObj obj,
-                               ScmMem *mem, ScmGCRefHandlerFunc handler);
+                               ScmObj mem, ScmGCRefHandlerFunc handler);
 
 #define SCM_GC_CALL_REF_HANDLER(handler, obj, child, mem) \
   (handler(mem, obj, SCM_REF_MAKE(child)))

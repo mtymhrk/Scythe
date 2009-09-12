@@ -212,7 +212,7 @@ scm_vm_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
 }
 
 void
-scm_vm_gc_initialize(ScmObj obj, ScmMem *mem)
+scm_vm_gc_initialize(ScmObj obj, ScmObj mem)
 {
   ScmVM *vm;
 
@@ -220,7 +220,7 @@ scm_vm_gc_initialize(ScmObj obj, ScmMem *mem)
   assert(mem != NULL);
 
   vm = SCM_VM(obj);
-  vm->mem = mem;
+  vm->mem = SCM_MEM(mem);
 
   vm->sp = NULL;
   vm->fp = NULL;
@@ -240,7 +240,7 @@ scm_vm_gc_finalize(ScmObj obj)
 }
 
 int
-scm_vm_gc_accept(ScmObj obj, ScmMem *mem, ScmGCRefHandlerFunc handler)
+scm_vm_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
 {
   ScmVM *vm;
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;

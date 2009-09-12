@@ -1,9 +1,20 @@
 #include <cutter.h>
 
+#include "object.h"
 #include "memory.h"
 #include "pair.h"
 #include "string.h"
 #include "symbol.h"
+
+typedef struct StubObjRc {
+  ScmObjHeader header;
+  ScmObj obj;
+  ScmObj weak_obj;
+  int  nr_call_ini_func;
+  int  nr_call_fin_func;
+  int  nr_call_accept_func;
+  int  nr_call_accept_func_weak;
+} StubObj;
 
 void
 test_scm_new_mem_block(void)
@@ -784,3 +795,5 @@ test_scm_mem_construct(void)
   /* preprocess */
   scm_mem_destruct(mem);
 }
+
+

@@ -5,13 +5,14 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-typedef uintptr_t ScmRef;
+
 typedef struct ScmMemHeapBlockRec ScmMemHeapBlock;
 typedef struct ScmMemHeapRec ScmMemHeap;
 typedef struct ScmMemRootBlockRec ScmMemRootBlock;
 typedef struct ScmMemRec ScmMem;
 typedef struct ScmForwardRec ScmForward;
 
+#define SCM_MEM(obj) ((ScmMem *)(obj))
 #define SCM_FORWORD(obj) ((ScmFoward *)(obj))
 
 typedef enum {
@@ -24,13 +25,6 @@ typedef enum {
 
 #include "object.h"
 #include "basichash.h"
-
-#define SCM_REF_MAKE(obj) ((ScmRef)&(obj))
-#define SCM_REF_MAKE_FROM_PTR(ptr) ((ScmRef)(ptr))
-#define SCM_REF_TO_PTR(ref) ((ScmObj *)(ref))
-#define SCM_REF_NULL ((ScmRef)NULL)
-#define SCM_REF_OBJ(ref) (*((ScmObj *)(ref)))
-#define SCM_REF_UPDATE(ref, obj) (*((ScmObj *)(ref)) = (obj))
 
 
 struct ScmMemHeapBlockRec {
@@ -273,7 +267,12 @@ struct ScmMemRootBlockRec {
 #define SCM_MEM_ROOT_BLOCK_IS_OBJ_IN_BLOK(obj) \
   ((unsigned int)(obj) > sizeof(ScmMemRootBlock))
 
+
+/* ScmMem を ScmObj の一種(kind of) として定義する。                     */
+/* これは object.h が ScmMem シンボルへの依存するのを避けるため。            */
+/* ScmMem を GC で管理することはしない (scm_mem_alloc で生成することは不可)  */
 struct ScmMemRec {
+  ScmObjHeader header;  
   ScmBasicHashTable *to_obj_tbl;
   ScmBasicHashTable *from_obj_tbl;
   ScmMemHeap *to_heap;
@@ -315,7 +314,7 @@ struct ScmMemRec {
     ScmRef r = SCM_MEM_NEXT_OBJ_HAS_WEAK_REF(obj);      \
     SCM_REF_UPDATE(r, nxt);                             \
   } while(0)
-#define SCM_MEM_ALLOCATION_SIZE_OF_OBJ(type, rslt)                      \
+#define SCM_MEM_ALLOCATION_SIZE_OF_OBJ_IN_HEAP(type, rslt)              \
   do {                                                                  \
     *(rslt) = SCM_TYPE_INFO_OBJ_SIZE(type);                             \
     if (SCM_TYPE_INFO_HAS_WEAK_REF(type))                               \

@@ -120,7 +120,7 @@ scm_vector_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
 }
 
 void
-scm_vector_gc_initialize(ScmObj obj, ScmMem *mem)
+scm_vector_gc_initialize(ScmObj obj, ScmObj mem)
 {
   ScmVector *vec;
 
@@ -138,7 +138,7 @@ scm_vector_gc_finalize(ScmObj obj)
 }
 
 int
-scm_vector_gc_accept(ScmObj obj, ScmMem *mem, ScmGCRefHandlerFunc handler)
+scm_vector_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
 {
   ScmVector *vec;
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;

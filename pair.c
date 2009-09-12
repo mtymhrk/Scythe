@@ -100,7 +100,7 @@ scm_pair_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
 }
 
 void
-scm_pair_gc_initialize(ScmObj obj, ScmMem *mem)
+scm_pair_gc_initialize(ScmObj obj, ScmObj mem)
 {
   ScmPair *pair;
 
@@ -112,7 +112,7 @@ scm_pair_gc_initialize(ScmObj obj, ScmMem *mem)
 }
 
 int
-scm_pair_gc_accpet(ScmObj obj, ScmMem *mem, ScmGCRefHandlerFunc handler)
+scm_pair_gc_accpet(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
 {
   ScmPair *pair;
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;

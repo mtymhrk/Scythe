@@ -22,9 +22,9 @@ ScmVM *scm_vm_finalize(ScmVM *vm);
 ScmVM *scm_vm_construct(void);
 void scm_vm_destruct(ScmVM *vm);
 void scm_vm_pretty_print(ScmObj obj, ScmOBuffer *obuffer);
-void scm_vm_gc_initialize(ScmObj obj, ScmMem *mem);
+void scm_vm_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_vm_gc_finalize(ScmObj obj);
-int scm_vm_gc_accept(ScmObj obj, ScmMem *mem, ScmGCRefHandlerFunc handler);
+int scm_vm_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
 
 void scm_vm_switch_vm(ScmVM *vm);
 void scm_vm_revert_vm(void);

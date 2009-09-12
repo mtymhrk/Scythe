@@ -11,6 +11,15 @@
 
 enum { TO_HEAP, FROM_HEAP };
 
+static ScmTypeInfo SCM_MEM_TYPE_INFO = {
+  NULL,                    /* pp_func              */
+  0,                       /* obj_size             */
+  NULL,                    /* gc_ini_func          */
+  NULL,                    /* gc_fin_func          */
+  NULL,                    /* gc_accept_func       */
+  NULL,                    /* gc_accpet_func_weak  */
+};
+
 struct ScmForwardRec {
   ScmObjHeader header;
   ScmObj forward;
@@ -295,7 +304,7 @@ scm_mem_alloc_heap_mem(ScmMem *mem, ScmTypeInfo *type, ScmRef ref)
   assert(type != NULL);
   assert(ref != SCM_REF_NULL);
 
-  SCM_MEM_ALLOCATION_SIZE_OF_OBJ(type, &size);
+  SCM_MEM_ALLOCATION_SIZE_OF_OBJ_IN_HEAP(type, &size);
   SCM_MEM_HEAP_ALLOC(mem->to_heap, size, SCM_REF_TO_PTR(ref));
   if (SCM_REF_OBJ(ref) == NULL) return;
 
@@ -319,7 +328,7 @@ scm_mem_obj_init(ScmMem *mem, ScmObj obj, ScmTypeInfo *type)
   scm_obj_init(obj, type);
   if (SCM_TYPE_INFO_HAS_GC_INI(type)) {
     ScmGCInitializeFunc ini = SCM_TYPE_INFO_GC_INI(type);
-    ini(obj, mem);
+    ini(obj, SCM_OBJ(mem));
   }
 }
 
@@ -359,14 +368,15 @@ scm_mem_copy_obj(ScmMem *mem, ScmObj obj)
 }
 
 static int
-scm_mem_copy_children_func(ScmMem *mem, ScmObj obj, ScmRef child)
+scm_mem_copy_children_func(ScmObj mem, ScmObj obj, ScmRef child)
 {
   assert(mem != NULL);
+  assert(SCM_OBJ_IS_TYPE(mem, &SCM_MEM_TYPE_INFO));
   assert(obj != NULL);
   assert(child != SCM_REF_NULL);
 
   if (SCM_REF_OBJ(child) != NULL) {
-    ScmObj cpy = scm_mem_copy_obj(mem, SCM_REF_OBJ(child));
+    ScmObj cpy = scm_mem_copy_obj(SCM_MEM(mem), SCM_REF_OBJ(child));
     if (cpy == NULL)  return -1; // error
     SCM_REF_UPDATE(child, cpy);
   }
@@ -382,7 +392,7 @@ scm_mem_copy_children(ScmMem *mem, ScmObj obj)
 
   if (SCM_OBJ_HAS_GC_ACCEPT_FUNC(obj)) {
     ScmGCAcceptFunc func = SCM_OBJ_GC_ACCEPT_FUNC(obj);
-    int rslt = func(obj, mem, scm_mem_copy_children_func);
+    int rslt = func(obj, SCM_OBJ(mem), scm_mem_copy_children_func);
     if (SCM_GC_IS_REF_HANDLER_FAILURE(rslt)) {
       ; /* TODO: write error handling */
     }
@@ -472,17 +482,18 @@ scm_mem_scan_obj(ScmMem *mem)
 }
 
 static int
-scm_mem_adjust_weak_ref_of_obj_func(ScmMem *mem, ScmObj obj, ScmRef child)
+scm_mem_adjust_weak_ref_of_obj_func(ScmObj mem, ScmObj obj, ScmRef child)
 {
   ScmObj co;
 
   assert(mem != NULL);
+  assert(SCM_OBJ_IS_TYPE(mem, &SCM_MEM_TYPE_INFO));
   assert(obj != NULL);
   assert(child != SCM_REF_NULL);
 
   co = SCM_REF_OBJ(child);
   if (co != NULL) {
-    if (!scm_mem_is_obj_in_heap(mem, co, FROM_HEAP)) {
+    if (!scm_mem_is_obj_in_heap(SCM_MEM(mem), co, FROM_HEAP)) {
       ScmTypeInfo *type = scm_obj_type(co);
       if (SCM_TYPE_INFO_IS_SAME(type, &SCM_FORWARD_TYPE_INFO))
         SCM_REF_UPDATE(child, SCM_FORWARD_FORWARD(co));
@@ -502,7 +513,7 @@ scm_mem_adjust_weak_ref_of_obj(ScmMem *mem, ScmObj obj)
 
   if (SCM_OBJ_HAS_WEAK_REF(obj)) {
     ScmGCAcceptFunc func = SCM_OBJ_GC_ACCEPT_FUNC_WEAK(obj);
-    int rslt = func(obj, mem, scm_mem_adjust_weak_ref_of_obj_func);
+    int rslt = func(obj, SCM_OBJ(mem), scm_mem_adjust_weak_ref_of_obj_func);
     if (SCM_GC_IS_REF_HANDLER_FAILURE(rslt)) {
       ; /* TODO: write error handling */
     }
@@ -598,6 +609,7 @@ scm_mem_initialize(ScmMem *mem)
 {
   assert(mem != NULL);
 
+  scm_obj_init(SCM_OBJ(mem), &SCM_MEM_TYPE_INFO);
   mem->to_obj_tbl = NULL;
   mem->from_obj_tbl = NULL;
   mem->to_heap = NULL;
@@ -724,7 +736,7 @@ scm_mem_alloc_persist(ScmMem *mem, ScmTypeInfo *type, ScmRef ref)
   assert(type != NULL);
   assert(ref != SCM_REF_NULL);
 
-  SCM_MEM_ALLOCATION_SIZE_OF_OBJ(type, &size);
+  SCM_MEM_ALLOCATION_SIZE_OF_OBJ_IN_HEAP(type, &size);
   SCM_MEM_HEAP_ALLOC(mem->persistent, size, SCM_REF_TO_PTR(ref));
   if (SCM_REF_OBJ(ref) == NULL) {
     if (scm_mem_expand_persistent(mem, 1) != 1) {

@@ -165,7 +165,7 @@ scm_ref_stack_restore_current_stack(ScmRefStackInfo *info)
 
 int
 scm_ref_stack_gc_accept(ScmRefStack *stack, ScmObj owner,
-                        ScmMem *mem, ScmGCRefHandlerFunc handler)
+                        ScmObj mem, ScmGCRefHandlerFunc handler)
 {
   ScmRefStackBlock *block;
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
@@ -225,7 +225,7 @@ scm_weak_ref_get(ScmWeakRef *wref)
 }
 
 int
-scm_weak_ref_gc_accept_weak(ScmObj obj, ScmMem *mem,
+scm_weak_ref_gc_accept_weak(ScmObj obj, ScmObj mem,
                             ScmGCRefHandlerFunc handler)
 {
   ScmWeakRef *wref;

@@ -12,7 +12,6 @@ typedef struct ScmWeakRefRec ScmWeakRef;
 
 #define SCM_WEAK_REF(obj) ((ScmWeakRef *)(obj))
 
-#include "memory.h"
 #include "object.h"
 #include "vm.h"
 
@@ -185,13 +184,13 @@ void scm_ref_stack_restore(ScmRefStack *stack, ScmRefStackInfo *info);
 void scm_ref_stack_save_current_stack(ScmRefStackInfo *info);
 void scm_ref_stack_restore_current_stack(ScmRefStackInfo *info);
 int scm_ref_stack_gc_accept(ScmRefStack *stack, ScmObj owner,
-                            ScmMem *mem, ScmGCRefHandlerFunc handler);
+                            ScmObj mem, ScmGCRefHandlerFunc handler);
 
 bool scm_weak_ref_is_weak_ref(ScmObj obj);
 void scm_weak_ref_pretty_print(ScmObj obj, ScmOBuffer *obuffer);
 void scm_weak_ref_set(ScmWeakRef *wref, ScmObj obj);
 ScmObj scm_weak_ref_get(ScmWeakRef *wref);
-int scm_weak_ref_gc_accept_weak(ScmObj obj, ScmMem *mem,
+int scm_weak_ref_gc_accept_weak(ScmObj obj, ScmObj mem,
                                 ScmGCRefHandlerFunc handler);
 
 #define SCM_REF_STACK_CONCAT2__(x, y) x##y
