@@ -27,6 +27,20 @@ typedef enum {
 #include "basichash.h"
 
 
+struct ScmForwardRec {
+  ScmObjHeader header;
+  ScmObj forward;
+};
+
+#define SCM_FORWARD(obj) ((ScmForward *)(obj))
+#define SCM_FORWARD_FORWARD(obj) (SCM_FORWARD(obj)->forward)
+#define SCM_FORWARD_INITIALIZE(obj, fwd) \
+  do { \
+    scm_obj_init(obj, &SCM_FORWARD_TYPE_INFO);    \
+    SCM_FORWARD(obj)->forward = fwd;            \
+  } while(0)
+
+
 struct ScmMemHeapBlockRec {
   struct ScmMemHeapBlockRec *next;
   struct ScmMemHeapBlockRec *prev;
@@ -319,7 +333,6 @@ struct ScmMemRec {
     *(rslt) = SCM_TYPE_INFO_OBJ_SIZE(type);                             \
     if (SCM_TYPE_INFO_HAS_WEAK_REF(type))                               \
       *(rslt) = SCM_MEM_SIZE_OF_OBJ_HAS_WEAK_REF(*(rslt));              \
-    /* XXX: SCM_MEM_MIN_OBJ_SIZE is defined in memory.c */              \
     if (*(rslt) < SCM_MEM_MIN_OBJ_SIZE)                                 \
       *(rslt) = SCM_MEM_MIN_OBJ_SIZE;                                   \
   } while(0)
@@ -330,8 +343,8 @@ struct ScmMemRec {
     SCM_MEM_SET_NEXT_OBJ_HAS_WEAK_REF(obj, nxt);                        \
     SCM_MEM_HEAP_SET_WEAK_LIST(heap, obj);                              \
   } while(0)
-  
 
+#define SCM_MEM_MIN_OBJ_SIZE sizeof(ScmForward)
 #define SCM_MEM_HEAP_INIT_BLOCK_SIZE 4096
 #define SCM_MEM_OBJ_TBL_HASH_SIZE 1024
 #define SCM_MEM_EXTRA_ROOT_SET_SIZE 256

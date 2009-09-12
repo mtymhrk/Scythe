@@ -20,11 +20,6 @@ static ScmTypeInfo SCM_MEM_TYPE_INFO = {
   NULL,                    /* gc_accpet_func_weak  */
 };
 
-struct ScmForwardRec {
-  ScmObjHeader header;
-  ScmObj forward;
-};
-
 ScmTypeInfo SCM_FORWARD_TYPE_INFO = {
   NULL,                    /* pp_func              */
   sizeof(ScmForward),      /* obj_size             */
@@ -34,15 +29,7 @@ ScmTypeInfo SCM_FORWARD_TYPE_INFO = {
   NULL,                    /* gc_accpet_func_weak  */
 };
 
-#define SCM_FORWARD(obj) ((ScmForward *)(obj))
-#define SCM_FORWARD_FORWARD(obj) (SCM_FORWARD(obj)->forward)
-#define SCM_FORWARD_INITIALIZE(obj, fwd) \
-  do { \
-    scm_obj_init(obj, &SCM_FORWARD_TYPE_INFO);    \
-    SCM_FORWARD(obj)->forward = fwd;            \
-  } while(0)
 
-#define SCM_MEM_MIN_OBJ_SIZE sizeof(ScmForward)
 #define SCM_MEM_EXTRA_RFRN_SIZE 32
 
 
