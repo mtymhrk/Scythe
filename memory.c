@@ -224,6 +224,20 @@ scm_mem_clean_heap(ScmMem *mem, int which)
 }
 
 static void
+scm_mem_clean_root(ScmMem *mem)
+{
+  ScmMemRootBlock *block;
+
+  assert(mem != NULL);
+
+  while ((block = mem->roots) != NULL) {
+    ScmObj obj = SCM_MEM_ROOT_BLOCK_OBJECT(block);
+    scm_mem_free_root(mem, obj);
+  }
+}
+
+
+static void
 scm_mem_clean_persistent(ScmMem *mem)
 {
   ScmMemHeapBlock *block;
@@ -552,6 +566,7 @@ scm_mem_alloc_root_obj(ScmTypeInfo *type, ScmMem *mem, ScmMemRootBlock **head)
   assert(head != NULL);
 
   SCM_MEM_ALLOCATION_SIZE_OF_OBJ_IN_ROOT(type, &size);
+  /* TODO: align object pointer */
   block = malloc(size);
   if (block == NULL)
     return NULL;
@@ -559,7 +574,7 @@ scm_mem_alloc_root_obj(ScmTypeInfo *type, ScmMem *mem, ScmMemRootBlock **head)
   obj = SCM_MEM_ROOT_BLOCK_OBJECT(block);
   scm_mem_obj_init(mem, obj, type);
 
-  SCM_MEM_ADD_TO_ROOT_SET(*head, block);
+  SCM_MEM_ADD_TO_ROOT_SET(head, block);
 
   return obj;
 }
@@ -573,7 +588,9 @@ scm_mem_free_root_obj(ScmObj obj, ScmMem *mem, ScmMemRootBlock **head)
   assert(SCM_MEM_ROOT_BLOCK_IS_OBJ_IN_BLOK(obj));
 
   block = SCM_MEM_ROOT_BLOCK_HEADER(obj);
-  SCM_MEM_DEL_FROM_ROOT_SET(*head, block);
+  SCM_MEM_DEL_FROM_ROOT_SET(head, block);
+
+  scm_mem_finalize_obj(mem, obj);
 
   free(block);
 
@@ -686,6 +703,7 @@ ScmMem *
 scm_mem_clean(ScmMem *mem)
 {
   scm_mem_clean_persistent(mem);
+  scm_mem_clean_root(mem);
   scm_mem_clean_heap(mem, TO_HEAP);
   scm_mem_clean_heap(mem, FROM_HEAP);
   return mem;
