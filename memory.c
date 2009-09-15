@@ -566,8 +566,7 @@ scm_mem_alloc_root_obj(ScmTypeInfo *type, ScmMem *mem, ScmMemRootBlock **head)
   assert(head != NULL);
 
   SCM_MEM_ALLOCATION_SIZE_OF_OBJ_IN_ROOT(type, &size);
-  /* TODO: align object pointer */
-  block = malloc(size);
+  SCM_MEM_ROOT_BLOCK_NEW(&block, size);
   if (block == NULL)
     return NULL;
 
@@ -587,7 +586,7 @@ scm_mem_free_root_obj(ScmObj obj, ScmMem *mem, ScmMemRootBlock **head)
   assert(mem != NULL);
   assert(SCM_MEM_ROOT_BLOCK_IS_OBJ_IN_BLOK(obj));
 
-  block = SCM_MEM_ROOT_BLOCK_HEADER(obj);
+  block = SCM_MEM_ROOT_BLOCK_OBJ_HEADER(obj);
   SCM_MEM_DEL_FROM_ROOT_SET(head, block);
 
   scm_mem_finalize_obj(mem, obj);

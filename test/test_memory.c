@@ -1104,7 +1104,7 @@ test_scm_mem_alloc_root(void)
   /* postcondition check */
   cut_assert_not_null(obj);
   cut_assert(SCM_OBJ_IS_TYPE(obj, &type));
-
+  cut_assert_equal_int(0, (uintptr_t)obj % SCM_MEM_ALIGN_BYTE);
   cut_assert_equal_pointer(SCM_MEM_ROOT_BLOCK_OBJECT(mem->roots), obj);
 
   cut_assert_equal_int(1, ((StubObj *)obj)->nr_call_ini_func);

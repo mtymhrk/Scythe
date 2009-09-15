@@ -289,18 +289,45 @@ struct ScmMemHeapRec {
        (block) != NULL;                          \
        (block) = SCM_MEM_HEAP_BLOCK_NEXT(block))
 
-
-struct ScmMemRootBlockRec {
+typedef struct ScmMemRootBlockHdrRec {
   ScmMemRootBlock *next;
   ScmMemRootBlock *prev;
-  uint8_t object[];
+} ScmMemRootBlockHdr;
+
+struct ScmMemRootBlockRec {
+  ScmMemRootBlockHdr hdr;
+  uint8_t object[SCM_MEM_ALIGN_BYTE];
 };
 
-#define SCM_MEM_ROOT_BLOCK_NEXT(block) ((block)->next)
-#define SCM_MEM_ROOT_BLOCK_PREV(block) ((block)->prev)
-#define SCM_MEM_ROOT_BLOCK_OBJECT(block) (SCM_OBJ((block)->object))
-#define SCM_MEM_ROOT_BLOCK_HEADER(obj) \
-  ((ScmMemRootBlock *)((uint8_t *)obj - sizeof(ScmMemRootBlock)))
+#define SCM_MEM_ROOT_BLOCK_NEXT(block) ((block)->hdr.next)
+#define SCM_MEM_ROOT_BLOCK_PREV(block) ((block)->hdr.prev)
+#define SCM_MEM_ROOT_BLOCK_SET_NEXT(block, n) ((block)->hdr.next = n)
+#define SCM_MEM_ROOT_BLOCK_SET_PREV(block, p) ((block)->hdr.prev = p)
+#define SCM_MEM_ROOT_BLOCK_SHIFT_BYTE(block) \
+  ((uint8_t)(SCM_MEM_ALIGN_BYTE \
+             - (uintptr_t)(block)->object % SCM_MEM_ALIGN_BYTE))
+#define SCM_MEM_ROOT_BLOCK_OBJECT(block) \
+  (SCM_OBJ((block)->object + SCM_MEM_ROOT_BLOCK_SHIFT_BYTE(block)))
+#define SCM_MEM_ROOT_BLOCK_OBJ_SHIFT_BYTE(obj) (*((uint8_t *)(obj) - 1))
+#define SCM_MEM_ROOT_BLOCK_OBJ_SET_SHIT_BYTE(obj, sf) \
+  ((*((uint8_t *)(obj) - 1)) = sf)
+#define SCM_MEM_ROOT_BLOCK_OBJ_HEADER(obj) \
+  ((ScmMemRootBlock *)((uint8_t *)obj \
+                       - SCM_MEM_ROOT_BLOCK_OBJ_SHIFT_BYTE(obj) \
+                       - sizeof(ScmMemRootBlockHdr)))
+
+#define SCM_MEM_ROOT_BLOCK_NEW(bp, sz)          \
+  do {                                          \
+    *(bp) = malloc(sz);                         \
+    if (*(bp) != NULL) {                        \
+      uint8_t shift = SCM_MEM_ROOT_BLOCK_SHIFT_BYTE(*bp);           \
+      ScmObj obj = SCM_MEM_ROOT_BLOCK_OBJECT(*bp);                  \
+      (*(bp))->hdr.next = NULL;                                     \
+      (*(bp))->hdr.prev = NULL;                                     \
+      SCM_MEM_ROOT_BLOCK_OBJ_SET_SHIT_BYTE(obj, shift);             \
+    }                                                               \
+  } while(0)
+
 #define SCM_MEM_ROOT_BLOCK_IS_OBJ_IN_BLOK(obj) \
   ((unsigned int)(obj) > sizeof(ScmMemRootBlock))
 
@@ -320,13 +347,13 @@ struct ScmMemRec {
   size_t nr_extra;
 };
 
-#define SCM_MEM_ADD_TO_ROOT_SET(head, block)    \
-  do {                                          \
-    (block)->next = *(head);                    \
-    (block)->prev = NULL;                       \
-    if (*(head) != NULL)                        \
-      (*(head))->prev = (block);                \
-    *(head) = (block);                          \
+#define SCM_MEM_ADD_TO_ROOT_SET(head, block)        \
+  do {                                              \
+    SCM_MEM_ROOT_BLOCK_SET_NEXT(block, *(head));    \
+    SCM_MEM_ROOT_BLOCK_SET_PREV(block, NULL);       \
+    if (*(head) != NULL)                            \
+      SCM_MEM_ROOT_BLOCK_SET_PREV(*(head), block);  \
+    *(head) = (block);                              \
   } while(0)
 
 #define SCM_MEM_DEL_FROM_ROOT_SET(head, block)                   \
@@ -337,10 +364,10 @@ struct ScmMemRec {
     if (prv == NULL)                                             \
       *(head) = nxt;                                             \
     else                                                         \
-      prv->next = nxt;                                           \
+      SCM_MEM_ROOT_BLOCK_SET_NEXT(prv, nxt);                     \
                                                                  \
     if (nxt != NULL)                                             \
-      nxt->prev = prv;                                           \
+      SCM_MEM_ROOT_BLOCK_SET_PREV(nxt, prv);                     \
   } while(0)
 
 #define SCM_MEM_SIZE_OF_OBJ_HAS_WEAK_REF(size) ((size) + sizeof(ScmObj))
