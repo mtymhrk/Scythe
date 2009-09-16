@@ -320,13 +320,15 @@ struct ScmMemRootBlockRec {
   do {                                          \
     *(bp) = malloc(sz);                         \
     if (*(bp) != NULL) {                        \
-      uint8_t shift = SCM_MEM_ROOT_BLOCK_SHIFT_BYTE(*bp);           \
-      ScmObj obj = SCM_MEM_ROOT_BLOCK_OBJECT(*bp);                  \
+      uint8_t shift = SCM_MEM_ROOT_BLOCK_SHIFT_BYTE(*(bp));         \
+      ScmObj obj = SCM_MEM_ROOT_BLOCK_OBJECT(*(bp));                \
       (*(bp))->hdr.next = NULL;                                     \
       (*(bp))->hdr.prev = NULL;                                     \
       SCM_MEM_ROOT_BLOCK_OBJ_SET_SHIT_BYTE(obj, shift);             \
     }                                                               \
   } while(0)
+
+#define SCM_MEM_ROOT_BLOCK_FREE(block) (free(block))
 
 #define SCM_MEM_ROOT_BLOCK_IS_OBJ_IN_BLOK(obj) \
   ((unsigned int)(obj) > sizeof(ScmMemRootBlock))

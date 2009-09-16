@@ -1041,6 +1041,199 @@ test_scm_mem_allocation_size_of_obj_in_root__size_is_greater_than_atom(void)
 }
 
 void
+test_scm_mem_root_block_new(void)
+{
+  ScmMemRootBlock *block = NULL;
+  ScmObj obj;
+  unsigned int shift;
+
+  /* action */
+  SCM_MEM_ROOT_BLOCK_NEW(&block, 1024);
+
+  obj = SCM_MEM_ROOT_BLOCK_OBJECT(block);
+  shift = SCM_MEM_ROOT_BLOCK_OBJ_SHIFT_BYTE(obj);
+
+  /* postcondition check */
+  cut_assert_not_null(block);
+  cut_assert_null(SCM_MEM_ROOT_BLOCK_NEXT(block));
+  cut_assert_null(SCM_MEM_ROOT_BLOCK_PREV(block));
+  cut_assert_equal_uint(0, (uintptr_t)obj % SCM_MEM_ALIGN_BYTE);
+  cut_assert((uintptr_t)block + sizeof(ScmMemRootBlockHdr) + shift
+             == (uintptr_t)obj);
+
+  /* postprocess */
+  SCM_MEM_ROOT_BLOCK_FREE(block);
+}
+
+void
+test_scm_mem_root_block_obj_header(void)
+{
+  ScmMemRootBlock *block = NULL;
+  ScmObj obj;
+
+  /* action */
+  SCM_MEM_ROOT_BLOCK_NEW(&block, 1024);
+
+  obj = SCM_MEM_ROOT_BLOCK_OBJECT(block);
+
+  /* postcondition check */
+  cut_assert_equal_pointer(block, SCM_MEM_ROOT_BLOCK_OBJ_HEADER(obj));
+
+  /* postprocess */
+  SCM_MEM_ROOT_BLOCK_FREE(block);
+}
+
+void
+test_scm_mem_add_to_root_set(void)
+{
+  ScmMemRootBlock *list_head = NULL;
+  ScmMemRootBlock *block1 = NULL, *block2 = NULL, *block3;
+
+  /* preprocess */
+  SCM_MEM_ROOT_BLOCK_NEW(&block1, 1024);
+  SCM_MEM_ROOT_BLOCK_NEW(&block2, 1024);
+  SCM_MEM_ROOT_BLOCK_NEW(&block3, 1024);
+
+  /* action */
+  SCM_MEM_ADD_TO_ROOT_SET(&list_head, block1);
+
+  /* postcondition check */
+  cut_assert_equal_pointer(block1, list_head);
+  cut_assert_equal_pointer(NULL, SCM_MEM_ROOT_BLOCK_NEXT(block1));
+  cut_assert_equal_pointer(NULL, SCM_MEM_ROOT_BLOCK_PREV(block1));
+
+
+  /* action */
+  SCM_MEM_ADD_TO_ROOT_SET(&list_head, block2);
+
+  /* postcondition check */
+  cut_assert_equal_pointer(block2, list_head);
+
+  cut_assert_equal_pointer(block1, SCM_MEM_ROOT_BLOCK_NEXT(block2));
+  cut_assert_equal_pointer(NULL, SCM_MEM_ROOT_BLOCK_PREV(block2));
+
+  cut_assert_equal_pointer(NULL, SCM_MEM_ROOT_BLOCK_NEXT(block1));
+  cut_assert_equal_pointer(block2, SCM_MEM_ROOT_BLOCK_PREV(block1));
+
+
+  /* action */
+  SCM_MEM_ADD_TO_ROOT_SET(&list_head, block3);
+
+  /* postcondition check */
+  cut_assert_equal_pointer(block3, list_head);
+
+  cut_assert_equal_pointer(block2, SCM_MEM_ROOT_BLOCK_NEXT(block3));
+  cut_assert_equal_pointer(NULL, SCM_MEM_ROOT_BLOCK_PREV(block3));
+
+  cut_assert_equal_pointer(block1, SCM_MEM_ROOT_BLOCK_NEXT(block2));
+  cut_assert_equal_pointer(block3, SCM_MEM_ROOT_BLOCK_PREV(block2));
+
+  cut_assert_equal_pointer(NULL, SCM_MEM_ROOT_BLOCK_NEXT(block1));
+  cut_assert_equal_pointer(block2, SCM_MEM_ROOT_BLOCK_PREV(block1));
+
+  /* postprocess */
+  SCM_MEM_ROOT_BLOCK_FREE(block1);
+  SCM_MEM_ROOT_BLOCK_FREE(block2);
+  SCM_MEM_ROOT_BLOCK_FREE(block3);
+}
+
+void
+test_scm_mem_del_from_root_set__delte_tail(void)
+{
+  ScmMemRootBlock *list_head = NULL;
+  ScmMemRootBlock *block1 = NULL, *block2 = NULL, *block3;
+
+  /* preprocess */
+  SCM_MEM_ROOT_BLOCK_NEW(&block1, 1024);
+  SCM_MEM_ROOT_BLOCK_NEW(&block2, 1024);
+  SCM_MEM_ROOT_BLOCK_NEW(&block3, 1024);
+
+  SCM_MEM_ADD_TO_ROOT_SET(&list_head, block1);
+  SCM_MEM_ADD_TO_ROOT_SET(&list_head, block2);
+  SCM_MEM_ADD_TO_ROOT_SET(&list_head, block3);
+
+  /* action */
+  SCM_MEM_DEL_FROM_ROOT_SET(&list_head, block1);
+
+  /* postcondition check */
+  cut_assert_equal_pointer(block3, list_head);
+
+  cut_assert_equal_pointer(block2, SCM_MEM_ROOT_BLOCK_NEXT(block3));
+  cut_assert_equal_pointer(NULL, SCM_MEM_ROOT_BLOCK_PREV(block3));
+
+  cut_assert_equal_pointer(NULL, SCM_MEM_ROOT_BLOCK_NEXT(block2));
+  cut_assert_equal_pointer(block3, SCM_MEM_ROOT_BLOCK_PREV(block2));
+
+  SCM_MEM_ROOT_BLOCK_FREE(block1);
+  SCM_MEM_ROOT_BLOCK_FREE(block2);
+  SCM_MEM_ROOT_BLOCK_FREE(block3);
+}
+
+void
+test_scm_mem_del_from_root_set__delte_head(void)
+{
+  ScmMemRootBlock *list_head = NULL;
+  ScmMemRootBlock *block1 = NULL, *block2 = NULL, *block3;
+
+  /* preprocess */
+  SCM_MEM_ROOT_BLOCK_NEW(&block1, 1024);
+  SCM_MEM_ROOT_BLOCK_NEW(&block2, 1024);
+  SCM_MEM_ROOT_BLOCK_NEW(&block3, 1024);
+
+  SCM_MEM_ADD_TO_ROOT_SET(&list_head, block1);
+  SCM_MEM_ADD_TO_ROOT_SET(&list_head, block2);
+  SCM_MEM_ADD_TO_ROOT_SET(&list_head, block3);
+
+  /* action */
+  SCM_MEM_DEL_FROM_ROOT_SET(&list_head, block3);
+
+  /* postcondition check */
+  cut_assert_equal_pointer(block2, list_head);
+
+  cut_assert_equal_pointer(block1, SCM_MEM_ROOT_BLOCK_NEXT(block2));
+  cut_assert_equal_pointer(NULL, SCM_MEM_ROOT_BLOCK_PREV(block2));
+
+  cut_assert_equal_pointer(NULL, SCM_MEM_ROOT_BLOCK_NEXT(block1));
+  cut_assert_equal_pointer(block2, SCM_MEM_ROOT_BLOCK_PREV(block1));
+
+  SCM_MEM_ROOT_BLOCK_FREE(block1);
+  SCM_MEM_ROOT_BLOCK_FREE(block2);
+  SCM_MEM_ROOT_BLOCK_FREE(block3);
+}
+
+void
+test_scm_mem_del_from_root_set__delte_middle(void)
+{
+  ScmMemRootBlock *list_head = NULL;
+  ScmMemRootBlock *block1 = NULL, *block2 = NULL, *block3;
+
+  /* preprocess */
+  SCM_MEM_ROOT_BLOCK_NEW(&block1, 1024);
+  SCM_MEM_ROOT_BLOCK_NEW(&block2, 1024);
+  SCM_MEM_ROOT_BLOCK_NEW(&block3, 1024);
+
+  SCM_MEM_ADD_TO_ROOT_SET(&list_head, block1);
+  SCM_MEM_ADD_TO_ROOT_SET(&list_head, block2);
+  SCM_MEM_ADD_TO_ROOT_SET(&list_head, block3);
+
+  /* action */
+  SCM_MEM_DEL_FROM_ROOT_SET(&list_head, block2);
+
+  /* postcondition check */
+  cut_assert_equal_pointer(block3, list_head);
+
+  cut_assert_equal_pointer(block1, SCM_MEM_ROOT_BLOCK_NEXT(block3));
+  cut_assert_equal_pointer(NULL, SCM_MEM_ROOT_BLOCK_PREV(block3));
+
+  cut_assert_equal_pointer(NULL, SCM_MEM_ROOT_BLOCK_NEXT(block1));
+  cut_assert_equal_pointer(block3, SCM_MEM_ROOT_BLOCK_PREV(block1));
+
+  SCM_MEM_ROOT_BLOCK_FREE(block1);
+  SCM_MEM_ROOT_BLOCK_FREE(block2);
+  SCM_MEM_ROOT_BLOCK_FREE(block3);
+}
+
+void
 test_scm_mem_alloc_heap(void)
 {
   ScmTypeInfo type = {

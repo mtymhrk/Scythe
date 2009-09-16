@@ -591,7 +591,7 @@ scm_mem_free_root_obj(ScmObj obj, ScmMem *mem, ScmMemRootBlock **head)
 
   scm_mem_finalize_obj(mem, obj);
 
-  free(block);
+  SCM_MEM_ROOT_BLOCK_FREE(block);
 
   return NULL;
 }
