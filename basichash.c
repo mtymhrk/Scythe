@@ -200,12 +200,21 @@ scm_basic_hash_inject(ScmBasicHashTable *table,
 int
 scm_basic_hash_itr_begin(ScmBasicHashTable *table, ScmBasicHashItr *itr)
 {
+  size_t i;
+
   assert(table != NULL);
   assert(itr != NULL);
 
   itr->tbl = table;
-  itr->idx = 0;
-  itr->entry = table->buckets[0];
+  itr->idx = table->tbl_size;
+  itr->entry = NULL;
+
+  for (i = 0; i < table->tbl_size; i++)
+    if (table->buckets[i] != NULL) {
+      itr->idx = i;
+      itr->entry = table->buckets[i];
+      break;
+    }
 
   return 0;
 }
@@ -213,8 +222,6 @@ scm_basic_hash_itr_begin(ScmBasicHashTable *table, ScmBasicHashItr *itr)
 int
 scm_basic_hash_itr_next(ScmBasicHashItr *itr)
 {
-  ScmBasicHashItr nxt_itr;
-
   assert(itr != NULL);
 
   if (itr->entry != NULL) {
@@ -222,11 +229,15 @@ scm_basic_hash_itr_next(ScmBasicHashItr *itr)
       itr->entry = itr->entry->next;
     }
     else {
-      itr->idx++;
-      if ((size_t)itr->idx < itr->tbl->tbl_size)
-        itr->entry = itr->tbl->buckets[itr->idx];
-      else
-        nxt_itr.entry = NULL;
+      size_t i = itr->idx;
+      itr->idx = itr->tbl->tbl_size;
+      itr->entry = NULL;
+      for (i = i + 1; i < itr->tbl->tbl_size; i++)
+        if (itr->tbl->buckets[i] != NULL) {
+          itr->idx = i;
+          itr->entry = itr->tbl->buckets[i];
+          break;
+        }
     }
   }
 

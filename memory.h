@@ -421,8 +421,8 @@ ScmMem *scm_mem_clean(ScmMem *mem);
 ScmMem *scm_mem_alloc_heap(ScmMem *mem, ScmTypeInfo *type, ScmRef ref);
 ScmMem *scm_mem_alloc_root(ScmMem *mem, ScmTypeInfo *type, ScmRef ref);
 ScmObj scm_mem_free_root(ScmMem *mem, ScmObj obj);
-ScmMem *scm_mem_alloc_plain(ScmMem *mem, ScmTypeInfo *type, ScmRef ref);
-ScmObj scm_mem_free_plain(ScmMem *mem, ScmObj obj);
+// ScmMem *scm_mem_alloc_plain(ScmMem *mem, ScmTypeInfo *type, ScmRef ref);
+// ScmObj scm_mem_free_plain(ScmMem *mem, ScmObj obj);
 void scm_mem_gc_start(ScmMem *mem);
 ScmMem *scm_mem_alloc_persist(ScmMem *mem, ScmTypeInfo *type, ScmRef ref);
 ScmMem *scm_mem_alloc(ScmMem *mem, ScmTypeInfo *type,

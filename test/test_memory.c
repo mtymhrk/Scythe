@@ -22,6 +22,8 @@ enum { MAX_STUB_OBJ = 1024 };
 StubObj stub_obj_table[MAX_STUB_OBJ];
 static int nr_stub_obj = 0;
 
+#define STUB_OBJ(obj) ((StubObj *)(obj))
+
 void
 stub_obj_gc_init_func(ScmObj obj, ScmObj mem)
 {
@@ -1272,6 +1274,9 @@ test_scm_mem_alloc_heap(void)
   }
 
   cut_assert_true(in_to_heap);
+
+  /* postprocess */
+  scm_mem_destruct(mem);
 }
 
 void
@@ -1306,6 +1311,9 @@ test_scm_mem_alloc_root(void)
   cut_assert_equal_int(0, ((StubObj *)obj)->nr_call_accept_func_weak);
 
   scm_mem_free_root(mem, obj);
+
+  /* postprocess */
+  scm_mem_destruct(mem);
 }
 
 void
@@ -1339,4 +1347,97 @@ test_scm_mem_free_root(void)
   cut_assert_equal_int(0, stub_obj_table[obj_num].nr_call_accept_func_weak);
 
   cut_assert_null(mem->roots);
+
+  /* postprocess */
+  scm_mem_destruct(mem);
+}
+
+void
+test_scm_mem_gc_start__not_scanvenged(void)
+{
+  ScmTypeInfo type = {
+    NULL,                     /* pp_func              */
+    sizeof(StubObj),          /* obj_size             */
+    stub_obj_gc_init_func,    /* gc_ini_func          */
+    stub_obj_gc_fin_func,     /* gc_fin_func          */
+    stub_obj_gc_accept_func,  /* gc_accept_func       */
+    NULL,                     /* gc_accpet_func_weak  */
+  };
+  ScmMem *mem;
+  ScmObj root_obj = NULL;
+  int root_obj_num, heap_obj_num;
+
+  /* preprocess */
+  mem = scm_mem_construct();
+  scm_mem_alloc_root(mem, &type, SCM_REF_MAKE(root_obj));
+  scm_mem_alloc_heap(mem, &type, SCM_REF_MAKE(STUB_OBJ(root_obj)->obj));
+  root_obj_num = STUB_OBJ(root_obj)->obj_num;
+  heap_obj_num = STUB_OBJ(STUB_OBJ(root_obj)->obj)->obj_num;
+
+  /* action */
+  scm_mem_gc_start(mem);
+
+  /* postcondition check */
+  cut_assert_not_null(STUB_OBJ(root_obj)->obj);
+
+  cut_assert_equal_int(1, stub_obj_table[root_obj_num].nr_call_ini_func);
+  cut_assert_equal_int(0, stub_obj_table[root_obj_num].nr_call_fin_func);
+  cut_assert_equal_int(1, stub_obj_table[root_obj_num].nr_call_accept_func);
+  cut_assert_equal_int(0,
+                       stub_obj_table[root_obj_num].nr_call_accept_func_weak);
+  
+  cut_assert_equal_int(1, stub_obj_table[heap_obj_num].nr_call_ini_func);
+  cut_assert_equal_int(0, stub_obj_table[heap_obj_num].nr_call_fin_func);
+  cut_assert_equal_int(1, stub_obj_table[heap_obj_num].nr_call_accept_func);
+  cut_assert_equal_int(0,
+                       stub_obj_table[heap_obj_num].nr_call_accept_func_weak);
+
+  /* postprocess */
+  scm_mem_destruct(mem);
+}
+
+void
+test_scm_mem_gc_start__scanvenged(void)
+{
+  ScmTypeInfo type = {
+    NULL,                     /* pp_func              */
+    sizeof(StubObj),          /* obj_size             */
+    stub_obj_gc_init_func,    /* gc_ini_func          */
+    stub_obj_gc_fin_func,     /* gc_fin_func          */
+    stub_obj_gc_accept_func,  /* gc_accept_func       */
+    NULL,                     /* gc_accpet_func_weak  */
+  };
+  ScmMem *mem;
+  ScmObj root_obj = NULL;
+  int root_obj_num, heap_obj_num;
+
+  /* preprocess */
+  mem = scm_mem_construct();
+  scm_mem_alloc_root(mem, &type, SCM_REF_MAKE(root_obj));
+  scm_mem_alloc_heap(mem, &type, SCM_REF_MAKE(STUB_OBJ(root_obj)->obj));
+  root_obj_num = STUB_OBJ(root_obj)->obj_num;
+  heap_obj_num = STUB_OBJ(STUB_OBJ(root_obj)->obj)->obj_num;
+
+  STUB_OBJ(root_obj)->obj = NULL; /* heap object become garbage */
+
+  /* action */
+  scm_mem_gc_start(mem);
+
+  /* postcondition check */
+  cut_assert_null(STUB_OBJ(root_obj)->obj);
+
+  cut_assert_equal_int(1, stub_obj_table[root_obj_num].nr_call_ini_func);
+  cut_assert_equal_int(0, stub_obj_table[root_obj_num].nr_call_fin_func);
+  cut_assert_equal_int(1, stub_obj_table[root_obj_num].nr_call_accept_func);
+  cut_assert_equal_int(0,
+                       stub_obj_table[root_obj_num].nr_call_accept_func_weak);
+  
+  cut_assert_equal_int(1, stub_obj_table[heap_obj_num].nr_call_ini_func);
+  cut_assert_equal_int(1, stub_obj_table[heap_obj_num].nr_call_fin_func);
+  cut_assert_equal_int(0, stub_obj_table[heap_obj_num].nr_call_accept_func);
+  cut_assert_equal_int(0,
+                       stub_obj_table[heap_obj_num].nr_call_accept_func_weak);
+
+  /* postprocess */
+  scm_mem_destruct(mem);
 }

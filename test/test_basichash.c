@@ -210,3 +210,66 @@ test_scm_basic_hash_delete_middle_entry_synonym()
 
   scm_basic_hash_destruct(table);
 }
+
+void
+test_scm_basic_hash__external_iterator()
+{
+  unsigned int i;
+  int keys[] = { 1, 10, 100 };
+  int values[] = { 101, 110, 200,};
+  bool checked[] = { false, false, false };
+  ScmBasicHashItr itr;
+  ScmBasicHashTable *table;
+
+  /* preprocess */
+  table = scm_basic_hash_construct(256, hash_func, comp_func);
+  for (i = 0; i < sizeof(keys)/sizeof(keys[0]); i++)
+    scm_basic_hash_insert(table,
+                          SCM_BASIC_HASH_KEY(keys[i]),
+                          SCM_BASIC_HASH_VALUE(values[i]));
+
+  /* action */
+  SCM_BASIC_HASH_ITR_BEGIN(table, itr);
+
+  /* postcondition check */
+  cut_assert_false(SCM_BASIC_HASH_ITR_IS_END(itr));
+  for (i = 0; i < sizeof(keys)/sizeof(keys[0]); i++)
+    if (keys[i] == (int)SCM_BASIC_HASH_ITR_KEY(itr)) {
+      cut_assert_false(checked[i]);
+      cut_assert_equal_int(values[i], (int)SCM_BASIC_HASH_ITR_VALUE(itr));
+      checked[i] = true;
+    }
+
+  /* action */
+  SCM_BASIC_HASH_ITR_NEXT(itr);
+
+  /* postcondition check */
+  cut_assert_false(SCM_BASIC_HASH_ITR_IS_END(itr));
+  for (i = 0; i < sizeof(keys)/sizeof(keys[0]); i++)
+    if (keys[i] == (int)SCM_BASIC_HASH_ITR_KEY(itr)) {
+      cut_assert_false(checked[i]); 
+      cut_assert_equal_int(values[i], SCM_BASIC_HASH_ITR_VALUE(itr));
+      checked[i] = true;
+    }
+
+  /* action */
+  SCM_BASIC_HASH_ITR_NEXT(itr);
+
+  /* postcondition check */
+  cut_assert_false(SCM_BASIC_HASH_ITR_IS_END(itr));
+  for (i = 0; i < sizeof(keys)/sizeof(keys[0]); i++)
+    if (keys[i] == (int)SCM_BASIC_HASH_ITR_KEY(itr)) {
+      cut_assert_false(checked[i]); 
+      cut_assert_equal_int(values[i], SCM_BASIC_HASH_ITR_VALUE(itr));
+      checked[i] = true;
+    }
+
+  /* action */
+  SCM_BASIC_HASH_ITR_NEXT(itr);
+
+  /* postcondition check */
+  cut_assert_true(SCM_BASIC_HASH_ITR_IS_END(itr));
+
+  /* postprocess */
+  scm_basic_hash_destruct(table);
+}

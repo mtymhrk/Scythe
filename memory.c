@@ -786,37 +786,39 @@ scm_mem_free_root(ScmMem *mem, ScmObj obj)
   return scm_mem_free_root_obj(obj, mem, &mem->roots);
 }
 
-ScmMem *
-scm_mem_alloc_plain(ScmMem *mem, ScmTypeInfo *type, ScmRef ref)
-{
-  ScmObj obj;
+/* TODO: delete these functions: these functions is not needed */
+/* */
+/* ScmMem * */
+/* scm_mem_alloc_plain(ScmMem *mem, ScmTypeInfo *type, ScmRef ref) */
+/* { */
+/*   ScmObj obj; */
 
-  assert(mem != NULL);
-  assert(type != NULL);
-  assert(ref != SCM_REF_NULL);
+/*   assert(mem != NULL); */
+/*   assert(type != NULL); */
+/*   assert(ref != SCM_REF_NULL); */
 
-  SCM_REF_UPDATE(ref, NULL);
+/*   SCM_REF_UPDATE(ref, NULL); */
 
-  obj = malloc(SCM_TYPE_INFO_OBJ_SIZE(type));
-  if (obj == NULL) return NULL;
+/*   obj = malloc(SCM_TYPE_INFO_OBJ_SIZE(type)); */
+/*   if (obj == NULL) return NULL; */
 
-  SCM_REF_UPDATE(ref, obj);
+/*   SCM_REF_UPDATE(ref, obj); */
 
-  scm_mem_obj_init(mem, obj, type);
+/*   scm_mem_obj_init(mem, obj, type); */
 
-  return mem;
-}
+/*   return mem; */
+/* } */
 
-ScmObj 
-scm_mem_free_plain(ScmMem *mem, ScmObj obj)
-{
-  assert(mem != NULL);
-  assert(obj != NULL);
+/* ScmObj  */
+/* scm_mem_free_plain(ScmMem *mem, ScmObj obj) */
+/* { */
+/*   assert(mem != NULL); */
+/*   assert(obj != NULL); */
 
-  free(obj);
+/*   free(obj); */
 
-  return NULL;
-}
+/*   return NULL; */
+/* } */
 
 ScmRef
 scm_mem_register_extra_rfrn(ScmMem *mem, ScmRef ref)
