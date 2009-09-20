@@ -305,7 +305,7 @@ scm_mem_alloc_heap_mem(ScmMem *mem, ScmTypeInfo *type, ScmRef ref)
   assert(type != NULL);
   assert(ref != SCM_REF_NULL);
 
-  SCM_MEM_ALLOCATION_SIZE_OF_OBJ_IN_HEAP(type, &size);
+  size = scm_mem_alloc_size_in_heap(type);
   SCM_MEM_HEAP_ALLOC(mem->to_heap, size, SCM_REF_TO_PTR(ref));
   if (SCM_REF_OBJ(ref) == NULL) return;
 
@@ -316,7 +316,7 @@ scm_mem_alloc_heap_mem(ScmMem *mem, ScmTypeInfo *type, ScmRef ref)
   }
 
   if (SCM_TYPE_INFO_HAS_WEAK_REF(type))
-    SCM_MEM_ADD_OBJ_TO_WEAK_LIST(mem->to_heap, ref);
+    SCM_MEM_ADD_OBJ_TO_WEAK_LIST(mem->to_heap, ref, type);
 }
 
 static void
@@ -341,6 +341,7 @@ scm_mem_copy_obj(ScmMem *mem, ScmObj obj)
 
   assert(mem != NULL);
   assert(obj != NULL);
+
 
   if (!scm_mem_is_obj_in_heap(mem, obj, FROM_HEAP))
     return obj;
@@ -494,7 +495,7 @@ scm_mem_adjust_weak_ref_of_obj_func(ScmObj mem, ScmObj obj, ScmRef child)
 
   co = SCM_REF_OBJ(child);
   if (co != NULL) {
-    if (!scm_mem_is_obj_in_heap(SCM_MEM(mem), co, FROM_HEAP)) {
+    if (scm_mem_is_obj_in_heap(SCM_MEM(mem), co, FROM_HEAP)) {
       ScmTypeInfo *type = scm_obj_type(co);
       if (SCM_TYPE_INFO_IS_SAME(type, &SCM_FORWARD_TYPE_INFO))
         SCM_REF_UPDATE(child, SCM_FORWARD_FORWARD(co));
@@ -540,7 +541,7 @@ scm_mem_adjust_weak_ref_of_heap_obj(ScmMem *mem)
 
   for (obj = SCM_MEM_HEAP_WEAK_LIST(mem->to_heap);
        obj != NULL;
-       obj = SCM_REF_OBJ(SCM_MEM_NEXT_OBJ_HAS_WEAK_REF(obj))) {
+       obj = SCM_REF_OBJ(SCM_MEM_NEXT_OBJ_HAS_WEAK_REF(SCM_OBJ_TYPE(obj), obj))) {
     scm_mem_adjust_weak_ref_of_obj(mem, obj);
   }
 }
@@ -565,7 +566,7 @@ scm_mem_alloc_root_obj(ScmTypeInfo *type, ScmMem *mem, ScmMemRootBlock **head)
   assert(type != NULL);
   assert(head != NULL);
 
-  SCM_MEM_ALLOCATION_SIZE_OF_OBJ_IN_ROOT(type, &size);
+  size = scm_mem_alloc_size_in_root(type);
   SCM_MEM_ROOT_BLOCK_NEW(&block, size);
   if (block == NULL)
     return NULL;
@@ -742,7 +743,7 @@ scm_mem_alloc_persist(ScmMem *mem, ScmTypeInfo *type, ScmRef ref)
   assert(type != NULL);
   assert(ref != SCM_REF_NULL);
 
-  SCM_MEM_ALLOCATION_SIZE_OF_OBJ_IN_HEAP(type, &size);
+  size = scm_mem_alloc_size_in_heap(type);
   SCM_MEM_HEAP_ALLOC(mem->persistent, size, SCM_REF_TO_PTR(ref));
   if (SCM_REF_OBJ(ref) == NULL) {
     if (scm_mem_expand_persistent(mem, 1) != 1) {
@@ -757,7 +758,7 @@ scm_mem_alloc_persist(ScmMem *mem, ScmTypeInfo *type, ScmRef ref)
   }
 
   if (SCM_TYPE_INFO_HAS_WEAK_REF(type))
-    SCM_MEM_ADD_OBJ_TO_WEAK_LIST(mem->persistent, ref);
+    SCM_MEM_ADD_OBJ_TO_WEAK_LIST(mem->persistent, ref, type);
 
   scm_mem_obj_init(mem, SCM_REF_OBJ(ref), type);
 
@@ -888,6 +889,39 @@ scm_mem_gc_start(ScmMem *mem)
 }
 
 
+size_t
+scm_mem_alloc_size_in_heap(ScmTypeInfo *type)
+{
+  size_t size;
+
+  assert(type != NULL);
+
+  size = SCM_TYPE_INFO_OBJ_SIZE(type);
+  if (size < sizeof(ScmAtom))
+    size = sizeof(ScmAtom);
+  if (SCM_TYPE_INFO_HAS_WEAK_REF(type))
+    size = SCM_MEM_SIZE_OF_OBJ_HAS_WEAK_REF(size);
+  if (size < SCM_MEM_MIN_OBJ_SIZE)
+    size = SCM_MEM_MIN_OBJ_SIZE;
+  
+  return size;
+}
+
+size_t
+scm_mem_alloc_size_in_root(ScmTypeInfo *type)
+{
+  size_t size;
+
+  assert(type != NULL);
+
+  size = SCM_TYPE_INFO_OBJ_SIZE(type);
+  if (size < sizeof(ScmAtom))
+    size = sizeof(ScmAtom);
+  size += sizeof(ScmMemRootBlock);
+
+  return size;
+}
+
 ScmObj
 scm_memory_alloc_shared_root(ScmTypeInfo *type)
 {
@@ -906,3 +940,4 @@ scm_memory_free_all_shared_root(void)
   scm_mem_free_all_obj_in_root_set(NULL, &shared_roots);
   return;
 }
+
