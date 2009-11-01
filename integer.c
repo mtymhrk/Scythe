@@ -2,15 +2,12 @@
 #include <stdbool.h>
 #include <assert.h>
 
-#include "memory.h"
 #include "object.h"
+#include "memory.h"
+#include "vm.h"
 #include "obuffer.h"
 #include "integer.h"
 
-struct ScmIntegerRec {
-  ScmObjHeader header;
-  long long value;
-};
 
 ScmTypeInfo SCM_INTEGER_TYPE_INFO = {
   scm_integer_pretty_print,      /* pp_func              */
@@ -22,84 +19,105 @@ ScmTypeInfo SCM_INTEGER_TYPE_INFO = {
 };
 
 
-ScmInteger *
-scm_integer_construct(long long value)
+void
+scm_integer_initialize(ScmObj integer, long long value) /* GC OK */
 {
-  ScmInteger *integer;
+  SCM_OBJ_ASSERT_TYPE(integer, &SCM_INTEGER_TYPE_INFO);
 
-  integer = scm_memory_allocate(sizeof(ScmInteger));
-  scm_obj_init(SCM_OBJ(integer), &SCM_INTEGER_TYPE_INFO);
-  integer->value = value;
+  SCM_INTEGER_VALUE(integer) = value;
+}
+
+void
+scm_integer_finalize(ScmObj integer) /* GC OK */
+{
+  return;                       /* nothing to do */
+}
+
+ScmObj
+scm_integer_construct(long long value) /* GC OK */
+{
+  ScmObj integer = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&integer);
+
+  scm_mem_alloc_root(scm_vm_current_mm(),
+                     &SCM_INTEGER_TYPE_INFO, SCM_REF_MAKE(integer));
+  /* TODO: replace above by below */
+  /* scm_mem_alloc_heap(scm_vm_current_mm(), */
+  /*                    &SCM_INTEGER_TYPE_INFO, SCM_REF_MAKE(integer)); */
+  if (SCM_OBJ_IS_NULL(integer)) return SCM_OBJ_NULL;
+
+  scm_integer_initialize(integer, value);
 
   return integer;
 }
 
-void
-scm_integer_destruct(ScmInteger *integer)
-{
-  assert(integer != NULL);
-  scm_memory_release(integer);
-}
-
 long long
-scm_integer_value(ScmInteger *integer)
+scm_integer_value(ScmObj integer) /* GC OK */
 {
-  assert(integer != NULL);
-  return integer->value;
+  SCM_OBJ_ASSERT_TYPE(integer, &SCM_INTEGER_TYPE_INFO);
+
+  return SCM_INTEGER_VALUE(integer);
 }
 
 bool
-scm_integer_is_integer(ScmObj obj)
+scm_integer_is_integer(ScmObj obj) /* GC OK */
 {
-  assert(obj != NULL);
+  assert(SCM_OBJ_IS_NOT_NULL(obj));
 
   return SCM_OBJ_IS_TYPE(obj, &SCM_INTEGER_TYPE_INFO);
 }
 
-ScmInteger *
-scm_integer_plus(ScmInteger *val1, ScmInteger *val2)
+ScmObj
+scm_integer_plus(ScmObj val1, ScmObj val2) /* GC OK */
 {
-  assert(val1 != NULL);
-  assert(val2 != NULL);
+  SCM_OBJ_ASSERT_TYPE(val1, &SCM_INTEGER_TYPE_INFO);
+  SCM_OBJ_ASSERT_TYPE(val2, &SCM_INTEGER_TYPE_INFO);
 
-  return scm_integer_construct(val1->value + val2->value);
+  return scm_integer_construct(SCM_INTEGER_VALUE(val1)
+                               + SCM_INTEGER_VALUE(val2));
 }
 
-ScmInteger *
-scm_integer_minus(ScmInteger *val1, ScmInteger *val2)
+ScmObj
+scm_integer_minus(ScmObj val1, ScmObj val2) /* GC OK */
 {
-  assert(val1 != NULL);
-  assert(val2 != NULL);
+  SCM_OBJ_ASSERT_TYPE(val1, &SCM_INTEGER_TYPE_INFO);
+  SCM_OBJ_ASSERT_TYPE(val2, &SCM_INTEGER_TYPE_INFO);
 
-  return scm_integer_construct(val1->value - val2->value);
+  return scm_integer_construct(SCM_INTEGER_VALUE(val1)
+                               - SCM_INTEGER_VALUE(val2));
 }
 
-ScmInteger *
-scm_integer_multiply(ScmInteger *val1, ScmInteger *val2)
+ScmObj
+scm_integer_multiply(ScmObj val1, ScmObj val2) /* GC OK */
 {
-  assert(val1 != NULL);
-  assert(val2 != NULL);
+  SCM_OBJ_ASSERT_TYPE(val1, &SCM_INTEGER_TYPE_INFO);
+  SCM_OBJ_ASSERT_TYPE(val2, &SCM_INTEGER_TYPE_INFO);
 
-  return scm_integer_construct(val1->value * val2->value);
+  return scm_integer_construct(SCM_INTEGER_VALUE(val1)
+                               * SCM_INTEGER_VALUE(val2));
 }
 
-ScmInteger *
-scm_integer_divide(ScmInteger *val1, ScmInteger *val2)
+ScmObj
+scm_integer_divide(ScmObj val1, ScmObj val2) /* GC OK */
 {
-  assert(val1 != NULL);
-  assert(val2 != NULL);
+  SCM_OBJ_ASSERT_TYPE(val1, &SCM_INTEGER_TYPE_INFO);
+  SCM_OBJ_ASSERT_TYPE(val2, &SCM_INTEGER_TYPE_INFO);
 
-  return scm_integer_construct(val1->value / val2->value);
+  return scm_integer_construct(SCM_INTEGER_VALUE(val1)
+                               / SCM_INTEGER_VALUE(val2));
 }
 
-ScmInteger *
-scm_integer_reminder(ScmInteger *val1, ScmInteger *val2)
+ScmObj
+scm_integer_reminder(ScmObj val1, ScmObj val2) /* GC OK */
 {
-  assert(val1 != NULL);
-  assert(val2 != NULL);
+  SCM_OBJ_ASSERT_TYPE(val1, &SCM_INTEGER_TYPE_INFO);
+  SCM_OBJ_ASSERT_TYPE(val2, &SCM_INTEGER_TYPE_INFO);
 
-  return scm_integer_construct(val1->value % val2->value);
+  return scm_integer_construct(SCM_INTEGER_VALUE(val1)
+                               % SCM_INTEGER_VALUE(val2));
 }
+
 
 void
 scm_integer_pretty_print(ScmObj obj, ScmOBuffer *obuffer)

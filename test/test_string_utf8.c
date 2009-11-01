@@ -1,132 +1,156 @@
 #include <cutter.h>
 
+#include "object.h"
+#include "reference.h"
 #include "string.h"
+
+static ScmObj vm = SCM_OBJ_INIT;
+
+void
+cut_startup(void)
+{
+  SCM_SETQ_PRIM(vm, scm_vm_construct());
+  scm_vm_switch_vm(vm);
+}
+
+void
+cut_shutdown(void)
+{
+  scm_vm_revert_vm();
+  scm_vm_destruct(vm);
+}
 
 void
 test_scm_string_utf8(void)
 {
   char expected[] = "テスト文字列";
   char actual[256];
-  size_t len;
+  ssize_t len;
+  ScmObj str = SCM_OBJ_INIT;
 
-  ScmString *str = scm_string_construct(expected, sizeof(expected) - 1,
-                                        SCM_ENCODING_UTF8);
+  SCM_STACK_FRAME_PUSH(&str);
+
+  SCM_SETQ(str, scm_string_construct(expected, sizeof(expected) - 1,
+                                     SCM_ENCODING_UTF8));
 
   cut_assert_not_null(str);
-  cut_assert_equal_int(SCM_ENCODING_UTF8, scm_string_encoding(str));
-  cut_assert_equal_int(6, scm_string_length(str));
-  cut_assert_equal_int(sizeof(expected) - 1, scm_string_bytesize(str));
+  cut_assert_equal_uint(SCM_ENCODING_UTF8, scm_string_encoding(str));
+  cut_assert_equal_uint(6, scm_string_length(str));
+  cut_assert_equal_uint(sizeof(expected) - 1, scm_string_bytesize(str));
 
   len = scm_string_dump(str, actual, sizeof(actual));
   cut_assert_equal_int(sizeof(expected) - 1, len);
-  cut_assert_equal_int(0, memcmp(expected, actual, len));
-
-  scm_string_destruct(str);
+  cut_assert_equal_int(0, memcmp(expected, actual, (size_t)len));
 }
 
 void
 test_scm_string_copy_utf8(void)
 {
   char expected[] = "この文字列は誤りである";
-  
-  ScmString *str = scm_string_construct(expected,
-                                        sizeof(expected) - 1,
-                                        SCM_ENCODING_UTF8);
-  ScmString *copy = scm_string_copy(str);
   char actual[256];
-  size_t len;
+  ssize_t len;
+  ScmObj str = SCM_OBJ_INIT, copy = SCM_OBJ_INIT;
 
-  cut_assert_equal_int(scm_string_length(str), scm_string_length(copy));
-  cut_assert_equal_int(scm_string_bytesize(str), scm_string_bytesize(copy));
+  SCM_STACK_FRAME_PUSH(&str, &copy);
+
+  SCM_SETQ(str, scm_string_construct(expected,
+                                     sizeof(expected) - 1,
+                                     SCM_ENCODING_UTF8));
+  SCM_SETQ(copy, scm_string_copy(str));
+
+  cut_assert_equal_uint(scm_string_length(str), scm_string_length(copy));
+  cut_assert_equal_uint(scm_string_bytesize(str), scm_string_bytesize(copy));
 
   len = scm_string_dump(copy, actual, sizeof(actual));
   cut_assert_equal_int(sizeof(expected) - 1, len);
-  cut_assert_equal_int(0, memcmp(expected, actual, len));
-
-  scm_string_destruct(str);
-  scm_string_destruct(copy);
+  cut_assert_equal_int(0, memcmp(expected, actual, (size_t)len));
 }
 
 void
 test_string_dup_utf8(void)
 {
   char expected[] = "この文字列は誤りである";
-  
-  ScmString *str = scm_string_construct(expected, sizeof(expected) - 1,
-                                        SCM_ENCODING_UTF8);
-  ScmString *copy = scm_string_dup(str);
   char actual[256];
-  size_t len;
+  ssize_t len;
+  ScmObj str = SCM_OBJ_INIT, copy = SCM_OBJ_INIT;
 
-  cut_assert_equal_int(scm_string_length(str), scm_string_length(copy));
-  cut_assert_equal_int(scm_string_bytesize(str), scm_string_bytesize(copy));
+  SCM_STACK_FRAME_PUSH(&str, &copy);
+
+  SCM_SETQ(str, scm_string_construct(expected, sizeof(expected) - 1,
+                                     SCM_ENCODING_UTF8));
+  SCM_SETQ(copy, scm_string_dup(str));
+
+
+  cut_assert_equal_uint(scm_string_length(str), scm_string_length(copy));
+  cut_assert_equal_uint(scm_string_bytesize(str), scm_string_bytesize(copy));
 
   len = scm_string_dump(copy, actual, sizeof(actual));
   cut_assert_equal_int(sizeof(expected) - 1, len);
-  cut_assert_equal_int(0, memcmp(expected, actual, len));
-
-  scm_string_destruct(str);
-  scm_string_destruct(copy);
+  cut_assert_equal_int(0, memcmp(expected, actual, (size_t)len));
 }
 
 void
 test_scm_string_is_equal_compare_with_same_string_utf8(void)
 {
-  ScmString *str1 = scm_string_construct("この文字列は誤りである",
-                                         sizeof("この文字列は誤りである") - 1,
-                                         SCM_ENCODING_UTF8);
-  ScmString *str2 = scm_string_construct("この文字列は誤りである",
-                                         sizeof("この文字列は誤りである") - 1,
-                                         SCM_ENCODING_UTF8);
+  ScmObj str1 = SCM_OBJ_INIT, str2 = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&str1, &str2);
+
+  SCM_SETQ(str1, scm_string_construct("この文字列は誤りである",
+                                      sizeof("この文字列は誤りである") - 1,
+                                      SCM_ENCODING_UTF8));
+  SCM_SETQ(str2, scm_string_construct("この文字列は誤りである",
+                                      sizeof("この文字列は誤りである") - 1,
+                                      SCM_ENCODING_UTF8));
 
   cut_assert_true(scm_string_is_equal(str1, str2));
-
-  scm_string_destruct(str1);
-  scm_string_destruct(str2);
 }
 
 void
 test_scm_string_is_equal_compare_with_different_string_utf8(void)
 {
-  ScmString *str1 = scm_string_construct("この文字列は誤りである",
-                                         sizeof("この文字列は誤りである") - 1,
-                                         SCM_ENCODING_UTF8);
-  ScmString *str2 = scm_string_construct("この文字列は誤りでない",
-                                         sizeof("この文字列は誤りでない") - 1,
-                                         SCM_ENCODING_UTF8);
+  ScmObj str1 = SCM_OBJ_INIT, str2 = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&str1, &str2);
+
+  SCM_SETQ(str1, scm_string_construct("この文字列は誤りである",
+                                      sizeof("この文字列は誤りである") - 1,
+                                      SCM_ENCODING_UTF8));
+  SCM_SETQ(str2, scm_string_construct("この文字列は誤りでない",
+                                      sizeof("この文字列は誤りでない") - 1,
+                                      SCM_ENCODING_UTF8));
 
   cut_assert_false(scm_string_is_equal(str1, str2));
-
-  scm_string_destruct(str1);
-  scm_string_destruct(str2);
 }
 
 void
 test_scm_string_is_equal_compare_with_copy_string_utf8(void)
 {
-  ScmString *str1 = scm_string_construct("この文字列は誤りである",
-                                         sizeof("この文字列は誤りである") - 1,
-                                         SCM_ENCODING_UTF8);
-  ScmString *str2 = scm_string_copy(str1);
+  ScmObj str1 = SCM_OBJ_INIT, str2 = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&str1, &str2);
+
+  SCM_SETQ(str1, scm_string_construct("この文字列は誤りである",
+                                      sizeof("この文字列は誤りである") - 1,
+                                      SCM_ENCODING_UTF8));
+  SCM_SETQ(str2, scm_string_copy(str1));
 
   cut_assert_true(scm_string_is_equal(str1, str2));
-
-  scm_string_destruct(str1);
-  scm_string_destruct(str2);
 }
 
 void
 test_scm_string_is_equal_compare_with_duplicate_string_utf8(void)
 {
-  ScmString *str1 = scm_string_construct("この文字列は誤りである",
-                                         sizeof("この文字列は誤りである") - 1,
-                                         SCM_ENCODING_UTF8);
-  ScmString *str2 = scm_string_dup(str1);
+  ScmObj str1 = SCM_OBJ_INIT, str2 = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&str1, &str2);
+
+  SCM_SETQ(str1, scm_string_construct("この文字列は誤りである",
+                                      sizeof("この文字列は誤りである") - 1,
+                                      SCM_ENCODING_UTF8));
+  SCM_SETQ(str2, scm_string_dup(str1));
 
   cut_assert_true(scm_string_is_equal(str1, str2));
-
-  scm_string_destruct(str1);
-  scm_string_destruct(str2);
 }
 
 void
@@ -134,23 +158,23 @@ test_scm_string_substr_utf8(void)
 {
   char expected[] = "誤りである";
   char actual[256];
-  int len;
+  ssize_t len;
+  ScmObj str = SCM_OBJ_INIT, sub = SCM_OBJ_INIT;
 
-  ScmString *str = scm_string_construct("この文字列は誤りである",
-                                        sizeof("この文字列は誤りである") - 1,
-                                        SCM_ENCODING_UTF8);
-  ScmString *sub = scm_string_substr(str, 6, 5);
+  SCM_STACK_FRAME_PUSH(&str, &sub);
+
+  SCM_SETQ(str, scm_string_construct("この文字列は誤りである",
+                                     sizeof("この文字列は誤りである") - 1,
+                                     SCM_ENCODING_UTF8));
+  SCM_SETQ(sub, scm_string_substr(str, 6, 5));
 
   cut_assert_not_null(sub);
-  cut_assert_equal_int(5, scm_string_length(sub));
-  cut_assert_equal_int(sizeof(expected) - 1, scm_string_bytesize(sub));
+  cut_assert_equal_uint(5u, scm_string_length(sub));
+  cut_assert_equal_uint(sizeof(expected) - 1, scm_string_bytesize(sub));
 
   len = scm_string_dump(sub, actual, sizeof(actual));
   cut_assert_equal_int(sizeof(expected) - 1, len);
-  cut_assert_equal_int(0, memcmp(expected, actual, len));
-
-  scm_string_destruct(str);
-  scm_string_destruct(sub);
+  cut_assert_equal_int(0, memcmp(expected, actual, (size_t)len));
 }
 
 void
@@ -159,25 +183,26 @@ test_scm_string_push_utf8(void)
   char expected[] = "この文字列は誤りである。";
   scm_char_t pushed;
   char actual[256];
-  int len;
+  ssize_t len;
+  ScmObj str = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&str);
 
   memset(&pushed, 0, sizeof(pushed));
   memcpy(&pushed, "。", 3);
 
-  ScmString *str = scm_string_construct("この文字列は誤りである",
-                                        sizeof("この文字列は誤りである") - 1,
-                                        SCM_ENCODING_UTF8);
+  SCM_SETQ(str, scm_string_construct("この文字列は誤りである",
+                                     sizeof("この文字列は誤りである") - 1,
+                                     SCM_ENCODING_UTF8));
 
   cut_assert_not_null(scm_string_push(str, pushed));
 
-  cut_assert_equal_int(12, scm_string_length(str));
-  cut_assert_equal_int(sizeof(expected) - 1, scm_string_bytesize(str));
+  cut_assert_equal_uint(12u, scm_string_length(str));
+  cut_assert_equal_uint(sizeof(expected) - 1, scm_string_bytesize(str));
 
   len = scm_string_dump(str, actual, sizeof(actual));
   cut_assert_equal_int(sizeof(expected) - 1, len);
-  cut_assert_equal_int(0, memcmp(expected, actual, len));
-
-  scm_string_destruct(str);
+  cut_assert_equal_int(0, memcmp(expected, actual, (size_t)len));
 }
 
 void
@@ -186,44 +211,47 @@ test_scm_string_append_utf8(void)
   char expected[] = "次の文は正しい。前の文は誤りである。";
   char actual[256];
   int len;
+  ScmObj str = SCM_OBJ_INIT, apnd = SCM_OBJ_INIT;
 
-  ScmString *str = scm_string_construct("次の文は正しい。",
-                                        sizeof("次の文は正しい。") - 1,
-                                        SCM_ENCODING_UTF8);
-  ScmString *apnd = scm_string_construct("前の文は誤りである。",
-                                         sizeof("前の文は誤りである。") - 1,
-                                         SCM_ENCODING_UTF8);
+  SCM_STACK_FRAME_PUSH(&str, &apnd);
+
+  SCM_SETQ(str, scm_string_construct("次の文は正しい。",
+                                     sizeof("次の文は正しい。") - 1,
+                                     SCM_ENCODING_UTF8));
+  SCM_SETQ(apnd, scm_string_construct("前の文は誤りである。",
+                                      sizeof("前の文は誤りである。") - 1,
+                                      SCM_ENCODING_UTF8));
 
   cut_assert_not_null(scm_string_append(str, apnd));
 
-  cut_assert_equal_int(18, scm_string_length(str));
-  cut_assert_equal_int(sizeof(expected) - 1, scm_string_bytesize(str));
+  cut_assert_equal_uint(18u, scm_string_length(str));
+  cut_assert_equal_uint(sizeof(expected) - 1, scm_string_bytesize(str));
 
   len = scm_string_dump(str, actual, sizeof(actual));
   cut_assert_equal_int(sizeof(expected) - 1, len);
-  cut_assert_equal_int(0, memcmp(expected, actual, len));
-
-  scm_string_destruct(str);
-  scm_string_destruct(apnd);
+  cut_assert_equal_int(0, memcmp(expected, actual, (size_t)len));
 }
 
 void
 test_scm_string_ref_utf8(void)
 {
-  int i;
+  unsigned int i;
   scm_char_t actual;
-  char *tmp[] = { "こ" , "の", "文", "字", "列", "は", "誤", "り", "で","あ",
-                  "る", "" };
+  const char *tmp[] = { "こ" , "の", "文", "字", "列", "は", "誤", "り", "で","あ",
+                        "る", "" };
   scm_char_t expected[sizeof(tmp)/sizeof(tmp[1])];
+  ScmObj str = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&str);
 
   memset(expected, 0, sizeof(expected));
   for (i = 0; i < sizeof(expected)/sizeof(expected[1]); i++)
     memcpy(expected + i, tmp[i], strlen(tmp[i]));
   expected[11] = SCM_CHR_ZERO;
 
-  ScmString *str = scm_string_construct("この文字列は誤りである",
-                                        sizeof("この文字列は誤りである") - 1,
-                                        SCM_ENCODING_UTF8);
+  SCM_SETQ(str, scm_string_construct("この文字列は誤りである",
+                                     sizeof("この文字列は誤りである") - 1,
+                                     SCM_ENCODING_UTF8));
 
   actual = scm_string_ref(str, 0);
   cut_assert_equal_int(0, memcmp(expected + 0, &actual, sizeof(scm_char_t)));
@@ -268,24 +296,25 @@ test_scm_string_set_less_width_utf8(void)
   char expected[] = "テaト";
   char actual[256];
   scm_char_t c;
-  int len;
+  ssize_t len;
+  ScmObj str = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&str);
 
   memset(&c, 0, sizeof(c));
   memcpy(&c, "a", 1);
 
-  ScmString *str = scm_string_construct("テスト", sizeof("テスト") - 1,
-                                        SCM_ENCODING_UTF8);
+  SCM_SETQ(str, scm_string_construct("テスト", sizeof("テスト") - 1,
+                                     SCM_ENCODING_UTF8));
 
   cut_assert_not_null(scm_string_set(str, 1, c));
 
-  cut_assert_equal_int(3, scm_string_length(str));
-  cut_assert_equal_int(sizeof(expected) - 1, scm_string_bytesize(str));
+  cut_assert_equal_uint(3u, scm_string_length(str));
+  cut_assert_equal_uint(sizeof(expected) - 1, scm_string_bytesize(str));
 
   len = scm_string_dump(str, actual, sizeof(actual));
   cut_assert_equal_int(sizeof(expected) - 1, len);
-  cut_assert_equal_int(0, memcmp(expected, actual, len));
-
-  scm_string_destruct(str);
+  cut_assert_equal_int(0, memcmp(expected, actual, (size_t)len));
 }
 
 void
@@ -294,25 +323,26 @@ test_scm_string_set_same_width_utf8(void)
   char expected[] = "テント";
   char actual[256];
   scm_char_t c;
-  int len;
+  ssize_t len;
+  ScmObj str = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&str);
 
   memset(&c, 0, sizeof(c));
   memcpy(&c, "ン", 3);
 
-  ScmString *str = scm_string_construct("テスト",
-                                        sizeof("テスト") - 1,
-                                        SCM_ENCODING_UTF8);
+  SCM_SETQ(str, scm_string_construct("テスト",
+                                     sizeof("テスト") - 1,
+                                     SCM_ENCODING_UTF8));
 
   cut_assert_not_null(scm_string_set(str, 1, c));
 
-  cut_assert_equal_int(3, scm_string_length(str));
-  cut_assert_equal_int(sizeof(expected) - 1, scm_string_bytesize(str));
+  cut_assert_equal_uint(3u, scm_string_length(str));
+  cut_assert_equal_uint(sizeof(expected) - 1, scm_string_bytesize(str));
 
   len = scm_string_dump(str, actual, sizeof(actual));
   cut_assert_equal_int(sizeof(expected) - 1, len);
-  cut_assert_equal_int(0, memcmp(expected, actual, len));
-
-  scm_string_destruct(str);
+  cut_assert_equal_int(0, memcmp(expected, actual, (size_t)len));
 }
 
 void
@@ -321,24 +351,25 @@ test_scm_string_set_greater_width_utf8(void)
   char expected[] = "aあc";
   char actual[256];
   scm_char_t c;
-  int len;
+  ssize_t len;
+  ScmObj str = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&str);
 
   memset(&c, 0, sizeof(c));
   memcpy(&c, "あ", 3);
 
-  ScmString *str = scm_string_construct("abc", sizeof("abc") - 1,
-                                        SCM_ENCODING_UTF8);
+  SCM_SETQ(str, scm_string_construct("abc", sizeof("abc") - 1,
+                                     SCM_ENCODING_UTF8));
 
   cut_assert_not_null(scm_string_set(str, 1, c));
 
-  cut_assert_equal_int(3, scm_string_length(str));
-  cut_assert_equal_int(sizeof(expected) - 1, scm_string_bytesize(str));
+  cut_assert_equal_uint(3u, scm_string_length(str));
+  cut_assert_equal_uint(sizeof(expected) - 1, scm_string_bytesize(str));
 
   len = scm_string_dump(str, actual, sizeof(actual));
   cut_assert_equal_int(sizeof(expected) - 1, len);
-  cut_assert_equal_int(0, memcmp(expected, actual, len));
-
-  scm_string_destruct(str);
+  cut_assert_equal_int(0, memcmp(expected, actual, (size_t)len));
 }
 
 void
@@ -347,25 +378,26 @@ test_scm_string_fill_utf8(void)
   char expected[] = "この文字列は正しaaaの文は誤りである。";
   char actual[256];
   scm_char_t c;
-  int len;
+  ssize_t len;
+  ScmObj str = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&str);
 
   memset(&c, 0, sizeof(c));
   memcpy(&c, "a", 1);
 
-  ScmString *str = scm_string_construct("この文字列は正しい。前の文は誤りである。",
-                                        sizeof("この文字列は正しい。前の文は誤りである。") - 1,
-                                        SCM_ENCODING_UTF8);
+  SCM_SETQ(str, scm_string_construct("この文字列は正しい。前の文は誤りである。",
+                                     sizeof("この文字列は正しい。前の文は誤りである。") - 1,
+                                     SCM_ENCODING_UTF8));
 
   cut_assert_not_null(scm_string_fill(str, 8, 3, c));
 
-  cut_assert_equal_int(20, scm_string_length(str));
-  cut_assert_equal_int(sizeof(expected) - 1, scm_string_bytesize(str));
+  cut_assert_equal_uint(20u, scm_string_length(str));
+  cut_assert_equal_uint(sizeof(expected) - 1, scm_string_bytesize(str));
 
   len = scm_string_dump(str, actual, sizeof(actual));
   cut_assert_equal_int(sizeof(expected) - 1, len);
-  cut_assert_equal_int(0, memcmp(expected, actual, len));
-
-  scm_string_destruct(str);
+  cut_assert_equal_int(0, memcmp(expected, actual, (size_t)len));
 }
 
 void
@@ -374,89 +406,94 @@ test_scm_string_fill_append_utf8(void)
   char expected[] = "この文字列は正しい。前の文は誤りであaaaaa";
   char actual[256];
   scm_char_t c;
-  int len;
+  ssize_t len;
+  ScmObj str = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&str);
 
   memset(&c, 0, sizeof(c));
   memcpy(&c, "a", 1);
 
-  ScmString *str = scm_string_construct("この文字列は正しい。前の文は誤りである。",
-                                        sizeof("この文字列は正しい。前の文は誤りである。") - 1,
-                                        SCM_ENCODING_UTF8);
+  SCM_SETQ(str, scm_string_construct("この文字列は正しい。前の文は誤りである。",
+                                     sizeof("この文字列は正しい。前の文は誤りである。") - 1,
+                                     SCM_ENCODING_UTF8));
 
   cut_assert_not_null(scm_string_fill(str, 18, 5, c));
 
-  cut_assert_equal_int(23, scm_string_length(str));
-  cut_assert_equal_int(sizeof(expected) - 1, scm_string_bytesize(str));
+  cut_assert_equal_uint(23u, scm_string_length(str));
+  cut_assert_equal_uint(sizeof(expected) - 1, scm_string_bytesize(str));
 
   len = scm_string_dump(str, actual, sizeof(actual));
   cut_assert_equal_int(sizeof(expected) - 1, len);
-  cut_assert_equal_int(0, memcmp(expected, actual, len));
-
-  scm_string_destruct(str);
+  cut_assert_equal_int(0, memcmp(expected, actual, (size_t)len));
 }
 
 void
 test_scm_string_find_chr_found_utf8(void)
 {
   scm_char_t c;
+  ScmObj str;
+
+  SCM_STACK_FRAME_PUSH(&str);
 
   memset(&c, 0, sizeof(c));
   memcpy(&c, "は", 3);
 
-  ScmString *str = scm_string_construct("この文字列は正しい。前の文は誤りである。",
-                                        sizeof("この文字列は正しい。前の文は誤りである。") - 1,
-                                        SCM_ENCODING_UTF8);
+  SCM_SETQ(str, scm_string_construct("この文字列は正しい。前の文は誤りである。",
+                                     sizeof("この文字列は正しい。前の文は誤りである。") - 1,
+                                     SCM_ENCODING_UTF8));
 
   cut_assert_equal_int(5, scm_string_find_chr(str, c));
-
-  scm_string_destruct(str);
 }
 
 void
 test_scm_string_find_chr_not_found_utf8(void)
 {
   scm_char_t c;
+  ScmObj str = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&str);
 
   memset(&c, 0, sizeof(c));
   memcpy(&c, "a", 1);
 
-  ScmString *str = scm_string_construct("この文字列は正しい。前の文は誤りである。",
-                                        sizeof("この文字列は正しい。前の文は誤りである。") - 1,
-                                        SCM_ENCODING_UTF8);
+  SCM_SETQ(str, scm_string_construct("この文字列は正しい。前の文は誤りである。",
+                                     sizeof("この文字列は正しい。前の文は誤りである。") - 1,
+                                     SCM_ENCODING_UTF8));
 
   cut_assert_equal_int(-1, scm_string_find_chr(str, c));
-
-  scm_string_destruct(str);
 }
 
 void
 test_scm_string_match_matched_utf8(void)
 {
-  ScmString *str = scm_string_construct("この文字列は正しい。前の文は誤りである。",
-                                        sizeof("この文字列は正しい。前の文は誤りである。") - 1,
-                                        SCM_ENCODING_UTF8);
-  ScmString *pat = scm_string_construct("しい。前の文",
-                                        sizeof("しい。前の文") - 1,
-                                        SCM_ENCODING_UTF8);
+  ScmObj str = SCM_OBJ_INIT, pat = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&str, &pat);
+
+  SCM_SETQ(str, scm_string_construct("この文字列は正しい。前の文は誤りである。",
+                                     sizeof("この文字列は正しい。前の文は誤りである。") - 1,
+                                     SCM_ENCODING_UTF8));
+  SCM_SETQ(pat, scm_string_construct("しい。前の文",
+                                     sizeof("しい。前の文") - 1,
+                                     SCM_ENCODING_UTF8));
 
   cut_assert_equal_int(7, scm_string_match(str, pat));
-
-  scm_string_destruct(str);
-  scm_string_destruct(pat);
 }
 
 void
 test_scm_string_match_unmatched_utf8(void)
 {
-  ScmString *str = scm_string_construct("この文字列は正しい。前の文は誤りである。",
-                                        sizeof("この文字列は正しい。前の文は誤りである。") - 1,
-                                        SCM_ENCODING_UTF8);
-  ScmString *pat = scm_string_construct("しい、前の文",
-                                        sizeof("しい、前の文") - 1,
-                                        SCM_ENCODING_UTF8);
+  ScmObj str = SCM_OBJ_INIT, pat = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&str, &pat);
+
+  SCM_SETQ(str, scm_string_construct("この文字列は正しい。前の文は誤りである。",
+                                     sizeof("この文字列は正しい。前の文は誤りである。") - 1,
+                                     SCM_ENCODING_UTF8));
+  SCM_SETQ(pat, scm_string_construct("しい、前の文",
+                                     sizeof("しい、前の文") - 1,
+                                     SCM_ENCODING_UTF8));
 
   cut_assert_equal_int(-1, scm_string_match(str, pat));
-
-  scm_string_destruct(str);
-  scm_string_destruct(pat);
 }

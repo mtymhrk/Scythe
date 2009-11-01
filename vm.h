@@ -17,19 +17,55 @@ typedef struct ScmVMRec ScmVM;
 
 extern ScmTypeInfo SCM_VM_TYPE_INFO;
 
-ScmVM *scm_vm_initialize(ScmVM *vm, ScmVM *parent);
-ScmVM *scm_vm_finalize(ScmVM *vm);
-ScmVM *scm_vm_construct(void);
-void scm_vm_destruct(ScmVM *vm);
+struct ScmVMRec {
+  ScmObjHeader header;
+  /* ScmObj *stack;                /\* stack *\/ */
+  /* size_t stack_size;            /\* stack size *\/ */
+  /* ScmObj *sp;                   /\* stack pointer *\/ */
+  /* ScmObj *fp;                    /\* frame pointer *\/ */
+  /* ScmObj cp;                    /\* closure pointer *\/ */
+  /* scm_vm_inst_t *ip;            /\* instruction pointer *\/ */
+  /* ScmObj val;                   /\* value register *\/ */
+  /* ScmVMInst *iseq; */
+  ScmMem *mem;
+  ScmRefStack *ref_stack;
+  ScmObj symtbl;
+  ScmObj nil;
+  ScmObj eof;
+  ScmObj bool_true;
+  ScmObj bool_false;
+  ScmObj parent_vm;
+  ScmObj prev_vm;
+};
+
+#define SCM_VM_MEM(obj) (SCM_VM(obj)->mem)
+#define SCM_VM_REF_STACK(obj) (SCM_VM(obj)->ref_stack)
+#define SCM_VM_SYMTBL(obj) (SCM_VM(obj)->symtbl)
+#define SCM_VM_NIL(obj) (SCM_VM(obj)->nil)
+#define SCM_VM_EOF(obj) (SCM_VM(obj)->eof)
+#define SCM_VM_BOOL_TRUE(obj) (SCM_VM(obj)->bool_true)
+#define SCM_VM_BOOL_FALSE(obj) (SCM_VM(obj)->bool_false)
+#define SCM_VM_PARENT_VM(obj) (SCM_VM(obj)->parent_vm)
+#define SCM_VM_PREV_VM(obj) (SCM_VM(obj)->prev_vm)
+
+void scm_vm_initialize(ScmObj vm, ScmObj parent);
+void scm_vm_finalize(ScmObj vm);
+ScmObj scm_vm_construct(void);
+void scm_vm_destruct(ScmObj vm);
 void scm_vm_pretty_print(ScmObj obj, ScmOBuffer *obuffer);
 void scm_vm_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_vm_gc_finalize(ScmObj obj);
 int scm_vm_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
 
-void scm_vm_switch_vm(ScmVM *vm);
+void scm_vm_switch_vm(ScmObj vm);
 void scm_vm_revert_vm(void);
-ScmVM *scm_vm_current_vm(void);
+ScmObj scm_vm_current_vm(void);
 ScmMem *scm_vm_current_mm(void);
 ScmRefStack *scm_vm_current_ref_stack(void);
+ScmObj scm_vm_current_symtbl(void);
+ScmObj scm_vm_nil_instance(void);
+ScmObj scm_vm_eof_instance(void);
+ScmObj scm_vm_bool_true_instance(void);
+ScmObj scm_vm_bool_false_instance(void);
 
 #endif /* INCLUDE_VM_H__ */

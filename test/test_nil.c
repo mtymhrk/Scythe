@@ -1,13 +1,31 @@
 #include <cutter.h>
 
 #include "object.h"
+#include "vm.h"
+#include "reference.h"
 #include "pair.h"
 #include "nil.h"
+
+static ScmObj vm = SCM_OBJ_INIT;
+
+void
+cut_startup(void)
+{
+  SCM_SETQ_PRIM(vm, scm_vm_construct());
+  scm_vm_switch_vm(vm);
+}
+
+void
+cut_shutdown(void)
+{
+  scm_vm_revert_vm();
+  scm_vm_destruct(vm);
+}
 
 void
 test_scm_nil_construct(void)
 {
-  ScmNil *nil = scm_nil_construct();
+  ScmObj nil = scm_nil_construct();
 
   cut_assert_not_null(nil);
 }
@@ -15,8 +33,12 @@ test_scm_nil_construct(void)
 void
 test_scm_nil_instance(void)
 {
-  ScmNil *nil1 = scm_nil_instance();
-  ScmNil *nil2 = scm_nil_instance();
+  ScmObj nil1 = SCM_OBJ_INIT, nil2 = SCM_OBJ_INIT;
+
+  SCM_STACK_PUSH(&nil1, &nil2);
+
+  SCM_SETQ(nil1, scm_nil_instance());
+  SCM_SETQ(nil2, scm_nil_instance());
 
   cut_assert_not_null(nil1);
   cut_assert_not_null(nil2);
@@ -26,9 +48,13 @@ test_scm_nil_instance(void)
 void
 test_scm_nil_is_nil(void)
 {
-  ScmNil *nil = scm_nil_construct();
-  ScmPair *pair = scm_pair_construct(SCM_OBJ(nil), SCM_OBJ(nil));
+  ScmObj nil = SCM_OBJ_INIT, pair = SCM_OBJ_INIT;
 
-  cut_assert_true(scm_nil_is_nil(SCM_OBJ(nil)));
-  cut_assert_false(scm_nil_is_nil(SCM_OBJ(pair)));
+  SCM_STACK_PUSH(&nil, &pair);
+
+  SCM_SETQ(nil, scm_nil_construct());
+  SCM_SETQ(pair, scm_pair_construct(nil, nil));
+
+  cut_assert_true(scm_nil_is_nil(nil));
+  cut_assert_false(scm_nil_is_nil(pair));
 }

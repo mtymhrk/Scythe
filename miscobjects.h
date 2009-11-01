@@ -7,11 +7,16 @@ typedef struct ScmEOFRec ScmEOF;
 
 #include "object.h"
 
+struct ScmEOFRec {
+  ScmObjHeader header;
+};
+
 extern ScmTypeInfo SCM_EOF_TYPE_INFO;
 
-ScmEOF *scm_eof_construct(void);
-void scm_eof_destruct(ScmEOF *eof);
-ScmEOF *scm_eof_instance(void);
+void scm_eof_initialize(ScmObj eof);
+void scm_eof_finalize(ScmObj eof);
+ScmObj scm_eof_construct(void);
+ScmObj scm_eof_instance(void);
 bool scm_eof_is_eof(ScmObj obj);
 void scm_eof_pretty_print(ScmObj obj, ScmOBuffer *obuffer);
 

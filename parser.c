@@ -857,6 +857,12 @@ scm_parser_parse_list(ScmParser *parser)
 static ScmObj
 scm_parser_parse_quote(ScmParser *parser)
 {
+  const char *quote_str = "quote";
+  const char *quasiquote_str = "quasiquote";
+  const char *unquote_str = "unquote";
+  const char *unquote_splicing_str = "unquote-splicing";
+
+  ScmObj str;
   ScmObj quote;
   ScmObj quoted;
 
@@ -864,22 +870,31 @@ scm_parser_parse_quote(ScmParser *parser)
 
   switch (SCM_TOKEN_TYPE(scm_lexer_head_token(parser->lexer))) {
   case SCM_TOKEN_TYPE_QUOTE:
-    quote = SCM_OBJ(scm_symbol_instance("quote"));
+    str = SCM_OBJ(scm_string_construct(quote_str, sizeof(quote_str) - 1,
+                                       SCM_ENCODING_ASCII));
     break;
   case SCM_TOKEN_TYPE_QUASIQUOTE:
-    quote = SCM_OBJ(scm_symbol_instance("quasiquote"));
+    str = SCM_OBJ(scm_string_construct(quasiquote_str,
+                                       sizeof(quasiquote_str) - 1,
+                                       SCM_ENCODING_ASCII));
     break;
   case SCM_TOKEN_TYPE_UNQUOTE:
-    quote = SCM_OBJ(scm_symbol_instance("unquote"));
+    str = SCM_OBJ(scm_string_construct(unquote_str,
+                                       sizeof(unquote_str) - 1,
+                                       SCM_ENCODING_ASCII));
     break;
   case SCM_TOKEN_TYPE_UNQUOTE_SPLICING:
-    quote = SCM_OBJ(scm_symbol_instance("unquote-splicing"));
+    str = SCM_OBJ(scm_string_construct(unquote_splicing_str,
+                                       sizeof(unquote_splicing_str) - 1,
+                                       SCM_ENCODING_ASCII));
     break;
   default:
     return SCM_OBJ(scm_nil_instance()); // dummy;
     /* TODO: error handling */
     break;
   }
+
+  quote = scm_symbol_construct(str);
 
   scm_lexer_shift_token(parser->lexer);
   quoted = scm_parser_parse_expression(parser);
@@ -911,14 +926,21 @@ scm_parser_parse_string(ScmParser *parser)
 static ScmObj
 scm_parser_parse_identifier(ScmParser *parser)
 {
+  char *c;
+  size_t l;
+  ScmObj str;
   ScmObj obj;
 
   assert(parser != NULL);
 
-  obj = SCM_OBJ(scm_symbol_instance(SCM_TOKEN_STRING(scm_lexer_head_token(parser->lexer))));
+  c = SCM_TOKEN_STRING(scm_lexer_head_token(parser->lexer));
+  l = strlen(c);
+
+  str = SCM_OBJ(scm_string_construct(c, l, SCM_ENCODING_ASCII));
+  obj = scm_symbol_construct(str);
   scm_lexer_shift_token(parser->lexer);
 
-  return obj;  
+  return obj;
 }
 
 static ScmObj

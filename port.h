@@ -22,8 +22,9 @@ typedef enum {
   SCM_PORT_BUF_MODEST,
   SCM_PORT_BUF_NONE,
   SCM_PORT_BUF_DEFAULT,
-  SCM_PORT_NR_BUF_MODE
 } SCM_PORT_BUF_MODE;
+
+enum { SCM_PORT_NR_BUF_MODE = SCM_PORT_BUF_DEFAULT + 1 };
 
 typedef enum {
   SCM_PORT_ATTR_READABLE    = 0x0001,
@@ -32,6 +33,26 @@ typedef enum {
   SCM_PORT_ATTR_STRING      = 0x0008,
   SCM_PORT_ATTR_DESTRUCT_IO = 0x0010,
 } SCM_PORT_ATTR;
+
+
+struct ScmPortRec {
+  ScmObjHeader header;
+  ScmIO *io;
+  SCM_PORT_BUF_MODE buffer_mode;
+  SCM_PORT_ATTR attr;
+  char *buffer;
+  size_t capacity;
+  size_t pos;
+  size_t used;
+};
+
+#define SCM_PORT_IO(obj) (SCM_PORT(obj)->io)
+#define SCM_PORT_BUFFER_MODE(obj) (SCM_PORT(obj)->buffer_mode)
+#define SCM_PORT_ATTR(obj) (SCM_PORT(obj)->attr)
+#define SCM_PORT_BUFFER(obj) (SCM_PORT(obj)->buffer)
+#define SCM_PORT_CAPACITY(obj) (SCM_PORT(obj)->capacity)
+#define SCM_PORT_POS(obj) (SCM_PORT(obj)->pos)
+#define SCM_PORT_USED(obj) (SCM_PORT(obj)->used)
 
 void scm_io_referred(ScmIO *io);
 void scm_io_destruct(ScmIO *io);
@@ -44,7 +65,7 @@ bool scm_io_is_ready(ScmIO *io);
 bool scm_io_is_closed(ScmIO *io);
 bool scm_io_is_eof(ScmIO *fileio);
 SCM_PORT_BUF_MODE scm_io_default_buffer_mode(ScmIO *io);
-int scm_io_block_size(ScmIO *io);
+ssize_t scm_io_block_size(ScmIO *io);
 bool scm_io_has_error(ScmIO *io);
 int scm_io_errno(ScmIO *io);
 
@@ -99,42 +120,47 @@ int scm_charconvio_block_size(ScmCharConvIO *convio);
 bool scm_charconvio_has_error(ScmCharConvIO *convio);
 int scm_charconvio_errno(ScmCharConvIO *convio);
 
-ScmPort *scm_port_open_input(ScmIO *io,
-                             SCM_PORT_ATTR attr, SCM_PORT_BUF_MODE buf_mode);
-ScmPort *scm_port_open_output(ScmIO *io,
-                              SCM_PORT_ATTR attr, SCM_PORT_BUF_MODE buf_mode);
-ScmPort *scm_port_open_input_file_with_charconv(const char *path,
-                                                SCM_PORT_BUF_MODE buf_mode,
-                                                const char *internal_encode,
-                                                const char *external_encode);
-ScmPort *scm_port_open_output_file_with_charconv(const char *path,
-                                                 SCM_PORT_BUF_MODE buf_mode,
-                                                 const char *internal_encode,
-                                                 const char *external_encode);
-ScmPort *scm_port_open_input_file(const char *path,
-                                  SCM_PORT_BUF_MODE buf_mode);
-ScmPort *scm_port_open_output_file(const char *path,
-                                   SCM_PORT_BUF_MODE buf_mode);
-ScmPort *scm_port_open_input_string(const void *string, size_t size);
-ScmPort *scm_port_open_output_string(void);
-void scm_port_destruct(ScmPort *port);
-bool scm_port_is_readable(ScmPort *port);
-bool scm_port_is_writable(ScmPort *port);
-bool scm_port_is_file_port(ScmPort *port);
-bool scm_port_is_string_port(ScmPort *port);
+
+void scm_port_initialize(ScmObj port, ScmIO *io,
+                         SCM_PORT_ATTR attr, SCM_PORT_BUF_MODE buf_mode);
+void scm_port_finalize(ScmObj port);
+ScmObj scm_port_construct(ScmIO *io,
+                          SCM_PORT_ATTR attr, SCM_PORT_BUF_MODE buf_mode);
+ScmObj scm_port_open_input(ScmIO *io,
+                           SCM_PORT_ATTR attr, SCM_PORT_BUF_MODE buf_mode);
+ScmObj scm_port_open_output(ScmIO *io,
+                            SCM_PORT_ATTR attr, SCM_PORT_BUF_MODE buf_mode);
+ScmObj scm_port_open_input_file_with_charconv(const char *path,
+                                              SCM_PORT_BUF_MODE buf_mode,
+                                              const char *internal_encode,
+                                              const char *external_encode);
+ScmObj scm_port_open_output_file_with_charconv(const char *path,
+                                               SCM_PORT_BUF_MODE buf_mode,
+                                               const char *internal_encode,
+                                               const char *external_encode);
+ScmObj scm_port_open_input_file(const char *path,
+                                SCM_PORT_BUF_MODE buf_mode);
+ScmObj scm_port_open_output_file(const char *path,
+                                 SCM_PORT_BUF_MODE buf_mode);
+ScmObj scm_port_open_input_string(const void *string, size_t size);
+ScmObj scm_port_open_output_string(void);
+bool scm_port_is_readable(ScmObj port);
+bool scm_port_is_writable(ScmObj port);
+bool scm_port_is_file_port(ScmObj port);
+bool scm_port_is_string_port(ScmObj port);
 bool scm_port_is_port(ScmObj obj);
-bool scm_port_is_closed(ScmPort *port);
-bool scm_port_is_ready(ScmPort *port);
-bool scm_port_is_eof(ScmPort *port);
-int scm_port_flush(ScmPort *port);
-int scm_port_close(ScmPort *port);
-ssize_t scm_port_read_prim(ScmPort *port, void *buf, size_t size);
-ssize_t scm_port_write_prim(ScmPort *port, const void *buf, size_t size);
-int scm_port_seek(ScmPort *port, off_t offset, int whence);
-bool scm_port_has_error(ScmPort *port);
-int scm_port_errno(ScmPort *port);
-void *scm_port_string_buffer(ScmPort *port);
-ssize_t scm_port_string_buffer_length(ScmPort *port);
+bool scm_port_is_closed(ScmObj port);
+bool scm_port_is_ready(ScmObj port);
+bool scm_port_is_eof(ScmObj port);
+int scm_port_flush(ScmObj port);
+int scm_port_close(ScmObj port);
+ssize_t scm_port_read_prim(ScmObj port, void *buf, size_t size);
+ssize_t scm_port_write_prim(ScmObj port, const void *buf, size_t size);
+int scm_port_seek(ScmObj port, off_t offset, int whence);
+int scm_port_errno(ScmObj port);
+bool scm_port_has_error(ScmObj port);
+void *scm_port_string_buffer(ScmObj port);
+ssize_t scm_port_string_buffer_length(ScmObj port);
 void scm_port_pretty_print(ScmObj obj, ScmOBuffer *obuffer);
 void scm_port_gc_finalize(ScmObj obj);
 

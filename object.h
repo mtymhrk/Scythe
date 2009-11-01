@@ -3,28 +3,49 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <assert.h>
 
 typedef struct ScmObjHeaderRec ScmObjHeader;
 typedef struct ScmAtomRec ScmAtom;
 typedef ScmAtom *ScmObj;
 typedef struct ScmTypeInfoRec ScmTypeInfo;
 typedef struct ScmGCRefItrRec ScmGCRefItr;
-typedef uintptr_t ScmRef;
+typedef ScmObj *ScmRef;
+typedef const ScmObj *ScmCRef;
 
 #define SCM_ATOM(obj) ((ScmAtom *)(obj))
 #define SCM_OBJ(obj) ((ScmObj)(obj))
+
+#define SCM_OBJ_NULL NULL
+#define SCM_OBJ_INIT SCM_OBJ_NULL
+#define SCM_OBJ_IS_NULL(obj) ((obj) == SCM_OBJ_NULL)
+#define SCM_OBJ_IS_NOT_NULL(obj) ((obj) != SCM_OBJ_NULL)
+#define SCM_OBJ_IS_SAME_INSTANCE(obj1, obj2) \
+  (SCM_OBJ_IS_NOT_NULL(obj1) && ((obj1) == (obj2)))
+
+
+/* 将来的に write barrier を挿入しなければならないときに使用する */
+/*   SCM_SETQ_PRIM: write barrier を挿入しない代入        */
+/*   SCM_SETQ     : write barrier を挿入する代入          */
+#define SCM_SETQ_PRIM(obj, val)                 \
+  do {                                          \
+    ScmObj tmp__ = (val); (obj) = tmp__;        \
+  } while(0)
+#define SCM_SETQ(obj, val) SCM_SETQ_PRIM(obj, val)
+
 
 #define SCM_REF_MAKE(obj) ((ScmRef)&(obj))
 #define SCM_REF_MAKE_FROM_PTR(ptr) ((ScmRef)(ptr))
 #define SCM_REF_TO_PTR(ref) ((ScmObj *)(ref))
 #define SCM_REF_NULL ((ScmRef)NULL)
 #define SCM_REF_OBJ(ref) (*((ScmObj *)(ref)))
+#define SCM_CREF_OBJ(ref) (*((const ScmObj *)(ref)))
 #define SCM_REF_UPDATE(ref, obj) (*((ScmObj *)(ref)) = (obj))
 
 #include "obuffer.h"
 
 typedef void (*ScmPrettyPrintFunction)(ScmObj obj,
-				       ScmOBuffer *obuffer);
+                                       ScmOBuffer *obuffer);
 typedef void (*ScmGCInitializeFunc)(ScmObj obj, ScmObj mem);
 typedef void (*ScmGCFinalizeFunc)(ScmObj obj);
 typedef int (*ScmGCRefHandlerFunc)(ScmObj mem, ScmObj obj, ScmRef child);
@@ -93,5 +114,14 @@ void scm_obj_init(ScmObj obj, ScmTypeInfo *type);
 ScmTypeInfo *scm_obj_type(ScmObj obj);
 void scm_obj_pretty_print(ScmObj obj, ScmOBuffer *obuffer);
 int scm_obj_is_same_instance(ScmObj obj1, ScmObj obj2);
+
+
+#define SCM_OBJ_ASSERT_TYPE(obj, type) \
+  assert(SCM_OBJ_IS_NOT_NULL(obj));    \
+  assert(SCM_OBJ_IS_TYPE(obj, type));
+
+#define SCM_OBJ_ASSERT_TYPE_ACCEPT_NULL(obj, type)      \
+  assert(SCM_OBJ_IS_NULL(obj) || SCM_OBJ_IS_TYPE(obj, type))
+
 
 #endif /* INCLUDE_OBJECT_H__ */

@@ -3,7 +3,7 @@ LD       = ld
 CFLAGS   = -O2 -Wall -Wextra -Wformat=2 -Wstrict-aliasing=2 -Wcast-qual \
            -Wcast-align -Wwrite-strings -Wconversion -Wfloat-equal \
            -Wpointer-arith -Wswitch-enum -Wno-unused-parameter \
-           -fPIC -g
+           -fPIC -g -Dcut_startup=startup -Dcut_shutdown=shutdown
 INCLUDES = -I/usr/local/include/cutter -iquote ..
 LDFLAGS  = -lcunit -g
 CUTTER   = cutter
@@ -14,13 +14,16 @@ include $(TEST_TARGET_DIR)/Makefile.sources
 
 TEST_TARGET_SRC = $(addprefix $(TEST_TARGET_DIR)/, $(SOURCES))
 TEST_CASE_SRC = test_pair.c test_string.c test_symbol.c test_nil.c \
-                test_basichash.c test_integer.c test_pretty_print.c \
-                test_basiclist.c test_ibuffer.c test_lexer.c test_parser.c \
+                test_basichash.c test_integer.c test_basiclist.c \
                 test_vector.c test_eof.c test_bool.c test_char.c \
-                test_fileport.c test_stringport.c test_charconv.c test_ucs4.c \
+                test_charconv.c test_ucs4.c \
                 test_utf8.c test_string_utf8.c test_string_ucs4.c \
                 test_string_ascii.c test_string_eucjp.c test_string_sjis.c \
                 test_memory.c test_binding.c
+#                test_fileport.c test_stringport.c test_parser.c \
+#                test_pretty_print.c test_lexer.c test_ibuffer.c
+##               XXX: 入出力関係は一旦テストから除外
+
 TEST_TARGET_OBJ = $(TEST_TARGET_SRC:.c=.o) 
 TEST_CASE_OBJ = $(TEST_CASE_SRC:.c=.o) 
 TEST_CASE_LIB = $(TEST_CASE_SRC:.c=.so)

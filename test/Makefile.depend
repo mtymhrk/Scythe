@@ -1,19 +1,19 @@
 memory.o: ../memory.c ../basichash.h ../memory.h ../object.h ../obuffer.h
 nil.o: ../nil.c ../memory.h ../object.h ../obuffer.h ../basichash.h \
-  ../nil.h
+  ../vm.h ../reference.h ../nil.h
 object.o: ../object.c ../object.h ../obuffer.h
-pair.o: ../pair.c ../memory.h ../object.h ../obuffer.h ../basichash.h \
-  ../pair.h ../nil.h
+pair.o: ../pair.c ../object.h ../obuffer.h ../memory.h ../basichash.h \
+  ../reference.h ../vm.h ../pair.h ../nil.h
 obuffer.o: ../obuffer.c ../memory.h ../object.h ../obuffer.h \
   ../basichash.h
 string.o: ../string.c ../memory.h ../object.h ../obuffer.h ../basichash.h \
-  ../encoding.h ../string.h
-symbol.o: ../symbol.c ../memory.h ../object.h ../obuffer.h ../basichash.h \
-  ../symbol.h
+  ../reference.h ../vm.h ../encoding.h ../string.h
+symbol.o: ../symbol.c ../object.h ../obuffer.h ../memory.h ../basichash.h \
+  ../reference.h ../vm.h ../string.h ../encoding.h ../symbol.h
 basichash.o: ../basichash.c ../memory.h ../object.h ../obuffer.h \
   ../basichash.h
-integer.o: ../integer.c ../memory.h ../object.h ../obuffer.h \
-  ../basichash.h ../integer.h
+integer.o: ../integer.c ../object.h ../obuffer.h ../memory.h \
+  ../basichash.h ../vm.h ../reference.h ../integer.h
 ibuffer.o: ../ibuffer.c ../memory.h ../object.h ../obuffer.h \
   ../basichash.h ../port.h ../ibuffer.h
 basiclist.o: ../basiclist.c ../memory.h ../object.h ../obuffer.h \
@@ -23,22 +23,22 @@ parser.o: ../parser.c ../memory.h ../object.h ../obuffer.h ../basichash.h \
   ../encoding.h ../integer.h ../miscobjects.h ../nil.h ../pair.h \
   ../string.h ../symbol.h ../vector.h
 vector.o: ../vector.c ../memory.h ../object.h ../obuffer.h ../basichash.h \
-  ../nil.h ../vector.h
+  ../vm.h ../reference.h ../nil.h ../vector.h
 miscobjects.o: ../miscobjects.c ../object.h ../obuffer.h ../memory.h \
-  ../basichash.h ../miscobjects.h
-bool.o: ../bool.c ../memory.h ../object.h ../obuffer.h ../basichash.h \
-  ../bool.h
-char.o: ../char.c ../memory.h ../object.h ../obuffer.h ../basichash.h \
-  ../encoding.h ../char.h
+  ../basichash.h ../vm.h ../reference.h ../miscobjects.h
+bool.o: ../bool.c ../object.h ../obuffer.h ../memory.h ../basichash.h \
+  ../vm.h ../reference.h ../bool.h
+char.o: ../char.c ../object.h ../obuffer.h ../memory.h ../basichash.h \
+  ../vm.h ../reference.h ../encoding.h ../char.h
 port.o: ../port.c ../memory.h ../object.h ../obuffer.h ../basichash.h \
-  ../charconv.h ../port.h
+  ../reference.h ../vm.h ../charconv.h ../port.h
 charconv.o: ../charconv.c ../memory.h ../object.h ../obuffer.h \
   ../basichash.h ../charconv.h
 ucs4.o: ../ucs4.c ../ucs4.h
 utf8.o: ../utf8.c ../utf8.h
 encoding.o: ../encoding.c ../encoding.h
 vm.o: ../vm.c ../vm.h ../object.h ../obuffer.h ../memory.h ../basichash.h \
-  ../reference.h
+  ../reference.h ../symbol.h ../nil.h ../bool.h ../miscobjects.h
 procedure.o: ../procedure.c ../procedure.h ../object.h ../obuffer.h \
   ../vm.h ../memory.h ../basichash.h ../reference.h
 binding.o: ../binding.c ../basichash.h ../obuffer.h ../object.h \
@@ -56,7 +56,8 @@ test_pair.o: test_pair.c /usr/local/include/cutter/cutter.h \
   /usr/local/include/cutter/cutter/cut-test-utils.h \
   /usr/local/include/cutter/cutter/cut-assertions-helper.h \
   /usr/local/include/cutter/cutter/cut-experimental.h ../object.h \
-  ../obuffer.h ../object.h ../nil.h ../pair.h
+  ../obuffer.h ../object.h ../vm.h ../memory.h ../basichash.h \
+  ../reference.h ../vm.h ../reference.h ../nil.h ../pair.h
 test_string.o: test_string.c /usr/local/include/cutter/cutter.h \
   /usr/local/include/cutter/cutter/cut-version.h \
   /usr/local/include/cutter/cutter/cut-hidden-definitions.h \
@@ -68,7 +69,9 @@ test_string.o: test_string.c /usr/local/include/cutter/cutter.h \
   /usr/local/include/cutter/cutter/cut-test-utils.h \
   /usr/local/include/cutter/cutter/cut-assertions-helper.h \
   /usr/local/include/cutter/cutter/cut-experimental.h ../object.h \
-  ../obuffer.h ../object.h ../nil.h ../string.h ../encoding.h
+  ../obuffer.h ../object.h ../vm.h ../memory.h ../basichash.h \
+  ../reference.h ../vm.h ../reference.h ../nil.h ../string.h \
+  ../encoding.h
 test_symbol.o: test_symbol.c /usr/local/include/cutter/cutter.h \
   /usr/local/include/cutter/cutter/cut-version.h \
   /usr/local/include/cutter/cutter/cut-hidden-definitions.h \
@@ -80,7 +83,9 @@ test_symbol.o: test_symbol.c /usr/local/include/cutter/cutter.h \
   /usr/local/include/cutter/cutter/cut-test-utils.h \
   /usr/local/include/cutter/cutter/cut-assertions-helper.h \
   /usr/local/include/cutter/cutter/cut-experimental.h ../object.h \
-  ../obuffer.h ../object.h ../nil.h ../symbol.h
+  ../obuffer.h ../object.h ../reference.h ../vm.h ../memory.h \
+  ../basichash.h ../reference.h ../nil.h ../string.h ../encoding.h \
+  ../symbol.h
 test_nil.o: test_nil.c /usr/local/include/cutter/cutter.h \
   /usr/local/include/cutter/cutter/cut-version.h \
   /usr/local/include/cutter/cutter/cut-hidden-definitions.h \
@@ -92,7 +97,8 @@ test_nil.o: test_nil.c /usr/local/include/cutter/cutter.h \
   /usr/local/include/cutter/cutter/cut-test-utils.h \
   /usr/local/include/cutter/cutter/cut-assertions-helper.h \
   /usr/local/include/cutter/cutter/cut-experimental.h ../object.h \
-  ../obuffer.h ../object.h ../pair.h ../nil.h
+  ../obuffer.h ../object.h ../vm.h ../memory.h ../basichash.h \
+  ../reference.h ../vm.h ../reference.h ../pair.h ../nil.h
 test_basichash.o: test_basichash.c /usr/local/include/cutter/cutter.h \
   /usr/local/include/cutter/cutter/cut-version.h \
   /usr/local/include/cutter/cutter/cut-hidden-definitions.h \
@@ -115,22 +121,8 @@ test_integer.o: test_integer.c /usr/local/include/cutter/cutter.h \
   /usr/local/include/cutter/cutter/cut-test-utils.h \
   /usr/local/include/cutter/cutter/cut-assertions-helper.h \
   /usr/local/include/cutter/cutter/cut-experimental.h ../object.h \
-  ../obuffer.h ../object.h ../nil.h ../integer.h
-test_pretty_print.o: test_pretty_print.c \
-  /usr/local/include/cutter/cutter.h \
-  /usr/local/include/cutter/cutter/cut-version.h \
-  /usr/local/include/cutter/cutter/cut-hidden-definitions.h \
-  /usr/local/include/cutter/cutter/cut-public.h \
-  /usr/local/include/cutter/cutter/cut-types.h \
-  /usr/local/include/cutter/cutter/cut-macros.h \
-  /usr/local/include/cutter/cutter/cut-multi-process.h \
-  /usr/local/include/cutter/cutter/cut-assertions.h \
-  /usr/local/include/cutter/cutter/cut-test-utils.h \
-  /usr/local/include/cutter/cutter/cut-assertions-helper.h \
-  /usr/local/include/cutter/cutter/cut-experimental.h ../object.h \
-  ../obuffer.h ../object.h ../nil.h ../integer.h ../string.h \
-  ../encoding.h ../symbol.h ../pair.h ../vector.h ../char.h ../port.h \
-  ../bool.h ../miscobjects.h ../obuffer.h
+  ../obuffer.h ../object.h ../vm.h ../memory.h ../basichash.h \
+  ../reference.h ../vm.h ../nil.h ../integer.h
 test_basiclist.o: test_basiclist.c /usr/local/include/cutter/cutter.h \
   /usr/local/include/cutter/cutter/cut-version.h \
   /usr/local/include/cutter/cutter/cut-hidden-definitions.h \
@@ -142,44 +134,6 @@ test_basiclist.o: test_basiclist.c /usr/local/include/cutter/cutter.h \
   /usr/local/include/cutter/cutter/cut-test-utils.h \
   /usr/local/include/cutter/cutter/cut-assertions-helper.h \
   /usr/local/include/cutter/cutter/cut-experimental.h ../basiclist.h
-test_ibuffer.o: test_ibuffer.c /usr/local/include/cutter/cutter.h \
-  /usr/local/include/cutter/cutter/cut-version.h \
-  /usr/local/include/cutter/cutter/cut-hidden-definitions.h \
-  /usr/local/include/cutter/cutter/cut-public.h \
-  /usr/local/include/cutter/cutter/cut-types.h \
-  /usr/local/include/cutter/cutter/cut-macros.h \
-  /usr/local/include/cutter/cutter/cut-multi-process.h \
-  /usr/local/include/cutter/cutter/cut-assertions.h \
-  /usr/local/include/cutter/cutter/cut-test-utils.h \
-  /usr/local/include/cutter/cutter/cut-assertions-helper.h \
-  /usr/local/include/cutter/cutter/cut-experimental.h ../ibuffer.h \
-  ../port.h ../object.h ../obuffer.h
-test_lexer.o: test_lexer.c /usr/local/include/cutter/cutter.h \
-  /usr/local/include/cutter/cutter/cut-version.h \
-  /usr/local/include/cutter/cutter/cut-hidden-definitions.h \
-  /usr/local/include/cutter/cutter/cut-public.h \
-  /usr/local/include/cutter/cutter/cut-types.h \
-  /usr/local/include/cutter/cutter/cut-macros.h \
-  /usr/local/include/cutter/cutter/cut-multi-process.h \
-  /usr/local/include/cutter/cutter/cut-assertions.h \
-  /usr/local/include/cutter/cutter/cut-test-utils.h \
-  /usr/local/include/cutter/cutter/cut-assertions-helper.h \
-  /usr/local/include/cutter/cutter/cut-experimental.h ../parser.h \
-  ../ibuffer.h ../port.h ../object.h ../obuffer.h
-test_parser.o: test_parser.c /usr/local/include/cutter/cutter.h \
-  /usr/local/include/cutter/cutter/cut-version.h \
-  /usr/local/include/cutter/cutter/cut-hidden-definitions.h \
-  /usr/local/include/cutter/cutter/cut-public.h \
-  /usr/local/include/cutter/cutter/cut-types.h \
-  /usr/local/include/cutter/cutter/cut-macros.h \
-  /usr/local/include/cutter/cutter/cut-multi-process.h \
-  /usr/local/include/cutter/cutter/cut-assertions.h \
-  /usr/local/include/cutter/cutter/cut-test-utils.h \
-  /usr/local/include/cutter/cutter/cut-assertions-helper.h \
-  /usr/local/include/cutter/cutter/cut-experimental.h ../parser.h \
-  ../ibuffer.h ../port.h ../object.h ../obuffer.h ../port.h ../object.h \
-  ../string.h ../encoding.h ../symbol.h ../integer.h ../bool.h ../char.h \
-  ../nil.h ../pair.h ../vector.h ../miscobjects.h
 test_vector.o: test_vector.c /usr/local/include/cutter/cutter.h \
   /usr/local/include/cutter/cutter/cut-version.h \
   /usr/local/include/cutter/cutter/cut-hidden-definitions.h \
@@ -190,8 +144,9 @@ test_vector.o: test_vector.c /usr/local/include/cutter/cutter.h \
   /usr/local/include/cutter/cutter/cut-assertions.h \
   /usr/local/include/cutter/cutter/cut-test-utils.h \
   /usr/local/include/cutter/cutter/cut-assertions-helper.h \
-  /usr/local/include/cutter/cutter/cut-experimental.h ../vector.h \
-  ../object.h ../obuffer.h ../object.h ../string.h ../encoding.h ../nil.h
+  /usr/local/include/cutter/cutter/cut-experimental.h ../object.h \
+  ../obuffer.h ../object.h ../vm.h ../memory.h ../basichash.h \
+  ../reference.h ../vm.h ../string.h ../encoding.h ../nil.h ../vector.h
 test_eof.o: test_eof.c /usr/local/include/cutter/cutter.h \
   /usr/local/include/cutter/cutter/cut-version.h \
   /usr/local/include/cutter/cutter/cut-hidden-definitions.h \
@@ -203,7 +158,8 @@ test_eof.o: test_eof.c /usr/local/include/cutter/cutter.h \
   /usr/local/include/cutter/cutter/cut-test-utils.h \
   /usr/local/include/cutter/cutter/cut-assertions-helper.h \
   /usr/local/include/cutter/cutter/cut-experimental.h ../object.h \
-  ../obuffer.h ../object.h ../nil.h ../miscobjects.h
+  ../obuffer.h ../object.h ../vm.h ../memory.h ../basichash.h \
+  ../reference.h ../vm.h ../reference.h ../nil.h ../miscobjects.h
 test_bool.o: test_bool.c /usr/local/include/cutter/cutter.h \
   /usr/local/include/cutter/cutter/cut-version.h \
   /usr/local/include/cutter/cutter/cut-hidden-definitions.h \
@@ -215,7 +171,8 @@ test_bool.o: test_bool.c /usr/local/include/cutter/cutter.h \
   /usr/local/include/cutter/cutter/cut-test-utils.h \
   /usr/local/include/cutter/cutter/cut-assertions-helper.h \
   /usr/local/include/cutter/cutter/cut-experimental.h ../object.h \
-  ../obuffer.h ../object.h ../nil.h ../char.h ../encoding.h ../bool.h
+  ../obuffer.h ../object.h ../vm.h ../memory.h ../basichash.h \
+  ../reference.h ../vm.h ../nil.h ../char.h ../encoding.h ../bool.h
 test_char.o: test_char.c /usr/local/include/cutter/cutter.h \
   /usr/local/include/cutter/cutter/cut-version.h \
   /usr/local/include/cutter/cutter/cut-hidden-definitions.h \
@@ -227,31 +184,8 @@ test_char.o: test_char.c /usr/local/include/cutter/cutter.h \
   /usr/local/include/cutter/cutter/cut-test-utils.h \
   /usr/local/include/cutter/cutter/cut-assertions-helper.h \
   /usr/local/include/cutter/cutter/cut-experimental.h ../object.h \
-  ../obuffer.h ../object.h ../nil.h ../char.h ../encoding.h
-test_fileport.o: test_fileport.c /usr/local/include/cutter/cutter.h \
-  /usr/local/include/cutter/cutter/cut-version.h \
-  /usr/local/include/cutter/cutter/cut-hidden-definitions.h \
-  /usr/local/include/cutter/cutter/cut-public.h \
-  /usr/local/include/cutter/cutter/cut-types.h \
-  /usr/local/include/cutter/cutter/cut-macros.h \
-  /usr/local/include/cutter/cutter/cut-multi-process.h \
-  /usr/local/include/cutter/cutter/cut-assertions.h \
-  /usr/local/include/cutter/cutter/cut-test-utils.h \
-  /usr/local/include/cutter/cutter/cut-assertions-helper.h \
-  /usr/local/include/cutter/cutter/cut-experimental.h ../port.h \
-  ../object.h ../obuffer.h
-test_stringport.o: test_stringport.c /usr/local/include/cutter/cutter.h \
-  /usr/local/include/cutter/cutter/cut-version.h \
-  /usr/local/include/cutter/cutter/cut-hidden-definitions.h \
-  /usr/local/include/cutter/cutter/cut-public.h \
-  /usr/local/include/cutter/cutter/cut-types.h \
-  /usr/local/include/cutter/cutter/cut-macros.h \
-  /usr/local/include/cutter/cutter/cut-multi-process.h \
-  /usr/local/include/cutter/cutter/cut-assertions.h \
-  /usr/local/include/cutter/cutter/cut-test-utils.h \
-  /usr/local/include/cutter/cutter/cut-assertions-helper.h \
-  /usr/local/include/cutter/cutter/cut-experimental.h ../port.h \
-  ../object.h ../obuffer.h
+  ../obuffer.h ../object.h ../vm.h ../memory.h ../basichash.h \
+  ../reference.h ../vm.h ../nil.h ../char.h ../encoding.h
 test_charconv.o: test_charconv.c /usr/local/include/cutter/cutter.h \
   /usr/local/include/cutter/cutter/cut-version.h \
   /usr/local/include/cutter/cutter/cut-hidden-definitions.h \
@@ -295,8 +229,9 @@ test_string_utf8.o: test_string_utf8.c /usr/local/include/cutter/cutter.h \
   /usr/local/include/cutter/cutter/cut-assertions.h \
   /usr/local/include/cutter/cutter/cut-test-utils.h \
   /usr/local/include/cutter/cutter/cut-assertions-helper.h \
-  /usr/local/include/cutter/cutter/cut-experimental.h ../string.h \
-  ../object.h ../obuffer.h ../encoding.h
+  /usr/local/include/cutter/cutter/cut-experimental.h ../object.h \
+  ../obuffer.h ../object.h ../reference.h ../vm.h ../memory.h \
+  ../basichash.h ../reference.h ../string.h ../encoding.h
 test_string_ucs4.o: test_string_ucs4.c /usr/local/include/cutter/cutter.h \
   /usr/local/include/cutter/cutter/cut-version.h \
   /usr/local/include/cutter/cutter/cut-hidden-definitions.h \
@@ -307,8 +242,9 @@ test_string_ucs4.o: test_string_ucs4.c /usr/local/include/cutter/cutter.h \
   /usr/local/include/cutter/cutter/cut-assertions.h \
   /usr/local/include/cutter/cutter/cut-test-utils.h \
   /usr/local/include/cutter/cutter/cut-assertions-helper.h \
-  /usr/local/include/cutter/cutter/cut-experimental.h ../string.h \
-  ../object.h ../obuffer.h ../encoding.h
+  /usr/local/include/cutter/cutter/cut-experimental.h ../object.h \
+  ../obuffer.h ../object.h ../reference.h ../vm.h ../memory.h \
+  ../basichash.h ../reference.h ../string.h ../encoding.h
 test_string_ascii.o: test_string_ascii.c \
   /usr/local/include/cutter/cutter.h \
   /usr/local/include/cutter/cutter/cut-version.h \
@@ -320,8 +256,9 @@ test_string_ascii.o: test_string_ascii.c \
   /usr/local/include/cutter/cutter/cut-assertions.h \
   /usr/local/include/cutter/cutter/cut-test-utils.h \
   /usr/local/include/cutter/cutter/cut-assertions-helper.h \
-  /usr/local/include/cutter/cutter/cut-experimental.h ../string.h \
-  ../object.h ../obuffer.h ../encoding.h
+  /usr/local/include/cutter/cutter/cut-experimental.h ../object.h \
+  ../obuffer.h ../object.h ../reference.h ../vm.h ../memory.h \
+  ../basichash.h ../reference.h ../string.h ../encoding.h
 test_string_eucjp.o: test_string_eucjp.c \
   /usr/local/include/cutter/cutter.h \
   /usr/local/include/cutter/cutter/cut-version.h \
@@ -333,8 +270,9 @@ test_string_eucjp.o: test_string_eucjp.c \
   /usr/local/include/cutter/cutter/cut-assertions.h \
   /usr/local/include/cutter/cutter/cut-test-utils.h \
   /usr/local/include/cutter/cutter/cut-assertions-helper.h \
-  /usr/local/include/cutter/cutter/cut-experimental.h ../string.h \
-  ../object.h ../obuffer.h ../encoding.h
+  /usr/local/include/cutter/cutter/cut-experimental.h ../object.h \
+  ../obuffer.h ../object.h ../reference.h ../vm.h ../memory.h \
+  ../basichash.h ../reference.h ../string.h ../encoding.h
 test_string_sjis.o: test_string_sjis.c /usr/local/include/cutter/cutter.h \
   /usr/local/include/cutter/cutter/cut-version.h \
   /usr/local/include/cutter/cutter/cut-hidden-definitions.h \
@@ -345,8 +283,9 @@ test_string_sjis.o: test_string_sjis.c /usr/local/include/cutter/cutter.h \
   /usr/local/include/cutter/cutter/cut-assertions.h \
   /usr/local/include/cutter/cutter/cut-test-utils.h \
   /usr/local/include/cutter/cutter/cut-assertions-helper.h \
-  /usr/local/include/cutter/cutter/cut-experimental.h ../string.h \
-  ../object.h ../obuffer.h ../encoding.h
+  /usr/local/include/cutter/cutter/cut-experimental.h ../object.h \
+  ../obuffer.h ../object.h ../reference.h ../vm.h ../memory.h \
+  ../basichash.h ../reference.h ../string.h ../encoding.h
 test_memory.o: test_memory.c /usr/local/include/cutter/cutter.h \
   /usr/local/include/cutter/cutter/cut-version.h \
   /usr/local/include/cutter/cutter/cut-hidden-definitions.h \
@@ -371,5 +310,6 @@ test_binding.o: test_binding.c /usr/local/include/cutter/cutter.h \
   /usr/local/include/cutter/cutter/cut-test-utils.h \
   /usr/local/include/cutter/cutter/cut-assertions-helper.h \
   /usr/local/include/cutter/cutter/cut-experimental.h ../object.h \
-  ../obuffer.h ../object.h ../symbol.h ../binding.h ../basichash.h \
-  ../memory.h ../vm.h ../reference.h
+  ../obuffer.h ../object.h ../vm.h ../memory.h ../basichash.h \
+  ../reference.h ../vm.h ../string.h ../encoding.h ../symbol.h \
+  ../binding.h

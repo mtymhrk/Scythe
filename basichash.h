@@ -23,7 +23,7 @@ struct ScmBasicHashEntryRec {
 
 struct ScmBasicHashItrRec {
   ScmBasicHashTable *tbl;
-  int idx;
+  unsigned int idx;
   ScmBasicHashEntry *entry;
 };
 
@@ -67,6 +67,7 @@ void *scm_basic_hash_inject(ScmBasicHashTable *table,
                             ScmBasicHashInjectBlock block, void *init);
 int scm_basic_hash_itr_begin(ScmBasicHashTable *table, ScmBasicHashItr *itr);
 int scm_basic_hash_itr_next(ScmBasicHashItr *itr);
+int scm_basic_hash_itr_update_key(ScmBasicHashItr *itr, ScmBasicHashKey key);
 ScmBasicHashTable *scm_basic_hash_construct(size_t size,
                                             ScmBasicHashFunc hash_func,
                                             ScmBasicHashCompFunc comp_func);

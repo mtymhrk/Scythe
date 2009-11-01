@@ -10,16 +10,6 @@
 #include "vm.h"
 #include "memory.h"
 
-struct ScmBindRefRec {
-  ScmObjHeader header;
-  ScmObj sym;
-  ScmObj val;
-};
-
-struct ScmBindTableRec {
-  ScmBasicHashTable *table;
-  ScmObj work; /* root of GC */
-};
 
 static unsigned int
 hash_func(ScmBasicHashKey key)
@@ -43,61 +33,61 @@ comp_func(ScmBasicHashKey key1, ScmBasicHashKey key2)
 }
 
 void
-scm_bind_ref_initialize(ScmBindRef *ref, ScmObj sym, ScmObj val)
+scm_bind_ref_initialize(ScmObj bref, ScmObj sym, ScmObj val) /* GC OK */
 {
-  assert(ref != NULL);
+  SCM_OBJ_ASSERT_TYPE(bref, &SCM_BIND_REF_TYPE_INFO);
 
-  scm_obj_init(SCM_OBJ(ref), &SCM_BIND_REF_TYPE_INFO);
-  ref->sym = sym;
-  ref->val = val;
+  SCM_SETQ(SCM_BIND_REF_SYM(bref), sym);
+  SCM_SETQ(SCM_BIND_REF_VAL(bref), val);
 }
 
 void
-scm_bind_ref_finalize(ScmBindRef *ref)
+scm_bind_ref_finalize(ScmBindRef *ref) /* GC OK */
 {
-  assert(ref != NULL);
+  return;                        /* nothing to do */
 }
 
-ScmBindRef *
-scm_bind_ref_construct(ScmObj sym, ScmObj val)
+ScmObj
+scm_bind_ref_construct(ScmObj sym, ScmObj val) /* GC OK */
 {
-  ScmBindRef *ref;
+  ScmObj bref = SCM_OBJ_INIT;
 
-  ref = scm_memory_allocate(sizeof(ScmBindRef));
-  scm_bind_ref_initialize(ref, sym, val);
-  return ref;
+  SCM_STACK_FRAME_PUSH(&bref);
+
+  scm_mem_alloc_root(scm_vm_current_mm(),
+                     &SCM_BIND_REF_TYPE_INFO, SCM_REF_MAKE(bref));
+  /* TODO: replace above to below */
+  /* scm_mem_alloc_heap(scm_vm_current_mm(), */
+  /*                    &SCM_BIND_REF_TYPE_INFO, SCM_REF_MAKE(bref)); */
+  if (SCM_OBJ_IS_NULL(bref)) return SCM_OBJ_NULL;
+
+  scm_bind_ref_initialize(bref, sym, val);
+
+  return bref;
+}
+
+ScmObj
+scm_bind_ref_symbol(ScmObj bref) /* GC OK */
+{
+  SCM_OBJ_ASSERT_TYPE(bref, &SCM_BIND_REF_TYPE_INFO);
+
+  return SCM_BIND_REF_SYM(bref);
+}
+
+ScmObj
+scm_bind_ref_value(ScmObj bref) /* GC OK */
+{
+  SCM_OBJ_ASSERT_TYPE(bref, &SCM_BIND_REF_TYPE_INFO);
+
+  return SCM_BIND_REF_VAL(bref);
 }
 
 void
-scm_bind_ref_destruct(ScmBindRef *ref)
+scm_bind_ref_bind(ScmObj bref, ScmObj obj) /* GC OK */
 {
-  scm_bind_ref_finalize(ref);
-  scm_memory_release(ref);
-}
+  SCM_OBJ_ASSERT_TYPE(bref, &SCM_BIND_REF_TYPE_INFO);
 
-ScmObj
-scm_bind_ref_symbol(ScmBindRef *ref)
-{
-  assert(ref != NULL);
-
-  return ref->sym;
-}
-
-ScmObj
-scm_bind_ref_value(ScmBindRef *ref)
-{
-  assert(ref != NULL);
-
-  return ref->val;
-}
-
-ScmObj
-scm_bind_ref_bind(ScmBindRef *ref, ScmObj obj)
-{
-  assert(ref != NULL);
-
-  ref->val = obj;
-  return obj;
+  SCM_SETQ(SCM_BIND_REF_VAL(bref), obj);
 }
 
 void
@@ -123,7 +113,7 @@ scm_bind_tbl_construct(size_t size)
 
   tbl = scm_memory_allocate(sizeof(ScmBindTable));
   scm_bind_tbl_initialize(tbl, size);
-  
+
   return tbl;
 }
 
@@ -139,31 +129,27 @@ scm_bind_tbl_destruct(ScmBindTable *tbl)
 void
 scm_bind_tbl_clear(ScmBindTable *tbl)
 {
-  ScmBasicHashItr itr;
-
   assert(tbl != NULL);
-
-  for (SCM_BASIC_HASH_ITR_BEGIN(tbl->table, itr);
-       !SCM_BASIC_HASH_ITR_IS_END(itr);
-       SCM_BASIC_HASH_ITR_NEXT(itr))
-    scm_bind_ref_destruct(SCM_BIND_REF(SCM_BASIC_HASH_ITR_VALUE(itr)));
-
   scm_basic_hash_clear(tbl->table);
 }
 
-ScmBindRef *
+ScmObj
 scm_bind_tbl_bind(ScmBindTable *tbl, ScmObj sym, ScmObj val)
 {
   ScmBasicHashEntry *ent;
-  ScmBindRef *ref;
+  ScmObj ref;
+
+  SCM_STACK_FRAME_PUSH(&sym, &val, &ref);
 
   assert(tbl != NULL);
+  SCM_OBJ_ASSERT_TYPE(sym, &SCM_BIND_REF_TYPE_INFO);
+  assert(SCM_OBJ_IS_NOT_NULL(val));
 
   /* scm_mem_alloc(scm_vm_current_mm(), SCM_OBJ_TYPE_BIND_REF, &tbl->work); */
   /* ref = SCM_BIND_REF(tbl->work); */
   /* scm_bind_ref_initialize(ref, sym, val); */
 
-  ref = scm_bind_ref_construct(sym, val);
+  SCM_SETQ(ref, scm_bind_ref_construct(sym, val));
 
   ent = scm_basic_hash_get(tbl->table, SCM_BASIC_HASH_KEY(sym));
   if (ent != NULL) {
@@ -184,28 +170,23 @@ scm_bind_tbl_bind(ScmBindTable *tbl, ScmObj sym, ScmObj val)
 void
 scm_bind_tbl_unbind(ScmBindTable *tbl, ScmObj sym)
 {
-  ScmBasicHashEntry *ent;
-
   assert(tbl != NULL);
+  SCM_OBJ_ASSERT_TYPE(sym, &SCM_SYMBOL_TYPE_INFO);
 
-  ent = scm_basic_hash_get(tbl->table, SCM_BASIC_HASH_KEY(sym));
-  if (ent != NULL) {
-    ScmBindRef *ref = SCM_BIND_REF(SCM_BASIC_HASH_ENTRY_VALUE(ent));
-    scm_memory_release(ref);
-  }
   scm_basic_hash_delete(tbl->table, SCM_BASIC_HASH_KEY(sym));
 }
 
-ScmBindRef *
+ScmObj
 scm_bind_tbl_lookup(ScmBindTable *tbl, ScmObj sym)
 {
   ScmBasicHashEntry *ent;
 
   assert(tbl != NULL);
-  
+  SCM_OBJ_ASSERT_TYPE(sym, &SCM_SYMBOL_TYPE_INFO);
+
   ent = scm_basic_hash_get(tbl->table, SCM_BASIC_HASH_KEY(sym));
-  if (ent == NULL) return NULL;
-  return SCM_BIND_REF(SCM_BASIC_HASH_ENTRY_VALUE(ent));
+  if (ent == NULL) return SCM_OBJ_NULL;
+  return SCM_OBJ(SCM_BASIC_HASH_ENTRY_VALUE(ent));
 }
 
 void

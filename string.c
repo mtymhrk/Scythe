@@ -6,29 +6,20 @@
 
 #include "memory.h"
 #include "object.h"
+#include "reference.h"
 #include "obuffer.h"
 #include "encoding.h"
 #include "string.h"
 
-struct ScmStringRec {
-  ScmObjHeader header;
-  uint8_t *buffer;
-  uint8_t *head;
-  size_t capacity;
-  size_t bytesize;
-  size_t length;
-  int *ref_cnt;
-  SCM_ENCODING_T enc;
-};
-
 #define SCM_STRING_BLOCK_SIZE  64
-#define CAPACITY(str)((str)->capacity - ((str)->head - (str)->buffer))
-#define ROOM_FOR_APPEND(str) (CAPACITY(str) - (str)->bytesize)
+#define CAPACITY(str) (SCM_STRING_CAPACITY(str) \
+                       - (SCM_STRING_HEAD(str) - SCM_STRING_BUFFER(str)))
+#define ROOM_FOR_APPEND(str) (CAPACITY(str) - SCM_STRING_BYTESIZE(str))
 
 ScmTypeInfo SCM_STRING_TYPE_INFO = {
   scm_string_pretty_print,      /* pp_func              */
   sizeof(ScmString),            /* obj_size             */
-  NULL,                         /* gc_ini_func          */
+  scm_string_gc_initialize,     /* gc_ini_func          */
   scm_string_gc_finalize,       /* gc_fin_func          */
   NULL,                         /* gc_accept_func       */
   NULL,                         /* gc_accpet_func_weak  */
@@ -36,7 +27,7 @@ ScmTypeInfo SCM_STRING_TYPE_INFO = {
 
 static ssize_t
 scm_string_check_bytes(void *str, size_t size,
-                       const ScmEncVirtualFunc *vf)
+                       const ScmEncVirtualFunc *vf) /* GC OK */
 {
   ScmStrItr iter;
   ssize_t len;
@@ -58,7 +49,7 @@ scm_string_check_bytes(void *str, size_t size,
 
 static ssize_t
 scm_string_copy_bytes_with_check(void *dst, const void *src, size_t size,
-                                 const ScmEncVirtualFunc *vf)
+                                 const ScmEncVirtualFunc *vf) /* GC OK */
 {
   ssize_t len;
 
@@ -73,414 +64,472 @@ scm_string_copy_bytes_with_check(void *dst, const void *src, size_t size,
 
 // TODO: change to be encdoing depende function
 static bool
-scm_string_is_char_to_be_escaped(int c)
+scm_string_is_char_to_be_escaped(int c) /* GC OK */
 {
   return (strchr("\\\"", c) != NULL);
 }
 
-static ScmString *
-scm_string_copy_and_expand(const ScmString *src, size_t size)
+static ScmObj
+scm_string_copy_and_expand(ScmObj src, size_t size) /* GC OK */
 {
-  ScmString *str;
+  ScmObj str = SCM_OBJ_INIT;;
   ssize_t len;
 
-  assert(src != NULL);
+  SCM_STACK_FRAME_PUSH(&str);
 
-  str = scm_string_construct(NULL, size, src->enc);
-  if (str == NULL) return NULL;
+  SCM_OBJ_ASSERT_TYPE(src, &SCM_STRING_TYPE_INFO);
 
-  str->bytesize = (size < src->bytesize) ? size : src->bytesize;
-  len = scm_string_copy_bytes_with_check(str->buffer, src->head, src->bytesize,
-                                         SCM_ENCODING_VFUNC(src->enc));
+  SCM_SETQ(str, scm_string_construct(NULL, size, SCM_STRING_ENC(src)));
+  if (SCM_OBJ_IS_NULL(str)) return SCM_OBJ_NULL;
+
+  SCM_STRING_BYTESIZE(str) =
+    (size < SCM_STRING_BYTESIZE(src)) ? size : SCM_STRING_BYTESIZE(src);
+  len =
+    scm_string_copy_bytes_with_check(SCM_STRING_BUFFER(str),
+                                     SCM_STRING_HEAD(src),
+                                     /* XXX: SCM_STRING_BYTESIZE(str) ? */
+                                     SCM_STRING_BYTESIZE(src),
+                                     SCM_ENCODING_VFUNC(SCM_STRING_ENC(src)));
   if (len < 0) {
-    scm_string_destruct(str);
-    return NULL;
+    /* scm_string_destruct(str); */
+    return SCM_OBJ_NULL;
   }
 
-  str->length = len;
+  SCM_STRING_LENGTH(str) = len;
 
   return str;
 }
 
 static void
-scm_string_replace_contents(ScmString *target, ScmString *src)
+scm_string_replace_contents(ScmObj target, ScmObj src) /* GC OK */
 {
+  SCM_OBJ_ASSERT_TYPE(target, &SCM_STRING_TYPE_INFO);
+  SCM_OBJ_ASSERT_TYPE(src, &SCM_STRING_TYPE_INFO);
+
   if (target == NULL || src == NULL) return;
 
-  if (*target->ref_cnt > 1) {
-    (*target->ref_cnt)--;
+  if (*SCM_STRING_REF_CNT(target) > 1) {
+    SCM_STRING_DEC_REF_CNT(target);
   }
   else {
-    scm_memory_release(target->buffer);
-    scm_memory_release(target->ref_cnt);
+    scm_memory_release(SCM_STRING_BUFFER(target));
+    scm_memory_release(SCM_STRING_REF_CNT(target));
   }
 
-  *target = *src;
-  (*target->ref_cnt)++;
+  *SCM_STRING(target) = *SCM_STRING(src);
+  SCM_STRING_INC_REF_CNT(target);
 }
 
 static void
-scm_string_finalize(ScmString *str)
+scm_string_finalize(ScmObj str) /* GC OK */
 {
-  assert(str != NULL);
+  SCM_OBJ_ASSERT_TYPE(str, &SCM_STRING_TYPE_INFO);
 
-  if (*str->ref_cnt > 1)
-    (*str->ref_cnt)--;
+  if (SCM_STRING_REF_CNT(str) != NULL && *SCM_STRING_REF_CNT(str) > 1)
+    SCM_STRING_DEC_REF_CNT(str);
   else {
-    scm_memory_release(str->buffer);
-    scm_memory_release(str->ref_cnt);
+    scm_memory_release(SCM_STRING_BUFFER(str));
+    scm_memory_release(SCM_STRING_REF_CNT(str));
   }
-}
 
-ScmString *
-scm_string_construct(const void *src, size_t size, SCM_ENCODING_T enc)
-{
-  ScmString *str = NULL;
-
-  assert(/*0 <= enc && */enc < SMC_ENCODING_NR_ENC);
-
-  str = (ScmString *)scm_memory_allocate(sizeof(ScmString));
-  scm_obj_init(SCM_OBJ(str), &SCM_STRING_TYPE_INFO);
-
-  str->buffer = NULL;
-  str->ref_cnt = NULL;
-  str->enc = enc;
-
-  for (str->capacity = SCM_STRING_BLOCK_SIZE;
-       str->capacity < size;
-       str->capacity *= 2)
-    ;
-
-  str->head = str->buffer = scm_memory_allocate(str->capacity);
-  if (str->buffer == NULL) goto err;
-
-  str->ref_cnt = scm_memory_allocate(sizeof(*str->ref_cnt));
-  if (str->ref_cnt == NULL) goto err;
-  *str->ref_cnt = 1;
-
-  if (src != NULL) {
-    ssize_t len = scm_string_copy_bytes_with_check(str->buffer, src, size,
-                                                   SCM_ENCODING_VFUNC(enc));
-    if (len < 0) goto err;
-    str->length = len;
-    str->bytesize = size;
-  }
-  else {
-    str->length = 0;
-    str->bytesize = 0;
-  }
-  
-  return str;
-
- err:
-  scm_memory_release(str->buffer);
-  scm_memory_release(str->ref_cnt);
-  scm_memory_release(str);
-  
-  return NULL;
+  /* push() 関数や append() 関数内の tmp はこれらの関数から直接 finalize() を call  */
+  /* され、さらに GC 時にも gc_finalize() から call されるため、2 度 call されても問  */
+  /* 題ないようにする必要がある                                                  */
+  SCM_STRING_BUFFER(str) = NULL;
+  SCM_STRING_REF_CNT(str) = NULL;
 }
 
 void
-scm_string_destruct(ScmString *str)
+scm_string_initialize(ScmObj str,
+                      const void *src, size_t size, SCM_ENCODING_T enc) /* GC OK */
 {
-  assert(str != NULL);
+  SCM_STACK_FRAME_PUSH(&str);
 
-  scm_string_finalize(str);
-  scm_memory_release(str);
+  SCM_OBJ_ASSERT_TYPE(str, &SCM_STRING_TYPE_INFO);
+
+  SCM_STRING_BUFFER(str) = NULL;
+  SCM_STRING_REF_CNT(str) = NULL;
+  SCM_STRING_ENC(str) = enc;
+
+  for (SCM_STRING_CAPACITY(str) = SCM_STRING_BLOCK_SIZE;
+       SCM_STRING_CAPACITY(str) < size;
+       SCM_STRING_CAPACITY(str) *= 2)
+    ;
+
+  SCM_STRING_BUFFER(str) = scm_memory_allocate(SCM_STRING_CAPACITY(str));
+  SCM_STRING_HEAD(str) = SCM_STRING_BUFFER(str);
+  if (SCM_STRING_BUFFER(str) == NULL)
+    ;                           /* TODO: error handling */
+
+  SCM_STRING_REF_CNT(str) =
+    scm_memory_allocate(sizeof(*SCM_STRING_REF_CNT(str)));
+  if (SCM_STRING_REF_CNT(str) == NULL)
+    ;                           /* TODO: error handling */
+
+  *SCM_STRING_REF_CNT(str) = 1;
+
+  if (src != NULL) {
+    ssize_t len = scm_string_copy_bytes_with_check(SCM_STRING_BUFFER(str),
+                                                   src, size,
+                                                   SCM_ENCODING_VFUNC(enc));
+    if (len < 0)
+      ;                  /* TODO: error handling: invalid byte sequence */
+
+    SCM_STRING_LENGTH(str) = len;
+    SCM_STRING_BYTESIZE(str) = size;
+  }
+  else {
+    SCM_STRING_LENGTH(str) = 0;
+    SCM_STRING_BYTESIZE(str) = 0;
+  }
 }
 
-ScmString *
-scm_string_copy(const ScmString *src)
+ScmObj
+scm_string_construct(const void *src, size_t size, SCM_ENCODING_T enc) /* GC OK */
 {
-  assert(src != NULL);
-  
-  return scm_string_construct(src->head, src->bytesize, src->enc);
+  ScmObj str = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&str);
+
+  assert(/*0 <= enc && */enc < SMC_ENCODING_NR_ENC);
+
+  SCM_SETQ_PRIM(str, SCM_OBJ(scm_memory_allocate(sizeof(ScmString))));
+  scm_obj_init(str, &SCM_STRING_TYPE_INFO);
+
+  /* TODO: replace above by below */
+  /* scm_mem_alloc_heap(scm_vm_current_mm(), */
+  /*                    &SCM_STRING_TYPE_INFO, SCM_REF_MAKE(str)); */
+
+  scm_string_initialize(str, src, size, enc);
+
+  return str;
 }
 
-ScmString *
-scm_string_dup(ScmString *src)
+/* void */
+/* scm_string_destruct(ScmString *str) */
+/* { */
+/*   assert(str != NULL); */
+
+/*   scm_string_finalize(str); */
+/*   scm_memory_release(str); */
+/* } */
+
+ScmObj
+scm_string_copy(ScmObj src)     /* GC OK */
 {
-  ScmString *str;
+  SCM_OBJ_ASSERT_TYPE(src, &SCM_STRING_TYPE_INFO);
 
-  assert(src != NULL);
+  return scm_string_construct(SCM_STRING_HEAD(src),
+                              SCM_STRING_BYTESIZE(src),
+                              SCM_STRING_ENC(src));
+}
 
-  str = (ScmString *)scm_memory_allocate(sizeof(ScmString));
+ScmObj
+scm_string_dup(ScmObj src)      /* GC OK */
+{
+  ScmObj str = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&src, &str);
+
+  SCM_OBJ_ASSERT_TYPE(src, &SCM_STRING_TYPE_INFO);
+
+  str = scm_memory_allocate(sizeof(ScmString));
   scm_obj_init(SCM_OBJ(str), &SCM_STRING_TYPE_INFO);
-  
-  str->buffer = src->buffer;
-  str->head = src->head;
-  str->capacity = src->capacity;
-  str->bytesize = src->bytesize;
-  str->length = src->length;
-  str->ref_cnt = src->ref_cnt;
-  str->enc = src->enc;
 
-  (*str->ref_cnt)++;
+
+  /* TODO: replace above by below */
+  /* scm_mem_alloc_heap(scm_vm_current_mm(), */
+  /*                    &SCM_STRING_TYPE_INFO, SCM_REF_MAKE(str)); */
+
+
+  SCM_STRING_BUFFER(str) = SCM_STRING_BUFFER(src);
+  SCM_STRING_HEAD(str) = SCM_STRING_HEAD(src);
+  SCM_STRING_CAPACITY(str) = SCM_STRING_CAPACITY(src);
+  SCM_STRING_BYTESIZE(str) = SCM_STRING_BYTESIZE(src);
+  SCM_STRING_LENGTH(str) = SCM_STRING_LENGTH(src);
+  SCM_STRING_REF_CNT(str) = SCM_STRING_REF_CNT(src);
+  SCM_STRING_ENC(str) = SCM_STRING_ENC(src);
+
+  SCM_STRING_INC_REF_CNT(str);
 
   return str;
 }
 
 size_t
-scm_string_length(ScmString *str)
+scm_string_length(ScmObj str)   /* GC OK */
 {
-  assert(str != NULL);
-  return str->length;
+  SCM_OBJ_ASSERT_TYPE(str, &SCM_STRING_TYPE_INFO);
+  return SCM_STRING_LENGTH(str);
 }
 
 size_t
-scm_string_bytesize(ScmString *str)
+scm_string_bytesize(ScmObj str) /* GC OK */
 {
-  assert(str != NULL);
-  return str->bytesize;
+  SCM_OBJ_ASSERT_TYPE(str, &SCM_STRING_TYPE_INFO);
+  return SCM_STRING_BYTESIZE(str);
 }
 
 bool
-scm_string_is_equal(ScmString *str1, ScmString *str2)
+scm_string_is_equal(ScmObj str1, ScmObj str2) /* GC OK */
 {
-  assert(str1 != NULL); assert(str2 != NULL);
+  SCM_OBJ_ASSERT_TYPE(str1, &SCM_STRING_TYPE_INFO);
+  SCM_OBJ_ASSERT_TYPE(str2, &SCM_STRING_TYPE_INFO);
 
-  if (str1->length != str2->length) return false;
-  if (str1->bytesize != str2->bytesize) return false;
-  if (str1->head == str2->head) return true;
-  return (memcmp(str1->head, str2->head, str1->bytesize) == 0);
+  if (SCM_STRING_LENGTH(str1) != SCM_STRING_LENGTH(str2)) return false;
+  if (SCM_STRING_BYTESIZE(str1) != SCM_STRING_BYTESIZE(str2)) return false;
+  if (SCM_STRING_HEAD(str1) == SCM_STRING_HEAD(str2)) return true;
+
+  return (memcmp(SCM_STRING_HEAD(str1),
+                 SCM_STRING_HEAD(str2),
+                 SCM_STRING_BYTESIZE(str1))
+          == 0);
 }
 
-ScmString *
-scm_string_substr(ScmString *str, unsigned int pos, size_t len)
+ScmObj
+scm_string_substr(ScmObj str, unsigned int pos, size_t len) /* GC OK */
 {
-  ScmString *substr;
+  ScmObj substr = SCM_OBJ_INIT;
   ScmStrItr head, tail;
   ScmStrItr (*index2iter)(void *p, size_t size, unsigned int idx);
 
-  assert(str != NULL);
+  SCM_STACK_FRAME_PUSH(&str, &substr);
 
-  if (pos + len > str->length) return NULL;
+  if (pos + len > SCM_STRING_LENGTH(str)) return SCM_OBJ_NULL;
 
-  index2iter = SCM_ENCODING_VFUNC_INDEX2ITER(str->enc);
-  head = index2iter(str->head, str->bytesize, pos);
-  tail = index2iter(str->head, str->bytesize, pos + len);
+  index2iter = SCM_ENCODING_VFUNC_INDEX2ITER(SCM_STRING_ENC(str));
+  head = index2iter(SCM_STRING_HEAD(str), SCM_STRING_BYTESIZE(str), pos);
+  tail = index2iter(SCM_STRING_HEAD(str), SCM_STRING_BYTESIZE(str), pos + len);
 
   if (SCM_STR_ITR_IS_ERR(&head) || SCM_STR_ITR_IS_ERR(&tail))
     return NULL;
 
-  substr = scm_string_dup(str);
-  substr->head = (uint8_t *)SCM_STR_ITR_PTR(&head);
-  substr->length = len;
-  substr->bytesize
+  SCM_SETQ(substr, scm_string_dup(str));
+  SCM_STRING_HEAD(substr) = (uint8_t *)SCM_STR_ITR_PTR(&head);
+  SCM_STRING_LENGTH(substr) = len;
+  SCM_STRING_BYTESIZE(substr)
     = (uint8_t *)SCM_STR_ITR_PTR(&tail) - (uint8_t *)SCM_STR_ITR_PTR(&head);
 
   return substr;
 }
 
-ScmString *
-scm_string_push(ScmString *str, const scm_char_t c)
+ScmObj
+scm_string_push(ScmObj str, const scm_char_t c) /* GC OK */
 {
+  ScmObj tmp = SCM_OBJ_INIT;
   int (*char_width)(const void *p, size_t size);
   int width;
 
-  assert(str != NULL);
+  SCM_STACK_FRAME_PUSH(&str, &tmp);
 
-  char_width = SCM_ENCODING_VFUNC_CHAR_WIDTH(str->enc);
+  SCM_OBJ_ASSERT_TYPE(str, &SCM_STRING_TYPE_INFO);
+
+  char_width = SCM_ENCODING_VFUNC_CHAR_WIDTH(SCM_STRING_ENC(str));
   width = char_width(&c, sizeof(c));
-  if (width < 0) return NULL;
+  if (width < 0) return SCM_OBJ_NULL;
 
-  if ((*str->ref_cnt > 1) || ROOM_FOR_APPEND(str) < (size_t)width) {
-    ScmString *tmp
-      = scm_string_copy_and_expand(str, str->bytesize + width);
-    if (tmp == NULL) return NULL;
+  if ((*SCM_STRING_REF_CNT(str) > 1) || ROOM_FOR_APPEND(str) < (size_t)width) {
+    SCM_SETQ(tmp,
+             scm_string_copy_and_expand(str,
+                                        SCM_STRING_BYTESIZE(str) + width));
+    if (SCM_OBJ_IS_NULL(tmp)) return SCM_OBJ_NULL;
     scm_string_replace_contents(str, tmp);
-    scm_string_destruct(tmp);
+    scm_string_finalize(tmp);
   }
 
-  memcpy(str->head + str->bytesize, &c, (size_t)width);
-  str->length += 1;
-  str->bytesize += width;
+  memcpy(SCM_STRING_HEAD(str) + SCM_STRING_BYTESIZE(str), &c, (size_t)width);
+  SCM_STRING_LENGTH(str) += 1;
+  SCM_STRING_BYTESIZE(str) += width;
 
   return str;
 }
 
-ScmString *
-scm_string_append(ScmString *str, const ScmString *append)
+ScmObj
+scm_string_append(ScmObj str, ScmObj append) /* GC OK */
 {
-  assert(str != NULL);
-  assert(append != NULL);
-  
-  if ((*str->ref_cnt > 1) || ROOM_FOR_APPEND(str) < append->bytesize) {
-    ScmString *tmp
-      = scm_string_copy_and_expand(str, str->bytesize + append->bytesize);
-    if (tmp == NULL) return NULL;
+  ScmObj tmp = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&str, &tmp);
+
+  SCM_OBJ_ASSERT_TYPE(str, &SCM_STRING_TYPE_INFO);
+  SCM_OBJ_ASSERT_TYPE(append, &SCM_STRING_TYPE_INFO);
+
+  if ((*SCM_STRING_REF_CNT(str) > 1) ||
+      ROOM_FOR_APPEND(str) < SCM_STRING_BYTESIZE(append)) {
+    SCM_SETQ(tmp,
+             scm_string_copy_and_expand(str,
+                                        SCM_STRING_BYTESIZE(str)
+                                        + SCM_STRING_BYTESIZE(append)));
+    if (SCM_OBJ_IS_NULL(tmp)) return SCM_OBJ_NULL;
     scm_string_replace_contents(str, tmp);
-    scm_string_destruct(tmp);
+    scm_string_finalize(tmp);
   }
 
-  memcpy(str->head + str->bytesize, append->head, append->bytesize);
-  str->length += append->length;
-  str->bytesize += append->bytesize;
+  memcpy(SCM_STRING_HEAD(str) + SCM_STRING_BYTESIZE(str),
+         SCM_STRING_HEAD(append), SCM_STRING_BYTESIZE(append));
+  SCM_STRING_LENGTH(str) += SCM_STRING_LENGTH(append);
+  SCM_STRING_BYTESIZE(str) += SCM_STRING_BYTESIZE(append);
 
   return str;
 }
 
 scm_char_t
-scm_string_ref(ScmString *str, unsigned int pos)
+scm_string_ref(ScmObj str, unsigned int pos) /* GC OK */
 {
   ScmStrItr iter;
   scm_char_t c;
   ScmStrItr (*index2iter)(void *p, size_t size, unsigned int idx);
 
-  assert(str != NULL);
+  SCM_OBJ_ASSERT_TYPE(str, &SCM_STRING_TYPE_INFO);
 
   c = SCM_CHR_ZERO;
-  if (pos >= str->length) return c;
+  if (pos >= SCM_STRING_LENGTH(str)) return c;
 
-  index2iter = SCM_ENCODING_VFUNC_INDEX2ITER(str->enc);
-  iter = index2iter(str->head, str->bytesize, pos);
+  index2iter = SCM_ENCODING_VFUNC_INDEX2ITER(SCM_STRING_ENC(str));
+  iter = index2iter(SCM_STRING_HEAD(str), SCM_STRING_BYTESIZE(str), pos);
   if (SCM_STR_ITR_IS_ERR(&iter)) return c;
   if (SCM_STR_ITR_IS_END(&iter)) return c;
-  
+
   memcpy(&c, SCM_STR_ITR_PTR(&iter), (size_t)SCM_STR_ITR_WIDTH(&iter));
 
   return c;
 }
 
-ScmString *
-scm_string_set(ScmString *str, unsigned int pos, const scm_char_t c)
+ScmObj
+scm_string_set(ScmObj str, unsigned int pos, const scm_char_t c) /* GC OK */
 {
+  ScmObj front = SCM_OBJ_NULL, rear = SCM_OBJ_NULL, tmp = SCM_OBJ_NULL;
   int (*char_width)(const void *p, size_t size);
   ScmStrItr (*index2iter)(void *p, size_t size, unsigned int idx);
   ScmStrItr iter;
   int cw, iw;
 
-  assert(str != NULL);
+  SCM_STACK_FRAME_PUSH(&str, &front, &rear, &tmp);
 
-  if (pos >= str->length) return NULL;
+  SCM_OBJ_ASSERT_TYPE(str, &SCM_STRING_TYPE_INFO);
 
-  index2iter = SCM_ENCODING_VFUNC_INDEX2ITER(str->enc);
-  char_width = SCM_ENCODING_VFUNC_CHAR_WIDTH(str->enc);
+  if (pos >= SCM_STRING_LENGTH(str)) return SCM_OBJ_NULL;
 
-  iter = index2iter(str->head, str->bytesize, pos);
-  if (SCM_STR_ITR_IS_ERR(&iter)) return NULL;
+  index2iter = SCM_ENCODING_VFUNC_INDEX2ITER(SCM_STRING_ENC(str));
+  char_width = SCM_ENCODING_VFUNC_CHAR_WIDTH(SCM_STRING_ENC(str));
+
+  iter = index2iter(SCM_STRING_HEAD(str), SCM_STRING_BYTESIZE(str), pos);
+  if (SCM_STR_ITR_IS_ERR(&iter)) return SCM_OBJ_NULL;
 
   cw = char_width(&c, sizeof(c));
-  if (cw < 0) return NULL;
+  if (cw < 0) return SCM_OBJ_NULL;
 
   iw = SCM_STR_ITR_WIDTH(&iter);
-  if (iw < 0) return NULL;
+  if (iw < 0) return SCM_OBJ_NULL;
 
-  if (*str->ref_cnt == 1
+  if (*SCM_STRING_REF_CNT(str) == 1
       && (iw < cw || ROOM_FOR_APPEND(str) >= (size_t)(cw - iw))) {
     size_t rest = SCM_STR_ITR_REST(&iter);
-    size_t offset = SCM_STR_ITR_OFFSET(&iter, str->head);
+    size_t offset = SCM_STR_ITR_OFFSET(&iter, SCM_STRING_HEAD(str));
 
     if (cw != iw) {
-      memmove(str->head + offset + cw, str->head + offset + iw, rest - iw);
-      str->bytesize += cw - iw;
+      memmove(SCM_STRING_HEAD(str) + offset + cw,
+              SCM_STRING_HEAD(str) + offset + iw,
+              rest - iw);
+      SCM_STRING_BYTESIZE(str) += cw - iw;
     }
-    memcpy(str->head + offset, &c, (size_t)cw);
+    memcpy(SCM_STRING_HEAD(str) + offset, &c, (size_t)cw);
 
     return str;
   }
   else if (cw == iw) {
-    ScmString *tmp = scm_string_copy(str);
-    size_t offset = SCM_STR_ITR_OFFSET(&iter, str->head);
+    size_t offset = SCM_STR_ITR_OFFSET(&iter, SCM_STRING_HEAD(str));
+    tmp = scm_string_copy(str);
 
-    if (tmp == NULL) return NULL;
-    memcpy(str->head + offset, &c, (size_t)cw);
+    if (SCM_OBJ_IS_NULL(tmp)) return SCM_OBJ_NULL;
+    memcpy(SCM_STRING_HEAD(str) + offset, &c, (size_t)cw);
     scm_string_replace_contents(str, tmp);
 
     return str;
   }
   else {
-    ScmString *rslt, *front, *rear, *tmp;
-
-    rslt = front = rear = tmp = NULL;
-
     front = scm_string_substr(str, 0, pos);
-    rear = scm_string_substr(str, pos + 1, str->length - pos - 1);
-  
-    if (front == NULL || rear == NULL) goto end;
+    rear = scm_string_substr(str, pos + 1, SCM_STRING_LENGTH(str) - pos - 1);
+
+    if (SCM_OBJ_IS_NULL(front) || SCM_OBJ_IS_NULL(rear))
+      return SCM_OBJ_NULL;
 
     tmp = scm_string_copy_and_expand(front,
-                                     front->bytesize + cw + rear->bytesize);
-    if (tmp == NULL) goto end;
-    if (scm_string_push(tmp, c) == NULL) goto end;
-    if (scm_string_append(tmp, rear) == NULL) goto end;
-  
+                                     SCM_STRING_BYTESIZE(front)
+                                     + cw + SCM_STRING_BYTESIZE(rear));
+    if (SCM_OBJ_IS_NULL(tmp)) return SCM_OBJ_NULL;
+    if (SCM_OBJ_IS_NULL(scm_string_push(tmp, c))) return SCM_OBJ_NULL;
+    if (SCM_OBJ_IS_NULL(scm_string_append(tmp, rear))) return SCM_OBJ_NULL;
+
     scm_string_replace_contents(str, tmp);
-    rslt = str;
-  
-  end:
-    if (front != NULL) scm_string_destruct(front);
-    if (rear != NULL) scm_string_destruct(rear);
-    if (tmp != NULL) scm_string_destruct(tmp);
-    return rslt;
+
+    return str;
   }
 }
 
 /* TODO: optimize */
-ScmString *
-scm_string_fill(ScmString *str, unsigned int pos, size_t len, scm_char_t c)
+ScmObj
+scm_string_fill(ScmObj str, unsigned int pos, size_t len, scm_char_t c) /* GC OK */
 {
   int (*char_width)(const void *p, size_t size);
   int filledsize;
   size_t i;
-  ScmString *rslt, *front, *rear, *tmp;
+  ScmObj front = SCM_OBJ_INIT, rear = SCM_OBJ_INIT, tmp = SCM_OBJ_INIT;
 
-  assert(str != NULL);
+  SCM_STACK_FRAME_PUSH(&str, &front, &rear, &tmp);
 
-  if (pos > str->length) return NULL;
+  SCM_OBJ_ASSERT_TYPE(str, &SCM_STRING_TYPE_INFO);
 
-  rslt = front = rear = tmp = NULL;
+  if (pos > SCM_STRING_LENGTH(str)) return SCM_OBJ_NULL;
 
-  char_width = SCM_ENCODING_VFUNC_CHAR_WIDTH(str->enc);
+  char_width = SCM_ENCODING_VFUNC_CHAR_WIDTH(SCM_STRING_ENC(str));
 
   filledsize = char_width(&c, sizeof(c)) * len;
-  if (filledsize < 0) return 0;
+  if (filledsize < 0) return SCM_OBJ_NULL;
 
-  front = scm_string_substr(str, 0, pos);
-  if (front == NULL) goto end;
+  SCM_SETQ(front, scm_string_substr(str, 0, pos));
+  if (SCM_OBJ_IS_NULL(front)) return SCM_OBJ_NULL;
 
-  if (pos + len < str->length) {
-    rear = scm_string_substr(str, pos + len, str->length - pos - len);
-    if (rear == NULL) goto end;
+  if (pos + len < SCM_STRING_LENGTH(str)) {
+    SCM_SETQ(rear, scm_string_substr(str, pos + len,
+                                     SCM_STRING_LENGTH(str) - pos - len));
+    if (SCM_OBJ_IS_NULL(rear)) return SCM_OBJ_NULL;
   }
 
-  tmp = scm_string_copy_and_expand(front,
-                                   front->bytesize + len
-                                   + ((rear == NULL)? 0 : rear->bytesize));
-  if (tmp == NULL) goto end;
+  SCM_SETQ(tmp,
+           scm_string_copy_and_expand(front,
+                                      SCM_STRING_BYTESIZE(front) + len
+                                      + (SCM_OBJ_IS_NULL(rear) ?
+                                         0 : SCM_STRING_BYTESIZE(rear))));
+  if (SCM_OBJ_IS_NULL(tmp)) return SCM_OBJ_NULL;
 
   for (i = 0; i < len; i++)
-    if (scm_string_push(tmp, c) == NULL)
-      goto end;
+    if (SCM_OBJ_IS_NULL(scm_string_push(tmp, c)))
+      return SCM_OBJ_NULL;
 
-  if (rear != NULL)
-    if (scm_string_append(tmp, rear) == NULL)
-      goto end;
+  if (SCM_OBJ_IS_NOT_NULL(rear))
+    if (SCM_OBJ_IS_NULL(scm_string_append(tmp, rear)))
+      return SCM_OBJ_NULL;
 
   scm_string_replace_contents(str, tmp);
-  rslt = str;
 
- end:
-  if (front != NULL) scm_string_destruct(front);
-  if (rear != NULL) scm_string_destruct(rear);
-  if (tmp != NULL) scm_string_destruct(tmp);
-  return rslt;
+  return str;
 }
 
 int
-scm_string_find_chr(const ScmString *str, scm_char_t c)
+scm_string_find_chr(ScmObj str, scm_char_t c) /* GC OK */
 {
   int (*char_width)(const void *p, size_t size);
   ScmStrItr iter;
   int cw, pos;
 
-  assert(str != NULL);
+  SCM_OBJ_ASSERT_TYPE(str, &SCM_STRING_TYPE_INFO);
 
-  char_width = SCM_ENCODING_VFUNC_CHAR_WIDTH(str->enc);
+  char_width = SCM_ENCODING_VFUNC_CHAR_WIDTH(SCM_STRING_ENC(str));
   cw = char_width(&c, sizeof(c));
   if (cw < 0) return -1;
 
-  iter = scm_str_itr_begin(str->head, str->bytesize, char_width);
+  iter = scm_str_itr_begin(SCM_STRING_HEAD(str),
+                           SCM_STRING_BYTESIZE(str), char_width);
   if (SCM_STR_ITR_IS_ERR(&iter)) return -1;
 
   pos = 0;
@@ -500,23 +549,24 @@ scm_string_find_chr(const ScmString *str, scm_char_t c)
 }
 
 int
-scm_string_match(const ScmString *str, const ScmString *pat)
+scm_string_match(ScmObj str, ScmObj pat) /* GC OK */
 {
   int (*char_width)(const void *p, size_t size);
   ScmStrItr iter_str_ext, iter_pat;
   int pos;
 
+  SCM_OBJ_ASSERT_TYPE(str, &SCM_STRING_TYPE_INFO);
+  SCM_OBJ_ASSERT_TYPE(pat, &SCM_STRING_TYPE_INFO);
+
   pos = 0;
 
-  assert(str != NULL);
-  assert(pat != NULL);
-
-  if (str->enc != pat->enc)
+  if (SCM_STRING_ENC(str) != SCM_STRING_ENC(pat))
     return -1;
-  
-  char_width = SCM_ENCODING_VFUNC_CHAR_WIDTH(str->enc);
 
-  iter_str_ext = scm_str_itr_begin(str->head, str->bytesize, char_width);
+  char_width = SCM_ENCODING_VFUNC_CHAR_WIDTH(SCM_STRING_ENC(str));
+
+  iter_str_ext = scm_str_itr_begin(SCM_STRING_HEAD(str),
+                                   SCM_STRING_BYTESIZE(str), char_width);
   if (SCM_STR_ITR_IS_ERR(&iter_str_ext)) return -1;
 
   while (!SCM_STR_ITR_IS_END(&iter_str_ext)) {
@@ -524,7 +574,8 @@ scm_string_match(const ScmString *str, const ScmString *pat)
 
     SCM_STR_ITR_COPY(&iter_str_ext, &iter_str_inn);
 
-    iter_pat = scm_str_itr_begin(pat->head, pat->bytesize, char_width);
+    iter_pat = scm_str_itr_begin(SCM_STRING_HEAD(pat),
+                                 SCM_STRING_BYTESIZE(pat), char_width);
     if (SCM_STR_ITR_IS_ERR(&iter_pat)) return -1;
 
     if (SCM_STR_ITR_REST(&iter_str_ext) < SCM_STR_ITR_REST(&iter_pat))
@@ -560,32 +611,33 @@ scm_string_match(const ScmString *str, const ScmString *pat)
 }
 
 ssize_t
-scm_string_dump(const ScmString *str, void *buf, size_t size)
+scm_string_dump(ScmObj str, void *buf, size_t size) /* GC OK */
 {
   size_t len;
 
-  assert(str != NULL);
+  SCM_OBJ_ASSERT_TYPE(str, &SCM_STRING_TYPE_INFO);
   assert(buf != NULL);
 
-  len = (size < str->bytesize) ? size : str->bytesize;
-  memcpy(buf, str->head, len); // XXX
+  len = (size < SCM_STRING_BYTESIZE(str)) ? size : SCM_STRING_BYTESIZE(str);
+  memcpy(buf, SCM_STRING_HEAD(str), len); // XXX
 
   return len;
 }
 
 SCM_ENCODING_T
-scm_string_encoding(const ScmString *str)
+scm_string_encoding(ScmObj str) /* GC OK */
 {
-  assert(str != NULL);
+  SCM_OBJ_ASSERT_TYPE(str, &SCM_STRING_TYPE_INFO);
 
-  return str->enc;
+  return SCM_STRING_ENC(str);
 }
 
 void *
-scm_string_content(const ScmString *str)
+scm_string_content(ScmObj str)  /* GC OK */
 {
-  assert(str != NULL);
-  return str->head;
+  SCM_OBJ_ASSERT_TYPE(str, &SCM_STRING_TYPE_INFO);
+
+  return SCM_STRING_HEAD(str);
 }
 
 bool
@@ -620,7 +672,7 @@ scm_string_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
     if (w == 1
         && scm_string_is_char_to_be_escaped(((char *)SCM_STR_ITR_PTR(&iter))[0]))
       scm_obuffer_concatenate_char(obuffer, '\\');
-    
+
     for (i = 0; i < w; i++)
       scm_obuffer_concatenate_char(obuffer,
                                    ((char *)SCM_STR_ITR_PTR(&iter))[i]);
@@ -633,8 +685,31 @@ scm_string_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
 }
 
 void
-scm_string_gc_finalize(ScmObj obj)
+scm_string_gc_initialize(ScmObj obj, ScmObj mem)
 {
-  scm_string_finalize(SCM_STRING(obj));
+  SCM_OBJ_ASSERT_TYPE(obj, &SCM_STRING_TYPE_INFO);
+
+  SCM_STRING_BUFFER(obj) = NULL;
+  SCM_STRING_REF_CNT(obj) = NULL;
 }
 
+void
+scm_string_gc_finalize(ScmObj obj) /* GC OK */
+{
+  scm_string_finalize(obj);
+}
+
+unsigned int
+scm_string_hash_value(ScmObj str) /* GC OK */
+{
+  unsigned int hash;
+  unsigned int i;
+
+  SCM_OBJ_ASSERT_TYPE(str, &SCM_STRING_TYPE_INFO);
+
+  hash = 0;
+  for (i = 0; i < SCM_STRING_BYTESIZE(str); i++)
+    hash = (hash << 5) - hash + (unsigned char)SCM_STRING_BYTE_AT(str, i);
+
+  return hash;
+}

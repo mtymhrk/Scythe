@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+#include "vm.h"
 #include "port.h"
 
 #define TEST_TEXT_FILE "test_fileport_input_tmp_text_file"
@@ -11,11 +12,14 @@
 #define TEST_BIG_FILE_SIZE 1048576 /* 1 MByte */ 
 #define TEST_OUTPUT_FILE "test_fileport_output_tmp_file"
 
+static ScmObj vm = SCM_OBJ_INIT;
+
 void
 startup(void)
 {
   FILE *fp;
-  int i, n;
+  size_t i;
+  int n;
 
   fp = fopen(TEST_TEXT_FILE, "w");
   fputs(TEST_TEXT_FILE_CONTENTS, fp);
@@ -25,6 +29,9 @@ startup(void)
   for (i = 0; i < (TEST_BIG_FILE_SIZE / sizeof(i)); i++)
     n = fwrite(&i, sizeof(i), 1, fp);
   fclose(fp);
+
+  SCM_SETQ_PRIM(vm, scm_vm_construct());
+  scm_vm_switch_vm(vm);
 }
 
 void
@@ -32,6 +39,9 @@ shutdown(void)
 {
   remove(TEST_TEXT_FILE);
   remove(TEST_BIG_FILE);
+
+  scm_vm_revert_vm();
+  scm_vm_destruct(vm);
 }
 
 void
@@ -41,9 +51,9 @@ teardown(void)
 }
 
 void
-xxx_test_scm_port_construct_input_file_port(ScmPort *port)
+xxx_test_scm_port_construct_input_file_port(ScmObj port)
 {
-  cut_assert_not_null(port);
+  cut_assert_true(SCM_OBJ_IS_NOT_NULL(port));
   cut_assert_true(scm_port_is_readable(port));
   cut_assert_false(scm_port_is_writable(port));
   cut_assert_true(scm_port_is_file_port(port));
@@ -54,8 +64,12 @@ xxx_test_scm_port_construct_input_file_port(ScmPort *port)
 void
 test_scm_port_construct_input_file_port_ful_buffer(void)
 {
-  ScmPort *port = scm_port_open_input_file(TEST_TEXT_FILE,
-                                           SCM_PORT_BUF_FULL);
+  ScmObj port = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&port);
+
+  SCM_SETQ(port, scm_port_open_input_file(TEST_TEXT_FILE,
+                                          SCM_PORT_BUF_FULL));
 
   xxx_test_scm_port_construct_input_file_port(port);
 }
@@ -63,8 +77,12 @@ test_scm_port_construct_input_file_port_ful_buffer(void)
 void
 test_scm_port_construct_input_file_port_line_buffer(void)
 {
-  ScmPort *port = scm_port_open_input_file(TEST_TEXT_FILE,
-                                           SCM_PORT_BUF_LINE);
+  ScmObj port = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&port);
+
+  SCM_SETQ(port, scm_port_open_input_file(TEST_TEXT_FILE,
+                                          SCM_PORT_BUF_LINE));
 
   xxx_test_scm_port_construct_input_file_port(port);
 }
@@ -72,8 +90,12 @@ test_scm_port_construct_input_file_port_line_buffer(void)
 void
 test_scm_port_construct_input_file_port_modest_buffer(void)
 {
-  ScmPort *port = scm_port_open_input_file(TEST_TEXT_FILE,
-                                           SCM_PORT_BUF_MODEST);
+  ScmObj port = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&port);
+
+  SCM_SETQ(port, scm_port_open_input_file(TEST_TEXT_FILE,
+                                          SCM_PORT_BUF_MODEST));
 
   xxx_test_scm_port_construct_input_file_port(port);
 }
@@ -81,8 +103,12 @@ test_scm_port_construct_input_file_port_modest_buffer(void)
 void
 test_scm_port_construct_input_file_port_none_buffer(void)
 {
-  ScmPort *port = scm_port_open_input_file(TEST_TEXT_FILE,
-                                           SCM_PORT_BUF_NONE);
+  ScmObj port = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&port);
+
+  SCM_SETQ(port, scm_port_open_input_file(TEST_TEXT_FILE,
+                                          SCM_PORT_BUF_NONE));
 
   xxx_test_scm_port_construct_input_file_port(port);
 }

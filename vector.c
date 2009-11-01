@@ -3,15 +3,10 @@
 
 #include "memory.h"
 #include "object.h"
+#include "vm.h"
 #include "nil.h"
 #include "vector.h"
 #include "obuffer.h"
-
-struct ScmVectorRec {
-  ScmObjHeader header;
-  ScmObj *array;
-  size_t length;
-};
 
 ScmTypeInfo SCM_VECTOR_TYPE_INFO = {
   scm_vector_pretty_print,      /* pp_func              */
@@ -22,75 +17,83 @@ ScmTypeInfo SCM_VECTOR_TYPE_INFO = {
   NULL,                         /* gc_accpet_func_weak  */
 };
 
-static void
-scm_vector_finalize(ScmVector *vector)
+void
+scm_vector_initialize(ScmObj vector, size_t length) /* GC OK */
 {
-  assert(vector != NULL);
-  scm_memory_release(vector->array);
-}
-
-ScmVector *
-scm_vector_construct(size_t length)
-{
-  ScmVector *vector;
   size_t i;
 
-  vector = scm_memory_allocate(sizeof(ScmVector));
-  scm_obj_init(SCM_OBJ(vector), &SCM_VECTOR_TYPE_INFO);
+  SCM_OBJ_ASSERT_TYPE(vector, &SCM_VECTOR_TYPE_INFO);
 
   if (length > 0)
-    vector->array = scm_memory_allocate(sizeof(ScmObj) * length);
+    SCM_VECTOR_ARRAY(vector) = scm_memory_allocate(sizeof(ScmObj) * length);
   else
-    vector->array = NULL;
+    SCM_VECTOR_ARRAY(vector) = NULL;
 
-  vector->length = length;
+  SCM_VECTOR_LENGTH(vector) = length;
 
   /* initial value of elements of the vector is nil. */
   /* the initial value is not specified in R5RS */
   for (i = 0; i < length; i++)
-    vector->array[i] = SCM_OBJ(scm_nil_instance());
+    SCM_VECTOR_ARRAY(vector)[i] = SCM_OBJ(scm_nil_instance());
+}
+
+void
+scm_vector_finalize(ScmObj vector) /* GC OK */
+{
+  SCM_OBJ_ASSERT_TYPE(vector, &SCM_VECTOR_TYPE_INFO);
+
+  if (SCM_VECTOR_ARRAY(vector) != NULL)
+    scm_memory_release(SCM_VECTOR_ARRAY(vector));
+}
+
+ScmObj
+scm_vector_construct(size_t length) /* GC OK */
+{
+  ScmObj vector;
+
+  scm_mem_alloc_root(scm_vm_current_mm(),
+                     &SCM_VECTOR_TYPE_INFO, SCM_REF_MAKE(vector));
+
+  /* TODO: replace above by below */
+  /* scm_mem_alloc_heap(scm_vm_current_mm(), */
+  /*                    &SCM_VECTOR_TYPE_INFO, SCM_REF_MAKE(vector)); */
+  if (SCM_OBJ_IS_NULL(vector)) return SCM_OBJ_NULL;
+
+  scm_vector_initialize(vector, length);
 
   return vector;
 }
 
-void
-scm_vector_destruct(ScmVector *vector)
-{
-  assert(vector != NULL);
-
-  scm_vector_finalize(vector);
-  scm_memory_release(vector);
-}
-
 size_t
-scm_vector_length(ScmVector *vector)
+scm_vector_length(ScmObj vector) /* GC OK */
 {
-  assert(vector != NULL);
-  return vector->length;
+  SCM_OBJ_ASSERT_TYPE(vector, &SCM_VECTOR_TYPE_INFO);
+
+  return SCM_VECTOR_LENGTH(vector);
 }
 
 ScmObj
-scm_vector_ref(ScmVector *vector, size_t index)
+scm_vector_ref(ScmObj vector, size_t index) /* GC OK */
 {
-  assert(vector != NULL);
-  assert(index < vector->length);
+  SCM_OBJ_ASSERT_TYPE(vector, &SCM_VECTOR_TYPE_INFO);
+  assert(index < SCM_VECTOR_LENGTH(vector));
 
-  return vector->array[index];
+  return SCM_VECTOR_ARRAY(vector)[index];
 }
 
 ScmObj
-scm_vector_set(ScmVector *vector, size_t index, ScmObj obj)
+scm_vector_set(ScmObj vector, size_t index, ScmObj obj) /* GC OK */
 {
-  assert(vector != NULL);
-  assert(index < vector->length);
+  SCM_OBJ_ASSERT_TYPE(vector, &SCM_VECTOR_TYPE_INFO);
+  assert(index < SCM_VECTOR_LENGTH(vector));
 
-  return vector->array[index] = obj;
+  return SCM_VECTOR_ARRAY(vector)[index] = obj;
 }
 
 bool
-scm_vector_is_vector(ScmObj obj)
+scm_vector_is_vector(ScmObj obj) /* GC OK */
 {
-  assert(obj != NULL);
+  assert(SCM_OBJ_IS_NOT_NULL(obj));
 
   return SCM_OBJ_IS_TYPE(obj, &SCM_VECTOR_TYPE_INFO);
 }
@@ -120,37 +123,33 @@ scm_vector_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
 }
 
 void
-scm_vector_gc_initialize(ScmObj obj, ScmObj mem)
+scm_vector_gc_initialize(ScmObj obj, ScmObj mem) /* GC OK */
 {
-  ScmVector *vec;
+  SCM_OBJ_ASSERT_TYPE(obj, &SCM_VECTOR_TYPE_INFO);
 
-  assert(obj != NULL);
-  assert(mem != NULL);
-
-  vec = SCM_VECTOR(obj);
-  vec->length = 0;
+  SCM_VECTOR_ARRAY(obj) = NULL;
+  SCM_VECTOR_LENGTH(obj) = 0;
 }
 
 void
-scm_vector_gc_finalize(ScmObj obj)
+scm_vector_gc_finalize(ScmObj obj) /* GC OK */
 {
-  scm_vector_finalize(SCM_VECTOR(obj));
+  scm_vector_finalize(obj);
 }
 
 int
-scm_vector_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
+scm_vector_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler) /* GC OK */
 {
-  ScmVector *vec;
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
   size_t i;
 
-  assert(obj != NULL);
-  assert(mem != NULL);
+  SCM_OBJ_ASSERT_TYPE(obj, &SCM_VECTOR_TYPE_INFO);
+  assert(SCM_OBJ_IS_NOT_NULL(mem));
   assert(handler != NULL);
 
-  vec = SCM_VECTOR(obj);
-  for (i = 0; i < vec->length; i++) {
-    rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, vec->array[i], mem);
+  for (i = 0; i < SCM_VECTOR_LENGTH(obj); i++) {
+    rslt = SCM_GC_CALL_REF_HANDLER(handler, obj,
+                                   SCM_VECTOR_ARRAY(obj)[i], mem);
     if (SCM_GC_IS_REF_HANDLER_FAILURE(rslt)) return rslt;
   }
 

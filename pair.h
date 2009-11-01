@@ -11,13 +11,23 @@ typedef struct ScmPairRec ScmPair;
 
 extern ScmTypeInfo SCM_PAIR_TYPE_INFO;
 
-ScmPair *scm_pair_construct(ScmObj car, ScmObj cdr);
+struct ScmPairRec {
+  ScmObjHeader header;
+  ScmObj car;
+  ScmObj cdr;
+};
+
+#define SCM_PAIR_CAR(pair) (SCM_PAIR(pair)->car)
+#define SCM_PAIR_CDR(pair) (SCM_PAIR(pair)->cdr)
+
+void scm_pair_initialize(ScmObj pair, ScmObj car, ScmObj cdr);
+ScmObj scm_pair_construct(ScmObj car, ScmObj cdr);
 void scm_pair_desturct(ScmPair *pair);
-ScmObj scm_pair_car(const ScmPair *pair);
-ScmObj scm_pair_cdr(const ScmPair *pair);
+ScmObj scm_pair_car(ScmObj pair);
+ScmObj scm_pair_cdr(ScmObj pair);
 bool scm_pair_is_pair(const ScmObj obj);
 void scm_pair_pretty_print(ScmObj obj, ScmOBuffer *obuffer);
 void scm_pair_gc_initialize(ScmObj obj, ScmObj mem);
-int scm_pair_gc_accpet(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
+int scm_pair_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
 
 #endif /* INCLUDE_PAIR_H__ */

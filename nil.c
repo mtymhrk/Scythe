@@ -2,15 +2,13 @@
 #include <assert.h>
 
 #include "memory.h"
+#include "vm.h"
 #include "object.h"
 #include "obuffer.h"
 #include "nil.h"
 
 #define SCM_NIL(obj) ((ScmNil *)(obj))
 
-struct ScmNilRec {
-  ScmObjHeader header;
-};
 
 ScmTypeInfo SCM_NIL_TYPE_INFO = {
   scm_nil_pretty_print,      /* pp_func              */
@@ -21,37 +19,47 @@ ScmTypeInfo SCM_NIL_TYPE_INFO = {
   NULL,                      /* gc_accpet_func_weak  */
 };
 
-
-static ScmNil *nil_instance = NULL;
-
-ScmNil *
-scm_nil_construct(void)
+void
+scm_nil_initialize(ScmObj nil)  /* GC OK */
 {
-  ScmNil *nil = scm_memory_allocate(sizeof(ScmNil));
-  scm_obj_init(SCM_OBJ(nil), &SCM_NIL_TYPE_INFO);
-  return nil;
+  return;                       /* nothing to do */
 }
 
 void
-scm_nil_destruct(ScmNil *nil)
+scm_nil_finalize(ScmObj nil)    /* GC OK */
 {
-  assert(nil != NULL);
-  scm_memory_release(nil);
+  return;                       /* nothing to do */
 }
 
-ScmNil *
-scm_nil_instance(void)
+ScmObj
+scm_nil_construct(void)         /* GC OK */
 {
-  if (nil_instance == NULL)
-    nil_instance = scm_nil_construct();
+  ScmObj nil = SCM_OBJ_INIT;
 
-  return nil_instance;
+  SCM_STACK_FRAME_PUSH(&nil);
+
+  scm_mem_alloc_root(scm_vm_current_mm(),
+                     &SCM_NIL_TYPE_INFO, SCM_REF_MAKE(nil));
+  /* TODO: replace above by below */
+  /* scm_mem_alloc_heap(scm_vm_current_mm(), */
+  /*                    &SCM_NIL_TYPE_INFO, SCM_REF_MAKE(nil)); */
+  if (SCM_OBJ_IS_NULL(nil)) return SCM_OBJ_NULL;
+
+  scm_nil_initialize(nil);
+
+  return nil;
+}
+
+ScmObj
+scm_nil_instance(void)          /* GC OK */
+{
+  return scm_vm_nil_instance();
 }
 
 bool
-scm_nil_is_nil(ScmObj obj)
+scm_nil_is_nil(ScmObj obj)      /* GC OK */
 {
-  assert(obj != NULL);
+  assert(SCM_OBJ_IS_NOT_NULL(obj));
 
   return SCM_OBJ_IS_TYPE(obj, &SCM_NIL_TYPE_INFO);
 }

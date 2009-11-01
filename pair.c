@@ -1,71 +1,73 @@
 #include <stdbool.h>
 #include <assert.h>
 
-#include "memory.h"
 #include "object.h"
+#include "memory.h"
+#include "reference.h"
 #include "pair.h"
 #include "nil.h"
 #include "obuffer.h"
 
-
-struct ScmPairRec {
-  ScmObjHeader header;
-  ScmObj car;
-  ScmObj cdr;
-};
 
 ScmTypeInfo SCM_PAIR_TYPE_INFO = {
   scm_pair_pretty_print,      /* pp_func              */
   sizeof(ScmPair),            /* obj_size             */
   scm_pair_gc_initialize,     /* gc_ini_func          */
   NULL,                       /* gc_fin_func          */
-  scm_pair_gc_accpet,         /* gc_accept_func       */
+  scm_pair_gc_accept,         /* gc_accept_func       */
   NULL,                       /* gc_accpet_func_weak  */
 };
 
 
-ScmPair *
-scm_pair_construct(ScmObj car, ScmObj cdr)
+void
+scm_pair_initialize(ScmObj pair, ScmObj car, ScmObj cdr) /* GC OK */
 {
-  ScmPair *pair = NULL;
+  SCM_OBJ_ASSERT_TYPE(pair, &SCM_PAIR_TYPE_INFO);
+  assert(SCM_OBJ_IS_NOT_NULL(car));
+  assert(SCM_OBJ_IS_NOT_NULL(cdr));
 
-  assert(car != NULL); assert(cdr != NULL);
-
-  pair = (ScmPair *)scm_memory_allocate(sizeof(ScmPair));
   scm_obj_init(SCM_OBJ(pair), &SCM_PAIR_TYPE_INFO);
 
-  pair->car = car;
-  pair->cdr = cdr;
+  SCM_SETQ(SCM_PAIR_CAR(pair), car);
+  SCM_SETQ(SCM_PAIR_CDR(pair), cdr);
+}
+
+ScmObj
+scm_pair_construct(ScmObj car, ScmObj cdr) /* GC OK */
+{
+  ScmObj pair = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&pair, &car, &cdr);
+
+  assert(SCM_OBJ_IS_NOT_NULL(car));
+  assert(SCM_OBJ_IS_NOT_NULL(cdr));
+
+  scm_mem_alloc_heap(scm_vm_current_mm(),
+                     &SCM_PAIR_TYPE_INFO, SCM_REF_MAKE(pair));
+
+  scm_pair_initialize(pair, car, cdr);
 
   return pair;
 }
 
-void
-scm_pair_desturct(ScmPair *pair)
+ScmObj
+scm_pair_car(ScmObj pair)       /* GC OK */
 {
-  assert(pair != NULL);
+  SCM_OBJ_ASSERT_TYPE(pair, &SCM_PAIR_TYPE_INFO);
 
-  scm_memory_release(pair);
+  return SCM_PAIR_CAR(pair);
 }
 
 ScmObj
-scm_pair_car(const ScmPair *pair)
+scm_pair_cdr(ScmObj pair)       /* GC OK */
 {
-  assert(pair != NULL);
+  SCM_OBJ_ASSERT_TYPE(pair, &SCM_PAIR_TYPE_INFO);
 
-  return pair->car;
-}
-
-ScmObj
-scm_pair_cdr(const ScmPair *pair)
-{
-  assert(pair != NULL);
-
-  return pair->cdr;
+  return SCM_PAIR_CDR(pair);
 }
 
 bool
-scm_pair_is_pair(const ScmObj obj)
+scm_pair_is_pair(const ScmObj obj) /* GC OK */
 {
   assert(obj != NULL);
 
@@ -102,30 +104,25 @@ scm_pair_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
 void
 scm_pair_gc_initialize(ScmObj obj, ScmObj mem)
 {
-  ScmPair *pair;
+  SCM_OBJ_ASSERT_TYPE(obj, &SCM_PAIR_TYPE_INFO);
 
-  assert(obj != NULL);
-  assert(mem != NULL);
-
-  pair = SCM_PAIR(obj);
-  pair->car = pair->cdr = NULL;
+  SCM_SETQ_PRIM(SCM_PAIR_CAR(obj), SCM_OBJ_NULL);
+  SCM_SETQ_PRIM(SCM_PAIR_CDR(obj), SCM_OBJ_NULL);
 }
 
+
 int
-scm_pair_gc_accpet(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
+scm_pair_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
 {
-  ScmPair *pair;
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
 
-  assert(obj != NULL);
+  SCM_OBJ_ASSERT_TYPE(obj, &SCM_PAIR_TYPE_INFO);
   assert(mem != NULL);
   assert(handler != NULL);
 
-  pair = SCM_PAIR(obj);
-
-  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, pair->car, mem);
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_PAIR_CAR(obj), mem);
   if (SCM_GC_IS_REF_HANDLER_FAILURE(rslt)) return rslt;
 
-  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, pair->cdr, mem);
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_PAIR_CDR(obj), mem);
   return rslt;
 }

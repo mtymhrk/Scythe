@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 #include <iconv.h>
+#include <errno.h>
 
 typedef struct ScmCharConvRec ScmCharConv;
 

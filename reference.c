@@ -35,12 +35,13 @@ scm_ref_stack_add_new_block(ScmRefStack *stack, size_t size)
 static ScmRefStack *
 scm_ref_stack_growth_if_needed(ScmRefStack *stack)
 {
-  if (stack->current == stack->tail) {
-    if (SCM_REF_STACK_BLOCK_IS_FULL(stack->current)) {
-      size_t size = SCM_REF_STACK_BLOCK_SIZE(stack->tail);
-      if (scm_ref_stack_add_new_block(stack, size) == NULL)
-        return NULL;
-    }
+  if (SCM_REF_STACK_BLOCK_IS_FULL(stack->current))
+    SCM_REF_STACK_SHIFT_STACK_BLOCK(stack);
+
+  if (stack->current == NULL) {
+    size_t size = SCM_REF_STACK_BLOCK_SIZE(stack->tail);
+    if (scm_ref_stack_add_new_block(stack, size) == NULL)
+      return NULL;
     stack->current = stack->tail;
   }
 
@@ -192,9 +193,9 @@ scm_ref_stack_gc_accept(ScmRefStack *stack, ScmObj owner,
 
 
 bool
-scm_weak_ref_is_weak_ref(ScmObj obj)
+scm_weak_ref_is_weak_ref(ScmObj obj) /* GC OK */
 {
-  assert(obj != NULL);
+  assert(SCM_OBJ_IS_NOT_NULL(obj));
 
   return SCM_OBJ_IS_TYPE(obj, &SCM_WEAK_REF_TYPE_INFO);
 }
@@ -209,25 +210,27 @@ scm_weak_ref_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
 }
 
 void
-scm_weak_ref_set(ScmWeakRef *wref, ScmObj obj)
+scm_weak_ref_set(ScmObj wref, ScmObj obj) /* GC OK */
 {
-  assert(wref != NULL);
+  SCM_OBJ_ASSERT_TYPE(wref, &SCM_WEAK_REF_TYPE_INFO);
+  assert(SCM_OBJ_IS_NOT_NULL(obj));
 
-  SCM_WEAK_REF_SET(wref, obj);
+  SCM_SETQ_PRIM(SCM_WEAK_REF_OBJ(wref), obj);
 }
 
 ScmObj
-scm_weak_ref_get(ScmWeakRef *wref)
+scm_weak_ref_get(ScmObj wref)   /* GC OK */
 {
-  assert(wref != NULL);
+  SCM_OBJ_ASSERT_TYPE(wref, &SCM_WEAK_REF_TYPE_INFO);
 
-  return SCM_WEAK_REF_GET(wref);
+  return SCM_WEAK_REF_OBJ(wref);
 }
 
 int
 scm_weak_ref_gc_accept_weak(ScmObj obj, ScmObj mem,
                             ScmGCRefHandlerFunc handler)
 {
+  SCM_OBJ_ASSERT_TYPE(obj, &SCM_WEAK_REF_TYPE_INFO);
   ScmWeakRef *wref;
 
   assert(obj != NULL);

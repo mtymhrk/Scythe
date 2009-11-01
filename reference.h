@@ -160,6 +160,15 @@ struct ScmRefStackRec {
     }                                                                \
   } while(0)
 
+#define SCM_REF_STACK_SHIFT_STACK_BLOCK(stack)                          \
+  do {                                                                  \
+    (stack)->current = SCM_REF_STACK_BLOCK_NEXT((stack)->current);      \
+    if ((stack)->current != NULL)                                       \
+      SCM_REF_STACK_BLOCK_SET_SP((stack)->current,                      \
+                                 SCM_REF_STACK_BLOCK_BOTTOM((stack)->current)); \
+  } while(0)
+
+
 struct ScmRefStackInfoRec {
   ScmRefStackBlock *current;
   ScmRefStackElem *sp;
@@ -171,6 +180,8 @@ struct ScmWeakRefRec {
   ScmObj obj;
 };
 
+
+#define SCM_WEAK_REF_OBJ(wref) (SCM_WEAK_REF(wref)->obj)
 #define SCM_WEAK_REF_SET(wref, o) (wref)->obj = (o)
 #define SCM_WEAK_REF_GET(wref) ((wref)->obj)
 
@@ -188,15 +199,15 @@ int scm_ref_stack_gc_accept(ScmRefStack *stack, ScmObj owner,
 
 bool scm_weak_ref_is_weak_ref(ScmObj obj);
 void scm_weak_ref_pretty_print(ScmObj obj, ScmOBuffer *obuffer);
-void scm_weak_ref_set(ScmWeakRef *wref, ScmObj obj);
-ScmObj scm_weak_ref_get(ScmWeakRef *wref);
+void scm_weak_ref_set(ScmObj wref, ScmObj obj);
+ScmObj scm_weak_ref_get(ScmObj wref);
 int scm_weak_ref_gc_accept_weak(ScmObj obj, ScmObj mem,
                                 ScmGCRefHandlerFunc handler);
 
 #define SCM_REF_STACK_CONCAT2__(x, y) x##y
 #define SCM_REF_STACK_CONCAT__(x, y) SCM_REF_STACK_CONCAT2__(x, y)
 
-#define SCM_STACK_FRAME                                                 \
+#define SCM_STACK_FRAME                         \
   __attribute__((__cleanup__(scm_ref_stack_restore_current_stack)))     \
   ScmRefStackInfo SCM_REF_STACK_CONCAT__(scm_ref_stack_frame__, __LINE__) \
   = { NULL, NULL };                                                     \
@@ -207,5 +218,11 @@ int scm_weak_ref_gc_accept_weak(ScmObj obj, ScmObj mem,
 #define SCM_STACK_ALLOC(v)                              \
   scm_ref_stack_alloc(scm_vm_current_ref_stack(), v)
 
+#define SCM_STACK_FRAME_OBJ(...) \
+  SCM_STACK_FRAME;               \
+  ScmObj __VA_ARGS__;
+
+#define SCM_STACK_FRAME_PUSH(...) \
+  SCM_STACK_FRAME; SCM_STACK_PUSH(__VA_ARGS__);
 
 #endif /* INCLUDE_REFERENCE_H__ */

@@ -2,13 +2,10 @@
 #include <assert.h>
 
 #include "object.h"
-#include "obuffer.h"
 #include "memory.h"
+#include "vm.h"
+#include "obuffer.h"
 #include "miscobjects.h"
-
-struct ScmEOFRec {
-  ScmObjHeader header;
-};
 
 static ScmEOF *eof_instance = NULL;
 
@@ -21,38 +18,45 @@ ScmTypeInfo SCM_EOF_TYPE_INFO = {
   false                      /* has_weak_ref    */
 };
 
-
-ScmEOF *
-scm_eof_construct(void)
+void
+scm_eof_initialize(ScmObj eof)
 {
-  ScmEOF *eof;
+  return;                       /* nothing to do */
+}
 
-  eof = scm_memory_allocate(sizeof(ScmEOF));
-  scm_obj_init(SCM_OBJ(eof), &SCM_EOF_TYPE_INFO);
+void
+scm_eof_finalize(ScmObj eof)
+{
+  return;                       /* nothing to do */
+}
+
+ScmObj
+scm_eof_construct(void)         /* GC OK */
+{
+  ScmObj eof;
+
+  scm_mem_alloc_root(scm_vm_current_mm(),
+                     &SCM_EOF_TYPE_INFO, SCM_REF_MAKE(eof));
+  /* TODO: replace above by below */
+  /* scm_mem_alloc_heap(scm_vm_current_mm(), */
+  /*                    &SCM_EOF_TYPE_INFO, SCM_REF_MAKE(eof)); */
+  if (SCM_OBJ_IS_NULL(eof)) return SCM_OBJ_NULL;
+
+  scm_eof_initialize(eof);
 
   return eof;
 }
 
-void
-scm_eof_destruct(ScmEOF *eof)
+ScmObj
+scm_eof_instance(void)          /* GC OK */
 {
-  assert(eof != NULL);
-  scm_memory_release(eof);
-}
-
-ScmEOF *
-scm_eof_instance(void)
-{
-  if (eof_instance == NULL)
-    eof_instance = scm_eof_construct();
-
-  return eof_instance;
+  return scm_vm_eof_instance();
 }
 
 bool
-scm_eof_is_eof(ScmObj obj)
+scm_eof_is_eof(ScmObj obj)      /* GC OK */
 {
-  assert(obj != NULL);
+  assert(SCM_OBJ_IS_NOT_NULL(obj));
 
   return SCM_OBJ_IS_TYPE(obj, &SCM_EOF_TYPE_INFO);
 }

@@ -171,7 +171,7 @@ struct ScmMemHeapRec {
                                                                         \
       SCM_MEM_HEAP_DELEATE_BLOCK(b);                                    \
     }                                                                   \
-  } while(0)                                     
+  } while(0)
 
 #define SCM_MEM_HEAP_RELEASE_BLOCKS(heap, nr_leave)             \
   do {                                                          \
@@ -338,7 +338,7 @@ struct ScmMemRootBlockRec {
 /* これは object.h が ScmMem シンボルへの依存するのを避けるため。            */
 /* ScmMem を GC で管理することはしない (scm_mem_alloc で生成することは不可)  */
 struct ScmMemRec {
-  ScmObjHeader header;  
+  ScmObjHeader header;
   ScmBasicHashTable *to_obj_tbl;
   ScmBasicHashTable *from_obj_tbl;
   ScmMemHeap *to_heap;
@@ -419,5 +419,8 @@ size_t scm_mem_alloc_size_in_root(ScmTypeInfo *type);
 ScmObj scm_memory_alloc_shared_root(ScmTypeInfo *type);
 ScmObj scm_memory_free_shared_root(ScmObj obj);
 void scm_memory_free_all_shared_root(void);
+
+#define SCM_MEM_ALLOC(type, alloc, ref) \
+  scm_mem_alloc(scm_vm_current_mm(), type, alloc, ref)
 
 #endif /* INCLUDED_MEMORY_H__ */

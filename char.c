@@ -3,22 +3,13 @@
 #include <ctype.h>
 #include <assert.h>
 
-#include "memory.h"
 #include "object.h"
+#include "memory.h"
+#include "vm.h"
 #include "obuffer.h"
 #include "encoding.h"
 #include "char.h"
 
-struct ScmCharRec {
-  ScmObjHeader header;
-  SCM_ENCODING_T enc;
-  scm_char_t value;
-};
-
-#define SCM_CHAR_IS_LF(c) \
-  SCM_CHR_IS_EQUAL((c)->value, SCM_ENCODING_CONST_LF_CHAR((c)->enc))
-#define SCM_CHAR_IS_SPACE(c) \
-  SCM_CHR_IS_EQUAL((c)->value, SCM_ENCODING_CONST_SPACE_CHAR((c)->enc))
 
 ScmTypeInfo SCM_CHAR_TYPE_INFO = {
   scm_char_pretty_print,      /* pp_func              */
@@ -30,58 +21,76 @@ ScmTypeInfo SCM_CHAR_TYPE_INFO = {
 };
 
 
-ScmChar *
-scm_char_construct(scm_char_t value, SCM_ENCODING_T enc)
+void
+scm_char_initialize(ScmObj chr, scm_char_t value, SCM_ENCODING_T enc) /* GC OK */
 {
-  ScmChar *charv;
-
+  SCM_OBJ_ASSERT_TYPE(chr, &SCM_CHAR_TYPE_INFO);
   assert(/* 0 <= enc && */ enc < SMC_ENCODING_NR_ENC);
 
-  charv = scm_memory_allocate(sizeof(ScmChar));
-  scm_obj_init(SCM_OBJ(charv), &SCM_CHAR_TYPE_INFO);
-  charv->enc = enc;
-  charv->value = value;
-
-  return charv;
+  SCM_CHAR_VALUE(chr) = value;
+  SCM_CHAR_ENC(chr) = enc;
 }
 
 void
-scm_char_destruct(ScmChar *charv)
+scm_char_finalize(ScmObj chr)   /* GC OK */
 {
-  assert(charv != NULL);
-  scm_memory_release(charv);
+  return;                       /* nothing to do */
 }
 
-ScmChar *
-scm_char_construct_newline(SCM_ENCODING_T enc)
+ScmObj
+scm_char_construct(scm_char_t value, SCM_ENCODING_T enc) /* GC OK */
+{
+  ScmObj chr;
+
+  SCM_STACK_FRAME_PUSH(&chr);
+
+  assert(/* 0 <= enc && */ enc < SMC_ENCODING_NR_ENC);
+
+
+  scm_mem_alloc_root(scm_vm_current_mm(),
+                     &SCM_CHAR_TYPE_INFO, SCM_REF_MAKE(chr));
+  /* TODO: replace above by below */
+  /* scm_mem_alloc_heap(scm_vm_current_mm(), */
+  /*                    &SCM_CHAR_TYPE_INFO, SCM_REF_MAKE(chr)); */
+  if (SCM_OBJ_IS_NULL(chr)) return SCM_OBJ_NULL;
+
+  scm_char_initialize(chr, value, enc);
+
+  return chr;
+}
+
+ScmObj
+scm_char_construct_newline(SCM_ENCODING_T enc) /* GC OK */
 {
   return scm_char_construct(SCM_ENCODING_CONST_LF_CHAR(enc), enc);
 }
 
-ScmChar *
-scm_char_construct_space(SCM_ENCODING_T enc)
+ScmObj
+scm_char_construct_space(SCM_ENCODING_T enc) /* GC OK */
 {
   return scm_char_construct(SCM_ENCODING_CONST_SPACE_CHAR(enc), enc);
 }
 
 scm_char_t
-scm_char_value(ScmChar *charv)
+scm_char_value(ScmObj chr)      /* GC OK */
 {
-  assert(charv != NULL);
-  return charv->value;
+  SCM_OBJ_ASSERT_TYPE(chr, &SCM_CHAR_TYPE_INFO);
+
+  return SCM_CHAR_VALUE(chr);
 }
 
 SCM_ENCODING_T
-scm_char_encoding(ScmChar *charv)
+scm_char_encoding(ScmObj chr)   /* GC OK */
 {
-  assert(charv != NULL);
-  return charv->enc;
+  SCM_OBJ_ASSERT_TYPE(chr, &SCM_CHAR_TYPE_INFO);
+
+  return SCM_CHAR_ENC(chr);
 }
 
 bool
-scm_char_is_char(ScmObj obj)
+scm_char_is_char(ScmObj obj)    /* GC OK */
 {
-  assert(obj != NULL);
+  assert(SCM_OBJ_IS_NOT_NULL(obj));
   return SCM_OBJ_IS_TYPE(obj, &SCM_CHAR_TYPE_INFO);
 }
 
