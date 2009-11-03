@@ -15,7 +15,7 @@ extern ScmTypeInfo SCM_EOF_TYPE_INFO;
 
 void scm_eof_initialize(ScmObj eof);
 void scm_eof_finalize(ScmObj eof);
-ScmObj scm_eof_construct(void);
+ScmObj scm_eof_construct(SCM_MEM_ALLOC_TYPE_T mtype);
 ScmObj scm_eof_instance(void);
 bool scm_eof_is_eof(ScmObj obj);
 void scm_eof_pretty_print(ScmObj obj, ScmOBuffer *obuffer);

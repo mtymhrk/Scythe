@@ -117,40 +117,62 @@ scm_vm_setup_root(ScmObj vm)
 
   scm_vm_switch_vm(vm);
 
-  scm_mem_alloc_root(SCM_VM(vm)->mem, &SCM_SYMTABLE_TYPE_INFO,
-                     SCM_REF_MAKE(SCM_VM_SYMTBL(vm)));
+  SCM_SETQ(SCM_VM_SYMTBL(vm), scm_symtable_construct(SCM_MEM_ALLOC_ROOT));
   if (SCM_OBJ_IS_NULL(SCM_VM_SYMTBL(vm)))
     ;                           /* TODO: error handling */
 
-  scm_symtable_initialize(SCM_VM(vm)->symtbl);
+  /* scm_mem_alloc_root(SCM_VM(vm)->mem, &SCM_SYMTABLE_TYPE_INFO, */
+  /*                    SCM_REF_MAKE(SCM_VM_SYMTBL(vm))); */
+  /* if (SCM_OBJ_IS_NULL(SCM_VM_SYMTBL(vm))) */
+  /*   ;                           /\* TODO: error handling *\/ */
 
-  scm_mem_alloc_root(SCM_VM(vm)->mem, &SCM_NIL_TYPE_INFO,
-                     SCM_REF_MAKE(SCM_VM_NIL(vm)));
+  /* scm_symtable_initialize(SCM_VM(vm)->symtbl); */
+
+  SCM_SETQ(SCM_VM_NIL(vm), scm_nil_construct(SCM_MEM_ALLOC_ROOT));
   if (SCM_OBJ_IS_NULL(SCM_VM_NIL(vm)))
     ;                           /* TODO: error handling */
 
-  scm_nil_initialize(SCM_VM_NIL(vm));
+  /* scm_mem_alloc_root(SCM_VM(vm)->mem, &SCM_NIL_TYPE_INFO, */
+  /*                    SCM_REF_MAKE(SCM_VM_NIL(vm))); */
+  /* if (SCM_OBJ_IS_NULL(SCM_VM_NIL(vm))) */
+  /*   ;                           /\* TODO: error handling *\/ */
 
-  scm_mem_alloc_root(SCM_VM_MEM(vm), &SCM_EOF_TYPE_INFO,
-                     SCM_REF_MAKE(SCM_VM_EOF(vm)));
+  /* scm_nil_initialize(SCM_VM_NIL(vm)); */
+
+  SCM_SETQ(SCM_VM_EOF(vm), scm_eof_construct(SCM_MEM_ALLOC_ROOT));
   if (SCM_OBJ_IS_NULL(SCM_VM_EOF(vm)))
     ;                           /* TODO: error handling */
 
-  scm_eof_initialize(SCM_VM_EOF(vm));
+  /* scm_mem_alloc_root(SCM_VM_MEM(vm), &SCM_EOF_TYPE_INFO, */
+  /*                    SCM_REF_MAKE(SCM_VM_EOF(vm))); */
+  /* if (SCM_OBJ_IS_NULL(SCM_VM_EOF(vm))) */
+  /*   ;                           /\* TODO: error handling *\/ */
 
-  scm_mem_alloc_root(SCM_VM_MEM(vm), &SCM_BOOL_TYPE_INFO,
-                     SCM_REF_MAKE(SCM_VM_BOOL_TRUE(vm)));
+  /* scm_eof_initialize(SCM_VM_EOF(vm)); */
+
+
+  SCM_SETQ(SCM_VM_BOOL_TRUE(vm), scm_bool_construct(SCM_MEM_ALLOC_ROOT, true));
   if (SCM_OBJ_IS_NULL(SCM_VM_BOOL_TRUE(vm)))
     ;                           /* TODO: error handling */
 
-  scm_bool_initialize(SCM_VM_BOOL_TRUE(vm), true);
+  /* scm_mem_alloc_root(SCM_VM_MEM(vm), &SCM_BOOL_TYPE_INFO, */
+  /*                    SCM_REF_MAKE(SCM_VM_BOOL_TRUE(vm))); */
+  /* if (SCM_OBJ_IS_NULL(SCM_VM_BOOL_TRUE(vm))) */
+  /*   ;                           /\* TODO: error handling *\/ */
 
-  scm_mem_alloc_root(SCM_VM_MEM(vm), &SCM_BOOL_TYPE_INFO,
-                     SCM_REF_MAKE(SCM_VM_BOOL_FALSE(vm)));
+  /* scm_bool_initialize(SCM_VM_BOOL_TRUE(vm), true); */
+
+  SCM_SETQ(SCM_VM_BOOL_FALSE(vm),
+           scm_bool_construct(SCM_MEM_ALLOC_ROOT, false));
   if (SCM_OBJ_IS_NULL(SCM_VM_BOOL_FALSE(vm)))
     ;                           /* TODO: error handling */
 
-  scm_bool_initialize(SCM_VM_BOOL_FALSE(vm), false);
+  /* scm_mem_alloc_root(SCM_VM_MEM(vm), &SCM_BOOL_TYPE_INFO, */
+  /*                    SCM_REF_MAKE(SCM_VM_BOOL_FALSE(vm))); */
+  /* if (SCM_OBJ_IS_NULL(SCM_VM_BOOL_FALSE(vm))) */
+  /*   ;                           /\* TODO: error handling *\/ */
+
+  /* scm_bool_initialize(SCM_VM_BOOL_FALSE(vm), false); */
 
 
   scm_vm_revert_vm();

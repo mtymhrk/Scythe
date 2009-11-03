@@ -20,7 +20,7 @@ struct ScmBoolRec {
 
 void scm_bool_initialize(ScmObj obj, bool value);
 void scm_bool_finalize(ScmObj obj);
-ScmObj scm_bool_construct(bool value);
+ScmObj scm_bool_construct(SCM_MEM_ALLOC_TYPE_T mtype, bool value);
 ScmObj scm_bool_instance(bool value);
 bool scm_bool_value(ScmObj bl);
 bool scm_bool_is_bool(ScmObj obj);

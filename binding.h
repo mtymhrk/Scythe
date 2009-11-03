@@ -29,7 +29,8 @@ struct ScmBindTableRec {
 
 void scm_bind_ref_initialize(ScmObj bref, ScmObj sym, ScmObj val);
 void scm_bind_ref_finalize(ScmBindRef *ref);
-ScmObj scm_bind_ref_construct(ScmObj sym, ScmObj val);
+ScmObj scm_bind_ref_construct(SCM_MEM_ALLOC_TYPE_T mtype,
+                              ScmObj sym, ScmObj val);
 ScmObj scm_bind_ref_symbol(ScmObj bref);
 ScmObj scm_bind_ref_value(ScmObj bref);
 void scm_bind_ref_bind(ScmObj bref, ScmObj obj);

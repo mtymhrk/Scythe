@@ -20,7 +20,7 @@ extern ScmTypeInfo SCM_INTEGER_TYPE_INFO;
 
 void scm_integer_initialize(ScmObj integer, long long value);
 void scm_integer_finalize(ScmObj integer);
-ScmObj scm_integer_construct(long long value);
+ScmObj scm_integer_construct(SCM_MEM_ALLOC_TYPE_T mtype, long long value);
 long long scm_integer_value(ScmObj integer);
 bool scm_integer_is_integer(ScmObj obj);
 ScmObj scm_integer_plus(ScmObj val1, ScmObj val2);

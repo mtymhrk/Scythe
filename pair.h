@@ -21,8 +21,7 @@ struct ScmPairRec {
 #define SCM_PAIR_CDR(pair) (SCM_PAIR(pair)->cdr)
 
 void scm_pair_initialize(ScmObj pair, ScmObj car, ScmObj cdr);
-ScmObj scm_pair_construct(ScmObj car, ScmObj cdr);
-void scm_pair_desturct(ScmPair *pair);
+ScmObj scm_pair_construct(SCM_MEM_ALLOC_TYPE_T mtype, ScmObj car, ScmObj cdr);
 ScmObj scm_pair_car(ScmObj pair);
 ScmObj scm_pair_cdr(ScmObj pair);
 bool scm_pair_is_pair(const ScmObj obj);

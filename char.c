@@ -38,7 +38,8 @@ scm_char_finalize(ScmObj chr)   /* GC OK */
 }
 
 ScmObj
-scm_char_construct(scm_char_t value, SCM_ENCODING_T enc) /* GC OK */
+scm_char_construct(SCM_MEM_ALLOC_TYPE_T mtype,
+                   scm_char_t value, SCM_ENCODING_T enc) /* GC OK */
 {
   ScmObj chr;
 
@@ -47,11 +48,11 @@ scm_char_construct(scm_char_t value, SCM_ENCODING_T enc) /* GC OK */
   assert(/* 0 <= enc && */ enc < SMC_ENCODING_NR_ENC);
 
 
-  scm_mem_alloc_root(scm_vm_current_mm(),
-                     &SCM_CHAR_TYPE_INFO, SCM_REF_MAKE(chr));
-  /* TODO: replace above by below */
-  /* scm_mem_alloc_heap(scm_vm_current_mm(), */
+  /* scm_mem_alloc_root(scm_vm_current_mm(), */
   /*                    &SCM_CHAR_TYPE_INFO, SCM_REF_MAKE(chr)); */
+  /* TODO: replace above by below */
+  scm_mem_alloc(scm_vm_current_mm(),
+                &SCM_CHAR_TYPE_INFO, mtype, SCM_REF_MAKE(chr));
   if (SCM_OBJ_IS_NULL(chr)) return SCM_OBJ_NULL;
 
   scm_char_initialize(chr, value, enc);
@@ -60,15 +61,15 @@ scm_char_construct(scm_char_t value, SCM_ENCODING_T enc) /* GC OK */
 }
 
 ScmObj
-scm_char_construct_newline(SCM_ENCODING_T enc) /* GC OK */
+scm_char_construct_newline(SCM_MEM_ALLOC_TYPE_T mtype, SCM_ENCODING_T enc) /* GC OK */
 {
-  return scm_char_construct(SCM_ENCODING_CONST_LF_CHAR(enc), enc);
+  return scm_char_construct(mtype, SCM_ENCODING_CONST_LF_CHAR(enc), enc);
 }
 
 ScmObj
-scm_char_construct_space(SCM_ENCODING_T enc) /* GC OK */
+scm_char_construct_space(SCM_MEM_ALLOC_TYPE_T mtype, SCM_ENCODING_T enc) /* GC OK */
 {
-  return scm_char_construct(SCM_ENCODING_CONST_SPACE_CHAR(enc), enc);
+  return scm_char_construct(mtype, SCM_ENCODING_CONST_SPACE_CHAR(enc), enc);
 }
 
 scm_char_t

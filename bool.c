@@ -32,17 +32,14 @@ scm_bool_finalize(ScmObj obj)   /* GC OK */
 }
 
 ScmObj
-scm_bool_construct(bool value)  /* GC OK */
+scm_bool_construct(SCM_MEM_ALLOC_TYPE_T mtype, bool value)  /* GC OK */
 {
   ScmObj bl = SCM_OBJ_INIT;;
 
   SCM_STACK_FRAME_PUSH(&bl);
 
-  scm_mem_alloc_root(scm_vm_current_mm(),
-                     &SCM_BOOL_TYPE_INFO, SCM_REF_MAKE(bl));
-  /* TODO: replace above by below */
-  /* scm_mem_alloc_heap(scm_vm_current_mm(), */
-  /*                    &SCM_BOOL_TYPE_INFO, SCM_REF_MAKE(bl)); */
+  scm_mem_alloc(scm_vm_current_mm(),
+                &SCM_BOOL_TYPE_INFO, mtype, SCM_REF_MAKE(bl));
   if (SCM_OBJ_IS_NULL(bl)) return SCM_OBJ_NULL;
 
   scm_bool_initialize(bl, value);

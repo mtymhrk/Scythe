@@ -62,7 +62,7 @@ scm_symbol_initialize(ScmObj sym, ScmObj table, ScmObj str) /* GC OK */
 }
 
 ScmObj
-scm_symbol_construct(ScmObj str) /* GC OK */
+scm_symbol_construct(SCM_MEM_ALLOC_TYPE_T mtype, ScmObj str) /* GC OK */
 {
   ScmObj sym = SCM_OBJ_INIT;
 
@@ -70,11 +70,8 @@ scm_symbol_construct(ScmObj str) /* GC OK */
 
   SCM_OBJ_ASSERT_TYPE(str, &SCM_STRING_TYPE_INFO);
 
-  scm_mem_alloc_root(scm_vm_current_mm(),
-                     &SCM_SYMBOL_TYPE_INFO, SCM_REF_MAKE(sym));
-  /* TODO: replace above by below */
-  /* scm_mem_alloc_heap(scm_vm_current_mm(), */
-  /*                    &SCM_SYMBOL_TYPE_INFO, SCM_REF_MAKE(sym)); */
+  scm_mem_alloc(scm_vm_current_mm(),
+                &SCM_SYMBOL_TYPE_INFO, mtype, SCM_REF_MAKE(sym));
   scm_symbol_initialize(sym, SCM_OBJ_NULL, str);
 
   return sym;
@@ -162,6 +159,20 @@ scm_symtable_initialize(ScmObj obj) /* GC OK */
   SCM_SYMTABLE_TBL(obj) = scm_basic_hash_construct(SCM_SYMBOL_TABLE_SIZE,
                                                    scm_symtable_hash_func,
                                                    scm_symtable_comp_func);
+}
+
+ScmObj
+scm_symtable_construct(SCM_MEM_ALLOC_TYPE_T mtype)
+{
+  ScmObj symtbl = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&symtbl);
+
+  scm_mem_alloc(scm_vm_current_mm(),
+                &SCM_SYMTABLE_TYPE_INFO, mtype, SCM_REF_MAKE(symtbl));
+  scm_symtable_initialize(symtbl);
+
+  return symtbl;
 }
 
 void

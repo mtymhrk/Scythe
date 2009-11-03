@@ -32,7 +32,7 @@ struct ScmSymTableRec {
 #define SCM_SYMTABLE_TBL(obj) (SCM_SYMTABLE(obj)->tbl)
 
 void scm_symbol_initialize(ScmObj sym, ScmObj table, ScmObj str);
-ScmObj scm_symbol_construct(ScmObj str);
+ScmObj scm_symbol_construct(SCM_MEM_ALLOC_TYPE_T mtype, ScmObj str);
 ScmObj scm_symbol_instance(ScmObj str);
 bool scm_symbol_is_symbol(ScmObj obj);
 void scm_symbol_pretty_print(ScmObj obj, ScmOBuffer *obuffer);
@@ -43,6 +43,7 @@ int scm_symbol_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
 
 void scm_symtable_initialize(ScmObj obj);
 void scm_symtable_finalize(ScmObj obj);
+ScmObj scm_symtable_construct(SCM_MEM_ALLOC_TYPE_T mtype);
 bool scm_symtable_is_symtable(ScmObj obj);
 void scm_symtable_pretty_print(ScmObj obj, ScmOBuffer *obuffer);
 ScmObj scm_symtable_symbol(ScmObj symtbl, ScmObj str);

@@ -47,16 +47,12 @@ scm_vector_finalize(ScmObj vector) /* GC OK */
 }
 
 ScmObj
-scm_vector_construct(size_t length) /* GC OK */
+scm_vector_construct(SCM_MEM_ALLOC_TYPE_T mtype, size_t length) /* GC OK */
 {
   ScmObj vector;
 
-  scm_mem_alloc_root(scm_vm_current_mm(),
-                     &SCM_VECTOR_TYPE_INFO, SCM_REF_MAKE(vector));
-
-  /* TODO: replace above by below */
-  /* scm_mem_alloc_heap(scm_vm_current_mm(), */
-  /*                    &SCM_VECTOR_TYPE_INFO, SCM_REF_MAKE(vector)); */
+  scm_mem_alloc(scm_vm_current_mm(),
+                &SCM_VECTOR_TYPE_INFO, mtype, SCM_REF_MAKE(vector));
   if (SCM_OBJ_IS_NULL(vector)) return SCM_OBJ_NULL;
 
   scm_vector_initialize(vector, length);

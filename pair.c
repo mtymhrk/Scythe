@@ -33,7 +33,7 @@ scm_pair_initialize(ScmObj pair, ScmObj car, ScmObj cdr) /* GC OK */
 }
 
 ScmObj
-scm_pair_construct(ScmObj car, ScmObj cdr) /* GC OK */
+scm_pair_construct(SCM_MEM_ALLOC_TYPE_T mtype, ScmObj car, ScmObj cdr) /* GC OK */
 {
   ScmObj pair = SCM_OBJ_INIT;
 
@@ -42,8 +42,8 @@ scm_pair_construct(ScmObj car, ScmObj cdr) /* GC OK */
   assert(SCM_OBJ_IS_NOT_NULL(car));
   assert(SCM_OBJ_IS_NOT_NULL(cdr));
 
-  scm_mem_alloc_heap(scm_vm_current_mm(),
-                     &SCM_PAIR_TYPE_INFO, SCM_REF_MAKE(pair));
+  scm_mem_alloc(scm_vm_current_mm(),
+                &SCM_PAIR_TYPE_INFO, mtype, SCM_REF_MAKE(pair));
 
   scm_pair_initialize(pair, car, cdr);
 

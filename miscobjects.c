@@ -7,8 +7,6 @@
 #include "obuffer.h"
 #include "miscobjects.h"
 
-static ScmEOF *eof_instance = NULL;
-
 ScmTypeInfo SCM_EOF_TYPE_INFO = {
   scm_eof_pretty_print,      /* pp_func         */
   sizeof(ScmEOF),            /* obj_size        */
@@ -31,15 +29,15 @@ scm_eof_finalize(ScmObj eof)
 }
 
 ScmObj
-scm_eof_construct(void)         /* GC OK */
+scm_eof_construct(SCM_MEM_ALLOC_TYPE_T mtype)         /* GC OK */
 {
   ScmObj eof;
 
-  scm_mem_alloc_root(scm_vm_current_mm(),
-                     &SCM_EOF_TYPE_INFO, SCM_REF_MAKE(eof));
-  /* TODO: replace above by below */
-  /* scm_mem_alloc_heap(scm_vm_current_mm(), */
+  /* scm_mem_alloc_root(scm_vm_current_mm(), */
   /*                    &SCM_EOF_TYPE_INFO, SCM_REF_MAKE(eof)); */
+  /* TODO: replace above by below */
+  scm_mem_alloc(scm_vm_current_mm(),
+                &SCM_EOF_TYPE_INFO, mtype, SCM_REF_MAKE(eof));
   if (SCM_OBJ_IS_NULL(eof)) return SCM_OBJ_NULL;
 
   scm_eof_initialize(eof);

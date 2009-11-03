@@ -30,7 +30,8 @@ test_scm_string_construct(void)
   SCM_STACK_FRAME_PUSH(&str);
 
   /* action */
-  SCM_SETQ(str, scm_string_construct("foo", sizeof("foo") - 1,
+  SCM_SETQ(str, scm_string_construct(SCM_MEM_ALLOC_HEAP,
+                                     "foo", sizeof("foo") - 1,
                                      SCM_ENCODING_ASCII));
   /* postcondition check */
   cut_assert_true(SCM_OBJ_IS_NOT_NULL(str));
@@ -45,9 +46,10 @@ test_scm_string_is_string(void)
   SCM_STACK_FRAME_PUSH(&str, &nil);
 
   /* preprocess */
-  SCM_SETQ(str, scm_string_construct("foo", sizeof("foo") - 1,
+  SCM_SETQ(str, scm_string_construct(SCM_MEM_ALLOC_HEAP,
+                                     "foo", sizeof("foo") - 1,
                                      SCM_ENCODING_ASCII));
-  SCM_SETQ(nil, SCM_OBJ(scm_nil_construct()));
+  SCM_SETQ(nil, SCM_OBJ(scm_nil_instance()));
 
   /* action and postcondition check */
   cut_assert_true(scm_string_is_string(str));

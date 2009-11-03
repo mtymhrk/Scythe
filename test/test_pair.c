@@ -31,11 +31,11 @@ test_scm_pair_construct(void)
   SCM_STACK_FRAME_PUSH(&pair, &car, &cdr);
 
   /* preprocess */
-  SCM_SETQ(car, SCM_OBJ(scm_nil_construct()));
-  SCM_SETQ(cdr, SCM_OBJ(scm_nil_construct()));
+  SCM_SETQ(car, SCM_OBJ(scm_nil_instance()));
+  SCM_SETQ(cdr, SCM_OBJ(scm_nil_instance()));
 
   /* action */
-  SCM_SETQ(pair, scm_pair_construct(car, cdr));;
+  SCM_SETQ(pair, scm_pair_construct(SCM_MEM_ALLOC_HEAP, car, cdr));;
 
   /* postcondition check */
   cut_assert_true(SCM_OBJ_IS_NOT_NULL(pair));
@@ -50,9 +50,9 @@ test_scm_pair_is_pair(void)
   SCM_STACK_FRAME_PUSH(&pair, &car, &cdr);
 
   /* preprocess */
-  SCM_SETQ(car, SCM_OBJ(scm_nil_construct()));
-  SCM_SETQ(cdr, SCM_OBJ(scm_nil_construct()));
-  SCM_SETQ(pair, scm_pair_construct(car, cdr));;
+  SCM_SETQ(car, SCM_OBJ(scm_nil_instance()));
+  SCM_SETQ(cdr, SCM_OBJ(scm_nil_instance()));
+  SCM_SETQ(pair, scm_pair_construct(SCM_MEM_ALLOC_HEAP, car, cdr));;
 
   /* action and postcondition check */
   cut_assert_true(scm_pair_is_pair(SCM_OBJ(pair)));
@@ -67,9 +67,9 @@ test_scm_pair_car(void)
   SCM_STACK_FRAME_PUSH(&pair, &car, &cdr);
 
   /* preprocess */
-  SCM_SETQ(car, SCM_OBJ(scm_nil_construct()));
-  SCM_SETQ(cdr, SCM_OBJ(scm_nil_construct()));
-  SCM_SETQ(pair, scm_pair_construct(car, cdr));;
+  SCM_SETQ(car, SCM_OBJ(scm_nil_instance()));
+  SCM_SETQ(cdr, SCM_OBJ(scm_nil_instance()));
+  SCM_SETQ(pair, scm_pair_construct(SCM_MEM_ALLOC_HEAP, car, cdr));;
 
   /* action and postcondition check */
   cut_assert_true(scm_obj_is_same_instance(car, scm_pair_car(pair)));
@@ -83,9 +83,9 @@ test_scm_pair_cdr(void)
   SCM_STACK_FRAME_PUSH(&pair, &car, &cdr);
 
   /* preprocess */
-  SCM_SETQ(car, SCM_OBJ(scm_nil_construct()));
-  SCM_SETQ(cdr, SCM_OBJ(scm_nil_construct()));
-  SCM_SETQ(pair, scm_pair_construct(car, cdr));;
+  SCM_SETQ(car, SCM_OBJ(scm_nil_instance()));
+  SCM_SETQ(cdr, SCM_OBJ(scm_nil_instance()));
+  SCM_SETQ(pair, scm_pair_construct(SCM_MEM_ALLOC_HEAP, car, cdr));;
 
   /* action and postcondition check */
   cut_assert_true(scm_obj_is_same_instance(cdr, scm_pair_cdr(pair)));

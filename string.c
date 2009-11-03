@@ -79,7 +79,8 @@ scm_string_copy_and_expand(ScmObj src, size_t size) /* GC OK */
 
   SCM_OBJ_ASSERT_TYPE(src, &SCM_STRING_TYPE_INFO);
 
-  SCM_SETQ(str, scm_string_construct(NULL, size, SCM_STRING_ENC(src)));
+  SCM_SETQ(str, scm_string_construct(SCM_MEM_ALLOC_HEAP,
+                                     NULL, size, SCM_STRING_ENC(src)));
   if (SCM_OBJ_IS_NULL(str)) return SCM_OBJ_NULL;
 
   SCM_STRING_BYTESIZE(str) =
@@ -185,7 +186,7 @@ scm_string_initialize(ScmObj str,
 }
 
 ScmObj
-scm_string_construct(const void *src, size_t size, SCM_ENCODING_T enc) /* GC OK */
+scm_string_construct(SCM_MEM_ALLOC_TYPE_T mtype, const void *src, size_t size, SCM_ENCODING_T enc) /* GC OK */
 {
   ScmObj str = SCM_OBJ_INIT;
 
@@ -193,33 +194,21 @@ scm_string_construct(const void *src, size_t size, SCM_ENCODING_T enc) /* GC OK 
 
   assert(/*0 <= enc && */enc < SMC_ENCODING_NR_ENC);
 
-  SCM_SETQ_PRIM(str, SCM_OBJ(scm_memory_allocate(sizeof(ScmString))));
-  scm_obj_init(str, &SCM_STRING_TYPE_INFO);
-
-  /* TODO: replace above by below */
-  /* scm_mem_alloc_heap(scm_vm_current_mm(), */
-  /*                    &SCM_STRING_TYPE_INFO, SCM_REF_MAKE(str)); */
+  scm_mem_alloc(scm_vm_current_mm(),
+                &SCM_STRING_TYPE_INFO, mtype, SCM_REF_MAKE(str));
 
   scm_string_initialize(str, src, size, enc);
 
   return str;
 }
 
-/* void */
-/* scm_string_destruct(ScmString *str) */
-/* { */
-/*   assert(str != NULL); */
-
-/*   scm_string_finalize(str); */
-/*   scm_memory_release(str); */
-/* } */
-
 ScmObj
 scm_string_copy(ScmObj src)     /* GC OK */
 {
   SCM_OBJ_ASSERT_TYPE(src, &SCM_STRING_TYPE_INFO);
 
-  return scm_string_construct(SCM_STRING_HEAD(src),
+  return scm_string_construct(SCM_MEM_ALLOC_HEAP,
+                              SCM_STRING_HEAD(src),
                               SCM_STRING_BYTESIZE(src),
                               SCM_STRING_ENC(src));
 }
@@ -233,13 +222,13 @@ scm_string_dup(ScmObj src)      /* GC OK */
 
   SCM_OBJ_ASSERT_TYPE(src, &SCM_STRING_TYPE_INFO);
 
-  str = scm_memory_allocate(sizeof(ScmString));
-  scm_obj_init(SCM_OBJ(str), &SCM_STRING_TYPE_INFO);
+  /* str = scm_memory_allocate(sizeof(ScmString)); */
+  /* scm_obj_init(SCM_OBJ(str), &SCM_STRING_TYPE_INFO); */
 
 
   /* TODO: replace above by below */
-  /* scm_mem_alloc_heap(scm_vm_current_mm(), */
-  /*                    &SCM_STRING_TYPE_INFO, SCM_REF_MAKE(str)); */
+  scm_mem_alloc_heap(scm_vm_current_mm(),
+                     &SCM_STRING_TYPE_INFO, SCM_REF_MAKE(str));
 
 
   SCM_STRING_BUFFER(str) = SCM_STRING_BUFFER(src);

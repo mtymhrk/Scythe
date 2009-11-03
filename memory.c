@@ -848,12 +848,9 @@ scm_mem_alloc(ScmMem *mem, ScmTypeInfo *type,
   assert(alloc <  SCM_MEM_NR_ALLOC_TYPE);
   assert(ref != SCM_REF_NULL);
 
+  SCM_REF_UPDATE(ref, SCM_OBJ_NULL);
+
   switch(alloc) {
-  case SCM_MEM_ALLOC_PLAIN: /* TODO: delete this function         */
-                            /*       this functions is not needed */
-    /* return scm_mem_alloc_plain(mem, type, ref); */
-    return NULL;
-    break;
   case SCM_MEM_ALLOC_HEAP:
     return scm_mem_alloc_heap(mem, type, ref);
     break;
@@ -864,9 +861,8 @@ scm_mem_alloc(ScmMem *mem, ScmTypeInfo *type,
     SCM_REF_UPDATE(ref, scm_memory_alloc_shared_root(type));
     return SCM_OBJ_IS_NULL(SCM_REF_OBJ(ref)) ? NULL : mem;
     break;
-  case SCM_MEM_NR_ALLOC_TYPE:
+  default:
     return NULL;
-    break;
   }
 
   return NULL;

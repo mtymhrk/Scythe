@@ -30,14 +30,16 @@ test_scm_bind_ref_construct(void)
 
   SCM_STACK_FRAME_PUSH(&bref, &str1, &str2, &sym, &val);
 
-  SCM_SETQ(str1, scm_string_construct("var",
-                                      sizeof("var") - 1, SCM_ENCODING_ASCII));
-  SCM_SETQ(str2, scm_string_construct("val",
-                                      sizeof("val") - 1, SCM_ENCODING_ASCII));
+  SCM_SETQ(str1, scm_string_construct(SCM_MEM_ALLOC_HEAP,
+                                      "var", sizeof("var") - 1,
+                                      SCM_ENCODING_ASCII));
+  SCM_SETQ(str2, scm_string_construct(SCM_MEM_ALLOC_HEAP,
+                                      "val", sizeof("val") - 1,
+                                      SCM_ENCODING_ASCII));
   SCM_SETQ(sym, scm_symbol_instance(str1));
   SCM_SETQ(val, scm_symbol_instance(str2));
 
-  SCM_SETQ(bref, scm_bind_ref_construct(sym, val));
+  SCM_SETQ(bref, scm_bind_ref_construct(SCM_MEM_ALLOC_HEAP, sym, val));
 
   cut_assert(SCM_OBJ_IS_NOT_NULL(bref));
   cut_assert_true(scm_obj_is_same_instance(sym, scm_bind_ref_symbol(bref)));
@@ -53,17 +55,20 @@ test_scm_bind_ref_bind(void)
 
   SCM_STACK_FRAME_PUSH(&bref, &str1, &str2, &str3, &sym, &val1, &val2);
 
-  SCM_SETQ(str1, scm_string_construct("var",
-                                      sizeof("var") - 1, SCM_ENCODING_ASCII));
-  SCM_SETQ(str2, scm_string_construct("val1",
-                                      sizeof("val1") - 1, SCM_ENCODING_ASCII));
-  SCM_SETQ(str3, scm_string_construct("val2",
-                                      sizeof("val3") - 1, SCM_ENCODING_ASCII));
+  SCM_SETQ(str1, scm_string_construct(SCM_MEM_ALLOC_HEAP,
+                                      "var", sizeof("var") - 1,
+                                      SCM_ENCODING_ASCII));
+  SCM_SETQ(str2, scm_string_construct(SCM_MEM_ALLOC_HEAP,
+                                      "val1", sizeof("val1") - 1,
+                                      SCM_ENCODING_ASCII));
+  SCM_SETQ(str3, scm_string_construct(SCM_MEM_ALLOC_HEAP,
+                                      "val2", sizeof("val2") - 1,
+                                      SCM_ENCODING_ASCII));
   SCM_SETQ(sym, scm_symbol_instance(str1));
   SCM_SETQ(val1, scm_symbol_instance(str2));
   SCM_SETQ(val2, scm_symbol_instance(str3));
 
-  SCM_SETQ(bref, scm_bind_ref_construct(sym, val1));
+  SCM_SETQ(bref, scm_bind_ref_construct(SCM_MEM_ALLOC_HEAP, sym, val1));
 
   cut_assert(SCM_OBJ_IS_NOT_NULL(bref));
   cut_assert_true(scm_obj_is_same_instance(sym, scm_bind_ref_symbol(bref)));

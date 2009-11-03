@@ -33,10 +33,11 @@ test_scm_symbol_construct(void)
 
   /* preprocess */
   SCM_SETQ(str,
-           scm_string_construct("foo", sizeof("foo") - 1, SCM_ENCODING_ASCII));
+           scm_string_construct(SCM_MEM_ALLOC_HEAP,
+                                "foo", sizeof("foo") - 1, SCM_ENCODING_ASCII));
 
   /* action */
-  SCM_SETQ(sym, scm_symbol_construct(str));
+  SCM_SETQ(sym, scm_symbol_construct(SCM_MEM_ALLOC_HEAP, str));
 
   /* postcondition check */
   cut_assert_not_null(sym);
@@ -51,7 +52,8 @@ test_scm_symbol_instance__2_symbols_derived_from_same_string_shuld_be_same_insta
 
   /* preprocess */
   SCM_SETQ(str,
-           scm_string_construct("bar", sizeof("bar") - 1, SCM_ENCODING_ASCII));
+           scm_string_construct(SCM_MEM_ALLOC_HEAP,
+                                "bar", sizeof("bar") - 1, SCM_ENCODING_ASCII));
 
   /* action */
   SCM_SETQ(sym1, scm_symbol_instance(str));
@@ -72,7 +74,8 @@ test_scm_symbol_is_symbol__symbol_object_shuld_be_symbol(void)
 
   /* preprocess */
   SCM_SETQ(str,
-           scm_string_construct("bar", sizeof("bar") - 1, SCM_ENCODING_ASCII));
+           scm_string_construct(SCM_MEM_ALLOC_HEAP,
+                                "bar", sizeof("bar") - 1, SCM_ENCODING_ASCII));
 
   SCM_SETQ(sym, scm_symbol_instance(str));
 
@@ -88,7 +91,7 @@ test_scm_symbol_is_symbol__object_which_is_not_symbol_should_not_be_symbol(void)
   SCM_STACK_FRAME_PUSH(&nil);
 
   /* preprocess */
-  SCM_SETQ(nil, SCM_OBJ(scm_nil_construct()));
+  SCM_SETQ(nil, SCM_OBJ(scm_nil_instance()));
 
   /* action and postcondition check */
   cut_assert_false(scm_symbol_is_symbol(nil));
@@ -103,7 +106,8 @@ test_scm_symbol_string__string_derived_from_a_symbol_should_be_equal_to_the_stri
 
   /* preprocess */
   SCM_SETQ(expected,
-           scm_string_construct("baz", sizeof("baz") - 1, SCM_ENCODING_ASCII));
+           scm_string_construct(SCM_MEM_ALLOC_HEAP,
+                                "baz", sizeof("baz") - 1, SCM_ENCODING_ASCII));
   SCM_SETQ(sym, scm_symbol_instance(expected));
 
   /* action */
@@ -122,7 +126,8 @@ test_scm_symbol_string__string_derived_from_a_symbol_should_not_be_same_instance
 
   /* preprocess */
   SCM_SETQ(expected,
-           scm_string_construct("baz", sizeof("baz") - 1, SCM_ENCODING_ASCII));
+           scm_string_construct(SCM_MEM_ALLOC_HEAP,
+                                "baz", sizeof("baz") - 1, SCM_ENCODING_ASCII));
   SCM_SETQ(sym, scm_symbol_instance(expected));
 
   /* action */

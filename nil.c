@@ -32,17 +32,14 @@ scm_nil_finalize(ScmObj nil)    /* GC OK */
 }
 
 ScmObj
-scm_nil_construct(void)         /* GC OK */
+scm_nil_construct(SCM_MEM_ALLOC_TYPE_T mtype)         /* GC OK */
 {
   ScmObj nil = SCM_OBJ_INIT;
 
   SCM_STACK_FRAME_PUSH(&nil);
 
-  scm_mem_alloc_root(scm_vm_current_mm(),
-                     &SCM_NIL_TYPE_INFO, SCM_REF_MAKE(nil));
-  /* TODO: replace above by below */
-  /* scm_mem_alloc_heap(scm_vm_current_mm(), */
-  /*                    &SCM_NIL_TYPE_INFO, SCM_REF_MAKE(nil)); */
+  scm_mem_alloc(scm_vm_current_mm(),
+                &SCM_NIL_TYPE_INFO, mtype, SCM_REF_MAKE(nil));
   if (SCM_OBJ_IS_NULL(nil)) return SCM_OBJ_NULL;
 
   scm_nil_initialize(nil);

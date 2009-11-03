@@ -25,7 +25,7 @@ cut_shutdown(void)
 void
 test_scm_nil_construct(void)
 {
-  ScmObj nil = scm_nil_construct();
+  ScmObj nil = scm_nil_construct(SCM_MEM_ALLOC_HEAP);
 
   cut_assert_not_null(nil);
 }
@@ -52,8 +52,8 @@ test_scm_nil_is_nil(void)
 
   SCM_STACK_PUSH(&nil, &pair);
 
-  SCM_SETQ(nil, scm_nil_construct());
-  SCM_SETQ(pair, scm_pair_construct(nil, nil));
+  SCM_SETQ(nil, scm_nil_construct(SCM_MEM_ALLOC_HEAP));
+  SCM_SETQ(pair, scm_pair_construct(SCM_MEM_ALLOC_HEAP, nil, nil));
 
   cut_assert_true(scm_nil_is_nil(nil));
   cut_assert_false(scm_nil_is_nil(pair));

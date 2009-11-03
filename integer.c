@@ -34,17 +34,14 @@ scm_integer_finalize(ScmObj integer) /* GC OK */
 }
 
 ScmObj
-scm_integer_construct(long long value) /* GC OK */
+scm_integer_construct(SCM_MEM_ALLOC_TYPE_T mtype, long long value) /* GC OK */
 {
   ScmObj integer = SCM_OBJ_INIT;
 
   SCM_STACK_FRAME_PUSH(&integer);
 
-  scm_mem_alloc_root(scm_vm_current_mm(),
-                     &SCM_INTEGER_TYPE_INFO, SCM_REF_MAKE(integer));
-  /* TODO: replace above by below */
-  /* scm_mem_alloc_heap(scm_vm_current_mm(), */
-  /*                    &SCM_INTEGER_TYPE_INFO, SCM_REF_MAKE(integer)); */
+  scm_mem_alloc(scm_vm_current_mm(),
+                &SCM_INTEGER_TYPE_INFO, mtype, SCM_REF_MAKE(integer));
   if (SCM_OBJ_IS_NULL(integer)) return SCM_OBJ_NULL;
 
   scm_integer_initialize(integer, value);
@@ -74,7 +71,8 @@ scm_integer_plus(ScmObj val1, ScmObj val2) /* GC OK */
   SCM_OBJ_ASSERT_TYPE(val1, &SCM_INTEGER_TYPE_INFO);
   SCM_OBJ_ASSERT_TYPE(val2, &SCM_INTEGER_TYPE_INFO);
 
-  return scm_integer_construct(SCM_INTEGER_VALUE(val1)
+  return scm_integer_construct(SCM_MEM_ALLOC_HEAP,
+                               SCM_INTEGER_VALUE(val1)
                                + SCM_INTEGER_VALUE(val2));
 }
 
@@ -84,7 +82,8 @@ scm_integer_minus(ScmObj val1, ScmObj val2) /* GC OK */
   SCM_OBJ_ASSERT_TYPE(val1, &SCM_INTEGER_TYPE_INFO);
   SCM_OBJ_ASSERT_TYPE(val2, &SCM_INTEGER_TYPE_INFO);
 
-  return scm_integer_construct(SCM_INTEGER_VALUE(val1)
+  return scm_integer_construct(SCM_MEM_ALLOC_HEAP,
+                               SCM_INTEGER_VALUE(val1)
                                - SCM_INTEGER_VALUE(val2));
 }
 
@@ -94,7 +93,8 @@ scm_integer_multiply(ScmObj val1, ScmObj val2) /* GC OK */
   SCM_OBJ_ASSERT_TYPE(val1, &SCM_INTEGER_TYPE_INFO);
   SCM_OBJ_ASSERT_TYPE(val2, &SCM_INTEGER_TYPE_INFO);
 
-  return scm_integer_construct(SCM_INTEGER_VALUE(val1)
+  return scm_integer_construct(SCM_MEM_ALLOC_HEAP,
+                               SCM_INTEGER_VALUE(val1)
                                * SCM_INTEGER_VALUE(val2));
 }
 
@@ -104,7 +104,8 @@ scm_integer_divide(ScmObj val1, ScmObj val2) /* GC OK */
   SCM_OBJ_ASSERT_TYPE(val1, &SCM_INTEGER_TYPE_INFO);
   SCM_OBJ_ASSERT_TYPE(val2, &SCM_INTEGER_TYPE_INFO);
 
-  return scm_integer_construct(SCM_INTEGER_VALUE(val1)
+  return scm_integer_construct(SCM_MEM_ALLOC_HEAP,
+                               SCM_INTEGER_VALUE(val1)
                                / SCM_INTEGER_VALUE(val2));
 }
 
@@ -114,7 +115,8 @@ scm_integer_reminder(ScmObj val1, ScmObj val2) /* GC OK */
   SCM_OBJ_ASSERT_TYPE(val1, &SCM_INTEGER_TYPE_INFO);
   SCM_OBJ_ASSERT_TYPE(val2, &SCM_INTEGER_TYPE_INFO);
 
-  return scm_integer_construct(SCM_INTEGER_VALUE(val1)
+  return scm_integer_construct(SCM_MEM_ALLOC_HEAP,
+                               SCM_INTEGER_VALUE(val1)
                                % SCM_INTEGER_VALUE(val2));
 }
 

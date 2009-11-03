@@ -12,13 +12,8 @@ symbol.o: symbol.c object.h obuffer.h memory.h basichash.h reference.h \
 basichash.o: basichash.c memory.h object.h obuffer.h basichash.h
 integer.o: integer.c object.h obuffer.h memory.h basichash.h vm.h \
   reference.h integer.h
-ibuffer.o: ibuffer.c memory.h object.h obuffer.h basichash.h port.h \
-  ibuffer.h
 basiclist.o: basiclist.c memory.h object.h obuffer.h basichash.h \
   basiclist.h
-parser.o: parser.c memory.h object.h obuffer.h basichash.h basiclist.h \
-  ibuffer.h port.h parser.h bool.h char.h encoding.h integer.h \
-  miscobjects.h nil.h pair.h string.h symbol.h vector.h
 vector.o: vector.c memory.h object.h obuffer.h basichash.h vm.h \
   reference.h nil.h vector.h
 miscobjects.o: miscobjects.c object.h obuffer.h memory.h basichash.h vm.h \
@@ -27,8 +22,6 @@ bool.o: bool.c object.h obuffer.h memory.h basichash.h vm.h reference.h \
   bool.h
 char.o: char.c object.h obuffer.h memory.h basichash.h vm.h reference.h \
   encoding.h char.h
-port.o: port.c memory.h object.h obuffer.h basichash.h reference.h vm.h \
-  charconv.h port.h
 charconv.o: charconv.c memory.h object.h obuffer.h basichash.h charconv.h
 ucs4.o: ucs4.c ucs4.h
 utf8.o: utf8.c utf8.h

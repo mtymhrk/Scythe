@@ -16,12 +16,12 @@ typedef struct ScmForwardRec ScmForward;
 #define SCM_FORWORD(obj) ((ScmFoward *)(obj))
 
 typedef enum {
-  SCM_MEM_ALLOC_PLAIN,
   SCM_MEM_ALLOC_HEAP,
   SCM_MEM_ALLOC_ROOT,
   SCM_MEM_ALLOC_SHARED_ROOT,
-  SCM_MEM_NR_ALLOC_TYPE
 } SCM_MEM_ALLOC_TYPE_T;
+
+enum { SCM_MEM_NR_ALLOC_TYPE = SCM_MEM_ALLOC_SHARED_ROOT + 1 };
 
 #include "object.h"
 #include "basichash.h"
