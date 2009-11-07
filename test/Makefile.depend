@@ -22,8 +22,6 @@ char.o: ../char.c ../object.h ../obuffer.h ../memory.h ../basichash.h \
   ../vm.h ../reference.h ../encoding.h ../char.h
 charconv.o: ../charconv.c ../memory.h ../object.h ../obuffer.h \
   ../basichash.h ../charconv.h
-ucs4.o: ../ucs4.c ../ucs4.h
-utf8.o: ../utf8.c ../utf8.h
 encoding.o: ../encoding.c ../encoding.h
 vm.o: ../vm.c ../vm.h ../object.h ../obuffer.h ../memory.h ../basichash.h \
   ../reference.h ../symbol.h ../miscobjects.h
@@ -186,28 +184,6 @@ test_charconv.o: test_charconv.c /usr/local/include/cutter/cutter.h \
   /usr/local/include/cutter/cutter/cut-test-utils.h \
   /usr/local/include/cutter/cutter/cut-assertions-helper.h \
   /usr/local/include/cutter/cutter/cut-experimental.h ../charconv.h
-test_ucs4.o: test_ucs4.c /usr/local/include/cutter/cutter.h \
-  /usr/local/include/cutter/cutter/cut-version.h \
-  /usr/local/include/cutter/cutter/cut-hidden-definitions.h \
-  /usr/local/include/cutter/cutter/cut-public.h \
-  /usr/local/include/cutter/cutter/cut-types.h \
-  /usr/local/include/cutter/cutter/cut-macros.h \
-  /usr/local/include/cutter/cutter/cut-multi-process.h \
-  /usr/local/include/cutter/cutter/cut-assertions.h \
-  /usr/local/include/cutter/cutter/cut-test-utils.h \
-  /usr/local/include/cutter/cutter/cut-assertions-helper.h \
-  /usr/local/include/cutter/cutter/cut-experimental.h ../ucs4.h
-test_utf8.o: test_utf8.c /usr/local/include/cutter/cutter.h \
-  /usr/local/include/cutter/cutter/cut-version.h \
-  /usr/local/include/cutter/cutter/cut-hidden-definitions.h \
-  /usr/local/include/cutter/cutter/cut-public.h \
-  /usr/local/include/cutter/cutter/cut-types.h \
-  /usr/local/include/cutter/cutter/cut-macros.h \
-  /usr/local/include/cutter/cutter/cut-multi-process.h \
-  /usr/local/include/cutter/cutter/cut-assertions.h \
-  /usr/local/include/cutter/cutter/cut-test-utils.h \
-  /usr/local/include/cutter/cutter/cut-assertions-helper.h \
-  /usr/local/include/cutter/cutter/cut-experimental.h ../utf8.h
 test_string_utf8.o: test_string_utf8.c /usr/local/include/cutter/cutter.h \
   /usr/local/include/cutter/cutter/cut-version.h \
   /usr/local/include/cutter/cutter/cut-hidden-definitions.h \

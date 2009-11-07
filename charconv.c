@@ -2,6 +2,7 @@
 #include <string.h>
 #include <errno.h>
 #include <iconv.h>
+#include <limits.h>
 #include <assert.h>
 
 #include "memory.h"
@@ -29,7 +30,7 @@ scm_charconv_construct(const char *from, const char* to,
                        SCM_CHARCONV_TYPE_T type)
 {
   ScmCharConv *conv;
-  
+
   assert(from != NULL);
   assert(to != NULL);
 
@@ -186,9 +187,11 @@ scm_charconv_convert(ScmCharConv *conv,
   bool retry;
 
   assert(conv != NULL);
+  assert(in_size <= SSIZE_MAX);
+  assert(out_size <= SSIZE_MAX);
 
   if (input == NULL || in_size == 0)
-    return scm_charconv_put_out_converted(conv, output, out_size);
+    return (ssize_t)scm_charconv_put_out_converted(conv, output, out_size);
 
   inp = input; outp = output;
   rest = in_size; room = out_size;
@@ -200,7 +203,7 @@ scm_charconv_convert(ScmCharConv *conv,
 
     ret = scm_charconv_put_in_unconverted(conv, inp, rest);
     rest -= ret;
-    inp += ret;
+    inp = (const uint8_t *)inp + ret;
 
     error_no = scm_charconv_convert_aux(conv, DONT_TERMINATE);
 
@@ -229,17 +232,18 @@ scm_charconv_convert(ScmCharConv *conv,
 
     ret = scm_charconv_put_out_converted(conv, outp, room);
     room -= ret;
-    outp += ret;
+    outp = (uint8_t *)outp + ret;
 
   } while (retry);
 
-  return out_size - room;
+  return (ssize_t)(out_size - room);
 }
 
 void
 scm_charconv_put(ScmCharConv *conv, const void *input, size_t size)
 {
   assert(conv != NULL);
+  assert(size <= SSIZE_MAX);
 
   scm_charconv_convert(conv, input, size, NULL, 0);
 }
@@ -248,6 +252,7 @@ ssize_t
 scm_charconv_get(ScmCharConv *conv, void *output, size_t size)
 {
   assert(conv != NULL);
+  assert(size <= SSIZE_MAX);
 
   return scm_charconv_convert(conv, NULL, 0, output, size);
 }
@@ -260,6 +265,7 @@ scm_charconv_terminate(ScmCharConv *conv, void *output, size_t out_size)
 
   assert(conv != NULL);
   assert(output != NULL);
+  assert(out_size <= SSIZE_MAX);
 
   conv->uncnv_len = 0;
   conv->error = 0;
@@ -269,7 +275,7 @@ scm_charconv_terminate(ScmCharConv *conv, void *output, size_t out_size)
     scm_charconv_expand_converted(conv);
   }
 
-  return scm_charconv_put_out_converted(conv, output, out_size);
+  return (ssize_t)scm_charconv_put_out_converted(conv, output, out_size);
 }
 
 bool

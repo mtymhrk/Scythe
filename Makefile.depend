@@ -19,8 +19,6 @@ miscobjects.o: miscobjects.c object.h obuffer.h memory.h basichash.h vm.h \
 char.o: char.c object.h obuffer.h memory.h basichash.h vm.h reference.h \
   encoding.h char.h
 charconv.o: charconv.c memory.h object.h obuffer.h basichash.h charconv.h
-ucs4.o: ucs4.c ucs4.h
-utf8.o: utf8.c utf8.h
 encoding.o: encoding.c encoding.h
 vm.o: vm.c vm.h object.h obuffer.h memory.h basichash.h reference.h \
   symbol.h miscobjects.h

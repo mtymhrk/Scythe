@@ -1,4 +1,8 @@
+#include <limits.h>
+#include <assert.h>
+
 #include "encoding.h"
+
 
 const scm_char_t SCM_CHR_ZERO = {{ 0x00, 0x00, 0x00, 0x00 }};
 
@@ -85,14 +89,16 @@ const ScmEncVirtualFunc *SCM_ENCODING_VFUNC_TBL[] =
     (iter)->char_width = NULL;                  \
   } while(0)
 
-ScmStrItr 
+ScmStrItr
 scm_str_itr_begin(void *p, size_t size,
                   int (*char_width)(const void *p, size_t size))
 {
   ScmStrItr iter;
 
+  assert(size <= SSIZE_MAX);
+
   iter.p = p;
-  iter.rest = size;
+  iter.rest = (ssize_t)size;
 
   if (p == NULL || char_width == NULL) {
     iter.char_width = NULL;
@@ -141,24 +147,24 @@ scm_enc_index2itr_fixed_width(void *str, size_t size,
   offset = width * idx;
 
   if (p == NULL) {
-    SCM_STR_ITR_MAKE_ERR(&iter);  
+    SCM_STR_ITR_MAKE_ERR(&iter);
     return iter;
   }
   else if (offset > size) {
-    SCM_STR_ITR_MAKE_ERR(&iter);  
+    SCM_STR_ITR_MAKE_ERR(&iter);
     return iter;
   }
-  
+
   return scm_str_itr_begin(p + offset, size - offset, char_width);
 }
 
 static ScmStrItr
 scm_enc_index2itr_variable_width(void *str, size_t size,
-                                 unsigned int idx, 
+                                 unsigned int idx,
                                  int (*char_width)(const void *str, size_t len))
 {
   ScmStrItr iter;
-  int i;
+  unsigned int i;
 
   iter = scm_str_itr_begin(str, size, char_width);
   if (SCM_STR_ITR_IS_ERR(&iter)) return iter;
@@ -302,10 +308,10 @@ scm_enc_char_width_utf8(const void *str, size_t len)
   }
   else {
     return -1;
-  }    
+  }
 }
 
-ScmStrItr 
+ScmStrItr
 scm_enc_index2itr_utf8(void *str, size_t size, unsigned int idx)
 {
   return scm_enc_index2itr_variable_width(str, size, idx,
@@ -439,10 +445,10 @@ scm_enc_char_width_eucjp(const void *str, size_t len)
   }
   else {
     return -1;
-  }    
+  }
 }
 
-ScmStrItr 
+ScmStrItr
 scm_enc_index2itr_eucjp(void *str, size_t size, unsigned int idx)
 {
   return scm_enc_index2itr_variable_width(str, size, idx,
@@ -485,10 +491,10 @@ scm_enc_char_width_sjis(const void *str, size_t len)
   }
   else {
     return -1;
-  }    
+  }
 }
 
-ScmStrItr 
+ScmStrItr
 scm_enc_index2itr_sjis(void *str, size_t size, unsigned int idx)
 {
   return scm_enc_index2itr_variable_width(str, size, idx,

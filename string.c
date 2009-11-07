@@ -34,7 +34,7 @@ scm_string_check_bytes(void *str, size_t size,
   ScmStrItr iter;
   ssize_t len;
 
-  if (str == NULL || vf == NULL) return -1;
+  if (str == NULL || vf == NULL || size > SSIZE_MAX) return -1;
 
   iter = scm_str_itr_begin((void *)str, size, vf->char_width);
   if (SCM_STR_ITR_IS_ERR(&iter)) return -1;
@@ -55,7 +55,8 @@ scm_string_copy_bytes_with_check(void *dst, const void *src, size_t size,
 {
   ssize_t len;
 
-  if (dst == NULL || src == NULL || vf == NULL) return -1;
+  if (dst == NULL || src == NULL || vf == NULL || size > SSIZE_MAX)
+    return -1;
 
   memcpy(dst, src, size);
   len = scm_string_check_bytes(dst, size, vf);
@@ -80,6 +81,7 @@ scm_string_copy_and_expand(ScmObj src, size_t size) /* GC OK */
   SCM_STACK_FRAME_PUSH(&str);
 
   SCM_OBJ_ASSERT_TYPE(src, &SCM_STRING_TYPE_INFO);
+  assert(size <= SSIZE_MAX);
 
   SCM_SETQ(str, scm_string_construct(SCM_MEM_ALLOC_HEAP,
                                      NULL, size, SCM_STRING_ENC(src)));
@@ -286,6 +288,7 @@ scm_string_substr(ScmObj str, unsigned int pos, size_t len) /* GC OK */
   ScmStrItr (*index2iter)(void *p, size_t size, unsigned int idx);
 
   SCM_STACK_FRAME_PUSH(&str, &substr);
+  assert(pos <= SSIZE_MAX);
   assert(len <= SSIZE_MAX);
 
   if (pos + len > SCM_STRING_LENGTH(str)) return SCM_OBJ_NULL;
@@ -375,6 +378,7 @@ scm_string_ref(ScmObj str, unsigned int pos) /* GC OK */
   ScmStrItr (*index2iter)(void *p, size_t size, unsigned int idx);
 
   SCM_OBJ_ASSERT_TYPE(str, &SCM_STRING_TYPE_INFO);
+  assert(pos <= SSIZE_MAX);
 
   c = SCM_CHR_ZERO;
   if (pos >= SCM_STRING_LENGTH(str)) return c;
@@ -401,6 +405,7 @@ scm_string_set(ScmObj str, unsigned int pos, const scm_char_t c) /* GC OK */
   SCM_STACK_FRAME_PUSH(&str, &front, &rear, &tmp);
 
   SCM_OBJ_ASSERT_TYPE(str, &SCM_STRING_TYPE_INFO);
+  assert(pos <= SSIZE_MAX);
 
   if (pos >= SCM_STRING_LENGTH(str)) return SCM_OBJ_NULL;
 
@@ -478,6 +483,7 @@ scm_string_fill(ScmObj str, unsigned int pos, size_t len, scm_char_t c) /* GC OK
   SCM_STACK_FRAME_PUSH(&str, &front, &rear, &tmp);
 
   SCM_OBJ_ASSERT_TYPE(str, &SCM_STRING_TYPE_INFO);
+  assert(pos <= SSIZE_MAX);
   assert(len <= SSIZE_MAX);
 
   if (pos > SCM_STRING_LENGTH(str)) return SCM_OBJ_NULL;
