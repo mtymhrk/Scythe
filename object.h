@@ -111,7 +111,6 @@ struct ScmAtomRec {
 
 
 void scm_obj_init(ScmObj obj, ScmTypeInfo *type);
-ScmTypeInfo *scm_obj_type(ScmObj obj);
 void scm_obj_pretty_print(ScmObj obj, ScmOBuffer *obuffer);
 int scm_obj_is_same_instance(ScmObj obj1, ScmObj obj2);
 

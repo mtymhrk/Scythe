@@ -348,7 +348,7 @@ scm_mem_copy_obj(ScmMem *mem, ScmObj obj)
   if (!scm_mem_is_obj_in_heap(mem, obj, FROM_HEAP))
     return obj;
 
-  type = scm_obj_type(obj);
+  type = SCM_OBJ_TYPE(obj);
   if (SCM_TYPE_INFO_IS_SAME(type, &SCM_FORWARD_TYPE_INFO))
     return SCM_FORWARD_FORWARD(obj);
 
@@ -498,7 +498,7 @@ scm_mem_adjust_weak_ref_of_obj_func(ScmObj mem, ScmObj obj, ScmRef child)
   co = SCM_REF_OBJ(child);
   if (co != NULL) {
     if (scm_mem_is_obj_in_heap(SCM_MEM(mem), co, FROM_HEAP)) {
-      ScmTypeInfo *type = scm_obj_type(co);
+      ScmTypeInfo *type = SCM_OBJ_TYPE(co);
       if (SCM_TYPE_INFO_IS_SAME(type, &SCM_FORWARD_TYPE_INFO))
         SCM_REF_UPDATE(child, SCM_FORWARD_FORWARD(co));
       else

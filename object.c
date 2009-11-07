@@ -13,14 +13,6 @@ scm_obj_init(ScmObj obj, ScmTypeInfo *type)
   obj->header.type = type;
 }
 
-ScmTypeInfo *
-scm_obj_type(ScmObj obj)
-{
-  assert(obj != NULL);
-
-  return SCM_OBJ_TYPE(obj);
-}
-
 void
 scm_obj_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
 {
