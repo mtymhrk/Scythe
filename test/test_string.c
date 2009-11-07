@@ -3,7 +3,7 @@
 #include "object.h"
 #include "vm.h"
 #include "reference.h"
-#include "nil.h"
+#include "miscobjects.h"
 #include "string.h"
 
 static ScmObj vm = SCM_OBJ_INIT;

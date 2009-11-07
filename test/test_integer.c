@@ -2,7 +2,7 @@
 
 #include "object.h"
 #include "vm.h"
-#include "nil.h"
+#include "miscobjects.h"
 #include "integer.h"
 
 static ScmObj vm = SCM_OBJ_INIT;

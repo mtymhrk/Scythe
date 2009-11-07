@@ -4,7 +4,7 @@
 #include "object.h"
 #include "vm.h"
 #include "string.h"
-#include "nil.h"
+#include "miscobjects.h"
 #include "vector.h"
 
 static ScmObj vm = SCM_OBJ_INIT;

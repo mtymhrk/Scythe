@@ -8,8 +8,6 @@
 #include "reference.h"
 #include "object.h"
 #include "symbol.h"
-#include "nil.h"
-#include "bool.h"
 #include "miscobjects.h"
 #include "obuffer.h"
 

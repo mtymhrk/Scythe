@@ -2,7 +2,7 @@
 
 #include "object.h"
 #include "reference.h"
-#include "nil.h"
+#include "miscobjects.h"
 #include "string.h"
 #include "symbol.h"
 

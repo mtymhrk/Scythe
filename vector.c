@@ -4,7 +4,7 @@
 #include "memory.h"
 #include "object.h"
 #include "vm.h"
-#include "nil.h"
+#include "miscobjects.h"
 #include "vector.h"
 #include "obuffer.h"
 
