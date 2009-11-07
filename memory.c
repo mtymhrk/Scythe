@@ -871,7 +871,7 @@ scm_mem_alloc(ScmMem *mem, ScmTypeInfo *type,
 void
 scm_mem_gc_start(ScmMem *mem)
 {
-  size_t nr_free;
+  int nr_free;
 
   assert(mem != NULL);
 

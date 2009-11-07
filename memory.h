@@ -56,17 +56,17 @@ struct ScmMemHeapBlockRec {
   uint8_t heap[0];
 };
 
-#define SCM_MEM_HEAP_NEW_BLOCK(block, sz)              \
-  do {                                                 \
-    (block) = malloc(sizeof(ScmMemHeapBlock) + (sz));  \
-    if ((block) != NULL) {                             \
-      uint8_t *p;                                      \
-      (block)->next = NULL;                            \
-      (block)->prev = NULL;                            \
-      (block)->size = (sz);                            \
-      p = SCM_MEM_ALIGN_PTR((block)->heap);        \
-      (block)->used = p - (block)->heap;               \
-    }                                                  \
+#define SCM_MEM_HEAP_NEW_BLOCK(block, sz)                       \
+  do {                                                          \
+    (block) = malloc(sizeof(ScmMemHeapBlock) + (sz));           \
+    if ((block) != NULL) {                                      \
+      uint8_t *p;                                               \
+      (block)->next = NULL;                                     \
+      (block)->prev = NULL;                                     \
+      (block)->size = (sz);                                     \
+      p = SCM_MEM_ALIGN_PTR((block)->heap);                     \
+      (block)->used = (size_t)p - (size_t)(block)->heap;        \
+    }                                                           \
   } while(0)
 
 #define SCM_MEM_HEAP_DELEATE_BLOCK(block)            \
@@ -104,8 +104,8 @@ struct ScmMemHeapBlockRec {
        obj = SCM_MEM_HEAP_BLOCK_NEXT_OBJ(block, obj))
 #define SCM_MEM_HEAP_BLOCK_CLEAN(block)                         \
   do {                                                          \
-    uint8_t *p = SCM_MEM_HEAP_BLOCK_HEAD(block);        \
-    (block)->used = p - (block)->heap;                          \
+    uint8_t *p = SCM_MEM_HEAP_BLOCK_HEAD(block);                \
+    (block)->used = (size_t)p - (size_t)(block)->heap;          \
   } while(0)
 
 #define SCM_MEM_HEAP_BLOCK_IS_OBJ_IN_BLOCK(block, obj) \

@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <limits.h>
 #include <assert.h>
 
 #include "memory.h"
@@ -12,8 +13,9 @@
 #include "string.h"
 
 #define SCM_STRING_BLOCK_SIZE  64
-#define CAPACITY(str) (SCM_STRING_CAPACITY(str) \
-                       - (SCM_STRING_HEAD(str) - SCM_STRING_BUFFER(str)))
+#define CAPACITY(str) (SCM_STRING_CAPACITY(str)                 \
+                       - (size_t)((SCM_STRING_HEAD(str)         \
+                                   - SCM_STRING_BUFFER(str))))
 #define ROOM_FOR_APPEND(str) (CAPACITY(str) - SCM_STRING_BYTESIZE(str))
 
 ScmTypeInfo SCM_STRING_TYPE_INFO = {
@@ -96,7 +98,7 @@ scm_string_copy_and_expand(ScmObj src, size_t size) /* GC OK */
     return SCM_OBJ_NULL;
   }
 
-  SCM_STRING_LENGTH(str) = len;
+  SCM_STRING_LENGTH(str) = (size_t)len;
 
   return str;
 }
@@ -147,6 +149,7 @@ scm_string_initialize(ScmObj str,
   SCM_STACK_FRAME_PUSH(&str);
 
   SCM_OBJ_ASSERT_TYPE(str, &SCM_STRING_TYPE_INFO);
+  assert(size <= SSIZE_MAX);
 
   SCM_STRING_BUFFER(str) = NULL;
   SCM_STRING_REF_CNT(str) = NULL;
@@ -176,7 +179,7 @@ scm_string_initialize(ScmObj str,
     if (len < 0)
       ;                  /* TODO: error handling: invalid byte sequence */
 
-    SCM_STRING_LENGTH(str) = len;
+    SCM_STRING_LENGTH(str) = (size_t)len;
     SCM_STRING_BYTESIZE(str) = size;
   }
   else {
@@ -191,6 +194,7 @@ scm_string_construct(SCM_MEM_ALLOC_TYPE_T mtype, const void *src, size_t size, S
   ScmObj str = SCM_OBJ_INIT;
 
   SCM_STACK_FRAME_PUSH(&str);
+  assert(size <= SSIZE_MAX);
 
   assert(/*0 <= enc && */enc < SMC_ENCODING_NR_ENC);
 
@@ -282,6 +286,7 @@ scm_string_substr(ScmObj str, unsigned int pos, size_t len) /* GC OK */
   ScmStrItr (*index2iter)(void *p, size_t size, unsigned int idx);
 
   SCM_STACK_FRAME_PUSH(&str, &substr);
+  assert(len <= SSIZE_MAX);
 
   if (pos + len > SCM_STRING_LENGTH(str)) return SCM_OBJ_NULL;
 
@@ -296,7 +301,8 @@ scm_string_substr(ScmObj str, unsigned int pos, size_t len) /* GC OK */
   SCM_STRING_HEAD(substr) = (uint8_t *)SCM_STR_ITR_PTR(&head);
   SCM_STRING_LENGTH(substr) = len;
   SCM_STRING_BYTESIZE(substr)
-    = (uint8_t *)SCM_STR_ITR_PTR(&tail) - (uint8_t *)SCM_STR_ITR_PTR(&head);
+    = (size_t)((uint8_t *)SCM_STR_ITR_PTR(&tail)
+               - (uint8_t *)SCM_STR_ITR_PTR(&head));
 
   return substr;
 }
@@ -306,7 +312,7 @@ scm_string_push(ScmObj str, const scm_char_t c) /* GC OK */
 {
   ScmObj tmp = SCM_OBJ_INIT;
   int (*char_width)(const void *p, size_t size);
-  int width;
+  ssize_t width;
 
   SCM_STACK_FRAME_PUSH(&str, &tmp);
 
@@ -317,9 +323,9 @@ scm_string_push(ScmObj str, const scm_char_t c) /* GC OK */
   if (width < 0) return SCM_OBJ_NULL;
 
   if ((*SCM_STRING_REF_CNT(str) > 1) || ROOM_FOR_APPEND(str) < (size_t)width) {
-    SCM_SETQ(tmp,
-             scm_string_copy_and_expand(str,
-                                        SCM_STRING_BYTESIZE(str) + width));
+    SCM_SETQ(tmp, scm_string_copy_and_expand(str,
+                                             SCM_STRING_BYTESIZE(str)
+                                             + (size_t)width));
     if (SCM_OBJ_IS_NULL(tmp)) return SCM_OBJ_NULL;
     scm_string_replace_contents(str, tmp);
     scm_string_finalize(tmp);
@@ -327,7 +333,7 @@ scm_string_push(ScmObj str, const scm_char_t c) /* GC OK */
 
   memcpy(SCM_STRING_HEAD(str) + SCM_STRING_BYTESIZE(str), &c, (size_t)width);
   SCM_STRING_LENGTH(str) += 1;
-  SCM_STRING_BYTESIZE(str) += width;
+  SCM_STRING_BYTESIZE(str) += (size_t)width;
 
   return str;
 }
@@ -411,15 +417,18 @@ scm_string_set(ScmObj str, unsigned int pos, const scm_char_t c) /* GC OK */
   if (iw < 0) return SCM_OBJ_NULL;
 
   if (*SCM_STRING_REF_CNT(str) == 1
-      && (iw < cw || ROOM_FOR_APPEND(str) >= (size_t)(cw - iw))) {
-    size_t rest = SCM_STR_ITR_REST(&iter);
-    size_t offset = SCM_STR_ITR_OFFSET(&iter, SCM_STRING_HEAD(str));
+      && (iw > cw || ROOM_FOR_APPEND(str) >= (size_t)(cw - iw))) {
+    size_t rest = (size_t)SCM_STR_ITR_REST(&iter);
+    size_t offset = (size_t)SCM_STR_ITR_OFFSET(&iter, SCM_STRING_HEAD(str));
 
     if (cw != iw) {
       memmove(SCM_STRING_HEAD(str) + offset + cw,
               SCM_STRING_HEAD(str) + offset + iw,
-              rest - iw);
-      SCM_STRING_BYTESIZE(str) += cw - iw;
+              rest - (size_t)iw);
+      if (iw > cw)
+        SCM_STRING_BYTESIZE(str) -= (size_t)(iw - cw);
+      else
+        SCM_STRING_BYTESIZE(str) += (size_t)(cw - iw);
     }
     memcpy(SCM_STRING_HEAD(str) + offset, &c, (size_t)cw);
 
@@ -427,24 +436,26 @@ scm_string_set(ScmObj str, unsigned int pos, const scm_char_t c) /* GC OK */
   }
   else if (cw == iw) {
     size_t offset = SCM_STR_ITR_OFFSET(&iter, SCM_STRING_HEAD(str));
-    tmp = scm_string_copy(str);
+    SCM_SETQ(tmp, scm_string_copy(str));
 
     if (SCM_OBJ_IS_NULL(tmp)) return SCM_OBJ_NULL;
-    memcpy(SCM_STRING_HEAD(str) + offset, &c, (size_t)cw);
+    memcpy(SCM_STRING_HEAD(tmp) + offset, &c, (size_t)cw);
     scm_string_replace_contents(str, tmp);
 
     return str;
   }
   else {
-    front = scm_string_substr(str, 0, pos);
-    rear = scm_string_substr(str, pos + 1, SCM_STRING_LENGTH(str) - pos - 1);
+    SCM_SETQ(front, scm_string_substr(str, 0, pos));
+    SCM_SETQ(rear, scm_string_substr(str, pos + 1,
+                                     SCM_STRING_LENGTH(str) - pos - 1));
 
     if (SCM_OBJ_IS_NULL(front) || SCM_OBJ_IS_NULL(rear))
       return SCM_OBJ_NULL;
 
-    tmp = scm_string_copy_and_expand(front,
-                                     SCM_STRING_BYTESIZE(front)
-                                     + cw + SCM_STRING_BYTESIZE(rear));
+    SCM_SETQ(tmp, scm_string_copy_and_expand(front,
+                                             SCM_STRING_BYTESIZE(front)
+                                             + (size_t)cw
+                                             + SCM_STRING_BYTESIZE(rear)));
     if (SCM_OBJ_IS_NULL(tmp)) return SCM_OBJ_NULL;
     if (SCM_OBJ_IS_NULL(scm_string_push(tmp, c))) return SCM_OBJ_NULL;
     if (SCM_OBJ_IS_NULL(scm_string_append(tmp, rear))) return SCM_OBJ_NULL;
@@ -460,19 +471,20 @@ ScmObj
 scm_string_fill(ScmObj str, unsigned int pos, size_t len, scm_char_t c) /* GC OK */
 {
   int (*char_width)(const void *p, size_t size);
-  int filledsize;
+  ssize_t filledsize;
   size_t i;
   ScmObj front = SCM_OBJ_INIT, rear = SCM_OBJ_INIT, tmp = SCM_OBJ_INIT;
 
   SCM_STACK_FRAME_PUSH(&str, &front, &rear, &tmp);
 
   SCM_OBJ_ASSERT_TYPE(str, &SCM_STRING_TYPE_INFO);
+  assert(len <= SSIZE_MAX);
 
   if (pos > SCM_STRING_LENGTH(str)) return SCM_OBJ_NULL;
 
   char_width = SCM_ENCODING_VFUNC_CHAR_WIDTH(SCM_STRING_ENC(str));
 
-  filledsize = char_width(&c, sizeof(c)) * len;
+  filledsize = char_width(&c, sizeof(c)) * (ssize_t)len;
   if (filledsize < 0) return SCM_OBJ_NULL;
 
   SCM_SETQ(front, scm_string_substr(str, 0, pos));
@@ -606,11 +618,12 @@ scm_string_dump(ScmObj str, void *buf, size_t size) /* GC OK */
 
   SCM_OBJ_ASSERT_TYPE(str, &SCM_STRING_TYPE_INFO);
   assert(buf != NULL);
+  assert(size <= SSIZE_MAX);
 
   len = (size < SCM_STRING_BYTESIZE(str)) ? size : SCM_STRING_BYTESIZE(str);
   memcpy(buf, SCM_STRING_HEAD(str), len); // XXX
 
-  return len;
+  return (ssize_t)len;
 }
 
 SCM_ENCODING_T
