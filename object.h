@@ -91,7 +91,10 @@ struct ScmAtomRec {
   ScmObjHeader header;
 };
 
-/* TODO: replace scm_obj_type() to following macro function */
+#define SCM_OBJ_TAG(obj) ((uintptr_t)(obj) & 0x07u)
+#define SCM_OBJ_IS_MEM_MANAGED(obj) (SCM_OBJ_TAG(obj) == 0x00u)
+#define SCM_OBJ_HAS_PTR_TO_TYPE_INFO(obj) (SCM_OBJ_TAG(obj) == 0x00u)
+
 #define SCM_OBJ_TYPE(obj) ((obj)->header.type)
 #define SCM_OBJ_IS_TYPE(obj, type) \
   (SCM_TYPE_INFO_IS_SAME(SCM_OBJ_TYPE(obj), type))

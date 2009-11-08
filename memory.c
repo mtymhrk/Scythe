@@ -379,7 +379,8 @@ scm_mem_copy_children_func(ScmObj mem, ScmObj obj, ScmRef child)
   assert(obj != NULL);
   assert(child != SCM_REF_NULL);
 
-  if (SCM_REF_OBJ(child) != NULL) {
+  if (SCM_REF_OBJ(child) != NULL
+      && SCM_OBJ_IS_MEM_MANAGED(SCM_REF_OBJ(child))) {
     ScmObj cpy = scm_mem_copy_obj(SCM_MEM(mem), SCM_REF_OBJ(child));
     if (SCM_OBJ_IS_NULL(cpy))  return -1; // error
     SCM_REF_UPDATE(child, cpy);
