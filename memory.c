@@ -381,7 +381,7 @@ scm_mem_copy_children_func(ScmObj mem, ScmObj obj, ScmRef child)
 
   if (SCM_REF_OBJ(child) != NULL) {
     ScmObj cpy = scm_mem_copy_obj(SCM_MEM(mem), SCM_REF_OBJ(child));
-    if (cpy == NULL)  return -1; // error
+    if (SCM_OBJ_IS_NULL(cpy))  return -1; // error
     SCM_REF_UPDATE(child, cpy);
   }
 
@@ -905,6 +905,13 @@ scm_mem_alloc_size_in_heap(ScmTypeInfo *type)
     size = SCM_MEM_MIN_OBJ_SIZE;
 
   return size;
+}
+
+size_t
+scm_mem_alloc_size_in_heap_aligned(ScmTypeInfo *type)
+{
+  size_t size = scm_mem_alloc_size_in_heap(type);
+  return SCM_MEM_ALIGN_SIZE(size);
 }
 
 size_t

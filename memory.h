@@ -41,7 +41,7 @@ struct ScmForwardRec {
   } while(0)
 
 
-#define SCM_MEM_ALIGN_BYTE 4
+#define SCM_MEM_ALIGN_BYTE 8
 #define SCM_MEM_ALIGN_SIZE(size)        \
   (((size) % SCM_MEM_ALIGN_BYTE == 0) ?                                 \
    (size) : (size) + (SCM_MEM_ALIGN_BYTE - (size) % SCM_MEM_ALIGN_BYTE))
@@ -97,7 +97,8 @@ struct ScmMemHeapBlockRec {
 #define SCM_MEM_HEAP_BLOCK_PTR_IS_ALLOCATED(block, ptr)                 \
   (SCM_MEM_HEAP_BLOCK_PTR_OFFSET(block, ptr) < SCM_MEM_HEAP_BLOCK_USED(block))
 #define SCM_MEM_HEAP_BLOCK_NEXT_OBJ(block, obj)                         \
-  SCM_OBJ((uint8_t *)obj + scm_mem_alloc_size_in_heap(SCM_OBJ_TYPE(obj)))
+  SCM_OBJ((uint8_t *)obj                                                \
+          + scm_mem_alloc_size_in_heap_aligned(SCM_OBJ_TYPE(obj)))
 #define SCM_MEM_HEAP_BLOCK_FOR_EACH_OBJ(block, obj)                     \
   for ((obj) = SCM_OBJ(SCM_MEM_HEAP_BLOCK_HEAD(block));         \
        SCM_MEM_HEAP_BLOCK_PTR_IS_ALLOCATED(block, obj);                 \
@@ -415,6 +416,7 @@ ScmMem *scm_mem_alloc(ScmMem *mem, ScmTypeInfo *type,
                       SCM_MEM_ALLOC_TYPE_T alloc, ScmRef ref);
 void scm_mem_gc_start(ScmMem *mem);
 size_t scm_mem_alloc_size_in_heap(ScmTypeInfo *type);
+size_t scm_mem_alloc_size_in_heap_aligned(ScmTypeInfo *type);
 size_t scm_mem_alloc_size_in_root(ScmTypeInfo *type);
 ScmObj scm_memory_alloc_shared_root(ScmTypeInfo *type);
 ScmObj scm_memory_free_shared_root(ScmObj obj);
