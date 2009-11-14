@@ -31,3 +31,5 @@ scm_obj_is_same_instance(ScmObj obj1, ScmObj obj2)
 
   return (obj1 == obj2) ? 1 : 0;
 }
+
+ScmTypeInfo *SCM_OBJ_TAG2TYPE_TBL[] = {};

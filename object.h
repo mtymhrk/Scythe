@@ -91,11 +91,15 @@ struct ScmAtomRec {
   ScmObjHeader header;
 };
 
+extern ScmTypeInfo *SCM_OBJ_TAG2TYPE_TBL[];
+
 #define SCM_OBJ_TAG(obj) ((uintptr_t)(obj) & 0x07u)
 #define SCM_OBJ_IS_MEM_MANAGED(obj) (SCM_OBJ_TAG(obj) == 0x00u)
 #define SCM_OBJ_HAS_PTR_TO_TYPE_INFO(obj) (SCM_OBJ_TAG(obj) == 0x00u)
 
-#define SCM_OBJ_TYPE(obj) ((obj)->header.type)
+#define SCM_OBJ_TYPE(obj)                                               \
+  (SCM_OBJ_HAS_PTR_TO_TYPE_INFO(obj) ?                                  \
+   ((obj)->header.type) : SCM_OBJ_TAG2TYPE_TBL[SCM_OBJ_TAG(obj)])
 #define SCM_OBJ_IS_TYPE(obj, type) \
   (SCM_TYPE_INFO_IS_SAME(SCM_OBJ_TYPE(obj), type))
 #define SCM_OBJ_SIZE(obj) (SCM_TYPE_INFO_OBJ_SIZE(SCM_OBJ_TYPE(obj)))
