@@ -126,7 +126,7 @@ struct ScmMemHeapRec {
   (((heap)->current == NULL) ? 0 : SCM_MEM_HEAP_BLOCK_FREE((heap)->current))
 #define SCM_MEM_HEAP_IS_CUR_BLOCK_TAIL(heap)  ((heap)->current == (heap)->tail)
 #define SCM_MEM_HEAP_WEAK_LIST(heap) ((heap)->weak_list)
-#define SCM_MEM_HEAP_SET_WEAK_LIST(heap, p) ((heap)->weak_list = (p))
+#define SCM_MEM_HEAP_SET_WEAK_LIST(heap, p) ((heap)->weak_list = (void *)(p))
 #define SCM_MEM_HEAP_NR_BLOCK(heap) ((heap)->nr_block)
 #define SCM_MEM_HEAP_NR_FREE_BLOCK(heap) ((heap)->nr_free_block)
 #define SCM_MEM_HEAP_NR_USED_BLOCK(heap) \

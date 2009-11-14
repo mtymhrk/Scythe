@@ -34,7 +34,7 @@ test_scm_string_eucjp(void)
                                      expected, sizeof(expected) - 1,
                                      SCM_ENCODING_EUCJP));
 
-  cut_assert_not_null(str);
+  cut_assert_true(SCM_OBJ_IS_NOT_NULL(str));
   cut_assert_equal_uint(SCM_ENCODING_EUCJP, scm_string_encoding(str));
   cut_assert_equal_uint(6, scm_string_length(str));
   cut_assert_equal_uint(sizeof(expected) - 1, scm_string_bytesize(str));
@@ -177,7 +177,7 @@ test_scm_string_substr_eucjp(void)
                                      SCM_ENCODING_EUCJP));
   SCM_SETQ(sub, scm_string_substr(str, 6, 5));
 
-  cut_assert_not_null(sub);
+  cut_assert_true(SCM_OBJ_IS_NOT_NULL(sub));
   cut_assert_equal_uint(5u, scm_string_length(sub));
   cut_assert_equal_uint(sizeof(expected) - 1, scm_string_bytesize(sub));
 
@@ -205,7 +205,7 @@ test_scm_string_push_eucjp(void)
                                      sizeof("この文字列は誤りである") - 1,
                                      SCM_ENCODING_EUCJP));
 
-  cut_assert_not_null(scm_string_push(str, pushed));
+  cut_assert_true(SCM_OBJ_IS_NOT_NULL(scm_string_push(str, pushed)));
 
   cut_assert_equal_uint(12u, scm_string_length(str));
   cut_assert_equal_uint(sizeof(expected) - 1, scm_string_bytesize(str));
@@ -234,7 +234,7 @@ test_scm_string_append_eucjp(void)
                                       sizeof("前の文は誤りである。") - 1,
                                       SCM_ENCODING_EUCJP));
 
-  cut_assert_not_null(scm_string_append(str, apnd));
+  cut_assert_true(SCM_OBJ_IS_NOT_NULL(scm_string_append(str, apnd)));
 
   cut_assert_equal_uint(18u, scm_string_length(str));
   cut_assert_equal_uint(sizeof(expected) - 1, scm_string_bytesize(str));
@@ -321,7 +321,7 @@ test_scm_string_set_less_width_eucjp(void)
                                      "テスト", sizeof("テスト") - 1,
                                      SCM_ENCODING_EUCJP));
 
-  cut_assert_not_null(scm_string_set(str, 1, c));
+  cut_assert_true(SCM_OBJ_IS_NOT_NULL(scm_string_set(str, 1, c)));
 
   cut_assert_equal_uint(3u, scm_string_length(str));
   cut_assert_equal_uint(sizeof(expected) - 1, scm_string_bytesize(str));
@@ -350,7 +350,7 @@ test_scm_string_set_same_width_eucjp(void)
                                      sizeof("テスト") - 1,
                                      SCM_ENCODING_EUCJP));
 
-  cut_assert_not_null(scm_string_set(str, 1, c));
+  cut_assert_true(SCM_OBJ_IS_NOT_NULL(scm_string_set(str, 1, c)));
 
   cut_assert_equal_uint(3u, scm_string_length(str));
   cut_assert_equal_uint(sizeof(expected) - 1, scm_string_bytesize(str));
@@ -378,7 +378,7 @@ test_scm_string_set_greater_width_eucjp(void)
                                      "abc", sizeof("abc") - 1,
                                      SCM_ENCODING_EUCJP));
 
-  cut_assert_not_null(scm_string_set(str, 1, c));
+  cut_assert_true(SCM_OBJ_IS_NOT_NULL(scm_string_set(str, 1, c)));
 
   cut_assert_equal_uint(3u, scm_string_length(str));
   cut_assert_equal_uint(sizeof(expected) - 1, scm_string_bytesize(str));
@@ -407,7 +407,7 @@ test_scm_string_fill_eucjp(void)
                                      sizeof("この文字列は正しい。前の文は誤りである。") - 1,
                                      SCM_ENCODING_EUCJP));
 
-  cut_assert_not_null(scm_string_fill(str, 8, 3, c));
+  cut_assert_true(SCM_OBJ_IS_NOT_NULL(scm_string_fill(str, 8, 3, c)));
 
   cut_assert_equal_uint(20u, scm_string_length(str));
   cut_assert_equal_uint(sizeof(expected) - 1, scm_string_bytesize(str));
@@ -436,7 +436,7 @@ test_scm_string_fill_append_eucjp(void)
                                      sizeof("この文字列は正しい。前の文は誤りである。") - 1,
                                      SCM_ENCODING_EUCJP));
 
-  cut_assert_not_null(scm_string_fill(str, 18, 5, c));
+  cut_assert_true(SCM_OBJ_IS_NOT_NULL(scm_string_fill(str, 18, 5, c)));
 
   cut_assert_equal_uint(23u, scm_string_length(str));
   cut_assert_equal_uint(sizeof(expected) - 1, scm_string_bytesize(str));

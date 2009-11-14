@@ -2,7 +2,7 @@ CC       = gcc
 LD       = ld
 CFLAGS   = -O2 -Wall -Wextra -Wformat=2 -Wstrict-aliasing=2 -Wcast-qual \
            -Wcast-align -Wwrite-strings -Wconversion -Wfloat-equal \
-           -Wpointer-arith -Wswitch-enum -Wno-unused-parameter \
+           -Wpointer-arith -Wswitch-enum -Wno-unused-parameter -Winline \
            -fPIC -g -Dcut_startup=startup -Dcut_shutdown=shutdown
 INCLUDES = -I/usr/local/include/cutter -iquote ..
 LDFLAGS  = -lcunit -g

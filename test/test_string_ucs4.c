@@ -25,16 +25,16 @@ utf8str_to_ucs4str(const void *utf8, size_t size, void *ucs4)
 {
   const uint8_t *p8;
   uint32_t *p4;
-  unsigned int i;
+  int i;
 
   p8 = utf8;
   p4 = ucs4;
   i = 0;
-  while (i < size) {
-    i += scm_enc_utf8_to_ucs4(p8 + i, size - i, p4++);
+  while ((size_t)i < size) {
+    i += scm_enc_utf8_to_ucs4(p8 + i, size - (size_t)i, p4++);
   }
 
-  return (uint8_t *)p4 - (uint8_t *)ucs4;
+  return (size_t)((uint8_t *)p4 - (uint8_t *)ucs4);
 }
 
 void
@@ -55,7 +55,7 @@ test_scm_string_ucs4(void)
            scm_string_construct(SCM_MEM_ALLOC_HEAP,
                                 expected, expected_len, SCM_ENCODING_UCS4));
 
-  cut_assert_not_null(str);
+  cut_assert_true(SCM_OBJ_IS_NOT_NULL(str));
   cut_assert_equal_uint(SCM_ENCODING_UCS4, scm_string_encoding(str));
   cut_assert_equal_uint(6u, scm_string_length(str));
   cut_assert_equal_uint(expected_len, scm_string_bytesize(str));
@@ -234,7 +234,7 @@ test_scm_string_substr_ucs4(void)
                                      row, row_len, SCM_ENCODING_UCS4));
   SCM_SETQ(sub, scm_string_substr(str, 6, 5));
 
-  cut_assert_not_null(sub);
+  cut_assert_true(SCM_OBJ_IS_NOT_NULL(sub));
   cut_assert_equal_uint(5u, scm_string_length(sub));
   cut_assert_equal_uint(expected_len, scm_string_bytesize(sub));
 
@@ -268,7 +268,7 @@ test_scm_string_push_ucs4(void)
   SCM_SETQ(str, scm_string_construct(SCM_MEM_ALLOC_HEAP,
                                      row, row_len, SCM_ENCODING_UCS4));
 
-  cut_assert_not_null(scm_string_push(str, pushed));
+  cut_assert_true(SCM_OBJ_IS_NOT_NULL(scm_string_push(str, pushed)));
 
   cut_assert_equal_uint(12u, scm_string_length(str));
   cut_assert_equal_uint(expected_len, scm_string_bytesize(str));
@@ -306,7 +306,7 @@ test_scm_string_append_ucs4(void)
   SCM_SETQ(apnd, scm_string_construct(SCM_MEM_ALLOC_HEAP,
                                       row2, row2_len, SCM_ENCODING_UCS4));
 
-  cut_assert_not_null(scm_string_append(str, apnd));
+  cut_assert_true(SCM_OBJ_IS_NOT_NULL(scm_string_append(str, apnd)));
 
   cut_assert_equal_uint(18u, scm_string_length(str));
   cut_assert_equal_uint(expected_len, scm_string_bytesize(str));
@@ -397,7 +397,7 @@ test_scm_string_set_same_width_utf4(void)
   SCM_SETQ(str, scm_string_construct(SCM_MEM_ALLOC_HEAP,
                                      row, row_len, SCM_ENCODING_UCS4));
 
-  cut_assert_not_null(scm_string_set(str, 1, c));
+  cut_assert_true(SCM_OBJ_IS_NOT_NULL(scm_string_set(str, 1, c)));
 
   cut_assert_equal_uint(3u, scm_string_length(str));
   cut_assert_equal_uint(expected_len, scm_string_bytesize(str));
@@ -432,7 +432,7 @@ test_scm_string_fill_ucs4(void)
   SCM_SETQ(str, scm_string_construct(SCM_MEM_ALLOC_HEAP,
                                      row, row_len, SCM_ENCODING_UCS4));
 
-  cut_assert_not_null(scm_string_fill(str, 8, 3, c));
+  cut_assert_true(SCM_OBJ_IS_NOT_NULL(scm_string_fill(str, 8, 3, c)));
 
   cut_assert_equal_uint(20u, scm_string_length(str));
   cut_assert_equal_uint(expected_len, scm_string_bytesize(str));
@@ -467,7 +467,7 @@ test_scm_string_fill_append_ucs4(void)
   SCM_SETQ(str, scm_string_construct(SCM_MEM_ALLOC_HEAP,
                                      row, row_len, SCM_ENCODING_UCS4));
 
-  cut_assert_not_null(scm_string_fill(str, 18, 5, c));
+  cut_assert_true(SCM_OBJ_IS_NOT_NULL(scm_string_fill(str, 18, 5, c)));
 
   cut_assert_equal_uint(23u, scm_string_length(str));
   cut_assert_equal_uint(expected_len, scm_string_bytesize(str));

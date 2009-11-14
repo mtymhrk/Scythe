@@ -69,7 +69,7 @@ scm_pair_cdr(ScmObj pair)       /* GC OK */
 bool
 scm_pair_is_pair(const ScmObj obj) /* GC OK */
 {
-  assert(obj != NULL);
+  assert(SCM_OBJ_IS_NOT_NULL(obj));
 
   return SCM_OBJ_IS_TYPE(obj, &SCM_PAIR_TYPE_INFO);
 }
@@ -79,7 +79,7 @@ scm_pair_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
 {
   ScmPair *pair = NULL;
 
-  assert(obj != NULL); assert(scm_pair_is_pair(obj));
+  SCM_OBJ_ASSERT_TYPE(obj, &SCM_PAIR_TYPE_INFO);
   assert(obuffer != NULL);
 
   pair = SCM_PAIR(obj);
@@ -117,7 +117,7 @@ scm_pair_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
 
   SCM_OBJ_ASSERT_TYPE(obj, &SCM_PAIR_TYPE_INFO);
-  assert(mem != NULL);
+  assert(SCM_OBJ_IS_NOT_NULL(mem));
   assert(handler != NULL);
 
   rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_PAIR_CAR(obj), mem);

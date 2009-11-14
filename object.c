@@ -7,10 +7,11 @@
 void
 scm_obj_init(ScmObj obj, ScmTypeInfo *type)
 {
-  assert(obj != NULL);
+  assert(SCM_OBJ_IS_NOT_NULL(obj));
   assert(type != NULL);
 
-  obj->header.type = type;
+  if (SCM_OBJ_IS_MEM_MANAGED(obj))
+    SCM_MMOBJ(obj)->header.type = type;
 }
 
 void
@@ -18,16 +19,16 @@ scm_obj_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
 {
   ScmPrettyPrintFunction pp_func;
 
-  assert(obj != NULL); assert(obuffer != NULL);
+  assert(SCM_OBJ_IS_NOT_NULL(obj)); assert(obuffer != NULL);
 
-  pp_func = SCM_TYPE_INFO_PP(obj->header.type);
+  pp_func = SCM_OBJ_PP_FUNC(obj);
   pp_func(obj, obuffer);
 }
 
 int
 scm_obj_is_same_instance(ScmObj obj1, ScmObj obj2)
 {
-  assert(obj1 != NULL); assert(obj2 != NULL);
+  assert(SCM_OBJ_IS_NOT_NULL(obj1)); assert(SCM_OBJ_IS_NOT_NULL(obj2));
 
   return (obj1 == obj2) ? 1 : 0;
 }

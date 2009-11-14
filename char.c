@@ -101,7 +101,7 @@ scm_char_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
   char str[32];
   ScmChar *charv;
 
-  assert(obj != NULL); assert(scm_char_is_char(obj));
+  SCM_OBJ_ASSERT_TYPE(obj, &SCM_CHAR_TYPE_INFO);
   assert(obuffer != NULL);
 
   charv = SCM_CHAR(obj);

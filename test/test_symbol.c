@@ -40,7 +40,7 @@ test_scm_symbol_construct(void)
   SCM_SETQ(sym, scm_symbol_construct(SCM_MEM_ALLOC_HEAP, str));
 
   /* postcondition check */
-  cut_assert_not_null(sym);
+  cut_assert_true(SCM_OBJ_IS_NOT_NULL(sym));
 }
 
 void
@@ -60,8 +60,8 @@ test_scm_symbol_instance__2_symbols_derived_from_same_string_shuld_be_same_insta
   SCM_SETQ(sym2, scm_symbol_instance(str));
 
   /* postcondition check */
-  cut_assert_not_null(sym1);
-  cut_assert_not_null(sym2);
+  cut_assert_true(SCM_OBJ_IS_NOT_NULL(sym1));
+  cut_assert_true(SCM_OBJ_IS_NOT_NULL(sym2));
   cut_assert(SCM_OBJ_IS_SAME_INSTANCE(sym1, sym2));
 }
 

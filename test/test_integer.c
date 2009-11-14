@@ -28,7 +28,7 @@ test_scm_integer_construct(void)
 
   SCM_SETQ(integer, scm_integer_construct(SCM_MEM_ALLOC_HEAP, 0LL));
 
-  cut_assert_not_null(integer);
+  cut_assert_true(SCM_OBJ_IS_NOT_NULL(integer));
 }
 
 void

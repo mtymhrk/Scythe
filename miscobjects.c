@@ -67,7 +67,7 @@ scm_eof_is_eof(ScmObj obj)      /* GC OK */
 void
 scm_eof_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
 {
-  assert(obj != NULL); assert(scm_eof_is_eof(obj));
+  SCM_OBJ_ASSERT_TYPE(obj, &SCM_EOF_TYPE_INFO);
   assert(obuffer != NULL);
 
   scm_obuffer_concatenate_string(obuffer, "#<eof>");
@@ -148,7 +148,7 @@ scm_bool_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
 {
   ScmBool *boolv;
 
-  assert(obj != NULL); assert(scm_bool_is_bool(obj));
+  SCM_OBJ_ASSERT_TYPE(obj, &SCM_BOOL_TYPE_INFO);
   assert(obuffer != NULL);
 
   boolv = SCM_BOOL(obj);

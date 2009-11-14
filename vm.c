@@ -201,23 +201,23 @@ scm_vm_construct(void)
   ScmObj vm;
 
   mem = scm_mem_construct();
-  if (mem == NULL) return NULL;
+  if (mem == NULL) return SCM_OBJ_NULL;
 
   if (scm_mem_register_extra_rfrn(mem, SCM_REF_MAKE(current_vm))
       == SCM_REF_NULL)
     goto err;
 
   scm_mem_alloc_root(mem, &SCM_VM_TYPE_INFO, SCM_REF_MAKE(vm));
-  if (vm == NULL) goto err;
+  if (SCM_OBJ_IS_NULL(vm)) goto err;
 
-  scm_vm_initialize(vm, NULL);
+  scm_vm_initialize(vm, SCM_OBJ_NULL);
   scm_vm_setup_root(vm);
 
   return vm;
 
  err:
   scm_mem_destruct(mem);
-  return NULL;
+  return SCM_OBJ_NULL;
 }
 
 void
@@ -225,7 +225,7 @@ scm_vm_destruct(ScmObj vm)
 {
   SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
 
-  if (SCM_VM_PARENT_VM(vm) == NULL) /* root vm */
+  if (SCM_OBJ_IS_NULL(SCM_VM_PARENT_VM(vm))) /* root vm */
     scm_vm_clean_root(vm);
 }
 
@@ -284,9 +284,9 @@ scm_vm_gc_initialize(ScmObj obj, ScmObj mem)
   /* vm->iseq = NULL; */
   /* vm->stack = NULL; */
   SCM_VM_REF_STACK(obj) = NULL;
-  SCM_VM_SYMTBL(obj) = NULL;
-  SCM_VM_PARENT_VM(obj) = NULL;
-  SCM_VM_PREV_VM(obj) = NULL;
+  SCM_VM_SYMTBL(obj) = SCM_OBJ_NULL;
+  SCM_VM_PARENT_VM(obj) = SCM_OBJ_NULL;
+  SCM_VM_PREV_VM(obj) = SCM_OBJ_NULL;
 }
 
 void

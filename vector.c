@@ -99,8 +99,7 @@ scm_vector_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
 {
   ScmVector *vector;
 
-
-  assert(obj != NULL); assert(scm_vector_is_vector(obj));
+  SCM_OBJ_ASSERT_TYPE(obj, &SCM_VECTOR_TYPE_INFO);
   assert(obuffer != NULL);
 
   vector = SCM_VECTOR(obj);

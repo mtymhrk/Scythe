@@ -97,7 +97,7 @@ scm_symbol_is_symbol(ScmObj obj) /* GC OK */
 void
 scm_symbol_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
 {
-  assert(obj != NULL); assert(scm_symbol_is_symbol(obj));
+  SCM_OBJ_ASSERT_TYPE(obj, &SCM_SYMBOL_TYPE_INFO);
   assert(obuffer != NULL);
 
   /* scm_obuffer_concatenate_string(obuffer, SCM_SYMBOL(obj)->name); */
@@ -195,8 +195,7 @@ scm_symtable_is_symtable(ScmObj obj) /* GC OK */
 void
 scm_symtable_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
 {
-  assert(obj != NULL);
-  assert(scm_symtable_is_symtable(obj));
+  SCM_OBJ_ASSERT_TYPE(obj, &SCM_SYMTABLE_TYPE_INFO);
   assert(obuffer != NULL);
 
   scm_obuffer_concatenate_string(obuffer, "#<SymTable>");

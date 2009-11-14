@@ -6,17 +6,17 @@
 #include <assert.h>
 
 typedef struct ScmObjHeaderRec ScmObjHeader;
-typedef struct ScmAtomRec ScmAtom;
-typedef ScmAtom *ScmObj;
+typedef struct ScmMMObjRec ScmMMObj;
+typedef uintptr_t ScmObj;
 typedef struct ScmTypeInfoRec ScmTypeInfo;
 typedef struct ScmGCRefItrRec ScmGCRefItr;
 typedef ScmObj *ScmRef;
 typedef const ScmObj *ScmCRef;
 
-#define SCM_ATOM(obj) ((ScmAtom *)(obj))
+#define SCM_MMOBJ(obj) ((ScmMMObj *)(obj))
 #define SCM_OBJ(obj) ((ScmObj)(obj))
 
-#define SCM_OBJ_NULL NULL
+#define SCM_OBJ_NULL 0u
 #define SCM_OBJ_INIT SCM_OBJ_NULL
 #define SCM_OBJ_IS_NULL(obj) ((obj) == SCM_OBJ_NULL)
 #define SCM_OBJ_IS_NOT_NULL(obj) ((obj) != SCM_OBJ_NULL)
@@ -40,7 +40,7 @@ typedef const ScmObj *ScmCRef;
 #define SCM_REF_NULL ((ScmRef)NULL)
 #define SCM_REF_OBJ(ref) (*((ScmObj *)(ref)))
 #define SCM_CREF_OBJ(ref) (*((const ScmObj *)(ref)))
-#define SCM_REF_UPDATE(ref, obj) (*((ScmObj *)(ref)) = (obj))
+#define SCM_REF_UPDATE(ref, obj) (*((ScmObj *)(ref)) = SCM_OBJ(obj))
 
 #include "obuffer.h"
 
@@ -69,7 +69,7 @@ struct ScmTypeInfoRec {
 
 
 #define SCM_TYPE_INFO_IS_SAME(t1, t2) ((t1) == (t2))
-#define SCM_TYPE_INFO_PP(type) ((type)->pp_func)
+#define SCM_TYPE_INFO_PP_FUNC(type) ((type)->pp_func)
 #define SCM_TYPE_INFO_OBJ_SIZE(type) ((type)->obj_size)
 #define SCM_TYPE_INFO_GC_INI(type) ((type)->gc_ini_func)
 #define SCM_TYPE_INFO_HAS_GC_INI(type) (SCM_TYPE_INFO_GC_INI(type) != NULL)
@@ -87,7 +87,7 @@ struct ScmObjHeaderRec {
   ScmTypeInfo *type;
 };
 
-struct ScmAtomRec {
+struct ScmMMObjRec {
   ScmObjHeader header;
 };
 
@@ -99,9 +99,10 @@ extern ScmTypeInfo *SCM_OBJ_TAG2TYPE_TBL[];
 
 #define SCM_OBJ_TYPE(obj)                                               \
   (SCM_OBJ_HAS_PTR_TO_TYPE_INFO(obj) ?                                  \
-   ((obj)->header.type) : SCM_OBJ_TAG2TYPE_TBL[SCM_OBJ_TAG(obj)])
+   (SCM_MMOBJ(obj)->header.type) : SCM_OBJ_TAG2TYPE_TBL[SCM_OBJ_TAG(obj)])
 #define SCM_OBJ_IS_TYPE(obj, type) \
   (SCM_TYPE_INFO_IS_SAME(SCM_OBJ_TYPE(obj), type))
+#define SCM_OBJ_PP_FUNC(obj) (SCM_TYPE_INFO_PP_FUNC(SCM_OBJ_TYPE(obj)))
 #define SCM_OBJ_SIZE(obj) (SCM_TYPE_INFO_OBJ_SIZE(SCM_OBJ_TYPE(obj)))
 #define SCM_OBJ_GC_INI(obj) (SCM_TYPE_INFO_GC_INI(SCM_OBJ_TYPE(obj)))
 #define SCM_OBJ_HAS_GC_INI(obj) (SCM_TYPE_INFO_HAS_GC_INI(SCM_OBJ_TYPE(obj))

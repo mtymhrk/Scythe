@@ -203,7 +203,7 @@ scm_weak_ref_is_weak_ref(ScmObj obj) /* GC OK */
 void
 scm_weak_ref_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
 {
-  assert(obj != NULL); assert(scm_weak_ref_is_weak_ref(obj));
+  SCM_OBJ_ASSERT_TYPE(obj, &SCM_WEAK_REF_TYPE_INFO);
   assert(obuffer != NULL);
 
   scm_obuffer_concatenate_string(obuffer, "<weak reference>");
@@ -231,12 +231,8 @@ scm_weak_ref_gc_accept_weak(ScmObj obj, ScmObj mem,
                             ScmGCRefHandlerFunc handler)
 {
   SCM_OBJ_ASSERT_TYPE(obj, &SCM_WEAK_REF_TYPE_INFO);
-  ScmWeakRef *wref;
-
-  assert(obj != NULL);
-  assert(mem != NULL);
+  assert(SCM_OBJ_IS_NOT_NULL(mem));
   assert(handler != NULL);
 
-  wref = SCM_WEAK_REF(obj);
-  return SCM_GC_CALL_REF_HANDLER(handler, obj, wref->obj, mem);
+  return SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_WEAK_REF_OBJ(obj), mem);
 }

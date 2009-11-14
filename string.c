@@ -111,7 +111,7 @@ scm_string_replace_contents(ScmObj target, ScmObj src) /* GC OK */
   SCM_OBJ_ASSERT_TYPE(target, &SCM_STRING_TYPE_INFO);
   SCM_OBJ_ASSERT_TYPE(src, &SCM_STRING_TYPE_INFO);
 
-  if (target == NULL || src == NULL) return;
+  if (SCM_OBJ_IS_NULL(target) || SCM_OBJ_IS_NULL(src)) return;
 
   if (*SCM_STRING_REF_CNT(target) > 1) {
     SCM_STRING_DEC_REF_CNT(target);
@@ -298,7 +298,7 @@ scm_string_substr(ScmObj str, unsigned int pos, size_t len) /* GC OK */
   tail = index2iter(SCM_STRING_HEAD(str), SCM_STRING_BYTESIZE(str), pos + len);
 
   if (SCM_STR_ITR_IS_ERR(&head) || SCM_STR_ITR_IS_ERR(&tail))
-    return NULL;
+    return SCM_OBJ_NULL;
 
   SCM_SETQ(substr, scm_string_dup(str));
   SCM_STRING_HEAD(substr) = (uint8_t *)SCM_STR_ITR_PTR(&head);
@@ -651,7 +651,7 @@ scm_string_content(ScmObj str)  /* GC OK */
 bool
 scm_string_is_string(ScmObj obj)
 {
-  assert(obj != NULL);
+  assert(SCM_OBJ_IS_NOT_NULL(obj));
 
   return SCM_OBJ_IS_TYPE(obj, &SCM_STRING_TYPE_INFO);
 }
@@ -664,7 +664,7 @@ scm_string_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
   ScmString *str = NULL;
   ScmStrItr iter;
 
-  assert(obj != NULL); assert(scm_string_is_string(obj));
+  SCM_OBJ_ASSERT_TYPE(obj, &SCM_STRING_TYPE_INFO);
   assert(obuffer != NULL);
 
   str = SCM_STRING(obj);

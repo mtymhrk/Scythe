@@ -25,7 +25,7 @@ test_scm_string_ascii(void)
 {
   char expected[] = "test string";
   char actual[256];
-  size_t len;
+  ssize_t len;
   ScmObj str = SCM_OBJ_INIT;
 
   SCM_STACK_FRAME_PUSH(&str);
@@ -35,14 +35,14 @@ test_scm_string_ascii(void)
                                 expected, sizeof(expected) - 1,
                                 SCM_ENCODING_ASCII));
 
-  cut_assert_not_null(str);
+  cut_assert_true(SCM_OBJ_IS_NOT_NULL(str));
   cut_assert_equal_uint(SCM_ENCODING_ASCII, scm_string_encoding(str));
   cut_assert_equal_uint(11, scm_string_length(str));
   cut_assert_equal_uint(sizeof(expected) - 1, scm_string_bytesize(str));
 
   len = scm_string_dump(str, actual, sizeof(actual));
-  cut_assert_equal_uint(sizeof(expected) - 1, len);
-  cut_assert_equal_int(0, memcmp(expected, actual, len));
+  cut_assert_equal_int(sizeof(expected) - 1, len);
+  cut_assert_equal_int(0, memcmp(expected, actual, (size_t)len));
 }
 
 void
@@ -50,7 +50,7 @@ test_scm_string_copy_ascii(void)
 {
   char expected[] = "this string is fault";
   char actual[256];
-  size_t len;
+  ssize_t len;
   ScmObj str = SCM_OBJ_INIT, copy = SCM_OBJ_INIT;
 
   SCM_STACK_FRAME_PUSH(&str, &copy);
@@ -66,8 +66,8 @@ test_scm_string_copy_ascii(void)
   cut_assert_equal_uint(scm_string_bytesize(str), scm_string_bytesize(copy));
 
   len = scm_string_dump(copy, actual, sizeof(actual));
-  cut_assert_equal_uint(sizeof(expected) - 1, len);
-  cut_assert_equal_int(0, memcmp(expected, actual, len));
+  cut_assert_equal_int(sizeof(expected) - 1, len);
+  cut_assert_equal_int(0, memcmp(expected, actual, (size_t)len));
 }
 
 void
@@ -75,7 +75,7 @@ test_scm_string_dup_ascii(void)
 {
   char expected[] = "this string is fault";
   char actual[256];
-  size_t len;
+  ssize_t len;
   ScmObj str = SCM_OBJ_INIT, copy = SCM_OBJ_INIT;
 
   SCM_STACK_FRAME_PUSH(&str, &copy);
@@ -91,7 +91,7 @@ test_scm_string_dup_ascii(void)
 
   len = scm_string_dump(copy, actual, sizeof(actual));
   cut_assert_equal_uint(sizeof(expected) - 1, len);
-  cut_assert_equal_int(0, memcmp(expected, actual, len));
+  cut_assert_equal_int(0, memcmp(expected, actual, (size_t)len));
 }
 
 void
@@ -182,7 +182,7 @@ test_scm_string_substr_ascii(void)
                                      SCM_ENCODING_ASCII));
   SCM_SETQ(sub, scm_string_substr(str, 12, 8));
 
-  cut_assert_not_null(sub);
+  cut_assert_true(SCM_OBJ_IS_NOT_NULL(sub));
   cut_assert_equal_uint(8u, scm_string_length(sub));
   cut_assert_equal_uint(sizeof(expected) - 1, scm_string_bytesize(sub));
 
@@ -208,7 +208,7 @@ test_scm_string_push_ascii(void)
                                      sizeof("this string is fault") - 1,
                                      SCM_ENCODING_ASCII));
 
-  cut_assert_not_null(scm_string_push(str, pushed));
+  cut_assert_true(SCM_OBJ_IS_NOT_NULL(scm_string_push(str, pushed)));
 
   cut_assert_equal_uint(21u, scm_string_length(str));
   cut_assert_equal_uint(sizeof(expected) - 1, scm_string_bytesize(str));
@@ -238,7 +238,7 @@ test_scm_string_append_ascii(void)
                                       sizeof(" previous sentence is fault") - 1,
                                       SCM_ENCODING_ASCII));
 
-  cut_assert_not_null(scm_string_append(str, apnd));
+  cut_assert_true(SCM_OBJ_IS_NOT_NULL(scm_string_append(str, apnd)));
 
   cut_assert_equal_uint(50u, scm_string_length(str));
   cut_assert_equal_uint(sizeof(expected) - 1, scm_string_bytesize(str));
@@ -352,7 +352,7 @@ test_scm_string_set_same_width_ascii(void)
                                      "abc", sizeof("abc") - 1,
                                      SCM_ENCODING_ASCII));
 
-  cut_assert_not_null(scm_string_set(str, 1, c));
+  cut_assert_true(SCM_OBJ_IS_NOT_NULL(scm_string_set(str, 1, c)));
 
   cut_assert_equal_uint(3u, scm_string_length(str));
   cut_assert_equal_uint(sizeof(expected) - 1, scm_string_bytesize(str));
@@ -381,7 +381,7 @@ test_scm_string_fill_ascii(void)
                                      sizeof("next sentence is right. previous sentence is fault") - 1,
                                      SCM_ENCODING_ASCII));
 
-  cut_assert_not_null(scm_string_fill(str, 17, 5, c));
+  cut_assert_true(SCM_OBJ_IS_NOT_NULL(scm_string_fill(str, 17, 5, c)));
 
   cut_assert_equal_uint(50u, scm_string_length(str));
   cut_assert_equal_uint(sizeof(expected) - 1, scm_string_bytesize(str));
@@ -411,7 +411,7 @@ test_scm_string_fill_append_ascii(void)
                                      SCM_ENCODING_ASCII));
 
 
-  cut_assert_not_null(scm_string_fill(str, 48, 5, c));
+  cut_assert_true(SCM_OBJ_IS_NOT_NULL(scm_string_fill(str, 48, 5, c)));
 
   cut_assert_equal_uint(53u, scm_string_length(str));
   cut_assert_equal_uint(sizeof(expected) - 1, scm_string_bytesize(str));

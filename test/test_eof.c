@@ -31,8 +31,8 @@ test_scm_eof_construct(void)
   SCM_SETQ(eof1, scm_eof_instance());
   SCM_SETQ(eof2, scm_eof_instance());
 
-  cut_assert_not_null(eof1);
-  cut_assert_not_null(eof2);
+  cut_assert_true(SCM_OBJ_IS_NOT_NULL(eof1));
+  cut_assert_true(SCM_OBJ_IS_NOT_NULL(eof2));
 
   cut_assert_true(scm_obj_is_same_instance(SCM_OBJ(eof1), SCM_OBJ(eof2)));
 }

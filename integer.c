@@ -127,7 +127,7 @@ scm_integer_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
   ScmInteger *integer;
   char str[21];
 
-  assert(obj != NULL); assert(scm_integer_is_integer(obj));
+  SCM_OBJ_ASSERT_TYPE(obj, &SCM_INTEGER_TYPE_INFO);
   assert(obuffer != NULL);
 
   integer = SCM_INTEGER(obj);

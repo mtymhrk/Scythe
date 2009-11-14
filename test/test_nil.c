@@ -27,7 +27,7 @@ test_scm_nil_construct(void)
 {
   ScmObj nil = scm_nil_construct(SCM_MEM_ALLOC_HEAP);
 
-  cut_assert_not_null(nil);
+  cut_assert_true(SCM_OBJ_IS_NOT_NULL(nil));
 }
 
 void
@@ -40,9 +40,9 @@ test_scm_nil_instance(void)
   SCM_SETQ(nil1, scm_nil_instance());
   SCM_SETQ(nil2, scm_nil_instance());
 
-  cut_assert_not_null(nil1);
-  cut_assert_not_null(nil2);
-  cut_assert_equal_pointer(nil1, nil2);
+  cut_assert_true(SCM_OBJ_IS_NOT_NULL(nil1));
+  cut_assert_true(SCM_OBJ_IS_NOT_NULL(nil2));
+  cut_assert_equal_uint(nil1, nil2);
 }
 
 void
