@@ -1,5 +1,5 @@
 SOURCES  = memory.c object.c pair.c obuffer.c string.c symbol.c \
            basichash.c integer.c  basiclist.c vector.c \
            miscobjects.c char.c charconv.c \
-           encoding.c vm.c procedure.c binding.c reference.c
+           encoding.c vm.c procedure.c binding.c reference.c numeric.c
 #          ibuffer.c parser.c port.c

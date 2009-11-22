@@ -3,11 +3,39 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <limits.h>
 #include <assert.h>
+
+typedef uintptr_t scm_word_t;
+typedef uintptr_t scm_uword_t;
+typedef intptr_t  scm_sword_t;
+
+#define SCM_UWORD_MAX UINTPTR_MAX
+#define SCM_UWORD_NIN UINTPTR_MIN
+#define SCM_SWORD_MAX INTPTR_MAX
+#define SCM_SWORD_MIN INTPTR_MIN
+
+#if (((~0) >> 1) == ~0) /* 符号付き整数の右シフトが算術シフトか */
+  #define SCM_RSHIFT_ARITH(x, y) ((x) >> (y))
+#else
+  #define SCM_RSHIFT_ARITH(x, y) (((x) < 0) ? ~((~(x)) >> y) : (x) >> (y))
+#endif
+
+extern inline scm_sword_t
+scm_rshift_arith_sword(scm_sword_t x, unsigned int y)
+{
+  assert(y < (sizeof(scm_sword_t) * CHAR_BIT));
+#if (((~0) >> 1) == ~0)
+  return x >> y;
+#else
+  return (x < 0) ? ~((~x) >> y) : x >> y;
+#endif
+}
+
 
 typedef struct ScmObjHeaderRec ScmObjHeader;
 typedef struct ScmMMObjRec ScmMMObj;
-typedef uintptr_t ScmObj;
+typedef scm_word_t ScmObj;
 typedef struct ScmTypeInfoRec ScmTypeInfo;
 typedef struct ScmGCRefItrRec ScmGCRefItr;
 typedef ScmObj *ScmRef;
@@ -93,7 +121,9 @@ struct ScmMMObjRec {
 
 extern ScmTypeInfo *SCM_OBJ_TAG2TYPE_TBL[];
 
-#define SCM_OBJ_TAG(obj) ((uintptr_t)(obj) & 0x07u)
+#define SCM_OBJ_TAG_MASK 0x07u
+#define SCM_OBJ_TAG_NR_KIND 8
+#define SCM_OBJ_TAG(obj) ((scm_uword_t)(obj) & SCM_OBJ_TAG_MASK)
 #define SCM_OBJ_IS_MEM_MANAGED(obj) (SCM_OBJ_TAG(obj) == 0x00u)
 #define SCM_OBJ_HAS_PTR_TO_TYPE_INFO(obj) (SCM_OBJ_TAG(obj) == 0x00u)
 

@@ -1,5 +1,5 @@
 memory.o: ../memory.c ../basichash.h ../memory.h ../object.h ../obuffer.h
-object.o: ../object.c ../object.h ../obuffer.h
+object.o: ../object.c ../object.h ../obuffer.h ../numeric.h
 pair.o: ../pair.c ../object.h ../obuffer.h ../memory.h ../basichash.h \
   ../reference.h ../vm.h ../pair.h ../miscobjects.h
 obuffer.o: ../obuffer.c ../memory.h ../object.h ../obuffer.h \
@@ -31,6 +31,7 @@ binding.o: ../binding.c ../basichash.h ../obuffer.h ../object.h \
   ../binding.h ../memory.h ../vm.h ../reference.h ../symbol.h
 reference.o: ../reference.c ../reference.h ../object.h ../obuffer.h \
   ../vm.h ../memory.h ../basichash.h
+numeric.o: ../numeric.c ../object.h ../obuffer.h ../numeric.h
 test_pair.o: test_pair.c /usr/local/include/cutter/cutter.h \
   /usr/local/include/cutter/cutter/cut-version.h \
   /usr/local/include/cutter/cutter/cut-hidden-definitions.h \
