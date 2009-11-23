@@ -1,5 +1,5 @@
 CC       = gcc
-CFLAGS   = -O2 -g -Wall -Wextra -Wformat=2 -Wstrict-aliasing=2 -Wcast-qual \
+CFLAGS   = -O2 -g -std=gnu99 -Wall -Wextra -Wformat=2 -Wstrict-aliasing=2 -Wcast-qual \
            -Wcast-align -Wwrite-strings -Wconversion -Wfloat-equal \
            -Wpointer-arith -Wswitch-enum -Wno-unused-parameter -Winline
 INCLUDES =
