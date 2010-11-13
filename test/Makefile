@@ -3,7 +3,7 @@ LD       = ld
 CFLAGS   = -O2 -Wall -Wextra -Wformat=2 -Wstrict-aliasing=2 -Wcast-qual \
            -Wcast-align -Wwrite-strings -Wconversion -Wfloat-equal \
            -Wpointer-arith -Wswitch-enum -Wno-unused-parameter -Winline \
-           -fPIC -g -Dcut_startup=startup -Dcut_shutdown=shutdown
+           -fPIC -g
 INCLUDES = -I/usr/local/include/cutter -iquote ..
 LDFLAGS  = -lcunit -g
 CUTTER   = cutter

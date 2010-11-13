@@ -1,31 +1,31 @@
 memory.o: memory.c basichash.h memory.h object.h obuffer.h
 object.o: object.c object.h obuffer.h numeric.h
 pair.o: pair.c object.h obuffer.h memory.h basichash.h reference.h vm.h \
-  pair.h miscobjects.h
+ pair.h miscobjects.h
 obuffer.o: obuffer.c memory.h object.h obuffer.h basichash.h
 string.o: string.c memory.h object.h obuffer.h basichash.h reference.h \
-  vm.h encoding.h string.h
+ vm.h encoding.h string.h
 symbol.o: symbol.c object.h obuffer.h memory.h basichash.h reference.h \
-  vm.h string.h encoding.h symbol.h
+ vm.h string.h encoding.h symbol.h
 basichash.o: basichash.c memory.h object.h obuffer.h basichash.h
 integer.o: integer.c object.h obuffer.h memory.h basichash.h vm.h \
-  reference.h integer.h
+ reference.h integer.h
 basiclist.o: basiclist.c memory.h object.h obuffer.h basichash.h \
-  basiclist.h
+ basiclist.h
 vector.o: vector.c memory.h object.h obuffer.h basichash.h vm.h \
-  reference.h miscobjects.h vector.h
+ reference.h miscobjects.h vector.h
 miscobjects.o: miscobjects.c object.h obuffer.h memory.h basichash.h vm.h \
-  reference.h miscobjects.h
+ reference.h miscobjects.h
 char.o: char.c object.h obuffer.h memory.h basichash.h vm.h reference.h \
-  encoding.h char.h
+ encoding.h char.h
 charconv.o: charconv.c memory.h object.h obuffer.h basichash.h charconv.h
 encoding.o: encoding.c encoding.h
 vm.o: vm.c vm.h object.h obuffer.h memory.h basichash.h reference.h \
-  symbol.h miscobjects.h
+ symbol.h miscobjects.h
 procedure.o: procedure.c procedure.h object.h obuffer.h vm.h memory.h \
-  basichash.h reference.h
+ basichash.h reference.h
 binding.o: binding.c basichash.h obuffer.h object.h binding.h memory.h \
-  vm.h reference.h symbol.h
+ vm.h reference.h symbol.h
 reference.o: reference.c reference.h object.h obuffer.h vm.h memory.h \
-  basichash.h
+ basichash.h
 numeric.o: numeric.c object.h obuffer.h numeric.h
