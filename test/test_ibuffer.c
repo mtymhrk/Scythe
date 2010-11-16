@@ -50,32 +50,32 @@ setup(void)
 void
 teardown(void)
 {
-  scm_port_destruct(test_port);
-  scm_port_destruct(test_big_file_port);
-  scm_port_destruct(test_string_port);
+  scm_port_end(test_port);
+  scm_port_end(test_big_file_port);
+  scm_port_end(test_string_port);
 }
 
 
 void
-test_scm_ibuffer_construct(void)
+test_scm_ibuffer_new(void)
 {
-  ScmIBuffer *ibuffer = scm_ibuffer_construct(test_port);
+  ScmIBuffer *ibuffer = scm_ibuffer_new(test_port);
   cut_assert_not_null(ibuffer);
   cut_assert_equal_int(1, scm_ibuffer_current_line_num(ibuffer));
   cut_assert_equal_int(1, scm_ibuffer_current_column_num(ibuffer));
 }
 
 void
-test_scm_ibuffer_construct_from_string(void)
+test_scm_ibuffer_new_from_string(void)
 {
-  ScmIBuffer *ibuffer = scm_ibuffer_construct(test_string_port);
+  ScmIBuffer *ibuffer = scm_ibuffer_new(test_string_port);
   cut_assert_not_null(ibuffer);
 }
 
 void
 test_scm_ibuffer_interleave_shift_and_head_char_for_file(void)
 {
-  ScmIBuffer *ibuffer = scm_ibuffer_construct(test_port);
+  ScmIBuffer *ibuffer = scm_ibuffer_new(test_port);
 
   cut_assert_equal_int('h', scm_ibuffer_head_char(ibuffer));
   cut_assert_equal_int(1, scm_ibuffer_current_line_num(ibuffer));
@@ -165,7 +165,7 @@ test_scm_ibuffer_interleave_shift_and_head_char_for_file(void)
 void
 test_scm_ibuffer_interleave_shift_and_head_char_for_string(void)
 {
-  ScmIBuffer *ibuffer = scm_ibuffer_construct(test_string_port);
+  ScmIBuffer *ibuffer = scm_ibuffer_new(test_string_port);
 
   cut_assert_equal_int('h', scm_ibuffer_head_char(ibuffer));
   cut_assert_equal_int(1, scm_ibuffer_current_line_num(ibuffer));
@@ -255,7 +255,7 @@ test_scm_ibuffer_interleave_shift_and_head_char_for_string(void)
 void
 test_scm_ibuffer_forecast_for_file(void)
 {
-  ScmIBuffer *ibuffer = scm_ibuffer_construct(test_port);
+  ScmIBuffer *ibuffer = scm_ibuffer_new(test_port);
 
   cut_assert_equal_int('h', scm_ibuffer_forecast(ibuffer, 0));
   cut_assert_equal_int('e', scm_ibuffer_forecast(ibuffer, 1));
@@ -276,7 +276,7 @@ test_scm_ibuffer_forecast_for_file(void)
 void
 test_scm_ibuffer_forecast_for_string(void)
 {
-  ScmIBuffer *ibuffer = scm_ibuffer_construct(test_string_port);
+  ScmIBuffer *ibuffer = scm_ibuffer_new(test_string_port);
 
   cut_assert_equal_int('h', scm_ibuffer_forecast(ibuffer, 0));
   cut_assert_equal_int('e', scm_ibuffer_forecast(ibuffer, 1));
@@ -307,7 +307,7 @@ test_scm_ibuffer_interleave_shift_and_forecast_for_file(void)
   fclose(fp);
   size = strlen(content);
 
-  ScmIBuffer *ibuffer = scm_ibuffer_construct(test_port);
+  ScmIBuffer *ibuffer = scm_ibuffer_new(test_port);
 
   for (shift = 0; shift < size; shift++) {
     for (forecast = 0; forecast < size - shift; forecast++) {
@@ -328,7 +328,7 @@ test_scm_ibuffer_interleave_shift_and_forecast_for_string(void)
 
   size = strlen(content);
 
-  ScmIBuffer *ibuffer = scm_ibuffer_construct(test_string_port);
+  ScmIBuffer *ibuffer = scm_ibuffer_new(test_string_port);
 
   for (shift = 0; shift < size; shift++) {
     for (forecast = 0; forecast < size - shift; forecast++) {
@@ -343,7 +343,7 @@ test_scm_ibuffer_interleave_shift_and_forecast_for_string(void)
 void
 test_scm_ibuffer_long_forecast()
 {
-  ScmIBuffer *ibuffer = scm_ibuffer_construct(test_big_file_port);
+  ScmIBuffer *ibuffer = scm_ibuffer_new(test_big_file_port);
 
   /* 191 is bigger than BUFFER_SIZE */
   cut_assert_equal_int('\n',

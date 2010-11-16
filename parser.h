@@ -44,10 +44,10 @@ typedef enum {
 #define SCM_TOKEN_TYPE(token) ((token)->type)
 #define SCM_TOKEN_STRING(token) ((token)->string)
 
-ScmToken *scm_token_construct(SCM_TOKEN_TYPE_T type, char *string);
-void scm_token_destruct(ScmToken *token);
-ScmLexer *scm_lexer_construct(ScmIBuffer *reader);
-ScmLexer *scm_lexer_destruct(ScmLexer *lexer);
+ScmToken *scm_token_new(SCM_TOKEN_TYPE_T type, char *string);
+void scm_token_end(ScmToken *token);
+ScmLexer *scm_lexer_new(ScmIBuffer *reader);
+ScmLexer *scm_lexer_end(ScmLexer *lexer);
 ScmToken *scm_lexer_head_token(ScmLexer *lexer);
 void scm_lexer_shift_token(ScmLexer *lexer);
 void scm_lexer_unshift_token(ScmLexer *lexer, ScmToken *token);
@@ -56,7 +56,7 @@ bool scm_lexer_has_error(ScmLexer *lexer);
 SCM_LEXER_ERR_TYPE_T scm_lexer_error_type(ScmLexer *lexer);
 int scm_lexer_error_line(ScmLexer *lexer);
 int scm_lexer_error_column(ScmLexer *lexer);
-ScmParser *scm_parser_construct(ScmLexer *lexer);
+ScmParser *scm_parser_new(ScmLexer *lexer);
 ScmObj scm_parser_parse_expression(ScmParser *parser);
 
 #endif /* INCLUDE_PARSER_H__ */

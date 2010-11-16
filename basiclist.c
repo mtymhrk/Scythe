@@ -136,7 +136,7 @@ scm_basic_list_cleanup(ScmBasicList *list)
 }
 
 ScmBasicList *
-scm_basic_list_construct()
+scm_basic_list_new()
 {
   ScmBasicList *list;
 
@@ -149,7 +149,7 @@ scm_basic_list_construct()
 }
 
 void
-scm_basic_list_destruct(ScmBasicList *list)
+scm_basic_list_end(ScmBasicList *list)
 {
   assert(list != NULL);
 

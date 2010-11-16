@@ -670,7 +670,7 @@ scm_lexer_tokenize(ScmLexer *lexer)
   }
 
   scm_lexer_push_token(lexer,
-                       scm_token_construct(scm_lexer_token_type(lexer),
+                       scm_token_new(scm_lexer_token_type(lexer),
                                            scm_lexer_buffer(lexer)));
 
   scm_lexer_state_clear(lexer);
@@ -678,7 +678,7 @@ scm_lexer_tokenize(ScmLexer *lexer)
 
 
 ScmLexer *
-scm_lexer_construct(ScmIBuffer *ibuffer)
+scm_lexer_new(ScmIBuffer *ibuffer)
 {
   ScmLexer *lexer;
 
@@ -686,7 +686,7 @@ scm_lexer_construct(ScmIBuffer *ibuffer)
 
   lexer = scm_memory_allocate(sizeof(ScmLexer));
   lexer->ibuffer = ibuffer;
-  lexer->tokens = scm_basic_list_construct();
+  lexer->tokens = scm_basic_list_new();
   lexer->buffer = NULL;
   lexer->buf_size = 0;
 
@@ -697,13 +697,13 @@ scm_lexer_construct(ScmIBuffer *ibuffer)
 }
 
 ScmLexer *
-scm_lexer_destruct(ScmLexer *lexer)
+scm_lexer_end(ScmLexer *lexer)
 {
   assert(lexer != lexer);
 
   while (scm_basic_list_head(lexer->tokens) != NULL)
     scm_lexer_shift_token(lexer);
-  scm_basic_list_destruct(lexer->tokens);
+  scm_basic_list_end(lexer->tokens);
 
   if (lexer->buffer != NULL)
     scm_memory_release(lexer->buffer);
@@ -740,7 +740,7 @@ scm_lexer_shift_token(ScmLexer *lexer)
     if (!scm_lexer_has_error(lexer)
         || SCM_TOKEN_TYPE(token) != SCM_TOKEN_TYPE_TOKENIZE_ERR) {
       scm_basic_list_shift(lexer->tokens);
-      scm_token_destruct(token);
+      scm_token_end(token);
     }
   }
 }
@@ -784,7 +784,7 @@ scm_lexer_error_column(ScmLexer *lexer)
 }
 
 ScmToken *
-scm_token_construct(SCM_TOKEN_TYPE_T type, char *string)
+scm_token_new(SCM_TOKEN_TYPE_T type, char *string)
 {
   ScmToken *token;
 
@@ -800,7 +800,7 @@ scm_token_construct(SCM_TOKEN_TYPE_T type, char *string)
 }
 
 void
-scm_token_destruct(ScmToken *token)
+scm_token_end(ScmToken *token)
 {
   assert(token != NULL);
   scm_memory_release(token->string);
@@ -849,7 +849,7 @@ scm_parser_parse_list(ScmParser *parser)
       ;
   }
 
-  return SCM_OBJ(scm_pair_construct(car, cdr));
+  return SCM_OBJ(scm_pair_new(car, cdr));
 }
 
 static ScmObj
@@ -868,21 +868,21 @@ scm_parser_parse_quote(ScmParser *parser)
 
   switch (SCM_TOKEN_TYPE(scm_lexer_head_token(parser->lexer))) {
   case SCM_TOKEN_TYPE_QUOTE:
-    str = SCM_OBJ(scm_string_construct(quote_str, sizeof(quote_str) - 1,
+    str = SCM_OBJ(scm_string_new(quote_str, sizeof(quote_str) - 1,
                                        SCM_ENCODING_ASCII));
     break;
   case SCM_TOKEN_TYPE_QUASIQUOTE:
-    str = SCM_OBJ(scm_string_construct(quasiquote_str,
+    str = SCM_OBJ(scm_string_new(quasiquote_str,
                                        sizeof(quasiquote_str) - 1,
                                        SCM_ENCODING_ASCII));
     break;
   case SCM_TOKEN_TYPE_UNQUOTE:
-    str = SCM_OBJ(scm_string_construct(unquote_str,
+    str = SCM_OBJ(scm_string_new(unquote_str,
                                        sizeof(unquote_str) - 1,
                                        SCM_ENCODING_ASCII));
     break;
   case SCM_TOKEN_TYPE_UNQUOTE_SPLICING:
-    str = SCM_OBJ(scm_string_construct(unquote_splicing_str,
+    str = SCM_OBJ(scm_string_new(unquote_splicing_str,
                                        sizeof(unquote_splicing_str) - 1,
                                        SCM_ENCODING_ASCII));
     break;
@@ -892,7 +892,7 @@ scm_parser_parse_quote(ScmParser *parser)
     break;
   }
 
-  quote = scm_symbol_construct(str);
+  quote = scm_symbol_new(str);
 
   scm_lexer_shift_token(parser->lexer);
   quoted = scm_parser_parse_expression(parser);
@@ -902,9 +902,9 @@ scm_parser_parse_quote(ScmParser *parser)
     ;
   }
 
-  quoted = SCM_OBJ(scm_pair_construct(quoted,
+  quoted = SCM_OBJ(scm_pair_new(quoted,
                                       SCM_OBJ(scm_nil_instance())));
-  return SCM_OBJ(scm_pair_construct(quote, quoted));
+  return SCM_OBJ(scm_pair_new(quote, quoted));
 }
 
 static ScmObj
@@ -916,7 +916,7 @@ scm_parser_parse_string(ScmParser *parser)
   assert(parser != NULL);
 
   p = SCM_TOKEN_STRING(scm_lexer_head_token(parser->lexer));
-  obj = SCM_OBJ(scm_string_construct(p, strlen(p), SCM_ENCODING_ASCII));
+  obj = SCM_OBJ(scm_string_new(p, strlen(p), SCM_ENCODING_ASCII));
   scm_lexer_shift_token(parser->lexer);
   return obj;
 }
@@ -934,8 +934,8 @@ scm_parser_parse_identifier(ScmParser *parser)
   c = SCM_TOKEN_STRING(scm_lexer_head_token(parser->lexer));
   l = strlen(c);
 
-  str = SCM_OBJ(scm_string_construct(c, l, SCM_ENCODING_ASCII));
-  obj = scm_symbol_construct(str);
+  str = SCM_OBJ(scm_string_new(c, l, SCM_ENCODING_ASCII));
+  obj = scm_symbol_new(str);
   scm_lexer_shift_token(parser->lexer);
 
   return obj;
@@ -951,7 +951,7 @@ scm_parser_parse_numeric(ScmParser *parser)
 
   sscanf(SCM_TOKEN_STRING(scm_lexer_head_token(parser->lexer)),
          "%lld", &num);
-  obj = SCM_OBJ(scm_integer_construct(num));
+  obj = SCM_OBJ(scm_integer_new(num));
   scm_lexer_shift_token(parser->lexer);
 
   return obj;
@@ -966,9 +966,9 @@ scm_parser_parse_bool(ScmParser *parser)
 
   if (strcasecmp("#t", SCM_TOKEN_STRING(scm_lexer_head_token(parser->lexer)))
       == 0)
-    obj = SCM_OBJ(scm_bool_construct(true));
+    obj = SCM_OBJ(scm_bool_new(true));
   else
-    obj = SCM_OBJ(scm_bool_construct(false));
+    obj = SCM_OBJ(scm_bool_new(false));
 
   scm_lexer_shift_token(parser->lexer);
 
@@ -1007,7 +1007,7 @@ scm_parser_parse_vector_aux(ScmParser *parser, size_t *len)
     ;
   }
 
-  return SCM_OBJ(scm_pair_construct(car, cdr));
+  return SCM_OBJ(scm_pair_new(car, cdr));
 }
 
 static ScmObj
@@ -1021,7 +1021,7 @@ scm_parser_parse_vector(ScmParser *parser)
 
   len = 0;
   elements = scm_parser_parse_vector_aux(parser, &len);
-  vector = scm_vector_construct(len);
+  vector = scm_vector_new(len);
 
   for (idx = 0; idx < len; idx++) {
     scm_vector_set(vector, idx, scm_pair_car(SCM_PAIR(elements)));
@@ -1042,15 +1042,15 @@ scm_parser_parse_char(ScmParser *parser)
 
   p = SCM_TOKEN_STRING(scm_lexer_head_token(parser->lexer));
   if (strcasecmp("#\\newline", p) == 0) {
-    obj = SCM_OBJ(scm_char_construct_newline(SCM_ENCODING_ASCII));
+    obj = SCM_OBJ(scm_char_new_newline(SCM_ENCODING_ASCII));
   }
   else if (strcasecmp("#\\space", p) == 0) {
-    obj = SCM_OBJ(scm_char_construct_space(SCM_ENCODING_ASCII));
+    obj = SCM_OBJ(scm_char_new_space(SCM_ENCODING_ASCII));
   }
   else if (strlen(p) == 3) {
     scm_char_t c;
     c.ascii = p[2];
-    obj = SCM_OBJ(scm_char_construct(c, SCM_ENCODING_ASCII));
+    obj = SCM_OBJ(scm_char_new(c, SCM_ENCODING_ASCII));
   }
   else if (strncasecmp("#\\0x", p, 4) == 0) {
     unsigned int i;
@@ -1058,7 +1058,7 @@ scm_parser_parse_char(ScmParser *parser)
 
     sscanf(p + 4, "%x", &i);
     c.ascii = i;
-    obj = SCM_OBJ(scm_char_construct(c, SCM_ENCODING_ASCII));
+    obj = SCM_OBJ(scm_char_new(c, SCM_ENCODING_ASCII));
   }
   else {
     // TODO: error handling
@@ -1079,7 +1079,7 @@ scm_parser_parse_eof(ScmParser *parser)
 }
 
 ScmParser *
-scm_parser_construct(ScmLexer *lexer)
+scm_parser_new(ScmLexer *lexer)
 {
   ScmParser *parser;
 

@@ -34,7 +34,7 @@ scm_integer_finalize(ScmObj integer) /* GC OK */
 }
 
 ScmObj
-scm_integer_construct(SCM_MEM_ALLOC_TYPE_T mtype, long long value) /* GC OK */
+scm_integer_new(SCM_MEM_ALLOC_TYPE_T mtype, long long value) /* GC OK */
 {
   ScmObj integer = SCM_OBJ_INIT;
 
@@ -71,7 +71,7 @@ scm_integer_plus(ScmObj val1, ScmObj val2) /* GC OK */
   SCM_OBJ_ASSERT_TYPE(val1, &SCM_INTEGER_TYPE_INFO);
   SCM_OBJ_ASSERT_TYPE(val2, &SCM_INTEGER_TYPE_INFO);
 
-  return scm_integer_construct(SCM_MEM_ALLOC_HEAP,
+  return scm_integer_new(SCM_MEM_ALLOC_HEAP,
                                SCM_INTEGER_VALUE(val1)
                                + SCM_INTEGER_VALUE(val2));
 }
@@ -82,7 +82,7 @@ scm_integer_minus(ScmObj val1, ScmObj val2) /* GC OK */
   SCM_OBJ_ASSERT_TYPE(val1, &SCM_INTEGER_TYPE_INFO);
   SCM_OBJ_ASSERT_TYPE(val2, &SCM_INTEGER_TYPE_INFO);
 
-  return scm_integer_construct(SCM_MEM_ALLOC_HEAP,
+  return scm_integer_new(SCM_MEM_ALLOC_HEAP,
                                SCM_INTEGER_VALUE(val1)
                                - SCM_INTEGER_VALUE(val2));
 }
@@ -93,7 +93,7 @@ scm_integer_multiply(ScmObj val1, ScmObj val2) /* GC OK */
   SCM_OBJ_ASSERT_TYPE(val1, &SCM_INTEGER_TYPE_INFO);
   SCM_OBJ_ASSERT_TYPE(val2, &SCM_INTEGER_TYPE_INFO);
 
-  return scm_integer_construct(SCM_MEM_ALLOC_HEAP,
+  return scm_integer_new(SCM_MEM_ALLOC_HEAP,
                                SCM_INTEGER_VALUE(val1)
                                * SCM_INTEGER_VALUE(val2));
 }
@@ -104,7 +104,7 @@ scm_integer_divide(ScmObj val1, ScmObj val2) /* GC OK */
   SCM_OBJ_ASSERT_TYPE(val1, &SCM_INTEGER_TYPE_INFO);
   SCM_OBJ_ASSERT_TYPE(val2, &SCM_INTEGER_TYPE_INFO);
 
-  return scm_integer_construct(SCM_MEM_ALLOC_HEAP,
+  return scm_integer_new(SCM_MEM_ALLOC_HEAP,
                                SCM_INTEGER_VALUE(val1)
                                / SCM_INTEGER_VALUE(val2));
 }
@@ -115,7 +115,7 @@ scm_integer_reminder(ScmObj val1, ScmObj val2) /* GC OK */
   SCM_OBJ_ASSERT_TYPE(val1, &SCM_INTEGER_TYPE_INFO);
   SCM_OBJ_ASSERT_TYPE(val2, &SCM_INTEGER_TYPE_INFO);
 
-  return scm_integer_construct(SCM_MEM_ALLOC_HEAP,
+  return scm_integer_new(SCM_MEM_ALLOC_HEAP,
                                SCM_INTEGER_VALUE(val1)
                                % SCM_INTEGER_VALUE(val2));
 }

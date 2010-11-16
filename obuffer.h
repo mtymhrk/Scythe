@@ -23,7 +23,7 @@ void scm_obuffer_pretty_print_scm_obj(ScmOBuffer *obuffer,
 size_t scm_obuffer_length(ScmOBuffer *obuffer);
 void scm_obuffer_copy_buffer(ScmOBuffer *obuffer, char *dst, size_t len);
 char *scm_obuffer_buffer(ScmOBuffer *obuffer);
-ScmOBuffer *scm_obuffer_construct(FILE *output);
-void scm_obuffer_destruct(ScmOBuffer *obuffer);
+ScmOBuffer *scm_obuffer_new(FILE *output);
+void scm_obuffer_end(ScmOBuffer *obuffer);
 
 #endif /* INCLUDE_OBUFFER_H__ */

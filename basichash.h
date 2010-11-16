@@ -68,9 +68,9 @@ void *scm_basic_hash_inject(ScmBasicHashTable *table,
 int scm_basic_hash_itr_begin(ScmBasicHashTable *table, ScmBasicHashItr *itr);
 int scm_basic_hash_itr_next(ScmBasicHashItr *itr);
 int scm_basic_hash_itr_update_key(ScmBasicHashItr *itr, ScmBasicHashKey key);
-ScmBasicHashTable *scm_basic_hash_construct(size_t size,
+ScmBasicHashTable *scm_basic_hash_new(size_t size,
                                             ScmBasicHashFunc hash_func,
                                             ScmBasicHashCompFunc comp_func);
-void scm_basic_hash_destruct(ScmBasicHashTable *table);
+void scm_basic_hash_end(ScmBasicHashTable *table);
 
 #endif /* INCLUDE_HASH_H__ */

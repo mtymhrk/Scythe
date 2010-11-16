@@ -9,7 +9,7 @@ static ScmObj vm = SCM_OBJ_INIT;
 void
 cut_startup(void)
 {
-  SCM_SETQ_PRIM(vm, scm_vm_construct());
+  SCM_SETQ_PRIM(vm, scm_vm_new());
   scm_vm_switch_vm(vm);
 }
 
@@ -17,7 +17,7 @@ void
 cut_shutdown(void)
 {
   scm_vm_revert_vm();
-  scm_vm_destruct(vm);
+  scm_vm_end(vm);
 }
 
 void
@@ -31,7 +31,7 @@ test_scm_string_ascii(void)
   SCM_STACK_FRAME_PUSH(&str);
 
   SCM_SETQ(str,
-           scm_string_construct(SCM_MEM_ALLOC_HEAP,
+           scm_string_new(SCM_MEM_ALLOC_HEAP,
                                 expected, sizeof(expected) - 1,
                                 SCM_ENCODING_ASCII));
 
@@ -56,7 +56,7 @@ test_scm_string_copy_ascii(void)
   SCM_STACK_FRAME_PUSH(&str, &copy);
 
   SCM_SETQ(str,
-           scm_string_construct(SCM_MEM_ALLOC_HEAP,
+           scm_string_new(SCM_MEM_ALLOC_HEAP,
                                 expected, sizeof(expected) - 1,
                                 SCM_ENCODING_ASCII));
 
@@ -80,7 +80,7 @@ test_scm_string_dup_ascii(void)
 
   SCM_STACK_FRAME_PUSH(&str, &copy);
 
-  SCM_SETQ(str, scm_string_construct(SCM_MEM_ALLOC_HEAP,
+  SCM_SETQ(str, scm_string_new(SCM_MEM_ALLOC_HEAP,
                                      expected, sizeof(expected) - 1,
                                      SCM_ENCODING_ASCII));
   SCM_SETQ(copy,scm_string_dup(str));
@@ -101,11 +101,11 @@ test_scm_string_is_equal_compare_with_same_string_ascii(void)
 
   SCM_STACK_FRAME_PUSH(&str1, &str2);
 
-  SCM_SETQ(str1, scm_string_construct(SCM_MEM_ALLOC_HEAP,
+  SCM_SETQ(str1, scm_string_new(SCM_MEM_ALLOC_HEAP,
                                       "this string is fault",
                                       sizeof("this string is fault") - 1,
                                       SCM_ENCODING_ASCII));
-  SCM_SETQ(str2, scm_string_construct(SCM_MEM_ALLOC_HEAP,
+  SCM_SETQ(str2, scm_string_new(SCM_MEM_ALLOC_HEAP,
                                       "this string is fault",
                                       sizeof("this string is fault") - 1,
                                       SCM_ENCODING_ASCII));
@@ -120,12 +120,12 @@ test_scm_string_is_equal_compare_with_different_string_ascii(void)
 
   SCM_STACK_FRAME_PUSH(&str1, &str2);
 
-  SCM_SETQ(str1, scm_string_construct(SCM_MEM_ALLOC_HEAP,
+  SCM_SETQ(str1, scm_string_new(SCM_MEM_ALLOC_HEAP,
                                       "this string is fault",
                                       sizeof("this string is fault") - 1,
                                       SCM_ENCODING_ASCII));
 
-  SCM_SETQ(str2, scm_string_construct(SCM_MEM_ALLOC_HEAP,
+  SCM_SETQ(str2, scm_string_new(SCM_MEM_ALLOC_HEAP,
                                       "this string is not fault",
                                       sizeof("this string is not fault") - 1,
                                       SCM_ENCODING_ASCII));
@@ -140,7 +140,7 @@ test_scm_string_is_equal_compare_with_copy_string_ascii(void)
 
   SCM_STACK_FRAME_PUSH(&str1, &str2);
 
-  SCM_SETQ(str1, scm_string_construct(SCM_MEM_ALLOC_HEAP,
+  SCM_SETQ(str1, scm_string_new(SCM_MEM_ALLOC_HEAP,
                                       "this string is fault",
                                       sizeof("this string is fault") - 1,
                                       SCM_ENCODING_ASCII));
@@ -157,7 +157,7 @@ test_scm_string_is_equal_compare_with_duplicate_string_ascii(void)
 
   SCM_STACK_FRAME_PUSH(&str1, &str2);
 
-  SCM_SETQ(str1, scm_string_construct(SCM_MEM_ALLOC_HEAP,
+  SCM_SETQ(str1, scm_string_new(SCM_MEM_ALLOC_HEAP,
                                       "this string is fault",
                                       sizeof("this string is fault") - 1,
                                       SCM_ENCODING_ASCII));
@@ -176,7 +176,7 @@ test_scm_string_substr_ascii(void)
 
   SCM_STACK_FRAME_PUSH(&str, &sub);
 
-  SCM_SETQ(str, scm_string_construct(SCM_MEM_ALLOC_HEAP,
+  SCM_SETQ(str, scm_string_new(SCM_MEM_ALLOC_HEAP,
                                      "this string is fault",
                                      sizeof("this string is fault") - 1,
                                      SCM_ENCODING_ASCII));
@@ -203,7 +203,7 @@ test_scm_string_push_ascii(void)
   memset(&pushed, 0, sizeof(pushed));
   memcpy(&pushed, ".", 3);
 
-  SCM_SETQ(str, scm_string_construct(SCM_MEM_ALLOC_HEAP,
+  SCM_SETQ(str, scm_string_new(SCM_MEM_ALLOC_HEAP,
                                      "this string is fault",
                                      sizeof("this string is fault") - 1,
                                      SCM_ENCODING_ASCII));
@@ -228,12 +228,12 @@ test_scm_string_append_ascii(void)
 
   SCM_STACK_FRAME_PUSH(&str, &apnd);
 
-  SCM_SETQ(str, scm_string_construct(SCM_MEM_ALLOC_HEAP,
+  SCM_SETQ(str, scm_string_new(SCM_MEM_ALLOC_HEAP,
                                      "next sentence is right.",
                                      sizeof("next sentence is right.") - 1,
                                      SCM_ENCODING_ASCII));
 
-  SCM_SETQ(apnd, scm_string_construct(SCM_MEM_ALLOC_HEAP,
+  SCM_SETQ(apnd, scm_string_new(SCM_MEM_ALLOC_HEAP,
                                       " previous sentence is fault",
                                       sizeof(" previous sentence is fault") - 1,
                                       SCM_ENCODING_ASCII));
@@ -265,7 +265,7 @@ test_scm_string_ref_ascii(void)
     memcpy(expected + i, tmp[i], strlen(tmp[i]));
   expected[i - 1] = SCM_CHR_ZERO;
 
-  SCM_SETQ(str, scm_string_construct(SCM_MEM_ALLOC_HEAP,
+  SCM_SETQ(str, scm_string_new(SCM_MEM_ALLOC_HEAP,
                                      "this string is fault",
                                      sizeof("this string is fault") - 1,
                                      SCM_ENCODING_ASCII));
@@ -348,7 +348,7 @@ test_scm_string_set_same_width_ascii(void)
   memset(&c, 0, sizeof(c));
   memcpy(&c, "d", 1);
 
-  SCM_SETQ(str, scm_string_construct(SCM_MEM_ALLOC_HEAP,
+  SCM_SETQ(str, scm_string_new(SCM_MEM_ALLOC_HEAP,
                                      "abc", sizeof("abc") - 1,
                                      SCM_ENCODING_ASCII));
 
@@ -376,7 +376,7 @@ test_scm_string_fill_ascii(void)
   memset(&c, 0, sizeof(c));
   memcpy(&c, "a", 1);
 
-  SCM_SETQ(str, scm_string_construct(SCM_MEM_ALLOC_HEAP,
+  SCM_SETQ(str, scm_string_new(SCM_MEM_ALLOC_HEAP,
                                      "next sentence is right. previous sentence is fault",
                                      sizeof("next sentence is right. previous sentence is fault") - 1,
                                      SCM_ENCODING_ASCII));
@@ -405,7 +405,7 @@ test_scm_string_fill_append_ascii(void)
   memset(&c, 0, sizeof(c));
   memcpy(&c, "a", 1);
 
-  SCM_SETQ(str, scm_string_construct(SCM_MEM_ALLOC_HEAP,
+  SCM_SETQ(str, scm_string_new(SCM_MEM_ALLOC_HEAP,
                                      "next sentence is right. previous sentence is fault",
                                      sizeof("next sentence is right. previous sentence is fault") - 1,
                                      SCM_ENCODING_ASCII));
@@ -432,7 +432,7 @@ test_scm_string_find_chr_found_ascii(void)
   memset(&c, 0, sizeof(c));
   memcpy(&c, "r", 1);
 
-  SCM_SETQ(str, scm_string_construct(SCM_MEM_ALLOC_HEAP,
+  SCM_SETQ(str, scm_string_new(SCM_MEM_ALLOC_HEAP,
                                      "this string is fault",
                                      sizeof("this string is fault") - 1,
                                      SCM_ENCODING_ASCII));
@@ -451,7 +451,7 @@ test_scm_string_find_chr_not_found_ascii(void)
   memset(&c, 0, sizeof(c));
   memcpy(&c, "z", 1);
 
-  SCM_SETQ(str, scm_string_construct(SCM_MEM_ALLOC_HEAP,
+  SCM_SETQ(str, scm_string_new(SCM_MEM_ALLOC_HEAP,
                                      "this string is fault",
                                      sizeof("this string is fault") - 1,
                                      SCM_ENCODING_ASCII));
@@ -466,12 +466,12 @@ test_scm_string_match_matched_ascii(void)
 
   SCM_STACK_FRAME_PUSH(&str, &pat);
 
-  SCM_SETQ(str, scm_string_construct(SCM_MEM_ALLOC_HEAP,
+  SCM_SETQ(str, scm_string_new(SCM_MEM_ALLOC_HEAP,
                                      "this string is fault",
                                      sizeof("this string is fault") - 1,
                                      SCM_ENCODING_ASCII));
 
-  SCM_SETQ(pat, scm_string_construct(SCM_MEM_ALLOC_HEAP,
+  SCM_SETQ(pat, scm_string_new(SCM_MEM_ALLOC_HEAP,
                                      "g is f",
                                      sizeof("g is f") - 1,
                                      SCM_ENCODING_ASCII));
@@ -486,11 +486,11 @@ test_scm_string_match_unmatched_ascii(void)
 
   SCM_STACK_FRAME_PUSH(&str, &pat);
 
-  SCM_SETQ(str, scm_string_construct(SCM_MEM_ALLOC_HEAP,
+  SCM_SETQ(str, scm_string_new(SCM_MEM_ALLOC_HEAP,
                                      "this string is fault",
                                      sizeof("this string is fault") - 1,
                                      SCM_ENCODING_ASCII));
-  SCM_SETQ(pat, scm_string_construct(SCM_MEM_ALLOC_HEAP,
+  SCM_SETQ(pat, scm_string_new(SCM_MEM_ALLOC_HEAP,
                                      "g-is-f",
                                      sizeof("g-is-f") - 1,
                                      SCM_ENCODING_ASCII));

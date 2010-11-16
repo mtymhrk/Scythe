@@ -50,8 +50,8 @@ struct ScmVMRec {
 
 void scm_vm_initialize(ScmObj vm, ScmObj parent);
 void scm_vm_finalize(ScmObj vm);
-ScmObj scm_vm_construct(void);
-void scm_vm_destruct(ScmObj vm);
+ScmObj scm_vm_new(void);
+void scm_vm_end(ScmObj vm);
 void scm_vm_pretty_print(ScmObj obj, ScmOBuffer *obuffer);
 void scm_vm_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_vm_gc_finalize(ScmObj obj);

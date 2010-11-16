@@ -11,7 +11,7 @@ static ScmObj vm = SCM_OBJ_INIT;
 void
 cut_startup(void)
 {
-  SCM_SETQ_PRIM(vm, scm_vm_construct());
+  SCM_SETQ_PRIM(vm, scm_vm_new());
   scm_vm_switch_vm(vm);
 }
 
@@ -19,18 +19,18 @@ void
 cut_shutdown(void)
 {
   scm_vm_revert_vm();
-  scm_vm_destruct(vm);
+  scm_vm_end(vm);
 }
 
 void
-test_scm_string_construct(void)
+test_scm_string_new(void)
 {
   ScmObj str = SCM_OBJ_INIT;
 
   SCM_STACK_FRAME_PUSH(&str);
 
   /* action */
-  SCM_SETQ(str, scm_string_construct(SCM_MEM_ALLOC_HEAP,
+  SCM_SETQ(str, scm_string_new(SCM_MEM_ALLOC_HEAP,
                                      "foo", sizeof("foo") - 1,
                                      SCM_ENCODING_ASCII));
   /* postcondition check */
@@ -46,7 +46,7 @@ test_scm_string_is_string(void)
   SCM_STACK_FRAME_PUSH(&str, &nil);
 
   /* preprocess */
-  SCM_SETQ(str, scm_string_construct(SCM_MEM_ALLOC_HEAP,
+  SCM_SETQ(str, scm_string_new(SCM_MEM_ALLOC_HEAP,
                                      "foo", sizeof("foo") - 1,
                                      SCM_ENCODING_ASCII));
   SCM_SETQ(nil, SCM_OBJ(scm_nil_instance()));

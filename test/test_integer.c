@@ -10,7 +10,7 @@ static ScmObj vm = SCM_OBJ_INIT;
 void
 cut_startup(void)
 {
-  SCM_SETQ_PRIM(vm, scm_vm_construct());
+  SCM_SETQ_PRIM(vm, scm_vm_new());
   scm_vm_switch_vm(vm);
 }
 
@@ -18,15 +18,15 @@ void
 cut_shutdown(void)
 {
   scm_vm_revert_vm();
-  scm_vm_destruct(vm);
+  scm_vm_end(vm);
 }
 
 void
-test_scm_integer_construct(void)
+test_scm_integer_new(void)
 {
   ScmObj integer = SCM_OBJ_INIT;
 
-  SCM_SETQ(integer, scm_integer_construct(SCM_MEM_ALLOC_HEAP, 0LL));
+  SCM_SETQ(integer, scm_integer_new(SCM_MEM_ALLOC_HEAP, 0LL));
 
   cut_assert_true(SCM_OBJ_IS_NOT_NULL(integer));
 }
@@ -36,7 +36,7 @@ test_scm_integer_is_integer_pass(void)
 {
   ScmObj integer = SCM_OBJ_INIT;
 
-  SCM_SETQ(integer, scm_integer_construct(SCM_MEM_ALLOC_HEAP, 0LL));
+  SCM_SETQ(integer, scm_integer_new(SCM_MEM_ALLOC_HEAP, 0LL));
 
   cut_assert_true(scm_integer_is_integer(integer));
 }
@@ -54,7 +54,7 @@ test_scm_integer_value(void)
 {
   ScmObj integer = SCM_OBJ_INIT;
 
-  SCM_SETQ(integer, scm_integer_construct(SCM_MEM_ALLOC_HEAP, 100LL));
+  SCM_SETQ(integer, scm_integer_new(SCM_MEM_ALLOC_HEAP, 100LL));
 
   cut_assert_equal_int(100, (int)scm_integer_value(integer));
 }
@@ -66,8 +66,8 @@ test_scm_integer_plus(void)
 
   SCM_STACK_FRAME_PUSH(&integer1, &integer2);
 
-  SCM_SETQ(integer1, scm_integer_construct(SCM_MEM_ALLOC_HEAP, 200LL));
-  SCM_SETQ(integer2, scm_integer_construct(SCM_MEM_ALLOC_HEAP, 100LL));
+  SCM_SETQ(integer1, scm_integer_new(SCM_MEM_ALLOC_HEAP, 200LL));
+  SCM_SETQ(integer2, scm_integer_new(SCM_MEM_ALLOC_HEAP, 100LL));
 
   cut_assert_equal_int(300,
                        (int)scm_integer_value(scm_integer_plus(integer1,
@@ -81,8 +81,8 @@ test_scm_integer_minus(void)
 
   SCM_STACK_FRAME_PUSH(&integer1, &integer2);
 
-  SCM_SETQ(integer1, scm_integer_construct(SCM_MEM_ALLOC_HEAP, 200LL));
-  SCM_SETQ(integer2, scm_integer_construct(SCM_MEM_ALLOC_HEAP, 100LL));
+  SCM_SETQ(integer1, scm_integer_new(SCM_MEM_ALLOC_HEAP, 200LL));
+  SCM_SETQ(integer2, scm_integer_new(SCM_MEM_ALLOC_HEAP, 100LL));
 
   cut_assert_equal_int(100,
                        (int)scm_integer_value(scm_integer_minus(integer1,
@@ -96,8 +96,8 @@ test_scm_integer_multiple(void)
 
   SCM_STACK_FRAME_PUSH(&integer1, &integer2);
 
-  SCM_SETQ(integer1, scm_integer_construct(SCM_MEM_ALLOC_HEAP, 200LL));
-  SCM_SETQ(integer2, scm_integer_construct(SCM_MEM_ALLOC_HEAP, 100LL));
+  SCM_SETQ(integer1, scm_integer_new(SCM_MEM_ALLOC_HEAP, 200LL));
+  SCM_SETQ(integer2, scm_integer_new(SCM_MEM_ALLOC_HEAP, 100LL));
 
   cut_assert_equal_int(20000,
                        (int)scm_integer_value(scm_integer_multiply(integer1,
@@ -111,8 +111,8 @@ test_scm_integer_divide(void)
 
   SCM_STACK_FRAME_PUSH(&integer1, &integer2);
 
-  SCM_SETQ(integer1, scm_integer_construct(SCM_MEM_ALLOC_HEAP, 200LL));
-  SCM_SETQ(integer2, scm_integer_construct(SCM_MEM_ALLOC_HEAP, 100LL));
+  SCM_SETQ(integer1, scm_integer_new(SCM_MEM_ALLOC_HEAP, 200LL));
+  SCM_SETQ(integer2, scm_integer_new(SCM_MEM_ALLOC_HEAP, 100LL));
 
   cut_assert_equal_int(2,
                        (int)scm_integer_value(scm_integer_divide(integer1,
@@ -126,8 +126,8 @@ test_scm_integer_reminder(void)
 
   SCM_STACK_FRAME_PUSH(&integer1, &integer2);
 
-  SCM_SETQ(integer1, scm_integer_construct(SCM_MEM_ALLOC_HEAP, 200LL));
-  SCM_SETQ(integer2, scm_integer_construct(SCM_MEM_ALLOC_HEAP, 3LL));
+  SCM_SETQ(integer1, scm_integer_new(SCM_MEM_ALLOC_HEAP, 200LL));
+  SCM_SETQ(integer2, scm_integer_new(SCM_MEM_ALLOC_HEAP, 3LL));
 
   cut_assert_equal_int(2,
                        (int)scm_integer_value(scm_integer_reminder(integer1,

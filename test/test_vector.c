@@ -12,7 +12,7 @@ static ScmObj vm = SCM_OBJ_INIT;
 void
 cut_startup(void)
 {
-  SCM_SETQ_PRIM(vm, scm_vm_construct());
+  SCM_SETQ_PRIM(vm, scm_vm_new());
   scm_vm_switch_vm(vm);
 }
 
@@ -20,18 +20,18 @@ void
 cut_shutdown(void)
 {
   scm_vm_revert_vm();
-  scm_vm_destruct(vm);
+  scm_vm_end(vm);
 }
 
 void
-test_scm_vector_construct(void)
+test_scm_vector_new(void)
 {
   ScmObj vector = SCM_OBJ_INIT;
   size_t i;
 
   SCM_STACK_FRAME_PUSH(&vector);
 
-  SCM_SETQ(vector, scm_vector_construct(SCM_MEM_ALLOC_HEAP, 5));
+  SCM_SETQ(vector, scm_vector_new(SCM_MEM_ALLOC_HEAP, 5));
 
   cut_assert_true(SCM_OBJ_IS_NOT_NULL(vector));
   cut_assert(scm_vector_is_vector(vector));
@@ -50,16 +50,16 @@ test_scm_vector_set_and_ref(void)
 
   SCM_STACK_FRAME_PUSH(&vector, &str1, &str2, &str3, &str4, &str5);
 
-  SCM_SETQ(vector, scm_vector_construct(SCM_MEM_ALLOC_HEAP, 5));
-  SCM_SETQ(str1, scm_string_construct(SCM_MEM_ALLOC_HEAP,
+  SCM_SETQ(vector, scm_vector_new(SCM_MEM_ALLOC_HEAP, 5));
+  SCM_SETQ(str1, scm_string_new(SCM_MEM_ALLOC_HEAP,
                                       "str1", 4, SCM_ENCODING_ASCII));
-  SCM_SETQ(str2, scm_string_construct(SCM_MEM_ALLOC_HEAP,
+  SCM_SETQ(str2, scm_string_new(SCM_MEM_ALLOC_HEAP,
                                       "str2", 4, SCM_ENCODING_ASCII));
-  SCM_SETQ(str3, scm_string_construct(SCM_MEM_ALLOC_HEAP,
+  SCM_SETQ(str3, scm_string_new(SCM_MEM_ALLOC_HEAP,
                                       "str3", 4, SCM_ENCODING_ASCII));
-  SCM_SETQ(str4, scm_string_construct(SCM_MEM_ALLOC_HEAP,
+  SCM_SETQ(str4, scm_string_new(SCM_MEM_ALLOC_HEAP,
                                       "str4", 4, SCM_ENCODING_ASCII));
-  SCM_SETQ(str5, scm_string_construct(SCM_MEM_ALLOC_HEAP,
+  SCM_SETQ(str5, scm_string_new(SCM_MEM_ALLOC_HEAP,
                                       "str5", 4, SCM_ENCODING_ASCII));
 
   scm_vector_set(vector, 0, str1);

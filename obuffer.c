@@ -140,7 +140,7 @@ scm_obuffer_buffer(ScmOBuffer *obuffer)
 }
 
 ScmOBuffer *
-scm_obuffer_construct(FILE *output)
+scm_obuffer_new(FILE *output)
 {
   ScmOBuffer *obuffer = NULL;
 
@@ -157,7 +157,7 @@ scm_obuffer_construct(FILE *output)
 }
 
 void
-scm_obuffer_destruct(ScmOBuffer *obuffer)
+scm_obuffer_end(ScmOBuffer *obuffer)
 {
   assert(obuffer != NULL);
 

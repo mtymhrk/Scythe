@@ -71,7 +71,7 @@ scm_ref_stack_finalize(ScmRefStack *stack)
 }
 
 ScmRefStack *
-scm_ref_stack_construct(size_t size)
+scm_ref_stack_new(size_t size)
 {
   ScmRefStack *stack;
 
@@ -88,7 +88,7 @@ scm_ref_stack_construct(size_t size)
 }
 
 void
-scm_ref_stack_destruct(ScmRefStack *stack)
+scm_ref_stack_end(ScmRefStack *stack)
 {
   assert(stack != NULL);
 

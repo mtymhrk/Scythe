@@ -10,7 +10,7 @@ static ScmObj vm = SCM_OBJ_INIT;
 void
 cut_startup(void)
 {
-  SCM_SETQ_PRIM(vm, scm_vm_construct());
+  SCM_SETQ_PRIM(vm, scm_vm_new());
   scm_vm_switch_vm(vm);
 }
 
@@ -18,17 +18,17 @@ void
 cut_shutdown(void)
 {
   scm_vm_revert_vm();
-  scm_vm_destruct(vm);
+  scm_vm_end(vm);
 }
 
 void
-test_scm_char_construct(void)
+test_scm_char_new(void)
 {
   ScmObj chr = SCM_OBJ_INIT;
   scm_char_t c;
 
   SCM_CHR_SET_ASCII(c, 'a');
-  SCM_SETQ(chr, scm_char_construct(SCM_MEM_ALLOC_HEAP, c, SCM_ENCODING_ASCII));
+  SCM_SETQ(chr, scm_char_new(SCM_MEM_ALLOC_HEAP, c, SCM_ENCODING_ASCII));
 
   cut_assert_true(SCM_OBJ_IS_NOT_NULL(chr));
   cut_assert(SCM_OBJ_IS_TYPE(SCM_OBJ(chr), &SCM_CHAR_TYPE_INFO));
@@ -41,7 +41,7 @@ test_scm_char_value_a(void)
   scm_char_t c;
 
   SCM_CHR_SET_ASCII(c, 'a');
-  SCM_SETQ(chr, scm_char_construct(SCM_MEM_ALLOC_HEAP, c, SCM_ENCODING_ASCII));
+  SCM_SETQ(chr, scm_char_new(SCM_MEM_ALLOC_HEAP, c, SCM_ENCODING_ASCII));
 
   cut_assert_true(SCM_OBJ_IS_NOT_NULL(chr));
   cut_assert_equal_int('a',
@@ -56,7 +56,7 @@ test_scm_char_is_char(void)
   scm_char_t c;
 
   SCM_CHR_SET_ASCII(c, 'a');
-  SCM_SETQ(chr, scm_char_construct(SCM_MEM_ALLOC_HEAP, c, SCM_ENCODING_ASCII));
+  SCM_SETQ(chr, scm_char_new(SCM_MEM_ALLOC_HEAP, c, SCM_ENCODING_ASCII));
 
   cut_assert_true(scm_char_is_char(chr));
 }

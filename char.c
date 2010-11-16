@@ -38,7 +38,7 @@ scm_char_finalize(ScmObj chr)   /* GC OK */
 }
 
 ScmObj
-scm_char_construct(SCM_MEM_ALLOC_TYPE_T mtype,
+scm_char_new(SCM_MEM_ALLOC_TYPE_T mtype,
                    scm_char_t value, SCM_ENCODING_T enc) /* GC OK */
 {
   ScmObj chr;
@@ -61,15 +61,15 @@ scm_char_construct(SCM_MEM_ALLOC_TYPE_T mtype,
 }
 
 ScmObj
-scm_char_construct_newline(SCM_MEM_ALLOC_TYPE_T mtype, SCM_ENCODING_T enc) /* GC OK */
+scm_char_new_newline(SCM_MEM_ALLOC_TYPE_T mtype, SCM_ENCODING_T enc) /* GC OK */
 {
-  return scm_char_construct(mtype, SCM_ENCODING_CONST_LF_CHAR(enc), enc);
+  return scm_char_new(mtype, SCM_ENCODING_CONST_LF_CHAR(enc), enc);
 }
 
 ScmObj
-scm_char_construct_space(SCM_MEM_ALLOC_TYPE_T mtype, SCM_ENCODING_T enc) /* GC OK */
+scm_char_new_space(SCM_MEM_ALLOC_TYPE_T mtype, SCM_ENCODING_T enc) /* GC OK */
 {
-  return scm_char_construct(mtype, SCM_ENCODING_CONST_SPACE_CHAR(enc), enc);
+  return scm_char_new(mtype, SCM_ENCODING_CONST_SPACE_CHAR(enc), enc);
 }
 
 scm_char_t

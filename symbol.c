@@ -62,7 +62,7 @@ scm_symbol_initialize(ScmObj sym, ScmObj table, ScmObj str) /* GC OK */
 }
 
 ScmObj
-scm_symbol_construct(SCM_MEM_ALLOC_TYPE_T mtype, ScmObj str) /* GC OK */
+scm_symbol_new(SCM_MEM_ALLOC_TYPE_T mtype, ScmObj str) /* GC OK */
 {
   ScmObj sym = SCM_OBJ_INIT;
 
@@ -156,13 +156,13 @@ scm_symtable_initialize(ScmObj obj) /* GC OK */
 
   assert(SCM_OBJ_IS_NOT_NULL(obj));
 
-  SCM_SYMTABLE_TBL(obj) = scm_basic_hash_construct(SCM_SYMBOL_TABLE_SIZE,
+  SCM_SYMTABLE_TBL(obj) = scm_basic_hash_new(SCM_SYMBOL_TABLE_SIZE,
                                                    scm_symtable_hash_func,
                                                    scm_symtable_comp_func);
 }
 
 ScmObj
-scm_symtable_construct(SCM_MEM_ALLOC_TYPE_T mtype)
+scm_symtable_new(SCM_MEM_ALLOC_TYPE_T mtype)
 {
   ScmObj symtbl = SCM_OBJ_INIT;
 
@@ -180,7 +180,7 @@ scm_symtable_finalize(ScmObj obj) /* GC OK */
 {
   SCM_STACK_FRAME_PUSH(&obj);
 
-  scm_basic_hash_destruct(SCM_SYMTABLE_TBL(obj));
+  scm_basic_hash_end(SCM_SYMTABLE_TBL(obj));
   SCM_SYMTABLE_TBL(obj) = NULL;
 }
 

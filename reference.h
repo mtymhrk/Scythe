@@ -186,8 +186,8 @@ struct ScmWeakRefRec {
 #define SCM_WEAK_REF_GET(wref) ((wref)->obj)
 
 
-ScmRefStack *scm_ref_stack_construct(size_t size);
-void scm_ref_stack_destruct(ScmRefStack *stack);
+ScmRefStack *scm_ref_stack_new(size_t size);
+void scm_ref_stack_end(ScmRefStack *stack);
 ScmRefStack *scm_ref_stack_push(ScmRefStack *stack, ...);
 ScmRef scm_ref_stack_alloc(ScmRefStack *stack, ScmObj init);
 void scm_ref_stack_save(ScmRefStack *stack, ScmRefStackInfo *info);

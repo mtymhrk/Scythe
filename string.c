@@ -83,7 +83,7 @@ scm_string_copy_and_expand(ScmObj src, size_t size) /* GC OK */
   SCM_OBJ_ASSERT_TYPE(src, &SCM_STRING_TYPE_INFO);
   assert(size <= SSIZE_MAX);
 
-  SCM_SETQ(str, scm_string_construct(SCM_MEM_ALLOC_HEAP,
+  SCM_SETQ(str, scm_string_new(SCM_MEM_ALLOC_HEAP,
                                      NULL, size, SCM_STRING_ENC(src)));
   if (SCM_OBJ_IS_NULL(str)) return SCM_OBJ_NULL;
 
@@ -96,7 +96,7 @@ scm_string_copy_and_expand(ScmObj src, size_t size) /* GC OK */
                                      SCM_STRING_BYTESIZE(src),
                                      SCM_ENCODING_VFUNC(SCM_STRING_ENC(src)));
   if (len < 0) {
-    /* scm_string_destruct(str); */
+    /* scm_string_end(str); */
     return SCM_OBJ_NULL;
   }
 
@@ -191,7 +191,7 @@ scm_string_initialize(ScmObj str,
 }
 
 ScmObj
-scm_string_construct(SCM_MEM_ALLOC_TYPE_T mtype, const void *src, size_t size, SCM_ENCODING_T enc) /* GC OK */
+scm_string_new(SCM_MEM_ALLOC_TYPE_T mtype, const void *src, size_t size, SCM_ENCODING_T enc) /* GC OK */
 {
   ScmObj str = SCM_OBJ_INIT;
 
@@ -213,7 +213,7 @@ scm_string_copy(ScmObj src)     /* GC OK */
 {
   SCM_OBJ_ASSERT_TYPE(src, &SCM_STRING_TYPE_INFO);
 
-  return scm_string_construct(SCM_MEM_ALLOC_HEAP,
+  return scm_string_new(SCM_MEM_ALLOC_HEAP,
                               SCM_STRING_HEAD(src),
                               SCM_STRING_BYTESIZE(src),
                               SCM_STRING_ENC(src));

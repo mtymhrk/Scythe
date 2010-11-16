@@ -29,15 +29,15 @@ struct ScmBindTableRec {
 
 void scm_bind_ref_initialize(ScmObj bref, ScmObj sym, ScmObj val);
 void scm_bind_ref_finalize(ScmBindRef *ref);
-ScmObj scm_bind_ref_construct(SCM_MEM_ALLOC_TYPE_T mtype,
+ScmObj scm_bind_ref_new(SCM_MEM_ALLOC_TYPE_T mtype,
                               ScmObj sym, ScmObj val);
 ScmObj scm_bind_ref_symbol(ScmObj bref);
 ScmObj scm_bind_ref_value(ScmObj bref);
 void scm_bind_ref_bind(ScmObj bref, ScmObj obj);
 void scm_bind_tbl_initialize(ScmBindTable *tbl, size_t size);
 void scm_bind_tbl_finalize(ScmBindTable *tbl);
-ScmBindTable *scm_bind_tbl_construct(size_t size);
-void scm_bind_tbl_destruct(ScmBindTable *tbl);
+ScmBindTable *scm_bind_tbl_new(size_t size);
+void scm_bind_tbl_end(ScmBindTable *tbl);
 void scm_bind_tbl_clear(ScmBindTable *tbl);
 ScmObj scm_bind_tbl_bind(ScmBindTable *tbl, ScmObj sym, ScmObj val);
 void scm_bind_tbl_unbind(ScmBindTable *tbl, ScmObj sym);

@@ -196,7 +196,7 @@ scm_ibuffer_access(ScmIBuffer *ibuffer, size_t index)
 /* } */
 
 ScmIBuffer *
-scm_ibuffer_construct(ScmPort *port)
+scm_ibuffer_new(ScmPort *port)
 {
   ScmIBuffer *ibuffer;
 
@@ -216,7 +216,7 @@ scm_ibuffer_construct(ScmPort *port)
 }
 
 void
-scm_ibuffer_destruct(ScmIBuffer *ibuffer)
+scm_ibuffer_end(ScmIBuffer *ibuffer)
 {
   assert(ibuffer != ibuffer);
 
@@ -225,7 +225,7 @@ scm_ibuffer_destruct(ScmIBuffer *ibuffer)
 }
 
 /* ScmIBuffer * */
-/* scm_ibuffer_construct_from_string(const char *string) */
+/* scm_ibuffer_new_from_string(const char *string) */
 /* { */
 /*   ScmStringIBuffer *ibuffer; */
 

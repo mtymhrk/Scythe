@@ -33,7 +33,7 @@ scm_pair_initialize(ScmObj pair, ScmObj car, ScmObj cdr) /* GC OK */
 }
 
 ScmObj
-scm_pair_construct(SCM_MEM_ALLOC_TYPE_T mtype, ScmObj car, ScmObj cdr) /* GC OK */
+scm_pair_new(SCM_MEM_ALLOC_TYPE_T mtype, ScmObj car, ScmObj cdr) /* GC OK */
 {
   ScmObj pair = SCM_OBJ_INIT;
 

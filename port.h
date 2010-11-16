@@ -55,7 +55,7 @@ struct ScmPortRec {
 #define SCM_PORT_USED(obj) (SCM_PORT(obj)->used)
 
 void scm_io_referred(ScmIO *io);
-void scm_io_destruct(ScmIO *io);
+void scm_io_end(ScmIO *io);
 ssize_t scm_io_read(ScmIO *io, void *buf, size_t size);
 ssize_t scm_io_write(ScmIO *io, const void *buf, size_t size);
 bool scm_io_seek(ScmIO *io, off_t offset, int whence);
@@ -69,8 +69,8 @@ ssize_t scm_io_block_size(ScmIO *io);
 bool scm_io_has_error(ScmIO *io);
 int scm_io_errno(ScmIO *io);
 
-ScmFileIO *scm_fileio_construct(int fd);
-void scm_fileio_destruct(ScmFileIO *fileio);
+ScmFileIO *scm_fileio_new(int fd);
+void scm_fileio_end(ScmFileIO *fileio);
 ScmFileIO *scm_fileio_open(const char *pathname, int flags, mode_t mode);
 ssize_t scm_fileio_read(ScmFileIO *fileio, void *buf, size_t size);
 ssize_t scm_fileio_write(ScmFileIO *fileio, const void *buf, size_t size);
@@ -85,8 +85,8 @@ ssize_t scm_fileio_block_size(ScmFileIO *fileio);
 bool scm_fileio_has_error(ScmFileIO *fileio);
 int scm_fileio_errno(ScmFileIO *fileio);
 
-ScmStringIO *scm_stringio_construct(const char *str, size_t len);
-void scm_stringio_destruct(ScmStringIO *strio);
+ScmStringIO *scm_stringio_new(const char *str, size_t len);
+void scm_stringio_end(ScmStringIO *strio);
 size_t scm_stringio_read(ScmStringIO *strio, void *buf, size_t size);
 size_t scm_stringio_write(ScmStringIO *strio, const void *buf, size_t size);
 bool scm_stringio_is_ready(ScmStringIO *strio);
@@ -101,11 +101,11 @@ int scm_stringio_errno(ScmStringIO *strio);
 char *scm_stringio_buffer(ScmStringIO *strio);
 size_t scm_stringio_length(ScmStringIO *strio);
 
-ScmCharConvIO *scm_charconvio_construct(ScmIO *io,
+ScmCharConvIO *scm_charconvio_new(ScmIO *io,
                                         const char *internal_encode,
                                         const char *external_encode,
                                         bool owner);
-void scm_charconvio_destruct(ScmCharConvIO *convio);
+void scm_charconvio_end(ScmCharConvIO *convio);
 ssize_t scm_charconvio_read(ScmCharConvIO *convio, void *buf, size_t size);
 ssize_t scm_charconvio_write(ScmCharConvIO *convio,
                              const void *buf, size_t size);
@@ -124,7 +124,7 @@ int scm_charconvio_errno(ScmCharConvIO *convio);
 void scm_port_initialize(ScmObj port, ScmIO *io,
                          SCM_PORT_ATTR attr, SCM_PORT_BUF_MODE buf_mode);
 void scm_port_finalize(ScmObj port);
-ScmObj scm_port_construct(ScmIO *io,
+ScmObj scm_port_new(ScmIO *io,
                           SCM_PORT_ATTR attr, SCM_PORT_BUF_MODE buf_mode);
 ScmObj scm_port_open_input(ScmIO *io,
                            SCM_PORT_ATTR attr, SCM_PORT_BUF_MODE buf_mode);

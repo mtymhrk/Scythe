@@ -26,7 +26,7 @@ struct ScmCharConvRec {
 
 
 ScmCharConv *
-scm_charconv_construct(const char *from, const char* to,
+scm_charconv_new(const char *from, const char* to,
                        SCM_CHARCONV_TYPE_T type)
 {
   ScmCharConv *conv;
@@ -58,7 +58,7 @@ scm_charconv_construct(const char *from, const char* to,
 }
 
 void
-scm_charconv_destruct(ScmCharConv *conv)
+scm_charconv_end(ScmCharConv *conv)
 {
   assert(conv != NULL);
 

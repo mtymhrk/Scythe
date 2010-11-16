@@ -402,8 +402,8 @@ extern ScmTypeInfo SCM_FORWARD_TYPE_INFO;
 void *scm_memory_allocate(size_t size);
 void *scm_memory_release(void *block);
 
-ScmMem *scm_mem_construct(void);
-ScmMem *scm_mem_destruct(ScmMem *mem);
+ScmMem *scm_mem_new(void);
+ScmMem *scm_mem_end(ScmMem *mem);
 ScmMem *scm_mem_clean(ScmMem *mem);
 ScmMem *scm_mem_alloc_heap(ScmMem *mem, ScmTypeInfo *type, ScmRef ref);
 ScmMem *scm_mem_alloc_persist(ScmMem *mem, ScmTypeInfo *type, ScmRef ref);

@@ -628,12 +628,12 @@ scm_mem_initialize(ScmMem *mem)
   mem->roots = NULL;
   mem->extra_rfrn = NULL;
 
-  mem->to_obj_tbl = scm_basic_hash_construct(SCM_MEM_OBJ_TBL_HASH_SIZE,
+  mem->to_obj_tbl = scm_basic_hash_new(SCM_MEM_OBJ_TBL_HASH_SIZE,
                                              object_table_hash_func,
                                              object_table_comp_func);
   if (mem->to_obj_tbl == NULL) goto err;
 
-  mem->from_obj_tbl = scm_basic_hash_construct(SCM_MEM_OBJ_TBL_HASH_SIZE,
+  mem->from_obj_tbl = scm_basic_hash_new(SCM_MEM_OBJ_TBL_HASH_SIZE,
                                                object_table_hash_func,
                                                object_table_comp_func);
   if (mem->from_obj_tbl == NULL) goto err;
@@ -654,8 +654,8 @@ scm_mem_initialize(ScmMem *mem)
   return mem;
 
  err:
-  if (mem->to_obj_tbl != NULL) scm_basic_hash_destruct(mem->to_obj_tbl);
-  if (mem->from_obj_tbl != NULL) scm_basic_hash_destruct(mem->from_obj_tbl);
+  if (mem->to_obj_tbl != NULL) scm_basic_hash_end(mem->to_obj_tbl);
+  if (mem->from_obj_tbl != NULL) scm_basic_hash_end(mem->from_obj_tbl);
   if (mem->to_heap != NULL) SCM_MEM_HEAP_DELETE_HEAP(mem->to_heap);
   if (mem->from_heap != NULL) SCM_MEM_HEAP_DELETE_HEAP(mem->from_heap);
   if (mem->persistent != NULL) SCM_MEM_HEAP_DELETE_HEAP(mem->persistent);
@@ -672,8 +672,8 @@ scm_mem_finalize(ScmMem *mem)
   scm_mem_free_all_obj_in_root_set(mem, &mem->roots);
   scm_mem_clean(mem);
 
-  if (mem->to_obj_tbl) scm_basic_hash_destruct(mem->to_obj_tbl);
-  if (mem->from_obj_tbl) scm_basic_hash_destruct(mem->from_obj_tbl);
+  if (mem->to_obj_tbl) scm_basic_hash_end(mem->to_obj_tbl);
+  if (mem->from_obj_tbl) scm_basic_hash_end(mem->from_obj_tbl);
   if (mem->to_heap != NULL) SCM_MEM_HEAP_DELETE_HEAP(mem->to_heap);
   if (mem->from_heap != NULL) SCM_MEM_HEAP_DELETE_HEAP(mem->from_heap);
   if (mem->persistent != NULL) SCM_MEM_HEAP_DELETE_HEAP(mem->persistent);
@@ -683,7 +683,7 @@ scm_mem_finalize(ScmMem *mem)
 }
 
 ScmMem *
-scm_mem_construct(void)
+scm_mem_new(void)
 {
   ScmMem *mem = NULL;
 
@@ -694,7 +694,7 @@ scm_mem_construct(void)
 }
 
 ScmMem *
-scm_mem_destruct(ScmMem *mem)
+scm_mem_end(ScmMem *mem)
 {
   if (mem == NULL) return NULL;
 

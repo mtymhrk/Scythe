@@ -19,7 +19,7 @@ struct ScmBasicHashTableRec {
 enum { ADD, UPDATE, DELETE, FIND };
 
 static ScmBasicHashEntry *
-scm_basic_hash_entry_construct(ScmBasicHashKey key, ScmBasicHashValue value,
+scm_basic_hash_entry_new(ScmBasicHashKey key, ScmBasicHashValue value,
                                unsigned int hash,
                                ScmBasicHashEntry *prev, ScmBasicHashEntry *next)
 {
@@ -85,7 +85,7 @@ scm_basic_hash_access(ScmBasicHashTable *table,
 
   if (mode == ADD || mode == UPDATE)
     return (table->buckets[hash]
-            = scm_basic_hash_entry_construct(key, value, hash,
+            = scm_basic_hash_entry_new(key, value, hash,
                                              NULL, table->buckets[hash]));
   else
     return NULL;
@@ -265,7 +265,7 @@ scm_basic_hash_itr_update_key(ScmBasicHashItr *itr, ScmBasicHashKey key)
 }
 
 ScmBasicHashTable *
-scm_basic_hash_construct(size_t size,
+scm_basic_hash_new(size_t size,
                          ScmBasicHashFunc hash_func,
                          ScmBasicHashCompFunc comp_func)
 {
@@ -287,7 +287,7 @@ scm_basic_hash_construct(size_t size,
 }
 
 void
-scm_basic_hash_destruct(ScmBasicHashTable *table)
+scm_basic_hash_end(ScmBasicHashTable *table)
 {
   size_t i;
 

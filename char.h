@@ -29,11 +29,11 @@ struct ScmCharRec {
 
 void scm_char_initialize(ScmObj chr, scm_char_t value, SCM_ENCODING_T enc);
 void scm_char_finalize(ScmObj chr);
-ScmObj scm_char_construct(SCM_MEM_ALLOC_TYPE_T mtype,
+ScmObj scm_char_new(SCM_MEM_ALLOC_TYPE_T mtype,
                           scm_char_t value, SCM_ENCODING_T enc);
-ScmObj scm_char_construct_newline(SCM_MEM_ALLOC_TYPE_T mtype,
+ScmObj scm_char_new_newline(SCM_MEM_ALLOC_TYPE_T mtype,
                                   SCM_ENCODING_T enc);
-ScmObj scm_char_construct_space(SCM_MEM_ALLOC_TYPE_T mtype,
+ScmObj scm_char_new_space(SCM_MEM_ALLOC_TYPE_T mtype,
                                 SCM_ENCODING_T enc);
 scm_char_t scm_char_value(ScmObj chr);
 SCM_ENCODING_T scm_char_encoding(ScmObj chr);

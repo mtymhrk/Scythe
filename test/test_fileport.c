@@ -30,7 +30,7 @@ startup(void)
     n = fwrite(&i, sizeof(i), 1, fp);
   fclose(fp);
 
-  SCM_SETQ_PRIM(vm, scm_vm_construct());
+  SCM_SETQ_PRIM(vm, scm_vm_new());
   scm_vm_switch_vm(vm);
 }
 
@@ -41,7 +41,7 @@ shutdown(void)
   remove(TEST_BIG_FILE);
 
   scm_vm_revert_vm();
-  scm_vm_destruct(vm);
+  scm_vm_end(vm);
 }
 
 void
@@ -51,7 +51,7 @@ teardown(void)
 }
 
 void
-xxx_test_scm_port_construct_input_file_port(ScmObj port)
+xxx_test_scm_port_new_input_file_port(ScmObj port)
 {
   cut_assert_true(SCM_OBJ_IS_NOT_NULL(port));
   cut_assert_true(scm_port_is_readable(port));
@@ -62,7 +62,7 @@ xxx_test_scm_port_construct_input_file_port(ScmObj port)
 }
 
 void
-test_scm_port_construct_input_file_port_ful_buffer(void)
+test_scm_port_new_input_file_port_ful_buffer(void)
 {
   ScmObj port = SCM_OBJ_INIT;
 
@@ -71,11 +71,11 @@ test_scm_port_construct_input_file_port_ful_buffer(void)
   SCM_SETQ(port, scm_port_open_input_file(TEST_TEXT_FILE,
                                           SCM_PORT_BUF_FULL));
 
-  xxx_test_scm_port_construct_input_file_port(port);
+  xxx_test_scm_port_new_input_file_port(port);
 }
 
 void
-test_scm_port_construct_input_file_port_line_buffer(void)
+test_scm_port_new_input_file_port_line_buffer(void)
 {
   ScmObj port = SCM_OBJ_INIT;
 
@@ -84,11 +84,11 @@ test_scm_port_construct_input_file_port_line_buffer(void)
   SCM_SETQ(port, scm_port_open_input_file(TEST_TEXT_FILE,
                                           SCM_PORT_BUF_LINE));
 
-  xxx_test_scm_port_construct_input_file_port(port);
+  xxx_test_scm_port_new_input_file_port(port);
 }
 
 void
-test_scm_port_construct_input_file_port_modest_buffer(void)
+test_scm_port_new_input_file_port_modest_buffer(void)
 {
   ScmObj port = SCM_OBJ_INIT;
 
@@ -97,11 +97,11 @@ test_scm_port_construct_input_file_port_modest_buffer(void)
   SCM_SETQ(port, scm_port_open_input_file(TEST_TEXT_FILE,
                                           SCM_PORT_BUF_MODEST));
 
-  xxx_test_scm_port_construct_input_file_port(port);
+  xxx_test_scm_port_new_input_file_port(port);
 }
 
 void
-test_scm_port_construct_input_file_port_none_buffer(void)
+test_scm_port_new_input_file_port_none_buffer(void)
 {
   ScmObj port = SCM_OBJ_INIT;
 
@@ -110,7 +110,7 @@ test_scm_port_construct_input_file_port_none_buffer(void)
   SCM_SETQ(port, scm_port_open_input_file(TEST_TEXT_FILE,
                                           SCM_PORT_BUF_NONE));
 
-  xxx_test_scm_port_construct_input_file_port(port);
+  xxx_test_scm_port_new_input_file_port(port);
 }
 
 void
@@ -356,7 +356,7 @@ test_scm_port_close_input_port(void)
 }
 
 void
-xxx_test_scm_port_construct_output_file_port(ScmPort *port)
+xxx_test_scm_port_new_output_file_port(ScmPort *port)
 {
   cut_assert_not_null(port);
   cut_assert_false(scm_port_is_readable(port));
@@ -367,39 +367,39 @@ xxx_test_scm_port_construct_output_file_port(ScmPort *port)
 }
 
 void
-test_scm_port_construct_output_file_port_ful_buffer(void)
+test_scm_port_new_output_file_port_ful_buffer(void)
 {
   ScmPort *port = scm_port_open_output_file(TEST_OUTPUT_FILE,
                                             SCM_PORT_BUF_FULL);
 
-  xxx_test_scm_port_construct_output_file_port(port);
+  xxx_test_scm_port_new_output_file_port(port);
 }
 
 void
-test_scm_port_construct_output_file_port_line_buffer(void)
+test_scm_port_new_output_file_port_line_buffer(void)
 {
   ScmPort *port = scm_port_open_output_file(TEST_OUTPUT_FILE,
                                             SCM_PORT_BUF_LINE);
 
-  xxx_test_scm_port_construct_output_file_port(port);
+  xxx_test_scm_port_new_output_file_port(port);
 }
 
 void
-test_scm_port_construct_output_file_port_modest_buffer(void)
+test_scm_port_new_output_file_port_modest_buffer(void)
 {
   ScmPort *port = scm_port_open_output_file(TEST_OUTPUT_FILE,
                                             SCM_PORT_BUF_MODEST);
 
-  xxx_test_scm_port_construct_output_file_port(port);
+  xxx_test_scm_port_new_output_file_port(port);
 }
 
 void
-test_scm_port_construct_output_file_port_none_buffer(void)
+test_scm_port_new_output_file_port_none_buffer(void)
 {
   ScmPort *port = scm_port_open_output_file(TEST_OUTPUT_FILE,
                                             SCM_PORT_BUF_NONE);
 
-  xxx_test_scm_port_construct_output_file_port(port);
+  xxx_test_scm_port_new_output_file_port(port);
 }
 
 bool

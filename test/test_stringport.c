@@ -8,7 +8,7 @@
 #define TEST_TEXT_CONTENTS "hello, world\nhello, world!"
 
 void
-test_scm_string_port_construct_input_port(void)
+test_scm_string_port_new_input_port(void)
 {
   ScmPort *port =
     scm_port_open_input_string(TEST_TEXT_CONTENTS,
@@ -144,7 +144,7 @@ test_scm_string_port_close_input_port(void)
 }
 
 void
-test_scm_string_port_construct_output_port(void)
+test_scm_string_port_new_output_port(void)
 {
   ScmPort *port = scm_port_open_output_string();
 

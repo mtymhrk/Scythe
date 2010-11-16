@@ -14,12 +14,12 @@
 #include "miscobjects.h"
 
 ScmParser *
-construct_parser_from_string(const char *str)
+new_parser_from_string(const char *str)
 {
   ScmPort *port = scm_port_open_input_string(str, strlen(str));
-  ScmIBuffer *ibuffer = scm_ibuffer_construct(port);
-  ScmLexer *lexer = scm_lexer_construct(ibuffer);
-  ScmParser *parser = scm_parser_construct(lexer);
+  ScmIBuffer *ibuffer = scm_ibuffer_new(port);
+  ScmLexer *lexer = scm_lexer_new(ibuffer);
+  ScmParser *parser = scm_parser_new(lexer);
 
   return parser;
 }
@@ -33,12 +33,12 @@ string_content_to_null_terminate_string(ScmString *str, char *buf)
 }
 
 void
-test_parser_construct(void)
+test_parser_new(void)
 {
   ScmPort *port = scm_port_open_input_string("", 0);
-  ScmIBuffer *ibuffer = scm_ibuffer_construct(port);
-  ScmLexer *lexer = scm_lexer_construct(ibuffer);
-  ScmParser *parser = scm_parser_construct(lexer);
+  ScmIBuffer *ibuffer = scm_ibuffer_new(port);
+  ScmLexer *lexer = scm_lexer_new(ibuffer);
+  ScmParser *parser = scm_parser_new(lexer);
 
   cut_assert_not_null(parser);
 }
@@ -47,7 +47,7 @@ void
 test_parser_parse_string(void)
 {
   char actual[256];
-  ScmParser *parser = construct_parser_from_string(" \"this is string\" ");
+  ScmParser *parser = new_parser_from_string(" \"this is string\" ");
 
   ScmObj obj = scm_parser_parse_expression(parser);
   
@@ -63,7 +63,7 @@ test_parser_parse_string(void)
 void
 test_parser_parse_symbol(void)
 {
-  ScmParser *parser = construct_parser_from_string(" symbol ");
+  ScmParser *parser = new_parser_from_string(" symbol ");
 
   ScmObj obj = scm_parser_parse_expression(parser);
   
@@ -78,7 +78,7 @@ test_parser_parse_symbol(void)
 void
 test_parser_parse_integer(void)
 {
-  ScmParser *parser = construct_parser_from_string(" 100 ");
+  ScmParser *parser = new_parser_from_string(" 100 ");
 
   ScmObj obj = scm_parser_parse_expression(parser);
   
@@ -92,7 +92,7 @@ test_parser_parse_integer(void)
 void
 test_parser_parse_signed_integer(void)
 {
-  ScmParser *parser = construct_parser_from_string(" +100 -100 ");
+  ScmParser *parser = new_parser_from_string(" +100 -100 ");
   ScmObj obj;
   
   obj = scm_parser_parse_expression(parser);
@@ -113,7 +113,7 @@ test_parser_parse_signed_integer(void)
 void
 test_parser_parse_bool_true(void)
 {
-  ScmParser *parser = construct_parser_from_string(" #t ");
+  ScmParser *parser = new_parser_from_string(" #t ");
 
   ScmObj obj = scm_parser_parse_expression(parser);
   
@@ -127,7 +127,7 @@ test_parser_parse_bool_true(void)
 void
 test_parser_parse_bool_false(void)
 {
-  ScmParser *parser = construct_parser_from_string(" #f ");
+  ScmParser *parser = new_parser_from_string(" #f ");
 
   ScmObj obj = scm_parser_parse_expression(parser);
   
@@ -141,7 +141,7 @@ test_parser_parse_bool_false(void)
 void
 test_parser_parse_char_newline(void)
 {
-  ScmParser *parser = construct_parser_from_string(" #\\newline #\\NEWLINE ");
+  ScmParser *parser = new_parser_from_string(" #\\newline #\\NEWLINE ");
   ScmObj obj;
 
   obj = scm_parser_parse_expression(parser);
@@ -160,7 +160,7 @@ test_parser_parse_char_newline(void)
 void
 test_parser_parse_char_space(void)
 {
-  ScmParser *parser = construct_parser_from_string(" #\\space #\\SPACE ");
+  ScmParser *parser = new_parser_from_string(" #\\space #\\SPACE ");
   ScmObj obj;
 
   obj = scm_parser_parse_expression(parser);
@@ -179,7 +179,7 @@ test_parser_parse_char_space(void)
 void
 test_parser_parse_quote(void)
 {
-  ScmParser *parser = construct_parser_from_string(" '^abc ");
+  ScmParser *parser = new_parser_from_string(" '^abc ");
   ScmObj obj, car, cdr;
 
   obj = scm_parser_parse_expression(parser);
@@ -207,7 +207,7 @@ test_parser_parse_quote(void)
 void
 test_parser_parse_quasiquote(void)
 {
-  ScmParser *parser = construct_parser_from_string(" `12abc ");
+  ScmParser *parser = new_parser_from_string(" `12abc ");
   ScmObj obj, car, cdr;
 
   obj = scm_parser_parse_expression(parser);
@@ -235,7 +235,7 @@ test_parser_parse_quasiquote(void)
 void
 test_parser_parse_unquote(void)
 {
-  ScmParser *parser = construct_parser_from_string(" ,&ab-12 ");
+  ScmParser *parser = new_parser_from_string(" ,&ab-12 ");
   ScmObj obj, car, cdr;
 
   obj = scm_parser_parse_expression(parser);
@@ -263,7 +263,7 @@ test_parser_parse_unquote(void)
 void
 test_parser_parse_unquote_splicing(void)
 {
-  ScmParser *parser = construct_parser_from_string(" ,@?abc.12 ");
+  ScmParser *parser = new_parser_from_string(" ,@?abc.12 ");
   ScmObj obj, car, cdr;
 
   obj = scm_parser_parse_expression(parser);
@@ -291,7 +291,7 @@ test_parser_parse_unquote_splicing(void)
 void
 test_parser_parse_empty_list(void)
 {
-  ScmParser *parser = construct_parser_from_string(" () ");
+  ScmParser *parser = new_parser_from_string(" () ");
   ScmObj obj;
 
   obj = scm_parser_parse_expression(parser);
@@ -305,7 +305,7 @@ void
 test_parser_parse_proper_list(void)
 {
   char actual[256];
-  ScmParser *parser = construct_parser_from_string("(<abc> 123 \"str\" :def:)");
+  ScmParser *parser = new_parser_from_string("(<abc> 123 \"str\" :def:)");
   ScmObj obj, car, cdr;
 
   obj = scm_parser_parse_expression(parser);
@@ -348,7 +348,7 @@ test_parser_parse_proper_list(void)
 void
 test_parser_parse_improper_list(void)
 {
-  ScmParser *parser = construct_parser_from_string(" (<abc> . 123) ");
+  ScmParser *parser = new_parser_from_string(" (<abc> . 123) ");
   ScmObj obj, car, cdr;
 
   obj = scm_parser_parse_expression(parser);
@@ -371,7 +371,7 @@ void
 test_parser_parse_nexted_list(void)
 {
   ScmParser *parser =
-    construct_parser_from_string(" (+ (? ! _) *) ");
+    new_parser_from_string(" (+ (? ! _) *) ");
   ScmObj obj, car, cdr, car_n, cdr_n;
 
   obj = scm_parser_parse_expression(parser);
@@ -426,7 +426,7 @@ test_parser_parse_nexted_list(void)
 void
 test_parse_parse_list_inserted_comment(void)
 {
-  ScmParser *parser = construct_parser_from_string("(<abc> ; comment \n 123)");
+  ScmParser *parser = new_parser_from_string("(<abc> ; comment \n 123)");
   ScmObj obj, car, cdr;
 
   obj = scm_parser_parse_expression(parser);
@@ -451,7 +451,7 @@ test_parse_parse_list_inserted_comment(void)
 void
 test_parser_parse_empty_vector(void)
 {
-  ScmParser *parser = construct_parser_from_string(" #() ");
+  ScmParser *parser = new_parser_from_string(" #() ");
   ScmObj obj;
 
   obj = scm_parser_parse_expression(parser);
@@ -468,7 +468,7 @@ test_parser_parse_vector(void)
 {
   char actual[256];
   ScmParser *parser =
-    construct_parser_from_string(" #(<abc> 123 \"str\" #()) ");
+    new_parser_from_string(" #(<abc> 123 \"str\" #()) ");
   ScmObj vector, obj;
 
   vector = scm_parser_parse_expression(parser);

@@ -47,7 +47,7 @@ scm_vector_finalize(ScmObj vector) /* GC OK */
 }
 
 ScmObj
-scm_vector_construct(SCM_MEM_ALLOC_TYPE_T mtype, size_t length) /* GC OK */
+scm_vector_new(SCM_MEM_ALLOC_TYPE_T mtype, size_t length) /* GC OK */
 {
   ScmObj vector;
 

@@ -12,7 +12,7 @@ static ScmObj vm = SCM_OBJ_INIT;
 void
 cut_startup(void)
 {
-  SCM_SETQ_PRIM(vm, scm_vm_construct());
+  SCM_SETQ_PRIM(vm, scm_vm_new());
   scm_vm_switch_vm(vm);
 }
 
@@ -20,11 +20,11 @@ void
 cut_shutdown(void)
 {
   scm_vm_revert_vm();
-  scm_vm_destruct(vm);
+  scm_vm_end(vm);
 }
 
 void
-test_scm_pair_construct(void)
+test_scm_pair_new(void)
 {
   ScmObj pair = SCM_OBJ_INIT, car = SCM_OBJ_INIT, cdr = SCM_OBJ_INIT;
 
@@ -35,7 +35,7 @@ test_scm_pair_construct(void)
   SCM_SETQ(cdr, SCM_OBJ(scm_nil_instance()));
 
   /* action */
-  SCM_SETQ(pair, scm_pair_construct(SCM_MEM_ALLOC_HEAP, car, cdr));;
+  SCM_SETQ(pair, scm_pair_new(SCM_MEM_ALLOC_HEAP, car, cdr));;
 
   /* postcondition check */
   cut_assert_true(SCM_OBJ_IS_NOT_NULL(pair));
@@ -52,7 +52,7 @@ test_scm_pair_is_pair(void)
   /* preprocess */
   SCM_SETQ(car, SCM_OBJ(scm_nil_instance()));
   SCM_SETQ(cdr, SCM_OBJ(scm_nil_instance()));
-  SCM_SETQ(pair, scm_pair_construct(SCM_MEM_ALLOC_HEAP, car, cdr));;
+  SCM_SETQ(pair, scm_pair_new(SCM_MEM_ALLOC_HEAP, car, cdr));;
 
   /* action and postcondition check */
   cut_assert_true(scm_pair_is_pair(SCM_OBJ(pair)));
@@ -69,7 +69,7 @@ test_scm_pair_car(void)
   /* preprocess */
   SCM_SETQ(car, SCM_OBJ(scm_nil_instance()));
   SCM_SETQ(cdr, SCM_OBJ(scm_nil_instance()));
-  SCM_SETQ(pair, scm_pair_construct(SCM_MEM_ALLOC_HEAP, car, cdr));;
+  SCM_SETQ(pair, scm_pair_new(SCM_MEM_ALLOC_HEAP, car, cdr));;
 
   /* action and postcondition check */
   cut_assert_true(scm_obj_is_same_instance(car, scm_pair_car(pair)));
@@ -85,7 +85,7 @@ test_scm_pair_cdr(void)
   /* preprocess */
   SCM_SETQ(car, SCM_OBJ(scm_nil_instance()));
   SCM_SETQ(cdr, SCM_OBJ(scm_nil_instance()));
-  SCM_SETQ(pair, scm_pair_construct(SCM_MEM_ALLOC_HEAP, car, cdr));;
+  SCM_SETQ(pair, scm_pair_new(SCM_MEM_ALLOC_HEAP, car, cdr));;
 
   /* action and postcondition check */
   cut_assert_true(scm_obj_is_same_instance(cdr, scm_pair_cdr(pair)));

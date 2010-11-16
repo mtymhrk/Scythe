@@ -81,7 +81,7 @@ scm_vm_initialize(ScmObj vm, ScmObj parent)
   /* vm->stack_size = SCM_VM_STACK_SIZE; */
   /* vm->sp = vm->stack; */
 
-  SCM_VM_REF_STACK(vm) = scm_ref_stack_construct(SCM_VM_REF_STACK_INIT_SIZE);
+  SCM_VM_REF_STACK(vm) = scm_ref_stack_new(SCM_VM_REF_STACK_INIT_SIZE);
   if (SCM_VM_REF_STACK(vm) == NULL) goto err;
 
   return;
@@ -92,7 +92,7 @@ scm_vm_initialize(ScmObj vm, ScmObj parent)
   /*   vm->sp = NULL; */
   /* } */
   if (SCM_VM_REF_STACK(vm) != NULL) {
-    scm_ref_stack_destruct(SCM_VM_REF_STACK(vm));
+    scm_ref_stack_end(SCM_VM_REF_STACK(vm));
     SCM_VM_REF_STACK(vm) = NULL;
   }
   return;
@@ -104,7 +104,7 @@ scm_vm_finalize(ScmObj vm)
   SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
 
   /* vm->stack = scm_memory_release(vm->stack); */
-  scm_ref_stack_destruct(SCM_VM_REF_STACK(vm));
+  scm_ref_stack_end(SCM_VM_REF_STACK(vm));
   SCM_VM_REF_STACK(vm) = NULL;
 }
 
@@ -115,7 +115,7 @@ scm_vm_setup_root(ScmObj vm)
 
   scm_vm_switch_vm(vm);
 
-  SCM_SETQ(SCM_VM_SYMTBL(vm), scm_symtable_construct(SCM_MEM_ALLOC_ROOT));
+  SCM_SETQ(SCM_VM_SYMTBL(vm), scm_symtable_new(SCM_MEM_ALLOC_ROOT));
   if (SCM_OBJ_IS_NULL(SCM_VM_SYMTBL(vm)))
     ;                           /* TODO: error handling */
 
@@ -126,7 +126,7 @@ scm_vm_setup_root(ScmObj vm)
 
   /* scm_symtable_initialize(SCM_VM(vm)->symtbl); */
 
-  SCM_SETQ(SCM_VM_NIL(vm), scm_nil_construct(SCM_MEM_ALLOC_ROOT));
+  SCM_SETQ(SCM_VM_NIL(vm), scm_nil_new(SCM_MEM_ALLOC_ROOT));
   if (SCM_OBJ_IS_NULL(SCM_VM_NIL(vm)))
     ;                           /* TODO: error handling */
 
@@ -137,7 +137,7 @@ scm_vm_setup_root(ScmObj vm)
 
   /* scm_nil_initialize(SCM_VM_NIL(vm)); */
 
-  SCM_SETQ(SCM_VM_EOF(vm), scm_eof_construct(SCM_MEM_ALLOC_ROOT));
+  SCM_SETQ(SCM_VM_EOF(vm), scm_eof_new(SCM_MEM_ALLOC_ROOT));
   if (SCM_OBJ_IS_NULL(SCM_VM_EOF(vm)))
     ;                           /* TODO: error handling */
 
@@ -149,7 +149,7 @@ scm_vm_setup_root(ScmObj vm)
   /* scm_eof_initialize(SCM_VM_EOF(vm)); */
 
 
-  SCM_SETQ(SCM_VM_BOOL_TRUE(vm), scm_bool_construct(SCM_MEM_ALLOC_ROOT, true));
+  SCM_SETQ(SCM_VM_BOOL_TRUE(vm), scm_bool_new(SCM_MEM_ALLOC_ROOT, true));
   if (SCM_OBJ_IS_NULL(SCM_VM_BOOL_TRUE(vm)))
     ;                           /* TODO: error handling */
 
@@ -161,7 +161,7 @@ scm_vm_setup_root(ScmObj vm)
   /* scm_bool_initialize(SCM_VM_BOOL_TRUE(vm), true); */
 
   SCM_SETQ(SCM_VM_BOOL_FALSE(vm),
-           scm_bool_construct(SCM_MEM_ALLOC_ROOT, false));
+           scm_bool_new(SCM_MEM_ALLOC_ROOT, false));
   if (SCM_OBJ_IS_NULL(SCM_VM_BOOL_FALSE(vm)))
     ;                           /* TODO: error handling */
 
@@ -191,16 +191,16 @@ scm_vm_clean_root(ScmObj vm)
 
   scm_vm_revert_vm();
 
-  scm_mem_destruct(SCM_VM_MEM(vm));
+  scm_mem_end(SCM_VM_MEM(vm));
 }
 
 ScmObj
-scm_vm_construct(void)
+scm_vm_new(void)
 {
   ScmMem *mem;
   ScmObj vm;
 
-  mem = scm_mem_construct();
+  mem = scm_mem_new();
   if (mem == NULL) return SCM_OBJ_NULL;
 
   if (scm_mem_register_extra_rfrn(mem, SCM_REF_MAKE(current_vm))
@@ -216,12 +216,12 @@ scm_vm_construct(void)
   return vm;
 
  err:
-  scm_mem_destruct(mem);
+  scm_mem_end(mem);
   return SCM_OBJ_NULL;
 }
 
 void
-scm_vm_destruct(ScmObj vm)
+scm_vm_end(ScmObj vm)
 {
   SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
 

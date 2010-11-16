@@ -139,7 +139,7 @@ scm_io_referred(ScmIO *io)
 }
 
 void
-scm_io_destruct(ScmIO *io)
+scm_io_end(ScmIO *io)
 {
   assert(io != NULL);
   io->ref_cnt--;
@@ -236,13 +236,13 @@ scm_io_errno(ScmIO *io)
 }
 
 ScmFileIO *
-scm_fileio_construct(int fd)
+scm_fileio_new(int fd)
 {
   ScmFileIO *fileio;
 
   fileio = scm_memory_allocate(sizeof(ScmFileIO));
   scm_io_initialize((ScmIO *)fileio,
-                    (DestructFunc)scm_fileio_destruct,
+                    (DestructFunc)scm_fileio_end,
                     (ReadFunc)scm_fileio_read,
                     (WriteFunc)scm_fileio_write,
                     (SeekFunc)scm_fileio_seek,
@@ -264,7 +264,7 @@ scm_fileio_construct(int fd)
 }
 
 void
-scm_fileio_destruct(ScmFileIO *fileio)
+scm_fileio_end(ScmFileIO *fileio)
 {
   assert(fileio != NULL);
   
@@ -282,7 +282,7 @@ scm_fileio_open(const char *pathname, int flags, mode_t mode)
   SCM_SYSCALL(fd, open(pathname, flags, mode));
   if (fd < 0) return NULL;
 
-  return scm_fileio_construct(fd);
+  return scm_fileio_new(fd);
 }
 
 ssize_t
@@ -496,13 +496,13 @@ scm_stringio_expand_buffer(ScmStringIO *strio, size_t needed_size)
 
 
 ScmStringIO *
-scm_stringio_construct(const char *str, size_t len)
+scm_stringio_new(const char *str, size_t len)
 {
   ScmStringIO *strio;
 
   strio = scm_memory_allocate(sizeof(ScmStringIO));
   scm_io_initialize((ScmIO *)strio,
-                    (DestructFunc)scm_stringio_destruct,
+                    (DestructFunc)scm_stringio_end,
                     (ReadFunc)scm_stringio_read,
                     (WriteFunc)scm_stringio_write,
                     (SeekFunc)scm_stringio_seek,
@@ -533,7 +533,7 @@ scm_stringio_construct(const char *str, size_t len)
 }
 
 void
-scm_stringio_destruct(ScmStringIO *strio)
+scm_stringio_end(ScmStringIO *strio)
 {
   assert(strio != NULL);
   scm_memory_release(strio->string);
@@ -682,7 +682,7 @@ scm_stringio_length(ScmStringIO *strio)
 }
 
 ScmCharConvIO *
-scm_charconvio_construct(ScmIO *io,
+scm_charconvio_new(ScmIO *io,
                          const char *internal_encode,
                          const char *external_encode,
                          bool owner)
@@ -693,7 +693,7 @@ scm_charconvio_construct(ScmIO *io,
 
   convio = scm_memory_allocate(sizeof(ScmCharConvIO));
   scm_io_initialize((ScmIO *)convio,
-                    (DestructFunc)scm_charconvio_destruct,
+                    (DestructFunc)scm_charconvio_end,
                     (ReadFunc)scm_charconvio_read,
                     (WriteFunc)scm_charconvio_write,
                     (SeekFunc)scm_charconvio_seek,
@@ -711,17 +711,17 @@ scm_charconvio_construct(ScmIO *io,
   convio->is_closed = false;
   convio->is_owner = owner;
 
-  convio->in_conv = scm_charconv_construct(external_encode, internal_encode,
+  convio->in_conv = scm_charconv_new(external_encode, internal_encode,
                                            SCM_CHARCONV_ERROR);
   if (convio->in_conv == NULL) {
     scm_memory_release(convio);
     return NULL;
   }
 
-  convio->out_conv = scm_charconv_construct(internal_encode, external_encode,
+  convio->out_conv = scm_charconv_new(internal_encode, external_encode,
                                             SCM_CHARCONV_ERROR);
   if (convio->out_conv == NULL) {
-    scm_charconv_destruct(convio->in_conv);
+    scm_charconv_end(convio->in_conv);
     scm_memory_release(convio);
     return NULL;
   }
@@ -736,13 +736,13 @@ scm_charconvio_construct(ScmIO *io,
 }
 
 void
-scm_charconvio_destruct(ScmCharConvIO *convio)
+scm_charconvio_end(ScmCharConvIO *convio)
 {
   assert(convio != NULL);
 
-  scm_io_destruct(convio->io);
-  scm_charconv_destruct(convio->in_conv);
-  scm_charconv_destruct(convio->out_conv);
+  scm_io_end(convio->io);
+  scm_charconv_end(convio->in_conv);
+  scm_charconv_end(convio->out_conv);
   scm_memory_release(convio);
 }
 
@@ -1011,13 +1011,13 @@ scm_port_finalize(ScmObj port)
   scm_port_flush(port);
   if (BIT_IS_SETED(SCM_PORT_ATTR(port), SCM_PORT_ATTR_DESTRUCT_IO)) {
     scm_port_close(port);
-    scm_io_destruct(SCM_PORT_IO(port));
+    scm_io_end(SCM_PORT_IO(port));
   }
   scm_memory_release(SCM_PORT_BUFFER(port));
 }
 
 ScmObj
-scm_port_construct(ScmIO *io, SCM_PORT_ATTR attr, SCM_PORT_BUF_MODE buf_mode)
+scm_port_new(ScmIO *io, SCM_PORT_ATTR attr, SCM_PORT_BUF_MODE buf_mode)
 {
   ScmObj port = SCM_OBJ_INIT;
 
@@ -1037,13 +1037,13 @@ scm_port_construct(ScmIO *io, SCM_PORT_ATTR attr, SCM_PORT_BUF_MODE buf_mode)
 ScmObj
 scm_port_open_input(ScmIO *io, SCM_PORT_ATTR attr, SCM_PORT_BUF_MODE buf_mode)
 {
-  return scm_port_construct(io, attr | SCM_PORT_ATTR_READABLE, buf_mode);
+  return scm_port_new(io, attr | SCM_PORT_ATTR_READABLE, buf_mode);
 }
 
 ScmObj
 scm_port_open_output(ScmIO *io, SCM_PORT_ATTR attr, SCM_PORT_BUF_MODE buf_mode)
 {
-  return scm_port_construct(io, attr | SCM_PORT_ATTR_WRITABLE, buf_mode);
+  return scm_port_new(io, attr | SCM_PORT_ATTR_WRITABLE, buf_mode);
 }
 
 ScmObj
@@ -1064,11 +1064,11 @@ scm_port_open_input_file_with_charconv(const char *path,
     const bool OWNER = true;
     ScmIO *convio;
 
-    convio = (ScmIO *)scm_charconvio_construct(io,
+    convio = (ScmIO *)scm_charconvio_new(io,
                                                internal_encode, external_encode,
                                                OWNER);
     if (convio == NULL) {
-      scm_io_destruct(io);
+      scm_io_end(io);
       return NULL;
     }
 
@@ -1099,11 +1099,11 @@ scm_port_open_output_file_with_charconv(const char *path,
     const bool OWNER = true;
     ScmIO *convio;
 
-    convio = (ScmIO *)scm_charconvio_construct(io,
+    convio = (ScmIO *)scm_charconvio_new(io,
                                                internal_encode, external_encode,
                                                OWNER);
     if (convio == NULL) {
-      scm_io_destruct(io);
+      scm_io_end(io);
       return NULL;
     }
 
@@ -1134,7 +1134,7 @@ scm_port_open_input_string(const void *string, size_t size)
 
   assert(string != NULL);
 
-  io = (ScmIO *)scm_stringio_construct(string, size);
+  io = (ScmIO *)scm_stringio_new(string, size);
   if (io == NULL) return NULL;
 
   return scm_port_open_input(io,
@@ -1147,7 +1147,7 @@ scm_port_open_output_string(void)
 {
   ScmIO *io;
 
-  io = (ScmIO *)scm_stringio_construct(NULL, 0);
+  io = (ScmIO *)scm_stringio_new(NULL, 0);
   if (io == NULL) return NULL;
 
   return scm_port_open_output(io,

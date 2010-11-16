@@ -10,7 +10,7 @@ static ScmObj vm = SCM_OBJ_INIT;
 void
 cut_startup(void)
 {
-  SCM_SETQ_PRIM(vm, scm_vm_construct());
+  SCM_SETQ_PRIM(vm, scm_vm_new());
   scm_vm_switch_vm(vm);
 }
 
@@ -18,11 +18,11 @@ void
 cut_shutdown(void)
 {
   scm_vm_revert_vm();
-  scm_vm_destruct(vm);
+  scm_vm_end(vm);
 }
 
 void
-test_scm_eof_construct(void)
+test_scm_eof_new(void)
 {
   ScmObj eof1 = SCM_OBJ_INIT, eof2 = SCM_OBJ_INIT;
 

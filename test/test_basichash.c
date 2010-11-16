@@ -17,9 +17,9 @@ comp_func(ScmBasicHashKey key1, ScmBasicHashKey key2)
 }
 
 void
-test_scm_basic_hash_construct(void)
+test_scm_basic_hash_new(void)
 {
-  ScmBasicHashTable *table = scm_basic_hash_construct(256,
+  ScmBasicHashTable *table = scm_basic_hash_new(256,
                                                       hash_func, comp_func);
 
   cut_assert_not_null(table);
@@ -28,7 +28,7 @@ test_scm_basic_hash_construct(void)
 void
 test_scm_basic_hash_insert_nonexistent_key()
 {
-  ScmBasicHashTable *table = scm_basic_hash_construct(256,
+  ScmBasicHashTable *table = scm_basic_hash_new(256,
                                                       hash_func, comp_func); 
   ScmBasicHashEntry *entry;
 
@@ -43,7 +43,7 @@ test_scm_basic_hash_insert_nonexistent_key()
 void
 test_scm_basic_hash_insert_existent_key()
 {
-  ScmBasicHashTable *table = scm_basic_hash_construct(256,
+  ScmBasicHashTable *table = scm_basic_hash_new(256,
                                                       hash_func, comp_func);
   ScmBasicHashEntry *entry;
 
@@ -57,7 +57,7 @@ test_scm_basic_hash_insert_existent_key()
 void
 test_scm_basic_hash_put_nonexistent_key()
 {
-  ScmBasicHashTable *table = scm_basic_hash_construct(256,
+  ScmBasicHashTable *table = scm_basic_hash_new(256,
                                                       hash_func, comp_func); 
   ScmBasicHashEntry *entry;
 
@@ -72,7 +72,7 @@ test_scm_basic_hash_put_nonexistent_key()
 void
 test_scm_basic_hash_put_existent_key()
 {
-  ScmBasicHashTable *table = scm_basic_hash_construct(256, hash_func, comp_func);
+  ScmBasicHashTable *table = scm_basic_hash_new(256, hash_func, comp_func);
   ScmBasicHashEntry *entry;
 
   scm_basic_hash_insert(table,
@@ -88,7 +88,7 @@ test_scm_basic_hash_put_existent_key()
 void
 test_scm_basic_hash_update_entry()
 {
-  ScmBasicHashTable *table = scm_basic_hash_construct(256,
+  ScmBasicHashTable *table = scm_basic_hash_new(256,
                                                       hash_func, comp_func);
   ScmBasicHashEntry *entry;
 
@@ -105,7 +105,7 @@ test_scm_basic_hash_update_entry()
 void
 test_scm_basic_hash_delete_nonexistent_key()
 {
-  ScmBasicHashTable *table = scm_basic_hash_construct(256,
+  ScmBasicHashTable *table = scm_basic_hash_new(256,
                                                       hash_func, comp_func);
   ScmBasicHashEntry *entry;
 
@@ -118,7 +118,7 @@ test_scm_basic_hash_delete_nonexistent_key()
 void
 test_scm_basic_hash_delete_existent_key()
 {
-  ScmBasicHashTable *table = scm_basic_hash_construct(256,
+  ScmBasicHashTable *table = scm_basic_hash_new(256,
                                                       hash_func, comp_func);
   ScmBasicHashEntry *entry;
 
@@ -133,7 +133,7 @@ test_scm_basic_hash_delete_existent_key()
 void
 test_scm_basic_hash_delete_entry()
 {
-  ScmBasicHashTable *table = scm_basic_hash_construct(256,
+  ScmBasicHashTable *table = scm_basic_hash_new(256,
                                                       hash_func, comp_func);
   ScmBasicHashEntry *entry;
 
@@ -145,13 +145,13 @@ test_scm_basic_hash_delete_entry()
 
   cut_assert_null(scm_basic_hash_get(table, SCM_BASIC_HASH_KEY(1)));
 
-  scm_basic_hash_destruct(table);
+  scm_basic_hash_end(table);
 }
 
 void
 test_scm_basic_hash_delete_head_entry_synonym()
 {
-  ScmBasicHashTable *table = scm_basic_hash_construct(256,
+  ScmBasicHashTable *table = scm_basic_hash_new(256,
                                                       hash_func, comp_func);
   ScmBasicHashEntry *entry;
 
@@ -166,13 +166,13 @@ test_scm_basic_hash_delete_head_entry_synonym()
   scm_basic_hash_delete_entry(table, entry);
   cut_assert_null(scm_basic_hash_get(table, SCM_BASIC_HASH_KEY(513)));
 
-  scm_basic_hash_destruct(table);
+  scm_basic_hash_end(table);
 }
 
 void
 test_scm_basic_hash_delete_tail_entry_synonym()
 {
-  ScmBasicHashTable *table = scm_basic_hash_construct(256,
+  ScmBasicHashTable *table = scm_basic_hash_new(256,
                                                       hash_func, comp_func);
   ScmBasicHashEntry *entry;
 
@@ -187,13 +187,13 @@ test_scm_basic_hash_delete_tail_entry_synonym()
   scm_basic_hash_delete_entry(table, entry);
   cut_assert_null(scm_basic_hash_get(table, SCM_BASIC_HASH_KEY(1)));
 
-  scm_basic_hash_destruct(table);
+  scm_basic_hash_end(table);
 }
 
 void
 test_scm_basic_hash_delete_middle_entry_synonym()
 {
-  ScmBasicHashTable *table = scm_basic_hash_construct(256,
+  ScmBasicHashTable *table = scm_basic_hash_new(256,
                                                       hash_func, comp_func);
   ScmBasicHashEntry *entry;
 
@@ -208,7 +208,7 @@ test_scm_basic_hash_delete_middle_entry_synonym()
   scm_basic_hash_delete_entry(table, entry);
   cut_assert_null(scm_basic_hash_get(table, SCM_BASIC_HASH_KEY(257)));
 
-  scm_basic_hash_destruct(table);
+  scm_basic_hash_end(table);
 }
 
 void
@@ -222,7 +222,7 @@ test_scm_basic_hash__external_iterator()
   ScmBasicHashTable *table;
 
   /* preprocess */
-  table = scm_basic_hash_construct(256, hash_func, comp_func);
+  table = scm_basic_hash_new(256, hash_func, comp_func);
   for (i = 0; i < sizeof(keys)/sizeof(keys[0]); i++)
     scm_basic_hash_insert(table,
                           SCM_BASIC_HASH_KEY(keys[i]),
@@ -271,5 +271,5 @@ test_scm_basic_hash__external_iterator()
   cut_assert_true(SCM_BASIC_HASH_ITR_IS_END(itr));
 
   /* postprocess */
-  scm_basic_hash_destruct(table);
+  scm_basic_hash_end(table);
 }

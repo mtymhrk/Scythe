@@ -11,7 +11,7 @@ extern ScmTypeInfo SCM_FIXNUM_TYPE_INFO;
 #define SCM_FIXNUM_MIN (SCM_RSHIFT_ARITH(SCM_SWORD_MIN, SCM_FIXNUM_SHIFT_BIT))
 
 static inline ScmObj
-scm_fixnum_construct(scm_sword_t num)
+scm_fixnum_new(scm_sword_t num)
 {
   assert(num >= SCM_FIXNUM_MIN);
   assert(num <= SCM_FIXNUM_MAX);

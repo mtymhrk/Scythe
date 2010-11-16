@@ -22,8 +22,8 @@ void scm_basic_list_shift(ScmBasicList *list);
 ScmBasicListEntry *scm_basic_list_head(ScmBasicList *list);
 ScmBasicListEntry *scm_basic_list_tail(ScmBasicList *list);
 size_t scm_basic_list_length(ScmBasicList *list);
-ScmBasicList *scm_basic_list_construct();
+ScmBasicList *scm_basic_list_new();
 void scm_basic_list_cleanup(ScmBasicList *list);
-void scm_basic_list_destruct(ScmBasicList *list);
+void scm_basic_list_end(ScmBasicList *list);
 
 #endif /* INCLUDE_BASICLIST_H__ */
