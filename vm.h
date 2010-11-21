@@ -8,7 +8,7 @@ typedef struct ScmVMInstRec ScmVMInst;
 typedef struct ScmVMEnvRec ScmVMEnv;
 typedef struct ScmVMRec ScmVM;
 
-#define SCM_VM(obj) ((ScmVM *)obj)
+#define SCM_VM(obj) ((ScmVM *)(obj))
 
 #include "object.h"
 #include "memory.h"
@@ -19,10 +19,10 @@ extern ScmTypeInfo SCM_VM_TYPE_INFO;
 
 struct ScmVMRec {
   ScmObjHeader header;
-  /* ScmObj *stack;                /\* stack *\/ */
-  /* size_t stack_size;            /\* stack size *\/ */
-  /* ScmObj *sp;                   /\* stack pointer *\/ */
-  /* ScmObj *fp;                    /\* frame pointer *\/ */
+  ScmObj *stack;                /* stack */
+  size_t stack_size;            /* stack size */
+  ScmObj *sp;                   /* stack pointer */
+  ScmObj *fp;                    /* frame pointer */
   /* ScmObj cp;                    /\* closure pointer *\/ */
   /* scm_vm_inst_t *ip;            /\* instruction pointer *\/ */
   /* ScmObj val;                   /\* value register *\/ */
@@ -39,6 +39,12 @@ struct ScmVMRec {
 };
 
 #define SCM_VM_MEM(obj) (SCM_VM(obj)->mem)
+#define SCM_VM_STACK(obj) (SCM_VM(obj)->stack)
+#define SCM_VM_STACK_SIZE(obj) (SCM_VM(obj)->stack_size)
+#define SCM_VM_SP(obj) (SCM_VM(obj)->sp)
+#define SCM_VM_SP_INC(obj) (SCM_VM_SP(obj)++)
+#define SCM_VM_SP_DEC(obj) (SCM_VM_SP(obj)--)
+#define SCM_VM_FP(obj) (SCM_VM(obj)->fp)
 #define SCM_VM_REF_STACK(obj) (SCM_VM(obj)->ref_stack)
 #define SCM_VM_SYMTBL(obj) (SCM_VM(obj)->symtbl)
 #define SCM_VM_NIL(obj) (SCM_VM(obj)->nil)

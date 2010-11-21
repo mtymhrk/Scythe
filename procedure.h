@@ -1,22 +1,28 @@
 #ifndef INCLUDE_PROCEDURE_H__
 #define INCLUDE_PROCEDURE_H__
 
-typedef struct ScmPrimProcRec ScmPrimProc;
+typedef struct ScmSubrutineRec ScmSubrutine;
+
+#define SCM_SUBRUTINE(obj) ((ScmSubrutine *)(obj))
 
 #include "object.h"
 #include "obuffer.h"
 #include "vm.h"
 
-typedef void (*PrimProcFunc)(int argc, ScmObj *argv, ScmVM *vm);
+typedef void (*ScmSubrFunc)(void);
 
-extern ScmTypeInfo SCM_PRIM_PROC_TYPE_INFO;
+extern ScmTypeInfo SCM_SUBRUTINE_TYPE_INFO;
 
-struct ScmPrimProcRec {
+struct ScmSubrutineRec {
   ScmObjHeader header;
   /* TODO: define signature */
-  PrimProcFunc prim_proc;
+  ScmSubrFunc subr_func;
 };
 
-void scm_prim_proc_pretty_print(ScmObj obj, ScmOBuffer *obuffer);
+#define SCM_SUBRUTINE_FUNC(obj) (SCM_SUBRUTINE(obj)->subr_func)
+#define SCM_SUBRUTINE_CALL(obj) (SCM_SUBRUTINE_FUNC(obj)())
+
+void scm_subrutine_pretty_print(ScmObj obj, ScmOBuffer *obuffer);
+void scm_subrutine_gc_initialize(ScmObj obj, ScmObj mem);
 
 #endif /* INCLUDE_PROCEDURE_H__ */
