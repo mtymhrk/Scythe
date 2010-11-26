@@ -45,9 +45,15 @@ scm_subrutine_new(SCM_MEM_ALLOC_TYPE_T mtype, ScmSubrFunc func)
 void
 scm_subrutine_call(ScmObj subr)
 {
+  ScmObj ret = SCM_OBJ_INIT;
+
+  SCM_STACK_PUSH(&ret);
+
   SCM_OBJ_ASSERT_TYPE(subr, &SCM_SUBRUTINE_TYPE_INFO);
 
-  SCM_SUBRUTINE_CALL(subr);
+  SCM_SUBRUTINE_CALL(ret, subr);
+
+  scm_vm_return(scm_vm_current_vm(), ret);
 }
 
 void

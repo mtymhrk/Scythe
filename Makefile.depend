@@ -29,3 +29,5 @@ binding.o: binding.c basichash.h obuffer.h object.h binding.h memory.h \
 reference.o: reference.c reference.h object.h obuffer.h vm.h memory.h \
  basichash.h
 numeric.o: numeric.c object.h obuffer.h numeric.h
+primitive_subrutine.o: primitive_subrutine.c vm.h object.h obuffer.h \
+ memory.h basichash.h reference.h procedure.h pair.h

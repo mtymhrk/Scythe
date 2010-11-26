@@ -66,42 +66,6 @@ static ScmObj current_vm;
 /* } */
 
 
-static void
-scm_vm_push_stack(ScmObj vm, ScmObj elm)
-{
-  SCM_STACK_PUSH(&vm, &elm);
-
-  SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
-  assert(SCM_OBJ_IS_NOT_NULL(elm));
-
-  if (SCM_VM_SP(vm) > SCM_VM_STACK(vm) + SCM_VM_STACK_SIZE(vm))
-    return; /* stack overflow; TODO: handle stack overflow error  */
-
-  SCM_SETQ(*SCM_VM_SP(vm), elm);
-
-  SCM_VM_SP_INC(vm);
-}
-
-static ScmObj
-scm_vm_pop_stack(ScmObj vm)
-{
-  ScmObj elm = SCM_OBJ_INIT;
-
-  SCM_STACK_PUSH(&vm, &elm);
-
-  SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
-
-  if (SCM_VM_SP(vm) == SCM_VM_STACK(vm))
-    /* stack underflow; TODO; handle stack underflow error */
-    return SCM_OBJ_NULL;
-
-  SCM_SETQ(elm, *SCM_VM_SP(vm));
-
-  SCM_VM_SP_DEC(vm);
-
-  return elm;
-}
-
 void
 scm_vm_initialize(ScmObj vm, ScmObj parent)
 {
@@ -123,6 +87,10 @@ scm_vm_initialize(ScmObj vm, ScmObj parent)
 
   SCM_VM_SP(vm) = SCM_VM_STACK(vm);
   SCM_VM_FP(vm) = NULL;
+  SCM_VM_IP(vm) = NULL;
+
+  /* TODO: undefined オブジェクトみたいなものを初期値にする */
+  SCM_VM_VAL(vm) = SCM_OBJ_NULL;
 
   return;
 
@@ -150,6 +118,8 @@ scm_vm_finalize(ScmObj vm)
   scm_ref_stack_end(SCM_VM_REF_STACK(vm));
   SCM_VM_SP(vm) = NULL;
   SCM_VM_FP(vm) = NULL;
+  SCM_VM_IP(vm) = NULL;
+  SCM_VM_VAL_SETQ(vm, SCM_OBJ_NULL);
   SCM_VM_REF_STACK(vm) = NULL;
 }
 
@@ -237,6 +207,55 @@ scm_vm_end(ScmObj vm)
     scm_vm_clean_root(vm);
 }
 
+void
+scm_vm_stack_push(ScmObj vm, ScmObj elm)
+{
+  SCM_STACK_PUSH(&vm, &elm);
+
+  SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
+  assert(SCM_OBJ_IS_NOT_NULL(elm));
+
+  if (SCM_VM_SP(vm) > SCM_VM_STACK(vm) + SCM_VM_STACK_SIZE(vm))
+    return; /* stack overflow; TODO: handle stack overflow error  */
+
+  SCM_SETQ(*SCM_VM_SP(vm), elm);
+
+  SCM_VM_SP_INC(vm);
+}
+
+ScmObj
+scm_vm_stack_pop(ScmObj vm)
+{
+  ScmObj elm = SCM_OBJ_INIT;
+
+  SCM_STACK_PUSH(&vm, &elm);
+
+  SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
+
+  if (SCM_VM_SP(vm) == SCM_VM_STACK(vm))
+    /* stack underflow; TODO; handle stack underflow error */
+    return SCM_OBJ_NULL;
+
+  SCM_SETQ(elm, *SCM_VM_SP(vm));
+
+  SCM_VM_SP_DEC(vm);
+
+  return elm;
+}
+
+void
+scm_vm_stack_shorten(ScmObj vm, int n)
+{
+  SCM_STACK_PUSH(&vm);
+  SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
+
+  if (SCM_VM_SP(vm) - SCM_VM_STACK(vm) < n)
+    /* stack underflow; TODO; handle stack underflow error */
+    return;
+
+  SCM_VM_SP(vm) = SCM_VM_SP(vm) - n;
+}
+
 int
 scm_vm_frame_argc(ScmObj vm)
 {
@@ -259,13 +278,68 @@ scm_vm_frame_argv(ScmObj vm, int nth)
 {
   SCM_STACK_PUSH(&vm);
 
-  if (nth < scm_vm_frame_argc(vm))
+  SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
+
+  if (nth >= scm_vm_frame_argc(vm))
     return SCM_OBJ_NULL;    /* 存在しない引数を参照。とりあえず NULL を返す */
 
-  return SCM_OBJ(SCM_VM_FP(vm)[-(nth - 1)]);
+  return SCM_OBJ(SCM_VM_FP(vm)[-(nth + 2)]);
 }
 
+ScmObj *
+scm_vm_frame_outer_frame(ScmObj vm)
+{
+  /* TODO: write me */
+  return NULL;
+}
 
+scm_vm_inst_t *
+scm_vm_frame_next_inst(ScmObj vm)
+{
+  /* TODO: write me */
+  return NULL;
+}
+
+/* 関数の呼び出しから戻るインストラクション。
+ * 引数 val が SCM_OBJ_NULL ではない場合、 val レジスタを val の値で更新する。
+ * 引数 val を使用するのは主に C 実装の関数呼出から戻る場合を想定。
+ */
+void
+scm_vm_return(ScmObj vm, ScmObj val)
+{
+  ScmObj *fp;
+  scm_vm_inst_t *ip;
+  int argc;
+
+  SCM_STACK_PUSH(&vm, &val);
+  SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
+
+  argc = scm_vm_frame_argc(vm);
+  fp = scm_vm_frame_outer_frame(vm);
+  ip = scm_vm_frame_next_inst(vm);
+
+  SCM_VM_FP(vm) = fp;
+  SCM_VM_IP(vm) = ip;
+
+  if (SCM_OBJ_IS_NOT_NULL(val))
+    SCM_VM_VAL_SETQ(vm, val);
+
+  scm_vm_stack_shorten(vm, argc + 3); /* 3 := argc, fp, ip */
+}
+
+int
+scm_vm_nr_local_var(ScmObj vm)
+{
+  return scm_vm_frame_argc(vm);
+}
+
+/* 束縛変数を参照する。 box されている場合は unbox する */
+ScmObj
+scm_vm_refer_local_var(ScmObj vm, int nth)
+{
+  /* box/unbox is not implemented */
+  return scm_vm_frame_argv(vm, nth);
+}
 
 /* void */
 /* scm_vm_run(ScmVM *vm) */
@@ -314,16 +388,12 @@ scm_vm_gc_initialize(ScmObj obj, ScmObj mem)
 
   SCM_VM_MEM(obj) = SCM_MEM(mem);
 
-  /* vm->fp = NULL; */
-  /* vm->cp = NULL; */
-  /* vm->ip = NULL; */
-  /* vm->val = NULL; */
-  /* vm->iseq = NULL; */
-  /* vm->stack = NULL; */
   SCM_VM_STACK(obj) = NULL;
   SCM_VM_STACK_SIZE(obj) = 0;
   SCM_VM_SP(obj) = NULL;
   SCM_VM_FP(obj) = NULL;
+  SCM_VM_IP(obj) = NULL;
+  SCM_VM_VAL(obj) = SCM_OBJ_NULL;
   SCM_VM_REF_STACK(obj) = NULL;
   SCM_VM_SYMTBL(obj) = SCM_OBJ_NULL;
   SCM_VM_PARENT_VM(obj) = SCM_OBJ_NULL;
@@ -458,19 +528,3 @@ scm_vm_bool_false_instance(void)
   return SCM_VM_BOOL_FALSE(current_vm);
 }
 
-/* 束縛変数の数を返す */
-/* TODO: to inline */
-int
-scm_vm_nr_local_var(void)
-{
-  return scm_vm_frame_argc(scm_vm_current_vm());
-}
-
-/* 束縛変数を参照する。 box されている場合は unbox する */
-/* TODO: to inline */
-ScmObj
-scm_vm_refe_local_var(int nth)
-{
-  /* box/unbox is not implemented */
-  return scm_vm_frame_argv(scm_vm_current_vm(), nth);
-}

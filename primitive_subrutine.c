@@ -3,49 +3,51 @@
 
 #include "pair.h"
 
-void
+ScmObj
 scm_subr_func_cons(void)
 {
-  ScmObj pair = SCM_OBJ_INIT, car = SCM_OBJ_INIT, cdr = SCM_OBJ_INIT;
+  if (scm_vm_nr_local_var(scm_vm_current_vm()) != 2)
+    ;                           /* TODO: error handling */
 
-  SCM_STACK_PUSH(&pair, &car, &cdr);
-
-  // TODO: retrive arguments from the vm stack
-  // TODO: test arguments
-
-  pair = scm_pair_new(SCM_MEM_ALLOC_HEAP, car, cdr);
-
-  // TODO: set return value of subrutine to vm
+  return scm_pair_new(SCM_MEM_ALLOC_HEAP,
+                      scm_vm_refer_local_var(scm_vm_current_vm(), 0),
+                      scm_vm_refer_local_var(scm_vm_current_vm(), 1));
 }
 
-void
+ScmObj
 scm_subr_func_car(void)
 {
-  ScmObj pair = SCM_OBJ_INIT, car = SCM_OBJ_INIT;
+  ScmObj pair = SCM_OBJ_INIT;
 
-  SCM_STACK_PUSH(&pair, &car);
+  SCM_STACK_PUSH(&pair);
+
+  if (scm_vm_nr_local_var(scm_vm_current_vm()) != 1)
+    ;                           /* TODO: error handling */
 
 
+  SCM_SETQ(pair, scm_vm_refer_local_var(scm_vm_current_vm(), 0));
 
-  // TODO: retrive arguments from the vm stack
-  // TODO: test arguments
+  if (!scm_pair_is_pair(pair))
+    ;                           /* TODO: err handling  */
 
-  car = scm_pair_car(pair);
-
-  // TODO: set return value of subrutine to vm
+  return scm_pair_car(pair);
 }
 
-void
+ScmObj
 scm_subr_func_cdr(void)
 {
-  ScmObj pair = SCM_OBJ_INIT, cdr = SCM_OBJ_INIT;
+  ScmObj pair = SCM_OBJ_INIT;
 
-  SCM_STACK_PUSH(&pair, &cdr);
+  SCM_STACK_PUSH(&pair);
 
-  // TODO: retrive arguments from the vm stack
-  // TODO: test arguments
+  if (scm_vm_nr_local_var(scm_vm_current_vm()) != 1)
+    ;                           /* TODO: error handling */
 
-  cdr = scm_pair_cdr(pair);
 
-  // TODO: set return value of subrutine to vm
+  SCM_SETQ(pair, scm_vm_refer_local_var(scm_vm_current_vm(), 0));
+
+  if (!scm_pair_is_pair(pair))
+    ;                           /* TODO: err handling  */
+
+  return scm_pair_car(pair);
 }

@@ -24,8 +24,8 @@ struct ScmVMRec {
   ScmObj *sp;                   /* stack pointer */
   ScmObj *fp;                    /* frame pointer */
   /* ScmObj cp;                    /\* closure pointer *\/ */
-  /* scm_vm_inst_t *ip;            /\* instruction pointer *\/ */
-  /* ScmObj val;                   /\* value register *\/ */
+  scm_vm_inst_t *ip;            /* instruction pointer */
+  ScmObj val;                   /* value register */
   /* ScmVMInst *iseq; */
   ScmMem *mem;
   ScmRefStack *ref_stack;
@@ -45,6 +45,9 @@ struct ScmVMRec {
 #define SCM_VM_SP_INC(obj) (SCM_VM_SP(obj)++)
 #define SCM_VM_SP_DEC(obj) (SCM_VM_SP(obj)--)
 #define SCM_VM_FP(obj) (SCM_VM(obj)->fp)
+#define SCM_VM_IP(obj) (SCM_VM(obj)->ip)
+#define SCM_VM_VAL(obj) (SCM_VM(obj)->val)
+#define SCM_VM_VAL_SETQ(obj, v) SCM_SETQ(SCM_VM_VAL(vm), v)
 #define SCM_VM_REF_STACK(obj) (SCM_VM(obj)->ref_stack)
 #define SCM_VM_SYMTBL(obj) (SCM_VM(obj)->symtbl)
 #define SCM_VM_NIL(obj) (SCM_VM(obj)->nil)
@@ -58,6 +61,20 @@ void scm_vm_initialize(ScmObj vm, ScmObj parent);
 void scm_vm_finalize(ScmObj vm);
 ScmObj scm_vm_new(void);
 void scm_vm_end(ScmObj vm);
+
+void scm_vm_stack_push(ScmObj vm, ScmObj elm);
+ScmObj scm_vm_stack_pop(ScmObj vm);
+void scm_vm_stack_shorten(ScmObj vm, int n);
+
+int scm_vm_frame_argc(ScmObj vm);
+ScmObj scm_vm_frame_argv(ScmObj vm, int nth);
+ScmObj *scm_vm_frame_outer_frame(ScmObj vm);
+scm_vm_inst_t *scm_vm_frame_next_inst(ScmObj vm);
+
+void scm_vm_return(ScmObj vm, ScmObj val);
+int scm_vm_nr_local_var(ScmObj vm);
+ScmObj scm_vm_refer_local_var(ScmObj vm, int nth);
+
 void scm_vm_pretty_print(ScmObj obj, ScmOBuffer *obuffer);
 void scm_vm_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_vm_gc_finalize(ScmObj obj);

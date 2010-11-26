@@ -32,6 +32,9 @@ binding.o: ../binding.c ../basichash.h ../obuffer.h ../object.h \
 reference.o: ../reference.c ../reference.h ../object.h ../obuffer.h \
  ../vm.h ../memory.h ../basichash.h
 numeric.o: ../numeric.c ../object.h ../obuffer.h ../numeric.h
+primitive_subrutine.o: ../primitive_subrutine.c ../vm.h ../object.h \
+ ../obuffer.h ../memory.h ../basichash.h ../reference.h ../procedure.h \
+ ../pair.h
 test_pair.o: test_pair.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-version.h \
  /usr/local/include/cutter/cutter/cut-features.h \
