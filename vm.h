@@ -22,6 +22,7 @@ extern ScmTypeInfo SCM_VM_TYPE_INFO;
 struct ScmVMRec {
   ScmObjHeader header;
   scm_vm_stack_val_t *stack;    /* stack */
+  unsigned int *stack_objmap;
   size_t stack_size;            /* stack size */
   ScmObj *sp;                   /* stack pointer */
   ScmObj *fp;                    /* frame pointer */
@@ -42,10 +43,9 @@ struct ScmVMRec {
 
 #define SCM_VM_MEM(obj) (SCM_VM(obj)->mem)
 #define SCM_VM_STACK(obj) (SCM_VM(obj)->stack)
+#define SCM_VM_STACK_OBJMAP(obj) (SCM_VM(obj)->stack_objmap)
 #define SCM_VM_STACK_SIZE(obj) (SCM_VM(obj)->stack_size)
 #define SCM_VM_SP(obj) (SCM_VM(obj)->sp)
-#define SCM_VM_SP_INC(obj) (SCM_VM_SP(obj)++)
-#define SCM_VM_SP_DEC(obj) (SCM_VM_SP(obj)--)
 #define SCM_VM_FP(obj) (SCM_VM(obj)->fp)
 #define SCM_VM_IP(obj) (SCM_VM(obj)->ip)
 #define SCM_VM_VAL(obj) (SCM_VM(obj)->val)
@@ -58,6 +58,30 @@ struct ScmVMRec {
 #define SCM_VM_BOOL_FALSE(obj) (SCM_VM(obj)->bool_false)
 #define SCM_VM_PARENT_VM(obj) (SCM_VM(obj)->parent_vm)
 #define SCM_VM_PREV_VM(obj) (SCM_VM(obj)->prev_vm)
+
+
+#define SCM_VM_SP_INC(obj) (SCM_VM_SP(obj)++)
+#define SCM_VM_SP_DEC(obj) (SCM_VM_SP(obj)--)
+
+#define SCM_VM_STACk_OBJMAP_SP2IDX(vm, sp) \
+  ((scm_uword_t)((sp) - SCM_VM_SP(vm)) / sizeof(SCM_VM_STACK_OBJMAP(vm)))
+#define SCM_VM_STACK_OBJMAP_SP2MASK(vm, sp) \
+  (1u << (scm_uword_t)((sp) - SCM_VM_SP(vm)) % sizeof(SCM_VM_STACK_OBJMAP(vm)))
+
+#define SCM_VM_STACK_OBJMAP_SET(vm, sp)                          \
+  do {                                                           \
+    assert(sp < SCM_VM_SP(vm));                                  \
+    SCM_VM_STACK_OBJMAP(vm)[SCM_VM_STACk_OBJMAP_SP2IDX(vm, sp)]  \
+      |= SCM_VM_STACK_OBJMAP_SP2MASK(vm, sp);                    \
+  } while(0)
+
+#define SCM_VM_STACK_OBJMAP_UNSET(vm, sp)                        \
+  do {                                                           \
+    assert(sp < SCM_VM_SP(vm));                                  \
+    SCM_VM_STACK_OBJMAP(vm)[SCM_VM_STACk_OBJMAP_SP2IDX(vm, sp)]  \
+      &= ~SCM_VM_STACK_OBJMAP_SP2MASK(vm, sp);                   \
+  } while(0)
+
 
 void scm_vm_initialize(ScmObj vm, ScmObj parent);
 void scm_vm_finalize(ScmObj vm);

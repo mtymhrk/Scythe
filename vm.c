@@ -13,6 +13,9 @@
 
 #define SCM_VM_STACK_INIT_SIZE 1024
 #define SCM_VM_STACK_MAX_SIZE 10240
+#define SCM_VM_STACK_OBJMAP_SIZE                                        \
+  (SCM_VM_STACK_INIT_SIZE / sizeof(unsigned int)                        \
+   + ((SCM_VM_STACK_INIT_SIZE % sizeof(unsigned int) == 0) ? 0 : 1))
 #define SCM_VM_REF_STACK_INIT_SIZE 512
 
 /* typedef enum { */
@@ -81,6 +84,10 @@ scm_vm_initialize(ScmObj vm, ScmObj parent)
                                          * SCM_VM_STACK_INIT_SIZE);
   if (SCM_VM_STACK(vm) == NULL) goto err;
 
+  SCM_VM_STACK_OBJMAP(vm) = scm_memory_allocate(sizeof(unsigned int)
+                                                * SCM_VM_STACK_OBJMAP_SIZE);
+  if (SCM_VM_STACK_OBJMAP(vm) == NULL) goto err;
+
   SCM_VM_STACK_SIZE(vm) = SCM_VM_STACK_INIT_SIZE;
 
   SCM_VM_REF_STACK(vm) = scm_ref_stack_new(SCM_VM_REF_STACK_INIT_SIZE);
@@ -100,6 +107,9 @@ scm_vm_initialize(ScmObj vm, ScmObj parent)
     SCM_VM_STACK(vm) = scm_memory_release(SCM_VM_STACK(vm));
     SCM_VM_STACK_SIZE(vm) = 0;
   }
+  if (SCM_VM_STACK_OBJMAP(vm) != NULL) {
+    SCM_VM_STACK_OBJMAP(vm) = scm_memory_release(SCM_VM_STACK_OBJMAP(vm));
+  }
   if (SCM_VM_REF_STACK(vm) != NULL) {
     scm_ref_stack_end(SCM_VM_REF_STACK(vm));
     SCM_VM_REF_STACK(vm) = NULL;
@@ -116,6 +126,8 @@ scm_vm_finalize(ScmObj vm)
   SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
 
   SCM_VM_STACK(vm) = scm_memory_release(SCM_VM_STACK(vm));
+  SCM_VM_STACK_SIZE(vm) = 0;
+  SCM_VM_STACK_OBJMAP(vm) = scm_memory_release(SCM_VM_STACK_OBJMAP(vm));
   scm_ref_stack_end(SCM_VM_REF_STACK(vm));
   SCM_VM_SP(vm) = NULL;
   SCM_VM_FP(vm) = NULL;
@@ -211,6 +223,8 @@ scm_vm_end(ScmObj vm)
 void
 scm_vm_stack_push(ScmObj vm, scm_vm_stack_val_t elm, bool scmobj_p)
 {
+  scm_vm_stack_val_t *sp;
+
   SCM_STACK_PUSH(&vm, &elm);
 
   SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
@@ -219,12 +233,19 @@ scm_vm_stack_push(ScmObj vm, scm_vm_stack_val_t elm, bool scmobj_p)
   if (SCM_VM_SP(vm) > SCM_VM_STACK(vm) + SCM_VM_STACK_SIZE(vm))
     return; /* stack overflow; TODO: handle stack overflow error  */
 
+  sp = SCM_VM_SP(vm);
+
   if (scmobj_p)
-    SCM_SETQ(*SCM_VM_SP(vm), elm);
+    SCM_SETQ(*sp, elm);
   else
     *SCM_VM_SP(vm) = elm;
 
   SCM_VM_SP_INC(vm);
+
+  if (scmobj_p)
+    SCM_VM_STACK_OBJMAP_SET(vm, sp);
+  else
+    SCM_VM_STACK_OBJMAP_UNSET(vm, sp);
 }
 
 scm_vm_stack_val_t
@@ -393,6 +414,7 @@ scm_vm_gc_initialize(ScmObj obj, ScmObj mem)
   SCM_VM_MEM(obj) = SCM_MEM(mem);
 
   SCM_VM_STACK(obj) = NULL;
+  SCM_VM_STACK_OBJMAP(obj) = NULL;
   SCM_VM_STACK_SIZE(obj) = 0;
   SCM_VM_SP(obj) = NULL;
   SCM_VM_FP(obj) = NULL;
