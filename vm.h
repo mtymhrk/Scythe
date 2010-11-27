@@ -3,7 +3,6 @@
 
 #include <stdint.h>
 
-typedef uintptr_t scm_vm_inst_t;
 typedef struct ScmVMInstRec ScmVMInst;
 typedef struct ScmVMEnvRec ScmVMEnv;
 typedef struct ScmVMRec ScmVM;
@@ -15,11 +14,14 @@ typedef struct ScmVMRec ScmVM;
 #include "reference.h"
 #include "obuffer.h"
 
+typedef scm_uword_t scm_vm_inst_t;
+typedef scm_uword_t scm_vm_stack_val_t;
+
 extern ScmTypeInfo SCM_VM_TYPE_INFO;
 
 struct ScmVMRec {
   ScmObjHeader header;
-  ScmObj *stack;                /* stack */
+  scm_vm_stack_val_t *stack;    /* stack */
   size_t stack_size;            /* stack size */
   ScmObj *sp;                   /* stack pointer */
   ScmObj *fp;                    /* frame pointer */
@@ -62,7 +64,7 @@ void scm_vm_finalize(ScmObj vm);
 ScmObj scm_vm_new(void);
 void scm_vm_end(ScmObj vm);
 
-void scm_vm_stack_push(ScmObj vm, ScmObj elm);
+void scm_vm_stack_push(ScmObj vm, scm_vm_stack_val_t elm, bool scmobj_p);
 ScmObj scm_vm_stack_pop(ScmObj vm);
 void scm_vm_stack_shorten(ScmObj vm, int n);
 

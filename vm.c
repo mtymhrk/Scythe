@@ -77,7 +77,8 @@ scm_vm_initialize(ScmObj vm, ScmObj parent)
   SCM_VM_PARENT_VM(vm) = parent;
   SCM_VM_PREV_VM(vm) = SCM_OBJ_NULL;
 
-  SCM_VM_STACK(vm) = scm_memory_allocate(sizeof(ScmObj) * SCM_VM_STACK_INIT_SIZE);
+  SCM_VM_STACK(vm) = scm_memory_allocate(sizeof(scm_vm_stack_val_t)
+                                         * SCM_VM_STACK_INIT_SIZE);
   if (SCM_VM_STACK(vm) == NULL) goto err;
 
   SCM_VM_STACK_SIZE(vm) = SCM_VM_STACK_INIT_SIZE;
@@ -208,7 +209,7 @@ scm_vm_end(ScmObj vm)
 }
 
 void
-scm_vm_stack_push(ScmObj vm, ScmObj elm)
+scm_vm_stack_push(ScmObj vm, scm_vm_stack_val_t elm, bool scmobj_p)
 {
   SCM_STACK_PUSH(&vm, &elm);
 
@@ -218,12 +219,15 @@ scm_vm_stack_push(ScmObj vm, ScmObj elm)
   if (SCM_VM_SP(vm) > SCM_VM_STACK(vm) + SCM_VM_STACK_SIZE(vm))
     return; /* stack overflow; TODO: handle stack overflow error  */
 
-  SCM_SETQ(*SCM_VM_SP(vm), elm);
+  if (scmobj_p)
+    SCM_SETQ(*SCM_VM_SP(vm), elm);
+  else
+    *SCM_VM_SP(vm) = elm;
 
   SCM_VM_SP_INC(vm);
 }
 
-ScmObj
+scm_vm_stack_val_t
 scm_vm_stack_pop(ScmObj vm)
 {
   ScmObj elm = SCM_OBJ_INIT;
