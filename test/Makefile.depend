@@ -339,3 +339,19 @@ test_binding.o: test_binding.c /usr/local/include/cutter/cutter.h \
  ../obuffer.h ../object.h ../vm.h ../memory.h ../basichash.h \
  ../reference.h ../vm.h ../string.h ../encoding.h ../symbol.h \
  ../binding.h
+test_vm.o: test_vm.c /usr/local/include/cutter/cutter.h \
+ /usr/local/include/cutter/cutter/cut-version.h \
+ /usr/local/include/cutter/cutter/cut-features.h \
+ /usr/local/include/cutter/cutter/cut-assertions.h \
+ /usr/local/include/cutter/cutter/cut-assertions-helper.h \
+ /usr/local/include/cutter/cutter/cut-public.h \
+ /usr/local/include/cutter/cutter/cut-config.h \
+ /usr/local/include/cutter/cutter/cut-types.h \
+ /usr/local/include/cutter/cutter/cut-macros.h \
+ /usr/local/include/cutter/cutter/cut-multi-process.h \
+ /usr/local/include/cutter/cutter/cut-test-utils.h \
+ /usr/local/include/cutter/cutter/cut-test-utils-helper.h \
+ /usr/local/include/cutter/cutter/cut-helper.h \
+ /usr/local/include/cutter/cutter/cut-experimental.h ../vm.h ../object.h \
+ ../obuffer.h ../memory.h ../basichash.h ../reference.h ../vm.h \
+ ../object.h

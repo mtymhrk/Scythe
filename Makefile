@@ -29,7 +29,7 @@ depend:
 	$(CC) -MM $(INCLUDES) $(CFLAGS) $(SOURCES) > Makefile.depend
 
 test:
-	$(MAKE)
+#	$(MAKE)
 	$(MAKE) -C ./test depend all run
 
 doxygen:

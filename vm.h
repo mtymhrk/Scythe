@@ -24,8 +24,8 @@ struct ScmVMRec {
   scm_vm_stack_val_t *stack;    /* stack */
   unsigned int *stack_objmap;
   size_t stack_size;            /* stack size */
-  ScmObj *sp;                   /* stack pointer */
-  ScmObj *fp;                    /* frame pointer */
+  scm_vm_stack_val_t *sp;                   /* stack pointer */
+  scm_vm_stack_val_t *fp;                    /* frame pointer */
   /* ScmObj cp;                    /\* closure pointer *\/ */
   scm_vm_inst_t *ip;            /* instruction pointer */
   ScmObj val;                   /* value register */
@@ -64,9 +64,9 @@ struct ScmVMRec {
 #define SCM_VM_SP_DEC(obj) (SCM_VM_SP(obj)--)
 
 #define SCM_VM_STACk_OBJMAP_SP2IDX(vm, sp) \
-  ((scm_uword_t)((sp) - SCM_VM_SP(vm)) / sizeof(SCM_VM_STACK_OBJMAP(vm)))
+  ((scm_uword_t)((sp) - SCM_VM_STACK(vm)) / sizeof(SCM_VM_STACK_OBJMAP(vm)))
 #define SCM_VM_STACK_OBJMAP_SP2MASK(vm, sp) \
-  (1u << (scm_uword_t)((sp) - SCM_VM_SP(vm)) % sizeof(SCM_VM_STACK_OBJMAP(vm)))
+  (1u << (scm_uword_t)((sp) - SCM_VM_STACK(vm)) % sizeof(SCM_VM_STACK_OBJMAP(vm)))
 
 #define SCM_VM_STACK_OBJMAP_SET(vm, sp)                          \
   do {                                                           \

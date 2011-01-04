@@ -228,7 +228,6 @@ scm_vm_stack_push(ScmObj vm, scm_vm_stack_val_t elm, bool scmobj_p)
   SCM_STACK_PUSH(&vm, &elm);
 
   SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
-  assert(SCM_OBJ_IS_NOT_NULL(elm));
 
   if (SCM_VM_SP(vm) > SCM_VM_STACK(vm) + SCM_VM_STACK_SIZE(vm))
     return; /* stack overflow; TODO: handle stack overflow error  */
@@ -261,9 +260,9 @@ scm_vm_stack_pop(ScmObj vm)
     /* stack underflow; TODO; handle stack underflow error */
     return SCM_OBJ_NULL;
 
-  SCM_SETQ(elm, *SCM_VM_SP(vm));
-
   SCM_VM_SP_DEC(vm);
+
+  SCM_SETQ(elm, *SCM_VM_SP(vm));
 
   return elm;
 }
@@ -323,6 +322,21 @@ scm_vm_frame_next_inst(ScmObj vm)
 {
   /* TODO: write me */
   return NULL;
+}
+
+
+/* 関数呼出のためのスタックフレームを作成するインストラクション。
+ * フレームポインタとインストラクションポインタをスタックにプッシュする。
+ * このインストラクションの後、引数と引数の数をプッシュする必要がある。
+ */
+void
+scm_vm_push_frame(ScmObj vm)
+{
+  SCM_STACK_PUSH(&vm);
+  SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
+
+  scm_vm_stack_push(vm, (scm_vm_stack_val_t)SCM_VM_FP(vm), false);
+  scm_vm_stack_push(vm, (scm_vm_stack_val_t)SCM_VM_IP(vm), false);
 }
 
 /* 関数の呼び出しから戻るインストラクション。
