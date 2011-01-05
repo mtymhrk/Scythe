@@ -1,7 +1,7 @@
 #ifndef INCLUDE_OBJECT_H__
 #define INCLUDE_OBJECT_H__
 
-#include <unistd.h>
+#include <stddef.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <limits.h>
