@@ -64,13 +64,6 @@ scm_string_copy_bytes_with_check(void *dst, const void *src, size_t size,
   return len;
 }
 
-// TODO: change to be encdoing depende function
-static bool
-scm_string_is_char_to_be_escaped(int c) /* GC OK */
-{
-  return (strchr("\\\"", c) != NULL);
-}
-
 static ScmObj
 scm_string_copy_and_expand(ScmObj src, size_t size) /* GC OK */
 {
@@ -280,11 +273,11 @@ scm_string_is_equal(ScmObj str1, ScmObj str2) /* GC OK */
 }
 
 ScmObj
-scm_string_substr(ScmObj str, unsigned int pos, size_t len) /* GC OK */
+scm_string_substr(ScmObj str, size_t pos, size_t len) /* GC OK */
 {
   ScmObj substr = SCM_OBJ_INIT;
   ScmStrItr head, tail;
-  ScmStrItr (*index2iter)(void *p, size_t size, unsigned int idx);
+  ScmStrItr (*index2iter)(void *p, size_t size, size_t idx);
 
   SCM_STACK_FRAME_PUSH(&str, &substr);
   assert(pos <= SSIZE_MAX);
@@ -370,11 +363,11 @@ scm_string_append(ScmObj str, ScmObj append) /* GC OK */
 }
 
 scm_char_t
-scm_string_ref(ScmObj str, unsigned int pos) /* GC OK */
+scm_string_ref(ScmObj str, size_t pos) /* GC OK */
 {
   ScmStrItr iter;
   scm_char_t c;
-  ScmStrItr (*index2iter)(void *p, size_t size, unsigned int idx);
+  ScmStrItr (*index2iter)(void *p, size_t size, size_t idx);
 
   SCM_OBJ_ASSERT_TYPE(str, &SCM_STRING_TYPE_INFO);
   assert(pos <= SSIZE_MAX);
@@ -393,11 +386,11 @@ scm_string_ref(ScmObj str, unsigned int pos) /* GC OK */
 }
 
 ScmObj
-scm_string_set(ScmObj str, unsigned int pos, const scm_char_t c) /* GC OK */
+scm_string_set(ScmObj str, size_t pos, const scm_char_t c) /* GC OK */
 {
   ScmObj front = SCM_OBJ_NULL, rear = SCM_OBJ_NULL, tmp = SCM_OBJ_NULL;
   int (*char_width)(const void *p, size_t size);
-  ScmStrItr (*index2iter)(void *p, size_t size, unsigned int idx);
+  ScmStrItr (*index2iter)(void *p, size_t size, size_t idx);
   ScmStrItr iter;
   int cw, iw;
 
@@ -472,7 +465,7 @@ scm_string_set(ScmObj str, unsigned int pos, const scm_char_t c) /* GC OK */
 
 /* TODO: optimize */
 ScmObj
-scm_string_fill(ScmObj str, unsigned int pos, size_t len, scm_char_t c) /* GC OK */
+scm_string_fill(ScmObj str, size_t pos, size_t len, scm_char_t c) /* GC OK */
 {
   int (*char_width)(const void *p, size_t size);
   ssize_t filledsize;
@@ -521,7 +514,7 @@ scm_string_fill(ScmObj str, unsigned int pos, size_t len, scm_char_t c) /* GC OK
   return str;
 }
 
-int
+ssize_t
 scm_string_find_chr(ScmObj str, scm_char_t c) /* GC OK */
 {
   int (*char_width)(const void *p, size_t size);
@@ -554,7 +547,7 @@ scm_string_find_chr(ScmObj str, scm_char_t c) /* GC OK */
   return -1;
 }
 
-int
+ssize_t
 scm_string_match(ScmObj str, ScmObj pat) /* GC OK */
 {
   int (*char_width)(const void *p, size_t size);
