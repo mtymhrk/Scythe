@@ -5,12 +5,11 @@
 #include "object.h"
 #include "memory.h"
 #include "vm.h"
-#include "obuffer.h"
 #include "integer.h"
 
 
 ScmTypeInfo SCM_INTEGER_TYPE_INFO = {
-  scm_integer_pretty_print,      /* pp_func              */
+  NULL,                          /* pp_func              */
   sizeof(ScmInteger),            /* obj_size             */
   NULL,                          /* gc_ini_func          */
   NULL,                          /* gc_fin_func          */
@@ -120,18 +119,3 @@ scm_integer_reminder(ScmObj val1, ScmObj val2) /* GC OK */
                                % SCM_INTEGER_VALUE(val2));
 }
 
-
-void
-scm_integer_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
-{
-  ScmInteger *integer;
-  char str[21];
-
-  SCM_OBJ_ASSERT_TYPE(obj, &SCM_INTEGER_TYPE_INFO);
-  assert(obuffer != NULL);
-
-  integer = SCM_INTEGER(obj);
-
-  snprintf(str, sizeof(str), "%lld", integer->value);
-  scm_obuffer_concatenate_string(obuffer, str);
-}

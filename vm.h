@@ -12,7 +12,6 @@ typedef struct ScmVMRec ScmVM;
 #include "object.h"
 #include "memory.h"
 #include "reference.h"
-#include "obuffer.h"
 
 typedef scm_uword_t scm_vm_inst_t;
 typedef scm_uword_t scm_vm_stack_val_t;
@@ -101,7 +100,6 @@ void scm_vm_return(ScmObj vm, ScmObj val);
 int scm_vm_nr_local_var(ScmObj vm);
 ScmObj scm_vm_refer_local_var(ScmObj vm, int nth);
 
-void scm_vm_pretty_print(ScmObj obj, ScmOBuffer *obuffer);
 void scm_vm_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_vm_gc_finalize(ScmObj obj);
 int scm_vm_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);

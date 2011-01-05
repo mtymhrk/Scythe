@@ -28,6 +28,5 @@ ScmObj scm_integer_minus(ScmObj val1, ScmObj val2);
 ScmObj scm_integer_multiply(ScmObj val1, ScmObj val2);
 ScmObj scm_integer_divide(ScmObj val1, ScmObj val2);
 ScmObj scm_integer_reminder(ScmObj val1, ScmObj val2);
-void scm_integer_pretty_print(ScmObj obj, ScmOBuffer *obuffer);
 
 #endif /* INCLUDE_INTEGER_H__ */

@@ -6,7 +6,6 @@ typedef struct ScmSubrutineRec ScmSubrutine;
 #define SCM_SUBRUTINE(obj) ((ScmSubrutine *)(obj))
 
 #include "object.h"
-#include "obuffer.h"
 #include "vm.h"
 
 typedef ScmObj (*ScmSubrFunc)(void);
@@ -21,7 +20,6 @@ struct ScmSubrutineRec {
 #define SCM_SUBRUTINE_FUNC(obj) (SCM_SUBRUTINE(obj)->subr_func)
 #define SCM_SUBRUTINE_CALL(ret, obj) SCM_SETQ(ret, SCM_SUBRUTINE_FUNC(obj)())
 
-void scm_subrutine_pretty_print(ScmObj obj, ScmOBuffer *obuffer);
 void scm_subrutine_gc_initialize(ScmObj obj, ScmObj mem);
 
 #endif /* INCLUDE_PROCEDURE_H__ */

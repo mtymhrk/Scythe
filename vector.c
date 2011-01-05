@@ -6,10 +6,9 @@
 #include "vm.h"
 #include "miscobjects.h"
 #include "vector.h"
-#include "obuffer.h"
 
 ScmTypeInfo SCM_VECTOR_TYPE_INFO = {
-  scm_vector_pretty_print,      /* pp_func              */
+  NULL,                         /* pp_func              */
   sizeof(ScmVector),            /* obj_size             */
   scm_vector_gc_initialize,     /* gc_ini_func          */
   scm_vector_gc_finalize,       /* gc_fin_func          */
@@ -92,29 +91,6 @@ scm_vector_is_vector(ScmObj obj) /* GC OK */
   assert(SCM_OBJ_IS_NOT_NULL(obj));
 
   return SCM_OBJ_IS_TYPE(obj, &SCM_VECTOR_TYPE_INFO);
-}
-
-void
-scm_vector_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
-{
-  ScmVector *vector;
-
-  SCM_OBJ_ASSERT_TYPE(obj, &SCM_VECTOR_TYPE_INFO);
-  assert(obuffer != NULL);
-
-  vector = SCM_VECTOR(obj);
-
-  scm_obuffer_concatenate_string(obuffer, "#(");
-  if (vector->length > 0) {
-    size_t nloop = vector->length - 1;
-    size_t i;
-    for (i = 0; i < nloop; i++) {
-      scm_obj_pretty_print(vector->array[i], obuffer);
-      scm_obuffer_concatenate_char(obuffer, ' ');
-    }
-    scm_obj_pretty_print(vector->array[i], obuffer);
-  }
-  scm_obuffer_concatenate_char(obuffer, ')');
 }
 
 void

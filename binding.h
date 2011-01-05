@@ -43,6 +43,4 @@ ScmObj scm_bind_tbl_bind(ScmBindTable *tbl, ScmObj sym, ScmObj val);
 void scm_bind_tbl_unbind(ScmBindTable *tbl, ScmObj sym);
 ScmObj scm_bind_tbl_lookup(ScmBindTable *tbl, ScmObj sym);
 
-void scm_bind_ref_pretty_print(ScmObj obj, ScmOBuffer *obuffer);
-
 #endif /* INCLUDE_BINDING_H__ */

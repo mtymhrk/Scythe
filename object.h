@@ -1,6 +1,7 @@
 #ifndef INCLUDE_OBJECT_H__
 #define INCLUDE_OBJECT_H__
 
+#include <unistd.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <limits.h>
@@ -70,10 +71,8 @@ typedef const ScmObj *ScmCRef;
 #define SCM_CREF_OBJ(ref) (*((const ScmObj *)(ref)))
 #define SCM_REF_UPDATE(ref, obj) (*((ScmObj *)(ref)) = SCM_OBJ(obj))
 
-#include "obuffer.h"
 
-typedef void (*ScmPrettyPrintFunction)(ScmObj obj,
-                                       ScmOBuffer *obuffer);
+typedef void (*ScmPrettyPrintFunction)(ScmObj obj); // 仮
 typedef void (*ScmGCInitializeFunc)(ScmObj obj, ScmObj mem);
 typedef void (*ScmGCFinalizeFunc)(ScmObj obj);
 typedef int (*ScmGCRefHandlerFunc)(ScmObj mem, ScmObj obj, ScmRef child);
@@ -149,7 +148,6 @@ extern ScmTypeInfo *SCM_OBJ_TAG2TYPE_TBL[];
 
 
 void scm_obj_init(ScmObj obj, ScmTypeInfo *type);
-void scm_obj_pretty_print(ScmObj obj, ScmOBuffer *obuffer);
 int scm_obj_is_same_instance(ScmObj obj1, ScmObj obj2);
 
 

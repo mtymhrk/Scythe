@@ -6,11 +6,10 @@
 #include "reference.h"
 #include "pair.h"
 #include "miscobjects.h"
-#include "obuffer.h"
 
 
 ScmTypeInfo SCM_PAIR_TYPE_INFO = {
-  scm_pair_pretty_print,      /* pp_func              */
+  NULL,                       /* pp_func              */
   sizeof(ScmPair),            /* obj_size             */
   scm_pair_gc_initialize,     /* gc_ini_func          */
   NULL,                       /* gc_fin_func          */
@@ -72,33 +71,6 @@ scm_pair_is_pair(const ScmObj obj) /* GC OK */
   assert(SCM_OBJ_IS_NOT_NULL(obj));
 
   return SCM_OBJ_IS_TYPE(obj, &SCM_PAIR_TYPE_INFO);
-}
-
-void
-scm_pair_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
-{
-  ScmPair *pair = NULL;
-
-  SCM_OBJ_ASSERT_TYPE(obj, &SCM_PAIR_TYPE_INFO);
-  assert(obuffer != NULL);
-
-  pair = SCM_PAIR(obj);
-
-  scm_obuffer_concatenate_char(obuffer, '(');
-  scm_obj_pretty_print(pair->car, obuffer);
-  while (scm_pair_is_pair(pair->cdr)) {
-    pair = SCM_PAIR(pair->cdr);
-    scm_obuffer_concatenate_char(obuffer, ' ');
-    scm_obj_pretty_print(pair->car, obuffer);
-  }
-
-  if (scm_nil_is_nil(pair->cdr))
-    scm_obuffer_concatenate_char(obuffer, ')');
-  else {
-    scm_obuffer_concatenate_string(obuffer, " . ");
-    scm_obj_pretty_print(pair->cdr, obuffer);
-    scm_obuffer_concatenate_char(obuffer, ')');
-  }
 }
 
 void

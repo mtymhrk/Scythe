@@ -5,7 +5,6 @@
 
 #include "object.h"
 #include "memory.h"
-#include "obuffer.h"
 #include "basichash.h"
 #include "reference.h"
 #include "string.h"
@@ -16,7 +15,7 @@
 
 
 ScmTypeInfo SCM_SYMBOL_TYPE_INFO = {
-  scm_symbol_pretty_print,      /* pp_func              */
+  NULL,                         /* pp_func              */
   sizeof(ScmSymbol),            /* obj_size             */
   scm_symbol_gc_initialize,     /* gc_ini_func          */
   NULL,                         /* gc_fin_func          */
@@ -25,7 +24,7 @@ ScmTypeInfo SCM_SYMBOL_TYPE_INFO = {
 };
 
 ScmTypeInfo SCM_SYMTABLE_TYPE_INFO = {
-  scm_symtable_pretty_print,      /* pp_func              */
+  NULL,                           /* pp_func              */
   sizeof(ScmSymTable),            /* obj_size             */
   scm_symtable_gc_initialize,     /* gc_ini_func          */
   scm_symtable_gc_finalize,       /* gc_fin_func          */
@@ -92,19 +91,6 @@ scm_symbol_is_symbol(ScmObj obj) /* GC OK */
   assert(SCM_OBJ_IS_NOT_NULL(obj));
 
   return SCM_OBJ_IS_TYPE(obj, &SCM_SYMBOL_TYPE_INFO);
-}
-
-void
-scm_symbol_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
-{
-  SCM_OBJ_ASSERT_TYPE(obj, &SCM_SYMBOL_TYPE_INFO);
-  assert(obuffer != NULL);
-
-  /* scm_obuffer_concatenate_string(obuffer, SCM_SYMBOL(obj)->name); */
-
-  /* XXX: once-over implementation */
-  /* TODO: rewrite */
-  scm_obuffer_concatenate_string(obuffer, "#<Symbol>");
 }
 
 size_t
@@ -190,15 +176,6 @@ scm_symtable_is_symtable(ScmObj obj) /* GC OK */
   assert(SCM_OBJ_IS_NOT_NULL(obj));
 
   return SCM_OBJ_IS_TYPE(obj, &SCM_SYMTABLE_TYPE_INFO);
-}
-
-void
-scm_symtable_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
-{
-  SCM_OBJ_ASSERT_TYPE(obj, &SCM_SYMTABLE_TYPE_INFO);
-  assert(obuffer != NULL);
-
-  scm_obuffer_concatenate_string(obuffer, "#<SymTable>");
 }
 
 ScmObj

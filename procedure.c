@@ -2,10 +2,9 @@
 #include "object.h"
 #include "reference.h"
 #include "vm.h"
-#include "obuffer.h"
 
 ScmTypeInfo SCM_SUBRUTINE_TYPE_INFO = {
-  scm_subrutine_pretty_print,   /* pp_func              */
+  NULL,                         /* pp_func              */
   sizeof(ScmSubrutine),         /* obj_size             */
   scm_subrutine_gc_initialize,  /* gc_ini_func          */
   NULL,                         /* gc_fin_func          */
@@ -54,13 +53,6 @@ scm_subrutine_call(ScmObj subr)
   SCM_SUBRUTINE_CALL(ret, subr);
 
   scm_vm_return(scm_vm_current_vm(), ret);
-}
-
-void
-scm_subrutine_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
-{
-  /* TODO: write me */
-  return;
 }
 
 void

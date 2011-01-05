@@ -5,10 +5,9 @@
 #include "reference.h"
 #include "memory.h"
 #include "object.h"
-#include "obuffer.h"
 
 ScmTypeInfo SCM_WEAK_REF_TYPE_INFO = {
-  scm_weak_ref_pretty_print,     /* pp_func              */
+  NULL,                          /* pp_func              */
   sizeof(ScmWeakRef),            /* obj_size             */
   NULL,                          /* gc_ini_func          */
   NULL,                          /* gc_fin_func          */
@@ -198,15 +197,6 @@ scm_weak_ref_is_weak_ref(ScmObj obj) /* GC OK */
   assert(SCM_OBJ_IS_NOT_NULL(obj));
 
   return SCM_OBJ_IS_TYPE(obj, &SCM_WEAK_REF_TYPE_INFO);
-}
-
-void
-scm_weak_ref_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
-{
-  SCM_OBJ_ASSERT_TYPE(obj, &SCM_WEAK_REF_TYPE_INFO);
-  assert(obuffer != NULL);
-
-  scm_obuffer_concatenate_string(obuffer, "<weak reference>");
 }
 
 void

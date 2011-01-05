@@ -57,7 +57,6 @@ ssize_t scm_string_dump(ScmObj str, void *buf, size_t size);
 SCM_ENCODING_T scm_string_encoding(ScmObj str);
 void *scm_string_content(ScmObj str);
 bool scm_string_is_string(ScmObj obj);
-void scm_string_pretty_print(ScmObj obj, ScmOBuffer *obuffer);
 void scm_string_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_string_gc_finalize(ScmObj obj);
 unsigned int scm_string_hash_value(ScmObj str);

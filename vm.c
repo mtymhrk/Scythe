@@ -9,7 +9,6 @@
 #include "object.h"
 #include "symbol.h"
 #include "miscobjects.h"
-#include "obuffer.h"
 
 #define SCM_VM_STACK_INIT_SIZE 1024
 #define SCM_VM_STACK_MAX_SIZE 10240
@@ -51,7 +50,7 @@
 /* #define SCM_VM_POP_FROM_STACK(vm, obj) (obj = *(--(vm)->sp) ) */
 
 ScmTypeInfo SCM_VM_TYPE_INFO = {
-  scm_vm_pretty_print,          /* pp_func              */
+  NULL,                         /* pp_func              */
   sizeof(ScmVM),                /* obj_size             */
   scm_vm_gc_initialize,         /* gc_ini_func          */
   scm_vm_gc_finalize,           /* gc_fin_func          */
@@ -412,12 +411,6 @@ scm_vm_refer_local_var(ScmObj vm, int nth)
 /*     }; */
 /*   } */
 /* } */
-
-void
-scm_vm_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
-{
-  scm_obuffer_concatenate_string(obuffer, "#<VM>");
-}
 
 void
 scm_vm_gc_initialize(ScmObj obj, ScmObj mem)

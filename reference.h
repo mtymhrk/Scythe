@@ -198,7 +198,6 @@ int scm_ref_stack_gc_accept(ScmRefStack *stack, ScmObj owner,
                             ScmObj mem, ScmGCRefHandlerFunc handler);
 
 bool scm_weak_ref_is_weak_ref(ScmObj obj);
-void scm_weak_ref_pretty_print(ScmObj obj, ScmOBuffer *obuffer);
 void scm_weak_ref_set(ScmObj wref, ScmObj obj);
 ScmObj scm_weak_ref_get(ScmObj wref);
 int scm_weak_ref_gc_accept_weak(ScmObj obj, ScmObj mem,

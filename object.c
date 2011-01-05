@@ -14,17 +14,6 @@ scm_obj_init(ScmObj obj, ScmTypeInfo *type)
     SCM_MMOBJ(obj)->header.type = type;
 }
 
-void
-scm_obj_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
-{
-  ScmPrettyPrintFunction pp_func;
-
-  assert(SCM_OBJ_IS_NOT_NULL(obj)); assert(obuffer != NULL);
-
-  pp_func = SCM_OBJ_PP_FUNC(obj);
-  pp_func(obj, obuffer);
-}
-
 int
 scm_obj_is_same_instance(ScmObj obj1, ScmObj obj2)
 {

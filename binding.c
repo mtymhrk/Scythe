@@ -3,7 +3,6 @@
 #include <assert.h>
 
 #include "basichash.h"
-#include "obuffer.h"
 #include "binding.h"
 #include "object.h"
 #include "symbol.h"
@@ -18,7 +17,7 @@ hash_func(ScmBasicHashKey key)
 }
 
 ScmTypeInfo SCM_BIND_REF_TYPE_INFO = {
-  scm_bind_ref_pretty_print,    /* pp_func              */
+  NULL,                         /* pp_func              */
   sizeof(ScmBindRef),           /* obj_size             */
   NULL,                         /* gc_ini_func          */
   NULL,                         /* gc_fin_func          */
@@ -179,11 +178,4 @@ scm_bind_tbl_lookup(ScmBindTable *tbl, ScmObj sym)
   ent = scm_basic_hash_get(tbl->table, SCM_BASIC_HASH_KEY(sym));
   if (ent == NULL) return SCM_OBJ_NULL;
   return SCM_OBJ(SCM_BASIC_HASH_ENTRY_VALUE(ent));
-}
-
-void
-scm_bind_ref_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
-{
-  /* TODO: write me */
-  return;
 }

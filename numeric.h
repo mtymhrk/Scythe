@@ -2,7 +2,6 @@
 #define INCLUDE_NUMERIC_H__
 
 #include "object.h"
-#include "obuffer.h"
 
 extern ScmTypeInfo SCM_FIXNUM_TYPE_INFO;
 
@@ -28,7 +27,5 @@ scm_fixnum_value(ScmObj num)
 
   return SCM_RSHIFT_ARITH((scm_sword_t)num, SCM_FIXNUM_SHIFT_BIT);
 }
-
-void scm_fixnum_pretty_print(ScmObj obj, ScmOBuffer *obuffer);
 
 #endif /* INCLUDE_NUMERIC_H__ */

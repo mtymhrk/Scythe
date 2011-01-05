@@ -38,6 +38,5 @@ ScmObj scm_char_new_space(SCM_MEM_ALLOC_TYPE_T mtype,
 scm_char_t scm_char_value(ScmObj chr);
 SCM_ENCODING_T scm_char_encoding(ScmObj chr);
 bool scm_char_is_char(ScmObj obj);
-void scm_char_pretty_print(ScmObj obj, ScmOBuffer *obuffer);
 
 #endif /* INCLUDE_CHAR_H__ */

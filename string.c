@@ -8,7 +8,6 @@
 #include "memory.h"
 #include "object.h"
 #include "reference.h"
-#include "obuffer.h"
 #include "encoding.h"
 #include "string.h"
 
@@ -19,7 +18,7 @@
 #define ROOM_FOR_APPEND(str) (CAPACITY(str) - SCM_STRING_BYTESIZE(str))
 
 ScmTypeInfo SCM_STRING_TYPE_INFO = {
-  scm_string_pretty_print,      /* pp_func              */
+  NULL,                         /* pp_func              */
   sizeof(ScmString),            /* obj_size             */
   scm_string_gc_initialize,     /* gc_ini_func          */
   scm_string_gc_finalize,       /* gc_fin_func          */
@@ -654,42 +653,6 @@ scm_string_is_string(ScmObj obj)
   assert(SCM_OBJ_IS_NOT_NULL(obj));
 
   return SCM_OBJ_IS_TYPE(obj, &SCM_STRING_TYPE_INFO);
-}
-
-// TODO: change to be encdoing depende function
-void
-scm_string_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
-{
-  int (*char_width)(const void *p, size_t size);
-  ScmString *str = NULL;
-  ScmStrItr iter;
-
-  SCM_OBJ_ASSERT_TYPE(obj, &SCM_STRING_TYPE_INFO);
-  assert(obuffer != NULL);
-
-  str = SCM_STRING(obj);
-
-  char_width = SCM_ENCODING_VFUNC_CHAR_WIDTH(str->enc);
-  iter = scm_str_itr_begin(str->head, str->bytesize, char_width);
-  if (SCM_STR_ITR_IS_ERR(&iter)) return;
-
-  scm_obuffer_concatenate_char(obuffer, '"');
-  while (!SCM_STR_ITR_IS_END(&iter)) {
-    int i, w = SCM_STR_ITR_WIDTH(&iter);
-
-    if (w == 1
-        && scm_string_is_char_to_be_escaped(((char *)SCM_STR_ITR_PTR(&iter))[0]))
-      scm_obuffer_concatenate_char(obuffer, '\\');
-
-    for (i = 0; i < w; i++)
-      scm_obuffer_concatenate_char(obuffer,
-                                   ((char *)SCM_STR_ITR_PTR(&iter))[i]);
-
-    iter = scm_str_itr_next(&iter);
-    if (SCM_STR_ITR_IS_ERR(&iter)) return;
-  }
-
-  scm_obuffer_concatenate_char(obuffer, '"');
 }
 
 void

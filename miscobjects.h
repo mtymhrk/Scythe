@@ -28,7 +28,6 @@ void scm_eof_finalize(ScmObj eof);
 ScmObj scm_eof_new(SCM_MEM_ALLOC_TYPE_T mtype);
 ScmObj scm_eof_instance(void);
 bool scm_eof_is_eof(ScmObj obj);
-void scm_eof_pretty_print(ScmObj obj, ScmOBuffer *obuffer);
 
 
 
@@ -51,8 +50,6 @@ ScmObj scm_bool_new(SCM_MEM_ALLOC_TYPE_T mtype, bool value);
 ScmObj scm_bool_instance(bool value);
 bool scm_bool_value(ScmObj bl);
 bool scm_bool_is_bool(ScmObj obj);
-void scm_bool_pretty_print(ScmObj obj, ScmOBuffer *obuffer);
-
 
 
 /*******************************************************/
@@ -70,7 +67,6 @@ void scm_nil_finalize(ScmObj nil);
 ScmObj scm_nil_new(SCM_MEM_ALLOC_TYPE_T mtype);
 ScmObj scm_nil_instance(void);
 bool scm_nil_is_nil(ScmObj obj);
-void scm_nil_pretty_print(ScmObj obj, ScmOBuffer *obuffer);
 
 
 #endif /*  INCLUDE_MISCOBJECTS_H__ */

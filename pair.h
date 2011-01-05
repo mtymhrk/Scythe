@@ -25,7 +25,6 @@ ScmObj scm_pair_new(SCM_MEM_ALLOC_TYPE_T mtype, ScmObj car, ScmObj cdr);
 ScmObj scm_pair_car(ScmObj pair);
 ScmObj scm_pair_cdr(ScmObj pair);
 bool scm_pair_is_pair(const ScmObj obj);
-void scm_pair_pretty_print(ScmObj obj, ScmOBuffer *obuffer);
 void scm_pair_gc_initialize(ScmObj obj, ScmObj mem);
 int scm_pair_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
 

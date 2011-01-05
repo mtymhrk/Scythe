@@ -88,7 +88,7 @@ struct ScmCharConvIORec {
 
 
 ScmTypeInfo SCM_PORT_TYPE_INFO = {
-  scm_port_pretty_print,      /* pp_func              */
+  NULL,                       /* pp_func              */
   sizeof(ScmPort),            /* obj_size             */
   NULL,                       /* gc_ini_func          */
   scm_port_gc_finalize,       /* gc_fin_func          */
@@ -1511,28 +1511,6 @@ scm_port_string_buffer_length(ScmObj port)
   if (!scm_port_is_string_port(port)) return -1;
 
   return scm_stringio_length((ScmStringIO *)SCM_PORT_IO(port));
-}
-
-void
-scm_port_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
-{
-  ScmPort *port;
-
-  assert(obj != NULL); assert(scm_port_is_port(obj));
-  assert(obuffer != NULL);
-
-  port = SCM_PORT(obj);
-
-  scm_obuffer_concatenate_string(obuffer, "#<port:");
-  if (scm_port_is_readable(port))
-    scm_obuffer_concatenate_string(obuffer, " readable");
-  if (scm_port_is_writable(port))
-    scm_obuffer_concatenate_string(obuffer, " writable");
-  if (scm_port_is_file_port(port))
-    scm_obuffer_concatenate_string(obuffer, " file");
-  if (scm_port_is_string_port(port))
-    scm_obuffer_concatenate_string(obuffer, " string");
-  scm_obuffer_concatenate_char(obuffer, '>');
 }
 
 void

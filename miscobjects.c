@@ -4,7 +4,6 @@
 #include "object.h"
 #include "memory.h"
 #include "vm.h"
-#include "obuffer.h"
 #include "miscobjects.h"
 
 
@@ -13,7 +12,7 @@
 /*******************************************************/
 
 ScmTypeInfo SCM_EOF_TYPE_INFO = {
-  scm_eof_pretty_print,      /* pp_func         */
+  NULL,                      /* pp_func         */
   sizeof(ScmEOF),            /* obj_size        */
   NULL,                      /* gc_ini_func     */
   NULL,                      /* gc_fin_func     */
@@ -64,23 +63,13 @@ scm_eof_is_eof(ScmObj obj)      /* GC OK */
   return SCM_OBJ_IS_TYPE(obj, &SCM_EOF_TYPE_INFO);
 }
 
-void
-scm_eof_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
-{
-  SCM_OBJ_ASSERT_TYPE(obj, &SCM_EOF_TYPE_INFO);
-  assert(obuffer != NULL);
-
-  scm_obuffer_concatenate_string(obuffer, "#<eof>");
-}
-
-
 
 /*******************************************************/
 /*  ScmBool                                            */
 /*******************************************************/
 
 ScmTypeInfo SCM_BOOL_TYPE_INFO = {
-  scm_bool_pretty_print,      /* pp_func              */
+  NULL,                       /* pp_func              */
   sizeof(ScmBool),            /* obj_size             */
   NULL,                       /* gc_ini_func          */
   NULL,                       /* gc_fin_func          */
@@ -143,30 +132,13 @@ scm_bool_is_bool(ScmObj obj)    /* GC OK */
   return SCM_OBJ_IS_TYPE(obj, &SCM_BOOL_TYPE_INFO);
 }
 
-void
-scm_bool_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
-{
-  ScmBool *boolv;
-
-  SCM_OBJ_ASSERT_TYPE(obj, &SCM_BOOL_TYPE_INFO);
-  assert(obuffer != NULL);
-
-  boolv = SCM_BOOL(obj);
-
-  if (boolv->value)
-    scm_obuffer_concatenate_string(obuffer, "#t");
-  else
-    scm_obuffer_concatenate_string(obuffer, "#f");
-}
-
-
 
 /*******************************************************/
 /*  ScmNil                                             */
 /*******************************************************/
 
 ScmTypeInfo SCM_NIL_TYPE_INFO = {
-  scm_nil_pretty_print,      /* pp_func              */
+  NULL,      /* pp_func              */
   sizeof(ScmNil),            /* obj_size             */
   NULL,                      /* gc_ini_func          */
   NULL,                      /* gc_fin_func          */
@@ -216,8 +188,3 @@ scm_nil_is_nil(ScmObj obj)      /* GC OK */
   return SCM_OBJ_IS_TYPE(obj, &SCM_NIL_TYPE_INFO);
 }
 
-void
-scm_nil_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
-{
-  scm_obuffer_concatenate_string(obuffer, "()");
-}
