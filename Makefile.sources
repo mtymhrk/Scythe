@@ -3,4 +3,3 @@ SOURCES  = memory.c object.c pair.c string.c symbol.c \
            miscobjects.c char.c charconv.c \
            encoding.c vm.c procedure.c binding.c reference.c numeric.c \
            primitive_subrutine.c
-#          ibuffer.c parser.c port.c

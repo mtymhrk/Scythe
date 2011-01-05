@@ -18,10 +18,7 @@ TEST_CASE_SRC = test_pair.c test_string.c test_symbol.c test_nil.c \
                 test_vector.c test_eof.c test_bool.c test_char.c \
                 test_charconv.c test_string_utf8.c test_string_ucs4.c \
                 test_string_ascii.c test_string_eucjp.c test_string_sjis.c \
-                test_memory.c test_binding.c test_vm.c \
-#                test_fileport.c test_stringport.c test_parser.c \
-#                test_pretty_print.c test_lexer.c test_ibuffer.c
-##               XXX: 入出力関係は一旦テストから除外
+                test_memory.c test_binding.c test_vm.c
 
 TEST_TARGET_OBJ = $(TEST_TARGET_SRC:.c=.o) 
 TEST_CASE_OBJ = $(TEST_CASE_SRC:.c=.o) 
@@ -49,8 +46,6 @@ test_char.so : test_char.o  $(TEST_TARGET_OBJ)
 test_fileport.so : test_fileport.o  $(TEST_TARGET_OBJ)
 test_stringport.so : test_stringport.o  $(TEST_TARGET_OBJ)
 test_charconv.so : test_charconv.o  $(TEST_TARGET_OBJ)
-#test_ucs4.so : test_ucs4.o $(TEST_TARGET_DIR)/ucs4.o
-#test_utf8.so : test_utf8.o $(TEST_TARGET_DIR)/utf8.o
 test_string_utf8.so : test_string_utf8.o $(TEST_TARGET_OBJ)
 test_string_ucs4.so : test_string_ucs4.o $(TEST_TARGET_OBJ)
 test_string_ascii.so : test_string_ascii.o $(TEST_TARGET_OBJ)
