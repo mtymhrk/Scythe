@@ -13,17 +13,17 @@ typedef uintptr_t ScmBasicHashValue;
 struct ScmBasicHashEntryRec {
   ScmBasicHashKey key;
   ScmBasicHashValue value;
-  unsigned int hash;
+  size_t hash;
   struct ScmBasicHashEntryRec *prev;
   struct ScmBasicHashEntryRec *next;
-}; 
+};
 
 #define SCM_BASIC_HASH_ENTRY_KEY(entry) ((entry)->key)
 #define SCM_BASIC_HASH_ENTRY_VALUE(entry) ((entry)->value)
 
 struct ScmBasicHashItrRec {
   ScmBasicHashTable *tbl;
-  unsigned int idx;
+  size_t idx;
   ScmBasicHashEntry *entry;
 };
 
@@ -36,7 +36,7 @@ struct ScmBasicHashItrRec {
 #define SCM_BASIC_HASH_ITR_IS_END(itr) ((itr).entry == NULL)
 #define SCM_BASIC_HASH_ITR_COPY(src, dst) ((src) = (dst))
 
-typedef unsigned int (*ScmBasicHashFunc)(ScmBasicHashKey key);
+typedef size_t (*ScmBasicHashFunc)(ScmBasicHashKey key);
 typedef bool (*ScmBasicHashCompFunc)(ScmBasicHashKey key1,
                                      ScmBasicHashKey key2);
 typedef void *(*ScmBasicHashIterBlock)(ScmBasicHashEntry *entry);

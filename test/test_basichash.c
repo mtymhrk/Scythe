@@ -4,10 +4,10 @@
 
 #include "basichash.h"
 
-unsigned int
+size_t
 hash_func(ScmBasicHashKey key)
 {
-  return (unsigned int)key;
+  return (size_t)key;
 }
 
 bool
@@ -20,7 +20,7 @@ void
 test_scm_basic_hash_new(void)
 {
   ScmBasicHashTable *table = scm_basic_hash_new(256,
-                                                      hash_func, comp_func);
+                                                hash_func, comp_func);
 
   cut_assert_not_null(table);
 }
@@ -29,7 +29,7 @@ void
 test_scm_basic_hash_insert_nonexistent_key()
 {
   ScmBasicHashTable *table = scm_basic_hash_new(256,
-                                                      hash_func, comp_func); 
+                                                hash_func, comp_func);
   ScmBasicHashEntry *entry;
 
   entry = scm_basic_hash_insert(table,
@@ -44,7 +44,7 @@ void
 test_scm_basic_hash_insert_existent_key()
 {
   ScmBasicHashTable *table = scm_basic_hash_new(256,
-                                                      hash_func, comp_func);
+                                                hash_func, comp_func);
   ScmBasicHashEntry *entry;
 
   scm_basic_hash_insert(table,
@@ -58,7 +58,7 @@ void
 test_scm_basic_hash_put_nonexistent_key()
 {
   ScmBasicHashTable *table = scm_basic_hash_new(256,
-                                                      hash_func, comp_func); 
+                                                hash_func, comp_func);
   ScmBasicHashEntry *entry;
 
   entry = scm_basic_hash_put(table,
@@ -89,7 +89,7 @@ void
 test_scm_basic_hash_update_entry()
 {
   ScmBasicHashTable *table = scm_basic_hash_new(256,
-                                                      hash_func, comp_func);
+                                                hash_func, comp_func);
   ScmBasicHashEntry *entry;
 
 
@@ -106,7 +106,7 @@ void
 test_scm_basic_hash_delete_nonexistent_key()
 {
   ScmBasicHashTable *table = scm_basic_hash_new(256,
-                                                      hash_func, comp_func);
+                                                hash_func, comp_func);
   ScmBasicHashEntry *entry;
 
   scm_basic_hash_delete(table, SCM_BASIC_HASH_KEY(1));
@@ -119,7 +119,7 @@ void
 test_scm_basic_hash_delete_existent_key()
 {
   ScmBasicHashTable *table = scm_basic_hash_new(256,
-                                                      hash_func, comp_func);
+                                                hash_func, comp_func);
   ScmBasicHashEntry *entry;
 
   scm_basic_hash_insert(table,
@@ -134,7 +134,7 @@ void
 test_scm_basic_hash_delete_entry()
 {
   ScmBasicHashTable *table = scm_basic_hash_new(256,
-                                                      hash_func, comp_func);
+                                                hash_func, comp_func);
   ScmBasicHashEntry *entry;
 
   scm_basic_hash_insert(table,
@@ -152,7 +152,7 @@ void
 test_scm_basic_hash_delete_head_entry_synonym()
 {
   ScmBasicHashTable *table = scm_basic_hash_new(256,
-                                                      hash_func, comp_func);
+                                                hash_func, comp_func);
   ScmBasicHashEntry *entry;
 
   scm_basic_hash_insert(table,
@@ -173,7 +173,7 @@ void
 test_scm_basic_hash_delete_tail_entry_synonym()
 {
   ScmBasicHashTable *table = scm_basic_hash_new(256,
-                                                      hash_func, comp_func);
+                                                hash_func, comp_func);
   ScmBasicHashEntry *entry;
 
   scm_basic_hash_insert(table,
@@ -194,7 +194,7 @@ void
 test_scm_basic_hash_delete_middle_entry_synonym()
 {
   ScmBasicHashTable *table = scm_basic_hash_new(256,
-                                                      hash_func, comp_func);
+                                                hash_func, comp_func);
   ScmBasicHashEntry *entry;
 
   scm_basic_hash_insert(table,
@@ -248,7 +248,7 @@ test_scm_basic_hash__external_iterator()
   for (i = 0; i < sizeof(keys)/sizeof(keys[0]); i++)
     if (keys[i] == (int)SCM_BASIC_HASH_ITR_KEY(itr)) {
       cut_assert_false(checked[i]); 
-      cut_assert_equal_int(values[i], SCM_BASIC_HASH_ITR_VALUE(itr));
+      cut_assert_equal_int(values[i], (int)SCM_BASIC_HASH_ITR_VALUE(itr));
       checked[i] = true;
     }
 
@@ -260,7 +260,7 @@ test_scm_basic_hash__external_iterator()
   for (i = 0; i < sizeof(keys)/sizeof(keys[0]); i++)
     if (keys[i] == (int)SCM_BASIC_HASH_ITR_KEY(itr)) {
       cut_assert_false(checked[i]); 
-      cut_assert_equal_int(values[i], SCM_BASIC_HASH_ITR_VALUE(itr));
+      cut_assert_equal_int(values[i], (int)SCM_BASIC_HASH_ITR_VALUE(itr));
       checked[i] = true;
     }
 
