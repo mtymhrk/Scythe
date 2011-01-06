@@ -33,7 +33,7 @@ ScmTypeInfo SCM_SYMTABLE_TYPE_INFO = {
 };
 
 
-static unsigned int
+static size_t
 scm_symtable_hash_func(ScmBasicHashKey key) /* GC OK */
 {
   return scm_string_hash_value(SCM_OBJ(key));

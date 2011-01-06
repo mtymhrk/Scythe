@@ -10,10 +10,10 @@
 #include "memory.h"
 
 
-static unsigned int
+static size_t
 hash_func(ScmBasicHashKey key)
 {
-  return (unsigned int)key;
+  return (size_t)key;
 }
 
 ScmTypeInfo SCM_BIND_REF_TYPE_INFO = {

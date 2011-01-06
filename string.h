@@ -59,6 +59,6 @@ void *scm_string_content(ScmObj str);
 bool scm_string_is_string(ScmObj obj);
 void scm_string_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_string_gc_finalize(ScmObj obj);
-unsigned int scm_string_hash_value(ScmObj str);
+size_t scm_string_hash_value(ScmObj str);
 
 #endif /* INCLUDE_STRING_H__ */

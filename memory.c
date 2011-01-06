@@ -53,10 +53,10 @@ scm_memory_release(void *block)
 
 
 
-static unsigned int
+static size_t
 object_table_hash_func(ScmBasicHashKey key)
 {
-  return (unsigned int)key;
+  return (size_t)key;
 }
 
 static bool

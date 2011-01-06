@@ -663,10 +663,10 @@ scm_string_gc_finalize(ScmObj obj) /* GC OK */
   scm_string_finalize(obj);
 }
 
-unsigned int
+size_t
 scm_string_hash_value(ScmObj str) /* GC OK */
 {
-  unsigned int hash;
+  size_t hash;
   unsigned int i;
 
   SCM_OBJ_ASSERT_TYPE(str, &SCM_STRING_TYPE_INFO);
