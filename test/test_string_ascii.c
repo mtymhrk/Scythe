@@ -90,7 +90,7 @@ test_scm_string_dup_ascii(void)
   cut_assert_equal_uint(scm_string_bytesize(str), scm_string_bytesize(copy));
 
   len = scm_string_dump(copy, actual, sizeof(actual));
-  cut_assert_equal_uint(sizeof(expected) - 1, len);
+  cut_assert_equal_int(sizeof(expected) - 1, len);
   cut_assert_equal_int(0, memcmp(expected, actual, (size_t)len));
 }
 

@@ -221,7 +221,7 @@ test_scm_string_append_utf8(void)
 {
   char expected[] = "次の文は正しい。前の文は誤りである。";
   char actual[256];
-  int len;
+  ssize_t len;
   ScmObj str = SCM_OBJ_INIT, apnd = SCM_OBJ_INIT;
 
   SCM_STACK_FRAME_PUSH(&str, &apnd);

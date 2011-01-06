@@ -220,7 +220,7 @@ test_scm_string_append_sjis(void)
 {
   char expected[] = "Ÿ‚Ì•¶‚Í³‚µ‚¢B‘O‚Ì•¶‚ÍŒë‚è‚Å‚ ‚éB";
   char actual[256];
-  int len;
+  ssize_t len;
   ScmObj str = SCM_OBJ_INIT, apnd = SCM_OBJ_INIT;
 
   SCM_STACK_FRAME_PUSH(&str, &apnd);

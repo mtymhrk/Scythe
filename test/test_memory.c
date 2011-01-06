@@ -468,8 +468,8 @@ test_scm_new_mem_heap_have_block(void)
   cut_assert_equal_int(1, SCM_MEM_HEAP_NR_FREE_BLOCK(heap));
   cut_assert_equal_int(1, SCM_MEM_HEAP_NR_USED_BLOCK(heap));
 
-  cut_assert_equal_int(1024, SCM_MEM_HEAP_BLOCK_SIZE(heap->head));
-  cut_assert_equal_int(1024, SCM_MEM_HEAP_BLOCK_SIZE(heap->tail));
+  cut_assert_equal_uint(1024, SCM_MEM_HEAP_BLOCK_SIZE(heap->head));
+  cut_assert_equal_uint(1024, SCM_MEM_HEAP_BLOCK_SIZE(heap->tail));
 
   /* postprocess */
   SCM_MEM_HEAP_DELETE_HEAP(heap);

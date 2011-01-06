@@ -35,7 +35,7 @@ test_scm_vector_new(void)
 
   cut_assert_true(SCM_OBJ_IS_NOT_NULL(vector));
   cut_assert(scm_vector_is_vector(vector));
-  cut_assert_equal_int(5, scm_vector_length(vector));
+  cut_assert_equal_uint(5, scm_vector_length(vector));
 
   for (i = 0; i < 5u; i++)
     cut_assert(scm_nil_is_nil(scm_vector_ref(vector, i)));

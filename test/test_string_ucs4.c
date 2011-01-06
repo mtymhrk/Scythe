@@ -25,14 +25,13 @@ utf8str_to_ucs4str(const void *utf8, size_t size, void *ucs4)
 {
   const uint8_t *p8;
   uint32_t *p4;
-  int i;
+  size_t i;
 
   p8 = utf8;
   p4 = ucs4;
   i = 0;
-  while ((size_t)i < size) {
-    i += scm_enc_utf8_to_ucs4(p8 + i, size - (size_t)i, p4++);
-  }
+  while (i < size)
+    i += (size_t)scm_enc_utf8_to_ucs4(p8 + i, size - i, p4++);
 
   return (size_t)((uint8_t *)p4 - (uint8_t *)ucs4);
 }
