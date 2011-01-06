@@ -20,17 +20,17 @@ test_scm_basic_list_push(void)
 
   scm_basic_list_push(list, SCM_BASIC_LIST_VALUE(100));
   cut_assert_equal_uint(1, scm_basic_list_length(list));
-  cut_assert_equal_int(SCM_BASIC_LIST_VALUE(100),
+  cut_assert_equal_uint(SCM_BASIC_LIST_VALUE(100),
                        SCM_BASIC_LIST_ENTRY_VALUE(scm_basic_list_tail(list)));
-  cut_assert_equal_int(SCM_BASIC_LIST_VALUE(100),
+  cut_assert_equal_uint(SCM_BASIC_LIST_VALUE(100),
                        SCM_BASIC_LIST_ENTRY_VALUE(scm_basic_list_head(list)));
 
 
   scm_basic_list_push(list, SCM_BASIC_LIST_VALUE(200));
   cut_assert_equal_uint(2, scm_basic_list_length(list));
-  cut_assert_equal_int(SCM_BASIC_LIST_VALUE(200),
+  cut_assert_equal_uint(SCM_BASIC_LIST_VALUE(200),
                        SCM_BASIC_LIST_ENTRY_VALUE(scm_basic_list_tail(list)));
-  cut_assert_equal_int(SCM_BASIC_LIST_VALUE(100),
+  cut_assert_equal_uint(SCM_BASIC_LIST_VALUE(100),
                        SCM_BASIC_LIST_ENTRY_VALUE(scm_basic_list_head(list)));
 
 }
@@ -56,16 +56,16 @@ test_scm_basic_list_unshift(void)
   scm_basic_list_unshift(list, SCM_BASIC_LIST_VALUE(100));
 
   cut_assert_equal_uint(1, scm_basic_list_length(list));
-  cut_assert_equal_int(SCM_BASIC_LIST_VALUE(100),
+  cut_assert_equal_uint(SCM_BASIC_LIST_VALUE(100),
                        SCM_BASIC_LIST_ENTRY_VALUE(scm_basic_list_head(list)));
-  cut_assert_equal_int(SCM_BASIC_LIST_VALUE(100),
+  cut_assert_equal_uint(SCM_BASIC_LIST_VALUE(100),
                        SCM_BASIC_LIST_ENTRY_VALUE(scm_basic_list_tail(list)));
 
   scm_basic_list_unshift(list, SCM_BASIC_LIST_VALUE(200));
   cut_assert_equal_uint(2, scm_basic_list_length(list));
-  cut_assert_equal_int(SCM_BASIC_LIST_VALUE(200),
+  cut_assert_equal_uint(SCM_BASIC_LIST_VALUE(200),
                        SCM_BASIC_LIST_ENTRY_VALUE(scm_basic_list_head(list)));
-  cut_assert_equal_int(SCM_BASIC_LIST_VALUE(100),
+  cut_assert_equal_uint(SCM_BASIC_LIST_VALUE(100),
                        SCM_BASIC_LIST_ENTRY_VALUE(scm_basic_list_tail(list)));
 
 }

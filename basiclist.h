@@ -1,9 +1,11 @@
 #ifndef INCLUDE_BASICLIST_H__
 #define INCLUDE_BASICLIST_H__
 
+#include <stdint.h>
+
 typedef struct ScmBasicListRec ScmBasicList;
 typedef struct ScmBasicListEntryRec ScmBasicListEntry;
-typedef void *ScmBasicListValue;
+typedef uintptr_t ScmBasicListValue;
 
 struct ScmBasicListEntryRec {
   ScmBasicListEntry *next;
