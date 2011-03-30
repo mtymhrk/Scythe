@@ -28,3 +28,4 @@ reference.o: reference.c reference.h object.h vm.h memory.h basichash.h
 numeric.o: numeric.c object.h numeric.h
 primitive_subrutine.o: primitive_subrutine.c vm.h object.h memory.h \
  basichash.h reference.h procedure.h pair.h
+iseq.o: iseq.c object.h memory.h basichash.h reference.h vm.h iseq.h
