@@ -8,6 +8,7 @@
 #include "reference.h"
 #include "object.h"
 #include "symbol.h"
+#include "iseq.h"
 #include "miscobjects.h"
 
 #define SCM_VM_STACK_INIT_SIZE 1024
@@ -96,6 +97,8 @@ scm_vm_initialize(ScmObj vm, ScmObj parent)
   SCM_VM_FP(vm) = NULL;
   SCM_VM_IP(vm) = NULL;
 
+  SCM_VM_ISEQ(vm) = SCM_OBJ_NULL;
+
   /* TODO: undefined オブジェクトみたいなものを初期値にする */
   SCM_VM_VAL(vm) = SCM_OBJ_NULL;
 
@@ -131,6 +134,7 @@ scm_vm_finalize(ScmObj vm)
   SCM_VM_SP(vm) = NULL;
   SCM_VM_FP(vm) = NULL;
   SCM_VM_IP(vm) = NULL;
+  SCM_VM_ISEQ_SETQ(vm, SCM_OBJ_NULL);
   SCM_VM_VAL_SETQ(vm, SCM_OBJ_NULL);
   SCM_VM_REF_STACK(vm) = NULL;
 }
@@ -316,6 +320,13 @@ scm_vm_frame_outer_frame(ScmObj vm)
   return NULL;
 }
 
+ScmObj
+scm_vm_frame_iseq(ScmObj vm)
+{
+  /* TODO: write me */
+  return SCM_OBJ_NULL;
+}
+
 scm_vm_inst_t *
 scm_vm_frame_next_inst(ScmObj vm)
 {
@@ -335,6 +346,7 @@ scm_vm_push_frame(ScmObj vm)
   SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
 
   scm_vm_stack_push(vm, (scm_vm_stack_val_t)SCM_VM_FP(vm), false);
+  scm_vm_stack_push(vm, (scm_vm_stack_val_t)SCM_VM_ISEQ(vm), true);
   scm_vm_stack_push(vm, (scm_vm_stack_val_t)SCM_VM_IP(vm), false);
 }
 
@@ -345,24 +357,26 @@ scm_vm_push_frame(ScmObj vm)
 void
 scm_vm_return(ScmObj vm, ScmObj val)
 {
-  ScmObj *fp;
+  ScmObj *fp, iseq = SCM_OBJ_INIT;
   scm_vm_inst_t *ip;
   int argc;
 
-  SCM_STACK_PUSH(&vm, &val);
+  SCM_STACK_PUSH(&vm, &val, &iseq);
   SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
 
   argc = scm_vm_frame_argc(vm);
   fp = scm_vm_frame_outer_frame(vm);
+  SCM_SETQ(iseq, scm_vm_frame_iseq(vm));
   ip = scm_vm_frame_next_inst(vm);
 
   SCM_VM_FP(vm) = fp;
+  SCM_VM_ISEQ_SETQ(vm, iseq);
   SCM_VM_IP(vm) = ip;
 
   if (SCM_OBJ_IS_NOT_NULL(val))
     SCM_VM_VAL_SETQ(vm, val);
 
-  scm_vm_stack_shorten(vm, argc + 3); /* 3 := argc, fp, ip */
+  scm_vm_stack_shorten(vm, argc + 4); /* 3 := argc, fp, iseq, ip */
 }
 
 int
@@ -426,6 +440,7 @@ scm_vm_gc_initialize(ScmObj obj, ScmObj mem)
   SCM_VM_SP(obj) = NULL;
   SCM_VM_FP(obj) = NULL;
   SCM_VM_IP(obj) = NULL;
+  SCM_VM_ISEQ(obj) = SCM_OBJ_NULL;
   SCM_VM_VAL(obj) = SCM_OBJ_NULL;
   SCM_VM_REF_STACK(obj) = NULL;
   SCM_VM_SYMTBL(obj) = SCM_OBJ_NULL;

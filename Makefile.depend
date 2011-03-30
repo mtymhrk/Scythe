@@ -18,7 +18,7 @@ char.o: char.c object.h memory.h basichash.h vm.h reference.h encoding.h \
  char.h
 charconv.o: charconv.c memory.h object.h basichash.h charconv.h
 encoding.o: encoding.c encoding.h
-vm.o: vm.c vm.h object.h memory.h basichash.h reference.h symbol.h \
+vm.o: vm.c vm.h object.h memory.h basichash.h reference.h symbol.h iseq.h \
  miscobjects.h
 procedure.o: procedure.c procedure.h object.h vm.h memory.h basichash.h \
  reference.h

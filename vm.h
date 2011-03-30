@@ -27,8 +27,8 @@ struct ScmVMRec {
   scm_vm_stack_val_t *fp;                    /* frame pointer */
   /* ScmObj cp;                    /\* closure pointer *\/ */
   scm_vm_inst_t *ip;            /* instruction pointer */
+  ScmObj iseq;                  /* instruction sequence object */
   ScmObj val;                   /* value register */
-  /* ScmVMInst *iseq; */
   ScmMem *mem;
   ScmRefStack *ref_stack;
   ScmObj symtbl;
@@ -47,6 +47,8 @@ struct ScmVMRec {
 #define SCM_VM_SP(obj) (SCM_VM(obj)->sp)
 #define SCM_VM_FP(obj) (SCM_VM(obj)->fp)
 #define SCM_VM_IP(obj) (SCM_VM(obj)->ip)
+#define SCM_VM_ISEQ(obj) (SCM_VM(obj)->iseq)
+#define SCM_VM_ISEQ_SETQ(obj, v) SCM_SETQ(SCM_VM_ISEQ(obj), v)
 #define SCM_VM_VAL(obj) (SCM_VM(obj)->val)
 #define SCM_VM_VAL_SETQ(obj, v) SCM_SETQ(SCM_VM_VAL(vm), v)
 #define SCM_VM_REF_STACK(obj) (SCM_VM(obj)->ref_stack)
@@ -94,6 +96,7 @@ void scm_vm_stack_shorten(ScmObj vm, int n);
 int scm_vm_frame_argc(ScmObj vm);
 ScmObj scm_vm_frame_argv(ScmObj vm, int nth);
 ScmObj *scm_vm_frame_outer_frame(ScmObj vm);
+ScmObj scm_vm_frame_iseq(ScmObj vm);
 scm_vm_inst_t *scm_vm_frame_next_inst(ScmObj vm);
 
 void scm_vm_return(ScmObj vm, ScmObj val);
