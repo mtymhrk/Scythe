@@ -13,13 +13,13 @@ extern ScmTypeInfo SCM_ISEQ_TYPE_INFO;
 struct ScmISeqRec {
   ScmObjHeader header;
   scm_iseq_t *seq;
-  size_t length;
+  size_t size;
 };
 
 #define SCM_ISEQ_SEQ(obj) (SCM_ISEQ(obj)->seq)
-#define SCM_ISEQ_LENGTH(obj) (SCM_ISEQ(obj)->length)
+#define SCM_ISEQ_SIZE(obj) (SCM_ISEQ(obj)->size)
 
-#define SCM_ISEQ_DEFAULT_LENGTH 32
+#define SCM_ISEQ_DEFAULT_SIZE 32
 
 
 void scm_iseq_initialize(ScmObj iseq);

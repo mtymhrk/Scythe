@@ -21,14 +21,14 @@ scm_iseq_initialize(ScmObj iseq) /* GC OK */
   SCM_OBJ_ASSERT_TYPE(iseq, &SCM_ISEQ_TYPE_INFO);
 
   SCM_ISEQ_SEQ(iseq) =
-    scm_memory_allocate(sizeof(scm_iseq_t) * SCM_ISEQ_DEFAULT_LENGTH);
+    scm_memory_allocate(sizeof(scm_iseq_t) * SCM_ISEQ_DEFAULT_SIZE);
   if (SCM_ISEQ_SEQ(iseq) == NULL)
     ;                           /* TODO: error handling */
 
-  SCM_ISEQ_LENGTH(iseq) = SCM_ISEQ_DEFAULT_LENGTH;
+  SCM_ISEQ_SIZE(iseq) = SCM_ISEQ_DEFAULT_SIZE;
 
   /* TODO: fill in by NOOP */
-  memset(SCM_ISEQ_SEQ(iseq), 0, sizeof(scm_word_t) * SCM_ISEQ_DEFAULT_LENGTH);
+  memset(SCM_ISEQ_SEQ(iseq), 0, sizeof(scm_iseq_t) * SCM_ISEQ_DEFAULT_SIZE);
 }
 
 ScmObj
