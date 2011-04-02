@@ -2,6 +2,7 @@
 #define INCLUDE_ISEQ_H__
 
 typedef struct ScmISeqRec ScmISeq;
+typedef int scm_iseq_t;
 
 #define SCM_ISEQ(obj) ((ScmISeq *)(obj))
 
@@ -11,7 +12,7 @@ extern ScmTypeInfo SCM_ISEQ_TYPE_INFO;
 
 struct ScmISeqRec {
   ScmObjHeader header;
-  scm_word_t *seq;
+  scm_iseq_t *seq;
   size_t length;
 };
 

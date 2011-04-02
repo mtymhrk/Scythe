@@ -21,7 +21,7 @@ scm_iseq_initialize(ScmObj iseq) /* GC OK */
   SCM_OBJ_ASSERT_TYPE(iseq, &SCM_ISEQ_TYPE_INFO);
 
   SCM_ISEQ_SEQ(iseq) =
-    scm_memory_allocate(sizeof(scm_word_t) * SCM_ISEQ_DEFAULT_LENGTH);
+    scm_memory_allocate(sizeof(scm_iseq_t) * SCM_ISEQ_DEFAULT_LENGTH);
   if (SCM_ISEQ_SEQ(iseq) == NULL)
     ;                           /* TODO: error handling */
 
