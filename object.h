@@ -70,7 +70,7 @@ typedef const ScmObj *ScmCRef;
 #define SCM_REF_OBJ(ref) (*((ScmObj *)(ref)))
 #define SCM_CREF_OBJ(ref) (*((const ScmObj *)(ref)))
 #define SCM_REF_UPDATE(ref, obj) (*((ScmObj *)(ref)) = SCM_OBJ(obj))
-
+#define SCM_REF_SETQ(ref, obj) SCM_SETQ(*((ScmObj *)(ref)), obj)
 
 typedef void (*ScmPrettyPrintFunction)(ScmObj obj); // 仮
 typedef void (*ScmGCInitializeFunc)(ScmObj obj, ScmObj mem);

@@ -1,8 +1,10 @@
 #include <string.h>
+#include <assert.h>
 
 #include "object.h"
 #include "memory.h"
 #include "reference.h"
+#include "instractions.h"
 #include "iseq.h"
 
 ScmTypeInfo SCM_ISEQ_TYPE_INFO = {
@@ -53,6 +55,92 @@ scm_iseq_finalize(ScmObj obj) /* GC OK */
 
   if (SCM_ISEQ_SEQ(obj) != NULL)
     scm_memory_release(SCM_ISEQ_SEQ(obj));
+}
+
+int
+scm_iseq_expand_seq(ScmObj iseq, ssize_t needed)
+{
+  SCM_OBJ_ASSERT_TYPE(iseq, &SCM_ISEQ_TYPE_INFO);
+  assert(needed > 0);
+
+  size_t new_size = SCM_ISEQ_SIZE(iseq) * 2;
+  while (needed >= (ssize_t)new_size) {
+    new_size *= 2;
+    if (new_size > SSIZE_MAX) return -1;
+  }
+
+  scm_iseq_t *new_seq = scm_memory_allocate(new_size);
+  if (new_seq == NULL) return -1;
+
+  memcpy(new_seq, SCM_ISEQ_SEQ(iseq), SCM_ISEQ_LENGTH(iseq));
+
+  SCM_ISEQ_SEQ(iseq) = new_seq;
+  SCM_ISEQ_SIZE(iseq) = new_size;
+
+  return 0;
+}
+
+scm_iseq_t *
+scm_iseq_write_op(ScmObj iseq, scm_iseq_t *sp, SCM_INST_T op)
+{
+  SCM_OBJ_ASSERT_TYPE(iseq, &SCM_ISEQ_TYPE_INFO);
+  assert(sp != NULL);
+  assert(sp < SCM_ISEQ_SEQ(iseq));
+
+  scm_iseq_t *p = sp;
+  ssize_t idx = sp - SCM_ISEQ_SEQ(iseq);
+  if (idx >=  (ssize_t)SCM_ISEQ_SIZE(iseq)) {
+    if (scm_iseq_expand_seq(iseq, idx) < 0)
+      return NULL;
+    p = SCM_ISEQ_SEQ(iseq) + idx;
+  }
+
+  if (idx > (ssize_t)SCM_ISEQ_LENGTH(iseq))
+    SCM_ISEQ_LENGTH(iseq) = (size_t)idx;
+
+  return scm_iseq_set_op(p, op);
+}
+
+scm_iseq_t *
+scm_iseq_write_immval(ScmObj iseq, scm_iseq_t *sp, ScmObj obj)
+{
+  SCM_OBJ_ASSERT_TYPE(iseq, &SCM_ISEQ_TYPE_INFO);
+  assert(sp != NULL);
+  assert(sp < SCM_ISEQ_SEQ(iseq));
+
+  scm_iseq_t *p = sp;
+  ssize_t idx = sp - SCM_ISEQ_SEQ(iseq);
+  if (idx >=  (ssize_t)SCM_ISEQ_SIZE(iseq)) {
+    if (scm_iseq_expand_seq(iseq, idx) < 0)
+      return NULL;
+    p = SCM_ISEQ_SEQ(iseq) + idx;
+  }
+
+  if (idx > (ssize_t)SCM_ISEQ_LENGTH(iseq))
+    SCM_ISEQ_LENGTH(iseq) = (size_t)idx;
+
+  return scm_iseq_set_immval(p, obj);
+}
+
+scm_iseq_t *
+scm_iseq_write_primval(ScmObj iseq, scm_iseq_t *sp, int val)
+{
+  SCM_OBJ_ASSERT_TYPE(iseq, &SCM_ISEQ_TYPE_INFO);
+  assert(sp != NULL);
+  assert(sp < SCM_ISEQ_SEQ(iseq));
+
+  scm_iseq_t *p = sp;
+  ssize_t idx = sp - SCM_ISEQ_SEQ(iseq);
+  if (idx >=  (ssize_t)SCM_ISEQ_SIZE(iseq)) {
+    if (scm_iseq_expand_seq(iseq, idx) < 0)
+      return NULL;
+    p = SCM_ISEQ_SEQ(iseq) + idx;
+  }
+
+  if (idx > (ssize_t)SCM_ISEQ_LENGTH(iseq))
+    SCM_ISEQ_LENGTH(iseq) = (size_t)idx;
+
+  return scm_iseq_set_primval(p, val);
 }
 
 void

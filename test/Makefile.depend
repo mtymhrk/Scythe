@@ -21,7 +21,7 @@ charconv.o: ../charconv.c ../memory.h ../object.h ../basichash.h \
  ../charconv.h
 encoding.o: ../encoding.c ../encoding.h
 vm.o: ../vm.c ../vm.h ../object.h ../memory.h ../basichash.h \
- ../reference.h ../symbol.h ../iseq.h ../miscobjects.h
+ ../reference.h ../symbol.h ../iseq.h ../instractions.h ../miscobjects.h
 procedure.o: ../procedure.c ../procedure.h ../object.h ../vm.h \
  ../memory.h ../basichash.h ../reference.h
 binding.o: ../binding.c ../basichash.h ../binding.h ../object.h \
@@ -32,7 +32,7 @@ numeric.o: ../numeric.c ../object.h ../numeric.h
 primitive_subrutine.o: ../primitive_subrutine.c ../vm.h ../object.h \
  ../memory.h ../basichash.h ../reference.h ../procedure.h ../pair.h
 iseq.o: ../iseq.c ../object.h ../memory.h ../basichash.h ../reference.h \
- ../vm.h ../iseq.h
+ ../vm.h ../instractions.h ../iseq.h
 test_pair.o: test_pair.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-version.h \
  /usr/local/include/cutter/cutter/cut-features.h \
