@@ -64,22 +64,9 @@ scm_iseq_get_64(scm_iseq_t *seq, int64_t *vp)
 }
 
 static inline scm_iseq_t *
-scm_iseq_set_op(scm_iseq_t *seq, SCM_INST_T op)
-{
-  return scm_iseq_set_32(seq, (int32_t)op);
-}
-
-static inline scm_iseq_t *
 scm_iseq_get_op(scm_iseq_t *seq, SCM_INST_T *po)
 {
   return scm_iseq_get_32(seq, (int32_t *)po);
-}
-
-static inline scm_iseq_t *
-scm_iseq_set_immval(scm_iseq_t *seq, ScmObj val)
-{
-  SCM_REF_SETQ((ScmRef)seq, val);
-  return seq + sizeof(ScmObj)/sizeof(*seq);
 }
 
 static inline scm_iseq_t *
@@ -87,12 +74,6 @@ scm_iseq_get_immval(scm_iseq_t *seq, ScmRef ref)
 {
   SCM_REF_SETQ(ref, SCM_REF_OBJ((ScmRef)seq));
   return seq + sizeof(ScmObj)/sizeof(*seq);
-}
-
-static inline scm_iseq_t *
-scm_iseq_set_primval(scm_iseq_t *seq, int val)
-{
-  return scm_iseq_set_32(seq, (int32_t)val);
 }
 
 static inline scm_iseq_t *
