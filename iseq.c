@@ -28,6 +28,7 @@ scm_iseq_initialize(ScmObj iseq) /* GC OK */
     ;                           /* TODO: error handling */
 
   SCM_ISEQ_SIZE(iseq) = SCM_ISEQ_DEFAULT_SIZE;
+  SCM_ISEQ_LENGTH(iseq) = 0;
 
   /* TODO: fill in by NOOP */
   memset(SCM_ISEQ_SEQ(iseq), 0, sizeof(scm_iseq_t) * SCM_ISEQ_DEFAULT_SIZE);
@@ -85,7 +86,7 @@ scm_iseq_set_op(ScmObj iseq, scm_iseq_t *sp, SCM_INST_T op)
 {
   SCM_OBJ_ASSERT_TYPE(iseq, &SCM_ISEQ_TYPE_INFO);
   assert(sp != NULL);
-  assert(sp < SCM_ISEQ_SEQ(iseq));
+  assert(sp >= SCM_ISEQ_SEQ(iseq));
 
   scm_iseq_t *p = sp;
   ssize_t idx = sp - SCM_ISEQ_SEQ(iseq);
@@ -95,10 +96,13 @@ scm_iseq_set_op(ScmObj iseq, scm_iseq_t *sp, SCM_INST_T op)
     p = SCM_ISEQ_SEQ(iseq) + idx;
   }
 
-  if (idx > (ssize_t)SCM_ISEQ_LENGTH(iseq))
-    SCM_ISEQ_LENGTH(iseq) = (size_t)idx;
+  scm_iseq_t *next = scm_iseq_set_32(p, (uint32_t)op);
+  if (next == NULL) return NULL;
 
-  return scm_iseq_set_32(p, (int32_t)op);
+  if (next - SCM_ISEQ_SEQ(iseq) > (ssize_t)SCM_ISEQ_LENGTH(iseq))
+    SCM_ISEQ_LENGTH(iseq) = (size_t)(next - SCM_ISEQ_SEQ(iseq));
+
+  return next;
 }
 
 scm_iseq_t *
@@ -106,7 +110,7 @@ scm_iseq_set_immval(ScmObj iseq, scm_iseq_t *sp, ScmObj obj)
 {
   SCM_OBJ_ASSERT_TYPE(iseq, &SCM_ISEQ_TYPE_INFO);
   assert(sp != NULL);
-  assert(sp < SCM_ISEQ_SEQ(iseq));
+  assert(sp >= SCM_ISEQ_SEQ(iseq));
 
   scm_iseq_t *p = sp;
   ssize_t idx = sp - SCM_ISEQ_SEQ(iseq);
@@ -116,12 +120,13 @@ scm_iseq_set_immval(ScmObj iseq, scm_iseq_t *sp, ScmObj obj)
     p = SCM_ISEQ_SEQ(iseq) + idx;
   }
 
-  if (idx > (ssize_t)SCM_ISEQ_LENGTH(iseq))
-    SCM_ISEQ_LENGTH(iseq) = (size_t)idx;
+  scm_iseq_t *next = p + sizeof(ScmObj)/sizeof(*p);
+  if (next - SCM_ISEQ_SEQ(iseq) > (ssize_t)SCM_ISEQ_LENGTH(iseq))
+    SCM_ISEQ_LENGTH(iseq) = (size_t)(next - SCM_ISEQ_SEQ(iseq));
 
   SCM_REF_SETQ((ScmRef)p, obj);
 
-  return p + sizeof(ScmObj)/sizeof(*p);
+  return next;
 }
 
 scm_iseq_t *
@@ -129,7 +134,7 @@ scm_iseq_set_primval(ScmObj iseq, scm_iseq_t *sp, int val)
 {
   SCM_OBJ_ASSERT_TYPE(iseq, &SCM_ISEQ_TYPE_INFO);
   assert(sp != NULL);
-  assert(sp < SCM_ISEQ_SEQ(iseq));
+  assert(sp >= SCM_ISEQ_SEQ(iseq));
 
   scm_iseq_t *p = sp;
   ssize_t idx = sp - SCM_ISEQ_SEQ(iseq);
@@ -139,10 +144,13 @@ scm_iseq_set_primval(ScmObj iseq, scm_iseq_t *sp, int val)
     p = SCM_ISEQ_SEQ(iseq) + idx;
   }
 
-  if (idx > (ssize_t)SCM_ISEQ_LENGTH(iseq))
-    SCM_ISEQ_LENGTH(iseq) = (size_t)idx;
+  scm_iseq_t *next = scm_iseq_set_32(p, (uint32_t)val);
+  if (next == NULL) return NULL;
 
-  return scm_iseq_set_32(p, (int32_t)val);
+  if (next - SCM_ISEQ_SEQ(iseq) > (ssize_t)SCM_ISEQ_LENGTH(iseq))
+    SCM_ISEQ_LENGTH(iseq) = (size_t)(next - SCM_ISEQ_SEQ(iseq));
+
+  return next;
 }
 
 void
