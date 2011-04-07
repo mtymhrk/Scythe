@@ -23,15 +23,22 @@ scm_iseq_initialize(ScmObj iseq) /* GC OK */
   SCM_OBJ_ASSERT_TYPE(iseq, &SCM_ISEQ_TYPE_INFO);
 
   SCM_ISEQ_SEQ(iseq) =
-    scm_memory_allocate(sizeof(scm_iseq_t) * SCM_ISEQ_DEFAULT_SIZE);
+    scm_memory_allocate(sizeof(scm_iseq_t) * SCM_ISEQ_DEFAULT_SEQ_SIZE);
   if (SCM_ISEQ_SEQ(iseq) == NULL)
     ;                           /* TODO: error handling */
 
-  SCM_ISEQ_SIZE(iseq) = SCM_ISEQ_DEFAULT_SIZE;
-  SCM_ISEQ_LENGTH(iseq) = 0;
+  SCM_ISEQ_IMMVAL_VEC(iseq) =
+    scm_memory_allocate(sizeof(ScmObj) * SCM_ISEQ_DEFAULT_IMMVEC_SIZE);
+  if (SCM_ISEQ_IMMVAL_VEC(iseq) == NULL)
+    ;                           /* TODO: error handling */
+
+  SCM_ISEQ_SEQ_CAPACITY(iseq) = SCM_ISEQ_DEFAULT_SEQ_SIZE;
+  SCM_ISEQ_SEQ_LENGTH(iseq) = 0;
+  SCM_ISEQ_VEC_CAPACITY(iseq) = SCM_ISEQ_DEFAULT_IMMVEC_SIZE;
+  SCM_ISEQ_VEC_LENGTH(iseq) = 0;
 
   /* TODO: fill in by NOOP */
-  memset(SCM_ISEQ_SEQ(iseq), 0, sizeof(scm_iseq_t) * SCM_ISEQ_DEFAULT_SIZE);
+  /* memset(SCM_ISEQ_SEQ(iseq), 0, sizeof(scm_iseq_t) * SCM_ISEQ_DEFAULT_SIZE); */
 }
 
 ScmObj
@@ -59,30 +66,72 @@ scm_iseq_finalize(ScmObj obj) /* GC OK */
 }
 
 int
-scm_iseq_expand_seq(ScmObj iseq, ssize_t needed)
+scm_iseq_expand_immval_vec(ScmObj iseq) /* GC OK */
+{
+  SCM_OBJ_ASSERT_TYPE(iseq, &SCM_ISEQ_TYPE_INFO);
+
+  if (SCM_ISEQ_VEC_CAPACITY(iseq) > SSIZE_MAX / 2)
+    return -1;
+
+  size_t new_size = SCM_ISEQ_VEC_CAPACITY(iseq) * 2;
+  ScmObj *new_vec = scm_memory_allocate(sizeof(ScmObj) * new_size);
+  if (new_vec == NULL) return -1;
+
+  SCM_COPY_OBJ_VEC(new_vec, SCM_ISEQ_IMMVAL_VEC(iseq),
+                   SCM_ISEQ_VEC_LENGTH(iseq));
+
+  SCM_ISEQ_IMMVAL_VEC(iseq) = new_vec;
+  SCM_ISEQ_VEC_CAPACITY(iseq) = new_size;
+
+  return 0;
+}
+
+int
+scm_iseq_set_immval(ScmObj iseq, ScmObj val) /* GC OK */
+{
+  SCM_OBJ_ASSERT_TYPE(iseq, &SCM_ISEQ_TYPE_INFO);
+  assert(SCM_OBJ_IS_NOT_NULL(val));
+
+  if (SCM_ISEQ_VEC_LENGTH(iseq) >= SCM_ISEQ_VEC_CAPACITY(iseq))
+    if (scm_iseq_expand_immval_vec(iseq) < 0)
+      return -1;
+
+  int idx = (int)SCM_ISEQ_VEC_LENGTH(iseq);
+  SCM_SETQ(SCM_ISEQ_IMMVAL_VEC(iseq)[idx], val);
+  SCM_ISEQ_VEC_LENGTH(iseq)++;
+
+  return idx;
+}
+
+int
+scm_iseq_expand_seq(ScmObj iseq, ssize_t needed) /* GC OK */
 {
   SCM_OBJ_ASSERT_TYPE(iseq, &SCM_ISEQ_TYPE_INFO);
   assert(needed > 0);
 
-  size_t new_size = SCM_ISEQ_SIZE(iseq) * 2;
+  if (SCM_ISEQ_SEQ_CAPACITY(iseq) > SSIZE_MAX / 2)
+    return -1;
+
+  size_t new_size = SCM_ISEQ_VEC_CAPACITY(iseq) * 2;
   while (needed >= (ssize_t)new_size) {
+    if (new_size > SSIZE_MAX / 2) return -1;
     new_size *= 2;
-    if (new_size > SSIZE_MAX) return -1;
   }
 
   scm_iseq_t *new_seq = scm_memory_allocate(new_size);
   if (new_seq == NULL) return -1;
 
-  memcpy(new_seq, SCM_ISEQ_SEQ(iseq), SCM_ISEQ_LENGTH(iseq));
+  memcpy(new_seq, SCM_ISEQ_SEQ(iseq),
+         sizeof(scm_iseq_t) * SCM_ISEQ_SEQ_LENGTH(iseq));
 
   SCM_ISEQ_SEQ(iseq) = new_seq;
-  SCM_ISEQ_SIZE(iseq) = new_size;
+  SCM_ISEQ_SEQ_CAPACITY(iseq) = new_size;
 
   return 0;
 }
 
 scm_iseq_t *
-scm_iseq_set_op(ScmObj iseq, scm_iseq_t *sp, SCM_INST_T op)
+scm_iseq_set_word(ScmObj iseq, scm_iseq_t *sp, scm_iseq_t word) /* GC OK */
 {
   SCM_OBJ_ASSERT_TYPE(iseq, &SCM_ISEQ_TYPE_INFO);
   assert(sp != NULL);
@@ -90,67 +139,18 @@ scm_iseq_set_op(ScmObj iseq, scm_iseq_t *sp, SCM_INST_T op)
 
   scm_iseq_t *p = sp;
   ssize_t idx = sp - SCM_ISEQ_SEQ(iseq);
-  if (idx >=  (ssize_t)SCM_ISEQ_SIZE(iseq)) {
+  if (idx >=  (ssize_t)SCM_ISEQ_SEQ_CAPACITY(iseq)) {
     if (scm_iseq_expand_seq(iseq, idx) < 0)
       return NULL;
     p = SCM_ISEQ_SEQ(iseq) + idx;
   }
 
-  scm_iseq_t *next = scm_iseq_set_32(p, (uint32_t)op);
-  if (next == NULL) return NULL;
+  *p++ = word;
 
-  if (next - SCM_ISEQ_SEQ(iseq) > (ssize_t)SCM_ISEQ_LENGTH(iseq))
-    SCM_ISEQ_LENGTH(iseq) = (size_t)(next - SCM_ISEQ_SEQ(iseq));
+  if (p - SCM_ISEQ_SEQ(iseq) > (ssize_t)SCM_ISEQ_SEQ_LENGTH(iseq))
+    SCM_ISEQ_SEQ_LENGTH(iseq) = (size_t)(p - SCM_ISEQ_SEQ(iseq));
 
-  return next;
-}
-
-scm_iseq_t *
-scm_iseq_set_immval(ScmObj iseq, scm_iseq_t *sp, ScmObj obj)
-{
-  SCM_OBJ_ASSERT_TYPE(iseq, &SCM_ISEQ_TYPE_INFO);
-  assert(sp != NULL);
-  assert(sp >= SCM_ISEQ_SEQ(iseq));
-
-  scm_iseq_t *p = sp;
-  ssize_t idx = sp - SCM_ISEQ_SEQ(iseq);
-  if (idx >=  (ssize_t)SCM_ISEQ_SIZE(iseq)) {
-    if (scm_iseq_expand_seq(iseq, idx) < 0)
-      return NULL;
-    p = SCM_ISEQ_SEQ(iseq) + idx;
-  }
-
-  scm_iseq_t *next = p + sizeof(ScmObj)/sizeof(*p);
-  if (next - SCM_ISEQ_SEQ(iseq) > (ssize_t)SCM_ISEQ_LENGTH(iseq))
-    SCM_ISEQ_LENGTH(iseq) = (size_t)(next - SCM_ISEQ_SEQ(iseq));
-
-  SCM_REF_SETQ((ScmRef)p, obj);
-
-  return next;
-}
-
-scm_iseq_t *
-scm_iseq_set_primval(ScmObj iseq, scm_iseq_t *sp, int val)
-{
-  SCM_OBJ_ASSERT_TYPE(iseq, &SCM_ISEQ_TYPE_INFO);
-  assert(sp != NULL);
-  assert(sp >= SCM_ISEQ_SEQ(iseq));
-
-  scm_iseq_t *p = sp;
-  ssize_t idx = sp - SCM_ISEQ_SEQ(iseq);
-  if (idx >=  (ssize_t)SCM_ISEQ_SIZE(iseq)) {
-    if (scm_iseq_expand_seq(iseq, idx) < 0)
-      return NULL;
-    p = SCM_ISEQ_SEQ(iseq) + idx;
-  }
-
-  scm_iseq_t *next = scm_iseq_set_32(p, (uint32_t)val);
-  if (next == NULL) return NULL;
-
-  if (next - SCM_ISEQ_SEQ(iseq) > (ssize_t)SCM_ISEQ_LENGTH(iseq))
-    SCM_ISEQ_LENGTH(iseq) = (size_t)(next - SCM_ISEQ_SEQ(iseq));
-
-  return next;
+  return p;
 }
 
 void
@@ -159,6 +159,7 @@ scm_iseq_gc_initialize(ScmObj obj, ScmObj mem) /* GC OK */
   SCM_OBJ_ASSERT_TYPE(obj, &SCM_ISEQ_TYPE_INFO);
 
   SCM_ISEQ_SEQ(obj) = NULL;
+  SCM_ISEQ_IMMVAL_VEC(obj) = NULL;
 }
 
 void
@@ -168,7 +169,7 @@ scm_iseq_gc_finalize(ScmObj obj) /* GC OK */
 }
 
 int
-scm_iseq_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
+scm_iseq_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler) /* GC OK */
 {
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
 
@@ -176,10 +177,12 @@ scm_iseq_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
   assert(SCM_OBJ_IS_NOT_NULL(mem));
   assert(handler != NULL);
 
-  if (SCM_ISEQ_SEQ(obj) == NULL)
-    return rslt;
-
-  /* TODO: write me */
+  for (size_t i = 0; i < SCM_ISEQ_VEC_LENGTH(obj); i++) {
+    rslt = SCM_GC_CALL_REF_HANDLER(handler, obj,
+                                   SCM_ISEQ_IMMVAL_VEC(obj)[i], mem);
+    if (SCM_GC_IS_REF_HANDLER_FAILURE(rslt))
+      return rslt;
+  }
 
   return rslt;
 }

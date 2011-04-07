@@ -1,7 +1,7 @@
 CC       = gcc
 LD       = ld
-CFLAGS   = -O2 -Wall -Wextra -Wformat=2 -Wstrict-aliasing=2 -Wcast-qual \
-           -Wcast-align -Wwrite-strings -Wconversion -Wfloat-equal \
+CFLAGS   = -O2 -std=gnu99 -Wall -Wextra -Wformat=2 -Wstrict-aliasing=2 \
+           -Wcast-qual -Wcast-align -Wwrite-strings -Wconversion -Wfloat-equal \
            -Wpointer-arith -Wswitch-enum -Wno-unused-parameter -Winline \
            -fPIC -g
 INCLUDES = -I/usr/local/include/cutter -iquote ..
