@@ -45,7 +45,7 @@ test_scm_iseq_new(void)
 }
 
 void
-test_scm_iseq_set_word(void)
+test_scm_iseq_set_word_get_word(void)
 {
   ScmObj iseq = SCM_OBJ_INIT;
 
@@ -57,14 +57,130 @@ test_scm_iseq_set_word(void)
   /* action */
   scm_iword_t *next_write =
     scm_iseq_set_word(iseq, SCM_ISEQ_SEQ(iseq), (scm_iword_t)12345);
+  scm_iword_t actual;
+  scm_iword_t *next_read = scm_iseq_get_word(SCM_ISEQ_SEQ(iseq), &actual);
 
   /* postcondition check */
   cut_assert_not_null(next_write);
   cut_assert_equal_int(1, next_write - SCM_ISEQ_SEQ(iseq));
   cut_assert_equal_uint(1, SCM_ISEQ_SEQ_LENGTH(iseq));
-  scm_iword_t actual;
-  scm_iword_t *next_read = scm_iseq_get_word(SCM_ISEQ_SEQ(iseq), &actual);
   cut_assert_equal_uint(12345, actual);
+  cut_assert_equal_pointer(next_read, next_write);
+}
+
+void
+test_scm_iseq_set_immv_get_immv_1(void)
+{
+ ScmObj iseq = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&iseq);
+
+  /* preprocess */
+  SCM_SETQ(iseq, scm_iseq_new(SCM_MEM_ALLOC_HEAP));
+
+  /* action */
+  scm_inst_t inst;
+  inst.immv.op = SCM_OPCODE_IMMVAL;
+  inst.immv.imm_idx = SCM_INST_IMMVAL_MAX;
+
+  scm_iword_t *next_write =
+    scm_iseq_set_word(iseq, SCM_ISEQ_SEQ(iseq), inst.iword);
+  scm_inst_t actual;
+  scm_iword_t *next_read = scm_iseq_get_word(SCM_ISEQ_SEQ(iseq), &actual.iword);
+
+  /* postcondition check */
+  cut_assert_not_null(next_write);
+  cut_assert_equal_int(1, next_write - SCM_ISEQ_SEQ(iseq));
+  cut_assert_equal_uint(1, SCM_ISEQ_SEQ_LENGTH(iseq));
+  cut_assert_equal_uint(SCM_OPCODE_IMMVAL, actual.immv.op);
+  cut_assert_equal_int(SCM_INST_IMMVAL_MAX, actual.immv.imm_idx);
+  cut_assert_equal_pointer(next_read, next_write);
+}
+
+void
+test_scm_iseq_set_immv_get_immv_2(void)
+{
+ ScmObj iseq = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&iseq);
+
+  /* preprocess */
+  SCM_SETQ(iseq, scm_iseq_new(SCM_MEM_ALLOC_HEAP));
+
+  /* action */
+  scm_inst_t inst;
+  inst.immv.op = SCM_OPCODE_IMMVAL;
+  inst.immv.imm_idx  = 0;
+
+  scm_iword_t *next_write =
+    scm_iseq_set_word(iseq, SCM_ISEQ_SEQ(iseq), inst.iword);
+  scm_inst_t actual;
+  scm_iword_t *next_read = scm_iseq_get_word(SCM_ISEQ_SEQ(iseq), &actual.iword);
+
+  /* postcondition check */
+  cut_assert_not_null(next_write);
+  cut_assert_equal_int(1, next_write - SCM_ISEQ_SEQ(iseq));
+  cut_assert_equal_uint(1, SCM_ISEQ_SEQ_LENGTH(iseq));
+  cut_assert_equal_uint(SCM_OPCODE_IMMVAL, actual.immv.op);
+  cut_assert_equal_int(0, actual.immv.imm_idx);
+  cut_assert_equal_pointer(next_read, next_write);
+}
+
+void
+test_scm_iseq_set_immv_get_immv_3(void)
+{
+ ScmObj iseq = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&iseq);
+
+  /* preprocess */
+  SCM_SETQ(iseq, scm_iseq_new(SCM_MEM_ALLOC_HEAP));
+
+  /* action */
+  scm_inst_t inst;
+  inst.immv.op = SCM_OPCODE_IMMVAL;
+  inst.immv.imm_idx  = -1;
+
+  scm_iword_t *next_write =
+    scm_iseq_set_word(iseq, SCM_ISEQ_SEQ(iseq), inst.iword);
+  scm_inst_t actual;
+  scm_iword_t *next_read = scm_iseq_get_word(SCM_ISEQ_SEQ(iseq), &actual.iword);
+
+  /* postcondition check */
+  cut_assert_not_null(next_write);
+  cut_assert_equal_int(1, next_write - SCM_ISEQ_SEQ(iseq));
+  cut_assert_equal_uint(1, SCM_ISEQ_SEQ_LENGTH(iseq));
+  cut_assert_equal_uint(SCM_OPCODE_IMMVAL, actual.immv.op);
+  cut_assert_equal_int(-1, actual.immv.imm_idx);
+  cut_assert_equal_pointer(next_read, next_write);
+}
+
+void
+test_scm_iseq_set_immv_get_immv_4(void)
+{
+ ScmObj iseq = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&iseq);
+
+  /* preprocess */
+  SCM_SETQ(iseq, scm_iseq_new(SCM_MEM_ALLOC_HEAP));
+
+  /* action */
+  scm_inst_t inst;
+  inst.immv.op = SCM_OPCODE_IMMVAL;
+  inst.immv.imm_idx  = SCM_INST_IMMVAL_MIN;
+
+  scm_iword_t *next_write =
+    scm_iseq_set_word(iseq, SCM_ISEQ_SEQ(iseq), inst.iword);
+  scm_inst_t actual;
+  scm_iword_t *next_read = scm_iseq_get_word(SCM_ISEQ_SEQ(iseq), &actual.iword);
+
+  /* postcondition check */
+  cut_assert_not_null(next_write);
+  cut_assert_equal_int(1, next_write - SCM_ISEQ_SEQ(iseq));
+  cut_assert_equal_uint(1, SCM_ISEQ_SEQ_LENGTH(iseq));
+  cut_assert_equal_uint(SCM_OPCODE_IMMVAL, actual.immv.op);
+  cut_assert_equal_int(SCM_INST_IMMVAL_MIN, actual.immv.imm_idx);
   cut_assert_equal_pointer(next_read, next_write);
 }
 
