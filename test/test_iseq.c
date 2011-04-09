@@ -55,15 +55,21 @@ test_scm_iseq_set_word(void)
   SCM_SETQ(iseq, scm_iseq_new(SCM_MEM_ALLOC_HEAP));
 
   /* action */
-  scm_iseq_t *next_write =
-    scm_iseq_set_word(iseq, SCM_ISEQ_SEQ(iseq), (scm_iseq_t)12345);
+  scm_iword_t *next_write =
+    scm_iseq_set_word(iseq, SCM_ISEQ_SEQ(iseq), (scm_iword_t)12345);
 
   /* postcondition check */
   cut_assert_not_null(next_write);
   cut_assert_equal_int(1, next_write - SCM_ISEQ_SEQ(iseq));
   cut_assert_equal_uint(1, SCM_ISEQ_SEQ_LENGTH(iseq));
-  scm_iseq_t actual;
-  scm_iseq_t *next_read = scm_iseq_get_word(SCM_ISEQ_SEQ(iseq), &actual);
+  scm_iword_t actual;
+  scm_iword_t *next_read = scm_iseq_get_word(SCM_ISEQ_SEQ(iseq), &actual);
   cut_assert_equal_uint(12345, actual);
   cut_assert_equal_pointer(next_read, next_write);
+}
+
+void
+test_scm_iseq__size_of_scm_inst_t_should_be_equal_to_scm_iword_t(void)
+{
+  cut_assert_equal_uint(sizeof(scm_iword_t), sizeof(scm_inst_t));
 }

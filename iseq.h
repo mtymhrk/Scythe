@@ -5,7 +5,6 @@
 #include <string.h>
 
 typedef struct ScmISeqRec ScmISeq;
-typedef uint32_t scm_iseq_t;
 
 #define SCM_ISEQ(obj) ((ScmISeq *)(obj))
 
@@ -17,7 +16,7 @@ extern ScmTypeInfo SCM_ISEQ_TYPE_INFO;
 
 struct ScmISeqRec {
   ScmObjHeader header;
-  scm_iseq_t *seq;
+  scm_iword_t *seq;
   ScmObj *immval_vec;
   size_t seq_capacity;
   size_t seq_length;
@@ -42,13 +41,13 @@ void scm_iseq_finalize(ScmObj obj);
 int scm_iseq_expand_immval_vec(ScmObj iseq);
 int scm_iseq_set_immval(ScmObj iseq, ScmObj val);
 int scm_iseq_expand_seq(ScmObj iseq, ssize_t needed);
-scm_iseq_t *scm_iseq_set_word(ScmObj iseq, scm_iseq_t *sp, scm_iseq_t word);
+scm_iword_t *scm_iseq_set_word(ScmObj iseq, scm_iword_t *sp, scm_iword_t word);
 void scm_iseq_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_iseq_gc_finalize(ScmObj obj);
 int scm_iseq_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
 
-static inline scm_iseq_t *
-scm_iseq_get_word(scm_iseq_t *seq, scm_iseq_t *word)
+static inline scm_iword_t *
+scm_iseq_get_word(scm_iword_t *seq, scm_iword_t *word)
 {
   assert(seq != NULL);
   assert(word != NULL);

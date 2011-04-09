@@ -1,6 +1,10 @@
 #ifndef INCLUDE_INST_H__
 #define INCLUDE_INST_H__
 
+#include <stdint.h>
+
+typedef uint32_t scm_iword_t;
+
 #include "object.h"
 
 typedef enum {
@@ -15,6 +19,18 @@ typedef enum {
   /* SCM_INST_GREF,                /\* refere global variable *\/ */
   /* SCM_INST_SREF,                /\* refere value in stack *\/ */
   /* SCM_INST_CREF                 /\* refere value in closure *\/ */
-} SCM_INST_T;
+} SCM_OPCODE_T;
+
+typedef union {
+  scm_iword_t iword;
+  struct {
+    uint8_t op;
+    int imm_idx : 24;
+  } immv;
+  struct {
+    uint8_t op;
+    int primval : 24;
+  } primv;
+} scm_inst_t;
 
 #endif /* INCLUDE_INST_H__ */

@@ -23,7 +23,7 @@ scm_iseq_initialize(ScmObj iseq) /* GC OK */
   SCM_OBJ_ASSERT_TYPE(iseq, &SCM_ISEQ_TYPE_INFO);
 
   SCM_ISEQ_SEQ(iseq) =
-    scm_memory_allocate(sizeof(scm_iseq_t) * SCM_ISEQ_DEFAULT_SEQ_SIZE);
+    scm_memory_allocate(sizeof(scm_iword_t) * SCM_ISEQ_DEFAULT_SEQ_SIZE);
   if (SCM_ISEQ_SEQ(iseq) == NULL)
     ;                           /* TODO: error handling */
 
@@ -38,7 +38,7 @@ scm_iseq_initialize(ScmObj iseq) /* GC OK */
   SCM_ISEQ_VEC_LENGTH(iseq) = 0;
 
   /* TODO: fill in by NOOP */
-  /* memset(SCM_ISEQ_SEQ(iseq), 0, sizeof(scm_iseq_t) * SCM_ISEQ_DEFAULT_SIZE); */
+  /* memset(SCM_ISEQ_SEQ(iseq), 0, sizeof(scm_iword_t) * SCM_ISEQ_DEFAULT_SIZE); */
 }
 
 ScmObj
@@ -118,11 +118,11 @@ scm_iseq_expand_seq(ScmObj iseq, ssize_t needed) /* GC OK */
     new_size *= 2;
   }
 
-  scm_iseq_t *new_seq = scm_memory_allocate(new_size);
+  scm_iword_t *new_seq = scm_memory_allocate(new_size);
   if (new_seq == NULL) return -1;
 
   memcpy(new_seq, SCM_ISEQ_SEQ(iseq),
-         sizeof(scm_iseq_t) * SCM_ISEQ_SEQ_LENGTH(iseq));
+         sizeof(scm_iword_t) * SCM_ISEQ_SEQ_LENGTH(iseq));
 
   SCM_ISEQ_SEQ(iseq) = new_seq;
   SCM_ISEQ_SEQ_CAPACITY(iseq) = new_size;
@@ -130,14 +130,14 @@ scm_iseq_expand_seq(ScmObj iseq, ssize_t needed) /* GC OK */
   return 0;
 }
 
-scm_iseq_t *
-scm_iseq_set_word(ScmObj iseq, scm_iseq_t *sp, scm_iseq_t word) /* GC OK */
+scm_iword_t *
+scm_iseq_set_word(ScmObj iseq, scm_iword_t *sp, scm_iword_t word) /* GC OK */
 {
   SCM_OBJ_ASSERT_TYPE(iseq, &SCM_ISEQ_TYPE_INFO);
   assert(sp != NULL);
   assert(sp >= SCM_ISEQ_SEQ(iseq));
 
-  scm_iseq_t *p = sp;
+  scm_iword_t *p = sp;
   ssize_t idx = sp - SCM_ISEQ_SEQ(iseq);
   if (idx >=  (ssize_t)SCM_ISEQ_SEQ_CAPACITY(iseq)) {
     if (scm_iseq_expand_seq(iseq, idx) < 0)
