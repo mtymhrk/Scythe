@@ -71,7 +71,7 @@ test_scm_iseq_set_word_get_word(void)
 void
 test_scm_iseq_set_immv_get_immv_1(void)
 {
- ScmObj iseq = SCM_OBJ_INIT;
+  ScmObj iseq = SCM_OBJ_INIT;
 
   SCM_STACK_FRAME_PUSH(&iseq);
 
@@ -100,7 +100,7 @@ test_scm_iseq_set_immv_get_immv_1(void)
 void
 test_scm_iseq_set_immv_get_immv_2(void)
 {
- ScmObj iseq = SCM_OBJ_INIT;
+  ScmObj iseq = SCM_OBJ_INIT;
 
   SCM_STACK_FRAME_PUSH(&iseq);
 
@@ -129,7 +129,7 @@ test_scm_iseq_set_immv_get_immv_2(void)
 void
 test_scm_iseq_set_immv_get_immv_3(void)
 {
- ScmObj iseq = SCM_OBJ_INIT;
+  ScmObj iseq = SCM_OBJ_INIT;
 
   SCM_STACK_FRAME_PUSH(&iseq);
 
@@ -158,7 +158,7 @@ test_scm_iseq_set_immv_get_immv_3(void)
 void
 test_scm_iseq_set_immv_get_immv_4(void)
 {
- ScmObj iseq = SCM_OBJ_INIT;
+  ScmObj iseq = SCM_OBJ_INIT;
 
   SCM_STACK_FRAME_PUSH(&iseq);
 
@@ -187,7 +187,7 @@ test_scm_iseq_set_immv_get_immv_4(void)
 void
 test_scm_iseq_set_primv_get_primv_1(void)
 {
- ScmObj iseq = SCM_OBJ_INIT;
+  ScmObj iseq = SCM_OBJ_INIT;
 
   SCM_STACK_FRAME_PUSH(&iseq);
 
@@ -216,7 +216,7 @@ test_scm_iseq_set_primv_get_primv_1(void)
 void
 test_scm_iseq_set_primv_get_primv_2(void)
 {
- ScmObj iseq = SCM_OBJ_INIT;
+  ScmObj iseq = SCM_OBJ_INIT;
 
   SCM_STACK_FRAME_PUSH(&iseq);
 
@@ -245,7 +245,7 @@ test_scm_iseq_set_primv_get_primv_2(void)
 void
 test_scm_iseq_set_primv_get_primv_3(void)
 {
- ScmObj iseq = SCM_OBJ_INIT;
+  ScmObj iseq = SCM_OBJ_INIT;
 
   SCM_STACK_FRAME_PUSH(&iseq);
 
@@ -274,7 +274,7 @@ test_scm_iseq_set_primv_get_primv_3(void)
 void
 test_scm_iseq_set_primv_get_primv_4(void)
 {
- ScmObj iseq = SCM_OBJ_INIT;
+  ScmObj iseq = SCM_OBJ_INIT;
 
   SCM_STACK_FRAME_PUSH(&iseq);
 
