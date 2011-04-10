@@ -41,20 +41,10 @@ void scm_iseq_finalize(ScmObj obj);
 int scm_iseq_expand_immval_vec(ScmObj iseq);
 int scm_iseq_set_immval(ScmObj iseq, ScmObj val);
 int scm_iseq_expand_seq(ScmObj iseq, ssize_t needed);
-scm_iword_t *scm_iseq_set_word(ScmObj iseq, scm_iword_t *sp, scm_iword_t word);
+int scm_iseq_set_word(ScmObj iseq, ssize_t index, scm_iword_t word);
 void scm_iseq_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_iseq_gc_finalize(ScmObj obj);
 int scm_iseq_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
-
-static inline scm_iword_t *
-scm_iseq_get_word(scm_iword_t *seq, scm_iword_t *word)
-{
-  assert(seq != NULL);
-  assert(word != NULL);
-
-  *word = *seq;
-  return seq + 1;
-}
 
 static inline ScmObj
 scm_iseq_get_immval(ScmObj iseq, int idx)

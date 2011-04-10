@@ -112,17 +112,19 @@ scm_iseq_expand_seq(ScmObj iseq, ssize_t needed) /* GC OK */
   if (SCM_ISEQ_SEQ_CAPACITY(iseq) > SSIZE_MAX / 2)
     return -1;
 
-  size_t new_size = SCM_ISEQ_VEC_CAPACITY(iseq) * 2;
-  while (needed >= (ssize_t)new_size) {
+  size_t new_size = SCM_ISEQ_SEQ_CAPACITY(iseq) * 2;
+  while (needed > (ssize_t)new_size) {
     if (new_size > SSIZE_MAX / 2) return -1;
     new_size *= 2;
   }
 
-  scm_iword_t *new_seq = scm_memory_allocate(new_size);
+  scm_iword_t *new_seq = scm_memory_allocate(sizeof(scm_iword_t) * new_size);
   if (new_seq == NULL) return -1;
 
   memcpy(new_seq, SCM_ISEQ_SEQ(iseq),
          sizeof(scm_iword_t) * SCM_ISEQ_SEQ_LENGTH(iseq));
+
+  scm_memory_release(SCM_ISEQ_SEQ(iseq));
 
   SCM_ISEQ_SEQ(iseq) = new_seq;
   SCM_ISEQ_SEQ_CAPACITY(iseq) = new_size;
@@ -130,27 +132,23 @@ scm_iseq_expand_seq(ScmObj iseq, ssize_t needed) /* GC OK */
   return 0;
 }
 
-scm_iword_t *
-scm_iseq_set_word(ScmObj iseq, scm_iword_t *sp, scm_iword_t word) /* GC OK */
+int
+scm_iseq_set_word(ScmObj iseq, ssize_t index, scm_iword_t word) /* GC OK */
 {
   SCM_OBJ_ASSERT_TYPE(iseq, &SCM_ISEQ_TYPE_INFO);
-  assert(sp != NULL);
-  assert(sp >= SCM_ISEQ_SEQ(iseq));
+  assert(index >= 0);
 
-  scm_iword_t *p = sp;
-  ssize_t idx = sp - SCM_ISEQ_SEQ(iseq);
-  if (idx >=  (ssize_t)SCM_ISEQ_SEQ_CAPACITY(iseq)) {
-    if (scm_iseq_expand_seq(iseq, idx) < 0)
-      return NULL;
-    p = SCM_ISEQ_SEQ(iseq) + idx;
+  if (index >=  (ssize_t)SCM_ISEQ_SEQ_CAPACITY(iseq)) {
+    if (scm_iseq_expand_seq(iseq, index + 1) < 0)
+      return -1;
   }
 
-  *p++ = word;
+  SCM_ISEQ_SEQ(iseq)[index] = word;
 
-  if (p - SCM_ISEQ_SEQ(iseq) > (ssize_t)SCM_ISEQ_SEQ_LENGTH(iseq))
-    SCM_ISEQ_SEQ_LENGTH(iseq) = (size_t)(p - SCM_ISEQ_SEQ(iseq));
+  if (index >= (ssize_t)SCM_ISEQ_SEQ_LENGTH(iseq))
+    SCM_ISEQ_SEQ_LENGTH(iseq) = (size_t)index + 1;
 
-  return p;
+  return 0;
 }
 
 void
