@@ -70,7 +70,7 @@ scm_iseq_expand_immval_vec(ScmObj iseq) /* GC OK */
 {
   SCM_OBJ_ASSERT_TYPE(iseq, &SCM_ISEQ_TYPE_INFO);
 
-  if (SCM_ISEQ_VEC_CAPACITY(iseq) > SSIZE_MAX / 2)
+  if (SCM_ISEQ_VEC_CAPACITY(iseq) > SIZE_MAX / 2)
     return -1;
 
   size_t new_size = SCM_ISEQ_VEC_CAPACITY(iseq) * 2;
@@ -104,17 +104,17 @@ scm_iseq_set_immval(ScmObj iseq, ScmObj val) /* GC OK */
 }
 
 int
-scm_iseq_expand_seq(ScmObj iseq, ssize_t needed) /* GC OK */
+scm_iseq_expand_seq(ScmObj iseq, size_t needed) /* GC OK */
 {
   SCM_OBJ_ASSERT_TYPE(iseq, &SCM_ISEQ_TYPE_INFO);
   assert(needed > 0);
 
-  if (SCM_ISEQ_SEQ_CAPACITY(iseq) > SSIZE_MAX / 2)
+  if (SCM_ISEQ_SEQ_CAPACITY(iseq) > SIZE_MAX / 2)
     return -1;
 
   size_t new_size = SCM_ISEQ_SEQ_CAPACITY(iseq) * 2;
-  while (needed > (ssize_t)new_size) {
-    if (new_size > SSIZE_MAX / 2) return -1;
+  while (needed > (size_t)new_size) {
+    if (new_size > SIZE_MAX / 2) return -1;
     new_size *= 2;
   }
 
@@ -133,20 +133,19 @@ scm_iseq_expand_seq(ScmObj iseq, ssize_t needed) /* GC OK */
 }
 
 int
-scm_iseq_set_word(ScmObj iseq, ssize_t index, scm_iword_t word) /* GC OK */
+scm_iseq_set_word(ScmObj iseq, size_t index, scm_iword_t word) /* GC OK */
 {
   SCM_OBJ_ASSERT_TYPE(iseq, &SCM_ISEQ_TYPE_INFO);
-  assert(index >= 0);
 
-  if (index >=  (ssize_t)SCM_ISEQ_SEQ_CAPACITY(iseq)) {
+  if (index >=  SCM_ISEQ_SEQ_CAPACITY(iseq)) {
     if (scm_iseq_expand_seq(iseq, index + 1) < 0)
       return -1;
   }
 
   SCM_ISEQ_SEQ(iseq)[index] = word;
 
-  if (index >= (ssize_t)SCM_ISEQ_SEQ_LENGTH(iseq))
-    SCM_ISEQ_SEQ_LENGTH(iseq) = (size_t)index + 1;
+  if (index >= SCM_ISEQ_SEQ_LENGTH(iseq))
+    SCM_ISEQ_SEQ_LENGTH(iseq) = index + 1;
 
   return 0;
 }

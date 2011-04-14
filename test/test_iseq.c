@@ -288,7 +288,7 @@ test_scm_iseq__expand_sequence_buffer(void)
   /* preprocess */
   SCM_SETQ(iseq, scm_iseq_new(SCM_MEM_ALLOC_HEAP));
 
-  int idx;
+  size_t idx;
   for (idx = 0; idx < SCM_ISEQ_DEFAULT_SEQ_SIZE; idx++) {
     int r = scm_iseq_set_word(iseq, idx, (scm_iword_t)idx);
     cut_assert_equal_int(0, r);
