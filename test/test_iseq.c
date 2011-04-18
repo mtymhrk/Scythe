@@ -297,7 +297,7 @@ test_scm_iseq__expand_sequence_buffer(void)
   /* action */
   int rslt = scm_iseq_set_word(iseq, idx, (scm_iword_t)9999);
 
-  /* prostcondition check */
+  /* postcondition check */
   cut_assert_equal_int(0, rslt);
   cut_assert_true(SCM_ISEQ_SEQ_CAPACITY(iseq) > SCM_ISEQ_DEFAULT_SEQ_SIZE);
 
@@ -307,5 +307,66 @@ test_scm_iseq__expand_sequence_buffer(void)
 
   for (unsigned int i = 0; i < SCM_ISEQ_DEFAULT_SEQ_SIZE; i++) {
     cut_assert_equal_uint(i, SCM_ISEQ_SEQ(iseq)[i]);
+  }
+}
+
+void
+test_scm_iseq_set_immval_get_immval(void)
+{
+  ScmObj iseq = SCM_OBJ_INIT;
+  ScmObj val1 = SCM_OBJ_INIT, val2 = SCM_OBJ_INIT;
+  ScmObj actual1 = SCM_OBJ_INIT, actual2 = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&iseq, &val1, &val2, &actual1, &actual2);
+
+  /* preprocess */
+  SCM_SETQ(iseq, scm_iseq_new(SCM_MEM_ALLOC_HEAP));
+
+  SCM_SETQ(val1, scm_vm_nil_instance());
+  SCM_SETQ(val2, scm_vm_eof_instance());
+
+  /* action */
+  int idx1 = scm_iseq_set_immval(iseq, val1);
+  int idx2 = scm_iseq_set_immval(iseq, val2);
+  SCM_SETQ(actual1, scm_iseq_get_immval(iseq, idx1));
+  SCM_SETQ(actual2, scm_iseq_get_immval(iseq, idx2));
+
+  /* postcondition check */
+  cut_assert_true(idx1 >= 0);
+  cut_assert_true(idx2 >= 0);
+  cut_assert_true(idx1 != idx2);
+  cut_assert_true(SCM_OBJ_IS_SAME_INSTANCE(val1, actual1));
+  cut_assert_true(SCM_OBJ_IS_SAME_INSTANCE(val2, actual2));
+}
+
+void
+test_scm_iseq__expand_object_vector(void)
+{
+  ScmObj iseq = SCM_OBJ_INIT;
+  ScmObj val = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&iseq, &val, &actual);
+
+  SCM_SETQ(iseq, scm_iseq_new(SCM_MEM_ALLOC_HEAP));
+
+  SCM_SETQ(val, scm_vm_nil_instance());
+
+  for (int i; i < SCM_ISEQ_DEFAULT_IMMVEC_SIZE; i++) {
+    int r = scm_iseq_set_immval(iseq, val);
+    cut_assert_true(r >= 0);
+  }
+
+  /* action */
+  int rslt = scm_iseq_set_immval(iseq, val);
+
+  /* postcondition check */
+  cut_assert_true(rslt >= 0);
+  cut_assert_true(SCM_ISEQ_VEC_CAPACITY(iseq) > SCM_ISEQ_DEFAULT_IMMVEC_SIZE);
+  SCM_SETQ(actual, scm_iseq_get_immval(iseq, rslt));
+    cut_assert_true(SCM_OBJ_IS_SAME_INSTANCE(val, actual));
+
+  for (int i; i < SCM_ISEQ_DEFAULT_IMMVEC_SIZE; i++) {
+    SCM_SETQ(actual, scm_iseq_get_immval(iseq, i));
+    cut_assert_true(SCM_OBJ_IS_SAME_INSTANCE(val, actual));
   }
 }
