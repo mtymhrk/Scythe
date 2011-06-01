@@ -1,8 +1,8 @@
 CC       = gcc
 LD       = ld
-CFLAGS   = -O2 -Wall -Wextra -Wformat=2 -Wstrict-aliasing=2 -Wcast-qual \
-           -Wcast-align -Wwrite-strings -Wconversion -Wfloat-equal \
-           -Wpointer-arith -Wswitch-enum -Wno-unused-parameter \
+CFLAGS   = -O2 -std=gnu99 -Wall -Wextra -Wformat=2 -Wstrict-aliasing=2 \
+           -Wcast-qual -Wcast-align -Wwrite-strings -Wconversion -Wfloat-equal \
+           -Wpointer-arith -Wswitch-enum -Wno-unused-parameter -Winline \
            -fPIC -g
 INCLUDES = -I/usr/local/include/cutter -iquote ..
 LDFLAGS  = -lcunit -g
@@ -14,13 +14,12 @@ include $(TEST_TARGET_DIR)/Makefile.sources
 
 TEST_TARGET_SRC = $(addprefix $(TEST_TARGET_DIR)/, $(SOURCES))
 TEST_CASE_SRC = test_pair.c test_string.c test_symbol.c test_nil.c \
-                test_basichash.c test_integer.c test_pretty_print.c \
-                test_basiclist.c test_ibuffer.c test_lexer.c test_parser.c \
+                test_basichash.c test_integer.c test_basiclist.c \
                 test_vector.c test_eof.c test_bool.c test_char.c \
-                test_fileport.c test_stringport.c test_charconv.c test_ucs4.c \
-                test_utf8.c test_string_utf8.c test_string_ucs4.c \
+                test_charconv.c test_string_utf8.c test_string_ucs4.c \
                 test_string_ascii.c test_string_eucjp.c test_string_sjis.c \
-                test_memory.c
+                test_memory.c test_binding.c test_vm.c test_iseq.c
+
 TEST_TARGET_OBJ = $(TEST_TARGET_SRC:.c=.o) 
 TEST_CASE_OBJ = $(TEST_CASE_SRC:.c=.o) 
 TEST_CASE_LIB = $(TEST_CASE_SRC:.c=.so)
@@ -47,14 +46,16 @@ test_char.so : test_char.o  $(TEST_TARGET_OBJ)
 test_fileport.so : test_fileport.o  $(TEST_TARGET_OBJ)
 test_stringport.so : test_stringport.o  $(TEST_TARGET_OBJ)
 test_charconv.so : test_charconv.o  $(TEST_TARGET_OBJ)
-test_ucs4.so : test_ucs4.o $(TEST_TARGET_DIR)/ucs4.o
-test_utf8.so : test_utf8.o $(TEST_TARGET_DIR)/utf8.o
 test_string_utf8.so : test_string_utf8.o $(TEST_TARGET_OBJ)
 test_string_ucs4.so : test_string_ucs4.o $(TEST_TARGET_OBJ)
 test_string_ascii.so : test_string_ascii.o $(TEST_TARGET_OBJ)
 test_string_eucjp.so : test_string_eucjp.o $(TEST_TARGET_OBJ)
 test_string_sjis.so : test_string_sjis.o $(TEST_TARGET_OBJ)
 test_memory.so : test_memory.o $(TEST_TARGET_OBJ)
+test_binding.so : test_binding.o $(TEST_TARGET_OBJ)
+test_vm.so : test_vm.o $(TEST_TARGET_OBJ)
+test_iseq.so: test_iseq.o $(TEST_TARGET_OBJ)
+perform_refstack: perform_refstack.o $(TEST_TARGET_OBJ)
 
 .c.o:
 	$(CC) -c -o $@ $(INCLUDES) $(CFLAGS) $<

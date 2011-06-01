@@ -10,15 +10,33 @@ typedef struct ScmCharRec ScmChar;
 #include "object.h"
 #include "encoding.h"
 
-extern const ScmTypeInfo SCM_CHAR_TYPE_INFO;
+extern ScmTypeInfo SCM_CHAR_TYPE_INFO;
 
-ScmChar *scm_char_construct(scm_char_t value, SCM_ENCODING_T enc);
-void scm_char_destruct(ScmChar *charv);
-ScmChar *scm_char_construct_newline(SCM_ENCODING_T enc);
-ScmChar *scm_char_construct_space(SCM_ENCODING_T enc);
-scm_char_t scm_char_value(ScmChar *charv);
-SCM_ENCODING_T scm_char_encoding(ScmChar *charv);
+struct ScmCharRec {
+  ScmObjHeader header;
+  SCM_ENCODING_T enc;
+  scm_char_t value;
+};
+
+#define SCM_CHAR_ENC(obj) (SCM_CHAR(obj)->enc)
+#define SCM_CHAR_VALUE(obj) (SCM_CHAR(obj)->value)
+#define SCM_CHAR_IS_LF(c)                                       \
+  SCM_CHR_IS_EQUAL(SCM_CHAR_VALUE(c),                           \
+                   SCM_ENCODING_CONST_LF_CHAR(SCM_CHAR_ENC(c)))
+#define SCM_CHAR_IS_SPACE(c)                                            \
+  SCM_CHR_IS_EQUAL(SCM_CHAR_VALUE(c),                                   \
+                   SCM_ENCODING_CONST_SPACE_CHAR(SCM_CHAR_ENC(c)))
+
+void scm_char_initialize(ScmObj chr, scm_char_t value, SCM_ENCODING_T enc);
+void scm_char_finalize(ScmObj chr);
+ScmObj scm_char_new(SCM_MEM_ALLOC_TYPE_T mtype,
+                          scm_char_t value, SCM_ENCODING_T enc);
+ScmObj scm_char_new_newline(SCM_MEM_ALLOC_TYPE_T mtype,
+                                  SCM_ENCODING_T enc);
+ScmObj scm_char_new_space(SCM_MEM_ALLOC_TYPE_T mtype,
+                                SCM_ENCODING_T enc);
+scm_char_t scm_char_value(ScmObj chr);
+SCM_ENCODING_T scm_char_encoding(ScmObj chr);
 bool scm_char_is_char(ScmObj obj);
-void scm_char_pretty_print(ScmObj obj, ScmOBuffer *obuffer);
 
 #endif /* INCLUDE_CHAR_H__ */

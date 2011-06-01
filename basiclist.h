@@ -1,9 +1,11 @@
 #ifndef INCLUDE_BASICLIST_H__
 #define INCLUDE_BASICLIST_H__
 
+#include <stdint.h>
+
 typedef struct ScmBasicListRec ScmBasicList;
 typedef struct ScmBasicListEntryRec ScmBasicListEntry;
-typedef void *ScmBasicListValue;
+typedef uintptr_t ScmBasicListValue;
 
 struct ScmBasicListEntryRec {
   ScmBasicListEntry *next;
@@ -22,8 +24,8 @@ void scm_basic_list_shift(ScmBasicList *list);
 ScmBasicListEntry *scm_basic_list_head(ScmBasicList *list);
 ScmBasicListEntry *scm_basic_list_tail(ScmBasicList *list);
 size_t scm_basic_list_length(ScmBasicList *list);
-ScmBasicList *scm_basic_list_construct();
+ScmBasicList *scm_basic_list_new();
 void scm_basic_list_cleanup(ScmBasicList *list);
-void scm_basic_list_destruct(ScmBasicList *list);
+void scm_basic_list_end(ScmBasicList *list);
 
 #endif /* INCLUDE_BASICLIST_H__ */

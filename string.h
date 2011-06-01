@@ -12,31 +12,53 @@ typedef struct ScmStringRec ScmString;
 #include "object.h"
 #include "encoding.h"
 
-extern const ScmTypeInfo SCM_STRING_TYPE_INFO;
+extern ScmTypeInfo SCM_STRING_TYPE_INFO;
 
-ScmString *scm_string_construct(const void *src,
-                                size_t size, SCM_ENCODING_T enc);
-void scm_string_destruct(ScmString *str);
-ScmString *scm_string_copy(const ScmString *src);
-ScmString *scm_string_dup(ScmString *src);
-size_t scm_string_length(ScmString *str);
-size_t scm_string_bytesize(ScmString *str);
-bool scm_string_is_equal(ScmString *str1, ScmString *str2);
-ScmString *scm_string_substr(ScmString *str, unsigned int pos, size_t len);
-ScmString *scm_string_push(ScmString *str, const scm_char_t c);
-ScmString *scm_string_append(ScmString *str, const ScmString *append);
-scm_char_t scm_string_ref(ScmString *str, unsigned int pos);
-ScmString *scm_string_set(ScmString *str, unsigned int pos,
-                          const scm_char_t c);
-ScmString *scm_string_fill(ScmString *str, unsigned int pos,
-                           size_t len, scm_char_t c);
-int scm_string_find_chr(const ScmString *str, scm_char_t c);
-int scm_string_match(const ScmString *str, const ScmString *pat);
-ssize_t scm_string_dump(const ScmString *str, void *buf, size_t size);
-SCM_ENCODING_T scm_string_encoding(const ScmString *str);
-void *scm_string_content(const ScmString *str);
+struct ScmStringRec {
+  ScmObjHeader header;
+  uint8_t *buffer;
+  uint8_t *head;
+  size_t capacity;
+  size_t bytesize;
+  size_t length;
+  int *ref_cnt;
+  SCM_ENCODING_T enc;
+};
+
+#define SCM_STRING_BUFFER(obj) (SCM_STRING(obj)->buffer)
+#define SCM_STRING_HEAD(obj) (SCM_STRING(obj)->head)
+#define SCM_STRING_CAPACITY(obj) (SCM_STRING(obj)->capacity)
+#define SCM_STRING_BYTESIZE(obj) (SCM_STRING(obj)->bytesize)
+#define SCM_STRING_LENGTH(obj) (SCM_STRING(obj)->length)
+#define SCM_STRING_REF_CNT(obj) (SCM_STRING(obj)->ref_cnt)
+#define SCM_STRING_ENC(obj) (SCM_STRING(obj)->enc)
+#define SCM_STRING_BYTE_AT(obj, idx) (SCM_STRING(obj)->head[idx])
+#define SCM_STRING_INC_REF_CNT(obj) ((*SCM_STRING(obj)->ref_cnt)++)
+#define SCM_STRING_DEC_REF_CNT(obj) ((*SCM_STRING(obj)->ref_cnt)--)
+
+void scm_string_initialize(ScmObj str,
+                           const void *src, size_t size, SCM_ENCODING_T enc);
+ScmObj scm_string_new(SCM_MEM_ALLOC_TYPE_T mtype,
+                            const void *src, size_t size, SCM_ENCODING_T enc);
+ScmObj scm_string_copy(ScmObj src);
+ScmObj scm_string_dup(ScmObj src);
+size_t scm_string_length(ScmObj str);
+size_t scm_string_bytesize(ScmObj str);
+bool scm_string_is_equal(ScmObj str1, ScmObj str2);
+ScmObj scm_string_substr(ScmObj str, size_t pos, size_t len);
+ScmObj scm_string_push(ScmObj str, const scm_char_t c);
+ScmObj scm_string_append(ScmObj str, ScmObj append);
+scm_char_t scm_string_ref(ScmObj str, size_t pos);
+ScmObj scm_string_set(ScmObj str, size_t pos, const scm_char_t c);
+ScmObj scm_string_fill(ScmObj str, size_t pos, size_t len, scm_char_t c);
+ssize_t scm_string_find_chr(ScmObj str, scm_char_t c);
+ssize_t scm_string_match(ScmObj str, ScmObj pat);
+ssize_t scm_string_dump(ScmObj str, void *buf, size_t size);
+SCM_ENCODING_T scm_string_encoding(ScmObj str);
+void *scm_string_content(ScmObj str);
 bool scm_string_is_string(ScmObj obj);
-void scm_string_pretty_print(ScmObj obj, ScmOBuffer *obuffer);
+void scm_string_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_string_gc_finalize(ScmObj obj);
+size_t scm_string_hash_value(ScmObj str);
 
 #endif /* INCLUDE_STRING_H__ */

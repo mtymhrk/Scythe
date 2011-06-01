@@ -1,91 +1,135 @@
 #include <cutter.h>
 
 #include "object.h"
-#include "nil.h"
+#include "vm.h"
+#include "miscobjects.h"
 #include "integer.h"
 
-void
-test_scm_integer_construct(void)
-{
-  ScmInteger *integer = scm_integer_construct(0);
+static ScmObj vm = SCM_OBJ_INIT;
 
-  cut_assert_not_null(integer);
+void
+cut_startup(void)
+{
+  SCM_SETQ_PRIM(vm, scm_vm_new());
+  scm_vm_switch_vm(vm);
+}
+
+void
+cut_shutdown(void)
+{
+  scm_vm_revert_vm();
+  scm_vm_end(vm);
+}
+
+void
+test_scm_integer_new(void)
+{
+  ScmObj integer = SCM_OBJ_INIT;
+
+  SCM_SETQ(integer, scm_integer_new(SCM_MEM_ALLOC_HEAP, 0LL));
+
+  cut_assert_true(SCM_OBJ_IS_NOT_NULL(integer));
 }
 
 void
 test_scm_integer_is_integer_pass(void)
 {
-  ScmInteger *integer = scm_integer_construct(0);
+  ScmObj integer = SCM_OBJ_INIT;
 
-  cut_assert_true(scm_integer_is_integer(SCM_OBJ(integer)));
+  SCM_SETQ(integer, scm_integer_new(SCM_MEM_ALLOC_HEAP, 0LL));
+
+  cut_assert_true(scm_integer_is_integer(integer));
 }
 
 void
 test_scm_integer_is_integer_failure(void)
 {
-  ScmNil *nil = scm_nil_instance();
+  ScmObj nil = scm_nil_instance();
 
-  cut_assert_false(scm_integer_is_integer(SCM_OBJ(nil)));
+  cut_assert_false(scm_integer_is_integer(nil));
 }
 
 void
 test_scm_integer_value(void)
 {
-  ScmInteger *integer = scm_integer_construct(100);
+  ScmObj integer = SCM_OBJ_INIT;
 
-  cut_assert_equal_int(100, scm_integer_value(integer));
+  SCM_SETQ(integer, scm_integer_new(SCM_MEM_ALLOC_HEAP, 100LL));
+
+  cut_assert_equal_int(100, (int)scm_integer_value(integer));
 }
 
 void
 test_scm_integer_plus(void)
 {
-  ScmInteger *integer1 = scm_integer_construct(200);
-  ScmInteger *integer2 = scm_integer_construct(100);
+  ScmObj integer1 = SCM_OBJ_INIT, integer2 = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&integer1, &integer2);
+
+  SCM_SETQ(integer1, scm_integer_new(SCM_MEM_ALLOC_HEAP, 200LL));
+  SCM_SETQ(integer2, scm_integer_new(SCM_MEM_ALLOC_HEAP, 100LL));
 
   cut_assert_equal_int(300,
-                       scm_integer_value(scm_integer_plus(integer1, integer2)));
+                       (int)scm_integer_value(scm_integer_plus(integer1,
+                                                               integer2)));
 }
 
 void
 test_scm_integer_minus(void)
 {
-  ScmInteger *integer1 = scm_integer_construct(200);
-  ScmInteger *integer2 = scm_integer_construct(100);
+  ScmObj integer1 = SCM_OBJ_INIT, integer2 = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&integer1, &integer2);
+
+  SCM_SETQ(integer1, scm_integer_new(SCM_MEM_ALLOC_HEAP, 200LL));
+  SCM_SETQ(integer2, scm_integer_new(SCM_MEM_ALLOC_HEAP, 100LL));
 
   cut_assert_equal_int(100,
-                       scm_integer_value(scm_integer_minus(integer1,
-                                                           integer2)));
+                       (int)scm_integer_value(scm_integer_minus(integer1,
+                                                                integer2)));
 }
 
 void
 test_scm_integer_multiple(void)
 {
-  ScmInteger *integer1 = scm_integer_construct(200);
-  ScmInteger *integer2 = scm_integer_construct(100);
+  ScmObj integer1 = SCM_OBJ_INIT, integer2 = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&integer1, &integer2);
+
+  SCM_SETQ(integer1, scm_integer_new(SCM_MEM_ALLOC_HEAP, 200LL));
+  SCM_SETQ(integer2, scm_integer_new(SCM_MEM_ALLOC_HEAP, 100LL));
 
   cut_assert_equal_int(20000,
-                       scm_integer_value(scm_integer_multiply(integer1,
-                                                              integer2)));
+                       (int)scm_integer_value(scm_integer_multiply(integer1,
+                                                                   integer2)));
 }
 
 void
 test_scm_integer_divide(void)
 {
-  ScmInteger *integer1 = scm_integer_construct(200);
-  ScmInteger *integer2 = scm_integer_construct(100);
+  ScmObj integer1 = SCM_OBJ_INIT, integer2 = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&integer1, &integer2);
+
+  SCM_SETQ(integer1, scm_integer_new(SCM_MEM_ALLOC_HEAP, 200LL));
+  SCM_SETQ(integer2, scm_integer_new(SCM_MEM_ALLOC_HEAP, 100LL));
 
   cut_assert_equal_int(2,
-                       scm_integer_value(scm_integer_divide(integer1,
-                                                            integer2)));
+                       (int)scm_integer_value(scm_integer_divide(integer1,
+                                                                 integer2)));
 }
 
 void
 test_scm_integer_reminder(void)
 {
-  ScmInteger *integer1 = scm_integer_construct(200);
-  ScmInteger *integer2 = scm_integer_construct(3);
+  ScmObj integer1 = SCM_OBJ_INIT, integer2 = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&integer1, &integer2);
+
+  SCM_SETQ(integer1, scm_integer_new(SCM_MEM_ALLOC_HEAP, 200LL));
+  SCM_SETQ(integer2, scm_integer_new(SCM_MEM_ALLOC_HEAP, 3LL));
 
   cut_assert_equal_int(2,
-                       scm_integer_value(scm_integer_reminder(integer1,
-                                                              integer2)));
+                       (int)scm_integer_value(scm_integer_reminder(integer1,
+                                                                   integer2)));
 }

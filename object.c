@@ -5,78 +5,32 @@
 #include "object.h"
 
 void
-scm_obj_init(ScmObj obj, SCM_OBJ_TYPE_T type)
+scm_obj_init(ScmObj obj, ScmTypeInfo *type)
 {
-  assert(obj != NULL);
+  assert(SCM_OBJ_IS_NOT_NULL(obj));
+  assert(type != NULL);
 
-  obj->header.type = type;
-}
-
-SCM_OBJ_TYPE_T
-scm_obj_type(ScmObj obj)
-{
-  assert(obj != NULL);
-
-  return obj->header.type;
-}
-
-void
-scm_obj_pretty_print(ScmObj obj, ScmOBuffer *obuffer)
-{
-  ScmPrettyPrintFunction pp_func;
-
-  assert(obj != NULL); assert(obuffer != NULL);
-
-  pp_func = SCM_TYPE_INFO_PP(obj->header.type);
-  pp_func(obj, obuffer);
+  if (SCM_OBJ_IS_MEM_MANAGED(obj))
+    SCM_MMOBJ(obj)->header.type = type;
 }
 
 int
 scm_obj_is_same_instance(ScmObj obj1, ScmObj obj2)
 {
-  assert(obj1 != NULL); assert(obj2 != NULL);
+  assert(SCM_OBJ_IS_NOT_NULL(obj1)); assert(SCM_OBJ_IS_NOT_NULL(obj2));
 
   return (obj1 == obj2) ? 1 : 0;
 }
 
+#include "numeric.h"
 
-#include "memory.h"
-#include "pair.h"
-#include "string.h"
-#include "symbol.h"
-#include "nil.h"
-#include "integer.h"
-#include "vector.h"
-#include "bool.h"
-#include "char.h"
-#include "port.h"
-#include "miscobjects.h"
-
-const ScmTypeInfo const * SCM_TYPE_INFO_TBL[SCM_OBJ_NR_TYPE] = {
-  &SCM_FORWARD_TYPE_INFO,
-  &SCM_PAIR_TYPE_INFO,
-  &SCM_STRING_TYPE_INFO,
-  &SCM_SYMBOL_TYPE_INFO,
-  &SCM_NIL_TYPE_INFO,
-  &SCM_INTEGER_TYPE_INFO,
-  &SCM_VECTOR_TYPE_INFO,
-  &SCM_BOOL_TYPE_INFO,
-  &SCM_CHAR_TYPE_INFO,
-  &SCM_EOF_TYPE_INFO,
-  &SCM_PORT_TYPE_INFO
+ScmTypeInfo *SCM_OBJ_TAG2TYPE_TBL[SCM_OBJ_TAG_NR_KIND] = {
+  NULL,                         /* 0b000: memory managed object */
+  &SCM_FIXNUM_TYPE_INFO,        /* 0b001: fixnum object         */
+  NULL,                         /* 0b010: unused                */
+  &SCM_FIXNUM_TYPE_INFO,        /* 0b011: fixnum object         */
+  NULL,                         /* 0b100: unused                */
+  &SCM_FIXNUM_TYPE_INFO,        /* 0b101: fixnum object         */
+  NULL,                         /* 0b110: unused                */
+  &SCM_FIXNUM_TYPE_INFO,        /* 0b111: fixnum object         */
 };
-
-/* for debug */
-bool
-smc_obj_is_valid_type_info_tbl(void)
-{
-  unsigned int i;
-
-  for (i = 0; i < SCM_OBJ_NR_TYPE; i++) {
-    if (SCM_TYPE_INFO_TBL[i] == NULL
-        || i != SCM_TYPE_INFO_TBL[i]->type)
-      return false;
-  }
-
-  return true;
-}

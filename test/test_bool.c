@@ -1,56 +1,83 @@
 #include <cutter.h>
+#include <stdbool.h>
 
 #include "object.h"
-#include "nil.h"
+#include "vm.h"
+#include "miscobjects.h"
 #include "char.h"
-#include "bool.h"
+
+static ScmObj vm = SCM_OBJ_INIT;
 
 void
-test_scm_bool_construct(void)
+cut_startup(void)
 {
-  ScmBool *boolt = scm_bool_construct(true);
+  SCM_SETQ_PRIM(vm, scm_vm_new());
+  scm_vm_switch_vm(vm);
+}
 
-  cut_assert_not_null(boolt);
-  cut_assert_equal_int(SCM_OBJ_TYPE_BOOL,
-                       scm_obj_type(SCM_OBJ(boolt)));
+void
+cut_shutdown(void)
+{
+  scm_vm_revert_vm();
+  scm_vm_end(vm);
+}
+
+
+void
+test_scm_bool_new(void)
+{
+  ScmObj bl = SCM_OBJ_INIT;
+
+  SCM_SETQ(bl, scm_bool_new(SCM_MEM_ALLOC_HEAP, true));
+
+  cut_assert(SCM_OBJ_IS_NOT_NULL(bl));
+  cut_assert(SCM_OBJ_IS_TYPE(SCM_OBJ(bl), &SCM_BOOL_TYPE_INFO));
 }
 
 void
 test_scm_bool_value_true(void)
 {
-  ScmBool *boolt = scm_bool_construct(true);
-  
-  cut_assert_true(scm_bool_value(boolt));
+  ScmObj bl = SCM_OBJ_INIT;
+
+  SCM_SETQ(bl, scm_bool_new(SCM_MEM_ALLOC_HEAP,true));
+
+  cut_assert_true(scm_bool_value(bl));
 }
 
 void
 test_scm_bool_value_false(void)
 {
-  ScmBool *boolf = scm_bool_construct(false);
-  
-  cut_assert_false(scm_bool_value(boolf));
+  ScmObj bl = SCM_OBJ_INIT;
+
+  SCM_SETQ(bl, scm_bool_new(SCM_MEM_ALLOC_HEAP,false));
+
+  cut_assert_false(scm_bool_value(bl));
 }
 
 void
 test_scm_bool_is_bool_true(void)
 {
-  ScmBool *boolt = scm_bool_construct(true);
-  
-  cut_assert_true(scm_bool_is_bool(SCM_OBJ(boolt)));
+  ScmObj bl = SCM_OBJ_INIT;
+
+  SCM_SETQ(bl, scm_bool_new(SCM_MEM_ALLOC_HEAP,true));
+
+  cut_assert_true(scm_bool_is_bool(bl));
 }
 
 void
 test_scm_bool_is_bool_false(void)
 {
-  ScmBool *boolf = scm_bool_construct(false);
-  
-  cut_assert_true(scm_bool_is_bool(SCM_OBJ(boolf)));
+  ScmObj bl = SCM_OBJ_INIT;
+
+  SCM_SETQ(bl, scm_bool_new(SCM_MEM_ALLOC_HEAP,false));
+
+  cut_assert_true(scm_bool_is_bool(bl));
 }
 
 void
 test_scm_bool_is_bool_not_bool(void)
 {
-  ScmObj nil = SCM_OBJ(scm_nil_instance());
+  ScmObj nil = scm_nil_instance();
 
-  cut_assert_false(scm_char_is_char(nil));
+  cut_assert_false(scm_bool_is_bool(nil));
 }

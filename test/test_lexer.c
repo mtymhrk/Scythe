@@ -3,15 +3,15 @@
 #include "parser.h"
 
 ScmIBuffer *
-construct_ibuffer_from_string(const char *str)
+new_ibuffer_from_string(const char *str)
 {
-  return scm_ibuffer_construct(scm_port_open_input_string(str, strlen(str)));
+  return scm_ibuffer_new(scm_port_open_input_string(str, strlen(str)));
 }
 
 void
-test_token_construct(void)
+test_token_new(void)
 {
-  ScmToken *token = scm_token_construct(SCM_TOKEN_TYPE_LPAREN, "(");
+  ScmToken *token = scm_token_new(SCM_TOKEN_TYPE_LPAREN, "(");
 
   cut_assert_not_null(token);
   cut_assert_equal_int(SCM_TOKEN_TYPE_LPAREN, SCM_TOKEN_TYPE(token));
@@ -19,10 +19,10 @@ test_token_construct(void)
 }
 
 void
-test_lexer_construct(void)
+test_lexer_new(void)
 {
-  ScmIBuffer *buffer = construct_ibuffer_from_string(" ( ");
-  ScmLexer *lexer = scm_lexer_construct(buffer);
+  ScmIBuffer *buffer = new_ibuffer_from_string(" ( ");
+  ScmLexer *lexer = scm_lexer_new(buffer);
 
   cut_assert_not_null(lexer);
 }
@@ -30,8 +30,8 @@ test_lexer_construct(void)
 void
 test_lexer_tokenize_left_parenthesis(void)
 {
-  ScmIBuffer *buffer = construct_ibuffer_from_string(" ( ");
-  ScmLexer *lexer = scm_lexer_construct(buffer);
+  ScmIBuffer *buffer = new_ibuffer_from_string(" ( ");
+  ScmLexer *lexer = scm_lexer_new(buffer);
   ScmToken *token = scm_lexer_head_token(lexer);
 
   cut_assert_not_null(token);
@@ -48,8 +48,8 @@ test_lexer_tokenize_left_parenthesis(void)
 void
 test_lexer_tokenize_right_parenthesis(void)
 {
-  ScmIBuffer *buffer = construct_ibuffer_from_string(" ) ");
-  ScmLexer *lexer = scm_lexer_construct(buffer);
+  ScmIBuffer *buffer = new_ibuffer_from_string(" ) ");
+  ScmLexer *lexer = scm_lexer_new(buffer);
   ScmToken *token = scm_lexer_head_token(lexer);
 
   cut_assert_not_null(token);
@@ -66,8 +66,8 @@ test_lexer_tokenize_right_parenthesis(void)
 void
 test_lexer_tokenize_dot(void)
 {
-  ScmIBuffer *buffer = construct_ibuffer_from_string(" . ");
-  ScmLexer *lexer = scm_lexer_construct(buffer);
+  ScmIBuffer *buffer = new_ibuffer_from_string(" . ");
+  ScmLexer *lexer = scm_lexer_new(buffer);
   ScmToken *token = scm_lexer_head_token(lexer);
 
   cut_assert_not_null(token);
@@ -85,8 +85,8 @@ test_lexer_tokenize_dot(void)
 void
 test_lexer_tokenize_quote(void)
 {
-  ScmIBuffer *buffer = construct_ibuffer_from_string(" ' ");
-  ScmLexer *lexer = scm_lexer_construct(buffer);
+  ScmIBuffer *buffer = new_ibuffer_from_string(" ' ");
+  ScmLexer *lexer = scm_lexer_new(buffer);
   ScmToken *token = scm_lexer_head_token(lexer);
 
   cut_assert_not_null(token);
@@ -103,8 +103,8 @@ test_lexer_tokenize_quote(void)
 void
 test_lexer_tokenize_quasiquote(void)
 {
-  ScmIBuffer *buffer = construct_ibuffer_from_string(" ` ");
-  ScmLexer *lexer = scm_lexer_construct(buffer);
+  ScmIBuffer *buffer = new_ibuffer_from_string(" ` ");
+  ScmLexer *lexer = scm_lexer_new(buffer);
   ScmToken *token = scm_lexer_head_token(lexer);
 
   cut_assert_not_null(token);
@@ -121,8 +121,8 @@ test_lexer_tokenize_quasiquote(void)
 void
 test_lexer_tokenize_unquote_splicing(void)
 {
-  ScmIBuffer *buffer = construct_ibuffer_from_string(" ,@ ");
-  ScmLexer *lexer = scm_lexer_construct(buffer);
+  ScmIBuffer *buffer = new_ibuffer_from_string(" ,@ ");
+  ScmLexer *lexer = scm_lexer_new(buffer);
   ScmToken *token = scm_lexer_head_token(lexer);
 
   cut_assert_not_null(token);
@@ -139,8 +139,8 @@ test_lexer_tokenize_unquote_splicing(void)
 void
 test_lexer_tokenize_string(void)
 {
-  ScmIBuffer *buffer = construct_ibuffer_from_string(" \"abc\\ndef\" ");
-  ScmLexer *lexer = scm_lexer_construct(buffer);
+  ScmIBuffer *buffer = new_ibuffer_from_string(" \"abc\\ndef\" ");
+  ScmLexer *lexer = scm_lexer_new(buffer);
   ScmToken *token = scm_lexer_head_token(lexer);
 
   cut_assert_not_null(token);
@@ -157,8 +157,8 @@ test_lexer_tokenize_string(void)
 void
 test_lexer_tokenize_identifier(void)
 {
-  ScmIBuffer *buffer = construct_ibuffer_from_string(" abc-def_ghi ");
-  ScmLexer *lexer = scm_lexer_construct(buffer);
+  ScmIBuffer *buffer = new_ibuffer_from_string(" abc-def_ghi ");
+  ScmLexer *lexer = scm_lexer_new(buffer);
   ScmToken *token = scm_lexer_head_token(lexer);
 
   cut_assert_not_null(token);
@@ -175,8 +175,8 @@ test_lexer_tokenize_identifier(void)
 void
 test_lexer_tokenize_idintifier_spec(void)
 {
-  ScmIBuffer *buffer = construct_ibuffer_from_string(" + - ... ");
-  ScmLexer *lexer = scm_lexer_construct(buffer);
+  ScmIBuffer *buffer = new_ibuffer_from_string(" + - ... ");
+  ScmLexer *lexer = scm_lexer_new(buffer);
   ScmToken *token;
 
   token=  scm_lexer_head_token(lexer);
@@ -209,8 +209,8 @@ test_lexer_tokenize_idintifier_spec(void)
 void
 test_lexer_tokenize_numeric(void)
 {
-  ScmIBuffer *buffer = construct_ibuffer_from_string("123456");
-  ScmLexer *lexer = scm_lexer_construct(buffer);
+  ScmIBuffer *buffer = new_ibuffer_from_string("123456");
+  ScmLexer *lexer = scm_lexer_new(buffer);
   ScmToken *token = scm_lexer_head_token(lexer);
 
   cut_assert_not_null(token);
@@ -227,8 +227,8 @@ test_lexer_tokenize_numeric(void)
 void
 test_lexer_tokenize_numeric_following_not_numeric_char(void)
 {
-  ScmIBuffer *buffer = construct_ibuffer_from_string("123456)");
-  ScmLexer *lexer = scm_lexer_construct(buffer);
+  ScmIBuffer *buffer = new_ibuffer_from_string("123456)");
+  ScmLexer *lexer = scm_lexer_new(buffer);
   ScmToken *token = scm_lexer_head_token(lexer);
 
   cut_assert_not_null(token);
@@ -245,8 +245,8 @@ test_lexer_tokenize_numeric_following_not_numeric_char(void)
 void
 test_lexer_tokenize_bool_true(void)
 {
-  ScmIBuffer *buffer = construct_ibuffer_from_string(" #t ");
-  ScmLexer *lexer = scm_lexer_construct(buffer);
+  ScmIBuffer *buffer = new_ibuffer_from_string(" #t ");
+  ScmLexer *lexer = scm_lexer_new(buffer);
   ScmToken *token = scm_lexer_head_token(lexer);
 
   cut_assert_not_null(token);
@@ -263,8 +263,8 @@ test_lexer_tokenize_bool_true(void)
 void
 test_lexer_tokenize_bool_false(void)
 {
-  ScmIBuffer *buffer = construct_ibuffer_from_string(" #f ");
-  ScmLexer *lexer = scm_lexer_construct(buffer);
+  ScmIBuffer *buffer = new_ibuffer_from_string(" #f ");
+  ScmLexer *lexer = scm_lexer_new(buffer);
   ScmToken *token = scm_lexer_head_token(lexer);
 
   cut_assert_not_null(token);
@@ -281,8 +281,8 @@ test_lexer_tokenize_bool_false(void)
 void
 test_lexer_tokenize_vector_start(void)
 {
-  ScmIBuffer *buffer = construct_ibuffer_from_string(" #( ");
-  ScmLexer *lexer = scm_lexer_construct(buffer);
+  ScmIBuffer *buffer = new_ibuffer_from_string(" #( ");
+  ScmLexer *lexer = scm_lexer_new(buffer);
   ScmToken *token = scm_lexer_head_token(lexer);
 
   cut_assert_not_null(token);
@@ -299,8 +299,8 @@ test_lexer_tokenize_vector_start(void)
 void
 test_lexer_tokenize_char(void)
 {
-  ScmIBuffer *buffer = construct_ibuffer_from_string(" #\\c ");
-  ScmLexer *lexer = scm_lexer_construct(buffer);
+  ScmIBuffer *buffer = new_ibuffer_from_string(" #\\c ");
+  ScmLexer *lexer = scm_lexer_new(buffer);
   ScmToken *token = scm_lexer_head_token(lexer);
 
   cut_assert_not_null(token);
@@ -317,8 +317,8 @@ test_lexer_tokenize_char(void)
 void
 test_lexer_tokenize_char_newline(void)
 {
-  ScmIBuffer *buffer = construct_ibuffer_from_string(" #\\newline ");
-  ScmLexer *lexer = scm_lexer_construct(buffer);
+  ScmIBuffer *buffer = new_ibuffer_from_string(" #\\newline ");
+  ScmLexer *lexer = scm_lexer_new(buffer);
   ScmToken *token = scm_lexer_head_token(lexer);
 
   cut_assert_not_null(token);
@@ -335,8 +335,8 @@ test_lexer_tokenize_char_newline(void)
 void
 test_lexer_tokenize_char_spece(void)
 {
-  ScmIBuffer *buffer = construct_ibuffer_from_string(" #\\space ");
-  ScmLexer *lexer = scm_lexer_construct(buffer);
+  ScmIBuffer *buffer = new_ibuffer_from_string(" #\\space ");
+  ScmLexer *lexer = scm_lexer_new(buffer);
   ScmToken *token = scm_lexer_head_token(lexer);
 
   cut_assert_not_null(token);
@@ -353,8 +353,8 @@ test_lexer_tokenize_char_spece(void)
 void
 test_lexer_tokenize_eof(void)
 {
-  ScmIBuffer *buffer = construct_ibuffer_from_string("  ");
-  ScmLexer *lexer = scm_lexer_construct(buffer);
+  ScmIBuffer *buffer = new_ibuffer_from_string("  ");
+  ScmLexer *lexer = scm_lexer_new(buffer);
   ScmToken *token = scm_lexer_head_token(lexer);
 
   cut_assert_not_null(token);
@@ -370,8 +370,8 @@ test_lexer_tokenize_eof(void)
 void
 test_lexer_tokenize_commnet(void)
 {
-  ScmIBuffer *buffer = construct_ibuffer_from_string(" ; comment \n ( ");
-  ScmLexer *lexer = scm_lexer_construct(buffer);
+  ScmIBuffer *buffer = new_ibuffer_from_string(" ; comment \n ( ");
+  ScmLexer *lexer = scm_lexer_new(buffer);
   ScmToken *token = scm_lexer_head_token(lexer);
 
   cut_assert_not_null(token);
@@ -387,8 +387,8 @@ test_lexer_tokenize_commnet(void)
 void
 test_lexer_tokenize_twich(void)
 {
-  ScmIBuffer *buffer = construct_ibuffer_from_string("  symbol \n ( ");
-  ScmLexer *lexer = scm_lexer_construct(buffer);  
+  ScmIBuffer *buffer = new_ibuffer_from_string("  symbol \n ( ");
+  ScmLexer *lexer = scm_lexer_new(buffer);  
   ScmToken *token = scm_lexer_head_token(lexer);
 
   cut_assert_not_null(token);
@@ -410,8 +410,8 @@ test_lexer_tokenize_twich(void)
 void
 test_lexer_tokenize_string_unexpected_eof(void)
 {
-  ScmIBuffer *buffer = construct_ibuffer_from_string(" \n \"abcdef");
-  ScmLexer *lexer = scm_lexer_construct(buffer);  
+  ScmIBuffer *buffer = new_ibuffer_from_string(" \n \"abcdef");
+  ScmLexer *lexer = scm_lexer_new(buffer);  
   ScmToken *token = scm_lexer_head_token(lexer);
 
   cut_assert_not_null(token);
@@ -427,8 +427,8 @@ test_lexer_tokenize_string_unexpected_eof(void)
 void
 test_lexer_tokenize_numeric_sign_unexpected_eor(void)
 {
-  ScmIBuffer *buffer = construct_ibuffer_from_string(" \n \n #");
-  ScmLexer *lexer = scm_lexer_construct(buffer);  
+  ScmIBuffer *buffer = new_ibuffer_from_string(" \n \n #");
+  ScmLexer *lexer = scm_lexer_new(buffer);  
   ScmToken *token = scm_lexer_head_token(lexer);
 
   cut_assert_not_null(token);
@@ -444,8 +444,8 @@ test_lexer_tokenize_numeric_sign_unexpected_eor(void)
 void
 test_lexer_tokenize_error_cannot_shift_until_error_state_cleared(void)
 {
-  ScmIBuffer *buffer = construct_ibuffer_from_string(" \n \"abcdef");
-  ScmLexer *lexer = scm_lexer_construct(buffer);  
+  ScmIBuffer *buffer = new_ibuffer_from_string(" \n \"abcdef");
+  ScmLexer *lexer = scm_lexer_new(buffer);  
   ScmToken *token = scm_lexer_head_token(lexer);
 
   cut_assert_not_null(token);
@@ -472,8 +472,8 @@ test_lexer_tokenize_error_cannot_shift_until_error_state_cleared(void)
 void
 test_lexer_tokenize_nested_list(void)
 {
-  ScmIBuffer *buffer = construct_ibuffer_from_string(" (+ (? ! _) *) ");
-  ScmLexer *lexer = scm_lexer_construct(buffer);  
+  ScmIBuffer *buffer = new_ibuffer_from_string(" (+ (? ! _) *) ");
+  ScmLexer *lexer = scm_lexer_new(buffer);  
 
   scm_lexer_shift_token(lexer);
   scm_lexer_shift_token(lexer);

@@ -31,7 +31,7 @@ typedef struct ScmStrItrRec {
   ((iter)->char_width(SCM_STR_ITR_PTR(iter), (size_t)SCM_STR_ITR_REST(iter)))
 #define SCM_STR_ITR_COPY(iter, copy) (*(copy) = *(iter))
 #define SCM_STR_ITR_OFFSET(iter, head) \
-  ((uint8_t *)SCM_STR_ITR_PTR(iter) -  (uint8_t *)head);
+  (size_t)((uint8_t *)SCM_STR_ITR_PTR(iter) -  (uint8_t *)head);
 #define SCM_STR_ITR_IS_END(iter) (((iter)->rest == 0) ? true : false)
 #define SCM_STR_ITR_IS_ERR(iter) (((iter)->rest < 0) ? true : false)
 
@@ -90,7 +90,7 @@ extern const ScmEncConstants *SCM_ENCODING_CONST_TBL[];
 /* encoding depending function table */
 typedef struct ScmStrVirtualFunc {
   int (*char_width)(const void *p, size_t size);
-  ScmStrItr (*index2iter)(void *p, size_t size, unsigned int idx);
+  ScmStrItr (*index2iter)(void *p, size_t size, size_t idx);
   bool (*is_lf)(scm_char_t c);
   bool (*is_space)(scm_char_t);
 } ScmEncVirtualFunc;
@@ -117,23 +117,23 @@ ScmStrItr scm_str_itr_next(const ScmStrItr *iter);
 
 /* ASCII */
 int scm_enc_char_width_ascii(const void *str, size_t len);
-ScmStrItr scm_enc_index2itr_ascii(void *str, size_t size, unsigned int idx);
+ScmStrItr scm_enc_index2itr_ascii(void *str, size_t size, size_t idx);
 bool scm_enc_is_lf_ascii(scm_char_t c);
 bool scm_enc_is_space_ascii(scm_char_t c);
 
 /* BINARY */
 int scm_enc_char_width_bin(const void *str, size_t len);
-ScmStrItr scm_enc_index2itr_bin(void *str, size_t size, unsigned int idx);
+ScmStrItr scm_enc_index2itr_bin(void *str, size_t size, size_t idx);
 bool scm_enc_is_lf_bin(scm_char_t c);
 bool scm_enc_is_space_bin(scm_char_t c);
 
 /* UTF-8 */
 int scm_enc_char_width_utf8(const void *str, size_t len);
-ScmStrItr scm_enc_index2itr_utf8(void *str, size_t size, unsigned int idx);
+ScmStrItr scm_enc_index2itr_utf8(void *str, size_t size, size_t idx);
 
 /* UCS4 */
 int scm_enc_char_width_ucs4(const void *str, size_t len);
-ScmStrItr scm_enc_index2itr_ucs4(void *str, size_t size, unsigned int idx);
+ScmStrItr scm_enc_index2itr_ucs4(void *str, size_t size, size_t idx);
 ssize_t scm_enc_utf8_to_ucs4(const uint8_t *utf8, size_t utf8_len,
                              uint32_t *ucs4);
 bool scm_enc_is_lf_ucs4(scm_char_t c);
@@ -141,11 +141,11 @@ bool scm_enc_is_space_ucs4(scm_char_t c);
 
 /* EUC-JP */
 int scm_enc_char_width_eucjp(const void *str, size_t len);
-ScmStrItr scm_enc_index2itr_eucjp(void *str, size_t size, unsigned int idx);
+ScmStrItr scm_enc_index2itr_eucjp(void *str, size_t size, size_t idx);
 
 /* SJIS */
 int scm_enc_char_width_sjis(const void *str, size_t len);
-ScmStrItr scm_enc_index2itr_sjis(void *str, size_t size, unsigned int idx);
+ScmStrItr scm_enc_index2itr_sjis(void *str, size_t size, size_t idx);
 
 
 

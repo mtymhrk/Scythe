@@ -1,25 +1,57 @@
 #include <cutter.h>
 
 #include "object.h"
-#include "nil.h"
+#include "vm.h"
+#include "reference.h"
+#include "miscobjects.h"
 #include "string.h"
 
-void
-test_scm_string_construct(void)
-{
-  ScmString *string = scm_string_construct("foo", sizeof("foo") - 1,
-                                           SCM_ENCODING_ASCII);
+static ScmObj vm = SCM_OBJ_INIT;
 
-  cut_assert_not_null(string);
+void
+cut_startup(void)
+{
+  SCM_SETQ_PRIM(vm, scm_vm_new());
+  scm_vm_switch_vm(vm);
+}
+
+void
+cut_shutdown(void)
+{
+  scm_vm_revert_vm();
+  scm_vm_end(vm);
+}
+
+void
+test_scm_string_new(void)
+{
+  ScmObj str = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&str);
+
+  /* action */
+  SCM_SETQ(str, scm_string_new(SCM_MEM_ALLOC_HEAP,
+                                     "foo", sizeof("foo") - 1,
+                                     SCM_ENCODING_ASCII));
+  /* postcondition check */
+  cut_assert_true(SCM_OBJ_IS_NOT_NULL(str));
+  cut_assert_true(SCM_OBJ_IS_TYPE(str, &SCM_STRING_TYPE_INFO));
 }
 
 void
 test_scm_string_is_string(void)
 {
-  ScmString *string = scm_string_construct("foo", sizeof("foo") - 1,
-                                           SCM_ENCODING_ASCII);
-  ScmNil *nil = scm_nil_construct();
+  ScmObj str = SCM_OBJ_INIT, nil = SCM_OBJ_INIT;
 
-  cut_assert_true(scm_string_is_string(SCM_OBJ(string)));
-  cut_assert_false(scm_string_is_string(SCM_OBJ(nil)));
+  SCM_STACK_FRAME_PUSH(&str, &nil);
+
+  /* preprocess */
+  SCM_SETQ(str, scm_string_new(SCM_MEM_ALLOC_HEAP,
+                                     "foo", sizeof("foo") - 1,
+                                     SCM_ENCODING_ASCII));
+  SCM_SETQ(nil, SCM_OBJ(scm_nil_instance()));
+
+  /* action and postcondition check */
+  cut_assert_true(scm_string_is_string(str));
+  cut_assert_false(scm_string_is_string(nil));
 }

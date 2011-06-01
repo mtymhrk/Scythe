@@ -1,17 +1,38 @@
 #include <cutter.h>
 
 #include "object.h"
-#include "nil.h"
+#include "vm.h"
+#include "reference.h"
 #include "miscobjects.h"
 
-void
-test_scm_eof_construct(void)
-{
-  ScmEOF *eof1 = scm_eof_instance();
-  ScmEOF *eof2 = scm_eof_instance();
+static ScmObj vm = SCM_OBJ_INIT;
 
-  cut_assert_not_null(eof1);
-  cut_assert_not_null(eof2);
+void
+cut_startup(void)
+{
+  SCM_SETQ_PRIM(vm, scm_vm_new());
+  scm_vm_switch_vm(vm);
+}
+
+void
+cut_shutdown(void)
+{
+  scm_vm_revert_vm();
+  scm_vm_end(vm);
+}
+
+void
+test_scm_eof_new(void)
+{
+  ScmObj eof1 = SCM_OBJ_INIT, eof2 = SCM_OBJ_INIT;
+
+  SCM_STACK_PUSH(&eof1, eof2);
+
+  SCM_SETQ(eof1, scm_eof_instance());
+  SCM_SETQ(eof2, scm_eof_instance());
+
+  cut_assert_true(SCM_OBJ_IS_NOT_NULL(eof1));
+  cut_assert_true(SCM_OBJ_IS_NOT_NULL(eof2));
 
   cut_assert_true(scm_obj_is_same_instance(SCM_OBJ(eof1), SCM_OBJ(eof2)));
 }
