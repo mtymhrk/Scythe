@@ -11,36 +11,35 @@ typedef struct ScmISeqRec ScmISeq;
 #include "object.h"
 #include "memory.h"
 #include "instractions.h"
+#include "earray.h"
 
 extern ScmTypeInfo SCM_ISEQ_TYPE_INFO;
 
 struct ScmISeqRec {
   ScmObjHeader header;
-  scm_iword_t *seq;
-  ScmObj *immval_vec;
-  size_t seq_capacity;
-  size_t seq_length;
-  size_t vec_capacity;
-  size_t vec_length;
+  EArray seq;
+  EArray immvs;
 };
 
-#define SCM_ISEQ_SEQ(obj) (SCM_ISEQ(obj)->seq)
-#define SCM_ISEQ_IMMVAL_VEC(obj) (SCM_ISEQ(obj)->immval_vec)
-#define SCM_ISEQ_SEQ_CAPACITY(obj) (SCM_ISEQ(obj)->seq_capacity)
-#define SCM_ISEQ_SEQ_LENGTH(obj) (SCM_ISEQ(obj)->seq_length)
-#define SCM_ISEQ_VEC_CAPACITY(obj) (SCM_ISEQ(obj)->vec_capacity)
-#define SCM_ISEQ_VEC_LENGTH(obj) (SCM_ISEQ(obj)->vec_length)
+#define SCM_ISEQ_EARY_SEQ(obj) (&SCM_ISEQ(obj)->seq)
+#define SCM_ISEQ_EARY_IMMVS(obj) (&SCM_ISEQ(obj)->immvs)
+
+#define SCM_ISEQ_SEQ(obj) ((scm_iword_t *)EARY_HEAD(SCM_ISEQ_EARY_SEQ(obj)))
+#define SCM_ISEQ_IMMVAL_VEC(obj) ((ScmObj *)EARY_HEAD(SCM_ISEQ_EARY_IMMVS(obj)))
+#define SCM_ISEQ_SEQ_CAPACITY(obj) (EARY_CAPACITY(SCM_ISEQ_EARY_SEQ(obj)))
+#define SCM_ISEQ_SEQ_LENGTH(obj) (EARY_SIZE(SCM_ISEQ_EARY_SEQ(obj)))
+#define SCM_ISEQ_VEC_CAPACITY(obj) (EARY_CAPACITY(SCM_ISEQ_EARY_IMMVS(obj)))
+#define SCM_ISEQ_VEC_LENGTH(obj) (EARY_SIZE(SCM_ISEQ_EARY_IMMVS(obj)))
 
 
 #define SCM_ISEQ_DEFAULT_SEQ_SIZE 32
-#define SCM_ISEQ_DEFAULT_IMMVEC_SIZE 32
+#define SCM_ISEQ_DEFAULT_IMMVS_SIZE 32
+#define SCM_ISEQ_IMMVS_MAX SCM_INST_IMMVAL_MAX
 
 void scm_iseq_initialize(ScmObj iseq);
 ScmObj scm_iseq_new(SCM_MEM_ALLOC_TYPE_T mtype);
 void scm_iseq_finalize(ScmObj obj);
-int scm_iseq_expand_immval_vec(ScmObj iseq);
 int scm_iseq_set_immval(ScmObj iseq, ScmObj val);
-int scm_iseq_expand_seq(ScmObj iseq, size_t needed);
 int scm_iseq_set_word(ScmObj iseq, size_t index, scm_iword_t word);
 void scm_iseq_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_iseq_gc_finalize(ScmObj obj);

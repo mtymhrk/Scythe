@@ -38,7 +38,7 @@ test_scm_iseq_new(void)
   cut_assert_not_null(SCM_ISEQ_IMMVAL_VEC(iseq));
   cut_assert_equal_uint(SCM_ISEQ_DEFAULT_SEQ_SIZE, SCM_ISEQ_SEQ_CAPACITY(iseq));
   cut_assert_equal_uint(0, SCM_ISEQ_SEQ_LENGTH(iseq));
-  cut_assert_equal_uint(SCM_ISEQ_DEFAULT_IMMVEC_SIZE,
+  cut_assert_equal_uint(SCM_ISEQ_DEFAULT_IMMVS_SIZE,
                         SCM_ISEQ_VEC_CAPACITY(iseq));
   cut_assert_equal_uint(0, SCM_ISEQ_VEC_LENGTH(iseq));
 
@@ -351,7 +351,7 @@ test_scm_iseq__expand_object_vector(void)
 
   SCM_SETQ(val, scm_vm_nil_instance());
 
-  for (int i; i < SCM_ISEQ_DEFAULT_IMMVEC_SIZE; i++) {
+  for (int i; i < SCM_ISEQ_DEFAULT_IMMVS_SIZE; i++) {
     int r = scm_iseq_set_immval(iseq, val);
     cut_assert_true(r >= 0);
   }
@@ -361,11 +361,11 @@ test_scm_iseq__expand_object_vector(void)
 
   /* postcondition check */
   cut_assert_true(rslt >= 0);
-  cut_assert_true(SCM_ISEQ_VEC_CAPACITY(iseq) > SCM_ISEQ_DEFAULT_IMMVEC_SIZE);
+  cut_assert_true(SCM_ISEQ_VEC_CAPACITY(iseq) > SCM_ISEQ_DEFAULT_IMMVS_SIZE);
   SCM_SETQ(actual, scm_iseq_get_immval(iseq, rslt));
     cut_assert_true(SCM_OBJ_IS_SAME_INSTANCE(val, actual));
 
-  for (int i; i < SCM_ISEQ_DEFAULT_IMMVEC_SIZE; i++) {
+  for (int i; i < SCM_ISEQ_DEFAULT_IMMVS_SIZE; i++) {
     SCM_SETQ(actual, scm_iseq_get_immval(iseq, i));
     cut_assert_true(SCM_OBJ_IS_SAME_INSTANCE(val, actual));
   }
