@@ -93,6 +93,9 @@ scm_vm_initialize(ScmObj vm, ScmObj parent)
   SCM_VM_REF_STACK(vm) = scm_ref_stack_new(SCM_VM_REF_STACK_INIT_SIZE);
   if (SCM_VM_REF_STACK(vm) == NULL) goto err;
 
+  SCM_VM_ISEQ_SETQ(vm, scm_iseq_new(SCM_MEM_ALLOC_HEAP));
+  if(SCM_OBJ_IS_NULL(SCM_VM_ISEQ(vm))) goto err;
+
   SCM_VM_SP(vm) = SCM_VM_STACK(vm);
   SCM_VM_FP(vm) = NULL;
   SCM_VM_IP(vm) = NULL;
@@ -105,6 +108,9 @@ scm_vm_initialize(ScmObj vm, ScmObj parent)
   return;
 
  err:
+  if (SCM_OBJ_IS_NULL(SCM_VM_ISEQ(vm)))
+    SCM_VM_ISEQ_SETQ(vm, SCM_OBJ_NULL);
+
   if (SCM_VM_STACK(vm) != NULL) {
     SCM_VM_STACK(vm) = scm_memory_release(SCM_VM_STACK(vm));
     SCM_VM_STACK_SIZE(vm) = 0;
@@ -478,6 +484,9 @@ scm_vm_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
   if (SCM_GC_IS_REF_HANDLER_FAILURE(rslt)) return rslt;
 
   rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_VM_PREV_VM(obj), mem);
+  if (SCM_GC_IS_REF_HANDLER_FAILURE(rslt)) return rslt;
+
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_VM_ISEQ(obj), mem);
   if (SCM_GC_IS_REF_HANDLER_FAILURE(rslt)) return rslt;
 
   /* TODO: write call handler for vm->iseq */
