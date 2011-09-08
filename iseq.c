@@ -5,6 +5,7 @@
 #include "memory.h"
 #include "reference.h"
 #include "instractions.h"
+#include "earray.h"
 #include "iseq.h"
 
 ScmTypeInfo SCM_ISEQ_TYPE_INFO = {

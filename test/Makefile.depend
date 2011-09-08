@@ -33,7 +33,7 @@ numeric.o: ../numeric.c ../object.h ../numeric.h
 primitive_subrutine.o: ../primitive_subrutine.c ../vm.h ../object.h \
  ../memory.h ../basichash.h ../reference.h ../procedure.h ../pair.h
 iseq.o: ../iseq.c ../object.h ../memory.h ../basichash.h ../reference.h \
- ../vm.h ../instractions.h ../iseq.h ../earray.h
+ ../vm.h ../instractions.h ../earray.h ../iseq.h
 test_pair.o: test_pair.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-version.h \
  /usr/local/include/cutter/cutter/cut-features.h \
