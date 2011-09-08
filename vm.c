@@ -93,17 +93,17 @@ scm_vm_initialize(ScmObj vm, ScmObj parent)
   SCM_VM_REF_STACK(vm) = scm_ref_stack_new(SCM_VM_REF_STACK_INIT_SIZE);
   if (SCM_VM_REF_STACK(vm) == NULL) goto err;
 
-  SCM_VM_ISEQ_SETQ(vm, scm_iseq_new(SCM_MEM_ALLOC_HEAP));
-  if(SCM_OBJ_IS_NULL(SCM_VM_ISEQ(vm))) goto err;
-
   SCM_VM_SP(vm) = SCM_VM_STACK(vm);
   SCM_VM_FP(vm) = NULL;
   SCM_VM_IP(vm) = NULL;
 
-  SCM_VM_ISEQ(vm) = SCM_OBJ_NULL;
-
   /* TODO: undefined オブジェクトみたいなものを初期値にする */
   SCM_VM_VAL(vm) = SCM_OBJ_NULL;
+
+  scm_vm_switch_vm(vm);
+  int rslt = scm_vm_init_scmobjs(vm);
+  scm_vm_revert_vm();
+  if (rslt < 0) goto err;
 
   return;
 
@@ -126,6 +126,23 @@ scm_vm_initialize(ScmObj vm, ScmObj parent)
   SCM_VM_FP(vm) = NULL;
 
   return;
+}
+
+int
+scm_vm_init_scmobjs(ScmObj vm)
+{
+  SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
+
+  SCM_VM_ISEQ_SETQ(vm, scm_iseq_new(SCM_MEM_ALLOC_HEAP));
+  if(SCM_OBJ_IS_NULL(SCM_VM_ISEQ(vm))) goto err;
+
+  return 0;
+
+ err:
+  if (SCM_OBJ_IS_NULL(SCM_VM_ISEQ(vm)))
+    SCM_VM_ISEQ_SETQ(vm, SCM_OBJ_NULL);
+
+  return -1;
 }
 
 void
