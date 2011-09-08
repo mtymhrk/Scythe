@@ -32,10 +32,12 @@ struct ScmVMRec {
   ScmMem *mem;
   ScmRefStack *ref_stack;
   ScmObj symtbl;
-  ScmObj nil;
-  ScmObj eof;
-  ScmObj bool_true;
-  ScmObj bool_false;
+  struct {
+    ScmObj nil;
+    ScmObj eof;
+    ScmObj b_true;
+    ScmObj b_false;
+  } cnsts;
   ScmObj parent_vm;
   ScmObj prev_vm;
 };
@@ -53,10 +55,10 @@ struct ScmVMRec {
 #define SCM_VM_VAL_SETQ(obj, v) SCM_SETQ(SCM_VM_VAL(vm), v)
 #define SCM_VM_REF_STACK(obj) (SCM_VM(obj)->ref_stack)
 #define SCM_VM_SYMTBL(obj) (SCM_VM(obj)->symtbl)
-#define SCM_VM_NIL(obj) (SCM_VM(obj)->nil)
-#define SCM_VM_EOF(obj) (SCM_VM(obj)->eof)
-#define SCM_VM_BOOL_TRUE(obj) (SCM_VM(obj)->bool_true)
-#define SCM_VM_BOOL_FALSE(obj) (SCM_VM(obj)->bool_false)
+#define SCM_VM_CONST_NIL(obj) (SCM_VM(obj)->cnsts.nil)
+#define SCM_VM_CONST_EOF(obj) (SCM_VM(obj)->cnsts.eof)
+#define SCM_VM_CONST_TRUE(obj) (SCM_VM(obj)->cnsts.b_true)
+#define SCM_VM_CONST_FALSE(obj) (SCM_VM(obj)->cnsts.b_false)
 #define SCM_VM_PARENT_VM(obj) (SCM_VM(obj)->parent_vm)
 #define SCM_VM_PREV_VM(obj) (SCM_VM(obj)->prev_vm)
 

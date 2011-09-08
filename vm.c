@@ -173,21 +173,21 @@ scm_vm_setup_root(ScmObj vm)
   if (SCM_OBJ_IS_NULL(SCM_VM_SYMTBL(vm)))
     ;                           /* TODO: error handling */
 
-  SCM_SETQ(SCM_VM_NIL(vm), scm_nil_new(SCM_MEM_ALLOC_ROOT));
-  if (SCM_OBJ_IS_NULL(SCM_VM_NIL(vm)))
+  SCM_SETQ(SCM_VM_CONST_NIL(vm), scm_nil_new(SCM_MEM_ALLOC_ROOT));
+  if (SCM_OBJ_IS_NULL(SCM_VM_CONST_NIL(vm)))
     ;                           /* TODO: error handling */
 
-  SCM_SETQ(SCM_VM_EOF(vm), scm_eof_new(SCM_MEM_ALLOC_ROOT));
-  if (SCM_OBJ_IS_NULL(SCM_VM_EOF(vm)))
+  SCM_SETQ(SCM_VM_CONST_EOF(vm), scm_eof_new(SCM_MEM_ALLOC_ROOT));
+  if (SCM_OBJ_IS_NULL(SCM_VM_CONST_EOF(vm)))
     ;                           /* TODO: error handling */
 
-  SCM_SETQ(SCM_VM_BOOL_TRUE(vm), scm_bool_new(SCM_MEM_ALLOC_ROOT, true));
-  if (SCM_OBJ_IS_NULL(SCM_VM_BOOL_TRUE(vm)))
+  SCM_SETQ(SCM_VM_CONST_TRUE(vm), scm_bool_new(SCM_MEM_ALLOC_ROOT, true));
+  if (SCM_OBJ_IS_NULL(SCM_VM_CONST_TRUE(vm)))
     ;                           /* TODO: error handling */
 
-  SCM_SETQ(SCM_VM_BOOL_FALSE(vm),
+  SCM_SETQ(SCM_VM_CONST_FALSE(vm),
            scm_bool_new(SCM_MEM_ALLOC_ROOT, false));
-  if (SCM_OBJ_IS_NULL(SCM_VM_BOOL_FALSE(vm)))
+  if (SCM_OBJ_IS_NULL(SCM_VM_CONST_FALSE(vm)))
     ;                           /* TODO: error handling */
 
   scm_vm_revert_vm();
@@ -201,10 +201,10 @@ scm_vm_clean_root(ScmObj vm)
   scm_vm_switch_vm(vm);
 
   scm_mem_free_root(SCM_VM_MEM(vm), SCM_VM_SYMTBL(vm));
-  scm_mem_free_root(SCM_VM_MEM(vm), SCM_VM_NIL(vm));
-  scm_mem_free_root(SCM_VM_MEM(vm), SCM_VM_EOF(vm));
-  scm_mem_free_root(SCM_VM_MEM(vm), SCM_VM_BOOL_TRUE(vm));
-  scm_mem_free_root(SCM_VM_MEM(vm), SCM_VM_BOOL_FALSE(vm));
+  scm_mem_free_root(SCM_VM_MEM(vm), SCM_VM_CONST_NIL(vm));
+  scm_mem_free_root(SCM_VM_MEM(vm), SCM_VM_CONST_EOF(vm));
+  scm_mem_free_root(SCM_VM_MEM(vm), SCM_VM_CONST_TRUE(vm));
+  scm_mem_free_root(SCM_VM_MEM(vm), SCM_VM_CONST_FALSE(vm));
 
   scm_vm_revert_vm();
 
@@ -575,7 +575,7 @@ ScmObj
 scm_vm_nil_instance(void)
 {
   SCM_OBJ_ASSERT_TYPE(current_vm, &SCM_VM_TYPE_INFO);
-  return SCM_VM_NIL(current_vm);
+  return SCM_VM_CONST_NIL(current_vm);
 }
 
 /* TODO: to inline */
@@ -583,7 +583,7 @@ ScmObj
 scm_vm_eof_instance(void)
 {
   SCM_OBJ_ASSERT_TYPE(current_vm, &SCM_VM_TYPE_INFO);
-  return SCM_VM_EOF(current_vm);
+  return SCM_VM_CONST_EOF(current_vm);
 }
 
 /* TODO: to inline */
@@ -591,7 +591,7 @@ ScmObj
 scm_vm_bool_true_instance(void)
 {
   SCM_OBJ_ASSERT_TYPE(current_vm, &SCM_VM_TYPE_INFO);
-  return SCM_VM_BOOL_TRUE(current_vm);
+  return SCM_VM_CONST_TRUE(current_vm);
 }
 
 /* TODO: to inline */
@@ -599,6 +599,6 @@ ScmObj
 scm_vm_bool_false_instance(void)
 {
   SCM_OBJ_ASSERT_TYPE(current_vm, &SCM_VM_TYPE_INFO);
-  return SCM_VM_BOOL_FALSE(current_vm);
+  return SCM_VM_CONST_FALSE(current_vm);
 }
 
