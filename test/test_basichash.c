@@ -211,6 +211,127 @@ test_scm_basic_hash_delete_middle_entry_synonym()
   scm_basic_hash_end(table);
 }
 
+int itr_block_nr_call;
+SCM_BASIC_HASH_ITR_BLK_RET_T itr_block_ret_values[256];
+
+SCM_BASIC_HASH_ITR_BLK_RET_T itr_block(ScmBasicHashEntry *entry)
+{
+  return itr_block_ret_values[itr_block_nr_call++];
+}
+
+void
+test_scm_basic_hash_iterate__SUCC()
+{
+  ScmBasicHashTable *table = scm_basic_hash_new(256,
+                                                hash_func, comp_func);
+  ScmBasicHashEntry *entry;
+
+  scm_basic_hash_insert(table,
+                        SCM_BASIC_HASH_KEY(1), SCM_BASIC_HASH_VALUE(100));
+  scm_basic_hash_insert(table,
+                        SCM_BASIC_HASH_KEY(257), SCM_BASIC_HASH_VALUE(101));
+  scm_basic_hash_insert(table,
+                        SCM_BASIC_HASH_KEY(513), SCM_BASIC_HASH_VALUE(102));
+
+
+  itr_block_nr_call = 0;
+  itr_block_ret_values[0] = SCM_BASIC_HASH_ITR_BLK_SUCC;
+  itr_block_ret_values[1] = SCM_BASIC_HASH_ITR_BLK_SUCC;
+  itr_block_ret_values[2] = SCM_BASIC_HASH_ITR_BLK_SUCC;
+  scm_basic_hash_iterate(table, itr_block);
+
+  cut_assert_equal_int(3, itr_block_nr_call);
+
+  entry = scm_basic_hash_get(table, SCM_BASIC_HASH_KEY(1));
+  cut_assert_not_null(entry);
+  cut_assert_equal_int(100, (int)SCM_BASIC_HASH_ENTRY_VALUE(entry));
+
+  entry = scm_basic_hash_get(table, SCM_BASIC_HASH_KEY(257));
+  cut_assert_not_null(entry);
+  cut_assert_equal_int(101, (int)SCM_BASIC_HASH_ENTRY_VALUE(entry));
+
+  entry = scm_basic_hash_get(table, SCM_BASIC_HASH_KEY(513));
+  cut_assert_not_null(entry);
+  cut_assert_equal_int(102, (int)SCM_BASIC_HASH_ENTRY_VALUE(entry));
+
+  scm_basic_hash_end(table);
+}
+
+void
+test_scm_basic_hash_iterate__BREAK()
+{
+  ScmBasicHashTable *table = scm_basic_hash_new(256,
+                                                hash_func, comp_func);
+  ScmBasicHashEntry *entry;
+
+  scm_basic_hash_insert(table,
+                        SCM_BASIC_HASH_KEY(1), SCM_BASIC_HASH_VALUE(100));
+  scm_basic_hash_insert(table,
+                        SCM_BASIC_HASH_KEY(257), SCM_BASIC_HASH_VALUE(101));
+  scm_basic_hash_insert(table,
+                        SCM_BASIC_HASH_KEY(513), SCM_BASIC_HASH_VALUE(102));
+
+  itr_block_nr_call = 0;
+  itr_block_ret_values[0] = SCM_BASIC_HASH_ITR_BLK_SUCC;
+  itr_block_ret_values[1] = SCM_BASIC_HASH_ITR_BLK_BREAK;
+  itr_block_ret_values[2] = SCM_BASIC_HASH_ITR_BLK_DELETE;
+  scm_basic_hash_iterate(table, itr_block);
+
+  cut_assert_equal_int(2, itr_block_nr_call);
+
+  entry = scm_basic_hash_get(table, SCM_BASIC_HASH_KEY(1));
+  cut_assert_not_null(entry);
+  cut_assert_equal_int(100, (int)SCM_BASIC_HASH_ENTRY_VALUE(entry));
+
+  entry = scm_basic_hash_get(table, SCM_BASIC_HASH_KEY(257));
+  cut_assert_not_null(entry);
+  cut_assert_equal_int(101, (int)SCM_BASIC_HASH_ENTRY_VALUE(entry));
+
+  entry = scm_basic_hash_get(table, SCM_BASIC_HASH_KEY(513));
+  cut_assert_not_null(entry);
+  cut_assert_equal_int(102, (int)SCM_BASIC_HASH_ENTRY_VALUE(entry));
+
+  scm_basic_hash_end(table);
+}
+
+void
+test_scm_basic_hash_iterate__DELETE()
+{
+  ScmBasicHashTable *table = scm_basic_hash_new(256,
+                                                hash_func, comp_func);
+  ScmBasicHashEntry *entry;
+
+  scm_basic_hash_insert(table,
+                        SCM_BASIC_HASH_KEY(1), SCM_BASIC_HASH_VALUE(100));
+  scm_basic_hash_insert(table,
+                        SCM_BASIC_HASH_KEY(257), SCM_BASIC_HASH_VALUE(101));
+  scm_basic_hash_insert(table,
+                        SCM_BASIC_HASH_KEY(513), SCM_BASIC_HASH_VALUE(102));
+
+  itr_block_nr_call = 0;
+  itr_block_ret_values[0] = SCM_BASIC_HASH_ITR_BLK_SUCC;
+  itr_block_ret_values[1] = SCM_BASIC_HASH_ITR_BLK_DELETE;
+  itr_block_ret_values[2] = SCM_BASIC_HASH_ITR_BLK_SUCC;
+  scm_basic_hash_iterate(table, itr_block);
+
+  cut_assert_equal_int(3, itr_block_nr_call);
+
+  entry = scm_basic_hash_get(table, SCM_BASIC_HASH_KEY(1));
+  cut_assert_not_null(entry);
+  cut_assert_equal_int(100, (int)SCM_BASIC_HASH_ENTRY_VALUE(entry));
+
+  entry = scm_basic_hash_get(table, SCM_BASIC_HASH_KEY(257));
+  cut_assert_null(entry);
+
+  entry = scm_basic_hash_get(table, SCM_BASIC_HASH_KEY(513));
+  cut_assert_not_null(entry);
+  cut_assert_equal_int(102, (int)SCM_BASIC_HASH_ENTRY_VALUE(entry));
+
+
+
+  scm_basic_hash_end(table);
+}
+
 void
 test_scm_basic_hash__external_iterator()
 {

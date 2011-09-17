@@ -83,10 +83,12 @@ scm_basic_hash_access(ScmBasicHashTable *table,
     }
   }
 
-  if (mode == ADD || mode == UPDATE)
-    return (table->buckets[hash]
-            = scm_basic_hash_entry_new(key, value, hash,
-                                             NULL, table->buckets[hash]));
+  if (mode == ADD || mode == UPDATE) {
+    ScmBasicHashEntry *new = scm_basic_hash_entry_new(key, value, hash, NULL,
+                                                      table->buckets[hash]);
+    if (new->next != NULL) new->next->prev = new;
+    return (table->buckets[hash] = new);
+  }
   else
     return NULL;
 }
@@ -163,22 +165,38 @@ scm_basic_hash_clear(ScmBasicHashTable *table)
   }
 }
 
-void *
+void
 scm_basic_hash_iterate(ScmBasicHashTable *table, ScmBasicHashIterBlock block)
 {
   ScmBasicHashEntry *entry;
-  void *result;
+  SCM_BASIC_HASH_ITR_BLK_RET_T rslt;
   size_t i;
 
   assert(table != NULL);
   assert(block != NULL);
 
-  result = NULL;
-  for (i = 0; i < table->tbl_size; i++)
-    for (entry = table->buckets[i]; entry != NULL; entry = entry->next)
-      result = block(entry);
-
-  return result;
+  rslt = SCM_BASIC_HASH_ITR_BLK_SUCC;
+  for (i = 0; i < table->tbl_size; i++) {
+    ScmBasicHashEntry *next = NULL;
+    for (entry = table->buckets[i]; entry != NULL; entry = next) {
+      next = entry->next;
+      SCM_BASIC_HASH_ITR_BLK_RET_T rslt = block(entry);
+      switch (rslt) {
+      case SCM_BASIC_HASH_ITR_BLK_SUCC:
+        break;
+      case SCM_BASIC_HASH_ITR_BLK_DELETE:
+        scm_basic_hash_purge_entry(table, entry);
+        scm_memory_release(entry);
+        break;
+      case SCM_BASIC_HASH_ITR_BLK_BREAK:
+        return;
+        break;
+      default:
+        assert(0);              /* must not happen */
+        break;
+      }
+    }
+  }
 }
 
 void *
@@ -188,7 +206,7 @@ scm_basic_hash_inject(ScmBasicHashTable *table,
   ScmBasicHashEntry *entry;
   void *result;
   size_t i;
-  
+
   assert(table != NULL);
   assert(block != NULL);
 

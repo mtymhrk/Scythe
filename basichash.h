@@ -10,6 +10,12 @@ typedef struct ScmBasicHashItrRec ScmBasicHashItr;
 typedef uintptr_t ScmBasicHashKey;
 typedef uintptr_t ScmBasicHashValue;
 
+typedef enum {
+  SCM_BASIC_HASH_ITR_BLK_SUCC,
+  SCM_BASIC_HASH_ITR_BLK_DELETE,
+  SCM_BASIC_HASH_ITR_BLK_BREAK
+} SCM_BASIC_HASH_ITR_BLK_RET_T;
+
 struct ScmBasicHashEntryRec {
   ScmBasicHashKey key;
   ScmBasicHashValue value;
@@ -39,7 +45,7 @@ struct ScmBasicHashItrRec {
 typedef size_t (*ScmBasicHashFunc)(ScmBasicHashKey key);
 typedef bool (*ScmBasicHashCompFunc)(ScmBasicHashKey key1,
                                      ScmBasicHashKey key2);
-typedef void *(*ScmBasicHashIterBlock)(ScmBasicHashEntry *entry);
+typedef SCM_BASIC_HASH_ITR_BLK_RET_T (*ScmBasicHashIterBlock)(ScmBasicHashEntry *entry);
 typedef void *(*ScmBasicHashInjectBlock)(ScmBasicHashEntry *entry,
                                          void *result);
 
@@ -61,8 +67,8 @@ void scm_basic_hash_delete_entry(ScmBasicHashTable *table,
 ScmBasicHashEntry *scm_basic_hash_get(ScmBasicHashTable *table,
                                       ScmBasicHashKey key);
 void scm_basic_hash_clear(ScmBasicHashTable *table);
-void *scm_basic_hash_iterate(ScmBasicHashTable *table,
-                             ScmBasicHashIterBlock block);
+void scm_basic_hash_iterate(ScmBasicHashTable *table,
+                            ScmBasicHashIterBlock block);
 void *scm_basic_hash_inject(ScmBasicHashTable *table,
                             ScmBasicHashInjectBlock block, void *init);
 int scm_basic_hash_itr_begin(ScmBasicHashTable *table, ScmBasicHashItr *itr);
