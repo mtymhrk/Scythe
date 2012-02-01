@@ -286,7 +286,7 @@ struct ScmMemHeapRec {
   } while(0)
 
 #define SCM_MEM_HEAP_FOR_EACH_BLOCK(heap, block) \
-  for ((block) = heap->head;                     \
+  for ((block) = (heap)->head;                   \
        (block) != NULL;                          \
        (block) = SCM_MEM_HEAP_BLOCK_NEXT(block))
 
