@@ -10,13 +10,11 @@ void
 cut_startup(void)
 {
   SCM_SETQ_PRIM(vm, scm_vm_new());
-  scm_vm_switch_vm(vm);
 }
 
 void
 cut_shutdown(void)
 {
-  scm_vm_revert_vm();
   scm_vm_end(vm);
 }
 

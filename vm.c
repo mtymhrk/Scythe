@@ -70,15 +70,14 @@ static ScmObj current_vm;
 
 
 void
-scm_vm_initialize(ScmObj vm, ScmObj parent)
+scm_vm_initialize(ScmObj vm)
 {
   SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
-  SCM_OBJ_ASSERT_TYPE_ACCEPT_NULL(parent, &SCM_VM_TYPE_INFO);
 
   scm_obj_init(SCM_OBJ(vm), &SCM_VM_TYPE_INFO);
 
-  SCM_VM_PARENT_VM(vm) = parent;
-  SCM_VM_PREV_VM(vm) = SCM_OBJ_NULL;
+  SCM_VM_REF_STACK(vm) = scm_ref_stack_new(SCM_VM_REF_STACK_INIT_SIZE);
+  if (SCM_VM_REF_STACK(vm) == NULL) goto err;
 
   SCM_VM_STACK(vm) = scm_memory_allocate(sizeof(scm_vm_stack_val_t)
                                          * SCM_VM_STACK_INIT_SIZE);
@@ -90,9 +89,6 @@ scm_vm_initialize(ScmObj vm, ScmObj parent)
 
   SCM_VM_STACK_SIZE(vm) = SCM_VM_STACK_INIT_SIZE;
 
-  SCM_VM_REF_STACK(vm) = scm_ref_stack_new(SCM_VM_REF_STACK_INIT_SIZE);
-  if (SCM_VM_REF_STACK(vm) == NULL) goto err;
-
   SCM_VM_SP(vm) = SCM_VM_STACK(vm);
   SCM_VM_FP(vm) = NULL;
   SCM_VM_IP(vm) = NULL;
@@ -100,10 +96,8 @@ scm_vm_initialize(ScmObj vm, ScmObj parent)
   /* TODO: undefined オブジェクトみたいなものを初期値にする */
   SCM_VM_VAL(vm) = SCM_OBJ_NULL;
 
-  scm_vm_switch_vm(vm);
-  int rslt = scm_vm_init_scmobjs(vm);
-  scm_vm_revert_vm();
-  if (rslt < 0) goto err;
+  SCM_VM_ISEQ_SETQ(vm, scm_iseq_new(SCM_MEM_ALLOC_HEAP));
+  if(SCM_OBJ_IS_NULL(SCM_VM_ISEQ(vm))) goto err;
 
   return;
 
@@ -128,23 +122,6 @@ scm_vm_initialize(ScmObj vm, ScmObj parent)
   return;
 }
 
-int
-scm_vm_init_scmobjs(ScmObj vm)
-{
-  SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
-
-  SCM_VM_ISEQ_SETQ(vm, scm_iseq_new(SCM_MEM_ALLOC_HEAP));
-  if(SCM_OBJ_IS_NULL(SCM_VM_ISEQ(vm))) goto err;
-
-  return 0;
-
- err:
-  if (SCM_OBJ_IS_NULL(SCM_VM_ISEQ(vm)))
-    SCM_VM_ISEQ_SETQ(vm, SCM_OBJ_NULL);
-
-  return -1;
-}
-
 void
 scm_vm_finalize(ScmObj vm)
 {
@@ -167,8 +144,6 @@ scm_vm_setup_root(ScmObj vm)
 {
   SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
 
-  scm_vm_switch_vm(vm);
-
   SCM_SETQ(SCM_VM_SYMTBL(vm), scm_symtable_new(SCM_MEM_ALLOC_ROOT));
   if (SCM_OBJ_IS_NULL(SCM_VM_SYMTBL(vm)))
     ;                           /* TODO: error handling */
@@ -190,7 +165,6 @@ scm_vm_setup_root(ScmObj vm)
   if (SCM_OBJ_IS_NULL(SCM_VM_CONST_FALSE(vm)))
     ;                           /* TODO: error handling */
 
-  scm_vm_revert_vm();
 }
 
 void
@@ -198,15 +172,11 @@ scm_vm_clean_root(ScmObj vm)
 {
   SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
 
-  scm_vm_switch_vm(vm);
-
   scm_mem_free_root(SCM_VM_MEM(vm), SCM_VM_SYMTBL(vm));
   scm_mem_free_root(SCM_VM_MEM(vm), SCM_VM_CONST_NIL(vm));
   scm_mem_free_root(SCM_VM_MEM(vm), SCM_VM_CONST_EOF(vm));
   scm_mem_free_root(SCM_VM_MEM(vm), SCM_VM_CONST_TRUE(vm));
   scm_mem_free_root(SCM_VM_MEM(vm), SCM_VM_CONST_FALSE(vm));
-
-  scm_vm_revert_vm();
 
   scm_mem_end(SCM_VM_MEM(vm));
 }
@@ -220,14 +190,12 @@ scm_vm_new(void)
   mem = scm_mem_new();
   if (mem == NULL) return SCM_OBJ_NULL;
 
-  if (scm_mem_register_extra_rfrn(mem, SCM_REF_MAKE(current_vm))
-      == SCM_REF_NULL)
-    goto err;
-
   scm_mem_alloc_root(mem, &SCM_VM_TYPE_INFO, SCM_REF_MAKE(vm));
   if (SCM_OBJ_IS_NULL(vm)) goto err;
 
-  scm_vm_initialize(vm, SCM_OBJ_NULL);
+  SCM_SETQ(current_vm, vm);
+
+  scm_vm_initialize(vm);
   scm_vm_setup_root(vm);
 
   return vm;
@@ -242,8 +210,7 @@ scm_vm_end(ScmObj vm)
 {
   SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
 
-  if (SCM_OBJ_IS_NULL(SCM_VM_PARENT_VM(vm))) /* root vm */
-    scm_vm_clean_root(vm);
+  scm_vm_clean_root(vm);
 }
 
 void
@@ -484,18 +451,16 @@ scm_vm_gc_initialize(ScmObj obj, ScmObj mem)
 
   SCM_VM_MEM(obj) = SCM_MEM(mem);
 
+  SCM_VM_SYMTBL(obj) = SCM_OBJ_NULL;
   SCM_VM_STACK(obj) = NULL;
   SCM_VM_STACK_OBJMAP(obj) = NULL;
   SCM_VM_STACK_SIZE(obj) = 0;
+  SCM_VM_REF_STACK(obj) = NULL;
   SCM_VM_SP(obj) = NULL;
   SCM_VM_FP(obj) = NULL;
   SCM_VM_IP(obj) = NULL;
   SCM_VM_ISEQ(obj) = SCM_OBJ_NULL;
   SCM_VM_VAL(obj) = SCM_OBJ_NULL;
-  SCM_VM_REF_STACK(obj) = NULL;
-  SCM_VM_SYMTBL(obj) = SCM_OBJ_NULL;
-  SCM_VM_PARENT_VM(obj) = SCM_OBJ_NULL;
-  SCM_VM_PREV_VM(obj) = SCM_OBJ_NULL;
 }
 
 void
@@ -513,25 +478,18 @@ scm_vm_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
   assert(SCM_OBJ_IS_NOT_NULL(mem));
   assert(handler != NULL);
 
-  /* if (vm->fp != NULL) { */
-  /*   rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, *vm->fp, mem); */
-  /*   if (SCM_GC_IS_REF_HANDLER_FAILURE(rslt)) return rslt; */
-  /* } */
-
-  /* rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, vm->cp, mem); */
-  /* if (SCM_GC_IS_REF_HANDLER_FAILURE(rslt)) return rslt; */
-
   rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_VM_SYMTBL(obj), mem);
-  if (SCM_GC_IS_REF_HANDLER_FAILURE(rslt)) return rslt;
-
-  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_VM_PARENT_VM(obj), mem);
-  if (SCM_GC_IS_REF_HANDLER_FAILURE(rslt)) return rslt;
-
-  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_VM_PREV_VM(obj), mem);
   if (SCM_GC_IS_REF_HANDLER_FAILURE(rslt)) return rslt;
 
   rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_VM_ISEQ(obj), mem);
   if (SCM_GC_IS_REF_HANDLER_FAILURE(rslt)) return rslt;
+
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_VM_VAL(obj), mem);
+  if (SCM_GC_IS_REF_HANDLER_FAILURE(rslt)) return rslt;
+
+  /* rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, vm->cp, mem); */
+  /* if (SCM_GC_IS_REF_HANDLER_FAILURE(rslt)) return rslt; */
+
 
   /* TODO: write call handler for vm->iseq */
 
@@ -547,22 +505,6 @@ scm_vm_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
   if (SCM_GC_IS_REF_HANDLER_FAILURE(rslt)) return rslt;
 
   return rslt;
-}
-
-void
-scm_vm_switch_vm(ScmObj vm)
-{
-  SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
-
-  SCM_SETQ(SCM_VM_PREV_VM(vm), current_vm);
-  SCM_SETQ(current_vm, vm);
-}
-
-void
-scm_vm_revert_vm(void)
-{
-  if (SCM_OBJ_IS_NOT_NULL(current_vm))
-    SCM_SETQ(current_vm, SCM_VM_PREV_VM(current_vm));
 }
 
 /* TODO: to inline */

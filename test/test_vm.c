@@ -12,8 +12,6 @@ cut_setup(void)
   vm = SCM_OBJ_INIT;
 
   SCM_SETQ(vm, scm_vm_new());
-
-  scm_vm_switch_vm(vm);
 }
 
 void

@@ -20,32 +20,41 @@ extern ScmTypeInfo SCM_VM_TYPE_INFO;
 
 struct ScmVMRec {
   ScmObjHeader header;
-  scm_vm_stack_val_t *stack;    /* stack */
+
+  ScmMem *mem;
+  ScmObj symtbl;                /* Symbol Table */
+
+  /*** VM Stack ***/
+  scm_vm_stack_val_t *stack;
   unsigned int *stack_objmap;
-  size_t stack_size;            /* stack size */
+  size_t stack_size;
+
+  /*** C Lang Stack ***/
+  ScmRefStack *ref_stack;
+
+  /*** VM Registers ***/
   scm_vm_stack_val_t *sp;                   /* stack pointer */
   scm_vm_stack_val_t *fp;                    /* frame pointer */
   /* ScmObj cp;                    /\* closure pointer *\/ */
   scm_vm_inst_t *ip;            /* instruction pointer */
   ScmObj iseq;                  /* instruction sequence object */
   ScmObj val;                   /* value register */
-  ScmMem *mem;
-  ScmRefStack *ref_stack;
-  ScmObj symtbl;
+
+  /*** Constant Values ***/
   struct {
     ScmObj nil;
     ScmObj eof;
     ScmObj b_true;
     ScmObj b_false;
   } cnsts;
-  ScmObj parent_vm;
-  ScmObj prev_vm;
 };
 
 #define SCM_VM_MEM(obj) (SCM_VM(obj)->mem)
+#define SCM_VM_SYMTBL(obj) (SCM_VM(obj)->symtbl)
 #define SCM_VM_STACK(obj) (SCM_VM(obj)->stack)
 #define SCM_VM_STACK_OBJMAP(obj) (SCM_VM(obj)->stack_objmap)
 #define SCM_VM_STACK_SIZE(obj) (SCM_VM(obj)->stack_size)
+#define SCM_VM_REF_STACK(obj) (SCM_VM(obj)->ref_stack)
 #define SCM_VM_SP(obj) (SCM_VM(obj)->sp)
 #define SCM_VM_FP(obj) (SCM_VM(obj)->fp)
 #define SCM_VM_IP(obj) (SCM_VM(obj)->ip)
@@ -53,15 +62,10 @@ struct ScmVMRec {
 #define SCM_VM_ISEQ_SETQ(obj, v) SCM_SETQ(SCM_VM_ISEQ(obj), v)
 #define SCM_VM_VAL(obj) (SCM_VM(obj)->val)
 #define SCM_VM_VAL_SETQ(obj, v) SCM_SETQ(SCM_VM_VAL(vm), v)
-#define SCM_VM_REF_STACK(obj) (SCM_VM(obj)->ref_stack)
-#define SCM_VM_SYMTBL(obj) (SCM_VM(obj)->symtbl)
 #define SCM_VM_CONST_NIL(obj) (SCM_VM(obj)->cnsts.nil)
 #define SCM_VM_CONST_EOF(obj) (SCM_VM(obj)->cnsts.eof)
 #define SCM_VM_CONST_TRUE(obj) (SCM_VM(obj)->cnsts.b_true)
 #define SCM_VM_CONST_FALSE(obj) (SCM_VM(obj)->cnsts.b_false)
-#define SCM_VM_PARENT_VM(obj) (SCM_VM(obj)->parent_vm)
-#define SCM_VM_PREV_VM(obj) (SCM_VM(obj)->prev_vm)
-
 
 #define SCM_VM_SP_INC(obj) (SCM_VM_SP(obj)++)
 #define SCM_VM_SP_DEC(obj) (SCM_VM_SP(obj)--)
@@ -86,7 +90,7 @@ struct ScmVMRec {
   } while(0)
 
 
-void scm_vm_initialize(ScmObj vm, ScmObj parent);
+void scm_vm_initialize(ScmObj vm);
 int scm_vm_init_scmobjs(ScmObj vm);
 void scm_vm_finalize(ScmObj vm);
 ScmObj scm_vm_new(void);
@@ -110,8 +114,6 @@ void scm_vm_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_vm_gc_finalize(ScmObj obj);
 int scm_vm_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
 
-void scm_vm_switch_vm(ScmObj vm);
-void scm_vm_revert_vm(void);
 ScmObj scm_vm_current_vm(void);
 ScmMem *scm_vm_current_mm(void);
 ScmRefStack *scm_vm_current_ref_stack(void);
