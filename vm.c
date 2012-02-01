@@ -306,6 +306,8 @@ scm_vm_stack_shorten(ScmObj vm, int n)
   SCM_VM_SP(vm) = SCM_VM_SP(vm) - n;
 }
 
+
+/* 現在のスタックフレームにある引数の数を返す */
 int
 scm_vm_frame_argc(ScmObj vm)
 {
@@ -323,6 +325,7 @@ scm_vm_frame_argc(ScmObj vm)
   return (int)argc;
 }
 
+/* 現在のスタックフレームにある nth 番目の引数を返す (0 origin) */
 ScmObj
 scm_vm_frame_argv(ScmObj vm, int nth)
 {
@@ -336,25 +339,49 @@ scm_vm_frame_argv(ScmObj vm, int nth)
   return SCM_OBJ(SCM_VM_FP(vm)[-(nth + 2)]);
 }
 
-ScmObj *
+/* 現在のスタックフレームに保存されている frame pointer を返す */
+scm_vm_stack_val_t *
 scm_vm_frame_outer_frame(ScmObj vm)
 {
-  /* TODO: write me */
-  return NULL;
+  int argc;
+
+  SCM_STACK_PUSH(&vm);
+
+  SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
+
+  argc = scm_vm_frame_argc(vm);
+
+  return (scm_vm_stack_val_t *)(SCM_VM_FP(vm)[-(argc + 4)]);
 }
 
+/* 現在のスタックフレームに保存されている ISeq オブジェクトを返す */
 ScmObj
 scm_vm_frame_iseq(ScmObj vm)
 {
-  /* TODO: write me */
-  return SCM_OBJ_NULL;
+  int argc;
+
+  SCM_STACK_PUSH(&vm);
+
+  SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
+
+  argc = scm_vm_frame_argc(vm);
+
+  return SCM_OBJ((SCM_VM_FP(vm)[-(argc + 3)]));
 }
 
+/* 現在のスタックフレームに保存されている Instruction pointer を返す */
 scm_vm_inst_t *
 scm_vm_frame_next_inst(ScmObj vm)
 {
-  /* TODO: write me */
-  return NULL;
+  int argc;
+
+  SCM_STACK_PUSH(&vm);
+
+  SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
+
+  argc = scm_vm_frame_argc(vm);
+
+  return (scm_vm_inst_t*)((SCM_VM_FP(vm)[-(argc + 2)]));
 }
 
 
