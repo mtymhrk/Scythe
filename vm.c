@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdint.h>
+#include <limits.h>
 #include <assert.h>
 #include <unistd.h>
 
@@ -14,8 +15,8 @@
 #define SCM_VM_STACK_INIT_SIZE 1024
 #define SCM_VM_STACK_MAX_SIZE 10240
 #define SCM_VM_STACK_OBJMAP_SIZE                                        \
-  (SCM_VM_STACK_INIT_SIZE / sizeof(unsigned int)                        \
-   + ((SCM_VM_STACK_INIT_SIZE % sizeof(unsigned int) == 0) ? 0 : 1))
+  (SCM_VM_STACK_INIT_SIZE / (sizeof(unsigned int) * CHAR_BIT)           \
+   + ((SCM_VM_STACK_INIT_SIZE % (sizeof(unsigned int) * CHAR_BIT) == 0) ? 0 : 1))
 #define SCM_VM_REF_STACK_INIT_SIZE 512
 
 /* typedef enum { */
@@ -490,16 +491,15 @@ scm_vm_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
   /* rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, vm->cp, mem); */
   /* if (SCM_GC_IS_REF_HANDLER_FAILURE(rslt)) return rslt; */
 
-
-  /* TODO: write call handler for vm->iseq */
-
-  /* if (vm->stack != NULL) { */
-  /*   ScmObj *p; */
-  /*   for (p = vm->stack; p != vm->sp; p++) { */
-  /*     rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, *p, mem); */
-  /*     if (SCM_GC_IS_REF_HANDLER_FAILURE(rslt)) return rslt; */
-  /*   } */
-  /* } */
+  for (scm_vm_stack_val_t* p = SCM_VM_STACK(obj); p != SCM_VM_SP(obj); p++) {
+    bool scmobj_p;
+    SCM_VM_STACK_OBJMAP_IS_SCMOBJ(obj, p, scmobj_p);
+    if (scmobj_p) {
+      ScmObj c = SCM_OBJ(*p);
+      rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, c, mem);
+      if (SCM_GC_IS_REF_HANDLER_FAILURE(rslt)) return rslt;
+    }
+  }
 
   rslt = scm_ref_stack_gc_accept(SCM_VM_REF_STACK(obj), obj, mem, handler);
   if (SCM_GC_IS_REF_HANDLER_FAILURE(rslt)) return rslt;

@@ -71,24 +71,29 @@ struct ScmVMRec {
 #define SCM_VM_SP_DEC(obj) (SCM_VM_SP(obj)--)
 
 #define SCM_VM_STACk_OBJMAP_SP2IDX(vm, sp) \
-  ((scm_uword_t)((sp) - SCM_VM_STACK(vm)) / sizeof(SCM_VM_STACK_OBJMAP(vm)))
+  ((scm_uword_t)((sp) - SCM_VM_STACK(vm)) / (sizeof(*SCM_VM_STACK_OBJMAP(vm)) * CHAR_BIT))
 #define SCM_VM_STACK_OBJMAP_SP2MASK(vm, sp) \
-  (1u << (scm_uword_t)((sp) - SCM_VM_STACK(vm)) % sizeof(SCM_VM_STACK_OBJMAP(vm)))
+  (1u << (scm_uword_t)((sp) - SCM_VM_STACK(vm)) % (sizeof(*SCM_VM_STACK_OBJMAP(vm)) * CHAR_BIT))
 
 #define SCM_VM_STACK_OBJMAP_SET(vm, sp)                          \
   do {                                                           \
-    assert(sp < SCM_VM_SP(vm));                                  \
+    assert((sp) < SCM_VM_SP(vm));                                \
     SCM_VM_STACK_OBJMAP(vm)[SCM_VM_STACk_OBJMAP_SP2IDX(vm, sp)]  \
       |= SCM_VM_STACK_OBJMAP_SP2MASK(vm, sp);                    \
   } while(0)
 
 #define SCM_VM_STACK_OBJMAP_UNSET(vm, sp)                        \
   do {                                                           \
-    assert(sp < SCM_VM_SP(vm));                                  \
+    assert((sp) < SCM_VM_SP(vm));                                \
     SCM_VM_STACK_OBJMAP(vm)[SCM_VM_STACk_OBJMAP_SP2IDX(vm, sp)]  \
       &= ~SCM_VM_STACK_OBJMAP_SP2MASK(vm, sp);                   \
   } while(0)
 
+#define SCM_VM_STACK_OBJMAP_IS_SCMOBJ(vm, sp, rslt)  \
+  do {                                        \
+    assert((sp) < SCM_VM_SP(vm));             \
+    (rslt) = SCM_VM_STACK_OBJMAP(vm)[SCM_VM_STACk_OBJMAP_SP2IDX(vm, sp)] & SCM_VM_STACK_OBJMAP_SP2MASK(vm, sp) ? true : false; \
+  } while(0)
 
 void scm_vm_initialize(ScmObj vm);
 int scm_vm_init_scmobjs(ScmObj vm);
