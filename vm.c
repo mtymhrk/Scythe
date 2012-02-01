@@ -177,8 +177,6 @@ scm_vm_clean_root(ScmObj vm)
   scm_mem_free_root(SCM_VM_MEM(vm), SCM_VM_CONST_EOF(vm));
   scm_mem_free_root(SCM_VM_MEM(vm), SCM_VM_CONST_TRUE(vm));
   scm_mem_free_root(SCM_VM_MEM(vm), SCM_VM_CONST_FALSE(vm));
-
-  scm_mem_end(SCM_VM_MEM(vm));
 }
 
 ScmObj
@@ -211,6 +209,8 @@ scm_vm_end(ScmObj vm)
   SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
 
   scm_vm_clean_root(vm);
+
+  scm_mem_end(SCM_VM_MEM(vm));
 }
 
 void
