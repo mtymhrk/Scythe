@@ -37,6 +37,7 @@ ScmObj scm_symbol_instance(ScmObj str);
 bool scm_symbol_is_symbol(ScmObj obj);
 size_t scm_symbol_length(ScmObj sym);
 ScmObj scm_symbol_string(ScmObj sym);
+size_t scm_symbol_hash_value(ScmObj sym);
 void scm_symbol_gc_initialize(ScmObj obj, ScmObj mem);
 int scm_symbol_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
 

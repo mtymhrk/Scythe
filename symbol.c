@@ -109,6 +109,13 @@ scm_symbol_string(ScmObj sym)
   return scm_string_dup(SCM_SYMBOL_STR(sym));
 }
 
+size_t
+scm_symbol_hash_value(ScmObj sym)
+{
+  SCM_OBJ_ASSERT_TYPE(sym, &SCM_SYMBOL_TYPE_INFO);
+
+  return scm_string_hash_value(SCM_SYMBOL_STR(sym));
+}
 
 void
 scm_symbol_gc_initialize(ScmObj obj, ScmObj mem) /* GC OK */
