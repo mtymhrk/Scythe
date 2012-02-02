@@ -495,8 +495,7 @@ scm_vm_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
     bool scmobj_p;
     SCM_VM_STACK_OBJMAP_IS_SCMOBJ(obj, p, scmobj_p);
     if (scmobj_p) {
-      ScmObj c = SCM_OBJ(*p);
-      rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, c, mem);
+      rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, *p, mem);
       if (SCM_GC_IS_REF_HANDLER_FAILURE(rslt)) return rslt;
     }
   }
