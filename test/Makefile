@@ -18,7 +18,8 @@ TEST_CASE_SRC = test_pair.c test_string.c test_symbol.c test_nil.c \
                 test_vector.c test_eof.c test_bool.c test_char.c \
                 test_charconv.c test_string_utf8.c test_string_ucs4.c \
                 test_string_ascii.c test_string_eucjp.c test_string_sjis.c \
-                test_memory.c test_binding.c test_vm.c test_iseq.c
+                test_memory.c test_binding.c test_vm.c test_iseq.c \
+                test_chashtbl.c
 
 TEST_TARGET_OBJ = $(TEST_TARGET_SRC:.c=.o) 
 TEST_CASE_OBJ = $(TEST_CASE_SRC:.c=.o) 
@@ -55,6 +56,7 @@ test_memory.so : test_memory.o $(TEST_TARGET_OBJ)
 test_binding.so : test_binding.o $(TEST_TARGET_OBJ)
 test_vm.so : test_vm.o $(TEST_TARGET_OBJ)
 test_iseq.so: test_iseq.o $(TEST_TARGET_OBJ)
+test_chashtbl.so: test_chashtbl.o $(TEST_TARGET_OBJ)
 perform_refstack: perform_refstack.o $(TEST_TARGET_OBJ)
 
 .c.o:

@@ -26,7 +26,7 @@ scm_chash_tbl_initialize(ScmObj tbl, size_t size,
   SCM_OBJ_ASSERT_TYPE(tbl, &SCM_CHASH_TBL_TYPE_INFO);
   assert(hash_func != NULL);
   assert(cmp_func != NULL);
-  assert(SIZE_MAX / size <= sizeof(ScmCHashTblEntry *));
+  assert(SIZE_MAX / size > sizeof(ScmCHashTblEntry *));
 
   SCM_CHASH_TBL(tbl)->buckets =
     scm_memory_allocate(sizeof(ScmCHashTblEntry *) * size);
