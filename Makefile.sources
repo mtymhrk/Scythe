@@ -2,4 +2,5 @@ SOURCES  = memory.c object.c pair.c string.c symbol.c \
            basichash.c integer.c  basiclist.c vector.c \
            miscobjects.c char.c charconv.c \
            encoding.c vm.c procedure.c reference.c numeric.c \
-           primitive_subrutine.c iseq.c chashtbl.c api.c
+           primitive_subrutine.c iseq.c chashtbl.c api.c \
+           gloc.c

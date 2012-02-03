@@ -10,6 +10,7 @@
 #include "object.h"
 #include "string.h"
 #include "symbol.h"
+#include "gloc.h"
 #include "iseq.h"
 #include "miscobjects.h"
 
@@ -149,6 +150,10 @@ scm_vm_setup_root(ScmObj vm)
 
   SCM_SETQ(SCM_VM_SYMTBL(vm), scm_symtbl_new(SCM_MEM_ALLOC_ROOT));
   if (SCM_OBJ_IS_NULL(SCM_VM_SYMTBL(vm)))
+    ;                           /* TODO: error handling */
+
+  SCM_SETQ(SCM_VM_GLOCTBL(vm), scm_gloctbl_new(SCM_MEM_ALLOC_ROOT));
+  if (SCM_OBJ_IS_NULL(SCM_VM_GLOCTBL(vm)))
     ;                           /* TODO: error handling */
 
   SCM_SETQ(SCM_VM_CONST_NIL(vm), scm_nil_new(SCM_MEM_ALLOC_ROOT));
@@ -538,6 +543,14 @@ scm_vm_current_symtbl(void)
 {
   SCM_OBJ_ASSERT_TYPE(current_vm, &SCM_VM_TYPE_INFO);
   return SCM_VM_SYMTBL(current_vm);
+}
+
+/* TODO: to inline */
+ScmObj
+scm_vm_current_gloctbl(void)
+{
+  SCM_OBJ_ASSERT_TYPE(current_vm, &SCM_VM_TYPE_INFO);
+  return SCM_VM_GLOCTBL(current_vm);
 }
 
 /* TODO: to inline */

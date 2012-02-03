@@ -22,7 +22,7 @@ charconv.o: ../charconv.c ../memory.h ../object.h ../basichash.h \
  ../charconv.h
 encoding.o: ../encoding.c ../encoding.h
 vm.o: ../vm.c ../vm.h ../object.h ../memory.h ../basichash.h \
- ../reference.h ../string.h ../encoding.h ../symbol.h ../iseq.h \
+ ../reference.h ../string.h ../encoding.h ../symbol.h ../gloc.h ../iseq.h \
  ../instractions.h ../earray.h ../miscobjects.h
 procedure.o: ../procedure.c ../procedure.h ../object.h ../vm.h \
  ../memory.h ../basichash.h ../reference.h
@@ -37,7 +37,9 @@ chashtbl.o: ../chashtbl.c ../object.h ../memory.h ../basichash.h \
  ../reference.h ../vm.h ../chashtbl.h
 api.o: ../api.c ../vm.h ../object.h ../memory.h ../basichash.h \
  ../reference.h ../string.h ../encoding.h ../symbol.h ../chashtbl.h \
- ../api.h
+ ../api.h ../pair.h
+gloc.o: ../gloc.c ../object.h ../memory.h ../basichash.h ../reference.h \
+ ../vm.h ../symbol.h ../chashtbl.h ../gloc.h
 test_pair.o: test_pair.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-version.h \
  /usr/local/include/cutter/cutter/cut-features.h \

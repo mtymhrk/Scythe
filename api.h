@@ -2,8 +2,10 @@
 #define INCLUDE_API_H__
 
 #include "object.h"
+#include "memory.h"
 #include "vm.h"
 #include "symbol.h"
+#include "pair.h"
 
 static inline ScmObj
 scm_api_eq_p(ScmObj obj1, ScmObj obj2)
@@ -31,11 +33,11 @@ scm_api_cons(ScmObj car, ScmObj cdr)
   if (SCM_OBJ_IS_NULL(car) || SCM_OBJ_IS_NULL(cdr))
     return SCM_OBJ_NULL;         /* 仮実装 */
 
-  return scm_pair_new(SCM_MEM_HEAP_ALLOC, car, cdr);
+  return scm_pair_new(SCM_MEM_ALLOC_HEAP, car, cdr);
 }
 
-static inline ScmOjb
-scm_api_car(ScmObj pair))
+static inline ScmObj
+scm_api_car(ScmObj pair)
 {
   if (!SCM_OBJ_IS_TYPE(pair, &SCM_PAIR_TYPE_INFO))
     return SCM_OBJ_NULL;         /* 仮実装 */

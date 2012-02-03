@@ -23,6 +23,7 @@ struct ScmVMRec {
 
   ScmMem *mem;
   ScmObj symtbl;                /* Symbol Table */
+  ScmObj gloctbl;
 
   /*** VM Stack ***/
   scm_vm_stack_val_t *stack;
@@ -51,6 +52,7 @@ struct ScmVMRec {
 
 #define SCM_VM_MEM(obj) (SCM_VM(obj)->mem)
 #define SCM_VM_SYMTBL(obj) (SCM_VM(obj)->symtbl)
+#define SCM_VM_GLOCTBL(obj) (SCM_VM(obj)->gloctbl)
 #define SCM_VM_STACK(obj) (SCM_VM(obj)->stack)
 #define SCM_VM_STACK_OBJMAP(obj) (SCM_VM(obj)->stack_objmap)
 #define SCM_VM_STACK_SIZE(obj) (SCM_VM(obj)->stack_size)
@@ -123,6 +125,7 @@ ScmObj scm_vm_current_vm(void);
 ScmMem *scm_vm_current_mm(void);
 ScmRefStack *scm_vm_current_ref_stack(void);
 ScmObj scm_vm_current_symtbl(void);
+ScmObj scm_vm_current_gloctbl(void);
 ScmObj scm_vm_nil_instance(void);
 ScmObj scm_vm_eof_instance(void);
 ScmObj scm_vm_bool_true_instance(void);

@@ -4,8 +4,8 @@ pair.o: pair.c object.h memory.h basichash.h reference.h vm.h pair.h \
  miscobjects.h
 string.o: string.c memory.h object.h basichash.h reference.h vm.h \
  encoding.h string.h
-symbol.o: symbol.c object.h memory.h basichash.h reference.h vm.h \
- string.h encoding.h symbol.h
+symbol.o: symbol.c object.h memory.h basichash.h chashtbl.h reference.h \
+ vm.h string.h encoding.h symbol.h
 basichash.o: basichash.c memory.h object.h basichash.h
 integer.o: integer.c object.h memory.h basichash.h vm.h reference.h \
  integer.h
@@ -18,15 +18,17 @@ char.o: char.c object.h memory.h basichash.h vm.h reference.h encoding.h \
  char.h
 charconv.o: charconv.c memory.h object.h basichash.h charconv.h
 encoding.o: encoding.c encoding.h
-vm.o: vm.c vm.h object.h memory.h basichash.h reference.h symbol.h iseq.h \
- instractions.h miscobjects.h
+vm.o: vm.c vm.h object.h memory.h basichash.h reference.h string.h \
+ encoding.h symbol.h gloc.h iseq.h instractions.h earray.h miscobjects.h
 procedure.o: procedure.c procedure.h object.h vm.h memory.h basichash.h \
  reference.h
-binding.o: binding.c basichash.h binding.h object.h memory.h vm.h \
- reference.h symbol.h
 reference.o: reference.c reference.h object.h vm.h memory.h basichash.h
 numeric.o: numeric.c object.h numeric.h
 primitive_subrutine.o: primitive_subrutine.c vm.h object.h memory.h \
  basichash.h reference.h procedure.h pair.h
 iseq.o: iseq.c object.h memory.h basichash.h reference.h vm.h \
- instractions.h iseq.h
+ instractions.h earray.h iseq.h
+chashtbl.o: chashtbl.c object.h memory.h basichash.h reference.h vm.h \
+ chashtbl.h
+api.o: api.c vm.h object.h memory.h basichash.h reference.h string.h \
+ encoding.h symbol.h chashtbl.h api.h pair.h
