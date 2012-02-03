@@ -68,8 +68,10 @@ ScmObj scm_chash_tbl_new(SCM_MEM_ALLOC_TYPE_T mtype, size_t size,
                          ScmCHashTblKeyCmpFunc cmp_func);
 bool scm_chash_tbl_cmp_func_eq(ScmCHashTblKey key1, ScmCHashTblKey key2);
 bool scm_chash_tbl_cmp_func_eqv(ScmCHashTblKey key1, ScmCHashTblKey key2);
-bool scm_chash_tbl_get(ScmObj tbl, ScmCHashTblKey key, ScmCHashTblVal *val);
-bool scm_chash_tbl_delete(ScmObj tbl, ScmCHashTblKey key, ScmCHashTblKey *val);
+int scm_chash_tbl_get(ScmObj tbl, ScmCHashTblKey key,
+                      ScmCHashTblVal *val, bool *found);
+int scm_chash_tbl_delete(ScmObj tbl, ScmCHashTblKey key,
+                         ScmCHashTblKey *val, bool *deleted);
 int scm_chash_tbl_insert(ScmObj tbl, ScmCHashTblKey key, ScmCHashTblVal val);
 int scm_chash_tbl_update(ScmObj tbl, ScmCHashTblKey key, ScmCHashTblVal val);
 void scm_chash_tbl_gc_initialize(ScmObj obj, ScmObj mem);

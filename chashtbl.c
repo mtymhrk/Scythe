@@ -149,11 +149,14 @@ scm_chash_tbl_access(ScmObj tbl,
     return NULL;
 }
 
-/* key にマッチするエントリの値を val に設定する。マッチするものがなければ戻り
- * 値として false を返す。マッチするものばある場合は true を返す。
+/* key にマッチするエントリの値を val に設定して found に true を設定する。
+ * マッチするものがなければ val を不定て found に false を返す。マッチする
+ * エントリの有無に関わらず、処理が成功すれば 0 を返す。エラーの場合は -1
+ * を返す(今のところその契機はない)。
  */
-bool
-scm_chash_tbl_get(ScmObj tbl, ScmCHashTblKey key, ScmCHashTblVal *val) /* GC OK */
+int
+scm_chash_tbl_get(ScmObj tbl, ScmCHashTblKey key,
+                  ScmCHashTblVal *val, bool *found) /* GC OK */
 {
   ScmCHashTblEntry *e;
   SCM_CHASH_TBL_VAL_KIND_T val_kind;
@@ -179,18 +182,23 @@ scm_chash_tbl_get(ScmObj tbl, ScmCHashTblKey key, ScmCHashTblVal *val) /* GC OK 
         SCM_REF_SETQ(val, e->val);
     }
 
-    return true;
+    if (found != NULL) *found = true;
+    return 0;
   }
 
-  return false;
+  if (found != NULL) *found = false;
+  return 0;
 }
 
 /* key にマッチするエントリを削除する。マッチするエントリがあれば戻り値として
- * true を返す。それ以外は false を返す。戻り値が true の場合は val に削除さ
- * れたエントリの値が設定される。
+ * val に削除した値を設定し、deleted に true を設定する。マッチするエントリが
+ * 無い場合は val の値は不定で、deleted に false を設定する。マッチするエント
+ * リの有無に関わらず、処理が成功するれば 0 を返す。エラーの場合は -1 を返す
+ * (今のところその契機はない)。
  */
-bool
-scm_chash_tbl_delete(ScmObj tbl, ScmCHashTblKey key, ScmCHashTblKey *val) /* GC )K */
+int
+scm_chash_tbl_delete(ScmObj tbl, ScmCHashTblKey key,
+                     ScmCHashTblKey *val, bool *deleted) /* GC OK */
 {
   ScmCHashTblEntry *e;
   SCM_CHASH_TBL_VAL_KIND_T val_kind;
@@ -217,10 +225,13 @@ scm_chash_tbl_delete(ScmObj tbl, ScmCHashTblKey key, ScmCHashTblKey *val) /* GC 
     }
 
     scm_memory_release(e);
-    return true;
+
+    if (deleted != NULL) *deleted = true;
+    return 0;
   }
 
-  return false;
+  if (deleted != NULL) *deleted = false;
+  return 0;
 }
 
 /* key と val を追加する。key にマッチするエントリがある場合はエラーとなり -1
