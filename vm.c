@@ -8,9 +8,10 @@
 #include "memory.h"
 #include "reference.h"
 #include "object.h"
-#include "symbol.h"
+#include "string.h"
 #include "iseq.h"
 #include "miscobjects.h"
+#include "chashtbl.h"
 
 #define SCM_VM_STACK_INIT_SIZE 1024
 #define SCM_VM_STACK_MAX_SIZE 10240
@@ -18,6 +19,8 @@
   (SCM_VM_STACK_INIT_SIZE / (sizeof(unsigned int) * CHAR_BIT)           \
    + ((SCM_VM_STACK_INIT_SIZE % (sizeof(unsigned int) * CHAR_BIT) == 0) ? 0 : 1))
 #define SCM_VM_REF_STACK_INIT_SIZE 512
+
+#define SCM_VM_SYMTBL_SIZE 256
 
 /* typedef enum { */
 /*   SCM_VM_INST_CODE_NOOP, */
@@ -69,6 +72,17 @@ static ScmObj current_vm;
 /*   ; */
 /* } */
 
+static size_t
+scm_vm_symtbl_hash_func(ScmCHashTblKey key) /* GC OK */
+{
+  return scm_string_hash_value(SCM_OBJ(key));
+}
+
+static bool
+scm_vm_symtbl_cmp_func(ScmCHashTblKey key1, ScmCHashTblKey key2) /* GC OK */
+{
+  return scm_string_is_equal(SCM_OBJ(key1), SCM_OBJ(key2));
+}
 
 void
 scm_vm_initialize(ScmObj vm)
@@ -145,7 +159,10 @@ scm_vm_setup_root(ScmObj vm)
 {
   SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
 
-  SCM_SETQ(SCM_VM_SYMTBL(vm), scm_symtable_new(SCM_MEM_ALLOC_ROOT));
+  SCM_SETQ(SCM_VM_SYMTBL(vm),
+           scm_chash_tbl_new(SCM_MEM_ALLOC_ROOT, SCM_VM_SYMTBL_SIZE,
+                             SCM_CHASH_TBL_SCMOBJ, SCM_CHASH_TBL_SCMOBJ,
+                             scm_vm_symtbl_hash_func, scm_vm_symtbl_cmp_func));
   if (SCM_OBJ_IS_NULL(SCM_VM_SYMTBL(vm)))
     ;                           /* TODO: error handling */
 

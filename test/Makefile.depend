@@ -21,12 +21,10 @@ charconv.o: ../charconv.c ../memory.h ../object.h ../basichash.h \
  ../charconv.h
 encoding.o: ../encoding.c ../encoding.h
 vm.o: ../vm.c ../vm.h ../object.h ../memory.h ../basichash.h \
- ../reference.h ../symbol.h ../iseq.h ../instractions.h ../earray.h \
- ../miscobjects.h
+ ../reference.h ../string.h ../encoding.h ../iseq.h ../instractions.h \
+ ../earray.h ../miscobjects.h ../chashtbl.h
 procedure.o: ../procedure.c ../procedure.h ../object.h ../vm.h \
  ../memory.h ../basichash.h ../reference.h
-binding.o: ../binding.c ../basichash.h ../binding.h ../object.h \
- ../memory.h ../vm.h ../reference.h ../symbol.h
 reference.o: ../reference.c ../reference.h ../object.h ../vm.h \
  ../memory.h ../basichash.h
 numeric.o: ../numeric.c ../object.h ../numeric.h
@@ -320,22 +318,6 @@ test_memory.o: test_memory.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-experimental.h ../memory.h \
  ../object.h ../basichash.h ../object.h ../pair.h ../string.h \
  ../encoding.h ../symbol.h
-test_binding.o: test_binding.c /usr/local/include/cutter/cutter.h \
- /usr/local/include/cutter/cutter/cut-version.h \
- /usr/local/include/cutter/cutter/cut-features.h \
- /usr/local/include/cutter/cutter/cut-assertions.h \
- /usr/local/include/cutter/cutter/cut-assertions-helper.h \
- /usr/local/include/cutter/cutter/cut-public.h \
- /usr/local/include/cutter/cutter/cut-config.h \
- /usr/local/include/cutter/cutter/cut-types.h \
- /usr/local/include/cutter/cutter/cut-macros.h \
- /usr/local/include/cutter/cutter/cut-multi-process.h \
- /usr/local/include/cutter/cutter/cut-test-utils.h \
- /usr/local/include/cutter/cutter/cut-test-utils-helper.h \
- /usr/local/include/cutter/cutter/cut-helper.h \
- /usr/local/include/cutter/cutter/cut-experimental.h ../object.h ../vm.h \
- ../object.h ../memory.h ../basichash.h ../reference.h ../vm.h \
- ../string.h ../encoding.h ../symbol.h ../binding.h
 test_vm.o: test_vm.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-version.h \
  /usr/local/include/cutter/cutter/cut-features.h \

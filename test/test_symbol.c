@@ -42,46 +42,6 @@ test_scm_symbol_new(void)
 }
 
 void
-test_scm_symbol_instance__2_symbols_derived_from_same_string_shuld_be_same_instance(void)
-{
-  ScmObj sym1 = SCM_OBJ_INIT, sym2 = SCM_OBJ_INIT, str = SCM_OBJ_INIT;
-
-  SCM_STACK_FRAME_PUSH(&sym1, &sym2, &str);
-
-  /* preprocess */
-  SCM_SETQ(str,
-           scm_string_new(SCM_MEM_ALLOC_HEAP,
-                                "bar", sizeof("bar") - 1, SCM_ENCODING_ASCII));
-
-  /* action */
-  SCM_SETQ(sym1, scm_symbol_instance(str));
-  SCM_SETQ(sym2, scm_symbol_instance(str));
-
-  /* postcondition check */
-  cut_assert_true(SCM_OBJ_IS_NOT_NULL(sym1));
-  cut_assert_true(SCM_OBJ_IS_NOT_NULL(sym2));
-  cut_assert(SCM_OBJ_IS_SAME_INSTANCE(sym1, sym2));
-}
-
-void
-test_scm_symbol_is_symbol__symbol_object_shuld_be_symbol(void)
-{
-  ScmObj sym = SCM_OBJ_INIT, str = SCM_OBJ_INIT;
-
-  SCM_STACK_FRAME_PUSH(&sym, &str);
-
-  /* preprocess */
-  SCM_SETQ(str,
-           scm_string_new(SCM_MEM_ALLOC_HEAP,
-                                "bar", sizeof("bar") - 1, SCM_ENCODING_ASCII));
-
-  SCM_SETQ(sym, scm_symbol_instance(str));
-
-  /* action and postcondition check */
-  cut_assert_true(scm_symbol_is_symbol(sym));
-}
-
-void
 test_scm_symbol_is_symbol__object_which_is_not_symbol_should_not_be_symbol(void)
 {
   ScmObj nil = SCM_OBJ_INIT;
@@ -106,7 +66,7 @@ test_scm_symbol_string__string_derived_from_a_symbol_should_be_equal_to_the_stri
   SCM_SETQ(expected,
            scm_string_new(SCM_MEM_ALLOC_HEAP,
                                 "baz", sizeof("baz") - 1, SCM_ENCODING_ASCII));
-  SCM_SETQ(sym, scm_symbol_instance(expected));
+  SCM_SETQ(sym, scm_symbol_new(SCM_MEM_ALLOC_HEAP, expected));
 
   /* action */
   SCM_SETQ(actual, scm_symbol_string(sym));
@@ -126,7 +86,7 @@ test_scm_symbol_string__string_derived_from_a_symbol_should_not_be_same_instance
   SCM_SETQ(expected,
            scm_string_new(SCM_MEM_ALLOC_HEAP,
                                 "baz", sizeof("baz") - 1, SCM_ENCODING_ASCII));
-  SCM_SETQ(sym, scm_symbol_instance(expected));
+  SCM_SETQ(sym, scm_symbol_new(SCM_MEM_ALLOC_HEAP, expected));
 
   /* action */
   SCM_SETQ(actual, scm_symbol_string(sym));
