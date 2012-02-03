@@ -24,4 +24,32 @@ scm_api_symbol_to_string(ScmObj sym)
 
 ScmObj scm_api_string_to_symbol(ScmObj str);
 
+
+static inline ScmObj
+scm_api_cons(ScmObj car, ScmObj cdr)
+{
+  if (SCM_OBJ_IS_NULL(car) || SCM_OBJ_IS_NULL(cdr))
+    return SCM_OBJ_NULL;         /* 仮実装 */
+
+  return scm_pair_new(SCM_MEM_HEAP_ALLOC, car, cdr);
+}
+
+static inline ScmOjb
+scm_api_car(ScmObj pair))
+{
+  if (!SCM_OBJ_IS_TYPE(pair, &SCM_PAIR_TYPE_INFO))
+    return SCM_OBJ_NULL;         /* 仮実装 */
+
+  return scm_pair_car(pair);
+}
+
+static inline ScmObj
+scm_api_cdr(ScmObj pair)
+{
+  if (!SCM_OBJ_IS_TYPE(pair, &SCM_PAIR_TYPE_INFO))
+    return SCM_OBJ_NULL;         /* 仮実装 */
+
+  return scm_pair_cdr(pair);
+}
+
 #endif /* INCLUDE_API_H__ */
