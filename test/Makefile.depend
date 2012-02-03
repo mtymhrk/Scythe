@@ -34,6 +34,9 @@ iseq.o: ../iseq.c ../object.h ../memory.h ../basichash.h ../reference.h \
  ../vm.h ../instractions.h ../earray.h ../iseq.h
 chashtbl.o: ../chashtbl.c ../object.h ../memory.h ../basichash.h \
  ../reference.h ../vm.h ../chashtbl.h
+api.o: ../api.c ../vm.h ../object.h ../memory.h ../basichash.h \
+ ../reference.h ../string.h ../encoding.h ../symbol.h ../chashtbl.h \
+ ../api.h
 test_pair.o: test_pair.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-version.h \
  /usr/local/include/cutter/cutter/cut-features.h \
