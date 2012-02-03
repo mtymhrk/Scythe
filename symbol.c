@@ -5,7 +5,7 @@
 
 #include "object.h"
 #include "memory.h"
-#include "basichash.h"
+#include "chashtbl.h"
 #include "reference.h"
 #include "string.h"
 #include "vm.h"
@@ -102,4 +102,101 @@ scm_symbol_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler) /* GC 
   rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_SYMBOL_STR(obj), mem);
 
   return rslt;
+}
+
+
+
+
+
+
+ScmTypeInfo SCM_SYMTBL_TYPE_INFO = {
+  .pp_func = NULL,
+  .obj_size = sizeof(ScmSymTbl),
+  .gc_ini_func = scm_symtbl_gc_initialize,
+  .gc_fin_func = NULL,
+  .gc_accept_func = scm_symtbl_gc_accept,
+  .gc_accept_func_weak = NULL
+};
+
+#define SCM_SYMTBL_SIZE 256
+
+static size_t
+scm_symtbl_hash_func(ScmCHashTblKey key)
+{
+  return scm_string_hash_value(SCM_OBJ(key));
+}
+
+static bool
+scm_symtbl_cmp_func(ScmCHashTblKey key1, ScmCHashTblKey key2)
+{
+  return scm_string_is_equal(key1, key2);
+}
+
+void
+scm_symtbl_initialize(ScmObj tbl)
+{
+  SCM_STACK_FRAME_PUSH(&tbl);
+
+  SCM_OBJ_ASSERT_TYPE(tbl, &SCM_SYMTBL_TYPE_INFO);
+
+  SCM_SETQ(SCM_SYMTBL(tbl)->tbl,
+           scm_chash_tbl_new(SCM_MEM_ALLOC_HEAP, SCM_SYMTBL_SIZE,
+                             SCM_CHASH_TBL_SCMOBJ, SCM_CHASH_TBL_SCMOBJ_W,
+                             scm_symtbl_hash_func, scm_symtbl_cmp_func));
+  if (SCM_OBJ_IS_NULL(tbl)) return;
+}
+
+ScmObj
+scm_symtbl_new(SCM_MEM_ALLOC_TYPE_T mtype)
+{
+  ScmObj tbl = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&tbl);
+
+  scm_mem_alloc(scm_vm_current_mm(),
+                &SCM_SYMTBL_TYPE_INFO, mtype, SCM_REF_MAKE(tbl));
+  if (SCM_OBJ_IS_NULL(tbl)) return SCM_OBJ_NULL;
+
+  scm_symtbl_initialize(tbl);
+
+  return tbl;
+}
+
+ScmObj
+scm_symtbl_symbol(ScmObj tbl, ScmObj str)
+{
+  ScmObj sym = SCM_OBJ_INIT;
+  bool found;
+  int rslt;
+
+  SCM_STACK_FRAME_PUSH(&sym, &tbl, &str);
+
+  rslt = scm_chash_tbl_get(SCM_SYMTBL(tbl)->tbl, str, &sym, &found);
+  if (rslt != 0) return SCM_OBJ_NULL;
+
+  if (found) return sym;
+
+  SCM_SETQ(sym, scm_symbol_new(SCM_MEM_ALLOC_HEAP, str));
+  if (SCM_OBJ_IS_NULL(sym)) return SCM_OBJ_NULL;
+
+  rslt = scm_chash_tbl_insert(SCM_SYMTBL(tbl)->tbl, str, sym);
+  if (rslt != 0) return SCM_OBJ_NULL;
+
+  return sym;
+}
+
+void
+scm_symtbl_gc_initialize(ScmObj obj, ScmObj mem)
+{
+  SCM_OBJ_ASSERT_TYPE(obj, &SCM_SYMTBL_TYPE_INFO);
+
+  SCM_SETQ(SCM_SYMTBL(obj)->tbl, SCM_OBJ_NULL);
+}
+
+int
+scm_symtbl_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
+{
+  SCM_OBJ_ASSERT_TYPE(obj, &SCM_SYMTBL_TYPE_INFO);
+
+  return SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_SYMTBL(obj)->tbl, mem);
 }

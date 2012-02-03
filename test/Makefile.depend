@@ -5,7 +5,8 @@ pair.o: ../pair.c ../object.h ../memory.h ../basichash.h ../reference.h \
 string.o: ../string.c ../memory.h ../object.h ../basichash.h \
  ../reference.h ../vm.h ../encoding.h ../string.h
 symbol.o: ../symbol.c ../object.h ../memory.h ../basichash.h \
- ../reference.h ../vm.h ../string.h ../encoding.h ../symbol.h
+ ../chashtbl.h ../reference.h ../vm.h ../string.h ../encoding.h \
+ ../symbol.h
 basichash.o: ../basichash.c ../memory.h ../object.h ../basichash.h
 integer.o: ../integer.c ../object.h ../memory.h ../basichash.h ../vm.h \
  ../reference.h ../integer.h
@@ -21,8 +22,8 @@ charconv.o: ../charconv.c ../memory.h ../object.h ../basichash.h \
  ../charconv.h
 encoding.o: ../encoding.c ../encoding.h
 vm.o: ../vm.c ../vm.h ../object.h ../memory.h ../basichash.h \
- ../reference.h ../string.h ../encoding.h ../iseq.h ../instractions.h \
- ../earray.h ../miscobjects.h ../chashtbl.h
+ ../reference.h ../string.h ../encoding.h ../symbol.h ../iseq.h \
+ ../instractions.h ../earray.h ../miscobjects.h
 procedure.o: ../procedure.c ../procedure.h ../object.h ../vm.h \
  ../memory.h ../basichash.h ../reference.h
 reference.o: ../reference.c ../reference.h ../object.h ../vm.h \
@@ -320,7 +321,7 @@ test_memory.o: test_memory.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-helper.h \
  /usr/local/include/cutter/cutter/cut-experimental.h ../memory.h \
  ../object.h ../basichash.h ../object.h ../pair.h ../string.h \
- ../encoding.h ../symbol.h
+ ../encoding.h ../symbol.h ../memory.h
 test_vm.o: test_vm.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-version.h \
  /usr/local/include/cutter/cutter/cut-features.h \
