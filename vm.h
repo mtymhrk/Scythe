@@ -117,12 +117,14 @@ ScmObj *scm_vm_frame_outer_frame(ScmObj vm);
 ScmObj scm_vm_frame_iseq(ScmObj vm);
 scm_iword_t *scm_vm_frame_next_inst(ScmObj vm);
 
-void scm_vm_op_frame(ScmObj vm);
-void scm_vm_op_return(ScmObj vm, ScmObj val);
-
-
 int scm_vm_nr_local_var(ScmObj vm);
 ScmObj scm_vm_refer_local_var(ScmObj vm, int nth);
+
+void scm_vm_op_frame(ScmObj vm);
+void scm_vm_op_return(ScmObj vm, ScmObj val);
+void scm_vm_op_gref(ScmObj vm, ScmObj arg, int immv_idx);
+void scm_vm_op_gdef(ScmObj vm, ScmObj arg, ScmObj val, int immv_idx);
+void scm_vm_op_gset(ScmObj vm, ScmObj arg, ScmObj val, int immv_idx);
 
 void scm_vm_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_vm_gc_finalize(ScmObj obj);

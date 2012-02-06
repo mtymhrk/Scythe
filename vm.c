@@ -359,6 +359,20 @@ scm_vm_frame_next_inst(ScmObj vm)
   return (scm_iword_t*)((SCM_VM_FP(vm)[-(argc + 2)]));
 }
 
+int
+scm_vm_nr_local_var(ScmObj vm)
+{
+  return scm_vm_frame_argc(vm);
+}
+
+/* 束縛変数を参照する。 box されている場合は unbox する */
+ScmObj
+scm_vm_refer_local_var(ScmObj vm, int nth)
+{
+  /* box/unbox is not implemented */
+  return scm_vm_frame_argv(vm, nth);
+}
+
 
 /* 関数呼出のためのスタックフレームを作成するインストラクション。
  * フレームポインタとインストラクションポインタをスタックにプッシュする。
@@ -530,19 +544,7 @@ scm_vm_op_gset(ScmObj vm, ScmObj arg, ScmObj val, int immv_idx)
 }
 
 
-int
-scm_vm_nr_local_var(ScmObj vm)
-{
-  return scm_vm_frame_argc(vm);
-}
 
-/* 束縛変数を参照する。 box されている場合は unbox する */
-ScmObj
-scm_vm_refer_local_var(ScmObj vm, int nth)
-{
-  /* box/unbox is not implemented */
-  return scm_vm_frame_argv(vm, nth);
-}
 
 void
 scm_vm_gc_initialize(ScmObj obj, ScmObj mem)
