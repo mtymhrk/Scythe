@@ -65,7 +65,7 @@ ScmTypeInfo SCM_VM_TYPE_INFO = {
 };
 
 /* static ScmVMEnv *global_env; */
-static ScmObj current_vm;
+ScmObj scm_vm__current_vm;
 
 /* static void */
 /* scm_vm_inst_call(ScmVM *vm) */
@@ -199,7 +199,7 @@ scm_vm_new(void)
   scm_mem_alloc_root(mem, &SCM_VM_TYPE_INFO, SCM_REF_MAKE(vm));
   if (SCM_OBJ_IS_NULL(vm)) goto err;
 
-  SCM_SETQ(current_vm, vm);
+  SCM_SETQ(scm_vm__current_vm, vm);
 
   scm_vm_initialize(vm);
   scm_vm_setup_root(vm);
@@ -511,77 +511,5 @@ scm_vm_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
   if (SCM_GC_IS_REF_HANDLER_FAILURE(rslt)) return rslt;
 
   return rslt;
-}
-
-/* TODO: to inline */
-ScmObj
-scm_vm_current_vm(void)
-{
-  SCM_OBJ_ASSERT_TYPE(current_vm, &SCM_VM_TYPE_INFO);
-  return current_vm;
-}
-
-/* TODO: to inline */
-ScmMem *
-scm_vm_current_mm(void)
-{
-  SCM_OBJ_ASSERT_TYPE(current_vm, &SCM_VM_TYPE_INFO);
-  return SCM_VM_MEM(current_vm);
-}
-
-/* TODO: to inline */
-ScmRefStack *
-scm_vm_current_ref_stack(void)
-{
-  SCM_OBJ_ASSERT_TYPE(current_vm, &SCM_VM_TYPE_INFO);
-  return SCM_VM_REF_STACK(current_vm);
-}
-
-/* TODO: to inline */
-ScmObj
-scm_vm_current_symtbl(void)
-{
-  SCM_OBJ_ASSERT_TYPE(current_vm, &SCM_VM_TYPE_INFO);
-  return SCM_VM_SYMTBL(current_vm);
-}
-
-/* TODO: to inline */
-ScmObj
-scm_vm_current_gloctbl(void)
-{
-  SCM_OBJ_ASSERT_TYPE(current_vm, &SCM_VM_TYPE_INFO);
-  return SCM_VM_GLOCTBL(current_vm);
-}
-
-/* TODO: to inline */
-ScmObj
-scm_vm_nil_instance(void)
-{
-  SCM_OBJ_ASSERT_TYPE(current_vm, &SCM_VM_TYPE_INFO);
-  return SCM_VM_CONST_NIL(current_vm);
-}
-
-/* TODO: to inline */
-ScmObj
-scm_vm_eof_instance(void)
-{
-  SCM_OBJ_ASSERT_TYPE(current_vm, &SCM_VM_TYPE_INFO);
-  return SCM_VM_CONST_EOF(current_vm);
-}
-
-/* TODO: to inline */
-ScmObj
-scm_vm_bool_true_instance(void)
-{
-  SCM_OBJ_ASSERT_TYPE(current_vm, &SCM_VM_TYPE_INFO);
-  return SCM_VM_CONST_TRUE(current_vm);
-}
-
-/* TODO: to inline */
-ScmObj
-scm_vm_bool_false_instance(void)
-{
-  SCM_OBJ_ASSERT_TYPE(current_vm, &SCM_VM_TYPE_INFO);
-  return SCM_VM_CONST_FALSE(current_vm);
 }
 
