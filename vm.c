@@ -434,10 +434,18 @@ scm_vm_op_gref(ScmObj vm, ScmObj arg, int immv_idx)
     if (rslt != 0)
       ;                           /* TODO: error handling */
 
-    SCM_VM_VAL_SETQ(vm, scm_gloc_value(gloc));
+    SCM_SETQ(val, scm_gloc_value(gloc));
+    if (SCM_OBJ_IS_NULL(val))
+      ; /* TODO: error handling (reference of unbound variable) */
+
+    SCM_VM_VAL_SETQ(vm, val);
   }
   else if (SCM_OBJ_IS_TYPE(arg, &SCM_GLOC_TYPE_INFO)) {
-    SCM_VM_VAL_SETQ(vm, scm_gloc_value(arg));
+    SCM_SETQ(val, scm_gloc_value(gloc));
+    if (SCM_OBJ_IS_NULL(val))
+      ; /* TODO: error handling (reference of unbound variable) */
+
+    SCM_VM_VAL_SETQ(vm, val);
   }
   else {
     assert(0);
