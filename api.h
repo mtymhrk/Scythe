@@ -8,7 +8,9 @@
 #include "pair.h"
 
 
-/** predicate ******************************************************/
+/*******************************************************************/
+/*  Predicate                                                      */
+/*******************************************************************/
 
 static inline ScmObj
 scm_api_eq_p(ScmObj obj1, ScmObj obj2)
@@ -21,14 +23,31 @@ ScmObj scm_api_eqv_p(ScmObj obj1, ScmObj obj2); /* TODO: write me */
 ScmObj scm_api_equal_p(ScmObj obj1, ScmObj obj2); /* TODO: write me */
 
 
-/** Symbol *********************************************************/
+/*******************************************************************/
+/*  String                                                         */
+/*******************************************************************/
+
+static inline ScmObj
+scm_api_make_string_ascii(const char *str)
+{
+  if (str == NULL)
+    return SCM_OBJ_NULL;         /* provisional implemntation */
+
+  return scm_string_new(SCM_MEM_ALLOC_HEAP,
+                        str, strlen(str), SCM_ENCODING_ASCII);
+}
+
+
+/*******************************************************************/
+/*  Symbol                                                         */
+/*******************************************************************/
 
 static inline ScmObj
 scm_api_symbol_to_string(ScmObj sym)
 {
   if (!SCM_OBJ_IS_TYPE(sym, &SCM_SYMBOL_TYPE_INFO))
     /* TODO: ランタイムエラーをどう処理するか。*/
-    return SCM_OBJ_NULL;        /* 仮実装 */
+    return SCM_OBJ_NULL;        /* provisional implemntation */
 
   return SCM_SYMBOL_STR(sym);
 }
@@ -37,19 +56,30 @@ static inline ScmObj
 scm_api_string_to_symbol(ScmObj str)
 {
   if (SCM_OBJ_IS_TYPE(str, &SCM_STRING_TYPE_INFO))
-    return SCM_OBJ_NULL;         /* 仮実装 */
+    return SCM_OBJ_NULL;         /* provisional implemntation */
 
   return scm_symtbl_symbol(scm_vm_current_symtbl(), str);
 }
 
+static inline ScmObj
+scm_api_make_symbol_ascii(const char *str)
+{
+  if (str == NULL)
+    return SCM_OBJ_NULL;        /* provisional implemntation */
 
-/** List and Pair  *************************************************/
+  return scm_api_string_to_symbol(scm_api_make_string_ascii(str));
+}
+
+
+/*******************************************************************/
+/*  List and Pair                                                  */
+/*******************************************************************/
 
 static inline ScmObj
 scm_api_cons(ScmObj car, ScmObj cdr)
 {
   if (SCM_OBJ_IS_NULL(car) || SCM_OBJ_IS_NULL(cdr))
-    return SCM_OBJ_NULL;         /* 仮実装 */
+    return SCM_OBJ_NULL;         /* provisional implemntation */
 
   return scm_pair_new(SCM_MEM_ALLOC_HEAP, car, cdr);
 }
@@ -58,7 +88,7 @@ static inline ScmObj
 scm_api_car(ScmObj pair)
 {
   if (!SCM_OBJ_IS_TYPE(pair, &SCM_PAIR_TYPE_INFO))
-    return SCM_OBJ_NULL;         /* 仮実装 */
+    return SCM_OBJ_NULL;         /* provisional implemntation */
 
   return scm_pair_car(pair);
 }
@@ -67,7 +97,7 @@ static inline ScmObj
 scm_api_cdr(ScmObj pair)
 {
   if (!SCM_OBJ_IS_TYPE(pair, &SCM_PAIR_TYPE_INFO))
-    return SCM_OBJ_NULL;         /* 仮実装 */
+    return SCM_OBJ_NULL;         /* provisional implemntation */
 
   return scm_pair_cdr(pair);
 }
