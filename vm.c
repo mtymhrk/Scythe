@@ -345,7 +345,7 @@ scm_vm_frame_iseq(ScmObj vm)
 }
 
 /* 現在のスタックフレームに保存されている Instruction pointer を返す */
-scm_vm_inst_t *
+scm_iword_t *
 scm_vm_frame_next_inst(ScmObj vm)
 {
   int argc;
@@ -356,7 +356,7 @@ scm_vm_frame_next_inst(ScmObj vm)
 
   argc = scm_vm_frame_argc(vm);
 
-  return (scm_vm_inst_t*)((SCM_VM_FP(vm)[-(argc + 2)]));
+  return (scm_iword_t*)((SCM_VM_FP(vm)[-(argc + 2)]));
 }
 
 
@@ -365,9 +365,8 @@ scm_vm_frame_next_inst(ScmObj vm)
  * このインストラクションの後、引数と引数の数をプッシュする必要がある。
  */
 void
-scm_vm_push_frame(ScmObj vm)
+scm_vm_op_frame(ScmObj vm) /* GC OK */
 {
-  SCM_STACK_PUSH(&vm);
   SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
 
   scm_vm_stack_push(vm, (scm_vm_stack_val_t)SCM_VM_FP(vm), false);
@@ -380,13 +379,12 @@ scm_vm_push_frame(ScmObj vm)
  * 引数 val を使用するのは主に C 実装の関数呼出から戻る場合を想定。
  */
 void
-scm_vm_return(ScmObj vm, ScmObj val)
+scm_vm_op_return(ScmObj vm, ScmObj val) /* GC OK */
 {
   ScmObj *fp, iseq = SCM_OBJ_INIT;
-  scm_vm_inst_t *ip;
+  scm_iword_t *ip;
   int argc;
 
-  SCM_STACK_PUSH(&vm, &val, &iseq);
   SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
 
   argc = scm_vm_frame_argc(vm);
@@ -404,6 +402,126 @@ scm_vm_return(ScmObj vm, ScmObj val)
   scm_vm_stack_shorten(vm, argc + 4); /* 3 := argc, fp, iseq, ip */
 }
 
+/* グローバル変数を参照するインストラクション。
+ * 引数 arg が Symbol である場合、対応する GLoc を検索し、その GLoc からシンボ
+ * ルを束縛している値を得て、その値を val レジスタに設定する。またインストラク
+ * ションの Symbol をその GLoc で置き換える。
+ * 引数 arg  が GLoc の場合、その Gloc からシンボルを束縛している値を得て、そ
+ * の値を val レジスタに設定する。
+ */
+void
+scm_vm_op_gref(ScmObj vm, ScmObj arg, int immv_idx)
+{
+  ScmObj gloc = SCM_OBJ_INIT;
+  ScmObj val = SCM_OBJ_INIT;
+  int rslt;
+
+  SCM_STACK_FRAME_PUSH(&vm, &arg, &gloc, &val);
+
+  SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
+  assert(SCM_OBJ_IS_NOT_NULL(arg));
+  assert(immv_idx >= 0);
+
+  if (SCM_OBJ_IS_TYPE(arg, &SCM_SYMBOL_TYPE_INFO)) {
+    rslt = scm_gloctbl_find(SCM_VM_GLOCTBL(vm), arg, SCM_REF_MAKE(gloc));
+    if (rslt != 0)
+      ;                           /* TODO: error handling */
+
+    if (SCM_OBJ_IS_NULL(gloc))
+      ; /* TODO: error handling (reference of unbound variable) */
+
+    rslt = scm_iseq_update_immval(SCM_VM_ISEQ(vm), immv_idx, gloc);
+    if (rslt != 0)
+      ;                           /* TODO: error handling */
+
+    SCM_VM_VAL_SETQ(vm, scm_gloc_value(gloc));
+  }
+  else if (SCM_OBJ_IS_TYPE(arg, &SCM_GLOC_TYPE_INFO)) {
+    SCM_VM_VAL_SETQ(vm, scm_gloc_value(arg));
+  }
+  else {
+    assert(0);
+  }
+}
+
+/* グローバル変数を作成するインストラクション。
+ * 引数 arg が Symbol である場合、対応する GLoc を検索し(検索の結果存在しない
+ * 場合は GLoc を作成し)、その GLoc を使用してシンボルを val の値で束縛する。
+ * またインストラクションの Symbol をその GLoc で置き換える。
+ * 引数 arg  が GLoc の場合、その GLoc を使用してシンボルを val の値で束縛す
+ * る。
+ */
+void
+scm_vm_op_gdef(ScmObj vm, ScmObj arg, ScmObj val, int immv_idx)
+{
+  ScmObj gloc = SCM_OBJ_INIT;
+  int rslt;
+
+  SCM_STACK_FRAME_PUSH(&vm, &arg, &val, &gloc);
+
+  SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
+  assert(SCM_OBJ_IS_NOT_NULL(arg));
+  assert(SCM_OBJ_IS_NOT_NULL(val));
+
+  if (SCM_OBJ_IS_TYPE(arg, &SCM_SYMBOL_TYPE_INFO)) {
+    SCM_SETQ(gloc, scm_gloctbl_bind(SCM_VM_GLOCTBL(vm), arg, val));
+    if (SCM_OBJ_IS_NULL(gloc))
+      ;                           /* TODO: error handling */
+
+    rslt = scm_iseq_update_immval(SCM_VM_ISEQ(vm), immv_idx, gloc);
+    if (rslt != 0)
+      ;                           /* TODO: error handling */
+  }
+  else if (SCM_OBJ_IS_TYPE(arg, &SCM_GLOC_TYPE_INFO)) {
+    scm_gloc_bind(arg, val);
+  }
+  else {
+    assert(0);
+  }
+}
+
+/* グローバル変数を更新するインストラクション。
+ * 引数 arg が Symbol である場合、対応する GLoc を検索し、その GLoc を使用して
+ * グローバル変数の値を引数 val で更新する。またインストラクションの Symbol を
+ * その GLoc で置き換える。
+ * 引数 arg  が GLoc の場合、その Gloc その GLoc を使用してグローバル変数の値
+ * を引数 val で更新する。
+ */
+void
+scm_vm_op_gset(ScmObj vm, ScmObj arg, ScmObj val, int immv_idx)
+{
+  ScmObj gloc = SCM_OBJ_INIT;
+  int rslt;
+
+  SCM_STACK_FRAME_PUSH(&vm, &arg, &val, &gloc);
+
+  SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
+  assert(SCM_OBJ_IS_NOT_NULL(arg));
+  assert(immv_idx >= 0);
+
+  if (SCM_OBJ_IS_TYPE(arg, &SCM_SYMBOL_TYPE_INFO)) {
+    rslt = scm_gloctbl_find(SCM_VM_GLOCTBL(vm), arg, SCM_REF_MAKE(gloc));
+    if (rslt != 0)
+      ;                           /* TODO: error handling */
+
+    if (SCM_OBJ_IS_NULL(gloc))
+      ; /* TODO: error handling (reference of unbound variable) */
+
+    rslt = scm_iseq_update_immval(SCM_VM_ISEQ(vm), immv_idx, gloc);
+    if (rslt != 0)
+      ;                           /* TODO: error handling */
+
+    scm_gloc_bind(gloc, val);
+  }
+  else if (SCM_OBJ_IS_TYPE(arg, &SCM_GLOC_TYPE_INFO)) {
+    scm_gloc_bind(arg, val);
+  }
+  else {
+    assert(0);
+  }
+}
+
+
 int
 scm_vm_nr_local_var(ScmObj vm)
 {
@@ -417,39 +535,6 @@ scm_vm_refer_local_var(ScmObj vm, int nth)
   /* box/unbox is not implemented */
   return scm_vm_frame_argv(vm, nth);
 }
-
-/* void */
-/* scm_vm_run(ScmVM *vm) */
-/* { */
-/*   assert(vm != NULL); */
-
-/*   while (1) { */
-/*     scm_vm_inst_code_t code; */
-
-/*     SCM_VM_INST_FETCH_CODE(vm->iseq, vm->ip, code); */
-/*     switch (code) { */
-/*     case SCM_VM_INST_CODE_NOOP: */
-/*       break; */
-/*     case SCM_VM_INST_CODE_PUSH: */
-/*       if (SCM_VM_CHECK_STACK_OVER_FLOW(vm)) */
-/*         SCM_VM_PUSH_TO_STACK(vm, vm->val); */
-/*         ; /\* TODO: handling stack overflow *\/ */
-/*       break; */
-/*     case SCM_VM_INST_CODE_POP: */
-/*       if (SCM_VM_CHECK_STACK_UNDER_FLOW(vm)) */
-/*         SCM_VM_POP_FROM_STACK(vm, vm->val); */
-/*         ; /\* TODO: handling stack underflow *\/ */
-/*       break; */
-/*     case SCM_VM_INST_CODE_CALL: */
-/*       scm_vm_inst_call(vm); */
-/*       break; */
-/*     case SCM_VM_INST_CODE_RET: */
-/*       break; */
-/*     case SCM_VM_INST_CODE_FRAME: */
-/*       break; */
-/*     }; */
-/*   } */
-/* } */
 
 void
 scm_vm_gc_initialize(ScmObj obj, ScmObj mem)

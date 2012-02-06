@@ -40,6 +40,7 @@ void scm_iseq_initialize(ScmObj iseq);
 ScmObj scm_iseq_new(SCM_MEM_ALLOC_TYPE_T mtype);
 void scm_iseq_finalize(ScmObj obj);
 int scm_iseq_set_immval(ScmObj iseq, ScmObj val);
+int scm_iseq_update_immval(ScmObj iseq, int idx, ScmObj val);
 int scm_iseq_set_word(ScmObj iseq, size_t index, scm_iword_t word);
 void scm_iseq_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_iseq_gc_finalize(ScmObj obj);

@@ -338,6 +338,59 @@ test_scm_iseq_set_immval_get_immval(void)
 }
 
 void
+test_scm_iseq_update_immval__update_successed(void)
+{
+  ScmObj iseq = SCM_OBJ_INIT;
+  ScmObj val1 = SCM_OBJ_INIT, val2 = SCM_OBJ_INIT;
+  ScmObj actual1 = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&iseq, &val1, &val2, &actual1);
+
+  /* preprocess */
+  SCM_SETQ(iseq, scm_iseq_new(SCM_MEM_ALLOC_HEAP));
+
+  SCM_SETQ(val1, scm_vm_nil_instance());
+  SCM_SETQ(val2, scm_vm_eof_instance());
+  int idx1 = scm_iseq_set_immval(iseq, val1);
+
+  /* action */
+  int idx2 = scm_iseq_update_immval(iseq, idx1, val2);
+  SCM_SETQ(actual1, scm_iseq_get_immval(iseq, idx1));
+
+  /* postcondition check */
+  cut_assert_true(idx1 >= 0);
+  cut_assert_true(idx2 >= 0);
+  cut_assert_equal_int(idx1, idx2);
+  cut_assert_true(SCM_OBJ_IS_SAME_INSTANCE(val2, actual1));
+}
+
+void
+test_scm_iseq_update_immval__update_not_assigned_idx(void)
+{
+  ScmObj iseq = SCM_OBJ_INIT;
+  ScmObj val1 = SCM_OBJ_INIT, val2 = SCM_OBJ_INIT;
+  ScmObj actual1 = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&iseq, &val1, &val2, &actual1);
+
+  /* preprocess */
+  SCM_SETQ(iseq, scm_iseq_new(SCM_MEM_ALLOC_HEAP));
+
+  SCM_SETQ(val1, scm_vm_nil_instance());
+  SCM_SETQ(val2, scm_vm_eof_instance());
+  int idx1 = scm_iseq_set_immval(iseq, val1);
+
+  /* action */
+  int idx2 = scm_iseq_update_immval(iseq, idx1 + 1, val2);
+  SCM_SETQ(actual1, scm_iseq_get_immval(iseq, idx1));
+
+  /* postcondition check */
+  cut_assert_true(idx1 >= 0);
+  cut_assert_true(idx2 != 0);
+  cut_assert_true(SCM_OBJ_IS_SAME_INSTANCE(val1, actual1));
+}
+
+void
 test_scm_iseq__expand_object_vector(void)
 {
   ScmObj iseq = SCM_OBJ_INIT;

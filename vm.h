@@ -12,6 +12,7 @@ typedef struct ScmVMRec ScmVM;
 #include "object.h"
 #include "memory.h"
 #include "reference.h"
+#include "instractions.h"
 
 typedef scm_uword_t scm_vm_inst_t;
 typedef scm_uword_t scm_vm_stack_val_t;
@@ -40,7 +41,7 @@ struct ScmVMRec {
   scm_vm_stack_val_t *sp;                   /* stack pointer */
   scm_vm_stack_val_t *fp;                    /* frame pointer */
   /* ScmObj cp;                    /\* closure pointer *\/ */
-  scm_vm_inst_t *ip;            /* instruction pointer */
+  scm_iword_t *ip;            /* instruction pointer */
   ScmObj iseq;                  /* instruction sequence object */
   ScmObj val;                   /* value register */
 
@@ -114,9 +115,12 @@ int scm_vm_frame_argc(ScmObj vm);
 ScmObj scm_vm_frame_argv(ScmObj vm, int nth);
 ScmObj *scm_vm_frame_outer_frame(ScmObj vm);
 ScmObj scm_vm_frame_iseq(ScmObj vm);
-scm_vm_inst_t *scm_vm_frame_next_inst(ScmObj vm);
+scm_iword_t *scm_vm_frame_next_inst(ScmObj vm);
 
-void scm_vm_return(ScmObj vm, ScmObj val);
+void scm_vm_op_frame(ScmObj vm);
+void scm_vm_op_return(ScmObj vm, ScmObj val);
+
+
 int scm_vm_nr_local_var(ScmObj vm);
 ScmObj scm_vm_refer_local_var(ScmObj vm, int nth);
 

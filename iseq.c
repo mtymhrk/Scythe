@@ -83,6 +83,24 @@ scm_iseq_set_immval(ScmObj iseq, ScmObj val) /* GC OK */
 }
 
 int
+scm_iseq_update_immval(ScmObj iseq, int idx, ScmObj val)
+{
+  int err;
+
+  SCM_OBJ_ASSERT_TYPE(iseq, &SCM_ISEQ_TYPE_INFO);
+  assert(idx >= 0);
+  assert(SCM_OBJ_IS_NOT_NULL(val));
+
+  if ((size_t)idx >= SCM_ISEQ_VEC_LENGTH(iseq)) return -1;
+
+  EARY_SET_SCMOBJ(SCM_ISEQ_EARY_IMMVS(iseq), (size_t)idx, val, err);
+
+  if (err != 0) return -1;
+
+  return idx;
+}
+
+int
 scm_iseq_set_word(ScmObj iseq, size_t index, scm_iword_t word) /* GC OK */
 {
   int err;

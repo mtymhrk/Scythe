@@ -70,6 +70,10 @@ struct ScmGLocTblRec {
 void scm_gloctbl_initialize(ScmObj tbl);
 ScmObj scm_gloctbl_new(SCM_MEM_ALLOC_TYPE_T mtype);
 
+int scm_gloctbl_find(ScmObj tbl, ScmObj sym, ScmRef gloc);
+ScmObj scm_gloctbl_gloc(ScmObj tbl, ScmObj sym);
+ScmObj scm_gloctbl_bind(ScmObj tbl, ScmObj sym, ScmObj val);
+
 void scm_gloctbl_gc_initialize(ScmObj obj, ScmObj mem);
 int scm_gloctbl_gc_accept(ScmObj obj, ScmObj mem,
                            ScmGCRefHandlerFunc handler);

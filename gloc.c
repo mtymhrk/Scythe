@@ -123,6 +123,25 @@ scm_gloctbl_new(SCM_MEM_ALLOC_TYPE_T mtype) /* GC OK */
   return tbl;
 }
 
+int
+scm_gloctbl_find(ScmObj tbl, ScmObj sym, ScmRef gloc) /* GC OK */
+{
+  bool found;
+  int rslt;
+
+  SCM_STACK_FRAME_PUSH(&gloc, &tbl, &sym);
+
+  SCM_OBJ_ASSERT_TYPE(tbl, &SCM_GLOCTBL_TYPE_INFO);
+  SCM_OBJ_ASSERT_TYPE(sym, &SCM_SYMBOL_TYPE_INFO);
+
+  rslt = scm_chash_tbl_get(SCM_GLOCTBL(tbl)->tbl, sym, gloc, &found);
+  if (rslt != 0) return -1;
+
+  if (!found) SCM_REF_SETQ(gloc, SCM_OBJ_NULL);
+
+  return 0;
+}
+
 ScmObj
 scm_gloctbl_gloc(ScmObj tbl, ScmObj sym) /* GC OK */
 {
