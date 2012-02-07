@@ -9,14 +9,17 @@ typedef uint32_t scm_iword_t;
 
 typedef enum {
   SCM_OPCODE_NOP,                 /* no operation */
+  SCM_OPCODE_STOP,                /* stop calculation */
   SCM_OPCODE_CALL,                /* function call */
-  SCM_OPCODE_RET,                 /* return from function */
+  SCM_OPCODE_RETURN,              /* return from function */
   SCM_OPCODE_FRAME,               /* create stack frame */
   SCM_OPCODE_IMMVAL,              /* copy immediate value to val register */
   SCM_OPCODE_PUSH,                /* push value of val register */
   SCM_OPCODE_PUSH_IMMVAL,         /* push immediate value */
   SCM_OPCODE_PUSH_PRIMVAL,        /* push primitive value of host language */
-  /* SCM_OPCODE_GREF,                /\* refere global variable *\/ */
+  SCM_OPCODE_GREF,                /* refere global variable */
+  SCM_OPCODE_GDEF,                /* define global variable */
+  SCM_OPCODE_GSET,                /* update global variable */
   /* SCM_OPCODE_SREF,                /\* refere value in stack *\/ */
   /* SCM_OPCODE_CREF                 /\* refere value in closure *\/ */
 } SCM_OPCODE_T;
@@ -25,8 +28,16 @@ typedef union {
   scm_iword_t iword;
   struct {
     uint8_t op;
+    int arg : 24;
+  } plain;
+  struct {
+    uint8_t op;
     int imm_idx : 24;
-  } immv;
+  } immv1;
+  struct {
+    uint8_t padding;
+    int imm_idx : 24;
+  } immv2;
   struct {
     uint8_t op;
     int primval : 24;

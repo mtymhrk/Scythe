@@ -4,7 +4,10 @@
 #include "object.h"
 #include "memory.h"
 #include "vm.h"
+#include "string.h"
 #include "symbol.h"
+#include "procedure.h"
+#include "gloc.h"
 #include "pair.h"
 
 
@@ -103,6 +106,19 @@ scm_api_cdr(ScmObj pair)
 }
 
 
+/*******************************************************************/
+/*  Subrutine                                                      */
+/*******************************************************************/
+
+static inline ScmObj
+scm_api_make_subrutine(ScmSubrFunc func)
+{
+  if (func == NULL)
+    return SCM_OBJ_NULL;         /* provisional implemntation */
+
+  return scm_subrutine_new(SCM_MEM_ALLOC_HEAP, func);
+}
+
 
 /*******************************************************************/
 /*  Global Variable                                                */
@@ -183,5 +199,28 @@ scm_api_global_var_set(ScmObj sym, ScmObj val)
 
   return val;
 }
+
+
+/*******************************************************************/
+/*  Access to Argument of Function                                 */
+/*******************************************************************/
+
+static inline int
+scm_api_get_nr_func_arg(void)
+{
+  /* 2012.02.07: 今のところスタックフレームが全く無い状態でこの api を
+     呼ばれると assertion に引っ掛って落ちる */
+  return scm_vm_frame_argc(scm_vm_current_vm());
+}
+
+static inline ScmObj
+scm_api_get_func_arg(int nth)
+{
+  if (nth >= scm_vm_frame_argc(scm_vm_current_vm()))
+    return SCM_OBJ_NULL;                  /* provisional implemntation */
+
+  return scm_vm_frame_argv(scm_vm_current_vm(), nth);
+}
+
 
 #endif /* INCLUDE_API_H__ */

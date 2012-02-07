@@ -67,7 +67,7 @@ struct ScmVMRec {
 #define SCM_VM_ISEQ(obj) (SCM_VM(obj)->iseq)
 #define SCM_VM_ISEQ_SETQ(obj, v) SCM_SETQ(SCM_VM_ISEQ(obj), v)
 #define SCM_VM_VAL(obj) (SCM_VM(obj)->val)
-#define SCM_VM_VAL_SETQ(obj, v) SCM_SETQ(SCM_VM_VAL(vm), v)
+#define SCM_VM_VAL_SETQ(obj, v) SCM_SETQ(SCM_VM_VAL(obj), v)
 #define SCM_VM_CONST_NIL(obj) (SCM_VM(obj)->cnsts.nil)
 #define SCM_VM_CONST_EOF(obj) (SCM_VM(obj)->cnsts.eof)
 #define SCM_VM_CONST_TRUE(obj) (SCM_VM(obj)->cnsts.b_true)
@@ -120,8 +120,15 @@ scm_iword_t *scm_vm_frame_next_inst(ScmObj vm);
 int scm_vm_nr_local_var(ScmObj vm);
 ScmObj scm_vm_refer_local_var(ScmObj vm, int nth);
 
+void scm_vm_return_to_caller(ScmObj vm);
+
+void scm_vm_op_call(ScmObj vm);
+void scm_vm_op_immval(ScmObj vm, ScmObj val);
+void scm_vm_op_push(ScmObj vm);
+void scm_vm_op_push_immval(ScmObj vm, ScmObj val);
+void scm_vm_op_push_primval(ScmObj vm, scm_sword_t val);
 void scm_vm_op_frame(ScmObj vm);
-void scm_vm_op_return(ScmObj vm, ScmObj val);
+void scm_vm_op_return(ScmObj vm);
 void scm_vm_op_gref(ScmObj vm, ScmObj arg, int immv_idx);
 void scm_vm_op_gdef(ScmObj vm, ScmObj arg, ScmObj val, int immv_idx);
 void scm_vm_op_gset(ScmObj vm, ScmObj arg, ScmObj val, int immv_idx);
@@ -159,6 +166,12 @@ static inline ScmObj
 scm_vm_current_gloctbl(void)
 {
   return SCM_VM_GLOCTBL(scm_vm__current_vm);
+}
+
+static inline void
+scm_vm_update_current_val_reg(ScmObj val)
+{
+  SCM_VM_VAL_SETQ(scm_vm__current_vm, val);
 }
 
 static inline ScmObj

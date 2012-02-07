@@ -74,8 +74,8 @@ test_scm_iseq_set_immv_get_immv_1(void)
 
   /* action */
   scm_inst_t inst;
-  inst.immv.op = SCM_OPCODE_IMMVAL;
-  inst.immv.imm_idx = SCM_INST_IMMVAL_MAX;
+  inst.immv1.op = SCM_OPCODE_IMMVAL;
+  inst.immv1.imm_idx = SCM_INST_IMMVAL_MAX;
 
   int rslt = scm_iseq_set_word(iseq, 0, inst.iword);
   scm_inst_t actual;
@@ -84,8 +84,8 @@ test_scm_iseq_set_immv_get_immv_1(void)
   /* postcondition check */
   cut_assert_equal_int(0, rslt);
   cut_assert_equal_uint(1, SCM_ISEQ_SEQ_LENGTH(iseq));
-  cut_assert_equal_uint(SCM_OPCODE_IMMVAL, actual.immv.op);
-  cut_assert_equal_int(SCM_INST_IMMVAL_MAX, actual.immv.imm_idx);
+  cut_assert_equal_uint(SCM_OPCODE_IMMVAL, actual.immv1.op);
+  cut_assert_equal_int(SCM_INST_IMMVAL_MAX, actual.immv1.imm_idx);
 }
 
 void
@@ -100,8 +100,8 @@ test_scm_iseq_set_immv_get_immv_2(void)
 
   /* action */
   scm_inst_t inst;
-  inst.immv.op = SCM_OPCODE_IMMVAL;
-  inst.immv.imm_idx  = 0;
+  inst.immv1.op = SCM_OPCODE_IMMVAL;
+  inst.immv1.imm_idx  = 0;
 
   int rslt = scm_iseq_set_word(iseq, 0, inst.iword);
   scm_inst_t actual;
@@ -110,8 +110,8 @@ test_scm_iseq_set_immv_get_immv_2(void)
   /* postcondition check */
   cut_assert_equal_int(0, rslt);
   cut_assert_equal_uint(1, SCM_ISEQ_SEQ_LENGTH(iseq));
-  cut_assert_equal_uint(SCM_OPCODE_IMMVAL, actual.immv.op);
-  cut_assert_equal_int(0, actual.immv.imm_idx);
+  cut_assert_equal_uint(SCM_OPCODE_IMMVAL, actual.immv1.op);
+  cut_assert_equal_int(0, actual.immv1.imm_idx);
 }
 
 void
@@ -126,8 +126,8 @@ test_scm_iseq_set_immv_get_immv_3(void)
 
   /* action */
   scm_inst_t inst;
-  inst.immv.op = SCM_OPCODE_IMMVAL;
-  inst.immv.imm_idx  = -1;
+  inst.immv1.op = SCM_OPCODE_IMMVAL;
+  inst.immv1.imm_idx  = -1;
 
   int rslt = scm_iseq_set_word(iseq, 0, inst.iword);
   scm_inst_t actual;
@@ -136,8 +136,8 @@ test_scm_iseq_set_immv_get_immv_3(void)
   /* postcondition check */
   cut_assert_equal_int(0, rslt);
   cut_assert_equal_uint(1, SCM_ISEQ_SEQ_LENGTH(iseq));
-  cut_assert_equal_uint(SCM_OPCODE_IMMVAL, actual.immv.op);
-  cut_assert_equal_int(-1, actual.immv.imm_idx);
+  cut_assert_equal_uint(SCM_OPCODE_IMMVAL, actual.immv1.op);
+  cut_assert_equal_int(-1, actual.immv1.imm_idx);
 }
 
 void
@@ -152,8 +152,8 @@ test_scm_iseq_set_immv_get_immv_4(void)
 
   /* action */
   scm_inst_t inst;
-  inst.immv.op = SCM_OPCODE_IMMVAL;
-  inst.immv.imm_idx  = SCM_INST_IMMVAL_MIN;
+  inst.immv1.op = SCM_OPCODE_IMMVAL;
+  inst.immv1.imm_idx  = SCM_INST_IMMVAL_MIN;
 
   int rslt = scm_iseq_set_word(iseq, 0, inst.iword);
   scm_inst_t actual;
@@ -162,8 +162,8 @@ test_scm_iseq_set_immv_get_immv_4(void)
   /* postcondition check */
   cut_assert_equal_int(0, rslt);
   cut_assert_equal_uint(1, SCM_ISEQ_SEQ_LENGTH(iseq));
-  cut_assert_equal_uint(SCM_OPCODE_IMMVAL, actual.immv.op);
-  cut_assert_equal_int(SCM_INST_IMMVAL_MIN, actual.immv.imm_idx);
+  cut_assert_equal_uint(SCM_OPCODE_IMMVAL, actual.immv1.op);
+  cut_assert_equal_int(SCM_INST_IMMVAL_MIN, actual.immv1.imm_idx);
 }
 
 void

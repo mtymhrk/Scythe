@@ -23,22 +23,23 @@ charconv.o: ../charconv.c ../memory.h ../object.h ../basichash.h \
 encoding.o: ../encoding.c ../encoding.h
 vm.o: ../vm.c ../vm.h ../object.h ../memory.h ../basichash.h \
  ../reference.h ../instractions.h ../string.h ../encoding.h ../symbol.h \
- ../gloc.h ../iseq.h ../earray.h ../miscobjects.h
+ ../gloc.h ../iseq.h ../earray.h ../procedure.h ../core_subr.h \
+ ../miscobjects.h
 procedure.o: ../procedure.c ../procedure.h ../object.h ../vm.h \
  ../memory.h ../basichash.h ../reference.h ../instractions.h
 reference.o: ../reference.c ../reference.h ../object.h ../vm.h \
  ../memory.h ../basichash.h ../instractions.h
 numeric.o: ../numeric.c ../object.h ../numeric.h
-primitive_subrutine.o: ../primitive_subrutine.c ../vm.h ../object.h \
- ../memory.h ../basichash.h ../reference.h ../instractions.h \
- ../procedure.h ../pair.h
+core_subr.o: ../core_subr.c ../vm.h ../object.h ../memory.h \
+ ../basichash.h ../reference.h ../instractions.h ../pair.h ../procedure.h \
+ ../api.h ../string.h ../encoding.h ../symbol.h ../gloc.h ../core_subr.h
 iseq.o: ../iseq.c ../object.h ../memory.h ../basichash.h ../reference.h \
  ../vm.h ../instractions.h ../earray.h ../iseq.h
 chashtbl.o: ../chashtbl.c ../object.h ../memory.h ../basichash.h \
  ../reference.h ../vm.h ../instractions.h ../chashtbl.h
 api.o: ../api.c ../vm.h ../object.h ../memory.h ../basichash.h \
  ../reference.h ../instractions.h ../string.h ../encoding.h ../symbol.h \
- ../gloc.h ../api.h ../pair.h
+ ../gloc.h ../api.h ../procedure.h ../pair.h
 gloc.o: ../gloc.c ../object.h ../memory.h ../basichash.h ../reference.h \
  ../vm.h ../instractions.h ../symbol.h ../chashtbl.h ../gloc.h
 test_pair.o: test_pair.c /usr/local/include/cutter/cutter.h \

@@ -12,6 +12,8 @@
 #include "symbol.h"
 #include "gloc.h"
 #include "iseq.h"
+#include "procedure.h"
+#include "core_subr.h"
 #include "miscobjects.h"
 
 #define SCM_VM_STACK_INIT_SIZE 1024
@@ -23,38 +25,6 @@
 
 #define SCM_VM_SYMTBL_SIZE 256
 
-/* typedef enum { */
-/*   SCM_VM_INST_CODE_NOOP, */
-/*   SCM_VM_INST_CODE_PUSH, */
-/*   SCM_VM_INST_CODE_POP, */
-/*   SCM_VM_INST_CODE_CALL, */
-/*   SCM_VM_INST_CODE_RET, */
-/*   SCM_VM_INST_CODE_FRAME, */
-/* } scm_vm_inst_code_t; */
-
-/* struct ScmVMEnvRec { */
-/*   ScmObj in_port;        /\* is not target of GC *\/ */
-/*   ScmObj out_port;       /\* is not target of GC *\/ */
-/*   ScmObj err_port;       /\* is not target of GC *\/ */
-/*   ScmMem *mem; */
-/* }; */
-
-/* struct ScmVMInstRec { */
-/*   scm_vm_inst_t *iseq; */
-/*   size_t iseq_size; */
-/* }; */
-
-/* #define SCM_VM_INST_FETCH_CODE(iseq, ip, code) (code) = (*(ip++) & 0xff) */
-/* #define SCM_VM_INST_FETCH_OBJ(iseq, ip, obj) (obj) = *(ScmObj *)(ip++) */
-
-
-
-/* #define SCM_VM_CHECK_STACK_OVER_FLOW(vm) \ */
-/*   ((size_t)((vm)->sp - (vm)->stack) < (vm)->stack_size - 1) */
-/* #define SCM_VM_CHECK_STACK_UNDER_FLOW(vm) ((size_t)((vm)->sp - (vm)->stack) < 1) */
-/* #define SCM_VM_PUSH_TO_STACK(vm, obj) (*((vm)->sp++) = obj) */
-/* #define SCM_VM_POP_FROM_STACK(vm, obj) (obj = *(--(vm)->sp) ) */
-
 ScmTypeInfo SCM_VM_TYPE_INFO = {
   NULL,                         /* pp_func              */
   sizeof(ScmVM),                /* obj_size             */
@@ -64,14 +34,7 @@ ScmTypeInfo SCM_VM_TYPE_INFO = {
   NULL,                         /* gc_accpet_func_weak  */
 };
 
-/* static ScmVMEnv *global_env; */
 ScmObj scm_vm__current_vm;
-
-/* static void */
-/* scm_vm_inst_call(ScmVM *vm) */
-/* { */
-/*   ; */
-/* } */
 
 void
 scm_vm_initialize(ScmObj vm)
@@ -221,12 +184,112 @@ scm_vm_end(ScmObj vm)
   scm_mem_end(SCM_VM_MEM(vm));
 }
 
+
+void
+scm_vm_setup_system(ScmObj vm)
+{
+  SCM_STACK_FRAME_PUSH(&vm);
+
+  SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
+
+  scm_core_subr_system_setup();
+}
+
+
+static inline scm_iword_t
+scm_vm_inst_fetch(ScmObj vm)
+{
+  return *(SCM_VM_IP(vm)++);
+}
+
+
+void
+scm_vm_run(ScmObj vm, ScmObj iseq)
+{
+  bool stop;
+  scm_inst_t code1, code2;
+
+  SCM_STACK_FRAME_PUSH(&vm, &iseq);
+
+  SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
+  SCM_OBJ_ASSERT_TYPE(iseq, &SCM_ISEQ_TYPE_INFO);
+
+  SCM_VM_ISEQ_SETQ(vm, iseq);
+  SCM_VM_IP(vm) = SCM_ISEQ_SEQ(iseq);
+  SCM_VM_VAL_SETQ(vm, SCM_OBJ_NULL);
+    /* TODO: undefined オブジェクトのようなものを初期値にする */
+
+  stop = false;
+  while (stop) {
+    code1.iword = scm_vm_inst_fetch(vm);
+
+    switch(code1.plain.op) {
+    case SCM_OPCODE_NOP:
+      /* nothing to do */
+      break;
+    case SCM_OPCODE_STOP:
+      stop = true;
+      break;
+    case SCM_OPCODE_CALL:
+      scm_vm_op_call(vm);
+      break;
+    case SCM_OPCODE_RETURN:
+      scm_vm_op_return(vm);
+      break;
+    case SCM_OPCODE_FRAME:
+      scm_vm_op_frame(vm);
+      break;
+    case SCM_OPCODE_IMMVAL:
+      scm_vm_op_immval(vm,
+                       scm_iseq_get_immval(SCM_VM_ISEQ(vm),
+                                           code1.immv1.imm_idx));
+      break;
+    case SCM_OPCODE_PUSH:
+      scm_vm_op_push(vm);
+      break;
+    case SCM_OPCODE_PUSH_IMMVAL:
+      scm_vm_op_push_immval(vm,
+                            scm_iseq_get_immval(SCM_VM_ISEQ(vm),
+                                                code1.immv1.imm_idx));
+      break;
+    case SCM_OPCODE_PUSH_PRIMVAL:
+      scm_vm_op_push_primval(vm, code1.primv.primval);
+      break;
+    case SCM_OPCODE_GREF:
+      scm_vm_op_gref(vm,
+                     scm_iseq_get_immval(SCM_VM_ISEQ(vm), code1.immv1.imm_idx),
+                     code1.immv1.imm_idx);
+      break;
+    case SCM_OPCODE_GDEF:
+      code2.iword = scm_vm_inst_fetch(vm);
+      scm_vm_op_gdef(vm,
+                     scm_iseq_get_immval(SCM_VM_ISEQ(vm), code1.immv1.imm_idx),
+                     scm_iseq_get_immval(SCM_VM_ISEQ(vm), code2.immv2.imm_idx),
+                     code1.immv1.imm_idx);;
+      break;
+    case SCM_OPCODE_GSET:
+      code2.iword = scm_vm_inst_fetch(vm);
+      scm_vm_op_gset(vm,
+                     scm_iseq_get_immval(SCM_VM_ISEQ(vm), code1.immv1.imm_idx),
+                     scm_iseq_get_immval(SCM_VM_ISEQ(vm), code2.immv2.imm_idx),
+                     code1.immv1.imm_idx);;
+      break;
+    default:
+      /* TODO: error handling */
+      stop = true;
+      break;
+    }
+  }
+}
+
+
+
 void
 scm_vm_stack_push(ScmObj vm, scm_vm_stack_val_t elm, bool scmobj_p)
 {
   scm_vm_stack_val_t *sp;
 
-  SCM_STACK_PUSH(&vm, &elm);
+  SCM_STACK_FRAME_PUSH(&vm, &elm);
 
   SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
 
@@ -253,7 +316,7 @@ scm_vm_stack_pop(ScmObj vm)
 {
   ScmObj elm = SCM_OBJ_INIT;
 
-  SCM_STACK_PUSH(&vm, &elm);
+  SCM_STACK_FRAME_PUSH(&vm, &elm);
 
   SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
 
@@ -271,7 +334,7 @@ scm_vm_stack_pop(ScmObj vm)
 void
 scm_vm_stack_shorten(ScmObj vm, int n)
 {
-  SCM_STACK_PUSH(&vm);
+  SCM_STACK_FRAME_PUSH(&vm);
   SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
 
   if (SCM_VM_SP(vm) - SCM_VM_STACK(vm) < n)
@@ -288,7 +351,7 @@ scm_vm_frame_argc(ScmObj vm)
 {
   scm_uword_t argc;
 
-  SCM_STACK_PUSH(&vm);
+  SCM_STACK_FRAME_PUSH(&vm);
 
   SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
   assert(SCM_VM_FP(vm) != NULL);
@@ -304,7 +367,7 @@ scm_vm_frame_argc(ScmObj vm)
 ScmObj
 scm_vm_frame_argv(ScmObj vm, int nth)
 {
-  SCM_STACK_PUSH(&vm);
+  SCM_STACK_FRAME_PUSH(&vm);
 
   SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
 
@@ -320,7 +383,7 @@ scm_vm_frame_outer_frame(ScmObj vm)
 {
   int argc;
 
-  SCM_STACK_PUSH(&vm);
+  SCM_STACK_FRAME_PUSH(&vm);
 
   SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
 
@@ -335,7 +398,7 @@ scm_vm_frame_iseq(ScmObj vm)
 {
   int argc;
 
-  SCM_STACK_PUSH(&vm);
+  SCM_STACK_FRAME_PUSH(&vm);
 
   SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
 
@@ -350,7 +413,7 @@ scm_vm_frame_next_inst(ScmObj vm)
 {
   int argc;
 
-  SCM_STACK_PUSH(&vm);
+  SCM_STACK_FRAME_PUSH(&vm);
 
   SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
 
@@ -373,6 +436,69 @@ scm_vm_refer_local_var(ScmObj vm, int nth)
   return scm_vm_frame_argv(vm, nth);
 }
 
+void
+scm_vm_return_to_caller(ScmObj vm)
+{
+  int argc;
+
+  SCM_STACK_FRAME_PUSH(vm);
+
+  argc = scm_vm_frame_argc(vm);
+
+  SCM_VM_FP(vm) = scm_vm_frame_outer_frame(vm);
+  SCM_VM_ISEQ_SETQ(vm, scm_vm_frame_iseq(vm));
+  SCM_VM_IP(vm) = scm_vm_frame_next_inst(vm);
+
+  scm_vm_stack_shorten(vm, argc + 4); /* 3 := argc, fp, iseq, ip */
+}
+
+
+/* 関数呼出のためのインストラクション */
+void
+scm_vm_op_call(ScmObj vm)
+{
+  SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
+
+  if (SCM_OBJ_IS_TYPE(SCM_VM_VAL(vm), &SCM_SUBRUTINE_TYPE_INFO))
+    scm_subrutine_call(SCM_VM_VAL(vm));
+  /* TODO:  val レジスタがクロージャのケースの実装 */
+  else
+    ;                           /* TODO: error handling */
+}
+
+void
+scm_vm_op_immval(ScmObj vm, ScmObj val)
+{
+  SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
+  assert(SCM_OBJ_IS_NOT_NULL(val));
+
+  SCM_VM_VAL_SETQ(vm, val);
+}
+
+void
+scm_vm_op_push(ScmObj vm)
+{
+  SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
+
+  scm_vm_stack_push(vm, (scm_vm_stack_val_t)SCM_VM_VAL(vm), true);
+}
+
+void
+scm_vm_op_push_immval(ScmObj vm, ScmObj val)
+{
+  SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
+  assert(SCM_OBJ_IS_NOT_NULL(val));
+
+  scm_vm_stack_push(vm, (scm_vm_stack_val_t)val, true);
+}
+
+void
+scm_vm_op_push_primval(ScmObj vm, scm_sword_t val)
+{
+  SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
+
+  scm_vm_stack_push(vm, (scm_vm_stack_val_t)val, false);
+}
 
 /* 関数呼出のためのスタックフレームを作成するインストラクション。
  * フレームポインタとインストラクションポインタをスタックにプッシュする。
@@ -389,31 +515,11 @@ scm_vm_op_frame(ScmObj vm) /* GC OK */
 }
 
 /* 関数の呼び出しから戻るインストラクション。
- * 引数 val が SCM_OBJ_NULL ではない場合、 val レジスタを val の値で更新する。
- * 引数 val を使用するのは主に C 実装の関数呼出から戻る場合を想定。
  */
 void
-scm_vm_op_return(ScmObj vm, ScmObj val) /* GC OK */
+scm_vm_op_return(ScmObj vm) /* GC OK */
 {
-  ScmObj *fp, iseq = SCM_OBJ_INIT;
-  scm_iword_t *ip;
-  int argc;
-
-  SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
-
-  argc = scm_vm_frame_argc(vm);
-  fp = scm_vm_frame_outer_frame(vm);
-  SCM_SETQ(iseq, scm_vm_frame_iseq(vm));
-  ip = scm_vm_frame_next_inst(vm);
-
-  SCM_VM_FP(vm) = fp;
-  SCM_VM_ISEQ_SETQ(vm, iseq);
-  SCM_VM_IP(vm) = ip;
-
-  if (SCM_OBJ_IS_NOT_NULL(val))
-    SCM_VM_VAL_SETQ(vm, val);
-
-  scm_vm_stack_shorten(vm, argc + 4); /* 3 := argc, fp, iseq, ip */
+  scm_vm_return_to_caller(vm);
 }
 
 /* グローバル変数を参照するインストラクション。
