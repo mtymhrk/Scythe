@@ -206,7 +206,7 @@ scm_vm_inst_fetch(ScmObj vm)
 void
 scm_vm_run(ScmObj vm, ScmObj iseq)
 {
-  bool stop;
+  bool stop_flag;
   scm_inst_t code1, code2;
 
   SCM_STACK_FRAME_PUSH(&vm, &iseq);
@@ -219,8 +219,8 @@ scm_vm_run(ScmObj vm, ScmObj iseq)
   SCM_VM_VAL_SETQ(vm, SCM_OBJ_NULL);
     /* TODO: undefined オブジェクトのようなものを初期値にする */
 
-  stop = false;
-  while (stop) {
+  stop_flag = false;
+  while (!stop_flag) {
     code1.iword = scm_vm_inst_fetch(vm);
 
     switch(code1.plain.op) {
@@ -228,7 +228,7 @@ scm_vm_run(ScmObj vm, ScmObj iseq)
       /* nothing to do */
       break;
     case SCM_OPCODE_STOP:
-      stop = true;
+      stop_flag = true;
       break;
     case SCM_OPCODE_CALL:
       scm_vm_op_call(vm);
@@ -276,7 +276,7 @@ scm_vm_run(ScmObj vm, ScmObj iseq)
       break;
     default:
       /* TODO: error handling */
-      stop = true;
+      stop_flag = true;
       break;
     }
   }

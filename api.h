@@ -18,6 +18,9 @@
 static inline ScmObj
 scm_api_eq_p(ScmObj obj1, ScmObj obj2)
 {
+  if (SCM_OBJ_IS_NULL(obj1) || SCM_OBJ_IS_NULL(obj2))
+      return SCM_OBJ_NULL;         /* provisional implemntation */
+
   return (SCM_OBJ_IS_SAME_INSTANCE(obj1, obj2) ?
           scm_vm_bool_true_instance() : scm_vm_bool_false_instance());
 }
@@ -48,7 +51,7 @@ scm_api_make_string_ascii(const char *str)
 static inline ScmObj
 scm_api_symbol_to_string(ScmObj sym)
 {
-  if (!SCM_OBJ_IS_TYPE(sym, &SCM_SYMBOL_TYPE_INFO))
+  if (SCM_OBJ_IS_NULL(sym) || !SCM_OBJ_IS_TYPE(sym, &SCM_SYMBOL_TYPE_INFO))
     /* TODO: ランタイムエラーをどう処理するか。*/
     return SCM_OBJ_NULL;        /* provisional implemntation */
 
@@ -58,7 +61,7 @@ scm_api_symbol_to_string(ScmObj sym)
 static inline ScmObj
 scm_api_string_to_symbol(ScmObj str)
 {
-  if (SCM_OBJ_IS_TYPE(str, &SCM_STRING_TYPE_INFO))
+  if (SCM_OBJ_IS_NULL(str) || !SCM_OBJ_IS_TYPE(str, &SCM_STRING_TYPE_INFO))
     return SCM_OBJ_NULL;         /* provisional implemntation */
 
   return scm_symtbl_symbol(scm_vm_current_symtbl(), str);
@@ -90,7 +93,7 @@ scm_api_cons(ScmObj car, ScmObj cdr)
 static inline ScmObj
 scm_api_car(ScmObj pair)
 {
-  if (!SCM_OBJ_IS_TYPE(pair, &SCM_PAIR_TYPE_INFO))
+  if (SCM_OBJ_IS_NULL(pair) || !SCM_OBJ_IS_TYPE(pair, &SCM_PAIR_TYPE_INFO))
     return SCM_OBJ_NULL;         /* provisional implemntation */
 
   return scm_pair_car(pair);
@@ -99,7 +102,7 @@ scm_api_car(ScmObj pair)
 static inline ScmObj
 scm_api_cdr(ScmObj pair)
 {
-  if (!SCM_OBJ_IS_TYPE(pair, &SCM_PAIR_TYPE_INFO))
+  if (SCM_OBJ_IS_NULL(pair) || !SCM_OBJ_IS_TYPE(pair, &SCM_PAIR_TYPE_INFO))
     return SCM_OBJ_NULL;         /* provisional implemntation */
 
   return scm_pair_cdr(pair);
@@ -132,7 +135,8 @@ scm_api_global_var_ref(ScmObj sym)
 
   SCM_STACK_FRAME_PUSH(&sym, &gloc);
 
-  SCM_OBJ_ASSERT_TYPE(sym, &SCM_SYMBOL_TYPE_INFO);
+  if (SCM_OBJ_IS_NULL(sym) || !SCM_OBJ_IS_TYPE(sym, &SCM_SYMBOL_TYPE_INFO))
+    return SCM_OBJ_NULL;         /* provisional implemntation */
 
   rslt = scm_gloctbl_find(scm_vm_current_gloctbl(), sym, SCM_REF_MAKE(gloc));
   if (rslt != 0) {
@@ -151,6 +155,9 @@ scm_api_global_var_bound_p(ScmObj sym)
 
   SCM_STACK_FRAME_PUSH(&sym, &o);
 
+  if (SCM_OBJ_IS_NULL(sym) || !SCM_OBJ_IS_TYPE(sym, &SCM_SYMBOL_TYPE_INFO))
+    return SCM_OBJ_NULL;         /* provisional implemntation */
+
   SCM_SETQ(o, scm_api_global_var_ref(sym));
 
   return (SCM_OBJ_IS_NULL(o) ?
@@ -164,8 +171,10 @@ scm_api_global_var_define(ScmObj sym, ScmObj val)
 
   SCM_STACK_FRAME_PUSH(&sym, &val, &gloc);
 
-  SCM_OBJ_ASSERT_TYPE(sym, &SCM_SYMBOL_TYPE_INFO);
-  assert(SCM_OBJ_IS_NOT_NULL(val));
+  if (SCM_OBJ_IS_NULL(sym) || !SCM_OBJ_IS_TYPE(sym, &SCM_SYMBOL_TYPE_INFO))
+    return SCM_OBJ_NULL;         /* provisional implemntation */
+  if (SCM_OBJ_IS_NULL(val))
+    return SCM_OBJ_NULL;         /* provisional implemntation */
 
   SCM_SETQ(gloc, scm_gloctbl_bind(scm_vm_current_gloctbl(), sym, val));
   if (SCM_OBJ_IS_NULL(gloc)) {
@@ -183,8 +192,10 @@ scm_api_global_var_set(ScmObj sym, ScmObj val)
 
   SCM_STACK_FRAME_PUSH(&sym, &val, &gloc);
 
-  SCM_OBJ_ASSERT_TYPE(sym, &SCM_SYMBOL_TYPE_INFO);
-  assert(SCM_OBJ_IS_NOT_NULL(val));
+  if (SCM_OBJ_IS_NULL(sym) || !SCM_OBJ_IS_TYPE(sym, &SCM_SYMBOL_TYPE_INFO))
+    return SCM_OBJ_NULL;         /* provisional implemntation */
+  if (SCM_OBJ_IS_NULL(val))
+    return SCM_OBJ_NULL;         /* provisional implemntation */
 
   /* 未束縛変数の参照の場合は SCM_OBJ_NULL を返す */
   if (SCM_OBJ_IS_SAME_INSTANCE(scm_api_global_var_bound_p(sym),

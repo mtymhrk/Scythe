@@ -107,6 +107,9 @@ void scm_vm_finalize(ScmObj vm);
 ScmObj scm_vm_new(void);
 void scm_vm_end(ScmObj vm);
 
+void scm_vm_setup_system(ScmObj vm);
+void scm_vm_run(ScmObj vm, ScmObj iseq);
+
 void scm_vm_stack_push(ScmObj vm, scm_vm_stack_val_t elm, bool scmobj_p);
 ScmObj scm_vm_stack_pop(ScmObj vm);
 void scm_vm_stack_shorten(ScmObj vm, int n);

@@ -65,7 +65,7 @@ scm_core_subr_system_setup(void)
 
   SCM_STACK_FRAME_PUSH(&sym, &subr, &rslt);
 
-  for (size_t i = 0; i <= sizeof(syms)/sizeof(syms[0]); i++) {
+  for (size_t i = 0; i < sizeof(syms)/sizeof(syms[0]); i++) {
     SCM_SETQ(sym, scm_api_make_symbol_ascii(syms[i]));
     SCM_SETQ(subr, scm_api_make_subrutine(funcs[i]));
     SCM_SETQ(rslt, scm_api_global_var_define(sym, subr));

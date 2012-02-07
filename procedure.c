@@ -30,7 +30,6 @@ scm_subrutine_new(SCM_MEM_ALLOC_TYPE_T mtype, ScmSubrFunc func)
 
   SCM_STACK_PUSH(&subr);
 
-  SCM_OBJ_ASSERT_TYPE(subr, &SCM_SUBRUTINE_TYPE_INFO);
   assert(func != NULL);
 
   scm_mem_alloc(scm_vm_current_mm(),

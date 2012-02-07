@@ -343,7 +343,8 @@ test_vm.o: test_vm.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-helper.h \
  /usr/local/include/cutter/cutter/cut-experimental.h ../vm.h ../object.h \
  ../memory.h ../basichash.h ../reference.h ../vm.h ../instractions.h \
- ../object.h
+ ../object.h ../iseq.h ../earray.h ../api.h ../string.h ../encoding.h \
+ ../symbol.h ../procedure.h ../gloc.h ../pair.h
 test_iseq.o: test_iseq.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-version.h \
  /usr/local/include/cutter/cutter/cut-features.h \
