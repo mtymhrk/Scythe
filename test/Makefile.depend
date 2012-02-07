@@ -38,7 +38,7 @@ chashtbl.o: ../chashtbl.c ../object.h ../memory.h ../basichash.h \
  ../reference.h ../vm.h ../instractions.h ../chashtbl.h
 api.o: ../api.c ../vm.h ../object.h ../memory.h ../basichash.h \
  ../reference.h ../instractions.h ../string.h ../encoding.h ../symbol.h \
- ../chashtbl.h ../api.h ../pair.h
+ ../gloc.h ../api.h ../pair.h
 gloc.o: ../gloc.c ../object.h ../memory.h ../basichash.h ../reference.h \
  ../vm.h ../instractions.h ../symbol.h ../chashtbl.h ../gloc.h
 test_pair.o: test_pair.c /usr/local/include/cutter/cutter.h \

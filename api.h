@@ -104,4 +104,84 @@ scm_api_cdr(ScmObj pair)
 
 
 
+/*******************************************************************/
+/*  Global Variable                                                */
+/*******************************************************************/
+
+static inline ScmObj
+scm_api_global_var_ref(ScmObj sym)
+{
+  ScmObj gloc = SCM_OBJ_INIT;
+  int rslt;
+
+  SCM_STACK_FRAME_PUSH(&sym, &gloc);
+
+  SCM_OBJ_ASSERT_TYPE(sym, &SCM_SYMBOL_TYPE_INFO);
+
+  rslt = scm_gloctbl_find(scm_vm_current_gloctbl(), sym, SCM_REF_MAKE(gloc));
+  if (rslt != 0) {
+    ;                           /* TODO: error handling */
+    return SCM_OBJ_NULL;
+  }
+
+  /* 未束縛変数の参照の場合は SCM_OBJ_NULL を返す */
+  return (SCM_OBJ_IS_NULL(gloc) ?  SCM_OBJ_NULL : scm_gloc_value(gloc));
+}
+
+static inline ScmObj
+scm_api_global_var_bound_p(ScmObj sym)
+{
+  ScmObj o = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&sym, &o);
+
+  SCM_SETQ(o, scm_api_global_var_ref(sym));
+
+  return (SCM_OBJ_IS_NULL(o) ?
+          scm_vm_bool_false_instance() : scm_vm_bool_true_instance());
+}
+
+static inline ScmObj
+scm_api_global_var_define(ScmObj sym, ScmObj val)
+{
+  ScmObj gloc = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&sym, &val, &gloc);
+
+  SCM_OBJ_ASSERT_TYPE(sym, &SCM_SYMBOL_TYPE_INFO);
+  assert(SCM_OBJ_IS_NOT_NULL(val));
+
+  SCM_SETQ(gloc, scm_gloctbl_bind(scm_vm_current_gloctbl(), sym, val));
+  if (SCM_OBJ_IS_NULL(gloc)) {
+    ;                           /* TODO: error handling */
+    return SCM_OBJ_NULL;
+  }
+
+  return val;
+}
+
+static inline ScmObj
+scm_api_global_var_set(ScmObj sym, ScmObj val)
+{
+  ScmObj gloc = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&sym, &val, &gloc);
+
+  SCM_OBJ_ASSERT_TYPE(sym, &SCM_SYMBOL_TYPE_INFO);
+  assert(SCM_OBJ_IS_NOT_NULL(val));
+
+  /* 未束縛変数の参照の場合は SCM_OBJ_NULL を返す */
+  if (SCM_OBJ_IS_SAME_INSTANCE(scm_api_global_var_bound_p(sym),
+                               scm_vm_bool_false_instance()))
+    return SCM_OBJ_NULL;
+
+  SCM_SETQ(gloc, scm_gloctbl_bind(scm_vm_current_gloctbl(), sym, val));
+  if (SCM_OBJ_IS_NULL(gloc)) {
+    ;                           /* TODO: error handling */
+    return SCM_OBJ_NULL;
+  }
+
+  return val;
+}
+
 #endif /* INCLUDE_API_H__ */
