@@ -282,9 +282,15 @@ scm_obj_has_weak_ref_p(ScmObj obj)
   return scm_type_info_has_instance_weak_ref_p(scm_obj_type(obj));
 }
 
+static inline void
+scm_obj_init(ScmObj obj, ScmTypeInfo *type)
+{
+  assert(scm_obj_not_null_p(obj));
+  assert(type != NULL);
 
-void scm_obj_init(ScmObj obj, ScmTypeInfo *type);
-
+  if (scm_obj_mem_managed_p(obj))
+    SCM_MMOBJ(obj)->header.type = type;
+}
 
 #define SCM_OBJ_ASSERT_TYPE(obj, type) \
   assert(scm_obj_not_null_p(obj));    \

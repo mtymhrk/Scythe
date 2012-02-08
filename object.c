@@ -1,20 +1,4 @@
-#include <unistd.h>
-#include <stdbool.h>
-#include <assert.h>
-
 #include "object.h"
-
-void
-scm_obj_init(ScmObj obj, ScmTypeInfo *type)
-{
-  assert(scm_obj_not_null_p(obj));
-  assert(type != NULL);
-
-  if (scm_obj_mem_managed_p(obj))
-    SCM_MMOBJ(obj)->header.type = type;
-}
-
-
 #include "numeric.h"
 
 ScmTypeInfo *SCM_OBJ_TAG2TYPE_TBL[SCM_OBJ_TAG_NR_KIND] = {
