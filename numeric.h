@@ -25,7 +25,7 @@ scm_fixnum_value(ScmObj num)
 {
   SCM_OBJ_ASSERT_TYPE(num, &SCM_FIXNUM_TYPE_INFO);
 
-  return SCM_RSHIFT_ARITH((scm_sword_t)num, SCM_FIXNUM_SHIFT_BIT);
+  return scm_rshift_arith_sword((scm_sword_t)num, SCM_FIXNUM_SHIFT_BIT);
 }
 
 #endif /* INCLUDE_NUMERIC_H__ */
