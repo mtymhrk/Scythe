@@ -24,7 +24,7 @@ scm_fixnum_new(scm_sword_t num)
 static inline scm_sword_t
 scm_fixnum_value(ScmObj num)
 {
-  SCM_OBJ_ASSERT_TYPE(num, &SCM_FIXNUM_TYPE_INFO);
+  scm_assert_obj_type(num, &SCM_FIXNUM_TYPE_INFO);
 
   return scm_rshift_arith_sword((scm_sword_t)num, SCM_FIXNUM_SHIFT_BIT);
 }

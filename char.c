@@ -23,7 +23,7 @@ ScmTypeInfo SCM_CHAR_TYPE_INFO = {
 void
 scm_char_initialize(ScmObj chr, scm_char_t value, SCM_ENCODING_T enc) /* GC OK */
 {
-  SCM_OBJ_ASSERT_TYPE(chr, &SCM_CHAR_TYPE_INFO);
+  scm_assert_obj_type(chr, &SCM_CHAR_TYPE_INFO);
   assert(/* 0 <= enc && */ enc < SMC_ENCODING_NR_ENC);
 
   SCM_CHAR_VALUE(chr) = value;
@@ -74,7 +74,7 @@ scm_char_new_space(SCM_MEM_ALLOC_TYPE_T mtype, SCM_ENCODING_T enc) /* GC OK */
 scm_char_t
 scm_char_value(ScmObj chr)      /* GC OK */
 {
-  SCM_OBJ_ASSERT_TYPE(chr, &SCM_CHAR_TYPE_INFO);
+  scm_assert_obj_type(chr, &SCM_CHAR_TYPE_INFO);
 
   return SCM_CHAR_VALUE(chr);
 }
@@ -82,7 +82,7 @@ scm_char_value(ScmObj chr)      /* GC OK */
 SCM_ENCODING_T
 scm_char_encoding(ScmObj chr)   /* GC OK */
 {
-  SCM_OBJ_ASSERT_TYPE(chr, &SCM_CHAR_TYPE_INFO);
+  scm_assert_obj_type(chr, &SCM_CHAR_TYPE_INFO);
 
   return SCM_CHAR_ENC(chr);
 }

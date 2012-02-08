@@ -21,7 +21,7 @@ scm_vector_initialize(ScmObj vector, size_t length) /* GC OK */
 {
   size_t i;
 
-  SCM_OBJ_ASSERT_TYPE(vector, &SCM_VECTOR_TYPE_INFO);
+  scm_assert_obj_type(vector, &SCM_VECTOR_TYPE_INFO);
 
   if (length > 0)
     SCM_VECTOR_ARRAY(vector) = scm_memory_allocate(sizeof(ScmObj) * length);
@@ -39,7 +39,7 @@ scm_vector_initialize(ScmObj vector, size_t length) /* GC OK */
 void
 scm_vector_finalize(ScmObj vector) /* GC OK */
 {
-  SCM_OBJ_ASSERT_TYPE(vector, &SCM_VECTOR_TYPE_INFO);
+  scm_assert_obj_type(vector, &SCM_VECTOR_TYPE_INFO);
 
   if (SCM_VECTOR_ARRAY(vector) != NULL)
     scm_memory_release(SCM_VECTOR_ARRAY(vector));
@@ -62,7 +62,7 @@ scm_vector_new(SCM_MEM_ALLOC_TYPE_T mtype, size_t length) /* GC OK */
 size_t
 scm_vector_length(ScmObj vector) /* GC OK */
 {
-  SCM_OBJ_ASSERT_TYPE(vector, &SCM_VECTOR_TYPE_INFO);
+  scm_assert_obj_type(vector, &SCM_VECTOR_TYPE_INFO);
 
   return SCM_VECTOR_LENGTH(vector);
 }
@@ -70,7 +70,7 @@ scm_vector_length(ScmObj vector) /* GC OK */
 ScmObj
 scm_vector_ref(ScmObj vector, size_t index) /* GC OK */
 {
-  SCM_OBJ_ASSERT_TYPE(vector, &SCM_VECTOR_TYPE_INFO);
+  scm_assert_obj_type(vector, &SCM_VECTOR_TYPE_INFO);
   assert(index < SCM_VECTOR_LENGTH(vector));
 
   return SCM_VECTOR_ARRAY(vector)[index];
@@ -79,7 +79,7 @@ scm_vector_ref(ScmObj vector, size_t index) /* GC OK */
 ScmObj
 scm_vector_set(ScmObj vector, size_t index, ScmObj obj) /* GC OK */
 {
-  SCM_OBJ_ASSERT_TYPE(vector, &SCM_VECTOR_TYPE_INFO);
+  scm_assert_obj_type(vector, &SCM_VECTOR_TYPE_INFO);
   assert(index < SCM_VECTOR_LENGTH(vector));
 
   return SCM_VECTOR_ARRAY(vector)[index] = obj;
@@ -96,7 +96,7 @@ scm_vector_is_vector(ScmObj obj) /* GC OK */
 void
 scm_vector_gc_initialize(ScmObj obj, ScmObj mem) /* GC OK */
 {
-  SCM_OBJ_ASSERT_TYPE(obj, &SCM_VECTOR_TYPE_INFO);
+  scm_assert_obj_type(obj, &SCM_VECTOR_TYPE_INFO);
 
   SCM_VECTOR_ARRAY(obj) = NULL;
   SCM_VECTOR_LENGTH(obj) = 0;
@@ -114,7 +114,7 @@ scm_vector_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler) /* GC 
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
   size_t i;
 
-  SCM_OBJ_ASSERT_TYPE(obj, &SCM_VECTOR_TYPE_INFO);
+  scm_assert_obj_type(obj, &SCM_VECTOR_TYPE_INFO);
   assert(scm_obj_not_null_p(mem));
   assert(handler != NULL);
 

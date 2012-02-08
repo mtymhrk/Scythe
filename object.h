@@ -273,22 +273,35 @@ scm_obj_has_weak_ref_p(ScmObj obj)
   return scm_type_info_has_instance_weak_ref_p(scm_obj_type(obj));
 }
 
+
+
+#define scm_assert(...) assert(__VA_ARGS__)
+
+static inline void
+scm_assert_obj_type(ScmObj obj, ScmTypeInfo *type)
+{
+  scm_assert(scm_obj_not_null_p(obj));
+  scm_assert(scm_obj_type_p(obj, type));
+}
+
+static inline void
+scm_assert_obj_type_accept_null(ScmObj obj, ScmTypeInfo *type)
+{
+  scm_assert(scm_obj_null_p(obj) || scm_obj_type_p(obj, type));
+}
+
+
+
+
 static inline void
 scm_obj_init(ScmObj obj, ScmTypeInfo *type)
 {
-  assert(scm_obj_not_null_p(obj));
-  assert(type != NULL);
+  scm_assert(scm_obj_not_null_p(obj));
+  scm_assert(type != NULL);
 
   if (scm_obj_mem_managed_p(obj))
     SCM_MMOBJ(obj)->header.type = type;
 }
-
-#define SCM_OBJ_ASSERT_TYPE(obj, type) \
-  assert(scm_obj_not_null_p(obj));    \
-  assert(scm_obj_type_p(obj, type));
-
-#define SCM_OBJ_ASSERT_TYPE_ACCEPT_NULL(obj, type)      \
-  assert(scm_obj_null_p(obj) || scm_obj_type_p(obj, type))
 
 
 #endif /* INCLUDE_OBJECT_H__ */

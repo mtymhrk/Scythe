@@ -20,8 +20,8 @@ ScmTypeInfo SCM_GLOC_TYPE_INFO = {
 void
 scm_gloc_initialize(ScmObj gloc, ScmObj sym, ScmObj val) /* GC OK */
 {
-  SCM_OBJ_ASSERT_TYPE(gloc, &SCM_GLOC_TYPE_INFO);
-  SCM_OBJ_ASSERT_TYPE(sym, &SCM_SYMBOL_TYPE_INFO);
+  scm_assert_obj_type(gloc, &SCM_GLOC_TYPE_INFO);
+  scm_assert_obj_type(sym, &SCM_SYMBOL_TYPE_INFO);
 
   SCM_SETQ(SCM_GLOC(gloc)->sym, sym);
   SCM_SETQ(SCM_GLOC(gloc)->val, val);
@@ -46,7 +46,7 @@ scm_gloc_new(SCM_MEM_ALLOC_TYPE_T mtype, ScmObj sym) /* GC OK */
 void
 scm_gloc_gc_initialize(ScmObj obj, ScmObj mem)
 {
-  SCM_OBJ_ASSERT_TYPE(obj, &SCM_GLOC_TYPE_INFO);
+  scm_assert_obj_type(obj, &SCM_GLOC_TYPE_INFO);
 
   SCM_SETQ(SCM_GLOC(obj)->sym, SCM_OBJ_NULL);
   SCM_SETQ(SCM_GLOC(obj)->val, SCM_OBJ_NULL);
@@ -57,7 +57,7 @@ scm_gloc_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
 {
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
 
-  SCM_OBJ_ASSERT_TYPE(obj, &SCM_GLOC_TYPE_INFO);
+  scm_assert_obj_type(obj, &SCM_GLOC_TYPE_INFO);
 
   rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_GLOC(obj)->sym, mem);
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
@@ -98,7 +98,7 @@ scm_gloctbl_initialize(ScmObj tbl) /* GC OK */
 {
   SCM_STACK_FRAME_PUSH(&tbl);
 
-  SCM_OBJ_ASSERT_TYPE(tbl, &SCM_GLOCTBL_TYPE_INFO);
+  scm_assert_obj_type(tbl, &SCM_GLOCTBL_TYPE_INFO);
 
   SCM_SETQ(SCM_GLOCTBL(tbl)->tbl,
            scm_chash_tbl_new(SCM_MEM_ALLOC_HEAP, SCM_GLOCTBL_SIZE,
@@ -131,8 +131,8 @@ scm_gloctbl_find(ScmObj tbl, ScmObj sym, ScmRef gloc) /* GC OK */
 
   SCM_STACK_FRAME_PUSH(&gloc, &tbl, &sym);
 
-  SCM_OBJ_ASSERT_TYPE(tbl, &SCM_GLOCTBL_TYPE_INFO);
-  SCM_OBJ_ASSERT_TYPE(sym, &SCM_SYMBOL_TYPE_INFO);
+  scm_assert_obj_type(tbl, &SCM_GLOCTBL_TYPE_INFO);
+  scm_assert_obj_type(sym, &SCM_SYMBOL_TYPE_INFO);
 
   rslt = scm_chash_tbl_get(SCM_GLOCTBL(tbl)->tbl, sym, gloc, &found);
   if (rslt != 0) return -1;
@@ -151,8 +151,8 @@ scm_gloctbl_gloc(ScmObj tbl, ScmObj sym) /* GC OK */
 
   SCM_STACK_FRAME_PUSH(&gloc, &tbl, &sym);
 
-  SCM_OBJ_ASSERT_TYPE(tbl, &SCM_GLOCTBL_TYPE_INFO);
-  SCM_OBJ_ASSERT_TYPE(sym, &SCM_SYMBOL_TYPE_INFO);
+  scm_assert_obj_type(tbl, &SCM_GLOCTBL_TYPE_INFO);
+  scm_assert_obj_type(sym, &SCM_SYMBOL_TYPE_INFO);
 
   rslt = scm_chash_tbl_get(SCM_GLOCTBL(tbl)->tbl, sym, &gloc, &found);
   if (rslt != 0) return SCM_OBJ_NULL;
@@ -186,7 +186,7 @@ scm_gloctbl_bind(ScmObj tbl, ScmObj sym, ScmObj val) /* GC OK */
 void
 scm_gloctbl_gc_initialize(ScmObj obj, ScmObj mem)
 {
-  SCM_OBJ_ASSERT_TYPE(obj, &SCM_GLOCTBL_TYPE_INFO);
+  scm_assert_obj_type(obj, &SCM_GLOCTBL_TYPE_INFO);
 
   SCM_SETQ(SCM_GLOCTBL(obj)->tbl, SCM_OBJ_NULL);
 }
@@ -194,7 +194,7 @@ scm_gloctbl_gc_initialize(ScmObj obj, ScmObj mem)
 int
 scm_gloctbl_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
 {
-  SCM_OBJ_ASSERT_TYPE(obj, &SCM_GLOCTBL_TYPE_INFO);
+  scm_assert_obj_type(obj, &SCM_GLOCTBL_TYPE_INFO);
 
   return SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_GLOCTBL(obj)->tbl, mem);
 }

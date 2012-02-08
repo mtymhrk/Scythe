@@ -21,7 +21,7 @@ ScmTypeInfo SCM_INTEGER_TYPE_INFO = {
 void
 scm_integer_initialize(ScmObj integer, long long value) /* GC OK */
 {
-  SCM_OBJ_ASSERT_TYPE(integer, &SCM_INTEGER_TYPE_INFO);
+  scm_assert_obj_type(integer, &SCM_INTEGER_TYPE_INFO);
 
   SCM_INTEGER_VALUE(integer) = value;
 }
@@ -51,7 +51,7 @@ scm_integer_new(SCM_MEM_ALLOC_TYPE_T mtype, long long value) /* GC OK */
 long long
 scm_integer_value(ScmObj integer) /* GC OK */
 {
-  SCM_OBJ_ASSERT_TYPE(integer, &SCM_INTEGER_TYPE_INFO);
+  scm_assert_obj_type(integer, &SCM_INTEGER_TYPE_INFO);
 
   return SCM_INTEGER_VALUE(integer);
 }
@@ -67,8 +67,8 @@ scm_integer_is_integer(ScmObj obj) /* GC OK */
 ScmObj
 scm_integer_plus(ScmObj val1, ScmObj val2) /* GC OK */
 {
-  SCM_OBJ_ASSERT_TYPE(val1, &SCM_INTEGER_TYPE_INFO);
-  SCM_OBJ_ASSERT_TYPE(val2, &SCM_INTEGER_TYPE_INFO);
+  scm_assert_obj_type(val1, &SCM_INTEGER_TYPE_INFO);
+  scm_assert_obj_type(val2, &SCM_INTEGER_TYPE_INFO);
 
   return scm_integer_new(SCM_MEM_ALLOC_HEAP,
                                SCM_INTEGER_VALUE(val1)
@@ -78,8 +78,8 @@ scm_integer_plus(ScmObj val1, ScmObj val2) /* GC OK */
 ScmObj
 scm_integer_minus(ScmObj val1, ScmObj val2) /* GC OK */
 {
-  SCM_OBJ_ASSERT_TYPE(val1, &SCM_INTEGER_TYPE_INFO);
-  SCM_OBJ_ASSERT_TYPE(val2, &SCM_INTEGER_TYPE_INFO);
+  scm_assert_obj_type(val1, &SCM_INTEGER_TYPE_INFO);
+  scm_assert_obj_type(val2, &SCM_INTEGER_TYPE_INFO);
 
   return scm_integer_new(SCM_MEM_ALLOC_HEAP,
                                SCM_INTEGER_VALUE(val1)
@@ -89,8 +89,8 @@ scm_integer_minus(ScmObj val1, ScmObj val2) /* GC OK */
 ScmObj
 scm_integer_multiply(ScmObj val1, ScmObj val2) /* GC OK */
 {
-  SCM_OBJ_ASSERT_TYPE(val1, &SCM_INTEGER_TYPE_INFO);
-  SCM_OBJ_ASSERT_TYPE(val2, &SCM_INTEGER_TYPE_INFO);
+  scm_assert_obj_type(val1, &SCM_INTEGER_TYPE_INFO);
+  scm_assert_obj_type(val2, &SCM_INTEGER_TYPE_INFO);
 
   return scm_integer_new(SCM_MEM_ALLOC_HEAP,
                                SCM_INTEGER_VALUE(val1)
@@ -100,8 +100,8 @@ scm_integer_multiply(ScmObj val1, ScmObj val2) /* GC OK */
 ScmObj
 scm_integer_divide(ScmObj val1, ScmObj val2) /* GC OK */
 {
-  SCM_OBJ_ASSERT_TYPE(val1, &SCM_INTEGER_TYPE_INFO);
-  SCM_OBJ_ASSERT_TYPE(val2, &SCM_INTEGER_TYPE_INFO);
+  scm_assert_obj_type(val1, &SCM_INTEGER_TYPE_INFO);
+  scm_assert_obj_type(val2, &SCM_INTEGER_TYPE_INFO);
 
   return scm_integer_new(SCM_MEM_ALLOC_HEAP,
                                SCM_INTEGER_VALUE(val1)
@@ -111,8 +111,8 @@ scm_integer_divide(ScmObj val1, ScmObj val2) /* GC OK */
 ScmObj
 scm_integer_reminder(ScmObj val1, ScmObj val2) /* GC OK */
 {
-  SCM_OBJ_ASSERT_TYPE(val1, &SCM_INTEGER_TYPE_INFO);
-  SCM_OBJ_ASSERT_TYPE(val2, &SCM_INTEGER_TYPE_INFO);
+  scm_assert_obj_type(val1, &SCM_INTEGER_TYPE_INFO);
+  scm_assert_obj_type(val2, &SCM_INTEGER_TYPE_INFO);
 
   return scm_integer_new(SCM_MEM_ALLOC_HEAP,
                                SCM_INTEGER_VALUE(val1)

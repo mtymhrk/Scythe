@@ -23,7 +23,7 @@ scm_iseq_initialize(ScmObj iseq) /* GC OK */
 {
   int rslt;
 
-  SCM_OBJ_ASSERT_TYPE(iseq, &SCM_ISEQ_TYPE_INFO);
+  scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
 
   rslt = eary_init(SCM_ISEQ_EARY_SEQ(iseq),
                    sizeof(scm_iword_t), SCM_ISEQ_DEFAULT_SEQ_SIZE);
@@ -57,7 +57,7 @@ scm_iseq_new(SCM_MEM_ALLOC_TYPE_T mtype) /* GC OK */
 void
 scm_iseq_finalize(ScmObj obj) /* GC OK */
 {
-  SCM_OBJ_ASSERT_TYPE(obj, &SCM_ISEQ_TYPE_INFO);
+  scm_assert_obj_type(obj, &SCM_ISEQ_TYPE_INFO);
 
   eary_fin(SCM_ISEQ_EARY_SEQ(obj));
   eary_fin(SCM_ISEQ_EARY_IMMVS(obj));
@@ -69,7 +69,7 @@ scm_iseq_set_immval(ScmObj iseq, ScmObj val) /* GC OK */
   size_t idx;
   int err;
 
-  SCM_OBJ_ASSERT_TYPE(iseq, &SCM_ISEQ_TYPE_INFO);
+  scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
   assert(scm_obj_not_null_p(val));
 
   idx = SCM_ISEQ_VEC_LENGTH(iseq);
@@ -87,7 +87,7 @@ scm_iseq_update_immval(ScmObj iseq, int idx, ScmObj val)
 {
   int err;
 
-  SCM_OBJ_ASSERT_TYPE(iseq, &SCM_ISEQ_TYPE_INFO);
+  scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
   assert(idx >= 0);
   assert(scm_obj_not_null_p(val));
 
@@ -105,7 +105,7 @@ scm_iseq_set_word(ScmObj iseq, size_t index, scm_iword_t word) /* GC OK */
 {
   int err;
 
-  SCM_OBJ_ASSERT_TYPE(iseq, &SCM_ISEQ_TYPE_INFO);
+  scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
 
   EARY_SET(SCM_ISEQ_EARY_SEQ(iseq), scm_iword_t, index, word, err);
   if (err != 0) return -1;
@@ -116,7 +116,7 @@ scm_iseq_set_word(ScmObj iseq, size_t index, scm_iword_t word) /* GC OK */
 void
 scm_iseq_gc_initialize(ScmObj obj, ScmObj mem) /* GC OK */
 {
-  SCM_OBJ_ASSERT_TYPE(obj, &SCM_ISEQ_TYPE_INFO);
+  scm_assert_obj_type(obj, &SCM_ISEQ_TYPE_INFO);
 
   eary_init(SCM_ISEQ_EARY_SEQ(obj), 0, 0);
   eary_init(SCM_ISEQ_EARY_IMMVS(obj), 0, 0);
@@ -133,7 +133,7 @@ scm_iseq_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler) /* GC OK
 {
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
 
-  SCM_OBJ_ASSERT_TYPE(obj, &SCM_ISEQ_TYPE_INFO);
+  scm_assert_obj_type(obj, &SCM_ISEQ_TYPE_INFO);
   assert(scm_obj_not_null_p(mem));
   assert(handler != NULL);
 

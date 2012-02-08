@@ -23,7 +23,7 @@ struct ScmGLocRec {
 static inline void
 scm_gloc_bind(ScmObj gloc, ScmObj val)
 {
-  SCM_OBJ_ASSERT_TYPE(gloc, &SCM_GLOC_TYPE_INFO);
+  scm_assert_obj_type(gloc, &SCM_GLOC_TYPE_INFO);
   assert(scm_obj_not_null_p(val));
 
   SCM_SETQ(SCM_GLOC(gloc)->val, val);
@@ -32,7 +32,7 @@ scm_gloc_bind(ScmObj gloc, ScmObj val)
 static inline void
 scm_gloc_unbind(ScmObj gloc)
 {
-  SCM_OBJ_ASSERT_TYPE(gloc, &SCM_GLOC_TYPE_INFO);
+  scm_assert_obj_type(gloc, &SCM_GLOC_TYPE_INFO);
 
   SCM_SETQ(SCM_GLOC(gloc)->val, SCM_OBJ_NULL);
 }
@@ -40,7 +40,7 @@ scm_gloc_unbind(ScmObj gloc)
 static inline ScmObj
 scm_gloc_symbol(ScmObj gloc)
 {
-  SCM_OBJ_ASSERT_TYPE(gloc, &SCM_GLOC_TYPE_INFO);
+  scm_assert_obj_type(gloc, &SCM_GLOC_TYPE_INFO);
 
   return SCM_GLOC(gloc)->sym;
 }
@@ -48,7 +48,7 @@ scm_gloc_symbol(ScmObj gloc)
 static inline ScmObj
 scm_gloc_value(ScmObj gloc)
 {
-  SCM_OBJ_ASSERT_TYPE(gloc, &SCM_GLOC_TYPE_INFO);
+  scm_assert_obj_type(gloc, &SCM_GLOC_TYPE_INFO);
 
   return SCM_GLOC(gloc)->val;
 }

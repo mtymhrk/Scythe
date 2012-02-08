@@ -39,7 +39,7 @@ ScmObj scm_vm__current_vm;
 void
 scm_vm_initialize(ScmObj vm)
 {
-  SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
   scm_obj_init(SCM_OBJ(vm), &SCM_VM_TYPE_INFO);
 
@@ -92,7 +92,7 @@ scm_vm_initialize(ScmObj vm)
 void
 scm_vm_finalize(ScmObj vm)
 {
-  SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
   SCM_VM_STACK(vm) = scm_memory_release(SCM_VM_STACK(vm));
   SCM_VM_STACK_SIZE(vm) = 0;
@@ -109,7 +109,7 @@ scm_vm_finalize(ScmObj vm)
 void
 scm_vm_setup_root(ScmObj vm)
 {
-  SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
   SCM_SETQ(SCM_VM_SYMTBL(vm), scm_symtbl_new(SCM_MEM_ALLOC_ROOT));
   if (scm_obj_null_p(SCM_VM_SYMTBL(vm)))
@@ -141,7 +141,7 @@ scm_vm_setup_root(ScmObj vm)
 void
 scm_vm_clean_root(ScmObj vm)
 {
-  SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
   scm_mem_free_root(SCM_VM_MEM(vm), SCM_VM_SYMTBL(vm));
   scm_mem_free_root(SCM_VM_MEM(vm), SCM_VM_CONST_NIL(vm));
@@ -177,7 +177,7 @@ scm_vm_new(void)
 void
 scm_vm_end(ScmObj vm)
 {
-  SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
   scm_vm_clean_root(vm);
 
@@ -190,7 +190,7 @@ scm_vm_setup_system(ScmObj vm)
 {
   SCM_STACK_FRAME_PUSH(&vm);
 
-  SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
   scm_core_subr_system_setup();
 }
@@ -211,8 +211,8 @@ scm_vm_run(ScmObj vm, ScmObj iseq)
 
   SCM_STACK_FRAME_PUSH(&vm, &iseq);
 
-  SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
-  SCM_OBJ_ASSERT_TYPE(iseq, &SCM_ISEQ_TYPE_INFO);
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+  scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
 
   SCM_VM_ISEQ_SETQ(vm, iseq);
   SCM_VM_IP(vm) = SCM_ISEQ_SEQ(iseq);
@@ -287,7 +287,7 @@ scm_vm_stack_push(ScmObj vm, scm_vm_stack_val_t elm, bool scmobj_p)
   SCM_STACK_FRAME_PUSH(&vm);
   if (scmobj_p) SCM_STACK_PUSH(&elm);
 
-  SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
   if (SCM_VM_SP(vm) > SCM_VM_STACK(vm) + SCM_VM_STACK_SIZE(vm))
     return; /* stack overflow; TODO: handle stack overflow error  */
@@ -314,7 +314,7 @@ scm_vm_stack_pop(ScmObj vm)
 
   SCM_STACK_FRAME_PUSH(&vm, &elm);
 
-  SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
   if (SCM_VM_SP(vm) == SCM_VM_STACK(vm))
     /* stack underflow; TODO; handle stack underflow error */
@@ -331,7 +331,7 @@ void
 scm_vm_stack_shorten(ScmObj vm, int n)
 {
   SCM_STACK_FRAME_PUSH(&vm);
-  SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
   if (SCM_VM_SP(vm) - SCM_VM_STACK(vm) < n)
     /* stack underflow; TODO; handle stack underflow error */
@@ -349,7 +349,7 @@ scm_vm_frame_argc(ScmObj vm)
 
   SCM_STACK_FRAME_PUSH(&vm);
 
-  SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
   assert(SCM_VM_FP(vm) != NULL);
 
   argc = (scm_uword_t)SCM_VM_FP(vm)[-1];
@@ -365,7 +365,7 @@ scm_vm_frame_argv(ScmObj vm, int nth)
 {
   SCM_STACK_FRAME_PUSH(&vm);
 
-  SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
   if (nth >= scm_vm_frame_argc(vm))
     return SCM_OBJ_NULL;    /* 存在しない引数を参照。とりあえず NULL を返す */
@@ -410,7 +410,7 @@ scm_vm_return_to_caller(ScmObj vm)
 void
 scm_vm_op_call(ScmObj vm)
 {
-  SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
   if (scm_obj_type_p(SCM_VM_VAL(vm), &SCM_SUBRUTINE_TYPE_INFO)) {
     scm_vm_stack_val_t *fp = SCM_VM_FP(vm) = SCM_VM_SP(vm);
@@ -431,7 +431,7 @@ scm_vm_op_call(ScmObj vm)
 void
 scm_vm_op_immval(ScmObj vm, ScmObj val)
 {
-  SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
   assert(scm_obj_not_null_p(val));
 
   SCM_VM_VAL_SETQ(vm, val);
@@ -440,7 +440,7 @@ scm_vm_op_immval(ScmObj vm, ScmObj val)
 void
 scm_vm_op_push(ScmObj vm)
 {
-  SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
   scm_vm_stack_push(vm, (scm_vm_stack_val_t)SCM_VM_VAL(vm), true);
 }
@@ -448,7 +448,7 @@ scm_vm_op_push(ScmObj vm)
 void
 scm_vm_op_push_primval(ScmObj vm, scm_sword_t val)
 {
-  SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
   scm_vm_stack_push(vm, (scm_vm_stack_val_t)val, false);
 }
@@ -460,7 +460,7 @@ scm_vm_op_push_primval(ScmObj vm, scm_sword_t val)
 void
 scm_vm_op_frame(ScmObj vm) /* GC OK */
 {
-  SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
   /* push frame pointer */
   scm_vm_stack_push(vm, (scm_vm_stack_val_t)SCM_VM_FP(vm), false);
@@ -498,7 +498,7 @@ scm_vm_op_gref(ScmObj vm, ScmObj arg, int immv_idx)
 
   SCM_STACK_FRAME_PUSH(&vm, &arg, &gloc, &val);
 
-  SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
   assert(scm_obj_not_null_p(arg));
   assert(immv_idx >= 0);
 
@@ -547,7 +547,7 @@ scm_vm_op_gdef(ScmObj vm, ScmObj arg, ScmObj val, int immv_idx)
 
   SCM_STACK_FRAME_PUSH(&vm, &arg, &val, &gloc);
 
-  SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
   assert(scm_obj_not_null_p(arg));
   assert(scm_obj_not_null_p(val));
 
@@ -583,7 +583,7 @@ scm_vm_op_gset(ScmObj vm, ScmObj arg, ScmObj val, int immv_idx)
 
   SCM_STACK_FRAME_PUSH(&vm, &arg, &val, &gloc);
 
-  SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
   assert(scm_obj_not_null_p(arg));
   assert(immv_idx >= 0);
 
@@ -615,7 +615,7 @@ scm_vm_op_gset(ScmObj vm, ScmObj arg, ScmObj val, int immv_idx)
 void
 scm_vm_gc_initialize(ScmObj obj, ScmObj mem)
 {
-  SCM_OBJ_ASSERT_TYPE(obj, &SCM_VM_TYPE_INFO);
+  scm_assert_obj_type(obj, &SCM_VM_TYPE_INFO);
   assert(scm_obj_not_null_p(mem));
 
   SCM_VM_MEM(obj) = SCM_MEM(mem);
@@ -643,7 +643,7 @@ scm_vm_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
 {
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
 
-  SCM_OBJ_ASSERT_TYPE(obj, &SCM_VM_TYPE_INFO);
+  scm_assert_obj_type(obj, &SCM_VM_TYPE_INFO);
   assert(scm_obj_not_null_p(mem));
   assert(handler != NULL);
 

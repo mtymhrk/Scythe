@@ -80,7 +80,7 @@ ScmTypeInfo SCM_BOOL_TYPE_INFO = {
 void
 scm_bool_initialize(ScmObj obj, bool value) /* GC OK */
 {
-  SCM_OBJ_ASSERT_TYPE(obj, &SCM_BOOL_TYPE_INFO);
+  scm_assert_obj_type(obj, &SCM_BOOL_TYPE_INFO);
 
   SCM_BOOL_VALUE(obj) = value;
 }
@@ -119,7 +119,7 @@ scm_bool_instance(bool value)   /* GC OKsh */
 bool
 scm_bool_value(ScmObj bl)       /* GC OK */
 {
-  SCM_OBJ_ASSERT_TYPE(bl, &SCM_BOOL_TYPE_INFO);
+  scm_assert_obj_type(bl, &SCM_BOOL_TYPE_INFO);
 
   return SCM_BOOL_VALUE(bl);
 }

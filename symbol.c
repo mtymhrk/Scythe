@@ -28,8 +28,8 @@ scm_symbol_initialize(ScmObj sym, ScmObj str) /* GC OK */
 {
   SCM_STACK_FRAME_PUSH(&sym, &str);
 
-  SCM_OBJ_ASSERT_TYPE(sym, &SCM_SYMBOL_TYPE_INFO);
-  SCM_OBJ_ASSERT_TYPE(str, &SCM_STRING_TYPE_INFO);
+  scm_assert_obj_type(sym, &SCM_SYMBOL_TYPE_INFO);
+  scm_assert_obj_type(str, &SCM_STRING_TYPE_INFO);
 
   scm_obj_init(sym, &SCM_SYMBOL_TYPE_INFO);
 
@@ -43,7 +43,7 @@ scm_symbol_new(SCM_MEM_ALLOC_TYPE_T mtype, ScmObj str) /* GC OK */
 
   SCM_STACK_FRAME_PUSH(&str, &sym);
 
-  SCM_OBJ_ASSERT_TYPE(str, &SCM_STRING_TYPE_INFO);
+  scm_assert_obj_type(str, &SCM_STRING_TYPE_INFO);
 
   scm_mem_alloc(scm_vm_current_mm(),
                 &SCM_SYMBOL_TYPE_INFO, mtype, SCM_REF_MAKE(sym));
@@ -63,7 +63,7 @@ scm_symbol_is_symbol(ScmObj obj) /* GC OK */
 size_t
 scm_symbol_length(ScmObj sym)   /* GC OK */
 {
-  SCM_OBJ_ASSERT_TYPE(sym, &SCM_SYMBOL_TYPE_INFO);
+  scm_assert_obj_type(sym, &SCM_SYMBOL_TYPE_INFO);
 
   return scm_string_length(SCM_SYMBOL_STR(sym));
 }
@@ -71,7 +71,7 @@ scm_symbol_length(ScmObj sym)   /* GC OK */
 ScmObj
 scm_symbol_string(ScmObj sym)
 {
-  SCM_OBJ_ASSERT_TYPE(sym, &SCM_SYMBOL_TYPE_INFO);
+  scm_assert_obj_type(sym, &SCM_SYMBOL_TYPE_INFO);
 
   return scm_string_dup(SCM_SYMBOL_STR(sym));
 }
@@ -79,7 +79,7 @@ scm_symbol_string(ScmObj sym)
 size_t
 scm_symbol_hash_value(ScmObj sym)
 {
-  SCM_OBJ_ASSERT_TYPE(sym, &SCM_SYMBOL_TYPE_INFO);
+  scm_assert_obj_type(sym, &SCM_SYMBOL_TYPE_INFO);
 
   return scm_string_hash_value(SCM_SYMBOL_STR(sym));
 }
@@ -87,7 +87,7 @@ scm_symbol_hash_value(ScmObj sym)
 void
 scm_symbol_gc_initialize(ScmObj obj, ScmObj mem) /* GC OK */
 {
-  SCM_OBJ_ASSERT_TYPE(obj, &SCM_SYMBOL_TYPE_INFO);
+  scm_assert_obj_type(obj, &SCM_SYMBOL_TYPE_INFO);
 
   SCM_SETQ_PRIM(SCM_SYMBOL_STR(obj), SCM_OBJ_NULL);
 }
@@ -97,7 +97,7 @@ scm_symbol_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler) /* GC 
 {
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
 
-  SCM_OBJ_ASSERT_TYPE(obj, &SCM_SYMBOL_TYPE_INFO);
+  scm_assert_obj_type(obj, &SCM_SYMBOL_TYPE_INFO);
 
   rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_SYMBOL_STR(obj), mem);
 
@@ -137,7 +137,7 @@ scm_symtbl_initialize(ScmObj tbl)
 {
   SCM_STACK_FRAME_PUSH(&tbl);
 
-  SCM_OBJ_ASSERT_TYPE(tbl, &SCM_SYMTBL_TYPE_INFO);
+  scm_assert_obj_type(tbl, &SCM_SYMTBL_TYPE_INFO);
 
   SCM_SETQ(SCM_SYMTBL(tbl)->tbl,
            scm_chash_tbl_new(SCM_MEM_ALLOC_HEAP, SCM_SYMTBL_SIZE,
@@ -188,7 +188,7 @@ scm_symtbl_symbol(ScmObj tbl, ScmObj str)
 void
 scm_symtbl_gc_initialize(ScmObj obj, ScmObj mem)
 {
-  SCM_OBJ_ASSERT_TYPE(obj, &SCM_SYMTBL_TYPE_INFO);
+  scm_assert_obj_type(obj, &SCM_SYMTBL_TYPE_INFO);
 
   SCM_SETQ(SCM_SYMTBL(obj)->tbl, SCM_OBJ_NULL);
 }
@@ -196,7 +196,7 @@ scm_symtbl_gc_initialize(ScmObj obj, ScmObj mem)
 int
 scm_symtbl_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
 {
-  SCM_OBJ_ASSERT_TYPE(obj, &SCM_SYMTBL_TYPE_INFO);
+  scm_assert_obj_type(obj, &SCM_SYMTBL_TYPE_INFO);
 
   return SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_SYMTBL(obj)->tbl, mem);
 }
