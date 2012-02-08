@@ -205,13 +205,13 @@ scm_obj_tag(ScmObj obj)
 static inline bool
 scm_obj_mem_managed_p(ScmObj obj)
 {
-  return (scm_obj_tag(obj) == 0x00u) ? true : false;
+  return (scm_obj_not_null_p(obj) && scm_obj_tag(obj) == 0x00u) ? true : false;
 }
 
 static inline bool
 scm_obj_has_ptr_to_type_info_p(ScmObj obj)
 {
-  return (scm_obj_tag(obj) == 0x00u) ? true : false;
+  return (scm_obj_not_null_p(obj) && scm_obj_tag(obj) == 0x00u) ? true : false;
 }
 
 static inline ScmTypeInfo *
