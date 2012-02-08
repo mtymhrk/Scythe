@@ -317,7 +317,7 @@ scm_mem_alloc_heap_mem(ScmMem *mem, ScmTypeInfo *type, ScmRef ref)
     return;
   }
 
-  if (SCM_TYPE_INFO_HAS_WEAK_REF(type))
+  if (scm_type_info_has_instance_weak_ref_p(type))
     SCM_MEM_ADD_OBJ_TO_WEAK_LIST(mem->to_heap, ref, type);
 }
 
@@ -511,12 +511,11 @@ scm_mem_adjust_weak_ref_of_obj(ScmMem *mem, ScmObj obj)
   assert(mem != NULL);
   assert(scm_obj_not_null_p(obj));
 
-  if (SCM_OBJ_HAS_WEAK_REF(obj)) {
-    ScmGCAcceptFunc func = SCM_OBJ_GC_ACCEPT_FUNC_WEAK(obj);
-    int rslt = func(obj, SCM_OBJ(mem), scm_mem_adjust_weak_ref_of_obj_func);
-    if (scm_gc_ref_handler_failure_p(rslt)) {
-      ; /* TODO: write error handling */
-    }
+  int rslt =
+    scm_obj_call_gc_accept_func_weak(obj, SCM_OBJ(mem),
+                                     scm_mem_adjust_weak_ref_of_obj_func);
+  if (scm_gc_ref_handler_failure_p(rslt)) {
+    ; /* TODO: write error handling */
   }
 }
 
@@ -759,7 +758,7 @@ scm_mem_alloc_persist(ScmMem *mem, ScmTypeInfo *type, ScmRef ref)
   }
   SCM_REF_UPDATE(ref, ptr);
 
-  if (SCM_TYPE_INFO_HAS_WEAK_REF(type))
+  if (scm_type_info_has_instance_weak_ref_p(type))
     SCM_MEM_ADD_OBJ_TO_WEAK_LIST(mem->persistent, ref, type);
 
   scm_mem_obj_init(mem, SCM_REF_OBJ(ref), type);
@@ -897,7 +896,7 @@ scm_mem_alloc_size_in_heap(ScmTypeInfo *type)
   size = scm_type_info_obj_size(type);
   if (size < sizeof(ScmMMObj))
     size = sizeof(ScmMMObj);
-  if (SCM_TYPE_INFO_HAS_WEAK_REF(type))
+  if (scm_type_info_has_instance_weak_ref_p(type))
     size = SCM_MEM_SIZE_OF_OBJ_HAS_WEAK_REF(size);
   if (size < SCM_MEM_MIN_OBJ_SIZE)
     size = SCM_MEM_MIN_OBJ_SIZE;

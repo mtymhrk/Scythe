@@ -165,9 +165,22 @@ scm_type_info_call_gc_accept_func(ScmTypeInfo *type, ScmObj obj,
     return SCM_GC_REF_HANDLER_VAL_INIT;
 }
 
-#define SCM_TYPE_INFO_GC_ACCEPT_FUNC_WEAK(type) ((type)->gc_accept_func_weak)
-#define SCM_TYPE_INFO_HAS_WEAK_REF(type) \
-  (SCM_TYPE_INFO_GC_ACCEPT_FUNC_WEAK(type) != NULL)
+static inline bool
+scm_type_info_has_instance_weak_ref_p(ScmTypeInfo *type)
+{
+  return (type->gc_accept_func_weak != NULL) ? true : false;
+}
+
+static inline int
+scm_type_info_call_gc_accept_func_weak(ScmTypeInfo *type, ScmObj obj,
+                                       ScmObj mem, ScmGCRefHandlerFunc handler)
+{
+  if (scm_type_info_has_instance_weak_ref_p(type))
+    return type->gc_accept_func_weak(obj, mem, handler);
+  else
+    return SCM_GC_REF_HANDLER_VAL_INIT;
+}
+
 
 
 struct ScmObjHeaderRec {
@@ -216,10 +229,18 @@ scm_obj_call_gc_accept_func(ScmObj obj,
 
 #define SCM_OBJ_HAS_GC_ACCEPT_FUNC(obj) \
   (scm_type_info_has_gc_accept_func_p(SCM_OBJ_TYPE(obj)))
-#define SCM_OBJ_GC_ACCEPT_FUNC_WEAK(obj) \
-  (SCM_TYPE_INFO_GC_ACCEPT_FUNC_WEAK(SCM_OBJ_TYPE(obj)))
+
+
+static inline int
+scm_obj_call_gc_accept_func_weak(ScmObj obj,
+                            ScmObj mem, ScmGCRefHandlerFunc handler)
+{
+  return scm_type_info_call_gc_accept_func_weak(SCM_OBJ_TYPE(obj),
+                                                obj, mem, handler);
+}
+
 #define SCM_OBJ_HAS_WEAK_REF(obj) \
-  (SCM_TYPE_INFO_HAS_WEAK_REF(SCM_OBJ_TYPE(obj)))
+  (scm_type_info_has_instance_weak_ref_p(SCM_OBJ_TYPE(obj)))
 
 
 void scm_obj_init(ScmObj obj, ScmTypeInfo *type);
