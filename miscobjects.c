@@ -60,7 +60,7 @@ scm_eof_is_eof(ScmObj obj)      /* GC OK */
 {
   assert(scm_obj_not_null_p(obj));
 
-  return SCM_OBJ_IS_TYPE(obj, &SCM_EOF_TYPE_INFO);
+  return scm_obj_type_p(obj, &SCM_EOF_TYPE_INFO);
 }
 
 
@@ -129,7 +129,7 @@ scm_bool_is_bool(ScmObj obj)    /* GC OK */
 {
   assert(scm_obj_not_null_p(obj));
 
-  return SCM_OBJ_IS_TYPE(obj, &SCM_BOOL_TYPE_INFO);
+  return scm_obj_type_p(obj, &SCM_BOOL_TYPE_INFO);
 }
 
 
@@ -185,6 +185,6 @@ scm_nil_is_nil(ScmObj obj)      /* GC OK */
 {
   assert(scm_obj_not_null_p(obj));
 
-  return SCM_OBJ_IS_TYPE(obj, &SCM_NIL_TYPE_INFO);
+  return scm_obj_type_p(obj, &SCM_NIL_TYPE_INFO);
 }
 

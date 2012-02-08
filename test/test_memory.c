@@ -275,7 +275,7 @@ test_scm_mem_block_for_each_obj(void)
   i = 0;
   SCM_MEM_HEAP_BLOCK_FOR_EACH_OBJ(block, obj) {
     cut_assert_true(allocated[i] == obj);
-    cut_assert(scm_type_info_same_p(types[i], SCM_OBJ_TYPE(obj)));
+    cut_assert(scm_type_info_same_p(types[i], scm_obj_type(obj)));
     i++;
   };
 
@@ -312,7 +312,7 @@ test_scm_mem_block_for_each_obj_deallocated_last_obj(void)
   i = 0;
   SCM_MEM_HEAP_BLOCK_FOR_EACH_OBJ(block, obj) {
     cut_assert_true(allocated[i] == obj);
-    cut_assert(scm_type_info_same_p(types[i], SCM_OBJ_TYPE(obj)));
+    cut_assert(scm_type_info_same_p(types[i], scm_obj_type(obj)));
     i++;
   };
 
@@ -1261,7 +1261,7 @@ test_scm_mem_alloc_heap(void)
 
   /* postcondition check */
   cut_assert_true(scm_obj_not_null_p(obj));
-  cut_assert(SCM_OBJ_IS_TYPE(obj, &type));
+  cut_assert(scm_obj_type_p(obj, &type));
   cut_assert_equal_int(1, ((StubObj *)obj)->nr_call_ini_func);
   cut_assert_equal_int(0, ((StubObj *)obj)->nr_call_fin_func);
   cut_assert_equal_int(0, ((StubObj *)obj)->nr_call_accept_func);
@@ -1301,7 +1301,7 @@ test_scm_mem_alloc_root(void)
 
   /* postcondition check */
   cut_assert_true(scm_obj_not_null_p(obj));
-  cut_assert(SCM_OBJ_IS_TYPE(obj, &type));
+  cut_assert(scm_obj_type_p(obj, &type));
   cut_assert_equal_int(0, (uintptr_t)obj % SCM_MEM_ALIGN_BYTE);
   cut_assert_equal_uint(SCM_MEM_ROOT_BLOCK_OBJECT(mem->roots), obj);
 

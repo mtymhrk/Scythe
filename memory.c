@@ -159,7 +159,7 @@ scm_mem_unregister_obj(ScmMem *mem, ScmObj obj)
 {
   assert(mem != NULL);
 
-  if (SCM_OBJ_HAS_GC_FIN(obj))
+  if (scm_obj_has_gc_fin_func_p(obj))
     scm_basic_hash_delete(mem->from_obj_tbl, SCM_BASIC_HASH_KEY(obj));
 }
 
@@ -169,7 +169,7 @@ scm_mem_finalize_obj(ScmMem *mem, ScmObj obj)
   assert(mem != NULL);
   assert(scm_obj_not_null_p(obj));;
 
-  if (SCM_OBJ_HAS_GC_FIN(obj))
+  if (scm_obj_has_gc_fin_func_p(obj))
     scm_obj_call_gc_fin_func(obj);
 }
 
@@ -345,7 +345,7 @@ scm_mem_copy_obj(ScmMem *mem, ScmObj obj)
   if (!scm_mem_is_obj_in_heap(mem, obj, FROM_HEAP))
     return obj;
 
-  type = SCM_OBJ_TYPE(obj);
+  type = scm_obj_type(obj);
   if (scm_type_info_same_p(type, &SCM_FORWARD_TYPE_INFO))
     return SCM_FORWARD_FORWARD(obj);
 
@@ -372,12 +372,12 @@ static int
 scm_mem_copy_children_func(ScmObj mem, ScmObj obj, ScmRef child)
 {
   assert(scm_obj_not_null_p(mem));
-  assert(SCM_OBJ_IS_TYPE(mem, &SCM_MEM_TYPE_INFO));
+  assert(scm_obj_type_p(mem, &SCM_MEM_TYPE_INFO));
   assert(scm_obj_not_null_p(obj));
   assert(child != SCM_REF_NULL);
 
   if (scm_obj_not_null_p(SCM_REF_OBJ(child))
-      && SCM_OBJ_IS_MEM_MANAGED(SCM_REF_OBJ(child))) {
+      && scm_obj_mem_managed_p(SCM_REF_OBJ(child))) {
     ScmObj cpy = scm_mem_copy_obj(SCM_MEM(mem), SCM_REF_OBJ(child));
     if (scm_obj_null_p(cpy))  return -1; // error
     SCM_REF_UPDATE(child, cpy);
@@ -487,14 +487,14 @@ scm_mem_adjust_weak_ref_of_obj_func(ScmObj mem, ScmObj obj, ScmRef child)
   ScmObj co;
 
   assert(scm_obj_not_null_p(mem));
-  assert(SCM_OBJ_IS_TYPE(mem, &SCM_MEM_TYPE_INFO));
+  assert(scm_obj_type_p(mem, &SCM_MEM_TYPE_INFO));
   assert(scm_obj_not_null_p(obj));
   assert(child != SCM_REF_NULL);
 
   co = SCM_REF_OBJ(child);
   if (scm_obj_not_null_p(co)) {
     if (scm_mem_is_obj_in_heap(SCM_MEM(mem), co, FROM_HEAP)) {
-      ScmTypeInfo *type = SCM_OBJ_TYPE(co);
+      ScmTypeInfo *type = scm_obj_type(co);
       if (scm_type_info_same_p(type, &SCM_FORWARD_TYPE_INFO))
         SCM_REF_UPDATE(child, SCM_FORWARD_FORWARD(co));
       else
@@ -538,7 +538,7 @@ scm_mem_adjust_weak_ref_of_heap_obj(ScmMem *mem)
 
   for (obj = SCM_OBJ(SCM_MEM_HEAP_WEAK_LIST(mem->to_heap));
        scm_obj_not_null_p(obj);
-       obj = SCM_REF_OBJ(SCM_MEM_NEXT_OBJ_HAS_WEAK_REF(SCM_OBJ_TYPE(obj), obj))) {
+       obj = SCM_REF_OBJ(SCM_MEM_NEXT_OBJ_HAS_WEAK_REF(scm_obj_type(obj), obj))) {
     scm_mem_adjust_weak_ref_of_obj(mem, obj);
   }
 }

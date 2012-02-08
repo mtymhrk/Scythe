@@ -91,5 +91,5 @@ bool
 scm_char_is_char(ScmObj obj)    /* GC OK */
 {
   assert(scm_obj_not_null_p(obj));
-  return SCM_OBJ_IS_TYPE(obj, &SCM_CHAR_TYPE_INFO);
+  return scm_obj_type_p(obj, &SCM_CHAR_TYPE_INFO);
 }

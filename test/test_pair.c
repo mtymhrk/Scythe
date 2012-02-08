@@ -37,7 +37,7 @@ test_scm_pair_new(void)
 
   /* postcondition check */
   cut_assert_true(scm_obj_not_null_p(pair));
-  cut_assert_true(SCM_OBJ_IS_TYPE(pair, &SCM_PAIR_TYPE_INFO));
+  cut_assert_true(scm_obj_type_p(pair, &SCM_PAIR_TYPE_INFO));
 }
 
 void

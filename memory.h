@@ -98,7 +98,7 @@ struct ScmMemHeapBlockRec {
   (SCM_MEM_HEAP_BLOCK_PTR_OFFSET(block, ptr) < SCM_MEM_HEAP_BLOCK_USED(block))
 #define SCM_MEM_HEAP_BLOCK_NEXT_OBJ(block, obj)                         \
   SCM_OBJ((uint8_t *)obj                                                \
-          + scm_mem_alloc_size_in_heap_aligned(SCM_OBJ_TYPE(obj)))
+          + scm_mem_alloc_size_in_heap_aligned(scm_obj_type(obj)))
 #define SCM_MEM_HEAP_BLOCK_FOR_EACH_OBJ(block, obj)                     \
   for ((obj) = SCM_OBJ(SCM_MEM_HEAP_BLOCK_HEAD(block));         \
        SCM_MEM_HEAP_BLOCK_PTR_IS_ALLOCATED(block, obj);                 \

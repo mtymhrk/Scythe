@@ -412,7 +412,7 @@ scm_vm_op_call(ScmObj vm)
 {
   SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
 
-  if (SCM_OBJ_IS_TYPE(SCM_VM_VAL(vm), &SCM_SUBRUTINE_TYPE_INFO)) {
+  if (scm_obj_type_p(SCM_VM_VAL(vm), &SCM_SUBRUTINE_TYPE_INFO)) {
     scm_vm_stack_val_t *fp = SCM_VM_FP(vm) = SCM_VM_SP(vm);
     int argc = scm_vm_frame_argc(vm);
 
@@ -502,7 +502,7 @@ scm_vm_op_gref(ScmObj vm, ScmObj arg, int immv_idx)
   assert(scm_obj_not_null_p(arg));
   assert(immv_idx >= 0);
 
-  if (SCM_OBJ_IS_TYPE(arg, &SCM_SYMBOL_TYPE_INFO)) {
+  if (scm_obj_type_p(arg, &SCM_SYMBOL_TYPE_INFO)) {
     rslt = scm_gloctbl_find(SCM_VM_GLOCTBL(vm), arg, SCM_REF_MAKE(gloc));
     if (rslt != 0)
       ;                           /* TODO: error handling */
@@ -520,7 +520,7 @@ scm_vm_op_gref(ScmObj vm, ScmObj arg, int immv_idx)
 
     SCM_VM_VAL_SETQ(vm, val);
   }
-  else if (SCM_OBJ_IS_TYPE(arg, &SCM_GLOC_TYPE_INFO)) {
+  else if (scm_obj_type_p(arg, &SCM_GLOC_TYPE_INFO)) {
     SCM_SETQ(val, scm_gloc_value(gloc));
     if (scm_obj_null_p(val))
       ; /* TODO: error handling (reference of unbound variable) */
@@ -551,7 +551,7 @@ scm_vm_op_gdef(ScmObj vm, ScmObj arg, ScmObj val, int immv_idx)
   assert(scm_obj_not_null_p(arg));
   assert(scm_obj_not_null_p(val));
 
-  if (SCM_OBJ_IS_TYPE(arg, &SCM_SYMBOL_TYPE_INFO)) {
+  if (scm_obj_type_p(arg, &SCM_SYMBOL_TYPE_INFO)) {
     SCM_SETQ(gloc, scm_gloctbl_bind(SCM_VM_GLOCTBL(vm), arg, val));
     if (scm_obj_null_p(gloc))
       ;                           /* TODO: error handling */
@@ -560,7 +560,7 @@ scm_vm_op_gdef(ScmObj vm, ScmObj arg, ScmObj val, int immv_idx)
     if (rslt != 0)
       ;                           /* TODO: error handling */
   }
-  else if (SCM_OBJ_IS_TYPE(arg, &SCM_GLOC_TYPE_INFO)) {
+  else if (scm_obj_type_p(arg, &SCM_GLOC_TYPE_INFO)) {
     scm_gloc_bind(arg, val);
   }
   else {
@@ -587,7 +587,7 @@ scm_vm_op_gset(ScmObj vm, ScmObj arg, ScmObj val, int immv_idx)
   assert(scm_obj_not_null_p(arg));
   assert(immv_idx >= 0);
 
-  if (SCM_OBJ_IS_TYPE(arg, &SCM_SYMBOL_TYPE_INFO)) {
+  if (scm_obj_type_p(arg, &SCM_SYMBOL_TYPE_INFO)) {
     rslt = scm_gloctbl_find(SCM_VM_GLOCTBL(vm), arg, SCM_REF_MAKE(gloc));
     if (rslt != 0)
       ;                           /* TODO: error handling */
@@ -601,7 +601,7 @@ scm_vm_op_gset(ScmObj vm, ScmObj arg, ScmObj val, int immv_idx)
 
     scm_gloc_bind(gloc, val);
   }
-  else if (SCM_OBJ_IS_TYPE(arg, &SCM_GLOC_TYPE_INFO)) {
+  else if (scm_obj_type_p(arg, &SCM_GLOC_TYPE_INFO)) {
     scm_gloc_bind(arg, val);
   }
   else {

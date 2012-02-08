@@ -10,7 +10,7 @@ scm_obj_init(ScmObj obj, ScmTypeInfo *type)
   assert(scm_obj_not_null_p(obj));
   assert(type != NULL);
 
-  if (SCM_OBJ_IS_MEM_MANAGED(obj))
+  if (scm_obj_mem_managed_p(obj))
     SCM_MMOBJ(obj)->header.type = type;
 }
 

@@ -29,7 +29,7 @@ test_scm_char_new(void)
   SCM_SETQ(chr, scm_char_new(SCM_MEM_ALLOC_HEAP, c, SCM_ENCODING_ASCII));
 
   cut_assert_true(scm_obj_not_null_p(chr));
-  cut_assert(SCM_OBJ_IS_TYPE(SCM_OBJ(chr), &SCM_CHAR_TYPE_INFO));
+  cut_assert(scm_obj_type_p(SCM_OBJ(chr), &SCM_CHAR_TYPE_INFO));
 }
 
 void

@@ -33,7 +33,7 @@ test_scm_string_new(void)
                                      SCM_ENCODING_ASCII));
   /* postcondition check */
   cut_assert_true(scm_obj_not_null_p(str));
-  cut_assert_true(SCM_OBJ_IS_TYPE(str, &SCM_STRING_TYPE_INFO));
+  cut_assert_true(scm_obj_type_p(str, &SCM_STRING_TYPE_INFO));
 }
 
 void

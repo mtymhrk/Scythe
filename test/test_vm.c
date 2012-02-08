@@ -167,7 +167,7 @@ test_scm_vm_run__call_cons(void)
 
   /* postconditin check */
   SCM_SETQ(actual, SCM_VM_VAL(vm));
-  cut_assert(SCM_OBJ_IS_TYPE(actual, &SCM_PAIR_TYPE_INFO));
+  cut_assert(scm_obj_type_p(actual, &SCM_PAIR_TYPE_INFO));
   cut_assert(scm_obj_same_instance_p(SCM_PAIR_CAR(actual), car));
   cut_assert(scm_obj_same_instance_p(SCM_PAIR_CDR(actual), cdr));
 }

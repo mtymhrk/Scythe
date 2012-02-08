@@ -57,7 +57,7 @@ scm_symbol_is_symbol(ScmObj obj) /* GC OK */
 {
   assert(scm_obj_not_null_p(obj));
 
-  return SCM_OBJ_IS_TYPE(obj, &SCM_SYMBOL_TYPE_INFO);
+  return scm_obj_type_p(obj, &SCM_SYMBOL_TYPE_INFO);
 }
 
 size_t

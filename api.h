@@ -51,7 +51,7 @@ scm_api_make_string_ascii(const char *str)
 static inline ScmObj
 scm_api_symbol_to_string(ScmObj sym)
 {
-  if (scm_obj_null_p(sym) || !SCM_OBJ_IS_TYPE(sym, &SCM_SYMBOL_TYPE_INFO))
+  if (scm_obj_null_p(sym) || !scm_obj_type_p(sym, &SCM_SYMBOL_TYPE_INFO))
     /* TODO: ランタイムエラーをどう処理するか。*/
     return SCM_OBJ_NULL;        /* provisional implemntation */
 
@@ -61,7 +61,7 @@ scm_api_symbol_to_string(ScmObj sym)
 static inline ScmObj
 scm_api_string_to_symbol(ScmObj str)
 {
-  if (scm_obj_null_p(str) || !SCM_OBJ_IS_TYPE(str, &SCM_STRING_TYPE_INFO))
+  if (scm_obj_null_p(str) || !scm_obj_type_p(str, &SCM_STRING_TYPE_INFO))
     return SCM_OBJ_NULL;         /* provisional implemntation */
 
   return scm_symtbl_symbol(scm_vm_current_symtbl(), str);
@@ -93,7 +93,7 @@ scm_api_cons(ScmObj car, ScmObj cdr)
 static inline ScmObj
 scm_api_car(ScmObj pair)
 {
-  if (scm_obj_null_p(pair) || !SCM_OBJ_IS_TYPE(pair, &SCM_PAIR_TYPE_INFO))
+  if (scm_obj_null_p(pair) || !scm_obj_type_p(pair, &SCM_PAIR_TYPE_INFO))
     return SCM_OBJ_NULL;         /* provisional implemntation */
 
   return scm_pair_car(pair);
@@ -102,7 +102,7 @@ scm_api_car(ScmObj pair)
 static inline ScmObj
 scm_api_cdr(ScmObj pair)
 {
-  if (scm_obj_null_p(pair) || !SCM_OBJ_IS_TYPE(pair, &SCM_PAIR_TYPE_INFO))
+  if (scm_obj_null_p(pair) || !scm_obj_type_p(pair, &SCM_PAIR_TYPE_INFO))
     return SCM_OBJ_NULL;         /* provisional implemntation */
 
   return scm_pair_cdr(pair);
@@ -135,7 +135,7 @@ scm_api_global_var_ref(ScmObj sym)
 
   SCM_STACK_FRAME_PUSH(&sym, &gloc);
 
-  if (scm_obj_null_p(sym) || !SCM_OBJ_IS_TYPE(sym, &SCM_SYMBOL_TYPE_INFO))
+  if (scm_obj_null_p(sym) || !scm_obj_type_p(sym, &SCM_SYMBOL_TYPE_INFO))
     return SCM_OBJ_NULL;         /* provisional implemntation */
 
   rslt = scm_gloctbl_find(scm_vm_current_gloctbl(), sym, SCM_REF_MAKE(gloc));
@@ -155,7 +155,7 @@ scm_api_global_var_bound_p(ScmObj sym)
 
   SCM_STACK_FRAME_PUSH(&sym, &o);
 
-  if (scm_obj_null_p(sym) || !SCM_OBJ_IS_TYPE(sym, &SCM_SYMBOL_TYPE_INFO))
+  if (scm_obj_null_p(sym) || !scm_obj_type_p(sym, &SCM_SYMBOL_TYPE_INFO))
     return SCM_OBJ_NULL;         /* provisional implemntation */
 
   SCM_SETQ(o, scm_api_global_var_ref(sym));
@@ -171,7 +171,7 @@ scm_api_global_var_define(ScmObj sym, ScmObj val)
 
   SCM_STACK_FRAME_PUSH(&sym, &val, &gloc);
 
-  if (scm_obj_null_p(sym) || !SCM_OBJ_IS_TYPE(sym, &SCM_SYMBOL_TYPE_INFO))
+  if (scm_obj_null_p(sym) || !scm_obj_type_p(sym, &SCM_SYMBOL_TYPE_INFO))
     return SCM_OBJ_NULL;         /* provisional implemntation */
   if (scm_obj_null_p(val))
     return SCM_OBJ_NULL;         /* provisional implemntation */
@@ -192,7 +192,7 @@ scm_api_global_var_set(ScmObj sym, ScmObj val)
 
   SCM_STACK_FRAME_PUSH(&sym, &val, &gloc);
 
-  if (scm_obj_null_p(sym) || !SCM_OBJ_IS_TYPE(sym, &SCM_SYMBOL_TYPE_INFO))
+  if (scm_obj_null_p(sym) || !scm_obj_type_p(sym, &SCM_SYMBOL_TYPE_INFO))
     return SCM_OBJ_NULL;         /* provisional implemntation */
   if (scm_obj_null_p(val))
     return SCM_OBJ_NULL;         /* provisional implemntation */

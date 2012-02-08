@@ -645,7 +645,7 @@ scm_string_is_string(ScmObj obj)
 {
   assert(scm_obj_not_null_p(obj));
 
-  return SCM_OBJ_IS_TYPE(obj, &SCM_STRING_TYPE_INFO);
+  return scm_obj_type_p(obj, &SCM_STRING_TYPE_INFO);
 }
 
 void

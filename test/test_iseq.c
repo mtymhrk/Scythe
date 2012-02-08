@@ -31,7 +31,7 @@ test_scm_iseq_new(void)
 
   /* postconditin check */
   cut_assert_true(scm_obj_not_null_p(iseq));
-  cut_assert_true(SCM_OBJ_IS_TYPE(iseq, &SCM_ISEQ_TYPE_INFO));
+  cut_assert_true(scm_obj_type_p(iseq, &SCM_ISEQ_TYPE_INFO));
   cut_assert_not_null(SCM_ISEQ_SEQ(iseq));
   cut_assert_not_null(SCM_ISEQ_IMMVAL_VEC(iseq));
   cut_assert_equal_uint(SCM_ISEQ_DEFAULT_SEQ_SIZE, SCM_ISEQ_SEQ_CAPACITY(iseq));
