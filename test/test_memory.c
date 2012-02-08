@@ -275,7 +275,7 @@ test_scm_mem_block_for_each_obj(void)
   i = 0;
   SCM_MEM_HEAP_BLOCK_FOR_EACH_OBJ(block, obj) {
     cut_assert_true(allocated[i] == obj);
-    cut_assert(SCM_TYPE_INFO_IS_SAME(types[i], SCM_OBJ_TYPE(obj)));
+    cut_assert(scm_type_info_same_p(types[i], SCM_OBJ_TYPE(obj)));
     i++;
   };
 
@@ -312,7 +312,7 @@ test_scm_mem_block_for_each_obj_deallocated_last_obj(void)
   i = 0;
   SCM_MEM_HEAP_BLOCK_FOR_EACH_OBJ(block, obj) {
     cut_assert_true(allocated[i] == obj);
-    cut_assert(SCM_TYPE_INFO_IS_SAME(types[i], SCM_OBJ_TYPE(obj)));
+    cut_assert(scm_type_info_same_p(types[i], SCM_OBJ_TYPE(obj)));
     i++;
   };
 

@@ -331,7 +331,7 @@ scm_mem_obj_init(ScmMem *mem, ScmObj obj, ScmTypeInfo *type)
   assert(type != NULL);
 
   scm_obj_init(obj, type);
-  if (SCM_TYPE_INFO_HAS_GC_INI(type)) {
+  if (scm_type_info_has_gc_ini_func_p(type)) {
     ScmGCInitializeFunc ini = SCM_TYPE_INFO_GC_INI(type);
     ini(obj, SCM_OBJ(mem));
   }
@@ -351,7 +351,7 @@ scm_mem_copy_obj(ScmMem *mem, ScmObj obj)
     return obj;
 
   type = SCM_OBJ_TYPE(obj);
-  if (SCM_TYPE_INFO_IS_SAME(type, &SCM_FORWARD_TYPE_INFO))
+  if (scm_type_info_same_p(type, &SCM_FORWARD_TYPE_INFO))
     return SCM_FORWARD_FORWARD(obj);
 
   scm_mem_alloc_heap_mem(mem, type, SCM_REF_MAKE(box));
@@ -502,7 +502,7 @@ scm_mem_adjust_weak_ref_of_obj_func(ScmObj mem, ScmObj obj, ScmRef child)
   if (scm_obj_not_null_p(co)) {
     if (scm_mem_is_obj_in_heap(SCM_MEM(mem), co, FROM_HEAP)) {
       ScmTypeInfo *type = SCM_OBJ_TYPE(co);
-      if (SCM_TYPE_INFO_IS_SAME(type, &SCM_FORWARD_TYPE_INFO))
+      if (scm_type_info_same_p(type, &SCM_FORWARD_TYPE_INFO))
         SCM_REF_UPDATE(child, SCM_FORWARD_FORWARD(co));
       else
         SCM_REF_UPDATE(child, SCM_OBJ_NULL);

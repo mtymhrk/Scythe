@@ -111,12 +111,22 @@ struct ScmTypeInfoRec {
   ScmGCAcceptFunc gc_accept_func_weak;
 };
 
+static inline bool
+scm_type_info_same_p(ScmTypeInfo *tp1, ScmTypeInfo *tp2)
+{
+  return (tp1 == tp2) ? true : false;
+}
 
-#define SCM_TYPE_INFO_IS_SAME(t1, t2) ((t1) == (t2))
 #define SCM_TYPE_INFO_PP_FUNC(type) ((type)->pp_func)
 #define SCM_TYPE_INFO_OBJ_SIZE(type) ((type)->obj_size)
 #define SCM_TYPE_INFO_GC_INI(type) ((type)->gc_ini_func)
-#define SCM_TYPE_INFO_HAS_GC_INI(type) (SCM_TYPE_INFO_GC_INI(type) != NULL)
+
+static inline bool
+scm_type_info_has_gc_ini_func_p(ScmTypeInfo *tp)
+{
+  return (SCM_TYPE_INFO_GC_INI(tp) != NULL) ? true : false;
+}
+
 #define SCM_TYPE_INFO_GC_FIN(type) ((type)->gc_fin_func)
 #define SCM_TYPE_INFO_HAS_GC_FIN(type) (SCM_TYPE_INFO_GC_FIN(type) != NULL)
 #define SCM_TYPE_INFO_GC_ACCEPT_FUNC(type) ((type)->gc_accept_func)
@@ -147,11 +157,11 @@ extern ScmTypeInfo *SCM_OBJ_TAG2TYPE_TBL[];
   (SCM_OBJ_HAS_PTR_TO_TYPE_INFO(obj) ?                                  \
    (SCM_MMOBJ(obj)->header.type) : SCM_OBJ_TAG2TYPE_TBL[SCM_OBJ_TAG(obj)])
 #define SCM_OBJ_IS_TYPE(obj, type) \
-  (SCM_TYPE_INFO_IS_SAME(SCM_OBJ_TYPE(obj), type))
+  (scm_type_info_same_p(SCM_OBJ_TYPE(obj), type))
 #define SCM_OBJ_PP_FUNC(obj) (SCM_TYPE_INFO_PP_FUNC(SCM_OBJ_TYPE(obj)))
 #define SCM_OBJ_SIZE(obj) (SCM_TYPE_INFO_OBJ_SIZE(SCM_OBJ_TYPE(obj)))
 #define SCM_OBJ_GC_INI(obj) (SCM_TYPE_INFO_GC_INI(SCM_OBJ_TYPE(obj)))
-#define SCM_OBJ_HAS_GC_INI(obj) (SCM_TYPE_INFO_HAS_GC_INI(SCM_OBJ_TYPE(obj))
+#define SCM_OBJ_HAS_GC_INI(obj) (scm_type_info_has_gc_ini_func_p(SCM_OBJ_TYPE(obj))
 #define SCM_OBJ_GC_FIN(obj) (SCM_TYPE_INFO_GC_FIN(SCM_OBJ_TYPE(obj)))
 #define SCM_OBJ_HAS_GC_FIN(obj) (SCM_TYPE_INFO_HAS_GC_FIN(SCM_OBJ_TYPE(obj)))
 #define SCM_OBJ_GC_ACCEPT_FUNC(obj) \
