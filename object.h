@@ -38,7 +38,6 @@ typedef struct ScmObjHeaderRec ScmObjHeader;
 typedef struct ScmMMObjRec ScmMMObj;
 typedef scm_word_t ScmObj;
 typedef struct ScmTypeInfoRec ScmTypeInfo;
-typedef struct ScmGCRefItrRec ScmGCRefItr;
 typedef ScmObj *ScmRef;
 typedef const ScmObj *ScmCRef;
 
