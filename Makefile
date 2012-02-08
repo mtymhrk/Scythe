@@ -18,6 +18,8 @@ $(TARGET) $(OBJS): Makefile
 .c.o:
 	$(CC) -c -o $@ $(INCLUDES) $(CFLAGS) $<
 
+.c.s:
+	$(CC) -S -o $@ $(INCLUDES) $(CFLAGS) $<
 
 .PHONY: clean depend test doxygen check-syntax
 
