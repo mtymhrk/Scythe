@@ -50,18 +50,20 @@ typedef const ScmObj *ScmCRef;
 static inline bool
 scm_obj_null_p(ScmObj obj)
 {
-  return ((obj) == SCM_OBJ_NULL) ? true : false;
+  return (obj == SCM_OBJ_NULL) ? true : false;
 }
 
 static inline bool
 scm_obj_not_null_p(ScmObj obj)
 {
-  return ((obj) != SCM_OBJ_NULL) ? true : false;
+  return (obj != SCM_OBJ_NULL) ? true : false;
 }
 
-#define SCM_OBJ_SAME_INSTANCE_P(obj1, obj2) \
-  (scm_obj_not_null_p(obj1) && ((obj1) == (obj2)))
-
+static inline bool
+scm_obj_same_instance_p(ScmObj obj1, ScmObj obj2)
+{
+  return (scm_obj_not_null_p(obj1) && (obj1 == obj2)) ? true : false;
+}
 
 /* 将来的に write barrier を挿入しなければならないときに使用する */
 /*   SCM_SETQ_PRIM: write barrier を挿入しない代入        */
@@ -157,7 +159,6 @@ extern ScmTypeInfo *SCM_OBJ_TAG2TYPE_TBL[];
 
 
 void scm_obj_init(ScmObj obj, ScmTypeInfo *type);
-int scm_obj_same_instance_p(ScmObj obj1, ScmObj obj2);
 
 
 #define SCM_OBJ_ASSERT_TYPE(obj, type) \

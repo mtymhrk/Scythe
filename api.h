@@ -21,7 +21,7 @@ scm_api_eq_p(ScmObj obj1, ScmObj obj2)
   if (scm_obj_null_p(obj1) || scm_obj_null_p(obj2))
       return SCM_OBJ_NULL;         /* provisional implemntation */
 
-  return (SCM_OBJ_SAME_INSTANCE_P(obj1, obj2) ?
+  return (scm_obj_same_instance_p(obj1, obj2) ?
           scm_vm_bool_true_instance() : scm_vm_bool_false_instance());
 }
 
@@ -198,7 +198,7 @@ scm_api_global_var_set(ScmObj sym, ScmObj val)
     return SCM_OBJ_NULL;         /* provisional implemntation */
 
   /* 未束縛変数の参照の場合は SCM_OBJ_NULL を返す */
-  if (SCM_OBJ_SAME_INSTANCE_P(scm_api_global_var_bound_p(sym),
+  if (scm_obj_same_instance_p(scm_api_global_var_bound_p(sym),
                                scm_vm_bool_false_instance()))
     return SCM_OBJ_NULL;
 

@@ -83,7 +83,7 @@ test_scm_chash_tbl_insert__insert_new_entry(void)
      数に設定 */
   cut_assert_equal_int(0, scm_chash_tbl_get(tbl, key1, &val2, &found));
   cut_assert_equal_boolean(true, found);
-  cut_assert(SCM_OBJ_SAME_INSTANCE_P(val1, val2));
+  cut_assert(scm_obj_same_instance_p(val1, val2));
 }
 
 void
@@ -120,7 +120,7 @@ test_scm_chash_tbl_insert__insert_an_entry_already_registered(void)
   /* 失敗した insert では登録されている値を変更しない */
   cut_assert_equal_int(0, scm_chash_tbl_get(tbl, key1, &val3, &found));
   cut_assert_equal_boolean(true, found);
-  cut_assert(SCM_OBJ_SAME_INSTANCE_P(val1, val3));
+  cut_assert(scm_obj_same_instance_p(val1, val3));
 }
 
 void
@@ -153,7 +153,7 @@ test_scm_chash_tbl_update__update_new_entry(void)
      数に設定 */
   cut_assert_equal_int(0, scm_chash_tbl_get(tbl, key1, &val2, &found));
   cut_assert_equal_boolean(true, found);
-  cut_assert(SCM_OBJ_SAME_INSTANCE_P(val1, val2));
+  cut_assert(scm_obj_same_instance_p(val1, val2));
 }
 
 void
@@ -190,7 +190,7 @@ test_scm_chash_tbl_update__update_an_entry_already_registered(void)
   /* 成功した update では登録されている値を変更する */
   cut_assert_equal_int(0, scm_chash_tbl_get(tbl, key1, &val3, &found));
   cut_assert_equal_boolean(true, found);
-  cut_assert(SCM_OBJ_SAME_INSTANCE_P(val2, val3));
+  cut_assert(scm_obj_same_instance_p(val2, val3));
 }
 
 void
@@ -256,7 +256,7 @@ test_scm_chash_tbl_delete__delete_an_entry_already_registered(void)
   /* 登録済み key の delete は deleted に true を設定し、val に削除された値を
      設定する */
   cut_assert_equal_boolean(true, deleted);
-  cut_assert(SCM_OBJ_SAME_INSTANCE_P(val1, val2));
+  cut_assert(scm_obj_same_instance_p(val1, val2));
 
   /* 削除後は get による取得はできないため、found に false を返す */
   cut_assert_equal_int(0, scm_chash_tbl_get(tbl, key1, &val3, &found));

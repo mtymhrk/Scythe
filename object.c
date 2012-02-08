@@ -14,13 +14,6 @@ scm_obj_init(ScmObj obj, ScmTypeInfo *type)
     SCM_MMOBJ(obj)->header.type = type;
 }
 
-int
-scm_obj_same_instance_p(ScmObj obj1, ScmObj obj2)
-{
-  assert(scm_obj_not_null_p(obj1)); assert(scm_obj_not_null_p(obj2));
-
-  return (obj1 == obj2) ? 1 : 0;
-}
 
 #include "numeric.h"
 

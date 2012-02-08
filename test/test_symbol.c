@@ -92,5 +92,5 @@ test_scm_symbol_string__string_derived_from_a_symbol_should_not_be_same_instance
   SCM_SETQ(actual, scm_symbol_string(sym));
 
   /* postcondition check */
-  cut_assert_false(SCM_OBJ_SAME_INSTANCE_P(expected, actual));
+  cut_assert_false(scm_obj_same_instance_p(expected, actual));
 }

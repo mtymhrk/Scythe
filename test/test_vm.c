@@ -99,7 +99,7 @@ test_scm_vm_run__op_immval(void)
   scm_vm_run(vm, iseq);
 
   /* postconditin check */
-  cut_assert(SCM_OBJ_SAME_INSTANCE_P(sym, SCM_VM_VAL(vm)));
+  cut_assert(scm_obj_same_instance_p(sym, SCM_VM_VAL(vm)));
 }
 
 
@@ -168,6 +168,6 @@ test_scm_vm_run__call_cons(void)
   /* postconditin check */
   SCM_SETQ(actual, SCM_VM_VAL(vm));
   cut_assert(SCM_OBJ_IS_TYPE(actual, &SCM_PAIR_TYPE_INFO));
-  cut_assert(SCM_OBJ_SAME_INSTANCE_P(SCM_PAIR_CAR(actual), car));
-  cut_assert(SCM_OBJ_SAME_INSTANCE_P(SCM_PAIR_CDR(actual), cdr));
+  cut_assert(scm_obj_same_instance_p(SCM_PAIR_CAR(actual), car));
+  cut_assert(scm_obj_same_instance_p(SCM_PAIR_CDR(actual), cdr));
 }
