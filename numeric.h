@@ -13,8 +13,8 @@ extern ScmTypeInfo SCM_FIXNUM_TYPE_INFO;
 static inline ScmObj
 scm_fixnum_new(scm_sword_t num)
 {
-  assert(num >= SCM_FIXNUM_MIN);
-  assert(num <= SCM_FIXNUM_MAX);
+  scm_assert(num >= SCM_FIXNUM_MIN);
+  scm_assert(num <= SCM_FIXNUM_MAX);
 
   num <<= SCM_FIXNUM_SHIFT_BIT;
 

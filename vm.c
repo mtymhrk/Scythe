@@ -350,11 +350,11 @@ scm_vm_frame_argc(ScmObj vm)
   SCM_STACK_FRAME_PUSH(&vm);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-  assert(SCM_VM_FP(vm) != NULL);
+  scm_assert(SCM_VM_FP(vm) != NULL);
 
   argc = (scm_uword_t)SCM_VM_FP(vm)[-1];
 
-  assert(argc <= INT_MAX);
+  scm_assert(argc <= INT_MAX);
 
   return (int)argc;
 }
@@ -432,7 +432,7 @@ void
 scm_vm_op_immval(ScmObj vm, ScmObj val)
 {
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-  assert(scm_obj_not_null_p(val));
+  scm_assert(scm_obj_not_null_p(val));
 
   SCM_VM_VAL_SETQ(vm, val);
 }
@@ -499,8 +499,8 @@ scm_vm_op_gref(ScmObj vm, ScmObj arg, int immv_idx)
   SCM_STACK_FRAME_PUSH(&vm, &arg, &gloc, &val);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-  assert(scm_obj_not_null_p(arg));
-  assert(immv_idx >= 0);
+  scm_assert(scm_obj_not_null_p(arg));
+  scm_assert(immv_idx >= 0);
 
   if (scm_obj_type_p(arg, &SCM_SYMBOL_TYPE_INFO)) {
     rslt = scm_gloctbl_find(SCM_VM_GLOCTBL(vm), arg, SCM_REF_MAKE(gloc));
@@ -528,7 +528,7 @@ scm_vm_op_gref(ScmObj vm, ScmObj arg, int immv_idx)
     SCM_VM_VAL_SETQ(vm, val);
   }
   else {
-    assert(0);
+    scm_assert(0);
   }
 }
 
@@ -548,8 +548,8 @@ scm_vm_op_gdef(ScmObj vm, ScmObj arg, ScmObj val, int immv_idx)
   SCM_STACK_FRAME_PUSH(&vm, &arg, &val, &gloc);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-  assert(scm_obj_not_null_p(arg));
-  assert(scm_obj_not_null_p(val));
+  scm_assert(scm_obj_not_null_p(arg));
+  scm_assert(scm_obj_not_null_p(val));
 
   if (scm_obj_type_p(arg, &SCM_SYMBOL_TYPE_INFO)) {
     SCM_SETQ(gloc, scm_gloctbl_bind(SCM_VM_GLOCTBL(vm), arg, val));
@@ -564,7 +564,7 @@ scm_vm_op_gdef(ScmObj vm, ScmObj arg, ScmObj val, int immv_idx)
     scm_gloc_bind(arg, val);
   }
   else {
-    assert(0);
+    scm_assert(0);
   }
 }
 
@@ -584,8 +584,8 @@ scm_vm_op_gset(ScmObj vm, ScmObj arg, ScmObj val, int immv_idx)
   SCM_STACK_FRAME_PUSH(&vm, &arg, &val, &gloc);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-  assert(scm_obj_not_null_p(arg));
-  assert(immv_idx >= 0);
+  scm_assert(scm_obj_not_null_p(arg));
+  scm_assert(immv_idx >= 0);
 
   if (scm_obj_type_p(arg, &SCM_SYMBOL_TYPE_INFO)) {
     rslt = scm_gloctbl_find(SCM_VM_GLOCTBL(vm), arg, SCM_REF_MAKE(gloc));
@@ -605,7 +605,7 @@ scm_vm_op_gset(ScmObj vm, ScmObj arg, ScmObj val, int immv_idx)
     scm_gloc_bind(arg, val);
   }
   else {
-    assert(0);
+    scm_assert(0);
   }
 }
 
@@ -616,7 +616,7 @@ void
 scm_vm_gc_initialize(ScmObj obj, ScmObj mem)
 {
   scm_assert_obj_type(obj, &SCM_VM_TYPE_INFO);
-  assert(scm_obj_not_null_p(mem));
+  scm_assert(scm_obj_not_null_p(mem));
 
   SCM_VM_MEM(obj) = SCM_MEM(mem);
 
@@ -644,8 +644,8 @@ scm_vm_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
 
   scm_assert_obj_type(obj, &SCM_VM_TYPE_INFO);
-  assert(scm_obj_not_null_p(mem));
-  assert(handler != NULL);
+  scm_assert(scm_obj_not_null_p(mem));
+  scm_assert(handler != NULL);
 
   rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_VM_SYMTBL(obj), mem);
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;

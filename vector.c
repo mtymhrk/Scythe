@@ -71,7 +71,7 @@ ScmObj
 scm_vector_ref(ScmObj vector, size_t index) /* GC OK */
 {
   scm_assert_obj_type(vector, &SCM_VECTOR_TYPE_INFO);
-  assert(index < SCM_VECTOR_LENGTH(vector));
+  scm_assert(index < SCM_VECTOR_LENGTH(vector));
 
   return SCM_VECTOR_ARRAY(vector)[index];
 }
@@ -80,7 +80,7 @@ ScmObj
 scm_vector_set(ScmObj vector, size_t index, ScmObj obj) /* GC OK */
 {
   scm_assert_obj_type(vector, &SCM_VECTOR_TYPE_INFO);
-  assert(index < SCM_VECTOR_LENGTH(vector));
+  scm_assert(index < SCM_VECTOR_LENGTH(vector));
 
   return SCM_VECTOR_ARRAY(vector)[index] = obj;
 }
@@ -88,7 +88,7 @@ scm_vector_set(ScmObj vector, size_t index, ScmObj obj) /* GC OK */
 bool
 scm_vector_is_vector(ScmObj obj) /* GC OK */
 {
-  assert(scm_obj_not_null_p(obj));
+  scm_assert(scm_obj_not_null_p(obj));
 
   return scm_obj_type_p(obj, &SCM_VECTOR_TYPE_INFO);
 }
@@ -115,8 +115,8 @@ scm_vector_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler) /* GC 
   size_t i;
 
   scm_assert_obj_type(obj, &SCM_VECTOR_TYPE_INFO);
-  assert(scm_obj_not_null_p(mem));
-  assert(handler != NULL);
+  scm_assert(scm_obj_not_null_p(mem));
+  scm_assert(handler != NULL);
 
   for (i = 0; i < SCM_VECTOR_LENGTH(obj); i++) {
     rslt = SCM_GC_CALL_REF_HANDLER(handler, obj,

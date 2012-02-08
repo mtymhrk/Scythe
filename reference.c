@@ -21,7 +21,7 @@ scm_ref_stack_add_new_block(ScmRefStack *stack, size_t size)
 {
   ScmRefStackBlock *block;
 
-  assert(stack != NULL);
+  scm_assert(stack != NULL);
 
   SCM_REF_STACK_NEW_BLOCK(block, size);
   if (block == NULL) return NULL;
@@ -51,7 +51,7 @@ scm_ref_stack_growth_if_needed(ScmRefStack *stack)
 static ScmRefStack *
 scm_ref_stack_initialize(ScmRefStack *stack, size_t size)
 {
-  assert(stack != NULL);
+  scm_assert(stack != NULL);
 
   stack->head = stack->tail = stack->current = NULL;
   return scm_ref_stack_add_new_block(stack, size);
@@ -60,7 +60,7 @@ scm_ref_stack_initialize(ScmRefStack *stack, size_t size)
 static void
 scm_ref_stack_finalize(ScmRefStack *stack)
 {
-  assert(stack != NULL);
+  scm_assert(stack != NULL);
 
   do {
     ScmRefStackBlock *block;
@@ -89,7 +89,7 @@ scm_ref_stack_new(size_t size)
 void
 scm_ref_stack_end(ScmRefStack *stack)
 {
-  assert(stack != NULL);
+  scm_assert(stack != NULL);
 
   scm_ref_stack_finalize(stack);
   scm_memory_release(stack);
@@ -101,7 +101,7 @@ scm_ref_stack_push(ScmRefStack *stack, ...)
   va_list ap;
   ScmObj *ptr;
 
-  assert(stack != NULL);
+  scm_assert(stack != NULL);
 
   va_start(ap, stack);
   while ((ptr = va_arg(ap, ScmObj *)) != NULL) {
@@ -134,8 +134,8 @@ scm_ref_stack_alloc(ScmRefStack *stack, ScmObj init)
 void
 scm_ref_stack_save(ScmRefStack *stack, ScmRefStackInfo *info)
 {
-  assert(stack != NULL);
-  assert(info != NULL);
+  scm_assert(stack != NULL);
+  scm_assert(info != NULL);
 
   info->current = stack->current;
   info->sp = SCM_REF_STACK_BLOCK_SP(stack->current);
@@ -144,8 +144,8 @@ scm_ref_stack_save(ScmRefStack *stack, ScmRefStackInfo *info)
 void
 scm_ref_stack_restore(ScmRefStack *stack, ScmRefStackInfo *info)
 {
-  assert(stack != NULL);
-  assert(info != NULL);
+  scm_assert(stack != NULL);
+  scm_assert(info != NULL);
 
   stack->current = info->current;
   SCM_REF_STACK_BLOCK_SET_SP(stack->current, info->sp);
@@ -194,7 +194,7 @@ scm_ref_stack_gc_accept(ScmRefStack *stack, ScmObj owner,
 bool
 scm_weak_ref_is_weak_ref(ScmObj obj) /* GC OK */
 {
-  assert(scm_obj_not_null_p(obj));
+  scm_assert(scm_obj_not_null_p(obj));
 
   return scm_obj_type_p(obj, &SCM_WEAK_REF_TYPE_INFO);
 }
@@ -203,7 +203,7 @@ void
 scm_weak_ref_set(ScmObj wref, ScmObj obj) /* GC OK */
 {
   scm_assert_obj_type(wref, &SCM_WEAK_REF_TYPE_INFO);
-  assert(scm_obj_not_null_p(obj));
+  scm_assert(scm_obj_not_null_p(obj));
 
   SCM_SETQ_PRIM(SCM_WEAK_REF_OBJ(wref), obj);
 }
@@ -221,8 +221,8 @@ scm_weak_ref_gc_accept_weak(ScmObj obj, ScmObj mem,
                             ScmGCRefHandlerFunc handler)
 {
   scm_assert_obj_type(obj, &SCM_WEAK_REF_TYPE_INFO);
-  assert(scm_obj_not_null_p(mem));
-  assert(handler != NULL);
+  scm_assert(scm_obj_not_null_p(mem));
+  scm_assert(handler != NULL);
 
   return SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_WEAK_REF_OBJ(obj), mem);
 }

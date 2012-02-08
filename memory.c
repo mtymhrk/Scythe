@@ -72,8 +72,8 @@ scm_mem_expand_heap(ScmMem *mem, int inc_block)
   size_t sz;
   ScmMemHeapBlock *to_block, *from_block;
 
-  assert(mem != NULL);
-  assert(inc_block >= 0);
+  scm_assert(mem != NULL);
+  scm_assert(inc_block >= 0);
 
   sz = SCM_MEM_HEAP_TAIL_BLOCK_SIZE(mem->to_heap) * 2;
   if (sz == 0) sz = SCM_MEM_HEAP_INIT_BLOCK_SIZE;
@@ -104,8 +104,8 @@ scm_mem_release_redundancy_heap_blocks(ScmMem *mem, int nr_margin)
   int nr_release;
   int nr_leave;
 
-  assert(mem != NULL);
-  assert(nr_margin >= 0);
+  scm_assert(mem != NULL);
+  scm_assert(nr_margin >= 0);
 
   nr_release = SCM_MEM_HEAP_NR_FREE_BLOCK(mem->to_heap) - nr_margin;
   nr_release = (nr_release < 0) ? 0 : nr_release;
@@ -123,8 +123,8 @@ scm_mem_expand_persistent(ScmMem *mem, int inc_block)
   int i;
   ScmMemHeapBlock *block;
 
-  assert(mem != NULL);
-  assert(inc_block >= 0);
+  scm_assert(mem != NULL);
+  scm_assert(inc_block >= 0);
 
   for (i = 0; i < inc_block; i++) {
     SCM_MEM_HEAP_NEW_BLOCK(block, SCM_MEM_HEAP_INIT_BLOCK_SIZE);
@@ -138,8 +138,8 @@ scm_mem_expand_persistent(ScmMem *mem, int inc_block)
 static int
 scm_mem_register_obj_if_needed(ScmMem *mem, ScmTypeInfo *type, ScmObj obj)
 {
-  assert(mem != NULL);
-  assert(type != NULL);
+  scm_assert(mem != NULL);
+  scm_assert(type != NULL);
 
   if (scm_type_info_has_gc_fin_func_p(type)) {
     ScmBasicHashEntry *e;
@@ -157,7 +157,7 @@ scm_mem_register_obj_if_needed(ScmMem *mem, ScmTypeInfo *type, ScmObj obj)
 static void
 scm_mem_unregister_obj(ScmMem *mem, ScmObj obj)
 {
-  assert(mem != NULL);
+  scm_assert(mem != NULL);
 
   if (scm_obj_has_gc_fin_func_p(obj))
     scm_basic_hash_delete(mem->from_obj_tbl, SCM_BASIC_HASH_KEY(obj));
@@ -166,8 +166,8 @@ scm_mem_unregister_obj(ScmMem *mem, ScmObj obj)
 static void
 scm_mem_finalize_obj(ScmMem *mem, ScmObj obj)
 {
-  assert(mem != NULL);
-  assert(scm_obj_not_null_p(obj));;
+  scm_assert(mem != NULL);
+  scm_assert(scm_obj_not_null_p(obj));;
 
   if (scm_obj_has_gc_fin_func_p(obj))
     scm_obj_call_gc_fin_func(obj);
@@ -179,8 +179,8 @@ scm_mem_finalize_heap_obj(ScmMem *mem, int which)
   ScmBasicHashItr itr;
   ScmBasicHashTable *tbl;
 
-  assert(mem != NULL);
-  assert(which == TO_HEAP || which == FROM_HEAP);
+  scm_assert(mem != NULL);
+  scm_assert(which == TO_HEAP || which == FROM_HEAP);
 
   if (which == TO_HEAP)
     tbl = mem->to_obj_tbl;
@@ -202,8 +202,8 @@ scm_mem_clean_heap(ScmMem *mem, int which)
   ScmMemHeap *heap;
   ScmMemHeapBlock *block;
 
-  assert(mem != NULL);
-  assert(which == TO_HEAP || which == FROM_HEAP);
+  scm_assert(mem != NULL);
+  scm_assert(which == TO_HEAP || which == FROM_HEAP);
 
   scm_mem_finalize_heap_obj(mem, which);
 
@@ -225,7 +225,7 @@ scm_mem_clean_root(ScmMem *mem)
 {
   ScmMemRootBlock *block;
 
-  assert(mem != NULL);
+  scm_assert(mem != NULL);
 
   while ((block = mem->roots) != NULL) {
     ScmObj obj = SCM_MEM_ROOT_BLOCK_OBJECT(block);
@@ -240,7 +240,7 @@ scm_mem_clean_persistent(ScmMem *mem)
   ScmMemHeapBlock *block;
   ScmObj obj;
 
-  assert(mem != NULL);
+  scm_assert(mem != NULL);
 
   SCM_MEM_HEAP_FOR_EACH_BLOCK(mem->persistent, block) {
     SCM_MEM_HEAP_BLOCK_FOR_EACH_OBJ(block, obj) {
@@ -250,7 +250,7 @@ scm_mem_clean_persistent(ScmMem *mem)
   }
   SCM_MEM_HEAP_REWIND(mem->persistent);
 
-  assert(mem != NULL);
+  scm_assert(mem != NULL);
 }
 
 static void
@@ -259,7 +259,7 @@ scm_mem_switch_heap(ScmMem *mem)
   ScmBasicHashTable *tmp_tbl;
   ScmMemHeap *tmp_heap;
 
-  assert(mem != NULL);
+  scm_assert(mem != NULL);
 
   tmp_tbl = mem->from_obj_tbl;
   mem->from_obj_tbl = mem->to_obj_tbl;
@@ -276,9 +276,9 @@ scm_mem_is_obj_in_heap(ScmMem *mem, ScmObj obj, int which)
   ScmMemHeap *heap;
   ScmMemHeapBlock *block;
 
-  assert(mem != NULL);
-  assert(scm_obj_not_null_p(obj));
-  assert(which == TO_HEAP || which == FROM_HEAP);
+  scm_assert(mem != NULL);
+  scm_assert(scm_obj_not_null_p(obj));
+  scm_assert(which == TO_HEAP || which == FROM_HEAP);
 
   if (which == TO_HEAP)
     heap = mem->to_heap;
@@ -299,9 +299,9 @@ scm_mem_alloc_heap_mem(ScmMem *mem, ScmTypeInfo *type, ScmRef ref)
   size_t size;
   void *ptr;
 
-  assert(mem != NULL);
-  assert(type != NULL);
-  assert(ref != SCM_REF_NULL);
+  scm_assert(mem != NULL);
+  scm_assert(type != NULL);
+  scm_assert(ref != SCM_REF_NULL);
 
   size = scm_mem_alloc_size_in_heap(type);
   SCM_MEM_HEAP_ALLOC(mem->to_heap, size, &ptr);
@@ -324,9 +324,9 @@ scm_mem_alloc_heap_mem(ScmMem *mem, ScmTypeInfo *type, ScmRef ref)
 static void
 scm_mem_obj_init(ScmMem *mem, ScmObj obj, ScmTypeInfo *type)
 {
-  assert(mem != NULL);
-  assert(scm_obj_not_null_p(obj));
-  assert(type != NULL);
+  scm_assert(mem != NULL);
+  scm_assert(scm_obj_not_null_p(obj));
+  scm_assert(type != NULL);
 
   scm_obj_init(obj, type);
   scm_type_info_call_gc_ini_func(type, obj, SCM_OBJ(mem));
@@ -338,8 +338,8 @@ scm_mem_copy_obj(ScmMem *mem, ScmObj obj)
   ScmObj box;
   ScmTypeInfo *type;
 
-  assert(mem != NULL);
-  assert(scm_obj_not_null_p(obj));
+  scm_assert(mem != NULL);
+  scm_assert(scm_obj_not_null_p(obj));
 
 
   if (!scm_mem_is_obj_in_heap(mem, obj, FROM_HEAP))
@@ -371,10 +371,10 @@ scm_mem_copy_obj(ScmMem *mem, ScmObj obj)
 static int
 scm_mem_copy_children_func(ScmObj mem, ScmObj obj, ScmRef child)
 {
-  assert(scm_obj_not_null_p(mem));
-  assert(scm_obj_type_p(mem, &SCM_MEM_TYPE_INFO));
-  assert(scm_obj_not_null_p(obj));
-  assert(child != SCM_REF_NULL);
+  scm_assert(scm_obj_not_null_p(mem));
+  scm_assert(scm_obj_type_p(mem, &SCM_MEM_TYPE_INFO));
+  scm_assert(scm_obj_not_null_p(obj));
+  scm_assert(child != SCM_REF_NULL);
 
   if (scm_obj_not_null_p(SCM_REF_DEREF(child))
       && scm_obj_mem_managed_p(SCM_REF_DEREF(child))) {
@@ -389,8 +389,8 @@ scm_mem_copy_children_func(ScmObj mem, ScmObj obj, ScmRef child)
 static void
 scm_mem_copy_children(ScmMem *mem, ScmObj obj)
 {
-  assert(mem != NULL);
-  assert(scm_obj_not_null_p(obj));
+  scm_assert(mem != NULL);
+  scm_assert(scm_obj_not_null_p(obj));
 
  int rslt = scm_obj_call_gc_accept_func(obj, SCM_OBJ(mem),
                                         scm_mem_copy_children_func);
@@ -405,7 +405,7 @@ scm_mem_copy_children_of_persistent(ScmMem *mem)
   ScmMemHeapBlock *block;
   ScmObj obj;
 
-  assert(mem != NULL);
+  scm_assert(mem != NULL);
 
   SCM_MEM_HEAP_FOR_EACH_BLOCK(mem->persistent, block) {
     SCM_MEM_HEAP_BLOCK_FOR_EACH_OBJ(block, obj) {
@@ -442,7 +442,7 @@ scm_mem_copy_extra_obj(ScmMem *mem)
 {
   size_t i;
 
-  assert(mem != NULL);
+  scm_assert(mem != NULL);
 
   for (i = 0; i < mem->nr_extra; i++) {
     if (scm_obj_not_null_p(SCM_REF_DEREF(mem->extra_rfrn[i]))) {
@@ -458,7 +458,7 @@ scm_mem_copy_extra_obj(ScmMem *mem)
 static void
 scm_mem_copy_obj_referred_by_root(ScmMem *mem)
 {
-  assert(mem != NULL);
+  scm_assert(mem != NULL);
 
   scm_mem_copy_children_of_shared_root(mem);
   scm_mem_copy_children_of_root(mem);
@@ -472,7 +472,7 @@ scm_mem_scan_obj(ScmMem *mem)
   ScmMemHeapBlock *block;
   ScmObj obj;
 
-  assert(mem != NULL);
+  scm_assert(mem != NULL);
 
   SCM_MEM_HEAP_FOR_EACH_BLOCK(mem->to_heap, block) {
     SCM_MEM_HEAP_BLOCK_FOR_EACH_OBJ(block, obj) {
@@ -486,10 +486,10 @@ scm_mem_adjust_weak_ref_of_obj_func(ScmObj mem, ScmObj obj, ScmRef child)
 {
   ScmObj co;
 
-  assert(scm_obj_not_null_p(mem));
-  assert(scm_obj_type_p(mem, &SCM_MEM_TYPE_INFO));
-  assert(scm_obj_not_null_p(obj));
-  assert(child != SCM_REF_NULL);
+  scm_assert(scm_obj_not_null_p(mem));
+  scm_assert(scm_obj_type_p(mem, &SCM_MEM_TYPE_INFO));
+  scm_assert(scm_obj_not_null_p(obj));
+  scm_assert(child != SCM_REF_NULL);
 
   co = SCM_REF_DEREF(child);
   if (scm_obj_not_null_p(co)) {
@@ -508,8 +508,8 @@ scm_mem_adjust_weak_ref_of_obj_func(ScmObj mem, ScmObj obj, ScmRef child)
 static void
 scm_mem_adjust_weak_ref_of_obj(ScmMem *mem, ScmObj obj)
 {
-  assert(mem != NULL);
-  assert(scm_obj_not_null_p(obj));
+  scm_assert(mem != NULL);
+  scm_assert(scm_obj_not_null_p(obj));
 
   int rslt =
     scm_obj_call_gc_accept_func_weak(obj, SCM_OBJ(mem),
@@ -534,7 +534,7 @@ static void
 scm_mem_adjust_weak_ref_of_heap_obj(ScmMem *mem)
 {
   ScmObj obj;
-  assert(mem != NULL);
+  scm_assert(mem != NULL);
 
   for (obj = SCM_OBJ(SCM_MEM_HEAP_WEAK_LIST(mem->to_heap));
        scm_obj_not_null_p(obj);
@@ -546,7 +546,7 @@ scm_mem_adjust_weak_ref_of_heap_obj(ScmMem *mem)
 static void
 scm_mem_adjust_weak_ref(ScmMem *mem)
 {
-  assert(mem != NULL);
+  scm_assert(mem != NULL);
 
   scm_mem_adjust_weak_ref_of_root_obj(mem, shared_roots);
   scm_mem_adjust_weak_ref_of_root_obj(mem, mem->roots);
@@ -560,8 +560,8 @@ scm_mem_alloc_root_obj(ScmTypeInfo *type, ScmMem *mem, ScmMemRootBlock **head)
   ScmObj obj;
   size_t size;
 
-  assert(type != NULL);
-  assert(head != NULL);
+  scm_assert(type != NULL);
+  scm_assert(head != NULL);
 
   size = scm_mem_alloc_size_in_root(type);
   SCM_MEM_ROOT_BLOCK_NEW(&block, size);
@@ -581,8 +581,8 @@ scm_mem_free_root_obj(ScmObj obj, ScmMem *mem, ScmMemRootBlock **head)
 {
   ScmMemRootBlock *block;
 
-  assert(mem != NULL);
-  assert(SCM_MEM_ROOT_BLOCK_IS_OBJ_IN_BLOK(obj));
+  scm_assert(mem != NULL);
+  scm_assert(SCM_MEM_ROOT_BLOCK_IS_OBJ_IN_BLOK(obj));
 
   block = SCM_MEM_ROOT_BLOCK_OBJ_HEADER(obj);
   SCM_MEM_DEL_FROM_ROOT_SET(head, block);
@@ -599,7 +599,7 @@ scm_mem_free_all_obj_in_root_set(ScmMem *mem, ScmMemRootBlock **head)
 {
   ScmMemRootBlock *block;
 
-  assert(mem != NULL);
+  scm_assert(mem != NULL);
 
   for (block = *head; block != NULL; block = *head) {
     ScmObj obj = SCM_MEM_ROOT_BLOCK_OBJECT(block);
@@ -610,7 +610,7 @@ scm_mem_free_all_obj_in_root_set(ScmMem *mem, ScmMemRootBlock **head)
 static ScmMem *
 scm_mem_initialize(ScmMem *mem)
 {
-  assert(mem != NULL);
+  scm_assert(mem != NULL);
 
   scm_obj_init(SCM_OBJ(mem), &SCM_MEM_TYPE_INFO);
   mem->to_obj_tbl = NULL;
@@ -659,7 +659,7 @@ scm_mem_initialize(ScmMem *mem)
 static ScmMem *
 scm_mem_finalize(ScmMem *mem)
 {
-  assert(mem != NULL);
+  scm_assert(mem != NULL);
 
   scm_mem_free_all_obj_in_root_set(mem, &mem->roots);
   scm_mem_clean(mem);
@@ -710,9 +710,9 @@ scm_mem_clean(ScmMem *mem)
 ScmMem *
 scm_mem_alloc_heap(ScmMem *mem, ScmTypeInfo *type, ScmRef ref)
 {
-  assert(mem != NULL);
-  assert(type != NULL);
-  assert(ref != SCM_REF_NULL);
+  scm_assert(mem != NULL);
+  scm_assert(type != NULL);
+  scm_assert(ref != SCM_REF_NULL);
 
   SCM_REF_UPDATE(ref, SCM_OBJ_NULL);
 
@@ -737,9 +737,9 @@ scm_mem_alloc_persist(ScmMem *mem, ScmTypeInfo *type, ScmRef ref)
   size_t size;
   void *ptr;
 
-  assert(mem != NULL);
-  assert(type != NULL);
-  assert(ref != SCM_REF_NULL);
+  scm_assert(mem != NULL);
+  scm_assert(type != NULL);
+  scm_assert(ref != SCM_REF_NULL);
 
   size = scm_mem_alloc_size_in_heap(type);
   SCM_MEM_HEAP_ALLOC(mem->persistent, size, &ptr);
@@ -769,9 +769,9 @@ scm_mem_alloc_persist(ScmMem *mem, ScmTypeInfo *type, ScmRef ref)
 ScmMem *
 scm_mem_alloc_root(ScmMem *mem, ScmTypeInfo *type, ScmRef ref)
 {
-  assert(mem != NULL);
-  assert(type != NULL);
-  assert(ref != SCM_REF_NULL);
+  scm_assert(mem != NULL);
+  scm_assert(type != NULL);
+  scm_assert(ref != SCM_REF_NULL);
 
   SCM_REF_UPDATE(ref, scm_mem_alloc_root_obj(type, mem, &mem->roots));
   if (scm_obj_null_p(SCM_REF_DEREF(ref))) return NULL;
@@ -782,8 +782,8 @@ scm_mem_alloc_root(ScmMem *mem, ScmTypeInfo *type, ScmRef ref)
 ScmObj
 scm_mem_free_root(ScmMem *mem, ScmObj obj)
 {
-  assert(mem != NULL);
-  assert(SCM_MEM_ROOT_BLOCK_IS_OBJ_IN_BLOK(obj));
+  scm_assert(mem != NULL);
+  scm_assert(SCM_MEM_ROOT_BLOCK_IS_OBJ_IN_BLOK(obj));
 
   return scm_mem_free_root_obj(obj, mem, &mem->roots);
 }
@@ -795,9 +795,9 @@ scm_mem_free_root(ScmMem *mem, ScmObj obj)
 /* { */
 /*   ScmObj obj; */
 
-/*   assert(mem != NULL); */
-/*   assert(type != NULL); */
-/*   assert(ref != SCM_REF_NULL); */
+/*   scm_assert(mem != NULL); */
+/*   scm_assert(type != NULL); */
+/*   scm_assert(ref != SCM_REF_NULL); */
 
 /*   SCM_REF_UPDATE(ref, NULL); */
 
@@ -814,8 +814,8 @@ scm_mem_free_root(ScmMem *mem, ScmObj obj)
 /* ScmObj  */
 /* scm_mem_free_plain(ScmMem *mem, ScmObj obj) */
 /* { */
-/*   assert(mem != NULL); */
-/*   assert(obj != NULL); */
+/*   scm_assert(mem != NULL); */
+/*   scm_assert(obj != NULL); */
 
 /*   free(obj); */
 
@@ -825,8 +825,8 @@ scm_mem_free_root(ScmMem *mem, ScmObj obj)
 ScmRef
 scm_mem_register_extra_rfrn(ScmMem *mem, ScmRef ref)
 {
-  assert(mem != NULL);
-  assert(ref != SCM_REF_NULL);
+  scm_assert(mem != NULL);
+  scm_assert(ref != SCM_REF_NULL);
 
   if (mem->nr_extra >= SCM_MEM_EXTRA_RFRN_SIZE)
     return SCM_REF_NULL;
@@ -840,10 +840,10 @@ ScmMem *
 scm_mem_alloc(ScmMem *mem, ScmTypeInfo *type,
               SCM_MEM_ALLOC_TYPE_T alloc, ScmRef ref)
 {
-  assert(mem != NULL);
-  assert(type != NULL);
-  assert(alloc <  SCM_MEM_NR_ALLOC_TYPE);
-  assert(ref != SCM_REF_NULL);
+  scm_assert(mem != NULL);
+  scm_assert(type != NULL);
+  scm_assert(alloc <  SCM_MEM_NR_ALLOC_TYPE);
+  scm_assert(ref != SCM_REF_NULL);
 
   SCM_REF_UPDATE(ref, SCM_OBJ_NULL);
 
@@ -870,7 +870,7 @@ scm_mem_gc_start(ScmMem *mem)
 {
   int nr_free;
 
-  assert(mem != NULL);
+  scm_assert(mem != NULL);
 
   scm_mem_switch_heap(mem);
   scm_mem_copy_obj_referred_by_root(mem);
@@ -891,7 +891,7 @@ scm_mem_alloc_size_in_heap(ScmTypeInfo *type)
 {
   size_t size;
 
-  assert(type != NULL);
+  scm_assert(type != NULL);
 
   size = scm_type_info_obj_size(type);
   if (size < sizeof(ScmMMObj))
@@ -916,7 +916,7 @@ scm_mem_alloc_size_in_root(ScmTypeInfo *type)
 {
   size_t size;
 
-  assert(type != NULL);
+  scm_assert(type != NULL);
 
   size = scm_type_info_obj_size(type);
   if (size < sizeof(ScmMMObj))

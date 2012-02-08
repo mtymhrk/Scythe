@@ -24,7 +24,7 @@ void
 scm_char_initialize(ScmObj chr, scm_char_t value, SCM_ENCODING_T enc) /* GC OK */
 {
   scm_assert_obj_type(chr, &SCM_CHAR_TYPE_INFO);
-  assert(/* 0 <= enc && */ enc < SMC_ENCODING_NR_ENC);
+  scm_assert(/* 0 <= enc && */ enc < SMC_ENCODING_NR_ENC);
 
   SCM_CHAR_VALUE(chr) = value;
   SCM_CHAR_ENC(chr) = enc;
@@ -44,7 +44,7 @@ scm_char_new(SCM_MEM_ALLOC_TYPE_T mtype,
 
   SCM_STACK_FRAME_PUSH(&chr);
 
-  assert(/* 0 <= enc && */ enc < SMC_ENCODING_NR_ENC);
+  scm_assert(/* 0 <= enc && */ enc < SMC_ENCODING_NR_ENC);
 
 
   /* scm_mem_alloc_root(scm_vm_current_mm(), */
@@ -90,6 +90,6 @@ scm_char_encoding(ScmObj chr)   /* GC OK */
 bool
 scm_char_is_char(ScmObj obj)    /* GC OK */
 {
-  assert(scm_obj_not_null_p(obj));
+  scm_assert(scm_obj_not_null_p(obj));
   return scm_obj_type_p(obj, &SCM_CHAR_TYPE_INFO);
 }

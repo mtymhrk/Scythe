@@ -50,7 +50,7 @@ static inline ScmObj
 scm_iseq_get_immval(ScmObj iseq, int idx)
 {
   scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
-  assert(idx >= 0);
+  scm_assert(idx >= 0);
 
   return SCM_ISEQ_IMMVAL_VEC(iseq)[idx];
 }

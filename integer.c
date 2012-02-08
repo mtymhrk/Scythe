@@ -59,7 +59,7 @@ scm_integer_value(ScmObj integer) /* GC OK */
 bool
 scm_integer_is_integer(ScmObj obj) /* GC OK */
 {
-  assert(scm_obj_not_null_p(obj));
+  scm_assert(scm_obj_not_null_p(obj));
 
   return scm_obj_type_p(obj, &SCM_INTEGER_TYPE_INFO);
 }

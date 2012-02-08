@@ -18,7 +18,7 @@ scm_subrutine_initialize(ScmObj subr, ScmSubrFunc func)
   SCM_STACK_PUSH(&subr);
 
   scm_assert_obj_type(subr, &SCM_SUBRUTINE_TYPE_INFO);
-  assert(func != NULL);
+  scm_assert(func != NULL);
 
   SCM_SUBRUTINE_FUNC(subr) = func;
 }
@@ -30,7 +30,7 @@ scm_subrutine_new(SCM_MEM_ALLOC_TYPE_T mtype, ScmSubrFunc func)
 
   SCM_STACK_PUSH(&subr);
 
-  assert(func != NULL);
+  scm_assert(func != NULL);
 
   scm_mem_alloc(scm_vm_current_mm(),
                 &SCM_SUBRUTINE_TYPE_INFO, mtype, SCM_REF_MAKE(subr));
@@ -61,7 +61,7 @@ void
 scm_subrutine_gc_initialize(ScmObj obj, ScmObj mem)
 {
   scm_assert_obj_type(obj, &SCM_SUBRUTINE_TYPE_INFO);
-  assert(scm_obj_not_null_p(mem));
+  scm_assert(scm_obj_not_null_p(mem));
 
   SCM_SUBRUTINE_FUNC(obj) = NULL;
 }

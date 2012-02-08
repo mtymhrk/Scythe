@@ -73,7 +73,7 @@ scm_string_copy_and_expand(ScmObj src, size_t size) /* GC OK */
   SCM_STACK_FRAME_PUSH(&str);
 
   scm_assert_obj_type(src, &SCM_STRING_TYPE_INFO);
-  assert(size <= SSIZE_MAX);
+  scm_assert(size <= SSIZE_MAX);
 
   SCM_SETQ(str, scm_string_new(SCM_MEM_ALLOC_HEAP,
                                      NULL, size, SCM_STRING_ENC(src)));
@@ -143,7 +143,7 @@ scm_string_initialize(ScmObj str,
   SCM_STACK_FRAME_PUSH(&str);
 
   scm_assert_obj_type(str, &SCM_STRING_TYPE_INFO);
-  assert(size <= SSIZE_MAX);
+  scm_assert(size <= SSIZE_MAX);
 
   SCM_STRING_BUFFER(str) = NULL;
   SCM_STRING_REF_CNT(str) = NULL;
@@ -188,9 +188,9 @@ scm_string_new(SCM_MEM_ALLOC_TYPE_T mtype, const void *src, size_t size, SCM_ENC
   ScmObj str = SCM_OBJ_INIT;
 
   SCM_STACK_FRAME_PUSH(&str);
-  assert(size <= SSIZE_MAX);
+  scm_assert(size <= SSIZE_MAX);
 
-  assert(/*0 <= enc && */enc < SMC_ENCODING_NR_ENC);
+  scm_assert(/*0 <= enc && */enc < SMC_ENCODING_NR_ENC);
 
   scm_mem_alloc(scm_vm_current_mm(),
                 &SCM_STRING_TYPE_INFO, mtype, SCM_REF_MAKE(str));
@@ -280,8 +280,8 @@ scm_string_substr(ScmObj str, size_t pos, size_t len) /* GC OK */
   ScmStrItr (*index2iter)(void *p, size_t size, size_t idx);
 
   SCM_STACK_FRAME_PUSH(&str, &substr);
-  assert(pos <= SSIZE_MAX);
-  assert(len <= SSIZE_MAX);
+  scm_assert(pos <= SSIZE_MAX);
+  scm_assert(len <= SSIZE_MAX);
 
   if (pos + len > SCM_STRING_LENGTH(str)) return SCM_OBJ_NULL;
 
@@ -370,7 +370,7 @@ scm_string_ref(ScmObj str, size_t pos) /* GC OK */
   ScmStrItr (*index2iter)(void *p, size_t size, size_t idx);
 
   scm_assert_obj_type(str, &SCM_STRING_TYPE_INFO);
-  assert(pos <= SSIZE_MAX);
+  scm_assert(pos <= SSIZE_MAX);
 
   c = SCM_CHR_ZERO;
   if (pos >= SCM_STRING_LENGTH(str)) return c;
@@ -397,7 +397,7 @@ scm_string_set(ScmObj str, size_t pos, const scm_char_t c) /* GC OK */
   SCM_STACK_FRAME_PUSH(&str, &front, &rear, &tmp);
 
   scm_assert_obj_type(str, &SCM_STRING_TYPE_INFO);
-  assert(pos <= SSIZE_MAX);
+  scm_assert(pos <= SSIZE_MAX);
 
   if (pos >= SCM_STRING_LENGTH(str)) return SCM_OBJ_NULL;
 
@@ -475,8 +475,8 @@ scm_string_fill(ScmObj str, size_t pos, size_t len, scm_char_t c) /* GC OK */
   SCM_STACK_FRAME_PUSH(&str, &front, &rear, &tmp);
 
   scm_assert_obj_type(str, &SCM_STRING_TYPE_INFO);
-  assert(pos <= SSIZE_MAX);
-  assert(len <= SSIZE_MAX);
+  scm_assert(pos <= SSIZE_MAX);
+  scm_assert(len <= SSIZE_MAX);
 
   if (pos > SCM_STRING_LENGTH(str)) return SCM_OBJ_NULL;
 
@@ -615,8 +615,8 @@ scm_string_dump(ScmObj str, void *buf, size_t size) /* GC OK */
   size_t len;
 
   scm_assert_obj_type(str, &SCM_STRING_TYPE_INFO);
-  assert(buf != NULL);
-  assert(size <= SSIZE_MAX);
+  scm_assert(buf != NULL);
+  scm_assert(size <= SSIZE_MAX);
 
   len = (size < SCM_STRING_BYTESIZE(str)) ? size : SCM_STRING_BYTESIZE(str);
   memcpy(buf, SCM_STRING_HEAD(str), len); // XXX
@@ -643,7 +643,7 @@ scm_string_content(ScmObj str)  /* GC OK */
 bool
 scm_string_is_string(ScmObj obj)
 {
-  assert(scm_obj_not_null_p(obj));
+  scm_assert(scm_obj_not_null_p(obj));
 
   return scm_obj_type_p(obj, &SCM_STRING_TYPE_INFO);
 }

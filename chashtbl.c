@@ -24,9 +24,9 @@ scm_chash_tbl_initialize(ScmObj tbl, size_t size,
   SCM_STACK_FRAME_PUSH(&tbl);
 
   scm_assert_obj_type(tbl, &SCM_CHASH_TBL_TYPE_INFO);
-  assert(hash_func != NULL);
-  assert(cmp_func != NULL);
-  assert(SIZE_MAX / size > sizeof(ScmCHashTblEntry *));
+  scm_assert(hash_func != NULL);
+  scm_assert(cmp_func != NULL);
+  scm_assert(SIZE_MAX / size > sizeof(ScmCHashTblEntry *));
 
   SCM_CHASH_TBL(tbl)->buckets =
     scm_memory_allocate(sizeof(ScmCHashTblEntry *) * size);
@@ -132,7 +132,7 @@ scm_chash_tbl_access(ScmObj tbl,
         return entry;
         break;
       default:
-        assert(false);
+        scm_assert(false);
         break;
       }
     }
@@ -168,7 +168,7 @@ scm_chash_tbl_get(ScmObj tbl, ScmCHashTblKey key,
   */
 
   scm_assert_obj_type(tbl, &SCM_CHASH_TBL_TYPE_INFO);
-  assert(SCM_CHASH_TBL(tbl)->key_kind != SCM_CHASH_TBL_CVAL
+  scm_assert(SCM_CHASH_TBL(tbl)->key_kind != SCM_CHASH_TBL_CVAL
          && scm_obj_not_null_p(key));
 
   val_kind = SCM_CHASH_TBL(tbl)->val_kind;
@@ -210,7 +210,7 @@ scm_chash_tbl_delete(ScmObj tbl, ScmCHashTblKey key,
   */
 
   scm_assert_obj_type(tbl, &SCM_CHASH_TBL_TYPE_INFO);
-  assert(SCM_CHASH_TBL(tbl)->key_kind != SCM_CHASH_TBL_CVAL
+  scm_assert(SCM_CHASH_TBL(tbl)->key_kind != SCM_CHASH_TBL_CVAL
          && scm_obj_not_null_p(key));
 
   val_kind = SCM_CHASH_TBL(tbl)->val_kind;
@@ -243,9 +243,9 @@ scm_chash_tbl_insert(ScmObj tbl, ScmCHashTblKey key, ScmCHashTblVal val) /* GC O
   ScmCHashTblEntry *e;
 
   scm_assert_obj_type(tbl, &SCM_CHASH_TBL_TYPE_INFO);
-  assert(SCM_CHASH_TBL(tbl)->key_kind != SCM_CHASH_TBL_CVAL
+  scm_assert(SCM_CHASH_TBL(tbl)->key_kind != SCM_CHASH_TBL_CVAL
          && scm_obj_not_null_p(key));
-  assert(SCM_CHASH_TBL(tbl)->val_kind != SCM_CHASH_TBL_CVAL
+  scm_assert(SCM_CHASH_TBL(tbl)->val_kind != SCM_CHASH_TBL_CVAL
          && scm_obj_not_null_p(val));
 
   e = scm_chash_tbl_access(tbl, key, val, ADD);
@@ -262,9 +262,9 @@ scm_chash_tbl_update(ScmObj tbl, ScmCHashTblKey key, ScmCHashTblVal val) /* GC O
   ScmCHashTblEntry *e;
 
   scm_assert_obj_type(tbl, &SCM_CHASH_TBL_TYPE_INFO);
-  assert(SCM_CHASH_TBL(tbl)->key_kind != SCM_CHASH_TBL_CVAL
+  scm_assert(SCM_CHASH_TBL(tbl)->key_kind != SCM_CHASH_TBL_CVAL
          && scm_obj_not_null_p(key));
-  assert(SCM_CHASH_TBL(tbl)->val_kind != SCM_CHASH_TBL_CVAL
+  scm_assert(SCM_CHASH_TBL(tbl)->val_kind != SCM_CHASH_TBL_CVAL
          && scm_obj_not_null_p(val));
 
   e = scm_chash_tbl_access(tbl, key, val, UPDATE);
@@ -275,7 +275,7 @@ void
 scm_chash_tbl_gc_initialize(ScmObj obj, ScmObj mem)
 {
   scm_assert_obj_type(obj, &SCM_CHASH_TBL_TYPE_INFO);
-  assert(scm_obj_not_null_p(mem));
+  scm_assert(scm_obj_not_null_p(mem));
 
   SCM_CHASH_TBL(obj)->buckets = NULL;
 }
@@ -292,8 +292,8 @@ scm_chash_tbl_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
 
   scm_assert_obj_type(obj, &SCM_CHASH_TBL_TYPE_INFO);
-  assert(scm_obj_not_null_p(mem));
-  assert(handler != NULL);
+  scm_assert(scm_obj_not_null_p(mem));
+  scm_assert(handler != NULL);
 
   if ((SCM_CHASH_TBL(obj)->key_kind != SCM_CHASH_TBL_SCMOBJ)
       && (SCM_CHASH_TBL(obj)->val_kind != SCM_CHASH_TBL_SCMOBJ))
@@ -324,8 +324,8 @@ scm_chash_tbl_gc_accept_weak(ScmObj obj, ScmObj mem,
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
 
   scm_assert_obj_type(obj, &SCM_CHASH_TBL_TYPE_INFO);
-  assert(scm_obj_not_null_p(mem));
-  assert(handler != NULL);
+  scm_assert(scm_obj_not_null_p(mem));
+  scm_assert(handler != NULL);
 
   if ((SCM_CHASH_TBL(obj)->key_kind != SCM_CHASH_TBL_SCMOBJ_W)
       && (SCM_CHASH_TBL(obj)->val_kind != SCM_CHASH_TBL_SCMOBJ_W))
