@@ -141,7 +141,7 @@ scm_mem_register_obj_if_needed(ScmMem *mem, ScmTypeInfo *type, ScmObj obj)
   assert(mem != NULL);
   assert(type != NULL);
 
-  if (SCM_TYPE_INFO_HAS_GC_FIN(type)) {
+  if (scm_type_info_has_gc_fin_func_p(type)) {
     ScmBasicHashEntry *e;
     e = scm_basic_hash_put(mem->to_obj_tbl,
                            SCM_BASIC_HASH_KEY(obj),
