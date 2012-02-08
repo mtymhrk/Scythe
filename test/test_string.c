@@ -32,7 +32,7 @@ test_scm_string_new(void)
                                      "foo", sizeof("foo") - 1,
                                      SCM_ENCODING_ASCII));
   /* postcondition check */
-  cut_assert_true(SCM_OBJ_NOT_NULL_P(str));
+  cut_assert_true(scm_obj_not_null_p(str));
   cut_assert_true(SCM_OBJ_IS_TYPE(str, &SCM_STRING_TYPE_INFO));
 }
 

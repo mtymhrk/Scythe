@@ -505,7 +505,7 @@ scm_string_fill(ScmObj str, size_t pos, size_t len, scm_char_t c) /* GC OK */
     if (scm_obj_null_p(scm_string_push(tmp, c)))
       return SCM_OBJ_NULL;
 
-  if (SCM_OBJ_NOT_NULL_P(rear))
+  if (scm_obj_not_null_p(rear))
     if (scm_obj_null_p(scm_string_append(tmp, rear)))
       return SCM_OBJ_NULL;
 
@@ -643,7 +643,7 @@ scm_string_content(ScmObj str)  /* GC OK */
 bool
 scm_string_is_string(ScmObj obj)
 {
-  assert(SCM_OBJ_NOT_NULL_P(obj));
+  assert(scm_obj_not_null_p(obj));
 
   return SCM_OBJ_IS_TYPE(obj, &SCM_STRING_TYPE_INFO);
 }

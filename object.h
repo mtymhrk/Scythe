@@ -53,9 +53,14 @@ scm_obj_null_p(ScmObj obj)
   return ((obj) == SCM_OBJ_NULL) ? true : false;
 }
 
-#define SCM_OBJ_NOT_NULL_P(obj) ((obj) != SCM_OBJ_NULL)
+static inline bool
+scm_obj_not_null_p(ScmObj obj)
+{
+  return ((obj) != SCM_OBJ_NULL) ? true : false;
+}
+
 #define SCM_OBJ_SAME_INSTANCE_P(obj1, obj2) \
-  (SCM_OBJ_NOT_NULL_P(obj1) && ((obj1) == (obj2)))
+  (scm_obj_not_null_p(obj1) && ((obj1) == (obj2)))
 
 
 /* 将来的に write barrier を挿入しなければならないときに使用する */
@@ -156,7 +161,7 @@ int scm_obj_same_instance_p(ScmObj obj1, ScmObj obj2);
 
 
 #define SCM_OBJ_ASSERT_TYPE(obj, type) \
-  assert(SCM_OBJ_NOT_NULL_P(obj));    \
+  assert(scm_obj_not_null_p(obj));    \
   assert(SCM_OBJ_IS_TYPE(obj, type));
 
 #define SCM_OBJ_ASSERT_TYPE_ACCEPT_NULL(obj, type)      \

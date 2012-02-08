@@ -432,7 +432,7 @@ void
 scm_vm_op_immval(ScmObj vm, ScmObj val)
 {
   SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
-  assert(SCM_OBJ_NOT_NULL_P(val));
+  assert(scm_obj_not_null_p(val));
 
   SCM_VM_VAL_SETQ(vm, val);
 }
@@ -499,7 +499,7 @@ scm_vm_op_gref(ScmObj vm, ScmObj arg, int immv_idx)
   SCM_STACK_FRAME_PUSH(&vm, &arg, &gloc, &val);
 
   SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
-  assert(SCM_OBJ_NOT_NULL_P(arg));
+  assert(scm_obj_not_null_p(arg));
   assert(immv_idx >= 0);
 
   if (SCM_OBJ_IS_TYPE(arg, &SCM_SYMBOL_TYPE_INFO)) {
@@ -548,8 +548,8 @@ scm_vm_op_gdef(ScmObj vm, ScmObj arg, ScmObj val, int immv_idx)
   SCM_STACK_FRAME_PUSH(&vm, &arg, &val, &gloc);
 
   SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
-  assert(SCM_OBJ_NOT_NULL_P(arg));
-  assert(SCM_OBJ_NOT_NULL_P(val));
+  assert(scm_obj_not_null_p(arg));
+  assert(scm_obj_not_null_p(val));
 
   if (SCM_OBJ_IS_TYPE(arg, &SCM_SYMBOL_TYPE_INFO)) {
     SCM_SETQ(gloc, scm_gloctbl_bind(SCM_VM_GLOCTBL(vm), arg, val));
@@ -584,7 +584,7 @@ scm_vm_op_gset(ScmObj vm, ScmObj arg, ScmObj val, int immv_idx)
   SCM_STACK_FRAME_PUSH(&vm, &arg, &val, &gloc);
 
   SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
-  assert(SCM_OBJ_NOT_NULL_P(arg));
+  assert(scm_obj_not_null_p(arg));
   assert(immv_idx >= 0);
 
   if (SCM_OBJ_IS_TYPE(arg, &SCM_SYMBOL_TYPE_INFO)) {
@@ -616,7 +616,7 @@ void
 scm_vm_gc_initialize(ScmObj obj, ScmObj mem)
 {
   SCM_OBJ_ASSERT_TYPE(obj, &SCM_VM_TYPE_INFO);
-  assert(SCM_OBJ_NOT_NULL_P(mem));
+  assert(scm_obj_not_null_p(mem));
 
   SCM_VM_MEM(obj) = SCM_MEM(mem);
 
@@ -644,7 +644,7 @@ scm_vm_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
 
   SCM_OBJ_ASSERT_TYPE(obj, &SCM_VM_TYPE_INFO);
-  assert(SCM_OBJ_NOT_NULL_P(mem));
+  assert(scm_obj_not_null_p(mem));
   assert(handler != NULL);
 
   rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_VM_SYMTBL(obj), mem);

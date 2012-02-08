@@ -29,8 +29,8 @@ test_scm_eof_new(void)
   SCM_SETQ(eof1, scm_eof_instance());
   SCM_SETQ(eof2, scm_eof_instance());
 
-  cut_assert_true(SCM_OBJ_NOT_NULL_P(eof1));
-  cut_assert_true(SCM_OBJ_NOT_NULL_P(eof2));
+  cut_assert_true(scm_obj_not_null_p(eof1));
+  cut_assert_true(scm_obj_not_null_p(eof2));
 
   cut_assert_true(scm_obj_same_instance_p(SCM_OBJ(eof1), SCM_OBJ(eof2)));
 }

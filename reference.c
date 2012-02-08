@@ -194,7 +194,7 @@ scm_ref_stack_gc_accept(ScmRefStack *stack, ScmObj owner,
 bool
 scm_weak_ref_is_weak_ref(ScmObj obj) /* GC OK */
 {
-  assert(SCM_OBJ_NOT_NULL_P(obj));
+  assert(scm_obj_not_null_p(obj));
 
   return SCM_OBJ_IS_TYPE(obj, &SCM_WEAK_REF_TYPE_INFO);
 }
@@ -203,7 +203,7 @@ void
 scm_weak_ref_set(ScmObj wref, ScmObj obj) /* GC OK */
 {
   SCM_OBJ_ASSERT_TYPE(wref, &SCM_WEAK_REF_TYPE_INFO);
-  assert(SCM_OBJ_NOT_NULL_P(obj));
+  assert(scm_obj_not_null_p(obj));
 
   SCM_SETQ_PRIM(SCM_WEAK_REF_OBJ(wref), obj);
 }
@@ -221,7 +221,7 @@ scm_weak_ref_gc_accept_weak(ScmObj obj, ScmObj mem,
                             ScmGCRefHandlerFunc handler)
 {
   SCM_OBJ_ASSERT_TYPE(obj, &SCM_WEAK_REF_TYPE_INFO);
-  assert(SCM_OBJ_NOT_NULL_P(mem));
+  assert(scm_obj_not_null_p(mem));
   assert(handler != NULL);
 
   return SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_WEAK_REF_OBJ(obj), mem);

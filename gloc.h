@@ -24,7 +24,7 @@ static inline void
 scm_gloc_bind(ScmObj gloc, ScmObj val)
 {
   SCM_OBJ_ASSERT_TYPE(gloc, &SCM_GLOC_TYPE_INFO);
-  assert(SCM_OBJ_NOT_NULL_P(val));
+  assert(scm_obj_not_null_p(val));
 
   SCM_SETQ(SCM_GLOC(gloc)->val, val);
 }

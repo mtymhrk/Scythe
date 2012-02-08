@@ -38,7 +38,7 @@ test_scm_symbol_new(void)
   SCM_SETQ(sym, scm_symbol_new(SCM_MEM_ALLOC_HEAP, str));
 
   /* postcondition check */
-  cut_assert_true(SCM_OBJ_NOT_NULL_P(sym));
+  cut_assert_true(scm_obj_not_null_p(sym));
 }
 
 void

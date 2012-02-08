@@ -90,6 +90,6 @@ scm_char_encoding(ScmObj chr)   /* GC OK */
 bool
 scm_char_is_char(ScmObj obj)    /* GC OK */
 {
-  assert(SCM_OBJ_NOT_NULL_P(obj));
+  assert(scm_obj_not_null_p(obj));
   return SCM_OBJ_IS_TYPE(obj, &SCM_CHAR_TYPE_INFO);
 }

@@ -88,7 +88,7 @@ scm_vector_set(ScmObj vector, size_t index, ScmObj obj) /* GC OK */
 bool
 scm_vector_is_vector(ScmObj obj) /* GC OK */
 {
-  assert(SCM_OBJ_NOT_NULL_P(obj));
+  assert(scm_obj_not_null_p(obj));
 
   return SCM_OBJ_IS_TYPE(obj, &SCM_VECTOR_TYPE_INFO);
 }
@@ -115,7 +115,7 @@ scm_vector_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler) /* GC 
   size_t i;
 
   SCM_OBJ_ASSERT_TYPE(obj, &SCM_VECTOR_TYPE_INFO);
-  assert(SCM_OBJ_NOT_NULL_P(mem));
+  assert(scm_obj_not_null_p(mem));
   assert(handler != NULL);
 
   for (i = 0; i < SCM_VECTOR_LENGTH(obj); i++) {

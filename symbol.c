@@ -55,7 +55,7 @@ scm_symbol_new(SCM_MEM_ALLOC_TYPE_T mtype, ScmObj str) /* GC OK */
 bool
 scm_symbol_is_symbol(ScmObj obj) /* GC OK */
 {
-  assert(SCM_OBJ_NOT_NULL_P(obj));
+  assert(scm_obj_not_null_p(obj));
 
   return SCM_OBJ_IS_TYPE(obj, &SCM_SYMBOL_TYPE_INFO);
 }

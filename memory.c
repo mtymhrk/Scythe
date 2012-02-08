@@ -167,7 +167,7 @@ static void
 scm_mem_finalize_obj(ScmMem *mem, ScmObj obj)
 {
   assert(mem != NULL);
-  assert(SCM_OBJ_NOT_NULL_P(obj));;
+  assert(scm_obj_not_null_p(obj));;
 
   if (SCM_OBJ_HAS_GC_FIN(obj)) {
     ScmGCFinalizeFunc fin = SCM_OBJ_GC_FIN(obj);
@@ -279,7 +279,7 @@ scm_mem_is_obj_in_heap(ScmMem *mem, ScmObj obj, int which)
   ScmMemHeapBlock *block;
 
   assert(mem != NULL);
-  assert(SCM_OBJ_NOT_NULL_P(obj));
+  assert(scm_obj_not_null_p(obj));
   assert(which == TO_HEAP || which == FROM_HEAP);
 
   if (which == TO_HEAP)
@@ -327,7 +327,7 @@ static void
 scm_mem_obj_init(ScmMem *mem, ScmObj obj, ScmTypeInfo *type)
 {
   assert(mem != NULL);
-  assert(SCM_OBJ_NOT_NULL_P(obj));
+  assert(scm_obj_not_null_p(obj));
   assert(type != NULL);
 
   scm_obj_init(obj, type);
@@ -344,7 +344,7 @@ scm_mem_copy_obj(ScmMem *mem, ScmObj obj)
   ScmTypeInfo *type;
 
   assert(mem != NULL);
-  assert(SCM_OBJ_NOT_NULL_P(obj));
+  assert(scm_obj_not_null_p(obj));
 
 
   if (!scm_mem_is_obj_in_heap(mem, obj, FROM_HEAP))
@@ -376,12 +376,12 @@ scm_mem_copy_obj(ScmMem *mem, ScmObj obj)
 static int
 scm_mem_copy_children_func(ScmObj mem, ScmObj obj, ScmRef child)
 {
-  assert(SCM_OBJ_NOT_NULL_P(mem));
+  assert(scm_obj_not_null_p(mem));
   assert(SCM_OBJ_IS_TYPE(mem, &SCM_MEM_TYPE_INFO));
-  assert(SCM_OBJ_NOT_NULL_P(obj));
+  assert(scm_obj_not_null_p(obj));
   assert(child != SCM_REF_NULL);
 
-  if (SCM_OBJ_NOT_NULL_P(SCM_REF_OBJ(child))
+  if (scm_obj_not_null_p(SCM_REF_OBJ(child))
       && SCM_OBJ_IS_MEM_MANAGED(SCM_REF_OBJ(child))) {
     ScmObj cpy = scm_mem_copy_obj(SCM_MEM(mem), SCM_REF_OBJ(child));
     if (scm_obj_null_p(cpy))  return -1; // error
@@ -395,7 +395,7 @@ static void
 scm_mem_copy_children(ScmMem *mem, ScmObj obj)
 {
   assert(mem != NULL);
-  assert(SCM_OBJ_NOT_NULL_P(obj));
+  assert(scm_obj_not_null_p(obj));
 
   if (SCM_OBJ_HAS_GC_ACCEPT_FUNC(obj)) {
     ScmGCAcceptFunc func = SCM_OBJ_GC_ACCEPT_FUNC(obj);
@@ -452,7 +452,7 @@ scm_mem_copy_extra_obj(ScmMem *mem)
   assert(mem != NULL);
 
   for (i = 0; i < mem->nr_extra; i++) {
-    if (SCM_OBJ_NOT_NULL_P(SCM_REF_OBJ(mem->extra_rfrn[i]))) {
+    if (scm_obj_not_null_p(SCM_REF_OBJ(mem->extra_rfrn[i]))) {
       ScmObj cpy = scm_mem_copy_obj(mem, SCM_REF_OBJ(mem->extra_rfrn[i]));
       if (scm_obj_null_p(cpy)) {
         ; /* TODO: wirte error handling */
@@ -493,13 +493,13 @@ scm_mem_adjust_weak_ref_of_obj_func(ScmObj mem, ScmObj obj, ScmRef child)
 {
   ScmObj co;
 
-  assert(SCM_OBJ_NOT_NULL_P(mem));
+  assert(scm_obj_not_null_p(mem));
   assert(SCM_OBJ_IS_TYPE(mem, &SCM_MEM_TYPE_INFO));
-  assert(SCM_OBJ_NOT_NULL_P(obj));
+  assert(scm_obj_not_null_p(obj));
   assert(child != SCM_REF_NULL);
 
   co = SCM_REF_OBJ(child);
-  if (SCM_OBJ_NOT_NULL_P(co)) {
+  if (scm_obj_not_null_p(co)) {
     if (scm_mem_is_obj_in_heap(SCM_MEM(mem), co, FROM_HEAP)) {
       ScmTypeInfo *type = SCM_OBJ_TYPE(co);
       if (SCM_TYPE_INFO_IS_SAME(type, &SCM_FORWARD_TYPE_INFO))
@@ -516,7 +516,7 @@ static void
 scm_mem_adjust_weak_ref_of_obj(ScmMem *mem, ScmObj obj)
 {
   assert(mem != NULL);
-  assert(SCM_OBJ_NOT_NULL_P(obj));
+  assert(scm_obj_not_null_p(obj));
 
   if (SCM_OBJ_HAS_WEAK_REF(obj)) {
     ScmGCAcceptFunc func = SCM_OBJ_GC_ACCEPT_FUNC_WEAK(obj);
@@ -545,7 +545,7 @@ scm_mem_adjust_weak_ref_of_heap_obj(ScmMem *mem)
   assert(mem != NULL);
 
   for (obj = SCM_OBJ(SCM_MEM_HEAP_WEAK_LIST(mem->to_heap));
-       SCM_OBJ_NOT_NULL_P(obj);
+       scm_obj_not_null_p(obj);
        obj = SCM_REF_OBJ(SCM_MEM_NEXT_OBJ_HAS_WEAK_REF(SCM_OBJ_TYPE(obj), obj))) {
     scm_mem_adjust_weak_ref_of_obj(mem, obj);
   }

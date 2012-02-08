@@ -28,7 +28,7 @@ test_scm_bool_new(void)
 
   SCM_SETQ(bl, scm_bool_new(SCM_MEM_ALLOC_HEAP, true));
 
-  cut_assert(SCM_OBJ_NOT_NULL_P(bl));
+  cut_assert(scm_obj_not_null_p(bl));
   cut_assert(SCM_OBJ_IS_TYPE(SCM_OBJ(bl), &SCM_BOOL_TYPE_INFO));
 }
 

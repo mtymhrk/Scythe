@@ -32,7 +32,7 @@ test_scm_string_utf8(void)
                                      expected, sizeof(expected) - 1,
                                      SCM_ENCODING_UTF8));
 
-  cut_assert_true(SCM_OBJ_NOT_NULL_P(str));
+  cut_assert_true(scm_obj_not_null_p(str));
   cut_assert_equal_uint(SCM_ENCODING_UTF8, scm_string_encoding(str));
   cut_assert_equal_uint(6, scm_string_length(str));
   cut_assert_equal_uint(sizeof(expected) - 1, scm_string_bytesize(str));
@@ -176,7 +176,7 @@ test_scm_string_substr_utf8(void)
                                      SCM_ENCODING_UTF8));
   SCM_SETQ(sub, scm_string_substr(str, 6, 5));
 
-  cut_assert_true(SCM_OBJ_NOT_NULL_P(sub));
+  cut_assert_true(scm_obj_not_null_p(sub));
   cut_assert_equal_uint(5u, scm_string_length(sub));
   cut_assert_equal_uint(sizeof(expected) - 1, scm_string_bytesize(sub));
 
@@ -204,7 +204,7 @@ test_scm_string_push_utf8(void)
                                      sizeof("この文字列は誤りである") - 1,
                                      SCM_ENCODING_UTF8));
 
-  cut_assert_true(SCM_OBJ_NOT_NULL_P(scm_string_push(str, pushed)));
+  cut_assert_true(scm_obj_not_null_p(scm_string_push(str, pushed)));
 
   cut_assert_equal_uint(12u, scm_string_length(str));
   cut_assert_equal_uint(sizeof(expected) - 1, scm_string_bytesize(str));
@@ -233,7 +233,7 @@ test_scm_string_append_utf8(void)
                                       sizeof("前の文は誤りである。") - 1,
                                       SCM_ENCODING_UTF8));
 
-  cut_assert_true(SCM_OBJ_NOT_NULL_P(scm_string_append(str, apnd)));
+  cut_assert_true(scm_obj_not_null_p(scm_string_append(str, apnd)));
 
   cut_assert_equal_uint(18u, scm_string_length(str));
   cut_assert_equal_uint(sizeof(expected) - 1, scm_string_bytesize(str));
@@ -320,7 +320,7 @@ test_scm_string_set_less_width_utf8(void)
                                      "テスト", sizeof("テスト") - 1,
                                      SCM_ENCODING_UTF8));
 
-  cut_assert_true(SCM_OBJ_NOT_NULL_P(scm_string_set(str, 1, c)));
+  cut_assert_true(scm_obj_not_null_p(scm_string_set(str, 1, c)));
 
   cut_assert_equal_uint(3u, scm_string_length(str));
   cut_assert_equal_uint(sizeof(expected) - 1, scm_string_bytesize(str));
@@ -349,7 +349,7 @@ test_scm_string_set_same_width_utf8(void)
                                      sizeof("テスト") - 1,
                                      SCM_ENCODING_UTF8));
 
-  cut_assert_true(SCM_OBJ_NOT_NULL_P(scm_string_set(str, 1, c)));
+  cut_assert_true(scm_obj_not_null_p(scm_string_set(str, 1, c)));
 
   cut_assert_equal_uint(3u, scm_string_length(str));
   cut_assert_equal_uint(sizeof(expected) - 1, scm_string_bytesize(str));
@@ -377,7 +377,7 @@ test_scm_string_set_greater_width_utf8(void)
                                      "abc", sizeof("abc") - 1,
                                      SCM_ENCODING_UTF8));
 
-  cut_assert_true(SCM_OBJ_NOT_NULL_P(scm_string_set(str, 1, c)));
+  cut_assert_true(scm_obj_not_null_p(scm_string_set(str, 1, c)));
 
   cut_assert_equal_uint(3u, scm_string_length(str));
   cut_assert_equal_uint(sizeof(expected) - 1, scm_string_bytesize(str));
@@ -406,7 +406,7 @@ test_scm_string_fill_utf8(void)
                                      sizeof("この文字列は正しい。前の文は誤りである。") - 1,
                                      SCM_ENCODING_UTF8));
 
-  cut_assert_true(SCM_OBJ_NOT_NULL_P(scm_string_fill(str, 8, 3, c)));
+  cut_assert_true(scm_obj_not_null_p(scm_string_fill(str, 8, 3, c)));
 
   cut_assert_equal_uint(20u, scm_string_length(str));
   cut_assert_equal_uint(sizeof(expected) - 1, scm_string_bytesize(str));
@@ -435,7 +435,7 @@ test_scm_string_fill_append_utf8(void)
                                      sizeof("この文字列は正しい。前の文は誤りである。") - 1,
                                      SCM_ENCODING_UTF8));
 
-  cut_assert_true(SCM_OBJ_NOT_NULL_P(scm_string_fill(str, 18, 5, c)));
+  cut_assert_true(scm_obj_not_null_p(scm_string_fill(str, 18, 5, c)));
 
   cut_assert_equal_uint(23u, scm_string_length(str));
   cut_assert_equal_uint(sizeof(expected) - 1, scm_string_bytesize(str));

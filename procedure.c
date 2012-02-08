@@ -61,7 +61,7 @@ void
 scm_subrutine_gc_initialize(ScmObj obj, ScmObj mem)
 {
   SCM_OBJ_ASSERT_TYPE(obj, &SCM_SUBRUTINE_TYPE_INFO);
-  assert(SCM_OBJ_NOT_NULL_P(mem));
+  assert(scm_obj_not_null_p(mem));
 
   SCM_SUBRUTINE_FUNC(obj) = NULL;
 }

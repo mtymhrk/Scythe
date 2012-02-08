@@ -31,7 +31,7 @@ test_scm_vector_new(void)
 
   SCM_SETQ(vector, scm_vector_new(SCM_MEM_ALLOC_HEAP, 5));
 
-  cut_assert_true(SCM_OBJ_NOT_NULL_P(vector));
+  cut_assert_true(scm_obj_not_null_p(vector));
   cut_assert(scm_vector_is_vector(vector));
   cut_assert_equal_uint(5, scm_vector_length(vector));
 

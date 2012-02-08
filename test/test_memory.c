@@ -29,8 +29,8 @@ stub_obj_gc_init_func(ScmObj obj, ScmObj mem)
 {
   StubObj *so = (StubObj *)obj;
 
-  assert(SCM_OBJ_NOT_NULL_P(obj));
-  assert(SCM_OBJ_NOT_NULL_P(mem));
+  assert(scm_obj_not_null_p(obj));
+  assert(scm_obj_not_null_p(mem));
 
   so->obj = SCM_OBJ_NULL;
   so->weak_obj = SCM_OBJ_NULL;
@@ -50,7 +50,7 @@ stub_obj_gc_fin_func(ScmObj obj)
 {
   StubObj *so = (StubObj *)obj;
 
-  assert(SCM_OBJ_NOT_NULL_P(obj));
+  assert(scm_obj_not_null_p(obj));
 
   so->nr_call_fin_func++;
   memcpy(stub_obj_table + so->obj_num, so, sizeof(StubObj));
@@ -1260,7 +1260,7 @@ test_scm_mem_alloc_heap(void)
   scm_mem_alloc_heap(mem, &type, SCM_REF_MAKE(obj));
 
   /* postcondition check */
-  cut_assert_true(SCM_OBJ_NOT_NULL_P(obj));
+  cut_assert_true(scm_obj_not_null_p(obj));
   cut_assert(SCM_OBJ_IS_TYPE(obj, &type));
   cut_assert_equal_int(1, ((StubObj *)obj)->nr_call_ini_func);
   cut_assert_equal_int(0, ((StubObj *)obj)->nr_call_fin_func);
@@ -1300,7 +1300,7 @@ test_scm_mem_alloc_root(void)
   scm_mem_alloc_root(mem, &type, SCM_REF_MAKE(obj));
 
   /* postcondition check */
-  cut_assert_true(SCM_OBJ_NOT_NULL_P(obj));
+  cut_assert_true(scm_obj_not_null_p(obj));
   cut_assert(SCM_OBJ_IS_TYPE(obj, &type));
   cut_assert_equal_int(0, (uintptr_t)obj % SCM_MEM_ALIGN_BYTE);
   cut_assert_equal_uint(SCM_MEM_ROOT_BLOCK_OBJECT(mem->roots), obj);
@@ -1381,8 +1381,8 @@ test_scm_mem_gc_start__not_scavenged(void)
   scm_mem_gc_start(mem);
 
   /* postcondition check */
-  cut_assert_true(SCM_OBJ_NOT_NULL_P(STUB_OBJ(root_obj)->obj));
-  cut_assert_true(SCM_OBJ_NOT_NULL_P(STUB_OBJ(STUB_OBJ(root_obj)->obj)->obj));
+  cut_assert_true(scm_obj_not_null_p(STUB_OBJ(root_obj)->obj));
+  cut_assert_true(scm_obj_not_null_p(STUB_OBJ(STUB_OBJ(root_obj)->obj)->obj));
 
   cut_assert_equal_int(1, stub_obj_table[root_obj_num].nr_call_ini_func);
   cut_assert_equal_int(0, stub_obj_table[root_obj_num].nr_call_fin_func);
@@ -1437,7 +1437,7 @@ test_scm_mem_gc_start__scavenged(void)
   scm_mem_gc_start(mem);
 
   /* postcondition check */
-  cut_assert_true(SCM_OBJ_NOT_NULL_P(STUB_OBJ(root_obj)->obj));
+  cut_assert_true(scm_obj_not_null_p(STUB_OBJ(root_obj)->obj));
   cut_assert_true(scm_obj_null_p(STUB_OBJ(STUB_OBJ(root_obj)->obj)->obj));
 
   cut_assert_equal_int(1, stub_obj_table[root_obj_num].nr_call_ini_func);

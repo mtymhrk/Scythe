@@ -36,7 +36,7 @@ test_scm_pair_new(void)
   SCM_SETQ(pair, scm_pair_new(SCM_MEM_ALLOC_HEAP, car, cdr));;
 
   /* postcondition check */
-  cut_assert_true(SCM_OBJ_NOT_NULL_P(pair));
+  cut_assert_true(scm_obj_not_null_p(pair));
   cut_assert_true(SCM_OBJ_IS_TYPE(pair, &SCM_PAIR_TYPE_INFO));
 }
 
