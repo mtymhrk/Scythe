@@ -385,7 +385,7 @@ struct ScmMemRec {
   } while(0)
 #define SCM_MEM_ADD_OBJ_TO_WEAK_LIST(heap, ref, type)                   \
   do {                                                                  \
-    ScmObj obj = SCM_REF_OBJ(ref);                                      \
+    ScmObj obj = SCM_REF_DEREF(ref);                                      \
     ScmObj nxt = SCM_OBJ(SCM_MEM_HEAP_WEAK_LIST(heap));                 \
     SCM_MEM_SET_NEXT_OBJ_HAS_WEAK_REF(type, obj, nxt);                  \
     SCM_MEM_HEAP_SET_WEAK_LIST(heap, obj);                              \

@@ -181,7 +181,7 @@ scm_ref_stack_gc_accept(ScmRefStack *stack, ScmObj owner,
       ScmRef ref = SCM_REF_NULL;
 
       SCM_REF_STACK_ELEM_MAKE_SCM_REF(ep, ref);
-      rslt = SCM_GC_CALL_REF_HANDLER(handler, owner, SCM_REF_OBJ(ref), mem);
+      rslt = SCM_GC_CALL_REF_HANDLER(handler, owner, SCM_REF_DEREF(ref), mem);
       if (scm_gc_ref_handler_failure_p(rslt))
         return rslt;
     }

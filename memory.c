@@ -311,7 +311,7 @@ scm_mem_alloc_heap_mem(ScmMem *mem, ScmTypeInfo *type, ScmRef ref)
   }
   SCM_REF_UPDATE(ref, ptr);
 
-  if (scm_mem_register_obj_if_needed(mem, type, SCM_REF_OBJ(ref)) < 0) {
+  if (scm_mem_register_obj_if_needed(mem, type, SCM_REF_DEREF(ref)) < 0) {
     SCM_MEM_HEAP_CANCEL_ALLOC(mem->to_heap, size);
     SCM_REF_UPDATE(ref, SCM_OBJ_NULL);
     return;
@@ -376,9 +376,9 @@ scm_mem_copy_children_func(ScmObj mem, ScmObj obj, ScmRef child)
   assert(scm_obj_not_null_p(obj));
   assert(child != SCM_REF_NULL);
 
-  if (scm_obj_not_null_p(SCM_REF_OBJ(child))
-      && scm_obj_mem_managed_p(SCM_REF_OBJ(child))) {
-    ScmObj cpy = scm_mem_copy_obj(SCM_MEM(mem), SCM_REF_OBJ(child));
+  if (scm_obj_not_null_p(SCM_REF_DEREF(child))
+      && scm_obj_mem_managed_p(SCM_REF_DEREF(child))) {
+    ScmObj cpy = scm_mem_copy_obj(SCM_MEM(mem), SCM_REF_DEREF(child));
     if (scm_obj_null_p(cpy))  return -1; // error
     SCM_REF_UPDATE(child, cpy);
   }
@@ -445,8 +445,8 @@ scm_mem_copy_extra_obj(ScmMem *mem)
   assert(mem != NULL);
 
   for (i = 0; i < mem->nr_extra; i++) {
-    if (scm_obj_not_null_p(SCM_REF_OBJ(mem->extra_rfrn[i]))) {
-      ScmObj cpy = scm_mem_copy_obj(mem, SCM_REF_OBJ(mem->extra_rfrn[i]));
+    if (scm_obj_not_null_p(SCM_REF_DEREF(mem->extra_rfrn[i]))) {
+      ScmObj cpy = scm_mem_copy_obj(mem, SCM_REF_DEREF(mem->extra_rfrn[i]));
       if (scm_obj_null_p(cpy)) {
         ; /* TODO: wirte error handling */
       }
@@ -491,7 +491,7 @@ scm_mem_adjust_weak_ref_of_obj_func(ScmObj mem, ScmObj obj, ScmRef child)
   assert(scm_obj_not_null_p(obj));
   assert(child != SCM_REF_NULL);
 
-  co = SCM_REF_OBJ(child);
+  co = SCM_REF_DEREF(child);
   if (scm_obj_not_null_p(co)) {
     if (scm_mem_is_obj_in_heap(SCM_MEM(mem), co, FROM_HEAP)) {
       ScmTypeInfo *type = scm_obj_type(co);
@@ -538,7 +538,7 @@ scm_mem_adjust_weak_ref_of_heap_obj(ScmMem *mem)
 
   for (obj = SCM_OBJ(SCM_MEM_HEAP_WEAK_LIST(mem->to_heap));
        scm_obj_not_null_p(obj);
-       obj = SCM_REF_OBJ(SCM_MEM_NEXT_OBJ_HAS_WEAK_REF(scm_obj_type(obj), obj))) {
+       obj = SCM_REF_DEREF(SCM_MEM_NEXT_OBJ_HAS_WEAK_REF(scm_obj_type(obj), obj))) {
     scm_mem_adjust_weak_ref_of_obj(mem, obj);
   }
 }
@@ -717,16 +717,16 @@ scm_mem_alloc_heap(ScmMem *mem, ScmTypeInfo *type, ScmRef ref)
   SCM_REF_UPDATE(ref, SCM_OBJ_NULL);
 
   scm_mem_alloc_heap_mem(mem, type, ref);
-  if (scm_obj_null_p(SCM_REF_OBJ(ref))) {
+  if (scm_obj_null_p(SCM_REF_DEREF(ref))) {
     scm_mem_gc_start(mem);
     scm_mem_alloc_heap_mem(mem, type, ref);
-    if (scm_obj_null_p(SCM_REF_OBJ(ref))) {
+    if (scm_obj_null_p(SCM_REF_DEREF(ref))) {
       ; /* TODO: write error handling (fail to allocate memory) */
       return NULL;
     }
   }
 
-  scm_mem_obj_init(mem, SCM_REF_OBJ(ref), type);
+  scm_mem_obj_init(mem, SCM_REF_DEREF(ref), type);
 
   return mem;
 }
@@ -761,7 +761,7 @@ scm_mem_alloc_persist(ScmMem *mem, ScmTypeInfo *type, ScmRef ref)
   if (scm_type_info_has_instance_weak_ref_p(type))
     SCM_MEM_ADD_OBJ_TO_WEAK_LIST(mem->persistent, ref, type);
 
-  scm_mem_obj_init(mem, SCM_REF_OBJ(ref), type);
+  scm_mem_obj_init(mem, SCM_REF_DEREF(ref), type);
 
   return mem;
 }
@@ -774,7 +774,7 @@ scm_mem_alloc_root(ScmMem *mem, ScmTypeInfo *type, ScmRef ref)
   assert(ref != SCM_REF_NULL);
 
   SCM_REF_UPDATE(ref, scm_mem_alloc_root_obj(type, mem, &mem->roots));
-  if (scm_obj_null_p(SCM_REF_OBJ(ref))) return NULL;
+  if (scm_obj_null_p(SCM_REF_DEREF(ref))) return NULL;
 
   return mem;
 }
@@ -856,7 +856,7 @@ scm_mem_alloc(ScmMem *mem, ScmTypeInfo *type,
     break;
   case SCM_MEM_ALLOC_SHARED_ROOT:
     SCM_REF_UPDATE(ref, scm_memory_alloc_shared_root(type));
-    return scm_obj_null_p(SCM_REF_OBJ(ref)) ? NULL : mem;
+    return scm_obj_null_p(SCM_REF_DEREF(ref)) ? NULL : mem;
     break;
   default:
     return NULL;
