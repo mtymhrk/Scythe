@@ -61,11 +61,6 @@ typedef const ScmObj *ScmCRef;
   } while(0)
 #define SCM_SETQ(obj, val) SCM_SETQ_PRIM(obj, val)
 
-#include <string.h>
-#define SCM_COPY_OBJ_VEC(dst, src, sz) \
-  memcpy(dst, src, sizeof(ScmObj) * (sz))
-
-
 #define SCM_REF_MAKE(obj) ((ScmRef)&(obj))
 #define SCM_REF_MAKE_FROM_PTR(ptr) ((ScmRef)(ptr))
 #define SCM_REF_TO_PTR(ref) ((ScmObj *)(ref))
