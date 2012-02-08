@@ -64,12 +64,12 @@ scm_vm_initialize(ScmObj vm)
   SCM_VM_VAL(vm) = SCM_OBJ_NULL;
 
   SCM_VM_ISEQ_SETQ(vm, scm_iseq_new(SCM_MEM_ALLOC_HEAP));
-  if(SCM_OBJ_NULL_P(SCM_VM_ISEQ(vm))) goto err;
+  if(scm_obj_null_p(SCM_VM_ISEQ(vm))) goto err;
 
   return;
 
  err:
-  if (SCM_OBJ_NULL_P(SCM_VM_ISEQ(vm)))
+  if (scm_obj_null_p(SCM_VM_ISEQ(vm)))
     SCM_VM_ISEQ_SETQ(vm, SCM_OBJ_NULL);
 
   if (SCM_VM_STACK(vm) != NULL) {
@@ -112,28 +112,28 @@ scm_vm_setup_root(ScmObj vm)
   SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
 
   SCM_SETQ(SCM_VM_SYMTBL(vm), scm_symtbl_new(SCM_MEM_ALLOC_ROOT));
-  if (SCM_OBJ_NULL_P(SCM_VM_SYMTBL(vm)))
+  if (scm_obj_null_p(SCM_VM_SYMTBL(vm)))
     ;                           /* TODO: error handling */
 
   SCM_SETQ(SCM_VM_GLOCTBL(vm), scm_gloctbl_new(SCM_MEM_ALLOC_ROOT));
-  if (SCM_OBJ_NULL_P(SCM_VM_GLOCTBL(vm)))
+  if (scm_obj_null_p(SCM_VM_GLOCTBL(vm)))
     ;                           /* TODO: error handling */
 
   SCM_SETQ(SCM_VM_CONST_NIL(vm), scm_nil_new(SCM_MEM_ALLOC_ROOT));
-  if (SCM_OBJ_NULL_P(SCM_VM_CONST_NIL(vm)))
+  if (scm_obj_null_p(SCM_VM_CONST_NIL(vm)))
     ;                           /* TODO: error handling */
 
   SCM_SETQ(SCM_VM_CONST_EOF(vm), scm_eof_new(SCM_MEM_ALLOC_ROOT));
-  if (SCM_OBJ_NULL_P(SCM_VM_CONST_EOF(vm)))
+  if (scm_obj_null_p(SCM_VM_CONST_EOF(vm)))
     ;                           /* TODO: error handling */
 
   SCM_SETQ(SCM_VM_CONST_TRUE(vm), scm_bool_new(SCM_MEM_ALLOC_ROOT, true));
-  if (SCM_OBJ_NULL_P(SCM_VM_CONST_TRUE(vm)))
+  if (scm_obj_null_p(SCM_VM_CONST_TRUE(vm)))
     ;                           /* TODO: error handling */
 
   SCM_SETQ(SCM_VM_CONST_FALSE(vm),
            scm_bool_new(SCM_MEM_ALLOC_ROOT, false));
-  if (SCM_OBJ_NULL_P(SCM_VM_CONST_FALSE(vm)))
+  if (scm_obj_null_p(SCM_VM_CONST_FALSE(vm)))
     ;                           /* TODO: error handling */
 
 }
@@ -160,7 +160,7 @@ scm_vm_new(void)
   if (mem == NULL) return SCM_OBJ_NULL;
 
   scm_mem_alloc_root(mem, &SCM_VM_TYPE_INFO, SCM_REF_MAKE(vm));
-  if (SCM_OBJ_NULL_P(vm)) goto err;
+  if (scm_obj_null_p(vm)) goto err;
 
   SCM_SETQ(scm_vm__current_vm, vm);
 
@@ -507,7 +507,7 @@ scm_vm_op_gref(ScmObj vm, ScmObj arg, int immv_idx)
     if (rslt != 0)
       ;                           /* TODO: error handling */
 
-    if (SCM_OBJ_NULL_P(gloc))
+    if (scm_obj_null_p(gloc))
       ; /* TODO: error handling (reference of unbound variable) */
 
     rslt = scm_iseq_update_immval(SCM_VM_ISEQ(vm), immv_idx, gloc);
@@ -515,14 +515,14 @@ scm_vm_op_gref(ScmObj vm, ScmObj arg, int immv_idx)
       ;                           /* TODO: error handling */
 
     SCM_SETQ(val, scm_gloc_value(gloc));
-    if (SCM_OBJ_NULL_P(val))
+    if (scm_obj_null_p(val))
       ; /* TODO: error handling (reference of unbound variable) */
 
     SCM_VM_VAL_SETQ(vm, val);
   }
   else if (SCM_OBJ_IS_TYPE(arg, &SCM_GLOC_TYPE_INFO)) {
     SCM_SETQ(val, scm_gloc_value(gloc));
-    if (SCM_OBJ_NULL_P(val))
+    if (scm_obj_null_p(val))
       ; /* TODO: error handling (reference of unbound variable) */
 
     SCM_VM_VAL_SETQ(vm, val);
@@ -553,7 +553,7 @@ scm_vm_op_gdef(ScmObj vm, ScmObj arg, ScmObj val, int immv_idx)
 
   if (SCM_OBJ_IS_TYPE(arg, &SCM_SYMBOL_TYPE_INFO)) {
     SCM_SETQ(gloc, scm_gloctbl_bind(SCM_VM_GLOCTBL(vm), arg, val));
-    if (SCM_OBJ_NULL_P(gloc))
+    if (scm_obj_null_p(gloc))
       ;                           /* TODO: error handling */
 
     rslt = scm_iseq_update_immval(SCM_VM_ISEQ(vm), immv_idx, gloc);
@@ -592,7 +592,7 @@ scm_vm_op_gset(ScmObj vm, ScmObj arg, ScmObj val, int immv_idx)
     if (rslt != 0)
       ;                           /* TODO: error handling */
 
-    if (SCM_OBJ_NULL_P(gloc))
+    if (scm_obj_null_p(gloc))
       ; /* TODO: error handling (reference of unbound variable) */
 
     rslt = scm_iseq_update_immval(SCM_VM_ISEQ(vm), immv_idx, gloc);

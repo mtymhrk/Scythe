@@ -46,7 +46,13 @@ typedef const ScmObj *ScmCRef;
 
 #define SCM_OBJ_NULL 0u
 #define SCM_OBJ_INIT SCM_OBJ_NULL
-#define SCM_OBJ_NULL_P(obj) ((obj) == SCM_OBJ_NULL)
+
+static inline bool
+scm_obj_null_p(ScmObj obj)
+{
+  return ((obj) == SCM_OBJ_NULL) ? true : false;
+}
+
 #define SCM_OBJ_NOT_NULL_P(obj) ((obj) != SCM_OBJ_NULL)
 #define SCM_OBJ_SAME_INSTANCE_P(obj1, obj2) \
   (SCM_OBJ_NOT_NULL_P(obj1) && ((obj1) == (obj2)))
@@ -154,7 +160,7 @@ int scm_obj_same_instance_p(ScmObj obj1, ScmObj obj2);
   assert(SCM_OBJ_IS_TYPE(obj, type));
 
 #define SCM_OBJ_ASSERT_TYPE_ACCEPT_NULL(obj, type)      \
-  assert(SCM_OBJ_NULL_P(obj) || SCM_OBJ_IS_TYPE(obj, type))
+  assert(scm_obj_null_p(obj) || SCM_OBJ_IS_TYPE(obj, type))
 
 
 #endif /* INCLUDE_OBJECT_H__ */

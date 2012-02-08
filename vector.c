@@ -52,7 +52,7 @@ scm_vector_new(SCM_MEM_ALLOC_TYPE_T mtype, size_t length) /* GC OK */
 
   scm_mem_alloc(scm_vm_current_mm(),
                 &SCM_VECTOR_TYPE_INFO, mtype, SCM_REF_MAKE(vector));
-  if (SCM_OBJ_NULL_P(vector)) return SCM_OBJ_NULL;
+  if (scm_obj_null_p(vector)) return SCM_OBJ_NULL;
 
   scm_vector_initialize(vector, length);
 

@@ -70,7 +70,7 @@ scm_core_subr_system_setup(void)
     SCM_SETQ(subr, scm_api_make_subrutine(funcs[i]));
     SCM_SETQ(rslt, scm_api_global_var_define(sym, subr));
 
-    if (SCM_OBJ_NULL_P(rslt) || SCM_OBJ_NULL_P(subr) ||SCM_OBJ_NULL_P(sym))
+    if (scm_obj_null_p(rslt) || scm_obj_null_p(subr) ||scm_obj_null_p(sym))
       return;
   }
 

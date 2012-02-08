@@ -1438,7 +1438,7 @@ test_scm_mem_gc_start__scavenged(void)
 
   /* postcondition check */
   cut_assert_true(SCM_OBJ_NOT_NULL_P(STUB_OBJ(root_obj)->obj));
-  cut_assert_true(SCM_OBJ_NULL_P(STUB_OBJ(STUB_OBJ(root_obj)->obj)->obj));
+  cut_assert_true(scm_obj_null_p(STUB_OBJ(STUB_OBJ(root_obj)->obj)->obj));
 
   cut_assert_equal_int(1, stub_obj_table[root_obj_num].nr_call_ini_func);
   cut_assert_equal_int(0, stub_obj_table[root_obj_num].nr_call_fin_func);
@@ -1664,7 +1664,7 @@ test_scm_mem_gc_start__weak_reference_refer_to_obj_scavenged(void)
   heap_obj1 = STUB_OBJ(root_obj1)->obj;
 
   /* postcondition check */
-  cut_assert_true(SCM_OBJ_NULL_P(STUB_OBJ(heap_obj1)->weak_obj));
+  cut_assert_true(scm_obj_null_p(STUB_OBJ(heap_obj1)->weak_obj));
 
   cut_assert_equal_int(1, stub_obj_table[root_obj1_num].nr_call_ini_func);
   cut_assert_equal_int(0, stub_obj_table[root_obj1_num].nr_call_fin_func);

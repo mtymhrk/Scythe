@@ -341,12 +341,12 @@ scm_chash_tbl_gc_accept_weak(ScmObj obj, ScmObj mem,
       if (SCM_CHASH_TBL(obj)->key_kind == SCM_CHASH_TBL_SCMOBJ_W) {
         rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, entry->key, mem);
         if (SCM_GC_IS_REF_HANDLER_FAILURE(rslt)) return rslt;
-        if (SCM_OBJ_NULL_P(entry->key)) delete_p = true;
+        if (scm_obj_null_p(entry->key)) delete_p = true;
       }
       if (SCM_CHASH_TBL(obj)->val_kind == SCM_CHASH_TBL_SCMOBJ_W) {
         rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, entry->val, mem);
         if (SCM_GC_IS_REF_HANDLER_FAILURE(rslt)) return rslt;
-        if (SCM_OBJ_NULL_P(entry->val)) delete_p = true;
+        if (scm_obj_null_p(entry->val)) delete_p = true;
       }
 
       if (delete_p) {

@@ -52,7 +52,7 @@ scm_char_new(SCM_MEM_ALLOC_TYPE_T mtype,
   /* TODO: replace above by below */
   scm_mem_alloc(scm_vm_current_mm(),
                 &SCM_CHAR_TYPE_INFO, mtype, SCM_REF_MAKE(chr));
-  if (SCM_OBJ_NULL_P(chr)) return SCM_OBJ_NULL;
+  if (scm_obj_null_p(chr)) return SCM_OBJ_NULL;
 
   scm_char_initialize(chr, value, enc);
 
