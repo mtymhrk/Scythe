@@ -136,12 +136,17 @@ scm_type_info_call_gc_ini_func(ScmTypeInfo *type, ScmObj obj, ScmObj mem)
     type->gc_ini_func(obj, mem);
 }
 
-#define SCM_TYPE_INFO_GC_FIN(type) ((type)->gc_fin_func)
-
 static inline bool
 scm_type_info_has_gc_fin_func_p(ScmTypeInfo *type)
 {
-  return (SCM_TYPE_INFO_GC_FIN(type) != NULL) ? true : false;
+  return (type->gc_fin_func != NULL) ? true : false;
+}
+
+static inline void
+scm_type_info_call_gc_fin_func(ScmTypeInfo *type, ScmObj obj)
+{
+  if (scm_type_info_has_gc_fin_func_p(type))
+    type->gc_fin_func(obj);
 }
 
 #define SCM_TYPE_INFO_GC_ACCEPT_FUNC(type) ((type)->gc_accept_func)
@@ -176,7 +181,14 @@ extern ScmTypeInfo *SCM_OBJ_TAG2TYPE_TBL[];
 #define SCM_OBJ_PP_FUNC(obj) (SCM_TYPE_INFO_PP_FUNC(SCM_OBJ_TYPE(obj)))
 #define SCM_OBJ_SIZE(obj) (scm_type_info_obj_size(SCM_OBJ_TYPE(obj)))
 #define SCM_OBJ_HAS_GC_INI(obj) (scm_type_info_has_gc_ini_func_p(SCM_OBJ_TYPE(obj))
-#define SCM_OBJ_GC_FIN(obj) (SCM_TYPE_INFO_GC_FIN(SCM_OBJ_TYPE(obj)))
+
+
+static inline void
+scm_obj_call_gc_fin_func(ScmObj obj)
+{
+  scm_type_info_call_gc_fin_func(SCM_OBJ_TYPE(obj), obj);
+}
+
 #define SCM_OBJ_HAS_GC_FIN(obj) (scm_type_info_has_gc_fin_func_p(SCM_OBJ_TYPE(obj)))
 #define SCM_OBJ_GC_ACCEPT_FUNC(obj) \
   (SCM_TYPE_INFO_GC_ACCEPT_FUNC(SCM_OBJ_TYPE(obj)))

@@ -169,10 +169,8 @@ scm_mem_finalize_obj(ScmMem *mem, ScmObj obj)
   assert(mem != NULL);
   assert(scm_obj_not_null_p(obj));;
 
-  if (SCM_OBJ_HAS_GC_FIN(obj)) {
-    ScmGCFinalizeFunc fin = SCM_OBJ_GC_FIN(obj);
-    fin(obj);
-  }
+  if (SCM_OBJ_HAS_GC_FIN(obj))
+    scm_obj_call_gc_fin_func(obj);
 }
 
 static void
