@@ -15,7 +15,7 @@ scm_obj_init(ScmObj obj, ScmTypeInfo *type)
 }
 
 int
-scm_obj_is_same_instance(ScmObj obj1, ScmObj obj2)
+scm_obj_same_instance_p(ScmObj obj1, ScmObj obj2)
 {
   assert(SCM_OBJ_NOT_NULL_P(obj1)); assert(SCM_OBJ_NOT_NULL_P(obj2));
 

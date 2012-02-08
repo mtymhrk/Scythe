@@ -90,7 +90,7 @@ scm_gloctbl_hash_func(ScmCHashTblKey key)
 static bool
 scm_gloctbl_cmp_func(ScmCHashTblKey key1, ScmCHashTblKey key2)
 {
-  return (SCM_OBJ_IS_SAME_INSTANCE(key1, key2) ? true : false);
+  return (SCM_OBJ_SAME_INSTANCE_P(key1, key2) ? true : false);
 }
 
 void

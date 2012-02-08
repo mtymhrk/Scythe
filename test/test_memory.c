@@ -1493,7 +1493,7 @@ test_scm_mem_gc_start__referred_by_two_objects(void)
   scm_mem_gc_start(mem);
 
   /* postcondition check */
-  cut_assert_true(scm_obj_is_same_instance(STUB_OBJ(root_obj1)->obj,
+  cut_assert_true(scm_obj_same_instance_p(STUB_OBJ(root_obj1)->obj,
                                            STUB_OBJ(root_obj2)->obj));
 
   cut_assert_equal_int(1, stub_obj_table[root_obj1_num].nr_call_ini_func);
@@ -1547,7 +1547,7 @@ test_scm_mem_gc_start__root_obj_referred_by_heap_obj(void)
 
   heap_obj = STUB_OBJ(root_obj)->obj;
 
-  cut_assert_true(scm_obj_is_same_instance(root_obj, STUB_OBJ(heap_obj)->obj));
+  cut_assert_true(scm_obj_same_instance_p(root_obj, STUB_OBJ(heap_obj)->obj));
 
   cut_assert_equal_int(1, stub_obj_table[root_obj_num].nr_call_ini_func);
   cut_assert_equal_int(0, stub_obj_table[root_obj_num].nr_call_fin_func);
@@ -1600,7 +1600,7 @@ test_scm_mem_gc_start__weak_reference_refer_to_obj_not_scavenged(void)
   heap_obj1 = STUB_OBJ(root_obj1)->obj;
 
   /* postcondition check */
-  cut_assert_true(scm_obj_is_same_instance(STUB_OBJ(root_obj2)->obj,
+  cut_assert_true(scm_obj_same_instance_p(STUB_OBJ(root_obj2)->obj,
                                            STUB_OBJ(heap_obj1)->weak_obj));
 
 

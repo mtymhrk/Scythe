@@ -70,7 +70,7 @@ test_scm_pair_car(void)
   SCM_SETQ(pair, scm_pair_new(SCM_MEM_ALLOC_HEAP, car, cdr));;
 
   /* action and postcondition check */
-  cut_assert_true(scm_obj_is_same_instance(car, scm_pair_car(pair)));
+  cut_assert_true(scm_obj_same_instance_p(car, scm_pair_car(pair)));
 }
 
 void
@@ -86,5 +86,5 @@ test_scm_pair_cdr(void)
   SCM_SETQ(pair, scm_pair_new(SCM_MEM_ALLOC_HEAP, car, cdr));;
 
   /* action and postcondition check */
-  cut_assert_true(scm_obj_is_same_instance(cdr, scm_pair_cdr(pair)));
+  cut_assert_true(scm_obj_same_instance_p(cdr, scm_pair_cdr(pair)));
 }

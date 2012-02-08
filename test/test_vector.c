@@ -66,11 +66,11 @@ test_scm_vector_set_and_ref(void)
   scm_vector_set(vector, 3, str4);
   scm_vector_set(vector, 4, str5);
 
-  cut_assert(scm_obj_is_same_instance(str1, scm_vector_ref(vector, 0)));
-  cut_assert(scm_obj_is_same_instance(str2, scm_vector_ref(vector, 1)));
-  cut_assert(scm_obj_is_same_instance(str3, scm_vector_ref(vector, 2)));
-  cut_assert(scm_obj_is_same_instance(str4, scm_vector_ref(vector, 3)));
-  cut_assert(scm_obj_is_same_instance(str5, scm_vector_ref(vector, 4)));
+  cut_assert(scm_obj_same_instance_p(str1, scm_vector_ref(vector, 0)));
+  cut_assert(scm_obj_same_instance_p(str2, scm_vector_ref(vector, 1)));
+  cut_assert(scm_obj_same_instance_p(str3, scm_vector_ref(vector, 2)));
+  cut_assert(scm_obj_same_instance_p(str4, scm_vector_ref(vector, 3)));
+  cut_assert(scm_obj_same_instance_p(str5, scm_vector_ref(vector, 4)));
 
   scm_vector_set(vector, 0, str5);
   scm_vector_set(vector, 1, str4);
@@ -78,9 +78,9 @@ test_scm_vector_set_and_ref(void)
   scm_vector_set(vector, 3, str2);
   scm_vector_set(vector, 4, str1);
 
-  cut_assert(scm_obj_is_same_instance(str5, scm_vector_ref(vector, 0)));
-  cut_assert(scm_obj_is_same_instance(str4, scm_vector_ref(vector, 1)));
-  cut_assert(scm_obj_is_same_instance(str3, scm_vector_ref(vector, 2)));
-  cut_assert(scm_obj_is_same_instance(str2, scm_vector_ref(vector, 3)));
-  cut_assert(scm_obj_is_same_instance(str1, scm_vector_ref(vector, 4)));
+  cut_assert(scm_obj_same_instance_p(str5, scm_vector_ref(vector, 0)));
+  cut_assert(scm_obj_same_instance_p(str4, scm_vector_ref(vector, 1)));
+  cut_assert(scm_obj_same_instance_p(str3, scm_vector_ref(vector, 2)));
+  cut_assert(scm_obj_same_instance_p(str2, scm_vector_ref(vector, 3)));
+  cut_assert(scm_obj_same_instance_p(str1, scm_vector_ref(vector, 4)));
 }

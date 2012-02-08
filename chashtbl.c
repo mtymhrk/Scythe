@@ -84,7 +84,7 @@ scm_chash_tbl_new(SCM_MEM_ALLOC_TYPE_T mtype, size_t size,
 bool
 scm_chash_tbl_cmp_func_eq(ScmCHashTblKey key1, ScmCHashTblKey key2) /* GC OK */
 {
-  return SCM_OBJ_IS_SAME_INSTANCE(key1, key2) ? true : false;
+  return SCM_OBJ_SAME_INSTANCE_P(key1, key2) ? true : false;
 }
 
 bool

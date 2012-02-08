@@ -48,7 +48,7 @@ typedef const ScmObj *ScmCRef;
 #define SCM_OBJ_INIT SCM_OBJ_NULL
 #define SCM_OBJ_NULL_P(obj) ((obj) == SCM_OBJ_NULL)
 #define SCM_OBJ_NOT_NULL_P(obj) ((obj) != SCM_OBJ_NULL)
-#define SCM_OBJ_IS_SAME_INSTANCE(obj1, obj2) \
+#define SCM_OBJ_SAME_INSTANCE_P(obj1, obj2) \
   (SCM_OBJ_NOT_NULL_P(obj1) && ((obj1) == (obj2)))
 
 
@@ -146,7 +146,7 @@ extern ScmTypeInfo *SCM_OBJ_TAG2TYPE_TBL[];
 
 
 void scm_obj_init(ScmObj obj, ScmTypeInfo *type);
-int scm_obj_is_same_instance(ScmObj obj1, ScmObj obj2);
+int scm_obj_same_instance_p(ScmObj obj1, ScmObj obj2);
 
 
 #define SCM_OBJ_ASSERT_TYPE(obj, type) \
