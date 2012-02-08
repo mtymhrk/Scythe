@@ -140,7 +140,7 @@ scm_iseq_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler) /* GC OK
   for (size_t i = 0; i < SCM_ISEQ_VEC_LENGTH(obj); i++) {
     rslt = SCM_GC_CALL_REF_HANDLER(handler, obj,
                                    SCM_ISEQ_IMMVAL_VEC(obj)[i], mem);
-    if (SCM_GC_IS_REF_HANDLER_FAILURE(rslt))
+    if (scm_gc_ref_handler_failure_p(rslt))
       return rslt;
   }
 

@@ -90,10 +90,16 @@ typedef int (*ScmGCRefHandlerFunc)(ScmObj mem, ScmObj obj, ScmRef child);
 typedef int (*ScmGCAcceptFunc)(ScmObj obj,
                                ScmObj mem, ScmGCRefHandlerFunc handler);
 
+#define SCM_GC_REF_HANDLER_VAL_INIT 0
 #define SCM_GC_CALL_REF_HANDLER(handler, obj, child, mem) \
   (handler(mem, obj, SCM_REF_MAKE(child)))
-#define SCM_GC_IS_REF_HANDLER_FAILURE(rslt) ((rslt) < 0)
-#define SCM_GC_REF_HANDLER_VAL_INIT 0
+
+static inline bool
+scm_gc_ref_handler_failure_p(int ret_val)
+{
+  return (ret_val < 0) ? true : false;
+}
+
 
 
 struct ScmTypeInfoRec {

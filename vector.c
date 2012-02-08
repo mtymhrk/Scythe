@@ -121,7 +121,7 @@ scm_vector_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler) /* GC 
   for (i = 0; i < SCM_VECTOR_LENGTH(obj); i++) {
     rslt = SCM_GC_CALL_REF_HANDLER(handler, obj,
                                    SCM_VECTOR_ARRAY(obj)[i], mem);
-    if (SCM_GC_IS_REF_HANDLER_FAILURE(rslt)) return rslt;
+    if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
   }
 
   return rslt;

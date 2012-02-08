@@ -93,7 +93,7 @@ scm_pair_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
   assert(handler != NULL);
 
   rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_PAIR_CAR(obj), mem);
-  if (SCM_GC_IS_REF_HANDLER_FAILURE(rslt)) return rslt;
+  if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
   rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_PAIR_CDR(obj), mem);
   return rslt;

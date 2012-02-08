@@ -648,28 +648,28 @@ scm_vm_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
   assert(handler != NULL);
 
   rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_VM_SYMTBL(obj), mem);
-  if (SCM_GC_IS_REF_HANDLER_FAILURE(rslt)) return rslt;
+  if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
   rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_VM_ISEQ(obj), mem);
-  if (SCM_GC_IS_REF_HANDLER_FAILURE(rslt)) return rslt;
+  if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
   rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_VM_VAL(obj), mem);
-  if (SCM_GC_IS_REF_HANDLER_FAILURE(rslt)) return rslt;
+  if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
   /* rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, vm->cp, mem); */
-  /* if (SCM_GC_IS_REF_HANDLER_FAILURE(rslt)) return rslt; */
+  /* if (scm_gc_ref_handler_failure_p(rslt)) return rslt; */
 
   for (scm_vm_stack_val_t* p = SCM_VM_STACK(obj); p != SCM_VM_SP(obj); p++) {
     bool scmobj_p;
     SCM_VM_STACK_OBJMAP_IS_SCMOBJ(obj, p, scmobj_p);
     if (scmobj_p) {
       rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, *p, mem);
-      if (SCM_GC_IS_REF_HANDLER_FAILURE(rslt)) return rslt;
+      if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
     }
   }
 
   rslt = scm_ref_stack_gc_accept(SCM_VM_REF_STACK(obj), obj, mem, handler);
-  if (SCM_GC_IS_REF_HANDLER_FAILURE(rslt)) return rslt;
+  if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
   return rslt;
 }

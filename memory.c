@@ -400,7 +400,7 @@ scm_mem_copy_children(ScmMem *mem, ScmObj obj)
   if (SCM_OBJ_HAS_GC_ACCEPT_FUNC(obj)) {
     ScmGCAcceptFunc func = SCM_OBJ_GC_ACCEPT_FUNC(obj);
     int rslt = func(obj, SCM_OBJ(mem), scm_mem_copy_children_func);
-    if (SCM_GC_IS_REF_HANDLER_FAILURE(rslt)) {
+    if (scm_gc_ref_handler_failure_p(rslt)) {
       ; /* TODO: write error handling */
     }
   }
@@ -521,7 +521,7 @@ scm_mem_adjust_weak_ref_of_obj(ScmMem *mem, ScmObj obj)
   if (SCM_OBJ_HAS_WEAK_REF(obj)) {
     ScmGCAcceptFunc func = SCM_OBJ_GC_ACCEPT_FUNC_WEAK(obj);
     int rslt = func(obj, SCM_OBJ(mem), scm_mem_adjust_weak_ref_of_obj_func);
-    if (SCM_GC_IS_REF_HANDLER_FAILURE(rslt)) {
+    if (scm_gc_ref_handler_failure_p(rslt)) {
       ; /* TODO: write error handling */
     }
   }

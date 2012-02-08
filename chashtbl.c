@@ -305,11 +305,11 @@ scm_chash_tbl_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
          entry = entry->next) {
       if (SCM_CHASH_TBL(obj)->key_kind == SCM_CHASH_TBL_SCMOBJ) {
         rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, entry->key, mem);
-        if (SCM_GC_IS_REF_HANDLER_FAILURE(rslt)) return rslt;
+        if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
       }
       if (SCM_CHASH_TBL(obj)->val_kind == SCM_CHASH_TBL_SCMOBJ) {
         rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, entry->val, mem);
-        if (SCM_GC_IS_REF_HANDLER_FAILURE(rslt)) return rslt;
+        if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
       }
     }
   }
@@ -340,12 +340,12 @@ scm_chash_tbl_gc_accept_weak(ScmObj obj, ScmObj mem,
 
       if (SCM_CHASH_TBL(obj)->key_kind == SCM_CHASH_TBL_SCMOBJ_W) {
         rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, entry->key, mem);
-        if (SCM_GC_IS_REF_HANDLER_FAILURE(rslt)) return rslt;
+        if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
         if (scm_obj_null_p(entry->key)) delete_p = true;
       }
       if (SCM_CHASH_TBL(obj)->val_kind == SCM_CHASH_TBL_SCMOBJ_W) {
         rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, entry->val, mem);
-        if (SCM_GC_IS_REF_HANDLER_FAILURE(rslt)) return rslt;
+        if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
         if (scm_obj_null_p(entry->val)) delete_p = true;
       }
 

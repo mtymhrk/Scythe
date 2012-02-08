@@ -60,7 +60,7 @@ scm_gloc_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
   SCM_OBJ_ASSERT_TYPE(obj, &SCM_GLOC_TYPE_INFO);
 
   rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_GLOC(obj)->sym, mem);
-  if (SCM_GC_IS_REF_HANDLER_FAILURE(rslt)) return rslt;
+  if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
   return SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_GLOC(obj)->val, mem);
 }
