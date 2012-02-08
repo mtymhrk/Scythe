@@ -149,12 +149,20 @@ scm_type_info_call_gc_fin_func(ScmTypeInfo *type, ScmObj obj)
     type->gc_fin_func(obj);
 }
 
-#define SCM_TYPE_INFO_GC_ACCEPT_FUNC(type) ((type)->gc_accept_func)
-
 static inline bool
 scm_type_info_has_gc_accept_func_p(ScmTypeInfo *type)
 {
-  return (SCM_TYPE_INFO_GC_ACCEPT_FUNC(type) != NULL) ? true : false;
+  return (type->gc_accept_func != NULL) ? true : false;
+}
+
+static inline int
+scm_type_info_call_gc_accept_func(ScmTypeInfo *type, ScmObj obj,
+                                  ScmObj mem, ScmGCRefHandlerFunc handler)
+{
+  if (scm_type_info_has_gc_accept_func_p(type))
+    return type->gc_accept_func(obj, mem, handler);
+  else
+    return SCM_GC_REF_HANDLER_VAL_INIT;
 }
 
 #define SCM_TYPE_INFO_GC_ACCEPT_FUNC_WEAK(type) ((type)->gc_accept_func_weak)
@@ -195,8 +203,17 @@ scm_obj_call_gc_fin_func(ScmObj obj)
 }
 
 #define SCM_OBJ_HAS_GC_FIN(obj) (scm_type_info_has_gc_fin_func_p(SCM_OBJ_TYPE(obj)))
-#define SCM_OBJ_GC_ACCEPT_FUNC(obj) \
-  (SCM_TYPE_INFO_GC_ACCEPT_FUNC(SCM_OBJ_TYPE(obj)))
+
+
+static inline int
+scm_obj_call_gc_accept_func(ScmObj obj,
+                            ScmObj mem, ScmGCRefHandlerFunc handler)
+{
+  return scm_type_info_call_gc_accept_func(SCM_OBJ_TYPE(obj),
+                                           obj, mem, handler);
+}
+
+
 #define SCM_OBJ_HAS_GC_ACCEPT_FUNC(obj) \
   (scm_type_info_has_gc_accept_func_p(SCM_OBJ_TYPE(obj)))
 #define SCM_OBJ_GC_ACCEPT_FUNC_WEAK(obj) \

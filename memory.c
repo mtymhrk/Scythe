@@ -392,12 +392,10 @@ scm_mem_copy_children(ScmMem *mem, ScmObj obj)
   assert(mem != NULL);
   assert(scm_obj_not_null_p(obj));
 
-  if (SCM_OBJ_HAS_GC_ACCEPT_FUNC(obj)) {
-    ScmGCAcceptFunc func = SCM_OBJ_GC_ACCEPT_FUNC(obj);
-    int rslt = func(obj, SCM_OBJ(mem), scm_mem_copy_children_func);
-    if (scm_gc_ref_handler_failure_p(rslt)) {
-      ; /* TODO: write error handling */
-    }
+ int rslt = scm_obj_call_gc_accept_func(obj, SCM_OBJ(mem),
+                                        scm_mem_copy_children_func);
+ if (scm_gc_ref_handler_failure_p(rslt)) {
+   ; /* TODO: write error handling */
   }
 }
 
