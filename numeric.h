@@ -2,6 +2,7 @@
 #define INCLUDE_NUMERIC_H__
 
 #include "object.h"
+#include "impl_utils.h"
 
 extern ScmTypeInfo SCM_FIXNUM_TYPE_INFO;
 

@@ -1,5 +1,5 @@
 memory.o: ../memory.c ../basichash.h ../memory.h ../object.h
-object.o: ../object.c ../object.h ../numeric.h
+object.o: ../object.c ../object.h ../numeric.h ../impl_utils.h
 pair.o: ../pair.c ../object.h ../memory.h ../basichash.h ../reference.h \
  ../vm.h ../instractions.h ../pair.h ../miscobjects.h
 string.o: ../string.c ../memory.h ../object.h ../basichash.h \
@@ -29,7 +29,7 @@ procedure.o: ../procedure.c ../procedure.h ../object.h ../vm.h \
  ../memory.h ../basichash.h ../reference.h ../instractions.h
 reference.o: ../reference.c ../reference.h ../object.h ../vm.h \
  ../memory.h ../basichash.h ../instractions.h
-numeric.o: ../numeric.c ../object.h ../numeric.h
+numeric.o: ../numeric.c ../object.h ../numeric.h ../impl_utils.h
 core_subr.o: ../core_subr.c ../vm.h ../object.h ../memory.h \
  ../basichash.h ../reference.h ../instractions.h ../pair.h ../procedure.h \
  ../api.h ../string.h ../encoding.h ../symbol.h ../gloc.h ../core_subr.h
