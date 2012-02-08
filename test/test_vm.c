@@ -103,3 +103,80 @@ test_scm_vm_run__op_immval(void)
 }
 
 
+void
+test_scm_vm_run__call_cons(void)
+{
+  ScmObj iseq = SCM_OBJ_INIT;
+  ScmObj cons_sym = SCM_OBJ_INIT;
+  ScmObj car = SCM_OBJ_INIT;
+  ScmObj cdr = SCM_OBJ_INIT;
+  ScmObj actual = SCM_OBJ_INIT;
+  scm_inst_t code;
+  size_t idx;
+
+  SCM_STACK_FRAME_PUSH(&iseq, &cons_sym, &car, &cdr, &actual);
+
+  /* preprocess */
+  scm_vm_setup_system(vm);
+
+  SCM_SETQ(iseq, scm_iseq_new(SCM_MEM_ALLOC_HEAP));
+  SCM_SETQ(cons_sym, scm_api_make_symbol_ascii("cons"));
+  SCM_SETQ(car, scm_api_make_symbol_ascii("foo"));
+  SCM_SETQ(cdr, scm_api_make_symbol_ascii("bar"));
+
+  idx = 0;
+
+  code.plain.op = SCM_OPCODE_FRAME;
+  code.plain.arg = 0;
+  scm_iseq_set_word(iseq, idx++, code.iword);
+
+  code.immv1.op = SCM_OPCODE_IMMVAL;
+  code.immv1.imm_idx = scm_iseq_set_immval(iseq, cdr);
+  scm_iseq_set_word(iseq, idx++, code.iword);
+
+  code.plain.op = SCM_OPCODE_PUSH;
+  code.plain.arg = 0;
+  scm_iseq_set_word(iseq, idx++, code.iword);
+
+  code.immv1.op = SCM_OPCODE_IMMVAL;
+  code.immv1.imm_idx = scm_iseq_set_immval(iseq, car);
+  scm_iseq_set_word(iseq, idx++, code.iword);
+
+  code.plain.op = SCM_OPCODE_PUSH;
+  code.plain.arg = 0;
+  scm_iseq_set_word(iseq, idx++, code.iword);
+
+  code.primv.op = SCM_OPCODE_PUSH_PRIMVAL;
+  code.primv.primval = 2;
+  scm_iseq_set_word(iseq, idx++, code.iword);
+
+  code.immv1.op = SCM_OPCODE_GREF;
+  code.immv1.imm_idx = scm_iseq_set_immval(iseq, cons_sym);
+  scm_iseq_set_word(iseq, idx++, code.iword);
+
+  code.plain.op = SCM_OPCODE_CALL;
+  code.plain.arg = 0;
+  scm_iseq_set_word(iseq, idx++, code.iword);
+
+  code.plain.op = SCM_OPCODE_STOP;
+  code.plain.arg = 0;
+  scm_iseq_set_word(iseq, idx++, code.iword);
+
+  /* action */
+  scm_vm_run(vm, iseq);
+
+  /* postconditin check */
+  SCM_SETQ(actual, SCM_VM_VAL(vm));
+  cut_assert(SCM_OBJ_IS_TYPE(actual, &SCM_PAIR_TYPE_INFO));
+  cut_assert(SCM_OBJ_IS_SAME_INSTANCE(SCM_PAIR_CAR(actual), car));
+  cut_assert(SCM_OBJ_IS_SAME_INSTANCE(SCM_PAIR_CDR(actual), cdr));
+}
+
+
+
+
+
+
+
+
+

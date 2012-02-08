@@ -116,9 +116,6 @@ void scm_vm_stack_shorten(ScmObj vm, int n);
 
 int scm_vm_frame_argc(ScmObj vm);
 ScmObj scm_vm_frame_argv(ScmObj vm, int nth);
-ScmObj *scm_vm_frame_outer_frame(ScmObj vm);
-ScmObj scm_vm_frame_iseq(ScmObj vm);
-scm_iword_t *scm_vm_frame_next_inst(ScmObj vm);
 
 int scm_vm_nr_local_var(ScmObj vm);
 ScmObj scm_vm_refer_local_var(ScmObj vm, int nth);

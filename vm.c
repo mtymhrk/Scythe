@@ -247,11 +247,6 @@ scm_vm_run(ScmObj vm, ScmObj iseq)
     case SCM_OPCODE_PUSH:
       scm_vm_op_push(vm);
       break;
-    case SCM_OPCODE_PUSH_IMMVAL:
-      scm_vm_op_push_immval(vm,
-                            scm_iseq_get_immval(SCM_VM_ISEQ(vm),
-                                                code1.immv1.imm_idx));
-      break;
     case SCM_OPCODE_PUSH_PRIMVAL:
       scm_vm_op_push_primval(vm, code1.primv.primval);
       break;
@@ -289,7 +284,8 @@ scm_vm_stack_push(ScmObj vm, scm_vm_stack_val_t elm, bool scmobj_p)
 {
   scm_vm_stack_val_t *sp;
 
-  SCM_STACK_FRAME_PUSH(&vm, &elm);
+  SCM_STACK_FRAME_PUSH(&vm);
+  if (scmobj_p) SCM_STACK_PUSH(&elm);
 
   SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
 
@@ -377,51 +373,6 @@ scm_vm_frame_argv(ScmObj vm, int nth)
   return SCM_OBJ(SCM_VM_FP(vm)[-(nth + 2)]);
 }
 
-/* 現在のスタックフレームに保存されている frame pointer を返す */
-scm_vm_stack_val_t *
-scm_vm_frame_outer_frame(ScmObj vm)
-{
-  int argc;
-
-  SCM_STACK_FRAME_PUSH(&vm);
-
-  SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
-
-  argc = scm_vm_frame_argc(vm);
-
-  return (scm_vm_stack_val_t *)(SCM_VM_FP(vm)[-(argc + 4)]);
-}
-
-/* 現在のスタックフレームに保存されている ISeq オブジェクトを返す */
-ScmObj
-scm_vm_frame_iseq(ScmObj vm)
-{
-  int argc;
-
-  SCM_STACK_FRAME_PUSH(&vm);
-
-  SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
-
-  argc = scm_vm_frame_argc(vm);
-
-  return SCM_OBJ((SCM_VM_FP(vm)[-(argc + 3)]));
-}
-
-/* 現在のスタックフレームに保存されている Instruction pointer を返す */
-scm_iword_t *
-scm_vm_frame_next_inst(ScmObj vm)
-{
-  int argc;
-
-  SCM_STACK_FRAME_PUSH(&vm);
-
-  SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
-
-  argc = scm_vm_frame_argc(vm);
-
-  return (scm_iword_t*)((SCM_VM_FP(vm)[-(argc + 2)]));
-}
-
 int
 scm_vm_nr_local_var(ScmObj vm)
 {
@@ -440,14 +391,16 @@ void
 scm_vm_return_to_caller(ScmObj vm)
 {
   int argc;
+  scm_vm_stack_val_t *fp;
 
   SCM_STACK_FRAME_PUSH(vm);
 
   argc = scm_vm_frame_argc(vm);
+  fp = SCM_VM_FP(vm);
 
-  SCM_VM_FP(vm) = scm_vm_frame_outer_frame(vm);
-  SCM_VM_ISEQ_SETQ(vm, scm_vm_frame_iseq(vm));
-  SCM_VM_IP(vm) = scm_vm_frame_next_inst(vm);
+  SCM_VM_FP(vm) = (scm_vm_stack_val_t *)fp[-(argc + 4)];
+  SCM_VM_ISEQ_SETQ(vm, SCM_OBJ(fp[-(argc + 3)]));
+  SCM_VM_IP(vm) = (scm_iword_t*)fp[-(argc + 2)];
 
   scm_vm_stack_shorten(vm, argc + 4); /* 3 := argc, fp, iseq, ip */
 }
@@ -459,8 +412,17 @@ scm_vm_op_call(ScmObj vm)
 {
   SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
 
-  if (SCM_OBJ_IS_TYPE(SCM_VM_VAL(vm), &SCM_SUBRUTINE_TYPE_INFO))
+  if (SCM_OBJ_IS_TYPE(SCM_VM_VAL(vm), &SCM_SUBRUTINE_TYPE_INFO)) {
+    scm_vm_stack_val_t *fp = SCM_VM_FP(vm) = SCM_VM_SP(vm);
+    int argc = scm_vm_frame_argc(vm);
+
+    /* FRAME インストラクションでダミー値を設定していたものを実際の値に変更
+       する */
+    SCM_SETQ(fp[-(argc + 3)], SCM_VM_ISEQ(vm));
+    fp[-(argc + 2)] = (scm_vm_stack_val_t)SCM_VM_IP(vm);
+
     scm_subrutine_call(SCM_VM_VAL(vm));
+  }
   /* TODO:  val レジスタがクロージャのケースの実装 */
   else
     ;                           /* TODO: error handling */
@@ -484,15 +446,6 @@ scm_vm_op_push(ScmObj vm)
 }
 
 void
-scm_vm_op_push_immval(ScmObj vm, ScmObj val)
-{
-  SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
-  assert(SCM_OBJ_IS_NOT_NULL(val));
-
-  scm_vm_stack_push(vm, (scm_vm_stack_val_t)val, true);
-}
-
-void
 scm_vm_op_push_primval(ScmObj vm, scm_sword_t val)
 {
   SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
@@ -509,9 +462,16 @@ scm_vm_op_frame(ScmObj vm) /* GC OK */
 {
   SCM_OBJ_ASSERT_TYPE(vm, &SCM_VM_TYPE_INFO);
 
+  /* push frame pointer */
   scm_vm_stack_push(vm, (scm_vm_stack_val_t)SCM_VM_FP(vm), false);
-  scm_vm_stack_push(vm, (scm_vm_stack_val_t)SCM_VM_ISEQ(vm), true);
-  scm_vm_stack_push(vm, (scm_vm_stack_val_t)SCM_VM_IP(vm), false);
+
+  /* push ScmISeq object (FRAME インストラクション段階ではダミー値を
+     プッシュする。本当の値は CALL 時に設定する) */
+  scm_vm_stack_push(vm, (scm_vm_stack_val_t)SCM_OBJ_NULL, true);
+
+  /* push instraction pointer (FRAME インストラクション段階ではダミー
+     値をプッシュする。本当の値は CALL 時に設定する) */
+  scm_vm_stack_push(vm, (scm_vm_stack_val_t)NULL, false);
 }
 
 /* 関数の呼び出しから戻るインストラクション。
