@@ -70,7 +70,7 @@ scm_iseq_set_immval(ScmObj iseq, ScmObj val) /* GC OK */
   int err;
 
   SCM_OBJ_ASSERT_TYPE(iseq, &SCM_ISEQ_TYPE_INFO);
-  assert(SCM_OBJ_IS_NOT_NULL(val));
+  assert(SCM_OBJ_NOT_NULL_P(val));
 
   idx = SCM_ISEQ_VEC_LENGTH(iseq);
   if (idx >= SCM_ISEQ_IMMVS_MAX) return -1;
@@ -89,7 +89,7 @@ scm_iseq_update_immval(ScmObj iseq, int idx, ScmObj val)
 
   SCM_OBJ_ASSERT_TYPE(iseq, &SCM_ISEQ_TYPE_INFO);
   assert(idx >= 0);
-  assert(SCM_OBJ_IS_NOT_NULL(val));
+  assert(SCM_OBJ_NOT_NULL_P(val));
 
   if ((size_t)idx >= SCM_ISEQ_VEC_LENGTH(iseq)) return -1;
 
@@ -134,7 +134,7 @@ scm_iseq_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler) /* GC OK
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
 
   SCM_OBJ_ASSERT_TYPE(obj, &SCM_ISEQ_TYPE_INFO);
-  assert(SCM_OBJ_IS_NOT_NULL(mem));
+  assert(SCM_OBJ_NOT_NULL_P(mem));
   assert(handler != NULL);
 
   for (size_t i = 0; i < SCM_ISEQ_VEC_LENGTH(obj); i++) {

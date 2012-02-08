@@ -58,7 +58,7 @@ scm_eof_instance(void)          /* GC OK */
 bool
 scm_eof_is_eof(ScmObj obj)      /* GC OK */
 {
-  assert(SCM_OBJ_IS_NOT_NULL(obj));
+  assert(SCM_OBJ_NOT_NULL_P(obj));
 
   return SCM_OBJ_IS_TYPE(obj, &SCM_EOF_TYPE_INFO);
 }
@@ -127,7 +127,7 @@ scm_bool_value(ScmObj bl)       /* GC OK */
 bool
 scm_bool_is_bool(ScmObj obj)    /* GC OK */
 {
-  assert(SCM_OBJ_IS_NOT_NULL(obj));
+  assert(SCM_OBJ_NOT_NULL_P(obj));
 
   return SCM_OBJ_IS_TYPE(obj, &SCM_BOOL_TYPE_INFO);
 }
@@ -183,7 +183,7 @@ scm_nil_instance(void)          /* GC OK */
 bool
 scm_nil_is_nil(ScmObj obj)      /* GC OK */
 {
-  assert(SCM_OBJ_IS_NOT_NULL(obj));
+  assert(SCM_OBJ_NOT_NULL_P(obj));
 
   return SCM_OBJ_IS_TYPE(obj, &SCM_NIL_TYPE_INFO);
 }

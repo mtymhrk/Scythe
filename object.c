@@ -7,7 +7,7 @@
 void
 scm_obj_init(ScmObj obj, ScmTypeInfo *type)
 {
-  assert(SCM_OBJ_IS_NOT_NULL(obj));
+  assert(SCM_OBJ_NOT_NULL_P(obj));
   assert(type != NULL);
 
   if (SCM_OBJ_IS_MEM_MANAGED(obj))
@@ -17,7 +17,7 @@ scm_obj_init(ScmObj obj, ScmTypeInfo *type)
 int
 scm_obj_is_same_instance(ScmObj obj1, ScmObj obj2)
 {
-  assert(SCM_OBJ_IS_NOT_NULL(obj1)); assert(SCM_OBJ_IS_NOT_NULL(obj2));
+  assert(SCM_OBJ_NOT_NULL_P(obj1)); assert(SCM_OBJ_NOT_NULL_P(obj2));
 
   return (obj1 == obj2) ? 1 : 0;
 }

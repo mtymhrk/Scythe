@@ -47,9 +47,9 @@ typedef const ScmObj *ScmCRef;
 #define SCM_OBJ_NULL 0u
 #define SCM_OBJ_INIT SCM_OBJ_NULL
 #define SCM_OBJ_NULL_P(obj) ((obj) == SCM_OBJ_NULL)
-#define SCM_OBJ_IS_NOT_NULL(obj) ((obj) != SCM_OBJ_NULL)
+#define SCM_OBJ_NOT_NULL_P(obj) ((obj) != SCM_OBJ_NULL)
 #define SCM_OBJ_IS_SAME_INSTANCE(obj1, obj2) \
-  (SCM_OBJ_IS_NOT_NULL(obj1) && ((obj1) == (obj2)))
+  (SCM_OBJ_NOT_NULL_P(obj1) && ((obj1) == (obj2)))
 
 
 /* 将来的に write barrier を挿入しなければならないときに使用する */
@@ -150,7 +150,7 @@ int scm_obj_is_same_instance(ScmObj obj1, ScmObj obj2);
 
 
 #define SCM_OBJ_ASSERT_TYPE(obj, type) \
-  assert(SCM_OBJ_IS_NOT_NULL(obj));    \
+  assert(SCM_OBJ_NOT_NULL_P(obj));    \
   assert(SCM_OBJ_IS_TYPE(obj, type));
 
 #define SCM_OBJ_ASSERT_TYPE_ACCEPT_NULL(obj, type)      \
