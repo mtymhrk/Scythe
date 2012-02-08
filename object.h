@@ -117,7 +117,6 @@ scm_type_info_same_p(ScmTypeInfo *tp1, ScmTypeInfo *tp2)
   return (tp1 == tp2) ? true : false;
 }
 
-#define SCM_TYPE_INFO_PP_FUNC(type) ((type)->pp_func)
 #define SCM_TYPE_INFO_OBJ_SIZE(type) ((type)->obj_size)
 #define SCM_TYPE_INFO_GC_INI(type) ((type)->gc_ini_func)
 
