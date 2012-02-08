@@ -266,7 +266,7 @@ test_scm_mem_block_for_each_obj(void)
 
   for (i = 0; i < sizeof(types)/sizeof(types[0]); i++) {
     allocated[i] = SCM_OBJ(SCM_MEM_HEAP_BLOCK_FREE_PTR(block));
-    size_t s = SCM_MEM_ALIGN_SIZE(SCM_TYPE_INFO_OBJ_SIZE(types[i]));
+    size_t s = SCM_MEM_ALIGN_SIZE(scm_type_info_obj_size(types[i]));
 
     scm_obj_init(allocated[i], types[i]);
     SCM_MEM_HEAP_BLOCK_ALLOCATED(block, s);
@@ -300,13 +300,13 @@ test_scm_mem_block_for_each_obj_deallocated_last_obj(void)
 
   for (i = 0; i < sizeof(types)/sizeof(types[0]); i++) {
     allocated[i] = SCM_OBJ(SCM_MEM_HEAP_BLOCK_FREE_PTR(block));
-    size_t s = SCM_MEM_ALIGN_SIZE(SCM_TYPE_INFO_OBJ_SIZE(types[i]));
+    size_t s = SCM_MEM_ALIGN_SIZE(scm_type_info_obj_size(types[i]));
 
     scm_obj_init(allocated[i], types[i]);
     SCM_MEM_HEAP_BLOCK_ALLOCATED(block, s);
   }
 
-  s = SCM_MEM_ALIGN_SIZE(SCM_TYPE_INFO_OBJ_SIZE(types[i - 1]));
+  s = SCM_MEM_ALIGN_SIZE(scm_type_info_obj_size(types[i - 1]));
   SCM_MEM_HEAP_BLOCK_DEALLOCATED(block, s);
 
   i = 0;
@@ -334,12 +334,12 @@ test_scm_mem_block_is_obj_in_block(void)
 
   obj_in_blk1 = SCM_OBJ(SCM_MEM_HEAP_BLOCK_FREE_PTR(block1));
   scm_obj_init(obj_in_blk1, &SCM_PAIR_TYPE_INFO);
-  s = SCM_MEM_ALIGN_SIZE(SCM_TYPE_INFO_OBJ_SIZE(&SCM_PAIR_TYPE_INFO));
+  s = SCM_MEM_ALIGN_SIZE(scm_type_info_obj_size(&SCM_PAIR_TYPE_INFO));
   SCM_MEM_HEAP_BLOCK_ALLOCATED(block1, s);
 
   obj_in_blk2 = SCM_OBJ(SCM_MEM_HEAP_BLOCK_FREE_PTR(block2));
   scm_obj_init(obj_in_blk2, &SCM_PAIR_TYPE_INFO);
-  s = SCM_MEM_ALIGN_SIZE(SCM_TYPE_INFO_OBJ_SIZE(&SCM_PAIR_TYPE_INFO));
+  s = SCM_MEM_ALIGN_SIZE(scm_type_info_obj_size(&SCM_PAIR_TYPE_INFO));
   SCM_MEM_HEAP_BLOCK_ALLOCATED(block2, s);
 
   cut_assert_true(SCM_MEM_HEAP_BLOCK_IS_OBJ_IN_BLOCK(block1, obj_in_blk1));

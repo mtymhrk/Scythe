@@ -375,7 +375,7 @@ struct ScmMemRec {
 
 
 #define SCM_MEM_NEXT_OBJ_HAS_WEAK_REF(type, obj)                \
-  ((ScmRef)((uintptr_t)(obj) + SCM_TYPE_INFO_OBJ_SIZE(type)))
+  ((ScmRef)((uintptr_t)(obj) + scm_type_info_obj_size(type)))
 #define SCM_MEM_SIZE_OF_OBJ_HAS_WEAK_REF(size) ((size) + sizeof(ScmObj))
 #define SCM_MEM_SET_NEXT_OBJ_HAS_WEAK_REF(type, obj, nxt) \
   do {                                                    \

@@ -366,7 +366,7 @@ scm_mem_copy_obj(ScmMem *mem, ScmObj obj)
       return SCM_OBJ_NULL;
     }
   }
-  memcpy(SCM_MMOBJ(box), SCM_MMOBJ(obj), SCM_TYPE_INFO_OBJ_SIZE(type));
+  memcpy(SCM_MMOBJ(box), SCM_MMOBJ(obj), scm_type_info_obj_size(type));
   scm_mem_unregister_obj(mem, obj);
   SCM_FORWARD_INITIALIZE(obj, box);
 
@@ -809,7 +809,7 @@ scm_mem_free_root(ScmMem *mem, ScmObj obj)
 
 /*   SCM_REF_UPDATE(ref, NULL); */
 
-/*   obj = malloc(SCM_TYPE_INFO_OBJ_SIZE(type)); */
+/*   obj = malloc(scm_type_info_obj_size(type)); */
 /*   if (obj == NULL) return NULL; */
 
 /*   SCM_REF_UPDATE(ref, obj); */
@@ -901,7 +901,7 @@ scm_mem_alloc_size_in_heap(ScmTypeInfo *type)
 
   assert(type != NULL);
 
-  size = SCM_TYPE_INFO_OBJ_SIZE(type);
+  size = scm_type_info_obj_size(type);
   if (size < sizeof(ScmMMObj))
     size = sizeof(ScmMMObj);
   if (SCM_TYPE_INFO_HAS_WEAK_REF(type))
@@ -926,7 +926,7 @@ scm_mem_alloc_size_in_root(ScmTypeInfo *type)
 
   assert(type != NULL);
 
-  size = SCM_TYPE_INFO_OBJ_SIZE(type);
+  size = scm_type_info_obj_size(type);
   if (size < sizeof(ScmMMObj))
     size = sizeof(ScmMMObj);
   size += sizeof(ScmMemRootBlock);
