@@ -30,6 +30,28 @@ typedef const ScmObj *ScmCRef;
 #define SCM_OBJ_NULL 0u
 #define SCM_OBJ_INIT SCM_OBJ_NULL
 
+/* 将来的に write barrier を挿入しなければならないときに使用する */
+/*   SCM_SETQ_PRIM: write barrier を挿入しない代入        */
+/*   SCM_SETQ     : write barrier を挿入する代入          */
+#define SCM_SETQ_PRIM(obj, val)                 \
+  do {                                          \
+    ScmObj tmp__ = (val); (obj) = tmp__;        \
+  } while(0)
+#define SCM_SETQ(obj, val) SCM_SETQ_PRIM(obj, val)
+
+#define SCM_REF_MAKE(obj) ((ScmRef)&(obj))
+#define SCM_REF_MAKE_FROM_PTR(ptr) ((ScmRef)(ptr))
+#define SCM_REF_TO_PTR(ref) ((ScmObj *)(ref))
+
+#define SCM_REF_NULL ((ScmRef)NULL)
+
+#define SCM_REF_OBJ(ref) (*((ScmObj *)(ref)))
+#define SCM_CREF_OBJ(ref) (*((const ScmObj *)(ref)))
+#define SCM_REF_UPDATE(ref, obj) (*((ScmObj *)(ref)) = SCM_OBJ(obj))
+#define SCM_REF_SETQ(ref, obj) SCM_SETQ(*((ScmObj *)(ref)), obj)
+
+
+
 static inline bool
 scm_obj_null_p(ScmObj obj)
 {
@@ -48,23 +70,9 @@ scm_obj_same_instance_p(ScmObj obj1, ScmObj obj2)
   return (scm_obj_not_null_p(obj1) && (obj1 == obj2)) ? true : false;
 }
 
-/* 将来的に write barrier を挿入しなければならないときに使用する */
-/*   SCM_SETQ_PRIM: write barrier を挿入しない代入        */
-/*   SCM_SETQ     : write barrier を挿入する代入          */
-#define SCM_SETQ_PRIM(obj, val)                 \
-  do {                                          \
-    ScmObj tmp__ = (val); (obj) = tmp__;        \
-  } while(0)
-#define SCM_SETQ(obj, val) SCM_SETQ_PRIM(obj, val)
 
-#define SCM_REF_MAKE(obj) ((ScmRef)&(obj))
-#define SCM_REF_MAKE_FROM_PTR(ptr) ((ScmRef)(ptr))
-#define SCM_REF_TO_PTR(ref) ((ScmObj *)(ref))
-#define SCM_REF_NULL ((ScmRef)NULL)
-#define SCM_REF_OBJ(ref) (*((ScmObj *)(ref)))
-#define SCM_CREF_OBJ(ref) (*((const ScmObj *)(ref)))
-#define SCM_REF_UPDATE(ref, obj) (*((ScmObj *)(ref)) = SCM_OBJ(obj))
-#define SCM_REF_SETQ(ref, obj) SCM_SETQ(*((ScmObj *)(ref)), obj)
+
+
 
 typedef void (*ScmPrettyPrintFunction)(ScmObj obj); // 仮
 typedef void (*ScmGCInitializeFunc)(ScmObj obj, ScmObj mem);
