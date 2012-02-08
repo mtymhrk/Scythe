@@ -355,13 +355,13 @@ scm_mem_copy_obj(ScmMem *mem, ScmObj obj)
     return SCM_FORWARD_FORWARD(obj);
 
   scm_mem_alloc_heap_mem(mem, type, SCM_REF_MAKE(box));
-  if (SCM_OBJ_IS_NULL(box)) {
+  if (SCM_OBJ_NULL_P(box)) {
     if (scm_mem_expand_heap(mem, 1) != 1) {
       /* TODO: write error handling (fail to allocate memory)*/
       return SCM_OBJ_NULL;
     }
     scm_mem_alloc_heap_mem(mem, type, SCM_REF_MAKE(box));
-    if (SCM_OBJ_IS_NULL(box)) {
+    if (SCM_OBJ_NULL_P(box)) {
       /* TODO: write error handling (fail to allocate memory)*/
       return SCM_OBJ_NULL;
     }
@@ -384,7 +384,7 @@ scm_mem_copy_children_func(ScmObj mem, ScmObj obj, ScmRef child)
   if (SCM_OBJ_IS_NOT_NULL(SCM_REF_OBJ(child))
       && SCM_OBJ_IS_MEM_MANAGED(SCM_REF_OBJ(child))) {
     ScmObj cpy = scm_mem_copy_obj(SCM_MEM(mem), SCM_REF_OBJ(child));
-    if (SCM_OBJ_IS_NULL(cpy))  return -1; // error
+    if (SCM_OBJ_NULL_P(cpy))  return -1; // error
     SCM_REF_UPDATE(child, cpy);
   }
 
@@ -454,7 +454,7 @@ scm_mem_copy_extra_obj(ScmMem *mem)
   for (i = 0; i < mem->nr_extra; i++) {
     if (SCM_OBJ_IS_NOT_NULL(SCM_REF_OBJ(mem->extra_rfrn[i]))) {
       ScmObj cpy = scm_mem_copy_obj(mem, SCM_REF_OBJ(mem->extra_rfrn[i]));
-      if (SCM_OBJ_IS_NULL(cpy)) {
+      if (SCM_OBJ_NULL_P(cpy)) {
         ; /* TODO: wirte error handling */
       }
       SCM_REF_UPDATE(mem->extra_rfrn[i], cpy);
@@ -725,10 +725,10 @@ scm_mem_alloc_heap(ScmMem *mem, ScmTypeInfo *type, ScmRef ref)
   SCM_REF_UPDATE(ref, SCM_OBJ_NULL);
 
   scm_mem_alloc_heap_mem(mem, type, ref);
-  if (SCM_OBJ_IS_NULL(SCM_REF_OBJ(ref))) {
+  if (SCM_OBJ_NULL_P(SCM_REF_OBJ(ref))) {
     scm_mem_gc_start(mem);
     scm_mem_alloc_heap_mem(mem, type, ref);
-    if (SCM_OBJ_IS_NULL(SCM_REF_OBJ(ref))) {
+    if (SCM_OBJ_NULL_P(SCM_REF_OBJ(ref))) {
       ; /* TODO: write error handling (fail to allocate memory) */
       return NULL;
     }
@@ -782,7 +782,7 @@ scm_mem_alloc_root(ScmMem *mem, ScmTypeInfo *type, ScmRef ref)
   assert(ref != SCM_REF_NULL);
 
   SCM_REF_UPDATE(ref, scm_mem_alloc_root_obj(type, mem, &mem->roots));
-  if (SCM_OBJ_IS_NULL(SCM_REF_OBJ(ref))) return NULL;
+  if (SCM_OBJ_NULL_P(SCM_REF_OBJ(ref))) return NULL;
 
   return mem;
 }
@@ -864,7 +864,7 @@ scm_mem_alloc(ScmMem *mem, ScmTypeInfo *type,
     break;
   case SCM_MEM_ALLOC_SHARED_ROOT:
     SCM_REF_UPDATE(ref, scm_memory_alloc_shared_root(type));
-    return SCM_OBJ_IS_NULL(SCM_REF_OBJ(ref)) ? NULL : mem;
+    return SCM_OBJ_NULL_P(SCM_REF_OBJ(ref)) ? NULL : mem;
     break;
   default:
     return NULL;

@@ -41,7 +41,7 @@ scm_integer_new(SCM_MEM_ALLOC_TYPE_T mtype, long long value) /* GC OK */
 
   scm_mem_alloc(scm_vm_current_mm(),
                 &SCM_INTEGER_TYPE_INFO, mtype, SCM_REF_MAKE(integer));
-  if (SCM_OBJ_IS_NULL(integer)) return SCM_OBJ_NULL;
+  if (SCM_OBJ_NULL_P(integer)) return SCM_OBJ_NULL;
 
   scm_integer_initialize(integer, value);
 

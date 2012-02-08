@@ -143,7 +143,7 @@ scm_symtbl_initialize(ScmObj tbl)
            scm_chash_tbl_new(SCM_MEM_ALLOC_HEAP, SCM_SYMTBL_SIZE,
                              SCM_CHASH_TBL_SCMOBJ, SCM_CHASH_TBL_SCMOBJ_W,
                              scm_symtbl_hash_func, scm_symtbl_cmp_func));
-  if (SCM_OBJ_IS_NULL(tbl)) return;
+  if (SCM_OBJ_NULL_P(tbl)) return;
 }
 
 ScmObj
@@ -155,7 +155,7 @@ scm_symtbl_new(SCM_MEM_ALLOC_TYPE_T mtype)
 
   scm_mem_alloc(scm_vm_current_mm(),
                 &SCM_SYMTBL_TYPE_INFO, mtype, SCM_REF_MAKE(tbl));
-  if (SCM_OBJ_IS_NULL(tbl)) return SCM_OBJ_NULL;
+  if (SCM_OBJ_NULL_P(tbl)) return SCM_OBJ_NULL;
 
   scm_symtbl_initialize(tbl);
 
@@ -177,7 +177,7 @@ scm_symtbl_symbol(ScmObj tbl, ScmObj str)
   if (found) return sym;
 
   SCM_SETQ(sym, scm_symbol_new(SCM_MEM_ALLOC_HEAP, str));
-  if (SCM_OBJ_IS_NULL(sym)) return SCM_OBJ_NULL;
+  if (SCM_OBJ_NULL_P(sym)) return SCM_OBJ_NULL;
 
   rslt = scm_chash_tbl_insert(SCM_SYMTBL(tbl)->tbl, str, sym);
   if (rslt != 0) return SCM_OBJ_NULL;

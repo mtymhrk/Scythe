@@ -50,7 +50,7 @@ scm_subrutine_call(ScmObj subr)
   SCM_OBJ_ASSERT_TYPE(subr, &SCM_SUBRUTINE_TYPE_INFO);
 
   SCM_SUBRUTINE_CALL(ret, subr);
-  if (SCM_OBJ_IS_NULL(ret))
+  if (SCM_OBJ_NULL_P(ret))
     ;                           /* TODO: error handling */
 
   scm_vm_update_current_val_reg(ret);
