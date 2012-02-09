@@ -124,10 +124,6 @@ int scm_ref_stack_gc_accept(ScmRefStack *stack, ScmObj owner,
 #define SCM_STACK_PUSH(...)                                             \
   scm_ref_stack_push(scm_vm_current_ref_stack(), __VA_ARGS__, NULL)
 
-#define SCM_STACK_FRAME_OBJ(...) \
-  SCM_STACK_FRAME;               \
-  ScmObj __VA_ARGS__;
-
 #define SCM_STACK_FRAME_PUSH(...) \
   SCM_STACK_FRAME; SCM_STACK_PUSH(__VA_ARGS__);
 
