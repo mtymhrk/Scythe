@@ -21,4 +21,9 @@ scm_rshift_arith_sword(scm_sword_t x, unsigned int y)
 #endif
 }
 
+
+#define SCM_CONCAT_SYMBOL_2__(x, y) x##y
+#define SCM_CONCAT_SYMBOL__(x, y) SCM_CONCAT_SYMBOL_2__(x, y)
+
+
 #endif /* INCLUDE_IMPL_UTILS_H__ */

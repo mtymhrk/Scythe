@@ -14,6 +14,7 @@ typedef struct ScmWeakRefRec ScmWeakRef;
 
 #include "object.h"
 #include "vm.h"
+#include "impl_utils.h"
 
 enum { SCM_REF_STACK_ELEM_OBJ, SCM_REF_STACK_ELEM_REF };
 
@@ -203,14 +204,12 @@ ScmObj scm_weak_ref_get(ScmObj wref);
 int scm_weak_ref_gc_accept_weak(ScmObj obj, ScmObj mem,
                                 ScmGCRefHandlerFunc handler);
 
-#define SCM_REF_STACK_CONCAT2__(x, y) x##y
-#define SCM_REF_STACK_CONCAT__(x, y) SCM_REF_STACK_CONCAT2__(x, y)
 
 #define SCM_STACK_FRAME                         \
   __attribute__((__cleanup__(scm_ref_stack_restore_current_stack)))     \
-  ScmRefStackInfo SCM_REF_STACK_CONCAT__(scm_ref_stack_frame__, __LINE__) \
+  ScmRefStackInfo SCM_CONCAT_SYMBOL__(scm_ref_stack_frame__, __LINE__) \
   = { NULL, NULL };                                                     \
-  scm_ref_stack_save_current_stack(&SCM_REF_STACK_CONCAT__(scm_ref_stack_frame__, __LINE__));
+  scm_ref_stack_save_current_stack(&SCM_CONCAT_SYMBOL__(scm_ref_stack_frame__, __LINE__));
 
 #define SCM_STACK_PUSH(...)                                             \
   scm_ref_stack_push(scm_vm_current_ref_stack(), __VA_ARGS__, NULL)
