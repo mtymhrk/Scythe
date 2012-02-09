@@ -904,7 +904,7 @@ size_t
 scm_mem_alloc_size_in_heap_aligned(ScmTypeInfo *type)
 {
   size_t size = scm_mem_alloc_size_in_heap(type);
-  return SCM_MEM_ALIGN_SIZE(size);
+  return scm_mem_align_size(size);
 }
 
 size_t

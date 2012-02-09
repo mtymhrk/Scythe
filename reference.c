@@ -18,6 +18,8 @@ scm_ref_stack_new_block(size_t sz)
 {
   ScmRefStackBlock *block;
 
+  scm_assert((SIZE_MAX - sizeof(ScmRefStackBlock)) / sizeof(ScmRef) >= sz);
+
   block = scm_memory_allocate(sizeof(ScmRefStackBlock) + sizeof(ScmRef) * sz);
   if (block == NULL)
     return NULL;
