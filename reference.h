@@ -20,37 +20,36 @@ struct ScmRefStackBlockRec {
   ScmRef stack[0];
 };
 
-#define SCM_REF_STACK_BLOCK_NEXT(block) ((block)->next)
-#define SCM_REF_STACK_BLOCK_PREV(block) ((block)->prev)
-#define SCM_REF_STACK_BLOCK_SIZE(block) ((block)->size)
-#define SCM_REF_STACK_BLOCK_SP(block) ((block)->sp)
-#define SCM_REF_STACK_BLOCK_BOTTOM(block) ((block)->stack)
-#define SCM_REF_STACK_BLOCK_TOP(block)                                  \
-  (SCM_REF_STACK_BLOCK_BOTTOM(block) + SCM_REF_STACK_BLOCK_SIZE(block))
-#define SCM_REF_STACK_BLOCK_IS_FULL(block)                              \
-  (SCM_REF_STACK_BLOCK_TOP(block) <= SCM_REF_STACK_BLOCK_SP(block))
-#define SCM_REF_STACK_BLOCK_SET_NEXT(block, nxt) ((block)->next = (nxt))
-#define SCM_REF_STACK_BLOCK_SET_PREV(block, prv) ((block)->prev = (prv))
-#define SCM_REF_STACK_BLOCK_SET_SIZE(block, sz) ((block)->size = (sz))
-#define SCM_REF_STACK_BLOCK_SET_SP(block, ptr) ((block)->sp = (ptr))
+static inline bool
+scm_ref_stack_block_full_p(ScmRefStackBlock *block)
+{
+  return (block->stack + block->size <= block->sp) ? true : false;
+}
 
-#define SCM_REF_STACK_NEW_BLOCK(block, sz)                              \
-  do {                                                                  \
-    (block) = scm_memory_allocate(sizeof(ScmRefStackBlock)              \
-                                  + sizeof(ScmRef) * sz);               \
-    if ((block) != NULL) {                                              \
-      SCM_REF_STACK_BLOCK_SET_NEXT(block, NULL);                        \
-      SCM_REF_STACK_BLOCK_SET_PREV(block, NULL);                        \
-      SCM_REF_STACK_BLOCK_SET_SIZE(block, sz);                          \
-      SCM_REF_STACK_BLOCK_SET_SP(block,                                 \
-                                 SCM_REF_STACK_BLOCK_BOTTOM(block));    \
-    }                                                                   \
-  } while(0)
+static inline ScmRefStackBlock *
+scm_ref_stack_new_block(size_t sz)
+{
+  ScmRefStackBlock *block;
 
-#define SCM_REF_STACK_BLOCK_PUSH(block, ref)                            \
-  do {                                                                  \
-    *((block)->sp++) = (ref);                                           \
-  } while(0)
+  block = scm_memory_allocate(sizeof(ScmRefStackBlock) + sizeof(ScmRef) * sz);
+  if (block == NULL)
+    return NULL;
+
+  block->next = NULL;
+  block->prev = NULL;
+  block->size = sz;
+  block->sp = block->stack;
+
+  return block;
+}
+
+static inline void
+scm_ref_stack_block_push(ScmRefStackBlock *block, ScmRef ref)
+{
+  *(block->sp++) = ref;
+}
+
+
 
 struct ScmRefStackRec {
   ScmRefStackBlock *head;
@@ -58,42 +57,48 @@ struct ScmRefStackRec {
   ScmRefStackBlock *current;
 };
 
-#define SCM_REF_STACK_ADD_BLOCK(stack, block)                           \
-  do {                                                                  \
-    if ((stack)->head == NULL) {                                        \
-      (stack)->head = (stack)->tail = (stack)->current = (block);       \
-    }                                                                   \
-    else {                                                              \
-      (stack)->tail->next = (block);                                    \
-      SCM_REF_STACK_BLOCK_SET_NEXT(block, NULL);                        \
-      SCM_REF_STACK_BLOCK_SET_PREV(block, (stack)->tail);               \
-      (stack)->tail = (block);                                          \
-    }                                                                   \
-  } while(0)
+static inline void
+scm_ref_stack_add_block(ScmRefStack *stack, ScmRefStackBlock *block)
+{
+  if (stack->head == NULL) {
+    stack->head = stack->tail = stack->current = block;
+  }
+  else {
+    stack->tail->next = block;
+    block->next = NULL;
+    block->prev = stack->tail;
+    stack->tail = block;
+  }
+}
 
-#define SCM_REF_STACK_DEL_BLOCK(stack, block)                        \
-  do {                                                               \
-    (block) = (stack)->tail;                                         \
-    if ((block) != NULL) {                                           \
-      (stack)->tail = SCM_REF_STACK_BLOCK_PREV(block);               \
-                                                                     \
-      if ((stack)->tail == NULL)                                     \
-        (stack)->head = (stack)->current = NULL;                     \
-      else                                                           \
-        SCM_REF_STACK_BLOCK_SET_NEXT((stack)->tail, NULL);           \
-                                                                     \
-      if ((stack)->current == (block))                               \
-        (stack)->current = (stack)->tail;                            \
-    }                                                                \
-  } while(0)
+static inline void
+scm_ref_stack_decrease_block(ScmRefStack *stack)
+{
+  ScmRefStackBlock *block;
 
-#define SCM_REF_STACK_SHIFT_STACK_BLOCK(stack)                          \
-  do {                                                                  \
-    (stack)->current = SCM_REF_STACK_BLOCK_NEXT((stack)->current);      \
-    if ((stack)->current != NULL)                                       \
-      SCM_REF_STACK_BLOCK_SET_SP((stack)->current,                      \
-                                 SCM_REF_STACK_BLOCK_BOTTOM((stack)->current)); \
-  } while(0)
+  block = stack->tail;
+  if (block != NULL) {
+    stack->tail = block->prev;
+
+    if (stack->tail == NULL)
+      stack->head = stack->current = NULL;
+    else
+      stack->tail->next = NULL;
+
+    if (stack->current == block)
+      stack->current = stack->tail;
+
+    scm_memory_release(block);
+  }
+}
+
+static inline void
+scm_ref_stack_shift_stack_block(ScmRefStack *stack)
+{
+  stack->current = stack->current->next;
+  if (stack->current != NULL)
+    stack->current->sp = stack->current->stack;
+}
 
 
 struct ScmRefStackInfoRec {
@@ -101,7 +106,10 @@ struct ScmRefStackInfoRec {
   ScmRef *sp;
 };
 
-
+ScmRefStack *scm_ref_stack_add_new_block(ScmRefStack *stack, size_t size);
+ScmRefStack *scm_ref_stack_growth_if_needed(ScmRefStack *stack);
+ScmRefStack *scm_ref_stack_initialize(ScmRefStack *stack, size_t size);
+void scm_ref_stack_finalize(ScmRefStack *stack);
 ScmRefStack *scm_ref_stack_new(size_t size);
 void scm_ref_stack_end(ScmRefStack *stack);
 ScmRefStack *scm_ref_stack_push(ScmRefStack *stack, ...);

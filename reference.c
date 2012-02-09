@@ -7,30 +7,29 @@
 #include "object.h"
 
 
-static ScmRefStack *
+ScmRefStack *
 scm_ref_stack_add_new_block(ScmRefStack *stack, size_t size)
 {
   ScmRefStackBlock *block;
 
   scm_assert(stack != NULL);
 
-  SCM_REF_STACK_NEW_BLOCK(block, size);
+  block = scm_ref_stack_new_block(size);
   if (block == NULL) return NULL;
 
-  SCM_REF_STACK_ADD_BLOCK(stack, block);
+  scm_ref_stack_add_block(stack, block);
 
   return stack;
 }
 
-static ScmRefStack *
+ScmRefStack *
 scm_ref_stack_growth_if_needed(ScmRefStack *stack)
 {
-  if (SCM_REF_STACK_BLOCK_IS_FULL(stack->current))
-    SCM_REF_STACK_SHIFT_STACK_BLOCK(stack);
+  if (scm_ref_stack_block_full_p(stack->current))
+    scm_ref_stack_shift_stack_block(stack);
 
   if (stack->current == NULL) {
-    size_t size = SCM_REF_STACK_BLOCK_SIZE(stack->tail);
-    if (scm_ref_stack_add_new_block(stack, size) == NULL)
+    if (scm_ref_stack_add_new_block(stack, stack->tail->size) == NULL)
       return NULL;
     stack->current = stack->tail;
   }
@@ -39,7 +38,7 @@ scm_ref_stack_growth_if_needed(ScmRefStack *stack)
 }
 
 
-static ScmRefStack *
+ScmRefStack *
 scm_ref_stack_initialize(ScmRefStack *stack, size_t size)
 {
   scm_assert(stack != NULL);
@@ -48,16 +47,14 @@ scm_ref_stack_initialize(ScmRefStack *stack, size_t size)
   return scm_ref_stack_add_new_block(stack, size);
 }
 
-static void
+void
 scm_ref_stack_finalize(ScmRefStack *stack)
 {
   scm_assert(stack != NULL);
 
-  do {
-    ScmRefStackBlock *block;
-    SCM_REF_STACK_DEL_BLOCK(stack, block);
-    if (block != NULL) scm_memory_release(block);
-  } while(stack->head != NULL);
+  while (stack->head != NULL) {
+    scm_ref_stack_decrease_block(stack);
+  }
 }
 
 ScmRefStack *
@@ -90,16 +87,16 @@ ScmRefStack *
 scm_ref_stack_push(ScmRefStack *stack, ...)
 {
   va_list ap;
-  ScmObj *ptr;
+  ScmRef ref;
 
   scm_assert(stack != NULL);
 
   va_start(ap, stack);
-  while ((ptr = va_arg(ap, ScmObj *)) != NULL) {
+  while ((ref = va_arg(ap, ScmRef)) != NULL) {
     if (scm_ref_stack_growth_if_needed(stack) == NULL)
       goto err;
 
-    SCM_REF_STACK_BLOCK_PUSH(stack->current, ptr);
+    scm_ref_stack_block_push(stack->current, ref);
   }
 
   va_end(ap);
@@ -117,7 +114,7 @@ scm_ref_stack_save(ScmRefStack *stack, ScmRefStackInfo *info)
   scm_assert(info != NULL);
 
   info->current = stack->current;
-  info->sp = SCM_REF_STACK_BLOCK_SP(stack->current);
+  info->sp = stack->current->sp;
 }
 
 void
@@ -127,7 +124,7 @@ scm_ref_stack_restore(ScmRefStack *stack, ScmRefStackInfo *info)
   scm_assert(info != NULL);
 
   stack->current = info->current;
-  SCM_REF_STACK_BLOCK_SET_SP(stack->current, info->sp);
+  stack->current->sp = info->sp;
 }
 
 void
@@ -150,13 +147,11 @@ scm_ref_stack_gc_accept(ScmRefStack *stack, ScmObj owner,
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
 
   for (block = stack->head;
-       block != NULL && SCM_REF_STACK_BLOCK_PREV(block) != stack->current;
-       block = SCM_REF_STACK_BLOCK_NEXT(block)) {
+       block != NULL && block->prev != stack->current;
+       block = block->next) {
     ScmRef *ep;
 
-    for (ep = SCM_REF_STACK_BLOCK_BOTTOM(block);
-         ep != SCM_REF_STACK_BLOCK_SP(block);
-         ep++) {
+    for (ep = block->stack; ep != block->sp; ep++) {
       rslt = SCM_GC_CALL_REF_HANDLER(handler, owner, SCM_REF_DEREF(*ep), mem);
       if (scm_gc_ref_handler_failure_p(rslt))
         return rslt;
@@ -165,4 +160,3 @@ scm_ref_stack_gc_accept(ScmRefStack *stack, ScmObj owner,
 
   return rslt;
 }
-
