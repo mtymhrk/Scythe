@@ -348,6 +348,7 @@ struct ScmMemRec {
   ScmMemRootBlock *roots;
   ScmRef *extra_rfrn;
   size_t nr_extra;
+  bool gc_enabled;
 };
 
 #define SCM_MEM_ADD_TO_ROOT_SET(head, block)        \
@@ -399,8 +400,33 @@ struct ScmMemRec {
 
 extern ScmTypeInfo SCM_FORWARD_TYPE_INFO;
 
+
 void *scm_memory_allocate(size_t size);
 void *scm_memory_release(void *block);
+
+static inline void
+scm_mem_enable_gc(ScmMem *mem)
+{
+  scm_assert(mem != NULL);
+
+  mem->gc_enabled = true;
+}
+
+static inline void
+scm_mem_disabled_gc(ScmMem *mem)
+{
+  scm_assert(mem != NULL);
+
+  mem->gc_enabled = false;
+}
+
+static inline bool
+scm_mem_gc_enabled_p(ScmMem *mem)
+{
+  scm_assert(mem != NULL);
+
+  return mem->gc_enabled;
+}
 
 ScmMem *scm_mem_new(void);
 ScmMem *scm_mem_end(ScmMem *mem);

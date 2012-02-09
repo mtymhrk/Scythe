@@ -925,7 +925,7 @@ test_scm_mem_new(void)
   cut_assert_not_null(mem->to_heap);
   cut_assert_not_null(mem->from_heap);
   cut_assert_not_null(mem->persistent);
-
+  cut_assert(mem->gc_enabled);
 
   cut_assert_equal_int(1, SCM_MEM_HEAP_NR_BLOCK(mem->to_heap));
   cut_assert_equal_int(1, SCM_MEM_HEAP_NR_BLOCK(mem->from_heap));
@@ -1262,6 +1262,7 @@ test_scm_mem_alloc_heap(void)
   /* postcondition check */
   cut_assert_true(scm_obj_not_null_p(obj));
   cut_assert(scm_obj_type_p(obj, &type));
+  cut_assert(scm_obj_mem_managed_p(obj));
   cut_assert_equal_int(1, ((StubObj *)obj)->nr_call_ini_func);
   cut_assert_equal_int(0, ((StubObj *)obj)->nr_call_fin_func);
   cut_assert_equal_int(0, ((StubObj *)obj)->nr_call_accept_func);
@@ -1274,6 +1275,45 @@ test_scm_mem_alloc_heap(void)
   }
 
   cut_assert_true(in_to_heap);
+
+  /* postprocess */
+  scm_mem_end(mem);
+}
+
+void
+test_scm_mem_alloc_heap__alignment(void)
+{
+  ScmTypeInfo type = {
+    NULL,                     /* pp_func              */
+    sizeof(StubObj),          /* obj_size             */
+    stub_obj_gc_init_func,    /* gc_ini_func          */
+    stub_obj_gc_fin_func,     /* gc_fin_func          */
+    stub_obj_gc_accept_func,  /* gc_accept_func       */
+    NULL,                     /* gc_accpet_func_weak  */
+  };
+  ScmMem *mem;
+  ScmObj obj1 = SCM_OBJ_INIT;
+  ScmObj obj2 = SCM_OBJ_INIT;
+
+  /* preprocess */
+  mem = scm_mem_new();
+
+  scm_mem_register_extra_rfrn(mem, SCM_REF_MAKE(obj1));
+  scm_mem_register_extra_rfrn(mem, SCM_REF_MAKE(obj2));
+
+  /* action */
+  scm_mem_alloc_heap(mem, &type, SCM_REF_MAKE(obj1));
+  scm_mem_alloc_heap(mem, &type, SCM_REF_MAKE(obj2));
+
+  /* postcondition check */
+  cut_assert_true(scm_obj_not_null_p(obj1));
+  cut_assert(scm_obj_type_p(obj1, &type));
+  cut_assert(scm_obj_mem_managed_p(obj1));
+
+  cut_assert_true(scm_obj_not_null_p(obj2));
+  cut_assert(scm_obj_type_p(obj2, &type));
+  cut_assert(scm_obj_mem_managed_p(obj2));
+
 
   /* postprocess */
   scm_mem_end(mem);

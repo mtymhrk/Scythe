@@ -619,6 +619,7 @@ scm_mem_initialize(ScmMem *mem)
   mem->from_heap = NULL;
   mem->roots = NULL;
   mem->extra_rfrn = NULL;
+  mem->gc_enabled = true;
 
   mem->to_obj_tbl = scm_basic_hash_new(SCM_MEM_OBJ_TBL_HASH_SIZE,
                                              object_table_hash_func,
@@ -718,7 +719,10 @@ scm_mem_alloc_heap(ScmMem *mem, ScmTypeInfo *type, ScmRef ref)
 
   scm_mem_alloc_heap_mem(mem, type, ref);
   if (scm_obj_null_p(SCM_REF_DEREF(ref))) {
-    scm_mem_gc_start(mem);
+    if (mem->gc_enabled)
+      scm_mem_gc_start(mem);
+    else
+      scm_mem_expand_heap(mem, 1);
     scm_mem_alloc_heap_mem(mem, type, ref);
     if (scm_obj_null_p(SCM_REF_DEREF(ref))) {
       ; /* TODO: write error handling (fail to allocate memory) */
@@ -904,6 +908,7 @@ scm_mem_alloc_size_in_heap(ScmTypeInfo *type)
   return size;
 }
 
+/* TODO: inline */
 size_t
 scm_mem_alloc_size_in_heap_aligned(ScmTypeInfo *type)
 {
@@ -925,6 +930,8 @@ scm_mem_alloc_size_in_root(ScmTypeInfo *type)
 
   return size;
 }
+
+
 
 ScmObj
 scm_memory_alloc_shared_root(ScmTypeInfo *type)
