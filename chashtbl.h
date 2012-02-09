@@ -21,7 +21,6 @@ typedef enum {
 } SCM_CHASH_TBL_VAL_KIND_T;
 
 #include "object.h"
-#include "memory.h"
 
 struct ScmCHashTblRec {
   ScmCHashTblEntry **buckets;
