@@ -100,6 +100,12 @@ scm_ref_stack_shift_stack_block(ScmRefStack *stack)
     stack->current->sp = stack->current->stack;
 }
 
+static inline void
+scm_ref_stack_decrease_if_possible(ScmRefStack *stack)
+{
+  ;                             /* TODO: write me */
+}
+
 
 struct ScmRefStackInfoRec {
   ScmRefStackBlock *current;

@@ -37,7 +37,6 @@ scm_ref_stack_growth_if_needed(ScmRefStack *stack)
   return stack;
 }
 
-
 ScmRefStack *
 scm_ref_stack_initialize(ScmRefStack *stack, size_t size)
 {
@@ -125,6 +124,8 @@ scm_ref_stack_restore(ScmRefStack *stack, ScmRefStackInfo *info)
 
   stack->current = info->current;
   stack->current->sp = info->sp;
+
+  scm_ref_stack_decrease_if_possible(stack);
 }
 
 void
