@@ -6,6 +6,7 @@
 #include <assert.h>
 
 #include "basichash.h"
+#include "vm.h"
 #include "memory.h"
 #include "object.h"
 

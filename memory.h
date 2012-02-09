@@ -24,7 +24,6 @@ typedef enum {
 enum { SCM_MEM_NR_ALLOC_TYPE = SCM_MEM_ALLOC_SHARED_ROOT + 1 };
 
 #include "object.h"
-#include "vm.h"
 #include "basichash.h"
 #include "impl_utils.h"
 
@@ -453,5 +452,18 @@ bool scm_mem_current_mem_gc_enabled_p(void);
 #define SCM_MEM_ALLOC(type, alloc, ref) \
   scm_mem_alloc(scm_vm_current_mm(), type, alloc, ref)
 
+
+static inline void *
+scm_memory_allocate(size_t size)
+{
+  return malloc(size);
+}
+
+static inline void *
+scm_memory_release(void *block)
+{
+  free(block);
+  return NULL;
+}
 
 #endif /* INCLUDED_MEMORY_H__ */

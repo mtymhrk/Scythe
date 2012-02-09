@@ -5,6 +5,79 @@
 #include "reference.h"
 #include "memory.h"
 #include "object.h"
+#include "vm.h"
+
+inline bool
+scm_ref_stack_block_full_p(ScmRefStackBlock *block)
+{
+  return (block->stack + block->size <= block->sp) ? true : false;
+}
+
+inline ScmRefStackBlock *
+scm_ref_stack_new_block(size_t sz)
+{
+  ScmRefStackBlock *block;
+
+  block = scm_memory_allocate(sizeof(ScmRefStackBlock) + sizeof(ScmRef) * sz);
+  if (block == NULL)
+    return NULL;
+
+  block->next = NULL;
+  block->prev = NULL;
+  block->size = sz;
+  block->sp = block->stack;
+
+  return block;
+}
+
+inline void
+scm_ref_stack_block_push(ScmRefStackBlock *block, ScmRef ref)
+{
+  *(block->sp++) = ref;
+}
+
+void
+scm_ref_stack_add_block(ScmRefStack *stack, ScmRefStackBlock *block)
+{
+  if (stack->head == NULL) {
+    stack->head = stack->tail = stack->current = block;
+  }
+  else {
+    stack->tail->next = block;
+    block->next = NULL;
+    block->prev = stack->tail;
+    stack->tail = block;
+  }
+}
+
+void
+scm_ref_stack_decrease_block(ScmRefStack *stack)
+{
+  ScmRefStackBlock *block;
+
+  block = stack->tail;
+  if (block != NULL) {
+    stack->tail = block->prev;
+
+    if (stack->tail == NULL)
+      stack->head = stack->current = NULL;
+    else
+      stack->tail->next = NULL;
+
+    if (stack->current == block)
+      stack->current = stack->tail;
+
+    scm_memory_release(block);
+  }
+}
+
+inline void
+scm_ref_stack_shift_stack_block(ScmRefStack *stack)
+{
+  stack->current = stack->current->next;
+  if (stack->current != NULL)
+    stack->current->sp = stack->current->stack;
+}
 
 
 ScmRefStack *
@@ -35,6 +108,12 @@ scm_ref_stack_growth_if_needed(ScmRefStack *stack)
   }
 
   return stack;
+}
+
+void
+scm_ref_stack_decrease_if_possible(ScmRefStack *stack)
+{
+  ;                             /* TODO: write me */
 }
 
 ScmRefStack *
@@ -83,30 +162,38 @@ scm_ref_stack_end(ScmRefStack *stack)
 }
 
 ScmRefStack *
-scm_ref_stack_push(ScmRefStack *stack, ...)
+scm_ref_stack_push_va(ScmRefStack *stack, va_list ap)
 {
-  va_list ap;
   ScmRef ref;
 
   scm_assert(stack != NULL);
 
-  va_start(ap, stack);
   while ((ref = va_arg(ap, ScmRef)) != NULL) {
     if (scm_ref_stack_growth_if_needed(stack) == NULL)
-      goto err;
+      return NULL;
 
     scm_ref_stack_block_push(stack->current, ref);
   }
 
-  va_end(ap);
   return stack;
-
- err:
-  va_end(ap);
-  return NULL;
 }
 
-void
+ScmRefStack *
+scm_ref_stack_push(ScmRefStack *stack, ...)
+{
+  ScmRefStack *rslt;
+  va_list ap;
+
+  scm_assert(stack != NULL);
+
+  va_start(ap, stack);
+  rslt = scm_ref_stack_push_va(stack, ap);
+  va_end(ap);
+
+  return rslt;
+}
+
+inline void
 scm_ref_stack_save(ScmRefStack *stack, ScmRefStackInfo *info)
 {
   scm_assert(stack != NULL);
@@ -116,7 +203,7 @@ scm_ref_stack_save(ScmRefStack *stack, ScmRefStackInfo *info)
   info->sp = stack->current->sp;
 }
 
-void
+inline void
 scm_ref_stack_restore(ScmRefStack *stack, ScmRefStackInfo *info)
 {
   scm_assert(stack != NULL);
@@ -126,6 +213,16 @@ scm_ref_stack_restore(ScmRefStack *stack, ScmRefStackInfo *info)
   stack->current->sp = info->sp;
 
   scm_ref_stack_decrease_if_possible(stack);
+}
+
+void
+scm_ref_stack_push_current_stack(int dummy, ...)
+{
+  va_list ap;
+
+  va_start(ap, dummy);
+  scm_ref_stack_push_va(scm_vm_current_ref_stack(), ap);
+  va_end(ap);
 }
 
 void

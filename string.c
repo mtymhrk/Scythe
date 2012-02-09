@@ -7,6 +7,7 @@
 
 #include "memory.h"
 #include "object.h"
+#include "vm.h"
 #include "reference.h"
 #include "encoding.h"
 #include "string.h"

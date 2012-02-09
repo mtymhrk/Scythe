@@ -3,6 +3,7 @@
 
 #include "object.h"
 #include "memory.h"
+#include "vm.h"
 #include "reference.h"
 #include "symbol.h"
 #include "chashtbl.h"
