@@ -110,18 +110,6 @@ scm_ref_stack_push(ScmRefStack *stack, ...)
   return NULL;
 }
 
-ScmRef
-scm_ref_stack_alloc(ScmRefStack *stack, ScmObj init)
-{
-  ScmRef ref;
-
-  if (scm_ref_stack_growth_if_needed(stack) == NULL)
-    return SCM_REF_NULL;
-
-  SCM_REF_STACK_BLOCK_ALLOC(stack->current, ref, init);
-  return ref;
-}
-
 void
 scm_ref_stack_save(ScmRefStack *stack, ScmRefStackInfo *info)
 {
@@ -164,15 +152,12 @@ scm_ref_stack_gc_accept(ScmRefStack *stack, ScmObj owner,
   for (block = stack->head;
        block != NULL && SCM_REF_STACK_BLOCK_PREV(block) != stack->current;
        block = SCM_REF_STACK_BLOCK_NEXT(block)) {
-    ScmRefStackElem *ep;
+    ScmRef *ep;
 
     for (ep = SCM_REF_STACK_BLOCK_BOTTOM(block);
          ep != SCM_REF_STACK_BLOCK_SP(block);
          ep++) {
-      ScmRef ref = SCM_REF_NULL;
-
-      SCM_REF_STACK_ELEM_MAKE_SCM_REF(ep, ref);
-      rslt = SCM_GC_CALL_REF_HANDLER(handler, owner, SCM_REF_DEREF(ref), mem);
+      rslt = SCM_GC_CALL_REF_HANDLER(handler, owner, SCM_REF_DEREF(*ep), mem);
       if (scm_gc_ref_handler_failure_p(rslt))
         return rslt;
     }
