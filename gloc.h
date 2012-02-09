@@ -11,6 +11,7 @@ typedef struct ScmGLocTblRec ScmGLocTbl;
 
 #include "object.h"
 #include "memory.h"
+#include "chashtbl.h"
 
 extern ScmTypeInfo SCM_GLOC_TYPE_INFO;
 
@@ -64,10 +65,11 @@ extern ScmTypeInfo SCM_GLOCTBL_TYPE_INFO;
 
 struct ScmGLocTblRec {
   ScmObjHeader header;
-  ScmObj tbl;
+  ScmCHashTbl *tbl;
 };
 
 void scm_gloctbl_initialize(ScmObj tbl);
+void scm_gloctbl_finalize(ScmObj tbl);
 ScmObj scm_gloctbl_new(SCM_MEM_ALLOC_TYPE_T mtype);
 
 int scm_gloctbl_find(ScmObj tbl, ScmObj sym, ScmRef gloc);
@@ -75,6 +77,7 @@ ScmObj scm_gloctbl_gloc(ScmObj tbl, ScmObj sym);
 ScmObj scm_gloctbl_bind(ScmObj tbl, ScmObj sym, ScmObj val);
 
 void scm_gloctbl_gc_initialize(ScmObj obj, ScmObj mem);
+void scm_gloctbl_gc_finalize(ScmObj obj);
 int scm_gloctbl_gc_accept(ScmObj obj, ScmObj mem,
                            ScmGCRefHandlerFunc handler);
 

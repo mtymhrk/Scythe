@@ -37,21 +37,6 @@ static ScmMemRootBlock *shared_roots = NULL;
 
 
 
-void *
-scm_memory_allocate(size_t size)
-{
-  return malloc(size);
-}
-
-void *
-scm_memory_release(void *block)
-{
-  free(block);
-  return NULL;
-}
-
-
-
 
 static size_t
 object_table_hash_func(ScmBasicHashKey key)
@@ -952,3 +937,23 @@ scm_memory_free_all_shared_root(void)
   return;
 }
 
+
+
+
+void
+scm_mem_enable_current_mem_gc(void)
+{
+  scm_mem_enable_gc(scm_vm_current_mm());
+}
+
+void
+scm_mem_disable_current_mem_gc(void)
+{
+  scm_mem_disable_gc(scm_vm_current_mm());
+}
+
+bool
+scm_mem_current_mem_gc_enabled_p(void)
+{
+  return scm_mem_gc_enabled_p(scm_vm_current_mm());
+}

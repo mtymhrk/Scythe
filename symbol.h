@@ -13,7 +13,7 @@ typedef struct ScmSymTblRec ScmSymTbl;
 
 #include "object.h"
 #include "memory.h"
-#include "basichash.h"
+#include "chashtbl.h"
 
 extern ScmTypeInfo SCM_SYMBOL_TYPE_INFO;
 
@@ -39,13 +39,17 @@ extern ScmTypeInfo SCM_SYMTBL_TYPE_INFO;
 
 struct ScmSymTblRec {
   ScmObjHeader header;
-  ScmObj tbl;
+  ScmCHashTbl *tbl;
 };
 
 void scm_symtbl_initialize(ScmObj tbl);
+void scm_symtbl_finalize(ScmObj tbl);
 ScmObj scm_symtbl_new(SCM_MEM_ALLOC_TYPE_T mtype);
 ScmObj scm_symtbl_symbol(ScmObj tbl, ScmObj str);
 void scm_symtbl_gc_initialize(ScmObj obj, ScmObj mem);
+void scm_symtbl_gc_finalize(ScmObj obj);
 int scm_symtbl_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
+int scm_symtbl_gc_accept_weak(ScmObj obj, ScmObj mem,
+                              ScmGCRefHandlerFunc handler);
 
 #endif /* INCLUDE_SYMBOL_H__ */

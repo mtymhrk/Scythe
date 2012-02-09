@@ -10,7 +10,7 @@ typedef struct ScmNilRec ScmNil;
 #define SCM_NIL(obj) ((ScmNil *)(obj))
 
 #include "object.h"
-
+#include "memory.h"
 
 
 /*******************************************************/

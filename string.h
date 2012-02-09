@@ -10,6 +10,7 @@ typedef struct ScmStringRec ScmString;
 #define SCM_STRING(obj) ((ScmString *)(obj))
 
 #include "object.h"
+#include "memory.h"
 #include "encoding.h"
 
 extern ScmTypeInfo SCM_STRING_TYPE_INFO;

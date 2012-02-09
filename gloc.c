@@ -74,7 +74,7 @@ ScmTypeInfo SCM_GLOCTBL_TYPE_INFO = {
   .pp_func = NULL,
   .obj_size = sizeof(ScmGLocTbl),
   .gc_ini_func = scm_gloctbl_gc_initialize,
-  .gc_fin_func = NULL,
+  .gc_fin_func = scm_gloctbl_gc_finalize,
   .gc_accept_func = scm_gloctbl_gc_accept,
   .gc_accept_func_weak = NULL
 };
@@ -96,15 +96,25 @@ scm_gloctbl_cmp_func(ScmCHashTblKey key1, ScmCHashTblKey key2)
 void
 scm_gloctbl_initialize(ScmObj tbl) /* GC OK */
 {
-  SCM_STACK_FRAME_PUSH(&tbl);
-
   scm_assert_obj_type(tbl, &SCM_GLOCTBL_TYPE_INFO);
 
-  SCM_SETQ(SCM_GLOCTBL(tbl)->tbl,
-           scm_chash_tbl_new(SCM_MEM_ALLOC_HEAP, SCM_GLOCTBL_SIZE,
-                             SCM_CHASH_TBL_SCMOBJ, SCM_CHASH_TBL_SCMOBJ,
-                             scm_gloctbl_hash_func, scm_gloctbl_cmp_func));
-  if (scm_obj_null_p(tbl)) return;
+  SCM_GLOCTBL(tbl)->tbl =
+    scm_chash_tbl_new(SCM_GLOCTBL_SIZE,
+                      SCM_CHASH_TBL_SCMOBJ, SCM_CHASH_TBL_SCMOBJ,
+                      scm_gloctbl_hash_func, scm_gloctbl_cmp_func);
+
+  if (SCM_GLOCTBL(tbl)->tbl == NULL) return;
+}
+
+void
+scm_gloctbl_finalize(ScmObj tbl)
+{
+  scm_assert_obj_type(tbl, &SCM_GLOCTBL_TYPE_INFO);
+
+  if (SCM_GLOCTBL(tbl)->tbl != NULL) {
+    scm_chash_tbl_end(SCM_GLOCTBL(tbl)->tbl);
+    SCM_GLOCTBL(tbl)->tbl = NULL;
+  }
 }
 
 ScmObj
@@ -188,7 +198,13 @@ scm_gloctbl_gc_initialize(ScmObj obj, ScmObj mem)
 {
   scm_assert_obj_type(obj, &SCM_GLOCTBL_TYPE_INFO);
 
-  SCM_SETQ(SCM_GLOCTBL(obj)->tbl, SCM_OBJ_NULL);
+  SCM_GLOCTBL(obj)->tbl = NULL;
+}
+
+void
+scm_gloctbl_gc_finalize(ScmObj obj)
+{
+  scm_gloctbl_finalize(obj);
 }
 
 int
@@ -196,5 +212,5 @@ scm_gloctbl_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
 {
   scm_assert_obj_type(obj, &SCM_GLOCTBL_TYPE_INFO);
 
-  return SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_GLOCTBL(obj)->tbl, mem);
+  return scm_chash_tbl_gc_accept(SCM_GLOCTBL(obj)->tbl, obj, mem, handler);
 }

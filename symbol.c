@@ -113,9 +113,9 @@ ScmTypeInfo SCM_SYMTBL_TYPE_INFO = {
   .pp_func = NULL,
   .obj_size = sizeof(ScmSymTbl),
   .gc_ini_func = scm_symtbl_gc_initialize,
-  .gc_fin_func = NULL,
+  .gc_fin_func = scm_symtbl_gc_finalize,
   .gc_accept_func = scm_symtbl_gc_accept,
-  .gc_accept_func_weak = NULL
+  .gc_accept_func_weak = scm_symtbl_gc_accept_weak
 };
 
 #define SCM_SYMTBL_SIZE 256
@@ -135,15 +135,24 @@ scm_symtbl_cmp_func(ScmCHashTblKey key1, ScmCHashTblKey key2)
 void
 scm_symtbl_initialize(ScmObj tbl)
 {
-  SCM_STACK_FRAME_PUSH(&tbl);
-
   scm_assert_obj_type(tbl, &SCM_SYMTBL_TYPE_INFO);
 
-  SCM_SETQ(SCM_SYMTBL(tbl)->tbl,
-           scm_chash_tbl_new(SCM_MEM_ALLOC_HEAP, SCM_SYMTBL_SIZE,
-                             SCM_CHASH_TBL_SCMOBJ, SCM_CHASH_TBL_SCMOBJ_W,
-                             scm_symtbl_hash_func, scm_symtbl_cmp_func));
+  SCM_SYMTBL(tbl)->tbl =
+    scm_chash_tbl_new(SCM_SYMTBL_SIZE,
+                      SCM_CHASH_TBL_SCMOBJ, SCM_CHASH_TBL_SCMOBJ_W,
+                      scm_symtbl_hash_func, scm_symtbl_cmp_func);
   if (scm_obj_null_p(tbl)) return;
+}
+
+void
+scm_symtbl_finalize(ScmObj tbl)
+{
+  scm_assert_obj_type(tbl, &SCM_SYMTBL_TYPE_INFO);
+
+  if (SCM_SYMTBL(tbl)->tbl != NULL) {
+    scm_chash_tbl_end(SCM_SYMTBL(tbl)->tbl);
+    SCM_SYMTBL(tbl)->tbl = NULL;
+  }
 }
 
 ScmObj
@@ -190,7 +199,15 @@ scm_symtbl_gc_initialize(ScmObj obj, ScmObj mem)
 {
   scm_assert_obj_type(obj, &SCM_SYMTBL_TYPE_INFO);
 
-  SCM_SETQ(SCM_SYMTBL(obj)->tbl, SCM_OBJ_NULL);
+  SCM_SYMTBL(obj)->tbl = NULL;
+}
+
+void
+scm_symtbl_gc_finalize(ScmObj obj)
+{
+  scm_assert_obj_type(obj, &SCM_SYMTBL_TYPE_INFO);
+
+  scm_symtbl_finalize(obj);
 }
 
 int
@@ -198,5 +215,13 @@ scm_symtbl_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
 {
   scm_assert_obj_type(obj, &SCM_SYMTBL_TYPE_INFO);
 
-  return SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_SYMTBL(obj)->tbl, mem);
+  return scm_chash_tbl_gc_accept(SCM_SYMTBL(obj)->tbl, obj, mem, handler);
+}
+
+int
+scm_symtbl_gc_accept_weak(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
+{
+  scm_assert_obj_type(obj, &SCM_SYMTBL_TYPE_INFO);
+
+  return scm_chash_tbl_gc_accept_weak(SCM_SYMTBL(obj)->tbl, obj, mem, handler);
 }

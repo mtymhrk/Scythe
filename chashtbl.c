@@ -3,53 +3,41 @@
 #include "reference.h"
 #include "chashtbl.h"
 
-ScmTypeInfo SCM_CHASH_TBL_TYPE_INFO = {
-  .pp_func = NULL,
-  .obj_size = sizeof(ScmCHashTbl),
-  .gc_ini_func = scm_chash_tbl_gc_initialize,
-  .gc_fin_func = scm_chash_tbl_gc_finalize,
-  .gc_accept_func = scm_chash_tbl_gc_accept,
-  .gc_accept_func_weak = scm_chash_tbl_gc_accept_weak
-};
-
 enum { ADD, UPDATE, DELETE, FIND };
 
 void
-scm_chash_tbl_initialize(ScmObj tbl, size_t size,
+scm_chash_tbl_initialize(ScmCHashTbl *tbl, size_t size,
                          SCM_CHASH_TBL_VAL_KIND_T key_kind,
                          SCM_CHASH_TBL_VAL_KIND_T val_kind,
                          ScmCHashFunc hash_func,
                          ScmCHashTblKeyCmpFunc cmp_func) /* GC OK */
 {
-  SCM_STACK_FRAME_PUSH(&tbl);
-
-  scm_assert_obj_type(tbl, &SCM_CHASH_TBL_TYPE_INFO);
+  scm_assert(tbl != NULL);
   scm_assert(hash_func != NULL);
   scm_assert(cmp_func != NULL);
   scm_assert(SIZE_MAX / size > sizeof(ScmCHashTblEntry *));
 
-  SCM_CHASH_TBL(tbl)->buckets =
-    scm_memory_allocate(sizeof(ScmCHashTblEntry *) * size);
-  if (SCM_CHASH_TBL(tbl)->buckets == NULL) return;
+  tbl->buckets = scm_memory_allocate(sizeof(ScmCHashTblEntry *) * size);
+  if (tbl->buckets == NULL) return;
 
-  SCM_CHASH_TBL(tbl)->tbl_size = size;
-  SCM_CHASH_TBL(tbl)->hash_func = hash_func;
-  SCM_CHASH_TBL(tbl)->cmp_func = cmp_func;
-  SCM_CHASH_TBL(tbl)->key_kind = key_kind;
-  SCM_CHASH_TBL(tbl)->val_kind = val_kind;
+  tbl->tbl_size = size;
+  tbl->hash_func = hash_func;
+  tbl->cmp_func = cmp_func;
+  tbl->key_kind = key_kind;
+  tbl->val_kind = val_kind;
 
-  for (size_t i = 0; i < SCM_CHASH_TBL(tbl)->tbl_size; i++)
-    SCM_CHASH_TBL(tbl)->buckets[i] = NULL;
+  for (size_t i = 0; i < tbl->tbl_size; i++)
+    tbl->buckets[i] = NULL;
 }
 
 void
-scm_chash_tbl_finalize(ScmObj tbl) /* GC OK */
+scm_chash_tbl_finalize(ScmCHashTbl *tbl) /* GC OK */
 {
-  scm_assert_obj_type(tbl, &SCM_CHASH_TBL_TYPE_INFO);
+  scm_assert(tbl != NULL);
 
-  if (SCM_CHASH_TBL(tbl)->buckets != NULL) {
-    for (size_t i = 0; i < SCM_CHASH_TBL(tbl)->tbl_size; i++) {
-      ScmCHashTblEntry *e = SCM_CHASH_TBL(tbl)->buckets[i];
+  if (tbl->buckets != NULL) {
+    for (size_t i = 0; i < tbl->tbl_size; i++) {
+      ScmCHashTblEntry *e = tbl->buckets[i];
       while (e != NULL) {
         ScmCHashTblEntry *n = e->next;
         scm_memory_release(e);
@@ -58,28 +46,35 @@ scm_chash_tbl_finalize(ScmObj tbl) /* GC OK */
     }
   }
 
-  scm_memory_release(SCM_CHASH_TBL(tbl)->buckets);
+  scm_memory_release(tbl->buckets);
+  tbl->buckets = NULL;
 }
 
-ScmObj
-scm_chash_tbl_new(SCM_MEM_ALLOC_TYPE_T mtype, size_t size,
+ScmCHashTbl *
+scm_chash_tbl_new(size_t size,
                   SCM_CHASH_TBL_VAL_KIND_T key_kind,
                   SCM_CHASH_TBL_VAL_KIND_T val_kind,
                   ScmCHashFunc hash_func,
                   ScmCHashTblKeyCmpFunc cmp_func)
 {
-  ScmObj tbl = SCM_OBJ_INIT;
+  ScmCHashTbl *tbl;
 
-  SCM_STACK_FRAME_PUSH(&tbl);
-
-  scm_mem_alloc(scm_vm_current_mm(),
-                &SCM_CHASH_TBL_TYPE_INFO, mtype, SCM_REF_MAKE(tbl));
+  tbl = scm_memory_allocate(sizeof(*tbl));
+  if (tbl == NULL) return NULL;
 
   scm_chash_tbl_initialize(tbl, size, key_kind, val_kind, hash_func, cmp_func);
 
   return tbl;
 }
 
+void
+scm_chash_tbl_end(ScmCHashTbl *tbl)
+{
+  scm_assert(tbl != NULL);
+
+  scm_chash_tbl_finalize(tbl);
+  scm_memory_release(tbl);
+}
 
 bool
 scm_chash_tbl_cmp_func_eq(ScmCHashTblKey key1, ScmCHashTblKey key2) /* GC OK */
@@ -95,7 +90,7 @@ scm_chash_tbl_cmp_func_eqv(ScmCHashTblKey key1, ScmCHashTblKey key2)
 }
 
 static ScmCHashTblEntry *
-scm_chash_tbl_access(ScmObj tbl,
+scm_chash_tbl_access(ScmCHashTbl *tbl,
                      ScmCHashTblKey key, ScmCHashTblVal val, int mode) /* GC OK */
 {
   ScmCHashTblEntry *entry;
@@ -104,17 +99,15 @@ scm_chash_tbl_access(ScmObj tbl,
 
   SCM_STACK_FRAME;
 
-  SCM_STACK_PUSH(&tbl);
-  if (SCM_CHASH_TBL(tbl)->key_kind != SCM_CHASH_TBL_CVAL) SCM_STACK_PUSH(&key);
-  if (SCM_CHASH_TBL(tbl)->val_kind != SCM_CHASH_TBL_CVAL) SCM_STACK_PUSH(&val);
+  if (tbl->key_kind != SCM_CHASH_TBL_CVAL) SCM_STACK_PUSH(&key);
+  if (tbl->val_kind != SCM_CHASH_TBL_CVAL) SCM_STACK_PUSH(&val);
 
-  hash = SCM_CHASH_TBL(tbl)->hash_func(key) % SCM_CHASH_TBL(tbl)->tbl_size;
+  hash = tbl->hash_func(key) % tbl->tbl_size;
 
-  for (entry = SCM_CHASH_TBL(tbl)->buckets[hash],
-         prev = &SCM_CHASH_TBL(tbl)->buckets[hash];
+  for (entry = tbl->buckets[hash], prev = &tbl->buckets[hash];
        entry != NULL;
        entry = entry->next, prev = &entry->next) {
-    if (SCM_CHASH_TBL(tbl)->cmp_func(key, entry->key)) {
+    if (tbl->cmp_func(key, entry->key)) {
       switch (mode) {
       case ADD:
         return NULL;
@@ -140,10 +133,19 @@ scm_chash_tbl_access(ScmObj tbl,
 
   if (mode == ADD || mode == UPDATE) {
     ScmCHashTblEntry *new = scm_memory_allocate(sizeof(ScmCHashTblEntry));
-    new->key = key;
-    new->val = val;
-    new->next = SCM_CHASH_TBL(tbl)->buckets[hash];
-    return (SCM_CHASH_TBL(tbl)->buckets[hash] = new);
+
+    if (tbl->key_kind == SCM_CHASH_TBL_CVAL)
+      new->key = key;
+    else
+      SCM_SETQ(new->key, SCM_OBJ(key));
+
+    if (tbl->val_kind == SCM_CHASH_TBL_CVAL)
+      new->val = val;
+    else
+      SCM_SETQ(new->val, SCM_OBJ(val));
+
+    new->next = tbl->buckets[hash];
+    return (tbl->buckets[hash] = new);
   }
   else
     return NULL;
@@ -155,11 +157,10 @@ scm_chash_tbl_access(ScmObj tbl,
  * を返す(今のところその契機はない)。
  */
 int
-scm_chash_tbl_get(ScmObj tbl, ScmCHashTblKey key,
+scm_chash_tbl_get(ScmCHashTbl *tbl, ScmCHashTblKey key,
                   ScmCHashTblVal *val, bool *found) /* GC OK */
 {
   ScmCHashTblEntry *e;
-  SCM_CHASH_TBL_VAL_KIND_T val_kind;
 
   /* scm_chash_tbl_access の呼出中に GC が走る可能性があるが、呼出後に
      tbl と key を参照しないので、これらを cstack に push する必要はない。
@@ -167,16 +168,13 @@ scm_chash_tbl_get(ScmObj tbl, ScmCHashTblKey key,
      しているのでハッシュテーブルが GC される心配もない。
   */
 
-  scm_assert_obj_type(tbl, &SCM_CHASH_TBL_TYPE_INFO);
-  scm_assert(SCM_CHASH_TBL(tbl)->key_kind != SCM_CHASH_TBL_CVAL
-         && scm_obj_not_null_p(key));
-
-  val_kind = SCM_CHASH_TBL(tbl)->val_kind;
+  scm_assert(tbl != NULL);
+  scm_assert(tbl->key_kind == SCM_CHASH_TBL_CVAL || scm_obj_not_null_p(key));
 
   e = scm_chash_tbl_access(tbl, key, SCM_CHASH_TBL_VAL(0), FIND);
   if (e != NULL) {
     if (val != NULL) {
-      if (val_kind == SCM_CHASH_TBL_CVAL)
+      if (tbl->val_kind == SCM_CHASH_TBL_CVAL)
         *val = e->val;
       else
         SCM_REF_SETQ(val, e->val);
@@ -197,11 +195,10 @@ scm_chash_tbl_get(ScmObj tbl, ScmCHashTblKey key,
  * (今のところその契機はない)。
  */
 int
-scm_chash_tbl_delete(ScmObj tbl, ScmCHashTblKey key,
+scm_chash_tbl_delete(ScmCHashTbl *tbl, ScmCHashTblKey key,
                      ScmCHashTblKey *val, bool *deleted) /* GC OK */
 {
   ScmCHashTblEntry *e;
-  SCM_CHASH_TBL_VAL_KIND_T val_kind;
 
   /* scm_chash_tbl_access の呼出中に GC が走る可能性があるが、呼出後に
      tbl と key を参照しないので、これらを cstack に push する必要はない。
@@ -209,16 +206,13 @@ scm_chash_tbl_delete(ScmObj tbl, ScmCHashTblKey key,
      しているのでハッシュテーブルが GC される心配もない。
   */
 
-  scm_assert_obj_type(tbl, &SCM_CHASH_TBL_TYPE_INFO);
-  scm_assert(SCM_CHASH_TBL(tbl)->key_kind != SCM_CHASH_TBL_CVAL
-         && scm_obj_not_null_p(key));
-
-  val_kind = SCM_CHASH_TBL(tbl)->val_kind;
+  scm_assert(tbl != NULL);
+  scm_assert(tbl->key_kind == SCM_CHASH_TBL_CVAL || scm_obj_not_null_p(key));
 
   e = scm_chash_tbl_access(tbl, key, SCM_CHASH_TBL_VAL(0), DELETE);
   if (e != NULL) {
     if (val != NULL) {
-      if (val_kind == SCM_CHASH_TBL_CVAL)
+      if (tbl->val_kind == SCM_CHASH_TBL_CVAL)
         *val = e->val;
       else
         SCM_REF_SETQ(val, e->val);
@@ -238,15 +232,13 @@ scm_chash_tbl_delete(ScmObj tbl, ScmCHashTblKey key,
  * を返す。追加が成功した場合は 0 を返す。
  */
 int
-scm_chash_tbl_insert(ScmObj tbl, ScmCHashTblKey key, ScmCHashTblVal val) /* GC OK */
+scm_chash_tbl_insert(ScmCHashTbl *tbl, ScmCHashTblKey key, ScmCHashTblVal val) /* GC OK */
 {
   ScmCHashTblEntry *e;
 
-  scm_assert_obj_type(tbl, &SCM_CHASH_TBL_TYPE_INFO);
-  scm_assert(SCM_CHASH_TBL(tbl)->key_kind != SCM_CHASH_TBL_CVAL
-         && scm_obj_not_null_p(key));
-  scm_assert(SCM_CHASH_TBL(tbl)->val_kind != SCM_CHASH_TBL_CVAL
-         && scm_obj_not_null_p(val));
+  scm_assert(tbl != NULL);
+  scm_assert(tbl->key_kind == SCM_CHASH_TBL_CVAL || scm_obj_not_null_p(key));
+  scm_assert(tbl->val_kind == SCM_CHASH_TBL_CVAL || scm_obj_not_null_p(val));
 
   e = scm_chash_tbl_access(tbl, key, val, ADD);
   return (e != NULL) ? 0 : -1;
@@ -257,58 +249,43 @@ scm_chash_tbl_insert(ScmObj tbl, ScmCHashTblKey key, ScmCHashTblVal val) /* GC O
  * 0 を返す。
  */
 int
-scm_chash_tbl_update(ScmObj tbl, ScmCHashTblKey key, ScmCHashTblVal val) /* GC OK */
+scm_chash_tbl_update(ScmCHashTbl *tbl, ScmCHashTblKey key, ScmCHashTblVal val) /* GC OK */
 {
   ScmCHashTblEntry *e;
 
-  scm_assert_obj_type(tbl, &SCM_CHASH_TBL_TYPE_INFO);
-  scm_assert(SCM_CHASH_TBL(tbl)->key_kind != SCM_CHASH_TBL_CVAL
-         && scm_obj_not_null_p(key));
-  scm_assert(SCM_CHASH_TBL(tbl)->val_kind != SCM_CHASH_TBL_CVAL
-         && scm_obj_not_null_p(val));
+  scm_assert(tbl != NULL);
+  scm_assert(tbl->key_kind == SCM_CHASH_TBL_CVAL || scm_obj_not_null_p(key));
+  scm_assert(tbl->val_kind == SCM_CHASH_TBL_CVAL || scm_obj_not_null_p(val));
 
   e = scm_chash_tbl_access(tbl, key, val, UPDATE);
   return (e != NULL) ? 0 : -1;
 }
 
-void
-scm_chash_tbl_gc_initialize(ScmObj obj, ScmObj mem)
-{
-  scm_assert_obj_type(obj, &SCM_CHASH_TBL_TYPE_INFO);
-  scm_assert(scm_obj_not_null_p(mem));
-
-  SCM_CHASH_TBL(obj)->buckets = NULL;
-}
-
-void
-scm_chash_tbl_gc_finalize(ScmObj obj)
-{
-  scm_chash_tbl_finalize(obj);
-}
-
 int
-scm_chash_tbl_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
+scm_chash_tbl_gc_accept(ScmCHashTbl *tbl, ScmObj owner,
+                        ScmObj mem, ScmGCRefHandlerFunc handler)
 {
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
 
-  scm_assert_obj_type(obj, &SCM_CHASH_TBL_TYPE_INFO);
+  scm_assert(tbl != NULL);
+  scm_assert(scm_obj_not_null_p(owner));
   scm_assert(scm_obj_not_null_p(mem));
   scm_assert(handler != NULL);
 
-  if ((SCM_CHASH_TBL(obj)->key_kind != SCM_CHASH_TBL_SCMOBJ)
-      && (SCM_CHASH_TBL(obj)->val_kind != SCM_CHASH_TBL_SCMOBJ))
+  if (tbl->key_kind != SCM_CHASH_TBL_SCMOBJ
+      && tbl->val_kind != SCM_CHASH_TBL_SCMOBJ)
     return rslt;
 
-  for (size_t i = 0; i < SCM_CHASH_TBL(obj)->tbl_size; i++) {
-    for (ScmCHashTblEntry *entry = SCM_CHASH_TBL(obj)->buckets[i];
+  for (size_t i = 0; i < tbl->tbl_size; i++) {
+    for (ScmCHashTblEntry *entry = tbl->buckets[i];
          entry != NULL;
          entry = entry->next) {
-      if (SCM_CHASH_TBL(obj)->key_kind == SCM_CHASH_TBL_SCMOBJ) {
-        rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, entry->key, mem);
+      if (tbl->key_kind == SCM_CHASH_TBL_SCMOBJ) {
+        rslt = SCM_GC_CALL_REF_HANDLER(handler, owner, entry->key, mem);
         if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
       }
-      if (SCM_CHASH_TBL(obj)->val_kind == SCM_CHASH_TBL_SCMOBJ) {
-        rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, entry->val, mem);
+      if (tbl->val_kind == SCM_CHASH_TBL_SCMOBJ) {
+        rslt = SCM_GC_CALL_REF_HANDLER(handler, owner, entry->val, mem);
         if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
       }
     }
@@ -318,33 +295,34 @@ scm_chash_tbl_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
 }
 
 int
-scm_chash_tbl_gc_accept_weak(ScmObj obj, ScmObj mem,
-                             ScmGCRefHandlerFunc handler)
+scm_chash_tbl_gc_accept_weak(ScmCHashTbl *tbl, ScmObj owner,
+                             ScmObj mem, ScmGCRefHandlerFunc handler)
 {
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
 
-  scm_assert_obj_type(obj, &SCM_CHASH_TBL_TYPE_INFO);
+  scm_assert(tbl != NULL);
+  scm_assert(scm_obj_not_null_p(owner));
   scm_assert(scm_obj_not_null_p(mem));
   scm_assert(handler != NULL);
 
-  if ((SCM_CHASH_TBL(obj)->key_kind != SCM_CHASH_TBL_SCMOBJ_W)
-      && (SCM_CHASH_TBL(obj)->val_kind != SCM_CHASH_TBL_SCMOBJ_W))
+  if (tbl->key_kind != SCM_CHASH_TBL_SCMOBJ_W
+      && tbl->val_kind != SCM_CHASH_TBL_SCMOBJ_W)
     return rslt;
 
-  for (size_t i = 0; i < SCM_CHASH_TBL(obj)->tbl_size; i++) {
-    ScmCHashTblEntry **prev = &SCM_CHASH_TBL(obj)->buckets[i];
-    for (ScmCHashTblEntry *entry = SCM_CHASH_TBL(obj)->buckets[i];
+  for (size_t i = 0; i < tbl->tbl_size; i++) {
+    ScmCHashTblEntry **prev = &tbl->buckets[i];
+    for (ScmCHashTblEntry *entry = tbl->buckets[i];
          entry != NULL;
          entry = entry->next) {
       bool delete_p = false;
 
-      if (SCM_CHASH_TBL(obj)->key_kind == SCM_CHASH_TBL_SCMOBJ_W) {
-        rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, entry->key, mem);
+      if (tbl->key_kind == SCM_CHASH_TBL_SCMOBJ_W) {
+        rslt = SCM_GC_CALL_REF_HANDLER(handler, owner, entry->key, mem);
         if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
         if (scm_obj_null_p(entry->key)) delete_p = true;
       }
-      if (SCM_CHASH_TBL(obj)->val_kind == SCM_CHASH_TBL_SCMOBJ_W) {
-        rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, entry->val, mem);
+      if (tbl->val_kind == SCM_CHASH_TBL_SCMOBJ_W) {
+        rslt = SCM_GC_CALL_REF_HANDLER(handler, owner, entry->val, mem);
         if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
         if (scm_obj_null_p(entry->val)) delete_p = true;
       }

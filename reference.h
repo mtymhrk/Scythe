@@ -9,7 +9,6 @@ typedef struct ScmRefStackRec ScmRefStack;
 
 
 #include "object.h"
-#include "vm.h"
 #include "impl_utils.h"
 
 struct ScmRefStackBlockRec {

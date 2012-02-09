@@ -3,6 +3,7 @@
 
 #include <limits.h>
 #include <assert.h>
+#include <stdlib.h>
 
 #if (((~0) >> 1) == ~0) /* 符号付き整数の右シフトが算術シフトか */
   #define SCM_RSHIFT_ARITH(x, y) ((x) >> (y))
@@ -24,6 +25,22 @@ scm_rshift_arith_sword(scm_sword_t x, unsigned int y)
 
 #define SCM_CONCAT_SYMBOL_2__(x, y) x##y
 #define SCM_CONCAT_SYMBOL__(x, y) SCM_CONCAT_SYMBOL_2__(x, y)
+
+
+static inline void *
+scm_memory_allocate(size_t size)
+{
+  return malloc(size);
+}
+
+static inline void *
+scm_memory_release(void *block)
+{
+  free(block);
+  return NULL;
+}
+
+
 
 
 #endif /* INCLUDE_IMPL_UTILS_H__ */

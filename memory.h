@@ -24,8 +24,9 @@ typedef enum {
 enum { SCM_MEM_NR_ALLOC_TYPE = SCM_MEM_ALLOC_SHARED_ROOT + 1 };
 
 #include "object.h"
+#include "vm.h"
 #include "basichash.h"
-
+#include "impl_utils.h"
 
 struct ScmForwardRec {
   ScmObjHeader header;
@@ -401,9 +402,6 @@ struct ScmMemRec {
 extern ScmTypeInfo SCM_FORWARD_TYPE_INFO;
 
 
-void *scm_memory_allocate(size_t size);
-void *scm_memory_release(void *block);
-
 static inline void
 scm_mem_enable_gc(ScmMem *mem)
 {
@@ -413,7 +411,7 @@ scm_mem_enable_gc(ScmMem *mem)
 }
 
 static inline void
-scm_mem_disabled_gc(ScmMem *mem)
+scm_mem_disable_gc(ScmMem *mem)
 {
   scm_assert(mem != NULL);
 
@@ -448,7 +446,12 @@ ScmObj scm_memory_alloc_shared_root(ScmTypeInfo *type);
 ScmObj scm_memory_free_shared_root(ScmObj obj);
 void scm_memory_free_all_shared_root(void);
 
+void scm_mem_enable_current_mem_gc(void);
+void scm_mem_disable_current_mem_gc(void);
+bool scm_mem_current_mem_gc_enabled_p(void);
+
 #define SCM_MEM_ALLOC(type, alloc, ref) \
   scm_mem_alloc(scm_vm_current_mm(), type, alloc, ref)
+
 
 #endif /* INCLUDED_MEMORY_H__ */
