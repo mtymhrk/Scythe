@@ -10,16 +10,9 @@
 #include "memory.h"
 #include "object.h"
 
-enum { TO_HEAP, FROM_HEAP };
-
-static ScmTypeInfo SCM_MEM_TYPE_INFO = {
-  NULL,                    /* pp_func              */
-  0,                       /* obj_size             */
-  NULL,                    /* gc_ini_func          */
-  NULL,                    /* gc_fin_func          */
-  NULL,                    /* gc_accept_func       */
-  NULL,                    /* gc_accpet_func_weak  */
-};
+/****************************************************************************/
+/* Forward Object                                                           */
+/****************************************************************************/
 
 ScmTypeInfo SCM_FORWARD_TYPE_INFO = {
   NULL,                    /* pp_func              */
@@ -31,13 +24,25 @@ ScmTypeInfo SCM_FORWARD_TYPE_INFO = {
 };
 
 
+
+/****************************************************************************/
+/* Memory Manager                                                           */
+/****************************************************************************/
+
 #define SCM_MEM_EXTRA_RFRN_SIZE 32
 
+enum { TO_HEAP, FROM_HEAP };
+
+static ScmTypeInfo SCM_MEM_TYPE_INFO = {
+  NULL,                    /* pp_func              */
+  0,                       /* obj_size             */
+  NULL,                    /* gc_ini_func          */
+  NULL,                    /* gc_fin_func          */
+  NULL,                    /* gc_accept_func       */
+  NULL,                    /* gc_accpet_func_weak  */
+};
 
 static ScmMemRootBlock *shared_roots = NULL;
-
-
-
 
 static size_t
 object_table_hash_func(ScmBasicHashKey key)
@@ -333,7 +338,7 @@ scm_mem_copy_obj(ScmMem *mem, ScmObj obj)
 
   type = scm_obj_type(obj);
   if (scm_type_info_same_p(type, &SCM_FORWARD_TYPE_INFO))
-    return SCM_FORWARD_FORWARD(obj);
+    return scm_forward_forward(obj);
 
   scm_mem_alloc_heap_mem(mem, type, SCM_REF_MAKE(box));
   if (scm_obj_null_p(box)) {
@@ -349,7 +354,7 @@ scm_mem_copy_obj(ScmMem *mem, ScmObj obj)
   }
   memcpy(SCM_MMOBJ(box), SCM_MMOBJ(obj), scm_type_info_obj_size(type));
   scm_mem_unregister_obj(mem, obj);
-  SCM_FORWARD_INITIALIZE(obj, box);
+  scm_forward_initialize(obj, box);
 
   return box;
 }
@@ -482,7 +487,7 @@ scm_mem_adjust_weak_ref_of_obj_func(ScmObj mem, ScmObj obj, ScmRef child)
     if (scm_mem_is_obj_in_heap(SCM_MEM(mem), co, FROM_HEAP)) {
       ScmTypeInfo *type = scm_obj_type(co);
       if (scm_type_info_same_p(type, &SCM_FORWARD_TYPE_INFO))
-        SCM_REF_UPDATE(child, SCM_FORWARD_FORWARD(co));
+        SCM_REF_UPDATE(child, scm_forward_forward(co));
       else
         SCM_REF_UPDATE(child, SCM_OBJ_NULL);
     }

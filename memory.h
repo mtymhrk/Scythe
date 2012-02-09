@@ -13,7 +13,7 @@ typedef struct ScmMemRec ScmMem;
 typedef struct ScmForwardRec ScmForward;
 
 #define SCM_MEM(obj) ((ScmMem *)(obj))
-#define SCM_FORWORD(obj) ((ScmFoward *)(obj))
+#define SCM_FORWARD(obj) ((ScmForward *)(obj))
 
 typedef enum {
   SCM_MEM_ALLOC_HEAP,
@@ -27,19 +27,34 @@ enum { SCM_MEM_NR_ALLOC_TYPE = SCM_MEM_ALLOC_SHARED_ROOT + 1 };
 #include "basichash.h"
 #include "impl_utils.h"
 
+/****************************************************************************/
+/* Forward Object                                                           */
+/****************************************************************************/
+
 struct ScmForwardRec {
   ScmObjHeader header;
   ScmObj forward;
 };
 
-#define SCM_FORWARD(obj) ((ScmForward *)(obj))
-#define SCM_FORWARD_FORWARD(obj) (SCM_FORWARD(obj)->forward)
-#define SCM_FORWARD_INITIALIZE(obj, fwd)          \
-  do {                                            \
-    scm_obj_init(obj, &SCM_FORWARD_TYPE_INFO);    \
-    SCM_FORWARD(obj)->forward = fwd;              \
-  } while(0)
+extern ScmTypeInfo SCM_FORWARD_TYPE_INFO;
 
+static inline ScmObj
+scm_forward_forward(ScmObj obj)
+{
+  return SCM_FORWARD(obj)->forward;
+}
+
+static inline void
+scm_forward_initialize(ScmObj obj, ScmObj fwd)
+{
+  scm_obj_init(obj, &SCM_FORWARD_TYPE_INFO);
+  SCM_FORWARD(obj)->forward = fwd;
+}
+
+
+/****************************************************************************/
+/* Memory Manager                                                           */
+/****************************************************************************/
 
 #define SCM_MEM_ALIGN_BYTE 8
 #define SCM_MEM_ALIGN_SIZE(size)        \
@@ -398,7 +413,7 @@ struct ScmMemRec {
 #define SCM_MEM_OBJ_TBL_HASH_SIZE 1024
 #define SCM_MEM_EXTRA_ROOT_SET_SIZE 256
 
-extern ScmTypeInfo SCM_FORWARD_TYPE_INFO;
+
 
 
 static inline void
