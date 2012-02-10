@@ -430,40 +430,69 @@ struct ScmMemRootBlockRec {
   uint8_t object[SCM_MEM_ALIGN_BYTE];
 };
 
-#define SCM_MEM_ROOT_BLOCK_NEXT(block) ((block)->hdr.next)
-#define SCM_MEM_ROOT_BLOCK_PREV(block) ((block)->hdr.prev)
-#define SCM_MEM_ROOT_BLOCK_SET_NEXT(block, n) ((block)->hdr.next = n)
-#define SCM_MEM_ROOT_BLOCK_SET_PREV(block, p) ((block)->hdr.prev = p)
-#define SCM_MEM_ROOT_BLOCK_SHIFT_BYTE(block) \
-  ((uint8_t)(SCM_MEM_ALIGN_BYTE \
-             - (uintptr_t)(block)->object % SCM_MEM_ALIGN_BYTE))
-#define SCM_MEM_ROOT_BLOCK_OBJECT(block) \
-  (SCM_OBJ((block)->object + SCM_MEM_ROOT_BLOCK_SHIFT_BYTE(block)))
-#define SCM_MEM_ROOT_BLOCK_OBJ_SHIFT_BYTE(obj) (*((uint8_t *)(obj) - 1))
-#define SCM_MEM_ROOT_BLOCK_OBJ_SET_SHIT_BYTE(obj, sf) \
-  ((*((uint8_t *)(obj) - 1)) = sf)
-#define SCM_MEM_ROOT_BLOCK_OBJ_HEADER(obj) \
-  ((ScmMemRootBlock *)((uint8_t *)obj \
-                       - SCM_MEM_ROOT_BLOCK_OBJ_SHIFT_BYTE(obj) \
-                       - sizeof(ScmMemRootBlockHdr)))
+static inline uint8_t
+scm_mem_root_block_shift_byte(ScmMemRootBlock *block)
+{
+  return (uint8_t)(SCM_MEM_ALIGN_BYTE
+                   - (uintptr_t)(block)->object % SCM_MEM_ALIGN_BYTE);
 
-#define SCM_MEM_ROOT_BLOCK_NEW(bp, sz)          \
-  do {                                          \
-    *(bp) = malloc(sz);                         \
-    if (*(bp) != NULL) {                        \
-      uint8_t shift = SCM_MEM_ROOT_BLOCK_SHIFT_BYTE(*(bp));         \
-      ScmObj obj = SCM_MEM_ROOT_BLOCK_OBJECT(*(bp));                \
-      (*(bp))->hdr.next = NULL;                                     \
-      (*(bp))->hdr.prev = NULL;                                     \
-      SCM_MEM_ROOT_BLOCK_OBJ_SET_SHIT_BYTE(obj, shift);             \
-    }                                                               \
-  } while(0)
+}
 
-#define SCM_MEM_ROOT_BLOCK_FREE(block) (free(block))
+static inline ScmObj
+scm_mem_root_block_object(ScmMemRootBlock *block)
+{
+  return SCM_OBJ(block->object + scm_mem_root_block_shift_byte(block));
+}
 
-#define SCM_MEM_ROOT_BLOCK_IS_OBJ_IN_BLOK(obj) \
-  ((unsigned int)(obj) > sizeof(ScmMemRootBlock))
+static inline uint8_t
+scm_mem_root_block_obj_shift_byte(ScmObj obj)
+{
+  return *((uint8_t *)obj - 1);
+}
 
+static inline void
+scm_mem_root_block_obj_set_shit_byte(ScmObj obj, uint8_t sf)
+{
+  *((uint8_t *)obj - 1) = sf;
+}
+
+static inline ScmMemRootBlock *
+scm_mem_root_block_obj_header(ScmObj obj)
+{
+  return (ScmMemRootBlock *)((uint8_t *)obj
+                             - scm_mem_root_block_obj_shift_byte(obj)
+                             - sizeof(ScmMemRootBlockHdr));
+}
+
+static inline ScmMemRootBlock *
+scm_mem_root_block_new(size_t sz)
+{
+  ScmMemRootBlock *block;
+
+  block = malloc(sz);
+  if (block == NULL) return NULL;
+
+  uint8_t shift = scm_mem_root_block_shift_byte(block);
+  ScmObj obj = scm_mem_root_block_object(block);
+  block->hdr.next = NULL;
+  block->hdr.prev = NULL;
+  scm_mem_root_block_obj_set_shit_byte(obj, shift);
+
+  return block;
+}
+
+static inline void
+scm_mem_root_block_free(ScmMemRootBlock *block)
+{
+  free(block);
+}
+
+static inline bool
+scm_mem_root_block_obj_in_blok_p(ScmObj obj)
+{
+  return (((unsigned int)(obj) > sizeof(ScmMemRootBlock)) ?
+          true : false);
+}
 
 /* ScmMem を ScmObj の一種(kind of) として定義する。                     */
 /* これは object.h が ScmMem シンボルへの依存するのを避けるため。            */
@@ -483,25 +512,25 @@ struct ScmMemRec {
 
 #define SCM_MEM_ADD_TO_ROOT_SET(head, block)        \
   do {                                              \
-    SCM_MEM_ROOT_BLOCK_SET_NEXT(block, *(head));    \
-    SCM_MEM_ROOT_BLOCK_SET_PREV(block, NULL);       \
+    block->hdr.next = *(head);    \
+    block->hdr.prev = NULL;       \
     if (*(head) != NULL)                            \
-      SCM_MEM_ROOT_BLOCK_SET_PREV(*(head), block);  \
+      (*head)->hdr.prev = block;  \
     *(head) = (block);                              \
   } while(0)
 
 #define SCM_MEM_DEL_FROM_ROOT_SET(head, block)                   \
   do {                                                           \
-    ScmMemRootBlock *nxt = SCM_MEM_ROOT_BLOCK_NEXT(block);       \
-    ScmMemRootBlock *prv = SCM_MEM_ROOT_BLOCK_PREV(block);       \
+    ScmMemRootBlock *nxt = block->hdr.next;                      \
+    ScmMemRootBlock *prv = block->hdr.prev;       \
                                                                  \
     if (prv == NULL)                                             \
       *(head) = nxt;                                             \
     else                                                         \
-      SCM_MEM_ROOT_BLOCK_SET_NEXT(prv, nxt);                     \
+      prv->hdr.next = nxt;                     \
                                                                  \
     if (nxt != NULL)                                             \
-      SCM_MEM_ROOT_BLOCK_SET_PREV(nxt, prv);                     \
+      nxt->hdr.prev = prv;                     \
   } while(0)
 
 

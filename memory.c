@@ -219,7 +219,7 @@ scm_mem_clean_root(ScmMem *mem)
   scm_assert(mem != NULL);
 
   while ((block = mem->roots) != NULL) {
-    ScmObj obj = SCM_MEM_ROOT_BLOCK_OBJECT(block);
+    ScmObj obj = scm_mem_root_block_object(block);
     scm_mem_free_root(mem, obj);
   }
 }
@@ -410,8 +410,8 @@ scm_mem_copy_children_of_root_obj(ScmMem *mem, ScmMemRootBlock *head)
 {
   ScmMemRootBlock *block;
 
-  for (block = head; block != NULL; block = SCM_MEM_ROOT_BLOCK_NEXT(block)) {
-    ScmObj obj = SCM_MEM_ROOT_BLOCK_OBJECT(block);
+  for (block = head; block != NULL; block = block->hdr.next) {
+    ScmObj obj = scm_mem_root_block_object(block);
     scm_mem_copy_children(mem, obj);
   }
 }
@@ -515,8 +515,8 @@ scm_mem_adjust_weak_ref_of_root_obj(ScmMem *mem, ScmMemRootBlock *head)
 {
   ScmMemRootBlock *block;
 
-  for (block = head; block != NULL; block = SCM_MEM_ROOT_BLOCK_NEXT(block)) {
-    ScmObj obj = SCM_MEM_ROOT_BLOCK_OBJECT(block);
+  for (block = head; block != NULL; block = block->hdr.next) {
+    ScmObj obj = scm_mem_root_block_object(block);
     scm_mem_adjust_weak_ref_of_obj(mem, obj);
   }
 }
@@ -555,11 +555,11 @@ scm_mem_alloc_root_obj(ScmTypeInfo *type, ScmMem *mem, ScmMemRootBlock **head)
   scm_assert(head != NULL);
 
   size = scm_mem_alloc_size_in_root(type);
-  SCM_MEM_ROOT_BLOCK_NEW(&block, size);
+  block = scm_mem_root_block_new(size);
   if (block == NULL)
     return SCM_OBJ_NULL;
 
-  obj = SCM_MEM_ROOT_BLOCK_OBJECT(block);
+  obj = scm_mem_root_block_object(block);
   scm_mem_obj_init(mem, obj, type);
 
   SCM_MEM_ADD_TO_ROOT_SET(head, block);
@@ -573,14 +573,14 @@ scm_mem_free_root_obj(ScmObj obj, ScmMem *mem, ScmMemRootBlock **head)
   ScmMemRootBlock *block;
 
   scm_assert(mem != NULL);
-  scm_assert(SCM_MEM_ROOT_BLOCK_IS_OBJ_IN_BLOK(obj));
+  scm_assert(scm_mem_root_block_obj_in_blok_p(obj));
 
-  block = SCM_MEM_ROOT_BLOCK_OBJ_HEADER(obj);
+  block = scm_mem_root_block_obj_header(obj);
   SCM_MEM_DEL_FROM_ROOT_SET(head, block);
 
   scm_mem_finalize_obj(mem, obj);
 
-  SCM_MEM_ROOT_BLOCK_FREE(block);
+  scm_mem_root_block_free(block);
 
   return SCM_OBJ_NULL;
 }
@@ -593,7 +593,7 @@ scm_mem_free_all_obj_in_root_set(ScmMem *mem, ScmMemRootBlock **head)
   scm_assert(mem != NULL);
 
   for (block = *head; block != NULL; block = *head) {
-    ScmObj obj = SCM_MEM_ROOT_BLOCK_OBJECT(block);
+    ScmObj obj = scm_mem_root_block_object(block);
     scm_mem_free_root_obj(obj, mem, head);
   }
 }
@@ -778,7 +778,7 @@ ScmObj
 scm_mem_free_root(ScmMem *mem, ScmObj obj)
 {
   scm_assert(mem != NULL);
-  scm_assert(SCM_MEM_ROOT_BLOCK_IS_OBJ_IN_BLOK(obj));
+  scm_assert(scm_mem_root_block_obj_in_blok_p(obj));
 
   return scm_mem_free_root_obj(obj, mem, &mem->roots);
 }
