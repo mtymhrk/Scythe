@@ -510,46 +510,58 @@ struct ScmMemRec {
   bool gc_enabled;
 };
 
-#define SCM_MEM_ADD_TO_ROOT_SET(head, block)        \
-  do {                                              \
-    block->hdr.next = *(head);    \
-    block->hdr.prev = NULL;       \
-    if (*(head) != NULL)                            \
-      (*head)->hdr.prev = block;  \
-    *(head) = (block);                              \
-  } while(0)
+static inline void
+scm_mem_add_to_root_set(ScmMemRootBlock **head, ScmMemRootBlock *block)
+{
+  block->hdr.next = *head;
+  block->hdr.prev = NULL;
+  if (*head != NULL)
+    (*head)->hdr.prev = block;
+  *head = block;
+}
 
-#define SCM_MEM_DEL_FROM_ROOT_SET(head, block)                   \
-  do {                                                           \
-    ScmMemRootBlock *nxt = block->hdr.next;                      \
-    ScmMemRootBlock *prv = block->hdr.prev;       \
-                                                                 \
-    if (prv == NULL)                                             \
-      *(head) = nxt;                                             \
-    else                                                         \
-      prv->hdr.next = nxt;                     \
-                                                                 \
-    if (nxt != NULL)                                             \
-      nxt->hdr.prev = prv;                     \
-  } while(0)
+static inline void
+scm_mem_del_from_root_set(ScmMemRootBlock **head, ScmMemRootBlock *block)
+{
+  ScmMemRootBlock *nxt = block->hdr.next;
+  ScmMemRootBlock *prv = block->hdr.prev;
 
+  if (prv == NULL)
+    *(head) = nxt;
+  else
+    prv->hdr.next = nxt;
 
-#define SCM_MEM_NEXT_OBJ_HAS_WEAK_REF(type, obj)                \
-  ((ScmRef)((uintptr_t)(obj) + scm_type_info_obj_size(type)))
-#define SCM_MEM_SIZE_OF_OBJ_HAS_WEAK_REF(size) ((size) + sizeof(ScmObj))
-#define SCM_MEM_SET_NEXT_OBJ_HAS_WEAK_REF(type, obj, nxt) \
-  do {                                                    \
-    ScmRef r;                                             \
-    r = SCM_MEM_NEXT_OBJ_HAS_WEAK_REF(type, obj);         \
-    SCM_REF_UPDATE(r, nxt);                               \
-  } while(0)
-#define SCM_MEM_ADD_OBJ_TO_WEAK_LIST(heap, ref, type)                   \
-  do {                                                                  \
-    ScmObj obj = SCM_REF_DEREF(ref);                                      \
-    ScmObj nxt = SCM_OBJ(heap->weak_list);                 \
-    SCM_MEM_SET_NEXT_OBJ_HAS_WEAK_REF(type, obj, nxt);                  \
-    heap->weak_list = (void *)obj;                              \
-  } while(0)
+  if (nxt != NULL)
+    nxt->hdr.prev = prv;
+}
+
+static inline ScmRef
+scm_mem_next_obj_has_weak_ref(ScmTypeInfo *type, ScmObj obj)
+{
+  return ((ScmRef)((uintptr_t)obj + scm_type_info_obj_size(type)));
+}
+
+static inline size_t
+scm_mem_size_of_obj_has_weak_ref(size_t size)
+{
+  return size + sizeof(ScmObj);
+}
+
+static inline void
+scm_mem_set_next_obj_has_weak_ref(ScmTypeInfo *type, ScmObj obj, ScmObj nxt)
+{
+  ScmRef r = scm_mem_next_obj_has_weak_ref(type, obj);
+  SCM_REF_UPDATE(r, nxt);
+}
+
+static inline void
+scm_mem_add_obj_to_weak_list(ScmMemHeap *heap, ScmRef ref, ScmTypeInfo *type)
+{
+  ScmObj obj = SCM_REF_DEREF(ref);
+  ScmObj nxt = SCM_OBJ(heap->weak_list);
+  scm_mem_set_next_obj_has_weak_ref(type, obj, nxt);
+  heap->weak_list = (void *)obj;
+}
 
 
 #define SCM_MEM_MIN_OBJ_SIZE sizeof(ScmForward)

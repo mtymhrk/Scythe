@@ -1097,7 +1097,7 @@ test_scm_mem_add_to_root_set(void)
   block3 = scm_mem_root_block_new(1024);
 
   /* action */
-  SCM_MEM_ADD_TO_ROOT_SET(&list_head, block1);
+  scm_mem_add_to_root_set(&list_head, block1);
 
   /* postcondition check */
   cut_assert_equal_pointer(block1, list_head);
@@ -1106,7 +1106,7 @@ test_scm_mem_add_to_root_set(void)
 
 
   /* action */
-  SCM_MEM_ADD_TO_ROOT_SET(&list_head, block2);
+  scm_mem_add_to_root_set(&list_head, block2);
 
   /* postcondition check */
   cut_assert_equal_pointer(block2, list_head);
@@ -1119,7 +1119,7 @@ test_scm_mem_add_to_root_set(void)
 
 
   /* action */
-  SCM_MEM_ADD_TO_ROOT_SET(&list_head, block3);
+  scm_mem_add_to_root_set(&list_head, block3);
 
   /* postcondition check */
   cut_assert_equal_pointer(block3, list_head);
@@ -1150,12 +1150,12 @@ test_scm_mem_del_from_root_set__delte_tail(void)
   block2 = scm_mem_root_block_new(1024);
   block3 = scm_mem_root_block_new(1024);
 
-  SCM_MEM_ADD_TO_ROOT_SET(&list_head, block1);
-  SCM_MEM_ADD_TO_ROOT_SET(&list_head, block2);
-  SCM_MEM_ADD_TO_ROOT_SET(&list_head, block3);
+  scm_mem_add_to_root_set(&list_head, block1);
+  scm_mem_add_to_root_set(&list_head, block2);
+  scm_mem_add_to_root_set(&list_head, block3);
 
   /* action */
-  SCM_MEM_DEL_FROM_ROOT_SET(&list_head, block1);
+  scm_mem_del_from_root_set(&list_head, block1);
 
   /* postcondition check */
   cut_assert_equal_pointer(block3, list_head);
@@ -1182,12 +1182,12 @@ test_scm_mem_del_from_root_set__delte_head(void)
   block2 = scm_mem_root_block_new(1024);
   block3 = scm_mem_root_block_new(1024);
 
-  SCM_MEM_ADD_TO_ROOT_SET(&list_head, block1);
-  SCM_MEM_ADD_TO_ROOT_SET(&list_head, block2);
-  SCM_MEM_ADD_TO_ROOT_SET(&list_head, block3);
+  scm_mem_add_to_root_set(&list_head, block1);
+  scm_mem_add_to_root_set(&list_head, block2);
+  scm_mem_add_to_root_set(&list_head, block3);
 
   /* action */
-  SCM_MEM_DEL_FROM_ROOT_SET(&list_head, block3);
+  scm_mem_del_from_root_set(&list_head, block3);
 
   /* postcondition check */
   cut_assert_equal_pointer(block2, list_head);
@@ -1214,12 +1214,12 @@ test_scm_mem_del_from_root_set__delte_middle(void)
   block2 = scm_mem_root_block_new(1024);
   block3 = scm_mem_root_block_new(1024);
 
-  SCM_MEM_ADD_TO_ROOT_SET(&list_head, block1);
-  SCM_MEM_ADD_TO_ROOT_SET(&list_head, block2);
-  SCM_MEM_ADD_TO_ROOT_SET(&list_head, block3);
+  scm_mem_add_to_root_set(&list_head, block1);
+  scm_mem_add_to_root_set(&list_head, block2);
+  scm_mem_add_to_root_set(&list_head, block3);
 
   /* action */
-  SCM_MEM_DEL_FROM_ROOT_SET(&list_head, block2);
+  scm_mem_del_from_root_set(&list_head, block2);
 
   /* postcondition check */
   cut_assert_equal_pointer(block3, list_head);
