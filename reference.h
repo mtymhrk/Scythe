@@ -30,6 +30,7 @@ struct ScmRefStackInfoRec {
   ScmRef *sp;
 };
 
+/* private functions */
 bool scm_ref_stack_block_full_p(ScmRefStackBlock *block);
 ScmRefStackBlock *scm_ref_stack_new_block(size_t sz);
 void scm_ref_stack_block_push(ScmRefStackBlock *block, ScmRef ref);
@@ -39,6 +40,8 @@ void scm_ref_stack_shift_stack_block(ScmRefStack *stack);
 ScmRefStack *scm_ref_stack_add_new_block(ScmRefStack *stack, size_t size);
 ScmRefStack *scm_ref_stack_growth_if_needed(ScmRefStack *stack);
 void scm_ref_stack_decrease_if_possible(ScmRefStack *stack);
+
+/* public functions */
 ScmRefStack *scm_ref_stack_initialize(ScmRefStack *stack, size_t size);
 void scm_ref_stack_finalize(ScmRefStack *stack);
 ScmRefStack *scm_ref_stack_new(size_t size);

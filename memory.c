@@ -70,8 +70,8 @@ scm_mem_expand_heap(ScmMem *mem, int inc_block)
   if (sz == 0) sz = SCM_MEM_HEAP_INIT_BLOCK_SIZE;
 
   for (i = 0; i < inc_block; i++) {
-    SCM_MEM_HEAP_NEW_BLOCK(to_block, sz);
-    SCM_MEM_HEAP_NEW_BLOCK(from_block, sz);
+    to_block = scm_mem_heap_new_block(sz);
+    from_block = scm_mem_heap_new_block(sz);
     if (to_block == NULL || from_block == NULL)
       goto err;
 
@@ -118,7 +118,7 @@ scm_mem_expand_persistent(ScmMem *mem, int inc_block)
   scm_assert(inc_block >= 0);
 
   for (i = 0; i < inc_block; i++) {
-    SCM_MEM_HEAP_NEW_BLOCK(block, SCM_MEM_HEAP_INIT_BLOCK_SIZE);
+    block = scm_mem_heap_new_block(SCM_MEM_HEAP_INIT_BLOCK_SIZE);
     if (block == NULL) return i;
     SCM_MEM_HEAP_ADD_BLOCK(mem->persistent, block);
   }
@@ -204,7 +204,7 @@ scm_mem_clean_heap(ScmMem *mem, int which)
     heap = mem->from_heap;
 
   SCM_MEM_HEAP_FOR_EACH_BLOCK(heap, block) {
-    SCM_MEM_HEAP_BLOCK_CLEAN(block);
+    scm_mem_heap_block_clean(block);
   }
   SCM_MEM_HEAP_REWIND(heap);
 
@@ -237,7 +237,7 @@ scm_mem_clean_persistent(ScmMem *mem)
     SCM_MEM_HEAP_BLOCK_FOR_EACH_OBJ(block, obj) {
       scm_mem_finalize_obj(mem, obj);
     }
-    SCM_MEM_HEAP_BLOCK_CLEAN(block);
+    scm_mem_heap_block_clean(block);
   }
   SCM_MEM_HEAP_REWIND(mem->persistent);
 
@@ -277,7 +277,7 @@ scm_mem_is_obj_in_heap(ScmMem *mem, ScmObj obj, int which)
     heap = mem->from_heap;
 
   SCM_MEM_HEAP_FOR_EACH_BLOCK(heap, block) {
-    if (SCM_MEM_HEAP_BLOCK_IS_OBJ_IN_BLOCK(block, obj))
+    if (scm_mem_heap_block_has_obj_p(block, obj))
       return true;
   }
 

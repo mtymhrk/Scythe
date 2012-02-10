@@ -72,6 +72,12 @@ scm_mem_align_ptr(void *ptr)
   return (void *)scm_mem_align_size((uintptr_t)ptr);
 }
 
+size_t scm_mem_alloc_size_in_heap(ScmTypeInfo *type);
+size_t scm_mem_alloc_size_in_heap_aligned(ScmTypeInfo *type);
+size_t scm_mem_alloc_size_in_root(ScmTypeInfo *type);
+
+
+
 
 struct ScmMemHeapBlockRec {
   struct ScmMemHeapBlockRec *next;
@@ -81,62 +87,120 @@ struct ScmMemHeapBlockRec {
   uint8_t heap[0];
 };
 
-#define SCM_MEM_HEAP_NEW_BLOCK(block, sz)                       \
-  do {                                                          \
-    (block) = malloc(sizeof(ScmMemHeapBlock) + (sz));           \
-    if ((block) != NULL) {                                      \
-      uint8_t *p;                                               \
-      (block)->next = NULL;                                     \
-      (block)->prev = NULL;                                     \
-      (block)->size = (sz);                                     \
-      p = scm_mem_align_ptr((block)->heap);                     \
-      (block)->used = (size_t)p - (size_t)(block)->heap;        \
-    }                                                           \
-  } while(0)
+static inline ScmMemHeapBlock *
+scm_mem_heap_new_block(size_t sz)
+{
+  ScmMemHeapBlock *block = malloc(sizeof(ScmMemHeapBlock) + (sz));
+  if (block != NULL) {
+    uint8_t *p;
+    block->next = NULL;
+    block->prev = NULL;
+    block->size = sz;
+    p = scm_mem_align_ptr(block->heap);
+    block->used = (size_t)p - (size_t)block->heap;
+  }
 
-#define SCM_MEM_HEAP_DELEATE_BLOCK(block)            \
-  do {                                               \
-    free(block);                                     \
-    (block) = NULL;                                  \
-  } while(0)
+  return block;
+}
 
-#define SCM_MEM_HEAP_BLOCK_NEXT(block) ((block)->next)
-#define SCM_MEM_HEAP_BLOCK_PREV(block) ((block)->prev)
-#define SCM_MEM_HEAP_BLOCK_SIZE(block) ((block)->size)
-#define SCM_MEM_HEAP_BLOCK_USED(block) ((block)->used)
-#define SCM_MEM_HEAP_BLOCK_FREE(block) ((block)->size - (block)->used)
-#define SCM_MEM_HEAP_BLOCK_HEAD(block) \
-  ((uint8_t *)scm_mem_align_ptr(block->heap))
-#define SCM_MEM_HEAP_BLOCK_ALLOCATED(block, sz) \
-  ((block)->used += scm_mem_align_size(sz))
-#define SCM_MEM_HEAP_BLOCK_DEALLOCATED(block, sz) \
-  ((block)->used -= scm_mem_align_size(sz))
-#define SCM_MEM_HEAP_BLOCK_IS_ALLOCABLE(block, sz) \
-  (scm_mem_align_size(sz) <= SCM_MEM_HEAP_BLOCK_FREE(block))
-#define SCM_MEM_HEAP_BLOCK_IS_DEALLOCABLE(block, sz) \
-  (scm_mem_align_size(sz) <= SCM_MEM_HEAP_BLOCK_USED(block))
-#define SCM_MEM_HEAP_BLOCK_FREE_PTR(block)      \
-  ((void *)((block)->heap + (block)->used))
-#define SCM_MEM_HEAP_BLOCK_PTR_OFFSET(block, ptr)       \
-  ((size_t)((uint8_t *)(ptr) - block->heap))
-#define SCM_MEM_HEAP_BLOCK_PTR_IS_ALLOCATED(block, ptr)                 \
-  (SCM_MEM_HEAP_BLOCK_PTR_OFFSET(block, ptr) < SCM_MEM_HEAP_BLOCK_USED(block))
-#define SCM_MEM_HEAP_BLOCK_NEXT_OBJ(block, obj)                         \
-  SCM_OBJ((uint8_t *)obj                                                \
-          + scm_mem_alloc_size_in_heap_aligned(scm_obj_type(obj)))
-#define SCM_MEM_HEAP_BLOCK_FOR_EACH_OBJ(block, obj)                     \
-  for ((obj) = SCM_OBJ(SCM_MEM_HEAP_BLOCK_HEAD(block));         \
-       SCM_MEM_HEAP_BLOCK_PTR_IS_ALLOCATED(block, obj);                 \
-       obj = SCM_MEM_HEAP_BLOCK_NEXT_OBJ(block, obj))
-#define SCM_MEM_HEAP_BLOCK_CLEAN(block)                         \
-  do {                                                          \
-    uint8_t *p = SCM_MEM_HEAP_BLOCK_HEAD(block);                \
-    (block)->used = (size_t)p - (size_t)(block)->heap;          \
-  } while(0)
+static inline void *
+scm_mem_heap_delete_block(ScmMemHeapBlock *block)
+{
+  free(block);
+  return NULL;
+}
 
-#define SCM_MEM_HEAP_BLOCK_IS_OBJ_IN_BLOCK(block, obj) \
-  ((block)->heap <= (uint8_t *)obj \
-   && (uint8_t *)obj < (block)->heap + (block)->used)
+static inline size_t
+scm_mem_heap_block_used(ScmMemHeapBlock *block)
+{
+  return block->used;
+}
+
+static inline size_t
+scm_mem_heap_block_free(ScmMemHeapBlock *block)
+{
+  return block->size - block->used;
+}
+
+static inline uint8_t *
+scm_mem_heap_block_head(ScmMemHeapBlock *block)
+{
+  return (uint8_t *)block->heap;
+}
+
+static inline void
+scm_mem_heap_block_allocated(ScmMemHeapBlock *block, size_t sz)
+{
+  block->used += scm_mem_align_size(sz);
+}
+
+static inline void
+scm_mem_heap_block_deallocated(ScmMemHeapBlock *block, size_t sz)
+{
+  block->used -= scm_mem_align_size(sz);
+}
+
+static inline bool
+scm_mem_heap_block_allocable_p(ScmMemHeapBlock *block, size_t sz)
+{
+  return ((scm_mem_align_size(sz) <= scm_mem_heap_block_free(block)) ?
+          true : false);
+}
+
+static inline bool
+scm_mem_heap_block_deallocable_p(ScmMemHeapBlock *block, size_t sz)
+{
+  return ((scm_mem_align_size(sz) <= scm_mem_heap_block_used(block)) ?
+          true : false);
+}
+
+static inline void *
+scm_mem_heap_block_free_ptr(ScmMemHeapBlock *block)
+{
+  return (void *)(block->heap + block->used);
+}
+
+static inline size_t
+scm_mem_heap_block_ptr_offset(ScmMemHeapBlock *block, void *ptr)
+{
+  return (size_t)((uint8_t *)ptr - block->heap);
+}
+
+static inline bool
+scm_mem_heap_block_ptr_allocated_p(ScmMemHeapBlock *block, void *ptr)
+{
+  return ((scm_mem_heap_block_ptr_offset(block, ptr)
+           < scm_mem_heap_block_used(block)) ?
+          true : false);
+}
+
+static inline ScmObj
+scm_mem_heap_block_next_obj(ScmMemHeapBlock *block, ScmObj obj)
+{
+  return SCM_OBJ((uint8_t *)obj
+                 + scm_mem_alloc_size_in_heap_aligned(scm_obj_type(obj)));
+}
+
+static inline void
+scm_mem_heap_block_clean(ScmMemHeapBlock *block)
+{
+  uint8_t *p = scm_mem_heap_block_head(block);
+  block->used = (size_t)p - (size_t)(block)->heap;
+}
+
+static inline bool
+scm_mem_heap_block_has_obj_p(ScmMemHeapBlock *block, ScmObj obj)
+{
+  return ((block->heap <= (uint8_t *)obj
+           && (uint8_t *)obj < block->heap + block->used) ?
+          true : false);
+}
+
+#define SCM_MEM_HEAP_BLOCK_FOR_EACH_OBJ(block, obj)                  \
+  for ((obj) = SCM_OBJ(scm_mem_heap_block_head(block));              \
+       scm_mem_heap_block_ptr_allocated_p(block, (void *)(obj));     \
+       (obj) = scm_mem_heap_block_next_obj(block, obj))
+
 
 struct ScmMemHeapRec {
   ScmMemHeapBlock *head;
@@ -148,7 +212,7 @@ struct ScmMemHeapRec {
 };
 
 #define SCM_MEM_HEAP_CUR_BLOCK_FREE_SIZE(heap) \
-  (((heap)->current == NULL) ? 0 : SCM_MEM_HEAP_BLOCK_FREE((heap)->current))
+  (((heap)->current == NULL) ? 0 : scm_mem_heap_block_free((heap)->current))
 #define SCM_MEM_HEAP_IS_CUR_BLOCK_TAIL(heap)  ((heap)->current == (heap)->tail)
 #define SCM_MEM_HEAP_WEAK_LIST(heap) ((heap)->weak_list)
 #define SCM_MEM_HEAP_SET_WEAK_LIST(heap, p) ((heap)->weak_list = (void *)(p))
@@ -157,7 +221,7 @@ struct ScmMemHeapRec {
 #define SCM_MEM_HEAP_NR_USED_BLOCK(heap) \
   ((heap)->nr_block - (heap)->nr_free_block)
 #define SCM_MEM_HEAP_TAIL_BLOCK_SIZE(heap) \
-  (((heap)->tail == NULL) ? 0U : SCM_MEM_HEAP_BLOCK_SIZE((heap)->tail))
+  (((heap)->tail == NULL) ? 0U : (heap)->tail->size)
 
 #define SCM_MEM_HEAP_ADD_BLOCK(heap, block)                             \
   do {                                                                  \
@@ -181,21 +245,21 @@ struct ScmMemHeapRec {
       ScmMemHeapBlock *b = (heap)->tail;                                \
                                                                         \
       if (SCM_MEM_HEAP_IS_CUR_BLOCK_TAIL(heap))                         \
-        (heap)->current = SCM_MEM_HEAP_BLOCK_PREV(b);                   \
+        (heap)->current = b->prev;                   \
       else                                                              \
         (heap)->nr_free_block--;                                        \
                                                                         \
-      if (SCM_MEM_HEAP_BLOCK_PREV(b) == NULL) {                         \
+      if (b->prev == NULL) {                         \
         (heap)->head = NULL;                                            \
         (heap)->tail = NULL;                                            \
       }                                                                 \
       else {                                                            \
-        (heap)->tail = SCM_MEM_HEAP_BLOCK_PREV(b);                      \
+        (heap)->tail = b->prev;                      \
         (heap)->tail->next = NULL;                                      \
       }                                                                 \
       (heap)->nr_block--;                                               \
                                                                         \
-      SCM_MEM_HEAP_DELEATE_BLOCK(b);                                    \
+      scm_mem_heap_delete_block(b);                                    \
     }                                                                   \
   } while(0)
 
@@ -228,7 +292,7 @@ struct ScmMemHeapRec {
                                                     \
       for (i = 0; i < (nr_blk); i++) {              \
         ScmMemHeapBlock *block;                     \
-        SCM_MEM_HEAP_NEW_BLOCK(block, sz);          \
+        block = scm_mem_heap_new_block(sz);         \
         if ((block) == NULL) {                      \
           SCM_MEM_HEAP_DELETE_HEAP(heap);           \
           break;                                    \
@@ -244,7 +308,7 @@ struct ScmMemHeapRec {
 #define SCM_MEM_HEAP_SHIFT(heap)                                        \
   do {                                                                  \
     if ((heap)->current != NULL) {                                      \
-      (heap)->current = SCM_MEM_HEAP_BLOCK_NEXT((heap)->current);       \
+      (heap)->current = (heap)->current->next;                          \
       if ((heap)->current != NULL)                                      \
         (heap)->nr_free_block--;                                        \
     }                                                                   \
@@ -257,7 +321,7 @@ struct ScmMemHeapRec {
         (heap)->current = (heap)->tail;                                 \
       }                                                                 \
       else {                                                            \
-        (heap)->current = SCM_MEM_HEAP_BLOCK_PREV((heap)->current);     \
+        (heap)->current = (heap)->current->prev;     \
         (heap)->nr_free_block++;                                        \
       }                                                                 \
     }                                                                   \
@@ -277,9 +341,9 @@ struct ScmMemHeapRec {
   do {                                                                  \
     *(ptr) = NULL;                                                      \
     while ((heap)->current != NULL && *(ptr) == NULL) {                 \
-      if (SCM_MEM_HEAP_BLOCK_IS_ALLOCABLE(heap->current, size)) {       \
-        *(ptr) = SCM_MEM_HEAP_BLOCK_FREE_PTR((heap)->current);          \
-        SCM_MEM_HEAP_BLOCK_ALLOCATED((heap)->current, size);            \
+      if (scm_mem_heap_block_allocable_p(heap->current, size)) {       \
+        *(ptr) = scm_mem_heap_block_free_ptr((heap)->current);          \
+        scm_mem_heap_block_allocated((heap)->current, size);            \
       }                                                                 \
       else {                                                            \
         SCM_MEM_HEAP_SHIFT(heap);                                       \
@@ -287,7 +351,7 @@ struct ScmMemHeapRec {
     }                                                                   \
     if (*(ptr) == NULL) {                                               \
       SCM_MEM_HEAP_UNSHIFT(heap);                                       \
-      while ((SCM_MEM_HEAP_BLOCK_USED((heap)->current) < SCM_MEM_ALIGN_BYTE) \
+      while ((scm_mem_heap_block_used((heap)->current) < SCM_MEM_ALIGN_BYTE) \
              && (heap)->current != (heap)->head) {                      \
         SCM_MEM_HEAP_UNSHIFT(heap);                                     \
       }                                                                 \
@@ -299,11 +363,11 @@ struct ScmMemHeapRec {
     if ((heap)->nr_block > 0) {                                         \
       if ((heap)->current == NULL)                                      \
         SCM_MEM_HEAP_UNSHIFT(heap);                                     \
-      if (SCM_MEM_HEAP_BLOCK_IS_DEALLOCABLE((heap)->current, size))     \
-        SCM_MEM_HEAP_BLOCK_DEALLOCATED((heap)->current, size);          \
+      if (scm_mem_heap_block_deallocable_p((heap)->current, size))     \
+        scm_mem_heap_block_deallocated((heap)->current, size);          \
       else                                                              \
-        SCM_MEM_HEAP_BLOCK_CLEAN((heap)->current);                      \
-      while (SCM_MEM_HEAP_BLOCK_USED((heap)->current) < SCM_MEM_ALIGN_BYTE \
+        scm_mem_heap_block_clean((heap)->current);                      \
+      while (scm_mem_heap_block_used((heap)->current) < SCM_MEM_ALIGN_BYTE \
              && (heap)->current != (heap)->head) {                      \
         SCM_MEM_HEAP_UNSHIFT(heap);                                     \
       }                                                                 \
@@ -313,7 +377,7 @@ struct ScmMemHeapRec {
 #define SCM_MEM_HEAP_FOR_EACH_BLOCK(heap, block) \
   for ((block) = (heap)->head;                   \
        (block) != NULL;                          \
-       (block) = SCM_MEM_HEAP_BLOCK_NEXT(block))
+       (block) = (block)->next)
 
 typedef struct ScmMemRootBlockHdrRec {
   ScmMemRootBlock *next;
@@ -463,9 +527,6 @@ ScmRef scm_mem_register_extra_rfrn(ScmMem *mem, ScmRef ref);
 ScmMem *scm_mem_alloc(ScmMem *mem, ScmTypeInfo *type,
                       SCM_MEM_ALLOC_TYPE_T alloc, ScmRef ref);
 void scm_mem_gc_start(ScmMem *mem);
-size_t scm_mem_alloc_size_in_heap(ScmTypeInfo *type);
-size_t scm_mem_alloc_size_in_heap_aligned(ScmTypeInfo *type);
-size_t scm_mem_alloc_size_in_root(ScmTypeInfo *type);
 ScmObj scm_memory_alloc_shared_root(ScmTypeInfo *type);
 ScmObj scm_memory_free_shared_root(ScmObj obj);
 void scm_memory_free_all_shared_root(void);
