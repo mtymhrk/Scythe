@@ -66,7 +66,7 @@ scm_mem_expand_heap(ScmMem *mem, int inc_block)
   scm_assert(mem != NULL);
   scm_assert(inc_block >= 0);
 
-  sz = SCM_MEM_HEAP_TAIL_BLOCK_SIZE(mem->to_heap) * 2;
+  sz = scm_mem_heap_tail_block_size(mem->to_heap) * 2;
   if (sz == 0) sz = SCM_MEM_HEAP_INIT_BLOCK_SIZE;
 
   for (i = 0; i < inc_block; i++) {
@@ -75,8 +75,8 @@ scm_mem_expand_heap(ScmMem *mem, int inc_block)
     if (to_block == NULL || from_block == NULL)
       goto err;
 
-    SCM_MEM_HEAP_ADD_BLOCK(mem->to_heap, to_block);
-    SCM_MEM_HEAP_ADD_BLOCK(mem->from_heap, from_block);
+    scm_mem_heap_add_block(mem->to_heap, to_block);
+    scm_mem_heap_add_block(mem->from_heap, from_block);
 
     sz *= 2;
   }
@@ -98,12 +98,12 @@ scm_mem_release_redundancy_heap_blocks(ScmMem *mem, int nr_margin)
   scm_assert(mem != NULL);
   scm_assert(nr_margin >= 0);
 
-  nr_release = SCM_MEM_HEAP_NR_FREE_BLOCK(mem->to_heap) - nr_margin;
+  nr_release = scm_mem_heap_nr_free_block(mem->to_heap) - nr_margin;
   nr_release = (nr_release < 0) ? 0 : nr_release;
-  nr_leave = SCM_MEM_HEAP_NR_BLOCK(mem->to_heap) - nr_release;
+  nr_leave = scm_mem_heap_nr_block(mem->to_heap) - nr_release;
 
-  SCM_MEM_HEAP_RELEASE_BLOCKS(mem->to_heap, nr_leave);
-  SCM_MEM_HEAP_RELEASE_BLOCKS(mem->from_heap, nr_leave);
+  scm_mem_heap_release_blocks(mem->to_heap, nr_leave);
+  scm_mem_heap_release_blocks(mem->from_heap, nr_leave);
 
   return nr_leave;
 }
@@ -120,7 +120,7 @@ scm_mem_expand_persistent(ScmMem *mem, int inc_block)
   for (i = 0; i < inc_block; i++) {
     block = scm_mem_heap_new_block(SCM_MEM_HEAP_INIT_BLOCK_SIZE);
     if (block == NULL) return i;
-    SCM_MEM_HEAP_ADD_BLOCK(mem->persistent, block);
+    scm_mem_heap_add_block(mem->persistent, block);
   }
 
   return i;
@@ -206,9 +206,9 @@ scm_mem_clean_heap(ScmMem *mem, int which)
   SCM_MEM_HEAP_FOR_EACH_BLOCK(heap, block) {
     scm_mem_heap_block_clean(block);
   }
-  SCM_MEM_HEAP_REWIND(heap);
+  scm_mem_heap_rewind(heap);
 
-  SCM_MEM_HEAP_SET_WEAK_LIST(heap, NULL);
+ heap->weak_list = NULL;
 }
 
 static void
@@ -239,7 +239,7 @@ scm_mem_clean_persistent(ScmMem *mem)
     }
     scm_mem_heap_block_clean(block);
   }
-  SCM_MEM_HEAP_REWIND(mem->persistent);
+  scm_mem_heap_rewind(mem->persistent);
 
   scm_assert(mem != NULL);
 }
@@ -295,7 +295,7 @@ scm_mem_alloc_heap_mem(ScmMem *mem, ScmTypeInfo *type, ScmRef ref)
   scm_assert(ref != SCM_REF_NULL);
 
   size = scm_mem_alloc_size_in_heap(type);
-  SCM_MEM_HEAP_ALLOC(mem->to_heap, size, &ptr);
+  ptr = scm_mem_heap_alloc(mem->to_heap, size);
   if (ptr == NULL) {
     SCM_REF_UPDATE(ref, SCM_OBJ_NULL);
     return;
@@ -303,7 +303,7 @@ scm_mem_alloc_heap_mem(ScmMem *mem, ScmTypeInfo *type, ScmRef ref)
   SCM_REF_UPDATE(ref, ptr);
 
   if (scm_mem_register_obj_if_needed(mem, type, SCM_REF_DEREF(ref)) < 0) {
-    SCM_MEM_HEAP_CANCEL_ALLOC(mem->to_heap, size);
+    scm_mem_heap_cancel_alloc(mem->to_heap, size);
     SCM_REF_UPDATE(ref, SCM_OBJ_NULL);
     return;
   }
@@ -527,7 +527,7 @@ scm_mem_adjust_weak_ref_of_heap_obj(ScmMem *mem)
   ScmObj obj;
   scm_assert(mem != NULL);
 
-  for (obj = SCM_OBJ(SCM_MEM_HEAP_WEAK_LIST(mem->to_heap));
+  for (obj = SCM_OBJ(mem->to_heap->weak_list);
        scm_obj_not_null_p(obj);
        obj = SCM_REF_DEREF(SCM_MEM_NEXT_OBJ_HAS_WEAK_REF(scm_obj_type(obj), obj))) {
     scm_mem_adjust_weak_ref_of_obj(mem, obj);
@@ -622,13 +622,13 @@ scm_mem_initialize(ScmMem *mem)
                                                object_table_comp_func);
   if (mem->from_obj_tbl == NULL) goto err;
 
-  SCM_MEM_HEAP_NEW_HEAP(mem->to_heap, 1, SCM_MEM_HEAP_INIT_BLOCK_SIZE);
+  mem->to_heap = scm_mem_heap_new_heap(1, SCM_MEM_HEAP_INIT_BLOCK_SIZE);
   if (mem->to_heap == NULL) goto err;
 
-  SCM_MEM_HEAP_NEW_HEAP(mem->from_heap, 1, SCM_MEM_HEAP_INIT_BLOCK_SIZE);
+  mem->from_heap = scm_mem_heap_new_heap(1, SCM_MEM_HEAP_INIT_BLOCK_SIZE);
   if (mem->from_heap == NULL) goto err;
 
-  SCM_MEM_HEAP_NEW_HEAP(mem->persistent, 1, SCM_MEM_HEAP_INIT_BLOCK_SIZE);
+  mem->persistent = scm_mem_heap_new_heap(1, SCM_MEM_HEAP_INIT_BLOCK_SIZE);
   if (mem->persistent == NULL) goto err;
 
   mem->extra_rfrn = malloc(sizeof(ScmRef) * SCM_MEM_EXTRA_RFRN_SIZE);
@@ -640,9 +640,9 @@ scm_mem_initialize(ScmMem *mem)
  err:
   if (mem->to_obj_tbl != NULL) scm_basic_hash_end(mem->to_obj_tbl);
   if (mem->from_obj_tbl != NULL) scm_basic_hash_end(mem->from_obj_tbl);
-  if (mem->to_heap != NULL) SCM_MEM_HEAP_DELETE_HEAP(mem->to_heap);
-  if (mem->from_heap != NULL) SCM_MEM_HEAP_DELETE_HEAP(mem->from_heap);
-  if (mem->persistent != NULL) SCM_MEM_HEAP_DELETE_HEAP(mem->persistent);
+  if (mem->to_heap != NULL) mem->to_heap = scm_mem_heap_delete_heap(mem->to_heap);
+  if (mem->from_heap != NULL) mem->from_heap = scm_mem_heap_delete_heap(mem->from_heap);
+  if (mem->persistent != NULL) mem->persistent = scm_mem_heap_delete_heap(mem->persistent);
   if (mem->extra_rfrn != NULL) free(mem->extra_rfrn);
 
   return NULL;
@@ -658,9 +658,9 @@ scm_mem_finalize(ScmMem *mem)
 
   if (mem->to_obj_tbl) scm_basic_hash_end(mem->to_obj_tbl);
   if (mem->from_obj_tbl) scm_basic_hash_end(mem->from_obj_tbl);
-  if (mem->to_heap != NULL) SCM_MEM_HEAP_DELETE_HEAP(mem->to_heap);
-  if (mem->from_heap != NULL) SCM_MEM_HEAP_DELETE_HEAP(mem->from_heap);
-  if (mem->persistent != NULL) SCM_MEM_HEAP_DELETE_HEAP(mem->persistent);
+  if (mem->to_heap != NULL) mem->to_heap = scm_mem_heap_delete_heap(mem->to_heap);
+  if (mem->from_heap != NULL) mem->from_heap = scm_mem_heap_delete_heap(mem->from_heap);
+  if (mem->persistent != NULL) mem->persistent = scm_mem_heap_delete_heap(mem->persistent);
   if (mem->extra_rfrn != NULL) free(mem->extra_rfrn);
 
   return NULL;
@@ -737,14 +737,14 @@ scm_mem_alloc_persist(ScmMem *mem, ScmTypeInfo *type, ScmRef ref)
   scm_assert(ref != SCM_REF_NULL);
 
   size = scm_mem_alloc_size_in_heap(type);
-  SCM_MEM_HEAP_ALLOC(mem->persistent, size, &ptr);
+  ptr = scm_mem_heap_alloc(mem->persistent, size);
   if (ptr == NULL) {
     if (scm_mem_expand_persistent(mem, 1) != 1) {
       ; /* TODO: write error handling (fail to allocate memory) */
       SCM_REF_UPDATE(ref, SCM_OBJ_NULL);
       return NULL;
     }
-    SCM_MEM_HEAP_ALLOC(mem->persistent, size, &ptr);
+    ptr = scm_mem_heap_alloc(mem->persistent, size);
     if (ptr == NULL) {
       ; /* TODO: write error handling (fail to allocate memory) */
       SCM_REF_UPDATE(ref, SCM_OBJ_NULL);
@@ -873,7 +873,7 @@ scm_mem_gc_start(ScmMem *mem)
   scm_mem_adjust_weak_ref(mem);
   scm_mem_clean_heap(mem, FROM_HEAP);
 
-  nr_free = SCM_MEM_HEAP_NR_FREE_BLOCK(mem->to_heap);
+  nr_free = scm_mem_heap_nr_free_block(mem->to_heap);
   if (nr_free == 0)
     scm_mem_expand_heap(mem, 1);
   else if (nr_free > 1)

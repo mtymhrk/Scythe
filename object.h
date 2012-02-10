@@ -82,7 +82,7 @@ typedef int (*ScmGCAcceptFunc)(ScmObj obj,
                                ScmObj mem, ScmGCRefHandlerFunc handler);
 
 #define SCM_GC_REF_HANDLER_VAL_INIT 0
-#define SCM_GC_CALL_REF_HANDLER(handler, obj, child, mem) \
+#define SCM_GC_CALL_REF_HANDLER(handler, obj, child, mem)       \
   (handler(mem, obj, SCM_REF_MAKE(child)))
 
 static inline bool

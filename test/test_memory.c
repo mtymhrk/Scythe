@@ -358,7 +358,7 @@ test_scm_new_mem_heap_have_no_block(void)
   ScmMemHeap *heap;
 
   /* process */
-  SCM_MEM_HEAP_NEW_HEAP(heap, 0, 0);
+  heap = scm_mem_heap_new_heap(0, 0);
 
   /* postcondition check */
   cut_assert_not_null(heap);
@@ -366,11 +366,11 @@ test_scm_new_mem_heap_have_no_block(void)
   cut_assert_null(heap->tail);
   cut_assert_null(heap->current);
   cut_assert_null(heap->weak_list);
-  cut_assert_equal_int(0, SCM_MEM_HEAP_NR_BLOCK(heap));
-  cut_assert_equal_int(0, SCM_MEM_HEAP_NR_FREE_BLOCK(heap));
-  cut_assert_equal_int(0, SCM_MEM_HEAP_NR_USED_BLOCK(heap));
+  cut_assert_equal_int(0, scm_mem_heap_nr_block(heap));
+  cut_assert_equal_int(0, scm_mem_heap_nr_free_block(heap));
+  cut_assert_equal_int(0, scm_mem_heap_nr_used_block(heap));
 
-  SCM_MEM_HEAP_DELETE_HEAP(heap);
+  heap = scm_mem_heap_delete_heap(heap);
 }
 
 void
@@ -381,33 +381,33 @@ test_scm_mem_heap_add_block(void)
   ScmMemHeap *heap;
 
   /* preprocess */
-  SCM_MEM_HEAP_NEW_HEAP(heap, 0, 0);
+  heap = scm_mem_heap_new_heap(0, 0);
 
   block1 = scm_mem_heap_new_block(1024);
-  SCM_MEM_HEAP_ADD_BLOCK(heap, block1);
+  scm_mem_heap_add_block(heap, block1);
 
   /* precondition check */
   cut_assert_true(heap->head == block1);
   cut_assert_true(heap->tail == block1);
   cut_assert_true(heap->current == heap->head);
-  cut_assert_equal_int(1, SCM_MEM_HEAP_NR_BLOCK(heap));
-  cut_assert_equal_int(0, SCM_MEM_HEAP_NR_FREE_BLOCK(heap));
-  cut_assert_equal_int(1, SCM_MEM_HEAP_NR_USED_BLOCK(heap));
+  cut_assert_equal_int(1, scm_mem_heap_nr_block(heap));
+  cut_assert_equal_int(0, scm_mem_heap_nr_free_block(heap));
+  cut_assert_equal_int(1, scm_mem_heap_nr_used_block(heap));
 
   /* action */
   block2 = scm_mem_heap_new_block(1024);
-  SCM_MEM_HEAP_ADD_BLOCK(heap, block2);
+  scm_mem_heap_add_block(heap, block2);
 
   /* postcondition check */
   cut_assert_true(heap->head == block1);
   cut_assert_true(heap->tail == block2);
   cut_assert_true(heap->current == heap->head);
-  cut_assert_equal_int(2, SCM_MEM_HEAP_NR_BLOCK(heap));
-  cut_assert_equal_int(1, SCM_MEM_HEAP_NR_FREE_BLOCK(heap));
-  cut_assert_equal_int(1, SCM_MEM_HEAP_NR_USED_BLOCK(heap));
+  cut_assert_equal_int(2, scm_mem_heap_nr_block(heap));
+  cut_assert_equal_int(1, scm_mem_heap_nr_free_block(heap));
+  cut_assert_equal_int(1, scm_mem_heap_nr_used_block(heap));
 
   /* postprocess */
-  SCM_MEM_HEAP_DELETE_HEAP(heap);
+  heap = scm_mem_heap_delete_heap(heap);
 }
 
 void
@@ -418,37 +418,37 @@ test_scm_mem_heap_del_block(void)
   ScmMemHeap *heap;
 
   /* preprocess */
-  SCM_MEM_HEAP_NEW_HEAP(heap, 0, 0);
+  heap = scm_mem_heap_new_heap(0, 0);
 
   block1 = scm_mem_heap_new_block(1024);
-  SCM_MEM_HEAP_ADD_BLOCK(heap, block1);
+  scm_mem_heap_add_block(heap, block1);
 
   block2 = scm_mem_heap_new_block(1024);
-  SCM_MEM_HEAP_ADD_BLOCK(heap, block2);
+  scm_mem_heap_add_block(heap, block2);
 
   /* action */
-  SCM_MEM_HEAP_DEL_BLOCK(heap);
+  scm_mem_heap_del_block(heap);
 
   /* postcondition check */
   cut_assert_true(heap->head == block1);
   cut_assert_true(heap->tail == block1);
   cut_assert_true(heap->current == heap->head);
-  cut_assert_equal_int(1, SCM_MEM_HEAP_NR_BLOCK(heap));
-  cut_assert_equal_int(0, SCM_MEM_HEAP_NR_FREE_BLOCK(heap));
-  cut_assert_equal_int(1, SCM_MEM_HEAP_NR_USED_BLOCK(heap));
+  cut_assert_equal_int(1, scm_mem_heap_nr_block(heap));
+  cut_assert_equal_int(0, scm_mem_heap_nr_free_block(heap));
+  cut_assert_equal_int(1, scm_mem_heap_nr_used_block(heap));
 
   /* action */
-  SCM_MEM_HEAP_DEL_BLOCK(heap);
+  scm_mem_heap_del_block(heap);
 
   /* postcondition check */
   cut_assert_null(heap->head);
   cut_assert_null(heap->tail);
   cut_assert_null(heap->current);
-  cut_assert_equal_int(0, SCM_MEM_HEAP_NR_BLOCK(heap));
-  cut_assert_equal_int(0, SCM_MEM_HEAP_NR_FREE_BLOCK(heap));
-  cut_assert_equal_int(0, SCM_MEM_HEAP_NR_USED_BLOCK(heap));
+  cut_assert_equal_int(0, scm_mem_heap_nr_block(heap));
+  cut_assert_equal_int(0, scm_mem_heap_nr_free_block(heap));
+  cut_assert_equal_int(0, scm_mem_heap_nr_used_block(heap));
 
-  SCM_MEM_HEAP_DELETE_HEAP(heap);
+  heap = scm_mem_heap_delete_heap(heap);
 }
 
 void
@@ -457,22 +457,22 @@ test_scm_new_mem_heap_have_block(void)
   ScmMemHeap *heap;
 
   /* action */
-  SCM_MEM_HEAP_NEW_HEAP(heap, 2, 1024);
+  heap = scm_mem_heap_new_heap(2, 1024);
 
   /* postcondition check */
   cut_assert_not_null(heap);
   cut_assert_not_null(heap->head);
   cut_assert_not_null(heap->tail);
   cut_assert_true(heap->current == heap->head);
-  cut_assert_equal_int(2, SCM_MEM_HEAP_NR_BLOCK(heap));
-  cut_assert_equal_int(1, SCM_MEM_HEAP_NR_FREE_BLOCK(heap));
-  cut_assert_equal_int(1, SCM_MEM_HEAP_NR_USED_BLOCK(heap));
+  cut_assert_equal_int(2, scm_mem_heap_nr_block(heap));
+  cut_assert_equal_int(1, scm_mem_heap_nr_free_block(heap));
+  cut_assert_equal_int(1, scm_mem_heap_nr_used_block(heap));
 
   cut_assert_equal_uint(1024, heap->head->size);
   cut_assert_equal_uint(1024, heap->tail->size);
 
   /* postprocess */
-  SCM_MEM_HEAP_DELETE_HEAP(heap);
+  heap = scm_mem_heap_delete_heap(heap);
 }
 
 void
@@ -481,31 +481,31 @@ test_scm_mem_heap_shift(void)
   ScmMemHeap *heap;
 
   /* preprocess */
-  SCM_MEM_HEAP_NEW_HEAP(heap, 2, 1024);
+  heap = scm_mem_heap_new_heap(2, 1024);
 
   /* precondition check */
   cut_assert_true(heap->current == heap->head);
-  cut_assert_equal_int(1, SCM_MEM_HEAP_NR_FREE_BLOCK(heap));
-  cut_assert_equal_int(1, SCM_MEM_HEAP_NR_USED_BLOCK(heap));
+  cut_assert_equal_int(1, scm_mem_heap_nr_free_block(heap));
+  cut_assert_equal_int(1, scm_mem_heap_nr_used_block(heap));
 
   /* action */
-  SCM_MEM_HEAP_SHIFT(heap);
+  scm_mem_heap_shift(heap);
 
   /* postcondition check */
   cut_assert_true(heap->current == heap->head->next);
-  cut_assert_equal_int(0, SCM_MEM_HEAP_NR_FREE_BLOCK(heap));
-  cut_assert_equal_int(2, SCM_MEM_HEAP_NR_USED_BLOCK(heap));
+  cut_assert_equal_int(0, scm_mem_heap_nr_free_block(heap));
+  cut_assert_equal_int(2, scm_mem_heap_nr_used_block(heap));
 
   /* action */
-  SCM_MEM_HEAP_SHIFT(heap);
+  scm_mem_heap_shift(heap);
 
   /* postcondition check */
   cut_assert_null(heap->current);
-  cut_assert_equal_int(0, SCM_MEM_HEAP_NR_FREE_BLOCK(heap));
-  cut_assert_equal_int(2, SCM_MEM_HEAP_NR_USED_BLOCK(heap));
+  cut_assert_equal_int(0, scm_mem_heap_nr_free_block(heap));
+  cut_assert_equal_int(2, scm_mem_heap_nr_used_block(heap));
 
   /* postprocess */
-  SCM_MEM_HEAP_DELETE_HEAP(heap);
+  heap = scm_mem_heap_delete_heap(heap);
 }
 
 void
@@ -514,49 +514,49 @@ test_scm_mem_heap_unshift(void)
   ScmMemHeap *heap;
 
   /* preprocess */
-  SCM_MEM_HEAP_NEW_HEAP(heap, 2, 1024);
+  heap = scm_mem_heap_new_heap(2, 1024);
 
   /* precondition check */
   cut_assert_true(heap->current == heap->head);
-  cut_assert_equal_int(1, SCM_MEM_HEAP_NR_FREE_BLOCK(heap));
-  cut_assert_equal_int(1, SCM_MEM_HEAP_NR_USED_BLOCK(heap));
+  cut_assert_equal_int(1, scm_mem_heap_nr_free_block(heap));
+  cut_assert_equal_int(1, scm_mem_heap_nr_used_block(heap));
 
   /* preprocess */
-  SCM_MEM_HEAP_SHIFT(heap);
-  SCM_MEM_HEAP_SHIFT(heap);
+  scm_mem_heap_shift(heap);
+  scm_mem_heap_shift(heap);
 
   /* precondition check */
   cut_assert_null(heap->current);
-  cut_assert_equal_int(0, SCM_MEM_HEAP_NR_FREE_BLOCK(heap));
-  cut_assert_equal_int(2, SCM_MEM_HEAP_NR_USED_BLOCK(heap));
+  cut_assert_equal_int(0, scm_mem_heap_nr_free_block(heap));
+  cut_assert_equal_int(2, scm_mem_heap_nr_used_block(heap));
 
   /* action */
-  SCM_MEM_HEAP_UNSHIFT(heap);
+  scm_mem_heap_unshift(heap);
 
   /* postcondition check */
   cut_assert_true(heap->current == heap->tail);
-  cut_assert_equal_int(0, SCM_MEM_HEAP_NR_FREE_BLOCK(heap));
-  cut_assert_equal_int(2, SCM_MEM_HEAP_NR_USED_BLOCK(heap));
+  cut_assert_equal_int(0, scm_mem_heap_nr_free_block(heap));
+  cut_assert_equal_int(2, scm_mem_heap_nr_used_block(heap));
 
   /* action */
-  SCM_MEM_HEAP_UNSHIFT(heap);
+  scm_mem_heap_unshift(heap);
 
   /* postcondition check */
   cut_assert_true(heap->current == heap->tail->prev);
   cut_assert_true(heap->current == (heap)->head);
-  cut_assert_equal_int(1, SCM_MEM_HEAP_NR_FREE_BLOCK(heap));
-  cut_assert_equal_int(1, SCM_MEM_HEAP_NR_USED_BLOCK(heap));
+  cut_assert_equal_int(1, scm_mem_heap_nr_free_block(heap));
+  cut_assert_equal_int(1, scm_mem_heap_nr_used_block(heap));
 
   /* action */
-  SCM_MEM_HEAP_UNSHIFT(heap);
+  scm_mem_heap_unshift(heap);
 
   /* postcondition check */
   cut_assert_true(heap->current == (heap)->head);
-  cut_assert_equal_int(1, SCM_MEM_HEAP_NR_FREE_BLOCK(heap));
-  cut_assert_equal_int(1, SCM_MEM_HEAP_NR_USED_BLOCK(heap));
+  cut_assert_equal_int(1, scm_mem_heap_nr_free_block(heap));
+  cut_assert_equal_int(1, scm_mem_heap_nr_used_block(heap));
 
   /* postprocess */
-  SCM_MEM_HEAP_DELETE_HEAP(heap);
+  heap = scm_mem_heap_delete_heap(heap);
 }
 
 void
@@ -565,31 +565,31 @@ test_scm_mem_heap_rewind(void)
   ScmMemHeap *heap;
 
   /* preprocess */
-  SCM_MEM_HEAP_NEW_HEAP(heap, 2, 1024);
-  SCM_MEM_HEAP_SHIFT(heap);
+  heap = scm_mem_heap_new_heap(2, 1024);
+  scm_mem_heap_shift(heap);
 
   /* action */
-  SCM_MEM_HEAP_REWIND(heap);
+  scm_mem_heap_rewind(heap);
 
   /* postcondition check */
   cut_assert_true(heap->current == heap->head);
-  cut_assert_equal_int(1, SCM_MEM_HEAP_NR_FREE_BLOCK(heap));
-  cut_assert_equal_int(1, SCM_MEM_HEAP_NR_USED_BLOCK(heap));
+  cut_assert_equal_int(1, scm_mem_heap_nr_free_block(heap));
+  cut_assert_equal_int(1, scm_mem_heap_nr_used_block(heap));
 
   /* preprocess */
-  SCM_MEM_HEAP_SHIFT(heap);
-  SCM_MEM_HEAP_SHIFT(heap);
+  scm_mem_heap_shift(heap);
+  scm_mem_heap_shift(heap);
 
   /* action */
-  SCM_MEM_HEAP_REWIND(heap);
+  scm_mem_heap_rewind(heap);
 
   /* postcondition check */
   cut_assert_true(heap->current == heap->head);
-  cut_assert_equal_int(1, SCM_MEM_HEAP_NR_FREE_BLOCK(heap));
-  cut_assert_equal_int(1, SCM_MEM_HEAP_NR_USED_BLOCK(heap));
+  cut_assert_equal_int(1, scm_mem_heap_nr_free_block(heap));
+  cut_assert_equal_int(1, scm_mem_heap_nr_used_block(heap));
 
   /* postprocess */
-  SCM_MEM_HEAP_DELETE_HEAP(heap);
+  heap = scm_mem_heap_delete_heap(heap);
 }
 
 void
@@ -600,29 +600,29 @@ test_scm_mem_heap_del_current_block(void)
   ScmMemHeap *heap;
 
   /* preprocess */
-  SCM_MEM_HEAP_NEW_HEAP(heap, 0, 0);
+  heap = scm_mem_heap_new_heap(0, 0);
 
   block1 = scm_mem_heap_new_block(1024);
-  SCM_MEM_HEAP_ADD_BLOCK(heap, block1);
+  scm_mem_heap_add_block(heap, block1);
 
   block2 = scm_mem_heap_new_block(1024);
-  SCM_MEM_HEAP_ADD_BLOCK(heap, block2);
+  scm_mem_heap_add_block(heap, block2);
 
-  SCM_MEM_HEAP_SHIFT(heap);
+  scm_mem_heap_shift(heap);
 
   /* action */
-  SCM_MEM_HEAP_DEL_BLOCK(heap);
+  scm_mem_heap_del_block(heap);
 
   /* postcondition check */
   cut_assert_true(heap->head == block1);
   cut_assert_true(heap->tail == block1);
   cut_assert_true(heap->current == heap->head);
-  cut_assert_equal_int(1, SCM_MEM_HEAP_NR_BLOCK(heap));
-  cut_assert_equal_int(0, SCM_MEM_HEAP_NR_FREE_BLOCK(heap));
-  cut_assert_equal_int(1, SCM_MEM_HEAP_NR_USED_BLOCK(heap));
+  cut_assert_equal_int(1, scm_mem_heap_nr_block(heap));
+  cut_assert_equal_int(0, scm_mem_heap_nr_free_block(heap));
+  cut_assert_equal_int(1, scm_mem_heap_nr_used_block(heap));
 
   /* preprocess */
-  SCM_MEM_HEAP_DELETE_HEAP(heap);
+  heap = scm_mem_heap_delete_heap(heap);
 }
 
 void
@@ -632,10 +632,10 @@ test_scm_mem_heap_alloc(void)
   void *ptr;
 
   /* preproces */
-  SCM_MEM_HEAP_NEW_HEAP(heap, 2, 1024);
+  heap = scm_mem_heap_new_heap(2, 1024);
 
   /* action */
-  SCM_MEM_HEAP_ALLOC(heap, 256, &ptr);
+  ptr = scm_mem_heap_alloc(heap, 256);
 
   /* postcondition check */
   cut_assert_not_null(ptr);
@@ -645,7 +645,7 @@ test_scm_mem_heap_alloc(void)
                  < scm_mem_align_size(256) + SCM_MEM_ALIGN_BYTE));
 
   /* postprocess */
-  SCM_MEM_HEAP_DELETE_HEAP(heap);
+  heap = scm_mem_heap_delete_heap(heap);
 }
 
 void
@@ -655,11 +655,11 @@ test_scm_mem_heap_alloc_aligned(void)
   void *ptr1, *ptr2;
 
   /* preproces */
-  SCM_MEM_HEAP_NEW_HEAP(heap, 2, 1024);
+  heap = scm_mem_heap_new_heap(2, 1024);
 
   /* action */
-  SCM_MEM_HEAP_ALLOC(heap, 17, &ptr1);
-  SCM_MEM_HEAP_ALLOC(heap, 16, &ptr2);
+  ptr1 = scm_mem_heap_alloc(heap, 17);
+  ptr2 = scm_mem_heap_alloc(heap, 16);
 
   /* postcondition check */
   cut_assert_not_null(ptr1);
@@ -668,7 +668,7 @@ test_scm_mem_heap_alloc_aligned(void)
   cut_assert_equal_uint(0u, (uintptr_t)ptr2 % SCM_MEM_ALIGN_BYTE);
 
   /* postprocess */
-  SCM_MEM_HEAP_DELETE_HEAP(heap);
+  heap = scm_mem_heap_delete_heap(heap);
 }
 
 void
@@ -678,11 +678,11 @@ test_scm_mem_heap_alloc_next_block(void)
   void *ptr1, *ptr2;
 
   /* preprocess */
-  SCM_MEM_HEAP_NEW_HEAP(heap, 2, 1024);
-  SCM_MEM_HEAP_ALLOC(heap, 512, &ptr1);
+  heap = scm_mem_heap_new_heap(2, 1024);
+  ptr1 = scm_mem_heap_alloc(heap, 512);
 
   /* action */
-  SCM_MEM_HEAP_ALLOC(heap, 768, &ptr2);
+  ptr2 = scm_mem_heap_alloc(heap, 768);
 
   /* postcondition check */
   cut_assert_not_null(ptr1);
@@ -695,7 +695,7 @@ test_scm_mem_heap_alloc_next_block(void)
                  < scm_mem_align_size(768) + SCM_MEM_ALIGN_BYTE));
 
   /* postprocess */
-  SCM_MEM_HEAP_DELETE_HEAP(heap);
+  heap = scm_mem_heap_delete_heap(heap);
 }
 
 void
@@ -709,23 +709,23 @@ test_scm_mem_heap_alloc_fail_to_allocate(void)
   void *ptr;
 
   /* preprocess */
-  SCM_MEM_HEAP_NEW_HEAP(heap, 1, 1024);
+  heap = scm_mem_heap_new_heap(1, 1024);
 
-  SCM_MEM_HEAP_ALLOC(heap, 256, &ptr);
+  ptr = scm_mem_heap_alloc(heap, 256);
 
   cut_assert_not_null(ptr);
 
-  SCM_MEM_HEAP_ALLOC(heap, 512, &ptr);
+  ptr = scm_mem_heap_alloc(heap, 512);
 
   cut_assert_not_null(ptr);
 
   expected_current = heap->current;
   expected_used = scm_mem_heap_block_used(heap->current);
-  expected_nr_free_block = SCM_MEM_HEAP_NR_FREE_BLOCK(heap);
-  expected_nr_used_block = SCM_MEM_HEAP_NR_USED_BLOCK(heap);
+  expected_nr_free_block = scm_mem_heap_nr_free_block(heap);
+  expected_nr_used_block = scm_mem_heap_nr_used_block(heap);
 
   /* action */
-  SCM_MEM_HEAP_ALLOC(heap, 512, &ptr);
+  ptr = scm_mem_heap_alloc(heap, 512);
 
   /* postprocess check */
   cut_assert_null(ptr);
@@ -733,12 +733,12 @@ test_scm_mem_heap_alloc_fail_to_allocate(void)
   cut_assert_true(heap->current == expected_current);
   cut_assert_equal_uint(expected_used, scm_mem_heap_block_used(heap->current));
   cut_assert_equal_int(expected_nr_free_block,
-                       SCM_MEM_HEAP_NR_FREE_BLOCK(heap));
+                       scm_mem_heap_nr_free_block(heap));
   cut_assert_equal_int(expected_nr_used_block,
-                       SCM_MEM_HEAP_NR_USED_BLOCK(heap));
+                       scm_mem_heap_nr_used_block(heap));
 
   /* postprocess */
-  SCM_MEM_HEAP_DELETE_HEAP(heap);
+  heap = scm_mem_heap_delete_heap(heap);
 }
 
 void
@@ -752,30 +752,30 @@ test_scm_mem_heap_cancel_alloc(void)
   void *ptr;
 
   /* preprocess */
-  SCM_MEM_HEAP_NEW_HEAP(heap, 2, 1024);
+  heap = scm_mem_heap_new_heap(2, 1024);
 
   expected_current = heap->current;
   expected_used = scm_mem_heap_block_used(heap->current);
-  expected_nr_free_block = SCM_MEM_HEAP_NR_FREE_BLOCK(heap);
-  expected_nr_used_block = SCM_MEM_HEAP_NR_USED_BLOCK(heap);
+  expected_nr_free_block = scm_mem_heap_nr_free_block(heap);
+  expected_nr_used_block = scm_mem_heap_nr_used_block(heap);
 
-  SCM_MEM_HEAP_ALLOC(heap, 256, &ptr);
+  ptr = scm_mem_heap_alloc(heap, 256);
 
   cut_assert_not_null(ptr);
 
   /* action */
-  SCM_MEM_HEAP_CANCEL_ALLOC(heap, 256);
+  scm_mem_heap_cancel_alloc(heap, 256);
 
   /* postcondition check */
   cut_assert_true(heap->current == expected_current);
   cut_assert_equal_uint(expected_used, scm_mem_heap_block_used(heap->current));
   cut_assert_equal_int(expected_nr_free_block,
-                       SCM_MEM_HEAP_NR_FREE_BLOCK(heap));
+                       scm_mem_heap_nr_free_block(heap));
   cut_assert_equal_int(expected_nr_used_block,
-                       SCM_MEM_HEAP_NR_USED_BLOCK(heap));
+                       scm_mem_heap_nr_used_block(heap));
 
   /* postprocess */
-  SCM_MEM_HEAP_DELETE_HEAP(heap);
+  heap = scm_mem_heap_delete_heap(heap);
 }
 
 void
@@ -788,26 +788,26 @@ test_scm_mem_heap_cancel_alloc_not_allocated(void)
   ScmMemHeap *heap;
 
   /* preproces */
-  SCM_MEM_HEAP_NEW_HEAP(heap, 2, 1024);
+  heap = scm_mem_heap_new_heap(2, 1024);
 
   expected_current = heap->current;
   expected_used = scm_mem_heap_block_used(heap->current);
-  expected_nr_free_block = SCM_MEM_HEAP_NR_FREE_BLOCK(heap);
-  expected_nr_used_block = SCM_MEM_HEAP_NR_USED_BLOCK(heap);
+  expected_nr_free_block = scm_mem_heap_nr_free_block(heap);
+  expected_nr_used_block = scm_mem_heap_nr_used_block(heap);
 
   /* action */
-  SCM_MEM_HEAP_CANCEL_ALLOC(heap, 256);
+  scm_mem_heap_cancel_alloc(heap, 256);
 
   /* postcondition check */
   cut_assert_true(heap->current == expected_current);
   cut_assert_equal_uint(expected_used, scm_mem_heap_block_used(heap->current));
   cut_assert_equal_int(expected_nr_free_block,
-                       SCM_MEM_HEAP_NR_FREE_BLOCK(heap));
+                       scm_mem_heap_nr_free_block(heap));
   cut_assert_equal_int(expected_nr_used_block,
-                       SCM_MEM_HEAP_NR_USED_BLOCK(heap));
+                       scm_mem_heap_nr_used_block(heap));
 
   /* postprocess */
-  SCM_MEM_HEAP_DELETE_HEAP(heap);
+  heap = scm_mem_heap_delete_heap(heap);
 }
 
 void
@@ -821,33 +821,33 @@ test_scm_mem_heap_cancel_alloc_shoud_unshift(void)
   void *ptr;
 
   /* preprocess */
-  SCM_MEM_HEAP_NEW_HEAP(heap, 2, 1024);
-  SCM_MEM_HEAP_ALLOC(heap, 768, &ptr);
+  heap = scm_mem_heap_new_heap(2, 1024);
+  ptr = scm_mem_heap_alloc(heap, 768);
 
   cut_assert_not_null(ptr);
 
   expected_current = heap->current;
   expected_used = scm_mem_heap_block_used(heap->current);
-  expected_nr_free_block = SCM_MEM_HEAP_NR_FREE_BLOCK(heap);
-  expected_nr_used_block = SCM_MEM_HEAP_NR_USED_BLOCK(heap);
+  expected_nr_free_block = scm_mem_heap_nr_free_block(heap);
+  expected_nr_used_block = scm_mem_heap_nr_used_block(heap);
 
-  SCM_MEM_HEAP_ALLOC(heap, 768, &ptr);
+  ptr = scm_mem_heap_alloc(heap, 768);
 
   cut_assert_not_null(ptr);
 
   /* action */
-  SCM_MEM_HEAP_CANCEL_ALLOC(heap, 768);
+  scm_mem_heap_cancel_alloc(heap, 768);
 
   /* postcondition check */
   cut_assert_true(heap->current == expected_current);
   cut_assert_equal_uint(expected_used, scm_mem_heap_block_used(heap->current));
   cut_assert_equal_int(expected_nr_free_block,
-                       SCM_MEM_HEAP_NR_FREE_BLOCK(heap));
+                       scm_mem_heap_nr_free_block(heap));
   cut_assert_equal_int(expected_nr_used_block,
-                       SCM_MEM_HEAP_NR_USED_BLOCK(heap));
+                       scm_mem_heap_nr_used_block(heap));
 
   /* postprocess */
-  SCM_MEM_HEAP_DELETE_HEAP(heap);
+  heap = scm_mem_heap_delete_heap(heap);
 }
 
 void
@@ -859,11 +859,11 @@ test_scm_mem_heap_for_each_block(void)
   size_t i;
 
   /* preprocess */
-  SCM_MEM_HEAP_NEW_HEAP(heap, 0, 0);
+  heap = scm_mem_heap_new_heap(0, 0);
 
   for (i = 0; i < sizeof(blocks)/sizeof(blocks[0]); i++) {
     blocks[i] = scm_mem_heap_new_block(1024);
-    SCM_MEM_HEAP_ADD_BLOCK(heap, blocks[i]);
+    scm_mem_heap_add_block(heap, blocks[i]);
   }
 
   /* action */
@@ -876,7 +876,7 @@ test_scm_mem_heap_for_each_block(void)
   /* postcondition check */
   cut_assert_equal_uint(sizeof(blocks)/sizeof(blocks[0]), i);
 
-  SCM_MEM_HEAP_DELETE_HEAP(heap);
+  heap = scm_mem_heap_delete_heap(heap);
 }
 
 void
@@ -888,14 +888,14 @@ test_scm_mem_heap_for_each_block_delete_last_block(void)
   size_t i;
 
   /* preprocess */
-  SCM_MEM_HEAP_NEW_HEAP(heap, 0, 0);
+  heap = scm_mem_heap_new_heap(0, 0);
 
   for (i = 0; i < sizeof(blocks)/sizeof(blocks[0]); i++) {
     blocks[i] = scm_mem_heap_new_block(1024);
-    SCM_MEM_HEAP_ADD_BLOCK(heap, blocks[i]);
+    scm_mem_heap_add_block(heap, blocks[i]);
   }
 
-  SCM_MEM_HEAP_DEL_BLOCK(heap);
+  scm_mem_heap_del_block(heap);
 
   /* action */
   i = 0;
@@ -907,7 +907,7 @@ test_scm_mem_heap_for_each_block_delete_last_block(void)
   /* postcondition check */
   cut_assert_equal_uint(sizeof(blocks)/sizeof(blocks[0]) - 1, i);
 
-  SCM_MEM_HEAP_DELETE_HEAP(heap);
+  heap = scm_mem_heap_delete_heap(heap);
 }
 
 void
@@ -927,8 +927,8 @@ test_scm_mem_new(void)
   cut_assert_not_null(mem->persistent);
   cut_assert(mem->gc_enabled);
 
-  cut_assert_equal_int(1, SCM_MEM_HEAP_NR_BLOCK(mem->to_heap));
-  cut_assert_equal_int(1, SCM_MEM_HEAP_NR_BLOCK(mem->from_heap));
+  cut_assert_equal_int(1, scm_mem_heap_nr_block(mem->to_heap));
+  cut_assert_equal_int(1, scm_mem_heap_nr_block(mem->from_heap));
   cut_assert_equal_uint(SCM_MEM_HEAP_INIT_BLOCK_SIZE,
                         mem->to_heap->head->size);
   cut_assert_equal_uint(SCM_MEM_HEAP_INIT_BLOCK_SIZE,
