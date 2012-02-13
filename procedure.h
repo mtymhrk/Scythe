@@ -8,8 +8,6 @@ typedef struct ScmSubrutineRec ScmSubrutine;
 #include "object.h"
 #include "vm.h"
 
-typedef ScmObj (*ScmSubrFunc)(void);
-
 extern ScmTypeInfo SCM_SUBRUTINE_TYPE_INFO;
 
 struct ScmSubrutineRec {

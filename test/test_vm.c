@@ -5,6 +5,7 @@
 #include "object.h"
 #include "iseq.h"
 #include "api.h"
+#include "pair.h"
 
 static ScmObj vm = SCM_OBJ_INIT;
 

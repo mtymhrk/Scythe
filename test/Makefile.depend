@@ -38,16 +38,14 @@ reference.o: ../reference.c ../reference.h ../object.h ../memory.h \
 numeric.o: ../numeric.c ../object.h ../numeric.h ../impl_utils.h
 core_subr.o: ../core_subr.c ../vm.h ../object.h ../memory.h \
  ../basichash.h ../impl_utils.h ../reference.h ../instractions.h \
- ../pair.h ../procedure.h ../api.h ../string.h ../encoding.h ../symbol.h \
- ../chashtbl.h ../gloc.h ../core_subr.h
+ ../pair.h ../procedure.h ../api.h ../core_subr.h
 iseq.o: ../iseq.c ../object.h ../memory.h ../basichash.h ../impl_utils.h \
  ../vm.h ../reference.h ../instractions.h ../earray.h ../iseq.h
 chashtbl.o: ../chashtbl.c ../object.h ../memory.h ../basichash.h \
  ../impl_utils.h ../reference.h ../chashtbl.h
-api.o: ../api.c ../vm.h ../object.h ../memory.h ../basichash.h \
- ../impl_utils.h ../reference.h ../instractions.h ../string.h \
- ../encoding.h ../symbol.h ../chashtbl.h ../gloc.h ../api.h \
- ../procedure.h ../pair.h
+api.o: ../api.c ../object.h ../memory.h ../basichash.h ../impl_utils.h \
+ ../vm.h ../reference.h ../instractions.h ../string.h ../encoding.h \
+ ../symbol.h ../chashtbl.h ../procedure.h ../gloc.h ../pair.h ../api.h
 gloc.o: ../gloc.c ../object.h ../memory.h ../basichash.h ../impl_utils.h \
  ../vm.h ../reference.h ../instractions.h ../symbol.h ../chashtbl.h \
  ../gloc.h
@@ -351,9 +349,7 @@ test_vm.o: test_vm.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-helper.h \
  /usr/local/include/cutter/cutter/cut-experimental.h ../vm.h ../object.h \
  ../memory.h ../basichash.h ../impl_utils.h ../reference.h \
- ../instractions.h ../object.h ../iseq.h ../earray.h ../api.h ../vm.h \
- ../string.h ../encoding.h ../symbol.h ../chashtbl.h ../procedure.h \
- ../gloc.h ../pair.h
+ ../instractions.h ../object.h ../iseq.h ../earray.h ../api.h ../pair.h
 test_iseq.o: test_iseq.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-version.h \
  /usr/local/include/cutter/cutter/cut-features.h \

@@ -17,6 +17,8 @@ typedef intptr_t  scm_sword_t;
 #define SCM_SWORD_MIN INTPTR_MIN
 
 
+/** definition for ScmObj ****************************************************/
+
 typedef struct ScmObjHeaderRec ScmObjHeader;
 typedef struct ScmMMObjRec ScmMMObj;
 typedef scm_word_t ScmObj;
@@ -29,6 +31,8 @@ typedef const ScmObj *ScmCRef;
 
 #define SCM_OBJ_NULL 0u
 #define SCM_OBJ_INIT SCM_OBJ_NULL
+#define SCM_OBJ_TAG_MASK 0x07u
+#define SCM_OBJ_TAG_NR_KIND 8
 
 /* 将来的に write barrier を挿入しなければならないときに使用する */
 /*   SCM_SETQ_PRIM: write barrier を挿入しない代入        */
@@ -38,6 +42,9 @@ typedef const ScmObj *ScmCRef;
     ScmObj tmp__ = (val); (obj) = tmp__;        \
   } while(0)
 #define SCM_SETQ(obj, val) SCM_SETQ_PRIM(obj, val)
+
+
+/** definition for ScmRef ****************************************************/
 
 #define SCM_REF_MAKE(obj) ((ScmRef)&(obj))
 #define SCM_REF_MAKE_FROM_PTR(ptr) ((ScmRef)(ptr))
@@ -51,30 +58,18 @@ typedef const ScmObj *ScmCRef;
 #define SCM_REF_SETQ(ref, obj) SCM_SETQ(*((ScmObj *)(ref)), obj)
 
 
+/** definition for subroutine function ***************************************/
 
-inline bool
-scm_obj_null_p(ScmObj obj)
-{
-  return (obj == SCM_OBJ_NULL) ? true : false;
-}
-
-inline bool
-scm_obj_not_null_p(ScmObj obj)
-{
-  return (obj != SCM_OBJ_NULL) ? true : false;
-}
-
-inline bool
-scm_obj_same_instance_p(ScmObj obj1, ScmObj obj2)
-{
-  return (scm_obj_not_null_p(obj1) && (obj1 == obj2)) ? true : false;
-}
+typedef ScmObj (*ScmSubrFunc)(void);
 
 
-
-
+/** definition  for pretty print function ************************************/
 
 typedef void (*ScmPrettyPrintFunction)(ScmObj obj); // 仮
+
+
+/** definition for GC ********************************************************/
+
 typedef void (*ScmGCInitializeFunc)(ScmObj obj, ScmObj mem);
 typedef void (*ScmGCFinalizeFunc)(ScmObj obj);
 typedef int (*ScmGCRefHandlerFunc)(ScmObj mem, ScmObj obj, ScmRef child);
@@ -92,6 +87,9 @@ scm_gc_ref_handler_failure_p(int ret_val)
 }
 
 
+/****************************************************************************/
+/** ScmTypeInfo                                                             */
+/****************************************************************************/
 
 struct ScmTypeInfoRec {
   ScmPrettyPrintFunction pp_func;
@@ -173,6 +171,9 @@ scm_type_info_call_gc_accept_func_weak(ScmTypeInfo *type, ScmObj obj,
 }
 
 
+/****************************************************************************/
+/** ScmObj                                                                  */
+/****************************************************************************/
 
 struct ScmObjHeaderRec {
   ScmTypeInfo *type;
@@ -184,8 +185,23 @@ struct ScmMMObjRec {
 
 extern ScmTypeInfo *SCM_OBJ_TAG2TYPE_TBL[];
 
-#define SCM_OBJ_TAG_MASK 0x07u
-#define SCM_OBJ_TAG_NR_KIND 8
+inline bool
+scm_obj_null_p(ScmObj obj)
+{
+  return (obj == SCM_OBJ_NULL) ? true : false;
+}
+
+inline bool
+scm_obj_not_null_p(ScmObj obj)
+{
+  return (obj != SCM_OBJ_NULL) ? true : false;
+}
+
+inline bool
+scm_obj_same_instance_p(ScmObj obj1, ScmObj obj2)
+{
+  return (scm_obj_not_null_p(obj1) && (obj1 == obj2)) ? true : false;
+}
 
 inline unsigned int
 scm_obj_tag(ScmObj obj)
@@ -273,8 +289,6 @@ scm_obj_has_weak_ref_p(ScmObj obj)
   return scm_type_info_has_instance_weak_ref_p(scm_obj_type(obj));
 }
 
-
-
 #define scm_assert(...) assert(__VA_ARGS__)
 
 inline void
@@ -290,9 +304,6 @@ scm_assert_obj_type_accept_null(ScmObj obj, ScmTypeInfo *type)
   scm_assert(scm_obj_null_p(obj) || scm_obj_type_p(obj, type));
 }
 
-
-
-
 inline void
 scm_obj_init(ScmObj obj, ScmTypeInfo *type)
 {
@@ -302,6 +313,5 @@ scm_obj_init(ScmObj obj, ScmTypeInfo *type)
   if (scm_obj_mem_managed_p(obj))
     SCM_MMOBJ(obj)->header.type = type;
 }
-
 
 #endif /* INCLUDE_OBJECT_H__ */
