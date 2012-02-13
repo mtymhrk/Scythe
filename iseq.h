@@ -46,7 +46,7 @@ void scm_iseq_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_iseq_gc_finalize(ScmObj obj);
 int scm_iseq_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
 
-static inline ScmObj
+inline ScmObj
 scm_iseq_get_immval(ScmObj iseq, int idx)
 {
   scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);

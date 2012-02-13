@@ -138,61 +138,61 @@ void scm_vm_gc_finalize(ScmObj obj);
 int scm_vm_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
 
 
-static inline ScmObj
+inline ScmObj
 scm_vm_current_vm(void)
 {
   return scm_vm__current_vm;
 }
 
-static inline ScmMem *
+inline ScmMem *
 scm_vm_current_mm(void)
 {
   return SCM_VM_MEM(scm_vm__current_vm);
 }
 
-static inline ScmRefStack *
+inline ScmRefStack *
 scm_vm_current_ref_stack(void)
 {
   return SCM_VM_REF_STACK(scm_vm__current_vm);
 }
 
-static inline ScmObj
+inline ScmObj
 scm_vm_current_symtbl(void)
 {
   return SCM_VM_SYMTBL(scm_vm__current_vm);
 }
 
-static inline ScmObj
+inline ScmObj
 scm_vm_current_gloctbl(void)
 {
   return SCM_VM_GLOCTBL(scm_vm__current_vm);
 }
 
-static inline void
+inline void
 scm_vm_update_current_val_reg(ScmObj val)
 {
   SCM_VM_VAL_SETQ(scm_vm__current_vm, val);
 }
 
-static inline ScmObj
+inline ScmObj
 scm_vm_nil_instance(void)
 {
   return SCM_VM_CONST_NIL(scm_vm__current_vm);
 }
 
-static inline ScmObj
+inline ScmObj
 scm_vm_eof_instance(void)
 {
   return SCM_VM_CONST_EOF(scm_vm__current_vm);
 }
 
-static inline ScmObj
+inline ScmObj
 scm_vm_bool_true_instance(void)
 {
   return SCM_VM_CONST_TRUE(scm_vm__current_vm);
 }
 
-static inline ScmObj
+inline ScmObj
 scm_vm_bool_false_instance(void)
 {
   return SCM_VM_CONST_FALSE(scm_vm__current_vm);

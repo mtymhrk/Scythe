@@ -7,13 +7,13 @@
 #include "object.h"
 #include "vm.h"
 
-inline bool
+extern inline bool
 scm_ref_stack_block_full_p(ScmRefStackBlock *block)
 {
   return (block->stack + block->size <= block->sp) ? true : false;
 }
 
-inline ScmRefStackBlock *
+extern inline ScmRefStackBlock *
 scm_ref_stack_new_block(size_t sz)
 {
   ScmRefStackBlock *block;
@@ -32,7 +32,7 @@ scm_ref_stack_new_block(size_t sz)
   return block;
 }
 
-inline void
+extern inline void
 scm_ref_stack_block_push(ScmRefStackBlock *block, ScmRef ref)
 {
   *(block->sp++) = ref;
@@ -73,7 +73,7 @@ scm_ref_stack_decrease_block(ScmRefStack *stack)
   }
 }
 
-inline void
+extern inline void
 scm_ref_stack_shift_stack_block(ScmRefStack *stack)
 {
   stack->current = stack->current->next;
@@ -195,7 +195,7 @@ scm_ref_stack_push(ScmRefStack *stack, ...)
   return rslt;
 }
 
-inline void
+extern inline void
 scm_ref_stack_save(ScmRefStack *stack, ScmRefStackInfo *info)
 {
   scm_assert(stack != NULL);
@@ -205,7 +205,7 @@ scm_ref_stack_save(ScmRefStack *stack, ScmRefStackInfo *info)
   info->sp = stack->current->sp;
 }
 
-inline void
+extern inline void
 scm_ref_stack_restore(ScmRefStack *stack, ScmRefStackInfo *info)
 {
   scm_assert(stack != NULL);

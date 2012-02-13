@@ -196,7 +196,7 @@ scm_vm_setup_system(ScmObj vm)
 }
 
 
-static inline scm_iword_t
+inline scm_iword_t
 scm_vm_inst_fetch(ScmObj vm)
 {
   return *(SCM_VM_IP(vm)++);

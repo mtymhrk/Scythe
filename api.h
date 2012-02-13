@@ -15,7 +15,7 @@
 /*  Predicate                                                      */
 /*******************************************************************/
 
-static inline ScmObj
+inline ScmObj
 scm_api_eq_p(ScmObj obj1, ScmObj obj2)
 {
   if (scm_obj_null_p(obj1) || scm_obj_null_p(obj2))
@@ -33,7 +33,7 @@ ScmObj scm_api_equal_p(ScmObj obj1, ScmObj obj2); /* TODO: write me */
 /*  String                                                         */
 /*******************************************************************/
 
-static inline ScmObj
+inline ScmObj
 scm_api_make_string_ascii(const char *str)
 {
   if (str == NULL)
@@ -48,7 +48,7 @@ scm_api_make_string_ascii(const char *str)
 /*  Symbol                                                         */
 /*******************************************************************/
 
-static inline ScmObj
+inline ScmObj
 scm_api_symbol_to_string(ScmObj sym)
 {
   if (scm_obj_null_p(sym) || !scm_obj_type_p(sym, &SCM_SYMBOL_TYPE_INFO))
@@ -58,7 +58,7 @@ scm_api_symbol_to_string(ScmObj sym)
   return SCM_SYMBOL_STR(sym);
 }
 
-static inline ScmObj
+inline ScmObj
 scm_api_string_to_symbol(ScmObj str)
 {
   if (scm_obj_null_p(str) || !scm_obj_type_p(str, &SCM_STRING_TYPE_INFO))
@@ -67,7 +67,7 @@ scm_api_string_to_symbol(ScmObj str)
   return scm_symtbl_symbol(scm_vm_current_symtbl(), str);
 }
 
-static inline ScmObj
+inline ScmObj
 scm_api_make_symbol_ascii(const char *str)
 {
   if (str == NULL)
@@ -81,7 +81,7 @@ scm_api_make_symbol_ascii(const char *str)
 /*  List and Pair                                                  */
 /*******************************************************************/
 
-static inline ScmObj
+inline ScmObj
 scm_api_cons(ScmObj car, ScmObj cdr)
 {
   if (scm_obj_null_p(car) || scm_obj_null_p(cdr))
@@ -90,7 +90,7 @@ scm_api_cons(ScmObj car, ScmObj cdr)
   return scm_pair_new(SCM_MEM_ALLOC_HEAP, car, cdr);
 }
 
-static inline ScmObj
+inline ScmObj
 scm_api_car(ScmObj pair)
 {
   if (scm_obj_null_p(pair) || !scm_obj_type_p(pair, &SCM_PAIR_TYPE_INFO))
@@ -99,7 +99,7 @@ scm_api_car(ScmObj pair)
   return scm_pair_car(pair);
 }
 
-static inline ScmObj
+inline ScmObj
 scm_api_cdr(ScmObj pair)
 {
   if (scm_obj_null_p(pair) || !scm_obj_type_p(pair, &SCM_PAIR_TYPE_INFO))
@@ -113,7 +113,7 @@ scm_api_cdr(ScmObj pair)
 /*  Subrutine                                                      */
 /*******************************************************************/
 
-static inline ScmObj
+inline ScmObj
 scm_api_make_subrutine(ScmSubrFunc func)
 {
   if (func == NULL)
@@ -127,7 +127,7 @@ scm_api_make_subrutine(ScmSubrFunc func)
 /*  Global Variable                                                */
 /*******************************************************************/
 
-static inline ScmObj
+inline ScmObj
 scm_api_global_var_ref(ScmObj sym)
 {
   ScmObj gloc = SCM_OBJ_INIT;
@@ -148,7 +148,7 @@ scm_api_global_var_ref(ScmObj sym)
   return (scm_obj_null_p(gloc) ?  SCM_OBJ_NULL : scm_gloc_value(gloc));
 }
 
-static inline ScmObj
+inline ScmObj
 scm_api_global_var_bound_p(ScmObj sym)
 {
   ScmObj o = SCM_OBJ_INIT;
@@ -164,7 +164,7 @@ scm_api_global_var_bound_p(ScmObj sym)
           scm_vm_bool_false_instance() : scm_vm_bool_true_instance());
 }
 
-static inline ScmObj
+inline ScmObj
 scm_api_global_var_define(ScmObj sym, ScmObj val)
 {
   ScmObj gloc = SCM_OBJ_INIT;
@@ -185,7 +185,7 @@ scm_api_global_var_define(ScmObj sym, ScmObj val)
   return val;
 }
 
-static inline ScmObj
+inline ScmObj
 scm_api_global_var_set(ScmObj sym, ScmObj val)
 {
   ScmObj gloc = SCM_OBJ_INIT;
@@ -216,7 +216,7 @@ scm_api_global_var_set(ScmObj sym, ScmObj val)
 /*  Access to Argument of Function                                 */
 /*******************************************************************/
 
-static inline int
+inline int
 scm_api_get_nr_func_arg(void)
 {
   /* 2012.02.07: 今のところスタックフレームが全く無い状態でこの api を
@@ -224,7 +224,7 @@ scm_api_get_nr_func_arg(void)
   return scm_vm_frame_argc(scm_vm_current_vm());
 }
 
-static inline ScmObj
+inline ScmObj
 scm_api_get_func_arg(int nth)
 {
   if (nth >= scm_vm_frame_argc(scm_vm_current_vm()))

@@ -21,7 +21,7 @@ struct ScmGLocRec {
   ScmObj val;
 };
 
-static inline void
+inline void
 scm_gloc_bind(ScmObj gloc, ScmObj val)
 {
   scm_assert_obj_type(gloc, &SCM_GLOC_TYPE_INFO);
@@ -30,7 +30,7 @@ scm_gloc_bind(ScmObj gloc, ScmObj val)
   SCM_SETQ(SCM_GLOC(gloc)->val, val);
 }
 
-static inline void
+inline void
 scm_gloc_unbind(ScmObj gloc)
 {
   scm_assert_obj_type(gloc, &SCM_GLOC_TYPE_INFO);
@@ -38,7 +38,7 @@ scm_gloc_unbind(ScmObj gloc)
   SCM_SETQ(SCM_GLOC(gloc)->val, SCM_OBJ_NULL);
 }
 
-static inline ScmObj
+inline ScmObj
 scm_gloc_symbol(ScmObj gloc)
 {
   scm_assert_obj_type(gloc, &SCM_GLOC_TYPE_INFO);
@@ -46,7 +46,7 @@ scm_gloc_symbol(ScmObj gloc)
   return SCM_GLOC(gloc)->sym;
 }
 
-static inline ScmObj
+inline ScmObj
 scm_gloc_value(ScmObj gloc)
 {
   scm_assert_obj_type(gloc, &SCM_GLOC_TYPE_INFO);

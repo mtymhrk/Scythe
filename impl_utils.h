@@ -11,7 +11,7 @@
   #define SCM_RSHIFT_ARITH(x, y) (((x) < 0) ? ~((~(x)) >> y) : (x) >> (y))
 #endif
 
-static inline scm_sword_t
+inline scm_sword_t
 scm_rshift_arith_sword(scm_sword_t x, unsigned int y)
 {
   assert(y < (sizeof(scm_sword_t) * CHAR_BIT));

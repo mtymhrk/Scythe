@@ -15,7 +15,7 @@ struct EArrayRec {
 #define EARY_SIZE(ary) ((ary)->used)
 #define EARY_HEAD(ary) ((ary)->vec)
 
-static inline int
+inline int
 eary_init(EArray *ary, size_t rs, size_t ns)
 {
   ary->cap = ns;
@@ -34,14 +34,14 @@ eary_init(EArray *ary, size_t rs, size_t ns)
   return 0;
 }
 
-static inline void
+inline void
 eary_fin(EArray *ary)
 {
   free(ary->vec);
   ary->vec = NULL;
 }
 
-static inline int
+inline int
 eary_expand(EArray *ary, size_t rs, size_t ndd)
 {
   if (ary->cap > SIZE_MAX / EARY_MAG)
@@ -64,7 +64,7 @@ eary_expand(EArray *ary, size_t rs, size_t ndd)
   return 0;
 }
 
-static inline int
+inline int
 eary_expand_if_necessary(EArray *ary, size_t idx, size_t rs)
 {
   if (idx >= ary->cap)
