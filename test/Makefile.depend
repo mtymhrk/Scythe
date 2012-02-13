@@ -36,9 +36,9 @@ procedure.o: ../procedure.c ../procedure.h ../object.h ../vm.h \
 reference.o: ../reference.c ../reference.h ../object.h ../memory.h \
  ../basichash.h ../impl_utils.h ../vm.h ../instractions.h
 numeric.o: ../numeric.c ../object.h ../numeric.h ../impl_utils.h
-core_subr.o: ../core_subr.c ../vm.h ../object.h ../memory.h \
- ../basichash.h ../impl_utils.h ../reference.h ../instractions.h \
- ../pair.h ../procedure.h ../api.h ../core_subr.h
+core_subr.o: ../core_subr.c ../object.h ../vm.h ../memory.h \
+ ../basichash.h ../impl_utils.h ../reference.h ../instractions.h ../api.h \
+ ../core_subr.h
 iseq.o: ../iseq.c ../object.h ../memory.h ../basichash.h ../impl_utils.h \
  ../vm.h ../reference.h ../instractions.h ../earray.h ../iseq.h
 chashtbl.o: ../chashtbl.c ../object.h ../memory.h ../basichash.h \

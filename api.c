@@ -13,8 +13,18 @@
 /*  Predicate                                                      */
 /*******************************************************************/
 
-extern inline ScmObj
+/* 述語関数について、C の bool 方を返すものは _p を関数名の後ろに付与する。
+ * Scheme の #t/#f を返すものは _P を関数名の後ろに付与する。
+ */
+
+extern inline bool
 scm_api_eq_p(ScmObj obj1, ScmObj obj2)
+{
+  return scm_obj_same_instance_p(obj1, obj2);
+}
+
+extern inline ScmObj
+scm_api_eq_P(ScmObj obj1, ScmObj obj2)
 {
   if (scm_obj_null_p(obj1) || scm_obj_null_p(obj2))
       return SCM_OBJ_NULL;         /* provisional implemntation */
@@ -103,6 +113,22 @@ scm_api_cdr(ScmObj pair)
   return scm_pair_cdr(pair);
 }
 
+extern inline bool
+scm_api_pair_p(ScmObj pair)
+{
+  if (scm_obj_null_p(pair)) return false;
+  return (scm_obj_type_p(pair, &SCM_PAIR_TYPE_INFO) ? true : false);
+}
+
+extern inline ScmObj
+scm_api_pair_P(ScmObj pair)
+{
+  if (scm_obj_null_p(pair))
+    return SCM_OBJ_NULL;         /* provisional implemntation */
+
+  return (scm_api_pair_p(pair) ?
+          scm_vm_bool_true_instance() : scm_vm_bool_false_instance());
+}
 
 /*******************************************************************/
 /*  Subrutine                                                      */

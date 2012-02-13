@@ -1,13 +1,16 @@
 #ifndef INCLUDE_API_H__
 #define INCLUDE_API_H__
 
+#include <stdbool.h>
+
 #include "object.h"
 
 /*******************************************************************/
 /*  Predicate                                                      */
 /*******************************************************************/
 
-ScmObj scm_api_eq_p(ScmObj obj1, ScmObj obj2);
+bool scm_api_eq_p(ScmObj obj1, ScmObj obj2);
+ScmObj scm_api_eq_P(ScmObj obj1, ScmObj obj2);
 
 
 /*******************************************************************/
@@ -33,7 +36,8 @@ ScmObj scm_api_string_to_symbol(ScmObj str);
 ScmObj scm_api_cons(ScmObj car, ScmObj cdr);
 ScmObj scm_api_car(ScmObj pair);
 ScmObj scm_api_cdr(ScmObj pair);
-
+bool scm_api_pair_p(ScmObj pair);
+ScmObj scm_api_pair_P(ScmObj pair);
 
 /*******************************************************************/
 /*  Subrutine                                                      */
