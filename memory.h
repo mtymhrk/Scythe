@@ -111,8 +111,11 @@ struct ScmMemRec {
 
 /** private functions *****************************************************/
 
+#ifdef SCM_UNIT_TEST
+
 size_t scm_mem_align_size(size_t size);
 void *scm_mem_align_ptr(void *ptr);
+size_t scm_mem_alloc_size_of_obj_has_weak_ref(size_t size);
 size_t scm_mem_alloc_size_in_heap(ScmTypeInfo *type);
 size_t scm_mem_alloc_size_in_heap_aligned(ScmTypeInfo *type);
 size_t scm_mem_alloc_size_in_root(ScmTypeInfo *type);
@@ -162,7 +165,6 @@ bool scm_mem_root_block_obj_in_blok_p(ScmObj obj);
 void scm_mem_add_to_root_set(ScmMemRootBlock **head, ScmMemRootBlock *block);
 void scm_mem_del_from_root_set(ScmMemRootBlock **head, ScmMemRootBlock *block);
 ScmRef scm_mem_next_obj_has_weak_ref(ScmTypeInfo *type, ScmObj obj);
-size_t scm_mem_size_of_obj_has_weak_ref(size_t size);
 void scm_mem_set_next_obj_has_weak_ref(ScmTypeInfo *type, ScmObj obj,
                                        ScmObj nxt);
 void scm_mem_add_obj_to_weak_list(ScmMemHeap *heap, ScmRef ref,
@@ -204,6 +206,7 @@ void scm_mem_free_all_obj_in_root_set(ScmMem *mem, ScmMemRootBlock **head);
 ScmMem *scm_mem_initialize(ScmMem *mem);
 ScmMem *scm_mem_finalize(ScmMem *mem);
 
+#endif
 
 /** public functions *****************************************************/
 
@@ -238,8 +241,6 @@ ScmMem *scm_mem_alloc_heap(ScmMem *mem, ScmTypeInfo *type, ScmRef ref);
 ScmMem *scm_mem_alloc_persist(ScmMem *mem, ScmTypeInfo *type, ScmRef ref);
 ScmMem *scm_mem_alloc_root(ScmMem *mem, ScmTypeInfo *type, ScmRef ref);
 ScmObj scm_mem_free_root(ScmMem *mem, ScmObj obj);
-// ScmMem *scm_mem_alloc_plain(ScmMem *mem, ScmTypeInfo *type, ScmRef ref);
-// ScmObj scm_mem_free_plain(ScmMem *mem, ScmObj obj);
 ScmRef scm_mem_register_extra_rfrn(ScmMem *mem, ScmRef ref);
 ScmMem *scm_mem_alloc(ScmMem *mem, ScmTypeInfo *type,
                       SCM_MEM_ALLOC_TYPE_T alloc, ScmRef ref);

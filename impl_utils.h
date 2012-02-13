@@ -27,4 +27,12 @@ scm_rshift_arith_sword(scm_sword_t x, unsigned int y)
 #define SCM_CONCAT_SYMBOL__(x, y) SCM_CONCAT_SYMBOL_2__(x, y)
 
 
+#ifdef SCM_UNIT_TEST
+#  define scm_local_func
+#  define scm_local_inline extern inline
+#else
+#  define scm_local_func static
+#  define scm_local_inline static inline
+#endif
+
 #endif /* INCLUDE_IMPL_UTILS_H__ */

@@ -3,7 +3,7 @@ LD       = ld
 CFLAGS   = -O2 -std=gnu99 -Wall -Wextra -Wformat=2 -Wstrict-aliasing=2 \
            -Wcast-qual -Wcast-align -Wwrite-strings -Wconversion -Wfloat-equal \
            -Wpointer-arith -Wswitch-enum -Wno-unused-parameter -Winline \
-           -fPIC -g
+           -fPIC -g -DSCM_UNIT_TEST
 INCLUDES = -I/usr/local/include/cutter -iquote ..
 LDFLAGS  = -lcunit -g
 CUTTER   = cutter
