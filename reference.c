@@ -7,13 +7,13 @@
 #include "object.h"
 #include "vm.h"
 
-extern inline bool
+scm_local_inline bool
 scm_ref_stack_block_full_p(ScmRefStackBlock *block)
 {
   return (block->stack + block->size <= block->sp) ? true : false;
 }
 
-extern inline ScmRefStackBlock *
+scm_local_inline ScmRefStackBlock *
 scm_ref_stack_new_block(size_t sz)
 {
   ScmRefStackBlock *block;
@@ -32,13 +32,13 @@ scm_ref_stack_new_block(size_t sz)
   return block;
 }
 
-extern inline void
+scm_local_inline void
 scm_ref_stack_block_push(ScmRefStackBlock *block, ScmRef ref)
 {
   *(block->sp++) = ref;
 }
 
-void
+scm_local_func void
 scm_ref_stack_add_block(ScmRefStack *stack, ScmRefStackBlock *block)
 {
   if (stack->head == NULL) {
@@ -52,7 +52,7 @@ scm_ref_stack_add_block(ScmRefStack *stack, ScmRefStackBlock *block)
   }
 }
 
-void
+scm_local_func void
 scm_ref_stack_decrease_block(ScmRefStack *stack)
 {
   ScmRefStackBlock *block;
@@ -73,7 +73,7 @@ scm_ref_stack_decrease_block(ScmRefStack *stack)
   }
 }
 
-extern inline void
+scm_local_inline void
 scm_ref_stack_shift_stack_block(ScmRefStack *stack)
 {
   stack->current = stack->current->next;
@@ -82,7 +82,7 @@ scm_ref_stack_shift_stack_block(ScmRefStack *stack)
 }
 
 
-ScmRefStack *
+scm_local_func ScmRefStack *
 scm_ref_stack_add_new_block(ScmRefStack *stack, size_t size)
 {
   ScmRefStackBlock *block;
@@ -97,7 +97,7 @@ scm_ref_stack_add_new_block(ScmRefStack *stack, size_t size)
   return stack;
 }
 
-ScmRefStack *
+scm_local_func ScmRefStack *
 scm_ref_stack_growth_if_needed(ScmRefStack *stack)
 {
   if (scm_ref_stack_block_full_p(stack->current))
@@ -112,7 +112,7 @@ scm_ref_stack_growth_if_needed(ScmRefStack *stack)
   return stack;
 }
 
-void
+scm_local_func void
 scm_ref_stack_decrease_if_possible(ScmRefStack *stack)
 {
   ;                             /* TODO: write me */
