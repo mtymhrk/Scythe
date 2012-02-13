@@ -221,16 +221,16 @@ scm_api_get_nr_func_arg(void)
 {
   /* 2012.02.07: 今のところスタックフレームが全く無い状態でこの api を
      呼ばれると assertion に引っ掛って落ちる */
-  return scm_vm_frame_argc(scm_vm_current_vm());
+  return scm_vm_nr_local_var(scm_vm_current_vm());
 }
 
 inline ScmObj
 scm_api_get_func_arg(int nth)
 {
-  if (nth >= scm_vm_frame_argc(scm_vm_current_vm()))
+  if (nth >= scm_vm_nr_local_var(scm_vm_current_vm()))
     return SCM_OBJ_NULL;                  /* provisional implemntation */
 
-  return scm_vm_frame_argv(scm_vm_current_vm(), nth);
+  return scm_vm_refer_local_var(scm_vm_current_vm(), nth);
 }
 
 

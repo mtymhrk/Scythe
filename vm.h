@@ -54,54 +54,20 @@ struct ScmVMRec {
   } cnsts;
 };
 
+/* private functions ******************************************************/
 
-inline size_t
-scm_vm_stack_objmap_sp2idx(ScmObj vm, scm_vm_stack_val_t *sp)
-{
-  return ((scm_uword_t)((sp) - SCM_VM(vm)->stack)
-          / (sizeof(SCM_VM(vm)->stack_objmap[0]) * CHAR_BIT));
-}
+#ifdef SCM_UNIT_TEST
 
-inline unsigned int
-scm_vm_stack_objmap_sp2mask(ScmObj vm, scm_vm_stack_val_t *sp)
-{
-  return 1u << ((scm_uword_t)((sp) - SCM_VM(vm)->stack)
-                % (sizeof(SCM_VM(vm)->stack_objmap[0]) * CHAR_BIT));
-}
+size_t scm_vm_stack_objmap_sp2idx(ScmObj vm, scm_vm_stack_val_t *sp);
+unsigned int scm_vm_stack_objmap_sp2mask(ScmObj vm, scm_vm_stack_val_t *sp);
+void scm_vm_stack_objmap_set(ScmObj vm , scm_vm_stack_val_t *sp);
+void scm_vm_stack_objmap_unset(ScmObj vm, scm_vm_stack_val_t *sp);
+bool scm_vm_stack_objmap_is_scmobj(ScmObj vm, scm_vm_stack_val_t *sp);
 
-inline void
-scm_vm_stack_objmap_set(ScmObj vm , scm_vm_stack_val_t *sp)
-{
-  scm_assert((sp) < SCM_VM(vm)->sp);
-  SCM_VM(vm)->stack_objmap[scm_vm_stack_objmap_sp2idx(vm, sp)]
-    |= scm_vm_stack_objmap_sp2mask(vm, sp);
-}
+scm_iword_t scm_vm_inst_fetch(ScmObj vm);
 
-inline void
-scm_vm_stack_objmap_unset(ScmObj vm, scm_vm_stack_val_t *sp)
-{
-  scm_assert((sp) < SCM_VM(vm)->sp);
-  SCM_VM(vm)->stack_objmap[scm_vm_stack_objmap_sp2idx(vm, sp)]
-    &= ~scm_vm_stack_objmap_sp2mask(vm, sp);
-}
-
-inline bool
-scm_vm_stack_objmap_is_scmobj(ScmObj vm, scm_vm_stack_val_t *sp)
-{
-  scm_assert((sp) < SCM_VM(vm)->sp);
-  return ((SCM_VM(vm)->stack_objmap[scm_vm_stack_objmap_sp2idx(vm, sp)]
-          & scm_vm_stack_objmap_sp2mask(vm, sp)) ?
-          true : false);
-}
-
-void scm_vm_initialize(ScmObj vm);
-int scm_vm_init_scmobjs(ScmObj vm);
-void scm_vm_finalize(ScmObj vm);
-ScmObj scm_vm_new(void);
-void scm_vm_end(ScmObj vm);
-
-void scm_vm_setup_system(ScmObj vm);
-void scm_vm_run(ScmObj vm, ScmObj iseq);
+void scm_vm_setup_root(ScmObj vm);
+void scm_vm_clean_root(ScmObj vm);
 
 void scm_vm_stack_push(ScmObj vm, scm_vm_stack_val_t elm, bool scmobj_p);
 ScmObj scm_vm_stack_pop(ScmObj vm);
@@ -109,11 +75,6 @@ void scm_vm_stack_shorten(ScmObj vm, int n);
 
 int scm_vm_frame_argc(ScmObj vm);
 ScmObj scm_vm_frame_argv(ScmObj vm, int nth);
-
-int scm_vm_nr_local_var(ScmObj vm);
-ScmObj scm_vm_refer_local_var(ScmObj vm, int nth);
-
-void scm_vm_return_to_caller(ScmObj vm);
 
 void scm_vm_op_call(ScmObj vm);
 void scm_vm_op_immval(ScmObj vm, ScmObj val);
@@ -125,6 +86,23 @@ void scm_vm_op_return(ScmObj vm);
 void scm_vm_op_gref(ScmObj vm, ScmObj arg, int immv_idx);
 void scm_vm_op_gdef(ScmObj vm, ScmObj arg, ScmObj val, int immv_idx);
 void scm_vm_op_gset(ScmObj vm, ScmObj arg, ScmObj val, int immv_idx);
+
+#endif
+
+/* public functions ******************************************************/
+
+void scm_vm_initialize(ScmObj vm);
+int scm_vm_init_scmobjs(ScmObj vm);
+void scm_vm_finalize(ScmObj vm);
+ScmObj scm_vm_new(void);
+void scm_vm_end(ScmObj vm);
+
+void scm_vm_setup_system(ScmObj vm);
+void scm_vm_run(ScmObj vm, ScmObj iseq);
+
+int scm_vm_nr_local_var(ScmObj vm);
+ScmObj scm_vm_refer_local_var(ScmObj vm, int nth);
+void scm_vm_return_to_caller(ScmObj vm);
 
 void scm_vm_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_vm_gc_finalize(ScmObj obj);
