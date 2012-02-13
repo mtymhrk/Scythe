@@ -13,8 +13,6 @@ basichash.o: ../basichash.c ../memory.h ../object.h ../basichash.h \
  ../impl_utils.h
 integer.o: ../integer.c ../object.h ../memory.h ../basichash.h \
  ../impl_utils.h ../vm.h ../reference.h ../instractions.h ../integer.h
-basiclist.o: ../basiclist.c ../memory.h ../object.h ../basichash.h \
- ../impl_utils.h ../basiclist.h
 vector.o: ../vector.c ../memory.h ../object.h ../basichash.h \
  ../impl_utils.h ../vm.h ../reference.h ../instractions.h \
  ../miscobjects.h ../vector.h
@@ -144,20 +142,6 @@ test_integer.o: test_integer.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-experimental.h ../object.h ../vm.h \
  ../object.h ../memory.h ../basichash.h ../impl_utils.h ../reference.h \
  ../instractions.h ../miscobjects.h ../integer.h
-test_basiclist.o: test_basiclist.c /usr/local/include/cutter/cutter.h \
- /usr/local/include/cutter/cutter/cut-version.h \
- /usr/local/include/cutter/cutter/cut-features.h \
- /usr/local/include/cutter/cutter/cut-assertions.h \
- /usr/local/include/cutter/cutter/cut-assertions-helper.h \
- /usr/local/include/cutter/cutter/cut-public.h \
- /usr/local/include/cutter/cutter/cut-config.h \
- /usr/local/include/cutter/cutter/cut-types.h \
- /usr/local/include/cutter/cutter/cut-macros.h \
- /usr/local/include/cutter/cutter/cut-multi-process.h \
- /usr/local/include/cutter/cutter/cut-test-utils.h \
- /usr/local/include/cutter/cutter/cut-test-utils-helper.h \
- /usr/local/include/cutter/cutter/cut-helper.h \
- /usr/local/include/cutter/cutter/cut-experimental.h ../basiclist.h
 test_vector.o: test_vector.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-version.h \
  /usr/local/include/cutter/cutter/cut-features.h \
