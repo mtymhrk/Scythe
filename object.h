@@ -60,6 +60,8 @@ typedef const ScmObj *ScmCRef;
 
 /** definition for subroutine function ***************************************/
 
+/* procedure.h に定義を置きたいが、api.h が procedure.h に依存するのを避ける
+ * ためにここにで定義する */
 typedef ScmObj (*ScmSubrFunc)(void);
 
 
