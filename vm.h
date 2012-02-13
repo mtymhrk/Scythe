@@ -54,52 +54,45 @@ struct ScmVMRec {
   } cnsts;
 };
 
-#define SCM_VM_MEM(obj) (SCM_VM(obj)->mem)
-#define SCM_VM_SYMTBL(obj) (SCM_VM(obj)->symtbl)
-#define SCM_VM_GLOCTBL(obj) (SCM_VM(obj)->gloctbl)
-#define SCM_VM_STACK(obj) (SCM_VM(obj)->stack)
-#define SCM_VM_STACK_OBJMAP(obj) (SCM_VM(obj)->stack_objmap)
-#define SCM_VM_STACK_SIZE(obj) (SCM_VM(obj)->stack_size)
-#define SCM_VM_REF_STACK(obj) (SCM_VM(obj)->ref_stack)
-#define SCM_VM_SP(obj) (SCM_VM(obj)->sp)
-#define SCM_VM_FP(obj) (SCM_VM(obj)->fp)
-#define SCM_VM_IP(obj) (SCM_VM(obj)->ip)
-#define SCM_VM_ISEQ(obj) (SCM_VM(obj)->iseq)
-#define SCM_VM_ISEQ_SETQ(obj, v) SCM_SETQ(SCM_VM_ISEQ(obj), v)
-#define SCM_VM_VAL(obj) (SCM_VM(obj)->val)
-#define SCM_VM_VAL_SETQ(obj, v) SCM_SETQ(SCM_VM_VAL(obj), v)
-#define SCM_VM_CONST_NIL(obj) (SCM_VM(obj)->cnsts.nil)
-#define SCM_VM_CONST_EOF(obj) (SCM_VM(obj)->cnsts.eof)
-#define SCM_VM_CONST_TRUE(obj) (SCM_VM(obj)->cnsts.b_true)
-#define SCM_VM_CONST_FALSE(obj) (SCM_VM(obj)->cnsts.b_false)
 
-#define SCM_VM_SP_INC(obj) (SCM_VM_SP(obj)++)
-#define SCM_VM_SP_DEC(obj) (SCM_VM_SP(obj)--)
+inline size_t
+scm_vm_stack_objmap_sp2idx(ScmObj vm, scm_vm_stack_val_t *sp)
+{
+  return ((scm_uword_t)((sp) - SCM_VM(vm)->stack)
+          / (sizeof(SCM_VM(vm)->stack_objmap[0]) * CHAR_BIT));
+}
 
-#define SCM_VM_STACk_OBJMAP_SP2IDX(vm, sp) \
-  ((scm_uword_t)((sp) - SCM_VM_STACK(vm)) / (sizeof(*SCM_VM_STACK_OBJMAP(vm)) * CHAR_BIT))
-#define SCM_VM_STACK_OBJMAP_SP2MASK(vm, sp) \
-  (1u << (scm_uword_t)((sp) - SCM_VM_STACK(vm)) % (sizeof(*SCM_VM_STACK_OBJMAP(vm)) * CHAR_BIT))
+inline unsigned int
+scm_vm_stack_objmap_sp2mask(ScmObj vm, scm_vm_stack_val_t *sp)
+{
+  return 1u << ((scm_uword_t)((sp) - SCM_VM(vm)->stack)
+                % (sizeof(SCM_VM(vm)->stack_objmap[0]) * CHAR_BIT));
+}
 
-#define SCM_VM_STACK_OBJMAP_SET(vm, sp)                          \
-  do {                                                           \
-    scm_assert((sp) < SCM_VM_SP(vm));                                \
-    SCM_VM_STACK_OBJMAP(vm)[SCM_VM_STACk_OBJMAP_SP2IDX(vm, sp)]  \
-      |= SCM_VM_STACK_OBJMAP_SP2MASK(vm, sp);                    \
-  } while(0)
+inline void
+scm_vm_stack_objmap_set(ScmObj vm , scm_vm_stack_val_t *sp)
+{
+  scm_assert((sp) < SCM_VM(vm)->sp);
+  SCM_VM(vm)->stack_objmap[scm_vm_stack_objmap_sp2idx(vm, sp)]
+    |= scm_vm_stack_objmap_sp2mask(vm, sp);
+}
 
-#define SCM_VM_STACK_OBJMAP_UNSET(vm, sp)                        \
-  do {                                                           \
-    scm_assert((sp) < SCM_VM_SP(vm));                                \
-    SCM_VM_STACK_OBJMAP(vm)[SCM_VM_STACk_OBJMAP_SP2IDX(vm, sp)]  \
-      &= ~SCM_VM_STACK_OBJMAP_SP2MASK(vm, sp);                   \
-  } while(0)
+inline void
+scm_vm_stack_objmap_unset(ScmObj vm, scm_vm_stack_val_t *sp)
+{
+  scm_assert((sp) < SCM_VM(vm)->sp);
+  SCM_VM(vm)->stack_objmap[scm_vm_stack_objmap_sp2idx(vm, sp)]
+    &= ~scm_vm_stack_objmap_sp2mask(vm, sp);
+}
 
-#define SCM_VM_STACK_OBJMAP_IS_SCMOBJ(vm, sp, rslt)  \
-  do {                                        \
-    scm_assert((sp) < SCM_VM_SP(vm));             \
-    (rslt) = SCM_VM_STACK_OBJMAP(vm)[SCM_VM_STACk_OBJMAP_SP2IDX(vm, sp)] & SCM_VM_STACK_OBJMAP_SP2MASK(vm, sp) ? true : false; \
-  } while(0)
+inline bool
+scm_vm_stack_objmap_is_scmobj(ScmObj vm, scm_vm_stack_val_t *sp)
+{
+  scm_assert((sp) < SCM_VM(vm)->sp);
+  return ((SCM_VM(vm)->stack_objmap[scm_vm_stack_objmap_sp2idx(vm, sp)]
+          & scm_vm_stack_objmap_sp2mask(vm, sp)) ?
+          true : false);
+}
 
 void scm_vm_initialize(ScmObj vm);
 int scm_vm_init_scmobjs(ScmObj vm);
@@ -147,55 +140,55 @@ scm_vm_current_vm(void)
 inline ScmMem *
 scm_vm_current_mm(void)
 {
-  return SCM_VM_MEM(scm_vm__current_vm);
+  return SCM_VM(scm_vm__current_vm)->mem;
 }
 
 inline ScmRefStack *
 scm_vm_current_ref_stack(void)
 {
-  return SCM_VM_REF_STACK(scm_vm__current_vm);
+  return SCM_VM(scm_vm__current_vm)->ref_stack;
 }
 
 inline ScmObj
 scm_vm_current_symtbl(void)
 {
-  return SCM_VM_SYMTBL(scm_vm__current_vm);
+  return SCM_VM(scm_vm__current_vm)->symtbl;
 }
 
 inline ScmObj
 scm_vm_current_gloctbl(void)
 {
-  return SCM_VM_GLOCTBL(scm_vm__current_vm);
+  return SCM_VM(scm_vm__current_vm)->gloctbl;
 }
 
 inline void
 scm_vm_update_current_val_reg(ScmObj val)
 {
-  SCM_VM_VAL_SETQ(scm_vm__current_vm, val);
+  SCM_SETQ(SCM_VM(scm_vm__current_vm)->val, val);
 }
 
 inline ScmObj
 scm_vm_nil_instance(void)
 {
-  return SCM_VM_CONST_NIL(scm_vm__current_vm);
+  return SCM_VM(scm_vm__current_vm)->cnsts.nil;
 }
 
 inline ScmObj
 scm_vm_eof_instance(void)
 {
-  return SCM_VM_CONST_EOF(scm_vm__current_vm);
+  return SCM_VM(scm_vm__current_vm)->cnsts.eof;
 }
 
 inline ScmObj
 scm_vm_bool_true_instance(void)
 {
-  return SCM_VM_CONST_TRUE(scm_vm__current_vm);
+  return SCM_VM(scm_vm__current_vm)->cnsts.b_true;
 }
 
 inline ScmObj
 scm_vm_bool_false_instance(void)
 {
-  return SCM_VM_CONST_FALSE(scm_vm__current_vm);
+  return SCM_VM(scm_vm__current_vm)->cnsts.b_false;
 }
 
 #endif /* INCLUDE_VM_H__ */
