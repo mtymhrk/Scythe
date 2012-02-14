@@ -25,7 +25,7 @@ cut_startup(void)
   fclose(fp);
 
   fp = fopen(TEST_BIG_FILE, "w");
-  for (int i = 0; i < (int)(TEST_BIG_FILE_SIZE / sizeof(i)); i++)
+  for (uint64_t i = 0; i < (TEST_BIG_FILE_SIZE / sizeof(i)); i++)
     n = fwrite(&i, sizeof(i), 1, fp);
   fclose(fp);
 
@@ -273,12 +273,12 @@ void
 xxx_test_scm_port_read_big_file(ScmObj port)
 {
   ssize_t ret;
-  int data;
+  uint64_t data;
 
-  for (int i = 0; i < (int)(TEST_BIG_FILE_SIZE / sizeof(i)); i++) {
+  for (uint64_t i = 0; i < (TEST_BIG_FILE_SIZE / sizeof(i)); i++) {
     ret = scm_port_read(port, &data, sizeof(data));
     cut_assert_equal_int(sizeof(data), ret);
-    cut_assert_equal_int((int)i, data);
+    cut_assert_equal_uint_fast64(i, data);
   }
 
   ret = scm_port_read(port, &data, sizeof(data));
@@ -330,7 +330,7 @@ test_scm_port_read_big_file_none_buffer(void)
 void
 test_scm_port_read_big_data(void)
 {
-  int data[TEST_BIG_FILE_SIZE / sizeof(int)];
+  uint64_t data[TEST_BIG_FILE_SIZE / sizeof(uint64_t)];
   ssize_t ret;
   ScmObj port = SCM_OBJ_INIT;
 
@@ -340,8 +340,8 @@ test_scm_port_read_big_data(void)
   ret = scm_port_read(port, data, TEST_BIG_FILE_SIZE);
   cut_assert_equal_int(TEST_BIG_FILE_SIZE, ret);
 
-  for (size_t i = 0; i < TEST_BIG_FILE_SIZE / sizeof(int); i++)
-    cut_assert_equal_int((int)i, data[i]);
+  for (uint64_t i = 0; i < TEST_BIG_FILE_SIZE / sizeof(i); i++)
+    cut_assert_equal_uint_fast64(i, data[i]);
 }
 
 void
@@ -648,7 +648,7 @@ test_scm_port_write_big_data(void)
                                            SCM_PORT_BUF_FULL));
 
 
-  for (int i = 0; i < (int)(TEST_BIG_FILE_SIZE / sizeof(i)); i++)
+  for (uint64_t i = 0; i < (TEST_BIG_FILE_SIZE / sizeof(i)); i++)
     cut_assert_equal_int(sizeof(i),
                          scm_port_write(port, &i, sizeof(i)));
 
