@@ -267,4 +267,23 @@ scm_memory_release(void *block)
   return NULL;
 }
 
+inline void *
+scm_malloc(size_t size)
+{
+  return malloc(size);
+}
+
+inline void *
+scm_free(void *ptr)
+{
+  free(ptr);
+  return NULL;
+}
+
+inline void *
+scm_realloc(void *ptr, size_t size)
+{
+  return realloc(ptr, size);
+}
+
 #endif /* INCLUDED_MEMORY_H__ */
