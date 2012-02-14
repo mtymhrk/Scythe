@@ -434,12 +434,12 @@ scm_vm_initialize(ScmObj vm)
   SCM_VM(vm)->ref_stack = scm_ref_stack_new(SCM_VM_REF_STACK_INIT_SIZE);
   if (SCM_VM(vm)->ref_stack == NULL) goto err;
 
-  SCM_VM(vm)->stack = scm_memory_allocate(sizeof(scm_vm_stack_val_t)
-                                         * SCM_VM_STACK_INIT_SIZE);
+  SCM_VM(vm)->stack = scm_malloc(sizeof(scm_vm_stack_val_t)
+                                 * SCM_VM_STACK_INIT_SIZE);
   if (SCM_VM(vm)->stack == NULL) goto err;
 
-  SCM_VM(vm)->stack_objmap = scm_memory_allocate(sizeof(unsigned int)
-                                                 * SCM_VM_STACK_OBJMAP_SIZE);
+  SCM_VM(vm)->stack_objmap = scm_malloc(sizeof(unsigned int)
+                                       * SCM_VM_STACK_OBJMAP_SIZE);
   if (SCM_VM(vm)->stack_objmap == NULL) goto err;
 
   SCM_VM(vm)->stack_size = SCM_VM_STACK_INIT_SIZE;
@@ -461,11 +461,11 @@ scm_vm_initialize(ScmObj vm)
     SCM_SETQ(SCM_VM(vm)->iseq, SCM_OBJ_NULL);
 
   if (SCM_VM(vm)->stack != NULL) {
-    SCM_VM(vm)->stack = scm_memory_release(SCM_VM(vm)->stack);
+    SCM_VM(vm)->stack = scm_free(SCM_VM(vm)->stack);
     SCM_VM(vm)->stack_size = 0;
   }
   if (SCM_VM(vm)->stack_objmap != NULL) {
-    SCM_VM(vm)->stack_objmap = scm_memory_release(SCM_VM(vm)->stack_objmap);
+    SCM_VM(vm)->stack_objmap = scm_free(SCM_VM(vm)->stack_objmap);
   }
   if (SCM_VM(vm)->ref_stack != NULL) {
     scm_ref_stack_end(SCM_VM(vm)->ref_stack);
@@ -482,9 +482,9 @@ scm_vm_finalize(ScmObj vm)
 {
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
-  SCM_VM(vm)->stack = scm_memory_release(SCM_VM(vm)->stack);
+  SCM_VM(vm)->stack = scm_free(SCM_VM(vm)->stack);
   SCM_VM(vm)->stack_size = 0;
-  SCM_VM(vm)->stack_objmap = scm_memory_release(SCM_VM(vm)->stack_objmap);
+  SCM_VM(vm)->stack_objmap = scm_free(SCM_VM(vm)->stack_objmap);
   scm_ref_stack_end(SCM_VM(vm)->ref_stack);
   SCM_VM(vm)->sp = NULL;
   SCM_VM(vm)->fp = NULL;

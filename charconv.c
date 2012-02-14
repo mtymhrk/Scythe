@@ -34,20 +34,33 @@ scm_charconv_new(const char *from, const char* to,
   assert(from != NULL);
   assert(to != NULL);
 
-  conv = scm_memory_allocate(sizeof(ScmCharConv));
+  conv = scm_malloc(sizeof(ScmCharConv));
+  if (conv == NULL) return NULL;
+
+  conv->icd = (void *)-1;
+  conv->src_encode  = NULL;
+  conv->dst_encode  = NULL;
+  conv->converted   = NULL;
+  conv->unconverted = NULL;
+
   conv->icd = iconv_open(to, from);
-  if (conv->icd == (void *)-1) {
-    scm_memory_release(conv);
-    return NULL;
-  }
+  if (conv->icd == (void *)-1) goto err;
 
   conv->type = type;
-  conv->src_encode = scm_memory_allocate(strlen(from) + 1);
+  conv->src_encode = scm_malloc(strlen(from) + 1);
+  if (conv->src_encode == NULL) goto err;
   strncpy(conv->src_encode, from, strlen(from) + 1);
-  conv->dst_encode = scm_memory_allocate(strlen(to) + 1);
+
+  conv->dst_encode = scm_malloc(strlen(to) + 1);
+  if (conv->dst_encode == NULL) goto err;
   strncpy(conv->dst_encode, to, strlen(to) + 1);
-  conv->converted = scm_memory_allocate(INIT_BUF_SIZE);
-  conv->unconverted = scm_memory_allocate(INIT_BUF_SIZE);
+
+  conv->converted = scm_malloc(INIT_BUF_SIZE);
+  if (conv->converted == NULL) goto err;
+
+  conv->unconverted = scm_malloc(INIT_BUF_SIZE);
+  if (conv->unconverted == NULL) goto err;
+
   conv->cnv_capacity = INIT_BUF_SIZE;
   conv->uncnv_capacity = INIT_BUF_SIZE;
   conv->cnv_len = 0;
@@ -55,34 +68,44 @@ scm_charconv_new(const char *from, const char* to,
   conv->error = 0;
 
   return conv;
+
+ err:
+  scm_free(conv->unconverted);
+  scm_free(conv->converted);
+  scm_free(conv->dst_encode);
+  scm_free(conv->src_encode);
+  if (conv->icd != (void *)-1) iconv_close(conv->icd);
+  scm_free(conv);
+
+  return NULL;
 }
 
 void
 scm_charconv_end(ScmCharConv *conv)
 {
-  assert(conv != NULL);
+  scm_assert(conv != NULL);
 
   iconv_close(conv->icd);
 
-  scm_memory_release(conv->src_encode);
-  scm_memory_release(conv->dst_encode);
-  scm_memory_release(conv->converted);
-  scm_memory_release(conv->unconverted);
-  scm_memory_release(conv);
+  scm_free(conv->src_encode);
+  scm_free(conv->dst_encode);
+  scm_free(conv->converted);
+  scm_free(conv->unconverted);
+  scm_free(conv);
 }
 
 const char *
 scm_charconv_src_encoding(ScmCharConv *conv)
 {
-  assert(conv != NULL);
+  scm_assert(conv != NULL);
   return conv->src_encode;
 }
 
 const char *
 scm_charconv_dst_encoding(ScmCharConv *conv)
 {
-  assert(conv != NULL);
-  return conv->dst_encode;  
+  scm_assert(conv != NULL);
+  return conv->dst_encode;
 }
 
 
@@ -93,8 +116,8 @@ scm_charconv_put_in_unconverted(ScmCharConv *conv,
   size_t len;
   size_t space;
 
-  assert(conv != NULL);
-  assert(input != NULL);
+  scm_assert(conv != NULL);
+  scm_assert(input != NULL);
 
   space = conv->uncnv_capacity - conv->uncnv_len;
   len = (size < space) ? size : space;
@@ -107,7 +130,7 @@ scm_charconv_put_in_unconverted(ScmCharConv *conv,
 static size_t
 scm_charconv_shift_unconverted(ScmCharConv *conv, size_t nshift)
 {
-  assert(conv != NULL);
+  scm_assert(conv != NULL);
 
   memmove(conv->unconverted, conv->unconverted + nshift,
           conv->uncnv_len - nshift);
@@ -121,7 +144,7 @@ scm_charconv_put_out_converted(ScmCharConv *conv, void *out, size_t size)
 {
   size_t len;
 
-  assert(conv != NULL);
+  scm_assert(conv != NULL);
 
   if (out == NULL) return 0;
 
@@ -141,7 +164,7 @@ scm_charconv_convert_aux(ScmCharConv *conv, bool terminate)
   size_t inbytesleft, outbytesleft;
   int result;
 
-  assert(conv != NULL);
+  scm_assert(conv != NULL);
 
   inbuf = terminate ? NULL : conv->unconverted;
   outbuf = conv->converted + conv->cnv_len;
@@ -159,7 +182,7 @@ scm_charconv_convert_aux(ScmCharConv *conv, bool terminate)
   return result;
 }
 
-static void
+static int
 scm_charconv_expand_converted(ScmCharConv *conv)
 {
   size_t new_capacity;
@@ -168,11 +191,13 @@ scm_charconv_expand_converted(ScmCharConv *conv)
   assert(conv != NULL);
 
   new_capacity = conv->cnv_capacity * 2;
-  new_buf = scm_memory_allocate(new_capacity);
-  memcpy(new_buf, conv->converted, conv->cnv_len);
-  scm_memory_release(conv->converted);
+  new_buf = scm_realloc(conv->converted, new_capacity);
+  if (new_buf == NULL) return -1;
+
   conv->converted = new_buf;
   conv->cnv_capacity = new_capacity;
+
+  return 0;
 }
 
 ssize_t
@@ -186,9 +211,9 @@ scm_charconv_convert(ScmCharConv *conv,
   size_t rest, room;
   bool retry;
 
-  assert(conv != NULL);
-  assert(in_size <= SSIZE_MAX);
-  assert(out_size <= SSIZE_MAX);
+  scm_assert(conv != NULL);
+  scm_assert(in_size <= SSIZE_MAX);
+  scm_assert(out_size <= SSIZE_MAX);
 
   if (input == NULL || in_size == 0)
     return (ssize_t)scm_charconv_put_out_converted(conv, output, out_size);
@@ -223,7 +248,8 @@ scm_charconv_convert(ScmCharConv *conv,
       /* absence of converted buffer size */
       retry = true;
       if (room == 0)
-        scm_charconv_expand_converted(conv);
+        if (scm_charconv_expand_converted(conv) < 0)
+          return -1;
     }
     else if (rest > 0)
       retry = true;
@@ -239,13 +265,18 @@ scm_charconv_convert(ScmCharConv *conv,
   return (ssize_t)(out_size - room);
 }
 
-void
+ssize_t
 scm_charconv_put(ScmCharConv *conv, const void *input, size_t size)
 {
-  assert(conv != NULL);
-  assert(size <= SSIZE_MAX);
+  ssize_t rslt;
 
-  scm_charconv_convert(conv, input, size, NULL, 0);
+  scm_assert(conv != NULL);
+  scm_assert(size <= SSIZE_MAX);
+
+  rslt = scm_charconv_convert(conv, input, size, NULL, 0);
+  if (rslt < 0) return -1;
+
+  return (ssize_t)size;
 }
 
 ssize_t

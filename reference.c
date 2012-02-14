@@ -20,7 +20,7 @@ scm_ref_stack_new_block(size_t sz)
 
   scm_assert((SIZE_MAX - sizeof(ScmRefStackBlock)) / sizeof(ScmRef) >= sz);
 
-  block = scm_memory_allocate(sizeof(ScmRefStackBlock) + sizeof(ScmRef) * sz);
+  block = scm_malloc(sizeof(ScmRefStackBlock) + sizeof(ScmRef) * sz);
   if (block == NULL)
     return NULL;
 
@@ -69,7 +69,7 @@ scm_ref_stack_decrease_block(ScmRefStack *stack)
     if (stack->current == block)
       stack->current = stack->tail;
 
-    scm_memory_release(block);
+    scm_free(block);
   }
 }
 
@@ -142,11 +142,11 @@ scm_ref_stack_new(size_t size)
 {
   ScmRefStack *stack;
 
-  stack = scm_memory_allocate(sizeof(ScmRefStack));
+  stack = scm_malloc(sizeof(ScmRefStack));
   if (stack == NULL) return NULL;
 
   if (scm_ref_stack_initialize(stack, size) == NULL) {
-    scm_memory_release(stack);
+    scm_free(stack);
     return NULL;
   }
 
@@ -160,7 +160,7 @@ scm_ref_stack_end(ScmRefStack *stack)
   scm_assert(stack != NULL);
 
   scm_ref_stack_finalize(stack);
-  scm_memory_release(stack);
+  scm_free(stack);
 }
 
 ScmRefStack *

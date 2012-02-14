@@ -17,7 +17,7 @@ scm_chash_tbl_initialize(ScmCHashTbl *tbl, size_t size,
   scm_assert(cmp_func != NULL);
   scm_assert(SIZE_MAX / size > sizeof(ScmCHashTblEntry *));
 
-  tbl->buckets = scm_memory_allocate(sizeof(ScmCHashTblEntry *) * size);
+  tbl->buckets = scm_malloc(sizeof(ScmCHashTblEntry *) * size);
   if (tbl->buckets == NULL) return;
 
   tbl->tbl_size = size;
@@ -40,13 +40,13 @@ scm_chash_tbl_finalize(ScmCHashTbl *tbl) /* GC OK */
       ScmCHashTblEntry *e = tbl->buckets[i];
       while (e != NULL) {
         ScmCHashTblEntry *n = e->next;
-        scm_memory_release(e);
+        scm_free(e);
         e = n;
       }
     }
   }
 
-  scm_memory_release(tbl->buckets);
+  scm_free(tbl->buckets);
   tbl->buckets = NULL;
 }
 
@@ -59,7 +59,7 @@ scm_chash_tbl_new(size_t size,
 {
   ScmCHashTbl *tbl;
 
-  tbl = scm_memory_allocate(sizeof(*tbl));
+  tbl = scm_malloc(sizeof(*tbl));
   if (tbl == NULL) return NULL;
 
   scm_chash_tbl_initialize(tbl, size, key_kind, val_kind, hash_func, cmp_func);
@@ -73,7 +73,7 @@ scm_chash_tbl_end(ScmCHashTbl *tbl)
   scm_assert(tbl != NULL);
 
   scm_chash_tbl_finalize(tbl);
-  scm_memory_release(tbl);
+  scm_free(tbl);
 }
 
 bool
@@ -132,7 +132,7 @@ scm_chash_tbl_access(ScmCHashTbl *tbl,
   }
 
   if (mode == ADD || mode == UPDATE) {
-    ScmCHashTblEntry *new = scm_memory_allocate(sizeof(ScmCHashTblEntry));
+    ScmCHashTblEntry *new = scm_malloc(sizeof(ScmCHashTblEntry));
 
     if (tbl->key_kind == SCM_CHASH_TBL_CVAL)
       new->key = key;
@@ -218,7 +218,7 @@ scm_chash_tbl_delete(ScmCHashTbl *tbl, ScmCHashTblKey key,
         SCM_REF_SETQ(val, e->val);
     }
 
-    scm_memory_release(e);
+    scm_free(e);
 
     if (deleted != NULL) *deleted = true;
     return 0;
@@ -329,7 +329,7 @@ scm_chash_tbl_gc_accept_weak(ScmCHashTbl *tbl, ScmObj owner,
 
       if (delete_p) {
         *prev = entry->next;
-        scm_memory_release(entry);
+        scm_free(entry);
       }
       else
         prev = &entry->next;

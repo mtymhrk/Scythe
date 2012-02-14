@@ -110,8 +110,8 @@ scm_string_replace_contents(ScmObj target, ScmObj src) /* GC OK */
     SCM_STRING_DEC_REF_CNT(target);
   }
   else {
-    scm_memory_release(SCM_STRING_BUFFER(target));
-    scm_memory_release(SCM_STRING_REF_CNT(target));
+    scm_free(SCM_STRING_BUFFER(target));
+    scm_free(SCM_STRING_REF_CNT(target));
   }
 
   *SCM_STRING(target) = *SCM_STRING(src);
@@ -126,8 +126,8 @@ scm_string_finalize(ScmObj str) /* GC OK */
   if (SCM_STRING_REF_CNT(str) != NULL && *SCM_STRING_REF_CNT(str) > 1)
     SCM_STRING_DEC_REF_CNT(str);
   else {
-    scm_memory_release(SCM_STRING_BUFFER(str));
-    scm_memory_release(SCM_STRING_REF_CNT(str));
+    scm_free(SCM_STRING_BUFFER(str));
+    scm_free(SCM_STRING_REF_CNT(str));
   }
 
   /* push() 関数や append() 関数内の tmp はこれらの関数から直接 finalize() を call  */
@@ -155,13 +155,13 @@ scm_string_initialize(ScmObj str,
        SCM_STRING_CAPACITY(str) *= 2)
     ;
 
-  SCM_STRING_BUFFER(str) = scm_memory_allocate(SCM_STRING_CAPACITY(str));
+  SCM_STRING_BUFFER(str) = scm_malloc(SCM_STRING_CAPACITY(str));
   SCM_STRING_HEAD(str) = SCM_STRING_BUFFER(str);
   if (SCM_STRING_BUFFER(str) == NULL)
     ;                           /* TODO: error handling */
 
   SCM_STRING_REF_CNT(str) =
-    scm_memory_allocate(sizeof(*SCM_STRING_REF_CNT(str)));
+    scm_malloc(sizeof(*SCM_STRING_REF_CNT(str)));
   if (SCM_STRING_REF_CNT(str) == NULL)
     ;                           /* TODO: error handling */
 

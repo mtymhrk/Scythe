@@ -24,7 +24,7 @@ scm_vector_initialize(ScmObj vector, size_t length) /* GC OK */
   scm_assert_obj_type(vector, &SCM_VECTOR_TYPE_INFO);
 
   if (length > 0)
-    SCM_VECTOR_ARRAY(vector) = scm_memory_allocate(sizeof(ScmObj) * length);
+    SCM_VECTOR_ARRAY(vector) = scm_malloc(sizeof(ScmObj) * length);
   else
     SCM_VECTOR_ARRAY(vector) = NULL;
 
@@ -42,7 +42,7 @@ scm_vector_finalize(ScmObj vector) /* GC OK */
   scm_assert_obj_type(vector, &SCM_VECTOR_TYPE_INFO);
 
   if (SCM_VECTOR_ARRAY(vector) != NULL)
-    scm_memory_release(SCM_VECTOR_ARRAY(vector));
+    scm_free(SCM_VECTOR_ARRAY(vector));
 }
 
 ScmObj

@@ -255,19 +255,6 @@ bool scm_mem_current_mem_gc_enabled_p(void);
 
 
 inline void *
-scm_memory_allocate(size_t size)
-{
-  return malloc(size);
-}
-
-inline void *
-scm_memory_release(void *block)
-{
-  free(block);
-  return NULL;
-}
-
-inline void *
 scm_malloc(size_t size)
 {
   return malloc(size);

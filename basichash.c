@@ -2,7 +2,6 @@
 #include <stdbool.h>
 #include <assert.h>
 
-#include "memory.h"
 #include "basichash.h"
 
 
@@ -23,7 +22,9 @@ scm_basic_hash_entry_new(ScmBasicHashKey key, ScmBasicHashValue value,
                          size_t hash,
                          ScmBasicHashEntry *prev, ScmBasicHashEntry *next)
 {
-  ScmBasicHashEntry *entry = scm_memory_allocate(sizeof(ScmBasicHashEntry));
+  ScmBasicHashEntry *entry = malloc(sizeof(ScmBasicHashEntry));
+  if (entry == NULL) return NULL;
+
   entry->key = key;
   entry->value = value;
   entry->hash = hash;
@@ -86,6 +87,7 @@ scm_basic_hash_access(ScmBasicHashTable *table,
   if (mode == ADD || mode == UPDATE) {
     ScmBasicHashEntry *new = scm_basic_hash_entry_new(key, value, hash, NULL,
                                                       table->buckets[hash]);
+    if (new == NULL) return NULL;
     if (new->next != NULL) new->next->prev = new;
     return (table->buckets[hash] = new);
   }
@@ -129,7 +131,7 @@ scm_basic_hash_delete(ScmBasicHashTable *table, ScmBasicHashKey key)
   assert(table != NULL);
 
   entry = scm_basic_hash_access(table, key, 0, DELETE);
-  if (entry != NULL) scm_memory_release(entry);
+  if (entry != NULL) free(entry);
 }
 
 void
@@ -139,7 +141,7 @@ scm_basic_hash_delete_entry(ScmBasicHashTable *table, ScmBasicHashEntry *entry)
   assert(entry != NULL);
 
   scm_basic_hash_purge_entry(table, entry);
-  scm_memory_release(entry);
+  free(entry);
 }
 
 ScmBasicHashEntry *
@@ -159,7 +161,7 @@ scm_basic_hash_clear(ScmBasicHashTable *table)
   for (i = 0; i < table->tbl_size; i++) {
     for (entry = table->buckets[i]; entry != NULL; entry = next) {
       next = entry->next;
-      scm_memory_release(entry);
+      free(entry);
     }
     table->buckets[i] = NULL;
   }
@@ -186,7 +188,7 @@ scm_basic_hash_iterate(ScmBasicHashTable *table, ScmBasicHashIterBlock block)
         break;
       case SCM_BASIC_HASH_ITR_BLK_DELETE:
         scm_basic_hash_purge_entry(table, entry);
-        scm_memory_release(entry);
+        free(entry);
         break;
       case SCM_BASIC_HASH_ITR_BLK_BREAK:
         return;
@@ -292,8 +294,15 @@ scm_basic_hash_new(size_t size,
 
   assert(hash_func != NULL); assert(comp_func != NULL);
 
-  table = scm_memory_allocate(sizeof(ScmBasicHashTable));
-  table->buckets = scm_memory_allocate(sizeof(ScmBasicHashEntry *) * size);
+  table = malloc(sizeof(ScmBasicHashTable));
+  if (table == NULL) return NULL;
+
+  table->buckets = malloc(sizeof(ScmBasicHashEntry *) * size);
+  if (table->buckets == NULL) {
+    free(table);
+    return NULL;
+  }
+
   table->tbl_size = size;
   table->hash_func = hash_func;
   table->comp_func = comp_func;
@@ -315,11 +324,20 @@ scm_basic_hash_end(ScmBasicHashTable *table)
     ScmBasicHashEntry *entry = table->buckets[i];
     while (entry != NULL) {
       ScmBasicHashEntry *next = entry->next;
-      scm_memory_release(entry);
+      free(entry);
       entry = next;
     }
   }
 
-  scm_memory_release(table->buckets);
-  scm_memory_release(table);
+  free(table->buckets);
+  free(table);
 }
+
+
+
+
+
+
+
+
+
