@@ -1,6 +1,7 @@
 #ifndef INCLUDE_API_H__
 #define INCLUDE_API_H__
 
+#include <stddef.h>
 #include <stdbool.h>
 
 #include "object.h"
@@ -9,7 +10,7 @@
 /*  Predicate                                                      */
 /*******************************************************************/
 
-bool scm_api_eq_p(ScmObj obj1, ScmObj obj2);
+bool scm_apic_eq_p(ScmObj obj1, ScmObj obj2);
 ScmObj scm_api_eq_P(ScmObj obj1, ScmObj obj2);
 
 
@@ -46,8 +47,13 @@ ScmObj scm_api_pair_P(ScmObj pair);
 
 ScmObj scm_api_open_input_fd_port(int fd);
 ScmObj scm_api_open_output_fd_port(int fd);
+bool scm_apic_input_port_p(ScmObj port);
+ScmObj scm_api_input_port_P(ScmObj port);
+bool scm_apic_output_port_p(ScmObj port);
+ScmObj scm_api_output_port_P(ScmObj port);
 int scm_api_close_input_port(ScmObj port);
 int scm_api_close_output_port(ScmObj port);
+ssize_t scm_apic_read_raw(ScmObj port, void *buf, size_t size);
 
 /*******************************************************************/
 /*  Subrutine                                                      */

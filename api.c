@@ -1,3 +1,6 @@
+#include <stddef.h>
+#include <stdbool.h>
+
 #include "object.h"
 #include "memory.h"
 #include "vm.h"
@@ -19,7 +22,7 @@
  */
 
 extern inline bool
-scm_api_eq_p(ScmObj obj1, ScmObj obj2)
+scm_apic_eq_p(ScmObj obj1, ScmObj obj2)
 {
   return scm_obj_same_instance_p(obj1, obj2);
 }
@@ -150,12 +153,58 @@ scm_api_open_output_fd_port(int fd)/* TODO: バッファ種別を指定できる
   return scm_port_open_output_fd(fd, SCM_PORT_BUF_DEFAULT);
 }
 
+extern inline bool
+scm_apic_input_port_p(ScmObj port)
+{
+  if (scm_obj_null_p(port))
+    return SCM_OBJ_NULL;         /* provisional implemntation */
+
+  if (scm_obj_type_p(port, &SCM_PORT_TYPE_INFO) && scm_port_readable_p(port))
+    return true;
+  else
+    return false;
+}
+
+extern inline ScmObj
+scm_api_input_port_P(ScmObj port)
+{
+  if (scm_obj_null_p(port))
+    return SCM_OBJ_NULL;         /* provisional implemntation */
+
+  if (scm_obj_type_p(port, &SCM_PORT_TYPE_INFO) && scm_port_readable_p(port))
+    return scm_vm_bool_true_instance();
+  else
+    return scm_vm_bool_false_instance();
+}
+
+extern inline bool
+scm_apic_output_port_p(ScmObj port)
+{
+  if (scm_obj_null_p(port))
+    return SCM_OBJ_NULL;         /* provisional implemntation */
+
+  if (scm_obj_type_p(port, &SCM_PORT_TYPE_INFO) && scm_port_writable_p(port))
+    return true;
+  else
+    return false;
+}
+
+extern inline ScmObj
+scm_api_output_port_P(ScmObj port)
+{
+  if (scm_obj_null_p(port))
+    return SCM_OBJ_NULL;         /* provisional implemntation */
+
+  if (scm_obj_type_p(port, &SCM_PORT_TYPE_INFO) && scm_port_writable_p(port))
+    return scm_vm_bool_true_instance();
+  else
+    return scm_vm_bool_false_instance();
+}
+
 extern inline int
 scm_api_close_input_port(ScmObj port)
 {
-  if (scm_obj_null_p(port)
-      || scm_obj_type_p(port, &SCM_PORT_TYPE_INFO)
-      || !scm_port_readable_p(port))
+  if (scm_obj_null_p(port) || scm_apic_input_port_p(port))
     return SCM_OBJ_NULL;         /* provisional implemntation */
 
   return scm_port_close(port);
@@ -164,14 +213,23 @@ scm_api_close_input_port(ScmObj port)
 extern inline int
 scm_api_close_output_port(ScmObj port)
 {
-  if (scm_obj_null_p(port)
-      || scm_obj_type_p(port, &SCM_PORT_TYPE_INFO)
-      || !scm_port_writable_p(port))
+  if (scm_obj_null_p(port) || scm_apic_output_port_p(port))
     return SCM_OBJ_NULL;         /* provisional implemntation */
 
   return scm_port_close(port);
 }
 
+extern inline ssize_t
+scm_apic_read_raw(ScmObj port, void *buf, size_t size)
+{
+  if (scm_obj_null_p(port)
+      || scm_apic_input_port_p(port)
+      || buf == NULL
+      || size < SSIZE_MAX)
+    return SCM_OBJ_NULL;         /* provisional implemntation */
+
+  return scm_port_read(port, buf, size);
+}
 
 /*******************************************************************/
 /*  Subrutine                                                      */
