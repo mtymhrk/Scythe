@@ -116,6 +116,8 @@ size_t scm_stringio_length(ScmStringIO *strio);
 /*  ScmPort                                                                */
 /***************************************************************************/
 
+#define SCM_PORT_PUSHBACK_BUFF_SIZE 32 /* かなりテキトーな値 */
+
 extern ScmTypeInfo SCM_PORT_TYPE_INFO;
 
 struct ScmPortRec {
@@ -129,19 +131,27 @@ struct ScmPortRec {
   size_t used;
   bool closed_p;
   bool eof_received_p;
+  uint8_t pushback[SCM_PORT_PUSHBACK_BUFF_SIZE];
+  size_t pb_used;
 };
 
 #ifdef SCM_UNIT_TEST
 
 int scm_port_init_buffer(ScmObj port, SCM_PORT_BUF_MODE buf_mode);
 bool scm_port_buffer_empty_p(ScmObj port);
-ssize_t scm_port_read_nonbuf_read_up_to_lf(ScmObj port,
-                                           void *buf, size_t size);
 ssize_t scm_port_read_from_buffer(ScmObj port, void *buf, size_t size);
 ssize_t scm_port_read_into_buffer(ScmObj port);
 ssize_t scm_port_size_up_to_lf(ScmObj port, const void *buf, size_t size);
+uint8_t *scm_port_pushback_buff_head(ScmObj port);
+size_t scm_port_pushback_buff_unused(ScmObj port);
+ssize_t scm_port_read_from_pushback_buf(ScmObj port, void *buf, size_t size);
+ssize_t scm_port_read_from_pushback_buf_lf(ScmObj port,
+                                           void *buf, size_t size,
+                                           bool *lf_exists_p);
 ssize_t scm_port_read_buf(ScmObj port,
                           void *buf, size_t size, int mode);
+ssize_t scm_port_read_nonbuf_lf(ScmObj port, void *buf, size_t size);
+ssize_t scm_port_read_nonbuf(ScmObj port, void *buf, size_t size);
 ssize_t scm_port_write_buf(ScmObj port,
                            const void *buf, size_t size);
 
@@ -175,6 +185,7 @@ int scm_port_flush(ScmObj port);
 int scm_port_close(ScmObj port);
 ssize_t scm_port_read(ScmObj port, void *buf, size_t size);
 ssize_t scm_port_read_line(ScmObj port, void *buf, size_t size);
+ssize_t scm_port_pushback(ScmObj port, const void *buf, size_t size);
 ssize_t scm_port_write(ScmObj port, const void *buf, size_t size);
 int scm_port_seek(ScmObj port, off_t offset, int whence);
 void *scm_port_string_buffer(ScmObj port);

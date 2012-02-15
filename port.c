@@ -538,38 +538,6 @@ scm_port_clear_buffer(ScmObj port)
   SCM_PORT(port)->pos = 0;
 }
 
-scm_local_func ssize_t
-scm_port_read_nonbuf_read_up_to_lf(ScmObj port, void *buf, size_t size)
-{
-  /* provisional implementation */
-  /* 現状、ascii コードの LF 改行にしか対応していない */
-
-  char c;
-  size_t i;
-
-  scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
-  scm_assert(buf != NULL);
-  scm_assert(scm_port_readable_p(port));
-  scm_assert(!scm_port_closed_p(port));
-  scm_assert(size <= SSIZE_MAX);
-  scm_assert(SCM_PORT(port)->buffer_mode == SCM_PORT_BUF_NONE);
-
-  if (SCM_PORT(port)->eof_received_p) return 0;
-
-  for (i = 0; i < size; i++) {
-    ssize_t rslt = scm_io_read(SCM_PORT(port)->io, &c, sizeof(c));
-    if (rslt < 0) return -1;
-    if (rslt == 0) {
-      SCM_PORT(port)->eof_received_p = true;
-      break;
-    }
-
-    ((char *)buf)[i] = c;
-    if (c == '\n') return (ssize_t)i + 1;
-  }
-
-  return (ssize_t)i;
-}
 
 scm_local_func ssize_t
 scm_port_read_from_buffer(ScmObj port, void *buf, size_t size)
@@ -635,12 +603,81 @@ scm_port_size_up_to_lf(ScmObj port, const void *buf, size_t size)
   return 0;
 }
 
+scm_local_inline uint8_t *
+scm_port_pushback_buff_head(ScmObj port)
+{
+  return (SCM_PORT(port)->pushback
+          + (SCM_PORT_PUSHBACK_BUFF_SIZE - SCM_PORT(port)->pb_used));
+}
+
+scm_local_inline size_t
+scm_port_pushback_buff_unused(ScmObj port)
+{
+  return SCM_PORT_PUSHBACK_BUFF_SIZE - SCM_PORT(port)->pb_used;
+}
+
+scm_local_func ssize_t
+scm_port_read_from_pushback_buf(ScmObj port, void *buf, size_t size)
+{
+  size_t n;
+  void *head;
+
+  scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
+  scm_assert(buf != NULL);
+  scm_assert(scm_port_readable_p(port));
+  scm_assert(!scm_port_closed_p(port));
+
+  if (SCM_PORT(port)->pb_used == 0) return 0;
+
+  n = (size < SCM_PORT(port)->pb_used) ? size : SCM_PORT(port)->pb_used;
+  head = scm_port_pushback_buff_head(port);
+  memcpy(buf, head, n);
+  SCM_PORT(port)->pb_used -= n;
+
+  return (ssize_t)n;
+}
+
+scm_local_func ssize_t
+scm_port_read_from_pushback_buf_lf(ScmObj port,
+                                   void *buf, size_t size, bool *lf_exists_p)
+{
+  size_t n;
+  ssize_t lf;
+  void *head;
+
+  scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
+  scm_assert(buf != NULL);
+  scm_assert(scm_port_readable_p(port));
+  scm_assert(!scm_port_closed_p(port));
+
+  if (SCM_PORT(port)->pb_used == 0) return 0;
+
+  n = (size < SCM_PORT(port)->pb_used) ? size : SCM_PORT(port)->pb_used;
+  head = scm_port_pushback_buff_head(port);
+
+  lf = scm_port_size_up_to_lf(port, head, n);
+  if (lf < 0) return -1;
+
+  if (lf > 0) {
+    n = (size_t)lf;
+    *lf_exists_p = true;
+  }
+  else {
+    *lf_exists_p = false;
+  }
+
+  memcpy(buf, head, n);
+  SCM_PORT(port)->pb_used -= n;
+
+  return (ssize_t)n;
+}
+
 enum { WAIT_ALL, DONT_WAIT, BREAK_LF };
 
 scm_local_func ssize_t
 scm_port_read_buf(ScmObj port, void *buf, size_t size, int mode)
 {
-  size_t p;
+  size_t nr;
   ssize_t lf;
 
   scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
@@ -650,7 +687,7 @@ scm_port_read_buf(ScmObj port, void *buf, size_t size, int mode)
   scm_assert(size <= SSIZE_MAX);
   scm_assert(SCM_PORT(port)->buffer_mode != SCM_PORT_BUF_NONE);
 
-  p = 0;
+  nr = 0;
   do {
     size_t n;
     ssize_t rslt;
@@ -661,28 +698,80 @@ scm_port_read_buf(ScmObj port, void *buf, size_t size, int mode)
       if (rslt == 0) break;
     }
 
-    n = size - p;
+    n = size - nr;
     lf = 0;
+
     if (mode == BREAK_LF) {
+      if (SCM_PORT(port)->used - SCM_PORT(port)->pos < n)
+        n = SCM_PORT(port)->used - SCM_PORT(port)->pos;
+
       lf = scm_port_size_up_to_lf(port,
                                   SCM_PORT(port)->buffer + SCM_PORT(port)->pos,
-                                  SCM_PORT(port)->used - SCM_PORT(port)->pos);
+                                  n);
       if (lf < 0) return -1;
-      if (lf > 0 && (size_t)lf < n)
-        n = (size_t)lf;
+      if (lf > 0) n = (size_t)lf;
     }
 
-    rslt = scm_port_read_from_buffer(port, (uint8_t *)buf + p, n);
+    rslt = scm_port_read_from_buffer(port, (uint8_t *)buf + nr, (size_t)n);
     if (rslt < 0) return -1; // error
-    p += (size_t)rslt;
+    nr += (size_t)rslt;
 
-    if (p >= size) break;
+    if (nr >= size) break;
 
   } while (mode == WAIT_ALL
            || (mode == DONT_WAIT && scm_port_ready_p(port))
            || (mode == BREAK_LF && lf == 0));
 
-  return (ssize_t)p;
+  return (ssize_t)nr;
+}
+
+scm_local_func ssize_t
+scm_port_read_nonbuf_lf(ScmObj port, void *buf, size_t size)
+{
+  /* provisional implementation */
+  /* 現状、ascii コードの LF 改行にしか対応していない */
+
+  char c;
+  size_t i;
+
+  scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
+  scm_assert(buf != NULL);
+  scm_assert(scm_port_readable_p(port));
+  scm_assert(!scm_port_closed_p(port));
+  scm_assert(size <= SSIZE_MAX);
+  scm_assert(SCM_PORT(port)->buffer_mode == SCM_PORT_BUF_NONE);
+
+  if (SCM_PORT(port)->eof_received_p) return 0;
+
+  for (i = 0; i < size; i++) {
+    ssize_t rslt = scm_io_read(SCM_PORT(port)->io, &c, sizeof(c));
+    if (rslt < 0) return -1;
+    if (rslt == 0) {
+      SCM_PORT(port)->eof_received_p = true;
+      break;
+    }
+
+    ((char *)buf)[i] = c;
+    if (c == '\n') return (ssize_t)i + 1;
+  }
+
+  return (ssize_t)i;
+}
+
+scm_local_func ssize_t
+scm_port_read_nonbuf(ScmObj port, void *buf, size_t size)
+{
+  scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
+  scm_assert(buf != NULL);
+  scm_assert(scm_port_readable_p(port));
+  scm_assert(!scm_port_closed_p(port));
+  scm_assert(size <= SSIZE_MAX);
+  scm_assert(SCM_PORT(port)->buffer_mode == SCM_PORT_BUF_NONE);
+
+  if (SCM_PORT(port)->eof_received_p)
+    return 0;
+
+  return scm_io_read(SCM_PORT(port)->io, buf, size);
 }
 
 scm_local_func ssize_t
@@ -738,6 +827,7 @@ scm_port_initialize(ScmObj port, ScmIO *io,
   SCM_PORT(port)->used = 0;
   SCM_PORT(port)->closed_p = false;
   SCM_PORT(port)->eof_received_p = false;
+  SCM_PORT(port)->pb_used = 0;
 
   scm_port_init_buffer(port, buf_mode); /* TODO: caller へのエラーの伝搬 */
 }
@@ -977,7 +1067,9 @@ scm_port_close(ScmObj port)
 ssize_t
 scm_port_read(ScmObj port, void *buf, size_t size)
 {
-  ssize_t ret;
+  void *bp;
+  size_t sz;
+  ssize_t ret, pb_nr;
 
   scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
   scm_assert(buf != NULL);
@@ -986,19 +1078,23 @@ scm_port_read(ScmObj port, void *buf, size_t size)
   if (!scm_port_readable_p(port)) return -1;
   if (scm_port_closed_p(port)) return -1;
 
+  pb_nr = scm_port_read_from_pushback_buf(port, buf, size);
+  if (pb_nr < 0) return -1;
+  if ((size_t)pb_nr >= size) return pb_nr;
+
+  bp = (uint8_t *)buf + pb_nr;
+  sz = size - (size_t)pb_nr;
+
   switch (SCM_PORT(port)->buffer_mode) {
   case SCM_PORT_BUF_FULL: /* fall through */
   case SCM_PORT_BUF_LINE:
-    ret = scm_port_read_buf(port, buf, size, WAIT_ALL);
+    ret = scm_port_read_buf(port, bp, sz, WAIT_ALL);
     break;
   case SCM_PORT_BUF_MODEST:
-    ret = scm_port_read_buf(port, buf, size, DONT_WAIT);
+    ret = scm_port_read_buf(port, bp, sz, DONT_WAIT);
     break;
   case SCM_PORT_BUF_NONE:
-    if (SCM_PORT(port)->eof_received_p)
-      ret = 0;
-    else
-      ret = scm_io_read(SCM_PORT(port)->io, buf, size);
+    ret = scm_port_read_nonbuf(port, bp, sz);
     break;
   case SCM_PORT_BUF_DEFAULT:    /* fall through */
   default:
@@ -1017,8 +1113,10 @@ scm_port_read_line(ScmObj port, void *buf, size_t size)
 {
   /* provitional impelmentation */
   /* 現状、ascii コードの LF 改行にしか対応していない */
-
-  ssize_t ret;
+  void *bp;
+  size_t sz;
+  ssize_t ret, pb_nr;
+  bool lf_exists_p = false;
 
   scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
   scm_assert(buf != NULL);
@@ -1027,14 +1125,21 @@ scm_port_read_line(ScmObj port, void *buf, size_t size)
   if (!scm_port_readable_p(port)) return -1;
   if (scm_port_closed_p(port)) return -1;
 
+  pb_nr = scm_port_read_from_pushback_buf_lf(port, buf, size, &lf_exists_p);
+  if (pb_nr < 0) return -1;
+  if (lf_exists_p || (size_t)pb_nr >= size) return pb_nr;
+
+  bp = (uint8_t *)buf + pb_nr;
+  sz = size - (size_t)pb_nr;
+
   switch (SCM_PORT(port)->buffer_mode) {
   case SCM_PORT_BUF_FULL: /* fall through */
   case SCM_PORT_BUF_LINE: /* fall through */
   case SCM_PORT_BUF_MODEST:
-    ret = scm_port_read_buf(port, buf, size, BREAK_LF);
+    ret = scm_port_read_buf(port, bp, sz, BREAK_LF);
     break;
   case SCM_PORT_BUF_NONE:
-    ret = scm_port_read_nonbuf_read_up_to_lf(port, buf, size);
+    ret = scm_port_read_nonbuf_lf(port, bp, sz);
     break;
   case SCM_PORT_BUF_DEFAULT:    /* fall through */
   default:
@@ -1046,6 +1151,22 @@ scm_port_read_line(ScmObj port, void *buf, size_t size)
     SCM_PORT(port)->eof_received_p = false;
 
   return ret;
+}
+
+ssize_t
+scm_port_pushback(ScmObj port, const void *buf, size_t size)
+{
+  scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
+  scm_assert(buf != NULL);
+
+  if (!scm_port_readable_p(port)) return -1;
+  if (scm_port_closed_p(port)) return -1;
+  if (size > scm_port_pushback_buff_unused(port)) return -1;
+
+  memcpy(scm_port_pushback_buff_head(port), buf, size);
+  SCM_PORT(port)->pb_used += size;
+
+  return (ssize_t)size;
 }
 
 ssize_t
