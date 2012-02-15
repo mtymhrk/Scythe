@@ -403,12 +403,13 @@ scm_stringio_write(ScmStringIO *strio, const void *buf, size_t size)
 }
 
 
-bool
+int
 scm_stringio_ready_p(ScmStringIO *strio)
 {
   assert(strio != NULL);
 
-  return (strio->pos < strio->length);
+  /* eof 相当のケースでも読取可能と返す */
+  return (strio->pos <= strio->length) ? 1 : 0;
 }
 
 off_t
@@ -1015,15 +1016,20 @@ bool
 scm_port_ready_p(ScmObj port)
 {
   scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
+  scm_assert(scm_port_readable_p(port));
 
-  if (scm_port_buffer_empty_p(port)) {
+  if (SCM_PORT(port)->pb_used > 0) {
+    return true;
+  }
+  else if (scm_port_buffer_empty_p(port)) {
     int ret = scm_io_ready_p(SCM_PORT(port)->io);
     if (ret < 0)
       ;                         /* TODO: error handling */
     return (ret == 0) ? false : true;
   }
-  else
+  else {
     return true;
+  }
 }
 
 int

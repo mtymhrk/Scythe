@@ -104,7 +104,7 @@ ScmStringIO *scm_stringio_new(const char *str, size_t len);
 void scm_stringio_end(ScmStringIO *strio);
 ssize_t scm_stringio_read(ScmStringIO *strio, void *buf, size_t size);
 ssize_t scm_stringio_write(ScmStringIO *strio, const void *buf, size_t size);
-bool scm_stringio_ready_p(ScmStringIO *strio);
+int scm_stringio_ready_p(ScmStringIO *strio);
 off_t scm_stringio_seek(ScmStringIO *strio, off_t offset, int whence);
 int scm_stringio_close(ScmStringIO *strio);
 SCM_PORT_BUF_MODE scm_stringio_default_buffer_mode(ScmStringIO *strio);
