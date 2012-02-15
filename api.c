@@ -6,6 +6,7 @@
 #include "procedure.h"
 #include "gloc.h"
 #include "pair.h"
+#include "port.h"
 #include "api.h"
 
 
@@ -129,6 +130,48 @@ scm_api_pair_P(ScmObj pair)
   return (scm_api_pair_p(pair) ?
           scm_vm_bool_true_instance() : scm_vm_bool_false_instance());
 }
+
+
+/*******************************************************************/
+/*  Port                                                           */
+/*******************************************************************/
+
+extern inline ScmObj
+scm_api_open_input_fd_port(int fd) /* TODO: バッファ種別を指定できるようにする*/
+{
+  if (fd < 0) return SCM_OBJ_NULL; /* provisional implemntation */
+  return scm_port_open_input_fd(fd, SCM_PORT_BUF_DEFAULT);
+}
+
+extern inline ScmObj
+scm_api_open_output_fd_port(int fd)/* TODO: バッファ種別を指定できるようにする*/
+{
+  if (fd < 0) return SCM_OBJ_NULL; /* provisional implemntation */
+  return scm_port_open_output_fd(fd, SCM_PORT_BUF_DEFAULT);
+}
+
+extern inline int
+scm_api_close_input_port(ScmObj port)
+{
+  if (scm_obj_null_p(port)
+      || scm_obj_type_p(port, &SCM_PORT_TYPE_INFO)
+      || !scm_port_readable_p(port))
+    return SCM_OBJ_NULL;         /* provisional implemntation */
+
+  return scm_port_close(port);
+}
+
+extern inline int
+scm_api_close_output_port(ScmObj port)
+{
+  if (scm_obj_null_p(port)
+      || scm_obj_type_p(port, &SCM_PORT_TYPE_INFO)
+      || !scm_port_writable_p(port))
+    return SCM_OBJ_NULL;         /* provisional implemntation */
+
+  return scm_port_close(port);
+}
+
 
 /*******************************************************************/
 /*  Subrutine                                                      */

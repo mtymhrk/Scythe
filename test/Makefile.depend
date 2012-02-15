@@ -42,7 +42,8 @@ chashtbl.o: ../chashtbl.c ../object.h ../memory.h ../basichash.h \
  ../impl_utils.h ../reference.h ../chashtbl.h
 api.o: ../api.c ../object.h ../memory.h ../basichash.h ../impl_utils.h \
  ../vm.h ../reference.h ../instractions.h ../string.h ../encoding.h \
- ../symbol.h ../chashtbl.h ../procedure.h ../gloc.h ../pair.h ../api.h
+ ../symbol.h ../chashtbl.h ../procedure.h ../gloc.h ../pair.h ../port.h \
+ ../api.h
 gloc.o: ../gloc.c ../object.h ../memory.h ../basichash.h ../impl_utils.h \
  ../vm.h ../reference.h ../instractions.h ../symbol.h ../chashtbl.h \
  ../gloc.h

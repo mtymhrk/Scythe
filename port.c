@@ -785,6 +785,37 @@ scm_port_open_output(ScmIO *io, SCM_PORT_ATTR attr, SCM_PORT_BUF_MODE buf_mode)
 }
 
 ScmObj
+scm_port_open_input_fd(int fd,  SCM_PORT_BUF_MODE buf_mode)
+{
+  ScmIO *io;
+
+  scm_assert(fd >= 0);
+
+  io = (ScmIO *)scm_fileio_new(fd);
+  if (io == NULL) return SCM_OBJ_NULL;
+
+  return scm_port_open_input(io,
+                             SCM_PORT_ATTR_FILE,
+                             buf_mode);
+}
+
+ScmObj
+scm_port_open_output_fd(int fd, SCM_PORT_BUF_MODE buf_mode)
+{
+  ScmIO *io;
+
+  scm_assert(fd >= 0);
+
+  io = (ScmIO *)scm_fileio_new(fd);
+  if (io == NULL) return SCM_OBJ_NULL;
+
+  return scm_port_open_output(io,
+                              SCM_PORT_ATTR_FILE,
+                              buf_mode);
+}
+
+
+ScmObj
 scm_port_open_input_file(const char *path, SCM_PORT_BUF_MODE buf_mode)
 {
   ScmIO *io;

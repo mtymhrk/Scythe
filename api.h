@@ -39,6 +39,16 @@ ScmObj scm_api_cdr(ScmObj pair);
 bool scm_api_pair_p(ScmObj pair);
 ScmObj scm_api_pair_P(ScmObj pair);
 
+
+/*******************************************************************/
+/*  Port                                                           */
+/*******************************************************************/
+
+ScmObj scm_api_open_input_fd_port(int fd);
+ScmObj scm_api_open_output_fd_port(int fd);
+int scm_api_close_input_port(ScmObj port);
+int scm_api_close_output_port(ScmObj port);
+
 /*******************************************************************/
 /*  Subrutine                                                      */
 /*******************************************************************/

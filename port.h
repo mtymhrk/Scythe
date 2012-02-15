@@ -156,6 +156,8 @@ ScmObj scm_port_open_input(ScmIO *io,
                            SCM_PORT_ATTR attr, SCM_PORT_BUF_MODE buf_mode);
 ScmObj scm_port_open_output(ScmIO *io,
                             SCM_PORT_ATTR attr, SCM_PORT_BUF_MODE buf_mode);
+ScmObj scm_port_open_input_fd(int fd,  SCM_PORT_BUF_MODE buf_mode);
+ScmObj scm_port_open_output_fd(int fd, SCM_PORT_BUF_MODE buf_mode);
 ScmObj scm_port_open_input_file(const char *path,
                                 SCM_PORT_BUF_MODE buf_mode);
 ScmObj scm_port_open_output_file(const char *path,
