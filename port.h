@@ -134,12 +134,15 @@ struct ScmPortRec {
 
 int scm_port_init_buffer(ScmObj port, SCM_PORT_BUF_MODE buf_mode);
 bool scm_port_buffer_empty_p(ScmObj port);
+ssize_t scm_port_read_nonbuf_read_up_to_lf(ScmObj port,
+                                           void *buf, size_t size);
 ssize_t scm_port_read_from_buffer(ScmObj port, void *buf, size_t size);
 ssize_t scm_port_read_into_buffer(ScmObj port);
+ssize_t scm_port_size_up_to_lf(ScmObj port, const void *buf, size_t size);
 ssize_t scm_port_read_buf(ScmObj port,
-                          void *buf, size_t size, bool wait_all);
-ssize_t scm_port_write_buf_full(ScmObj port,
-                                const void *buf, size_t size);
+                          void *buf, size_t size, int mode);
+ssize_t scm_port_write_buf(ScmObj port,
+                           const void *buf, size_t size);
 
 #endif
 
@@ -168,6 +171,7 @@ bool scm_port_ready_p(ScmObj port);
 int scm_port_flush(ScmObj port);
 int scm_port_close(ScmObj port);
 ssize_t scm_port_read(ScmObj port, void *buf, size_t size);
+ssize_t scm_port_read_line(ScmObj port, void *buf, size_t size);
 ssize_t scm_port_write(ScmObj port, const void *buf, size_t size);
 int scm_port_seek(ScmObj port, off_t offset, int whence);
 void *scm_port_string_buffer(ScmObj port);

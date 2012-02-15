@@ -678,3 +678,164 @@ test_scm_port_close_output_port(void)
   cut_assert_equal_int(-1, scm_port_write(port, &data, sizeof(data)));
   cut_assert_equal_int(-1, scm_port_seek(port, 0, SEEK_SET));
 }
+
+void
+xxx_test_scm_port_read_line__read_up_to_lf(ScmObj port)
+{
+  const char *expected1 = "hello, world\n";
+  const char *expected2 = "hello, world!";
+  char actual1[256];
+  ssize_t actual1_len;
+  char actual2[256];
+  ssize_t actual2_len;
+  char actual3[256];
+  ssize_t actual3_len;
+
+
+  /* 改行まで読み込み */
+  actual1_len = scm_port_read_line(port, actual1, sizeof(actual1));
+
+  cut_assert_equal_int((int)strlen(expected1), (int)actual1_len);
+  actual1[actual1_len] = '\0';
+  cut_assert_equal_string(expected1, actual1);
+
+  /* 改行以降を読み込み */
+  actual2_len = scm_port_read_line(port, actual2, sizeof(actual2));
+
+  cut_assert_equal_int((int)strlen(expected2), (int)actual2_len);
+  actual2[actual2_len] = '\0';
+  cut_assert_equal_string(expected2, actual2);
+
+
+  /* EOF に到達 */
+  actual3_len = scm_port_read_line(port, actual3, sizeof(actual3));
+
+  cut_assert_equal_int(0, (int)actual3_len);
+}
+
+void
+test_scm_port_read_line__read_up_to_lf__full_buffer(void)
+{
+  ScmObj port = SCM_OBJ_INIT;
+
+  SCM_SETQ(port, scm_port_open_input_file(TEST_TEXT_FILE,
+                                          SCM_PORT_BUF_FULL));
+  xxx_test_scm_port_read_line__read_up_to_lf(port);
+}
+
+void
+test_scm_port_read_line__read_up_to_lf__line_buffer(void)
+{
+  ScmObj port = SCM_OBJ_INIT;
+
+  SCM_SETQ(port, scm_port_open_input_file(TEST_TEXT_FILE,
+                                          SCM_PORT_BUF_LINE));
+  xxx_test_scm_port_read_line__read_up_to_lf(port);
+}
+
+void
+test_scm_port_read_line__read_up_to_lf__modest_buffer(void)
+{
+  ScmObj port = SCM_OBJ_INIT;
+
+  SCM_SETQ(port, scm_port_open_input_file(TEST_TEXT_FILE,
+                                          SCM_PORT_BUF_MODEST));
+  xxx_test_scm_port_read_line__read_up_to_lf(port);
+}
+
+void
+test_scm_port_read_line__read_up_to_lf__none_buffer(void)
+{
+  ScmObj port = SCM_OBJ_INIT;
+
+  SCM_SETQ(port, scm_port_open_input_file(TEST_TEXT_FILE,
+                                          SCM_PORT_BUF_NONE));
+  xxx_test_scm_port_read_line__read_up_to_lf(port);
+}
+
+void
+xxx_test_scm_port_read_line__read_up_to_buf_filled(ScmObj port)
+{
+  const char expected1[] = "hello";
+  const char expected2[] = ", world\n";
+  char actual1[sizeof(expected1)];
+  ssize_t actual1_len;
+  char actual2[256];
+  ssize_t actual2_len;
+
+  /* actual1 が一杯になるまで読み込み */
+  actual1_len = scm_port_read_line(port, actual1, sizeof(actual1) - 1);
+
+  cut_assert_equal_int((int)strlen(expected1), (int)actual1_len);
+  actual1[actual1_len] = '\0';
+  cut_assert_equal_string(expected1, actual1);
+
+  /* 改行までを読み込み */
+  actual2_len = scm_port_read_line(port, actual2, sizeof(actual2));
+
+  cut_assert_equal_int((int)strlen(expected2), (int)actual2_len);
+  actual2[actual2_len] = '\0';
+  cut_assert_equal_string(expected2, actual2);
+}
+
+void
+test_scm_port_read_line__read_up_to_buf_filled__full_buffer(void)
+{
+  ScmObj port = SCM_OBJ_INIT;
+
+  SCM_SETQ(port, scm_port_open_input_file(TEST_TEXT_FILE,
+                                          SCM_PORT_BUF_FULL));
+  xxx_test_scm_port_read_line__read_up_to_buf_filled(port);
+}
+
+void
+test_scm_port_read_line__read_up_to_buf_filled__line_buffer(void)
+{
+  ScmObj port = SCM_OBJ_INIT;
+
+  SCM_SETQ(port, scm_port_open_input_file(TEST_TEXT_FILE,
+                                          SCM_PORT_BUF_LINE));
+  xxx_test_scm_port_read_line__read_up_to_buf_filled(port);
+}
+
+void
+test_scm_port_read_line__read_up_to_buf_filled__modest_buffer(void)
+{
+  ScmObj port = SCM_OBJ_INIT;
+
+  SCM_SETQ(port, scm_port_open_input_file(TEST_TEXT_FILE,
+                                          SCM_PORT_BUF_MODEST));
+  xxx_test_scm_port_read_line__read_up_to_buf_filled(port);
+}
+
+void
+test_scm_port_read_line__read_up_to_buf_filled__none_buffer(void)
+{
+  ScmObj port = SCM_OBJ_INIT;
+
+  SCM_SETQ(port, scm_port_open_input_file(TEST_TEXT_FILE,
+                                          SCM_PORT_BUF_NONE));
+  xxx_test_scm_port_read_line__read_up_to_buf_filled(port);
+}
+
+void
+test_scm_port_write__line_buffer_should_flushed_up_to_lf(void)
+{
+  ScmObj port = SCM_OBJ_INIT;
+
+  SCM_SETQ(port, scm_port_open_output_file(TEST_OUTPUT_FILE,
+                                           SCM_PORT_BUF_LINE));
+
+  scm_port_write(port,
+                 TEST_TEXT_FILE_CONTENTS, sizeof(TEST_TEXT_FILE_CONTENTS) - 1);
+
+  cut_assert_true(is_file_contents_same(TEST_OUTPUT_FILE,
+                                        "hello, world\n",
+                                        sizeof("hello, world\n") - 1));
+
+  scm_port_close(port);
+
+  cut_assert_true(is_file_contents_same(TEST_OUTPUT_FILE,
+                                        TEST_TEXT_FILE_CONTENTS,
+                                        sizeof(TEST_TEXT_FILE_CONTENTS) - 1));
+}
