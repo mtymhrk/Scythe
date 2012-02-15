@@ -128,6 +128,7 @@ struct ScmPortRec {
   size_t pos;
   size_t used;
   bool closed_p;
+  bool eof_received_p;
 };
 
 #ifdef SCM_UNIT_TEST
