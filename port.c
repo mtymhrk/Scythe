@@ -589,7 +589,7 @@ scm_port_read_buf(ScmObj port, void *buf, size_t size, bool wait_all)
   scm_assert(scm_port_readable_p(port));
   scm_assert(!scm_port_closed_p(port));
   scm_assert(size <= SSIZE_MAX);
-  assert(SCM_PORT(port)->buffer_mode != SCM_PORT_BUF_NONE);
+  scm_assert(SCM_PORT(port)->buffer_mode != SCM_PORT_BUF_NONE);
 
   p = 0;
   do {
