@@ -1022,10 +1022,15 @@ scm_port_ready_p(ScmObj port)
     return true;
   }
   else if (scm_port_buffer_empty_p(port)) {
-    int ret = scm_io_ready_p(SCM_PORT(port)->io);
-    if (ret < 0)
-      ;                         /* TODO: error handling */
-    return (ret == 0) ? false : true;
+    if (SCM_PORT(port)->eof_received_p) {
+      return true;
+    }
+    else {
+      int ret = scm_io_ready_p(SCM_PORT(port)->io);
+      if (ret < 0)
+        ;                         /* TODO: error handling */
+      return (ret == 0) ? false : true;
+    }
   }
   else {
     return true;
