@@ -1116,7 +1116,7 @@ scm_port_read(ScmObj port, void *buf, size_t size)
   if (ret == 0)
     SCM_PORT(port)->eof_received_p = false;
 
-  return ret;
+  return (ret < 0) ? ret : ret + pb_nr;
 }
 
 ssize_t
@@ -1161,7 +1161,7 @@ scm_port_read_line(ScmObj port, void *buf, size_t size)
   if (ret == 0)
     SCM_PORT(port)->eof_received_p = false;
 
-  return ret;
+  return (ret < 0) ? ret : ret + pb_nr;
 }
 
 ssize_t
@@ -1174,7 +1174,7 @@ scm_port_pushback(ScmObj port, const void *buf, size_t size)
   if (scm_port_closed_p(port)) return -1;
   if (size > scm_port_pushback_buff_unused(port)) return -1;
 
-  memcpy(scm_port_pushback_buff_head(port), buf, size);
+  memcpy(scm_port_pushback_buff_head(port) - size, buf, size);
   SCM_PORT(port)->pb_used += size;
 
   return (ssize_t)size;
