@@ -243,6 +243,18 @@ scm_capi_unread_raw(ScmObj port, void *buf, size_t size)
   return scm_port_pushback(port, buf, size);
 }
 
+extern inline ssize_t
+scm_capi_peek_raw(ScmObj port, void *buf, size_t size)
+{
+  if (scm_obj_null_p(port)
+      || scm_capi_input_port_p(port)
+      || buf == NULL
+      || size < SSIZE_MAX)
+    return SCM_OBJ_NULL;         /* provisional implemntation */
+
+  return scm_port_peek(port, buf, size);
+}
+
 /*******************************************************************/
 /*  Subrutine                                                      */
 /*******************************************************************/

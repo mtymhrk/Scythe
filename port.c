@@ -776,6 +776,48 @@ scm_port_read_nonbuf(ScmObj port, void *buf, size_t size)
 }
 
 scm_local_func ssize_t
+scm_port_read_into_pushback_buf(ScmObj port, size_t size)
+{
+  ssize_t ret;
+  uint8_t buf[SCM_PORT_PUSHBACK_BUFF_SIZE];
+
+  scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
+  scm_assert(scm_port_readable_p(port));
+  scm_assert(!scm_port_closed_p(port));
+  scm_assert(size <= scm_port_pushback_buff_unused(port));
+
+  memcpy(buf, scm_port_pushback_buff_head(port), SCM_PORT(port)->pb_used);
+
+  switch (SCM_PORT(port)->buffer_mode) {
+  case SCM_PORT_BUF_FULL: /* fall through */
+  case SCM_PORT_BUF_LINE:
+    ret = scm_port_read_buf(port,
+                            buf + SCM_PORT(port)->pb_used, size, WAIT_ALL);
+    break;
+  case SCM_PORT_BUF_MODEST:
+    ret = scm_port_read_buf(port,
+                            buf + SCM_PORT(port)->pb_used, size, DONT_WAIT);
+    break;
+  case SCM_PORT_BUF_NONE:
+    ret = scm_port_read_nonbuf(port,
+                               buf + SCM_PORT(port)->pb_used, size);
+    break;
+  case SCM_PORT_BUF_DEFAULT:    /* fall through */
+  default:
+    ret = -1; /* must not happen */
+    break;
+  }
+
+  if (ret < 0 || ret == 0) return ret;
+
+  memcpy(scm_port_pushback_buff_head(port) - (size_t)ret,
+         buf, SCM_PORT(port)->pb_used + (size_t)ret);
+  SCM_PORT(port)->pb_used += (size_t)ret;
+
+  return 0;
+}
+
+scm_local_func ssize_t
 scm_port_write_buf(ScmObj port, const void *buf, size_t size)
 {
   size_t i, n;
@@ -1178,6 +1220,31 @@ scm_port_pushback(ScmObj port, const void *buf, size_t size)
   SCM_PORT(port)->pb_used += size;
 
   return (ssize_t)size;
+}
+
+ssize_t
+scm_port_peek(ScmObj port, void *buf, size_t size)
+{
+  size_t npeek;
+
+  scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
+  scm_assert(buf != NULL);
+
+  if (!scm_port_readable_p(port)) return -1;
+  if (scm_port_closed_p(port)) return -1;
+  if (size > SCM_PORT_PUSHBACK_BUFF_SIZE) return -1;
+
+  if (size > SCM_PORT(port)->pb_used) {
+    ssize_t ret =
+      scm_port_read_into_pushback_buf(port, size - SCM_PORT(port)->pb_used);
+    if (ret < 0) return -1;
+  }
+
+  npeek = (size < SCM_PORT(port)->pb_used) ? size : SCM_PORT(port)->pb_used;
+
+  memcpy(buf, scm_port_pushback_buff_head(port), npeek);
+
+  return (ssize_t)npeek;
 }
 
 ssize_t

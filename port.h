@@ -152,6 +152,7 @@ ssize_t scm_port_read_buf(ScmObj port,
                           void *buf, size_t size, int mode);
 ssize_t scm_port_read_nonbuf_lf(ScmObj port, void *buf, size_t size);
 ssize_t scm_port_read_nonbuf(ScmObj port, void *buf, size_t size);
+ssize_t scm_port_read_into_pushback_buf(ScmObj port, size_t size);
 ssize_t scm_port_write_buf(ScmObj port,
                            const void *buf, size_t size);
 
@@ -186,6 +187,7 @@ int scm_port_close(ScmObj port);
 ssize_t scm_port_read(ScmObj port, void *buf, size_t size);
 ssize_t scm_port_read_line(ScmObj port, void *buf, size_t size);
 ssize_t scm_port_pushback(ScmObj port, const void *buf, size_t size);
+ssize_t scm_port_peek(ScmObj port, void *buf, size_t size);
 ssize_t scm_port_write(ScmObj port, const void *buf, size_t size);
 int scm_port_seek(ScmObj port, off_t offset, int whence);
 void *scm_port_string_buffer(ScmObj port);

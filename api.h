@@ -55,6 +55,7 @@ int scm_api_close_input_port(ScmObj port);
 int scm_api_close_output_port(ScmObj port);
 ssize_t scm_capi_read_raw(ScmObj port, void *buf, size_t size);
 ssize_t scm_capi_unread_raw(ScmObj port, void *buf, size_t size);
+ssize_t scm_capi_peek_raw(ScmObj port, void *buf, size_t size);
 
 /*******************************************************************/
 /*  Subrutine                                                      */
