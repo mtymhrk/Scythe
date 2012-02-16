@@ -403,7 +403,7 @@ scm_enc_is_space_ucs4(scm_char_t c)
 }
 
 /***********************************************************************/
-/*   EUC-JP                                                             */
+/*   EUC-JP-JIS-2004                                                   */
 /***********************************************************************/
 
 /* XXX: inexact? */
@@ -413,10 +413,10 @@ scm_enc_is_space_ucs4(scm_char_t c)
 #define IS_EUC_JP_SS3(byte) ((byte) == 0x8f)
 #define IS_VALID_EUC_JP_JIS_X_0201(euc)                                 \
   (IS_EUC_JP_SS2(euc[0]) && (0xa1 <= (euc)[1] && (euc)[1] <= 0xdf))
-#define IS_VALID_EUC_JP_JIS_X_0208(euc)         \
+#define IS_VALID_EUC_JP_JIS_X_0213_1(euc)         \
   ((0xa1 <= (euc)[0] && (euc)[0] <= 0xfe)       \
    && (0xa1 <= (euc)[1] && (euc)[1] <= 0xfe))
-#define IS_VALID_EUC_JP_JIS_X_0212(euc)         \
+#define IS_VALID_EUC_JP_JIS_X_0213_2(euc)         \
   (IS_EUC_JP_SS3(euc[0])                        \
    && (0xa1 <= (euc)[1] && (euc)[1] <= 0xfe)    \
    && (0xa1 <= (euc)[2] && (euc)[2] <= 0xfe))
@@ -436,11 +436,11 @@ scm_enc_char_width_eucjp(const void *str, size_t len)
     if (len < 2 || !IS_VALID_EUC_JP_JIS_X_0201(euc)) return -1;
     return 2;
   }
-  else if (len >= 2 && IS_VALID_EUC_JP_JIS_X_0208(euc)) {
+  else if (len >= 2 && IS_VALID_EUC_JP_JIS_X_0213_1(euc)) {
     return 2;
   }
   else if (IS_EUC_JP_SS3(euc[0])) {
-    if (len < 3 || !IS_VALID_EUC_JP_JIS_X_0212(euc)) return -1;
+    if (len < 3 || !IS_VALID_EUC_JP_JIS_X_0213_2(euc)) return -1;
     return 3;
   }
   else {
