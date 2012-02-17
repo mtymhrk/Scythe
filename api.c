@@ -8,8 +8,11 @@
 #include "symbol.h"
 #include "procedure.h"
 #include "gloc.h"
+#include "numeric.h"
 #include "pair.h"
+#include "vector.h"
 #include "port.h"
+
 #include "api.h"
 
 
@@ -20,6 +23,12 @@
 /* 述語関数について、C の bool 方を返すものは _p を関数名の後ろに付与する。
  * Scheme の #t/#f を返すものは _P を関数名の後ろに付与する。
  */
+
+extern inline bool
+scm_capi_null_value_p(ScmObj obj)
+{
+  return scm_obj_null_p(obj);
+}
 
 extern inline bool
 scm_capi_eq_p(ScmObj obj1, ScmObj obj2)
@@ -39,50 +48,41 @@ scm_api_eq_P(ScmObj obj1, ScmObj obj2)
 
 
 /*******************************************************************/
-/*  String                                                         */
+/*  nil                                                            */
 /*******************************************************************/
 
 extern inline ScmObj
-scm_api_make_string_ascii(const char *str)
+scm_api_nil(void)
 {
-  if (str == NULL)
-    return SCM_OBJ_NULL;         /* provisional implemntation */
-
-  return scm_string_new(SCM_MEM_ALLOC_HEAP,
-                        str, strlen(str), SCM_ENCODING_ASCII);
+  return scm_vm_nil_instance();
 }
 
 
 /*******************************************************************/
-/*  Symbol                                                         */
+/*  boolean                                                        */
 /*******************************************************************/
 
 extern inline ScmObj
-scm_api_symbol_to_string(ScmObj sym)
+scm_api_bool_true(void)
 {
-  if (scm_obj_null_p(sym) || !scm_obj_type_p(sym, &SCM_SYMBOL_TYPE_INFO))
-    /* TODO: ランタイムエラーをどう処理するか。*/
-    return SCM_OBJ_NULL;        /* provisional implemntation */
-
-  return SCM_SYMBOL_STR(sym);
+  return scm_vm_nil_instance();
 }
 
 extern inline ScmObj
-scm_api_string_to_symbol(ScmObj str)
+scm_api_bool_false(void)
 {
-  if (scm_obj_null_p(str) || !scm_obj_type_p(str, &SCM_STRING_TYPE_INFO))
-    return SCM_OBJ_NULL;         /* provisional implemntation */
-
-  return scm_symtbl_symbol(scm_vm_current_symtbl(), str);
+  return scm_vm_nil_instance();
 }
 
-extern inline ScmObj
-scm_api_make_symbol_ascii(const char *str)
-{
-  if (str == NULL)
-    return SCM_OBJ_NULL;        /* provisional implemntation */
 
-  return scm_api_string_to_symbol(scm_api_make_string_ascii(str));
+/*******************************************************************/
+/*  eof                                                           */
+/*******************************************************************/
+
+extern inline ScmObj
+scm_api_eof(void)
+{
+  return scm_vm_eof_instance();
 }
 
 
@@ -118,7 +118,7 @@ scm_api_cdr(ScmObj pair)
 }
 
 extern inline bool
-scm_api_pair_p(ScmObj pair)
+scm_capi_pair_p(ScmObj pair)
 {
   if (scm_obj_null_p(pair)) return false;
   return (scm_obj_type_p(pair, &SCM_PAIR_TYPE_INFO) ? true : false);
@@ -130,8 +130,143 @@ scm_api_pair_P(ScmObj pair)
   if (scm_obj_null_p(pair))
     return SCM_OBJ_NULL;         /* provisional implemntation */
 
-  return (scm_api_pair_p(pair) ?
+  return (scm_capi_pair_p(pair) ?
           scm_vm_bool_true_instance() : scm_vm_bool_false_instance());
+}
+
+
+/*******************************************************************/
+/*  numeric                                                        */
+/*******************************************************************/
+
+int
+scm_capi_perse_numric_literal(const void *data,
+                              size_t size/*, struct liteinfo *rslt*/)
+                              /* struct liteinfo は仮の構造体名 */
+{
+  /* TODO: write me */
+  return -1;
+}
+
+ScmObj
+scm_api_make_numeric(/* struct liteinfo *rslt */)
+                     /* struct liteinfo は仮の構造体名 */
+
+{
+  /* TODO: write me */
+  return SCM_OBJ_NULL;
+}
+
+/* XXX; 一時的な API
+ * scm_capi_perse_numric_literal と scm_api_make_numeric が実装され
+ * れば廃止する。
+ */
+extern inline ScmObj
+scm_capi_make_fixnum(scm_sword_t num)
+{
+  if (num < SCM_FIXNUM_MIN || SCM_FIXNUM_MAX < num)
+    return SCM_OBJ_NULL;
+
+  return scm_fixnum_new(num);
+}
+
+
+/*******************************************************************/
+/*  String                                                         */
+/*******************************************************************/
+
+extern inline ScmObj
+scm_capi_make_string_from_cstr(const char *str)
+{
+  if (str == NULL)
+    return SCM_OBJ_NULL;         /* provisional implemntation */
+
+  return scm_string_new(SCM_MEM_ALLOC_HEAP,
+                        str, strlen(str), SCM_ENCODING_ASCII);
+}
+
+extern inline ScmObj
+scm_capi_make_string_from_bin(const void *data, size_t size)
+{
+  if (data == NULL)
+    return SCM_OBJ_NULL;
+
+  return scm_string_new(SCM_MEM_ALLOC_HEAP,
+                        data, size, SCM_ENCODING_ASCII);
+}
+
+
+/*******************************************************************/
+/*  Vector                                                         */
+/*******************************************************************/
+
+extern inline ScmObj
+scm_capi_make_vector(size_t len)
+{
+  return scm_vector_new(SCM_MEM_ALLOC_HEAP, len, scm_api_nil());
+}
+
+extern inline ScmObj
+scm_capi_make_vector_fill(size_t len, ScmObj fill)
+{
+  if (scm_obj_null_p(fill))
+    return SCM_OBJ_NULL;         /* provisional implemntation */
+
+  return scm_vector_new(SCM_MEM_ALLOC_HEAP, len, fill);
+}
+
+extern inline ScmObj
+scm_capi_vector_set(ScmObj vec, size_t idx, ScmObj obj)
+{
+  if (scm_obj_null_p(vec)
+      || !scm_obj_type_p(vec, &SCM_VECTOR_TYPE_INFO)
+      || idx >= scm_vector_length(vec)
+      || scm_obj_null_p(obj))
+    return SCM_OBJ_NULL;         /* provisional implemntation */
+
+  return scm_vector_set(vec, idx, obj);
+}
+
+
+/*******************************************************************/
+/*  Symbol                                                         */
+/*******************************************************************/
+
+extern inline ScmObj
+scm_api_symbol_to_string(ScmObj sym)
+{
+  if (scm_obj_null_p(sym) || !scm_obj_type_p(sym, &SCM_SYMBOL_TYPE_INFO))
+    /* TODO: ランタイムエラーをどう処理するか。*/
+    return SCM_OBJ_NULL;        /* provisional implemntation */
+
+  return SCM_SYMBOL_STR(sym);
+}
+
+extern inline ScmObj
+scm_api_string_to_symbol(ScmObj str)
+{
+  if (scm_obj_null_p(str) || !scm_obj_type_p(str, &SCM_STRING_TYPE_INFO))
+    return SCM_OBJ_NULL;         /* provisional implemntation */
+
+  return scm_symtbl_symbol(scm_vm_current_symtbl(), str);
+}
+
+extern inline ScmObj
+scm_capi_make_symbol_from_cstr(const char *str)
+{
+  if (str == NULL)
+    return SCM_OBJ_NULL;        /* provisional implemntation */
+
+  return scm_api_string_to_symbol(scm_capi_make_string_from_cstr(str));
+}
+
+extern inline ScmObj
+scm_capi_make_symbol_from_bin(const void *data, size_t size)
+{
+  if (data == NULL)
+    return SCM_OBJ_NULL;        /* provisional implemntation */
+
+  return scm_api_string_to_symbol(scm_capi_make_string_from_bin(data, size));
 }
 
 
@@ -260,7 +395,7 @@ scm_capi_peek_raw(ScmObj port, void *buf, size_t size)
 /*******************************************************************/
 
 extern inline ScmObj
-scm_api_make_subrutine(ScmSubrFunc func)
+scm_capi_make_subrutine(ScmSubrFunc func)
 {
   if (func == NULL)
     return SCM_OBJ_NULL;         /* provisional implemntation */
@@ -294,8 +429,8 @@ scm_api_global_var_ref(ScmObj sym)
   return (scm_obj_null_p(gloc) ?  SCM_OBJ_NULL : scm_gloc_value(gloc));
 }
 
-ScmObj
-scm_api_global_var_bound_p(ScmObj sym)
+extern inline bool
+scm_capi_global_var_bound_p(ScmObj sym)
 {
   ScmObj o = SCM_OBJ_INIT;
 
@@ -306,8 +441,14 @@ scm_api_global_var_bound_p(ScmObj sym)
 
   SCM_SETQ(o, scm_api_global_var_ref(sym));
 
-  return (scm_obj_null_p(o) ?
-          scm_vm_bool_false_instance() : scm_vm_bool_true_instance());
+  return scm_obj_null_p(o) ? false : true;
+}
+
+ScmObj
+scm_api_global_var_bound_P(ScmObj sym)
+{
+  return (scm_capi_global_var_bound_p(sym) ?
+          scm_api_bool_true() : scm_api_bool_false());
 }
 
 ScmObj
@@ -344,7 +485,7 @@ scm_api_global_var_set(ScmObj sym, ScmObj val)
     return SCM_OBJ_NULL;         /* provisional implemntation */
 
   /* 未束縛変数の参照の場合は SCM_OBJ_NULL を返す */
-  if (scm_obj_same_instance_p(scm_api_global_var_bound_p(sym),
+  if (scm_obj_same_instance_p(scm_api_global_var_bound_P(sym),
                                scm_vm_bool_false_instance()))
     return SCM_OBJ_NULL;
 
@@ -363,7 +504,7 @@ scm_api_global_var_set(ScmObj sym, ScmObj val)
 /*******************************************************************/
 
 extern inline int
-scm_api_get_nr_func_arg(void)
+scm_capi_get_nr_func_arg(void)
 {
   /* 2012.02.07: 今のところスタックフレームが全く無い状態でこの api を
      呼ばれると assertion に引っ掛って落ちる */
@@ -371,7 +512,7 @@ scm_api_get_nr_func_arg(void)
 }
 
 extern inline ScmObj
-scm_api_get_func_arg(int nth)
+scm_capi_get_func_arg(int nth)
 {
   if (nth >= scm_vm_nr_local_var(scm_vm_current_vm()))
     return SCM_OBJ_NULL;                  /* provisional implemntation */

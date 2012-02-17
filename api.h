@@ -10,24 +10,32 @@
 /*  Predicate                                                      */
 /*******************************************************************/
 
+bool scm_capi_null_value_p(ScmObj obj);
 bool scm_capi_eq_p(ScmObj obj1, ScmObj obj2);
 ScmObj scm_api_eq_P(ScmObj obj1, ScmObj obj2);
 
 
 /*******************************************************************/
-/*  String                                                         */
+/*  nil                                                            */
 /*******************************************************************/
 
-ScmObj scm_api_make_string_ascii(const char *str);
+ScmObj scm_api_nil(void);
 
 
 /*******************************************************************/
-/*  Symbol                                                         */
+/*  boolean                                                        */
 /*******************************************************************/
 
-ScmObj scm_api_make_symbol_ascii(const char *str);
-ScmObj scm_api_symbol_to_string(ScmObj sym);
-ScmObj scm_api_string_to_symbol(ScmObj str);
+
+ScmObj scm_api_bool_true(void);
+ScmObj scm_api_bool_false(void);
+
+
+/*******************************************************************/
+/*  eof                                                           */
+/*******************************************************************/
+
+ScmObj scm_api_eof(void);
 
 
 /*******************************************************************/
@@ -37,8 +45,42 @@ ScmObj scm_api_string_to_symbol(ScmObj str);
 ScmObj scm_api_cons(ScmObj car, ScmObj cdr);
 ScmObj scm_api_car(ScmObj pair);
 ScmObj scm_api_cdr(ScmObj pair);
-bool scm_api_pair_p(ScmObj pair);
+bool scm_capi_pair_p(ScmObj pair);
 ScmObj scm_api_pair_P(ScmObj pair);
+
+
+/*******************************************************************/
+/*  numeric                                                        */
+/*******************************************************************/
+
+ScmObj scm_capi_make_fixnum(scm_sword_t num);
+
+
+/*******************************************************************/
+/*  String                                                         */
+/*******************************************************************/
+
+ScmObj scm_capi_make_string_from_cstr(const char *str);
+ScmObj scm_capi_make_string_from_bin(const void *data, size_t size);
+
+
+/*******************************************************************/
+/*  Vector                                                         */
+/*******************************************************************/
+
+ScmObj scm_capi_make_vector(size_t len);
+ScmObj scm_capi_make_vector_fill(size_t len, ScmObj fill);
+ScmObj scm_capi_vector_set(ScmObj vec, size_t idx, ScmObj obj);
+
+
+/*******************************************************************/
+/*  Symbol                                                         */
+/*******************************************************************/
+
+ScmObj scm_capi_make_symbol_from_cstr(const char *str);
+ScmObj scm_capi_make_symbol_from_bin(const void *data, size_t size);
+ScmObj scm_api_symbol_to_string(ScmObj sym);
+ScmObj scm_api_string_to_symbol(ScmObj str);
 
 
 /*******************************************************************/
@@ -57,11 +99,12 @@ ssize_t scm_capi_read_raw(ScmObj port, void *buf, size_t size);
 ssize_t scm_capi_unread_raw(ScmObj port, void *buf, size_t size);
 ssize_t scm_capi_peek_raw(ScmObj port, void *buf, size_t size);
 
+
 /*******************************************************************/
 /*  Subrutine                                                      */
 /*******************************************************************/
 
-ScmObj scm_api_make_subrutine(ScmSubrFunc func);
+ScmObj scm_capi_make_subrutine(ScmSubrFunc func);
 
 
 /*******************************************************************/
@@ -69,7 +112,8 @@ ScmObj scm_api_make_subrutine(ScmSubrFunc func);
 /*******************************************************************/
 
 ScmObj scm_api_global_var_ref(ScmObj sym);
-ScmObj scm_api_global_var_bound_p(ScmObj sym);
+bool scm_capi_global_var_bound_p(ScmObj sym);
+ScmObj scm_api_global_var_bound_P(ScmObj sym);
 ScmObj scm_api_global_var_define(ScmObj sym, ScmObj val);
 ScmObj scm_api_global_var_set(ScmObj sym, ScmObj val);
 
@@ -78,7 +122,7 @@ ScmObj scm_api_global_var_set(ScmObj sym, ScmObj val);
 /*  Access to Argument of Function                                 */
 /*******************************************************************/
 
-int scm_api_get_nr_func_arg(void);
-ScmObj scm_api_get_func_arg(int nth);
+int scm_capi_get_nr_func_arg(void);
+ScmObj scm_capi_get_func_arg(int nth);
 
 #endif /* INCLUDE_API_H__ */

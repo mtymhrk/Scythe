@@ -29,7 +29,7 @@ test_scm_vector_new(void)
 
   SCM_STACK_FRAME_PUSH(&vector);
 
-  SCM_SETQ(vector, scm_vector_new(SCM_MEM_ALLOC_HEAP, 5));
+  SCM_SETQ(vector, scm_vector_new(SCM_MEM_ALLOC_HEAP, 5, scm_nil_instance()));
 
   cut_assert_true(scm_obj_not_null_p(vector));
   cut_assert(scm_vector_is_vector(vector));
@@ -48,7 +48,7 @@ test_scm_vector_set_and_ref(void)
 
   SCM_STACK_FRAME_PUSH(&vector, &str1, &str2, &str3, &str4, &str5);
 
-  SCM_SETQ(vector, scm_vector_new(SCM_MEM_ALLOC_HEAP, 5));
+  SCM_SETQ(vector, scm_vector_new(SCM_MEM_ALLOC_HEAP, 5, scm_nil_instance()));
   SCM_SETQ(str1, scm_string_new(SCM_MEM_ALLOC_HEAP,
                                       "str1", 4, SCM_ENCODING_ASCII));
   SCM_SETQ(str2, scm_string_new(SCM_MEM_ALLOC_HEAP,
