@@ -1,6 +1,8 @@
 #ifndef INCLUDE_EARRAY_H__
 #define INCLUDE_EARRAY_H__
 
+#include "stdlib.h"
+
 typedef struct EArrayRec EArray;
 
 #define EARY_MAG 2
@@ -82,26 +84,26 @@ eary_expand_if_necessary(EArray *ary, size_t idx, size_t rs)
 
 #define EARY_SET(ary, typ, idx, val, err)                       \
   do {                                                          \
-    err = -1;                                                   \
+    (err) = -1;                                                 \
     if (eary_expand_if_necessary(ary, idx, sizeof(typ)) != 0)   \
       break;                                                    \
                                                   \
     ((typ *)((ary)->vec))[idx] = (typ)val;        \
     if (idx >= (ary)->used)                       \
       (ary)->used = idx + 1;                      \
-    err = 0;                                      \
+    (err) = 0;                                    \
   } while(0)
 
 #define EARY_SET_SCMOBJ(ary, idx, val, err)                             \
   do {                                                                  \
-    err = -1;                                                           \
+    (err) = -1;                                                         \
     if (eary_expand_if_necessary(ary, idx, sizeof(ScmObj)) != 0)        \
       break;                                                    \
                                                   \
     SCM_SETQ(((ScmObj *)((ary)->vec))[idx], val); \
     if (idx >= (ary)->used)                       \
       (ary)->used = idx + 1;                      \
-    err = 0;                                      \
+    (err) = 0;                                    \
   } while(0)
 
 #define EARY_FOR_EACH(ary, typ, idx, itr)   \

@@ -1,6 +1,7 @@
 memory.o: ../memory.c ../basichash.h ../vm.h ../object.h ../memory.h \
  ../impl_utils.h ../reference.h ../instractions.h
-object.o: ../object.c ../object.h ../numeric.h ../impl_utils.h
+object.o: ../object.c ../object.h ../numeric.h ../earray.h \
+ ../impl_utils.h
 pair.o: ../pair.c ../object.h ../memory.h ../basichash.h ../impl_utils.h \
  ../vm.h ../reference.h ../instractions.h ../pair.h ../miscobjects.h
 string.o: ../string.c ../memory.h ../object.h ../basichash.h \
@@ -32,7 +33,9 @@ procedure.o: ../procedure.c ../procedure.h ../object.h ../vm.h \
  ../instractions.h
 reference.o: ../reference.c ../reference.h ../object.h ../memory.h \
  ../basichash.h ../impl_utils.h ../vm.h ../instractions.h
-numeric.o: ../numeric.c ../object.h ../numeric.h ../impl_utils.h
+numeric.o: ../numeric.c ../object.h ../earray.h ../memory.h \
+ ../basichash.h ../impl_utils.h ../vm.h ../reference.h ../instractions.h \
+ ../numeric.h
 core_subr.o: ../core_subr.c ../object.h ../vm.h ../memory.h \
  ../basichash.h ../impl_utils.h ../reference.h ../instractions.h ../api.h \
  ../core_subr.h
@@ -43,7 +46,7 @@ chashtbl.o: ../chashtbl.c ../object.h ../memory.h ../basichash.h \
 api.o: ../api.c ../object.h ../memory.h ../basichash.h ../impl_utils.h \
  ../vm.h ../reference.h ../instractions.h ../string.h ../encoding.h \
  ../symbol.h ../chashtbl.h ../procedure.h ../gloc.h ../numeric.h \
- ../pair.h ../vector.h ../port.h ../api.h
+ ../earray.h ../pair.h ../vector.h ../port.h ../api.h
 gloc.o: ../gloc.c ../object.h ../memory.h ../basichash.h ../impl_utils.h \
  ../vm.h ../reference.h ../instractions.h ../symbol.h ../chashtbl.h \
  ../gloc.h

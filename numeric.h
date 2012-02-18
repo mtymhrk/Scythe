@@ -1,8 +1,17 @@
 #ifndef INCLUDE_NUMERIC_H__
 #define INCLUDE_NUMERIC_H__
 
+typedef struct ScmBignumRec ScmBignum;
+
+#define SCM_BIGNUM(obj) ((ScmBignum *)(obj))
+
 #include "object.h"
+#include "earray.h"
 #include "impl_utils.h"
+
+/***************************************************************************/
+/*  Fixnum                                                                 */
+/***************************************************************************/
 
 extern ScmTypeInfo SCM_FIXNUM_TYPE_INFO;
 
@@ -28,5 +37,35 @@ scm_fixnum_value(ScmObj num)
 
   return scm_rshift_arith_sword((scm_sword_t)num, SCM_FIXNUM_SHIFT_BIT);
 }
+
+/***************************************************************************/
+/*  Bignum                                                                 */
+/***************************************************************************/
+
+#if 0
+
+#define SCM_BIGNUM_DIGIT_MAX UINT_MAX;
+
+enum { SCM_BIGNUM_SIGN_PLUS = 1, SCM_BIGNUM_SIGN_MINUS = -1 };
+
+typedef unsigned int scm_bignum_d_t;
+
+struct ScmBignumRec {
+  ScmObjHeader header;
+  int sign;
+  size_t nr_digit;
+  EArray digits;
+};
+
+extern ScmTypeInfo SCM_FIXNUM_TYPE_INFO;
+
+void scm_bignum_initialize(ScmObj bignum, int sign,
+                           size_t nr_digit, const scm_bignum_d_t *digits);
+void scm_bignum_finalize(ScmObj bignum);
+
+void scm_bignum_gc_initialize(ScmObj obj, ScmObj mem);
+void scm_bignum_gc_finalize(ScmObj obj);
+
+#endif
 
 #endif /* INCLUDE_NUMERIC_H__ */
