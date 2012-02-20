@@ -5,6 +5,7 @@
 #include <stdbool.h>
 
 #include "object.h"
+#include "encoding.h"
 
 /*******************************************************************/
 /*  Predicate                                                      */
@@ -55,6 +56,14 @@ ScmObj scm_api_pair_P(ScmObj pair);
 
 ScmObj scm_capi_make_fixnum(scm_sword_t num);
 
+
+/*******************************************************************/
+/*  charactor                                                      */
+/*******************************************************************/
+
+ScmObj scm_capi_make_char(scm_char_t chr);
+ScmObj scm_api_make_char_newline(void);
+ScmObj scm_api_make_char_space(void);
 
 /*******************************************************************/
 /*  String                                                         */

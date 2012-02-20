@@ -4,6 +4,7 @@
 #include "object.h"
 #include "memory.h"
 #include "vm.h"
+#include "char.h"
 #include "string.h"
 #include "symbol.h"
 #include "procedure.h"
@@ -12,6 +13,8 @@
 #include "pair.h"
 #include "vector.h"
 #include "port.h"
+
+#include "encoding.h"
 
 #include "api.h"
 
@@ -170,6 +173,34 @@ scm_capi_make_fixnum(scm_sword_t num)
   return scm_fixnum_new(num);
 }
 
+/*******************************************************************/
+/*  charactor                                                      */
+/*******************************************************************/
+
+extern inline ScmObj
+scm_capi_make_char(scm_char_t chr)
+{
+  if (!SCM_ENCODING_VFUNC_VALID_P(SCM_ENCODING_ASCII)(chr))
+    return SCM_OBJ_NULL;          /* provisional implemntation */
+
+  return scm_char_new(SCM_MEM_ALLOC_HEAP, chr, SCM_ENCODING_ASCII);
+}
+
+extern inline ScmObj
+scm_api_make_char_newline(void)
+{
+  return scm_char_new(SCM_MEM_ALLOC_HEAP,
+                      SCM_ENCODING_CONST_LF_CHAR(SCM_ENCODING_ASCII),
+                      SCM_ENCODING_ASCII);
+}
+
+extern inline ScmObj
+scm_api_make_char_space(void)
+{
+  return scm_char_new(SCM_MEM_ALLOC_HEAP,
+                      SCM_ENCODING_CONST_SPACE_CHAR(SCM_ENCODING_ASCII),
+                      SCM_ENCODING_ASCII);
+}
 
 /*******************************************************************/
 /*  String                                                         */

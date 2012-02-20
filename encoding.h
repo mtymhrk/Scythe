@@ -92,7 +92,8 @@ typedef struct ScmStrVirtualFunc {
   int (*char_width)(const void *p, size_t size);
   ScmStrItr (*index2iter)(void *p, size_t size, size_t idx);
   bool (*is_lf)(scm_char_t c);
-  bool (*is_space)(scm_char_t);
+  bool (*is_space)(scm_char_t c);
+  bool (*valid_char_p)(scm_char_t c);
 } ScmEncVirtualFunc;
 
 extern const ScmEncVirtualFunc SCM_ENCODING_VFUNC_ASCII;
@@ -108,6 +109,7 @@ extern const ScmEncVirtualFunc *SCM_ENCODING_VFUNC_TBL[];
 #define SCM_ENCODING_VFUNC_INDEX2ITER(enc) (SCM_ENCODING_VFUNC(enc)->index2iter)
 #define SCM_ENCODING_VFUNC_IS_LF(enc) (SCM_ENCODING_VFUNC(enc)->is_lf)
 #define SCM_ENCODING_VFUNC_IS_SPACE(enc) (SCM_ENCODING_VFUNC(enc)->is_space)
+#define SCM_ENCODING_VFUNC_VALID_P(enc) (SCM_ENCODING_VFUNC(enc)->valid_char_p)
 
 
 ScmStrItr scm_str_itr_begin(void *p, size_t size,
@@ -120,16 +122,19 @@ int scm_enc_char_width_ascii(const void *str, size_t len);
 ScmStrItr scm_enc_index2itr_ascii(void *str, size_t size, size_t idx);
 bool scm_enc_is_lf_ascii(scm_char_t c);
 bool scm_enc_is_space_ascii(scm_char_t c);
+bool scm_enc_valid_char_p_ascii(scm_char_t c);
 
 /* BINARY */
 int scm_enc_char_width_bin(const void *str, size_t len);
 ScmStrItr scm_enc_index2itr_bin(void *str, size_t size, size_t idx);
 bool scm_enc_is_lf_bin(scm_char_t c);
 bool scm_enc_is_space_bin(scm_char_t c);
+bool scm_enc_valid_char_p_binary(scm_char_t c);
 
 /* UTF-8 */
 int scm_enc_char_width_utf8(const void *str, size_t len);
 ScmStrItr scm_enc_index2itr_utf8(void *str, size_t size, size_t idx);
+bool scm_enc_valid_char_p_utf8(scm_char_t c);
 
 /* UCS4 */
 int scm_enc_char_width_ucs4(const void *str, size_t len);
@@ -138,15 +143,17 @@ ssize_t scm_enc_utf8_to_ucs4(const uint8_t *utf8, size_t utf8_len,
                              uint32_t *ucs4);
 bool scm_enc_is_lf_ucs4(scm_char_t c);
 bool scm_enc_is_space_ucs4(scm_char_t c);
+bool scm_enc_valid_char_p_ucs4(scm_char_t c);
 
 /* EUC-JP */
 int scm_enc_char_width_eucjp(const void *str, size_t len);
 ScmStrItr scm_enc_index2itr_eucjp(void *str, size_t size, size_t idx);
+bool scm_enc_valid_char_p_eucjp(scm_char_t c);
 
 /* SJIS */
 int scm_enc_char_width_sjis(const void *str, size_t len);
 ScmStrItr scm_enc_index2itr_sjis(void *str, size_t size, size_t idx);
-
+bool scm_enc_valid_char_p_sjis(scm_char_t c);
 
 
 #endif /* INCLUDED_ENCODING_H__ */
