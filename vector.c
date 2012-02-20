@@ -22,6 +22,7 @@ scm_vector_initialize(ScmObj vector, size_t length, ScmObj fill) /* GC OK */
   size_t i;
 
   scm_assert_obj_type(vector, &SCM_VECTOR_TYPE_INFO);
+  scm_assert(length <= SSIZE_MAX);
 
   if (length > 0)
     SCM_VECTOR_ARRAY(vector) = scm_malloc(sizeof(ScmObj) * length);
@@ -50,6 +51,10 @@ scm_vector_new(SCM_MEM_ALLOC_TYPE_T mtype,
   ScmObj vector = SCM_OBJ_INIT;
 
   SCM_STACK_FRAME_PUSH(&fill, &vector);
+
+  /* Vector の実装として、length を SSIZE_MAX 以下に制限する必要はないが、
+     api.c との兼ね合いで制限する */
+  scm_assert(length <= SSIZE_MAX);
 
   scm_mem_alloc(scm_vm_current_mm(),
                 &SCM_VECTOR_TYPE_INFO, mtype, SCM_REF_MAKE(vector));

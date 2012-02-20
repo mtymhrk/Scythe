@@ -8,7 +8,7 @@
 #include "encoding.h"
 
 /*******************************************************************/
-/*  Predicate                                                      */
+/*  Equivalence                                                    */
 /*******************************************************************/
 
 bool scm_capi_null_value_p(ScmObj obj);
@@ -21,6 +21,7 @@ ScmObj scm_api_eq_P(ScmObj obj1, ScmObj obj2);
 /*******************************************************************/
 
 ScmObj scm_api_nil(void);
+bool scm_capi_nil_p(ScmObj obj);
 
 
 /*******************************************************************/
@@ -30,6 +31,8 @@ ScmObj scm_api_nil(void);
 
 ScmObj scm_api_bool_true(void);
 ScmObj scm_api_bool_false(void);
+bool scm_capi_true_p(ScmObj obj);
+bool scm_capi_false_p(ScmObj obj);
 
 
 /*******************************************************************/
@@ -37,6 +40,7 @@ ScmObj scm_api_bool_false(void);
 /*******************************************************************/
 
 ScmObj scm_api_eof(void);
+bool scm_capi_eof_p(ScmObj obj);
 
 
 /*******************************************************************/
@@ -55,6 +59,8 @@ ScmObj scm_api_pair_P(ScmObj pair);
 /*******************************************************************/
 
 ScmObj scm_capi_make_fixnum(scm_sword_t num);
+bool scm_capi_fixnum_p(ScmObj obj);
+long scm_capi_fixnum_to_clong(ScmObj fn);
 
 
 /*******************************************************************/
@@ -64,6 +70,9 @@ ScmObj scm_capi_make_fixnum(scm_sword_t num);
 ScmObj scm_capi_make_char(scm_char_t chr);
 ScmObj scm_api_make_char_newline(void);
 ScmObj scm_api_make_char_space(void);
+bool scm_capi_char_p(ScmObj obj);
+ssize_t scm_capi_char_to_cchar(ScmObj chr, scm_char_t *c);
+
 
 /*******************************************************************/
 /*  String                                                         */
@@ -71,6 +80,9 @@ ScmObj scm_api_make_char_space(void);
 
 ScmObj scm_capi_make_string_from_cstr(const char *str);
 ScmObj scm_capi_make_string_from_bin(const void *data, size_t size);
+bool scm_capi_string_p(ScmObj obj);
+ssize_t scm_capi_string_length(ScmObj str);
+ssize_t scm_capi_string_to_cstr(ScmObj str, char *cstr, size_t size);
 
 
 /*******************************************************************/
@@ -79,7 +91,10 @@ ScmObj scm_capi_make_string_from_bin(const void *data, size_t size);
 
 ScmObj scm_capi_make_vector(size_t len);
 ScmObj scm_capi_make_vector_fill(size_t len, ScmObj fill);
+bool scm_capi_vector_p(ScmObj obj);
 ScmObj scm_capi_vector_set(ScmObj vec, size_t idx, ScmObj obj);
+ScmObj scm_capi_vector_ref(ScmObj vec, size_t idx);
+ssize_t scm_capi_vector_length(ScmObj vec);
 
 
 /*******************************************************************/
@@ -90,14 +105,17 @@ ScmObj scm_capi_make_symbol_from_cstr(const char *str);
 ScmObj scm_capi_make_symbol_from_bin(const void *data, size_t size);
 ScmObj scm_api_symbol_to_string(ScmObj sym);
 ScmObj scm_api_string_to_symbol(ScmObj str);
+bool scm_capi_symbol_p(ScmObj obj);
+ssize_t scm_capi_symbol_to_cstr(ScmObj sym, char *cstr, size_t size);
 
 
 /*******************************************************************/
 /*  Port                                                           */
 /*******************************************************************/
 
-ScmObj scm_api_open_input_fd_port(int fd);
-ScmObj scm_api_open_output_fd_port(int fd);
+ScmObj scm_capi_open_input_fd_port(int fd);
+ScmObj scm_capi_open_output_fd_port(int fd);
+ScmObj scm_capi_open_input_string_port_from_cstr(const char *str);
 bool scm_capi_input_port_p(ScmObj port);
 ScmObj scm_api_input_port_P(ScmObj port);
 bool scm_capi_output_port_p(ScmObj port);

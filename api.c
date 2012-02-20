@@ -20,7 +20,7 @@
 
 
 /*******************************************************************/
-/*  Predicate                                                      */
+/*  Equivalence                                                    */
 /*******************************************************************/
 
 /* 述語関数について、C の bool 方を返すものは _p を関数名の後ろに付与する。
@@ -60,6 +60,11 @@ scm_api_nil(void)
   return scm_vm_nil_instance();
 }
 
+extern inline bool
+scm_capi_nil_p(ScmObj obj)
+{
+  return scm_capi_eq_p(obj, scm_api_nil());
+}
 
 /*******************************************************************/
 /*  boolean                                                        */
@@ -77,6 +82,17 @@ scm_api_bool_false(void)
   return scm_vm_nil_instance();
 }
 
+extern inline bool
+scm_capi_true_p(ScmObj obj)
+{
+  return scm_capi_eq_p(obj, scm_api_bool_true());
+}
+
+extern inline bool
+scm_capi_false_p(ScmObj obj)
+{
+  return scm_capi_eq_p(obj, scm_api_bool_false());
+}
 
 /*******************************************************************/
 /*  eof                                                           */
@@ -88,6 +104,11 @@ scm_api_eof(void)
   return scm_vm_eof_instance();
 }
 
+extern inline bool
+scm_capi_eof_p(ScmObj obj)
+{
+  return scm_capi_eq_p(obj, scm_api_eof());
+}
 
 /*******************************************************************/
 /*  List and Pair                                                  */
@@ -173,6 +194,41 @@ scm_capi_make_fixnum(scm_sword_t num)
   return scm_fixnum_new(num);
 }
 
+extern inline bool
+scm_capi_fixnum_p(ScmObj obj)
+{
+  if (scm_capi_null_value_p(obj)) return false;
+
+  return scm_obj_type_p(obj, &SCM_FIXNUM_TYPE_INFO) ? true : false;
+}
+
+extern inline long
+scm_capi_fixnum_to_clong(ScmObj fn)
+{
+  scm_sword_t v;
+  long ret;
+
+  if (!scm_capi_fixnum_p(fn)) {
+    errno = EINVAL;           /* provisional implemntation */
+    return 0;
+  }
+
+  v = scm_fixnum_value(fn);
+  if (v > LONG_MAX) {
+    errno = ERANGE; /* provisional implemntation */
+    ret = LONG_MAX;
+  }
+  else if (v < LONG_MIN) {
+    errno = ERANGE; /* provisional implemntation */
+    ret = LONG_MIN;
+  }
+  else {
+    ret = (long)v;
+  }
+
+  return ret;
+}
+
 /*******************************************************************/
 /*  charactor                                                      */
 /*******************************************************************/
@@ -202,6 +258,26 @@ scm_api_make_char_space(void)
                       SCM_ENCODING_ASCII);
 }
 
+extern inline bool
+scm_capi_char_p(ScmObj obj)
+{
+  if (scm_capi_null_value_p(obj)) return false;
+
+  return scm_obj_type_p(obj, &SCM_CHAR_TYPE_INFO) ? true : false;
+}
+
+extern inline ssize_t
+scm_capi_char_to_cchar(ScmObj chr, scm_char_t *c)
+{
+  if (!scm_capi_char_p(chr))
+    return -1;          /* provisional implemntation */
+
+  *c = scm_char_value(chr);
+
+  return SCM_ENCODING_VFUNC_CHAR_WIDTH(scm_char_encoding(chr))(c->bytes,
+                                                               sizeof(*c));
+}
+
 /*******************************************************************/
 /*  String                                                         */
 /*******************************************************************/
@@ -226,6 +302,52 @@ scm_capi_make_string_from_bin(const void *data, size_t size)
                         data, size, SCM_ENCODING_ASCII);
 }
 
+extern inline bool
+scm_capi_string_p(ScmObj obj)
+{
+  if (scm_capi_null_value_p(obj)) return false;
+
+  return scm_obj_type_p(obj, &SCM_STRING_TYPE_INFO) ? true : false;
+}
+
+extern inline ssize_t
+scm_capi_string_length(ScmObj str)
+{
+  if (!scm_capi_string_p(str))
+    return -1;                  /* provisional implementation */
+
+  return (ssize_t)scm_string_length(str);
+}
+
+extern inline ssize_t
+scm_capi_string_bytesize(ScmObj str)
+{
+  if (!scm_capi_string_p(str))
+    return -1;                  /* provisional implementation */
+
+  return (ssize_t)scm_string_bytesize(str);
+}
+
+extern inline ssize_t
+scm_capi_string_to_cstr(ScmObj str, char *cstr, size_t size)
+{
+  ssize_t n;
+
+  if (!scm_capi_string_p(str))
+    return -1;                  /* provisional implementation */
+
+  if (cstr == NULL || size == 0) return 0;
+
+  n = (ssize_t)scm_string_bytesize(str);
+  if (n < 0) return -1;
+
+  if (size - 1 < (size_t)n) n = (ssize_t)size - 1;
+
+  memcpy(cstr, scm_string_content(str), (size_t)n);
+  cstr[n] = '\0';
+
+  return n;
+}
 
 /*******************************************************************/
 /*  Vector                                                         */
@@ -234,16 +356,27 @@ scm_capi_make_string_from_bin(const void *data, size_t size)
 extern inline ScmObj
 scm_capi_make_vector(size_t len)
 {
+  if (len > SSIZE_MAX)
+    return SCM_OBJ_NULL;         /* provisional implemntation */
+
   return scm_vector_new(SCM_MEM_ALLOC_HEAP, len, scm_api_nil());
 }
 
 extern inline ScmObj
 scm_capi_make_vector_fill(size_t len, ScmObj fill)
 {
-  if (scm_obj_null_p(fill))
+  if (scm_obj_null_p(fill) || len > SSIZE_MAX)
     return SCM_OBJ_NULL;         /* provisional implemntation */
 
   return scm_vector_new(SCM_MEM_ALLOC_HEAP, len, fill);
+}
+
+extern inline bool
+scm_capi_vector_p(ScmObj obj)
+{
+  if (scm_capi_null_value_p(obj)) return false;
+
+  return scm_obj_type_p(obj, &SCM_VECTOR_TYPE_INFO) ? true : false;
 }
 
 extern inline ScmObj
@@ -258,6 +391,24 @@ scm_capi_vector_set(ScmObj vec, size_t idx, ScmObj obj)
   return scm_vector_set(vec, idx, obj);
 }
 
+extern inline ScmObj
+scm_capi_vector_ref(ScmObj vec, size_t idx)
+{
+  if (!scm_capi_vector_p(vec)
+      || idx >= scm_vector_length(vec))
+    return SCM_OBJ_NULL;         /* provisional implemntation */
+
+  return scm_vector_ref(vec, idx);
+}
+
+extern inline ssize_t
+scm_capi_vector_length(ScmObj vec)
+{
+  if (!scm_capi_vector_p(vec))
+    return -1;                   /* provisional implementation */
+
+  return (ssize_t)scm_vector_length(vec);
+}
 
 /*******************************************************************/
 /*  Symbol                                                         */
@@ -300,30 +451,53 @@ scm_capi_make_symbol_from_bin(const void *data, size_t size)
   return scm_api_string_to_symbol(scm_capi_make_string_from_bin(data, size));
 }
 
+extern inline bool
+scm_capi_symbol_p(ScmObj obj)
+{
+  if (scm_capi_null_value_p(obj)) return false;
+
+  return scm_obj_type_p(obj, &SCM_SYMBOL_TYPE_INFO) ? true : false;
+}
+
+extern inline ssize_t
+scm_capi_symbol_to_cstr(ScmObj sym, char *cstr, size_t size)
+{
+  if (!scm_capi_symbol_p(sym))
+    return -1;                  /* provisional implementation */
+
+  return scm_capi_string_to_cstr(scm_api_symbol_to_string(sym),
+                                 cstr, size);
+}
 
 /*******************************************************************/
 /*  Port                                                           */
 /*******************************************************************/
 
 extern inline ScmObj
-scm_api_open_input_fd_port(int fd) /* TODO: バッファ種別を指定できるようにする*/
+scm_capi_open_input_fd_port(int fd) /* TODO: バッファ種別を指定できるようにする*/
 {
   if (fd < 0) return SCM_OBJ_NULL; /* provisional implemntation */
   return scm_port_open_input_fd(fd, SCM_PORT_BUF_DEFAULT);
 }
 
 extern inline ScmObj
-scm_api_open_output_fd_port(int fd)/* TODO: バッファ種別を指定できるようにする*/
+scm_capi_open_output_fd_port(int fd)/* TODO: バッファ種別を指定できるようにする*/
 {
   if (fd < 0) return SCM_OBJ_NULL; /* provisional implemntation */
   return scm_port_open_output_fd(fd, SCM_PORT_BUF_DEFAULT);
+}
+
+extern inline ScmObj
+scm_capi_open_input_string_port_from_cstr(const char *str)
+{
+  return scm_port_open_input_string(str, (str == NULL)? 0 : strlen(str));
 }
 
 extern inline bool
 scm_capi_input_port_p(ScmObj port)
 {
   if (scm_obj_null_p(port))
-    return SCM_OBJ_NULL;         /* provisional implemntation */
+    return false;
 
   if (scm_obj_type_p(port, &SCM_PORT_TYPE_INFO) && scm_port_readable_p(port))
     return true;
@@ -347,7 +521,7 @@ extern inline bool
 scm_capi_output_port_p(ScmObj port)
 {
   if (scm_obj_null_p(port))
-    return SCM_OBJ_NULL;         /* provisional implemntation */
+    return false;
 
   if (scm_obj_type_p(port, &SCM_PORT_TYPE_INFO) && scm_port_writable_p(port))
     return true;
@@ -371,7 +545,7 @@ extern inline int
 scm_api_close_input_port(ScmObj port)
 {
   if (scm_obj_null_p(port) || scm_capi_input_port_p(port))
-    return SCM_OBJ_NULL;         /* provisional implemntation */
+    return -1;         /* provisional implemntation */
 
   return scm_port_close(port);
 }
@@ -380,7 +554,7 @@ extern inline int
 scm_api_close_output_port(ScmObj port)
 {
   if (scm_obj_null_p(port) || scm_capi_output_port_p(port))
-    return SCM_OBJ_NULL;         /* provisional implemntation */
+    return -1;         /* provisional implemntation */
 
   return scm_port_close(port);
 }
@@ -389,10 +563,10 @@ extern inline ssize_t
 scm_capi_read_raw(ScmObj port, void *buf, size_t size)
 {
   if (scm_obj_null_p(port)
-      || scm_capi_input_port_p(port)
+      || !scm_capi_input_port_p(port)
       || buf == NULL
-      || size < SSIZE_MAX)
-    return SCM_OBJ_NULL;         /* provisional implemntation */
+      || size > SSIZE_MAX)
+    return -1;         /* provisional implemntation */
 
   return scm_port_read(port, buf, size);
 }
@@ -401,10 +575,10 @@ extern inline ssize_t
 scm_capi_unread_raw(ScmObj port, void *buf, size_t size)
 {
   if (scm_obj_null_p(port)
-      || scm_capi_input_port_p(port)
+      || !scm_capi_input_port_p(port)
       || buf == NULL
-      || size < SSIZE_MAX)
-    return SCM_OBJ_NULL;         /* provisional implemntation */
+      || size > SSIZE_MAX)
+    return -1;         /* provisional implemntation */
 
   return scm_port_pushback(port, buf, size);
 }
@@ -413,10 +587,10 @@ extern inline ssize_t
 scm_capi_peek_raw(ScmObj port, void *buf, size_t size)
 {
   if (scm_obj_null_p(port)
-      || scm_capi_input_port_p(port)
+      || !scm_capi_input_port_p(port)
       || buf == NULL
-      || size < SSIZE_MAX)
-    return SCM_OBJ_NULL;         /* provisional implemntation */
+      || size > SSIZE_MAX)
+    return -1;         /* provisional implemntation */
 
   return scm_port_peek(port, buf, size);
 }
