@@ -47,8 +47,7 @@ scm_iseq_new(SCM_MEM_ALLOC_TYPE_T mtype) /* GC OK */
 
   SCM_STACK_FRAME_PUSH(&iseq);
 
-  scm_mem_alloc(scm_vm_current_mm(),
-                &SCM_ISEQ_TYPE_INFO, mtype, SCM_REF_MAKE(iseq));
+  iseq = scm_mem_alloc(scm_vm_current_mm(), &SCM_ISEQ_TYPE_INFO, mtype);
 
   scm_iseq_initialize(iseq);
 

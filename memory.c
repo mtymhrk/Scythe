@@ -55,7 +55,6 @@ static ScmTypeInfo SCM_MEM_TYPE_INFO = {
   .gc_accept_func_weak = NULL,
 };
 
-static ScmMemRootBlock *shared_roots = NULL;
 
 
 static size_t
@@ -563,9 +562,8 @@ scm_mem_set_next_obj_has_weak_ref(ScmTypeInfo *type, ScmObj obj, ScmObj nxt)
 }
 
 scm_local_func void
-scm_mem_add_obj_to_weak_list(ScmMemHeap *heap, ScmRef ref, ScmTypeInfo *type)
+scm_mem_add_obj_to_weak_list(ScmMemHeap *heap, ScmObj obj, ScmTypeInfo *type)
 {
-  ScmObj obj = SCM_REF_DEREF(ref);
   ScmObj nxt = SCM_OBJ(heap->weak_list);
   scm_mem_set_next_obj_has_weak_ref(type, obj, nxt);
   heap->weak_list = (void *)obj;
@@ -624,24 +622,6 @@ scm_mem_release_redundancy_heap_blocks(ScmMem *mem, int nr_margin)
   scm_mem_heap_release_blocks(mem->from_heap, nr_leave);
 
   return nr_leave;
-}
-
-scm_local_func int
-scm_mem_expand_persistent(ScmMem *mem, int inc_block)
-{
-  int i;
-  ScmMemHeapBlock *block;
-
-  scm_assert(mem != NULL);
-  scm_assert(inc_block >= 0);
-
-  for (i = 0; i < inc_block; i++) {
-    block = scm_mem_heap_new_block(SCM_MEM_HEAP_INIT_BLOCK_SIZE);
-    if (block == NULL) return i;
-    scm_mem_heap_add_block(mem->persistent, block);
-  }
-
-  return i;
 }
 
 scm_local_func int
@@ -744,25 +724,6 @@ scm_mem_clean_root(ScmMem *mem)
 
 
 scm_local_func void
-scm_mem_clean_persistent(ScmMem *mem)
-{
-  ScmMemHeapBlock *block;
-  ScmObj obj;
-
-  scm_assert(mem != NULL);
-
-  SCM_MEM_HEAP_FOR_EACH_BLOCK(mem->persistent, block) {
-    SCM_MEM_HEAP_BLOCK_FOR_EACH_OBJ(block, obj) {
-      scm_mem_finalize_obj(mem, obj);
-    }
-    scm_mem_heap_block_clean(block);
-  }
-  scm_mem_heap_rewind(mem->persistent);
-
-  scm_assert(mem != NULL);
-}
-
-scm_local_func void
 scm_mem_switch_heap(ScmMem *mem)
 {
   ScmBasicHashTable *tmp_tbl;
@@ -802,32 +763,32 @@ scm_mem_is_obj_in_heap(ScmMem *mem, ScmObj obj, int which)
   return false;
 }
 
-scm_local_func void
-scm_mem_alloc_heap_mem(ScmMem *mem, ScmTypeInfo *type, ScmRef ref)
+scm_local_func ScmObj
+scm_mem_alloc_heap_mem(ScmMem *mem, ScmTypeInfo *type)
 {
+  ScmObj obj = SCM_OBJ_INIT;
   size_t size;
   void *ptr;
 
   scm_assert(mem != NULL);
   scm_assert(type != NULL);
-  scm_assert(ref != SCM_REF_NULL);
 
   size = scm_mem_alloc_size_in_heap(type);
   ptr = scm_mem_heap_alloc(mem->to_heap, size);
-  if (ptr == NULL) {
-    SCM_REF_UPDATE(ref, SCM_OBJ_NULL);
-    return;
-  }
-  SCM_REF_UPDATE(ref, ptr);
+  if (ptr == NULL)
+    return SCM_OBJ_NULL;
 
-  if (scm_mem_register_obj_if_needed(mem, type, SCM_REF_DEREF(ref)) < 0) {
+  obj = SCM_OBJ(ptr);
+
+  if (scm_mem_register_obj_if_needed(mem, type, obj) < 0) {
     scm_mem_heap_cancel_alloc(mem->to_heap, size);
-    SCM_REF_UPDATE(ref, SCM_OBJ_NULL);
-    return;
+    return SCM_OBJ_NULL;
   }
 
   if (scm_type_info_has_instance_weak_ref_p(type))
-    scm_mem_add_obj_to_weak_list(mem->to_heap, ref, type);
+    scm_mem_add_obj_to_weak_list(mem->to_heap, obj, type);
+
+  return obj;
 }
 
 scm_local_func void
@@ -858,13 +819,13 @@ scm_mem_copy_obj(ScmMem *mem, ScmObj obj)
   if (scm_type_info_same_p(type, &SCM_FORWARD_TYPE_INFO))
     return scm_forward_forward(obj);
 
-  scm_mem_alloc_heap_mem(mem, type, SCM_REF_MAKE(box));
+  box = scm_mem_alloc_heap_mem(mem, type);
   if (scm_obj_null_p(box)) {
     if (scm_mem_expand_heap(mem, 1) != 1) {
       /* TODO: write error handling (fail to allocate memory)*/
       return SCM_OBJ_NULL;
     }
-    scm_mem_alloc_heap_mem(mem, type, SCM_REF_MAKE(box));
+    box = scm_mem_alloc_heap_mem(mem, type);
     if (scm_obj_null_p(box)) {
       /* TODO: write error handling (fail to allocate memory)*/
       return SCM_OBJ_NULL;
@@ -909,21 +870,6 @@ scm_mem_copy_children(ScmMem *mem, ScmObj obj)
 }
 
 scm_local_func void
-scm_mem_copy_children_of_persistent(ScmMem *mem)
-{
-  ScmMemHeapBlock *block;
-  ScmObj obj;
-
-  scm_assert(mem != NULL);
-
-  SCM_MEM_HEAP_FOR_EACH_BLOCK(mem->persistent, block) {
-    SCM_MEM_HEAP_BLOCK_FOR_EACH_OBJ(block, obj) {
-      scm_mem_copy_children(mem, obj);
-    }
-  }
-}
-
-scm_local_func void
 scm_mem_copy_children_of_root_obj(ScmMem *mem, ScmMemRootBlock *head)
 {
   ScmMemRootBlock *block;
@@ -934,11 +880,6 @@ scm_mem_copy_children_of_root_obj(ScmMem *mem, ScmMemRootBlock *head)
   }
 }
 
-scm_local_func void
-scm_mem_copy_children_of_shared_root(ScmMem *mem)
-{
-  scm_mem_copy_children_of_root_obj(mem, shared_roots);
-}
 
 scm_local_func void
 scm_mem_copy_children_of_root(ScmMem *mem)
@@ -969,10 +910,8 @@ scm_mem_copy_obj_referred_by_root(ScmMem *mem)
 {
   scm_assert(mem != NULL);
 
-  scm_mem_copy_children_of_shared_root(mem);
   scm_mem_copy_children_of_root(mem);
   scm_mem_copy_extra_obj(mem);
-  scm_mem_copy_children_of_persistent(mem);
 }
 
 scm_local_func void
@@ -1057,7 +996,6 @@ scm_mem_adjust_weak_ref(ScmMem *mem)
 {
   scm_assert(mem != NULL);
 
-  scm_mem_adjust_weak_ref_of_root_obj(mem, shared_roots);
   scm_mem_adjust_weak_ref_of_root_obj(mem, mem->roots);
   scm_mem_adjust_weak_ref_of_heap_obj(mem);
 }
@@ -1146,9 +1084,6 @@ scm_mem_initialize(ScmMem *mem)
   mem->from_heap = scm_mem_heap_new_heap(1, SCM_MEM_HEAP_INIT_BLOCK_SIZE);
   if (mem->from_heap == NULL) goto err;
 
-  mem->persistent = scm_mem_heap_new_heap(1, SCM_MEM_HEAP_INIT_BLOCK_SIZE);
-  if (mem->persistent == NULL) goto err;
-
   mem->extra_rfrn = malloc(sizeof(ScmRef) * SCM_MEM_EXTRA_RFRN_SIZE);
   if (mem->extra_rfrn == NULL) goto err;
   mem->nr_extra = 0;
@@ -1160,7 +1095,6 @@ scm_mem_initialize(ScmMem *mem)
   if (mem->from_obj_tbl != NULL) scm_basic_hash_end(mem->from_obj_tbl);
   if (mem->to_heap != NULL) mem->to_heap = scm_mem_heap_delete_heap(mem->to_heap);
   if (mem->from_heap != NULL) mem->from_heap = scm_mem_heap_delete_heap(mem->from_heap);
-  if (mem->persistent != NULL) mem->persistent = scm_mem_heap_delete_heap(mem->persistent);
   if (mem->extra_rfrn != NULL) free(mem->extra_rfrn);
 
   return NULL;
@@ -1178,7 +1112,6 @@ scm_mem_finalize(ScmMem *mem)
   if (mem->from_obj_tbl) scm_basic_hash_end(mem->from_obj_tbl);
   if (mem->to_heap != NULL) mem->to_heap = scm_mem_heap_delete_heap(mem->to_heap);
   if (mem->from_heap != NULL) mem->from_heap = scm_mem_heap_delete_heap(mem->from_heap);
-  if (mem->persistent != NULL) mem->persistent = scm_mem_heap_delete_heap(mem->persistent);
   if (mem->extra_rfrn != NULL) free(mem->extra_rfrn);
 
   return NULL;
@@ -1212,7 +1145,6 @@ scm_mem_end(ScmMem *mem)
 ScmMem *
 scm_mem_clean(ScmMem *mem)
 {
-  scm_mem_clean_persistent(mem);
   scm_mem_clean_root(mem);
   scm_mem_clean_heap(mem, TO_HEAP);
   scm_mem_clean_heap(mem, FROM_HEAP);
@@ -1220,79 +1152,41 @@ scm_mem_clean(ScmMem *mem)
 }
 
 
-ScmMem *
-scm_mem_alloc_heap(ScmMem *mem, ScmTypeInfo *type, ScmRef ref)
+ScmObj
+scm_mem_alloc_heap(ScmMem *mem, ScmTypeInfo *type)
 {
+  ScmObj obj = SCM_OBJ_INIT;
+
   scm_assert(mem != NULL);
   scm_assert(type != NULL);
-  scm_assert(ref != SCM_REF_NULL);
 
-  SCM_REF_UPDATE(ref, SCM_OBJ_NULL);
+  obj = SCM_OBJ_INIT;
 
-  scm_mem_alloc_heap_mem(mem, type, ref);
-  if (scm_obj_null_p(SCM_REF_DEREF(ref))) {
+  obj = scm_mem_alloc_heap_mem(mem, type);
+  if (scm_obj_null_p(obj)) {
     if (mem->gc_enabled)
       scm_mem_gc_start(mem);
     else
       scm_mem_expand_heap(mem, 1);
-    scm_mem_alloc_heap_mem(mem, type, ref);
-    if (scm_obj_null_p(SCM_REF_DEREF(ref))) {
+    obj = scm_mem_alloc_heap_mem(mem, type);
+    if (scm_obj_null_p(obj)) {
       ; /* TODO: write error handling (fail to allocate memory) */
-      return NULL;
+      return SCM_OBJ_NULL;
     }
   }
 
-  scm_mem_obj_init(mem, SCM_REF_DEREF(ref), type);
+  scm_mem_obj_init(mem, obj, type);
 
-  return mem;
+  return obj;
 }
 
-ScmMem *
-scm_mem_alloc_persist(ScmMem *mem, ScmTypeInfo *type, ScmRef ref)
-{
-  size_t size;
-  void *ptr;
-
-  scm_assert(mem != NULL);
-  scm_assert(type != NULL);
-  scm_assert(ref != SCM_REF_NULL);
-
-  size = scm_mem_alloc_size_in_heap(type);
-  ptr = scm_mem_heap_alloc(mem->persistent, size);
-  if (ptr == NULL) {
-    if (scm_mem_expand_persistent(mem, 1) != 1) {
-      ; /* TODO: write error handling (fail to allocate memory) */
-      SCM_REF_UPDATE(ref, SCM_OBJ_NULL);
-      return NULL;
-    }
-    ptr = scm_mem_heap_alloc(mem->persistent, size);
-    if (ptr == NULL) {
-      ; /* TODO: write error handling (fail to allocate memory) */
-      SCM_REF_UPDATE(ref, SCM_OBJ_NULL);
-      return NULL;
-    }
-  }
-  SCM_REF_UPDATE(ref, ptr);
-
-  if (scm_type_info_has_instance_weak_ref_p(type))
-    scm_mem_add_obj_to_weak_list(mem->persistent, ref, type);
-
-  scm_mem_obj_init(mem, SCM_REF_DEREF(ref), type);
-
-  return mem;
-}
-
-ScmMem *
-scm_mem_alloc_root(ScmMem *mem, ScmTypeInfo *type, ScmRef ref)
+ScmObj
+scm_mem_alloc_root(ScmMem *mem, ScmTypeInfo *type)
 {
   scm_assert(mem != NULL);
   scm_assert(type != NULL);
-  scm_assert(ref != SCM_REF_NULL);
 
-  SCM_REF_UPDATE(ref, scm_mem_alloc_root_obj(type, mem, &mem->roots));
-  if (scm_obj_null_p(SCM_REF_DEREF(ref))) return NULL;
-
-  return mem;
+  return scm_mem_alloc_root_obj(type, mem, &mem->roots);
 }
 
 ScmObj
@@ -1318,33 +1212,25 @@ scm_mem_register_extra_rfrn(ScmMem *mem, ScmRef ref)
   return ref;
 }
 
-ScmMem *
-scm_mem_alloc(ScmMem *mem, ScmTypeInfo *type,
-              SCM_MEM_ALLOC_TYPE_T alloc, ScmRef ref)
+ScmObj
+scm_mem_alloc(ScmMem *mem, ScmTypeInfo *type, SCM_MEM_ALLOC_TYPE_T alloc)
 {
   scm_assert(mem != NULL);
   scm_assert(type != NULL);
   scm_assert(alloc <  SCM_MEM_NR_ALLOC_TYPE);
-  scm_assert(ref != SCM_REF_NULL);
-
-  SCM_REF_UPDATE(ref, SCM_OBJ_NULL);
 
   switch(alloc) {
   case SCM_MEM_ALLOC_HEAP:
-    return scm_mem_alloc_heap(mem, type, ref);
+    return scm_mem_alloc_heap(mem, type);
     break;
   case SCM_MEM_ALLOC_ROOT:
-    return scm_mem_alloc_root(mem, type, ref);
-    break;
-  case SCM_MEM_ALLOC_SHARED_ROOT:
-    SCM_REF_UPDATE(ref, scm_memory_alloc_shared_root(type));
-    return scm_obj_null_p(SCM_REF_DEREF(ref)) ? NULL : mem;
+    return scm_mem_alloc_root(mem, type);
     break;
   default:
-    return NULL;
+    return SCM_OBJ_NULL;
   }
 
-  return NULL;
+  return SCM_OBJ_NULL;
 }
 
 void
@@ -1367,28 +1253,6 @@ scm_mem_gc_start(ScmMem *mem)
     scm_mem_release_redundancy_heap_blocks(mem, 1);
 }
 
-
-
-
-
-ScmObj
-scm_memory_alloc_shared_root(ScmTypeInfo *type)
-{
-  return scm_mem_alloc_root_obj(type, NULL, &shared_roots);
-}
-
-ScmObj
-scm_memory_free_shared_root(ScmObj obj)
-{
-  return scm_mem_free_root_obj(obj, NULL, &shared_roots);
-}
-
-void
-scm_memory_free_all_shared_root(void)
-{
-  scm_mem_free_all_obj_in_root_set(NULL, &shared_roots);
-  return;
-}
 
 
 

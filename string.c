@@ -193,8 +193,7 @@ scm_string_new(SCM_MEM_ALLOC_TYPE_T mtype, const void *src, size_t size, SCM_ENC
 
   scm_assert(/*0 <= enc && */enc < SMC_ENCODING_NR_ENC);
 
-  scm_mem_alloc(scm_vm_current_mm(),
-                &SCM_STRING_TYPE_INFO, mtype, SCM_REF_MAKE(str));
+  str = scm_mem_alloc(scm_vm_current_mm(), &SCM_STRING_TYPE_INFO, mtype);
 
   scm_string_initialize(str, src, size, enc);
 
@@ -226,9 +225,7 @@ scm_string_dup(ScmObj src)      /* GC OK */
 
 
   /* TODO: replace above by below */
-  scm_mem_alloc_heap(scm_vm_current_mm(),
-                     &SCM_STRING_TYPE_INFO, SCM_REF_MAKE(str));
-
+  str = scm_mem_alloc_heap(scm_vm_current_mm(), &SCM_STRING_TYPE_INFO);
 
   SCM_STRING_BUFFER(str) = SCM_STRING_BUFFER(src);
   SCM_STRING_HEAD(str) = SCM_STRING_HEAD(src);

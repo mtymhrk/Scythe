@@ -498,7 +498,7 @@ scm_vm_new(void)
   mem = scm_mem_new();
   if (mem == NULL) return SCM_OBJ_NULL;
 
-  scm_mem_alloc_root(mem, &SCM_VM_TYPE_INFO, SCM_REF_MAKE(vm));
+  vm = scm_mem_alloc_root(mem, &SCM_VM_TYPE_INFO);
   if (scm_obj_null_p(vm)) goto err;
 
   scm_vm__current_vm = vm;

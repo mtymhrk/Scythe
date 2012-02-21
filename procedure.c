@@ -32,8 +32,7 @@ scm_subrutine_new(SCM_MEM_ALLOC_TYPE_T mtype, ScmSubrFunc func)
 
   scm_assert(func != NULL);
 
-  scm_mem_alloc(scm_vm_current_mm(),
-                &SCM_SUBRUTINE_TYPE_INFO, mtype, SCM_REF_MAKE(subr));
+  subr = scm_mem_alloc(scm_vm_current_mm(), &SCM_SUBRUTINE_TYPE_INFO, mtype);
 
   scm_subrutine_initialize(subr, func);
 

@@ -895,8 +895,7 @@ scm_port_new(SCM_MEM_ALLOC_TYPE_T mtype,
   scm_assert(io != NULL);
   scm_assert(/* buf_mode >= 0 && */ buf_mode < SCM_PORT_NR_BUF_MODE);
 
-  scm_mem_alloc(scm_vm_current_mm(),
-                &SCM_PORT_TYPE_INFO, mtype, SCM_REF_MAKE(port));
+  port = scm_mem_alloc(scm_vm_current_mm(), &SCM_PORT_TYPE_INFO, mtype);
 
   scm_port_initialize(port, io, attr, buf_mode);
 

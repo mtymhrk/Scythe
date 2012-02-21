@@ -56,8 +56,7 @@ scm_vector_new(SCM_MEM_ALLOC_TYPE_T mtype,
      api.c との兼ね合いで制限する */
   scm_assert(length <= SSIZE_MAX);
 
-  scm_mem_alloc(scm_vm_current_mm(),
-                &SCM_VECTOR_TYPE_INFO, mtype, SCM_REF_MAKE(vector));
+  vector = scm_mem_alloc(scm_vm_current_mm(), &SCM_VECTOR_TYPE_INFO, mtype);
   if (scm_obj_null_p(vector)) return SCM_OBJ_NULL;
 
   scm_vector_initialize(vector, length, fill);

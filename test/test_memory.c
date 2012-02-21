@@ -924,7 +924,6 @@ test_scm_mem_new(void)
   cut_assert_not_null(mem->from_obj_tbl);
   cut_assert_not_null(mem->to_heap);
   cut_assert_not_null(mem->from_heap);
-  cut_assert_not_null(mem->persistent);
   cut_assert(mem->gc_enabled);
 
   cut_assert_equal_int(1, scm_mem_heap_nr_block(mem->to_heap));
@@ -1257,7 +1256,7 @@ test_scm_mem_alloc_heap(void)
   scm_mem_register_extra_rfrn(mem, SCM_REF_MAKE(obj));
 
   /* action */
-  scm_mem_alloc_heap(mem, &type, SCM_REF_MAKE(obj));
+  obj = scm_mem_alloc_heap(mem, &type);
 
   /* postcondition check */
   cut_assert_true(scm_obj_not_null_p(obj));
@@ -1302,8 +1301,8 @@ test_scm_mem_alloc_heap__alignment(void)
   scm_mem_register_extra_rfrn(mem, SCM_REF_MAKE(obj2));
 
   /* action */
-  scm_mem_alloc_heap(mem, &type, SCM_REF_MAKE(obj1));
-  scm_mem_alloc_heap(mem, &type, SCM_REF_MAKE(obj2));
+  obj1 = scm_mem_alloc_heap(mem, &type);
+  obj2 = scm_mem_alloc_heap(mem, &type);
 
   /* postcondition check */
   cut_assert_true(scm_obj_not_null_p(obj1));
@@ -1337,7 +1336,7 @@ test_scm_mem_alloc_root(void)
   mem = scm_mem_new();
 
   /* action */
-  scm_mem_alloc_root(mem, &type, SCM_REF_MAKE(obj));
+  obj = scm_mem_alloc_root(mem, &type);
 
   /* postcondition check */
   cut_assert_true(scm_obj_not_null_p(obj));
@@ -1374,7 +1373,7 @@ test_scm_mem_free_root(void)
   /* preprocess */
   mem = scm_mem_new();
 
-  scm_mem_alloc_root(mem, &type, SCM_REF_MAKE(obj));
+  obj = scm_mem_alloc_root(mem, &type);
   obj_num = ((StubObj *)obj)->obj_num;
 
   /* action */
@@ -1409,10 +1408,10 @@ test_scm_mem_gc_start__not_scavenged(void)
 
   /* preprocess */
   mem = scm_mem_new();
-  scm_mem_alloc_root(mem, &type, SCM_REF_MAKE(root_obj));
-  scm_mem_alloc_heap(mem, &type, SCM_REF_MAKE(STUB_OBJ(root_obj)->obj));
+  root_obj = scm_mem_alloc_root(mem, &type);
+  STUB_OBJ(root_obj)->obj = scm_mem_alloc_heap(mem, &type);
   heap_obj1 = STUB_OBJ(root_obj)->obj;
-  scm_mem_alloc_heap(mem, &type, SCM_REF_MAKE(STUB_OBJ(heap_obj1)->obj));
+  STUB_OBJ(heap_obj1)->obj = scm_mem_alloc_heap(mem, &type);
   root_obj_num = STUB_OBJ(root_obj)->obj_num;
   heap_obj1_num = STUB_OBJ(STUB_OBJ(root_obj)->obj)->obj_num;
   heap_obj2_num = STUB_OBJ(STUB_OBJ(heap_obj1)->obj)->obj_num;
@@ -1463,10 +1462,10 @@ test_scm_mem_gc_start__scavenged(void)
 
   /* preprocess */
   mem = scm_mem_new();
-  scm_mem_alloc_root(mem, &type, SCM_REF_MAKE(root_obj));
-  scm_mem_alloc_heap(mem, &type, SCM_REF_MAKE(STUB_OBJ(root_obj)->obj));
+  root_obj = scm_mem_alloc_root(mem, &type);
+  STUB_OBJ(root_obj)->obj = scm_mem_alloc_heap(mem, &type);
   heap_obj1 = STUB_OBJ(root_obj)->obj;
-  scm_mem_alloc_heap(mem, &type, SCM_REF_MAKE(STUB_OBJ(heap_obj1)->obj));
+  STUB_OBJ(heap_obj1)->obj = scm_mem_alloc_heap(mem, &type);
   root_obj_num = STUB_OBJ(root_obj)->obj_num;
   heap_obj1_num = STUB_OBJ(STUB_OBJ(root_obj)->obj)->obj_num;
   heap_obj2_num = STUB_OBJ(STUB_OBJ(heap_obj1)->obj)->obj_num;
@@ -1519,12 +1518,12 @@ test_scm_mem_gc_start__referred_by_two_objects(void)
 
   /* preprocess */
   mem = scm_mem_new();
-  scm_mem_alloc_root(mem, &type, SCM_REF_MAKE(root_obj1));
-  scm_mem_alloc_heap(mem, &type, SCM_REF_MAKE(STUB_OBJ(root_obj1)->obj));
+  root_obj1 = scm_mem_alloc_root(mem, &type);
+  STUB_OBJ(root_obj1)->obj = scm_mem_alloc_heap(mem, &type);
   root_obj1_num = STUB_OBJ(root_obj1)->obj_num;
   heap_obj_num = STUB_OBJ(STUB_OBJ(root_obj1)->obj)->obj_num;
 
-  scm_mem_alloc_root(mem, &type, SCM_REF_MAKE(root_obj2));
+  root_obj2 = scm_mem_alloc_root(mem, &type);
   /* heap_obj is referred by root_obj1 and root_obj2 */
   STUB_OBJ(root_obj2)->obj = STUB_OBJ(root_obj1)->obj;
   root_obj2_num = STUB_OBJ(root_obj2)->obj_num;
@@ -1575,8 +1574,8 @@ test_scm_mem_gc_start__root_obj_referred_by_heap_obj(void)
 
   /* preprocess */
   mem = scm_mem_new();
-  scm_mem_alloc_root(mem, &type, SCM_REF_MAKE(root_obj));
-  scm_mem_alloc_heap(mem, &type, SCM_REF_MAKE(heap_obj));
+  root_obj = scm_mem_alloc_root(mem, &type);
+  heap_obj = scm_mem_alloc_heap(mem, &type);
   STUB_OBJ(root_obj)->obj = heap_obj;
   STUB_OBJ(heap_obj)->obj = root_obj;   /* heap_obj refers root_obj; */
   root_obj_num = STUB_OBJ(root_obj)->obj_num;
@@ -1623,10 +1622,10 @@ test_scm_mem_gc_start__weak_reference_refer_to_obj_not_scavenged(void)
 
   /* preprocess */
   mem = scm_mem_new();
-  scm_mem_alloc_root(mem, &type, SCM_REF_MAKE(root_obj1));
-  scm_mem_alloc_root(mem, &type, SCM_REF_MAKE(root_obj2));
-  scm_mem_alloc_heap(mem, &type, SCM_REF_MAKE(STUB_OBJ(root_obj1)->obj));
-  scm_mem_alloc_heap(mem, &type, SCM_REF_MAKE(STUB_OBJ(root_obj2)->obj));
+  root_obj1 = scm_mem_alloc_root(mem, &type);
+  root_obj2 = scm_mem_alloc_root(mem, &type);
+  STUB_OBJ(root_obj1)->obj = scm_mem_alloc_heap(mem, &type);
+  STUB_OBJ(root_obj2)->obj = scm_mem_alloc_heap(mem, &type);
   heap_obj1 = STUB_OBJ(root_obj1)->obj;
   STUB_OBJ(heap_obj1)->weak_obj = STUB_OBJ(root_obj2)->obj;
   root_obj1_num = STUB_OBJ(root_obj1)->obj_num;
@@ -1690,10 +1689,10 @@ test_scm_mem_gc_start__weak_reference_refer_to_obj_scavenged(void)
 
   /* preprocess */
   mem = scm_mem_new();
-  scm_mem_alloc_root(mem, &type, SCM_REF_MAKE(root_obj1));
-  scm_mem_alloc_heap(mem, &type, SCM_REF_MAKE(STUB_OBJ(root_obj1)->obj));
+  root_obj1 = scm_mem_alloc_root(mem, &type);
+  STUB_OBJ(root_obj1)->obj = scm_mem_alloc_heap(mem, &type);
   heap_obj1 = STUB_OBJ(root_obj1)->obj;
-  scm_mem_alloc_heap(mem, &type, SCM_REF_MAKE(STUB_OBJ(heap_obj1)->weak_obj));
+  STUB_OBJ(heap_obj1)->weak_obj = scm_mem_alloc_heap(mem, &type);
   root_obj1_num = STUB_OBJ(root_obj1)->obj_num;
   heap_obj1_num = STUB_OBJ(heap_obj1)->obj_num;
   heap_obj2_num = STUB_OBJ(STUB_OBJ(heap_obj1)->weak_obj)->obj_num;

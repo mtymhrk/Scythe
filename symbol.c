@@ -45,8 +45,7 @@ scm_symbol_new(SCM_MEM_ALLOC_TYPE_T mtype, ScmObj str) /* GC OK */
 
   scm_assert_obj_type(str, &SCM_STRING_TYPE_INFO);
 
-  scm_mem_alloc(scm_vm_current_mm(),
-                &SCM_SYMBOL_TYPE_INFO, mtype, SCM_REF_MAKE(sym));
+  sym = scm_mem_alloc(scm_vm_current_mm(), &SCM_SYMBOL_TYPE_INFO, mtype);
   scm_symbol_initialize(sym, str);
 
   return sym;
@@ -162,8 +161,7 @@ scm_symtbl_new(SCM_MEM_ALLOC_TYPE_T mtype)
 
   SCM_STACK_FRAME_PUSH(&tbl);
 
-  scm_mem_alloc(scm_vm_current_mm(),
-                &SCM_SYMTBL_TYPE_INFO, mtype, SCM_REF_MAKE(tbl));
+  tbl = scm_mem_alloc(scm_vm_current_mm(), &SCM_SYMTBL_TYPE_INFO, mtype);
   if (scm_obj_null_p(tbl)) return SCM_OBJ_NULL;
 
   scm_symtbl_initialize(tbl);

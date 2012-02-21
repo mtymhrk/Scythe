@@ -40,8 +40,7 @@ scm_eof_new(SCM_MEM_ALLOC_TYPE_T mtype)         /* GC OK */
   /* scm_mem_alloc_root(scm_vm_current_mm(), */
   /*                    &SCM_EOF_TYPE_INFO, SCM_REF_MAKE(eof)); */
   /* TODO: replace above by below */
-  scm_mem_alloc(scm_vm_current_mm(),
-                &SCM_EOF_TYPE_INFO, mtype, SCM_REF_MAKE(eof));
+  eof = scm_mem_alloc(scm_vm_current_mm(), &SCM_EOF_TYPE_INFO, mtype);
   if (scm_obj_null_p(eof)) return SCM_OBJ_NULL;
 
   scm_eof_initialize(eof);
@@ -98,8 +97,7 @@ scm_bool_new(SCM_MEM_ALLOC_TYPE_T mtype, bool value)  /* GC OK */
 
   SCM_STACK_FRAME_PUSH(&bl);
 
-  scm_mem_alloc(scm_vm_current_mm(),
-                &SCM_BOOL_TYPE_INFO, mtype, SCM_REF_MAKE(bl));
+  bl = scm_mem_alloc(scm_vm_current_mm(), &SCM_BOOL_TYPE_INFO, mtype);
   if (scm_obj_null_p(bl)) return SCM_OBJ_NULL;
 
   scm_bool_initialize(bl, value);
@@ -165,8 +163,7 @@ scm_nil_new(SCM_MEM_ALLOC_TYPE_T mtype)         /* GC OK */
 
   SCM_STACK_FRAME_PUSH(&nil);
 
-  scm_mem_alloc(scm_vm_current_mm(),
-                &SCM_NIL_TYPE_INFO, mtype, SCM_REF_MAKE(nil));
+  nil = scm_mem_alloc(scm_vm_current_mm(), &SCM_NIL_TYPE_INFO, mtype);
   if (scm_obj_null_p(nil)) return SCM_OBJ_NULL;
 
   scm_nil_initialize(nil);

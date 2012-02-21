@@ -46,12 +46,7 @@ scm_char_new(SCM_MEM_ALLOC_TYPE_T mtype,
 
   scm_assert(/* 0 <= enc && */ enc < SMC_ENCODING_NR_ENC);
 
-
-  /* scm_mem_alloc_root(scm_vm_current_mm(), */
-  /*                    &SCM_CHAR_TYPE_INFO, SCM_REF_MAKE(chr)); */
-  /* TODO: replace above by below */
-  scm_mem_alloc(scm_vm_current_mm(),
-                &SCM_CHAR_TYPE_INFO, mtype, SCM_REF_MAKE(chr));
+  chr = scm_mem_alloc(scm_vm_current_mm(), &SCM_CHAR_TYPE_INFO, mtype);
   if (scm_obj_null_p(chr)) return SCM_OBJ_NULL;
 
   scm_char_initialize(chr, value, enc);

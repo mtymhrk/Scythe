@@ -19,10 +19,9 @@ typedef struct ScmMemRec ScmMem;
 typedef enum {
   SCM_MEM_ALLOC_HEAP,
   SCM_MEM_ALLOC_ROOT,
-  SCM_MEM_ALLOC_SHARED_ROOT,
 } SCM_MEM_ALLOC_TYPE_T;
 
-enum { SCM_MEM_NR_ALLOC_TYPE = SCM_MEM_ALLOC_SHARED_ROOT + 1 };
+enum { SCM_MEM_NR_ALLOC_TYPE = SCM_MEM_ALLOC_ROOT + 1 };
 
 #include "object.h"
 #include "basichash.h"
@@ -91,7 +90,6 @@ struct ScmMemRec {
   ScmBasicHashTable *from_obj_tbl;
   ScmMemHeap *to_heap;
   ScmMemHeap *from_heap;
-  ScmMemHeap *persistent;
   ScmMemRootBlock *roots;
   ScmRef *extra_rfrn;
   size_t nr_extra;
@@ -167,29 +165,25 @@ void scm_mem_del_from_root_set(ScmMemRootBlock **head, ScmMemRootBlock *block);
 ScmRef scm_mem_next_obj_has_weak_ref(ScmTypeInfo *type, ScmObj obj);
 void scm_mem_set_next_obj_has_weak_ref(ScmTypeInfo *type, ScmObj obj,
                                        ScmObj nxt);
-void scm_mem_add_obj_to_weak_list(ScmMemHeap *heap, ScmRef ref,
+void scm_mem_add_obj_to_weak_list(ScmMemHeap *heap, ScmObj obj,
                                   ScmTypeInfo *type);
 
 int scm_mem_expand_heap(ScmMem *mem, int inc_block);
 int scm_mem_release_redundancy_heap_blocks(ScmMem *mem, int nr_margin);
-int scm_mem_expand_persistent(ScmMem *mem, int inc_block);
 int scm_mem_register_obj_if_needed(ScmMem *mem, ScmTypeInfo *type, ScmObj obj);
 void scm_mem_unregister_obj(ScmMem *mem, ScmObj obj);
 void scm_mem_finalize_obj(ScmMem *mem, ScmObj obj);
 void scm_mem_finalize_heap_obj(ScmMem *mem, int which);
 void scm_mem_clean_heap(ScmMem *mem, int which);
 void scm_mem_clean_root(ScmMem *mem);
-void scm_mem_clean_persistent(ScmMem *mem);
 void scm_mem_switch_heap(ScmMem *mem);
 bool scm_mem_is_obj_in_heap(ScmMem *mem, ScmObj obj, int which);
-void scm_mem_alloc_heap_mem(ScmMem *mem, ScmTypeInfo *type, ScmRef ref);
+ScmObj scm_mem_alloc_heap_mem(ScmMem *mem, ScmTypeInfo *type);
 void scm_mem_obj_init(ScmMem *mem, ScmObj obj, ScmTypeInfo *type);
 ScmObj scm_mem_copy_obj(ScmMem *mem, ScmObj obj);
 int scm_mem_copy_children_func(ScmObj mem, ScmObj obj, ScmRef child);
 void scm_mem_copy_children(ScmMem *mem, ScmObj obj);
-void scm_mem_copy_children_of_persistent(ScmMem *mem);
 void scm_mem_copy_children_of_root_obj(ScmMem *mem, ScmMemRootBlock *head);
-void scm_mem_copy_children_of_shared_root(ScmMem *mem);
 void scm_mem_copy_children_of_root(ScmMem *mem);
 void scm_mem_copy_extra_obj(ScmMem *mem);
 void scm_mem_copy_obj_referred_by_root(ScmMem *mem);
@@ -237,17 +231,13 @@ scm_mem_gc_enabled_p(ScmMem *mem)
 ScmMem *scm_mem_new(void);
 ScmMem *scm_mem_end(ScmMem *mem);
 ScmMem *scm_mem_clean(ScmMem *mem);
-ScmMem *scm_mem_alloc_heap(ScmMem *mem, ScmTypeInfo *type, ScmRef ref);
-ScmMem *scm_mem_alloc_persist(ScmMem *mem, ScmTypeInfo *type, ScmRef ref);
-ScmMem *scm_mem_alloc_root(ScmMem *mem, ScmTypeInfo *type, ScmRef ref);
+ScmObj scm_mem_alloc_heap(ScmMem *mem, ScmTypeInfo *type);
+ScmObj scm_mem_alloc_root(ScmMem *mem, ScmTypeInfo *type);
 ScmObj scm_mem_free_root(ScmMem *mem, ScmObj obj);
 ScmRef scm_mem_register_extra_rfrn(ScmMem *mem, ScmRef ref);
-ScmMem *scm_mem_alloc(ScmMem *mem, ScmTypeInfo *type,
-                      SCM_MEM_ALLOC_TYPE_T alloc, ScmRef ref);
+ScmObj scm_mem_alloc(ScmMem *mem, ScmTypeInfo *type,
+                     SCM_MEM_ALLOC_TYPE_T alloc);
 void scm_mem_gc_start(ScmMem *mem);
-ScmObj scm_memory_alloc_shared_root(ScmTypeInfo *type);
-ScmObj scm_memory_free_shared_root(ScmObj obj);
-void scm_memory_free_all_shared_root(void);
 
 void scm_mem_enable_current_mem_gc(void);
 void scm_mem_disable_current_mem_gc(void);
