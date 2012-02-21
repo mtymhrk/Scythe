@@ -52,6 +52,9 @@ gloc.o: ../gloc.c ../object.h ../memory.h ../basichash.h ../impl_utils.h \
  ../gloc.h
 port.o: ../port.c ../object.h ../memory.h ../basichash.h ../impl_utils.h \
  ../vm.h ../reference.h ../instractions.h ../port.h
+parser.o: ../parser.c ../object.h ../memory.h ../basichash.h \
+ ../impl_utils.h ../vm.h ../reference.h ../instractions.h ../api.h \
+ ../encoding.h ../parser.h
 test_pair.o: test_pair.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-version.h \
  /usr/local/include/cutter/cutter/cut-features.h \
@@ -405,3 +408,20 @@ test_stringport.o: test_stringport.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-experimental.h ../vm.h ../object.h \
  ../memory.h ../basichash.h ../impl_utils.h ../reference.h \
  ../instractions.h ../port.h
+test_parser.o: test_parser.c /usr/local/include/cutter/cutter.h \
+ /usr/local/include/cutter/cutter/cut-version.h \
+ /usr/local/include/cutter/cutter/cut-features.h \
+ /usr/local/include/cutter/cutter/cut-assertions.h \
+ /usr/local/include/cutter/cutter/cut-assertions-helper.h \
+ /usr/local/include/cutter/cutter/cut-public.h \
+ /usr/local/include/cutter/cutter/cut-config.h \
+ /usr/local/include/cutter/cutter/cut-types.h \
+ /usr/local/include/cutter/cutter/cut-macros.h \
+ /usr/local/include/cutter/cutter/cut-multi-process.h \
+ /usr/local/include/cutter/cutter/cut-test-utils.h \
+ /usr/local/include/cutter/cutter/cut-test-utils-helper.h \
+ /usr/local/include/cutter/cutter/cut-helper.h \
+ /usr/local/include/cutter/cutter/cut-experimental.h ../parser.h \
+ ../object.h ../port.h ../memory.h ../basichash.h ../impl_utils.h \
+ ../object.h ../reference.h ../vm.h ../reference.h ../instractions.h \
+ ../api.h ../encoding.h ../encoding.h ../pair.h ../vector.h
