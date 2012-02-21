@@ -313,7 +313,7 @@ scm_vm_op_gref(ScmObj vm, ScmObj arg, int immv_idx)
   scm_assert(immv_idx >= 0);
 
   if (scm_obj_type_p(arg, &SCM_SYMBOL_TYPE_INFO)) {
-    rslt = scm_gloctbl_find(SCM_VM(vm)->gloctbl, arg, SCM_REF_MAKE(gloc));
+    rslt = scm_gloctbl_find(SCM_VM(vm)->gloctbl, arg, SCM_CSETTER_L(gloc));
     if (rslt != 0)
       ;                           /* TODO: error handling */
 
@@ -398,7 +398,7 @@ scm_vm_op_gset(ScmObj vm, ScmObj arg, ScmObj val, int immv_idx)
   scm_assert(immv_idx >= 0);
 
   if (scm_obj_type_p(arg, &SCM_SYMBOL_TYPE_INFO)) {
-    rslt = scm_gloctbl_find(SCM_VM(vm)->gloctbl, arg, SCM_REF_MAKE(gloc));
+    rslt = scm_gloctbl_find(SCM_VM(vm)->gloctbl, arg, SCM_CSETTER_L(gloc));
     if (rslt != 0)
       ;                           /* TODO: error handling */
 

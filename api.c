@@ -624,7 +624,7 @@ scm_api_global_var_ref(ScmObj sym)
   if (scm_obj_null_p(sym) || !scm_obj_type_p(sym, &SCM_SYMBOL_TYPE_INFO))
     return SCM_OBJ_NULL;         /* provisional implemntation */
 
-  rslt = scm_gloctbl_find(scm_vm_current_gloctbl(), sym, SCM_REF_MAKE(gloc));
+  rslt = scm_gloctbl_find(scm_vm_current_gloctbl(), sym, SCM_CSETTER_L(gloc));
   if (rslt != 0) {
     ;                           /* TODO: error handling */
     return SCM_OBJ_NULL;

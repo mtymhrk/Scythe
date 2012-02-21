@@ -49,6 +49,99 @@ typedef const ScmObj *ScmCRef;
     ((lval) = (rval));                            \
   } while(0)
 
+
+/** definition for scm_csetter_t **********************************************/
+
+/*
+ * = scm_csetter_t の説明
+ * 関数の引数に ScmRef 型 (つまり ScmObj * 型) の値を受け取り、何らかの結果を
+ * そのポインタに設定して返したいケースで、ScmRef 型を使うのではなく、
+ * scm_csetter_t * 型を使用する。
+ *
+ * scm_csetter_t * を引数に受け取る関数の caller は結果を格納してほしい場所が
+ * ただの自動変数であれば、
+ *
+ *   func( ..., SCM_CSETTER_L(変数名), ... );
+ *
+ * といった形で SCM_CSETTER_L を使用して scm_csetter_t を生成すると同時に関数
+ * を呼出す。結果を格納してほしい場所が、ある Memory Managed Object が管理して
+ * いる領域であれば、
+ *
+ *   func( ..., SCM_CSETTER_O(object を指す変数, 格納場所を表す lvalue), ...);
+ *
+ * といった形で SCM_CSETTER_O を使用して生成する。 結果を格納してほしい場所が、
+ * ある Memory Managed Object の構造体のメンバであれば、
+ *
+ *   func( ..., SCM_CSETTER_S(object の型,
+ *                            object を指す変数、
+ *                            格納場所を表す lvalue), ...);
+ *
+ * といった形で SCM_CSETTER_S を使用して生成する。
+ *
+ * calle 側では、scm_csetter_setq を使用して結果を格納する。
+ *
+ * SCM_CSETTER_O と SCM_CSETTER_S に分かれているのは、Memory Managed Object
+ * 構造体のメンバの場合、scm_csetter_t 生成以降に GC が走るとメンバを指すポイ
+ * ンタ値が変ってしまうため、変りにメンバのオフセット値を保持するようにするた
+ * め。
+ *
+ * 導入の理由は、GC の write barrier を挿入するため (ただし今現在、世代別 GC
+ * を実装していないため挿入する必要はない。単に将来的な話)。
+ * Memory Managed Object が管理している領域への ScmObj 値の代入は write
+ * barrier を挿入しなければならないが、自動変数への代入はその必要がない。
+ * ScmRef 型を渡された callee 側ではそれが 自動変数を指しているのか、Memory
+ * Managed Object の管理領域を指しているのかが判断できない。そのため、
+ * scm_csetter_t で抽象化する。
+ *
+ * ScmRef 型の引数に指定できるのは自動変数のポインタのみとし、callee では一切
+ * write barrier を挿入しないとすることもできるが、そのコーディング規約を自分
+ * が守れる自信が無い。そため、試験的に scm_csetter_t を導入してみた。
+ *
+ */
+
+typedef struct {
+  char kind;
+  union {
+    ScmObj *l;
+    struct {
+      ScmObj *owner;
+      ScmObj *ptr;
+    } o;
+    struct {
+      ScmObj *owner;
+      size_t offset;
+    } s;
+  } lval;
+} scm_csetter_t;
+
+#define SCM_CSETTER_L(lval) \
+  &(scm_csetter_t){ 'L', { .l = &(lval) }}
+
+#define SCM_CSETTER_O(owner, lval) \
+  &(scm_csetter_t){ 'O', { .o = { &(owner), &(lval) }}}
+
+#define SCM_CSETTER_S(type, obj, slt) \
+  &(scm_csetter_t){ 'S', { .s = { &(obj), offsetof(type, slt) }}}
+
+inline void
+scm_csetter_setq(scm_csetter_t *st, ScmObj val)
+{
+  switch (st->kind) {
+  case 'L':
+    *st->lval.l = val;
+    break;
+  case 'O':
+    SCM_WB_SETQ(*st->lval.o.owner, *st->lval.o.ptr, val);
+    break;
+  case 'S':
+    SCM_WB_SETQ(*st->lval.s.owner,
+                *(ScmObj *)((uint8_t *)*st->lval.s.owner + st->lval.s.offset),
+                val);
+    break;
+  }
+}
+
+
 /** definition for ScmRef ****************************************************/
 
 #define SCM_REF_MAKE(obj) ((ScmRef)&(obj))

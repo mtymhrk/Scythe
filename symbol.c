@@ -178,7 +178,10 @@ scm_symtbl_symbol(ScmObj tbl, ScmObj str)
 
   SCM_STACK_FRAME_PUSH(&sym, &tbl, &str);
 
-  rslt = scm_chash_tbl_get(SCM_SYMTBL(tbl)->tbl, str, &sym, &found);
+  rslt = scm_chash_tbl_get(SCM_SYMTBL(tbl)->tbl,
+                           str,
+                           (ScmCHashTblVal *)SCM_CSETTER_L(sym),
+                           &found);
   if (rslt != 0) return SCM_OBJ_NULL;
 
   if (found) return sym;

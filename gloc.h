@@ -72,7 +72,7 @@ void scm_gloctbl_initialize(ScmObj tbl);
 void scm_gloctbl_finalize(ScmObj tbl);
 ScmObj scm_gloctbl_new(SCM_MEM_ALLOC_TYPE_T mtype);
 
-int scm_gloctbl_find(ScmObj tbl, ScmObj sym, ScmRef gloc);
+int scm_gloctbl_find(ScmObj tbl, ScmObj sym, scm_csetter_t *setter);
 ScmObj scm_gloctbl_gloc(ScmObj tbl, ScmObj sym);
 ScmObj scm_gloctbl_bind(ScmObj tbl, ScmObj sym, ScmObj val);
 

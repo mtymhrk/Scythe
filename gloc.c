@@ -137,20 +137,21 @@ scm_gloctbl_new(SCM_MEM_ALLOC_TYPE_T mtype) /* GC OK */
 }
 
 int
-scm_gloctbl_find(ScmObj tbl, ScmObj sym, ScmRef gloc) /* GC OK */
+scm_gloctbl_find(ScmObj tbl, ScmObj sym, scm_csetter_t *setter) /* GC OK */
 {
   bool found;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&gloc, &tbl, &sym);
+  SCM_STACK_FRAME_PUSH(&tbl, &sym);
 
   scm_assert_obj_type(tbl, &SCM_GLOCTBL_TYPE_INFO);
   scm_assert_obj_type(sym, &SCM_SYMBOL_TYPE_INFO);
 
-  rslt = scm_chash_tbl_get(SCM_GLOCTBL(tbl)->tbl, sym, gloc, &found);
+  rslt = scm_chash_tbl_get(SCM_GLOCTBL(tbl)->tbl,
+                           sym, (ScmCHashTblVal *)setter, &found);
   if (rslt != 0) return -1;
 
-  if (!found) SCM_REF_SETQ(gloc, SCM_OBJ_NULL);
+  if (!found) scm_csetter_setq(setter, SCM_OBJ_NULL);
 
   return 0;
 }

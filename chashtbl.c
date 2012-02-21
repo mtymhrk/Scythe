@@ -184,7 +184,7 @@ scm_chash_tbl_get(ScmCHashTbl *tbl, ScmCHashTblKey key,
       if (tbl->val_kind == SCM_CHASH_TBL_CVAL)
         *val = e->val;
       else
-        SCM_REF_SETQ(val, e->val);
+        scm_csetter_setq((scm_csetter_t *)val, e->val);
     }
 
     if (found != NULL) *found = true;
@@ -222,7 +222,7 @@ scm_chash_tbl_delete(ScmCHashTbl *tbl, ScmCHashTblKey key,
       if (tbl->val_kind == SCM_CHASH_TBL_CVAL)
         *val = e->val;
       else
-        SCM_REF_SETQ(val, e->val);
+        scm_csetter_setq((scm_csetter_t *)val, e->val);
     }
 
     scm_free(e);
