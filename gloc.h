@@ -27,7 +27,7 @@ scm_gloc_bind(ScmObj gloc, ScmObj val)
   scm_assert_obj_type(gloc, &SCM_GLOC_TYPE_INFO);
   assert(scm_obj_not_null_p(val));
 
-  SCM_SETQ(SCM_GLOC(gloc)->val, val);
+  SCM_SLOT_SETQ(ScmGLoc, gloc, val, val);
 }
 
 inline void
@@ -35,7 +35,7 @@ scm_gloc_unbind(ScmObj gloc)
 {
   scm_assert_obj_type(gloc, &SCM_GLOC_TYPE_INFO);
 
-  SCM_SETQ(SCM_GLOC(gloc)->val, SCM_OBJ_NULL);
+  SCM_SLOT_SETQ(ScmVM, gloc, val, SCM_OBJ_NULL);
 }
 
 inline ScmObj

@@ -88,28 +88,29 @@ scm_vm_setup_root(ScmObj vm)
 {
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
-  SCM_SETQ(SCM_VM(vm)->symtbl, scm_symtbl_new(SCM_MEM_ALLOC_ROOT));
+  SCM_SLOT_SETQ(ScmVM, vm, symtbl, scm_symtbl_new(SCM_MEM_ALLOC_ROOT));
   if (scm_obj_null_p(SCM_VM(vm)->symtbl))
     ;                           /* TODO: error handling */
 
-  SCM_SETQ(SCM_VM(vm)->gloctbl, scm_gloctbl_new(SCM_MEM_ALLOC_ROOT));
+  SCM_SLOT_SETQ(ScmVM,vm, gloctbl, scm_gloctbl_new(SCM_MEM_ALLOC_ROOT));
   if (scm_obj_null_p(SCM_VM(vm)->gloctbl))
     ;                           /* TODO: error handling */
 
-  SCM_SETQ(SCM_VM(vm)->cnsts.nil, scm_nil_new(SCM_MEM_ALLOC_ROOT));
+  SCM_SLOT_SETQ(ScmVM, vm, cnsts.nil, scm_nil_new(SCM_MEM_ALLOC_ROOT));
   if (scm_obj_null_p(SCM_VM(vm)->cnsts.nil))
     ;                           /* TODO: error handling */
 
-  SCM_SETQ(SCM_VM(vm)->cnsts.eof, scm_eof_new(SCM_MEM_ALLOC_ROOT));
+  SCM_SLOT_SETQ(ScmVM, vm, cnsts.eof, scm_eof_new(SCM_MEM_ALLOC_ROOT));
   if (scm_obj_null_p(SCM_VM(vm)->cnsts.eof))
     ;                           /* TODO: error handling */
 
-  SCM_SETQ(SCM_VM(vm)->cnsts.b_true, scm_bool_new(SCM_MEM_ALLOC_ROOT, true));
+  SCM_SLOT_SETQ(ScmVM, vm, cnsts.b_true,
+                scm_bool_new(SCM_MEM_ALLOC_ROOT, true));
   if (scm_obj_null_p(SCM_VM(vm)->cnsts.b_true))
     ;                           /* TODO: error handling */
 
-  SCM_SETQ(SCM_VM(vm)->cnsts.b_false,
-           scm_bool_new(SCM_MEM_ALLOC_ROOT, false));
+  SCM_SLOT_SETQ(ScmVM, vm, cnsts.b_false,
+                scm_bool_new(SCM_MEM_ALLOC_ROOT, false));
   if (scm_obj_null_p(SCM_VM(vm)->cnsts.b_false))
     ;                           /* TODO: error handling */
 
@@ -140,14 +141,12 @@ scm_vm_stack_push(ScmObj vm, scm_vm_stack_val_t elm, bool scmobj_p)
   if (SCM_VM(vm)->sp > SCM_VM(vm)->stack + SCM_VM(vm)->stack_size)
     return; /* stack overflow; TODO: handle stack overflow error  */
 
-  sp = SCM_VM(vm)->sp;
-
   if (scmobj_p)
-    SCM_SETQ(*sp, elm);
+    SCM_SLOT_REF_SETQ(ScmVM, vm, sp, elm);
   else
     *SCM_VM(vm)->sp = elm;
 
-  SCM_VM(vm)->sp++;
+  sp = SCM_VM(vm)->sp++;
 
   if (scmobj_p)
     scm_vm_stack_objmap_set(vm, sp);
@@ -158,10 +157,6 @@ scm_vm_stack_push(ScmObj vm, scm_vm_stack_val_t elm, bool scmobj_p)
 scm_local_func scm_vm_stack_val_t
 scm_vm_stack_pop(ScmObj vm)
 {
-  ScmObj elm = SCM_OBJ_INIT;
-
-  SCM_STACK_FRAME_PUSH(&vm, &elm);
-
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
   if (SCM_VM(vm)->sp == SCM_VM(vm)->stack)
@@ -170,9 +165,7 @@ scm_vm_stack_pop(ScmObj vm)
 
   SCM_VM(vm)->sp--;
 
-  SCM_SETQ(elm, *SCM_VM(vm)->sp);
-
-  return elm;
+  return *SCM_VM(vm)->sp;
 }
 
 scm_local_func void
@@ -225,16 +218,18 @@ scm_vm_frame_argv(ScmObj vm, int nth)
 scm_local_func void
 scm_vm_op_call(ScmObj vm)
 {
+  int argc;
+
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
   if (scm_obj_type_p(SCM_VM(vm)->val, &SCM_SUBRUTINE_TYPE_INFO)) {
-    scm_vm_stack_val_t *fp = SCM_VM(vm)->fp = SCM_VM(vm)->sp;
-    int argc = scm_vm_frame_argc(vm);
+    SCM_VM(vm)->fp = SCM_VM(vm)->sp;
+    argc = scm_vm_frame_argc(vm);
 
     /* FRAME インストラクションでダミー値を設定していたものを実際の値に変更
        する */
-    SCM_SETQ(fp[-(argc + 3)], SCM_VM(vm)->iseq);
-    fp[-(argc + 2)] = (scm_vm_stack_val_t)SCM_VM(vm)->ip;
+    SCM_SLOT_SETQ(ScmVM, vm, fp[-(argc + 3)], SCM_VM(vm)->iseq);
+    SCM_VM(vm)->fp[-(argc + 2)] = (scm_vm_stack_val_t)SCM_VM(vm)->ip;
 
     scm_subrutine_call(SCM_VM(vm)->val);
   }
@@ -249,7 +244,7 @@ scm_vm_op_immval(ScmObj vm, ScmObj val)
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
   scm_assert(scm_obj_not_null_p(val));
 
-  SCM_SETQ(SCM_VM(vm)->val, val);
+  SCM_SLOT_SETQ(ScmVM, vm, val, val);
 }
 
 scm_local_func void
@@ -329,18 +324,18 @@ scm_vm_op_gref(ScmObj vm, ScmObj arg, int immv_idx)
     if (rslt != 0)
       ;                           /* TODO: error handling */
 
-    SCM_SETQ(val, scm_gloc_value(gloc));
+    val = scm_gloc_value(gloc);
     if (scm_obj_null_p(val))
       ; /* TODO: error handling (reference of unbound variable) */
 
-    SCM_SETQ(SCM_VM(vm)->val, val);
+    SCM_SLOT_SETQ(ScmVM, vm, val, val);
   }
   else if (scm_obj_type_p(arg, &SCM_GLOC_TYPE_INFO)) {
-    SCM_SETQ(val, scm_gloc_value(gloc));
+    val = scm_gloc_value(gloc);
     if (scm_obj_null_p(val))
       ; /* TODO: error handling (reference of unbound variable) */
 
-    SCM_SETQ(SCM_VM(vm)->val, val);
+    SCM_SLOT_SETQ(ScmVM, vm, val, val);
   }
   else {
     scm_assert(0);
@@ -367,7 +362,7 @@ scm_vm_op_gdef(ScmObj vm, ScmObj arg, ScmObj val, int immv_idx)
   scm_assert(scm_obj_not_null_p(val));
 
   if (scm_obj_type_p(arg, &SCM_SYMBOL_TYPE_INFO)) {
-    SCM_SETQ(gloc, scm_gloctbl_bind(SCM_VM(vm)->gloctbl, arg, val));
+    gloc = scm_gloctbl_bind(SCM_VM(vm)->gloctbl, arg, val);
     if (scm_obj_null_p(gloc))
       ;                           /* TODO: error handling */
 
@@ -451,14 +446,14 @@ scm_vm_initialize(ScmObj vm)
   /* TODO: undefined オブジェクトみたいなものを初期値にする */
   SCM_VM(vm)->val = SCM_OBJ_NULL;
 
-  SCM_SETQ(SCM_VM(vm)->iseq, scm_iseq_new(SCM_MEM_ALLOC_HEAP));
+  SCM_SLOT_SETQ(ScmVM, vm, iseq, scm_iseq_new(SCM_MEM_ALLOC_HEAP));
   if(scm_obj_null_p(SCM_VM(vm)->iseq)) goto err;
 
   return;
 
  err:
   if (scm_obj_null_p(SCM_VM(vm)->iseq))
-    SCM_SETQ(SCM_VM(vm)->iseq, SCM_OBJ_NULL);
+    SCM_SLOT_SETQ(ScmVM, vm, iseq, SCM_OBJ_NULL);
 
   if (SCM_VM(vm)->stack != NULL) {
     SCM_VM(vm)->stack = scm_free(SCM_VM(vm)->stack);
@@ -489,8 +484,8 @@ scm_vm_finalize(ScmObj vm)
   SCM_VM(vm)->sp = NULL;
   SCM_VM(vm)->fp = NULL;
   SCM_VM(vm)->ip = NULL;
-  SCM_SETQ(SCM_VM(vm)->iseq, SCM_OBJ_NULL);
-  SCM_SETQ(SCM_VM(vm)->val, SCM_OBJ_NULL);
+  SCM_SLOT_SETQ(ScmVM, vm, iseq, SCM_OBJ_NULL);
+  SCM_SLOT_SETQ(ScmVM, vm, val, SCM_OBJ_NULL);
   SCM_VM(vm)->ref_stack = NULL;
 }
 
@@ -506,7 +501,7 @@ scm_vm_new(void)
   scm_mem_alloc_root(mem, &SCM_VM_TYPE_INFO, SCM_REF_MAKE(vm));
   if (scm_obj_null_p(vm)) goto err;
 
-  SCM_SETQ(scm_vm__current_vm, vm);
+  scm_vm__current_vm = vm;
 
   scm_vm_initialize(vm);
   scm_vm_setup_root(vm);
@@ -549,9 +544,9 @@ scm_vm_run(ScmObj vm, ScmObj iseq)
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
   scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
 
-  SCM_SETQ(SCM_VM(vm)->iseq, iseq);
+  SCM_SLOT_SETQ(ScmVM, vm, iseq, iseq);
   SCM_VM(vm)->ip = SCM_ISEQ_SEQ(iseq);
-  SCM_SETQ(SCM_VM(vm)->val, SCM_OBJ_NULL);
+  SCM_SLOT_SETQ(ScmVM, vm, val, SCM_OBJ_NULL);
     /* TODO: undefined オブジェクトのようなものを初期値にする */
 
   stop_flag = false;
@@ -638,7 +633,7 @@ scm_vm_return_to_caller(ScmObj vm)
   fp = SCM_VM(vm)->fp;
 
   SCM_VM(vm)->fp = (scm_vm_stack_val_t *)fp[-(argc + 4)];
-  SCM_SETQ(SCM_VM(vm)->iseq, SCM_OBJ(fp[-(argc + 3)]));
+  SCM_SLOT_SETQ(ScmVM, vm, iseq, SCM_OBJ(fp[-(argc + 3)]));
   SCM_VM(vm)->ip = (scm_iword_t*)fp[-(argc + 2)];
 
   scm_vm_stack_shorten(vm, argc + 4); /* 3 := argc, fp, iseq, ip */

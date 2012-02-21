@@ -76,7 +76,7 @@ scm_iseq_set_immval(ScmObj iseq, ScmObj val) /* GC OK */
   idx = SCM_ISEQ_VEC_LENGTH(iseq);
   if (idx >= SCM_ISEQ_IMMVS_MAX) return -1;
 
-  EARY_SET_SCMOBJ(SCM_ISEQ_EARY_IMMVS(iseq), idx, val, err);
+  EARY_SET_SCMOBJ(SCM_ISEQ_EARY_IMMVS(iseq), idx, val, iseq, err);
 
   if(err != 0) return -1;
 
@@ -94,7 +94,7 @@ scm_iseq_update_immval(ScmObj iseq, int idx, ScmObj val)
 
   if ((size_t)idx >= SCM_ISEQ_VEC_LENGTH(iseq)) return -1;
 
-  EARY_SET_SCMOBJ(SCM_ISEQ_EARY_IMMVS(iseq), (size_t)idx, val, err);
+  EARY_SET_SCMOBJ(SCM_ISEQ_EARY_IMMVS(iseq), (size_t)idx, val, iseq, err);
 
   if (err != 0) return -1;
 

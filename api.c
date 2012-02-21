@@ -637,16 +637,10 @@ scm_api_global_var_ref(ScmObj sym)
 extern inline bool
 scm_capi_global_var_bound_p(ScmObj sym)
 {
-  ScmObj o = SCM_OBJ_INIT;
-
-  SCM_STACK_FRAME_PUSH(&sym, &o);
-
   if (scm_obj_null_p(sym) || !scm_obj_type_p(sym, &SCM_SYMBOL_TYPE_INFO))
     return SCM_OBJ_NULL;         /* provisional implemntation */
 
-  SCM_SETQ(o, scm_api_global_var_ref(sym));
-
-  return scm_obj_null_p(o) ? false : true;
+  return scm_obj_null_p(scm_api_global_var_ref(sym)) ? false : true;
 }
 
 ScmObj
@@ -668,7 +662,7 @@ scm_api_global_var_define(ScmObj sym, ScmObj val)
   if (scm_obj_null_p(val))
     return SCM_OBJ_NULL;         /* provisional implemntation */
 
-  SCM_SETQ(gloc, scm_gloctbl_bind(scm_vm_current_gloctbl(), sym, val));
+  gloc = scm_gloctbl_bind(scm_vm_current_gloctbl(), sym, val);
   if (scm_obj_null_p(gloc)) {
     ;                           /* TODO: error handling */
     return SCM_OBJ_NULL;
@@ -694,7 +688,7 @@ scm_api_global_var_set(ScmObj sym, ScmObj val)
                                scm_vm_bool_false_instance()))
     return SCM_OBJ_NULL;
 
-  SCM_SETQ(gloc, scm_gloctbl_bind(scm_vm_current_gloctbl(), sym, val));
+  gloc = scm_gloctbl_bind(scm_vm_current_gloctbl(), sym, val);
   if (scm_obj_null_p(gloc)) {
     ;                           /* TODO: error handling */
     return SCM_OBJ_NULL;

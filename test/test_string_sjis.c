@@ -9,7 +9,7 @@ static ScmObj vm = SCM_OBJ_INIT;
 void
 cut_startup(void)
 {
-  SCM_SETQ_PRIM(vm, scm_vm_new());
+  vm = scm_vm_new();
 }
 
 void
@@ -28,9 +28,9 @@ test_scm_string_sjis(void)
 
   SCM_STACK_FRAME_PUSH(&str);
 
-  SCM_SETQ(str, scm_string_new(SCM_MEM_ALLOC_HEAP,
+  str = scm_string_new(SCM_MEM_ALLOC_HEAP,
                                      expected, sizeof(expected) - 1,
-                                     SCM_ENCODING_SJIS));
+                                     SCM_ENCODING_SJIS);
 
   cut_assert_true(scm_obj_not_null_p(str));
   cut_assert_equal_uint(SCM_ENCODING_SJIS, scm_string_encoding(str));
@@ -52,10 +52,10 @@ test_scm_string_copy_sjis(void)
 
   SCM_STACK_FRAME_PUSH(&str, &copy);
 
-  SCM_SETQ(str, scm_string_new(SCM_MEM_ALLOC_HEAP,
+  str = scm_string_new(SCM_MEM_ALLOC_HEAP,
                                      expected, sizeof(expected) - 1,
-                                     SCM_ENCODING_SJIS));
-  SCM_SETQ(copy, scm_string_copy(str));
+                                     SCM_ENCODING_SJIS);
+  copy = scm_string_copy(str);
 
   cut_assert_equal_uint(scm_string_length(str), scm_string_length(copy));
   cut_assert_equal_uint(scm_string_bytesize(str), scm_string_bytesize(copy));
@@ -75,10 +75,10 @@ test_string_dup_sjis(void)
 
   SCM_STACK_FRAME_PUSH(&str, &copy);
 
-  SCM_SETQ(str, scm_string_new(SCM_MEM_ALLOC_HEAP,
+  str = scm_string_new(SCM_MEM_ALLOC_HEAP,
                                      expected, sizeof(expected) - 1,
-                                     SCM_ENCODING_SJIS));
-  SCM_SETQ(copy, scm_string_dup(str));
+                                     SCM_ENCODING_SJIS);
+  copy = scm_string_dup(str);
 
 
   cut_assert_equal_uint(scm_string_length(str), scm_string_length(copy));
@@ -96,14 +96,14 @@ test_scm_string_is_equal_compare_with_same_string_sjis(void)
 
   SCM_STACK_FRAME_PUSH(&str1, &str2);
 
-  SCM_SETQ(str1, scm_string_new(SCM_MEM_ALLOC_HEAP,
+  str1 = scm_string_new(SCM_MEM_ALLOC_HEAP,
                                       "この文字列は誤りである",
                                       sizeof("この文字列は誤りである") - 1,
-                                      SCM_ENCODING_SJIS));
-  SCM_SETQ(str2, scm_string_new(SCM_MEM_ALLOC_HEAP,
+                                      SCM_ENCODING_SJIS);
+  str2 = scm_string_new(SCM_MEM_ALLOC_HEAP,
                                       "この文字列は誤りである",
                                       sizeof("この文字列は誤りである") - 1,
-                                      SCM_ENCODING_SJIS));
+                                      SCM_ENCODING_SJIS);
 
   cut_assert_true(scm_string_is_equal(str1, str2));
 }
@@ -115,14 +115,14 @@ test_scm_string_is_equal_compare_with_different_string_sjis(void)
 
   SCM_STACK_FRAME_PUSH(&str1, &str2);
 
-  SCM_SETQ(str1, scm_string_new(SCM_MEM_ALLOC_HEAP,
+  str1 = scm_string_new(SCM_MEM_ALLOC_HEAP,
                                       "この文字列は誤りである",
                                       sizeof("この文字列は誤りである") - 1,
-                                      SCM_ENCODING_SJIS));
-  SCM_SETQ(str2, scm_string_new(SCM_MEM_ALLOC_HEAP,
+                                      SCM_ENCODING_SJIS);
+  str2 = scm_string_new(SCM_MEM_ALLOC_HEAP,
                                       "この文字列は誤りでない",
                                       sizeof("この文字列は誤りでない") - 1,
-                                      SCM_ENCODING_SJIS));
+                                      SCM_ENCODING_SJIS);
 
   cut_assert_false(scm_string_is_equal(str1, str2));
 }
@@ -134,11 +134,11 @@ test_scm_string_is_equal_compare_with_copy_string_sjis(void)
 
   SCM_STACK_FRAME_PUSH(&str1, &str2);
 
-  SCM_SETQ(str1, scm_string_new(SCM_MEM_ALLOC_HEAP,
+  str1 = scm_string_new(SCM_MEM_ALLOC_HEAP,
                                       "この文字列は誤りである",
                                       sizeof("この文字列は誤りである") - 1,
-                                      SCM_ENCODING_SJIS));
-  SCM_SETQ(str2, scm_string_copy(str1));
+                                      SCM_ENCODING_SJIS);
+  str2 = scm_string_copy(str1);
 
   cut_assert_true(scm_string_is_equal(str1, str2));
 }
@@ -150,11 +150,11 @@ test_scm_string_is_equal_compare_with_duplicate_string_sjis(void)
 
   SCM_STACK_FRAME_PUSH(&str1, &str2);
 
-  SCM_SETQ(str1, scm_string_new(SCM_MEM_ALLOC_HEAP,
+  str1 = scm_string_new(SCM_MEM_ALLOC_HEAP,
                                       "この文字列は誤りである",
                                       sizeof("この文字列は誤りである") - 1,
-                                      SCM_ENCODING_SJIS));
-  SCM_SETQ(str2, scm_string_dup(str1));
+                                      SCM_ENCODING_SJIS);
+  str2 = scm_string_dup(str1);
 
   cut_assert_true(scm_string_is_equal(str1, str2));
 }
@@ -169,11 +169,11 @@ test_scm_string_substr_sjis(void)
 
   SCM_STACK_FRAME_PUSH(&str, &sub);
 
-  SCM_SETQ(str, scm_string_new(SCM_MEM_ALLOC_HEAP,
+  str = scm_string_new(SCM_MEM_ALLOC_HEAP,
                                      "この文字列は誤りである",
                                      sizeof("この文字列は誤りである") - 1,
-                                     SCM_ENCODING_SJIS));
-  SCM_SETQ(sub, scm_string_substr(str, 6, 5));
+                                     SCM_ENCODING_SJIS);
+  sub = scm_string_substr(str, 6, 5);
 
   cut_assert_true(scm_obj_not_null_p(sub));
   cut_assert_equal_uint(5u, scm_string_length(sub));
@@ -198,10 +198,10 @@ test_scm_string_push_sjis(void)
   memset(&pushed, 0, sizeof(pushed));
   memcpy(&pushed, "。", 3);
 
-  SCM_SETQ(str, scm_string_new(SCM_MEM_ALLOC_HEAP,
+  str = scm_string_new(SCM_MEM_ALLOC_HEAP,
                                      "この文字列は誤りである",
                                      sizeof("この文字列は誤りである") - 1,
-                                     SCM_ENCODING_SJIS));
+                                     SCM_ENCODING_SJIS);
 
   cut_assert_true(scm_obj_not_null_p(scm_string_push(str, pushed)));
 
@@ -223,14 +223,14 @@ test_scm_string_append_sjis(void)
 
   SCM_STACK_FRAME_PUSH(&str, &apnd);
 
-  SCM_SETQ(str, scm_string_new(SCM_MEM_ALLOC_HEAP,
+  str = scm_string_new(SCM_MEM_ALLOC_HEAP,
                                      "次の文は正しい。",
                                      sizeof("次の文は正しい。") - 1,
-                                     SCM_ENCODING_SJIS));
-  SCM_SETQ(apnd, scm_string_new(SCM_MEM_ALLOC_HEAP,
+                                     SCM_ENCODING_SJIS);
+  apnd = scm_string_new(SCM_MEM_ALLOC_HEAP,
                                       "前の文は誤りである。",
                                       sizeof("前の文は誤りである。") - 1,
-                                      SCM_ENCODING_SJIS));
+                                      SCM_ENCODING_SJIS);
 
   cut_assert_true(scm_obj_not_null_p(scm_string_append(str, apnd)));
 
@@ -259,10 +259,10 @@ test_scm_string_ref_sjis(void)
     memcpy(expected + i, tmp[i], strlen(tmp[i]));
   expected[11] = SCM_CHR_ZERO;
 
-  SCM_SETQ(str, scm_string_new(SCM_MEM_ALLOC_HEAP,
+  str = scm_string_new(SCM_MEM_ALLOC_HEAP,
                                      "この文字列は誤りである",
                                      sizeof("この文字列は誤りである") - 1,
-                                     SCM_ENCODING_SJIS));
+                                     SCM_ENCODING_SJIS);
 
   actual = scm_string_ref(str, 0);
   cut_assert_equal_int(0, memcmp(expected + 0, &actual, sizeof(scm_char_t)));
@@ -315,9 +315,9 @@ test_scm_string_set_less_width_sjis(void)
   memset(&c, 0, sizeof(c));
   memcpy(&c, "a", 1);
 
-  SCM_SETQ(str, scm_string_new(SCM_MEM_ALLOC_HEAP,
+  str = scm_string_new(SCM_MEM_ALLOC_HEAP,
                                      "テスト", sizeof("テスト") - 1,
-                                     SCM_ENCODING_SJIS));
+                                     SCM_ENCODING_SJIS);
 
   cut_assert_true(scm_obj_not_null_p(scm_string_set(str, 1, c)));
 
@@ -343,10 +343,10 @@ test_scm_string_set_same_width_sjis(void)
   memset(&c, 0, sizeof(c));
   memcpy(&c, "ン", 3);
 
-  SCM_SETQ(str, scm_string_new(SCM_MEM_ALLOC_HEAP,
+  str = scm_string_new(SCM_MEM_ALLOC_HEAP,
                                      "テスト",
                                      sizeof("テスト") - 1,
-                                     SCM_ENCODING_SJIS));
+                                     SCM_ENCODING_SJIS);
 
   cut_assert_true(scm_obj_not_null_p(scm_string_set(str, 1, c)));
 
@@ -372,9 +372,9 @@ test_scm_string_set_greater_width_sjis(void)
   memset(&c, 0, sizeof(c));
   memcpy(&c, "あ", 3);
 
-  SCM_SETQ(str, scm_string_new(SCM_MEM_ALLOC_HEAP,
+  str = scm_string_new(SCM_MEM_ALLOC_HEAP,
                                      "abc", sizeof("abc") - 1,
-                                     SCM_ENCODING_SJIS));
+                                     SCM_ENCODING_SJIS);
 
   cut_assert_true(scm_obj_not_null_p(scm_string_set(str, 1, c)));
 
@@ -400,10 +400,10 @@ test_scm_string_fill_sjis(void)
   memset(&c, 0, sizeof(c));
   memcpy(&c, "a", 1);
 
-  SCM_SETQ(str, scm_string_new(SCM_MEM_ALLOC_HEAP,
+  str = scm_string_new(SCM_MEM_ALLOC_HEAP,
                                      "この文字列は正しい。前の文は誤りである。",
                                      sizeof("この文字列は正しい。前の文は誤りである。") - 1,
-                                     SCM_ENCODING_SJIS));
+                                     SCM_ENCODING_SJIS);
 
   cut_assert_true(scm_obj_not_null_p(scm_string_fill(str, 8, 3, c)));
 
@@ -429,10 +429,10 @@ test_scm_string_fill_append_sjis(void)
   memset(&c, 0, sizeof(c));
   memcpy(&c, "a", 1);
 
-  SCM_SETQ(str, scm_string_new(SCM_MEM_ALLOC_HEAP,
+  str = scm_string_new(SCM_MEM_ALLOC_HEAP,
                                      "この文字列は正しい。前の文は誤りである。",
                                      sizeof("この文字列は正しい。前の文は誤りである。") - 1,
-                                     SCM_ENCODING_SJIS));
+                                     SCM_ENCODING_SJIS);
 
   cut_assert_true(scm_obj_not_null_p(scm_string_fill(str, 18, 5, c)));
 
@@ -455,10 +455,10 @@ test_scm_string_find_chr_found_sjis(void)
   memset(&c, 0, sizeof(c));
   memcpy(&c, "は", 3);
 
-  SCM_SETQ(str, scm_string_new(SCM_MEM_ALLOC_HEAP,
+  str = scm_string_new(SCM_MEM_ALLOC_HEAP,
                                      "この文字列は正しい。前の文は誤りである。",
                                      sizeof("この文字列は正しい。前の文は誤りである。") - 1,
-                                     SCM_ENCODING_SJIS));
+                                     SCM_ENCODING_SJIS);
 
   cut_assert_equal_int(5, scm_string_find_chr(str, c));
 }
@@ -474,10 +474,10 @@ test_scm_string_find_chr_not_found_sjis(void)
   memset(&c, 0, sizeof(c));
   memcpy(&c, "a", 1);
 
-  SCM_SETQ(str, scm_string_new(SCM_MEM_ALLOC_HEAP,
+  str = scm_string_new(SCM_MEM_ALLOC_HEAP,
                                      "この文字列は正しい。前の文は誤りである。",
                                      sizeof("この文字列は正しい。前の文は誤りである。") - 1,
-                                     SCM_ENCODING_SJIS));
+                                     SCM_ENCODING_SJIS);
 
   cut_assert_equal_int(-1, scm_string_find_chr(str, c));
 }
@@ -489,14 +489,14 @@ test_scm_string_match_matched_sjis(void)
 
   SCM_STACK_FRAME_PUSH(&str, &pat);
 
-  SCM_SETQ(str, scm_string_new(SCM_MEM_ALLOC_HEAP,
+  str = scm_string_new(SCM_MEM_ALLOC_HEAP,
                                      "この文字列は正しい。前の文は誤りである。",
                                      sizeof("この文字列は正しい。前の文は誤りである。") - 1,
-                                     SCM_ENCODING_SJIS));
-  SCM_SETQ(pat, scm_string_new(SCM_MEM_ALLOC_HEAP,
+                                     SCM_ENCODING_SJIS);
+  pat = scm_string_new(SCM_MEM_ALLOC_HEAP,
                                      "しい。前の文",
                                      sizeof("しい。前の文") - 1,
-                                     SCM_ENCODING_SJIS));
+                                     SCM_ENCODING_SJIS);
 
   cut_assert_equal_int(7, scm_string_match(str, pat));
 }
@@ -508,14 +508,14 @@ test_scm_string_match_unmatched_sjis(void)
 
   SCM_STACK_FRAME_PUSH(&str, &pat);
 
-  SCM_SETQ(str, scm_string_new(SCM_MEM_ALLOC_HEAP,
+  str = scm_string_new(SCM_MEM_ALLOC_HEAP,
                                      "この文字列は正しい。前の文は誤りである。",
                                      sizeof("この文字列は正しい。前の文は誤りである。") - 1,
-                                     SCM_ENCODING_SJIS));
-  SCM_SETQ(pat, scm_string_new(SCM_MEM_ALLOC_HEAP,
+                                     SCM_ENCODING_SJIS);
+  pat = scm_string_new(SCM_MEM_ALLOC_HEAP,
                                      "しい、前の文",
                                      sizeof("しい、前の文") - 1,
-                                     SCM_ENCODING_SJIS));
+                                     SCM_ENCODING_SJIS);
 
   cut_assert_equal_int(-1, scm_string_match(str, pat));
 }

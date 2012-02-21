@@ -1,9 +1,12 @@
+
 #ifndef INCLUDE_EARRAY_H__
 #define INCLUDE_EARRAY_H__
 
 #include "stdlib.h"
 
 typedef struct EArrayRec EArray;
+
+#include "object.h"
 
 #define EARY_MAG 2
 
@@ -94,13 +97,13 @@ eary_expand_if_necessary(EArray *ary, size_t idx, size_t rs)
     (err) = 0;                                    \
   } while(0)
 
-#define EARY_SET_SCMOBJ(ary, idx, val, err)                             \
+#define EARY_SET_SCMOBJ(ary, idx, val, owner, err)                       \
   do {                                                                  \
     (err) = -1;                                                         \
     if (eary_expand_if_necessary(ary, idx, sizeof(ScmObj)) != 0)        \
       break;                                                    \
                                                   \
-    SCM_SETQ(((ScmObj *)((ary)->vec))[idx], val); \
+    SCM_WB_SETQ(owner, ((ScmObj *)((ary)->vec))[idx], val); \
     if (idx >= (ary)->used)                       \
       (ary)->used = idx + 1;                      \
     (err) = 0;                                    \

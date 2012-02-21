@@ -11,7 +11,7 @@ static ScmObj vm = SCM_OBJ_INIT;
 void
 cut_startup(void)
 {
-  SCM_SETQ_PRIM(vm, scm_vm_new());
+  vm = scm_vm_new();
 }
 
 void
@@ -35,8 +35,8 @@ test_scm_nil_instance(void)
 
   SCM_STACK_PUSH(&nil1, &nil2);
 
-  SCM_SETQ(nil1, scm_nil_instance());
-  SCM_SETQ(nil2, scm_nil_instance());
+  nil1 = scm_nil_instance();
+  nil2 = scm_nil_instance();
 
   cut_assert_true(scm_obj_not_null_p(nil1));
   cut_assert_true(scm_obj_not_null_p(nil2));
@@ -50,8 +50,8 @@ test_scm_nil_is_nil(void)
 
   SCM_STACK_PUSH(&nil, &pair);
 
-  SCM_SETQ(nil, scm_nil_new(SCM_MEM_ALLOC_HEAP));
-  SCM_SETQ(pair, scm_pair_new(SCM_MEM_ALLOC_HEAP, nil, nil));
+  nil = scm_nil_new(SCM_MEM_ALLOC_HEAP);
+  pair = scm_pair_new(SCM_MEM_ALLOC_HEAP, nil, nil);
 
   cut_assert_true(scm_nil_is_nil(nil));
   cut_assert_false(scm_nil_is_nil(pair));

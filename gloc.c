@@ -9,6 +9,10 @@
 #include "chashtbl.h"
 #include "gloc.h"
 
+/****************************************************************************/
+/*  GLoc                                                                    */
+/****************************************************************************/
+
 ScmTypeInfo SCM_GLOC_TYPE_INFO = {
   .pp_func = NULL,
   .obj_size = sizeof(ScmGLoc),
@@ -24,8 +28,8 @@ scm_gloc_initialize(ScmObj gloc, ScmObj sym, ScmObj val) /* GC OK */
   scm_assert_obj_type(gloc, &SCM_GLOC_TYPE_INFO);
   scm_assert_obj_type(sym, &SCM_SYMBOL_TYPE_INFO);
 
-  SCM_SETQ(SCM_GLOC(gloc)->sym, sym);
-  SCM_SETQ(SCM_GLOC(gloc)->val, val);
+  SCM_SLOT_SETQ(ScmGLoc, gloc, sym, sym);
+  SCM_SLOT_SETQ(ScmGLoc, gloc, val, val);
 }
 
 ScmObj
@@ -49,8 +53,8 @@ scm_gloc_gc_initialize(ScmObj obj, ScmObj mem)
 {
   scm_assert_obj_type(obj, &SCM_GLOC_TYPE_INFO);
 
-  SCM_SETQ(SCM_GLOC(obj)->sym, SCM_OBJ_NULL);
-  SCM_SETQ(SCM_GLOC(obj)->val, SCM_OBJ_NULL);
+  SCM_GLOC(obj)->sym = SCM_OBJ_NULL;
+  SCM_GLOC(obj)->val = SCM_OBJ_NULL;
 }
 
 int
@@ -67,9 +71,9 @@ scm_gloc_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
 }
 
 
-
-
-
+/****************************************************************************/
+/*  GLocTbl                                                                 */
+/****************************************************************************/
 
 ScmTypeInfo SCM_GLOCTBL_TYPE_INFO = {
   .pp_func = NULL,
@@ -100,7 +104,7 @@ scm_gloctbl_initialize(ScmObj tbl) /* GC OK */
   scm_assert_obj_type(tbl, &SCM_GLOCTBL_TYPE_INFO);
 
   SCM_GLOCTBL(tbl)->tbl =
-    scm_chash_tbl_new(SCM_GLOCTBL_SIZE,
+    scm_chash_tbl_new(SCM_GLOCTBL_SIZE, tbl,
                       SCM_CHASH_TBL_SCMOBJ, SCM_CHASH_TBL_SCMOBJ,
                       scm_gloctbl_hash_func, scm_gloctbl_cmp_func);
 
@@ -170,7 +174,7 @@ scm_gloctbl_gloc(ScmObj tbl, ScmObj sym) /* GC OK */
 
   if (found) return gloc;
 
-  SCM_SETQ(gloc, scm_gloc_new(SCM_MEM_ALLOC_HEAP, sym));
+  gloc = scm_gloc_new(SCM_MEM_ALLOC_HEAP, sym);
   if (scm_obj_null_p(gloc)) return SCM_OBJ_NULL;
 
   rslt = scm_chash_tbl_insert(SCM_GLOCTBL(tbl)->tbl, sym, gloc);
@@ -186,7 +190,7 @@ scm_gloctbl_bind(ScmObj tbl, ScmObj sym, ScmObj val) /* GC OK */
 
   SCM_STACK_FRAME_PUSH(&gloc, &tbl, &sym, &val);
 
-  SCM_SETQ(gloc, scm_gloctbl_gloc(tbl, sym));
+  gloc = scm_gloctbl_gloc(tbl, sym);
   if (scm_obj_null_p(gloc)) return SCM_OBJ_NULL;
 
   scm_gloc_bind(gloc, val);

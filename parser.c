@@ -813,7 +813,7 @@ scm_parser_parse_list(ScmParser *parser, ScmObj port)
     return scm_api_nil();
   }
 
-  SCM_SETQ(car, scm_parser_parse_expression(parser, port));
+  car = scm_parser_parse_expression(parser, port);
   if (scm_capi_null_value_p(car))
     return SCM_OBJ_NULL;
 
@@ -826,7 +826,7 @@ scm_parser_parse_list(ScmParser *parser, ScmObj port)
   if (token->type == SCM_TOKEN_TYPE_DOT) {
     scm_lexer_shift_token(parser->lexer);
 
-    SCM_SETQ(cdr, scm_parser_parse_expression(parser, port));
+    cdr = scm_parser_parse_expression(parser, port);
     if (scm_capi_null_value_p(cdr))
       return SCM_OBJ_NULL;
 
@@ -844,7 +844,7 @@ scm_parser_parse_list(ScmParser *parser, ScmObj port)
     scm_lexer_shift_token(parser->lexer);
   }
   else {
-    SCM_SETQ(cdr, scm_parser_parse_list(parser, port));
+    cdr = scm_parser_parse_list(parser, port);
     if (scm_capi_null_value_p(cdr))
       return SCM_OBJ_NULL;
   }
@@ -877,16 +877,16 @@ scm_parser_parse_quote(ScmParser *parser, ScmObj port)
 
   switch (token->type) {
   case SCM_TOKEN_TYPE_QUOTE:
-    SCM_SETQ(quote, scm_capi_make_symbol_from_cstr(quote_str));
+    quote = scm_capi_make_symbol_from_cstr(quote_str);
     break;
   case SCM_TOKEN_TYPE_QUASIQUOTE:
-    SCM_SETQ(quote, scm_capi_make_symbol_from_cstr(quasiquote_str));
+    quote = scm_capi_make_symbol_from_cstr(quasiquote_str);
     break;
   case SCM_TOKEN_TYPE_UNQUOTE:
-    SCM_SETQ(quote, scm_capi_make_symbol_from_cstr(unquote_str));
+    quote = scm_capi_make_symbol_from_cstr(unquote_str);
     break;
   case SCM_TOKEN_TYPE_UNQUOTE_SPLICING:
-    SCM_SETQ(quote, scm_capi_make_symbol_from_cstr(unquote_splicing_str));
+    quote = scm_capi_make_symbol_from_cstr(unquote_splicing_str);
     break;
   case SCM_TOKEN_TYPE_NONE:               /* fall through */
   case SCM_TOKEN_TYPE_LPAREN:             /* fall through */
@@ -912,10 +912,10 @@ scm_parser_parse_quote(ScmParser *parser, ScmObj port)
 
   scm_lexer_shift_token(parser->lexer);
 
-  SCM_SETQ(quoted, scm_parser_parse_expression(parser, port));
+  quoted = scm_parser_parse_expression(parser, port);
   if (scm_capi_null_value_p(quoted)) return SCM_OBJ_NULL;
 
-  SCM_SETQ(quoted, scm_api_cons(quoted, scm_api_nil()));
+  quoted = scm_api_cons(quoted, scm_api_nil());
   if (scm_capi_null_value_p(quoted)) return SCM_OBJ_NULL;
 
   return scm_api_cons(quote, quoted);
@@ -939,9 +939,9 @@ scm_parser_parse_string(ScmParser *parser, ScmObj port)
   }
 
   if (token->string == NULL)
-    SCM_SETQ(str, scm_capi_make_string_from_cstr(""));
+    str = scm_capi_make_string_from_cstr("");
   else
-    SCM_SETQ(str, scm_capi_make_string_from_bin(token->string, token->size));
+    str = scm_capi_make_string_from_bin(token->string, token->size);
 
   scm_lexer_shift_token(parser->lexer);
 
@@ -967,7 +967,7 @@ scm_parser_parse_identifier(ScmParser *parser, ScmObj port)
     return SCM_OBJ_NULL;
   }
 
-  SCM_SETQ(sym, scm_capi_make_symbol_from_bin(token->string, token->size));
+  sym = scm_capi_make_symbol_from_bin(token->string, token->size);
   scm_lexer_shift_token(parser->lexer);
 
   return sym;
@@ -1055,12 +1055,12 @@ scm_parser_parse_vector_aux(ScmParser *parser, ScmObj port, size_t *len)
     return scm_api_nil();
   }
 
-  SCM_SETQ(car, scm_parser_parse_expression(parser, port));
+  car = scm_parser_parse_expression(parser, port);
   if (scm_capi_null_value_p(car)) return SCM_OBJ_NULL;
 
   *len += 1;
 
-  SCM_SETQ(cdr, scm_parser_parse_vector_aux(parser, port, len));
+  cdr = scm_parser_parse_vector_aux(parser, port, len);
   if (scm_capi_null_value_p(cdr)) return SCM_OBJ_NULL;
 
   return scm_api_cons(car, cdr);
@@ -1069,24 +1069,25 @@ scm_parser_parse_vector_aux(ScmParser *parser, ScmObj port, size_t *len)
 static ScmObj
 scm_parser_parse_vector(ScmParser *parser, ScmObj port)
 {
-  ScmObj vec = SCM_OBJ_INIT, elms = SCM_OBJ_INIT;
+  ScmObj vec = SCM_OBJ_INIT, elms = SCM_OBJ_INIT, elm = SCM_OBJ_INIT;
   size_t len, idx;
 
-  SCM_STACK_FRAME_PUSH(&port, &vec, &elms);
+  SCM_STACK_FRAME_PUSH(&port, &vec, &elms, &elm);
 
   scm_assert(parser != NULL);
   scm_assert(scm_capi_input_port_p(port));
 
   len = 0;
-  SCM_SETQ(elms, scm_parser_parse_vector_aux(parser, port, &len));
+  elms = scm_parser_parse_vector_aux(parser, port, &len);
   if (scm_capi_null_value_p(elms)) return SCM_OBJ_NULL;
 
-  SCM_SETQ(vec, scm_capi_make_vector(len));
+  vec = scm_capi_make_vector(len);
   if (scm_capi_null_value_p(vec)) return SCM_OBJ_NULL;
 
   for (idx = 0; idx < len; idx++) {
-    scm_capi_vector_set(vec, idx, scm_api_car(elms));
-    SCM_SETQ(elms, scm_api_cdr(elms));
+    elm = scm_api_car(elms);
+    scm_capi_vector_set(vec, idx, elm);
+    elms = scm_api_cdr(elms);
   }
 
   return vec;
@@ -1111,17 +1112,17 @@ scm_parser_parse_char(ScmParser *parser, ScmObj port)
   if (token->size == sizeof("#\\newline") - 1 &&
       memcmp("#\\newline", token->string, token->size) == 0) {
     /* TODO: 現状、小文字しか受け付けていないが、case insensitive にする */
-    SCM_SETQ(chr, scm_api_make_char_newline());
+    chr = scm_api_make_char_newline();
   }
   else if (token->size == sizeof("#\\space") - 1 &&
            memcmp("#\\space", token->string, token->size) == 0) {
     /* TODO: 現状、小文字しか受け付けていないが、case insensitive にする */
-    SCM_SETQ(chr, scm_api_make_char_space());
+    chr = scm_api_make_char_space();
   }
   else if (token->size == 3) {
     scm_char_t c;
     c.ascii = (scm_char_ascii_t)token->string[2];
-    SCM_SET(chr, scm_capi_make_char(c));
+    chr = scm_capi_make_char(c);
   }
   else if (token->size == 5 &&
            memcmp("#\\0x", token->string, 3) == 0) {
@@ -1140,7 +1141,7 @@ scm_parser_parse_char(ScmParser *parser, ScmObj port)
       }
       c.bytes[0] = (uint8_t)(c.bytes[0] << 4);
     }
-    SCM_SETQ(chr, scm_capi_make_char(c));
+    chr = scm_capi_make_char(c);
   }
   else {
     // TODO: error handling
@@ -1193,7 +1194,7 @@ scm_parser_parse_expression(ScmParser *parser, ScmObj port)
   switch (SCM_TOKEN_TYPE(token)) {
   case SCM_TOKEN_TYPE_LPAREN:
     scm_lexer_shift_token(parser->lexer);
-    SCM_SETQ(rslt, scm_parser_parse_list(parser, port));
+    rslt = scm_parser_parse_list(parser, port);
     break;
   case SCM_TOKEN_TYPE_RPAREN:
     /* error */
@@ -1208,22 +1209,22 @@ scm_parser_parse_expression(ScmParser *parser, ScmObj port)
     return SCM_OBJ_NULL;
     break;
   case SCM_TOKEN_TYPE_QUOTE:
-    SCM_SETQ(rslt, scm_parser_parse_quote(parser, port));
+    rslt = scm_parser_parse_quote(parser, port);
     break;
   case SCM_TOKEN_TYPE_QUASIQUOTE:
-    SCM_SETQ(rslt, scm_parser_parse_quote(parser, port));
+    rslt = scm_parser_parse_quote(parser, port);
     break;
   case SCM_TOKEN_TYPE_UNQUOTE:
-    SCM_SETQ(rslt, scm_parser_parse_quote(parser, port));
+    rslt = scm_parser_parse_quote(parser, port);
     break;
   case SCM_TOKEN_TYPE_UNQUOTE_SPLICING:
-    SCM_SETQ(rslt, scm_parser_parse_quote(parser, port));
+    rslt = scm_parser_parse_quote(parser, port);
     break;
   case SCM_TOKEN_TYPE_STRING:
-    SCM_SETQ(rslt, scm_parser_parse_string(parser, port));
+    rslt = scm_parser_parse_string(parser, port);
     break;
   case SCM_TOKEN_TYPE_IDENTIFIER:
-    SCM_SETQ(rslt, scm_parser_parse_identifier(parser, port));
+    rslt = scm_parser_parse_identifier(parser, port);
     break;
   case SCM_TOKEN_TYPE_REFERENCE_DECL:
     /* do not supported */
@@ -1236,20 +1237,20 @@ scm_parser_parse_expression(ScmParser *parser, ScmObj port)
     return SCM_OBJ_NULL;
     break;
   case SCM_TOKEN_TYPE_NUMERIC:
-    SCM_SETQ(rslt, scm_parser_parse_numeric(parser, port));
+    rslt = scm_parser_parse_numeric(parser, port);
     break;
   case SCM_TOKEN_TYPE_BOOL_TRUE: /* fall through */
   case SCM_TOKEN_TYPE_BOOL_FALSE:
-    SCM_SETQ(rslt, scm_parser_parse_bool(parser, port));
+    rslt = scm_parser_parse_bool(parser, port);
     break;
   case SCM_TOKEN_TYPE_VECTOR_START:
-    SCM_SETQ(rslt, scm_parser_parse_vector(parser, port));
+    rslt = scm_parser_parse_vector(parser, port);
     break;
   case SCM_TOKEN_TYPE_CHAR:
-    SCM_SETQ(rslt, scm_parser_parse_char(parser, port));
+    rslt = scm_parser_parse_char(parser, port);
     break;
   case SCM_TOKEN_TYPE_EOF:
-    SCM_SETQ(rslt, scm_parser_parse_eof(parser, port));
+    rslt = scm_parser_parse_eof(parser, port);
     break;
   case SCM_TOKEN_TYPE_TOKENIZE_ERR:
     /* error */

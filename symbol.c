@@ -33,7 +33,7 @@ scm_symbol_initialize(ScmObj sym, ScmObj str) /* GC OK */
 
   scm_obj_init(sym, &SCM_SYMBOL_TYPE_INFO);
 
-  SCM_SETQ(SCM_SYMBOL_STR(sym), scm_string_dup(str));
+  SCM_SLOT_SETQ(ScmSymbol, sym, str, scm_string_dup(str));
 }
 
 ScmObj
@@ -89,7 +89,7 @@ scm_symbol_gc_initialize(ScmObj obj, ScmObj mem) /* GC OK */
 {
   scm_assert_obj_type(obj, &SCM_SYMBOL_TYPE_INFO);
 
-  SCM_SETQ_PRIM(SCM_SYMBOL_STR(obj), SCM_OBJ_NULL);
+  SCM_SYMBOL_STR(obj) = SCM_OBJ_NULL;
 }
 
 int
@@ -138,7 +138,7 @@ scm_symtbl_initialize(ScmObj tbl)
   scm_assert_obj_type(tbl, &SCM_SYMTBL_TYPE_INFO);
 
   SCM_SYMTBL(tbl)->tbl =
-    scm_chash_tbl_new(SCM_SYMTBL_SIZE,
+    scm_chash_tbl_new(SCM_SYMTBL_SIZE, tbl,
                       SCM_CHASH_TBL_SCMOBJ, SCM_CHASH_TBL_SCMOBJ_W,
                       scm_symtbl_hash_func, scm_symtbl_cmp_func);
   if (scm_obj_null_p(tbl)) return;
@@ -185,7 +185,7 @@ scm_symtbl_symbol(ScmObj tbl, ScmObj str)
 
   if (found) return sym;
 
-  SCM_SETQ(sym, scm_symbol_new(SCM_MEM_ALLOC_HEAP, str));
+  sym = scm_symbol_new(SCM_MEM_ALLOC_HEAP, str);
   if (scm_obj_null_p(sym)) return SCM_OBJ_NULL;
 
   rslt = scm_chash_tbl_insert(SCM_SYMTBL(tbl)->tbl, str, sym);

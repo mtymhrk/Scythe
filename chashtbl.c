@@ -6,7 +6,8 @@
 enum { ADD, UPDATE, DELETE, FIND };
 
 void
-scm_chash_tbl_initialize(ScmCHashTbl *tbl, size_t size,
+scm_chash_tbl_initialize(ScmCHashTbl *tbl, ScmObj owner,
+                         size_t size,
                          SCM_CHASH_TBL_VAL_KIND_T key_kind,
                          SCM_CHASH_TBL_VAL_KIND_T val_kind,
                          ScmCHashFunc hash_func,
@@ -15,7 +16,10 @@ scm_chash_tbl_initialize(ScmCHashTbl *tbl, size_t size,
   scm_assert(tbl != NULL);
   scm_assert(hash_func != NULL);
   scm_assert(cmp_func != NULL);
+  scm_assert(size > 0);
   scm_assert(SIZE_MAX / size > sizeof(ScmCHashTblEntry *));
+
+  SCM_WB_SETQ(owner, tbl->owner, owner);
 
   tbl->buckets = scm_malloc(sizeof(ScmCHashTblEntry *) * size);
   if (tbl->buckets == NULL) return;
@@ -48,10 +52,12 @@ scm_chash_tbl_finalize(ScmCHashTbl *tbl) /* GC OK */
 
   scm_free(tbl->buckets);
   tbl->buckets = NULL;
+  tbl->tbl_size = 0;
+  tbl->owner = SCM_OBJ_NULL;
 }
 
 ScmCHashTbl *
-scm_chash_tbl_new(size_t size,
+scm_chash_tbl_new(ScmObj owner, size_t size,
                   SCM_CHASH_TBL_VAL_KIND_T key_kind,
                   SCM_CHASH_TBL_VAL_KIND_T val_kind,
                   ScmCHashFunc hash_func,
@@ -62,7 +68,8 @@ scm_chash_tbl_new(size_t size,
   tbl = scm_malloc(sizeof(*tbl));
   if (tbl == NULL) return NULL;
 
-  scm_chash_tbl_initialize(tbl, size, key_kind, val_kind, hash_func, cmp_func);
+  scm_chash_tbl_initialize(tbl, owner, size, key_kind, val_kind,
+                           hash_func, cmp_func);
 
   return tbl;
 }
@@ -137,12 +144,12 @@ scm_chash_tbl_access(ScmCHashTbl *tbl,
     if (tbl->key_kind == SCM_CHASH_TBL_CVAL)
       new->key = key;
     else
-      SCM_SETQ(new->key, SCM_OBJ(key));
+      SCM_WB_SETQ(tbl->owner, new->key, SCM_OBJ(key));
 
     if (tbl->val_kind == SCM_CHASH_TBL_CVAL)
       new->val = val;
     else
-      SCM_SETQ(new->val, SCM_OBJ(val));
+      SCM_WB_SETQ(tbl->owner, new->val, SCM_OBJ(val));
 
     new->next = tbl->buckets[hash];
     return (tbl->buckets[hash] = new);
@@ -275,6 +282,9 @@ scm_chash_tbl_gc_accept(ScmCHashTbl *tbl, ScmObj owner,
   if (tbl->key_kind != SCM_CHASH_TBL_SCMOBJ
       && tbl->val_kind != SCM_CHASH_TBL_SCMOBJ)
     return rslt;
+
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, owner, tbl->owner, mem);
+  if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
   for (size_t i = 0; i < tbl->tbl_size; i++) {
     for (ScmCHashTblEntry *entry = tbl->buckets[i];

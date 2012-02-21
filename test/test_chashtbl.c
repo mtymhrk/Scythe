@@ -23,7 +23,7 @@ cmp_func(ScmCHashTblKey key1, ScmCHashTblKey key2)
 void
 cut_startup(void)
 {
-  SCM_SETQ(vm, scm_vm_new());
+  vm = scm_vm_new();
   scm_mem_disable_current_mem_gc();
 }
 
@@ -40,7 +40,7 @@ test_scm_chash_tbl_new(void)
   ScmCHashTbl *tbl;
 
   /* action */
-  tbl = scm_chash_tbl_new(256,
+  tbl = scm_chash_tbl_new(SCM_OBJ_NULL, 256,
                           SCM_CHASH_TBL_SCMOBJ, SCM_CHASH_TBL_SCMOBJ,
                           hash_func, cmp_func);
 
@@ -65,13 +65,13 @@ test_scm_chash_tbl_insert__insert_new_entry(void)
   SCM_STACK_FRAME_PUSH(&key1, &val1, &val2);
 
   /* preprocess */
-  tbl =  scm_chash_tbl_new(256,
+  tbl =  scm_chash_tbl_new(SCM_OBJ_NULL, 256,
                            SCM_CHASH_TBL_SCMOBJ, SCM_CHASH_TBL_SCMOBJ,
                            hash_func, scm_chash_tbl_cmp_func_eq);
 
-  SCM_SETQ(key1, scm_string_new(SCM_MEM_ALLOC_HEAP,
-                                "foo", sizeof("foo"), SCM_ENCODING_ASCII));
-  SCM_SETQ(val1, scm_symbol_new(SCM_MEM_ALLOC_HEAP, key1));
+  key1 = scm_string_new(SCM_MEM_ALLOC_HEAP,
+                                "foo", sizeof("foo"), SCM_ENCODING_ASCII);
+  val1 = scm_symbol_new(SCM_MEM_ALLOC_HEAP, key1);
 
   /* action */
   /* 未登録の key/value の insert は成功し 0 を返す */
@@ -99,15 +99,15 @@ test_scm_chash_tbl_insert__insert_an_entry_already_registered(void)
   SCM_STACK_FRAME_PUSH(&tbl, &key1, &val1, &val2, &val3);
 
   /* preprocess */
-  tbl = scm_chash_tbl_new(256,
+  tbl = scm_chash_tbl_new(SCM_OBJ_NULL, 256,
                           SCM_CHASH_TBL_SCMOBJ, SCM_CHASH_TBL_SCMOBJ,
                           hash_func, scm_chash_tbl_cmp_func_eq);
 
-  SCM_SETQ(key1, scm_string_new(SCM_MEM_ALLOC_HEAP,
-                                "foo", sizeof("foo"), SCM_ENCODING_ASCII));
-  SCM_SETQ(val1, scm_symbol_new(SCM_MEM_ALLOC_HEAP, key1));
-  SCM_SETQ(val2, scm_string_new(SCM_MEM_ALLOC_HEAP,
-                                "bar", sizeof("bar"), SCM_ENCODING_ASCII));
+  key1 = scm_string_new(SCM_MEM_ALLOC_HEAP,
+                                "foo", sizeof("foo"), SCM_ENCODING_ASCII);
+  val1 = scm_symbol_new(SCM_MEM_ALLOC_HEAP, key1);
+  val2 = scm_string_new(SCM_MEM_ALLOC_HEAP,
+                                "bar", sizeof("bar"), SCM_ENCODING_ASCII);
 
   cut_assert_equal_int(0, scm_chash_tbl_insert(tbl, key1, val1));
 
@@ -135,13 +135,13 @@ test_scm_chash_tbl_update__update_new_entry(void)
   SCM_STACK_FRAME_PUSH(&tbl, &key1, &val1, &val2);
 
   /* preprocess */
-  tbl =  scm_chash_tbl_new(256,
+  tbl =  scm_chash_tbl_new(SCM_OBJ_NULL, 256,
                            SCM_CHASH_TBL_SCMOBJ, SCM_CHASH_TBL_SCMOBJ,
                            hash_func, scm_chash_tbl_cmp_func_eq);
 
-  SCM_SETQ(key1, scm_string_new(SCM_MEM_ALLOC_HEAP,
-                                "foo", sizeof("foo"), SCM_ENCODING_ASCII));
-  SCM_SETQ(val1, scm_symbol_new(SCM_MEM_ALLOC_HEAP, key1));
+  key1 = scm_string_new(SCM_MEM_ALLOC_HEAP,
+                                "foo", sizeof("foo"), SCM_ENCODING_ASCII);
+  val1 = scm_symbol_new(SCM_MEM_ALLOC_HEAP, key1);
 
   /* action */
   /* 未登録の key/value の update は成功し 0 を返す */
@@ -169,15 +169,15 @@ test_scm_chash_tbl_update__update_an_entry_already_registered(void)
   SCM_STACK_FRAME_PUSH(&tbl, &key1, &val1, &val2, &val3);
 
   /* preprocess */
-  tbl = scm_chash_tbl_new(256,
+  tbl = scm_chash_tbl_new(SCM_OBJ_NULL, 256,
                           SCM_CHASH_TBL_SCMOBJ, SCM_CHASH_TBL_SCMOBJ,
                           hash_func, scm_chash_tbl_cmp_func_eq);
 
-  SCM_SETQ(key1, scm_string_new(SCM_MEM_ALLOC_HEAP,
-                                "foo", sizeof("foo"), SCM_ENCODING_ASCII));
-  SCM_SETQ(val1, scm_symbol_new(SCM_MEM_ALLOC_HEAP, key1));
-  SCM_SETQ(val2, scm_string_new(SCM_MEM_ALLOC_HEAP,
-                                "bar", sizeof("bar"), SCM_ENCODING_ASCII));
+  key1 = scm_string_new(SCM_MEM_ALLOC_HEAP,
+                                "foo", sizeof("foo"), SCM_ENCODING_ASCII);
+  val1 = scm_symbol_new(SCM_MEM_ALLOC_HEAP, key1);
+  val2 = scm_string_new(SCM_MEM_ALLOC_HEAP,
+                                "bar", sizeof("bar"), SCM_ENCODING_ASCII);
 
   cut_assert_equal_int(0, scm_chash_tbl_insert(tbl, key1, val1));
 
@@ -205,13 +205,13 @@ test_scm_chash_tbl_delete__delete_an_entry_not_registered(void)
   SCM_STACK_FRAME_PUSH(&tbl, &key1, &val1, &val2);
 
   /* preprocess */
-  tbl = scm_chash_tbl_new(256,
+  tbl = scm_chash_tbl_new(SCM_OBJ_NULL, 256,
                           SCM_CHASH_TBL_SCMOBJ, SCM_CHASH_TBL_SCMOBJ,
                           hash_func, scm_chash_tbl_cmp_func_eq);
 
-  SCM_SETQ(key1, scm_string_new(SCM_MEM_ALLOC_HEAP,
-                                "foo", sizeof("foo"), SCM_ENCODING_ASCII));
-  SCM_SETQ(val1, scm_symbol_new(SCM_MEM_ALLOC_HEAP, key1));
+  key1 = scm_string_new(SCM_MEM_ALLOC_HEAP,
+                                "foo", sizeof("foo"), SCM_ENCODING_ASCII);
+  val1 = scm_symbol_new(SCM_MEM_ALLOC_HEAP, key1);
 
   /* action */
   /* 未登録の key/value の delete は 0 を返す */
@@ -237,13 +237,13 @@ test_scm_chash_tbl_delete__delete_an_entry_already_registered(void)
   SCM_STACK_FRAME_PUSH(&tbl, &key1, &val1, &val2, &val3);
 
   /* preprocess */
-  tbl =  scm_chash_tbl_new(256,
+  tbl =  scm_chash_tbl_new(SCM_OBJ_NULL, 256,
                            SCM_CHASH_TBL_SCMOBJ, SCM_CHASH_TBL_SCMOBJ,
                            hash_func, scm_chash_tbl_cmp_func_eq);
 
-  SCM_SETQ(key1, scm_string_new(SCM_MEM_ALLOC_HEAP,
-                                "foo", sizeof("foo"), SCM_ENCODING_ASCII));
-  SCM_SETQ(val1, scm_symbol_new(SCM_MEM_ALLOC_HEAP, key1));
+  key1 = scm_string_new(SCM_MEM_ALLOC_HEAP,
+                                "foo", sizeof("foo"), SCM_ENCODING_ASCII);
+  val1 = scm_symbol_new(SCM_MEM_ALLOC_HEAP, key1);
 
   cut_assert_equal_int(0, scm_chash_tbl_insert(tbl, key1, val1));
 

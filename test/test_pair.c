@@ -12,7 +12,7 @@ static ScmObj vm = SCM_OBJ_INIT;
 void
 cut_startup(void)
 {
-  SCM_SETQ_PRIM(vm, scm_vm_new());
+  vm = scm_vm_new();
 }
 
 void
@@ -29,11 +29,11 @@ test_scm_pair_new(void)
   SCM_STACK_FRAME_PUSH(&pair, &car, &cdr);
 
   /* preprocess */
-  SCM_SETQ(car, SCM_OBJ(scm_nil_instance()));
-  SCM_SETQ(cdr, SCM_OBJ(scm_nil_instance()));
+  car = SCM_OBJ(scm_nil_instance());
+  cdr = SCM_OBJ(scm_nil_instance());
 
   /* action */
-  SCM_SETQ(pair, scm_pair_new(SCM_MEM_ALLOC_HEAP, car, cdr));;
+  pair = scm_pair_new(SCM_MEM_ALLOC_HEAP, car, cdr);;
 
   /* postcondition check */
   cut_assert_true(scm_obj_not_null_p(pair));
@@ -48,9 +48,9 @@ test_scm_pair_is_pair(void)
   SCM_STACK_FRAME_PUSH(&pair, &car, &cdr);
 
   /* preprocess */
-  SCM_SETQ(car, SCM_OBJ(scm_nil_instance()));
-  SCM_SETQ(cdr, SCM_OBJ(scm_nil_instance()));
-  SCM_SETQ(pair, scm_pair_new(SCM_MEM_ALLOC_HEAP, car, cdr));;
+  car = SCM_OBJ(scm_nil_instance());
+  cdr = SCM_OBJ(scm_nil_instance());
+  pair = scm_pair_new(SCM_MEM_ALLOC_HEAP, car, cdr);;
 
   /* action and postcondition check */
   cut_assert_true(scm_pair_is_pair(SCM_OBJ(pair)));
@@ -65,9 +65,9 @@ test_scm_pair_car(void)
   SCM_STACK_FRAME_PUSH(&pair, &car, &cdr);
 
   /* preprocess */
-  SCM_SETQ(car, SCM_OBJ(scm_nil_instance()));
-  SCM_SETQ(cdr, SCM_OBJ(scm_nil_instance()));
-  SCM_SETQ(pair, scm_pair_new(SCM_MEM_ALLOC_HEAP, car, cdr));;
+  car = SCM_OBJ(scm_nil_instance());
+  cdr = SCM_OBJ(scm_nil_instance());
+  pair = scm_pair_new(SCM_MEM_ALLOC_HEAP, car, cdr);;
 
   /* action and postcondition check */
   cut_assert_true(scm_obj_same_instance_p(car, scm_pair_car(pair)));
@@ -81,9 +81,9 @@ test_scm_pair_cdr(void)
   SCM_STACK_FRAME_PUSH(&pair, &car, &cdr);
 
   /* preprocess */
-  SCM_SETQ(car, SCM_OBJ(scm_nil_instance()));
-  SCM_SETQ(cdr, SCM_OBJ(scm_nil_instance()));
-  SCM_SETQ(pair, scm_pair_new(SCM_MEM_ALLOC_HEAP, car, cdr));;
+  car = SCM_OBJ(scm_nil_instance());
+  cdr = SCM_OBJ(scm_nil_instance());
+  pair = scm_pair_new(SCM_MEM_ALLOC_HEAP, car, cdr);;
 
   /* action and postcondition check */
   cut_assert_true(scm_obj_same_instance_p(cdr, scm_pair_cdr(pair)));

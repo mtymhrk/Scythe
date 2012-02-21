@@ -15,9 +15,6 @@ struct ScmSubrutineRec {
   ScmSubrFunc subr_func;
 };
 
-#define SCM_SUBRUTINE_FUNC(obj) (SCM_SUBRUTINE(obj)->subr_func)
-#define SCM_SUBRUTINE_CALL(ret, obj) SCM_SETQ(ret, SCM_SUBRUTINE_FUNC(obj)())
-
 void scm_subrutine_initialize(ScmObj subr, ScmSubrFunc func);
 ScmObj scm_subrutine_new(SCM_MEM_ALLOC_TYPE_T mtype, ScmSubrFunc func);
 void scm_subrutine_call(ScmObj subr);

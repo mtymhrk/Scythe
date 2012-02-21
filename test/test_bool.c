@@ -11,7 +11,7 @@ static ScmObj vm = SCM_OBJ_INIT;
 void
 cut_startup(void)
 {
-  SCM_SETQ_PRIM(vm, scm_vm_new());
+  vm = scm_vm_new();
 }
 
 void
@@ -26,7 +26,7 @@ test_scm_bool_new(void)
 {
   ScmObj bl = SCM_OBJ_INIT;
 
-  SCM_SETQ(bl, scm_bool_new(SCM_MEM_ALLOC_HEAP, true));
+  bl = scm_bool_new(SCM_MEM_ALLOC_HEAP, true);
 
   cut_assert(scm_obj_not_null_p(bl));
   cut_assert(scm_obj_type_p(SCM_OBJ(bl), &SCM_BOOL_TYPE_INFO));
@@ -37,7 +37,7 @@ test_scm_bool_value_true(void)
 {
   ScmObj bl = SCM_OBJ_INIT;
 
-  SCM_SETQ(bl, scm_bool_new(SCM_MEM_ALLOC_HEAP,true));
+  bl = scm_bool_new(SCM_MEM_ALLOC_HEAP,true);
 
   cut_assert_true(scm_bool_value(bl));
 }
@@ -47,7 +47,7 @@ test_scm_bool_value_false(void)
 {
   ScmObj bl = SCM_OBJ_INIT;
 
-  SCM_SETQ(bl, scm_bool_new(SCM_MEM_ALLOC_HEAP,false));
+  bl = scm_bool_new(SCM_MEM_ALLOC_HEAP,false);
 
   cut_assert_false(scm_bool_value(bl));
 }
@@ -57,7 +57,7 @@ test_scm_bool_is_bool_true(void)
 {
   ScmObj bl = SCM_OBJ_INIT;
 
-  SCM_SETQ(bl, scm_bool_new(SCM_MEM_ALLOC_HEAP,true));
+  bl = scm_bool_new(SCM_MEM_ALLOC_HEAP,true);
 
   cut_assert_true(scm_bool_is_bool(bl));
 }
@@ -67,7 +67,7 @@ test_scm_bool_is_bool_false(void)
 {
   ScmObj bl = SCM_OBJ_INIT;
 
-  SCM_SETQ(bl, scm_bool_new(SCM_MEM_ALLOC_HEAP,false));
+  bl = scm_bool_new(SCM_MEM_ALLOC_HEAP,false);
 
   cut_assert_true(scm_bool_is_bool(bl));
 }

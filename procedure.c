@@ -20,7 +20,7 @@ scm_subrutine_initialize(ScmObj subr, ScmSubrFunc func)
   scm_assert_obj_type(subr, &SCM_SUBRUTINE_TYPE_INFO);
   scm_assert(func != NULL);
 
-  SCM_SUBRUTINE_FUNC(subr) = func;
+  SCM_SUBRUTINE(subr)->subr_func = func;
 }
 
 ScmObj
@@ -49,7 +49,7 @@ scm_subrutine_call(ScmObj subr)
 
   scm_assert_obj_type(subr, &SCM_SUBRUTINE_TYPE_INFO);
 
-  SCM_SUBRUTINE_CALL(ret, subr);
+  ret = SCM_SUBRUTINE(subr)->subr_func();
   if (scm_obj_null_p(ret))
     ;                           /* TODO: error handling */
 
@@ -63,5 +63,5 @@ scm_subrutine_gc_initialize(ScmObj obj, ScmObj mem)
   scm_assert_obj_type(obj, &SCM_SUBRUTINE_TYPE_INFO);
   scm_assert(scm_obj_not_null_p(mem));
 
-  SCM_SUBRUTINE_FUNC(obj) = NULL;
+  SCM_SUBRUTINE(obj)->subr_func = NULL;
 }

@@ -142,7 +142,7 @@ scm_vm_current_gloctbl(void)
 inline void
 scm_vm_update_current_val_reg(ScmObj val)
 {
-  SCM_SETQ(SCM_VM(scm_vm__current_vm)->val, val);
+  SCM_SLOT_SETQ(ScmVM, scm_vm__current_vm, val, val);
 }
 
 inline ScmObj

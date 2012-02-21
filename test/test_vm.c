@@ -14,7 +14,7 @@ cut_setup(void)
 {
   vm = SCM_OBJ_INIT;
 
-  SCM_SETQ(vm, scm_vm_new());
+  vm = scm_vm_new();
 }
 
 void
@@ -83,8 +83,8 @@ test_scm_vm_run__op_immval(void)
   /* preprocess */
   scm_vm_setup_system(vm);
 
-  SCM_SETQ(iseq, scm_iseq_new(SCM_MEM_ALLOC_HEAP));
-  SCM_SETQ(sym, scm_capi_make_symbol_from_cstr("cons"));
+  iseq = scm_iseq_new(SCM_MEM_ALLOC_HEAP);
+  sym = scm_capi_make_symbol_from_cstr("cons");
 
   code.immv1.op = SCM_OPCODE_IMMVAL;
   code.immv1.imm_idx = scm_iseq_set_immval(iseq, sym);
@@ -120,10 +120,10 @@ test_scm_vm_run__call_cons(void)
   /* preprocess */
   scm_vm_setup_system(vm);
 
-  SCM_SETQ(iseq, scm_iseq_new(SCM_MEM_ALLOC_HEAP));
-  SCM_SETQ(cons_sym, scm_capi_make_symbol_from_cstr("cons"));
-  SCM_SETQ(car, scm_capi_make_symbol_from_cstr("foo"));
-  SCM_SETQ(cdr, scm_capi_make_symbol_from_cstr("bar"));
+  iseq = scm_iseq_new(SCM_MEM_ALLOC_HEAP);
+  cons_sym = scm_capi_make_symbol_from_cstr("cons");
+  car = scm_capi_make_symbol_from_cstr("foo");
+  cdr = scm_capi_make_symbol_from_cstr("bar");
 
   idx = 0;
 
@@ -167,7 +167,7 @@ test_scm_vm_run__call_cons(void)
   scm_vm_run(vm, iseq);
 
   /* postconditin check */
-  SCM_SETQ(actual, SCM_VM(vm)->val);
+  actual = SCM_VM(vm)->val;
   cut_assert(scm_obj_type_p(actual, &SCM_PAIR_TYPE_INFO));
   cut_assert(scm_obj_same_instance_p(SCM_PAIR_CAR(actual), car));
   cut_assert(scm_obj_same_instance_p(SCM_PAIR_CDR(actual), cdr));

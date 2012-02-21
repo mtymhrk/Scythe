@@ -34,15 +34,20 @@ typedef const ScmObj *ScmCRef;
 #define SCM_OBJ_TAG_MASK 0x07u
 #define SCM_OBJ_TAG_NR_KIND 8
 
-/* 将来的に write barrier を挿入しなければならないときに使用する */
-/*   SCM_SETQ_PRIM: write barrier を挿入しない代入        */
-/*   SCM_SETQ     : write barrier を挿入する代入          */
-#define SCM_SETQ_PRIM(obj, val)                 \
-  do {                                          \
-    ScmObj tmp__ = (val); (obj) = tmp__;        \
+#define SCM_SLOT_SETQ(type, obj, slt, val) \
+  do {                                     \
+    ((type *)(obj))->slt = (val);          \
   } while(0)
-#define SCM_SETQ(obj, val) SCM_SETQ_PRIM(obj, val)
 
+#define SCM_SLOT_REF_SETQ(type, obj, slt, val) \
+  do {                                         \
+    *(((type *)(obj))->slt) = (val);           \
+  } while(0)
+
+#define SCM_WB_SETQ(owner, lval, rval)            \
+  do {                                            \
+    ((lval) = (rval));                            \
+  } while(0)
 
 /** definition for ScmRef ****************************************************/
 
@@ -55,7 +60,7 @@ typedef const ScmObj *ScmCRef;
 #define SCM_REF_DEREF(ref) (*((ScmObj *)(ref)))
 #define SCM_CREF_DEREF(ref) (*((const ScmObj *)(ref)))
 #define SCM_REF_UPDATE(ref, obj) (*((ScmObj *)(ref)) = SCM_OBJ(obj))
-#define SCM_REF_SETQ(ref, obj) SCM_SETQ(*((ScmObj *)(ref)), obj)
+#define SCM_REF_SETQ(ref, obj) SCM_REF_UPDATE(ref, obj)
 
 
 /** definition for subroutine function ***************************************/

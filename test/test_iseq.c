@@ -9,7 +9,7 @@ static ScmObj vm = SCM_OBJ_INIT;
 void
 cut_startup(void)
 {
-  SCM_SETQ_PRIM(vm, scm_vm_new());
+  vm = scm_vm_new();
 }
 
 void
@@ -27,7 +27,7 @@ test_scm_iseq_new(void)
   SCM_STACK_FRAME_PUSH(&iseq);
 
   /* action */
-  SCM_SETQ(iseq, scm_iseq_new(SCM_MEM_ALLOC_HEAP));
+  iseq = scm_iseq_new(SCM_MEM_ALLOC_HEAP);
 
   /* postconditin check */
   cut_assert_true(scm_obj_not_null_p(iseq));
@@ -50,7 +50,7 @@ test_scm_iseq_set_word_get_word(void)
   SCM_STACK_FRAME_PUSH(&iseq);
 
   /* preprocess */
-  SCM_SETQ(iseq, scm_iseq_new(SCM_MEM_ALLOC_HEAP));
+  iseq = scm_iseq_new(SCM_MEM_ALLOC_HEAP);
 
   /* action */
   int rslt = scm_iseq_set_word(iseq, 0, (scm_iword_t)12345);
@@ -70,7 +70,7 @@ test_scm_iseq_set_immv_get_immv_1(void)
   SCM_STACK_FRAME_PUSH(&iseq);
 
   /* preprocess */
-  SCM_SETQ(iseq, scm_iseq_new(SCM_MEM_ALLOC_HEAP));
+  iseq = scm_iseq_new(SCM_MEM_ALLOC_HEAP);
 
   /* action */
   scm_inst_t inst;
@@ -96,7 +96,7 @@ test_scm_iseq_set_immv_get_immv_2(void)
   SCM_STACK_FRAME_PUSH(&iseq);
 
   /* preprocess */
-  SCM_SETQ(iseq, scm_iseq_new(SCM_MEM_ALLOC_HEAP));
+  iseq = scm_iseq_new(SCM_MEM_ALLOC_HEAP);
 
   /* action */
   scm_inst_t inst;
@@ -122,7 +122,7 @@ test_scm_iseq_set_immv_get_immv_3(void)
   SCM_STACK_FRAME_PUSH(&iseq);
 
   /* preprocess */
-  SCM_SETQ(iseq, scm_iseq_new(SCM_MEM_ALLOC_HEAP));
+  iseq = scm_iseq_new(SCM_MEM_ALLOC_HEAP);
 
   /* action */
   scm_inst_t inst;
@@ -148,7 +148,7 @@ test_scm_iseq_set_immv_get_immv_4(void)
   SCM_STACK_FRAME_PUSH(&iseq);
 
   /* preprocess */
-  SCM_SETQ(iseq, scm_iseq_new(SCM_MEM_ALLOC_HEAP));
+  iseq = scm_iseq_new(SCM_MEM_ALLOC_HEAP);
 
   /* action */
   scm_inst_t inst;
@@ -174,7 +174,7 @@ test_scm_iseq_set_primv_get_primv_1(void)
   SCM_STACK_FRAME_PUSH(&iseq);
 
   /* preprocess */
-  SCM_SETQ(iseq, scm_iseq_new(SCM_MEM_ALLOC_HEAP));
+  iseq = scm_iseq_new(SCM_MEM_ALLOC_HEAP);
 
   /* action */
   scm_inst_t inst;
@@ -200,7 +200,7 @@ test_scm_iseq_set_primv_get_primv_2(void)
   SCM_STACK_FRAME_PUSH(&iseq);
 
   /* preprocess */
-  SCM_SETQ(iseq, scm_iseq_new(SCM_MEM_ALLOC_HEAP));
+  iseq = scm_iseq_new(SCM_MEM_ALLOC_HEAP);
 
   /* action */
   scm_inst_t inst;
@@ -226,7 +226,7 @@ test_scm_iseq_set_primv_get_primv_3(void)
   SCM_STACK_FRAME_PUSH(&iseq);
 
   /* preprocess */
-  SCM_SETQ(iseq, scm_iseq_new(SCM_MEM_ALLOC_HEAP));
+  iseq = scm_iseq_new(SCM_MEM_ALLOC_HEAP);
 
   /* action */
   scm_inst_t inst;
@@ -252,7 +252,7 @@ test_scm_iseq_set_primv_get_primv_4(void)
   SCM_STACK_FRAME_PUSH(&iseq);
 
   /* preprocess */
-  SCM_SETQ(iseq, scm_iseq_new(SCM_MEM_ALLOC_HEAP));
+  iseq = scm_iseq_new(SCM_MEM_ALLOC_HEAP);
 
   /* action */
   scm_inst_t inst;
@@ -284,7 +284,7 @@ test_scm_iseq__expand_sequence_buffer(void)
   SCM_STACK_FRAME_PUSH(&iseq);
 
   /* preprocess */
-  SCM_SETQ(iseq, scm_iseq_new(SCM_MEM_ALLOC_HEAP));
+  iseq = scm_iseq_new(SCM_MEM_ALLOC_HEAP);
 
   size_t idx;
   for (idx = 0; idx < SCM_ISEQ_DEFAULT_SEQ_SIZE; idx++) {
@@ -318,16 +318,16 @@ test_scm_iseq_set_immval_get_immval(void)
   SCM_STACK_FRAME_PUSH(&iseq, &val1, &val2, &actual1, &actual2);
 
   /* preprocess */
-  SCM_SETQ(iseq, scm_iseq_new(SCM_MEM_ALLOC_HEAP));
+  iseq = scm_iseq_new(SCM_MEM_ALLOC_HEAP);
 
-  SCM_SETQ(val1, scm_vm_nil_instance());
-  SCM_SETQ(val2, scm_vm_eof_instance());
+  val1 = scm_vm_nil_instance();
+  val2 = scm_vm_eof_instance();
 
   /* action */
   int idx1 = scm_iseq_set_immval(iseq, val1);
   int idx2 = scm_iseq_set_immval(iseq, val2);
-  SCM_SETQ(actual1, scm_iseq_get_immval(iseq, idx1));
-  SCM_SETQ(actual2, scm_iseq_get_immval(iseq, idx2));
+  actual1 = scm_iseq_get_immval(iseq, idx1);
+  actual2 = scm_iseq_get_immval(iseq, idx2);
 
   /* postcondition check */
   cut_assert_true(idx1 >= 0);
@@ -347,15 +347,15 @@ test_scm_iseq_update_immval__update_successed(void)
   SCM_STACK_FRAME_PUSH(&iseq, &val1, &val2, &actual1);
 
   /* preprocess */
-  SCM_SETQ(iseq, scm_iseq_new(SCM_MEM_ALLOC_HEAP));
+  iseq = scm_iseq_new(SCM_MEM_ALLOC_HEAP);
 
-  SCM_SETQ(val1, scm_vm_nil_instance());
-  SCM_SETQ(val2, scm_vm_eof_instance());
+  val1 = scm_vm_nil_instance();
+  val2 = scm_vm_eof_instance();
   int idx1 = scm_iseq_set_immval(iseq, val1);
 
   /* action */
   int idx2 = scm_iseq_update_immval(iseq, idx1, val2);
-  SCM_SETQ(actual1, scm_iseq_get_immval(iseq, idx1));
+  actual1 = scm_iseq_get_immval(iseq, idx1);
 
   /* postcondition check */
   cut_assert_true(idx1 >= 0);
@@ -374,15 +374,15 @@ test_scm_iseq_update_immval__update_not_assigned_idx(void)
   SCM_STACK_FRAME_PUSH(&iseq, &val1, &val2, &actual1);
 
   /* preprocess */
-  SCM_SETQ(iseq, scm_iseq_new(SCM_MEM_ALLOC_HEAP));
+  iseq = scm_iseq_new(SCM_MEM_ALLOC_HEAP);
 
-  SCM_SETQ(val1, scm_vm_nil_instance());
-  SCM_SETQ(val2, scm_vm_eof_instance());
+  val1 = scm_vm_nil_instance();
+  val2 = scm_vm_eof_instance();
   int idx1 = scm_iseq_set_immval(iseq, val1);
 
   /* action */
   int idx2 = scm_iseq_update_immval(iseq, idx1 + 1, val2);
-  SCM_SETQ(actual1, scm_iseq_get_immval(iseq, idx1));
+  actual1 = scm_iseq_get_immval(iseq, idx1);
 
   /* postcondition check */
   cut_assert_true(idx1 >= 0);
@@ -398,9 +398,9 @@ test_scm_iseq__expand_object_vector(void)
 
   SCM_STACK_FRAME_PUSH(&iseq, &val, &actual);
 
-  SCM_SETQ(iseq, scm_iseq_new(SCM_MEM_ALLOC_HEAP));
+  iseq = scm_iseq_new(SCM_MEM_ALLOC_HEAP);
 
-  SCM_SETQ(val, scm_vm_nil_instance());
+  val = scm_vm_nil_instance();
 
   for (int i; i < SCM_ISEQ_DEFAULT_IMMVS_SIZE; i++) {
     int r = scm_iseq_set_immval(iseq, val);
@@ -413,11 +413,11 @@ test_scm_iseq__expand_object_vector(void)
   /* postcondition check */
   cut_assert_true(rslt >= 0);
   cut_assert_true(SCM_ISEQ_VEC_CAPACITY(iseq) > SCM_ISEQ_DEFAULT_IMMVS_SIZE);
-  SCM_SETQ(actual, scm_iseq_get_immval(iseq, rslt));
+  actual = scm_iseq_get_immval(iseq, rslt);
     cut_assert_true(scm_obj_same_instance_p(val, actual));
 
   for (int i; i < SCM_ISEQ_DEFAULT_IMMVS_SIZE; i++) {
-    SCM_SETQ(actual, scm_iseq_get_immval(iseq, i));
+    actual = scm_iseq_get_immval(iseq, i);
     cut_assert_true(scm_obj_same_instance_p(val, actual));
   }
 }

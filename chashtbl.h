@@ -23,6 +23,7 @@ typedef enum {
 #include "object.h"
 
 struct ScmCHashTblRec {
+  ScmObj owner;
   ScmCHashTblEntry **buckets;
   size_t tbl_size;
   ScmCHashFunc hash_func;
@@ -45,13 +46,14 @@ struct ScmCHashTblEntryRec {
 
 
 
-void scm_chash_tbl_initialize(ScmCHashTbl *tbl, size_t size,
+void scm_chash_tbl_initialize(ScmCHashTbl *tbl, ScmObj owner,
+                              size_t size,
                               SCM_CHASH_TBL_VAL_KIND_T key_kind,
                               SCM_CHASH_TBL_VAL_KIND_T val_kind,
                               ScmCHashFunc hash_func,
                               ScmCHashTblKeyCmpFunc cmp_func);
 void scm_chash_tbl_finalize(ScmCHashTbl *tbl);
-ScmCHashTbl *scm_chash_tbl_new(size_t size,
+ScmCHashTbl *scm_chash_tbl_new(ScmObj owner, size_t size,
                                SCM_CHASH_TBL_VAL_KIND_T key_kind,
                                SCM_CHASH_TBL_VAL_KIND_T val_kind,
                                ScmCHashFunc hash_func,

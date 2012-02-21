@@ -28,8 +28,8 @@ scm_pair_initialize(ScmObj pair, ScmObj car, ScmObj cdr) /* GC OK */
 
   scm_obj_init(SCM_OBJ(pair), &SCM_PAIR_TYPE_INFO);
 
-  SCM_SETQ(SCM_PAIR_CAR(pair), car);
-  SCM_SETQ(SCM_PAIR_CDR(pair), cdr);
+  SCM_SLOT_SETQ(ScmPair, pair, car, car);
+  SCM_SLOT_SETQ(ScmPair, pair, cdr, cdr);
 }
 
 ScmObj
@@ -79,8 +79,8 @@ scm_pair_gc_initialize(ScmObj obj, ScmObj mem)
 {
   scm_assert_obj_type(obj, &SCM_PAIR_TYPE_INFO);
 
-  SCM_SETQ_PRIM(SCM_PAIR_CAR(obj), SCM_OBJ_NULL);
-  SCM_SETQ_PRIM(SCM_PAIR_CDR(obj), SCM_OBJ_NULL);
+  SCM_PAIR_CAR(obj) = SCM_OBJ_NULL;
+  SCM_PAIR_CDR(obj) = SCM_OBJ_NULL;
 }
 
 

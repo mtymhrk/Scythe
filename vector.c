@@ -32,7 +32,7 @@ scm_vector_initialize(ScmObj vector, size_t length, ScmObj fill) /* GC OK */
   SCM_VECTOR_LENGTH(vector) = length;
 
   for (i = 0; i < length; i++)
-    SCM_SETQ(SCM_VECTOR_ARRAY(vector)[i], fill);
+    SCM_SLOT_SETQ(ScmVector, vector, array[i], fill);
 }
 
 void
@@ -89,7 +89,7 @@ scm_vector_set(ScmObj vector, size_t index, ScmObj obj) /* GC OK */
   scm_assert(index < SCM_VECTOR_LENGTH(vector));
   scm_assert(scm_obj_not_null_p(obj));
 
-  SCM_SETQ(SCM_VECTOR_ARRAY(vector)[index], obj);
+  SCM_SLOT_SETQ(ScmVector, vector, array[index], obj);
 
   return obj;
 }
@@ -109,7 +109,7 @@ scm_vector_fill(ScmObj vector, ScmObj fill)
   scm_assert(scm_obj_not_null_p(fill));
 
   for (size_t i = 0; i < SCM_VECTOR_LENGTH(vector); i++)
-    SCM_SETQ(SCM_VECTOR_ARRAY(vector)[i], fill);
+    SCM_SLOT_SETQ(ScmVector, vector, array[i], fill);
 }
 
 void

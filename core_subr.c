@@ -23,7 +23,7 @@ scm_subr_func_car(void)
     ;                           /* TODO: error handling */
 
 
-  SCM_SETQ(pair, scm_capi_get_func_arg(0));
+  pair = scm_capi_get_func_arg(0);
 
   if (!scm_capi_pair_p(pair))
     ;                           /* TODO: err handling  */
@@ -42,7 +42,7 @@ scm_subr_func_cdr(void)
     ;                           /* TODO: error handling */
 
 
-  SCM_SETQ(pair, scm_capi_get_func_arg(0));
+  pair = scm_capi_get_func_arg(0);
 
   if (!scm_capi_pair_p(pair))
     ;                           /* TODO: err handling  */
@@ -63,9 +63,9 @@ scm_core_subr_system_setup(void)
   SCM_STACK_FRAME_PUSH(&sym, &subr, &rslt);
 
   for (size_t i = 0; i < sizeof(syms)/sizeof(syms[0]); i++) {
-    SCM_SETQ(sym, scm_capi_make_symbol_from_cstr(syms[i]));
-    SCM_SETQ(subr, scm_capi_make_subrutine(funcs[i]));
-    SCM_SETQ(rslt, scm_api_global_var_define(sym, subr));
+    sym = scm_capi_make_symbol_from_cstr(syms[i]);
+    subr = scm_capi_make_subrutine(funcs[i]);
+    rslt = scm_api_global_var_define(sym, subr);
 
     if (scm_obj_null_p(rslt) || scm_obj_null_p(subr) ||scm_obj_null_p(sym))
       return;

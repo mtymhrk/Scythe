@@ -76,8 +76,8 @@ scm_string_copy_and_expand(ScmObj src, size_t size) /* GC OK */
   scm_assert_obj_type(src, &SCM_STRING_TYPE_INFO);
   scm_assert(size <= SSIZE_MAX);
 
-  SCM_SETQ(str, scm_string_new(SCM_MEM_ALLOC_HEAP,
-                                     NULL, size, SCM_STRING_ENC(src)));
+  str = scm_string_new(SCM_MEM_ALLOC_HEAP,
+                       NULL, size, SCM_STRING_ENC(src));
   if (scm_obj_null_p(str)) return SCM_OBJ_NULL;
 
   SCM_STRING_BYTESIZE(str) =
@@ -293,7 +293,7 @@ scm_string_substr(ScmObj str, size_t pos, size_t len) /* GC OK */
   if (SCM_STR_ITR_IS_ERR(&head) || SCM_STR_ITR_IS_ERR(&tail))
     return SCM_OBJ_NULL;
 
-  SCM_SETQ(substr, scm_string_dup(str));
+  substr = scm_string_dup(str);
   SCM_STRING_HEAD(substr) = (uint8_t *)SCM_STR_ITR_PTR(&head);
   SCM_STRING_LENGTH(substr) = len;
   SCM_STRING_BYTESIZE(substr)
@@ -319,9 +319,8 @@ scm_string_push(ScmObj str, const scm_char_t c) /* GC OK */
   if (width < 0) return SCM_OBJ_NULL;
 
   if ((*SCM_STRING_REF_CNT(str) > 1) || ROOM_FOR_APPEND(str) < (size_t)width) {
-    SCM_SETQ(tmp, scm_string_copy_and_expand(str,
-                                             SCM_STRING_BYTESIZE(str)
-                                             + (size_t)width));
+    tmp = scm_string_copy_and_expand(str,
+                                     SCM_STRING_BYTESIZE(str) + (size_t)width);
     if (scm_obj_null_p(tmp)) return SCM_OBJ_NULL;
     scm_string_replace_contents(str, tmp);
     scm_string_finalize(tmp);
@@ -346,10 +345,9 @@ scm_string_append(ScmObj str, ScmObj append) /* GC OK */
 
   if ((*SCM_STRING_REF_CNT(str) > 1) ||
       ROOM_FOR_APPEND(str) < SCM_STRING_BYTESIZE(append)) {
-    SCM_SETQ(tmp,
-             scm_string_copy_and_expand(str,
-                                        SCM_STRING_BYTESIZE(str)
-                                        + SCM_STRING_BYTESIZE(append)));
+    tmp = scm_string_copy_and_expand(str,
+                                     SCM_STRING_BYTESIZE(str)
+                                     + SCM_STRING_BYTESIZE(append));
     if (scm_obj_null_p(tmp)) return SCM_OBJ_NULL;
     scm_string_replace_contents(str, tmp);
     scm_string_finalize(tmp);
@@ -434,7 +432,7 @@ scm_string_set(ScmObj str, size_t pos, const scm_char_t c) /* GC OK */
   }
   else if (cw == iw) {
     size_t offset = SCM_STR_ITR_OFFSET(&iter, SCM_STRING_HEAD(str));
-    SCM_SETQ(tmp, scm_string_copy(str));
+    tmp = scm_string_copy(str);
 
     if (scm_obj_null_p(tmp)) return SCM_OBJ_NULL;
     memcpy(SCM_STRING_HEAD(tmp) + offset, &c, (size_t)cw);
@@ -443,17 +441,15 @@ scm_string_set(ScmObj str, size_t pos, const scm_char_t c) /* GC OK */
     return str;
   }
   else {
-    SCM_SETQ(front, scm_string_substr(str, 0, pos));
-    SCM_SETQ(rear, scm_string_substr(str, pos + 1,
-                                     SCM_STRING_LENGTH(str) - pos - 1));
+    front = scm_string_substr(str, 0, pos);
+    rear = scm_string_substr(str, pos + 1, SCM_STRING_LENGTH(str) - pos - 1);
 
     if (scm_obj_null_p(front) || scm_obj_null_p(rear))
       return SCM_OBJ_NULL;
 
-    SCM_SETQ(tmp, scm_string_copy_and_expand(front,
-                                             SCM_STRING_BYTESIZE(front)
-                                             + (size_t)cw
-                                             + SCM_STRING_BYTESIZE(rear)));
+    tmp = scm_string_copy_and_expand(front,
+                                     SCM_STRING_BYTESIZE(front)
+                                     + (size_t)cw + SCM_STRING_BYTESIZE(rear));
     if (scm_obj_null_p(tmp)) return SCM_OBJ_NULL;
     if (scm_obj_null_p(scm_string_push(tmp, c))) return SCM_OBJ_NULL;
     if (scm_obj_null_p(scm_string_append(tmp, rear))) return SCM_OBJ_NULL;
@@ -486,20 +482,20 @@ scm_string_fill(ScmObj str, size_t pos, size_t len, scm_char_t c) /* GC OK */
   filledsize = char_width(&c, sizeof(c)) * (ssize_t)len;
   if (filledsize < 0) return SCM_OBJ_NULL;
 
-  SCM_SETQ(front, scm_string_substr(str, 0, pos));
+  front = scm_string_substr(str, 0, pos);
   if (scm_obj_null_p(front)) return SCM_OBJ_NULL;
 
   if (pos + len < SCM_STRING_LENGTH(str)) {
-    SCM_SETQ(rear, scm_string_substr(str, pos + len,
-                                     SCM_STRING_LENGTH(str) - pos - len));
+    rear = scm_string_substr(str, pos + len,
+                             SCM_STRING_LENGTH(str) - pos - len);
     if (scm_obj_null_p(rear)) return SCM_OBJ_NULL;
   }
 
-  SCM_SETQ(tmp,
-           scm_string_copy_and_expand(front,
-                                      SCM_STRING_BYTESIZE(front) + len
-                                      + (scm_obj_null_p(rear) ?
-                                         0 : SCM_STRING_BYTESIZE(rear))));
+  tmp = scm_string_copy_and_expand(front,
+                                   SCM_STRING_BYTESIZE(front)
+                                   + len
+                                   + (scm_obj_null_p(rear) ?
+                                      0 : SCM_STRING_BYTESIZE(rear)));
   if (scm_obj_null_p(tmp)) return SCM_OBJ_NULL;
 
   for (i = 0; i < len; i++)
