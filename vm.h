@@ -89,6 +89,7 @@ void scm_vm_stack_shorten(ScmObj vm, int n);
 
 int scm_vm_frame_argc(ScmObj vm);
 ScmObj scm_vm_frame_argv(ScmObj vm, int nth);
+void scm_vm_return_to_caller(ScmObj vm);
 
 void scm_vm_op_call(ScmObj vm);
 void scm_vm_op_immval(ScmObj vm, ScmObj val);
@@ -116,7 +117,6 @@ void scm_vm_run(ScmObj vm, ScmObj iseq);
 
 int scm_vm_nr_local_var(ScmObj vm);
 ScmObj scm_vm_refer_local_var(ScmObj vm, int nth);
-void scm_vm_return_to_caller(ScmObj vm);
 
 void scm_vm_fatal(ScmObj vm, const char *msg);
 void scm_vm_fatal_fmt(ScmObj vm, const char *msgfmt, va_list ap);

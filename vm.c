@@ -215,6 +215,24 @@ scm_vm_frame_argv(ScmObj vm, int nth)
   return SCM_OBJ(SCM_VM(vm)->reg.fp[-(nth + 2)]);
 }
 
+scm_local_func void
+scm_vm_return_to_caller(ScmObj vm)
+{
+  int argc;
+  scm_vm_stack_val_t *fp;
+
+  SCM_STACK_FRAME_PUSH(vm);
+
+  argc = scm_vm_frame_argc(vm);
+  fp = SCM_VM(vm)->reg.fp;
+
+  SCM_VM(vm)->reg.fp = (scm_vm_stack_val_t *)fp[-(argc + 4)];
+  SCM_SLOT_SETQ(ScmVM, vm, reg.iseq, SCM_OBJ(fp[-(argc + 3)]));
+  SCM_VM(vm)->reg.ip = (scm_iword_t*)fp[-(argc + 2)];
+
+  scm_vm_stack_shorten(vm, argc + 4); /* 3 := argc, fp, iseq, ip */
+}
+
 /* 関数呼出のためのインストラクション */
 scm_local_func void
 scm_vm_op_call(ScmObj vm)
@@ -635,24 +653,6 @@ scm_vm_refer_local_var(ScmObj vm, int nth)
 {
   /* box/unbox is not implemented */
   return scm_vm_frame_argv(vm, nth);
-}
-
-void
-scm_vm_return_to_caller(ScmObj vm)
-{
-  int argc;
-  scm_vm_stack_val_t *fp;
-
-  SCM_STACK_FRAME_PUSH(vm);
-
-  argc = scm_vm_frame_argc(vm);
-  fp = SCM_VM(vm)->reg.fp;
-
-  SCM_VM(vm)->reg.fp = (scm_vm_stack_val_t *)fp[-(argc + 4)];
-  SCM_SLOT_SETQ(ScmVM, vm, reg.iseq, SCM_OBJ(fp[-(argc + 3)]));
-  SCM_VM(vm)->reg.ip = (scm_iword_t*)fp[-(argc + 2)];
-
-  scm_vm_stack_shorten(vm, argc + 4); /* 3 := argc, fp, iseq, ip */
 }
 
 void
