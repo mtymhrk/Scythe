@@ -9,8 +9,6 @@ string.o: ../string.c ../object.h ../reference.h ../impl_utils.h ../api.h \
 symbol.o: ../symbol.c ../object.h ../reference.h ../impl_utils.h ../api.h \
  ../encoding.h ../chashtbl.h ../string.h ../symbol.h
 basichash.o: ../basichash.c ../basichash.h
-integer.o: ../integer.c ../object.h ../memory.h ../basichash.h \
- ../impl_utils.h ../vm.h ../reference.h ../instractions.h ../integer.h
 vector.o: ../vector.c ../object.h ../reference.h ../impl_utils.h ../api.h \
  ../encoding.h ../vector.h
 miscobjects.o: ../miscobjects.c ../object.h ../reference.h \

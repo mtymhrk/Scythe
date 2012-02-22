@@ -7,8 +7,6 @@ string.o: string.c object.h reference.h impl_utils.h api.h encoding.h \
 symbol.o: symbol.c object.h reference.h impl_utils.h api.h encoding.h \
  chashtbl.h string.h symbol.h
 basichash.o: basichash.c basichash.h
-integer.o: integer.c object.h memory.h basichash.h impl_utils.h vm.h \
- reference.h instractions.h integer.h
 vector.o: vector.c object.h reference.h impl_utils.h api.h encoding.h \
  vector.h
 miscobjects.o: miscobjects.c object.h reference.h impl_utils.h api.h \
@@ -19,8 +17,8 @@ encoding.o: encoding.c encoding.h
 vm.o: vm.c vm.h object.h memory.h basichash.h impl_utils.h reference.h \
  instractions.h string.h api.h encoding.h symbol.h chashtbl.h gloc.h \
  iseq.h earray.h procedure.h core_subr.h miscobjects.h
-procedure.o: procedure.c procedure.h object.h vm.h memory.h basichash.h \
- impl_utils.h reference.h instractions.h
+procedure.o: procedure.c object.h reference.h impl_utils.h vm.h memory.h \
+ basichash.h instractions.h api.h encoding.h procedure.h
 reference.o: reference.c object.h reference.h impl_utils.h vm.h memory.h \
  basichash.h instractions.h api.h encoding.h
 numeric.o: numeric.c object.h reference.h impl_utils.h api.h encoding.h \
