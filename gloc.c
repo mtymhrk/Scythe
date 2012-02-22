@@ -101,7 +101,7 @@ scm_gloctbl_initialize(ScmObj tbl) /* GC OK */
   scm_assert_obj_type(tbl, &SCM_GLOCTBL_TYPE_INFO);
 
   SCM_GLOCTBL(tbl)->tbl =
-    scm_chash_tbl_new(SCM_GLOCTBL_SIZE, tbl,
+    scm_chash_tbl_new(tbl, SCM_GLOCTBL_SIZE,
                       SCM_CHASH_TBL_SCMOBJ, SCM_CHASH_TBL_SCMOBJ,
                       scm_gloctbl_hash_func, scm_gloctbl_cmp_func);
 

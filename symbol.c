@@ -126,7 +126,7 @@ scm_symtbl_initialize(ScmObj tbl)
   scm_assert_obj_type(tbl, &SCM_SYMTBL_TYPE_INFO);
 
   SCM_SYMTBL(tbl)->tbl =
-    scm_chash_tbl_new(SCM_SYMTBL_SIZE, tbl,
+    scm_chash_tbl_new(tbl, SCM_SYMTBL_SIZE,
                       SCM_CHASH_TBL_SCMOBJ, SCM_CHASH_TBL_SCMOBJ_W,
                       scm_symtbl_hash_func, scm_symtbl_cmp_func);
   if (scm_obj_null_p(tbl)) return;
