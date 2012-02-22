@@ -20,6 +20,29 @@
 
 
 /*******************************************************************/
+/*  Error                                                          */
+/*******************************************************************/
+
+extern inline void
+scm_capi_fatal(const char *msg)
+{
+  scm_vm_fatal(scm_vm_current_vm(), msg);
+}
+
+extern inline bool
+scm_capi_fatal_p(void)
+{
+  return scm_vm_fatal_p(scm_vm_current_vm());
+}
+
+extern inline bool
+scm_capi_error_p(void)
+{
+  return scm_vm_error_p(scm_vm_current_vm());
+}
+
+
+/*******************************************************************/
 /*  Memory                                                         */
 /*******************************************************************/
 
@@ -137,6 +160,7 @@ scm_capi_nil_p(ScmObj obj)
   return scm_capi_eq_p(obj, scm_api_nil());
 }
 
+
 /*******************************************************************/
 /*  boolean                                                        */
 /*******************************************************************/
@@ -165,6 +189,7 @@ scm_capi_false_p(ScmObj obj)
   return scm_capi_eq_p(obj, scm_api_bool_false());
 }
 
+
 /*******************************************************************/
 /*  eof                                                           */
 /*******************************************************************/
@@ -180,6 +205,7 @@ scm_capi_eof_p(ScmObj obj)
 {
   return scm_capi_eq_p(obj, scm_api_eof());
 }
+
 
 /*******************************************************************/
 /*  List and Pair                                                  */
@@ -300,6 +326,7 @@ scm_capi_fixnum_to_clong(ScmObj fn)
   return ret;
 }
 
+
 /*******************************************************************/
 /*  charactor                                                      */
 /*******************************************************************/
@@ -348,6 +375,7 @@ scm_capi_char_to_cchar(ScmObj chr, scm_char_t *c)
   return SCM_ENCODING_VFUNC_CHAR_WIDTH(scm_char_encoding(chr))(c->bytes,
                                                                sizeof(*c));
 }
+
 
 /*******************************************************************/
 /*  String                                                         */
@@ -420,6 +448,7 @@ scm_capi_string_to_cstr(ScmObj str, char *cstr, size_t size)
   return n;
 }
 
+
 /*******************************************************************/
 /*  Vector                                                         */
 /*******************************************************************/
@@ -480,6 +509,7 @@ scm_capi_vector_length(ScmObj vec)
 
   return (ssize_t)scm_vector_length(vec);
 }
+
 
 /*******************************************************************/
 /*  Symbol                                                         */
@@ -548,6 +578,7 @@ scm_capi_symbol_hash_value(ScmObj sym)
 
   return scm_symbol_hash_value(sym);
 }
+
 
 /*******************************************************************/
 /*  Port                                                           */
@@ -675,6 +706,7 @@ scm_capi_peek_raw(ScmObj port, void *buf, size_t size)
   return scm_port_peek(port, buf, size);
 }
 
+
 /*******************************************************************/
 /*  Subrutine                                                      */
 /*******************************************************************/
@@ -799,27 +831,5 @@ scm_capi_get_func_arg(int nth)
   return scm_vm_refer_local_var(scm_vm_current_vm(), nth);
 }
 
-
-/*******************************************************************/
-/*  Error                                                          */
-/*******************************************************************/
-
-extern inline void
-scm_capi_fatal(const char *msg)
-{
-  scm_vm_fatal(scm_vm_current_vm(), msg);
-}
-
-extern inline bool
-scm_capi_fatal_p(void)
-{
-  return scm_vm_fatal_p(scm_vm_current_vm());
-}
-
-extern inline bool
-scm_capi_error_p(void)
-{
-  return scm_vm_error_p(scm_vm_current_vm());
-}
 
 

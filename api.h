@@ -9,13 +9,24 @@
 
 
 /*******************************************************************/
+/*  Error                                                          */
+/*******************************************************************/
+
+void scm_capi_fatal(const char *msg);
+bool scm_capi_fatal_p(void);
+bool scm_capi_error_p(void);
+
+
+/*******************************************************************/
 /*  Memory                                                         */
 /*******************************************************************/
 
 inline void *
 scm_capi_malloc(size_t size)
 {
-  return malloc(size);
+  void *p = malloc(size);
+  if (p == NULL) scm_capi_fatal("memory allocation error");
+  return p;
 }
 
 inline void *
@@ -28,7 +39,9 @@ scm_capi_free(void *ptr)
 inline void *
 scm_capi_realloc(void *ptr, size_t size)
 {
-  return realloc(ptr, size);
+  void *p = realloc(ptr, size);
+  if (p == NULL) scm_capi_fatal("memory allocation error");
+  return p;
 }
 
 typedef enum {
@@ -193,13 +206,6 @@ int scm_capi_get_nr_func_arg(void);
 ScmObj scm_capi_get_func_arg(int nth);
 
 
-/*******************************************************************/
-/*  Error                                                          */
-/*******************************************************************/
-
-void scm_capi_fatal(const char *msg);
-bool scm_capi_fatal_p(void);
-bool scm_capi_error_p(void);
 
 
 
