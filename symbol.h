@@ -45,6 +45,7 @@ void scm_symtbl_initialize(ScmObj tbl);
 void scm_symtbl_finalize(ScmObj tbl);
 ScmObj scm_symtbl_new(SCM_CAPI_MEM_TYPE_T mtype);
 ScmObj scm_symtbl_symbol(ScmObj tbl, ScmObj str);
+void scm_symtbl_clean(ScmObj tbl);
 void scm_symtbl_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_symtbl_gc_finalize(ScmObj obj);
 int scm_symtbl_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);

@@ -196,6 +196,14 @@ scm_gloctbl_bind(ScmObj tbl, ScmObj sym, ScmObj val) /* GC OK */
 }
 
 void
+scm_gloctbl_clean(ScmObj tbl)
+{
+  scm_assert_obj_type(tbl, &SCM_GLOCTBL_TYPE_INFO);
+
+  scm_chash_tbl_clean(SCM_GLOCTBL(tbl)->tbl);
+}
+
+void
 scm_gloctbl_gc_initialize(ScmObj obj, ScmObj mem)
 {
   scm_assert_obj_type(obj, &SCM_GLOCTBL_TYPE_INFO);

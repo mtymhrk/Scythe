@@ -75,6 +75,7 @@ ScmObj scm_gloctbl_new(SCM_CAPI_MEM_TYPE_T mtype);
 int scm_gloctbl_find(ScmObj tbl, ScmObj sym, scm_csetter_t *setter);
 ScmObj scm_gloctbl_gloc(ScmObj tbl, ScmObj sym);
 ScmObj scm_gloctbl_bind(ScmObj tbl, ScmObj sym, ScmObj val);
+void scm_gloctbl_clean(ScmObj tbl);
 
 void scm_gloctbl_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_gloctbl_gc_finalize(ScmObj obj);

@@ -69,6 +69,7 @@ int scm_chash_tbl_insert(ScmCHashTbl *tbl,
                          ScmCHashTblKey key, ScmCHashTblVal val);
 int scm_chash_tbl_update(ScmCHashTbl *tbl,
                          ScmCHashTblKey key, ScmCHashTblVal val);
+void scm_chash_tbl_clean(ScmCHashTbl *tbl);
 
 int scm_chash_tbl_gc_accept(ScmCHashTbl *tbl, ScmObj owner,
                             ScmObj mem, ScmGCRefHandlerFunc handler);

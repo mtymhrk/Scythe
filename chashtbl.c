@@ -268,6 +268,24 @@ scm_chash_tbl_update(ScmCHashTbl *tbl, ScmCHashTblKey key, ScmCHashTblVal val) /
   return (e != NULL) ? 0 : -1;
 }
 
+void
+scm_chash_tbl_clean(ScmCHashTbl *tbl)
+{
+  scm_assert(tbl != NULL);
+
+  if (tbl->buckets != NULL) {
+    for (size_t i = 0; i < tbl->tbl_size; i++) {
+      ScmCHashTblEntry *e = tbl->buckets[i];
+      while (e != NULL) {
+        ScmCHashTblEntry *n = e->next;
+        scm_capi_free(e);
+        e = n;
+      }
+      tbl->buckets[i] = NULL;
+    }
+  }
+}
+
 int
 scm_chash_tbl_gc_accept(ScmCHashTbl *tbl, ScmObj owner,
                         ScmObj mem, ScmGCRefHandlerFunc handler)

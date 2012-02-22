@@ -167,6 +167,8 @@ scm_symtbl_symbol(ScmObj tbl, ScmObj str)
 
   SCM_STACK_FRAME_PUSH(&sym, &tbl, &str);
 
+  scm_assert_obj_type(tbl, &SCM_SYMTBL_TYPE_INFO);
+
   rslt = scm_chash_tbl_get(SCM_SYMTBL(tbl)->tbl,
                            str,
                            (ScmCHashTblVal *)SCM_CSETTER_L(sym),
@@ -182,6 +184,14 @@ scm_symtbl_symbol(ScmObj tbl, ScmObj str)
   if (rslt != 0) return SCM_OBJ_NULL;
 
   return sym;
+}
+
+void
+scm_symtbl_clean(ScmObj tbl)
+{
+  scm_assert_obj_type(tbl, &SCM_SYMTBL_TYPE_INFO);
+
+  scm_chash_tbl_clean(SCM_SYMTBL(tbl)->tbl);
 }
 
 void
