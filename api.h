@@ -28,7 +28,6 @@ bool scm_capi_nil_p(ScmObj obj);
 /*  boolean                                                        */
 /*******************************************************************/
 
-
 ScmObj scm_api_bool_true(void);
 ScmObj scm_api_bool_false(void);
 bool scm_capi_true_p(ScmObj obj);
@@ -151,5 +150,15 @@ ScmObj scm_api_global_var_set(ScmObj sym, ScmObj val);
 
 int scm_capi_get_nr_func_arg(void);
 ScmObj scm_capi_get_func_arg(int nth);
+
+
+/*******************************************************************/
+/*  Error                                                          */
+/*******************************************************************/
+
+void scm_capi_fatal(const char *msg);
+bool scm_capi_fatal_p(void);
+bool scm_capi_error_p(void);
+
 
 #endif /* INCLUDE_API_H__ */

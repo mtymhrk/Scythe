@@ -22,6 +22,12 @@ extern ScmObj scm_vm__current_vm;
   /* vm.c の外部が scm_vm__current_vm を直接参照するのは禁止。
      scm_vm_current_vm() 経由で取得すること。 */
 
+typedef enum {
+  SCM_VM_ERR_NONE,
+  SCM_VM_ERR_FATAL,
+  SCM_VM_ERR_ERROR,
+} SCM_VM_ERROR_TYPE_T;
+
 struct ScmVMRec {
   ScmObjHeader header;
 
@@ -38,12 +44,14 @@ struct ScmVMRec {
   ScmRefStack *ref_stack;
 
   /*** VM Registers ***/
-  scm_vm_stack_val_t *sp;                   /* stack pointer */
-  scm_vm_stack_val_t *fp;                    /* frame pointer */
-  /* ScmObj cp;                    /\* closure pointer *\/ */
-  scm_iword_t *ip;            /* instruction pointer */
-  ScmObj iseq;                  /* instruction sequence object */
-  ScmObj val;                   /* value register */
+  struct {
+    scm_vm_stack_val_t *sp;                   /* stack pointer */
+    scm_vm_stack_val_t *fp;                    /* frame pointer */
+    /* ScmObj cp;                    /\* closure pointer *\/ */
+    scm_iword_t *ip;            /* instruction pointer */
+    ScmObj iseq;                  /* instruction sequence object */
+    ScmObj val;                   /* value register */
+  } reg;
 
   /*** Constant Values ***/
   struct {
@@ -52,6 +60,12 @@ struct ScmVMRec {
     ScmObj b_true;
     ScmObj b_false;
   } cnsts;
+
+  /*** Error Status ***/
+  struct {
+    int type;
+    char *message;
+  } err;
 };
 
 /* private functions ******************************************************/
@@ -104,6 +118,10 @@ int scm_vm_nr_local_var(ScmObj vm);
 ScmObj scm_vm_refer_local_var(ScmObj vm, int nth);
 void scm_vm_return_to_caller(ScmObj vm);
 
+void scm_vm_fatal(ScmObj vm, const char *msg);
+bool scm_vm_fatal_p(ScmObj vm);
+bool scm_vm_error_p(ScmObj vm);
+
 void scm_vm_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_vm_gc_finalize(ScmObj obj);
 int scm_vm_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
@@ -142,7 +160,7 @@ scm_vm_current_gloctbl(void)
 inline void
 scm_vm_update_current_val_reg(ScmObj val)
 {
-  SCM_SLOT_SETQ(ScmVM, scm_vm__current_vm, val, val);
+  SCM_SLOT_SETQ(ScmVM, scm_vm__current_vm, reg.val, val);
 }
 
 inline ScmObj

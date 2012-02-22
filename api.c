@@ -720,3 +720,24 @@ scm_capi_get_func_arg(int nth)
 }
 
 
+/*******************************************************************/
+/*  Error                                                          */
+/*******************************************************************/
+
+extern inline void
+scm_capi_fatal(const char *msg)
+{
+  scm_vm_fatal(scm_vm_current_vm(), msg);
+}
+
+extern inline bool
+scm_capi_fatal_p(void)
+{
+  return scm_vm_fatal_p(scm_vm_current_vm());
+}
+
+extern inline bool
+scm_capi_error_p(void)
+{
+  return scm_vm_error_p(scm_vm_current_vm());
+}
