@@ -2,11 +2,10 @@
 #include <assert.h>
 
 #include "object.h"
-#include "memory.h"
-#include "vm.h"
 #include "reference.h"
-#include "instractions.h"
+#include "api.h"
 #include "earray.h"
+#include "instractions.h"
 #include "iseq.h"
 
 ScmTypeInfo SCM_ISEQ_TYPE_INFO = {
@@ -41,13 +40,13 @@ scm_iseq_initialize(ScmObj iseq) /* GC OK */
 }
 
 ScmObj
-scm_iseq_new(SCM_MEM_ALLOC_TYPE_T mtype) /* GC OK */
+scm_iseq_new(SCM_CAPI_MEM_TYPE_T mtype) /* GC OK */
 {
   ScmObj iseq = SCM_OBJ_INIT;
 
   SCM_STACK_FRAME_PUSH(&iseq);
 
-  iseq = scm_mem_alloc(scm_vm_current_mm(), &SCM_ISEQ_TYPE_INFO, mtype);
+  iseq = scm_capi_mem_alloc(&SCM_ISEQ_TYPE_INFO, mtype);
 
   scm_iseq_initialize(iseq);
 

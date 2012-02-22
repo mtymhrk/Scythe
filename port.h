@@ -31,7 +31,7 @@ typedef enum {
 
 
 #include "object.h"
-#include "memory.h"
+#include "api.h"
 
 /***************************************************************************/
 /*  ScmIO                                                                  */
@@ -161,7 +161,7 @@ ssize_t scm_port_write_buf(ScmObj port,
 void scm_port_initialize(ScmObj port, ScmIO *io,
                          SCM_PORT_ATTR attr, SCM_PORT_BUF_MODE buf_mode);
 void scm_port_finalize(ScmObj port);
-ScmObj scm_port_new(SCM_MEM_ALLOC_TYPE_T mtype,
+ScmObj scm_port_new(SCM_CAPI_MEM_TYPE_T mtype,
                     ScmIO *io, SCM_PORT_ATTR attr, SCM_PORT_BUF_MODE buf_mode);
 ScmObj scm_port_open_input(ScmIO *io,
                            SCM_PORT_ATTR attr, SCM_PORT_BUF_MODE buf_mode);
@@ -179,7 +179,6 @@ bool scm_port_readable_p(ScmObj port);
 bool scm_port_writable_p(ScmObj port);
 bool scm_port_file_port_p(ScmObj port);
 bool scm_port_string_port_p(ScmObj port);
-bool scm_port_port_p(ScmObj obj);
 bool scm_port_closed_p(ScmObj port);
 bool scm_port_ready_p(ScmObj port);
 int scm_port_flush(ScmObj port);

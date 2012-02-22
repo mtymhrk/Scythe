@@ -5,10 +5,9 @@
 #include <limits.h>
 #include <assert.h>
 
-#include "memory.h"
 #include "object.h"
-#include "vm.h"
 #include "reference.h"
+#include "api.h"
 #include "encoding.h"
 #include "string.h"
 
@@ -19,12 +18,12 @@
 #define ROOM_FOR_APPEND(str) (CAPACITY(str) - SCM_STRING_BYTESIZE(str))
 
 ScmTypeInfo SCM_STRING_TYPE_INFO = {
-  NULL,                         /* pp_func              */
-  sizeof(ScmString),            /* obj_size             */
-  scm_string_gc_initialize,     /* gc_ini_func          */
-  scm_string_gc_finalize,       /* gc_fin_func          */
-  NULL,                         /* gc_accept_func       */
-  NULL,                         /* gc_accpet_func_weak  */
+  .pp_func             = NULL,
+  .obj_size            = sizeof(ScmString),
+  .gc_ini_func         = scm_string_gc_initialize,
+  .gc_fin_func         = scm_string_gc_finalize,
+  .gc_accept_func      = NULL,
+  .gc_accept_func_weak = NULL,
 };
 
 static ssize_t
@@ -76,7 +75,7 @@ scm_string_copy_and_expand(ScmObj src, size_t size) /* GC OK */
   scm_assert_obj_type(src, &SCM_STRING_TYPE_INFO);
   scm_assert(size <= SSIZE_MAX);
 
-  str = scm_string_new(SCM_MEM_ALLOC_HEAP,
+  str = scm_string_new(SCM_CAPI_MEM_HEAP,
                        NULL, size, SCM_STRING_ENC(src));
   if (scm_obj_null_p(str)) return SCM_OBJ_NULL;
 
@@ -110,8 +109,8 @@ scm_string_replace_contents(ScmObj target, ScmObj src) /* GC OK */
     SCM_STRING_DEC_REF_CNT(target);
   }
   else {
-    scm_free(SCM_STRING_BUFFER(target));
-    scm_free(SCM_STRING_REF_CNT(target));
+    scm_capi_free(SCM_STRING_BUFFER(target));
+    scm_capi_free(SCM_STRING_REF_CNT(target));
   }
 
   *SCM_STRING(target) = *SCM_STRING(src);
@@ -126,8 +125,8 @@ scm_string_finalize(ScmObj str) /* GC OK */
   if (SCM_STRING_REF_CNT(str) != NULL && *SCM_STRING_REF_CNT(str) > 1)
     SCM_STRING_DEC_REF_CNT(str);
   else {
-    scm_free(SCM_STRING_BUFFER(str));
-    scm_free(SCM_STRING_REF_CNT(str));
+    scm_capi_free(SCM_STRING_BUFFER(str));
+    scm_capi_free(SCM_STRING_REF_CNT(str));
   }
 
   /* push() 関数や append() 関数内の tmp はこれらの関数から直接 finalize() を call  */
@@ -155,13 +154,13 @@ scm_string_initialize(ScmObj str,
        SCM_STRING_CAPACITY(str) *= 2)
     ;
 
-  SCM_STRING_BUFFER(str) = scm_malloc(SCM_STRING_CAPACITY(str));
+  SCM_STRING_BUFFER(str) = scm_capi_malloc(SCM_STRING_CAPACITY(str));
   SCM_STRING_HEAD(str) = SCM_STRING_BUFFER(str);
   if (SCM_STRING_BUFFER(str) == NULL)
     ;                           /* TODO: error handling */
 
   SCM_STRING_REF_CNT(str) =
-    scm_malloc(sizeof(*SCM_STRING_REF_CNT(str)));
+    scm_capi_malloc(sizeof(*SCM_STRING_REF_CNT(str)));
   if (SCM_STRING_REF_CNT(str) == NULL)
     ;                           /* TODO: error handling */
 
@@ -184,7 +183,7 @@ scm_string_initialize(ScmObj str,
 }
 
 ScmObj
-scm_string_new(SCM_MEM_ALLOC_TYPE_T mtype, const void *src, size_t size, SCM_ENCODING_T enc) /* GC OK */
+scm_string_new(SCM_CAPI_MEM_TYPE_T mtype, const void *src, size_t size, SCM_ENCODING_T enc) /* GC OK */
 {
   ScmObj str = SCM_OBJ_INIT;
 
@@ -193,7 +192,7 @@ scm_string_new(SCM_MEM_ALLOC_TYPE_T mtype, const void *src, size_t size, SCM_ENC
 
   scm_assert(/*0 <= enc && */enc < SMC_ENCODING_NR_ENC);
 
-  str = scm_mem_alloc(scm_vm_current_mm(), &SCM_STRING_TYPE_INFO, mtype);
+  str = scm_capi_mem_alloc(&SCM_STRING_TYPE_INFO, mtype);
 
   scm_string_initialize(str, src, size, enc);
 
@@ -205,10 +204,10 @@ scm_string_copy(ScmObj src)     /* GC OK */
 {
   scm_assert_obj_type(src, &SCM_STRING_TYPE_INFO);
 
-  return scm_string_new(SCM_MEM_ALLOC_HEAP,
-                              SCM_STRING_HEAD(src),
-                              SCM_STRING_BYTESIZE(src),
-                              SCM_STRING_ENC(src));
+  return scm_string_new(SCM_CAPI_MEM_HEAP,
+                        SCM_STRING_HEAD(src),
+                        SCM_STRING_BYTESIZE(src),
+                        SCM_STRING_ENC(src));
 }
 
 ScmObj
@@ -220,12 +219,7 @@ scm_string_dup(ScmObj src)      /* GC OK */
 
   scm_assert_obj_type(src, &SCM_STRING_TYPE_INFO);
 
-  /* str = scm_memory_allocate(sizeof(ScmString)); */
-  /* scm_obj_init(SCM_OBJ(str), &SCM_STRING_TYPE_INFO); */
-
-
-  /* TODO: replace above by below */
-  str = scm_mem_alloc_heap(scm_vm_current_mm(), &SCM_STRING_TYPE_INFO);
+  str = scm_capi_mem_alloc_heap(&SCM_STRING_TYPE_INFO);
 
   SCM_STRING_BUFFER(str) = SCM_STRING_BUFFER(src);
   SCM_STRING_HEAD(str) = SCM_STRING_HEAD(src);
@@ -632,14 +626,6 @@ scm_string_content(ScmObj str)  /* GC OK */
   scm_assert_obj_type(str, &SCM_STRING_TYPE_INFO);
 
   return SCM_STRING_HEAD(str);
-}
-
-bool
-scm_string_is_string(ScmObj obj)
-{
-  scm_assert(scm_obj_not_null_p(obj));
-
-  return scm_obj_type_p(obj, &SCM_STRING_TYPE_INFO);
 }
 
 void

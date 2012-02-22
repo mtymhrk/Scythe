@@ -2,12 +2,9 @@
 #include <assert.h>
 
 #include "object.h"
-#include "memory.h"
-#include "vm.h"
 #include "reference.h"
+#include "api.h"
 #include "pair.h"
-#include "miscobjects.h"
-
 
 ScmTypeInfo SCM_PAIR_TYPE_INFO = {
   NULL,                       /* pp_func              */
@@ -33,7 +30,7 @@ scm_pair_initialize(ScmObj pair, ScmObj car, ScmObj cdr) /* GC OK */
 }
 
 ScmObj
-scm_pair_new(SCM_MEM_ALLOC_TYPE_T mtype, ScmObj car, ScmObj cdr) /* GC OK */
+scm_pair_new(SCM_CAPI_MEM_TYPE_T mtype, ScmObj car, ScmObj cdr) /* GC OK */
 {
   ScmObj pair = SCM_OBJ_INIT;
 
@@ -42,7 +39,7 @@ scm_pair_new(SCM_MEM_ALLOC_TYPE_T mtype, ScmObj car, ScmObj cdr) /* GC OK */
   scm_assert(scm_obj_not_null_p(car));
   scm_assert(scm_obj_not_null_p(cdr));
 
-  pair = scm_mem_alloc(scm_vm_current_mm(), &SCM_PAIR_TYPE_INFO, mtype);
+  pair = scm_capi_mem_alloc(&SCM_PAIR_TYPE_INFO, mtype);
 
   scm_pair_initialize(pair, car, cdr);
 
@@ -63,14 +60,6 @@ scm_pair_cdr(ScmObj pair)       /* GC OK */
   scm_assert_obj_type(pair, &SCM_PAIR_TYPE_INFO);
 
   return SCM_PAIR_CDR(pair);
-}
-
-bool
-scm_pair_is_pair(const ScmObj obj) /* GC OK */
-{
-  scm_assert(scm_obj_not_null_p(obj));
-
-  return scm_obj_type_p(obj, &SCM_PAIR_TYPE_INFO);
 }
 
 void

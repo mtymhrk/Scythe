@@ -8,9 +8,8 @@
 #include <assert.h>
 
 #include "object.h"
-#include "memory.h"
-#include "vm.h"
 #include "reference.h"
+#include "api.h"
 #include "port.h"
 #include "impl_utils.h"
 
@@ -129,7 +128,7 @@ scm_fileio_new(int fd)
 {
   ScmFileIO *fileio;
 
-  fileio = scm_malloc(sizeof(ScmFileIO));
+  fileio = scm_capi_malloc(sizeof(ScmFileIO));
   if (fileio == NULL) return NULL;
 
   scm_io_initialize((ScmIO *)fileio,
@@ -152,7 +151,7 @@ scm_fileio_end(ScmFileIO *fileio)
   scm_assert(fileio != NULL);
 
   scm_fileio_close(fileio);
-  scm_free(fileio);
+  scm_capi_free(fileio);
 }
 
 ScmFileIO *
@@ -296,11 +295,11 @@ scm_stringio_expand_buffer(ScmStringIO *strio, size_t needed_size)
   if (new_size < needed_size) new_size = SSIZE_MAX;
 
   if (strio->string == NULL) {
-    strio->string = scm_malloc(new_size);
+    strio->string = scm_capi_malloc(new_size);
     strio->capacity = new_size;
   }
   else if (new_size > strio->capacity) {
-    char *new_buffer = scm_realloc(strio->string, new_size);
+    char *new_buffer = scm_capi_realloc(strio->string, new_size);
     if (new_buffer == NULL) return -1;
     strio->string = new_buffer;
     strio->capacity = new_size;
@@ -318,7 +317,7 @@ scm_stringio_new(const char *str, size_t len)
 
   scm_assert(len <= SSIZE_MAX);
 
-  strio = scm_malloc(sizeof(ScmStringIO));
+  strio = scm_capi_malloc(sizeof(ScmStringIO));
   if (strio == NULL) return NULL;
 
   scm_io_initialize((ScmIO *)strio,
@@ -349,7 +348,7 @@ scm_stringio_new(const char *str, size_t len)
   return strio;
 
  err:
-  scm_free(strio);
+  scm_capi_free(strio);
   return NULL;
 }
 
@@ -358,8 +357,8 @@ scm_stringio_end(ScmStringIO *strio)
 {
   scm_assert(strio != NULL);
 
-  scm_free(strio->string);
-  scm_free(strio);
+  scm_capi_free(strio->string);
+  scm_capi_free(strio);
 }
 
 ssize_t
@@ -515,7 +514,7 @@ scm_port_init_buffer(ScmObj port, SCM_PORT_BUF_MODE buf_mode)
     return 0;
   }
 
-  SCM_PORT(port)->buffer = scm_malloc(SCM_PORT(port)->capacity);
+  SCM_PORT(port)->buffer = scm_capi_malloc(SCM_PORT(port)->capacity);
   if (SCM_PORT(port)->buffer == NULL)
     return -1;
 
@@ -883,11 +882,11 @@ scm_port_finalize(ScmObj port)
   scm_port_flush(port);
   scm_port_close(port);
   scm_io_end(SCM_PORT(port)->io);
-  scm_free(SCM_PORT(port)->buffer);
+  scm_capi_free(SCM_PORT(port)->buffer);
 }
 
 ScmObj
-scm_port_new(SCM_MEM_ALLOC_TYPE_T mtype,
+scm_port_new(SCM_CAPI_MEM_TYPE_T mtype,
              ScmIO *io, SCM_PORT_ATTR attr, SCM_PORT_BUF_MODE buf_mode)
 {
   ScmObj port = SCM_OBJ_INIT;
@@ -895,7 +894,7 @@ scm_port_new(SCM_MEM_ALLOC_TYPE_T mtype,
   scm_assert(io != NULL);
   scm_assert(/* buf_mode >= 0 && */ buf_mode < SCM_PORT_NR_BUF_MODE);
 
-  port = scm_mem_alloc(scm_vm_current_mm(), &SCM_PORT_TYPE_INFO, mtype);
+  port = scm_capi_mem_alloc(&SCM_PORT_TYPE_INFO, mtype);
 
   scm_port_initialize(port, io, attr, buf_mode);
 
@@ -905,14 +904,14 @@ scm_port_new(SCM_MEM_ALLOC_TYPE_T mtype,
 ScmObj
 scm_port_open_input(ScmIO *io, SCM_PORT_ATTR attr, SCM_PORT_BUF_MODE buf_mode)
 {
-  return scm_port_new(SCM_MEM_ALLOC_HEAP,
+  return scm_port_new(SCM_CAPI_MEM_HEAP,
                       io, attr | SCM_PORT_ATTR_READABLE, buf_mode);
 }
 
 ScmObj
 scm_port_open_output(ScmIO *io, SCM_PORT_ATTR attr, SCM_PORT_BUF_MODE buf_mode)
 {
-  return scm_port_new(SCM_MEM_ALLOC_HEAP,
+  return scm_port_new(SCM_CAPI_MEM_HEAP,
                       io, attr | SCM_PORT_ATTR_WRITABLE, buf_mode);
 }
 
@@ -1035,14 +1034,6 @@ scm_port_string_port_p(ScmObj port)
   scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
 
   return BIT_IS_SETED(SCM_PORT(port)->attr, SCM_PORT_ATTR_STRING);
-}
-
-bool
-scm_port_port_p(ScmObj obj)
-{
-  scm_assert(scm_obj_not_null_p(obj));
-
-  return scm_obj_type_p(obj, &SCM_PORT_TYPE_INFO);
 }
 
 bool

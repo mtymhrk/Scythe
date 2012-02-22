@@ -1,10 +1,9 @@
 #include <stdbool.h>
 #include <assert.h>
 
-#include "memory.h"
 #include "object.h"
-#include "vm.h"
-#include "miscobjects.h"
+#include "reference.h"
+#include "api.h"
 #include "vector.h"
 
 ScmTypeInfo SCM_VECTOR_TYPE_INFO = {
@@ -25,7 +24,7 @@ scm_vector_initialize(ScmObj vector, size_t length, ScmObj fill) /* GC OK */
   scm_assert(length <= SSIZE_MAX);
 
   if (length > 0)
-    SCM_VECTOR_ARRAY(vector) = scm_malloc(sizeof(ScmObj) * length);
+    SCM_VECTOR_ARRAY(vector) = scm_capi_malloc(sizeof(ScmObj) * length);
   else
     SCM_VECTOR_ARRAY(vector) = NULL;
 
@@ -41,11 +40,11 @@ scm_vector_finalize(ScmObj vector) /* GC OK */
   scm_assert_obj_type(vector, &SCM_VECTOR_TYPE_INFO);
 
   if (SCM_VECTOR_ARRAY(vector) != NULL)
-    scm_free(SCM_VECTOR_ARRAY(vector));
+    scm_capi_free(SCM_VECTOR_ARRAY(vector));
 }
 
 ScmObj
-scm_vector_new(SCM_MEM_ALLOC_TYPE_T mtype,
+scm_vector_new(SCM_CAPI_MEM_TYPE_T mtype,
                size_t length, ScmObj fill) /* GC OK */
 {
   ScmObj vector = SCM_OBJ_INIT;
@@ -56,7 +55,7 @@ scm_vector_new(SCM_MEM_ALLOC_TYPE_T mtype,
      api.c との兼ね合いで制限する */
   scm_assert(length <= SSIZE_MAX);
 
-  vector = scm_mem_alloc(scm_vm_current_mm(), &SCM_VECTOR_TYPE_INFO, mtype);
+  vector = scm_capi_mem_alloc(&SCM_VECTOR_TYPE_INFO, mtype);
   if (scm_obj_null_p(vector)) return SCM_OBJ_NULL;
 
   scm_vector_initialize(vector, length, fill);
@@ -91,14 +90,6 @@ scm_vector_set(ScmObj vector, size_t index, ScmObj obj) /* GC OK */
   SCM_SLOT_SETQ(ScmVector, vector, array[index], obj);
 
   return obj;
-}
-
-bool
-scm_vector_is_vector(ScmObj obj) /* GC OK */
-{
-  scm_assert(scm_obj_not_null_p(obj));
-
-  return scm_obj_type_p(obj, &SCM_VECTOR_TYPE_INFO);
 }
 
 void

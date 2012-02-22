@@ -9,6 +9,7 @@ typedef struct ScmCharRec ScmChar;
 
 #include "object.h"
 #include "encoding.h"
+#include "api.h"
 
 extern ScmTypeInfo SCM_CHAR_TYPE_INFO;
 
@@ -29,14 +30,11 @@ struct ScmCharRec {
 
 void scm_char_initialize(ScmObj chr, scm_char_t value, SCM_ENCODING_T enc);
 void scm_char_finalize(ScmObj chr);
-ScmObj scm_char_new(SCM_MEM_ALLOC_TYPE_T mtype,
-                          scm_char_t value, SCM_ENCODING_T enc);
-ScmObj scm_char_new_newline(SCM_MEM_ALLOC_TYPE_T mtype,
-                                  SCM_ENCODING_T enc);
-ScmObj scm_char_new_space(SCM_MEM_ALLOC_TYPE_T mtype,
-                                SCM_ENCODING_T enc);
+ScmObj scm_char_new(SCM_CAPI_MEM_TYPE_T mtype,
+                    scm_char_t value, SCM_ENCODING_T enc);
+ScmObj scm_char_new_newline(SCM_CAPI_MEM_TYPE_T mtype, SCM_ENCODING_T enc);
+ScmObj scm_char_new_space(SCM_CAPI_MEM_TYPE_T mtype, SCM_ENCODING_T enc);
 scm_char_t scm_char_value(ScmObj chr);
 SCM_ENCODING_T scm_char_encoding(ScmObj chr);
-bool scm_char_is_char(ScmObj obj);
 
 #endif /* INCLUDE_CHAR_H__ */

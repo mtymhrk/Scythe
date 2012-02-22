@@ -5,8 +5,7 @@
 #include <assert.h>
 
 #include "object.h"
-#include "memory.h"
-#include "vm.h"
+#include "reference.h"
 #include "api.h"
 #include "impl_utils.h"
 #include "parser.h"
@@ -66,7 +65,7 @@ scm_lexer_expand_buffer_if_needed(ScmLexer *lexer, size_t needed_size)
     ;
 
   if (new_size > lexer->buf_capacity || lexer->buffer == NULL) {
-    new_buffer = scm_realloc(lexer->buffer, new_size);
+    new_buffer = scm_capi_realloc(lexer->buffer, new_size);
     if (new_buffer == NULL)
       return -1;
     lexer->buffer = new_buffer;
@@ -671,7 +670,7 @@ scm_lexer_new(void)
 {
   ScmLexer *lexer;
 
-  lexer = scm_malloc(sizeof(ScmLexer));
+  lexer = scm_capi_malloc(sizeof(ScmLexer));
   if (lexer == NULL) return NULL;
 
   lexer->buffer = NULL;
@@ -694,9 +693,9 @@ scm_lexer_end(ScmLexer *lexer)
     scm_lexer_shift_token(lexer);
 
   if (lexer->buffer != NULL)
-    scm_free(lexer->buffer);
+    scm_capi_free(lexer->buffer);
 
-  scm_free(lexer);
+  scm_capi_free(lexer);
 }
 
 ScmToken *
@@ -758,17 +757,17 @@ scm_lexer_error_type(ScmLexer *lexer)
 }
 
 ScmToken *
-scm_token_new(SCM_TOKEN_TYPE_T type, char *string, size_t size)
+scm_token_new(SCM_TOKEN_TYPE_T type, const char *string, size_t size)
 {
   ScmToken *token;
 
-  token = scm_malloc(sizeof(ScmToken));
+  token = scm_capi_malloc(sizeof(ScmToken));
   if (token == NULL) return NULL;
 
   if (string != NULL && size > 0) {
-    token->string = scm_malloc(size);
+    token->string = scm_capi_malloc(size);
     if (token->string == NULL) {
-      scm_free(token);
+      scm_capi_free(token);
       return NULL;
     }
     memcpy(token->string, string, size);
@@ -787,8 +786,8 @@ scm_token_end(ScmToken *token)
 {
   scm_assert(token != NULL);
 
-  scm_free(token->string);
-  scm_free(token);
+  scm_capi_free(token->string);
+  scm_capi_free(token);
 }
 
 static ScmObj
@@ -991,7 +990,7 @@ scm_parser_parse_numeric(ScmParser *parser, ScmObj port)
     return SCM_OBJ_NULL;
   }
 
-  str = scm_malloc(token->size + 1);
+  str = scm_capi_malloc(token->size + 1);
   if (str == NULL) {
     /* TODO: error handling */
     return SCM_OBJ_NULL;
@@ -1171,7 +1170,7 @@ scm_parser_new(ScmLexer *lexer)
 
   scm_assert(lexer != NULL);
 
-  parser = scm_malloc(sizeof(ScmParser));
+  parser = scm_capi_malloc(sizeof(ScmParser));
   parser->lexer = lexer;
 
   return parser;

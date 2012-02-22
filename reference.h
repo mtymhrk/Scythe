@@ -10,6 +10,7 @@ typedef struct ScmRefStackRec ScmRefStack;
 
 
 #include "object.h"
+#include "impl_utils.h"
 
 struct ScmRefStackBlockRec {
   ScmRefStackBlock *next;

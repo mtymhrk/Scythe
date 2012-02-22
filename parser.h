@@ -49,7 +49,8 @@ struct ScmTokenRec {
 #define SCM_TOKEN_TYPE(token) ((token)->type)
 #define SCM_TOKEN_STRING(token) ((token)->string)
 
-ScmToken *scm_token_new(SCM_TOKEN_TYPE_T type, char *string, size_t size);
+ScmToken *scm_token_new(SCM_TOKEN_TYPE_T type,
+                        const char *string, size_t size);
 void scm_token_end(ScmToken *token);
 
 

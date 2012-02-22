@@ -22,22 +22,12 @@ cut_shutdown(void)
 void
 test_scm_eof_new(void)
 {
-  ScmObj eof1 = SCM_OBJ_INIT, eof2 = SCM_OBJ_INIT;
+  ScmObj eof = SCM_OBJ_NULL;
 
-  SCM_STACK_PUSH(&eof1, eof2);
+  SCM_STACK_FRAME_PUSH(&eof);
 
-  eof1 = scm_eof_instance();
-  eof2 = scm_eof_instance();
+  eof = scm_eof_new(SCM_CAPI_MEM_HEAP);
 
-  cut_assert_true(scm_obj_not_null_p(eof1));
-  cut_assert_true(scm_obj_not_null_p(eof2));
-
-  cut_assert_true(scm_obj_same_instance_p(SCM_OBJ(eof1), SCM_OBJ(eof2)));
-}
-
-void
-test_scm_eof_is_eof(void)
-{
-  cut_assert_true(scm_eof_is_eof(SCM_OBJ(scm_eof_instance())));
-  cut_assert_false(scm_eof_is_eof(SCM_OBJ(scm_nil_instance())));
+  cut_assert_true(scm_obj_not_null_p(eof));
+  cut_assert_true(scm_obj_type_p(eof, &SCM_EOF_TYPE_INFO));
 }

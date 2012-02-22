@@ -2,10 +2,8 @@
 #include <stdbool.h>
 
 #include "object.h"
-#include "memory.h"
-#include "vm.h"
 #include "reference.h"
-#include "symbol.h"
+#include "api.h"
 #include "chashtbl.h"
 #include "gloc.h"
 
@@ -14,11 +12,11 @@
 /****************************************************************************/
 
 ScmTypeInfo SCM_GLOC_TYPE_INFO = {
-  .pp_func = NULL,
-  .obj_size = sizeof(ScmGLoc),
-  .gc_ini_func = scm_gloc_gc_initialize,
-  .gc_fin_func = NULL,
-  .gc_accept_func = scm_gloc_gc_accept,
+  .pp_func             = NULL,
+  .obj_size            = sizeof(ScmGLoc),
+  .gc_ini_func         = scm_gloc_gc_initialize,
+  .gc_fin_func         = NULL,
+  .gc_accept_func      = scm_gloc_gc_accept,
   .gc_accept_func_weak = NULL
 };
 
@@ -26,20 +24,20 @@ void
 scm_gloc_initialize(ScmObj gloc, ScmObj sym, ScmObj val) /* GC OK */
 {
   scm_assert_obj_type(gloc, &SCM_GLOC_TYPE_INFO);
-  scm_assert_obj_type(sym, &SCM_SYMBOL_TYPE_INFO);
+  scm_assert(scm_capi_symbol_p(sym));
 
   SCM_SLOT_SETQ(ScmGLoc, gloc, sym, sym);
   SCM_SLOT_SETQ(ScmGLoc, gloc, val, val);
 }
 
 ScmObj
-scm_gloc_new(SCM_MEM_ALLOC_TYPE_T mtype, ScmObj sym) /* GC OK */
+scm_gloc_new(SCM_CAPI_MEM_TYPE_T mtype, ScmObj sym) /* GC OK */
 {
   ScmObj gloc = SCM_OBJ_INIT;
 
   SCM_STACK_FRAME_PUSH(&gloc, &sym);
 
-  gloc = scm_mem_alloc(scm_vm_current_mm(), &SCM_GLOC_TYPE_INFO, mtype);
+  gloc = scm_capi_mem_alloc(&SCM_GLOC_TYPE_INFO, mtype);
   if (scm_obj_null_p(gloc)) return SCM_OBJ_NULL;
 
   scm_gloc_initialize(gloc, sym, SCM_OBJ_NULL);
@@ -75,11 +73,11 @@ scm_gloc_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
 /****************************************************************************/
 
 ScmTypeInfo SCM_GLOCTBL_TYPE_INFO = {
-  .pp_func = NULL,
-  .obj_size = sizeof(ScmGLocTbl),
-  .gc_ini_func = scm_gloctbl_gc_initialize,
-  .gc_fin_func = scm_gloctbl_gc_finalize,
-  .gc_accept_func = scm_gloctbl_gc_accept,
+  .pp_func             = NULL,
+  .obj_size            = sizeof(ScmGLocTbl),
+  .gc_ini_func         = scm_gloctbl_gc_initialize,
+  .gc_fin_func         = scm_gloctbl_gc_finalize,
+  .gc_accept_func      = scm_gloctbl_gc_accept,
   .gc_accept_func_weak = NULL
 };
 
@@ -88,13 +86,13 @@ ScmTypeInfo SCM_GLOCTBL_TYPE_INFO = {
 static size_t
 scm_gloctbl_hash_func(ScmCHashTblKey key)
 {
-  return scm_symbol_hash_value(SCM_OBJ(key));
+  return scm_capi_symbol_hash_value(SCM_OBJ(key));
 }
 
 static bool
 scm_gloctbl_cmp_func(ScmCHashTblKey key1, ScmCHashTblKey key2)
 {
-  return (scm_obj_same_instance_p(key1, key2) ? true : false);
+  return (scm_capi_eq_p(SCM_OBJ(key1), SCM_OBJ(key2)) ? true : false);
 }
 
 void
@@ -122,13 +120,13 @@ scm_gloctbl_finalize(ScmObj tbl)
 }
 
 ScmObj
-scm_gloctbl_new(SCM_MEM_ALLOC_TYPE_T mtype) /* GC OK */
+scm_gloctbl_new(SCM_CAPI_MEM_TYPE_T mtype) /* GC OK */
 {
   ScmObj tbl = SCM_OBJ_INIT;
 
   SCM_STACK_FRAME_PUSH(&tbl);
 
-  tbl = scm_mem_alloc(scm_vm_current_mm(), &SCM_GLOCTBL_TYPE_INFO, mtype);
+  tbl = scm_capi_mem_alloc(&SCM_GLOCTBL_TYPE_INFO, mtype);
   if (scm_obj_null_p(tbl)) return SCM_OBJ_NULL;
 
   scm_gloctbl_initialize(tbl);
@@ -145,7 +143,7 @@ scm_gloctbl_find(ScmObj tbl, ScmObj sym, scm_csetter_t *setter) /* GC OK */
   SCM_STACK_FRAME_PUSH(&tbl, &sym);
 
   scm_assert_obj_type(tbl, &SCM_GLOCTBL_TYPE_INFO);
-  scm_assert_obj_type(sym, &SCM_SYMBOL_TYPE_INFO);
+  scm_assert(scm_capi_symbol_p(sym));
 
   rslt = scm_chash_tbl_get(SCM_GLOCTBL(tbl)->tbl,
                            sym, (ScmCHashTblVal *)setter, &found);
@@ -166,14 +164,14 @@ scm_gloctbl_gloc(ScmObj tbl, ScmObj sym) /* GC OK */
   SCM_STACK_FRAME_PUSH(&gloc, &tbl, &sym);
 
   scm_assert_obj_type(tbl, &SCM_GLOCTBL_TYPE_INFO);
-  scm_assert_obj_type(sym, &SCM_SYMBOL_TYPE_INFO);
+  scm_assert(scm_capi_symbol_p(sym));
 
   rslt = scm_chash_tbl_get(SCM_GLOCTBL(tbl)->tbl, sym, &gloc, &found);
   if (rslt != 0) return SCM_OBJ_NULL;
 
   if (found) return gloc;
 
-  gloc = scm_gloc_new(SCM_MEM_ALLOC_HEAP, sym);
+  gloc = scm_gloc_new(SCM_CAPI_MEM_HEAP, sym);
   if (scm_obj_null_p(gloc)) return SCM_OBJ_NULL;
 
   rslt = scm_chash_tbl_insert(SCM_GLOCTBL(tbl)->tbl, sym, gloc);

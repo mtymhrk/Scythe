@@ -5,7 +5,7 @@
 #include <limits.h>
 #include <assert.h>
 
-#include "memory.h"
+#include "api.h"
 #include "charconv.h"
 
 #define INIT_BUF_SIZE 64
@@ -34,7 +34,7 @@ scm_charconv_new(const char *from, const char* to,
   assert(from != NULL);
   assert(to != NULL);
 
-  conv = scm_malloc(sizeof(ScmCharConv));
+  conv = scm_capi_malloc(sizeof(ScmCharConv));
   if (conv == NULL) return NULL;
 
   conv->icd = (void *)-1;
@@ -47,18 +47,18 @@ scm_charconv_new(const char *from, const char* to,
   if (conv->icd == (void *)-1) goto err;
 
   conv->type = type;
-  conv->src_encode = scm_malloc(strlen(from) + 1);
+  conv->src_encode = scm_capi_malloc(strlen(from) + 1);
   if (conv->src_encode == NULL) goto err;
   strncpy(conv->src_encode, from, strlen(from) + 1);
 
-  conv->dst_encode = scm_malloc(strlen(to) + 1);
+  conv->dst_encode = scm_capi_malloc(strlen(to) + 1);
   if (conv->dst_encode == NULL) goto err;
   strncpy(conv->dst_encode, to, strlen(to) + 1);
 
-  conv->converted = scm_malloc(INIT_BUF_SIZE);
+  conv->converted = scm_capi_malloc(INIT_BUF_SIZE);
   if (conv->converted == NULL) goto err;
 
-  conv->unconverted = scm_malloc(INIT_BUF_SIZE);
+  conv->unconverted = scm_capi_malloc(INIT_BUF_SIZE);
   if (conv->unconverted == NULL) goto err;
 
   conv->cnv_capacity = INIT_BUF_SIZE;
@@ -70,12 +70,12 @@ scm_charconv_new(const char *from, const char* to,
   return conv;
 
  err:
-  scm_free(conv->unconverted);
-  scm_free(conv->converted);
-  scm_free(conv->dst_encode);
-  scm_free(conv->src_encode);
+  scm_capi_free(conv->unconverted);
+  scm_capi_free(conv->converted);
+  scm_capi_free(conv->dst_encode);
+  scm_capi_free(conv->src_encode);
   if (conv->icd != (void *)-1) iconv_close(conv->icd);
-  scm_free(conv);
+  scm_capi_free(conv);
 
   return NULL;
 }
@@ -87,11 +87,11 @@ scm_charconv_end(ScmCharConv *conv)
 
   iconv_close(conv->icd);
 
-  scm_free(conv->src_encode);
-  scm_free(conv->dst_encode);
-  scm_free(conv->converted);
-  scm_free(conv->unconverted);
-  scm_free(conv);
+  scm_capi_free(conv->src_encode);
+  scm_capi_free(conv->dst_encode);
+  scm_capi_free(conv->converted);
+  scm_capi_free(conv->unconverted);
+  scm_capi_free(conv);
 }
 
 const char *
@@ -191,7 +191,7 @@ scm_charconv_expand_converted(ScmCharConv *conv)
   assert(conv != NULL);
 
   new_capacity = conv->cnv_capacity * 2;
-  new_buf = scm_realloc(conv->converted, new_capacity);
+  new_buf = scm_capi_realloc(conv->converted, new_capacity);
   if (new_buf == NULL) return -1;
 
   conv->converted = new_buf;

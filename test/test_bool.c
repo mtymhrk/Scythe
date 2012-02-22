@@ -3,8 +3,8 @@
 
 #include "object.h"
 #include "vm.h"
+#include "api.h"
 #include "miscobjects.h"
-#include "char.h"
 
 static ScmObj vm = SCM_OBJ_INIT;
 
@@ -26,7 +26,7 @@ test_scm_bool_new(void)
 {
   ScmObj bl = SCM_OBJ_INIT;
 
-  bl = scm_bool_new(SCM_MEM_ALLOC_HEAP, true);
+  bl = scm_bool_new(SCM_CAPI_MEM_HEAP, true);
 
   cut_assert(scm_obj_not_null_p(bl));
   cut_assert(scm_obj_type_p(SCM_OBJ(bl), &SCM_BOOL_TYPE_INFO));
@@ -37,7 +37,7 @@ test_scm_bool_value_true(void)
 {
   ScmObj bl = SCM_OBJ_INIT;
 
-  bl = scm_bool_new(SCM_MEM_ALLOC_HEAP,true);
+  bl = scm_bool_new(SCM_CAPI_MEM_HEAP,true);
 
   cut_assert_true(scm_bool_value(bl));
 }
@@ -47,35 +47,7 @@ test_scm_bool_value_false(void)
 {
   ScmObj bl = SCM_OBJ_INIT;
 
-  bl = scm_bool_new(SCM_MEM_ALLOC_HEAP,false);
+  bl = scm_bool_new(SCM_CAPI_MEM_HEAP,false);
 
   cut_assert_false(scm_bool_value(bl));
-}
-
-void
-test_scm_bool_is_bool_true(void)
-{
-  ScmObj bl = SCM_OBJ_INIT;
-
-  bl = scm_bool_new(SCM_MEM_ALLOC_HEAP,true);
-
-  cut_assert_true(scm_bool_is_bool(bl));
-}
-
-void
-test_scm_bool_is_bool_false(void)
-{
-  ScmObj bl = SCM_OBJ_INIT;
-
-  bl = scm_bool_new(SCM_MEM_ALLOC_HEAP,false);
-
-  cut_assert_true(scm_bool_is_bool(bl));
-}
-
-void
-test_scm_bool_is_bool_not_bool(void)
-{
-  ScmObj nil = scm_nil_instance();
-
-  cut_assert_false(scm_bool_is_bool(nil));
 }

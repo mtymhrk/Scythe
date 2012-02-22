@@ -1,7 +1,9 @@
-#include "procedure.h"
+
 #include "object.h"
 #include "reference.h"
 #include "vm.h"
+#include "api.h"
+#include "procedure.h"
 
 ScmTypeInfo SCM_SUBRUTINE_TYPE_INFO = {
   NULL,                         /* pp_func              */
@@ -15,7 +17,7 @@ ScmTypeInfo SCM_SUBRUTINE_TYPE_INFO = {
 void
 scm_subrutine_initialize(ScmObj subr, ScmSubrFunc func)
 {
-  SCM_STACK_PUSH(&subr);
+  SCM_STACK_FRAME_PUSH(&subr);
 
   scm_assert_obj_type(subr, &SCM_SUBRUTINE_TYPE_INFO);
   scm_assert(func != NULL);
@@ -24,27 +26,27 @@ scm_subrutine_initialize(ScmObj subr, ScmSubrFunc func)
 }
 
 ScmObj
-scm_subrutine_new(SCM_MEM_ALLOC_TYPE_T mtype, ScmSubrFunc func)
+scm_subrutine_new(SCM_CAPI_MEM_TYPE_T mtype, ScmSubrFunc func)
 {
   ScmObj subr = SCM_OBJ_INIT;
 
-  SCM_STACK_PUSH(&subr);
+  SCM_STACK_FRAME_PUSH(&subr);
 
   scm_assert(func != NULL);
 
-  subr = scm_mem_alloc(scm_vm_current_mm(), &SCM_SUBRUTINE_TYPE_INFO, mtype);
+  subr = scm_capi_mem_alloc(&SCM_SUBRUTINE_TYPE_INFO, mtype);
 
   scm_subrutine_initialize(subr, func);
 
   return subr;
 }
 
-void
+ScmObj
 scm_subrutine_call(ScmObj subr)
 {
   ScmObj ret = SCM_OBJ_INIT;
 
-  SCM_STACK_PUSH(&ret);
+  SCM_STACK_FRAME_PUSH(&ret);
 
   scm_assert_obj_type(subr, &SCM_SUBRUTINE_TYPE_INFO);
 
@@ -52,8 +54,7 @@ scm_subrutine_call(ScmObj subr)
   if (scm_obj_null_p(ret))
     ;                           /* TODO: error handling */
 
-  scm_vm_update_current_val_reg(ret);
-  scm_vm_return_to_caller(scm_vm_current_vm());
+  return ret;
 }
 
 void

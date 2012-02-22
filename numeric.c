@@ -2,10 +2,9 @@
 #include <limits.h>
 
 #include "object.h"
-#include "earray.h"
-#include "memory.h"
-#include "vm.h"
 #include "reference.h"
+#include "api.h"
+#include "earray.h"
 #include "numeric.h"
 
 /***************************************************************************/
@@ -13,11 +12,11 @@
 /***************************************************************************/
 
 ScmTypeInfo SCM_FIXNUM_TYPE_INFO = {
-  .pp_func = NULL,
-  .obj_size = 0,
-  .gc_ini_func = NULL,
-  .gc_fin_func = NULL,
-  .gc_accept_func = NULL,
+  .pp_func             = NULL,
+  .obj_size            = 0,
+  .gc_ini_func         = NULL,
+  .gc_fin_func         = NULL,
+  .gc_accept_func      = NULL,
   .gc_accept_func_weak = NULL,
 };
 
@@ -28,11 +27,11 @@ ScmTypeInfo SCM_FIXNUM_TYPE_INFO = {
 /***************************************************************************/
 
 ScmTypeInfo SCM_BIGNUM_TYPE_INFO = {
-  .pp_func = NULL,
-  .obj_size = sizeof(ScmBignum),
-  .gc_ini_func = scm_bignum_gc_initialize,
-  .gc_fin_func = scm_bignum_gc_finalize,
-  .gc_accept_func = NULL,
+  .pp_func             = NULL,
+  .obj_size            = sizeof(ScmBignum),
+  .gc_ini_func         = scm_bignum_gc_initialize,
+  .gc_fin_func         = scm_bignum_gc_finalize,
+  .gc_accept_func      = NULL,
   .gc_accept_func_weak = NULL,
 };
 

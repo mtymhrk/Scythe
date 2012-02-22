@@ -1,8 +1,9 @@
 #include <cutter.h>
 
 #include "object.h"
+#include "vm.h"
 #include "reference.h"
-#include "miscobjects.h"
+#include "api.h"
 #include "string.h"
 #include "symbol.h"
 
@@ -30,28 +31,14 @@ test_scm_symbol_new(void)
   SCM_STACK_FRAME_PUSH(&sym, &str);
 
   /* preprocess */
-  str = scm_string_new(SCM_MEM_ALLOC_HEAP,
+  str = scm_string_new(SCM_CAPI_MEM_HEAP,
                                 "foo", sizeof("foo") - 1, SCM_ENCODING_ASCII);
 
   /* action */
-  sym = scm_symbol_new(SCM_MEM_ALLOC_HEAP, str);
+  sym = scm_symbol_new(SCM_CAPI_MEM_HEAP, str);
 
   /* postcondition check */
   cut_assert_true(scm_obj_not_null_p(sym));
-}
-
-void
-test_scm_symbol_is_symbol__object_which_is_not_symbol_should_not_be_symbol(void)
-{
-  ScmObj nil = SCM_OBJ_INIT;
-
-  SCM_STACK_FRAME_PUSH(&nil);
-
-  /* preprocess */
-  nil = SCM_OBJ(scm_nil_instance());
-
-  /* action and postcondition check */
-  cut_assert_false(scm_symbol_is_symbol(nil));
 }
 
 void
@@ -62,9 +49,9 @@ test_scm_symbol_string__string_derived_from_a_symbol_should_be_equal_to_the_stri
   SCM_STACK_FRAME_PUSH(&sym, &expected, &actual);
 
   /* preprocess */
-  expected = scm_string_new(SCM_MEM_ALLOC_HEAP,
+  expected = scm_string_new(SCM_CAPI_MEM_HEAP,
                                 "baz", sizeof("baz") - 1, SCM_ENCODING_ASCII);
-  sym = scm_symbol_new(SCM_MEM_ALLOC_HEAP, expected);
+  sym = scm_symbol_new(SCM_CAPI_MEM_HEAP, expected);
 
   /* action */
   actual = scm_symbol_string(sym);
@@ -81,9 +68,9 @@ test_scm_symbol_string__string_derived_from_a_symbol_should_not_be_same_instance
   SCM_STACK_FRAME_PUSH(&sym, &expected, &actual);
 
   /* preprocess */
-  expected = scm_string_new(SCM_MEM_ALLOC_HEAP,
+  expected = scm_string_new(SCM_CAPI_MEM_HEAP,
                                 "baz", sizeof("baz") - 1, SCM_ENCODING_ASCII);
-  sym = scm_symbol_new(SCM_MEM_ALLOC_HEAP, expected);
+  sym = scm_symbol_new(SCM_CAPI_MEM_HEAP, expected);
 
   /* action */
   actual = scm_symbol_string(sym);

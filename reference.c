@@ -2,10 +2,10 @@
 #include <stdarg.h>
 #include <assert.h>
 
-#include "reference.h"
-#include "memory.h"
 #include "object.h"
+#include "reference.h"
 #include "vm.h"
+#include "api.h"
 
 scm_local_inline bool
 scm_ref_stack_block_full_p(ScmRefStackBlock *block)
@@ -20,7 +20,7 @@ scm_ref_stack_new_block(size_t sz)
 
   scm_assert((SIZE_MAX - sizeof(ScmRefStackBlock)) / sizeof(ScmRef) >= sz);
 
-  block = scm_malloc(sizeof(ScmRefStackBlock) + sizeof(ScmRef) * sz);
+  block = scm_capi_malloc(sizeof(ScmRefStackBlock) + sizeof(ScmRef) * sz);
   if (block == NULL)
     return NULL;
 
@@ -69,7 +69,7 @@ scm_ref_stack_decrease_block(ScmRefStack *stack)
     if (stack->current == block)
       stack->current = stack->tail;
 
-    scm_free(block);
+    scm_capi_free(block);
   }
 }
 
@@ -142,11 +142,11 @@ scm_ref_stack_new(size_t size)
 {
   ScmRefStack *stack;
 
-  stack = scm_malloc(sizeof(ScmRefStack));
+  stack = scm_capi_malloc(sizeof(ScmRefStack));
   if (stack == NULL) return NULL;
 
   if (scm_ref_stack_initialize(stack, size) == NULL) {
-    scm_free(stack);
+    scm_capi_free(stack);
     return NULL;
   }
 
@@ -160,7 +160,7 @@ scm_ref_stack_end(ScmRefStack *stack)
   scm_assert(stack != NULL);
 
   scm_ref_stack_finalize(stack);
-  scm_free(stack);
+  scm_capi_free(stack);
 }
 
 ScmRefStack *

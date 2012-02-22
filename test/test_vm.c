@@ -83,7 +83,7 @@ test_scm_vm_run__op_immval(void)
   /* preprocess */
   scm_vm_setup_system(vm);
 
-  iseq = scm_iseq_new(SCM_MEM_ALLOC_HEAP);
+  iseq = scm_iseq_new(SCM_CAPI_MEM_HEAP);
   sym = scm_capi_make_symbol_from_cstr("cons");
 
   code.immv1.op = SCM_OPCODE_IMMVAL;
@@ -120,7 +120,7 @@ test_scm_vm_run__call_cons(void)
   /* preprocess */
   scm_vm_setup_system(vm);
 
-  iseq = scm_iseq_new(SCM_MEM_ALLOC_HEAP);
+  iseq = scm_iseq_new(SCM_CAPI_MEM_HEAP);
   cons_sym = scm_capi_make_symbol_from_cstr("cons");
   car = scm_capi_make_symbol_from_cstr("foo");
   cdr = scm_capi_make_symbol_from_cstr("bar");

@@ -10,7 +10,7 @@ typedef struct ScmStringRec ScmString;
 #define SCM_STRING(obj) ((ScmString *)(obj))
 
 #include "object.h"
-#include "memory.h"
+#include "api.h"
 #include "encoding.h"
 
 extern ScmTypeInfo SCM_STRING_TYPE_INFO;
@@ -39,7 +39,7 @@ struct ScmStringRec {
 
 void scm_string_initialize(ScmObj str,
                            const void *src, size_t size, SCM_ENCODING_T enc);
-ScmObj scm_string_new(SCM_MEM_ALLOC_TYPE_T mtype,
+ScmObj scm_string_new(SCM_CAPI_MEM_TYPE_T mtype,
                             const void *src, size_t size, SCM_ENCODING_T enc);
 ScmObj scm_string_copy(ScmObj src);
 ScmObj scm_string_dup(ScmObj src);
@@ -57,7 +57,6 @@ ssize_t scm_string_match(ScmObj str, ScmObj pat);
 ssize_t scm_string_dump(ScmObj str, void *buf, size_t size);
 SCM_ENCODING_T scm_string_encoding(ScmObj str);
 void *scm_string_content(ScmObj str);
-bool scm_string_is_string(ScmObj obj);
 void scm_string_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_string_gc_finalize(ScmObj obj);
 size_t scm_string_hash_value(ScmObj str);

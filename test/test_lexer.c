@@ -1,28 +1,59 @@
 #include <cutter.h>
 
+#include "object.h"
+#include "vm.h"
+#include "reference.h"
+#include "api.h"
 #include "parser.h"
 
-ScmIBuffer *
-new_ibuffer_from_string(const char *str)
+static ScmObj vm = SCM_OBJ_INIT;
+static ScmObj port = SCM_OBJ_INIT;
+
+ScmObj
+new_port(const char *str)
 {
-  return scm_ibuffer_new(scm_port_open_input_string(str, strlen(str)));
+  port = scm_capi_open_input_string_port_from_cstr(str);
+
+  return port;
+}
+
+void
+check_string(const char *expected, ScmToken *token)
+{
+  cut_assert_equal_size(strlen(expected), token->size);
+  cut_assert(memcmp("(", SCM_TOKEN_STRING(token), strlen(expected)) == 0);
+}
+
+void
+cut_setup(void)
+{
+  vm = scm_vm_new();
+  port = SCM_OBJ_NULL;
+  scm_mem_register_extra_rfrn(scm_vm_current_mm(), SCM_REF_MAKE(port));
+}
+
+void
+cut_teardown(void)
+{
+  port = SCM_OBJ_NULL;
+  scm_vm_end(vm);
+  vm = SCM_OBJ_NULL;
 }
 
 void
 test_token_new(void)
 {
-  ScmToken *token = scm_token_new(SCM_TOKEN_TYPE_LPAREN, "(");
+  ScmToken *token = scm_token_new(SCM_TOKEN_TYPE_LPAREN, "(", sizeof("(") - 1);
 
   cut_assert_not_null(token);
   cut_assert_equal_int(SCM_TOKEN_TYPE_LPAREN, SCM_TOKEN_TYPE(token));
-  cut_assert_equal_string("(", (char *)SCM_TOKEN_STRING(token));
+  check_string("(", token);
 }
 
 void
 test_lexer_new(void)
 {
-  ScmIBuffer *buffer = new_ibuffer_from_string(" ( ");
-  ScmLexer *lexer = scm_lexer_new(buffer);
+  ScmLexer *lexer = scm_lexer_new();
 
   cut_assert_not_null(lexer);
 }
@@ -30,72 +61,87 @@ test_lexer_new(void)
 void
 test_lexer_tokenize_left_parenthesis(void)
 {
-  ScmIBuffer *buffer = new_ibuffer_from_string(" ( ");
-  ScmLexer *lexer = scm_lexer_new(buffer);
-  ScmToken *token = scm_lexer_head_token(lexer);
+  ScmLexer *lexer;
+  ScmToken *token;
+
+  new_port(" ( ");
+
+  lexer = scm_lexer_new();
+  token = scm_lexer_head_token(lexer, port);
 
   cut_assert_not_null(token);
   cut_assert_equal_int(SCM_TOKEN_TYPE_LPAREN, SCM_TOKEN_TYPE(token));
-  cut_assert_equal_string("(", (char *)SCM_TOKEN_STRING(token));
-  
+  check_string("(", token);
+
   scm_lexer_shift_token(lexer);
 
-  token = scm_lexer_head_token(lexer);
+  token = scm_lexer_head_token(lexer, port);
   cut_assert_not_null(token);
   cut_assert_equal_int(SCM_TOKEN_TYPE_EOF, SCM_TOKEN_TYPE(token));
-}  
+}
 
 void
 test_lexer_tokenize_right_parenthesis(void)
 {
-  ScmIBuffer *buffer = new_ibuffer_from_string(" ) ");
-  ScmLexer *lexer = scm_lexer_new(buffer);
-  ScmToken *token = scm_lexer_head_token(lexer);
+  ScmLexer *lexer;
+  ScmToken *token;
+
+  new_port(" ) ");
+
+  lexer = scm_lexer_new();
+  token = scm_lexer_head_token(lexer, port);
 
   cut_assert_not_null(token);
   cut_assert_equal_int(SCM_TOKEN_TYPE_RPAREN, SCM_TOKEN_TYPE(token));
-  cut_assert_equal_string(")", (char *)SCM_TOKEN_STRING(token));
-  
+  check_string(")", token);
+
   scm_lexer_shift_token(lexer);
 
-  token = scm_lexer_head_token(lexer);
+  token = scm_lexer_head_token(lexer, port);
   cut_assert_not_null(token);
   cut_assert_equal_int(SCM_TOKEN_TYPE_EOF, SCM_TOKEN_TYPE(token));
-}  
+}
 
 void
 test_lexer_tokenize_dot(void)
 {
-  ScmIBuffer *buffer = new_ibuffer_from_string(" . ");
-  ScmLexer *lexer = scm_lexer_new(buffer);
-  ScmToken *token = scm_lexer_head_token(lexer);
+  ScmLexer *lexer;
+  ScmToken *token;
+
+  new_port(" . ");
+
+  lexer = scm_lexer_new();
+  token = scm_lexer_head_token(lexer, port);
 
   cut_assert_not_null(token);
   cut_assert_equal_int(SCM_TOKEN_TYPE_DOT, SCM_TOKEN_TYPE(token));
-  cut_assert_equal_string(".", (char *)SCM_TOKEN_STRING(token));
-  
+  check_string(".", token);
 
   scm_lexer_shift_token(lexer);
 
-  token = scm_lexer_head_token(lexer);
+  token = scm_lexer_head_token(lexer, port);
   cut_assert_not_null(token);
   cut_assert_equal_int(SCM_TOKEN_TYPE_EOF, SCM_TOKEN_TYPE(token));
-}  
+}
 
 void
 test_lexer_tokenize_quote(void)
 {
-  ScmIBuffer *buffer = new_ibuffer_from_string(" ' ");
-  ScmLexer *lexer = scm_lexer_new(buffer);
-  ScmToken *token = scm_lexer_head_token(lexer);
+  ScmLexer *lexer;
+  ScmToken *token;
+
+  new_port(" ' ");
+
+  lexer = scm_lexer_new();
+  token = scm_lexer_head_token(lexer, port);
 
   cut_assert_not_null(token);
   cut_assert_equal_int(SCM_TOKEN_TYPE_QUOTE, SCM_TOKEN_TYPE(token));
-  cut_assert_equal_string("'", (char *)SCM_TOKEN_STRING(token));
+  check_string("'", token);
 
   scm_lexer_shift_token(lexer);
 
-  token = scm_lexer_head_token(lexer);
+  token = scm_lexer_head_token(lexer, port);
   cut_assert_not_null(token);
   cut_assert_equal_int(SCM_TOKEN_TYPE_EOF, SCM_TOKEN_TYPE(token));
 }

@@ -22,11 +22,10 @@ struct ScmVectorRec {
 
 void scm_vector_initialize(ScmObj vector, size_t length, ScmObj fill);
 void scm_vector_finalize(ScmObj vector);
-ScmObj scm_vector_new(SCM_MEM_ALLOC_TYPE_T mtype, size_t length, ScmObj fill);
+ScmObj scm_vector_new(SCM_CAPI_MEM_TYPE_T mtype, size_t length, ScmObj fill);
 size_t scm_vector_length(ScmObj vector);
 ScmObj scm_vector_ref(ScmObj vector, size_t index);
 ScmObj scm_vector_set(ScmObj vector, size_t index, ScmObj obj);
-bool scm_vector_is_vector(ScmObj obj);
 void scm_vector_fill(ScmObj vector, ScmObj fill);
 void scm_vector_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_vector_gc_finalize(ScmObj obj);

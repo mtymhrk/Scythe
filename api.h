@@ -7,6 +7,46 @@
 #include "object.h"
 #include "encoding.h"
 
+
+/*******************************************************************/
+/*  Memory                                                         */
+/*******************************************************************/
+
+inline void *
+scm_capi_malloc(size_t size)
+{
+  return malloc(size);
+}
+
+inline void *
+scm_capi_free(void *ptr)
+{
+  free(ptr);
+  return NULL;
+}
+
+inline void *
+scm_capi_realloc(void *ptr, size_t size)
+{
+  return realloc(ptr, size);
+}
+
+typedef enum {
+  SCM_CAPI_MEM_HEAP,
+  SCM_CAPI_MEM_ROOT,
+} SCM_CAPI_MEM_TYPE_T;
+
+ScmObj scm_capi_mem_alloc_heap(ScmTypeInfo *type);
+ScmObj scm_capi_mem_alloc_root(ScmTypeInfo *type);
+ScmObj scm_capi_mem_alloc(ScmTypeInfo *otype, SCM_CAPI_MEM_TYPE_T mtype);
+ScmObj scm_capi_mem_free_root(ScmObj obj);
+ScmRef scm_capi_mem_register_extra_rfrn(ScmRef ref);
+
+void scm_capi_gc_start(void);
+void scm_capi_gc_enable(void);
+void scm_capi_gc_disable(void);
+
+
 /*******************************************************************/
 /*  Equivalence                                                    */
 /*******************************************************************/
@@ -106,6 +146,7 @@ ScmObj scm_api_symbol_to_string(ScmObj sym);
 ScmObj scm_api_string_to_symbol(ScmObj str);
 bool scm_capi_symbol_p(ScmObj obj);
 ssize_t scm_capi_symbol_to_cstr(ScmObj sym, char *cstr, size_t size);
+size_t scm_capi_symbol_hash_value(ScmObj sym);
 
 
 /*******************************************************************/
@@ -159,6 +200,8 @@ ScmObj scm_capi_get_func_arg(int nth);
 void scm_capi_fatal(const char *msg);
 bool scm_capi_fatal_p(void);
 bool scm_capi_error_p(void);
+
+
 
 
 #endif /* INCLUDE_API_H__ */

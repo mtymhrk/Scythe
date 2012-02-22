@@ -1,8 +1,9 @@
+#include <unistd.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <limits.h>
+#include <stdio.h>
 #include <assert.h>
-#include <unistd.h>
 
 #include "vm.h"
 #include "memory.h"
@@ -88,29 +89,29 @@ scm_vm_setup_root(ScmObj vm)
 {
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
-  SCM_SLOT_SETQ(ScmVM, vm, symtbl, scm_symtbl_new(SCM_MEM_ALLOC_ROOT));
+  SCM_SLOT_SETQ(ScmVM, vm, symtbl, scm_symtbl_new(SCM_CAPI_MEM_ROOT));
   if (scm_obj_null_p(SCM_VM(vm)->symtbl))
     ;                           /* TODO: error handling */
 
-  SCM_SLOT_SETQ(ScmVM,vm, gloctbl, scm_gloctbl_new(SCM_MEM_ALLOC_ROOT));
+  SCM_SLOT_SETQ(ScmVM,vm, gloctbl, scm_gloctbl_new(SCM_CAPI_MEM_ROOT));
   if (scm_obj_null_p(SCM_VM(vm)->gloctbl))
     ;                           /* TODO: error handling */
 
-  SCM_SLOT_SETQ(ScmVM, vm, cnsts.nil, scm_nil_new(SCM_MEM_ALLOC_ROOT));
+  SCM_SLOT_SETQ(ScmVM, vm, cnsts.nil, scm_nil_new(SCM_CAPI_MEM_ROOT));
   if (scm_obj_null_p(SCM_VM(vm)->cnsts.nil))
     ;                           /* TODO: error handling */
 
-  SCM_SLOT_SETQ(ScmVM, vm, cnsts.eof, scm_eof_new(SCM_MEM_ALLOC_ROOT));
+  SCM_SLOT_SETQ(ScmVM, vm, cnsts.eof, scm_eof_new(SCM_CAPI_MEM_ROOT));
   if (scm_obj_null_p(SCM_VM(vm)->cnsts.eof))
     ;                           /* TODO: error handling */
 
   SCM_SLOT_SETQ(ScmVM, vm, cnsts.b_true,
-                scm_bool_new(SCM_MEM_ALLOC_ROOT, true));
+                scm_bool_new(SCM_CAPI_MEM_ROOT, true));
   if (scm_obj_null_p(SCM_VM(vm)->cnsts.b_true))
     ;                           /* TODO: error handling */
 
   SCM_SLOT_SETQ(ScmVM, vm, cnsts.b_false,
-                scm_bool_new(SCM_MEM_ALLOC_ROOT, false));
+                scm_bool_new(SCM_CAPI_MEM_ROOT, false));
   if (scm_obj_null_p(SCM_VM(vm)->cnsts.b_false))
     ;                           /* TODO: error handling */
 
@@ -218,7 +219,10 @@ scm_vm_frame_argv(ScmObj vm, int nth)
 scm_local_func void
 scm_vm_op_call(ScmObj vm)
 {
+  ScmObj val = SCM_OBJ_INIT;
   int argc;
+
+  SCM_STACK_FRAME_PUSH(&val);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
@@ -231,7 +235,11 @@ scm_vm_op_call(ScmObj vm)
     SCM_SLOT_SETQ(ScmVM, vm, reg.fp[-(argc + 3)], SCM_VM(vm)->reg.iseq);
     SCM_VM(vm)->reg.fp[-(argc + 2)] = (scm_vm_stack_val_t)SCM_VM(vm)->reg.ip;
 
-    scm_subrutine_call(SCM_VM(vm)->reg.val);
+    val = scm_subrutine_call(SCM_VM(vm)->reg.val);
+    if (scm_obj_not_null_p(val))
+      SCM_SLOT_SETQ(ScmVM, vm, reg.val, val);
+
+    scm_vm_return_to_caller(vm);
   }
   /* TODO:  val レジスタがクロージャのケースの実装 */
   else
@@ -429,11 +437,11 @@ scm_vm_initialize(ScmObj vm)
   SCM_VM(vm)->ref_stack = scm_ref_stack_new(SCM_VM_REF_STACK_INIT_SIZE);
   if (SCM_VM(vm)->ref_stack == NULL) goto err;
 
-  SCM_VM(vm)->stack = scm_malloc(sizeof(scm_vm_stack_val_t)
+  SCM_VM(vm)->stack = scm_capi_malloc(sizeof(scm_vm_stack_val_t)
                                  * SCM_VM_STACK_INIT_SIZE);
   if (SCM_VM(vm)->stack == NULL) goto err;
 
-  SCM_VM(vm)->stack_objmap = scm_malloc(sizeof(unsigned int)
+  SCM_VM(vm)->stack_objmap = scm_capi_malloc(sizeof(unsigned int)
                                        * SCM_VM_STACK_OBJMAP_SIZE);
   if (SCM_VM(vm)->stack_objmap == NULL) goto err;
 
@@ -446,28 +454,29 @@ scm_vm_initialize(ScmObj vm)
   /* TODO: undefined オブジェクトみたいなものを初期値にする */
   SCM_VM(vm)->reg.val = SCM_OBJ_NULL;
 
-  SCM_SLOT_SETQ(ScmVM, vm, reg.iseq, scm_iseq_new(SCM_MEM_ALLOC_HEAP));
+  /* XXX: ? */
+  SCM_SLOT_SETQ(ScmVM, vm, reg.iseq, scm_iseq_new(SCM_CAPI_MEM_HEAP));
   if(scm_obj_null_p(SCM_VM(vm)->reg.iseq)) goto err;
 
   SCM_VM(vm)->err.type = SCM_VM_ERR_NONE;
-  SCM_VM(vm)->err.message = scm_malloc(SCM_VM_ERR_MSG_SIZE);
+  SCM_VM(vm)->err.message = scm_capi_malloc(SCM_VM_ERR_MSG_SIZE);
   if (SCM_VM(vm)->err.message == NULL) goto err;
 
   return;
 
  err:
   if (SCM_VM(vm)->err.message == NULL)
-    scm_free(SCM_VM(vm)->err.message);
+    scm_capi_free(SCM_VM(vm)->err.message);
 
   if (scm_obj_null_p(SCM_VM(vm)->reg.iseq))
     SCM_SLOT_SETQ(ScmVM, vm, reg.iseq, SCM_OBJ_NULL);
 
   if (SCM_VM(vm)->stack != NULL) {
-    SCM_VM(vm)->stack = scm_free(SCM_VM(vm)->stack);
+    SCM_VM(vm)->stack = scm_capi_free(SCM_VM(vm)->stack);
     SCM_VM(vm)->stack_size = 0;
   }
   if (SCM_VM(vm)->stack_objmap != NULL) {
-    SCM_VM(vm)->stack_objmap = scm_free(SCM_VM(vm)->stack_objmap);
+    SCM_VM(vm)->stack_objmap = scm_capi_free(SCM_VM(vm)->stack_objmap);
   }
   if (SCM_VM(vm)->ref_stack != NULL) {
     scm_ref_stack_end(SCM_VM(vm)->ref_stack);
@@ -484,9 +493,9 @@ scm_vm_finalize(ScmObj vm)
 {
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
-  SCM_VM(vm)->stack = scm_free(SCM_VM(vm)->stack);
+  SCM_VM(vm)->stack = scm_capi_free(SCM_VM(vm)->stack);
   SCM_VM(vm)->stack_size = 0;
-  SCM_VM(vm)->stack_objmap = scm_free(SCM_VM(vm)->stack_objmap);
+  SCM_VM(vm)->stack_objmap = scm_capi_free(SCM_VM(vm)->stack_objmap);
   scm_ref_stack_end(SCM_VM(vm)->ref_stack);
   SCM_VM(vm)->reg.sp = NULL;
   SCM_VM(vm)->reg.fp = NULL;
@@ -494,7 +503,7 @@ scm_vm_finalize(ScmObj vm)
   SCM_SLOT_SETQ(ScmVM, vm, reg.iseq, SCM_OBJ_NULL);
   SCM_SLOT_SETQ(ScmVM, vm, reg.val, SCM_OBJ_NULL);
   SCM_VM(vm)->ref_stack = NULL;
-  SCM_VM(vm)->err.message = scm_free(SCM_VM(vm)->err.message);
+  SCM_VM(vm)->err.message = scm_capi_free(SCM_VM(vm)->err.message);
 }
 
 ScmObj
@@ -666,6 +675,20 @@ scm_vm_fatal(ScmObj vm, const char *msg)
     if (len > SCM_VM_ERR_MSG_SIZE - 1) len = SCM_VM_ERR_MSG_SIZE - 1;
     memcpy(SCM_VM(vm)->err.message, msg, len);
     SCM_VM(vm)->err.message[len] = '\0';
+  }
+}
+
+void
+scm_vm_fatal_fmt(ScmObj vm, const char *msgfmt, va_list ap)
+{
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  SCM_VM(vm)->err.type = SCM_VM_ERR_FATAL;
+  if (msgfmt == NULL) {
+    SCM_VM(vm)->err.message[0] = '\0';
+  }
+  else {
+    vsnprintf(SCM_VM(vm)->err.message, SCM_VM_ERR_MSG_SIZE, msgfmt, ap);
   }
 }
 

@@ -20,6 +20,77 @@
 
 
 /*******************************************************************/
+/*  Memory                                                         */
+/*******************************************************************/
+
+extern inline ScmObj
+scm_capi_mem_alloc_heap(ScmTypeInfo *type)
+{
+  if (type == NULL)
+    return SCM_OBJ_NULL;         /* provisional implemntation */
+
+  return scm_mem_alloc_heap(scm_vm_current_mm(), type);
+}
+
+extern inline ScmObj
+scm_capi_mem_alloc_root(ScmTypeInfo *type)
+{
+  if (type == NULL)
+    return SCM_OBJ_NULL;         /* provisional implemntation */
+
+  return scm_mem_alloc_root(scm_vm_current_mm(), type);
+}
+
+extern inline ScmObj
+scm_capi_mem_alloc(ScmTypeInfo *otype, SCM_CAPI_MEM_TYPE_T mtype)
+{
+  switch(mtype) {
+  case SCM_CAPI_MEM_HEAP:
+    return scm_capi_mem_alloc_heap(otype);
+    break;
+  case SCM_CAPI_MEM_ROOT:
+    return scm_capi_mem_alloc_root(otype);
+    break;
+  default:
+    return SCM_OBJ_NULL;          /* provisional implemntation */
+    break;
+  };
+}
+
+extern inline ScmObj
+scm_capi_mem_free_root(ScmObj obj)
+{
+  if (obj == SCM_OBJ_NULL) return SCM_OBJ_NULL;
+  return scm_mem_free_root(scm_vm_current_mm(), obj);
+}
+
+extern inline ScmRef
+scm_capi_mem_register_extra_rfrn(ScmRef ref)
+{
+  if (ref == SCM_REF_NULL) return ref;
+  return scm_mem_register_extra_rfrn(scm_vm_current_mm(), ref);
+}
+
+extern inline void
+scm_capi_gc_start(void)
+{
+  scm_mem_gc_start(scm_vm_current_mm());
+}
+
+extern inline void
+scm_capi_gc_enable(void)
+{
+  scm_mem_enable_gc(scm_vm_current_mm());
+}
+
+extern inline void
+scm_capi_gc_disable(void)
+{
+  scm_mem_disable_gc(scm_vm_current_mm());
+}
+
+
+/*******************************************************************/
 /*  Equivalence                                                    */
 /*******************************************************************/
 
@@ -469,6 +540,15 @@ scm_capi_symbol_to_cstr(ScmObj sym, char *cstr, size_t size)
                                  cstr, size);
 }
 
+extern inline size_t
+scm_capi_symbol_hash_value(ScmObj sym)
+{
+  if (!scm_capi_symbol_p(sym))
+    return SIZE_MAX;                  /* provisional implementation */
+
+  return scm_symbol_hash_value(sym);
+}
+
 /*******************************************************************/
 /*  Port                                                           */
 /*******************************************************************/
@@ -741,3 +821,5 @@ scm_capi_error_p(void)
 {
   return scm_vm_error_p(scm_vm_current_vm());
 }
+
+

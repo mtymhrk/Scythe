@@ -119,6 +119,7 @@ ScmObj scm_vm_refer_local_var(ScmObj vm, int nth);
 void scm_vm_return_to_caller(ScmObj vm);
 
 void scm_vm_fatal(ScmObj vm, const char *msg);
+void scm_vm_fatal_fmt(ScmObj vm, const char *msgfmt, va_list ap);
 bool scm_vm_fatal_p(ScmObj vm);
 bool scm_vm_error_p(ScmObj vm);
 
@@ -155,12 +156,6 @@ inline ScmObj
 scm_vm_current_gloctbl(void)
 {
   return SCM_VM(scm_vm__current_vm)->gloctbl;
-}
-
-inline void
-scm_vm_update_current_val_reg(ScmObj val)
-{
-  SCM_SLOT_SETQ(ScmVM, scm_vm__current_vm, reg.val, val);
 }
 
 inline ScmObj

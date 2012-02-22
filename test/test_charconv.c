@@ -6,7 +6,7 @@ void
 test_charconv_new(void)
 {
   ScmCharConv *conv = scm_charconv_new("EUC-JP", "UTF-8",
-                                             SCM_CHARCONV_OMIT);
+                                       SCM_CHARCONV_OMIT);
 
   cut_assert_not_null(conv);
   cut_assert_equal_string("EUC-JP", scm_charconv_src_encoding(conv));
@@ -24,7 +24,7 @@ test_convert_eucjp_to_utf8_ascii(void)
   char output[sizeof(input)];
   ssize_t len, ret;
   ScmCharConv *conv = scm_charconv_new("EUC-JP", "UTF-8",
-                                             SCM_CHARCONV_OMIT);
+                                       SCM_CHARCONV_OMIT);
 
   len = scm_charconv_convert(conv,
                              input, sizeof(input) - 1,

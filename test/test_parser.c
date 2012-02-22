@@ -1,14 +1,10 @@
 #include <cutter.h>
 
-#include "parser.h"
-#include "port.h"
 #include "object.h"
-#include "reference.h"
 #include "vm.h"
+#include "reference.h"
 #include "api.h"
-#include "encoding.h"
-#include "pair.h"
-#include "vector.h"
+#include "parser.h"
 
 static ScmParser *parser;
 static ScmObj vm = SCM_OBJ_INIT;

@@ -1252,25 +1252,3 @@ scm_mem_gc_start(ScmMem *mem)
   else if (nr_free > 1)
     scm_mem_release_redundancy_heap_blocks(mem, 1);
 }
-
-
-
-
-
-void
-scm_mem_enable_current_mem_gc(void)
-{
-  scm_mem_enable_gc(scm_vm_current_mm());
-}
-
-void
-scm_mem_disable_current_mem_gc(void)
-{
-  scm_mem_disable_gc(scm_vm_current_mm());
-}
-
-bool
-scm_mem_current_mem_gc_enabled_p(void)
-{
-  return scm_mem_gc_enabled_p(scm_vm_current_mm());
-}

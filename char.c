@@ -4,19 +4,19 @@
 #include <assert.h>
 
 #include "object.h"
-#include "memory.h"
-#include "vm.h"
+#include "reference.h"
+#include "api.h"
 #include "encoding.h"
 #include "char.h"
 
 
 ScmTypeInfo SCM_CHAR_TYPE_INFO = {
-  NULL,                       /* pp_func              */
-  sizeof(ScmChar),            /* obj_size             */
-  NULL,                       /* gc_ini_func          */
-  NULL,                       /* gc_fin_func          */
-  NULL,                       /* gc_accept_func       */
-  NULL,                       /* gc_accpet_func_weak  */
+  .pp_func             = NULL,
+  .obj_size            = sizeof(ScmChar),
+  .gc_ini_func         = NULL,
+  .gc_fin_func         = NULL,
+  .gc_accept_func      = NULL,
+  .gc_accept_func_weak = NULL,
 };
 
 
@@ -37,8 +37,8 @@ scm_char_finalize(ScmObj chr)   /* GC OK */
 }
 
 ScmObj
-scm_char_new(SCM_MEM_ALLOC_TYPE_T mtype,
-                   scm_char_t value, SCM_ENCODING_T enc) /* GC OK */
+scm_char_new(SCM_CAPI_MEM_TYPE_T mtype,
+             scm_char_t value, SCM_ENCODING_T enc) /* GC OK */
 {
   ScmObj chr;
 
@@ -46,7 +46,7 @@ scm_char_new(SCM_MEM_ALLOC_TYPE_T mtype,
 
   scm_assert(/* 0 <= enc && */ enc < SMC_ENCODING_NR_ENC);
 
-  chr = scm_mem_alloc(scm_vm_current_mm(), &SCM_CHAR_TYPE_INFO, mtype);
+  chr = scm_capi_mem_alloc(&SCM_CHAR_TYPE_INFO, mtype);
   if (scm_obj_null_p(chr)) return SCM_OBJ_NULL;
 
   scm_char_initialize(chr, value, enc);
@@ -55,13 +55,13 @@ scm_char_new(SCM_MEM_ALLOC_TYPE_T mtype,
 }
 
 ScmObj
-scm_char_new_newline(SCM_MEM_ALLOC_TYPE_T mtype, SCM_ENCODING_T enc) /* GC OK */
+scm_char_new_newline(SCM_CAPI_MEM_TYPE_T  mtype, SCM_ENCODING_T enc) /* GC OK */
 {
   return scm_char_new(mtype, SCM_ENCODING_CONST_LF_CHAR(enc), enc);
 }
 
 ScmObj
-scm_char_new_space(SCM_MEM_ALLOC_TYPE_T mtype, SCM_ENCODING_T enc) /* GC OK */
+scm_char_new_space(SCM_CAPI_MEM_TYPE_T mtype, SCM_ENCODING_T enc) /* GC OK */
 {
   return scm_char_new(mtype, SCM_ENCODING_CONST_SPACE_CHAR(enc), enc);
 }
@@ -80,11 +80,4 @@ scm_char_encoding(ScmObj chr)   /* GC OK */
   scm_assert_obj_type(chr, &SCM_CHAR_TYPE_INFO);
 
   return SCM_CHAR_ENC(chr);
-}
-
-bool
-scm_char_is_char(ScmObj obj)    /* GC OK */
-{
-  scm_assert(scm_obj_not_null_p(obj));
-  return scm_obj_type_p(obj, &SCM_CHAR_TYPE_INFO);
 }

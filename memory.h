@@ -239,28 +239,4 @@ ScmObj scm_mem_alloc(ScmMem *mem, ScmTypeInfo *type,
                      SCM_MEM_ALLOC_TYPE_T alloc);
 void scm_mem_gc_start(ScmMem *mem);
 
-void scm_mem_enable_current_mem_gc(void);
-void scm_mem_disable_current_mem_gc(void);
-bool scm_mem_current_mem_gc_enabled_p(void);
-
-
-inline void *
-scm_malloc(size_t size)
-{
-  return malloc(size);
-}
-
-inline void *
-scm_free(void *ptr)
-{
-  free(ptr);
-  return NULL;
-}
-
-inline void *
-scm_realloc(void *ptr, size_t size)
-{
-  return realloc(ptr, size);
-}
-
 #endif /* INCLUDED_MEMORY_H__ */
