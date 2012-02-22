@@ -454,10 +454,6 @@ scm_vm_initialize(ScmObj vm)
   /* TODO: undefined オブジェクトみたいなものを初期値にする */
   SCM_VM(vm)->reg.val = SCM_OBJ_NULL;
 
-  /* XXX: ? */
-  SCM_SLOT_SETQ(ScmVM, vm, reg.iseq, scm_iseq_new(SCM_CAPI_MEM_HEAP));
-  if(scm_obj_null_p(SCM_VM(vm)->reg.iseq)) goto err;
-
   SCM_VM(vm)->err.type = SCM_VM_ERR_NONE;
   SCM_VM(vm)->err.message = scm_capi_malloc(SCM_VM_ERR_MSG_SIZE);
   if (SCM_VM(vm)->err.message == NULL) goto err;
