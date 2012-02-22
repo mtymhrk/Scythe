@@ -432,8 +432,6 @@ scm_vm_initialize(ScmObj vm)
 {
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
-  scm_obj_init(SCM_OBJ(vm), &SCM_VM_TYPE_INFO);
-
   SCM_VM(vm)->ref_stack = scm_ref_stack_new(SCM_VM_REF_STACK_INIT_SIZE);
   if (SCM_VM(vm)->ref_stack == NULL) goto err;
 

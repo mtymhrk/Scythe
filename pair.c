@@ -23,8 +23,6 @@ scm_pair_initialize(ScmObj pair, ScmObj car, ScmObj cdr) /* GC OK */
   scm_assert(scm_obj_not_null_p(car));
   scm_assert(scm_obj_not_null_p(cdr));
 
-  scm_obj_init(SCM_OBJ(pair), &SCM_PAIR_TYPE_INFO);
-
   SCM_SLOT_SETQ(ScmPair, pair, car, car);
   SCM_SLOT_SETQ(ScmPair, pair, cdr, cdr);
 }

@@ -30,8 +30,6 @@ scm_symbol_initialize(ScmObj sym, ScmObj str) /* GC OK */
   scm_assert_obj_type(sym, &SCM_SYMBOL_TYPE_INFO);
   scm_assert_obj_type(str, &SCM_STRING_TYPE_INFO);
 
-  scm_obj_init(sym, &SCM_SYMBOL_TYPE_INFO);
-
   SCM_SLOT_SETQ(ScmSymbol, sym, str, scm_string_dup(str));
 }
 
