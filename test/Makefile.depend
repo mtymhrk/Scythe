@@ -1,5 +1,5 @@
-memory.o: ../memory.c ../basichash.h ../vm.h ../object.h ../memory.h \
- ../impl_utils.h ../reference.h ../instractions.h
+memory.o: ../memory.c ../basichash.h ../object.h ../api.h ../reference.h \
+ ../impl_utils.h ../encoding.h ../memory.h
 object.o: ../object.c ../object.h ../numeric.h ../earray.h \
  ../impl_utils.h
 pair.o: ../pair.c ../object.h ../reference.h ../impl_utils.h ../api.h \

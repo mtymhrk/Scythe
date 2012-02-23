@@ -6,10 +6,10 @@
 #include <assert.h>
 
 #include "basichash.h"
-#include "vm.h"
-#include "memory.h"
 #include "object.h"
+#include "api.h"
 #include "impl_utils.h"
+#include "memory.h"
 
 /****************************************************************************/
 /* Forward Object                                                           */
@@ -138,7 +138,7 @@ scm_mem_alloc_size_in_root(ScmTypeInfo *type)
 scm_local_func ScmMemHeapBlock *
 scm_mem_heap_new_block(size_t sz)
 {
-  ScmMemHeapBlock *block = malloc(sizeof(ScmMemHeapBlock) + (sz));
+  ScmMemHeapBlock *block = scm_capi_malloc(sizeof(ScmMemHeapBlock) + (sz));
   if (block != NULL) {
     uint8_t *p;
     block->next = NULL;
@@ -154,7 +154,7 @@ scm_mem_heap_new_block(size_t sz)
 scm_local_inline void *
 scm_mem_heap_delete_block(ScmMemHeapBlock *block)
 {
-  free(block);
+  scm_capi_free(block);
   return NULL;
 }
 
@@ -338,7 +338,7 @@ scm_local_func ScmMemHeap *
 scm_mem_heap_delete_heap(ScmMemHeap *heap)
 {
   scm_mem_heap_release_blocks(heap, 0);
-  free(heap);
+  scm_capi_free(heap);
   return heap;
 }
 
@@ -348,7 +348,7 @@ scm_mem_heap_new_heap(int nr_blk, size_t sz)
   ScmMemHeap *heap;
   int i;
 
-  heap = malloc(sizeof(*heap));
+  heap = scm_capi_malloc(sizeof(*heap));
   if (heap == NULL) return NULL;
 
   heap->head = NULL;
@@ -492,7 +492,7 @@ scm_mem_root_block_new(size_t sz)
 {
   ScmMemRootBlock *block;
 
-  block = malloc(sz);
+  block = scm_capi_malloc(sz);
   if (block == NULL) return NULL;
 
   uint8_t shift = scm_mem_root_block_shift_byte(block);
@@ -507,7 +507,7 @@ scm_mem_root_block_new(size_t sz)
 scm_local_inline void
 scm_mem_root_block_free(ScmMemRootBlock *block)
 {
-  free(block);
+  scm_capi_free(block);
 }
 
 scm_local_inline bool
@@ -600,8 +600,8 @@ scm_mem_expand_heap(ScmMem *mem, int inc_block)
   return i;
 
  err:
-  if (to_block != NULL) free(to_block);
-  if (from_block != NULL) free(from_block);
+  if (to_block != NULL) scm_capi_free(to_block);
+  if (from_block != NULL) scm_capi_free(from_block);
   return i;
 }
 
@@ -1084,7 +1084,7 @@ scm_mem_initialize(ScmMem *mem)
   mem->from_heap = scm_mem_heap_new_heap(1, SCM_MEM_HEAP_INIT_BLOCK_SIZE);
   if (mem->from_heap == NULL) goto err;
 
-  mem->extra_rfrn = malloc(sizeof(ScmRef) * SCM_MEM_EXTRA_RFRN_SIZE);
+  mem->extra_rfrn = scm_capi_malloc(sizeof(ScmRef) * SCM_MEM_EXTRA_RFRN_SIZE);
   if (mem->extra_rfrn == NULL) goto err;
   mem->nr_extra = 0;
 
@@ -1095,7 +1095,7 @@ scm_mem_initialize(ScmMem *mem)
   if (mem->from_obj_tbl != NULL) scm_basic_hash_end(mem->from_obj_tbl);
   if (mem->to_heap != NULL) mem->to_heap = scm_mem_heap_delete_heap(mem->to_heap);
   if (mem->from_heap != NULL) mem->from_heap = scm_mem_heap_delete_heap(mem->from_heap);
-  if (mem->extra_rfrn != NULL) free(mem->extra_rfrn);
+  if (mem->extra_rfrn != NULL) scm_capi_free(mem->extra_rfrn);
 
   return NULL;
 }
@@ -1112,7 +1112,7 @@ scm_mem_finalize(ScmMem *mem)
   if (mem->from_obj_tbl) scm_basic_hash_end(mem->from_obj_tbl);
   if (mem->to_heap != NULL) mem->to_heap = scm_mem_heap_delete_heap(mem->to_heap);
   if (mem->from_heap != NULL) mem->from_heap = scm_mem_heap_delete_heap(mem->from_heap);
-  if (mem->extra_rfrn != NULL) free(mem->extra_rfrn);
+  if (mem->extra_rfrn != NULL) scm_capi_free(mem->extra_rfrn);
 
   return NULL;
 }
@@ -1125,7 +1125,7 @@ scm_mem_new(void)
 {
   ScmMem *mem = NULL;
 
-  mem = malloc(sizeof(*mem));
+  mem = scm_capi_malloc(sizeof(*mem));
   if (mem == NULL) return NULL;
 
   return scm_mem_initialize(mem);
@@ -1137,7 +1137,7 @@ scm_mem_end(ScmMem *mem)
   if (mem == NULL) return NULL;
 
   scm_mem_finalize(mem);
-  free(mem);
+  scm_capi_free(mem);
 
   return NULL;
 }
