@@ -3,9 +3,8 @@
 #include <assert.h>
 
 #include "object.h"
-#include "reference.h"
 #include "vm.h"
-#include "api.h"
+#include "reference.h"
 
 scm_local_inline bool
 scm_ref_stack_block_full_p(ScmRefStackBlock *block)
@@ -20,7 +19,7 @@ scm_ref_stack_new_block(size_t sz)
 
   scm_assert((SIZE_MAX - sizeof(ScmRefStackBlock)) / sizeof(ScmRef) >= sz);
 
-  block = scm_capi_malloc(sizeof(ScmRefStackBlock) + sizeof(ScmRef) * sz);
+  block = malloc(sizeof(ScmRefStackBlock) + sizeof(ScmRef) * sz);
   if (block == NULL)
     return NULL;
 
@@ -69,7 +68,7 @@ scm_ref_stack_decrease_block(ScmRefStack *stack)
     if (stack->current == block)
       stack->current = stack->tail;
 
-    scm_capi_free(block);
+    free(block);
   }
 }
 
@@ -142,11 +141,11 @@ scm_ref_stack_new(size_t size)
 {
   ScmRefStack *stack;
 
-  stack = scm_capi_malloc(sizeof(ScmRefStack));
+  stack = malloc(sizeof(ScmRefStack));
   if (stack == NULL) return NULL;
 
   if (scm_ref_stack_initialize(stack, size) == NULL) {
-    scm_capi_free(stack);
+    free(stack);
     return NULL;
   }
 
@@ -160,7 +159,7 @@ scm_ref_stack_end(ScmRefStack *stack)
   scm_assert(stack != NULL);
 
   scm_ref_stack_finalize(stack);
-  scm_capi_free(stack);
+  free(stack);
 }
 
 ScmRefStack *
@@ -217,27 +216,6 @@ scm_ref_stack_restore(ScmRefStack *stack, ScmRefStackInfo *info)
   scm_ref_stack_decrease_if_possible(stack);
 }
 
-void
-scm_ref_stack_push_current_stack(int dummy, ...)
-{
-  va_list ap;
-
-  va_start(ap, dummy);
-  scm_ref_stack_push_va(scm_vm_current_ref_stack(), ap);
-  va_end(ap);
-}
-
-void
-scm_ref_stack_save_current_stack(ScmRefStackInfo *info)
-{
-  scm_ref_stack_save(scm_vm_current_ref_stack(), info);
-}
-
-void
-scm_ref_stack_restore_current_stack(ScmRefStackInfo *info)
-{
-  scm_ref_stack_restore(scm_vm_current_ref_stack(), info);
-}
 
 int
 scm_ref_stack_gc_accept(ScmRefStack *stack, ScmObj owner,

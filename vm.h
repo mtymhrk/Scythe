@@ -3,8 +3,7 @@
 
 #include <stdint.h>
 
-typedef struct ScmVMInstRec ScmVMInst;
-typedef struct ScmVMEnvRec ScmVMEnv;
+typedef struct ScmBedrockRec ScmBedrock;
 typedef struct ScmVMRec ScmVM;
 
 #define SCM_VM(obj) ((ScmVM *)(obj))
@@ -14,6 +13,44 @@ typedef struct ScmVMRec ScmVM;
 #include "reference.h"
 #include "instractions.h"
 
+/***************************************************************************/
+/*  ScmBedrock                                                             */
+/***************************************************************************/
+
+typedef enum {
+  SCM_BEDROCK_ERR_NONE,
+  SCM_BEDROCK_ERR_FATAL,
+  SCM_BEDROCK_ERR_ERROR,
+} SCM_BEDROCK_ERROR_TYPE_T;
+
+extern ScmBedrock *scm_bedrock__current_br;
+
+struct ScmBedrockRec {
+  /*** C Lang Stack ***/
+  ScmRefStack *ref_stack;
+
+  /*** Error Status ***/
+  struct {
+    SCM_BEDROCK_ERROR_TYPE_T type;
+    char *message;
+  } err;
+};
+
+void scm_bedrock_fatal(ScmBedrock *br, const char *msg);
+void scm_bedrock_fatal_fmt(ScmBedrock *br, const char *msgfmt, va_list ap);
+bool scm_bedrock_fatal_p(ScmBedrock *br);
+bool scm_bedrock_error_p(ScmBedrock *br);
+
+inline ScmBedrock *
+scm_bedrock_current_br(void)
+{
+  return scm_bedrock__current_br;
+}
+
+/***************************************************************************/
+/*  ScmVM                                                                  */
+/***************************************************************************/
+
 typedef scm_uword_t scm_vm_inst_t;
 typedef scm_uword_t scm_vm_stack_val_t;
 
@@ -22,14 +59,10 @@ extern ScmObj scm_vm__current_vm;
   /* vm.c の外部が scm_vm__current_vm を直接参照するのは禁止。
      scm_vm_current_vm() 経由で取得すること。 */
 
-typedef enum {
-  SCM_VM_ERR_NONE,
-  SCM_VM_ERR_FATAL,
-  SCM_VM_ERR_ERROR,
-} SCM_VM_ERROR_TYPE_T;
-
 struct ScmVMRec {
   ScmObjHeader header;
+
+  ScmBedrock *bedrock;
 
   ScmMem *mem;
   ScmObj symtbl;                /* Symbol Table */
@@ -39,9 +72,6 @@ struct ScmVMRec {
   scm_vm_stack_val_t *stack;
   unsigned int *stack_objmap;
   size_t stack_size;
-
-  /*** C Lang Stack ***/
-  ScmRefStack *ref_stack;
 
   /*** VM Registers ***/
   struct {
@@ -60,12 +90,6 @@ struct ScmVMRec {
     ScmObj b_true;
     ScmObj b_false;
   } cnsts;
-
-  /*** Error Status ***/
-  struct {
-    int type;
-    char *message;
-  } err;
 };
 
 /* private functions ******************************************************/
@@ -106,7 +130,7 @@ void scm_vm_op_gset(ScmObj vm, ScmObj arg, ScmObj val, int immv_idx);
 
 /* public functions ******************************************************/
 
-void scm_vm_initialize(ScmObj vm);
+void scm_vm_initialize(ScmObj vm, ScmBedrock *bedrock);
 int scm_vm_init_scmobjs(ScmObj vm);
 void scm_vm_finalize(ScmObj vm);
 ScmObj scm_vm_new(void);
@@ -117,11 +141,6 @@ void scm_vm_run(ScmObj vm, ScmObj iseq);
 
 int scm_vm_nr_local_var(ScmObj vm);
 ScmObj scm_vm_refer_local_var(ScmObj vm, int nth);
-
-void scm_vm_fatal(ScmObj vm, const char *msg);
-void scm_vm_fatal_fmt(ScmObj vm, const char *msgfmt, va_list ap);
-bool scm_vm_fatal_p(ScmObj vm);
-bool scm_vm_error_p(ScmObj vm);
 
 void scm_vm_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_vm_gc_finalize(ScmObj obj);
@@ -138,12 +157,6 @@ inline ScmMem *
 scm_vm_current_mm(void)
 {
   return SCM_VM(scm_vm__current_vm)->mem;
-}
-
-inline ScmRefStack *
-scm_vm_current_ref_stack(void)
-{
-  return SCM_VM(scm_vm__current_vm)->ref_stack;
 }
 
 inline ScmObj

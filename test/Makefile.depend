@@ -15,8 +15,8 @@ miscobjects.o: ../miscobjects.c ../object.h ../reference.h \
  ../impl_utils.h ../api.h ../encoding.h ../miscobjects.h
 char.o: ../char.c ../object.h ../reference.h ../impl_utils.h ../api.h \
  ../encoding.h ../char.h
-charconv.o: ../charconv.c ../api.h ../object.h ../encoding.h \
- ../charconv.h
+charconv.o: ../charconv.c ../api.h ../object.h ../reference.h \
+ ../impl_utils.h ../encoding.h ../charconv.h
 encoding.o: ../encoding.c ../encoding.h
 vm.o: ../vm.c ../vm.h ../object.h ../memory.h ../basichash.h \
  ../impl_utils.h ../reference.h ../instractions.h ../string.h ../api.h \
@@ -25,9 +25,8 @@ vm.o: ../vm.c ../vm.h ../object.h ../memory.h ../basichash.h \
 procedure.o: ../procedure.c ../object.h ../reference.h ../impl_utils.h \
  ../vm.h ../memory.h ../basichash.h ../instractions.h ../api.h \
  ../encoding.h ../procedure.h
-reference.o: ../reference.c ../object.h ../reference.h ../impl_utils.h \
- ../vm.h ../memory.h ../basichash.h ../instractions.h ../api.h \
- ../encoding.h
+reference.o: ../reference.c ../object.h ../vm.h ../memory.h \
+ ../basichash.h ../impl_utils.h ../reference.h ../instractions.h
 numeric.o: ../numeric.c ../object.h ../reference.h ../impl_utils.h \
  ../api.h ../encoding.h ../earray.h ../numeric.h
 core_subr.o: ../core_subr.c ../object.h ../vm.h ../memory.h \
@@ -308,7 +307,8 @@ test_memory.o: test_memory.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-helper.h \
  /usr/local/include/cutter/cutter/cut-experimental.h ../memory.h \
  ../object.h ../basichash.h ../impl_utils.h ../object.h ../pair.h \
- ../api.h ../encoding.h ../string.h ../symbol.h ../chashtbl.h
+ ../api.h ../reference.h ../encoding.h ../string.h ../symbol.h \
+ ../chashtbl.h
 test_vm.o: test_vm.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-version.h \
  /usr/local/include/cutter/cutter/cut-features.h \

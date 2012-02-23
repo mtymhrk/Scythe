@@ -57,24 +57,8 @@ ScmRefStack *scm_ref_stack_push(ScmRefStack *stack, ...);
 ScmRef scm_ref_stack_alloc(ScmRefStack *stack, ScmObj init);
 void scm_ref_stack_save(ScmRefStack *stack, ScmRefStackInfo *info);
 void scm_ref_stack_restore(ScmRefStack *stack, ScmRefStackInfo *info);
-void scm_ref_stack_push_current_stack(int dummy, ...);
-void scm_ref_stack_save_current_stack(ScmRefStackInfo *info);
-void scm_ref_stack_restore_current_stack(ScmRefStackInfo *info);
 int scm_ref_stack_gc_accept(ScmRefStack *stack, ScmObj owner,
                             ScmObj mem, ScmGCRefHandlerFunc handler);
 
-
-
-#define SCM_STACK_FRAME                         \
-  __attribute__((__cleanup__(scm_ref_stack_restore_current_stack)))     \
-  ScmRefStackInfo SCM_CONCAT_SYMBOL__(scm_ref_stack_frame__, __LINE__) \
-  = { NULL, NULL };                                                     \
-  scm_ref_stack_save_current_stack(&SCM_CONCAT_SYMBOL__(scm_ref_stack_frame__, __LINE__));
-
-#define SCM_STACK_PUSH(...)                                             \
-  scm_ref_stack_push_current_stack(0, __VA_ARGS__, NULL)
-
-#define SCM_STACK_FRAME_PUSH(...) \
-  SCM_STACK_FRAME; SCM_STACK_PUSH(__VA_ARGS__);
 
 #endif /* INCLUDE_REFERENCE_H__ */

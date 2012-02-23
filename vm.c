@@ -18,14 +18,138 @@
 #include "miscobjects.h"
 #include "impl_utils.h"
 
+/***************************************************************************/
+/*  ScmBedrock                                                             */
+/***************************************************************************/
+
+#define SCM_BEDROCK_REF_STACK_INIT_SIZE 512
+#define SCM_BEDROCK_ERR_MSG_SIZE 256
+
+ScmBedrock *scm_bedrock__current_br = NULL;
+
+int
+scm_bedrock_initialize(ScmBedrock *br)
+{
+  scm_assert(br != NULL);
+
+  br->ref_stack = NULL;
+  br->err.message = NULL;
+
+  br->ref_stack = scm_ref_stack_new(SCM_BEDROCK_REF_STACK_INIT_SIZE);
+  if (br->ref_stack == NULL) goto err;
+
+  br->err.type = SCM_BEDROCK_ERR_NONE;
+  br->err.message = malloc(SCM_BEDROCK_ERR_MSG_SIZE);
+  if (br->err.message == NULL) goto err;
+
+  return 0;
+
+ err:
+
+  scm_ref_stack_end(br->ref_stack);
+  free(br->err.message);
+  br->ref_stack = NULL;
+  br->err.message = NULL;
+
+  return -1;
+}
+
+void
+scm_bedrock_finalize(ScmBedrock *br)
+{
+  scm_assert(br != NULL);
+
+  scm_ref_stack_end(br->ref_stack);
+  free(br->err.message);
+  br->ref_stack = NULL;
+  br->err.message = NULL;
+}
+
+ScmBedrock *
+scm_bedrock_new(void)
+{
+  int rslt;
+  ScmBedrock *br;
+
+  br = malloc(sizeof(*br));
+  if (br == NULL) return NULL;
+
+  rslt = scm_bedrock_initialize(br);
+  if (rslt < 0) {
+    free(br);
+    return NULL;
+  }
+
+  return br;
+}
+
+void
+scm_bedrock_end(ScmBedrock *br)
+{
+  scm_bedrock_finalize(br);
+  free(br);
+}
+
+void
+scm_bedrock_fatal(ScmBedrock *br, const char *msg)
+{
+  scm_assert(br != NULL);
+
+  br->err.type = SCM_BEDROCK_ERR_FATAL;
+  if (msg == NULL) {
+    br->err.message[0] = '\0';
+  }
+  else {
+    size_t len = strlen(msg);
+    if (len > SCM_BEDROCK_ERR_MSG_SIZE - 1) len = SCM_BEDROCK_ERR_MSG_SIZE - 1;
+    memcpy(br->err.message, msg, len);
+    br->err.message[len] = '\0';
+  }
+}
+
+void
+scm_bedrock_fatal_fmt(ScmBedrock *br, const char *msgfmt, va_list ap)
+{
+  scm_assert(br != NULL);
+
+  br->err.type = SCM_BEDROCK_ERR_FATAL;
+  if (msgfmt == NULL)
+    br->err.message[0] = '\0';
+  else
+    vsnprintf(br->err.message, SCM_BEDROCK_ERR_MSG_SIZE, msgfmt, ap);
+}
+
+bool
+scm_bedrock_fatal_p(ScmBedrock *br)
+{
+  scm_assert(br != NULL);
+
+  return (br->err.type == SCM_BEDROCK_ERR_FATAL) ? true : false;
+}
+
+bool
+scm_bedrock_error_p(ScmBedrock *br)
+{
+  scm_assert(br != NULL);
+
+  return ((br->err.type == SCM_BEDROCK_ERR_FATAL
+           || br->err.type == SCM_BEDROCK_ERR_ERROR) ?
+          true : false);
+}
+
+
+/***************************************************************************/
+/*  ScmVM                                                                  */
+/***************************************************************************/
+
 #define SCM_VM_STACK_INIT_SIZE 1024
 #define SCM_VM_STACK_MAX_SIZE 10240
 #define SCM_VM_STACK_OBJMAP_SIZE                                        \
   (SCM_VM_STACK_INIT_SIZE / (sizeof(unsigned int) * CHAR_BIT)           \
    + ((SCM_VM_STACK_INIT_SIZE % (sizeof(unsigned int) * CHAR_BIT) == 0) ? 0 : 1))
-#define SCM_VM_REF_STACK_INIT_SIZE 512
+
 #define SCM_VM_SYMTBL_SIZE 256
-#define SCM_VM_ERR_MSG_SIZE 256
+
 
 ScmTypeInfo SCM_VM_TYPE_INFO = {
   NULL,                         /* pp_func              */
@@ -36,7 +160,7 @@ ScmTypeInfo SCM_VM_TYPE_INFO = {
   NULL,                         /* gc_accpet_func_weak  */
 };
 
-ScmObj scm_vm__current_vm;
+ScmObj scm_vm__current_vm = SCM_OBJ_INIT;
 
 
 scm_local_inline size_t
@@ -446,12 +570,12 @@ scm_vm_op_gset(ScmObj vm, ScmObj arg, ScmObj val, int immv_idx)
 }
 
 void
-scm_vm_initialize(ScmObj vm)
+scm_vm_initialize(ScmObj vm,  ScmBedrock *bedrock)
 {
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+  scm_assert(bedrock != NULL);
 
-  SCM_VM(vm)->ref_stack = scm_ref_stack_new(SCM_VM_REF_STACK_INIT_SIZE);
-  if (SCM_VM(vm)->ref_stack == NULL) goto err;
+  SCM_VM(vm)->bedrock = bedrock;
 
   SCM_VM(vm)->stack = scm_capi_malloc(sizeof(scm_vm_stack_val_t)
                                  * SCM_VM_STACK_INIT_SIZE);
@@ -470,16 +594,9 @@ scm_vm_initialize(ScmObj vm)
   /* TODO: undefined オブジェクトみたいなものを初期値にする */
   SCM_VM(vm)->reg.val = SCM_OBJ_NULL;
 
-  SCM_VM(vm)->err.type = SCM_VM_ERR_NONE;
-  SCM_VM(vm)->err.message = scm_capi_malloc(SCM_VM_ERR_MSG_SIZE);
-  if (SCM_VM(vm)->err.message == NULL) goto err;
-
   return;
 
  err:
-  if (SCM_VM(vm)->err.message == NULL)
-    scm_capi_free(SCM_VM(vm)->err.message);
-
   if (scm_obj_null_p(SCM_VM(vm)->reg.iseq))
     SCM_SLOT_SETQ(ScmVM, vm, reg.iseq, SCM_OBJ_NULL);
 
@@ -490,12 +607,9 @@ scm_vm_initialize(ScmObj vm)
   if (SCM_VM(vm)->stack_objmap != NULL) {
     SCM_VM(vm)->stack_objmap = scm_capi_free(SCM_VM(vm)->stack_objmap);
   }
-  if (SCM_VM(vm)->ref_stack != NULL) {
-    scm_ref_stack_end(SCM_VM(vm)->ref_stack);
-    SCM_VM(vm)->ref_stack = NULL;
-  }
   SCM_VM(vm)->reg.sp = NULL;
   SCM_VM(vm)->reg.fp = NULL;
+  SCM_VM(vm)->reg.ip = NULL;
 
   return;
 }
@@ -508,37 +622,41 @@ scm_vm_finalize(ScmObj vm)
   SCM_VM(vm)->stack = scm_capi_free(SCM_VM(vm)->stack);
   SCM_VM(vm)->stack_size = 0;
   SCM_VM(vm)->stack_objmap = scm_capi_free(SCM_VM(vm)->stack_objmap);
-  scm_ref_stack_end(SCM_VM(vm)->ref_stack);
   SCM_VM(vm)->reg.sp = NULL;
   SCM_VM(vm)->reg.fp = NULL;
   SCM_VM(vm)->reg.ip = NULL;
   SCM_SLOT_SETQ(ScmVM, vm, reg.iseq, SCM_OBJ_NULL);
   SCM_SLOT_SETQ(ScmVM, vm, reg.val, SCM_OBJ_NULL);
-  SCM_VM(vm)->ref_stack = NULL;
-  SCM_VM(vm)->err.message = scm_capi_free(SCM_VM(vm)->err.message);
 }
 
 ScmObj
 scm_vm_new(void)
 {
-  ScmMem *mem;
-  ScmObj vm;
+  ScmBedrock *bedrock = NULL;
+  ScmMem *mem = NULL;
+  ScmObj vm = SCM_OBJ_INIT;
+
+  bedrock = scm_bedrock_new();
+  if (bedrock == NULL) goto err;
+
+  scm_bedrock__current_br = bedrock;
 
   mem = scm_mem_new();
-  if (mem == NULL) return SCM_OBJ_NULL;
+  if (mem == NULL) goto err;
 
   vm = scm_mem_alloc_root(mem, &SCM_VM_TYPE_INFO);
   if (scm_obj_null_p(vm)) goto err;
 
   scm_vm__current_vm = vm;
 
-  scm_vm_initialize(vm);
+  scm_vm_initialize(vm, bedrock);
   scm_vm_setup_root(vm);
 
   return vm;
 
  err:
-  scm_mem_end(mem);
+  if (mem != NULL) scm_mem_end(mem);
+  if (bedrock != NULL) scm_bedrock_end(bedrock);
   return SCM_OBJ_NULL;
 }
 
@@ -656,55 +774,6 @@ scm_vm_refer_local_var(ScmObj vm, int nth)
 }
 
 void
-scm_vm_fatal(ScmObj vm, const char *msg)
-{
-  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-
-  SCM_VM(vm)->err.type = SCM_VM_ERR_FATAL;
-  if (msg == NULL) {
-    SCM_VM(vm)->err.message[0] = '\0';
-  }
-  else {
-    size_t len = strlen(msg);
-    if (len > SCM_VM_ERR_MSG_SIZE - 1) len = SCM_VM_ERR_MSG_SIZE - 1;
-    memcpy(SCM_VM(vm)->err.message, msg, len);
-    SCM_VM(vm)->err.message[len] = '\0';
-  }
-}
-
-void
-scm_vm_fatal_fmt(ScmObj vm, const char *msgfmt, va_list ap)
-{
-  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-
-  SCM_VM(vm)->err.type = SCM_VM_ERR_FATAL;
-  if (msgfmt == NULL) {
-    SCM_VM(vm)->err.message[0] = '\0';
-  }
-  else {
-    vsnprintf(SCM_VM(vm)->err.message, SCM_VM_ERR_MSG_SIZE, msgfmt, ap);
-  }
-}
-
-bool
-scm_vm_fatal_p(ScmObj vm)
-{
-  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-
-  return (SCM_VM(vm)->err.type == SCM_VM_ERR_FATAL) ? true : false;
-}
-
-bool
-scm_vm_error_p(ScmObj vm)
-{
-  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-
-  return ((SCM_VM(vm)->err.type == SCM_VM_ERR_FATAL
-           || SCM_VM(vm)->err.type == SCM_VM_ERR_ERROR) ?
-          true : false);
-}
-
-void
 scm_vm_gc_initialize(ScmObj obj, ScmObj mem)
 {
   scm_assert_obj_type(obj, &SCM_VM_TYPE_INFO);
@@ -716,7 +785,6 @@ scm_vm_gc_initialize(ScmObj obj, ScmObj mem)
   SCM_VM(obj)->stack = NULL;
   SCM_VM(obj)->stack_objmap = NULL;
   SCM_VM(obj)->stack_size = 0;
-  SCM_VM(obj)->ref_stack = NULL;
   SCM_VM(obj)->reg.sp = NULL;
   SCM_VM(obj)->reg.fp = NULL;
   SCM_VM(obj)->reg.ip = NULL;
@@ -726,7 +794,6 @@ scm_vm_gc_initialize(ScmObj obj, ScmObj mem)
   SCM_VM(obj)->cnsts.eof = SCM_OBJ_NULL;
   SCM_VM(obj)->cnsts.b_true = SCM_OBJ_NULL;
   SCM_VM(obj)->cnsts.b_false = SCM_OBJ_NULL;
-  SCM_VM(obj)->err.message = NULL;
 }
 
 void
@@ -765,7 +832,8 @@ scm_vm_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
     }
   }
 
-  rslt = scm_ref_stack_gc_accept(SCM_VM(obj)->ref_stack, obj, mem, handler);
+  rslt = scm_ref_stack_gc_accept(SCM_VM(obj)->bedrock->ref_stack,
+                                 obj, mem, handler);
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
   return rslt;

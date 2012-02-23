@@ -4,6 +4,7 @@
 #include "object.h"
 #include "memory.h"
 #include "vm.h"
+#include "reference.h"
 #include "char.h"
 #include "string.h"
 #include "symbol.h"
@@ -15,6 +16,7 @@
 #include "port.h"
 
 #include "encoding.h"
+#include "impl_utils.h"
 
 #include "api.h"
 
@@ -26,19 +28,46 @@
 extern inline void
 scm_capi_fatal(const char *msg)
 {
-  scm_vm_fatal(scm_vm_current_vm(), msg);
+  scm_bedrock_fatal(scm_bedrock_current_br(), msg);
 }
 
 extern inline bool
 scm_capi_fatal_p(void)
 {
-  return scm_vm_fatal_p(scm_vm_current_vm());
+  return scm_bedrock_fatal_p(scm_bedrock_current_br());
 }
 
 extern inline bool
 scm_capi_error_p(void)
 {
-  return scm_vm_error_p(scm_vm_current_vm());
+  return scm_bedrock_error_p(scm_bedrock_current_br());
+}
+
+
+/*******************************************************************/
+/*  C Stack                                                        */
+/*******************************************************************/
+
+void
+scm_capi_ref_stack_push(int dummy, ...)
+{
+  va_list ap;
+
+  va_start(ap, dummy);
+  scm_ref_stack_push_va(scm_bedrock_current_br()->ref_stack, ap);
+  va_end(ap);
+}
+
+void
+scm_capi_ref_stack_save(ScmRefStackInfo *info)
+{
+  scm_ref_stack_save(scm_bedrock_current_br()->ref_stack, info);
+}
+
+void
+scm_capi_ref_stack_restore(ScmRefStackInfo *info)
+{
+  scm_ref_stack_restore(scm_bedrock_current_br()->ref_stack, info);
 }
 
 

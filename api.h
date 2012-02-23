@@ -5,6 +5,7 @@
 #include <stdbool.h>
 
 #include "object.h"
+#include "reference.h"
 #include "encoding.h"
 
 
@@ -15,6 +16,27 @@
 void scm_capi_fatal(const char *msg);
 bool scm_capi_fatal_p(void);
 bool scm_capi_error_p(void);
+
+
+/*******************************************************************/
+/*  C Stack                                                        */
+/*******************************************************************/
+
+#define SCM_STACK_FRAME                                                 \
+  __attribute__((__cleanup__(scm_capi_ref_stack_restore)))                  \
+  ScmRefStackInfo SCM_CONCAT_SYMBOL__(scm_ref_stack_frame__, __LINE__)  \
+  = { NULL, NULL };                                                     \
+  scm_capi_ref_stack_save(&SCM_CONCAT_SYMBOL__(scm_ref_stack_frame__, __LINE__));
+
+#define SCM_STACK_PUSH(...)                                             \
+  scm_capi_ref_stack_push(0, __VA_ARGS__, NULL)
+
+#define SCM_STACK_FRAME_PUSH(...) \
+  SCM_STACK_FRAME; SCM_STACK_PUSH(__VA_ARGS__);
+
+void scm_capi_ref_stack_push(int dummy, ...);
+void scm_capi_ref_stack_save(ScmRefStackInfo *info);
+void scm_capi_ref_stack_restore(ScmRefStackInfo *info);
 
 
 /*******************************************************************/
