@@ -14,6 +14,7 @@
 /*******************************************************************/
 
 void scm_capi_fatal(const char *msg);
+void scm_capi_fatalf(const char *fmt, ...);
 bool scm_capi_fatal_p(void);
 bool scm_capi_error_p(void);
 

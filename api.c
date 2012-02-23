@@ -31,6 +31,11 @@ scm_capi_fatal(const char *msg)
   scm_bedrock_fatal(scm_bedrock_current_br(), msg);
 }
 
+extern inline void
+scm_capi_fatalf(const char *fmt, ...)
+{
+}
+
 extern inline bool
 scm_capi_fatal_p(void)
 {

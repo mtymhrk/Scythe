@@ -178,21 +178,21 @@ void scm_mem_clean_heap(ScmMem *mem, int which);
 void scm_mem_clean_root(ScmMem *mem);
 void scm_mem_switch_heap(ScmMem *mem);
 bool scm_mem_is_obj_in_heap(ScmMem *mem, ScmObj obj, int which);
-ScmObj scm_mem_alloc_heap_mem(ScmMem *mem, ScmTypeInfo *type);
+int scm_mem_alloc_heap_mem(ScmMem *mem, ScmTypeInfo *type, ScmRef ref);
 void scm_mem_obj_init(ScmMem *mem, ScmObj obj, ScmTypeInfo *type);
 ScmObj scm_mem_copy_obj(ScmMem *mem, ScmObj obj);
 int scm_mem_copy_children_func(ScmObj mem, ScmObj obj, ScmRef child);
-void scm_mem_copy_children(ScmMem *mem, ScmObj obj);
-void scm_mem_copy_children_of_root_obj(ScmMem *mem, ScmMemRootBlock *head);
-void scm_mem_copy_children_of_root(ScmMem *mem);
-void scm_mem_copy_extra_obj(ScmMem *mem);
-void scm_mem_copy_obj_referred_by_root(ScmMem *mem);
-void scm_mem_scan_obj(ScmMem *mem);
+int scm_mem_copy_children(ScmMem *mem, ScmObj obj);
+int scm_mem_copy_children_of_root_obj(ScmMem *mem, ScmMemRootBlock *head);
+int scm_mem_copy_children_of_root(ScmMem *mem);
+int scm_mem_copy_extra_obj(ScmMem *mem);
+int scm_mem_copy_obj_referred_by_root(ScmMem *mem);
+int scm_mem_scan_obj(ScmMem *mem);
 int scm_mem_adjust_weak_ref_of_obj_func(ScmObj mem, ScmObj obj, ScmRef child);
-void scm_mem_adjust_weak_ref_of_obj(ScmMem *mem, ScmObj obj);
-void scm_mem_adjust_weak_ref_of_root_obj(ScmMem *mem, ScmMemRootBlock *head);
-void scm_mem_adjust_weak_ref_of_heap_obj(ScmMem *mem);
-void scm_mem_adjust_weak_ref(ScmMem *mem);
+int scm_mem_adjust_weak_ref_of_obj(ScmMem *mem, ScmObj obj);
+int scm_mem_adjust_weak_ref_of_root_obj(ScmMem *mem, ScmMemRootBlock *head);
+int scm_mem_adjust_weak_ref_of_heap_obj(ScmMem *mem);
+int scm_mem_adjust_weak_ref(ScmMem *mem);
 ScmObj scm_mem_alloc_root_obj(ScmTypeInfo *type, ScmMem *mem,
                               ScmMemRootBlock **head);
 ScmObj scm_mem_free_root_obj(ScmObj obj, ScmMem *mem, ScmMemRootBlock **head);
@@ -237,6 +237,6 @@ ScmObj scm_mem_free_root(ScmMem *mem, ScmObj obj);
 ScmRef scm_mem_register_extra_rfrn(ScmMem *mem, ScmRef ref);
 ScmObj scm_mem_alloc(ScmMem *mem, ScmTypeInfo *type,
                      SCM_MEM_ALLOC_TYPE_T alloc);
-void scm_mem_gc_start(ScmMem *mem);
+int scm_mem_gc_start(ScmMem *mem);
 
 #endif /* INCLUDED_MEMORY_H__ */
