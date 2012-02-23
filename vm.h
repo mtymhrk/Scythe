@@ -36,6 +36,9 @@ struct ScmBedrockRec {
   } err;
 };
 
+ScmBedrock *scm_bedrock_new(void);
+void scm_bedrock_end(ScmBedrock *br);
+void scm_bedrock_clean(ScmBedrock *br);
 void scm_bedrock_fatal(ScmBedrock *br, const char *msg);
 void scm_bedrock_fatal_fmt(ScmBedrock *br, const char *msgfmt, va_list ap);
 bool scm_bedrock_fatal_p(ScmBedrock *br);
@@ -104,8 +107,9 @@ bool scm_vm_stack_objmap_is_scmobj(ScmObj vm, scm_vm_stack_val_t *sp);
 
 scm_iword_t scm_vm_inst_fetch(ScmObj vm);
 
-void scm_vm_setup_root(ScmObj vm);
-void scm_vm_clean_root(ScmObj vm);
+void scm_vm_setup_singletons(ScmObj vm);
+void scm_vm_clean_singletons(ScmObj vm);
+scm_local_func void scm_vm_clean_eval_env(ScmObj vm);
 
 void scm_vm_stack_push(ScmObj vm, scm_vm_stack_val_t elm, bool scmobj_p);
 ScmObj scm_vm_stack_pop(ScmObj vm);

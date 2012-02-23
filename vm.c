@@ -91,6 +91,14 @@ scm_bedrock_end(ScmBedrock *br)
 }
 
 void
+scm_bedrock_clean(ScmBedrock *br)
+{
+  scm_ref_stack_init_sp(br->ref_stack);
+  br->err.type = SCM_BEDROCK_ERR_NONE;
+  br->err.message[0] = '\0';
+}
+
+void
 scm_bedrock_fatal(ScmBedrock *br, const char *msg)
 {
   scm_assert(br != NULL);
@@ -209,7 +217,7 @@ scm_vm_inst_fetch(ScmObj vm)
 }
 
 scm_local_func void
-scm_vm_setup_root(ScmObj vm)
+scm_vm_setup_singletons(ScmObj vm)
 {
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
@@ -242,15 +250,38 @@ scm_vm_setup_root(ScmObj vm)
 }
 
 scm_local_func void
-scm_vm_clean_root(ScmObj vm)
+scm_vm_clean_singletons(ScmObj vm)
 {
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
   scm_mem_free_root(SCM_VM(vm)->mem, SCM_VM(vm)->symtbl);
+  scm_mem_free_root(SCM_VM(vm)->mem, SCM_VM(vm)->gloctbl);
   scm_mem_free_root(SCM_VM(vm)->mem, SCM_VM(vm)->cnsts.nil);
   scm_mem_free_root(SCM_VM(vm)->mem, SCM_VM(vm)->cnsts.eof);
   scm_mem_free_root(SCM_VM(vm)->mem, SCM_VM(vm)->cnsts.b_true);
   scm_mem_free_root(SCM_VM(vm)->mem, SCM_VM(vm)->cnsts.b_false);
+
+  SCM_VM(vm)->symtbl = SCM_OBJ_NULL;
+  SCM_VM(vm)->gloctbl = SCM_OBJ_NULL;
+  SCM_VM(vm)->cnsts.nil = SCM_OBJ_NULL;
+  SCM_VM(vm)->cnsts.eof = SCM_OBJ_NULL;
+  SCM_VM(vm)->cnsts.b_true = SCM_OBJ_NULL;
+  SCM_VM(vm)->cnsts.b_false = SCM_OBJ_NULL;
+}
+
+scm_local_func void
+scm_vm_clean_eval_env(ScmObj vm)
+{
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  scm_symtbl_clean(SCM_VM(vm)->symtbl);
+  scm_gloctbl_clean(SCM_VM(vm)->gloctbl);
+
+  SCM_VM(vm)->reg.sp = SCM_VM(vm)->stack;
+  SCM_VM(vm)->reg.fp = NULL;
+  SCM_VM(vm)->reg.ip = NULL;
+  SCM_VM(vm)->reg.iseq = SCM_OBJ_NULL;
+  SCM_VM(vm)->reg.val = SCM_OBJ_NULL;
 }
 
 scm_local_func void
@@ -590,9 +621,11 @@ scm_vm_initialize(ScmObj vm,  ScmBedrock *bedrock)
   SCM_VM(vm)->reg.sp = SCM_VM(vm)->stack;
   SCM_VM(vm)->reg.fp = NULL;
   SCM_VM(vm)->reg.ip = NULL;
-
+  SCM_VM(vm)->reg.iseq = SCM_OBJ_NULL;
   /* TODO: undefined オブジェクトみたいなものを初期値にする */
   SCM_VM(vm)->reg.val = SCM_OBJ_NULL;
+
+  scm_vm_setup_singletons(vm);
 
   return;
 
@@ -610,6 +643,7 @@ scm_vm_initialize(ScmObj vm,  ScmBedrock *bedrock)
   SCM_VM(vm)->reg.sp = NULL;
   SCM_VM(vm)->reg.fp = NULL;
   SCM_VM(vm)->reg.ip = NULL;
+  SCM_VM(vm)->reg.val = SCM_OBJ_NULL;
 
   return;
 }
@@ -618,6 +652,8 @@ void
 scm_vm_finalize(ScmObj vm)
 {
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  scm_vm_clean_singletons(vm);
 
   SCM_VM(vm)->stack = scm_capi_free(SCM_VM(vm)->stack);
   SCM_VM(vm)->stack_size = 0;
@@ -650,7 +686,6 @@ scm_vm_new(void)
   scm_vm__current_vm = vm;
 
   scm_vm_initialize(vm, bedrock);
-  scm_vm_setup_root(vm);
 
   return vm;
 
@@ -663,11 +698,21 @@ scm_vm_new(void)
 void
 scm_vm_end(ScmObj vm)
 {
+  ScmBedrock *br;
+  ScmMem *mem;
+
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
-  scm_vm_clean_root(vm);
+  br = SCM_VM(vm)->bedrock;
+  mem = SCM_VM(vm)->mem;
 
-  scm_mem_end(SCM_VM(vm)->mem);
+  scm_vm_clean_eval_env(vm);
+  scm_bedrock_clean(br);
+  scm_mem_gc_start(mem);
+
+  scm_mem_free_root(mem, vm);
+  scm_mem_end(mem);
+  scm_bedrock_end(br);
 }
 
 void
@@ -814,6 +859,9 @@ scm_vm_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
   rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_VM(obj)->symtbl, mem);
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_VM(obj)->gloctbl, mem);
+  if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
+
   rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_VM(obj)->reg.iseq, mem);
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
@@ -824,7 +872,7 @@ scm_vm_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
   /* if (scm_gc_ref_handler_failure_p(rslt)) return rslt; */
 
   for (scm_vm_stack_val_t* p = SCM_VM(obj)->stack;
-       p != SCM_VM(obj)->reg.sp;
+       p != NULL && p != SCM_VM(obj)->reg.sp;
        p++) {
     if (scm_vm_stack_objmap_is_scmobj(obj, p)) {
       rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, *p, mem);

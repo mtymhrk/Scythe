@@ -37,6 +37,12 @@ scm_ref_stack_block_push(ScmRefStackBlock *block, ScmRef ref)
   *(block->sp++) = ref;
 }
 
+scm_local_inline void
+scm_ref_stack_block_init_sp(ScmRefStackBlock *block)
+{
+  block->sp = block->stack;
+}
+
 scm_local_func void
 scm_ref_stack_add_block(ScmRefStack *stack, ScmRefStackBlock *block)
 {
@@ -194,7 +200,7 @@ scm_ref_stack_push(ScmRefStack *stack, ...)
   return rslt;
 }
 
-extern inline void
+void
 scm_ref_stack_save(ScmRefStack *stack, ScmRefStackInfo *info)
 {
   scm_assert(stack != NULL);
@@ -204,7 +210,7 @@ scm_ref_stack_save(ScmRefStack *stack, ScmRefStackInfo *info)
   info->sp = stack->current->sp;
 }
 
-extern inline void
+void
 scm_ref_stack_restore(ScmRefStack *stack, ScmRefStackInfo *info)
 {
   scm_assert(stack != NULL);
@@ -216,6 +222,14 @@ scm_ref_stack_restore(ScmRefStack *stack, ScmRefStackInfo *info)
   scm_ref_stack_decrease_if_possible(stack);
 }
 
+void
+scm_ref_stack_init_sp(ScmRefStack *stack)
+{
+  scm_assert(stack != NULL);
+
+  stack->current = stack->head;
+  scm_ref_stack_block_init_sp(stack->current);
+}
 
 int
 scm_ref_stack_gc_accept(ScmRefStack *stack, ScmObj owner,

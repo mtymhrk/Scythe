@@ -38,6 +38,7 @@ struct ScmRefStackInfoRec {
 bool scm_ref_stack_block_full_p(ScmRefStackBlock *block);
 ScmRefStackBlock *scm_ref_stack_new_block(size_t sz);
 void scm_ref_stack_block_push(ScmRefStackBlock *block, ScmRef ref);
+void scm_ref_stack_block_init_sp(ScmRefStackBlock *block);
 void scm_ref_stack_add_block(ScmRefStack *stack, ScmRefStackBlock *block);
 void scm_ref_stack_decrease_block(ScmRefStack *stack);
 void scm_ref_stack_shift_stack_block(ScmRefStack *stack);
@@ -57,6 +58,7 @@ ScmRefStack *scm_ref_stack_push(ScmRefStack *stack, ...);
 ScmRef scm_ref_stack_alloc(ScmRefStack *stack, ScmObj init);
 void scm_ref_stack_save(ScmRefStack *stack, ScmRefStackInfo *info);
 void scm_ref_stack_restore(ScmRefStack *stack, ScmRefStackInfo *info);
+void scm_ref_stack_init_sp(ScmRefStack *stack);
 int scm_ref_stack_gc_accept(ScmRefStack *stack, ScmObj owner,
                             ScmObj mem, ScmGCRefHandlerFunc handler);
 
