@@ -589,17 +589,37 @@ scm_local_func ssize_t
 scm_port_size_up_to_lf(ScmObj port, const void *buf, size_t size)
 {
   /* provisional implementation */
-  /* 現状、ascii コードの LF 改行にしか対応していない */
+  /* 現状、LF 改行にしか対応していない */
 
-  const char *p;
+  const ScmEncVirtualFunc *vf;
+  ScmStrItr iter;
+  scm_char_t lf;
+  ssize_t len;
 
   scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
   scm_assert(buf != NULL);
   scm_assert(size <= SSIZE_MAX);
 
-  p = buf;
-  for (size_t i = 0; i < size; i++)
-    if (p[i] == '\n') return (ssize_t)i + 1; /* 改行を含む長さを返す */
+  vf = SCM_ENCODING_VFUNC(SCM_PORT(port)->encoding);
+  iter = scm_str_itr_begin((void *)buf, size, vf->char_width);
+  lf = SCM_ENCODING_CONST_LF_CHAR(SCM_PORT(port)->encoding);
+
+  len = 0;
+  while (!SCM_STR_ITR_IS_END(&iter)) {
+    ssize_t w = SCM_STR_ITR_WIDTH(&iter);
+    if (w < 0)
+      return -1;       /* TODO: error handling (illegal sequence) */
+    else if (w == 0)
+      return 0;
+
+    len += w;
+    if (memcmp(lf.bytes, SCM_STR_ITR_PTR(&iter), (size_t)w) == 0)
+      return len;
+
+    iter = scm_str_itr_next(&iter);
+    if (SCM_STR_ITR_IS_ERR(&iter))
+      return -1; /* TODO: error handling (illegal sequence) */
+  }
 
   return 0;
 }
@@ -760,10 +780,11 @@ scm_local_func ssize_t
 scm_port_read_line_nonbuf(ScmObj port, void *buf, size_t size)
 {
   /* provisional implementation */
-  /* 現状、ascii コードの LF 改行にしか対応していない */
-
-  char c;
-  size_t i;
+  /* 現状、LF 改行にしか対応していない */
+  const ScmEncVirtualFunc *vf;
+  scm_char_t lf;
+  uint8_t *p;
+  size_t len, pl;
 
   scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
   scm_assert(buf != NULL);
@@ -774,7 +795,13 @@ scm_port_read_line_nonbuf(ScmObj port, void *buf, size_t size)
 
   if (SCM_PORT(port)->eof_received_p) return 0;
 
-  for (i = 0; i < size; i++) {
+  vf = SCM_ENCODING_VFUNC(SCM_PORT(port)->encoding);
+  lf = SCM_ENCODING_CONST_LF_CHAR(SCM_PORT(port)->encoding);
+
+  p = buf;
+  pl = 0;
+  for (len = 0; len < size; len++) {
+    uint8_t c;
     ssize_t rslt = scm_io_read(SCM_PORT(port)->io, &c, sizeof(c));
     if (rslt < 0) return -1;
     if (rslt == 0) {
@@ -782,11 +809,21 @@ scm_port_read_line_nonbuf(ScmObj port, void *buf, size_t size)
       break;
     }
 
-    ((char *)buf)[i] = c;
-    if (c == '\n') return (ssize_t)i + 1;
+    p[pl++] = c;
+
+    ssize_t w = vf->char_width(p, pl);
+    if (w < 0) {
+      return -1;                /* TODO: error handling (illegal sequnce) */
+    }
+    else if (w > 0) {
+      if (memcmp(lf.bytes, p, (size_t)w) == 0)
+        return (ssize_t)len + 1;
+      p += pl;
+      pl = 0;
+    }
   }
 
-  return (ssize_t)i;
+  return (ssize_t)len;
 }
 
 scm_local_func ssize_t
