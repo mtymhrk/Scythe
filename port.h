@@ -133,6 +133,7 @@ struct ScmPortRec {
   bool eof_received_p;
   uint8_t pushback[SCM_PORT_PUSHBACK_BUFF_SIZE];
   size_t pb_used;
+  SCM_ENCODING_T encoding;
 };
 
 #ifdef SCM_UNIT_TEST
@@ -159,10 +160,12 @@ ssize_t scm_port_write_buf(ScmObj port,
 #endif
 
 void scm_port_initialize(ScmObj port, ScmIO *io,
-                         SCM_PORT_ATTR attr, SCM_PORT_BUF_MODE buf_mode);
+                         SCM_PORT_ATTR attr, SCM_PORT_BUF_MODE buf_mode,
+                         SCM_ENCODING_T enc);
 void scm_port_finalize(ScmObj port);
 ScmObj scm_port_new(SCM_CAPI_MEM_TYPE_T mtype,
-                    ScmIO *io, SCM_PORT_ATTR attr, SCM_PORT_BUF_MODE buf_mode);
+                    ScmIO *io, SCM_PORT_ATTR attr, SCM_PORT_BUF_MODE buf_mode,
+                    SCM_ENCODING_T enc);
 ScmObj scm_port_open_input(ScmIO *io,
                            SCM_PORT_ATTR attr, SCM_PORT_BUF_MODE buf_mode);
 ScmObj scm_port_open_output(ScmIO *io,

@@ -137,7 +137,7 @@ scm_str_itr_next(const ScmStrItr *iter)
   if (iter->rest <= 0) return *iter;
 
   w = SCM_STR_ITR_WIDTH(iter);
-  if (w < 0) return next;
+  if (w <= 0) return next;
 
   next.p = (uint8_t *)iter->p + w;
   next.rest = iter->rest - w;
@@ -204,7 +204,9 @@ scm_enc_char_width_ascii(const void *str, size_t len)
 
   if (ascii == NULL)
     return -1;
-  else if (len >= 1 && IS_VALID_ASCII(*ascii))
+  else if (len < 1)
+    return 0;
+  else if (IS_VALID_ASCII(*ascii))
     return 1;
   else
     return -1;
@@ -246,10 +248,10 @@ scm_enc_char_width_bin(const void *str, size_t len)
 
   if (ascii == NULL)
     return -1;
-  else if (len >= 1)
-    return 1;
+  else if (len < 1)
+    return 0;
   else
-    return -1;
+    return 1;
 }
 
 ScmStrItr
@@ -311,21 +313,34 @@ scm_enc_char_width_utf8(const void *str, size_t len)
   if (utf8 == NULL) {
     return -1;
   }
+  else if (len < 1)
+    return 0;
   else if ((utf8[0] & 0x80) == 0x00) {
-    if (len < 1 || !IS_VALID_UTF8_1(utf8)) return -1;
-    return 1;
+    return IS_VALID_UTF8_1(utf8) ? 1 : -1;
   }
   else if ((utf8[0] & 0xe0) == 0xc0) {
-    if (len < 2 || !IS_VALID_UTF8_2(utf8)) return -1;
-    return 2;
+    if (len < 2)
+      return 0;
+    else if (IS_VALID_UTF8_2(utf8))
+      return 2;
+    else
+      return -1;
   }
   else if ((utf8[0] & 0xf0) == 0xe0) {
-    if (len < 3 || !IS_VALID_UTF8_3(utf8)) return -1;
-    return 3;
+    if (len < 3)
+      return 0;
+    else if (IS_VALID_UTF8_3(utf8))
+      return 3;
+    else
+      return -1;
   }
   else if ((utf8[0] & 0xf8) == 0xf0) {
-    if (len < 4 || !IS_VALID_UTF8_4(utf8)) return -1;
-    return 4;
+    if (len < 4)
+      return 0;
+    else if (IS_VALID_UTF8_4(utf8))
+      return 4;
+    else
+      return -1;
   }
   else {
     return -1;
@@ -365,7 +380,9 @@ scm_enc_char_width_ucs4(const void *str, size_t len)
 
   if (ucs4 == NULL)
     return -1;
-  else if (len >= 4 && IS_VALID_UCS4(*ucs4))
+  else if (len < 4)
+    return 0;
+  else if (IS_VALID_UCS4(*ucs4))
     return 4;
   else
     return -1;
@@ -449,8 +466,10 @@ scm_enc_valid_char_p_ucs4(scm_char_t c)
 #define IS_EUC_JP_SS3(byte) ((byte) == 0x8f)
 #define IS_VALID_EUC_JP_JIS_X_0201(euc)                                 \
   (IS_EUC_JP_SS2(euc[0]) && (0xa1 <= (euc)[1] && (euc)[1] <= 0xdf))
+#define IS_VALID_EUC_JP_JIS_X_0213_1_FIRST_BYTE(euc) \
+  (0xa1 <= (euc)[0] && (euc)[0] <= 0xfe)
 #define IS_VALID_EUC_JP_JIS_X_0213_1(euc)         \
-  ((0xa1 <= (euc)[0] && (euc)[0] <= 0xfe)       \
+  (IS_VALID_EUC_JP_JIS_X_0213_1_FIRST_BYTE(euc)   \
    && (0xa1 <= (euc)[1] && (euc)[1] <= 0xfe))
 #define IS_VALID_EUC_JP_JIS_X_0213_2(euc)         \
   (IS_EUC_JP_SS3(euc[0])                        \
@@ -462,22 +481,37 @@ scm_enc_char_width_eucjp(const void *str, size_t len)
 {
   const uint8_t *euc = str;
 
-  if (euc == NULL || len <= 0) {
+  if (euc == NULL) {
     return -1;
   }
+  else if (len < 1)
+    return 0;
   else if (IS_VALID_EUC_JP_ASCII(euc)) {
     return 1;
   }
-  else if (IS_EUC_JP_SS2(euc[0])) {
-    if (len < 2 || !IS_VALID_EUC_JP_JIS_X_0201(euc)) return -1;
-    return 2;
+  else if (IS_VALID_EUC_JP_JIS_X_0213_1_FIRST_BYTE(euc)) {
+    if (len < 2)
+      return 0;
+    else if (IS_VALID_EUC_JP_JIS_X_0213_1(euc))
+      return 2;
+    else
+      return -1;
   }
-  else if (len >= 2 && IS_VALID_EUC_JP_JIS_X_0213_1(euc)) {
-    return 2;
+  else if (IS_EUC_JP_SS2(euc[0])) {
+    if (len < 2)
+      return 0;
+    else if (IS_VALID_EUC_JP_JIS_X_0201(euc))
+      return 2;
+    else
+      return -1;
   }
   else if (IS_EUC_JP_SS3(euc[0])) {
-    if (len < 3 || !IS_VALID_EUC_JP_JIS_X_0213_2(euc)) return -1;
-    return 3;
+    if (len < 3)
+      return 0;
+    else if (IS_VALID_EUC_JP_JIS_X_0213_2(euc))
+      return 3;
+    else
+      return -1;
   }
   else {
     return -1;
@@ -510,9 +544,11 @@ scm_enc_valid_char_p_eucjp(scm_char_t c)
   (/* 0x00 <= (euc)[0] && */(sjis)[0] <= 0x7f)
 #define IS_VALID_SJIS_KANA(sjis)                \
   (0xa1 <= (sjis)[0] && (sjis)[0] <= 0xdf)
+#define IS_VALID_SJIS_2_FIRST_BYTE(sjis)                \
+  ((0x81 <= (sjis)[0] && (sjis)[0] <= 0x9f)             \
+   || (0xe0 <= (sjis)[0] && (sjis)[0] <= 0xef))
 #define IS_VALID_SJIS_2(sjis)                             \
-  (((0x81 <= (sjis)[0] && (sjis)[0] <= 0x9f)              \
-    || (0xe0 <= (sjis)[0] && (sjis)[0] <= 0xef))          \
+  (IS_VALID_SJIS_2_FIRST_BYTE(sjis)                       \
    && ((0x40 <= (sjis)[1] && (sjis)[1] <= 0x7e)           \
        || (0x80 <= (sjis)[1] && (sjis)[1] <= 0xfc)))
 
@@ -521,18 +557,25 @@ scm_enc_char_width_sjis(const void *str, size_t len)
 {
   const uint8_t *sjis = str;
 
-  if (sjis == NULL || len <= 0) {
+  if (sjis == NULL) {
     return -1;
   }
+  else if (len < 1) {
+    return 0;
+  }
   else if (IS_VALID_SJIS_ASCII(sjis)) {
-
     return 1;
   }
   else if (IS_VALID_SJIS_KANA(sjis)) {
     return 1;
   }
-  else if (len >= 2 && IS_VALID_SJIS_2(sjis)) {
-    return 2;
+  else if (IS_VALID_SJIS_2_FIRST_BYTE(sjis)) {
+    if (len < 2)
+      return 0;
+    else if (IS_VALID_SJIS_2(sjis))
+      return 2;
+    else
+      return 2;
   }
   else {
     return -1;

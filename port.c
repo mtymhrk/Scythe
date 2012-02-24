@@ -11,6 +11,7 @@
 #include "reference.h"
 #include "api.h"
 #include "port.h"
+#include "encoding.h"
 #include "impl_utils.h"
 
 /* Note: size_t 型の引数が SSIZE_MAX 以下であることを assert でチェックしてい
@@ -854,7 +855,8 @@ scm_port_write_buf(ScmObj port, const void *buf, size_t size)
 
 void
 scm_port_initialize(ScmObj port, ScmIO *io,
-                    SCM_PORT_ATTR attr, SCM_PORT_BUF_MODE buf_mode)
+                    SCM_PORT_ATTR attr, SCM_PORT_BUF_MODE buf_mode,
+                    SCM_ENCODING_T enc)
 {
   scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
   scm_assert(io != NULL);
@@ -870,6 +872,7 @@ scm_port_initialize(ScmObj port, ScmIO *io,
   SCM_PORT(port)->closed_p = false;
   SCM_PORT(port)->eof_received_p = false;
   SCM_PORT(port)->pb_used = 0;
+  SCM_PORT(port)->encoding = enc;
 
   scm_port_init_buffer(port, buf_mode); /* TODO: caller へのエラーの伝搬 */
 }
@@ -887,7 +890,8 @@ scm_port_finalize(ScmObj port)
 
 ScmObj
 scm_port_new(SCM_CAPI_MEM_TYPE_T mtype,
-             ScmIO *io, SCM_PORT_ATTR attr, SCM_PORT_BUF_MODE buf_mode)
+             ScmIO *io, SCM_PORT_ATTR attr, SCM_PORT_BUF_MODE buf_mode,
+             SCM_ENCODING_T enc)
 {
   ScmObj port = SCM_OBJ_INIT;
 
@@ -896,7 +900,7 @@ scm_port_new(SCM_CAPI_MEM_TYPE_T mtype,
 
   port = scm_capi_mem_alloc(&SCM_PORT_TYPE_INFO, mtype);
 
-  scm_port_initialize(port, io, attr, buf_mode);
+  scm_port_initialize(port, io, attr, buf_mode, enc);
 
   return port;
 }
@@ -905,14 +909,16 @@ ScmObj
 scm_port_open_input(ScmIO *io, SCM_PORT_ATTR attr, SCM_PORT_BUF_MODE buf_mode)
 {
   return scm_port_new(SCM_CAPI_MEM_HEAP,
-                      io, attr | SCM_PORT_ATTR_READABLE, buf_mode);
+                      io, attr | SCM_PORT_ATTR_READABLE, buf_mode,
+                      SCM_ENCODING_ASCII);
 }
 
 ScmObj
 scm_port_open_output(ScmIO *io, SCM_PORT_ATTR attr, SCM_PORT_BUF_MODE buf_mode)
 {
   return scm_port_new(SCM_CAPI_MEM_HEAP,
-                      io, attr | SCM_PORT_ATTR_WRITABLE, buf_mode);
+                      io, attr | SCM_PORT_ATTR_WRITABLE, buf_mode,
+                      SCM_ENCODING_ASCII);
 }
 
 ScmObj
@@ -1195,6 +1201,31 @@ scm_port_read_line(ScmObj port, void *buf, size_t size)
 
   return (ret < 0) ? ret : ret + pb_nr;
 }
+
+/* ssize_t */
+/* scm_port_read_char(ScmObj port, scm_char_t *chr) */
+/* { */
+/*   size_t len; */
+/*   scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO); */
+/*   scm_assert(chr != NULL); */
+
+/*   if (!scm_port_readable_p(port)) return -1; */
+/*   if (scm_port_closed_p(port)) return -1; */
+
+/*   len = 0; */
+/*   if (SCM_PORT(port)->pb_used > 0) { */
+/*     int (*func)(const void *p, size_t size) = */
+/*       SCM_ENCODING_VFUNC_CHAR_WIDTH(SCM_PORT(port)->encoding); */
+/*     ssize_t rslt = func(SCM_PORT(port)->pushback, SCM_PORT(port)->pb_used); */
+/*     if (rslt > 0) { */
+/*       scm_port_read_from_pushback_buf(port, chr->bytes, (size_t)rslt); */
+/*       return rslt; */
+/*     } */
+/*     else { */
+/*       scm_port_read_from_pushback_buf(port, chr->bytes, SCM_PORT(port)->pb_use */
+/*     } */
+/*   } */
+/* } */
 
 ssize_t
 scm_port_pushback(ScmObj port, const void *buf, size_t size)
