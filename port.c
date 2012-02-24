@@ -151,7 +151,6 @@ scm_fileio_end(ScmFileIO *fileio)
 {
   scm_assert(fileio != NULL);
 
-  scm_fileio_close(fileio);
   scm_capi_free(fileio);
 }
 
