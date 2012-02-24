@@ -42,6 +42,12 @@ cut_shutdown(void)
 }
 
 void
+cut_setup(void)
+{
+
+}
+
+void
 cut_teardown(void)
 {
   remove(TEST_OUTPUT_FILE);
@@ -1043,5 +1049,144 @@ test_scm_port_peek__none_buffer(void)
 
   xxx_test_scm_port_peek(port);
 }
+
+
+void
+xxx_test_scm_port_read_char(ScmObj port)
+{
+  ssize_t ret;
+  scm_char_t actual;
+
+  for (size_t i; i < sizeof(TEST_TEXT_FILE_CONTENTS) - 1; i++) {
+    ret = scm_port_read_char(port, &actual);
+
+    cut_assert_equal_int(1, ret);
+    cut_assert_equal_char(TEST_TEXT_FILE_CONTENTS[i], (char)actual.ascii);
+  }
+
+  ret = scm_port_read_char(port, &actual);
+
+  cut_assert_equal_int(0, ret);
+}
+
+void
+test_scm_port_read_char__full_buffer(void)
+{
+  ScmObj port = SCM_OBJ_INIT;;
+
+  port = scm_port_open_input_file(TEST_TEXT_FILE,
+                                  SCM_PORT_BUF_FULL);
+
+  xxx_test_scm_port_read_char(port);
+}
+
+void
+test_scm_port_read_char___line_buffer(void)
+{
+  ScmObj port = SCM_OBJ_INIT;;
+
+  port = scm_port_open_input_file(TEST_TEXT_FILE,
+                                  SCM_PORT_BUF_LINE);
+
+  xxx_test_scm_port_read_char(port);
+}
+
+void
+test_scm_port_read_char__modest_buffer(void)
+{
+  ScmObj port = SCM_OBJ_INIT;;
+
+  port = scm_port_open_input_file(TEST_TEXT_FILE,
+                                  SCM_PORT_BUF_MODEST);
+
+  xxx_test_scm_port_read_char(port);
+}
+
+void
+test_scm_port_read_char__none_buffer(void)
+{
+  ScmObj port = SCM_OBJ_INIT;;
+
+  port = scm_port_open_input_file(TEST_TEXT_FILE,
+                                  SCM_PORT_BUF_NONE);
+
+  xxx_test_scm_port_read_char(port);
+}
+
+void
+xxx_test_scm_port_peek_char(ScmObj port)
+{
+  ssize_t ret;
+  scm_char_t actual;
+
+  for (size_t i; i < sizeof(TEST_TEXT_FILE_CONTENTS) - 1; i++) {
+    ret = scm_port_peek_char(port, &actual);
+
+    cut_assert_equal_int(1, ret);
+    cut_assert_equal_char(TEST_TEXT_FILE_CONTENTS[i], (char)actual.ascii);
+
+    ret = scm_port_read_char(port, &actual);
+
+    cut_assert_equal_int(1, ret);
+    cut_assert_equal_char(TEST_TEXT_FILE_CONTENTS[i], (char)actual.ascii);
+  }
+
+  ret = scm_port_peek_char(port, &actual);
+
+  cut_assert_equal_int(0, ret);
+
+  ret = scm_port_read_char(port, &actual);
+
+  cut_assert_equal_int(0, ret);
+}
+
+void
+test_scm_port_peek_char__full_buffer(void)
+{
+  ScmObj port = SCM_OBJ_INIT;;
+
+  port = scm_port_open_input_file(TEST_TEXT_FILE,
+                                  SCM_PORT_BUF_FULL);
+
+  xxx_test_scm_port_peek_char(port);
+}
+
+void
+test_scm_port_peek_char__line_buffer(void)
+{
+  ScmObj port = SCM_OBJ_INIT;;
+
+  port = scm_port_open_input_file(TEST_TEXT_FILE,
+                                  SCM_PORT_BUF_LINE);
+
+  xxx_test_scm_port_peek_char(port);
+}
+
+void
+test_scm_port_peek_char__modest_buffer(void)
+{
+  ScmObj port = SCM_OBJ_INIT;;
+
+  port = scm_port_open_input_file(TEST_TEXT_FILE,
+                                  SCM_PORT_BUF_MODEST);
+
+  xxx_test_scm_port_peek_char(port);
+}
+
+void
+test_scm_port_peek_char__none_buffer(void)
+{
+  ScmObj port = SCM_OBJ_INIT;;
+
+  port = scm_port_open_input_file(TEST_TEXT_FILE,
+                                  SCM_PORT_BUF_NONE);
+
+  xxx_test_scm_port_peek_char(port);
+}
+
+
+
+
+
 
 

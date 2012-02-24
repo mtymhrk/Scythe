@@ -374,7 +374,7 @@ test_fileport.o: test_fileport.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-helper.h \
  /usr/local/include/cutter/cutter/cut-experimental.h ../vm.h ../object.h \
  ../memory.h ../basichash.h ../impl_utils.h ../reference.h \
- ../instractions.h ../port.h ../api.h ../encoding.h
+ ../instractions.h ../port.h ../encoding.h ../api.h
 test_stringport.o: test_stringport.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-version.h \
  /usr/local/include/cutter/cutter/cut-features.h \
@@ -390,7 +390,7 @@ test_stringport.o: test_stringport.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-helper.h \
  /usr/local/include/cutter/cutter/cut-experimental.h ../vm.h ../object.h \
  ../memory.h ../basichash.h ../impl_utils.h ../reference.h \
- ../instractions.h ../port.h ../api.h ../encoding.h
+ ../instractions.h ../port.h ../encoding.h ../api.h
 test_parser.o: test_parser.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-version.h \
  /usr/local/include/cutter/cutter/cut-features.h \

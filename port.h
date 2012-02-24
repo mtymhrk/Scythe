@@ -31,6 +31,7 @@ typedef enum {
 
 
 #include "object.h"
+#include "encoding.h"
 #include "api.h"
 
 /***************************************************************************/
@@ -146,12 +147,13 @@ ssize_t scm_port_size_up_to_lf(ScmObj port, const void *buf, size_t size);
 uint8_t *scm_port_pushback_buff_head(ScmObj port);
 size_t scm_port_pushback_buff_unused(ScmObj port);
 ssize_t scm_port_read_from_pushback_buf(ScmObj port, void *buf, size_t size);
-ssize_t scm_port_read_from_pushback_buf_lf(ScmObj port,
-                                           void *buf, size_t size,
-                                           bool *lf_exists_p);
+ssize_t scm_port_read_line_from_pushback_buf(ScmObj port,
+                                             void *buf, size_t size,
+                                             bool *lf_exists_p);
+ssize_t scm_port_read_char_from_pushback_buf(ScmObj port, scm_char_t *chr);
 ssize_t scm_port_read_buf(ScmObj port,
                           void *buf, size_t size, int mode);
-ssize_t scm_port_read_nonbuf_lf(ScmObj port, void *buf, size_t size);
+ssize_t scm_port_read_line_nonbuf(ScmObj port, void *buf, size_t size);
 ssize_t scm_port_read_nonbuf(ScmObj port, void *buf, size_t size);
 ssize_t scm_port_read_into_pushback_buf(ScmObj port, size_t size);
 ssize_t scm_port_write_buf(ScmObj port,
@@ -188,8 +190,10 @@ int scm_port_flush(ScmObj port);
 int scm_port_close(ScmObj port);
 ssize_t scm_port_read(ScmObj port, void *buf, size_t size);
 ssize_t scm_port_read_line(ScmObj port, void *buf, size_t size);
+ssize_t scm_port_read_char(ScmObj port, scm_char_t *chr);
 ssize_t scm_port_pushback(ScmObj port, const void *buf, size_t size);
 ssize_t scm_port_peek(ScmObj port, void *buf, size_t size);
+ssize_t scm_port_peek_char(ScmObj port, scm_char_t *chr);
 ssize_t scm_port_write(ScmObj port, const void *buf, size_t size);
 int scm_port_seek(ScmObj port, off_t offset, int whence);
 void *scm_port_string_buffer(ScmObj port);
