@@ -199,8 +199,11 @@ ScmObj scm_api_output_port_P(ScmObj port);
 int scm_api_close_input_port(ScmObj port);
 int scm_api_close_output_port(ScmObj port);
 ssize_t scm_capi_read_raw(ScmObj port, void *buf, size_t size);
-ssize_t scm_capi_unread_raw(ScmObj port, void *buf, size_t size);
+ssize_t scm_capi_read_char(ScmObj port, scm_char_t *chr);
+ssize_t scm_capi_unread_raw(ScmObj port, const void *buf, size_t size);
+ssize_t scm_capi_unread_char(ScmObj port, const scm_char_t *chr);
 ssize_t scm_capi_peek_raw(ScmObj port, void *buf, size_t size);
+ssize_t scm_capi_peek_char(ScmObj port, scm_char_t *chr);
 
 
 /*******************************************************************/

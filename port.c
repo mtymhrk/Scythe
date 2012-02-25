@@ -1286,7 +1286,7 @@ scm_port_read_char(ScmObj port, scm_char_t *chr)
       return -1;
     else if (r == 0) {
       if (SCM_PORT(port)->pb_used > 0)
-        return -1;                /* TODO: error handling (illigal sequence) */
+        return -1;                /* TODO: error handling (illegal sequence) */
       else
         return 0;
     }
@@ -1309,6 +1309,30 @@ scm_port_pushback(ScmObj port, const void *buf, size_t size)
   SCM_PORT(port)->pb_used += size;
 
   return (ssize_t)size;
+}
+
+ssize_t
+scm_port_pushback_char(ScmObj port, const scm_char_t *chr)
+{
+  const ScmEncVirtualFunc *vf;
+  ssize_t w;
+
+  scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
+  scm_assert(chr != NULL);
+
+  if (!scm_port_readable_p(port)) return -1;
+  if (scm_port_closed_p(port)) return -1;
+
+  vf = SCM_ENCODING_VFUNC(SCM_PORT(port)->encoding);
+  w = vf->char_width(chr->bytes, sizeof(scm_char_t));
+
+  if (w <= 0)
+    return -1;                  /* TODO: error handling (illegal sequnce) */
+
+  memcpy(scm_port_pushback_buff_head(port) - (size_t)w, chr->bytes, (size_t)w);
+  SCM_PORT(port)->pb_used += (size_t)w;
+
+  return w;
 }
 
 ssize_t
@@ -1357,7 +1381,7 @@ scm_port_peek_char(ScmObj port, scm_char_t *chr)
       return -1;
     else if (r == 0) {
       if (SCM_PORT(port)->pb_used > 0)
-        return -1;                /* TODO: error handling (illigal sequence) */
+        return -1;                /* TODO: error handling (illegal sequence) */
       else
         return 0;
     }
