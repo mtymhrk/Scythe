@@ -1142,6 +1142,13 @@ scm_port_ready_p(ScmObj port)
   }
 }
 
+SCM_ENCODING_T
+scm_port_encoding(ScmObj port)
+{
+  scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
+  return SCM_PORT(port)->encoding;
+}
+
 int
 scm_port_flush(ScmObj port)
 {

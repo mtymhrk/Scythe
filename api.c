@@ -687,6 +687,17 @@ scm_api_output_port_P(ScmObj port)
 }
 
 extern inline int
+scm_capi_port_encoding(ScmObj port, SCM_ENCODING_T *enc)
+{
+  if (scm_obj_null_p(port)
+      || !scm_obj_type_p(port, &SCM_PORT_TYPE_INFO))
+    return -1;                  /* provisional implemntation */
+
+  *enc = scm_port_encoding(port);
+  return 0;
+}
+
+extern inline int
 scm_api_close_input_port(ScmObj port)
 {
   if (scm_obj_null_p(port) || scm_capi_input_port_p(port))

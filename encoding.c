@@ -11,10 +11,12 @@ const ScmEncConstants SCM_ENCODING_CONST_ASCII =
   { {{'\n', 0x00, 0x00, 0x00}},     /* lf_char    */
     {{' ', 0x00, 0x00, 0x00}}   };  /* space_char */
 
-const ScmEncVirtualFunc SCM_ENCODING_VFUNC_ASCII =
-  { scm_enc_char_width_ascii, scm_enc_index2itr_ascii,
-    scm_enc_is_lf_ascii, scm_enc_is_space_ascii,
-    scm_enc_valid_char_p_ascii };
+const ScmEncVirtualFunc SCM_ENCODING_VFUNC_ASCII = {
+  scm_enc_char_width_ascii, scm_enc_index2itr_ascii,
+  scm_enc_is_lf_ascii, scm_enc_is_space_ascii,
+  scm_enc_valid_char_p_ascii, scm_enc_to_ascii_ascii,
+  scm_enc_ascii_to_ascii
+};
 
 
 /* Binary */
@@ -25,7 +27,8 @@ const ScmEncConstants SCM_ENCODING_CONST_BIN =
 const ScmEncVirtualFunc SCM_ENCODING_VFUNC_BIN = {
   scm_enc_char_width_bin, scm_enc_index2itr_bin,
   scm_enc_is_lf_bin, scm_enc_is_space_bin,
-  scm_enc_valid_char_p_binary
+  scm_enc_valid_char_p_binary, scm_enc_to_ascii_binary,
+  scm_enc_ascii_to_binary,
 };
 
 
@@ -37,7 +40,8 @@ const ScmEncConstants SCM_ENCODING_CONST_UTF8 =
 const ScmEncVirtualFunc SCM_ENCODING_VFUNC_UTF8 = {
   scm_enc_char_width_utf8, scm_enc_index2itr_utf8,
   scm_enc_is_lf_ascii, scm_enc_is_space_ascii,
-  scm_enc_valid_char_p_utf8
+  scm_enc_valid_char_p_utf8, scm_enc_to_ascii_utf8,
+  scm_enc_ascii_to_utf8
 };
 
 
@@ -49,7 +53,8 @@ const ScmEncConstants SCM_ENCODING_CONST_UCS4 =
 const ScmEncVirtualFunc SCM_ENCODING_VFUNC_UCS4 = {
   scm_enc_char_width_ucs4, scm_enc_index2itr_ucs4,
   scm_enc_is_lf_ucs4, scm_enc_is_space_ucs4,
-  scm_enc_valid_char_p_ucs4
+  scm_enc_valid_char_p_ucs4, scm_enc_to_ascii_ucs4,
+  scm_enc_ascii_to_ucs4
 };
 
 
@@ -61,7 +66,8 @@ const ScmEncConstants SCM_ENCODING_CONST_EUCJP =
 const ScmEncVirtualFunc SCM_ENCODING_VFUNC_EUCJP = {
   scm_enc_char_width_eucjp, scm_enc_index2itr_eucjp,
   scm_enc_is_lf_ascii, scm_enc_is_space_ascii,
-  scm_enc_valid_char_p_eucjp
+  scm_enc_valid_char_p_eucjp, scm_enc_to_ascii_eucjp,
+  scm_enc_ascii_to_eucjp
 };
 
 
@@ -73,7 +79,8 @@ const ScmEncConstants SCM_ENCODING_CONST_SJIS =
 const ScmEncVirtualFunc SCM_ENCODING_VFUNC_SJIS = {
   scm_enc_char_width_sjis, scm_enc_index2itr_sjis,
   scm_enc_is_lf_ascii, scm_enc_is_space_ascii,
-  scm_enc_valid_char_p_sjis
+  scm_enc_valid_char_p_sjis, scm_enc_to_ascii_sjis,
+  scm_enc_ascii_to_sjis
 };
 
 
@@ -237,6 +244,25 @@ scm_enc_valid_char_p_ascii(scm_char_t c)
   return IS_VALID_ASCII(c.bytes[0]) ? true : false;
 }
 
+int
+scm_enc_to_ascii_ascii(scm_char_t c)
+{
+  return IS_VALID_ASCII(c.bytes[0]) ? c.bytes[0] : -1;
+}
+
+ssize_t
+scm_enc_ascii_to_ascii(char ascii, scm_char_t *chr)
+{
+  if (IS_VALID_ASCII((uint8_t)ascii)) {
+    chr->ascii = (uint8_t)ascii;
+    return 1;
+  }
+  else {
+    return -1;
+  }
+}
+
+
 /***********************************************************************/
 /*   BINARY                                                            */
 /***********************************************************************/
@@ -278,6 +304,20 @@ scm_enc_valid_char_p_binary(scm_char_t c)
 {
   return true;
 }
+
+int
+scm_enc_to_ascii_binary(scm_char_t c)
+{
+  return -1;
+}
+
+ssize_t
+scm_enc_ascii_to_binary(char ascii, scm_char_t *chr)
+{
+  chr->bin = (uint8_t)ascii;
+  return 1;
+}
+
 
 /***********************************************************************/
 /*   UTF-8                                                             */
@@ -362,6 +402,24 @@ scm_enc_valid_char_p_utf8(scm_char_t c)
            || IS_VALID_UTF8_3(c.bytes)
            || IS_VALID_UTF8_4(c.bytes)) ?
           true : false);
+}
+
+int
+scm_enc_to_ascii_utf8(scm_char_t c)
+{
+  return IS_VALID_UTF8_1(c.bytes) ? c.bytes[0] : -1;
+}
+
+ssize_t
+scm_enc_ascii_to_utf8(char ascii, scm_char_t *chr)
+{
+  if (IS_VALID_ASCII((uint8_t)ascii)) {
+    chr->bytes[0] = (uint8_t)ascii;
+    return 1;
+  }
+  else {
+    return -1;
+  }
 }
 
 /***********************************************************************/
@@ -455,6 +513,24 @@ scm_enc_valid_char_p_ucs4(scm_char_t c)
   return IS_VALID_UCS4(c.ucs4) ? true : false;
 }
 
+int
+scm_enc_to_ascii_ucs4(scm_char_t c)
+{
+  return (/* 0x00 <= c.ucs4 && */ c.ucs4 <= 0x7f) ? (int)c.ucs4 : -1;
+}
+
+ssize_t
+scm_enc_ascii_to_ucs4(char ascii, scm_char_t *chr)
+{
+  if (IS_VALID_ASCII((uint8_t)ascii)) {
+    chr->ucs4 = (scm_char_ucs4_t)ascii;
+    return 4;
+  }
+  else {
+    return -1;
+  }
+}
+
 /***********************************************************************/
 /*   EUC-JP-JIS-2004                                                   */
 /***********************************************************************/
@@ -535,14 +611,32 @@ scm_enc_valid_char_p_eucjp(scm_char_t c)
           true : false);
 }
 
+int
+scm_enc_to_ascii_eucjp(scm_char_t c)
+{
+  return IS_VALID_EUC_JP_ASCII(c.bytes) ? c.bytes[0] : -1;
+}
+
+ssize_t
+scm_enc_ascii_to_eucjp(char ascii, scm_char_t *chr)
+{
+  if (IS_VALID_ASCII((uint8_t)ascii)) {
+    chr->bytes[0] = (uint8_t)ascii;
+    return 1;
+  }
+  else {
+    return -1;
+  }
+}
+
 /***********************************************************************/
 /*   SJIS                                                              */
 /***********************************************************************/
 
 /* XXX: inexact? */
-#define IS_VALID_SJIS_ASCII(sjis)               \
+#define IS_VALID_SJIS_JIS_X_0201_LATIN(sjis)     \
   (/* 0x00 <= (euc)[0] && */(sjis)[0] <= 0x7f)
-#define IS_VALID_SJIS_KANA(sjis)                \
+#define IS_VALID_SJIS_JIS_X_0201_KATAKANA(sjis) \
   (0xa1 <= (sjis)[0] && (sjis)[0] <= 0xdf)
 #define IS_VALID_SJIS_2_FIRST_BYTE(sjis)                \
   ((0x81 <= (sjis)[0] && (sjis)[0] <= 0x9f)             \
@@ -563,10 +657,10 @@ scm_enc_char_width_sjis(const void *str, size_t len)
   else if (len < 1) {
     return 0;
   }
-  else if (IS_VALID_SJIS_ASCII(sjis)) {
+  else if (IS_VALID_SJIS_JIS_X_0201_LATIN(sjis)) {
     return 1;
   }
-  else if (IS_VALID_SJIS_KANA(sjis)) {
+  else if (IS_VALID_SJIS_JIS_X_0201_KATAKANA(sjis)) {
     return 1;
   }
   else if (IS_VALID_SJIS_2_FIRST_BYTE(sjis)) {
@@ -592,8 +686,26 @@ scm_enc_index2itr_sjis(void *str, size_t size, size_t idx)
 bool
 scm_enc_valid_char_p_sjis(scm_char_t c)
 {
-  return ((IS_VALID_SJIS_ASCII(c.bytes)
-           || IS_VALID_SJIS_KANA(c.bytes)
+  return ((IS_VALID_SJIS_JIS_X_0201_LATIN(c.bytes)
+           || IS_VALID_SJIS_JIS_X_0201_KATAKANA(c.bytes)
            || IS_VALID_SJIS_2(c.bytes)) ?
           true : false);
+}
+
+int
+scm_enc_to_ascii_sjis(scm_char_t c)
+{
+  return (IS_VALID_SJIS_JIS_X_0201_LATIN(c.bytes)) ? c.bytes[0] : -1;
+}
+
+ssize_t
+scm_enc_ascii_to_sjis(char ascii, scm_char_t *chr)
+{
+  if (IS_VALID_ASCII((uint8_t)ascii)) {
+    chr->bytes[0] = (uint8_t)ascii;
+    return 1;
+  }
+  else {
+    return -1;
+  }
 }

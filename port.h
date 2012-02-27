@@ -186,6 +186,7 @@ bool scm_port_file_port_p(ScmObj port);
 bool scm_port_string_port_p(ScmObj port);
 bool scm_port_closed_p(ScmObj port);
 bool scm_port_ready_p(ScmObj port);
+SCM_ENCODING_T scm_port_encoding(ScmObj port);
 int scm_port_flush(ScmObj port);
 int scm_port_close(ScmObj port);
 ssize_t scm_port_read(ScmObj port, void *buf, size_t size);

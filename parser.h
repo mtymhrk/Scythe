@@ -40,18 +40,17 @@ typedef enum {
 
 struct ScmTokenRec {
   SCM_TOKEN_TYPE_T type;
-  char *string;
-  size_t size;
+  struct {
+    void *str;
+    size_t size;
+    size_t len;
+  } raw;
+  struct {
+    char *str;
+    size_t len;
+  } ascii;
   ScmToken *next;
 };
-
-#define SCM_TOKEN(obj) ((ScmToken *)(obj))
-#define SCM_TOKEN_TYPE(token) ((token)->type)
-#define SCM_TOKEN_STRING(token) ((token)->string)
-
-ScmToken *scm_token_new(SCM_TOKEN_TYPE_T type,
-                        const char *string, size_t size);
-void scm_token_end(ScmToken *token);
 
 
 /****************************************************************************/
@@ -66,9 +65,17 @@ typedef enum {
 } SCM_LEXER_ERR_TYPE_T;
 
 struct ScmLexerRec {
-  char *buffer;
-  size_t buf_capacity;
-  size_t buf_used;
+  struct {
+    void *head;
+    size_t capacity;
+    size_t used;
+    size_t len;
+  } buf;
+  struct {
+    char *head;
+    size_t capacity;
+    size_t len;
+  } ascii;
   SCM_TOKEN_TYPE_T token_type;
   ScmToken *tokens_head;
   ScmToken *tokens_tail;
@@ -79,7 +86,7 @@ ScmLexer *scm_lexer_new(void);
 ScmLexer *scm_lexer_end(ScmLexer *lexer);
 ScmToken *scm_lexer_head_token(ScmLexer *lexer, ScmObj port);
 void scm_lexer_shift_token(ScmLexer *lexer);
-void scm_lexer_error_state_clear(ScmLexer *lexer);
+void scm_lexer_clear_error_state(ScmLexer *lexer);
 bool scm_lexer_error_p(ScmLexer *lexer);
 SCM_LEXER_ERR_TYPE_T scm_lexer_error_type(ScmLexer *lexer);
 

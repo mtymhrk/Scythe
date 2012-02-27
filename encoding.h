@@ -94,6 +94,8 @@ typedef struct ScmStrVirtualFunc {
   bool (*is_lf)(scm_char_t c);
   bool (*is_space)(scm_char_t c);
   bool (*valid_char_p)(scm_char_t c);
+  int (*to_ascii)(scm_char_t c);
+  ssize_t (*ascii_to)(char ascii, scm_char_t *chr);
 } ScmEncVirtualFunc;
 
 extern const ScmEncVirtualFunc SCM_ENCODING_VFUNC_ASCII;
@@ -123,6 +125,8 @@ ScmStrItr scm_enc_index2itr_ascii(void *str, size_t size, size_t idx);
 bool scm_enc_is_lf_ascii(scm_char_t c);
 bool scm_enc_is_space_ascii(scm_char_t c);
 bool scm_enc_valid_char_p_ascii(scm_char_t c);
+int scm_enc_to_ascii_ascii(scm_char_t c);
+ssize_t scm_enc_ascii_to_ascii(char ascii, scm_char_t *chr);
 
 /* BINARY */
 int scm_enc_char_width_bin(const void *str, size_t len);
@@ -130,11 +134,15 @@ ScmStrItr scm_enc_index2itr_bin(void *str, size_t size, size_t idx);
 bool scm_enc_is_lf_bin(scm_char_t c);
 bool scm_enc_is_space_bin(scm_char_t c);
 bool scm_enc_valid_char_p_binary(scm_char_t c);
+int scm_enc_to_ascii_binary(scm_char_t c);
+ssize_t scm_enc_ascii_to_binary(char ascii, scm_char_t *chr);
 
 /* UTF-8 */
 int scm_enc_char_width_utf8(const void *str, size_t len);
 ScmStrItr scm_enc_index2itr_utf8(void *str, size_t size, size_t idx);
 bool scm_enc_valid_char_p_utf8(scm_char_t c);
+int scm_enc_to_ascii_utf8(scm_char_t c);
+ssize_t scm_enc_ascii_to_utf8(char ascii, scm_char_t *chr);
 
 /* UCS4 */
 int scm_enc_char_width_ucs4(const void *str, size_t len);
@@ -144,16 +152,21 @@ ssize_t scm_enc_utf8_to_ucs4(const uint8_t *utf8, size_t utf8_len,
 bool scm_enc_is_lf_ucs4(scm_char_t c);
 bool scm_enc_is_space_ucs4(scm_char_t c);
 bool scm_enc_valid_char_p_ucs4(scm_char_t c);
+int scm_enc_to_ascii_ucs4(scm_char_t c);
+ssize_t scm_enc_ascii_to_ucs4(char ascii, scm_char_t *chr);
 
 /* EUC-JP */
 int scm_enc_char_width_eucjp(const void *str, size_t len);
 ScmStrItr scm_enc_index2itr_eucjp(void *str, size_t size, size_t idx);
 bool scm_enc_valid_char_p_eucjp(scm_char_t c);
+int scm_enc_to_ascii_eucjp(scm_char_t c);
+ssize_t scm_enc_ascii_to_eucjp(char ascii, scm_char_t *chr);
 
 /* SJIS */
 int scm_enc_char_width_sjis(const void *str, size_t len);
 ScmStrItr scm_enc_index2itr_sjis(void *str, size_t size, size_t idx);
 bool scm_enc_valid_char_p_sjis(scm_char_t c);
-
+int scm_enc_to_ascii_sjis(scm_char_t c);
+ssize_t scm_enc_ascii_to_sjis(char ascii, scm_char_t *chr);
 
 #endif /* INCLUDED_ENCODING_H__ */
