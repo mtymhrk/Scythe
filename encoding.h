@@ -116,7 +116,7 @@ extern const ScmEncVirtualFunc *SCM_ENCODING_VFUNC_TBL[];
 
 ScmStrItr scm_str_itr_begin(void *p, size_t size,
                              int (*char_width)(const void *p, size_t size));
-ScmStrItr scm_str_itr_next(const ScmStrItr *iter);
+void scm_str_itr_next(ScmStrItr *iter);
 
 
 /* ASCII */

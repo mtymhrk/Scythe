@@ -770,7 +770,7 @@ scm_lexer_tokenize(ScmLexer *lexer, ScmObj port)
     return -1;
 
   if (scm_capi_port_encoding(port, &enc) < 0)
-    ;                           /* TODO: error handling */
+    return -1;                           /* TODO: error handling */
 
   vf = SCM_ENCODING_VFUNC(enc);
 
@@ -1261,9 +1261,7 @@ scm_parser_parse_char(ScmParser *parser, ScmObj port)
       return SCM_OBJ_NULL;
     }
 
-    memcpy(c.bytes, SCM_STR_ITR_PTR(&itr),
-           (size_t)vf->char_width(SCM_STR_ITR_PTR(&itr),
-                                  (size_t)SCM_STR_ITR_REST(&itr)));
+    memcpy(c.bytes, SCM_STR_ITR_PTR(&itr), (size_t)SCM_STR_ITR_WIDTH(&itr));
     chr = scm_capi_make_char(c);
   }
   else {

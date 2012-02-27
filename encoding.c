@@ -130,27 +130,29 @@ scm_str_itr_begin(void *p, size_t size,
   return iter;
 }
 
-ScmStrItr
-scm_str_itr_next(const ScmStrItr *iter)
+void
+scm_str_itr_next(ScmStrItr *iter)
 {
   ScmStrItr next;
-  int w;
+  ssize_t w;
 
   next.p = NULL;
   next.rest = -1;
   next.char_width = NULL;
 
-  if (iter == NULL) return next;
-  if (iter->rest <= 0) return *iter;
+  if (iter == NULL) return;
+  if (iter->rest <= 0) return;
 
   w = SCM_STR_ITR_WIDTH(iter);
-  if (w <= 0) return next;
+  if (w <= 0) {
+    iter->p = NULL;
+    iter->rest = -1;
+    iter->char_width = NULL;
+    return;
+  }
 
-  next.p = (uint8_t *)iter->p + w;
-  next.rest = iter->rest - w;
-  next.char_width = iter->char_width;
-
-  return next;
+  iter->p = (uint8_t *)iter->p + w;
+  iter->rest = iter->rest - w;
 }
 
 static ScmStrItr
@@ -189,7 +191,7 @@ scm_enc_index2itr_variable_width(void *str, size_t size,
 
   i = 0;
   while (!SCM_STR_ITR_IS_END(&iter) && i < idx) {
-    iter = scm_str_itr_next(&iter);
+    scm_str_itr_next(&iter);
     if (SCM_STR_ITR_IS_ERR(&iter)) return iter;
     i++;
   }

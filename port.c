@@ -616,7 +616,7 @@ scm_port_size_up_to_lf(ScmObj port, const void *buf, size_t size)
     if (memcmp(lf.bytes, SCM_STR_ITR_PTR(&iter), (size_t)w) == 0)
       return len;
 
-    iter = scm_str_itr_next(&iter);
+    scm_str_itr_next(&iter);
     if (SCM_STR_ITR_IS_ERR(&iter))
       return -1; /* TODO: error handling (illegal sequence) */
   }

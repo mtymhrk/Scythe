@@ -41,7 +41,7 @@ scm_string_check_bytes(void *str, size_t size,
   len = 0;
   while (!SCM_STR_ITR_IS_END(&iter)) {
     len++;
-    iter = scm_str_itr_next(&iter);
+    scm_str_itr_next(&iter);
     if (SCM_STR_ITR_IS_ERR(&iter)) return -1;
   }
 
@@ -526,7 +526,7 @@ scm_string_find_chr(ScmObj str, scm_char_t c) /* GC OK */
     if ((cw == w) && (memcmp(&c, SCM_STR_ITR_PTR(&iter), (size_t)cw) == 0))
       return pos;
 
-    iter = scm_str_itr_next(&iter);
+    scm_str_itr_next(&iter);
     if (SCM_STR_ITR_IS_ERR(&iter)) return -1;
 
     pos++;
@@ -578,17 +578,17 @@ scm_string_match(ScmObj str, ScmObj pat) /* GC OK */
                  (size_t)SCM_STR_ITR_WIDTH(&iter_str_inn)) != 0)
         break;
 
-      iter_str_inn = scm_str_itr_next(&iter_str_inn);
+      scm_str_itr_next(&iter_str_inn);
       if (SCM_STR_ITR_IS_ERR(&iter_str_inn)) return -1;
 
-      iter_pat = scm_str_itr_next(&iter_pat);
+      scm_str_itr_next(&iter_pat);
       if (SCM_STR_ITR_IS_ERR(&iter_pat)) return -1;
     }
 
     if (SCM_STR_ITR_IS_END(&iter_pat))
       return pos;
 
-    iter_str_ext = scm_str_itr_next(&iter_str_ext);
+    scm_str_itr_next(&iter_str_ext);
     if (SCM_STR_ITR_IS_ERR(&iter_str_ext)) return -1;;
 
     pos++;
