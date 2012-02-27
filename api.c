@@ -622,20 +622,22 @@ extern inline ScmObj
 scm_capi_open_input_fd_port(int fd) /* TODO: バッファ種別を指定できるようにする*/
 {
   if (fd < 0) return SCM_OBJ_NULL; /* provisional implemntation */
-  return scm_port_open_input_fd(fd, SCM_PORT_BUF_DEFAULT);
+  return scm_port_open_input_fd(fd, SCM_PORT_BUF_DEFAULT, SCM_ENCODING_ASCII);
 }
 
 extern inline ScmObj
 scm_capi_open_output_fd_port(int fd)/* TODO: バッファ種別を指定できるようにする*/
 {
   if (fd < 0) return SCM_OBJ_NULL; /* provisional implemntation */
-  return scm_port_open_output_fd(fd, SCM_PORT_BUF_DEFAULT);
+  return scm_port_open_output_fd(fd, SCM_PORT_BUF_DEFAULT, SCM_ENCODING_ASCII);
 }
 
 extern inline ScmObj
 scm_capi_open_input_string_port_from_cstr(const char *str)
 {
-  return scm_port_open_input_string(str, (str == NULL)? 0 : strlen(str));
+  return scm_port_open_input_string(str,
+                                    (str == NULL)? 0 : strlen(str),
+                                    SCM_ENCODING_ASCII);
 }
 
 extern inline bool

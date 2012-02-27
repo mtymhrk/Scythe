@@ -973,23 +973,23 @@ scm_port_new(SCM_CAPI_MEM_TYPE_T mtype,
 }
 
 ScmObj
-scm_port_open_input(ScmIO *io, SCM_PORT_ATTR attr, SCM_PORT_BUF_MODE buf_mode)
+scm_port_open_input(ScmIO *io, SCM_PORT_ATTR attr,
+                    SCM_PORT_BUF_MODE buf_mode, SCM_ENCODING_T enc)
 {
   return scm_port_new(SCM_CAPI_MEM_HEAP,
-                      io, attr | SCM_PORT_ATTR_READABLE, buf_mode,
-                      SCM_ENCODING_ASCII);
+                      io, attr | SCM_PORT_ATTR_READABLE, buf_mode, enc);
 }
 
 ScmObj
-scm_port_open_output(ScmIO *io, SCM_PORT_ATTR attr, SCM_PORT_BUF_MODE buf_mode)
+scm_port_open_output(ScmIO *io, SCM_PORT_ATTR attr,
+                     SCM_PORT_BUF_MODE buf_mode, SCM_ENCODING_T enc)
 {
   return scm_port_new(SCM_CAPI_MEM_HEAP,
-                      io, attr | SCM_PORT_ATTR_WRITABLE, buf_mode,
-                      SCM_ENCODING_ASCII);
+                      io, attr | SCM_PORT_ATTR_WRITABLE, buf_mode, enc);
 }
 
 ScmObj
-scm_port_open_input_fd(int fd,  SCM_PORT_BUF_MODE buf_mode)
+scm_port_open_input_fd(int fd, SCM_PORT_BUF_MODE buf_mode, SCM_ENCODING_T enc)
 {
   ScmIO *io;
 
@@ -998,13 +998,11 @@ scm_port_open_input_fd(int fd,  SCM_PORT_BUF_MODE buf_mode)
   io = (ScmIO *)scm_fileio_new(fd);
   if (io == NULL) return SCM_OBJ_NULL;
 
-  return scm_port_open_input(io,
-                             SCM_PORT_ATTR_FILE,
-                             buf_mode);
+  return scm_port_open_input(io, SCM_PORT_ATTR_FILE, buf_mode, enc);
 }
 
 ScmObj
-scm_port_open_output_fd(int fd, SCM_PORT_BUF_MODE buf_mode)
+scm_port_open_output_fd(int fd, SCM_PORT_BUF_MODE buf_mode, SCM_ENCODING_T enc)
 {
   ScmIO *io;
 
@@ -1013,14 +1011,13 @@ scm_port_open_output_fd(int fd, SCM_PORT_BUF_MODE buf_mode)
   io = (ScmIO *)scm_fileio_new(fd);
   if (io == NULL) return SCM_OBJ_NULL;
 
-  return scm_port_open_output(io,
-                              SCM_PORT_ATTR_FILE,
-                              buf_mode);
+  return scm_port_open_output(io, SCM_PORT_ATTR_FILE, buf_mode, enc);
 }
 
 
 ScmObj
-scm_port_open_input_file(const char *path, SCM_PORT_BUF_MODE buf_mode)
+scm_port_open_input_file(const char *path,
+                         SCM_PORT_BUF_MODE buf_mode, SCM_ENCODING_T enc)
 {
   ScmIO *io;
 
@@ -1029,13 +1026,12 @@ scm_port_open_input_file(const char *path, SCM_PORT_BUF_MODE buf_mode)
   io = (ScmIO *)scm_fileio_open(path, O_RDONLY, 0);
   if (io == NULL) return SCM_OBJ_NULL;
 
-  return scm_port_open_input(io,
-                             SCM_PORT_ATTR_FILE,
-                             buf_mode);
+  return scm_port_open_input(io, SCM_PORT_ATTR_FILE, buf_mode, enc);
 }
 
 ScmObj
-scm_port_open_output_file(const char *path, SCM_PORT_BUF_MODE buf_mode)
+scm_port_open_output_file(const char *path,
+                          SCM_PORT_BUF_MODE buf_mode, SCM_ENCODING_T enc)
 {
   ScmIO *io;
 
@@ -1044,13 +1040,11 @@ scm_port_open_output_file(const char *path, SCM_PORT_BUF_MODE buf_mode)
   io = (ScmIO *)scm_fileio_open(path, O_WRONLY | O_CREAT, 00644);
   if (io == NULL) return SCM_OBJ_NULL;
 
-  return scm_port_open_output(io,
-                              SCM_PORT_ATTR_FILE,
-                              buf_mode);
+  return scm_port_open_output(io, SCM_PORT_ATTR_FILE, buf_mode, enc);
 }
 
 ScmObj
-scm_port_open_input_string(const void *string, size_t size)
+scm_port_open_input_string(const void *string, size_t size, SCM_ENCODING_T enc)
 {
   ScmIO *io;
 
@@ -1059,22 +1053,20 @@ scm_port_open_input_string(const void *string, size_t size)
   io = (ScmIO *)scm_stringio_new(string, size);
   if (io == NULL) return SCM_OBJ_NULL;
 
-  return scm_port_open_input(io,
-                             SCM_PORT_ATTR_STRING,
-                             SCM_PORT_BUF_DEFAULT);
+  return scm_port_open_input(io, SCM_PORT_ATTR_STRING,
+                             SCM_PORT_BUF_DEFAULT, enc);
 }
 
 ScmObj
-scm_port_open_output_string(void)
+scm_port_open_output_string(SCM_ENCODING_T enc)
 {
   ScmIO *io;
 
   io = (ScmIO *)scm_stringio_new(NULL, 0);
   if (io == NULL) return SCM_OBJ_NULL;
 
-  return scm_port_open_output(io,
-                              SCM_PORT_ATTR_STRING,
-                              SCM_PORT_BUF_DEFAULT);
+  return scm_port_open_output(io, SCM_PORT_ATTR_STRING,
+                              SCM_PORT_BUF_DEFAULT, enc);
 }
 
 bool
