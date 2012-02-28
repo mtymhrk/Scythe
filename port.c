@@ -106,7 +106,7 @@ scm_io_ready_p(ScmIO *io)
   return (io->ready_p_func != NULL) ? io->ready_p_func(io) : 1;
 }
 
-SCM_PORT_BUF_MODE
+SCM_PORT_BUF_T
 scm_io_default_buffer_mode(ScmIO *io)
 {
   scm_assert(io != NULL);
@@ -239,7 +239,7 @@ scm_fileio_close(ScmFileIO *fileio)
   return n;
 }
 
-SCM_PORT_BUF_MODE
+SCM_PORT_BUF_T
 scm_fileio_default_buffer_mode(ScmFileIO *fileio)
 {
   struct stat st;
@@ -451,7 +451,7 @@ scm_stringio_close(ScmStringIO *strio)
   return 0;
 }
 
-SCM_PORT_BUF_MODE
+SCM_PORT_BUF_T
 scm_stringio_default_buffer_mode(ScmStringIO *strio)
 {
   scm_assert(strio != NULL);
@@ -476,7 +476,7 @@ scm_stringio_length(ScmStringIO *strio)
 }
 
 scm_local_func int
-scm_port_init_buffer(ScmObj port, SCM_PORT_BUF_MODE buf_mode)
+scm_port_init_buffer(ScmObj port, SCM_PORT_BUF_T buf_mode)
 {
   ssize_t s;
 
@@ -922,7 +922,7 @@ scm_port_write_buf(ScmObj port, const void *buf, size_t size)
 
 void
 scm_port_initialize(ScmObj port, ScmIO *io,
-                    SCM_PORT_ATTR attr, SCM_PORT_BUF_MODE buf_mode,
+                    SCM_PORT_ATTR attr, SCM_PORT_BUF_T buf_mode,
                     SCM_ENCODING_T enc)
 {
   scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
@@ -957,13 +957,14 @@ scm_port_finalize(ScmObj port)
 
 ScmObj
 scm_port_new(SCM_CAPI_MEM_TYPE_T mtype,
-             ScmIO *io, SCM_PORT_ATTR attr, SCM_PORT_BUF_MODE buf_mode,
+             ScmIO *io, SCM_PORT_ATTR attr, SCM_PORT_BUF_T buf_mode,
              SCM_ENCODING_T enc)
 {
   ScmObj port = SCM_OBJ_INIT;
 
   scm_assert(io != NULL);
   scm_assert(/* buf_mode >= 0 && */ buf_mode < SCM_PORT_NR_BUF_MODE);
+  scm_assert(/* 0 <= enc && */ enc < SCM_ENC_NR_ENC);
 
   port = scm_capi_mem_alloc(&SCM_PORT_TYPE_INFO, mtype);
 
@@ -974,7 +975,7 @@ scm_port_new(SCM_CAPI_MEM_TYPE_T mtype,
 
 ScmObj
 scm_port_open_input(ScmIO *io, SCM_PORT_ATTR attr,
-                    SCM_PORT_BUF_MODE buf_mode, SCM_ENCODING_T enc)
+                    SCM_PORT_BUF_T buf_mode, SCM_ENCODING_T enc)
 {
   return scm_port_new(SCM_CAPI_MEM_HEAP,
                       io, attr | SCM_PORT_ATTR_READABLE, buf_mode, enc);
@@ -982,14 +983,14 @@ scm_port_open_input(ScmIO *io, SCM_PORT_ATTR attr,
 
 ScmObj
 scm_port_open_output(ScmIO *io, SCM_PORT_ATTR attr,
-                     SCM_PORT_BUF_MODE buf_mode, SCM_ENCODING_T enc)
+                     SCM_PORT_BUF_T buf_mode, SCM_ENCODING_T enc)
 {
   return scm_port_new(SCM_CAPI_MEM_HEAP,
                       io, attr | SCM_PORT_ATTR_WRITABLE, buf_mode, enc);
 }
 
 ScmObj
-scm_port_open_input_fd(int fd, SCM_PORT_BUF_MODE buf_mode, SCM_ENCODING_T enc)
+scm_port_open_input_fd(int fd, SCM_PORT_BUF_T buf_mode, SCM_ENCODING_T enc)
 {
   ScmIO *io;
 
@@ -1002,7 +1003,7 @@ scm_port_open_input_fd(int fd, SCM_PORT_BUF_MODE buf_mode, SCM_ENCODING_T enc)
 }
 
 ScmObj
-scm_port_open_output_fd(int fd, SCM_PORT_BUF_MODE buf_mode, SCM_ENCODING_T enc)
+scm_port_open_output_fd(int fd, SCM_PORT_BUF_T buf_mode, SCM_ENCODING_T enc)
 {
   ScmIO *io;
 
@@ -1017,7 +1018,7 @@ scm_port_open_output_fd(int fd, SCM_PORT_BUF_MODE buf_mode, SCM_ENCODING_T enc)
 
 ScmObj
 scm_port_open_input_file(const char *path,
-                         SCM_PORT_BUF_MODE buf_mode, SCM_ENCODING_T enc)
+                         SCM_PORT_BUF_T buf_mode, SCM_ENCODING_T enc)
 {
   ScmIO *io;
 
@@ -1031,7 +1032,7 @@ scm_port_open_input_file(const char *path,
 
 ScmObj
 scm_port_open_output_file(const char *path,
-                          SCM_PORT_BUF_MODE buf_mode, SCM_ENCODING_T enc)
+                          SCM_PORT_BUF_T buf_mode, SCM_ENCODING_T enc)
 {
   ScmIO *io;
 

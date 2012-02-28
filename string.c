@@ -190,7 +190,7 @@ scm_string_new(SCM_CAPI_MEM_TYPE_T mtype, const void *src, size_t size, SCM_ENCO
   SCM_STACK_FRAME_PUSH(&str);
   scm_assert(size <= SSIZE_MAX);
 
-  scm_assert(/*0 <= enc && */enc < SMC_ENCODING_NR_ENC);
+  scm_assert(/*0 <= enc && */enc < SCM_ENC_NR_ENC);
 
   str = scm_capi_mem_alloc(&SCM_STRING_TYPE_INFO, mtype);
 

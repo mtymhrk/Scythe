@@ -24,7 +24,7 @@ void
 scm_char_initialize(ScmObj chr, scm_char_t value, SCM_ENCODING_T enc) /* GC OK */
 {
   scm_assert_obj_type(chr, &SCM_CHAR_TYPE_INFO);
-  scm_assert(/* 0 <= enc && */ enc < SMC_ENCODING_NR_ENC);
+  scm_assert(/* 0 <= enc && */ enc < SCM_ENC_NR_ENC);
 
   SCM_CHAR_VALUE(chr) = value;
   SCM_CHAR_ENC(chr) = enc;
@@ -44,7 +44,7 @@ scm_char_new(SCM_CAPI_MEM_TYPE_T mtype,
 
   SCM_STACK_FRAME_PUSH(&chr);
 
-  scm_assert(/* 0 <= enc && */ enc < SMC_ENCODING_NR_ENC);
+  scm_assert(/* 0 <= enc && */ enc < SCM_ENC_NR_ENC);
 
   chr = scm_capi_mem_alloc(&SCM_CHAR_TYPE_INFO, mtype);
   if (scm_obj_null_p(chr)) return SCM_OBJ_NULL;

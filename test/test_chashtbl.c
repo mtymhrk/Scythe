@@ -70,7 +70,7 @@ test_scm_chash_tbl_insert__insert_new_entry(void)
                            hash_func, scm_chash_tbl_cmp_func_eq);
 
   key1 = scm_string_new(SCM_CAPI_MEM_HEAP,
-                        "foo", sizeof("foo"), SCM_ENCODING_ASCII);
+                        "foo", sizeof("foo"), SCM_ENC_ASCII);
   val1 = scm_symbol_new(SCM_CAPI_MEM_HEAP, key1);
 
   /* action */
@@ -107,10 +107,10 @@ test_scm_chash_tbl_insert__insert_an_entry_already_registered(void)
                           hash_func, scm_chash_tbl_cmp_func_eq);
 
   key1 = scm_string_new(SCM_CAPI_MEM_HEAP,
-                                "foo", sizeof("foo"), SCM_ENCODING_ASCII);
+                                "foo", sizeof("foo"), SCM_ENC_ASCII);
   val1 = scm_symbol_new(SCM_CAPI_MEM_HEAP, key1);
   val2 = scm_string_new(SCM_CAPI_MEM_HEAP,
-                                "bar", sizeof("bar"), SCM_ENCODING_ASCII);
+                                "bar", sizeof("bar"), SCM_ENC_ASCII);
 
   cut_assert_equal_int(0, scm_chash_tbl_insert(tbl, key1, val1));
 
@@ -146,7 +146,7 @@ test_scm_chash_tbl_update__update_new_entry(void)
                            hash_func, scm_chash_tbl_cmp_func_eq);
 
   key1 = scm_string_new(SCM_CAPI_MEM_HEAP,
-                                "foo", sizeof("foo"), SCM_ENCODING_ASCII);
+                                "foo", sizeof("foo"), SCM_ENC_ASCII);
   val1 = scm_symbol_new(SCM_CAPI_MEM_HEAP, key1);
 
   /* action */
@@ -183,10 +183,10 @@ test_scm_chash_tbl_update__update_an_entry_already_registered(void)
                           hash_func, scm_chash_tbl_cmp_func_eq);
 
   key1 = scm_string_new(SCM_CAPI_MEM_HEAP,
-                                "foo", sizeof("foo"), SCM_ENCODING_ASCII);
+                                "foo", sizeof("foo"), SCM_ENC_ASCII);
   val1 = scm_symbol_new(SCM_CAPI_MEM_HEAP, key1);
   val2 = scm_string_new(SCM_CAPI_MEM_HEAP,
-                                "bar", sizeof("bar"), SCM_ENCODING_ASCII);
+                                "bar", sizeof("bar"), SCM_ENC_ASCII);
 
   cut_assert_equal_int(0, scm_chash_tbl_insert(tbl, key1, val1));
 
@@ -222,7 +222,7 @@ test_scm_chash_tbl_delete__delete_an_entry_not_registered(void)
                           hash_func, scm_chash_tbl_cmp_func_eq);
 
   key1 = scm_string_new(SCM_CAPI_MEM_HEAP,
-                                "foo", sizeof("foo"), SCM_ENCODING_ASCII);
+                                "foo", sizeof("foo"), SCM_ENC_ASCII);
   val1 = scm_symbol_new(SCM_CAPI_MEM_HEAP, key1);
 
   /* action */
@@ -257,7 +257,7 @@ test_scm_chash_tbl_delete__delete_an_entry_already_registered(void)
                            hash_func, scm_chash_tbl_cmp_func_eq);
 
   key1 = scm_string_new(SCM_CAPI_MEM_HEAP,
-                                "foo", sizeof("foo"), SCM_ENCODING_ASCII);
+                                "foo", sizeof("foo"), SCM_ENC_ASCII);
   val1 = scm_symbol_new(SCM_CAPI_MEM_HEAP, key1);
 
   cut_assert_equal_int(0, scm_chash_tbl_insert(tbl, key1, val1));

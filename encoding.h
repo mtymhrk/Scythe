@@ -6,18 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-
-typedef enum {
-  SCM_ENCODING_ASCII,
-  SCM_STRING_BINARY,
-  SCM_ENCODING_UCS4,
-  SCM_ENCODING_UTF8,
-  SCM_ENCODING_EUCJP,
-  SCM_ENCODING_SJIS,
-  SMC_ENCODING_NR_ENC
-} SCM_ENCODING_T;
-
-
+#include "api_enum.h"
 
 typedef struct ScmStrItrRec {
   void *p;

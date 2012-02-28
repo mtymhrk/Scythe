@@ -7,7 +7,7 @@
 #include "object.h"
 #include "reference.h"
 #include "encoding.h"
-
+#include "api_enum.h"
 
 /*******************************************************************/
 /*  Error                                                          */
@@ -66,11 +66,6 @@ scm_capi_realloc(void *ptr, size_t size)
   if (p == NULL) scm_capi_fatal("memory allocation error");
   return p;
 }
-
-typedef enum {
-  SCM_CAPI_MEM_HEAP,
-  SCM_CAPI_MEM_ROOT,
-} SCM_CAPI_MEM_TYPE_T;
 
 ScmObj scm_capi_mem_alloc_heap(ScmTypeInfo *type);
 ScmObj scm_capi_mem_alloc_root(ScmTypeInfo *type);

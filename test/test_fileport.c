@@ -70,7 +70,7 @@ test_scm_port_new_input_file_port_ful_buffer(void)
   ScmObj port = SCM_OBJ_INIT;
 
   port = scm_port_open_input_file(TEST_TEXT_FILE,
-                                  SCM_PORT_BUF_FULL, SCM_ENCODING_ASCII);
+                                  SCM_PORT_BUF_FULL, SCM_ENC_ASCII);
 
   xxx_test_scm_port_new_input_file_port(port);
 }
@@ -82,7 +82,7 @@ test_scm_port_new_input_file_port_line_buffer(void)
 
 
   port = scm_port_open_input_file(TEST_TEXT_FILE,
-                                  SCM_PORT_BUF_LINE, SCM_ENCODING_ASCII);
+                                  SCM_PORT_BUF_LINE, SCM_ENC_ASCII);
 
   xxx_test_scm_port_new_input_file_port(port);
 }
@@ -93,7 +93,7 @@ test_scm_port_new_input_file_port_modest_buffer(void)
   ScmObj port = SCM_OBJ_INIT;
 
   port = scm_port_open_input_file(TEST_TEXT_FILE,
-                                  SCM_PORT_BUF_MODEST, SCM_ENCODING_ASCII);
+                                  SCM_PORT_BUF_MODEST, SCM_ENC_ASCII);
 
   xxx_test_scm_port_new_input_file_port(port);
 }
@@ -104,7 +104,7 @@ test_scm_port_new_input_file_port_none_buffer(void)
   ScmObj port = SCM_OBJ_INIT;
 
   port = scm_port_open_input_file(TEST_TEXT_FILE,
-                                  SCM_PORT_BUF_NONE, SCM_ENCODING_ASCII);
+                                  SCM_PORT_BUF_NONE, SCM_ENC_ASCII);
 
   xxx_test_scm_port_new_input_file_port(port);
 }
@@ -132,7 +132,7 @@ test_scm_port_read_per_byte_full_buffer(void)
   ScmObj port = SCM_OBJ_INIT;
 
   port = scm_port_open_input_file(TEST_TEXT_FILE,
-                                  SCM_PORT_BUF_FULL, SCM_ENCODING_ASCII);
+                                  SCM_PORT_BUF_FULL, SCM_ENC_ASCII);
   xxx_test_scm_port_read_per_byte(port);
 }
 
@@ -142,7 +142,7 @@ test_scm_port_read_per_byte_line_buffer(void)
   ScmObj port = SCM_OBJ_INIT;
 
   port = scm_port_open_input_file(TEST_TEXT_FILE,
-                                  SCM_PORT_BUF_LINE, SCM_ENCODING_ASCII);
+                                  SCM_PORT_BUF_LINE, SCM_ENC_ASCII);
   xxx_test_scm_port_read_per_byte(port);
 }
 
@@ -152,7 +152,7 @@ test_scm_port_read_per_byte_modest_buffer(void)
   ScmObj port = SCM_OBJ_INIT;
 
   port = scm_port_open_input_file(TEST_TEXT_FILE,
-                                  SCM_PORT_BUF_MODEST, SCM_ENCODING_ASCII);
+                                  SCM_PORT_BUF_MODEST, SCM_ENC_ASCII);
   xxx_test_scm_port_read_per_byte(port);
 }
 
@@ -162,7 +162,7 @@ test_scm_port_read_per_byte_none_buffer(void)
   ScmObj port = SCM_OBJ_INIT;
 
   port = scm_port_open_input_file(TEST_TEXT_FILE,
-                                  SCM_PORT_BUF_NONE, SCM_ENCODING_ASCII);
+                                  SCM_PORT_BUF_NONE, SCM_ENC_ASCII);
   xxx_test_scm_port_read_per_byte(port);
 }
 
@@ -241,7 +241,7 @@ test_scm_port_interleave_read_and_seek_full_buffer(void)
   ScmObj port = SCM_OBJ_INIT;
 
   port = scm_port_open_input_file(TEST_TEXT_FILE,
-                                  SCM_PORT_BUF_FULL, SCM_ENCODING_ASCII);
+                                  SCM_PORT_BUF_FULL, SCM_ENC_ASCII);
   xxx_test_scm_port_interleave_read_and_seek(port);
 }
 
@@ -251,7 +251,7 @@ test_scm_port_interleave_read_and_seek_line_buffer(void)
   ScmObj port = SCM_OBJ_INIT;
 
   port = scm_port_open_input_file(TEST_TEXT_FILE,
-                                  SCM_PORT_BUF_LINE, SCM_ENCODING_ASCII);
+                                  SCM_PORT_BUF_LINE, SCM_ENC_ASCII);
   xxx_test_scm_port_interleave_read_and_seek(port);
 }
 
@@ -261,7 +261,7 @@ test_scm_port_interleave_read_and_seek_modest_buffer(void)
   ScmObj port = SCM_OBJ_INIT;
 
   port = scm_port_open_input_file(TEST_TEXT_FILE,
-                                  SCM_PORT_BUF_MODEST, SCM_ENCODING_ASCII);
+                                  SCM_PORT_BUF_MODEST, SCM_ENC_ASCII);
   xxx_test_scm_port_interleave_read_and_seek(port);
 }
 
@@ -271,7 +271,7 @@ test_scm_port_interleave_read_and_seek_none_buffer(void)
   ScmObj port = SCM_OBJ_INIT;
 
   port = scm_port_open_input_file(TEST_TEXT_FILE,
-                                  SCM_PORT_BUF_NONE, SCM_ENCODING_ASCII);
+                                  SCM_PORT_BUF_NONE, SCM_ENC_ASCII);
   xxx_test_scm_port_interleave_read_and_seek(port);
 }
 
@@ -297,7 +297,7 @@ test_scm_port_read_big_file_full_buffer(void)
   ScmObj port = SCM_OBJ_INIT;
 
   port = scm_port_open_input_file(TEST_BIG_FILE,
-                                  SCM_PORT_BUF_FULL, SCM_ENCODING_ASCII);
+                                  SCM_PORT_BUF_FULL, SCM_ENC_ASCII);
   xxx_test_scm_port_read_big_file(port);
 }
 
@@ -307,7 +307,7 @@ test_scm_port_read_big_file_line_buffer(void)
   ScmObj port = SCM_OBJ_INIT;
 
   port = scm_port_open_input_file(TEST_BIG_FILE,
-                                  SCM_PORT_BUF_LINE, SCM_ENCODING_ASCII);
+                                  SCM_PORT_BUF_LINE, SCM_ENC_ASCII);
   xxx_test_scm_port_read_big_file(port);
 }
 
@@ -317,7 +317,7 @@ test_scm_port_read_big_file_modest_buffer(void)
   ScmObj port = SCM_OBJ_INIT;
 
   port = scm_port_open_input_file(TEST_BIG_FILE,
-                                  SCM_PORT_BUF_MODEST, SCM_ENCODING_ASCII);
+                                  SCM_PORT_BUF_MODEST, SCM_ENC_ASCII);
 
   xxx_test_scm_port_read_big_file(port);
 }
@@ -328,7 +328,7 @@ test_scm_port_read_big_file_none_buffer(void)
   ScmObj port = SCM_OBJ_INIT;
 
   port = scm_port_open_input_file(TEST_BIG_FILE,
-                                  SCM_PORT_BUF_NONE, SCM_ENCODING_ASCII);
+                                  SCM_PORT_BUF_NONE, SCM_ENC_ASCII);
 
   xxx_test_scm_port_read_big_file(port);
 }
@@ -341,7 +341,7 @@ test_scm_port_read_big_data(void)
   ScmObj port = SCM_OBJ_INIT;
 
   port = scm_port_open_input_file(TEST_BIG_FILE,
-                                  SCM_PORT_BUF_FULL, SCM_ENCODING_ASCII);
+                                  SCM_PORT_BUF_FULL, SCM_ENC_ASCII);
 
   ret = scm_port_read(port, data, TEST_BIG_FILE_SIZE);
   cut_assert_equal_int(TEST_BIG_FILE_SIZE, ret);
@@ -357,7 +357,7 @@ test_scm_port_close_input_port(void)
   ScmObj port = SCM_OBJ_INIT;
 
   port = scm_port_open_input_file(TEST_TEXT_FILE,
-                                  SCM_PORT_BUF_DEFAULT, SCM_ENCODING_ASCII);
+                                  SCM_PORT_BUF_DEFAULT, SCM_ENC_ASCII);
 
   cut_assert_false(scm_port_closed_p(port));
 
@@ -387,7 +387,7 @@ test_scm_port_new_output_file_port_ful_buffer(void)
   ScmObj port = SCM_OBJ_INIT;
 
   port = scm_port_open_output_file(TEST_OUTPUT_FILE,
-                                   SCM_PORT_BUF_FULL, SCM_ENCODING_ASCII);
+                                   SCM_PORT_BUF_FULL, SCM_ENC_ASCII);
 
   xxx_test_scm_port_new_output_file_port(port);
 }
@@ -398,7 +398,7 @@ test_scm_port_new_output_file_port_line_buffer(void)
   ScmObj port = SCM_OBJ_INIT;
 
   port = scm_port_open_output_file(TEST_OUTPUT_FILE,
-                                   SCM_PORT_BUF_LINE, SCM_ENCODING_ASCII);
+                                   SCM_PORT_BUF_LINE, SCM_ENC_ASCII);
 
   xxx_test_scm_port_new_output_file_port(port);
 }
@@ -409,7 +409,7 @@ test_scm_port_new_output_file_port_modest_buffer(void)
   ScmObj port = SCM_OBJ_INIT;
 
   port = scm_port_open_output_file(TEST_OUTPUT_FILE,
-                                   SCM_PORT_BUF_MODEST, SCM_ENCODING_ASCII);
+                                   SCM_PORT_BUF_MODEST, SCM_ENC_ASCII);
 
   xxx_test_scm_port_new_output_file_port(port);
 }
@@ -420,7 +420,7 @@ test_scm_port_new_output_file_port_none_buffer(void)
   ScmObj port = SCM_OBJ_INIT;
 
   port = scm_port_open_output_file(TEST_OUTPUT_FILE,
-                                   SCM_PORT_BUF_NONE, SCM_ENCODING_ASCII);
+                                   SCM_PORT_BUF_NONE, SCM_ENC_ASCII);
 
   xxx_test_scm_port_new_output_file_port(port);
 }
@@ -491,7 +491,7 @@ test_scm_port_write_per_byte_full_buffer(void)
   ScmObj port = SCM_OBJ_INIT;
 
   port = scm_port_open_output_file(TEST_OUTPUT_FILE,
-                                   SCM_PORT_BUF_FULL, SCM_ENCODING_ASCII);
+                                   SCM_PORT_BUF_FULL, SCM_ENC_ASCII);
 
   xxx_test_scm_port_write_per_byte(port);
 }
@@ -502,7 +502,7 @@ test_scm_port_write_per_byte_line_buffer(void)
   ScmObj port = SCM_OBJ_INIT;
 
   port = scm_port_open_output_file(TEST_OUTPUT_FILE,
-                                   SCM_PORT_BUF_LINE, SCM_ENCODING_ASCII);
+                                   SCM_PORT_BUF_LINE, SCM_ENC_ASCII);
 
   xxx_test_scm_port_write_per_byte(port);
 }
@@ -513,7 +513,7 @@ test_scm_port_write_per_byte_modest_buffer(void)
   ScmObj port = SCM_OBJ_INIT;
 
   port = scm_port_open_output_file(TEST_OUTPUT_FILE,
-                                   SCM_PORT_BUF_MODEST, SCM_ENCODING_ASCII);
+                                   SCM_PORT_BUF_MODEST, SCM_ENC_ASCII);
 
   xxx_test_scm_port_write_per_byte(port);
 }
@@ -524,7 +524,7 @@ test_scm_port_write_per_byte_none_buffer(void)
   ScmObj port = SCM_OBJ_INIT;
 
   port = scm_port_open_output_file(TEST_OUTPUT_FILE,
-                                   SCM_PORT_BUF_NONE, SCM_ENCODING_ASCII);
+                                   SCM_PORT_BUF_NONE, SCM_ENC_ASCII);
 
   xxx_test_scm_port_write_per_byte(port);
 }
@@ -606,7 +606,7 @@ test_scm_port_interleave_write_and_seek_full_buffer(void)
   ScmObj port = SCM_OBJ_INIT;
 
   port = scm_port_open_output_file(TEST_OUTPUT_FILE,
-                                   SCM_PORT_BUF_FULL, SCM_ENCODING_ASCII);
+                                   SCM_PORT_BUF_FULL, SCM_ENC_ASCII);
 
   xxx_test_scm_port_interleave_write_and_seek(port);
 }
@@ -617,7 +617,7 @@ test_scm_port_interleave_write_and_seek_line_buffer(void)
   ScmObj port = SCM_OBJ_INIT;
 
   port = scm_port_open_output_file(TEST_OUTPUT_FILE,
-                                   SCM_PORT_BUF_LINE, SCM_ENCODING_ASCII);
+                                   SCM_PORT_BUF_LINE, SCM_ENC_ASCII);
 
   xxx_test_scm_port_interleave_write_and_seek(port);
 }
@@ -628,7 +628,7 @@ test_scm_port_interleave_write_and_seek_modest_buffer(void)
   ScmObj port = SCM_OBJ_INIT;
 
   port = scm_port_open_output_file(TEST_OUTPUT_FILE,
-                                   SCM_PORT_BUF_MODEST, SCM_ENCODING_ASCII);
+                                   SCM_PORT_BUF_MODEST, SCM_ENC_ASCII);
 
   xxx_test_scm_port_interleave_write_and_seek(port);
 }
@@ -639,7 +639,7 @@ test_scm_port_interleave_write_and_seek_none_buffer(void)
   ScmObj port = SCM_OBJ_INIT;
 
   port = scm_port_open_output_file(TEST_OUTPUT_FILE,
-                                   SCM_PORT_BUF_LINE, SCM_ENCODING_ASCII);
+                                   SCM_PORT_BUF_LINE, SCM_ENC_ASCII);
 
   xxx_test_scm_port_interleave_write_and_seek(port);
 }
@@ -651,7 +651,7 @@ test_scm_port_write_big_data(void)
 
 
   port = scm_port_open_output_file(TEST_OUTPUT_FILE,
-                                   SCM_PORT_BUF_FULL, SCM_ENCODING_ASCII);
+                                   SCM_PORT_BUF_FULL, SCM_ENC_ASCII);
 
 
   for (uint64_t i = 0; i < (TEST_BIG_FILE_SIZE / sizeof(i)); i++)
@@ -672,7 +672,7 @@ test_scm_port_close_output_port(void)
   ScmObj port = SCM_OBJ_INIT;
 
   port = scm_port_open_output_file(TEST_OUTPUT_FILE,
-                                   SCM_PORT_BUF_DEFAULT, SCM_ENCODING_ASCII);
+                                   SCM_PORT_BUF_DEFAULT, SCM_ENC_ASCII);
 
   cut_assert_false(scm_port_closed_p(port));
 
@@ -725,7 +725,7 @@ test_scm_port_read_line__read_up_to_lf__full_buffer(void)
   ScmObj port = SCM_OBJ_INIT;
 
   port = scm_port_open_input_file(TEST_TEXT_FILE,
-                                  SCM_PORT_BUF_FULL, SCM_ENCODING_ASCII);
+                                  SCM_PORT_BUF_FULL, SCM_ENC_ASCII);
   xxx_test_scm_port_read_line__read_up_to_lf(port);
 }
 
@@ -735,7 +735,7 @@ test_scm_port_read_line__read_up_to_lf__line_buffer(void)
   ScmObj port = SCM_OBJ_INIT;
 
   port = scm_port_open_input_file(TEST_TEXT_FILE,
-                                  SCM_PORT_BUF_LINE, SCM_ENCODING_ASCII);
+                                  SCM_PORT_BUF_LINE, SCM_ENC_ASCII);
   xxx_test_scm_port_read_line__read_up_to_lf(port);
 }
 
@@ -745,7 +745,7 @@ test_scm_port_read_line__read_up_to_lf__modest_buffer(void)
   ScmObj port = SCM_OBJ_INIT;
 
   port = scm_port_open_input_file(TEST_TEXT_FILE,
-                                  SCM_PORT_BUF_MODEST, SCM_ENCODING_ASCII);
+                                  SCM_PORT_BUF_MODEST, SCM_ENC_ASCII);
   xxx_test_scm_port_read_line__read_up_to_lf(port);
 }
 
@@ -755,7 +755,7 @@ test_scm_port_read_line__read_up_to_lf__none_buffer(void)
   ScmObj port = SCM_OBJ_INIT;
 
   port = scm_port_open_input_file(TEST_TEXT_FILE,
-                                  SCM_PORT_BUF_NONE, SCM_ENCODING_ASCII);
+                                  SCM_PORT_BUF_NONE, SCM_ENC_ASCII);
   xxx_test_scm_port_read_line__read_up_to_lf(port);
 }
 
@@ -790,7 +790,7 @@ test_scm_port_read_line__read_up_to_buf_filled__full_buffer(void)
   ScmObj port = SCM_OBJ_INIT;
 
   port = scm_port_open_input_file(TEST_TEXT_FILE,
-                                  SCM_PORT_BUF_FULL, SCM_ENCODING_ASCII);
+                                  SCM_PORT_BUF_FULL, SCM_ENC_ASCII);
   xxx_test_scm_port_read_line__read_up_to_buf_filled(port);
 }
 
@@ -800,7 +800,7 @@ test_scm_port_read_line__read_up_to_buf_filled__line_buffer(void)
   ScmObj port = SCM_OBJ_INIT;
 
   port = scm_port_open_input_file(TEST_TEXT_FILE,
-                                  SCM_PORT_BUF_LINE, SCM_ENCODING_ASCII);
+                                  SCM_PORT_BUF_LINE, SCM_ENC_ASCII);
   xxx_test_scm_port_read_line__read_up_to_buf_filled(port);
 }
 
@@ -810,7 +810,7 @@ test_scm_port_read_line__read_up_to_buf_filled__modest_buffer(void)
   ScmObj port = SCM_OBJ_INIT;
 
   port = scm_port_open_input_file(TEST_TEXT_FILE,
-                                  SCM_PORT_BUF_MODEST, SCM_ENCODING_ASCII);
+                                  SCM_PORT_BUF_MODEST, SCM_ENC_ASCII);
   xxx_test_scm_port_read_line__read_up_to_buf_filled(port);
 }
 
@@ -820,7 +820,7 @@ test_scm_port_read_line__read_up_to_buf_filled__none_buffer(void)
   ScmObj port = SCM_OBJ_INIT;
 
   port = scm_port_open_input_file(TEST_TEXT_FILE,
-                                  SCM_PORT_BUF_NONE, SCM_ENCODING_ASCII);
+                                  SCM_PORT_BUF_NONE, SCM_ENC_ASCII);
   xxx_test_scm_port_read_line__read_up_to_buf_filled(port);
 }
 
@@ -830,7 +830,7 @@ test_scm_port_write__line_buffer_should_flushed_up_to_lf(void)
   ScmObj port = SCM_OBJ_INIT;
 
   port = scm_port_open_output_file(TEST_OUTPUT_FILE,
-                                   SCM_PORT_BUF_LINE, SCM_ENCODING_ASCII);
+                                   SCM_PORT_BUF_LINE, SCM_ENC_ASCII);
 
   scm_port_write(port,
                  TEST_TEXT_FILE_CONTENTS, sizeof(TEST_TEXT_FILE_CONTENTS) - 1);
@@ -873,7 +873,7 @@ test_scm_port_pushback__pushback__full_buffer(void)
   ScmObj port = SCM_OBJ_INIT;
 
   port = scm_port_open_input_file(TEST_TEXT_FILE,
-                                  SCM_PORT_BUF_FULL, SCM_ENCODING_ASCII);
+                                  SCM_PORT_BUF_FULL, SCM_ENC_ASCII);
 
   xxx_test_scm_port_pushback__pushback(port);
 }
@@ -884,7 +884,7 @@ test_scm_port_pushback__pushback__line_buffer(void)
   ScmObj port = SCM_OBJ_INIT;
 
   port = scm_port_open_input_file(TEST_TEXT_FILE,
-                                  SCM_PORT_BUF_LINE, SCM_ENCODING_ASCII);
+                                  SCM_PORT_BUF_LINE, SCM_ENC_ASCII);
 
   xxx_test_scm_port_pushback__pushback(port);
 }
@@ -895,7 +895,7 @@ test_scm_port_pushback__pushback__modest_buffer(void)
   ScmObj port = SCM_OBJ_INIT;
 
   port = scm_port_open_input_file(TEST_TEXT_FILE,
-                                  SCM_PORT_BUF_MODEST, SCM_ENCODING_ASCII);
+                                  SCM_PORT_BUF_MODEST, SCM_ENC_ASCII);
 
   xxx_test_scm_port_pushback__pushback(port);
 }
@@ -906,7 +906,7 @@ test_scm_port_pushback__pushback__none_buffer(void)
   ScmObj port = SCM_OBJ_INIT;
 
   port = scm_port_open_input_file(TEST_TEXT_FILE,
-                                  SCM_PORT_BUF_NONE, SCM_ENCODING_ASCII);
+                                  SCM_PORT_BUF_NONE, SCM_ENC_ASCII);
 
   xxx_test_scm_port_pushback__pushback(port);
 }
@@ -941,7 +941,7 @@ test_scm_port_pushback__pushback_and_read_line__full_buffer(void)
   ScmObj port = SCM_OBJ_INIT;;
 
   port = scm_port_open_input_file(TEST_TEXT_FILE,
-                                  SCM_PORT_BUF_FULL, SCM_ENCODING_ASCII);
+                                  SCM_PORT_BUF_FULL, SCM_ENC_ASCII);
 
   xxx_test_scm_port_pushback__pushback_and_read_line(port);
 }
@@ -952,7 +952,7 @@ test_scm_port_pushback__pushback_and_read_line__line_buffer(void)
   ScmObj port = SCM_OBJ_INIT;;
 
   port = scm_port_open_input_file(TEST_TEXT_FILE,
-                                  SCM_PORT_BUF_LINE, SCM_ENCODING_ASCII);
+                                  SCM_PORT_BUF_LINE, SCM_ENC_ASCII);
 
   xxx_test_scm_port_pushback__pushback_and_read_line(port);
 }
@@ -963,7 +963,7 @@ test_scm_port_pushback__pushback_and_read_line__modest_buffer(void)
   ScmObj port = SCM_OBJ_INIT;;
 
   port = scm_port_open_input_file(TEST_TEXT_FILE,
-                                  SCM_PORT_BUF_MODEST, SCM_ENCODING_ASCII);
+                                  SCM_PORT_BUF_MODEST, SCM_ENC_ASCII);
 
   xxx_test_scm_port_pushback__pushback_and_read_line(port);
 }
@@ -974,7 +974,7 @@ test_scm_port_pushback__pushback_and_read_line__none_buffer(void)
   ScmObj port = SCM_OBJ_INIT;;
 
   port = scm_port_open_input_file(TEST_TEXT_FILE,
-                                  SCM_PORT_BUF_NONE, SCM_ENCODING_ASCII);
+                                  SCM_PORT_BUF_NONE, SCM_ENC_ASCII);
 
   xxx_test_scm_port_pushback__pushback_and_read_line(port);
 }
@@ -1012,7 +1012,7 @@ test_scm_port_peek__full_buffer(void)
   ScmObj port = SCM_OBJ_INIT;;
 
   port = scm_port_open_input_file(TEST_TEXT_FILE,
-                                  SCM_PORT_BUF_FULL, SCM_ENCODING_ASCII);
+                                  SCM_PORT_BUF_FULL, SCM_ENC_ASCII);
 
   xxx_test_scm_port_peek(port);
 }
@@ -1023,7 +1023,7 @@ test_scm_port_peek__line_buffer(void)
   ScmObj port = SCM_OBJ_INIT;;
 
   port = scm_port_open_input_file(TEST_TEXT_FILE,
-                                  SCM_PORT_BUF_LINE, SCM_ENCODING_ASCII);
+                                  SCM_PORT_BUF_LINE, SCM_ENC_ASCII);
 
   xxx_test_scm_port_peek(port);
 }
@@ -1034,7 +1034,7 @@ test_scm_port_peek__modest_buffer(void)
   ScmObj port = SCM_OBJ_INIT;;
 
   port = scm_port_open_input_file(TEST_TEXT_FILE,
-                                  SCM_PORT_BUF_MODEST, SCM_ENCODING_ASCII);
+                                  SCM_PORT_BUF_MODEST, SCM_ENC_ASCII);
 
   xxx_test_scm_port_peek(port);
 }
@@ -1045,7 +1045,7 @@ test_scm_port_peek__none_buffer(void)
   ScmObj port = SCM_OBJ_INIT;;
 
   port = scm_port_open_input_file(TEST_TEXT_FILE,
-                                  SCM_PORT_BUF_NONE, SCM_ENCODING_ASCII);
+                                  SCM_PORT_BUF_NONE, SCM_ENC_ASCII);
 
   xxx_test_scm_port_peek(port);
 }
@@ -1075,7 +1075,7 @@ test_scm_port_read_char__full_buffer(void)
   ScmObj port = SCM_OBJ_INIT;;
 
   port = scm_port_open_input_file(TEST_TEXT_FILE,
-                                  SCM_PORT_BUF_FULL, SCM_ENCODING_ASCII);
+                                  SCM_PORT_BUF_FULL, SCM_ENC_ASCII);
 
   xxx_test_scm_port_read_char(port);
 }
@@ -1086,7 +1086,7 @@ test_scm_port_read_char___line_buffer(void)
   ScmObj port = SCM_OBJ_INIT;;
 
   port = scm_port_open_input_file(TEST_TEXT_FILE,
-                                  SCM_PORT_BUF_LINE, SCM_ENCODING_ASCII);
+                                  SCM_PORT_BUF_LINE, SCM_ENC_ASCII);
 
   xxx_test_scm_port_read_char(port);
 }
@@ -1097,7 +1097,7 @@ test_scm_port_read_char__modest_buffer(void)
   ScmObj port = SCM_OBJ_INIT;;
 
   port = scm_port_open_input_file(TEST_TEXT_FILE,
-                                  SCM_PORT_BUF_MODEST, SCM_ENCODING_ASCII);
+                                  SCM_PORT_BUF_MODEST, SCM_ENC_ASCII);
 
   xxx_test_scm_port_read_char(port);
 }
@@ -1108,7 +1108,7 @@ test_scm_port_read_char__none_buffer(void)
   ScmObj port = SCM_OBJ_INIT;;
 
   port = scm_port_open_input_file(TEST_TEXT_FILE,
-                                  SCM_PORT_BUF_NONE, SCM_ENCODING_ASCII);
+                                  SCM_PORT_BUF_NONE, SCM_ENC_ASCII);
 
   xxx_test_scm_port_read_char(port);
 }
@@ -1146,7 +1146,7 @@ test_scm_port_peek_char__full_buffer(void)
   ScmObj port = SCM_OBJ_INIT;;
 
   port = scm_port_open_input_file(TEST_TEXT_FILE,
-                                  SCM_PORT_BUF_FULL, SCM_ENCODING_ASCII);
+                                  SCM_PORT_BUF_FULL, SCM_ENC_ASCII);
 
   xxx_test_scm_port_peek_char(port);
 }
@@ -1157,7 +1157,7 @@ test_scm_port_peek_char__line_buffer(void)
   ScmObj port = SCM_OBJ_INIT;;
 
   port = scm_port_open_input_file(TEST_TEXT_FILE,
-                                  SCM_PORT_BUF_LINE, SCM_ENCODING_ASCII);
+                                  SCM_PORT_BUF_LINE, SCM_ENC_ASCII);
 
   xxx_test_scm_port_peek_char(port);
 }
@@ -1168,7 +1168,7 @@ test_scm_port_peek_char__modest_buffer(void)
   ScmObj port = SCM_OBJ_INIT;;
 
   port = scm_port_open_input_file(TEST_TEXT_FILE,
-                                  SCM_PORT_BUF_MODEST, SCM_ENCODING_ASCII);
+                                  SCM_PORT_BUF_MODEST, SCM_ENC_ASCII);
 
   xxx_test_scm_port_peek_char(port);
 }
@@ -1179,7 +1179,7 @@ test_scm_port_peek_char__none_buffer(void)
   ScmObj port = SCM_OBJ_INIT;;
 
   port = scm_port_open_input_file(TEST_TEXT_FILE,
-                                  SCM_PORT_BUF_NONE, SCM_ENCODING_ASCII);
+                                  SCM_PORT_BUF_NONE, SCM_ENC_ASCII);
 
   xxx_test_scm_port_peek_char(port);
 }

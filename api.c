@@ -18,6 +18,7 @@
 #include "encoding.h"
 #include "impl_utils.h"
 
+#include "api_enum.h"
 #include "api.h"
 
 
@@ -368,26 +369,26 @@ scm_capi_fixnum_to_clong(ScmObj fn)
 extern inline ScmObj
 scm_capi_make_char(scm_char_t chr)
 {
-  if (!SCM_ENCODING_VFUNC_VALID_P(SCM_ENCODING_ASCII)(chr))
+  if (!SCM_ENCODING_VFUNC_VALID_P(SCM_ENC_ASCII)(chr))
     return SCM_OBJ_NULL;          /* provisional implemntation */
 
-  return scm_char_new(SCM_MEM_ALLOC_HEAP, chr, SCM_ENCODING_ASCII);
+  return scm_char_new(SCM_MEM_ALLOC_HEAP, chr, SCM_ENC_ASCII);
 }
 
 extern inline ScmObj
 scm_api_make_char_newline(void)
 {
   return scm_char_new(SCM_MEM_ALLOC_HEAP,
-                      SCM_ENCODING_CONST_LF_CHAR(SCM_ENCODING_ASCII),
-                      SCM_ENCODING_ASCII);
+                      SCM_ENCODING_CONST_LF_CHAR(SCM_ENC_ASCII),
+                      SCM_ENC_ASCII);
 }
 
 extern inline ScmObj
 scm_api_make_char_space(void)
 {
   return scm_char_new(SCM_MEM_ALLOC_HEAP,
-                      SCM_ENCODING_CONST_SPACE_CHAR(SCM_ENCODING_ASCII),
-                      SCM_ENCODING_ASCII);
+                      SCM_ENCODING_CONST_SPACE_CHAR(SCM_ENC_ASCII),
+                      SCM_ENC_ASCII);
 }
 
 extern inline bool
@@ -422,7 +423,7 @@ scm_capi_make_string_from_cstr(const char *str)
     return SCM_OBJ_NULL;         /* provisional implemntation */
 
   return scm_string_new(SCM_MEM_ALLOC_HEAP,
-                        str, strlen(str), SCM_ENCODING_ASCII);
+                        str, strlen(str), SCM_ENC_ASCII);
 }
 
 extern inline ScmObj
@@ -432,7 +433,7 @@ scm_capi_make_string_from_bin(const void *data, size_t size)
     return SCM_OBJ_NULL;
 
   return scm_string_new(SCM_MEM_ALLOC_HEAP,
-                        data, size, SCM_ENCODING_ASCII);
+                        data, size, SCM_ENC_ASCII);
 }
 
 extern inline bool
@@ -622,14 +623,14 @@ extern inline ScmObj
 scm_capi_open_input_fd_port(int fd) /* TODO: バッファ種別を指定できるようにする*/
 {
   if (fd < 0) return SCM_OBJ_NULL; /* provisional implemntation */
-  return scm_port_open_input_fd(fd, SCM_PORT_BUF_DEFAULT, SCM_ENCODING_ASCII);
+  return scm_port_open_input_fd(fd, SCM_PORT_BUF_DEFAULT, SCM_ENC_ASCII);
 }
 
 extern inline ScmObj
 scm_capi_open_output_fd_port(int fd)/* TODO: バッファ種別を指定できるようにする*/
 {
   if (fd < 0) return SCM_OBJ_NULL; /* provisional implemntation */
-  return scm_port_open_output_fd(fd, SCM_PORT_BUF_DEFAULT, SCM_ENCODING_ASCII);
+  return scm_port_open_output_fd(fd, SCM_PORT_BUF_DEFAULT, SCM_ENC_ASCII);
 }
 
 extern inline ScmObj
@@ -637,7 +638,7 @@ scm_capi_open_input_string_port_from_cstr(const char *str)
 {
   return scm_port_open_input_string(str,
                                     (str == NULL)? 0 : strlen(str),
-                                    SCM_ENCODING_ASCII);
+                                    SCM_ENC_ASCII);
 }
 
 extern inline bool

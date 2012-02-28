@@ -29,7 +29,7 @@ test_scm_string_port_new_input_port(void)
 
   port = scm_port_open_input_string(TEST_TEXT_CONTENTS,
                                     sizeof(TEST_TEXT_CONTENTS) - 1,
-                                    SCM_ENCODING_ASCII);
+                                    SCM_ENC_ASCII);
 
   cut_assert_true(scm_obj_not_null_p(port));
   cut_assert_true(scm_port_readable_p(port));
@@ -51,7 +51,7 @@ test_scm_string_port_read_per_bye(void)
 
   port = scm_port_open_input_string(TEST_TEXT_CONTENTS,
                                     sizeof(TEST_TEXT_CONTENTS) - 1,
-                                    SCM_ENCODING_ASCII);
+                                    SCM_ENC_ASCII);
 
   for (i = 0; i < (int)sizeof(expected_chars) - 1; i++) {
     ret = scm_port_read(port, &byte, sizeof(byte));
@@ -75,7 +75,7 @@ test_scm_string_port_interleave_read_and_seek(void)
 
   port = scm_port_open_input_string(TEST_TEXT_CONTENTS,
                                     sizeof(TEST_TEXT_CONTENTS) - 1,
-                                    SCM_ENCODING_ASCII);
+                                    SCM_ENC_ASCII);
 
 
   i = 0;
@@ -147,7 +147,7 @@ test_scm_string_port_close_input_port(void)
 
   port = scm_port_open_input_string(TEST_TEXT_CONTENTS,
                                     sizeof(TEST_TEXT_CONTENTS) - 1,
-                                    SCM_ENCODING_ASCII);
+                                    SCM_ENC_ASCII);
 
   cut_assert_false(scm_port_closed_p(port));
 
@@ -165,7 +165,7 @@ test_scm_string_port_new_output_port(void)
 {
   ScmObj port = SCM_OBJ_INIT;
 
-  port = scm_port_open_output_string(SCM_ENCODING_ASCII);
+  port = scm_port_open_output_string(SCM_ENC_ASCII);
 
   cut_assert_true(scm_obj_not_null_p(port));
   cut_assert_false(scm_port_readable_p(port));
@@ -184,7 +184,7 @@ test_scm_string_port_write_per_byte(void)
 
   ScmObj port = SCM_OBJ_INIT;
 
-  port = scm_port_open_output_string(SCM_ENCODING_ASCII);
+  port = scm_port_open_output_string(SCM_ENC_ASCII);
 
   for (i = 0; i < (int)sizeof(data) - 1; i++) {
     ret = scm_port_write(port, data + i, sizeof(char));
@@ -208,7 +208,7 @@ test_scm_string_port_interleave_write_and_seek(void)
 
   ScmObj port = SCM_OBJ_INIT;
 
-  port = scm_port_open_output_string(SCM_ENCODING_ASCII);
+  port = scm_port_open_output_string(SCM_ENC_ASCII);
 
   i = 0;
   while (true) {
@@ -283,7 +283,7 @@ test_scm_string_port_close_output_port(void)
   int ret, data;
   ScmObj port = SCM_OBJ_INIT;
 
-  port = scm_port_open_output_string(SCM_ENCODING_ASCII);
+  port = scm_port_open_output_string(SCM_ENC_ASCII);
 
   cut_assert_false(scm_port_closed_p(port));
 

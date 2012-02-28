@@ -32,7 +32,7 @@ test_scm_symbol_new(void)
 
   /* preprocess */
   str = scm_string_new(SCM_CAPI_MEM_HEAP,
-                                "foo", sizeof("foo") - 1, SCM_ENCODING_ASCII);
+                                "foo", sizeof("foo") - 1, SCM_ENC_ASCII);
 
   /* action */
   sym = scm_symbol_new(SCM_CAPI_MEM_HEAP, str);
@@ -50,7 +50,7 @@ test_scm_symbol_string__string_derived_from_a_symbol_should_be_equal_to_the_stri
 
   /* preprocess */
   expected = scm_string_new(SCM_CAPI_MEM_HEAP,
-                                "baz", sizeof("baz") - 1, SCM_ENCODING_ASCII);
+                                "baz", sizeof("baz") - 1, SCM_ENC_ASCII);
   sym = scm_symbol_new(SCM_CAPI_MEM_HEAP, expected);
 
   /* action */
@@ -69,7 +69,7 @@ test_scm_symbol_string__string_derived_from_a_symbol_should_not_be_same_instance
 
   /* preprocess */
   expected = scm_string_new(SCM_CAPI_MEM_HEAP,
-                                "baz", sizeof("baz") - 1, SCM_ENCODING_ASCII);
+                                "baz", sizeof("baz") - 1, SCM_ENC_ASCII);
   sym = scm_symbol_new(SCM_CAPI_MEM_HEAP, expected);
 
   /* action */

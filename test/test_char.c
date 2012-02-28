@@ -27,7 +27,7 @@ test_scm_char_new(void)
   scm_char_t c;
 
   SCM_CHR_SET_ASCII(c, 'a');
-  chr = scm_char_new(SCM_CAPI_MEM_HEAP, c, SCM_ENCODING_ASCII);
+  chr = scm_char_new(SCM_CAPI_MEM_HEAP, c, SCM_ENC_ASCII);
 
   cut_assert_true(scm_obj_not_null_p(chr));
   cut_assert(scm_obj_type_p(SCM_OBJ(chr), &SCM_CHAR_TYPE_INFO));
@@ -40,7 +40,7 @@ test_scm_char_value_a(void)
   scm_char_t c;
 
   SCM_CHR_SET_ASCII(c, 'a');
-  chr = scm_char_new(SCM_CAPI_MEM_HEAP, c, SCM_ENCODING_ASCII);
+  chr = scm_char_new(SCM_CAPI_MEM_HEAP, c, SCM_ENC_ASCII);
 
   cut_assert_true(scm_obj_not_null_p(chr));
   cut_assert_equal_int('a',

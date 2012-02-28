@@ -51,10 +51,10 @@ test_scm_string_ucs4(void)
                                     expected);
 
   str = scm_string_new(SCM_CAPI_MEM_HEAP,
-                                expected, expected_len, SCM_ENCODING_UCS4);
+                                expected, expected_len, SCM_ENC_UCS4);
 
   cut_assert_true(scm_obj_not_null_p(str));
-  cut_assert_equal_uint(SCM_ENCODING_UCS4, scm_string_encoding(str));
+  cut_assert_equal_uint(SCM_ENC_UCS4, scm_string_encoding(str));
   cut_assert_equal_uint(6u, scm_string_length(str));
   cut_assert_equal_uint(expected_len, scm_string_bytesize(str));
 
@@ -80,7 +80,7 @@ test_scm_string_copy_ucs4(void)
                                     expected);
 
   str = scm_string_new(SCM_CAPI_MEM_HEAP,
-                                expected, expected_len, SCM_ENCODING_UCS4);
+                                expected, expected_len, SCM_ENC_UCS4);
   copy = scm_string_copy(str);
 
   cut_assert_equal_uint(scm_string_length(str), scm_string_length(copy));
@@ -108,7 +108,7 @@ test_scm_string_dup_ucs4(void)
                                     expected);
 
   str = scm_string_new(SCM_CAPI_MEM_HEAP,
-                                expected, expected_len, SCM_ENCODING_UCS4);
+                                expected, expected_len, SCM_ENC_UCS4);
   copy = scm_string_dup(str);
 
   cut_assert_equal_uint(scm_string_length(str), scm_string_length(copy));
@@ -135,9 +135,9 @@ test_scm_string_is_equal_compare_with_same_string_ucs4(void)
                                row);
 
   str1 = scm_string_new(SCM_CAPI_MEM_HEAP,
-                                      row, row_len, SCM_ENCODING_UCS4);
+                                      row, row_len, SCM_ENC_UCS4);
   str2 = scm_string_new(SCM_CAPI_MEM_HEAP,
-                                      row, row_len, SCM_ENCODING_UCS4);
+                                      row, row_len, SCM_ENC_UCS4);
 
   cut_assert_true(scm_string_is_equal(str1, str2));
 }
@@ -160,9 +160,9 @@ test_scm_string_is_equal_compare_with_different_string_ucs4(void)
                                 row2);
 
   str1 = scm_string_new(SCM_CAPI_MEM_HEAP,
-                                      row1, row1_len, SCM_ENCODING_UCS4);
+                                      row1, row1_len, SCM_ENC_UCS4);
   str2 = scm_string_new(SCM_CAPI_MEM_HEAP,
-                                      row2, row2_len, SCM_ENCODING_UCS4);
+                                      row2, row2_len, SCM_ENC_UCS4);
 
   cut_assert_false(scm_string_is_equal(str1, str2));
 }
@@ -181,7 +181,7 @@ test_scm_string_is_equal_compare_with_copy_string_ucs4(void)
                                row);
 
   str1 = scm_string_new(SCM_CAPI_MEM_HEAP,
-                                      row, row_len, SCM_ENCODING_UCS4);
+                                      row, row_len, SCM_ENC_UCS4);
   str2 = scm_string_copy(str1);
 
   cut_assert_true(scm_string_is_equal(str1, str2));
@@ -201,7 +201,7 @@ test_scm_string_is_equal_compare_with_duplicate_string_ucs4(void)
                                row);
 
   str1 = scm_string_new(SCM_CAPI_MEM_HEAP,
-                                      row, row_len, SCM_ENCODING_UCS4);
+                                      row, row_len, SCM_ENC_UCS4);
   str2 = scm_string_dup(str1);
 
   cut_assert_true(scm_string_is_equal(str1, str2));
@@ -227,7 +227,7 @@ test_scm_string_substr_ucs4(void)
                                     expected);
 
   str = scm_string_new(SCM_CAPI_MEM_HEAP,
-                                     row, row_len, SCM_ENCODING_UCS4);
+                                     row, row_len, SCM_ENC_UCS4);
   sub = scm_string_substr(str, 6, 5);
 
   cut_assert_true(scm_obj_not_null_p(sub));
@@ -262,7 +262,7 @@ test_scm_string_push_ucs4(void)
   utf8str_to_ucs4str("。", sizeof("。") -1, &pushed);
 
   str = scm_string_new(SCM_CAPI_MEM_HEAP,
-                                     row, row_len, SCM_ENCODING_UCS4);
+                                     row, row_len, SCM_ENC_UCS4);
 
   cut_assert_true(scm_obj_not_null_p(scm_string_push(str, pushed)));
 
@@ -298,9 +298,9 @@ test_scm_string_append_ucs4(void)
                                     expected);
 
   str = scm_string_new(SCM_CAPI_MEM_HEAP,
-                                     row1, row1_len, SCM_ENCODING_UCS4);
+                                     row1, row1_len, SCM_ENC_UCS4);
   apnd = scm_string_new(SCM_CAPI_MEM_HEAP,
-                                      row2, row2_len, SCM_ENCODING_UCS4);
+                                      row2, row2_len, SCM_ENC_UCS4);
 
   cut_assert_true(scm_obj_not_null_p(scm_string_append(str, apnd)));
 
@@ -335,7 +335,7 @@ test_scm_string_ref_ucs4(void)
                                row);
 
   str = scm_string_new(SCM_CAPI_MEM_HEAP,
-                                     row, row_len, SCM_ENCODING_UCS4);
+                                     row, row_len, SCM_ENC_UCS4);
 
   actual = scm_string_ref(str, 0);
   cut_assert_equal_int(0, memcmp(expected + 0, &actual, sizeof(scm_char_t)));
@@ -391,7 +391,7 @@ test_scm_string_set_same_width_utf4(void)
   utf8str_to_ucs4str("ン", sizeof("ン") - 1, &c);
 
   str = scm_string_new(SCM_CAPI_MEM_HEAP,
-                                     row, row_len, SCM_ENCODING_UCS4);
+                                     row, row_len, SCM_ENC_UCS4);
 
   cut_assert_true(scm_obj_not_null_p(scm_string_set(str, 1, c)));
 
@@ -426,7 +426,7 @@ test_scm_string_fill_ucs4(void)
   utf8str_to_ucs4str("a", sizeof("a") - 1, &c);
 
   str = scm_string_new(SCM_CAPI_MEM_HEAP,
-                                     row, row_len, SCM_ENCODING_UCS4);
+                                     row, row_len, SCM_ENC_UCS4);
 
   cut_assert_true(scm_obj_not_null_p(scm_string_fill(str, 8, 3, c)));
 
@@ -461,7 +461,7 @@ test_scm_string_fill_append_ucs4(void)
   utf8str_to_ucs4str("a", sizeof("a") - 1, &c);
 
   str = scm_string_new(SCM_CAPI_MEM_HEAP,
-                                     row, row_len, SCM_ENCODING_UCS4);
+                                     row, row_len, SCM_ENC_UCS4);
 
   cut_assert_true(scm_obj_not_null_p(scm_string_fill(str, 18, 5, c)));
 
@@ -490,7 +490,7 @@ test_scm_string_find_chr_found_ucs4(void)
   utf8str_to_ucs4str("は", sizeof("は") - 1, &c);
 
   str = scm_string_new(SCM_CAPI_MEM_HEAP,
-                                     row, row_len, SCM_ENCODING_UCS4);
+                                     row, row_len, SCM_ENC_UCS4);
 
   cut_assert_equal_int(5, scm_string_find_chr(str, c));
 }
@@ -511,7 +511,7 @@ test_scm_string_find_chr_not_found_ucs4(void)
   utf8str_to_ucs4str("a", sizeof("a") - 1, &c);
 
   str = scm_string_new(SCM_CAPI_MEM_HEAP,
-                                     row, row_len, SCM_ENCODING_UCS4);
+                                     row, row_len, SCM_ENC_UCS4);
 
   cut_assert_equal_int(-1, scm_string_find_chr(str, c));
 }
@@ -532,9 +532,9 @@ test_scm_string_match_matched_ucs4(void)
   row2_len = utf8str_to_ucs4str("しい。前の文", sizeof("しい。前の文") - 1, row2);
 
   str = scm_string_new(SCM_CAPI_MEM_HEAP,
-                                     row1, row1_len, SCM_ENCODING_UCS4);
+                                     row1, row1_len, SCM_ENC_UCS4);
   pat = scm_string_new(SCM_CAPI_MEM_HEAP,
-                                     row2, row2_len, SCM_ENCODING_UCS4);
+                                     row2, row2_len, SCM_ENC_UCS4);
 
   cut_assert_equal_int(7, scm_string_match(str, pat));
 }
@@ -555,9 +555,9 @@ test_scm_string_match_unmatched_ucs4(void)
   row2_len = utf8str_to_ucs4str("しい、前の文", sizeof("しい、前の文") - 1, row2);
 
   str = scm_string_new(SCM_CAPI_MEM_HEAP,
-                                     row1, row1_len, SCM_ENCODING_UCS4);
+                                     row1, row1_len, SCM_ENC_UCS4);
   pat = scm_string_new(SCM_CAPI_MEM_HEAP,
-                                     row2, row2_len, SCM_ENCODING_UCS4);
+                                     row2, row2_len, SCM_ENC_UCS4);
 
   cut_assert_equal_int(-1, scm_string_match(str, pat));
 }

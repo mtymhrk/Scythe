@@ -30,7 +30,7 @@ test_scm_string_new(void)
   /* action */
   str = scm_string_new(SCM_CAPI_MEM_HEAP,
                        "foo", sizeof("foo") - 1,
-                       SCM_ENCODING_ASCII);
+                       SCM_ENC_ASCII);
   /* postcondition check */
   cut_assert_true(scm_obj_not_null_p(str));
   cut_assert_true(scm_obj_type_p(str, &SCM_STRING_TYPE_INFO));
