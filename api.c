@@ -620,25 +620,25 @@ scm_capi_symbol_hash_value(ScmObj sym)
 /*******************************************************************/
 
 extern inline ScmObj
-scm_capi_open_input_fd_port(int fd) /* TODO: バッファ種別を指定できるようにする*/
+scm_capi_open_input_fd_port(int fd, SCM_PORT_BUF_T mode, SCM_ENCODING_T enc)
 {
   if (fd < 0) return SCM_OBJ_NULL; /* provisional implemntation */
-  return scm_port_open_input_fd(fd, SCM_PORT_BUF_DEFAULT, SCM_ENC_ASCII);
+  return scm_port_open_input_fd(fd, mode, enc);
 }
 
 extern inline ScmObj
-scm_capi_open_output_fd_port(int fd)/* TODO: バッファ種別を指定できるようにする*/
+scm_capi_open_output_fd_port(int fd, SCM_PORT_BUF_T mode, SCM_ENCODING_T enc)
 {
   if (fd < 0) return SCM_OBJ_NULL; /* provisional implemntation */
-  return scm_port_open_output_fd(fd, SCM_PORT_BUF_DEFAULT, SCM_ENC_ASCII);
+  return scm_port_open_output_fd(fd, mode, enc);
 }
 
 extern inline ScmObj
-scm_capi_open_input_string_port_from_cstr(const char *str)
+scm_capi_open_input_string_port_from_cstr(const char *str, SCM_ENCODING_T enc)
 {
   return scm_port_open_input_string(str,
                                     (str == NULL)? 0 : strlen(str),
-                                    SCM_ENC_ASCII);
+                                    enc);
 }
 
 extern inline bool

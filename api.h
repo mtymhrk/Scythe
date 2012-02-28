@@ -184,9 +184,12 @@ size_t scm_capi_symbol_hash_value(ScmObj sym);
 /*  Port                                                           */
 /*******************************************************************/
 
-ScmObj scm_capi_open_input_fd_port(int fd);
-ScmObj scm_capi_open_output_fd_port(int fd);
-ScmObj scm_capi_open_input_string_port_from_cstr(const char *str);
+ScmObj scm_capi_open_input_fd_port(int fd,
+                                   SCM_PORT_BUF_T mode, SCM_ENCODING_T enc);
+ScmObj scm_capi_open_output_fd_port(int fd,
+                                    SCM_PORT_BUF_T mode, SCM_ENCODING_T enc);
+ScmObj scm_capi_open_input_string_port_from_cstr(const char *str,
+                                                 SCM_ENCODING_T enc);
 bool scm_capi_input_port_p(ScmObj port);
 ScmObj scm_api_input_port_P(ScmObj port);
 bool scm_capi_output_port_p(ScmObj port);
