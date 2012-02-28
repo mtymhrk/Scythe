@@ -417,23 +417,21 @@ scm_capi_char_to_cchar(ScmObj chr, scm_char_t *c)
 /*******************************************************************/
 
 extern inline ScmObj
-scm_capi_make_string_from_cstr(const char *str)
+scm_capi_make_string_from_cstr(const char *str, SCM_ENC_T enc)
 {
   if (str == NULL)
     return SCM_OBJ_NULL;         /* provisional implemntation */
 
-  return scm_string_new(SCM_MEM_ALLOC_HEAP,
-                        str, strlen(str), SCM_ENC_ASCII);
+  return scm_string_new(SCM_MEM_ALLOC_HEAP, str, strlen(str), enc);
 }
 
 extern inline ScmObj
-scm_capi_make_string_from_bin(const void *data, size_t size)
+scm_capi_make_string_from_bin(const void *data, size_t size, SCM_ENC_T enc)
 {
   if (data == NULL)
     return SCM_OBJ_NULL;
 
-  return scm_string_new(SCM_MEM_ALLOC_HEAP,
-                        data, size, SCM_ENC_ASCII);
+  return scm_string_new(SCM_MEM_ALLOC_HEAP, data, size, enc);
 }
 
 extern inline bool
@@ -570,21 +568,21 @@ scm_api_string_to_symbol(ScmObj str)
 }
 
 extern inline ScmObj
-scm_capi_make_symbol_from_cstr(const char *str)
+scm_capi_make_symbol_from_cstr(const char *str, SCM_ENC_T enc)
 {
   if (str == NULL)
     return SCM_OBJ_NULL;        /* provisional implemntation */
 
-  return scm_api_string_to_symbol(scm_capi_make_string_from_cstr(str));
+  return scm_api_string_to_symbol(scm_capi_make_string_from_cstr(str, enc));
 }
 
 extern inline ScmObj
-scm_capi_make_symbol_from_bin(const void *data, size_t size)
+scm_capi_make_symbol_from_bin(const void *data, size_t size, SCM_ENC_T enc)
 {
   if (data == NULL)
     return SCM_OBJ_NULL;        /* provisional implemntation */
 
-  return scm_api_string_to_symbol(scm_capi_make_string_from_bin(data, size));
+  return scm_api_string_to_symbol(scm_capi_make_string_from_bin(data, size, enc));
 }
 
 extern inline bool

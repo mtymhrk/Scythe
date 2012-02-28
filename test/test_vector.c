@@ -53,11 +53,11 @@ test_scm_vector_set_and_ref(void)
   SCM_STACK_FRAME_PUSH(&vector, &str1, &str2, &str3, &str4, &str5);
 
   vector = scm_vector_new(SCM_MEM_HEAP, 5, scm_api_nil());
-  str1 = scm_capi_make_string_from_cstr("str1");
-  str2 = scm_capi_make_string_from_cstr("str2");
-  str3 = scm_capi_make_string_from_cstr("str3");
-  str4 = scm_capi_make_string_from_cstr("str4");
-  str5 = scm_capi_make_string_from_cstr("str5");
+  str1 = scm_capi_make_string_from_cstr("str1", SCM_ENC_ASCII);
+  str2 = scm_capi_make_string_from_cstr("str2", SCM_ENC_ASCII);
+  str3 = scm_capi_make_string_from_cstr("str3", SCM_ENC_ASCII);
+  str4 = scm_capi_make_string_from_cstr("str4", SCM_ENC_ASCII);
+  str5 = scm_capi_make_string_from_cstr("str5", SCM_ENC_ASCII);
 
   scm_vector_set(vector, 0, str1);
   scm_vector_set(vector, 1, str2);

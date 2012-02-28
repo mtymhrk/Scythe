@@ -985,11 +985,17 @@ scm_parser_parse_quote(ScmParser *parser, ScmObj port)
   ScmObj quote;
   ScmObj quoted;
   ScmToken *token;
+  SCM_ENC_T enc;
 
   SCM_STACK_FRAME_PUSH(&port, &quote, &quoted);
 
   scm_assert(parser != NULL);
   scm_assert(scm_capi_input_port_p(port));
+
+  if (scm_capi_port_encoding(port, &enc) < 0) {
+    /* TODO: error handling */
+    return SCM_OBJ_NULL;
+  }
 
   token = scm_lexer_head_token(parser->lexer, port);
   if (token == NULL) {
@@ -999,16 +1005,16 @@ scm_parser_parse_quote(ScmParser *parser, ScmObj port)
 
   switch (token->type) {
   case SCM_TOKEN_TYPE_QUOTE:
-    quote = scm_capi_make_symbol_from_cstr(quote_str);
+    quote = scm_capi_make_symbol_from_cstr(quote_str, enc);
     break;
   case SCM_TOKEN_TYPE_QUASIQUOTE:
-    quote = scm_capi_make_symbol_from_cstr(quasiquote_str);
+    quote = scm_capi_make_symbol_from_cstr(quasiquote_str, enc);
     break;
   case SCM_TOKEN_TYPE_UNQUOTE:
-    quote = scm_capi_make_symbol_from_cstr(unquote_str);
+    quote = scm_capi_make_symbol_from_cstr(unquote_str, enc);
     break;
   case SCM_TOKEN_TYPE_UNQUOTE_SPLICING:
-    quote = scm_capi_make_symbol_from_cstr(unquote_splicing_str);
+    quote = scm_capi_make_symbol_from_cstr(unquote_splicing_str, enc);
     break;
   case SCM_TOKEN_TYPE_NONE:               /* fall through */
   case SCM_TOKEN_TYPE_LPAREN:             /* fall through */
@@ -1048,11 +1054,17 @@ scm_parser_parse_string(ScmParser *parser, ScmObj port)
 {
   ScmObj str = SCM_OBJ_INIT;
   ScmToken *token;
+  SCM_ENC_T enc;
 
   SCM_STACK_FRAME_PUSH(&port, &str);
 
   scm_assert(parser != NULL);
   scm_assert(scm_capi_input_port_p(port));
+
+  if (scm_capi_port_encoding(port, &enc) < 0) {
+    /* TODO: error handling */
+    return SCM_OBJ_NULL;
+  }
 
   token = scm_lexer_head_token(parser->lexer, port);
   if (token == NULL) {
@@ -1061,9 +1073,9 @@ scm_parser_parse_string(ScmParser *parser, ScmObj port)
   }
 
   if (token->raw.str == NULL)
-    str = scm_capi_make_string_from_cstr("");
+    str = scm_capi_make_string_from_cstr("", enc);
   else
-    str = scm_capi_make_string_from_bin(token->raw.str, token->raw.size);
+    str = scm_capi_make_string_from_bin(token->raw.str, token->raw.size, enc);
 
   scm_lexer_shift_token(parser->lexer);
 
@@ -1077,11 +1089,17 @@ scm_parser_parse_identifier(ScmParser *parser, ScmObj port)
 {
   ScmToken *token;
   ScmObj sym = SCM_OBJ_INIT;
+  SCM_ENC_T enc;
 
   SCM_STACK_FRAME_PUSH(&port, &sym);
 
   scm_assert(parser != NULL);
   scm_assert(scm_capi_input_port_p(port));
+
+  if (scm_capi_port_encoding(port, &enc) < 0) {
+    /* TODO: error handling */
+    return SCM_OBJ_NULL;
+  }
 
   token = scm_lexer_head_token(parser->lexer, port);
   if (token == NULL) {
@@ -1089,7 +1107,7 @@ scm_parser_parse_identifier(ScmParser *parser, ScmObj port)
     return SCM_OBJ_NULL;
   }
 
-  sym = scm_capi_make_symbol_from_bin(token->raw.str, token->raw.size);
+  sym = scm_capi_make_symbol_from_bin(token->raw.str, token->raw.size, enc);
   scm_lexer_shift_token(parser->lexer);
 
   return sym;

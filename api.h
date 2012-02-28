@@ -148,8 +148,9 @@ ssize_t scm_capi_char_to_cchar(ScmObj chr, scm_char_t *c);
 /*  String                                                         */
 /*******************************************************************/
 
-ScmObj scm_capi_make_string_from_cstr(const char *str);
-ScmObj scm_capi_make_string_from_bin(const void *data, size_t size);
+ScmObj scm_capi_make_string_from_cstr(const char *str, SCM_ENC_T enc);
+ScmObj scm_capi_make_string_from_bin(const void *data,
+                                     size_t size, SCM_ENC_T enc);
 bool scm_capi_string_p(ScmObj obj);
 ssize_t scm_capi_string_length(ScmObj str);
 ssize_t scm_capi_string_to_cstr(ScmObj str, char *cstr, size_t size);
@@ -171,8 +172,9 @@ ssize_t scm_capi_vector_length(ScmObj vec);
 /*  Symbol                                                         */
 /*******************************************************************/
 
-ScmObj scm_capi_make_symbol_from_cstr(const char *str);
-ScmObj scm_capi_make_symbol_from_bin(const void *data, size_t size);
+ScmObj scm_capi_make_symbol_from_cstr(const char *str, SCM_ENC_T enc);
+ScmObj scm_capi_make_symbol_from_bin(const void *data,
+                                     size_t size, SCM_ENC_T enc);
 ScmObj scm_api_symbol_to_string(ScmObj sym);
 ScmObj scm_api_string_to_symbol(ScmObj str);
 bool scm_capi_symbol_p(ScmObj obj);
