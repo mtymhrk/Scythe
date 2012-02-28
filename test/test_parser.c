@@ -596,63 +596,64 @@ test_parse_parse_list_inserted_comment(void)
   cut_assert_true(scm_capi_eof_p(eof));
 }
 
-/* void */
-/* test_parser_parse_empty_vector(void) */
-/* { */
-/*   ScmObj vec = SCM_OBJ_INIT, eof = SCM_OBJ_INIT; */
+void
+test_parser_parse_empty_vector(void)
+{
+  ScmObj vec = SCM_OBJ_INIT, eof = SCM_OBJ_INIT;
 
-/*   SCM_STACK_FRAME_PUSH(&vec, &eof); */
+  SCM_STACK_FRAME_PUSH(&vec, &eof);
 
-/*   new_parser(); */
-/*   new_port(" #() "); */
+  new_parser();
+  new_port(" #() ");
 
-/*   vec = scm_parser_parse_expression(parser, port); */
+  vec = scm_parser_parse_expression(parser, port);
 
-/*   cut_assert_true(scm_capi_vector_p(vec)); */
-/*   cut_assert_equal_int(0, scm_capi_vector_length(vec)); */
+  cut_assert_true(scm_capi_vector_p(vec));
+  cut_assert_equal_int(0, scm_capi_vector_length(vec));
 
-/*   eof = scm_parser_parse_expression(parser, port); */
-/*   cut_assert_true(scm_capi_eof_p(eof)); */
-/* } */
+  eof = scm_parser_parse_expression(parser, port);
+  cut_assert_true(scm_capi_eof_p(eof));
+}
 
-/* void */
-/* test_parser_parse_vector(void) */
-/* { */
-/*   char actual[256]; */
-/*   ScmObj vec = SCM_OBJ_INIT, elm0 = SCM_OBJ_INIT, elm1 = SCM_OBJ_INIT; */
-/*   ScmObj elm2 = SCM_OBJ_INIT, elm3 = SCM_OBJ_INIT, eof = SCM_OBJ_INIT; */
+void
+test_parser_parse_vector(void)
+{
+  char actual[256];
+  ScmObj vec = SCM_OBJ_INIT, elm0 = SCM_OBJ_INIT, elm1 = SCM_OBJ_INIT;
+  ScmObj elm2 = SCM_OBJ_INIT, elm3 = SCM_OBJ_INIT, eof = SCM_OBJ_INIT;
 
-/*   SCM_STACK_FRAME_PUSH(&vec, &elm0, &elm1, &elm2, &elm3, &eof); */
+  SCM_STACK_FRAME_PUSH(&vec, &elm0, &elm1, &elm2, &elm3, &eof);
 
-/*   new_parser(); */
-/*   new_port(" #(<abc> 123 \"str\" #()) "); */
+  new_parser();
+  new_port(" #(<abc> 123 \"str\" #()) ");
 
-/*   vec = scm_parser_parse_expression(parser, port); */
+  vec = scm_parser_parse_expression(parser, port);
 
-/*   cut_assert_true(scm_capi_vector_p(vec)); */
-/*   cut_assert_equal_int(4, scm_capi_vector_length(vec)); */
-
-
-/*   elm0 = scm_capi_vector_ref(vec, 0); */
-/*   elm1 = scm_capi_vector_ref(vec, 1); */
-/*   elm2 = scm_capi_vector_ref(vec, 2); */
-/*   elm3 = scm_capi_vector_ref(vec, 3); */
+  cut_assert_true(scm_capi_vector_p(vec));
+  cut_assert_equal_int(4, scm_capi_vector_length(vec));
 
 
-/*   cut_assert_true(scm_capi_symbol_p(elm0)); */
-/*   cut_assert_true(scm_capi_eq_p(scm_capi_make_symbol_from_cstr("<abc>"), */
-/*                                 elm0)); */
+  elm0 = scm_capi_vector_ref(vec, 0);
+  elm1 = scm_capi_vector_ref(vec, 1);
+  elm2 = scm_capi_vector_ref(vec, 2);
+  elm3 = scm_capi_vector_ref(vec, 3);
 
-/*   cut_assert_true(scm_capi_fixnum_p(elm1)); */
-/*   cut_assert_equal_int(123, scm_capi_fixnum_to_clong(elm1)); */
 
-/*   cut_assert_true(scm_capi_string_p(elm2)); */
-/*   scm_capi_string_to_cstr(elm2, actual, sizeof(actual)); */
-/*   cut_assert_equal_string("str", actual); */
+  cut_assert_true(scm_capi_symbol_p(elm0));
+  cut_assert_true(scm_capi_eq_p(scm_capi_make_symbol_from_cstr("<abc>",
+                                                               SCM_ENC_ASCII),
+                                elm0));
 
-/*   cut_assert_true(scm_capi_vector_p(elm3)); */
-/*   cut_assert_equal_int(0, scm_capi_vector_length(elm3)); */
+  cut_assert_true(scm_capi_fixnum_p(elm1));
+  cut_assert_equal_int(123, scm_capi_fixnum_to_clong(elm1));
 
-/*   eof = scm_parser_parse_expression(parser, port); */
-/*   cut_assert_true(scm_capi_eof_p(eof)); */
-/* } */
+  cut_assert_true(scm_capi_string_p(elm2));
+  scm_capi_string_to_cstr(elm2, actual, sizeof(actual));
+  cut_assert_equal_string("str", actual);
+
+  cut_assert_true(scm_capi_vector_p(elm3));
+  cut_assert_equal_int(0, scm_capi_vector_length(elm3));
+
+  eof = scm_parser_parse_expression(parser, port);
+  cut_assert_true(scm_capi_eof_p(eof));
+}
