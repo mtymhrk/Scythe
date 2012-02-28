@@ -620,21 +620,21 @@ scm_capi_symbol_hash_value(ScmObj sym)
 /*******************************************************************/
 
 extern inline ScmObj
-scm_capi_open_input_fd_port(int fd, SCM_PORT_BUF_T mode, SCM_ENCODING_T enc)
+scm_capi_open_input_fd_port(int fd, SCM_PORT_BUF_T mode, SCM_ENC_T enc)
 {
   if (fd < 0) return SCM_OBJ_NULL; /* provisional implemntation */
   return scm_port_open_input_fd(fd, mode, enc);
 }
 
 extern inline ScmObj
-scm_capi_open_output_fd_port(int fd, SCM_PORT_BUF_T mode, SCM_ENCODING_T enc)
+scm_capi_open_output_fd_port(int fd, SCM_PORT_BUF_T mode, SCM_ENC_T enc)
 {
   if (fd < 0) return SCM_OBJ_NULL; /* provisional implemntation */
   return scm_port_open_output_fd(fd, mode, enc);
 }
 
 extern inline ScmObj
-scm_capi_open_input_string_port_from_cstr(const char *str, SCM_ENCODING_T enc)
+scm_capi_open_input_string_port_from_cstr(const char *str, SCM_ENC_T enc)
 {
   return scm_port_open_input_string(str,
                                     (str == NULL)? 0 : strlen(str),
@@ -690,7 +690,7 @@ scm_api_output_port_P(ScmObj port)
 }
 
 extern inline int
-scm_capi_port_encoding(ScmObj port, SCM_ENCODING_T *enc)
+scm_capi_port_encoding(ScmObj port, SCM_ENC_T *enc)
 {
   if (scm_obj_null_p(port)
       || !scm_obj_type_p(port, &SCM_PORT_TYPE_INFO))

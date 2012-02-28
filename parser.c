@@ -756,7 +756,7 @@ static int
 scm_lexer_tokenize(ScmLexer *lexer, ScmObj port)
 {
   const ScmEncVirtualFunc *vf;
-  SCM_ENCODING_T enc;
+  SCM_ENC_T enc;
   int state;
   ScmToken *token;
 
@@ -1242,7 +1242,7 @@ scm_parser_parse_char(ScmParser *parser, ScmObj port)
     chr = scm_api_make_char_space();
   }
   else if (token->raw.len == 3) {
-    SCM_ENCODING_T enc;
+    SCM_ENC_T enc;
     const ScmEncVirtualFunc *vf;
     ScmStrItr itr;
     scm_char_t c;

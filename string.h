@@ -23,7 +23,7 @@ struct ScmStringRec {
   size_t bytesize;
   size_t length;
   int *ref_cnt;
-  SCM_ENCODING_T enc;
+  SCM_ENC_T enc;
 };
 
 #define SCM_STRING_BUFFER(obj) (SCM_STRING(obj)->buffer)
@@ -38,9 +38,9 @@ struct ScmStringRec {
 #define SCM_STRING_DEC_REF_CNT(obj) ((*SCM_STRING(obj)->ref_cnt)--)
 
 void scm_string_initialize(ScmObj str,
-                           const void *src, size_t size, SCM_ENCODING_T enc);
+                           const void *src, size_t size, SCM_ENC_T enc);
 ScmObj scm_string_new(SCM_CAPI_MEM_TYPE_T mtype,
-                            const void *src, size_t size, SCM_ENCODING_T enc);
+                            const void *src, size_t size, SCM_ENC_T enc);
 ScmObj scm_string_copy(ScmObj src);
 ScmObj scm_string_dup(ScmObj src);
 size_t scm_string_length(ScmObj str);
@@ -55,7 +55,7 @@ ScmObj scm_string_fill(ScmObj str, size_t pos, size_t len, scm_char_t c);
 ssize_t scm_string_find_chr(ScmObj str, scm_char_t c);
 ssize_t scm_string_match(ScmObj str, ScmObj pat);
 ssize_t scm_string_dump(ScmObj str, void *buf, size_t size);
-SCM_ENCODING_T scm_string_encoding(ScmObj str);
+SCM_ENC_T scm_string_encoding(ScmObj str);
 void *scm_string_content(ScmObj str);
 void scm_string_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_string_gc_finalize(ScmObj obj);

@@ -13,7 +13,7 @@ typedef enum {
   SCM_ENC_EUCJP,
   SCM_ENC_SJIS,
   SCM_ENC_SYS,
-} SCM_ENCODING_T;
+} SCM_ENC_T;
 
 #define SCM_ENC_NR_ENC SCM_ENC_SYS
 

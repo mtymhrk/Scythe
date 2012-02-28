@@ -138,7 +138,7 @@ scm_string_finalize(ScmObj str) /* GC OK */
 
 void
 scm_string_initialize(ScmObj str,
-                      const void *src, size_t size, SCM_ENCODING_T enc) /* GC OK */
+                      const void *src, size_t size, SCM_ENC_T enc) /* GC OK */
 {
   SCM_STACK_FRAME_PUSH(&str);
 
@@ -183,7 +183,7 @@ scm_string_initialize(ScmObj str,
 }
 
 ScmObj
-scm_string_new(SCM_CAPI_MEM_TYPE_T mtype, const void *src, size_t size, SCM_ENCODING_T enc) /* GC OK */
+scm_string_new(SCM_CAPI_MEM_TYPE_T mtype, const void *src, size_t size, SCM_ENC_T enc) /* GC OK */
 {
   ScmObj str = SCM_OBJ_INIT;
 
@@ -612,7 +612,7 @@ scm_string_dump(ScmObj str, void *buf, size_t size) /* GC OK */
   return (ssize_t)len;
 }
 
-SCM_ENCODING_T
+SCM_ENC_T
 scm_string_encoding(ScmObj str) /* GC OK */
 {
   scm_assert_obj_type(str, &SCM_STRING_TYPE_INFO);

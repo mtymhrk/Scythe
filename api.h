@@ -185,16 +185,16 @@ size_t scm_capi_symbol_hash_value(ScmObj sym);
 /*******************************************************************/
 
 ScmObj scm_capi_open_input_fd_port(int fd,
-                                   SCM_PORT_BUF_T mode, SCM_ENCODING_T enc);
+                                   SCM_PORT_BUF_T mode, SCM_ENC_T enc);
 ScmObj scm_capi_open_output_fd_port(int fd,
-                                    SCM_PORT_BUF_T mode, SCM_ENCODING_T enc);
+                                    SCM_PORT_BUF_T mode, SCM_ENC_T enc);
 ScmObj scm_capi_open_input_string_port_from_cstr(const char *str,
-                                                 SCM_ENCODING_T enc);
+                                                 SCM_ENC_T enc);
 bool scm_capi_input_port_p(ScmObj port);
 ScmObj scm_api_input_port_P(ScmObj port);
 bool scm_capi_output_port_p(ScmObj port);
 ScmObj scm_api_output_port_P(ScmObj port);
-int scm_capi_port_encoding(ScmObj port, SCM_ENCODING_T *enc);
+int scm_capi_port_encoding(ScmObj port, SCM_ENC_T *enc);
 int scm_api_close_input_port(ScmObj port);
 int scm_api_close_output_port(ScmObj port);
 ssize_t scm_capi_read_raw(ScmObj port, void *buf, size_t size);

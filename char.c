@@ -21,7 +21,7 @@ ScmTypeInfo SCM_CHAR_TYPE_INFO = {
 
 
 void
-scm_char_initialize(ScmObj chr, scm_char_t value, SCM_ENCODING_T enc) /* GC OK */
+scm_char_initialize(ScmObj chr, scm_char_t value, SCM_ENC_T enc) /* GC OK */
 {
   scm_assert_obj_type(chr, &SCM_CHAR_TYPE_INFO);
   scm_assert(/* 0 <= enc && */ enc < SCM_ENC_NR_ENC);
@@ -38,7 +38,7 @@ scm_char_finalize(ScmObj chr)   /* GC OK */
 
 ScmObj
 scm_char_new(SCM_CAPI_MEM_TYPE_T mtype,
-             scm_char_t value, SCM_ENCODING_T enc) /* GC OK */
+             scm_char_t value, SCM_ENC_T enc) /* GC OK */
 {
   ScmObj chr;
 
@@ -55,13 +55,13 @@ scm_char_new(SCM_CAPI_MEM_TYPE_T mtype,
 }
 
 ScmObj
-scm_char_new_newline(SCM_CAPI_MEM_TYPE_T  mtype, SCM_ENCODING_T enc) /* GC OK */
+scm_char_new_newline(SCM_CAPI_MEM_TYPE_T  mtype, SCM_ENC_T enc) /* GC OK */
 {
   return scm_char_new(mtype, SCM_ENCODING_CONST_LF_CHAR(enc), enc);
 }
 
 ScmObj
-scm_char_new_space(SCM_CAPI_MEM_TYPE_T mtype, SCM_ENCODING_T enc) /* GC OK */
+scm_char_new_space(SCM_CAPI_MEM_TYPE_T mtype, SCM_ENC_T enc) /* GC OK */
 {
   return scm_char_new(mtype, SCM_ENCODING_CONST_SPACE_CHAR(enc), enc);
 }
@@ -74,7 +74,7 @@ scm_char_value(ScmObj chr)      /* GC OK */
   return SCM_CHAR_VALUE(chr);
 }
 
-SCM_ENCODING_T
+SCM_ENC_T
 scm_char_encoding(ScmObj chr)   /* GC OK */
 {
   scm_assert_obj_type(chr, &SCM_CHAR_TYPE_INFO);
