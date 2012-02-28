@@ -25,7 +25,7 @@ extern ScmTypeInfo SCM_EOF_TYPE_INFO;
 
 void scm_eof_initialize(ScmObj eof);
 void scm_eof_finalize(ScmObj eof);
-ScmObj scm_eof_new(SCM_CAPI_MEM_TYPE_T mtype);
+ScmObj scm_eof_new(SCM_MEM_TYPE_T mtype);
 
 
 /*******************************************************/
@@ -43,7 +43,7 @@ extern ScmTypeInfo SCM_BOOL_TYPE_INFO;
 
 void scm_bool_initialize(ScmObj obj, bool value);
 void scm_bool_finalize(ScmObj obj);
-ScmObj scm_bool_new(SCM_CAPI_MEM_TYPE_T mtype, bool value);
+ScmObj scm_bool_new(SCM_MEM_TYPE_T mtype, bool value);
 bool scm_bool_value(ScmObj bl);
 
 
@@ -59,7 +59,7 @@ extern ScmTypeInfo SCM_NIL_TYPE_INFO;
 
 void scm_nil_initialize(ScmObj nil);
 void scm_nil_finalize(ScmObj nil);
-ScmObj scm_nil_new(SCM_CAPI_MEM_TYPE_T mtype);
+ScmObj scm_nil_new(SCM_MEM_TYPE_T mtype);
 
 
 

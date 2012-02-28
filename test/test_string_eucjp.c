@@ -30,7 +30,7 @@ test_scm_string_eucjp(void)
 
   SCM_STACK_FRAME_PUSH(&str);
 
-  str = scm_string_new(SCM_CAPI_MEM_HEAP,
+  str = scm_string_new(SCM_MEM_HEAP,
                                      expected, sizeof(expected) - 1,
                                      SCM_ENC_EUCJP);
 
@@ -54,7 +54,7 @@ test_scm_string_copy_eucjp(void)
 
   SCM_STACK_FRAME_PUSH(&str, &copy);
 
-  str = scm_string_new(SCM_CAPI_MEM_HEAP,
+  str = scm_string_new(SCM_MEM_HEAP,
                                      expected, sizeof(expected) - 1,
                                      SCM_ENC_EUCJP);
   copy = scm_string_copy(str);
@@ -77,7 +77,7 @@ test_string_dup_eucjp(void)
 
   SCM_STACK_FRAME_PUSH(&str, &copy);
 
-  str = scm_string_new(SCM_CAPI_MEM_HEAP,
+  str = scm_string_new(SCM_MEM_HEAP,
                                      expected, sizeof(expected) - 1,
                                      SCM_ENC_EUCJP);
   copy = scm_string_dup(str);
@@ -98,11 +98,11 @@ test_scm_string_is_equal_compare_with_same_string_eucjp(void)
 
   SCM_STACK_FRAME_PUSH(&str1, &str2);
 
-  str1 = scm_string_new(SCM_CAPI_MEM_HEAP,
+  str1 = scm_string_new(SCM_MEM_HEAP,
                                       "この文字列は誤りである",
                                       sizeof("この文字列は誤りである") - 1,
                                       SCM_ENC_EUCJP);
-  str2 = scm_string_new(SCM_CAPI_MEM_HEAP,
+  str2 = scm_string_new(SCM_MEM_HEAP,
                                       "この文字列は誤りである",
                                       sizeof("この文字列は誤りである") - 1,
                                       SCM_ENC_EUCJP);
@@ -117,11 +117,11 @@ test_scm_string_is_equal_compare_with_different_string_eucjp(void)
 
   SCM_STACK_FRAME_PUSH(&str1, &str2);
 
-  str1 = scm_string_new(SCM_CAPI_MEM_HEAP,
+  str1 = scm_string_new(SCM_MEM_HEAP,
                                       "この文字列は誤りである",
                                       sizeof("この文字列は誤りである") - 1,
                                       SCM_ENC_EUCJP);
-  str2 = scm_string_new(SCM_CAPI_MEM_HEAP,
+  str2 = scm_string_new(SCM_MEM_HEAP,
                                       "この文字列は誤りでない",
                                       sizeof("この文字列は誤りでない") - 1,
                                       SCM_ENC_EUCJP);
@@ -136,7 +136,7 @@ test_scm_string_is_equal_compare_with_copy_string_eucjp(void)
 
   SCM_STACK_FRAME_PUSH(&str1, &str2);
 
-  str1 = scm_string_new(SCM_CAPI_MEM_HEAP,
+  str1 = scm_string_new(SCM_MEM_HEAP,
                                       "この文字列は誤りである",
                                       sizeof("この文字列は誤りである") - 1,
                                       SCM_ENC_EUCJP);
@@ -152,7 +152,7 @@ test_scm_string_is_equal_compare_with_duplicate_string_eucjp(void)
 
   SCM_STACK_FRAME_PUSH(&str1, &str2);
 
-  str1 = scm_string_new(SCM_CAPI_MEM_HEAP,
+  str1 = scm_string_new(SCM_MEM_HEAP,
                                       "この文字列は誤りである",
                                       sizeof("この文字列は誤りである") - 1,
                                       SCM_ENC_EUCJP);
@@ -171,7 +171,7 @@ test_scm_string_substr_eucjp(void)
 
   SCM_STACK_FRAME_PUSH(&str, &sub);
 
-  str = scm_string_new(SCM_CAPI_MEM_HEAP,
+  str = scm_string_new(SCM_MEM_HEAP,
                                      "この文字列は誤りである",
                                      sizeof("この文字列は誤りである") - 1,
                                      SCM_ENC_EUCJP);
@@ -200,7 +200,7 @@ test_scm_string_push_eucjp(void)
   memset(&pushed, 0, sizeof(pushed));
   memcpy(&pushed, "。", 3);
 
-  str = scm_string_new(SCM_CAPI_MEM_HEAP,
+  str = scm_string_new(SCM_MEM_HEAP,
                                      "この文字列は誤りである",
                                      sizeof("この文字列は誤りである") - 1,
                                      SCM_ENC_EUCJP);
@@ -225,11 +225,11 @@ test_scm_string_append_eucjp(void)
 
   SCM_STACK_FRAME_PUSH(&str, &apnd);
 
-  str = scm_string_new(SCM_CAPI_MEM_HEAP,
+  str = scm_string_new(SCM_MEM_HEAP,
                                      "次の文は正しい。",
                                      sizeof("次の文は正しい。") - 1,
                                      SCM_ENC_EUCJP);
-  apnd = scm_string_new(SCM_CAPI_MEM_HEAP,
+  apnd = scm_string_new(SCM_MEM_HEAP,
                                       "前の文は誤りである。",
                                       sizeof("前の文は誤りである。") - 1,
                                       SCM_ENC_EUCJP);
@@ -261,7 +261,7 @@ test_scm_string_ref_eucjp(void)
     memcpy(expected + i, tmp[i], strlen(tmp[i]));
   expected[11] = SCM_CHR_ZERO;
 
-  str = scm_string_new(SCM_CAPI_MEM_HEAP,
+  str = scm_string_new(SCM_MEM_HEAP,
                                      "この文字列は誤りである",
                                      sizeof("この文字列は誤りである") - 1,
                                      SCM_ENC_EUCJP);
@@ -317,7 +317,7 @@ test_scm_string_set_less_width_eucjp(void)
   memset(&c, 0, sizeof(c));
   memcpy(&c, "a", 1);
 
-  str = scm_string_new(SCM_CAPI_MEM_HEAP,
+  str = scm_string_new(SCM_MEM_HEAP,
                                      "テスト", sizeof("テスト") - 1,
                                      SCM_ENC_EUCJP);
 
@@ -345,7 +345,7 @@ test_scm_string_set_same_width_eucjp(void)
   memset(&c, 0, sizeof(c));
   memcpy(&c, "ン", 3);
 
-  str = scm_string_new(SCM_CAPI_MEM_HEAP,
+  str = scm_string_new(SCM_MEM_HEAP,
                                      "テスト",
                                      sizeof("テスト") - 1,
                                      SCM_ENC_EUCJP);
@@ -374,7 +374,7 @@ test_scm_string_set_greater_width_eucjp(void)
   memset(&c, 0, sizeof(c));
   memcpy(&c, "あ", 3);
 
-  str = scm_string_new(SCM_CAPI_MEM_HEAP,
+  str = scm_string_new(SCM_MEM_HEAP,
                                      "abc", sizeof("abc") - 1,
                                      SCM_ENC_EUCJP);
 
@@ -402,7 +402,7 @@ test_scm_string_fill_eucjp(void)
   memset(&c, 0, sizeof(c));
   memcpy(&c, "a", 1);
 
-  str = scm_string_new(SCM_CAPI_MEM_HEAP,
+  str = scm_string_new(SCM_MEM_HEAP,
                                      "この文字列は正しい。前の文は誤りである。",
                                      sizeof("この文字列は正しい。前の文は誤りである。") - 1,
                                      SCM_ENC_EUCJP);
@@ -431,7 +431,7 @@ test_scm_string_fill_append_eucjp(void)
   memset(&c, 0, sizeof(c));
   memcpy(&c, "a", 1);
 
-  str = scm_string_new(SCM_CAPI_MEM_HEAP,
+  str = scm_string_new(SCM_MEM_HEAP,
                                      "この文字列は正しい。前の文は誤りである。",
                                      sizeof("この文字列は正しい。前の文は誤りである。") - 1,
                                      SCM_ENC_EUCJP);
@@ -457,7 +457,7 @@ test_scm_string_find_chr_found_eucjp(void)
   memset(&c, 0, sizeof(c));
   memcpy(&c, "は", 3);
 
-  str = scm_string_new(SCM_CAPI_MEM_HEAP,
+  str = scm_string_new(SCM_MEM_HEAP,
                                      "この文字列は正しい。前の文は誤りである。",
                                      sizeof("この文字列は正しい。前の文は誤りである。") - 1,
                                      SCM_ENC_EUCJP);
@@ -476,7 +476,7 @@ test_scm_string_find_chr_not_found_eucjp(void)
   memset(&c, 0, sizeof(c));
   memcpy(&c, "a", 1);
 
-  str = scm_string_new(SCM_CAPI_MEM_HEAP,
+  str = scm_string_new(SCM_MEM_HEAP,
                                      "この文字列は正しい。前の文は誤りである。",
                                      sizeof("この文字列は正しい。前の文は誤りである。") - 1,
                                      SCM_ENC_EUCJP);
@@ -491,11 +491,11 @@ test_scm_string_match_matched_eucjp(void)
 
   SCM_STACK_FRAME_PUSH(&str, &pat);
 
-  str = scm_string_new(SCM_CAPI_MEM_HEAP,
+  str = scm_string_new(SCM_MEM_HEAP,
                                      "この文字列は正しい。前の文は誤りである。",
                                      sizeof("この文字列は正しい。前の文は誤りである。") - 1,
                                      SCM_ENC_EUCJP);
-  pat = scm_string_new(SCM_CAPI_MEM_HEAP,
+  pat = scm_string_new(SCM_MEM_HEAP,
                                      "しい。前の文",
                                      sizeof("しい。前の文") - 1,
                                      SCM_ENC_EUCJP);
@@ -510,11 +510,11 @@ test_scm_string_match_unmatched_eucjp(void)
 
   SCM_STACK_FRAME_PUSH(&str, &pat);
 
-  str = scm_string_new(SCM_CAPI_MEM_HEAP,
+  str = scm_string_new(SCM_MEM_HEAP,
                                      "この文字列は正しい。前の文は誤りである。",
                                      sizeof("この文字列は正しい。前の文は誤りである。") - 1,
                                      SCM_ENC_EUCJP);
-  pat = scm_string_new(SCM_CAPI_MEM_HEAP,
+  pat = scm_string_new(SCM_MEM_HEAP,
                                      "しい、前の文",
                                      sizeof("しい、前の文") - 1,
                                      SCM_ENC_EUCJP);

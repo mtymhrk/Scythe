@@ -22,7 +22,7 @@ cut_shutdown(void)
 void
 test_scm_nil_new(void)
 {
-  ScmObj nil = scm_nil_new(SCM_CAPI_MEM_HEAP);
+  ScmObj nil = scm_nil_new(SCM_MEM_HEAP);
 
   cut_assert_true(scm_obj_not_null_p(nil));
 }

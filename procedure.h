@@ -16,7 +16,7 @@ struct ScmSubrutineRec {
 };
 
 void scm_subrutine_initialize(ScmObj subr, ScmSubrFunc func);
-ScmObj scm_subrutine_new(SCM_CAPI_MEM_TYPE_T mtype, ScmSubrFunc func);
+ScmObj scm_subrutine_new(SCM_MEM_TYPE_T mtype, ScmSubrFunc func);
 ScmObj scm_subrutine_call(ScmObj subr);
 
 void scm_subrutine_gc_initialize(ScmObj obj, ScmObj mem);

@@ -30,7 +30,7 @@ test_scm_vector_new(void)
 
   SCM_STACK_FRAME_PUSH(&vector, &expected, &actual);
 
-  vector = scm_vector_new(SCM_CAPI_MEM_HEAP, 5, scm_api_nil());
+  vector = scm_vector_new(SCM_MEM_HEAP, 5, scm_api_nil());
 
   cut_assert_true(scm_obj_not_null_p(vector));
   cut_assert_true(scm_obj_type_p(vector, &SCM_VECTOR_TYPE_INFO));
@@ -52,7 +52,7 @@ test_scm_vector_set_and_ref(void)
 
   SCM_STACK_FRAME_PUSH(&vector, &str1, &str2, &str3, &str4, &str5);
 
-  vector = scm_vector_new(SCM_CAPI_MEM_HEAP, 5, scm_api_nil());
+  vector = scm_vector_new(SCM_MEM_HEAP, 5, scm_api_nil());
   str1 = scm_capi_make_string_from_cstr("str1");
   str2 = scm_capi_make_string_from_cstr("str2");
   str3 = scm_capi_make_string_from_cstr("str3");

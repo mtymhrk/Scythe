@@ -157,7 +157,7 @@ void scm_port_initialize(ScmObj port, ScmIO *io,
                          SCM_PORT_ATTR attr, SCM_PORT_BUF_T buf_mode,
                          SCM_ENC_T enc);
 void scm_port_finalize(ScmObj port);
-ScmObj scm_port_new(SCM_CAPI_MEM_TYPE_T mtype,
+ScmObj scm_port_new(SCM_MEM_TYPE_T mtype,
                     ScmIO *io, SCM_PORT_ATTR attr, SCM_PORT_BUF_T buf_mode,
                     SCM_ENC_T enc);
 ScmObj scm_port_open_input(ScmIO *io, SCM_PORT_ATTR attr,

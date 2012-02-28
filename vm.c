@@ -221,29 +221,29 @@ scm_vm_setup_singletons(ScmObj vm)
 {
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
-  SCM_SLOT_SETQ(ScmVM, vm, symtbl, scm_symtbl_new(SCM_CAPI_MEM_ROOT));
+  SCM_SLOT_SETQ(ScmVM, vm, symtbl, scm_symtbl_new(SCM_MEM_ROOT));
   if (scm_obj_null_p(SCM_VM(vm)->symtbl))
     ;                           /* TODO: error handling */
 
-  SCM_SLOT_SETQ(ScmVM,vm, gloctbl, scm_gloctbl_new(SCM_CAPI_MEM_ROOT));
+  SCM_SLOT_SETQ(ScmVM,vm, gloctbl, scm_gloctbl_new(SCM_MEM_ROOT));
   if (scm_obj_null_p(SCM_VM(vm)->gloctbl))
     ;                           /* TODO: error handling */
 
-  SCM_SLOT_SETQ(ScmVM, vm, cnsts.nil, scm_nil_new(SCM_CAPI_MEM_ROOT));
+  SCM_SLOT_SETQ(ScmVM, vm, cnsts.nil, scm_nil_new(SCM_MEM_ROOT));
   if (scm_obj_null_p(SCM_VM(vm)->cnsts.nil))
     ;                           /* TODO: error handling */
 
-  SCM_SLOT_SETQ(ScmVM, vm, cnsts.eof, scm_eof_new(SCM_CAPI_MEM_ROOT));
+  SCM_SLOT_SETQ(ScmVM, vm, cnsts.eof, scm_eof_new(SCM_MEM_ROOT));
   if (scm_obj_null_p(SCM_VM(vm)->cnsts.eof))
     ;                           /* TODO: error handling */
 
   SCM_SLOT_SETQ(ScmVM, vm, cnsts.b_true,
-                scm_bool_new(SCM_CAPI_MEM_ROOT, true));
+                scm_bool_new(SCM_MEM_ROOT, true));
   if (scm_obj_null_p(SCM_VM(vm)->cnsts.b_true))
     ;                           /* TODO: error handling */
 
   SCM_SLOT_SETQ(ScmVM, vm, cnsts.b_false,
-                scm_bool_new(SCM_CAPI_MEM_ROOT, false));
+                scm_bool_new(SCM_MEM_ROOT, false));
   if (scm_obj_null_p(SCM_VM(vm)->cnsts.b_false))
     ;                           /* TODO: error handling */
 

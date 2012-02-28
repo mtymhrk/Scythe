@@ -44,7 +44,7 @@ scm_vector_finalize(ScmObj vector) /* GC OK */
 }
 
 ScmObj
-scm_vector_new(SCM_CAPI_MEM_TYPE_T mtype,
+scm_vector_new(SCM_MEM_TYPE_T mtype,
                size_t length, ScmObj fill) /* GC OK */
 {
   ScmObj vector = SCM_OBJ_INIT;

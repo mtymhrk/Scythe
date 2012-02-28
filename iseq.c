@@ -40,7 +40,7 @@ scm_iseq_initialize(ScmObj iseq) /* GC OK */
 }
 
 ScmObj
-scm_iseq_new(SCM_CAPI_MEM_TYPE_T mtype) /* GC OK */
+scm_iseq_new(SCM_MEM_TYPE_T mtype) /* GC OK */
 {
   ScmObj iseq = SCM_OBJ_INIT;
 

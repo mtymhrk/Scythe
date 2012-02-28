@@ -29,7 +29,7 @@ test_scm_string_ascii(void)
 
   SCM_STACK_FRAME_PUSH(&str);
 
-  str = scm_string_new(SCM_CAPI_MEM_HEAP,
+  str = scm_string_new(SCM_MEM_HEAP,
                                 expected, sizeof(expected) - 1,
                                 SCM_ENC_ASCII);
 
@@ -53,7 +53,7 @@ test_scm_string_copy_ascii(void)
 
   SCM_STACK_FRAME_PUSH(&str, &copy);
 
-  str = scm_string_new(SCM_CAPI_MEM_HEAP,
+  str = scm_string_new(SCM_MEM_HEAP,
                                 expected, sizeof(expected) - 1,
                                 SCM_ENC_ASCII);
 
@@ -77,7 +77,7 @@ test_scm_string_dup_ascii(void)
 
   SCM_STACK_FRAME_PUSH(&str, &copy);
 
-  str = scm_string_new(SCM_CAPI_MEM_HEAP,
+  str = scm_string_new(SCM_MEM_HEAP,
                                      expected, sizeof(expected) - 1,
                                      SCM_ENC_ASCII);
   copy = scm_string_dup(str);
@@ -98,11 +98,11 @@ test_scm_string_is_equal_compare_with_same_string_ascii(void)
 
   SCM_STACK_FRAME_PUSH(&str1, &str2);
 
-  str1 = scm_string_new(SCM_CAPI_MEM_HEAP,
+  str1 = scm_string_new(SCM_MEM_HEAP,
                                       "this string is fault",
                                       sizeof("this string is fault") - 1,
                                       SCM_ENC_ASCII);
-  str2 = scm_string_new(SCM_CAPI_MEM_HEAP,
+  str2 = scm_string_new(SCM_MEM_HEAP,
                                       "this string is fault",
                                       sizeof("this string is fault") - 1,
                                       SCM_ENC_ASCII);
@@ -117,12 +117,12 @@ test_scm_string_is_equal_compare_with_different_string_ascii(void)
 
   SCM_STACK_FRAME_PUSH(&str1, &str2);
 
-  str1 = scm_string_new(SCM_CAPI_MEM_HEAP,
+  str1 = scm_string_new(SCM_MEM_HEAP,
                                       "this string is fault",
                                       sizeof("this string is fault") - 1,
                                       SCM_ENC_ASCII);
 
-  str2 = scm_string_new(SCM_CAPI_MEM_HEAP,
+  str2 = scm_string_new(SCM_MEM_HEAP,
                                       "this string is not fault",
                                       sizeof("this string is not fault") - 1,
                                       SCM_ENC_ASCII);
@@ -137,7 +137,7 @@ test_scm_string_is_equal_compare_with_copy_string_ascii(void)
 
   SCM_STACK_FRAME_PUSH(&str1, &str2);
 
-  str1 = scm_string_new(SCM_CAPI_MEM_HEAP,
+  str1 = scm_string_new(SCM_MEM_HEAP,
                                       "this string is fault",
                                       sizeof("this string is fault") - 1,
                                       SCM_ENC_ASCII);
@@ -154,7 +154,7 @@ test_scm_string_is_equal_compare_with_duplicate_string_ascii(void)
 
   SCM_STACK_FRAME_PUSH(&str1, &str2);
 
-  str1 = scm_string_new(SCM_CAPI_MEM_HEAP,
+  str1 = scm_string_new(SCM_MEM_HEAP,
                                       "this string is fault",
                                       sizeof("this string is fault") - 1,
                                       SCM_ENC_ASCII);
@@ -173,7 +173,7 @@ test_scm_string_substr_ascii(void)
 
   SCM_STACK_FRAME_PUSH(&str, &sub);
 
-  str = scm_string_new(SCM_CAPI_MEM_HEAP,
+  str = scm_string_new(SCM_MEM_HEAP,
                                      "this string is fault",
                                      sizeof("this string is fault") - 1,
                                      SCM_ENC_ASCII);
@@ -200,7 +200,7 @@ test_scm_string_push_ascii(void)
   memset(&pushed, 0, sizeof(pushed));
   memcpy(&pushed, ".", 3);
 
-  str = scm_string_new(SCM_CAPI_MEM_HEAP,
+  str = scm_string_new(SCM_MEM_HEAP,
                                      "this string is fault",
                                      sizeof("this string is fault") - 1,
                                      SCM_ENC_ASCII);
@@ -225,12 +225,12 @@ test_scm_string_append_ascii(void)
 
   SCM_STACK_FRAME_PUSH(&str, &apnd);
 
-  str = scm_string_new(SCM_CAPI_MEM_HEAP,
+  str = scm_string_new(SCM_MEM_HEAP,
                                      "next sentence is right.",
                                      sizeof("next sentence is right.") - 1,
                                      SCM_ENC_ASCII);
 
-  apnd = scm_string_new(SCM_CAPI_MEM_HEAP,
+  apnd = scm_string_new(SCM_MEM_HEAP,
                                       " previous sentence is fault",
                                       sizeof(" previous sentence is fault") - 1,
                                       SCM_ENC_ASCII);
@@ -262,7 +262,7 @@ test_scm_string_ref_ascii(void)
     memcpy(expected + i, tmp[i], strlen(tmp[i]));
   expected[i - 1] = SCM_CHR_ZERO;
 
-  str = scm_string_new(SCM_CAPI_MEM_HEAP,
+  str = scm_string_new(SCM_MEM_HEAP,
                                      "this string is fault",
                                      sizeof("this string is fault") - 1,
                                      SCM_ENC_ASCII);
@@ -345,7 +345,7 @@ test_scm_string_set_same_width_ascii(void)
   memset(&c, 0, sizeof(c));
   memcpy(&c, "d", 1);
 
-  str = scm_string_new(SCM_CAPI_MEM_HEAP,
+  str = scm_string_new(SCM_MEM_HEAP,
                                      "abc", sizeof("abc") - 1,
                                      SCM_ENC_ASCII);
 
@@ -373,7 +373,7 @@ test_scm_string_fill_ascii(void)
   memset(&c, 0, sizeof(c));
   memcpy(&c, "a", 1);
 
-  str = scm_string_new(SCM_CAPI_MEM_HEAP,
+  str = scm_string_new(SCM_MEM_HEAP,
                                      "next sentence is right. previous sentence is fault",
                                      sizeof("next sentence is right. previous sentence is fault") - 1,
                                      SCM_ENC_ASCII);
@@ -402,7 +402,7 @@ test_scm_string_fill_append_ascii(void)
   memset(&c, 0, sizeof(c));
   memcpy(&c, "a", 1);
 
-  str = scm_string_new(SCM_CAPI_MEM_HEAP,
+  str = scm_string_new(SCM_MEM_HEAP,
                                      "next sentence is right. previous sentence is fault",
                                      sizeof("next sentence is right. previous sentence is fault") - 1,
                                      SCM_ENC_ASCII);
@@ -429,7 +429,7 @@ test_scm_string_find_chr_found_ascii(void)
   memset(&c, 0, sizeof(c));
   memcpy(&c, "r", 1);
 
-  str = scm_string_new(SCM_CAPI_MEM_HEAP,
+  str = scm_string_new(SCM_MEM_HEAP,
                                      "this string is fault",
                                      sizeof("this string is fault") - 1,
                                      SCM_ENC_ASCII);
@@ -448,7 +448,7 @@ test_scm_string_find_chr_not_found_ascii(void)
   memset(&c, 0, sizeof(c));
   memcpy(&c, "z", 1);
 
-  str = scm_string_new(SCM_CAPI_MEM_HEAP,
+  str = scm_string_new(SCM_MEM_HEAP,
                                      "this string is fault",
                                      sizeof("this string is fault") - 1,
                                      SCM_ENC_ASCII);
@@ -463,12 +463,12 @@ test_scm_string_match_matched_ascii(void)
 
   SCM_STACK_FRAME_PUSH(&str, &pat);
 
-  str = scm_string_new(SCM_CAPI_MEM_HEAP,
+  str = scm_string_new(SCM_MEM_HEAP,
                                      "this string is fault",
                                      sizeof("this string is fault") - 1,
                                      SCM_ENC_ASCII);
 
-  pat = scm_string_new(SCM_CAPI_MEM_HEAP,
+  pat = scm_string_new(SCM_MEM_HEAP,
                                      "g is f",
                                      sizeof("g is f") - 1,
                                      SCM_ENC_ASCII);
@@ -483,11 +483,11 @@ test_scm_string_match_unmatched_ascii(void)
 
   SCM_STACK_FRAME_PUSH(&str, &pat);
 
-  str = scm_string_new(SCM_CAPI_MEM_HEAP,
+  str = scm_string_new(SCM_MEM_HEAP,
                                      "this string is fault",
                                      sizeof("this string is fault") - 1,
                                      SCM_ENC_ASCII);
-  pat = scm_string_new(SCM_CAPI_MEM_HEAP,
+  pat = scm_string_new(SCM_MEM_HEAP,
                                      "g-is-f",
                                      sizeof("g-is-f") - 1,
                                      SCM_ENC_ASCII);

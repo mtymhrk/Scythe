@@ -26,7 +26,7 @@ test_scm_eof_new(void)
 
   SCM_STACK_FRAME_PUSH(&eof);
 
-  eof = scm_eof_new(SCM_CAPI_MEM_HEAP);
+  eof = scm_eof_new(SCM_MEM_HEAP);
 
   cut_assert_true(scm_obj_not_null_p(eof));
   cut_assert_true(scm_obj_type_p(eof, &SCM_EOF_TYPE_INFO));

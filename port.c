@@ -956,7 +956,7 @@ scm_port_finalize(ScmObj port)
 }
 
 ScmObj
-scm_port_new(SCM_CAPI_MEM_TYPE_T mtype,
+scm_port_new(SCM_MEM_TYPE_T mtype,
              ScmIO *io, SCM_PORT_ATTR attr, SCM_PORT_BUF_T buf_mode,
              SCM_ENC_T enc)
 {
@@ -977,7 +977,7 @@ ScmObj
 scm_port_open_input(ScmIO *io, SCM_PORT_ATTR attr,
                     SCM_PORT_BUF_T buf_mode, SCM_ENC_T enc)
 {
-  return scm_port_new(SCM_CAPI_MEM_HEAP,
+  return scm_port_new(SCM_MEM_HEAP,
                       io, attr | SCM_PORT_ATTR_READABLE, buf_mode, enc);
 }
 
@@ -985,7 +985,7 @@ ScmObj
 scm_port_open_output(ScmIO *io, SCM_PORT_ATTR attr,
                      SCM_PORT_BUF_T buf_mode, SCM_ENC_T enc)
 {
-  return scm_port_new(SCM_CAPI_MEM_HEAP,
+  return scm_port_new(SCM_MEM_HEAP,
                       io, attr | SCM_PORT_ATTR_WRITABLE, buf_mode, enc);
 }
 

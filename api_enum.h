@@ -23,9 +23,9 @@ typedef enum {
 /*******************************************************************/
 
 typedef enum {
-  SCM_CAPI_MEM_HEAP,
-  SCM_CAPI_MEM_ROOT,
-} SCM_CAPI_MEM_TYPE_T;
+  SCM_MEM_HEAP,
+  SCM_MEM_ROOT,
+} SCM_MEM_TYPE_T;
 
 
 /*******************************************************************/

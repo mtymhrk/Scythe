@@ -30,10 +30,10 @@ struct ScmCharRec {
 
 void scm_char_initialize(ScmObj chr, scm_char_t value, SCM_ENC_T enc);
 void scm_char_finalize(ScmObj chr);
-ScmObj scm_char_new(SCM_CAPI_MEM_TYPE_T mtype,
+ScmObj scm_char_new(SCM_MEM_TYPE_T mtype,
                     scm_char_t value, SCM_ENC_T enc);
-ScmObj scm_char_new_newline(SCM_CAPI_MEM_TYPE_T mtype, SCM_ENC_T enc);
-ScmObj scm_char_new_space(SCM_CAPI_MEM_TYPE_T mtype, SCM_ENC_T enc);
+ScmObj scm_char_new_newline(SCM_MEM_TYPE_T mtype, SCM_ENC_T enc);
+ScmObj scm_char_new_space(SCM_MEM_TYPE_T mtype, SCM_ENC_T enc);
 scm_char_t scm_char_value(ScmObj chr);
 SCM_ENC_T scm_char_encoding(ScmObj chr);
 

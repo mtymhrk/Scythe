@@ -34,7 +34,7 @@ scm_symbol_initialize(ScmObj sym, ScmObj str) /* GC OK */
 }
 
 ScmObj
-scm_symbol_new(SCM_CAPI_MEM_TYPE_T mtype, ScmObj str) /* GC OK */
+scm_symbol_new(SCM_MEM_TYPE_T mtype, ScmObj str) /* GC OK */
 {
   ScmObj sym = SCM_OBJ_INIT;
 
@@ -144,7 +144,7 @@ scm_symtbl_finalize(ScmObj tbl)
 }
 
 ScmObj
-scm_symtbl_new(SCM_CAPI_MEM_TYPE_T mtype)
+scm_symtbl_new(SCM_MEM_TYPE_T mtype)
 {
   ScmObj tbl = SCM_OBJ_INIT;
 
@@ -177,7 +177,7 @@ scm_symtbl_symbol(ScmObj tbl, ScmObj str)
 
   if (found) return sym;
 
-  sym = scm_symbol_new(SCM_CAPI_MEM_HEAP, str);
+  sym = scm_symbol_new(SCM_MEM_HEAP, str);
   if (scm_obj_null_p(sym)) return SCM_OBJ_NULL;
 
   rslt = scm_chash_tbl_insert(SCM_SYMTBL(tbl)->tbl, str, sym);

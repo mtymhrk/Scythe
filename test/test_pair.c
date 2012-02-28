@@ -33,7 +33,7 @@ test_scm_pair_new(void)
   cdr = scm_api_nil();
 
   /* action */
-  pair = scm_pair_new(SCM_CAPI_MEM_HEAP, car, cdr);;
+  pair = scm_pair_new(SCM_MEM_HEAP, car, cdr);;
 
   /* postcondition check */
   cut_assert_true(scm_obj_not_null_p(pair));
@@ -51,7 +51,7 @@ test_scm_pair_car(void)
   /* preprocess */
   car = scm_api_nil();
   cdr = scm_api_eof();
-  pair = scm_pair_new(SCM_CAPI_MEM_HEAP, car, cdr);;
+  pair = scm_pair_new(SCM_MEM_HEAP, car, cdr);;
 
   /* action  */
   actual_car = scm_pair_car(pair);
@@ -71,7 +71,7 @@ test_scm_pair_cdr(void)
   /* preprocess */
   car = scm_api_nil();
   cdr = scm_api_eof();
-  pair = scm_pair_new(SCM_CAPI_MEM_HEAP, car, cdr);;
+  pair = scm_pair_new(SCM_MEM_HEAP, car, cdr);;
 
   /* action */
   actual_cdr = scm_pair_cdr(pair);

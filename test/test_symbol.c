@@ -31,11 +31,11 @@ test_scm_symbol_new(void)
   SCM_STACK_FRAME_PUSH(&sym, &str);
 
   /* preprocess */
-  str = scm_string_new(SCM_CAPI_MEM_HEAP,
+  str = scm_string_new(SCM_MEM_HEAP,
                                 "foo", sizeof("foo") - 1, SCM_ENC_ASCII);
 
   /* action */
-  sym = scm_symbol_new(SCM_CAPI_MEM_HEAP, str);
+  sym = scm_symbol_new(SCM_MEM_HEAP, str);
 
   /* postcondition check */
   cut_assert_true(scm_obj_not_null_p(sym));
@@ -49,9 +49,9 @@ test_scm_symbol_string__string_derived_from_a_symbol_should_be_equal_to_the_stri
   SCM_STACK_FRAME_PUSH(&sym, &expected, &actual);
 
   /* preprocess */
-  expected = scm_string_new(SCM_CAPI_MEM_HEAP,
+  expected = scm_string_new(SCM_MEM_HEAP,
                                 "baz", sizeof("baz") - 1, SCM_ENC_ASCII);
-  sym = scm_symbol_new(SCM_CAPI_MEM_HEAP, expected);
+  sym = scm_symbol_new(SCM_MEM_HEAP, expected);
 
   /* action */
   actual = scm_symbol_string(sym);
@@ -68,9 +68,9 @@ test_scm_symbol_string__string_derived_from_a_symbol_should_not_be_same_instance
   SCM_STACK_FRAME_PUSH(&sym, &expected, &actual);
 
   /* preprocess */
-  expected = scm_string_new(SCM_CAPI_MEM_HEAP,
+  expected = scm_string_new(SCM_MEM_HEAP,
                                 "baz", sizeof("baz") - 1, SCM_ENC_ASCII);
-  sym = scm_symbol_new(SCM_CAPI_MEM_HEAP, expected);
+  sym = scm_symbol_new(SCM_MEM_HEAP, expected);
 
   /* action */
   actual = scm_symbol_string(sym);

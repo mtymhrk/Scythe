@@ -100,13 +100,13 @@ scm_capi_mem_alloc_root(ScmTypeInfo *type)
 }
 
 extern inline ScmObj
-scm_capi_mem_alloc(ScmTypeInfo *otype, SCM_CAPI_MEM_TYPE_T mtype)
+scm_capi_mem_alloc(ScmTypeInfo *otype, SCM_MEM_TYPE_T mtype)
 {
   switch(mtype) {
-  case SCM_CAPI_MEM_HEAP:
+  case SCM_MEM_HEAP:
     return scm_capi_mem_alloc_heap(otype);
     break;
-  case SCM_CAPI_MEM_ROOT:
+  case SCM_MEM_ROOT:
     return scm_capi_mem_alloc_root(otype);
     break;
   default:

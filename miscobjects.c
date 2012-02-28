@@ -33,7 +33,7 @@ scm_eof_finalize(ScmObj eof)
 }
 
 ScmObj
-scm_eof_new(SCM_CAPI_MEM_TYPE_T mtype)         /* GC OK */
+scm_eof_new(SCM_MEM_TYPE_T mtype)         /* GC OK */
 {
   ScmObj eof;
 
@@ -74,7 +74,7 @@ scm_bool_finalize(ScmObj obj)   /* GC OK */
 }
 
 ScmObj
-scm_bool_new(SCM_CAPI_MEM_TYPE_T mtype, bool value)  /* GC OK */
+scm_bool_new(SCM_MEM_TYPE_T mtype, bool value)  /* GC OK */
 {
   ScmObj bl = SCM_OBJ_INIT;;
 
@@ -123,7 +123,7 @@ scm_nil_finalize(ScmObj nil)    /* GC OK */
 }
 
 ScmObj
-scm_nil_new(SCM_CAPI_MEM_TYPE_T mtype)         /* GC OK */
+scm_nil_new(SCM_MEM_TYPE_T mtype)         /* GC OK */
 {
   ScmObj nil = SCM_OBJ_INIT;
 

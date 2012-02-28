@@ -28,7 +28,7 @@ test_scm_string_new(void)
   SCM_STACK_FRAME_PUSH(&str);
 
   /* action */
-  str = scm_string_new(SCM_CAPI_MEM_HEAP,
+  str = scm_string_new(SCM_MEM_HEAP,
                        "foo", sizeof("foo") - 1,
                        SCM_ENC_ASCII);
   /* postcondition check */

@@ -31,7 +31,7 @@ scm_gloc_initialize(ScmObj gloc, ScmObj sym, ScmObj val) /* GC OK */
 }
 
 ScmObj
-scm_gloc_new(SCM_CAPI_MEM_TYPE_T mtype, ScmObj sym) /* GC OK */
+scm_gloc_new(SCM_MEM_TYPE_T mtype, ScmObj sym) /* GC OK */
 {
   ScmObj gloc = SCM_OBJ_INIT;
 
@@ -120,7 +120,7 @@ scm_gloctbl_finalize(ScmObj tbl)
 }
 
 ScmObj
-scm_gloctbl_new(SCM_CAPI_MEM_TYPE_T mtype) /* GC OK */
+scm_gloctbl_new(SCM_MEM_TYPE_T mtype) /* GC OK */
 {
   ScmObj tbl = SCM_OBJ_INIT;
 
@@ -171,7 +171,7 @@ scm_gloctbl_gloc(ScmObj tbl, ScmObj sym) /* GC OK */
 
   if (found) return gloc;
 
-  gloc = scm_gloc_new(SCM_CAPI_MEM_HEAP, sym);
+  gloc = scm_gloc_new(SCM_MEM_HEAP, sym);
   if (scm_obj_null_p(gloc)) return SCM_OBJ_NULL;
 
   rslt = scm_chash_tbl_insert(SCM_GLOCTBL(tbl)->tbl, sym, gloc);

@@ -26,7 +26,7 @@ scm_subrutine_initialize(ScmObj subr, ScmSubrFunc func)
 }
 
 ScmObj
-scm_subrutine_new(SCM_CAPI_MEM_TYPE_T mtype, ScmSubrFunc func)
+scm_subrutine_new(SCM_MEM_TYPE_T mtype, ScmSubrFunc func)
 {
   ScmObj subr = SCM_OBJ_INIT;
 

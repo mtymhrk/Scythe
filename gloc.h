@@ -55,7 +55,7 @@ scm_gloc_value(ScmObj gloc)
 }
 
 void scm_gloc_initialize(ScmObj gloc, ScmObj sym, ScmObj val);
-ScmObj scm_gloc_new(SCM_CAPI_MEM_TYPE_T mtype, ScmObj sym);
+ScmObj scm_gloc_new(SCM_MEM_TYPE_T mtype, ScmObj sym);
 
 void scm_gloc_gc_initialize(ScmObj obj, ScmObj mem);
 int scm_gloc_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
@@ -70,7 +70,7 @@ struct ScmGLocTblRec {
 
 void scm_gloctbl_initialize(ScmObj tbl);
 void scm_gloctbl_finalize(ScmObj tbl);
-ScmObj scm_gloctbl_new(SCM_CAPI_MEM_TYPE_T mtype);
+ScmObj scm_gloctbl_new(SCM_MEM_TYPE_T mtype);
 
 int scm_gloctbl_find(ScmObj tbl, ScmObj sym, scm_csetter_t *setter);
 ScmObj scm_gloctbl_gloc(ScmObj tbl, ScmObj sym);
