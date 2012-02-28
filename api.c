@@ -14,6 +14,7 @@
 #include "pair.h"
 #include "vector.h"
 #include "port.h"
+#include "parser.h"
 
 #include "encoding.h"
 #include "impl_utils.h"
@@ -783,6 +784,27 @@ scm_capi_peek_char(ScmObj port, scm_char_t *chr)
     return -1;         /* provisional implemntation */
 
   return scm_port_peek_char(port, chr);
+}
+
+ScmObj
+scm_api_read(ScmObj port)
+{
+  ScmLexer *lexer;
+  ScmParser *parser;
+
+  if (scm_obj_null_p(port)
+      || !scm_capi_input_port_p(port))
+      return SCM_OBJ_NULL;         /* provisional implementation */
+
+  lexer = scm_lexer_new();
+  if (lexer == NULL)
+    return SCM_OBJ_NULL;         /* provisional implementation */
+
+  parser = scm_parser_new(lexer);
+  if (parser == NULL)
+    return SCM_OBJ_NULL;         /* provisional implementation */
+
+  return scm_parser_parse_expression(parser, port);
 }
 
 

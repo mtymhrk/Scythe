@@ -205,7 +205,7 @@ ssize_t scm_capi_unread_raw(ScmObj port, const void *buf, size_t size);
 ssize_t scm_capi_unread_char(ScmObj port, const scm_char_t *chr);
 ssize_t scm_capi_peek_raw(ScmObj port, void *buf, size_t size);
 ssize_t scm_capi_peek_char(ScmObj port, scm_char_t *chr);
-
+ScmObj scm_api_read(ScmObj port);
 
 /*******************************************************************/
 /*  Subrutine                                                      */
