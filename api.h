@@ -122,7 +122,7 @@ ScmObj scm_api_car(ScmObj pair);
 ScmObj scm_api_cdr(ScmObj pair);
 bool scm_capi_pair_p(ScmObj pair);
 ScmObj scm_api_pair_P(ScmObj pair);
-
+ScmObj scm_capi_list(unsigned int n, ...);
 
 /*******************************************************************/
 /*  numeric                                                        */

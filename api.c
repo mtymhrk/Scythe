@@ -291,6 +291,31 @@ scm_api_pair_P(ScmObj pair)
           scm_vm_bool_true_instance() : scm_vm_bool_false_instance());
 }
 
+ScmObj
+scm_capi_list(unsigned int n, ...)
+{
+  ScmObj args[n];
+  ScmObj lst = SCM_OBJ_INIT;
+  va_list ap;
+
+  SCM_STACK_FRAME_PUSH(&lst);
+
+  va_start(ap, n);
+  for (unsigned int i; i < n; i++)
+    args[i] = va_arg(ap, ScmObj);
+  va_end(ap);
+
+  for (unsigned int i; i < n; i++)
+    SCM_STACK_PUSH(args + i);
+
+  lst = scm_api_nil();
+  for (unsigned int i = n; i > 0; i--) {
+    lst = scm_api_cons(args[i - 1], lst);
+    if (scm_obj_null_p(lst)) return SCM_OBJ_NULL; /* provisional implemntation */
+  }
+
+  return lst;
+}
 
 /*******************************************************************/
 /*  numeric                                                        */
