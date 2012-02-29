@@ -132,7 +132,7 @@ test_scm_vm_run__call_cons(void)
   scm_iseq_set_word(iseq, idx++, code.iword);
 
   code.immv1.op = SCM_OPCODE_IMMVAL;
-  code.immv1.imm_idx = scm_iseq_set_immval(iseq, cdr);
+  code.immv1.imm_idx = scm_iseq_set_immval(iseq, car);
   scm_iseq_set_word(iseq, idx++, code.iword);
 
   code.plain.op = SCM_OPCODE_PUSH;
@@ -140,7 +140,7 @@ test_scm_vm_run__call_cons(void)
   scm_iseq_set_word(iseq, idx++, code.iword);
 
   code.immv1.op = SCM_OPCODE_IMMVAL;
-  code.immv1.imm_idx = scm_iseq_set_immval(iseq, car);
+  code.immv1.imm_idx = scm_iseq_set_immval(iseq, cdr);
   scm_iseq_set_word(iseq, idx++, code.iword);
 
   code.plain.op = SCM_OPCODE_PUSH;

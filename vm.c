@@ -360,14 +360,17 @@ scm_vm_frame_argc(ScmObj vm)
 scm_local_func ScmObj
 scm_vm_frame_argv(ScmObj vm, int nth)
 {
+  int argc;
+
   SCM_STACK_FRAME_PUSH(&vm);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
-  if (nth >= scm_vm_frame_argc(vm))
+  argc = scm_vm_frame_argc(vm);
+  if (nth >= argc)
     return SCM_OBJ_NULL;    /* 存在しない引数を参照。とりあえず NULL を返す */
 
-  return SCM_OBJ(SCM_VM(vm)->reg.fp[-(nth + 2)]);
+  return SCM_OBJ(SCM_VM(vm)->reg.fp[-(argc + 1) + nth]);
 }
 
 scm_local_func void
