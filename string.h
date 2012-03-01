@@ -37,8 +37,8 @@ struct ScmStringRec {
 #define SCM_STRING_INC_REF_CNT(obj) ((*SCM_STRING(obj)->ref_cnt)++)
 #define SCM_STRING_DEC_REF_CNT(obj) ((*SCM_STRING(obj)->ref_cnt)--)
 
-void scm_string_initialize(ScmObj str,
-                           const void *src, size_t size, SCM_ENC_T enc);
+int scm_string_initialize(ScmObj str,
+                          const void *src, size_t size, SCM_ENC_T enc);
 ScmObj scm_string_new(SCM_MEM_TYPE_T mtype,
                             const void *src, size_t size, SCM_ENC_T enc);
 ScmObj scm_string_copy(ScmObj src);

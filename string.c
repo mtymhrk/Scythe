@@ -33,7 +33,9 @@ scm_string_check_bytes(void *str, size_t size,
   ScmStrItr iter;
   ssize_t len;
 
-  if (str == NULL || vf == NULL || size > SSIZE_MAX) return -1;
+  scm_assert(str != NULL);
+  scm_assert(size <= SSIZE_MAX);
+  scm_assert(vf != NULL);
 
   iter = scm_str_itr_begin((void *)str, size, vf->char_width);
   if (SCM_STR_ITR_IS_ERR(&iter)) return -1;
@@ -54,12 +56,14 @@ scm_string_copy_bytes_with_check(void *dst, const void *src, size_t size,
 {
   ssize_t len;
 
-  if (dst == NULL || src == NULL || vf == NULL || size > SSIZE_MAX)
-    return -1;
+  scm_assert(dst != NULL);
+  scm_assert(src != NULL);
+  scm_assert(size <= SSIZE_MAX);
+  scm_assert(vf != NULL);
 
   memcpy(dst, src, size);
   len = scm_string_check_bytes(dst, size, vf);
-  if (len < 0) return -1;
+  if (len < 0) return -1; /* [ERR]: [through] */
 
   return len;
 }
@@ -77,7 +81,7 @@ scm_string_copy_and_expand(ScmObj src, size_t size) /* GC OK */
 
   str = scm_string_new(SCM_MEM_HEAP,
                        NULL, size, SCM_STRING_ENC(src));
-  if (scm_obj_null_p(str)) return SCM_OBJ_NULL;
+  if (scm_obj_null_p(str)) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   SCM_STRING_BYTESIZE(str) =
     (size < SCM_STRING_BYTESIZE(src)) ? size : SCM_STRING_BYTESIZE(src);
@@ -87,10 +91,7 @@ scm_string_copy_and_expand(ScmObj src, size_t size) /* GC OK */
                                      /* XXX: SCM_STRING_BYTESIZE(str) ? */
                                      SCM_STRING_BYTESIZE(src),
                                      SCM_ENCODING_VFUNC(SCM_STRING_ENC(src)));
-  if (len < 0) {
-    /* scm_string_end(str); */
-    return SCM_OBJ_NULL;
-  }
+  scm_assert(len >= 0);
 
   SCM_STRING_LENGTH(str) = (size_t)len;
 
@@ -136,7 +137,7 @@ scm_string_finalize(ScmObj str) /* GC OK */
   SCM_STRING_REF_CNT(str) = NULL;
 }
 
-void
+int
 scm_string_initialize(ScmObj str,
                       const void *src, size_t size, SCM_ENC_T enc) /* GC OK */
 {
@@ -157,12 +158,12 @@ scm_string_initialize(ScmObj str,
   SCM_STRING_BUFFER(str) = scm_capi_malloc(SCM_STRING_CAPACITY(str));
   SCM_STRING_HEAD(str) = SCM_STRING_BUFFER(str);
   if (SCM_STRING_BUFFER(str) == NULL)
-    ;                           /* TODO: error handling */
+    return -1;      /* TODO: error handling: [ERR]: fatal: no memory */
 
   SCM_STRING_REF_CNT(str) =
     scm_capi_malloc(sizeof(*SCM_STRING_REF_CNT(str)));
   if (SCM_STRING_REF_CNT(str) == NULL)
-    ;                           /* TODO: error handling */
+    ;      /* TODO: error handling: [ERR]: fatal: no memory */
 
   *SCM_STRING_REF_CNT(str) = 1;
 
@@ -171,7 +172,7 @@ scm_string_initialize(ScmObj str,
                                                    src, size,
                                                    SCM_ENCODING_VFUNC(enc));
     if (len < 0)
-      ;                  /* TODO: error handling: invalid byte sequence */
+      return -1; /* TODO: error handling: [ERR]: string: invalid byte sequence */
 
     SCM_STRING_LENGTH(str) = (size_t)len;
     SCM_STRING_BYTESIZE(str) = size;
@@ -180,6 +181,8 @@ scm_string_initialize(ScmObj str,
     SCM_STRING_LENGTH(str) = 0;
     SCM_STRING_BYTESIZE(str) = 0;
   }
+
+  return 0;
 }
 
 ScmObj
@@ -193,8 +196,11 @@ scm_string_new(SCM_MEM_TYPE_T mtype, const void *src, size_t size, SCM_ENC_T enc
   scm_assert(/*0 <= enc && */enc < SCM_ENC_NR_ENC);
 
   str = scm_capi_mem_alloc(&SCM_STRING_TYPE_INFO, mtype);
+  if (scm_obj_null_p(str))
+    return SCM_OBJ_NULL;
 
-  scm_string_initialize(str, src, size, enc);
+  if (scm_string_initialize(str, src, size, enc) < 0)
+    return SCM_OBJ_NULL;
 
   return str;
 }
@@ -275,14 +281,14 @@ scm_string_substr(ScmObj str, size_t pos, size_t len) /* GC OK */
   scm_assert(pos <= SSIZE_MAX);
   scm_assert(len <= SSIZE_MAX);
 
-  if (pos + len > SCM_STRING_LENGTH(str)) return SCM_OBJ_NULL;
+  if (pos + len > SCM_STRING_LENGTH(str)) return SCM_OBJ_NULL; /* [ERR]: string argument out of range */
 
   index2iter = SCM_ENCODING_VFUNC_INDEX2ITER(SCM_STRING_ENC(str));
   head = index2iter(SCM_STRING_HEAD(str), SCM_STRING_BYTESIZE(str), pos);
   tail = index2iter(SCM_STRING_HEAD(str), SCM_STRING_BYTESIZE(str), pos + len);
 
   if (SCM_STR_ITR_IS_ERR(&head) || SCM_STR_ITR_IS_ERR(&tail))
-    return SCM_OBJ_NULL;
+    return SCM_OBJ_NULL;    /* [ERR]: string: invalid byte sequence */
 
   substr = scm_string_dup(str);
   SCM_STRING_HEAD(substr) = (uint8_t *)SCM_STR_ITR_PTR(&head);
@@ -307,12 +313,12 @@ scm_string_push(ScmObj str, const scm_char_t c) /* GC OK */
 
   char_width = SCM_ENCODING_VFUNC_CHAR_WIDTH(SCM_STRING_ENC(str));
   width = char_width(&c, sizeof(c));
-  if (width < 0) return SCM_OBJ_NULL;
+  if (width < 0) return SCM_OBJ_NULL; /* [ERR]: string: invalid byte sequence has pushed */
 
   if ((*SCM_STRING_REF_CNT(str) > 1) || ROOM_FOR_APPEND(str) < (size_t)width) {
     tmp = scm_string_copy_and_expand(str,
                                      SCM_STRING_BYTESIZE(str) + (size_t)width);
-    if (scm_obj_null_p(tmp)) return SCM_OBJ_NULL;
+    if (scm_obj_null_p(tmp)) return SCM_OBJ_NULL; /* [ERR]: [through] */
     scm_string_replace_contents(str, tmp);
     scm_string_finalize(tmp);
   }
@@ -339,7 +345,7 @@ scm_string_append(ScmObj str, ScmObj append) /* GC OK */
     tmp = scm_string_copy_and_expand(str,
                                      SCM_STRING_BYTESIZE(str)
                                      + SCM_STRING_BYTESIZE(append));
-    if (scm_obj_null_p(tmp)) return SCM_OBJ_NULL;
+    if (scm_obj_null_p(tmp)) return SCM_OBJ_NULL; /* [ERR]: [through] */
     scm_string_replace_contents(str, tmp);
     scm_string_finalize(tmp);
   }
@@ -363,12 +369,13 @@ scm_string_ref(ScmObj str, size_t pos) /* GC OK */
   scm_assert(pos <= SSIZE_MAX);
 
   c = SCM_CHR_ZERO;
-  if (pos >= SCM_STRING_LENGTH(str)) return c;
+  if (pos >= SCM_STRING_LENGTH(str)) return c; /* [ERR]: string: argument out of range */
 
   index2iter = SCM_ENCODING_VFUNC_INDEX2ITER(SCM_STRING_ENC(str));
   iter = index2iter(SCM_STRING_HEAD(str), SCM_STRING_BYTESIZE(str), pos);
-  if (SCM_STR_ITR_IS_ERR(&iter)) return c;
-  if (SCM_STR_ITR_IS_END(&iter)) return c;
+
+  scm_assert(!SCM_STR_ITR_IS_ERR(&iter));
+  scm_assert(!SCM_STR_ITR_IS_END(&iter));
 
   memcpy(&c, SCM_STR_ITR_PTR(&iter), (size_t)SCM_STR_ITR_WIDTH(&iter));
 
@@ -389,19 +396,19 @@ scm_string_set(ScmObj str, size_t pos, const scm_char_t c) /* GC OK */
   scm_assert_obj_type(str, &SCM_STRING_TYPE_INFO);
   scm_assert(pos <= SSIZE_MAX);
 
-  if (pos >= SCM_STRING_LENGTH(str)) return SCM_OBJ_NULL;
+  if (pos >= SCM_STRING_LENGTH(str)) return SCM_OBJ_NULL; /* [ERR]: string: argument out of range */
 
   index2iter = SCM_ENCODING_VFUNC_INDEX2ITER(SCM_STRING_ENC(str));
   char_width = SCM_ENCODING_VFUNC_CHAR_WIDTH(SCM_STRING_ENC(str));
 
   iter = index2iter(SCM_STRING_HEAD(str), SCM_STRING_BYTESIZE(str), pos);
-  if (SCM_STR_ITR_IS_ERR(&iter)) return SCM_OBJ_NULL;
+  scm_assert(!SCM_STR_ITR_IS_ERR(&iter));
 
   cw = char_width(&c, sizeof(c));
-  if (cw < 0) return SCM_OBJ_NULL;
+  if (cw < 0) return SCM_OBJ_NULL; /* [ERR]: string: invalid byte sequnce has set */
 
   iw = SCM_STR_ITR_WIDTH(&iter);
-  if (iw < 0) return SCM_OBJ_NULL;
+  scm_assert(iw >= 0);
 
   if (*SCM_STRING_REF_CNT(str) == 1
       && (iw > cw || ROOM_FOR_APPEND(str) >= (size_t)(cw - iw))) {
@@ -425,7 +432,7 @@ scm_string_set(ScmObj str, size_t pos, const scm_char_t c) /* GC OK */
     size_t offset = SCM_STR_ITR_OFFSET(&iter, SCM_STRING_HEAD(str));
     tmp = scm_string_copy(str);
 
-    if (scm_obj_null_p(tmp)) return SCM_OBJ_NULL;
+    if (scm_obj_null_p(tmp)) return SCM_OBJ_NULL; /* [ERR]: [through] */
     memcpy(SCM_STRING_HEAD(tmp) + offset, &c, (size_t)cw);
     scm_string_replace_contents(str, tmp);
 
@@ -436,14 +443,14 @@ scm_string_set(ScmObj str, size_t pos, const scm_char_t c) /* GC OK */
     rear = scm_string_substr(str, pos + 1, SCM_STRING_LENGTH(str) - pos - 1);
 
     if (scm_obj_null_p(front) || scm_obj_null_p(rear))
-      return SCM_OBJ_NULL;
+      return SCM_OBJ_NULL; /* [ERR]: [through] */
 
     tmp = scm_string_copy_and_expand(front,
                                      SCM_STRING_BYTESIZE(front)
                                      + (size_t)cw + SCM_STRING_BYTESIZE(rear));
-    if (scm_obj_null_p(tmp)) return SCM_OBJ_NULL;
-    if (scm_obj_null_p(scm_string_push(tmp, c))) return SCM_OBJ_NULL;
-    if (scm_obj_null_p(scm_string_append(tmp, rear))) return SCM_OBJ_NULL;
+    if (scm_obj_null_p(tmp)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+    if (scm_obj_null_p(scm_string_push(tmp, c))) return SCM_OBJ_NULL; /* [ERR]: [through] */
+    if (scm_obj_null_p(scm_string_append(tmp, rear))) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
     scm_string_replace_contents(str, tmp);
 
@@ -466,20 +473,20 @@ scm_string_fill(ScmObj str, size_t pos, size_t len, scm_char_t c) /* GC OK */
   scm_assert(pos <= SSIZE_MAX);
   scm_assert(len <= SSIZE_MAX);
 
-  if (pos > SCM_STRING_LENGTH(str)) return SCM_OBJ_NULL;
+  if (pos > SCM_STRING_LENGTH(str)) return SCM_OBJ_NULL; /* [ERR]: string: argument out of range */
 
   char_width = SCM_ENCODING_VFUNC_CHAR_WIDTH(SCM_STRING_ENC(str));
 
   filledsize = char_width(&c, sizeof(c)) * (ssize_t)len;
-  if (filledsize < 0) return SCM_OBJ_NULL;
+  if (filledsize < 0) return SCM_OBJ_NULL; /* [ERR]: string: arguemnt invalid byte sequence has filled */
 
   front = scm_string_substr(str, 0, pos);
-  if (scm_obj_null_p(front)) return SCM_OBJ_NULL;
+  if (scm_obj_null_p(front)) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   if (pos + len < SCM_STRING_LENGTH(str)) {
     rear = scm_string_substr(str, pos + len,
                              SCM_STRING_LENGTH(str) - pos - len);
-    if (scm_obj_null_p(rear)) return SCM_OBJ_NULL;
+    if (scm_obj_null_p(rear)) return SCM_OBJ_NULL; /* [ERR]: [through] */
   }
 
   tmp = scm_string_copy_and_expand(front,
@@ -487,15 +494,15 @@ scm_string_fill(ScmObj str, size_t pos, size_t len, scm_char_t c) /* GC OK */
                                    + len
                                    + (scm_obj_null_p(rear) ?
                                       0 : SCM_STRING_BYTESIZE(rear)));
-  if (scm_obj_null_p(tmp)) return SCM_OBJ_NULL;
+  if (scm_obj_null_p(tmp)) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   for (i = 0; i < len; i++)
     if (scm_obj_null_p(scm_string_push(tmp, c)))
-      return SCM_OBJ_NULL;
+      return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   if (scm_obj_not_null_p(rear))
     if (scm_obj_null_p(scm_string_append(tmp, rear)))
-      return SCM_OBJ_NULL;
+      return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   scm_string_replace_contents(str, tmp);
 
@@ -513,21 +520,22 @@ scm_string_find_chr(ScmObj str, scm_char_t c) /* GC OK */
 
   char_width = SCM_ENCODING_VFUNC_CHAR_WIDTH(SCM_STRING_ENC(str));
   cw = char_width(&c, sizeof(c));
-  if (cw < 0) return -1;
+  if (cw < 0) return -1; /* [ERR]: string: argument is invalid byte sequence */
 
   iter = scm_str_itr_begin(SCM_STRING_HEAD(str),
                            SCM_STRING_BYTESIZE(str), char_width);
-  if (SCM_STR_ITR_IS_ERR(&iter)) return -1;
+  scm_assert(!SCM_STR_ITR_IS_ERR(&iter));
 
   pos = 0;
   while (!SCM_STR_ITR_IS_END(&iter)) {
     int w = SCM_STR_ITR_WIDTH(&iter);
-    if (w < 0) return -1;
+    scm_assert(w >= 0);
+
     if ((cw == w) && (memcmp(&c, SCM_STR_ITR_PTR(&iter), (size_t)cw) == 0))
       return pos;
 
     scm_str_itr_next(&iter);
-    if (SCM_STR_ITR_IS_ERR(&iter)) return -1;
+    scm_assert(!SCM_STR_ITR_IS_ERR(&iter));
 
     pos++;
   }
@@ -548,13 +556,13 @@ scm_string_match(ScmObj str, ScmObj pat) /* GC OK */
   pos = 0;
 
   if (SCM_STRING_ENC(str) != SCM_STRING_ENC(pat))
-    return -1;
+    return -1;              /* [ERR]: string: encoding mismatch */
 
   char_width = SCM_ENCODING_VFUNC_CHAR_WIDTH(SCM_STRING_ENC(str));
 
   iter_str_ext = scm_str_itr_begin(SCM_STRING_HEAD(str),
                                    SCM_STRING_BYTESIZE(str), char_width);
-  if (SCM_STR_ITR_IS_ERR(&iter_str_ext)) return -1;
+  scm_assert(!SCM_STR_ITR_IS_ERR(&iter_str_ext));
 
   while (!SCM_STR_ITR_IS_END(&iter_str_ext)) {
     ScmStrItr iter_str_inn;
@@ -563,7 +571,7 @@ scm_string_match(ScmObj str, ScmObj pat) /* GC OK */
 
     iter_pat = scm_str_itr_begin(SCM_STRING_HEAD(pat),
                                  SCM_STRING_BYTESIZE(pat), char_width);
-    if (SCM_STR_ITR_IS_ERR(&iter_pat)) return -1;
+    scm_assert(!SCM_STR_ITR_IS_ERR(&iter_pat));
 
     if (SCM_STR_ITR_REST(&iter_str_ext) < SCM_STR_ITR_REST(&iter_pat))
       return -1;
@@ -579,17 +587,17 @@ scm_string_match(ScmObj str, ScmObj pat) /* GC OK */
         break;
 
       scm_str_itr_next(&iter_str_inn);
-      if (SCM_STR_ITR_IS_ERR(&iter_str_inn)) return -1;
+      scm_assert(!SCM_STR_ITR_IS_ERR(&iter_str_inn));
 
       scm_str_itr_next(&iter_pat);
-      if (SCM_STR_ITR_IS_ERR(&iter_pat)) return -1;
+      scm_assert(!SCM_STR_ITR_IS_ERR(&iter_pat));
     }
 
     if (SCM_STR_ITR_IS_END(&iter_pat))
       return pos;
 
     scm_str_itr_next(&iter_str_ext);
-    if (SCM_STR_ITR_IS_ERR(&iter_str_ext)) return -1;;
+    scm_assert(!SCM_STR_ITR_IS_ERR(&iter_str_ext));
 
     pos++;
   }
