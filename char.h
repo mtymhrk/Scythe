@@ -28,7 +28,7 @@ struct ScmCharRec {
   SCM_CHR_IS_EQUAL(SCM_CHAR_VALUE(c),                                   \
                    SCM_ENCODING_CONST_SPACE_CHAR(SCM_CHAR_ENC(c)))
 
-void scm_char_initialize(ScmObj chr, scm_char_t value, SCM_ENC_T enc);
+int scm_char_initialize(ScmObj chr, scm_char_t value, SCM_ENC_T enc);
 void scm_char_finalize(ScmObj chr);
 ScmObj scm_char_new(SCM_MEM_TYPE_T mtype,
                     scm_char_t value, SCM_ENC_T enc);
@@ -38,3 +38,4 @@ scm_char_t scm_char_value(ScmObj chr);
 SCM_ENC_T scm_char_encoding(ScmObj chr);
 
 #endif /* INCLUDE_CHAR_H__ */
+

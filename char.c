@@ -20,14 +20,19 @@ ScmTypeInfo SCM_CHAR_TYPE_INFO = {
 };
 
 
-void
+int
 scm_char_initialize(ScmObj chr, scm_char_t value, SCM_ENC_T enc) /* GC OK */
 {
   scm_assert_obj_type(chr, &SCM_CHAR_TYPE_INFO);
   scm_assert(/* 0 <= enc && */ enc < SCM_ENC_NR_ENC);
 
+  if (!SCM_ENCODING_VFUNC_VALID_P(enc)(value))
+    return -1;                  /* [ERR] char: invalid byte sequence */
+
   SCM_CHAR_VALUE(chr) = value;
   SCM_CHAR_ENC(chr) = enc;
+
+  return 0;
 }
 
 void
@@ -40,7 +45,7 @@ ScmObj
 scm_char_new(SCM_MEM_TYPE_T mtype,
              scm_char_t value, SCM_ENC_T enc) /* GC OK */
 {
-  ScmObj chr;
+  ScmObj chr = SCM_OBJ_INIT;
 
   SCM_STACK_FRAME_PUSH(&chr);
 
@@ -49,7 +54,8 @@ scm_char_new(SCM_MEM_TYPE_T mtype,
   chr = scm_capi_mem_alloc(&SCM_CHAR_TYPE_INFO, mtype);
   if (scm_obj_null_p(chr)) return SCM_OBJ_NULL;
 
-  scm_char_initialize(chr, value, enc);
+  if (scm_char_initialize(chr, value, enc) < 0)
+    return SCM_OBJ_NULL;
 
   return chr;
 }
