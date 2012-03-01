@@ -20,7 +20,7 @@ struct ScmVectorRec {
 #define SCM_VECTOR_ARRAY(obj) (SCM_VECTOR(obj)->array)
 #define SCM_VECTOR_LENGTH(obj) (SCM_VECTOR(obj)->length)
 
-void scm_vector_initialize(ScmObj vector, size_t length, ScmObj fill);
+int scm_vector_initialize(ScmObj vector, size_t length, ScmObj fill);
 void scm_vector_finalize(ScmObj vector);
 ScmObj scm_vector_new(SCM_MEM_TYPE_T mtype, size_t length, ScmObj fill);
 size_t scm_vector_length(ScmObj vector);

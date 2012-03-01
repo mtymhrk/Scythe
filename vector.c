@@ -15,7 +15,7 @@ ScmTypeInfo SCM_VECTOR_TYPE_INFO = {
   NULL,                         /* gc_accpet_func_weak  */
 };
 
-void
+int
 scm_vector_initialize(ScmObj vector, size_t length, ScmObj fill) /* GC OK */
 {
   size_t i;
@@ -23,15 +23,20 @@ scm_vector_initialize(ScmObj vector, size_t length, ScmObj fill) /* GC OK */
   scm_assert_obj_type(vector, &SCM_VECTOR_TYPE_INFO);
   scm_assert(length <= SSIZE_MAX);
 
-  if (length > 0)
+  if (length > 0) {
     SCM_VECTOR_ARRAY(vector) = scm_capi_malloc(sizeof(ScmObj) * length);
-  else
+    if (SCM_VECTOR_ARRAY(vector) == NULL) return -1; /* [ERR]: [through] */
+  }
+  else {
     SCM_VECTOR_ARRAY(vector) = NULL;
+  }
 
   SCM_VECTOR_LENGTH(vector) = length;
 
   for (i = 0; i < length; i++)
     SCM_SLOT_SETQ(ScmVector, vector, array[i], fill);
+
+  return 0;
 }
 
 void
@@ -56,9 +61,10 @@ scm_vector_new(SCM_MEM_TYPE_T mtype,
   scm_assert(length <= SSIZE_MAX);
 
   vector = scm_capi_mem_alloc(&SCM_VECTOR_TYPE_INFO, mtype);
-  if (scm_obj_null_p(vector)) return SCM_OBJ_NULL;
+  if (scm_obj_null_p(vector)) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
-  scm_vector_initialize(vector, length, fill);
+  if (scm_vector_initialize(vector, length, fill) < 0)
+    return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   return vector;
 }
