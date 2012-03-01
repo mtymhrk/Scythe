@@ -54,7 +54,7 @@ scm_gloc_value(ScmObj gloc)
   return SCM_GLOC(gloc)->val;
 }
 
-void scm_gloc_initialize(ScmObj gloc, ScmObj sym, ScmObj val);
+int scm_gloc_initialize(ScmObj gloc, ScmObj sym, ScmObj val);
 ScmObj scm_gloc_new(SCM_MEM_TYPE_T mtype, ScmObj sym);
 
 void scm_gloc_gc_initialize(ScmObj obj, ScmObj mem);
@@ -68,7 +68,7 @@ struct ScmGLocTblRec {
   ScmCHashTbl *tbl;
 };
 
-void scm_gloctbl_initialize(ScmObj tbl);
+int scm_gloctbl_initialize(ScmObj tbl);
 void scm_gloctbl_finalize(ScmObj tbl);
 ScmObj scm_gloctbl_new(SCM_MEM_TYPE_T mtype);
 

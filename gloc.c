@@ -20,7 +20,7 @@ ScmTypeInfo SCM_GLOC_TYPE_INFO = {
   .gc_accept_func_weak = NULL
 };
 
-void
+int
 scm_gloc_initialize(ScmObj gloc, ScmObj sym, ScmObj val) /* GC OK */
 {
   scm_assert_obj_type(gloc, &SCM_GLOC_TYPE_INFO);
@@ -28,6 +28,8 @@ scm_gloc_initialize(ScmObj gloc, ScmObj sym, ScmObj val) /* GC OK */
 
   SCM_SLOT_SETQ(ScmGLoc, gloc, sym, sym);
   SCM_SLOT_SETQ(ScmGLoc, gloc, val, val);
+
+  return 0;
 }
 
 ScmObj
@@ -38,9 +40,10 @@ scm_gloc_new(SCM_MEM_TYPE_T mtype, ScmObj sym) /* GC OK */
   SCM_STACK_FRAME_PUSH(&gloc, &sym);
 
   gloc = scm_capi_mem_alloc(&SCM_GLOC_TYPE_INFO, mtype);
-  if (scm_obj_null_p(gloc)) return SCM_OBJ_NULL;
+  if (scm_obj_null_p(gloc)) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
-  scm_gloc_initialize(gloc, sym, SCM_OBJ_NULL);
+  if (scm_gloc_initialize(gloc, sym, SCM_OBJ_NULL) < 0)
+    return SCM_OBJ_NULL;        /* [ERR]: [through] */
 
   return gloc;
 }
@@ -95,7 +98,7 @@ scm_gloctbl_cmp_func(ScmCHashTblKey key1, ScmCHashTblKey key2)
   return (scm_capi_eq_p(SCM_OBJ(key1), SCM_OBJ(key2)) ? true : false);
 }
 
-void
+int
 scm_gloctbl_initialize(ScmObj tbl) /* GC OK */
 {
   scm_assert_obj_type(tbl, &SCM_GLOCTBL_TYPE_INFO);
@@ -105,7 +108,9 @@ scm_gloctbl_initialize(ScmObj tbl) /* GC OK */
                       SCM_CHASH_TBL_SCMOBJ, SCM_CHASH_TBL_SCMOBJ,
                       scm_gloctbl_hash_func, scm_gloctbl_cmp_func);
 
-  if (SCM_GLOCTBL(tbl)->tbl == NULL) return;
+  if (SCM_GLOCTBL(tbl)->tbl == NULL) return -1; /* [ERR]: [through] */
+
+  return 0;
 }
 
 void
@@ -127,9 +132,10 @@ scm_gloctbl_new(SCM_MEM_TYPE_T mtype) /* GC OK */
   SCM_STACK_FRAME_PUSH(&tbl);
 
   tbl = scm_capi_mem_alloc(&SCM_GLOCTBL_TYPE_INFO, mtype);
-  if (scm_obj_null_p(tbl)) return SCM_OBJ_NULL;
+  if (scm_obj_null_p(tbl)) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
-  scm_gloctbl_initialize(tbl);
+  if (scm_gloctbl_initialize(tbl) < 0)
+    return SCM_OBJ_NULL;        /* [ERR]: [through] */
 
   return tbl;
 }
@@ -147,7 +153,7 @@ scm_gloctbl_find(ScmObj tbl, ScmObj sym, scm_csetter_t *setter) /* GC OK */
 
   rslt = scm_chash_tbl_get(SCM_GLOCTBL(tbl)->tbl,
                            sym, (ScmCHashTblVal *)setter, &found);
-  if (rslt != 0) return -1;
+  if (rslt != 0) return -1;     /* [ERR]: [through] */
 
   if (!found) scm_csetter_setq(setter, SCM_OBJ_NULL);
 
@@ -167,15 +173,15 @@ scm_gloctbl_gloc(ScmObj tbl, ScmObj sym) /* GC OK */
   scm_assert(scm_capi_symbol_p(sym));
 
   rslt = scm_chash_tbl_get(SCM_GLOCTBL(tbl)->tbl, sym, &gloc, &found);
-  if (rslt != 0) return SCM_OBJ_NULL;
+  if (rslt != 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   if (found) return gloc;
 
   gloc = scm_gloc_new(SCM_MEM_HEAP, sym);
-  if (scm_obj_null_p(gloc)) return SCM_OBJ_NULL;
+  if (scm_obj_null_p(gloc)) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   rslt = scm_chash_tbl_insert(SCM_GLOCTBL(tbl)->tbl, sym, gloc);
-  if (rslt != 0) return SCM_OBJ_NULL;
+  if (rslt != 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   return gloc;
 }
@@ -188,7 +194,7 @@ scm_gloctbl_bind(ScmObj tbl, ScmObj sym, ScmObj val) /* GC OK */
   SCM_STACK_FRAME_PUSH(&gloc, &tbl, &sym, &val);
 
   gloc = scm_gloctbl_gloc(tbl, sym);
-  if (scm_obj_null_p(gloc)) return SCM_OBJ_NULL;
+  if (scm_obj_null_p(gloc)) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   scm_gloc_bind(gloc, val);
 

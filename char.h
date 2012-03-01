@@ -38,4 +38,3 @@ scm_char_t scm_char_value(ScmObj chr);
 SCM_ENC_T scm_char_encoding(ScmObj chr);
 
 #endif /* INCLUDE_CHAR_H__ */
-
