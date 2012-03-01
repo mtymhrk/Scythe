@@ -22,7 +22,7 @@ ScmTypeInfo SCM_SYMBOL_TYPE_INFO = {
   .gc_accept_func_weak = NULL,
 };
 
-void
+int
 scm_symbol_initialize(ScmObj sym, ScmObj str) /* GC OK */
 {
   SCM_STACK_FRAME_PUSH(&sym, &str);
@@ -31,6 +31,8 @@ scm_symbol_initialize(ScmObj sym, ScmObj str) /* GC OK */
   scm_assert_obj_type(str, &SCM_STRING_TYPE_INFO);
 
   SCM_SLOT_SETQ(ScmSymbol, sym, str, scm_string_dup(str));
+
+  return 0;
 }
 
 ScmObj
@@ -43,7 +45,10 @@ scm_symbol_new(SCM_MEM_TYPE_T mtype, ScmObj str) /* GC OK */
   scm_assert_obj_type(str, &SCM_STRING_TYPE_INFO);
 
   sym = scm_capi_mem_alloc(&SCM_SYMBOL_TYPE_INFO, mtype);
-  scm_symbol_initialize(sym, str);
+  if (scm_obj_null_p(sym)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+
+  if (scm_symbol_initialize(sym, str) < 0)
+    return SCM_OBJ_NULL;        /* [ERR]: [through] */
 
   return sym;
 }
@@ -120,7 +125,7 @@ scm_symtbl_cmp_func(ScmCHashTblKey key1, ScmCHashTblKey key2)
   return scm_string_is_equal(key1, key2);
 }
 
-void
+int
 scm_symtbl_initialize(ScmObj tbl)
 {
   scm_assert_obj_type(tbl, &SCM_SYMTBL_TYPE_INFO);
@@ -129,7 +134,9 @@ scm_symtbl_initialize(ScmObj tbl)
     scm_chash_tbl_new(tbl, SCM_SYMTBL_SIZE,
                       SCM_CHASH_TBL_SCMOBJ, SCM_CHASH_TBL_SCMOBJ_W,
                       scm_symtbl_hash_func, scm_symtbl_cmp_func);
-  if (scm_obj_null_p(tbl)) return;
+  if (scm_obj_null_p(tbl)) return -1; /* [ERR]: [thourhg] */
+
+  return 0;
 }
 
 void
@@ -151,9 +158,10 @@ scm_symtbl_new(SCM_MEM_TYPE_T mtype)
   SCM_STACK_FRAME_PUSH(&tbl);
 
   tbl = scm_capi_mem_alloc(&SCM_SYMTBL_TYPE_INFO, mtype);
-  if (scm_obj_null_p(tbl)) return SCM_OBJ_NULL;
+  if (scm_obj_null_p(tbl)) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
-  scm_symtbl_initialize(tbl);
+  if (scm_symtbl_initialize(tbl) < 0)
+    return SCM_OBJ_NULL;        /* [ERR]: [through] */
 
   return tbl;
 }
@@ -173,15 +181,15 @@ scm_symtbl_symbol(ScmObj tbl, ScmObj str)
                            str,
                            (ScmCHashTblVal *)SCM_CSETTER_L(sym),
                            &found);
-  if (rslt != 0) return SCM_OBJ_NULL;
+  if (rslt != 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   if (found) return sym;
 
   sym = scm_symbol_new(SCM_MEM_HEAP, str);
-  if (scm_obj_null_p(sym)) return SCM_OBJ_NULL;
+  if (scm_obj_null_p(sym)) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   rslt = scm_chash_tbl_insert(SCM_SYMTBL(tbl)->tbl, str, sym);
-  if (rslt != 0) return SCM_OBJ_NULL;
+  if (rslt != 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   return sym;
 }

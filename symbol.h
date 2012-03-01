@@ -24,7 +24,7 @@ struct ScmSymbolRec {
 
 #define SCM_SYMBOL_STR(obj) (SCM_SYMBOL(obj)->str)
 
-void scm_symbol_initialize(ScmObj sym, ScmObj str);
+int scm_symbol_initialize(ScmObj sym, ScmObj str);
 ScmObj scm_symbol_new(SCM_MEM_TYPE_T mtype, ScmObj str);
 ScmObj scm_symbol_instance(ScmObj str);
 size_t scm_symbol_length(ScmObj sym);
@@ -41,7 +41,7 @@ struct ScmSymTblRec {
   ScmCHashTbl *tbl;
 };
 
-void scm_symtbl_initialize(ScmObj tbl);
+int scm_symtbl_initialize(ScmObj tbl);
 void scm_symtbl_finalize(ScmObj tbl);
 ScmObj scm_symtbl_new(SCM_MEM_TYPE_T mtype);
 ScmObj scm_symtbl_symbol(ScmObj tbl, ScmObj str);
