@@ -16,7 +16,7 @@ ScmTypeInfo SCM_PAIR_TYPE_INFO = {
 };
 
 
-void
+int
 scm_pair_initialize(ScmObj pair, ScmObj car, ScmObj cdr) /* GC OK */
 {
   scm_assert_obj_type(pair, &SCM_PAIR_TYPE_INFO);
@@ -25,6 +25,8 @@ scm_pair_initialize(ScmObj pair, ScmObj car, ScmObj cdr) /* GC OK */
 
   SCM_SLOT_SETQ(ScmPair, pair, car, car);
   SCM_SLOT_SETQ(ScmPair, pair, cdr, cdr);
+
+  return 0;
 }
 
 ScmObj
@@ -38,8 +40,10 @@ scm_pair_new(SCM_MEM_TYPE_T mtype, ScmObj car, ScmObj cdr) /* GC OK */
   scm_assert(scm_obj_not_null_p(cdr));
 
   pair = scm_capi_mem_alloc(&SCM_PAIR_TYPE_INFO, mtype);
+  if (scm_obj_null_p(pair)) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
-  scm_pair_initialize(pair, car, cdr);
+  if (scm_pair_initialize(pair, car, cdr) < 0)
+    return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   return pair;
 }
