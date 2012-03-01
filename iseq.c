@@ -18,7 +18,7 @@ ScmTypeInfo SCM_ISEQ_TYPE_INFO = {
 };
 
 
-void
+int
 scm_iseq_initialize(ScmObj iseq) /* GC OK */
 {
   int rslt;
@@ -28,12 +28,12 @@ scm_iseq_initialize(ScmObj iseq) /* GC OK */
   rslt = eary_init(SCM_ISEQ_EARY_SEQ(iseq),
                    sizeof(scm_iword_t), SCM_ISEQ_DEFAULT_SEQ_SIZE);
   if (rslt != 0)
-    ;                           /* TODO: error handling */
+    return -1;                           /* TODO: error handling; [ERR]: [through] */
 
   rslt = eary_init(SCM_ISEQ_EARY_IMMVS(iseq),
                    sizeof(ScmObj), SCM_ISEQ_DEFAULT_IMMVS_SIZE);
   if (rslt != 0)
-    ;                           /* TODO: error handling */
+    return -1;                           /* TODO: error handling; [ERR]: [through] */
 
   /* TODO: fill in by NOOP */
   /* memset(SCM_ISEQ_SEQ(iseq), 0, sizeof(scm_iword_t) * SCM_ISEQ_DEFAULT_SIZE); */
@@ -47,8 +47,10 @@ scm_iseq_new(SCM_MEM_TYPE_T mtype) /* GC OK */
   SCM_STACK_FRAME_PUSH(&iseq);
 
   iseq = scm_capi_mem_alloc(&SCM_ISEQ_TYPE_INFO, mtype);
+  if (scm_obj_null_p(iseq)) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
-  scm_iseq_initialize(iseq);
+  if (scm_iseq_initialize(iseq) < 0)
+    return SCM_OBJ_NULL;        /* [ERR]: [through] */
 
   return iseq;
 }
@@ -72,11 +74,11 @@ scm_iseq_set_immval(ScmObj iseq, ScmObj val) /* GC OK */
   scm_assert(scm_obj_not_null_p(val));
 
   idx = SCM_ISEQ_VEC_LENGTH(iseq);
-  if (idx >= SCM_ISEQ_IMMVS_MAX) return -1;
+  if (idx >= SCM_ISEQ_IMMVS_MAX) return -1; /* [ERR]: iseq: immediate value area over flow */
 
   EARY_SET_SCMOBJ(SCM_ISEQ_EARY_IMMVS(iseq), idx, val, iseq, err);
 
-  if(err != 0) return -1;
+  if(err != 0) return -1;       /* [ERR]: [through] */
 
   return (int)idx;
 }
@@ -90,11 +92,11 @@ scm_iseq_update_immval(ScmObj iseq, int idx, ScmObj val)
   scm_assert(idx >= 0);
   scm_assert(scm_obj_not_null_p(val));
 
-  if ((size_t)idx >= SCM_ISEQ_VEC_LENGTH(iseq)) return -1;
+  if ((size_t)idx >= SCM_ISEQ_VEC_LENGTH(iseq)) return -1; /* [ERR]: iseq: argument out of range */
 
   EARY_SET_SCMOBJ(SCM_ISEQ_EARY_IMMVS(iseq), (size_t)idx, val, iseq, err);
 
-  if (err != 0) return -1;
+  if (err != 0) return -1;      /* [ERR]: [through] */
 
   return idx;
 }
@@ -107,7 +109,7 @@ scm_iseq_set_word(ScmObj iseq, size_t index, scm_iword_t word) /* GC OK */
   scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
 
   EARY_SET(SCM_ISEQ_EARY_SEQ(iseq), scm_iword_t, index, word, err);
-  if (err != 0) return -1;
+  if (err != 0) return -1;/* [ERR]: [through] */
 
   return 0;
 }

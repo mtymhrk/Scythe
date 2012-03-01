@@ -1,7 +1,7 @@
 memory.o: ../memory.c ../basichash.h ../object.h ../api.h ../reference.h \
  ../impl_utils.h ../encoding.h ../api_enum.h ../memory.h
-object.o: ../object.c ../object.h ../numeric.h ../earray.h \
- ../impl_utils.h
+object.o: ../object.c ../object.h ../numeric.h ../earray.h ../api.h \
+ ../reference.h ../impl_utils.h ../encoding.h ../api_enum.h
 pair.o: ../pair.c ../object.h ../reference.h ../impl_utils.h ../api.h \
  ../encoding.h ../api_enum.h ../pair.h
 string.o: ../string.c ../object.h ../reference.h ../impl_utils.h ../api.h \

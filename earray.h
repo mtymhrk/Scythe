@@ -7,6 +7,7 @@
 typedef struct EArrayRec EArray;
 
 #include "object.h"
+#include "api.h"
 
 #define EARY_MAG 2
 
@@ -29,7 +30,7 @@ eary_init(EArray *ary, size_t rs, size_t ns)
     ary->vec = NULL;
   }
   else {
-    ary->vec = malloc(rs * ns);
+    ary->vec = scm_capi_malloc(rs * ns);
     if (ary->vec == NULL) {
       free(ary);
       return -1;
@@ -59,7 +60,7 @@ eary_expand(EArray *ary, size_t rs, size_t ndd)
     ns *= EARY_MAG;
   }
 
-  void *p = realloc(ary->vec, rs * ns);
+  void *p = scm_capi_realloc(ary->vec, rs * ns);
   if (p == NULL)
     return -1;
 

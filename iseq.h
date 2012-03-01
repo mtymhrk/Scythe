@@ -36,7 +36,7 @@ struct ScmISeqRec {
 #define SCM_ISEQ_DEFAULT_IMMVS_SIZE 32
 #define SCM_ISEQ_IMMVS_MAX SCM_INST_IMMVAL_MAX
 
-void scm_iseq_initialize(ScmObj iseq);
+int scm_iseq_initialize(ScmObj iseq);
 ScmObj scm_iseq_new(SCM_MEM_TYPE_T mtype);
 void scm_iseq_finalize(ScmObj obj);
 int scm_iseq_set_immval(ScmObj iseq, ScmObj val);
