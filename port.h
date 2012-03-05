@@ -36,7 +36,7 @@ typedef ssize_t (*ScmIOWriteFunc)(ScmIO *io, const void *buf, size_t size);
 typedef off_t (*ScmIOSeekFunc)(ScmIO *io, off_t offset, int whence);
 typedef int (*ScmIOCloseFunc)(ScmIO *io);
 typedef int (*ScmIOReadyPFunc)(ScmIO *io);
-typedef SCM_PORT_BUF_T (*ScmIOBuffModeFunc)(ScmIO *io);
+typedef int (*ScmIOBuffModeFunc)(ScmIO *io, SCM_PORT_BUF_T *mode);
 typedef ssize_t (*ScmIOBlkSizeFunc)(ScmIO *io);
 
 
@@ -76,10 +76,10 @@ void scm_io_initialize(ScmIO *io,
 void scm_io_end(ScmIO *io);
 ssize_t scm_io_read(ScmIO *io, void *buf, size_t size);
 ssize_t scm_io_write(ScmIO *io, const void *buf, size_t size);
-bool scm_io_seek(ScmIO *io, off_t offset, int whence);
+off_t scm_io_seek(ScmIO *io, off_t offset, int whence);
 int scm_io_close(ScmIO *io);
 int scm_io_ready_p(ScmIO *io);
-SCM_PORT_BUF_T scm_io_default_buffer_mode(ScmIO *io);
+int scm_io_buffer_mode(ScmIO *io, SCM_PORT_BUF_T *mode);
 ssize_t scm_io_block_size(ScmIO *io);
 
 ScmFileIO *scm_fileio_new(int fd);
@@ -90,7 +90,7 @@ ssize_t scm_fileio_write(ScmFileIO *fileio, const void *buf, size_t size);
 int scm_fileio_ready_p(ScmFileIO *fileio);
 off_t scm_fileio_seek(ScmFileIO *fileio, off_t offset, int whence);
 int scm_fileio_close(ScmFileIO *fileio);
-SCM_PORT_BUF_T scm_fileio_default_buffer_mode(ScmFileIO *fileio);
+int scm_fileio_buffer_mode(ScmFileIO *fileio, SCM_PORT_BUF_T *mode);
 ssize_t scm_fileio_block_size(ScmFileIO *fileio);
 
 ScmStringIO *scm_stringio_new(const char *str, size_t len);
@@ -100,7 +100,7 @@ ssize_t scm_stringio_write(ScmStringIO *strio, const void *buf, size_t size);
 int scm_stringio_ready_p(ScmStringIO *strio);
 off_t scm_stringio_seek(ScmStringIO *strio, off_t offset, int whence);
 int scm_stringio_close(ScmStringIO *strio);
-SCM_PORT_BUF_T scm_stringio_default_buffer_mode(ScmStringIO *strio);
+int scm_stringio_buffer_mode(ScmStringIO *strio, SCM_PORT_BUF_T *mode);
 char *scm_stringio_buffer(ScmStringIO *strio);
 size_t scm_stringio_length(ScmStringIO *strio);
 
@@ -195,6 +195,7 @@ ssize_t scm_port_write(ScmObj port, const void *buf, size_t size);
 int scm_port_seek(ScmObj port, off_t offset, int whence);
 void *scm_port_string_buffer(ScmObj port);
 ssize_t scm_port_string_buffer_length(ScmObj port);
+void scm_port_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_port_gc_finalize(ScmObj obj);
 
 #endif /*  INCLUDE_PORT_H__ */

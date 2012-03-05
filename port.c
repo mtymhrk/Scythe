@@ -26,7 +26,7 @@
 ScmTypeInfo SCM_PORT_TYPE_INFO = {
   .pp_func             = NULL,
   .obj_size            = sizeof(ScmPort),
-  .gc_ini_func         = NULL,
+  .gc_ini_func         = scm_port_gc_initialize,
   .gc_fin_func         = scm_port_gc_finalize,
   .gc_accept_func      = NULL,
   .gc_accept_func_weak = NULL,
@@ -70,7 +70,8 @@ scm_io_read(ScmIO *io, void *buf, size_t size)
 {
   scm_assert(io != NULL);
 
-  return (io->read_func!= NULL) ? io->read_func(io, buf, size) : -1;
+  return ((io->read_func!= NULL) ?
+          io->read_func(io, buf, size) : (ssize_t)size);
 }
 
 ssize_t
@@ -78,16 +79,17 @@ scm_io_write(ScmIO *io, const void *buf, size_t size)
 {
   scm_assert(io != NULL);
 
-  return (io->write_func != NULL) ? io->write_func(io, buf, size) : -1;
+  return ((io->write_func != NULL) ?
+          io->write_func(io, buf, size) : (ssize_t) size);
 }
 
 
-bool
+off_t
 scm_io_seek(ScmIO *io, off_t offset, int whence)
 {
   scm_assert(io != NULL);
 
-  return (io->seek_func != NULL) ? io->seek_func(io, offset, whence) : -1;
+  return (io->seek_func != NULL) ? io->seek_func(io, offset, whence) : 0;
 }
 
 int
@@ -95,7 +97,7 @@ scm_io_close(ScmIO *io)
 {
   scm_assert(io != NULL);
 
-  return (io->close_func != NULL) ? io->close_func(io) : -1;
+  return (io->close_func != NULL) ? io->close_func(io) : 0;
 }
 
 int
@@ -106,22 +108,24 @@ scm_io_ready_p(ScmIO *io)
   return (io->ready_p_func != NULL) ? io->ready_p_func(io) : 1;
 }
 
-SCM_PORT_BUF_T
-scm_io_default_buffer_mode(ScmIO *io)
+int
+scm_io_buffer_mode(ScmIO *io, SCM_PORT_BUF_T *mode)
 {
   scm_assert(io != NULL);
 
   if (io->default_buf_mode_func != NULL)
-    return io->default_buf_mode_func(io);
-  else
-    return SCM_PORT_BUF_FULL;
+    return io->default_buf_mode_func(io, mode);
+  else {
+    *mode = SCM_PORT_BUF_FULL;
+    return 0;
+  }
 }
 
 ssize_t
 scm_io_block_size(ScmIO *io)
 {
   assert(io != NULL);
-  return (io->blk_size_func != NULL) ? io->blk_size_func(io) : -1;
+  return (io->blk_size_func != NULL) ? io->blk_size_func(io) : 0;
 }
 
 ScmFileIO *
@@ -139,7 +143,7 @@ scm_fileio_new(int fd)
                     (ScmIOSeekFunc)scm_fileio_seek,
                     (ScmIOCloseFunc)scm_fileio_close,
                     (ScmIOReadyPFunc)scm_fileio_ready_p,
-                    (ScmIOBuffModeFunc)scm_fileio_default_buffer_mode,
+                    (ScmIOBuffModeFunc)scm_fileio_buffer_mode,
                     (ScmIOBlkSizeFunc)scm_fileio_block_size);
   fileio->fd = fd;
 
@@ -162,7 +166,7 @@ scm_fileio_open(const char *pathname, int flags, mode_t mode)
   scm_assert(pathname != NULL);
 
   SCM_SYSCALL(fd, open(pathname, flags, mode));
-  if (fd < 0) return NULL;
+  if (fd < 0) return NULL;      /* [ERR]: port: open errr: errno */
 
   return scm_fileio_new(fd);
 }
@@ -177,6 +181,7 @@ scm_fileio_read(ScmFileIO *fileio, void *buf, size_t size)
   scm_assert(size <= SSIZE_MAX);
 
   SCM_SYSCALL(n, read(fileio->fd, buf, size));
+  if (n < 0) return n;          /* [ERR]: port: read err: errno */
 
   return n;
 }
@@ -191,6 +196,7 @@ scm_fileio_write(ScmFileIO *fileio, const void *buf, size_t size)
   scm_assert(size <= SSIZE_MAX);
 
   SCM_SYSCALL(n, write(fileio->fd, buf, size));
+  if (n < 0) return n;          /* [ERR]: port: write err: errno */
 
   return n;
 }
@@ -210,7 +216,7 @@ scm_fileio_ready_p(ScmFileIO *fileio)
   tout.tv_usec = 0;
 
   SCM_SYSCALL(n, select(fileio->fd + 1, &readfds, NULL, NULL, &tout));
-  if (n < 0) return -1;
+  if (n < 0) return -1;         /* [ERR]: port: file access err: errno */
 
   return (n > 0) ? 1 : 0;
 }
@@ -223,6 +229,7 @@ scm_fileio_seek(ScmFileIO *fileio, off_t offset, int whence)
   scm_assert(fileio != NULL);
 
   SCM_SYSCALL(n, lseek(fileio->fd, offset, whence));
+  if (n < 0) return n;          /* [ERR]: port: seek err: errno */
 
   return n;
 }
@@ -235,32 +242,36 @@ scm_fileio_close(ScmFileIO *fileio)
   scm_assert(fileio != NULL);
 
   SCM_SYSCALL(n, close(fileio->fd));
+  if (n < 0) return n;          /* [ERR]: port: close err: errno */
 
   return n;
 }
 
-SCM_PORT_BUF_T
-scm_fileio_default_buffer_mode(ScmFileIO *fileio)
+int
+scm_fileio_buffer_mode(ScmFileIO *fileio, SCM_PORT_BUF_T *mode)
 {
   struct stat st;
   int ret;
 
   scm_assert(fileio != NULL);
+  scm_assert(mode != NULL);
 
   if (isatty(fileio->fd))
     return SCM_PORT_BUF_MODEST;
 
   SCM_SYSCALL(ret, fstat(fileio->fd, &st));
-  if (ret < 0) return SCM_PORT_BUF_FULL;
+  if (ret < 0) return -1;       /* [ERR]: port: fstat err: errno */
 
   if (S_ISFIFO(st.st_mode))
-    return SCM_PORT_BUF_MODEST;
+    *mode = SCM_PORT_BUF_MODEST;
   else if (S_ISSOCK(st.st_mode))
-    return SCM_PORT_BUF_MODEST;
+    *mode = SCM_PORT_BUF_MODEST;
   else if (S_ISCHR(st.st_mode))
-    return SCM_PORT_BUF_MODEST;
+    *mode = SCM_PORT_BUF_MODEST;
   else
-    return SCM_PORT_BUF_FULL;
+    *mode = SCM_PORT_BUF_FULL;
+
+  return 0;
 }
 
 ssize_t
@@ -273,7 +284,7 @@ scm_fileio_block_size(ScmFileIO *fileio)
 
   SCM_SYSCALL(rslt, fstat(fileio->fd, &stat));
   if (rslt < 0)
-    return -1;
+    return -1;                  /* [ERR]: port: fstat err: errno */
   else
     return stat.st_blksize;
 }
@@ -301,7 +312,7 @@ scm_stringio_expand_buffer(ScmStringIO *strio, size_t needed_size)
   }
   else if (new_size > strio->capacity) {
     char *new_buffer = scm_capi_realloc(strio->string, new_size);
-    if (new_buffer == NULL) return -1;
+    if (new_buffer == NULL) return -1; /* [ERR]: [through]  */
     strio->string = new_buffer;
     strio->capacity = new_size;
   }
@@ -319,7 +330,7 @@ scm_stringio_new(const char *str, size_t len)
   scm_assert(len <= SSIZE_MAX);
 
   strio = scm_capi_malloc(sizeof(ScmStringIO));
-  if (strio == NULL) return NULL;
+  if (strio == NULL) return NULL; /* [ERR]: [through] */
 
   scm_io_initialize((ScmIO *)strio,
                     (ScmIOFinFunc)scm_stringio_end,
@@ -328,7 +339,7 @@ scm_stringio_new(const char *str, size_t len)
                     (ScmIOSeekFunc)scm_stringio_seek,
                     (ScmIOCloseFunc)scm_stringio_close,
                     (ScmIOReadyPFunc)scm_stringio_ready_p,
-                    (ScmIOBuffModeFunc)scm_stringio_default_buffer_mode,
+                    (ScmIOBuffModeFunc)scm_stringio_buffer_mode,
                     (ScmIOBlkSizeFunc)NULL);
   strio->string = NULL;
   strio->capacity = 0;
@@ -337,13 +348,13 @@ scm_stringio_new(const char *str, size_t len)
 
   if (str != NULL) {
     ret = scm_stringio_expand_buffer(strio, len);
-    if (ret < 0) goto err;
+    if (ret < 0) goto err;      /* [ERR]: [through] */
     memcpy(strio->string, str, len);
     strio->length = len;
   }
   else {
     ret = scm_stringio_expand_buffer(strio, 0);
-    if (ret < 0) goto err;
+    if (ret < 0) goto err;     /* [ERR]: [through] */
   }
 
   return strio;
@@ -387,13 +398,16 @@ scm_stringio_read(ScmStringIO *strio, void *buf, size_t size)
 ssize_t
 scm_stringio_write(ScmStringIO *strio, const void *buf, size_t size)
 {
+  int rslt;
+
   scm_assert(strio != NULL);
   scm_assert(buf != NULL);
   scm_assert(size <= SSIZE_MAX);
 
   if (size > SSIZE_MAX - strio->pos) return -1;
 
-  scm_stringio_expand_buffer(strio, strio->pos + size);
+  rslt = scm_stringio_expand_buffer(strio, strio->pos + size);
+  if (rslt < 0) return -1;       /* [ERR]: [through] */
   memcpy(strio->string + strio->pos, buf, size);
   strio->pos += size;
   if (strio->pos > strio->length)
@@ -424,18 +438,22 @@ scm_stringio_seek(ScmStringIO *strio, off_t offset, int whence)
     pos = offset;
     break;
   case SEEK_CUR:
+    if (SSIZE_MAX - (ssize_t)strio->pos < offset) return -1; /* [ERR]: port: file offset is out of range */
     pos = (ssize_t)strio->pos + offset;
     break;
   case SEEK_END:
+    if (SSIZE_MAX - (ssize_t)strio->length < offset) return -1; /* [ERR]: port: file offset is out of range */
     pos = (ssize_t)strio->length + offset;
     break;
   default:
-    return -1;
+    return -1;                  /* [ERR]: port: invalid seek origin */
   }
 
-  if (pos < 0) return -1;
+  if (pos < 0) return -1;       /* [ERR]: port: file offset is out of range */
 
-  scm_stringio_expand_buffer(strio, (size_t)pos);
+  if (scm_stringio_expand_buffer(strio, (size_t)pos) < 0)
+    return -1;                  /* [ERR]: [through] */
+
   strio->pos = (size_t)pos;
 
   return pos;
@@ -451,12 +469,15 @@ scm_stringio_close(ScmStringIO *strio)
   return 0;
 }
 
-SCM_PORT_BUF_T
-scm_stringio_default_buffer_mode(ScmStringIO *strio)
+int
+scm_stringio_buffer_mode(ScmStringIO *strio, SCM_PORT_BUF_T *mode)
 {
   scm_assert(strio != NULL);
+  scm_assert(mode != NULL);
 
-  return SCM_PORT_BUF_NONE;
+  *mode = SCM_PORT_BUF_NONE;
+
+  return 0;
 }
 
 char *
@@ -483,9 +504,11 @@ scm_port_init_buffer(ScmObj port, SCM_PORT_BUF_T buf_mode)
   scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
   assert(/* buf_mode >= 0 && */ buf_mode < SCM_PORT_NR_BUF_MODE);
 
-  if (buf_mode == SCM_PORT_BUF_DEFAULT)
-    SCM_PORT(port)->buffer_mode =
-      scm_io_default_buffer_mode(SCM_PORT(port)->io);
+  if (buf_mode == SCM_PORT_BUF_DEFAULT) {
+    int rslt = scm_io_buffer_mode(SCM_PORT(port)->io,
+                                  &SCM_PORT(port)->buffer_mode);
+    if (rslt < 0) return -1;                /* [ERR]: [through] */
+  }
   else
     SCM_PORT(port)->buffer_mode = buf_mode;
 
@@ -496,10 +519,12 @@ scm_port_init_buffer(ScmObj port, SCM_PORT_BUF_T buf_mode)
   case SCM_PORT_BUF_LINE:   /* fall through */
   case SCM_PORT_BUF_MODEST: /* fall through */
     s = scm_io_block_size(SCM_PORT(port)->io);
-    if (s >= 0)
+    if (s > 0)
       SCM_PORT(port)->capacity = (size_t)s;
-    else
+    else if (s == 0)
       SCM_PORT(port)->capacity = SCM_PORT_DEFAULT_BUF_SIZE;
+    else
+      return -1;                /* [ERR]: [through] */
     break;
   case SCM_PORT_BUF_NONE:
     SCM_PORT(port)->capacity = 0;
@@ -517,7 +542,7 @@ scm_port_init_buffer(ScmObj port, SCM_PORT_BUF_T buf_mode)
 
   SCM_PORT(port)->buffer = scm_capi_malloc(SCM_PORT(port)->capacity);
   if (SCM_PORT(port)->buffer == NULL)
-    return -1;
+    return -1;                  /* [ERR]: [through] */
 
   return 0;
 }
@@ -730,6 +755,7 @@ scm_port_read_buf(ScmObj port, void *buf, size_t size, int mode)
 {
   size_t nr;
   ssize_t lf;
+  int ready;
 
   scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
   scm_assert(buf != NULL);
@@ -770,8 +796,10 @@ scm_port_read_buf(ScmObj port, void *buf, size_t size, int mode)
     if (nr >= size) break;
 
   } while (mode == WAIT_ALL
-           || (mode == DONT_WAIT && scm_port_ready_p(port))
+           || (mode == DONT_WAIT && (ready = scm_port_ready_p(port)) > 0)
            || (mode == BREAK_LF && lf == 0));
+
+  if (ready < 0) return -1;      /* [ERR]: [through] */
 
   return (ssize_t)nr;
 }
@@ -1476,6 +1504,12 @@ scm_port_string_buffer_length(ScmObj port)
   if (!scm_port_string_port_p(port)) return -1;
 
   return (ssize_t)scm_stringio_length((ScmStringIO *)SCM_PORT(port)->io);
+}
+
+void
+scm_port_gc_initialize(ScmObj obj, ScmObj mem)
+{
+  SCM_PORT(obj)->buffer = NULL;
 }
 
 void
