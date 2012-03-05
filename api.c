@@ -317,6 +317,25 @@ scm_capi_list(unsigned int n, ...)
   return lst;
 }
 
+ScmObj
+scm_capi_list_ref(ScmObj lst, size_t n)
+{
+  ScmObj l = SCM_OBJ_NULL;
+
+  SCM_STACK_FRAME_PUSH(&l);
+
+  l = lst;
+  for (size_t i = 0; i < n; i++) {
+    if (scm_capi_pair_p(l))
+      l = scm_api_cdr(l);
+    else
+      return SCM_OBJ_NULL;
+  }
+
+  return scm_api_car(l);
+}
+
+
 /*******************************************************************/
 /*  numeric                                                        */
 /*******************************************************************/

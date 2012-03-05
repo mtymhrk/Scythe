@@ -123,6 +123,8 @@ ScmObj scm_api_cdr(ScmObj pair);
 bool scm_capi_pair_p(ScmObj pair);
 ScmObj scm_api_pair_P(ScmObj pair);
 ScmObj scm_capi_list(unsigned int n, ...);
+ScmObj scm_capi_list_ref(ScmObj lst, size_t n);
+
 
 /*******************************************************************/
 /*  numeric                                                        */
@@ -206,6 +208,7 @@ ssize_t scm_capi_unread_char(ScmObj port, const scm_char_t *chr);
 ssize_t scm_capi_peek_raw(ScmObj port, void *buf, size_t size);
 ssize_t scm_capi_peek_char(ScmObj port, scm_char_t *chr);
 ScmObj scm_api_read(ScmObj port);
+
 
 /*******************************************************************/
 /*  Subrutine                                                      */
