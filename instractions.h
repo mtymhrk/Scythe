@@ -21,6 +21,7 @@ typedef enum {
   SCM_OPCODE_GSET,                /* update global variable */
   /* SCM_OPCODE_SREF,                /\* refere value in stack *\/ */
   /* SCM_OPCODE_CREF                 /\* refere value in closure *\/ */
+  SCM_OPCODE_JMP,                  /* jump */
 } SCM_OPCODE_T;
 
 typedef union {
@@ -34,10 +35,6 @@ typedef union {
     int imm_idx : 24;
   } immv1;
   struct {
-    uint8_t padding;
-    int imm_idx : 24;
-  } immv2;
-  struct {
     uint8_t op;
     int primval : 24;
   } primv;
@@ -49,3 +46,4 @@ typedef union {
 #define SCM_INST_PRIMVAL_MIN -8388608
 
 #endif /* INCLUDE_INST_H__ */
+

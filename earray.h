@@ -31,10 +31,7 @@ eary_init(EArray *ary, size_t rs, size_t ns)
   }
   else {
     ary->vec = scm_capi_malloc(rs * ns);
-    if (ary->vec == NULL) {
-      free(ary);
-      return -1;
-    }
+    if (ary->vec == NULL) return -1;
   }
 
   return 0;
@@ -83,7 +80,7 @@ eary_expand_if_necessary(EArray *ary, size_t idx, size_t rs)
 #define EARY_GET(ary, typ, idx, val)            \
   do {                                          \
     assert((size_t)idx < (ary)->used);          \
-    (val) = (type *)((ary)->vec)[idx];          \
+    (val) = ((typ *)((ary)->vec))[idx];        \
   } while(0)
 
 #define EARY_SET(ary, typ, idx, val, err)                       \
@@ -110,9 +107,21 @@ eary_expand_if_necessary(EArray *ary, size_t idx, size_t rs)
     (err) = 0;                                    \
   } while(0)
 
-#define EARY_FOR_EACH(ary, typ, idx, itr)   \
-  for(size_t idx = 0, typ itr = (ary)->vec; \
-      idx < (ary)->used;                    \
+#define EARY_PUSH(ary, typ, val, err)                 \
+  do {                                                \
+    size_t e_a_r_y__idx_ = (ary)->used;               \
+    EARY_SET(ary, typ, e_a_r_y__idx_, val, err);      \
+  } while(0)
+
+#define EARY_PUSH_SCMOBJ(ary, val, owner, err)              \
+  do {                                                      \
+    size_t e_a_r_y__idx_ = (ary)->used;                     \
+    EARY_SET_SCMOBJ(ary, e_a_r_y__idx_, val, owner, err);   \
+  } while(0)
+
+#define EARY_FOR_EACH(ary, idx, itr)            \
+  for(idx = 0, itr = (ary)->vec;                \
+      idx < (ary)->used;                        \
       idx++, itr++)
 
 #endif /* INCLUDE_EARRAY_H__ */

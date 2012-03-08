@@ -528,25 +528,24 @@ scm_vm_op_gref(ScmObj vm, ScmObj arg, int immv_idx)
 
 /* グローバル変数を作成するインストラクション。
  * 引数 arg が Symbol である場合、対応する GLoc を検索し(検索の結果存在しない
- * 場合は GLoc を作成し)、その GLoc を使用してシンボルを val の値で束縛する。
- * またインストラクションの Symbol をその GLoc で置き換える。
- * 引数 arg  が GLoc の場合、その GLoc を使用してシンボルを val の値で束縛す
- * る。
+ * 場合は GLoc を作成し)、その GLoc を使用してシンボルを val レジスタの値で束
+ * 縛する。またインストラクションの Symbol をその GLoc で置き換える。
+ * 引数 arg  が GLoc の場合、その GLoc を使用してシンボルを val レジスタの値で
+ * 束縛する。
  */
 scm_local_func void
-scm_vm_op_gdef(ScmObj vm, ScmObj arg, ScmObj val, int immv_idx)
+scm_vm_op_gdef(ScmObj vm, ScmObj arg, int immv_idx)
 {
   ScmObj gloc = SCM_OBJ_INIT;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&vm, &arg, &val, &gloc);
+  SCM_STACK_FRAME_PUSH(&vm, &arg, &gloc);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
   scm_assert(scm_obj_not_null_p(arg));
-  scm_assert(scm_obj_not_null_p(val));
 
   if (scm_obj_type_p(arg, &SCM_SYMBOL_TYPE_INFO)) {
-    gloc = scm_gloctbl_bind(SCM_VM(vm)->gloctbl, arg, val);
+    gloc = scm_gloctbl_bind(SCM_VM(vm)->gloctbl, arg, SCM_VM(vm)->reg.val);
     if (scm_obj_null_p(gloc))
       ;                           /* TODO: error handling */
 
@@ -555,7 +554,7 @@ scm_vm_op_gdef(ScmObj vm, ScmObj arg, ScmObj val, int immv_idx)
       ;                           /* TODO: error handling */
   }
   else if (scm_obj_type_p(arg, &SCM_GLOC_TYPE_INFO)) {
-    scm_gloc_bind(arg, val);
+    scm_gloc_bind(arg, SCM_VM(vm)->reg.val);
   }
   else {
     scm_assert(0);
@@ -564,18 +563,18 @@ scm_vm_op_gdef(ScmObj vm, ScmObj arg, ScmObj val, int immv_idx)
 
 /* グローバル変数を更新するインストラクション。
  * 引数 arg が Symbol である場合、対応する GLoc を検索し、その GLoc を使用して
- * グローバル変数の値を引数 val で更新する。またインストラクションの Symbol を
- * その GLoc で置き換える。
+ * グローバル変数の値を val レジスタで更新する。またインストラクションの
+ * Symbol をその GLoc で置き換える。
  * 引数 arg  が GLoc の場合、その Gloc その GLoc を使用してグローバル変数の値
- * を引数 val で更新する。
+ * を val レジスタで更新する。
  */
 scm_local_func void
-scm_vm_op_gset(ScmObj vm, ScmObj arg, ScmObj val, int immv_idx)
+scm_vm_op_gset(ScmObj vm, ScmObj arg, int immv_idx)
 {
   ScmObj gloc = SCM_OBJ_INIT;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&vm, &arg, &val, &gloc);
+  SCM_STACK_FRAME_PUSH(&vm, &arg, &gloc);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
   scm_assert(scm_obj_not_null_p(arg));
@@ -593,10 +592,10 @@ scm_vm_op_gset(ScmObj vm, ScmObj arg, ScmObj val, int immv_idx)
     if (rslt != 0)
       ;                           /* TODO: error handling */
 
-    scm_gloc_bind(gloc, val);
+    scm_gloc_bind(gloc, SCM_VM(vm)->reg.val);
   }
   else if (scm_obj_type_p(arg, &SCM_GLOC_TYPE_INFO)) {
-    scm_gloc_bind(arg, val);
+    scm_gloc_bind(arg, SCM_VM(vm)->reg.val);
   }
   else {
     scm_assert(0);
@@ -732,7 +731,7 @@ void
 scm_vm_run(ScmObj vm, ScmObj iseq)
 {
   bool stop_flag;
-  scm_inst_t code1, code2;
+  scm_inst_t code1;
 
   SCM_STACK_FRAME_PUSH(&vm, &iseq);
 
@@ -782,22 +781,16 @@ scm_vm_run(ScmObj vm, ScmObj iseq)
                      code1.immv1.imm_idx);
       break;
     case SCM_OPCODE_GDEF:
-      code2.iword = scm_vm_inst_fetch(vm);
       scm_vm_op_gdef(vm,
                      scm_iseq_get_immval(SCM_VM(vm)->reg.iseq,
                                          code1.immv1.imm_idx),
-                     scm_iseq_get_immval(SCM_VM(vm)->reg.iseq,
-                                         code2.immv2.imm_idx),
-                     code1.immv1.imm_idx);;
+                     code1.immv1.imm_idx);
       break;
     case SCM_OPCODE_GSET:
-      code2.iword = scm_vm_inst_fetch(vm);
       scm_vm_op_gset(vm,
                      scm_iseq_get_immval(SCM_VM(vm)->reg.iseq,
                                          code1.immv1.imm_idx),
-                     scm_iseq_get_immval(SCM_VM(vm)->reg.iseq,
-                                         code2.immv2.imm_idx),
-                     code1.immv1.imm_idx);;
+                     code1.immv1.imm_idx);
       break;
     default:
       /* TODO: error handling */

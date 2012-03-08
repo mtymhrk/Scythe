@@ -979,6 +979,8 @@ scm_parser_parse_list(ScmParser *parser, ScmObj port)
   car = scm_parser_parse_expression(parser, port);
   if (scm_capi_null_value_p(car))
     return SCM_OBJ_NULL;
+  if (scm_capi_eof_object_p(car))
+    return SCM_OBJ_NULL;
 
   token = scm_lexer_head_token(parser->lexer, port);
   if (token == NULL) {
@@ -991,6 +993,8 @@ scm_parser_parse_list(ScmParser *parser, ScmObj port)
 
     cdr = scm_parser_parse_expression(parser, port);
     if (scm_capi_null_value_p(cdr))
+      return SCM_OBJ_NULL;
+    if (scm_capi_eof_object_p(car))
       return SCM_OBJ_NULL;
 
     token = scm_lexer_head_token(parser->lexer, port);
@@ -1083,6 +1087,7 @@ scm_parser_parse_quote(ScmParser *parser, ScmObj port)
 
   quoted = scm_parser_parse_expression(parser, port);
   if (scm_capi_null_value_p(quoted)) return SCM_OBJ_NULL;
+  if (scm_capi_eof_object_p(quoted)) return SCM_OBJ_NULL;
 
   quoted = scm_api_cons(quoted, scm_api_nil());
   if (scm_capi_null_value_p(quoted)) return SCM_OBJ_NULL;
@@ -1238,6 +1243,7 @@ scm_parser_parse_vector_aux(ScmParser *parser, ScmObj port, size_t *len)
 
   car = scm_parser_parse_expression(parser, port);
   if (scm_capi_null_value_p(car)) return SCM_OBJ_NULL;
+  if (scm_capi_eof_object_p(car)) return SCM_OBJ_NULL;
 
   *len += 1;
 

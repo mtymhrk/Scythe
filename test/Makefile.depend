@@ -32,8 +32,9 @@ numeric.o: ../numeric.c ../object.h ../reference.h ../impl_utils.h \
 core_subr.o: ../core_subr.c ../object.h ../vm.h ../memory.h \
  ../basichash.h ../impl_utils.h ../reference.h ../instractions.h ../api.h \
  ../encoding.h ../api_enum.h ../core_subr.h
-iseq.o: ../iseq.c ../object.h ../reference.h ../impl_utils.h ../api.h \
- ../encoding.h ../api_enum.h ../earray.h ../instractions.h ../iseq.h
+iseq.o: ../iseq.c ../object.h ../reference.h ../impl_utils.h \
+ ../chashtbl.h ../api.h ../encoding.h ../api_enum.h ../earray.h \
+ ../instractions.h ../iseq.h
 chashtbl.o: ../chashtbl.c ../object.h ../reference.h ../impl_utils.h \
  ../api.h ../encoding.h ../api_enum.h ../chashtbl.h
 api.o: ../api.c ../object.h ../memory.h ../basichash.h ../impl_utils.h \

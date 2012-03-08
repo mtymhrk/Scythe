@@ -110,7 +110,7 @@ bool scm_capi_false_p(ScmObj obj);
 /*******************************************************************/
 
 ScmObj scm_api_eof(void);
-bool scm_capi_eof_p(ScmObj obj);
+bool scm_capi_eof_object_p(ScmObj obj);
 
 
 /*******************************************************************/

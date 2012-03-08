@@ -74,7 +74,7 @@ test_parser_parse_string(void)
   cut_assert_equal_string("this is string", actual);
 
   eof = scm_parser_parse_expression(parser, port);
-  cut_assert_true(scm_capi_eof_p(eof));
+  cut_assert_true(scm_capi_eof_object_p(eof));
 }
 
 void
@@ -95,7 +95,7 @@ test_parser_parse_symbol(void)
   cut_assert_equal_string("symbol", actual);
 
   eof = scm_parser_parse_expression(parser, port);
-  cut_assert_true(scm_capi_eof_p(eof));
+  cut_assert_true(scm_capi_eof_object_p(eof));
 }
 
 void
@@ -114,7 +114,7 @@ test_parser_parse_fixnum(void)
   cut_assert_equal_int(100, scm_capi_fixnum_to_clong(num));
 
   eof = scm_parser_parse_expression(parser, port);
-  cut_assert_true(scm_capi_eof_p(eof));
+  cut_assert_true(scm_capi_eof_object_p(eof));
 }
 
 void
@@ -138,7 +138,7 @@ test_parser_parse_fixnum_signed(void)
   cut_assert_equal_int(-23, scm_capi_fixnum_to_clong(num2));
 
   eof = scm_parser_parse_expression(parser, port);
-  cut_assert_true(scm_capi_eof_p(eof));
+  cut_assert_true(scm_capi_eof_object_p(eof));
 }
 
 
@@ -157,7 +157,7 @@ test_parser_parse_bool_true(void)
   cut_assert_true(scm_capi_true_p(bl));
 
   eof = scm_parser_parse_expression(parser, port);
-  cut_assert_true(scm_capi_eof_p(eof));
+  cut_assert_true(scm_capi_eof_object_p(eof));
 }
 
 void
@@ -175,7 +175,7 @@ test_parser_parse_bool_false(void)
   cut_assert_true(scm_capi_false_p(bl));
 
   eof = scm_parser_parse_expression(parser, port);
-  cut_assert_true(scm_capi_eof_p(eof));
+  cut_assert_true(scm_capi_eof_object_p(eof));
 }
 
 void
@@ -198,7 +198,7 @@ test_parser_parse_char_newline(void)
   cut_assert_equal_int('\n', actual.ascii);
 
   eof = scm_parser_parse_expression(parser, port);
-  cut_assert_true(scm_capi_eof_p(eof));
+  cut_assert_true(scm_capi_eof_object_p(eof));
 }
 
 void
@@ -221,7 +221,7 @@ test_parser_parse_char_space(void)
   cut_assert_equal_int(' ', actual.ascii);
 
   eof = scm_parser_parse_expression(parser, port);
-  cut_assert_true(scm_capi_eof_p(eof));
+  cut_assert_true(scm_capi_eof_object_p(eof));
 }
 
 void
@@ -260,7 +260,7 @@ test_parser_parse_quote(void)
   cut_assert_true(scm_capi_nil_p(cdr));
 
   eof = scm_parser_parse_expression(parser, port);
-  cut_assert_true(scm_capi_eof_p(eof));
+  cut_assert_true(scm_capi_eof_object_p(eof));
 }
 
 void
@@ -299,7 +299,7 @@ test_parser_parse_quasiquote(void)
   cut_assert_true(scm_capi_nil_p(cdr));
 
   eof = scm_parser_parse_expression(parser, port);
-  cut_assert_true(scm_capi_eof_p(eof));
+  cut_assert_true(scm_capi_eof_object_p(eof));
 }
 
 void
@@ -338,7 +338,7 @@ test_parser_parse_unquote(void)
   cut_assert_true(scm_capi_nil_p(cdr));
 
   eof = scm_parser_parse_expression(parser, port);
-  cut_assert_true(scm_capi_eof_p(eof));
+  cut_assert_true(scm_capi_eof_object_p(eof));
 }
 
 void
@@ -376,7 +376,7 @@ test_parser_parse_unquote_splicing(void)
   cut_assert_true(scm_capi_nil_p(cdr));
 
   eof = scm_parser_parse_expression(parser, port);
-  cut_assert_true(scm_capi_eof_p(eof));
+  cut_assert_true(scm_capi_eof_object_p(eof));
 }
 
 void
@@ -393,7 +393,7 @@ test_parser_parse_empty_list(void)
   cut_assert_true(scm_capi_nil_p(obj));
 
   eof = scm_parser_parse_expression(parser, port);
-  cut_assert_true(scm_capi_eof_p(eof));
+  cut_assert_true(scm_capi_eof_object_p(eof));
 }
 
 void
@@ -450,7 +450,7 @@ test_parser_parse_proper_list(void)
   cut_assert_true(scm_capi_nil_p(cdr));
 
   eof = scm_parser_parse_expression(parser, port);
-  cut_assert_true(scm_capi_eof_p(eof));
+  cut_assert_true(scm_capi_eof_object_p(eof));
 }
 
 void
@@ -480,7 +480,7 @@ test_parser_parse_improper_list(void)
   cut_assert_equal_int(123, scm_capi_fixnum_to_clong(cdr));
 
   eof = scm_parser_parse_expression(parser, port);
-  cut_assert_true(scm_capi_eof_p(eof));
+  cut_assert_true(scm_capi_eof_object_p(eof));
 }
 
 void
@@ -556,7 +556,7 @@ test_parser_parse_nested_list(void)
   cut_assert_true(scm_capi_nil_p(cdr));
 
   eof = scm_parser_parse_expression(parser, port);
-  cut_assert_true(scm_capi_eof_p(eof));
+  cut_assert_true(scm_capi_eof_object_p(eof));
 }
 
 void
@@ -593,7 +593,7 @@ test_parse_parse_list_inserted_comment(void)
   cut_assert_true(scm_capi_nil_p(cdr));
 
   eof = scm_parser_parse_expression(parser, port);
-  cut_assert_true(scm_capi_eof_p(eof));
+  cut_assert_true(scm_capi_eof_object_p(eof));
 }
 
 void
@@ -612,7 +612,7 @@ test_parser_parse_empty_vector(void)
   cut_assert_equal_int(0, scm_capi_vector_length(vec));
 
   eof = scm_parser_parse_expression(parser, port);
-  cut_assert_true(scm_capi_eof_p(eof));
+  cut_assert_true(scm_capi_eof_object_p(eof));
 }
 
 void
@@ -655,5 +655,5 @@ test_parser_parse_vector(void)
   cut_assert_equal_int(0, scm_capi_vector_length(elm3));
 
   eof = scm_parser_parse_expression(parser, port);
-  cut_assert_true(scm_capi_eof_p(eof));
+  cut_assert_true(scm_capi_eof_object_p(eof));
 }

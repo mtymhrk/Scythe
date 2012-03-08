@@ -237,7 +237,7 @@ scm_api_eof(void)
 }
 
 extern inline bool
-scm_capi_eof_p(ScmObj obj)
+scm_capi_eof_object_p(ScmObj obj)
 {
   return scm_capi_eq_p(obj, scm_api_eof());
 }
@@ -301,11 +301,11 @@ scm_capi_list(unsigned int n, ...)
   SCM_STACK_FRAME_PUSH(&lst);
 
   va_start(ap, n);
-  for (unsigned int i; i < n; i++)
+  for (unsigned int i = 0; i < n; i++)
     args[i] = va_arg(ap, ScmObj);
   va_end(ap);
 
-  for (unsigned int i; i < n; i++)
+  for (unsigned int i = 0; i < n; i++)
     SCM_STACK_PUSH(args + i);
 
   lst = scm_api_nil();

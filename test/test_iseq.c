@@ -422,3 +422,70 @@ test_scm_iseq__expand_object_vector(void)
     cut_assert_true(scm_obj_same_instance_p(val, actual));
   }
 }
+
+
+void
+test_scm_iseq_list_to_iseq(void)
+{
+  ScmObj iseq = SCM_OBJ_INIT;
+  ScmObj lst = SCM_OBJ_INIT;
+  ScmObj port = SCM_OBJ_INIT;
+  const char *str =
+    "((nop)(stop)(call)(return)(frame)(push)(gref vvv)"
+    "(gdef vvv)(gset vvv)(immval vvv)(push_primval 123)"
+    "(label lbl)(jmp lbl)(asm ((nop))))";
+  const uint8_t expected_codes[] = { SCM_OPCODE_NOP, SCM_OPCODE_STOP,
+                                     SCM_OPCODE_CALL, SCM_OPCODE_RETURN,
+                                     SCM_OPCODE_FRAME, SCM_OPCODE_PUSH,
+                                     SCM_OPCODE_GREF, SCM_OPCODE_GDEF,
+                                     SCM_OPCODE_GSET, SCM_OPCODE_IMMVAL,
+                                     SCM_OPCODE_PUSH_PRIMVAL, SCM_OPCODE_JMP,
+                                     SCM_OPCODE_IMMVAL };
+  ScmObj actual_immv = SCM_OBJ_INIT;
+  ScmObj expected_immv = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&iseq, &lst, &port, &actual_immv, &expected_immv);
+
+  expected_immv = scm_capi_make_symbol_from_cstr("vvv", SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_port_from_cstr(str, SCM_ENC_ASCII);
+  lst = scm_api_read(port);
+
+  iseq = scm_iseq_list_to_iseq(lst);
+
+  cut_assert_true(scm_obj_not_null_p(iseq));
+  cut_assert_true(scm_obj_type_p(iseq, &SCM_ISEQ_TYPE_INFO));
+
+  for (size_t i = 0; i < sizeof(expected_codes)/sizeof(expected_codes[0]); i++) {
+    scm_inst_t actual;
+    int rslt;
+
+    rslt = scm_iseq_get_word(iseq, i, &actual.iword);
+
+    cut_assert_equal_int(0, rslt);
+    cut_assert_equal_int(expected_codes[i], actual.plain.op);
+
+    switch (actual.plain.op) {
+    case SCM_OPCODE_GREF:
+    case SCM_OPCODE_GDEF:
+    case SCM_OPCODE_GSET:
+      actual_immv = scm_iseq_get_immval(iseq, actual.immv1.imm_idx);
+      cut_assert_true(scm_capi_eq_p(expected_immv, actual_immv));
+      break;
+    case SCM_OPCODE_IMMVAL:
+      actual_immv = scm_iseq_get_immval(iseq, actual.immv1.imm_idx);
+      if (i == 9)
+        cut_assert_true(scm_capi_eq_p(expected_immv, actual_immv));
+      else if (i == 12)
+        cut_assert_true(scm_obj_type_p(actual_immv, &SCM_ISEQ_TYPE_INFO));
+      else
+        cut_assert(false);
+      break;
+    case SCM_OPCODE_PUSH_PRIMVAL:
+      cut_assert_equal_int(123, actual.primv.primval);
+      break;
+    case SCM_OPCODE_JMP:
+      cut_assert_equal_int(-1, actual.primv.primval);
+      break;
+    }
+  }
+}
