@@ -180,6 +180,7 @@ ScmObj scm_capi_make_symbol_from_bin(const void *data,
 ScmObj scm_api_symbol_to_string(ScmObj sym);
 ScmObj scm_api_string_to_symbol(ScmObj str);
 bool scm_capi_symbol_p(ScmObj obj);
+ssize_t scm_capi_symbol_bytesize(ScmObj sym);
 ssize_t scm_capi_symbol_to_cstr(ScmObj sym, char *cstr, size_t size);
 size_t scm_capi_symbol_hash_value(ScmObj sym);
 

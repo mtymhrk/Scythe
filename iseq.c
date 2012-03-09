@@ -81,12 +81,12 @@ scm_iseq_asm_new_label_rec(void)
   ScmLabelInfo *rec;
 
   rec = scm_capi_malloc(sizeof(*rec));
-  if (rec == NULL) return NULL;
+  if (rec == NULL) return NULL; /* [ERR]: [through] */
 
   rslt = eary_init(&rec->ref, sizeof(size_t), 8);
   if (rslt < 0) {
     scm_capi_free(rec);
-    return NULL;
+    return NULL;                /* [ERR]: [through] */
   };
 
   rec->label[0] = '\0';
@@ -119,38 +119,42 @@ scm_iseq_asm_reg_label_ref_idx(ScmCHashTbl *tbl, EArray *labels,
   scm_assert(tbl != 0);
   scm_assert(scm_capi_symbol_p(label));
 
+  name_sz = scm_capi_symbol_bytesize(label);
+  if (name_sz < 0) return -1;   /* [ERR]: [through] */
+  if ((size_t)name_sz > sizeof(label_name) - 1) return -1; /* [ERR]: iseq: label
+ name is too long */
+
   name_sz = scm_capi_symbol_to_cstr(label, label_name, sizeof(label_name));
-  if (name_sz < 0) return -1;
-  if ((size_t)name_sz > sizeof(label_name) - 1) return -1;
+  if (name_sz < 0) return -1;   /* [ERR]: [through] */
 
   rslt = scm_chash_tbl_get(tbl, SCM_CHASH_TBL_KEY(label_name), &val, &found);
-  if (rslt < 0) return -1;
+  if (rslt < 0) return -1;      /* [ERR]: [through] */
 
   if (found) {
     rec = (ScmLabelInfo *)val;
   }
   else {
     rec = scm_iseq_asm_new_label_rec();
-    if (rec == NULL) return -1;
+    if (rec == NULL) return -1; /* [ERR]: [through] */
 
     memcpy(rec->label, label_name, (size_t)name_sz + 1);
     rslt = scm_chash_tbl_insert(tbl, SCM_CHASH_TBL_KEY(rec->label),
                                 SCM_CHASH_TBL_VAL(rec));
     if (rslt < 0) {
       scm_iseq_asm_del_label_rec(rec);
-      return -1;
+      return -1;                /* [ERR]: [through] */
     }
 
     EARY_PUSH(labels, char *, rec->label, rslt);
     if (rslt < 0) {
       scm_chash_tbl_delete(tbl, SCM_CHASH_TBL_KEY(rec->label), NULL, NULL);
       scm_iseq_asm_del_label_rec(rec);
-      return -1;
+      return -1;                /* [ERR]: [through] */
     }
   }
 
   EARY_PUSH(&rec->ref, size_t, ref_idx, rslt);
-  if (rslt < 0) return -1;
+  if (rslt < 0) return -1;      /* [ERR]: [through] */
 
   return 0;
 }
@@ -163,26 +167,29 @@ scm_iseq_asm_reg_label_def_idx(ScmCHashTbl *tbl, EArray *labels,
   bool found;
   ScmCHashTblVal val;
   ScmLabelInfo *rec;
-  char label_name[256];
+  char label_name[SCM_ISEQ_LABEL_NAME_MAX];
   ssize_t name_sz;
 
   scm_assert(tbl != NULL);
   scm_assert(labels != NULL);
   scm_assert(scm_capi_symbol_p(label));
 
+  name_sz = scm_capi_symbol_bytesize(label);
+  if (name_sz < 0) return -1;   /* [ERR]: [through] */
+  if ((size_t)name_sz > sizeof(label_name) - 1) return -1; /* [ERR]: iseq: label name is too long */
+
   name_sz = scm_capi_symbol_to_cstr(label, label_name, sizeof(label_name));
-  if (name_sz < 0) return -1;
-  if ((size_t)name_sz > sizeof(label_name) - 1) return -1;
+  if (name_sz < 0) return -1;   /* [ERR]: [through] */
 
   rslt = scm_chash_tbl_get(tbl, SCM_CHASH_TBL_KEY(label_name), &val, &found);
-  if (rslt < 0) return -1;
+  if (rslt < 0) return -1;      /* [ERR]: [through] */
 
   if (found) {
     rec = (ScmLabelInfo *)val;
   }
   else {
     rec = scm_iseq_asm_new_label_rec();
-    if (rec == NULL) return -1;
+    if (rec == NULL) return -1; /* [ERR]: [through] */
 
     memcpy(rec->label, label_name, (size_t)name_sz + 1);
 
@@ -190,18 +197,18 @@ scm_iseq_asm_reg_label_def_idx(ScmCHashTbl *tbl, EArray *labels,
                                 SCM_CHASH_TBL_VAL(rec));
     if (rslt < 0) {
       scm_iseq_asm_del_label_rec(rec);
-      return -1;
+      return -1;                /* [ERR]: [through] */
     }
 
     EARY_PUSH(labels, char *, rec->label, rslt);
     if (rslt < 0) {
       scm_chash_tbl_delete(tbl, SCM_CHASH_TBL_KEY(rec->label), NULL, NULL);
       scm_iseq_asm_del_label_rec(rec);
-      return -1;
+      return -1;                /* [ERR]: [thorugh] */
     }
   }
 
-  if (rec->defined_p) return -1;
+  if (rec->defined_p) return -1; /* [ERR]: iseq: already defined */
 
   rec->idx = idx;
   rec->defined_p = true;
@@ -216,21 +223,20 @@ scm_iseq_asm_sym2opcode(ScmObj op)
 
   if (scm_capi_fixnum_p(op)) {
     long l = scm_capi_fixnum_to_clong(op);
-    if (l >= INT_MAX) return -1;
+    if (l >= INT_MAX) return -1; /* [ERR]: iseq: unkown opcode */
     return (int)l;
   }
   else if (scm_capi_symbol_p(op)) {
     char mne[32];
     ssize_t rslt = scm_capi_symbol_to_cstr(op, mne, sizeof(mne));
-    if (rslt < 0) return -1;
-    if ((size_t)rslt > sizeof(mne) - 1) return -1;
+    if (rslt < 0) return -1;    /* [ERR]: [through] */
 
     rslt = scm_iseq_asm_mne2opcode(mne);
-    if (rslt < 0) return -1;
+    if (rslt < 0) return -1;    /* [ERR]: iseq: unknown mnemonic */
     return (int)rslt;
   }
   else {
-    return -1;
+    return -1;                  /* [ERR]: iseq: unknown op */
   }
 }
 
@@ -247,7 +253,7 @@ scm_iseq_asm_inst_noarg_op(ScmObj iseq, size_t idx, int opcode)
   i.plain.op = (uint8_t)opcode;
   i.plain.arg = 0;
   rslt = scm_iseq_set_word(iseq, idx++, i.iword);
-  if (rslt < 0) return -1;
+  if (rslt < 0) return -1;      /* [ERR]: [through] */
 
   return (ssize_t)idx;
 }
@@ -269,7 +275,7 @@ scm_iseq_asm_inst_unary_op(ScmObj iseq, size_t idx, int opcode, ScmObj arg)
   i.immv1.op = (uint8_t)opcode;
   i.immv1.imm_idx = immv_idx;
   rslt = scm_iseq_set_word(iseq, idx++, i.iword);
-  if (rslt < 0) return -1;
+  if (rslt < 0) return -1;      /* [ERR]: [through] */
 
   return (ssize_t)idx;
 }
@@ -288,12 +294,12 @@ scm_iseq_asm_inst_primval_op(ScmObj iseq, size_t idx, int opcode, ScmObj arg)
 
   primval = scm_capi_fixnum_to_clong(arg);
   if (primval < SCM_INST_PRIMVAL_MIN || SCM_INST_PRIMVAL_MAX < primval)
-    return -1;
+    return -1;                  /* [ERR]: iseq: operand is out of range */
 
   i.primv.op = (uint8_t)opcode;
   i.primv.primval = primval;
   rslt = scm_iseq_set_word(iseq, idx++, i.iword);
-  if (rslt < 0) return -1;
+  if (rslt < 0) return -1;      /* [ERR]: [through] */
 
   return (ssize_t)idx;
 }
@@ -314,12 +320,12 @@ scm_iseq_asm_inst_ref_label_op(ScmObj iseq, size_t idx,
   scm_assert(labels != NULL);
 
   rslt = scm_iseq_asm_reg_label_ref_idx(label_tbl, labels, label, idx);
-  if (rslt < 0) return -1;
+  if (rslt < 0) return -1;      /* [ERR]: [through] */
 
   i.primv.op = (uint8_t)opcode;
   i.primv.primval = 0;    /* dummy */;
   rslt = scm_iseq_set_word(iseq, idx++, i.iword);
-  if (rslt < 0) return -1;
+  if (rslt < 0) return -1;      /* [ERR]: [through] */
 
   return (ssize_t)idx;
 }
@@ -334,19 +340,25 @@ scm_iseq_asm_inst(ScmObj iseq, ScmObj inst,
   SCM_STACK_FRAME_PUSH(&iseq, &inst, &op, &arg);
 
   scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
-  scm_assert(scm_capi_pair_p(inst));
+  scm_assert(!scm_obj_null_p(inst));
   scm_assert(idx < (size_t)SSIZE_MAX - 1);
   scm_assert(label_tbl != NULL);
   scm_assert(labels != NULL);
 
-  op = scm_api_car(inst);
-  if (scm_obj_null_p(op)) return -1;
+  if (scm_capi_pair_p(inst)) {
+    op = scm_api_car(inst);
+    if (scm_obj_null_p(op)) return -1; /* [ERR]: [thorugh] */
 
-  arg = scm_api_cdr(inst);
-  if (scm_obj_null_p(arg)) return -1;
+    arg = scm_api_cdr(inst);
+    if (scm_obj_null_p(arg)) return -1; /* [ERR]: [through] */
+  }
+  else {
+    op = inst;
+    arg = scm_api_nil();
+  }
 
   opcode = scm_iseq_asm_sym2opcode(op);
-  if (opcode < 0) return -1;
+  if (opcode < 0) return -1;    /* [ERR]: [through] */
 
   switch (opcode) {
   case SCM_OPCODE_NOP:          /* fall through */
@@ -361,44 +373,54 @@ scm_iseq_asm_inst(ScmObj iseq, ScmObj inst,
   case SCM_OPCODE_GDEF:         /* fall through */
   case SCM_OPCODE_GSET:         /* fall through */
   case SCM_OPCODE_IMMVAL:
+    if (!scm_capi_pair_p(arg)) return -1; /* [ERR]: iseq: operands is not exist */
+
     arg = scm_api_car(arg);
-    if (scm_obj_null_p(arg)) return -1;
+    if (scm_obj_null_p(arg)) return -1; /* [ERR]: [through] */
 
     return scm_iseq_asm_inst_unary_op(iseq, idx, opcode, arg);
     break;
   case SCM_OPCODE_PUSH_PRIMVAL:
+    if (!scm_capi_pair_p(arg)) return -1;  /* [ERR]: iseq: operands is not exist */
+
     arg = scm_api_car(arg);
-    if (scm_obj_null_p(arg)) return -1;
+    if (scm_obj_null_p(arg)) return -1; /* [ERR]: [through] */
 
     return scm_iseq_asm_inst_primval_op(iseq, idx, opcode, arg);
     break;
   case SCM_OPCODE_JMP:
+    if (!scm_capi_pair_p(arg)) return -1;  /* [ERR]: iseq: operands is not exist */
+
     arg = scm_api_car(arg);
-    if (scm_obj_null_p(arg)) return -1;
-    if (!scm_capi_symbol_p(arg)) return -1;
+    if (scm_obj_null_p(arg)) return -1; /* [ERR]: [through] */
+    if (!scm_capi_symbol_p(arg)) return -1; /* [ERR]: iseq: operand is not symbol */
 
     return scm_iseq_asm_inst_ref_label_op(iseq, idx,
                                           opcode, arg, label_tbl, labels);
     break;
   case SCM_ISEQ_PI_LABEL:
+    if (!scm_capi_pair_p(arg)) return -1;  /* [ERR]: iseq: operands is not exist */
+
     arg = scm_api_car(arg);
-    if (scm_obj_null_p(arg)) return -1;
-    if (!scm_capi_symbol_p(arg)) return -1;
+    if (scm_obj_null_p(arg)) return -1; /* [ERR]: [through] */
+    if (!scm_capi_symbol_p(arg)) return -1; /* [ERR]: iseq: operand is not symbol */
 
     rslt = scm_iseq_asm_reg_label_def_idx(label_tbl, labels, arg, idx);
     return (rslt < 0) ?  -1 : (ssize_t)idx;
     break;
   case SCM_ISEQ_PI_ASM:
+    if (!scm_capi_pair_p(arg)) return -1;  /* [ERR]: iseq: operands is not exist */
     arg = scm_api_car(arg);
-    if (scm_obj_null_p(arg)) return -1;
-    if (!scm_capi_pair_p(arg)) return -1;
+    if (scm_obj_null_p(arg)) return -1; /* [ERR]: [through] */
+    if (!scm_capi_pair_p(arg)) return -1; /* [ERR]: operand is not list */
 
     arg = scm_iseq_list_to_iseq(arg);
-    if (scm_obj_null_p(arg)) return -1;
+    if (scm_obj_null_p(arg)) return -1; /* [ERR]: [through] */
 
     return scm_iseq_asm_inst_unary_op(iseq, idx, SCM_OPCODE_IMMVAL, arg);
     break;
   default:
+    scm_assert(false);
     break;
   }
 
@@ -422,8 +444,8 @@ scm_iseq_asm_label_resolv(ScmObj iseq, ScmCHashTbl *label_tbl, EArray *labels)
 
   EARY_FOR_EACH(labels, idx1, lbl) {
     rslt = scm_chash_tbl_get(label_tbl, SCM_CHASH_TBL_KEY(*lbl), &val, &found);
-    if (rslt < 0) return -1;
-    if (!found) goto err_free_rec;
+    if (rslt < 0) return -1;    /* [ERR]: [through] */
+    if (!found) goto err_free_rec; /* [ERR]: iseq: inner error occured*/
 
     rec = (ScmLabelInfo *)val;
     EARY_FOR_EACH(&rec->ref, idx2,  inst_idx) {
@@ -431,16 +453,16 @@ scm_iseq_asm_label_resolv(ScmObj iseq, ScmCHashTbl *label_tbl, EArray *labels)
                *inst_idx, iword.iword);
       if ((ssize_t)rec->idx
           < SCM_INST_PRIMVAL_MIN + (ssize_t)*inst_idx + 1)
-        goto err_free_rec;
+        goto err_free_rec;      /* [ERR]: iseq: operand is underflow */
       else if ((ssize_t)*inst_idx - 1
                > SCM_INST_PRIMVAL_MAX - (ssize_t)rec->idx)
-        goto err_free_rec;
+        goto err_free_rec;      /* [ERR]: iseq: operand is overflow */
       iword.primv.primval = rec->idx - *inst_idx - 1;
       scm_iseq_set_word(iseq, *inst_idx, iword.iword);
     }
 
     rslt = scm_chash_tbl_delete(label_tbl, SCM_CHASH_TBL_KEY(*lbl), NULL, NULL);
-    if (rslt < 0) return -1;
+    if (rslt < 0) return -1;    /* [ERR]: [through] */
 
     scm_iseq_asm_del_label_rec(rec);
   }
@@ -481,13 +503,12 @@ scm_iseq_assemble(ScmObj iseq,
        scm_obj_not_null_p(cur) && !scm_capi_nil_p(cur);
        cur = scm_api_cdr(cur)) {
     inst = scm_api_car(cur);
-    if (!scm_capi_pair_p(inst)) return -1;
     idx = scm_iseq_asm_inst(iseq, inst, (size_t)idx, label_tbl, labels);
-    if (idx < 0) return -1;
+    if (idx < 0) return -1;     /* [ERR]: [through] */
   }
 
   rslt = scm_iseq_asm_label_resolv(iseq, label_tbl, labels);
-  if (rslt < 0) return -1;
+  if (rslt < 0) return -1;      /* [ERR]: [through] */
 
   return 0;
 }
@@ -632,18 +653,18 @@ scm_iseq_list_to_iseq(ScmObj lst)
   scm_assert(scm_capi_pair_p(lst));
 
   rslt = eary_init(&labels, sizeof(char *), 32);
-  if (rslt) return SCM_OBJ_NULL;
+  if (rslt) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   iseq = scm_iseq_new(SCM_MEM_HEAP);
-  if (scm_obj_null_p(iseq)) goto err;
+  if (scm_obj_null_p(iseq)) goto err; /* [ERR]: [through] */
 
   label_tbl = scm_chash_tbl_new(SCM_OBJ_NULL, 32,
                                 SCM_CHASH_TBL_CVAL, SCM_CHASH_TBL_CVAL,
                                 scm_iseq_asm_hash, scm_iseq_asm_cmp);
-  if (label_tbl == NULL) goto err;
+  if (label_tbl == NULL) goto err; /* [ERR]: [through] */
 
   rslt = scm_iseq_assemble(iseq, label_tbl, &labels, lst);
-  if (rslt < 0) goto err;
+  if (rslt < 0) goto err;       /* [ERR]: [through] */
 
   eary_fin(&labels);
   scm_chash_tbl_end(label_tbl);

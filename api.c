@@ -639,6 +639,15 @@ scm_capi_symbol_p(ScmObj obj)
 }
 
 extern inline ssize_t
+scm_capi_symbol_bytesize(ScmObj sym)
+{
+  if (!scm_capi_symbol_p(sym))
+    return -1;                  /* provisional implementation */
+
+  return scm_capi_string_bytesize(scm_api_symbol_to_string(sym));
+}
+
+extern inline ssize_t
 scm_capi_symbol_to_cstr(ScmObj sym, char *cstr, size_t size)
 {
   if (!scm_capi_symbol_p(sym))
