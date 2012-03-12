@@ -936,7 +936,7 @@ scm_capi_iseq_p(ScmObj obj)
 }
 
 extern inline scm_iword_t *
-scm_capi_head_of_iseq(ScmObj iseq)
+scm_capi_iseq_to_ip(ScmObj iseq)
 {
   if (!scm_capi_iseq_p(iseq))
     return SCM_OBJ_NULL;         /* provisional implemntation */

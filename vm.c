@@ -422,7 +422,7 @@ scm_vm_op_call(ScmObj vm)
     }
     else {
       SCM_SLOT_SETQ(ScmVM, vm, reg.iseq, SCM_VM(vm)->trmp.code);
-      SCM_VM(vm)->reg.ip = scm_capi_head_of_iseq(SCM_VM(vm)->trmp.code);
+      SCM_VM(vm)->reg.ip = scm_capi_iseq_to_ip(SCM_VM(vm)->trmp.code);
       SCM_VM(vm)->trmp.code = SCM_OBJ_NULL;
     }
   }
@@ -752,7 +752,7 @@ scm_vm_run(ScmObj vm, ScmObj iseq)
   scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
 
   SCM_SLOT_SETQ(ScmVM, vm, reg.iseq, iseq);
-  SCM_VM(vm)->reg.ip = scm_capi_head_of_iseq(iseq);
+  SCM_VM(vm)->reg.ip = scm_capi_iseq_to_ip(iseq);
   SCM_SLOT_SETQ(ScmVM, vm, reg.val, SCM_OBJ_NULL);
     /* TODO: undefined オブジェクトのようなものを初期値にする */
 

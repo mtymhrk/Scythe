@@ -234,7 +234,7 @@ bool scm_capi_closure_p(ScmObj obj);
 /*******************************************************************/
 
 bool scm_capi_iseq_p(ScmObj obj);
-scm_iword_t *scm_capi_head_of_iseq(ScmObj iseq);
+scm_iword_t *scm_capi_iseq_to_ip(ScmObj iseq);
 ScmObj scm_api_assemble(ScmObj lst);
 
 
