@@ -16,7 +16,9 @@
 #include "procedure.h"
 #include "core_subr.h"
 #include "miscobjects.h"
+#include "api.h"
 #include "impl_utils.h"
+
 
 /***************************************************************************/
 /*  ScmBedrock                                                             */
@@ -402,7 +404,7 @@ scm_vm_op_call(ScmObj vm)
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
-  if (scm_obj_type_p(SCM_VM(vm)->reg.val, &SCM_SUBRUTINE_TYPE_INFO)) {
+  if (scm_capi_subrutine_p(SCM_VM(vm)->reg.val)) {
     SCM_VM(vm)->reg.fp = SCM_VM(vm)->reg.sp;
     argc = scm_vm_frame_argc(vm);
 
@@ -411,15 +413,24 @@ scm_vm_op_call(ScmObj vm)
     SCM_SLOT_SETQ(ScmVM, vm, reg.fp[-(argc + 3)], SCM_VM(vm)->reg.iseq);
     SCM_VM(vm)->reg.fp[-(argc + 2)] = (scm_vm_stack_val_t)SCM_VM(vm)->reg.ip;
 
-    val = scm_subrutine_call(SCM_VM(vm)->reg.val);
+    val = scm_api_call_subrutine(SCM_VM(vm)->reg.val);
     if (scm_obj_not_null_p(val))
       SCM_SLOT_SETQ(ScmVM, vm, reg.val, val);
 
-    scm_vm_return_to_caller(vm);
+    if (scm_obj_null_p(SCM_VM(vm)->trmp.code)) {
+      scm_vm_return_to_caller(vm);
+    }
+    else {
+      SCM_SLOT_SETQ(ScmVM, vm, reg.iseq, SCM_VM(vm)->trmp.code);
+      SCM_VM(vm)->reg.ip = scm_capi_head_of_iseq(SCM_VM(vm)->trmp.code);
+      SCM_VM(vm)->trmp.code = SCM_OBJ_NULL;
+    }
   }
-  /* TODO:  val レジスタがクロージャのケースの実装 */
-  else
+  else if (scm_capi_closure_p(SCM_VM(vm)->reg.val)) {
+  }
+  else {
     ;                           /* TODO: error handling */
+  }
 }
 
 scm_local_func void
@@ -627,6 +638,8 @@ scm_vm_initialize(ScmObj vm,  ScmBedrock *bedrock)
   /* TODO: undefined オブジェクトみたいなものを初期値にする */
   SCM_VM(vm)->reg.val = SCM_OBJ_NULL;
 
+  SCM_VM(vm)->trmp.code = SCM_OBJ_NULL;
+
   scm_vm_setup_singletons(vm);
 
   return;
@@ -739,7 +752,7 @@ scm_vm_run(ScmObj vm, ScmObj iseq)
   scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
 
   SCM_SLOT_SETQ(ScmVM, vm, reg.iseq, iseq);
-  SCM_VM(vm)->reg.ip = SCM_ISEQ_SEQ(iseq);
+  SCM_VM(vm)->reg.ip = scm_capi_head_of_iseq(iseq);
   SCM_SLOT_SETQ(ScmVM, vm, reg.val, SCM_OBJ_NULL);
     /* TODO: undefined オブジェクトのようなものを初期値にする */
 
@@ -814,6 +827,33 @@ scm_vm_refer_local_var(ScmObj vm, int nth)
   return scm_vm_frame_argv(vm, nth);
 }
 
+int
+scm_vm_setup_trampolining(ScmObj vm, ScmObj target, ScmObj args,
+                          ScmObj (*callback)(void))
+{
+  ScmObj trmp_code = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&trmp_code, &target, &args);
+
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+  scm_assert(scm_obj_not_null_p(target));
+  scm_assert(scm_capi_pair_p(args));
+
+  /* 以下の処理を実行する iseq オブエクトを生成する
+   * 1. frame を新しく作成し
+   * 2 args を引数としてプッシュ
+   * 3 target をクロージャとして呼出す
+   * callback が非 NULL の場合
+   *   4 クロージャの戻り値を引数として現在のフレームに破壊的に設定する
+   *   5 callback を subr 化したものを呼出す
+   * 6 return
+   */
+
+  SCM_SLOT_SETQ(ScmVM, vm, trmp.code, SCM_OBJ_NULL);
+
+  return 0;
+}
+
 void
 scm_vm_gc_initialize(ScmObj obj, ScmObj mem)
 {
@@ -835,6 +875,7 @@ scm_vm_gc_initialize(ScmObj obj, ScmObj mem)
   SCM_VM(obj)->cnsts.eof = SCM_OBJ_NULL;
   SCM_VM(obj)->cnsts.b_true = SCM_OBJ_NULL;
   SCM_VM(obj)->cnsts.b_false = SCM_OBJ_NULL;
+  SCM_VM(obj)->trmp.code = SCM_OBJ_NULL;
 }
 
 void
@@ -866,6 +907,9 @@ scm_vm_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
 
   /* rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, vm->cp, mem); */
   /* if (scm_gc_ref_handler_failure_p(rslt)) return rslt; */
+
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_VM(obj)->trmp.code, mem);
+  if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
   for (scm_vm_stack_val_t* p = SCM_VM(obj)->stack;
        p != NULL && p != SCM_VM(obj)->reg.sp;

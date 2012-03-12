@@ -15,11 +15,13 @@
 #include "vector.h"
 #include "port.h"
 #include "parser.h"
+#include "iseq.h"
 
 #include "encoding.h"
 #include "impl_utils.h"
 
 #include "api_enum.h"
+#include "api_type.h"
 #include "api.h"
 
 
@@ -874,6 +876,82 @@ scm_capi_make_subrutine(ScmSubrFunc func)
   return scm_subrutine_new(SCM_MEM_ALLOC_HEAP, func);
 }
 
+extern inline ScmObj
+scm_api_call_subrutine(ScmObj subr)
+{
+  if (!scm_capi_subrutine_p(subr))
+    return SCM_OBJ_NULL;         /* provisional implemntation */
+
+  return scm_subrutine_call(subr);
+}
+
+extern inline bool
+scm_capi_subrutine_p(ScmObj obj)
+{
+  if (scm_obj_null_p(obj)) return false;
+  return (scm_obj_type_p(obj, &SCM_SUBRUTINE_TYPE_INFO) ? true : false);
+}
+
+
+/*******************************************************************/
+/*  Closure                                                        */
+/*******************************************************************/
+
+extern inline ScmObj
+scm_capi_make_closure(ScmObj iseq,
+                      size_t nr_free_vars, scm_vm_stack_val_t *sp)
+{
+  if (!scm_capi_iseq_p(iseq))
+    return SCM_OBJ_NULL;         /* provisional implemntation */
+
+  return scm_closure_new(SCM_MEM_ALLOC_HEAP, iseq, nr_free_vars, sp);
+}
+
+extern inline ScmObj
+scm_capi_iseq_to_closure(ScmObj iseq)
+{
+  if (!scm_capi_iseq_p(iseq))
+    return SCM_OBJ_NULL;         /* provisional implemntation */
+
+  return scm_closure_new(SCM_MEM_ALLOC_HEAP, iseq, 0, NULL);
+}
+
+extern inline bool
+scm_capi_closure_p(ScmObj obj)
+{
+  if (scm_obj_null_p(obj)) return false;
+  return (scm_obj_type_p(obj, &SCM_CLOSURE_TYPE_INFO) ? true : false);
+}
+
+
+/*******************************************************************/
+/*  ISeq                                                           */
+/*******************************************************************/
+
+extern inline bool
+scm_capi_iseq_p(ScmObj obj)
+{
+  if (scm_obj_null_p(obj)) return false;
+  return (scm_obj_type_p(obj, &SCM_ISEQ_TYPE_INFO) ? true : false);
+}
+
+extern inline scm_iword_t *
+scm_capi_head_of_iseq(ScmObj iseq)
+{
+  if (!scm_capi_iseq_p(iseq))
+    return SCM_OBJ_NULL;         /* provisional implemntation */
+
+  return SCM_ISEQ_SEQ(iseq);
+}
+
+extern inline ScmObj
+scm_api_assemble(ScmObj lst)
+{
+  if (!scm_capi_pair_p(lst))
+    return SCM_OBJ_NULL;         /* provisional implemntation */
+
+  return scm_iseq_list_to_iseq(lst);
+}
 
 /*******************************************************************/
 /*  Global Variable                                                */
@@ -986,4 +1064,17 @@ scm_capi_get_func_arg(int nth)
 }
 
 
+/*******************************************************************/
+/*  Setup Trampolining                                             */
+/*******************************************************************/
 
+extern inline int
+scm_capi_trampolining(ScmObj target, ScmObj args,
+                      ScmObj (*callback)(void))
+{
+  if ((!scm_capi_iseq_p(target) && !scm_capi_closure_p(target))
+      || scm_capi_pair_p(args))
+    return SCM_OBJ_NULL;                  /* provisional implemntation */
+
+  return scm_vm_setup_trampolining(scm_vm_current_vm(), target, args, callback);
+}

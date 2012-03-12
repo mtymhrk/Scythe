@@ -8,6 +8,7 @@
 #include "reference.h"
 #include "encoding.h"
 #include "api_enum.h"
+#include "api_type.h"
 
 /*******************************************************************/
 /*  Error                                                          */
@@ -216,6 +217,25 @@ ScmObj scm_api_read(ScmObj port);
 /*******************************************************************/
 
 ScmObj scm_capi_make_subrutine(ScmSubrFunc func);
+ScmObj scm_api_call_subrutine(ScmObj subr);
+bool scm_capi_subrutine_p(ScmObj obj);
+
+/*******************************************************************/
+/*  Closure                                                        */
+/*******************************************************************/
+
+ScmObj scm_capi_make_closure(ScmObj iseq,
+                             size_t nr_free_vars, scm_vm_stack_val_t *sp);
+ScmObj scm_capi_iseq_to_closure(ScmObj iseq);
+bool scm_capi_closure_p(ScmObj obj);
+
+/*******************************************************************/
+/*  ISeq                                                           */
+/*******************************************************************/
+
+bool scm_capi_iseq_p(ScmObj obj);
+scm_iword_t *scm_capi_head_of_iseq(ScmObj iseq);
+ScmObj scm_api_assemble(ScmObj lst);
 
 
 /*******************************************************************/
@@ -237,8 +257,11 @@ int scm_capi_get_nr_func_arg(void);
 ScmObj scm_capi_get_func_arg(int nth);
 
 
+/*******************************************************************/
+/*  Setup Trampolining                                             */
+/*******************************************************************/
 
-
+int scm_capi_trampolining(ScmObj target, ScmObj arg, ScmObj (*callback)(void));
 
 
 #endif /* INCLUDE_API_H__ */

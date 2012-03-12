@@ -3,9 +3,8 @@
 
 #include <stdint.h>
 
-typedef uint32_t scm_iword_t;
-
 #include "object.h"
+#include "api.h"
 
 typedef enum {
   SCM_OPCODE_NOP,                 /* no operation */

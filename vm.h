@@ -12,6 +12,7 @@ typedef struct ScmVMRec ScmVM;
 #include "memory.h"
 #include "reference.h"
 #include "instractions.h"
+#include "api.h"
 
 /***************************************************************************/
 /*  ScmBedrock                                                             */
@@ -55,7 +56,6 @@ scm_bedrock_current_br(void)
 /***************************************************************************/
 
 typedef scm_uword_t scm_vm_inst_t;
-typedef scm_uword_t scm_vm_stack_val_t;
 
 extern ScmTypeInfo SCM_VM_TYPE_INFO;
 extern ScmObj scm_vm__current_vm;
@@ -93,6 +93,11 @@ struct ScmVMRec {
     ScmObj b_true;
     ScmObj b_false;
   } cnsts;
+
+  /*** Trampolining ***/
+  struct {
+    ScmObj code;
+  } trmp;
 };
 
 /* private functions ******************************************************/
@@ -145,6 +150,9 @@ void scm_vm_run(ScmObj vm, ScmObj iseq);
 
 int scm_vm_nr_local_var(ScmObj vm);
 ScmObj scm_vm_refer_local_var(ScmObj vm, int nth);
+
+int scm_vm_setup_trampolining(ScmObj vm, ScmObj target, ScmObj args,
+                              ScmObj (*callback)(void));
 
 void scm_vm_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_vm_gc_finalize(ScmObj obj);
