@@ -928,6 +928,12 @@ scm_capi_closure_p(ScmObj obj)
 /*  ISeq                                                           */
 /*******************************************************************/
 
+extern inline ScmObj
+scm_api_make_iseq(void)
+{
+  return scm_iseq_new(SCM_MEM_HEAP);
+}
+
 extern inline bool
 scm_capi_iseq_p(ScmObj obj)
 {

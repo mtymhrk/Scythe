@@ -123,7 +123,10 @@ int scm_vm_frame_argc(ScmObj vm);
 ScmObj scm_vm_frame_argv(ScmObj vm, int nth);
 void scm_vm_return_to_caller(ScmObj vm);
 
-void scm_vm_op_call(ScmObj vm);
+ScmObj scm_vm_make_trampolining_code(ScmObj vm,
+                                     ScmObj clsr, ScmObj args, ScmObj callback);
+
+void scm_vm_op_call(ScmObj vm, bool tail_p);
 void scm_vm_op_immval(ScmObj vm, size_t imm_idx);
 void scm_vm_op_push(ScmObj vm);
 void scm_vm_op_push_immval(ScmObj vm, ScmObj val);

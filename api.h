@@ -233,6 +233,7 @@ bool scm_capi_closure_p(ScmObj obj);
 /*  ISeq                                                           */
 /*******************************************************************/
 
+ScmObj scm_api_make_iseq(void);
 bool scm_capi_iseq_p(ScmObj obj);
 scm_iword_t *scm_capi_iseq_to_ip(ScmObj iseq);
 ssize_t scm_capi_iseq_push_op(ScmObj iseq, SCM_OPCODE_T op);

@@ -364,6 +364,7 @@ scm_iseq_asm_inst(ScmObj iseq, ScmObj inst,
   case SCM_OPCODE_NOP:          /* fall through */
   case SCM_OPCODE_STOP:         /* fall through */
   case SCM_OPCODE_CALL:         /* fall through */
+  case SCM_OPCODE_TAIL_CALL:    /* fall through */
   case SCM_OPCODE_RETURN:       /* fall through */
   case SCM_OPCODE_FRAME:        /* fall through */
   case SCM_OPCODE_PUSH:

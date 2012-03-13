@@ -392,9 +392,84 @@ scm_vm_return_to_caller(ScmObj vm)
   scm_vm_stack_shorten(vm, argc + 4); /* 3 := argc, fp, iseq, ip */
 }
 
+scm_local_func ScmObj
+scm_vm_make_trampolining_code(ScmObj vm,
+                              ScmObj clsr, ScmObj args, ScmObj callback)
+{
+  ScmObj iseq = SCM_OBJ_INIT, cur = SCM_OBJ_INIT, arg = SCM_OBJ_INIT;
+  ssize_t rslt;
+  int argc;
+
+  SCM_STACK_FRAME_PUSH(&vm, &clsr, &args, &callback, &iseq, &cur, &arg);
+
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+  scm_assert(scm_capi_closure_p(clsr));
+  scm_assert(scm_capi_nil_p(args) || scm_capi_pair_p(args));
+  scm_assert(scm_obj_null_p(callback)
+             || scm_capi_subrutine_p(callback)
+             || scm_capi_closure_p(callback));
+
+  /* 以下の処理を実行する iseq オブエクトを生成する
+   * l args を引数として target クロージャとして呼出す
+   *   (callback が NULL の場合、target クロージャ の呼出は tail call とする)
+   * 2 callback が非 NULL の場合、target クロージャの戻り値を引数として
+   *   callback を tail call する
+   */
+
+  iseq = scm_api_make_iseq();
+  if (scm_obj_null_p(iseq)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+
+  if (!scm_obj_null_p(callback)) {
+    rslt = scm_capi_iseq_push_op(iseq, SCM_OPCODE_FRAME);
+    if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
+  }
+
+  for (cur = args, argc = 0;
+       !scm_obj_null_p(cur) && !scm_capi_nil_p(cur);
+       cur = scm_api_cdr(cur), argc++) {
+    arg = scm_api_car(cur);
+    if (scm_obj_null_p(arg)) return SCM_OBJ_NULL; /* [ERR: [through] */
+
+    rslt = scm_capi_iseq_push_op_immval(iseq, SCM_OPCODE_IMMVAL, arg);
+    if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
+
+    rslt = scm_capi_iseq_push_op(iseq, SCM_OPCODE_PUSH);
+    if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
+  }
+
+  if (scm_obj_null_p(cur)) return SCM_OBJ_NULL; /* [ERR: [through] */
+
+  rslt = scm_capi_iseq_push_op_cval(iseq, SCM_OPCODE_PUSH_PRIMVAL, argc);
+  if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
+
+  rslt = scm_capi_iseq_push_op_immval(iseq, SCM_OPCODE_IMMVAL, clsr);
+  if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
+
+
+  if (scm_obj_null_p(callback)) {
+    rslt = scm_capi_iseq_push_op(iseq, SCM_OPCODE_TAIL_CALL);
+    if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
+  }
+  else {
+    rslt = scm_capi_iseq_push_op(iseq, SCM_OPCODE_CALL);
+    if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
+
+    rslt = scm_capi_iseq_push_op(iseq, SCM_OPCODE_PUSH);
+    if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
+
+    rslt = scm_capi_iseq_push_op_cval(iseq, SCM_OPCODE_PUSH_PRIMVAL, 1);
+    if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
+
+    rslt = scm_capi_iseq_push_op(iseq, SCM_OPCODE_TAIL_CALL);
+    if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
+  }
+
+  return iseq;
+}
+
 /* 関数呼出のためのインストラクション */
 scm_local_func void
-scm_vm_op_call(ScmObj vm)
+scm_vm_op_call(ScmObj vm, bool tail_p)
 {
   ScmObj val = SCM_OBJ_INIT;
   int argc;
@@ -404,13 +479,17 @@ scm_vm_op_call(ScmObj vm)
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
   if (scm_capi_subrutine_p(SCM_VM(vm)->reg.val)) {
+    if (tail_p) {
+      ;                         /* TODO: write me: shift stack */
+    }
     SCM_VM(vm)->reg.fp = SCM_VM(vm)->reg.sp;
-    argc = scm_vm_frame_argc(vm);
-
-    /* FRAME インストラクションでダミー値を設定していたものを実際の値に変更
-       する */
-    SCM_SLOT_SETQ(ScmVM, vm, reg.fp[-(argc + 3)], SCM_VM(vm)->reg.iseq);
-    SCM_VM(vm)->reg.fp[-(argc + 2)] = (scm_vm_stack_val_t)SCM_VM(vm)->reg.ip;
+    if (!tail_p) {
+      /* FRAME インストラクションでダミー値を設定していたものを実際の値に変更
+         する */
+      argc = scm_vm_frame_argc(vm);
+      SCM_SLOT_SETQ(ScmVM, vm, reg.fp[-(argc + 3)], SCM_VM(vm)->reg.iseq);
+      SCM_VM(vm)->reg.fp[-(argc + 2)] = (scm_vm_stack_val_t)SCM_VM(vm)->reg.ip;
+    }
 
     val = scm_api_call_subrutine(SCM_VM(vm)->reg.val);
     if (scm_obj_not_null_p(val))
@@ -784,7 +863,10 @@ scm_vm_run(ScmObj vm, ScmObj iseq)
       stop_flag = true;
       break;
     case SCM_OPCODE_CALL:
-      scm_vm_op_call(vm);
+      scm_vm_op_call(vm, false);
+      break;
+    case SCM_OPCODE_TAIL_CALL:
+      scm_vm_op_call(vm, true);
       break;
     case SCM_OPCODE_RETURN:
       scm_vm_op_return(vm);
@@ -837,24 +919,31 @@ scm_vm_setup_trampolining(ScmObj vm, ScmObj target, ScmObj args,
                           ScmObj (*callback)(void))
 {
   ScmObj trmp_code = SCM_OBJ_INIT;
+  ScmObj cb_subr = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&trmp_code, &target, &args);
+  SCM_STACK_FRAME_PUSH(&trmp_code, &target, &args, &cb_subr);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-  scm_assert(scm_obj_not_null_p(target));
-  scm_assert(scm_capi_pair_p(args));
+  scm_assert(scm_capi_closure_p(target) || scm_capi_iseq_p(target));
+  scm_assert(scm_capi_nil_p(args) || scm_capi_pair_p(args));
 
-  /* 以下の処理を実行する iseq オブエクトを生成する
-   * 1. frame を新しく作成し
-   * 2 args を引数としてプッシュ
-   * 3 target をクロージャとして呼出す
-   * callback が非 NULL の場合
-   *   4 クロージャの戻り値を引数として現在のフレームに破壊的に設定する
-   *   5 callback を subr 化したものを呼出す
-   * 6 return
-   */
+  if (scm_capi_iseq_p(target)) {
+    target = scm_capi_iseq_to_closure(target);
+    if (scm_obj_null_p(target)) return -1; /* [ERR]: [through] */
+  }
 
-  SCM_SLOT_SETQ(ScmVM, vm, trmp.code, SCM_OBJ_NULL);
+  if (callback != NULL) {
+    cb_subr = scm_capi_make_subrutine(callback);
+    if (scm_obj_null_p(target)) return -1; /* [ERR]: [through] */
+  }
+  else {
+    cb_subr = SCM_OBJ_NULL;
+  }
+
+  trmp_code = scm_vm_make_trampolining_code(vm, target, args, cb_subr);
+  if (scm_obj_null_p(target)) return -1; /* [ERR]: [through] */
+
+  SCM_SLOT_SETQ(ScmVM, vm, trmp.code, trmp_code);
 
   return 0;
 }
