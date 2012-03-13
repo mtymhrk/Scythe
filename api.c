@@ -944,6 +944,147 @@ scm_capi_iseq_to_ip(ScmObj iseq)
   return SCM_ISEQ_SEQ(iseq);
 }
 
+extern inline ssize_t
+scm_capi_iseq_length(ScmObj iseq)
+{
+  if (!scm_capi_iseq_p(iseq))
+    return -1;         /* provisional implemntation */
+
+  return (ssize_t)SCM_ISEQ_SEQ_LENGTH(iseq);
+}
+
+ssize_t
+scm_capi_iseq_push_op(ScmObj iseq, SCM_OPCODE_T op)
+{
+  scm_inst_t i;
+
+  SCM_STACK_FRAME_PUSH(&iseq);
+
+  if (!scm_capi_iseq_p(iseq))
+    return -1;
+
+  i.plain.op = op;
+  i.plain.arg = 0;
+
+  return scm_iseq_push_word(iseq, i.iword);
+}
+
+ssize_t
+scm_capi_iseq_push_op_immval(ScmObj iseq, SCM_OPCODE_T op, ScmObj val)
+{
+  scm_inst_t i;
+  ssize_t idx;
+
+  SCM_STACK_FRAME_PUSH(&iseq, &val);
+
+  if (!scm_capi_iseq_p(iseq))
+    return -1;
+
+  idx = scm_iseq_set_immval(iseq, val);
+  if (idx < 0) return -1;   /* provisional implemntation */
+
+  i.immv1.op = op;
+  i.immv1.imm_idx = idx;
+
+  return scm_iseq_push_word(iseq, i.iword);
+}
+
+ssize_t
+scm_capi_iseq_push_op_cval(ScmObj iseq, SCM_OPCODE_T op, int val)
+{
+  scm_inst_t i;
+
+  SCM_STACK_FRAME_PUSH(&iseq);
+
+  i.primv.op = op;
+  i.primv.primval = val;
+
+  return scm_iseq_push_word(iseq, i.iword);
+}
+
+ssize_t
+scm_capi_iseq_set_immval(ScmObj iseq, size_t idx, ScmObj val)
+{
+  scm_inst_t i;
+  ssize_t rslt;
+
+  SCM_STACK_FRAME_PUSH(&iseq, &val);
+
+  if (!scm_capi_iseq_p(iseq)
+      || idx > SSIZE_MAX
+      || (ssize_t)idx >= scm_capi_iseq_length(iseq))
+    return -1;
+
+  rslt = scm_capi_iseq_ref_word(iseq, idx, &i.iword);
+  if (rslt < 0) return -1;
+
+  rslt = scm_iseq_update_immval(iseq, i.immv1.imm_idx, val);
+  if (rslt < 0) return -1;
+
+  return (ssize_t)idx;
+}
+
+ssize_t
+scm_capi_iseq_set_immval_with_immidx(ScmObj iseq, size_t idx, ScmObj val)
+{
+  ssize_t rslt;
+
+  SCM_STACK_FRAME_PUSH(&iseq, &val);
+
+  if (!scm_capi_iseq_p(iseq)
+      || idx >= SCM_ISEQ_VEC_LENGTH(iseq))
+    return -1;
+
+  rslt = scm_iseq_update_immval(iseq, idx, val);
+  if (rslt < 0) return -1;
+
+  return (ssize_t)idx;
+}
+
+ssize_t
+scm_capi_iseq_set_cval(ScmObj iseq, size_t idx, int val)
+{
+  scm_inst_t i;
+  ssize_t rslt;
+
+  SCM_STACK_FRAME_PUSH(&iseq);
+
+  if (!scm_capi_iseq_p(iseq)
+      || idx > SSIZE_MAX
+      || (ssize_t)idx >= scm_capi_iseq_length(iseq))
+    return -1;
+
+  rslt = scm_capi_iseq_ref_word(iseq, idx, &i.iword);
+  if (rslt < 0) return -1;
+
+  i.primv.primval = val;
+  return scm_iseq_set_word(iseq, idx, i.iword);
+}
+
+ssize_t
+scm_capi_iseq_ref_word(ScmObj iseq, size_t idx, scm_iword_t *word)
+{
+  SCM_STACK_FRAME_PUSH(&iseq);
+
+  if (!scm_capi_iseq_p(iseq)
+      || idx > SSIZE_MAX
+      || (ssize_t)idx >= scm_capi_iseq_length(iseq)
+      || word == NULL)
+    return -1;
+
+  return (scm_iseq_get_word(iseq, idx, word) == 0) ? (ssize_t)idx : -1;
+}
+
+ScmObj
+scm_capi_iseq_ref_immval_with_immidx(ScmObj iseq, size_t idx)
+{
+  if (!scm_capi_iseq_p(iseq)
+      || idx >= SCM_ISEQ_VEC_LENGTH(iseq))
+    return SCM_OBJ_NULL;
+
+  return scm_iseq_get_immval(iseq, idx);;
+}
+
 extern inline ScmObj
 scm_api_assemble(ScmObj lst)
 {

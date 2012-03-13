@@ -235,6 +235,15 @@ bool scm_capi_closure_p(ScmObj obj);
 
 bool scm_capi_iseq_p(ScmObj obj);
 scm_iword_t *scm_capi_iseq_to_ip(ScmObj iseq);
+ssize_t scm_capi_iseq_push_op(ScmObj iseq, SCM_OPCODE_T op);
+ssize_t scm_capi_iseq_push_op_immval(ScmObj iseq, SCM_OPCODE_T op, ScmObj val);
+ssize_t scm_capi_iseq_push_op_cval(ScmObj iseq, SCM_OPCODE_T op, int val);
+ssize_t scm_capi_iseq_set_immval(ScmObj iseq, size_t idx, ScmObj val);
+ssize_t scm_capi_iseq_set_immval_with_immidx(ScmObj iseq,
+                                             size_t idx, ScmObj val);
+ssize_t scm_capi_iseq_set_cval(ScmObj iseq, size_t idx, int val);
+ssize_t scm_capi_iseq_ref_word(ScmObj iseq, size_t idx, scm_iword_t *word);
+ScmObj scm_capi_iseq_ref_immval_with_immidx(ScmObj iseq, size_t idx);
 ScmObj scm_api_assemble(ScmObj lst);
 
 

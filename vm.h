@@ -124,15 +124,15 @@ ScmObj scm_vm_frame_argv(ScmObj vm, int nth);
 void scm_vm_return_to_caller(ScmObj vm);
 
 void scm_vm_op_call(ScmObj vm);
-void scm_vm_op_immval(ScmObj vm, ScmObj val);
+void scm_vm_op_immval(ScmObj vm, size_t imm_idx);
 void scm_vm_op_push(ScmObj vm);
 void scm_vm_op_push_immval(ScmObj vm, ScmObj val);
 void scm_vm_op_push_primval(ScmObj vm, scm_sword_t val);
 void scm_vm_op_frame(ScmObj vm);
 void scm_vm_op_return(ScmObj vm);
-void scm_vm_op_gref(ScmObj vm, ScmObj arg, int immv_idx);
-void scm_vm_op_gdef(ScmObj vm, ScmObj arg, int immv_idx);
-void scm_vm_op_gset(ScmObj vm, ScmObj arg, int immv_idx);
+void scm_vm_op_gref(ScmObj vm, size_t imm_idx);
+void scm_vm_op_gdef(ScmObj vm, size_t imm_idx);
+void scm_vm_op_gset(ScmObj vm, size_t imm_idx);
 
 #endif
 

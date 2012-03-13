@@ -243,7 +243,7 @@ static ssize_t
 scm_iseq_asm_inst_noarg_op(ScmObj iseq, size_t idx, int opcode)
 {
   scm_inst_t i;
-  int rslt;
+  ssize_t rslt;
 
   scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
   scm_assert(idx < (size_t)SSIZE_MAX - 1);
@@ -261,7 +261,8 @@ static ssize_t
 scm_iseq_asm_inst_unary_op(ScmObj iseq, size_t idx, int opcode, ScmObj arg)
 {
   scm_inst_t i;
-  int immv_idx, rslt;
+  int immv_idx;
+  ssize_t rslt;
 
   scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
   scm_assert(idx < (size_t)SSIZE_MAX - 1);
@@ -284,7 +285,7 @@ scm_iseq_asm_inst_primval_op(ScmObj iseq, size_t idx, int opcode, ScmObj arg)
 {
   scm_inst_t i;
   long primval;
-  int rslt;
+  ssize_t rslt;
 
   scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
   scm_assert(idx  < (size_t)SSIZE_MAX - 1);
@@ -309,7 +310,7 @@ scm_iseq_asm_inst_ref_label_op(ScmObj iseq, size_t idx,
                                ScmCHashTbl *label_tbl, EArray *labels)
 {
   scm_inst_t i;
-  int rslt;
+  ssize_t rslt;
 
   scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
   scm_assert(idx < (size_t)SSIZE_MAX - 1);
@@ -557,7 +558,7 @@ scm_iseq_finalize(ScmObj obj) /* GC OK */
   eary_fin(SCM_ISEQ_EARY_IMMVS(obj));
 }
 
-int
+ssize_t
 scm_iseq_set_immval(ScmObj iseq, ScmObj val) /* GC OK */
 {
   size_t idx;
@@ -573,16 +574,16 @@ scm_iseq_set_immval(ScmObj iseq, ScmObj val) /* GC OK */
 
   if(err != 0) return -1;       /* [ERR]: [through] */
 
-  return (int)idx;
+  return (ssize_t)idx;
 }
 
-int
-scm_iseq_update_immval(ScmObj iseq, int idx, ScmObj val)
+ssize_t
+scm_iseq_update_immval(ScmObj iseq, size_t idx, ScmObj val)
 {
   int err;
 
   scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
-  scm_assert(idx >= 0);
+  scm_assert(idx <= SSIZE_MAX);
   scm_assert(scm_obj_not_null_p(val));
 
   if ((size_t)idx >= SCM_ISEQ_VEC_LENGTH(iseq)) return -1; /* [ERR]: iseq: argument out of range */
@@ -591,10 +592,10 @@ scm_iseq_update_immval(ScmObj iseq, int idx, ScmObj val)
 
   if (err != 0) return -1;      /* [ERR]: [through] */
 
-  return idx;
+  return (ssize_t)idx;
 }
 
-int
+ssize_t
 scm_iseq_set_word(ScmObj iseq, size_t index, scm_iword_t word) /* GC OK */
 {
   int err;

@@ -51,9 +51,9 @@ typedef struct {
 int scm_iseq_initialize(ScmObj iseq);
 ScmObj scm_iseq_new(SCM_MEM_TYPE_T mtype);
 void scm_iseq_finalize(ScmObj obj);
-int scm_iseq_set_immval(ScmObj iseq, ScmObj val);
-int scm_iseq_update_immval(ScmObj iseq, int idx, ScmObj val);
-int scm_iseq_set_word(ScmObj iseq, size_t index, scm_iword_t word);
+ssize_t scm_iseq_set_immval(ScmObj iseq, ScmObj val);
+ssize_t scm_iseq_update_immval(ScmObj iseq, size_t idx, ScmObj val);
+ssize_t scm_iseq_set_word(ScmObj iseq, size_t index, scm_iword_t word);
 ssize_t scm_iseq_push_word(ScmObj iseq, scm_iword_t word);
 int scm_iseq_get_word(ScmObj iseq, size_t index, scm_iword_t *word);
 ScmObj scm_iseq_list_to_iseq(ScmObj lst);
@@ -62,10 +62,9 @@ void scm_iseq_gc_finalize(ScmObj obj);
 int scm_iseq_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
 
 inline ScmObj
-scm_iseq_get_immval(ScmObj iseq, int idx)
+scm_iseq_get_immval(ScmObj iseq, size_t idx)
 {
   scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
-  scm_assert(idx >= 0);
 
   return SCM_ISEQ_IMMVAL_VEC(iseq)[idx];
 }

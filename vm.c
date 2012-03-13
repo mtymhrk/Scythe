@@ -12,7 +12,6 @@
 #include "string.h"
 #include "symbol.h"
 #include "gloc.h"
-#include "iseq.h"
 #include "procedure.h"
 #include "core_subr.h"
 #include "miscobjects.h"
@@ -381,7 +380,7 @@ scm_vm_return_to_caller(ScmObj vm)
   int argc;
   scm_vm_stack_val_t *fp;
 
-  SCM_STACK_FRAME_PUSH(vm);
+  SCM_STACK_FRAME_PUSH(&vm);
 
   argc = scm_vm_frame_argc(vm);
   fp = SCM_VM(vm)->reg.fp;
@@ -400,7 +399,7 @@ scm_vm_op_call(ScmObj vm)
   ScmObj val = SCM_OBJ_INIT;
   int argc;
 
-  SCM_STACK_FRAME_PUSH(&val);
+  SCM_STACK_FRAME_PUSH(&vm, &val);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
@@ -434,10 +433,17 @@ scm_vm_op_call(ScmObj vm)
 }
 
 scm_local_func void
-scm_vm_op_immval(ScmObj vm, ScmObj val)
+scm_vm_op_immval(ScmObj vm, size_t imm_idx)
 {
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&vm, &val);
+
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-  scm_assert(scm_obj_not_null_p(val));
+
+  val = scm_capi_iseq_ref_immval_with_immidx(SCM_VM(vm)->reg.iseq, imm_idx);
+  if (scm_obj_null_p(val))
+    ;    /* TODO: error handling */
 
   SCM_SLOT_SETQ(ScmVM, vm, reg.val, val);
 }
@@ -495,17 +501,18 @@ scm_vm_op_return(ScmObj vm) /* GC OK */
  * の値を val レジスタに設定する。
  */
 scm_local_func void
-scm_vm_op_gref(ScmObj vm, ScmObj arg, int immv_idx)
+scm_vm_op_gref(ScmObj vm, size_t imm_idx)
 {
-  ScmObj gloc = SCM_OBJ_INIT;
-  ScmObj val = SCM_OBJ_INIT;
-  int rslt;
+  ScmObj gloc = SCM_OBJ_INIT, arg = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
+  ssize_t rslt;
 
   SCM_STACK_FRAME_PUSH(&vm, &arg, &gloc, &val);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-  scm_assert(scm_obj_not_null_p(arg));
-  scm_assert(immv_idx >= 0);
+
+  arg = scm_capi_iseq_ref_immval_with_immidx(SCM_VM(vm)->reg.iseq, imm_idx);
+  if (scm_obj_null_p(arg))
+    ;  /* TODO: error handling */
 
   if (scm_obj_type_p(arg, &SCM_SYMBOL_TYPE_INFO)) {
     rslt = scm_gloctbl_find(SCM_VM(vm)->gloctbl, arg, SCM_CSETTER_L(gloc));
@@ -515,7 +522,8 @@ scm_vm_op_gref(ScmObj vm, ScmObj arg, int immv_idx)
     if (scm_obj_null_p(gloc))
       ; /* TODO: error handling (reference of unbound variable) */
 
-    rslt = scm_iseq_update_immval(SCM_VM(vm)->reg.iseq, immv_idx, gloc);
+    rslt = scm_capi_iseq_set_immval_with_immidx(SCM_VM(vm)->reg.iseq,
+                                                imm_idx, gloc);
     if (rslt != 0)
       ;                           /* TODO: error handling */
 
@@ -545,22 +553,26 @@ scm_vm_op_gref(ScmObj vm, ScmObj arg, int immv_idx)
  * 束縛する。
  */
 scm_local_func void
-scm_vm_op_gdef(ScmObj vm, ScmObj arg, int immv_idx)
+scm_vm_op_gdef(ScmObj vm, size_t imm_idx)
 {
-  ScmObj gloc = SCM_OBJ_INIT;
-  int rslt;
+  ScmObj gloc = SCM_OBJ_INIT, arg = SCM_OBJ_INIT;
+  ssize_t rslt;
 
   SCM_STACK_FRAME_PUSH(&vm, &arg, &gloc);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-  scm_assert(scm_obj_not_null_p(arg));
+
+  arg = scm_capi_iseq_ref_immval_with_immidx(SCM_VM(vm)->reg.iseq, imm_idx);
+  if (scm_obj_null_p(arg))
+    ;  /* TODO: error handling */
 
   if (scm_obj_type_p(arg, &SCM_SYMBOL_TYPE_INFO)) {
     gloc = scm_gloctbl_bind(SCM_VM(vm)->gloctbl, arg, SCM_VM(vm)->reg.val);
     if (scm_obj_null_p(gloc))
       ;                           /* TODO: error handling */
 
-    rslt = scm_iseq_update_immval(SCM_VM(vm)->reg.iseq, immv_idx, gloc);
+    rslt = scm_capi_iseq_set_immval_with_immidx(SCM_VM(vm)->reg.iseq,
+                                                imm_idx, gloc);
     if (rslt != 0)
       ;                           /* TODO: error handling */
   }
@@ -580,16 +592,19 @@ scm_vm_op_gdef(ScmObj vm, ScmObj arg, int immv_idx)
  * を val レジスタで更新する。
  */
 scm_local_func void
-scm_vm_op_gset(ScmObj vm, ScmObj arg, int immv_idx)
+scm_vm_op_gset(ScmObj vm, size_t imm_idx)
 {
-  ScmObj gloc = SCM_OBJ_INIT;
-  int rslt;
+  ScmObj gloc = SCM_OBJ_INIT, arg = SCM_OBJ_INIT;
+  ssize_t rslt;
 
   SCM_STACK_FRAME_PUSH(&vm, &arg, &gloc);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
   scm_assert(scm_obj_not_null_p(arg));
-  scm_assert(immv_idx >= 0);
+
+  arg = scm_capi_iseq_ref_immval_with_immidx(SCM_VM(vm)->reg.iseq, imm_idx);
+  if (scm_obj_null_p(arg))
+    ;  /* TODO: error handling */
 
   if (scm_obj_type_p(arg, &SCM_SYMBOL_TYPE_INFO)) {
     rslt = scm_gloctbl_find(SCM_VM(vm)->gloctbl, arg, SCM_CSETTER_L(gloc));
@@ -599,7 +614,8 @@ scm_vm_op_gset(ScmObj vm, ScmObj arg, int immv_idx)
     if (scm_obj_null_p(gloc))
       ; /* TODO: error handling (reference of unbound variable) */
 
-    rslt = scm_iseq_update_immval(SCM_VM(vm)->reg.iseq, immv_idx, gloc);
+    rslt = scm_capi_iseq_set_immval_with_immidx(SCM_VM(vm)->reg.iseq,
+                                                imm_idx, gloc);
     if (rslt != 0)
       ;                           /* TODO: error handling */
 
@@ -749,7 +765,7 @@ scm_vm_run(ScmObj vm, ScmObj iseq)
   SCM_STACK_FRAME_PUSH(&vm, &iseq);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-  scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
+  scm_assert(scm_capi_iseq_p(iseq));
 
   SCM_SLOT_SETQ(ScmVM, vm, reg.iseq, iseq);
   SCM_VM(vm)->reg.ip = scm_capi_iseq_to_ip(iseq);
@@ -777,9 +793,7 @@ scm_vm_run(ScmObj vm, ScmObj iseq)
       scm_vm_op_frame(vm);
       break;
     case SCM_OPCODE_IMMVAL:
-      scm_vm_op_immval(vm,
-                       scm_iseq_get_immval(SCM_VM(vm)->reg.iseq,
-                                           code1.immv1.imm_idx));
+      scm_vm_op_immval(vm, code1.immv1.imm_idx);
       break;
     case SCM_OPCODE_PUSH:
       scm_vm_op_push(vm);
@@ -788,22 +802,13 @@ scm_vm_run(ScmObj vm, ScmObj iseq)
       scm_vm_op_push_primval(vm, code1.primv.primval);
       break;
     case SCM_OPCODE_GREF:
-      scm_vm_op_gref(vm,
-                     scm_iseq_get_immval(SCM_VM(vm)->reg.iseq,
-                                         code1.immv1.imm_idx),
-                     code1.immv1.imm_idx);
+      scm_vm_op_gref(vm, code1.immv1.imm_idx);
       break;
     case SCM_OPCODE_GDEF:
-      scm_vm_op_gdef(vm,
-                     scm_iseq_get_immval(SCM_VM(vm)->reg.iseq,
-                                         code1.immv1.imm_idx),
-                     code1.immv1.imm_idx);
+      scm_vm_op_gdef(vm, code1.immv1.imm_idx);
       break;
     case SCM_OPCODE_GSET:
-      scm_vm_op_gset(vm,
-                     scm_iseq_get_immval(SCM_VM(vm)->reg.iseq,
-                                         code1.immv1.imm_idx),
-                     code1.immv1.imm_idx);
+      scm_vm_op_gset(vm, code1.immv1.imm_idx);
       break;
     default:
       /* TODO: error handling */
