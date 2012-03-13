@@ -11,7 +11,6 @@ typedef struct ScmVMRec ScmVM;
 #include "object.h"
 #include "memory.h"
 #include "reference.h"
-#include "instractions.h"
 #include "api.h"
 
 /***************************************************************************/

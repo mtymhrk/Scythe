@@ -7,7 +7,6 @@
 #include "chashtbl.h"
 #include "api.h"
 #include "earray.h"
-#include "instractions.h"
 #include "iseq.h"
 
 ScmTypeInfo SCM_ISEQ_TYPE_INFO = {
