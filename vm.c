@@ -268,7 +268,6 @@ scm_vm_stack_pop(ScmObj vm)
 scm_local_func void
 scm_vm_stack_shorten(ScmObj vm, size_t n)
 {
-  SCM_STACK_FRAME_PUSH(&vm);
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
   if ((size_t)(SCM_VM(vm)->reg.sp - SCM_VM(vm)->stack) < n)
@@ -276,6 +275,15 @@ scm_vm_stack_shorten(ScmObj vm, size_t n)
     return;
 
   SCM_VM(vm)->reg.sp = SCM_VM(vm)->reg.sp - n;
+}
+
+scm_local_func void
+scm_vm_stack_shift(ScmObj vm, size_t nelm, size_t nshift)
+{
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  memmove(SCM_VM(vm)->reg.sp - nelm - nshift, SCM_VM(vm)->reg.sp - nelm, nelm);
+  SCM_VM(vm)->reg.sp = SCM_VM(vm)->reg.sp - nshift;
 }
 
 
@@ -419,15 +427,13 @@ scm_vm_op_call(ScmObj vm, uint32_t nr_arg, uint32_t nr_arg_cf, bool tail_p)
   if (nr_arg_cf > INT32_MAX) return; /* [ERR]:  */
 
   if (scm_capi_subrutine_p(SCM_VM(vm)->reg.val)) {
-    if (tail_p) {
-      ;                         /* TODO: write me: shift stack */
-    }
+    if (tail_p)
+      scm_vm_stack_shift(vm, nr_arg, nr_arg_cf);
 
     SCM_VM(vm)->reg.fp = SCM_VM(vm)->reg.sp;
     if (!tail_p) {
       /* FRAME インストラクションでダミー値を設定していたものを実際の値に変更
          する */
-
       ip_fn = scm_capi_inst_ptr_to_fixnum(SCM_VM(vm)->reg.ip);
       SCM_SLOT_SETQ(ScmVM, vm,
                     reg.fp[-((int32_t)nr_arg + 2)], SCM_VM(vm)->reg.iseq);
