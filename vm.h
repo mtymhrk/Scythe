@@ -109,10 +109,6 @@ void scm_vm_stack_objmap_set(ScmObj vm , scm_vm_stack_val_t *sp);
 void scm_vm_stack_objmap_unset(ScmObj vm, scm_vm_stack_val_t *sp);
 bool scm_vm_stack_objmap_is_scmobj(ScmObj vm, scm_vm_stack_val_t *sp);
 
-SCM_OPCODE_T scm_vm_inst_fetch_op(ScmObj vm);
-uint32_t scm_vm_inst_fetch_uint32(ScmObj vm);
-int32_t scm_vm_inst_fetch_int32(ScmObj vm);
-
 void scm_vm_setup_singletons(ScmObj vm);
 void scm_vm_clean_singletons(ScmObj vm);
 scm_local_func void scm_vm_clean_eval_env(ScmObj vm);

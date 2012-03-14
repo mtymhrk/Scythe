@@ -243,6 +243,29 @@ ssize_t scm_capi_iseq_set_immval(ScmObj iseq, size_t idx, ScmObj val);
 ScmObj scm_capi_iseq_ref_immval(ScmObj iseq, size_t idx);
 ScmObj scm_api_assemble(ScmObj lst);
 
+#define SCM_CAPI_INST_FETCH_OP(ip, op) \
+  do {                                 \
+    (op) = *((uint8_t *)(ip)++);       \
+  } while (0)
+
+#define SCM_CAPI_INST_FETCH_UINT32(ip, v)                  \
+  do {                                                     \
+  (v) = ((uint32_t)*((uint8_t *)(ip) + 3) << 24            \
+         | (uint32_t)*((uint8_t *)(ip) + 2) << 16          \
+         | (uint32_t)*((uint8_t *)(ip) + 1) << 8           \
+         | (uint32_t)*(uint8_t *)(ip));                    \
+    (ip) = (uint8_t *)(ip) + 4;                            \
+  } while (0)
+
+#define SCM_CAPI_INST_FETCH_INT32(ip, v)                        \
+  do {                                                          \
+    (v) = (int32_t)((uint32_t)*((uint8_t *)(ip) + 3) << 24      \
+                    | (uint32_t)*((uint8_t *)(ip) + 2) << 16    \
+                    | (uint32_t)*((uint8_t *)(ip) + 1) << 8     \
+                    | (uint32_t)*(uint8_t *)(ip));              \
+    (ip) = (uint8_t *)(ip) + 4;                                 \
+  } while (0)
+
 
 /*******************************************************************/
 /*  Global Variable                                                */

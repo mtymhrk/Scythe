@@ -211,38 +211,6 @@ scm_vm_stack_objmap_is_scmobj(ScmObj vm, scm_vm_stack_val_t *sp)
           true : false);
 }
 
-scm_local_inline SCM_OPCODE_T
-scm_vm_inst_fetch_op(ScmObj vm)
-{
-  return *(SCM_VM(vm)->reg.ip++);
-}
-
-scm_local_inline uint32_t
-scm_vm_inst_fetch_uint32(ScmObj vm)
-{
-  uint32_t v1, v2, v3, v4;
-
-  v1 = *(SCM_VM(vm)->reg.ip++);
-  v2 = *(SCM_VM(vm)->reg.ip++);
-  v3 = *(SCM_VM(vm)->reg.ip++);
-  v4 = *(SCM_VM(vm)->reg.ip++);
-
-  return (v4 << 24) | (v3 << 16) | (v2 << 8) | v1;
-}
-
-scm_local_inline int32_t
-scm_vm_inst_fetch_int32(ScmObj vm)
-{
-  uint32_t v1, v2, v3, v4;
-
-  v1 = *(SCM_VM(vm)->reg.ip++);
-  v2 = *(SCM_VM(vm)->reg.ip++);
-  v3 = *(SCM_VM(vm)->reg.ip++);
-  v4 = *(SCM_VM(vm)->reg.ip++);
-
-  return (int32_t)((v4 << 24) | (v3 << 16) | (v2 << 8) | v1);
-}
-
 scm_local_func void
 scm_vm_setup_singletons(ScmObj vm)
 {
@@ -882,7 +850,8 @@ scm_vm_run(ScmObj vm, ScmObj iseq)
 
   stop_flag = false;
   while (!stop_flag) {
-    op = scm_vm_inst_fetch_op(vm);
+    /* op = scm_vm_inst_fetch_op(vm); */
+    SCM_CAPI_INST_FETCH_OP(SCM_VM(vm)->reg.ip, op);
 
     switch(op) {
     case SCM_OPCODE_NOP:
@@ -904,26 +873,31 @@ scm_vm_run(ScmObj vm, ScmObj iseq)
       scm_vm_op_frame(vm);
       break;
     case SCM_OPCODE_IMMVAL:
-      immv_idx = scm_vm_inst_fetch_uint32(vm);
+      SCM_CAPI_INST_FETCH_UINT32(SCM_VM(vm)->reg.ip, immv_idx);
+      /* immv_idx = scm_vm_inst_fetch_uint32(vm); */
       scm_vm_op_immval(vm, immv_idx);
       break;
     case SCM_OPCODE_PUSH:
       scm_vm_op_push(vm);
       break;
     case SCM_OPCODE_PUSH_PRIMVAL:
-      primv = scm_vm_inst_fetch_int32(vm);
+      SCM_CAPI_INST_FETCH_INT32(SCM_VM(vm)->reg.ip, primv);
+      /* primv = scm_vm_inst_fetch_int32(vm); */
       scm_vm_op_push_primval(vm, primv);
       break;
     case SCM_OPCODE_GREF:
-      immv_idx = scm_vm_inst_fetch_uint32(vm);
+      SCM_CAPI_INST_FETCH_UINT32(SCM_VM(vm)->reg.ip, immv_idx);
+      /* immv_idx = scm_vm_inst_fetch_uint32(vm); */
       scm_vm_op_gref(vm, immv_idx);
       break;
     case SCM_OPCODE_GDEF:
-      immv_idx = scm_vm_inst_fetch_uint32(vm);
+      SCM_CAPI_INST_FETCH_UINT32(SCM_VM(vm)->reg.ip, immv_idx);
+      /* immv_idx = scm_vm_inst_fetch_uint32(vm); */
       scm_vm_op_gdef(vm, immv_idx);
       break;
     case SCM_OPCODE_GSET:
-      immv_idx = scm_vm_inst_fetch_uint32(vm);
+      SCM_CAPI_INST_FETCH_UINT32(SCM_VM(vm)->reg.ip, immv_idx);
+      /* immv_idx = scm_vm_inst_fetch_uint32(vm); */
       scm_vm_op_gset(vm, immv_idx);
       break;
     default:
