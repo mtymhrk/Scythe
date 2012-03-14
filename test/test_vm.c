@@ -76,7 +76,6 @@ test_scm_vm_run__op_immval(void)
 {
   ScmObj iseq = SCM_OBJ_INIT;
   ScmObj sym = SCM_OBJ_INIT;
-  scm_inst_t code;
 
   SCM_STACK_FRAME_PUSH(&iseq, &sym);
 
@@ -86,15 +85,8 @@ test_scm_vm_run__op_immval(void)
   iseq = scm_iseq_new(SCM_MEM_HEAP);
   sym = scm_capi_make_symbol_from_cstr("cons", SCM_ENC_ASCII);
 
-  code.immv1.op = SCM_OPCODE_IMMVAL;
-  code.immv1.imm_idx = scm_iseq_set_immval(iseq, sym);
-
-  scm_iseq_set_word(iseq, 0, code.iword);
-
-  code.plain.op = SCM_OPCODE_STOP;
-  code.plain.arg = 0;
-
-  scm_iseq_set_word(iseq, 1, code.iword);
+  scm_capi_iseq_push_op_immval(iseq, SCM_OPCODE_IMMVAL, sym);
+  scm_capi_iseq_push_op(iseq, SCM_OPCODE_STOP);
 
   /* action */
   scm_vm_run(vm, iseq);
@@ -112,8 +104,6 @@ test_scm_vm_run__call_cons(void)
   ScmObj car = SCM_OBJ_INIT;
   ScmObj cdr = SCM_OBJ_INIT;
   ScmObj actual = SCM_OBJ_INIT;
-  scm_inst_t code;
-  size_t idx;
 
   SCM_STACK_FRAME_PUSH(&iseq, &cons_sym, &car, &cdr, &actual);
 
@@ -125,43 +115,16 @@ test_scm_vm_run__call_cons(void)
   car = scm_capi_make_symbol_from_cstr("foo", SCM_ENC_ASCII);
   cdr = scm_capi_make_symbol_from_cstr("bar", SCM_ENC_ASCII);
 
-  idx = 0;
 
-  code.plain.op = SCM_OPCODE_FRAME;
-  code.plain.arg = 0;
-  scm_iseq_set_word(iseq, idx++, code.iword);
-
-  code.immv1.op = SCM_OPCODE_IMMVAL;
-  code.immv1.imm_idx = scm_iseq_set_immval(iseq, car);
-  scm_iseq_set_word(iseq, idx++, code.iword);
-
-  code.plain.op = SCM_OPCODE_PUSH;
-  code.plain.arg = 0;
-  scm_iseq_set_word(iseq, idx++, code.iword);
-
-  code.immv1.op = SCM_OPCODE_IMMVAL;
-  code.immv1.imm_idx = scm_iseq_set_immval(iseq, cdr);
-  scm_iseq_set_word(iseq, idx++, code.iword);
-
-  code.plain.op = SCM_OPCODE_PUSH;
-  code.plain.arg = 0;
-  scm_iseq_set_word(iseq, idx++, code.iword);
-
-  code.primv.op = SCM_OPCODE_PUSH_PRIMVAL;
-  code.primv.primval = 2;
-  scm_iseq_set_word(iseq, idx++, code.iword);
-
-  code.immv1.op = SCM_OPCODE_GREF;
-  code.immv1.imm_idx = scm_iseq_set_immval(iseq, cons_sym);
-  scm_iseq_set_word(iseq, idx++, code.iword);
-
-  code.plain.op = SCM_OPCODE_CALL;
-  code.plain.arg = 0;
-  scm_iseq_set_word(iseq, idx++, code.iword);
-
-  code.plain.op = SCM_OPCODE_STOP;
-  code.plain.arg = 0;
-  scm_iseq_set_word(iseq, idx++, code.iword);
+  scm_capi_iseq_push_op(iseq, SCM_OPCODE_FRAME);
+  scm_capi_iseq_push_op_immval(iseq, SCM_OPCODE_IMMVAL, car);
+  scm_capi_iseq_push_op(iseq, SCM_OPCODE_PUSH);
+  scm_capi_iseq_push_op_immval(iseq, SCM_OPCODE_IMMVAL, cdr);
+  scm_capi_iseq_push_op(iseq, SCM_OPCODE_PUSH);
+  scm_capi_iseq_push_op_cval(iseq, SCM_OPCODE_PUSH_PRIMVAL, 2);
+  scm_capi_iseq_push_op_immval(iseq, SCM_OPCODE_GREF, cons_sym);
+  scm_capi_iseq_push_op(iseq, SCM_OPCODE_CALL);
+  scm_capi_iseq_push_op(iseq, SCM_OPCODE_STOP);
 
   /* action */
   scm_vm_run(vm, iseq);

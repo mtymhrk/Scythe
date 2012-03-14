@@ -44,7 +44,7 @@ test_scm_iseq_new(void)
 }
 
 void
-test_scm_iseq_set_word_get_word(void)
+test_scm_iseq_push_uint8(void)
 {
   ScmObj iseq = SCM_OBJ_INIT;
 
@@ -54,19 +54,20 @@ test_scm_iseq_set_word_get_word(void)
   iseq = scm_iseq_new(SCM_MEM_HEAP);
 
   /* action */
-  int rslt = scm_iseq_set_word(iseq, 0, (scm_iword_t)12345);
-  scm_iword_t actual = SCM_ISEQ_SEQ(iseq)[0];;
+  ssize_t rslt = scm_iseq_push_uint8(iseq, 123);
+  uint8_t actual = SCM_ISEQ_SEQ(iseq)[0];;
 
   /* postcondition check */
   cut_assert_equal_int(0, rslt);
   cut_assert_equal_uint(1, SCM_ISEQ_SEQ_LENGTH(iseq));
-  cut_assert_equal_uint(12345, actual);
+  cut_assert_equal_uint(123, actual);
 }
 
 void
-test_scm_iseq_set_immv_get_immv_1(void)
+test_scm_iseq_push_uint32_1(void)
 {
   ScmObj iseq = SCM_OBJ_INIT;
+  uint32_t actual;
 
   SCM_STACK_FRAME_PUSH(&iseq);
 
@@ -74,25 +75,20 @@ test_scm_iseq_set_immv_get_immv_1(void)
   iseq = scm_iseq_new(SCM_MEM_HEAP);
 
   /* action */
-  scm_inst_t inst;
-  inst.immv1.op = SCM_OPCODE_IMMVAL;
-  inst.immv1.imm_idx = SCM_INST_IMMVAL_MAX;
-
-  int rslt = scm_iseq_set_word(iseq, 0, inst.iword);
-  scm_inst_t actual;
-  actual.iword = SCM_ISEQ_SEQ(iseq)[0];
+  ssize_t rslt = scm_iseq_push_uint32(iseq, UINT32_MAX);
+  scm_iseq_get_uint32(iseq, 0, &actual);
 
   /* postcondition check */
   cut_assert_equal_int(0, rslt);
-  cut_assert_equal_uint(1, SCM_ISEQ_SEQ_LENGTH(iseq));
-  cut_assert_equal_uint(SCM_OPCODE_IMMVAL, actual.immv1.op);
-  cut_assert_equal_int(SCM_INST_IMMVAL_MAX, actual.immv1.imm_idx);
+  cut_assert_equal_uint(4, SCM_ISEQ_SEQ_LENGTH(iseq));
+  cut_assert_equal_int(UINT32_MAX, actual);
 }
 
 void
-test_scm_iseq_set_immv_get_immv_2(void)
+test_scm_iseq_push_uint32_2(void)
 {
   ScmObj iseq = SCM_OBJ_INIT;
+  uint32_t actual;
 
   SCM_STACK_FRAME_PUSH(&iseq);
 
@@ -100,25 +96,20 @@ test_scm_iseq_set_immv_get_immv_2(void)
   iseq = scm_iseq_new(SCM_MEM_HEAP);
 
   /* action */
-  scm_inst_t inst;
-  inst.immv1.op = SCM_OPCODE_IMMVAL;
-  inst.immv1.imm_idx  = 0;
-
-  int rslt = scm_iseq_set_word(iseq, 0, inst.iword);
-  scm_inst_t actual;
-  actual.iword = SCM_ISEQ_SEQ(iseq)[0];
+  ssize_t rslt = scm_iseq_push_uint32(iseq, 0);
+  scm_iseq_get_uint32(iseq, 0, &actual);
 
   /* postcondition check */
   cut_assert_equal_int(0, rslt);
-  cut_assert_equal_uint(1, SCM_ISEQ_SEQ_LENGTH(iseq));
-  cut_assert_equal_uint(SCM_OPCODE_IMMVAL, actual.immv1.op);
-  cut_assert_equal_int(0, actual.immv1.imm_idx);
+  cut_assert_equal_uint(4, SCM_ISEQ_SEQ_LENGTH(iseq));
+  cut_assert_equal_int(0, actual);
 }
 
 void
-test_scm_iseq_set_immv_get_immv_3(void)
+test_scm_iseq_push_uint32_3(void)
 {
   ScmObj iseq = SCM_OBJ_INIT;
+  int32_t actual;
 
   SCM_STACK_FRAME_PUSH(&iseq);
 
@@ -126,25 +117,20 @@ test_scm_iseq_set_immv_get_immv_3(void)
   iseq = scm_iseq_new(SCM_MEM_HEAP);
 
   /* action */
-  scm_inst_t inst;
-  inst.immv1.op = SCM_OPCODE_IMMVAL;
-  inst.immv1.imm_idx  = -1;
-
-  int rslt = scm_iseq_set_word(iseq, 0, inst.iword);
-  scm_inst_t actual;
-  actual.iword = SCM_ISEQ_SEQ(iseq)[0];
+  ssize_t rslt = scm_iseq_push_uint32(iseq, INT32_MAX);
+  scm_iseq_get_uint32(iseq, 0, (uint32_t *)&actual);
 
   /* postcondition check */
   cut_assert_equal_int(0, rslt);
-  cut_assert_equal_uint(1, SCM_ISEQ_SEQ_LENGTH(iseq));
-  cut_assert_equal_uint(SCM_OPCODE_IMMVAL, actual.immv1.op);
-  cut_assert_equal_int(-1, actual.immv1.imm_idx);
+  cut_assert_equal_uint(4, SCM_ISEQ_SEQ_LENGTH(iseq));
+  cut_assert_equal_int(INT32_MAX, actual);
 }
 
 void
-test_scm_iseq_set_immv_get_immv_4(void)
+test_scm_iseq_push_uint32_4(void)
 {
   ScmObj iseq = SCM_OBJ_INIT;
+  int32_t actual;
 
   SCM_STACK_FRAME_PUSH(&iseq);
 
@@ -152,129 +138,13 @@ test_scm_iseq_set_immv_get_immv_4(void)
   iseq = scm_iseq_new(SCM_MEM_HEAP);
 
   /* action */
-  scm_inst_t inst;
-  inst.immv1.op = SCM_OPCODE_IMMVAL;
-  inst.immv1.imm_idx  = SCM_INST_IMMVAL_MIN;
-
-  int rslt = scm_iseq_set_word(iseq, 0, inst.iword);
-  scm_inst_t actual;
-  actual.iword = SCM_ISEQ_SEQ(iseq)[0];
+  ssize_t rslt = scm_iseq_push_uint32(iseq, (uint32_t)INT32_MIN);
+  scm_iseq_get_uint32(iseq, 0, (uint32_t *)&actual);
 
   /* postcondition check */
   cut_assert_equal_int(0, rslt);
-  cut_assert_equal_uint(1, SCM_ISEQ_SEQ_LENGTH(iseq));
-  cut_assert_equal_uint(SCM_OPCODE_IMMVAL, actual.immv1.op);
-  cut_assert_equal_int(SCM_INST_IMMVAL_MIN, actual.immv1.imm_idx);
-}
-
-void
-test_scm_iseq_set_primv_get_primv_1(void)
-{
-  ScmObj iseq = SCM_OBJ_INIT;
-
-  SCM_STACK_FRAME_PUSH(&iseq);
-
-  /* preprocess */
-  iseq = scm_iseq_new(SCM_MEM_HEAP);
-
-  /* action */
-  scm_inst_t inst;
-  inst.primv.op = SCM_OPCODE_PUSH_PRIMVAL;
-  inst.primv.primval = SCM_INST_PRIMVAL_MAX;
-
-  int rslt = scm_iseq_set_word(iseq, 0, inst.iword);
-  scm_inst_t actual;
-  actual.iword = SCM_ISEQ_SEQ(iseq)[0];
-
-  /* postcondition check */
-  cut_assert_equal_int(0, rslt);
-  cut_assert_equal_uint(1, SCM_ISEQ_SEQ_LENGTH(iseq));
-  cut_assert_equal_uint(SCM_OPCODE_PUSH_PRIMVAL, actual.primv.op);
-  cut_assert_equal_int(SCM_INST_PRIMVAL_MAX, actual.primv.primval);
-}
-
-void
-test_scm_iseq_set_primv_get_primv_2(void)
-{
-  ScmObj iseq = SCM_OBJ_INIT;
-
-  SCM_STACK_FRAME_PUSH(&iseq);
-
-  /* preprocess */
-  iseq = scm_iseq_new(SCM_MEM_HEAP);
-
-  /* action */
-  scm_inst_t inst;
-  inst.primv.op = SCM_OPCODE_PUSH_PRIMVAL;
-  inst.primv.primval  = 0;
-
-  int rslt = scm_iseq_set_word(iseq, 0, inst.iword);
-  scm_inst_t actual;
-  actual.iword = SCM_ISEQ_SEQ(iseq)[0];
-
-  /* postcondition check */
-  cut_assert_equal_int(0, rslt);
-  cut_assert_equal_uint(1, SCM_ISEQ_SEQ_LENGTH(iseq));
-  cut_assert_equal_uint(SCM_OPCODE_PUSH_PRIMVAL, actual.primv.op);
-  cut_assert_equal_int(0, actual.primv.primval);
-}
-
-void
-test_scm_iseq_set_primv_get_primv_3(void)
-{
-  ScmObj iseq = SCM_OBJ_INIT;
-
-  SCM_STACK_FRAME_PUSH(&iseq);
-
-  /* preprocess */
-  iseq = scm_iseq_new(SCM_MEM_HEAP);
-
-  /* action */
-  scm_inst_t inst;
-  inst.primv.op = SCM_OPCODE_PUSH_PRIMVAL;
-  inst.primv.primval  = -1;
-
-  int rslt = scm_iseq_set_word(iseq, 0, inst.iword);
-  scm_inst_t actual;
-  actual.iword = SCM_ISEQ_SEQ(iseq)[0];
-
-  /* postcondition check */
-  cut_assert_equal_int(0, rslt);
-  cut_assert_equal_uint(1, SCM_ISEQ_SEQ_LENGTH(iseq));
-  cut_assert_equal_uint(SCM_OPCODE_PUSH_PRIMVAL, actual.primv.op);
-  cut_assert_equal_int(-1, actual.primv.primval);
-}
-
-void
-test_scm_iseq_set_primv_get_primv_4(void)
-{
-  ScmObj iseq = SCM_OBJ_INIT;
-
-  SCM_STACK_FRAME_PUSH(&iseq);
-
-  /* preprocess */
-  iseq = scm_iseq_new(SCM_MEM_HEAP);
-
-  /* action */
-  scm_inst_t inst;
-  inst.primv.op = SCM_OPCODE_PUSH_PRIMVAL;
-  inst.primv.primval  = SCM_INST_PRIMVAL_MIN;
-
-  int rslt = scm_iseq_set_word(iseq, 0, inst.iword);
-  scm_inst_t actual;
-  actual.iword = SCM_ISEQ_SEQ(iseq)[0];
-
-  /* postcondition check */
-  cut_assert_equal_int(0, rslt);
-  cut_assert_equal_uint(1, SCM_ISEQ_SEQ_LENGTH(iseq));
-  cut_assert_equal_uint(SCM_OPCODE_PUSH_PRIMVAL, actual.primv.op);
-  cut_assert_equal_int(SCM_INST_PRIMVAL_MIN, actual.primv.primval);
-}
-
-void
-test_scm_iseq__size_of_scm_inst_t_should_be_equal_to_scm_iword_t(void)
-{
-  cut_assert_equal_uint(sizeof(scm_iword_t), sizeof(scm_inst_t));
+  cut_assert_equal_uint(4, SCM_ISEQ_SEQ_LENGTH(iseq));
+  cut_assert_equal_int(INT32_MIN, actual);
 }
 
 void
@@ -287,30 +157,28 @@ test_scm_iseq__expand_sequence_buffer(void)
   /* preprocess */
   iseq = scm_iseq_new(SCM_MEM_HEAP);
 
-  size_t idx;
-  for (idx = 0; idx < SCM_ISEQ_DEFAULT_SEQ_SIZE; idx++) {
-    int r = scm_iseq_set_word(iseq, idx, (scm_iword_t)idx);
-    cut_assert_equal_int(0, r);
+  for (size_t idx = 0; idx < SCM_ISEQ_DEFAULT_SEQ_SIZE; idx++) {
+    ssize_t r = scm_iseq_push_uint8(iseq, (uint8_t)(idx % 255));
+    cut_assert_equal_int((int)idx, r);
   }
 
   /* action */
-  int rslt = scm_iseq_set_word(iseq, idx, (scm_iword_t)9999);
+  ssize_t rslt = scm_iseq_push_uint8(iseq, 255);
 
   /* postcondition check */
-  cut_assert_equal_int(0, rslt);
+  cut_assert_equal_int(SCM_ISEQ_DEFAULT_SEQ_SIZE, rslt);
   cut_assert_true(SCM_ISEQ_SEQ_CAPACITY(iseq) > SCM_ISEQ_DEFAULT_SEQ_SIZE);
 
-  scm_iword_t actual;
-  actual = SCM_ISEQ_SEQ(iseq)[idx];
-  cut_assert_equal_uint(9999, actual);
+  uint8_t actual = SCM_ISEQ_SEQ(iseq)[SCM_ISEQ_DEFAULT_SEQ_SIZE];
+  cut_assert_equal_uint(255, actual);
 
-  for (unsigned int i = 0; i < SCM_ISEQ_DEFAULT_SEQ_SIZE; i++) {
-    cut_assert_equal_uint(i, SCM_ISEQ_SEQ(iseq)[i]);
+  for (size_t i = 0; i < SCM_ISEQ_DEFAULT_SEQ_SIZE; i++) {
+    cut_assert_equal_uint(i % 255, SCM_ISEQ_SEQ(iseq)[i]);
   }
 }
 
 void
-test_scm_iseq_set_immval_get_immval(void)
+test_scm_iseq_push_immval_get_immval(void)
 {
   ScmObj iseq = SCM_OBJ_INIT;
   ScmObj val1 = SCM_OBJ_INIT, val2 = SCM_OBJ_INIT;
@@ -325,10 +193,10 @@ test_scm_iseq_set_immval_get_immval(void)
   val2 = scm_vm_eof_instance();
 
   /* action */
-  int idx1 = scm_iseq_set_immval(iseq, val1);
-  int idx2 = scm_iseq_set_immval(iseq, val2);
-  actual1 = scm_iseq_get_immval(iseq, idx1);
-  actual2 = scm_iseq_get_immval(iseq, idx2);
+  ssize_t idx1 = scm_iseq_push_immval(iseq, val1);
+  ssize_t idx2 = scm_iseq_push_immval(iseq, val2);
+  actual1 = scm_iseq_get_immval(iseq, (size_t)idx1);
+  actual2 = scm_iseq_get_immval(iseq, (size_t)idx2);
 
   /* postcondition check */
   cut_assert_true(idx1 >= 0);
@@ -339,7 +207,7 @@ test_scm_iseq_set_immval_get_immval(void)
 }
 
 void
-test_scm_iseq_update_immval__update_successed(void)
+test_scm_iseq_set_immval__update_successed(void)
 {
   ScmObj iseq = SCM_OBJ_INIT;
   ScmObj val1 = SCM_OBJ_INIT, val2 = SCM_OBJ_INIT;
@@ -352,43 +220,17 @@ test_scm_iseq_update_immval__update_successed(void)
 
   val1 = scm_vm_nil_instance();
   val2 = scm_vm_eof_instance();
-  int idx1 = scm_iseq_set_immval(iseq, val1);
+  ssize_t idx1 = scm_iseq_push_immval(iseq, val1);
 
   /* action */
-  int idx2 = scm_iseq_update_immval(iseq, idx1, val2);
-  actual1 = scm_iseq_get_immval(iseq, idx1);
+  ssize_t idx2 = scm_iseq_set_immval(iseq, (size_t)idx1, val2);
+  actual1 = scm_iseq_get_immval(iseq, (size_t)idx1);
 
   /* postcondition check */
   cut_assert_true(idx1 >= 0);
   cut_assert_true(idx2 >= 0);
   cut_assert_equal_int(idx1, idx2);
   cut_assert_true(scm_obj_same_instance_p(val2, actual1));
-}
-
-void
-test_scm_iseq_update_immval__update_not_assigned_idx(void)
-{
-  ScmObj iseq = SCM_OBJ_INIT;
-  ScmObj val1 = SCM_OBJ_INIT, val2 = SCM_OBJ_INIT;
-  ScmObj actual1 = SCM_OBJ_INIT;
-
-  SCM_STACK_FRAME_PUSH(&iseq, &val1, &val2, &actual1);
-
-  /* preprocess */
-  iseq = scm_iseq_new(SCM_MEM_HEAP);
-
-  val1 = scm_vm_nil_instance();
-  val2 = scm_vm_eof_instance();
-  int idx1 = scm_iseq_set_immval(iseq, val1);
-
-  /* action */
-  int idx2 = scm_iseq_update_immval(iseq, idx1 + 1, val2);
-  actual1 = scm_iseq_get_immval(iseq, idx1);
-
-  /* postcondition check */
-  cut_assert_true(idx1 >= 0);
-  cut_assert_true(idx2 != 0);
-  cut_assert_true(scm_obj_same_instance_p(val1, actual1));
 }
 
 void
@@ -404,20 +246,20 @@ test_scm_iseq__expand_object_vector(void)
   val = scm_vm_nil_instance();
 
   for (int i; i < SCM_ISEQ_DEFAULT_IMMVS_SIZE; i++) {
-    int r = scm_iseq_set_immval(iseq, val);
+    ssize_t r = scm_iseq_push_immval(iseq, val);
     cut_assert_true(r >= 0);
   }
 
   /* action */
-  int rslt = scm_iseq_set_immval(iseq, val);
+  ssize_t rslt = scm_iseq_push_immval(iseq, val);
 
   /* postcondition check */
   cut_assert_true(rslt >= 0);
   cut_assert_true(SCM_ISEQ_VEC_CAPACITY(iseq) > SCM_ISEQ_DEFAULT_IMMVS_SIZE);
-  actual = scm_iseq_get_immval(iseq, rslt);
+  actual = scm_iseq_get_immval(iseq, (size_t)rslt);
     cut_assert_true(scm_obj_same_instance_p(val, actual));
 
-  for (int i; i < SCM_ISEQ_DEFAULT_IMMVS_SIZE; i++) {
+  for (size_t i; i < SCM_ISEQ_DEFAULT_IMMVS_SIZE; i++) {
     actual = scm_iseq_get_immval(iseq, i);
     cut_assert_true(scm_obj_same_instance_p(val, actual));
   }
@@ -443,6 +285,7 @@ test_scm_iseq_list_to_iseq(void)
                                      SCM_OPCODE_IMMVAL };
   ScmObj actual_immv = SCM_OBJ_INIT;
   ScmObj expected_immv = SCM_OBJ_INIT;
+  size_t idx;
 
   SCM_STACK_FRAME_PUSH(&iseq, &lst, &port, &actual_immv, &expected_immv);
 
@@ -455,37 +298,58 @@ test_scm_iseq_list_to_iseq(void)
   cut_assert_true(scm_obj_not_null_p(iseq));
   cut_assert_true(scm_obj_type_p(iseq, &SCM_ISEQ_TYPE_INFO));
 
+  idx = 0;
   for (size_t i = 0; i < sizeof(expected_codes)/sizeof(expected_codes[0]); i++) {
-    scm_inst_t actual;
-    int rslt;
+    uint8_t actual_op;
+    uint32_t actual_arg;
+    ssize_t rslt;
 
-    rslt = scm_iseq_get_word(iseq, i, &actual.iword);
+    rslt = scm_iseq_get_uint8(iseq, idx, &actual_op);
 
-    cut_assert_equal_int(0, rslt);
-    cut_assert_equal_int(expected_codes[i], actual.plain.op);
+    cut_assert_equal_int((ssize_t)idx, rslt);
+    cut_assert_equal_int(expected_codes[i], actual_op);
 
-    switch (actual.plain.op) {
+    idx++;
+
+    switch (actual_op) {
     case SCM_OPCODE_GREF:
     case SCM_OPCODE_GDEF:
     case SCM_OPCODE_GSET:
-      actual_immv = scm_iseq_get_immval(iseq, actual.immv1.imm_idx);
+      rslt = scm_iseq_get_uint32(iseq, idx, &actual_arg);
+      cut_assert_equal_int((ssize_t)idx, rslt);
+      actual_immv = scm_iseq_get_immval(iseq, actual_arg);
       cut_assert_true(scm_capi_eq_p(expected_immv, actual_immv));
+      idx += 4;
       break;
     case SCM_OPCODE_IMMVAL:
-      actual_immv = scm_iseq_get_immval(iseq, actual.immv1.imm_idx);
+      rslt = scm_iseq_get_uint32(iseq, idx, &actual_arg);
+      cut_assert_equal_int((ssize_t)idx, rslt);
+      actual_immv = scm_iseq_get_immval(iseq, actual_arg);
       if (i == 9)
         cut_assert_true(scm_capi_eq_p(expected_immv, actual_immv));
       else if (i == 12)
         cut_assert_true(scm_obj_type_p(actual_immv, &SCM_ISEQ_TYPE_INFO));
       else
         cut_assert(false);
+      idx += 4;
       break;
     case SCM_OPCODE_PUSH_PRIMVAL:
-      cut_assert_equal_int(123, actual.primv.primval);
+      rslt = scm_iseq_get_uint32(iseq, idx, &actual_arg);
+      cut_assert_equal_int((ssize_t)idx, rslt);
+      cut_assert_equal_int(123, actual_arg);
+      idx += 4;
       break;
     case SCM_OPCODE_JMP:
-      cut_assert_equal_int(-1, actual.primv.primval);
+      rslt = scm_iseq_get_uint32(iseq, idx, &actual_arg);
+      cut_assert_equal_int((ssize_t)idx, rslt);
+      cut_assert_equal_int(-5, (int32_t)actual_arg);
+      idx += 4;
       break;
     }
   }
 }
+
+
+
+
+

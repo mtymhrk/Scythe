@@ -211,10 +211,36 @@ scm_vm_stack_objmap_is_scmobj(ScmObj vm, scm_vm_stack_val_t *sp)
           true : false);
 }
 
-scm_local_inline scm_iword_t
-scm_vm_inst_fetch(ScmObj vm)
+scm_local_inline SCM_OPCODE_T
+scm_vm_inst_fetch_op(ScmObj vm)
 {
   return *(SCM_VM(vm)->reg.ip++);
+}
+
+scm_local_inline uint32_t
+scm_vm_inst_fetch_uint32(ScmObj vm)
+{
+  uint32_t v1, v2, v3, v4;
+
+  v1 = *(SCM_VM(vm)->reg.ip++);
+  v2 = *(SCM_VM(vm)->reg.ip++);
+  v3 = *(SCM_VM(vm)->reg.ip++);
+  v4 = *(SCM_VM(vm)->reg.ip++);
+
+  return (v4 << 24) | (v3 << 16) | (v2 << 8) | v1;
+}
+
+scm_local_inline int32_t
+scm_vm_inst_fetch_int32(ScmObj vm)
+{
+  uint32_t v1, v2, v3, v4;
+
+  v1 = *(SCM_VM(vm)->reg.ip++);
+  v2 = *(SCM_VM(vm)->reg.ip++);
+  v3 = *(SCM_VM(vm)->reg.ip++);
+  v4 = *(SCM_VM(vm)->reg.ip++);
+
+  return (int32_t)((v4 << 24) | (v3 << 16) | (v2 << 8) | v1);
 }
 
 scm_local_func void
@@ -387,7 +413,7 @@ scm_vm_return_to_caller(ScmObj vm)
 
   SCM_VM(vm)->reg.fp = (scm_vm_stack_val_t *)fp[-(argc + 4)];
   SCM_SLOT_SETQ(ScmVM, vm, reg.iseq, SCM_OBJ(fp[-(argc + 3)]));
-  SCM_VM(vm)->reg.ip = (scm_iword_t*)fp[-(argc + 2)];
+  SCM_VM(vm)->reg.ip = (uint8_t *)fp[-(argc + 2)];
 
   scm_vm_stack_shorten(vm, argc + 4); /* 3 := argc, fp, iseq, ip */
 }
@@ -410,7 +436,7 @@ scm_vm_make_trampolining_code(ScmObj vm,
              || scm_capi_closure_p(callback));
 
   /* 以下の処理を実行する iseq オブエクトを生成する
-   * l args を引数として target クロージャとして呼出す
+   * l args を引数として target クロージャを呼出す
    *   (callback が NULL の場合、target クロージャ の呼出は tail call とする)
    * 2 callback が非 NULL の場合、target クロージャの戻り値を引数として
    *   callback を tail call する
@@ -439,7 +465,8 @@ scm_vm_make_trampolining_code(ScmObj vm,
 
   if (scm_obj_null_p(cur)) return SCM_OBJ_NULL; /* [ERR: [through] */
 
-  rslt = scm_capi_iseq_push_op_cval(iseq, SCM_OPCODE_PUSH_PRIMVAL, argc);
+  rslt = scm_capi_iseq_push_op_cval(iseq,
+                                    SCM_OPCODE_PUSH_PRIMVAL, (uint32_t)argc);
   if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   rslt = scm_capi_iseq_push_op_immval(iseq, SCM_OPCODE_IMMVAL, clsr);
@@ -512,7 +539,7 @@ scm_vm_op_call(ScmObj vm, bool tail_p)
 }
 
 scm_local_func void
-scm_vm_op_immval(ScmObj vm, size_t imm_idx)
+scm_vm_op_immval(ScmObj vm, size_t immv_idx)
 {
   ScmObj val = SCM_OBJ_INIT;
 
@@ -520,7 +547,7 @@ scm_vm_op_immval(ScmObj vm, size_t imm_idx)
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
-  val = scm_capi_iseq_ref_immval_with_immidx(SCM_VM(vm)->reg.iseq, imm_idx);
+  val = scm_capi_iseq_ref_immval_direct(SCM_VM(vm)->reg.iseq, immv_idx);
   if (scm_obj_null_p(val))
     ;    /* TODO: error handling */
 
@@ -580,7 +607,7 @@ scm_vm_op_return(ScmObj vm) /* GC OK */
  * の値を val レジスタに設定する。
  */
 scm_local_func void
-scm_vm_op_gref(ScmObj vm, size_t imm_idx)
+scm_vm_op_gref(ScmObj vm, size_t immv_idx)
 {
   ScmObj gloc = SCM_OBJ_INIT, arg = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
   ssize_t rslt;
@@ -589,7 +616,7 @@ scm_vm_op_gref(ScmObj vm, size_t imm_idx)
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
-  arg = scm_capi_iseq_ref_immval_with_immidx(SCM_VM(vm)->reg.iseq, imm_idx);
+  arg = scm_capi_iseq_ref_immval_direct(SCM_VM(vm)->reg.iseq, immv_idx);
   if (scm_obj_null_p(arg))
     ;  /* TODO: error handling */
 
@@ -601,8 +628,8 @@ scm_vm_op_gref(ScmObj vm, size_t imm_idx)
     if (scm_obj_null_p(gloc))
       ; /* TODO: error handling (reference of unbound variable) */
 
-    rslt = scm_capi_iseq_set_immval_with_immidx(SCM_VM(vm)->reg.iseq,
-                                                imm_idx, gloc);
+    rslt = scm_capi_iseq_set_immval_direct(SCM_VM(vm)->reg.iseq,
+                                           immv_idx, gloc);
     if (rslt != 0)
       ;                           /* TODO: error handling */
 
@@ -632,7 +659,7 @@ scm_vm_op_gref(ScmObj vm, size_t imm_idx)
  * 束縛する。
  */
 scm_local_func void
-scm_vm_op_gdef(ScmObj vm, size_t imm_idx)
+scm_vm_op_gdef(ScmObj vm, size_t immv_idx)
 {
   ScmObj gloc = SCM_OBJ_INIT, arg = SCM_OBJ_INIT;
   ssize_t rslt;
@@ -641,7 +668,7 @@ scm_vm_op_gdef(ScmObj vm, size_t imm_idx)
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
-  arg = scm_capi_iseq_ref_immval_with_immidx(SCM_VM(vm)->reg.iseq, imm_idx);
+  arg = scm_capi_iseq_ref_immval_direct(SCM_VM(vm)->reg.iseq, immv_idx);
   if (scm_obj_null_p(arg))
     ;  /* TODO: error handling */
 
@@ -650,8 +677,8 @@ scm_vm_op_gdef(ScmObj vm, size_t imm_idx)
     if (scm_obj_null_p(gloc))
       ;                           /* TODO: error handling */
 
-    rslt = scm_capi_iseq_set_immval_with_immidx(SCM_VM(vm)->reg.iseq,
-                                                imm_idx, gloc);
+    rslt = scm_capi_iseq_set_immval_direct(SCM_VM(vm)->reg.iseq,
+                                           immv_idx, gloc);
     if (rslt != 0)
       ;                           /* TODO: error handling */
   }
@@ -671,7 +698,7 @@ scm_vm_op_gdef(ScmObj vm, size_t imm_idx)
  * を val レジスタで更新する。
  */
 scm_local_func void
-scm_vm_op_gset(ScmObj vm, size_t imm_idx)
+scm_vm_op_gset(ScmObj vm, size_t immv_idx)
 {
   ScmObj gloc = SCM_OBJ_INIT, arg = SCM_OBJ_INIT;
   ssize_t rslt;
@@ -681,7 +708,7 @@ scm_vm_op_gset(ScmObj vm, size_t imm_idx)
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
   scm_assert(scm_obj_not_null_p(arg));
 
-  arg = scm_capi_iseq_ref_immval_with_immidx(SCM_VM(vm)->reg.iseq, imm_idx);
+  arg = scm_capi_iseq_ref_immval_direct(SCM_VM(vm)->reg.iseq, immv_idx);
   if (scm_obj_null_p(arg))
     ;  /* TODO: error handling */
 
@@ -693,8 +720,8 @@ scm_vm_op_gset(ScmObj vm, size_t imm_idx)
     if (scm_obj_null_p(gloc))
       ; /* TODO: error handling (reference of unbound variable) */
 
-    rslt = scm_capi_iseq_set_immval_with_immidx(SCM_VM(vm)->reg.iseq,
-                                                imm_idx, gloc);
+    rslt = scm_capi_iseq_set_immval_direct(SCM_VM(vm)->reg.iseq,
+                                           immv_idx, gloc);
     if (rslt != 0)
       ;                           /* TODO: error handling */
 
@@ -839,7 +866,9 @@ void
 scm_vm_run(ScmObj vm, ScmObj iseq)
 {
   bool stop_flag;
-  scm_inst_t code1;
+  uint8_t op;
+  uint32_t immv_idx;
+  int32_t primv;
 
   SCM_STACK_FRAME_PUSH(&vm, &iseq);
 
@@ -853,9 +882,9 @@ scm_vm_run(ScmObj vm, ScmObj iseq)
 
   stop_flag = false;
   while (!stop_flag) {
-    code1.iword = scm_vm_inst_fetch(vm);
+    op = scm_vm_inst_fetch_op(vm);
 
-    switch(code1.plain.op) {
+    switch(op) {
     case SCM_OPCODE_NOP:
       /* nothing to do */
       break;
@@ -875,22 +904,27 @@ scm_vm_run(ScmObj vm, ScmObj iseq)
       scm_vm_op_frame(vm);
       break;
     case SCM_OPCODE_IMMVAL:
-      scm_vm_op_immval(vm, code1.immv1.imm_idx);
+      immv_idx = scm_vm_inst_fetch_uint32(vm);
+      scm_vm_op_immval(vm, immv_idx);
       break;
     case SCM_OPCODE_PUSH:
       scm_vm_op_push(vm);
       break;
     case SCM_OPCODE_PUSH_PRIMVAL:
-      scm_vm_op_push_primval(vm, code1.primv.primval);
+      primv = scm_vm_inst_fetch_int32(vm);
+      scm_vm_op_push_primval(vm, primv);
       break;
     case SCM_OPCODE_GREF:
-      scm_vm_op_gref(vm, code1.immv1.imm_idx);
+      immv_idx = scm_vm_inst_fetch_uint32(vm);
+      scm_vm_op_gref(vm, immv_idx);
       break;
     case SCM_OPCODE_GDEF:
-      scm_vm_op_gdef(vm, code1.immv1.imm_idx);
+      immv_idx = scm_vm_inst_fetch_uint32(vm);
+      scm_vm_op_gdef(vm, immv_idx);
       break;
     case SCM_OPCODE_GSET:
-      scm_vm_op_gset(vm, code1.immv1.imm_idx);
+      immv_idx = scm_vm_inst_fetch_uint32(vm);
+      scm_vm_op_gset(vm, immv_idx);
       break;
     default:
       /* TODO: error handling */

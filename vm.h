@@ -80,7 +80,7 @@ struct ScmVMRec {
     scm_vm_stack_val_t *sp;                   /* stack pointer */
     scm_vm_stack_val_t *fp;                    /* frame pointer */
     /* ScmObj cp;                    /\* closure pointer *\/ */
-    scm_iword_t *ip;            /* instruction pointer */
+    uint8_t *ip;            /* instruction pointer */
     ScmObj iseq;                  /* instruction sequence object */
     ScmObj val;                   /* value register */
   } reg;
@@ -109,7 +109,9 @@ void scm_vm_stack_objmap_set(ScmObj vm , scm_vm_stack_val_t *sp);
 void scm_vm_stack_objmap_unset(ScmObj vm, scm_vm_stack_val_t *sp);
 bool scm_vm_stack_objmap_is_scmobj(ScmObj vm, scm_vm_stack_val_t *sp);
 
-scm_iword_t scm_vm_inst_fetch(ScmObj vm);
+SCM_OPCODE_T scm_vm_inst_fetch_op(ScmObj vm);
+uint32_t scm_vm_inst_fetch_uint32(ScmObj vm);
+int32_t scm_vm_inst_fetch_int32(ScmObj vm);
 
 void scm_vm_setup_singletons(ScmObj vm);
 void scm_vm_clean_singletons(ScmObj vm);
@@ -127,15 +129,15 @@ ScmObj scm_vm_make_trampolining_code(ScmObj vm,
                                      ScmObj clsr, ScmObj args, ScmObj callback);
 
 void scm_vm_op_call(ScmObj vm, bool tail_p);
-void scm_vm_op_immval(ScmObj vm, size_t imm_idx);
+void scm_vm_op_immval(ScmObj vm, size_t immv_idx);
 void scm_vm_op_push(ScmObj vm);
 void scm_vm_op_push_immval(ScmObj vm, ScmObj val);
 void scm_vm_op_push_primval(ScmObj vm, scm_sword_t val);
 void scm_vm_op_frame(ScmObj vm);
 void scm_vm_op_return(ScmObj vm);
-void scm_vm_op_gref(ScmObj vm, size_t imm_idx);
-void scm_vm_op_gdef(ScmObj vm, size_t imm_idx);
-void scm_vm_op_gset(ScmObj vm, size_t imm_idx);
+void scm_vm_op_gref(ScmObj vm, size_t immv_idx);
+void scm_vm_op_gdef(ScmObj vm, size_t immv_idx);
+void scm_vm_op_gset(ScmObj vm, size_t immv_idx);
 
 #endif
 

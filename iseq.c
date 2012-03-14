@@ -240,99 +240,91 @@ scm_iseq_asm_sym2opcode(ScmObj op)
 }
 
 static ssize_t
-scm_iseq_asm_inst_noarg_op(ScmObj iseq, size_t idx, int opcode)
+scm_iseq_asm_inst_noarg_op(ScmObj iseq, int opcode)
 {
-  scm_inst_t i;
-  ssize_t rslt;
+  ssize_t idx;
 
   scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
-  scm_assert(idx < (size_t)SSIZE_MAX - 1);
   scm_assert(0 <= opcode && opcode <= UINT8_MAX);
 
-  i.plain.op = (uint8_t)opcode;
-  i.plain.arg = 0;
-  rslt = scm_iseq_set_word(iseq, idx++, i.iword);
-  if (rslt < 0) return -1;      /* [ERR]: [through] */
+  idx = scm_iseq_push_uint8(iseq, (uint8_t)opcode);
+  if (idx < 0) return -1;      /* [ERR]: [through] */
 
-  return (ssize_t)idx;
+  return idx + 1;
 }
 
 static ssize_t
-scm_iseq_asm_inst_unary_op(ScmObj iseq, size_t idx, int opcode, ScmObj arg)
+scm_iseq_asm_inst_unary_op(ScmObj iseq, int opcode, ScmObj arg)
 {
-  scm_inst_t i;
-  int immv_idx;
-  ssize_t rslt;
+  ssize_t idx, immv_idx;
 
   scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
-  scm_assert(idx < (size_t)SSIZE_MAX - 1);
   scm_assert(0 <= opcode && opcode <= UINT8_MAX);
   scm_assert(scm_obj_not_null_p(arg));
 
-  immv_idx = scm_iseq_set_immval(iseq, arg);
+  immv_idx = scm_iseq_push_immval(iseq, arg);
   if (immv_idx < 0) return -1;
+  if (immv_idx > UINT32_MAX) return -1; /* [ERR]: iseq: operand is out of range */
 
-  i.immv1.op = (uint8_t)opcode;
-  i.immv1.imm_idx = immv_idx;
-  rslt = scm_iseq_set_word(iseq, idx++, i.iword);
-  if (rslt < 0) return -1;      /* [ERR]: [through] */
+  idx = scm_iseq_push_uint8(iseq, (uint8_t)opcode);
+  if (idx < 0) return -1;      /* [ERR]: [through] */
 
-  return (ssize_t)idx;
+  idx = scm_iseq_push_uint32(iseq, (uint32_t)immv_idx);
+  if (idx < 0) return -1;      /* [ERR]: [through] */
+
+  return idx + 4;
 }
 
 static ssize_t
-scm_iseq_asm_inst_primval_op(ScmObj iseq, size_t idx, int opcode, ScmObj arg)
+scm_iseq_asm_inst_cval_op(ScmObj iseq, int opcode, ScmObj arg)
 {
-  scm_inst_t i;
-  long primval;
-  ssize_t rslt;
+  long cval;
+  ssize_t idx;
 
   scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
-  scm_assert(idx  < (size_t)SSIZE_MAX - 1);
   scm_assert(0 <= opcode && opcode <= UINT8_MAX);
   scm_assert(scm_capi_fixnum_p(arg));
 
-  primval = scm_capi_fixnum_to_clong(arg);
-  if (primval < SCM_INST_PRIMVAL_MIN || SCM_INST_PRIMVAL_MAX < primval)
+  cval = scm_capi_fixnum_to_clong(arg);
+  if (cval < INT32_MIN || INT32_MAX < cval)
     return -1;                  /* [ERR]: iseq: operand is out of range */
 
-  i.primv.op = (uint8_t)opcode;
-  i.primv.primval = primval;
-  rslt = scm_iseq_set_word(iseq, idx++, i.iword);
-  if (rslt < 0) return -1;      /* [ERR]: [through] */
+  idx = scm_iseq_push_uint8(iseq, (uint8_t)opcode);
+  if (idx < 0) return -1;      /* [ERR]: [through] */
 
-  return (ssize_t)idx;
+  idx = scm_iseq_push_uint32(iseq, (uint32_t)cval);
+  if (idx < 0) return -1;      /* [ERR]: [through] */
+
+  return idx + 4;
 }
 
 static ssize_t
-scm_iseq_asm_inst_ref_label_op(ScmObj iseq, size_t idx,
-                               int opcode, ScmObj label,
+scm_iseq_asm_inst_ref_label_op(ScmObj iseq, int opcode, ScmObj label,
                                ScmCHashTbl *label_tbl, EArray *labels)
 {
-  scm_inst_t i;
-  ssize_t rslt;
+  ssize_t idx, rslt;
 
   scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
-  scm_assert(idx < (size_t)SSIZE_MAX - 1);
   scm_assert(0 <= opcode && opcode <= UINT8_MAX);
   scm_assert(scm_capi_symbol_p(label));
   scm_assert(label_tbl != NULL);
   scm_assert(labels != NULL);
 
-  rslt = scm_iseq_asm_reg_label_ref_idx(label_tbl, labels, label, idx);
+  idx = scm_iseq_push_uint8(iseq, (uint8_t)opcode);
+  if (idx < 0) return -1;      /* [ERR]: [through] */
+
+  idx = scm_iseq_push_uint32(iseq, 0);
+  if (idx < 0) return -1;      /* [ERR]: [through] */
+
+  rslt = scm_iseq_asm_reg_label_ref_idx(label_tbl, labels, label, (size_t)idx);
   if (rslt < 0) return -1;      /* [ERR]: [through] */
 
-  i.primv.op = (uint8_t)opcode;
-  i.primv.primval = 0;    /* dummy */;
-  rslt = scm_iseq_set_word(iseq, idx++, i.iword);
-  if (rslt < 0) return -1;      /* [ERR]: [through] */
-
-  return (ssize_t)idx;
+  return (ssize_t)idx + 4;
 }
 
 static ssize_t
-scm_iseq_asm_inst(ScmObj iseq, ScmObj inst,
-                  size_t idx, ScmCHashTbl *label_tbl, EArray *labels)
+scm_iseq_asm_inst(ScmObj iseq, ScmObj inst, size_t idx,
+                  ScmCHashTbl *label_tbl, EArray *labels)
 {
   ScmObj op = SCM_OBJ_INIT, arg = SCM_OBJ_INIT;
   int opcode, rslt;
@@ -341,7 +333,6 @@ scm_iseq_asm_inst(ScmObj iseq, ScmObj inst,
 
   scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
   scm_assert(!scm_obj_null_p(inst));
-  scm_assert(idx < (size_t)SSIZE_MAX - 1);
   scm_assert(label_tbl != NULL);
   scm_assert(labels != NULL);
 
@@ -368,7 +359,7 @@ scm_iseq_asm_inst(ScmObj iseq, ScmObj inst,
   case SCM_OPCODE_RETURN:       /* fall through */
   case SCM_OPCODE_FRAME:        /* fall through */
   case SCM_OPCODE_PUSH:
-    return scm_iseq_asm_inst_noarg_op(iseq, idx, opcode);
+    return scm_iseq_asm_inst_noarg_op(iseq, opcode);
     break;
   case SCM_OPCODE_GREF:         /* fall through */
   case SCM_OPCODE_GDEF:         /* fall through */
@@ -379,7 +370,7 @@ scm_iseq_asm_inst(ScmObj iseq, ScmObj inst,
     arg = scm_api_car(arg);
     if (scm_obj_null_p(arg)) return -1; /* [ERR]: [through] */
 
-    return scm_iseq_asm_inst_unary_op(iseq, idx, opcode, arg);
+    return scm_iseq_asm_inst_unary_op(iseq, opcode, arg);
     break;
   case SCM_OPCODE_PUSH_PRIMVAL:
     if (!scm_capi_pair_p(arg)) return -1;  /* [ERR]: iseq: operands is not exist */
@@ -387,7 +378,7 @@ scm_iseq_asm_inst(ScmObj iseq, ScmObj inst,
     arg = scm_api_car(arg);
     if (scm_obj_null_p(arg)) return -1; /* [ERR]: [through] */
 
-    return scm_iseq_asm_inst_primval_op(iseq, idx, opcode, arg);
+    return scm_iseq_asm_inst_cval_op(iseq, opcode, arg);
     break;
   case SCM_OPCODE_JMP:
     if (!scm_capi_pair_p(arg)) return -1;  /* [ERR]: iseq: operands is not exist */
@@ -396,8 +387,7 @@ scm_iseq_asm_inst(ScmObj iseq, ScmObj inst,
     if (scm_obj_null_p(arg)) return -1; /* [ERR]: [through] */
     if (!scm_capi_symbol_p(arg)) return -1; /* [ERR]: iseq: operand is not symbol */
 
-    return scm_iseq_asm_inst_ref_label_op(iseq, idx,
-                                          opcode, arg, label_tbl, labels);
+    return scm_iseq_asm_inst_ref_label_op(iseq, opcode, arg, label_tbl, labels);
     break;
   case SCM_ISEQ_PI_LABEL:
     if (!scm_capi_pair_p(arg)) return -1;  /* [ERR]: iseq: operands is not exist */
@@ -418,7 +408,7 @@ scm_iseq_asm_inst(ScmObj iseq, ScmObj inst,
     arg = scm_iseq_list_to_iseq(arg);
     if (scm_obj_null_p(arg)) return -1; /* [ERR]: [through] */
 
-    return scm_iseq_asm_inst_unary_op(iseq, idx, SCM_OPCODE_IMMVAL, arg);
+    return scm_iseq_asm_inst_unary_op(iseq, SCM_OPCODE_IMMVAL, arg);
     break;
   default:
     scm_assert(false);
@@ -436,8 +426,7 @@ scm_iseq_asm_label_resolv(ScmObj iseq, ScmCHashTbl *label_tbl, EArray *labels)
   ScmCHashTblVal val;
   ScmLabelInfo *rec;
   bool found, deleted;
-  size_t *inst_idx;
-  scm_inst_t iword;
+  size_t *ref_idx;
 
   scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
   scm_assert(label_tbl != NULL);
@@ -449,17 +438,13 @@ scm_iseq_asm_label_resolv(ScmObj iseq, ScmCHashTbl *label_tbl, EArray *labels)
     if (!found) goto err_free_rec; /* [ERR]: iseq: inner error occured*/
 
     rec = (ScmLabelInfo *)val;
-    EARY_FOR_EACH(&rec->ref, idx2,  inst_idx) {
-      EARY_GET(SCM_ISEQ_EARY_SEQ(iseq), scm_iword_t,
-               *inst_idx, iword.iword);
-      if ((ssize_t)rec->idx
-          < SCM_INST_PRIMVAL_MIN + (ssize_t)*inst_idx + 1)
+    EARY_FOR_EACH(&rec->ref, idx2,  ref_idx) {
+      if ((ssize_t)rec->idx < INT32_MIN + (ssize_t)*ref_idx + 4)
         goto err_free_rec;      /* [ERR]: iseq: operand is underflow */
-      else if ((ssize_t)*inst_idx - 1
-               > SCM_INST_PRIMVAL_MAX - (ssize_t)rec->idx)
+      else if ((ssize_t)*ref_idx - 4 > INT32_MAX - (ssize_t)rec->idx)
         goto err_free_rec;      /* [ERR]: iseq: operand is overflow */
-      iword.primv.primval = rec->idx - *inst_idx - 1;
-      scm_iseq_set_word(iseq, *inst_idx, iword.iword);
+      scm_iseq_set_uint32(iseq, *ref_idx, (uint32_t)((ssize_t)rec->idx
+                                                     - (ssize_t)*ref_idx - 4));
     }
 
     rslt = scm_chash_tbl_delete(label_tbl, SCM_CHASH_TBL_KEY(*lbl), NULL, NULL);
@@ -522,7 +507,7 @@ scm_iseq_initialize(ScmObj iseq) /* GC OK */
   scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
 
   rslt = eary_init(SCM_ISEQ_EARY_SEQ(iseq),
-                   sizeof(scm_iword_t), SCM_ISEQ_DEFAULT_SEQ_SIZE);
+                   sizeof(uint8_t), SCM_ISEQ_DEFAULT_SEQ_SIZE);
   if (rslt != 0)
     return -1;                           /* TODO: error handling; [ERR]: [through] */
 
@@ -557,88 +542,6 @@ scm_iseq_finalize(ScmObj obj) /* GC OK */
 
   eary_fin(SCM_ISEQ_EARY_SEQ(obj));
   eary_fin(SCM_ISEQ_EARY_IMMVS(obj));
-}
-
-ssize_t
-scm_iseq_set_immval(ScmObj iseq, ScmObj val) /* GC OK */
-{
-  size_t idx;
-  int err;
-
-  scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
-  scm_assert(scm_obj_not_null_p(val));
-
-  idx = SCM_ISEQ_VEC_LENGTH(iseq);
-  if (idx >= SCM_ISEQ_IMMVS_MAX) return -1; /* [ERR]: iseq: immediate value area over flow */
-
-  EARY_SET_SCMOBJ(SCM_ISEQ_EARY_IMMVS(iseq), idx, val, iseq, err);
-
-  if(err != 0) return -1;       /* [ERR]: [through] */
-
-  return (ssize_t)idx;
-}
-
-ssize_t
-scm_iseq_update_immval(ScmObj iseq, size_t idx, ScmObj val)
-{
-  int err;
-
-  scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
-  scm_assert(idx <= SSIZE_MAX);
-  scm_assert(scm_obj_not_null_p(val));
-
-  if ((size_t)idx >= SCM_ISEQ_VEC_LENGTH(iseq)) return -1; /* [ERR]: iseq: argument out of range */
-
-  EARY_SET_SCMOBJ(SCM_ISEQ_EARY_IMMVS(iseq), (size_t)idx, val, iseq, err);
-
-  if (err != 0) return -1;      /* [ERR]: [through] */
-
-  return (ssize_t)idx;
-}
-
-ssize_t
-scm_iseq_set_word(ScmObj iseq, size_t index, scm_iword_t word) /* GC OK */
-{
-  int err;
-
-  scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
-  scm_assert(index <= SSIZE_MAX);
-
-  EARY_SET(SCM_ISEQ_EARY_SEQ(iseq), scm_iword_t, index, word, err);
-  if (err != 0) return -1;/* [ERR]: [through] */
-
-  return 0;
-}
-
-ssize_t
-scm_iseq_push_word(ScmObj iseq, scm_iword_t word)
-{
-  int err;
-  size_t idx;
-
-  scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
-  scm_assert(EARY_SIZE(SCM_ISEQ_EARY_SEQ(iseq)) < SSIZE_MAX - 1);
-
-  idx = EARY_SIZE(SCM_ISEQ_EARY_SEQ(iseq));
-  EARY_SET(SCM_ISEQ_EARY_SEQ(iseq), scm_iword_t, idx, word, err);
-  if (err != 0) return -1;
-
-  return (ssize_t)idx;
-}
-
-int
-scm_iseq_get_word(ScmObj iseq, size_t index, scm_iword_t *word)
-{
-  scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
-  scm_assert(index <= SSIZE_MAX);
-  scm_assert(word != NULL);
-
-  if (index >= EARY_SIZE(SCM_ISEQ_EARY_SEQ(iseq)))
-    return -1;
-
-  EARY_GET(SCM_ISEQ_EARY_SEQ(iseq), scm_iword_t, index, *word);
-
-  return 0;
 }
 
 ScmObj
