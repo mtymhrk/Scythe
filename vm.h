@@ -109,8 +109,6 @@ ScmObj scm_vm_stack_pop(ScmObj vm);
 void scm_vm_stack_shorten(ScmObj vm, size_t n);
 void scm_vm_stack_shift(ScmObj vm, size_t nelm, size_t nshift);
 
-int scm_vm_frame_argc(ScmObj vm);
-ScmObj scm_vm_frame_argv(ScmObj vm, int nth);
 void scm_vm_return_to_caller(ScmObj vm, uint32_t nr_arg);
 
 ScmObj scm_vm_make_trampolining_code(ScmObj vm, ScmObj clsr,
@@ -140,9 +138,6 @@ void scm_vm_end(ScmObj vm);
 
 void scm_vm_setup_system(ScmObj vm);
 void scm_vm_run(ScmObj vm, ScmObj iseq);
-
-int scm_vm_nr_local_var(ScmObj vm);
-ScmObj scm_vm_refer_local_var(ScmObj vm, int nth);
 
 int scm_vm_setup_trampolining(ScmObj vm, ScmObj target,
                               ScmObj args, int nr_arg_cf,

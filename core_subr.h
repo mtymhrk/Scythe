@@ -5,9 +5,9 @@
 
 #include "object.h"
 
-ScmObj scm_subr_func_cons(uint32_t argc, ScmObj *argv);
-ScmObj scm_subr_func_car(uint32_t argc, ScmObj *argv);
-ScmObj scm_subr_func_cdr(uint32_t argc, ScmObj *argv);
+ScmObj scm_subr_func_cons(int argc, ScmObj *argv);
+ScmObj scm_subr_func_car(int argc, ScmObj *argv);
+ScmObj scm_subr_func_cdr(int argc, ScmObj *argv);
 
 void scm_core_subr_system_setup(void);
 

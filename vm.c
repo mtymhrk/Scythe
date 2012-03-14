@@ -240,8 +240,6 @@ scm_vm_clean_eval_env(ScmObj vm)
 scm_local_func void
 scm_vm_stack_push(ScmObj vm, ScmObj elm)
 {
-  SCM_STACK_FRAME_PUSH(&vm, &elm);
-
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
   if (SCM_VM(vm)->reg.sp > SCM_VM(vm)->stack + SCM_VM(vm)->stack_size)
@@ -284,40 +282,6 @@ scm_vm_stack_shift(ScmObj vm, size_t nelm, size_t nshift)
 
   memmove(SCM_VM(vm)->reg.sp - nelm - nshift, SCM_VM(vm)->reg.sp - nelm, nelm);
   SCM_VM(vm)->reg.sp = SCM_VM(vm)->reg.sp - nshift;
-}
-
-
-/* 現在のスタックフレームにある引数の数を返す */
-scm_local_func int
-scm_vm_frame_argc(ScmObj vm)
-{
-  ScmObj argc = SCM_OBJ_INIT;
-
-  SCM_STACK_FRAME_PUSH(&vm, &argc);
-
-  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-  scm_assert(SCM_VM(vm)->reg.fp != NULL);
-
-  argc = SCM_VM(vm)->reg.fp[-1];
-
-  return (int)scm_capi_fixnum_to_clong(argc);;
-}
-
-/* 現在のスタックフレームにある nth 番目の引数を返す (0 origin) */
-scm_local_func ScmObj
-scm_vm_frame_argv(ScmObj vm, int nth)
-{
-  int argc;
-
-  SCM_STACK_FRAME_PUSH(&vm);
-
-  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-
-  argc = scm_vm_frame_argc(vm);
-  if (nth >= argc)
-    return SCM_OBJ_NULL;    /* 存在しない引数を参照。とりあえず NULL を返す */
-
-  return SCM_OBJ(SCM_VM(vm)->reg.fp[-(argc + 1) + nth]);
 }
 
 scm_local_func void
@@ -862,20 +826,6 @@ scm_vm_run(ScmObj vm, ScmObj iseq)
       break;
     }
   }
-}
-
-int
-scm_vm_nr_local_var(ScmObj vm)
-{
-  return scm_vm_frame_argc(vm);
-}
-
-/* 束縛変数を参照する。 box されている場合は unbox する */
-ScmObj
-scm_vm_refer_local_var(ScmObj vm, int nth)
-{
-  /* box/unbox is not implemented */
-  return scm_vm_frame_argv(vm, nth);
 }
 
 int

@@ -9,7 +9,7 @@
 
 
 ScmObj
-scm_subr_func_cons(uint32_t argc, ScmObj *argv)
+scm_subr_func_cons(int argc, ScmObj *argv)
 {
   if (argc != 2)
     ;                           /* TODO: error handling */
@@ -18,7 +18,7 @@ scm_subr_func_cons(uint32_t argc, ScmObj *argv)
 }
 
 ScmObj
-scm_subr_func_car(uint32_t argc, ScmObj *argv)
+scm_subr_func_car(int argc, ScmObj *argv)
 {
   if (argc != 1)
     ;                           /* TODO: error handling */
@@ -31,7 +31,7 @@ scm_subr_func_car(uint32_t argc, ScmObj *argv)
 }
 
 ScmObj
-scm_subr_func_cdr(uint32_t argc, ScmObj *argv)
+scm_subr_func_cdr(int argc, ScmObj *argv)
 {
   if (argc != 1)
     ;                           /* TODO: error handling */
@@ -48,7 +48,7 @@ scm_subr_func_cdr(uint32_t argc, ScmObj *argv)
 /*******************************************************************/
 
 ScmObj
-scm_subr_func_eval_asm(uint32_t argc, ScmObj *argv)
+scm_subr_func_eval_asm(int argc, ScmObj *argv)
 {
   ScmObj code = SCM_OBJ_INIT;
   ScmObj args = SCM_OBJ_INIT;

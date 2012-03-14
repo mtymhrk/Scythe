@@ -1177,28 +1177,6 @@ scm_api_global_var_set(ScmObj sym, ScmObj val)
 
 
 /*******************************************************************/
-/*  Access to Argument of Function                                 */
-/*******************************************************************/
-
-extern inline int
-scm_capi_get_nr_func_arg(void)
-{
-  /* 2012.02.07: 今のところスタックフレームが全く無い状態でこの api を
-     呼ばれると assertion に引っ掛って落ちる */
-  return scm_vm_nr_local_var(scm_vm_current_vm());
-}
-
-extern inline ScmObj
-scm_capi_get_func_arg(int nth)
-{
-  if (nth >= scm_vm_nr_local_var(scm_vm_current_vm()))
-    return SCM_OBJ_NULL;                  /* provisional implemntation */
-
-  return scm_vm_refer_local_var(scm_vm_current_vm(), nth);
-}
-
-
-/*******************************************************************/
 /*  Setup Trampolining                                             */
 /*******************************************************************/
 
