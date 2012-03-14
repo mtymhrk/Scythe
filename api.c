@@ -1014,28 +1014,6 @@ scm_capi_iseq_push_op_cval(ScmObj iseq, SCM_OPCODE_T op, uint32_t val)
 ssize_t
 scm_capi_iseq_set_immval(ScmObj iseq, size_t idx, ScmObj val)
 {
-  uint32_t immv_idx;
-  ssize_t rslt;
-
-  SCM_STACK_FRAME_PUSH(&iseq, &val);
-
-  if (!scm_capi_iseq_p(iseq)
-      || idx > SSIZE_MAX
-      || (ssize_t)idx > scm_capi_iseq_length(iseq) - 5)
-    return -1;   /* provisional implemntation */
-
-  rslt = scm_iseq_get_uint32(iseq, idx + 1, &immv_idx);
-  if (rslt < 0) return -1;   /* provisional implemntation */
-
-  rslt = scm_iseq_set_immval(iseq, immv_idx, val);
-  if (rslt < 0) return -1;   /* provisional implemntation */
-
-  return (ssize_t)idx;
-}
-
-ssize_t
-scm_capi_iseq_set_immval_direct(ScmObj iseq, size_t idx, ScmObj val)
-{
   ssize_t rslt;
 
   SCM_STACK_FRAME_PUSH(&iseq, &val);
@@ -1051,73 +1029,8 @@ scm_capi_iseq_set_immval_direct(ScmObj iseq, size_t idx, ScmObj val)
   return (ssize_t)idx;
 }
 
-ssize_t
-scm_capi_iseq_set_cval(ScmObj iseq, size_t idx, uint32_t val)
-{
-  ssize_t rslt;
-
-  SCM_STACK_FRAME_PUSH(&iseq);
-
-  if (!scm_capi_iseq_p(iseq)
-      || idx > SSIZE_MAX
-      || (ssize_t)idx > scm_capi_iseq_length(iseq) - 5)
-    return -1;   /* provisional implemntation */
-
-  rslt = scm_iseq_set_uint32(iseq, idx + 1, val);
-  if (rslt < 0) return -1;   /* provisional implemntation */
-
-  return (ssize_t)idx;
-}
-
-ssize_t
-scm_capi_iseq_ref_op(ScmObj iseq, size_t idx, SCM_OPCODE_T *op)
-{
-  uint8_t v;
-  ssize_t rslt;
-
-  SCM_STACK_FRAME_PUSH(&iseq);
-
-  if (!scm_capi_iseq_p(iseq)
-      || idx > SSIZE_MAX
-      || (ssize_t)idx >= scm_capi_iseq_length(iseq)
-      || op == NULL)
-    return -1;   /* provisional implemntation */
-
-  rslt = scm_iseq_get_uint8(iseq, idx, &v);
-  if (rslt < 0) return -1;   /* provisional implemntation */
-
-  *op = v;
-
-  return (ssize_t)idx;
-}
-
-ssize_t
-scm_capi_iseq_ref_immval(ScmObj iseq, size_t idx, scm_csetter_t *setter)
-{
-  uint32_t immv_idx;
-  ssize_t rslt;
-  ScmObj v = SCM_OBJ_INIT;
-
-  SCM_STACK_FRAME_PUSH(&iseq, &v);
-
-  if (!scm_capi_iseq_p(iseq)
-      || idx > SSIZE_MAX
-      || (ssize_t)idx > scm_capi_iseq_length(iseq) - 5)
-    return -1;   /* provisional implemntation */
-
-  rslt = scm_iseq_get_uint32(iseq, idx + 1, &immv_idx);
-  if (rslt < 0) return -1;   /* provisional implemntation */
-
-  v = scm_iseq_get_immval(iseq, immv_idx);
-  if (scm_obj_null_p(v)) return -1;   /* provisional implemntation */
-
-  scm_csetter_setq(setter, v);
-
-  return (ssize_t)idx;
-}
-
-ScmObj
-scm_capi_iseq_ref_immval_direct(ScmObj iseq, size_t idx)
+extern inline ScmObj
+scm_capi_iseq_ref_immval(ScmObj iseq, size_t idx)
 {
   if (!scm_capi_iseq_p(iseq)
       || idx > SSIZE_MAX
@@ -1125,24 +1038,6 @@ scm_capi_iseq_ref_immval_direct(ScmObj iseq, size_t idx)
     return SCM_OBJ_NULL;
 
   return scm_iseq_get_immval(iseq, idx);;
-}
-
-ssize_t
-scm_capi_iseq_ref_cval(ScmObj iseq, size_t idx, uint32_t *val)
-{
-  ssize_t rslt;
-
-  SCM_STACK_FRAME_PUSH(&iseq);
-
-  if (!scm_capi_iseq_p(iseq)
-      || idx > SSIZE_MAX
-      || (ssize_t)idx > scm_capi_iseq_length(iseq) - 5)
-    return -1;   /* provisional implemntation */
-
-  rslt = scm_iseq_get_uint32(iseq, idx + 1, val);
-  if (rslt < 0) return -1;   /* provisional implemntation */
-
-  return (ssize_t)idx;
 }
 
 extern inline ScmObj

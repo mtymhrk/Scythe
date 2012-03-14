@@ -547,7 +547,7 @@ scm_vm_op_immval(ScmObj vm, size_t immv_idx)
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
-  val = scm_capi_iseq_ref_immval_direct(SCM_VM(vm)->reg.iseq, immv_idx);
+  val = scm_capi_iseq_ref_immval(SCM_VM(vm)->reg.iseq, immv_idx);
   if (scm_obj_null_p(val))
     ;    /* TODO: error handling */
 
@@ -616,7 +616,7 @@ scm_vm_op_gref(ScmObj vm, size_t immv_idx)
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
-  arg = scm_capi_iseq_ref_immval_direct(SCM_VM(vm)->reg.iseq, immv_idx);
+  arg = scm_capi_iseq_ref_immval(SCM_VM(vm)->reg.iseq, immv_idx);
   if (scm_obj_null_p(arg))
     ;  /* TODO: error handling */
 
@@ -628,7 +628,7 @@ scm_vm_op_gref(ScmObj vm, size_t immv_idx)
     if (scm_obj_null_p(gloc))
       ; /* TODO: error handling (reference of unbound variable) */
 
-    rslt = scm_capi_iseq_set_immval_direct(SCM_VM(vm)->reg.iseq,
+    rslt = scm_capi_iseq_set_immval(SCM_VM(vm)->reg.iseq,
                                            immv_idx, gloc);
     if (rslt != 0)
       ;                           /* TODO: error handling */
@@ -668,7 +668,7 @@ scm_vm_op_gdef(ScmObj vm, size_t immv_idx)
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
-  arg = scm_capi_iseq_ref_immval_direct(SCM_VM(vm)->reg.iseq, immv_idx);
+  arg = scm_capi_iseq_ref_immval(SCM_VM(vm)->reg.iseq, immv_idx);
   if (scm_obj_null_p(arg))
     ;  /* TODO: error handling */
 
@@ -677,7 +677,7 @@ scm_vm_op_gdef(ScmObj vm, size_t immv_idx)
     if (scm_obj_null_p(gloc))
       ;                           /* TODO: error handling */
 
-    rslt = scm_capi_iseq_set_immval_direct(SCM_VM(vm)->reg.iseq,
+    rslt = scm_capi_iseq_set_immval(SCM_VM(vm)->reg.iseq,
                                            immv_idx, gloc);
     if (rslt != 0)
       ;                           /* TODO: error handling */
@@ -708,7 +708,7 @@ scm_vm_op_gset(ScmObj vm, size_t immv_idx)
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
   scm_assert(scm_obj_not_null_p(arg));
 
-  arg = scm_capi_iseq_ref_immval_direct(SCM_VM(vm)->reg.iseq, immv_idx);
+  arg = scm_capi_iseq_ref_immval(SCM_VM(vm)->reg.iseq, immv_idx);
   if (scm_obj_null_p(arg))
     ;  /* TODO: error handling */
 
@@ -720,7 +720,7 @@ scm_vm_op_gset(ScmObj vm, size_t immv_idx)
     if (scm_obj_null_p(gloc))
       ; /* TODO: error handling (reference of unbound variable) */
 
-    rslt = scm_capi_iseq_set_immval_direct(SCM_VM(vm)->reg.iseq,
+    rslt = scm_capi_iseq_set_immval(SCM_VM(vm)->reg.iseq,
                                            immv_idx, gloc);
     if (rslt != 0)
       ;                           /* TODO: error handling */
