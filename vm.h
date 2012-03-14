@@ -54,8 +54,6 @@ scm_bedrock_current_br(void)
 /*  ScmVM                                                                  */
 /***************************************************************************/
 
-typedef scm_uword_t scm_vm_inst_t;
-
 extern ScmTypeInfo SCM_VM_TYPE_INFO;
 extern ScmObj scm_vm__current_vm;
   /* vm.c の外部が scm_vm__current_vm を直接参照するのは禁止。
@@ -71,14 +69,13 @@ struct ScmVMRec {
   ScmObj gloctbl;
 
   /*** VM Stack ***/
-  scm_vm_stack_val_t *stack;
-  unsigned int *stack_objmap;
+  ScmObj *stack;
   size_t stack_size;
 
   /*** VM Registers ***/
   struct {
-    scm_vm_stack_val_t *sp;                   /* stack pointer */
-    scm_vm_stack_val_t *fp;                    /* frame pointer */
+    ScmObj *sp;                   /* stack pointer */
+    ScmObj *fp;                    /* frame pointer */
     /* ScmObj cp;                    /\* closure pointer *\/ */
     uint8_t *ip;            /* instruction pointer */
     ScmObj iseq;                  /* instruction sequence object */
@@ -103,17 +100,11 @@ struct ScmVMRec {
 
 #ifdef SCM_UNIT_TEST
 
-size_t scm_vm_stack_objmap_sp2idx(ScmObj vm, scm_vm_stack_val_t *sp);
-unsigned int scm_vm_stack_objmap_sp2mask(ScmObj vm, scm_vm_stack_val_t *sp);
-void scm_vm_stack_objmap_set(ScmObj vm , scm_vm_stack_val_t *sp);
-void scm_vm_stack_objmap_unset(ScmObj vm, scm_vm_stack_val_t *sp);
-bool scm_vm_stack_objmap_is_scmobj(ScmObj vm, scm_vm_stack_val_t *sp);
-
 void scm_vm_setup_singletons(ScmObj vm);
 void scm_vm_clean_singletons(ScmObj vm);
 void scm_vm_clean_eval_env(ScmObj vm);
 
-void scm_vm_stack_push(ScmObj vm, scm_vm_stack_val_t elm, bool scmobj_p);
+void scm_vm_stack_push(ScmObj vm, ScmObj elm);
 ScmObj scm_vm_stack_pop(ScmObj vm);
 void scm_vm_stack_shorten(ScmObj vm, int n);
 

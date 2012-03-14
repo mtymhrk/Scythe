@@ -24,51 +24,13 @@ cut_teardown(void)
 }
 
 void
-test_scm_vm_stack_push_primitive_value_0(void)
+test_scm_vm_stack_push_scmobj(void)
 {
-  long actual;
-
-  scm_vm_stack_push(vm, (scm_vm_stack_val_t)0L, false);
-
-  actual = (long)scm_vm_stack_pop(vm);
-
-  cut_assert(actual == 0L);
-}
-
-void
-test_scm_vm_stack_push_primitive_value_SCM_SWORD_MAX(void)
-{
-  long actual;
-
-  scm_vm_stack_push(vm, (scm_vm_stack_val_t)SCM_SWORD_MAX, false);
-
-  actual = (long)scm_vm_stack_pop(vm);
-
-  cut_assert(actual == SCM_SWORD_MAX);
-}
-
-void
-test_scm_vm_stack_push_primitive_value_SCM_SWORD_MIN(void)
-{
-  long actual;
-
-  scm_vm_stack_push(vm, (scm_vm_stack_val_t)SCM_SWORD_MIN, false);
-
-  actual = (long)scm_vm_stack_pop(vm);
-
-  cut_assert(actual == SCM_SWORD_MIN);
-}
-
-
-void
-test_scm_vm_stack_push_scmobj_value(void)
-{
-  scm_vm_stack_push(vm, (scm_vm_stack_val_t)scm_vm_nil_instance(), true);
+  scm_vm_stack_push(vm, scm_vm_nil_instance());
 
   cut_assert(scm_obj_same_instance_p(scm_vm_nil_instance(),
                                       scm_vm_stack_pop(vm)));
 }
-
 
 
 void

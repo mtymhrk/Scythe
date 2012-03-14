@@ -153,9 +153,6 @@ scm_bedrock_error_p(ScmBedrock *br)
 
 #define SCM_VM_STACK_INIT_SIZE 1024
 #define SCM_VM_STACK_MAX_SIZE 10240
-#define SCM_VM_STACK_OBJMAP_SIZE                                        \
-  (SCM_VM_STACK_INIT_SIZE / (sizeof(unsigned int) * CHAR_BIT)           \
-   + ((SCM_VM_STACK_INIT_SIZE % (sizeof(unsigned int) * CHAR_BIT) == 0) ? 0 : 1))
 
 #define SCM_VM_SYMTBL_SIZE 256
 
@@ -171,45 +168,6 @@ ScmTypeInfo SCM_VM_TYPE_INFO = {
 
 ScmObj scm_vm__current_vm = SCM_OBJ_INIT;
 
-
-scm_local_inline size_t
-scm_vm_stack_objmap_sp2idx(ScmObj vm, scm_vm_stack_val_t *sp)
-{
-  return ((scm_uword_t)((sp) - SCM_VM(vm)->stack)
-          / (sizeof(SCM_VM(vm)->stack_objmap[0]) * CHAR_BIT));
-}
-
-scm_local_inline unsigned int
-scm_vm_stack_objmap_sp2mask(ScmObj vm, scm_vm_stack_val_t *sp)
-{
-  return 1u << ((scm_uword_t)((sp) - SCM_VM(vm)->stack)
-                % (sizeof(SCM_VM(vm)->stack_objmap[0]) * CHAR_BIT));
-}
-
-scm_local_inline void
-scm_vm_stack_objmap_set(ScmObj vm , scm_vm_stack_val_t *sp)
-{
-  scm_assert((sp) < SCM_VM(vm)->reg.sp);
-  SCM_VM(vm)->stack_objmap[scm_vm_stack_objmap_sp2idx(vm, sp)]
-    |= scm_vm_stack_objmap_sp2mask(vm, sp);
-}
-
-scm_local_inline void
-scm_vm_stack_objmap_unset(ScmObj vm, scm_vm_stack_val_t *sp)
-{
-  scm_assert((sp) < SCM_VM(vm)->reg.sp);
-  SCM_VM(vm)->stack_objmap[scm_vm_stack_objmap_sp2idx(vm, sp)]
-    &= ~scm_vm_stack_objmap_sp2mask(vm, sp);
-}
-
-scm_local_inline bool
-scm_vm_stack_objmap_is_scmobj(ScmObj vm, scm_vm_stack_val_t *sp)
-{
-  scm_assert((sp) < SCM_VM(vm)->reg.sp);
-  return ((SCM_VM(vm)->stack_objmap[scm_vm_stack_objmap_sp2idx(vm, sp)]
-          & scm_vm_stack_objmap_sp2mask(vm, sp)) ?
-          true : false);
-}
 
 scm_local_func void
 scm_vm_setup_singletons(ScmObj vm)
@@ -280,32 +238,20 @@ scm_vm_clean_eval_env(ScmObj vm)
 }
 
 scm_local_func void
-scm_vm_stack_push(ScmObj vm, scm_vm_stack_val_t elm, bool scmobj_p)
+scm_vm_stack_push(ScmObj vm, ScmObj elm)
 {
-  scm_vm_stack_val_t *sp;
-
-  SCM_STACK_FRAME_PUSH(&vm);
-  if (scmobj_p) SCM_STACK_PUSH(&elm);
+  SCM_STACK_FRAME_PUSH(&vm, &elm);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
   if (SCM_VM(vm)->reg.sp > SCM_VM(vm)->stack + SCM_VM(vm)->stack_size)
     return; /* stack overflow; TODO: handle stack overflow error  */
 
-  if (scmobj_p)
-    SCM_SLOT_REF_SETQ(ScmVM, vm, reg.sp, elm);
-  else
-    *SCM_VM(vm)->reg.sp = elm;
-
-  sp = SCM_VM(vm)->reg.sp++;
-
-  if (scmobj_p)
-    scm_vm_stack_objmap_set(vm, sp);
-  else
-    scm_vm_stack_objmap_unset(vm, sp);
+  SCM_SLOT_REF_SETQ(ScmVM, vm, reg.sp, elm);
+  SCM_VM(vm)->reg.sp++;
 }
 
-scm_local_func scm_vm_stack_val_t
+scm_local_func ScmObj
 scm_vm_stack_pop(ScmObj vm)
 {
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
@@ -371,7 +317,7 @@ scm_vm_return_to_caller(ScmObj vm)
 {
   ScmObj fp_fn = SCM_OBJ_INIT, ip_fn = SCM_OBJ_INIT;
   int argc;
-  scm_vm_stack_val_t *fp;
+  ScmObj *fp;
 
   SCM_STACK_FRAME_PUSH(&vm, &fp_fn, &ip_fn);
 
@@ -530,7 +476,7 @@ scm_vm_op_push(ScmObj vm)
 {
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
-  scm_vm_stack_push(vm, (scm_vm_stack_val_t)SCM_VM(vm)->reg.val, true);
+  scm_vm_stack_push(vm, SCM_VM(vm)->reg.val);
 }
 
 scm_local_func void
@@ -543,7 +489,7 @@ scm_vm_op_push_primval(ScmObj vm, int32_t val)
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
   fn = scm_capi_make_fixnum(val);
-  scm_vm_stack_push(vm, fn, true);
+  scm_vm_stack_push(vm, fn);
 }
 
 /* 関数呼出のためのスタックフレームを作成するインストラクション。
@@ -560,15 +506,15 @@ scm_vm_op_frame(ScmObj vm) /* GC OK */
   fp_fn = scm_capi_cptr_to_fixnum(SCM_VM(vm)->reg.fp);
 
   /* push frame pointer */
-  scm_vm_stack_push(vm, (scm_vm_stack_val_t)fp_fn, true);
+  scm_vm_stack_push(vm, fp_fn);
 
   /* push ScmISeq object (FRAME インストラクション段階ではダミー値を
      プッシュする。本当の値は CALL 時に設定する) */
-  scm_vm_stack_push(vm, (scm_vm_stack_val_t)SCM_OBJ_NULL, true);
+  scm_vm_stack_push(vm, SCM_OBJ_NULL);
 
   /* push instraction pointer (FRAME インストラクション段階ではダミー
      値をプッシュする。本当の値は CALL 時に設定する) */
-  scm_vm_stack_push(vm, (scm_vm_stack_val_t)SCM_OBJ_NULL, true);
+  scm_vm_stack_push(vm, SCM_OBJ_NULL);
 }
 
 /* 関数の呼び出しから戻るインストラクション。
@@ -723,13 +669,8 @@ scm_vm_initialize(ScmObj vm,  ScmBedrock *bedrock)
 
   SCM_VM(vm)->bedrock = bedrock;
 
-  SCM_VM(vm)->stack = scm_capi_malloc(sizeof(scm_vm_stack_val_t)
-                                 * SCM_VM_STACK_INIT_SIZE);
+  SCM_VM(vm)->stack = scm_capi_malloc(sizeof(ScmObj) * SCM_VM_STACK_INIT_SIZE);
   if (SCM_VM(vm)->stack == NULL) goto err;
-
-  SCM_VM(vm)->stack_objmap = scm_capi_malloc(sizeof(unsigned int)
-                                       * SCM_VM_STACK_OBJMAP_SIZE);
-  if (SCM_VM(vm)->stack_objmap == NULL) goto err;
 
   SCM_VM(vm)->stack_size = SCM_VM_STACK_INIT_SIZE;
 
@@ -754,9 +695,6 @@ scm_vm_initialize(ScmObj vm,  ScmBedrock *bedrock)
     SCM_VM(vm)->stack = scm_capi_free(SCM_VM(vm)->stack);
     SCM_VM(vm)->stack_size = 0;
   }
-  if (SCM_VM(vm)->stack_objmap != NULL) {
-    SCM_VM(vm)->stack_objmap = scm_capi_free(SCM_VM(vm)->stack_objmap);
-  }
   SCM_VM(vm)->reg.sp = NULL;
   SCM_VM(vm)->reg.fp = NULL;
   SCM_VM(vm)->reg.ip = NULL;
@@ -774,7 +712,6 @@ scm_vm_finalize(ScmObj vm)
 
   SCM_VM(vm)->stack = scm_capi_free(SCM_VM(vm)->stack);
   SCM_VM(vm)->stack_size = 0;
-  SCM_VM(vm)->stack_objmap = scm_capi_free(SCM_VM(vm)->stack_objmap);
   SCM_VM(vm)->reg.sp = NULL;
   SCM_VM(vm)->reg.fp = NULL;
   SCM_VM(vm)->reg.ip = NULL;
@@ -978,7 +915,6 @@ scm_vm_gc_initialize(ScmObj obj, ScmObj mem)
 
   SCM_VM(obj)->symtbl = SCM_OBJ_NULL;
   SCM_VM(obj)->stack = NULL;
-  SCM_VM(obj)->stack_objmap = NULL;
   SCM_VM(obj)->stack_size = 0;
   SCM_VM(obj)->reg.sp = NULL;
   SCM_VM(obj)->reg.fp = NULL;
@@ -1025,10 +961,10 @@ scm_vm_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
   rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_VM(obj)->trmp.code, mem);
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
-  for (scm_vm_stack_val_t* p = SCM_VM(obj)->stack;
-       p != NULL && p != SCM_VM(obj)->reg.sp;
-       p++) {
-    if (scm_vm_stack_objmap_is_scmobj(obj, p)) {
+  if (SCM_VM(obj)->stack != NULL) {
+    for (ScmObj *p = SCM_VM(obj)->stack;
+         p != SCM_VM(obj)->reg.sp;
+         p++) {
       rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, *p, mem);
       if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
     }

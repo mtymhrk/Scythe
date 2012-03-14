@@ -49,10 +49,10 @@ struct ScmClosureRec {
 };
 
 int scm_closure_initialize(ScmObj clsr, ScmObj iseq,
-                           size_t nr_free_vars, scm_vm_stack_val_t *sp);
+                           size_t nr_free_vars, ScmObj *sp);
 void scm_closure_finalize(ScmObj clsr);
 ScmObj scm_closure_new(SCM_MEM_TYPE_T mtype, ScmObj iseq,
-                       size_t nr_free_vars, scm_vm_stack_val_t *sp);
+                       size_t nr_free_vars, ScmObj *sp);
 void scm_closure_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_closure_gc_finalize(ScmObj obj);
 int scm_closure_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);

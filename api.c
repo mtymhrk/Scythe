@@ -21,7 +21,6 @@
 #include "impl_utils.h"
 
 #include "api_enum.h"
-#include "api_type.h"
 #include "api.h"
 
 
@@ -898,8 +897,7 @@ scm_capi_subrutine_p(ScmObj obj)
 /*******************************************************************/
 
 extern inline ScmObj
-scm_capi_make_closure(ScmObj iseq,
-                      size_t nr_free_vars, scm_vm_stack_val_t *sp)
+scm_capi_make_closure(ScmObj iseq, size_t nr_free_vars, ScmObj *sp)
 {
   if (!scm_capi_iseq_p(iseq))
     return SCM_OBJ_NULL;         /* provisional implemntation */

@@ -63,7 +63,7 @@ ScmTypeInfo SCM_CLOSURE_TYPE_INFO = {
 
 int
 scm_closure_initialize(ScmObj clsr, ScmObj iseq,
-                       size_t nr_free_vars, scm_vm_stack_val_t *sp)
+                       size_t nr_free_vars, ScmObj *sp)
 {
   scm_assert_obj_type(clsr, &SCM_CLOSURE_TYPE_INFO);
   scm_assert(scm_capi_iseq_p(iseq));
@@ -81,7 +81,7 @@ scm_closure_initialize(ScmObj clsr, ScmObj iseq,
 
     for (size_t i = 0; i < nr_free_vars; i++) {
       SCM_SLOT_SETQ(ScmClosure, clsr, free_vars[i],
-                    SCM_OBJ(sp - nr_free_vars + 1));
+                    SCM_OBJ(sp[- nr_free_vars + 1]));
     }
   }
 
@@ -99,7 +99,7 @@ scm_closure_finalize(ScmObj clsr)
 
 ScmObj
 scm_closure_new(SCM_MEM_TYPE_T mtype, ScmObj iseq,
-                size_t nr_free_vars, scm_vm_stack_val_t *sp)
+                size_t nr_free_vars, ScmObj *sp)
 {
   ScmObj clsr = SCM_OBJ_INIT;
   int rslt;

@@ -8,7 +8,6 @@
 #include "reference.h"
 #include "encoding.h"
 #include "api_enum.h"
-#include "api_type.h"
 
 /*******************************************************************/
 /*  Error                                                          */
@@ -240,8 +239,7 @@ bool scm_capi_subrutine_p(ScmObj obj);
 /*  Closure                                                        */
 /*******************************************************************/
 
-ScmObj scm_capi_make_closure(ScmObj iseq,
-                             size_t nr_free_vars, scm_vm_stack_val_t *sp);
+ScmObj scm_capi_make_closure(ScmObj iseq, size_t nr_free_vars, ScmObj *sp);
 ScmObj scm_capi_iseq_to_closure(ScmObj iseq);
 bool scm_capi_closure_p(ScmObj obj);
 
