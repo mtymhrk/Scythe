@@ -111,7 +111,7 @@ bool scm_vm_stack_objmap_is_scmobj(ScmObj vm, scm_vm_stack_val_t *sp);
 
 void scm_vm_setup_singletons(ScmObj vm);
 void scm_vm_clean_singletons(ScmObj vm);
-scm_local_func void scm_vm_clean_eval_env(ScmObj vm);
+void scm_vm_clean_eval_env(ScmObj vm);
 
 void scm_vm_stack_push(ScmObj vm, scm_vm_stack_val_t elm, bool scmobj_p);
 ScmObj scm_vm_stack_pop(ScmObj vm);
@@ -127,8 +127,7 @@ ScmObj scm_vm_make_trampolining_code(ScmObj vm,
 void scm_vm_op_call(ScmObj vm, bool tail_p);
 void scm_vm_op_immval(ScmObj vm, size_t immv_idx);
 void scm_vm_op_push(ScmObj vm);
-void scm_vm_op_push_immval(ScmObj vm, ScmObj val);
-void scm_vm_op_push_primval(ScmObj vm, scm_sword_t val);
+void scm_vm_op_push_primval(ScmObj vm, int32_t val);
 void scm_vm_op_frame(ScmObj vm);
 void scm_vm_op_return(ScmObj vm);
 void scm_vm_op_gref(ScmObj vm, size_t immv_idx);

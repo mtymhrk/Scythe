@@ -135,6 +135,22 @@ ScmObj scm_capi_make_fixnum(scm_sword_t num);
 bool scm_capi_fixnum_p(ScmObj obj);
 long scm_capi_fixnum_to_clong(ScmObj fn);
 
+inline ScmObj
+scm_capi_cptr_to_fixnum(void *ptr)
+{
+  if (((scm_uword_t)ptr & 0x01) == 0x01)
+    return SCM_OBJ_NULL; /* provisional implemntation */
+
+  return SCM_OBJ((scm_uword_t)ptr | 0x01);
+}
+
+inline void *
+scm_capi_fixnum_to_cptr(ScmObj fn)
+{
+  if (!scm_capi_fixnum_p(fn)) return NULL; /* provisional implemntation */
+
+  return (void *)((scm_uword_t)fn ^ 0x01);
+}
 
 /*******************************************************************/
 /*  charactor                                                      */

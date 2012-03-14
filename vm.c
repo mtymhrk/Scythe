@@ -337,18 +337,16 @@ scm_vm_stack_shorten(ScmObj vm, int n)
 scm_local_func int
 scm_vm_frame_argc(ScmObj vm)
 {
-  scm_uword_t argc;
+  ScmObj argc = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vm);
+  SCM_STACK_FRAME_PUSH(&vm, &argc);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
   scm_assert(SCM_VM(vm)->reg.fp != NULL);
 
-  argc = (scm_uword_t)SCM_VM(vm)->reg.fp[-1];
+  argc = SCM_VM(vm)->reg.fp[-1];
 
-  scm_assert(argc <= INT_MAX);
-
-  return (int)argc;
+  return (int)scm_capi_fixnum_to_clong(argc);;
 }
 
 /* 現在のスタックフレームにある nth 番目の引数を返す (0 origin) */
@@ -371,17 +369,21 @@ scm_vm_frame_argv(ScmObj vm, int nth)
 scm_local_func void
 scm_vm_return_to_caller(ScmObj vm)
 {
+  ScmObj fp_fn = SCM_OBJ_INIT, ip_fn = SCM_OBJ_INIT;
   int argc;
   scm_vm_stack_val_t *fp;
 
-  SCM_STACK_FRAME_PUSH(&vm);
+  SCM_STACK_FRAME_PUSH(&vm, &fp_fn, &ip_fn);
 
   argc = scm_vm_frame_argc(vm);
   fp = SCM_VM(vm)->reg.fp;
 
-  SCM_VM(vm)->reg.fp = (scm_vm_stack_val_t *)fp[-(argc + 4)];
+  fp_fn = fp[-(argc + 4)];
   SCM_SLOT_SETQ(ScmVM, vm, reg.iseq, SCM_OBJ(fp[-(argc + 3)]));
-  SCM_VM(vm)->reg.ip = (uint8_t *)fp[-(argc + 2)];
+  ip_fn = fp[-(argc + 2)];
+
+  SCM_VM(vm)->reg.fp = scm_capi_fixnum_to_cptr(fp_fn);
+  SCM_VM(vm)->reg.ip = scm_capi_fixnum_to_cptr(ip_fn);
 
   scm_vm_stack_shorten(vm, argc + 4); /* 3 := argc, fp, iseq, ip */
 }
@@ -466,10 +468,10 @@ scm_vm_make_trampolining_code(ScmObj vm,
 scm_local_func void
 scm_vm_op_call(ScmObj vm, bool tail_p)
 {
-  ScmObj val = SCM_OBJ_INIT;
+  ScmObj val = SCM_OBJ_INIT, ip_fn = SCM_OBJ_INIT;
   int argc;
 
-  SCM_STACK_FRAME_PUSH(&vm, &val);
+  SCM_STACK_FRAME_PUSH(&vm, &val, &ip_fn);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
@@ -482,8 +484,9 @@ scm_vm_op_call(ScmObj vm, bool tail_p)
       /* FRAME インストラクションでダミー値を設定していたものを実際の値に変更
          する */
       argc = scm_vm_frame_argc(vm);
+      ip_fn = scm_capi_cptr_to_fixnum(SCM_VM(vm)->reg.ip);
       SCM_SLOT_SETQ(ScmVM, vm, reg.fp[-(argc + 3)], SCM_VM(vm)->reg.iseq);
-      SCM_VM(vm)->reg.fp[-(argc + 2)] = (scm_vm_stack_val_t)SCM_VM(vm)->reg.ip;
+      SCM_SLOT_SETQ(ScmVM, vm, reg.fp[-(argc + 2)], ip_fn);
     }
 
     val = scm_api_call_subrutine(SCM_VM(vm)->reg.val);
@@ -531,11 +534,16 @@ scm_vm_op_push(ScmObj vm)
 }
 
 scm_local_func void
-scm_vm_op_push_primval(ScmObj vm, scm_sword_t val)
+scm_vm_op_push_primval(ScmObj vm, int32_t val)
 {
+  ScmObj fn = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&vm, &fn);
+
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
-  scm_vm_stack_push(vm, (scm_vm_stack_val_t)val, false);
+  fn = scm_capi_make_fixnum(val);
+  scm_vm_stack_push(vm, fn, true);
 }
 
 /* 関数呼出のためのスタックフレームを作成するインストラクション。
@@ -545,10 +553,14 @@ scm_vm_op_push_primval(ScmObj vm, scm_sword_t val)
 scm_local_func void
 scm_vm_op_frame(ScmObj vm) /* GC OK */
 {
+  ScmObj fp_fn = SCM_OBJ_INIT;
+
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
+  fp_fn = scm_capi_cptr_to_fixnum(SCM_VM(vm)->reg.fp);
+
   /* push frame pointer */
-  scm_vm_stack_push(vm, (scm_vm_stack_val_t)SCM_VM(vm)->reg.fp, false);
+  scm_vm_stack_push(vm, (scm_vm_stack_val_t)fp_fn, true);
 
   /* push ScmISeq object (FRAME インストラクション段階ではダミー値を
      プッシュする。本当の値は CALL 時に設定する) */
@@ -556,7 +568,7 @@ scm_vm_op_frame(ScmObj vm) /* GC OK */
 
   /* push instraction pointer (FRAME インストラクション段階ではダミー
      値をプッシュする。本当の値は CALL 時に設定する) */
-  scm_vm_stack_push(vm, (scm_vm_stack_val_t)NULL, false);
+  scm_vm_stack_push(vm, (scm_vm_stack_val_t)SCM_OBJ_NULL, true);
 }
 
 /* 関数の呼び出しから戻るインストラクション。
