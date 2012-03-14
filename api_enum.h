@@ -56,7 +56,6 @@ typedef enum {
   SCM_OPCODE_FRAME,               /* create stack frame */
   SCM_OPCODE_IMMVAL,              /* copy immediate value to val register */
   SCM_OPCODE_PUSH,                /* push value of val register */
-  SCM_OPCODE_PUSH_PRIMVAL,        /* push primitive value of host language */
   SCM_OPCODE_GREF,                /* refere global variable */
   SCM_OPCODE_GDEF,                /* define global variable */
   SCM_OPCODE_GSET,                /* update global variable */

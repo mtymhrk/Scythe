@@ -29,7 +29,6 @@ struct {
   { "frame"        , SCM_OPCODE_FRAME },
   { "immval"       , SCM_OPCODE_IMMVAL },
   { "push"         , SCM_OPCODE_PUSH },
-  { "push_primval" , SCM_OPCODE_PUSH_PRIMVAL },
   { "gref"         , SCM_OPCODE_GREF },
   { "gdef"         , SCM_OPCODE_GDEF },
   { "gset"         , SCM_OPCODE_GSET },
@@ -419,7 +418,6 @@ scm_iseq_asm_inst(ScmObj iseq, ScmObj inst, size_t idx,
     return scm_iseq_asm_inst_unary_op(iseq, opcode, arg1);
     break;
   case SCM_OPCODE_CALL:         /* fall through */
-  case SCM_OPCODE_PUSH_PRIMVAL:
     if (!scm_capi_pair_p(args)) return -1;  /* [ERR]: iseq: operands is not exist */
 
     arg1 = scm_api_car(args);

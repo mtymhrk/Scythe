@@ -274,15 +274,14 @@ test_scm_iseq_list_to_iseq(void)
   ScmObj port = SCM_OBJ_INIT;
   const char *str =
     "((nop)(stop)(call 5)(return)(frame)(push)(gref vvv)"
-    "(gdef vvv)(gset vvv)(immval vvv)(push_primval 123)"
+    "(gdef vvv)(gset vvv)(immval vvv)"
     "(label lbl)(jmp lbl)(asm ((nop))))";
   const uint8_t expected_codes[] = { SCM_OPCODE_NOP, SCM_OPCODE_STOP,
                                      SCM_OPCODE_CALL, SCM_OPCODE_RETURN,
                                      SCM_OPCODE_FRAME, SCM_OPCODE_PUSH,
                                      SCM_OPCODE_GREF, SCM_OPCODE_GDEF,
                                      SCM_OPCODE_GSET, SCM_OPCODE_IMMVAL,
-                                     SCM_OPCODE_PUSH_PRIMVAL, SCM_OPCODE_JMP,
-                                     SCM_OPCODE_IMMVAL };
+                                     SCM_OPCODE_JMP, SCM_OPCODE_IMMVAL };
   ScmObj actual_immv = SCM_OBJ_INIT;
   ScmObj expected_immv = SCM_OBJ_INIT;
   uint8_t *ip;
@@ -321,7 +320,7 @@ test_scm_iseq_list_to_iseq(void)
       actual_immv = scm_iseq_get_immval(iseq, actual_arg);
       if (i == 9)
         cut_assert_true(scm_capi_eq_p(expected_immv, actual_immv));
-      else if (i == 12)
+      else if (i == 11)
         cut_assert_true(scm_obj_type_p(actual_immv, &SCM_ISEQ_TYPE_INFO));
       else
         cut_assert(false);
@@ -329,10 +328,6 @@ test_scm_iseq_list_to_iseq(void)
     case SCM_OPCODE_CALL:
       SCM_CAPI_INST_FETCH_UINT32(ip, actual_arg);
       cut_assert_equal_uint(5, actual_arg);
-      break;
-    case SCM_OPCODE_PUSH_PRIMVAL:
-      SCM_CAPI_INST_FETCH_UINT32(ip, actual_arg);
-      cut_assert_equal_int(123, actual_arg);
       break;
     case SCM_OPCODE_JMP:
       SCM_CAPI_INST_FETCH_UINT32(ip, actual_arg);

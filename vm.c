@@ -450,18 +450,6 @@ scm_vm_op_push(ScmObj vm)
   scm_vm_stack_push(vm, SCM_VM(vm)->reg.val);
 }
 
-scm_local_func void
-scm_vm_op_push_primval(ScmObj vm, int32_t val)
-{
-  ScmObj fn = SCM_OBJ_INIT;
-
-  SCM_STACK_FRAME_PUSH(&vm, &fn);
-
-  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-
-  fn = scm_capi_make_fixnum(val);
-  scm_vm_stack_push(vm, fn);
-}
 
 /* 関数呼出のためのスタックフレームを作成するインストラクション。
  * フレームポインタとインストラクションポインタをスタックにプッシュする。
@@ -803,10 +791,6 @@ scm_vm_run(ScmObj vm, ScmObj iseq)
       break;
     case SCM_OPCODE_PUSH:
       scm_vm_op_push(vm);
-      break;
-    case SCM_OPCODE_PUSH_PRIMVAL:
-      SCM_CAPI_INST_FETCH_INT32(SCM_VM(vm)->reg.ip, primv);
-      scm_vm_op_push_primval(vm, primv);
       break;
     case SCM_OPCODE_GREF:
       SCM_CAPI_INST_FETCH_UINT32(SCM_VM(vm)->reg.ip, immv_idx);
