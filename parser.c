@@ -740,7 +740,11 @@ scm_lexer_tokenize_numeric(ScmLexer *lexer, ScmObj port,
   scm_assert(scm_capi_input_port_p(port));
   scm_assert(vf != NULL);
 
-  state = LEXER_STATE_IDENTIFIER;
+  if (strchr("+-", lexer->ascii.head[0]) == NULL)
+    state = LEXER_STATE_NUMERIC;
+  else
+    state = LEXER_STATE_IDENTIFIER;
+
   while (1) {
     width = scm_capi_peek_char(port, &current);
     if (width < 0) {

@@ -9,50 +9,37 @@
 
 
 ScmObj
-scm_subr_func_cons(void)
+scm_subr_func_cons(uint32_t argc, ScmObj *argv)
 {
-  if (scm_capi_get_nr_func_arg() != 2)
+  if (argc != 2)
     ;                           /* TODO: error handling */
 
-  return scm_api_cons(scm_capi_get_func_arg(0), scm_capi_get_func_arg(1));
+  return scm_api_cons(argv[0], argv[1]);
 }
 
 ScmObj
-scm_subr_func_car(void)
+scm_subr_func_car(uint32_t argc, ScmObj *argv)
 {
-  ScmObj pair = SCM_OBJ_INIT;
-
-  SCM_STACK_FRAME_PUSH(&pair);
-
-  if (scm_capi_get_nr_func_arg() != 1)
+  if (argc != 1)
     ;                           /* TODO: error handling */
 
 
-  pair = scm_capi_get_func_arg(0);
-
-  if (!scm_capi_pair_p(pair))
+  if (!scm_capi_pair_p(argv[0]))
     ;                           /* TODO: err handling  */
 
-  return scm_api_car(pair);
+  return scm_api_car(argv[0]);
 }
 
 ScmObj
-scm_subr_func_cdr(void)
+scm_subr_func_cdr(uint32_t argc, ScmObj *argv)
 {
-  ScmObj pair = SCM_OBJ_INIT;
-
-  SCM_STACK_FRAME_PUSH(&pair);
-
-  if (scm_capi_get_nr_func_arg() != 1)
+  if (argc != 1)
     ;                           /* TODO: error handling */
 
-
-  pair = scm_capi_get_func_arg(0);
-
-  if (!scm_capi_pair_p(pair))
+  if (!scm_capi_pair_p(argv[0]))
     ;                           /* TODO: err handling  */
 
-  return scm_api_cdr(pair);
+  return scm_api_cdr(argv[0]);
 }
 
 
@@ -61,7 +48,7 @@ scm_subr_func_cdr(void)
 /*******************************************************************/
 
 ScmObj
-scm_subr_func_eval_asm(void)
+scm_subr_func_eval_asm(uint32_t argc, ScmObj *argv)
 {
   ScmObj code = SCM_OBJ_INIT;
   ScmObj args = SCM_OBJ_INIT;
@@ -69,22 +56,23 @@ scm_subr_func_eval_asm(void)
 
   SCM_STACK_FRAME_PUSH(&code, &args);
 
-  if (scm_capi_get_nr_func_arg() != 1)
+  if (argc != 1)
     ;                           /* TODO: error handling */
 
-  code = scm_capi_get_func_arg(0);
-
-  if (scm_capi_pair_p(code)) {
-    code = scm_api_assemble(code);
+  if (scm_capi_pair_p(argv[0])) {
+    code = scm_api_assemble(argv[0]);
     if (scm_obj_null_p(code)) return SCM_OBJ_NULL; /* [ERR]: [through] */
   }
-  else if (!scm_capi_iseq_p(code)) {
+  else if (scm_capi_iseq_p(argv[0])) {
+    code = argv[0];
+  }
+  else {
     ;                           /* TODO: err handling  */
   }
 
   args = scm_api_nil();
 
-  rslt = scm_capi_trampolining(code, args, NULL);
+  rslt = scm_capi_trampolining(code, args, argc, NULL);
   if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   return SCM_OBJ_NULL;

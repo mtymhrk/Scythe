@@ -1,5 +1,7 @@
+#include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
+#include <limits.h>
 
 #include "object.h"
 #include "memory.h"
@@ -876,12 +878,12 @@ scm_capi_make_subrutine(ScmSubrFunc func)
 }
 
 extern inline ScmObj
-scm_api_call_subrutine(ScmObj subr)
+scm_api_call_subrutine(ScmObj subr, int argc, ScmObj *argv)
 {
   if (!scm_capi_subrutine_p(subr))
     return SCM_OBJ_NULL;         /* provisional implemntation */
 
-  return scm_subrutine_call(subr);
+  return scm_subrutine_call(subr, argc, argv);
 }
 
 extern inline bool
@@ -960,12 +962,20 @@ scm_capi_iseq_length(ScmObj iseq)
 ssize_t
 scm_capi_iseq_push_op(ScmObj iseq, SCM_OPCODE_T op)
 {
+  ssize_t rslt, idx;
   SCM_STACK_FRAME_PUSH(&iseq);
 
   if (!scm_capi_iseq_p(iseq))
     return -1;
 
-  return scm_iseq_push_uint8(iseq, op);
+  rslt = scm_iseq_push_uint8(iseq, op);
+  if (rslt < 0) return -1;   /* provisional implemntation */
+  idx = rslt;
+
+  rslt = scm_iseq_push_uint8(iseq, 0);
+  if (rslt < 0) return -1;   /* provisional implemntation */
+
+  return idx;
 }
 
 ssize_t
@@ -986,6 +996,9 @@ scm_capi_iseq_push_op_immval(ScmObj iseq, SCM_OPCODE_T op, ScmObj val)
   if (rslt < 0) return -1;   /* provisional implemntation */
   idx = rslt;
 
+  rslt = scm_iseq_push_uint8(iseq, 0);
+  if (rslt < 0) return -1;   /* provisional implemntation */
+
   rslt = scm_iseq_push_uint32(iseq, (uint32_t)immv_idx);
   if (rslt < 0) return -1;   /* provisional implemntation */
 
@@ -1003,7 +1016,34 @@ scm_capi_iseq_push_op_cval(ScmObj iseq, SCM_OPCODE_T op, uint32_t val)
   if (rslt < 0) return -1;   /* provisional implemntation */
   idx = rslt;
 
+  rslt = scm_iseq_push_uint8(iseq, 0);
+  if (rslt < 0) return -1;   /* provisional implemntation */
+
   rslt = scm_iseq_push_uint32(iseq, val);
+  if (rslt < 0) return -1;   /* provisional implemntation */
+
+  return idx;
+}
+
+ssize_t
+scm_capi_iseq_push_op_cval_cval(ScmObj iseq, SCM_OPCODE_T op,
+                                uint32_t val1, uint32_t val2)
+{
+  ssize_t rslt, idx;
+
+  SCM_STACK_FRAME_PUSH(&iseq);
+
+  rslt = scm_iseq_push_uint8(iseq, op);
+  if (rslt < 0) return -1;   /* provisional implemntation */
+  idx = rslt;
+
+  rslt = scm_iseq_push_uint8(iseq, 0);
+  if (rslt < 0) return -1;   /* provisional implemntation */
+
+  rslt = scm_iseq_push_uint32(iseq, val1);
+  if (rslt < 0) return -1;   /* provisional implemntation */
+
+  rslt = scm_iseq_push_uint32(iseq, val2);
   if (rslt < 0) return -1;   /* provisional implemntation */
 
   return idx;
@@ -1163,12 +1203,13 @@ scm_capi_get_func_arg(int nth)
 /*******************************************************************/
 
 extern inline int
-scm_capi_trampolining(ScmObj target, ScmObj args,
-                      ScmObj (*callback)(void))
+scm_capi_trampolining(ScmObj target, ScmObj args, int nr_arg_cf,
+                      ScmObj (*callback)(int argc, ScmObj *argv))
 {
   if ((!scm_capi_iseq_p(target) && !scm_capi_closure_p(target))
       || scm_capi_pair_p(args))
     return SCM_OBJ_NULL;                  /* provisional implemntation */
 
-  return scm_vm_setup_trampolining(scm_vm_current_vm(), target, args, callback);
+  return scm_vm_setup_trampolining(scm_vm_current_vm(),
+                                   target, args, nr_arg_cf, callback);
 }

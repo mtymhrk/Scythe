@@ -273,7 +273,7 @@ test_scm_iseq_list_to_iseq(void)
   ScmObj lst = SCM_OBJ_INIT;
   ScmObj port = SCM_OBJ_INIT;
   const char *str =
-    "((nop)(stop)(call)(return)(frame)(push)(gref vvv)"
+    "((nop)(stop)(call 5)(return)(frame)(push)(gref vvv)"
     "(gdef vvv)(gset vvv)(immval vvv)(push_primval 123)"
     "(label lbl)(jmp lbl)(asm ((nop))))";
   const uint8_t expected_codes[] = { SCM_OPCODE_NOP, SCM_OPCODE_STOP,
@@ -285,7 +285,7 @@ test_scm_iseq_list_to_iseq(void)
                                      SCM_OPCODE_IMMVAL };
   ScmObj actual_immv = SCM_OBJ_INIT;
   ScmObj expected_immv = SCM_OBJ_INIT;
-  size_t idx;
+  uint8_t *ip;
 
   SCM_STACK_FRAME_PUSH(&iseq, &lst, &port, &actual_immv, &expected_immv);
 
@@ -298,32 +298,26 @@ test_scm_iseq_list_to_iseq(void)
   cut_assert_true(scm_obj_not_null_p(iseq));
   cut_assert_true(scm_obj_type_p(iseq, &SCM_ISEQ_TYPE_INFO));
 
-  idx = 0;
+  ip = scm_capi_iseq_to_ip(iseq);
+
   for (size_t i = 0; i < sizeof(expected_codes)/sizeof(expected_codes[0]); i++) {
     uint8_t actual_op;
     uint32_t actual_arg;
-    ssize_t rslt;
 
-    rslt = scm_iseq_get_uint8(iseq, idx, &actual_op);
+    SCM_CAPI_INST_FETCH_OP(ip, actual_op);
 
-    cut_assert_equal_int((ssize_t)idx, rslt);
     cut_assert_equal_int(expected_codes[i], actual_op);
-
-    idx++;
 
     switch (actual_op) {
     case SCM_OPCODE_GREF:
     case SCM_OPCODE_GDEF:
     case SCM_OPCODE_GSET:
-      rslt = scm_iseq_get_uint32(iseq, idx, &actual_arg);
-      cut_assert_equal_int((ssize_t)idx, rslt);
+      SCM_CAPI_INST_FETCH_UINT32(ip, actual_arg);
       actual_immv = scm_iseq_get_immval(iseq, actual_arg);
       cut_assert_true(scm_capi_eq_p(expected_immv, actual_immv));
-      idx += 4;
       break;
     case SCM_OPCODE_IMMVAL:
-      rslt = scm_iseq_get_uint32(iseq, idx, &actual_arg);
-      cut_assert_equal_int((ssize_t)idx, rslt);
+      SCM_CAPI_INST_FETCH_UINT32(ip, actual_arg);
       actual_immv = scm_iseq_get_immval(iseq, actual_arg);
       if (i == 9)
         cut_assert_true(scm_capi_eq_p(expected_immv, actual_immv));
@@ -331,25 +325,19 @@ test_scm_iseq_list_to_iseq(void)
         cut_assert_true(scm_obj_type_p(actual_immv, &SCM_ISEQ_TYPE_INFO));
       else
         cut_assert(false);
-      idx += 4;
+      break;
+    case SCM_OPCODE_CALL:
+      SCM_CAPI_INST_FETCH_UINT32(ip, actual_arg);
+      cut_assert_equal_uint(5, actual_arg);
       break;
     case SCM_OPCODE_PUSH_PRIMVAL:
-      rslt = scm_iseq_get_uint32(iseq, idx, &actual_arg);
-      cut_assert_equal_int((ssize_t)idx, rslt);
+      SCM_CAPI_INST_FETCH_UINT32(ip, actual_arg);
       cut_assert_equal_int(123, actual_arg);
-      idx += 4;
       break;
     case SCM_OPCODE_JMP:
-      rslt = scm_iseq_get_uint32(iseq, idx, &actual_arg);
-      cut_assert_equal_int((ssize_t)idx, rslt);
-      cut_assert_equal_int(-5, (int32_t)actual_arg);
-      idx += 4;
+      SCM_CAPI_INST_FETCH_UINT32(ip, actual_arg);
+      cut_assert_equal_int(-6, (int32_t)actual_arg);
       break;
     }
   }
 }
-
-
-
-
-

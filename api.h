@@ -1,6 +1,7 @@
 #ifndef INCLUDE_API_H__
 #define INCLUDE_API_H__
 
+#include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
 
@@ -135,16 +136,29 @@ bool scm_capi_fixnum_p(ScmObj obj);
 long scm_capi_fixnum_to_clong(ScmObj fn);
 
 inline ScmObj
-scm_capi_cptr_to_fixnum(void *ptr)
+scm_capi_frame_ptr_to_fixnum(void *ptr)
 {
-  if (((scm_uword_t)ptr & 0x01) == 0x01)
-    return SCM_OBJ_NULL; /* provisional implemntation */
-
+  scm_assert(((scm_uword_t)ptr & 0x01) == 0x00);
   return SCM_OBJ((scm_uword_t)ptr | 0x01);
 }
 
 inline void *
-scm_capi_fixnum_to_cptr(ScmObj fn)
+scm_capi_fixnum_to_frame_ptr(ScmObj fn)
+{
+  if (!scm_capi_fixnum_p(fn)) return NULL; /* provisional implemntation */
+
+  return (void *)((scm_uword_t)fn ^ 0x01);
+}
+
+inline ScmObj
+scm_capi_inst_ptr_to_fixnum(void *ptr)
+{
+  scm_assert(((scm_uword_t)ptr & 0x01) == 0x00);
+  return SCM_OBJ((scm_uword_t)ptr | 0x01);
+}
+
+inline void *
+scm_capi_fixnum_to_inst_ptr(ScmObj fn)
 {
   if (!scm_capi_fixnum_p(fn)) return NULL; /* provisional implemntation */
 
@@ -232,7 +246,7 @@ ScmObj scm_api_read(ScmObj port);
 /*******************************************************************/
 
 ScmObj scm_capi_make_subrutine(ScmSubrFunc func);
-ScmObj scm_api_call_subrutine(ScmObj subr);
+ScmObj scm_api_call_subrutine(ScmObj subr, int argc, ScmObj *argv);
 bool scm_capi_subrutine_p(ScmObj obj);
 
 /*******************************************************************/
@@ -253,13 +267,16 @@ uint8_t *scm_capi_iseq_to_ip(ScmObj iseq);
 ssize_t scm_capi_iseq_push_op(ScmObj iseq, SCM_OPCODE_T op);
 ssize_t scm_capi_iseq_push_op_immval(ScmObj iseq, SCM_OPCODE_T op, ScmObj val);
 ssize_t scm_capi_iseq_push_op_cval(ScmObj iseq, SCM_OPCODE_T op, uint32_t val);
+ssize_t scm_capi_iseq_push_op_cval_cval(ScmObj iseq, SCM_OPCODE_T op,
+                                        uint32_t val1, uint32_t val2);
 ssize_t scm_capi_iseq_set_immval(ScmObj iseq, size_t idx, ScmObj val);
 ScmObj scm_capi_iseq_ref_immval(ScmObj iseq, size_t idx);
 ScmObj scm_api_assemble(ScmObj lst);
 
 #define SCM_CAPI_INST_FETCH_OP(ip, op) \
   do {                                 \
-    (op) = *((uint8_t *)(ip)++);       \
+    (op) = *(uint8_t *)(ip);           \
+    (ip) = (uint8_t *)(ip) + 2;        \
   } while (0)
 
 #define SCM_CAPI_INST_FETCH_UINT32(ip, v)                  \
@@ -304,7 +321,9 @@ ScmObj scm_capi_get_func_arg(int nth);
 /*  Setup Trampolining                                             */
 /*******************************************************************/
 
-int scm_capi_trampolining(ScmObj target, ScmObj arg, ScmObj (*callback)(void));
+int scm_capi_trampolining(ScmObj target,
+                          ScmObj arg, int nr_arg_cf,
+                          ScmObj (*callback)(int argc, ScmObj *argv));
 
 
 #endif /* INCLUDE_API_H__ */

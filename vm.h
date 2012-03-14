@@ -106,21 +106,23 @@ void scm_vm_clean_eval_env(ScmObj vm);
 
 void scm_vm_stack_push(ScmObj vm, ScmObj elm);
 ScmObj scm_vm_stack_pop(ScmObj vm);
-void scm_vm_stack_shorten(ScmObj vm, int n);
+void scm_vm_stack_shorten(ScmObj vm, size_t n);
 
 int scm_vm_frame_argc(ScmObj vm);
 ScmObj scm_vm_frame_argv(ScmObj vm, int nth);
-void scm_vm_return_to_caller(ScmObj vm);
+void scm_vm_return_to_caller(ScmObj vm, uint32_t nr_arg);
 
-ScmObj scm_vm_make_trampolining_code(ScmObj vm,
-                                     ScmObj clsr, ScmObj args, ScmObj callback);
+ScmObj scm_vm_make_trampolining_code(ScmObj vm, ScmObj clsr,
+                                     ScmObj args, uint32_t nr_arg_cf,
+                                     ScmObj callback);
 
-void scm_vm_op_call(ScmObj vm, bool tail_p);
+void scm_vm_op_call(ScmObj vm,
+                    uint32_t nr_arg, uint32_t nr_arg_cf, bool tail_p);
 void scm_vm_op_immval(ScmObj vm, size_t immv_idx);
 void scm_vm_op_push(ScmObj vm);
 void scm_vm_op_push_primval(ScmObj vm, int32_t val);
 void scm_vm_op_frame(ScmObj vm);
-void scm_vm_op_return(ScmObj vm);
+void scm_vm_op_return(ScmObj vm, uint32_t nr_arg);
 void scm_vm_op_gref(ScmObj vm, size_t immv_idx);
 void scm_vm_op_gdef(ScmObj vm, size_t immv_idx);
 void scm_vm_op_gset(ScmObj vm, size_t immv_idx);
@@ -141,8 +143,9 @@ void scm_vm_run(ScmObj vm, ScmObj iseq);
 int scm_vm_nr_local_var(ScmObj vm);
 ScmObj scm_vm_refer_local_var(ScmObj vm, int nth);
 
-int scm_vm_setup_trampolining(ScmObj vm, ScmObj target, ScmObj args,
-                              ScmObj (*callback)(void));
+int scm_vm_setup_trampolining(ScmObj vm, ScmObj target,
+                              ScmObj args, int nr_arg_cf,
+                              ScmObj (*callback)(int argc, ScmObj *argv));
 
 void scm_vm_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_vm_gc_finalize(ScmObj obj);

@@ -118,6 +118,25 @@ test_parser_parse_fixnum(void)
 }
 
 void
+test_parser_parse_fixnum_1d(void)
+{
+  ScmObj num = SCM_OBJ_INIT, eof = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&num, &eof);
+
+  new_parser();
+  new_port(" 1 ");
+
+  num = scm_parser_parse_expression(parser, port);
+
+  cut_assert_true(scm_capi_fixnum_p(num));
+  cut_assert_equal_int(1, scm_capi_fixnum_to_clong(num));
+
+  eof = scm_parser_parse_expression(parser, port);
+  cut_assert_true(scm_capi_eof_object_p(eof));
+}
+
+void
 test_parser_parse_fixnum_signed(void)
 {
   ScmObj num1 = SCM_OBJ_INIT, num2 = SCM_OBJ_INIT, eof = SCM_OBJ_INIT;

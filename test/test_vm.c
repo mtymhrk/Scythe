@@ -83,9 +83,8 @@ test_scm_vm_run__call_cons(void)
   scm_capi_iseq_push_op(iseq, SCM_OPCODE_PUSH);
   scm_capi_iseq_push_op_immval(iseq, SCM_OPCODE_IMMVAL, cdr);
   scm_capi_iseq_push_op(iseq, SCM_OPCODE_PUSH);
-  scm_capi_iseq_push_op_cval(iseq, SCM_OPCODE_PUSH_PRIMVAL, 2);
   scm_capi_iseq_push_op_immval(iseq, SCM_OPCODE_GREF, cons_sym);
-  scm_capi_iseq_push_op(iseq, SCM_OPCODE_CALL);
+  scm_capi_iseq_push_op_cval(iseq, SCM_OPCODE_CALL, 2);
   scm_capi_iseq_push_op(iseq, SCM_OPCODE_STOP);
 
   /* action */

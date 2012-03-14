@@ -250,6 +250,9 @@ scm_iseq_asm_inst_noarg_op(ScmObj iseq, int opcode)
   idx = scm_iseq_push_uint8(iseq, (uint8_t)opcode);
   if (idx < 0) return -1;      /* [ERR]: [through] */
 
+  idx = scm_iseq_push_uint8(iseq, 0);
+  if (idx < 0) return -1;      /* [ERR]: [through] */
+
   return idx + 1;
 }
 
@@ -267,6 +270,9 @@ scm_iseq_asm_inst_unary_op(ScmObj iseq, int opcode, ScmObj arg)
   if (immv_idx > UINT32_MAX) return -1; /* [ERR]: iseq: operand is out of range */
 
   idx = scm_iseq_push_uint8(iseq, (uint8_t)opcode);
+  if (idx < 0) return -1;      /* [ERR]: [through] */
+
+  idx = scm_iseq_push_uint8(iseq, 0);
   if (idx < 0) return -1;      /* [ERR]: [through] */
 
   idx = scm_iseq_push_uint32(iseq, (uint32_t)immv_idx);
@@ -292,7 +298,45 @@ scm_iseq_asm_inst_cval_op(ScmObj iseq, int opcode, ScmObj arg)
   idx = scm_iseq_push_uint8(iseq, (uint8_t)opcode);
   if (idx < 0) return -1;      /* [ERR]: [through] */
 
+  idx = scm_iseq_push_uint8(iseq, 0);
+  if (idx < 0) return -1;      /* [ERR]: [through] */
+
   idx = scm_iseq_push_uint32(iseq, (uint32_t)cval);
+  if (idx < 0) return -1;      /* [ERR]: [through] */
+
+  return idx + 4;
+}
+
+static ssize_t
+scm_iseq_asm_inst_cval_cval_op(ScmObj iseq, int opcode,
+                               ScmObj arg1, ScmObj arg2)
+{
+  long cval1, cval2;
+  ssize_t idx;
+
+  scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
+  scm_assert(0 <= opcode && opcode <= UINT8_MAX);
+  scm_assert(scm_capi_fixnum_p(arg1));
+  scm_assert(scm_capi_fixnum_p(arg2));
+
+  cval1 = scm_capi_fixnum_to_clong(arg1);
+  if (cval1 < INT32_MIN || INT32_MAX < cval1)
+    return -1;                  /* [ERR]: iseq: operand is out of range */
+
+  cval2 = scm_capi_fixnum_to_clong(arg2);
+  if (cval2 < INT32_MIN || INT32_MAX < cval2)
+    return -1;                  /* [ERR]: iseq: operand is out of range */
+
+  idx = scm_iseq_push_uint8(iseq, (uint8_t)opcode);
+  if (idx < 0) return -1;      /* [ERR]: [through] */
+
+  idx = scm_iseq_push_uint8(iseq, 0);
+  if (idx < 0) return -1;      /* [ERR]: [through] */
+
+  idx = scm_iseq_push_uint32(iseq, (uint32_t)cval1);
+  if (idx < 0) return -1;      /* [ERR]: [through] */
+
+  idx = scm_iseq_push_uint32(iseq, (uint32_t)cval2);
   if (idx < 0) return -1;      /* [ERR]: [through] */
 
   return idx + 4;
@@ -313,6 +357,9 @@ scm_iseq_asm_inst_ref_label_op(ScmObj iseq, int opcode, ScmObj label,
   idx = scm_iseq_push_uint8(iseq, (uint8_t)opcode);
   if (idx < 0) return -1;      /* [ERR]: [through] */
 
+  idx = scm_iseq_push_uint8(iseq, 0);
+  if (idx < 0) return -1;      /* [ERR]: [through] */
+
   idx = scm_iseq_push_uint32(iseq, 0);
   if (idx < 0) return -1;      /* [ERR]: [through] */
 
@@ -326,10 +373,11 @@ static ssize_t
 scm_iseq_asm_inst(ScmObj iseq, ScmObj inst, size_t idx,
                   ScmCHashTbl *label_tbl, EArray *labels)
 {
-  ScmObj op = SCM_OBJ_INIT, arg = SCM_OBJ_INIT;
+  ScmObj op = SCM_OBJ_INIT;
+  ScmObj args = SCM_OBJ_INIT, arg1 = SCM_OBJ_INIT, arg2 = SCM_OBJ_INIT;
   int opcode, rslt;
 
-  SCM_STACK_FRAME_PUSH(&iseq, &inst, &op, &arg);
+  SCM_STACK_FRAME_PUSH(&iseq, &inst, &op, &args, &arg1, &arg2);
 
   scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
   scm_assert(!scm_obj_null_p(inst));
@@ -340,12 +388,12 @@ scm_iseq_asm_inst(ScmObj iseq, ScmObj inst, size_t idx,
     op = scm_api_car(inst);
     if (scm_obj_null_p(op)) return -1; /* [ERR]: [thorugh] */
 
-    arg = scm_api_cdr(inst);
-    if (scm_obj_null_p(arg)) return -1; /* [ERR]: [through] */
+    args = scm_api_cdr(inst);
+    if (scm_obj_null_p(args)) return -1; /* [ERR]: [through] */
   }
   else {
     op = inst;
-    arg = scm_api_nil();
+    args = scm_api_nil();
   }
 
   opcode = scm_iseq_asm_sym2opcode(op);
@@ -354,8 +402,6 @@ scm_iseq_asm_inst(ScmObj iseq, ScmObj inst, size_t idx,
   switch (opcode) {
   case SCM_OPCODE_NOP:          /* fall through */
   case SCM_OPCODE_STOP:         /* fall through */
-  case SCM_OPCODE_CALL:         /* fall through */
-  case SCM_OPCODE_TAIL_CALL:    /* fall through */
   case SCM_OPCODE_RETURN:       /* fall through */
   case SCM_OPCODE_FRAME:        /* fall through */
   case SCM_OPCODE_PUSH:
@@ -365,50 +411,61 @@ scm_iseq_asm_inst(ScmObj iseq, ScmObj inst, size_t idx,
   case SCM_OPCODE_GDEF:         /* fall through */
   case SCM_OPCODE_GSET:         /* fall through */
   case SCM_OPCODE_IMMVAL:
-    if (!scm_capi_pair_p(arg)) return -1; /* [ERR]: iseq: operands is not exist */
+    if (!scm_capi_pair_p(args)) return -1; /* [ERR]: iseq: operands is not exist */
 
-    arg = scm_api_car(arg);
-    if (scm_obj_null_p(arg)) return -1; /* [ERR]: [through] */
+    arg1 = scm_api_car(args);
+    if (scm_obj_null_p(arg1)) return -1; /* [ERR]: [through] */
 
-    return scm_iseq_asm_inst_unary_op(iseq, opcode, arg);
+    return scm_iseq_asm_inst_unary_op(iseq, opcode, arg1);
     break;
+  case SCM_OPCODE_CALL:         /* fall through */
   case SCM_OPCODE_PUSH_PRIMVAL:
-    if (!scm_capi_pair_p(arg)) return -1;  /* [ERR]: iseq: operands is not exist */
+    if (!scm_capi_pair_p(args)) return -1;  /* [ERR]: iseq: operands is not exist */
 
-    arg = scm_api_car(arg);
-    if (scm_obj_null_p(arg)) return -1; /* [ERR]: [through] */
+    arg1 = scm_api_car(args);
+    if (scm_obj_null_p(arg1)) return -1; /* [ERR]: [through] */
 
-    return scm_iseq_asm_inst_cval_op(iseq, opcode, arg);
+    return scm_iseq_asm_inst_cval_op(iseq, opcode, arg1);
+    break;
+  case SCM_OPCODE_TAIL_CALL:
+    if (!scm_capi_pair_p(args)) return -1;  /* [ERR]: iseq: operands is not exist */
+    arg1 = scm_api_car(args);
+    if (scm_obj_null_p(arg1)) return -1; /* [ERR]: [through] */
+
+    arg2 = scm_api_car(scm_api_cdr(args));
+    if (scm_obj_null_p(arg2)) return -1; /* [ERR]: [through] */
+
+    return scm_iseq_asm_inst_cval_cval_op(iseq, opcode, arg1, arg2);
     break;
   case SCM_OPCODE_JMP:
-    if (!scm_capi_pair_p(arg)) return -1;  /* [ERR]: iseq: operands is not exist */
+    if (!scm_capi_pair_p(args)) return -1;  /* [ERR]: iseq: operands is not exist */
 
-    arg = scm_api_car(arg);
-    if (scm_obj_null_p(arg)) return -1; /* [ERR]: [through] */
-    if (!scm_capi_symbol_p(arg)) return -1; /* [ERR]: iseq: operand is not symbol */
+    arg1 = scm_api_car(args);
+    if (scm_obj_null_p(arg1)) return -1; /* [ERR]: [through] */
+    if (!scm_capi_symbol_p(arg1)) return -1; /* [ERR]: iseq: operand is not symbol */
 
-    return scm_iseq_asm_inst_ref_label_op(iseq, opcode, arg, label_tbl, labels);
+    return scm_iseq_asm_inst_ref_label_op(iseq, opcode,
+                                          arg1, label_tbl, labels);
     break;
   case SCM_ISEQ_PI_LABEL:
-    if (!scm_capi_pair_p(arg)) return -1;  /* [ERR]: iseq: operands is not exist */
+    if (!scm_capi_pair_p(args)) return -1;  /* [ERR]: iseq: operands is not exist */
 
-    arg = scm_api_car(arg);
-    if (scm_obj_null_p(arg)) return -1; /* [ERR]: [through] */
-    if (!scm_capi_symbol_p(arg)) return -1; /* [ERR]: iseq: operand is not symbol */
+    arg1 = scm_api_car(args);
+    if (scm_obj_null_p(arg1)) return -1; /* [ERR]: [through] */
+    if (!scm_capi_symbol_p(arg1)) return -1; /* [ERR]: iseq: operand is not symbol */
 
-    rslt = scm_iseq_asm_reg_label_def_idx(label_tbl, labels, arg, idx);
+    rslt = scm_iseq_asm_reg_label_def_idx(label_tbl, labels, arg1, idx);
     return (rslt < 0) ?  -1 : (ssize_t)idx;
     break;
   case SCM_ISEQ_PI_ASM:
-    if (!scm_capi_pair_p(arg)) return -1;  /* [ERR]: iseq: operands is not exist */
-    arg = scm_api_car(arg);
-    if (scm_obj_null_p(arg)) return -1; /* [ERR]: [through] */
-    if (!scm_capi_pair_p(arg)) return -1; /* [ERR]: operand is not list */
+    if (!scm_capi_pair_p(args)) return -1;  /* [ERR]: iseq: operands is not exist */
+    arg1 = scm_api_car(args);
+    if (scm_obj_null_p(arg1)) return -1; /* [ERR]: [through] */
+    if (!scm_capi_pair_p(arg1)) return -1; /* [ERR]: iseq: operand is not pair */
+    arg1 = scm_iseq_list_to_iseq(arg1);
+    if (scm_obj_null_p(arg1)) return -1; /* [ERR]: [through] */
 
-    arg = scm_iseq_list_to_iseq(arg);
-    if (scm_obj_null_p(arg)) return -1; /* [ERR]: [through] */
-
-    return scm_iseq_asm_inst_unary_op(iseq, SCM_OPCODE_IMMVAL, arg);
+    return scm_iseq_asm_inst_unary_op(iseq, SCM_OPCODE_IMMVAL, arg1);
     break;
   default:
     scm_assert(false);

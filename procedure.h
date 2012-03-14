@@ -27,11 +27,11 @@ int scm_subrutine_initialize(ScmObj subr, ScmSubrFunc func);
 ScmObj scm_subrutine_new(SCM_MEM_TYPE_T mtype, ScmSubrFunc func);
 
 inline ScmObj
-scm_subrutine_call(ScmObj subr)
+scm_subrutine_call(ScmObj subr, int argc, ScmObj *argv)
 {
   scm_assert_obj_type(subr, &SCM_SUBRUTINE_TYPE_INFO);
 
-  return SCM_SUBRUTINE(subr)->subr_func();
+  return SCM_SUBRUTINE(subr)->subr_func(argc, argv);
 }
 
 

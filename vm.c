@@ -266,12 +266,12 @@ scm_vm_stack_pop(ScmObj vm)
 }
 
 scm_local_func void
-scm_vm_stack_shorten(ScmObj vm, int n)
+scm_vm_stack_shorten(ScmObj vm, size_t n)
 {
   SCM_STACK_FRAME_PUSH(&vm);
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
-  if (SCM_VM(vm)->reg.sp - SCM_VM(vm)->stack < n)
+  if ((size_t)(SCM_VM(vm)->reg.sp - SCM_VM(vm)->stack) < n)
     /* stack underflow; TODO; handle stack underflow error */
     return;
 
@@ -313,40 +313,41 @@ scm_vm_frame_argv(ScmObj vm, int nth)
 }
 
 scm_local_func void
-scm_vm_return_to_caller(ScmObj vm)
+scm_vm_return_to_caller(ScmObj vm, uint32_t nr_arg)
 {
   ScmObj fp_fn = SCM_OBJ_INIT, ip_fn = SCM_OBJ_INIT;
-  int argc;
   ScmObj *fp;
 
   SCM_STACK_FRAME_PUSH(&vm, &fp_fn, &ip_fn);
 
-  argc = scm_vm_frame_argc(vm);
+  scm_assert(nr_arg <= INT32_MAX);
+
   fp = SCM_VM(vm)->reg.fp;
 
-  fp_fn = fp[-(argc + 4)];
-  SCM_SLOT_SETQ(ScmVM, vm, reg.iseq, SCM_OBJ(fp[-(argc + 3)]));
-  ip_fn = fp[-(argc + 2)];
+  fp_fn = fp[-((int32_t)nr_arg + 3)];
+  SCM_SLOT_SETQ(ScmVM, vm, reg.iseq, SCM_OBJ(fp[-((int32_t)nr_arg + 2)]));
+  ip_fn = fp[-((int32_t)nr_arg + 1)];
 
-  SCM_VM(vm)->reg.fp = scm_capi_fixnum_to_cptr(fp_fn);
-  SCM_VM(vm)->reg.ip = scm_capi_fixnum_to_cptr(ip_fn);
+  SCM_VM(vm)->reg.fp = scm_capi_fixnum_to_frame_ptr(fp_fn);
+  SCM_VM(vm)->reg.ip = scm_capi_fixnum_to_inst_ptr(ip_fn);
 
-  scm_vm_stack_shorten(vm, argc + 4); /* 3 := argc, fp, iseq, ip */
+  scm_vm_stack_shorten(vm, nr_arg + 3); /* 3 :=  fp, iseq, ip */
 }
 
 scm_local_func ScmObj
-scm_vm_make_trampolining_code(ScmObj vm,
-                              ScmObj clsr, ScmObj args, ScmObj callback)
+scm_vm_make_trampolining_code(ScmObj vm, ScmObj clsr,
+                              ScmObj args, uint32_t nr_arg_cf, ScmObj callback)
 {
   ScmObj iseq = SCM_OBJ_INIT, cur = SCM_OBJ_INIT, arg = SCM_OBJ_INIT;
   ssize_t rslt;
-  int argc;
+  uint32_t argc;
 
   SCM_STACK_FRAME_PUSH(&vm, &clsr, &args, &callback, &iseq, &cur, &arg);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
   scm_assert(scm_capi_closure_p(clsr));
   scm_assert(scm_capi_nil_p(args) || scm_capi_pair_p(args));
+  scm_assert(nr_arg_cf <= INT32_MAX);
   scm_assert(scm_obj_null_p(callback)
              || scm_capi_subrutine_p(callback)
              || scm_capi_closure_p(callback));
@@ -381,29 +382,23 @@ scm_vm_make_trampolining_code(ScmObj vm,
 
   if (scm_obj_null_p(cur)) return SCM_OBJ_NULL; /* [ERR: [through] */
 
-  rslt = scm_capi_iseq_push_op_cval(iseq,
-                                    SCM_OPCODE_PUSH_PRIMVAL, (uint32_t)argc);
-  if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
-
   rslt = scm_capi_iseq_push_op_immval(iseq, SCM_OPCODE_IMMVAL, clsr);
   if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
-
   if (scm_obj_null_p(callback)) {
-    rslt = scm_capi_iseq_push_op(iseq, SCM_OPCODE_TAIL_CALL);
+    rslt = scm_capi_iseq_push_op_cval_cval(iseq, SCM_OPCODE_TAIL_CALL,
+                                           argc, nr_arg_cf);
     if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
   }
   else {
-    rslt = scm_capi_iseq_push_op(iseq, SCM_OPCODE_CALL);
+    rslt = scm_capi_iseq_push_op_cval(iseq, SCM_OPCODE_CALL, argc);
     if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
     rslt = scm_capi_iseq_push_op(iseq, SCM_OPCODE_PUSH);
     if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
-    rslt = scm_capi_iseq_push_op_cval(iseq, SCM_OPCODE_PUSH_PRIMVAL, 1);
-    if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
-
-    rslt = scm_capi_iseq_push_op(iseq, SCM_OPCODE_TAIL_CALL);
+    rslt = scm_capi_iseq_push_op_cval_cval(iseq, SCM_OPCODE_TAIL_CALL,
+                                           argc, nr_arg_cf);
     if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
   }
 
@@ -412,35 +407,41 @@ scm_vm_make_trampolining_code(ScmObj vm,
 
 /* 関数呼出のためのインストラクション */
 scm_local_func void
-scm_vm_op_call(ScmObj vm, bool tail_p)
+scm_vm_op_call(ScmObj vm, uint32_t nr_arg, uint32_t nr_arg_cf, bool tail_p)
 {
   ScmObj val = SCM_OBJ_INIT, ip_fn = SCM_OBJ_INIT;
-  int argc;
 
   SCM_STACK_FRAME_PUSH(&vm, &val, &ip_fn);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
+  if (nr_arg > INT32_MAX) return; /* [ERR]:  */
+  if (nr_arg_cf > INT32_MAX) return; /* [ERR]:  */
+
   if (scm_capi_subrutine_p(SCM_VM(vm)->reg.val)) {
     if (tail_p) {
       ;                         /* TODO: write me: shift stack */
     }
+
     SCM_VM(vm)->reg.fp = SCM_VM(vm)->reg.sp;
     if (!tail_p) {
       /* FRAME インストラクションでダミー値を設定していたものを実際の値に変更
          する */
-      argc = scm_vm_frame_argc(vm);
-      ip_fn = scm_capi_cptr_to_fixnum(SCM_VM(vm)->reg.ip);
-      SCM_SLOT_SETQ(ScmVM, vm, reg.fp[-(argc + 3)], SCM_VM(vm)->reg.iseq);
-      SCM_SLOT_SETQ(ScmVM, vm, reg.fp[-(argc + 2)], ip_fn);
+
+      ip_fn = scm_capi_inst_ptr_to_fixnum(SCM_VM(vm)->reg.ip);
+      SCM_SLOT_SETQ(ScmVM, vm,
+                    reg.fp[-((int32_t)nr_arg + 2)], SCM_VM(vm)->reg.iseq);
+      SCM_SLOT_SETQ(ScmVM, vm,
+                    reg.fp[-((int32_t)nr_arg + 1)], ip_fn);
     }
 
-    val = scm_api_call_subrutine(SCM_VM(vm)->reg.val);
+    val = scm_api_call_subrutine(SCM_VM(vm)->reg.val,
+                                 (int)nr_arg, SCM_VM(vm)->reg.fp - nr_arg);
     if (scm_obj_not_null_p(val))
       SCM_SLOT_SETQ(ScmVM, vm, reg.val, val);
 
     if (scm_obj_null_p(SCM_VM(vm)->trmp.code)) {
-      scm_vm_return_to_caller(vm);
+      scm_vm_return_to_caller(vm, nr_arg);
     }
     else {
       SCM_SLOT_SETQ(ScmVM, vm, reg.iseq, SCM_VM(vm)->trmp.code);
@@ -503,7 +504,7 @@ scm_vm_op_frame(ScmObj vm) /* GC OK */
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
-  fp_fn = scm_capi_cptr_to_fixnum(SCM_VM(vm)->reg.fp);
+  fp_fn = scm_capi_frame_ptr_to_fixnum(SCM_VM(vm)->reg.fp);
 
   /* push frame pointer */
   scm_vm_stack_push(vm, fp_fn);
@@ -520,9 +521,11 @@ scm_vm_op_frame(ScmObj vm) /* GC OK */
 /* 関数の呼び出しから戻るインストラクション。
  */
 scm_local_func void
-scm_vm_op_return(ScmObj vm) /* GC OK */
+scm_vm_op_return(ScmObj vm, uint32_t nr_arg) /* GC OK */
 {
-  scm_vm_return_to_caller(vm);
+  if (nr_arg > INT32_MAX) return; /* [ERR]: */
+
+  scm_vm_return_to_caller(vm, nr_arg);
 }
 
 /* グローバル変数を参照するインストラクション。
@@ -784,7 +787,7 @@ scm_vm_run(ScmObj vm, ScmObj iseq)
 {
   bool stop_flag;
   uint8_t op;
-  uint32_t immv_idx;
+  uint32_t immv_idx, nr_arg, nr_arg_cf;
   int32_t primv;
 
   SCM_STACK_FRAME_PUSH(&vm, &iseq);
@@ -799,7 +802,6 @@ scm_vm_run(ScmObj vm, ScmObj iseq)
 
   stop_flag = false;
   while (!stop_flag) {
-    /* op = scm_vm_inst_fetch_op(vm); */
     SCM_CAPI_INST_FETCH_OP(SCM_VM(vm)->reg.ip, op);
 
     switch(op) {
@@ -810,20 +812,23 @@ scm_vm_run(ScmObj vm, ScmObj iseq)
       stop_flag = true;
       break;
     case SCM_OPCODE_CALL:
-      scm_vm_op_call(vm, false);
+      SCM_CAPI_INST_FETCH_UINT32(SCM_VM(vm)->reg.ip, nr_arg);
+      scm_vm_op_call(vm, nr_arg, 0, false);
       break;
     case SCM_OPCODE_TAIL_CALL:
-      scm_vm_op_call(vm, true);
+      SCM_CAPI_INST_FETCH_UINT32(SCM_VM(vm)->reg.ip, nr_arg);
+      SCM_CAPI_INST_FETCH_UINT32(SCM_VM(vm)->reg.ip, nr_arg_cf);
+      scm_vm_op_call(vm, nr_arg, nr_arg_cf, true);
       break;
     case SCM_OPCODE_RETURN:
-      scm_vm_op_return(vm);
+      SCM_CAPI_INST_FETCH_UINT32(SCM_VM(vm)->reg.ip, nr_arg);
+      scm_vm_op_return(vm, nr_arg);
       break;
     case SCM_OPCODE_FRAME:
       scm_vm_op_frame(vm);
       break;
     case SCM_OPCODE_IMMVAL:
       SCM_CAPI_INST_FETCH_UINT32(SCM_VM(vm)->reg.ip, immv_idx);
-      /* immv_idx = scm_vm_inst_fetch_uint32(vm); */
       scm_vm_op_immval(vm, immv_idx);
       break;
     case SCM_OPCODE_PUSH:
@@ -831,22 +836,18 @@ scm_vm_run(ScmObj vm, ScmObj iseq)
       break;
     case SCM_OPCODE_PUSH_PRIMVAL:
       SCM_CAPI_INST_FETCH_INT32(SCM_VM(vm)->reg.ip, primv);
-      /* primv = scm_vm_inst_fetch_int32(vm); */
       scm_vm_op_push_primval(vm, primv);
       break;
     case SCM_OPCODE_GREF:
       SCM_CAPI_INST_FETCH_UINT32(SCM_VM(vm)->reg.ip, immv_idx);
-      /* immv_idx = scm_vm_inst_fetch_uint32(vm); */
       scm_vm_op_gref(vm, immv_idx);
       break;
     case SCM_OPCODE_GDEF:
       SCM_CAPI_INST_FETCH_UINT32(SCM_VM(vm)->reg.ip, immv_idx);
-      /* immv_idx = scm_vm_inst_fetch_uint32(vm); */
       scm_vm_op_gdef(vm, immv_idx);
       break;
     case SCM_OPCODE_GSET:
       SCM_CAPI_INST_FETCH_UINT32(SCM_VM(vm)->reg.ip, immv_idx);
-      /* immv_idx = scm_vm_inst_fetch_uint32(vm); */
       scm_vm_op_gset(vm, immv_idx);
       break;
     default:
@@ -872,8 +873,9 @@ scm_vm_refer_local_var(ScmObj vm, int nth)
 }
 
 int
-scm_vm_setup_trampolining(ScmObj vm, ScmObj target, ScmObj args,
-                          ScmObj (*callback)(void))
+scm_vm_setup_trampolining(ScmObj vm, ScmObj target,
+                          ScmObj args, int nr_arg_cf,
+                          ScmObj (*callback)(int argc, ScmObj *argv))
 {
   ScmObj trmp_code = SCM_OBJ_INIT;
   ScmObj cb_subr = SCM_OBJ_INIT;
@@ -883,6 +885,7 @@ scm_vm_setup_trampolining(ScmObj vm, ScmObj target, ScmObj args,
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
   scm_assert(scm_capi_closure_p(target) || scm_capi_iseq_p(target));
   scm_assert(scm_capi_nil_p(args) || scm_capi_pair_p(args));
+  scm_assert(0 <= nr_arg_cf && nr_arg_cf <= INT32_MAX);
 
   if (scm_capi_iseq_p(target)) {
     target = scm_capi_iseq_to_closure(target);
@@ -897,7 +900,8 @@ scm_vm_setup_trampolining(ScmObj vm, ScmObj target, ScmObj args,
     cb_subr = SCM_OBJ_NULL;
   }
 
-  trmp_code = scm_vm_make_trampolining_code(vm, target, args, cb_subr);
+  trmp_code = scm_vm_make_trampolining_code(vm, target,
+                                            args, (uint32_t)nr_arg_cf, cb_subr);
   if (scm_obj_null_p(target)) return -1; /* [ERR]: [through] */
 
   SCM_SLOT_SETQ(ScmVM, vm, trmp.code, trmp_code);
