@@ -34,6 +34,8 @@ struct ScmBedrockRec {
     SCM_BEDROCK_ERROR_TYPE_T type;
     char *message;
   } err;
+
+  SCM_ENC_T encoding;
 };
 
 ScmBedrock *scm_bedrock_new(void);
@@ -49,6 +51,14 @@ scm_bedrock_current_br(void)
 {
   return scm_bedrock__current_br;
 }
+
+inline SCM_ENC_T
+scm_bedrock_encoding(ScmBedrock *br)
+{
+  scm_assert(br != NULL);
+  return br->encoding;
+}
+
 
 /***************************************************************************/
 /*  ScmVM                                                                  */

@@ -323,4 +323,24 @@ int scm_capi_trampolining(ScmObj target,
                           ScmObj (*callback)(int argc, ScmObj *argv));
 
 
+/*******************************************************************/
+/*  System Environment                                             */
+/*******************************************************************/
+
+SCM_ENC_T scm_capi_internal_encoding(void);
+
+
+/*******************************************************************/
+/*  Facade                                                         */
+/*******************************************************************/
+
+typedef struct ScmEvaluatorRec ScmEvaluator;
+
+struct ScmEvaluatorRec {
+  ScmObj vm;
+};
+
+ScmEvaluator *scm_capi_evaluator(void);
+void scm_capi_evaluator_end(ScmEvaluator *ev);
+
 #endif /* INCLUDE_API_H__ */

@@ -1218,3 +1218,42 @@ scm_capi_trampolining(ScmObj target, ScmObj args, int nr_arg_cf,
   return scm_vm_setup_trampolining(scm_vm_current_vm(),
                                    target, args, nr_arg_cf, callback);
 }
+
+
+/*******************************************************************/
+/*  System Environment                                             */
+/*******************************************************************/
+
+extern inline SCM_ENC_T
+scm_capi_internal_encoding(void)
+{
+  return scm_bedrock_encoding(scm_bedrock_current_br());
+}
+
+
+/*******************************************************************/
+/*  Facade                                                         */
+/*******************************************************************/
+
+ScmEvaluator *
+scm_capi_evaluator(void)
+{
+  ScmEvaluator *ev;
+
+  ev = malloc(sizeof(*ev));
+  if (ev == NULL) return NULL;
+
+  ev->vm = scm_vm_new();
+  if (scm_obj_null_p(ev->vm)) return NULL;
+
+  return ev;
+}
+
+void
+scm_capi_evaluator_end(ScmEvaluator *ev)
+{
+  if (ev == NULL) return;
+
+  scm_vm_end(ev->vm);
+  free(ev);
+}

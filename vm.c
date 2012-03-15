@@ -43,6 +43,8 @@ scm_bedrock_initialize(ScmBedrock *br)
   br->err.message = malloc(SCM_BEDROCK_ERR_MSG_SIZE);
   if (br->err.message == NULL) goto err;
 
+  br->encoding = SCM_ENC_UTF8;
+
   return 0;
 
  err:
