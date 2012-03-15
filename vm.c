@@ -392,19 +392,20 @@ scm_vm_op_call(ScmObj vm, uint32_t nr_arg, uint32_t nr_arg_cf, bool tail_p)
   if (nr_arg > INT32_MAX) return; /* [ERR]:  */
   if (nr_arg_cf > INT32_MAX) return; /* [ERR]:  */
 
-  if (scm_capi_subrutine_p(SCM_VM(vm)->reg.val)) {
-    if (tail_p)
-      scm_vm_stack_shift(vm, nr_arg, nr_arg_cf);
+  if (tail_p)
+    scm_vm_stack_shift(vm, nr_arg, nr_arg_cf);
 
-    SCM_VM(vm)->reg.fp = SCM_VM(vm)->reg.sp;
-    if (!tail_p) {
-      /* FRAME インストラクションでダミー値を設定していたものを実際の値に変更
-         する */
-      ip_fn = scm_capi_inst_ptr_to_fixnum(SCM_VM(vm)->reg.ip);
-      SCM_SLOT_SETQ(ScmVM, vm,
+  SCM_VM(vm)->reg.fp = SCM_VM(vm)->reg.sp;
+
+  if (!tail_p) {
+    /* FRAME インストラクションでダミー値を設定していたものを実際の値に変更
+       する */
+    ip_fn = scm_capi_inst_ptr_to_fixnum(SCM_VM(vm)->reg.ip);
+    SCM_SLOT_SETQ(ScmVM, vm,
                     reg.fp[-((int32_t)nr_arg + 1)], ip_fn);
-    }
+  }
 
+  if (scm_capi_subrutine_p(SCM_VM(vm)->reg.val)) {
     val = scm_api_call_subrutine(SCM_VM(vm)->reg.val,
                                  (int)nr_arg, SCM_VM(vm)->reg.fp - nr_arg);
     if (scm_obj_not_null_p(val))
@@ -422,6 +423,10 @@ scm_vm_op_call(ScmObj vm, uint32_t nr_arg, uint32_t nr_arg_cf, bool tail_p)
     }
   }
   else if (scm_capi_closure_p(SCM_VM(vm)->reg.val)) {
+    SCM_SLOT_SETQ(ScmVM, vm, reg.cp, SCM_VM(vm)->trmp.code);
+    SCM_SLOT_SETQ(ScmVM, vm, reg.isp,
+                  scm_capi_closure_to_iseq(SCM_VM(vm)->reg.cp));
+    SCM_VM(vm)->reg.ip = scm_capi_iseq_to_ip(SCM_VM(vm)->reg.isp);
   }
   else {
     ;                           /* TODO: error handling */
