@@ -296,7 +296,8 @@ scm_vm_return_to_caller(ScmObj vm, uint32_t nr_arg)
 
   fp = SCM_VM(vm)->reg.fp;
 
-  fp_fn = fp[-((int32_t)nr_arg + 3)];
+  fp_fn = fp[-((int32_t)nr_arg + 4)];
+  SCM_SLOT_SETQ(ScmVM, vm, reg.cp, SCM_OBJ(fp[-((int32_t)nr_arg + 3)]));
   SCM_SLOT_SETQ(ScmVM, vm, reg.iseq, SCM_OBJ(fp[-((int32_t)nr_arg + 2)]));
   ip_fn = fp[-((int32_t)nr_arg + 1)];
 
@@ -466,6 +467,9 @@ scm_vm_op_frame(ScmObj vm) /* GC OK */
 
   /* push frame pointer */
   scm_vm_stack_push(vm, fp_fn);
+
+  /* push closure pointer */
+  scm_vm_stack_push(vm, SCM_VM(vm)->reg.cp);
 
   /* push ScmISeq object (FRAME インストラクション段階ではダミー値を
      プッシュする。本当の値は CALL 時に設定する) */
@@ -638,6 +642,7 @@ scm_vm_initialize(ScmObj vm,  ScmBedrock *bedrock)
   SCM_VM(vm)->reg.sp = SCM_VM(vm)->stack;
   SCM_VM(vm)->reg.fp = NULL;
   SCM_VM(vm)->reg.ip = NULL;
+  SCM_VM(vm)->reg.cp = SCM_OBJ_NULL;
   SCM_VM(vm)->reg.iseq = SCM_OBJ_NULL;
   /* TODO: undefined オブジェクトみたいなものを初期値にする */
   SCM_VM(vm)->reg.val = SCM_OBJ_NULL;
@@ -746,7 +751,6 @@ scm_vm_run(ScmObj vm, ScmObj iseq)
   bool stop_flag;
   uint8_t op;
   uint32_t immv_idx, nr_arg, nr_arg_cf;
-  int32_t primv;
 
   SCM_STACK_FRAME_PUSH(&vm, &iseq);
 
@@ -863,6 +867,7 @@ scm_vm_gc_initialize(ScmObj obj, ScmObj mem)
   SCM_VM(obj)->reg.sp = NULL;
   SCM_VM(obj)->reg.fp = NULL;
   SCM_VM(obj)->reg.ip = NULL;
+  SCM_VM(obj)->reg.cp = SCM_OBJ_NULL;
   SCM_VM(obj)->reg.iseq = SCM_OBJ_NULL;
   SCM_VM(obj)->reg.val = SCM_OBJ_NULL;
   SCM_VM(obj)->cnsts.nil = SCM_OBJ_NULL;
@@ -899,8 +904,8 @@ scm_vm_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
   rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_VM(obj)->reg.val, mem);
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
-  /* rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, vm->cp, mem); */
-  /* if (scm_gc_ref_handler_failure_p(rslt)) return rslt; */
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_VM(obj)->reg.cp, mem);
+  if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
   rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_VM(obj)->trmp.code, mem);
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;

@@ -76,7 +76,7 @@ struct ScmVMRec {
   struct {
     ScmObj *sp;                   /* stack pointer */
     ScmObj *fp;                    /* frame pointer */
-    /* ScmObj cp;                    /\* closure pointer *\/ */
+    ScmObj cp;                    /* closure pointer */
     uint8_t *ip;            /* instruction pointer */
     ScmObj iseq;                  /* instruction sequence object */
     ScmObj val;                   /* value register */
