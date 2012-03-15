@@ -61,6 +61,8 @@ ScmTypeInfo SCM_CLOSURE_TYPE_INFO = {
   .gc_accept_func_weak = NULL,
 };
 
+static ScmObj dummy_free_vars[1] = { SCM_OBJ_NULL };
+
 int
 scm_closure_initialize(ScmObj clsr, ScmObj iseq,
                        size_t nr_free_vars, ScmObj *sp)
@@ -71,7 +73,7 @@ scm_closure_initialize(ScmObj clsr, ScmObj iseq,
   SCM_SLOT_SETQ(ScmClosure, clsr, iseq, iseq);
 
   if (nr_free_vars == 0) {
-    SCM_CLOSURE(clsr)->free_vars = NULL;
+    SCM_CLOSURE(clsr)->free_vars = dummy_free_vars;
   }
   else {
     scm_assert(sp != NULL);
@@ -93,7 +95,7 @@ scm_closure_finalize(ScmObj clsr)
 {
   scm_assert_obj_type(clsr, &SCM_CLOSURE_TYPE_INFO);
 
-  if (SCM_CLOSURE(clsr)->free_vars != NULL)
+  if (SCM_CLOSURE(clsr)->free_vars != dummy_free_vars)
     SCM_CLOSURE(clsr)->free_vars = scm_capi_free(SCM_CLOSURE(clsr)->free_vars);
 }
 

@@ -249,6 +249,7 @@ ScmObj scm_capi_make_subrutine(ScmSubrFunc func);
 ScmObj scm_api_call_subrutine(ScmObj subr, int argc, ScmObj *argv);
 bool scm_capi_subrutine_p(ScmObj obj);
 
+
 /*******************************************************************/
 /*  Closure                                                        */
 /*******************************************************************/
@@ -256,6 +257,8 @@ bool scm_capi_subrutine_p(ScmObj obj);
 ScmObj scm_capi_make_closure(ScmObj iseq, size_t nr_free_vars, ScmObj *sp);
 ScmObj scm_capi_iseq_to_closure(ScmObj iseq);
 bool scm_capi_closure_p(ScmObj obj);
+ScmObj scm_capi_closure_to_iseq(ScmObj clsr);
+
 
 /*******************************************************************/
 /*  ISeq                                                           */
@@ -264,6 +267,7 @@ bool scm_capi_closure_p(ScmObj obj);
 ScmObj scm_api_make_iseq(void);
 bool scm_capi_iseq_p(ScmObj obj);
 uint8_t *scm_capi_iseq_to_ip(ScmObj iseq);
+ssize_t scm_capi_iseq_length(ScmObj iseq);
 ssize_t scm_capi_iseq_push_op(ScmObj iseq, SCM_OPCODE_T op);
 ssize_t scm_capi_iseq_push_op_immval(ScmObj iseq, SCM_OPCODE_T op, ScmObj val);
 ssize_t scm_capi_iseq_push_op_cval(ScmObj iseq, SCM_OPCODE_T op, uint32_t val);

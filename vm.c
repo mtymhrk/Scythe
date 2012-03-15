@@ -233,7 +233,8 @@ scm_vm_clean_eval_env(ScmObj vm)
   SCM_VM(vm)->reg.sp = SCM_VM(vm)->stack;
   SCM_VM(vm)->reg.fp = NULL;
   SCM_VM(vm)->reg.ip = NULL;
-  SCM_VM(vm)->reg.iseq = SCM_OBJ_NULL;
+  SCM_VM(vm)->reg.cp = SCM_OBJ_NULL;
+  SCM_VM(vm)->reg.isp = SCM_OBJ_NULL;
   SCM_VM(vm)->reg.val = SCM_OBJ_NULL;
 }
 
@@ -298,7 +299,7 @@ scm_vm_return_to_caller(ScmObj vm, uint32_t nr_arg)
 
   fp_fn = fp[-((int32_t)nr_arg + 4)];
   SCM_SLOT_SETQ(ScmVM, vm, reg.cp, SCM_OBJ(fp[-((int32_t)nr_arg + 3)]));
-  SCM_SLOT_SETQ(ScmVM, vm, reg.iseq, SCM_OBJ(fp[-((int32_t)nr_arg + 2)]));
+  SCM_SLOT_SETQ(ScmVM, vm, reg.isp, SCM_OBJ(fp[-((int32_t)nr_arg + 2)]));
   ip_fn = fp[-((int32_t)nr_arg + 1)];
 
   SCM_VM(vm)->reg.fp = scm_capi_fixnum_to_frame_ptr(fp_fn);
@@ -401,8 +402,6 @@ scm_vm_op_call(ScmObj vm, uint32_t nr_arg, uint32_t nr_arg_cf, bool tail_p)
          する */
       ip_fn = scm_capi_inst_ptr_to_fixnum(SCM_VM(vm)->reg.ip);
       SCM_SLOT_SETQ(ScmVM, vm,
-                    reg.fp[-((int32_t)nr_arg + 2)], SCM_VM(vm)->reg.iseq);
-      SCM_SLOT_SETQ(ScmVM, vm,
                     reg.fp[-((int32_t)nr_arg + 1)], ip_fn);
     }
 
@@ -415,8 +414,10 @@ scm_vm_op_call(ScmObj vm, uint32_t nr_arg, uint32_t nr_arg_cf, bool tail_p)
       scm_vm_return_to_caller(vm, nr_arg);
     }
     else {
-      SCM_SLOT_SETQ(ScmVM, vm, reg.iseq, SCM_VM(vm)->trmp.code);
-      SCM_VM(vm)->reg.ip = scm_capi_iseq_to_ip(SCM_VM(vm)->trmp.code);
+      SCM_SLOT_SETQ(ScmVM, vm, reg.cp, SCM_VM(vm)->trmp.code);
+      SCM_SLOT_SETQ(ScmVM, vm, reg.isp,
+                    scm_capi_closure_to_iseq(SCM_VM(vm)->reg.cp));
+      SCM_VM(vm)->reg.ip = scm_capi_iseq_to_ip(SCM_VM(vm)->reg.isp);
       SCM_VM(vm)->trmp.code = SCM_OBJ_NULL;
     }
   }
@@ -436,7 +437,7 @@ scm_vm_op_immval(ScmObj vm, size_t immv_idx)
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
-  val = scm_capi_iseq_ref_immval(SCM_VM(vm)->reg.iseq, immv_idx);
+  val = scm_capi_iseq_ref_immval(SCM_VM(vm)->reg.isp, immv_idx);
   if (scm_obj_null_p(val))
     ;    /* TODO: error handling */
 
@@ -471,9 +472,8 @@ scm_vm_op_frame(ScmObj vm) /* GC OK */
   /* push closure pointer */
   scm_vm_stack_push(vm, SCM_VM(vm)->reg.cp);
 
-  /* push ScmISeq object (FRAME インストラクション段階ではダミー値を
-     プッシュする。本当の値は CALL 時に設定する) */
-  scm_vm_stack_push(vm, SCM_OBJ_NULL);
+  /* push ScmISeq object */
+  scm_vm_stack_push(vm, SCM_VM(vm)->reg.isp);
 
   /* push instraction pointer (FRAME インストラクション段階ではダミー
      値をプッシュする。本当の値は CALL 時に設定する) */
@@ -507,7 +507,7 @@ scm_vm_op_gref(ScmObj vm, size_t immv_idx)
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
-  arg = scm_capi_iseq_ref_immval(SCM_VM(vm)->reg.iseq, immv_idx);
+  arg = scm_capi_iseq_ref_immval(SCM_VM(vm)->reg.isp, immv_idx);
   if (scm_obj_null_p(arg))
     ;  /* TODO: error handling */
 
@@ -519,7 +519,7 @@ scm_vm_op_gref(ScmObj vm, size_t immv_idx)
     if (scm_obj_null_p(gloc))
       ; /* TODO: error handling (reference of unbound variable) */
 
-    rslt = scm_capi_iseq_set_immval(SCM_VM(vm)->reg.iseq,
+    rslt = scm_capi_iseq_set_immval(SCM_VM(vm)->reg.isp,
                                            immv_idx, gloc);
     if (rslt != 0)
       ;                           /* TODO: error handling */
@@ -559,7 +559,7 @@ scm_vm_op_gdef(ScmObj vm, size_t immv_idx)
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
-  arg = scm_capi_iseq_ref_immval(SCM_VM(vm)->reg.iseq, immv_idx);
+  arg = scm_capi_iseq_ref_immval(SCM_VM(vm)->reg.isp, immv_idx);
   if (scm_obj_null_p(arg))
     ;  /* TODO: error handling */
 
@@ -568,8 +568,7 @@ scm_vm_op_gdef(ScmObj vm, size_t immv_idx)
     if (scm_obj_null_p(gloc))
       ;                           /* TODO: error handling */
 
-    rslt = scm_capi_iseq_set_immval(SCM_VM(vm)->reg.iseq,
-                                           immv_idx, gloc);
+    rslt = scm_capi_iseq_set_immval(SCM_VM(vm)->reg.isp, immv_idx, gloc);
     if (rslt != 0)
       ;                           /* TODO: error handling */
   }
@@ -599,7 +598,7 @@ scm_vm_op_gset(ScmObj vm, size_t immv_idx)
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
   scm_assert(scm_obj_not_null_p(arg));
 
-  arg = scm_capi_iseq_ref_immval(SCM_VM(vm)->reg.iseq, immv_idx);
+  arg = scm_capi_iseq_ref_immval(SCM_VM(vm)->reg.isp, immv_idx);
   if (scm_obj_null_p(arg))
     ;  /* TODO: error handling */
 
@@ -611,8 +610,7 @@ scm_vm_op_gset(ScmObj vm, size_t immv_idx)
     if (scm_obj_null_p(gloc))
       ; /* TODO: error handling (reference of unbound variable) */
 
-    rslt = scm_capi_iseq_set_immval(SCM_VM(vm)->reg.iseq,
-                                           immv_idx, gloc);
+    rslt = scm_capi_iseq_set_immval(SCM_VM(vm)->reg.isp, immv_idx, gloc);
     if (rslt != 0)
       ;                           /* TODO: error handling */
 
@@ -643,7 +641,7 @@ scm_vm_initialize(ScmObj vm,  ScmBedrock *bedrock)
   SCM_VM(vm)->reg.fp = NULL;
   SCM_VM(vm)->reg.ip = NULL;
   SCM_VM(vm)->reg.cp = SCM_OBJ_NULL;
-  SCM_VM(vm)->reg.iseq = SCM_OBJ_NULL;
+  SCM_VM(vm)->reg.isp = SCM_OBJ_NULL;
   /* TODO: undefined オブジェクトみたいなものを初期値にする */
   SCM_VM(vm)->reg.val = SCM_OBJ_NULL;
 
@@ -654,9 +652,6 @@ scm_vm_initialize(ScmObj vm,  ScmBedrock *bedrock)
   return;
 
  err:
-  if (scm_obj_null_p(SCM_VM(vm)->reg.iseq))
-    SCM_SLOT_SETQ(ScmVM, vm, reg.iseq, SCM_OBJ_NULL);
-
   if (SCM_VM(vm)->stack != NULL) {
     SCM_VM(vm)->stack = scm_capi_free(SCM_VM(vm)->stack);
     SCM_VM(vm)->stack_size = 0;
@@ -664,6 +659,8 @@ scm_vm_initialize(ScmObj vm,  ScmBedrock *bedrock)
   SCM_VM(vm)->reg.sp = NULL;
   SCM_VM(vm)->reg.fp = NULL;
   SCM_VM(vm)->reg.ip = NULL;
+  SCM_VM(vm)->reg.cp = SCM_OBJ_NULL;
+  SCM_VM(vm)->reg.isp = SCM_OBJ_NULL;
   SCM_VM(vm)->reg.val = SCM_OBJ_NULL;
 
   return;
@@ -681,8 +678,9 @@ scm_vm_finalize(ScmObj vm)
   SCM_VM(vm)->reg.sp = NULL;
   SCM_VM(vm)->reg.fp = NULL;
   SCM_VM(vm)->reg.ip = NULL;
-  SCM_SLOT_SETQ(ScmVM, vm, reg.iseq, SCM_OBJ_NULL);
-  SCM_SLOT_SETQ(ScmVM, vm, reg.val, SCM_OBJ_NULL);
+  SCM_VM(vm)->reg.cp = SCM_OBJ_NULL;
+  SCM_VM(vm)->reg.isp = SCM_OBJ_NULL;
+  SCM_VM(vm)->reg.val = SCM_OBJ_NULL;
 }
 
 ScmObj
@@ -757,7 +755,8 @@ scm_vm_run(ScmObj vm, ScmObj iseq)
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
   scm_assert(scm_capi_iseq_p(iseq));
 
-  SCM_SLOT_SETQ(ScmVM, vm, reg.iseq, iseq);
+  SCM_SLOT_SETQ(ScmVM, vm, reg.cp, scm_capi_iseq_to_closure(iseq));
+  SCM_SLOT_SETQ(ScmVM, vm, reg.isp, iseq);
   SCM_VM(vm)->reg.ip = scm_capi_iseq_to_ip(iseq);
   SCM_SLOT_SETQ(ScmVM, vm, reg.val, SCM_OBJ_NULL);
     /* TODO: undefined オブジェクトのようなものを初期値にする */
@@ -821,10 +820,10 @@ scm_vm_setup_trampolining(ScmObj vm, ScmObj target,
                           ScmObj args, int nr_arg_cf,
                           ScmObj (*callback)(int argc, ScmObj *argv))
 {
-  ScmObj trmp_code = SCM_OBJ_INIT;
+  ScmObj trmp_code = SCM_OBJ_INIT, trmp_clsr = SCM_OBJ_INIT;
   ScmObj cb_subr = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&trmp_code, &target, &args, &cb_subr);
+  SCM_STACK_FRAME_PUSH(&target, &args, &cb_subr, &trmp_code, &trmp_clsr);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
   scm_assert(scm_capi_closure_p(target) || scm_capi_iseq_p(target));
@@ -846,9 +845,12 @@ scm_vm_setup_trampolining(ScmObj vm, ScmObj target,
 
   trmp_code = scm_vm_make_trampolining_code(vm, target,
                                             args, (uint32_t)nr_arg_cf, cb_subr);
-  if (scm_obj_null_p(target)) return -1; /* [ERR]: [through] */
+  if (scm_obj_null_p(trmp_code)) return -1; /* [ERR]: [through] */
 
-  SCM_SLOT_SETQ(ScmVM, vm, trmp.code, trmp_code);
+  trmp_clsr = scm_capi_iseq_to_closure(trmp_code);
+  if (scm_obj_null_p(trmp_clsr)) return -1; /* [ERR]: [through] */
+
+  SCM_SLOT_SETQ(ScmVM, vm, trmp.code, trmp_clsr);
 
   return 0;
 }
@@ -868,7 +870,7 @@ scm_vm_gc_initialize(ScmObj obj, ScmObj mem)
   SCM_VM(obj)->reg.fp = NULL;
   SCM_VM(obj)->reg.ip = NULL;
   SCM_VM(obj)->reg.cp = SCM_OBJ_NULL;
-  SCM_VM(obj)->reg.iseq = SCM_OBJ_NULL;
+  SCM_VM(obj)->reg.isp = SCM_OBJ_NULL;
   SCM_VM(obj)->reg.val = SCM_OBJ_NULL;
   SCM_VM(obj)->cnsts.nil = SCM_OBJ_NULL;
   SCM_VM(obj)->cnsts.eof = SCM_OBJ_NULL;
@@ -898,7 +900,7 @@ scm_vm_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
   rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_VM(obj)->gloctbl, mem);
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
-  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_VM(obj)->reg.iseq, mem);
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_VM(obj)->reg.isp, mem);
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
   rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_VM(obj)->reg.val, mem);

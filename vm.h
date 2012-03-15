@@ -75,10 +75,10 @@ struct ScmVMRec {
   /*** VM Registers ***/
   struct {
     ScmObj *sp;                   /* stack pointer */
-    ScmObj *fp;                    /* frame pointer */
+    ScmObj *fp;                   /* frame pointer */
     ScmObj cp;                    /* closure pointer */
-    uint8_t *ip;            /* instruction pointer */
-    ScmObj iseq;                  /* instruction sequence object */
+    uint8_t *ip;                  /* instruction pointer */
+    ScmObj isp;                   /* instruction sequence object */
     ScmObj val;                   /* value register */
   } reg;
 

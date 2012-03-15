@@ -65,12 +65,4 @@ scm_closure_body(ScmObj clsr)
   return SCM_CLOSURE(clsr)->iseq;
 }
 
-inline ScmObj *
-scm_closure_free_vars(ScmObj clsr)
-{
-  scm_assert_obj_type(clsr, &SCM_CLOSURE_TYPE_INFO);
-
-  return SCM_CLOSURE(clsr)->free_vars;
-}
-
 #endif /* INCLUDE_PROCEDURE_H__ */

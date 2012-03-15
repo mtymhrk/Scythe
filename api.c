@@ -923,6 +923,15 @@ scm_capi_closure_p(ScmObj obj)
   return (scm_obj_type_p(obj, &SCM_CLOSURE_TYPE_INFO) ? true : false);
 }
 
+extern inline ScmObj
+scm_capi_closure_to_iseq(ScmObj clsr)
+{
+  if (!scm_capi_closure_p(clsr))
+    return SCM_OBJ_NULL;         /* provisional implemntation */
+
+  return scm_closure_body(clsr);
+}
+
 
 /*******************************************************************/
 /*  ISeq                                                           */
@@ -1086,6 +1095,7 @@ scm_api_assemble(ScmObj lst)
 
   return scm_iseq_list_to_iseq(lst);
 }
+
 
 /*******************************************************************/
 /*  Global Variable                                                */
