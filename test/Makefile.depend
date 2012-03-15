@@ -40,13 +40,16 @@ api.o: ../api.c ../object.h ../memory.h ../basichash.h ../impl_utils.h \
  ../vm.h ../reference.h ../api.h ../encoding.h ../api_enum.h ../char.h \
  ../string.h ../symbol.h ../chashtbl.h ../procedure.h ../gloc.h \
  ../numeric.h ../earray.h ../pair.h ../vector.h ../port.h ../parser.h \
- ../iseq.h
+ ../iseq.h ../assembler.h
 gloc.o: ../gloc.c ../object.h ../reference.h ../impl_utils.h ../api.h \
  ../encoding.h ../api_enum.h ../chashtbl.h ../gloc.h
 port.o: ../port.c ../object.h ../reference.h ../impl_utils.h ../api.h \
  ../encoding.h ../api_enum.h ../port.h
 parser.o: ../parser.c ../object.h ../reference.h ../impl_utils.h ../api.h \
  ../encoding.h ../api_enum.h ../parser.h
+assembler.o: ../assembler.c ../object.h ../api.h ../reference.h \
+ ../impl_utils.h ../encoding.h ../api_enum.h ../chashtbl.h ../earray.h \
+ ../assembler.h
 test_pair.o: test_pair.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-version.h \
  /usr/local/include/cutter/cutter/cut-features.h \
@@ -401,3 +404,19 @@ test_parser.o: test_parser.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-experimental.h ../object.h ../vm.h \
  ../object.h ../memory.h ../basichash.h ../impl_utils.h ../reference.h \
  ../api.h ../encoding.h ../api_enum.h ../reference.h ../api.h ../parser.h
+test_assembler.o: test_assembler.c /usr/local/include/cutter/cutter.h \
+ /usr/local/include/cutter/cutter/cut-version.h \
+ /usr/local/include/cutter/cutter/cut-features.h \
+ /usr/local/include/cutter/cutter/cut-assertions.h \
+ /usr/local/include/cutter/cutter/cut-assertions-helper.h \
+ /usr/local/include/cutter/cutter/cut-public.h \
+ /usr/local/include/cutter/cutter/cut-config.h \
+ /usr/local/include/cutter/cutter/cut-types.h \
+ /usr/local/include/cutter/cutter/cut-macros.h \
+ /usr/local/include/cutter/cutter/cut-multi-process.h \
+ /usr/local/include/cutter/cutter/cut-test-utils.h \
+ /usr/local/include/cutter/cutter/cut-test-utils-helper.h \
+ /usr/local/include/cutter/cutter/cut-helper.h \
+ /usr/local/include/cutter/cutter/cut-experimental.h ../vm.h ../object.h \
+ ../memory.h ../basichash.h ../impl_utils.h ../reference.h ../api.h \
+ ../encoding.h ../api_enum.h ../api.h ../assembler.h ../earray.h

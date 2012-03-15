@@ -274,6 +274,7 @@ ssize_t scm_capi_iseq_push_op_cval(ScmObj iseq, SCM_OPCODE_T op, uint32_t val);
 ssize_t scm_capi_iseq_push_op_cval_cval(ScmObj iseq, SCM_OPCODE_T op,
                                         uint32_t val1, uint32_t val2);
 ssize_t scm_capi_iseq_set_immval(ScmObj iseq, size_t idx, ScmObj val);
+ssize_t scm_capi_iseq_set_cval(ScmObj iseq, size_t idx, uint32_t val);
 ScmObj scm_capi_iseq_ref_immval(ScmObj iseq, size_t idx);
 ScmObj scm_api_assemble(ScmObj lst);
 

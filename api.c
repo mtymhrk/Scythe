@@ -18,6 +18,7 @@
 #include "port.h"
 #include "parser.h"
 #include "iseq.h"
+#include "assembler.h"
 
 #include "encoding.h"
 #include "impl_utils.h"
@@ -1076,6 +1077,22 @@ scm_capi_iseq_set_immval(ScmObj iseq, size_t idx, ScmObj val)
   return (ssize_t)idx;
 }
 
+ssize_t
+scm_capi_iseq_set_cval(ScmObj iseq, size_t idx, uint32_t val)
+{
+  ssize_t rslt;
+
+  if (!scm_capi_iseq_p(iseq)
+      || idx > SSIZE_MAX
+      || (ssize_t)idx > scm_iseq_length(iseq) - 4)
+    return -1;   /* provisional implemntation */
+
+  rslt = scm_iseq_set_uint32(iseq, idx, val);
+  if (rslt < 0) return -1;   /* provisional implemntation */
+
+  return (ssize_t)idx;
+}
+
 extern inline ScmObj
 scm_capi_iseq_ref_immval(ScmObj iseq, size_t idx)
 {
@@ -1093,7 +1110,7 @@ scm_api_assemble(ScmObj lst)
   if (!scm_capi_pair_p(lst))
     return SCM_OBJ_NULL;         /* provisional implemntation */
 
-  return scm_iseq_list_to_iseq(lst);
+  return scm_asm_assemble(lst);
 }
 
 
