@@ -1327,8 +1327,7 @@ scm_capi_evaluator(void)
   ev = malloc(sizeof(*ev));
   if (ev == NULL) return NULL;
 
-  ev->vm = scm_vm_new();
-  if (scm_obj_null_p(ev->vm)) return NULL;
+  ev->vm = SCM_OBJ_NULL;
 
   return ev;
 }
@@ -1338,6 +1337,19 @@ scm_capi_evaluator_end(ScmEvaluator *ev)
 {
   if (ev == NULL) return;
 
-  scm_vm_end(ev->vm);
   free(ev);
+}
+
+void
+scm_capi_run_repl(ScmEvaluator *ev)
+{
+  if (ev == NULL) return;
+
+  ev->vm = scm_vm_new();
+  if (scm_obj_null_p(ev->vm)) return;
+
+  scm_vm_change_current_vm(ev->vm);
+
+  scm_vm_end(ev->vm);
+  ev->vm = SCM_OBJ_NULL;
 }

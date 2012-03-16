@@ -52,6 +52,12 @@ scm_bedrock_current_br(void)
   return scm_bedrock__current_br;
 }
 
+inline void
+scm_bedrock_change_current_br(ScmBedrock *br)
+{
+  scm_bedrock__current_br = br;
+}
+
 inline SCM_ENC_T
 scm_bedrock_encoding(ScmBedrock *br)
 {
@@ -162,6 +168,15 @@ scm_vm_current_vm(void)
 {
   return scm_vm__current_vm;
 }
+
+inline void
+scm_vm_change_current_vm(ScmObj vm)
+{
+  scm_vm__current_vm = vm;
+  if (scm_obj_not_null_p(vm))
+    scm_bedrock_change_current_br(SCM_VM(vm)->bedrock);
+}
+
 
 inline ScmMem *
 scm_vm_current_mm(void)
