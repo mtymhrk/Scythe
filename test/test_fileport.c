@@ -12,7 +12,7 @@
 #define TEST_BIG_FILE_SIZE 1048576 /* 1 MByte */ 
 #define TEST_OUTPUT_FILE "test_fileport_output_tmp_file"
 
-static ScmObj vm = SCM_OBJ_INIT;
+static ScmEvaluator *ev;
 
 void
 cut_startup(void)
@@ -29,7 +29,8 @@ cut_startup(void)
     n = fwrite(&i, sizeof(i), 1, fp);
   fclose(fp);
 
-  vm = scm_vm_new();
+  ev = scm_capi_evaluator();
+  scm_capi_setup_current_vm(ev);
 }
 
 void
@@ -38,7 +39,7 @@ cut_shutdown(void)
   remove(TEST_TEXT_FILE);
   remove(TEST_BIG_FILE);
 
-  scm_vm_end(vm);
+  scm_capi_evaluator_end(ev);
 }
 
 void

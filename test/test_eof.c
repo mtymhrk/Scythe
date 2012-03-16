@@ -5,18 +5,19 @@
 #include "reference.h"
 #include "miscobjects.h"
 
-static ScmObj vm = SCM_OBJ_INIT;
+static ScmEvaluator *ev;
 
 void
 cut_startup(void)
 {
-  vm = scm_vm_new();
+  ev = scm_capi_evaluator();
+  scm_capi_setup_current_vm(ev);
 }
 
 void
 cut_shutdown(void)
 {
-  scm_vm_end(vm);
+  scm_capi_evaluator_end(ev);
 }
 
 void

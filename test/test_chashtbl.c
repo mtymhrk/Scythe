@@ -6,7 +6,7 @@
 #include "symbol.h"
 #include "chashtbl.h"
 
-static ScmObj vm = SCM_OBJ_INIT;
+static ScmEvaluator *ev;
 
 size_t
 hash_func(ScmCHashTblKey key)
@@ -23,14 +23,14 @@ cmp_func(ScmCHashTblKey key1, ScmCHashTblKey key2)
 void
 cut_startup(void)
 {
-  vm = scm_vm_new();
-  scm_capi_gc_disable();
+  ev = scm_capi_evaluator();
+  scm_capi_setup_current_vm(ev);
 }
 
 void
 cut_shutdown(void)
 {
-  scm_vm_end(vm);
+  scm_capi_evaluator_end(ev);
 }
 
 

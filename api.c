@@ -1337,6 +1337,10 @@ scm_capi_evaluator_end(ScmEvaluator *ev)
 {
   if (ev == NULL) return;
 
+  if (scm_obj_not_null_p(ev->vm)) {
+    scm_vm_end(ev->vm);
+    ev->vm = SCM_OBJ_NULL;
+  }
   free(ev);
 }
 
@@ -1352,4 +1356,17 @@ scm_capi_run_repl(ScmEvaluator *ev)
 
   scm_vm_end(ev->vm);
   ev->vm = SCM_OBJ_NULL;
+}
+
+
+/* unit test 用 api */
+void
+scm_capi_setup_current_vm(ScmEvaluator *ev)
+{
+  if (ev == NULL) return;
+
+  ev->vm = scm_vm_new();
+  if (scm_obj_null_p(ev->vm)) return;
+
+  scm_vm_change_current_vm(ev->vm);
 }

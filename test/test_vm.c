@@ -7,20 +7,21 @@
 #include "api.h"
 #include "pair.h"
 
-static ScmObj vm = SCM_OBJ_INIT;
+static ScmEvaluator *ev;
+static ScmObj vm;
 
 void
-cut_setup(void)
+cut_startup(void)
 {
-  vm = SCM_OBJ_INIT;
-
-  vm = scm_vm_new();
+  ev = scm_capi_evaluator();
+  scm_capi_setup_current_vm(ev);
+  vm = scm_vm__current_vm;
 }
 
 void
-cut_teardown(void)
+cut_shutdown(void)
 {
-  scm_vm_end(vm);
+  scm_capi_evaluator_end(ev);
 }
 
 void

@@ -8,18 +8,19 @@
 
 #define TEST_TEXT_CONTENTS "hello, world\nhello, world!"
 
-static ScmObj vm = SCM_OBJ_INIT;
+static ScmEvaluator *ev;
 
 void
-cut_setup(void)
+cut_startup(void)
 {
-  vm = scm_vm_new();
+  ev = scm_capi_evaluator();
+  scm_capi_setup_current_vm(ev);
 }
 
 void
-cut_teardown(void)
+cut_shutdown(void)
 {
-  scm_vm_end(vm);
+  scm_capi_evaluator_end(ev);
 }
 
 void

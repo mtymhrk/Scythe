@@ -7,7 +7,7 @@
 #include "parser.h"
 
 static ScmParser *parser;
-static ScmObj vm = SCM_OBJ_INIT;
+static ScmEvaluator *ev;
 static ScmObj port = SCM_OBJ_INIT;
 
 ScmParser *
@@ -29,10 +29,16 @@ new_port(const char *str)
 }
 
 void
+cut_startup(void)
+{
+  ev = scm_capi_evaluator();
+  scm_capi_setup_current_vm(ev);
+}
+
+void
 cut_setup(void)
 {
   parser = NULL;
-  vm = scm_vm_new();
   port = SCM_OBJ_NULL;
   scm_mem_register_extra_rfrn(scm_vm_current_mm(), SCM_REF_MAKE(port));
 }
@@ -41,9 +47,13 @@ void
 cut_teardown(void)
 {
   port = SCM_OBJ_NULL;
-  scm_vm_end(vm);
-  vm = SCM_OBJ_NULL;
   parser = NULL;
+}
+
+void
+cut_shutdown(void)
+{
+  scm_capi_evaluator_end(ev);
 }
 
 void
