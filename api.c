@@ -471,6 +471,9 @@ scm_capi_make_string_from_cstr(const char *str, SCM_ENC_T enc)
   if (str == NULL)
     return SCM_OBJ_NULL;         /* provisional implemntation */
 
+  if (enc >= SCM_ENC_NR_ENC && enc == SCM_ENC_SYS)
+    return SCM_OBJ_NULL;         /* provisional implemntation */
+
   return scm_string_new(SCM_MEM_ALLOC_HEAP, str, strlen(str), enc);
 }
 
@@ -478,7 +481,10 @@ extern inline ScmObj
 scm_capi_make_string_from_bin(const void *data, size_t size, SCM_ENC_T enc)
 {
   if (data == NULL)
-    return SCM_OBJ_NULL;
+    return SCM_OBJ_NULL;         /* provisional implemntation */
+
+  if (enc >= SCM_ENC_NR_ENC && enc == SCM_ENC_SYS)
+    return SCM_OBJ_NULL;         /* provisional implemntation */
 
   return scm_string_new(SCM_MEM_ALLOC_HEAP, data, size, enc);
 }
@@ -507,6 +513,35 @@ scm_capi_string_bytesize(ScmObj str)
     return -1;                  /* provisional implementation */
 
   return (ssize_t)scm_string_bytesize(str);
+}
+
+extern inline int
+scm_capi_string_encoding(ScmObj str, SCM_ENC_T *enc)
+{
+  if (!scm_capi_string_p(str))
+    return -1;                  /* provisional implementation */
+
+  if (enc == NULL)
+    return -1;                  /* provisional implementation */
+
+  *enc = scm_string_encoding(str);
+
+  return 0;
+}
+
+extern inline ScmObj
+scm_capi_string_encode(ScmObj str, SCM_ENC_T enc)
+{
+  if (!scm_capi_string_p(str))
+    return SCM_OBJ_NULL;                  /* provisional implementation */
+
+  if (enc > SCM_ENC_NR_ENC)
+    return SCM_OBJ_NULL;                  /* provisional implementation */
+
+  if (enc == SCM_ENC_SYS)
+    enc = scm_capi_system_encoding();
+
+  return scm_string_encode(str, enc);
 }
 
 extern inline ssize_t
@@ -600,18 +635,33 @@ scm_capi_vector_length(ScmObj vec)
 extern inline ScmObj
 scm_api_symbol_to_string(ScmObj sym)
 {
-  if (scm_obj_null_p(sym) || !scm_obj_type_p(sym, &SCM_SYMBOL_TYPE_INFO))
+  if (scm_obj_null_p(sym) || !scm_capi_symbol_p(sym))
     /* TODO: ランタイムエラーをどう処理するか。*/
     return SCM_OBJ_NULL;        /* provisional implemntation */
 
-  return SCM_SYMBOL_STR(sym);
+  return scm_symbol_string(sym);
 }
 
 extern inline ScmObj
 scm_api_string_to_symbol(ScmObj str)
 {
-  if (scm_obj_null_p(str) || !scm_obj_type_p(str, &SCM_STRING_TYPE_INFO))
+  SCM_ENC_T enc;
+  int rslt;
+
+  SCM_STACK_FRAME_PUSH(&str);
+
+  if (scm_obj_null_p(str) || !scm_capi_string_p(str))
     return SCM_OBJ_NULL;         /* provisional implemntation */
+
+  rslt = scm_capi_string_encoding(str, &enc);
+  if (rslt < 0) return SCM_OBJ_NULL; /* provisional implemntation */
+
+  if (enc != scm_capi_system_encoding()) {
+    if (enc != SCM_ENC_ASCII)
+      return SCM_OBJ_NULL; /* provisional implemntation */
+
+    str = scm_string_encode(str, scm_capi_system_encoding());
+  }
 
   return scm_symtbl_symbol(scm_vm_current_symtbl(), str);
 }
@@ -619,19 +669,53 @@ scm_api_string_to_symbol(ScmObj str)
 extern inline ScmObj
 scm_capi_make_symbol_from_cstr(const char *str, SCM_ENC_T enc)
 {
+  ScmObj s = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&s);
+
   if (str == NULL)
     return SCM_OBJ_NULL;        /* provisional implemntation */
 
-  return scm_api_string_to_symbol(scm_capi_make_string_from_cstr(str, enc));
+  s = scm_capi_make_string_from_cstr(str, enc);
+  if (scm_obj_null_p(s))
+    return SCM_OBJ_NULL;        /* provisional implemntation */
+
+  if (enc != scm_capi_system_encoding()) {
+    if (enc != SCM_ENC_ASCII)
+      return SCM_OBJ_NULL;      /* provisional implemntation */
+
+    s = scm_string_encode(s, scm_capi_system_encoding());
+    if (scm_obj_null_p(s))
+      return SCM_OBJ_NULL;        /* provisional implemntation */
+  }
+
+  return scm_api_string_to_symbol(s);
 }
 
 extern inline ScmObj
 scm_capi_make_symbol_from_bin(const void *data, size_t size, SCM_ENC_T enc)
 {
+  ScmObj s = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&s);
+
   if (data == NULL)
     return SCM_OBJ_NULL;        /* provisional implemntation */
 
-  return scm_api_string_to_symbol(scm_capi_make_string_from_bin(data, size, enc));
+  s = scm_capi_make_string_from_bin(data, size, enc);
+  if (scm_obj_null_p(s))
+    return SCM_OBJ_NULL;        /* provisional implemntation */
+
+  if (enc != scm_capi_system_encoding()) {
+    if (enc != SCM_ENC_ASCII)
+      return SCM_OBJ_NULL;      /* provisional implemntation */
+
+    s = scm_string_encode(s, scm_capi_system_encoding());
+    if (scm_obj_null_p(s))
+      return SCM_OBJ_NULL;        /* provisional implemntation */
+  }
+
+  return scm_api_string_to_symbol(s);
 }
 
 extern inline bool
@@ -1225,7 +1309,7 @@ scm_capi_trampolining(ScmObj target, ScmObj args, int nr_arg_cf,
 /*******************************************************************/
 
 extern inline SCM_ENC_T
-scm_capi_internal_encoding(void)
+scm_capi_system_encoding(void)
 {
   return scm_bedrock_encoding(scm_bedrock_current_br());
 }

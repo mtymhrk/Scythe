@@ -185,6 +185,8 @@ ScmObj scm_capi_make_string_from_bin(const void *data,
                                      size_t size, SCM_ENC_T enc);
 bool scm_capi_string_p(ScmObj obj);
 ssize_t scm_capi_string_length(ScmObj str);
+ssize_t scm_capi_string_bytesize(ScmObj str);
+int scm_capi_string_encoding(ScmObj str, SCM_ENC_T *enc);
 ssize_t scm_capi_string_to_cstr(ScmObj str, char *cstr, size_t size);
 
 
@@ -327,7 +329,7 @@ int scm_capi_trampolining(ScmObj target,
 /*  System Environment                                             */
 /*******************************************************************/
 
-SCM_ENC_T scm_capi_internal_encoding(void);
+SCM_ENC_T scm_capi_system_encoding(void);
 
 
 /*******************************************************************/

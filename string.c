@@ -145,6 +145,7 @@ scm_string_initialize(ScmObj str,
 
   scm_assert_obj_type(str, &SCM_STRING_TYPE_INFO);
   scm_assert(size <= SSIZE_MAX);
+  scm_assert(/*0 <= enc && */enc < SCM_ENC_NR_ENC && enc != SCM_ENC_SYS);
 
   SCM_STRING_BUFFER(str) = NULL;
   SCM_STRING_REF_CNT(str) = NULL;
@@ -193,7 +194,7 @@ scm_string_new(SCM_MEM_TYPE_T mtype, const void *src, size_t size, SCM_ENC_T enc
   SCM_STACK_FRAME_PUSH(&str);
   scm_assert(size <= SSIZE_MAX);
 
-  scm_assert(/*0 <= enc && */enc < SCM_ENC_NR_ENC);
+  scm_assert(/*0 <= enc && */enc < SCM_ENC_NR_ENC && enc != SCM_ENC_SYS);
 
   str = scm_capi_mem_alloc(&SCM_STRING_TYPE_INFO, mtype);
   if (scm_obj_null_p(str))
@@ -268,6 +269,48 @@ scm_string_is_equal(ScmObj str1, ScmObj str2) /* GC OK */
                  SCM_STRING_HEAD(str2),
                  SCM_STRING_BYTESIZE(str1))
           == 0);
+}
+
+ScmObj
+scm_string_encode(ScmObj str, SCM_ENC_T enc)
+{
+  ScmObj s = SCM_OBJ_INIT;
+  ScmStrItr iter;
+  scm_char_t chr;
+  ssize_t rslt;
+  const ScmEncVirtualFunc *vf;
+
+  scm_assert_obj_type(str, &SCM_STRING_TYPE_INFO);
+  scm_assert(/*0 <= enc && */enc < SCM_ENC_NR_ENC && enc != SCM_ENC_SYS);
+
+  SCM_STACK_FRAME_PUSH(&str, &s);
+
+  /* 今のところ ASCII から他のエンコードへの変換しか対応していない */
+  scm_assert(SCM_STRING_ENC(str) == SCM_ENC_ASCII
+             || SCM_STRING_ENC(str) == enc);
+
+  if (SCM_STRING_ENC(str) == enc)
+    return scm_string_dup(str);
+
+  vf = SCM_ENCODING_VFUNC(enc);
+  s = scm_string_new(SCM_MEM_HEAP, NULL, 0, enc);
+
+  iter = scm_str_itr_begin((void *)SCM_STRING_HEAD(str),
+                           SCM_STRING_BYTESIZE(str), vf->char_width);
+  scm_assert(!SCM_STR_ITR_IS_ERR(&iter));
+
+  while (!SCM_STR_ITR_IS_END(&iter)) {
+    rslt = vf->ascii_to(*(char *)SCM_STR_ITR_PTR(&iter), &chr);
+    if (rslt < 0) return SCM_OBJ_NULL;
+
+    s = scm_string_push(s, chr);
+    if (scm_obj_null_p(s)) return SCM_OBJ_NULL;
+
+    scm_str_itr_next(&iter);
+    scm_assert(!SCM_STR_ITR_IS_ERR(&iter));
+  }
+
+  return s;
 }
 
 ScmObj

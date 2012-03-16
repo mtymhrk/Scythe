@@ -46,6 +46,7 @@ ScmObj scm_string_dup(ScmObj src);
 size_t scm_string_length(ScmObj str);
 size_t scm_string_bytesize(ScmObj str);
 bool scm_string_is_equal(ScmObj str1, ScmObj str2);
+ScmObj scm_string_encode(ScmObj str, SCM_ENC_T enc);
 ScmObj scm_string_substr(ScmObj str, size_t pos, size_t len);
 ScmObj scm_string_push(ScmObj str, const scm_char_t c);
 ScmObj scm_string_append(ScmObj str, ScmObj append);
