@@ -970,6 +970,39 @@ scm_capi_write_char(ScmObj port, scm_char_t chr)
   return scm_port_write_char(port, chr);
 }
 
+extern inline ssize_t
+scm_capi_write_string(ScmObj port, ScmObj str)
+{
+  SCM_ENC_T p_enc, s_enc;
+  ssize_t rslt;
+  ssize_t size;
+  void *buf;
+
+  if (scm_obj_null_p(port)
+      || !scm_capi_output_port_p(port))
+    return -1;         /* provisional implemntation */
+
+  rslt = scm_capi_port_encoding(port, &p_enc);
+  if (rslt < 0) return -1; /* provisional implemntation */
+
+  rslt = scm_capi_string_encoding(str, &s_enc);
+  if (rslt < 0) return -1; /* provisional implemntation */
+
+  if (p_enc != s_enc)
+    return -1; /* provisional implemntation */
+
+  size = scm_capi_string_bytesize(str);
+  if (size < 0) return -1; /* provisional implemntation */
+
+  buf = scm_capi_malloc((size_t)size + 1);
+  if (buf == NULL) return -1; /* provisional implemntation */
+
+  rslt = scm_capi_string_to_cstr(str, buf, (size_t)size + 1);
+  if (rslt < 0) return -1; /* provisional implemntation */
+
+  return scm_capi_write_raw(port, buf, (size_t)rslt);
+}
+
 
 extern inline ScmObj
 scm_api_current_input_port(void)
