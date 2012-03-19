@@ -237,6 +237,9 @@ scm_vm_setup_global_env(ScmObj vm)
   SCM_VM(vm)->ge.stdio.out = SCM_OBJ_NULL;
   SCM_VM(vm)->ge.stdio.err = SCM_OBJ_NULL;
 
+  SCM_VM(vm)->ge.curio.in = SCM_OBJ_NULL;
+  SCM_VM(vm)->ge.curio.out = SCM_OBJ_NULL;
+
   return 0;
 }
 
@@ -253,9 +256,13 @@ scm_vm_clean_global_env(ScmObj vm)
 
   SCM_VM(vm)->ge.symtbl = SCM_OBJ_NULL;
   SCM_VM(vm)->ge.gloctbl = SCM_OBJ_NULL;
+
   SCM_VM(vm)->ge.stdio.in = SCM_OBJ_NULL;
   SCM_VM(vm)->ge.stdio.out = SCM_OBJ_NULL;
   SCM_VM(vm)->ge.stdio.err = SCM_OBJ_NULL;
+
+  SCM_VM(vm)->ge.curio.in = SCM_OBJ_NULL;
+  SCM_VM(vm)->ge.curio.out = SCM_OBJ_NULL;
 }
 
 scm_local_func int
@@ -296,12 +303,17 @@ scm_vm_init_eval_env(ScmObj vm)
   SCM_SLOT_SETQ(ScmVM,vm, ge.stdio.out, out);
   SCM_SLOT_SETQ(ScmVM,vm, ge.stdio.err, err);
 
+  SCM_SLOT_SETQ(ScmVM,vm, ge.curio.in, in);
+  SCM_SLOT_SETQ(ScmVM,vm, ge.curio.out, out);
+
   SCM_VM(vm)->reg.sp = SCM_VM(vm)->stack;
   SCM_VM(vm)->reg.fp = NULL;
   SCM_VM(vm)->reg.ip = NULL;
   SCM_VM(vm)->reg.cp = SCM_OBJ_NULL;
   SCM_VM(vm)->reg.isp = SCM_OBJ_NULL;
   SCM_VM(vm)->reg.val = SCM_OBJ_NULL;
+
+  SCM_VM(vm)->trmp.code = SCM_OBJ_NULL;
 
   return 0;
 }
@@ -318,12 +330,17 @@ scm_vm_clean_eval_env(ScmObj vm)
   SCM_VM(vm)->ge.stdio.out = SCM_OBJ_NULL;
   SCM_VM(vm)->ge.stdio.err = SCM_OBJ_NULL;
 
+  SCM_VM(vm)->ge.curio.in = SCM_OBJ_NULL;
+  SCM_VM(vm)->ge.curio.out = SCM_OBJ_NULL;
+
   SCM_VM(vm)->reg.sp = SCM_VM(vm)->stack;
   SCM_VM(vm)->reg.fp = NULL;
   SCM_VM(vm)->reg.ip = NULL;
   SCM_VM(vm)->reg.cp = SCM_OBJ_NULL;
   SCM_VM(vm)->reg.isp = SCM_OBJ_NULL;
   SCM_VM(vm)->reg.val = SCM_OBJ_NULL;
+
+  SCM_VM(vm)->trmp.code = SCM_OBJ_NULL;
 }
 
 scm_local_func void
@@ -755,12 +772,6 @@ scm_vm_initialize(ScmObj vm,  ScmBedrock *bedrock)
     SCM_VM(vm)->stack = scm_capi_free(SCM_VM(vm)->stack);
     SCM_VM(vm)->stack_size = 0;
   }
-  SCM_VM(vm)->reg.sp = NULL;
-  SCM_VM(vm)->reg.fp = NULL;
-  SCM_VM(vm)->reg.ip = NULL;
-  SCM_VM(vm)->reg.cp = SCM_OBJ_NULL;
-  SCM_VM(vm)->reg.isp = SCM_OBJ_NULL;
-  SCM_VM(vm)->reg.val = SCM_OBJ_NULL;
 
   return;
 }
@@ -781,6 +792,7 @@ scm_vm_finalize(ScmObj vm)
   SCM_VM(vm)->reg.cp = SCM_OBJ_NULL;
   SCM_VM(vm)->reg.isp = SCM_OBJ_NULL;
   SCM_VM(vm)->reg.val = SCM_OBJ_NULL;
+  SCM_VM(vm)->trmp.code = SCM_OBJ_NULL;
 }
 
 ScmObj
@@ -969,6 +981,8 @@ scm_vm_gc_initialize(ScmObj obj, ScmObj mem)
   SCM_VM(obj)->ge.stdio.in = SCM_OBJ_NULL;
   SCM_VM(obj)->ge.stdio.out = SCM_OBJ_NULL;
   SCM_VM(obj)->ge.stdio.err = SCM_OBJ_NULL;
+  SCM_VM(obj)->ge.curio.in = SCM_OBJ_NULL;
+  SCM_VM(obj)->ge.curio.out = SCM_OBJ_NULL;
   SCM_VM(obj)->stack = NULL;
   SCM_VM(obj)->stack_size = 0;
   SCM_VM(obj)->reg.sp = NULL;
@@ -1006,6 +1020,12 @@ scm_vm_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
   rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_VM(obj)->ge.stdio.err, mem);
+  if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
+
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_VM(obj)->ge.curio.in, mem);
+  if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
+
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_VM(obj)->ge.curio.out, mem);
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
   rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_VM(obj)->reg.isp, mem);

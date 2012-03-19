@@ -90,6 +90,11 @@ struct ScmVMRec {
       ScmObj out;
       ScmObj err;
     } stdio;
+
+    struct {
+      ScmObj in;
+      ScmObj out;
+    } curio;
   } ge;
 
 
