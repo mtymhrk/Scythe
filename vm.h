@@ -79,10 +79,19 @@ struct ScmVMRec {
   ScmObjHeader header;
 
   ScmBedrock *bedrock;
-
   ScmMem *mem;
-  ScmObj symtbl;                /* Symbol Table */
-  ScmObj gloctbl;
+
+  struct {
+    ScmObj symtbl;                /* Symbol Table */
+    ScmObj gloctbl;
+
+    struct {
+      ScmObj in;
+      ScmObj out;
+      ScmObj err;
+    } stdio;
+  } ge;
+
 
   /*** VM Stack ***/
   ScmObj *stack;
@@ -116,8 +125,10 @@ struct ScmVMRec {
 
 #ifdef SCM_UNIT_TEST
 
-void scm_vm_setup_singletons(ScmObj vm);
+int scm_vm_setup_singletons(ScmObj vm);
 void scm_vm_clean_singletons(ScmObj vm);
+int scm_vm_setup_global_env(ScmObj vm);
+void scm_vm_clean_global_env(ScmObj vm);
 void scm_vm_clean_eval_env(ScmObj vm);
 
 void scm_vm_stack_push(ScmObj vm, ScmObj elm);
@@ -187,13 +198,13 @@ scm_vm_current_mm(void)
 inline ScmObj
 scm_vm_current_symtbl(void)
 {
-  return SCM_VM(scm_vm__current_vm)->symtbl;
+  return SCM_VM(scm_vm__current_vm)->ge.symtbl;
 }
 
 inline ScmObj
 scm_vm_current_gloctbl(void)
 {
-  return SCM_VM(scm_vm__current_vm)->gloctbl;
+  return SCM_VM(scm_vm__current_vm)->ge.gloctbl;
 }
 
 inline ScmObj

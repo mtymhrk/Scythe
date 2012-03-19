@@ -171,37 +171,30 @@ ScmTypeInfo SCM_VM_TYPE_INFO = {
 ScmObj scm_vm__current_vm = SCM_OBJ_INIT;
 
 
-scm_local_func void
+scm_local_func int
 scm_vm_setup_singletons(ScmObj vm)
 {
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
-  SCM_SLOT_SETQ(ScmVM, vm, symtbl, scm_symtbl_new(SCM_MEM_ROOT));
-  if (scm_obj_null_p(SCM_VM(vm)->symtbl))
-    ;                           /* TODO: error handling */
-
-  SCM_SLOT_SETQ(ScmVM,vm, gloctbl, scm_gloctbl_new(SCM_MEM_ROOT));
-  if (scm_obj_null_p(SCM_VM(vm)->gloctbl))
-    ;                           /* TODO: error handling */
-
   SCM_SLOT_SETQ(ScmVM, vm, cnsts.nil, scm_nil_new(SCM_MEM_ROOT));
   if (scm_obj_null_p(SCM_VM(vm)->cnsts.nil))
-    ;                           /* TODO: error handling */
+    return -1;                           /* TODO: error handling */
 
   SCM_SLOT_SETQ(ScmVM, vm, cnsts.eof, scm_eof_new(SCM_MEM_ROOT));
   if (scm_obj_null_p(SCM_VM(vm)->cnsts.eof))
-    ;                           /* TODO: error handling */
+    return -1;                           /* TODO: error handling */
 
   SCM_SLOT_SETQ(ScmVM, vm, cnsts.b_true,
                 scm_bool_new(SCM_MEM_ROOT, true));
   if (scm_obj_null_p(SCM_VM(vm)->cnsts.b_true))
-    ;                           /* TODO: error handling */
+    return -1;                           /* TODO: error handling */
 
   SCM_SLOT_SETQ(ScmVM, vm, cnsts.b_false,
                 scm_bool_new(SCM_MEM_ROOT, false));
   if (scm_obj_null_p(SCM_VM(vm)->cnsts.b_false))
-    ;                           /* TODO: error handling */
+    return -1;                           /* TODO: error handling */
 
+  return 0;
 }
 
 scm_local_func void
@@ -209,19 +202,108 @@ scm_vm_clean_singletons(ScmObj vm)
 {
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
-  scm_mem_free_root(SCM_VM(vm)->mem, SCM_VM(vm)->symtbl);
-  scm_mem_free_root(SCM_VM(vm)->mem, SCM_VM(vm)->gloctbl);
-  scm_mem_free_root(SCM_VM(vm)->mem, SCM_VM(vm)->cnsts.nil);
-  scm_mem_free_root(SCM_VM(vm)->mem, SCM_VM(vm)->cnsts.eof);
-  scm_mem_free_root(SCM_VM(vm)->mem, SCM_VM(vm)->cnsts.b_true);
-  scm_mem_free_root(SCM_VM(vm)->mem, SCM_VM(vm)->cnsts.b_false);
+  if (scm_obj_not_null_p(SCM_VM(vm)->cnsts.nil))
+    scm_mem_free_root(SCM_VM(vm)->mem, SCM_VM(vm)->cnsts.nil);
 
-  SCM_VM(vm)->symtbl = SCM_OBJ_NULL;
-  SCM_VM(vm)->gloctbl = SCM_OBJ_NULL;
+  if (scm_obj_not_null_p(SCM_VM(vm)->cnsts.eof))
+    scm_mem_free_root(SCM_VM(vm)->mem, SCM_VM(vm)->cnsts.eof);
+
+  if (scm_obj_not_null_p(SCM_VM(vm)->cnsts.b_true))
+    scm_mem_free_root(SCM_VM(vm)->mem, SCM_VM(vm)->cnsts.b_true);
+
+  if (scm_obj_not_null_p(SCM_VM(vm)->cnsts.b_false))
+    scm_mem_free_root(SCM_VM(vm)->mem, SCM_VM(vm)->cnsts.b_false);
+
   SCM_VM(vm)->cnsts.nil = SCM_OBJ_NULL;
   SCM_VM(vm)->cnsts.eof = SCM_OBJ_NULL;
   SCM_VM(vm)->cnsts.b_true = SCM_OBJ_NULL;
   SCM_VM(vm)->cnsts.b_false = SCM_OBJ_NULL;
+}
+
+scm_local_func int
+scm_vm_setup_global_env(ScmObj vm)
+{
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  SCM_SLOT_SETQ(ScmVM, vm, ge.symtbl, scm_symtbl_new(SCM_MEM_ROOT));
+  if (scm_obj_null_p(SCM_VM(vm)->ge.symtbl))
+    return -1;                           /* TODO: error handling */
+
+  SCM_SLOT_SETQ(ScmVM,vm, ge.gloctbl, scm_gloctbl_new(SCM_MEM_ROOT));
+  if (scm_obj_null_p(SCM_VM(vm)->ge.gloctbl))
+    return -1;                           /* TODO: error handling */
+
+  SCM_VM(vm)->ge.stdio.in = SCM_OBJ_NULL;
+  SCM_VM(vm)->ge.stdio.out = SCM_OBJ_NULL;
+  SCM_VM(vm)->ge.stdio.err = SCM_OBJ_NULL;
+
+  return 0;
+}
+
+scm_local_func void
+scm_vm_clean_global_env(ScmObj vm)
+{
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  if (scm_obj_null_p(SCM_VM(vm)->ge.symtbl))
+    scm_mem_free_root(SCM_VM(vm)->mem, SCM_VM(vm)->ge.symtbl);
+
+  if (scm_obj_null_p(SCM_VM(vm)->ge.gloctbl))
+    scm_mem_free_root(SCM_VM(vm)->mem, SCM_VM(vm)->ge.gloctbl);
+
+  SCM_VM(vm)->ge.symtbl = SCM_OBJ_NULL;
+  SCM_VM(vm)->ge.gloctbl = SCM_OBJ_NULL;
+  SCM_VM(vm)->ge.stdio.in = SCM_OBJ_NULL;
+  SCM_VM(vm)->ge.stdio.out = SCM_OBJ_NULL;
+  SCM_VM(vm)->ge.stdio.err = SCM_OBJ_NULL;
+}
+
+scm_local_func int
+scm_vm_init_eval_env(ScmObj vm)
+{
+  int in_fd, out_fd, err_fd;
+  ScmObj in = SCM_OBJ_INIT, out = SCM_OBJ_INIT, err = SCM_OBJ_INIT;
+
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  SCM_STACK_FRAME_PUSH(&vm, &in, &out, &err);
+
+  scm_symtbl_clean(SCM_VM(vm)->ge.symtbl);
+  scm_gloctbl_clean(SCM_VM(vm)->ge.gloctbl);
+
+  in_fd = dup(0);
+  if (in_fd < 0) return -1;  /* TODO: error handling */
+
+  out_fd = dup(0);
+  if (out_fd < 0) return -1;  /* TODO: error handling */
+
+  err_fd = dup(0);
+  if (err_fd < 0) return -1;  /* TODO: error handling */
+
+  in = scm_capi_open_input_fd_port(in_fd, SCM_PORT_BUF_DEFAULT,
+                                   scm_capi_system_encoding());
+  if (scm_obj_null_p(in)) return -1;  /* TODO: error handling */
+
+  out = scm_capi_open_input_fd_port(out_fd, SCM_PORT_BUF_DEFAULT,
+                                    scm_capi_system_encoding());
+  if (scm_obj_null_p(out)) return -1;  /* TODO: error handling */
+
+  err = scm_capi_open_input_fd_port(err_fd, SCM_PORT_BUF_DEFAULT,
+                                    scm_capi_system_encoding());
+  if (scm_obj_null_p(err)) return -1;  /* TODO: error handling */
+
+  SCM_SLOT_SETQ(ScmVM,vm, ge.stdio.in, in);
+  SCM_SLOT_SETQ(ScmVM,vm, ge.stdio.out, out);
+  SCM_SLOT_SETQ(ScmVM,vm, ge.stdio.err, err);
+
+  SCM_VM(vm)->reg.sp = SCM_VM(vm)->stack;
+  SCM_VM(vm)->reg.fp = NULL;
+  SCM_VM(vm)->reg.ip = NULL;
+  SCM_VM(vm)->reg.cp = SCM_OBJ_NULL;
+  SCM_VM(vm)->reg.isp = SCM_OBJ_NULL;
+  SCM_VM(vm)->reg.val = SCM_OBJ_NULL;
+
+  return 0;
 }
 
 scm_local_func void
@@ -229,8 +311,12 @@ scm_vm_clean_eval_env(ScmObj vm)
 {
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
-  scm_symtbl_clean(SCM_VM(vm)->symtbl);
-  scm_gloctbl_clean(SCM_VM(vm)->gloctbl);
+  scm_symtbl_clean(SCM_VM(vm)->ge.symtbl);
+  scm_gloctbl_clean(SCM_VM(vm)->ge.gloctbl);
+
+  SCM_VM(vm)->ge.stdio.in = SCM_OBJ_NULL;
+  SCM_VM(vm)->ge.stdio.out = SCM_OBJ_NULL;
+  SCM_VM(vm)->ge.stdio.err = SCM_OBJ_NULL;
 
   SCM_VM(vm)->reg.sp = SCM_VM(vm)->stack;
   SCM_VM(vm)->reg.fp = NULL;
@@ -519,7 +605,7 @@ scm_vm_op_gref(ScmObj vm, size_t immv_idx)
     ;  /* TODO: error handling */
 
   if (scm_obj_type_p(arg, &SCM_SYMBOL_TYPE_INFO)) {
-    rslt = scm_gloctbl_find(SCM_VM(vm)->gloctbl, arg, SCM_CSETTER_L(gloc));
+    rslt = scm_gloctbl_find(SCM_VM(vm)->ge.gloctbl, arg, SCM_CSETTER_L(gloc));
     if (rslt != 0)
       ;                           /* TODO: error handling */
 
@@ -571,7 +657,7 @@ scm_vm_op_gdef(ScmObj vm, size_t immv_idx)
     ;  /* TODO: error handling */
 
   if (scm_obj_type_p(arg, &SCM_SYMBOL_TYPE_INFO)) {
-    gloc = scm_gloctbl_bind(SCM_VM(vm)->gloctbl, arg, SCM_VM(vm)->reg.val);
+    gloc = scm_gloctbl_bind(SCM_VM(vm)->ge.gloctbl, arg, SCM_VM(vm)->reg.val);
     if (scm_obj_null_p(gloc))
       ;                           /* TODO: error handling */
 
@@ -610,7 +696,7 @@ scm_vm_op_gset(ScmObj vm, size_t immv_idx)
     ;  /* TODO: error handling */
 
   if (scm_obj_type_p(arg, &SCM_SYMBOL_TYPE_INFO)) {
-    rslt = scm_gloctbl_find(SCM_VM(vm)->gloctbl, arg, SCM_CSETTER_L(gloc));
+    rslt = scm_gloctbl_find(SCM_VM(vm)->ge.gloctbl, arg, SCM_CSETTER_L(gloc));
     if (rslt != 0)
       ;                           /* TODO: error handling */
 
@@ -634,6 +720,8 @@ scm_vm_op_gset(ScmObj vm, size_t immv_idx)
 void
 scm_vm_initialize(ScmObj vm,  ScmBedrock *bedrock)
 {
+  int rslt;
+
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
   scm_assert(bedrock != NULL);
 
@@ -654,7 +742,11 @@ scm_vm_initialize(ScmObj vm,  ScmBedrock *bedrock)
 
   SCM_VM(vm)->trmp.code = SCM_OBJ_NULL;
 
-  scm_vm_setup_singletons(vm);
+  rslt = scm_vm_setup_singletons(vm);
+  if (rslt < 0) goto err;
+
+  rslt = scm_vm_setup_global_env(vm);
+  if (rslt < 0) goto err;
 
   return;
 
@@ -678,6 +770,7 @@ scm_vm_finalize(ScmObj vm)
 {
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
+  scm_vm_clean_global_env(vm);
   scm_vm_clean_singletons(vm);
 
   SCM_VM(vm)->stack = scm_capi_free(SCM_VM(vm)->stack);
@@ -747,6 +840,7 @@ scm_vm_setup_system(ScmObj vm)
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
+  scm_vm_init_eval_env(vm);
   scm_core_subr_system_setup();
 }
 
@@ -870,7 +964,11 @@ scm_vm_gc_initialize(ScmObj obj, ScmObj mem)
 
   SCM_VM(obj)->mem = SCM_MEM(mem);
 
-  SCM_VM(obj)->symtbl = SCM_OBJ_NULL;
+  SCM_VM(obj)->ge.symtbl = SCM_OBJ_NULL;
+  SCM_VM(obj)->ge.gloctbl = SCM_OBJ_NULL;
+  SCM_VM(obj)->ge.stdio.in = SCM_OBJ_NULL;
+  SCM_VM(obj)->ge.stdio.out = SCM_OBJ_NULL;
+  SCM_VM(obj)->ge.stdio.err = SCM_OBJ_NULL;
   SCM_VM(obj)->stack = NULL;
   SCM_VM(obj)->stack_size = 0;
   SCM_VM(obj)->reg.sp = NULL;
@@ -901,10 +999,13 @@ scm_vm_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
   scm_assert(scm_obj_not_null_p(mem));
   scm_assert(handler != NULL);
 
-  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_VM(obj)->symtbl, mem);
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_VM(obj)->ge.stdio.in, mem);
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
-  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_VM(obj)->gloctbl, mem);
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_VM(obj)->ge.stdio.out, mem);
+  if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
+
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_VM(obj)->ge.stdio.err, mem);
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
   rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_VM(obj)->reg.isp, mem);
