@@ -165,7 +165,7 @@ typedef ScmObj (*ScmSubrFunc)(int argc, ScmObj *argv);
 
 /** definition  for pretty print function ************************************/
 
-typedef void (*ScmPrettyPrintFunction)(ScmObj obj); // 仮
+typedef int (*ScmPrettyPrintFunction)(ScmObj obj, ScmObj port); // 仮
 
 
 /** definition for GC ********************************************************/

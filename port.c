@@ -1448,6 +1448,24 @@ scm_port_write(ScmObj port, const void *buf, size_t size)
   }
 }
 
+ssize_t
+scm_port_write_char(ScmObj port, scm_char_t chr)
+{
+  const ScmEncVirtualFunc *vf;
+  ssize_t s;
+
+  scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
+
+  if (!scm_port_writable_p(port)) return -1;
+  if (scm_port_closed_p(port)) return -1;
+
+  vf = SCM_ENCODING_VFUNC(SCM_PORT(port)->encoding);
+  s = vf->char_width(chr.bytes, sizeof(chr));
+  if (s < 0) return -1;         /* [ERR]: port: illegal sequence */
+
+  return scm_port_write(port, chr.bytes, (size_t)s);
+}
+
 int
 scm_port_seek(ScmObj port, off_t offset, int whence)
 {

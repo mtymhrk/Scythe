@@ -948,6 +948,29 @@ scm_api_read(ScmObj port)
   return scm_parser_parse_expression(parser, port);
 }
 
+extern inline ssize_t
+scm_capi_write_raw(ScmObj port, void *buf, size_t size)
+{
+  if (scm_obj_null_p(port)
+      || !scm_capi_output_port_p(port)
+      || buf == NULL
+      || size > SSIZE_MAX)
+    return -1;         /* provisional implemntation */
+
+  return scm_port_write(port, buf, size);
+}
+
+extern inline ssize_t
+scm_capi_write_char(ScmObj port, scm_char_t chr)
+{
+  if (scm_obj_null_p(port)
+      || !scm_capi_output_port_p(port))
+    return -1;         /* provisional implemntation */
+
+  return scm_port_write_char(port, chr);
+}
+
+
 extern inline ScmObj
 scm_api_current_input_port(void)
 {
