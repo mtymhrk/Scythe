@@ -178,6 +178,21 @@ void scm_vm_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_vm_gc_finalize(ScmObj obj);
 int scm_vm_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
 
+inline ScmObj
+scm_vm_current_input_port(ScmObj vm)
+{
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  return SCM_VM(vm)->ge.curio.in;
+}
+
+inline ScmObj
+scm_vm_current_output_port(ScmObj vm)
+{
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  return SCM_VM(vm)->ge.curio.out;
+}
 
 inline ScmObj
 scm_vm_current_vm(void)

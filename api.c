@@ -948,6 +948,18 @@ scm_api_read(ScmObj port)
   return scm_parser_parse_expression(parser, port);
 }
 
+extern inline ScmObj
+scm_api_current_input_port(void)
+{
+  return scm_vm_current_input_port(scm_vm_current_vm());
+}
+
+extern inline ScmObj
+scm_api_current_output_port(void)
+{
+  return scm_vm_current_output_port(scm_vm_current_vm());
+}
+
 
 /*******************************************************************/
 /*  Subrutine                                                      */
