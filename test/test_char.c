@@ -48,3 +48,5 @@ test_scm_char_value_a(void)
                        scm_char_value(chr).ascii);
 
 }
+
+

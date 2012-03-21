@@ -460,6 +460,35 @@ scm_capi_char_to_cchar(ScmObj chr, scm_char_t *c)
                                                                sizeof(*c));
 }
 
+extern inline int
+scm_capi_char_encoding(ScmObj chr, SCM_ENC_T *enc)
+{
+  if (!scm_capi_char_p(chr))
+    return -1;                  /* provisional implementation */
+
+  if (enc == NULL)
+    return -1;                  /* provisional implementation */
+
+  *enc = scm_char_encoding(chr);
+
+  return 0;
+}
+
+extern inline ScmObj
+scm_capi_char_encode(ScmObj chr, SCM_ENC_T enc)
+{
+  if (!scm_capi_char_p(chr))
+    return SCM_OBJ_NULL;                  /* provisional implementation */
+
+  if (enc > SCM_ENC_NR_ENC)
+    return SCM_OBJ_NULL;                  /* provisional implementation */
+
+  if (enc == SCM_ENC_SYS)
+    enc = scm_capi_system_encoding();
+
+  return scm_char_encode(chr, enc);
+}
+
 
 /*******************************************************************/
 /*  String                                                         */
@@ -565,6 +594,34 @@ scm_capi_string_to_cstr(ScmObj str, char *cstr, size_t size)
   return n;
 }
 
+extern inline ScmObj
+scm_api_string_push(ScmObj str, ScmObj c)
+{
+  SCM_ENC_T s_enc, c_enc;
+  scm_char_t cv;
+  int rslt;
+
+  if (!scm_capi_string_p(str))
+    return SCM_OBJ_NULL;                  /* provisional implementation */
+
+  if (!scm_capi_char_p(c))
+    return SCM_OBJ_NULL;                  /* provisional implementation */
+
+  rslt = scm_capi_string_encoding(str, &s_enc);
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  rslt = scm_capi_char_encoding(str, &c_enc);
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  if (s_enc != c_enc) return SCM_OBJ_NULL;
+
+  cv = scm_char_value(c);
+
+  str = scm_string_push(str, cv);
+  if (scm_obj_null_p(str)) return SCM_OBJ_NULL;
+
+  return str;
+}
 
 /*******************************************************************/
 /*  Vector                                                         */
@@ -763,6 +820,10 @@ extern inline ScmObj
 scm_capi_open_input_fd_port(int fd, SCM_PORT_BUF_T mode, SCM_ENC_T enc)
 {
   if (fd < 0) return SCM_OBJ_NULL; /* provisional implemntation */
+
+  if (enc == SCM_ENC_SYS)
+    enc = scm_capi_system_encoding();
+
   return scm_port_open_input_fd(fd, mode, enc);
 }
 
@@ -770,15 +831,31 @@ extern inline ScmObj
 scm_capi_open_output_fd_port(int fd, SCM_PORT_BUF_T mode, SCM_ENC_T enc)
 {
   if (fd < 0) return SCM_OBJ_NULL; /* provisional implemntation */
+
+  if (enc == SCM_ENC_SYS)
+    enc = scm_capi_system_encoding();
+
   return scm_port_open_output_fd(fd, mode, enc);
 }
 
 extern inline ScmObj
 scm_capi_open_input_string_port_from_cstr(const char *str, SCM_ENC_T enc)
 {
+  if (enc == SCM_ENC_SYS)
+    enc = scm_capi_system_encoding();
+
   return scm_port_open_input_string(str,
                                     (str == NULL)? 0 : strlen(str),
                                     enc);
+}
+
+extern inline ScmObj
+scm_capi_open_output_string_port(SCM_ENC_T enc)
+{
+  if (enc == SCM_ENC_SYS)
+    enc = scm_capi_system_encoding();
+
+  return scm_port_open_output_string(enc);
 }
 
 extern inline bool
@@ -960,47 +1037,76 @@ scm_capi_write_raw(ScmObj port, void *buf, size_t size)
   return scm_port_write(port, buf, size);
 }
 
-extern inline ssize_t
-scm_capi_write_char(ScmObj port, scm_char_t chr)
-{
-  if (scm_obj_null_p(port)
-      || !scm_capi_output_port_p(port))
-    return -1;         /* provisional implemntation */
 
-  return scm_port_write_char(port, chr);
+
+extern inline ScmObj
+scm_api_write_char(ScmObj port, ScmObj chr)
+{
+  SCM_ENC_T p_enc, c_enc;
+  ssize_t rslt;
+
+  SCM_STACK_FRAME_PUSH(&port, &chr);
+
+  if (scm_obj_null_p(port)
+      || !scm_capi_output_port_p(port)
+      || !scm_capi_char_p(chr))
+    return SCM_OBJ_NULL;         /* provisional implemntation */
+
+  rslt = scm_capi_port_encoding(port, &p_enc);
+  if (rslt < 0) return SCM_OBJ_NULL; /* provisional implemntation */
+
+  rslt = scm_capi_char_encoding(chr, &c_enc);
+  if (rslt < 0) return SCM_OBJ_NULL; /* provisional implemntation */
+
+  if (p_enc != c_enc) {
+    chr = scm_capi_char_encode(chr, p_enc);
+    if (scm_obj_null_p(chr)) return SCM_OBJ_NULL; /* provisional implemntation */
+  }
+
+  rslt = scm_port_write_char(port, scm_char_value(chr));
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  return port;
 }
 
-extern inline ssize_t
-scm_capi_write_string(ScmObj port, ScmObj str)
+extern inline ScmObj
+scm_api_write_string(ScmObj port, ScmObj str)
 {
   SCM_ENC_T p_enc, s_enc;
   ssize_t rslt;
   ssize_t size;
   void *buf;
 
+  SCM_STACK_FRAME_PUSH(&port, &str);
+
   if (scm_obj_null_p(port)
       || !scm_capi_output_port_p(port))
-    return -1;         /* provisional implemntation */
+    return SCM_OBJ_NULL;         /* provisional implemntation */
 
   rslt = scm_capi_port_encoding(port, &p_enc);
-  if (rslt < 0) return -1; /* provisional implemntation */
+  if (rslt < 0) return SCM_OBJ_NULL; /* provisional implemntation */
 
   rslt = scm_capi_string_encoding(str, &s_enc);
-  if (rslt < 0) return -1; /* provisional implemntation */
+  if (rslt < 0) return SCM_OBJ_NULL; /* provisional implemntation */
 
-  if (p_enc != s_enc)
-    return -1; /* provisional implemntation */
+  if (p_enc != s_enc) {
+    str = scm_capi_string_encode(str, p_enc);
+    if (scm_obj_null_p(str)) return SCM_OBJ_NULL; /* provisional implemntation */
+  }
 
   size = scm_capi_string_bytesize(str);
-  if (size < 0) return -1; /* provisional implemntation */
+  if (size < 0) return SCM_OBJ_NULL; /* provisional implemntation */
 
   buf = scm_capi_malloc((size_t)size + 1);
-  if (buf == NULL) return -1; /* provisional implemntation */
+  if (buf == NULL) return SCM_OBJ_NULL; /* provisional implemntation */
 
   rslt = scm_capi_string_to_cstr(str, buf, (size_t)size + 1);
-  if (rslt < 0) return -1; /* provisional implemntation */
+  if (rslt < 0) return SCM_OBJ_NULL; /* provisional implemntation */
 
-  return scm_capi_write_raw(port, buf, (size_t)rslt);
+  rslt = scm_capi_write_raw(port, buf, (size_t)rslt);
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  return port;
 }
 
 

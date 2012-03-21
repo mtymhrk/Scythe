@@ -625,6 +625,9 @@ scm_port_size_up_to_lf(ScmObj port, const void *buf, size_t size)
   scm_assert(buf != NULL);
   scm_assert(size <= SSIZE_MAX);
 
+  if (SCM_PORT(port)->encoding == SCM_ENC_BIN)
+    return 0;
+
   vf = SCM_ENCODING_VFUNC(SCM_PORT(port)->encoding);
   iter = scm_str_itr_begin((void *)buf, size, vf->char_width);
   lf = SCM_ENCODING_CONST_LF_CHAR(SCM_PORT(port)->encoding);
@@ -823,6 +826,9 @@ scm_port_read_line_nonbuf(ScmObj port, void *buf, size_t size)
 
   if (SCM_PORT(port)->eof_received_p) return 0;
 
+  if (SCM_PORT(port)->encoding == SCM_ENC_BIN)
+    return scm_io_read(SCM_PORT(port)->io, buf, size);
+
   vf = SCM_ENCODING_VFUNC(SCM_PORT(port)->encoding);
   lf = SCM_ENCODING_CONST_LF_CHAR(SCM_PORT(port)->encoding);
 
@@ -992,7 +998,7 @@ scm_port_new(SCM_MEM_TYPE_T mtype,
 
   scm_assert(io != NULL);
   scm_assert(/* buf_mode >= 0 && */ buf_mode < SCM_PORT_NR_BUF_MODE);
-  scm_assert(/* 0 <= enc && */ enc < SCM_ENC_NR_ENC);
+  scm_assert(/* 0 <= enc && */ enc < SCM_ENC_NR_ENC && enc != SCM_ENC_SYS);
 
   port = scm_capi_mem_alloc(&SCM_PORT_TYPE_INFO, mtype);
 

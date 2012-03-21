@@ -1,6 +1,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <ctype.h>
+#include <stdio.h>
 #include <assert.h>
 
 #include "object.h"
@@ -87,3 +88,94 @@ scm_char_encoding(ScmObj chr)   /* GC OK */
 
   return SCM_CHAR_ENC(chr);
 }
+
+ScmObj
+scm_char_encode(ScmObj chr, SCM_ENC_T enc)
+{
+  const ScmEncVirtualFunc *vf;
+  scm_char_t c;
+  ssize_t rslt, cw;
+
+  scm_assert_obj_type(chr, &SCM_CHAR_TYPE_INFO);
+  scm_assert(/*0 <= enc && */enc < SCM_ENC_NR_ENC && enc != SCM_ENC_SYS);
+
+  /* 今のところ ASCII から他のエンコードへの変換しか対応していない */
+  scm_assert(SCM_CHAR(chr)->enc== SCM_ENC_ASCII
+             || SCM_CHAR(chr)->enc == SCM_ENC_BIN
+             || SCM_CHAR(chr)->enc == enc
+             || enc == SCM_ENC_BIN);
+
+  if (SCM_CHAR(chr)->enc == enc)
+    return scm_char_new(SCM_MEM_HEAP, SCM_CHAR(chr)->value, enc);
+
+  vf = SCM_ENCODING_VFUNC(SCM_CHAR(chr)->enc);
+  cw = vf->char_width(SCM_CHAR(chr)->value.bytes, sizeof(scm_char_t));
+  if (cw < 0) return SCM_OBJ_NULL;
+
+  vf = SCM_ENCODING_VFUNC(enc);
+  if (SCM_CHAR(chr)->enc == SCM_ENC_BIN) {
+    rslt = vf->char_width(SCM_CHAR(chr)->value.bytes, (size_t)cw);
+    if (rslt < 0) return SCM_OBJ_NULL;
+    scm_char_new(SCM_MEM_HEAP, SCM_CHAR(chr)->value, enc);
+  }
+  else if (enc == SCM_ENC_BIN) {
+    if (cw != 1) return SCM_OBJ_NULL;
+    scm_char_new(SCM_MEM_HEAP, SCM_CHAR(chr)->value, enc);
+  }
+
+  rslt = vf->ascii_to((char)SCM_CHAR(chr)->value.ascii, &c);
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  return scm_char_new(SCM_MEM_HEAP, c, enc);
+}
+
+/* int */
+/* scm_char_pretty_print(ScmObj obj, ScmObj port, bool write_p) */
+/* { */
+/*   ScmObj str = SCM_OBJ_INIT; */
+/*   const ScmEncVirtualFunc *vf; */
+/*   char cstr[256]; */
+/*   int c; */
+
+/*   SCM_STACK_FRAME_PUSH(&obj, &port, &str); */
+
+/*   scm_assert_obj_type(obj, &SCM_CHAR_TYPE_INFO); */
+
+/*   vf = SCM_ENCODING_VFUNC(SCM_CHAR(obj)->enc); */
+
+/*   if (write_p) { */
+/*     c = vf->to_ascii(SCM_CHAR(obj)->value); */
+/*     if (c >= 0) { */
+/*       if (c == '\n') */
+/*         memcpy(cstr, "#\\newline", sizeof("#\\newline")); */
+/*       else if (c == ' ') */
+/*         memcpy(cstr, "#\\space", sizeof("#\\space")); */
+/*       else if (iscntrl(c)) */
+/*         snprintf(cstr, sizeof(cstr), "#\\x%02x", c); */
+/*       else */
+/*         snprintf(cstr, sizeof(cstr), "#\\%c", c); */
+
+/*       str = scm_capi_make_string_from_cstr(cstr, SCM_ENC_ASCII); */
+/*       if (scm_obj_null_p(str)) return -1; */
+/*     } */
+/*     else { */
+/*       str = scm_capi_make_string_from_cstr("#\\", SCM_ENC_ASCII); */
+/*       if (scm_obj_null_p(str)) return -1; */
+
+/*       str = scm_capi_string_encode(str, SCM_ENC_SYS); */
+/*       if (scm_obj_null_p(str)) return -1; */
+
+/*       str = scm_api_string_push(str, obj); */
+/*       if (scm_obj_null_p(str)) return -1; */
+/*     } */
+
+/*     port = scm_api_write_string(port, str); */
+/*     if (scm_obj_null_p(port)) return -1; */
+/*   } */
+/*   else { */
+/*     port =scm_api_write_char(port, obj); */
+/*     if (scm_obj_null_p(port)) return -1; */
+/*   } */
+
+/*   return 0; */
+/* } */

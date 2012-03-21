@@ -277,7 +277,7 @@ scm_string_encode(ScmObj str, SCM_ENC_T enc)
   ScmObj s = SCM_OBJ_INIT;
   ScmStrItr iter;
   scm_char_t chr;
-  ssize_t rslt;
+  ssize_t len, rslt;
   const ScmEncVirtualFunc *vf;
 
   scm_assert_obj_type(str, &SCM_STRING_TYPE_INFO);
@@ -287,12 +287,27 @@ scm_string_encode(ScmObj str, SCM_ENC_T enc)
 
   /* 今のところ ASCII から他のエンコードへの変換しか対応していない */
   scm_assert(SCM_STRING_ENC(str) == SCM_ENC_ASCII
-             || SCM_STRING_ENC(str) == enc);
+             || SCM_STRING_ENC(str) == SCM_ENC_BIN
+             || SCM_STRING_ENC(str) == enc
+             || enc == SCM_ENC_BIN);
 
   if (SCM_STRING_ENC(str) == enc)
     return scm_string_dup(str);
 
   vf = SCM_ENCODING_VFUNC(enc);
+
+  if (enc == SCM_ENC_BIN
+      || SCM_STRING_ENC(str) == SCM_ENC_BIN) {
+    s = scm_string_dup(str);
+    if (scm_obj_null_p(s)) return SCM_OBJ_NULL;
+    len = scm_string_check_bytes(SCM_STRING_HEAD(str),
+                                 SCM_STRING_BYTESIZE(str), vf);
+    if (len < 0) return SCM_OBJ_NULL;
+    SCM_STRING_LENGTH(s) = (size_t)len;
+    SCM_STRING_ENC(s) = enc;
+    return s;
+  }
+
   s = scm_string_new(SCM_MEM_HEAP, NULL, 0, enc);
 
   iter = scm_str_itr_begin((void *)SCM_STRING_HEAD(str),

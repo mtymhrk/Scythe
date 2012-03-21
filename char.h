@@ -36,5 +36,7 @@ ScmObj scm_char_new_newline(SCM_MEM_TYPE_T mtype, SCM_ENC_T enc);
 ScmObj scm_char_new_space(SCM_MEM_TYPE_T mtype, SCM_ENC_T enc);
 scm_char_t scm_char_value(ScmObj chr);
 SCM_ENC_T scm_char_encoding(ScmObj chr);
+ScmObj scm_char_encode(ScmObj chr, SCM_ENC_T enc);
+int scm_char_pretty_print(ScmObj obj, ScmObj port, bool write_p);
 
 #endif /* INCLUDE_CHAR_H__ */
