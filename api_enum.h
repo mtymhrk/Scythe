@@ -7,6 +7,7 @@
 
 typedef enum {
   SCM_ENC_ASCII,
+  SCM_ENC_ASCII_CMPT,
   SCM_ENC_BIN,
   SCM_ENC_UCS4,
   SCM_ENC_UTF8,

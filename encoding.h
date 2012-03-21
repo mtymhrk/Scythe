@@ -117,6 +117,15 @@ bool scm_enc_valid_char_p_ascii(scm_char_t c);
 int scm_enc_to_ascii_ascii(scm_char_t c);
 ssize_t scm_enc_ascii_to_ascii(char ascii, scm_char_t *chr);
 
+/* ASCII-CMPT */
+int scm_enc_char_width_ascii_cmpt(const void *str, size_t len);
+ScmStrItr scm_enc_index2itr_ascii_cmpt(void *str, size_t size, size_t idx);
+bool scm_enc_is_lf_ascii_cmpt(scm_char_t c);
+bool scm_enc_is_space_ascii_cmpt(scm_char_t c);
+bool scm_enc_valid_char_p_ascii_cmpt(scm_char_t c);
+int scm_enc_to_ascii_ascii_cmpt(scm_char_t c);
+ssize_t scm_enc_ascii_to_ascii_cmpt(char ascii, scm_char_t *chr);
+
 /* BINARY */
 int scm_enc_char_width_bin(const void *str, size_t len);
 ScmStrItr scm_enc_index2itr_bin(void *str, size_t size, size_t idx);

@@ -19,6 +19,19 @@ const ScmEncVirtualFunc SCM_ENCODING_VFUNC_ASCII = {
 };
 
 
+/* ASCII-CMPT */
+const ScmEncConstants SCM_ENCODING_CONST_ASCII_CMPT =
+  { {{'\n', 0x00, 0x00, 0x00}},     /* lf_char    */
+    {{' ', 0x00, 0x00, 0x00}}   };  /* space_char */
+
+const ScmEncVirtualFunc SCM_ENCODING_VFUNC_ASCII_CMPT = {
+  scm_enc_char_width_ascii_cmpt, scm_enc_index2itr_ascii_cmpt,
+  scm_enc_is_lf_ascii_cmpt, scm_enc_is_space_ascii_cmpt,
+  scm_enc_valid_char_p_ascii_cmpt, scm_enc_to_ascii_ascii_cmpt,
+  scm_enc_ascii_to_ascii_cmpt
+};
+
+
 /* Binary */
 const ScmEncConstants SCM_ENCODING_CONST_BIN =
   { {{0x00, 0x00, 0x00, 0x00}},     /* lf_char    */
@@ -86,6 +99,7 @@ const ScmEncVirtualFunc SCM_ENCODING_VFUNC_SJIS = {
 
 const ScmEncConstants *SCM_ENCODING_CONST_TBL[] =
   { &SCM_ENCODING_CONST_ASCII,
+    &SCM_ENCODING_CONST_ASCII_CMPT,
     &SCM_ENCODING_CONST_BIN,
     &SCM_ENCODING_CONST_UCS4,
     &SCM_ENCODING_CONST_UTF8,
@@ -94,6 +108,7 @@ const ScmEncConstants *SCM_ENCODING_CONST_TBL[] =
 
 const ScmEncVirtualFunc *SCM_ENCODING_VFUNC_TBL[] =
   { &SCM_ENCODING_VFUNC_ASCII,
+    &SCM_ENCODING_VFUNC_ASCII_CMPT,
     &SCM_ENCODING_VFUNC_BIN,
     &SCM_ENCODING_VFUNC_UCS4,
     &SCM_ENCODING_VFUNC_UTF8,
@@ -231,7 +246,7 @@ scm_enc_index2itr_ascii(void *str, size_t size, size_t idx)
 bool
 scm_enc_is_lf_ascii(scm_char_t c)
 {
-  return (c.ascii == 'a') ? true : false;
+  return (c.ascii == '\n') ? true : false;
 }
 
 bool
@@ -262,6 +277,62 @@ scm_enc_ascii_to_ascii(char ascii, scm_char_t *chr)
   else {
     return -1;
   }
+}
+
+
+/***********************************************************************/
+/*   ASCII-CMPT                                                        */
+/***********************************************************************/
+
+int
+scm_enc_char_width_ascii_cmpt(const void *str, size_t len)
+{
+  const scm_char_ascii_t *ascii = str;
+
+  if (ascii == NULL)
+    return -1;
+  else if (len < 1)
+    return 0;
+  else
+    return 1;
+}
+
+ScmStrItr
+scm_enc_index2itr_ascii_cmpt(void *str, size_t size, size_t idx)
+{
+  return scm_enc_index2itr_fixed_width(str, size, idx, sizeof(scm_char_ascii_t),
+                                       scm_enc_char_width_ascii);
+}
+
+bool
+scm_enc_is_lf_ascii_cmpt(scm_char_t c)
+{
+  return (c.ascii == '\n') ? true : false;
+}
+
+bool
+scm_enc_is_space_ascii_cmpt(scm_char_t c)
+{
+  return (c.ascii == ' ') ? true : false;
+}
+
+bool
+scm_enc_valid_char_p_ascii_cmpt(scm_char_t c)
+{
+  return true;
+}
+
+int
+scm_enc_to_ascii_ascii_cmpt(scm_char_t c)
+{
+  return IS_VALID_ASCII(c.bytes[0]) ? c.bytes[0] : -1;
+}
+
+ssize_t
+scm_enc_ascii_to_ascii_cmpt(char ascii, scm_char_t *chr)
+{
+  chr->ascii = (uint8_t)ascii;
+  return 1;
 }
 
 
