@@ -962,6 +962,7 @@ scm_port_initialize(ScmObj port, ScmIO *io,
   scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
   scm_assert(io != NULL);
   scm_assert(/* buf_mode >= 0 && */ buf_mode < SCM_PORT_NR_BUF_MODE);
+  scm_assert(/* enc >= 0 &&  */ enc < SCM_ENC_NR_ENC && enc != SCM_ENC_SYS);
 
   SCM_PORT(port)->attr = attr;
   SCM_PORT(port)->io = io;
