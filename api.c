@@ -474,21 +474,6 @@ scm_capi_char_encoding(ScmObj chr, SCM_ENC_T *enc)
   return 0;
 }
 
-extern inline ScmObj
-scm_capi_char_encode(ScmObj chr, SCM_ENC_T enc)
-{
-  if (!scm_capi_char_p(chr))
-    return SCM_OBJ_NULL;                  /* provisional implementation */
-
-  if (enc > SCM_ENC_NR_ENC)
-    return SCM_OBJ_NULL;                  /* provisional implementation */
-
-  if (enc == SCM_ENC_SYS)
-    enc = scm_capi_system_encoding();
-
-  return scm_char_encode(chr, enc);
-}
-
 
 /*******************************************************************/
 /*  String                                                         */
@@ -558,20 +543,6 @@ scm_capi_string_encoding(ScmObj str, SCM_ENC_T *enc)
   return 0;
 }
 
-extern inline ScmObj
-scm_capi_string_encode(ScmObj str, SCM_ENC_T enc)
-{
-  if (!scm_capi_string_p(str))
-    return SCM_OBJ_NULL;                  /* provisional implementation */
-
-  if (enc > SCM_ENC_NR_ENC)
-    return SCM_OBJ_NULL;                  /* provisional implementation */
-
-  if (enc == SCM_ENC_SYS)
-    enc = scm_capi_system_encoding();
-
-  return scm_string_encode(str, enc);
-}
 
 extern inline ssize_t
 scm_capi_string_to_cstr(ScmObj str, char *cstr, size_t size)

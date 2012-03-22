@@ -175,7 +175,6 @@ ScmObj scm_api_make_char_space(void);
 bool scm_capi_char_p(ScmObj obj);
 ssize_t scm_capi_char_to_cchar(ScmObj chr, scm_char_t *c);
 int scm_capi_char_encoding(ScmObj chr, SCM_ENC_T *enc);
-ScmObj scm_capi_char_encode(ScmObj chr, SCM_ENC_T enc);
 
 
 /*******************************************************************/
@@ -189,7 +188,6 @@ bool scm_capi_string_p(ScmObj obj);
 ssize_t scm_capi_string_length(ScmObj str);
 ssize_t scm_capi_string_bytesize(ScmObj str);
 int scm_capi_string_encoding(ScmObj str, SCM_ENC_T *enc);
-ScmObj scm_capi_string_encode(ScmObj str, SCM_ENC_T enc);
 ssize_t scm_capi_string_to_cstr(ScmObj str, char *cstr, size_t size);
 ScmObj scm_api_string_push(ScmObj str, ScmObj c);
 
