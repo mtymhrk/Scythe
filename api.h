@@ -248,8 +248,6 @@ ssize_t scm_capi_peek_char(ScmObj port, scm_char_t *chr);
 ScmObj scm_api_read(ScmObj port);
 ssize_t scm_capi_write_raw(ScmObj port, const void *buf, size_t size);
 int scm_capi_write_cstr(ScmObj port, const char *str, SCM_ENC_T enc);
-ScmObj scm_api_write_char(ScmObj port, ScmObj chr);
-ScmObj scm_api_write_string(ScmObj port, ScmObj str);
 ScmObj scm_api_current_input_port(void);
 ScmObj scm_api_current_output_port(void);
 
