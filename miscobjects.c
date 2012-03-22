@@ -48,17 +48,12 @@ scm_eof_new(SCM_MEM_TYPE_T mtype)         /* GC OK */
 int
 scm_eof_pretty_print(ScmObj obj, ScmObj port, bool write_p)
 {
-  ScmObj str = SCM_OBJ_INIT;
-
-  SCM_STACK_FRAME_PUSH(&obj, &port, &str);
+  int rslt;
 
   scm_assert_obj_type(obj, &SCM_EOF_TYPE_INFO);
 
-  str = scm_capi_make_string_from_cstr("#<eof>", SCM_ENC_ASCII);
-  if (scm_obj_null_p(str)) return -1;
-
-  port = scm_api_write_string(port, str);
-  if (scm_obj_null_p(port)) return -1;
+  rslt = scm_capi_write_cstr(port, "#<eof>", SCM_ENC_ASCII);
+  if (rslt < 0) return -1;
 
   return 0;
 }
@@ -117,19 +112,16 @@ scm_bool_value(ScmObj bl)       /* GC OK */
 int
 scm_bool_pretty_print(ScmObj obj, ScmObj port, bool write_p)
 {
-  ScmObj str = SCM_OBJ_INIT;
-
-  SCM_STACK_FRAME_PUSH(&obj, &port, &str);
+  int rslt;
 
   scm_assert_obj_type(obj, &SCM_BOOL_TYPE_INFO);
 
   if (SCM_BOOL(obj)->value == true)
-    str = scm_capi_make_string_from_cstr("#t", SCM_ENC_ASCII);
+    rslt = scm_capi_write_cstr(port, "#t", SCM_ENC_ASCII);
   else
-    str = scm_capi_make_string_from_cstr("#f", SCM_ENC_ASCII);
+    rslt = scm_capi_write_cstr(port, "#f", SCM_ENC_ASCII);
 
-  port = scm_api_write_string(port, str);
-  if (scm_obj_null_p(port)) return -1;
+  if (rslt < 0) return -1;
 
   return 0;
 }
@@ -178,17 +170,12 @@ scm_nil_new(SCM_MEM_TYPE_T mtype)         /* GC OK */
 int
 scm_nil_pretty_print(ScmObj obj, ScmObj port, bool write_p)
 {
-  ScmObj str = SCM_OBJ_INIT;
-
-  SCM_STACK_FRAME_PUSH(&obj, &port, &str);
+  int rslt;
 
   scm_assert_obj_type(obj, &SCM_NIL_TYPE_INFO);
 
-  str = scm_capi_make_string_from_cstr("()", SCM_ENC_ASCII);
-  if (scm_obj_null_p(str)) return -1;
-
-  port = scm_api_write_string(port, str);
-  if (scm_obj_null_p(port)) return -1;
+  rslt = scm_capi_write_cstr(port, "()", SCM_ENC_ASCII);
+  if (rslt < 0) return -1;
 
   return 0;
 }
