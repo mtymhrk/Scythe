@@ -109,7 +109,6 @@ extern const ScmEncVirtualFunc *SCM_ENCODING_VFUNC_TBL[];
 #define SCM_ENCODING_VFUNC_CHAR_WIDTH(enc) (SCM_ENCODING_VFUNC(enc)->char_width)
 #define SCM_ENCODING_VFUNC_INDEX2ITER(enc) (SCM_ENCODING_VFUNC(enc)->index2iter)
 #define SCM_ENCODING_VFUNC_LF_P(enc) (SCM_ENCODING_VFUNC(enc)->is_lf)
-#define SCM_ENCODING_VFUNC_SPACE_P(enc) (SCM_ENCODING_VFUNC(enc)->is_space)
 #define SCM_ENCODING_VFUNC_VALID_P(enc) (SCM_ENCODING_VFUNC(enc)->valid_char_p)
 #define SCM_ENCODING_VFUNC_CTRL_CHAR_P(enc) (SCM_ENCODING_VFUNC(enc)->ctrl_char_p)
 
