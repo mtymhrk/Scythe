@@ -14,10 +14,10 @@ const ScmEncConstants SCM_ENCODING_CONST_ASCII =
 const ScmEncVirtualFunc SCM_ENCODING_VFUNC_ASCII = {
   scm_enc_char_width_ascii, scm_enc_index2itr_ascii, scm_enc_is_lf_ascii,
   scm_enc_valid_char_p_ascii, scm_enc_to_ascii_ascii, scm_enc_ascii_to_ascii,
-  scm_enc_printable_p_ascii, scm_enc_alarm_p_ascii, scm_enc_backspace_p_ascii,
-  scm_enc_delete_p_ascii, scm_enc_escape_p_ascii, scm_enc_newline_p_ascii,
-  scm_enc_null_p_ascii, scm_enc_return_p_ascii, scm_enc_space_p_ascii,
-  scm_enc_tab_p_ascii
+  scm_enc_to_scalar_ascii, scm_enc_printable_p_ascii, scm_enc_alarm_p_ascii,
+  scm_enc_backspace_p_ascii, scm_enc_delete_p_ascii, scm_enc_escape_p_ascii,
+  scm_enc_newline_p_ascii, scm_enc_null_p_ascii, scm_enc_return_p_ascii,
+  scm_enc_space_p_ascii, scm_enc_tab_p_ascii
 };
 
 
@@ -30,11 +30,12 @@ const ScmEncVirtualFunc SCM_ENCODING_VFUNC_ASCII_CMPT = {
   scm_enc_char_width_ascii_cmpt, scm_enc_index2itr_ascii_cmpt,
   scm_enc_is_lf_ascii_cmpt, scm_enc_valid_char_p_ascii_cmpt,
   scm_enc_to_ascii_ascii_cmpt, scm_enc_ascii_to_ascii_cmpt,
-  scm_enc_printable_p_ascii_cmpt, scm_enc_alarm_p_ascii_cmpt,
-  scm_enc_backspace_p_ascii_cmpt, scm_enc_delete_p_ascii_cmpt,
-  scm_enc_escape_p_ascii_cmpt, scm_enc_newline_p_ascii_cmpt,
-  scm_enc_null_p_ascii_cmpt, scm_enc_return_p_ascii_cmpt,
-  scm_enc_space_p_ascii_cmpt, scm_enc_tab_p_ascii_cmpt
+  scm_enc_to_scalar_ascii_cmpt, scm_enc_printable_p_ascii_cmpt,
+  scm_enc_alarm_p_ascii_cmpt, scm_enc_backspace_p_ascii_cmpt,
+  scm_enc_delete_p_ascii_cmpt, scm_enc_escape_p_ascii_cmpt,
+  scm_enc_newline_p_ascii_cmpt, scm_enc_null_p_ascii_cmpt,
+  scm_enc_return_p_ascii_cmpt, scm_enc_space_p_ascii_cmpt,
+  scm_enc_tab_p_ascii_cmpt
 };
 
 
@@ -46,7 +47,7 @@ const ScmEncConstants SCM_ENCODING_CONST_BIN =
 const ScmEncVirtualFunc SCM_ENCODING_VFUNC_BIN = {
   scm_enc_char_width_bin, scm_enc_index2itr_bin, scm_enc_is_lf_bin,
   scm_enc_valid_char_p_binary, scm_enc_to_ascii_binary, scm_enc_ascii_to_binary,
-  NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
+  NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
 };
 
 
@@ -58,10 +59,10 @@ const ScmEncConstants SCM_ENCODING_CONST_UTF8 =
 const ScmEncVirtualFunc SCM_ENCODING_VFUNC_UTF8 = {
   scm_enc_char_width_utf8, scm_enc_index2itr_utf8, scm_enc_is_lf_ascii,
   scm_enc_valid_char_p_utf8, scm_enc_to_ascii_utf8, scm_enc_ascii_to_utf8,
-  scm_enc_printable_p_utf8, scm_enc_alarm_p_utf8, scm_enc_backspace_p_utf8,
-  scm_enc_delete_p_utf8, scm_enc_escape_p_utf8, scm_enc_newline_p_utf8,
-  scm_enc_null_p_utf8, scm_enc_return_p_utf8, scm_enc_space_p_utf8,
-  scm_enc_tab_p_utf8
+  scm_enc_to_scalar_utf8, scm_enc_printable_p_utf8, scm_enc_alarm_p_utf8,
+  scm_enc_backspace_p_utf8, scm_enc_delete_p_utf8, scm_enc_escape_p_utf8,
+  scm_enc_newline_p_utf8, scm_enc_null_p_utf8, scm_enc_return_p_utf8,
+  scm_enc_space_p_utf8, scm_enc_tab_p_utf8
 };
 
 
@@ -73,10 +74,10 @@ const ScmEncConstants SCM_ENCODING_CONST_UCS4 =
 const ScmEncVirtualFunc SCM_ENCODING_VFUNC_UCS4 = {
   scm_enc_char_width_ucs4, scm_enc_index2itr_ucs4, scm_enc_is_lf_ucs4,
   scm_enc_valid_char_p_ucs4, scm_enc_to_ascii_ucs4, scm_enc_ascii_to_ucs4,
-  scm_enc_printable_p_ucs4, scm_enc_alarm_p_ucs4, scm_enc_backspace_p_ucs4,
-  scm_enc_delete_p_ucs4, scm_enc_escape_p_ucs4, scm_enc_newline_p_ucs4,
-  scm_enc_null_p_ucs4, scm_enc_return_p_ucs4, scm_enc_space_p_ucs4,
-  scm_enc_tab_p_ucs4
+  scm_enc_to_scalar_ucs4, scm_enc_printable_p_ucs4, scm_enc_alarm_p_ucs4,
+  scm_enc_backspace_p_ucs4, scm_enc_delete_p_ucs4, scm_enc_escape_p_ucs4,
+  scm_enc_newline_p_ucs4, scm_enc_null_p_ucs4, scm_enc_return_p_ucs4,
+  scm_enc_space_p_ucs4, scm_enc_tab_p_ucs4
 };
 
 
@@ -88,10 +89,10 @@ const ScmEncConstants SCM_ENCODING_CONST_EUCJP =
 const ScmEncVirtualFunc SCM_ENCODING_VFUNC_EUCJP = {
   scm_enc_char_width_eucjp, scm_enc_index2itr_eucjp, scm_enc_is_lf_ascii,
   scm_enc_valid_char_p_eucjp, scm_enc_to_ascii_eucjp, scm_enc_ascii_to_eucjp,
-  scm_enc_printable_p_eucjp, scm_enc_alarm_p_eucjp, scm_enc_backspace_p_eucjp,
-  scm_enc_delete_p_eucjp, scm_enc_escape_p_eucjp, scm_enc_newline_p_eucjp,
-  scm_enc_null_p_eucjp, scm_enc_return_p_eucjp, scm_enc_space_p_eucjp,
-  scm_enc_tab_p_eucjp
+  scm_enc_to_scalar_eucjp, scm_enc_printable_p_eucjp, scm_enc_alarm_p_eucjp,
+  scm_enc_backspace_p_eucjp, scm_enc_delete_p_eucjp, scm_enc_escape_p_eucjp,
+  scm_enc_newline_p_eucjp, scm_enc_null_p_eucjp, scm_enc_return_p_eucjp,
+  scm_enc_space_p_eucjp, scm_enc_tab_p_eucjp
 };
 
 
@@ -103,10 +104,10 @@ const ScmEncConstants SCM_ENCODING_CONST_SJIS =
 const ScmEncVirtualFunc SCM_ENCODING_VFUNC_SJIS = {
   scm_enc_char_width_sjis, scm_enc_index2itr_sjis, scm_enc_is_lf_ascii,
   scm_enc_valid_char_p_sjis, scm_enc_to_ascii_sjis, scm_enc_ascii_to_sjis,
-  scm_enc_printable_p_sjis, scm_enc_alarm_p_sjis, scm_enc_backspace_p_sjis,
-  scm_enc_delete_p_sjis, scm_enc_escape_p_sjis, scm_enc_newline_p_sjis,
-  scm_enc_null_p_sjis, scm_enc_return_p_sjis, scm_enc_space_p_sjis,
-  scm_enc_tab_p_sjis
+  scm_enc_to_scalar_sjis, scm_enc_printable_p_sjis, scm_enc_alarm_p_sjis,
+  scm_enc_backspace_p_sjis, scm_enc_delete_p_sjis, scm_enc_escape_p_sjis,
+  scm_enc_newline_p_sjis, scm_enc_null_p_sjis, scm_enc_return_p_sjis,
+  scm_enc_space_p_sjis, scm_enc_tab_p_sjis
 };
 
 
@@ -292,6 +293,15 @@ scm_enc_ascii_to_ascii(char ascii, scm_char_t *chr)
   }
 }
 
+long
+scm_enc_to_scalar_ascii(const void *p, size_t size)
+{
+  if (p == NULL || size < 1)
+    return -1;
+  else
+    return (long)*(const scm_char_ascii_t *)p;
+}
+
 bool
 scm_enc_printable_p_ascii(const void *p, size_t size)
 {
@@ -458,6 +468,12 @@ scm_enc_ascii_to_ascii_cmpt(char ascii, scm_char_t *chr)
 {
   chr->ascii = (uint8_t)ascii;
   return 1;
+}
+
+long
+scm_enc_to_scalar_ascii_cmpt(const void *p, size_t size)
+{
+  return scm_enc_to_scalar_ascii(p, size);
 }
 
 bool
@@ -680,6 +696,15 @@ scm_enc_ascii_to_utf8(char ascii, scm_char_t *chr)
   }
 }
 
+long
+scm_enc_to_scalar_utf8(const void *p, size_t size)
+{
+  scm_char_ucs4_t ucs4;
+
+  if (scm_enc_utf8_to_ucs4(p, size, &ucs4) < 1) return -1;
+  return scm_enc_to_scalar_ucs4(&ucs4, sizeof(ucs4));
+}
+
 bool
 scm_enc_printable_p_utf8(const void *p, size_t size)
 {
@@ -898,6 +923,15 @@ scm_enc_ascii_to_ucs4(char ascii, scm_char_t *chr)
   }
 }
 
+long
+scm_enc_to_scalar_ucs4(const void *p, size_t size)
+{
+  if (p == NULL || size < 4)
+    return -1;
+  else
+    return (long)*(const scm_char_ucs4_t *)p;
+}
+
 bool
 scm_enc_printable_p_ucs4(const void *p, size_t size)
 {
@@ -1109,6 +1143,36 @@ scm_enc_ascii_to_eucjp(char ascii, scm_char_t *chr)
   }
 }
 
+long
+scm_enc_to_scalar_eucjp(const void *p, size_t size)
+{
+  ssize_t w;
+  long s;
+
+  w = scm_enc_char_width_eucjp(p, size);
+  if (w < 1) return -1;
+
+  switch (w) {
+  case 1:
+    s = ((const uint8_t *)p)[0];
+    break;
+  case 2:
+    s = ((const uint8_t *)p)[0];
+    s = s << 8 | ((const uint8_t *)p)[1];
+    break;
+  case 3:
+    s = ((const uint8_t *)p)[0];
+    s = s << 8 | ((const uint8_t *)p)[1];
+    s = s << 8 | ((const uint8_t *)p)[2];
+    break;
+  default:
+    s = -1;
+    break;
+  }
+
+  return s;
+}
+
 bool
 scm_enc_printable_p_eucjp(const void *p, size_t size)
 {
@@ -1299,6 +1363,31 @@ scm_enc_ascii_to_sjis(char ascii, scm_char_t *chr)
   else {
     return -1;
   }
+}
+
+long
+scm_enc_to_scalar_sjis(const void *p, size_t size)
+{
+  ssize_t w;
+  long s;
+
+  w = scm_enc_char_width_sjis(p, size);
+  if (w < 1) return -1;
+
+  switch (w) {
+  case 1:
+    s = ((const uint8_t *)p)[0];
+    break;
+  case 2:
+    s = ((const uint8_t *)p)[0];
+    s = s << 8 | ((const uint8_t *)p)[1];
+    break;
+  default:
+    s = -1;
+    break;
+  }
+
+  return s;
 }
 
 bool
