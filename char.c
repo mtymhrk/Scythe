@@ -166,35 +166,19 @@ scm_char_encode(ScmObj chr, SCM_ENC_T enc)
 {
   const ScmEncVirtualFunc *vf;
   scm_char_t c;
-  ssize_t rslt, cw;
+  ssize_t rslt;
 
   scm_assert_obj_type(chr, &SCM_CHAR_TYPE_INFO);
   scm_assert(/*0 <= enc && */enc < SCM_ENC_NR_ENC && enc != SCM_ENC_SYS);
 
   /* 今のところ ASCII から他のエンコードへの変換しか対応していない */
   scm_assert(SCM_CHAR(chr)->enc== SCM_ENC_ASCII
-             || SCM_CHAR(chr)->enc == SCM_ENC_BIN
-             || SCM_CHAR(chr)->enc == enc
-             || enc == SCM_ENC_BIN);
+             || SCM_CHAR(chr)->enc == enc);
 
   if (SCM_CHAR(chr)->enc == enc)
     return scm_char_new(SCM_MEM_HEAP, SCM_CHAR(chr)->value, enc);
 
-  vf = SCM_ENCODING_VFUNC(SCM_CHAR(chr)->enc);
-  cw = vf->char_width(SCM_CHAR(chr)->value.bytes, sizeof(scm_char_t));
-  if (cw < 0) return SCM_OBJ_NULL;
-
   vf = SCM_ENCODING_VFUNC(enc);
-  if (SCM_CHAR(chr)->enc == SCM_ENC_BIN) {
-    rslt = vf->char_width(SCM_CHAR(chr)->value.bytes, (size_t)cw);
-    if (rslt < 0) return SCM_OBJ_NULL;
-    scm_char_new(SCM_MEM_HEAP, SCM_CHAR(chr)->value, enc);
-  }
-  else if (enc == SCM_ENC_BIN) {
-    if (cw != 1) return SCM_OBJ_NULL;
-    scm_char_new(SCM_MEM_HEAP, SCM_CHAR(chr)->value, enc);
-  }
-
   rslt = vf->ascii_to((char)SCM_CHAR(chr)->value.ascii, &c);
   if (rslt < 0) return SCM_OBJ_NULL;
 
