@@ -12,10 +12,12 @@ const ScmEncConstants SCM_ENCODING_CONST_ASCII =
     {{' ', 0x00, 0x00, 0x00}}   };  /* space_char */
 
 const ScmEncVirtualFunc SCM_ENCODING_VFUNC_ASCII = {
-  scm_enc_char_width_ascii, scm_enc_index2itr_ascii,
-  scm_enc_is_lf_ascii, scm_enc_is_space_ascii,
-  scm_enc_valid_char_p_ascii, scm_enc_to_ascii_ascii,
-  scm_enc_ascii_to_ascii
+  scm_enc_char_width_ascii, scm_enc_index2itr_ascii, scm_enc_is_lf_ascii,
+  scm_enc_valid_char_p_ascii, scm_enc_to_ascii_ascii, scm_enc_ascii_to_ascii,
+  scm_enc_printable_p_ascii, scm_enc_alarm_p_ascii, scm_enc_backspace_p_ascii,
+  scm_enc_delete_p_ascii, scm_enc_escape_p_ascii, scm_enc_newline_p_ascii,
+  scm_enc_null_p_ascii, scm_enc_return_p_ascii, scm_enc_space_p_ascii,
+  scm_enc_tab_p_ascii
 };
 
 
@@ -26,9 +28,13 @@ const ScmEncConstants SCM_ENCODING_CONST_ASCII_CMPT =
 
 const ScmEncVirtualFunc SCM_ENCODING_VFUNC_ASCII_CMPT = {
   scm_enc_char_width_ascii_cmpt, scm_enc_index2itr_ascii_cmpt,
-  scm_enc_is_lf_ascii_cmpt, scm_enc_is_space_ascii_cmpt,
-  scm_enc_valid_char_p_ascii_cmpt, scm_enc_to_ascii_ascii_cmpt,
-  scm_enc_ascii_to_ascii_cmpt
+  scm_enc_is_lf_ascii_cmpt, scm_enc_valid_char_p_ascii_cmpt,
+  scm_enc_to_ascii_ascii_cmpt, scm_enc_ascii_to_ascii_cmpt,
+  scm_enc_printable_p_ascii_cmpt, scm_enc_alarm_p_ascii_cmpt,
+  scm_enc_backspace_p_ascii_cmpt, scm_enc_delete_p_ascii_cmpt,
+  scm_enc_escape_p_ascii_cmpt, scm_enc_newline_p_ascii_cmpt,
+  scm_enc_null_p_ascii_cmpt, scm_enc_return_p_ascii_cmpt,
+  scm_enc_space_p_ascii_cmpt, scm_enc_tab_p_ascii_cmpt
 };
 
 
@@ -38,10 +44,9 @@ const ScmEncConstants SCM_ENCODING_CONST_BIN =
     {{0x00, 0x00, 0x00, 0x00}}  };  /* space_char */
 
 const ScmEncVirtualFunc SCM_ENCODING_VFUNC_BIN = {
-  scm_enc_char_width_bin, scm_enc_index2itr_bin,
-  scm_enc_is_lf_bin, scm_enc_is_space_bin,
-  scm_enc_valid_char_p_binary, scm_enc_to_ascii_binary,
-  scm_enc_ascii_to_binary,
+  scm_enc_char_width_bin, scm_enc_index2itr_bin, scm_enc_is_lf_bin,
+  scm_enc_valid_char_p_binary, scm_enc_to_ascii_binary, scm_enc_ascii_to_binary,
+  NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
 };
 
 
@@ -51,10 +56,12 @@ const ScmEncConstants SCM_ENCODING_CONST_UTF8 =
     {{' ', 0x00, 0x00, 0x00}}   };  /* space_char */
 
 const ScmEncVirtualFunc SCM_ENCODING_VFUNC_UTF8 = {
-  scm_enc_char_width_utf8, scm_enc_index2itr_utf8,
-  scm_enc_is_lf_ascii, scm_enc_is_space_ascii,
-  scm_enc_valid_char_p_utf8, scm_enc_to_ascii_utf8,
-  scm_enc_ascii_to_utf8
+  scm_enc_char_width_utf8, scm_enc_index2itr_utf8, scm_enc_is_lf_ascii,
+  scm_enc_valid_char_p_utf8, scm_enc_to_ascii_utf8, scm_enc_ascii_to_utf8,
+  scm_enc_printable_p_utf8, scm_enc_alarm_p_utf8, scm_enc_backspace_p_utf8,
+  scm_enc_delete_p_utf8, scm_enc_escape_p_utf8, scm_enc_newline_p_utf8,
+  scm_enc_null_p_utf8, scm_enc_return_p_utf8, scm_enc_space_p_utf8,
+  scm_enc_tab_p_utf8
 };
 
 
@@ -64,10 +71,12 @@ const ScmEncConstants SCM_ENCODING_CONST_UCS4 =
     {{0x00, 0x00, 0x00, ' '}}   };  /* space_char */
 
 const ScmEncVirtualFunc SCM_ENCODING_VFUNC_UCS4 = {
-  scm_enc_char_width_ucs4, scm_enc_index2itr_ucs4,
-  scm_enc_is_lf_ucs4, scm_enc_is_space_ucs4,
-  scm_enc_valid_char_p_ucs4, scm_enc_to_ascii_ucs4,
-  scm_enc_ascii_to_ucs4
+  scm_enc_char_width_ucs4, scm_enc_index2itr_ucs4, scm_enc_is_lf_ucs4,
+  scm_enc_valid_char_p_ucs4, scm_enc_to_ascii_ucs4, scm_enc_ascii_to_ucs4,
+  scm_enc_printable_p_ucs4, scm_enc_alarm_p_ucs4, scm_enc_backspace_p_ucs4,
+  scm_enc_delete_p_ucs4, scm_enc_escape_p_ucs4, scm_enc_newline_p_ucs4,
+  scm_enc_null_p_ucs4, scm_enc_return_p_ucs4, scm_enc_space_p_ucs4,
+  scm_enc_tab_p_ucs4
 };
 
 
@@ -77,10 +86,12 @@ const ScmEncConstants SCM_ENCODING_CONST_EUCJP =
     {{' ', 0x00, 0x00, 0x00}}   };  /* space_char */
 
 const ScmEncVirtualFunc SCM_ENCODING_VFUNC_EUCJP = {
-  scm_enc_char_width_eucjp, scm_enc_index2itr_eucjp,
-  scm_enc_is_lf_ascii, scm_enc_is_space_ascii,
-  scm_enc_valid_char_p_eucjp, scm_enc_to_ascii_eucjp,
-  scm_enc_ascii_to_eucjp
+  scm_enc_char_width_eucjp, scm_enc_index2itr_eucjp, scm_enc_is_lf_ascii,
+  scm_enc_valid_char_p_eucjp, scm_enc_to_ascii_eucjp, scm_enc_ascii_to_eucjp,
+  scm_enc_printable_p_eucjp, scm_enc_alarm_p_eucjp, scm_enc_backspace_p_eucjp,
+  scm_enc_delete_p_eucjp, scm_enc_escape_p_eucjp, scm_enc_newline_p_eucjp,
+  scm_enc_null_p_eucjp, scm_enc_return_p_eucjp, scm_enc_space_p_eucjp,
+  scm_enc_tab_p_eucjp
 };
 
 
@@ -90,10 +101,12 @@ const ScmEncConstants SCM_ENCODING_CONST_SJIS =
     {{' ', 0x00, 0x00, 0x00}}   };  /* space_char */
 
 const ScmEncVirtualFunc SCM_ENCODING_VFUNC_SJIS = {
-  scm_enc_char_width_sjis, scm_enc_index2itr_sjis,
-  scm_enc_is_lf_ascii, scm_enc_is_space_ascii,
-  scm_enc_valid_char_p_sjis, scm_enc_to_ascii_sjis,
-  scm_enc_ascii_to_sjis
+  scm_enc_char_width_sjis, scm_enc_index2itr_sjis, scm_enc_is_lf_ascii,
+  scm_enc_valid_char_p_sjis, scm_enc_to_ascii_sjis, scm_enc_ascii_to_sjis,
+  scm_enc_printable_p_sjis, scm_enc_alarm_p_sjis, scm_enc_backspace_p_sjis,
+  scm_enc_delete_p_sjis, scm_enc_escape_p_sjis, scm_enc_newline_p_sjis,
+  scm_enc_null_p_sjis, scm_enc_return_p_sjis, scm_enc_space_p_sjis,
+  scm_enc_tab_p_sjis
 };
 
 
@@ -250,9 +263,9 @@ scm_enc_is_lf_ascii(scm_char_t c)
 }
 
 bool
-scm_enc_is_space_ascii(scm_char_t c)
+scm_enc_back_slash_p_ascii(scm_char_t c)
 {
-  return (c.ascii == ' ') ? true : false;
+  return (c.ascii == '\\') ? true : false;
 }
 
 bool
@@ -277,6 +290,118 @@ scm_enc_ascii_to_ascii(char ascii, scm_char_t *chr)
   else {
     return -1;
   }
+}
+
+bool
+scm_enc_printable_p_ascii(const void *p, size_t size)
+{
+  if (p == NULL || size < 1)
+    return false;
+  else if (*(const scm_char_ascii_t *)p <= 0x1f)
+    return false;
+  else if (*(const scm_char_ascii_t *)p >= 0x7f)
+    return false;
+  else
+    return true;
+}
+
+bool
+scm_enc_alarm_p_ascii(const void *p, size_t size)
+{
+  if (p == NULL || size < 1)
+    return false;
+  else if (*(const scm_char_ascii_t *)p == 0x07)
+    return true;
+  else
+    return false;
+}
+
+bool
+scm_enc_backspace_p_ascii(const void *p, size_t size)
+{
+  if (p == NULL || size < 1)
+    return false;
+  else if (*(const scm_char_ascii_t *)p == 0x08)
+    return true;
+  else
+    return false;
+}
+
+bool
+scm_enc_delete_p_ascii(const void *p, size_t size)
+{
+  if (p == NULL || size < 1)
+    return false;
+  else if (*(const scm_char_ascii_t *)p == 0x7f)
+    return true;
+  else
+    return false;
+}
+
+bool
+scm_enc_escape_p_ascii(const void *p, size_t size)
+{
+  if (p == NULL || size < 1)
+    return false;
+  else if (*(const scm_char_ascii_t *)p == 0x1b)
+    return true;
+  else
+    return false;
+}
+
+bool
+scm_enc_newline_p_ascii(const void *p, size_t size)
+{
+  if (p == NULL || size < 1)
+    return false;
+  else if (*(const scm_char_ascii_t *)p == 0x0a)
+    return true;
+  else
+    return false;
+}
+
+bool
+scm_enc_null_p_ascii(const void *p, size_t size)
+{
+  if (p == NULL || size < 1)
+    return false;
+  else if (*(const scm_char_ascii_t *)p == 0x00)
+    return true;
+  else
+    return false;
+}
+
+bool
+scm_enc_return_p_ascii(const void *p, size_t size)
+{
+  if (p == NULL || size < 1)
+    return false;
+  else if (*(const scm_char_ascii_t *)p == 0x0d)
+    return true;
+  else
+    return false;
+}
+
+bool
+scm_enc_space_p_ascii(const void *p, size_t size)
+{
+  if (p == NULL || size < 1)
+    return false;
+  else if (*(const scm_char_ascii_t *)p == 0x20)
+    return true;
+  else
+    return false;
+}
+
+bool
+scm_enc_tab_p_ascii(const void *p, size_t size)
+{
+  if (p == NULL || size < 1)
+    return false;
+  else if (*(const scm_char_ascii_t *)p == 0x09)
+    return true;
+  else
+    return false;
 }
 
 
@@ -333,6 +458,66 @@ scm_enc_ascii_to_ascii_cmpt(char ascii, scm_char_t *chr)
 {
   chr->ascii = (uint8_t)ascii;
   return 1;
+}
+
+bool
+scm_enc_printable_p_ascii_cmpt(const void *p, size_t size)
+{
+  return scm_enc_printable_p_ascii(p, size);
+}
+
+bool
+scm_enc_alarm_p_ascii_cmpt(const void *p, size_t size)
+{
+  return scm_enc_alarm_p_ascii(p, size);
+}
+
+bool
+scm_enc_backspace_p_ascii_cmpt(const void *p, size_t size)
+{
+  return scm_enc_backspace_p_ascii(p, size);
+}
+
+bool
+scm_enc_delete_p_ascii_cmpt(const void *p, size_t size)
+{
+  return scm_enc_delete_p_ascii(p, size);
+}
+
+bool
+scm_enc_escape_p_ascii_cmpt(const void *p, size_t size)
+{
+  return scm_enc_escape_p_ascii(p, size);
+}
+
+bool
+scm_enc_newline_p_ascii_cmpt(const void *p, size_t size)
+{
+  return scm_enc_newline_p_ascii(p, size);
+}
+
+bool
+scm_enc_null_p_ascii_cmpt(const void *p, size_t size)
+{
+  return scm_enc_null_p_ascii(p, size);
+}
+
+bool
+scm_enc_return_p_ascii_cmpt(const void *p, size_t size)
+{
+  return scm_enc_return_p_ascii(p, size);
+}
+
+bool
+scm_enc_space_p_ascii_cmpt(const void *p, size_t size)
+{
+  return scm_enc_space_p_ascii(p, size);
+}
+
+bool
+scm_enc_tab_p_ascii_cmpt(const void *p, size_t size)
+{
+  return scm_enc_tab_p_ascii(p, size);
 }
 
 
@@ -495,6 +680,115 @@ scm_enc_ascii_to_utf8(char ascii, scm_char_t *chr)
   }
 }
 
+bool
+scm_enc_printable_p_utf8(const void *p, size_t size)
+{
+  scm_char_ucs4_t ucs4;
+
+  if (scm_enc_utf8_to_ucs4(p, size, &ucs4) < 1) return false;
+  return scm_enc_printable_p_ucs4(&ucs4, sizeof(ucs4));
+}
+
+bool
+scm_enc_alarm_p_utf8(const void *p, size_t size)
+{
+  if (p == NULL || size < 1)
+    return false;
+  else if (IS_VALID_UTF8_1((const uint8_t *)p))
+    return scm_enc_alarm_p_ascii(p, size);
+  else
+    return false;
+}
+
+bool
+scm_enc_backspace_p_utf8(const void *p, size_t size)
+{
+  if (p == NULL || size < 1)
+    return false;
+  else if (IS_VALID_UTF8_1((const uint8_t *)p))
+    return scm_enc_backspace_p_ascii(p, size);
+  else
+    return false;
+}
+
+bool
+scm_enc_delete_p_utf8(const void *p, size_t size)
+{
+  if (p == NULL || size < 1)
+    return false;
+  else if (IS_VALID_UTF8_1((const uint8_t *)p))
+    return scm_enc_delete_p_ascii(p, size);
+  else
+    return false;
+}
+
+bool
+scm_enc_escape_p_utf8(const void *p, size_t size)
+{
+  if (p == NULL || size < 1)
+    return false;
+  else if (IS_VALID_UTF8_1((const uint8_t *)p))
+    return scm_enc_escape_p_ascii(p, size);
+  else
+    return false;
+}
+
+bool
+scm_enc_newline_p_utf8(const void *p, size_t size)
+{
+  if (p == NULL || size < 1)
+    return false;
+  else if (IS_VALID_UTF8_1((const uint8_t *)p))
+    return scm_enc_newline_p_ascii(p, size);
+  else
+    return false;
+}
+
+bool
+scm_enc_null_p_utf8(const void *p, size_t size)
+{
+  if (p == NULL || size < 1)
+    return false;
+  else if (IS_VALID_UTF8_1((const uint8_t *)p))
+    return scm_enc_null_p_ascii(p, size);
+  else
+    return false;
+}
+
+bool
+scm_enc_return_p_utf8(const void *p, size_t size)
+{
+  if (p == NULL || size < 1)
+    return false;
+  else if (IS_VALID_UTF8_1((const uint8_t *)p))
+    return scm_enc_return_p_ascii(p, size);
+  else
+    return false;
+}
+
+bool
+scm_enc_space_p_utf8(const void *p, size_t size)
+{
+  if (p == NULL || size < 1)
+    return false;
+  else if (IS_VALID_UTF8_1((const uint8_t *)p))
+    return scm_enc_space_p_ascii(p, size);
+  else
+    return false;
+}
+
+bool
+scm_enc_tab_p_utf8(const void *p, size_t size)
+{
+  if (p == NULL || size < 1)
+    return false;
+  else if (IS_VALID_UTF8_1((const uint8_t *)p))
+    return scm_enc_tab_p_ascii(p, size);
+  else
+    return false;
+}
+
+
 /***********************************************************************/
 /*   UCS4                                                              */
 /***********************************************************************/
@@ -604,6 +898,119 @@ scm_enc_ascii_to_ucs4(char ascii, scm_char_t *chr)
   }
 }
 
+bool
+scm_enc_printable_p_ucs4(const void *p, size_t size)
+{
+  if (p == NULL || size < 4)
+    return false;
+  else if (*(const scm_char_ucs4_t *)p <= 0x1f)
+    return false;
+  else if (*(const scm_char_ucs4_t *)p == 0x7f)
+    return false;
+  else
+    return true;
+}
+
+bool
+scm_enc_alarm_p_ucs4(const void *p, size_t size)
+{
+  if (p == NULL || size < 4)
+    return false;
+  else if (*(const scm_char_ucs4_t *)p == 0x07)
+    return true;
+  else
+    return false;
+}
+
+bool
+scm_enc_backspace_p_ucs4(const void *p, size_t size)
+{
+  if (p == NULL || size < 4)
+    return false;
+  else if (*(const scm_char_ucs4_t *)p == 0x08)
+    return true;
+  else
+    return false;
+}
+
+bool
+scm_enc_delete_p_ucs4(const void *p, size_t size)
+{
+  if (p == NULL || size < 4)
+    return false;
+  else if (*(const scm_char_ucs4_t *)p == 0x7f)
+    return true;
+  else
+    return false;
+}
+
+bool
+scm_enc_escape_p_ucs4(const void *p, size_t size)
+{
+  if (p == NULL || size < 4)
+    return false;
+  else if (*(const scm_char_ucs4_t *)p == 0x1b)
+    return true;
+  else
+    return false;
+}
+
+bool
+scm_enc_newline_p_ucs4(const void *p, size_t size)
+{
+  if (p == NULL || size < 4)
+    return false;
+  else if (*(const scm_char_ucs4_t *)p == 0x0a)
+    return true;
+  else
+    return false;
+}
+
+bool
+scm_enc_null_p_ucs4(const void *p, size_t size)
+{
+  if (p == NULL || size < 4)
+    return false;
+  else if (*(const scm_char_ucs4_t *)p == 0x00)
+    return true;
+  else
+    return false;
+}
+
+bool
+scm_enc_return_p_ucs4(const void *p, size_t size)
+{
+  if (p == NULL || size < 4)
+    return false;
+  else if (*(const scm_char_ucs4_t *)p == 0x0d)
+    return true;
+  else
+    return false;
+}
+
+bool
+scm_enc_space_p_ucs4(const void *p, size_t size)
+{
+  if (p == NULL || size < 4)
+    return false;
+  else if (*(const scm_char_ucs4_t *)p == 0x20)
+    return true;
+  else
+    return false;
+}
+
+bool
+scm_enc_tab_p_ucs4(const void *p, size_t size)
+{
+  if (p == NULL || size < 4)
+    return false;
+  else if (*(const scm_char_ucs4_t *)p == 0x09)
+    return true;
+  else
+    return false;
+}
+
+
 /***********************************************************************/
 /*   EUC-JP-JIS-2004                                                   */
 /***********************************************************************/
@@ -702,6 +1109,117 @@ scm_enc_ascii_to_eucjp(char ascii, scm_char_t *chr)
   }
 }
 
+bool
+scm_enc_printable_p_eucjp(const void *p, size_t size)
+{
+  if (p == NULL || size < 1)
+    return false;
+  else if (IS_VALID_EUC_JP_ASCII((const uint8_t *)p))
+    return scm_enc_printable_p_ascii(p, size);
+  else
+    return true;
+}
+
+bool
+scm_enc_alarm_p_eucjp(const void *p, size_t size)
+{
+  if (p == NULL || size < 1)
+    return false;
+  else if (IS_VALID_EUC_JP_ASCII((const uint8_t *)p))
+    return scm_enc_alarm_p_ascii(p, size);
+  else
+    return false;;
+}
+
+bool
+scm_enc_backspace_p_eucjp(const void *p, size_t size)
+{
+  if (p == NULL || size < 1)
+    return false;
+  else if (IS_VALID_EUC_JP_ASCII((const uint8_t *)p))
+    return scm_enc_backspace_p_ascii(p, size);
+  else
+    return false;;
+}
+
+bool
+scm_enc_delete_p_eucjp(const void *p, size_t size)
+{
+  if (p == NULL || size < 1)
+    return false;
+  else if (IS_VALID_EUC_JP_ASCII((const uint8_t *)p))
+    return scm_enc_delete_p_ascii(p, size);
+  else
+    return false;;
+}
+
+bool
+scm_enc_escape_p_eucjp(const void *p, size_t size)
+{
+  if (p == NULL || size < 1)
+    return false;
+  else if (IS_VALID_EUC_JP_ASCII((const uint8_t *)p))
+    return scm_enc_escape_p_ascii(p, size);
+  else
+    return false;;
+}
+
+bool
+scm_enc_newline_p_eucjp(const void *p, size_t size)
+{
+  if (p == NULL || size < 1)
+    return false;
+  else if (IS_VALID_EUC_JP_ASCII((const uint8_t *)p))
+    return scm_enc_newline_p_ascii(p, size);
+  else
+    return false;;
+}
+
+bool
+scm_enc_null_p_eucjp(const void *p, size_t size)
+{
+  if (p == NULL || size < 1)
+    return false;
+  else if (IS_VALID_EUC_JP_ASCII((const uint8_t *)p))
+    return scm_enc_null_p_ascii(p, size);
+  else
+    return false;;
+}
+
+bool
+scm_enc_return_p_eucjp(const void *p, size_t size)
+{
+  if (p == NULL || size < 1)
+    return false;
+  else if (IS_VALID_EUC_JP_ASCII((const uint8_t *)p))
+    return scm_enc_return_p_ascii(p, size);
+  else
+    return false;;
+}
+
+bool
+scm_enc_space_p_eucjp(const void *p, size_t size)
+{
+  if (p == NULL || size < 1)
+    return false;
+  else if (IS_VALID_EUC_JP_ASCII((const uint8_t *)p))
+    return scm_enc_space_p_ascii(p, size);
+  else
+    return false;;
+}
+
+bool
+scm_enc_tab_p_eucjp(const void *p, size_t size)
+{
+  if (p == NULL || size < 1)
+    return false;
+  else if (IS_VALID_EUC_JP_ASCII((const uint8_t *)p))
+    return scm_enc_tab_p_ascii(p, size);
+  else
+    return false;;
+}
+
+
 /***********************************************************************/
 /*   SJIS                                                              */
 /***********************************************************************/
@@ -781,4 +1299,114 @@ scm_enc_ascii_to_sjis(char ascii, scm_char_t *chr)
   else {
     return -1;
   }
+}
+
+bool
+scm_enc_printable_p_sjis(const void *p, size_t size)
+{
+  if (p == NULL || size < 1)
+    return false;
+  else if (IS_VALID_SJIS_JIS_X_0201_LATIN((const uint8_t *)p))
+    return scm_enc_printable_p_ascii(p, size);
+  else
+    return true;
+}
+
+bool
+scm_enc_alarm_p_sjis(const void *p, size_t size)
+{
+  if (p == NULL || size < 1)
+    return false;
+  else if (IS_VALID_SJIS_JIS_X_0201_LATIN((const uint8_t *)p))
+    return scm_enc_alarm_p_ascii(p, size);
+  else
+    return false;
+}
+
+bool
+scm_enc_backspace_p_sjis(const void *p, size_t size)
+{
+  if (p == NULL || size < 1)
+    return false;
+  else if (IS_VALID_SJIS_JIS_X_0201_LATIN((const uint8_t *)p))
+    return scm_enc_backspace_p_ascii(p, size);
+  else
+    return false;
+}
+
+bool
+scm_enc_delete_p_sjis(const void *p, size_t size)
+{
+  if (p == NULL || size < 1)
+    return false;
+  else if (IS_VALID_SJIS_JIS_X_0201_LATIN((const uint8_t *)p))
+    return scm_enc_delete_p_ascii(p, size);
+  else
+    return false;
+}
+
+bool
+scm_enc_escape_p_sjis(const void *p, size_t size)
+{
+  if (p == NULL || size < 1)
+    return false;
+  else if (IS_VALID_SJIS_JIS_X_0201_LATIN((const uint8_t *)p))
+    return scm_enc_escape_p_ascii(p, size);
+  else
+    return false;
+}
+
+bool
+scm_enc_newline_p_sjis(const void *p, size_t size)
+{
+  if (p == NULL || size < 1)
+    return false;
+  else if (IS_VALID_SJIS_JIS_X_0201_LATIN((const uint8_t *)p))
+    return scm_enc_newline_p_ascii(p, size);
+  else
+    return false;
+}
+
+bool
+scm_enc_null_p_sjis(const void *p, size_t size)
+{
+  if (p == NULL || size < 1)
+    return false;
+  else if (IS_VALID_SJIS_JIS_X_0201_LATIN((const uint8_t *)p))
+    return scm_enc_null_p_ascii(p, size);
+  else
+    return false;
+}
+
+bool
+scm_enc_return_p_sjis(const void *p, size_t size)
+{
+  if (p == NULL || size < 1)
+    return false;
+  else if (IS_VALID_SJIS_JIS_X_0201_LATIN((const uint8_t *)p))
+    return scm_enc_return_p_ascii(p, size);
+  else
+    return false;
+}
+
+bool
+scm_enc_space_p_sjis(const void *p, size_t size)
+{
+  if (p == NULL || size < 1)
+    return false;
+  else if (IS_VALID_SJIS_JIS_X_0201_LATIN((const uint8_t *)p))
+    return scm_enc_space_p_ascii(p, size);
+  else
+    return false;
+}
+
+bool
+scm_enc_tab_p_sjis(const void *p, size_t size)
+{
+  if (p == NULL || size < 1)
+    return false;
+  else if (IS_VALID_SJIS_JIS_X_0201_LATIN((const uint8_t *)p))
+    return scm_enc_tab_p_ascii(p, size);
+  else
+    return false;
 }

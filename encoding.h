@@ -80,11 +80,20 @@ extern const ScmEncConstants *SCM_ENCODING_CONST_TBL[];
 typedef struct ScmStrVirtualFunc {
   int (*char_width)(const void *p, size_t size);
   ScmStrItr (*index2iter)(void *p, size_t size, size_t idx);
-  bool (*is_lf)(scm_char_t c);
-  bool (*is_space)(scm_char_t c);
+  bool (*lf_p)(scm_char_t c);
   bool (*valid_char_p)(scm_char_t c);
   int (*to_ascii)(scm_char_t c);
   ssize_t (*ascii_to)(char ascii, scm_char_t *chr);
+  bool (*printable_p)(const void *p, size_t size);
+  bool (*alarm_p)(const void *p, size_t size);
+  bool (*backspace_p)(const void *p, size_t size);
+  bool (*delete_p)(const void *p, size_t size);
+  bool (*escape_p)(const void *p, size_t size);
+  bool (*newline_p)(const void *p, size_t size);
+  bool (*null_p)(const void *p, size_t size);
+  bool (*return_p)(const void *p, size_t size);
+  bool (*space_p)(const void *p, size_t size);
+  bool (*tab_p)(const void *p, size_t size);
 } ScmEncVirtualFunc;
 
 extern const ScmEncVirtualFunc SCM_ENCODING_VFUNC_ASCII;
@@ -98,9 +107,10 @@ extern const ScmEncVirtualFunc *SCM_ENCODING_VFUNC_TBL[];
 #define SCM_ENCODING_VFUNC(enc) (SCM_ENCODING_VFUNC_TBL[enc])
 #define SCM_ENCODING_VFUNC_CHAR_WIDTH(enc) (SCM_ENCODING_VFUNC(enc)->char_width)
 #define SCM_ENCODING_VFUNC_INDEX2ITER(enc) (SCM_ENCODING_VFUNC(enc)->index2iter)
-#define SCM_ENCODING_VFUNC_IS_LF(enc) (SCM_ENCODING_VFUNC(enc)->is_lf)
-#define SCM_ENCODING_VFUNC_IS_SPACE(enc) (SCM_ENCODING_VFUNC(enc)->is_space)
+#define SCM_ENCODING_VFUNC_LF_P(enc) (SCM_ENCODING_VFUNC(enc)->is_lf)
+#define SCM_ENCODING_VFUNC_SPACE_P(enc) (SCM_ENCODING_VFUNC(enc)->is_space)
 #define SCM_ENCODING_VFUNC_VALID_P(enc) (SCM_ENCODING_VFUNC(enc)->valid_char_p)
+#define SCM_ENCODING_VFUNC_CTRL_CHAR_P(enc) (SCM_ENCODING_VFUNC(enc)->ctrl_char_p)
 
 
 ScmStrItr scm_str_itr_begin(void *p, size_t size,
@@ -116,6 +126,16 @@ bool scm_enc_is_space_ascii(scm_char_t c);
 bool scm_enc_valid_char_p_ascii(scm_char_t c);
 int scm_enc_to_ascii_ascii(scm_char_t c);
 ssize_t scm_enc_ascii_to_ascii(char ascii, scm_char_t *chr);
+bool scm_enc_printable_p_ascii(const void *p, size_t size);
+bool scm_enc_alarm_p_ascii(const void *p, size_t size);
+bool scm_enc_backspace_p_ascii(const void *p, size_t size);
+bool scm_enc_delete_p_ascii(const void *p, size_t size);
+bool scm_enc_escape_p_ascii(const void *p, size_t size);
+bool scm_enc_newline_p_ascii(const void *p, size_t size);
+bool scm_enc_null_p_ascii(const void *p, size_t size);
+bool scm_enc_return_p_ascii(const void *p, size_t size);
+bool scm_enc_space_p_ascii(const void *p, size_t size);
+bool scm_enc_tab_p_ascii(const void *p, size_t size);
 
 /* ASCII-CMPT */
 int scm_enc_char_width_ascii_cmpt(const void *str, size_t len);
@@ -125,6 +145,16 @@ bool scm_enc_is_space_ascii_cmpt(scm_char_t c);
 bool scm_enc_valid_char_p_ascii_cmpt(scm_char_t c);
 int scm_enc_to_ascii_ascii_cmpt(scm_char_t c);
 ssize_t scm_enc_ascii_to_ascii_cmpt(char ascii, scm_char_t *chr);
+bool scm_enc_printable_p_ascii_cmpt(const void *p, size_t size);
+bool scm_enc_alarm_p_ascii_cmpt(const void *p, size_t size);
+bool scm_enc_backspace_p_ascii_cmpt(const void *p, size_t size);
+bool scm_enc_delete_p_ascii_cmpt(const void *p, size_t size);
+bool scm_enc_escape_p_ascii_cmpt(const void *p, size_t size);
+bool scm_enc_newline_p_ascii_cmpt(const void *p, size_t size);
+bool scm_enc_null_p_ascii_cmpt(const void *p, size_t size);
+bool scm_enc_return_p_ascii_cmpt(const void *p, size_t size);
+bool scm_enc_space_p_ascii_cmpt(const void *p, size_t size);
+bool scm_enc_tab_p_ascii_cmpt(const void *p, size_t size);
 
 /* BINARY */
 int scm_enc_char_width_bin(const void *str, size_t len);
@@ -141,6 +171,16 @@ ScmStrItr scm_enc_index2itr_utf8(void *str, size_t size, size_t idx);
 bool scm_enc_valid_char_p_utf8(scm_char_t c);
 int scm_enc_to_ascii_utf8(scm_char_t c);
 ssize_t scm_enc_ascii_to_utf8(char ascii, scm_char_t *chr);
+bool scm_enc_printable_p_utf8(const void *p, size_t size);
+bool scm_enc_alarm_p_utf8(const void *p, size_t size);
+bool scm_enc_backspace_p_utf8(const void *p, size_t size);
+bool scm_enc_delete_p_utf8(const void *p, size_t size);
+bool scm_enc_escape_p_utf8(const void *p, size_t size);
+bool scm_enc_newline_p_utf8(const void *p, size_t size);
+bool scm_enc_null_p_utf8(const void *p, size_t size);
+bool scm_enc_return_p_utf8(const void *p, size_t size);
+bool scm_enc_space_p_utf8(const void *p, size_t size);
+bool scm_enc_tab_p_utf8(const void *p, size_t size);
 
 /* UCS4 */
 int scm_enc_char_width_ucs4(const void *str, size_t len);
@@ -152,6 +192,16 @@ bool scm_enc_is_space_ucs4(scm_char_t c);
 bool scm_enc_valid_char_p_ucs4(scm_char_t c);
 int scm_enc_to_ascii_ucs4(scm_char_t c);
 ssize_t scm_enc_ascii_to_ucs4(char ascii, scm_char_t *chr);
+bool scm_enc_printable_p_ucs4(const void *p, size_t size);
+bool scm_enc_alarm_p_ucs4(const void *p, size_t size);
+bool scm_enc_backspace_p_ucs4(const void *p, size_t size);
+bool scm_enc_delete_p_ucs4(const void *p, size_t size);
+bool scm_enc_escape_p_ucs4(const void *p, size_t size);
+bool scm_enc_newline_p_ucs4(const void *p, size_t size);
+bool scm_enc_null_p_ucs4(const void *p, size_t size);
+bool scm_enc_return_p_ucs4(const void *p, size_t size);
+bool scm_enc_space_p_ucs4(const void *p, size_t size);
+bool scm_enc_tab_p_ucs4(const void *p, size_t size);
 
 /* EUC-JP */
 int scm_enc_char_width_eucjp(const void *str, size_t len);
@@ -159,6 +209,16 @@ ScmStrItr scm_enc_index2itr_eucjp(void *str, size_t size, size_t idx);
 bool scm_enc_valid_char_p_eucjp(scm_char_t c);
 int scm_enc_to_ascii_eucjp(scm_char_t c);
 ssize_t scm_enc_ascii_to_eucjp(char ascii, scm_char_t *chr);
+bool scm_enc_printable_p_eucjp(const void *p, size_t size);
+bool scm_enc_alarm_p_eucjp(const void *p, size_t size);
+bool scm_enc_backspace_p_eucjp(const void *p, size_t size);
+bool scm_enc_delete_p_eucjp(const void *p, size_t size);
+bool scm_enc_escape_p_eucjp(const void *p, size_t size);
+bool scm_enc_newline_p_eucjp(const void *p, size_t size);
+bool scm_enc_null_p_eucjp(const void *p, size_t size);
+bool scm_enc_return_p_eucjp(const void *p, size_t size);
+bool scm_enc_space_p_eucjp(const void *p, size_t size);
+bool scm_enc_tab_p_eucjp(const void *p, size_t size);
 
 /* SJIS */
 int scm_enc_char_width_sjis(const void *str, size_t len);
@@ -166,5 +226,15 @@ ScmStrItr scm_enc_index2itr_sjis(void *str, size_t size, size_t idx);
 bool scm_enc_valid_char_p_sjis(scm_char_t c);
 int scm_enc_to_ascii_sjis(scm_char_t c);
 ssize_t scm_enc_ascii_to_sjis(char ascii, scm_char_t *chr);
+bool scm_enc_printable_p_sjis(const void *p, size_t size);
+bool scm_enc_alarm_p_sjis(const void *p, size_t size);
+bool scm_enc_backspace_p_sjis(const void *p, size_t size);
+bool scm_enc_delete_p_sjis(const void *p, size_t size);
+bool scm_enc_escape_p_sjis(const void *p, size_t size);
+bool scm_enc_newline_p_sjis(const void *p, size_t size);
+bool scm_enc_null_p_sjis(const void *p, size_t size);
+bool scm_enc_return_p_sjis(const void *p, size_t size);
+bool scm_enc_space_p_sjis(const void *p, size_t size);
+bool scm_enc_tab_p_sjis(const void *p, size_t size);
 
 #endif /* INCLUDED_ENCODING_H__ */

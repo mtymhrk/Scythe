@@ -129,53 +129,72 @@ scm_char_encode(ScmObj chr, SCM_ENC_T enc)
   return scm_char_new(SCM_MEM_HEAP, c, enc);
 }
 
-/* int */
-/* scm_char_pretty_print(ScmObj obj, ScmObj port, bool write_p) */
-/* { */
-/*   ScmObj str = SCM_OBJ_INIT; */
-/*   const ScmEncVirtualFunc *vf; */
-/*   char cstr[256]; */
-/*   int c; */
+#if 0
+int
+scm_char_pretty_print(ScmObj obj, ScmObj port, bool write_p)
+{
+  ScmObj sp = SCM_OBJ_INIT;
+  SCM_ENC_T p_enc;
+  const ScmEncVirtualFunc *vf;
+  char cstr[256];
+  int c;
+  int rslt;
 
-/*   SCM_STACK_FRAME_PUSH(&obj, &port, &str); */
+  SCM_STACK_FRAME_PUSH(&obj, &port, &sp);
 
-/*   scm_assert_obj_type(obj, &SCM_CHAR_TYPE_INFO); */
+  scm_assert_obj_type(obj, &SCM_CHAR_TYPE_INFO);
 
-/*   vf = SCM_ENCODING_VFUNC(SCM_CHAR(obj)->enc); */
+  rslt = scm_capi_port_encoding(obj, &p_enc);
+  if (rslt < 0) return -1;
 
-/*   if (write_p) { */
-/*     c = vf->to_ascii(SCM_CHAR(obj)->value); */
-/*     if (c >= 0) { */
-/*       if (c == '\n') */
-/*         memcpy(cstr, "#\\newline", sizeof("#\\newline")); */
-/*       else if (c == ' ') */
-/*         memcpy(cstr, "#\\space", sizeof("#\\space")); */
-/*       else if (iscntrl(c)) */
-/*         snprintf(cstr, sizeof(cstr), "#\\x%02x", c); */
-/*       else */
-/*         snprintf(cstr, sizeof(cstr), "#\\%c", c); */
+  sp = scm_capi_open_output_string_port(p_enc);
+  if (scm_obj_null_p(sp)) return -1;
 
-/*       str = scm_capi_make_string_from_cstr(cstr, SCM_ENC_ASCII); */
-/*       if (scm_obj_null_p(str)) return -1; */
-/*     } */
-/*     else { */
-/*       str = scm_capi_make_string_from_cstr("#\\", SCM_ENC_ASCII); */
-/*       if (scm_obj_null_p(str)) return -1; */
+  vf = SCM_ENCODING_VFUNC(SCM_CHAR(obj)->enc);
 
-/*       str = scm_capi_string_encode(str, SCM_ENC_SYS); */
-/*       if (scm_obj_null_p(str)) return -1; */
+  if (write_p) {
+    c = vf->to_ascii(SCM_CHAR(obj)->value);
+    if (c >= 0) {
+      if (c == '\n')
+        memcpy(cstr, "#\\newline", sizeof("#\\newline"));
+      else if (c == ' ')
+        memcpy(cstr, "#\\space", sizeof("#\\space"));
+      else if (iscntrl(c))
+        snprintf(cstr, sizeof(cstr), "#\\x%02x", c);
+      else
+        snprintf(cstr, sizeof(cstr), "#\\%c", c);
 
-/*       str = scm_api_string_push(str, obj); */
-/*       if (scm_obj_null_p(str)) return -1; */
-/*     } */
+      str = scm_capi_make_string_from_cstr(cstr, SCM_ENC_ASCII);
+      if (scm_obj_null_p(str)) return -1;
+    }
+    else {
+      str = scm_capi_make_string_from_cstr("#\\", SCM_ENC_ASCII);
+      if (scm_obj_null_p(str)) return -1;
 
-/*     port = scm_api_write_string(port, str); */
-/*     if (scm_obj_null_p(port)) return -1; */
-/*   } */
-/*   else { */
-/*     port =scm_api_write_char(port, obj); */
-/*     if (scm_obj_null_p(port)) return -1; */
-/*   } */
+      str = scm_capi_string_encode(str, SCM_ENC_SYS);
+      if (scm_obj_null_p(str)) return -1;
 
-/*   return 0; */
-/* } */
+      str = scm_api_string_push(str, obj);
+      if (scm_obj_null_p(str)) return -1;
+    }
+
+    port = scm_api_write_string(port, str);
+    if (scm_obj_null_p(port)) return -1;
+  }
+  else {
+    port =scm_api_write_char(port, obj);
+    if (scm_obj_null_p(port)) return -1;
+  }
+
+  return 0;
+}
+#endif
+
+
+
+
+
+
+
+
+
