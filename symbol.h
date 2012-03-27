@@ -30,6 +30,7 @@ ScmObj scm_symbol_instance(ScmObj str);
 size_t scm_symbol_length(ScmObj sym);
 ScmObj scm_symbol_string(ScmObj sym);
 size_t scm_symbol_hash_value(ScmObj sym);
+int scm_symbol_pretty_print(ScmObj obj, ScmObj port, bool write_p);
 void scm_symbol_gc_initialize(ScmObj obj, ScmObj mem);
 int scm_symbol_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
 
@@ -46,6 +47,7 @@ void scm_symtbl_finalize(ScmObj tbl);
 ScmObj scm_symtbl_new(SCM_MEM_TYPE_T mtype);
 ScmObj scm_symtbl_symbol(ScmObj tbl, ScmObj str);
 void scm_symtbl_clean(ScmObj tbl);
+int scm_symtbl_pretty_preint(ScmObj obj, ScmObj port, bool write_p);
 void scm_symtbl_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_symtbl_gc_finalize(ScmObj obj);
 int scm_symtbl_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);

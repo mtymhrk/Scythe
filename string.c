@@ -769,6 +769,73 @@ scm_string_content(ScmObj str)  /* GC OK */
   return SCM_STRING_HEAD(str);
 }
 
+int
+scm_string_pretty_print(ScmObj obj, ScmObj port, bool write_p)
+{
+  int rslt;
+
+  scm_assert_obj_type(obj, &SCM_STRING_TYPE_INFO);
+
+  if (write_p) {
+    rslt = scm_string_write_ext_rep(obj, port);
+    if (rslt < 0) return -1;
+  }
+  else {
+    port = scm_api_write_string(port, obj);
+    if (scm_obj_null_p(port)) return -1;
+  }
+
+  return 0;
+}
+
+int
+scm_string_escape_ctrl_and_nonascii_write(ScmObj str, ScmObj port)
+{
+  const ScmEncVirtualFunc *vf;
+  ScmStrItr iter;
+  int rslt;
+
+  SCM_STACK_FRAME_PUSH(&str, &port);
+
+  scm_assert_obj_type(str, &SCM_STRING_TYPE_INFO);
+
+  vf = SCM_ENCODING_VFUNC(SCM_STRING_ENC(str));
+
+  iter = scm_str_itr_begin(SCM_STRING_HEAD(str),
+                           SCM_STRING_BYTESIZE(str),
+                           vf->char_width);
+  if (SCM_STR_ITR_IS_ERR(&iter)) return -1;
+
+  while (!SCM_STR_ITR_IS_END(&iter)) {
+    if (vf->ascii_p(SCM_STR_ITR_PTR(&iter),
+                        (size_t)SCM_STR_ITR_REST(&iter))
+        && vf->printable_p(SCM_STR_ITR_PTR(&iter),
+                           (size_t)SCM_STR_ITR_REST(&iter))
+        && !vf->space_p(SCM_STR_ITR_PTR(&iter),
+                        (size_t)SCM_STR_ITR_REST(&iter))) {
+        rslt = scm_capi_write_bin(port,
+                                  SCM_STR_ITR_PTR(&iter),
+                                  (size_t)SCM_STR_ITR_WIDTH(&iter),
+                                  SCM_STRING_ENC(str));
+        if (rslt < 0) return -1;
+    }
+    else {
+      char cstr[32];
+      long scalar = vf->to_scalar(SCM_STR_ITR_PTR(&iter),
+                                  (size_t)SCM_STR_ITR_REST(&iter));
+      if (scalar < 0) return -1;
+      snprintf(cstr, sizeof(cstr), "\\x%lx;", scalar);
+      rslt = scm_capi_write_cstr(port, cstr, SCM_ENC_ASCII);
+      if (rslt < 0) return -1;
+    }
+
+    scm_str_itr_next(&iter);
+    if (SCM_STR_ITR_IS_ERR(&iter)) return -1;
+  }
+
+  return 0;
+}
+
 void
 scm_string_gc_initialize(ScmObj obj, ScmObj mem)
 {
@@ -799,21 +866,3 @@ scm_string_hash_value(ScmObj str) /* GC OK */
   return hash;
 }
 
-int
-scm_string_pretty_print(ScmObj obj, ScmObj port, bool write_p)
-{
-  int rslt;
-
-  scm_assert_obj_type(obj, &SCM_STRING_TYPE_INFO);
-
-  if (write_p) {
-    rslt = scm_string_write_ext_rep(obj, port);
-    if (rslt < 0) return -1;
-  }
-  else {
-    port = scm_api_write_string(port, obj);
-    if (scm_obj_null_p(port)) return -1;
-  }
-
-  return 0;
-}
