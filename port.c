@@ -480,7 +480,7 @@ scm_stringio_buffer_mode(ScmStringIO *strio, SCM_PORT_BUF_T *mode)
   return 0;
 }
 
-char *
+extern inline char *
 scm_stringio_buffer(ScmStringIO *strio)
 {
   scm_assert(strio != NULL);
@@ -488,7 +488,7 @@ scm_stringio_buffer(ScmStringIO *strio)
   return strio->string;
 }
 
-size_t
+extern inline size_t
 scm_stringio_length(ScmStringIO *strio)
 {
   scm_assert(strio != NULL);
@@ -1505,7 +1505,7 @@ scm_port_seek(ScmObj port, off_t offset, int whence)
   return 0;
 }
 
-void *
+const void *
 scm_port_string_buffer(ScmObj port)
 {
   scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);

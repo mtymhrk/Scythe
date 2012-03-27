@@ -194,7 +194,7 @@ ssize_t scm_port_peek_char(ScmObj port, scm_char_t *chr);
 ssize_t scm_port_write(ScmObj port, const void *buf, size_t size);
 ssize_t scm_port_write_char(ScmObj port, scm_char_t chr);
 int scm_port_seek(ScmObj port, off_t offset, int whence);
-void *scm_port_string_buffer(ScmObj port);
+const void *scm_port_string_buffer(ScmObj port);
 ssize_t scm_port_string_buffer_length(ScmObj port);
 void scm_port_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_port_gc_finalize(ScmObj obj);

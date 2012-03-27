@@ -1119,6 +1119,48 @@ scm_api_write_string(ScmObj port, ScmObj str)
   return port;
 }
 
+ssize_t
+scm_capi_get_output_raw(ScmObj port, void *buf, size_t size)
+{
+  const void *p;
+  ssize_t s;
+
+  if (scm_port_string_port_p(port)) return -1; /* provisional implemntation */
+
+  p = scm_port_string_buffer(port);
+  if (p == NULL) return -1;
+
+  s = scm_port_string_buffer_length(port);
+  if (s < 0) return -1;
+
+  if ((size_t)s > size)
+    s = (ssize_t)size;
+
+  memcpy(buf, scm_port_string_buffer(port), (size_t)s);
+
+  return s;
+}
+
+ScmObj
+scm_api_get_output_string(ScmObj port)
+{
+  const void *p;
+  ssize_t s;
+  SCM_ENC_T e;
+
+  if (scm_port_string_port_p(port)) return SCM_OBJ_NULL; /* provisional implemntation */
+
+  p = scm_port_string_buffer(port);
+  if (p == NULL) return SCM_OBJ_NULL;
+
+  s = scm_port_string_buffer_length(port);
+  if (s < 0) return SCM_OBJ_NULL;
+
+  e = scm_port_encoding(port);
+
+  return scm_capi_make_string_from_bin(p, (size_t)s, e);
+}
+
 extern inline ScmObj
 scm_api_current_input_port(void)
 {
