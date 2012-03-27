@@ -789,7 +789,7 @@ scm_capi_symbol_hash_value(ScmObj sym)
 /*******************************************************************/
 
 extern inline ScmObj
-scm_capi_open_input_fd_port(int fd, SCM_PORT_BUF_T mode, SCM_ENC_T enc)
+scm_capi_open_input_fd(int fd, SCM_PORT_BUF_T mode, SCM_ENC_T enc)
 {
   if (fd < 0) return SCM_OBJ_NULL; /* provisional implemntation */
 
@@ -800,7 +800,7 @@ scm_capi_open_input_fd_port(int fd, SCM_PORT_BUF_T mode, SCM_ENC_T enc)
 }
 
 extern inline ScmObj
-scm_capi_open_output_fd_port(int fd, SCM_PORT_BUF_T mode, SCM_ENC_T enc)
+scm_capi_open_output_fd(int fd, SCM_PORT_BUF_T mode, SCM_ENC_T enc)
 {
   if (fd < 0) return SCM_OBJ_NULL; /* provisional implemntation */
 
@@ -811,7 +811,7 @@ scm_capi_open_output_fd_port(int fd, SCM_PORT_BUF_T mode, SCM_ENC_T enc)
 }
 
 extern inline ScmObj
-scm_capi_open_input_string_port_from_cstr(const char *str, SCM_ENC_T enc)
+scm_capi_open_input_string_from_cstr(const char *str, SCM_ENC_T enc)
 {
   if (enc == SCM_ENC_SYS)
     enc = scm_capi_system_encoding();
@@ -822,7 +822,7 @@ scm_capi_open_input_string_port_from_cstr(const char *str, SCM_ENC_T enc)
 }
 
 extern inline ScmObj
-scm_capi_open_output_string_port(SCM_ENC_T enc)
+scm_capi_open_output_string(SCM_ENC_T enc)
 {
   if (enc == SCM_ENC_SYS)
     enc = scm_capi_system_encoding();

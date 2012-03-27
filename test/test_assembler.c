@@ -43,7 +43,7 @@ test_scm_asm_assemble(void)
   SCM_STACK_FRAME_PUSH(&iseq, &lst, &port, &actual_immv, &expected_immv);
 
   expected_immv = scm_capi_make_symbol_from_cstr("vvv", SCM_ENC_ASCII);
-  port = scm_capi_open_input_string_port_from_cstr(str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_from_cstr(str, SCM_ENC_ASCII);
   lst = scm_api_read(port);
 
   iseq = scm_asm_assemble(lst);

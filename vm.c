@@ -287,16 +287,16 @@ scm_vm_init_eval_env(ScmObj vm)
   err_fd = dup(0);
   if (err_fd < 0) return -1;  /* TODO: error handling */
 
-  in = scm_capi_open_input_fd_port(in_fd, SCM_PORT_BUF_DEFAULT,
-                                   scm_capi_system_encoding());
+  in = scm_capi_open_input_fd(in_fd, SCM_PORT_BUF_DEFAULT,
+                              scm_capi_system_encoding());
   if (scm_obj_null_p(in)) return -1;  /* TODO: error handling */
 
-  out = scm_capi_open_input_fd_port(out_fd, SCM_PORT_BUF_DEFAULT,
-                                    scm_capi_system_encoding());
+  out = scm_capi_open_input_fd(out_fd, SCM_PORT_BUF_DEFAULT,
+                               scm_capi_system_encoding());
   if (scm_obj_null_p(out)) return -1;  /* TODO: error handling */
 
-  err = scm_capi_open_input_fd_port(err_fd, SCM_PORT_BUF_DEFAULT,
-                                    scm_capi_system_encoding());
+  err = scm_capi_open_input_fd(err_fd, SCM_PORT_BUF_DEFAULT,
+                               scm_capi_system_encoding());
   if (scm_obj_null_p(err)) return -1;  /* TODO: error handling */
 
   SCM_SLOT_SETQ(ScmVM,vm, ge.stdio.in, in);
