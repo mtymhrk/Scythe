@@ -1031,6 +1031,28 @@ scm_capi_write_cstr(ScmObj port, const char *str, SCM_ENC_T enc)
   return 0;
 }
 
+int
+scm_capi_write_bin(ScmObj port, const void *buf, size_t size, SCM_ENC_T enc)
+{
+  ScmObj s = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&port, &s);
+
+  if (scm_obj_null_p(port)
+      || !scm_capi_output_port_p(port)
+      || buf == NULL
+      || enc == SCM_ENC_SYS)
+    return SCM_OBJ_NULL;         /* provisional implemntation */
+
+  s = scm_capi_make_string_from_bin(buf, size, enc);
+  if (scm_obj_null_p(s)) return -1;
+
+  port = scm_api_write_string(port, s);
+  if (scm_obj_null_p(port)) return -1;
+
+  return 0;
+}
+
 ScmObj
 scm_api_write_char(ScmObj port, ScmObj chr)
 {

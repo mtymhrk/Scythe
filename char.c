@@ -12,7 +12,7 @@
 
 
 ScmTypeInfo SCM_CHAR_TYPE_INFO = {
-  .pp_func             = NULL,
+  .pp_func             = scm_char_pretty_print,
   .obj_size            = sizeof(ScmChar),
   .gc_ini_func         = NULL,
   .gc_fin_func         = NULL,

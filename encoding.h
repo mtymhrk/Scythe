@@ -95,6 +95,8 @@ typedef struct ScmStrVirtualFunc {
   bool (*return_p)(const void *p, size_t size);
   bool (*space_p)(const void *p, size_t size);
   bool (*tab_p)(const void *p, size_t size);
+  bool (*doublequote_p)(const void *p, size_t size);
+  bool (*backslash_p)(const void *p, size_t size);
 } ScmEncVirtualFunc;
 
 extern const ScmEncVirtualFunc SCM_ENCODING_VFUNC_ASCII;
@@ -137,6 +139,8 @@ bool scm_enc_null_p_ascii(const void *p, size_t size);
 bool scm_enc_return_p_ascii(const void *p, size_t size);
 bool scm_enc_space_p_ascii(const void *p, size_t size);
 bool scm_enc_tab_p_ascii(const void *p, size_t size);
+bool scm_enc_doublequote_p_ascii(const void *p, size_t size);
+bool scm_enc_backslash_p_ascii(const void *p, size_t size);
 
 /* ASCII-CMPT */
 int scm_enc_char_width_ascii_cmpt(const void *str, size_t len);
@@ -184,6 +188,8 @@ bool scm_enc_null_p_utf8(const void *p, size_t size);
 bool scm_enc_return_p_utf8(const void *p, size_t size);
 bool scm_enc_space_p_utf8(const void *p, size_t size);
 bool scm_enc_tab_p_utf8(const void *p, size_t size);
+bool scm_enc_doublequote_p_utf8(const void *p, size_t size);
+bool scm_enc_backslash_p_utf8(const void *p, size_t size);
 
 /* UCS4 */
 int scm_enc_char_width_ucs4(const void *str, size_t len);
@@ -206,6 +212,8 @@ bool scm_enc_null_p_ucs4(const void *p, size_t size);
 bool scm_enc_return_p_ucs4(const void *p, size_t size);
 bool scm_enc_space_p_ucs4(const void *p, size_t size);
 bool scm_enc_tab_p_ucs4(const void *p, size_t size);
+bool scm_enc_doublequote_p_ucs4(const void *p, size_t size);
+bool scm_enc_backslash_p_ucs4(const void *p, size_t size);
 
 /* EUC-JP */
 int scm_enc_char_width_eucjp(const void *str, size_t len);
@@ -224,6 +232,8 @@ bool scm_enc_null_p_eucjp(const void *p, size_t size);
 bool scm_enc_return_p_eucjp(const void *p, size_t size);
 bool scm_enc_space_p_eucjp(const void *p, size_t size);
 bool scm_enc_tab_p_eucjp(const void *p, size_t size);
+bool scm_enc_doublequote_p_eucjp(const void *p, size_t size);
+bool scm_enc_backslash_p_eucjp(const void *p, size_t size);
 
 /* SJIS */
 int scm_enc_char_width_sjis(const void *str, size_t len);
@@ -242,5 +252,7 @@ bool scm_enc_null_p_sjis(const void *p, size_t size);
 bool scm_enc_return_p_sjis(const void *p, size_t size);
 bool scm_enc_space_p_sjis(const void *p, size_t size);
 bool scm_enc_tab_p_sjis(const void *p, size_t size);
+bool scm_enc_doublequote_p_sjis(const void *p, size_t size);
+bool scm_enc_backslash_p_sjis(const void *p, size_t size);
 
 #endif /* INCLUDED_ENCODING_H__ */

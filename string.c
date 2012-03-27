@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include <limits.h>
 #include <assert.h>
 
@@ -18,7 +19,7 @@
 #define ROOM_FOR_APPEND(str) (CAPACITY(str) - SCM_STRING_BYTESIZE(str))
 
 ScmTypeInfo SCM_STRING_TYPE_INFO = {
-  .pp_func             = NULL,
+  .pp_func             = scm_string_pretty_print,
   .obj_size            = sizeof(ScmString),
   .gc_ini_func         = scm_string_gc_initialize,
   .gc_fin_func         = scm_string_gc_finalize,
@@ -135,6 +136,94 @@ scm_string_finalize(ScmObj str) /* GC OK */
   /* 題ないようにする必要がある                                                  */
   SCM_STRING_BUFFER(str) = NULL;
   SCM_STRING_REF_CNT(str) = NULL;
+}
+
+static int
+scm_string_write_ext_rep(ScmObj obj, ScmObj port)
+{
+  const ScmEncVirtualFunc *vf;
+  ScmStrItr iter;
+  int rslt;
+
+  SCM_STACK_FRAME_PUSH(&obj, &port);
+
+  scm_assert_obj_type(obj, &SCM_STRING_TYPE_INFO);
+
+  vf = SCM_ENCODING_VFUNC(SCM_STRING_ENC(obj));
+
+  iter = scm_str_itr_begin(SCM_STRING_HEAD(obj),
+                           SCM_STRING_BYTESIZE(obj),
+                           vf->char_width);
+  if (SCM_STR_ITR_IS_ERR(&iter)) return -1;
+
+  rslt = scm_capi_write_cstr(port, "\"", SCM_ENC_ASCII);
+  if (rslt < 0) return -1;
+
+  while (!SCM_STR_ITR_IS_END(&iter)) {
+    if (vf->printable_p(SCM_STR_ITR_PTR(&iter),
+                        (size_t)SCM_STR_ITR_REST(&iter))) {
+      if (vf->alarm_p(SCM_STR_ITR_PTR(&iter),
+                        (size_t)SCM_STR_ITR_REST(&iter))) {
+        rslt = scm_capi_write_cstr(port, "\\a", SCM_ENC_ASCII);
+        if (rslt < 0) return -1;
+      }
+      else if (vf->backspace_p(SCM_STR_ITR_PTR(&iter),
+                               (size_t)SCM_STR_ITR_REST(&iter))) {
+        rslt = scm_capi_write_cstr(port, "\\b", SCM_ENC_ASCII);
+        if (rslt < 0) return -1;
+      }
+      else if (vf->tab_p(SCM_STR_ITR_PTR(&iter),
+                         (size_t)SCM_STR_ITR_REST(&iter))) {
+        rslt = scm_capi_write_cstr(port, "\\t", SCM_ENC_ASCII);
+        if (rslt < 0) return -1;
+      }
+      else if (vf->newline_p(SCM_STR_ITR_PTR(&iter),
+                             (size_t)SCM_STR_ITR_REST(&iter))) {
+        rslt = scm_capi_write_cstr(port, "\\n", SCM_ENC_ASCII);
+        if (rslt < 0) return -1;
+      }
+      else if (vf->return_p(SCM_STR_ITR_PTR(&iter),
+                            (size_t)SCM_STR_ITR_REST(&iter))) {
+        rslt = scm_capi_write_cstr(port, "\\r", SCM_ENC_ASCII);
+        if (rslt < 0) return -1;
+      }
+      else {
+        char cstr[32];
+        long scalar = vf->to_scalar(SCM_STR_ITR_PTR(&iter),
+                                    (size_t)SCM_STR_ITR_REST(&iter));
+        if (scalar < 0) return -1;
+        snprintf(cstr, sizeof(cstr), "\\x%lx;", scalar);
+        rslt = scm_capi_write_cstr(port, cstr, SCM_ENC_ASCII);
+        if (rslt < 0) return -1;
+      }
+    }
+    else {
+      if (vf->doublequote_p(SCM_STR_ITR_PTR(&iter),
+                    (size_t)SCM_STR_ITR_REST(&iter))) {
+        rslt = scm_capi_write_cstr(port, "\\\"", SCM_ENC_ASCII);
+        if (rslt < 0) return -1;
+      }
+      else if (vf->backslash_p(SCM_STR_ITR_PTR(&iter),
+                               (size_t)SCM_STR_ITR_REST(&iter))) {
+        rslt = scm_capi_write_cstr(port, "\\\\", SCM_ENC_ASCII);
+        if (rslt < 0) return -1;
+      }
+      else {
+        rslt = scm_capi_write_bin(port,
+                                  SCM_STR_ITR_PTR(&iter),
+                                  (size_t)SCM_STR_ITR_WIDTH(&iter),
+                                  SCM_STRING_ENC(obj));
+        if (rslt < 0) return -1;
+      }
+    }
+    scm_str_itr_next(&iter);
+    if (SCM_STR_ITR_IS_ERR(&iter)) return -1;
+  }
+
+  rslt = scm_capi_write_cstr(port, "\"", SCM_ENC_ASCII);
+  if (rslt < 0) return -1;
+
+  return 0;
 }
 
 int
@@ -708,4 +797,23 @@ scm_string_hash_value(ScmObj str) /* GC OK */
     hash = (hash << 5) - hash + (unsigned char)SCM_STRING_BYTE_AT(str, i);
 
   return hash;
+}
+
+int
+scm_string_pretty_print(ScmObj obj, ScmObj port, bool write_p)
+{
+  int rslt;
+
+  scm_assert_obj_type(obj, &SCM_STRING_TYPE_INFO);
+
+  if (write_p) {
+    rslt = scm_string_write_ext_rep(obj, port);
+    if (rslt < 0) return -1;
+  }
+  else {
+    port = scm_api_write_string(port, obj);
+    if (scm_obj_null_p(port)) return -1;
+  }
+
+  return 0;
 }

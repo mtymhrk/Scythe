@@ -17,7 +17,8 @@ const ScmEncVirtualFunc SCM_ENCODING_VFUNC_ASCII = {
   scm_enc_to_scalar_ascii, scm_enc_printable_p_ascii, scm_enc_alarm_p_ascii,
   scm_enc_backspace_p_ascii, scm_enc_delete_p_ascii, scm_enc_escape_p_ascii,
   scm_enc_newline_p_ascii, scm_enc_null_p_ascii, scm_enc_return_p_ascii,
-  scm_enc_space_p_ascii, scm_enc_tab_p_ascii
+  scm_enc_space_p_ascii, scm_enc_tab_p_ascii, scm_enc_doublequote_p_ascii,
+  scm_enc_backslash_p_ascii
 };
 
 
@@ -35,7 +36,7 @@ const ScmEncVirtualFunc SCM_ENCODING_VFUNC_ASCII_CMPT = {
   scm_enc_delete_p_ascii_cmpt, scm_enc_escape_p_ascii_cmpt,
   scm_enc_newline_p_ascii_cmpt, scm_enc_null_p_ascii_cmpt,
   scm_enc_return_p_ascii_cmpt, scm_enc_space_p_ascii_cmpt,
-  scm_enc_tab_p_ascii_cmpt
+  scm_enc_tab_p_ascii_cmpt, NULL, NULL
 };
 
 
@@ -47,7 +48,7 @@ const ScmEncConstants SCM_ENCODING_CONST_BIN =
 const ScmEncVirtualFunc SCM_ENCODING_VFUNC_BIN = {
   scm_enc_char_width_bin, scm_enc_index2itr_bin, scm_enc_is_lf_bin,
   scm_enc_valid_char_p_binary, scm_enc_to_ascii_binary, scm_enc_ascii_to_binary,
-  NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
+  NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
 };
 
 
@@ -62,7 +63,8 @@ const ScmEncVirtualFunc SCM_ENCODING_VFUNC_UTF8 = {
   scm_enc_to_scalar_utf8, scm_enc_printable_p_utf8, scm_enc_alarm_p_utf8,
   scm_enc_backspace_p_utf8, scm_enc_delete_p_utf8, scm_enc_escape_p_utf8,
   scm_enc_newline_p_utf8, scm_enc_null_p_utf8, scm_enc_return_p_utf8,
-  scm_enc_space_p_utf8, scm_enc_tab_p_utf8
+  scm_enc_space_p_utf8, scm_enc_tab_p_utf8, scm_enc_doublequote_p_utf8,
+  scm_enc_backslash_p_utf8
 };
 
 
@@ -77,7 +79,8 @@ const ScmEncVirtualFunc SCM_ENCODING_VFUNC_UCS4 = {
   scm_enc_to_scalar_ucs4, scm_enc_printable_p_ucs4, scm_enc_alarm_p_ucs4,
   scm_enc_backspace_p_ucs4, scm_enc_delete_p_ucs4, scm_enc_escape_p_ucs4,
   scm_enc_newline_p_ucs4, scm_enc_null_p_ucs4, scm_enc_return_p_ucs4,
-  scm_enc_space_p_ucs4, scm_enc_tab_p_ucs4
+  scm_enc_space_p_ucs4, scm_enc_tab_p_ucs4, scm_enc_doublequote_p_ucs4,
+  scm_enc_backslash_p_ucs4
 };
 
 
@@ -92,7 +95,8 @@ const ScmEncVirtualFunc SCM_ENCODING_VFUNC_EUCJP = {
   scm_enc_to_scalar_eucjp, scm_enc_printable_p_eucjp, scm_enc_alarm_p_eucjp,
   scm_enc_backspace_p_eucjp, scm_enc_delete_p_eucjp, scm_enc_escape_p_eucjp,
   scm_enc_newline_p_eucjp, scm_enc_null_p_eucjp, scm_enc_return_p_eucjp,
-  scm_enc_space_p_eucjp, scm_enc_tab_p_eucjp
+  scm_enc_space_p_eucjp, scm_enc_tab_p_eucjp, scm_enc_doublequote_p_eucjp,
+  scm_enc_backslash_p_eucjp
 };
 
 
@@ -107,7 +111,8 @@ const ScmEncVirtualFunc SCM_ENCODING_VFUNC_SJIS = {
   scm_enc_to_scalar_sjis, scm_enc_printable_p_sjis, scm_enc_alarm_p_sjis,
   scm_enc_backspace_p_sjis, scm_enc_delete_p_sjis, scm_enc_escape_p_sjis,
   scm_enc_newline_p_sjis, scm_enc_null_p_sjis, scm_enc_return_p_sjis,
-  scm_enc_space_p_sjis, scm_enc_tab_p_sjis
+  scm_enc_space_p_sjis, scm_enc_tab_p_sjis, scm_enc_doublequote_p_sjis,
+  scm_enc_backslash_p_sjis
 };
 
 
@@ -405,6 +410,28 @@ scm_enc_tab_p_ascii(const void *p, size_t size)
   if (p == NULL || size < 1)
     return false;
   else if (*(const scm_char_ascii_t *)p == 0x09)
+    return true;
+  else
+    return false;
+}
+
+bool
+scm_enc_doublequote_p_ascii(const void *p, size_t size)
+{
+  if (p == NULL || size < 1)
+    return false;
+  else if (*(const scm_char_ascii_t *)p == 0x22)
+    return true;
+  else
+    return false;
+}
+
+bool
+scm_enc_backslash_p_ascii(const void *p, size_t size)
+{
+  if (p == NULL || size < 1)
+    return false;
+  else if (*(const scm_char_ascii_t *)p == 0x5c)
     return true;
   else
     return false;
@@ -809,6 +836,28 @@ scm_enc_tab_p_utf8(const void *p, size_t size)
     return false;
 }
 
+bool
+scm_enc_doublequote_p_utf8(const void *p, size_t size)
+{
+  if (p == NULL || size < 1)
+    return false;
+  else if (IS_VALID_UTF8_1((const uint8_t *)p))
+    return scm_enc_doublequote_p_ascii(p, size);
+  else
+    return false;
+}
+
+bool
+scm_enc_backslash_p_utf8(const void *p, size_t size)
+{
+  if (p == NULL || size < 1)
+    return false;
+  else if (IS_VALID_UTF8_1((const uint8_t *)p))
+    return scm_enc_backslash_p_ascii(p, size);
+  else
+    return false;
+}
+
 
 /***********************************************************************/
 /*   UCS4                                                              */
@@ -1035,6 +1084,28 @@ scm_enc_tab_p_ucs4(const void *p, size_t size)
   if (p == NULL || size < 4)
     return false;
   else if (*(const scm_char_ucs4_t *)p == 0x09)
+    return true;
+  else
+    return false;
+}
+
+bool
+scm_enc_doublequote_p_ucs4(const void *p, size_t size)
+{
+  if (p == NULL || size < 4)
+    return false;
+  else if (*(const scm_char_ucs4_t *)p == 0x22)
+    return true;
+  else
+    return false;
+}
+
+bool
+scm_enc_backslash_p_ucs4(const void *p, size_t size)
+{
+  if (p == NULL || size < 4)
+    return false;
+  else if (*(const scm_char_ucs4_t *)p == 0x5c)
     return true;
   else
     return false;
@@ -1279,6 +1350,28 @@ scm_enc_tab_p_eucjp(const void *p, size_t size)
     return false;;
 }
 
+bool
+scm_enc_doublequote_p_eucjp(const void *p, size_t size)
+{
+  if (p == NULL || size < 1)
+    return false;
+  else if (IS_VALID_EUC_JP_ASCII((const uint8_t *)p))
+    return scm_enc_doublequote_p_ascii(p, size);
+  else
+    return false;;
+}
+
+bool
+scm_enc_backslash_p_eucjp(const void *p, size_t size)
+{
+  if (p == NULL || size < 1)
+    return false;
+  else if (IS_VALID_EUC_JP_ASCII((const uint8_t *)p))
+    return scm_enc_backslash_p_ascii(p, size);
+  else
+    return false;;
+}
+
 
 /***********************************************************************/
 /*   SJIS                                                              */
@@ -1492,6 +1585,28 @@ scm_enc_tab_p_sjis(const void *p, size_t size)
     return false;
   else if (IS_VALID_SJIS_JIS_X_0201_LATIN((const uint8_t *)p))
     return scm_enc_tab_p_ascii(p, size);
+  else
+    return false;
+}
+
+bool
+scm_enc_doublequote_p_sjis(const void *p, size_t size)
+{
+  if (p == NULL || size < 1)
+    return false;
+  else if (IS_VALID_SJIS_JIS_X_0201_LATIN((const uint8_t *)p))
+    return scm_enc_doublequote_p_ascii(p, size);
+  else
+    return false;
+}
+
+bool
+scm_enc_backslash_p_sjis(const void *p, size_t size)
+{
+  if (p == NULL || size < 1)
+    return false;
+  else if (IS_VALID_SJIS_JIS_X_0201_LATIN((const uint8_t *)p))
+    return scm_enc_backslash_p_ascii(p, size);
   else
     return false;
 }

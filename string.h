@@ -61,5 +61,6 @@ void *scm_string_content(ScmObj str);
 void scm_string_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_string_gc_finalize(ScmObj obj);
 size_t scm_string_hash_value(ScmObj str);
+int scm_string_pretty_print(ScmObj obj, ScmObj port, bool write_p);
 
 #endif /* INCLUDE_STRING_H__ */
