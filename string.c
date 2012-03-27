@@ -119,25 +119,6 @@ scm_string_replace_contents(ScmObj target, ScmObj src) /* GC OK */
   SCM_STRING_INC_REF_CNT(target);
 }
 
-static void
-scm_string_finalize(ScmObj str) /* GC OK */
-{
-  scm_assert_obj_type(str, &SCM_STRING_TYPE_INFO);
-
-  if (SCM_STRING_REF_CNT(str) != NULL && *SCM_STRING_REF_CNT(str) > 1)
-    SCM_STRING_DEC_REF_CNT(str);
-  else {
-    scm_capi_free(SCM_STRING_BUFFER(str));
-    scm_capi_free(SCM_STRING_REF_CNT(str));
-  }
-
-  /* push() 関数や append() 関数内の tmp はこれらの関数から直接 finalize() を call  */
-  /* され、さらに GC 時にも gc_finalize() から call されるため、2 度 call されても問  */
-  /* 題ないようにする必要がある                                                  */
-  SCM_STRING_BUFFER(str) = NULL;
-  SCM_STRING_REF_CNT(str) = NULL;
-}
-
 static int
 scm_string_write_ext_rep(ScmObj obj, ScmObj port)
 {
@@ -162,8 +143,27 @@ scm_string_write_ext_rep(ScmObj obj, ScmObj port)
   while (!SCM_STR_ITR_IS_END(&iter)) {
     if (vf->printable_p(SCM_STR_ITR_PTR(&iter),
                         (size_t)SCM_STR_ITR_REST(&iter))) {
+      if (vf->doublequote_p(SCM_STR_ITR_PTR(&iter),
+                    (size_t)SCM_STR_ITR_REST(&iter))) {
+        rslt = scm_capi_write_cstr(port, "\\\"", SCM_ENC_ASCII);
+        if (rslt < 0) return -1;
+      }
+      else if (vf->backslash_p(SCM_STR_ITR_PTR(&iter),
+                               (size_t)SCM_STR_ITR_REST(&iter))) {
+        rslt = scm_capi_write_cstr(port, "\\\\", SCM_ENC_ASCII);
+        if (rslt < 0) return -1;
+      }
+      else {
+        rslt = scm_capi_write_bin(port,
+                                  SCM_STR_ITR_PTR(&iter),
+                                  (size_t)SCM_STR_ITR_WIDTH(&iter),
+                                  SCM_STRING_ENC(obj));
+        if (rslt < 0) return -1;
+      }
+    }
+    else {
       if (vf->alarm_p(SCM_STR_ITR_PTR(&iter),
-                        (size_t)SCM_STR_ITR_REST(&iter))) {
+                      (size_t)SCM_STR_ITR_REST(&iter))) {
         rslt = scm_capi_write_cstr(port, "\\a", SCM_ENC_ASCII);
         if (rslt < 0) return -1;
       }
@@ -197,25 +197,6 @@ scm_string_write_ext_rep(ScmObj obj, ScmObj port)
         if (rslt < 0) return -1;
       }
     }
-    else {
-      if (vf->doublequote_p(SCM_STR_ITR_PTR(&iter),
-                    (size_t)SCM_STR_ITR_REST(&iter))) {
-        rslt = scm_capi_write_cstr(port, "\\\"", SCM_ENC_ASCII);
-        if (rslt < 0) return -1;
-      }
-      else if (vf->backslash_p(SCM_STR_ITR_PTR(&iter),
-                               (size_t)SCM_STR_ITR_REST(&iter))) {
-        rslt = scm_capi_write_cstr(port, "\\\\", SCM_ENC_ASCII);
-        if (rslt < 0) return -1;
-      }
-      else {
-        rslt = scm_capi_write_bin(port,
-                                  SCM_STR_ITR_PTR(&iter),
-                                  (size_t)SCM_STR_ITR_WIDTH(&iter),
-                                  SCM_STRING_ENC(obj));
-        if (rslt < 0) return -1;
-      }
-    }
     scm_str_itr_next(&iter);
     if (SCM_STR_ITR_IS_ERR(&iter)) return -1;
   }
@@ -224,6 +205,25 @@ scm_string_write_ext_rep(ScmObj obj, ScmObj port)
   if (rslt < 0) return -1;
 
   return 0;
+}
+
+static void
+scm_string_finalize(ScmObj str) /* GC OK */
+{
+  scm_assert_obj_type(str, &SCM_STRING_TYPE_INFO);
+
+  if (SCM_STRING_REF_CNT(str) != NULL && *SCM_STRING_REF_CNT(str) > 1)
+    SCM_STRING_DEC_REF_CNT(str);
+  else {
+    scm_capi_free(SCM_STRING_BUFFER(str));
+    scm_capi_free(SCM_STRING_REF_CNT(str));
+  }
+
+  /* push() 関数や append() 関数内の tmp はこれらの関数から直接 finalize() を call  */
+  /* され、さらに GC 時にも gc_finalize() から call されるため、2 度 call されても問  */
+  /* 題ないようにする必要がある                                                  */
+  SCM_STRING_BUFFER(str) = NULL;
+  SCM_STRING_REF_CNT(str) = NULL;
 }
 
 int
