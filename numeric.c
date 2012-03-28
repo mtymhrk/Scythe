@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <string.h>
 #include <limits.h>
 
@@ -12,13 +13,32 @@
 /***************************************************************************/
 
 ScmTypeInfo SCM_FIXNUM_TYPE_INFO = {
-  .pp_func             = NULL,
+  .pp_func             = scm_fixnum_pretty_print,
   .obj_size            = 0,
   .gc_ini_func         = NULL,
   .gc_fin_func         = NULL,
   .gc_accept_func      = NULL,
   .gc_accept_func_weak = NULL,
 };
+
+int
+scm_fixnum_pretty_print(ScmObj obj, ScmObj port, bool write_p)
+{
+  char cstr[32];
+  int rslt;
+
+  scm_assert_obj_type(obj, &SCM_FIXNUM_TYPE_INFO);
+
+  snprintf(cstr, sizeof(cstr), "%lld",
+           (long long)scm_rshift_arith_sword((scm_sword_t)obj,
+                                             SCM_FIXNUM_SHIFT_BIT));
+
+  rslt = scm_capi_write_cstr(port, cstr, SCM_ENC_ASCII);
+  if (rslt < 0) return -1;
+
+  return 0;
+}
+
 
 #if 0
 

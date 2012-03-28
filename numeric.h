@@ -38,6 +38,8 @@ scm_fixnum_value(ScmObj num)
   return scm_rshift_arith_sword((scm_sword_t)num, SCM_FIXNUM_SHIFT_BIT);
 }
 
+int scm_fixnum_pretty_print(ScmObj obj, ScmObj port, bool write_p);
+
 /***************************************************************************/
 /*  Bignum                                                                 */
 /***************************************************************************/
