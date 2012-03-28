@@ -58,7 +58,7 @@ scm_subrutine_pretty_print(ScmObj obj, ScmObj port, bool write_p)
 
   snprintf(cstr, sizeof(cstr), "#<subr %llx>", (unsigned long long)obj);
 
-  rslt = scm_capi_write_cstr(port, cstr, SCM_ENC_ASCII);
+  rslt = scm_capi_write_cstr(cstr, SCM_ENC_ASCII, port);
   if (rslt < 0) return -1;
 
   return 0;
@@ -146,7 +146,7 @@ scm_closure_pretty_print(ScmObj obj, ScmObj port, bool write_p)
 
   snprintf(cstr, sizeof(cstr), "#<closure %llx>", (unsigned long long)obj);
 
-  rslt = scm_capi_write_cstr(port, cstr, SCM_ENC_ASCII);
+  rslt = scm_capi_write_cstr(cstr, SCM_ENC_ASCII, port);
   if (rslt < 0) return -1;
 
   return 0;

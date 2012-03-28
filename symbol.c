@@ -81,6 +81,7 @@ scm_symbol_hash_value(ScmObj sym)
 int
 scm_symbol_pretty_print(ScmObj obj, ScmObj port, bool write_p)
 {
+  ScmObj ro = SCM_OBJ_INIT;
   int rslt;
 
   scm_assert_obj_type(obj, &SCM_SYMBOL_TYPE_INFO);
@@ -90,8 +91,8 @@ scm_symbol_pretty_print(ScmObj obj, ScmObj port, bool write_p)
     if (rslt < 0) return -1;
   }
   else {
-    port = scm_api_write_string(port, SCM_SYMBOL_STR(obj));
-    if (scm_obj_null_p(port)) return -1;
+    ro = scm_api_write_string(SCM_SYMBOL_STR(obj), port);
+    if (scm_obj_null_p(ro)) return -1;
   }
 
   return 0;
@@ -232,7 +233,7 @@ scm_symtbl_pretty_preint(ScmObj obj, ScmObj port, bool write_p)
 
   snprintf(cstr, sizeof(cstr), "#<gloctbl 0x%llx>", (unsigned long long)obj);
 
-  rslt = scm_capi_write_cstr(port, cstr, SCM_ENC_ASCII);
+  rslt = scm_capi_write_cstr(cstr, SCM_ENC_ASCII, port);
   if (rslt < 0) return -1;
 
   return 0;

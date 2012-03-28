@@ -241,12 +241,12 @@ ssize_t scm_capi_unread_char(ScmObj port, const scm_char_t *chr);
 ssize_t scm_capi_peek_raw(ScmObj port, void *buf, size_t size);
 ssize_t scm_capi_peek_char(ScmObj port, scm_char_t *chr);
 ScmObj scm_api_read(ScmObj port);
-ssize_t scm_capi_write_raw(ScmObj port, const void *buf, size_t size);
-int scm_capi_write_cstr(ScmObj port, const char *str, SCM_ENC_T enc);
-int scm_capi_write_bin(ScmObj port,
-                       const void *buf, size_t size, SCM_ENC_T enc);
-ScmObj scm_api_write_char(ScmObj port, ScmObj chr);
-ScmObj scm_api_write_string(ScmObj port, ScmObj str);
+ssize_t scm_capi_write_raw(const void *buf, size_t size, ScmObj port);
+int scm_capi_write_cstr(const char *str, SCM_ENC_T enc, ScmObj port);
+int scm_capi_write_bin(const void *buf, size_t size, SCM_ENC_T enc,
+                       ScmObj port);
+ScmObj scm_api_write_char(ScmObj chr, ScmObj port);
+ScmObj scm_api_write_string(ScmObj str, ScmObj port);
 ScmObj scm_api_write(ScmObj obj, ScmObj port);
 ScmObj scm_api_write_simple(ScmObj obj, ScmObj port);
 ssize_t scm_capi_get_output_raw(ScmObj port, void *buf, size_t size);

@@ -998,7 +998,7 @@ scm_api_read(ScmObj port)
 }
 
 extern inline ssize_t
-scm_capi_write_raw(ScmObj port, const void *buf, size_t size)
+scm_capi_write_raw(const void *buf, size_t size, ScmObj port)
 {
   if (scm_obj_null_p(port)
       || !scm_capi_output_port_p(port)
@@ -1010,7 +1010,7 @@ scm_capi_write_raw(ScmObj port, const void *buf, size_t size)
 }
 
 int
-scm_capi_write_cstr(ScmObj port, const char *str, SCM_ENC_T enc)
+scm_capi_write_cstr(const char *str, SCM_ENC_T enc, ScmObj port)
 {
   ScmObj s = SCM_OBJ_INIT;
 
@@ -1025,14 +1025,14 @@ scm_capi_write_cstr(ScmObj port, const char *str, SCM_ENC_T enc)
   s = scm_capi_make_string_from_cstr(str, enc);
   if (scm_obj_null_p(s)) return -1;
 
-  port = scm_api_write_string(port, s);
-  if (scm_obj_null_p(port)) return -1;
+  s = scm_api_write_string(s, port);
+  if (scm_obj_null_p(s)) return -1;
 
   return 0;
 }
 
 int
-scm_capi_write_bin(ScmObj port, const void *buf, size_t size, SCM_ENC_T enc)
+scm_capi_write_bin(const void *buf, size_t size, SCM_ENC_T enc, ScmObj port)
 {
   ScmObj s = SCM_OBJ_INIT;
 
@@ -1047,19 +1047,19 @@ scm_capi_write_bin(ScmObj port, const void *buf, size_t size, SCM_ENC_T enc)
   s = scm_capi_make_string_from_bin(buf, size, enc);
   if (scm_obj_null_p(s)) return -1;
 
-  port = scm_api_write_string(port, s);
-  if (scm_obj_null_p(port)) return -1;
+  s = scm_api_write_string(s, port);
+  if (scm_obj_null_p(s)) return -1;
 
   return 0;
 }
 
 ScmObj
-scm_api_write_char(ScmObj port, ScmObj chr)
+scm_api_write_char(ScmObj chr, ScmObj port)
 {
   SCM_ENC_T p_enc, c_enc;
   ssize_t rslt;
 
-  SCM_STACK_FRAME_PUSH(&port, &chr);
+  SCM_STACK_FRAME_PUSH(&chr, &port);
 
   if(!scm_capi_output_port_p(port)|| scm_capi_char_p(chr))
     return SCM_OBJ_NULL;
@@ -1078,17 +1078,17 @@ scm_api_write_char(ScmObj port, ScmObj chr)
   rslt = scm_port_write_char(port, scm_char_value(chr));
   if (rslt < 0) return SCM_OBJ_NULL;
 
-  return port;
+  return chr;
 }
 
 ScmObj
-scm_api_write_string(ScmObj port, ScmObj str)
+scm_api_write_string(ScmObj str, ScmObj port)
 {
   SCM_ENC_T p_enc, s_enc;
   ssize_t rslt, size;
   void *buf;
 
-  SCM_STACK_FRAME_PUSH(&port, &str);
+  SCM_STACK_FRAME_PUSH(&str, &port);
 
   if (scm_capi_output_port_p(port) || scm_capi_string_p(str))
     return SCM_OBJ_NULL;
@@ -1113,10 +1113,10 @@ scm_api_write_string(ScmObj port, ScmObj str)
   rslt = scm_capi_string_to_cstr(str, buf, (size_t)size + 1);
   if (rslt < 0) return SCM_OBJ_NULL;
 
-  rslt = scm_capi_write_raw(port, buf, (size_t)size);
+  rslt = scm_capi_write_raw(buf, (size_t)size, port);
   if (rslt < 0) return SCM_OBJ_NULL;
 
-  return port;
+  return str;
 }
 
 ScmObj

@@ -137,7 +137,7 @@ scm_string_write_ext_rep(ScmObj obj, ScmObj port)
                            vf->char_width);
   if (SCM_STR_ITR_IS_ERR(&iter)) return -1;
 
-  rslt = scm_capi_write_cstr(port, "\"", SCM_ENC_ASCII);
+  rslt = scm_capi_write_cstr("\"", SCM_ENC_ASCII, port);
   if (rslt < 0) return -1;
 
   while (!SCM_STR_ITR_IS_END(&iter)) {
@@ -145,46 +145,46 @@ scm_string_write_ext_rep(ScmObj obj, ScmObj port)
                         (size_t)SCM_STR_ITR_REST(&iter))) {
       if (vf->doublequote_p(SCM_STR_ITR_PTR(&iter),
                     (size_t)SCM_STR_ITR_REST(&iter))) {
-        rslt = scm_capi_write_cstr(port, "\\\"", SCM_ENC_ASCII);
+        rslt = scm_capi_write_cstr("\\\"", SCM_ENC_ASCII, port);
         if (rslt < 0) return -1;
       }
       else if (vf->backslash_p(SCM_STR_ITR_PTR(&iter),
                                (size_t)SCM_STR_ITR_REST(&iter))) {
-        rslt = scm_capi_write_cstr(port, "\\\\", SCM_ENC_ASCII);
+        rslt = scm_capi_write_cstr("\\\\", SCM_ENC_ASCII, port);
         if (rslt < 0) return -1;
       }
       else {
-        rslt = scm_capi_write_bin(port,
-                                  SCM_STR_ITR_PTR(&iter),
+        rslt = scm_capi_write_bin(SCM_STR_ITR_PTR(&iter),
                                   (size_t)SCM_STR_ITR_WIDTH(&iter),
-                                  SCM_STRING_ENC(obj));
+                                  SCM_STRING_ENC(obj),
+                                  port);
         if (rslt < 0) return -1;
       }
     }
     else {
       if (vf->alarm_p(SCM_STR_ITR_PTR(&iter),
                       (size_t)SCM_STR_ITR_REST(&iter))) {
-        rslt = scm_capi_write_cstr(port, "\\a", SCM_ENC_ASCII);
+        rslt = scm_capi_write_cstr("\\a", SCM_ENC_ASCII, port);
         if (rslt < 0) return -1;
       }
       else if (vf->backspace_p(SCM_STR_ITR_PTR(&iter),
                                (size_t)SCM_STR_ITR_REST(&iter))) {
-        rslt = scm_capi_write_cstr(port, "\\b", SCM_ENC_ASCII);
+        rslt = scm_capi_write_cstr("\\b", SCM_ENC_ASCII, port);
         if (rslt < 0) return -1;
       }
       else if (vf->tab_p(SCM_STR_ITR_PTR(&iter),
                          (size_t)SCM_STR_ITR_REST(&iter))) {
-        rslt = scm_capi_write_cstr(port, "\\t", SCM_ENC_ASCII);
+        rslt = scm_capi_write_cstr("\\t", SCM_ENC_ASCII, port);
         if (rslt < 0) return -1;
       }
       else if (vf->newline_p(SCM_STR_ITR_PTR(&iter),
                              (size_t)SCM_STR_ITR_REST(&iter))) {
-        rslt = scm_capi_write_cstr(port, "\\n", SCM_ENC_ASCII);
+        rslt = scm_capi_write_cstr("\\n", SCM_ENC_ASCII, port);
         if (rslt < 0) return -1;
       }
       else if (vf->return_p(SCM_STR_ITR_PTR(&iter),
                             (size_t)SCM_STR_ITR_REST(&iter))) {
-        rslt = scm_capi_write_cstr(port, "\\r", SCM_ENC_ASCII);
+        rslt = scm_capi_write_cstr("\\r", SCM_ENC_ASCII, port);
         if (rslt < 0) return -1;
       }
       else {
@@ -193,7 +193,7 @@ scm_string_write_ext_rep(ScmObj obj, ScmObj port)
                                     (size_t)SCM_STR_ITR_REST(&iter));
         if (scalar < 0) return -1;
         snprintf(cstr, sizeof(cstr), "\\x%lx;", scalar);
-        rslt = scm_capi_write_cstr(port, cstr, SCM_ENC_ASCII);
+        rslt = scm_capi_write_cstr(cstr, SCM_ENC_ASCII, port);
         if (rslt < 0) return -1;
       }
     }
@@ -201,7 +201,7 @@ scm_string_write_ext_rep(ScmObj obj, ScmObj port)
     if (SCM_STR_ITR_IS_ERR(&iter)) return -1;
   }
 
-  rslt = scm_capi_write_cstr(port, "\"", SCM_ENC_ASCII);
+  rslt = scm_capi_write_cstr("\"", SCM_ENC_ASCII, port);
   if (rslt < 0) return -1;
 
   return 0;
@@ -772,6 +772,7 @@ scm_string_content(ScmObj str)  /* GC OK */
 int
 scm_string_pretty_print(ScmObj obj, ScmObj port, bool write_p)
 {
+  ScmObj ro = SCM_OBJ_INIT;
   int rslt;
 
   scm_assert_obj_type(obj, &SCM_STRING_TYPE_INFO);
@@ -781,8 +782,8 @@ scm_string_pretty_print(ScmObj obj, ScmObj port, bool write_p)
     if (rslt < 0) return -1;
   }
   else {
-    port = scm_api_write_string(port, obj);
-    if (scm_obj_null_p(port)) return -1;
+    ro = scm_api_write_string(obj, port);
+    if (scm_obj_null_p(ro)) return -1;
   }
 
   return 0;
@@ -813,10 +814,10 @@ scm_string_escape_ctrl_and_nonascii_write(ScmObj str, ScmObj port)
                            (size_t)SCM_STR_ITR_REST(&iter))
         && !vf->space_p(SCM_STR_ITR_PTR(&iter),
                         (size_t)SCM_STR_ITR_REST(&iter))) {
-        rslt = scm_capi_write_bin(port,
-                                  SCM_STR_ITR_PTR(&iter),
+        rslt = scm_capi_write_bin(SCM_STR_ITR_PTR(&iter),
                                   (size_t)SCM_STR_ITR_WIDTH(&iter),
-                                  SCM_STRING_ENC(str));
+                                  SCM_STRING_ENC(str),
+                                  port);
         if (rslt < 0) return -1;
     }
     else {
@@ -825,7 +826,7 @@ scm_string_escape_ctrl_and_nonascii_write(ScmObj str, ScmObj port)
                                   (size_t)SCM_STR_ITR_REST(&iter));
       if (scalar < 0) return -1;
       snprintf(cstr, sizeof(cstr), "\\x%lx;", scalar);
-      rslt = scm_capi_write_cstr(port, cstr, SCM_ENC_ASCII);
+      rslt = scm_capi_write_cstr(cstr, SCM_ENC_ASCII, port);
       if (rslt < 0) return -1;
     }
 

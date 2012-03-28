@@ -77,7 +77,7 @@ scm_pair_pretty_print(ScmObj obj, ScmObj port, bool write_p)
 
   nil = scm_api_nil();
 
-  rslt = scm_capi_write_cstr(port, "(", SCM_ENC_ASCII);
+  rslt = scm_capi_write_cstr("(", SCM_ENC_ASCII, port);
   if (rslt < 0) return -1;
 
   while (1) {
@@ -94,7 +94,7 @@ scm_pair_pretty_print(ScmObj obj, ScmObj port, bool write_p)
       port = scm_api_write_simple(car, port);
       if (scm_obj_null_p(port)) return -1;
 
-      rslt = scm_capi_write_cstr(port, " . ", SCM_ENC_ASCII);
+      rslt = scm_capi_write_cstr(" . ", SCM_ENC_ASCII, port);
       if (rslt < 0) return -1;
 
       port = scm_api_write_simple(cdr, port);
@@ -105,13 +105,13 @@ scm_pair_pretty_print(ScmObj obj, ScmObj port, bool write_p)
     port = scm_api_write_simple(car, port);
     if (scm_obj_null_p(port)) return -1;
 
-    rslt = scm_capi_write_cstr(port, " ", SCM_ENC_ASCII);
+    rslt = scm_capi_write_cstr(" ", SCM_ENC_ASCII, port);
     if (rslt < 0) return -1;
 
     lst = cdr;
   }
 
-  rslt = scm_capi_write_cstr(port, ")", SCM_ENC_ASCII);
+  rslt = scm_capi_write_cstr(")", SCM_ENC_ASCII, port);
   if (rslt < 0) return -1;
 
   return 0;

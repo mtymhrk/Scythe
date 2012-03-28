@@ -52,7 +52,7 @@ scm_eof_pretty_print(ScmObj obj, ScmObj port, bool write_p)
 
   scm_assert_obj_type(obj, &SCM_EOF_TYPE_INFO);
 
-  rslt = scm_capi_write_cstr(port, "#<eof>", SCM_ENC_ASCII);
+  rslt = scm_capi_write_cstr("#<eof>", SCM_ENC_ASCII, port);
   if (rslt < 0) return -1;
 
   return 0;
@@ -117,9 +117,9 @@ scm_bool_pretty_print(ScmObj obj, ScmObj port, bool write_p)
   scm_assert_obj_type(obj, &SCM_BOOL_TYPE_INFO);
 
   if (SCM_BOOL(obj)->value == true)
-    rslt = scm_capi_write_cstr(port, "#t", SCM_ENC_ASCII);
+    rslt = scm_capi_write_cstr("#t", SCM_ENC_ASCII, port);
   else
-    rslt = scm_capi_write_cstr(port, "#f", SCM_ENC_ASCII);
+    rslt = scm_capi_write_cstr("#f", SCM_ENC_ASCII, port);
 
   if (rslt < 0) return -1;
 
@@ -174,7 +174,7 @@ scm_nil_pretty_print(ScmObj obj, ScmObj port, bool write_p)
 
   scm_assert_obj_type(obj, &SCM_NIL_TYPE_INFO);
 
-  rslt = scm_capi_write_cstr(port, "()", SCM_ENC_ASCII);
+  rslt = scm_capi_write_cstr("()", SCM_ENC_ASCII, port);
   if (rslt < 0) return -1;
 
   return 0;

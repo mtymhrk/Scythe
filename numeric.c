@@ -33,7 +33,7 @@ scm_fixnum_pretty_print(ScmObj obj, ScmObj port, bool write_p)
            (long long)scm_rshift_arith_sword((scm_sword_t)obj,
                                              SCM_FIXNUM_SHIFT_BIT));
 
-  rslt = scm_capi_write_cstr(port, cstr, SCM_ENC_ASCII);
+  rslt = scm_capi_write_cstr(cstr, SCM_ENC_ASCII, port);
   if (rslt < 0) return -1;
 
   return 0;
