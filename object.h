@@ -213,6 +213,22 @@ scm_type_info_obj_size(ScmTypeInfo *type)
 }
 
 inline bool
+scm_type_info_has_pp_func_p(ScmTypeInfo *type)
+{
+  return (type->pp_func != NULL) ? true : false;
+}
+
+inline int
+scm_type_info_call_pp_func(ScmTypeInfo *type,
+                           ScmObj obj, ScmObj port, bool write_p)
+{
+  if (scm_type_info_has_pp_func_p(type))
+    return type->pp_func(obj, port, write_p);
+  else
+    return 0;
+}
+
+inline bool
 scm_type_info_has_gc_ini_func_p(ScmTypeInfo *type)
 {
   return (type->gc_ini_func != NULL) ? true : false;
@@ -340,6 +356,18 @@ inline size_t
 scm_obj_size(ScmObj obj)
 {
   return scm_type_info_obj_size(scm_obj_type(obj));
+}
+
+inline bool
+scm_obj_has_pp_func_p(ScmObj obj)
+{
+  return scm_type_info_has_pp_func_p(scm_obj_type(obj));
+}
+
+inline int
+scm_obj_call_pp_func(ScmObj obj, ScmObj port, bool write_p)
+{
+  return scm_type_info_call_pp_func(scm_obj_type(obj), obj, port, write_p);
 }
 
 inline bool

@@ -1122,15 +1122,25 @@ scm_api_write_string(ScmObj str, ScmObj port)
 ScmObj
 scm_api_write(ScmObj obj, ScmObj port)
 {
-  return port;
   /* TODO: write me */
+  return scm_api_write_simple(obj, port);
 }
 
 ScmObj
 scm_api_write_simple(ScmObj obj, ScmObj port)
 {
-  return port;
-  /* TODO: write me */
+  int rslt;
+
+  if (scm_obj_null_p(obj))
+    return SCM_OBJ_NULL;
+
+  if (!scm_capi_output_port_p(port))
+    return SCM_OBJ_NULL;
+
+  rslt = scm_obj_call_pp_func(obj, port, true);
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  return obj;
 }
 
 ssize_t
