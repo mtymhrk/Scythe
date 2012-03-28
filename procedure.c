@@ -1,3 +1,4 @@
+#include <stdio.h>
 
 #include "object.h"
 #include "api.h"
@@ -8,12 +9,12 @@
 /*******************************************************************/
 
 ScmTypeInfo SCM_SUBRUTINE_TYPE_INFO = {
-  NULL,                         /* pp_func              */
-  sizeof(ScmSubrutine),         /* obj_size             */
-  NULL,                         /* gc_ini_func          */
-  NULL,                         /* gc_fin_func          */
-  NULL,                         /* gc_accept_func       */
-  NULL,                         /* gc_accpet_func_weak  */
+  .pp_func             = scm_subrutine_pretty_print,
+  .obj_size            = sizeof(ScmSubrutine),
+  .gc_ini_func         = NULL,
+  .gc_fin_func         = NULL,
+  .gc_accept_func      = NULL,
+  .gc_accept_func_weak = NULL,
 };
 
 int
@@ -47,13 +48,29 @@ scm_subrutine_new(SCM_MEM_TYPE_T mtype, ScmSubrFunc func)
   return subr;
 }
 
+int
+scm_subrutine_pretty_print(ScmObj obj, ScmObj port, bool write_p)
+{
+    char cstr[64];
+  int rslt;
+
+  scm_assert_obj_type(obj, &SCM_SUBRUTINE_TYPE_INFO);
+
+  snprintf(cstr, sizeof(cstr), "#<subr %llx>", (unsigned long long)obj);
+
+  rslt = scm_capi_write_cstr(port, cstr, SCM_ENC_ASCII);
+  if (rslt < 0) return -1;
+
+  return 0;
+}
+
 
 /*******************************************************************/
 /*  Closure                                                        */
 /*******************************************************************/
 
 ScmTypeInfo SCM_CLOSURE_TYPE_INFO = {
-  .pp_func             = NULL,
+  .pp_func             = scm_closure_pretty_print,
   .obj_size            = sizeof(ScmClosure),
   .gc_ini_func         = scm_closure_gc_initialize,
   .gc_fin_func         = scm_closure_gc_finalize,
@@ -117,6 +134,22 @@ scm_closure_new(SCM_MEM_TYPE_T mtype, ScmObj iseq,
   if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   return clsr;
+}
+
+int
+scm_closure_pretty_print(ScmObj obj, ScmObj port, bool write_p)
+{
+  char cstr[64];
+  int rslt;
+
+  scm_assert_obj_type(obj, &SCM_CLOSURE_TYPE_INFO);
+
+  snprintf(cstr, sizeof(cstr), "#<closure %llx>", (unsigned long long)obj);
+
+  rslt = scm_capi_write_cstr(port, cstr, SCM_ENC_ASCII);
+  if (rslt < 0) return -1;
+
+  return 0;
 }
 
 void

@@ -25,6 +25,7 @@ struct ScmSubrutineRec {
 
 int scm_subrutine_initialize(ScmObj subr, ScmSubrFunc func);
 ScmObj scm_subrutine_new(SCM_MEM_TYPE_T mtype, ScmSubrFunc func);
+int scm_subrutine_pretty_print(ScmObj obj, ScmObj port, bool write_p);
 
 inline ScmObj
 scm_subrutine_call(ScmObj subr, int argc, ScmObj *argv)
@@ -53,6 +54,7 @@ int scm_closure_initialize(ScmObj clsr, ScmObj iseq,
 void scm_closure_finalize(ScmObj clsr);
 ScmObj scm_closure_new(SCM_MEM_TYPE_T mtype, ScmObj iseq,
                        size_t nr_free_vars, ScmObj *sp);
+int scm_closure_pretty_print(ScmObj obj, ScmObj port, bool write_p);
 void scm_closure_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_closure_gc_finalize(ScmObj obj);
 int scm_closure_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
