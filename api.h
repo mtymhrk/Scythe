@@ -358,4 +358,5 @@ ScmEvaluator *scm_capi_evaluator(void);
 void scm_capi_evaluator_end(ScmEvaluator *ev);
 void scm_capi_run_repl(ScmEvaluator *ev);
 void scm_capi_setup_current_vm(ScmEvaluator *ev);
+
 #endif /* INCLUDE_API_H__ */

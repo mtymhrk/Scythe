@@ -1586,6 +1586,9 @@ scm_capi_evaluator_end(ScmEvaluator *ev)
 void
 scm_capi_run_repl(ScmEvaluator *ev)
 {
+  ScmObj port = SCM_OBJ_INIT, asmbl = SCM_OBJ_INIT, iseq = SCM_OBJ_INIT;
+  int rslt;
+
   if (ev == NULL) return;
 
   ev->vm = scm_vm_new();
@@ -1593,6 +1596,42 @@ scm_capi_run_repl(ScmEvaluator *ev)
 
   scm_vm_change_current_vm(ev->vm);
 
+  SCM_STACK_FRAME_PUSH(&port, &asmbl, &iseq);
+
+  port = scm_capi_open_input_string_from_cstr("("
+                                              " (label loop)"
+                                              "   (frame)"
+                                              "   (frame)"
+                                              "   (frame)"
+                                              "   (gref read)"
+                                              "   (call 0)"
+                                              "   (push)"
+                                              "   (gref eval-asm))"
+                                              "   (call 1)"
+                                              "   (push)"
+                                              "   (gref write)"
+                                              "   (call 1)"
+                                              "   (jmp loop)"
+                                              ")",
+                                              SCM_ENC_UTF8);
+  if (scm_obj_null_p(port)) goto end;
+
+  asmbl = scm_api_read(port);
+  if (scm_obj_null_p(port)) goto end;
+
+  rslt = scm_api_close_input_port(port);
+  if (rslt < 0) goto end;
+
+  port = SCM_OBJ_NULL;
+
+  iseq = scm_api_assemble(asmbl);
+  if (scm_obj_null_p(iseq)) goto end;
+
+  asmbl = SCM_OBJ_NULL;
+
+  scm_vm_run(ev->vm, iseq);
+
+ end:
   scm_vm_end(ev->vm);
   ev->vm = SCM_OBJ_NULL;
 }
