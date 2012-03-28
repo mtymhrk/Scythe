@@ -36,6 +36,7 @@ struct ScmISeqRec {
 int scm_iseq_initialize(ScmObj iseq);
 ScmObj scm_iseq_new(SCM_MEM_TYPE_T mtype);
 void scm_iseq_finalize(ScmObj obj);
+int scm_iseq_pretty_print(ScmObj obj, ScmObj port, bool write_p);
 void scm_iseq_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_iseq_gc_finalize(ScmObj obj);
 int scm_iseq_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);

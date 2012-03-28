@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <string.h>
 #include <limits.h>
 #include <assert.h>
@@ -10,7 +11,7 @@
 #include "iseq.h"
 
 ScmTypeInfo SCM_ISEQ_TYPE_INFO = {
-  .pp_func             = NULL,
+  .pp_func             = scm_iseq_pretty_print,
   .obj_size            = sizeof(ScmISeq),
   .gc_ini_func         = scm_iseq_gc_initialize,
   .gc_fin_func         = scm_iseq_gc_finalize,
@@ -61,6 +62,22 @@ scm_iseq_finalize(ScmObj obj) /* GC OK */
 
   eary_fin(SCM_ISEQ_EARY_SEQ(obj));
   eary_fin(SCM_ISEQ_EARY_IMMVS(obj));
+}
+
+int
+scm_iseq_pretty_print(ScmObj obj, ScmObj port, bool write_p)
+{
+  char cstr[64];
+  int rslt;
+
+  scm_assert_obj_type(obj, &SCM_ISEQ_TYPE_INFO);
+
+  snprintf(cstr, sizeof(cstr), "#<iseq %llx>", (unsigned long long)obj);
+
+  rslt = scm_capi_write_cstr(port, cstr, SCM_ENC_ASCII);
+  if (rslt < 0) return -1;
+
+  return 0;
 }
 
 void
