@@ -908,7 +908,7 @@ scm_api_close_output_port(ScmObj port)
 }
 
 extern inline ssize_t
-scm_capi_read_raw(ScmObj port, void *buf, size_t size)
+scm_capi_read_raw(void *buf, size_t size, ScmObj port)
 {
   if (scm_obj_null_p(port)
       || !scm_capi_input_port_p(port)
@@ -920,7 +920,7 @@ scm_capi_read_raw(ScmObj port, void *buf, size_t size)
 }
 
 extern inline ssize_t
-scm_capi_read_char(ScmObj port, scm_char_t *chr)
+scm_capi_read_char(scm_char_t *chr, ScmObj port)
 {
   if (scm_obj_null_p(port)
       || !scm_capi_input_port_p(port)
@@ -931,7 +931,7 @@ scm_capi_read_char(ScmObj port, scm_char_t *chr)
 }
 
 extern inline ssize_t
-scm_capi_unread_raw(ScmObj port, const void *buf, size_t size)
+scm_capi_unread_raw(const void *buf, size_t size, ScmObj port)
 {
   if (scm_obj_null_p(port)
       || !scm_capi_input_port_p(port)
@@ -943,7 +943,7 @@ scm_capi_unread_raw(ScmObj port, const void *buf, size_t size)
 }
 
 extern inline ssize_t
-scm_capi_unread_char(ScmObj port, const scm_char_t *chr)
+scm_capi_unread_char(const scm_char_t *chr, ScmObj port)
 {
   if (scm_obj_null_p(port)
       || !scm_capi_input_port_p(port)
@@ -954,7 +954,7 @@ scm_capi_unread_char(ScmObj port, const scm_char_t *chr)
 }
 
 extern inline ssize_t
-scm_capi_peek_raw(ScmObj port, void *buf, size_t size)
+scm_capi_peek_raw(void *buf, size_t size, ScmObj port)
 {
   if (scm_obj_null_p(port)
       || !scm_capi_input_port_p(port)
@@ -966,7 +966,7 @@ scm_capi_peek_raw(ScmObj port, void *buf, size_t size)
 }
 
 extern inline ssize_t
-scm_capi_peek_char(ScmObj port, scm_char_t *chr)
+scm_capi_peek_char(scm_char_t *chr, ScmObj port)
 {
   if (scm_obj_null_p(port)
       || !scm_capi_input_port_p(port)
