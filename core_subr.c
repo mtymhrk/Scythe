@@ -81,6 +81,23 @@ scm_subr_func_write(int argc, ScmObj *argv)
   return scm_api_write(argv[0], port);
 }
 
+ScmObj
+scm_subr_func_display(int argc, ScmObj *argv)
+{
+  ScmObj port = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&port);
+
+  if (argc == 1)
+    port = scm_api_current_output_port();
+  else if (argc == 2)
+    port = argv[1];
+  else
+    ;                           /* TODO: error handling */
+
+  return scm_api_display(argv[0], port);
+}
+
 
 /*******************************************************************/
 /*  Eval                                                           */
@@ -121,10 +138,12 @@ scm_subr_func_eval_asm(int argc, ScmObj *argv)
 void
 scm_core_subr_system_setup(void)
 {
-  const char *syms[] = { "cons", "car", "cdr", "read", "write" "eval-asm" };
+  const char *syms[] = { "cons", "car", "cdr", "read", "write" "display",
+                         "eval-asm" };
   ScmSubrFunc funcs[] = { scm_subr_func_cons, scm_subr_func_car,
                           scm_subr_func_cdr, scm_subr_func_read,
-                          scm_subr_func_write, scm_subr_func_eval_asm };
+                          scm_subr_func_write, scm_subr_func_display,
+                          scm_subr_func_eval_asm };
   ScmObj sym  = SCM_OBJ_INIT;
   ScmObj subr = SCM_OBJ_INIT;
   ScmObj rslt = SCM_OBJ_INIT;

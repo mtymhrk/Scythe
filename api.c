@@ -1143,6 +1143,23 @@ scm_api_write_simple(ScmObj obj, ScmObj port)
   return obj;
 }
 
+ScmObj
+scm_api_display(ScmObj obj, ScmObj port)
+{
+  int rslt;
+
+  if (scm_obj_null_p(obj))
+    return SCM_OBJ_NULL;
+
+  if (!scm_capi_output_port_p(port))
+    return SCM_OBJ_NULL;
+
+  rslt = scm_obj_call_pp_func(obj, port, false);
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  return obj;
+}
+
 ssize_t
 scm_capi_get_output_raw(ScmObj port, void *buf, size_t size)
 {
@@ -1610,6 +1627,11 @@ scm_capi_run_repl(ScmEvaluator *ev)
 
   port = scm_capi_open_input_string_from_cstr("("
                                               " (label loop)"
+                                              "   (frame)"
+                                              "   (immval \"> \")"
+                                              "   (push)"
+                                              "   (gref display)"
+                                              "   (call 1)"
                                               "   (frame)"
                                               "   (frame)"
                                               "   (frame)"
