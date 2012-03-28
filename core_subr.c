@@ -138,7 +138,7 @@ scm_subr_func_eval_asm(int argc, ScmObj *argv)
 void
 scm_core_subr_system_setup(void)
 {
-  const char *syms[] = { "cons", "car", "cdr", "read", "write" "display",
+  const char *syms[] = { "cons", "car", "cdr", "read", "write", "display",
                          "eval-asm" };
   ScmSubrFunc funcs[] = { scm_subr_func_cons, scm_subr_func_car,
                           scm_subr_func_cdr, scm_subr_func_read,

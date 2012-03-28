@@ -1,3 +1,4 @@
+LD       = ld
 CC       = gcc
 CFLAGS   = -O2 -g -std=gnu99 -Wall -Wextra -Wformat=2 -Wstrict-aliasing=2 -Wcast-qual \
            -Wcast-align -Wwrite-strings -Wconversion -Wfloat-equal \
@@ -5,7 +6,7 @@ CFLAGS   = -O2 -g -std=gnu99 -Wall -Wextra -Wformat=2 -Wstrict-aliasing=2 -Wcast
 INCLUDES =
 SOURCES  = 
 OBJS     = $(SOURCES:.c=.o)
-TARGET   =
+TARGET   = scyth
 DOXYGEN  = doxygen
 DOXYGEN_CONF = doxygen.conf
 
@@ -20,6 +21,9 @@ $(TARGET) $(OBJS): Makefile
 
 .c.s:
 	$(CC) -S -o $@ $(INCLUDES) $(CFLAGS) $<
+
+scyth: $(OBJS)
+	$(CC) -o $@ $(OBJS)
 
 .PHONY: clean depend test doxygen check-syntax
 

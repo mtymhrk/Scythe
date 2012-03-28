@@ -256,8 +256,10 @@ scm_fileio_buffer_mode(ScmFileIO *fileio, SCM_PORT_BUF_T *mode)
   scm_assert(fileio != NULL);
   scm_assert(mode != NULL);
 
-  if (isatty(fileio->fd))
-    return SCM_PORT_BUF_MODEST;
+  if (isatty(fileio->fd)) {
+    *mode = SCM_PORT_BUF_MODEST;
+    return 0;
+  }
 
   SCM_SYSCALL(ret, fstat(fileio->fd, &st));
   if (ret < 0) return -1;       /* [ERR]: port: fstat err: errno */

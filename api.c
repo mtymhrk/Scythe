@@ -892,7 +892,7 @@ scm_capi_port_encoding(ScmObj port, SCM_ENC_T *enc)
 extern inline int
 scm_api_close_input_port(ScmObj port)
 {
-  if (scm_obj_null_p(port) || scm_capi_input_port_p(port))
+  if (scm_obj_null_p(port) || !scm_capi_input_port_p(port))
     return -1;         /* provisional implemntation */
 
   return scm_port_close(port);
@@ -901,7 +901,7 @@ scm_api_close_input_port(ScmObj port)
 extern inline int
 scm_api_close_output_port(ScmObj port)
 {
-  if (scm_obj_null_p(port) || scm_capi_output_port_p(port))
+  if (scm_obj_null_p(port) || !scm_capi_output_port_p(port))
     return -1;         /* provisional implemntation */
 
   return scm_port_close(port);
@@ -1348,6 +1348,9 @@ scm_capi_iseq_push_op_immval(ScmObj iseq, SCM_OPCODE_T op, ScmObj val)
   if (!scm_capi_iseq_p(iseq))
     return -1;
 
+  if (scm_obj_null_p(val))
+    return -1;
+
   immv_idx = scm_iseq_push_immval(iseq, val);
   if (immv_idx < 0) return -1;   /* provisional implemntation */
   if (immv_idx > UINT32_MAX) return -1; /* provisional implemntation */
@@ -1418,7 +1421,8 @@ scm_capi_iseq_set_immval(ScmObj iseq, size_t idx, ScmObj val)
 
   if (!scm_capi_iseq_p(iseq)
       || idx > SSIZE_MAX
-      || (ssize_t)idx >= scm_iseq_nr_immv(iseq))
+      || (ssize_t)idx >= scm_iseq_nr_immv(iseq)
+      || scm_obj_null_p(val))
     return -1;   /* provisional implemntation */
 
   rslt = scm_iseq_set_immval(iseq, idx, val);
@@ -1610,25 +1614,29 @@ scm_capi_evaluator_end(ScmEvaluator *ev)
   free(ev);
 }
 
-void
+int
 scm_capi_run_repl(ScmEvaluator *ev)
 {
   ScmObj port = SCM_OBJ_INIT, asmbl = SCM_OBJ_INIT, iseq = SCM_OBJ_INIT;
-  int rslt;
+  int rslt, ret;
 
-  if (ev == NULL) return;
+  ret = -1;
+
+  if (ev == NULL) return ret;
 
   ev->vm = scm_vm_new();
-  if (scm_obj_null_p(ev->vm)) return;
+  if (scm_obj_null_p(ev->vm)) return ret;
 
   scm_vm_change_current_vm(ev->vm);
 
   SCM_STACK_FRAME_PUSH(&port, &asmbl, &iseq);
 
+  scm_vm_setup_system(ev->vm);
+
   port = scm_capi_open_input_string_from_cstr("("
                                               " (label loop)"
                                               "   (frame)"
-                                              "   (immval \"> \")"
+                                              "   (immval \"> \\n\")"
                                               "   (push)"
                                               "   (gref display)"
                                               "   (call 1)"
@@ -1649,7 +1657,7 @@ scm_capi_run_repl(ScmEvaluator *ev)
   if (scm_obj_null_p(port)) goto end;
 
   asmbl = scm_api_read(port);
-  if (scm_obj_null_p(port)) goto end;
+  if (scm_obj_null_p(asmbl)) goto end;
 
   rslt = scm_api_close_input_port(port);
   if (rslt < 0) goto end;
@@ -1663,9 +1671,13 @@ scm_capi_run_repl(ScmEvaluator *ev)
 
   scm_vm_run(ev->vm, iseq);
 
+  ret = 0;
+
  end:
   scm_vm_end(ev->vm);
   ev->vm = SCM_OBJ_NULL;
+
+  return ret;
 }
 
 

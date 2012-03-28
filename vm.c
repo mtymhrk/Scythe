@@ -630,7 +630,7 @@ scm_vm_op_gref(ScmObj vm, size_t immv_idx)
       ; /* TODO: error handling (reference of unbound variable) */
 
     rslt = scm_capi_iseq_set_immval(SCM_VM(vm)->reg.isp,
-                                           immv_idx, gloc);
+                                    immv_idx, gloc);
     if (rslt != 0)
       ;                           /* TODO: error handling */
 
