@@ -13,7 +13,7 @@
 /****************************************************************************/
 
 ScmTypeInfo SCM_GLOC_TYPE_INFO = {
-  .pp_func             = NULL,
+  .pp_func             = scm_gloc_pretty_print,
   .obj_size            = sizeof(ScmGLoc),
   .gc_ini_func         = scm_gloc_gc_initialize,
   .gc_fin_func         = NULL,
@@ -49,6 +49,22 @@ scm_gloc_new(SCM_MEM_TYPE_T mtype, ScmObj sym) /* GC OK */
   return gloc;
 }
 
+int
+scm_gloc_pretty_print(ScmObj obj, ScmObj port, bool write_p)
+{
+  char cstr[64];
+  int rslt;
+
+  scm_assert_obj_type(obj, &SCM_GLOC_TYPE_INFO);
+
+  snprintf(cstr, sizeof(cstr), "#<gloc %llx>", (unsigned long long)obj);
+
+  rslt = scm_capi_write_cstr(port, cstr, SCM_ENC_ASCII);
+  if (rslt < 0) return -1;
+
+  return 0;
+}
+
 void
 scm_gloc_gc_initialize(ScmObj obj, ScmObj mem)
 {
@@ -77,7 +93,7 @@ scm_gloc_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
 /****************************************************************************/
 
 ScmTypeInfo SCM_GLOCTBL_TYPE_INFO = {
-  .pp_func             = NULL,
+  .pp_func             = scm_gloctbl_pretty_print,
   .obj_size            = sizeof(ScmGLocTbl),
   .gc_ini_func         = scm_gloctbl_gc_initialize,
   .gc_fin_func         = scm_gloctbl_gc_finalize,
@@ -208,6 +224,22 @@ scm_gloctbl_clean(ScmObj tbl)
   scm_assert_obj_type(tbl, &SCM_GLOCTBL_TYPE_INFO);
 
   scm_chash_tbl_clean(SCM_GLOCTBL(tbl)->tbl);
+}
+
+int
+scm_gloctbl_pretty_print(ScmObj obj, ScmObj port, bool wirte_p)
+{
+  char cstr[64];
+  int rslt;
+
+  scm_assert_obj_type(obj, &SCM_GLOCTBL_TYPE_INFO);
+
+  snprintf(cstr, sizeof(cstr), "#<gloctbl %llx>", (unsigned long long)obj);
+
+  rslt = scm_capi_write_cstr(port, cstr, SCM_ENC_ASCII);
+  if (rslt < 0) return -1;
+
+  return 0;
 }
 
 void

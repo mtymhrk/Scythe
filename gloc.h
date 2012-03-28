@@ -57,6 +57,7 @@ scm_gloc_value(ScmObj gloc)
 int scm_gloc_initialize(ScmObj gloc, ScmObj sym, ScmObj val);
 ScmObj scm_gloc_new(SCM_MEM_TYPE_T mtype, ScmObj sym);
 
+int scm_gloc_pretty_print(ScmObj obj, ScmObj port, bool write_p);
 void scm_gloc_gc_initialize(ScmObj obj, ScmObj mem);
 int scm_gloc_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
 
@@ -77,6 +78,7 @@ ScmObj scm_gloctbl_gloc(ScmObj tbl, ScmObj sym);
 ScmObj scm_gloctbl_bind(ScmObj tbl, ScmObj sym, ScmObj val);
 void scm_gloctbl_clean(ScmObj tbl);
 
+int scm_gloctbl_pretty_print(ScmObj obj, ScmObj port, bool wirte_p);
 void scm_gloctbl_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_gloctbl_gc_finalize(ScmObj obj);
 int scm_gloctbl_gc_accept(ScmObj obj, ScmObj mem,
