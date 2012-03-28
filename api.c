@@ -1119,6 +1119,20 @@ scm_api_write_string(ScmObj port, ScmObj str)
   return port;
 }
 
+ScmObj
+scm_api_write(ScmObj obj, ScmObj port)
+{
+  return port;
+  /* TODO: write me */
+}
+
+ScmObj
+scm_api_write_simple(ScmObj obj, ScmObj port)
+{
+  return port;
+  /* TODO: write me */
+}
+
 ssize_t
 scm_capi_get_output_raw(ScmObj port, void *buf, size_t size)
 {

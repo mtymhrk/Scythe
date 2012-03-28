@@ -64,6 +64,59 @@ scm_pair_cdr(ScmObj pair)       /* GC OK */
   return SCM_PAIR_CDR(pair);
 }
 
+int
+scm_pair_pretty_print(ScmObj obj, ScmObj port, bool write_p)
+{
+  ScmObj lst = SCM_OBJ_INIT, car = SCM_OBJ_INIT, cdr = SCM_OBJ_INIT;
+  ScmObj nil = SCM_OBJ_INIT;
+  int rslt;
+
+  SCM_STACK_FRAME_PUSH(&obj, &port, &lst, &car, &cdr, &nil);
+
+  scm_assert_obj_type(obj, &SCM_PAIR_TYPE_INFO);
+
+  nil = scm_api_nil();
+
+  rslt = scm_capi_write_cstr(port, "(", SCM_ENC_ASCII);
+  if (rslt < 0) return -1;
+
+  while (1) {
+    car = scm_pair_car(lst);
+    cdr = scm_pair_cdr(lst);
+
+    if (scm_capi_eq_p(cdr, nil)) {
+      port = scm_api_write_simple(car, port);
+      if (scm_obj_null_p(port)) return -1;
+
+      break;
+    }
+    else if (!scm_capi_pair_p(cdr)) {
+      port = scm_api_write_simple(car, port);
+      if (scm_obj_null_p(port)) return -1;
+
+      rslt = scm_capi_write_cstr(port, " . ", SCM_ENC_ASCII);
+      if (rslt < 0) return -1;
+
+      port = scm_api_write_simple(cdr, port);
+      if (scm_obj_null_p(port)) return -1;
+      break;
+    }
+
+    port = scm_api_write_simple(car, port);
+    if (scm_obj_null_p(port)) return -1;
+
+    rslt = scm_capi_write_cstr(port, " ", SCM_ENC_ASCII);
+    if (rslt < 0) return -1;
+
+    lst = cdr;
+  }
+
+  rslt = scm_capi_write_cstr(port, ")", SCM_ENC_ASCII);
+  if (rslt < 0) return -1;
+
+  return 0;
+}
+
 void
 scm_pair_gc_initialize(ScmObj obj, ScmObj mem)
 {
