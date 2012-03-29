@@ -180,9 +180,10 @@ void scm_vm_end(ScmObj vm);
 void scm_vm_setup_system(ScmObj vm);
 void scm_vm_run(ScmObj vm, ScmObj iseq);
 
-int scm_vm_setup_trampolining(ScmObj vm, ScmObj target,
-                              ScmObj args, int nr_arg_cf,
-                              ScmObj (*callback)(int argc, ScmObj *argv));
+int scm_vm_setup_stat_trmp(ScmObj vm, ScmObj target,
+                           ScmObj args, int nr_arg_cf,
+                           ScmObj (*callback)(int argc, ScmObj *argv));
+void scm_vm_setup_stat_halt(ScmObj vm);
 
 void scm_vm_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_vm_gc_finalize(ScmObj obj);

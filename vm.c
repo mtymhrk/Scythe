@@ -972,9 +972,9 @@ scm_vm_run(ScmObj vm, ScmObj iseq)
 }
 
 int
-scm_vm_setup_trampolining(ScmObj vm, ScmObj target,
-                          ScmObj args, int nr_arg_cf,
-                          ScmObj (*callback)(int argc, ScmObj *argv))
+scm_vm_setup_stat_trmp(ScmObj vm, ScmObj target,
+                       ScmObj args, int nr_arg_cf,
+                       ScmObj (*callback)(int argc, ScmObj *argv))
 {
   ScmObj trmp_code = SCM_OBJ_INIT, trmp_clsr = SCM_OBJ_INIT;
   ScmObj cb_subr = SCM_OBJ_INIT;
@@ -1009,6 +1009,14 @@ scm_vm_setup_trampolining(ScmObj vm, ScmObj target,
   SCM_SLOT_SETQ(ScmVM, vm, trmp.code, trmp_clsr);
 
   return 0;
+}
+
+void
+scm_vm_setup_stat_halt(ScmObj vm)
+{
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  scm_vm_ctrl_flg_set(vm, SCM_VM_CTRL_FLG_HALT);
 }
 
 void

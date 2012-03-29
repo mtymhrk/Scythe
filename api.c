@@ -1583,8 +1583,26 @@ scm_capi_trampolining(ScmObj target, ScmObj args, int nr_arg_cf,
       || (!scm_capi_pair_p(args) && !scm_capi_nil_p(args)))
     return SCM_OBJ_NULL;                  /* provisional implemntation */
 
-  return scm_vm_setup_trampolining(scm_vm_current_vm(),
-                                   target, args, nr_arg_cf, callback);
+  return scm_vm_setup_stat_trmp(scm_vm_current_vm(),
+                                target, args, nr_arg_cf, callback);
+}
+
+
+/*******************************************************************/
+/*  Exit                                                           */
+/*******************************************************************/
+
+extern inline ScmObj
+scm_api_exit(ScmObj obj)
+{
+  if (scm_obj_null_p(obj))
+    return SCM_OBJ_NULL;
+
+  /* TODO: obj の内容に応じた VM の終了ステータスの設定*/
+
+  scm_vm_setup_stat_halt(scm_vm_current_vm());
+
+  return obj;
 }
 
 
