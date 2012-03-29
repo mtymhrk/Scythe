@@ -259,6 +259,7 @@ scm_fileio_buffer_mode(ScmFileIO *fileio, SCM_IO_MODE_T im,
 
   if (isatty(fileio->fd)) {
     *mode = (im == SCM_IO_MODE_READ) ? SCM_PORT_BUF_FULL : SCM_PORT_BUF_LINE;
+    return 0;
   }
 
   SCM_SYSCALL(ret, fstat(fileio->fd, &st));
