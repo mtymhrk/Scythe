@@ -109,12 +109,12 @@ scm_io_ready_p(ScmIO *io)
 }
 
 int
-scm_io_buffer_mode(ScmIO *io, SCM_PORT_BUF_T *mode)
+scm_io_buffer_mode(ScmIO *io, SCM_IO_MODE_T im, SCM_PORT_BUF_T *mode)
 {
   scm_assert(io != NULL);
 
   if (io->default_buf_mode_func != NULL)
-    return io->default_buf_mode_func(io, mode);
+    return io->default_buf_mode_func(io, im, mode);
   else {
     *mode = SCM_PORT_BUF_FULL;
     return 0;
@@ -248,7 +248,8 @@ scm_fileio_close(ScmFileIO *fileio)
 }
 
 int
-scm_fileio_buffer_mode(ScmFileIO *fileio, SCM_PORT_BUF_T *mode)
+scm_fileio_buffer_mode(ScmFileIO *fileio, SCM_IO_MODE_T im,
+                       SCM_PORT_BUF_T *mode)
 {
   struct stat st;
   int ret;
@@ -257,19 +258,18 @@ scm_fileio_buffer_mode(ScmFileIO *fileio, SCM_PORT_BUF_T *mode)
   scm_assert(mode != NULL);
 
   if (isatty(fileio->fd)) {
-    *mode = SCM_PORT_BUF_MODEST;
-    return 0;
+    *mode = (im == SCM_IO_MODE_READ) ? SCM_PORT_BUF_FULL : SCM_PORT_BUF_LINE;
   }
 
   SCM_SYSCALL(ret, fstat(fileio->fd, &st));
   if (ret < 0) return -1;       /* [ERR]: port: fstat err: errno */
 
   if (S_ISFIFO(st.st_mode))
-    *mode = SCM_PORT_BUF_MODEST;
+    *mode = (im == SCM_IO_MODE_READ) ? SCM_PORT_BUF_FULL : SCM_PORT_BUF_NONE;
   else if (S_ISSOCK(st.st_mode))
-    *mode = SCM_PORT_BUF_MODEST;
+    *mode = (im == SCM_IO_MODE_READ) ? SCM_PORT_BUF_MODEST : SCM_PORT_BUF_NONE;
   else if (S_ISCHR(st.st_mode))
-    *mode = SCM_PORT_BUF_MODEST;
+    *mode = (im == SCM_IO_MODE_READ) ? SCM_PORT_BUF_FULL : SCM_PORT_BUF_NONE;
   else
     *mode = SCM_PORT_BUF_FULL;
 
@@ -472,7 +472,8 @@ scm_stringio_close(ScmStringIO *strio)
 }
 
 int
-scm_stringio_buffer_mode(ScmStringIO *strio, SCM_PORT_BUF_T *mode)
+scm_stringio_buffer_mode(ScmStringIO *strio, SCM_IO_MODE_T im,
+                         SCM_PORT_BUF_T *mode)
 {
   scm_assert(strio != NULL);
   scm_assert(mode != NULL);
@@ -502,21 +503,25 @@ scm_local_func int
 scm_port_init_buffer(ScmObj port, SCM_PORT_BUF_T buf_mode)
 {
   ssize_t s;
+  int rslt;
+  SCM_IO_MODE_T im;
 
   scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
   assert(/* buf_mode >= 0 && */ buf_mode < SCM_PORT_NR_BUF_MODE);
 
   if (buf_mode == SCM_PORT_BUF_DEFAULT) {
-    int rslt = scm_io_buffer_mode(SCM_PORT(port)->io,
-                                  &SCM_PORT(port)->buffer_mode);
+    im = (BIT_IS_SETED(SCM_PORT(port)->attr, SCM_PORT_ATTR_READABLE) ?
+          SCM_IO_MODE_READ : SCM_IO_MODE_WRITE);
+    rslt = scm_io_buffer_mode(SCM_PORT(port)->io, im,
+                              &SCM_PORT(port)->buf_mode);
     if (rslt < 0) return -1;                /* [ERR]: [through] */
   }
   else
-    SCM_PORT(port)->buffer_mode = buf_mode;
+    SCM_PORT(port)->buf_mode = buf_mode;
 
   SCM_PORT(port)->pos = 0;
   SCM_PORT(port)->used = 0;
-  switch (SCM_PORT(port)->buffer_mode) {
+  switch (SCM_PORT(port)->buf_mode) {
   case SCM_PORT_BUF_FULL:   /* fall through */
   case SCM_PORT_BUF_LINE:   /* fall through */
   case SCM_PORT_BUF_MODEST: /* fall through */
@@ -577,7 +582,7 @@ scm_port_read_from_buffer(ScmObj port, void *buf, size_t size)
   scm_assert(scm_port_readable_p(port));
   scm_assert(!scm_port_closed_p(port));
   scm_assert(size <= SSIZE_MAX);
-  scm_assert(SCM_PORT(port)->buffer_mode != SCM_PORT_BUF_NONE);
+  scm_assert(SCM_PORT(port)->buf_mode != SCM_PORT_BUF_NONE);
 
   n = SCM_PORT(port)->used - SCM_PORT(port)->pos;
   n = (n < size) ? n : size;
@@ -596,7 +601,7 @@ scm_port_read_into_buffer(ScmObj port)
   scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
   scm_assert(scm_port_readable_p(port));
   scm_assert(!scm_port_closed_p(port));
-  scm_assert(SCM_PORT(port)->buffer_mode != SCM_PORT_BUF_NONE);
+  scm_assert(SCM_PORT(port)->buf_mode != SCM_PORT_BUF_NONE);
 
   if (SCM_PORT(port)->eof_received_p) return 0;
 
@@ -764,7 +769,7 @@ scm_port_read_buf(ScmObj port, void *buf, size_t size, int mode)
   scm_assert(scm_port_readable_p(port));
   scm_assert(!scm_port_closed_p(port));
   scm_assert(size <= SSIZE_MAX);
-  scm_assert(SCM_PORT(port)->buffer_mode != SCM_PORT_BUF_NONE);
+  scm_assert(SCM_PORT(port)->buf_mode != SCM_PORT_BUF_NONE);
 
   nr = 0;
   do {
@@ -821,7 +826,7 @@ scm_port_read_line_nonbuf(ScmObj port, void *buf, size_t size)
   scm_assert(scm_port_readable_p(port));
   scm_assert(!scm_port_closed_p(port));
   scm_assert(size <= SSIZE_MAX);
-  scm_assert(SCM_PORT(port)->buffer_mode == SCM_PORT_BUF_NONE);
+  scm_assert(SCM_PORT(port)->buf_mode == SCM_PORT_BUF_NONE);
 
   if (SCM_PORT(port)->eof_received_p) return 0;
 
@@ -864,7 +869,7 @@ scm_port_read_nonbuf(ScmObj port, void *buf, size_t size)
   scm_assert(scm_port_readable_p(port));
   scm_assert(!scm_port_closed_p(port));
   scm_assert(size <= SSIZE_MAX);
-  scm_assert(SCM_PORT(port)->buffer_mode == SCM_PORT_BUF_NONE);
+  scm_assert(SCM_PORT(port)->buf_mode == SCM_PORT_BUF_NONE);
 
   if (SCM_PORT(port)->eof_received_p)
     return 0;
@@ -885,7 +890,7 @@ scm_port_read_into_pushback_buf(ScmObj port, size_t size)
 
   memcpy(buf, scm_port_pushback_buff_head(port), SCM_PORT(port)->pb_used);
 
-  switch (SCM_PORT(port)->buffer_mode) {
+  switch (SCM_PORT(port)->buf_mode) {
   case SCM_PORT_BUF_FULL: /* fall through */
   case SCM_PORT_BUF_LINE:
     ret = scm_port_read_buf(port,
@@ -931,7 +936,7 @@ scm_port_write_buf(ScmObj port, const void *buf, size_t size)
     n = (n < size - i) ? n : size - i;
 
     lf = 0;
-    if (SCM_PORT(port)->buffer_mode == SCM_PORT_BUF_LINE) {
+    if (SCM_PORT(port)->buf_mode == SCM_PORT_BUF_LINE) {
       lf = scm_port_size_up_to_lf(port, (const uint8_t *)buf + i, n);
       if (lf < 0) return -1;
       if (lf > 0) n = (size_t)lf;
@@ -962,7 +967,7 @@ scm_port_initialize(ScmObj port, ScmIO *io,
 
   SCM_PORT(port)->attr = attr;
   SCM_PORT(port)->io = io;
-  SCM_PORT(port)->buffer_mode = SCM_PORT_BUF_NONE;
+  SCM_PORT(port)->buf_mode = SCM_PORT_BUF_NONE;
   SCM_PORT(port)->buffer = NULL;
   SCM_PORT(port)->capacity = 0;
   SCM_PORT(port)->pos = 0;
@@ -1232,7 +1237,7 @@ scm_port_read(ScmObj port, void *buf, size_t size)
   bp = (uint8_t *)buf + pb_nr;
   sz = size - (size_t)pb_nr;
 
-  switch (SCM_PORT(port)->buffer_mode) {
+  switch (SCM_PORT(port)->buf_mode) {
   case SCM_PORT_BUF_FULL: /* fall through */
   case SCM_PORT_BUF_LINE:
     ret = scm_port_read_buf(port, bp, sz, WAIT_ALL);
@@ -1279,7 +1284,7 @@ scm_port_read_line(ScmObj port, void *buf, size_t size)
   bp = (uint8_t *)buf + pb_nr;
   sz = size - (size_t)pb_nr;
 
-  switch (SCM_PORT(port)->buffer_mode) {
+  switch (SCM_PORT(port)->buf_mode) {
   case SCM_PORT_BUF_FULL: /* fall through */
   case SCM_PORT_BUF_LINE: /* fall through */
   case SCM_PORT_BUF_MODEST:
@@ -1435,7 +1440,7 @@ scm_port_write(ScmObj port, const void *buf, size_t size)
   if (!scm_port_writable_p(port)) return -1;
   if (scm_port_closed_p(port)) return -1;
 
-  switch (SCM_PORT(port)->buffer_mode) {
+  switch (SCM_PORT(port)->buf_mode) {
   case SCM_PORT_BUF_FULL: /* fall through */
   case SCM_PORT_BUF_LINE: /* fall through */
   case SCM_PORT_BUF_MODEST:

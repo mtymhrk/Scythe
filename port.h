@@ -12,14 +12,6 @@ typedef struct ScmPortRec ScmPort;
 
 #define SCM_PORT(obj) ((ScmPort *)(obj))
 
-typedef enum {
-  SCM_PORT_ATTR_READABLE    = 0x0001,
-  SCM_PORT_ATTR_WRITABLE    = 0x0002,
-  SCM_PORT_ATTR_FILE        = 0x0004,
-  SCM_PORT_ATTR_STRING      = 0x0008,
-} SCM_PORT_ATTR;
-
-
 #include "object.h"
 #include "encoding.h"
 #include "api_enum.h"
@@ -30,13 +22,19 @@ typedef enum {
 /*  ScmIO                                                                  */
 /***************************************************************************/
 
+typedef enum {
+  SCM_IO_MODE_READ,
+  SCM_IO_MODE_WRITE
+} SCM_IO_MODE_T;
+
 typedef void (*ScmIOFinFunc)(ScmIO *io);
 typedef ssize_t (*ScmIOReadFunc)(ScmIO *io, void *buf, size_t size);
 typedef ssize_t (*ScmIOWriteFunc)(ScmIO *io, const void *buf, size_t size);
 typedef off_t (*ScmIOSeekFunc)(ScmIO *io, off_t offset, int whence);
 typedef int (*ScmIOCloseFunc)(ScmIO *io);
 typedef int (*ScmIOReadyPFunc)(ScmIO *io);
-typedef int (*ScmIOBuffModeFunc)(ScmIO *io, SCM_PORT_BUF_T *mode);
+typedef int (*ScmIOBuffModeFunc)(ScmIO *io, SCM_IO_MODE_T im,
+                                 SCM_PORT_BUF_T *mode);
 typedef ssize_t (*ScmIOBlkSizeFunc)(ScmIO *io);
 
 
@@ -79,7 +77,7 @@ ssize_t scm_io_write(ScmIO *io, const void *buf, size_t size);
 off_t scm_io_seek(ScmIO *io, off_t offset, int whence);
 int scm_io_close(ScmIO *io);
 int scm_io_ready_p(ScmIO *io);
-int scm_io_buffer_mode(ScmIO *io, SCM_PORT_BUF_T *mode);
+int scm_io_buffer_mode(ScmIO *io, SCM_IO_MODE_T im, SCM_PORT_BUF_T *mode);
 ssize_t scm_io_block_size(ScmIO *io);
 
 ScmFileIO *scm_fileio_new(int fd);
@@ -90,7 +88,8 @@ ssize_t scm_fileio_write(ScmFileIO *fileio, const void *buf, size_t size);
 int scm_fileio_ready_p(ScmFileIO *fileio);
 off_t scm_fileio_seek(ScmFileIO *fileio, off_t offset, int whence);
 int scm_fileio_close(ScmFileIO *fileio);
-int scm_fileio_buffer_mode(ScmFileIO *fileio, SCM_PORT_BUF_T *mode);
+int scm_fileio_buffer_mode(ScmFileIO *fileio, SCM_IO_MODE_T im,
+                           SCM_PORT_BUF_T *mode);
 ssize_t scm_fileio_block_size(ScmFileIO *fileio);
 
 ScmStringIO *scm_stringio_new(const char *str, size_t len);
@@ -100,7 +99,8 @@ ssize_t scm_stringio_write(ScmStringIO *strio, const void *buf, size_t size);
 int scm_stringio_ready_p(ScmStringIO *strio);
 off_t scm_stringio_seek(ScmStringIO *strio, off_t offset, int whence);
 int scm_stringio_close(ScmStringIO *strio);
-int scm_stringio_buffer_mode(ScmStringIO *strio, SCM_PORT_BUF_T *mode);
+int scm_stringio_buffer_mode(ScmStringIO *strio, SCM_IO_MODE_T im,
+                             SCM_PORT_BUF_T *mode);
 char *scm_stringio_buffer(ScmStringIO *strio);
 size_t scm_stringio_length(ScmStringIO *strio);
 
@@ -111,12 +111,19 @@ size_t scm_stringio_length(ScmStringIO *strio);
 
 #define SCM_PORT_PUSHBACK_BUFF_SIZE 32 /* かなりテキトーな値 */
 
-extern ScmTypeInfo SCM_PORT_TYPE_INFO;
+typedef enum {
+  SCM_PORT_ATTR_READABLE    = 0x0001,
+  SCM_PORT_ATTR_WRITABLE    = 0x0002,
+  SCM_PORT_ATTR_FILE        = 0x0004,
+  SCM_PORT_ATTR_STRING      = 0x0008,
+  SCM_PORT_ATTR_BINARY      = 0x0004,
+  SCM_PORT_ATTR_CHARACTER   = 0x0008,
+} SCM_PORT_ATTR;
 
 struct ScmPortRec {
   ScmObjHeader header;
   ScmIO *io;
-  SCM_PORT_BUF_T buffer_mode;
+  SCM_PORT_BUF_T buf_mode;
   SCM_PORT_ATTR attr;
   char *buffer;
   size_t capacity;
@@ -128,6 +135,8 @@ struct ScmPortRec {
   size_t pb_used;
   SCM_ENC_T encoding;
 };
+
+extern ScmTypeInfo SCM_PORT_TYPE_INFO;
 
 #ifdef SCM_UNIT_TEST
 
