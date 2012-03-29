@@ -1090,13 +1090,13 @@ scm_api_write_string(ScmObj str, ScmObj port)
 
   SCM_STACK_FRAME_PUSH(&str, &port);
 
-  if (scm_capi_output_port_p(port) || scm_capi_string_p(str))
+  if (!scm_capi_output_port_p(port) || !scm_capi_string_p(str))
     return SCM_OBJ_NULL;
 
   rslt = scm_capi_port_encoding(port, &p_enc);
   if (rslt < 0) return SCM_OBJ_NULL;
 
-  rslt = scm_capi_string_encoding(port, &s_enc);
+  rslt = scm_capi_string_encoding(str, &s_enc);
   if (rslt < 0) return SCM_OBJ_NULL;
 
   if (p_enc != s_enc) {
@@ -1636,7 +1636,7 @@ scm_capi_run_repl(ScmEvaluator *ev)
   port = scm_capi_open_input_string_from_cstr("("
                                               " (label loop)"
                                               "   (frame)"
-                                              "   (immval \"> \\n\")"
+                                              "   (immval \"> \")"
                                               "   (push)"
                                               "   (gref display)"
                                               "   (call 1)"
