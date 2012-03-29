@@ -1595,9 +1595,6 @@ scm_capi_trampolining(ScmObj target, ScmObj args, int nr_arg_cf,
 extern inline ScmObj
 scm_api_exit(ScmObj obj)
 {
-  if (scm_obj_null_p(obj))
-    return SCM_OBJ_NULL;
-
   /* TODO: obj の内容に応じた VM の終了ステータスの設定*/
 
   scm_vm_setup_stat_halt(scm_vm_current_vm());

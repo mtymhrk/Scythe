@@ -144,16 +144,37 @@ scm_subr_func_eval_asm(int argc, ScmObj *argv)
 }
 
 
+/*******************************************************************/
+/*  Process-Context Library Procedure                              */
+/*******************************************************************/
+
+ScmObj
+scm_subr_func_exit(int argc, ScmObj *argv)
+{
+  if (argc == 0)
+    scm_api_exit(SCM_OBJ_NULL);
+  else if (argc == 1)
+    scm_api_exit(argv[0]);
+  else
+    ;                           /* TODO: err handling  */
+
+  return SCM_OBJ_NULL;
+}
+
+
+/*******************************************************************/
+/*******************************************************************/
+
 void
 scm_core_subr_system_setup(void)
 {
   const char *syms[] = { "cons", "car", "cdr", "read", "write", "display",
-                         "flush-output-port", "eval-asm" };
+                         "flush-output-port", "eval-asm", "exit" };
   ScmSubrFunc funcs[] = { scm_subr_func_cons, scm_subr_func_car,
                           scm_subr_func_cdr, scm_subr_func_read,
                           scm_subr_func_write, scm_subr_func_display,
                           scm_subr_func_flush_output_port,
-                          scm_subr_func_eval_asm };
+                          scm_subr_func_eval_asm, scm_subr_func_exit };
   ScmObj sym  = SCM_OBJ_INIT;
   ScmObj subr = SCM_OBJ_INIT;
   ScmObj rslt = SCM_OBJ_INIT;
