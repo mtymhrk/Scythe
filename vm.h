@@ -75,6 +75,10 @@ extern ScmObj scm_vm__current_vm;
   /* vm.c の外部が scm_vm__current_vm を直接参照するのは禁止。
      scm_vm_current_vm() 経由で取得すること。 */
 
+typedef enum {
+  SCM_VM_CTRL_FLG_HALT = 0x00000001,
+} SCM_VM_CTRL_FLG_T;
+
 struct ScmVMRec {
   ScmObjHeader header;
 
@@ -110,6 +114,7 @@ struct ScmVMRec {
     uint8_t *ip;                  /* instruction pointer */
     ScmObj isp;                   /* instruction sequence object */
     ScmObj val;                   /* value register */
+    uint32_t flags;
   } reg;
 
   /*** Constant Values ***/
@@ -146,6 +151,10 @@ void scm_vm_return_to_caller(ScmObj vm, uint32_t nr_arg);
 ScmObj scm_vm_make_trampolining_code(ScmObj vm, ScmObj clsr,
                                      ScmObj args, uint32_t nr_arg_cf,
                                      ScmObj callback);
+
+void scm_vm_ctrl_flg_set(ScmObj vm, SCM_VM_CTRL_FLG_T flg);
+void scm_vm_ctrl_flg_clr(ScmObj vm, SCM_VM_CTRL_FLG_T flg);
+bool scm_vm_ctrl_flg_set_p(ScmObj vm, SCM_VM_CTRL_FLG_T flg);
 
 void scm_vm_op_call(ScmObj vm,
                     uint32_t nr_arg, uint32_t nr_arg_cf, bool tail_p);

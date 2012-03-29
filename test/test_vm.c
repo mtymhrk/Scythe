@@ -49,7 +49,7 @@ test_scm_vm_run__op_immval(void)
   sym = scm_capi_make_symbol_from_cstr("cons", SCM_ENC_ASCII);
 
   scm_capi_iseq_push_op_immval(iseq, SCM_OPCODE_IMMVAL, sym);
-  scm_capi_iseq_push_op(iseq, SCM_OPCODE_STOP);
+  scm_capi_iseq_push_op(iseq, SCM_OPCODE_HALT);
 
   /* action */
   scm_vm_run(vm, iseq);
@@ -86,7 +86,7 @@ test_scm_vm_run__call_cons(void)
   scm_capi_iseq_push_op(iseq, SCM_OPCODE_PUSH);
   scm_capi_iseq_push_op_immval(iseq, SCM_OPCODE_GREF, cons_sym);
   scm_capi_iseq_push_op_cval(iseq, SCM_OPCODE_CALL, 2);
-  scm_capi_iseq_push_op(iseq, SCM_OPCODE_STOP);
+  scm_capi_iseq_push_op(iseq, SCM_OPCODE_HALT);
 
   /* action */
   scm_vm_run(vm, iseq);

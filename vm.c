@@ -153,8 +153,7 @@ scm_bedrock_error_p(ScmBedrock *br)
 /*  ScmVM                                                                  */
 /***************************************************************************/
 
-#define SCM_VM_STACK_INIT_SIZE 1024
-#define SCM_VM_STACK_MAX_SIZE 10240
+#define SCM_VM_STACK_INIT_SIZE 2048
 
 #define SCM_VM_SYMTBL_SIZE 256
 
@@ -312,6 +311,7 @@ scm_vm_init_eval_env(ScmObj vm)
   SCM_VM(vm)->reg.cp = SCM_OBJ_NULL;
   SCM_VM(vm)->reg.isp = SCM_OBJ_NULL;
   SCM_VM(vm)->reg.val = SCM_OBJ_NULL;
+  SCM_VM(vm)->reg.flags = 0;
 
   SCM_VM(vm)->trmp.code = SCM_OBJ_NULL;
 
@@ -339,6 +339,7 @@ scm_vm_clean_eval_env(ScmObj vm)
   SCM_VM(vm)->reg.cp = SCM_OBJ_NULL;
   SCM_VM(vm)->reg.isp = SCM_OBJ_NULL;
   SCM_VM(vm)->reg.val = SCM_OBJ_NULL;
+  SCM_VM(vm)->reg.flags = 0;
 
   SCM_VM(vm)->trmp.code = SCM_OBJ_NULL;
 }
@@ -482,6 +483,30 @@ scm_vm_make_trampolining_code(ScmObj vm, ScmObj clsr,
   }
 
   return iseq;
+}
+
+scm_local_inline void
+scm_vm_ctrl_flg_set(ScmObj vm, SCM_VM_CTRL_FLG_T flg)
+{
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  SCM_VM(vm)->reg.flags |= flg;
+}
+
+scm_local_inline void
+scm_vm_ctrl_flg_clr(ScmObj vm, SCM_VM_CTRL_FLG_T flg)
+{
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  SCM_VM(vm)->reg.flags &= ~flg;
+}
+
+scm_local_inline bool
+scm_vm_ctrl_flg_set_p(ScmObj vm, SCM_VM_CTRL_FLG_T flg)
+{
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  return (SCM_VM(vm)->reg.flags & flg) ? true : false;
 }
 
 /* 関数呼出のためのインストラクション */
@@ -766,6 +791,7 @@ scm_vm_initialize(ScmObj vm,  ScmBedrock *bedrock)
   SCM_VM(vm)->reg.isp = SCM_OBJ_NULL;
   /* TODO: undefined オブジェクトみたいなものを初期値にする */
   SCM_VM(vm)->reg.val = SCM_OBJ_NULL;
+  SCM_VM(vm)->reg.flags = SCM_OBJ_NULL;
 
   SCM_VM(vm)->trmp.code = SCM_OBJ_NULL;
 
@@ -869,7 +895,6 @@ scm_vm_setup_system(ScmObj vm)
 void
 scm_vm_run(ScmObj vm, ScmObj iseq)
 {
-  bool stop_flag;
   uint8_t op;
   uint32_t immv_idx, nr_arg, nr_arg_cf, dst;
 
@@ -878,22 +903,26 @@ scm_vm_run(ScmObj vm, ScmObj iseq)
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
   scm_assert(scm_capi_iseq_p(iseq));
 
+  SCM_VM(vm)->reg.sp = SCM_VM(vm)->stack;
+  SCM_VM(vm)->reg.fp = NULL;
   SCM_SLOT_SETQ(ScmVM, vm, reg.cp, scm_capi_iseq_to_closure(iseq));
   SCM_SLOT_SETQ(ScmVM, vm, reg.isp, iseq);
   SCM_VM(vm)->reg.ip = scm_capi_iseq_to_ip(iseq);
   SCM_SLOT_SETQ(ScmVM, vm, reg.val, SCM_OBJ_NULL);
     /* TODO: undefined オブジェクトのようなものを初期値にする */
+  SCM_VM(vm)->reg.flags = 0;
 
-  stop_flag = false;
-  while (!stop_flag) {
+  SCM_VM(vm)->trmp.code = SCM_OBJ_NULL;;
+
+  while (!scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_HALT)) {
     SCM_CAPI_INST_FETCH_OP(SCM_VM(vm)->reg.ip, op);
 
     switch(op) {
     case SCM_OPCODE_NOP:
       /* nothing to do */
       break;
-    case SCM_OPCODE_STOP:
-      stop_flag = true;
+    case SCM_OPCODE_HALT:
+      scm_vm_ctrl_flg_set(vm, SCM_VM_CTRL_FLG_HALT);
       break;
     case SCM_OPCODE_CALL:
       SCM_CAPI_INST_FETCH_UINT32(SCM_VM(vm)->reg.ip, nr_arg);
@@ -936,7 +965,7 @@ scm_vm_run(ScmObj vm, ScmObj iseq)
       break;
     default:
       /* TODO: error handling */
-      stop_flag = true;
+      scm_vm_ctrl_flg_set(vm, SCM_VM_CTRL_FLG_HALT);
       break;
     }
   }
@@ -1005,6 +1034,7 @@ scm_vm_gc_initialize(ScmObj obj, ScmObj mem)
   SCM_VM(obj)->reg.cp = SCM_OBJ_NULL;
   SCM_VM(obj)->reg.isp = SCM_OBJ_NULL;
   SCM_VM(obj)->reg.val = SCM_OBJ_NULL;
+  SCM_VM(obj)->reg.flags = 0;
   SCM_VM(obj)->cnsts.nil = SCM_OBJ_NULL;
   SCM_VM(obj)->cnsts.eof = SCM_OBJ_NULL;
   SCM_VM(obj)->cnsts.b_true = SCM_OBJ_NULL;

@@ -9,7 +9,7 @@ struct {
   int code;
 } mnemonic2opcod_tbl[] = {
   { "nop"          , SCM_OPCODE_NOP },
-  { "stop"         , SCM_OPCODE_STOP },
+  { "halt"         , SCM_OPCODE_HALT },
   { "call"         , SCM_OPCODE_CALL },
   { "return"       , SCM_OPCODE_RETURN },
   { "frame"        , SCM_OPCODE_FRAME },
@@ -354,7 +354,7 @@ scm_asm_inst(ScmObj iseq, ScmObj inst, size_t idx,
 
   switch (opcode) {
   case SCM_OPCODE_NOP:          /* fall through */
-  case SCM_OPCODE_STOP:         /* fall through */
+  case SCM_OPCODE_HALT:         /* fall through */
   case SCM_OPCODE_FRAME:        /* fall through */
   case SCM_OPCODE_PUSH:
     return scm_asm_inst_noarg_op(iseq, opcode);

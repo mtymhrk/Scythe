@@ -27,10 +27,10 @@ test_scm_asm_assemble(void)
   ScmObj lst = SCM_OBJ_INIT;
   ScmObj port = SCM_OBJ_INIT;
   const char *str =
-    "((nop)(stop)(call 5)(return 0)(frame)(push)(gref vvv)"
+    "((nop)(halt)(call 5)(return 0)(frame)(push)(gref vvv)"
     "(gdef vvv)(gset vvv)(immval vvv)"
     "(label lbl)(jmp lbl)(asm ((nop))))";
-  const uint8_t expected_codes[] = { SCM_OPCODE_NOP, SCM_OPCODE_STOP,
+  const uint8_t expected_codes[] = { SCM_OPCODE_NOP, SCM_OPCODE_HALT,
                                      SCM_OPCODE_CALL, SCM_OPCODE_RETURN,
                                      SCM_OPCODE_FRAME, SCM_OPCODE_PUSH,
                                      SCM_OPCODE_GREF, SCM_OPCODE_GDEF,
