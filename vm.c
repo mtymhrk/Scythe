@@ -410,7 +410,7 @@ scm_vm_return_to_caller(ScmObj vm, uint32_t nr_arg)
   SCM_VM(vm)->reg.fp = scm_capi_fixnum_to_frame_ptr(fp_fn);
   SCM_VM(vm)->reg.ip = scm_capi_fixnum_to_inst_ptr(ip_fn);
 
-  scm_vm_stack_shorten(vm, nr_arg + 3); /* 3 :=  fp, iseq, ip */
+  scm_vm_stack_shorten(vm, nr_arg + 4); /* 4 :=  fp, cp, iseq, ip */
 }
 
 scm_local_func ScmObj
@@ -528,9 +528,9 @@ scm_vm_op_call(ScmObj vm, uint32_t nr_arg, uint32_t nr_arg_cf, bool tail_p)
     }
   }
   else if (scm_capi_closure_p(SCM_VM(vm)->reg.val)) {
-    SCM_SLOT_SETQ(ScmVM, vm, reg.cp, SCM_VM(vm)->trmp.code);
+    SCM_SLOT_SETQ(ScmVM, vm, reg.cp, SCM_VM(vm)->reg.val);
     SCM_SLOT_SETQ(ScmVM, vm, reg.isp,
-                  scm_capi_closure_to_iseq(SCM_VM(vm)->reg.cp));
+                  scm_capi_closure_to_iseq(SCM_VM(vm)->reg.val));
     SCM_VM(vm)->reg.ip = scm_capi_iseq_to_ip(SCM_VM(vm)->reg.isp);
   }
   else {
@@ -641,7 +641,7 @@ scm_vm_op_gref(ScmObj vm, size_t immv_idx)
     SCM_SLOT_SETQ(ScmVM, vm, reg.val, val);
   }
   else if (scm_obj_type_p(arg, &SCM_GLOC_TYPE_INFO)) {
-    val = scm_gloc_value(gloc);
+    val = scm_gloc_value(arg);
     if (scm_obj_null_p(val))
       ; /* TODO: error handling (reference of unbound variable) */
 
@@ -732,6 +732,16 @@ scm_vm_op_gset(ScmObj vm, size_t immv_idx)
   else {
     scm_assert(0);
   }
+}
+
+/* 無条件 JUMP 命令
+ */
+scm_local_func void
+scm_vm_op_jmp(ScmObj vm, int32_t dst)
+{
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  SCM_VM(vm)->reg.ip += dst;
 }
 
 void
@@ -861,7 +871,7 @@ scm_vm_run(ScmObj vm, ScmObj iseq)
 {
   bool stop_flag;
   uint8_t op;
-  uint32_t immv_idx, nr_arg, nr_arg_cf;
+  uint32_t immv_idx, nr_arg, nr_arg_cf, dst;
 
   SCM_STACK_FRAME_PUSH(&vm, &iseq);
 
@@ -919,6 +929,10 @@ scm_vm_run(ScmObj vm, ScmObj iseq)
     case SCM_OPCODE_GSET:
       SCM_CAPI_INST_FETCH_UINT32(SCM_VM(vm)->reg.ip, immv_idx);
       scm_vm_op_gset(vm, immv_idx);
+      break;
+    case SCM_OPCODE_JMP:
+      SCM_CAPI_INST_FETCH_UINT32(SCM_VM(vm)->reg.ip, dst);
+      scm_vm_op_jmp(vm, (int32_t)dst);
       break;
     default:
       /* TODO: error handling */

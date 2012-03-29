@@ -355,7 +355,6 @@ scm_asm_inst(ScmObj iseq, ScmObj inst, size_t idx,
   switch (opcode) {
   case SCM_OPCODE_NOP:          /* fall through */
   case SCM_OPCODE_STOP:         /* fall through */
-  case SCM_OPCODE_RETURN:       /* fall through */
   case SCM_OPCODE_FRAME:        /* fall through */
   case SCM_OPCODE_PUSH:
     return scm_asm_inst_noarg_op(iseq, opcode);
@@ -372,6 +371,7 @@ scm_asm_inst(ScmObj iseq, ScmObj inst, size_t idx,
     return scm_asm_inst_unary_op(iseq, opcode, arg1);
     break;
   case SCM_OPCODE_CALL:         /* fall through */
+  case SCM_OPCODE_RETURN:       /* fall through */
     if (!scm_capi_pair_p(args)) return -1;  /* [ERR]: iseq: operands is not exist */
 
     arg1 = scm_api_car(args);

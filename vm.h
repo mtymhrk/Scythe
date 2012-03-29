@@ -156,6 +156,7 @@ void scm_vm_op_return(ScmObj vm, uint32_t nr_arg);
 void scm_vm_op_gref(ScmObj vm, size_t immv_idx);
 void scm_vm_op_gdef(ScmObj vm, size_t immv_idx);
 void scm_vm_op_gset(ScmObj vm, size_t immv_idx);
+void scm_vm_op_jmp(ScmObj vm, int32_t dst);
 
 #endif
 

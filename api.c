@@ -1580,7 +1580,7 @@ scm_capi_trampolining(ScmObj target, ScmObj args, int nr_arg_cf,
                       ScmObj (*callback)(int argc, ScmObj *argv))
 {
   if ((!scm_capi_iseq_p(target) && !scm_capi_closure_p(target))
-      || scm_capi_pair_p(args))
+      || (!scm_capi_pair_p(args) && !scm_capi_nil_p(args)))
     return SCM_OBJ_NULL;                  /* provisional implemntation */
 
   return scm_vm_setup_trampolining(scm_vm_current_vm(),
@@ -1668,6 +1668,9 @@ scm_capi_run_repl(ScmEvaluator *ev)
                                               "   (push)"
                                               "   (gref write)"
                                               "   (call 1)"
+                                              "   (frame)"
+                                              "   (gref flush-output-port)"
+                                              "   (call 0)"
                                               "   (jmp loop)"
                                               ")",
                                               SCM_ENC_UTF8);

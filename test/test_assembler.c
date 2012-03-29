@@ -27,7 +27,7 @@ test_scm_asm_assemble(void)
   ScmObj lst = SCM_OBJ_INIT;
   ScmObj port = SCM_OBJ_INIT;
   const char *str =
-    "((nop)(stop)(call 5)(return)(frame)(push)(gref vvv)"
+    "((nop)(stop)(call 5)(return 0)(frame)(push)(gref vvv)"
     "(gdef vvv)(gset vvv)(immval vvv)"
     "(label lbl)(jmp lbl)(asm ((nop))))";
   const uint8_t expected_codes[] = { SCM_OPCODE_NOP, SCM_OPCODE_STOP,
@@ -82,6 +82,10 @@ test_scm_asm_assemble(void)
     case SCM_OPCODE_CALL:
       SCM_CAPI_INST_FETCH_UINT32(ip, actual_arg);
       cut_assert_equal_uint(5, actual_arg);
+      break;
+    case SCM_OPCODE_RETURN:
+      SCM_CAPI_INST_FETCH_UINT32(ip, actual_arg);
+      cut_assert_equal_uint(0, actual_arg);
       break;
     case SCM_OPCODE_JMP:
       SCM_CAPI_INST_FETCH_UINT32(ip, actual_arg);
