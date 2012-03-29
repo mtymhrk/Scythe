@@ -1131,8 +1131,7 @@ scm_api_write_simple(ScmObj obj, ScmObj port)
 {
   int rslt;
 
-  if (scm_obj_null_p(obj))
-    return SCM_OBJ_NULL;
+  SCM_STACK_FRAME_PUSH(&obj, &port);
 
   if (!scm_capi_output_port_p(port))
     return SCM_OBJ_NULL;
@@ -1148,8 +1147,7 @@ scm_api_display(ScmObj obj, ScmObj port)
 {
   int rslt;
 
-  if (scm_obj_null_p(obj))
-    return SCM_OBJ_NULL;
+  SCM_STACK_FRAME_PUSH(&obj, &port);
 
   if (!scm_capi_output_port_p(port))
     return SCM_OBJ_NULL;
@@ -1158,6 +1156,22 @@ scm_api_display(ScmObj obj, ScmObj port)
   if (rslt < 0) return SCM_OBJ_NULL;
 
   return obj;
+}
+
+ScmObj
+scm_api_flush_output_port(ScmObj port)
+{
+  int rslt;
+
+  SCM_STACK_FRAME_PUSH(&port);
+
+  if (!scm_capi_output_port_p(port))
+    return SCM_OBJ_NULL;
+
+  rslt = scm_port_flush(port);
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  return port;
 }
 
 ssize_t

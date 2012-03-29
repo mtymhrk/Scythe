@@ -250,6 +250,7 @@ ScmObj scm_api_write_string(ScmObj str, ScmObj port);
 ScmObj scm_api_write(ScmObj obj, ScmObj port);
 ScmObj scm_api_write_simple(ScmObj obj, ScmObj port);
 ScmObj scm_api_display(ScmObj obj, ScmObj port);
+ScmObj scm_api_flush_output_port(ScmObj port);
 ssize_t scm_capi_get_output_raw(ScmObj port, void *buf, size_t size);
 ScmObj scm_api_get_output_string(ScmObj port);
 ScmObj scm_api_current_input_port(void);
