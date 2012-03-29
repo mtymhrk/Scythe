@@ -52,8 +52,6 @@ scm_subr_func_read(int argc, ScmObj *argv)
 {
   ScmObj port = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&port);
-
   if (argc == 0)
     port = scm_api_current_input_port();
   else if (argc == 1)
@@ -68,8 +66,6 @@ ScmObj
 scm_subr_func_write(int argc, ScmObj *argv)
 {
   ScmObj port = SCM_OBJ_INIT;
-
-  SCM_STACK_FRAME_PUSH(&port);
 
   if (argc == 1)
     port = scm_api_current_output_port();
@@ -86,8 +82,6 @@ scm_subr_func_display(int argc, ScmObj *argv)
 {
   ScmObj port = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&port);
-
   if (argc == 1)
     port = scm_api_current_output_port();
   else if (argc == 2)
@@ -96,6 +90,21 @@ scm_subr_func_display(int argc, ScmObj *argv)
     ;                           /* TODO: error handling */
 
   return scm_api_display(argv[0], port);
+}
+
+ScmObj
+scm_subr_func_flush_output_port(int argc, ScmObj *argv)
+{
+  ScmObj port = SCM_OBJ_INIT;
+
+  if (argc == 0)
+    port = scm_api_current_output_port();
+  else if (argc == 1)
+    port = argv[0];
+  else
+    ;                           /* TODO: error handling */
+
+  return scm_api_flush_output_port(port);
 }
 
 
@@ -139,10 +148,11 @@ void
 scm_core_subr_system_setup(void)
 {
   const char *syms[] = { "cons", "car", "cdr", "read", "write", "display",
-                         "eval-asm" };
+                         "flush-output-port", "eval-asm" };
   ScmSubrFunc funcs[] = { scm_subr_func_cons, scm_subr_func_car,
                           scm_subr_func_cdr, scm_subr_func_read,
                           scm_subr_func_write, scm_subr_func_display,
+                          scm_subr_func_flush_output_port,
                           scm_subr_func_eval_asm };
   ScmObj sym  = SCM_OBJ_INIT;
   ScmObj subr = SCM_OBJ_INIT;
