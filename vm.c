@@ -511,23 +511,29 @@ scm_vm_ctrl_flg_set_p(ScmObj vm, SCM_VM_CTRL_FLG_T flg)
 
 /* 関数呼出のためのインストラクション */
 scm_local_func void
-scm_vm_op_call(ScmObj vm, uint32_t nr_arg, uint32_t nr_arg_cf, bool tail_p)
+scm_vm_op_call(ScmObj vm, SCM_OPCODE_T op)
 {
   ScmObj val = SCM_OBJ_INIT, ip_fn = SCM_OBJ_INIT;
+  uint32_t nr_arg, nr_arg_cf;
 
   SCM_STACK_FRAME_PUSH(&vm, &val, &ip_fn);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
+  SCM_CAPI_INST_FETCH_UINT32(SCM_VM(vm)->reg.ip, nr_arg);
   if (nr_arg > INT32_MAX) return; /* [ERR]:  */
-  if (nr_arg_cf > INT32_MAX) return; /* [ERR]:  */
 
-  if (tail_p)
+  if (op == SCM_OPCODE_TAIL_CALL) {
+    SCM_CAPI_INST_FETCH_UINT32(SCM_VM(vm)->reg.ip, nr_arg_cf);
+    if (nr_arg_cf > INT32_MAX) return; /* [ERR]:  */
+  }
+
+  if (op == SCM_OPCODE_TAIL_CALL)
     scm_vm_stack_shift(vm, nr_arg, nr_arg_cf);
 
   SCM_VM(vm)->reg.fp = SCM_VM(vm)->reg.sp;
 
-  if (!tail_p) {
+  if (op == SCM_OPCODE_CALL) {
     /* FRAME インストラクションでダミー値を設定していたものを実際の値に変更
        する */
     ip_fn = scm_capi_inst_ptr_to_fixnum(SCM_VM(vm)->reg.ip);
@@ -564,13 +570,16 @@ scm_vm_op_call(ScmObj vm, uint32_t nr_arg, uint32_t nr_arg_cf, bool tail_p)
 }
 
 scm_local_func void
-scm_vm_op_immval(ScmObj vm, size_t immv_idx)
+scm_vm_op_immval(ScmObj vm, SCM_OPCODE_T op)
 {
   ScmObj val = SCM_OBJ_INIT;
+  size_t immv_idx;
 
   SCM_STACK_FRAME_PUSH(&vm, &val);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  SCM_CAPI_INST_FETCH_UINT32(SCM_VM(vm)->reg.ip, immv_idx);
 
   val = scm_capi_iseq_ref_immval(SCM_VM(vm)->reg.isp, immv_idx);
   if (scm_obj_null_p(val))
@@ -580,7 +589,7 @@ scm_vm_op_immval(ScmObj vm, size_t immv_idx)
 }
 
 scm_local_func void
-scm_vm_op_push(ScmObj vm)
+scm_vm_op_push(ScmObj vm, SCM_OPCODE_T op)
 {
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
@@ -593,7 +602,7 @@ scm_vm_op_push(ScmObj vm)
  * このインストラクションの後、引数と引数の数をプッシュする必要がある。
  */
 scm_local_func void
-scm_vm_op_frame(ScmObj vm) /* GC OK */
+scm_vm_op_frame(ScmObj vm, SCM_OPCODE_T op) /* GC OK */
 {
   ScmObj fp_fn = SCM_OBJ_INIT;
 
@@ -618,8 +627,13 @@ scm_vm_op_frame(ScmObj vm) /* GC OK */
 /* 関数の呼び出しから戻るインストラクション。
  */
 scm_local_func void
-scm_vm_op_return(ScmObj vm, uint32_t nr_arg) /* GC OK */
+scm_vm_op_return(ScmObj vm, SCM_OPCODE_T op) /* GC OK */
 {
+  uint32_t nr_arg;
+
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  SCM_CAPI_INST_FETCH_UINT32(SCM_VM(vm)->reg.ip, nr_arg);
   if (nr_arg > INT32_MAX) return; /* [ERR]: */
 
   scm_vm_return_to_caller(vm, nr_arg);
@@ -633,14 +647,17 @@ scm_vm_op_return(ScmObj vm, uint32_t nr_arg) /* GC OK */
  * の値を val レジスタに設定する。
  */
 scm_local_func void
-scm_vm_op_gref(ScmObj vm, size_t immv_idx)
+scm_vm_op_gref(ScmObj vm, SCM_OPCODE_T op)
 {
   ScmObj gloc = SCM_OBJ_INIT, arg = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
+  size_t immv_idx;
   ssize_t rslt;
 
   SCM_STACK_FRAME_PUSH(&vm, &arg, &gloc, &val);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  SCM_CAPI_INST_FETCH_UINT32(SCM_VM(vm)->reg.ip, immv_idx);
 
   arg = scm_capi_iseq_ref_immval(SCM_VM(vm)->reg.isp, immv_idx);
   if (scm_obj_null_p(arg))
@@ -685,14 +702,17 @@ scm_vm_op_gref(ScmObj vm, size_t immv_idx)
  * 束縛する。
  */
 scm_local_func void
-scm_vm_op_gdef(ScmObj vm, size_t immv_idx)
+scm_vm_op_gdef(ScmObj vm, SCM_OPCODE_T op)
 {
   ScmObj gloc = SCM_OBJ_INIT, arg = SCM_OBJ_INIT;
+  size_t immv_idx;
   ssize_t rslt;
 
   SCM_STACK_FRAME_PUSH(&vm, &arg, &gloc);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  SCM_CAPI_INST_FETCH_UINT32(SCM_VM(vm)->reg.ip, immv_idx);
 
   arg = scm_capi_iseq_ref_immval(SCM_VM(vm)->reg.isp, immv_idx);
   if (scm_obj_null_p(arg))
@@ -723,15 +743,17 @@ scm_vm_op_gdef(ScmObj vm, size_t immv_idx)
  * を val レジスタで更新する。
  */
 scm_local_func void
-scm_vm_op_gset(ScmObj vm, size_t immv_idx)
+scm_vm_op_gset(ScmObj vm, SCM_OPCODE_T op)
 {
   ScmObj gloc = SCM_OBJ_INIT, arg = SCM_OBJ_INIT;
+  size_t immv_idx;
   ssize_t rslt;
 
   SCM_STACK_FRAME_PUSH(&vm, &arg, &gloc);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-  scm_assert(scm_obj_not_null_p(arg));
+
+  SCM_CAPI_INST_FETCH_UINT32(SCM_VM(vm)->reg.ip, immv_idx);
 
   arg = scm_capi_iseq_ref_immval(SCM_VM(vm)->reg.isp, immv_idx);
   if (scm_obj_null_p(arg))
@@ -762,10 +784,13 @@ scm_vm_op_gset(ScmObj vm, size_t immv_idx)
 /* 無条件 JUMP 命令
  */
 scm_local_func void
-scm_vm_op_jmp(ScmObj vm, int32_t dst)
+scm_vm_op_jmp(ScmObj vm, SCM_OPCODE_T op)
 {
+  int32_t dst;
+
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
+  SCM_CAPI_INST_FETCH_INT32(SCM_VM(vm)->reg.ip, dst);
   SCM_VM(vm)->reg.ip += dst;
 }
 
@@ -896,7 +921,6 @@ void
 scm_vm_run(ScmObj vm, ScmObj iseq)
 {
   uint8_t op;
-  uint32_t immv_idx, nr_arg, nr_arg_cf, dst;
 
   SCM_STACK_FRAME_PUSH(&vm, &iseq);
 
@@ -925,43 +949,34 @@ scm_vm_run(ScmObj vm, ScmObj iseq)
       scm_vm_ctrl_flg_set(vm, SCM_VM_CTRL_FLG_HALT);
       break;
     case SCM_OPCODE_CALL:
-      SCM_CAPI_INST_FETCH_UINT32(SCM_VM(vm)->reg.ip, nr_arg);
-      scm_vm_op_call(vm, nr_arg, 0, false);
+      scm_vm_op_call(vm, op);
       break;
     case SCM_OPCODE_TAIL_CALL:
-      SCM_CAPI_INST_FETCH_UINT32(SCM_VM(vm)->reg.ip, nr_arg);
-      SCM_CAPI_INST_FETCH_UINT32(SCM_VM(vm)->reg.ip, nr_arg_cf);
-      scm_vm_op_call(vm, nr_arg, nr_arg_cf, true);
+      scm_vm_op_call(vm, op);
       break;
     case SCM_OPCODE_RETURN:
-      SCM_CAPI_INST_FETCH_UINT32(SCM_VM(vm)->reg.ip, nr_arg);
-      scm_vm_op_return(vm, nr_arg);
+      scm_vm_op_return(vm, op);
       break;
     case SCM_OPCODE_FRAME:
-      scm_vm_op_frame(vm);
+      scm_vm_op_frame(vm, op);
       break;
     case SCM_OPCODE_IMMVAL:
-      SCM_CAPI_INST_FETCH_UINT32(SCM_VM(vm)->reg.ip, immv_idx);
-      scm_vm_op_immval(vm, immv_idx);
+      scm_vm_op_immval(vm, op);
       break;
     case SCM_OPCODE_PUSH:
-      scm_vm_op_push(vm);
+      scm_vm_op_push(vm, op);
       break;
     case SCM_OPCODE_GREF:
-      SCM_CAPI_INST_FETCH_UINT32(SCM_VM(vm)->reg.ip, immv_idx);
-      scm_vm_op_gref(vm, immv_idx);
+      scm_vm_op_gref(vm, op);
       break;
     case SCM_OPCODE_GDEF:
-      SCM_CAPI_INST_FETCH_UINT32(SCM_VM(vm)->reg.ip, immv_idx);
-      scm_vm_op_gdef(vm, immv_idx);
+      scm_vm_op_gdef(vm, op);
       break;
     case SCM_OPCODE_GSET:
-      SCM_CAPI_INST_FETCH_UINT32(SCM_VM(vm)->reg.ip, immv_idx);
-      scm_vm_op_gset(vm, immv_idx);
+      scm_vm_op_gset(vm, op);
       break;
     case SCM_OPCODE_JMP:
-      SCM_CAPI_INST_FETCH_UINT32(SCM_VM(vm)->reg.ip, dst);
-      scm_vm_op_jmp(vm, (int32_t)dst);
+      scm_vm_op_jmp(vm, op);
       break;
     default:
       /* TODO: error handling */

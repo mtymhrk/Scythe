@@ -156,16 +156,15 @@ void scm_vm_ctrl_flg_set(ScmObj vm, SCM_VM_CTRL_FLG_T flg);
 void scm_vm_ctrl_flg_clr(ScmObj vm, SCM_VM_CTRL_FLG_T flg);
 bool scm_vm_ctrl_flg_set_p(ScmObj vm, SCM_VM_CTRL_FLG_T flg);
 
-void scm_vm_op_call(ScmObj vm,
-                    uint32_t nr_arg, uint32_t nr_arg_cf, bool tail_p);
-void scm_vm_op_immval(ScmObj vm, size_t immv_idx);
-void scm_vm_op_push(ScmObj vm);
-void scm_vm_op_frame(ScmObj vm);
-void scm_vm_op_return(ScmObj vm, uint32_t nr_arg);
-void scm_vm_op_gref(ScmObj vm, size_t immv_idx);
-void scm_vm_op_gdef(ScmObj vm, size_t immv_idx);
-void scm_vm_op_gset(ScmObj vm, size_t immv_idx);
-void scm_vm_op_jmp(ScmObj vm, int32_t dst);
+void scm_vm_op_call(ScmObj vm, SCM_OPCODE_T op);
+void scm_vm_op_immval(ScmObj vm, SCM_OPCODE_T op);
+void scm_vm_op_push(ScmObj vm, SCM_OPCODE_T op);
+void scm_vm_op_frame(ScmObj vm, SCM_OPCODE_T op);
+void scm_vm_op_return(ScmObj vm, SCM_OPCODE_T op);
+void scm_vm_op_gref(ScmObj vm, SCM_OPCODE_T op);
+void scm_vm_op_gdef(ScmObj vm, SCM_OPCODE_T op);
+void scm_vm_op_gset(ScmObj vm, SCM_OPCODE_T op);
+void scm_vm_op_jmp(ScmObj vm, SCM_OPCODE_T op);
 
 #endif
 
