@@ -193,6 +193,11 @@ scm_vm_setup_singletons(ScmObj vm)
   if (scm_obj_null_p(SCM_VM(vm)->cnsts.b_false))
     return -1;                           /* TODO: error handling */
 
+  SCM_SLOT_SETQ(ScmVM, vm, cnsts.undef,
+                scm_undef_new(SCM_MEM_ROOT));
+  if (scm_obj_null_p(SCM_VM(vm)->cnsts.undef))
+    return -1;                           /* TODO: error handling */
+
   return 0;
 }
 
@@ -213,10 +218,14 @@ scm_vm_clean_singletons(ScmObj vm)
   if (scm_obj_not_null_p(SCM_VM(vm)->cnsts.b_false))
     scm_mem_free_root(SCM_VM(vm)->mem, SCM_VM(vm)->cnsts.b_false);
 
+  if (scm_obj_not_null_p(SCM_VM(vm)->cnsts.undef))
+    scm_mem_free_root(SCM_VM(vm)->mem, SCM_VM(vm)->cnsts.undef);
+
   SCM_VM(vm)->cnsts.nil = SCM_OBJ_NULL;
   SCM_VM(vm)->cnsts.eof = SCM_OBJ_NULL;
   SCM_VM(vm)->cnsts.b_true = SCM_OBJ_NULL;
   SCM_VM(vm)->cnsts.b_false = SCM_OBJ_NULL;
+  SCM_VM(vm)->cnsts.undef = SCM_OBJ_NULL;
 }
 
 scm_local_func int
@@ -1062,6 +1071,7 @@ scm_vm_gc_initialize(ScmObj obj, ScmObj mem)
   SCM_VM(obj)->cnsts.eof = SCM_OBJ_NULL;
   SCM_VM(obj)->cnsts.b_true = SCM_OBJ_NULL;
   SCM_VM(obj)->cnsts.b_false = SCM_OBJ_NULL;
+  SCM_VM(obj)->cnsts.undef = SCM_OBJ_NULL;
   SCM_VM(obj)->trmp.code = SCM_OBJ_NULL;
 }
 

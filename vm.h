@@ -123,6 +123,7 @@ struct ScmVMRec {
     ScmObj eof;
     ScmObj b_true;
     ScmObj b_false;
+    ScmObj undef;
   } cnsts;
 
   /*** Trampolining ***/
@@ -259,6 +260,12 @@ inline ScmObj
 scm_vm_bool_false_instance(void)
 {
   return SCM_VM(scm_vm__current_vm)->cnsts.b_false;
+}
+
+inline ScmObj
+scm_vm_undef_instance(void)
+{
+  return SCM_VM(scm_vm__current_vm)->cnsts.undef;
 }
 
 #endif /* INCLUDE_VM_H__ */

@@ -248,6 +248,23 @@ scm_capi_eof_object_p(ScmObj obj)
 
 
 /*******************************************************************/
+/*  undef                                                          */
+/*******************************************************************/
+
+extern inline ScmObj
+scm_api_undef(void)
+{
+  return scm_vm_eof_instance();
+}
+
+extern inline bool
+scm_capi_undef_object_p(ScmObj obj)
+{
+  return scm_capi_eq_p(obj, scm_api_undef());
+}
+
+
+/*******************************************************************/
 /*  List and Pair                                                  */
 /*******************************************************************/
 
