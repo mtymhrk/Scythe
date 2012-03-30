@@ -15,7 +15,7 @@ ScmTypeInfo SCM_EXCEPTION_TYPE_INFO = {
 };
 
 int
-scm_exception_initialize(ScmObj exc, ScmObj msg, size_t n, va_list irris)
+scm_exception_initialize_va(ScmObj exc, ScmObj msg, size_t n, va_list irris)
 {
   ScmObj ir = SCM_OBJ_INIT;
 
@@ -33,6 +33,25 @@ scm_exception_initialize(ScmObj exc, ScmObj msg, size_t n, va_list irris)
     ir = va_arg(irris, ScmObj);
     SCM_SLOT_SETQ(ScmException, exc, irritants[i], ir);
   }
+
+  return 0;
+}
+
+int
+scm_exception_initialize_ary(ScmObj exc, ScmObj msg, size_t n, ScmObj *irris)
+{
+  scm_assert_obj_type(exc, &SCM_EXCEPTION_TYPE_INFO);
+  scm_assert(scm_capi_string_p(msg));
+  scm_assert(n <= SCM_EXCEPTION_IRRITANTS_MAX);
+
+  SCM_EXCEPTION(exc)->irritants = scm_capi_malloc(sizeof(ScmObj) * n);
+  if (SCM_EXCEPTION(exc)->irritants == NULL)
+    return -1;                  /* [ERR]: [through] */
+
+  SCM_SLOT_SETQ(ScmException, exc, msg, msg);
+
+  for (size_t i = 0; i < n; i++)
+    SCM_SLOT_SETQ(ScmException, exc, irritants[i], irris[i]);
 
   return 0;
 }
@@ -62,8 +81,46 @@ scm_exception_new(SCM_MEM_TYPE_T mtype, ScmObj msg, size_t n, ...)
   if (scm_obj_null_p(exc)) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   va_start(irris, n);
-  rslt = scm_exception_initialize(exc, msg, n, irris);
+  rslt = scm_exception_initialize_va(exc, msg, n, irris);
   va_end(irris);
+
+  if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
+
+  return exc;
+}
+
+ScmObj
+scm_exception_new_va(SCM_MEM_TYPE_T mtype, ScmObj msg, size_t n, va_list irris)
+{
+  ScmObj exc = SCM_OBJ_INIT;
+  int rslt;
+
+  scm_assert(scm_capi_string_p(msg));
+  scm_assert(n <= SCM_EXCEPTION_IRRITANTS_MAX);
+
+  exc = scm_capi_mem_alloc(&SCM_EXCEPTION_TYPE_INFO, mtype);
+  if (scm_obj_null_p(exc)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+
+  rslt = scm_exception_initialize_va(exc, msg, n, irris);
+
+  if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
+
+  return exc;
+}
+
+ScmObj
+scm_exception_new_ary(SCM_MEM_TYPE_T mtype, ScmObj msg, size_t n, ScmObj *irris)
+{
+  ScmObj exc = SCM_OBJ_INIT;
+  int rslt;
+
+  scm_assert(scm_capi_string_p(msg));
+  scm_assert(n <= SCM_EXCEPTION_IRRITANTS_MAX);
+
+  exc = scm_capi_mem_alloc(&SCM_EXCEPTION_TYPE_INFO, mtype);
+  if (scm_obj_null_p(exc)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+
+  rslt = scm_exception_initialize_ary(exc, msg, n, irris);
 
   if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
 

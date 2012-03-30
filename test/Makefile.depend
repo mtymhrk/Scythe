@@ -40,7 +40,7 @@ api.o: ../api.c ../object.h ../memory.h ../basichash.h ../impl_utils.h \
  ../vm.h ../reference.h ../api.h ../encoding.h ../api_enum.h ../char.h \
  ../string.h ../symbol.h ../chashtbl.h ../procedure.h ../gloc.h \
  ../numeric.h ../earray.h ../pair.h ../vector.h ../port.h ../parser.h \
- ../iseq.h ../assembler.h
+ ../iseq.h ../assembler.h ../exception.h
 gloc.o: ../gloc.c ../object.h ../reference.h ../impl_utils.h ../api.h \
  ../encoding.h ../api_enum.h ../chashtbl.h ../gloc.h
 port.o: ../port.c ../object.h ../reference.h ../impl_utils.h ../api.h \

@@ -21,9 +21,16 @@ extern ScmTypeInfo SCM_EXCEPTION_TYPE_INFO;
 
 #define SCM_EXCEPTION_IRRITANTS_MAX (SIZE_MAX / sizeof(ScmObj))
 
-int scm_exception_initialize(ScmObj exc, ScmObj msg, size_t n, va_list irris);
+int scm_exception_initialize_va(ScmObj exc, ScmObj msg,
+                                size_t n, va_list irris);
+int scm_exception_initialize_ary(ScmObj exc, ScmObj msg,
+                                 size_t n, ScmObj *irris);
 void scm_exception_finalize(ScmObj exc);
 ScmObj scm_exception_new(SCM_MEM_TYPE_T mtype, ScmObj msg, size_t n, ...);
+ScmObj scm_exception_new_va(SCM_MEM_TYPE_T mtype, ScmObj msg,
+                            size_t n, va_list irris);
+ScmObj scm_exception_new_ary(SCM_MEM_TYPE_T mtype, ScmObj msg,
+                             size_t n, ScmObj *irris);
 int scm_exception_pretty_print(ScmObj obj, ScmObj port, bool write_p);
 void scm_exception_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_exception_gc_fianlize(ScmObj obj);

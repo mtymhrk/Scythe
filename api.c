@@ -19,6 +19,7 @@
 #include "parser.h"
 #include "iseq.h"
 #include "assembler.h"
+#include "exception.h"
 
 #include "encoding.h"
 #include "impl_utils.h"
@@ -261,6 +262,76 @@ extern inline bool
 scm_capi_undef_object_p(ScmObj obj)
 {
   return scm_capi_eq_p(obj, scm_api_undef());
+}
+
+
+/*******************************************************************/
+/*  Exception                                                      */
+/*******************************************************************/
+
+extern inline int
+scm_capi_raise(ScmObj obj)
+{
+  /* TODO: write me */
+  return 0;
+}
+
+extern inline ScmObj
+scm_api_raise(ScmObj obj)
+{
+  return (scm_capi_raise(obj) < 0) ? SCM_OBJ_NULL : scm_api_undef();
+}
+
+int
+scm_capi_error(const char *msg, size_t n, ...)
+{
+  ScmObj str = SCM_OBJ_INIT, exc = SCM_OBJ_INIT;
+  va_list irris;
+  int rslt;
+
+  SCM_STACK_FRAME_PUSH(&str, &exc);
+
+  if (msg == NULL)
+    str = scm_capi_make_string_from_cstr("", SCM_ENC_ASCII);
+  else
+    str = scm_capi_make_string_from_cstr(msg, SCM_ENC_ASCII);
+
+  if (scm_obj_null_p(str)) return -1;
+
+  va_start(irris, n);
+  exc = scm_exception_new_va(SCM_MEM_HEAP, str, n, irris);
+  va_end(irris);
+
+  if (scm_obj_null_p(exc)) return -1;
+
+  rslt = scm_capi_raise(exc);
+  if (rslt < 0) return -1;
+
+  return 0;
+}
+
+ScmObj
+scm_api_error_ary(ScmObj msg, size_t n, ScmObj *irris)
+{
+  ScmObj exc = SCM_OBJ_INIT;
+  int rslt;
+
+  if (!scm_capi_string_p(msg)) return SCM_OBJ_NULL;
+
+  exc = scm_exception_new_ary(SCM_MEM_HEAP, msg, n, irris);
+  if (scm_obj_null_p(exc)) return SCM_OBJ_NULL;
+
+  rslt = scm_capi_raise(exc);
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  return scm_api_undef();
+}
+
+extern inline bool
+scm_capi_error_object_p(ScmObj obj)
+{
+  if (scm_obj_null_p(obj)) return false;
+  return scm_obj_type_p(obj, &SCM_EXCEPTION_TYPE_INFO);
 }
 
 
