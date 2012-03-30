@@ -941,8 +941,7 @@ scm_vm_run(ScmObj vm, ScmObj iseq)
   SCM_SLOT_SETQ(ScmVM, vm, reg.cp, scm_capi_iseq_to_closure(iseq));
   SCM_SLOT_SETQ(ScmVM, vm, reg.isp, iseq);
   SCM_VM(vm)->reg.ip = scm_capi_iseq_to_ip(iseq);
-  SCM_SLOT_SETQ(ScmVM, vm, reg.val, SCM_OBJ_NULL);
-    /* TODO: undefined オブジェクトのようなものを初期値にする */
+  SCM_SLOT_SETQ(ScmVM, vm, reg.val, SCM_VM(vm)->cnsts.undef);
   SCM_VM(vm)->reg.flags = 0;
 
   SCM_VM(vm)->trmp.code = SCM_OBJ_NULL;;

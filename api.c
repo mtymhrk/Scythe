@@ -1095,7 +1095,7 @@ scm_api_write_char(ScmObj chr, ScmObj port)
   rslt = scm_port_write_char(port, scm_char_value(chr));
   if (rslt < 0) return SCM_OBJ_NULL;
 
-  return chr;
+  return scm_api_undef();
 }
 
 ScmObj
@@ -1133,7 +1133,7 @@ scm_api_write_string(ScmObj str, ScmObj port)
   rslt = scm_capi_write_raw(buf, (size_t)size, port);
   if (rslt < 0) return SCM_OBJ_NULL;
 
-  return str;
+  return scm_api_undef();
 }
 
 ScmObj
@@ -1156,7 +1156,7 @@ scm_api_write_simple(ScmObj obj, ScmObj port)
   rslt = scm_obj_call_pp_func(obj, port, true);
   if (rslt < 0) return SCM_OBJ_NULL;
 
-  return obj;
+  return scm_api_undef();
 }
 
 ScmObj
@@ -1172,7 +1172,7 @@ scm_api_display(ScmObj obj, ScmObj port)
   rslt = scm_obj_call_pp_func(obj, port, false);
   if (rslt < 0) return SCM_OBJ_NULL;
 
-  return obj;
+  return scm_api_undef();
 }
 
 ScmObj
@@ -1186,7 +1186,7 @@ scm_api_newline(ScmObj port)
   rslt = scm_capi_write_cstr("\n", SCM_ENC_ASCII, port);
   if (rslt < 0) return SCM_OBJ_NULL;
 
-  return port;
+  return scm_api_undef();
 }
 
 ScmObj
@@ -1202,7 +1202,7 @@ scm_api_flush_output_port(ScmObj port)
   rslt = scm_port_flush(port);
   if (rslt < 0) return SCM_OBJ_NULL;
 
-  return port;
+  return scm_api_undef();
 }
 
 ssize_t
