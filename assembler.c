@@ -105,8 +105,11 @@ scm_iseq_asm_reg_label_ref_idx(ScmCHashTbl *tbl, EArray *labels,
 
   name_sz = scm_capi_symbol_bytesize(label);
   if (name_sz < 0) return -1;   /* [ERR]: [through] */
-  if ((size_t)name_sz > sizeof(label_name) - 1) return -1; /* [ERR]: iseq: label
- name is too long */
+
+  if ((size_t)name_sz > sizeof(label_name) - 1) {
+    scm_capi_error("Assembler: label name is too long", 1, label);
+    return -1;
+  }
 
   name_sz = scm_capi_symbol_to_cstr(label, label_name, sizeof(label_name));
   if (name_sz < 0) return -1;   /* [ERR]: [through] */
@@ -160,7 +163,11 @@ scm_asm_reg_label_def_idx(ScmCHashTbl *tbl, EArray *labels,
 
   name_sz = scm_capi_symbol_bytesize(label);
   if (name_sz < 0) return -1;   /* [ERR]: [through] */
-  if ((size_t)name_sz > sizeof(label_name) - 1) return -1; /* [ERR]: iseq: label name is too long */
+
+  if ((size_t)name_sz > sizeof(label_name) - 1) {
+    scm_capi_error("Assember: label name is too long", 1, label);
+    return -1;
+  }
 
   name_sz = scm_capi_symbol_to_cstr(label, label_name, sizeof(label_name));
   if (name_sz < 0) return -1;   /* [ERR]: [through] */
@@ -192,7 +199,10 @@ scm_asm_reg_label_def_idx(ScmCHashTbl *tbl, EArray *labels,
     }
   }
 
-  if (rec->defined_p) return -1; /* [ERR]: iseq: already defined */
+  if (rec->defined_p) {
+    scm_capi_error("Assembler: label is already defined", 1, label);
+    return -1;
+  }
 
   rec->idx = idx;
   rec->defined_p = true;
@@ -207,7 +217,10 @@ scm_asm_sym2opcode(ScmObj op)
 
   if (scm_capi_fixnum_p(op)) {
     long l = scm_capi_fixnum_to_clong(op);
-    if (l >= INT_MAX) return -1; /* [ERR]: iseq: unkown opcode */
+    if (l >= UINT8_MAX) {
+      scm_capi_error("Assembler: invalid opcode", 1, op);
+      return -1;
+    }
     return (int)l;
   }
   else if (scm_capi_symbol_p(op)) {
@@ -216,7 +229,11 @@ scm_asm_sym2opcode(ScmObj op)
     if (rslt < 0) return -1;    /* [ERR]: [through] */
 
     rslt = scm_asm_mne2opcode(mne);
-    if (rslt < 0) return -1;    /* [ERR]: iseq: unknown mnemonic */
+    if (rslt < 0) {
+      scm_capi_error("Assembler: unknown mnemonic", 1, op);
+      return -1;
+    }
+
     return (int)rslt;
   }
   else {
@@ -264,8 +281,10 @@ scm_asm_inst_cval_op(ScmObj iseq, int opcode, ScmObj arg)
   scm_assert(scm_capi_fixnum_p(arg));
 
   cval = scm_capi_fixnum_to_clong(arg);
-  if (cval < INT32_MIN || INT32_MAX < cval)
-    return -1;                  /* [ERR]: iseq: operand is out of range */
+  if (cval < INT32_MIN || INT32_MAX < cval) {
+    scm_capi_error("Assembler: operand is out of range", 1, arg);
+    return -1;
+  }
 
   idx = scm_capi_iseq_push_op_cval(iseq, opcode, (uint32_t)cval);
   if (idx < 0) return -1;
@@ -286,12 +305,16 @@ scm_asm_inst_cval_cval_op(ScmObj iseq, int opcode,
   scm_assert(scm_capi_fixnum_p(arg2));
 
   cval1 = scm_capi_fixnum_to_clong(arg1);
-  if (cval1 < INT32_MIN || INT32_MAX < cval1)
-    return -1;                  /* [ERR]: iseq: operand is out of range */
+  if (cval1 < INT32_MIN || INT32_MAX < cval1) {
+    scm_capi_error("Assembler: operand is out of range", 1, arg1);
+    return -1;
+  }
 
   cval2 = scm_capi_fixnum_to_clong(arg2);
-  if (cval2 < INT32_MIN || INT32_MAX < cval2)
-    return -1;                  /* [ERR]: iseq: operand is out of range */
+  if (cval2 < INT32_MIN || INT32_MAX < cval2) {
+    scm_capi_error("Assembler: operand is out of range", 1, arg2);
+    return -1;
+  }
 
   idx = scm_capi_iseq_push_op_cval_cval(iseq, opcode,
                                         (uint32_t)cval1, (uint32_t)cval2);
@@ -363,7 +386,10 @@ scm_asm_inst(ScmObj iseq, ScmObj inst, size_t idx,
   case SCM_OPCODE_GDEF:         /* fall through */
   case SCM_OPCODE_GSET:         /* fall through */
   case SCM_OPCODE_IMMVAL:
-    if (!scm_capi_pair_p(args)) return -1; /* [ERR]: iseq: operands is not exist */
+    if (!scm_capi_pair_p(args)) {
+      scm_capi_error("Assembler: too few operands", 1, op);
+      return -1;
+    }
 
     arg1 = scm_api_car(args);
     if (scm_obj_null_p(arg1)) return -1; /* [ERR]: [through] */
@@ -372,7 +398,10 @@ scm_asm_inst(ScmObj iseq, ScmObj inst, size_t idx,
     break;
   case SCM_OPCODE_CALL:         /* fall through */
   case SCM_OPCODE_RETURN:       /* fall through */
-    if (!scm_capi_pair_p(args)) return -1;  /* [ERR]: iseq: operands is not exist */
+    if (!scm_capi_pair_p(args)) {
+      scm_capi_error("Assembler: too few operands", 1, op);
+      return -1;
+    }
 
     arg1 = scm_api_car(args);
     if (scm_obj_null_p(arg1)) return -1; /* [ERR]: [through] */
@@ -380,7 +409,11 @@ scm_asm_inst(ScmObj iseq, ScmObj inst, size_t idx,
     return scm_asm_inst_cval_op(iseq, opcode, arg1);
     break;
   case SCM_OPCODE_TAIL_CALL:
-    if (!scm_capi_pair_p(args)) return -1;  /* [ERR]: iseq: operands is not exist */
+    if (!scm_capi_pair_p(args)) {
+      scm_capi_error("Assembler: too few operands", 1, op);
+      return -1;
+    }
+
     arg1 = scm_api_car(args);
     if (scm_obj_null_p(arg1)) return -1; /* [ERR]: [through] */
 
@@ -390,30 +423,53 @@ scm_asm_inst(ScmObj iseq, ScmObj inst, size_t idx,
     return scm_asm_inst_cval_cval_op(iseq, opcode, arg1, arg2);
     break;
   case SCM_OPCODE_JMP:
-    if (!scm_capi_pair_p(args)) return -1;  /* [ERR]: iseq: operands is not exist */
+    if (!scm_capi_pair_p(args)) {
+      scm_capi_error("Assembler: too few operands", 1, op);
+      return -1;
+    }
 
     arg1 = scm_api_car(args);
     if (scm_obj_null_p(arg1)) return -1; /* [ERR]: [through] */
-    if (!scm_capi_symbol_p(arg1)) return -1; /* [ERR]: iseq: operand is not symbol */
+
+    if (!scm_capi_symbol_p(arg1)) {
+      scm_capi_error("Assembler: operand is not symbol", 2, op, arg1);
+      return -1;
+    }
 
     return scm_asm_inst_ref_label_op(iseq, opcode,
                                           arg1, label_tbl, labels);
     break;
   case SCM_ASM_PI_LABEL:
-    if (!scm_capi_pair_p(args)) return -1;  /* [ERR]: iseq: operands is not exist */
+    if (!scm_capi_pair_p(args)) {
+      scm_capi_error("Assembler: too few operands", 1, op);
+      return -1;
+    }
 
     arg1 = scm_api_car(args);
     if (scm_obj_null_p(arg1)) return -1; /* [ERR]: [through] */
-    if (!scm_capi_symbol_p(arg1)) return -1; /* [ERR]: iseq: operand is not symbol */
+
+    if (!scm_capi_symbol_p(arg1)) {
+      scm_capi_error("Assembler: operand is not symbol", 2, op, arg1);
+      return -1;
+    }
 
     rslt = scm_asm_reg_label_def_idx(label_tbl, labels, arg1, idx);
     return (rslt < 0) ?  -1 : (ssize_t)idx;
     break;
   case SCM_ASM_PI_ASM:
-    if (!scm_capi_pair_p(args)) return -1;  /* [ERR]: iseq: operands is not exist */
+    if (!scm_capi_pair_p(args)) {
+      scm_capi_error("Assembler: too few operands", 1, op);
+      return -1;
+    }
+
     arg1 = scm_api_car(args);
     if (scm_obj_null_p(arg1)) return -1; /* [ERR]: [through] */
-    if (!scm_capi_pair_p(arg1)) return -1; /* [ERR]: iseq: operand is not pair */
+
+    if (!scm_capi_pair_p(arg1) && !scm_capi_nil_p(arg1)) {
+      scm_capi_error("Assembler: operand is not list", 2, op, arg1);
+      return -1; /* [ERR]: iseq: operand is not pair */
+    }
+
     arg1 = scm_asm_assemble(arg1);
     if (scm_obj_null_p(arg1)) return -1; /* [ERR]: [through] */
 
@@ -444,14 +500,23 @@ scm_asm_label_resolv(ScmObj iseq, ScmCHashTbl *label_tbl, EArray *labels)
   EARY_FOR_EACH(labels, idx1, lbl) {
     rslt = scm_chash_tbl_get(label_tbl, SCM_CHASH_TBL_KEY(*lbl), &val, &found);
     if (rslt < 0) return -1;    /* [ERR]: [through] */
-    if (!found) goto err_free_rec; /* [ERR]: iseq: inner error occured*/
+
+    if (!found) {
+      scm_capi_fatal("Assember: inner error occured");
+      goto err_free_rec;
+    }
 
     rec = (ScmLabelInfo *)val;
     EARY_FOR_EACH(&rec->ref, idx2,  ref_idx) {
-      if ((ssize_t)rec->idx < INT32_MIN + (ssize_t)*ref_idx + 4)
-        goto err_free_rec;      /* [ERR]: iseq: operand is underflow */
-      else if ((ssize_t)*ref_idx - 4 > INT32_MAX - (ssize_t)rec->idx)
-        goto err_free_rec;      /* [ERR]: iseq: operand is overflow */
+      if ((ssize_t)rec->idx < INT32_MIN + (ssize_t)*ref_idx + 4) {
+        scm_capi_error("Assember: operand is underflow", 0);
+        goto err_free_rec;
+      }
+      else if ((ssize_t)*ref_idx - 4 > INT32_MAX - (ssize_t)rec->idx) {
+        scm_capi_error("Assember: operand is overflow", 0);
+        goto err_free_rec;
+      }
+
       scm_capi_iseq_set_cval(iseq, *ref_idx,
                              (uint32_t)((ssize_t)rec->idx
                                         - (ssize_t)*ref_idx - 4));
