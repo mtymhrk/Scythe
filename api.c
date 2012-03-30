@@ -1178,12 +1178,21 @@ scm_api_display(ScmObj obj, ScmObj port)
 ScmObj
 scm_api_newline(ScmObj port)
 {
+  SCM_ENC_T enc;
+  scm_char_t nl;
+  ssize_t w;
   int rslt;
 
   if (!scm_capi_output_port_p(port))
     return SCM_OBJ_NULL;
 
-  rslt = scm_capi_write_cstr("\n", SCM_ENC_ASCII, port);
+  rslt = scm_capi_port_encoding(port, &enc);
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  nl = SCM_ENCODING_CONST_LF_CHAR(enc);
+  w = SCM_ENCODING_VFUNC_CHAR_WIDTH(enc)(nl.bytes, sizeof(nl));
+
+  rslt = scm_capi_write_bin(nl.bytes, (size_t)w, enc, port);
   if (rslt < 0) return SCM_OBJ_NULL;
 
   return scm_api_undef();
