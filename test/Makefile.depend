@@ -422,3 +422,19 @@ test_assembler.o: test_assembler.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-experimental.h ../vm.h ../object.h \
  ../memory.h ../basichash.h ../impl_utils.h ../reference.h ../api.h \
  ../encoding.h ../api_enum.h ../api.h ../assembler.h ../earray.h
+test_undef.o: test_undef.c /usr/local/include/cutter/cutter.h \
+ /usr/local/include/cutter/cutter/cut-version.h \
+ /usr/local/include/cutter/cutter/cut-features.h \
+ /usr/local/include/cutter/cutter/cut-assertions.h \
+ /usr/local/include/cutter/cutter/cut-assertions-helper.h \
+ /usr/local/include/cutter/cutter/cut-public.h \
+ /usr/local/include/cutter/cutter/cut-config.h \
+ /usr/local/include/cutter/cutter/cut-types.h \
+ /usr/local/include/cutter/cutter/cut-macros.h \
+ /usr/local/include/cutter/cutter/cut-multi-process.h \
+ /usr/local/include/cutter/cutter/cut-test-utils.h \
+ /usr/local/include/cutter/cutter/cut-test-utils-helper.h \
+ /usr/local/include/cutter/cutter/cut-helper.h \
+ /usr/local/include/cutter/cutter/cut-experimental.h ../object.h ../vm.h \
+ ../object.h ../memory.h ../basichash.h ../impl_utils.h ../reference.h \
+ ../api.h ../encoding.h ../api_enum.h ../api.h ../miscobjects.h

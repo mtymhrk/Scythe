@@ -179,3 +179,57 @@ scm_nil_pretty_print(ScmObj obj, ScmObj port, bool write_p)
 
   return 0;
 }
+
+
+/*******************************************************/
+/*  ScmUndef                                           */
+/*******************************************************/
+
+ScmTypeInfo SCM_UNDEF_TYPE_INFO = {
+  .pp_func             = scm_undef_pretty_print,
+  .obj_size            = sizeof(ScmUndef),
+  .gc_ini_func         = NULL,
+  .gc_fin_func         = NULL,
+  .gc_accept_func      = NULL,
+  .gc_accept_func_weak = NULL,
+};
+
+void
+scm_undef_initialize(ScmObj undef)  /* GC OK */
+{
+  return;                       /* nothing to do */
+}
+
+void
+scm_udef_finalize(ScmObj undef)    /* GC OK */
+{
+  return;                       /* nothing to do */
+}
+
+ScmObj
+scm_undef_new(SCM_MEM_TYPE_T mtype)         /* GC OK */
+{
+  ScmObj undef = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&undef);
+
+  undef = scm_capi_mem_alloc(&SCM_NIL_TYPE_INFO, mtype);
+  if (scm_obj_null_p(undef)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+
+  scm_undef_initialize(undef);
+
+  return undef;
+}
+
+int
+scm_undef_pretty_print(ScmObj obj, ScmObj port, bool write_p)
+{
+  int rslt;
+
+  scm_assert_obj_type(obj, &SCM_UNDEF_TYPE_INFO);
+
+  rslt = scm_capi_write_cstr("#<undef>", SCM_ENC_ASCII, port);
+  if (rslt < 0) return -1;
+
+  return 0;
+}
