@@ -45,3 +45,7 @@ parser.o: parser.c object.h reference.h impl_utils.h api.h encoding.h \
  api_enum.h parser.h
 assembler.o: assembler.c object.h api.h reference.h impl_utils.h \
  encoding.h api_enum.h chashtbl.h earray.h assembler.h
+exception.o: exception.c object.h api.h reference.h impl_utils.h \
+ encoding.h api_enum.h exception.h
+main.o: main.c api.h object.h reference.h impl_utils.h encoding.h \
+ api_enum.h
