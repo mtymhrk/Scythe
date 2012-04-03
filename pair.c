@@ -48,22 +48,6 @@ scm_pair_new(SCM_MEM_TYPE_T mtype, ScmObj car, ScmObj cdr) /* GC OK */
   return pair;
 }
 
-ScmObj
-scm_pair_car(ScmObj pair)       /* GC OK */
-{
-  scm_assert_obj_type(pair, &SCM_PAIR_TYPE_INFO);
-
-  return SCM_PAIR_CAR(pair);
-}
-
-ScmObj
-scm_pair_cdr(ScmObj pair)       /* GC OK */
-{
-  scm_assert_obj_type(pair, &SCM_PAIR_TYPE_INFO);
-
-  return SCM_PAIR_CDR(pair);
-}
-
 int
 scm_pair_pretty_print(ScmObj obj, ScmObj port, bool write_p)
 {
@@ -75,7 +59,7 @@ scm_pair_pretty_print(ScmObj obj, ScmObj port, bool write_p)
   scm_assert_obj_type(obj, &SCM_PAIR_TYPE_INFO);
 
   rslt = scm_capi_write_cstr("(", SCM_ENC_ASCII, port);
-  if (rslt < 0) return -1;
+  if (rslt < 0) return -1;      /* [ERR]: [through] */
 
   while (1) {
     car = scm_pair_car(lst);
@@ -83,33 +67,33 @@ scm_pair_pretty_print(ScmObj obj, ScmObj port, bool write_p)
 
     if (scm_capi_nil_p(cdr)) {
       port = scm_api_write_simple(car, port);
-      if (scm_obj_null_p(port)) return -1;
+      if (scm_obj_null_p(port)) return -1; /* [ERR]: [through] */
 
       break;
     }
     else if (!scm_capi_pair_p(cdr)) {
       port = scm_api_write_simple(car, port);
-      if (scm_obj_null_p(port)) return -1;
+      if (scm_obj_null_p(port)) return -1; /* [ERR]: [through] */
 
       rslt = scm_capi_write_cstr(" . ", SCM_ENC_ASCII, port);
-      if (rslt < 0) return -1;
+      if (rslt < 0) return -1;  /* [ERR]: [through] */
 
       port = scm_api_write_simple(cdr, port);
-      if (scm_obj_null_p(port)) return -1;
+      if (scm_obj_null_p(port)) return -1; /* [ERR]: [through] */
       break;
     }
 
     port = scm_api_write_simple(car, port);
-    if (scm_obj_null_p(port)) return -1;
+    if (scm_obj_null_p(port)) return -1; /* [ERR]: [thorugh] */
 
     rslt = scm_capi_write_cstr(" ", SCM_ENC_ASCII, port);
-    if (rslt < 0) return -1;
+    if (rslt < 0) return -1;    /* [ERR]: [through] */
 
     lst = cdr;
   }
 
   rslt = scm_capi_write_cstr(")", SCM_ENC_ASCII, port);
-  if (rslt < 0) return -1;
+  if (rslt < 0) return -1;      /* [ERR]: [through] */
 
   return 0;
 }
