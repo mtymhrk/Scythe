@@ -60,7 +60,7 @@ scm_gloc_pretty_print(ScmObj obj, ScmObj port, bool write_p)
   snprintf(cstr, sizeof(cstr), "#<gloc %llx>", (unsigned long long)obj);
 
   rslt = scm_capi_write_cstr(cstr, SCM_ENC_ASCII, port);
-  if (rslt < 0) return -1;
+  if (rslt < 0) return -1;      /* [ERR]: [through] */
 
   return 0;
 }
