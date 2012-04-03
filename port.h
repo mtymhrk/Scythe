@@ -162,9 +162,9 @@ ssize_t scm_port_write_buf(ScmObj port,
 
 #endif
 
-void scm_port_initialize(ScmObj port, ScmIO *io,
-                         SCM_PORT_ATTR attr, SCM_PORT_BUF_T buf_mode,
-                         SCM_ENC_T enc);
+int scm_port_initialize(ScmObj port, ScmIO *io,
+                        SCM_PORT_ATTR attr, SCM_PORT_BUF_T buf_mode,
+                        SCM_ENC_T enc);
 void scm_port_finalize(ScmObj port);
 ScmObj scm_port_new(SCM_MEM_TYPE_T mtype,
                     ScmIO *io, SCM_PORT_ATTR attr, SCM_PORT_BUF_T buf_mode,
