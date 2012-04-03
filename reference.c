@@ -3,7 +3,7 @@
 #include <assert.h>
 
 #include "object.h"
-#include "vm.h"
+#include "api.h"
 #include "reference.h"
 
 scm_local_inline bool
@@ -19,9 +19,8 @@ scm_ref_stack_new_block(size_t sz)
 
   scm_assert((SIZE_MAX - sizeof(ScmRefStackBlock)) / sizeof(ScmRef) >= sz);
 
-  block = malloc(sizeof(ScmRefStackBlock) + sizeof(ScmRef) * sz);
-  if (block == NULL)
-    return NULL;
+  block = scm_capi_malloc(sizeof(ScmRefStackBlock) + sizeof(ScmRef) * sz);
+  if (block == NULL) return NULL; /* [ERR]: [through] */
 
   block->next = NULL;
   block->prev = NULL;
@@ -95,7 +94,7 @@ scm_ref_stack_add_new_block(ScmRefStack *stack, size_t size)
   scm_assert(stack != NULL);
 
   block = scm_ref_stack_new_block(size);
-  if (block == NULL) return NULL;
+  if (block == NULL) return NULL; /* [ERR]: [through] */
 
   scm_ref_stack_add_block(stack, block);
 
@@ -147,12 +146,12 @@ scm_ref_stack_new(size_t size)
 {
   ScmRefStack *stack;
 
-  stack = malloc(sizeof(ScmRefStack));
-  if (stack == NULL) return NULL;
+  stack = scm_capi_malloc(sizeof(ScmRefStack));
+  if (stack == NULL) return NULL; /* [ERR]: [through] */
 
   if (scm_ref_stack_initialize(stack, size) == NULL) {
     free(stack);
-    return NULL;
+    return NULL;                /* [ERR]: [through] */
   }
 
   stack->tail = stack->current = stack->head;
@@ -177,7 +176,7 @@ scm_ref_stack_push_va(ScmRefStack *stack, va_list ap)
 
   while ((ref = va_arg(ap, ScmRef)) != NULL) {
     if (scm_ref_stack_growth_if_needed(stack) == NULL)
-      return NULL;
+      return NULL;              /* [ERR]: [through] */
 
     scm_ref_stack_block_push(stack->current, ref);
   }

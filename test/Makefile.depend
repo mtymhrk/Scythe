@@ -24,9 +24,8 @@ vm.o: ../vm.c ../vm.h ../object.h ../memory.h ../basichash.h \
  ../core_subr.h ../miscobjects.h
 procedure.o: ../procedure.c ../object.h ../api.h ../reference.h \
  ../impl_utils.h ../encoding.h ../api_enum.h ../procedure.h
-reference.o: ../reference.c ../object.h ../vm.h ../memory.h \
- ../basichash.h ../impl_utils.h ../reference.h ../api.h ../encoding.h \
- ../api_enum.h
+reference.o: ../reference.c ../object.h ../api.h ../reference.h \
+ ../impl_utils.h ../encoding.h ../api_enum.h
 numeric.o: ../numeric.c ../object.h ../reference.h ../impl_utils.h \
  ../api.h ../encoding.h ../api_enum.h ../earray.h ../numeric.h
 core_subr.o: ../core_subr.c ../object.h ../vm.h ../memory.h \
