@@ -28,13 +28,11 @@ scm_iseq_initialize(ScmObj iseq) /* GC OK */
 
   rslt = eary_init(SCM_ISEQ_EARY_SEQ(iseq),
                    sizeof(uint8_t), SCM_ISEQ_DEFAULT_SEQ_SIZE);
-  if (rslt != 0)
-    return -1;                           /* TODO: error handling; [ERR]: [through] */
+  if (rslt != 0) return -1;  /* [ERR]: [through] */
 
   rslt = eary_init(SCM_ISEQ_EARY_IMMVS(iseq),
                    sizeof(ScmObj), SCM_ISEQ_DEFAULT_IMMVS_SIZE);
-  if (rslt != 0)
-    return -1;                           /* TODO: error handling; [ERR]: [through] */
+  if (rslt != 0) return -1;  /* [ERR]: [through] */
 
   return 0;
 }
