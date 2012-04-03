@@ -11,8 +11,11 @@
 ScmObj
 scm_subr_func_cons(int argc, ScmObj *argv)
 {
-  if (argc != 2)
-    ;                           /* TODO: error handling */
+  if (argc != 2) {
+    /* TODO: change error message */
+    scm_capi_error("cons: 2 arugments required, but got ", 0);
+    return SCM_OBJ_NULL;
+  }
 
   return scm_api_cons(argv[0], argv[1]);
 }
@@ -20,12 +23,11 @@ scm_subr_func_cons(int argc, ScmObj *argv)
 ScmObj
 scm_subr_func_car(int argc, ScmObj *argv)
 {
-  if (argc != 1)
-    ;                           /* TODO: error handling */
-
-
-  if (!scm_capi_pair_p(argv[0]))
-    ;                           /* TODO: err handling  */
+  if (argc != 1) {
+    /* TODO: change error message */
+    scm_capi_error("car: 1 arugment required, but got ", 0);
+    return SCM_OBJ_NULL;
+  }
 
   return scm_api_car(argv[0]);
 }
@@ -33,11 +35,11 @@ scm_subr_func_car(int argc, ScmObj *argv)
 ScmObj
 scm_subr_func_cdr(int argc, ScmObj *argv)
 {
-  if (argc != 1)
-    ;                           /* TODO: error handling */
-
-  if (!scm_capi_pair_p(argv[0]))
-    ;                           /* TODO: err handling  */
+  if (argc != 1) {
+    /* TODO: change error message */
+    scm_capi_error("cdr: 1 arugment required, but got ", 0);
+    return SCM_OBJ_NULL;
+  }
 
   return scm_api_cdr(argv[0]);
 }
@@ -56,8 +58,10 @@ scm_subr_func_read(int argc, ScmObj *argv)
     port = scm_api_current_input_port();
   else if (argc == 1)
     port = argv[0];
-  else
-    ;                           /* TODO: error handling */
+  else {
+    scm_capi_error("read: too many arguments", 0);
+    return SCM_OBJ_NULL;
+  }
 
   return scm_api_read(port);
 }
@@ -71,8 +75,10 @@ scm_subr_func_write(int argc, ScmObj *argv)
     port = scm_api_current_output_port();
   else if (argc == 2)
     port = argv[1];
-  else
-    ;                           /* TODO: error handling */
+  else {
+    scm_capi_error("write: too many arguments", 0);
+    return SCM_OBJ_NULL;
+  }
 
   return scm_api_write(argv[0], port);
 }
@@ -86,8 +92,10 @@ scm_subr_func_display(int argc, ScmObj *argv)
     port = scm_api_current_output_port();
   else if (argc == 2)
     port = argv[1];
-  else
-    ;                           /* TODO: error handling */
+  else {
+    scm_capi_error("display: too many arguments", 0);
+    return SCM_OBJ_NULL;
+  }
 
   return scm_api_display(argv[0], port);
 }
@@ -101,8 +109,10 @@ scm_subr_func_newline(int argc, ScmObj *argv)
     port = scm_api_current_output_port();
   else if (argc == 1)
     port = argv[1];
-  else
-    ;                           /* TODO: error handling */
+  else {
+    scm_capi_error("newline: too many arguments", 0);
+    return SCM_OBJ_NULL;
+  }
 
   return scm_api_newline(port);
 }
@@ -116,8 +126,10 @@ scm_subr_func_flush_output_port(int argc, ScmObj *argv)
     port = scm_api_current_output_port();
   else if (argc == 1)
     port = argv[0];
-  else
-    ;                           /* TODO: error handling */
+  else {
+    scm_capi_error("flush-output-port: too many arguments", 0);
+    return SCM_OBJ_NULL;
+  }
 
   return scm_api_flush_output_port(port);
 }
@@ -136,8 +148,11 @@ scm_subr_func_eval_asm(int argc, ScmObj *argv)
 
   SCM_STACK_FRAME_PUSH(&code, &args);
 
-  if (argc != 1)
-    ;                           /* TODO: error handling */
+  if (argc != 1) {
+    /* TODO: change error message */
+    scm_capi_error("eval-asm: 1 argument is require, but got ", 0);
+    return SCM_OBJ_NULL;
+  }
 
   if (scm_capi_pair_p(argv[0])) {
     code = scm_api_assemble(argv[0]);
@@ -147,7 +162,8 @@ scm_subr_func_eval_asm(int argc, ScmObj *argv)
     code = argv[0];
   }
   else {
-    ;                           /* TODO: err handling  */
+    scm_capi_error("eval-asm: argument is not pair or iseq", 1, argv[0]);
+    return SCM_OBJ_NULL;
   }
 
   args = scm_api_nil();
@@ -170,10 +186,12 @@ scm_subr_func_exit(int argc, ScmObj *argv)
     scm_api_exit(SCM_OBJ_NULL);
   else if (argc == 1)
     scm_api_exit(argv[0]);
-  else
-    ;                           /* TODO: err handling  */
+  else {
+    scm_capi_error("exit: too many arguments", 0);
+    return SCM_OBJ_NULL;
+  }
 
-  return SCM_OBJ_NULL;
+  return scm_api_undef();
 }
 
 
@@ -203,7 +221,7 @@ scm_core_subr_system_setup(void)
     rslt = scm_api_global_var_define(sym, subr);
 
     if (scm_obj_null_p(rslt) || scm_obj_null_p(subr) ||scm_obj_null_p(sym))
-      return;
+      return;                   /* [ERR]: [through] */
   }
 
 }
