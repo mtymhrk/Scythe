@@ -66,7 +66,7 @@ scm_chash_tbl_new(ScmObj owner, size_t size,
   ScmCHashTbl *tbl;
 
   tbl = scm_capi_malloc(sizeof(*tbl));
-  if (tbl == NULL) return NULL;
+  if (tbl == NULL) return NULL; /* [ERR]: [through] */
 
   scm_chash_tbl_initialize(tbl, owner, size, key_kind, val_kind,
                            hash_func, cmp_func);
@@ -140,6 +140,8 @@ scm_chash_tbl_access(ScmCHashTbl *tbl,
 
   if (mode == ADD || mode == UPDATE) {
     ScmCHashTblEntry *new = scm_capi_malloc(sizeof(ScmCHashTblEntry));
+    if (new == NULL) return NULL;
+    /* XXX: ADD のすでにエントリが存在するケースと区別がつかない */
 
     if (tbl->key_kind == SCM_CHASH_TBL_CVAL)
       new->key = key;
