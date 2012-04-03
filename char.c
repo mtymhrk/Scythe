@@ -100,8 +100,10 @@ scm_char_initialize(ScmObj chr, scm_char_t value, SCM_ENC_T enc) /* GC OK */
   scm_assert_obj_type(chr, &SCM_CHAR_TYPE_INFO);
   scm_assert(/* 0 <= enc && */ enc < SCM_ENC_NR_ENC);
 
-  if (!SCM_ENCODING_VFUNC_VALID_P(enc)(value))
+  if (!SCM_ENCODING_VFUNC_VALID_P(enc)(value)) {
+    scm_capi_error("can not make character object: invalid byte sequence", 0);
     return -1;                  /* [ERR] char: invalid byte sequence */
+  }
 
   SCM_CHAR_VALUE(chr) = value;
   SCM_CHAR_ENC(chr) = enc;
@@ -129,7 +131,7 @@ scm_char_new(SCM_MEM_TYPE_T mtype,
   if (scm_obj_null_p(chr)) return SCM_OBJ_NULL;
 
   if (scm_char_initialize(chr, value, enc) < 0)
-    return SCM_OBJ_NULL;
+    return SCM_OBJ_NULL;        /* [ERR]: [through] */
 
   return chr;
 }
@@ -196,11 +198,11 @@ scm_char_pretty_print(ScmObj obj, ScmObj port, bool write_p)
 
   if (write_p) {
     rslt = scm_char_write_ext_rep(obj, port);
-    if (rslt < 0) return -1;
+    if (rslt < 0) return -1;    /* [ERR]: [through] */
   }
   else {
     ro = scm_api_write_char(obj, port);
-    if (scm_obj_null_p(ro)) return -1;
+    if (scm_obj_null_p(ro)) return -1; /* [ERR]: [through] */
   }
 
   return 0;
