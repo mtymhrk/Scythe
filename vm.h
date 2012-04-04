@@ -177,7 +177,7 @@ void scm_vm_finalize(ScmObj vm);
 ScmObj scm_vm_new(void);
 void scm_vm_end(ScmObj vm);
 
-void scm_vm_setup_system(ScmObj vm);
+int scm_vm_setup_system(ScmObj vm);
 void scm_vm_run(ScmObj vm, ScmObj iseq);
 
 int scm_vm_setup_stat_trmp(ScmObj vm, ScmObj target,

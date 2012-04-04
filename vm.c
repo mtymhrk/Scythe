@@ -177,26 +177,26 @@ scm_vm_setup_singletons(ScmObj vm)
 
   SCM_SLOT_SETQ(ScmVM, vm, cnsts.nil, scm_nil_new(SCM_MEM_ROOT));
   if (scm_obj_null_p(SCM_VM(vm)->cnsts.nil))
-    return -1;                           /* TODO: error handling */
+    return -1;                  /* [ERR]: [through] */
 
   SCM_SLOT_SETQ(ScmVM, vm, cnsts.eof, scm_eof_new(SCM_MEM_ROOT));
   if (scm_obj_null_p(SCM_VM(vm)->cnsts.eof))
-    return -1;                           /* TODO: error handling */
+    return -1;                  /* [ERR]: [through] */
 
   SCM_SLOT_SETQ(ScmVM, vm, cnsts.b_true,
                 scm_bool_new(SCM_MEM_ROOT, true));
   if (scm_obj_null_p(SCM_VM(vm)->cnsts.b_true))
-    return -1;                           /* TODO: error handling */
+    return -1;                  /* [ERR]: [through] */
 
   SCM_SLOT_SETQ(ScmVM, vm, cnsts.b_false,
                 scm_bool_new(SCM_MEM_ROOT, false));
   if (scm_obj_null_p(SCM_VM(vm)->cnsts.b_false))
-    return -1;                           /* TODO: error handling */
+    return -1;                  /* [ERR]: [through] */
 
   SCM_SLOT_SETQ(ScmVM, vm, cnsts.undef,
                 scm_undef_new(SCM_MEM_ROOT));
   if (scm_obj_null_p(SCM_VM(vm)->cnsts.undef))
-    return -1;                           /* TODO: error handling */
+    return -1;                  /* [ERR]: [through] */
 
   return 0;
 }
@@ -235,11 +235,11 @@ scm_vm_setup_global_env(ScmObj vm)
 
   SCM_SLOT_SETQ(ScmVM, vm, ge.symtbl, scm_symtbl_new(SCM_MEM_ROOT));
   if (scm_obj_null_p(SCM_VM(vm)->ge.symtbl))
-    return -1;                           /* TODO: error handling */
+    return -1;                  /* [ERR]: [through] */
 
   SCM_SLOT_SETQ(ScmVM,vm, ge.gloctbl, scm_gloctbl_new(SCM_MEM_ROOT));
   if (scm_obj_null_p(SCM_VM(vm)->ge.gloctbl))
-    return -1;                           /* TODO: error handling */
+    return -1;                  /* [ERR]: [through] */
 
   SCM_VM(vm)->ge.stdio.in = SCM_OBJ_NULL;
   SCM_VM(vm)->ge.stdio.out = SCM_OBJ_NULL;
@@ -276,7 +276,7 @@ scm_vm_clean_global_env(ScmObj vm)
 scm_local_func int
 scm_vm_init_eval_env(ScmObj vm)
 {
-  int in_fd, out_fd, err_fd;
+  int in_fd = -1, out_fd = -1, err_fd = -1;
   ScmObj in = SCM_OBJ_INIT, out = SCM_OBJ_INIT, err = SCM_OBJ_INIT;
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
@@ -287,25 +287,45 @@ scm_vm_init_eval_env(ScmObj vm)
   scm_gloctbl_clean(SCM_VM(vm)->ge.gloctbl);
 
   in_fd = dup(0);
-  if (in_fd < 0) return -1;  /* TODO: error handling */
+  if (in_fd < 0) {
+    scm_capi_error("system call error: dup", 0);
+    return -1;
+  }
 
   out_fd = dup(0);
-  if (out_fd < 0) return -1;  /* TODO: error handling */
+  if (out_fd < 0) {
+    scm_capi_error("system call error: dup", 0);
+    close(in_fd);
+    return -1;
+  }
 
   err_fd = dup(0);
-  if (err_fd < 0) return -1;  /* TODO: error handling */
+  if (err_fd < 0) {
+    scm_capi_error("system call error: dup", 0);
+    close(in_fd); close(out_fd);
+    return -1;
+  }
 
   in = scm_capi_open_input_fd(in_fd, SCM_PORT_BUF_DEFAULT,
                               scm_capi_system_encoding());
-  if (scm_obj_null_p(in)) return -1;  /* TODO: error handling */
+  if (scm_obj_null_p(in)) {
+    close(in_fd); close(out_fd); close(err_fd);
+    return -1;                  /* [ERR]: [through] */
+  }
 
   out = scm_capi_open_output_fd(out_fd, SCM_PORT_BUF_DEFAULT,
                                scm_capi_system_encoding());
-  if (scm_obj_null_p(out)) return -1;  /* TODO: error handling */
+  if (scm_obj_null_p(out)) {
+    close(out_fd); close(err_fd);
+    return -1;                  /* [ERR]: [through] */
+  }
 
   err = scm_capi_open_output_fd(err_fd, SCM_PORT_BUF_DEFAULT,
                                 scm_capi_system_encoding());
-  if (scm_obj_null_p(err)) return -1;  /* TODO: error handling */
+  if (scm_obj_null_p(err)) {
+    close(err_fd);
+    return -1;                  /* [ERR]: [through] */
+  }
 
   SCM_SLOT_SETQ(ScmVM,vm, ge.stdio.in, in);
   SCM_SLOT_SETQ(ScmVM,vm, ge.stdio.out, out);
@@ -358,8 +378,10 @@ scm_vm_stack_push(ScmObj vm, ScmObj elm)
 {
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
-  if (SCM_VM(vm)->reg.sp > SCM_VM(vm)->stack + SCM_VM(vm)->stack_size)
+  if (SCM_VM(vm)->reg.sp > SCM_VM(vm)->stack + SCM_VM(vm)->stack_size) {
+    scm_capi_fatal("VM stack overflow");
     return; /* stack overflow; TODO: handle stack overflow error  */
+  }
 
   SCM_SLOT_REF_SETQ(ScmVM, vm, reg.sp, elm);
   SCM_VM(vm)->reg.sp++;
@@ -370,9 +392,11 @@ scm_vm_stack_pop(ScmObj vm)
 {
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
-  if (SCM_VM(vm)->reg.sp == SCM_VM(vm)->stack)
+  if (SCM_VM(vm)->reg.sp == SCM_VM(vm)->stack) {
+    scm_capi_fatal("VM stack underflow");
     /* stack underflow; TODO; handle stack underflow error */
     return SCM_OBJ_NULL;
+  }
 
   SCM_VM(vm)->reg.sp--;
 
@@ -385,10 +409,9 @@ scm_vm_stack_shorten(ScmObj vm, size_t n)
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
   if ((size_t)(SCM_VM(vm)->reg.sp - SCM_VM(vm)->stack) < n)
-    /* stack underflow; TODO; handle stack underflow error */
-    return;
-
-  SCM_VM(vm)->reg.sp = SCM_VM(vm)->reg.sp - n;
+    SCM_VM(vm)->reg.sp = SCM_VM(vm)->stack;
+  else
+    SCM_VM(vm)->reg.sp = SCM_VM(vm)->reg.sp - n;
 }
 
 scm_local_func void
@@ -530,11 +553,17 @@ scm_vm_op_call(ScmObj vm, SCM_OPCODE_T op)
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
   SCM_CAPI_INST_FETCH_UINT32(SCM_VM(vm)->reg.ip, nr_arg);
-  if (nr_arg > INT32_MAX) return; /* [ERR]:  */
+  if (nr_arg > INT32_MAX) {
+    scm_capi_error("bytecode format error", 0);
+    return;
+  }
 
   if (op == SCM_OPCODE_TAIL_CALL) {
     SCM_CAPI_INST_FETCH_UINT32(SCM_VM(vm)->reg.ip, nr_arg_cf);
-    if (nr_arg_cf > INT32_MAX) return; /* [ERR]:  */
+    if (nr_arg_cf > INT32_MAX) {
+      scm_capi_error("bytecode format error", 0);
+      return;
+    }
   }
 
   if (op == SCM_OPCODE_TAIL_CALL)
@@ -553,8 +582,11 @@ scm_vm_op_call(ScmObj vm, SCM_OPCODE_T op)
   if (scm_capi_subrutine_p(SCM_VM(vm)->reg.val)) {
     val = scm_api_call_subrutine(SCM_VM(vm)->reg.val,
                                  (int)nr_arg, SCM_VM(vm)->reg.fp - nr_arg);
-    if (scm_obj_not_null_p(val))
-      SCM_SLOT_SETQ(ScmVM, vm, reg.val, val);
+    if (scm_obj_null_p(val)) {
+      return;                   /* [ERR]: [through] */
+    }
+
+    SCM_SLOT_SETQ(ScmVM, vm, reg.val, val);
 
     if (scm_obj_null_p(SCM_VM(vm)->trmp.code)) {
       scm_vm_return_to_caller(vm, nr_arg);
@@ -574,7 +606,7 @@ scm_vm_op_call(ScmObj vm, SCM_OPCODE_T op)
     SCM_VM(vm)->reg.ip = scm_capi_iseq_to_ip(SCM_VM(vm)->reg.isp);
   }
   else {
-    ;                           /* TODO: error handling */
+    scm_capi_error("object is not applicable", 1, SCM_VM(vm)->reg.val);
   }
 }
 
@@ -591,8 +623,7 @@ scm_vm_op_immval(ScmObj vm, SCM_OPCODE_T op)
   SCM_CAPI_INST_FETCH_UINT32(SCM_VM(vm)->reg.ip, immv_idx);
 
   val = scm_capi_iseq_ref_immval(SCM_VM(vm)->reg.isp, immv_idx);
-  if (scm_obj_null_p(val))
-    ;    /* TODO: error handling */
+  if (scm_obj_null_p(val)) return; /* [ERR]: [through] */
 
   SCM_SLOT_SETQ(ScmVM, vm, reg.val, val);
 }
@@ -643,7 +674,10 @@ scm_vm_op_return(ScmObj vm, SCM_OPCODE_T op) /* GC OK */
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
   SCM_CAPI_INST_FETCH_UINT32(SCM_VM(vm)->reg.ip, nr_arg);
-  if (nr_arg > INT32_MAX) return; /* [ERR]: */
+  if (nr_arg > INT32_MAX) {
+    scm_capi_error("bytecode format error", 0);
+    return;
+  }
 
   scm_vm_return_to_caller(vm, nr_arg);
 }
@@ -669,32 +703,36 @@ scm_vm_op_gref(ScmObj vm, SCM_OPCODE_T op)
   SCM_CAPI_INST_FETCH_UINT32(SCM_VM(vm)->reg.ip, immv_idx);
 
   arg = scm_capi_iseq_ref_immval(SCM_VM(vm)->reg.isp, immv_idx);
-  if (scm_obj_null_p(arg))
-    ;  /* TODO: error handling */
+  if (scm_obj_null_p(arg)) return; /* [ERR]: [through] */
 
   if (scm_obj_type_p(arg, &SCM_SYMBOL_TYPE_INFO)) {
     rslt = scm_gloctbl_find(SCM_VM(vm)->ge.gloctbl, arg, SCM_CSETTER_L(gloc));
-    if (rslt != 0)
-      ;                           /* TODO: error handling */
+    if (rslt != 0) return;             /* [ERR]: [through] */
 
-    if (scm_obj_null_p(gloc))
-      ; /* TODO: error handling (reference of unbound variable) */
+    if (scm_obj_null_p(gloc)) {
+      scm_capi_error("unbound variable", 1, arg);
+      return;
+    }
+
 
     rslt = scm_capi_iseq_set_immval(SCM_VM(vm)->reg.isp,
                                     immv_idx, gloc);
-    if (rslt != 0)
-      ;                           /* TODO: error handling */
+    if (rslt < 0) return;      /* [ERR]: [through] */
 
     val = scm_gloc_value(gloc);
-    if (scm_obj_null_p(val))
-      ; /* TODO: error handling (reference of unbound variable) */
+    if (scm_obj_null_p(val)) {
+      scm_capi_error("unbound variable", 1, arg);
+      return;
+    }
 
     SCM_SLOT_SETQ(ScmVM, vm, reg.val, val);
   }
   else if (scm_obj_type_p(arg, &SCM_GLOC_TYPE_INFO)) {
     val = scm_gloc_value(arg);
-    if (scm_obj_null_p(val))
-      ; /* TODO: error handling (reference of unbound variable) */
+    if (scm_obj_null_p(val)) {
+      scm_capi_error("unbound variable", 1, scm_gloc_symbol(arg));
+      return;
+    }
 
     SCM_SLOT_SETQ(ScmVM, vm, reg.val, val);
   }
@@ -724,17 +762,14 @@ scm_vm_op_gdef(ScmObj vm, SCM_OPCODE_T op)
   SCM_CAPI_INST_FETCH_UINT32(SCM_VM(vm)->reg.ip, immv_idx);
 
   arg = scm_capi_iseq_ref_immval(SCM_VM(vm)->reg.isp, immv_idx);
-  if (scm_obj_null_p(arg))
-    ;  /* TODO: error handling */
+  if (scm_obj_null_p(arg)) return; /* [ERR]: [through] */
 
   if (scm_obj_type_p(arg, &SCM_SYMBOL_TYPE_INFO)) {
     gloc = scm_gloctbl_bind(SCM_VM(vm)->ge.gloctbl, arg, SCM_VM(vm)->reg.val);
-    if (scm_obj_null_p(gloc))
-      ;                           /* TODO: error handling */
+    if (scm_obj_null_p(gloc)) return;  /* [ERR]: [through] */
 
     rslt = scm_capi_iseq_set_immval(SCM_VM(vm)->reg.isp, immv_idx, gloc);
-    if (rslt != 0)
-      ;                           /* TODO: error handling */
+    if (rslt < 0) return;             /* [ERR]: [through] */
   }
   else if (scm_obj_type_p(arg, &SCM_GLOC_TYPE_INFO)) {
     scm_gloc_bind(arg, SCM_VM(vm)->reg.val);
@@ -765,20 +800,19 @@ scm_vm_op_gset(ScmObj vm, SCM_OPCODE_T op)
   SCM_CAPI_INST_FETCH_UINT32(SCM_VM(vm)->reg.ip, immv_idx);
 
   arg = scm_capi_iseq_ref_immval(SCM_VM(vm)->reg.isp, immv_idx);
-  if (scm_obj_null_p(arg))
-    ;  /* TODO: error handling */
+  if (scm_obj_null_p(arg)) return; /* [ERR]: [through] */
 
   if (scm_obj_type_p(arg, &SCM_SYMBOL_TYPE_INFO)) {
     rslt = scm_gloctbl_find(SCM_VM(vm)->ge.gloctbl, arg, SCM_CSETTER_L(gloc));
-    if (rslt != 0)
-      ;                           /* TODO: error handling */
+    if (rslt != 0) return;      /* [ERR]: [through] */
 
-    if (scm_obj_null_p(gloc))
-      ; /* TODO: error handling (reference of unbound variable) */
+    if (scm_obj_null_p(gloc)) {
+      scm_capi_error("unbound variable", 1, arg);
+      return;
+    }
 
     rslt = scm_capi_iseq_set_immval(SCM_VM(vm)->reg.isp, immv_idx, gloc);
-    if (rslt != 0)
-      ;                           /* TODO: error handling */
+    if (rslt < 0) return;      /* [ERR]: [through] */
 
     scm_gloc_bind(gloc, SCM_VM(vm)->reg.val);
   }
@@ -915,15 +949,21 @@ scm_vm_end(ScmObj vm)
   scm_bedrock_end(br);
 }
 
-void
+int
 scm_vm_setup_system(ScmObj vm)
 {
+  int rslt;
+
   SCM_STACK_FRAME_PUSH(&vm);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
-  scm_vm_init_eval_env(vm);
+  rslt = scm_vm_init_eval_env(vm);
+  if (rslt < 0) return -1;       /* [ERR]: [through] */
+
   scm_core_subr_system_setup();
+
+  return 0;
 }
 
 void
