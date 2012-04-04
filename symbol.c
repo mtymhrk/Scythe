@@ -88,11 +88,11 @@ scm_symbol_pretty_print(ScmObj obj, ScmObj port, bool write_p)
 
   if (write_p) {
     rslt = scm_string_escape_ctrl_and_nonascii_write(SCM_SYMBOL_STR(obj), port);
-    if (rslt < 0) return -1;
+    if (rslt < 0) return -1;    /* [ERR]: [through] */
   }
   else {
     ro = scm_api_write_string(SCM_SYMBOL_STR(obj), port);
-    if (scm_obj_null_p(ro)) return -1;
+    if (scm_obj_null_p(ro)) return -1; /* [ERR]: [through] */
   }
 
   return 0;
@@ -234,7 +234,7 @@ scm_symtbl_pretty_preint(ScmObj obj, ScmObj port, bool write_p)
   snprintf(cstr, sizeof(cstr), "#<gloctbl 0x%llx>", (unsigned long long)obj);
 
   rslt = scm_capi_write_cstr(cstr, SCM_ENC_ASCII, port);
-  if (rslt < 0) return -1;
+  if (rslt < 0) return -1;      /* [ERR]: [through] */
 
   return 0;
 }
