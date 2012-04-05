@@ -171,7 +171,7 @@ scm_subr_func_eval_asm(int argc, ScmObj *argv)
   rslt = scm_capi_trampolining(code, args, argc, NULL);
   if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
-  return SCM_OBJ_NULL;
+  return scm_api_undef();
 }
 
 

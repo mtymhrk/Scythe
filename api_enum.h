@@ -47,20 +47,20 @@ typedef enum {
 /*******************************************************************/
 
 typedef enum {
-  SCM_OPCODE_NOP,                 /* no operation */
-  SCM_OPCODE_HALT,                /* stop calculation */
-  SCM_OPCODE_CALL,                /* function call */
-  SCM_OPCODE_TAIL_CALL,           /* function tail call */
-  SCM_OPCODE_RETURN,              /* return from function */
-  SCM_OPCODE_FRAME,               /* create stack frame */
-  SCM_OPCODE_IMMVAL,              /* copy immediate value to val register */
-  SCM_OPCODE_PUSH,                /* push value of val register */
-  SCM_OPCODE_GREF,                /* refere global variable */
-  SCM_OPCODE_GDEF,                /* define global variable */
-  SCM_OPCODE_GSET,                /* update global variable */
+  SCM_OPCODE_NOP,                 /* 0: no operation */
+  SCM_OPCODE_HALT,                /* 1:stop calculation */
+  SCM_OPCODE_CALL,                /* 2: function call */
+  SCM_OPCODE_TAIL_CALL,           /* 3: function tail call */
+  SCM_OPCODE_RETURN,              /* 4: return from function */
+  SCM_OPCODE_FRAME,               /* 5; create stack frame */
+  SCM_OPCODE_IMMVAL,              /* 6: copy immediate value to val register */
+  SCM_OPCODE_PUSH,                /* 7: push value of val register */
+  SCM_OPCODE_GREF,                /* 8: refere global variable */
+  SCM_OPCODE_GDEF,                /* 9: define global variable */
+  SCM_OPCODE_GSET,                /* 10: update global variable */
   /* SCM_OPCODE_SREF,                /\* refere value in stack *\/ */
   /* SCM_OPCODE_CREF                 /\* refere value in closure *\/ */
-  SCM_OPCODE_JMP,                  /* jump */
+  SCM_OPCODE_JMP,                  /* 11: jump */
 } SCM_OPCODE_T;
 
 

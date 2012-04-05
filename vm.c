@@ -583,6 +583,7 @@ scm_vm_op_call(ScmObj vm, SCM_OPCODE_T op)
     val = scm_api_call_subrutine(SCM_VM(vm)->reg.val,
                                  (int)nr_arg, SCM_VM(vm)->reg.fp - nr_arg);
     if (scm_obj_null_p(val)) {
+      SCM_VM(vm)->trmp.code = SCM_OBJ_NULL;
       return;                   /* [ERR]: [through] */
     }
 
@@ -713,7 +714,6 @@ scm_vm_op_gref(ScmObj vm, SCM_OPCODE_T op)
       scm_capi_error("unbound variable", 1, arg);
       return;
     }
-
 
     rslt = scm_capi_iseq_set_immval(SCM_VM(vm)->reg.isp,
                                     immv_idx, gloc);
