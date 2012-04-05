@@ -1244,7 +1244,7 @@ scm_parser_parse_vector(ScmParser *parser, ScmObj port)
   elms = scm_parser_parse_vector_aux(parser, port, &len);
   if (scm_capi_null_value_p(elms)) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
-  vec = scm_capi_make_vector(len);
+  vec = scm_capi_make_vector(len, SCM_OBJ_NULL);
   if (scm_capi_null_value_p(vec)) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   for (idx = 0; idx < len; idx++) {
@@ -1262,9 +1262,13 @@ scm_parser_parse_char(ScmParser *parser, ScmObj port)
 {
   ScmToken *token;
   ScmObj chr = SCM_OBJ_INIT;
+  SCM_ENC_T enc;
 
   scm_assert(parser != NULL);
   scm_assert(scm_capi_input_port_p(port));
+
+  if (scm_capi_port_encoding(port, &enc) < 0)
+    return SCM_OBJ_NULL;        /* [ERR]: [through] */
 
   token = scm_lexer_head_token(parser->lexer, port);
   if (token == NULL) return SCM_OBJ_NULL; /* [ERR]: [through] */
@@ -1272,12 +1276,12 @@ scm_parser_parse_char(ScmParser *parser, ScmObj port)
   if (token->ascii.len == sizeof("#\\newline") - 1 &&
       memcmp("#\\newline", token->ascii.str, token->ascii.len) == 0) {
     /* TODO: 現状、小文字しか受け付けていないが、case insensitive にする */
-    chr = scm_api_make_char_newline();
+    chr = scm_api_make_char_newline(enc);
   }
   else if (token->ascii.len == sizeof("#\\space") - 1 &&
            memcmp("#\\space", token->raw.str, token->raw.len) == 0) {
     /* TODO: 現状、小文字しか受け付けていないが、case insensitive にする */
-    chr = scm_api_make_char_space();
+    chr = scm_api_make_char_space(enc);
   }
   else if (token->raw.len == 3) {
     SCM_ENC_T enc;
@@ -1300,7 +1304,7 @@ scm_parser_parse_char(ScmParser *parser, ScmObj port)
     }
 
     memcpy(c.bytes, SCM_STR_ITR_PTR(&itr), (size_t)SCM_STR_ITR_WIDTH(&itr));
-    chr = scm_capi_make_char(c);
+    chr = scm_capi_make_char(c, enc);
   }
   else {
     scm_lexer_shift_token(parser->lexer);

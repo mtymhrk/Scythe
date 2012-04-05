@@ -17,7 +17,6 @@
 void scm_capi_fatal(const char *msg);
 void scm_capi_fatalf(const char *fmt, ...);
 bool scm_capi_fatal_p(void);
-bool scm_capi_error_p(void);
 
 
 /*******************************************************************/
@@ -188,11 +187,11 @@ scm_capi_fixnum_to_inst_ptr(ScmObj fn)
 /*  charactor                                                      */
 /*******************************************************************/
 
-ScmObj scm_capi_make_char(scm_char_t chr);
-ScmObj scm_api_make_char_newline(void);
-ScmObj scm_api_make_char_space(void);
+ScmObj scm_capi_make_char(scm_char_t chr, SCM_ENC_T enc);
+ScmObj scm_api_make_char_newline(SCM_ENC_T enc);
+ScmObj scm_api_make_char_space(SCM_ENC_T enc);
 bool scm_capi_char_p(ScmObj obj);
-ssize_t scm_capi_char_to_cchar(ScmObj chr, scm_char_t *c);
+ssize_t scm_capi_char_to_cchar(ScmObj chr, scm_char_t *cp);
 int scm_capi_char_encoding(ScmObj chr, SCM_ENC_T *enc);
 
 
@@ -215,8 +214,7 @@ ScmObj scm_api_string_push(ScmObj str, ScmObj c);
 /*  Vector                                                         */
 /*******************************************************************/
 
-ScmObj scm_capi_make_vector(size_t len);
-ScmObj scm_capi_make_vector_fill(size_t len, ScmObj fill);
+ScmObj scm_capi_make_vector(size_t len, ScmObj fill);
 bool scm_capi_vector_p(ScmObj obj);
 ScmObj scm_capi_vector_set(ScmObj vec, size_t idx, ScmObj obj);
 ScmObj scm_capi_vector_ref(ScmObj vec, size_t idx);

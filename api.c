@@ -49,12 +49,6 @@ scm_capi_fatal_p(void)
   return scm_bedrock_fatal_p(scm_bedrock_current_br());
 }
 
-extern inline bool
-scm_capi_error_p(void)
-{
-  return scm_bedrock_error_p(scm_bedrock_current_br());
-}
-
 
 /*******************************************************************/
 /*  C Stack                                                        */
@@ -90,8 +84,10 @@ scm_capi_ref_stack_restore(ScmRefStackInfo *info)
 extern inline ScmObj
 scm_capi_mem_alloc_heap(ScmTypeInfo *type)
 {
-  if (type == NULL)
-    return SCM_OBJ_NULL;         /* provisional implemntation */
+  if (type == NULL) {
+    scm_capi_fatal("memory allocation error: invalid object type");
+    return SCM_OBJ_NULL;
+  }
 
   return scm_mem_alloc_heap(scm_vm_current_mm(), type);
 }
@@ -99,8 +95,10 @@ scm_capi_mem_alloc_heap(ScmTypeInfo *type)
 extern inline ScmObj
 scm_capi_mem_alloc_root(ScmTypeInfo *type)
 {
-  if (type == NULL)
-    return SCM_OBJ_NULL;         /* provisional implemntation */
+  if (type == NULL) {
+    scm_capi_fatal("memory allocation error: invalid object type");
+    return SCM_OBJ_NULL;
+  }
 
   return scm_mem_alloc_root(scm_vm_current_mm(), type);
 }
@@ -116,6 +114,7 @@ scm_capi_mem_alloc(ScmTypeInfo *otype, SCM_MEM_TYPE_T mtype)
     return scm_capi_mem_alloc_root(otype);
     break;
   default:
+    scm_capi_fatal("memory allocation error: invalid memory type");
     return SCM_OBJ_NULL;          /* provisional implemntation */
     break;
   };
@@ -177,8 +176,10 @@ scm_capi_eq_p(ScmObj obj1, ScmObj obj2)
 extern inline ScmObj
 scm_api_eq_P(ScmObj obj1, ScmObj obj2)
 {
-  if (scm_obj_null_p(obj1) || scm_obj_null_p(obj2))
-      return SCM_OBJ_NULL;         /* provisional implemntation */
+  if (scm_obj_null_p(obj1) || scm_obj_null_p(obj2)) {
+    scm_capi_error("eq?: invalid argument", 0);
+    return SCM_OBJ_NULL;         /* provisional implemntation */
+  }
 
   return (scm_obj_same_instance_p(obj1, obj2) ?
           scm_vm_bool_true_instance() : scm_vm_bool_false_instance());
@@ -342,8 +343,10 @@ scm_capi_error_object_p(ScmObj obj)
 extern inline ScmObj
 scm_api_cons(ScmObj car, ScmObj cdr)
 {
-  if (scm_obj_null_p(car) || scm_obj_null_p(cdr))
-    return SCM_OBJ_NULL;         /* provisional implemntation */
+  if (scm_obj_null_p(car) || scm_obj_null_p(cdr)) {
+    scm_capi_error("cons: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
 
   return scm_pair_new(SCM_MEM_ALLOC_HEAP, car, cdr);
 }
@@ -351,8 +354,14 @@ scm_api_cons(ScmObj car, ScmObj cdr)
 extern inline ScmObj
 scm_api_car(ScmObj pair)
 {
-  if (scm_obj_null_p(pair) || !scm_obj_type_p(pair, &SCM_PAIR_TYPE_INFO))
-    return SCM_OBJ_NULL;         /* provisional implemntation */
+  if (scm_obj_null_p(pair)) {
+    scm_capi_error("car: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_obj_type_p(pair, &SCM_PAIR_TYPE_INFO)) {
+    scm_capi_error("car: pair is required, but got", 1, pair);
+    return SCM_OBJ_NULL;
+  }
 
   return scm_pair_car(pair);
 }
@@ -360,8 +369,14 @@ scm_api_car(ScmObj pair)
 extern inline ScmObj
 scm_api_cdr(ScmObj pair)
 {
-  if (scm_obj_null_p(pair) || !scm_obj_type_p(pair, &SCM_PAIR_TYPE_INFO))
+  if (scm_obj_null_p(pair)) {
+    scm_capi_error("cdr: invalid argument", 0);
     return SCM_OBJ_NULL;         /* provisional implemntation */
+  }
+  else if (!scm_obj_type_p(pair, &SCM_PAIR_TYPE_INFO)) {
+    scm_capi_error("cdr: pair is required, but got", 1, pair);
+    return SCM_OBJ_NULL;
+  }
 
   return scm_pair_cdr(pair);
 }
@@ -376,8 +391,10 @@ scm_capi_pair_p(ScmObj pair)
 extern inline ScmObj
 scm_api_pair_P(ScmObj pair)
 {
-  if (scm_obj_null_p(pair))
+  if (scm_obj_null_p(pair)) {
+    scm_capi_error("pair?: invalid argument", 0);
     return SCM_OBJ_NULL;         /* provisional implemntation */
+  }
 
   return (scm_capi_pair_p(pair) ?
           scm_vm_bool_true_instance() : scm_vm_bool_false_instance());
@@ -393,8 +410,13 @@ scm_capi_list(unsigned int n, ...)
   SCM_STACK_FRAME_PUSH(&lst);
 
   va_start(ap, n);
-  for (unsigned int i = 0; i < n; i++)
+  for (unsigned int i = 0; i < n; i++) {
     args[i] = va_arg(ap, ScmObj);
+    if (scm_obj_null_p(args[i])) {
+      scm_capi_error("list: invalid argument", 0);
+      return SCM_OBJ_NULL;
+    }
+  }
   va_end(ap);
 
   for (unsigned int i = 0; i < n; i++)
@@ -420,8 +442,15 @@ scm_capi_list_ref(ScmObj lst, size_t n)
   for (size_t i = 0; i < n; i++) {
     if (scm_capi_pair_p(l))
       l = scm_api_cdr(l);
-    else
+    else {
+      scm_capi_error("list-ref: argument out of range", 0);
       return SCM_OBJ_NULL;
+    }
+  }
+
+  if (!scm_capi_pair_p(l)) {
+    scm_capi_error("list-ref: argument out of range", 0);
+    return SCM_OBJ_NULL;
   }
 
   return scm_api_car(l);
@@ -504,28 +533,53 @@ scm_capi_fixnum_to_clong(ScmObj fn)
 /*******************************************************************/
 
 extern inline ScmObj
-scm_capi_make_char(scm_char_t chr)
+scm_capi_make_char(scm_char_t chr, SCM_ENC_T enc)
 {
-  if (!SCM_ENCODING_VFUNC_VALID_P(SCM_ENC_ASCII)(chr))
+  if (enc >= SCM_ENC_NR_ENC) {
+    scm_capi_error("can not make character object: unknown encoding", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (!SCM_ENCODING_VFUNC_VALID_P(enc)(chr)) {
+    scm_capi_error("can not make character object: invalid sequence", 0);
     return SCM_OBJ_NULL;          /* provisional implemntation */
+  }
 
-  return scm_char_new(SCM_MEM_ALLOC_HEAP, chr, SCM_ENC_ASCII);
+  if (enc == SCM_ENC_SYS)
+    enc = scm_capi_system_encoding();
+
+  return scm_char_new(SCM_MEM_ALLOC_HEAP, chr, enc);
 }
 
 extern inline ScmObj
-scm_api_make_char_newline(void)
+scm_api_make_char_newline(SCM_ENC_T enc)
 {
+  if (enc >= SCM_ENC_NR_ENC) {
+    scm_capi_error("can not make character object: unknown encoding", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  if (enc == SCM_ENC_SYS)
+    enc = scm_capi_system_encoding();
+
   return scm_char_new(SCM_MEM_ALLOC_HEAP,
-                      SCM_ENCODING_CONST_LF_CHAR(SCM_ENC_ASCII),
-                      SCM_ENC_ASCII);
+                      SCM_ENCODING_CONST_LF_CHAR(enc),
+                      enc);
 }
 
 extern inline ScmObj
-scm_api_make_char_space(void)
+scm_api_make_char_space(SCM_ENC_T enc)
 {
+  if (enc >= SCM_ENC_NR_ENC) {
+    scm_capi_error("can not make character object: unknown encoding", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  if (enc == SCM_ENC_SYS)
+    enc = scm_capi_system_encoding();
+
   return scm_char_new(SCM_MEM_ALLOC_HEAP,
-                      SCM_ENCODING_CONST_SPACE_CHAR(SCM_ENC_ASCII),
-                      SCM_ENC_ASCII);
+                      SCM_ENCODING_CONST_SPACE_CHAR(enc),
+                      enc);
 }
 
 extern inline bool
@@ -537,27 +591,38 @@ scm_capi_char_p(ScmObj obj)
 }
 
 extern inline ssize_t
-scm_capi_char_to_cchar(ScmObj chr, scm_char_t *c)
+scm_capi_char_to_cchar(ScmObj chr, scm_char_t *cp)
 {
-  if (!scm_capi_char_p(chr))
-    return -1;          /* provisional implemntation */
+  scm_char_t c;
 
-  *c = scm_char_value(chr);
+  if (!scm_capi_char_p(chr)) {
+    scm_capi_error("can not get byte sequence from character object: "
+                   "invalid argument", 0);
+    return -1;
+  }
 
-  return SCM_ENCODING_VFUNC_CHAR_WIDTH(scm_char_encoding(chr))(c->bytes,
-                                                               sizeof(*c));
+  c = scm_char_value(chr);
+
+  if (cp != NULL) *cp = c;
+
+  return SCM_ENCODING_VFUNC_CHAR_WIDTH(scm_char_encoding(chr))(c.bytes,
+                                                               sizeof(c));
 }
 
 extern inline int
 scm_capi_char_encoding(ScmObj chr, SCM_ENC_T *enc)
 {
-  if (!scm_capi_char_p(chr))
-    return -1;                  /* provisional implementation */
+  if (scm_obj_null_p(chr)) {
+    scm_capi_error("char-encoding: invalid argument", 0);
+    return -1;
+  }
+  else if (!scm_capi_char_p(chr)) {
+    scm_capi_error("char-encoding: required character, but got", 1, chr);
+    return -1;
+  }
 
-  if (enc == NULL)
-    return -1;                  /* provisional implementation */
-
-  *enc = scm_char_encoding(chr);
+  if (enc != NULL)
+    *enc = scm_char_encoding(chr);
 
   return 0;
 }
@@ -570,25 +635,48 @@ scm_capi_char_encoding(ScmObj chr, SCM_ENC_T *enc)
 extern inline ScmObj
 scm_capi_make_string_from_cstr(const char *str, SCM_ENC_T enc)
 {
-  if (str == NULL)
-    return SCM_OBJ_NULL;         /* provisional implemntation */
+  if (enc >= SCM_ENC_NR_ENC) {
+    scm_capi_error("can not make string object: unknown encoding", 0);
+    return SCM_OBJ_NULL;
+  }
 
-  if (enc >= SCM_ENC_NR_ENC && enc == SCM_ENC_SYS)
-    return SCM_OBJ_NULL;         /* provisional implemntation */
+  if (enc == SCM_ENC_SYS)
+    enc = scm_capi_system_encoding();
 
-  return scm_string_new(SCM_MEM_ALLOC_HEAP, str, strlen(str), enc);
+  if (str == NULL) {
+    return scm_string_new(SCM_MEM_ALLOC_HEAP, "", 0, enc);
+  }
+  else {
+    size_t sz = strlen(str);
+    if (sz > SSIZE_MAX) {
+      scm_capi_error("can not make string object: too long", 0);
+      return SCM_OBJ_NULL;
+    }
+    return scm_string_new(SCM_MEM_ALLOC_HEAP, str, sz, enc);
+  }
 }
 
 extern inline ScmObj
 scm_capi_make_string_from_bin(const void *data, size_t size, SCM_ENC_T enc)
 {
-  if (data == NULL)
-    return SCM_OBJ_NULL;         /* provisional implemntation */
+  if (enc >= SCM_ENC_NR_ENC) {
+    scm_capi_error("can not make string object: unknown encoding", 0);
+    return SCM_OBJ_NULL;
+  }
 
-  if (enc >= SCM_ENC_NR_ENC && enc == SCM_ENC_SYS)
-    return SCM_OBJ_NULL;         /* provisional implemntation */
+  if (enc == SCM_ENC_SYS)
+    enc = scm_capi_system_encoding();
 
-  return scm_string_new(SCM_MEM_ALLOC_HEAP, data, size, enc);
+  if (data == NULL) {
+    return scm_string_new(SCM_MEM_ALLOC_HEAP, "", 0, enc);
+  }
+  else {
+    if (size > SSIZE_MAX) {
+      scm_capi_error("can not make string object: too long", 0);
+      return SCM_OBJ_NULL;
+    }
+    return scm_string_new(SCM_MEM_ALLOC_HEAP, data, size, enc);
+  }
 }
 
 extern inline bool
@@ -602,8 +690,14 @@ scm_capi_string_p(ScmObj obj)
 extern inline ssize_t
 scm_capi_string_length(ScmObj str)
 {
-  if (!scm_capi_string_p(str))
-    return -1;                  /* provisional implementation */
+  if (scm_obj_null_p(str)) {
+    scm_capi_error("string-length: invalid argument", 0);
+    return -1;
+  }
+  else if (!scm_capi_string_p(str)) {
+    scm_capi_error("string-length: required string, but got", 1, str);
+    return -1;
+  }
 
   return (ssize_t)scm_string_length(str);
 }
@@ -611,8 +705,14 @@ scm_capi_string_length(ScmObj str)
 extern inline ssize_t
 scm_capi_string_bytesize(ScmObj str)
 {
-  if (!scm_capi_string_p(str))
-    return -1;                  /* provisional implementation */
+  if (scm_obj_null_p(str)) {
+    scm_capi_error("string-bytesize: invalid argument", 0);
+    return -1;
+  }
+  else if (!scm_capi_string_p(str)) {
+    scm_capi_error("string-bytesize: required string, but got", 1, str);
+    return -1;
+  }
 
   return (ssize_t)scm_string_bytesize(str);
 }
@@ -620,13 +720,17 @@ scm_capi_string_bytesize(ScmObj str)
 extern inline int
 scm_capi_string_encoding(ScmObj str, SCM_ENC_T *enc)
 {
-  if (!scm_capi_string_p(str))
-    return -1;                  /* provisional implementation */
+  if (scm_obj_null_p(str)) {
+    scm_capi_error("string-encoding: invalid argument", 0);
+    return -1;
+  }
+  else if (!scm_capi_string_p(str)) {
+    scm_capi_error("string-encoding: required string, but got", 1, str);
+    return -1;
+  }
 
-  if (enc == NULL)
-    return -1;                  /* provisional implementation */
-
-  *enc = scm_string_encoding(str);
+  if (enc != NULL)
+    *enc = scm_string_encoding(str);
 
   return 0;
 }
@@ -637,8 +741,10 @@ scm_capi_string_to_cstr(ScmObj str, char *cstr, size_t size)
 {
   ssize_t n;
 
-  if (!scm_capi_string_p(str))
-    return -1;                  /* provisional implementation */
+  if (!scm_capi_string_p(str)) {
+    scm_capi_error("can not get byte sequence from string: invalid argument", 0);
+    return -1;
+  }
 
   if (cstr == NULL || size == 0) return 0;
 
@@ -660,11 +766,18 @@ scm_api_string_push(ScmObj str, ScmObj c)
   scm_char_t cv;
   int rslt;
 
-  if (!scm_capi_string_p(str))
+  if (scm_obj_null_p(str) || scm_obj_null_p(c)) {
+    scm_capi_error("string-push: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_string_p(str)) {
+    scm_capi_error("string-push: required string, but got", 1, str);
     return SCM_OBJ_NULL;                  /* provisional implementation */
-
-  if (!scm_capi_char_p(c))
+  }
+  else if (!scm_capi_char_p(c)) {
+    scm_capi_error("string-push: required character, but got", 1, c);
     return SCM_OBJ_NULL;                  /* provisional implementation */
+  }
 
   rslt = scm_capi_string_encoding(str, &s_enc);
   if (rslt < 0) return SCM_OBJ_NULL;
@@ -672,7 +785,10 @@ scm_api_string_push(ScmObj str, ScmObj c)
   rslt = scm_capi_char_encoding(str, &c_enc);
   if (rslt < 0) return SCM_OBJ_NULL;
 
-  if (s_enc != c_enc) return SCM_OBJ_NULL;
+  if (s_enc != c_enc) {
+    scm_capi_error("string-push: encoding mismatch", 0);
+    return SCM_OBJ_NULL;
+  }
 
   cv = scm_char_value(c);
 
@@ -688,21 +804,17 @@ scm_api_string_push(ScmObj str, ScmObj c)
 /*******************************************************************/
 
 extern inline ScmObj
-scm_capi_make_vector(size_t len)
+scm_capi_make_vector(size_t len, ScmObj fill)
 {
-  if (len > SSIZE_MAX)
-    return SCM_OBJ_NULL;         /* provisional implemntation */
+  if (len > SSIZE_MAX) {
+    scm_capi_error("make-vector: too long", 0);
+    return SCM_OBJ_NULL;
+  }
 
-  return scm_vector_new(SCM_MEM_ALLOC_HEAP, len, scm_api_nil());
-}
-
-extern inline ScmObj
-scm_capi_make_vector_fill(size_t len, ScmObj fill)
-{
-  if (scm_obj_null_p(fill) || len > SSIZE_MAX)
-    return SCM_OBJ_NULL;         /* provisional implemntation */
-
-  return scm_vector_new(SCM_MEM_ALLOC_HEAP, len, fill);
+  if (scm_obj_null_p(fill))
+    return scm_vector_new(SCM_MEM_ALLOC_HEAP, len, scm_api_undef());
+  else
+    return scm_vector_new(SCM_MEM_ALLOC_HEAP, len, fill);
 }
 
 extern inline bool
@@ -716,11 +828,18 @@ scm_capi_vector_p(ScmObj obj)
 extern inline ScmObj
 scm_capi_vector_set(ScmObj vec, size_t idx, ScmObj obj)
 {
-  if (scm_obj_null_p(vec)
-      || !scm_obj_type_p(vec, &SCM_VECTOR_TYPE_INFO)
-      || idx >= scm_vector_length(vec)
-      || scm_obj_null_p(obj))
-    return SCM_OBJ_NULL;         /* provisional implemntation */
+  if (scm_obj_null_p(vec) || scm_obj_null_p(obj)) {
+    scm_capi_error("vector-set!: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_obj_type_p(vec, &SCM_VECTOR_TYPE_INFO)) {
+    scm_capi_error("vector-set!: vector required, but got", 1, vec);
+    return SCM_OBJ_NULL;
+  }
+  else if (idx >= scm_vector_length(vec)) {
+    scm_capi_error("vector-set!: argument out of range", 0);
+    return SCM_OBJ_NULL;
+  }
 
   return scm_vector_set(vec, idx, obj);
 }
@@ -728,9 +847,18 @@ scm_capi_vector_set(ScmObj vec, size_t idx, ScmObj obj)
 extern inline ScmObj
 scm_capi_vector_ref(ScmObj vec, size_t idx)
 {
-  if (!scm_capi_vector_p(vec)
-      || idx >= scm_vector_length(vec))
-    return SCM_OBJ_NULL;         /* provisional implemntation */
+  if (scm_obj_null_p(vec)) {
+    scm_capi_error("vector-ref: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_obj_type_p(vec, &SCM_VECTOR_TYPE_INFO)) {
+    scm_capi_error("vector-ref: vector required, but got", 1, vec);
+    return SCM_OBJ_NULL;
+  }
+  else if (idx >= scm_vector_length(vec)) {
+    scm_capi_error("vector-ref: argument out of range", 0);
+    return SCM_OBJ_NULL;
+  }
 
   return scm_vector_ref(vec, idx);
 }
@@ -738,8 +866,14 @@ scm_capi_vector_ref(ScmObj vec, size_t idx)
 extern inline ssize_t
 scm_capi_vector_length(ScmObj vec)
 {
-  if (!scm_capi_vector_p(vec))
-    return -1;                   /* provisional implementation */
+    if (scm_obj_null_p(vec)) {
+    scm_capi_error("vector-length: invalid argument", 0);
+    return -1;
+  }
+  else if (!scm_obj_type_p(vec, &SCM_VECTOR_TYPE_INFO)) {
+    scm_capi_error("vector-length: vector required, but got", 1, vec);
+    return -1;
+  }
 
   return (ssize_t)scm_vector_length(vec);
 }
@@ -752,9 +886,14 @@ scm_capi_vector_length(ScmObj vec)
 extern inline ScmObj
 scm_api_symbol_to_string(ScmObj sym)
 {
-  if (scm_obj_null_p(sym) || !scm_capi_symbol_p(sym))
-    /* TODO: ランタイムエラーをどう処理するか。*/
-    return SCM_OBJ_NULL;        /* provisional implemntation */
+  if (scm_obj_null_p(sym)) {
+    scm_capi_error("symbol->string: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if  (!scm_capi_symbol_p(sym)) {
+    scm_capi_error("symbol->string: symbol required, but got", 1, sym);
+    return SCM_OBJ_NULL;
+  }
 
   return scm_symbol_string(sym);
 }
@@ -767,18 +906,20 @@ scm_api_string_to_symbol(ScmObj str)
 
   SCM_STACK_FRAME_PUSH(&str);
 
-  if (scm_obj_null_p(str) || !scm_capi_string_p(str))
-    return SCM_OBJ_NULL;         /* provisional implemntation */
+  if (scm_obj_null_p(str)) {
+    scm_capi_error("string->symbol: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if  (!scm_capi_string_p(str)) {
+    scm_capi_error("string->symbol: required string, but got", 1, str);
+    return SCM_OBJ_NULL;
+  }
 
   rslt = scm_capi_string_encoding(str, &enc);
   if (rslt < 0) return SCM_OBJ_NULL; /* provisional implemntation */
 
-  if (enc != scm_capi_system_encoding()) {
-    if (enc != SCM_ENC_ASCII)
-      return SCM_OBJ_NULL; /* provisional implemntation */
-
+  if (enc != scm_capi_system_encoding())
     str = scm_string_encode(str, scm_capi_system_encoding());
-  }
 
   return scm_symtbl_symbol(scm_vm_current_symtbl(), str);
 }
@@ -790,17 +931,11 @@ scm_capi_make_symbol_from_cstr(const char *str, SCM_ENC_T enc)
 
   SCM_STACK_FRAME_PUSH(&s);
 
-  if (str == NULL)
-    return SCM_OBJ_NULL;        /* provisional implemntation */
-
   s = scm_capi_make_string_from_cstr(str, enc);
   if (scm_obj_null_p(s))
     return SCM_OBJ_NULL;        /* provisional implemntation */
 
-  if (enc != scm_capi_system_encoding()) {
-    if (enc != SCM_ENC_ASCII)
-      return SCM_OBJ_NULL;      /* provisional implemntation */
-
+  if (enc != SCM_ENC_SYS && enc != scm_capi_system_encoding()) {
     s = scm_string_encode(s, scm_capi_system_encoding());
     if (scm_obj_null_p(s))
       return SCM_OBJ_NULL;        /* provisional implemntation */
@@ -816,17 +951,11 @@ scm_capi_make_symbol_from_bin(const void *data, size_t size, SCM_ENC_T enc)
 
   SCM_STACK_FRAME_PUSH(&s);
 
-  if (data == NULL)
-    return SCM_OBJ_NULL;        /* provisional implemntation */
-
   s = scm_capi_make_string_from_bin(data, size, enc);
   if (scm_obj_null_p(s))
     return SCM_OBJ_NULL;        /* provisional implemntation */
 
-  if (enc != scm_capi_system_encoding()) {
-    if (enc != SCM_ENC_ASCII)
-      return SCM_OBJ_NULL;      /* provisional implemntation */
-
+  if (enc != SCM_ENC_SYS && enc != scm_capi_system_encoding()) {
     s = scm_string_encode(s, scm_capi_system_encoding());
     if (scm_obj_null_p(s))
       return SCM_OBJ_NULL;        /* provisional implemntation */
@@ -846,8 +975,14 @@ scm_capi_symbol_p(ScmObj obj)
 extern inline ssize_t
 scm_capi_symbol_bytesize(ScmObj sym)
 {
-  if (!scm_capi_symbol_p(sym))
-    return -1;                  /* provisional implementation */
+  if (scm_obj_null_p(sym)) {
+    scm_capi_error("symbol-bytesize: invalid argument", 0);
+    return -1;
+  }
+  else if (!scm_capi_symbol_p(sym)) {
+    scm_capi_error("symbol-bytesize: required symbol, but got", 1, sym);
+    return -1;
+  }
 
   return scm_capi_string_bytesize(scm_api_symbol_to_string(sym));
 }
@@ -855,9 +990,6 @@ scm_capi_symbol_bytesize(ScmObj sym)
 extern inline ssize_t
 scm_capi_symbol_to_cstr(ScmObj sym, char *cstr, size_t size)
 {
-  if (!scm_capi_symbol_p(sym))
-    return -1;                  /* provisional implementation */
-
   return scm_capi_string_to_cstr(scm_api_symbol_to_string(sym),
                                  cstr, size);
 }
