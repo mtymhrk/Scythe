@@ -125,11 +125,6 @@ struct ScmVMRec {
     ScmObj b_false;
     ScmObj undef;
   } cnsts;
-
-  /*** Trampolining ***/
-  struct {
-    ScmObj code;
-  } trmp;
 };
 
 /* private functions ******************************************************/
@@ -147,6 +142,9 @@ ScmObj scm_vm_stack_pop(ScmObj vm);
 void scm_vm_stack_shorten(ScmObj vm, size_t n);
 void scm_vm_stack_shift(ScmObj vm, size_t nelm, size_t nshift);
 
+ScmObj *scm_vm_cur_frame_argv(ScmObj vm, int argc);
+void scm_vm_make_stack_frame(ScmObj vm, ScmObj fp, ScmObj cp,
+                             ScmObj isp, ScmObj ip);
 void scm_vm_return_to_caller(ScmObj vm, uint32_t nr_arg);
 
 ScmObj scm_vm_make_trampolining_code(ScmObj vm, ScmObj clsr,
