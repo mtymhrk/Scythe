@@ -1031,7 +1031,6 @@ scm_port_finalize(ScmObj port)
 {
   scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
 
-  scm_port_flush(port);
   scm_port_close(port);
   scm_io_end(SCM_PORT(port)->io);
   scm_capi_free(SCM_PORT(port)->buffer);
