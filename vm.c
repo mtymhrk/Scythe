@@ -1080,7 +1080,7 @@ scm_vm_setup_stat_trmp(ScmObj vm, ScmObj target,
                           ip_fn);
 
   for (int i = 0; i < nr_arg_cf; i++)
-    scm_vm_stack_push(vm, scm_vm_cur_frame_argv(vm, nr_arg_cf)[i]);
+    scm_vm_stack_push(vm, SCM_OBJ_NULL);
 
   SCM_VM(vm)->reg.fp = SCM_VM(vm)->reg.sp;
 
