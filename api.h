@@ -343,7 +343,6 @@ ScmObj scm_api_assemble(ScmObj lst);
 
 ScmObj scm_api_global_var_ref(ScmObj sym);
 bool scm_capi_global_var_bound_p(ScmObj sym);
-ScmObj scm_api_global_var_bound_P(ScmObj sym);
 ScmObj scm_api_global_var_define(ScmObj sym, ScmObj val);
 ScmObj scm_api_global_var_set(ScmObj sym, ScmObj val);
 

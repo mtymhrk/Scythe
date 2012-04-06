@@ -359,7 +359,7 @@ scm_api_car(ScmObj pair)
     return SCM_OBJ_NULL;
   }
   else if (!scm_obj_type_p(pair, &SCM_PAIR_TYPE_INFO)) {
-    scm_capi_error("car: pair is required, but got", 1, pair);
+    scm_capi_error("car: pair required, but got", 1, pair);
     return SCM_OBJ_NULL;
   }
 
@@ -374,7 +374,7 @@ scm_api_cdr(ScmObj pair)
     return SCM_OBJ_NULL;         /* provisional implemntation */
   }
   else if (!scm_obj_type_p(pair, &SCM_PAIR_TYPE_INFO)) {
-    scm_capi_error("cdr: pair is required, but got", 1, pair);
+    scm_capi_error("cdr: pair required, but got", 1, pair);
     return SCM_OBJ_NULL;
   }
 
@@ -617,7 +617,7 @@ scm_capi_char_encoding(ScmObj chr, SCM_ENC_T *enc)
     return -1;
   }
   else if (!scm_capi_char_p(chr)) {
-    scm_capi_error("char-encoding: required character, but got", 1, chr);
+    scm_capi_error("char-encoding: character required, but got", 1, chr);
     return -1;
   }
 
@@ -695,7 +695,7 @@ scm_capi_string_length(ScmObj str)
     return -1;
   }
   else if (!scm_capi_string_p(str)) {
-    scm_capi_error("string-length: required string, but got", 1, str);
+    scm_capi_error("string-length: string required, but got", 1, str);
     return -1;
   }
 
@@ -710,7 +710,7 @@ scm_capi_string_bytesize(ScmObj str)
     return -1;
   }
   else if (!scm_capi_string_p(str)) {
-    scm_capi_error("string-bytesize: required string, but got", 1, str);
+    scm_capi_error("string-bytesize: string required, but got", 1, str);
     return -1;
   }
 
@@ -725,7 +725,7 @@ scm_capi_string_encoding(ScmObj str, SCM_ENC_T *enc)
     return -1;
   }
   else if (!scm_capi_string_p(str)) {
-    scm_capi_error("string-encoding: required string, but got", 1, str);
+    scm_capi_error("string-encoding: string required, but got", 1, str);
     return -1;
   }
 
@@ -771,11 +771,11 @@ scm_api_string_push(ScmObj str, ScmObj c)
     return SCM_OBJ_NULL;
   }
   else if (!scm_capi_string_p(str)) {
-    scm_capi_error("string-push: required string, but got", 1, str);
+    scm_capi_error("string-push: string required, but got", 1, str);
     return SCM_OBJ_NULL;                  /* provisional implementation */
   }
   else if (!scm_capi_char_p(c)) {
-    scm_capi_error("string-push: required character, but got", 1, c);
+    scm_capi_error("string-push: character required, but got", 1, c);
     return SCM_OBJ_NULL;                  /* provisional implementation */
   }
 
@@ -911,7 +911,7 @@ scm_api_string_to_symbol(ScmObj str)
     return SCM_OBJ_NULL;
   }
   else if  (!scm_capi_string_p(str)) {
-    scm_capi_error("string->symbol: required string, but got", 1, str);
+    scm_capi_error("string->symbol: string required, but got", 1, str);
     return SCM_OBJ_NULL;
   }
 
@@ -980,7 +980,7 @@ scm_capi_symbol_bytesize(ScmObj sym)
     return -1;
   }
   else if (!scm_capi_symbol_p(sym)) {
-    scm_capi_error("symbol-bytesize: required symbol, but got", 1, sym);
+    scm_capi_error("symbol-bytesize: symbol required, but got", 1, sym);
     return -1;
   }
 
@@ -1011,7 +1011,18 @@ scm_capi_symbol_hash_value(ScmObj sym)
 extern inline ScmObj
 scm_capi_open_input_fd(int fd, SCM_PORT_BUF_T mode, SCM_ENC_T enc)
 {
-  if (fd < 0) return SCM_OBJ_NULL; /* provisional implemntation */
+  if (fd < 0) {
+    scm_capi_error("open-input-fd: invalid file descriptor", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (mode >= SCM_PORT_NR_BUF_MODE) {
+    scm_capi_error("open-input-fd: unknown buffering mode", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (enc >= SCM_ENC_NR_ENC) {
+    scm_capi_error("open-input-fd: unknown encoding", 0);
+    return SCM_OBJ_NULL;
+  }
 
   if (enc == SCM_ENC_SYS)
     enc = scm_capi_system_encoding();
@@ -1022,7 +1033,18 @@ scm_capi_open_input_fd(int fd, SCM_PORT_BUF_T mode, SCM_ENC_T enc)
 extern inline ScmObj
 scm_capi_open_output_fd(int fd, SCM_PORT_BUF_T mode, SCM_ENC_T enc)
 {
-  if (fd < 0) return SCM_OBJ_NULL; /* provisional implemntation */
+  if (fd < 0) {
+    scm_capi_error("open-output-fd: invalid file descriptor", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (mode >= SCM_PORT_NR_BUF_MODE) {
+    scm_capi_error("open-output-fd: unknown buffering mode", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (enc >= SCM_ENC_NR_ENC) {
+    scm_capi_error("open-output-fd: unknown encoding", 0);
+    return SCM_OBJ_NULL;
+  }
 
   if (enc == SCM_ENC_SYS)
     enc = scm_capi_system_encoding();
@@ -1033,6 +1055,11 @@ scm_capi_open_output_fd(int fd, SCM_PORT_BUF_T mode, SCM_ENC_T enc)
 extern inline ScmObj
 scm_capi_open_input_string_from_cstr(const char *str, SCM_ENC_T enc)
 {
+  if (enc >= SCM_ENC_NR_ENC) {
+    scm_capi_error("can not open input string port: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
   if (enc == SCM_ENC_SYS)
     enc = scm_capi_system_encoding();
 
@@ -1044,6 +1071,11 @@ scm_capi_open_input_string_from_cstr(const char *str, SCM_ENC_T enc)
 extern inline ScmObj
 scm_capi_open_output_string(SCM_ENC_T enc)
 {
+  if (enc >= SCM_ENC_NR_ENC) {
+    scm_capi_error("open-output-string: unknown encoding", 0);
+    return SCM_OBJ_NULL;
+  }
+
   if (enc == SCM_ENC_SYS)
     enc = scm_capi_system_encoding();
 
@@ -1065,8 +1097,10 @@ scm_capi_input_port_p(ScmObj port)
 extern inline ScmObj
 scm_api_input_port_P(ScmObj port)
 {
-  if (scm_obj_null_p(port))
+  if (scm_obj_null_p(port)) {
+    scm_capi_error("input-port?: invaid argument", 0);
     return SCM_OBJ_NULL;         /* provisional implemntation */
+  }
 
   if (scm_obj_type_p(port, &SCM_PORT_TYPE_INFO) && scm_port_readable_p(port))
     return scm_vm_bool_true_instance();
@@ -1089,8 +1123,10 @@ scm_capi_output_port_p(ScmObj port)
 extern inline ScmObj
 scm_api_output_port_P(ScmObj port)
 {
-  if (scm_obj_null_p(port))
+  if (scm_obj_null_p(port)) {
+    scm_capi_error("output-port?: invaid argument", 0);
     return SCM_OBJ_NULL;         /* provisional implemntation */
+  }
 
   if (scm_obj_type_p(port, &SCM_PORT_TYPE_INFO) && scm_port_writable_p(port))
     return scm_vm_bool_true_instance();
@@ -1101,9 +1137,14 @@ scm_api_output_port_P(ScmObj port)
 extern inline int
 scm_capi_port_encoding(ScmObj port, SCM_ENC_T *enc)
 {
-  if (scm_obj_null_p(port)
-      || !scm_obj_type_p(port, &SCM_PORT_TYPE_INFO))
+  if (scm_obj_null_p(port)) {
+    scm_capi_error("port-encoding: invalid argument", 0);
+    return -1;
+  }
+  else if (!scm_obj_type_p(port, &SCM_PORT_TYPE_INFO)) {
+    scm_capi_error("port-encoding: port required, but got", 1, port);
     return -1;                  /* provisional implemntation */
+  }
 
   *enc = scm_port_encoding(port);
   return 0;
@@ -1112,8 +1153,14 @@ scm_capi_port_encoding(ScmObj port, SCM_ENC_T *enc)
 extern inline int
 scm_api_close_input_port(ScmObj port)
 {
-  if (scm_obj_null_p(port) || !scm_capi_input_port_p(port))
-    return -1;         /* provisional implemntation */
+  if (scm_obj_null_p(port)) {
+    scm_capi_error("close-input-port: invalid argument", 0);
+    return -1;
+  }
+  else if (!scm_capi_input_port_p(port)) {
+    scm_capi_error("close-input-port: input-port required, but got", 1, port);
+    return -1;
+  }
 
   return scm_port_close(port);
 }
@@ -1121,8 +1168,14 @@ scm_api_close_input_port(ScmObj port)
 extern inline int
 scm_api_close_output_port(ScmObj port)
 {
-  if (scm_obj_null_p(port) || !scm_capi_output_port_p(port))
+  if (scm_obj_null_p(port)) {
+    scm_capi_error("close-output-port: invalid argument", 0);
+    return -1;
+  }
+  else if (!scm_capi_output_port_p(port)) {
+    scm_capi_error("close-output-port: output-port required, but got", 1, port);
     return -1;         /* provisional implemntation */
+  }
 
   return scm_port_close(port);
 }
@@ -1130,11 +1183,22 @@ scm_api_close_output_port(ScmObj port)
 extern inline ssize_t
 scm_capi_read_raw(void *buf, size_t size, ScmObj port)
 {
-  if (scm_obj_null_p(port)
-      || !scm_capi_input_port_p(port)
-      || buf == NULL
-      || size > SSIZE_MAX)
-    return -1;         /* provisional implemntation */
+  if (scm_obj_null_p(port)) {
+    scm_capi_error("read error: invalid argument", 0);
+    return -1;
+  }
+  else if (!scm_capi_input_port_p(port)) {
+    scm_capi_error("read error: invalid argument", 0);
+    return -1;
+  }
+  else if (buf == NULL) {
+    scm_capi_error("read error: invalid argument", 0);
+    return -1;
+  }
+  else if (size > SSIZE_MAX) {
+    scm_capi_error("read error: invalid argument", 0);
+    return -1;
+  }
 
   return scm_port_read(port, buf, size);
 }
@@ -1142,10 +1206,18 @@ scm_capi_read_raw(void *buf, size_t size, ScmObj port)
 extern inline ssize_t
 scm_capi_read_char(scm_char_t *chr, ScmObj port)
 {
-  if (scm_obj_null_p(port)
-      || !scm_capi_input_port_p(port)
-      || chr == NULL)
-    return -1;         /* provisional implemntation */
+  if (scm_obj_null_p(port)) {
+    scm_capi_error("read error: invalid argument", 0);
+    return -1;
+  }
+  else if (!scm_capi_input_port_p(port)) {
+    scm_capi_error("read error: invalid argument", 0);
+    return -1;
+  }
+  else if (chr == NULL) {
+    scm_capi_error("read error: invalid argument", 0);
+    return -1;
+  }
 
   return scm_port_read_char(port, chr);
 }
@@ -1153,11 +1225,22 @@ scm_capi_read_char(scm_char_t *chr, ScmObj port)
 extern inline ssize_t
 scm_capi_unread_raw(const void *buf, size_t size, ScmObj port)
 {
-  if (scm_obj_null_p(port)
-      || !scm_capi_input_port_p(port)
-      || buf == NULL
-      || size > SSIZE_MAX)
-    return -1;         /* provisional implemntation */
+  if (scm_obj_null_p(port)) {
+    scm_capi_error("unread error: invalid argument", 0);
+    return -1;
+  }
+  else if (!scm_capi_input_port_p(port)) {
+    scm_capi_error("unread error: invalid argument", 0);
+    return -1;
+  }
+  else if (buf == NULL) {
+    scm_capi_error("unread error: invalid argument", 0);
+    return -1;
+  }
+  else if (size > SSIZE_MAX) {
+    scm_capi_error("unread error: invalid argument", 0);
+    return -1;
+  }
 
   return scm_port_pushback(port, buf, size);
 }
@@ -1165,10 +1248,18 @@ scm_capi_unread_raw(const void *buf, size_t size, ScmObj port)
 extern inline ssize_t
 scm_capi_unread_char(const scm_char_t *chr, ScmObj port)
 {
-  if (scm_obj_null_p(port)
-      || !scm_capi_input_port_p(port)
-      || chr == NULL)
+  if (scm_obj_null_p(port)) {
+    scm_capi_error("unread error: invalid argument", 0);
     return -1;
+  }
+  else if (!scm_capi_input_port_p(port)) {
+    scm_capi_error("unread error: invalid argument", 0);
+    return -1;
+  }
+  else if (chr == NULL) {
+    scm_capi_error("unread error: invalid argument", 0);
+    return -1;
+  }
 
   return scm_port_pushback_char(port, chr);
 }
@@ -1176,11 +1267,22 @@ scm_capi_unread_char(const scm_char_t *chr, ScmObj port)
 extern inline ssize_t
 scm_capi_peek_raw(void *buf, size_t size, ScmObj port)
 {
-  if (scm_obj_null_p(port)
-      || !scm_capi_input_port_p(port)
-      || buf == NULL
-      || size > SSIZE_MAX)
-    return -1;         /* provisional implemntation */
+  if (scm_obj_null_p(port)) {
+    scm_capi_error("peek error: invalid argument", 0);
+    return -1;
+  }
+  else if (!scm_capi_input_port_p(port)) {
+    scm_capi_error("peek error: invalid argument", 0);
+    return -1;
+  }
+  else if (buf == NULL) {
+    scm_capi_error("peek error: invalid argument", 0);
+    return -1;
+  }
+  else if (size > SSIZE_MAX) {
+    scm_capi_error("peek error: invalid argument", 0);
+    return -1;
+  }
 
   return scm_port_peek(port, buf, size);
 }
@@ -1188,10 +1290,18 @@ scm_capi_peek_raw(void *buf, size_t size, ScmObj port)
 extern inline ssize_t
 scm_capi_peek_char(scm_char_t *chr, ScmObj port)
 {
-  if (scm_obj_null_p(port)
-      || !scm_capi_input_port_p(port)
-      || chr == NULL)
-    return -1;         /* provisional implemntation */
+  if (scm_obj_null_p(port)) {
+    scm_capi_error("peek error: invalid argument", 0);
+    return -1;
+  }
+  else if (!scm_capi_input_port_p(port)) {
+    scm_capi_error("peek error: invalid argument", 0);
+    return -1;
+  }
+  else if (chr == NULL) {
+    scm_capi_error("peek error: invalid argument", 0);
+    return -1;
+  }
 
   return scm_port_peek_char(port, chr);
 }
@@ -1202,17 +1312,19 @@ scm_api_read(ScmObj port)
   ScmLexer *lexer;
   ScmParser *parser;
 
-  if (scm_obj_null_p(port)
-      || !scm_capi_input_port_p(port))
-      return SCM_OBJ_NULL;         /* provisional implementation */
+  if (scm_obj_null_p(port)) {
+    port = scm_api_current_input_port();
+  }
+  else if (!scm_capi_input_port_p(port)) {
+    scm_capi_error("read: input-port requried, but got", 1, port);
+    return SCM_OBJ_NULL;
+  }
 
   lexer = scm_lexer_new();
-  if (lexer == NULL)
-    return SCM_OBJ_NULL;         /* provisional implementation */
+  if (lexer == NULL) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   parser = scm_parser_new(lexer);
-  if (parser == NULL)
-    return SCM_OBJ_NULL;         /* provisional implementation */
+  if (parser == NULL) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   return scm_parser_parse_expression(parser, port);
 }
@@ -1220,11 +1332,22 @@ scm_api_read(ScmObj port)
 extern inline ssize_t
 scm_capi_write_raw(const void *buf, size_t size, ScmObj port)
 {
-  if (scm_obj_null_p(port)
-      || !scm_capi_output_port_p(port)
-      || buf == NULL
-      || size > SSIZE_MAX)
-    return -1;         /* provisional implemntation */
+  if (scm_obj_null_p(port)) {
+    scm_capi_error("write error: invalid argument", 0);
+    return -1;
+  }
+  else if (!scm_capi_output_port_p(port)) {
+    scm_capi_error("write error: invalid argument", 0);
+    return -1;
+  }
+  else if (buf == NULL) {
+    scm_capi_error("write error: invalid argument", 0);
+    return -1;
+  }
+  else if (size > SSIZE_MAX) {
+    scm_capi_error("write error: invalid argument", 0);
+    return -1;
+  }
 
   return scm_port_write(port, buf, size);
 }
@@ -1236,11 +1359,18 @@ scm_capi_write_cstr(const char *str, SCM_ENC_T enc, ScmObj port)
 
   SCM_STACK_FRAME_PUSH(&port, &s);
 
-  if (scm_obj_null_p(port)
-      || !scm_capi_output_port_p(port)
-      || str == NULL
-      || enc == SCM_ENC_SYS)
-    return SCM_OBJ_NULL;         /* provisional implemntation */
+  if (scm_obj_null_p(port)) {
+    scm_capi_error("write error: invalid argument", 0);
+    return -1;
+  }
+  else if (!scm_capi_output_port_p(port)) {
+    scm_capi_error("write error: invalid argument", 0);
+    return -1;
+  }
+  else if (enc >= SCM_ENC_NR_ENC) {
+    scm_capi_error("write error: invalid argument", 0);
+    return -1;
+  }
 
   s = scm_capi_make_string_from_cstr(str, enc);
   if (scm_obj_null_p(s)) return -1;
@@ -1258,11 +1388,18 @@ scm_capi_write_bin(const void *buf, size_t size, SCM_ENC_T enc, ScmObj port)
 
   SCM_STACK_FRAME_PUSH(&port, &s);
 
-  if (scm_obj_null_p(port)
-      || !scm_capi_output_port_p(port)
-      || buf == NULL
-      || enc == SCM_ENC_SYS)
-    return SCM_OBJ_NULL;         /* provisional implemntation */
+  if (scm_obj_null_p(port)) {
+    scm_capi_error("write error: invalid argument", 0);
+    return -1;
+  }
+  else if (!scm_capi_output_port_p(port)) {
+    scm_capi_error("write error: invalid argument", 0);
+    return -1;
+  }
+  else if (enc >= SCM_ENC_NR_ENC) {
+    scm_capi_error("write error: invalid argument", 0);
+    return -1;
+  }
 
   s = scm_capi_make_string_from_bin(buf, size, enc);
   if (scm_obj_null_p(s)) return -1;
@@ -1281,22 +1418,36 @@ scm_api_write_char(ScmObj chr, ScmObj port)
 
   SCM_STACK_FRAME_PUSH(&chr, &port);
 
-  if(!scm_capi_output_port_p(port)|| scm_capi_char_p(chr))
+  if (scm_obj_null_p(chr)) {
+    scm_capi_error("write-char: invalid argument", 0);
     return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_char_p(chr)) {
+    scm_capi_error("write-char: character required, but got", 1, chr);
+    return SCM_OBJ_NULL;
+  }
+
+  if (scm_obj_null_p(port)) {
+    port = scm_api_current_output_port();
+  }
+  else if (!scm_capi_output_port_p(port)) {
+    scm_capi_error("write-char: output-port required, but got", 1, port);
+    return SCM_OBJ_NULL;
+  }
 
   rslt = scm_capi_port_encoding(port, &p_enc);
-  if (rslt < 0) return SCM_OBJ_NULL;
+  if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   rslt = scm_capi_char_encoding(chr, &c_enc);
-  if (rslt < 0) return SCM_OBJ_NULL;
+  if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   if (p_enc != c_enc) {
     chr = scm_char_encode(chr, p_enc);
-    if (scm_obj_null_p(chr)) return SCM_OBJ_NULL;
+    if (scm_obj_null_p(chr)) return SCM_OBJ_NULL; /* [ERR]: [through] */
   }
 
   rslt = scm_port_write_char(port, scm_char_value(chr));
-  if (rslt < 0) return SCM_OBJ_NULL;
+  if (rslt < 0) return SCM_OBJ_NULL; /* [ERR: [through] */
 
   return scm_api_undef();
 }
@@ -1310,31 +1461,45 @@ scm_api_write_string(ScmObj str, ScmObj port)
 
   SCM_STACK_FRAME_PUSH(&str, &port);
 
-  if (!scm_capi_output_port_p(port) || !scm_capi_string_p(str))
+  if (scm_obj_null_p(str)) {
+    scm_capi_error("write-string: invalid argument", 0);
     return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_string_p(str)) {
+    scm_capi_error("write-string: string required, but got", 1, str);
+    return SCM_OBJ_NULL;
+  }
+
+  if (scm_obj_null_p(port)) {
+    port = scm_api_current_output_port();
+  }
+  else if (!scm_capi_output_port_p(port)) {
+    scm_capi_error("write-string: output-port required, but got", 1, port);
+    return SCM_OBJ_NULL;
+  }
 
   rslt = scm_capi_port_encoding(port, &p_enc);
-  if (rslt < 0) return SCM_OBJ_NULL;
+  if (rslt < 0) return SCM_OBJ_NULL; /* [ERR: [through] */
 
   rslt = scm_capi_string_encoding(str, &s_enc);
-  if (rslt < 0) return SCM_OBJ_NULL;
+  if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   if (p_enc != s_enc) {
     str = scm_string_encode(str, p_enc);
-    if (scm_obj_null_p(str)) return SCM_OBJ_NULL;
+    if (scm_obj_null_p(str)) return SCM_OBJ_NULL; /* [ERR]: [through] */
   }
 
   size = scm_capi_string_bytesize(str);
-  if (size < 0) return SCM_OBJ_NULL;
+  if (size < 0) return SCM_OBJ_NULL; /* [ERR: [through] */
 
   buf = scm_capi_malloc((size_t)size + 1);
-  if (buf == NULL) return SCM_OBJ_NULL;
+  if (buf == NULL) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   rslt = scm_capi_string_to_cstr(str, buf, (size_t)size + 1);
-  if (rslt < 0) return SCM_OBJ_NULL;
+  if (rslt < 0) return SCM_OBJ_NULL; /* [ERR: [through] */
 
   rslt = scm_capi_write_raw(buf, (size_t)size, port);
-  if (rslt < 0) return SCM_OBJ_NULL;
+  if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   return scm_api_undef();
 }
@@ -1353,11 +1518,21 @@ scm_api_write_simple(ScmObj obj, ScmObj port)
 
   SCM_STACK_FRAME_PUSH(&obj, &port);
 
-  if (!scm_capi_output_port_p(port))
+  if (scm_obj_null_p(obj)) {
+    scm_capi_error("write-simple: invalid argument", 0);
     return SCM_OBJ_NULL;
+  }
+
+  if (scm_obj_null_p(port)) {
+    port = scm_api_current_output_port();
+  }
+  else if (!scm_capi_output_port_p(port)) {
+    scm_capi_error("write-simple: output-port required, but got", 1, port);
+    return SCM_OBJ_NULL;
+  }
 
   rslt = scm_obj_call_pp_func(obj, port, true);
-  if (rslt < 0) return SCM_OBJ_NULL;
+  if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   return scm_api_undef();
 }
@@ -1369,8 +1544,18 @@ scm_api_display(ScmObj obj, ScmObj port)
 
   SCM_STACK_FRAME_PUSH(&obj, &port);
 
-  if (!scm_capi_output_port_p(port))
+  if (scm_obj_null_p(obj)) {
+    scm_capi_error("display: invalid argument", 0);
     return SCM_OBJ_NULL;
+  }
+
+  if (scm_obj_null_p(port)) {
+    port = scm_api_current_output_port();
+  }
+  else if (!scm_capi_output_port_p(port)) {
+    scm_capi_error("display: output-port required, but got", 1, port);
+    return SCM_OBJ_NULL;
+  }
 
   rslt = scm_obj_call_pp_func(obj, port, false);
   if (rslt < 0) return SCM_OBJ_NULL;
@@ -1386,8 +1571,13 @@ scm_api_newline(ScmObj port)
   ssize_t w;
   int rslt;
 
-  if (!scm_capi_output_port_p(port))
+  if (scm_obj_null_p(port)) {
+    port = scm_api_current_output_port();
+  }
+  else if (!scm_capi_output_port_p(port)) {
+    scm_capi_error("newline: output-port required, but got", 1, port);
     return SCM_OBJ_NULL;
+  }
 
   rslt = scm_capi_port_encoding(port, &enc);
   if (rslt < 0) return SCM_OBJ_NULL;
@@ -1408,8 +1598,13 @@ scm_api_flush_output_port(ScmObj port)
 
   SCM_STACK_FRAME_PUSH(&port);
 
-  if (!scm_capi_output_port_p(port))
+  if (scm_obj_null_p(port)) {
+    port = scm_api_current_output_port();
+  }
+  else if (!scm_capi_output_port_p(port)) {
+    scm_capi_error("display: output-port required, but got", 1, port);
     return SCM_OBJ_NULL;
+  }
 
   rslt = scm_port_flush(port);
   if (rslt < 0) return SCM_OBJ_NULL;
@@ -1423,18 +1618,27 @@ scm_capi_get_output_raw(ScmObj port, void *buf, size_t size)
   const void *p;
   ssize_t s;
 
-  if (scm_port_string_port_p(port)) return -1; /* provisional implemntation */
+  if (!scm_capi_output_port_p(port) || !scm_port_string_port_p(port)) {
+    scm_capi_error("can not get byte sequence from output-string-port: "
+                   "invalid argument ", 0);
+    return -1;
+  }
+  else if (buf == NULL) {
+    scm_capi_error("can not get byte sequence from output-string-port: "
+                   "invalid argument ", 0);
+    return -1;
+  }
 
   p = scm_port_string_buffer(port);
-  if (p == NULL) return -1;
+  if (p == NULL) return -1;     /* [ERR]: [through] */
 
   s = scm_port_string_buffer_length(port);
-  if (s < 0) return -1;
+  if (s < 0) return -1;         /* [ERR]: [through] */
 
   if ((size_t)s > size)
     s = (ssize_t)size;
 
-  memcpy(buf, scm_port_string_buffer(port), (size_t)s);
+  memcpy(buf, p, (size_t)s);
 
   return s;
 }
@@ -1446,13 +1650,21 @@ scm_api_get_output_string(ScmObj port)
   ssize_t s;
   SCM_ENC_T e;
 
-  if (scm_port_string_port_p(port)) return SCM_OBJ_NULL; /* provisional implemntation */
+  if (scm_obj_null_p(port)) {
+    scm_capi_error("get-output-string: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_output_port_p(port) || !scm_port_string_port_p(port)) {
+    scm_capi_error("get-output-string: "
+                   "output-string-port required, but got", 1, port);
+    return SCM_OBJ_NULL;
+  }
 
   p = scm_port_string_buffer(port);
-  if (p == NULL) return SCM_OBJ_NULL;
+  if (p == NULL) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   s = scm_port_string_buffer_length(port);
-  if (s < 0) return SCM_OBJ_NULL;
+  if (s < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   e = scm_port_encoding(port);
 
@@ -1479,8 +1691,10 @@ scm_api_current_output_port(void)
 extern inline ScmObj
 scm_capi_make_subrutine(ScmSubrFunc func)
 {
-  if (func == NULL)
-    return SCM_OBJ_NULL;         /* provisional implemntation */
+  if (func == NULL) {
+    scm_capi_error("can not make subrutine: invaild argument", 0);
+    return SCM_OBJ_NULL;
+  }
 
   return scm_subrutine_new(SCM_MEM_ALLOC_HEAP, func);
 }
@@ -1488,8 +1702,10 @@ scm_capi_make_subrutine(ScmSubrFunc func)
 extern inline ScmObj
 scm_api_call_subrutine(ScmObj subr, int argc, ScmObj *argv)
 {
-  if (!scm_capi_subrutine_p(subr))
-    return SCM_OBJ_NULL;         /* provisional implemntation */
+  if (!scm_capi_subrutine_p(subr)) {
+    scm_capi_error("can not call subrutine: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
 
   return scm_subrutine_call(subr, argc, argv);
 }
@@ -1509,8 +1725,14 @@ scm_capi_subrutine_p(ScmObj obj)
 extern inline ScmObj
 scm_capi_make_closure(ScmObj iseq, size_t nr_free_vars, ScmObj *sp)
 {
-  if (!scm_capi_iseq_p(iseq))
-    return SCM_OBJ_NULL;         /* provisional implemntation */
+  if (!scm_capi_iseq_p(iseq)) {
+    scm_capi_error("can not make closure: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (nr_free_vars > 0 && sp == NULL) {
+    scm_capi_error("can not make closure: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
 
   return scm_closure_new(SCM_MEM_ALLOC_HEAP, iseq, nr_free_vars, sp);
 }
@@ -1518,9 +1740,6 @@ scm_capi_make_closure(ScmObj iseq, size_t nr_free_vars, ScmObj *sp)
 extern inline ScmObj
 scm_capi_iseq_to_closure(ScmObj iseq)
 {
-  if (!scm_capi_iseq_p(iseq))
-    return SCM_OBJ_NULL;         /* provisional implemntation */
-
   return scm_closure_new(SCM_MEM_ALLOC_HEAP, iseq, 0, NULL);
 }
 
@@ -1534,8 +1753,10 @@ scm_capi_closure_p(ScmObj obj)
 extern inline ScmObj
 scm_capi_closure_to_iseq(ScmObj clsr)
 {
-  if (!scm_capi_closure_p(clsr))
-    return SCM_OBJ_NULL;         /* provisional implemntation */
+  if (!scm_capi_closure_p(clsr)) {
+    scm_capi_error("can not get iseq object from closure: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
 
   return scm_closure_body(clsr);
 }
@@ -1561,8 +1782,11 @@ scm_capi_iseq_p(ScmObj obj)
 extern inline uint8_t *
 scm_capi_iseq_to_ip(ScmObj iseq)
 {
-  if (!scm_capi_iseq_p(iseq))
-    return SCM_OBJ_NULL;         /* provisional implemntation */
+  if (!scm_capi_iseq_p(iseq)) {
+    scm_capi_error("can not get instruction pointer from iseq: "
+                   "invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
 
   return SCM_ISEQ_SEQ(iseq);
 }
@@ -1570,8 +1794,11 @@ scm_capi_iseq_to_ip(ScmObj iseq)
 extern inline ssize_t
 scm_capi_iseq_length(ScmObj iseq)
 {
-  if (!scm_capi_iseq_p(iseq))
-    return -1;         /* provisional implemntation */
+  if (!scm_capi_iseq_p(iseq)) {
+    scm_capi_error("can not get length of instruction seqeunce: "
+                   "invalid argument", 0);
+    return -1;
+  }
 
   return scm_iseq_length(iseq);
 }
@@ -1582,15 +1809,17 @@ scm_capi_iseq_push_op(ScmObj iseq, SCM_OPCODE_T op)
   ssize_t rslt, idx;
   SCM_STACK_FRAME_PUSH(&iseq);
 
-  if (!scm_capi_iseq_p(iseq))
+  if (!scm_capi_iseq_p(iseq)) {
+    scm_capi_error("can not push instruction to iseq: invalid argument", 0);
     return -1;
+  }
 
   rslt = scm_iseq_push_uint8(iseq, op);
-  if (rslt < 0) return -1;   /* provisional implemntation */
+  if (rslt < 0) return -1;      /* [ERR: [through] */
   idx = rslt;
 
   rslt = scm_iseq_push_uint8(iseq, 0);
-  if (rslt < 0) return -1;   /* provisional implemntation */
+  if (rslt < 0) return -1;      /* [ERR]: [through] */
 
   return idx;
 }
@@ -1602,25 +1831,34 @@ scm_capi_iseq_push_op_immval(ScmObj iseq, SCM_OPCODE_T op, ScmObj val)
 
   SCM_STACK_FRAME_PUSH(&iseq, &val);
 
-  if (!scm_capi_iseq_p(iseq))
+  if (!scm_capi_iseq_p(iseq)) {
+    scm_capi_error("can not push instruction to iseq: invalid argument", 0);
     return -1;
+  }
 
-  if (scm_obj_null_p(val))
+  if (scm_obj_null_p(val)) {
+    scm_capi_error("can not push instruction to iseq: invalid argument", 0);
     return -1;
+  }
 
   immv_idx = scm_iseq_push_immval(iseq, val);
-  if (immv_idx < 0) return -1;   /* provisional implemntation */
-  if (immv_idx > UINT32_MAX) return -1; /* provisional implemntation */
+  if (immv_idx < 0) return -1;          /* [ERR: [through] */
+
+  if (immv_idx > UINT32_MAX) {
+    scm_capi_error("can not push instruction to iseq: "
+                   "immediate value area overflow", 0);
+    return -1;
+  }
 
   rslt = scm_iseq_push_uint8(iseq, op);
-  if (rslt < 0) return -1;   /* provisional implemntation */
+  if (rslt < 0) return -1;      /* [ERR]: [through] */
   idx = rslt;
 
   rslt = scm_iseq_push_uint8(iseq, 0);
-  if (rslt < 0) return -1;   /* provisional implemntation */
+  if (rslt < 0) return -1;      /* [ERR]: [through] */
 
   rslt = scm_iseq_push_uint32(iseq, (uint32_t)immv_idx);
-  if (rslt < 0) return -1;   /* provisional implemntation */
+  if (rslt < 0) return -1;      /* [ERR]: [through] */
 
   return idx;
 }
@@ -1631,6 +1869,11 @@ scm_capi_iseq_push_op_cval(ScmObj iseq, SCM_OPCODE_T op, uint32_t val)
   ssize_t rslt, idx;
 
   SCM_STACK_FRAME_PUSH(&iseq);
+
+  if (!scm_capi_iseq_p(iseq)) {
+    scm_capi_error("can not push instruction to iseq: invalid argument", 0);
+    return -1;
+  }
 
   rslt = scm_iseq_push_uint8(iseq, op);
   if (rslt < 0) return -1;   /* provisional implemntation */
@@ -1652,6 +1895,11 @@ scm_capi_iseq_push_op_cval_cval(ScmObj iseq, SCM_OPCODE_T op,
   ssize_t rslt, idx;
 
   SCM_STACK_FRAME_PUSH(&iseq);
+
+  if (!scm_capi_iseq_p(iseq)) {
+    scm_capi_error("can not push instruction to iseq: invalid argument", 0);
+    return -1;
+  }
 
   rslt = scm_iseq_push_uint8(iseq, op);
   if (rslt < 0) return -1;   /* provisional implemntation */
@@ -1676,14 +1924,24 @@ scm_capi_iseq_set_immval(ScmObj iseq, size_t idx, ScmObj val)
 
   SCM_STACK_FRAME_PUSH(&iseq, &val);
 
-  if (!scm_capi_iseq_p(iseq)
-      || idx > SSIZE_MAX
-      || (ssize_t)idx >= scm_iseq_nr_immv(iseq)
-      || scm_obj_null_p(val))
+  if (!scm_capi_iseq_p(iseq)) {
+    scm_capi_error("can not update immediate value in iseq: "
+                   "invalid argument", 0);
+    return -1;
+  }
+  else if (idx > SSIZE_MAX || (ssize_t)idx >= scm_iseq_nr_immv(iseq)) {
+    scm_capi_error("can not update immediate value in iseq: "
+                   "invalid argument", 0);
+    return -1;
+  }
+  else if (scm_obj_null_p(val)) {
+    scm_capi_error("can not update immediate value in iseq: "
+                   "invalid argument", 0);
     return -1;   /* provisional implemntation */
+  }
 
   rslt = scm_iseq_set_immval(iseq, idx, val);
-  if (rslt < 0) return -1;   /* provisional implemntation */
+  if (rslt < 0) return -1;      /* [ERR]: [through] */
 
   return (ssize_t)idx;
 }
@@ -1693,10 +1951,16 @@ scm_capi_iseq_set_cval(ScmObj iseq, size_t idx, uint32_t val)
 {
   ssize_t rslt;
 
-  if (!scm_capi_iseq_p(iseq)
-      || idx > SSIZE_MAX
-      || (ssize_t)idx > scm_iseq_length(iseq) - 4)
-    return -1;   /* provisional implemntation */
+  if (!scm_capi_iseq_p(iseq)) {
+    scm_capi_error("can not update instruction operand in iseq: "
+                   "invalid argument", 0);
+    return -1;
+  }
+  else if (idx > SSIZE_MAX || (ssize_t)idx > scm_iseq_length(iseq) - 4) {
+    scm_capi_error("can not update instruction operand in iseq: "
+                   "invalid argument", 0);
+    return -1;
+  }
 
   rslt = scm_iseq_set_uint32(iseq, idx, val);
   if (rslt < 0) return -1;   /* provisional implemntation */
@@ -1707,10 +1971,17 @@ scm_capi_iseq_set_cval(ScmObj iseq, size_t idx, uint32_t val)
 extern inline ScmObj
 scm_capi_iseq_ref_immval(ScmObj iseq, size_t idx)
 {
-  if (!scm_capi_iseq_p(iseq)
-      || idx > SSIZE_MAX
-      || (ssize_t)idx >= scm_iseq_nr_immv(iseq))
+  if (!scm_capi_iseq_p(iseq)) {
+    scm_capi_error("can not get immediate value from iseq"
+                   "invalid argument", 0);
     return SCM_OBJ_NULL;
+  }
+  else if (idx > SSIZE_MAX || (ssize_t)idx >= scm_iseq_nr_immv(iseq)) {
+    scm_capi_error("can not get immediate value from iseq"
+                   "invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
 
   return scm_iseq_get_immval(iseq, idx);;
 }
@@ -1718,8 +1989,14 @@ scm_capi_iseq_ref_immval(ScmObj iseq, size_t idx)
 extern inline ScmObj
 scm_api_assemble(ScmObj lst)
 {
-  if (!scm_capi_pair_p(lst))
-    return SCM_OBJ_NULL;         /* provisional implemntation */
+  if (scm_obj_null_p(lst)) {
+    scm_capi_error("asm: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_pair_p(lst)) {
+    scm_capi_error("asm: pair required, but got", 1, lst);
+    return SCM_OBJ_NULL;
+  }
 
   return scm_asm_assemble(lst);
 }
@@ -1737,33 +2014,41 @@ scm_api_global_var_ref(ScmObj sym)
 
   SCM_STACK_FRAME_PUSH(&sym, &gloc);
 
-  if (scm_obj_null_p(sym) || !scm_obj_type_p(sym, &SCM_SYMBOL_TYPE_INFO))
-    return SCM_OBJ_NULL;         /* provisional implemntation */
-
-  rslt = scm_gloctbl_find(scm_vm_current_gloctbl(), sym, SCM_CSETTER_L(gloc));
-  if (rslt != 0) {
-    ;                           /* TODO: error handling */
+  if (scm_obj_null_p(sym)) {
+    scm_capi_error("can not get value of global variable: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_obj_type_p(sym, &SCM_SYMBOL_TYPE_INFO)) {
+    scm_capi_error("can not get value of global variable: invalid argument", 0);
     return SCM_OBJ_NULL;
   }
 
-  /* 未束縛変数の参照の場合は SCM_OBJ_NULL を返す */
-  return (scm_obj_null_p(gloc) ?  SCM_OBJ_NULL : scm_gloc_value(gloc));
+  rslt = scm_gloctbl_find(scm_vm_current_gloctbl(), sym, SCM_CSETTER_L(gloc));
+  if (rslt != 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
+
+  if (scm_obj_null_p(gloc)) {
+    scm_capi_error("unbound variable", 1, sym);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_gloc_value(gloc);
 }
 
 extern inline bool
 scm_capi_global_var_bound_p(ScmObj sym)
 {
-  if (scm_obj_null_p(sym) || !scm_obj_type_p(sym, &SCM_SYMBOL_TYPE_INFO))
-    return SCM_OBJ_NULL;         /* provisional implemntation */
+  ScmObj gloc = SCM_OBJ_INIT;
+  int rslt;
 
-  return scm_obj_null_p(scm_api_global_var_ref(sym)) ? false : true;
-}
+  SCM_STACK_FRAME_PUSH(&sym, &gloc);
 
-ScmObj
-scm_api_global_var_bound_P(ScmObj sym)
-{
-  return (scm_capi_global_var_bound_p(sym) ?
-          scm_api_bool_true() : scm_api_bool_false());
+  if (scm_obj_null_p(sym)) return false;
+  if (!scm_obj_type_p(sym, &SCM_SYMBOL_TYPE_INFO)) return false;
+
+  rslt = scm_gloctbl_find(scm_vm_current_gloctbl(), sym, SCM_CSETTER_L(gloc));
+  if (rslt != 0) return false;
+
+  return scm_obj_null_p(gloc) ? false : true;
 }
 
 ScmObj
@@ -1773,42 +2058,56 @@ scm_api_global_var_define(ScmObj sym, ScmObj val)
 
   SCM_STACK_FRAME_PUSH(&sym, &val, &gloc);
 
-  if (scm_obj_null_p(sym) || !scm_obj_type_p(sym, &SCM_SYMBOL_TYPE_INFO))
-    return SCM_OBJ_NULL;         /* provisional implemntation */
-  if (scm_obj_null_p(val))
-    return SCM_OBJ_NULL;         /* provisional implemntation */
-
-  gloc = scm_gloctbl_bind(scm_vm_current_gloctbl(), sym, val);
-  if (scm_obj_null_p(gloc)) {
-    ;                           /* TODO: error handling */
+  if (scm_obj_null_p(sym)) {
+    scm_capi_error("can not bind global variable: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_obj_type_p(sym, &SCM_SYMBOL_TYPE_INFO)) {
+    scm_capi_error("can not bind global variable: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (scm_obj_null_p(val)) {
+    scm_capi_error("can not bind global variable: invalid argument", 0);
     return SCM_OBJ_NULL;
   }
 
-  return val;
+  gloc = scm_gloctbl_bind(scm_vm_current_gloctbl(), sym, val);
+  if (scm_obj_null_p(gloc)) return SCM_OBJ_NULL;
+
+  return scm_api_undef();
 }
 
 ScmObj
 scm_api_global_var_set(ScmObj sym, ScmObj val)
 {
   ScmObj gloc = SCM_OBJ_INIT;
+  int rslt;
 
   SCM_STACK_FRAME_PUSH(&sym, &val, &gloc);
 
-  if (scm_obj_null_p(sym) || !scm_obj_type_p(sym, &SCM_SYMBOL_TYPE_INFO))
-    return SCM_OBJ_NULL;         /* provisional implemntation */
-  if (scm_obj_null_p(val))
-    return SCM_OBJ_NULL;         /* provisional implemntation */
-
-  /* 未束縛変数の参照の場合は SCM_OBJ_NULL を返す */
-  if (scm_obj_same_instance_p(scm_api_global_var_bound_P(sym),
-                               scm_vm_bool_false_instance()))
-    return SCM_OBJ_NULL;
-
-  gloc = scm_gloctbl_bind(scm_vm_current_gloctbl(), sym, val);
-  if (scm_obj_null_p(gloc)) {
-    ;                           /* TODO: error handling */
+  if (scm_obj_null_p(sym)) {
+    scm_capi_error("can not bind global variable: invalid argument", 0);
     return SCM_OBJ_NULL;
   }
+  else if (!scm_obj_type_p(sym, &SCM_SYMBOL_TYPE_INFO)) {
+    scm_capi_error("can not bind global variable: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (scm_obj_null_p(val)) {
+    scm_capi_error("can not bind global variable: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  rslt = scm_gloctbl_find(scm_vm_current_gloctbl(), sym, SCM_CSETTER_L(gloc));
+  if (rslt != 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
+
+  if (scm_obj_null_p(gloc)) {
+    scm_capi_error("unbound variable", 1, sym);
+    return SCM_OBJ_NULL;
+  }
+
+  gloc = scm_gloctbl_bind(scm_vm_current_gloctbl(), sym, val);
+  if (scm_obj_null_p(gloc)) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   return val;
 }
