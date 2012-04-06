@@ -137,13 +137,13 @@ int scm_vm_setup_global_env(ScmObj vm);
 void scm_vm_clean_global_env(ScmObj vm);
 void scm_vm_clean_eval_env(ScmObj vm);
 
-void scm_vm_stack_push(ScmObj vm, ScmObj elm);
+int scm_vm_stack_push(ScmObj vm, ScmObj elm);
 ScmObj scm_vm_stack_pop(ScmObj vm);
 void scm_vm_stack_shorten(ScmObj vm, size_t n);
-void scm_vm_stack_shift(ScmObj vm, size_t nelm, size_t nshift);
+int scm_vm_stack_shift(ScmObj vm, size_t nelm, size_t nshift);
 
 ScmObj *scm_vm_cur_frame_argv(ScmObj vm, int argc);
-void scm_vm_make_stack_frame(ScmObj vm, ScmObj fp, ScmObj cp,
+int scm_vm_make_stack_frame(ScmObj vm, ScmObj fp, ScmObj cp,
                              ScmObj isp, ScmObj ip);
 void scm_vm_return_to_caller(ScmObj vm, uint32_t nr_arg);
 

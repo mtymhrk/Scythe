@@ -369,18 +369,20 @@ scm_vm_clean_eval_env(ScmObj vm)
   SCM_VM(vm)->reg.flags = 0;
 }
 
-scm_local_func void
+scm_local_func int
 scm_vm_stack_push(ScmObj vm, ScmObj elm)
 {
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
   if (SCM_VM(vm)->reg.sp > SCM_VM(vm)->stack + SCM_VM(vm)->stack_size) {
     scm_capi_fatal("VM stack overflow");
-    return; /* stack overflow; TODO: handle stack overflow error  */
+    return -1; /* stack overflow; TODO: handle stack overflow error  */
   }
 
   SCM_SLOT_REF_SETQ(ScmVM, vm, reg.sp, elm);
   SCM_VM(vm)->reg.sp++;
+
+  return 0;
 }
 
 scm_local_func ScmObj
@@ -410,13 +412,20 @@ scm_vm_stack_shorten(ScmObj vm, size_t n)
     SCM_VM(vm)->reg.sp = SCM_VM(vm)->reg.sp - n;
 }
 
-scm_local_func void
+scm_local_func int
 scm_vm_stack_shift(ScmObj vm, size_t nelm, size_t nshift)
 {
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
+  if (SCM_VM(vm)->reg.sp - nelm - nshift < SCM_VM(vm)->stack) {
+    scm_capi_fatal("VM stack underflow");
+    return -1;
+  }
+
   memmove(SCM_VM(vm)->reg.sp - nelm - nshift, SCM_VM(vm)->reg.sp - nelm, nelm);
   SCM_VM(vm)->reg.sp = SCM_VM(vm)->reg.sp - nshift;
+
+  return 0;
 }
 
 scm_local_inline ScmObj *
@@ -425,22 +434,30 @@ scm_vm_cur_frame_argv(ScmObj vm, int argc)
   return SCM_VM(vm)->reg.fp - argc;
 }
 
-scm_local_func void
+scm_local_func int
 scm_vm_make_stack_frame(ScmObj vm, ScmObj fp, ScmObj cp, ScmObj isp, ScmObj ip)
 {
+  int rslt;
+
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
   /* push frame pointer */
-  scm_vm_stack_push(vm, fp);
+  rslt = scm_vm_stack_push(vm, fp);
+  if (rslt < 0) return -1;
 
   /* push closure pointer */
-  scm_vm_stack_push(vm, cp);
+  rslt = scm_vm_stack_push(vm, cp);
+  if (rslt < 0) return -1;
 
   /* push ScmISeq object */
-  scm_vm_stack_push(vm, isp);
+  rslt = scm_vm_stack_push(vm, isp);
+  if (rslt < 0) return -1;
 
   /* push instraction pointer */
-  scm_vm_stack_push(vm, ip);
+  rslt = scm_vm_stack_push(vm, ip);
+  if (rslt < 0) return -1;
+
+  return 0;
 }
 
 scm_local_func void
@@ -567,6 +584,7 @@ scm_vm_op_call(ScmObj vm, SCM_OPCODE_T op)
 {
   ScmObj val = SCM_OBJ_INIT, ip_fn = SCM_OBJ_INIT;
   uint32_t nr_arg, nr_arg_cf;
+  int rslt;
 
   SCM_STACK_FRAME_PUSH(&vm, &val, &ip_fn);
 
@@ -586,8 +604,10 @@ scm_vm_op_call(ScmObj vm, SCM_OPCODE_T op)
     }
   }
 
-  if (op == SCM_OPCODE_TAIL_CALL)
-    scm_vm_stack_shift(vm, nr_arg, nr_arg_cf);
+  if (op == SCM_OPCODE_TAIL_CALL) {
+    rslt = scm_vm_stack_shift(vm, nr_arg, nr_arg_cf);
+    if (rslt < 0) return;
+  }
 
   SCM_VM(vm)->reg.fp = SCM_VM(vm)->reg.sp;
 
@@ -596,7 +616,7 @@ scm_vm_op_call(ScmObj vm, SCM_OPCODE_T op)
        する */
     ip_fn = scm_capi_inst_ptr_to_fixnum(SCM_VM(vm)->reg.ip);
     SCM_SLOT_SETQ(ScmVM, vm,
-                    reg.fp[-((int32_t)nr_arg + 1)], ip_fn);
+                  reg.fp[-((int32_t)nr_arg + 1)], ip_fn);
   }
 
   if (scm_capi_subrutine_p(SCM_VM(vm)->reg.val)) {
@@ -1041,6 +1061,7 @@ scm_vm_setup_stat_trmp(ScmObj vm, ScmObj target,
 {
   ScmObj trmp_code = SCM_OBJ_INIT, trmp_clsr = SCM_OBJ_INIT;
   ScmObj cb_subr = SCM_OBJ_INIT, fp_fn = SCM_OBJ_INIT, ip_fn = SCM_OBJ_INIT;
+  int rslt;
 
   SCM_STACK_FRAME_PUSH(&target, &args,
                        &trmp_code, &trmp_clsr, &cb_subr, &fp_fn, &ip_fn);
@@ -1073,14 +1094,17 @@ scm_vm_setup_stat_trmp(ScmObj vm, ScmObj target,
   fp_fn = scm_capi_frame_ptr_to_fixnum(SCM_VM(vm)->reg.fp);
   ip_fn = scm_capi_inst_ptr_to_fixnum(scm_capi_iseq_to_ip(trmp_code));
 
-  scm_vm_make_stack_frame(vm,
-                          fp_fn,
-                          trmp_clsr,
-                          trmp_code,
-                          ip_fn);
+  rslt = scm_vm_make_stack_frame(vm,
+                                 fp_fn,
+                                 trmp_clsr,
+                                 trmp_code,
+                                 ip_fn);
+  if (rslt < 0) return -1;
 
-  for (int i = 0; i < nr_arg_cf; i++)
-    scm_vm_stack_push(vm, SCM_OBJ_NULL);
+  for (int i = 0; i < nr_arg_cf; i++) {
+    rslt = scm_vm_stack_push(vm, SCM_OBJ_NULL);
+    if (rslt < 0) return -1;
+  }
 
   SCM_VM(vm)->reg.fp = SCM_VM(vm)->reg.sp;
 
