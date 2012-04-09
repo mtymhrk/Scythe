@@ -32,7 +32,7 @@
 /*  Error                                                          */
 /*******************************************************************/
 
-extern inline void
+void
 scm_capi_fatal(const char *msg)
 {
   scm_bedrock_fatal(scm_bedrock_current_br(), msg);
@@ -340,7 +340,7 @@ scm_capi_error_object_p(ScmObj obj)
 /*  List and Pair                                                  */
 /*******************************************************************/
 
-extern inline ScmObj
+ScmObj
 scm_api_cons(ScmObj car, ScmObj cdr)
 {
   if (scm_obj_null_p(car) || scm_obj_null_p(cdr)) {
@@ -351,7 +351,7 @@ scm_api_cons(ScmObj car, ScmObj cdr)
   return scm_pair_new(SCM_MEM_ALLOC_HEAP, car, cdr);
 }
 
-extern inline ScmObj
+ScmObj
 scm_api_car(ScmObj pair)
 {
   if (scm_obj_null_p(pair)) {
@@ -366,7 +366,7 @@ scm_api_car(ScmObj pair)
   return scm_pair_car(pair);
 }
 
-extern inline ScmObj
+ScmObj
 scm_api_cdr(ScmObj pair)
 {
   if (scm_obj_null_p(pair)) {
@@ -483,7 +483,7 @@ scm_api_make_numeric(/* struct liteinfo *rslt */)
  * scm_capi_perse_numric_literal と scm_api_make_numeric が実装され
  * れば廃止する。
  */
-extern inline ScmObj
+ScmObj
 scm_capi_make_fixnum(scm_sword_t num)
 {
   if (num < SCM_FIXNUM_MIN || SCM_FIXNUM_MAX < num)
@@ -500,7 +500,7 @@ scm_capi_fixnum_p(ScmObj obj)
   return scm_obj_type_p(obj, &SCM_FIXNUM_TYPE_INFO) ? true : false;
 }
 
-extern inline long
+long
 scm_capi_fixnum_to_clong(ScmObj fn)
 {
   scm_sword_t v;
@@ -532,7 +532,7 @@ scm_capi_fixnum_to_clong(ScmObj fn)
 /*  charactor                                                      */
 /*******************************************************************/
 
-extern inline ScmObj
+ScmObj
 scm_capi_make_char(scm_char_t chr, SCM_ENC_T enc)
 {
   if (enc >= SCM_ENC_NR_ENC) {
@@ -550,7 +550,7 @@ scm_capi_make_char(scm_char_t chr, SCM_ENC_T enc)
   return scm_char_new(SCM_MEM_ALLOC_HEAP, chr, enc);
 }
 
-extern inline ScmObj
+ScmObj
 scm_api_make_char_newline(SCM_ENC_T enc)
 {
   if (enc >= SCM_ENC_NR_ENC) {
@@ -566,7 +566,7 @@ scm_api_make_char_newline(SCM_ENC_T enc)
                       enc);
 }
 
-extern inline ScmObj
+ScmObj
 scm_api_make_char_space(SCM_ENC_T enc)
 {
   if (enc >= SCM_ENC_NR_ENC) {
@@ -590,7 +590,7 @@ scm_capi_char_p(ScmObj obj)
   return scm_obj_type_p(obj, &SCM_CHAR_TYPE_INFO) ? true : false;
 }
 
-extern inline ssize_t
+ssize_t
 scm_capi_char_to_cchar(ScmObj chr, scm_char_t *cp)
 {
   scm_char_t c;
@@ -609,7 +609,7 @@ scm_capi_char_to_cchar(ScmObj chr, scm_char_t *cp)
                                                                sizeof(c));
 }
 
-extern inline int
+int
 scm_capi_char_encoding(ScmObj chr, SCM_ENC_T *enc)
 {
   if (scm_obj_null_p(chr)) {
@@ -632,7 +632,7 @@ scm_capi_char_encoding(ScmObj chr, SCM_ENC_T *enc)
 /*  String                                                         */
 /*******************************************************************/
 
-extern inline ScmObj
+ScmObj
 scm_capi_make_string_from_cstr(const char *str, SCM_ENC_T enc)
 {
   if (enc >= SCM_ENC_NR_ENC) {
@@ -656,7 +656,7 @@ scm_capi_make_string_from_cstr(const char *str, SCM_ENC_T enc)
   }
 }
 
-extern inline ScmObj
+ScmObj
 scm_capi_make_string_from_bin(const void *data, size_t size, SCM_ENC_T enc)
 {
   if (enc >= SCM_ENC_NR_ENC) {
@@ -687,7 +687,7 @@ scm_capi_string_p(ScmObj obj)
   return scm_obj_type_p(obj, &SCM_STRING_TYPE_INFO) ? true : false;
 }
 
-extern inline ssize_t
+ssize_t
 scm_capi_string_length(ScmObj str)
 {
   if (scm_obj_null_p(str)) {
@@ -702,7 +702,7 @@ scm_capi_string_length(ScmObj str)
   return (ssize_t)scm_string_length(str);
 }
 
-extern inline ssize_t
+ssize_t
 scm_capi_string_bytesize(ScmObj str)
 {
   if (scm_obj_null_p(str)) {
@@ -717,7 +717,7 @@ scm_capi_string_bytesize(ScmObj str)
   return (ssize_t)scm_string_bytesize(str);
 }
 
-extern inline int
+int
 scm_capi_string_encoding(ScmObj str, SCM_ENC_T *enc)
 {
   if (scm_obj_null_p(str)) {
@@ -736,7 +736,7 @@ scm_capi_string_encoding(ScmObj str, SCM_ENC_T *enc)
 }
 
 
-extern inline ssize_t
+ssize_t
 scm_capi_string_to_cstr(ScmObj str, char *cstr, size_t size)
 {
   ssize_t n;
@@ -759,7 +759,7 @@ scm_capi_string_to_cstr(ScmObj str, char *cstr, size_t size)
   return n;
 }
 
-extern inline ScmObj
+ScmObj
 scm_api_string_push(ScmObj str, ScmObj c)
 {
   SCM_ENC_T s_enc, c_enc;
@@ -803,7 +803,7 @@ scm_api_string_push(ScmObj str, ScmObj c)
 /*  Vector                                                         */
 /*******************************************************************/
 
-extern inline ScmObj
+ScmObj
 scm_capi_make_vector(size_t len, ScmObj fill)
 {
   if (len > SSIZE_MAX) {
@@ -825,7 +825,7 @@ scm_capi_vector_p(ScmObj obj)
   return scm_obj_type_p(obj, &SCM_VECTOR_TYPE_INFO) ? true : false;
 }
 
-extern inline ScmObj
+ScmObj
 scm_capi_vector_set(ScmObj vec, size_t idx, ScmObj obj)
 {
   if (scm_obj_null_p(vec) || scm_obj_null_p(obj)) {
@@ -844,7 +844,7 @@ scm_capi_vector_set(ScmObj vec, size_t idx, ScmObj obj)
   return scm_vector_set(vec, idx, obj);
 }
 
-extern inline ScmObj
+ScmObj
 scm_capi_vector_ref(ScmObj vec, size_t idx)
 {
   if (scm_obj_null_p(vec)) {
@@ -863,7 +863,7 @@ scm_capi_vector_ref(ScmObj vec, size_t idx)
   return scm_vector_ref(vec, idx);
 }
 
-extern inline ssize_t
+ssize_t
 scm_capi_vector_length(ScmObj vec)
 {
     if (scm_obj_null_p(vec)) {
@@ -883,7 +883,7 @@ scm_capi_vector_length(ScmObj vec)
 /*  Symbol                                                         */
 /*******************************************************************/
 
-extern inline ScmObj
+ScmObj
 scm_api_symbol_to_string(ScmObj sym)
 {
   if (scm_obj_null_p(sym)) {
@@ -898,7 +898,7 @@ scm_api_symbol_to_string(ScmObj sym)
   return scm_symbol_string(sym);
 }
 
-extern inline ScmObj
+ScmObj
 scm_api_string_to_symbol(ScmObj str)
 {
   SCM_ENC_T enc;
@@ -924,7 +924,7 @@ scm_api_string_to_symbol(ScmObj str)
   return scm_symtbl_symbol(scm_vm_current_symtbl(), str);
 }
 
-extern inline ScmObj
+ScmObj
 scm_capi_make_symbol_from_cstr(const char *str, SCM_ENC_T enc)
 {
   ScmObj s = SCM_OBJ_INIT;
@@ -944,7 +944,7 @@ scm_capi_make_symbol_from_cstr(const char *str, SCM_ENC_T enc)
   return scm_api_string_to_symbol(s);
 }
 
-extern inline ScmObj
+ScmObj
 scm_capi_make_symbol_from_bin(const void *data, size_t size, SCM_ENC_T enc)
 {
   ScmObj s = SCM_OBJ_INIT;
@@ -972,7 +972,7 @@ scm_capi_symbol_p(ScmObj obj)
   return scm_obj_type_p(obj, &SCM_SYMBOL_TYPE_INFO) ? true : false;
 }
 
-extern inline ssize_t
+ssize_t
 scm_capi_symbol_bytesize(ScmObj sym)
 {
   if (scm_obj_null_p(sym)) {
@@ -994,7 +994,7 @@ scm_capi_symbol_to_cstr(ScmObj sym, char *cstr, size_t size)
                                  cstr, size);
 }
 
-extern inline size_t
+size_t
 scm_capi_symbol_hash_value(ScmObj sym)
 {
   if (!scm_capi_symbol_p(sym))
@@ -1008,7 +1008,7 @@ scm_capi_symbol_hash_value(ScmObj sym)
 /*  Port                                                           */
 /*******************************************************************/
 
-extern inline ScmObj
+ScmObj
 scm_capi_open_input_fd(int fd, SCM_PORT_BUF_T mode, SCM_ENC_T enc)
 {
   if (fd < 0) {
@@ -1030,7 +1030,7 @@ scm_capi_open_input_fd(int fd, SCM_PORT_BUF_T mode, SCM_ENC_T enc)
   return scm_port_open_input_fd(fd, mode, enc);
 }
 
-extern inline ScmObj
+ScmObj
 scm_capi_open_output_fd(int fd, SCM_PORT_BUF_T mode, SCM_ENC_T enc)
 {
   if (fd < 0) {
@@ -1052,7 +1052,7 @@ scm_capi_open_output_fd(int fd, SCM_PORT_BUF_T mode, SCM_ENC_T enc)
   return scm_port_open_output_fd(fd, mode, enc);
 }
 
-extern inline ScmObj
+ScmObj
 scm_capi_open_input_string_from_cstr(const char *str, SCM_ENC_T enc)
 {
   if (enc >= SCM_ENC_NR_ENC) {
@@ -1068,7 +1068,7 @@ scm_capi_open_input_string_from_cstr(const char *str, SCM_ENC_T enc)
                                     enc);
 }
 
-extern inline ScmObj
+ScmObj
 scm_capi_open_output_string(SCM_ENC_T enc)
 {
   if (enc >= SCM_ENC_NR_ENC) {
@@ -1134,7 +1134,7 @@ scm_api_output_port_P(ScmObj port)
     return scm_vm_bool_false_instance();
 }
 
-extern inline int
+int
 scm_capi_port_encoding(ScmObj port, SCM_ENC_T *enc)
 {
   if (scm_obj_null_p(port)) {
@@ -1150,7 +1150,7 @@ scm_capi_port_encoding(ScmObj port, SCM_ENC_T *enc)
   return 0;
 }
 
-extern inline int
+int
 scm_api_close_input_port(ScmObj port)
 {
   if (scm_obj_null_p(port)) {
@@ -1165,7 +1165,7 @@ scm_api_close_input_port(ScmObj port)
   return scm_port_close(port);
 }
 
-extern inline int
+int
 scm_api_close_output_port(ScmObj port)
 {
   if (scm_obj_null_p(port)) {
@@ -1180,7 +1180,7 @@ scm_api_close_output_port(ScmObj port)
   return scm_port_close(port);
 }
 
-extern inline ssize_t
+ssize_t
 scm_capi_read_raw(void *buf, size_t size, ScmObj port)
 {
   if (scm_obj_null_p(port)) {
@@ -1203,7 +1203,7 @@ scm_capi_read_raw(void *buf, size_t size, ScmObj port)
   return scm_port_read(port, buf, size);
 }
 
-extern inline ssize_t
+ssize_t
 scm_capi_read_char(scm_char_t *chr, ScmObj port)
 {
   if (scm_obj_null_p(port)) {
@@ -1222,7 +1222,7 @@ scm_capi_read_char(scm_char_t *chr, ScmObj port)
   return scm_port_read_char(port, chr);
 }
 
-extern inline ssize_t
+ssize_t
 scm_capi_unread_raw(const void *buf, size_t size, ScmObj port)
 {
   if (scm_obj_null_p(port)) {
@@ -1245,7 +1245,7 @@ scm_capi_unread_raw(const void *buf, size_t size, ScmObj port)
   return scm_port_pushback(port, buf, size);
 }
 
-extern inline ssize_t
+ssize_t
 scm_capi_unread_char(const scm_char_t *chr, ScmObj port)
 {
   if (scm_obj_null_p(port)) {
@@ -1264,7 +1264,7 @@ scm_capi_unread_char(const scm_char_t *chr, ScmObj port)
   return scm_port_pushback_char(port, chr);
 }
 
-extern inline ssize_t
+ssize_t
 scm_capi_peek_raw(void *buf, size_t size, ScmObj port)
 {
   if (scm_obj_null_p(port)) {
@@ -1287,7 +1287,7 @@ scm_capi_peek_raw(void *buf, size_t size, ScmObj port)
   return scm_port_peek(port, buf, size);
 }
 
-extern inline ssize_t
+ssize_t
 scm_capi_peek_char(scm_char_t *chr, ScmObj port)
 {
   if (scm_obj_null_p(port)) {
@@ -1329,7 +1329,7 @@ scm_api_read(ScmObj port)
   return scm_parser_parse_expression(parser, port);
 }
 
-extern inline ssize_t
+ssize_t
 scm_capi_write_raw(const void *buf, size_t size, ScmObj port)
 {
   if (scm_obj_null_p(port)) {
@@ -1688,7 +1688,7 @@ scm_api_current_output_port(void)
 /*  Subrutine                                                      */
 /*******************************************************************/
 
-extern inline ScmObj
+ScmObj
 scm_capi_make_subrutine(ScmSubrFunc func)
 {
   if (func == NULL) {
@@ -1699,7 +1699,7 @@ scm_capi_make_subrutine(ScmSubrFunc func)
   return scm_subrutine_new(SCM_MEM_ALLOC_HEAP, func);
 }
 
-extern inline ScmObj
+ScmObj
 scm_api_call_subrutine(ScmObj subr, int argc, ScmObj *argv)
 {
   if (!scm_capi_subrutine_p(subr)) {
@@ -1722,7 +1722,7 @@ scm_capi_subrutine_p(ScmObj obj)
 /*  Closure                                                        */
 /*******************************************************************/
 
-extern inline ScmObj
+ScmObj
 scm_capi_make_closure(ScmObj iseq, size_t nr_free_vars, ScmObj *sp)
 {
   if (!scm_capi_iseq_p(iseq)) {
@@ -1737,7 +1737,7 @@ scm_capi_make_closure(ScmObj iseq, size_t nr_free_vars, ScmObj *sp)
   return scm_closure_new(SCM_MEM_ALLOC_HEAP, iseq, nr_free_vars, sp);
 }
 
-extern inline ScmObj
+ScmObj
 scm_capi_iseq_to_closure(ScmObj iseq)
 {
   return scm_closure_new(SCM_MEM_ALLOC_HEAP, iseq, 0, NULL);
@@ -1750,7 +1750,7 @@ scm_capi_closure_p(ScmObj obj)
   return (scm_obj_type_p(obj, &SCM_CLOSURE_TYPE_INFO) ? true : false);
 }
 
-extern inline ScmObj
+ScmObj
 scm_capi_closure_to_iseq(ScmObj clsr)
 {
   if (!scm_capi_closure_p(clsr)) {
@@ -1766,7 +1766,7 @@ scm_capi_closure_to_iseq(ScmObj clsr)
 /*  ISeq                                                           */
 /*******************************************************************/
 
-extern inline ScmObj
+ScmObj
 scm_api_make_iseq(void)
 {
   return scm_iseq_new(SCM_MEM_HEAP);
@@ -1779,7 +1779,7 @@ scm_capi_iseq_p(ScmObj obj)
   return (scm_obj_type_p(obj, &SCM_ISEQ_TYPE_INFO) ? true : false);
 }
 
-extern inline uint8_t *
+uint8_t *
 scm_capi_iseq_to_ip(ScmObj iseq)
 {
   if (!scm_capi_iseq_p(iseq)) {
@@ -1791,7 +1791,7 @@ scm_capi_iseq_to_ip(ScmObj iseq)
   return SCM_ISEQ_SEQ(iseq);
 }
 
-extern inline ssize_t
+ssize_t
 scm_capi_iseq_length(ScmObj iseq)
 {
   if (!scm_capi_iseq_p(iseq)) {
@@ -1968,7 +1968,7 @@ scm_capi_iseq_set_cval(ScmObj iseq, size_t idx, uint32_t val)
   return (ssize_t)idx;
 }
 
-extern inline ScmObj
+ScmObj
 scm_capi_iseq_ref_immval(ScmObj iseq, size_t idx)
 {
   if (!scm_capi_iseq_p(iseq)) {
@@ -1986,7 +1986,7 @@ scm_capi_iseq_ref_immval(ScmObj iseq, size_t idx)
   return scm_iseq_get_immval(iseq, idx);;
 }
 
-extern inline ScmObj
+ScmObj
 scm_api_assemble(ScmObj lst)
 {
   if (scm_obj_null_p(lst)) {
@@ -2034,7 +2034,7 @@ scm_api_global_var_ref(ScmObj sym)
   return scm_gloc_value(gloc);
 }
 
-extern inline bool
+bool
 scm_capi_global_var_bound_p(ScmObj sym)
 {
   ScmObj gloc = SCM_OBJ_INIT;
@@ -2117,7 +2117,7 @@ scm_api_global_var_set(ScmObj sym, ScmObj val)
 /*  Setup Trampolining                                             */
 /*******************************************************************/
 
-extern inline int
+int
 scm_capi_trampolining(ScmObj target, ScmObj args, int nr_arg_cf,
                       ScmObj (*callback)(int argc, ScmObj *argv))
 {
@@ -2139,7 +2139,7 @@ scm_capi_trampolining(ScmObj target, ScmObj args, int nr_arg_cf,
 /*  Exit                                                           */
 /*******************************************************************/
 
-extern inline ScmObj
+ScmObj
 scm_api_exit(ScmObj obj)
 {
   /* TODO: obj の内容に応じた VM の終了ステータスの設定*/
@@ -2154,7 +2154,7 @@ scm_api_exit(ScmObj obj)
 /*  System Environment                                             */
 /*******************************************************************/
 
-extern inline SCM_ENC_T
+SCM_ENC_T
 scm_capi_system_encoding(void)
 {
   return scm_bedrock_encoding(scm_bedrock_current_br());
