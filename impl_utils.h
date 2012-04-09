@@ -42,4 +42,13 @@ scm_rshift_arith_sword(scm_sword_t x, unsigned int y)
 #  define scm_local_inline static inline
 #endif
 
+#include <stdio.h>
+
+#define scm_debug(...)                                           \
+  do {                                                           \
+    fprintf(stderr, "%s:%u:%s: ", __FILE__, __LINE__, __func__); \
+    fprintf(stderr, __VA_ARGS__);                                \
+    fflush(stderr);                                              \
+  } while (0)
+
 #endif /* INCLUDE_IMPL_UTILS_H__ */

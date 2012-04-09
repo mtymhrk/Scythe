@@ -256,7 +256,7 @@ scm_capi_eof_object_p(ScmObj obj)
 extern inline ScmObj
 scm_api_undef(void)
 {
-  return scm_vm_eof_instance();
+  return scm_vm_undef_instance();
 }
 
 extern inline bool

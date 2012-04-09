@@ -2,17 +2,17 @@
 #include <assert.h>
 
 #include "object.h"
-#include "reference.h"
+#include "impl_utils.h"
 #include "api.h"
 #include "pair.h"
 
 ScmTypeInfo SCM_PAIR_TYPE_INFO = {
-  NULL,                       /* pp_func              */
-  sizeof(ScmPair),            /* obj_size             */
-  scm_pair_gc_initialize,     /* gc_ini_func          */
-  NULL,                       /* gc_fin_func          */
-  scm_pair_gc_accept,         /* gc_accept_func       */
-  NULL,                       /* gc_accpet_func_weak  */
+  .pp_func = scm_pair_pretty_print,
+  .obj_size = sizeof(ScmPair),
+  .gc_ini_func = scm_pair_gc_initialize,
+  .gc_fin_func = NULL,
+  .gc_accept_func = scm_pair_gc_accept,
+  .gc_accept_func_weak = NULL,
 };
 
 
@@ -52,39 +52,41 @@ int
 scm_pair_pretty_print(ScmObj obj, ScmObj port, bool write_p)
 {
   ScmObj lst = SCM_OBJ_INIT, car = SCM_OBJ_INIT, cdr = SCM_OBJ_INIT;
+  ScmObj ro = SCM_OBJ_INIT;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&obj, &port, &lst, &car, &cdr);
+  SCM_STACK_FRAME_PUSH(&obj, &port, &lst, &car, &cdr, &ro);
 
   scm_assert_obj_type(obj, &SCM_PAIR_TYPE_INFO);
 
   rslt = scm_capi_write_cstr("(", SCM_ENC_ASCII, port);
   if (rslt < 0) return -1;      /* [ERR]: [through] */
 
+  lst = obj;
   while (1) {
     car = scm_pair_car(lst);
     cdr = scm_pair_cdr(lst);
 
     if (scm_capi_nil_p(cdr)) {
-      port = scm_api_write_simple(car, port);
-      if (scm_obj_null_p(port)) return -1; /* [ERR]: [through] */
+      ro = scm_api_write_simple(car, port);
+      if (scm_obj_null_p(ro)) return -1; /* [ERR]: [through] */
 
       break;
     }
     else if (!scm_capi_pair_p(cdr)) {
-      port = scm_api_write_simple(car, port);
-      if (scm_obj_null_p(port)) return -1; /* [ERR]: [through] */
+      ro = scm_api_write_simple(car, port);
+      if (scm_obj_null_p(ro)) return -1; /* [ERR]: [through] */
 
       rslt = scm_capi_write_cstr(" . ", SCM_ENC_ASCII, port);
       if (rslt < 0) return -1;  /* [ERR]: [through] */
 
-      port = scm_api_write_simple(cdr, port);
-      if (scm_obj_null_p(port)) return -1; /* [ERR]: [through] */
+      ro = scm_api_write_simple(cdr, port);
+      if (scm_obj_null_p(ro)) return -1; /* [ERR]: [through] */
       break;
     }
 
-    port = scm_api_write_simple(car, port);
-    if (scm_obj_null_p(port)) return -1; /* [ERR]: [thorugh] */
+    ro = scm_api_write_simple(car, port);
+    if (scm_obj_null_p(ro)) return -1; /* [ERR]: [thorugh] */
 
     rslt = scm_capi_write_cstr(" ", SCM_ENC_ASCII, port);
     if (rslt < 0) return -1;    /* [ERR]: [through] */
