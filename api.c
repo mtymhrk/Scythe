@@ -2121,9 +2121,14 @@ extern inline int
 scm_capi_trampolining(ScmObj target, ScmObj args, int nr_arg_cf,
                       ScmObj (*callback)(int argc, ScmObj *argv))
 {
-  if ((!scm_capi_iseq_p(target) && !scm_capi_closure_p(target))
-      || (!scm_capi_pair_p(args) && !scm_capi_nil_p(args)))
-    return SCM_OBJ_NULL;                  /* provisional implemntation */
+  if ((!scm_capi_iseq_p(target) && !scm_capi_closure_p(target))) {
+    scm_capi_error("", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if ((!scm_capi_pair_p(args) && !scm_capi_nil_p(args))) {
+    scm_capi_error("", 0);
+    return SCM_OBJ_NULL;
+  }
 
   return scm_vm_setup_stat_trmp(scm_vm_current_vm(),
                                 target, args, nr_arg_cf, callback);
@@ -2141,7 +2146,7 @@ scm_api_exit(ScmObj obj)
 
   scm_vm_setup_stat_halt(scm_vm_current_vm());
 
-  return obj;
+  return scm_api_undef();
 }
 
 
@@ -2196,7 +2201,7 @@ scm_capi_run_repl(ScmEvaluator *ev)
   if (ev == NULL) return ret;
 
   ev->vm = scm_vm_new();
-  if (scm_obj_null_p(ev->vm)) return ret;
+  if (scm_obj_null_p(ev->vm)) return ret; /* [ERR]: [through] */
 
   scm_vm_change_current_vm(ev->vm);
 
