@@ -48,6 +48,7 @@ scm_rshift_arith_sword(scm_sword_t x, unsigned int y)
   do {                                                           \
     fprintf(stderr, "%s:%u:%s: ", __FILE__, __LINE__, __func__); \
     fprintf(stderr, __VA_ARGS__);                                \
+    fputc('\n', stderr);                                         \
     fflush(stderr);                                              \
   } while (0)
 

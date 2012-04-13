@@ -196,6 +196,45 @@ scm_subr_func_exit(int argc, ScmObj *argv)
 
 
 /*******************************************************************/
+/*  Default Exception Handler                                      */
+/*******************************************************************/
+
+ScmObj
+scm_subr_func_default_exception_handler(int argc, ScmObj *argv)
+{
+  ScmObj port = SCM_OBJ_INIT, ro = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&port, &ro);
+
+  if (argc < 1) {
+    scm_capi_error("Exception Handler: too few arguments", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (argc > 1) {
+    scm_capi_error("Exception Handler: too many arguments", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  port = scm_api_standard_error_port();
+  if (scm_obj_null_p(port)) return SCM_OBJ_NULL;
+
+  ro = scm_api_display(argv[0], port);
+  if (scm_obj_null_p(ro)) return SCM_OBJ_NULL;
+
+  ro = scm_api_newline(port);
+  if (scm_obj_null_p(ro)) return SCM_OBJ_NULL;
+
+  ro = scm_api_flush_output_port(port);
+  if (scm_obj_null_p(ro)) return SCM_OBJ_NULL;
+
+  ro = scm_api_exit(scm_api_undef());
+  if (scm_obj_null_p(ro)) return SCM_OBJ_NULL;
+
+  return scm_api_undef();
+}
+
+
+/*******************************************************************/
 /*******************************************************************/
 
 void
@@ -224,5 +263,9 @@ scm_core_subr_system_setup(void)
       return;                   /* [ERR]: [through] */
   }
 
+  subr = scm_capi_make_subrutine(scm_subr_func_default_exception_handler);
+  if (scm_obj_null_p(subr)) return;
+
+  scm_capi_push_exception_handler(subr);
 }
 

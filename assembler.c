@@ -19,6 +19,7 @@ struct {
   { "gdef"         , SCM_OPCODE_GDEF },
   { "gset"         , SCM_OPCODE_GSET },
   { "jmp"          , SCM_OPCODE_JMP },
+  { "raise"        , SCM_OPCODE_RAISE },
   { "label"        , SCM_ASM_PI_LABEL },
   { "asm"          , SCM_ASM_PI_ASM }
 };
@@ -380,6 +381,7 @@ scm_asm_inst(ScmObj iseq, ScmObj inst, size_t idx,
   case SCM_OPCODE_HALT:         /* fall through */
   case SCM_OPCODE_FRAME:        /* fall through */
   case SCM_OPCODE_PUSH:
+  case SCM_OPCODE_RAISE:
     return scm_asm_inst_noarg_op(iseq, opcode);
     break;
   case SCM_OPCODE_GREF:         /* fall through */

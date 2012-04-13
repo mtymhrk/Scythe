@@ -270,11 +270,15 @@ scm_capi_undef_object_p(ScmObj obj)
 /*  Exception                                                      */
 /*******************************************************************/
 
-extern inline int
+int
 scm_capi_raise(ScmObj obj)
 {
-  /* TODO: write me */
-  return 0;
+  if (scm_obj_null_p(obj)) {
+    scm_capi_error("raise: invalid argument", 0);
+    return -1;
+  }
+
+  return scm_vm_setup_stat_raised(scm_vm_current_vm(), obj);
 }
 
 extern inline ScmObj
@@ -1683,6 +1687,24 @@ scm_api_current_output_port(void)
   return scm_vm_current_output_port(scm_vm_current_vm());
 }
 
+extern inline ScmObj
+scm_api_standard_input_port(void)
+{
+  return scm_vm_standard_input_port(scm_vm_current_vm());
+}
+
+extern inline ScmObj
+scm_api_standard_output_port(void)
+{
+  return scm_vm_standard_output_port(scm_vm_current_vm());
+}
+
+extern inline ScmObj
+scm_api_standard_error_port(void)
+{
+  return scm_vm_standard_error_port(scm_vm_current_vm());
+}
+
 
 /*******************************************************************/
 /*  Subrutine                                                      */
@@ -1972,12 +1994,12 @@ ScmObj
 scm_capi_iseq_ref_immval(ScmObj iseq, size_t idx)
 {
   if (!scm_capi_iseq_p(iseq)) {
-    scm_capi_error("can not get immediate value from iseq"
+    scm_capi_error("can not get immediate value from iseq: "
                    "invalid argument", 0);
     return SCM_OBJ_NULL;
   }
   else if (idx > SSIZE_MAX || (ssize_t)idx >= scm_iseq_nr_immv(iseq)) {
-    scm_capi_error("can not get immediate value from iseq"
+    scm_capi_error("can not get immediate value from iseq: "
                    "invalid argument", 0);
     return SCM_OBJ_NULL;
   }
@@ -2132,6 +2154,22 @@ scm_capi_trampolining(ScmObj target, ScmObj args, int nr_arg_cf,
 
   return scm_vm_setup_stat_trmp(scm_vm_current_vm(),
                                 target, args, nr_arg_cf, callback);
+}
+
+
+/*******************************************************************/
+/*  Install Exception Handler                                      */
+/*******************************************************************/
+
+int
+scm_capi_push_exception_handler(ScmObj handler)
+{
+  if (!scm_capi_subrutine_p(handler) && !scm_capi_closure_p(handler)) {
+    scm_capi_error("can not install exception handler: invalid argument", 0);
+    return -1;
+  }
+
+  return scm_vm_push_exception_handler(scm_vm_current_vm(), handler);
 }
 
 

@@ -45,6 +45,8 @@ scm_bedrock_initialize(ScmBedrock *br)
 
   br->encoding = SCM_ENC_UTF8;
 
+  br->vm = SCM_OBJ_NULL;
+
   return 0;
 
  err:
@@ -66,6 +68,7 @@ scm_bedrock_finalize(ScmBedrock *br)
   free(br->err.message);
   br->ref_stack = NULL;
   br->err.message = NULL;
+  br->vm = SCM_OBJ_NULL;
 }
 
 ScmBedrock *
@@ -116,6 +119,9 @@ scm_bedrock_fatal(ScmBedrock *br, const char *msg)
     memcpy(br->err.message, msg, len);
     br->err.message[len] = '\0';
   }
+
+  if (scm_obj_not_null_p(br->vm))
+    scm_vm_setup_stat_halt(br->vm);
 }
 
 void
@@ -168,7 +174,7 @@ ScmTypeInfo SCM_VM_TYPE_INFO = {
 };
 
 ScmObj scm_vm__current_vm = SCM_OBJ_INIT;
-
+ScmMem *scm_vm__current_mm = NULL;
 
 scm_local_func int
 scm_vm_setup_singletons(ScmObj vm)
@@ -248,6 +254,9 @@ scm_vm_setup_global_env(ScmObj vm)
   SCM_VM(vm)->ge.curio.in = SCM_OBJ_NULL;
   SCM_VM(vm)->ge.curio.out = SCM_OBJ_NULL;
 
+  SCM_VM(vm)->ge.excpt.hndlr = SCM_OBJ_NULL;
+  SCM_VM(vm)->ge.excpt.raised = SCM_OBJ_NULL;
+
   return 0;
 }
 
@@ -271,6 +280,9 @@ scm_vm_clean_global_env(ScmObj vm)
 
   SCM_VM(vm)->ge.curio.in = SCM_OBJ_NULL;
   SCM_VM(vm)->ge.curio.out = SCM_OBJ_NULL;
+
+  SCM_VM(vm)->ge.excpt.hndlr = SCM_OBJ_NULL;
+  SCM_VM(vm)->ge.excpt.raised = SCM_OBJ_NULL;
 }
 
 scm_local_func int
@@ -327,12 +339,15 @@ scm_vm_init_eval_env(ScmObj vm)
     return -1;                  /* [ERR]: [through] */
   }
 
-  SCM_SLOT_SETQ(ScmVM,vm, ge.stdio.in, in);
-  SCM_SLOT_SETQ(ScmVM,vm, ge.stdio.out, out);
-  SCM_SLOT_SETQ(ScmVM,vm, ge.stdio.err, err);
+  SCM_SLOT_SETQ(ScmVM, vm, ge.stdio.in, in);
+  SCM_SLOT_SETQ(ScmVM, vm, ge.stdio.out, out);
+  SCM_SLOT_SETQ(ScmVM, vm, ge.stdio.err, err);
 
-  SCM_SLOT_SETQ(ScmVM,vm, ge.curio.in, in);
-  SCM_SLOT_SETQ(ScmVM,vm, ge.curio.out, out);
+  SCM_SLOT_SETQ(ScmVM, vm, ge.curio.in, in);
+  SCM_SLOT_SETQ(ScmVM, vm, ge.curio.out, out);
+
+  SCM_SLOT_SETQ(ScmVM, vm, ge.excpt.hndlr, SCM_VM(vm)->cnsts.nil);
+  SCM_VM(vm)->ge.excpt.raised = SCM_OBJ_NULL;
 
   SCM_VM(vm)->reg.sp = SCM_VM(vm)->stack;
   SCM_VM(vm)->reg.fp = NULL;
@@ -359,6 +374,9 @@ scm_vm_clean_eval_env(ScmObj vm)
 
   SCM_VM(vm)->ge.curio.in = SCM_OBJ_NULL;
   SCM_VM(vm)->ge.curio.out = SCM_OBJ_NULL;
+
+  SCM_VM(vm)->ge.excpt.hndlr = SCM_OBJ_NULL;
+  SCM_VM(vm)->ge.excpt.raised = SCM_OBJ_NULL;
 
   SCM_VM(vm)->reg.sp = SCM_VM(vm)->stack;
   SCM_VM(vm)->reg.fp = NULL;
@@ -554,6 +572,43 @@ scm_vm_make_trampolining_code(ScmObj vm, ScmObj clsr,
   return iseq;
 }
 
+scm_local_func ScmObj
+scm_vm_make_exception_handler_code(ScmObj vm)
+{
+  ScmObj iseq = SCM_OBJ_INIT;
+  ssize_t rslt;
+
+  SCM_STACK_FRAME_PUSH(&vm, &iseq);
+
+  iseq = scm_api_make_iseq();
+  if (scm_obj_null_p(iseq)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+
+  rslt = scm_capi_iseq_push_op(iseq, SCM_OPCODE_RAISE);
+  if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
+
+  return iseq;
+}
+
+scm_local_func int
+scm_vm_setup_to_call_exception_handler(ScmObj vm)
+{
+  ScmObj iseq = SCM_OBJ_INIT, clsr = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&vm, &iseq, &clsr);
+
+  iseq = scm_vm_make_exception_handler_code(vm);
+  if (scm_obj_null_p(iseq)) return -1;
+
+  clsr = scm_capi_iseq_to_closure(iseq);
+  if (scm_obj_null_p(clsr)) return -1;
+
+  SCM_SLOT_SETQ(ScmVM, vm, reg.cp, clsr);
+  SCM_SLOT_SETQ(ScmVM, vm, reg.isp, iseq);
+  SCM_VM(vm)->reg.ip = scm_capi_iseq_to_ip(iseq);
+
+  return 0;
+}
+
 scm_local_inline void
 scm_vm_ctrl_flg_set(ScmObj vm, SCM_VM_CTRL_FLG_T flg)
 {
@@ -578,40 +633,27 @@ scm_vm_ctrl_flg_set_p(ScmObj vm, SCM_VM_CTRL_FLG_T flg)
   return (SCM_VM(vm)->reg.flags & flg) ? true : false;
 }
 
-/* 関数呼出のためのインストラクション */
-scm_local_func void
-scm_vm_op_call(ScmObj vm, SCM_OPCODE_T op)
+scm_local_func int
+scm_vm_do_op_call(ScmObj vm, SCM_OPCODE_T op,
+                  uint32_t nr_arg, uint32_t nr_arg_cf, bool tail_p)
 {
   ScmObj val = SCM_OBJ_INIT, ip_fn = SCM_OBJ_INIT;
-  uint32_t nr_arg, nr_arg_cf;
   int rslt;
 
   SCM_STACK_FRAME_PUSH(&vm, &val, &ip_fn);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+  scm_assert(nr_arg <= INT32_MAX);
+  scm_assert(nr_arg <= INT32_MAX);
 
-  SCM_CAPI_INST_FETCH_UINT32(SCM_VM(vm)->reg.ip, nr_arg);
-  if (nr_arg > INT32_MAX) {
-    scm_capi_error("bytecode format error", 0);
-    return;
-  }
-
-  if (op == SCM_OPCODE_TAIL_CALL) {
-    SCM_CAPI_INST_FETCH_UINT32(SCM_VM(vm)->reg.ip, nr_arg_cf);
-    if (nr_arg_cf > INT32_MAX) {
-      scm_capi_error("bytecode format error", 0);
-      return;
-    }
-  }
-
-  if (op == SCM_OPCODE_TAIL_CALL) {
+  if (tail_p) {
     rslt = scm_vm_stack_shift(vm, nr_arg, nr_arg_cf);
-    if (rslt < 0) return;
+    if (rslt < 0) return -1;
   }
 
   SCM_VM(vm)->reg.fp = SCM_VM(vm)->reg.sp;
 
-  if (op == SCM_OPCODE_CALL) {
+  if (!tail_p) {
     /* FRAME インストラクションでダミー値を設定していたものを実際の値に変更
        する */
     ip_fn = scm_capi_inst_ptr_to_fixnum(SCM_VM(vm)->reg.ip);
@@ -623,8 +665,7 @@ scm_vm_op_call(ScmObj vm, SCM_OPCODE_T op)
     val = scm_api_call_subrutine(SCM_VM(vm)->reg.val,
                                  (int)nr_arg,
                                  scm_vm_cur_frame_argv(vm, (int)nr_arg));
-    if (scm_obj_null_p(val))
-      return;                   /* [ERR]: [through] */
+    if (scm_obj_null_p(val)) return -1;               /* [ERR]: [through] */
 
     SCM_SLOT_SETQ(ScmVM, vm, reg.val, val);
 
@@ -639,6 +680,66 @@ scm_vm_op_call(ScmObj vm, SCM_OPCODE_T op)
   else {
     scm_capi_error("object is not applicable", 1, SCM_VM(vm)->reg.val);
   }
+
+  return 0;
+}
+
+scm_local_func int
+scm_vm_do_op_push(ScmObj vm, SCM_OPCODE_T op)
+{
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  scm_vm_stack_push(vm, SCM_VM(vm)->reg.val);
+
+  return 0;
+}
+
+scm_local_func int
+scm_vm_do_op_frame(ScmObj vm, SCM_OPCODE_T op)
+{
+  ScmObj fp_fn = SCM_OBJ_INIT;
+
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  fp_fn = scm_capi_frame_ptr_to_fixnum(SCM_VM(vm)->reg.fp);
+
+  scm_vm_make_stack_frame(vm,
+                          fp_fn,
+                          SCM_VM(vm)->reg.cp,
+                          SCM_VM(vm)->reg.isp,
+                          SCM_OBJ_NULL);
+  /* instraction pointer は FRAME インストラクション段階ではダミー */
+  /* 値(SCM_OBJ_NULL)をプッシュする。本当の値は CALL 時に設定する */
+
+  return 0;
+}
+
+/* 関数呼出のためのインストラクション */
+scm_local_func void
+scm_vm_op_call(ScmObj vm, SCM_OPCODE_T op)
+{
+  uint32_t nr_arg, nr_arg_cf;
+
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  SCM_CAPI_INST_FETCH_UINT32(SCM_VM(vm)->reg.ip, nr_arg);
+  if (nr_arg > INT32_MAX) {
+    scm_capi_error("bytecode format error", 0);
+    return;
+  }
+
+  nr_arg_cf = 0;
+  if (op == SCM_OPCODE_TAIL_CALL) {
+    SCM_CAPI_INST_FETCH_UINT32(SCM_VM(vm)->reg.ip, nr_arg_cf);
+    if (nr_arg_cf > INT32_MAX) {
+      scm_capi_error("bytecode format error", 0);
+      return;
+    }
+  }
+
+  scm_vm_do_op_call(vm, op, nr_arg, nr_arg_cf, (op == SCM_OPCODE_TAIL_CALL));
+
+  return;
 }
 
 scm_local_func void
@@ -664,7 +765,7 @@ scm_vm_op_push(ScmObj vm, SCM_OPCODE_T op)
 {
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
-  scm_vm_stack_push(vm, SCM_VM(vm)->reg.val);
+  scm_vm_do_op_push(vm, op);
 }
 
 
@@ -675,19 +776,9 @@ scm_vm_op_push(ScmObj vm, SCM_OPCODE_T op)
 scm_local_func void
 scm_vm_op_frame(ScmObj vm, SCM_OPCODE_T op) /* GC OK */
 {
-  ScmObj fp_fn = SCM_OBJ_INIT;
-
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
-  fp_fn = scm_capi_frame_ptr_to_fixnum(SCM_VM(vm)->reg.fp);
-
-  scm_vm_make_stack_frame(vm,
-                          fp_fn,
-                          SCM_VM(vm)->reg.cp,
-                          SCM_VM(vm)->reg.isp,
-                          SCM_OBJ_NULL);
-  /* instraction pointer は FRAME インストラクション段階ではダミー */
-  /* 値(SCM_OBJ_NULL)をプッシュする。本当の値は CALL 時に設定する */
+  scm_vm_do_op_frame(vm, op);
 }
 
 /* 関数の呼び出しから戻るインストラクション。
@@ -862,6 +953,46 @@ scm_vm_op_jmp(ScmObj vm, SCM_OPCODE_T op)
   SCM_VM(vm)->reg.ip += dst;
 }
 
+
+/* exception handler リストにある先頭の handler を val レジスタに設定し、
+ * exception handler リストから先頭の handler を取り除く
+ */
+scm_local_func void
+scm_vm_op_raise(ScmObj vm, SCM_OPCODE_T op)
+{
+  ScmObj hndlr = SCM_OBJ_INIT, rest = SCM_OBJ_INIT, fp_fn = SCM_OBJ_INIT;
+  int rslt;
+
+  SCM_STACK_FRAME_PUSH(&vm, &hndlr, &rest, &fp_fn);
+
+  if (scm_capi_nil_p(SCM_VM(vm)->ge.excpt.hndlr)) {
+    scm_capi_fatal("raised, but exception handler is not installed");
+    return;
+  }
+
+  hndlr = scm_api_car(SCM_VM(vm)->ge.excpt.hndlr);
+  if (scm_obj_null_p(hndlr)) return; /* [ERR]: [through] */
+
+  rest = scm_api_cdr(SCM_VM(vm)->ge.excpt.hndlr);
+  if (scm_obj_null_p(rest)) return; /* [ERR]: [through] */
+
+  rslt = scm_vm_do_op_frame(vm, op);
+  if (rslt < 0) return;
+
+  SCM_SLOT_SETQ(ScmVM, vm, reg.val, SCM_VM(vm)->ge.excpt.raised);
+
+  rslt = scm_vm_do_op_push(vm, op);
+  if (rslt < 0) return;
+
+  SCM_SLOT_SETQ(ScmVM, vm, reg.val, hndlr);
+  SCM_SLOT_SETQ(ScmVM, vm, ge.excpt.hndlr, rest);
+
+  rslt = scm_vm_do_op_call(vm, op, 1, 0, false);
+  if (rslt < 0) return;
+
+  scm_capi_raise(SCM_VM(vm)->ge.excpt.raised);
+}
+
 void
 scm_vm_initialize(ScmObj vm,  ScmBedrock *bedrock)
 {
@@ -908,6 +1039,8 @@ scm_vm_finalize(ScmObj vm)
 {
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
+  scm_beadrock_bind_vm(SCM_VM(vm)->bedrock, SCM_OBJ_NULL);
+
   scm_vm_clean_global_env(vm);
   scm_vm_clean_singletons(vm);
 
@@ -936,18 +1069,25 @@ scm_vm_new(void)
   mem = scm_mem_new();
   if (mem == NULL) goto err;
 
+  scm_vm__current_mm = mem;
+
   vm = scm_mem_alloc_root(mem, &SCM_VM_TYPE_INFO);
   if (scm_obj_null_p(vm)) goto err;
 
-  scm_vm__current_vm = vm;
-
   scm_vm_initialize(vm, bedrock);
+
+  scm_beadrock_bind_vm(bedrock, vm);
+
+  scm_vm__current_mm = NULL;
+  scm_bedrock__current_br = NULL;
 
   return vm;
 
  err:
   if (mem != NULL) scm_mem_end(mem);
   if (bedrock != NULL) scm_bedrock_end(bedrock);
+  scm_vm__current_mm = NULL;
+  scm_bedrock__current_br = NULL;
   return SCM_OBJ_NULL;
 }
 
@@ -1007,6 +1147,16 @@ scm_vm_run(ScmObj vm, ScmObj iseq)
   SCM_VM(vm)->reg.flags = 0;
 
   while (!scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_HALT)) {
+    if (scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_RAISE)) {
+      int rslt;
+      scm_vm_ctrl_flg_clr(vm, SCM_VM_CTRL_FLG_RAISE);
+      rslt = scm_vm_setup_to_call_exception_handler(vm);
+      if (rslt < 0 && scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_RAISE)) {
+        scm_capi_fatal("can not handle exception");
+        break;
+      }
+    }
+
     SCM_CAPI_INST_FETCH_OP(SCM_VM(vm)->reg.ip, op);
 
     switch(op) {
@@ -1045,6 +1195,9 @@ scm_vm_run(ScmObj vm, ScmObj iseq)
       break;
     case SCM_OPCODE_JMP:
       scm_vm_op_jmp(vm, op);
+      break;
+    case SCM_OPCODE_RAISE:
+      scm_vm_op_raise(vm, op);
       break;
     default:
       /* TODO: error handling */
@@ -1119,6 +1272,37 @@ scm_vm_setup_stat_halt(ScmObj vm)
   scm_vm_ctrl_flg_set(vm, SCM_VM_CTRL_FLG_HALT);
 }
 
+int
+scm_vm_setup_stat_raised(ScmObj vm, ScmObj obj)
+{
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+  scm_assert(scm_obj_not_null_p(obj));
+
+  SCM_SLOT_SETQ(ScmVM, vm, ge.excpt.raised, obj);
+  scm_vm_ctrl_flg_set(vm, SCM_VM_CTRL_FLG_RAISE);
+
+  return 0;
+}
+
+int
+scm_vm_push_exception_handler(ScmObj vm, ScmObj hndlr)
+{
+  ScmObj lst = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&vm, &hndlr, &lst);
+
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+  scm_assert(scm_capi_subrutine_p(hndlr)
+             || scm_capi_closure_p(hndlr));
+
+  lst = scm_api_cons(hndlr, SCM_VM(vm)->ge.excpt.hndlr);
+  if (scm_obj_null_p(lst)) return -1; /* [ERR]: [thorugh] */
+
+  SCM_SLOT_SETQ(ScmVM, vm, ge.excpt.hndlr, lst);
+
+  return 0;
+}
+
 void
 scm_vm_gc_initialize(ScmObj obj, ScmObj mem)
 {
@@ -1134,6 +1318,8 @@ scm_vm_gc_initialize(ScmObj obj, ScmObj mem)
   SCM_VM(obj)->ge.stdio.err = SCM_OBJ_NULL;
   SCM_VM(obj)->ge.curio.in = SCM_OBJ_NULL;
   SCM_VM(obj)->ge.curio.out = SCM_OBJ_NULL;
+  SCM_VM(obj)->ge.excpt.hndlr = SCM_OBJ_NULL;
+  SCM_VM(obj)->ge.excpt.raised = SCM_OBJ_NULL;
   SCM_VM(obj)->stack = NULL;
   SCM_VM(obj)->stack_size = 0;
   SCM_VM(obj)->reg.sp = NULL;
@@ -1178,6 +1364,14 @@ scm_vm_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
   rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_VM(obj)->ge.curio.out, mem);
+  if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
+
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj,
+                                 SCM_VM(obj)->ge.excpt.hndlr, mem);
+  if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
+
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj,
+                                 SCM_VM(obj)->ge.excpt.raised, mem);
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
   rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_VM(obj)->reg.isp, mem);

@@ -74,6 +74,8 @@ scm_exception_new(SCM_MEM_TYPE_T mtype, ScmObj msg, size_t n, ...)
   va_list irris;
   int rslt;
 
+  SCM_STACK_FRAME_PUSH(&msg, &exc);
+
   scm_assert(scm_capi_string_p(msg));
   scm_assert(n <= SCM_EXCEPTION_IRRITANTS_MAX);
 
@@ -95,6 +97,8 @@ scm_exception_new_va(SCM_MEM_TYPE_T mtype, ScmObj msg, size_t n, va_list irris)
   ScmObj exc = SCM_OBJ_INIT;
   int rslt;
 
+  SCM_STACK_FRAME_PUSH(&msg, &exc);
+
   scm_assert(scm_capi_string_p(msg));
   scm_assert(n <= SCM_EXCEPTION_IRRITANTS_MAX);
 
@@ -113,6 +117,8 @@ scm_exception_new_ary(SCM_MEM_TYPE_T mtype, ScmObj msg, size_t n, ScmObj *irris)
 {
   ScmObj exc = SCM_OBJ_INIT;
   int rslt;
+
+  SCM_STACK_FRAME_PUSH(&msg, &exc);
 
   scm_assert(scm_capi_string_p(msg));
   scm_assert(n <= SCM_EXCEPTION_IRRITANTS_MAX);

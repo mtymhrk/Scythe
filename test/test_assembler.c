@@ -29,13 +29,14 @@ test_scm_asm_assemble(void)
   const char *str =
     "((nop)(halt)(call 5)(return 0)(frame)(push)(gref vvv)"
     "(gdef vvv)(gset vvv)(immval vvv)"
-    "(label lbl)(jmp lbl)(asm ((nop))))";
+    "(label lbl)(jmp lbl)(asm ((nop)))(raise))";
   const uint8_t expected_codes[] = { SCM_OPCODE_NOP, SCM_OPCODE_HALT,
                                      SCM_OPCODE_CALL, SCM_OPCODE_RETURN,
                                      SCM_OPCODE_FRAME, SCM_OPCODE_PUSH,
                                      SCM_OPCODE_GREF, SCM_OPCODE_GDEF,
                                      SCM_OPCODE_GSET, SCM_OPCODE_IMMVAL,
-                                     SCM_OPCODE_JMP, SCM_OPCODE_IMMVAL };
+                                     SCM_OPCODE_JMP, SCM_OPCODE_IMMVAL,
+                                     SCM_OPCODE_RAISE };
   ScmObj actual_immv = SCM_OBJ_INIT;
   ScmObj expected_immv = SCM_OBJ_INIT;
   uint8_t *ip;

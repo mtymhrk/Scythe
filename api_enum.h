@@ -61,6 +61,7 @@ typedef enum {
   /* SCM_OPCODE_SREF,                /\* refere value in stack *\/ */
   /* SCM_OPCODE_CREF                 /\* refere value in closure *\/ */
   SCM_OPCODE_JMP,                  /* 11: jump */
+  SCM_OPCODE_RAISE                 /* 12: exception handler */
 } SCM_OPCODE_T;
 
 

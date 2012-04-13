@@ -273,6 +273,9 @@ ssize_t scm_capi_get_output_raw(ScmObj port, void *buf, size_t size);
 ScmObj scm_api_get_output_string(ScmObj port);
 ScmObj scm_api_current_input_port(void);
 ScmObj scm_api_current_output_port(void);
+ScmObj scm_api_standard_input_port(void);
+ScmObj scm_api_standard_output_port(void);
+ScmObj scm_api_standard_error_port(void);
 
 
 /*******************************************************************/
@@ -354,6 +357,13 @@ ScmObj scm_api_global_var_set(ScmObj sym, ScmObj val);
 int scm_capi_trampolining(ScmObj target,
                           ScmObj arg, int nr_arg_cf,
                           ScmObj (*callback)(int argc, ScmObj *argv));
+
+
+/*******************************************************************/
+/*  Install Exception Handler                                      */
+/*******************************************************************/
+
+int scm_capi_push_exception_handler(ScmObj handler);
 
 
 /*******************************************************************/
