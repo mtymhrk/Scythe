@@ -182,7 +182,7 @@ scm_api_eq_P(ScmObj obj1, ScmObj obj2)
   }
 
   return (scm_obj_same_instance_p(obj1, obj2) ?
-          scm_vm_bool_true_instance() : scm_vm_bool_false_instance());
+          scm_api_bool_true() : scm_api_bool_false());
 }
 
 
@@ -193,7 +193,7 @@ scm_api_eq_P(ScmObj obj1, ScmObj obj2)
 extern inline ScmObj
 scm_api_nil(void)
 {
-  return scm_vm_nil_instance();
+  return scm_vm_nil(scm_vm_current_vm());
 }
 
 extern inline bool
@@ -210,13 +210,13 @@ scm_capi_nil_p(ScmObj obj)
 extern inline ScmObj
 scm_api_bool_true(void)
 {
-  return scm_vm_nil_instance();
+  return scm_vm_true(scm_vm_current_vm());
 }
 
 extern inline ScmObj
 scm_api_bool_false(void)
 {
-  return scm_vm_nil_instance();
+  return scm_vm_false(scm_vm_current_vm());
 }
 
 extern inline bool
@@ -239,7 +239,7 @@ scm_capi_false_p(ScmObj obj)
 extern inline ScmObj
 scm_api_eof(void)
 {
-  return scm_vm_eof_instance();
+  return scm_vm_eof(scm_vm_current_vm());
 }
 
 extern inline bool
@@ -256,7 +256,7 @@ scm_capi_eof_object_p(ScmObj obj)
 extern inline ScmObj
 scm_api_undef(void)
 {
-  return scm_vm_undef_instance();
+  return scm_vm_undef(scm_vm_current_vm());
 }
 
 extern inline bool
@@ -400,8 +400,7 @@ scm_api_pair_P(ScmObj pair)
     return SCM_OBJ_NULL;         /* provisional implemntation */
   }
 
-  return (scm_capi_pair_p(pair) ?
-          scm_vm_bool_true_instance() : scm_vm_bool_false_instance());
+  return scm_capi_pair_p(pair) ? scm_api_bool_true() : scm_api_bool_false();
 }
 
 ScmObj
@@ -925,7 +924,7 @@ scm_api_string_to_symbol(ScmObj str)
   if (enc != scm_capi_system_encoding())
     str = scm_string_encode(str, scm_capi_system_encoding());
 
-  return scm_symtbl_symbol(scm_vm_current_symtbl(), str);
+  return scm_symtbl_symbol(scm_vm_symtbl(scm_vm_current_vm()), str);
 }
 
 ScmObj
@@ -1107,9 +1106,9 @@ scm_api_input_port_P(ScmObj port)
   }
 
   if (scm_obj_type_p(port, &SCM_PORT_TYPE_INFO) && scm_port_readable_p(port))
-    return scm_vm_bool_true_instance();
+    return scm_api_bool_true();
   else
-    return scm_vm_bool_false_instance();
+    return scm_api_bool_false();
 }
 
 extern inline bool
@@ -1133,9 +1132,9 @@ scm_api_output_port_P(ScmObj port)
   }
 
   if (scm_obj_type_p(port, &SCM_PORT_TYPE_INFO) && scm_port_writable_p(port))
-    return scm_vm_bool_true_instance();
+    return scm_api_bool_true();
   else
-    return scm_vm_bool_false_instance();
+    return scm_api_bool_false();
 }
 
 int
@@ -2045,7 +2044,8 @@ scm_api_global_var_ref(ScmObj sym)
     return SCM_OBJ_NULL;
   }
 
-  rslt = scm_gloctbl_find(scm_vm_current_gloctbl(), sym, SCM_CSETTER_L(gloc));
+  rslt = scm_gloctbl_find(scm_vm_gloctbl(scm_vm_current_vm()),
+                          sym, SCM_CSETTER_L(gloc));
   if (rslt != 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   if (scm_obj_null_p(gloc)) {
@@ -2067,7 +2067,8 @@ scm_capi_global_var_bound_p(ScmObj sym)
   if (scm_obj_null_p(sym)) return false;
   if (!scm_obj_type_p(sym, &SCM_SYMBOL_TYPE_INFO)) return false;
 
-  rslt = scm_gloctbl_find(scm_vm_current_gloctbl(), sym, SCM_CSETTER_L(gloc));
+  rslt = scm_gloctbl_find(scm_vm_gloctbl(scm_vm_current_vm()),
+                          sym, SCM_CSETTER_L(gloc));
   if (rslt != 0) return false;
 
   return scm_obj_null_p(gloc) ? false : true;
@@ -2093,7 +2094,7 @@ scm_api_global_var_define(ScmObj sym, ScmObj val)
     return SCM_OBJ_NULL;
   }
 
-  gloc = scm_gloctbl_bind(scm_vm_current_gloctbl(), sym, val);
+  gloc = scm_gloctbl_bind(scm_vm_gloctbl(scm_vm_current_vm()), sym, val);
   if (scm_obj_null_p(gloc)) return SCM_OBJ_NULL;
 
   return scm_api_undef();
@@ -2120,7 +2121,8 @@ scm_api_global_var_set(ScmObj sym, ScmObj val)
     return SCM_OBJ_NULL;
   }
 
-  rslt = scm_gloctbl_find(scm_vm_current_gloctbl(), sym, SCM_CSETTER_L(gloc));
+  rslt = scm_gloctbl_find(scm_vm_gloctbl(scm_vm_current_vm()),
+                          sym, SCM_CSETTER_L(gloc));
   if (rslt != 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   if (scm_obj_null_p(gloc)) {
@@ -2128,7 +2130,7 @@ scm_api_global_var_set(ScmObj sym, ScmObj val)
     return SCM_OBJ_NULL;
   }
 
-  gloc = scm_gloctbl_bind(scm_vm_current_gloctbl(), sym, val);
+  gloc = scm_gloctbl_bind(scm_vm_gloctbl(scm_vm_current_vm()), sym, val);
   if (scm_obj_null_p(gloc)) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   return val;

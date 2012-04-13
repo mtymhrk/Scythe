@@ -197,7 +197,7 @@ test_parser_parse_bool_false(void)
   SCM_STACK_FRAME_PUSH(&bl, &eof);
 
   new_parser();
-  new_port(" #t ");
+  new_port(" #f ");
 
   bl = scm_parser_parse_expression(parser, port);
 

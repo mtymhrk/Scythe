@@ -190,8 +190,8 @@ test_scm_iseq_push_immval_get_immval(void)
   /* preprocess */
   iseq = scm_iseq_new(SCM_MEM_HEAP);
 
-  val1 = scm_vm_nil_instance();
-  val2 = scm_vm_eof_instance();
+  val1 = scm_api_nil();
+  val2 = scm_api_eof();
 
   /* action */
   ssize_t idx1 = scm_iseq_push_immval(iseq, val1);
@@ -219,8 +219,8 @@ test_scm_iseq_set_immval__update_successed(void)
   /* preprocess */
   iseq = scm_iseq_new(SCM_MEM_HEAP);
 
-  val1 = scm_vm_nil_instance();
-  val2 = scm_vm_eof_instance();
+  val1 = scm_api_nil();
+  val2 = scm_api_eof();
   ssize_t idx1 = scm_iseq_push_immval(iseq, val1);
 
   /* action */
@@ -244,7 +244,7 @@ test_scm_iseq__expand_object_vector(void)
 
   iseq = scm_iseq_new(SCM_MEM_HEAP);
 
-  val = scm_vm_nil_instance();
+  val = scm_api_nil();
 
   for (int i; i < SCM_ISEQ_DEFAULT_IMMVS_SIZE; i++) {
     ssize_t r = scm_iseq_push_immval(iseq, val);

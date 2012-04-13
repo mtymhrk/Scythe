@@ -219,6 +219,22 @@ void scm_vm_gc_finalize(ScmObj obj);
 int scm_vm_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
 
 inline ScmObj
+scm_vm_symtbl(ScmObj vm)
+{
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  return SCM_VM(vm)->ge.symtbl;
+}
+
+inline ScmObj
+scm_vm_gloctbl(ScmObj vm)
+{
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  return SCM_VM(vm)->ge.gloctbl;
+}
+
+inline ScmObj
 scm_vm_standard_input_port(ScmObj vm)
 {
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
@@ -259,9 +275,56 @@ scm_vm_current_output_port(ScmObj vm)
 }
 
 inline ScmObj
+scm_vm_nil(ScmObj vm)
+{
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  return SCM_VM(vm)->cnsts.nil;
+}
+
+inline ScmObj
+scm_vm_eof(ScmObj vm)
+{
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  return SCM_VM(vm)->cnsts.eof;
+}
+
+inline ScmObj
+scm_vm_true(ScmObj vm)
+{
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  return SCM_VM(vm)->cnsts.b_true;
+}
+
+inline ScmObj
+scm_vm_false(ScmObj vm)
+{
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  return SCM_VM(vm)->cnsts.b_false;
+}
+
+inline ScmObj
+scm_vm_undef(ScmObj vm)
+{
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  return SCM_VM(vm)->cnsts.undef;
+}
+
+
+inline ScmObj
 scm_vm_current_vm(void)
 {
   return scm_vm__current_vm;
+}
+
+inline ScmMem *
+scm_vm_current_mm(void)
+{
+  return scm_vm__current_mm;
 }
 
 inline void
@@ -273,53 +336,5 @@ scm_vm_change_current_vm(ScmObj vm)
     scm_bedrock_change_current_br(SCM_VM(vm)->bedrock);
 }
 
-
-inline ScmMem *
-scm_vm_current_mm(void)
-{
-  return scm_vm__current_mm;
-}
-
-inline ScmObj
-scm_vm_current_symtbl(void)
-{
-  return SCM_VM(scm_vm__current_vm)->ge.symtbl;
-}
-
-inline ScmObj
-scm_vm_current_gloctbl(void)
-{
-  return SCM_VM(scm_vm__current_vm)->ge.gloctbl;
-}
-
-inline ScmObj
-scm_vm_nil_instance(void)
-{
-  return SCM_VM(scm_vm__current_vm)->cnsts.nil;
-}
-
-inline ScmObj
-scm_vm_eof_instance(void)
-{
-  return SCM_VM(scm_vm__current_vm)->cnsts.eof;
-}
-
-inline ScmObj
-scm_vm_bool_true_instance(void)
-{
-  return SCM_VM(scm_vm__current_vm)->cnsts.b_true;
-}
-
-inline ScmObj
-scm_vm_bool_false_instance(void)
-{
-  return SCM_VM(scm_vm__current_vm)->cnsts.b_false;
-}
-
-inline ScmObj
-scm_vm_undef_instance(void)
-{
-  return SCM_VM(scm_vm__current_vm)->cnsts.undef;
-}
 
 #endif /* INCLUDE_VM_H__ */
