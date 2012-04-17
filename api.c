@@ -542,7 +542,7 @@ scm_capi_make_char(scm_char_t chr, SCM_ENC_T enc)
     scm_capi_error("can not make character object: unknown encoding", 0);
     return SCM_OBJ_NULL;
   }
-  else if (!SCM_ENCODING_VFUNC_VALID_P(enc)(chr)) {
+  else if (!SCM_ENCODING_VFUNC_VALID_CHAR_P(enc)(chr)) {
     scm_capi_error("can not make character object: invalid sequence", 0);
     return SCM_OBJ_NULL;          /* provisional implemntation */
   }
@@ -565,7 +565,7 @@ scm_api_make_char_newline(SCM_ENC_T enc)
     enc = scm_capi_system_encoding();
 
   return scm_char_new(SCM_MEM_ALLOC_HEAP,
-                      SCM_ENCODING_CONST_LF_CHAR(enc),
+                      SCM_ENCODING_CONST_LF_CHR(enc),
                       enc);
 }
 
@@ -581,7 +581,7 @@ scm_api_make_char_space(SCM_ENC_T enc)
     enc = scm_capi_system_encoding();
 
   return scm_char_new(SCM_MEM_ALLOC_HEAP,
-                      SCM_ENCODING_CONST_SPACE_CHAR(enc),
+                      SCM_ENCODING_CONST_SP_CHR(enc),
                       enc);
 }
 
@@ -760,6 +760,31 @@ scm_capi_string_to_cstr(ScmObj str, char *cstr, size_t size)
   cstr[n] = '\0';
 
   return n;
+}
+
+int
+scm_capi_string_push(ScmObj str, scm_char_t chr, SCM_ENC_T enc)
+{
+  SCM_ENC_T s_enc;
+  int rslt;
+
+  if (!scm_capi_string_p(str)) {
+    scm_capi_error("can not push character into string: invalid argument", 0);
+    return -1;
+  }
+
+  rslt = scm_capi_string_encoding(str, &s_enc);
+  if (rslt < 0) return -1;
+
+  if (s_enc != enc) {
+    scm_capi_error("can not push character into string: encoding mismatch", 0);
+    return -1;
+  }
+
+  str = scm_string_push(str, chr);
+  if (scm_obj_null_p(str)) return SCM_OBJ_NULL;
+
+  return 0;
 }
 
 ScmObj
@@ -1585,8 +1610,8 @@ scm_api_newline(ScmObj port)
   rslt = scm_capi_port_encoding(port, &enc);
   if (rslt < 0) return SCM_OBJ_NULL;
 
-  nl = SCM_ENCODING_CONST_LF_CHAR(enc);
-  w = SCM_ENCODING_VFUNC_CHAR_WIDTH(enc)(nl.bytes, sizeof(nl));
+  nl = SCM_ENCODING_CONST_LF_CHR(enc);
+  w = (ssize_t)SCM_ENCODING_CONST_LF_WIDTH(enc);
 
   rslt = scm_capi_write_bin(nl.bytes, (size_t)w, enc, port);
   if (rslt < 0) return SCM_OBJ_NULL;

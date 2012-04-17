@@ -189,10 +189,10 @@ scm_string_write_ext_rep(ScmObj obj, ScmObj port)
       }
       else {
         char cstr[32];
-        long scalar = vf->to_scalar(SCM_STR_ITR_PTR(&iter),
-                                    (size_t)SCM_STR_ITR_REST(&iter));
+        long long scalar = vf->to_scalar(SCM_STR_ITR_PTR(&iter),
+                                         (size_t)SCM_STR_ITR_REST(&iter));
         scm_assert(scalar >= 0);
-        snprintf(cstr, sizeof(cstr), "\\x%lx;", scalar);
+        snprintf(cstr, sizeof(cstr), "\\x%llx;", scalar);
         rslt = scm_capi_write_cstr(cstr, SCM_ENC_ASCII, port);
         if (rslt < 0) return -1; /* [ERR: [through] */
       }
@@ -846,10 +846,10 @@ scm_string_escape_ctrl_and_nonascii_write(ScmObj str, ScmObj port)
     }
     else {
       char cstr[32];
-      long scalar = vf->to_scalar(SCM_STR_ITR_PTR(&iter),
+      long long scalar = vf->to_scalar(SCM_STR_ITR_PTR(&iter),
                                   (size_t)SCM_STR_ITR_REST(&iter));
       scm_assert(scalar >= 0);
-      snprintf(cstr, sizeof(cstr), "\\x%lx;", scalar);
+      snprintf(cstr, sizeof(cstr), "\\x%llx;", scalar);
       rslt = scm_capi_write_cstr(cstr, SCM_ENC_ASCII, port);
       if (rslt < 0) return -1;  /* [ERR]: [through] */
     }

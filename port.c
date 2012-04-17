@@ -671,7 +671,7 @@ scm_port_size_up_to_lf(ScmObj port, const void *buf, size_t size)
 
   vf = SCM_ENCODING_VFUNC(SCM_PORT(port)->encoding);
   iter = scm_str_itr_begin((void *)buf, size, vf->char_width);
-  lf = SCM_ENCODING_CONST_LF_CHAR(SCM_PORT(port)->encoding);
+  lf = SCM_ENCODING_CONST_LF_CHR(SCM_PORT(port)->encoding);
 
   len = 0;
   while (!SCM_STR_ITR_IS_END(&iter)) {
@@ -875,7 +875,7 @@ scm_port_read_line_nonbuf(ScmObj port, void *buf, size_t size)
   if (SCM_PORT(port)->eof_received_p) return 0;
 
   vf = SCM_ENCODING_VFUNC(SCM_PORT(port)->encoding);
-  lf = SCM_ENCODING_CONST_LF_CHAR(SCM_PORT(port)->encoding);
+  lf = SCM_ENCODING_CONST_LF_CHR(SCM_PORT(port)->encoding);
 
   p = buf;
   pl = 0;

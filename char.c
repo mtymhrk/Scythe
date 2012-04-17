@@ -84,9 +84,9 @@ scm_char_write_ext_rep(ScmObj obj, ScmObj port)
     }
     else {
       char cstr[32];
-      long scalar = vf->to_scalar(chr.bytes, sizeof(chr));
+      long long scalar = vf->to_scalar(chr.bytes, sizeof(chr));
       if (scalar < 0) return -1;
-      snprintf(cstr, sizeof(cstr), "#\\x%lx", scalar);
+      snprintf(cstr, sizeof(cstr), "#\\x%llx", scalar);
       scm_capi_write_cstr(cstr, SCM_ENC_ASCII, port);
     }
   }
@@ -100,7 +100,7 @@ scm_char_initialize(ScmObj chr, scm_char_t value, SCM_ENC_T enc) /* GC OK */
   scm_assert_obj_type(chr, &SCM_CHAR_TYPE_INFO);
   scm_assert(/* 0 <= enc && */ enc < SCM_ENC_NR_ENC);
 
-  if (!SCM_ENCODING_VFUNC_VALID_P(enc)(value)) {
+  if (!SCM_ENCODING_VFUNC_VALID_CHAR_P(enc)(value)) {
     scm_capi_error("can not make character object: invalid byte sequence", 0);
     return -1;                  /* [ERR] char: invalid byte sequence */
   }
@@ -139,13 +139,13 @@ scm_char_new(SCM_MEM_TYPE_T mtype,
 ScmObj
 scm_char_new_newline(SCM_MEM_TYPE_T  mtype, SCM_ENC_T enc) /* GC OK */
 {
-  return scm_char_new(mtype, SCM_ENCODING_CONST_LF_CHAR(enc), enc);
+  return scm_char_new(mtype, SCM_ENCODING_CONST_LF_CHR(enc), enc);
 }
 
 ScmObj
 scm_char_new_space(SCM_MEM_TYPE_T mtype, SCM_ENC_T enc) /* GC OK */
 {
-  return scm_char_new(mtype, SCM_ENCODING_CONST_SPACE_CHAR(enc), enc);
+  return scm_char_new(mtype, SCM_ENCODING_CONST_SP_CHR(enc), enc);
 }
 
 scm_char_t
