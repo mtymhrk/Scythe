@@ -301,7 +301,7 @@ test_parser_parse_quasiquote(void)
   SCM_STACK_FRAME_PUSH(&lst, &car, &cdr, &eof);
 
   new_parser();
-  new_port(" `12abc ");
+  new_port(" `abc12abc ");
 
   lst = scm_parser_parse_expression(parser, port);
 
@@ -321,7 +321,7 @@ test_parser_parse_quasiquote(void)
   cdr = scm_api_cdr(cdr);
 
   cut_assert_true(scm_capi_symbol_p(car));
-  cut_assert_true(scm_capi_eq_p(scm_capi_make_symbol_from_cstr("12abc",
+  cut_assert_true(scm_capi_eq_p(scm_capi_make_symbol_from_cstr("abc12abc",
                                                                SCM_ENC_ASCII),
                                 car));
 

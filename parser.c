@@ -35,7 +35,7 @@
 #define NONASCII ((char)0xff)
 
 #define WHITESPACE " \t\n\r"
-#define DELIMITER WHITESPACE "()[]\";|"
+#define DELIMITER (WHITESPACE "()[]\";|")
 
 inline bool
 whitespace_p(int c)
@@ -975,22 +975,14 @@ scm_lexer_tokenize_numeric(ScmLexer *lexer, ScmObj port,
     }
 
     ascii = vf->to_ascii(current);
-    if (ascii < 0) {
-      return LEXER_STATE_IDENTIFIER;
-    }
-    else if (dec_digit_p(ascii)) {
-      scm_capi_read_raw(dummy.bytes, (size_t)width, port);
-      rslt = scm_lexer_push_char(lexer, current.bytes,
-                                 (size_t)width, (char)ascii);
-      if (rslt < 0) return LEXER_STATE_ERROR;
-    }
-    else if (delimiter_p(ascii)) {
+    if (delimiter_p(ascii)) {
       scm_lexer_set_token_type(lexer, SCM_TOKEN_TYPE_NUMERIC);
       return LEXER_STATE_DONE;
     }
-    else {
-      return LEXER_STATE_IDENTIFIER;
-    }
+
+    scm_capi_read_raw(dummy.bytes, (size_t)width, port);
+    rslt = scm_lexer_push_char(lexer, current.bytes, (size_t)width, ascii);
+    if (rslt < 0) return LEXER_STATE_ERROR;
   }
 }
 
