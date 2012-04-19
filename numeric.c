@@ -169,7 +169,11 @@ scm_num_parse_prefix(const char *literal, size_t size, ScmNumParseData *data)
   idx = 0;
   while (!(exact && radix) && idx < size && literal[idx] == '#') {
     idx++;
-    if (idx < size) return -1;
+    if (idx < size) {
+      scm_capi_error("number literal parse error: invalid format", 0);
+      return -1;
+    }
+
     switch (literal[idx]) {
     case 'i':                   /* fall through */
     case 'I':
@@ -227,7 +231,7 @@ scm_num_parse_prefix(const char *literal, size_t size, ScmNumParseData *data)
       break;
     default:
       scm_capi_error("number literal parse error: unsupported prefix", 0);
-      return -1;              /* [ERR] */
+      return -1;
       break;
     }
     idx++;
