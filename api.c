@@ -464,30 +464,23 @@ scm_capi_list_ref(ScmObj lst, size_t n)
 /*  numeric                                                        */
 /*******************************************************************/
 
-int
-scm_capi_perse_numric_literal(const void *data,
-                              size_t size/*, struct liteinfo *rslt*/)
-                              /* struct liteinfo は仮の構造体名 */
+ScmObj
+scm_capi_make_number_from_literal(const char *literal, size_t size)
 {
-  /* TODO: write me */
-  return -1;
+  if (literal == NULL) {
+    scm_capi_error("can not make number: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (size > SSIZE_MAX) {
+    scm_capi_error("can not make number: too long literal", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_num_make_from_literal(literal, size);
 }
 
 ScmObj
-scm_api_make_numeric(/* struct liteinfo *rslt */)
-                     /* struct liteinfo は仮の構造体名 */
-
-{
-  /* TODO: write me */
-  return SCM_OBJ_NULL;
-}
-
-/* XXX; 一時的な API
- * scm_capi_perse_numric_literal と scm_api_make_numeric が実装され
- * れば廃止する。
- */
-ScmObj
-scm_capi_make_fixnum(scm_sword_t num)
+scm_capi_make_number_from_sword(scm_sword_t num)
 {
   if (num < SCM_FIXNUM_MIN || SCM_FIXNUM_MAX < num)
     return SCM_OBJ_NULL;
@@ -503,31 +496,16 @@ scm_capi_fixnum_p(ScmObj obj)
   return scm_obj_type_p(obj, &SCM_FIXNUM_TYPE_INFO) ? true : false;
 }
 
-long
-scm_capi_fixnum_to_clong(ScmObj fn)
+int
+scm_capi_fixnum_to_sword(ScmObj fn, scm_sword_t *w)
 {
-  scm_sword_t v;
-  long ret;
-
-  if (!scm_capi_fixnum_p(fn)) {
-    errno = EINVAL;           /* provisional implemntation */
-    return 0;
+  if (!scm_capi_fixnum_p(fn) || w == NULL) {
+    scm_capi_error("can not get value of fixnum: invalid argument", 0);
+    return -1;
   }
 
-  v = scm_fixnum_value(fn);
-  if (v > LONG_MAX) {
-    errno = ERANGE; /* provisional implemntation */
-    ret = LONG_MAX;
-  }
-  else if (v < LONG_MIN) {
-    errno = ERANGE; /* provisional implemntation */
-    ret = LONG_MIN;
-  }
-  else {
-    ret = (long)v;
-  }
-
-  return ret;
+  *w = scm_fixnum_value(fn);
+  return 0;
 }
 
 

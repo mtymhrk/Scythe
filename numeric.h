@@ -18,6 +18,7 @@ extern ScmTypeInfo SCM_FIXNUM_TYPE_INFO;
 #define SCM_FIXNUM_SHIFT_BIT 1
 #define SCM_FIXNUM_MAX (SCM_SWORD_MAX >> SCM_FIXNUM_SHIFT_BIT)
 #define SCM_FIXNUM_MIN (SCM_RSHIFT_ARITH(SCM_SWORD_MIN, SCM_FIXNUM_SHIFT_BIT))
+#define SCM_FIXNUM_BITS (sizeof(scm_sword_t) * 8 - 2)
 
 inline ScmObj
 scm_fixnum_new(scm_sword_t num)
@@ -40,13 +41,14 @@ scm_fixnum_value(ScmObj num)
 
 int scm_fixnum_pretty_print(ScmObj obj, ScmObj port, bool write_p);
 
+
 /***************************************************************************/
 /*  Bignum                                                                 */
 /***************************************************************************/
 
 #if 0
 
-#define SCM_BIGNUM_DIGIT_MAX UINT_MAX;
+#define SCM_BIGNUM_BASE ((UINT_MAX >> 1) + 1);
 
 enum { SCM_BIGNUM_SIGN_PLUS = 1, SCM_BIGNUM_SIGN_MINUS = -1 };
 
@@ -69,5 +71,12 @@ void scm_bignum_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_bignum_gc_finalize(ScmObj obj);
 
 #endif
+
+
+/***************************************************************************/
+/*  Parser for Literal                                                     */
+/***************************************************************************/
+
+ScmObj scm_num_make_from_literal(const char *literal, size_t size);
 
 #endif /* INCLUDE_NUMERIC_H__ */

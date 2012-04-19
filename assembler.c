@@ -217,12 +217,15 @@ scm_asm_sym2opcode(ScmObj op)
   scm_assert(!scm_capi_null_value_p(op));
 
   if (scm_capi_fixnum_p(op)) {
-    long l = scm_capi_fixnum_to_clong(op);
-    if (l >= UINT8_MAX) {
+    scm_sword_t cd;
+    int r = scm_capi_fixnum_to_sword(op, &cd);
+    if (r < 0) return -1;        /* [ERR]: [through] */
+
+    if (cd >= UINT8_MAX) {
       scm_capi_error("Assembler: invalid opcode", 1, op);
       return -1;
     }
-    return (int)l;
+    return (int)cd;
   }
   else if (scm_capi_symbol_p(op)) {
     char mne[32];
@@ -238,6 +241,7 @@ scm_asm_sym2opcode(ScmObj op)
     return (int)rslt;
   }
   else {
+    scm_capi_error("Assembler: invalid opcode", 1, op);
     return -1;                  /* [ERR]: iseq: unknown op */
   }
 }
@@ -274,14 +278,17 @@ scm_asm_inst_unary_op(ScmObj iseq, int opcode, ScmObj arg)
 static ssize_t
 scm_asm_inst_cval_op(ScmObj iseq, int opcode, ScmObj arg)
 {
-  long cval;
+  scm_sword_t cval;
   ssize_t idx;
+  int rslt;
 
   scm_assert(scm_capi_iseq_p(iseq));
   scm_assert(0 <= opcode && opcode <= UINT8_MAX);
   scm_assert(scm_capi_fixnum_p(arg));
 
-  cval = scm_capi_fixnum_to_clong(arg);
+  rslt = scm_capi_fixnum_to_sword(arg, &cval);
+  if (rslt < 0) return -1;      /* [ERR]: [through] */
+
   if (cval < INT32_MIN || INT32_MAX < cval) {
     scm_capi_error("Assembler: operand is out of range", 1, arg);
     return -1;
@@ -297,21 +304,26 @@ static ssize_t
 scm_asm_inst_cval_cval_op(ScmObj iseq, int opcode,
                           ScmObj arg1, ScmObj arg2)
 {
-  long cval1, cval2;
+  scm_sword_t cval1, cval2;
   ssize_t idx;
+  int rslt;
 
   scm_assert(scm_capi_iseq_p(iseq));
   scm_assert(0 <= opcode && opcode <= UINT8_MAX);
   scm_assert(scm_capi_fixnum_p(arg1));
   scm_assert(scm_capi_fixnum_p(arg2));
 
-  cval1 = scm_capi_fixnum_to_clong(arg1);
+  rslt = scm_capi_fixnum_to_sword(arg1, &cval1);
+  if (rslt < 0) return -1;      /* [ERR]: [through] */
+
   if (cval1 < INT32_MIN || INT32_MAX < cval1) {
     scm_capi_error("Assembler: operand is out of range", 1, arg1);
     return -1;
   }
 
-  cval2 = scm_capi_fixnum_to_clong(arg2);
+  rslt = scm_capi_fixnum_to_sword(arg2, &cval2);
+  if (rslt < 0) return -1;      /* [ERR]: [through] */
+
   if (cval2 < INT32_MIN || INT32_MAX < cval2) {
     scm_capi_error("Assembler: operand is out of range", 1, arg2);
     return -1;

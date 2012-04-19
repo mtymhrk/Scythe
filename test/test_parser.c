@@ -112,6 +112,7 @@ void
 test_parser_parse_fixnum(void)
 {
   ScmObj num = SCM_OBJ_INIT, eof = SCM_OBJ_INIT;
+  scm_sword_t actual;
 
   SCM_STACK_FRAME_PUSH(&num, &eof);
 
@@ -121,7 +122,53 @@ test_parser_parse_fixnum(void)
   num = scm_parser_parse_expression(parser, port);
 
   cut_assert_true(scm_capi_fixnum_p(num));
-  cut_assert_equal_int(100, scm_capi_fixnum_to_clong(num));
+
+  scm_capi_fixnum_to_sword(num, &actual);
+  cut_assert_equal_int(100, actual);
+
+  eof = scm_parser_parse_expression(parser, port);
+  cut_assert_true(scm_capi_eof_object_p(eof));
+}
+
+void
+test_parser_parse_fixnum_max(void)
+{
+  ScmObj num = SCM_OBJ_INIT, eof = SCM_OBJ_INIT;
+  scm_sword_t actual;
+
+  SCM_STACK_FRAME_PUSH(&num, &eof);
+
+  new_parser();
+  new_port(" 4611686018427387903 ");
+
+  num = scm_parser_parse_expression(parser, port);
+
+  cut_assert_true(scm_capi_fixnum_p(num));
+  scm_capi_fixnum_to_sword(num, &actual);
+
+  cut_assert_true(actual == 4611686018427387903ll);
+
+  eof = scm_parser_parse_expression(parser, port);
+  cut_assert_true(scm_capi_eof_object_p(eof));
+}
+
+void
+test_parser_parse_fixnum_min(void)
+{
+  ScmObj num = SCM_OBJ_INIT, eof = SCM_OBJ_INIT;
+  scm_sword_t actual;
+
+  SCM_STACK_FRAME_PUSH(&num, &eof);
+
+  new_parser();
+  new_port(" -4611686018427387904 ");
+
+  num = scm_parser_parse_expression(parser, port);
+
+  cut_assert_true(scm_capi_fixnum_p(num));
+
+  scm_capi_fixnum_to_sword(num, &actual);
+  cut_assert_true(actual == -4611686018427387904ll);
 
   eof = scm_parser_parse_expression(parser, port);
   cut_assert_true(scm_capi_eof_object_p(eof));
@@ -131,6 +178,7 @@ void
 test_parser_parse_fixnum_1d(void)
 {
   ScmObj num = SCM_OBJ_INIT, eof = SCM_OBJ_INIT;
+  scm_sword_t actual;
 
   SCM_STACK_FRAME_PUSH(&num, &eof);
 
@@ -140,7 +188,9 @@ test_parser_parse_fixnum_1d(void)
   num = scm_parser_parse_expression(parser, port);
 
   cut_assert_true(scm_capi_fixnum_p(num));
-  cut_assert_equal_int(1, scm_capi_fixnum_to_clong(num));
+
+  scm_capi_fixnum_to_sword(num, &actual);
+  cut_assert_equal_int(1, actual);
 
   eof = scm_parser_parse_expression(parser, port);
   cut_assert_true(scm_capi_eof_object_p(eof));
@@ -150,6 +200,7 @@ void
 test_parser_parse_fixnum_signed(void)
 {
   ScmObj num1 = SCM_OBJ_INIT, num2 = SCM_OBJ_INIT, eof = SCM_OBJ_INIT;
+  scm_sword_t actual;
 
   SCM_STACK_FRAME_PUSH(&num1, &num2, &eof);
 
@@ -159,12 +210,14 @@ test_parser_parse_fixnum_signed(void)
   num1 = scm_parser_parse_expression(parser, port);
 
   cut_assert_true(scm_capi_fixnum_p(num1));
-  cut_assert_equal_int(98, scm_capi_fixnum_to_clong(num1));
+  scm_capi_fixnum_to_sword(num1, &actual);
+  cut_assert_equal_int(98, actual);
 
   num2 = scm_parser_parse_expression(parser, port);
 
   cut_assert_true(scm_capi_fixnum_p(num2));
-  cut_assert_equal_int(-23, scm_capi_fixnum_to_clong(num2));
+  scm_capi_fixnum_to_sword(num2, &actual);
+  cut_assert_equal_int(-23, actual);
 
   eof = scm_parser_parse_expression(parser, port);
   cut_assert_true(scm_capi_eof_object_p(eof));
@@ -429,6 +482,7 @@ void
 test_parser_parse_proper_list(void)
 {
   char actual[256];
+  scm_sword_t actual_num;
   ScmObj lst = SCM_OBJ_INIT, car= SCM_OBJ_INIT, cdr = SCM_OBJ_INIT;
   ScmObj eof = SCM_OBJ_INIT;
 
@@ -455,7 +509,8 @@ test_parser_parse_proper_list(void)
   cdr = scm_api_cdr(cdr);
 
   cut_assert_true(scm_capi_fixnum_p(car));
-  cut_assert_equal_int(123, scm_capi_fixnum_to_clong(car));
+  scm_capi_fixnum_to_sword(car, &actual_num);
+  cut_assert_equal_int(123, actual_num);
 
   cut_assert_true(scm_capi_pair_p(cdr));
 
@@ -487,6 +542,7 @@ test_parser_parse_improper_list(void)
 {
   ScmObj lst = SCM_OBJ_INIT, car = SCM_OBJ_INIT, cdr = SCM_OBJ_INIT;
   ScmObj eof = SCM_OBJ_INIT;
+  scm_sword_t actual_num;
 
   SCM_STACK_FRAME_PUSH(&lst, &car, &cdr, &eof);
 
@@ -506,7 +562,8 @@ test_parser_parse_improper_list(void)
                                 car));
 
   cut_assert_true(scm_capi_fixnum_p(cdr));
-  cut_assert_equal_int(123, scm_capi_fixnum_to_clong(cdr));
+  scm_capi_fixnum_to_sword(cdr, &actual_num);
+  cut_assert_equal_int(123, actual_num);
 
   eof = scm_parser_parse_expression(parser, port);
   cut_assert_true(scm_capi_eof_object_p(eof));
@@ -593,6 +650,7 @@ test_parse_parse_list_inserted_comment(void)
 {
   ScmObj lst = SCM_OBJ_INIT, car = SCM_OBJ_INIT, cdr = SCM_OBJ_INIT;
   ScmObj eof = SCM_OBJ_INIT;
+  scm_sword_t actual_num;
 
   SCM_STACK_FRAME_PUSH(&lst, &car, &cdr, &eof);
 
@@ -617,7 +675,8 @@ test_parse_parse_list_inserted_comment(void)
   cdr = scm_api_cdr(cdr);
 
   cut_assert_true(scm_capi_fixnum_p(car));
-  cut_assert_equal_int(123, scm_capi_fixnum_to_clong(car));
+  scm_capi_fixnum_to_sword(car, &actual_num);
+  cut_assert_equal_int(123, actual_num);
 
   cut_assert_true(scm_capi_nil_p(cdr));
 
@@ -648,6 +707,7 @@ void
 test_parser_parse_vector(void)
 {
   char actual[256];
+  scm_sword_t actual_num;
   ScmObj vec = SCM_OBJ_INIT, elm0 = SCM_OBJ_INIT, elm1 = SCM_OBJ_INIT;
   ScmObj elm2 = SCM_OBJ_INIT, elm3 = SCM_OBJ_INIT, eof = SCM_OBJ_INIT;
 
@@ -674,7 +734,8 @@ test_parser_parse_vector(void)
                                 elm0));
 
   cut_assert_true(scm_capi_fixnum_p(elm1));
-  cut_assert_equal_int(123, scm_capi_fixnum_to_clong(elm1));
+  scm_capi_fixnum_to_sword(elm1, &actual_num);
+  cut_assert_equal_int(123, actual_num);
 
   cut_assert_true(scm_capi_string_p(elm2));
   scm_capi_string_to_cstr(elm2, actual, sizeof(actual));

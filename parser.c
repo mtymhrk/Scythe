@@ -1701,29 +1701,21 @@ scm_parser_parse_identifier(ScmParser *parser, ScmObj port)
 static ScmObj
 scm_parser_parse_numeric(ScmParser *parser, ScmObj port)
 {
-  /* provisional implementation */
-
-  long long num;
+  ScmObj num;
   ScmToken *token;
-  char *str;
 
   scm_assert(parser != NULL);
   scm_assert(scm_capi_input_port_p(port));
 
   token = scm_lexer_head_token(parser->lexer, port);
-  if (token == NULL) return SCM_OBJ_NULL; /* [ERR: [through] */
+  if (token == NULL) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
-  str = scm_capi_malloc(token->ascii.len + 1);
-  if (str == NULL)  return SCM_OBJ_NULL; /* [ERR: [through] */
-
-  memcpy(str, token->ascii.str, token->ascii.len);
-  str[token->ascii.len] = '\0';
-
-  sscanf(str, "%lld", &num);
+  num = scm_capi_make_number_from_literal(token->ascii.str, token->ascii.len);
+  if (scm_obj_null_p(num)) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   scm_lexer_shift_token(parser->lexer);
 
-  return scm_capi_make_fixnum(num);
+  return num;
 }
 
 static ScmObj
