@@ -231,17 +231,6 @@ scm_lexer_push_char(ScmLexer *lexer, void *chr, size_t w, int ascii)
   return 0;
 }
 
-static int
-scm_lexer_tail_ascii_char(ScmLexer *lexer)
-{
-  scm_assert(lexer != NULL);
-
-  if (lexer->ascii.len <= 0)
-    return EOF;
-  else
-    return lexer->ascii.head[lexer->ascii.len - 1];
-}
-
 ScmToken *
 scm_lexer_new_token(ScmLexer *lexer)
 {

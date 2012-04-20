@@ -46,31 +46,25 @@ int scm_fixnum_pretty_print(ScmObj obj, ScmObj port, bool write_p);
 /*  Bignum                                                                 */
 /***************************************************************************/
 
-#if 0
-
-#define SCM_BIGNUM_BASE ((UINT_MAX >> 1) + 1);
-
-enum { SCM_BIGNUM_SIGN_PLUS = 1, SCM_BIGNUM_SIGN_MINUS = -1 };
-
-typedef unsigned int scm_bignum_d_t;
+#define SCM_BIGNUM_BASE ((scm_uword_t)SCM_SWORD_MAX + 1)
 
 struct ScmBignumRec {
   ScmObjHeader header;
-  int sign;
-  size_t nr_digit;
+  char sign;
+  size_t nr_digits;
   EArray digits;
 };
 
 extern ScmTypeInfo SCM_FIXNUM_TYPE_INFO;
 
-void scm_bignum_initialize(ScmObj bignum, int sign,
-                           size_t nr_digit, const scm_bignum_d_t *digits);
-void scm_bignum_finalize(ScmObj bignum);
-
+void scm_bignum_finalize_ary(ScmObj bignum);
+int scm_bignum_initialize_sword(ScmObj bignum, scm_sword_t val);
+ScmObj scm_bignum_new_from_ary(SCM_MEM_TYPE_T mtype, char sign,
+                               scm_sword_t *digits, size_t len,
+                               scm_sword_t base);
+ScmObj scm_bignum_new_from_sword(SCM_MEM_TYPE_T mtype, scm_sword_t val);
 void scm_bignum_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_bignum_gc_finalize(ScmObj obj);
-
-#endif
 
 
 /***************************************************************************/

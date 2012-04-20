@@ -40,8 +40,6 @@ scm_fixnum_pretty_print(ScmObj obj, ScmObj port, bool write_p)
 }
 
 
-#if 0
-
 /***************************************************************************/
 /*  Bignum                                                                 */
 /***************************************************************************/
@@ -55,27 +53,124 @@ ScmTypeInfo SCM_BIGNUM_TYPE_INFO = {
   .gc_accept_func_weak = NULL,
 };
 
-void
-scm_bignum_initialize(ScmObj bignum, int sign,
-                      size_t nr_digit, const scm_bignum_d_t *digits)
+ssize_t
+scm_bignum_base_conv(scm_sword_t *digits, size_t len, scm_sword_t base,
+                     EArray *ary)
 {
+  int err;
+  scm_uword_t val, n;
+  size_t sz;
+
+  scm_assert(digits != NULL);
+  scm_assert(len > 0);
+  scm_assert(0 < base);
+
+  sz = 1;
+  for (size_t i = 0; i < len; i++) {
+    val = (scm_uword_t)digits[i];
+    n = (scm_uword_t)base;
+    for (size_t j = i + 1; j < len; j++) {
+      if (SCM_BIGNUM_BASE - val <= n) break;
+      if (digits[j] > 0) {
+        digits[j--]--;
+        val += n;
+      }
+      n *= (scm_uword_t)base;
+    }
+    EARY_SET(ary, scm_uword_t, i, val, err);
+    if (err < 0) return -1;
+    if (val > 0) sz = i + 1;
+  }
+
+  return (ssize_t)sz;
+}
+
+int
+scm_bignum_initialize_ary(ScmObj bignum, char sign,
+                          scm_sword_t *digits, size_t len, scm_sword_t base)
+{
+  ssize_t n;
   int rslt;
 
   scm_assert_obj_type(bignum, &SCM_BIGNUM_TYPE_INFO);
-  scm_assert(sign == SCM_BIGNUM_SIGN_PLUS || sign == SCM_BIGNUM_SIGN_MINUS);
+  scm_assert(sign == '+' || sign == '-');
 
   SCM_BIGNUM(bignum)->sign = sign;
-  SCM_BIGNUM(bignum)->nr_digit = nr_digit;
-  rslt = eary_init(&SCM_BIGNUM(bignum)->digits,
-                   sizeof(scm_bignum_d_t), nr_digit);
-  if (rslt != 0)
-    ;                         /* TODO: error handling */
+  rslt = eary_init(&SCM_BIGNUM(bignum)->digits, sizeof(scm_uword_t), 3);
+  if (rslt != 0) return -1;     /* [ERR]: [through] */
 
-  for (size_t i = 0; i < nr_digit; i++) {
-    EARY_SET(&SCM_BIGNUM(bignum)->digits, scm_bignum_d_t, i, digits[i], rslt);
-    if (rslt != 0)
-      ;                         /* TODO: error handling */
+  n = scm_bignum_base_conv(digits, len, base, &SCM_BIGNUM(bignum)->digits);
+  if (n < 0)  return -1;        /* [ERR]: [through] */
+
+  SCM_BIGNUM(bignum)->nr_digits = (size_t)n;
+
+  return 0;
+}
+
+int
+scm_bignum_initialize_sword(ScmObj bignum, scm_sword_t val)
+{
+  scm_uword_t uval, dg;
+  int err, rslt;
+
+  scm_assert_obj_type(bignum, &SCM_BIGNUM_TYPE_INFO);
+
+  rslt = eary_init(&SCM_BIGNUM(bignum)->digits, sizeof(scm_uword_t), 2);
+  if (rslt != 0) return -1;     /* [ERR]: [through] */
+
+  if (val >= 0) {
+    SCM_BIGNUM(bignum)->sign = '+';
+    uval = (scm_uword_t)val;
   }
+  else {
+    SCM_BIGNUM(bignum)->sign = '-';
+    uval = (scm_uword_t)-val;
+  }
+
+  dg = uval % SCM_BIGNUM_BASE;
+  EARY_SET(&SCM_BIGNUM(bignum)->digits, scm_uword_t, 0, dg, err);
+  if (err < 0) return -1;
+
+  dg = uval / SCM_BIGNUM_BASE;
+  if (dg > 0) {
+    EARY_SET(&SCM_BIGNUM(bignum)->digits, scm_uword_t, 1, dg, err);
+    if (err < 0) return -1;
+    SCM_BIGNUM(bignum)->nr_digits = 2;
+  }
+  else {
+    SCM_BIGNUM(bignum)->nr_digits = 1;
+  }
+
+  return 0;
+}
+
+ScmObj
+scm_bignum_new_from_ary(SCM_MEM_TYPE_T mtype, char sign,
+                        scm_sword_t *digits, size_t len, scm_sword_t base)
+{
+  ScmObj bn = SCM_OBJ_INIT;
+
+  bn = scm_capi_mem_alloc(&SCM_BIGNUM_TYPE_INFO, mtype);
+  if (scm_obj_null_p(bn)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+
+  if (scm_bignum_initialize_ary(bn, sign, digits, len, base) < 0)
+    return SCM_OBJ_NULL;  /* [ERR]: [through] */
+
+  return bn;
+}
+
+ScmObj
+scm_bignum_new_from_sword(SCM_MEM_TYPE_T mtype, scm_sword_t val)
+{
+  ScmObj bn = SCM_OBJ_INIT;
+
+  bn = scm_capi_mem_alloc(&SCM_BIGNUM_TYPE_INFO, mtype);
+  if (scm_obj_null_p(bn)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+
+  if (scm_bignum_initialize_sword(bn, val) < 0)
+    return SCM_OBJ_NULL;  /* [ERR]: [through] */
+
+  return bn;
 }
 
 void
@@ -99,8 +194,6 @@ scm_bignum_gc_finalize(ScmObj obj)
 {
   scm_bignum_finalize(obj);
 }
-
-#endif
 
 
 /***************************************************************************/
@@ -167,9 +260,10 @@ scm_num_parse_prefix(const char *literal, size_t size, ScmNumParseData *data)
   data->radix = 10;
   radix = exact = false;
   idx = 0;
+
   while (!(exact && radix) && idx < size && literal[idx] == '#') {
     idx++;
-    if (idx < size) {
+    if (idx >= size) {
       scm_capi_error("number literal parse error: invalid format", 0);
       return -1;
     }
@@ -525,6 +619,7 @@ scm_num_calc_base_and_place_for_ary_of_sword(int radix,
 {
   scm_assert(base != NULL);
   scm_assert(place != NULL);
+
 #if SCM_SWORD_MAX >= 4611686018427387904
 
   switch (radix) {
@@ -657,6 +752,7 @@ scm_num_make_integer_from_ary_of_sword(char sign,
 
   scm_assert(ary != NULL);
   scm_assert(size <= SSIZE_MAX);
+  scm_assert(0 < base);
 
   if (sign == '+' || sign == '\0')
     abs_max = SCM_FIXNUM_MAX;
@@ -666,9 +762,9 @@ scm_num_make_integer_from_ary_of_sword(char sign,
   num = 0;
   for (ssize_t i = (ssize_t)size - 1; i >= 0; i--) {
     if (num > (abs_max - ary[i]) / base) {
-      scm_capi_error("can not make integer: too big integer", 0);
-      /* TODO: make bignum object */
-      return SCM_OBJ_NULL;
+      return scm_bignum_new_from_ary(SCM_MEM_HEAP,
+                                     (char)((sign == '\0') ? '+' : sign),
+                                     ary, size, base);
     }
     num = num * base + ary[i];
   }

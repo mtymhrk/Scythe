@@ -223,7 +223,6 @@ test_parser_parse_fixnum_signed(void)
   cut_assert_true(scm_capi_eof_object_p(eof));
 }
 
-
 void
 test_parser_parse_bool_true(void)
 {
