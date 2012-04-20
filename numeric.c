@@ -45,7 +45,7 @@ scm_fixnum_pretty_print(ScmObj obj, ScmObj port, bool write_p)
 /***************************************************************************/
 
 ScmTypeInfo SCM_BIGNUM_TYPE_INFO = {
-  .pp_func             = NULL,
+  .pp_func             = scm_bignum_pretty_print,
   .obj_size            = sizeof(ScmBignum),
   .gc_ini_func         = scm_bignum_gc_initialize,
   .gc_fin_func         = scm_bignum_gc_finalize,
@@ -63,7 +63,7 @@ scm_bignum_base_conv(scm_sword_t *digits, size_t len, scm_sword_t base,
 
   scm_assert(digits != NULL);
   scm_assert(len > 0);
-  scm_assert(0 < base);
+  scm_assert(0 < base && (scm_uword_t)base <= SCM_BIGNUM_BASE);
 
   sz = 1;
   for (size_t i = 0; i < len; i++) {
@@ -179,7 +179,56 @@ scm_bignum_finalize(ScmObj bignum)
   eary_fin(&SCM_BIGNUM(bignum)->digits);
 }
 
+int
+scm_bignum_pretty_print(ScmObj obj, ScmObj port, bool write_p)
+{
 
+#if SCM_UWORD_MAX >= 1000000000000000000
+  enum { BASE = 1000000000000000000lu };
+#elif SCM_UWORD_MAX >= 1000000000
+  enum { BASE = 1000000000lu };
+#else
+  enum { BASE = 10000lu };
+#endif
+
+  scm_uword_t val, dgi, car;
+  EArray ary;
+  int rslt;
+  char str[32];
+
+  scm_assert_obj_type(obj, &SCM_BIGNUM_TYPE_INFO);
+  scm_assert(BASE <= SCM_BIGNUM_BASE);
+
+  rslt = eary_init(&ary, sizeof(scm_uword_t), SCM_BIGNUM(obj)->nr_digits);
+  if (rslt < 0) return -1;      /* [ERR]: [through] */
+
+  car = 0;
+  for (size_t i = 0; i < SCM_BIGNUM(obj)->nr_digits; i++) {
+    EARY_GET(&SCM_BIGNUM(obj)->digits, scm_uword_t, i, val);
+    dgi = (val % BASE +  car % BASE) % BASE;
+    car = val / BASE + car / BASE + (val % BASE +  car % BASE) / BASE;
+    EARY_SET(&ary, scm_uword_t, i, dgi, rslt);
+    if (rslt < 0) goto err;    /* [ERR: [through] */
+  }
+
+  if (SCM_BIGNUM(obj)->sign == '-') {
+    rslt = scm_capi_write_cstr("-", SCM_ENC_ASCII, port);
+    if (rslt < 0) goto err;    /* [ERR]: [through] */
+  }
+
+  for (size_t i = EARY_SIZE(&ary); i > 0; i--) {
+    EARY_GET(&ary, scm_uword_t, i - 1, val);
+    snprintf(str, sizeof(str), "%lu", val);
+    rslt = scm_capi_write_cstr(str, SCM_ENC_ASCII, port);
+    if (rslt < 0) goto err;    /* [ERR]: [through] */
+  }
+
+  return 0;
+
+ err:
+  eary_fin(&ary);
+  return -1;
+}
 
 void
 scm_bignum_gc_initialize(ScmObj obj, ScmObj mem)
