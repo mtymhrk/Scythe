@@ -1339,18 +1339,19 @@ ssize_t
 scm_capi_write_raw(const void *buf, size_t size, ScmObj port)
 {
   if (scm_obj_null_p(port)) {
-    scm_capi_error("write error: invalid argument", 0);
-    return -1;
+    port = scm_api_current_output_port();
   }
   else if (!scm_capi_output_port_p(port)) {
     scm_capi_error("write error: invalid argument", 0);
     return -1;
   }
-  else if (buf == NULL) {
+
+  if (buf == NULL) {
     scm_capi_error("write error: invalid argument", 0);
     return -1;
   }
-  else if (size > SSIZE_MAX) {
+
+  if (size > SSIZE_MAX) {
     scm_capi_error("write error: invalid argument", 0);
     return -1;
   }
@@ -1366,14 +1367,14 @@ scm_capi_write_cstr(const char *str, SCM_ENC_T enc, ScmObj port)
   SCM_STACK_FRAME_PUSH(&port, &s);
 
   if (scm_obj_null_p(port)) {
-    scm_capi_error("write error: invalid argument", 0);
-    return -1;
+    port = scm_api_current_output_port();
   }
   else if (!scm_capi_output_port_p(port)) {
     scm_capi_error("write error: invalid argument", 0);
     return -1;
   }
-  else if (enc >= SCM_ENC_NR_ENC) {
+
+  if (enc >= SCM_ENC_NR_ENC) {
     scm_capi_error("write error: invalid argument", 0);
     return -1;
   }
@@ -1395,14 +1396,14 @@ scm_capi_write_bin(const void *buf, size_t size, SCM_ENC_T enc, ScmObj port)
   SCM_STACK_FRAME_PUSH(&port, &s);
 
   if (scm_obj_null_p(port)) {
-    scm_capi_error("write error: invalid argument", 0);
-    return -1;
+    port = scm_api_current_output_port();
   }
   else if (!scm_capi_output_port_p(port)) {
     scm_capi_error("write error: invalid argument", 0);
     return -1;
   }
-  else if (enc >= SCM_ENC_NR_ENC) {
+
+  if (enc >= SCM_ENC_NR_ENC) {
     scm_capi_error("write error: invalid argument", 0);
     return -1;
   }
@@ -2319,4 +2320,5 @@ scm_capi_setup_current_vm(ScmEvaluator *ev)
   if (scm_obj_null_p(ev->vm)) return;
 
   scm_vm_change_current_vm(ev->vm);
+  scm_vm_setup_system(ev->vm);
 }

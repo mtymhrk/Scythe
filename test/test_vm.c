@@ -43,8 +43,6 @@ test_scm_vm_run__op_immval(void)
   SCM_STACK_FRAME_PUSH(&iseq, &sym);
 
   /* preprocess */
-  scm_vm_setup_system(vm);
-
   iseq = scm_iseq_new(SCM_MEM_HEAP);
   sym = scm_capi_make_symbol_from_cstr("cons", SCM_ENC_ASCII);
 
@@ -71,8 +69,6 @@ test_scm_vm_run__call_cons(void)
   SCM_STACK_FRAME_PUSH(&iseq, &cons_sym, &car, &cdr, &actual);
 
   /* preprocess */
-  scm_vm_setup_system(vm);
-
   iseq = scm_iseq_new(SCM_MEM_HEAP);
   cons_sym = scm_capi_make_symbol_from_cstr("cons", SCM_ENC_ASCII);
   car = scm_capi_make_symbol_from_cstr("foo", SCM_ENC_ASCII);

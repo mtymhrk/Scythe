@@ -573,8 +573,9 @@ test_parser_parse_nested_list(void)
 {
   ScmObj lst = SCM_OBJ_INIT, car = SCM_OBJ_INIT, cdr = SCM_OBJ_INIT;
   ScmObj car_n = SCM_OBJ_INIT, cdr_n = SCM_OBJ_INIT, eof = SCM_OBJ_INIT;
+  ScmObj expect = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst, &car, &cdr, &car_n, &cdr_n, &eof);
+  SCM_STACK_FRAME_PUSH(&lst, &car, &cdr, &car_n, &cdr_n, &eof, &expect);
 
   new_parser();
   new_port(" (+ (? ! _) *) ");
@@ -587,9 +588,8 @@ test_parser_parse_nested_list(void)
   cdr = scm_api_cdr(lst);
 
   cut_assert_true(scm_capi_symbol_p(car));
-  cut_assert_true(scm_capi_eq_p(scm_capi_make_symbol_from_cstr("+",
-                                                               SCM_ENC_ASCII),
-                                car));
+  expect = scm_capi_make_symbol_from_cstr("+", SCM_ENC_ASCII);
+  cut_assert_true(scm_capi_eq_p(expect, car));
 
   cut_assert_true(scm_capi_pair_p(cdr));
 
@@ -602,9 +602,8 @@ test_parser_parse_nested_list(void)
   cdr_n = scm_api_cdr(car);
 
   cut_assert_true(scm_capi_symbol_p(car_n));
-  cut_assert_true(scm_capi_eq_p(scm_capi_make_symbol_from_cstr("?",
-                                                               SCM_ENC_ASCII),
-                                car_n));
+  expect = scm_capi_make_symbol_from_cstr("?", SCM_ENC_ASCII);
+  cut_assert_true(scm_capi_eq_p(expect, car_n));
 
   cut_assert_true(scm_capi_pair_p(cdr_n));
 
@@ -612,9 +611,8 @@ test_parser_parse_nested_list(void)
   cdr_n = scm_api_cdr(cdr_n);
 
   cut_assert_true(scm_capi_symbol_p(car_n));
-  cut_assert_true(scm_capi_eq_p(scm_capi_make_symbol_from_cstr("!",
-                                                               SCM_ENC_ASCII),
-                                car_n));
+  expect = scm_capi_make_symbol_from_cstr("!", SCM_ENC_ASCII);
+  cut_assert_true(scm_capi_eq_p(expect, car_n));
 
   cut_assert_true(scm_capi_pair_p(cdr_n));
 
@@ -622,9 +620,8 @@ test_parser_parse_nested_list(void)
   cdr_n = scm_api_cdr(cdr_n);
 
   cut_assert_true(scm_capi_symbol_p(car_n));
-  cut_assert_true(scm_capi_eq_p(scm_capi_make_symbol_from_cstr("_",
-                                                               SCM_ENC_ASCII),
-                                car_n));
+  expect = scm_capi_make_symbol_from_cstr("_", SCM_ENC_ASCII);
+  cut_assert_true(scm_capi_eq_p(expect, car_n));
 
   cut_assert_true(scm_capi_nil_p(cdr_n));
 
@@ -634,9 +631,8 @@ test_parser_parse_nested_list(void)
   cdr = scm_api_cdr(cdr);
 
   cut_assert_true(scm_capi_symbol_p(car));
-  cut_assert_true(scm_capi_eq_p(scm_capi_make_symbol_from_cstr("*",
-                                                               SCM_ENC_ASCII),
-                                car));
+  expect = scm_capi_make_symbol_from_cstr("*", SCM_ENC_ASCII);
+  cut_assert_true(scm_capi_eq_p(expect, car));
 
   cut_assert_true(scm_capi_nil_p(cdr));
 
