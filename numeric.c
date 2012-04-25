@@ -21,6 +21,38 @@ ScmTypeInfo SCM_FIXNUM_TYPE_INFO = {
   .gc_accept_func_weak = NULL,
 };
 
+ScmObj
+scm_fixnum_plus(ScmObj fn1, ScmObj fn2)
+{
+  scm_sword_t v;
+
+  scm_assert_obj_type(fn1, &SCM_FIXNUM_TYPE_INFO);
+  scm_assert_obj_type(fn2, &SCM_FIXNUM_TYPE_INFO);
+
+  v = scm_fixnum_value(fn1) + scm_fixnum_value(fn2);
+
+  if (v < SCM_FIXNUM_MIN || SCM_FIXNUM_MAX < v)
+    return scm_bignum_new_from_sword(SCM_MEM_HEAP, v);
+  else
+    return scm_fixnum_new(v);
+}
+
+ScmObj
+scm_fixnum_minus(ScmObj fn1, ScmObj fn2)
+{
+  scm_sword_t v;
+
+  scm_assert_obj_type(fn1, &SCM_FIXNUM_TYPE_INFO);
+  scm_assert_obj_type(fn2, &SCM_FIXNUM_TYPE_INFO);
+
+  v = scm_fixnum_value(fn1) - scm_fixnum_value(fn2);
+
+  if (v < SCM_FIXNUM_MIN || SCM_FIXNUM_MAX < v)
+    return scm_bignum_new_from_sword(SCM_MEM_HEAP, v);
+  else
+    return scm_fixnum_new(v);
+}
+
 int
 scm_fixnum_pretty_print(ScmObj obj, ScmObj port, bool write_p)
 {

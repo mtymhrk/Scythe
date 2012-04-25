@@ -39,6 +39,9 @@ scm_fixnum_value(ScmObj num)
   return scm_rshift_arith_sword((scm_sword_t)num, SCM_FIXNUM_SHIFT_BIT);
 }
 
+ScmObj scm_fixnum_plus(ScmObj fn1, ScmObj fn2);
+ScmObj scm_fixnum_minus(ScmObj fn1, ScmObj fn2);
+
 int scm_fixnum_pretty_print(ScmObj obj, ScmObj port, bool write_p);
 
 
