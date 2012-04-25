@@ -212,7 +212,6 @@ scm_bignum_adder(ScmObj bn1, bool comp1, ScmObj bn2, bool comp2)
       }
     }
 
-
     return scm_bignum_new_from_ary(SCM_MEM_HEAP, sign,
                                    ary, len, SCM_BIGNUM_BASE);
   }
@@ -332,6 +331,60 @@ scm_bignum_minus(ScmObj bn1, ScmObj bn2)
 
   return scm_bignum_adder(bn1, (SCM_BIGNUM(bn1)->sign == '-') ? true : false,
                           bn2, (SCM_BIGNUM(bn2)->sign == '+') ? true : false);
+}
+
+ScmObj
+scm_bignum_multiple(ScmObj bn1, ScmObj bn2)
+{
+  char sign;
+  size_t place;
+
+  scm_assert_obj_type(bn1, &SCM_BIGNUM_TYPE_INFO);
+  scm_assert_obj_type(bn2, &SCM_BIGNUM_TYPE_INFO);
+
+  place = SCM_BIGNUM(bn1)->nr_digits + SCM_BIGNUM(bn2)->nr_digits;
+  if (place < SCM_BIGNUM(bn1)->nr_digits
+      || place < SCM_BIGNUM(bn2)->nr_digits) {
+    scm_capi_error("number of digits of Integer overflow", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  {
+    scm_bignum_c_t v, v1, v2, c, c_tmp;
+    scm_bignum_d_t ary[place];
+    size_t len;
+
+    memset(ary, 0, sizeof(ary));
+    len = 1;
+    for (size_t i = 0; i < SCM_BIGNUM(bn2)->nr_digits; i++) {
+      EARY_GET(&SCM_BIGNUM(bn2)->digits, scm_bignum_d_t, i, v2);
+      c = 0;
+      for (size_t j = 0; j < SCM_BIGNUM(bn1)->nr_digits || c > 0; j++) {
+        if (j < SCM_BIGNUM(bn1)->nr_digits)
+          EARY_GET(&SCM_BIGNUM(bn1)->digits, scm_bignum_d_t, j, v1);
+        else
+          v1 = 0;
+
+        v = v1 * v2;
+        c_tmp = v / SCM_BIGNUM_BASE;
+        v = v % SCM_BIGNUM_BASE;
+        v += ary[i + j] + c;
+        c = c_tmp + v / SCM_BIGNUM_BASE;
+        v = v % SCM_BIGNUM_BASE;
+        ary[i + j] = (scm_bignum_d_t)v;
+        if (v > 0) len = i + j + 1;
+      }
+    }
+
+    if (SCM_BIGNUM(bn1)->sign == SCM_BIGNUM(bn2)->sign)
+      sign = '+';
+    else
+      sign = '-';
+
+    return scm_bignum_new_from_ary(SCM_MEM_HEAP, sign,
+                                   ary, len, SCM_BIGNUM_BASE);
+
+  }
 }
 
 int

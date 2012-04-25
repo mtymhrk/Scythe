@@ -152,14 +152,9 @@ test_scm_bignum_plus_5(void)
 
   SCM_STACK_FRAME_PUSH(&bn1, &bn2, &bn3);
 
-  /* bn1 = scm_capi_make_number_from_literal("21267647932558653966460912964485513215", */
-  /*                                         sizeof("21267647932558653966460912964485513215") - 1); */
   bn1 = scm_capi_make_number_from_literal("#b1111111111111111111111111111111111111111111111111111111111111111111111",
                                           sizeof("#b1111111111111111111111111111111111111111111111111111111111111111111111") - 1);
   cut_assert_true(scm_obj_not_null_p(bn1));
-
-  /* bn2 = scm_capi_make_number_from_literal("1180591620717411303423", */
-  /*                                         sizeof("1180591620717411303423") - 1); */
 
   bn2 = scm_capi_make_number_from_literal("21267647932558653966460912964485513215",
                                           sizeof("21267647932558653966460912964485513215") - 1);
@@ -246,6 +241,75 @@ test_scm_bignum_minus_2(void)
   scm_api_newline(SCM_OBJ_NULL);
 
   scm_capi_write_cstr("should be -2: ", SCM_ENC_ASCII, SCM_OBJ_NULL);
+  scm_api_write(bn3, SCM_OBJ_NULL);
+  scm_api_newline(SCM_OBJ_NULL);
+  scm_api_flush_output_port(SCM_OBJ_NULL);
+}
+
+void
+test_scm_bignum_multiple_1(void)
+{
+  ScmObj bn1 = SCM_OBJ_INIT, bn2 = SCM_OBJ_INIT;
+  ScmObj bn3 = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&bn1, &bn2, &bn3);
+
+  bn1 = scm_capi_make_number_from_literal("9223372036854775807",
+                                          sizeof("9223372036854775807") - 1);
+  cut_assert_true(scm_obj_not_null_p(bn1));
+
+  bn2 = scm_capi_make_number_from_literal("-9223372036854775807",
+                                          sizeof("-9223372036854775807") - 1);
+  cut_assert_true(scm_obj_not_null_p(bn2));
+
+  bn3 = scm_bignum_multiple(bn1, bn2);
+  cut_assert_true(scm_obj_not_null_p(bn3));
+
+  scm_capi_write_cstr("bn1 = ", SCM_ENC_ASCII, SCM_OBJ_NULL);
+  scm_api_write(bn1, SCM_OBJ_NULL);
+  scm_api_newline(SCM_OBJ_NULL);
+
+  scm_capi_write_cstr("bn2 = ", SCM_ENC_ASCII, SCM_OBJ_NULL);
+  scm_api_write(bn2, SCM_OBJ_NULL);
+  scm_api_newline(SCM_OBJ_NULL);
+
+  scm_capi_write_cstr("should be -85070591730234615847396907784232501249: ", SCM_ENC_ASCII, SCM_OBJ_NULL);
+  scm_api_write(bn3, SCM_OBJ_NULL);
+  scm_api_newline(SCM_OBJ_NULL);
+  scm_api_flush_output_port(SCM_OBJ_NULL);
+}
+
+void
+test_scm_bignum_multiple_2(void)
+{
+  ScmObj bn1 = SCM_OBJ_INIT, bn2 = SCM_OBJ_INIT;
+  ScmObj bn3 = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&bn1, &bn2, &bn3);
+
+  bn1 = scm_capi_make_number_from_literal("#b1111111111111111111111111111111111111111111111111111111111111111111111",
+                                          sizeof("#b1111111111111111111111111111111111111111111111111111111111111111111111") - 1);
+  cut_assert_true(scm_obj_not_null_p(bn1));
+
+  bn2 = scm_capi_make_number_from_literal("21267647932558653966460912964485513215",
+                                          sizeof("21267647932558653966460912964485513215") - 1);
+
+
+  cut_assert_true(scm_obj_not_null_p(bn2));
+
+  bn3 = scm_bignum_multiple(bn1, bn2);
+  cut_assert_true(scm_obj_not_null_p(bn3));
+
+  scm_capi_write_cstr("bn1 = ", SCM_ENC_ASCII, SCM_OBJ_NULL);
+  scm_api_write(bn1, SCM_OBJ_NULL);
+  scm_api_newline(SCM_OBJ_NULL);
+
+  scm_capi_write_cstr("bn2 = ", SCM_ENC_ASCII, SCM_OBJ_NULL);
+  scm_api_write(bn2, SCM_OBJ_NULL);
+  scm_api_newline(SCM_OBJ_NULL);
+
+  scm_capi_write_cstr("should be 25108406941546723055321890044898107009262369244174241234945: ",
+                      SCM_ENC_ASCII, SCM_OBJ_NULL);
   scm_api_write(bn3, SCM_OBJ_NULL);
   scm_api_newline(SCM_OBJ_NULL);
   scm_api_flush_output_port(SCM_OBJ_NULL);
