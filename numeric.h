@@ -97,6 +97,7 @@ ScmObj scm_bignum_new_from_ary(SCM_MEM_TYPE_T mtype, char sign,
                                scm_bignum_c_t base);
 ScmObj scm_bignum_new_from_sword(SCM_MEM_TYPE_T mtype, scm_sword_t val);
 ScmObj scm_bignum_plus(ScmObj bn1, ScmObj bn2);
+ScmObj scm_bignum_minus(ScmObj bn1, ScmObj bn2);
 
 int scm_bignum_pretty_print(ScmObj obj, ScmObj port, bool write_p);
 void scm_bignum_gc_initialize(ScmObj obj, ScmObj mem);

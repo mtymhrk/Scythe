@@ -184,3 +184,69 @@ test_scm_bignum_plus_5(void)
   scm_api_newline(SCM_OBJ_NULL);
   scm_api_flush_output_port(SCM_OBJ_NULL);
 }
+
+void
+test_scm_bignum_minus_1(void)
+{
+  ScmObj bn1 = SCM_OBJ_INIT, bn2 = SCM_OBJ_INIT;
+  ScmObj bn3 = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&bn1, &bn2, &bn3);
+
+  bn1 = scm_capi_make_number_from_literal("9223372036854775807",
+                                          sizeof("9223372036854775807") - 1);
+  cut_assert_true(scm_obj_not_null_p(bn1));
+
+  bn2 = scm_capi_make_number_from_literal("9223372036854775807",
+                                          sizeof("9223372036854775807") - 1);
+  cut_assert_true(scm_obj_not_null_p(bn2));
+
+  bn3 = scm_bignum_minus(bn1, bn2);
+  cut_assert_true(scm_obj_not_null_p(bn3));
+
+  scm_capi_write_cstr("bn1 = ", SCM_ENC_ASCII, SCM_OBJ_NULL);
+  scm_api_write(bn1, SCM_OBJ_NULL);
+  scm_api_newline(SCM_OBJ_NULL);
+
+  scm_capi_write_cstr("bn2 = ", SCM_ENC_ASCII, SCM_OBJ_NULL);
+  scm_api_write(bn2, SCM_OBJ_NULL);
+  scm_api_newline(SCM_OBJ_NULL);
+
+  scm_capi_write_cstr("should be 0: ", SCM_ENC_ASCII, SCM_OBJ_NULL);
+  scm_api_write(bn3, SCM_OBJ_NULL);
+  scm_api_newline(SCM_OBJ_NULL);
+  scm_api_flush_output_port(SCM_OBJ_NULL);
+}
+
+void
+test_scm_bignum_minus_2(void)
+{
+  ScmObj bn1 = SCM_OBJ_INIT, bn2 = SCM_OBJ_INIT;
+  ScmObj bn3 = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&bn1, &bn2, &bn3);
+
+  bn1 = scm_capi_make_number_from_literal("9223372036854775807",
+                                          sizeof("9223372036854775807") - 1);
+  cut_assert_true(scm_obj_not_null_p(bn1));
+
+  bn2 = scm_capi_make_number_from_literal("9223372036854775809",
+                                          sizeof("9223372036854775807") - 1);
+  cut_assert_true(scm_obj_not_null_p(bn2));
+
+  bn3 = scm_bignum_minus(bn1, bn2);
+  cut_assert_true(scm_obj_not_null_p(bn3));
+
+  scm_capi_write_cstr("bn1 = ", SCM_ENC_ASCII, SCM_OBJ_NULL);
+  scm_api_write(bn1, SCM_OBJ_NULL);
+  scm_api_newline(SCM_OBJ_NULL);
+
+  scm_capi_write_cstr("bn2 = ", SCM_ENC_ASCII, SCM_OBJ_NULL);
+  scm_api_write(bn2, SCM_OBJ_NULL);
+  scm_api_newline(SCM_OBJ_NULL);
+
+  scm_capi_write_cstr("should be -2: ", SCM_ENC_ASCII, SCM_OBJ_NULL);
+  scm_api_write(bn3, SCM_OBJ_NULL);
+  scm_api_newline(SCM_OBJ_NULL);
+  scm_api_flush_output_port(SCM_OBJ_NULL);
+}
