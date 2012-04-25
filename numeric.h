@@ -46,7 +46,40 @@ int scm_fixnum_pretty_print(ScmObj obj, ScmObj port, bool write_p);
 /*  Bignum                                                                 */
 /***************************************************************************/
 
-#define SCM_BIGNUM_BASE ((scm_uword_t)SCM_SWORD_MAX + 1)
+
+#if ULONG_MAX > UINT_MAX * UINT_MAX
+
+typedef unsigned int scm_bignum_d_t;
+typedef unsigned long scm_bignum_c_t;
+typedef long scm_bignum_sc_t;
+
+#define SCM_BIGNUM_BASE ((scm_bignum_c_t)UINT_MAX + 1)
+
+#elif ULLONG_MAX > UINT_MAX * UINT_MAX
+
+typedef unsigned int scm_bignum_d_t;
+typedef unsigned long long scm_bignum_c_t;
+typedef long long scm_bignum_sc_t;
+
+#define SCM_BIGNUM_BASE (UINT_MAX + 1);
+
+#elif ULONG_MAX > USHORT_MAX
+
+typedef unsigned short scm_bignum_d_t;
+typedef unsigned long scm_bignum_c_t;
+typedef long scm_bignum_sc_t;
+
+#define SCM_BIGNUM_BASE (USHORT_MAX + 1);
+
+#else
+
+typedef unsigned short scm_bignum_d_t;
+typedef unsigned long scm_bignum_c_t;
+typedef long scm_bignum_sc_t;
+
+#define SCM_BIGNUM_BASE;
+
+#endif
 
 struct ScmBignumRec {
   ScmObjHeader header;
@@ -60,9 +93,11 @@ extern ScmTypeInfo SCM_FIXNUM_TYPE_INFO;
 void scm_bignum_finalize_ary(ScmObj bignum);
 int scm_bignum_initialize_sword(ScmObj bignum, scm_sword_t val);
 ScmObj scm_bignum_new_from_ary(SCM_MEM_TYPE_T mtype, char sign,
-                               scm_sword_t *digits, size_t len,
-                               scm_sword_t base);
+                               scm_bignum_d_t *digits, size_t len,
+                               scm_bignum_c_t base);
 ScmObj scm_bignum_new_from_sword(SCM_MEM_TYPE_T mtype, scm_sword_t val);
+ScmObj scm_bignum_plus(ScmObj bn1, ScmObj bn2);
+
 int scm_bignum_pretty_print(ScmObj obj, ScmObj port, bool write_p);
 void scm_bignum_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_bignum_gc_finalize(ScmObj obj);

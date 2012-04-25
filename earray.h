@@ -76,6 +76,11 @@ eary_expand_if_necessary(EArray *ary, size_t idx, size_t rs)
     return 0;
 }
 
+inline void
+eary_truncate(EArray *ary)
+{
+  ary->used = 0;
+}
 
 #define EARY_GET(ary, typ, idx, val)            \
   do {                                          \

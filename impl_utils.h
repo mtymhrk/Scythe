@@ -52,4 +52,22 @@ scm_rshift_arith_sword(scm_sword_t x, unsigned int y)
     fflush(stderr);                                              \
   } while (0)
 
+inline unsigned long
+scm_pow_ul(unsigned long x, unsigned long y)
+{
+  unsigned long z = 1;
+  for (unsigned long i = 0; i < y; i++)
+    z *= x;
+  return z;
+}
+
+inline unsigned long
+scm_log_ul(unsigned long b, unsigned long x)
+{
+  unsigned long i, z = x;
+  for (i = 0; z > b; i++)
+    z /= b;
+  return i;
+}
+
 #endif /* INCLUDE_IMPL_UTILS_H__ */
