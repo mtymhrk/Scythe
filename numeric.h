@@ -101,7 +101,7 @@ ScmObj scm_bignum_new_from_ary(SCM_MEM_TYPE_T mtype, char sign,
 ScmObj scm_bignum_new_from_sword(SCM_MEM_TYPE_T mtype, scm_sword_t val);
 ScmObj scm_bignum_plus(ScmObj bn1, ScmObj bn2);
 ScmObj scm_bignum_minus(ScmObj bn1, ScmObj bn2);
-ScmObj scm_bignum_multiple(ScmObj bn1, ScmObj bn2);
+ScmObj scm_bignum_multi(ScmObj bn1, ScmObj bn2);
 
 int scm_bignum_pretty_print(ScmObj obj, ScmObj port, bool write_p);
 void scm_bignum_gc_initialize(ScmObj obj, ScmObj mem);

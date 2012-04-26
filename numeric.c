@@ -366,7 +366,7 @@ scm_bignum_minus(ScmObj bn1, ScmObj bn2)
 }
 
 ScmObj
-scm_bignum_multiple(ScmObj bn1, ScmObj bn2)
+scm_bignum_multi(ScmObj bn1, ScmObj bn2)
 {
   char sign;
   size_t place;
