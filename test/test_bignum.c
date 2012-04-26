@@ -247,7 +247,7 @@ test_scm_bignum_minus_2(void)
 }
 
 void
-test_scm_bignum_multi_1(void)
+test_scm_bignum_mul_1(void)
 {
   ScmObj bn1 = SCM_OBJ_INIT, bn2 = SCM_OBJ_INIT;
   ScmObj bn3 = SCM_OBJ_INIT;
@@ -262,7 +262,7 @@ test_scm_bignum_multi_1(void)
                                           sizeof("-9223372036854775807") - 1);
   cut_assert_true(scm_obj_not_null_p(bn2));
 
-  bn3 = scm_bignum_multi(bn1, bn2);
+  bn3 = scm_bignum_mul(bn1, bn2);
   cut_assert_true(scm_obj_not_null_p(bn3));
 
   scm_capi_write_cstr("bn1 = ", SCM_ENC_ASCII, SCM_OBJ_NULL);
@@ -280,7 +280,7 @@ test_scm_bignum_multi_1(void)
 }
 
 void
-test_scm_bignum_multi_2(void)
+test_scm_bignum_mul_2(void)
 {
   ScmObj bn1 = SCM_OBJ_INIT, bn2 = SCM_OBJ_INIT;
   ScmObj bn3 = SCM_OBJ_INIT;
@@ -297,7 +297,7 @@ test_scm_bignum_multi_2(void)
 
   cut_assert_true(scm_obj_not_null_p(bn2));
 
-  bn3 = scm_bignum_multi(bn1, bn2);
+  bn3 = scm_bignum_mul(bn1, bn2);
   cut_assert_true(scm_obj_not_null_p(bn3));
 
   scm_capi_write_cstr("bn1 = ", SCM_ENC_ASCII, SCM_OBJ_NULL);

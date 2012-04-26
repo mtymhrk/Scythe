@@ -41,6 +41,7 @@ scm_fixnum_value(ScmObj num)
 
 ScmObj scm_fixnum_plus(ScmObj fn1, ScmObj fn2);
 ScmObj scm_fixnum_minus(ScmObj fn1, ScmObj fn2);
+ScmObj scm_fixnum_mul(ScmObj fn1, ScmObj fn2);
 
 int scm_fixnum_pretty_print(ScmObj obj, ScmObj port, bool write_p);
 
@@ -102,7 +103,7 @@ ScmObj scm_bignum_new_from_sword(SCM_MEM_TYPE_T mtype, scm_sword_t val);
 ScmObj scm_bignum_new_from_fixnum(SCM_MEM_TYPE_T mtype, ScmObj fn);
 ScmObj scm_bignum_plus(ScmObj bn1, ScmObj bn2);
 ScmObj scm_bignum_minus(ScmObj bn1, ScmObj bn2);
-ScmObj scm_bignum_multi(ScmObj bn1, ScmObj bn2);
+ScmObj scm_bignum_mul(ScmObj bn1, ScmObj bn2);
 
 int scm_bignum_pretty_print(ScmObj obj, ScmObj port, bool write_p);
 void scm_bignum_gc_initialize(ScmObj obj, ScmObj mem);

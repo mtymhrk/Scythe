@@ -66,7 +66,7 @@ scm_fixnum_minus(ScmObj fn1, ScmObj fn2)
 }
 
 ScmObj
-scm_fixnum_multi(ScmObj fn1, ScmObj fn2)
+scm_fixnum_mul(ScmObj fn1, ScmObj fn2)
 {
   scm_sword_t v, v1, v2;
 
@@ -419,7 +419,7 @@ scm_bignum_minus(ScmObj bn1, ScmObj bn2)
 }
 
 ScmObj
-scm_bignum_multi(ScmObj bn1, ScmObj bn2)
+scm_bignum_mul(ScmObj bn1, ScmObj bn2)
 {
   char sign;
   size_t place;
