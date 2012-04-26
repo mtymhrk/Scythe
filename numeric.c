@@ -21,6 +21,18 @@ ScmTypeInfo SCM_FIXNUM_TYPE_INFO = {
   .gc_accept_func_weak = NULL,
 };
 
+static inline bool
+scm_fixnum_multi_overflow_p(scm_sword_t v1, scm_sword_t v2)
+{
+  const scm_sword_t max = 1 << ((SCM_FIXNUM_BITS - 1)/2);
+  const scm_sword_t min = -max;
+
+  if ((v1 < min || max <= v2) || (v2 < min || max <= v2))
+    return true;
+  else
+    return false;
+}
+
 ScmObj
 scm_fixnum_plus(ScmObj fn1, ScmObj fn2)
 {
@@ -51,6 +63,30 @@ scm_fixnum_minus(ScmObj fn1, ScmObj fn2)
     return scm_bignum_new_from_sword(SCM_MEM_HEAP, v);
   else
     return scm_fixnum_new(v);
+}
+
+ScmObj
+scm_fixnum_multi(ScmObj fn1, ScmObj fn2)
+{
+  scm_sword_t v, v1, v2;
+
+  scm_assert_obj_type(fn1, &SCM_FIXNUM_TYPE_INFO);
+  scm_assert_obj_type(fn2, &SCM_FIXNUM_TYPE_INFO);
+
+  v1 = scm_fixnum_value(fn1);
+  v2 = scm_fixnum_value(fn2);
+
+  if (v1 == 0) return fn1;
+
+  v = v1 * v2;
+
+  if (scm_fixnum_multi_overflow_p(v1, v2)
+      || (v < SCM_FIXNUM_MIN || SCM_FIXNUM_MAX < v)
+      || v / v1 != v2)
+    return scm_bignum_multi(fn1, fn2);
+
+
+  return scm_fixnum_new(v);
 }
 
 int
@@ -190,63 +226,61 @@ scm_bignum_adder(ScmObj bn1, bool comp1, ScmObj bn2, bool comp2)
     return SCM_OBJ_NULL;
   }
 
-  {
-    scm_bignum_c_t v, v1, v2, c, c1, c2;
-    scm_bignum_d_t ary[place];
-    size_t len;
-    char sign;
+  scm_bignum_c_t v, v1, v2, c, c1, c2;
+  scm_bignum_d_t ary[place];
+  size_t len;
+  char sign;
 
-    c = 0;
-    len = 1;
-    c1 = 1;
-    c2 = 1;
+  c = 0;
+  len = 1;
+  c1 = 1;
+  c2 = 1;
+  for (size_t i = 0; i < place; i++) {
+    if (i < SCM_BIGNUM(bn1)->nr_digits)
+      EARY_GET(&SCM_BIGNUM(bn1)->digits, scm_bignum_d_t, i, v1);
+    else
+      v1 = 0;
+
+    if (i < SCM_BIGNUM(bn2)->nr_digits)
+      EARY_GET(&SCM_BIGNUM(bn2)->digits, scm_bignum_d_t, i, v2);
+    else
+      v2 = 0;
+
+    if (comp1) {
+      v1 = (~v1 & mask) + c1;
+      c1 = (v1 & ~mask) ? 1 : 0;
+      v1 = v1 & mask;
+    }
+
+    if (comp2) {
+      v2 = (~v2 & mask) + c2;
+      c2 = (v2 & ~mask) ? 1 : 0;
+      v2 = v2 & mask;
+    }
+
+    v = v1 + v2 + c;
+    c = (v & ~mask) ? 1 : 0;
+    v &= mask;
+
+    ary[i] = (scm_bignum_d_t)v;
+    if (v > 0) len = i + 1;
+  }
+
+  sign = (v & ~(mask >> 1)) ? '-' : '+';
+  if (sign == '-') {
+    c = 1;
     for (size_t i = 0; i < place; i++) {
-      if (i < SCM_BIGNUM(bn1)->nr_digits)
-        EARY_GET(&SCM_BIGNUM(bn1)->digits, scm_bignum_d_t, i, v1);
-      else
-        v1 = 0;
-
-      if (i < SCM_BIGNUM(bn2)->nr_digits)
-        EARY_GET(&SCM_BIGNUM(bn2)->digits, scm_bignum_d_t, i, v2);
-      else
-        v2 = 0;
-
-      if (comp1) {
-        v1 = (~v1 & mask) + c1;
-        c1 = (v1 & ~mask) ? 1 : 0;
-        v1 = v1 & mask;
-      }
-
-      if (comp2) {
-        v2 = (~v2 & mask) + c2;
-        c2 = (v2 & ~mask) ? 1 : 0;
-        v2 = v2 & mask;
-      }
-
-      v = v1 + v2 + c;
+      v = (scm_uword_t)ary[i];
+      v = (~v & mask) + c;
       c = (v & ~mask) ? 1 : 0;
-      v &= mask;
-
+      v = v & mask;
       ary[i] = (scm_bignum_d_t)v;
       if (v > 0) len = i + 1;
     }
-
-    sign = (v & ~(mask >> 1)) ? '-' : '+';
-    if (sign == '-') {
-      c = 1;
-      for (size_t i = 0; i < place; i++) {
-        v = (scm_uword_t)ary[i];
-        v = (~v & mask) + c;
-        c = (v & ~mask) ? 1 : 0;
-        v = v & mask;
-        ary[i] = (scm_bignum_d_t)v;
-        if (v > 0) len = i + 1;
-      }
-    }
-
-    return scm_bignum_new_from_ary(SCM_MEM_HEAP, sign,
-                                   ary, len, SCM_BIGNUM_BASE);
   }
+
+  return scm_bignum_new_from_ary(SCM_MEM_HEAP, sign,
+                                 ary, len, SCM_BIGNUM_BASE);
 }
 
 int
@@ -339,6 +373,25 @@ scm_bignum_new_from_sword(SCM_MEM_TYPE_T mtype, scm_sword_t val)
   return bn;
 }
 
+ScmObj
+scm_bignum_new_from_fixnum(SCM_MEM_TYPE_T mtype, ScmObj fn)
+{
+  ScmObj bn = SCM_OBJ_INIT;
+  scm_sword_t sword;
+
+  scm_assert(scm_capi_fixnum_p(fn));
+
+  sword = scm_fixnum_value(fn);
+  bn = scm_capi_mem_alloc(&SCM_BIGNUM_TYPE_INFO, mtype);
+  if (scm_obj_null_p(bn)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+
+  if (scm_bignum_initialize_sword(bn, sword) < 0)
+    return SCM_OBJ_NULL;  /* [ERR]: [through] */
+
+  return bn;
+}
+
+
 void
 scm_bignum_finalize(ScmObj bignum)
 {
@@ -371,8 +424,21 @@ scm_bignum_multi(ScmObj bn1, ScmObj bn2)
   char sign;
   size_t place;
 
+  SCM_STACK_FRAME_PUSH(&bn1, &bn2);
+
+  if (scm_capi_fixnum_p(bn1)) {
+    bn1 = scm_bignum_new_from_fixnum(SCM_MEM_HEAP, bn1);
+    if (scm_obj_null_p(bn1)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+  }
+
+  if (scm_capi_fixnum_p(bn2)) {
+    bn2 = scm_bignum_new_from_fixnum(SCM_MEM_HEAP, bn2);
+    if (scm_obj_null_p(bn1)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+  }
+
   scm_assert_obj_type(bn1, &SCM_BIGNUM_TYPE_INFO);
   scm_assert_obj_type(bn2, &SCM_BIGNUM_TYPE_INFO);
+
 
   place = SCM_BIGNUM(bn1)->nr_digits + SCM_BIGNUM(bn2)->nr_digits;
   if (place < SCM_BIGNUM(bn1)->nr_digits
@@ -381,42 +447,39 @@ scm_bignum_multi(ScmObj bn1, ScmObj bn2)
     return SCM_OBJ_NULL;
   }
 
-  {
-    scm_bignum_c_t v, v1, v2, c, c_tmp;
-    scm_bignum_d_t ary[place];
-    size_t len;
+  scm_bignum_c_t v, v1, v2, c, c_tmp;
+  scm_bignum_d_t ary[place];
+  size_t len;
 
-    memset(ary, 0, sizeof(ary));
-    len = 1;
-    for (size_t i = 0; i < SCM_BIGNUM(bn2)->nr_digits; i++) {
-      EARY_GET(&SCM_BIGNUM(bn2)->digits, scm_bignum_d_t, i, v2);
-      c = 0;
-      for (size_t j = 0; j < SCM_BIGNUM(bn1)->nr_digits || c > 0; j++) {
-        if (j < SCM_BIGNUM(bn1)->nr_digits)
-          EARY_GET(&SCM_BIGNUM(bn1)->digits, scm_bignum_d_t, j, v1);
-        else
-          v1 = 0;
+  memset(ary, 0, sizeof(ary));
+  len = 1;
+  for (size_t i = 0; i < SCM_BIGNUM(bn2)->nr_digits; i++) {
+    EARY_GET(&SCM_BIGNUM(bn2)->digits, scm_bignum_d_t, i, v2);
+    c = 0;
+    for (size_t j = 0; j < SCM_BIGNUM(bn1)->nr_digits || c > 0; j++) {
+      if (j < SCM_BIGNUM(bn1)->nr_digits)
+        EARY_GET(&SCM_BIGNUM(bn1)->digits, scm_bignum_d_t, j, v1);
+      else
+        v1 = 0;
 
-        v = v1 * v2;
-        c_tmp = v / SCM_BIGNUM_BASE;
-        v = v % SCM_BIGNUM_BASE;
-        v += ary[i + j] + c;
-        c = c_tmp + v / SCM_BIGNUM_BASE;
-        v = v % SCM_BIGNUM_BASE;
-        ary[i + j] = (scm_bignum_d_t)v;
-        if (v > 0) len = i + j + 1;
-      }
+      v = v1 * v2;
+      c_tmp = v / SCM_BIGNUM_BASE;
+      v = v % SCM_BIGNUM_BASE;
+      v += ary[i + j] + c;
+      c = c_tmp + v / SCM_BIGNUM_BASE;
+      v = v % SCM_BIGNUM_BASE;
+      ary[i + j] = (scm_bignum_d_t)v;
+      if (v > 0) len = i + j + 1;
     }
-
-    if (SCM_BIGNUM(bn1)->sign == SCM_BIGNUM(bn2)->sign)
-      sign = '+';
-    else
-      sign = '-';
-
-    return scm_bignum_new_from_ary(SCM_MEM_HEAP, sign,
-                                   ary, len, SCM_BIGNUM_BASE);
-
   }
+
+  if (SCM_BIGNUM(bn1)->sign == SCM_BIGNUM(bn2)->sign)
+    sign = '+';
+  else
+    sign = '-';
+
+  return scm_bignum_new_from_ary(SCM_MEM_HEAP, sign,
+                                 ary, len, SCM_BIGNUM_BASE);
 }
 
 int

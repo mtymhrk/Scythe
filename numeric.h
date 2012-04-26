@@ -18,7 +18,7 @@ extern ScmTypeInfo SCM_FIXNUM_TYPE_INFO;
 #define SCM_FIXNUM_SHIFT_BIT 1
 #define SCM_FIXNUM_MAX (SCM_SWORD_MAX >> SCM_FIXNUM_SHIFT_BIT)
 #define SCM_FIXNUM_MIN (SCM_RSHIFT_ARITH(SCM_SWORD_MIN, SCM_FIXNUM_SHIFT_BIT))
-#define SCM_FIXNUM_BITS (sizeof(scm_sword_t) * 8 - 2)
+#define SCM_FIXNUM_BITS (sizeof(scm_sword_t) * CHAR_BIT - SCM_FIXNUM_SHIFT_BIT)
 
 inline ScmObj
 scm_fixnum_new(scm_sword_t num)
@@ -91,7 +91,7 @@ struct ScmBignumRec {
   EArray digits;
 };
 
-extern ScmTypeInfo SCM_FIXNUM_TYPE_INFO;
+extern ScmTypeInfo SCM_BIGNUM_TYPE_INFO;
 
 void scm_bignum_finalize_ary(ScmObj bignum);
 int scm_bignum_initialize_sword(ScmObj bignum, scm_sword_t val);
@@ -99,6 +99,7 @@ ScmObj scm_bignum_new_from_ary(SCM_MEM_TYPE_T mtype, char sign,
                                scm_bignum_d_t *digits, size_t len,
                                scm_bignum_c_t base);
 ScmObj scm_bignum_new_from_sword(SCM_MEM_TYPE_T mtype, scm_sword_t val);
+ScmObj scm_bignum_new_from_fixnum(SCM_MEM_TYPE_T mtype, ScmObj fn);
 ScmObj scm_bignum_plus(ScmObj bn1, ScmObj bn2);
 ScmObj scm_bignum_minus(ScmObj bn1, ScmObj bn2);
 ScmObj scm_bignum_multi(ScmObj bn1, ScmObj bn2);

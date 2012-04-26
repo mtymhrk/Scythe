@@ -153,6 +153,7 @@ ScmObj scm_capi_make_number_from_literal(const char *literal, size_t size);
 ScmObj scm_capi_make_number_from_sword(scm_sword_t num);
 bool scm_capi_fixnum_p(ScmObj obj);
 int scm_capi_fixnum_to_sword(ScmObj fn, scm_sword_t *w);
+bool scm_capi_bignum_p(ScmObj obj);
 
 inline ScmObj
 scm_capi_frame_ptr_to_fixnum(void *ptr)

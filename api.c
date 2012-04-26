@@ -508,6 +508,13 @@ scm_capi_fixnum_to_sword(ScmObj fn, scm_sword_t *w)
   return 0;
 }
 
+extern inline bool
+scm_capi_bignum_p(ScmObj obj)
+{
+  if (scm_capi_null_value_p(obj)) return false;
+
+  return scm_obj_type_p(obj, &SCM_BIGNUM_TYPE_INFO) ? true : false;
+}
 
 /*******************************************************************/
 /*  charactor                                                      */
