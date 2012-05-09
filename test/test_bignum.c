@@ -137,6 +137,14 @@ test_scm_bignum_plus_4(void)
   bn3 = scm_bignum_plus(bn1, bn2);
   cut_assert_true(scm_obj_not_null_p(bn3));
 
+  scm_capi_write_cstr("bn1 = ", SCM_ENC_ASCII, SCM_OBJ_NULL);
+  scm_api_write(bn1, SCM_OBJ_NULL);
+  scm_api_newline(SCM_OBJ_NULL);
+
+  scm_capi_write_cstr("bn2 = ", SCM_ENC_ASCII, SCM_OBJ_NULL);
+  scm_api_write(bn2, SCM_OBJ_NULL);
+  scm_api_newline(SCM_OBJ_NULL);
+
   scm_capi_write_cstr("should be 18448744075709555618: ",
                       SCM_ENC_ASCII, SCM_OBJ_NULL);
   scm_api_write(bn3, SCM_OBJ_NULL);

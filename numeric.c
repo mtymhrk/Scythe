@@ -576,6 +576,8 @@ scm_bignum_pretty_print(ScmObj obj, ScmObj port, bool write_p)
   int rslt, place, width;
   char str[32];
 
+  SCM_STACK_FRAME_PUSH(&obj, &port);
+
   scm_assert_obj_type(obj, &SCM_BIGNUM_TYPE_INFO);
 
   rslt = scm_num_calc_base_and_place_for_ary_of_digits(10, &base, &place);
