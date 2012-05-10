@@ -483,9 +483,9 @@ ScmObj
 scm_capi_make_number_from_sword(scm_sword_t num)
 {
   if (num < SCM_FIXNUM_MIN || SCM_FIXNUM_MAX < num)
-    return SCM_OBJ_NULL;
-
-  return scm_fixnum_new(num);
+    return scm_bignum_new_from_sword(SCM_MEM_HEAP, num);
+  else
+    return scm_fixnum_new(num);
 }
 
 extern inline bool

@@ -322,3 +322,42 @@ test_scm_bignum_mul_2(void)
   scm_api_newline(SCM_OBJ_NULL);
   scm_api_flush_output_port(SCM_OBJ_NULL);
 }
+
+void
+test_scm_bignum_div_1(void)
+{
+  ScmObj bn1 = SCM_OBJ_INIT, bn2 = SCM_OBJ_INIT;
+  ScmObj quo = SCM_OBJ_INIT, rem = SCM_OBJ_INIT;
+  int rslt;
+
+  SCM_STACK_FRAME_PUSH(&bn1, &bn2, &quo, &rem);
+
+  bn1 = scm_capi_make_number_from_literal("1427247692705959881057075899931747937215840256",
+                                          sizeof("1427247692705959881057075899931747937215840256") - 1);
+  cut_assert_true(scm_obj_not_null_p(bn1));
+
+  bn2 = scm_capi_make_number_from_literal("1180591620717411303423",
+                                          sizeof("1180591620717411303423") - 1);
+  cut_assert_true(scm_obj_not_null_p(bn2));
+
+  rslt = scm_bignum_div(bn1, bn2, SCM_CSETTER_L(quo), SCM_CSETTER_L(rem));
+  cut_assert_equal_int(rslt, 0);
+
+  scm_capi_write_cstr("bn1 = ", SCM_ENC_ASCII, SCM_OBJ_NULL);
+  scm_api_write(bn1, SCM_OBJ_NULL);
+  scm_api_newline(SCM_OBJ_NULL);
+
+  scm_capi_write_cstr("bn2 = ", SCM_ENC_ASCII, SCM_OBJ_NULL);
+  scm_api_write(bn2, SCM_OBJ_NULL);
+  scm_api_newline(SCM_OBJ_NULL);
+
+  scm_capi_write_cstr("quo should be 1208925819614629174706175: ", SCM_ENC_ASCII, SCM_OBJ_NULL);
+  scm_api_write(quo, SCM_OBJ_NULL);
+  scm_api_newline(SCM_OBJ_NULL);
+
+  scm_capi_write_cstr("rem should be 36893488147419103231: ", SCM_ENC_ASCII, SCM_OBJ_NULL);
+  scm_api_write(rem, SCM_OBJ_NULL);
+  scm_api_newline(SCM_OBJ_NULL);
+
+  scm_api_flush_output_port(SCM_OBJ_NULL);
+}

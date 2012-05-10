@@ -19,6 +19,7 @@ extern ScmTypeInfo SCM_FIXNUM_TYPE_INFO;
 #define SCM_FIXNUM_MAX (SCM_SWORD_MAX >> SCM_FIXNUM_SHIFT_BIT)
 #define SCM_FIXNUM_MIN (SCM_RSHIFT_ARITH(SCM_SWORD_MIN, SCM_FIXNUM_SHIFT_BIT))
 #define SCM_FIXNUM_BITS (sizeof(scm_sword_t) * CHAR_BIT - SCM_FIXNUM_SHIFT_BIT)
+#define SCM_FIXNUM_ZERO ((0 << SCM_FIXNUM_SHIFT_BIT) + 1)
 
 inline ScmObj
 scm_fixnum_new(scm_sword_t num)
@@ -37,6 +38,12 @@ scm_fixnum_value(ScmObj num)
   scm_assert_obj_type(num, &SCM_FIXNUM_TYPE_INFO);
 
   return scm_rshift_arith_sword((scm_sword_t)num, SCM_FIXNUM_SHIFT_BIT);
+}
+
+inline bool
+scm_fixnum_zero_p(ScmObj num)
+{
+  return (num == SCM_FIXNUM_ZERO);
 }
 
 ScmObj scm_fixnum_plus(ScmObj fn1, ScmObj fn2);
@@ -101,9 +108,12 @@ ScmObj scm_bignum_new_from_ary(SCM_MEM_TYPE_T mtype, char sign,
                                scm_bignum_c_t base);
 ScmObj scm_bignum_new_from_sword(SCM_MEM_TYPE_T mtype, scm_sword_t val);
 ScmObj scm_bignum_new_from_fixnum(SCM_MEM_TYPE_T mtype, ScmObj fn);
+ScmObj scm_bignum_copy(ScmObj bignum);
 ScmObj scm_bignum_plus(ScmObj bn1, ScmObj bn2);
 ScmObj scm_bignum_minus(ScmObj bn1, ScmObj bn2);
 ScmObj scm_bignum_mul(ScmObj bn1, ScmObj bn2);
+int scm_bignum_div(ScmObj bn1, ScmObj bn2,
+                   scm_csetter_t *quo, scm_csetter_t *rem);
 
 int scm_bignum_pretty_print(ScmObj obj, ScmObj port, bool write_p);
 void scm_bignum_gc_initialize(ScmObj obj, ScmObj mem);

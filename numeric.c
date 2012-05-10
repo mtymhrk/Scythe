@@ -189,7 +189,7 @@ ScmTypeInfo SCM_BIGNUM_TYPE_INFO = {
   .gc_accept_func_weak = NULL,
 };
 
-static ssize_t
+static int
 scm_bignum_base_conv(scm_bignum_d_t *digits, size_t len, scm_bignum_c_t fbase,
                      EArray *ary, scm_bignum_c_t tbase)
 {
@@ -241,7 +241,7 @@ scm_bignum_base_conv(scm_bignum_d_t *digits, size_t len, scm_bignum_c_t fbase,
     if (err < 0) return -1;
   }
 
-  return (ssize_t)EARY_SIZE(ary);
+  return 0;
 }
 
 static int
@@ -300,26 +300,454 @@ scm_bignum_adder(const scm_bignum_d_t *aug, size_t aug_d, bool aug_c,
   return 0;
 }
 
+static int
+scm_bignum_nadd_1d(ScmObj bignum, scm_bignum_sc_t addend)
+{
+  scm_bignum_d_t add[1];
+  size_t place;
+  char sign;
+  int err;
+
+  scm_assert_obj_type(bignum, &SCM_BIGNUM_TYPE_INFO);
+  scm_assert(-((scm_bignum_sc_t)SCM_BIGNUM_BASE - 1) <= addend);
+  scm_assert(addend <= ((scm_bignum_sc_t)SCM_BIGNUM_BASE - 1));
+
+  if (addend >= 0)
+    add[0] = (scm_bignum_d_t)addend;
+  else
+    add[0] = (scm_bignum_d_t)-addend;
+
+  /* 加算結果が桁上りする場合にそなえて記憶領域を確保するために 0 を設定する */
+  place = SCM_BIGNUM(bignum)->nr_digits;
+  EARY_SET(&SCM_BIGNUM(bignum)->digits, scm_bignum_d_t, place, 0, err);
+  if (err < 0) return -1;
+  place++;
+
+  scm_bignum_adder(EARY_HEAD(&SCM_BIGNUM(bignum)->digits),
+                   SCM_BIGNUM(bignum)->nr_digits,
+                   (SCM_BIGNUM(bignum)->sign == '-') ? true : false,
+                   add,
+                   1,
+                   (addend < 0) ? true : false,
+                   EARY_HEAD(&SCM_BIGNUM(bignum)->digits), &place, &sign);
+
+  SCM_BIGNUM(bignum)->nr_digits = place;
+  SCM_BIGNUM(bignum)->sign = sign;
+
+  return 0;
+}
+
+static int
+scm_bignum_nmul_1d(ScmObj bignum, scm_bignum_sc_t multiplier)
+{
+  scm_bignum_c_t mul, v, v1, c, c_tmp;
+  size_t len;
+  int err;
+
+  scm_assert_obj_type(bignum, &SCM_BIGNUM_TYPE_INFO);
+  scm_assert(-((scm_bignum_sc_t)SCM_BIGNUM_BASE - 1) <= multiplier);
+  scm_assert(multiplier <= ((scm_bignum_sc_t)SCM_BIGNUM_BASE - 1));
+
+  if (multiplier >= 0)
+    mul = (scm_bignum_c_t)multiplier;
+  else
+    mul = (scm_bignum_c_t)-multiplier;
+
+  len = 1;
+  c = 0;
+  for (size_t i = 0; i < SCM_BIGNUM(bignum)->nr_digits || c > 0; i++) {
+    if (i < SCM_BIGNUM(bignum)->nr_digits)
+      EARY_GET(&SCM_BIGNUM(bignum)->digits, scm_bignum_d_t, i, v1);
+    else
+      v1 = 0;
+
+    v = v1 * mul;
+    c_tmp = v / SCM_BIGNUM_BASE;
+    v = v % SCM_BIGNUM_BASE;
+    v += c;
+    c = c_tmp + v / SCM_BIGNUM_BASE;
+    v = v % SCM_BIGNUM_BASE;
+
+    EARY_SET(&SCM_BIGNUM(bignum)->digits, scm_bignum_d_t, i, v, err);
+    if (err < 0) return -1;
+    if (v > 0) len = i + 1;
+  }
+
+  if (multiplier < 0)
+    SCM_BIGNUM(bignum)->sign = (SCM_BIGNUM(bignum)->sign == '+') ? '-' : '+';
+
+  SCM_BIGNUM(bignum)->nr_digits = len;
+
+  return 0;
+}
+
+static int
+scm_bignum_replace_mul_1d(ScmObj result,
+                          ScmObj multiplicand, scm_bignum_sc_t multiplier)
+{
+  scm_bignum_c_t mul, v, v1, c, c_tmp;
+  size_t len;
+  int err;
+
+  scm_assert_obj_type(result, &SCM_BIGNUM_TYPE_INFO);
+  scm_assert_obj_type(multiplicand, &SCM_BIGNUM_TYPE_INFO);
+  scm_assert(-((scm_bignum_sc_t)SCM_BIGNUM_BASE - 1) <= multiplier);
+  scm_assert(multiplier <= ((scm_bignum_sc_t)SCM_BIGNUM_BASE - 1));
+
+  if (multiplier >= 0)
+    mul = (scm_bignum_c_t)multiplier;
+  else
+    mul = (scm_bignum_c_t)-multiplier;
+
+  eary_truncate(&SCM_BIGNUM(result)->digits);
+
+  len = 1;
+  c = 0;
+  for (size_t i = 0; i < SCM_BIGNUM(multiplicand)->nr_digits || c > 0; i++) {
+    if (i < SCM_BIGNUM(multiplicand)->nr_digits)
+      EARY_GET(&SCM_BIGNUM(multiplicand)->digits, scm_bignum_d_t, i, v1);
+    else
+      v1 = 0;
+
+    v = v1 * mul;
+    c_tmp = v / SCM_BIGNUM_BASE;
+    v = v % SCM_BIGNUM_BASE;
+    v += c;
+    c = c_tmp + v / SCM_BIGNUM_BASE;
+    v = v % SCM_BIGNUM_BASE;
+
+    EARY_SET(&SCM_BIGNUM(result)->digits, scm_bignum_d_t, i, v, err);
+    if (err < 0) return -1;
+    if (v > 0) len = i + 1;
+  }
+
+  if (multiplier >= 0)
+    SCM_BIGNUM(result)->sign = SCM_BIGNUM(multiplicand)->sign;
+  else
+    SCM_BIGNUM(result)->sign =
+      (SCM_BIGNUM(multiplicand)->sign == '+') ? '-' : '+';
+
+  SCM_BIGNUM(result)->nr_digits = len;
+
+  return 0;
+}
+
+
+static int
+scm_bignum_ndiv_1d(ScmObj bignum, scm_bignum_sc_t divisor,
+                   scm_bignum_sc_t *rem)
+{
+  scm_bignum_c_t div, v, v1, r;
+  size_t len;
+  int err;
+
+  scm_assert_obj_type(bignum, &SCM_BIGNUM_TYPE_INFO);
+  scm_assert(-((scm_bignum_sc_t)SCM_BIGNUM_BASE - 1) <= divisor);
+  scm_assert(divisor <= ((scm_bignum_sc_t)SCM_BIGNUM_BASE - 1));
+
+  if (divisor >= 0)
+    div = (scm_bignum_c_t)divisor;
+  else
+    div = (scm_bignum_c_t)-divisor;
+
+  if (div == 0) {
+    scm_capi_error("division by zero", 0);
+    return -1;
+  }
+
+  r = 0;
+  len = 1;
+  for (size_t i = SCM_BIGNUM(bignum)->nr_digits; i > 0; i--) {
+    EARY_GET(&SCM_BIGNUM(bignum)->digits, scm_bignum_d_t, i - 1, v1);
+
+    v = (r * SCM_BIGNUM_BASE + v1) / div;
+    r = (r * SCM_BIGNUM_BASE + v1) % div;
+
+    EARY_SET(&SCM_BIGNUM(bignum)->digits, scm_bignum_d_t, i - 1, v, err);
+    if (err < 0) return -1;
+    if (len == 1 && v > 0) len = i;
+  }
+
+  if (rem != NULL)
+    *rem = ((SCM_BIGNUM(bignum)->sign == '+') ?
+            (scm_bignum_sc_t)r : -(scm_bignum_sc_t)r);
+
+  if (divisor < 0)
+    SCM_BIGNUM(bignum)->sign = (SCM_BIGNUM(bignum)->sign == '+') ? '-' : '+';
+
+  SCM_BIGNUM(bignum)->nr_digits = len;
+
+  return 0;
+}
+
+static int
+scm_bignum_nlshift(ScmObj bignum, size_t n)
+{
+  scm_bignum_d_t *head;
+  int err;
+
+  scm_assert_obj_type(bignum, &SCM_BIGNUM_TYPE_INFO);
+
+  if (n == 0) return 0;
+
+  if (SCM_BIGNUM(bignum)->nr_digits == 1) {
+    scm_bignum_c_t v;
+    EARY_GET(&SCM_BIGNUM(bignum)->digits, scm_bignum_d_t, 0, v);
+    if (v == 0) return 0;
+  }
+
+  if (SCM_BIGNUM(bignum)->nr_digits + n < n) {
+    scm_capi_error("number of digits of Integer overflow", 0);
+    return -1;
+  }
+
+  /* shift 結果を格納できるようあらかじめ配列を拡張するために 0 を設定する */
+  EARY_SET(&SCM_BIGNUM(bignum)->digits, scm_bignum_d_t,
+           SCM_BIGNUM(bignum)->nr_digits + n - 1, 0, err);
+
+  head = EARY_HEAD(&SCM_BIGNUM(bignum)->digits);
+  if (n >= SCM_BIGNUM(bignum)->nr_digits)
+    memcpy(head + n, head,
+           sizeof(scm_bignum_d_t) * SCM_BIGNUM(bignum)->nr_digits);
+  else
+    memmove(head + n, head,
+            sizeof(scm_bignum_d_t) * SCM_BIGNUM(bignum)->nr_digits);
+
+  memset(head, 0, sizeof(scm_bignum_d_t) * n);
+
+  SCM_BIGNUM(bignum)->nr_digits += n;
+
+  return 0;
+}
+
+static int
+scm_bignum_nrshift(ScmObj bignum, size_t n)
+{
+  scm_bignum_d_t *head;
+  size_t len;
+  int err;
+
+  scm_assert_obj_type(bignum, &SCM_BIGNUM_TYPE_INFO);
+
+  if (n == 0) return 0;
+
+  if (n >= SCM_BIGNUM(bignum)->nr_digits) {
+    SCM_BIGNUM(bignum)->sign = '+';
+    SCM_BIGNUM(bignum)->nr_digits = 1;
+    EARY_SET(&SCM_BIGNUM(bignum)->digits, scm_bignum_d_t, 0, 0, err);
+    if (err < 0) return -1;
+    return 0;
+  }
+
+  len = SCM_BIGNUM(bignum)->nr_digits - n;
+  head = EARY_HEAD(&SCM_BIGNUM(bignum)->digits);
+  if (len <= n)
+    memcpy(head, head + n, sizeof(scm_bignum_d_t) * len);
+  else
+    memmove(head, head + n, sizeof(scm_bignum_d_t) * len);
+
+  SCM_BIGNUM(bignum)->nr_digits = len;
+
+  return 0;
+}
+
+static int
+scm_bignum_ninc(ScmObj bignum, ScmObj inc)
+{
+  size_t place;
+  int err;
+
+  scm_assert_obj_type(bignum, &SCM_BIGNUM_TYPE_INFO);
+  scm_assert_obj_type(inc, &SCM_BIGNUM_TYPE_INFO);
+
+  place = SCM_BIGNUM(bignum)->nr_digits;
+  if (place < SCM_BIGNUM(inc)->nr_digits)
+    place = SCM_BIGNUM(inc)->nr_digits;
+
+  if (place >= SIZE_MAX) {
+    scm_capi_error("number of digits of Integer overflow", 0);
+    return -1;
+  }
+
+  /* 加算結果が桁上りする場合にそなえて記憶領域を確保するために 0 を設定する */
+  EARY_SET(&SCM_BIGNUM(bignum)->digits, scm_bignum_d_t, place, 0, err);
+  if (err < 0) return -1;
+  place++;
+
+  scm_bignum_adder(EARY_HEAD(&SCM_BIGNUM(bignum)->digits),
+                   SCM_BIGNUM(bignum)->nr_digits,
+                   (SCM_BIGNUM(bignum)->sign == '-') ? true : false,
+                   EARY_HEAD(&SCM_BIGNUM(inc)->digits),
+                   SCM_BIGNUM(inc)->nr_digits,
+                   (SCM_BIGNUM(inc)->sign == '-') ? true : false,
+                   EARY_HEAD(&SCM_BIGNUM(bignum)->digits),
+                   &place,
+                   &SCM_BIGNUM(bignum)->sign);
+
+  SCM_BIGNUM(bignum)->nr_digits = place;
+
+  return 0;
+}
+
+static int
+scm_bignum_ndec(ScmObj bignum, ScmObj dec)
+{
+  size_t place;
+  int err;
+
+  scm_assert_obj_type(bignum, &SCM_BIGNUM_TYPE_INFO);
+  scm_assert_obj_type(dec, &SCM_BIGNUM_TYPE_INFO);
+
+  place = SCM_BIGNUM(bignum)->nr_digits;
+  if (place < SCM_BIGNUM(dec)->nr_digits)
+    place = SCM_BIGNUM(dec)->nr_digits;
+
+  if (place >= SIZE_MAX) {
+    scm_capi_error("number of digits of Integer overflow", 0);
+    return -1;
+  }
+
+  /* 加算結果が桁上りする場合にそなえて記憶領域を確保するために 0 を設定する */
+  EARY_SET(&SCM_BIGNUM(bignum)->digits, scm_bignum_d_t, place, 0, err);
+  if (err < 0) return -1;
+  place++;
+
+  scm_bignum_adder(EARY_HEAD(&SCM_BIGNUM(bignum)->digits),
+                   SCM_BIGNUM(bignum)->nr_digits,
+                   (SCM_BIGNUM(bignum)->sign == '-') ? true : false,
+                   EARY_HEAD(&SCM_BIGNUM(dec)->digits),
+                   SCM_BIGNUM(dec)->nr_digits,
+                   (SCM_BIGNUM(dec)->sign == '+') ? true : false,
+                   EARY_HEAD(&SCM_BIGNUM(bignum)->digits),
+                   &place,
+                   &SCM_BIGNUM(bignum)->sign);
+
+  SCM_BIGNUM(bignum)->nr_digits = place;
+
+  return 0;
+}
+
+static inline int
+scm_bignum_abs_cmp(ScmObj bn1, ScmObj bn2)
+{
+  scm_bignum_c_t v1, v2;
+
+  scm_assert_obj_type(bn1, &SCM_BIGNUM_TYPE_INFO);
+  scm_assert_obj_type(bn2, &SCM_BIGNUM_TYPE_INFO);
+
+  if (SCM_BIGNUM(bn1)->nr_digits > SCM_BIGNUM(bn2)->nr_digits)
+    return 1;
+  else if (SCM_BIGNUM(bn1)->nr_digits < SCM_BIGNUM(bn2)->nr_digits)
+    return -1;
+
+  for (size_t i = SCM_BIGNUM(bn1)->nr_digits; i > 0; i--) {
+    EARY_GET(&SCM_BIGNUM(bn1)->digits, scm_bignum_d_t, i - 1, v1);
+    EARY_GET(&SCM_BIGNUM(bn2)->digits, scm_bignum_d_t, i - 1, v2);
+
+    if (v1 > v2) return 1;
+    else if (v1 < v2) return -1;
+  }
+
+  return 0;
+}
+
+static inline scm_bignum_c_t
+scm_bignum_extract_2d(ScmObj bn, size_t d)
+{
+  scm_bignum_c_t h, l;
+
+  scm_assert_obj_type(bn, &SCM_BIGNUM_TYPE_INFO);
+
+  if (SCM_BIGNUM(bn)->nr_digits <= d)
+    return 0;
+
+  if (SCM_BIGNUM(bn)->nr_digits <= d + 1) {
+    h = 0;
+    EARY_GET(&SCM_BIGNUM(bn)->digits, scm_bignum_d_t, d, l);
+  }
+  else {
+    h = 0;
+    EARY_GET(&SCM_BIGNUM(bn)->digits, scm_bignum_d_t, d + 1, h);
+    EARY_GET(&SCM_BIGNUM(bn)->digits, scm_bignum_d_t, d, l);
+  }
+
+  return h * SCM_BIGNUM_BASE + l;
+}
+
+static inline scm_bignum_c_t
+scm_bignum_extract_1d(ScmObj bn, size_t d)
+{
+  scm_bignum_c_t v;
+
+  scm_assert_obj_type(bn, &SCM_BIGNUM_TYPE_INFO);
+
+  if (SCM_BIGNUM(bn)->nr_digits <= d)
+    return 0;
+
+  EARY_GET(&SCM_BIGNUM(bn)->digits, scm_bignum_d_t, d, v);
+
+  return v;
+}
+
+static inline scm_bignum_c_t
+scm_bignum_msd(ScmObj bn)
+{
+  scm_bignum_c_t v;
+
+  scm_assert_obj_type(bn, &SCM_BIGNUM_TYPE_INFO);
+
+  EARY_GET(&SCM_BIGNUM(bn)->digits, scm_bignum_d_t,
+           SCM_BIGNUM(bn)->nr_digits - 1, v);
+
+  return v;
+}
+
+static ScmObj
+scm_bignum_2_fixnum_if_possible(ScmObj bignum)
+{
+  scm_bignum_sc_t v, num, abs_max;
+
+  scm_assert_obj_type(bignum, &SCM_BIGNUM_TYPE_INFO);
+
+  if (SCM_BIGNUM(bignum)->sign == '+')
+    abs_max = SCM_FIXNUM_MAX;
+  else
+    abs_max = -SCM_FIXNUM_MIN;
+
+  num = 0;
+  for (size_t i = SCM_BIGNUM(bignum)->nr_digits; i > 0; i--) {
+    EARY_GET(&SCM_BIGNUM(bignum)->digits, scm_bignum_d_t, i - 1, v);
+    if (num > (abs_max - v) / (scm_bignum_sc_t)SCM_BIGNUM_BASE)
+      return bignum;
+
+    num = num * (scm_bignum_sc_t)SCM_BIGNUM_BASE + v;
+  }
+
+  if (SCM_BIGNUM(bignum)->sign == '+')
+    return scm_fixnum_new(num);
+  else
+    return scm_fixnum_new(-num);
+}
+
 int
 scm_bignum_initialize_ary(ScmObj bignum,
                           char sign, scm_bignum_d_t *digits, size_t len,
                           scm_bignum_c_t base)
 {
-  ssize_t n;
   int rslt;
 
   scm_assert_obj_type(bignum, &SCM_BIGNUM_TYPE_INFO);
   scm_assert(sign == '+' || sign == '-');
 
   SCM_BIGNUM(bignum)->sign = sign;
-  rslt = eary_init(&SCM_BIGNUM(bignum)->digits, sizeof(scm_bignum_d_t), 3);
+  rslt = eary_init(&SCM_BIGNUM(bignum)->digits, sizeof(scm_bignum_d_t), len);
   if (rslt != 0) return -1;     /* [ERR]: [through] */
 
-  n = scm_bignum_base_conv(digits, len, base,
-                           &SCM_BIGNUM(bignum)->digits, SCM_BIGNUM_BASE);
-  if (n < 0)  return -1;        /* [ERR]: [through] */
+  rslt = scm_bignum_base_conv(digits, len, base,
+                              &SCM_BIGNUM(bignum)->digits, SCM_BIGNUM_BASE);
+  if (rslt < 0)  return -1;        /* [ERR]: [through] */
 
-  SCM_BIGNUM(bignum)->nr_digits = (size_t)n;
+  SCM_BIGNUM(bignum)->nr_digits = EARY_SIZE(&SCM_BIGNUM(bignum)->digits);
 
   return 0;
 }
@@ -406,6 +834,18 @@ scm_bignum_new_from_fixnum(SCM_MEM_TYPE_T mtype, ScmObj fn)
     return SCM_OBJ_NULL;  /* [ERR]: [through] */
 
   return bn;
+}
+
+ScmObj
+scm_bignum_copy(ScmObj bignum)
+{
+  scm_assert_obj_type(bignum, &SCM_BIGNUM_TYPE_INFO);
+
+  return scm_bignum_new_from_ary(SCM_MEM_HEAP,
+                                 SCM_BIGNUM(bignum)->sign,
+                                 EARY_HEAD(&SCM_BIGNUM(bignum)->digits),
+                                 SCM_BIGNUM(bignum)->nr_digits,
+                                 SCM_BIGNUM_BASE);
 }
 
 
@@ -567,12 +1007,162 @@ scm_bignum_mul(ScmObj bn1, ScmObj bn2)
 }
 
 int
+scm_bignum_div(ScmObj bn1, ScmObj bn2, scm_csetter_t *quo, scm_csetter_t *rem)
+{
+  ScmObj qu = SCM_OBJ_INIT, re = SCM_OBJ_INIT;
+  ScmObj a = SCM_OBJ_INIT, m = SCM_OBJ_INIT, c = SCM_OBJ_INIT;
+  ScmObj mq = SCM_OBJ_INIT;
+  int cmp;
+
+  SCM_STACK_FRAME_PUSH(&bn1, &bn2, &qu, &re, &a, &m, &c, &mq);
+
+  if (scm_capi_fixnum_p(bn1)) {
+    if (scm_fixnum_zero_p(bn1)) {
+      qu = bn1; re = bn1;
+      goto ret;
+    }
+
+    bn1 = scm_bignum_new_from_fixnum(SCM_MEM_HEAP, bn1);
+    if (scm_obj_null_p(bn1)) return -1; /* [ERR]: [through] */
+  }
+
+  if (scm_capi_fixnum_p(bn2)) {
+    if (scm_fixnum_zero_p(bn2)) {
+      scm_capi_error("division by zero", 0);
+      return -1;
+    }
+
+    bn2 = scm_bignum_new_from_fixnum(SCM_MEM_HEAP, bn2);
+    if (scm_obj_null_p(bn1)) return -1; /* [ERR]: [through] */
+  }
+
+  scm_assert_obj_type(bn1, &SCM_BIGNUM_TYPE_INFO);
+  scm_assert_obj_type(bn2, &SCM_BIGNUM_TYPE_INFO);
+
+  cmp = scm_bignum_abs_cmp(bn1, bn2);
+  if (cmp == -1) {
+    if (quo != NULL) {
+      qu = scm_capi_make_number_from_sword(0);
+      if (scm_obj_null_p(qu)) return -1;
+    }
+    re = bn1;
+  }
+  else if (cmp == 0) {
+    if (quo != NULL) {
+      if (SCM_BIGNUM(bn1)->sign == SCM_BIGNUM(bn2)->sign)
+        qu = scm_capi_make_number_from_sword(1);
+      else
+        qu = scm_capi_make_number_from_sword(-1);
+      if (scm_obj_null_p(qu)) return -1;
+    }
+    if (rem != NULL) {
+      re = scm_capi_make_number_from_sword(0);
+      if (scm_obj_null_p(re)) return -1;
+    }
+  }
+  else {
+    scm_bignum_c_t q, d;
+    size_t b, msd;
+    int rslt;
+
+    d = SCM_BIGNUM_BASE / (scm_bignum_msd(bn2) + 1);
+
+    a = scm_bignum_copy(bn1);
+    if (scm_obj_null_p(a)) return -1;
+    SCM_BIGNUM(a)->sign = '+';
+
+    rslt = scm_bignum_nmul_1d(a, (scm_bignum_sc_t)d);
+    if (rslt < 0) return -1;
+
+    m = scm_bignum_copy(bn2);
+    if (scm_obj_null_p(m)) return -1;
+    SCM_BIGNUM(m)->sign = '+';
+
+    rslt = scm_bignum_nmul_1d(m, (scm_bignum_sc_t)d);
+    if (rslt < 0) return -1;
+
+    c = scm_bignum_new_from_sword(SCM_MEM_HEAP, 0);
+    if (scm_obj_null_p(c)) return -1;
+
+    b = SCM_BIGNUM(a)->nr_digits - SCM_BIGNUM(m)->nr_digits;
+    rslt = scm_bignum_nlshift(m, b);
+    if (rslt < 0) return -1;
+
+    mq = scm_bignum_copy(m);
+    if (scm_obj_null_p(mq)) return -1;
+
+    msd = SCM_BIGNUM(m)->nr_digits - 1;
+
+    if (scm_bignum_abs_cmp(a, m) >= 0) {
+      rslt = scm_bignum_ndec(a, m);
+      if (rslt < 0) return -1;
+
+      rslt = scm_bignum_nadd_1d(c, 1);
+      if (rslt < 0) return -1;
+    }
+
+    for (size_t i = 0; i < b; i++) {
+      msd--;
+
+      rslt = scm_bignum_nrshift(m, 1);
+      if (rslt < 0) return -1;
+
+      rslt = scm_bignum_nlshift(c, 1);
+      if (rslt < 0) return -1;
+
+      q = scm_bignum_extract_2d(a, msd) / scm_bignum_extract_1d(m, msd);
+      if (q > 0) {
+        if (q >= SCM_BIGNUM_BASE) q = SCM_BIGNUM_BASE - 1;
+
+        rslt = scm_bignum_replace_mul_1d(mq, m, (scm_bignum_sc_t)q);
+        if (rslt < 0) return -1;
+
+        rslt = scm_bignum_ndec(a, mq);
+        if (rslt < 0) return -1;
+
+        while (SCM_BIGNUM(a)->sign == '-') {
+          rslt = scm_bignum_ninc(a, m);
+          if (rslt < 0) return -1;
+          q--;
+        }
+
+        rslt = scm_bignum_nadd_1d(c, (scm_bignum_sc_t)q);
+        if (rslt < 0) return -1;
+      }
+    }
+
+    if (quo != NULL) {
+      if (SCM_BIGNUM(bn2)->sign == '+')
+        SCM_BIGNUM(c)->sign = SCM_BIGNUM(bn1)->sign;
+      else
+        SCM_BIGNUM(c)->sign = SCM_BIGNUM(bn1)->sign == '+' ? '-' : '+';
+
+      qu = scm_bignum_2_fixnum_if_possible(c);
+    }
+
+    if (rem != NULL) {
+      rslt = scm_bignum_ndiv_1d(a, (scm_bignum_sc_t)d, NULL);
+      if (rslt < 0) return -1;
+      SCM_BIGNUM(a)->sign = SCM_BIGNUM(bn1)->sign;
+
+      re = scm_bignum_2_fixnum_if_possible(a);
+    }
+  }
+
+ ret:
+
+  if (quo != NULL) scm_csetter_setq(quo, qu);
+  if (rem != NULL) scm_csetter_setq(rem, re);
+
+  return 0;
+}
+
+int
 scm_bignum_pretty_print(ScmObj obj, ScmObj port, bool write_p)
 {
   scm_bignum_c_t base;
   scm_bignum_d_t val;
   EArray ary;
-  ssize_t sz;
   int rslt, place, width;
   char str[32];
 
@@ -586,11 +1176,11 @@ scm_bignum_pretty_print(ScmObj obj, ScmObj port, bool write_p)
   rslt = eary_init(&ary, sizeof(scm_bignum_d_t), SCM_BIGNUM(obj)->nr_digits);
   if (rslt < 0) return -1;      /* [ERR]: [through] */
 
-  sz = scm_bignum_base_conv(EARY_HEAD(&SCM_BIGNUM(obj)->digits),
+  rslt = scm_bignum_base_conv(EARY_HEAD(&SCM_BIGNUM(obj)->digits),
                             EARY_SIZE(&SCM_BIGNUM(obj)->digits),
                             SCM_BIGNUM_BASE,
                             &ary, base);
-  if (sz < 0) goto err;       /* [ERR]: [through] */
+  if (rslt < 0) goto err;       /* [ERR]: [through] */
 
   if (SCM_BIGNUM(obj)->sign == '-') {
     rslt = scm_capi_write_cstr("-", SCM_ENC_ASCII, port);
@@ -598,7 +1188,7 @@ scm_bignum_pretty_print(ScmObj obj, ScmObj port, bool write_p)
   }
 
   width = 0;
-  for (ssize_t i = sz; i > 0; i--) {
+  for (size_t i = EARY_SIZE(&ary); i > 0; i--) {
     EARY_GET(&ary, scm_bignum_d_t, i - 1, val);
     snprintf(str, sizeof(str), "%0*u", width, val);
     rslt = scm_capi_write_cstr(str, SCM_ENC_ASCII, port);
