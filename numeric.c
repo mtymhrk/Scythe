@@ -305,6 +305,7 @@ scm_bignum_adder(const scm_bignum_d_t *aug, size_t aug_d, bool aug_c,
   scm_bignum_c_t v, v1, v2, c, c1, c2;
   size_t len;
 
+  v = 0;
   c = 0;
   len = 1;
   c1 = 1;
