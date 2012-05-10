@@ -189,6 +189,57 @@ ScmTypeInfo SCM_BIGNUM_TYPE_INFO = {
   .gc_accept_func_weak = NULL,
 };
 
+static inline scm_bignum_c_t
+scm_bignum_extract_2d(ScmObj bn, size_t d)
+{
+  scm_bignum_c_t h, l;
+
+  scm_assert_obj_type(bn, &SCM_BIGNUM_TYPE_INFO);
+
+  if (SCM_BIGNUM(bn)->nr_digits <= d)
+    return 0;
+
+  if (SCM_BIGNUM(bn)->nr_digits <= d + 1) {
+    h = 0;
+    EARY_GET(&SCM_BIGNUM(bn)->digits, scm_bignum_d_t, d, l);
+  }
+  else {
+    h = 0;
+    EARY_GET(&SCM_BIGNUM(bn)->digits, scm_bignum_d_t, d + 1, h);
+    EARY_GET(&SCM_BIGNUM(bn)->digits, scm_bignum_d_t, d, l);
+  }
+
+  return h * SCM_BIGNUM_BASE + l;
+}
+
+static inline scm_bignum_c_t
+scm_bignum_extract_1d(ScmObj bn, size_t d)
+{
+  scm_bignum_c_t v;
+
+  scm_assert_obj_type(bn, &SCM_BIGNUM_TYPE_INFO);
+
+  if (SCM_BIGNUM(bn)->nr_digits <= d)
+    return 0;
+
+  EARY_GET(&SCM_BIGNUM(bn)->digits, scm_bignum_d_t, d, v);
+
+  return v;
+}
+
+static inline scm_bignum_c_t
+scm_bignum_msd(ScmObj bn)
+{
+  scm_bignum_c_t v;
+
+  scm_assert_obj_type(bn, &SCM_BIGNUM_TYPE_INFO);
+
+  EARY_GET(&SCM_BIGNUM(bn)->digits, scm_bignum_d_t,
+           SCM_BIGNUM(bn)->nr_digits - 1, v);
+
+  return v;
+}
+
 static int
 scm_bignum_base_conv(scm_bignum_d_t *digits, size_t len, scm_bignum_c_t fbase,
                      EArray *ary, scm_bignum_c_t tbase)
@@ -627,7 +678,7 @@ scm_bignum_ndec(ScmObj bignum, ScmObj dec)
   return 0;
 }
 
-static inline int
+static int
 scm_bignum_abs_cmp(ScmObj bn1, ScmObj bn2)
 {
   scm_bignum_c_t v1, v2;
@@ -649,57 +700,6 @@ scm_bignum_abs_cmp(ScmObj bn1, ScmObj bn2)
   }
 
   return 0;
-}
-
-static inline scm_bignum_c_t
-scm_bignum_extract_2d(ScmObj bn, size_t d)
-{
-  scm_bignum_c_t h, l;
-
-  scm_assert_obj_type(bn, &SCM_BIGNUM_TYPE_INFO);
-
-  if (SCM_BIGNUM(bn)->nr_digits <= d)
-    return 0;
-
-  if (SCM_BIGNUM(bn)->nr_digits <= d + 1) {
-    h = 0;
-    EARY_GET(&SCM_BIGNUM(bn)->digits, scm_bignum_d_t, d, l);
-  }
-  else {
-    h = 0;
-    EARY_GET(&SCM_BIGNUM(bn)->digits, scm_bignum_d_t, d + 1, h);
-    EARY_GET(&SCM_BIGNUM(bn)->digits, scm_bignum_d_t, d, l);
-  }
-
-  return h * SCM_BIGNUM_BASE + l;
-}
-
-static inline scm_bignum_c_t
-scm_bignum_extract_1d(ScmObj bn, size_t d)
-{
-  scm_bignum_c_t v;
-
-  scm_assert_obj_type(bn, &SCM_BIGNUM_TYPE_INFO);
-
-  if (SCM_BIGNUM(bn)->nr_digits <= d)
-    return 0;
-
-  EARY_GET(&SCM_BIGNUM(bn)->digits, scm_bignum_d_t, d, v);
-
-  return v;
-}
-
-static inline scm_bignum_c_t
-scm_bignum_msd(ScmObj bn)
-{
-  scm_bignum_c_t v;
-
-  scm_assert_obj_type(bn, &SCM_BIGNUM_TYPE_INFO);
-
-  EARY_GET(&SCM_BIGNUM(bn)->digits, scm_bignum_d_t,
-           SCM_BIGNUM(bn)->nr_digits - 1, v);
-
-  return v;
 }
 
 static ScmObj
