@@ -8,7 +8,7 @@
 
 ScmTypeInfo SCM_PAIR_TYPE_INFO = {
   .name                = "pair",
-  .flags               = 0,
+  .flags               = SCM_TYPE_FLG_MMO,
   .pp_func             = scm_pair_pretty_print,
   .obj_size            = sizeof(ScmPair),
   .gc_ini_func         = scm_pair_gc_initialize,

@@ -12,7 +12,7 @@
 
 ScmTypeInfo SCM_ISEQ_TYPE_INFO = {
   .name                = "iseq",
-  .flags               = 0,
+  .flags               = SCM_TYPE_FLG_MMO,
   .pp_func             = scm_iseq_pretty_print,
   .obj_size            = sizeof(ScmISeq),
   .gc_ini_func         = scm_iseq_gc_initialize,

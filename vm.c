@@ -166,7 +166,7 @@ scm_bedrock_error_p(ScmBedrock *br)
 
 ScmTypeInfo SCM_VM_TYPE_INFO = {
   .name                = "vm",
-  .flags               = 0,
+  .flags               = SCM_TYPE_FLG_MMO,
   .pp_func             = NULL,
   .obj_size            = sizeof(ScmVM),
   .gc_ini_func         = scm_vm_gc_initialize,

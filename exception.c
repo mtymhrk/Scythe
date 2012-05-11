@@ -7,7 +7,7 @@
 
 ScmTypeInfo SCM_EXCEPTION_TYPE_INFO = {
   .name                = "exception",
-  .flags               = 0,
+  .flags               = SCM_TYPE_FLG_MMO,
   .pp_func             = scm_exception_pretty_print,
   .obj_size            = sizeof(ScmException),
   .gc_ini_func         = scm_exception_gc_initialize,

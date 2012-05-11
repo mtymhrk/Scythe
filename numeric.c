@@ -82,7 +82,7 @@ scm_num_make_int_from_ary(char sign, scm_bignum_d_t *ary, size_t size,
 
 ScmTypeInfo SCM_FIXNUM_TYPE_INFO = {
   .name                = "fixnum",
-  .flags               = 0,
+  .flags               = SCM_TYPE_FLG_NUM,
   .pp_func             = scm_fixnum_pretty_print,
   .obj_size            = 0,
   .gc_ini_func         = NULL,
@@ -185,7 +185,7 @@ scm_fixnum_pretty_print(ScmObj obj, ScmObj port, bool write_p)
 
 ScmTypeInfo SCM_BIGNUM_TYPE_INFO = {
   .name                = "bignum",
-  .flags               = 0,
+  .flags               = SCM_TYPE_FLG_MMO | SCM_TYPE_FLG_NUM,
   .pp_func             = scm_bignum_pretty_print,
   .obj_size            = sizeof(ScmBignum),
   .gc_ini_func         = scm_bignum_gc_initialize,

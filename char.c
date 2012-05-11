@@ -13,7 +13,7 @@
 
 ScmTypeInfo SCM_CHAR_TYPE_INFO = {
   .name                = "char",
-  .flags               = 0,
+  .flags               = SCM_TYPE_FLG_MMO,
   .pp_func             = scm_char_pretty_print,
   .obj_size            = sizeof(ScmChar),
   .gc_ini_func         = NULL,

@@ -20,7 +20,7 @@
 
 ScmTypeInfo SCM_STRING_TYPE_INFO = {
   .name                = "string",
-  .flags               = 0,
+  .flags               = SCM_TYPE_FLG_MMO,
   .pp_func             = scm_string_pretty_print,
   .obj_size            = sizeof(ScmString),
   .gc_ini_func         = scm_string_gc_initialize,

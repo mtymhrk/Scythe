@@ -14,7 +14,7 @@
 
 ScmTypeInfo SCM_GLOC_TYPE_INFO = {
   .name                = "gloc",
-  .flags               = 0,
+  .flags               = SCM_TYPE_FLG_MMO,
   .pp_func             = scm_gloc_pretty_print,
   .obj_size            = sizeof(ScmGLoc),
   .gc_ini_func         = scm_gloc_gc_initialize,
@@ -96,12 +96,15 @@ scm_gloc_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
 /****************************************************************************/
 
 ScmTypeInfo SCM_GLOCTBL_TYPE_INFO = {
+  .name                = "gloctbl",
+  .flags               = SCM_TYPE_FLG_MMO,
   .pp_func             = scm_gloctbl_pretty_print,
   .obj_size            = sizeof(ScmGLocTbl),
   .gc_ini_func         = scm_gloctbl_gc_initialize,
   .gc_fin_func         = scm_gloctbl_gc_finalize,
   .gc_accept_func      = scm_gloctbl_gc_accept,
-  .gc_accept_func_weak = NULL
+  .gc_accept_func_weak = NULL,
+  .extra               = NULL,
 };
 
 #define SCM_GLOCTBL_SIZE 256

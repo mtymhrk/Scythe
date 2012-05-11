@@ -8,7 +8,7 @@
 
 ScmTypeInfo SCM_VECTOR_TYPE_INFO = {
   .name                = "vector",
-  .flags               = 0,
+  .flags               = SCM_TYPE_FLG_MMO,
   .pp_func             = NULL,
   .obj_size            = sizeof(ScmVector),
   .gc_ini_func         = scm_vector_gc_initialize,

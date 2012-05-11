@@ -17,7 +17,7 @@
 
 ScmTypeInfo SCM_FORWARD_TYPE_INFO = {
   .name                = "forward",
-  .flags               = 0,
+  .flags               = SCM_TYPE_FLG_MMO,
   .pp_func             = NULL,
   .obj_size            = sizeof(ScmForward),
   .gc_ini_func         = NULL,

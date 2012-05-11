@@ -16,7 +16,7 @@
 
 ScmTypeInfo SCM_SYMBOL_TYPE_INFO = {
   .name                = "symbol",
-  .flags               = 0,
+  .flags               = SCM_TYPE_FLG_MMO,
   .pp_func             = scm_symbol_pretty_print,
   .obj_size            = sizeof(ScmSymbol),
   .gc_ini_func         = scm_symbol_gc_initialize,
@@ -128,7 +128,7 @@ scm_symbol_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler) /* GC 
 
 ScmTypeInfo SCM_SYMTBL_TYPE_INFO = {
   .name                = "symtbl",
-  .flags               = 0,
+  .flags               = SCM_TYPE_FLG_MMO,
   .pp_func             = scm_symtbl_pretty_preint,
   .obj_size            = sizeof(ScmSymTbl),
   .gc_ini_func         = scm_symtbl_gc_initialize,
