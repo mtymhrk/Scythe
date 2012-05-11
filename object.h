@@ -203,10 +203,27 @@ struct ScmTypeInfoRec {
   void *extra;
 };
 
+enum {
+  SCM_TYPE_FLG_MMO = 0x00000001,
+  SCM_TYPE_FLG_NUM = 0x00000002,
+};
+
 inline bool
 scm_type_info_same_p(ScmTypeInfo *type1, ScmTypeInfo *type2)
 {
   return (type1 == type2) ? true : false;
+}
+
+inline const char *
+scm_type_info_name(ScmTypeInfo *type)
+{
+  return type->name;
+}
+
+inline bool
+scm_type_info_flg_set_p(ScmTypeInfo *type, uint32_t flg)
+{
+  return ((type->flags & flg) == flg) ? true : false;
 }
 
 inline size_t
@@ -289,6 +306,12 @@ scm_type_info_call_gc_accept_func_weak(ScmTypeInfo *type, ScmObj obj,
     return SCM_GC_REF_HANDLER_VAL_INIT;
 }
 
+inline void *
+scm_type_info_extra(ScmTypeInfo *type)
+{
+  return type->extra;
+}
+
 
 /****************************************************************************/
 /** ScmObj                                                                  */
@@ -355,6 +378,18 @@ scm_obj_type_p(ScmObj obj, ScmTypeInfo *type)
   return scm_type_info_same_p(scm_obj_type(obj), type);
 }
 
+inline const char *
+scm_obj_type_name(ScmObj obj)
+{
+  return scm_type_info_name(scm_obj_type(obj));
+}
+
+inline bool
+scm_obj_type_flag_set_p(ScmObj obj, uint32_t flg)
+{
+  return scm_type_info_flg_set_p(scm_obj_type(obj), flg);
+}
+
 inline size_t
 scm_obj_size(ScmObj obj)
 {
@@ -419,6 +454,13 @@ scm_obj_has_weak_ref_p(ScmObj obj)
 {
   return scm_type_info_has_instance_weak_ref_p(scm_obj_type(obj));
 }
+
+inline void *
+scm_obj_type_extra(ScmObj obj)
+{
+  return scm_type_info_extra(scm_obj_type(obj));
+}
+
 
 #define scm_assert(...) assert(__VA_ARGS__)
 
