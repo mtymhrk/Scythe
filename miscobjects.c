@@ -12,12 +12,15 @@
 /*******************************************************/
 
 ScmTypeInfo SCM_EOF_TYPE_INFO = {
+  .name                = "eof",
+  .flags               = 0,
   .pp_func             = scm_eof_pretty_print,
   .obj_size            = sizeof(ScmEOF),
   .gc_ini_func         = NULL,
   .gc_fin_func         = NULL,
   .gc_accept_func      = NULL,
   .gc_accept_func_weak = NULL,
+  .extra               = NULL,
 };
 
 void
@@ -64,12 +67,15 @@ scm_eof_pretty_print(ScmObj obj, ScmObj port, bool write_p)
 /*******************************************************/
 
 ScmTypeInfo SCM_BOOL_TYPE_INFO = {
+  .name                = "boolean",
+  .flags               = 0,
   .pp_func             = scm_bool_pretty_print,
   .obj_size            = sizeof(ScmBool),
   .gc_ini_func         = NULL,
   .gc_fin_func         = NULL,
   .gc_accept_func      = NULL,
   .gc_accept_func_weak = NULL,
+  .extra               = NULL,
 };
 
 void
@@ -132,12 +138,15 @@ scm_bool_pretty_print(ScmObj obj, ScmObj port, bool write_p)
 /*******************************************************/
 
 ScmTypeInfo SCM_NIL_TYPE_INFO = {
+  .name                = "nil",
+  .flags               = 0,
   .pp_func             = scm_nil_pretty_print,
   .obj_size            = sizeof(ScmNil),
   .gc_ini_func         = NULL,
   .gc_fin_func         = NULL,
   .gc_accept_func      = NULL,
   .gc_accept_func_weak = NULL,
+  .extra               = NULL,
 };
 
 void
@@ -186,12 +195,15 @@ scm_nil_pretty_print(ScmObj obj, ScmObj port, bool write_p)
 /*******************************************************/
 
 ScmTypeInfo SCM_UNDEF_TYPE_INFO = {
+  .name                = "undef",
+  .flags               = 0,
   .pp_func             = scm_undef_pretty_print,
   .obj_size            = sizeof(ScmUndef),
   .gc_ini_func         = NULL,
   .gc_fin_func         = NULL,
   .gc_accept_func      = NULL,
   .gc_accept_func_weak = NULL,
+  .extra               = NULL,
 };
 
 void

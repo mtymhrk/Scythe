@@ -192,12 +192,15 @@ scm_gc_ref_handler_failure_p(int ret_val)
 /****************************************************************************/
 
 struct ScmTypeInfoRec {
+  const char *name;
+  uint32_t flags;
   ScmPrettyPrintFunction pp_func;
   size_t obj_size;
   ScmGCInitializeFunc gc_ini_func;
   ScmGCFinalizeFunc gc_fin_func;
   ScmGCAcceptFunc gc_accept_func;
   ScmGCAcceptFunc gc_accept_func_weak;
+  void *extra;
 };
 
 inline bool

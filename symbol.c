@@ -15,12 +15,15 @@
 
 
 ScmTypeInfo SCM_SYMBOL_TYPE_INFO = {
+  .name                = "symbol",
+  .flags               = 0,
   .pp_func             = scm_symbol_pretty_print,
   .obj_size            = sizeof(ScmSymbol),
   .gc_ini_func         = scm_symbol_gc_initialize,
   .gc_fin_func         = NULL,
   .gc_accept_func      = scm_symbol_gc_accept,
   .gc_accept_func_weak = NULL,
+  .extra               = NULL,
 };
 
 int
@@ -124,12 +127,15 @@ scm_symbol_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler) /* GC 
 
 
 ScmTypeInfo SCM_SYMTBL_TYPE_INFO = {
-  .pp_func = scm_symtbl_pretty_preint,
-  .obj_size = sizeof(ScmSymTbl),
-  .gc_ini_func = scm_symtbl_gc_initialize,
-  .gc_fin_func = scm_symtbl_gc_finalize,
-  .gc_accept_func = scm_symtbl_gc_accept,
-  .gc_accept_func_weak = scm_symtbl_gc_accept_weak
+  .name                = "symtbl",
+  .flags               = 0,
+  .pp_func             = scm_symtbl_pretty_preint,
+  .obj_size            = sizeof(ScmSymTbl),
+  .gc_ini_func         = scm_symtbl_gc_initialize,
+  .gc_fin_func         = scm_symtbl_gc_finalize,
+  .gc_accept_func      = scm_symtbl_gc_accept,
+  .gc_accept_func_weak = scm_symtbl_gc_accept_weak,
+  .extra               = NULL,
 };
 
 #define SCM_SYMTBL_SIZE 256

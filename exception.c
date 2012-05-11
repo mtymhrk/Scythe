@@ -6,12 +6,15 @@
 #include "exception.h"
 
 ScmTypeInfo SCM_EXCEPTION_TYPE_INFO = {
-  .pp_func = scm_exception_pretty_print,
-  .obj_size = sizeof(ScmException),
-  .gc_ini_func = scm_exception_gc_initialize,
-  .gc_fin_func = scm_exception_gc_fianlize,
-  .gc_accept_func = scm_exception_gc_accept,
-  .gc_accept_func_weak = NULL
+  .name                = "exception",
+  .flags               = 0,
+  .pp_func             = scm_exception_pretty_print,
+  .obj_size            = sizeof(ScmException),
+  .gc_ini_func         = scm_exception_gc_initialize,
+  .gc_fin_func         = scm_exception_gc_fianlize,
+  .gc_accept_func      = scm_exception_gc_accept,
+  .gc_accept_func_weak = NULL,
+  .extra               = NULL,
 };
 
 int

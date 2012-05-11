@@ -7,12 +7,15 @@
 #include "pair.h"
 
 ScmTypeInfo SCM_PAIR_TYPE_INFO = {
-  .pp_func = scm_pair_pretty_print,
-  .obj_size = sizeof(ScmPair),
-  .gc_ini_func = scm_pair_gc_initialize,
-  .gc_fin_func = NULL,
-  .gc_accept_func = scm_pair_gc_accept,
+  .name                = "pair",
+  .flags               = 0,
+  .pp_func             = scm_pair_pretty_print,
+  .obj_size            = sizeof(ScmPair),
+  .gc_ini_func         = scm_pair_gc_initialize,
+  .gc_fin_func         = NULL,
+  .gc_accept_func      = scm_pair_gc_accept,
   .gc_accept_func_weak = NULL,
+  .extra               = NULL,
 };
 
 

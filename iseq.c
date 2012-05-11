@@ -11,12 +11,15 @@
 #include "iseq.h"
 
 ScmTypeInfo SCM_ISEQ_TYPE_INFO = {
+  .name                = "iseq",
+  .flags               = 0,
   .pp_func             = scm_iseq_pretty_print,
   .obj_size            = sizeof(ScmISeq),
   .gc_ini_func         = scm_iseq_gc_initialize,
   .gc_fin_func         = scm_iseq_gc_finalize,
   .gc_accept_func      = scm_iseq_gc_accept,
-  .gc_accept_func_weak = NULL
+  .gc_accept_func_weak = NULL,
+  .extra               = NULL,
 };
 
 int

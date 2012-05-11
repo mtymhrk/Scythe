@@ -19,12 +19,15 @@
 #define ROOM_FOR_APPEND(str) (CAPACITY(str) - SCM_STRING_BYTESIZE(str))
 
 ScmTypeInfo SCM_STRING_TYPE_INFO = {
+  .name                = "string",
+  .flags               = 0,
   .pp_func             = scm_string_pretty_print,
   .obj_size            = sizeof(ScmString),
   .gc_ini_func         = scm_string_gc_initialize,
   .gc_fin_func         = scm_string_gc_finalize,
   .gc_accept_func      = NULL,
   .gc_accept_func_weak = NULL,
+  .extra               = NULL,
 };
 
 static ssize_t

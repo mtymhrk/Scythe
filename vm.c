@@ -165,12 +165,15 @@ scm_bedrock_error_p(ScmBedrock *br)
 
 
 ScmTypeInfo SCM_VM_TYPE_INFO = {
-  NULL,                         /* pp_func              */
-  sizeof(ScmVM),                /* obj_size             */
-  scm_vm_gc_initialize,         /* gc_ini_func          */
-  scm_vm_gc_finalize,           /* gc_fin_func          */
-  scm_vm_gc_accept,             /* gc_accept_func       */
-  NULL,                         /* gc_accpet_func_weak  */
+  .name                = "vm",
+  .flags               = 0,
+  .pp_func             = NULL,
+  .obj_size            = sizeof(ScmVM),
+  .gc_ini_func         = scm_vm_gc_initialize,
+  .gc_fin_func         = scm_vm_gc_finalize,
+  .gc_accept_func      = scm_vm_gc_accept,
+  .gc_accept_func_weak = NULL,
+  .extra               = NULL,
 };
 
 ScmObj scm_vm__current_vm = SCM_OBJ_INIT;

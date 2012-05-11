@@ -9,12 +9,15 @@
 /*******************************************************************/
 
 ScmTypeInfo SCM_SUBRUTINE_TYPE_INFO = {
+  .name                = "subrutine",
+  .flags               = 0,
   .pp_func             = scm_subrutine_pretty_print,
   .obj_size            = sizeof(ScmSubrutine),
   .gc_ini_func         = NULL,
   .gc_fin_func         = NULL,
   .gc_accept_func      = NULL,
   .gc_accept_func_weak = NULL,
+  .extra               = NULL,
 };
 
 int
@@ -70,12 +73,15 @@ scm_subrutine_pretty_print(ScmObj obj, ScmObj port, bool write_p)
 /*******************************************************************/
 
 ScmTypeInfo SCM_CLOSURE_TYPE_INFO = {
+  .name                = "closure",
+  .flags               = 0,
   .pp_func             = scm_closure_pretty_print,
   .obj_size            = sizeof(ScmClosure),
   .gc_ini_func         = scm_closure_gc_initialize,
   .gc_fin_func         = scm_closure_gc_finalize,
   .gc_accept_func      = scm_closure_gc_accept,
   .gc_accept_func_weak = NULL,
+  .extra               = NULL,
 };
 
 static ScmObj dummy_free_vars[1] = { SCM_OBJ_NULL };

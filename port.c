@@ -24,12 +24,15 @@
 
 
 ScmTypeInfo SCM_PORT_TYPE_INFO = {
+  .name                = "port",
+  .flags               = 0,
   .pp_func             = NULL,
   .obj_size            = sizeof(ScmPort),
   .gc_ini_func         = scm_port_gc_initialize,
   .gc_fin_func         = scm_port_gc_finalize,
   .gc_accept_func      = NULL,
   .gc_accept_func_weak = NULL,
+  .extra               = NULL,
 };
 
 void

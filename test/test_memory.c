@@ -942,12 +942,15 @@ void
 test_scm_mem_alloc_size_in_heap__size_is_smaller_then_forward(void)
 {
   ScmTypeInfo type = {
-    NULL,                     /* pp_func              */
-    sizeof(ScmForward) - 1,   /* obj_size             */
-    NULL,                     /* gc_ini_func          */
-    NULL,                     /* gc_fin_func          */
-    NULL,                     /* gc_accept_func       */
-    NULL,                     /* gc_accpet_func_weak  */
+    .name                = "test",
+    .flags               = 0,
+    .pp_func             = NULL,
+    .obj_size            = sizeof(ScmForward) - 1,
+    .gc_ini_func         = NULL,
+    .gc_fin_func         = NULL,
+    .gc_accept_func      = NULL,
+    .gc_accept_func_weak = NULL,
+    .extra               = NULL,
   };
   size_t actual_size;
 
@@ -963,12 +966,15 @@ test_scm_mem_alloc_size_in_heap__size_is_greater_then_forward(void)
 {
   size_t expected_size = sizeof(ScmForward) + 1;
   ScmTypeInfo type = {
-    NULL,                     /* pp_func              */
-    expected_size,            /* obj_size             */
-    NULL,                     /* gc_ini_func          */
-    NULL,                     /* gc_fin_func          */
-    NULL,                     /* gc_accept_func       */
-    NULL,                     /* gc_accpet_func_weak  */
+    .name                = "test",
+    .flags               = 0,
+    .pp_func             = NULL,
+    .obj_size            = expected_size,
+    .gc_ini_func         = NULL,
+    .gc_fin_func         = NULL,
+    .gc_accept_func      = NULL,
+    .gc_accept_func_weak = NULL,
+    .extra               = NULL,
   };
   size_t actual_size;
 
@@ -983,12 +989,15 @@ void
 test_scm_mem_alloc_size_in_heap__obj_has_weak_ref(void)
 {
   ScmTypeInfo type = {
-    NULL,                          /* pp_func              */
-    sizeof(StubObj),               /* obj_size             */
-    NULL,                          /* gc_ini_func          */
-    NULL,                          /* gc_fin_func          */
-    NULL,                          /* gc_accept_func       */
-    stub_obj_gc_accept_func_weak   /* gc_accpet_func_weak  */
+    .name                = "test",
+    .flags               = 0,
+    .pp_func             = NULL,
+    .obj_size            = sizeof(StubObj),
+    .gc_ini_func         = NULL,
+    .gc_fin_func         = NULL,
+    .gc_accept_func      = NULL,
+    .gc_accept_func_weak = stub_obj_gc_accept_func_weak,
+    .extra               = NULL,
   };
   size_t actual_size;
 
@@ -1003,12 +1012,14 @@ void
 test_scm_mem_alloc_size_in_root__size_is_smaller_than_atom(void)
 {
   ScmTypeInfo type = {
-    NULL,                     /* pp_func              */
-    sizeof(ScmMMObj) - 1,     /* obj_size             */
-    NULL,                     /* gc_ini_func          */
-    NULL,                     /* gc_fin_func          */
-    NULL,                     /* gc_accept_func       */
-    NULL,                     /* gc_accpet_func_weak  */
+    .name                = "test",
+    .flags               = 0,
+    .pp_func             = NULL,
+    .obj_size            = sizeof(ScmMMObj) - 1,
+    .gc_ini_func         = NULL,
+    .gc_fin_func         = NULL,
+    .gc_accept_func      = NULL,
+    .gc_accept_func_weak = NULL,
   };
   size_t actual_size;
 
@@ -1025,12 +1036,15 @@ test_scm_mem_alloc_size_in_root__size_is_greater_than_atom(void)
 {
   size_t obj_size = sizeof(ScmMMObj) * 2;
   ScmTypeInfo type = {
-    NULL,                     /* pp_func              */
-    obj_size,                 /* obj_size             */
-    NULL,                     /* gc_ini_func          */
-    NULL,                     /* gc_fin_func          */
-    NULL,                     /* gc_accept_func       */
-    NULL,                     /* gc_accpet_func_weak  */
+    .name                = "test",
+    .flags               = 0,
+    .pp_func             = NULL,
+    .obj_size            = obj_size,
+    .gc_ini_func         = NULL,
+    .gc_fin_func         = NULL,
+    .gc_accept_func      = NULL,
+    .gc_accept_func_weak = NULL,
+    .extra               = NULL,
   };
   size_t actual_size;
 
@@ -1238,12 +1252,15 @@ void
 test_scm_mem_alloc_heap(void)
 {
   ScmTypeInfo type = {
-    NULL,                     /* pp_func              */
-    sizeof(StubObj),          /* obj_size             */
-    stub_obj_gc_init_func,    /* gc_ini_func          */
-    stub_obj_gc_fin_func,     /* gc_fin_func          */
-    stub_obj_gc_accept_func,  /* gc_accept_func       */
-    NULL,                     /* gc_accpet_func_weak  */
+    .name                = "test",
+    .flags               = 0,
+    .pp_func             = NULL,
+    .obj_size            = sizeof(StubObj),
+    .gc_ini_func         = stub_obj_gc_init_func,
+    .gc_fin_func         = stub_obj_gc_fin_func,
+    .gc_accept_func      = stub_obj_gc_accept_func,
+    .gc_accept_func_weak = NULL,
+    .extra               = NULL,
   };
   bool in_to_heap;
   ScmMemHeapBlock *block;
@@ -1283,12 +1300,15 @@ void
 test_scm_mem_alloc_heap__alignment(void)
 {
   ScmTypeInfo type = {
-    NULL,                     /* pp_func              */
-    sizeof(StubObj),          /* obj_size             */
-    stub_obj_gc_init_func,    /* gc_ini_func          */
-    stub_obj_gc_fin_func,     /* gc_fin_func          */
-    stub_obj_gc_accept_func,  /* gc_accept_func       */
-    NULL,                     /* gc_accpet_func_weak  */
+    .name                = "test",
+    .flags               = 0,
+    .pp_func             = NULL,
+    .obj_size            = sizeof(StubObj),
+    .gc_ini_func         = stub_obj_gc_init_func,
+    .gc_fin_func         = stub_obj_gc_fin_func,
+    .gc_accept_func      = stub_obj_gc_accept_func,
+    .gc_accept_func_weak = NULL,
+    .extra               = NULL,
   };
   ScmMem *mem;
   ScmObj obj1 = SCM_OBJ_INIT;
@@ -1322,12 +1342,15 @@ void
 test_scm_mem_alloc_root(void)
 {
   ScmTypeInfo type = {
-    NULL,                     /* pp_func              */
-    sizeof(StubObj),          /* obj_size             */
-    stub_obj_gc_init_func,    /* gc_ini_func          */
-    stub_obj_gc_fin_func,     /* gc_fin_func          */
-    stub_obj_gc_accept_func,  /* gc_accept_func       */
-    NULL,                     /* gc_accpet_func_weak  */
+    .name                = "test",
+    .flags               = 0,
+    .pp_func             = NULL,
+    .obj_size            = sizeof(StubObj),
+    .gc_ini_func         = stub_obj_gc_init_func,
+    .gc_fin_func         = stub_obj_gc_fin_func,
+    .gc_accept_func      = stub_obj_gc_accept_func,
+    .gc_accept_func_weak = NULL,
+    .extra               = NULL,
   };
   ScmMem *mem;
   ScmObj obj = SCM_OBJ_INIT;
@@ -1359,12 +1382,15 @@ void
 test_scm_mem_free_root(void)
 {
   ScmTypeInfo type = {
-    NULL,                     /* pp_func              */
-    sizeof(StubObj),          /* obj_size             */
-    stub_obj_gc_init_func,    /* gc_ini_func          */
-    stub_obj_gc_fin_func,     /* gc_fin_func          */
-    stub_obj_gc_accept_func,  /* gc_accept_func       */
-    NULL,                     /* gc_accpet_func_weak  */
+    .name                = "test",
+    .flags               = 0,
+    .pp_func             = NULL,
+    .obj_size            = sizeof(StubObj),
+    .gc_ini_func         = stub_obj_gc_init_func,
+    .gc_fin_func         = stub_obj_gc_fin_func,
+    .gc_accept_func      = stub_obj_gc_accept_func,
+    .gc_accept_func_weak = NULL,
+    .extra               = NULL,
   };
   ScmMem *mem;
   ScmObj obj = SCM_OBJ_INIT;
@@ -1395,12 +1421,15 @@ void
 test_scm_mem_gc_start__not_scavenged(void)
 {
   ScmTypeInfo type = {
-    NULL,                     /* pp_func              */
-    sizeof(StubObj),          /* obj_size             */
-    stub_obj_gc_init_func,    /* gc_ini_func          */
-    stub_obj_gc_fin_func,     /* gc_fin_func          */
-    stub_obj_gc_accept_func,  /* gc_accept_func       */
-    NULL,                     /* gc_accpet_func_weak  */
+    .name                = "test",
+    .flags               = 0,
+    .pp_func             = NULL,
+    .obj_size            = sizeof(StubObj),
+    .gc_ini_func         = stub_obj_gc_init_func,
+    .gc_fin_func         = stub_obj_gc_fin_func,
+    .gc_accept_func      = stub_obj_gc_accept_func,
+    .gc_accept_func_weak = NULL,
+    .extra               = NULL,
   };
   ScmMem *mem;
   ScmObj root_obj = SCM_OBJ_INIT, heap_obj1 = SCM_OBJ_INIT;
@@ -1449,12 +1478,15 @@ void
 test_scm_mem_gc_start__scavenged(void)
 {
   ScmTypeInfo type = {
-    NULL,                     /* pp_func              */
-    sizeof(StubObj),          /* obj_size             */
-    stub_obj_gc_init_func,    /* gc_ini_func          */
-    stub_obj_gc_fin_func,     /* gc_fin_func          */
-    stub_obj_gc_accept_func,  /* gc_accept_func       */
-    NULL,                     /* gc_accpet_func_weak  */
+    .name                = "test",
+    .flags               = 0,
+    .pp_func             = NULL,
+    .obj_size            = sizeof(StubObj),
+    .gc_ini_func         = stub_obj_gc_init_func,
+    .gc_fin_func         = stub_obj_gc_fin_func,
+    .gc_accept_func      = stub_obj_gc_accept_func,
+    .gc_accept_func_weak = NULL,
+    .extra               = NULL,
   };
   ScmMem *mem;
   ScmObj root_obj = SCM_OBJ_INIT, heap_obj1 = SCM_OBJ_INIT;
@@ -1505,12 +1537,15 @@ void
 test_scm_mem_gc_start__referred_by_two_objects(void)
 {
   ScmTypeInfo type = {
-    NULL,                     /* pp_func              */
-    sizeof(StubObj),          /* obj_size             */
-    stub_obj_gc_init_func,    /* gc_ini_func          */
-    stub_obj_gc_fin_func,     /* gc_fin_func          */
-    stub_obj_gc_accept_func,  /* gc_accept_func       */
-    NULL,                     /* gc_accpet_func_weak  */
+    .name                = "test",
+    .flags               = 0,
+    .pp_func             = NULL,
+    .obj_size            = sizeof(StubObj),
+    .gc_ini_func         = stub_obj_gc_init_func,
+    .gc_fin_func         = stub_obj_gc_fin_func,
+    .gc_accept_func      = stub_obj_gc_accept_func,
+    .gc_accept_func_weak = NULL,
+    .extra               = NULL,
   };
   ScmMem *mem;
   ScmObj root_obj1 = SCM_OBJ_INIT, root_obj2 = SCM_OBJ_INIT;
@@ -1561,12 +1596,15 @@ void
 test_scm_mem_gc_start__root_obj_referred_by_heap_obj(void)
 {
   ScmTypeInfo type = {
-    NULL,                     /* pp_func              */
-    sizeof(StubObj),          /* obj_size             */
-    stub_obj_gc_init_func,    /* gc_ini_func          */
-    stub_obj_gc_fin_func,     /* gc_fin_func          */
-    stub_obj_gc_accept_func,  /* gc_accept_func       */
-    NULL,                     /* gc_accpet_func_weak  */
+    .name                = "test",
+    .flags               = 0,
+    .pp_func             = NULL,
+    .obj_size            = sizeof(StubObj),
+    .gc_ini_func         = stub_obj_gc_init_func,
+    .gc_fin_func         = stub_obj_gc_fin_func,
+    .gc_accept_func      = stub_obj_gc_accept_func,
+    .gc_accept_func_weak = NULL,
+    .extra               = NULL,
   };
   ScmMem *mem;
   ScmObj root_obj = SCM_OBJ_INIT, heap_obj = SCM_OBJ_INIT;
@@ -1608,12 +1646,15 @@ void
 test_scm_mem_gc_start__weak_reference_refer_to_obj_not_scavenged(void)
 {
   ScmTypeInfo type = {
-    NULL,                         /* pp_func              */
-    sizeof(StubObj),              /* obj_size             */
-    stub_obj_gc_init_func,        /* gc_ini_func          */
-    stub_obj_gc_fin_func,         /* gc_fin_func          */
-    stub_obj_gc_accept_func,      /* gc_accept_func       */
-    stub_obj_gc_accept_func_weak  /* gc_accpet_func_weak  */
+    .name                = "test",
+    .flags               = 0,
+    .pp_func             = NULL,
+    .obj_size            = sizeof(StubObj),
+    .gc_ini_func         = stub_obj_gc_init_func,
+    .gc_fin_func         = stub_obj_gc_fin_func,
+    .gc_accept_func      = stub_obj_gc_accept_func,
+    .gc_accept_func_weak = stub_obj_gc_accept_func_weak,
+    .extra               = NULL,
   };
   ScmMem *mem;
   ScmObj root_obj1 = SCM_OBJ_INIT;
@@ -1676,12 +1717,15 @@ void
 test_scm_mem_gc_start__weak_reference_refer_to_obj_scavenged(void)
 {
   ScmTypeInfo type = {
-    NULL,                         /* pp_func              */
-    sizeof(StubObj),              /* obj_size             */
-    stub_obj_gc_init_func,        /* gc_ini_func          */
-    stub_obj_gc_fin_func,         /* gc_fin_func          */
-    stub_obj_gc_accept_func,      /* gc_accept_func       */
-    stub_obj_gc_accept_func_weak  /* gc_accpet_func_weak  */
+    .name                = "test",
+    .flags               = 0,
+    .pp_func             = NULL,
+    .obj_size            = sizeof(StubObj),
+    .gc_ini_func         = stub_obj_gc_init_func,
+    .gc_fin_func         = stub_obj_gc_fin_func,
+    .gc_accept_func      = stub_obj_gc_accept_func,
+    .gc_accept_func_weak = stub_obj_gc_accept_func_weak,
+    .extra               = NULL,
   };
   ScmMem *mem;
   ScmObj root_obj1 = SCM_OBJ_INIT, heap_obj1 = SCM_OBJ_INIT;

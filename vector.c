@@ -7,12 +7,15 @@
 #include "vector.h"
 
 ScmTypeInfo SCM_VECTOR_TYPE_INFO = {
-  NULL,                         /* pp_func              */
-  sizeof(ScmVector),            /* obj_size             */
-  scm_vector_gc_initialize,     /* gc_ini_func          */
-  scm_vector_gc_finalize,       /* gc_fin_func          */
-  scm_vector_gc_accept,         /* gc_accept_func       */
-  NULL,                         /* gc_accpet_func_weak  */
+  .name                = "vector",
+  .flags               = 0,
+  .pp_func             = NULL,
+  .obj_size            = sizeof(ScmVector),
+  .gc_ini_func         = scm_vector_gc_initialize,
+  .gc_fin_func         = scm_vector_gc_finalize,
+  .gc_accept_func      = scm_vector_gc_accept,
+  .gc_accept_func_weak = NULL,
+  .extra               = NULL,
 };
 
 int

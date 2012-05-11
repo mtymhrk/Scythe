@@ -16,12 +16,15 @@
 /****************************************************************************/
 
 ScmTypeInfo SCM_FORWARD_TYPE_INFO = {
+  .name                = "forward",
+  .flags               = 0,
   .pp_func             = NULL,
   .obj_size            = sizeof(ScmForward),
   .gc_ini_func         = NULL,
   .gc_fin_func         = NULL,
   .gc_accept_func      = NULL,
   .gc_accept_func_weak = NULL,
+  .extra               = NULL,
 };
 
 extern inline ScmObj
@@ -47,12 +50,15 @@ scm_forward_initialize(ScmObj obj, ScmObj fwd)
 enum { TO_HEAP, FROM_HEAP };
 
 static ScmTypeInfo SCM_MEM_TYPE_INFO = {
+  .name                = "mm",
+  .flags               = 0,
   .pp_func             = NULL,
   .obj_size            = 0,
   .gc_ini_func         = NULL,
   .gc_fin_func         = NULL,
   .gc_accept_func      = NULL,
   .gc_accept_func_weak = NULL,
+  .extra               = NULL,
 };
 
 

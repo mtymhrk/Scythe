@@ -13,12 +13,15 @@
 /****************************************************************************/
 
 ScmTypeInfo SCM_GLOC_TYPE_INFO = {
+  .name                = "gloc",
+  .flags               = 0,
   .pp_func             = scm_gloc_pretty_print,
   .obj_size            = sizeof(ScmGLoc),
   .gc_ini_func         = scm_gloc_gc_initialize,
   .gc_fin_func         = NULL,
   .gc_accept_func      = scm_gloc_gc_accept,
-  .gc_accept_func_weak = NULL
+  .gc_accept_func_weak = NULL,
+  .extra               = NULL,
 };
 
 int
