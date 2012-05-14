@@ -82,6 +82,9 @@ scm_num_make_int_from_ary(char sign, scm_bignum_d_t *ary, size_t size,
 
 ScmNumVFunc SCM_FIXNUM_VFUNC = {
   .coerce = scm_fixnum_coerce,
+  .plus   = scm_fixnum_plus,
+  .minus  = scm_fixnum_minus,
+  .mul    = scm_fixnum_mul,
 };
 
 ScmTypeInfo SCM_FIXNUM_TYPE_INFO = {
@@ -109,58 +112,96 @@ scm_fixnum_multi_overflow_p(scm_sword_t v1, scm_sword_t v2)
 }
 
 ScmObj
-scm_fixnum_plus(ScmObj fn1, ScmObj fn2)
+scm_fixnum_plus(ScmObj aug, ScmObj add)
 {
-  scm_sword_t v;
+  scm_assert_obj_type(aug, &SCM_FIXNUM_TYPE_INFO);
+  scm_assert(scm_capi_number_p(add));
 
-  scm_assert_obj_type(fn1, &SCM_FIXNUM_TYPE_INFO);
-  scm_assert_obj_type(fn2, &SCM_FIXNUM_TYPE_INFO);
+  if (scm_capi_fixnum_p(add)) {
+    scm_sword_t v;
+    v = scm_fixnum_value(aug) + scm_fixnum_value(add);
 
-  v = scm_fixnum_value(fn1) + scm_fixnum_value(fn2);
+    if (v < SCM_FIXNUM_MIN || SCM_FIXNUM_MAX < v)
+      return scm_bignum_new_from_sword(SCM_MEM_HEAP, v);
+    else
+      return scm_fixnum_new(v);
+  }
+  else {
+    SCM_STACK_FRAME_PUSH(&aug, &add);
 
-  if (v < SCM_FIXNUM_MIN || SCM_FIXNUM_MAX < v)
-    return scm_bignum_new_from_sword(SCM_MEM_HEAP, v);
-  else
-    return scm_fixnum_new(v);
+    aug = SCM_NUM_CALL_VFUNC(add, coerce, aug);
+    if (scm_obj_null_p(aug)) return SCM_OBJ_NULL;
+
+    return SCM_NUM_CALL_VFUNC(aug, plus, add);
+  }
 }
 
 ScmObj
-scm_fixnum_minus(ScmObj fn1, ScmObj fn2)
+scm_fixnum_minus(ScmObj min, ScmObj sub)
 {
-  scm_sword_t v;
+  scm_assert_obj_type(min, &SCM_FIXNUM_TYPE_INFO);
+  scm_assert(scm_capi_number_p(sub));
 
-  scm_assert_obj_type(fn1, &SCM_FIXNUM_TYPE_INFO);
-  scm_assert_obj_type(fn2, &SCM_FIXNUM_TYPE_INFO);
+  if (scm_capi_fixnum_p(sub)) {
+    scm_sword_t v;
 
-  v = scm_fixnum_value(fn1) - scm_fixnum_value(fn2);
+    v = scm_fixnum_value(min) - scm_fixnum_value(sub);
 
-  if (v < SCM_FIXNUM_MIN || SCM_FIXNUM_MAX < v)
-    return scm_bignum_new_from_sword(SCM_MEM_HEAP, v);
-  else
-    return scm_fixnum_new(v);
+    if (v < SCM_FIXNUM_MIN || SCM_FIXNUM_MAX < v)
+      return scm_bignum_new_from_sword(SCM_MEM_HEAP, v);
+    else
+      return scm_fixnum_new(v);
+  }
+  else {
+    SCM_STACK_FRAME_PUSH(&min, &sub);
+
+    min = SCM_NUM_CALL_VFUNC(sub, coerce, min);
+    if (scm_obj_null_p(min)) return SCM_OBJ_NULL;
+
+    return SCM_NUM_CALL_VFUNC(min, minus, sub);
+  }
 }
 
 ScmObj
-scm_fixnum_mul(ScmObj fn1, ScmObj fn2)
+scm_fixnum_mul(ScmObj muld, ScmObj mulr)
 {
-  scm_sword_t v, v1, v2;
+  scm_assert_obj_type(muld, &SCM_FIXNUM_TYPE_INFO);
+  scm_assert(scm_capi_number_p(mulr));
 
-  scm_assert_obj_type(fn1, &SCM_FIXNUM_TYPE_INFO);
-  scm_assert_obj_type(fn2, &SCM_FIXNUM_TYPE_INFO);
+  if (scm_capi_number_p(mulr)) {
+    scm_sword_t v, v1, v2;
 
-  v1 = scm_fixnum_value(fn1);
-  v2 = scm_fixnum_value(fn2);
+    v1 = scm_fixnum_value(muld);
+    v2 = scm_fixnum_value(mulr);
 
-  if (v1 == 0) return fn1;
+    if (v1 == 0) return muld;
 
-  v = v1 * v2;
+    v = v1 * v2;
 
-  if (scm_fixnum_multi_overflow_p(v1, v2)
-      || (v < SCM_FIXNUM_MIN || SCM_FIXNUM_MAX < v)
-      || v / v1 != v2)
-    return scm_bignum_mul(fn1, fn2);
+    if (scm_fixnum_multi_overflow_p(v1, v2)
+        || (v < SCM_FIXNUM_MIN || SCM_FIXNUM_MAX < v)
+        || v / v1 != v2) {
+      SCM_STACK_FRAME_PUSH(&muld, &mulr);
 
-  return scm_fixnum_new(v);
+      muld = scm_bignum_new_from_fixnum(SCM_MEM_HEAP, muld);
+      if (scm_obj_null_p(muld)) return SCM_OBJ_NULL;
+
+      mulr = scm_bignum_new_from_fixnum(SCM_MEM_HEAP, mulr);
+      if (scm_obj_null_p(muld)) return SCM_OBJ_NULL;
+
+      return scm_bignum_mul(muld, mulr);
+    }
+
+    return scm_fixnum_new(v);
+  }
+  else {
+    SCM_STACK_FRAME_PUSH(&muld, &mulr);
+
+    muld = SCM_NUM_CALL_VFUNC(mulr, coerce, muld);
+    if (scm_obj_null_p(muld)) return SCM_OBJ_NULL;
+
+    return SCM_NUM_CALL_VFUNC(muld, mul, mulr);
+  }
 }
 
 ScmObj
@@ -198,6 +239,9 @@ scm_fixnum_pretty_print(ScmObj obj, ScmObj port, bool write_p)
 
 ScmNumVFunc SCM_BIGNUM_VFUNC = {
   .coerce = scm_bignum_coerce,
+  .plus = NULL,
+  .minus = NULL,
+  .mul = NULL,
 };
 
 ScmTypeInfo SCM_BIGNUM_TYPE_INFO = {

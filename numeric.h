@@ -17,6 +17,9 @@ typedef struct ScmNumVFuncRec ScmNumVFunc;
 
 struct ScmNumVFuncRec {
   ScmObj (*coerce)(ScmObj obj, ScmObj num);
+  ScmObj (*plus)(ScmObj aug, ScmObj add);
+  ScmObj (*minus)(ScmObj min, ScmObj sub);
+  ScmObj (*mul)(ScmObj min, ScmObj sub);
 };
 
 
@@ -62,9 +65,9 @@ scm_fixnum_zero_p(ScmObj num)
   return (num == SCM_FIXNUM_ZERO);
 }
 
-ScmObj scm_fixnum_plus(ScmObj fn1, ScmObj fn2);
-ScmObj scm_fixnum_minus(ScmObj fn1, ScmObj fn2);
-ScmObj scm_fixnum_mul(ScmObj fn1, ScmObj fn2);
+ScmObj scm_fixnum_plus(ScmObj aug, ScmObj add);
+ScmObj scm_fixnum_minus(ScmObj min, ScmObj sub);
+ScmObj scm_fixnum_mul(ScmObj muld, ScmObj mulr);
 
 ScmObj scm_fixnum_coerce(ScmObj fn, ScmObj num);
 
