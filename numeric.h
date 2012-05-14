@@ -19,7 +19,7 @@ struct ScmNumVFuncRec {
   ScmObj (*coerce)(ScmObj obj, ScmObj num);
   ScmObj (*plus)(ScmObj aug, ScmObj add);
   ScmObj (*minus)(ScmObj min, ScmObj sub);
-  ScmObj (*mul)(ScmObj min, ScmObj sub);
+  ScmObj (*mul)(ScmObj mud, ScmObj mur);
 };
 
 
@@ -67,7 +67,7 @@ scm_fixnum_zero_p(ScmObj num)
 
 ScmObj scm_fixnum_plus(ScmObj aug, ScmObj add);
 ScmObj scm_fixnum_minus(ScmObj min, ScmObj sub);
-ScmObj scm_fixnum_mul(ScmObj muld, ScmObj mulr);
+ScmObj scm_fixnum_mul(ScmObj mud, ScmObj mur);
 
 ScmObj scm_fixnum_coerce(ScmObj fn, ScmObj num);
 
@@ -130,9 +130,9 @@ ScmObj scm_bignum_new_from_ary(SCM_MEM_TYPE_T mtype, char sign,
 ScmObj scm_bignum_new_from_sword(SCM_MEM_TYPE_T mtype, scm_sword_t val);
 ScmObj scm_bignum_new_from_fixnum(SCM_MEM_TYPE_T mtype, ScmObj fn);
 ScmObj scm_bignum_copy(ScmObj bignum);
-ScmObj scm_bignum_plus(ScmObj bn1, ScmObj bn2);
-ScmObj scm_bignum_minus(ScmObj bn1, ScmObj bn2);
-ScmObj scm_bignum_mul(ScmObj bn1, ScmObj bn2);
+ScmObj scm_bignum_plus(ScmObj aug, ScmObj add);
+ScmObj scm_bignum_minus(ScmObj min, ScmObj sub);
+ScmObj scm_bignum_mul(ScmObj mud, ScmObj mur);
 int scm_bignum_div(ScmObj bn1, ScmObj bn2,
                    scm_csetter_t *quo, scm_csetter_t *rem);
 

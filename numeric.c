@@ -163,44 +163,44 @@ scm_fixnum_minus(ScmObj min, ScmObj sub)
 }
 
 ScmObj
-scm_fixnum_mul(ScmObj muld, ScmObj mulr)
+scm_fixnum_mul(ScmObj mud, ScmObj mur)
 {
-  scm_assert_obj_type(muld, &SCM_FIXNUM_TYPE_INFO);
-  scm_assert(scm_capi_number_p(mulr));
+  scm_assert_obj_type(mud, &SCM_FIXNUM_TYPE_INFO);
+  scm_assert(scm_capi_number_p(mur));
 
-  if (scm_capi_number_p(mulr)) {
+  if (scm_capi_number_p(mur)) {
     scm_sword_t v, v1, v2;
 
-    v1 = scm_fixnum_value(muld);
-    v2 = scm_fixnum_value(mulr);
+    v1 = scm_fixnum_value(mud);
+    v2 = scm_fixnum_value(mur);
 
-    if (v1 == 0) return muld;
+    if (v1 == 0) return mud;
 
     v = v1 * v2;
 
     if (scm_fixnum_multi_overflow_p(v1, v2)
         || (v < SCM_FIXNUM_MIN || SCM_FIXNUM_MAX < v)
         || v / v1 != v2) {
-      SCM_STACK_FRAME_PUSH(&muld, &mulr);
+      SCM_STACK_FRAME_PUSH(&mud, &mur);
 
-      muld = scm_bignum_new_from_fixnum(SCM_MEM_HEAP, muld);
-      if (scm_obj_null_p(muld)) return SCM_OBJ_NULL;
+      mud = scm_bignum_new_from_fixnum(SCM_MEM_HEAP, mud);
+      if (scm_obj_null_p(mud)) return SCM_OBJ_NULL;
 
-      mulr = scm_bignum_new_from_fixnum(SCM_MEM_HEAP, mulr);
-      if (scm_obj_null_p(muld)) return SCM_OBJ_NULL;
+      mur = scm_bignum_new_from_fixnum(SCM_MEM_HEAP, mur);
+      if (scm_obj_null_p(mud)) return SCM_OBJ_NULL;
 
-      return scm_bignum_mul(muld, mulr);
+      return scm_bignum_mul(mud, mur);
     }
 
     return scm_fixnum_new(v);
   }
   else {
-    SCM_STACK_FRAME_PUSH(&muld, &mulr);
+    SCM_STACK_FRAME_PUSH(&mud, &mur);
 
-    muld = SCM_NUM_CALL_VFUNC(mulr, coerce, muld);
-    if (scm_obj_null_p(muld)) return SCM_OBJ_NULL;
+    mud = SCM_NUM_CALL_VFUNC(mur, coerce, mud);
+    if (scm_obj_null_p(mud)) return SCM_OBJ_NULL;
 
-    return SCM_NUM_CALL_VFUNC(muld, mul, mulr);
+    return SCM_NUM_CALL_VFUNC(mud, mul, mur);
   }
 }
 
@@ -239,9 +239,9 @@ scm_fixnum_pretty_print(ScmObj obj, ScmObj port, bool write_p)
 
 ScmNumVFunc SCM_BIGNUM_VFUNC = {
   .coerce = scm_bignum_coerce,
-  .plus = NULL,
-  .minus = NULL,
-  .mul = NULL,
+  .plus   = scm_bignum_plus,
+  .minus  = scm_bignum_minus,
+  .mul    = scm_bignum_mul,
 };
 
 ScmTypeInfo SCM_BIGNUM_TYPE_INFO = {
@@ -924,28 +924,29 @@ scm_bignum_finalize(ScmObj bignum)
 }
 
 ScmObj
-scm_bignum_plus(ScmObj bn1, ScmObj bn2)
+scm_bignum_plus(ScmObj aug, ScmObj add)
 {
   size_t place;
 
-  SCM_STACK_FRAME_PUSH(&bn1, &bn2);
+  SCM_STACK_FRAME_PUSH(&aug, &add);
 
-  if (scm_capi_fixnum_p(bn1)) {
-    bn1 = scm_bignum_new_from_fixnum(SCM_MEM_HEAP, bn1);
-    if (scm_obj_null_p(bn1)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+  scm_assert_obj_type(aug, &SCM_BIGNUM_TYPE_INFO);
+  scm_assert(scm_capi_number_p(add));
+
+  if (scm_capi_fixnum_p(add)) {
+    add = scm_bignum_new_from_fixnum(SCM_MEM_HEAP, add);
+    if (scm_obj_null_p(add)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+  }
+  else if (!scm_capi_bignum_p(add)) {
+    aug = SCM_NUM_CALL_VFUNC(add, coerce, aug);
+    if (scm_obj_null_p(aug)) return SCM_OBJ_NULL;
+
+    return SCM_NUM_CALL_VFUNC(aug, plus, add);
   }
 
-  if (scm_capi_fixnum_p(bn2)) {
-    bn2 = scm_bignum_new_from_fixnum(SCM_MEM_HEAP, bn2);
-    if (scm_obj_null_p(bn1)) return SCM_OBJ_NULL; /* [ERR]: [through] */
-  }
-
-  scm_assert_obj_type(bn1, &SCM_BIGNUM_TYPE_INFO);
-  scm_assert_obj_type(bn2, &SCM_BIGNUM_TYPE_INFO);
-
-  place = SCM_BIGNUM(bn1)->nr_digits;
-  if (place < SCM_BIGNUM(bn2)->nr_digits)
-    place = SCM_BIGNUM(bn2)->nr_digits;
+  place = SCM_BIGNUM(aug)->nr_digits;
+  if (place < SCM_BIGNUM(add)->nr_digits)
+    place = SCM_BIGNUM(add)->nr_digits;
   place++;
 
   if (place == 0) {
@@ -956,40 +957,41 @@ scm_bignum_plus(ScmObj bn1, ScmObj bn2)
   scm_bignum_d_t ary[place];
   char sign;
 
-  scm_bignum_adder(EARY_HEAD(&SCM_BIGNUM(bn1)->digits),
-                   SCM_BIGNUM(bn1)->nr_digits,
-                   (SCM_BIGNUM(bn1)->sign == '-') ? true : false,
-                   EARY_HEAD(&SCM_BIGNUM(bn2)->digits),
-                   SCM_BIGNUM(bn2)->nr_digits,
-                   (SCM_BIGNUM(bn2)->sign == '-') ? true : false,
+  scm_bignum_adder(EARY_HEAD(&SCM_BIGNUM(aug)->digits),
+                   SCM_BIGNUM(aug)->nr_digits,
+                   (SCM_BIGNUM(aug)->sign == '-') ? true : false,
+                   EARY_HEAD(&SCM_BIGNUM(add)->digits),
+                   SCM_BIGNUM(add)->nr_digits,
+                   (SCM_BIGNUM(add)->sign == '-') ? true : false,
                    ary, &place, &sign);
 
   return scm_num_make_int_from_ary(sign, ary, place, SCM_BIGNUM_BASE);
 }
 
 ScmObj
-scm_bignum_minus(ScmObj bn1, ScmObj bn2)
+scm_bignum_minus(ScmObj min, ScmObj sub)
 {
   size_t place;
 
-  SCM_STACK_FRAME_PUSH(&bn1, &bn2);
+  SCM_STACK_FRAME_PUSH(&min, &sub);
 
-  if (scm_capi_fixnum_p(bn1)) {
-    bn1 = scm_bignum_new_from_fixnum(SCM_MEM_HEAP, bn1);
-    if (scm_obj_null_p(bn1)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+  scm_assert_obj_type(min, &SCM_BIGNUM_TYPE_INFO);
+  scm_assert(scm_capi_number_p(sub));
+
+  if (scm_capi_fixnum_p(sub)) {
+    sub = scm_bignum_new_from_fixnum(SCM_MEM_HEAP, sub);
+    if (scm_obj_null_p(sub)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+  }
+  else if (!scm_capi_bignum_p(sub)) {
+    min = SCM_NUM_CALL_VFUNC(sub, coerce, min);
+    if (scm_obj_null_p(min)) return SCM_OBJ_NULL;
+
+    return SCM_NUM_CALL_VFUNC(min, minus, sub);
   }
 
-  if (scm_capi_fixnum_p(bn2)) {
-    bn2 = scm_bignum_new_from_fixnum(SCM_MEM_HEAP, bn2);
-    if (scm_obj_null_p(bn1)) return SCM_OBJ_NULL; /* [ERR]: [through] */
-  }
-
-  scm_assert_obj_type(bn1, &SCM_BIGNUM_TYPE_INFO);
-  scm_assert_obj_type(bn2, &SCM_BIGNUM_TYPE_INFO);
-
-  place = SCM_BIGNUM(bn1)->nr_digits;
-  if (place < SCM_BIGNUM(bn2)->nr_digits)
-    place = SCM_BIGNUM(bn2)->nr_digits;
+  place = SCM_BIGNUM(min)->nr_digits;
+  if (place < SCM_BIGNUM(sub)->nr_digits)
+    place = SCM_BIGNUM(sub)->nr_digits;
   place++;
 
   if (place == 0) {
@@ -1000,42 +1002,42 @@ scm_bignum_minus(ScmObj bn1, ScmObj bn2)
   scm_bignum_d_t ary[place];
   char sign;
 
-  scm_bignum_adder(EARY_HEAD(&SCM_BIGNUM(bn1)->digits),
-                   SCM_BIGNUM(bn1)->nr_digits,
-                   (SCM_BIGNUM(bn1)->sign == '-') ? true : false,
-                   EARY_HEAD(&SCM_BIGNUM(bn2)->digits),
-                   SCM_BIGNUM(bn2)->nr_digits,
-                   (SCM_BIGNUM(bn2)->sign == '+') ? true : false,
+  scm_bignum_adder(EARY_HEAD(&SCM_BIGNUM(min)->digits),
+                   SCM_BIGNUM(min)->nr_digits,
+                   (SCM_BIGNUM(min)->sign == '-') ? true : false,
+                   EARY_HEAD(&SCM_BIGNUM(sub)->digits),
+                   SCM_BIGNUM(sub)->nr_digits,
+                   (SCM_BIGNUM(sub)->sign == '+') ? true : false,
                    ary, &place, &sign);
 
   return scm_num_make_int_from_ary(sign, ary, place, SCM_BIGNUM_BASE);
 }
 
 ScmObj
-scm_bignum_mul(ScmObj bn1, ScmObj bn2)
+scm_bignum_mul(ScmObj mud, ScmObj mur)
 {
   char sign;
   size_t place;
 
-  SCM_STACK_FRAME_PUSH(&bn1, &bn2);
+  SCM_STACK_FRAME_PUSH(&mud, &mur);
 
-  if (scm_capi_fixnum_p(bn1)) {
-    bn1 = scm_bignum_new_from_fixnum(SCM_MEM_HEAP, bn1);
-    if (scm_obj_null_p(bn1)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+  scm_assert_obj_type(mud, &SCM_BIGNUM_TYPE_INFO);
+  scm_assert(scm_capi_number_p(mur));
+
+  if (scm_capi_fixnum_p(mur)) {
+    mur = scm_bignum_new_from_fixnum(SCM_MEM_HEAP, mur);
+    if (scm_obj_null_p(mur)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+  }
+  else if (!scm_capi_bignum_p(mur)) {
+    mud = SCM_NUM_CALL_VFUNC(mur, coerce, mud);
+    if (scm_obj_null_p(mud)) return SCM_OBJ_NULL;
+
+    return SCM_NUM_CALL_VFUNC(mud, mul, mur);
   }
 
-  if (scm_capi_fixnum_p(bn2)) {
-    bn2 = scm_bignum_new_from_fixnum(SCM_MEM_HEAP, bn2);
-    if (scm_obj_null_p(bn1)) return SCM_OBJ_NULL; /* [ERR]: [through] */
-  }
-
-  scm_assert_obj_type(bn1, &SCM_BIGNUM_TYPE_INFO);
-  scm_assert_obj_type(bn2, &SCM_BIGNUM_TYPE_INFO);
-
-
-  place = SCM_BIGNUM(bn1)->nr_digits + SCM_BIGNUM(bn2)->nr_digits;
-  if (place < SCM_BIGNUM(bn1)->nr_digits
-      || place < SCM_BIGNUM(bn2)->nr_digits) {
+  place = SCM_BIGNUM(mud)->nr_digits + SCM_BIGNUM(mur)->nr_digits;
+  if (place < SCM_BIGNUM(mud)->nr_digits
+      || place < SCM_BIGNUM(mur)->nr_digits) {
     scm_capi_error("number of digits of Integer overflow", 0);
     return SCM_OBJ_NULL;
   }
@@ -1046,12 +1048,12 @@ scm_bignum_mul(ScmObj bn1, ScmObj bn2)
 
   memset(ary, 0, sizeof(ary));
   len = 1;
-  for (size_t i = 0; i < SCM_BIGNUM(bn2)->nr_digits; i++) {
-    EARY_GET(&SCM_BIGNUM(bn2)->digits, scm_bignum_d_t, i, v2);
+  for (size_t i = 0; i < SCM_BIGNUM(mur)->nr_digits; i++) {
+    EARY_GET(&SCM_BIGNUM(mur)->digits, scm_bignum_d_t, i, v2);
     c = 0;
-    for (size_t j = 0; j < SCM_BIGNUM(bn1)->nr_digits || c > 0; j++) {
-      if (j < SCM_BIGNUM(bn1)->nr_digits)
-        EARY_GET(&SCM_BIGNUM(bn1)->digits, scm_bignum_d_t, j, v1);
+    for (size_t j = 0; j < SCM_BIGNUM(mud)->nr_digits || c > 0; j++) {
+      if (j < SCM_BIGNUM(mud)->nr_digits)
+        EARY_GET(&SCM_BIGNUM(mud)->digits, scm_bignum_d_t, j, v1);
       else
         v1 = 0;
 
@@ -1066,7 +1068,7 @@ scm_bignum_mul(ScmObj bn1, ScmObj bn2)
     }
   }
 
-  if (SCM_BIGNUM(bn1)->sign == SCM_BIGNUM(bn2)->sign)
+  if (SCM_BIGNUM(mud)->sign == SCM_BIGNUM(mud)->sign)
     sign = '+';
   else
     sign = '-';
