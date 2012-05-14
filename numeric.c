@@ -797,6 +797,158 @@ scm_bignum_2_fixnum_if_possible(ScmObj bignum)
     return scm_fixnum_new(-num);
 }
 
+scm_local_func int
+scm_bignum_quo_rem(ScmObj bn1, ScmObj bn2,
+                   scm_csetter_t *quo, scm_csetter_t *rem)
+{
+  ScmObj qu = SCM_OBJ_INIT, re = SCM_OBJ_INIT;
+  ScmObj a = SCM_OBJ_INIT, m = SCM_OBJ_INIT, c = SCM_OBJ_INIT;
+  ScmObj mq = SCM_OBJ_INIT;
+  int cmp;
+
+  SCM_STACK_FRAME_PUSH(&bn1, &bn2, &qu, &re, &a, &m, &c, &mq);
+
+  if (scm_capi_fixnum_p(bn1)) {
+    if (scm_fixnum_zero_p(bn1)) {
+      qu = bn1; re = bn1;
+      goto ret;
+    }
+
+    bn1 = scm_bignum_new_from_fixnum(SCM_MEM_HEAP, bn1);
+    if (scm_obj_null_p(bn1)) return -1; /* [ERR]: [through] */
+  }
+
+  if (scm_capi_fixnum_p(bn2)) {
+    if (scm_fixnum_zero_p(bn2)) {
+      scm_capi_error("division by zero", 0);
+      return -1;
+    }
+
+    bn2 = scm_bignum_new_from_fixnum(SCM_MEM_HEAP, bn2);
+    if (scm_obj_null_p(bn1)) return -1; /* [ERR]: [through] */
+  }
+
+  scm_assert_obj_type(bn1, &SCM_BIGNUM_TYPE_INFO);
+  scm_assert_obj_type(bn2, &SCM_BIGNUM_TYPE_INFO);
+
+  cmp = scm_bignum_abs_cmp(bn1, bn2);
+  if (cmp == -1) {
+    if (quo != NULL) {
+      qu = scm_capi_make_number_from_sword(0);
+      if (scm_obj_null_p(qu)) return -1;
+    }
+    re = bn1;
+  }
+  else if (cmp == 0) {
+    if (quo != NULL) {
+      if (SCM_BIGNUM(bn1)->sign == SCM_BIGNUM(bn2)->sign)
+        qu = scm_capi_make_number_from_sword(1);
+      else
+        qu = scm_capi_make_number_from_sword(-1);
+      if (scm_obj_null_p(qu)) return -1;
+    }
+    if (rem != NULL) {
+      re = scm_capi_make_number_from_sword(0);
+      if (scm_obj_null_p(re)) return -1;
+    }
+  }
+  else {
+    scm_bignum_c_t q, d;
+    size_t b, msd;
+    int rslt;
+
+    d = SCM_BIGNUM_BASE / (scm_bignum_msd(bn2) + 1);
+
+    a = scm_bignum_copy(bn1);
+    if (scm_obj_null_p(a)) return -1;
+    SCM_BIGNUM(a)->sign = '+';
+
+    rslt = scm_bignum_nmul_1d(a, (scm_bignum_sc_t)d);
+    if (rslt < 0) return -1;
+
+    m = scm_bignum_copy(bn2);
+    if (scm_obj_null_p(m)) return -1;
+    SCM_BIGNUM(m)->sign = '+';
+
+    rslt = scm_bignum_nmul_1d(m, (scm_bignum_sc_t)d);
+    if (rslt < 0) return -1;
+
+    c = scm_bignum_new_from_sword(SCM_MEM_HEAP, 0);
+    if (scm_obj_null_p(c)) return -1;
+
+    b = SCM_BIGNUM(a)->nr_digits - SCM_BIGNUM(m)->nr_digits;
+    rslt = scm_bignum_nlshift(m, b);
+    if (rslt < 0) return -1;
+
+    mq = scm_bignum_copy(m);
+    if (scm_obj_null_p(mq)) return -1;
+
+    msd = SCM_BIGNUM(m)->nr_digits - 1;
+
+    if (scm_bignum_abs_cmp(a, m) >= 0) {
+      rslt = scm_bignum_ndec(a, m);
+      if (rslt < 0) return -1;
+
+      rslt = scm_bignum_nadd_1d(c, 1);
+      if (rslt < 0) return -1;
+    }
+
+    for (size_t i = 0; i < b; i++) {
+      msd--;
+
+      rslt = scm_bignum_nrshift(m, 1);
+      if (rslt < 0) return -1;
+
+      rslt = scm_bignum_nlshift(c, 1);
+      if (rslt < 0) return -1;
+
+      q = scm_bignum_extract_2d(a, msd) / scm_bignum_extract_1d(m, msd);
+      if (q > 0) {
+        if (q >= SCM_BIGNUM_BASE) q = SCM_BIGNUM_BASE - 1;
+
+        rslt = scm_bignum_replace_mul_1d(mq, m, (scm_bignum_sc_t)q);
+        if (rslt < 0) return -1;
+
+        rslt = scm_bignum_ndec(a, mq);
+        if (rslt < 0) return -1;
+
+        while (SCM_BIGNUM(a)->sign == '-') {
+          rslt = scm_bignum_ninc(a, m);
+          if (rslt < 0) return -1;
+          q--;
+        }
+
+        rslt = scm_bignum_nadd_1d(c, (scm_bignum_sc_t)q);
+        if (rslt < 0) return -1;
+      }
+    }
+
+    if (quo != NULL) {
+      if (SCM_BIGNUM(bn2)->sign == '+')
+        SCM_BIGNUM(c)->sign = SCM_BIGNUM(bn1)->sign;
+      else
+        SCM_BIGNUM(c)->sign = SCM_BIGNUM(bn1)->sign == '+' ? '-' : '+';
+
+      qu = scm_bignum_2_fixnum_if_possible(c);
+    }
+
+    if (rem != NULL) {
+      rslt = scm_bignum_ndiv_1d(a, (scm_bignum_sc_t)d, NULL);
+      if (rslt < 0) return -1;
+      SCM_BIGNUM(a)->sign = SCM_BIGNUM(bn1)->sign;
+
+      re = scm_bignum_2_fixnum_if_possible(a);
+    }
+  }
+
+ ret:
+
+  if (quo != NULL) scm_csetter_setq(quo, qu);
+  if (rem != NULL) scm_csetter_setq(rem, re);
+
+  return 0;
+}
+
 int
 scm_bignum_initialize_ary(ScmObj bignum,
                           char sign, scm_bignum_d_t *digits, size_t len,
@@ -1074,157 +1226,6 @@ scm_bignum_mul(ScmObj mud, ScmObj mur)
     sign = '-';
 
   return scm_num_make_int_from_ary(sign, ary, len, SCM_BIGNUM_BASE);
-}
-
-int
-scm_bignum_div(ScmObj bn1, ScmObj bn2, scm_csetter_t *quo, scm_csetter_t *rem)
-{
-  ScmObj qu = SCM_OBJ_INIT, re = SCM_OBJ_INIT;
-  ScmObj a = SCM_OBJ_INIT, m = SCM_OBJ_INIT, c = SCM_OBJ_INIT;
-  ScmObj mq = SCM_OBJ_INIT;
-  int cmp;
-
-  SCM_STACK_FRAME_PUSH(&bn1, &bn2, &qu, &re, &a, &m, &c, &mq);
-
-  if (scm_capi_fixnum_p(bn1)) {
-    if (scm_fixnum_zero_p(bn1)) {
-      qu = bn1; re = bn1;
-      goto ret;
-    }
-
-    bn1 = scm_bignum_new_from_fixnum(SCM_MEM_HEAP, bn1);
-    if (scm_obj_null_p(bn1)) return -1; /* [ERR]: [through] */
-  }
-
-  if (scm_capi_fixnum_p(bn2)) {
-    if (scm_fixnum_zero_p(bn2)) {
-      scm_capi_error("division by zero", 0);
-      return -1;
-    }
-
-    bn2 = scm_bignum_new_from_fixnum(SCM_MEM_HEAP, bn2);
-    if (scm_obj_null_p(bn1)) return -1; /* [ERR]: [through] */
-  }
-
-  scm_assert_obj_type(bn1, &SCM_BIGNUM_TYPE_INFO);
-  scm_assert_obj_type(bn2, &SCM_BIGNUM_TYPE_INFO);
-
-  cmp = scm_bignum_abs_cmp(bn1, bn2);
-  if (cmp == -1) {
-    if (quo != NULL) {
-      qu = scm_capi_make_number_from_sword(0);
-      if (scm_obj_null_p(qu)) return -1;
-    }
-    re = bn1;
-  }
-  else if (cmp == 0) {
-    if (quo != NULL) {
-      if (SCM_BIGNUM(bn1)->sign == SCM_BIGNUM(bn2)->sign)
-        qu = scm_capi_make_number_from_sword(1);
-      else
-        qu = scm_capi_make_number_from_sword(-1);
-      if (scm_obj_null_p(qu)) return -1;
-    }
-    if (rem != NULL) {
-      re = scm_capi_make_number_from_sword(0);
-      if (scm_obj_null_p(re)) return -1;
-    }
-  }
-  else {
-    scm_bignum_c_t q, d;
-    size_t b, msd;
-    int rslt;
-
-    d = SCM_BIGNUM_BASE / (scm_bignum_msd(bn2) + 1);
-
-    a = scm_bignum_copy(bn1);
-    if (scm_obj_null_p(a)) return -1;
-    SCM_BIGNUM(a)->sign = '+';
-
-    rslt = scm_bignum_nmul_1d(a, (scm_bignum_sc_t)d);
-    if (rslt < 0) return -1;
-
-    m = scm_bignum_copy(bn2);
-    if (scm_obj_null_p(m)) return -1;
-    SCM_BIGNUM(m)->sign = '+';
-
-    rslt = scm_bignum_nmul_1d(m, (scm_bignum_sc_t)d);
-    if (rslt < 0) return -1;
-
-    c = scm_bignum_new_from_sword(SCM_MEM_HEAP, 0);
-    if (scm_obj_null_p(c)) return -1;
-
-    b = SCM_BIGNUM(a)->nr_digits - SCM_BIGNUM(m)->nr_digits;
-    rslt = scm_bignum_nlshift(m, b);
-    if (rslt < 0) return -1;
-
-    mq = scm_bignum_copy(m);
-    if (scm_obj_null_p(mq)) return -1;
-
-    msd = SCM_BIGNUM(m)->nr_digits - 1;
-
-    if (scm_bignum_abs_cmp(a, m) >= 0) {
-      rslt = scm_bignum_ndec(a, m);
-      if (rslt < 0) return -1;
-
-      rslt = scm_bignum_nadd_1d(c, 1);
-      if (rslt < 0) return -1;
-    }
-
-    for (size_t i = 0; i < b; i++) {
-      msd--;
-
-      rslt = scm_bignum_nrshift(m, 1);
-      if (rslt < 0) return -1;
-
-      rslt = scm_bignum_nlshift(c, 1);
-      if (rslt < 0) return -1;
-
-      q = scm_bignum_extract_2d(a, msd) / scm_bignum_extract_1d(m, msd);
-      if (q > 0) {
-        if (q >= SCM_BIGNUM_BASE) q = SCM_BIGNUM_BASE - 1;
-
-        rslt = scm_bignum_replace_mul_1d(mq, m, (scm_bignum_sc_t)q);
-        if (rslt < 0) return -1;
-
-        rslt = scm_bignum_ndec(a, mq);
-        if (rslt < 0) return -1;
-
-        while (SCM_BIGNUM(a)->sign == '-') {
-          rslt = scm_bignum_ninc(a, m);
-          if (rslt < 0) return -1;
-          q--;
-        }
-
-        rslt = scm_bignum_nadd_1d(c, (scm_bignum_sc_t)q);
-        if (rslt < 0) return -1;
-      }
-    }
-
-    if (quo != NULL) {
-      if (SCM_BIGNUM(bn2)->sign == '+')
-        SCM_BIGNUM(c)->sign = SCM_BIGNUM(bn1)->sign;
-      else
-        SCM_BIGNUM(c)->sign = SCM_BIGNUM(bn1)->sign == '+' ? '-' : '+';
-
-      qu = scm_bignum_2_fixnum_if_possible(c);
-    }
-
-    if (rem != NULL) {
-      rslt = scm_bignum_ndiv_1d(a, (scm_bignum_sc_t)d, NULL);
-      if (rslt < 0) return -1;
-      SCM_BIGNUM(a)->sign = SCM_BIGNUM(bn1)->sign;
-
-      re = scm_bignum_2_fixnum_if_possible(a);
-    }
-  }
-
- ret:
-
-  if (quo != NULL) scm_csetter_setq(quo, qu);
-  if (rem != NULL) scm_csetter_setq(rem, re);
-
-  return 0;
 }
 
 ScmObj

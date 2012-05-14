@@ -122,6 +122,13 @@ struct ScmBignumRec {
 
 extern ScmTypeInfo SCM_BIGNUM_TYPE_INFO;
 
+#ifdef SCM_UNIT_TEST
+
+int scm_bignum_quo_rem(ScmObj bn1, ScmObj bn2,
+                       scm_csetter_t *quo, scm_csetter_t *rem);
+
+#endif
+
 void scm_bignum_finalize_ary(ScmObj bignum);
 int scm_bignum_initialize_sword(ScmObj bignum, scm_sword_t val);
 ScmObj scm_bignum_new_from_ary(SCM_MEM_TYPE_T mtype, char sign,
@@ -133,8 +140,6 @@ ScmObj scm_bignum_copy(ScmObj bignum);
 ScmObj scm_bignum_plus(ScmObj aug, ScmObj add);
 ScmObj scm_bignum_minus(ScmObj min, ScmObj sub);
 ScmObj scm_bignum_mul(ScmObj mud, ScmObj mur);
-int scm_bignum_div(ScmObj bn1, ScmObj bn2,
-                   scm_csetter_t *quo, scm_csetter_t *rem);
 
 ScmObj scm_bignum_coerce(ScmObj bn, ScmObj num);
 

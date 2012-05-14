@@ -340,7 +340,7 @@ test_scm_bignum_div_1(void)
                                           sizeof("1180591620717411303423") - 1);
   cut_assert_true(scm_obj_not_null_p(bn2));
 
-  rslt = scm_bignum_div(bn1, bn2, SCM_CSETTER_L(quo), SCM_CSETTER_L(rem));
+  rslt = scm_bignum_quo_rem(bn1, bn2, SCM_CSETTER_L(quo), SCM_CSETTER_L(rem));
   cut_assert_equal_int(rslt, 0);
 
   scm_capi_write_cstr("bn1 = ", SCM_ENC_ASCII, SCM_OBJ_NULL);
