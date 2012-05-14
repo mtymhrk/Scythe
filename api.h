@@ -146,11 +146,12 @@ ScmObj scm_capi_list_ref(ScmObj lst, size_t n);
 
 
 /*******************************************************************/
-/*  number                                                         */
+/*  Number                                                         */
 /*******************************************************************/
 
 ScmObj scm_capi_make_number_from_literal(const char *literal, size_t size);
 ScmObj scm_capi_make_number_from_sword(scm_sword_t num);
+bool scm_capi_number_p(ScmObj obj);
 bool scm_capi_fixnum_p(ScmObj obj);
 int scm_capi_fixnum_to_sword(ScmObj fn, scm_sword_t *w);
 bool scm_capi_bignum_p(ScmObj obj);

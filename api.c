@@ -461,7 +461,7 @@ scm_capi_list_ref(ScmObj lst, size_t n)
 
 
 /*******************************************************************/
-/*  numeric                                                        */
+/*  Numeric                                                        */
 /*******************************************************************/
 
 ScmObj
@@ -486,6 +486,14 @@ scm_capi_make_number_from_sword(scm_sword_t num)
     return scm_bignum_new_from_sword(SCM_MEM_HEAP, num);
   else
     return scm_fixnum_new(num);
+}
+
+extern inline bool
+scm_capi_number_p(ScmObj obj)
+{
+  if (scm_capi_null_value_p(obj)) return false;
+
+  return scm_obj_type_flag_set_p(obj, SCM_TYPE_FLG_NUM) ? true : false;
 }
 
 extern inline bool
