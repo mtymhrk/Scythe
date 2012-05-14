@@ -81,10 +81,11 @@ scm_num_make_int_from_ary(char sign, scm_bignum_d_t *ary, size_t size,
 /***************************************************************************/
 
 ScmNumVFunc SCM_FIXNUM_VFUNC = {
-  .coerce = scm_fixnum_coerce,
-  .plus   = scm_fixnum_plus,
-  .minus  = scm_fixnum_minus,
-  .mul    = scm_fixnum_mul,
+  .coerce       = scm_fixnum_coerce,
+  .plus         = scm_fixnum_plus,
+  .minus        = scm_fixnum_minus,
+  .mul          = scm_fixnum_mul,
+  .truncate_div = NULL,
 };
 
 ScmTypeInfo SCM_FIXNUM_TYPE_INFO = {
@@ -238,10 +239,11 @@ scm_fixnum_pretty_print(ScmObj obj, ScmObj port, bool write_p)
 /***************************************************************************/
 
 ScmNumVFunc SCM_BIGNUM_VFUNC = {
-  .coerce = scm_bignum_coerce,
-  .plus   = scm_bignum_plus,
-  .minus  = scm_bignum_minus,
-  .mul    = scm_bignum_mul,
+  .coerce       = scm_bignum_coerce,
+  .plus         = scm_bignum_plus,
+  .minus        = scm_bignum_minus,
+  .mul          = scm_bignum_mul,
+  .truncate_div = scm_bignum_truncate_div,
 };
 
 ScmTypeInfo SCM_BIGNUM_TYPE_INFO = {
@@ -797,7 +799,21 @@ scm_bignum_2_fixnum_if_possible(ScmObj bignum)
     return scm_fixnum_new(-num);
 }
 
-scm_local_func int
+static bool
+scm_bignum_zero_p(ScmObj bignum)
+{
+  scm_assert_obj_type(bignum, &SCM_BIGNUM_TYPE_INFO);
+
+  if (SCM_BIGNUM(bignum)->nr_digits == 1) {
+    scm_bignum_c_t v;
+    EARY_GET(&SCM_BIGNUM(bignum)->digits, scm_bignum_d_t, 0, v);
+    if (v == 0) return true;
+  }
+
+  return false;
+}
+
+static int
 scm_bignum_quo_rem(ScmObj bn1, ScmObj bn2,
                    scm_csetter_t *quo, scm_csetter_t *rem)
 {
@@ -808,28 +824,18 @@ scm_bignum_quo_rem(ScmObj bn1, ScmObj bn2,
 
   SCM_STACK_FRAME_PUSH(&bn1, &bn2, &qu, &re, &a, &m, &c, &mq);
 
-  if (scm_capi_fixnum_p(bn1)) {
-    if (scm_fixnum_zero_p(bn1)) {
-      qu = bn1; re = bn1;
-      goto ret;
-    }
-
-    bn1 = scm_bignum_new_from_fixnum(SCM_MEM_HEAP, bn1);
-    if (scm_obj_null_p(bn1)) return -1; /* [ERR]: [through] */
-  }
-
-  if (scm_capi_fixnum_p(bn2)) {
-    if (scm_fixnum_zero_p(bn2)) {
-      scm_capi_error("division by zero", 0);
-      return -1;
-    }
-
-    bn2 = scm_bignum_new_from_fixnum(SCM_MEM_HEAP, bn2);
-    if (scm_obj_null_p(bn1)) return -1; /* [ERR]: [through] */
-  }
-
   scm_assert_obj_type(bn1, &SCM_BIGNUM_TYPE_INFO);
   scm_assert_obj_type(bn2, &SCM_BIGNUM_TYPE_INFO);
+
+  if (scm_bignum_zero_p(bn2)) {
+    scm_capi_error("division by zero", 0);
+    return -1;
+  }
+
+  if (scm_bignum_zero_p(bn1)) {
+    qu = re = scm_bignum_2_fixnum_if_possible(bn1);
+    goto ret;
+  }
 
   cmp = scm_bignum_abs_cmp(bn1, bn2);
   if (cmp == -1) {
@@ -1226,6 +1232,29 @@ scm_bignum_mul(ScmObj mud, ScmObj mur)
     sign = '-';
 
   return scm_num_make_int_from_ary(sign, ary, len, SCM_BIGNUM_BASE);
+}
+
+int
+scm_bignum_truncate_div(ScmObj dvd, ScmObj dvr,
+                        scm_csetter_t *quo, scm_csetter_t *rem)
+{
+  SCM_STACK_FRAME_PUSH(&dvd, &dvr);
+
+  scm_assert_obj_type(dvd, &SCM_BIGNUM_TYPE_INFO);
+  scm_assert(scm_capi_number_p(dvr));
+
+  if (scm_capi_fixnum_p(dvr)) {
+    dvr = scm_bignum_new_from_fixnum(SCM_MEM_HEAP, dvr);
+    if (scm_obj_null_p(dvr)) return -1;
+  }
+  else if (!scm_capi_bignum_p(dvr)) {
+    dvd = SCM_NUM_CALL_VFUNC(dvr, coerce, dvd);
+    if (scm_obj_null_p(dvd)) return SCM_OBJ_NULL;
+
+    return SCM_NUM_CALL_VFUNC(dvd, truncate_div, dvd, quo, rem);
+  }
+
+  return scm_bignum_quo_rem(dvd, dvr, quo, rem);
 }
 
 ScmObj
