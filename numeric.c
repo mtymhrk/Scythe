@@ -80,6 +80,10 @@ scm_num_make_int_from_ary(char sign, scm_bignum_d_t *ary, size_t size,
 /*  Fixnum                                                                 */
 /***************************************************************************/
 
+ScmNumVFunc SCM_FIXNUM_VFUNC = {
+  .coerce = scm_fixnum_coerce,
+};
+
 ScmTypeInfo SCM_FIXNUM_TYPE_INFO = {
   .name                = "fixnum",
   .flags               = SCM_TYPE_FLG_NUM,
@@ -89,7 +93,7 @@ ScmTypeInfo SCM_FIXNUM_TYPE_INFO = {
   .gc_fin_func         = NULL,
   .gc_accept_func      = NULL,
   .gc_accept_func_weak = NULL,
-  .extra               = NULL,
+  .extra               = &SCM_FIXNUM_VFUNC,
 };
 
 static inline bool
@@ -156,8 +160,17 @@ scm_fixnum_mul(ScmObj fn1, ScmObj fn2)
       || v / v1 != v2)
     return scm_bignum_mul(fn1, fn2);
 
-
   return scm_fixnum_new(v);
+}
+
+ScmObj
+scm_fixnum_coerce(ScmObj fn, ScmObj num)
+{
+  scm_assert_obj_type(fn, &SCM_FIXNUM_TYPE_INFO);
+  scm_assert(scm_obj_not_null_p(num));
+
+  scm_capi_error("undefined arithmetic operation pattern", 2, fn, num);
+  return SCM_OBJ_NULL;
 }
 
 int
@@ -183,6 +196,10 @@ scm_fixnum_pretty_print(ScmObj obj, ScmObj port, bool write_p)
 /*  Bignum                                                                 */
 /***************************************************************************/
 
+ScmNumVFunc SCM_BIGNUM_VFUNC = {
+  .coerce = scm_bignum_coerce,
+};
+
 ScmTypeInfo SCM_BIGNUM_TYPE_INFO = {
   .name                = "bignum",
   .flags               = SCM_TYPE_FLG_MMO | SCM_TYPE_FLG_NUM,
@@ -192,7 +209,7 @@ ScmTypeInfo SCM_BIGNUM_TYPE_INFO = {
   .gc_fin_func         = scm_bignum_gc_finalize,
   .gc_accept_func      = NULL,
   .gc_accept_func_weak = NULL,
-  .extra = NULL,
+  .extra               = &SCM_BIGNUM_VFUNC,
 };
 
 static inline scm_bignum_c_t
@@ -1163,6 +1180,22 @@ scm_bignum_div(ScmObj bn1, ScmObj bn2, scm_csetter_t *quo, scm_csetter_t *rem)
 
   return 0;
 }
+
+ScmObj
+scm_bignum_coerce(ScmObj bn, ScmObj num)
+{
+  scm_assert_obj_type(bn, &SCM_BIGNUM_TYPE_INFO);
+  scm_assert(scm_obj_not_null_p(num));
+
+  if (scm_capi_fixnum_p(num)) {
+    return scm_bignum_new_from_fixnum(SCM_MEM_HEAP, num);
+  }
+  else {
+    scm_capi_error("undefined arithmetic operation pattern", 2, bn, num);
+    return SCM_OBJ_NULL;
+  }
+}
+
 
 int
 scm_bignum_pretty_print(ScmObj obj, ScmObj port, bool write_p)

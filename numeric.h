@@ -2,12 +2,28 @@
 #define INCLUDE_NUMERIC_H__
 
 typedef struct ScmBignumRec ScmBignum;
+typedef struct ScmNumVFuncRec ScmNumVFunc;
 
 #define SCM_BIGNUM(obj) ((ScmBignum *)(obj))
 
 #include "object.h"
 #include "earray.h"
 #include "impl_utils.h"
+
+
+/***************************************************************************/
+/*  Common                                                                 */
+/***************************************************************************/
+
+struct ScmNumVFuncRec {
+  ScmObj (*coerce)(ScmObj obj, ScmObj num);
+};
+
+
+#define SCM_NUM_CALL_VFUNC(obj, func, ...) \
+  ((ScmNumVFunc *)scm_obj_type_extra(obj))->func(obj, __VA_ARGS__)
+
+
 
 /***************************************************************************/
 /*  Fixnum                                                                 */
@@ -49,6 +65,8 @@ scm_fixnum_zero_p(ScmObj num)
 ScmObj scm_fixnum_plus(ScmObj fn1, ScmObj fn2);
 ScmObj scm_fixnum_minus(ScmObj fn1, ScmObj fn2);
 ScmObj scm_fixnum_mul(ScmObj fn1, ScmObj fn2);
+
+ScmObj scm_fixnum_coerce(ScmObj fn, ScmObj num);
 
 int scm_fixnum_pretty_print(ScmObj obj, ScmObj port, bool write_p);
 
@@ -114,6 +132,8 @@ ScmObj scm_bignum_minus(ScmObj bn1, ScmObj bn2);
 ScmObj scm_bignum_mul(ScmObj bn1, ScmObj bn2);
 int scm_bignum_div(ScmObj bn1, ScmObj bn2,
                    scm_csetter_t *quo, scm_csetter_t *rem);
+
+ScmObj scm_bignum_coerce(ScmObj bn, ScmObj num);
 
 int scm_bignum_pretty_print(ScmObj obj, ScmObj port, bool write_p);
 void scm_bignum_gc_initialize(ScmObj obj, ScmObj mem);
