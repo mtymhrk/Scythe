@@ -833,14 +833,14 @@ scm_bignum_quo_rem(ScmObj bn1, ScmObj bn2,
   }
 
   if (scm_bignum_zero_p(bn1)) {
-    qu = re = scm_bignum_2_fixnum_if_possible(bn1);
+    qu = re = bn1;
     goto ret;
   }
 
   cmp = scm_bignum_abs_cmp(bn1, bn2);
   if (cmp == -1) {
     if (quo != NULL) {
-      qu = scm_capi_make_number_from_sword(0);
+      qu = scm_bignum_new_from_sword(SCM_MEM_HEAP, 0);
       if (scm_obj_null_p(qu)) return -1;
     }
     re = bn1;
@@ -848,13 +848,13 @@ scm_bignum_quo_rem(ScmObj bn1, ScmObj bn2,
   else if (cmp == 0) {
     if (quo != NULL) {
       if (SCM_BIGNUM(bn1)->sign == SCM_BIGNUM(bn2)->sign)
-        qu = scm_capi_make_number_from_sword(1);
+        qu = scm_bignum_new_from_sword(SCM_MEM_HEAP, 1);
       else
-        qu = scm_capi_make_number_from_sword(-1);
+        qu = scm_bignum_new_from_sword(SCM_MEM_HEAP, -1);
       if (scm_obj_null_p(qu)) return -1;
     }
     if (rem != NULL) {
-      re = scm_capi_make_number_from_sword(0);
+      re = scm_bignum_new_from_sword(SCM_MEM_HEAP, 0);
       if (scm_obj_null_p(re)) return -1;
     }
   }
@@ -935,7 +935,7 @@ scm_bignum_quo_rem(ScmObj bn1, ScmObj bn2,
       else
         SCM_BIGNUM(c)->sign = SCM_BIGNUM(bn1)->sign == '+' ? '-' : '+';
 
-      qu = scm_bignum_2_fixnum_if_possible(c);
+      qu = c;
     }
 
     if (rem != NULL) {
@@ -943,7 +943,7 @@ scm_bignum_quo_rem(ScmObj bn1, ScmObj bn2,
       if (rslt < 0) return -1;
       SCM_BIGNUM(a)->sign = SCM_BIGNUM(bn1)->sign;
 
-      re = scm_bignum_2_fixnum_if_possible(a);
+      re = a;
     }
   }
 
@@ -1234,11 +1234,54 @@ scm_bignum_mul(ScmObj mud, ScmObj mur)
   return scm_num_make_int_from_ary(sign, ary, len, SCM_BIGNUM_BASE);
 }
 
+/* int */
+/* scm_bignum_floor_div(ScmObj dvd, ScmObj dvr, */
+/*                      scm_csetter_t *quo, scm_csetter_t *rem) */
+/* { */
+/*   ScmObj qu = SCM_OBJ_INIT, re = SCM_OBJ_INIT; */
+/*   int rslt; */
+
+/*   SCM_STACK_FRAME_PUSH(&dvd, &dvr, &qu, &re); */
+
+/*   scm_assert_obj_type(dvd, &SCM_BIGNUM_TYPE_INFO); */
+/*   scm_assert(scm_capi_number_p(dvr)); */
+
+/*   if (scm_capi_fixnum_p(dvr)) { */
+/*     dvr = scm_bignum_new_from_fixnum(SCM_MEM_HEAP, dvr); */
+/*     if (scm_obj_null_p(dvr)) return -1; */
+/*   } */
+/*   else if (!scm_capi_bignum_p(dvr)) { */
+/*     dvd = SCM_NUM_CALL_VFUNC(dvr, coerce, dvd); */
+/*     if (scm_obj_null_p(dvd)) return SCM_OBJ_NULL; */
+
+/*     return SCM_NUM_CALL_VFUNC(dvd, floor_div, dvd, quo, rem); */
+/*   } */
+
+/*   rslt = scm_bignum_quo_rem(dvd, dvr, SCM_CSETTER_L(qu), SCM_CSETTER_L(re)); */
+/*   if (rslt < 0) return -1; */
+
+/*   if (!scm_bignum_zero_p(re) && SCM_BIGNUM(qu)->sign == '-') { */
+/*     rslt = scm_bignum_nadd_1d(qu, -1); */
+/*     if (rslt < 0) return -1; */
+
+/*     rslt = scm_bignum_ninc(re, dvr); */
+/*     if (rslt < 0) return -1; */
+/*   } */
+
+/*   scm_csetter_setq(quo, qu); */
+/*   scm_csetter_setq(rem, re); */
+
+/*   return 0; */
+/* } */
+
 int
 scm_bignum_truncate_div(ScmObj dvd, ScmObj dvr,
                         scm_csetter_t *quo, scm_csetter_t *rem)
 {
-  SCM_STACK_FRAME_PUSH(&dvd, &dvr);
+  ScmObj qu = SCM_OBJ_INIT, re = SCM_OBJ_INIT;
+  int rslt;
+
+  SCM_STACK_FRAME_PUSH(&dvd, &dvr, &qu, &re);
 
   scm_assert_obj_type(dvd, &SCM_BIGNUM_TYPE_INFO);
   scm_assert(scm_capi_number_p(dvr));
@@ -1254,7 +1297,22 @@ scm_bignum_truncate_div(ScmObj dvd, ScmObj dvr,
     return SCM_NUM_CALL_VFUNC(dvd, truncate_div, dvd, quo, rem);
   }
 
-  return scm_bignum_quo_rem(dvd, dvr, quo, rem);
+  rslt = scm_bignum_quo_rem(dvd, dvr,
+                            (quo != NULL) ? SCM_CSETTER_L(qu) : NULL,
+                            (rem != NULL) ? SCM_CSETTER_L(re) : NULL);
+  if (rslt < 0) return -1;
+
+  if (quo != NULL) {
+    qu = scm_bignum_2_fixnum_if_possible(qu);
+    scm_csetter_setq(quo, qu);
+  }
+
+  if (rem != NULL) {
+    re = scm_bignum_2_fixnum_if_possible(re);
+    scm_csetter_setq(rem, re);
+  }
+
+  return 0;
 }
 
 ScmObj
