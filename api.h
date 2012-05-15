@@ -156,6 +156,18 @@ bool scm_capi_fixnum_p(ScmObj obj);
 int scm_capi_fixnum_to_sword(ScmObj fn, scm_sword_t *w);
 bool scm_capi_bignum_p(ScmObj obj);
 
+ScmObj scm_api_plus(ScmObj x, ScmObj y);
+ScmObj scm_capi_plus_ary(size_t argc, ScmObj *argv);
+ScmObj scm_capi_plus_v(size_t n, ...);
+
+ScmObj scm_api_minus(ScmObj x, ScmObj y);
+ScmObj scm_capi_minus_ary(size_t argc, ScmObj *argv);
+ScmObj scm_capi_minus_v(size_t n, ...);
+
+ScmObj scm_api_mul(ScmObj x, ScmObj y);
+ScmObj scm_capi_mul_ary(size_t argc, ScmObj *argv);
+ScmObj scm_capi_mul_v(size_t n, ...);
+
 inline ScmObj
 scm_capi_frame_ptr_to_fixnum(void *ptr)
 {

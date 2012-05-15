@@ -524,6 +524,222 @@ scm_capi_bignum_p(ScmObj obj)
   return scm_obj_type_p(obj, &SCM_BIGNUM_TYPE_INFO) ? true : false;
 }
 
+static ScmObj
+scm_capi_4op(const char *op, ScmObj (*func)(ScmObj x, ScmObj y),
+             ScmObj ini, size_t argc, ScmObj *argv)
+{
+  ScmObj rslt = SCM_OBJ_INIT;
+  char err_msg[64];
+
+  SCM_STACK_FRAME_PUSH(&ini, &rslt);
+
+  scm_assert(op != NULL);
+
+  if (argv == NULL) {
+    snprintf(err_msg, sizeof(err_msg), "%s: invalid argument", op);
+    scm_capi_error(err_msg, 0);
+    return SCM_OBJ_NULL;
+  }
+
+  rslt = ini;
+  for (size_t i = 0; i < argc; i++) {
+    rslt = func(rslt, argv[i]);
+    if (scm_obj_null_p(rslt)) return SCM_OBJ_NULL;
+  }
+
+  return rslt;
+}
+
+static ScmObj
+scm_capi_4op_va(const char *op, ScmObj (*func)(size_t argc, ScmObj *argv),
+                size_t n, va_list ap)
+{
+  ScmObj ary[n];
+  char err_msg[64];
+
+  SCM_STACK_FRAME;
+
+  scm_assert(op != NULL);
+
+  if (n == 0) {
+    snprintf(err_msg, sizeof(err_msg), "%s: too few arguments", op);
+    scm_capi_error(err_msg, 0);
+    return SCM_OBJ_NULL;
+  }
+
+  for (size_t i = 0; i < n; i++) {
+    ary[i] = va_arg(ap, ScmObj);
+    SCM_STACK_PUSH(ary + i);
+  }
+
+  return func(n, ary);
+}
+
+
+ScmObj
+scm_api_plus(ScmObj x, ScmObj y)
+{
+  SCM_STACK_FRAME_PUSH(&x, &y);
+
+  if (scm_obj_null_p(x) || scm_obj_null_p(y)) {
+    scm_capi_error("+: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  if (scm_capi_number_p(x)) {
+    scm_capi_error("+: number required, but got", 1, x);
+    return SCM_OBJ_NULL;
+  }
+
+  if (scm_capi_number_p(y)) {
+    scm_capi_error("+: number required, but got", 1, y);
+    return SCM_OBJ_NULL;
+  }
+
+  return SCM_NUM_CALL_VFUNC(x, plus, y);
+}
+
+ScmObj
+scm_capi_plus_ary(size_t argc, ScmObj *argv)
+{
+  if (argc == 0) {
+    scm_capi_error("+: too few arguments", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  if (argv == NULL) {
+    scm_capi_error("+: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_capi_4op("+", scm_api_plus,
+                      argv[0], argc - 1, argv + 1);
+}
+
+ScmObj
+scm_capi_plus_v(size_t n, ...)
+{
+  ScmObj rslt = SCM_OBJ_INIT;
+  va_list ap;
+
+  va_start(ap, n);
+  rslt = scm_capi_4op_va("+", scm_capi_plus_ary, n, ap);
+  va_end(ap);
+
+  return rslt;
+}
+
+ScmObj
+scm_api_minus(ScmObj x, ScmObj y)
+{
+  SCM_STACK_FRAME_PUSH(&x, &y);
+
+  if (scm_obj_null_p(x) || scm_obj_null_p(y)) {
+    scm_capi_error("-: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  if (scm_capi_number_p(x)) {
+    scm_capi_error("-: number required, but got", 1, x);
+    return SCM_OBJ_NULL;
+  }
+
+  if (scm_capi_number_p(y)) {
+    scm_capi_error("-: number required, but got", 1, y);
+    return SCM_OBJ_NULL;
+  }
+
+  return SCM_NUM_CALL_VFUNC(x, minus, y);
+}
+
+ScmObj
+scm_capi_minus_ary(size_t argc, ScmObj *argv)
+{
+  if (argc == 0) {
+    scm_capi_error("-: too few arguments", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  if (argv == NULL) {
+    scm_capi_error("-: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  if (argc == 1)
+    return scm_capi_4op("-", scm_api_minus,
+                        SCM_FIXNUM_ZERO, argc, argv);
+  else
+    return scm_capi_4op("-", scm_api_minus,
+                        argv[0], argc - 1, argv + 1);
+}
+
+ScmObj
+scm_capi_minus_v(size_t n, ...)
+{
+  ScmObj rslt = SCM_OBJ_INIT;
+  va_list ap;
+
+  va_start(ap, n);
+  rslt = scm_capi_4op_va("-", scm_capi_minus_ary, n, ap);
+  va_end(ap);
+
+  return rslt;
+}
+
+ScmObj
+scm_api_mul(ScmObj x, ScmObj y)
+{
+  SCM_STACK_FRAME_PUSH(&x, &y);
+
+  if (scm_obj_null_p(x) || scm_obj_null_p(y)) {
+    scm_capi_error("*: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  if (scm_capi_number_p(x)) {
+    scm_capi_error("*: number required, but got", 1, x);
+    return SCM_OBJ_NULL;
+  }
+
+  if (scm_capi_number_p(y)) {
+    scm_capi_error("*: number required, but got", 1, y);
+    return SCM_OBJ_NULL;
+  }
+
+  return SCM_NUM_CALL_VFUNC(x, mul, y);
+}
+
+ScmObj
+scm_capi_mul_ary(size_t argc, ScmObj *argv)
+{
+  if (argc == 0) {
+    scm_capi_error("*: too few arguments", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  if (argv == NULL) {
+    scm_capi_error("*: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_capi_4op("*", scm_api_mul,
+                      argv[0], argc - 1, argv + 1);
+}
+
+ScmObj
+scm_capi_mul_v(size_t n, ...)
+{
+  ScmObj rslt = SCM_OBJ_INIT;
+  va_list ap;
+
+  va_start(ap, n);
+  rslt = scm_capi_4op_va("*", scm_capi_mul_ary, n, ap);
+  va_end(ap);
+
+  return rslt;
+}
+
+
 /*******************************************************************/
 /*  charactor                                                      */
 /*******************************************************************/
