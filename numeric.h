@@ -17,6 +17,7 @@ typedef struct ScmNumVFuncRec ScmNumVFunc;
 
 struct ScmNumVFuncRec {
   ScmObj (*coerce)(ScmObj obj, ScmObj num);
+  bool (*integer_p)(ScmObj obj);
   ScmObj (*plus)(ScmObj aug, ScmObj add);
   ScmObj (*minus)(ScmObj min, ScmObj sub);
   ScmObj (*mul)(ScmObj mud, ScmObj mur);
@@ -70,6 +71,7 @@ scm_fixnum_zero_p(ScmObj num)
   return (num == SCM_FIXNUM_ZERO);
 }
 
+bool scm_fixnum_integer_p(ScmObj fn);
 ScmObj scm_fixnum_plus(ScmObj aug, ScmObj add);
 ScmObj scm_fixnum_minus(ScmObj min, ScmObj sub);
 ScmObj scm_fixnum_mul(ScmObj mud, ScmObj mur);
@@ -142,6 +144,7 @@ ScmObj scm_bignum_new_from_ary(SCM_MEM_TYPE_T mtype, char sign,
 ScmObj scm_bignum_new_from_sword(SCM_MEM_TYPE_T mtype, scm_sword_t val);
 ScmObj scm_bignum_new_from_fixnum(SCM_MEM_TYPE_T mtype, ScmObj fn);
 ScmObj scm_bignum_copy(ScmObj bignum);
+bool scm_bignum_integer_p(ScmObj bn);
 ScmObj scm_bignum_plus(ScmObj aug, ScmObj add);
 ScmObj scm_bignum_minus(ScmObj min, ScmObj sub);
 ScmObj scm_bignum_mul(ScmObj mud, ScmObj mur);

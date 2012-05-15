@@ -82,6 +82,7 @@ scm_num_make_int_from_ary(char sign, scm_bignum_d_t *ary, size_t size,
 
 ScmNumVFunc SCM_FIXNUM_VFUNC = {
   .coerce       = scm_fixnum_coerce,
+  .integer_p    = scm_fixnum_integer_p,
   .plus         = scm_fixnum_plus,
   .minus        = scm_fixnum_minus,
   .mul          = scm_fixnum_mul,
@@ -157,6 +158,14 @@ scm_fixnum_quo_rem(scm_sword_t dvd, scm_sword_t dvr,
   }
 
   return 0;
+}
+
+bool
+scm_fixnum_integer_p(ScmObj fn)
+{
+  scm_assert_obj_type(fn, &SCM_FIXNUM_TYPE_INFO);
+
+  return true;
 }
 
 ScmObj
@@ -412,6 +421,7 @@ scm_fixnum_pretty_print(ScmObj obj, ScmObj port, bool write_p)
 
 ScmNumVFunc SCM_BIGNUM_VFUNC = {
   .coerce       = scm_bignum_coerce,
+  .integer_p    = scm_bignum_integer_p,
   .plus         = scm_bignum_plus,
   .minus        = scm_bignum_minus,
   .mul          = scm_bignum_mul,
@@ -1253,6 +1263,14 @@ void
 scm_bignum_finalize(ScmObj bignum)
 {
   eary_fin(&SCM_BIGNUM(bignum)->digits);
+}
+
+bool
+scm_bignum_integer_p(ScmObj bn)
+{
+  scm_assert_obj_type(bn, &SCM_BIGNUM_TYPE_INFO);
+
+  return true;
 }
 
 ScmObj
