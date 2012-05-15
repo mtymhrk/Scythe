@@ -83,6 +83,7 @@ scm_num_make_int_from_ary(char sign, scm_bignum_d_t *ary, size_t size,
 ScmNumVFunc SCM_FIXNUM_VFUNC = {
   .coerce       = scm_fixnum_coerce,
   .integer_p    = scm_fixnum_integer_p,
+  .cmp          = scm_fixnum_cmp,
   .plus         = scm_fixnum_plus,
   .minus        = scm_fixnum_minus,
   .mul          = scm_fixnum_mul,
@@ -166,6 +167,38 @@ scm_fixnum_integer_p(ScmObj fn)
   scm_assert_obj_type(fn, &SCM_FIXNUM_TYPE_INFO);
 
   return true;
+}
+
+int
+scm_fixnum_cmp(ScmObj fn, ScmObj num, int *cmp)
+{
+  scm_sword_t v1, v2;
+
+  scm_assert_obj_type(fn, &SCM_FIXNUM_TYPE_INFO);
+  scm_assert(scm_capi_number_p(num));
+
+  if (!scm_capi_fixnum_p(num)) {
+    SCM_STACK_FRAME_PUSH(&fn, &num);
+
+    fn = SCM_NUM_CALL_VFUNC(num, coerce, fn);
+    if (scm_obj_null_p(fn)) return -1;
+
+    return SCM_NUM_CALL_VFUNC(fn, cmp, num, cmp);
+  }
+
+  if (cmp != NULL) {
+    v1 = scm_fixnum_value(fn);
+    v2 = scm_fixnum_value(num);
+
+    if (v1 < v2)
+      *cmp = -1;
+    else if (v1 == v2)
+      *cmp =  0;
+    else
+      *cmp = 1;
+  }
+
+  return 0;
 }
 
 ScmObj
@@ -422,6 +455,7 @@ scm_fixnum_pretty_print(ScmObj obj, ScmObj port, bool write_p)
 ScmNumVFunc SCM_BIGNUM_VFUNC = {
   .coerce       = scm_bignum_coerce,
   .integer_p    = scm_bignum_integer_p,
+  .cmp          = scm_bignum_cmp,
   .plus         = scm_bignum_plus,
   .minus        = scm_bignum_minus,
   .mul          = scm_bignum_mul,
@@ -1271,6 +1305,41 @@ scm_bignum_integer_p(ScmObj bn)
   scm_assert_obj_type(bn, &SCM_BIGNUM_TYPE_INFO);
 
   return true;
+}
+
+int
+scm_bignum_cmp(ScmObj bn, ScmObj num, int *cmp)
+{
+  SCM_STACK_FRAME_PUSH(&bn, &num);
+
+  scm_assert_obj_type(bn, &SCM_BIGNUM_TYPE_INFO);
+  scm_assert(scm_capi_number_p(num));
+
+  if (scm_capi_fixnum_p(num)) {
+    num = scm_bignum_new_from_fixnum(SCM_MEM_HEAP, num);
+    if (scm_obj_null_p(num)) return -1;
+  }
+  else if (!scm_capi_bignum_p(num)) {
+    bn = SCM_NUM_CALL_VFUNC(num, coerce, bn);
+    if (scm_obj_null_p(bn)) return -1;
+
+    return SCM_NUM_CALL_VFUNC(bn, cmp, num, cmp);
+  }
+
+  if (cmp != NULL) {
+    if (SCM_BIGNUM(bn)->sign == '-' && SCM_BIGNUM(num)->sign == '+') {
+      *cmp = -1;
+    }
+    else if (SCM_BIGNUM(bn)->sign == '+' && SCM_BIGNUM(num)->sign == '-') {
+      *cmp = 1;
+    }
+    else {
+      *cmp = scm_bignum_abs_cmp(bn, num);
+      if (SCM_BIGNUM(bn)->sign == '-') *cmp = -*cmp;
+    }
+  }
+
+  return 0;
 }
 
 ScmObj
