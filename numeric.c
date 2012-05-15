@@ -1264,7 +1264,8 @@ scm_bignum_floor_div(ScmObj dvd, ScmObj dvr,
   rslt = scm_bignum_quo_rem(dvd, dvr, SCM_CSETTER_L(qu), SCM_CSETTER_L(re));
   if (rslt < 0) return -1;
 
-  if (!scm_bignum_zero_p(re) && SCM_BIGNUM(qu)->sign == '-') {
+  if (!scm_bignum_zero_p(re)
+      && (SCM_BIGNUM(dvd)->sign != SCM_BIGNUM(dvr)->sign)) {
     if (quo != NULL) {
       rslt = scm_bignum_nadd_1d(qu, -1);
       if (rslt < 0) return -1;
@@ -1315,7 +1316,8 @@ scm_bignum_ceiling_div(ScmObj dvd, ScmObj dvr,
   rslt = scm_bignum_quo_rem(dvd, dvr, SCM_CSETTER_L(qu), SCM_CSETTER_L(re));
   if (rslt < 0) return -1;
 
-  if (!scm_bignum_zero_p(re) && SCM_BIGNUM(qu)->sign == '+') {
+  if (!scm_bignum_zero_p(re)
+      && (SCM_BIGNUM(dvd)->sign == SCM_BIGNUM(dvr)->sign)) {
     if (quo != NULL) {
       rslt = scm_bignum_nadd_1d(qu, 1);
       if (rslt < 0) return -1;
