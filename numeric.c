@@ -168,16 +168,16 @@ scm_fixnum_minus(ScmObj min, ScmObj sub)
 ScmObj
 scm_fixnum_mul(ScmObj mud, ScmObj mur)
 {
+  scm_sword_t v, v1, v2;
+
   scm_assert_obj_type(mud, &SCM_FIXNUM_TYPE_INFO);
   scm_assert(scm_capi_number_p(mur));
 
-  if (scm_capi_number_p(mur)) {
-    scm_sword_t v, v1, v2;
+  v1 = scm_fixnum_value(mud);
+  if (v1 == 0) return mud;
 
-    v1 = scm_fixnum_value(mud);
+  if (scm_capi_fixnum_p(mur)) {
     v2 = scm_fixnum_value(mur);
-
-    if (v1 == 0) return mud;
 
     v = v1 * v2;
 
