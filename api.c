@@ -525,8 +525,8 @@ scm_capi_bignum_p(ScmObj obj)
 }
 
 static ScmObj
-scm_capi_4op(const char *op, ScmObj (*func)(ScmObj x, ScmObj y),
-             ScmObj ini, size_t argc, ScmObj *argv)
+scm_capi_num_bop_fold(const char *op, ScmObj (*func)(ScmObj x, ScmObj y),
+                      ScmObj ini, size_t argc, ScmObj *argv)
 {
   ScmObj rslt = SCM_OBJ_INIT;
   char err_msg[64];
@@ -551,8 +551,8 @@ scm_capi_4op(const char *op, ScmObj (*func)(ScmObj x, ScmObj y),
 }
 
 static ScmObj
-scm_capi_4op_va(const char *op, ScmObj (*func)(size_t argc, ScmObj *argv),
-                size_t n, va_list ap)
+scm_capi_num_bop_va(const char *op, ScmObj (*func)(size_t argc, ScmObj *argv),
+                    size_t n, va_list ap)
 {
   ScmObj ary[n];
   char err_msg[64];
@@ -612,8 +612,8 @@ scm_capi_plus_ary(size_t argc, ScmObj *argv)
     return SCM_OBJ_NULL;
   }
 
-  return scm_capi_4op("+", scm_api_plus,
-                      argv[0], argc - 1, argv + 1);
+  return scm_capi_num_bop_fold("+", scm_api_plus,
+                               argv[0], argc - 1, argv + 1);
 }
 
 ScmObj
@@ -623,7 +623,7 @@ scm_capi_plus_v(size_t n, ...)
   va_list ap;
 
   va_start(ap, n);
-  rslt = scm_capi_4op_va("+", scm_capi_plus_ary, n, ap);
+  rslt = scm_capi_num_bop_va("+", scm_capi_plus_ary, n, ap);
   va_end(ap);
 
   return rslt;
@@ -666,11 +666,11 @@ scm_capi_minus_ary(size_t argc, ScmObj *argv)
   }
 
   if (argc == 1)
-    return scm_capi_4op("-", scm_api_minus,
-                        SCM_FIXNUM_ZERO, argc, argv);
+    return scm_capi_num_bop_fold("-", scm_api_minus,
+                                 SCM_FIXNUM_ZERO, argc, argv);
   else
-    return scm_capi_4op("-", scm_api_minus,
-                        argv[0], argc - 1, argv + 1);
+    return scm_capi_num_bop_fold("-", scm_api_minus,
+                                 argv[0], argc - 1, argv + 1);
 }
 
 ScmObj
@@ -680,7 +680,7 @@ scm_capi_minus_v(size_t n, ...)
   va_list ap;
 
   va_start(ap, n);
-  rslt = scm_capi_4op_va("-", scm_capi_minus_ary, n, ap);
+  rslt = scm_capi_num_bop_va("-", scm_capi_minus_ary, n, ap);
   va_end(ap);
 
   return rslt;
@@ -722,8 +722,8 @@ scm_capi_mul_ary(size_t argc, ScmObj *argv)
     return SCM_OBJ_NULL;
   }
 
-  return scm_capi_4op("*", scm_api_mul,
-                      argv[0], argc - 1, argv + 1);
+  return scm_capi_num_bop_fold("*", scm_api_mul,
+                               argv[0], argc - 1, argv + 1);
 }
 
 ScmObj
@@ -733,7 +733,7 @@ scm_capi_mul_v(size_t n, ...)
   va_list ap;
 
   va_start(ap, n);
-  rslt = scm_capi_4op_va("*", scm_capi_mul_ary, n, ap);
+  rslt = scm_capi_num_bop_va("*", scm_capi_mul_ary, n, ap);
   va_end(ap);
 
   return rslt;
