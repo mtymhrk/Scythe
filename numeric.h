@@ -76,6 +76,10 @@ ScmObj scm_fixnum_minus(ScmObj min, ScmObj sub);
 ScmObj scm_fixnum_mul(ScmObj mud, ScmObj mur);
 int scm_fixnum_floor_div(ScmObj dvd, ScmObj dvr,
                          scm_csetter_t *quo, scm_csetter_t *rem);
+int scm_fixnum_ceiling_div(ScmObj dvd, ScmObj dvr,
+                           scm_csetter_t *quo, scm_csetter_t *rem);
+int scm_fixnum_truncate_div(ScmObj dvd, ScmObj dvr,
+                            scm_csetter_t *quo, scm_csetter_t *rem);
 
 ScmObj scm_fixnum_coerce(ScmObj fn, ScmObj num);
 

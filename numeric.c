@@ -86,8 +86,8 @@ ScmNumVFunc SCM_FIXNUM_VFUNC = {
   .minus        = scm_fixnum_minus,
   .mul          = scm_fixnum_mul,
   .floor_div    = scm_fixnum_floor_div,
-  .ceiling_div  = NULL,
-  .truncate_div = NULL,
+  .ceiling_div  = scm_fixnum_ceiling_div,
+  .truncate_div = scm_fixnum_truncate_div,
 };
 
 ScmTypeInfo SCM_FIXNUM_TYPE_INFO = {
@@ -294,6 +294,88 @@ scm_fixnum_floor_div(ScmObj dvd, ScmObj dvr,
 
   return 0;
 }
+
+int
+scm_fixnum_ceiling_div(ScmObj dvd, ScmObj dvr,
+                       scm_csetter_t *quo, scm_csetter_t *rem)
+{
+  scm_sword_t x, y, q, r;
+  char x_s, y_s;
+  int rslt;
+
+  scm_assert_obj_type(dvd, &SCM_FIXNUM_TYPE_INFO);
+  scm_assert(scm_capi_number_p(dvr));
+
+  if (!scm_capi_fixnum_p(dvr)) {
+    SCM_STACK_FRAME_PUSH(&dvd, &dvr);
+
+    dvd = SCM_NUM_CALL_VFUNC(dvr, coerce, dvd);
+    if (scm_obj_null_p(dvd)) return -1;
+
+    return SCM_NUM_CALL_VFUNC(dvd, ceiling_div, dvr, quo, rem);
+  }
+
+  x = scm_fixnum_value(dvd);
+  y = scm_fixnum_value(dvr);
+
+  x_s = (x >= 0) ? '+' : '-';
+  y_s = (y >= 0) ? '+' : '-';
+
+  rslt = scm_fixnum_quo_rem(x, y, &q, &r);
+  if (rslt < 0) return -1;
+
+  if (r != 0 && x_s == y_s) {
+    q++;
+    r -= y;
+  }
+
+  if (quo != NULL)
+    scm_csetter_setq(quo, scm_fixnum_new(q));
+
+  if (rem != NULL)
+    scm_csetter_setq(rem, scm_fixnum_new(r));
+
+  return 0;
+}
+
+int
+scm_fixnum_truncate_div(ScmObj dvd, ScmObj dvr,
+                        scm_csetter_t *quo, scm_csetter_t *rem)
+{
+  scm_sword_t x, y, q, r;
+  char x_s, y_s;
+  int rslt;
+
+  scm_assert_obj_type(dvd, &SCM_FIXNUM_TYPE_INFO);
+  scm_assert(scm_capi_number_p(dvr));
+
+  if (!scm_capi_fixnum_p(dvr)) {
+    SCM_STACK_FRAME_PUSH(&dvd, &dvr);
+
+    dvd = SCM_NUM_CALL_VFUNC(dvr, coerce, dvd);
+    if (scm_obj_null_p(dvd)) return -1;
+
+    return SCM_NUM_CALL_VFUNC(dvd, truncate_div, dvr, quo, rem);
+  }
+
+  x = scm_fixnum_value(dvd);
+  y = scm_fixnum_value(dvr);
+
+  x_s = (x >= 0) ? '+' : '-';
+  y_s = (y >= 0) ? '+' : '-';
+
+  rslt = scm_fixnum_quo_rem(x, y, &q, &r);
+  if (rslt < 0) return -1;
+
+  if (quo != NULL)
+    scm_csetter_setq(quo, scm_fixnum_new(q));
+
+  if (rem != NULL)
+    scm_csetter_setq(rem, scm_fixnum_new(r));
+
+  return 0;
+}
+
 
 ScmObj
 scm_fixnum_coerce(ScmObj fn, ScmObj num)
