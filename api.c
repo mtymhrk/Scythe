@@ -497,11 +497,27 @@ scm_capi_number_p(ScmObj obj)
 }
 
 extern inline bool
+scm_capi_integer_p(ScmObj obj)
+{
+  if (!scm_capi_number_p(obj)) return false;
+
+  return SCM_NUM_CALL_VFUNC(obj, integer_p);
+}
+
+extern inline bool
 scm_capi_fixnum_p(ScmObj obj)
 {
   if (scm_capi_null_value_p(obj)) return false;
 
   return scm_obj_type_p(obj, &SCM_FIXNUM_TYPE_INFO) ? true : false;
+}
+
+extern inline bool
+scm_capi_bignum_p(ScmObj obj)
+{
+  if (scm_capi_null_value_p(obj)) return false;
+
+  return scm_obj_type_p(obj, &SCM_BIGNUM_TYPE_INFO) ? true : false;
 }
 
 int
@@ -514,14 +530,6 @@ scm_capi_fixnum_to_sword(ScmObj fn, scm_sword_t *w)
 
   *w = scm_fixnum_value(fn);
   return 0;
-}
-
-extern inline bool
-scm_capi_bignum_p(ScmObj obj)
-{
-  if (scm_capi_null_value_p(obj)) return false;
-
-  return scm_obj_type_p(obj, &SCM_BIGNUM_TYPE_INFO) ? true : false;
 }
 
 static int

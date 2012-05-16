@@ -32,7 +32,7 @@ struct ScmNumVFuncRec {
 
 
 #define SCM_NUM_CALL_VFUNC(obj, func, ...) \
-  ((ScmNumVFunc *)scm_obj_type_extra(obj))->func(obj, __VA_ARGS__)
+  ((ScmNumVFunc *)scm_obj_type_extra(obj))->func(obj, ## __VA_ARGS__)
 
 
 /***************************************************************************/
