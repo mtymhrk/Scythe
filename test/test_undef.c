@@ -15,6 +15,12 @@ cut_startup(void)
 }
 
 void
+cut_teardown(void)
+{
+  scm_capi_unraise();
+}
+
+void
 cut_shutdown(void)
 {
   scm_capi_evaluator_end(ev);
@@ -30,6 +36,7 @@ test_scm_undef_object_p_1(void)
   undef = scm_api_undef();
 
   cut_assert_true(scm_capi_undef_object_p(undef));
+  cut_assert_false(scm_capi_raised_p());
 }
 
 void
@@ -42,11 +49,13 @@ test_scm_undef_object_p_2(void)
   eof = scm_api_eof();
 
   cut_assert_false(scm_capi_undef_object_p(eof));
+  cut_assert_false(scm_capi_raised_p());
 }
 
 void
 test_scm_undef_object_p_3(void)
 {
   cut_assert_false(scm_capi_undef_object_p(SCM_OBJ_NULL));
+  cut_assert_false(scm_capi_raised_p());
 }
 
