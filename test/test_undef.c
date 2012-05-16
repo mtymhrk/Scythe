@@ -21,9 +21,32 @@ cut_shutdown(void)
 }
 
 void
-test_scm_undef_new(void)
+test_scm_undef_object_p_1(void)
 {
-  ScmObj undef = scm_undef_new(SCM_MEM_HEAP);
+  ScmObj undef = SCM_OBJ_INIT;
 
-  cut_assert_true(scm_obj_not_null_p(undef));
+  SCM_STACK_FRAME_PUSH(&undef);
+
+  undef = scm_api_undef();
+
+  cut_assert_true(scm_capi_undef_object_p(undef));
 }
+
+void
+test_scm_undef_object_p_2(void)
+{
+  ScmObj eof = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&eof);
+
+  eof = scm_api_eof();
+
+  cut_assert_false(scm_capi_undef_object_p(eof));
+}
+
+void
+test_scm_undef_object_p_3(void)
+{
+  cut_assert_false(scm_capi_undef_object_p(SCM_OBJ_NULL));
+}
+

@@ -23,32 +23,70 @@ cut_shutdown(void)
 
 
 void
-test_scm_bool_new(void)
+test_scm_capi_true_p_1(void)
 {
   ScmObj bl = SCM_OBJ_INIT;
 
-  bl = scm_bool_new(SCM_MEM_HEAP, true);
+  SCM_STACK_FRAME_PUSH(&bl);
 
-  cut_assert(scm_obj_not_null_p(bl));
-  cut_assert(scm_obj_type_p(SCM_OBJ(bl), &SCM_BOOL_TYPE_INFO));
+  bl = scm_api_bool_true();
+
+  cut_assert_true(scm_capi_true_p(bl));
 }
 
 void
-test_scm_bool_value_true(void)
+test_scm_capi_true_p_2(void)
 {
   ScmObj bl = SCM_OBJ_INIT;
 
-  bl = scm_bool_new(SCM_MEM_HEAP,true);
+  SCM_STACK_FRAME_PUSH(&bl);
 
-  cut_assert_true(scm_bool_value(bl));
+  bl = scm_api_bool_false();
+
+  cut_assert_false(scm_capi_true_p(bl));
 }
 
 void
-test_scm_bool_value_false(void)
+test_scm_capi_true_p_3(void)
+{
+  cut_assert_false(scm_capi_true_p(SCM_OBJ_NULL));
+}
+
+void
+test_scm_capi_false_p_1(void)
 {
   ScmObj bl = SCM_OBJ_INIT;
 
-  bl = scm_bool_new(SCM_MEM_HEAP,false);
+  SCM_STACK_FRAME_PUSH(&bl);
 
-  cut_assert_false(scm_bool_value(bl));
+  bl = scm_api_bool_true();
+
+  cut_assert_false(scm_capi_false_p(bl));
 }
+
+void
+test_scm_capi_false_p_2(void)
+{
+  ScmObj bl = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&bl);
+
+  bl = scm_api_bool_false();
+
+  cut_assert_true(scm_capi_false_p(bl));
+}
+
+void
+test_scm_capi_false_p_3(void)
+{
+  cut_assert_false(scm_capi_false_p(SCM_OBJ_NULL));
+}
+
+
+
+
+
+
+
+
+

@@ -21,9 +21,31 @@ cut_shutdown(void)
 }
 
 void
-test_scm_nil_new(void)
+test_scm_nil_p_1(void)
 {
-  ScmObj nil = scm_nil_new(SCM_MEM_HEAP);
+  ScmObj nil = SCM_OBJ_INIT;
 
-  cut_assert_true(scm_obj_not_null_p(nil));
+  SCM_STACK_FRAME_PUSH(&nil);
+
+  nil = scm_api_nil();
+
+  cut_assert_true(scm_capi_nil_p(nil));
+}
+
+void
+test_scm_nil_p_2(void)
+{
+  ScmObj eof = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&eof);
+
+  eof = scm_api_eof();
+
+  cut_assert_false(scm_capi_nil_p(eof));
+}
+
+void
+test_scm_nil_p_3(void)
+{
+  cut_assert_false(scm_capi_nil_p(SCM_OBJ_NULL));
 }

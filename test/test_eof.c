@@ -21,14 +21,31 @@ cut_shutdown(void)
 }
 
 void
-test_scm_eof_new(void)
+test_scm_eof_object_p_1(void)
 {
   ScmObj eof = SCM_OBJ_NULL;
 
   SCM_STACK_FRAME_PUSH(&eof);
 
-  eof = scm_eof_new(SCM_MEM_HEAP);
+  eof = scm_api_eof();
 
-  cut_assert_true(scm_obj_not_null_p(eof));
-  cut_assert_true(scm_obj_type_p(eof, &SCM_EOF_TYPE_INFO));
+  cut_assert_true(scm_capi_eof_object_p(eof));
+}
+
+void
+test_scm_eof_object_p_2(void)
+{
+  ScmObj nil = SCM_OBJ_NULL;
+
+  SCM_STACK_FRAME_PUSH(&nil);
+
+  nil = scm_api_nil();
+
+  cut_assert_false(scm_capi_eof_object_p(nil));
+}
+
+void
+test_scm_eof_object_p_3(void)
+{
+  cut_assert_false(scm_capi_eof_object_p(SCM_OBJ_NULL));
 }
