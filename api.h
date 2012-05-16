@@ -156,6 +156,26 @@ bool scm_capi_fixnum_p(ScmObj obj);
 int scm_capi_fixnum_to_sword(ScmObj fn, scm_sword_t *w);
 bool scm_capi_bignum_p(ScmObj obj);
 
+int scm_capi_num_eq(ScmObj n1, ScmObj n2, bool *rslt);
+int scm_capi_num_eq_ary(size_t argc, ScmObj *argv, bool *rslt);
+int scm_capi_num_eq_v(bool *rslt, size_t n, ...);
+
+int scm_capi_num_lt(ScmObj n1, ScmObj n2, bool *rslt);
+int scm_capi_num_lt_ary(size_t argc, ScmObj *argv, bool *rslt);
+int scm_capi_num_lt_v(bool *rslt, size_t n, ...);
+
+int scm_capi_num_gt(ScmObj n1, ScmObj n2, bool *rslt);
+int scm_capi_num_gt_ary(size_t argc, ScmObj *argv, bool *rslt);
+int scm_capi_num_gt_v(bool *rslt, size_t n, ...);
+
+int scm_capi_num_le(ScmObj n1, ScmObj n2, bool *rslt);
+int scm_capi_num_le_ary(size_t argc, ScmObj *argv, bool *rslt);
+int scm_capi_num_le_v(bool *rslt, size_t n, ...);
+
+int scm_capi_num_ge(ScmObj n1, ScmObj n2, bool *rslt);
+int scm_capi_num_ge_ary(size_t argc, ScmObj *argv, bool *rslt);
+int scm_capi_num_ge_v(bool *rslt, size_t n, ...);
+
 ScmObj scm_api_plus(ScmObj x, ScmObj y);
 ScmObj scm_capi_plus_ary(size_t argc, ScmObj *argv);
 ScmObj scm_capi_plus_v(size_t n, ...);

@@ -524,6 +524,310 @@ scm_capi_bignum_p(ScmObj obj)
   return scm_obj_type_p(obj, &SCM_BIGNUM_TYPE_INFO) ? true : false;
 }
 
+static int
+scm_capi_num_cop_fold(const char *op, int (*func)(ScmObj x, ScmObj y, bool *r),
+                      size_t argc, ScmObj *argv, bool *rslt)
+{
+  bool cmp;
+  int err;
+  char err_msg[64];
+
+  if (argc <= 1) {
+    snprintf(err_msg, sizeof(err_msg), "%s: too few arguments", op);
+    scm_capi_error(err_msg, 0);
+    return -1;
+  }
+
+  if (argv == NULL) {
+    snprintf(err_msg, sizeof(err_msg), "%s: invalid argument", op);
+    scm_capi_error(err_msg, 0);
+    return -1;
+  }
+
+  if (rslt != NULL) {
+    *rslt = true;
+    for (size_t i = 1; i < argc; i++) {
+      err = func(argv[i - 1], argv[i], &cmp);
+      if (err < 0) return -1;
+
+      if (!cmp) {
+        *rslt = false;
+        return 0;
+      }
+    }
+  }
+
+  return 0;
+}
+
+static int
+scm_capi_num_cop_va(const char *op,
+                    int (*func)(size_t argc, ScmObj *argv, bool *r),
+                    size_t n, va_list ap, bool *rslt)
+{
+  ScmObj ary[n];
+  char err_msg[64];
+
+  SCM_STACK_FRAME;
+
+  scm_assert(op != NULL);
+
+  if (n == 0) {
+    snprintf(err_msg, sizeof(err_msg), "%s: too few arguments", op);
+    scm_capi_error(err_msg, 0);
+    return SCM_OBJ_NULL;
+  }
+
+  for (size_t i = 0; i < n; i++) {
+    ary[i] = va_arg(ap, ScmObj);
+    SCM_STACK_PUSH(ary + i);
+  }
+
+  return func(n, ary, rslt);
+}
+
+
+int
+scm_capi_num_eq(ScmObj n1, ScmObj n2, bool *rslt)
+{
+  int err, cmp;
+
+  if (scm_obj_null_p(n1) || scm_obj_null_p(n2)) {
+    scm_capi_error("=: invalid argument", 0);
+    return -1;
+  }
+
+  if (!scm_capi_number_p(n1)) {
+    scm_capi_error("=: number required, but got", 1, n1);
+    return -1;
+  }
+
+  if (!scm_capi_number_p(n2)) {
+    scm_capi_error("=: number required, but got", 1, n2);
+    return -1;
+  }
+
+  err = SCM_NUM_CALL_VFUNC(n1, cmp, n2, &cmp);
+  if (err < 0) return -1;
+
+  if (rslt != NULL)
+    *rslt = (cmp == 0) ? true : false;
+
+  return 0;
+}
+
+int
+scm_capi_num_eq_ary(size_t argc, ScmObj *argv, bool *rslt)
+{
+  return scm_capi_num_cop_fold("=", scm_capi_num_eq, argc, argv, rslt);
+}
+
+int
+scm_capi_num_eq_v(bool *rslt, size_t n, ...)
+{
+  int err;
+  va_list ap;
+
+  va_start(ap, n);
+  err = scm_capi_num_cop_va("=", scm_capi_num_eq_ary, n, ap, rslt);
+  va_end(ap);
+
+  return err;
+}
+
+int
+scm_capi_num_lt(ScmObj n1, ScmObj n2, bool *rslt)
+{
+  int err, cmp;
+
+  if (scm_obj_null_p(n1) || scm_obj_null_p(n2)) {
+    scm_capi_error("<: invalid argument", 0);
+    return -1;
+  }
+
+  if (!scm_capi_number_p(n1)) {
+    scm_capi_error("<: number required, but got", 1, n1);
+    return -1;
+  }
+
+  if (!scm_capi_number_p(n2)) {
+    scm_capi_error("<: number required, but got", 1, n2);
+    return -1;
+  }
+
+  err = SCM_NUM_CALL_VFUNC(n1, cmp, n2, &cmp);
+  if (err < 0) return -1;
+
+  if (rslt != NULL)
+    *rslt = (cmp < 0) ? true : false;
+
+  return 0;
+}
+
+int
+scm_capi_num_lt_ary(size_t argc, ScmObj *argv, bool *rslt)
+{
+  return scm_capi_num_cop_fold("<", scm_capi_num_lt, argc, argv, rslt);
+}
+
+int
+scm_capi_num_lt_v(bool *rslt, size_t n, ...)
+{
+  int err;
+  va_list ap;
+
+  va_start(ap, n);
+  err = scm_capi_num_cop_va("<", scm_capi_num_lt_ary, n, ap, rslt);
+  va_end(ap);
+
+  return err;
+}
+
+int
+scm_capi_num_gt(ScmObj n1, ScmObj n2, bool *rslt)
+{
+  int err, cmp;
+
+  if (scm_obj_null_p(n1) || scm_obj_null_p(n2)) {
+    scm_capi_error(">: invalid argument", 0);
+    return -1;
+  }
+
+  if (!scm_capi_number_p(n1)) {
+    scm_capi_error(">: number required, but got", 1, n1);
+    return -1;
+  }
+
+  if (!scm_capi_number_p(n2)) {
+    scm_capi_error(">: number required, but got", 1, n2);
+    return -1;
+  }
+
+  err = SCM_NUM_CALL_VFUNC(n1, cmp, n2, &cmp);
+  if (err < 0) return -1;
+
+  if (rslt != NULL)
+    *rslt = (cmp > 0) ? true : false;
+
+  return 0;
+}
+
+int
+scm_capi_num_gt_ary(size_t argc, ScmObj *argv, bool *rslt)
+{
+  return scm_capi_num_cop_fold(">", scm_capi_num_gt, argc, argv, rslt);
+}
+
+int
+scm_capi_num_gt_v(bool *rslt, size_t n, ...)
+{
+  int err;
+  va_list ap;
+
+  va_start(ap, n);
+  err = scm_capi_num_cop_va(">", scm_capi_num_gt_ary, n, ap, rslt);
+  va_end(ap);
+
+  return err;
+}
+
+
+int
+scm_capi_num_le(ScmObj n1, ScmObj n2, bool *rslt)
+{
+  int err, cmp;
+
+  if (scm_obj_null_p(n1) || scm_obj_null_p(n2)) {
+    scm_capi_error("<=: invalid argument", 0);
+    return -1;
+  }
+
+  if (!scm_capi_number_p(n1)) {
+    scm_capi_error("<=: number required, but got", 1, n1);
+    return -1;
+  }
+
+  if (!scm_capi_number_p(n2)) {
+    scm_capi_error("<=: number required, but got", 1, n2);
+    return -1;
+  }
+
+  err = SCM_NUM_CALL_VFUNC(n1, cmp, n2, &cmp);
+  if (err < 0) return -1;
+
+  if (rslt != NULL)
+    *rslt = (cmp <= 0) ? true : false;
+
+  return 0;
+}
+
+int
+scm_capi_num_le_ary(size_t argc, ScmObj *argv, bool *rslt)
+{
+  return scm_capi_num_cop_fold("<=", scm_capi_num_le, argc, argv, rslt);
+}
+
+int
+scm_capi_num_le_v(bool *rslt, size_t n, ...)
+{
+  int err;
+  va_list ap;
+
+  va_start(ap, n);
+  err = scm_capi_num_cop_va("<=", scm_capi_num_le_ary, n, ap, rslt);
+  va_end(ap);
+
+  return err;
+}
+
+int
+scm_capi_num_ge(ScmObj n1, ScmObj n2, bool *rslt)
+{
+  int err, cmp;
+
+  if (scm_obj_null_p(n1) || scm_obj_null_p(n2)) {
+    scm_capi_error(">=: invalid argument", 0);
+    return -1;
+  }
+
+  if (!scm_capi_number_p(n1)) {
+    scm_capi_error(">=: number required, but got", 1, n1);
+    return -1;
+  }
+
+  if (!scm_capi_number_p(n2)) {
+    scm_capi_error(">=: number required, but got", 1, n2);
+    return -1;
+  }
+
+  err = SCM_NUM_CALL_VFUNC(n1, cmp, n2, &cmp);
+  if (err < 0) return -1;
+
+  if (rslt != NULL)
+    *rslt = (cmp >= 0) ? true : false;
+
+  return 0;
+}
+
+int
+scm_capi_num_ge_ary(size_t argc, ScmObj *argv, bool *rslt)
+{
+  return scm_capi_num_cop_fold(">=", scm_capi_num_ge, argc, argv, rslt);
+}
+
+int
+scm_capi_num_ge_v(bool *rslt, size_t n, ...)
+{
+  int err;
+  va_list ap;
+
+  va_start(ap, n);
+  err = scm_capi_num_cop_va(">=", scm_capi_num_ge_ary, n, ap, rslt);
+  va_end(ap);
+
+  return err;
+}
+
 static ScmObj
 scm_capi_num_bop_fold(const char *op, ScmObj (*func)(ScmObj x, ScmObj y),
                       ScmObj ini, size_t argc, ScmObj *argv)
