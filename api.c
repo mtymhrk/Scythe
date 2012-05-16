@@ -1051,6 +1051,249 @@ scm_capi_mul_v(size_t n, ...)
   return rslt;
 }
 
+int
+scm_capi_floor_div(ScmObj x, ScmObj y, scm_csetter_t *q, scm_csetter_t *r)
+{
+  SCM_STACK_FRAME_PUSH(&x, &y);
+
+  if (scm_obj_null_p(x) || scm_obj_null_p(y)) {
+    scm_capi_error("floor/: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  if (!scm_capi_integer_p(x)) {
+    scm_capi_error("floor/: integer required, but got", 1, x);
+    return SCM_OBJ_NULL;
+  }
+
+  if (!scm_capi_integer_p(y)) {
+    scm_capi_error("floor/: integer required, but got", 1, y);
+    return SCM_OBJ_NULL;
+  }
+
+  return SCM_NUM_CALL_VFUNC(x, floor_div, y, q, r);
+}
+
+ScmObj
+scm_capi_floor_quo(ScmObj x, ScmObj y)
+{
+  ScmObj q = SCM_OBJ_INIT;
+  int rslt;
+
+  SCM_STACK_FRAME_PUSH(&x, &y, &q);
+
+  if (scm_obj_null_p(x) || scm_obj_null_p(y)) {
+    scm_capi_error("floor-quotient: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  if (!scm_capi_integer_p(x)) {
+    scm_capi_error("floor-quotient: integer required, but got", 1, x);
+    return SCM_OBJ_NULL;
+  }
+
+  if (!scm_capi_integer_p(y)) {
+    scm_capi_error("floor-quotient: integer required, but got", 1, y);
+    return SCM_OBJ_NULL;
+  }
+
+  rslt = SCM_NUM_CALL_VFUNC(x, floor_div, y, SCM_CSETTER_L(q), NULL);
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  return q;
+}
+
+ScmObj
+scm_capi_floor_rem(ScmObj x, ScmObj y)
+{
+  ScmObj r = SCM_OBJ_INIT;
+  int rslt;
+
+  SCM_STACK_FRAME_PUSH(&x, &y, &r);
+
+  if (scm_obj_null_p(x) || scm_obj_null_p(y)) {
+    scm_capi_error("floor-remainder: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  if (!scm_capi_integer_p(x)) {
+    scm_capi_error("floor-remainder: integer required, but got", 1, x);
+    return SCM_OBJ_NULL;
+  }
+
+  if (!scm_capi_integer_p(y)) {
+    scm_capi_error("floor-remainder: integer required, but got", 1, y);
+    return SCM_OBJ_NULL;
+  }
+
+  rslt = SCM_NUM_CALL_VFUNC(x, floor_div, y, NULL, SCM_CSETTER_L(r));
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  return r;
+}
+
+int
+scm_capi_ceiling_div(ScmObj x, ScmObj y, scm_csetter_t *q, scm_csetter_t *r)
+{
+  SCM_STACK_FRAME_PUSH(&x, &y);
+
+  if (scm_obj_null_p(x) || scm_obj_null_p(y)) {
+    scm_capi_error("ceiling/: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  if (!scm_capi_integer_p(x)) {
+    scm_capi_error("ceiling/: integer required, but got", 1, x);
+    return SCM_OBJ_NULL;
+  }
+
+  if (!scm_capi_integer_p(y)) {
+    scm_capi_error("fceiling/: integer required, but got", 1, y);
+    return SCM_OBJ_NULL;
+  }
+
+  return SCM_NUM_CALL_VFUNC(x, ceiling_div, y, q, r);
+}
+
+ScmObj
+scm_capi_ceiling_quo(ScmObj x, ScmObj y)
+{
+  ScmObj q = SCM_OBJ_INIT;
+  int rslt;
+
+  SCM_STACK_FRAME_PUSH(&x, &y, &q);
+
+  if (scm_obj_null_p(x) || scm_obj_null_p(y)) {
+    scm_capi_error("ceiling-quotient: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  if (!scm_capi_number_p(x)) {
+    scm_capi_error("ceiling-quotient: number required, but got", 1, x);
+    return SCM_OBJ_NULL;
+  }
+
+  if (!scm_capi_number_p(y)) {
+    scm_capi_error("ceiling-quotient: number required, but got", 1, y);
+    return SCM_OBJ_NULL;
+  }
+
+  rslt = SCM_NUM_CALL_VFUNC(x, ceiling_div, y, SCM_CSETTER_L(q), NULL);
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  return q;
+}
+
+ScmObj
+scm_capi_ceiling_rem(ScmObj x, ScmObj y)
+{
+  ScmObj r = SCM_OBJ_INIT;
+  int rslt;
+
+  SCM_STACK_FRAME_PUSH(&x, &y, &r);
+
+  if (scm_obj_null_p(x) || scm_obj_null_p(y)) {
+    scm_capi_error("ceiling-remainder: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  if (!scm_capi_integer_p(x)) {
+    scm_capi_error("ceiling-remainder: integer required, but got", 1, x);
+    return SCM_OBJ_NULL;
+  }
+
+  if (!scm_capi_integer_p(y)) {
+    scm_capi_error("ceiling-remainder: integer required, but got", 1, y);
+    return SCM_OBJ_NULL;
+  }
+
+  rslt = SCM_NUM_CALL_VFUNC(x, ceiling_div, y, NULL, SCM_CSETTER_L(r));
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  return r;
+}
+
+int
+scm_capi_truncate_div(ScmObj x, ScmObj y, scm_csetter_t *q, scm_csetter_t *r)
+{
+  SCM_STACK_FRAME_PUSH(&x, &y);
+
+  if (scm_obj_null_p(x) || scm_obj_null_p(y)) {
+    scm_capi_error("truncate/: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  if (!scm_capi_integer_p(x)) {
+    scm_capi_error("truncate/: integer required, but got", 1, x);
+    return SCM_OBJ_NULL;
+  }
+
+  if (!scm_capi_integer_p(y)) {
+    scm_capi_error("truncate/: integer required, but got", 1, y);
+    return SCM_OBJ_NULL;
+  }
+
+  return SCM_NUM_CALL_VFUNC(x, truncate_div, y, q, r);
+}
+
+ScmObj
+scm_capi_truncate_quo(ScmObj x, ScmObj y)
+{
+  ScmObj q = SCM_OBJ_INIT;
+  int rslt;
+
+  SCM_STACK_FRAME_PUSH(&x, &y, &q);
+
+  if (scm_obj_null_p(x) || scm_obj_null_p(y)) {
+    scm_capi_error("truncate-quotient: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  if (!scm_capi_number_p(x)) {
+    scm_capi_error("truncate-quotient: number required, but got", 1, x);
+    return SCM_OBJ_NULL;
+  }
+
+  if (!scm_capi_number_p(y)) {
+    scm_capi_error("truncate-quotient: number required, but got", 1, y);
+    return SCM_OBJ_NULL;
+  }
+
+  rslt = SCM_NUM_CALL_VFUNC(x, truncate_div, y, SCM_CSETTER_L(q), NULL);
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  return q;
+}
+
+ScmObj
+scm_capi_truncate_rem(ScmObj x, ScmObj y)
+{
+  ScmObj r = SCM_OBJ_INIT;
+  int rslt;
+
+  SCM_STACK_FRAME_PUSH(&x, &y, &r);
+
+  if (scm_obj_null_p(x) || scm_obj_null_p(y)) {
+    scm_capi_error("truncate-remainder: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  if (!scm_capi_integer_p(x)) {
+    scm_capi_error("truncate-remainder: integer required, but got", 1, x);
+    return SCM_OBJ_NULL;
+  }
+
+  if (!scm_capi_integer_p(y)) {
+    scm_capi_error("truncate-remainder: integer required, but got", 1, y);
+    return SCM_OBJ_NULL;
+  }
+
+  rslt = SCM_NUM_CALL_VFUNC(x, truncate_div, y, NULL, SCM_CSETTER_L(r));
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  return r;
+}
+
 
 /*******************************************************************/
 /*  charactor                                                      */

@@ -192,6 +192,20 @@ ScmObj scm_api_mul(ScmObj x, ScmObj y);
 ScmObj scm_capi_mul_ary(size_t argc, ScmObj *argv);
 ScmObj scm_capi_mul_v(size_t n, ...);
 
+int scm_capi_floor_div(ScmObj x, ScmObj y, scm_csetter_t *q, scm_csetter_t *r);
+ScmObj scm_capi_floor_quo(ScmObj x, ScmObj y);
+ScmObj scm_capi_floor_rem(ScmObj x, ScmObj y);
+
+int scm_capi_ceiling_div(ScmObj x, ScmObj y,
+                         scm_csetter_t *q, scm_csetter_t *r);
+ScmObj scm_capi_ceiling_quo(ScmObj x, ScmObj y);
+ScmObj scm_capi_ceiling_rem(ScmObj x, ScmObj y);
+
+int scm_capi_truncate_div(ScmObj x, ScmObj y,
+                          scm_csetter_t *q, scm_csetter_t *r);
+ScmObj scm_capi_truncate_quo(ScmObj x, ScmObj y);
+ScmObj scm_capi_truncate_rem(ScmObj x, ScmObj y);
+
 inline ScmObj
 scm_capi_frame_ptr_to_fixnum(void *ptr)
 {
