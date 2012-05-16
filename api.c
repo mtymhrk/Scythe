@@ -586,12 +586,12 @@ scm_api_plus(ScmObj x, ScmObj y)
     return SCM_OBJ_NULL;
   }
 
-  if (scm_capi_number_p(x)) {
+  if (!scm_capi_number_p(x)) {
     scm_capi_error("+: number required, but got", 1, x);
     return SCM_OBJ_NULL;
   }
 
-  if (scm_capi_number_p(y)) {
+  if (!scm_capi_number_p(y)) {
     scm_capi_error("+: number required, but got", 1, y);
     return SCM_OBJ_NULL;
   }
@@ -639,12 +639,12 @@ scm_api_minus(ScmObj x, ScmObj y)
     return SCM_OBJ_NULL;
   }
 
-  if (scm_capi_number_p(x)) {
+  if (!scm_capi_number_p(x)) {
     scm_capi_error("-: number required, but got", 1, x);
     return SCM_OBJ_NULL;
   }
 
-  if (scm_capi_number_p(y)) {
+  if (!scm_capi_number_p(y)) {
     scm_capi_error("-: number required, but got", 1, y);
     return SCM_OBJ_NULL;
   }
@@ -696,12 +696,12 @@ scm_api_mul(ScmObj x, ScmObj y)
     return SCM_OBJ_NULL;
   }
 
-  if (scm_capi_number_p(x)) {
+  if (!scm_capi_number_p(x)) {
     scm_capi_error("*: number required, but got", 1, x);
     return SCM_OBJ_NULL;
   }
 
-  if (scm_capi_number_p(y)) {
+  if (!scm_capi_number_p(y)) {
     scm_capi_error("*: number required, but got", 1, y);
     return SCM_OBJ_NULL;
   }
