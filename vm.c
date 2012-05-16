@@ -1288,6 +1288,25 @@ scm_vm_setup_stat_raised(ScmObj vm, ScmObj obj)
 }
 
 int
+scm_vm_clear_stat_raised(ScmObj vm)
+{
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  SCM_VM(vm)->ge.excpt.raised = SCM_OBJ_NULL;
+  scm_vm_ctrl_flg_clr(vm, SCM_VM_CTRL_FLG_RAISE);
+
+  return 0;
+}
+
+bool
+scm_vm_raised_p(ScmObj vm)
+{
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  return scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_RAISE);
+}
+
+int
 scm_vm_push_exception_handler(ScmObj vm, ScmObj hndlr)
 {
   ScmObj lst = SCM_OBJ_INIT;

@@ -127,6 +127,8 @@ bool scm_capi_undef_object_p(ScmObj obj);
 
 int scm_capi_raise(ScmObj obj);
 ScmObj scm_api_raise(ScmObj obj);
+bool scm_capi_raised_p(void);
+int scm_capi_unraise(void);
 int scm_capi_error(const char *msg, size_t n, ...);
 ScmObj scm_api_error_ary(ScmObj msg, size_t n, ScmObj *irris);
 bool scm_capi_error_object_p(ScmObj obj);

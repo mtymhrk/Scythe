@@ -287,6 +287,18 @@ scm_api_raise(ScmObj obj)
   return (scm_capi_raise(obj) < 0) ? SCM_OBJ_NULL : scm_api_undef();
 }
 
+extern inline bool
+scm_capi_raised_p(void)
+{
+  return scm_vm_raised_p(scm_vm_current_vm());
+}
+
+extern inline int
+scm_capi_unraise(void)
+{
+  return scm_vm_clear_stat_raised(scm_vm_current_vm());
+}
+
 int
 scm_capi_error(const char *msg, size_t n, ...)
 {
@@ -338,7 +350,6 @@ scm_capi_error_object_p(ScmObj obj)
   if (scm_obj_null_p(obj)) return false;
   return scm_obj_type_p(obj, &SCM_EXCEPTION_TYPE_INFO);
 }
-
 
 /*******************************************************************/
 /*  List and Pair                                                  */

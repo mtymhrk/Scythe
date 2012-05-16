@@ -212,6 +212,8 @@ int scm_vm_setup_stat_trmp(ScmObj vm, ScmObj target,
                            ScmObj (*callback)(int argc, ScmObj *argv));
 void scm_vm_setup_stat_halt(ScmObj vm);
 int scm_vm_setup_stat_raised(ScmObj vm, ScmObj obj);
+int scm_vm_clear_stat_raised(ScmObj vm);
+bool scm_vm_raised_p(ScmObj vm);
 int scm_vm_push_exception_handler(ScmObj vm, ScmObj hndlr);
 
 void scm_vm_gc_initialize(ScmObj obj, ScmObj mem);
