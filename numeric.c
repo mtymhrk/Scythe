@@ -1487,7 +1487,7 @@ scm_bignum_mul(ScmObj mud, ScmObj mur)
     }
   }
 
-  if (SCM_BIGNUM(mud)->sign == SCM_BIGNUM(mud)->sign)
+  if (SCM_BIGNUM(mud)->sign == SCM_BIGNUM(mur)->sign)
     sign = '+';
   else
     sign = '-';
