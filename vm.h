@@ -4,8 +4,10 @@
 #include <stdint.h>
 
 typedef struct ScmBedrockRec ScmBedrock;
+typedef struct ScmBoxRec ScmBox;
 typedef struct ScmVMRec ScmVM;
 
+#define SCM_BOX(obj) ((ScmBox *)(obj))
 #define SCM_VM(obj) ((ScmVM *)(obj))
 
 #include "object.h"
@@ -77,6 +79,37 @@ scm_bedrock_encoding(ScmBedrock *br)
 {
   scm_assert(br != NULL);
   return br->encoding;
+}
+
+
+/***************************************************************************/
+/*  ScmBox                                                                 */
+/***************************************************************************/
+
+extern ScmTypeInfo SCM_BOX_TYPE_INFO;
+
+struct ScmBoxRec {
+  ScmObjHeader header;
+  ScmObj obj;
+};
+
+void scm_box_gc_initialize(ScmObj obj, ScmObj mem);
+int scm_box_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
+
+inline ScmObj
+scm_box_unbox(ScmObj box)
+{
+  scm_assert_obj_type(box, &SCM_BOX_TYPE_INFO);
+  return SCM_BOX(box)->obj;
+}
+
+inline void
+scm_box_update(ScmObj box, ScmObj obj)
+{
+  scm_assert_obj_type(box, &SCM_BOX_TYPE_INFO);
+  scm_assert(scm_obj_not_null_p(obj));
+
+  SCM_SLOT_SETQ(ScmBox, box, obj, obj);
 }
 
 

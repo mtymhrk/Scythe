@@ -156,6 +156,70 @@ scm_bedrock_error_p(ScmBedrock *br)
 
 
 /***************************************************************************/
+/*  ScmBox                                                                 */
+/***************************************************************************/
+
+ScmTypeInfo SCM_BOX_TYPE_INFO = {
+  .name                = "box",
+  .flags               = SCM_TYPE_FLG_MMO,
+  .pp_func             = NULL,
+  .obj_size            = sizeof(ScmBox),
+  .gc_ini_func         = scm_box_gc_initialize,
+  .gc_fin_func         = NULL,
+  .gc_accept_func      = scm_box_gc_accept,
+  .gc_accept_func_weak = NULL,
+  .extra               = NULL,
+};
+
+int
+scm_box_initialize(ScmObj box, ScmObj obj)
+{
+  scm_assert_obj_type(box, &SCM_BOX_TYPE_INFO);
+  scm_assert(scm_obj_not_null_p(obj));
+
+  SCM_SLOT_SETQ(ScmBox, box, obj, obj);
+
+  return 0;
+}
+
+ScmObj
+scm_box_new(SCM_MEM_TYPE_T mtype, ScmObj obj)
+{
+  ScmObj box = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&obj, &box);
+
+  scm_assert(scm_obj_not_null_p(obj));
+
+  box = scm_capi_mem_alloc(&SCM_BOX_TYPE_INFO, mtype);
+  if (scm_obj_null_p(box)) return SCM_OBJ_NULL;
+
+  if (scm_box_initialize(box, obj) < 0)
+    return SCM_OBJ_NULL;
+
+  return box;
+}
+
+void
+scm_box_gc_initialize(ScmObj obj, ScmObj mem)
+{
+  scm_assert_obj_type(obj, &SCM_BOX_TYPE_INFO);
+  scm_assert(scm_obj_not_null_p(mem));
+
+  SCM_BOX(obj)->obj = SCM_OBJ_NULL;
+}
+
+int
+scm_box_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
+{
+  scm_assert_obj_type(obj, &SCM_BOX_TYPE_INFO);
+  scm_assert(scm_obj_not_null_p(mem));
+
+  return SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_BOX(obj)->obj, mem);
+}
+
+
+/***************************************************************************/
 /*  ScmVM                                                                  */
 /***************************************************************************/
 
