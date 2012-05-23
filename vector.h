@@ -8,6 +8,7 @@ typedef struct ScmVectorRec ScmVector;
 #define SCM_VECTOR(obj) ((ScmVector *)(obj))
 
 #include "object.h"
+#include "api_enum.h"
 
 extern ScmTypeInfo SCM_VECTOR_TYPE_INFO;
 

@@ -10,7 +10,8 @@ typedef struct ScmClosureRec ScmClosure;
 #define SCM_CLOSURE(obj) ((ScmClosure *)(obj))
 
 #include "object.h"
-#include "api.h"
+#include "api_enum.h"
+
 
 /*******************************************************************/
 /*  Subrutine                                                      */

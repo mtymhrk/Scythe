@@ -9,7 +9,7 @@ typedef struct ScmCharRec ScmChar;
 
 #include "object.h"
 #include "encoding.h"
-#include "api.h"
+#include "api_enum.h"
 
 extern ScmTypeInfo SCM_CHAR_TYPE_INFO;
 

@@ -9,7 +9,7 @@ typedef struct ScmISeqRec ScmISeq;
 #define SCM_ISEQ(obj) ((ScmISeq *)(obj))
 
 #include "object.h"
-#include "api.h"
+#include "api_enum.h"
 #include "earray.h"
 
 #define SCM_ISEQ_DEFAULT_SEQ_SIZE 32

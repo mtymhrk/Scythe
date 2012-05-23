@@ -7,6 +7,7 @@ typedef struct ScmNumVFuncRec ScmNumVFunc;
 #define SCM_BIGNUM(obj) ((ScmBignum *)(obj))
 
 #include "object.h"
+#include "api_enum.h"
 #include "earray.h"
 #include "impl_utils.h"
 

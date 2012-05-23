@@ -9,6 +9,7 @@ typedef struct ScmExceptionRec ScmException;
 #define SCM_EXCEPTION(obj) ((ScmException *)(obj))
 
 #include "object.h"
+#include "api_enum.h"
 
 struct ScmExceptionRec {
   ScmObjHeader header;

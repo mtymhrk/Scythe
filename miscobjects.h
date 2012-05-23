@@ -12,7 +12,7 @@ typedef struct ScmUndefRec ScmUndef;
 #define SCM_UNDEF(obj) ((ScmUndef *)(obj))
 
 #include "object.h"
-#include "api.h"
+#include "api_enum.h"
 
 
 /*******************************************************/

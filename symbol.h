@@ -12,7 +12,7 @@ typedef struct ScmSymTblRec ScmSymTbl;
 #define SCM_SYMTBL(obj) ((ScmSymTbl *)(obj))
 
 #include "object.h"
-#include "api.h"
+#include "api_enum.h"
 #include "chashtbl.h"
 
 extern ScmTypeInfo SCM_SYMBOL_TYPE_INFO;

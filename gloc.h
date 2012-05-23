@@ -10,7 +10,7 @@ typedef struct ScmGLocTblRec ScmGLocTbl;
 #define SCM_GLOCTBL(obj) ((ScmGLocTbl *)(obj))
 
 #include "object.h"
-#include "api.h"
+#include "api_enum.h"
 #include "chashtbl.h"
 
 extern ScmTypeInfo SCM_GLOC_TYPE_INFO;
