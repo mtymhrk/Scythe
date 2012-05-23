@@ -7,12 +7,6 @@
 #include "object.h"
 #include "earray.h"
 
-/* pseudo-instructions */
-enum {
-  SCM_ASM_PI_LABEL = 0x10000000,  /* define a label */
-  SCM_ASM_PI_ASM,                 /* make ScmISeq object and set it to VAL register */
-};
-
 #define SCM_ISEQ_LABEL_NAME_MAX 256
 
 typedef struct {

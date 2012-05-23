@@ -47,7 +47,7 @@ typedef enum {
 /*******************************************************************/
 
 typedef enum {
-  SCM_OPCODE_NOP,                 /* 0: no operation */
+  SCM_OPCODE_NOP = 0x0000,        /* 0: no operation */
   SCM_OPCODE_HALT,                /* 1:stop calculation */
   SCM_OPCODE_CALL,                /* 2: function call */
   SCM_OPCODE_TAIL_CALL,           /* 3: function tail call */
@@ -63,6 +63,18 @@ typedef enum {
   SCM_OPCODE_JMP,                  /* 11: jump */
   SCM_OPCODE_RAISE                 /* 12: exception handler */
 } SCM_OPCODE_T;
+
+
+/*******************************************************************/
+/*  Assembler Pseudo-Instructions                                  */
+/*******************************************************************/
+
+enum {
+  SCM_ASM_PI_LABEL = 0x10000,  /* define a label */
+  SCM_ASM_PI_ASM,              /* make ScmISeq object
+                                  and set it to VAL register */
+};
+
 
 
 #endif /* INCLUDE_API_CONST_H__ */
