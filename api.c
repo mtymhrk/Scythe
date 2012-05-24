@@ -1832,6 +1832,8 @@ scm_capi_symbol_hash_value(ScmObj sym)
 int
 scm_capi_symbol_cmp(ScmObj s1, ScmObj s2, int *rslt)
 {
+  int r;
+
   if (scm_obj_null_p(s1) || scm_obj_null_p(s2)) {
     scm_capi_error("can not compare symbols: invalid argument", 0);
     return -1;
@@ -1845,10 +1847,12 @@ scm_capi_symbol_cmp(ScmObj s1, ScmObj s2, int *rslt)
     return -1;
   }
 
-  if (rslt != NULL)
-    *rslt = scm_symbol_cmp(s1, s2);
+  r = scm_symbol_cmp(s1, s2, rslt);
 
-  return 0;
+  if (r == 0 && rslt != NULL)
+    scm_assert(scm_obj_same_instance_p(s1, s2) || *rslt != 0);
+
+  return r;
 }
 
 
