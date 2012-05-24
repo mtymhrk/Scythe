@@ -82,12 +82,17 @@ scm_symbol_hash_value(ScmObj sym)
 }
 
 int
-scm_symbol_cmp(ScmObj s1, ScmObj s2, int *rslt)
+scm_symbol_cmp(ScmObj s1, ScmObj s2)
 {
   scm_assert_obj_type(s1, &SCM_SYMBOL_TYPE_INFO);
   scm_assert_obj_type(s1, &SCM_SYMBOL_TYPE_INFO);
 
-  return scm_string_cmp(SCM_SYMBOL_STR(s1), SCM_SYMBOL_STR(s2), rslt);
+  if (s1 < s2)
+    return -1;
+  else if (s1 > s2)
+    return 1;
+  else
+    return 0;
 }
 
 int

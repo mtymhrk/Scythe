@@ -1845,7 +1845,10 @@ scm_capi_symbol_cmp(ScmObj s1, ScmObj s2, int *rslt)
     return -1;
   }
 
-  return scm_symbol_cmp(s1, s2, rslt);
+  if (rslt != NULL)
+    *rslt = scm_symbol_cmp(s1, s2);
+
+  return 0;
 }
 
 
