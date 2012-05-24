@@ -765,6 +765,41 @@ scm_string_match(ScmObj str, ScmObj pat) /* GC OK */
   return -1;
 }
 
+int
+scm_string_cmp(ScmObj s1, ScmObj s2, int *rslt)
+{
+  int r;
+
+  scm_assert_obj_type(s1, &SCM_STRING_TYPE_INFO);
+  scm_assert_obj_type(s2, &SCM_STRING_TYPE_INFO);
+  scm_assert(SCM_STRING_ENC(s1) == SCM_STRING_ENC(s2));
+
+  r = 0;
+  for (size_t i = 0;
+       i < SCM_STRING_BYTESIZE(s1) && SCM_STRING_BYTESIZE(s2);
+       i++) {
+    if (SCM_STRING_BYTE_AT(s1, i) < SCM_STRING_BYTE_AT(s2, i)) {
+      r = -1;
+      break;
+    }
+    else if (SCM_STRING_BYTE_AT(s1, i) > SCM_STRING_BYTE_AT(s2, i)) {
+      r = 1;
+      break;
+    }
+  }
+
+  if (r == 0) {
+    if (SCM_STRING_BYTESIZE(s1) < SCM_STRING_BYTESIZE(s2))
+      r = -1;
+    else if (SCM_STRING_BYTESIZE(s1) > SCM_STRING_BYTESIZE(s2))
+      r = 1;
+  }
+
+  if (rslt != NULL) *rslt = r;
+
+  return 0;
+}
+
 ssize_t
 scm_string_dump(ScmObj str, void *buf, size_t size) /* GC OK */
 {

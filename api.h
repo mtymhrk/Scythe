@@ -264,6 +264,7 @@ int scm_capi_string_encoding(ScmObj str, SCM_ENC_T *enc);
 ssize_t scm_capi_string_to_cstr(ScmObj str, char *cstr, size_t size);
 int scm_capi_string_push(ScmObj str, scm_char_t chr, SCM_ENC_T enc);
 ScmObj scm_api_string_push(ScmObj str, ScmObj c);
+int scm_capi_string_cmp(ScmObj s1, ScmObj s2, int *rslt);
 
 
 /*******************************************************************/

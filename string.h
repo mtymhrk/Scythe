@@ -55,6 +55,7 @@ ScmObj scm_string_set(ScmObj str, size_t pos, const scm_char_t c);
 ScmObj scm_string_fill(ScmObj str, size_t pos, size_t len, scm_char_t c);
 ssize_t scm_string_find_chr(ScmObj str, scm_char_t c);
 ssize_t scm_string_match(ScmObj str, ScmObj pat);
+int scm_string_cmp(ScmObj s1, ScmObj s2, int *rslt);
 ssize_t scm_string_dump(ScmObj str, void *buf, size_t size);
 SCM_ENC_T scm_string_encoding(ScmObj str);
 void *scm_string_content(ScmObj str);
