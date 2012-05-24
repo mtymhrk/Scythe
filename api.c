@@ -1605,19 +1605,19 @@ int
 scm_capi_string_cmp(ScmObj s1, ScmObj s2, int *rslt)
 {
   if (scm_obj_null_p(s1) || scm_obj_null_p(s2)) {
-    scm_capi_error("can not compare string: invalid argument", 0);
+    scm_capi_error("can not compare stringsn: invalid argument", 0);
     return -1;
   }
   else if (!scm_capi_string_p(s1)) {
-    scm_capi_error("can not compare string: string required, but got", 1, s1);
+    scm_capi_error("can not compare strings: string required, but got", 1, s1);
     return -1;
   }
   else if (!scm_capi_string_p(s2)) {
-    scm_capi_error("can not compare string: string required, but got", 1, s2);
+    scm_capi_error("can not compare strings: string required, but got", 1, s2);
     return -1;
   }
   else if (scm_string_encoding(s1) != scm_string_encoding(s2)) {
-    scm_capi_error("can not compare string: encoding mismatch", 0);
+    scm_capi_error("can not compare strings: encoding mismatch", 0);
     return -1;
   }
 
@@ -1827,6 +1827,25 @@ scm_capi_symbol_hash_value(ScmObj sym)
     return SIZE_MAX;                  /* provisional implementation */
 
   return scm_symbol_hash_value(sym);
+}
+
+int
+scm_capi_symbol_cmp(ScmObj s1, ScmObj s2, int *rslt)
+{
+  if (scm_obj_null_p(s1) || scm_obj_null_p(s2)) {
+    scm_capi_error("can not compare symbols: invalid argument", 0);
+    return -1;
+  }
+  else if (!scm_capi_symbol_p(s1)) {
+    scm_capi_error("can not compare symbols: symbol required, but got", 1, s1);
+    return -1;
+  }
+  else if (!scm_capi_symbol_p(s2)) {
+    scm_capi_error("can not compare symbols: symbol required, but got", 1, s2);
+    return -1;
+  }
+
+  return scm_symbol_cmp(s1, s2, rslt);
 }
 
 

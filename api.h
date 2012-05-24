@@ -291,6 +291,7 @@ bool scm_capi_symbol_p(ScmObj obj);
 ssize_t scm_capi_symbol_bytesize(ScmObj sym);
 ssize_t scm_capi_symbol_to_cstr(ScmObj sym, char *cstr, size_t size);
 size_t scm_capi_symbol_hash_value(ScmObj sym);
+int scm_capi_symbol_cmp(ScmObj s1, ScmObj s2, int *rslt);
 
 
 /*******************************************************************/

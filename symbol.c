@@ -82,6 +82,15 @@ scm_symbol_hash_value(ScmObj sym)
 }
 
 int
+scm_symbol_cmp(ScmObj s1, ScmObj s2, int *rslt)
+{
+  scm_assert_obj_type(s1, &SCM_SYMBOL_TYPE_INFO);
+  scm_assert_obj_type(s1, &SCM_SYMBOL_TYPE_INFO);
+
+  return scm_string_cmp(SCM_SYMBOL_STR(s1), SCM_SYMBOL_STR(s2), rslt);
+}
+
+int
 scm_symbol_pretty_print(ScmObj obj, ScmObj port, bool write_p)
 {
   ScmObj ro = SCM_OBJ_INIT;
