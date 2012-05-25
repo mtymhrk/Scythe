@@ -396,6 +396,40 @@ scm_api_cdr(ScmObj pair)
   return scm_pair_cdr(pair);
 }
 
+ScmObj
+scm_api_set_car(ScmObj pair, ScmObj elm)
+{
+  if (scm_obj_null_p(pair) || scm_obj_null_p(elm)) {
+    scm_capi_error("set-car!: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_obj_type_p(pair, &SCM_PAIR_TYPE_INFO)) {
+    scm_capi_error("set-car!: pair required, but got", 1, pair);
+    return SCM_OBJ_NULL;
+  }
+
+  if (scm_pair_set_car(pair, elm) < 0) return SCM_OBJ_NULL;
+
+  return scm_api_undef();
+}
+
+ScmObj
+scm_api_set_cdr(ScmObj pair, ScmObj elm)
+{
+  if (scm_obj_null_p(pair) || scm_obj_null_p(elm)) {
+    scm_capi_error("set-car!: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_obj_type_p(pair, &SCM_PAIR_TYPE_INFO)) {
+    scm_capi_error("set-car!: pair required, but got", 1, pair);
+    return SCM_OBJ_NULL;
+  }
+
+  if (scm_pair_set_cdr(pair, elm) < 0) return SCM_OBJ_NULL;
+
+  return scm_api_undef();
+}
+
 extern inline bool
 scm_capi_pair_p(ScmObj pair)
 {

@@ -141,6 +141,8 @@ bool scm_capi_error_object_p(ScmObj obj);
 ScmObj scm_api_cons(ScmObj car, ScmObj cdr);
 ScmObj scm_api_car(ScmObj pair);
 ScmObj scm_api_cdr(ScmObj pair);
+ScmObj scm_api_set_car(ScmObj pair, ScmObj elm);
+ScmObj scm_api_set_cdr(ScmObj pair, ScmObj elm);
 bool scm_capi_pair_p(ScmObj pair);
 ScmObj scm_api_pair_P(ScmObj pair);
 ScmObj scm_capi_list(unsigned int n, ...);

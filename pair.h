@@ -43,6 +43,25 @@ scm_pair_cdr(ScmObj pair)       /* GC OK */
   return SCM_PAIR_CDR(pair);
 }
 
+inline int
+scm_pair_set_car(ScmObj pair, ScmObj elm)
+{
+  scm_assert_obj_type(pair, &SCM_PAIR_TYPE_INFO);
+
+  SCM_SLOT_SETQ(ScmPair, pair, car, elm);
+
+  return 0;
+}
+
+inline int
+scm_pair_set_cdr(ScmObj pair, ScmObj elm)
+{
+  scm_assert_obj_type(pair, &SCM_PAIR_TYPE_INFO);
+
+  SCM_SLOT_SETQ(ScmPair, pair, cdr, elm);
+
+  return 0;
+}
 
 
 #endif /* INCLUDE_PAIR_H__ */
