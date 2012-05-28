@@ -1263,6 +1263,10 @@ scm_vm_run(ScmObj vm, ScmObj iseq)
     case SCM_OPCODE_JMP:
       scm_vm_op_jmp(vm, op);
       break;
+    case SCM_OPCODE_JMPF:
+      /* TODO: write me */
+      scm_capi_error("not impremented opcode", 0);
+      break;
     case SCM_OPCODE_RAISE:
       scm_vm_op_raise(vm, op);
       break;
