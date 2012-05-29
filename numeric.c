@@ -1292,6 +1292,55 @@ scm_bignum_copy(ScmObj bignum)
                                  SCM_BIGNUM_BASE);
 }
 
+int
+scm_bignum_to_sword(ScmObj bn, scm_sword_t *w)
+{
+  scm_uword_t abs_max, num, n;
+
+  scm_assert(scm_capi_bignum_p(bn));
+  scm_assert(w != NULL);
+
+  if (SCM_BIGNUM(bn)->sign == '+')
+    abs_max = SCM_SWORD_MAX;
+  else
+    abs_max = -(scm_uword_t)SCM_SWORD_MIN;
+
+  num = 0;
+  for (size_t i = SCM_BIGNUM(bn)->nr_digits; i > 0; i--) {
+    EARY_GET(&SCM_BIGNUM(bn)->digits, scm_bignum_d_t, i, n);
+    if (num > (abs_max - n) / SCM_BIGNUM_BASE) return -1;
+    num = num * SCM_BIGNUM_BASE + n;
+  }
+
+  if (SCM_BIGNUM(bn)->sign == '+')
+    *w = (scm_sword_t)num;
+  else
+    *w = (scm_sword_t)-num;
+
+  return 0;
+}
+
+int
+scm_bignum_to_size_t(ScmObj bn, size_t *s)
+{
+  size_t num, n;
+
+  scm_assert(scm_capi_bignum_p(bn));
+  scm_assert(s != NULL);
+
+  if (SCM_BIGNUM(bn)->sign == '-') return -1;
+
+  num = 0;
+  for (size_t i = SCM_BIGNUM(bn)->nr_digits; i > 0; i--) {
+    EARY_GET(&SCM_BIGNUM(bn)->digits, scm_bignum_d_t, i, n);
+    if (num > (SIZE_MAX - n) / SCM_BIGNUM_BASE) return -1;
+    num = num * SCM_BIGNUM_BASE + n;
+  }
+
+  *s = num;
+
+  return 0;
+}
 
 void
 scm_bignum_finalize(ScmObj bignum)

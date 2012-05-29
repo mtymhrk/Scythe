@@ -566,14 +566,63 @@ scm_capi_bignum_p(ScmObj obj)
 }
 
 int
-scm_capi_fixnum_to_sword(ScmObj fn, scm_sword_t *w)
+scm_capi_num_to_sword(ScmObj num, scm_sword_t *w)
 {
-  if (!scm_capi_fixnum_p(fn) || w == NULL) {
-    scm_capi_error("can not get value of fixnum: invalid argument", 0);
+  if (scm_obj_null_p(num) || w == NULL) {
+    scm_capi_error("can not convert number to scm_sword_t: "
+                   "invalid argument", 0);
+    return -1;
+  }
+  else if (!scm_capi_integer_p(num)) {
+    scm_capi_error("can not convert number to scm_sword_t: "
+                   "integer required, but got", 1, num);
     return -1;
   }
 
-  *w = scm_fixnum_value(fn);
+  if (scm_capi_fixnum_p(num)) {
+    *w = scm_fixnum_value(num);
+  }
+  else if (scm_capi_bignum_p(num)) {
+    int r = scm_bignum_to_sword(num, w);
+    if (r < 0) {
+      scm_capi_error("can not convert number to scm_sword_t: overflow", 1, num);
+      return -1;
+    }
+  }
+
+  return 0;
+}
+
+int
+scm_capi_num_to_size_t(ScmObj num, size_t *s)
+{
+  if (scm_obj_null_p(num) || s == NULL) {
+    scm_capi_error("can not convert number to size_t: "
+                   "invalid argument", 0);
+    return -1;
+  }
+  else if (!scm_capi_integer_p(num)) {
+    scm_capi_error("can not convert number to size_t: "
+                   "integer required, but got", 1, num);
+    return -1;
+  }
+
+  if (scm_capi_fixnum_p(num)) {
+    scm_sword_t w = scm_fixnum_value(num);
+    if (w < 0) {
+      scm_capi_error("can not convert number to size_t: overflow", 1, num);
+      return -1;
+    }
+    *s = (size_t)w;
+  }
+  else if (scm_capi_bignum_p(num)) {
+    int r = scm_bignum_to_size_t(num, s);
+    if (r < 0) {
+      scm_capi_error("can not convert number to size_t: overflow", 1, num);
+      return -1;
+    }
+  }
+
   return 0;
 }
 

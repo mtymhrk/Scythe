@@ -162,7 +162,8 @@ bool scm_capi_integer_p(ScmObj obj);
 bool scm_capi_fixnum_p(ScmObj obj);
 bool scm_capi_bignum_p(ScmObj obj);
 
-int scm_capi_fixnum_to_sword(ScmObj fn, scm_sword_t *w);
+int scm_capi_num_to_sword(ScmObj num, scm_sword_t *w);
+int scm_capi_num_to_size_t(ScmObj num, size_t *s);
 
 int scm_capi_num_eq(ScmObj n1, ScmObj n2, bool *rslt);
 int scm_capi_num_eq_ary(size_t argc, ScmObj *argv, bool *rslt);

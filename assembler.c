@@ -217,9 +217,9 @@ scm_asm_sym2opcode(ScmObj op)
 {
   scm_assert(!scm_capi_null_value_p(op));
 
-  if (scm_capi_fixnum_p(op)) {
+  if (scm_capi_integer_p(op)) {
     scm_sword_t cd;
-    int r = scm_capi_fixnum_to_sword(op, &cd);
+    int r = scm_capi_num_to_sword(op, &cd);
     if (r < 0) return -1;        /* [ERR]: [through] */
 
     if (cd >= UINT8_MAX) {
@@ -285,9 +285,9 @@ scm_asm_inst_cval_op(ScmObj iseq, int opcode, ScmObj arg)
 
   scm_assert(scm_capi_iseq_p(iseq));
   scm_assert(0 <= opcode && opcode <= UINT8_MAX);
-  scm_assert(scm_capi_fixnum_p(arg));
+  scm_assert(scm_capi_integer_p(arg));
 
-  rslt = scm_capi_fixnum_to_sword(arg, &cval);
+  rslt = scm_capi_num_to_sword(arg, &cval);
   if (rslt < 0) return -1;      /* [ERR]: [through] */
 
   if (cval < INT32_MIN || INT32_MAX < cval) {
@@ -311,10 +311,10 @@ scm_asm_inst_cval_cval_op(ScmObj iseq, int opcode,
 
   scm_assert(scm_capi_iseq_p(iseq));
   scm_assert(0 <= opcode && opcode <= UINT8_MAX);
-  scm_assert(scm_capi_fixnum_p(arg1));
-  scm_assert(scm_capi_fixnum_p(arg2));
+  scm_assert(scm_capi_integer_p(arg1));
+  scm_assert(scm_capi_integer_p(arg2));
 
-  rslt = scm_capi_fixnum_to_sword(arg1, &cval1);
+  rslt = scm_capi_num_to_sword(arg1, &cval1);
   if (rslt < 0) return -1;      /* [ERR]: [through] */
 
   if (cval1 < INT32_MIN || INT32_MAX < cval1) {
@@ -322,7 +322,7 @@ scm_asm_inst_cval_cval_op(ScmObj iseq, int opcode,
     return -1;
   }
 
-  rslt = scm_capi_fixnum_to_sword(arg2, &cval2);
+  rslt = scm_capi_num_to_sword(arg2, &cval2);
   if (rslt < 0) return -1;      /* [ERR]: [through] */
 
   if (cval2 < INT32_MIN || INT32_MAX < cval2) {
