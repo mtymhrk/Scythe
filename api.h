@@ -275,6 +275,7 @@ int scm_capi_string_cmp(ScmObj s1, ScmObj s2, int *rslt);
 /*******************************************************************/
 
 ScmObj scm_capi_make_vector(size_t len, ScmObj fill);
+ScmObj scm_api_make_vector(ScmObj len, ScmObj fill);
 bool scm_capi_vector_p(ScmObj obj);
 ScmObj scm_capi_vector_set(ScmObj vec, size_t idx, ScmObj obj);
 ScmObj scm_capi_vector_ref(ScmObj vec, size_t idx);

@@ -1726,6 +1726,27 @@ scm_capi_make_vector(size_t len, ScmObj fill)
     return scm_vector_new(SCM_MEM_ALLOC_HEAP, len, fill);
 }
 
+ScmObj
+scm_api_make_vector(ScmObj len, ScmObj fill)
+{
+  size_t sz;
+  int r;
+
+  if (scm_obj_null_p(len)) {
+    scm_capi_error("make-vector: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (scm_capi_integer_p(len)) {
+    scm_capi_error("make-vector: integer required, but got", 1, len);
+    return SCM_OBJ_NULL;
+  }
+
+  r = scm_capi_num_to_size_t(len, &sz);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return scm_capi_make_vector(sz, fill);
+}
+
 extern inline bool
 scm_capi_vector_p(ScmObj obj)
 {
