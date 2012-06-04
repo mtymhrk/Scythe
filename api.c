@@ -573,9 +573,7 @@ scm_capi_length(ScmObj lst)
   }
 
   for (node = lst, n = 0;
-       scm_obj_not_null_p(node)
-         && !scm_capi_nil_p(node)
-         && scm_capi_pair_p(node);
+       scm_capi_pair_p(node);
        node = scm_api_cdr(node), n++) {
     if (n > SSIZE_MAX) {
       scm_capi_error("length: too long list", 0);
@@ -1897,6 +1895,43 @@ scm_capi_vector_length(ScmObj vec)
   }
 
   return (ssize_t)scm_vector_length(vec);
+}
+
+ScmObj
+scm_api_list_to_vector(ScmObj lst)
+{
+  ScmObj vec = SCM_OBJ_INIT, node = SCM_OBJ_INIT, elm = SCM_OBJ_INIT;
+  size_t i;
+  ssize_t n;
+
+  SCM_STACK_FRAME_PUSH(&lst, &vec, &node, &elm);
+
+  n = scm_capi_length(lst);
+  if (n < 0) return SCM_OBJ_NULL;;
+
+  vec = scm_capi_make_vector((size_t)n, SCM_OBJ_NULL);
+  if (scm_obj_null_p(vec)) return SCM_OBJ_NULL;
+
+  for (node = lst, i = 0;
+       scm_capi_pair_p(node);
+       node = scm_api_cdr(node), i++) {
+    elm = scm_api_car(node);
+    if (scm_obj_null_p(elm)) return SCM_OBJ_NULL;
+
+    elm = scm_capi_vector_set(vec, i, elm);
+    if (scm_obj_null_p(elm)) return SCM_OBJ_NULL;
+  }
+
+  if (scm_obj_null_p(node)) {
+    return SCM_OBJ_NULL;
+  }
+  else if (scm_capi_nil_p(node)) {
+    return vec;
+  }
+  else {
+    scm_capi_error("list->vector: improper list is passed", 0);
+    return SCM_OBJ_NULL;
+  }
 }
 
 

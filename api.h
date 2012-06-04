@@ -282,6 +282,7 @@ bool scm_capi_vector_p(ScmObj obj);
 ScmObj scm_capi_vector_set(ScmObj vec, size_t idx, ScmObj obj);
 ScmObj scm_capi_vector_ref(ScmObj vec, size_t idx);
 ssize_t scm_capi_vector_length(ScmObj vec);
+ScmObj scm_api_list_to_vector(ScmObj lst);
 
 
 /*******************************************************************/
