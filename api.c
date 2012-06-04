@@ -504,6 +504,97 @@ scm_capi_list_ref(ScmObj lst, size_t n)
   return scm_api_car(l);
 }
 
+ScmObj
+scm_api_list_P(ScmObj lst)
+{
+  ScmObj rabbit = SCM_OBJ_INIT, tortoise = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&lst, &rabbit, &tortoise);
+
+  if (scm_obj_null_p(lst)) {
+    scm_capi_error("list?: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  if (scm_capi_nil_p(lst))
+    return scm_api_bool_true();
+  else if (!scm_capi_pair_p(lst))
+    return scm_api_bool_false();
+
+  rabbit = tortoise = lst;
+
+  do {
+    tortoise = scm_api_cdr(tortoise);
+    if (scm_obj_null_p(tortoise))
+      return SCM_OBJ_NULL;
+    else if (scm_capi_nil_p(lst))
+      return scm_api_bool_true();
+    else if (!scm_capi_pair_p(lst))
+      return scm_api_bool_false();
+
+    rabbit = scm_api_cdr(rabbit);
+    if (scm_obj_null_p(rabbit))
+      return SCM_OBJ_NULL;
+    else if (scm_capi_nil_p(rabbit))
+      return scm_api_bool_true();
+    else if (!scm_capi_pair_p(lst))
+      return scm_api_bool_false();
+
+    rabbit = scm_api_cdr(rabbit);
+    if (scm_obj_null_p(rabbit))
+      return SCM_OBJ_NULL;
+    else if (scm_capi_nil_p(rabbit))
+      return scm_api_bool_true();
+    else if (!scm_capi_pair_p(lst))
+      return scm_api_bool_false();
+  } while (!scm_capi_eq_p(tortoise, rabbit));
+
+  return scm_api_bool_false();
+}
+
+ssize_t
+scm_capi_length(ScmObj lst)
+{
+  ScmObj node = SCM_OBJ_INIT;
+  size_t n;
+
+  SCM_STACK_FRAME_PUSH(&node);
+
+  if (scm_obj_null_p(lst)) {
+    scm_capi_error("length: invalid argument", 0);
+    return -1;
+  }
+  else if (scm_capi_nil_p(lst)) {
+    return 0;
+  }
+  else if (!scm_capi_pair_p(lst)) {
+    scm_capi_error("length: list required, but got", 1, lst);
+    return -1;
+  }
+
+  for (node = lst, n = 0;
+       scm_obj_not_null_p(node)
+         && !scm_capi_nil_p(node)
+         && scm_capi_pair_p(node);
+       node = scm_api_cdr(node), n++) {
+    if (n > SSIZE_MAX) {
+      scm_capi_error("length: too long list", 0);
+      return -1;
+    }
+  }
+
+  if (scm_obj_null_p(node)) {
+    return -1;
+  }
+  else if (scm_capi_nil_p(node)) {
+    return (ssize_t)n;
+  }
+  else {
+    scm_capi_error("lenght: improper list is passed", 0);
+    return -1;
+  }
+}
+
 
 /*******************************************************************/
 /*  Numeric                                                        */
