@@ -1270,6 +1270,9 @@ scm_vm_run(ScmObj vm, ScmObj iseq)
     case SCM_OPCODE_RAISE:
       scm_vm_op_raise(vm, op);
       break;
+    case SCM_OPCODE_BOX:
+      /* TODO: write me */
+      scm_capi_error("not impremented opcode", 0);
     default:
       /* TODO: error handling */
       scm_vm_ctrl_flg_set(vm, SCM_VM_CTRL_FLG_HALT);

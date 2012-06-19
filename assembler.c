@@ -21,6 +21,7 @@ struct {
   { "jmp"          , SCM_OPCODE_JMP },
   { "jmpf"         , SCM_OPCODE_JMPF },
   { "raise"        , SCM_OPCODE_RAISE },
+  { "box"          , SCM_OPCODE_BOX },
   { "label"        , SCM_ASM_PI_LABEL },
   { "asm"          , SCM_ASM_PI_ASM }
 };
@@ -413,6 +414,7 @@ scm_asm_inst(ScmObj iseq, ScmObj inst, size_t idx,
     break;
   case SCM_OPCODE_CALL:         /* fall through */
   case SCM_OPCODE_RETURN:       /* fall through */
+  case SCM_OPCODE_BOX:
     if (!scm_capi_pair_p(args)) {
       scm_capi_error("Assembler: too few operands", 1, op);
       return -1;

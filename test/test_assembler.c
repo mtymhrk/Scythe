@@ -29,14 +29,16 @@ test_scm_asm_assemble(void)
   const char *str =
     "((nop)(halt)(call 5)(return 0)(frame)(push)(gref vvv)"
     "(gdef vvv)(gset vvv)(immval vvv)"
-    "(label lbl)(jmp lbl)(jmpf lbl)(asm ((nop)))(raise))";
+    "(label lbl)(jmp lbl)(jmpf lbl)(asm ((nop)))(raise)"
+    "(box 8))";
   const uint8_t expected_codes[] = { SCM_OPCODE_NOP, SCM_OPCODE_HALT,
                                      SCM_OPCODE_CALL, SCM_OPCODE_RETURN,
                                      SCM_OPCODE_FRAME, SCM_OPCODE_PUSH,
                                      SCM_OPCODE_GREF, SCM_OPCODE_GDEF,
                                      SCM_OPCODE_GSET, SCM_OPCODE_IMMVAL,
                                      SCM_OPCODE_JMP, SCM_OPCODE_JMPF,
-                                     SCM_OPCODE_IMMVAL, SCM_OPCODE_RAISE };
+                                     SCM_OPCODE_IMMVAL, SCM_OPCODE_RAISE,
+                                     SCM_OPCODE_BOX };
   ScmObj actual_immv = SCM_OBJ_INIT;
   ScmObj expected_immv = SCM_OBJ_INIT;
   uint8_t *ip;
@@ -87,6 +89,10 @@ test_scm_asm_assemble(void)
     case SCM_OPCODE_RETURN:
       SCM_CAPI_INST_FETCH_UINT32(ip, actual_arg);
       cut_assert_equal_uint(0, actual_arg);
+      break;
+    case SCM_OPCODE_BOX:
+      SCM_CAPI_INST_FETCH_UINT32(ip, actual_arg);
+      cut_assert_equal_uint(8, actual_arg);
       break;
     case SCM_OPCODE_JMP:
       SCM_CAPI_INST_FETCH_UINT32(ip, actual_arg);
