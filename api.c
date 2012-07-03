@@ -3107,8 +3107,8 @@ scm_api_assemble(ScmObj lst)
 /*  Global Variable                                                */
 /*******************************************************************/
 
-ScmObj
-scm_api_global_var_ref(ScmObj sym)
+int
+scm_capi_global_var_ref(ScmObj sym, scm_csetter_t *val)
 {
   ScmObj gloc = SCM_OBJ_INIT;
   int rslt;
@@ -3117,23 +3117,42 @@ scm_api_global_var_ref(ScmObj sym)
 
   if (scm_obj_null_p(sym)) {
     scm_capi_error("can not get value of global variable: invalid argument", 0);
-    return SCM_OBJ_NULL;
+    return -1;
   }
   else if (!scm_obj_type_p(sym, &SCM_SYMBOL_TYPE_INFO)) {
     scm_capi_error("can not get value of global variable: invalid argument", 0);
-    return SCM_OBJ_NULL;
+    return -1;
   }
 
   rslt = scm_gloctbl_find(scm_vm_gloctbl(scm_vm_current_vm()),
                           sym, SCM_CSETTER_L(gloc));
-  if (rslt != 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
+  if (rslt != 0) return -1; /* [ERR]: [through] */
 
-  if (scm_obj_null_p(gloc)) {
+  if (scm_obj_null_p(gloc))
+    scm_csetter_setq(val, SCM_OBJ_NULL);
+  else
+    scm_csetter_setq(val, scm_gloc_value(gloc));
+
+  return 0;
+}
+
+ScmObj
+scm_api_global_var_ref(ScmObj sym)
+{
+  ScmObj val = SCM_OBJ_INIT;
+  int rslt;
+
+  SCM_STACK_FRAME_PUSH(&sym, &val);
+
+  rslt = scm_capi_global_var_ref(sym, SCM_CSETTER_L(val));
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  if (scm_obj_null_p(val)) {
     scm_capi_error("unbound variable", 1, sym);
     return SCM_OBJ_NULL;
   }
 
-  return scm_gloc_value(gloc);
+  return val;
 }
 
 bool
