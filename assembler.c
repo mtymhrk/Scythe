@@ -11,6 +11,7 @@ struct {
   { "nop"          , SCM_OPCODE_NOP },
   { "halt"         , SCM_OPCODE_HALT },
   { "call"         , SCM_OPCODE_CALL },
+  { "tcall"        , SCM_OPCODE_TAIL_CALL },
   { "return"       , SCM_OPCODE_RETURN },
   { "frame"        , SCM_OPCODE_FRAME },
   { "immval"       , SCM_OPCODE_IMMVAL },
