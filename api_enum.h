@@ -58,12 +58,15 @@ typedef enum {
   SCM_OPCODE_GREF,                /* 8: refere global variable */
   SCM_OPCODE_GDEF,                /* 9: define global variable */
   SCM_OPCODE_GSET,                /* 10: update global variable */
-  /* SCM_OPCODE_SREF,                /\* refere value in stack *\/ */
-  /* SCM_OPCODE_CREF                 /\* refere value in closure *\/ */
-  SCM_OPCODE_JMP,                  /* 11: jump */
-  SCM_OPCODE_JMPF,                 /* 12: jump if false */
-  SCM_OPCODE_RAISE,                /* 13: exception handler */
-  SCM_OPCODE_BOX,                  /* 14: boxing */
+  SCM_OPCODE_SREF,                /* 11: refere value in stack */
+  SCM_OPCODE_SSET,                /* 12: update value in stack */
+  SCM_OPCODE_CREF,                /* 13: refere value in closure */
+  SCM_OPCODE_CSET,                /* 14: update value in closure */
+  SCM_OPCODE_JMP,                 /* 15: jump */
+  SCM_OPCODE_JMPF,                /* 16: jump if false */
+  SCM_OPCODE_RAISE,               /* 17: exception handler */
+  SCM_OPCODE_BOX,                 /* 18: boxing */
+  SCM_OPCODE_UNBOX,               /* 19: unboxing */
 } SCM_OPCODE_T;
 
 

@@ -1260,6 +1260,22 @@ scm_vm_run(ScmObj vm, ScmObj iseq)
     case SCM_OPCODE_GSET:
       scm_vm_op_gset(vm, op);
       break;
+    case SCM_OPCODE_SREF:
+      /* TODO: write me */
+      scm_capi_error("not impremented opcode", 0);
+      break;
+    case SCM_OPCODE_SSET:
+      /* TODO: write me */
+      scm_capi_error("not impremented opcode", 0);
+      break;
+    case SCM_OPCODE_CREF:
+      /* TODO: write me */
+      scm_capi_error("not impremented opcode", 0);
+      break;
+    case SCM_OPCODE_CSET:
+      /* TODO: write me */
+      scm_capi_error("not impremented opcode", 0);
+      break;
     case SCM_OPCODE_JMP:
       scm_vm_op_jmp(vm, op);
       break;
@@ -1271,6 +1287,9 @@ scm_vm_run(ScmObj vm, ScmObj iseq)
       scm_vm_op_raise(vm, op);
       break;
     case SCM_OPCODE_BOX:
+      /* TODO: write me */
+      scm_capi_error("not impremented opcode", 0);
+    case SCM_OPCODE_UNBOX:
       /* TODO: write me */
       scm_capi_error("not impremented opcode", 0);
     default:

@@ -19,10 +19,15 @@ struct {
   { "gref"         , SCM_OPCODE_GREF },
   { "gdef"         , SCM_OPCODE_GDEF },
   { "gset"         , SCM_OPCODE_GSET },
+  { "sref"         , SCM_OPCODE_SREF },
+  { "sset"         , SCM_OPCODE_SSET },
+  { "cref"         , SCM_OPCODE_CREF },
+  { "cset"         , SCM_OPCODE_CSET },
   { "jmp"          , SCM_OPCODE_JMP },
   { "jmpf"         , SCM_OPCODE_JMPF },
   { "raise"        , SCM_OPCODE_RAISE },
   { "box"          , SCM_OPCODE_BOX },
+  { "unbox"        , SCM_OPCODE_UNBOX },
   { "label"        , SCM_ASM_PI_LABEL },
   { "asm"          , SCM_ASM_PI_ASM }
 };
@@ -395,8 +400,9 @@ scm_asm_inst(ScmObj iseq, ScmObj inst, size_t idx,
   case SCM_OPCODE_NOP:          /* fall through */
   case SCM_OPCODE_HALT:         /* fall through */
   case SCM_OPCODE_FRAME:        /* fall through */
-  case SCM_OPCODE_PUSH:
-  case SCM_OPCODE_RAISE:
+  case SCM_OPCODE_PUSH:         /* fall through */
+  case SCM_OPCODE_RAISE:        /* fall through */
+  case SCM_OPCODE_UNBOX:
     return scm_asm_inst_noarg_op(iseq, opcode);
     break;
   case SCM_OPCODE_GREF:         /* fall through */
@@ -415,6 +421,10 @@ scm_asm_inst(ScmObj iseq, ScmObj inst, size_t idx,
     break;
   case SCM_OPCODE_CALL:         /* fall through */
   case SCM_OPCODE_RETURN:       /* fall through */
+  case SCM_OPCODE_SREF:         /* fall through */
+  case SCM_OPCODE_SSET:         /* fall through */
+  case SCM_OPCODE_CREF:         /* fall through */
+  case SCM_OPCODE_CSET:         /* fall through */
   case SCM_OPCODE_BOX:
     if (!scm_capi_pair_p(args)) {
       scm_capi_error("Assembler: too few operands", 1, op);
