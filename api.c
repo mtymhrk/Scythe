@@ -2868,17 +2868,28 @@ scm_capi_closure_to_iseq(ScmObj clsr)
 /*  Syntax                                                         */
 /*******************************************************************/
 
-ScmObj
+extern inline ScmObj
 scm_api_make_syntax(int id, const char *keyword)
 {
   return scm_syntax_new(SCM_MEM_HEAP, id, keyword);
 }
 
-bool
+extern inline bool
 scm_capi_syntax_p(ScmObj obj)
 {
   if (scm_obj_null_p(obj)) return false;
   return (scm_obj_type_p(obj, &SCM_SYNTAX_TYPE_INFO) ? true : false);
+}
+
+extern inline int
+scm_capi_syntax_id(ScmObj syx)
+{
+  if (!scm_capi_syntax_p(syx)) {
+    scm_capi_error("can not get syntax-id: invalid argument", 0);
+    return -1;
+  }
+
+  return scm_syntax_id(syx);
 }
 
 

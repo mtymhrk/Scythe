@@ -368,6 +368,7 @@ ScmObj scm_capi_closure_to_iseq(ScmObj clsr);
 
 ScmObj scm_api_make_syntax(int id, const char *keyword);
 bool scm_capi_syntax_p(ScmObj obj);
+int scm_capi_syntax_id(ScmObj syx);
 
 
 /*******************************************************************/
