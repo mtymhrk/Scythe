@@ -17,6 +17,7 @@
 #include "vector.h"
 #include "port.h"
 #include "parser.h"
+#include "syntax.h"
 #include "iseq.h"
 #include "assembler.h"
 #include "exception.h"
@@ -2860,6 +2861,24 @@ scm_capi_closure_to_iseq(ScmObj clsr)
   }
 
   return scm_closure_body(clsr);
+}
+
+
+/*******************************************************************/
+/*  Syntax                                                         */
+/*******************************************************************/
+
+ScmObj
+scm_api_make_syntax(int id, const char *keyword)
+{
+  return scm_syntax_new(SCM_MEM_HEAP, id, keyword);
+}
+
+bool
+scm_capi_syntax_p(ScmObj obj)
+{
+  if (scm_obj_null_p(obj)) return false;
+  return (scm_obj_type_p(obj, &SCM_SYNTAX_TYPE_INFO) ? true : false);
 }
 
 
