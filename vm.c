@@ -1032,7 +1032,7 @@ scm_vm_op_jmp(ScmObj vm, SCM_OPCODE_T op)
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
-  ip = scm_capi_inst_fetch_oprand_si(SCM_VM(vm)->reg.ip, &dst);
+  ip = scm_capi_inst_fetch_oprand_iof(SCM_VM(vm)->reg.ip, &dst);
   if (ip == NULL) return;       /* [ERR]: [through] */
 
   SCM_VM(vm)->reg.ip = ip + dst;

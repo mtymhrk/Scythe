@@ -75,6 +75,7 @@ typedef enum {
   SCM_OPFMT_SI,                 /* op(16) || signed_int(32) */
   SCM_OPFMT_SI_SI,              /* op(16) || signed_int(32) || signed_int(32) */
   SCM_OPFMT_SI_OBJ,             /* op(16) || signed_int(32) || index_to_scmobj(32) */
+  SCM_OPFMT_IOF,                /* op(16) || offset_to_dst_ip(32) */
 } SCM_OPFMT_T;
 
 

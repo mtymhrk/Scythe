@@ -3049,6 +3049,12 @@ scm_capi_iseq_push_opfmt_si_si(ScmObj iseq, SCM_OPCODE_T op,
 }
 
 ssize_t
+scm_capi_iseq_push_opfmt_iof(ScmObj iseq, SCM_OPCODE_T op, int32_t offset)
+{
+  return scm_capi_iseq_push_opfmt_si(iseq, op, offset);
+}
+
+ssize_t
 scm_capi_iseq_set_obj(ScmObj iseq, size_t idx, ScmObj val)
 {
   ssize_t rslt;
@@ -3223,6 +3229,12 @@ scm_capi_inst_fetch_oprand_si_si(uint8_t *ip, int32_t *si1, int32_t *si2)
   SCM_CAPI_INST_FETCH_INT32(ip, *si2);
 
   return ip;
+}
+
+uint8_t *
+scm_capi_inst_fetch_oprand_iof(uint8_t *ip, int32_t *offset)
+{
+  return scm_capi_inst_fetch_oprand_si(ip, offset);
 }
 
 
