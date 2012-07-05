@@ -3116,6 +3116,120 @@ scm_capi_iseq_ref_obj(ScmObj iseq, size_t idx)
   return scm_iseq_get_immval(iseq, idx);;
 }
 
+int
+scm_capi_opcode_to_opfmt(int opcode)
+{
+  static int tbl[] = {
+    SCM_OPFMT_NOARG,            /* SCM_OPCODE_NOP */
+    SCM_OPFMT_NOARG,            /* SCM_OPCODE_HALT */
+    SCM_OPFMT_SI,               /* SCM_OPCODE_CALL */
+    SCM_OPFMT_SI_SI,            /* SCM_OPCODE_TAIL_CALL */
+    SCM_OPFMT_SI,               /* SCM_OPCODE_RETURN */
+    SCM_OPFMT_NOARG,            /* SCM_OPCODE_FRAME */
+    SCM_OPFMT_OBJ,              /* SCM_OPCODE_IMMVAL */
+    SCM_OPFMT_NOARG,            /* SCM_OPCODE_PUSH */
+    SCM_OPFMT_OBJ,              /* SCM_OPCODE_GREF */
+    SCM_OPFMT_OBJ,              /* SCM_OPCODE_GDEF */
+    SCM_OPFMT_OBJ,              /* SCM_OPCODE_GSET */
+    SCM_OPFMT_SI,               /* SCM_OPCODE_SREF */
+    SCM_OPFMT_SI,               /* SCM_OPCODE_SSET */
+    SCM_OPFMT_SI,               /* SCM_OPCODE_CREF */
+    SCM_OPFMT_SI,               /* SCM_OPCODE_CSET */
+    SCM_OPFMT_SI,               /* SCM_OPCODE_JMP */
+    SCM_OPFMT_SI,               /* SCM_OPCODE_JMPF */
+    SCM_OPFMT_NOARG,            /* SCM_OPCODE_RAISE */
+    SCM_OPFMT_SI,               /* SCM_OPCODE_BOX */
+    SCM_OPFMT_NOARG,            /* SCM_OPCODE_UNBOX */
+  };
+
+  if (opcode < 0 || sizeof(tbl)/sizeof(tbl[0]) <= (size_t)opcode) {
+    scm_capi_error("can not get opcode format id: invalid opcode", 0);
+    return -1;
+  }
+
+  return tbl[opcode];
+}
+
+uint8_t *
+scm_capi_inst_fetch_oprand_obj(uint8_t *ip, ScmObj iseq,
+                               size_t *idx, scm_csetter_t *obj)
+{
+  ScmObj opr = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&iseq,
+                       &opr);
+
+  if (ip == NULL) {
+    scm_capi_error("can not fetch operands: invalid ip", 0);
+    return NULL;
+  }
+  else if (!scm_capi_iseq_p(iseq)) {
+    scm_capi_error("can not fetch operands: invalid argument", 0);
+    return NULL;
+  }
+  else if (idx == NULL) {
+    scm_capi_error("can not fetch operands: invalid argument", 0);
+    return NULL;
+  }
+  else if (obj == NULL) {
+    scm_capi_error("can not fetch operands: invalid argument", 0);
+    return NULL;
+  }
+
+  SCM_CAPI_INST_FETCH_UINT32(ip, *idx);
+
+  opr = scm_capi_iseq_ref_obj(iseq, *idx);
+  if (scm_obj_null_p(opr)) return NULL;
+
+  scm_csetter_setq(obj, opr);
+
+  return ip;
+}
+
+uint8_t *
+scm_capi_inst_fetch_oprand_si(uint8_t *ip, int32_t *si)
+{
+  if (ip == NULL) {
+    scm_capi_error("can not fetch operands: invalid ip", 0);
+    return NULL;
+  }
+  else if (si == NULL) {
+    scm_capi_error("can not fetch operands: invalid argument", 0);
+    return NULL;
+  }
+
+  SCM_CAPI_INST_FETCH_INT32(ip, *si);
+
+  return ip;
+}
+
+uint8_t *
+scm_capi_inst_fetch_oprand_si_si(uint8_t *ip, int32_t *si1, int32_t *si2)
+{
+  if (ip == NULL) {
+    scm_capi_error("can not fetch operands: invalid ip", 0);
+    return NULL;
+  }
+  else if (si1 == NULL) {
+    scm_capi_error("can not fetch operands: invalid argument", 0);
+    return NULL;
+  }
+  else if (si2 == NULL) {
+    scm_capi_error("can not fetch operands: invalid argument", 0);
+    return NULL;
+  }
+
+  SCM_CAPI_INST_FETCH_INT32(ip, *si1);
+  SCM_CAPI_INST_FETCH_INT32(ip, *si2);
+
+  return ip;
+}
+
+
+/*******************************************************************/
+/*  Assembler                                                      */
+/*******************************************************************/
+
 ScmObj
 scm_api_assemble(ScmObj lst)
 {

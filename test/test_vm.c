@@ -46,8 +46,8 @@ test_scm_vm_run__op_immval(void)
   iseq = scm_iseq_new(SCM_MEM_HEAP);
   sym = scm_capi_make_symbol_from_cstr("cons", SCM_ENC_ASCII);
 
-  scm_capi_iseq_push_op_immval(iseq, SCM_OPCODE_IMMVAL, sym);
-  scm_capi_iseq_push_op(iseq, SCM_OPCODE_HALT);
+  scm_capi_iseq_push_opfmt_obj(iseq, SCM_OPCODE_IMMVAL, sym);
+  scm_capi_iseq_push_opfmt_noarg(iseq, SCM_OPCODE_HALT);
 
   /* action */
   scm_vm_run(vm, iseq);
@@ -75,14 +75,14 @@ test_scm_vm_run__call_cons(void)
   cdr = scm_capi_make_symbol_from_cstr("bar", SCM_ENC_ASCII);
 
 
-  scm_capi_iseq_push_op(iseq, SCM_OPCODE_FRAME);
-  scm_capi_iseq_push_op_immval(iseq, SCM_OPCODE_IMMVAL, car);
-  scm_capi_iseq_push_op(iseq, SCM_OPCODE_PUSH);
-  scm_capi_iseq_push_op_immval(iseq, SCM_OPCODE_IMMVAL, cdr);
-  scm_capi_iseq_push_op(iseq, SCM_OPCODE_PUSH);
-  scm_capi_iseq_push_op_immval(iseq, SCM_OPCODE_GREF, cons_sym);
-  scm_capi_iseq_push_op_cval(iseq, SCM_OPCODE_CALL, 2);
-  scm_capi_iseq_push_op(iseq, SCM_OPCODE_HALT);
+  scm_capi_iseq_push_opfmt_noarg(iseq, SCM_OPCODE_FRAME);
+  scm_capi_iseq_push_opfmt_obj(iseq, SCM_OPCODE_IMMVAL, car);
+  scm_capi_iseq_push_opfmt_noarg(iseq, SCM_OPCODE_PUSH);
+  scm_capi_iseq_push_opfmt_obj(iseq, SCM_OPCODE_IMMVAL, cdr);
+  scm_capi_iseq_push_opfmt_noarg(iseq, SCM_OPCODE_PUSH);
+  scm_capi_iseq_push_opfmt_obj(iseq, SCM_OPCODE_GREF, cons_sym);
+  scm_capi_iseq_push_opfmt_si(iseq, SCM_OPCODE_CALL, 2);
+  scm_capi_iseq_push_opfmt_noarg(iseq, SCM_OPCODE_HALT);
 
   /* action */
   scm_vm_run(vm, iseq);

@@ -82,10 +82,12 @@ typedef enum {
 /*  Assembler Pseudo-Instructions                                  */
 /*******************************************************************/
 
+#define SCM_ASM_PI_START 0x10000
+
 enum {
-  SCM_ASM_PI_LABEL = 0x10000,  /* define a label */
-  SCM_ASM_PI_ASM,              /* make ScmISeq object
-                                  and set it to VAL register */
+  SCM_ASM_PI_LABEL = SCM_ASM_PI_START,  /* define a label */
+  SCM_ASM_PI_ASM,                       /* make ScmISeq object
+                                           and set it to VAL register */
 };
 
 
