@@ -69,6 +69,14 @@ typedef enum {
   SCM_OPCODE_UNBOX,               /* 19: unboxing */
 } SCM_OPCODE_T;
 
+typedef enum {
+  SCM_OPFMT_NOARG = 0,
+  SCM_OPFMT_OBJ,
+  SCM_OPFMT_SI,
+  SCM_OPFMT_SI_SI,
+  SCM_OPFMT_SI_OBJ,
+} SCM_OPFMT_T;
+
 
 /*******************************************************************/
 /*  Assembler Pseudo-Instructions                                  */

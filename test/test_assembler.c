@@ -73,12 +73,12 @@ test_scm_asm_assemble(void)
     case SCM_OPCODE_GDEF:
     case SCM_OPCODE_GSET:
       SCM_CAPI_INST_FETCH_UINT32(ip, immv_idx);
-      actual_immv = scm_capi_iseq_ref_immval(iseq, immv_idx);
+      actual_immv = scm_capi_iseq_ref_obj(iseq, immv_idx);
       cut_assert_true(scm_capi_eq_p(expected_immv, actual_immv));
       break;
     case SCM_OPCODE_IMMVAL:
       SCM_CAPI_INST_FETCH_UINT32(ip, immv_idx);
-      actual_immv = scm_capi_iseq_ref_immval(iseq, immv_idx);
+      actual_immv = scm_capi_iseq_ref_obj(iseq, immv_idx);
       if (i == 14)
         cut_assert_true(scm_capi_eq_p(expected_immv, actual_immv));
       else if (i == 17)

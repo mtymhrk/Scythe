@@ -597,7 +597,7 @@ scm_vm_make_trampolining_code(ScmObj vm, ScmObj clsr,
   if (scm_obj_null_p(iseq)) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   if (!scm_obj_null_p(callback)) {
-    rslt = scm_capi_iseq_push_op(iseq, SCM_OPCODE_FRAME);
+    rslt = scm_capi_iseq_push_opfmt_noarg(iseq, SCM_OPCODE_FRAME);
     if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
   }
 
@@ -607,32 +607,37 @@ scm_vm_make_trampolining_code(ScmObj vm, ScmObj clsr,
     arg = scm_api_car(cur);
     if (scm_obj_null_p(arg)) return SCM_OBJ_NULL; /* [ERR: [through] */
 
-    rslt = scm_capi_iseq_push_op_immval(iseq, SCM_OPCODE_IMMVAL, arg);
+    rslt = scm_capi_iseq_push_opfmt_obj(iseq, SCM_OPCODE_IMMVAL, arg);
     if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
-    rslt = scm_capi_iseq_push_op(iseq, SCM_OPCODE_PUSH);
+    rslt = scm_capi_iseq_push_opfmt_noarg(iseq, SCM_OPCODE_PUSH);
     if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
+  }
+
+  if (argc > INT32_MAX) {
+    scm_capi_error("", 0);      /* TODO: error message */
+    return SCM_OBJ_NULL;
   }
 
   if (scm_obj_null_p(cur)) return SCM_OBJ_NULL; /* [ERR: [through] */
 
-  rslt = scm_capi_iseq_push_op_immval(iseq, SCM_OPCODE_IMMVAL, clsr);
+  rslt = scm_capi_iseq_push_opfmt_obj(iseq, SCM_OPCODE_IMMVAL, clsr);
   if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   if (scm_obj_null_p(callback)) {
-    rslt = scm_capi_iseq_push_op_cval_cval(iseq, SCM_OPCODE_TAIL_CALL,
-                                           argc, nr_arg_cf);
+    rslt = scm_capi_iseq_push_opfmt_si_si(iseq, SCM_OPCODE_TAIL_CALL,
+                                          (int32_t)argc, (int32_t)nr_arg_cf);
     if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
   }
   else {
-    rslt = scm_capi_iseq_push_op_cval(iseq, SCM_OPCODE_CALL, argc);
+    rslt = scm_capi_iseq_push_opfmt_si(iseq, SCM_OPCODE_CALL, (int32_t)argc);
     if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
-    rslt = scm_capi_iseq_push_op(iseq, SCM_OPCODE_PUSH);
+    rslt = scm_capi_iseq_push_opfmt_noarg(iseq, SCM_OPCODE_PUSH);
     if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
-    rslt = scm_capi_iseq_push_op_cval_cval(iseq, SCM_OPCODE_TAIL_CALL,
-                                           argc, nr_arg_cf);
+    rslt = scm_capi_iseq_push_opfmt_si_si(iseq, SCM_OPCODE_TAIL_CALL,
+                                          (int32_t)argc, (int32_t)nr_arg_cf);
     if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
   }
 
@@ -650,7 +655,7 @@ scm_vm_make_exception_handler_code(ScmObj vm)
   iseq = scm_api_make_iseq();
   if (scm_obj_null_p(iseq)) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
-  rslt = scm_capi_iseq_push_op(iseq, SCM_OPCODE_RAISE);
+  rslt = scm_capi_iseq_push_opfmt_noarg(iseq, SCM_OPCODE_RAISE);
   if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   return iseq;
@@ -821,7 +826,7 @@ scm_vm_op_immval(ScmObj vm, SCM_OPCODE_T op)
 
   SCM_CAPI_INST_FETCH_UINT32(SCM_VM(vm)->reg.ip, immv_idx);
 
-  val = scm_capi_iseq_ref_immval(SCM_VM(vm)->reg.isp, immv_idx);
+  val = scm_capi_iseq_ref_obj(SCM_VM(vm)->reg.isp, immv_idx);
   if (scm_obj_null_p(val)) return; /* [ERR]: [through] */
 
   SCM_SLOT_SETQ(ScmVM, vm, reg.val, val);
@@ -886,7 +891,7 @@ scm_vm_op_gref(ScmObj vm, SCM_OPCODE_T op)
 
   SCM_CAPI_INST_FETCH_UINT32(SCM_VM(vm)->reg.ip, immv_idx);
 
-  arg = scm_capi_iseq_ref_immval(SCM_VM(vm)->reg.isp, immv_idx);
+  arg = scm_capi_iseq_ref_obj(SCM_VM(vm)->reg.isp, immv_idx);
   if (scm_obj_null_p(arg)) return; /* [ERR]: [through] */
 
   if (scm_obj_type_p(arg, &SCM_SYMBOL_TYPE_INFO)) {
@@ -898,8 +903,8 @@ scm_vm_op_gref(ScmObj vm, SCM_OPCODE_T op)
       return;
     }
 
-    rslt = scm_capi_iseq_set_immval(SCM_VM(vm)->reg.isp,
-                                    immv_idx, gloc);
+    rslt = scm_capi_iseq_set_obj(SCM_VM(vm)->reg.isp,
+                                 immv_idx, gloc);
     if (rslt < 0) return;      /* [ERR]: [through] */
 
     val = scm_gloc_value(gloc);
@@ -944,14 +949,14 @@ scm_vm_op_gdef(ScmObj vm, SCM_OPCODE_T op)
 
   SCM_CAPI_INST_FETCH_UINT32(SCM_VM(vm)->reg.ip, immv_idx);
 
-  arg = scm_capi_iseq_ref_immval(SCM_VM(vm)->reg.isp, immv_idx);
+  arg = scm_capi_iseq_ref_obj(SCM_VM(vm)->reg.isp, immv_idx);
   if (scm_obj_null_p(arg)) return; /* [ERR]: [through] */
 
   if (scm_obj_type_p(arg, &SCM_SYMBOL_TYPE_INFO)) {
     gloc = scm_gloctbl_bind(SCM_VM(vm)->ge.gloctbl, arg, SCM_VM(vm)->reg.val);
     if (scm_obj_null_p(gloc)) return;  /* [ERR]: [through] */
 
-    rslt = scm_capi_iseq_set_immval(SCM_VM(vm)->reg.isp, immv_idx, gloc);
+    rslt = scm_capi_iseq_set_obj(SCM_VM(vm)->reg.isp, immv_idx, gloc);
     if (rslt < 0) return;             /* [ERR]: [through] */
   }
   else if (scm_obj_type_p(arg, &SCM_GLOC_TYPE_INFO)) {
@@ -982,7 +987,7 @@ scm_vm_op_gset(ScmObj vm, SCM_OPCODE_T op)
 
   SCM_CAPI_INST_FETCH_UINT32(SCM_VM(vm)->reg.ip, immv_idx);
 
-  arg = scm_capi_iseq_ref_immval(SCM_VM(vm)->reg.isp, immv_idx);
+  arg = scm_capi_iseq_ref_obj(SCM_VM(vm)->reg.isp, immv_idx);
   if (scm_obj_null_p(arg)) return; /* [ERR]: [through] */
 
   if (scm_obj_type_p(arg, &SCM_SYMBOL_TYPE_INFO)) {
@@ -994,7 +999,7 @@ scm_vm_op_gset(ScmObj vm, SCM_OPCODE_T op)
       return;
     }
 
-    rslt = scm_capi_iseq_set_immval(SCM_VM(vm)->reg.isp, immv_idx, gloc);
+    rslt = scm_capi_iseq_set_obj(SCM_VM(vm)->reg.isp, immv_idx, gloc);
     if (rslt < 0) return;      /* [ERR]: [through] */
 
     scm_gloc_bind(gloc, SCM_VM(vm)->reg.val);

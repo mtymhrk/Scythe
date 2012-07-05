@@ -262,7 +262,7 @@ scm_asm_inst_noarg_op(ScmObj iseq, int opcode)
   scm_assert(scm_capi_iseq_p(iseq));
   scm_assert(0 <= opcode && opcode <= UINT8_MAX);
 
-  idx = scm_capi_iseq_push_op(iseq, (uint8_t)opcode);
+  idx = scm_capi_iseq_push_opfmt_noarg(iseq, (uint8_t)opcode);
   if (idx < 0) return -1;      /* [ERR]: [through] */
 
   return idx + 2;
@@ -277,7 +277,7 @@ scm_asm_inst_unary_op(ScmObj iseq, int opcode, ScmObj arg)
   scm_assert(0 <= opcode && opcode <= UINT8_MAX);
   scm_assert(!scm_capi_null_value_p(arg));
 
-  idx = scm_capi_iseq_push_op_immval(iseq, opcode, arg);
+  idx = scm_capi_iseq_push_opfmt_obj(iseq, opcode, arg);
   if (idx < 0) return -1;
 
   return idx + 6;
@@ -302,7 +302,7 @@ scm_asm_inst_cval_op(ScmObj iseq, int opcode, ScmObj arg)
     return -1;
   }
 
-  idx = scm_capi_iseq_push_op_cval(iseq, opcode, (uint32_t)cval);
+  idx = scm_capi_iseq_push_opfmt_si(iseq, opcode, (int32_t)cval);
   if (idx < 0) return -1;
 
   return idx + 6;
@@ -337,8 +337,8 @@ scm_asm_inst_cval_cval_op(ScmObj iseq, int opcode,
     return -1;
   }
 
-  idx = scm_capi_iseq_push_op_cval_cval(iseq, opcode,
-                                        (uint32_t)cval1, (uint32_t)cval2);
+  idx = scm_capi_iseq_push_opfmt_si_si(iseq, opcode,
+                                       (int32_t)cval1, (int32_t)cval2);
   if (idx < 0) return -1;
 
   return idx + 10;
@@ -356,7 +356,7 @@ scm_asm_inst_ref_label_op(ScmObj iseq, int opcode, ScmObj label,
   scm_assert(label_tbl != NULL);
   scm_assert(labels != NULL);
 
-  idx = scm_capi_iseq_push_op_cval(iseq, opcode, 0);
+  idx = scm_capi_iseq_push_opfmt_si(iseq, opcode, 0);
   if (idx < 0) return -1;      /* [ERR]: [through] */
 
   rslt = scm_iseq_asm_reg_label_ref_idx(label_tbl,
@@ -546,9 +546,9 @@ scm_asm_label_resolv(ScmObj iseq, ScmCHashTbl *label_tbl, EArray *labels)
         goto err_free_rec;
       }
 
-      scm_capi_iseq_set_cval(iseq, *ref_idx,
-                             (uint32_t)((ssize_t)rec->idx
-                                        - (ssize_t)*ref_idx - 4));
+      scm_capi_iseq_set_si(iseq, *ref_idx,
+                           (int32_t)((ssize_t)rec->idx
+                                     - (ssize_t)*ref_idx - 4));
     }
 
     rslt = scm_chash_tbl_delete(label_tbl, SCM_CHASH_TBL_KEY(*lbl), NULL, NULL);
