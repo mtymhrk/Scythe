@@ -384,6 +384,8 @@ ssize_t scm_capi_iseq_push_opfmt_obj(ScmObj iseq, SCM_OPCODE_T op, ScmObj val);
 ssize_t scm_capi_iseq_push_opfmt_si(ScmObj iseq, SCM_OPCODE_T op, int32_t val);
 ssize_t scm_capi_iseq_push_opfmt_si_si(ScmObj iseq, SCM_OPCODE_T op,
                                        int32_t val1, int32_t val2);
+ssize_t scm_capi_iseq_push_opfmt_si_obj(ScmObj iseq, SCM_OPCODE_T op,
+                                        int32_t val, ScmObj obj);
 ssize_t scm_capi_iseq_push_opfmt_iof(ScmObj iseq,
                                      SCM_OPCODE_T op, int32_t offset);
 ssize_t scm_capi_iseq_set_obj(ScmObj iseq, size_t idx, ScmObj val);

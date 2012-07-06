@@ -3033,6 +3033,46 @@ scm_capi_iseq_push_opfmt_si_si(ScmObj iseq, SCM_OPCODE_T op,
 }
 
 ssize_t
+scm_capi_iseq_push_opfmt_si_obj(ScmObj iseq, SCM_OPCODE_T op,
+                                int32_t val, ScmObj obj)
+{
+  ssize_t rslt, immv_idx;
+
+  SCM_STACK_FRAME_PUSH(&iseq,
+                       &obj);
+
+  if (!scm_capi_iseq_p(iseq)) {
+    scm_capi_error("can not push instruction to iseq: invalid argument", 0);
+    return -1;
+  }
+
+  if (scm_obj_null_p(obj)) {
+    scm_capi_error("can not push instruction to iseq: invalid argument", 0);
+    return -1;
+  }
+
+  immv_idx = scm_iseq_push_immval(iseq, obj);
+  if (immv_idx < 0) return -1;          /* [ERR: [through] */
+
+  if (immv_idx > UINT32_MAX) {
+    scm_capi_error("can not push instruction to iseq: "
+                   "immediate value area overflow", 0);
+    return -1;
+  }
+
+  rslt = scm_iseq_push_uint8(iseq, op);
+  if (rslt < 0) return -1;   /* provisional implemntation */
+
+  rslt = scm_iseq_push_uint8(iseq, 0);
+  if (rslt < 0) return -1;   /* provisional implemntation */
+
+  rslt = scm_iseq_push_uint32(iseq, (uint32_t)val);
+  if (rslt < 0) return -1;   /* provisional implemntation */
+
+  return scm_iseq_push_uint32(iseq, (uint32_t)immv_idx);
+}
+
+ssize_t
 scm_capi_iseq_push_opfmt_iof(ScmObj iseq, SCM_OPCODE_T op, int32_t offset)
 {
   return scm_capi_iseq_push_opfmt_si(iseq, op, offset);
@@ -3130,6 +3170,7 @@ scm_capi_opcode_to_opfmt(int opcode)
     SCM_OPFMT_NOARG,            /* SCM_OPCODE_RAISE */
     SCM_OPFMT_SI,               /* SCM_OPCODE_BOX */
     SCM_OPFMT_NOARG,            /* SCM_OPCODE_UNBOX */
+    SCM_OPFMT_SI_OBJ,           /* SCM_OPCODE_CLOSE */
   };
 
   if (opcode < 0 || sizeof(tbl)/sizeof(tbl[0]) <= (size_t)opcode) {

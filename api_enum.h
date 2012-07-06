@@ -48,7 +48,7 @@ typedef enum {
 
 typedef enum {
   SCM_OPCODE_NOP = 0x0000,        /* 0: no operation */
-  SCM_OPCODE_HALT,                /* 1:stop calculation */
+  SCM_OPCODE_HALT,                /* 1: stop calculation */
   SCM_OPCODE_CALL,                /* 2: function call */
   SCM_OPCODE_TAIL_CALL,           /* 3: function tail call */
   SCM_OPCODE_RETURN,              /* 4: return from function */
@@ -67,6 +67,7 @@ typedef enum {
   SCM_OPCODE_RAISE,               /* 17: exception handler */
   SCM_OPCODE_BOX,                 /* 18: boxing */
   SCM_OPCODE_UNBOX,               /* 19: unboxing */
+  SCM_OPCODE_CLOSE,               /* 20: make closure */
 } SCM_OPCODE_T;
 
 typedef enum {

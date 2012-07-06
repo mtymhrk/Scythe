@@ -30,7 +30,7 @@ test_scm_asm_assemble(void)
     "((nop)(halt)(call 5)(tcall 2 3)(return 0)(frame)(push)(gref vvv)"
     "(gdef vvv)(gset vvv)(sref 4)(sset 6)(cref 7)(cset 9)(immval vvv)"
     "(label lbl)(jmp lbl)(jmpf lbl)(asm ((nop)))(raise)"
-    "(box 8)(unbox))";
+    "(box 8)(unbox)(close 10 vvv)(asm-close 11 ((nop))))";
   const uint8_t expected_codes[] = { SCM_OPCODE_NOP, SCM_OPCODE_HALT,
                                      SCM_OPCODE_CALL, SCM_OPCODE_TAIL_CALL,
                                      SCM_OPCODE_RETURN, SCM_OPCODE_FRAME,
@@ -41,7 +41,8 @@ test_scm_asm_assemble(void)
                                      SCM_OPCODE_IMMVAL, SCM_OPCODE_JMP,
                                      SCM_OPCODE_JMPF, SCM_OPCODE_IMMVAL,
                                      SCM_OPCODE_RAISE, SCM_OPCODE_BOX,
-                                     SCM_OPCODE_UNBOX };
+                                     SCM_OPCODE_UNBOX, SCM_OPCODE_CLOSE,
+                                     SCM_OPCODE_CLOSE };
   ScmObj actual_immv = SCM_OBJ_INIT;
   ScmObj expected_immv = SCM_OBJ_INIT;
   uint8_t *ip;
@@ -65,7 +66,6 @@ test_scm_asm_assemble(void)
     int32_t actual_arg;
 
     SCM_CAPI_INST_FETCH_OP(ip, actual_op);
-
     cut_assert_equal_int(expected_codes[i], actual_op);
 
     switch (actual_op) {
@@ -127,6 +127,19 @@ test_scm_asm_assemble(void)
     case SCM_OPCODE_JMPF:
       SCM_CAPI_INST_FETCH_INT32(ip, actual_arg);
       cut_assert_equal_int(-12, actual_arg);
+      break;
+    case SCM_OPCODE_CLOSE:
+      SCM_CAPI_INST_FETCH_INT32(ip, actual_arg);
+      SCM_CAPI_INST_FETCH_UINT32(ip, immv_idx);
+      actual_immv = scm_capi_iseq_ref_obj(iseq, immv_idx);
+      if (i == 21) {
+        cut_assert_equal_int(10, actual_arg);
+        cut_assert_true(scm_capi_eq_p(expected_immv, actual_immv));
+      }
+      else if (i == 22) {
+        cut_assert_equal_int(11, actual_arg);
+        cut_assert_true(scm_capi_iseq_p(actual_immv));
+      }
       break;
     }
   }
