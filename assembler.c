@@ -469,7 +469,7 @@ scm_asm_inst_iof(ScmObj iseq, int opcode, ScmObj operator, ScmObj operands,
     return -1;
   }
 
-  i = scm_capi_iseq_push_opfmt_si(iseq, opcode, 0);
+  i = scm_capi_iseq_push_opfmt_iof(iseq, opcode, 0);
   if (i < 0) return -1;      /* [ERR]: [through] */
 
   rslt = scm_iseq_asm_reg_label_ref_idx(label_tbl,
