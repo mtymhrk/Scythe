@@ -2937,7 +2937,7 @@ scm_capi_iseq_length(ScmObj iseq)
 ssize_t
 scm_capi_iseq_push_opfmt_noarg(ScmObj iseq, SCM_OPCODE_T op)
 {
-  ssize_t rslt, idx;
+  ssize_t rslt;
   SCM_STACK_FRAME_PUSH(&iseq);
 
   if (!scm_capi_iseq_p(iseq)) {
@@ -2947,18 +2947,14 @@ scm_capi_iseq_push_opfmt_noarg(ScmObj iseq, SCM_OPCODE_T op)
 
   rslt = scm_iseq_push_uint8(iseq, op);
   if (rslt < 0) return -1;      /* [ERR: [through] */
-  idx = rslt;
 
-  rslt = scm_iseq_push_uint8(iseq, 0);
-  if (rslt < 0) return -1;      /* [ERR]: [through] */
-
-  return idx;
+  return scm_iseq_push_uint8(iseq, 0);
 }
 
 ssize_t
 scm_capi_iseq_push_opfmt_obj(ScmObj iseq, SCM_OPCODE_T op, ScmObj val)
 {
-  ssize_t rslt, idx, immv_idx;
+  ssize_t rslt, immv_idx;
 
   SCM_STACK_FRAME_PUSH(&iseq, &val);
 
@@ -2983,21 +2979,17 @@ scm_capi_iseq_push_opfmt_obj(ScmObj iseq, SCM_OPCODE_T op, ScmObj val)
 
   rslt = scm_iseq_push_uint8(iseq, op);
   if (rslt < 0) return -1;      /* [ERR]: [through] */
-  idx = rslt;
 
   rslt = scm_iseq_push_uint8(iseq, 0);
   if (rslt < 0) return -1;      /* [ERR]: [through] */
 
-  rslt = scm_iseq_push_uint32(iseq, (uint32_t)immv_idx);
-  if (rslt < 0) return -1;      /* [ERR]: [through] */
-
-  return idx;
+  return scm_iseq_push_uint32(iseq, (uint32_t)immv_idx);
 }
 
 ssize_t
 scm_capi_iseq_push_opfmt_si(ScmObj iseq, SCM_OPCODE_T op, int32_t val)
 {
-  ssize_t rslt, idx;
+  ssize_t rslt;
 
   SCM_STACK_FRAME_PUSH(&iseq);
 
@@ -3008,22 +3000,18 @@ scm_capi_iseq_push_opfmt_si(ScmObj iseq, SCM_OPCODE_T op, int32_t val)
 
   rslt = scm_iseq_push_uint8(iseq, op);
   if (rslt < 0) return -1;   /* provisional implemntation */
-  idx = rslt;
 
   rslt = scm_iseq_push_uint8(iseq, 0);
   if (rslt < 0) return -1;   /* provisional implemntation */
 
-  rslt = scm_iseq_push_uint32(iseq, (uint32_t)val);
-  if (rslt < 0) return -1;   /* provisional implemntation */
-
-  return idx;
+  return scm_iseq_push_uint32(iseq, (uint32_t)val);
 }
 
 ssize_t
 scm_capi_iseq_push_opfmt_si_si(ScmObj iseq, SCM_OPCODE_T op,
                                int32_t val1, int32_t val2)
 {
-  ssize_t rslt, idx;
+  ssize_t rslt;
 
   SCM_STACK_FRAME_PUSH(&iseq);
 
@@ -3034,7 +3022,6 @@ scm_capi_iseq_push_opfmt_si_si(ScmObj iseq, SCM_OPCODE_T op,
 
   rslt = scm_iseq_push_uint8(iseq, op);
   if (rslt < 0) return -1;   /* provisional implemntation */
-  idx = rslt;
 
   rslt = scm_iseq_push_uint8(iseq, 0);
   if (rslt < 0) return -1;   /* provisional implemntation */
@@ -3042,10 +3029,7 @@ scm_capi_iseq_push_opfmt_si_si(ScmObj iseq, SCM_OPCODE_T op,
   rslt = scm_iseq_push_uint32(iseq, (uint32_t)val1);
   if (rslt < 0) return -1;   /* provisional implemntation */
 
-  rslt = scm_iseq_push_uint32(iseq, (uint32_t)val2);
-  if (rslt < 0) return -1;   /* provisional implemntation */
-
-  return idx;
+  return scm_iseq_push_uint32(iseq, (uint32_t)val2);
 }
 
 ssize_t

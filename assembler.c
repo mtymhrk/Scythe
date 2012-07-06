@@ -259,7 +259,7 @@ static ssize_t
 scm_asm_inst_noarg(ScmObj iseq, int opcode, ScmObj operator, ScmObj operands,
                    size_t idx, ScmCHashTbl *label_tbl, EArray *labels)
 {
-  ssize_t nr_arg, i;
+  ssize_t nr_arg;
 
   scm_assert(scm_capi_iseq_p(iseq));
   scm_assert(0 <= opcode && opcode <= UINT8_MAX);
@@ -276,10 +276,7 @@ scm_asm_inst_noarg(ScmObj iseq, int opcode, ScmObj operator, ScmObj operands,
     return -1;
   }
 
-  i = scm_capi_iseq_push_opfmt_noarg(iseq, (uint8_t)opcode);
-  if (i < 0) return -1;      /* [ERR]: [through] */
-
-  return i + 2;
+  return scm_capi_iseq_push_opfmt_noarg(iseq, (uint8_t)opcode);
 }
 
 static ssize_t
@@ -287,7 +284,7 @@ scm_asm_inst_obj(ScmObj iseq, int opcode, ScmObj operator, ScmObj operands,
                  size_t idx, ScmCHashTbl *label_tbl, EArray *labels)
 {
   ScmObj arg = SCM_OBJ_INIT;
-  ssize_t nr_arg, i;
+  ssize_t nr_arg;
 
   SCM_STACK_FRAME_PUSH(&iseq, &operator, &operands,
                        &arg);
@@ -312,10 +309,7 @@ scm_asm_inst_obj(ScmObj iseq, int opcode, ScmObj operator, ScmObj operands,
   arg = scm_api_car(operands);
   if (scm_obj_null_p(arg)) return -1; /* [ERR]: [throughg] */
 
-  i = scm_capi_iseq_push_opfmt_obj(iseq, opcode, arg);
-  if (i < 0) return -1;
-
-  return i + 6;
+  return scm_capi_iseq_push_opfmt_obj(iseq, opcode, arg);
 }
 
 static ssize_t
@@ -324,7 +318,7 @@ scm_asm_inst_si(ScmObj iseq, int opcode, ScmObj operator, ScmObj operands,
 {
   ScmObj arg = SCM_OBJ_INIT;
   scm_sword_t val;
-  ssize_t nr_arg, i;
+  ssize_t nr_arg;
   int rslt;
 
   SCM_STACK_FRAME_PUSH(&iseq, &operator, &operands,
@@ -363,10 +357,7 @@ scm_asm_inst_si(ScmObj iseq, int opcode, ScmObj operator, ScmObj operands,
     return -1;
   }
 
-  i = scm_capi_iseq_push_opfmt_si(iseq, opcode, (int32_t)val);
-  if (i < 0) return -1;
-
-  return i + 6;
+  return scm_capi_iseq_push_opfmt_si(iseq, opcode, (int32_t)val);
 }
 
 static ssize_t
@@ -375,7 +366,7 @@ scm_asm_inst_si_si(ScmObj iseq, int opcode, ScmObj operator, ScmObj operands,
 {
   ScmObj arg1 = SCM_OBJ_INIT, arg2 = SCM_OBJ_INIT;
   scm_sword_t val1, val2;
-  ssize_t nr_arg, i;
+  ssize_t nr_arg;
   int rslt;
 
   scm_assert(scm_capi_iseq_p(iseq));
@@ -430,11 +421,8 @@ scm_asm_inst_si_si(ScmObj iseq, int opcode, ScmObj operator, ScmObj operands,
     return -1;
   }
 
-  i = scm_capi_iseq_push_opfmt_si_si(iseq, opcode,
-                                       (int32_t)val1, (int32_t)val2);
-  if (i < 0) return -1;
-
-  return i + 10;
+  return scm_capi_iseq_push_opfmt_si_si(iseq, opcode,
+                                        (int32_t)val1, (int32_t)val2);
 }
 
 static ssize_t
@@ -473,10 +461,10 @@ scm_asm_inst_iof(ScmObj iseq, int opcode, ScmObj operator, ScmObj operands,
   if (i < 0) return -1;      /* [ERR]: [through] */
 
   rslt = scm_iseq_asm_reg_label_ref_idx(label_tbl,
-                                        labels, label, (size_t)i + 2);
+                                        labels, label, (size_t)i - 4);
   if (rslt < 0) return -1;      /* [ERR]: [through] */
 
-  return (ssize_t)i + 6;
+  return i;
 }
 
 static ssize_t
@@ -525,7 +513,7 @@ scm_asm_inst_asm(ScmObj iseq, int opcode, ScmObj operator, ScmObj operands,
                  size_t idx, ScmCHashTbl *label_tbl, EArray *labels)
 {
   ScmObj arg = SCM_OBJ_INIT;
-  ssize_t nr_arg, i;
+  ssize_t nr_arg;
 
   scm_assert(scm_capi_iseq_p(iseq));
   scm_assert(opcode >= SCM_ASM_PI_START);
@@ -558,10 +546,7 @@ scm_asm_inst_asm(ScmObj iseq, int opcode, ScmObj operator, ScmObj operands,
   arg = scm_asm_assemble(arg);
   if (scm_obj_null_p(arg)) return -1; /* [ERR]: [through] */
 
-  i = scm_capi_iseq_push_opfmt_obj(iseq, SCM_OPCODE_IMMVAL, arg);
-  if (i < 0) return -1;
-
-  return i + 6;
+  return scm_capi_iseq_push_opfmt_obj(iseq, SCM_OPCODE_IMMVAL, arg);
 }
 
 static ssize_t

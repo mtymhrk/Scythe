@@ -141,7 +141,7 @@ scm_iseq_push_uint8(ScmObj iseq, uint8_t val)
   EARY_SET(SCM_ISEQ_EARY_SEQ(iseq), uint8_t, idx, val, err);
   if (err != 0) return -1;
 
-  return (ssize_t)idx;
+  return (ssize_t)idx + 1;
 }
 
 inline ssize_t
@@ -173,7 +173,7 @@ scm_iseq_push_uint32(ScmObj iseq, uint32_t val)
   EARY_SET(SCM_ISEQ_EARY_SEQ(iseq), uint8_t, idx + 3, v4, err);
   if (err != 0) return -1;
 
-  return (ssize_t)idx;
+  return (ssize_t)idx + 4;
 }
 
 inline ssize_t

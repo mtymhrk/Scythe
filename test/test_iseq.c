@@ -59,7 +59,7 @@ test_scm_iseq_push_uint8(void)
   uint8_t actual = SCM_ISEQ_SEQ(iseq)[0];;
 
   /* postcondition check */
-  cut_assert_equal_int(0, rslt);
+  cut_assert_equal_int(1, rslt);
   cut_assert_equal_uint(1, SCM_ISEQ_SEQ_LENGTH(iseq));
   cut_assert_equal_uint(123, actual);
 }
@@ -80,7 +80,7 @@ test_scm_iseq_push_uint32_1(void)
   scm_iseq_get_uint32(iseq, 0, &actual);
 
   /* postcondition check */
-  cut_assert_equal_int(0, rslt);
+  cut_assert_equal_int(4, rslt);
   cut_assert_equal_uint(4, SCM_ISEQ_SEQ_LENGTH(iseq));
   cut_assert_equal_int(UINT32_MAX, actual);
 }
@@ -101,7 +101,7 @@ test_scm_iseq_push_uint32_2(void)
   scm_iseq_get_uint32(iseq, 0, &actual);
 
   /* postcondition check */
-  cut_assert_equal_int(0, rslt);
+  cut_assert_equal_int(4, rslt);
   cut_assert_equal_uint(4, SCM_ISEQ_SEQ_LENGTH(iseq));
   cut_assert_equal_int(0, actual);
 }
@@ -122,7 +122,7 @@ test_scm_iseq_push_uint32_3(void)
   scm_iseq_get_uint32(iseq, 0, (uint32_t *)&actual);
 
   /* postcondition check */
-  cut_assert_equal_int(0, rslt);
+  cut_assert_equal_int(4, rslt);
   cut_assert_equal_uint(4, SCM_ISEQ_SEQ_LENGTH(iseq));
   cut_assert_equal_int(INT32_MAX, actual);
 }
@@ -143,7 +143,7 @@ test_scm_iseq_push_uint32_4(void)
   scm_iseq_get_uint32(iseq, 0, (uint32_t *)&actual);
 
   /* postcondition check */
-  cut_assert_equal_int(0, rslt);
+  cut_assert_equal_int(4, rslt);
   cut_assert_equal_uint(4, SCM_ISEQ_SEQ_LENGTH(iseq));
   cut_assert_equal_int(INT32_MIN, actual);
 }
@@ -160,14 +160,14 @@ test_scm_iseq__expand_sequence_buffer(void)
 
   for (size_t idx = 0; idx < SCM_ISEQ_DEFAULT_SEQ_SIZE; idx++) {
     ssize_t r = scm_iseq_push_uint8(iseq, (uint8_t)(idx % 255));
-    cut_assert_equal_int((int)idx, r);
+    cut_assert_equal_int((int)idx + 1, r);
   }
 
   /* action */
   ssize_t rslt = scm_iseq_push_uint8(iseq, 255);
 
   /* postcondition check */
-  cut_assert_equal_int(SCM_ISEQ_DEFAULT_SEQ_SIZE, rslt);
+  cut_assert_equal_int(SCM_ISEQ_DEFAULT_SEQ_SIZE + 1, rslt);
   cut_assert_true(SCM_ISEQ_SEQ_CAPACITY(iseq) > SCM_ISEQ_DEFAULT_SEQ_SIZE);
 
   uint8_t actual = SCM_ISEQ_SEQ(iseq)[SCM_ISEQ_DEFAULT_SEQ_SIZE];
