@@ -390,6 +390,8 @@ ssize_t scm_capi_iseq_set_obj(ScmObj iseq, size_t idx, ScmObj val);
 ssize_t scm_capi_iseq_set_si(ScmObj iseq, size_t idx, int32_t val);
 ScmObj scm_capi_iseq_ref_obj(ScmObj iseq, size_t idx);
 
+int scm_capi_opcode_to_opfmt(int opcode);
+
 #define SCM_CAPI_INST_FETCH_OP(ip, op) \
   do {                                 \
     (op) = *(uint8_t *)(ip);           \
@@ -413,7 +415,6 @@ ScmObj scm_capi_iseq_ref_obj(ScmObj iseq, size_t idx);
                     | (uint32_t)*(uint8_t *)(ip));              \
     (ip) = (uint8_t *)(ip) + 4;                                 \
   } while (0)
-
 
 uint8_t *scm_capi_inst_fetch_oprand_obj(uint8_t *ip, ScmObj iseq,
                                         size_t *idx, scm_csetter_t *obj);

@@ -3141,8 +3141,8 @@ scm_capi_opcode_to_opfmt(int opcode)
     SCM_OPFMT_SI,               /* SCM_OPCODE_SSET */
     SCM_OPFMT_SI,               /* SCM_OPCODE_CREF */
     SCM_OPFMT_SI,               /* SCM_OPCODE_CSET */
-    SCM_OPFMT_SI,               /* SCM_OPCODE_JMP */
-    SCM_OPFMT_SI,               /* SCM_OPCODE_JMPF */
+    SCM_OPFMT_IOF,              /* SCM_OPCODE_JMP */
+    SCM_OPFMT_IOF,              /* SCM_OPCODE_JMPF */
     SCM_OPFMT_NOARG,            /* SCM_OPCODE_RAISE */
     SCM_OPFMT_SI,               /* SCM_OPCODE_BOX */
     SCM_OPFMT_NOARG,            /* SCM_OPCODE_UNBOX */
