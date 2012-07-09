@@ -54,7 +54,8 @@ exception.o: ../exception.c ../object.h ../api.h ../reference.h \
 syntax.o: ../syntax.c ../object.h ../api.h ../reference.h ../impl_utils.h \
  ../encoding.h ../api_enum.h ../syntax.h
 compiler.o: ../compiler.c ../object.h ../api.h ../reference.h \
- ../impl_utils.h ../encoding.h ../api_enum.h ../compiler.h
+ ../impl_utils.h ../encoding.h ../api_enum.h ../assembler.h ../earray.h \
+ ../compiler.h
 main.o: ../main.c ../api.h ../object.h ../reference.h ../impl_utils.h \
  ../encoding.h ../api_enum.h
 test_pair.o: test_pair.c /usr/local/include/cutter/cutter.h \

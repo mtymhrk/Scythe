@@ -4,36 +4,35 @@
 #include "earray.h"
 #include "assembler.h"
 
-struct {
-  const char *mne;
+static struct {
   int code;
-} mnemonic2opcod_tbl[] = {
-  { "nop"          , SCM_OPCODE_NOP },
-  { "halt"         , SCM_OPCODE_HALT },
-  { "call"         , SCM_OPCODE_CALL },
-  { "tcall"        , SCM_OPCODE_TAIL_CALL },
-  { "return"       , SCM_OPCODE_RETURN },
-  { "frame"        , SCM_OPCODE_FRAME },
-  { "immval"       , SCM_OPCODE_IMMVAL },
-  { "push"         , SCM_OPCODE_PUSH },
-  { "gref"         , SCM_OPCODE_GREF },
-  { "gdef"         , SCM_OPCODE_GDEF },
-  { "gset"         , SCM_OPCODE_GSET },
-  { "sref"         , SCM_OPCODE_SREF },
-  { "sset"         , SCM_OPCODE_SSET },
-  { "cref"         , SCM_OPCODE_CREF },
-  { "cset"         , SCM_OPCODE_CSET },
-  { "jmp"          , SCM_OPCODE_JMP },
-  { "jmpf"         , SCM_OPCODE_JMPF },
-  { "raise"        , SCM_OPCODE_RAISE },
-  { "box"          , SCM_OPCODE_BOX },
-  { "unbox"        , SCM_OPCODE_UNBOX },
-  { "close"        , SCM_OPCODE_CLOSE },
-  { "label"        , SCM_ASM_PI_LABEL },
-  { "asm"          , SCM_ASM_PI_ASM },
-  { "asm-close"    , SCM_ASM_PI_ASM_CLOSE }
+  const char *mne;
+} opcode2mnemonic_tbl[] = {
+  { SCM_OPCODE_NOP,       "nop" },
+  { SCM_OPCODE_HALT,      "halt" },
+  { SCM_OPCODE_CALL,      "call" },
+  { SCM_OPCODE_TAIL_CALL, "tcall" },
+  { SCM_OPCODE_RETURN,    "return" },
+  { SCM_OPCODE_FRAME,     "frame" },
+  { SCM_OPCODE_IMMVAL,    "immval" },
+  { SCM_OPCODE_PUSH,      "push" },
+  { SCM_OPCODE_GREF,      "gref" },
+  { SCM_OPCODE_GDEF,      "gdef" },
+  { SCM_OPCODE_GSET,      "gset" },
+  { SCM_OPCODE_SREF,      "sref" },
+  { SCM_OPCODE_SSET,      "sset" },
+  { SCM_OPCODE_CREF,      "cref" },
+  { SCM_OPCODE_CSET,      "cset" },
+  { SCM_OPCODE_JMP,       "jmp" },
+  { SCM_OPCODE_JMPF,      "jmpf" },
+  { SCM_OPCODE_RAISE,     "raise" },
+  { SCM_OPCODE_BOX,       "box" },
+  { SCM_OPCODE_UNBOX,     "unbox" },
+  { SCM_OPCODE_CLOSE,     "close" },
+  { SCM_ASM_PI_LABEL,     "label" },
+  { SCM_ASM_PI_ASM,       "asm" },
+  { SCM_ASM_PI_ASM_CLOSE, "asm-close" },
 };
-
 
 static size_t
 scm_asm_hash(ScmCHashTblKey key)
@@ -51,22 +50,6 @@ static bool
 scm_asm_cmp(ScmCHashTblKey key1, ScmCHashTblKey key2)
 {
   return (strcmp((char *)key1, (char *)key2) == 0) ? true : false;
-}
-
-static int
-scm_asm_mne2opcode(const char *mne)
-{
-  /* TODO: use quick sort */
-  scm_assert(mne != NULL);
-
-  for (size_t i = 0;
-       i < sizeof(mnemonic2opcod_tbl)/sizeof(mnemonic2opcod_tbl[0]);
-       i++) {
-    if (strcmp(mnemonic2opcod_tbl[i].mne, mne) == 0)
-      return mnemonic2opcod_tbl[i].code;
-  }
-
-  return -1;
 }
 
 static ScmLabelInfo *
@@ -242,7 +225,7 @@ scm_asm_sym2opcode(ScmObj op)
     ssize_t rslt = scm_capi_symbol_to_cstr(op, mne, sizeof(mne));
     if (rslt < 0) return -1;    /* [ERR]: [through] */
 
-    rslt = scm_asm_mne2opcode(mne);
+    rslt = scm_asm_mnemonic2opcode(mne);
     if (rslt < 0) {
       scm_capi_error("Assembler: unknown mnemonic", 1, op);
       return -1;
@@ -875,4 +858,46 @@ scm_asm_assemble(ScmObj lst)
   eary_fin(&labels);
   if (label_tbl != NULL) scm_chash_tbl_end(label_tbl);
   return SCM_OBJ_NULL;
+}
+
+int
+scm_asm_mnemonic2opcode(const char *mne)
+{
+  scm_assert(mne != NULL);
+
+  for (size_t i = 0;
+       i < sizeof(opcode2mnemonic_tbl)/sizeof(opcode2mnemonic_tbl[0]);
+       i++) {
+    if (strcmp(opcode2mnemonic_tbl[i].mne, mne) == 0)
+      return opcode2mnemonic_tbl[i].code;
+  }
+
+  return -1;
+}
+
+const char *
+scm_asm_opcode2mnemonic(int code)
+{
+  for (size_t i = 0;
+       i < sizeof(opcode2mnemonic_tbl)/sizeof(opcode2mnemonic_tbl[0]);
+       i++) {
+    if (opcode2mnemonic_tbl[i].code == code)
+      return opcode2mnemonic_tbl[i].mne;
+  }
+
+  return NULL;
+}
+
+ScmObj
+scm_asm_mnemonic(int opcode)
+{
+  const char *p;
+
+  p = scm_asm_opcode2mnemonic(opcode);
+  if (p == NULL) {
+    scm_capi_error("Assembler: unknown opcode", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_capi_make_symbol_from_cstr(p, SCM_ENC_ASCII);
 }

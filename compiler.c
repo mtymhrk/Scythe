@@ -3,39 +3,12 @@
 
 #include "object.h"
 #include "api.h"
+#include "assembler.h"
 #include "compiler.h"
 
 /* XXX: マルチスレッド対応の場合には TLS にする */
 static unsigned int label_id = 0;
 
-static struct {
-  int code;
-  const char *mne;
-} opcode2mnemonic_tbl[] = {
-  { SCM_OPCODE_NOP,       "nop" },
-  { SCM_OPCODE_HALT,      "halt" },
-  { SCM_OPCODE_CALL,      "call" },
-  { SCM_OPCODE_TAIL_CALL, "tcall" },
-  { SCM_OPCODE_RETURN,    "return" },
-  { SCM_OPCODE_FRAME,     "frame" },
-  { SCM_OPCODE_IMMVAL,    "immval" },
-  { SCM_OPCODE_PUSH,      "push" },
-  { SCM_OPCODE_GREF,      "gref" },
-  { SCM_OPCODE_GDEF,      "gdef" },
-  { SCM_OPCODE_GSET,      "gset" },
-  { SCM_OPCODE_SREF,      "sref" },
-  { SCM_OPCODE_SSET,      "sset" },
-  { SCM_OPCODE_CREF,      "cref" },
-  { SCM_OPCODE_CSET,      "cset" },
-  { SCM_OPCODE_JMP,       "jmp" },
-  { SCM_OPCODE_JMPF,      "jmpf" },
-  { SCM_OPCODE_RAISE,     "raise" },
-  { SCM_OPCODE_BOX,       "box" },
-  { SCM_OPCODE_UNBOX,     "unbox" },
-  { SCM_ASM_PI_LABEL,     "label" },
-  { SCM_ASM_PI_ASM,       "asm" },
-  { SCM_ASM_PI_ASM_CLOSE, "asm-close" },
-};
 
 
 static int scm_cmpl_find_free_and_assign_exp(ScmObj exp, ScmObj vars,
@@ -47,28 +20,13 @@ ScmObj scm_cmpl_compile_exp(ScmObj exp, ScmObj env, ScmObj sv,
 
 
 static ScmObj
-scm_cmpl_mnemonic(int opcode)
-{
-  for (size_t i = 0;
-       i < sizeof(opcode2mnemonic_tbl)/sizeof(opcode2mnemonic_tbl[0]);
-       i++) {
-    if (opcode2mnemonic_tbl[i].code == opcode)
-      return scm_capi_make_symbol_from_cstr(opcode2mnemonic_tbl[i].mne,
-                                            SCM_ENC_ASCII);
-  }
-
-  scm_capi_error("Compile: unknown opcode", 0);
-  return SCM_OBJ_NULL;
-}
-
-static ScmObj
 scm_cmpl_cons_inst_halt(void)
 {
   ScmObj mne = SCM_OBJ_INIT;
 
   SCM_STACK_FRAME_PUSH(&mne);
 
-  mne = scm_cmpl_mnemonic(SCM_OPCODE_HALT);
+  mne = scm_asm_mnemonic(SCM_OPCODE_HALT);
   if (scm_obj_null_p(mne)) return SCM_OBJ_NULL;
 
   return scm_capi_list(1, mne);
@@ -83,7 +41,7 @@ scm_cmpl_cons_inst_call(scm_sword_t narg)
 
   scm_assert(narg >= 0);
 
-  mne = scm_cmpl_mnemonic(SCM_OPCODE_CALL);
+  mne = scm_asm_mnemonic(SCM_OPCODE_CALL);
   if (scm_obj_null_p(mne)) return SCM_OBJ_NULL;
 
   num = scm_capi_make_number_from_sword(narg);
@@ -101,7 +59,7 @@ scm_cmpl_cons_inst_tcall(scm_sword_t narg, scm_sword_t cf_narg)
 
   scm_assert(narg >= 0);
 
-  mne = scm_cmpl_mnemonic(SCM_OPCODE_CALL);
+  mne = scm_asm_mnemonic(SCM_OPCODE_CALL);
   if (scm_obj_null_p(mne)) return SCM_OBJ_NULL;
 
   num1 = scm_capi_make_number_from_sword(narg);
@@ -122,7 +80,7 @@ scm_cmpl_cons_inst_return(scm_sword_t narg)
 
   scm_assert(narg >= 0);
 
-  mne = scm_cmpl_mnemonic(SCM_OPCODE_RETURN);
+  mne = scm_asm_mnemonic(SCM_OPCODE_RETURN);
   if (scm_obj_null_p(mne)) return SCM_OBJ_NULL;
 
   num = scm_capi_make_number_from_sword(narg);
@@ -138,7 +96,7 @@ scm_cmpl_cons_inst_frame(void)
 
   SCM_STACK_FRAME_PUSH(&mne);
 
-  mne = scm_cmpl_mnemonic(SCM_OPCODE_FRAME);
+  mne = scm_asm_mnemonic(SCM_OPCODE_FRAME);
   if (scm_obj_null_p(mne)) return SCM_OBJ_NULL;
 
   return scm_capi_list(1, mne);
@@ -151,7 +109,7 @@ scm_cmpl_cons_inst_immval(ScmObj val)
 
   SCM_STACK_FRAME_PUSH(&val, &mne);
 
-  mne = scm_cmpl_mnemonic(SCM_OPCODE_IMMVAL);
+  mne = scm_asm_mnemonic(SCM_OPCODE_IMMVAL);
   if (scm_obj_null_p(mne)) return SCM_OBJ_NULL;
 
   return scm_capi_list(2, mne, val);
@@ -164,7 +122,7 @@ scm_cmpl_cons_inst_push(void)
 
   SCM_STACK_FRAME_PUSH(&mne);
 
-  mne = scm_cmpl_mnemonic(SCM_OPCODE_PUSH);
+  mne = scm_asm_mnemonic(SCM_OPCODE_PUSH);
   if (scm_obj_null_p(mne)) return SCM_OBJ_NULL;
 
   return scm_capi_list(1, mne);
@@ -177,7 +135,7 @@ scm_cmpl_cons_inst_gref(ScmObj sym)
 
   SCM_STACK_FRAME_PUSH(&sym, &mne);
 
-  mne = scm_cmpl_mnemonic(SCM_OPCODE_GREF);
+  mne = scm_asm_mnemonic(SCM_OPCODE_GREF);
   if (scm_obj_null_p(mne)) return SCM_OBJ_NULL;
 
   return scm_capi_list(2, mne, sym);
@@ -190,7 +148,7 @@ scm_cmpl_cons_inst_gdef(ScmObj sym)
 
   SCM_STACK_FRAME_PUSH(&sym, &mne);
 
-  mne = scm_cmpl_mnemonic(SCM_OPCODE_GDEF);
+  mne = scm_asm_mnemonic(SCM_OPCODE_GDEF);
   if (scm_obj_null_p(mne)) return SCM_OBJ_NULL;
 
   return scm_capi_list(2, mne, sym);
@@ -203,7 +161,7 @@ scm_cmpl_cons_inst_gset(ScmObj sym)
 
   SCM_STACK_FRAME_PUSH(&sym, &mne);
 
-  mne = scm_cmpl_mnemonic(SCM_OPCODE_GSET);
+  mne = scm_asm_mnemonic(SCM_OPCODE_GSET);
   if (scm_obj_null_p(mne)) return SCM_OBJ_NULL;
 
   return scm_capi_list(2, mne, sym);
@@ -216,7 +174,7 @@ scm_cmpl_cons_inst_sref(scm_sword_t idx)
 
   SCM_STACK_FRAME_PUSH(&mne, &num);
 
-  mne = scm_cmpl_mnemonic(SCM_OPCODE_SREF);
+  mne = scm_asm_mnemonic(SCM_OPCODE_SREF);
   if (scm_obj_null_p(mne)) return SCM_OBJ_NULL;
 
   num = scm_capi_make_number_from_sword(idx);
@@ -232,7 +190,7 @@ scm_cmpl_cons_inst_sset(scm_sword_t idx)
 
   SCM_STACK_FRAME_PUSH(&mne, &num);
 
-  mne = scm_cmpl_mnemonic(SCM_OPCODE_SSET);
+  mne = scm_asm_mnemonic(SCM_OPCODE_SSET);
   if (scm_obj_null_p(mne)) return SCM_OBJ_NULL;
 
   num = scm_capi_make_number_from_sword(idx);
@@ -248,7 +206,7 @@ scm_cmpl_cons_inst_cref(scm_sword_t idx)
 
   SCM_STACK_FRAME_PUSH(&mne, &num);
 
-  mne = scm_cmpl_mnemonic(SCM_OPCODE_CREF);
+  mne = scm_asm_mnemonic(SCM_OPCODE_CREF);
   if (scm_obj_null_p(mne)) return SCM_OBJ_NULL;
 
   num = scm_capi_make_number_from_sword(idx);
@@ -264,7 +222,7 @@ scm_cmpl_cons_inst_cset(scm_sword_t idx)
 
   SCM_STACK_FRAME_PUSH(&mne, &num);
 
-  mne = scm_cmpl_mnemonic(SCM_OPCODE_CSET);
+  mne = scm_asm_mnemonic(SCM_OPCODE_CSET);
   if (scm_obj_null_p(mne)) return SCM_OBJ_NULL;
 
   num = scm_capi_make_number_from_sword(idx);
@@ -280,7 +238,7 @@ scm_cmpl_cons_inst_jmp(ScmObj lbl)
 
   SCM_STACK_FRAME_PUSH(&lbl, &mne);
 
-  mne = scm_cmpl_mnemonic(SCM_OPCODE_JMP);
+  mne = scm_asm_mnemonic(SCM_OPCODE_JMP);
   if (scm_obj_null_p(mne)) return SCM_OBJ_NULL;
 
   return scm_capi_list(2, mne, lbl);
@@ -293,7 +251,7 @@ scm_cmpl_cons_inst_jmpf(ScmObj lbl)
 
   SCM_STACK_FRAME_PUSH(&lbl, &mne);
 
-  mne = scm_cmpl_mnemonic(SCM_OPCODE_JMPF);
+  mne = scm_asm_mnemonic(SCM_OPCODE_JMPF);
 
   return scm_capi_list(2, mne, lbl);
 }
@@ -305,7 +263,7 @@ scm_cmpl_cons_inst_raise(void)
 
   SCM_STACK_FRAME_PUSH(&mne);
 
-  mne = scm_cmpl_mnemonic(SCM_OPCODE_RAISE);
+  mne = scm_asm_mnemonic(SCM_OPCODE_RAISE);
   if (scm_obj_null_p(mne)) return SCM_OBJ_NULL;
 
   return scm_capi_list(1, mne);
@@ -318,7 +276,7 @@ scm_cmpl_cons_inst_box(scm_sword_t idx)
 
   SCM_STACK_FRAME_PUSH(&mne, &num);
 
-  mne = scm_cmpl_mnemonic(SCM_OPCODE_BOX);
+  mne = scm_asm_mnemonic(SCM_OPCODE_BOX);
   if (scm_obj_null_p(mne)) return SCM_OBJ_NULL;
 
   num = scm_capi_make_number_from_sword(idx);
@@ -334,7 +292,7 @@ scm_cmpl_cons_inst_unbox(void)
 
   SCM_STACK_FRAME_PUSH(&mne);
 
-  mne = scm_cmpl_mnemonic(SCM_OPCODE_UNBOX);
+  mne = scm_asm_mnemonic(SCM_OPCODE_UNBOX);
   if (scm_obj_null_p(mne)) return SCM_OBJ_NULL;
 
   return scm_capi_list(1, mne);
@@ -348,7 +306,7 @@ scm_cmpl_cons_inst_label(ScmObj lbl)
 
   SCM_STACK_FRAME_PUSH(&lbl, &mne);
 
-  mne = scm_cmpl_mnemonic(SCM_ASM_PI_LABEL);
+  mne = scm_asm_mnemonic(SCM_ASM_PI_LABEL);
   if (scm_obj_null_p(mne)) return SCM_OBJ_NULL;
 
   return scm_capi_list(2, mne, lbl);
@@ -361,7 +319,7 @@ scm_cmpl_cons_inst_asm(ScmObj code)
 
   SCM_STACK_FRAME_PUSH(&code, &mne);
 
-  mne = scm_cmpl_mnemonic(SCM_ASM_PI_ASM);
+  mne = scm_asm_mnemonic(SCM_ASM_PI_ASM);
   if (scm_obj_null_p(mne)) return SCM_OBJ_NULL;
 
   return scm_capi_list(2, mne, code);
@@ -374,7 +332,7 @@ scm_cmpl_cons_inst_asm_close(scm_sword_t nr_free, ScmObj code)
 
   SCM_STACK_FRAME_PUSH(&code, &mne, &num);
 
-  mne = scm_cmpl_mnemonic(SCM_ASM_PI_ASM_CLOSE);
+  mne = scm_asm_mnemonic(SCM_ASM_PI_ASM_CLOSE);
   if (scm_obj_null_p(mne)) return SCM_OBJ_NULL;
 
   num = scm_capi_make_number_from_sword(nr_free);

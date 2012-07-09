@@ -20,7 +20,7 @@ charconv.o: charconv.c api.h object.h reference.h impl_utils.h encoding.h \
 encoding.o: encoding.c encoding.h api_enum.h
 vm.o: vm.c vm.h object.h memory.h basichash.h impl_utils.h reference.h \
  api.h encoding.h api_enum.h string.h symbol.h chashtbl.h gloc.h \
- procedure.h core_subr.h miscobjects.h
+ procedure.h core_subr.h miscobjects.h compiler.h
 procedure.o: procedure.c object.h api.h reference.h impl_utils.h \
  encoding.h api_enum.h procedure.h
 reference.o: reference.c object.h api.h reference.h impl_utils.h \
@@ -50,6 +50,6 @@ exception.o: exception.c object.h api.h reference.h impl_utils.h \
 syntax.o: syntax.c object.h api.h reference.h impl_utils.h encoding.h \
  api_enum.h syntax.h
 compiler.o: compiler.c object.h api.h reference.h impl_utils.h encoding.h \
- api_enum.h compiler.h
+ api_enum.h assembler.h earray.h compiler.h
 main.o: main.c api.h object.h reference.h impl_utils.h encoding.h \
  api_enum.h
