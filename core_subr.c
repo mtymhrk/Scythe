@@ -174,6 +174,34 @@ scm_subr_func_eval_asm(int argc, ScmObj *argv)
   return scm_api_undef();
 }
 
+ScmObj
+scm_subr_func_eval(int argc, ScmObj *argv)
+{
+  ScmObj exp = SCM_OBJ_INIT, args = SCM_OBJ_INIT;
+  int rslt;
+
+  SCM_STACK_FRAME_PUSH(&exp, &args);
+
+  if (argc != 1) {
+    /* TODO: change error message */
+    scm_capi_error("eval-asm: 1 argument is require, but got ", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  exp = scm_api_compile(argv[0]);
+  if (scm_obj_null_p(exp)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+
+  exp = scm_api_assemble(exp);
+  if (scm_obj_null_p(exp)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+
+  args = scm_api_nil();
+
+  rslt = scm_capi_trampolining(exp, args, argc, NULL);
+  if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
+
+  return scm_api_undef();
+}
+
 
 /*******************************************************************/
 /*  Process-Context Library Procedure                              */
@@ -241,13 +269,15 @@ void
 scm_core_subr_system_setup(void)
 {
   const char *syms[] = { "cons", "car", "cdr", "read", "write", "display",
-                         "newline", "flush-output-port", "eval-asm", "exit" };
+                         "newline", "flush-output-port", "eval-asm", "eval",
+                         "exit" };
   ScmSubrFunc funcs[] = { scm_subr_func_cons, scm_subr_func_car,
                           scm_subr_func_cdr, scm_subr_func_read,
                           scm_subr_func_write, scm_subr_func_display,
                           scm_subr_func_newline,
                           scm_subr_func_flush_output_port,
-                          scm_subr_func_eval_asm, scm_subr_func_exit };
+                          scm_subr_func_eval_asm, scm_subr_func_eval,
+                          scm_subr_func_exit };
   ScmObj sym  = SCM_OBJ_INIT;
   ScmObj subr = SCM_OBJ_INIT;
   ScmObj rslt = SCM_OBJ_INIT;

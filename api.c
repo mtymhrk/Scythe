@@ -20,6 +20,7 @@
 #include "syntax.h"
 #include "iseq.h"
 #include "assembler.h"
+#include "compiler.h"
 #include "exception.h"
 
 #include "encoding.h"
@@ -3280,6 +3281,22 @@ scm_api_assemble(ScmObj lst)
   }
 
   return scm_asm_assemble(lst);
+}
+
+
+/*******************************************************************/
+/*  Compiler                                                       */
+/*******************************************************************/
+
+ScmObj
+scm_api_compile(ScmObj exp)
+{
+  if (scm_obj_null_p(exp)) {
+    scm_capi_error("compile: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_cmpl_compile(exp);
 }
 
 

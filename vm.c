@@ -15,6 +15,7 @@
 #include "procedure.h"
 #include "core_subr.h"
 #include "miscobjects.h"
+#include "compiler.h"
 #include "api.h"
 #include "impl_utils.h"
 
@@ -1209,6 +1210,7 @@ scm_vm_setup_system(ScmObj vm)
   if (rslt < 0) return -1;       /* [ERR]: [through] */
 
   scm_core_subr_system_setup();
+  scm_core_syntx_system_setup();
 
   return 0;
 }
