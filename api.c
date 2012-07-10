@@ -192,6 +192,9 @@ scm_api_eqv_P(ScmObj obj1, ScmObj obj2)
 {
   ScmObj str1 = SCM_OBJ_INIT, str2 = SCM_OBJ_INIT;
 
+  SCM_STACK_FRAME_PUSH(&obj1, &obj2,
+                       &str1, &str2);
+
   if (scm_obj_null_p(obj1) || scm_obj_null_p(obj2)) {
     scm_capi_error("eqv?: invalid argument", 0);
     return SCM_OBJ_NULL;         /* provisional implemntation */
