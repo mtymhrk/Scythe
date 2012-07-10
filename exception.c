@@ -37,6 +37,8 @@ scm_exception_initialize_va(ScmObj exc, ScmObj msg, size_t n, va_list irris)
     SCM_SLOT_SETQ(ScmException, exc, irritants[i], ir);
   }
 
+  SCM_EXCEPTION(exc)->nr_irris = n;
+
   return 0;
 }
 
@@ -55,6 +57,8 @@ scm_exception_initialize_ary(ScmObj exc, ScmObj msg, size_t n, ScmObj *irris)
 
   for (size_t i = 0; i < n; i++)
     SCM_SLOT_SETQ(ScmException, exc, irritants[i], irris[i]);
+
+  SCM_EXCEPTION(exc)->nr_irris = n;
 
   return 0;
 }
@@ -141,6 +145,9 @@ scm_exception_pretty_print(ScmObj obj, ScmObj port, bool write_p)
 {
   ScmObj ro;
   int rslt;
+
+  SCM_STACK_FRAME_PUSH(&obj, &port,
+                       &ro);
 
   scm_assert_obj_type(obj, &SCM_EXCEPTION_TYPE_INFO);
 
