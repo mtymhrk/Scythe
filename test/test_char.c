@@ -49,4 +49,65 @@ test_scm_char_value_a(void)
 
 }
 
+void
+test_scm_char_cmp_1(void)
+{
+  ScmObj chr1 = SCM_OBJ_INIT, chr2 = SCM_OBJ_INIT;
+  scm_char_t c;
+  int actual, err;
 
+  SCM_STACK_FRAME_PUSH(&chr1, &chr2);
+
+  SCM_CHR_SET_ASCII(c, 'a');
+  chr1 = scm_capi_make_char(c, SCM_ENC_ASCII);
+
+  SCM_CHR_SET_ASCII(c, 'a');
+  chr2 = scm_capi_make_char(c, SCM_ENC_ASCII);
+
+  err = scm_char_cmp(chr1, chr2, &actual);
+
+  cut_assert_true(err >= 0);
+  cut_assert_equal_int(0, actual);
+}
+
+void
+test_scm_char_cmp_2(void)
+{
+  ScmObj chr1 = SCM_OBJ_INIT, chr2 = SCM_OBJ_INIT;
+  scm_char_t c;
+  int actual, err;
+
+  SCM_STACK_FRAME_PUSH(&chr1, &chr2);
+
+  SCM_CHR_SET_ASCII(c, 'a');
+  chr1 = scm_capi_make_char(c, SCM_ENC_ASCII);
+
+  SCM_CHR_SET_ASCII(c, 'b');
+  chr2 = scm_capi_make_char(c, SCM_ENC_ASCII);
+
+  err = scm_char_cmp(chr1, chr2, &actual);
+
+  cut_assert_true(err >= 0);
+  cut_assert_equal_int(-1, actual);
+}
+
+void
+test_scm_char_cmp_3(void)
+{
+  ScmObj chr1 = SCM_OBJ_INIT, chr2 = SCM_OBJ_INIT;
+  scm_char_t c;
+  int actual, err;
+
+  SCM_STACK_FRAME_PUSH(&chr1, &chr2);
+
+  SCM_CHR_SET_ASCII(c, 'b');
+  chr1 = scm_capi_make_char(c, SCM_ENC_ASCII);
+
+  SCM_CHR_SET_ASCII(c, 'a');
+  chr2 = scm_capi_make_char(c, SCM_ENC_ASCII);
+
+  err = scm_char_cmp(chr1, chr2, &actual);
+
+  cut_assert_true(err >= 0);
+  cut_assert_equal_int(1, actual);
+}

@@ -192,6 +192,41 @@ scm_char_encode(ScmObj chr, SCM_ENC_T enc)
 }
 
 int
+scm_char_cmp(ScmObj chr1, ScmObj chr2, int *rslt)
+{
+  const ScmEncVirtualFunc *vf;
+  long long v1, v2;
+
+  scm_assert_obj_type(chr1, &SCM_CHAR_TYPE_INFO);
+  scm_assert_obj_type(chr2, &SCM_CHAR_TYPE_INFO);
+  scm_assert(SCM_CHAR(chr1)->enc == SCM_CHAR(chr2)->enc);
+
+  vf = SCM_ENCODING_VFUNC(SCM_CHAR(chr1)->enc);
+  v1 = vf->to_scalar(SCM_CHAR(chr1)->value.bytes, sizeof(scm_char_t));
+  if (v1 < 0) {
+    scm_capi_error("can not get scalar value of character", 0);
+    return -1;
+  }
+
+  v2 = vf->to_scalar(SCM_CHAR(chr2)->value.bytes, sizeof(scm_char_t));
+  if (v2 < 0) {
+    scm_capi_error("can not get scalar value of character", 0);
+    return -1;
+  }
+
+  if (rslt != NULL) {
+    if (v1 < v2)
+      *rslt = -1;
+    else if (v1 > v2)
+      *rslt = 1;
+    else
+      *rslt = 0;
+  }
+
+  return 0;
+}
+
+int
 scm_char_pretty_print(ScmObj obj, ScmObj port, bool write_p)
 {
   ScmObj ro = SCM_OBJ_INIT;

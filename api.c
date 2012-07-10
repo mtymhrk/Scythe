@@ -187,6 +187,45 @@ scm_api_eq_P(ScmObj obj1, ScmObj obj2)
           scm_api_bool_true() : scm_api_bool_false());
 }
 
+ScmObj
+scm_api_eqv_P(ScmObj obj1, ScmObj obj2)
+{
+  ScmObj str1 = SCM_OBJ_INIT, str2 = SCM_OBJ_INIT;
+
+  if (scm_obj_null_p(obj1) || scm_obj_null_p(obj2)) {
+    scm_capi_error("eqv?: invalid argument", 0);
+    return SCM_OBJ_NULL;         /* provisional implemntation */
+  }
+
+  if (scm_capi_eq_p(obj1, obj2))
+    return scm_api_bool_true();
+
+  if (scm_capi_number_p(obj1)) {
+    if (scm_capi_number_p(obj2))
+      return scm_api_num_eq_P(obj1, obj2);
+    else
+      return scm_api_bool_false();
+  }
+
+  if (!scm_type_info_same_p(scm_obj_type(obj1), scm_obj_type(obj2)))
+    return scm_api_bool_false();
+
+  if (scm_capi_char_p(obj1)) {
+    return scm_api_char_eq_P(obj1, obj2);
+  }
+  else if (scm_capi_symbol_p(obj1)) {
+    str1 = scm_api_symbol_to_string(obj1);
+    if (scm_obj_null_p(str1)) return SCM_OBJ_NULL;
+
+    str2 = scm_api_symbol_to_string(obj2);
+    if (scm_obj_null_p(str2)) return SCM_OBJ_NULL;
+
+    return scm_api_string_eq_P(str1, str2);
+  }
+
+  return scm_api_bool_false();
+}
+
 
 /*******************************************************************/
 /*  nil                                                            */
@@ -828,6 +867,30 @@ scm_capi_num_eq_v(bool *rslt, size_t n, ...)
   return err;
 }
 
+ScmObj
+scm_api_num_eq_P(ScmObj n1, ScmObj n2)
+{
+  bool cmp;
+  int rslt;
+
+  rslt = scm_capi_num_eq(n1, n2, &cmp);
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  return cmp ? scm_api_bool_true() : scm_api_bool_false();
+}
+
+ScmObj
+scm_capi_num_eq_ary_P(size_t argc, ScmObj *argv)
+{
+  bool cmp;
+  int rslt;
+
+  rslt = scm_capi_num_cop_fold("=", scm_capi_num_eq, argc, argv, &cmp);
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  return cmp ? scm_api_bool_true() : scm_api_bool_false();
+}
+
 int
 scm_capi_num_lt(ScmObj n1, ScmObj n2, bool *rslt)
 {
@@ -874,6 +937,30 @@ scm_capi_num_lt_v(bool *rslt, size_t n, ...)
   va_end(ap);
 
   return err;
+}
+
+ScmObj
+scm_api_num_lt_P(ScmObj n1, ScmObj n2)
+{
+  bool cmp;
+  int rslt;
+
+  rslt = scm_capi_num_lt(n1, n2, &cmp);
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  return cmp ? scm_api_bool_true() : scm_api_bool_false();
+}
+
+ScmObj
+scm_capi_num_lt_ary_P(size_t argc, ScmObj *argv)
+{
+  bool cmp;
+  int rslt;
+
+  rslt = scm_capi_num_cop_fold("<", scm_capi_num_lt, argc, argv, &cmp);
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  return cmp ? scm_api_bool_true() : scm_api_bool_false();
 }
 
 int
@@ -924,6 +1011,29 @@ scm_capi_num_gt_v(bool *rslt, size_t n, ...)
   return err;
 }
 
+ScmObj
+scm_api_num_gt_P(ScmObj n1, ScmObj n2)
+{
+  bool cmp;
+  int rslt;
+
+  rslt = scm_capi_num_gt(n1, n2, &cmp);
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  return cmp ? scm_api_bool_true() : scm_api_bool_false();
+}
+
+ScmObj
+scm_capi_num_gt_ary_P(size_t argc, ScmObj *argv)
+{
+  bool cmp;
+  int rslt;
+
+  rslt = scm_capi_num_cop_fold(">", scm_capi_num_gt, argc, argv, &cmp);
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  return cmp ? scm_api_bool_true() : scm_api_bool_false();
+}
 
 int
 scm_capi_num_le(ScmObj n1, ScmObj n2, bool *rslt)
@@ -973,6 +1083,30 @@ scm_capi_num_le_v(bool *rslt, size_t n, ...)
   return err;
 }
 
+ScmObj
+scm_api_num_le_P(ScmObj n1, ScmObj n2)
+{
+  bool cmp;
+  int rslt;
+
+  rslt = scm_capi_num_le(n1, n2, &cmp);
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  return cmp ? scm_api_bool_true() : scm_api_bool_false();
+}
+
+ScmObj
+scm_capi_num_le_ary_P(size_t argc, ScmObj *argv)
+{
+  bool cmp;
+  int rslt;
+
+  rslt = scm_capi_num_cop_fold("<=", scm_capi_num_le, argc, argv, &cmp);
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  return cmp ? scm_api_bool_true() : scm_api_bool_false();
+}
+
 int
 scm_capi_num_ge(ScmObj n1, ScmObj n2, bool *rslt)
 {
@@ -1019,6 +1153,30 @@ scm_capi_num_ge_v(bool *rslt, size_t n, ...)
   va_end(ap);
 
   return err;
+}
+
+ScmObj
+scm_api_num_ge_P(ScmObj n1, ScmObj n2)
+{
+  bool cmp;
+  int rslt;
+
+  rslt = scm_capi_num_ge(n1, n2, &cmp);
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  return cmp ? scm_api_bool_true() : scm_api_bool_false();
+}
+
+ScmObj
+scm_capi_num_ge_ary_P(size_t argc, ScmObj *argv)
+{
+  bool cmp;
+  int rslt;
+
+  rslt = scm_capi_num_cop_fold(">=", scm_capi_num_ge, argc, argv, &cmp);
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  return cmp ? scm_api_bool_true() : scm_api_bool_false();
 }
 
 static ScmObj
@@ -1579,6 +1737,49 @@ scm_capi_char_encoding(ScmObj chr, SCM_ENC_T *enc)
   return 0;
 }
 
+int
+scm_capi_char_eq(ScmObj chr1, ScmObj chr2, bool *rslt)
+{
+  int err, cmp;
+
+  if (scm_obj_null_p(chr1) || scm_obj_null_p(chr2)) {
+    scm_capi_error("char=?: invalid argument", 0);
+    return -1;
+  }
+  else if (!scm_capi_char_p(chr1)) {
+    scm_capi_error("char=?: number required, but got", 1, chr1);
+    return -1;
+  }
+  else if (!scm_capi_char_p(chr2)) {
+    scm_capi_error("char=?: number required, but got", 1, chr2);
+    return -1;
+  }
+  else if (scm_char_encoding(chr1) != scm_char_encoding(chr2)) {
+    scm_capi_error("char=?: invalid argument: encoding mismatch", 0);
+    return -1;
+  }
+
+  err = scm_char_cmp(chr1, chr2, &cmp);
+  if (err < 0) return -1;
+
+  if (rslt != NULL)
+    *rslt = (cmp == 0) ? true : false;
+
+  return 0;
+}
+
+ScmObj
+scm_api_char_eq_P(ScmObj chr1, ScmObj chr2)
+{
+  bool cmp;
+  int rslt;
+
+  rslt = scm_capi_char_eq(chr1, chr2, &cmp);
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  return cmp ? scm_api_bool_true() : scm_api_bool_false();
+}
+
 
 /*******************************************************************/
 /*  String                                                         */
@@ -1776,26 +1977,46 @@ scm_api_string_push(ScmObj str, ScmObj c)
 }
 
 int
-scm_capi_string_cmp(ScmObj s1, ScmObj s2, int *rslt)
+scm_capi_string_eq(ScmObj s1, ScmObj s2, bool *rslt)
 {
+  int err, cmp;
+
   if (scm_obj_null_p(s1) || scm_obj_null_p(s2)) {
-    scm_capi_error("can not compare stringsn: invalid argument", 0);
+    scm_capi_error("string=?: invalid argument", 0);
     return -1;
   }
   else if (!scm_capi_string_p(s1)) {
-    scm_capi_error("can not compare strings: string required, but got", 1, s1);
+    scm_capi_error("string=?: string required, but got", 1, s1);
     return -1;
   }
   else if (!scm_capi_string_p(s2)) {
-    scm_capi_error("can not compare strings: string required, but got", 1, s2);
+    scm_capi_error("string=?: string required, but got", 1, s2);
     return -1;
   }
   else if (scm_string_encoding(s1) != scm_string_encoding(s2)) {
-    scm_capi_error("can not compare strings: encoding mismatch", 0);
+    scm_capi_error("string=?: invalid argument: encoding mismatch", 0);
     return -1;
   }
 
-  return scm_string_cmp(s1, s2, rslt);
+  err = scm_string_cmp(s1, s2, &cmp);
+  if (err < 0) return -1;
+
+  if (rslt != NULL)
+    *rslt = (cmp == 0) ? true : false;
+
+  return 0;
+}
+
+ScmObj
+scm_api_string_eq_P(ScmObj s1, ScmObj s2)
+{
+  bool cmp;
+  int rslt;
+
+  rslt = scm_capi_string_eq(s1, s2, &cmp);
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  return cmp ? scm_api_bool_true() : scm_api_bool_false();
 }
 
 
@@ -2059,32 +2280,6 @@ scm_capi_symbol_hash_value(ScmObj sym)
     return SIZE_MAX;                  /* provisional implementation */
 
   return scm_symbol_hash_value(sym);
-}
-
-int
-scm_capi_symbol_cmp(ScmObj s1, ScmObj s2, int *rslt)
-{
-  int r;
-
-  if (scm_obj_null_p(s1) || scm_obj_null_p(s2)) {
-    scm_capi_error("can not compare symbols: invalid argument", 0);
-    return -1;
-  }
-  else if (!scm_capi_symbol_p(s1)) {
-    scm_capi_error("can not compare symbols: symbol required, but got", 1, s1);
-    return -1;
-  }
-  else if (!scm_capi_symbol_p(s2)) {
-    scm_capi_error("can not compare symbols: symbol required, but got", 1, s2);
-    return -1;
-  }
-
-  r = scm_symbol_cmp(s1, s2, rslt);
-
-  if (r == 0 && rslt != NULL)
-    scm_assert(scm_obj_same_instance_p(s1, s2) || *rslt != 0);
-
-  return r;
 }
 
 

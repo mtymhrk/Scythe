@@ -170,22 +170,32 @@ int scm_capi_num_to_size_t(ScmObj num, size_t *s);
 int scm_capi_num_eq(ScmObj n1, ScmObj n2, bool *rslt);
 int scm_capi_num_eq_ary(size_t argc, ScmObj *argv, bool *rslt);
 int scm_capi_num_eq_v(bool *rslt, size_t n, ...);
+ScmObj scm_api_num_eq_P(ScmObj n1, ScmObj n2);
+ScmObj scm_capi_num_eq_ary_P(size_t argc, ScmObj *argv);
 
 int scm_capi_num_lt(ScmObj n1, ScmObj n2, bool *rslt);
 int scm_capi_num_lt_ary(size_t argc, ScmObj *argv, bool *rslt);
 int scm_capi_num_lt_v(bool *rslt, size_t n, ...);
+ScmObj scm_api_num_lt_P(ScmObj n1, ScmObj n2);
+ScmObj scm_capi_num_lt_ary_P(size_t argc, ScmObj *argv);
 
 int scm_capi_num_gt(ScmObj n1, ScmObj n2, bool *rslt);
 int scm_capi_num_gt_ary(size_t argc, ScmObj *argv, bool *rslt);
 int scm_capi_num_gt_v(bool *rslt, size_t n, ...);
+ScmObj scm_api_num_gt_P(ScmObj n1, ScmObj n2);
+ScmObj scm_capi_num_gt_ary_P(size_t argc, ScmObj *argv);
 
 int scm_capi_num_le(ScmObj n1, ScmObj n2, bool *rslt);
 int scm_capi_num_le_ary(size_t argc, ScmObj *argv, bool *rslt);
 int scm_capi_num_le_v(bool *rslt, size_t n, ...);
+ScmObj scm_api_num_le_P(ScmObj n1, ScmObj n2);
+ScmObj scm_capi_num_le_ary_P(size_t argc, ScmObj *argv);
 
 int scm_capi_num_ge(ScmObj n1, ScmObj n2, bool *rslt);
 int scm_capi_num_ge_ary(size_t argc, ScmObj *argv, bool *rslt);
 int scm_capi_num_ge_v(bool *rslt, size_t n, ...);
+ScmObj scm_api_num_ge_P(ScmObj n1, ScmObj n2);
+ScmObj scm_capi_num_ge_ary_P(size_t argc, ScmObj *argv);
 
 ScmObj scm_api_plus(ScmObj x, ScmObj y);
 ScmObj scm_capi_plus_ary(size_t argc, ScmObj *argv);
@@ -243,8 +253,9 @@ scm_capi_fixnum_to_inst_ptr(ScmObj fn)
   return (void *)((scm_uword_t)fn ^ 0x01);
 }
 
+
 /*******************************************************************/
-/*  charactor                                                      */
+/*  Charactor                                                      */
 /*******************************************************************/
 
 ScmObj scm_capi_make_char(scm_char_t chr, SCM_ENC_T enc);
@@ -253,6 +264,8 @@ ScmObj scm_api_make_char_space(SCM_ENC_T enc);
 bool scm_capi_char_p(ScmObj obj);
 ssize_t scm_capi_char_to_cchar(ScmObj chr, scm_char_t *cp);
 int scm_capi_char_encoding(ScmObj chr, SCM_ENC_T *enc);
+int scm_capi_char_eq(ScmObj chr1, ScmObj chr2, bool *rslt);
+ScmObj scm_api_char_eq_P(ScmObj chr1, ScmObj chr2);
 
 
 /*******************************************************************/
@@ -269,7 +282,8 @@ int scm_capi_string_encoding(ScmObj str, SCM_ENC_T *enc);
 ssize_t scm_capi_string_to_cstr(ScmObj str, char *cstr, size_t size);
 int scm_capi_string_push(ScmObj str, scm_char_t chr, SCM_ENC_T enc);
 ScmObj scm_api_string_push(ScmObj str, ScmObj c);
-int scm_capi_string_cmp(ScmObj s1, ScmObj s2, int *rslt);
+int scm_capi_string_eq(ScmObj s1, ScmObj s2, bool *rslt);
+ScmObj scm_api_string_eq_P(ScmObj s1, ScmObj s2);
 
 
 /*******************************************************************/
@@ -298,7 +312,6 @@ bool scm_capi_symbol_p(ScmObj obj);
 ssize_t scm_capi_symbol_bytesize(ScmObj sym);
 ssize_t scm_capi_symbol_to_cstr(ScmObj sym, char *cstr, size_t size);
 size_t scm_capi_symbol_hash_value(ScmObj sym);
-int scm_capi_symbol_cmp(ScmObj s1, ScmObj s2, int *rslt);
 
 
 /*******************************************************************/
@@ -424,6 +437,7 @@ uint8_t *scm_capi_inst_fetch_oprand_si(uint8_t *ip, int32_t *si);
 uint8_t *scm_capi_inst_fetch_oprand_si_si(uint8_t *ip,
                                           int32_t *si1, int32_t *si2);
 uint8_t *scm_capi_inst_fetch_oprand_iof(uint8_t *ip, int32_t *offset);
+
 
 /*******************************************************************/
 /*  Assembler                                                      */
