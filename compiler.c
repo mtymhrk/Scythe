@@ -1173,17 +1173,15 @@ scm_cmpl_parse_lambda_formals(ScmObj formals, bool *var_p)
 
   SCM_STACK_FRAME_PUSH(&formals, &i, &e, &v, &r);
 
-  n = 0;
-  for (i = formals;
-       scm_obj_not_null_p(i) && scm_capi_pair_p(i);
-       i = scm_api_cdr(i)) {
-    e = scm_api_car(e);
+  for (i = formals, n = 0;
+       scm_capi_pair_p(i);
+       i = scm_api_cdr(i), n++) {
+    e = scm_api_car(i);
     if (scm_obj_null_p(e)) return SCM_OBJ_NULL;
     if (!scm_capi_symbol_p(e)) {
       scm_capi_error("compile: syntax error: malformed lambda", 0);
       return SCM_OBJ_NULL;
     }
-    n++;
   }
 
   if (scm_obj_null_p(i)) return SCM_OBJ_NULL;
@@ -1205,9 +1203,9 @@ scm_cmpl_parse_lambda_formals(ScmObj formals, bool *var_p)
 
   j = 0;
   for (i = formals;
-       scm_obj_not_null_p(i) && scm_capi_pair_p(i);
+       scm_capi_pair_p(i);
        i = scm_api_cdr(i)) {
-    e = scm_api_car(e);
+    e = scm_api_car(i);
     if (scm_obj_null_p(e)) return SCM_OBJ_NULL;
 
     r = scm_capi_vector_set(v, j++, e);
