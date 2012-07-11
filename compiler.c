@@ -59,7 +59,7 @@ scm_cmpl_cons_inst_tcall(scm_sword_t narg, scm_sword_t cf_narg)
 
   scm_assert(narg >= 0);
 
-  mne = scm_asm_mnemonic(SCM_OPCODE_CALL);
+  mne = scm_asm_mnemonic(SCM_OPCODE_TAIL_CALL);
   if (scm_obj_null_p(mne)) return SCM_OBJ_NULL;
 
   num1 = scm_capi_make_number_from_sword(narg);
@@ -1109,7 +1109,7 @@ scm_cmpl_compile_application(ScmObj exp, ScmObj env, ScmObj sv,
   inst_push = scm_cmpl_cons_inst_push();
   if (scm_obj_null_p(inst_push)) return SCM_OBJ_NULL;
 
-  for (ssize_t i = nr_args; i > 0; i++) {
+  for (ssize_t i = nr_args; i > 0; i--) {
     elm = scm_capi_vector_ref(args, (size_t)i - 1);
     if (scm_obj_null_p(elm)) return SCM_OBJ_NULL;
 
@@ -1916,10 +1916,15 @@ scm_cmpl_compile_exp(ScmObj exp, ScmObj env, ScmObj sv,
         return scm_cmpl_compile_funcs[id](exp, env, sv, next, tail_p);
       }
     }
-  }
 
-  return scm_cmpl_compile_funcs[SCM_CMPL_SYNTAX_SELF_EVAL](exp, env,
-                                                           sv, next, tail_p);
+    return scm_cmpl_compile_funcs[SCM_CMPL_SYNTAX_APPLICATION](exp, env,
+                                                               sv, next,
+                                                               tail_p);
+  }
+  else {
+    return scm_cmpl_compile_funcs[SCM_CMPL_SYNTAX_SELF_EVAL](exp, env,
+                                                             sv, next, tail_p);
+  }
 }
 
 ScmObj
