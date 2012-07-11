@@ -571,23 +571,23 @@ scm_cmpl_env_cons(ScmObj bound, ScmObj free)
 }
 
 static int
-scm_cmpl_env_find_free(ScmObj env, ScmObj var, ssize_t *idx)
+scm_cmpl_env_find_bound(ScmObj env, ScmObj var, ssize_t *idx)
 {
-  ScmObj fvs = SCM_OBJ_INIT, v = SCM_OBJ_INIT;
+  ScmObj bvs = SCM_OBJ_INIT, v = SCM_OBJ_INIT;
   ssize_t len;
 
-  SCM_STACK_FRAME_PUSH(&env, &var, &fvs, &v);
+  SCM_STACK_FRAME_PUSH(&env, &var, &bvs, &v);
 
   scm_assert(idx != NULL);
 
-  fvs = scm_api_cdr(env);
-  if (scm_obj_null_p(fvs)) return -1;
+  bvs = scm_api_car(env);
+  if (scm_obj_null_p(bvs)) return -1;
 
-  len = scm_capi_vector_length(fvs);
+  len = scm_capi_vector_length(bvs);
   if (len < 0) return -1;
 
   for (ssize_t n = 0; n < len; n++) {
-    v = scm_capi_vector_ref(fvs, (size_t)n);
+    v = scm_capi_vector_ref(bvs, (size_t)n);
     if (scm_obj_null_p(v)) return -1;
 
     if (scm_capi_eq_p(v, var)) {
@@ -760,7 +760,7 @@ scm_cmpl_add_sym_into_free_if_needed(ScmObj sym, ScmObj env,
   if (!inc) {
     ssize_t idx;
 
-    rslt = scm_cmpl_env_find_free(env, sym, &idx);
+    rslt = scm_cmpl_env_find_bound(env, sym, &idx);
     if (rslt < 0) return -1;
 
     if (idx >= 0) {
@@ -1460,6 +1460,7 @@ scm_cmpl_compile_lambda(ScmObj exp, ScmObj env, ScmObj sv,
   rslt = scm_cmpl_collect_free_and_assign(body, env, lvars,
                                           SCM_CSETTER_L(fvars),
                                           SCM_CSETTER_L(avars));
+
   if (rslt < 0) return SCM_OBJ_NULL;
 
   new_env = scm_cmpl_new_env(lvars, fvars);
@@ -1509,10 +1510,10 @@ scm_cmpl_compile_lambda(ScmObj exp, ScmObj env, ScmObj sv,
 
     if (scm_obj_null_p(inst_ref)) return SCM_OBJ_NULL;
 
-    next = scm_api_cons(inst_ref, next);
+    next = scm_api_cons(inst_push, next);
     if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
 
-    next = scm_api_cons(inst_push, next);
+    next = scm_api_cons(inst_ref, next);
     if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
   }
 
