@@ -229,6 +229,167 @@ scm_api_eqv_P(ScmObj obj1, ScmObj obj2)
   return scm_api_bool_false();
 }
 
+enum { NON_CIRCULATIVE,
+       SAME_CIRCULATION,
+       DIFFERENT_CIRCULATION };
+
+static int
+scm_api_equal_check_circular(ScmObj obj1, ScmObj obj2,
+                             ScmObj stack1, ScmObj stack2, int *rslt)
+{
+  ScmObj elm1 = SCM_OBJ_INIT, elm2 = SCM_OBJ_INIT;
+  ScmObj lst1 = SCM_OBJ_INIT, lst2 = SCM_OBJ_INIT;
+  size_t cnt1 = 0, cnt2 = 0;
+
+  scm_assert(scm_obj_not_null_p(obj1));
+  scm_assert(scm_obj_not_null_p(obj2));
+  scm_assert(scm_capi_nil_p(stack1) || scm_capi_pair_p(stack1));
+  scm_assert(scm_capi_nil_p(stack2) || scm_capi_pair_p(stack2));
+  scm_assert(rslt != NULL);
+
+  SCM_STACK_FRAME_PUSH(&obj1, &obj2, &stack1, &stack2,
+                       &elm1, &elm2,
+                       &lst1, &lst2);
+
+  for (lst1 = stack1, cnt1 = 0;
+       scm_capi_pair_p(lst1);
+       lst1 = scm_api_cdr(lst1), cnt1++) {
+    elm1 = scm_api_car(lst1);
+    if (scm_obj_null_p(elm1)) return -1;
+
+    if (scm_capi_eq_p(obj1, elm1)) break;
+  }
+  if (scm_obj_null_p(lst1)) return -1;
+
+  if (!scm_capi_nil_p(lst1)) {     /* 循環構造がある */
+    for (lst2 = stack2, cnt2 = 0;
+         cnt2 <= cnt1 && scm_capi_pair_p(lst2);
+         lst2 = scm_api_cdr(lst2), cnt2++) {
+      elm2 = scm_api_car(lst2);
+      if (scm_obj_null_p(elm2)) return -1;
+
+      if (scm_capi_eq_p(obj2, elm2)) break;
+    }
+    if (scm_obj_null_p(lst2)) return -1;
+
+    if (cnt1 == cnt2)         /* 循環構造が一致 */
+      *rslt = SAME_CIRCULATION;
+    else                      /* 循環構造が不一致 */
+      *rslt = DIFFERENT_CIRCULATION;
+  }
+  else {     /* 循環構造がない */
+    *rslt = NON_CIRCULATIVE;
+  }
+
+  return 0;
+}
+
+/*
+ * Memo: equal? precedure の動作について
+ * 以下の 2 つの循環リストはいずれも、シンボル a、b が交互に表われるリストであ
+ * るが、これらの equal? は実装上、偽となる。R6RS ではどうすべきかはよくわから
+ * なかった。
+ *
+ *   1. #0=(a b a b . #0#)
+ *   2. (a b . #0=(a b . #0#))
+ *
+ *  (equal? '#0=(a b a b . #0#) '(a b . #0=(a b . #0#)))  ; => #f
+ *
+ */
+
+static ScmObj
+scm_api_equal_aux_P(ScmObj obj1, ScmObj obj2, ScmObj stack1, ScmObj stack2)
+{
+  ScmObj rslt = SCM_OBJ_INIT, elm1 = SCM_OBJ_INIT, elm2 = SCM_OBJ_INIT;
+  int cir;
+
+  scm_assert(scm_obj_not_null_p(obj1));
+  scm_assert(scm_obj_not_null_p(obj2));
+  scm_assert(scm_capi_nil_p(stack1) || scm_capi_pair_p(stack1));
+  scm_assert(scm_capi_nil_p(stack2) || scm_capi_pair_p(stack2));
+
+  SCM_STACK_FRAME_PUSH(&obj1, &obj2, &stack1, &stack2,
+                       &rslt, &elm1, &elm2);
+
+  rslt = scm_api_eqv_P(obj1, obj2);
+  if (scm_obj_null_p(rslt)) return SCM_OBJ_NULL;
+
+  if (scm_capi_false_p(rslt)
+      && !scm_type_info_same_p(scm_obj_type(obj1), scm_obj_type(obj2))
+      && (scm_capi_pair_p(obj1) || scm_capi_vector_p(obj1))) {
+    if (scm_api_equal_check_circular(obj1, obj2, stack1, stack2, &cir) < 0)
+      return SCM_OBJ_NULL;
+
+    if (cir == SAME_CIRCULATION)
+      return scm_api_bool_true();
+    else if (cir == DIFFERENT_CIRCULATION)
+      return scm_api_bool_false();
+
+    stack1 = scm_api_cons(obj1, stack1);
+    if (scm_obj_null_p(stack1)) return SCM_OBJ_NULL;
+
+    stack2 = scm_api_cons(obj2, stack2);
+    if (scm_obj_null_p(stack2)) return SCM_OBJ_NULL;
+
+    if (scm_capi_pair_p(obj1)) {
+      elm1 = scm_api_car(obj1);
+      if (scm_obj_null_p(elm1)) return SCM_OBJ_NULL;
+
+      elm2 = scm_api_car(obj2);
+      if (scm_obj_null_p(elm2)) return SCM_OBJ_NULL;
+
+      rslt = scm_api_equal_aux_P(elm1, elm2, stack1, stack2);
+      if (scm_obj_null_p(rslt)) return SCM_OBJ_NULL;
+      if (scm_capi_false_p(rslt)) return rslt;
+
+      elm1 = scm_api_cdr(obj1);
+      if (scm_obj_null_p(elm1)) return SCM_OBJ_NULL;
+
+      elm2 = scm_api_cdr(obj2);
+      if (scm_obj_null_p(elm2)) return SCM_OBJ_NULL;
+
+      return scm_api_equal_aux_P(elm1, elm2, stack1, stack2);
+    }
+    else {
+      ssize_t len1 = scm_capi_vector_length(obj1);
+      ssize_t len2 = scm_capi_vector_length(obj2);
+
+      if (len1 < 0 || len2 < 0) return SCM_OBJ_NULL;
+      if (len1 != len2) return scm_api_bool_false();
+
+      for (ssize_t i = 0; i < len1; i++) {
+        elm1 = scm_capi_vector_ref(obj1, (size_t)i);
+        if (scm_obj_null_p(elm1)) return SCM_OBJ_NULL;
+
+        elm2 = scm_capi_vector_ref(obj2, (size_t)i);
+        if (scm_obj_null_p(elm2)) return SCM_OBJ_NULL;
+
+        rslt = scm_api_equal_aux_P(elm1, elm2, stack1, stack2);
+        if (scm_obj_null_p(rslt)) return SCM_OBJ_NULL;
+        if (scm_capi_false_p(rslt)) return rslt;
+      }
+
+      return scm_api_bool_true();
+    }
+  }
+
+  return scm_api_bool_false();
+}
+
+ScmObj
+scm_api_equal_P(ScmObj obj1, ScmObj obj2)
+{
+  ScmObj stack1 = SCM_OBJ_INIT, stack2 = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&obj1, &obj2,
+                       &stack1, &stack2);
+
+  stack1 = stack2 = scm_api_nil();
+  if (scm_obj_null_p(stack1)) return SCM_OBJ_NULL;
+
+  return scm_api_equal_aux_P(obj1, obj2, stack1, stack2);
+}
+
 
 /*******************************************************************/
 /*  nil                                                            */

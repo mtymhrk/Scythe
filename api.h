@@ -85,6 +85,8 @@ void scm_capi_gc_disable(void);
 bool scm_capi_null_value_p(ScmObj obj);
 bool scm_capi_eq_p(ScmObj obj1, ScmObj obj2);
 ScmObj scm_api_eq_P(ScmObj obj1, ScmObj obj2);
+ScmObj scm_api_eqv_P(ScmObj obj1, ScmObj obj2);
+ScmObj scm_api_equal_P(ScmObj obj1, ScmObj obj2);
 
 
 /*******************************************************************/
