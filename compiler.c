@@ -1541,7 +1541,7 @@ scm_cmpl_decons_assignment(ScmObj exp, scm_csetter_t *var, scm_csetter_t *val)
   ro = scm_api_car(tmp);
   if (scm_obj_null_p(ro)) return -1;
 
-  tmp = scm_api_cdr(exp);
+  tmp = scm_api_cdr(tmp);
   if (scm_obj_null_p(tmp)) return -1;
 
   if (!scm_capi_pair_p(tmp)) {
@@ -1611,6 +1611,7 @@ scm_cmpl_compile_assignment(ScmObj exp, ScmObj env, ScmObj sv,
   if (rslt < 0) return SCM_OBJ_NULL;
 
   rslt = scm_cmpl_env_resolv_ref(env, var, &type, &idx);
+  if (rslt < 0) return SCM_OBJ_NULL;
 
   if (idx > SCM_SWORD_MAX) {
     scm_capi_error("Compiler: inner index overflow", 0);
@@ -1634,7 +1635,7 @@ scm_cmpl_compile_assignment(ScmObj exp, ScmObj env, ScmObj sv,
   next = scm_api_cons(inst_set, next);
   if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
 
-  return scm_cmpl_compile_exp(var, env, sv, next, false);
+  return scm_cmpl_compile_exp(val, env, sv, next, false);
 }
 
 static int
@@ -1817,7 +1818,7 @@ enum { SCM_CMPL_SYNTAX_REFERENCE, SCM_CMPL_SYNTAX_SELF_EVAL,
        SCM_CMPL_SYNTAX_IF, SCM_CMPL_NR_SYNTAX };
 
 const char *scm_cmpl_syntax_keywords[] = { NULL, NULL, "quote", NULL, "lambda",
-                                           NULL, "if" };
+                                           "set!", "if" };
 ScmObj (*scm_cmpl_compile_funcs[])(ScmObj exp, ScmObj env, ScmObj sv,
                                    ScmObj next, bool tail_p) = {
   scm_cmpl_compile_reference,
@@ -1877,6 +1878,10 @@ scm_cmpl_find_free_and_assign_exp(ScmObj exp, ScmObj env,
         return scm_cmpl_find_funcs[id](exp, env, bound, formal, free, assign);
       }
     }
+
+    return scm_cmpl_find_funcs[SCM_CMPL_SYNTAX_APPLICATION](exp, env,
+                                                            bound, formal,
+                                                            free, assign);
   }
 
   return scm_cmpl_find_funcs[SCM_CMPL_SYNTAX_SELF_EVAL](exp, env,
