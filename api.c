@@ -315,7 +315,7 @@ scm_api_equal_aux_P(ScmObj obj1, ScmObj obj2, ScmObj stack1, ScmObj stack2)
   if (scm_obj_null_p(rslt)) return SCM_OBJ_NULL;
 
   if (scm_capi_false_p(rslt)
-      && !scm_type_info_same_p(scm_obj_type(obj1), scm_obj_type(obj2))
+      && scm_type_info_same_p(scm_obj_type(obj1), scm_obj_type(obj2))
       && (scm_capi_pair_p(obj1) || scm_capi_vector_p(obj1))) {
     if (scm_api_equal_check_circular(obj1, obj2, stack1, stack2, &cir) < 0)
       return SCM_OBJ_NULL;
@@ -373,7 +373,7 @@ scm_api_equal_aux_P(ScmObj obj1, ScmObj obj2, ScmObj stack1, ScmObj stack2)
     }
   }
 
-  return scm_api_bool_false();
+  return rslt;
 }
 
 ScmObj

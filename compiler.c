@@ -564,8 +564,8 @@ scm_cmpl_set_to_vec(ScmObj set)
 static ScmObj
 scm_cmpl_env_cons(ScmObj bound, ScmObj free)
 {
-  scm_assert(scm_capi_nil_p(bound) || scm_capi_pair_p(bound));
-  scm_assert(scm_capi_nil_p(free) || scm_capi_pair_p(free));
+  scm_assert(scm_capi_vector_p(bound));
+  scm_assert(scm_capi_vector_p(free));
 
   return scm_api_cons(bound, free);
 }
@@ -1935,6 +1935,9 @@ scm_cmpl_compile(ScmObj exp)
   if (scm_obj_null_p(sv)) return SCM_OBJ_NULL;
 
   next = scm_cmpl_cons_inst_return(0);
+  if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
+
+  next = scm_capi_list(1, next);
   if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
 
   return scm_cmpl_compile_exp(exp, env, sv, next, true);
