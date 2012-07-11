@@ -969,7 +969,7 @@ scm_cmpl_decons_quote(ScmObj exp, scm_csetter_t *obj)
   oo = scm_api_car(tmp);
   if (scm_obj_null_p(oo)) return -1;
 
-  tmp = scm_api_cdr(exp);
+  tmp = scm_api_cdr(tmp);
   if (scm_obj_null_p(tmp)) return -1;
 
   if (!scm_capi_nil_p(tmp)) {

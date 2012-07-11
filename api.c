@@ -384,6 +384,11 @@ scm_api_equal_P(ScmObj obj1, ScmObj obj2)
   SCM_STACK_FRAME_PUSH(&obj1, &obj2,
                        &stack1, &stack2);
 
+  if (scm_obj_null_p(obj1) || scm_obj_null_p(obj2)) {
+    scm_capi_error("equal?: invalid argument", 0);
+    return SCM_OBJ_NULL;         /* provisional implemntation */
+  }
+
   stack1 = stack2 = scm_api_nil();
   if (scm_obj_null_p(stack1)) return SCM_OBJ_NULL;
 
