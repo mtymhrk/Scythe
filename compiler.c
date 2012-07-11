@@ -338,7 +338,7 @@ scm_cmpl_cons_inst_asm_close(scm_sword_t nr_free, ScmObj code)
   num = scm_capi_make_number_from_sword(nr_free);
   if (scm_obj_null_p(num)) return SCM_OBJ_NULL;
 
-  return scm_capi_list(2, mne, num, code);
+  return scm_capi_list(3, mne, num, code);
 }
 
 static ScmObj
@@ -408,7 +408,7 @@ scm_cmpl_set_add_vec(ScmObj set, ScmObj vec)
   scm_assert(scm_capi_vector_p(vec));
 
   len = scm_capi_vector_length(vec);
-  if (len < 0) return SCM_OBJ_INIT;
+  if (len < 0) return SCM_OBJ_NULL;
 
   for (ssize_t n = 0; n < len; n++) {
     elm = scm_capi_vector_ref(vec, (size_t)n);
@@ -418,7 +418,7 @@ scm_cmpl_set_add_vec(ScmObj set, ScmObj vec)
     if (scm_obj_null_p(set)) return SCM_OBJ_NULL;
   }
 
-  return 0;
+  return set;
 }
 
 static ScmObj
@@ -849,7 +849,7 @@ scm_cmpl_compile_exp_list(ScmObj exp_lst, ScmObj env, ScmObj sv,
                        &exp_vec, &exp, &code);
 
   exp_vec = scm_api_list_to_vector(exp_lst);
-  if (scm_obj_null_p(exp)) return SCM_OBJ_NULL;
+  if (scm_obj_null_p(exp_vec)) return SCM_OBJ_NULL;
 
   len = scm_capi_vector_length(exp_vec);
   if (len < 0) return SCM_OBJ_NULL;
@@ -1345,6 +1345,9 @@ scm_cmpl_make_closure_code(ScmObj body, ScmObj new_env, ScmObj new_sv)
   inst_ret = scm_cmpl_cons_inst_return(nr_lvars);
   if (scm_obj_null_p(inst_ret)) return SCM_OBJ_NULL;
 
+  inst_ret = scm_capi_list(1, inst_ret);
+  if (scm_obj_null_p(inst_ret)) return SCM_OBJ_NULL;
+
   body_code = scm_cmpl_compile_exp_list(body,
                                         new_env, new_sv, inst_ret, true);
   if (scm_obj_null_p(body_code)) return SCM_OBJ_NULL;
@@ -1814,7 +1817,7 @@ enum { SCM_CMPL_SYNTAX_REFERENCE, SCM_CMPL_SYNTAX_SELF_EVAL,
        SCM_CMPL_SYNTAX_LAMBDA, SCM_CMPL_SYNTAX_ASSIGNMENT,
        SCM_CMPL_SYNTAX_IF, SCM_CMPL_NR_SYNTAX };
 
-const char *scm_cmpl_syntax_keywords[] = { NULL, NULL, "quote", "lambda",
+const char *scm_cmpl_syntax_keywords[] = { NULL, NULL, "quote", NULL, "lambda",
                                            NULL, "if" };
 ScmObj (*scm_cmpl_compile_funcs[])(ScmObj exp, ScmObj env, ScmObj sv,
                                    ScmObj next, bool tail_p) = {

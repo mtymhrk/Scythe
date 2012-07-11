@@ -2296,7 +2296,17 @@ scm_api_list_to_vector(ScmObj lst)
   size_t i;
   ssize_t n;
 
-  SCM_STACK_FRAME_PUSH(&lst, &vec, &node, &elm);
+  SCM_STACK_FRAME_PUSH(&lst,
+                       &vec, &node, &elm);
+
+  if (scm_obj_null_p(lst)) {
+    scm_capi_error("list->vector: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (!(scm_capi_pair_p(lst) || scm_capi_nil_p(lst))) {
+    scm_capi_error("list->vector: proper list required, but got", 1, vec);
+    return SCM_OBJ_NULL;
+  }
 
   n = scm_capi_length(lst);
   if (n < 0) return SCM_OBJ_NULL;;
