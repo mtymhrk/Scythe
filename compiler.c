@@ -364,7 +364,7 @@ scm_cmpl_set_is_included(ScmObj set, ScmObj elm, bool *rslt)
 
     r = scm_capi_eq_p(x, elm);
     if (r) {
-      *rslt = true;
+      if (rslt != NULL) *rslt = true;
       return 0;
     }
   }
@@ -793,7 +793,7 @@ scm_cmpl_add_sym_into_assign_if_needed(ScmObj sym, ScmObj formal, ScmObj assign)
   rslt = scm_cmpl_set_is_included(formal, sym, &inc);
   if (rslt < 0) return -1;
 
-  if (!inc) {
+  if (inc) {
     set = scm_api_car(assign);
     if (scm_obj_null_p(set)) return -1;
 
@@ -1354,7 +1354,7 @@ scm_cmpl_make_closure_code(ScmObj body, ScmObj new_env, ScmObj new_sv)
     elm = scm_cmpl_env_ref_bound_var(new_env, (size_t)i);
     if (scm_obj_null_p(elm)) return SCM_OBJ_NULL;
 
-    rslt = scm_cmpl_set_is_included(elm, new_sv, &inc);
+    rslt = scm_cmpl_set_is_included(new_sv, elm, &inc);
     if (rslt < 0) return SCM_OBJ_NULL;
 
     if (inc) {
