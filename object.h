@@ -7,6 +7,8 @@
 #include <limits.h>
 #include <assert.h>
 
+#include "impl_utils.h"
+
 typedef uintptr_t scm_word_t;
 typedef uintptr_t scm_uword_t;
 typedef intptr_t  scm_sword_t;
@@ -36,17 +38,25 @@ typedef const ScmObj *ScmCRef;
 
 #define SCM_SLOT_SETQ(type, obj, slt, val) \
   do {                                     \
-    ((type *)(obj))->slt = (val);          \
+    ScmObj SCM_CONCAT_SYMBOL__(scm_slot_setq__inner_variable__, __LINE__) \
+      = (val);                                                          \
+    ((type *)(obj))->slt                                                \
+      = SCM_CONCAT_SYMBOL__(scm_slot_setq__inner_variable__, __LINE__); \
   } while(0)
 
-#define SCM_SLOT_REF_SETQ(type, obj, slt, val) \
-  do {                                         \
-    *(((type *)(obj))->slt) = (val);           \
+#define SCM_SLOT_REF_SETQ(type, obj, slt, val)                          \
+  do {                                                                  \
+    ScmObj SCM_CONCAT_SYMBOL__(scm_slot_ref_setq__inner_variable__, __LINE__) \
+      = (val);                                                          \
+    *(((type *)(obj))->slt)                                             \
+      = SCM_CONCAT_SYMBOL__(scm_slot_ref_setq__inner_variable__, __LINE__); \
   } while(0)
 
-#define SCM_WB_SETQ(owner, lval, rval)            \
-  do {                                            \
-    ((lval) = (rval));                            \
+#define SCM_WB_SETQ(owner, lval, rval)                                  \
+  do {                                                                  \
+    ScmObj SCM_CONCAT_SYMBOL__(scm_wb_setq__inner_variable__, __LINE__) \
+      = (rval);                                                         \
+    (lval) = SCM_CONCAT_SYMBOL__(scm_wb_setq__inner_variable__, __LINE__); \
   } while(0)
 
 

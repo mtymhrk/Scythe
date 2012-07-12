@@ -1,55 +1,55 @@
-memory.o: memory.c basichash.h object.h api.h reference.h impl_utils.h \
+memory.o: memory.c basichash.h object.h impl_utils.h api.h reference.h \
  encoding.h api_enum.h memory.h
-object.o: object.c object.h numeric.h api_enum.h earray.h api.h \
- reference.h impl_utils.h encoding.h
+object.o: object.c object.h impl_utils.h numeric.h api_enum.h earray.h \
+ api.h reference.h encoding.h
 pair.o: pair.c object.h impl_utils.h api.h reference.h encoding.h \
  api_enum.h pair.h
-string.o: string.c object.h reference.h impl_utils.h api.h encoding.h \
+string.o: string.c object.h impl_utils.h reference.h api.h encoding.h \
  api_enum.h string.h
-symbol.o: symbol.c object.h reference.h impl_utils.h api.h encoding.h \
+symbol.o: symbol.c object.h impl_utils.h reference.h api.h encoding.h \
  api_enum.h chashtbl.h string.h symbol.h
 basichash.o: basichash.c basichash.h
-vector.o: vector.c object.h reference.h impl_utils.h api.h encoding.h \
+vector.o: vector.c object.h impl_utils.h reference.h api.h encoding.h \
  api_enum.h vector.h
-miscobjects.o: miscobjects.c object.h reference.h impl_utils.h api.h \
+miscobjects.o: miscobjects.c object.h impl_utils.h reference.h api.h \
  encoding.h api_enum.h miscobjects.h
-char.o: char.c object.h reference.h impl_utils.h api.h encoding.h \
+char.o: char.c object.h impl_utils.h reference.h api.h encoding.h \
  api_enum.h char.h
-charconv.o: charconv.c api.h object.h reference.h impl_utils.h encoding.h \
+charconv.o: charconv.c api.h object.h impl_utils.h reference.h encoding.h \
  api_enum.h charconv.h
 encoding.o: encoding.c encoding.h api_enum.h
-vm.o: vm.c vm.h object.h memory.h basichash.h impl_utils.h reference.h \
+vm.o: vm.c vm.h object.h impl_utils.h memory.h basichash.h reference.h \
  api.h encoding.h api_enum.h string.h symbol.h chashtbl.h gloc.h \
  procedure.h core_subr.h miscobjects.h compiler.h
-procedure.o: procedure.c object.h api.h reference.h impl_utils.h \
+procedure.o: procedure.c object.h impl_utils.h api.h reference.h \
  encoding.h api_enum.h procedure.h
-reference.o: reference.c object.h api.h reference.h impl_utils.h \
+reference.o: reference.c object.h impl_utils.h api.h reference.h \
  encoding.h api_enum.h
-numeric.o: numeric.c object.h reference.h impl_utils.h api.h encoding.h \
+numeric.o: numeric.c object.h impl_utils.h reference.h api.h encoding.h \
  api_enum.h earray.h numeric.h
-core_subr.o: core_subr.c object.h vm.h memory.h basichash.h impl_utils.h \
+core_subr.o: core_subr.c object.h impl_utils.h vm.h memory.h basichash.h \
  reference.h api.h encoding.h api_enum.h core_subr.h
-iseq.o: iseq.c object.h reference.h impl_utils.h chashtbl.h api.h \
+iseq.o: iseq.c object.h impl_utils.h reference.h chashtbl.h api.h \
  encoding.h api_enum.h earray.h iseq.h
-chashtbl.o: chashtbl.c object.h reference.h impl_utils.h api.h encoding.h \
+chashtbl.o: chashtbl.c object.h impl_utils.h reference.h api.h encoding.h \
  api_enum.h chashtbl.h
-api.o: api.c object.h memory.h basichash.h impl_utils.h vm.h reference.h \
+api.o: api.c object.h impl_utils.h memory.h basichash.h vm.h reference.h \
  api.h encoding.h api_enum.h char.h string.h symbol.h chashtbl.h \
  procedure.h gloc.h numeric.h earray.h pair.h vector.h port.h parser.h \
  syntax.h iseq.h assembler.h compiler.h exception.h
-gloc.o: gloc.c object.h reference.h impl_utils.h api.h encoding.h \
+gloc.o: gloc.c object.h impl_utils.h reference.h api.h encoding.h \
  api_enum.h chashtbl.h gloc.h
-port.o: port.c object.h reference.h impl_utils.h api.h encoding.h \
+port.o: port.c object.h impl_utils.h reference.h api.h encoding.h \
  api_enum.h port.h
-parser.o: parser.c object.h reference.h impl_utils.h api.h encoding.h \
+parser.o: parser.c object.h impl_utils.h reference.h api.h encoding.h \
  api_enum.h parser.h
-assembler.o: assembler.c object.h api.h reference.h impl_utils.h \
+assembler.o: assembler.c object.h impl_utils.h api.h reference.h \
  encoding.h api_enum.h chashtbl.h earray.h assembler.h
-exception.o: exception.c object.h api.h reference.h impl_utils.h \
+exception.o: exception.c object.h impl_utils.h api.h reference.h \
  encoding.h api_enum.h exception.h
-syntax.o: syntax.c object.h api.h reference.h impl_utils.h encoding.h \
+syntax.o: syntax.c object.h impl_utils.h api.h reference.h encoding.h \
  api_enum.h syntax.h
-compiler.o: compiler.c object.h api.h reference.h impl_utils.h encoding.h \
+compiler.o: compiler.c object.h impl_utils.h api.h reference.h encoding.h \
  api_enum.h assembler.h earray.h compiler.h
-main.o: main.c api.h object.h reference.h impl_utils.h encoding.h \
+main.o: main.c api.h object.h impl_utils.h reference.h encoding.h \
  api_enum.h

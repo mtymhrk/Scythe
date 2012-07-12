@@ -438,8 +438,7 @@ scm_fixnum_pretty_print(ScmObj obj, ScmObj port, bool write_p)
   scm_assert_obj_type(obj, &SCM_FIXNUM_TYPE_INFO);
 
   snprintf(cstr, sizeof(cstr), "%lld",
-           (long long)scm_rshift_arith_sword((scm_sword_t)obj,
-                                             SCM_FIXNUM_SHIFT_BIT));
+           (long long)SCM_RSHIFT_ARITH((scm_sword_t)obj, SCM_FIXNUM_SHIFT_BIT));
 
   rslt = scm_capi_write_cstr(cstr, SCM_ENC_ASCII, port);
   if (rslt < 0) return -1;

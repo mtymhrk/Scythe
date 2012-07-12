@@ -64,7 +64,7 @@ scm_fixnum_value(ScmObj num)
 {
   scm_assert_obj_type(num, &SCM_FIXNUM_TYPE_INFO);
 
-  return scm_rshift_arith_sword((scm_sword_t)num, SCM_FIXNUM_SHIFT_BIT);
+  return SCM_RSHIFT_ARITH((scm_sword_t)num, SCM_FIXNUM_SHIFT_BIT);
 }
 
 inline bool
