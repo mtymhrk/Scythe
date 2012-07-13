@@ -1943,6 +1943,10 @@ scm_cmpl_compile(ScmObj exp)
   ScmObj env = SCM_OBJ_INIT, sv = SCM_OBJ_INIT;
   ScmObj next = SCM_OBJ_INIT;
 
+  SCM_STACK_FRAME_PUSH(&exp,
+                       &env, &sv,
+                       &next);
+
   env = scm_cmpl_new_empty_env();
   if (scm_obj_null_p(env)) return SCM_OBJ_NULL;
 
