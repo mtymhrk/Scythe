@@ -1949,10 +1949,7 @@ scm_cmpl_compile(ScmObj exp)
   sv = scm_cmpl_set_empty();
   if (scm_obj_null_p(sv)) return SCM_OBJ_NULL;
 
-  next = scm_cmpl_cons_inst_return(0);
-  if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
-
-  next = scm_capi_list(1, next);
+  next = scm_api_nil();
   if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
 
   return scm_cmpl_compile_exp(exp, env, sv, next, true);
