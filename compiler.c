@@ -1747,12 +1747,15 @@ scm_cmpl_compile_if(ScmObj exp, ScmObj env, ScmObj sv, ScmObj next, bool tail_p)
   ScmObj def_lbl = SCM_OBJ_INIT;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&exp, &env, &sv, &next, &cond, &conse, &alter,
-                       &lbl_junc, &lbl_alt, &jmp_junc, &jmpf,
+  SCM_STACK_FRAME_PUSH(&exp, &env, &sv, &next,
+                       &cond, &conse, &alter,
+                       &lbl_junc, &lbl_alt,
+                       &jmp_junc, &jmpf,
                        &def_lbl);
 
-  rslt = scm_cmpl_decons_if(exp, SCM_CSETTER_L(exp),
+  rslt = scm_cmpl_decons_if(exp, SCM_CSETTER_L(cond),
                             SCM_CSETTER_L(conse), SCM_CSETTER_L(alter));
+
   if (rslt < 0) return SCM_OBJ_NULL;
 
   /* if 分岐後の合流地点のラベル定義を next 直前に追加 */
