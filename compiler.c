@@ -1245,7 +1245,7 @@ scm_cmpl_find_free_and_assign_lambda(ScmObj exp, ScmObj env,
   int rslt;
 
   SCM_STACK_FRAME_PUSH(&exp, &env, &bound, &formal, &free, &assign,
-                       &form, &body);
+                       &form, &body, &vs);
 
   rslt = scm_cmpl_decons_lambda(exp, SCM_CSETTER_L(form), SCM_CSETTER_L(body));
   if (rslt < 0) return -1;
@@ -1256,7 +1256,7 @@ scm_cmpl_find_free_and_assign_lambda(ScmObj exp, ScmObj env,
   bound = scm_cmpl_set_add_vec(bound, vs);
   if (scm_obj_null_p(bound)) return -1;
 
-  formal = scm_cmpl_set_minus_vec(free, vs);
+  formal = scm_cmpl_set_minus_vec(formal, vs);
   if (scm_obj_null_p(bound)) return -1;
 
   rslt = scm_cmpl_find_free_and_assign_lambda_body(body, env,
