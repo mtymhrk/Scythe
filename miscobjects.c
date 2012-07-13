@@ -225,7 +225,7 @@ scm_undef_new(SCM_MEM_TYPE_T mtype)         /* GC OK */
 
   SCM_STACK_FRAME_PUSH(&undef);
 
-  undef = scm_capi_mem_alloc(&SCM_NIL_TYPE_INFO, mtype);
+  undef = scm_capi_mem_alloc(&SCM_UNDEF_TYPE_INFO, mtype);
   if (scm_obj_null_p(undef)) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   scm_undef_initialize(undef);
