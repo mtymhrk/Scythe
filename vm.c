@@ -1042,6 +1042,9 @@ scm_vm_op_jmp(ScmObj vm, SCM_OPCODE_T op)
 
 /* exception handler リストにある先頭の handler を val レジスタに設定し、
  * exception handler リストから先頭の handler を取り除く
+ *
+ * TODO: この raise の実装は handler がクロージャの場合うまく動かないの
+ *       で、仕組みを変える
  */
 scm_local_func void
 scm_vm_op_raise(ScmObj vm, SCM_OPCODE_T op)
