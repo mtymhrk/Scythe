@@ -728,6 +728,12 @@ scm_cmpl_env_resolv_ref(ScmObj env, ScmObj sym, int *type, size_t *idx)
   return 0;
 }
 
+static inline ssize_t
+scm_cmpl_bound_var_idx(ssize_t level, ssize_t idx)
+{
+  return level + idx;
+}
+
 static ScmObj
 scm_cmpl_gen_label(const char *prefix)
 {
@@ -883,6 +889,7 @@ scm_cmpl_compile_reference(ScmObj exp, ScmObj env, ScmObj sv,
   ScmObj inst_ref = SCM_OBJ_INIT, inst_unbox = SCM_OBJ_INIT;
   int type, rslt;
   size_t idx;
+  ssize_t nr_bound, s_idx;
   bool inc;
 
   SCM_STACK_FRAME_PUSH(&exp, &env, &sv, &next,
@@ -903,7 +910,16 @@ scm_cmpl_compile_reference(ScmObj exp, ScmObj env, ScmObj sv,
     inst_ref = scm_cmpl_cons_inst_gref(exp);
     break;
   case SCM_CMPL_REF_BOUND:
-    inst_ref = scm_cmpl_cons_inst_sref((scm_sword_t)idx);
+    nr_bound = scm_cmpl_env_nr_bound_vars(env);
+    if (nr_bound < 0) return SCM_OBJ_NULL;
+
+    s_idx = scm_cmpl_bound_var_idx(-nr_bound, (ssize_t)idx);
+    if (s_idx < SCM_SWORD_MIN || SCM_SWORD_MAX < s_idx) {
+      scm_capi_error("Compiler: inner index overflow", 0);
+      return SCM_OBJ_NULL;
+    }
+
+    inst_ref = scm_cmpl_cons_inst_sref((scm_sword_t)s_idx);
     break;
   case SCM_CMPL_REF_FREE:
     inst_ref = scm_cmpl_cons_inst_cref((scm_sword_t)idx);
@@ -1329,6 +1345,7 @@ scm_cmpl_make_closure_code(ScmObj body, ScmObj new_env, ScmObj new_sv)
   ssize_t nr_lvars, nr_fvars;
   bool inc;
   int rslt;
+  ssize_t nr_bound;
 
   SCM_STACK_FRAME_PUSH(&body, &new_env, &new_sv,
                        &inst_ret, &inst_box,
@@ -1350,6 +1367,9 @@ scm_cmpl_make_closure_code(ScmObj body, ScmObj new_env, ScmObj new_sv)
                                         new_env, new_sv, inst_ret, true);
   if (scm_obj_null_p(body_code)) return SCM_OBJ_NULL;
 
+  nr_bound = scm_cmpl_env_nr_bound_vars(new_env);
+  if (nr_bound < 0) return SCM_OBJ_NULL;
+
   for (ssize_t i = 0; i < nr_lvars; i++) {
     elm = scm_cmpl_env_ref_bound_var(new_env, (size_t)i);
     if (scm_obj_null_p(elm)) return SCM_OBJ_NULL;
@@ -1358,7 +1378,13 @@ scm_cmpl_make_closure_code(ScmObj body, ScmObj new_env, ScmObj new_sv)
     if (rslt < 0) return SCM_OBJ_NULL;
 
     if (inc) {
-      inst_box = scm_cmpl_cons_inst_box(i);
+      ssize_t s_idx = scm_cmpl_bound_var_idx(-nr_bound, i);
+      if (s_idx < SCM_SWORD_MIN || SCM_SWORD_MAX < s_idx) {
+        scm_capi_error("Compiler: inner index overflow", 0);
+        return SCM_OBJ_NULL;
+      }
+
+      inst_box = scm_cmpl_cons_inst_box(s_idx);
       if (scm_obj_null_p(inst_box)) return SCM_OBJ_NULL;
 
       body_code = scm_api_cons(inst_box, body_code);
@@ -1484,6 +1510,7 @@ scm_cmpl_compile_lambda(ScmObj exp, ScmObj env, ScmObj sv,
   for (ssize_t i = nr_fvars; i > 0; i--) {
     int ref_type;
     size_t idx;
+    ssize_t nr_bound, s_idx;
 
     fv = scm_cmpl_env_ref_free_var(new_env, (size_t)i - 1);
     if (scm_obj_null_p(fv)) return SCM_OBJ_NULL;
@@ -1501,7 +1528,16 @@ scm_cmpl_compile_lambda(ScmObj exp, ScmObj env, ScmObj sv,
       scm_assert(false);         /* must not happen */
       break;
     case SCM_CMPL_REF_BOUND:
-      inst_ref = scm_cmpl_cons_inst_sref((scm_sword_t)idx);
+      nr_bound = scm_cmpl_env_nr_bound_vars(env);
+      if (nr_bound < 0) return SCM_OBJ_NULL;
+
+      s_idx = scm_cmpl_bound_var_idx(-nr_bound, (ssize_t)idx);
+      if (s_idx < SCM_SWORD_MIN || SCM_SWORD_MAX < s_idx) {
+        scm_capi_error("Compiler: inner index overflow", 0);
+        return SCM_OBJ_NULL;
+      }
+
+      inst_ref = scm_cmpl_cons_inst_sref((scm_sword_t)s_idx);
       break;
     case SCM_CMPL_REF_FREE:
       inst_ref = scm_cmpl_cons_inst_cref((scm_sword_t)idx);
@@ -1602,7 +1638,7 @@ scm_cmpl_compile_assignment(ScmObj exp, ScmObj env, ScmObj sv,
   ScmObj inst_set = SCM_OBJ_INIT;
   int rslt, type;
   size_t idx;
-  ssize_t nr_bound;
+  ssize_t nr_bound, s_idx;
 
   SCM_STACK_FRAME_PUSH(&exp, &env, &sv, &next,
                        &var, &val);
@@ -1627,12 +1663,13 @@ scm_cmpl_compile_assignment(ScmObj exp, ScmObj env, ScmObj sv,
     nr_bound = scm_cmpl_env_nr_bound_vars(env);
     if (nr_bound < 0) return SCM_OBJ_NULL;
 
-    if (-nr_bound < SCM_SWORD_MIN) {
+    s_idx = scm_cmpl_bound_var_idx(-nr_bound, (ssize_t)idx);
+    if (s_idx < SCM_SWORD_MIN || SCM_SWORD_MAX < s_idx) {
       scm_capi_error("Compiler: inner index overflow", 0);
       return SCM_OBJ_NULL;
     }
 
-    inst_set = scm_cmpl_cons_inst_sset((scm_sword_t)idx);
+    inst_set = scm_cmpl_cons_inst_sset((scm_sword_t)s_idx);
     break;
   case SCM_CMPL_REF_FREE:
     inst_set = scm_cmpl_cons_inst_cset((scm_sword_t)idx);
