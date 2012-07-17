@@ -3536,8 +3536,8 @@ scm_capi_opcode_to_opfmt(int opcode)
     SCM_OPFMT_OBJ,              /* SCM_OPCODE_GREF */
     SCM_OPFMT_OBJ,              /* SCM_OPCODE_GDEF */
     SCM_OPFMT_OBJ,              /* SCM_OPCODE_GSET */
-    SCM_OPFMT_SI,               /* SCM_OPCODE_SREF */
-    SCM_OPFMT_SI,               /* SCM_OPCODE_SSET */
+    SCM_OPFMT_SI_SI,            /* SCM_OPCODE_SREF */
+    SCM_OPFMT_SI_SI,            /* SCM_OPCODE_SSET */
     SCM_OPFMT_SI,               /* SCM_OPCODE_CREF */
     SCM_OPFMT_SI,               /* SCM_OPCODE_CSET */
     SCM_OPFMT_IOF,              /* SCM_OPCODE_JMP */

@@ -28,7 +28,7 @@ test_scm_asm_assemble(void)
   ScmObj port = SCM_OBJ_INIT;
   const char *str =
     "((nop)(halt)(call 5)(tcall 2 3)(return 0)(frame)(push)(gref vvv)"
-    "(gdef vvv)(gset vvv)(sref 4)(sset 6)(cref 7)(cset 9)(immval vvv)"
+    "(gdef vvv)(gset vvv)(sref -12 4)(sset -13 6)(cref 7)(cset 9)(immval vvv)"
     "(label lbl)(jmp lbl)(jmpf lbl)(asm ((nop)))(raise)"
     "(box 8)(unbox)(close 10 vvv)(asm-close 11 ((nop))))";
   const uint8_t expected_codes[] = { SCM_OPCODE_NOP, SCM_OPCODE_HALT,
@@ -102,9 +102,15 @@ test_scm_asm_assemble(void)
       break;
     case SCM_OPCODE_SREF:
       SCM_CAPI_INST_FETCH_INT32(ip, actual_arg);
+      cut_assert_equal_int(-12, actual_arg);
+
+      SCM_CAPI_INST_FETCH_INT32(ip, actual_arg);
       cut_assert_equal_int(4, actual_arg);
       break;
     case SCM_OPCODE_SSET:
+      SCM_CAPI_INST_FETCH_INT32(ip, actual_arg);
+      cut_assert_equal_int(-13, actual_arg);
+
       SCM_CAPI_INST_FETCH_INT32(ip, actual_arg);
       cut_assert_equal_int(6, actual_arg);
       break;
