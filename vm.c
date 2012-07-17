@@ -1299,7 +1299,7 @@ scm_vm_op_unbox(ScmObj vm, SCM_OPCODE_T op)
 scm_local_func void
 scm_vm_op_close(ScmObj vm, SCM_OPCODE_T op)
 {
-  ScmObj clsr = SCM_OBJ_INIT, iseq = SCM_OBJ_INIT;
+  ScmObj clsr = SCM_OBJ_INIT, iseq = SCM_OBJ_INIT, *sp;
   size_t idx;
   int32_t nr_free;
   uint8_t *ip;
@@ -1321,7 +1321,8 @@ scm_vm_op_close(ScmObj vm, SCM_OPCODE_T op)
     return;
   }
 
-  clsr = scm_capi_make_closure(iseq, (size_t)nr_free, SCM_VM(vm)->reg.sp);
+  sp = SCM_VM(vm)->reg.sp - nr_free;
+  clsr = scm_capi_make_closure(iseq, sp, (size_t)nr_free);
   if (scm_obj_null_p(clsr)) return;
 
   SCM_SLOT_SETQ(ScmVM, vm, reg.val, clsr);

@@ -3200,28 +3200,28 @@ scm_capi_subrutine_p(ScmObj obj)
 /*******************************************************************/
 
 ScmObj
-scm_capi_make_closure(ScmObj iseq, size_t nr_free_vars, ScmObj *sp)
+scm_capi_make_closure(ScmObj iseq, ScmObj *vars, size_t n)
 {
   if (!scm_capi_iseq_p(iseq)) {
     scm_capi_error("can not make closure: invalid argument", 0);
     return SCM_OBJ_NULL;
   }
-  else if (nr_free_vars > SSIZE_MAX) {
+  else if (n > SSIZE_MAX) {
     scm_capi_error("can not make closure: number of free variable overflow", 0);
     return SCM_OBJ_NULL;
   }
-  else if (nr_free_vars > 0 && sp == NULL) {
+  else if (n > 0 && vars == NULL) {
     scm_capi_error("can not make closure: invalid argument", 0);
     return SCM_OBJ_NULL;
   }
 
-  return scm_closure_new(SCM_MEM_ALLOC_HEAP, iseq, nr_free_vars, sp);
+  return scm_closure_new(SCM_MEM_ALLOC_HEAP, iseq, vars, n);
 }
 
 ScmObj
 scm_capi_iseq_to_closure(ScmObj iseq)
 {
-  return scm_closure_new(SCM_MEM_ALLOC_HEAP, iseq, 0, NULL);
+  return scm_closure_new(SCM_MEM_ALLOC_HEAP, iseq, NULL, 0);
 }
 
 extern inline bool

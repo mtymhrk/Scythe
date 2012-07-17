@@ -371,7 +371,7 @@ bool scm_capi_subrutine_p(ScmObj obj);
 /*  Closure                                                        */
 /*******************************************************************/
 
-ScmObj scm_capi_make_closure(ScmObj iseq, size_t nr_free_vars, ScmObj *sp);
+ScmObj scm_capi_make_closure(ScmObj iseq, ScmObj *vars, size_t n);
 ScmObj scm_capi_iseq_to_closure(ScmObj iseq);
 bool scm_capi_closure_p(ScmObj obj);
 ScmObj scm_capi_closure_to_iseq(ScmObj clsr);

@@ -50,11 +50,10 @@ struct ScmClosureRec {
   size_t nr_free_vars;
 };
 
-int scm_closure_initialize(ScmObj clsr, ScmObj iseq,
-                           size_t nr_free_vars, ScmObj *sp);
+int scm_closure_initialize(ScmObj clsr, ScmObj iseq, ScmObj *vars, size_t n);
 void scm_closure_finalize(ScmObj clsr);
 ScmObj scm_closure_new(SCM_MEM_TYPE_T mtype, ScmObj iseq,
-                       size_t nr_free_vars, ScmObj *sp);
+                       ScmObj *vars, size_t n);
 int scm_closure_pretty_print(ScmObj obj, ScmObj port, bool write_p);
 void scm_closure_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_closure_gc_finalize(ScmObj obj);

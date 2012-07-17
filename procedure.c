@@ -87,28 +87,33 @@ ScmTypeInfo SCM_CLOSURE_TYPE_INFO = {
 static ScmObj dummy_free_vars[1] = { SCM_OBJ_NULL };
 
 int
-scm_closure_initialize(ScmObj clsr, ScmObj iseq,
-                       size_t nr_free_vars, ScmObj *sp)
+scm_closure_initialize(ScmObj clsr, ScmObj iseq, ScmObj *vars, size_t n)
 {
   scm_assert_obj_type(clsr, &SCM_CLOSURE_TYPE_INFO);
   scm_assert(scm_capi_iseq_p(iseq));
-  scm_assert(nr_free_vars < SSIZE_MAX);
+  scm_assert(n <= SSIZE_MAX);
 
   SCM_SLOT_SETQ(ScmClosure, clsr, iseq, iseq);
 
-  if (nr_free_vars == 0) {
+  if (n == 0) {
     SCM_CLOSURE(clsr)->free_vars = dummy_free_vars;
+    SCM_CLOSURE(clsr)->nr_free_vars = 0;
   }
   else {
-    scm_assert(sp != NULL);
+    scm_assert(vars != NULL);
+    if (SIZE_MAX / sizeof(ScmObj) < n) {
+      scm_capi_error("can not make closure: number of variables overflow", 0);
+      return -1;
+    }
+
     SCM_CLOSURE(clsr)->free_vars
-      = scm_capi_malloc(sizeof(ScmObj) * nr_free_vars);
+      = scm_capi_malloc(sizeof(ScmObj) * n);
     if (SCM_CLOSURE(clsr)->free_vars == NULL) return -1; /* [ERR]: [through] */
 
-    for (size_t i = 0; i < nr_free_vars; i++) {
-      SCM_SLOT_SETQ(ScmClosure, clsr, free_vars[i],
-                    SCM_OBJ(sp[- nr_free_vars + 1]));
-    }
+    for (size_t i = 0; i < n; i++)
+      SCM_SLOT_SETQ(ScmClosure, clsr, free_vars[i], vars[i]);
+
+    SCM_CLOSURE(clsr)->nr_free_vars = n;
   }
 
   return 0;
@@ -124,8 +129,7 @@ scm_closure_finalize(ScmObj clsr)
 }
 
 ScmObj
-scm_closure_new(SCM_MEM_TYPE_T mtype, ScmObj iseq,
-                size_t nr_free_vars, ScmObj *sp)
+scm_closure_new(SCM_MEM_TYPE_T mtype, ScmObj iseq, ScmObj *vars, size_t n)
 {
   ScmObj clsr = SCM_OBJ_INIT;
   int rslt;
@@ -133,12 +137,12 @@ scm_closure_new(SCM_MEM_TYPE_T mtype, ScmObj iseq,
   SCM_STACK_FRAME_PUSH(&iseq, &clsr);
 
   scm_assert(scm_capi_iseq_p(iseq));
-  scm_assert(nr_free_vars < SSIZE_MAX);
+  scm_assert(n <= SSIZE_MAX);
 
   clsr = scm_capi_mem_alloc(&SCM_CLOSURE_TYPE_INFO, mtype);
   if (scm_obj_null_p(clsr)) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
-  rslt = scm_closure_initialize(clsr, iseq, nr_free_vars, sp);
+  rslt = scm_closure_initialize(clsr, iseq, vars, n);
   if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   return clsr;
