@@ -1044,8 +1044,7 @@ scm_vm_op_sref(ScmObj vm, SCM_OPCODE_T op)
   SCM_VM(vm)->reg.ip = ip;
 
   ptr = SCM_VM(vm)->reg.fp + idx;
-  if (ptr < SCM_VM(vm)->stack
-      || SCM_VM(vm)->stack + SCM_VM(vm)->stack_size <= ptr) {
+  if (ptr < SCM_VM(vm)->stack || SCM_VM(vm)->reg.sp <= ptr) {
     scm_capi_error("invalid access to VM Stack: out of range", 0);
     return;
   }
@@ -1075,8 +1074,7 @@ scm_vm_op_sset(ScmObj vm, SCM_OPCODE_T op)
   SCM_VM(vm)->reg.ip = ip;
 
   ptr = SCM_VM(vm)->reg.fp + idx;
-  if (ptr < SCM_VM(vm)->stack
-      || SCM_VM(vm)->stack + SCM_VM(vm)->stack_size <= ptr) {
+  if (ptr < SCM_VM(vm)->stack || SCM_VM(vm)->reg.sp <= ptr) {
     scm_capi_error("invalid access to VM Stack: out of range", 0);
     return;
   }
@@ -1259,8 +1257,7 @@ scm_vm_op_box(ScmObj vm, SCM_OPCODE_T op)
   SCM_VM(vm)->reg.ip = ip;
 
   ptr = SCM_VM(vm)->reg.fp + idx;
-  if (ptr < SCM_VM(vm)->stack
-      || SCM_VM(vm)->stack + SCM_VM(vm)->stack_size <= ptr) {
+  if (ptr < SCM_VM(vm)->stack || SCM_VM(vm)->reg.sp <= ptr) {
     scm_capi_error("invalid access to VM Stack: out of range", 0);
     return;
   }
