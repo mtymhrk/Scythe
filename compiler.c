@@ -276,19 +276,22 @@ scm_cmpl_cons_inst_raise(void)
 }
 
 static ScmObj
-scm_cmpl_cons_inst_box(scm_sword_t idx)
+scm_cmpl_cons_inst_box(scm_sword_t nr_arg, scm_sword_t idx)
 {
-  ScmObj mne = SCM_OBJ_INIT, num = SCM_OBJ_INIT;
+  ScmObj mne = SCM_OBJ_INIT, num1 = SCM_OBJ_INIT, num2 = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&mne, &num);
+  SCM_STACK_FRAME_PUSH(&mne, &num1, &num2);
 
   mne = scm_asm_mnemonic(SCM_OPCODE_BOX);
   if (scm_obj_null_p(mne)) return SCM_OBJ_NULL;
 
-  num = scm_capi_make_number_from_sword(idx);
-  if (scm_obj_null_p(num)) return SCM_OBJ_NULL;
+  num1 = scm_capi_make_number_from_sword(nr_arg);
+  if (scm_obj_null_p(num1)) return SCM_OBJ_NULL;
 
-  return scm_capi_list(2, mne, num);
+  num2 = scm_capi_make_number_from_sword(idx);
+  if (scm_obj_null_p(num2)) return SCM_OBJ_NULL;
+
+  return scm_capi_list(3, mne, num1, num2);
 }
 
 static ScmObj
@@ -1367,6 +1370,14 @@ scm_cmpl_make_closure_code(ScmObj body, ScmObj new_env, ScmObj new_sv)
   if (scm_obj_null_p(body_code)) return SCM_OBJ_NULL;
 
   for (ssize_t i = 0; i < nr_lvars; i++) {
+    ssize_t nr_bound = scm_cmpl_env_nr_bound_vars(new_env);
+    if (nr_bound < 0) return SCM_OBJ_NULL;
+
+    if (-nr_bound < SCM_SWORD_MIN) {
+      scm_capi_error("Compiler: inner index overflow", 0);
+      return SCM_OBJ_NULL;
+    }
+
     elm = scm_cmpl_env_ref_bound_var(new_env, (size_t)i);
     if (scm_obj_null_p(elm)) return SCM_OBJ_NULL;
 
@@ -1374,7 +1385,7 @@ scm_cmpl_make_closure_code(ScmObj body, ScmObj new_env, ScmObj new_sv)
     if (rslt < 0) return SCM_OBJ_NULL;
 
     if (inc) {
-      inst_box = scm_cmpl_cons_inst_box(i);
+      inst_box = scm_cmpl_cons_inst_box(-nr_bound, i);
       if (scm_obj_null_p(inst_box)) return SCM_OBJ_NULL;
 
       body_code = scm_api_cons(inst_box, body_code);
