@@ -1195,7 +1195,6 @@ scm_vm_op_jmpf(ScmObj vm, SCM_OPCODE_T op)
     SCM_VM(vm)->reg.ip = ip;
 }
 
-
 /* exception handler リストにある先頭の handler を val レジスタに設定し、
  * exception handler リストから先頭の handler を取り除く
  *
@@ -1236,6 +1235,71 @@ scm_vm_op_raise(ScmObj vm, SCM_OPCODE_T op)
   if (rslt < 0) return;
 
   scm_capi_raise(SCM_VM(vm)->ge.excpt.raised);
+}
+
+/* スタック上にあるローカル変数を box 化するインストラクション。
+ * fp レジスタの値をベース、第 1 オペランドの値を index としてスタックにアクセ
+ * スし、その値を box 化する。
+ */
+scm_local_func void
+scm_vm_op_box(ScmObj vm, SCM_OPCODE_T op)
+{
+  ScmObj box = SCM_OBJ_INIT, *ptr;
+  int32_t idx;
+  uint8_t *ip;
+
+  SCM_STACK_FRAME_PUSH(&vm,
+                       &box);
+
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  ip = scm_capi_inst_fetch_oprand_si(SCM_VM(vm)->reg.ip, &idx);
+  if (ip == NULL) return;
+
+  SCM_VM(vm)->reg.ip = ip;
+
+  ptr = SCM_VM(vm)->reg.fp + idx;
+  if (ptr < SCM_VM(vm)->stack
+      || SCM_VM(vm)->stack + SCM_VM(vm)->stack_size <= ptr) {
+    scm_capi_error("invalid access to VM Stack: out of range", 0);
+    return;
+  }
+
+  box = scm_box_new(SCM_MEM_HEAP, *ptr);
+  if (scm_obj_null_p(box)) return;
+
+  SCM_WB_SETQ(vm, *ptr, box);
+}
+
+
+/* val レジスタにある値を unbox 化するインストラクション。
+ * val レジスタにある値が box オブジェクトではない場合、エラーになる。
+ */
+scm_local_func void
+scm_vm_op_unbox(ScmObj vm, SCM_OPCODE_T op)
+{
+  ScmObj obj;
+  int32_t idx;
+  uint8_t *ip;
+
+  SCM_STACK_FRAME_PUSH(&vm);
+
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  ip = scm_capi_inst_fetch_oprand_si(SCM_VM(vm)->reg.ip, &idx);
+  if (ip == NULL) return;
+
+  SCM_VM(vm)->reg.ip = ip;
+
+  if (!scm_obj_type_p(SCM_VM(vm)->reg.val, &SCM_BOX_TYPE_INFO)) {
+    scm_capi_error("can not unboxing: object is not boxed", 0);
+    return;
+  }
+
+  obj = scm_box_unbox(SCM_VM(vm)->reg.val);
+  if (scm_obj_null_p(obj)) return;
+
+  SCM_SLOT_SETQ(ScmVM, vm, reg.val, obj);
 }
 
 void
@@ -1461,11 +1525,11 @@ scm_vm_run(ScmObj vm, ScmObj iseq)
       scm_vm_op_raise(vm, op);
       break;
     case SCM_OPCODE_BOX:
-      /* TODO: write me */
-      scm_capi_error("not impremented opcode", 0);
+      scm_vm_op_box(vm, op);
+      break;
     case SCM_OPCODE_UNBOX:
-      /* TODO: write me */
-      scm_capi_error("not impremented opcode", 0);
+      scm_vm_op_unbox(vm, op);
+      break;
     case SCM_OPCODE_CLOSE:
       /* TODO: write me */
       scm_capi_error("not impremented opcode", 0);

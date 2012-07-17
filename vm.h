@@ -231,6 +231,8 @@ void scm_vm_op_cset(ScmObj vm, SCM_OPCODE_T op);
 void scm_vm_op_jmp(ScmObj vm, SCM_OPCODE_T op);
 void scm_vm_op_jmpf(ScmObj vm, SCM_OPCODE_T op);
 void scm_vm_op_raise(ScmObj vm, SCM_OPCODE_T op);
+void scm_vm_op_box(ScmObj vm, SCM_OPCODE_T op);
+void scm_vm_op_unbox(ScmObj vm, SCM_OPCODE_T op);
 
 #endif
 
