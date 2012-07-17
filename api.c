@@ -3664,6 +3664,47 @@ scm_capi_inst_fetch_oprand_si_si(uint8_t *ip, int32_t *si1, int32_t *si2)
 }
 
 uint8_t *
+scm_capi_inst_fetch_oprand_si_obj(uint8_t *ip, ScmObj iseq,
+                                  int32_t *si, size_t *idx, scm_csetter_t *obj)
+{
+  ScmObj opr = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&iseq,
+                       &opr);
+
+  if (ip == NULL) {
+    scm_capi_error("can not fetch operands: invalid ip", 0);
+    return NULL;
+  }
+  else if (!scm_capi_iseq_p(iseq)) {
+    scm_capi_error("can not fetch operands: invalid argument", 0);
+    return NULL;
+  }
+  else if (si == NULL) {
+    scm_capi_error("can not fetch operands: invalid argument", 0);
+    return NULL;
+  }
+  else if (idx == NULL) {
+    scm_capi_error("can not fetch operands: invalid argument", 0);
+    return NULL;
+  }
+  else if (obj == NULL) {
+    scm_capi_error("can not fetch operands: invalid argument", 0);
+    return NULL;
+  }
+
+  SCM_CAPI_INST_FETCH_INT32(ip, *si);
+  SCM_CAPI_INST_FETCH_UINT32(ip, *idx);
+
+  opr = scm_capi_iseq_ref_obj(iseq, *idx);
+  if (scm_obj_null_p(opr)) return NULL;
+
+  scm_csetter_setq(obj, opr);
+
+  return ip;
+}
+
+uint8_t *
 scm_capi_inst_fetch_oprand_iof(uint8_t *ip, int32_t *offset)
 {
   return scm_capi_inst_fetch_oprand_si(ip, offset);

@@ -1296,6 +1296,37 @@ scm_vm_op_unbox(ScmObj vm, SCM_OPCODE_T op)
   SCM_SLOT_SETQ(ScmVM, vm, reg.val, obj);
 }
 
+scm_local_func void
+scm_vm_op_close(ScmObj vm, SCM_OPCODE_T op)
+{
+  ScmObj clsr = SCM_OBJ_INIT, iseq = SCM_OBJ_INIT;
+  size_t idx;
+  int32_t nr_free;
+  uint8_t *ip;
+
+  SCM_STACK_FRAME_PUSH(&vm,
+                       &clsr);
+
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  ip = scm_capi_inst_fetch_oprand_si_obj(SCM_VM(vm)->reg.ip,
+                                         SCM_VM(vm)->reg.isp,
+                                         &nr_free, &idx, SCM_CSETTER_L(iseq));
+  if (ip == NULL) return;
+
+  SCM_VM(vm)->reg.ip = ip;
+
+  if (nr_free < 0 || SCM_VM(vm)->reg.sp - SCM_VM(vm)->stack < nr_free) {
+    scm_capi_error("invalid access to VM Stack: out of range", 0);
+    return;
+  }
+
+  clsr = scm_capi_make_closure(iseq, (size_t)nr_free, SCM_VM(vm)->reg.sp);
+  if (scm_obj_null_p(clsr)) return;
+
+  SCM_SLOT_SETQ(ScmVM, vm, reg.val, clsr);
+}
+
 void
 scm_vm_initialize(ScmObj vm,  ScmBedrock *bedrock)
 {
@@ -1525,8 +1556,8 @@ scm_vm_run(ScmObj vm, ScmObj iseq)
       scm_vm_op_unbox(vm, op);
       break;
     case SCM_OPCODE_CLOSE:
-      /* TODO: write me */
-      scm_capi_error("not impremented opcode", 0);
+      scm_vm_op_close(vm, op);
+      break;
     default:
       /* TODO: error handling */
       scm_vm_ctrl_flg_set(vm, SCM_VM_CTRL_FLG_HALT);

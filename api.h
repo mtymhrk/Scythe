@@ -440,6 +440,9 @@ uint8_t *scm_capi_inst_fetch_oprand_obj(uint8_t *ip, ScmObj iseq,
 uint8_t *scm_capi_inst_fetch_oprand_si(uint8_t *ip, int32_t *si);
 uint8_t *scm_capi_inst_fetch_oprand_si_si(uint8_t *ip,
                                           int32_t *si1, int32_t *si2);
+uint8_t *scm_capi_inst_fetch_oprand_si_obj(uint8_t *ip, ScmObj iseq,
+                                           int32_t *si,
+                                           size_t *idx, scm_csetter_t *obj);
 uint8_t *scm_capi_inst_fetch_oprand_iof(uint8_t *ip, int32_t *offset);
 
 
