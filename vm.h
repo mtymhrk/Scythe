@@ -199,7 +199,7 @@ int scm_vm_stack_shift(ScmObj vm, size_t nelm, size_t nshift);
 ScmObj *scm_vm_cur_frame_argv(ScmObj vm, int argc);
 int scm_vm_make_stack_frame(ScmObj vm, ScmObj fp, ScmObj cp,
                              ScmObj isp, ScmObj ip);
-void scm_vm_return_to_caller(ScmObj vm, uint32_t nr_arg);
+void scm_vm_return_to_caller(ScmObj vm, uint32_t nr_param);
 
 ScmObj scm_vm_make_trampolining_code(ScmObj vm, ScmObj clsr,
                                      ScmObj args, uint32_t nr_arg_cf,
@@ -212,7 +212,7 @@ void scm_vm_ctrl_flg_clr(ScmObj vm, SCM_VM_CTRL_FLG_T flg);
 bool scm_vm_ctrl_flg_set_p(ScmObj vm, SCM_VM_CTRL_FLG_T flg);
 
 int scm_vm_do_op_call(ScmObj vm, SCM_OPCODE_T op,
-                      uint32_t nr_arg, uint32_t nr_arg_cf, bool tail_p);
+                      uint32_t nr_arg, uint32_t nr_param_cf, bool tail_p);
 int scm_vm_do_op_push(ScmObj vm, SCM_OPCODE_T op);
 int scm_vm_do_op_frame(ScmObj vm, SCM_OPCODE_T op);
 

@@ -547,26 +547,26 @@ scm_vm_make_stack_frame(ScmObj vm, ScmObj fp, ScmObj cp, ScmObj isp, ScmObj ip)
 }
 
 scm_local_func void
-scm_vm_return_to_caller(ScmObj vm, uint32_t nr_arg)
+scm_vm_return_to_caller(ScmObj vm, uint32_t nr_param)
 {
   ScmObj fp_fn = SCM_OBJ_INIT, ip_fn = SCM_OBJ_INIT;
   ScmObj *fp;
 
   SCM_STACK_FRAME_PUSH(&vm, &fp_fn, &ip_fn);
 
-  scm_assert(nr_arg <= INT32_MAX);
+  scm_assert(nr_param <= INT32_MAX);
 
   fp = SCM_VM(vm)->reg.fp;
 
-  fp_fn = fp[-((int32_t)nr_arg + 4)];
-  SCM_SLOT_SETQ(ScmVM, vm, reg.cp, SCM_OBJ(fp[-((int32_t)nr_arg + 3)]));
-  SCM_SLOT_SETQ(ScmVM, vm, reg.isp, SCM_OBJ(fp[-((int32_t)nr_arg + 2)]));
-  ip_fn = fp[-((int32_t)nr_arg + 1)];
+  fp_fn = fp[-((int32_t)nr_param + 4)];
+  SCM_SLOT_SETQ(ScmVM, vm, reg.cp, SCM_OBJ(fp[-((int32_t)nr_param + 3)]));
+  SCM_SLOT_SETQ(ScmVM, vm, reg.isp, SCM_OBJ(fp[-((int32_t)nr_param + 2)]));
+  ip_fn = fp[-((int32_t)nr_param + 1)];
 
   SCM_VM(vm)->reg.fp = scm_capi_fixnum_to_frame_ptr(fp_fn);
   SCM_VM(vm)->reg.ip = scm_capi_fixnum_to_inst_ptr(ip_fn);
 
-  scm_vm_stack_shorten(vm, nr_arg + 4); /* 4 :=  fp, cp, iseq, ip */
+  scm_vm_stack_shorten(vm, nr_param + 4); /* 4 :=  fp, cp, iseq, ip */
 }
 
 scm_local_func ScmObj
@@ -708,7 +708,7 @@ scm_vm_ctrl_flg_set_p(ScmObj vm, SCM_VM_CTRL_FLG_T flg)
 
 scm_local_func int
 scm_vm_do_op_call(ScmObj vm, SCM_OPCODE_T op,
-                  uint32_t nr_arg, uint32_t nr_arg_cf, bool tail_p)
+                  uint32_t nr_arg, uint32_t nr_param_cf, bool tail_p)
 {
   ScmObj val = SCM_OBJ_INIT, ip_fn = SCM_OBJ_INIT;
   int rslt;
@@ -717,10 +717,10 @@ scm_vm_do_op_call(ScmObj vm, SCM_OPCODE_T op,
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
   scm_assert(nr_arg <= INT32_MAX);
-  scm_assert(nr_arg <= INT32_MAX);
+  scm_assert(nr_param_cf <= INT32_MAX);
 
   if (tail_p) {
-    rslt = scm_vm_stack_shift(vm, nr_arg, nr_arg_cf);
+    rslt = scm_vm_stack_shift(vm, nr_arg, nr_param_cf);
     if (rslt < 0) return -1;
   }
 
@@ -791,29 +791,29 @@ scm_vm_do_op_frame(ScmObj vm, SCM_OPCODE_T op)
 scm_local_func void
 scm_vm_op_call(ScmObj vm, SCM_OPCODE_T op)
 {
-  int32_t nr_arg, nr_arg_cf;
+  int32_t nr_arg, nr_param_cf;
   uint8_t *ip;
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
   if (op == SCM_OPCODE_TAIL_CALL) {
     ip = scm_capi_inst_fetch_oprand_si_si(SCM_VM(vm)->reg.ip,
-                                          &nr_arg, &nr_arg_cf);
+                                          &nr_arg, &nr_param_cf);
   }
   else {
     ip = scm_capi_inst_fetch_oprand_si(SCM_VM(vm)->reg.ip, &nr_arg);
-    nr_arg_cf = 0;
+    nr_param_cf = 0;
   }
 
   if (ip == NULL) return;       /* [ERR]: [through] */
 
-  if (nr_arg < 0 || nr_arg_cf < 0) {
+  if (nr_arg < 0 || nr_param_cf < 0) {
     scm_capi_error("bytecode format error", 0);
     return;
   }
 
   SCM_VM(vm)->reg.ip = ip;
-  scm_vm_do_op_call(vm, op, (uint32_t)nr_arg, (uint32_t)nr_arg_cf,
+  scm_vm_do_op_call(vm, op, (uint32_t)nr_arg, (uint32_t)nr_param_cf,
                     (op == SCM_OPCODE_TAIL_CALL));
 }
 
@@ -862,21 +862,21 @@ scm_vm_op_frame(ScmObj vm, SCM_OPCODE_T op) /* GC OK */
 scm_local_func void
 scm_vm_op_return(ScmObj vm, SCM_OPCODE_T op) /* GC OK */
 {
-  int32_t nr_arg;
+  int32_t nr_param;
   uint8_t *ip;
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
-  ip = scm_capi_inst_fetch_oprand_si(SCM_VM(vm)->reg.ip, &nr_arg);
+  ip = scm_capi_inst_fetch_oprand_si(SCM_VM(vm)->reg.ip, &nr_param);
   if (ip == NULL) return;       /* [ERR]: [through] */
 
-  if (nr_arg < 0) {
+  if (nr_param < 0) {
     scm_capi_error("bytecode format error", 0);
     return;
   }
 
   SCM_VM(vm)->reg.ip = ip;
-  scm_vm_return_to_caller(vm, (uint32_t)nr_arg);
+  scm_vm_return_to_caller(vm, (uint32_t)nr_param);
 }
 
 /* グローバル変数を参照するインストラクション。

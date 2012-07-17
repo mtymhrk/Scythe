@@ -168,7 +168,7 @@ scm_cmpl_cons_inst_gset(ScmObj sym)
 }
 
 static ScmObj
-scm_cmpl_cons_inst_sref(scm_sword_t nr_arg, scm_sword_t idx)
+scm_cmpl_cons_inst_sref(scm_sword_t nr_param, scm_sword_t idx)
 {
   ScmObj mne = SCM_OBJ_INIT, num1 = SCM_OBJ_INIT, num2 = SCM_OBJ_INIT;
 
@@ -177,7 +177,7 @@ scm_cmpl_cons_inst_sref(scm_sword_t nr_arg, scm_sword_t idx)
   mne = scm_asm_mnemonic(SCM_OPCODE_SREF);
   if (scm_obj_null_p(mne)) return SCM_OBJ_NULL;
 
-  num1 = scm_capi_make_number_from_sword(nr_arg);
+  num1 = scm_capi_make_number_from_sword(nr_param);
   if (scm_obj_null_p(num1)) return SCM_OBJ_NULL;
 
   num2 = scm_capi_make_number_from_sword(idx);
@@ -187,7 +187,7 @@ scm_cmpl_cons_inst_sref(scm_sword_t nr_arg, scm_sword_t idx)
 }
 
 static ScmObj
-scm_cmpl_cons_inst_sset(scm_sword_t nr_arg, scm_sword_t idx)
+scm_cmpl_cons_inst_sset(scm_sword_t nr_param, scm_sword_t idx)
 {
   ScmObj mne = SCM_OBJ_INIT, num1 = SCM_OBJ_INIT, num2 = SCM_OBJ_INIT;
 
@@ -196,7 +196,7 @@ scm_cmpl_cons_inst_sset(scm_sword_t nr_arg, scm_sword_t idx)
   mne = scm_asm_mnemonic(SCM_OPCODE_SSET);
   if (scm_obj_null_p(mne)) return SCM_OBJ_NULL;
 
-  num1 = scm_capi_make_number_from_sword(nr_arg);
+  num1 = scm_capi_make_number_from_sword(nr_param);
   if (scm_obj_null_p(num1)) return SCM_OBJ_NULL;
 
   num2 = scm_capi_make_number_from_sword(idx);
@@ -276,7 +276,7 @@ scm_cmpl_cons_inst_raise(void)
 }
 
 static ScmObj
-scm_cmpl_cons_inst_box(scm_sword_t nr_arg, scm_sword_t idx)
+scm_cmpl_cons_inst_box(scm_sword_t nr_param, scm_sword_t idx)
 {
   ScmObj mne = SCM_OBJ_INIT, num1 = SCM_OBJ_INIT, num2 = SCM_OBJ_INIT;
 
@@ -285,7 +285,7 @@ scm_cmpl_cons_inst_box(scm_sword_t nr_arg, scm_sword_t idx)
   mne = scm_asm_mnemonic(SCM_OPCODE_BOX);
   if (scm_obj_null_p(mne)) return SCM_OBJ_NULL;
 
-  num1 = scm_capi_make_number_from_sword(nr_arg);
+  num1 = scm_capi_make_number_from_sword(nr_param);
   if (scm_obj_null_p(num1)) return SCM_OBJ_NULL;
 
   num2 = scm_capi_make_number_from_sword(idx);

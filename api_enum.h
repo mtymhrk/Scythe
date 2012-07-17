@@ -71,7 +71,7 @@ typedef enum {
 } SCM_OPCODE_T;
 
 typedef enum {
-  SCM_OPFMT_NOARG = 0,          /* op(16)  */
+  SCM_OPFMT_NOOPD = 0,          /* op(16)  */
   SCM_OPFMT_OBJ,                /* op(16) || index_to_scmobj(32) */
   SCM_OPFMT_SI,                 /* op(16) || signed_int(32) */
   SCM_OPFMT_SI_SI,              /* op(16) || signed_int(32) || signed_int(32) */

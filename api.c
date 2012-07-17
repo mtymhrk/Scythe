@@ -3525,14 +3525,14 @@ int
 scm_capi_opcode_to_opfmt(int opcode)
 {
   static int tbl[] = {
-    SCM_OPFMT_NOARG,            /* SCM_OPCODE_NOP */
-    SCM_OPFMT_NOARG,            /* SCM_OPCODE_HALT */
+    SCM_OPFMT_NOOPD,            /* SCM_OPCODE_NOP */
+    SCM_OPFMT_NOOPD,            /* SCM_OPCODE_HALT */
     SCM_OPFMT_SI,               /* SCM_OPCODE_CALL */
     SCM_OPFMT_SI_SI,            /* SCM_OPCODE_TAIL_CALL */
     SCM_OPFMT_SI,               /* SCM_OPCODE_RETURN */
-    SCM_OPFMT_NOARG,            /* SCM_OPCODE_FRAME */
+    SCM_OPFMT_NOOPD,            /* SCM_OPCODE_FRAME */
     SCM_OPFMT_OBJ,              /* SCM_OPCODE_IMMVAL */
-    SCM_OPFMT_NOARG,            /* SCM_OPCODE_PUSH */
+    SCM_OPFMT_NOOPD,            /* SCM_OPCODE_PUSH */
     SCM_OPFMT_OBJ,              /* SCM_OPCODE_GREF */
     SCM_OPFMT_OBJ,              /* SCM_OPCODE_GDEF */
     SCM_OPFMT_OBJ,              /* SCM_OPCODE_GSET */
@@ -3542,9 +3542,9 @@ scm_capi_opcode_to_opfmt(int opcode)
     SCM_OPFMT_SI,               /* SCM_OPCODE_CSET */
     SCM_OPFMT_IOF,              /* SCM_OPCODE_JMP */
     SCM_OPFMT_IOF,              /* SCM_OPCODE_JMPF */
-    SCM_OPFMT_NOARG,            /* SCM_OPCODE_RAISE */
+    SCM_OPFMT_NOOPD,            /* SCM_OPCODE_RAISE */
     SCM_OPFMT_SI_SI,            /* SCM_OPCODE_BOX */
-    SCM_OPFMT_NOARG,            /* SCM_OPCODE_UNBOX */
+    SCM_OPFMT_NOOPD,            /* SCM_OPCODE_UNBOX */
     SCM_OPFMT_SI_OBJ,           /* SCM_OPCODE_CLOSE */
   };
 
