@@ -1023,6 +1023,58 @@ scm_vm_op_gset(ScmObj vm, SCM_OPCODE_T op)
   }
 }
 
+scm_local_func void
+scm_vm_op_sref(ScmObj vm, SCM_OPCODE_T op)
+{
+  int32_t idx;
+  uint8_t *ip;
+  ScmObj *ptr;
+
+  SCM_STACK_FRAME_PUSH(&vm);
+
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  ip = scm_capi_inst_fetch_oprand_si(SCM_VM(vm)->reg.ip, &idx);
+  if (ip == NULL) return;
+
+  SCM_VM(vm)->reg.ip = ip;
+
+  ptr = SCM_VM(vm)->reg.fp + idx;
+  if (ptr < SCM_VM(vm)->stack
+      || SCM_VM(vm)->stack + SCM_VM(vm)->stack_size <= ptr) {
+    scm_capi_error("invalid access to VM Stack: out of range", 0);
+    return;
+  }
+
+  SCM_WB_SETQ(vm, *ptr, SCM_VM(vm)->reg.val);
+}
+
+scm_local_func void
+scm_vm_op_sset(ScmObj vm, SCM_OPCODE_T op)
+{
+  int32_t idx;
+  uint8_t *ip;
+  ScmObj *ptr;
+
+  SCM_STACK_FRAME_PUSH(&vm);
+
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  ip = scm_capi_inst_fetch_oprand_si(SCM_VM(vm)->reg.ip, &idx);
+  if (ip == NULL) return;
+
+  SCM_VM(vm)->reg.ip = ip;
+
+  ptr = SCM_VM(vm)->reg.fp + idx;
+  if (ptr < SCM_VM(vm)->stack
+      || SCM_VM(vm)->stack + SCM_VM(vm)->stack_size <= ptr) {
+    scm_capi_error("invalid access to VM Stack: out of range", 0);
+    return;
+  }
+
+  SCM_SLOT_SETQ(ScmVM, vm, reg.val, *ptr);
+}
+
 /* 無条件 JUMP 命令
  */
 scm_local_func void
@@ -1284,12 +1336,10 @@ scm_vm_run(ScmObj vm, ScmObj iseq)
       scm_vm_op_gset(vm, op);
       break;
     case SCM_OPCODE_SREF:
-      /* TODO: write me */
-      scm_capi_error("not impremented opcode", 0);
+      scm_vm_op_sref(vm, op);
       break;
     case SCM_OPCODE_SSET:
-      /* TODO: write me */
-      scm_capi_error("not impremented opcode", 0);
+      scm_vm_op_sset(vm, op);
       break;
     case SCM_OPCODE_CREF:
       /* TODO: write me */
