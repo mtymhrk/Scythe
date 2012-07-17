@@ -1175,6 +1175,26 @@ scm_vm_op_jmp(ScmObj vm, SCM_OPCODE_T op)
   SCM_VM(vm)->reg.ip = ip + dst;
 }
 
+/* 条件 JUMP 命令。
+ * val レジスタが flase の場合 jump を実施する。
+ */
+scm_local_func void
+scm_vm_op_jmpf(ScmObj vm, SCM_OPCODE_T op)
+{
+  int32_t dst;
+  uint8_t *ip;
+
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  ip = scm_capi_inst_fetch_oprand_iof(SCM_VM(vm)->reg.ip, &dst);
+  if (ip == NULL) return;       /* [ERR]: [through] */
+
+  if (scm_capi_false_p(SCM_VM(vm)->reg.val))
+    SCM_VM(vm)->reg.ip = ip + dst;
+  else
+    SCM_VM(vm)->reg.ip = ip;
+}
+
 
 /* exception handler リストにある先頭の handler を val レジスタに設定し、
  * exception handler リストから先頭の handler を取り除く
@@ -1435,8 +1455,7 @@ scm_vm_run(ScmObj vm, ScmObj iseq)
       scm_vm_op_jmp(vm, op);
       break;
     case SCM_OPCODE_JMPF:
-      /* TODO: write me */
-      scm_capi_error("not impremented opcode", 0);
+      scm_vm_op_jmpf(vm, op);
       break;
     case SCM_OPCODE_RAISE:
       scm_vm_op_raise(vm, op);
