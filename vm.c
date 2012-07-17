@@ -1278,18 +1278,12 @@ scm_vm_op_box(ScmObj vm, SCM_OPCODE_T op)
 scm_local_func void
 scm_vm_op_unbox(ScmObj vm, SCM_OPCODE_T op)
 {
-  ScmObj obj;
-  int32_t idx;
-  uint8_t *ip;
+  ScmObj obj = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vm);
+  SCM_STACK_FRAME_PUSH(&vm,
+                       &obj);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-
-  ip = scm_capi_inst_fetch_oprand_si(SCM_VM(vm)->reg.ip, &idx);
-  if (ip == NULL) return;
-
-  SCM_VM(vm)->reg.ip = ip;
 
   if (!scm_obj_type_p(SCM_VM(vm)->reg.val, &SCM_BOX_TYPE_INFO)) {
     scm_capi_error("can not unboxing: object is not boxed", 0);
