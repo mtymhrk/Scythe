@@ -3206,6 +3206,10 @@ scm_capi_make_closure(ScmObj iseq, size_t nr_free_vars, ScmObj *sp)
     scm_capi_error("can not make closure: invalid argument", 0);
     return SCM_OBJ_NULL;
   }
+  else if (nr_free_vars > SSIZE_MAX) {
+    scm_capi_error("can not make closure: number of free variable overflow", 0);
+    return SCM_OBJ_NULL;
+  }
   else if (nr_free_vars > 0 && sp == NULL) {
     scm_capi_error("can not make closure: invalid argument", 0);
     return SCM_OBJ_NULL;
@@ -3238,6 +3242,34 @@ scm_capi_closure_to_iseq(ScmObj clsr)
   return scm_closure_body(clsr);
 }
 
+ssize_t
+scm_capi_closure_nr_closed_vars(ScmObj clsr)
+{
+  if (!scm_capi_closure_p(clsr)) {
+    scm_capi_error("can not get number of variables closed by closure: "
+                   "invalid argument", 0);
+    return -1;
+  }
+
+  return (ssize_t)scm_closure_nr_free_vars(clsr);
+}
+
+ScmObj
+scm_capi_closure_closed_var(ScmObj clsr, size_t idx)
+{
+  if (!scm_capi_closure_p(clsr)) {
+    scm_capi_error("can not get variable closed by closure: "
+                   "invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (idx < scm_closure_nr_free_vars(clsr)) {
+    scm_capi_error("can not get variable closed by closure: "
+                   "out of range", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_closure_free_var(clsr, idx);
+}
 
 /*******************************************************************/
 /*  Syntax                                                         */

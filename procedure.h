@@ -68,4 +68,22 @@ scm_closure_body(ScmObj clsr)
   return SCM_CLOSURE(clsr)->iseq;
 }
 
+inline size_t
+scm_closure_nr_free_vars(ScmObj clsr)
+{
+  scm_assert_obj_type(clsr, &SCM_CLOSURE_TYPE_INFO);
+
+  return SCM_CLOSURE(clsr)->nr_free_vars;
+}
+
+inline ScmObj
+scm_closure_free_var(ScmObj clsr, size_t idx)
+{
+  scm_assert_obj_type(clsr, &SCM_CLOSURE_TYPE_INFO);
+  scm_assert(idx < SCM_CLOSURE(clsr)->nr_free_vars);
+
+  return SCM_CLOSURE(clsr)->free_vars[idx];
+}
+
+
 #endif /* INCLUDE_PROCEDURE_H__ */

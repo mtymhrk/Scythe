@@ -1080,6 +1080,67 @@ scm_vm_op_sset(ScmObj vm, SCM_OPCODE_T op)
   scm_box_update(*ptr, SCM_VM(vm)->reg.val);
 }
 
+scm_local_func void
+scm_vm_op_cref(ScmObj vm, SCM_OPCODE_T op)
+{
+  ScmObj val = SCM_OBJ_INIT;
+  int32_t idx;
+  uint8_t *ip;
+
+  SCM_STACK_FRAME_PUSH(&vm,
+                       &val);
+
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  ip = scm_capi_inst_fetch_oprand_si(SCM_VM(vm)->reg.ip, &idx);
+  if (ip == NULL) return;
+
+  SCM_VM(vm)->reg.ip = ip;
+
+  if (idx < 0) {
+    scm_capi_error("invalid access to closed environment: out of range", 0);
+    return;
+  }
+
+  val = scm_capi_closure_closed_var(SCM_VM(vm)->reg.cp, (size_t)idx);
+  if (scm_obj_null_p(val)) return;
+
+  SCM_SLOT_SETQ(ScmVM, vm, reg.val, val);
+}
+
+scm_local_func void
+scm_vm_op_cset(ScmObj vm, SCM_OPCODE_T op)
+{
+  ScmObj val = SCM_OBJ_INIT;
+  int32_t idx;
+  uint8_t *ip;
+
+  SCM_STACK_FRAME_PUSH(&vm,
+                       &val);
+
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  ip = scm_capi_inst_fetch_oprand_si(SCM_VM(vm)->reg.ip, &idx);
+  if (ip == NULL) return;
+
+  SCM_VM(vm)->reg.ip = ip;
+
+  if (idx < 0) {
+    scm_capi_error("invalid access to closed environment: out of range", 0);
+    return;
+  }
+
+  val = scm_capi_closure_closed_var(SCM_VM(vm)->reg.cp, (size_t)idx);
+  if (scm_obj_null_p(val)) return;
+
+  if (!scm_obj_type_p(val, &SCM_BOX_TYPE_INFO)) {
+    scm_capi_error("update to variable bound by unboxed object", 0);
+    return;
+  }
+
+  scm_box_update(val, SCM_VM(vm)->reg.val);
+}
+
 /* 無条件 JUMP 命令
  */
 scm_local_func void
@@ -1347,12 +1408,10 @@ scm_vm_run(ScmObj vm, ScmObj iseq)
       scm_vm_op_sset(vm, op);
       break;
     case SCM_OPCODE_CREF:
-      /* TODO: write me */
-      scm_capi_error("not impremented opcode", 0);
+      scm_vm_op_cref(vm, op);
       break;
     case SCM_OPCODE_CSET:
-      /* TODO: write me */
-      scm_capi_error("not impremented opcode", 0);
+      scm_vm_op_cset(vm, op);
       break;
     case SCM_OPCODE_JMP:
       scm_vm_op_jmp(vm, op);

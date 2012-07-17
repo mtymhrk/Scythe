@@ -92,6 +92,7 @@ scm_closure_initialize(ScmObj clsr, ScmObj iseq,
 {
   scm_assert_obj_type(clsr, &SCM_CLOSURE_TYPE_INFO);
   scm_assert(scm_capi_iseq_p(iseq));
+  scm_assert(nr_free_vars < SSIZE_MAX);
 
   SCM_SLOT_SETQ(ScmClosure, clsr, iseq, iseq);
 
@@ -132,6 +133,7 @@ scm_closure_new(SCM_MEM_TYPE_T mtype, ScmObj iseq,
   SCM_STACK_FRAME_PUSH(&iseq, &clsr);
 
   scm_assert(scm_capi_iseq_p(iseq));
+  scm_assert(nr_free_vars < SSIZE_MAX);
 
   clsr = scm_capi_mem_alloc(&SCM_CLOSURE_TYPE_INFO, mtype);
   if (scm_obj_null_p(clsr)) return SCM_OBJ_NULL; /* [ERR]: [through] */

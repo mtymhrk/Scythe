@@ -226,6 +226,8 @@ void scm_vm_op_gdef(ScmObj vm, SCM_OPCODE_T op);
 void scm_vm_op_gset(ScmObj vm, SCM_OPCODE_T op);
 void scm_vm_op_sref(ScmObj vm, SCM_OPCODE_T op);
 void scm_vm_op_sset(ScmObj vm, SCM_OPCODE_T op);
+void scm_vm_op_cref(ScmObj vm, SCM_OPCODE_T op);
+void scm_vm_op_cset(ScmObj vm, SCM_OPCODE_T op);
 void scm_vm_op_jmp(ScmObj vm, SCM_OPCODE_T op);
 void scm_vm_op_raise(ScmObj vm, SCM_OPCODE_T op);
 

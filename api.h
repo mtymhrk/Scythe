@@ -375,6 +375,8 @@ ScmObj scm_capi_make_closure(ScmObj iseq, size_t nr_free_vars, ScmObj *sp);
 ScmObj scm_capi_iseq_to_closure(ScmObj iseq);
 bool scm_capi_closure_p(ScmObj obj);
 ScmObj scm_capi_closure_to_iseq(ScmObj clsr);
+ssize_t scm_capi_closure_nr_closed_vars(ScmObj clsr);
+ScmObj scm_capi_closure_closed_var(ScmObj clsr, size_t idx);
 
 
 /*******************************************************************/
