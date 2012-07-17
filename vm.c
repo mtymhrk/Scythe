@@ -1046,7 +1046,7 @@ scm_vm_op_sref(ScmObj vm, SCM_OPCODE_T op)
     return;
   }
 
-  SCM_WB_SETQ(vm, *ptr, SCM_VM(vm)->reg.val);
+  SCM_SLOT_SETQ(ScmVM, vm, reg.val, *ptr);
 }
 
 scm_local_func void
@@ -1072,7 +1072,12 @@ scm_vm_op_sset(ScmObj vm, SCM_OPCODE_T op)
     return;
   }
 
-  SCM_SLOT_SETQ(ScmVM, vm, reg.val, *ptr);
+  if (!scm_obj_type_p(*ptr, &SCM_BOX_TYPE_INFO)) {
+    scm_capi_error("update to variable bound by unboxed object", 0);
+    return;
+  }
+
+  scm_box_update(*ptr, SCM_VM(vm)->reg.val);
 }
 
 /* 無条件 JUMP 命令
