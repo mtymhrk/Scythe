@@ -1023,6 +1023,10 @@ scm_vm_op_gset(ScmObj vm, SCM_OPCODE_T op)
   }
 }
 
+/* スタック上にあるローカル変数を参照するインストラクション。
+ * fp レジスタの値をベース、第 1 オペランドの値を index としてスタックにアクセ
+ * スし、val レジスタにその値を設定する (val = fp[index])。
+ */
 scm_local_func void
 scm_vm_op_sref(ScmObj vm, SCM_OPCODE_T op)
 {
@@ -1049,6 +1053,11 @@ scm_vm_op_sref(ScmObj vm, SCM_OPCODE_T op)
   SCM_SLOT_SETQ(ScmVM, vm, reg.val, *ptr);
 }
 
+/* スタック上にあるローカル変数を変更するインストラクション。
+ * fp レジスタの値をベース、第 1 オペランドの値を index としてスタックにアクセ
+ * スし val レジスタの値で更新する (fp[index] = val)。
+ * スタックにあるオブジェクトが box オブジェクトではない場合、エラーになる。
+ */
 scm_local_func void
 scm_vm_op_sset(ScmObj vm, SCM_OPCODE_T op)
 {
@@ -1080,6 +1089,10 @@ scm_vm_op_sset(ScmObj vm, SCM_OPCODE_T op)
   scm_box_update(*ptr, SCM_VM(vm)->reg.val);
 }
 
+/* クロージャが保持した変数を参照するインストラクション。
+ * 第 1 オペランドを index としてクロージャにアクセスし、val レジスタをその値
+ * で更新する。
+ */
 scm_local_func void
 scm_vm_op_cref(ScmObj vm, SCM_OPCODE_T op)
 {
@@ -1108,6 +1121,11 @@ scm_vm_op_cref(ScmObj vm, SCM_OPCODE_T op)
   SCM_SLOT_SETQ(ScmVM, vm, reg.val, val);
 }
 
+/* クロージャが保持した変数を変更するインストラクション。
+ * 第 1 オペランドを index としてクロージャにアクセスし、val レジスタの値でそ
+ * の変数を更新する。
+ * クロージャが保持した変数の値が box オブジェクトではない場合、エラーになる。
+ */
 scm_local_func void
 scm_vm_op_cset(ScmObj vm, SCM_OPCODE_T op)
 {
