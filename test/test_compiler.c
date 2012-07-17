@@ -280,7 +280,7 @@ test_scm_api_compile__refer_bound_variable_1(void)
   const char *exp_str = "(lambda (f1 f2) (lambda (b1 b2) b2))";
   const char *asm_str = "((asm-close 0"
                         "   ((asm-close 0"
-                        "      ((sref -2 1)(return 2)))"
+                        "      ((sref 1)(return 2)))"
                         "    (return 2))))";
 
   SCM_STACK_FRAME_PUSH(&exp, &port,
@@ -308,7 +308,7 @@ test_scm_api_compile__refer_bound_variable_2(void)
   const char *exp_str = "(lambda (f1 b2) (lambda (b1 b2) b2))";
   const char *asm_str = "((asm-close 0"
                         "   ((asm-close 0"
-                        "      ((sref -2 1)(return 2)))"
+                        "      ((sref 1)(return 2)))"
                         "    (return 2))))";
 
   SCM_STACK_FRAME_PUSH(&exp, &port,
@@ -336,9 +336,9 @@ test_scm_api_compile__refer_bound_variable_3(void)
   const char *exp_str = "(lambda (f1 b2) (lambda (b1 b2) (set! b2 'a) b2))";
   const char *asm_str = "((asm-close 0"
                         "   ((asm-close 0"
-                        "      ((box -2 1)"
-                        "       (immval a)(sset -2 1)"
-                        "       (sref -2 1)(unbox)"
+                        "      ((box 1)"
+                        "       (immval a)(sset 1)"
+                        "       (sref 1)(unbox)"
                         "       (return 2)))"
                         "    (return 2))))";
 
@@ -367,7 +367,7 @@ test_scm_api_compile__set_bound_variable_1(void)
   const char *exp_str = "(lambda (f1 f2) (lambda (b1 b2) (set! b2 'a)))";
   const char *asm_str = "((asm-close 0"
                         "   ((asm-close 0"
-                        "      ((box -2 1)(immval a)(sset -2 1)(return 2)))"
+                        "      ((box 1)(immval a)(sset 1)(return 2)))"
                         "    (return 2))))";
 
   SCM_STACK_FRAME_PUSH(&exp, &port,
@@ -395,7 +395,7 @@ test_scm_api_compile__set_bound_variable_2(void)
   const char *exp_str = "(lambda (f1 b2) (lambda (b1 b2) (set! b2 'a)))";
   const char *asm_str = "((asm-close 0"
                         "   ((asm-close 0"
-                        "      ((box -2 1)(immval a)(sset -2 1)(return 2)))"
+                        "      ((box 1)(immval a)(sset 1)(return 2)))"
                         "    (return 2))))";
 
   SCM_STACK_FRAME_PUSH(&exp, &port,
@@ -422,7 +422,7 @@ test_scm_api_compile__refer_free_variable_1(void)
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
   const char *exp_str = "(lambda (f1 f2) (lambda (b1 b2) f2))";
   const char *asm_str = "((asm-close 0"
-                        "   ((sref -2 1)"
+                        "   ((sref 1)"
                         "    (push)"
                         "    (asm-close 1"
                         "      ((cref 0)(return 2)))"
@@ -452,8 +452,8 @@ test_scm_api_compile__refer_free_variable_2(void)
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
   const char *exp_str = "(lambda (f1 f2) (lambda (b1 b2) (set! f2 'a) f2))";
   const char *asm_str = "((asm-close 0"
-                        "   ((box -2 1)"
-                        "    (sref -2 1)"
+                        "   ((box 1)"
+                        "    (sref 1)"
                         "    (push)"
                         "    (asm-close 1"
                         "      ((immval a)(cset 0)"
@@ -485,8 +485,8 @@ test_scm_api_compile__set_free_variable_1(void)
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
   const char *exp_str = "(lambda (f1 f2) (lambda (b1 b2) (set! f2 'a)))";
   const char *asm_str = "((asm-close 0"
-                        "   ((box -2 1)"
-                        "    (sref -2 1)"
+                        "   ((box 1)"
+                        "    (sref 1)"
                         "    (push)"
                         "    (asm-close 1"
                         "      ((immval a)(cset 0)(return 2)))"

@@ -3536,14 +3536,14 @@ scm_capi_opcode_to_opfmt(int opcode)
     SCM_OPFMT_OBJ,              /* SCM_OPCODE_GREF */
     SCM_OPFMT_OBJ,              /* SCM_OPCODE_GDEF */
     SCM_OPFMT_OBJ,              /* SCM_OPCODE_GSET */
-    SCM_OPFMT_SI_SI,            /* SCM_OPCODE_SREF */
-    SCM_OPFMT_SI_SI,            /* SCM_OPCODE_SSET */
+    SCM_OPFMT_SI,               /* SCM_OPCODE_SREF */
+    SCM_OPFMT_SI,               /* SCM_OPCODE_SSET */
     SCM_OPFMT_SI,               /* SCM_OPCODE_CREF */
     SCM_OPFMT_SI,               /* SCM_OPCODE_CSET */
     SCM_OPFMT_IOF,              /* SCM_OPCODE_JMP */
     SCM_OPFMT_IOF,              /* SCM_OPCODE_JMPF */
     SCM_OPFMT_NOOPD,            /* SCM_OPCODE_RAISE */
-    SCM_OPFMT_SI_SI,            /* SCM_OPCODE_BOX */
+    SCM_OPFMT_SI,               /* SCM_OPCODE_BOX */
     SCM_OPFMT_NOOPD,            /* SCM_OPCODE_UNBOX */
     SCM_OPFMT_SI_OBJ,           /* SCM_OPCODE_CLOSE */
   };
