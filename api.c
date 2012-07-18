@@ -4008,7 +4008,7 @@ scm_capi_run_repl(ScmEvaluator *ev)
                                               "   (gref read)"
                                               "   (call 0)"
                                               "   (push)"
-                                              "   (gref eval-asm)"
+                                              "   (gref eval)"
                                               "   (call 1)"
                                               "   (push)"
                                               "   (gref write)"
