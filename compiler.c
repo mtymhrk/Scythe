@@ -1363,6 +1363,8 @@ scm_cmpl_make_closure_code(ScmObj body, ScmObj new_env, ScmObj new_sv)
   inst_ret = scm_capi_list(1, inst_ret);
   if (scm_obj_null_p(inst_ret)) return SCM_OBJ_NULL;
 
+  /* XXX: クロージャの本体最後が tail-call であっても本体のアセンブラコードの最
+   *      後には return 命令が付与されるが、この命令には意味が無い */
   body_code = scm_cmpl_compile_exp_list(body,
                                         new_env, new_sv, inst_ret, true);
   if (scm_obj_null_p(body_code)) return SCM_OBJ_NULL;

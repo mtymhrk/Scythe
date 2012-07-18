@@ -1322,6 +1322,7 @@ scm_vm_op_close(ScmObj vm, SCM_OPCODE_T op)
   clsr = scm_capi_make_closure(iseq, sp, (size_t)nr_free);
   if (scm_obj_null_p(clsr)) return;
 
+  SCM_VM(vm)->reg.sp = sp;
   SCM_SLOT_SETQ(ScmVM, vm, reg.val, clsr);
 }
 
