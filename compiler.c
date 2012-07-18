@@ -1913,18 +1913,20 @@ scm_cmpl_find_free_and_assign_exp(ScmObj exp, ScmObj env,
     key = scm_api_car(exp);
     if (scm_obj_null_p(key)) return SCM_OBJ_NULL;
 
-    rslt = scm_cmpl_env_resolv_ref(env, key, &type, &idx);
-    if (rslt < 0) return SCM_OBJ_NULL;
-
-    if (type == SCM_CMPL_REF_GLOBAL) {
-      rslt = scm_capi_global_var_ref(key, SCM_CSETTER_L(syx));
+    if (scm_capi_symbol_p(key)) {
+      rslt = scm_cmpl_env_resolv_ref(env, key, &type, &idx);
       if (rslt < 0) return SCM_OBJ_NULL;
 
-      if (scm_capi_syntax_p(syx)) {
-        int id = scm_capi_syntax_id(syx);
-        if (id < 0) return SCM_OBJ_NULL;
+      if (type == SCM_CMPL_REF_GLOBAL) {
+        rslt = scm_capi_global_var_ref(key, SCM_CSETTER_L(syx));
+        if (rslt < 0) return SCM_OBJ_NULL;
 
-        return scm_cmpl_find_funcs[id](exp, env, bound, formal, free, assign);
+        if (scm_capi_syntax_p(syx)) {
+          int id = scm_capi_syntax_id(syx);
+          if (id < 0) return SCM_OBJ_NULL;
+
+          return scm_cmpl_find_funcs[id](exp, env, bound, formal, free, assign);
+        }
       }
     }
 
@@ -1958,18 +1960,20 @@ scm_cmpl_compile_exp(ScmObj exp, ScmObj env, ScmObj sv,
     key = scm_api_car(exp);
     if (scm_obj_null_p(key)) return SCM_OBJ_NULL;
 
-    rslt = scm_cmpl_env_resolv_ref(env, key, &type, &idx);
-    if (rslt < 0) return SCM_OBJ_NULL;
-
-    if (type == SCM_CMPL_REF_GLOBAL) {
-      rslt = scm_capi_global_var_ref(key, SCM_CSETTER_L(syx));
+    if (scm_capi_symbol_p(key)) {
+      rslt = scm_cmpl_env_resolv_ref(env, key, &type, &idx);
       if (rslt < 0) return SCM_OBJ_NULL;
 
-      if (scm_capi_syntax_p(syx)) {
-        int id = scm_capi_syntax_id(syx);
-        if (id < 0) return SCM_OBJ_NULL;
+      if (type == SCM_CMPL_REF_GLOBAL) {
+        rslt = scm_capi_global_var_ref(key, SCM_CSETTER_L(syx));
+        if (rslt < 0) return SCM_OBJ_NULL;
 
-        return scm_cmpl_compile_funcs[id](exp, env, sv, next, tail_p);
+        if (scm_capi_syntax_p(syx)) {
+          int id = scm_capi_syntax_id(syx);
+          if (id < 0) return SCM_OBJ_NULL;
+
+          return scm_cmpl_compile_funcs[id](exp, env, sv, next, tail_p);
+        }
       }
     }
 
