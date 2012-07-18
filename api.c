@@ -4049,9 +4049,12 @@ scm_capi_run_repl(ScmEvaluator *ev)
 }
 
 
-/* unit test 用 api */
+#ifdef SCM_UNIT_TEST
+
+/* unit test 用 api ********************************************************/
+
 void
-scm_capi_setup_current_vm(ScmEvaluator *ev)
+scm_capi_ut_setup_current_vm(ScmEvaluator *ev)
 {
   if (ev == NULL) return;
 
@@ -4061,3 +4064,5 @@ scm_capi_setup_current_vm(ScmEvaluator *ev)
   scm_vm_change_current_vm(ev->vm);
   scm_vm_setup_system(ev->vm);
 }
+
+#endif

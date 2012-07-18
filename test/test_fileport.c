@@ -30,7 +30,7 @@ cut_startup(void)
   fclose(fp);
 
   ev = scm_capi_evaluator();
-  scm_capi_setup_current_vm(ev);
+  scm_capi_ut_setup_current_vm(ev);
 }
 
 void
