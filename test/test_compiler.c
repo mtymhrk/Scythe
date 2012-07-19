@@ -153,7 +153,7 @@ test_scm_api_compile__application_1(void)
   ScmObj exp = SCM_OBJ_INIT, port = SCM_OBJ_INIT;
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
   const char *exp_str = "(func)";
-  const char *asm_str = "((gref func)(tcall 0 0))";
+  const char *asm_str = "((frame)(gref func)(call 0))";
 
   SCM_STACK_FRAME_PUSH(&exp, &port,
                        &actual, &expected);
@@ -178,7 +178,11 @@ test_scm_api_compile__application_2(void)
   ScmObj exp = SCM_OBJ_INIT, port = SCM_OBJ_INIT;
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
   const char *exp_str = "(func 'a 'b)";
-  const char *asm_str = "((immval a)(push)(immval b)(push)(gref func)(tcall 2 0))";
+  const char *asm_str = "((frame)"
+                        " (immval a)(push)"
+                        " (immval b)(push)"
+                        " (gref func)"
+                        " (call 2))";
 
   SCM_STACK_FRAME_PUSH(&exp, &port,
                        &actual, &expected);
@@ -203,10 +207,11 @@ test_scm_api_compile__application_3(void)
   ScmObj exp = SCM_OBJ_INIT, port = SCM_OBJ_INIT;
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
   const char *exp_str = "((lambda (x) x) 1)";
-  const char *asm_str = "((immval 1)(push)"
-                        "  (asm-close 0"
-                        "    ((sref -1)(return 1)))"
-                        "  (tcall 1 0))";
+  const char *asm_str = "((frame)"
+                        " (immval 1)(push)"
+                        " (asm-close 0"
+                        "   ((sref -1)(return 1)))"
+                        " (call 1))";
 
   SCM_STACK_FRAME_PUSH(&exp, &port,
                        &actual, &expected);
@@ -231,7 +236,8 @@ test_scm_api_compile__application_4(void)
   ScmObj exp = SCM_OBJ_INIT, port = SCM_OBJ_INIT;
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
   const char *exp_str = "((lambda (x) (lambda (y) (cons x y))) 1)";
-  const char *asm_str = "((immval 1)(push)"
+  const char *asm_str = "((frame)"
+                        " (immval 1)(push)"
                         " (asm-close 0"
                         "   ((sref -1)(push)"
                         "    (asm-close 1"
@@ -241,7 +247,7 @@ test_scm_api_compile__application_4(void)
                         "       (tcall 2 1)"
                         "       (return 1)))" /* 無駄な return 命令*/
                         "    (return 1)))"
-                        " (tcall 1 0))";
+                        " (call 1))";
 
   SCM_STACK_FRAME_PUSH(&exp, &port,
                        &actual, &expected);
