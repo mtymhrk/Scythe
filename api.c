@@ -3262,7 +3262,7 @@ scm_capi_closure_closed_var(ScmObj clsr, size_t idx)
                    "invalid argument", 0);
     return SCM_OBJ_NULL;
   }
-  else if (idx < scm_closure_nr_free_vars(clsr)) {
+  else if (idx >= scm_closure_nr_free_vars(clsr)) {
     scm_capi_error("can not get variable closed by closure: "
                    "out of range", 0);
     return SCM_OBJ_NULL;
