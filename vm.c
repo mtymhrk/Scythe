@@ -508,7 +508,9 @@ scm_vm_stack_shift(ScmObj vm, size_t nelm, size_t nshift)
     return -1;
   }
 
-  memmove(SCM_VM(vm)->reg.sp - nelm - nshift, SCM_VM(vm)->reg.sp - nelm, nelm);
+  memmove(SCM_VM(vm)->reg.sp - nelm - nshift,
+          SCM_VM(vm)->reg.sp - nelm,
+          sizeof(*SCM_VM(vm)->reg.sp) * nelm);
   SCM_VM(vm)->reg.sp = SCM_VM(vm)->reg.sp - nshift;
 
   return 0;
