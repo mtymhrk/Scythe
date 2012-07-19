@@ -518,15 +518,8 @@ int scm_capi_run_repl(ScmEvaluator *ev);
 #ifdef SCM_UNIT_TEST
 
 void scm_capi_ut_setup_current_vm(ScmEvaluator *ev);
+ScmObj scm_capi_ut_eval(ScmEvaluator *ev, ScmObj exp);
 
 #endif
 
 #endif /* INCLUDE_API_H__ */
-
-
-
-
-
-
-
-

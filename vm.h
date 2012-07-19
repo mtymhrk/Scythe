@@ -235,6 +235,14 @@ void scm_vm_op_box(ScmObj vm, SCM_OPCODE_T op);
 void scm_vm_op_unbox(ScmObj vm, SCM_OPCODE_T op);
 void scm_vm_op_close(ScmObj vm, SCM_OPCODE_T op);
 
+inline ScmObj
+scm_vm_register_val(ScmObj vm)
+{
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  return SCM_VM(vm)->reg.val;
+}
+
 #endif
 
 /* public functions ******************************************************/

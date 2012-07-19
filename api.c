@@ -4065,4 +4065,27 @@ scm_capi_ut_setup_current_vm(ScmEvaluator *ev)
   scm_vm_setup_system(ev->vm);
 }
 
+ScmObj
+scm_capi_ut_eval(ScmEvaluator *ev, ScmObj exp)
+{
+  ScmObj code = SCM_OBJ_INIT;
+  ssize_t rslt;
+
+  SCM_STACK_FRAME_PUSH(&exp,
+                       &code);
+
+  code = scm_api_compile(exp);
+  if (scm_obj_null_p(code)) return SCM_OBJ_NULL;
+
+  code = scm_api_assemble(code);
+  if (scm_obj_null_p(code)) return SCM_OBJ_NULL;
+
+  rslt = scm_capi_iseq_push_opfmt_noarg(code, SCM_OPCODE_HALT);
+  if (rslt < 0) return -1;
+
+  scm_vm_run(ev->vm, code);
+
+  return scm_vm_register_val(ev->vm);
+}
+
 #endif
