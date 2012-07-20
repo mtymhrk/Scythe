@@ -15,7 +15,7 @@ static int scm_cmpl_find_free_and_assign_exp(ScmObj exp, ScmObj vars,
                                              ScmObj env, ScmObj rib,
                                              ScmObj free, ScmObj assign);
 ScmObj scm_cmpl_compile_exp(ScmObj exp, ScmObj env, ScmObj sv,
-                            ScmObj next, bool tail_p);
+                            ScmObj next, bool tail_p, bool toplevel_p);
 
 
 
@@ -846,7 +846,7 @@ scm_cmpl_find_free_and_assign_exp_list(ScmObj exp_lst, ScmObj env,
 
 static ScmObj
 scm_cmpl_compile_exp_list(ScmObj exp_lst, ScmObj env, ScmObj sv,
-                          ScmObj next, bool tail_p)
+                          ScmObj next, bool tail_p, bool toplevel_p)
 {
   ScmObj exp_vec = SCM_OBJ_INIT, exp = SCM_OBJ_INIT, code = SCM_OBJ_INIT;
   ssize_t len;
@@ -865,13 +865,167 @@ scm_cmpl_compile_exp_list(ScmObj exp_lst, ScmObj env, ScmObj sv,
     exp = scm_capi_vector_ref(exp_vec, (size_t)i - 1);
     if (scm_obj_null_p(exp)) return SCM_OBJ_NULL;
 
-    code = scm_cmpl_compile_exp(exp, env, sv, code, tail_p);
+    code = scm_cmpl_compile_exp(exp, env, sv, code, tail_p, toplevel_p);
     if (scm_obj_null_p(code)) return SCM_OBJ_NULL;
 
     tail_p = false;
   }
 
   return code;
+}
+
+static int
+scm_cmpl_decons_definision(ScmObj exp, scm_csetter_t *var, scm_csetter_t *val)
+{
+  ScmObj second = SCM_OBJ_INIT, third = SCM_OBJ_INIT, tmp = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&exp,
+                       &second, &third, &tmp);
+
+  scm_assert(scm_capi_pair_p(exp));
+  scm_assert(var != NULL);
+  scm_assert(val != NULL);
+
+  tmp = scm_api_cdr(exp);
+  if (scm_obj_null_p(tmp)) return -1;
+
+  second = scm_api_car(tmp);
+  if (scm_obj_null_p(second)) return -1;
+
+  tmp = scm_api_cdr(tmp);
+  if (scm_obj_null_p(tmp)) return -1;
+
+  third = scm_api_car(tmp);
+  if (scm_obj_null_p(third)) return -1;
+
+  tmp = scm_api_cdr(tmp);
+  if (scm_obj_null_p(tmp)) return -1;
+
+  if (!scm_capi_nil_p(tmp)) {
+    scm_capi_error("compile: syntax error: malformed define", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  scm_csetter_setq(var, second);
+  scm_csetter_setq(val, third);
+
+  return 0;
+}
+
+static ScmObj
+scm_cmpl_normalize_definizion(ScmObj exp)
+{
+  ScmObj first = SCM_OBJ_INIT, second = SCM_OBJ_INIT, third = SCM_OBJ_INIT;
+  ScmObj name = SCM_OBJ_INIT, form = SCM_OBJ_INIT;
+  ScmObj lambda = SCM_OBJ_INIT;
+  ScmObj tmp = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&exp,
+                       &first, &second, &third,
+                       &name, &form,
+                       &lambda,
+                       &tmp);
+
+  lambda = scm_capi_make_symbol_from_cstr("lambda", SCM_ENC_ASCII);
+  if (scm_obj_null_p(lambda)) return SCM_OBJ_NULL;
+
+  first = scm_api_car(exp);
+  if (scm_obj_null_p(first)) return SCM_OBJ_NULL;
+
+  tmp = scm_api_cdr(exp);
+  if (scm_obj_null_p(tmp)) return SCM_OBJ_NULL;
+
+  second = scm_api_car(tmp);
+  if (scm_obj_null_p(second)) return SCM_OBJ_NULL;
+
+  tmp = scm_api_cdr(tmp);
+  if (scm_obj_null_p(tmp)) return SCM_OBJ_NULL;
+
+  third = scm_api_car(tmp);
+  if (scm_obj_null_p(third)) return SCM_OBJ_NULL;
+
+  tmp = scm_api_cdr(tmp);
+  if (scm_obj_null_p(tmp)) return SCM_OBJ_NULL;
+
+  if (!scm_capi_nil_p(tmp)) {
+    scm_capi_error("Compiler: syntax error: malformed define", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  while (scm_capi_pair_p(second)) {
+    name = scm_api_car(second);
+    if (scm_obj_null_p(name)) return SCM_OBJ_NULL;
+
+    form = scm_api_cdr(second);
+    if (scm_obj_null_p(form)) return SCM_OBJ_NULL;
+
+    third = scm_capi_list(3, lambda, form, third);
+    if (scm_obj_null_p(third)) return SCM_OBJ_NULL;
+
+    second = name;
+  }
+
+  return scm_capi_list(3, first, second, third);
+}
+
+static int
+scm_cmpl_find_free_and_assign_definision(ScmObj exp, ScmObj env,
+                                        ScmObj bound, ScmObj formal,
+                                        ScmObj free, ScmObj assign)
+{
+  ScmObj var = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
+  int rslt;
+
+  SCM_STACK_FRAME_PUSH(&exp, &env, &bound, &formal, &free, &assign,
+                       &var, &val);
+
+  exp = scm_cmpl_normalize_definizion(exp);
+  if (scm_obj_null_p(exp)) return -1;
+
+  rslt = scm_cmpl_decons_definision(exp,
+                                    SCM_CSETTER_L(var), SCM_CSETTER_L(val));
+  if (rslt < 0) return -1;
+
+  return scm_cmpl_find_free_and_assign_exp(val, env,
+                                           bound, formal, free, assign);
+}
+
+static ScmObj
+scm_cmpl_compile_definision(ScmObj exp, ScmObj env, ScmObj sv,
+                           ScmObj next, bool tail_p, bool toplevel_p)
+{
+  ScmObj var = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
+  ScmObj inst_gdef = SCM_OBJ_INIT;
+  int rslt;
+
+  SCM_STACK_FRAME_PUSH(&exp, &env, &sv, &next,
+                       &var, &val,
+                       &inst_gdef);
+
+  exp = scm_cmpl_normalize_definizion(exp);
+  if (scm_obj_null_p(exp)) return SCM_OBJ_NULL;
+
+  rslt = scm_cmpl_decons_definision(exp,
+                                    SCM_CSETTER_L(var), SCM_CSETTER_L(val));
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  if (!scm_capi_symbol_p(var)) {
+    scm_capi_error("Compiler: syntax error: malformed define", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  if (!toplevel_p) {
+    scm_capi_error("Compiler: internal definition is not supported", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  inst_gdef = scm_cmpl_cons_inst_gdef(var);
+  if (scm_obj_null_p(inst_gdef)) return SCM_OBJ_NULL;
+
+  next = scm_api_cons(inst_gdef, next);
+  if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
+
+  return scm_cmpl_compile_exp(val, env, sv, next, false, toplevel_p);
 }
 
 static int
@@ -884,7 +1038,7 @@ scm_cmpl_find_free_and_assign_reference(ScmObj exp, ScmObj env,
 
 static ScmObj
 scm_cmpl_compile_reference(ScmObj exp, ScmObj env, ScmObj sv,
-                           ScmObj next, bool tail_p)
+                           ScmObj next, bool tail_p, bool toplevel_p)
 {
   ScmObj inst_ref = SCM_OBJ_INIT, inst_unbox = SCM_OBJ_INIT;
   int type, rslt;
@@ -952,7 +1106,7 @@ scm_cmpl_find_free_and_assign_self_eval(ScmObj exp, ScmObj env,
 
 static ScmObj
 scm_cmpl_compile_self_eval(ScmObj exp, ScmObj env, ScmObj sv,
-                           ScmObj next, bool tail_p)
+                           ScmObj next, bool tail_p, bool toplevel_p)
 {
   ScmObj inst_immval = SCM_OBJ_INIT;
 
@@ -1008,7 +1162,7 @@ scm_cmpl_find_free_and_assign_quote(ScmObj exp, ScmObj env,
 
 static ScmObj
 scm_cmpl_compile_quote(ScmObj exp, ScmObj env, ScmObj sv,
-                       ScmObj next, bool tail_p)
+                       ScmObj next, bool tail_p, bool toplevel_p)
 {
   ScmObj obj = SCM_OBJ_INIT;
   int rslt;
@@ -1019,7 +1173,7 @@ scm_cmpl_compile_quote(ScmObj exp, ScmObj env, ScmObj sv,
   rslt = scm_cmpl_decons_quote(exp, SCM_CSETTER_L(obj));
   if (rslt < 0) return SCM_OBJ_NULL;
 
-  return scm_cmpl_compile_self_eval(obj, env, sv, next, tail_p);
+  return scm_cmpl_compile_self_eval(obj, env, sv, next, tail_p, toplevel_p);
 }
 
 static int
@@ -1079,7 +1233,7 @@ scm_cmpl_find_free_and_assign_application(ScmObj exp, ScmObj env,
 
 static ScmObj
 scm_cmpl_compile_application(ScmObj exp, ScmObj env, ScmObj sv,
-                             ScmObj next, bool tail_p)
+                             ScmObj next, bool tail_p, bool toplevel_p)
 {
   ScmObj proc = SCM_OBJ_INIT, args = SCM_OBJ_INIT, elm = SCM_OBJ_INIT;
   ScmObj inst_push = SCM_OBJ_INIT, inst_call = SCM_OBJ_INIT;
@@ -1119,7 +1273,7 @@ scm_cmpl_compile_application(ScmObj exp, ScmObj env, ScmObj sv,
   next = scm_api_cons(inst_call, next);
   if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
 
-  next = scm_cmpl_compile_exp(proc, env, sv, next, false);
+  next = scm_cmpl_compile_exp(proc, env, sv, next, false, toplevel_p);
   if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
 
   inst_push = scm_cmpl_cons_inst_push();
@@ -1132,7 +1286,7 @@ scm_cmpl_compile_application(ScmObj exp, ScmObj env, ScmObj sv,
     next = scm_api_cons(inst_push, next);
     if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
 
-    next = scm_cmpl_compile_exp(elm, env, sv, next, false);
+    next = scm_cmpl_compile_exp(elm, env, sv, next, false, toplevel_p);
     if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
   }
 
@@ -1366,7 +1520,7 @@ scm_cmpl_make_closure_code(ScmObj body, ScmObj new_env, ScmObj new_sv)
   /* XXX: クロージャの本体最後が tail-call であっても本体のアセンブラコードの最
    *      後には無条件で return 命令が付与される。 */
   body_code = scm_cmpl_compile_exp_list(body,
-                                        new_env, new_sv, inst_ret, true);
+                                        new_env, new_sv, inst_ret, true, false);
   if (scm_obj_null_p(body_code)) return SCM_OBJ_NULL;
 
   nr_bound = scm_cmpl_env_nr_bound_vars(new_env);
@@ -1458,7 +1612,7 @@ scm_cmpl_new_empty_sv(void)
 
 static ScmObj
 scm_cmpl_compile_lambda(ScmObj exp, ScmObj env, ScmObj sv,
-                        ScmObj next, bool tail_p)
+                        ScmObj next, bool tail_p, bool toplevel_p)
 {
   ScmObj form = SCM_OBJ_INIT, body = SCM_OBJ_INIT, lvars = SCM_OBJ_INIT;
   ScmObj fvars = SCM_OBJ_INIT, avars = SCM_OBJ_INIT;
@@ -1634,7 +1788,7 @@ scm_cmpl_find_free_and_assign_assignment(ScmObj exp, ScmObj env,
 
 static ScmObj
 scm_cmpl_compile_assignment(ScmObj exp, ScmObj env, ScmObj sv,
-                            ScmObj next, bool tail_p)
+                            ScmObj next, bool tail_p, bool toplevel_p)
 {
   ScmObj var = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
   ScmObj inst_set = SCM_OBJ_INIT;
@@ -1648,6 +1802,11 @@ scm_cmpl_compile_assignment(ScmObj exp, ScmObj env, ScmObj sv,
   rslt = scm_cmpl_decons_assignment(exp,
                                     SCM_CSETTER_L(var), SCM_CSETTER_L(val));
   if (rslt < 0) return SCM_OBJ_NULL;
+
+  if (!scm_capi_symbol_p(var)) {
+    scm_capi_error("Compiler: syntax error: malformed set!", 0);
+    return SCM_OBJ_NULL;
+  }
 
   rslt = scm_cmpl_env_resolv_ref(env, var, &type, &idx);
   if (rslt < 0) return SCM_OBJ_NULL;
@@ -1683,7 +1842,7 @@ scm_cmpl_compile_assignment(ScmObj exp, ScmObj env, ScmObj sv,
   next = scm_api_cons(inst_set, next);
   if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
 
-  return scm_cmpl_compile_exp(val, env, sv, next, false);
+  return scm_cmpl_compile_exp(val, env, sv, next, false, toplevel_p);
 }
 
 static int
@@ -1787,7 +1946,8 @@ scm_cmpl_find_free_and_assign_if(ScmObj exp, ScmObj env,
 }
 
 static ScmObj
-scm_cmpl_compile_if(ScmObj exp, ScmObj env, ScmObj sv, ScmObj next, bool tail_p)
+scm_cmpl_compile_if(ScmObj exp, ScmObj env, ScmObj sv,
+                    ScmObj next, bool tail_p, bool toplevel_p)
 {
   ScmObj cond = SCM_OBJ_INIT, conse = SCM_OBJ_INIT, alter = SCM_OBJ_INIT;
   ScmObj lbl_junc = SCM_OBJ_INIT, lbl_alt = SCM_OBJ_INIT;
@@ -1818,7 +1978,7 @@ scm_cmpl_compile_if(ScmObj exp, ScmObj env, ScmObj sv, ScmObj next, bool tail_p)
 
   if (scm_obj_not_null_p(alter)) {
     /* alternative 節を付加 */
-    next = scm_cmpl_compile_exp(alter, env, sv, next, tail_p);
+    next = scm_cmpl_compile_exp(alter, env, sv, next, tail_p, toplevel_p);
     if (scm_obj_null_p(next)) return  SCM_OBJ_NULL;
 
     /* condition 節実行後に alternative 節に条件ジャンプするためのラベル定義
@@ -1851,7 +2011,7 @@ scm_cmpl_compile_if(ScmObj exp, ScmObj env, ScmObj sv, ScmObj next, bool tail_p)
   }
 
   /* consequence 節を付加 */
-  next = scm_cmpl_compile_exp(conse, env, sv, next, tail_p);
+  next = scm_cmpl_compile_exp(conse, env, sv, next, tail_p, toplevel_p);
   if (scm_obj_null_p(next)) return  SCM_OBJ_NULL;
 
   /* condition 節実行後の条件ジャンプ命令を付加 */
@@ -1859,38 +2019,42 @@ scm_cmpl_compile_if(ScmObj exp, ScmObj env, ScmObj sv, ScmObj next, bool tail_p)
   if (scm_obj_null_p(next)) return  SCM_OBJ_NULL;
 
   /* conditio 節を付加 */
-  return scm_cmpl_compile_exp(cond, env, sv, next, false);
+  return scm_cmpl_compile_exp(cond, env, sv, next, false, toplevel_p);
 }
 
 
-enum { SCM_CMPL_SYNTAX_REFERENCE, SCM_CMPL_SYNTAX_SELF_EVAL,
-       SCM_CMPL_SYNTAX_QUOTE, SCM_CMPL_SYNTAX_APPLICATION,
-       SCM_CMPL_SYNTAX_LAMBDA, SCM_CMPL_SYNTAX_ASSIGNMENT,
-       SCM_CMPL_SYNTAX_IF, SCM_CMPL_NR_SYNTAX };
+enum { SCM_CMPL_DEFINITION, SCM_CMPL_SYNTAX_REFERENCE,
+       SCM_CMPL_SYNTAX_SELF_EVAL, SCM_CMPL_SYNTAX_QUOTE,
+       SCM_CMPL_SYNTAX_APPLICATION, SCM_CMPL_SYNTAX_LAMBDA,
+       SCM_CMPL_SYNTAX_ASSIGNMENT, SCM_CMPL_SYNTAX_IF,
+       SCM_CMPL_NR_SYNTAX };
 
-const char *scm_cmpl_syntax_keywords[] = { NULL, NULL, "quote", NULL, "lambda",
-                                           "set!", "if" };
+const char *scm_cmpl_syntax_keywords[] = { "define", NULL, NULL, "quote", NULL,
+                                           "lambda", "set!", "if" };
 ScmObj (*scm_cmpl_compile_funcs[])(ScmObj exp, ScmObj env, ScmObj sv,
-                                   ScmObj next, bool tail_p) = {
+                                   ScmObj next, bool tail_p, bool toplevel_p)
+= {
+  scm_cmpl_compile_definision,
   scm_cmpl_compile_reference,
   scm_cmpl_compile_self_eval,
   scm_cmpl_compile_quote,
   scm_cmpl_compile_application,
   scm_cmpl_compile_lambda,
   scm_cmpl_compile_assignment,
-  scm_cmpl_compile_if
+  scm_cmpl_compile_if,
 };
 
 int (*scm_cmpl_find_funcs[])(ScmObj exp, ScmObj env,
                                   ScmObj bound, ScmObj formal,
                                   ScmObj free, ScmObj assign) = {
+  scm_cmpl_find_free_and_assign_definision,
   scm_cmpl_find_free_and_assign_reference,
   scm_cmpl_find_free_and_assign_self_eval,
   scm_cmpl_find_free_and_assign_quote,
   scm_cmpl_find_free_and_assign_application,
   scm_cmpl_find_free_and_assign_lambda,
   scm_cmpl_find_free_and_assign_assignment,
-  scm_cmpl_find_free_and_assign_if
+  scm_cmpl_find_free_and_assign_if,
 };
 
 static int
@@ -1944,7 +2108,7 @@ scm_cmpl_find_free_and_assign_exp(ScmObj exp, ScmObj env,
 
 ScmObj
 scm_cmpl_compile_exp(ScmObj exp, ScmObj env, ScmObj sv,
-                     ScmObj next, bool tail_p)
+                     ScmObj next, bool tail_p, bool toplevel_p)
 {
   ScmObj key = SCM_OBJ_INIT, syx = SCM_OBJ_INIT;
 
@@ -1952,8 +2116,10 @@ scm_cmpl_compile_exp(ScmObj exp, ScmObj env, ScmObj sv,
                        &key, &syx);
 
   if (scm_capi_symbol_p(exp)) {
-    return scm_cmpl_compile_funcs[SCM_CMPL_SYNTAX_REFERENCE](exp, env,
-                                                             sv, next, tail_p);
+    return scm_cmpl_compile_funcs[SCM_CMPL_SYNTAX_REFERENCE](exp, env, sv,
+                                                             next,
+                                                             tail_p,
+                                                             toplevel_p);
   }
   else if (scm_capi_pair_p(exp)) {
     int type, rslt;
@@ -1974,18 +2140,22 @@ scm_cmpl_compile_exp(ScmObj exp, ScmObj env, ScmObj sv,
           int id = scm_capi_syntax_id(syx);
           if (id < 0) return SCM_OBJ_NULL;
 
-          return scm_cmpl_compile_funcs[id](exp, env, sv, next, tail_p);
+          return scm_cmpl_compile_funcs[id](exp, env, sv,
+                                            next, tail_p, toplevel_p);
         }
       }
     }
 
-    return scm_cmpl_compile_funcs[SCM_CMPL_SYNTAX_APPLICATION](exp, env,
-                                                               sv, next,
-                                                               tail_p);
+    return scm_cmpl_compile_funcs[SCM_CMPL_SYNTAX_APPLICATION](exp, env, sv,
+                                                               next,
+                                                               tail_p,
+                                                               toplevel_p);
   }
   else {
-    return scm_cmpl_compile_funcs[SCM_CMPL_SYNTAX_SELF_EVAL](exp, env,
-                                                             sv, next, tail_p);
+    return scm_cmpl_compile_funcs[SCM_CMPL_SYNTAX_SELF_EVAL](exp, env, sv,
+                                                             next,
+                                                             tail_p,
+                                                             toplevel_p);
   }
 }
 
@@ -2008,7 +2178,7 @@ scm_cmpl_compile(ScmObj exp)
   next = scm_api_nil();
   if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
 
-  return scm_cmpl_compile_exp(exp, env, sv, next, false);
+  return scm_cmpl_compile_exp(exp, env, sv, next, false, true);
 }
 
 
