@@ -137,35 +137,35 @@ test_eval__refer_global_variable_2(void)
   cut_assert_true(scm_capi_true_p(scm_api_eq_P(expected, actual)));
 }
 
-/* void */
-/* test_eval__update_global_variable_1(void) */
-/* { */
-/*   ScmObj exp = SCM_OBJ_INIT, port = SCM_OBJ_INIT, sym = SCM_OBJ_INIT; */
-/*   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT; */
-/*   ScmObj val_bef = SCM_OBJ_INIT; */
-/*   const char *exp_str = "(set! var 10)"; */
+void
+test_eval__update_global_variable_1(void)
+{
+  ScmObj exp = SCM_OBJ_INIT, port = SCM_OBJ_INIT, sym = SCM_OBJ_INIT;
+  ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+  ScmObj val_bef = SCM_OBJ_INIT;
+  const char *exp_str = "(set! var 10)";
 
-/*   SCM_STACK_FRAME_PUSH(&exp, &port, &sym, */
-/*                        &actual, &expected, */
-/*                        &val_bef); */
+  SCM_STACK_FRAME_PUSH(&exp, &port, &sym,
+                       &actual, &expected,
+                       &val_bef);
 
 
-/*   port = scm_capi_open_input_string_from_cstr(exp_str, SCM_ENC_ASCII); */
-/*   exp = scm_api_read(port); */
+  port = scm_capi_open_input_string_from_cstr(exp_str, SCM_ENC_ASCII);
+  exp = scm_api_read(port);
 
-/*   sym = scm_capi_make_symbol_from_cstr("var", SCM_ENC_ASCII); */
+  sym = scm_capi_make_symbol_from_cstr("var", SCM_ENC_ASCII);
 
-/*   val_bef = scm_capi_make_number_from_sword(1); */
-/*   expected = scm_capi_make_number_from_sword(10); */
+  val_bef = scm_capi_make_number_from_sword(1);
+  expected = scm_capi_make_number_from_sword(10);
 
-/*   scm_api_global_var_define(sym, val_bef); */
+  scm_api_global_var_define(sym, val_bef);
 
-/*   scm_capi_ut_eval(ev, exp); */
+  scm_capi_ut_eval(ev, exp);
 
-/*   actual = scm_api_global_var_ref(sym); */
+  actual = scm_api_global_var_ref(sym);
 
-/*   cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual))); */
-/* } */
+  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+}
 
 
 void
