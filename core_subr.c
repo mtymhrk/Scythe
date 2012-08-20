@@ -167,12 +167,12 @@ scm_subr_func_eval_asm(int argc, ScmObj *argv)
     return SCM_OBJ_NULL;
   }
 
-  i = scm_capi_iseq_push_opfmt_si(code, SCM_OPCODE_RETURN, 0);
+  i = scm_capi_iseq_push_opfmt_noarg(code, SCM_OPCODE_RETURN);
   if (i < 0) return SCM_OBJ_NULL;
 
   args = scm_api_nil();
 
-  rslt = scm_capi_trampolining(code, args, argc, NULL);
+  rslt = scm_capi_trampolining(code, args,  NULL);
   if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   return scm_api_undef();
@@ -199,12 +199,12 @@ scm_subr_func_eval(int argc, ScmObj *argv)
   exp = scm_api_assemble(exp);
   if (scm_obj_null_p(exp)) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
-  i = scm_capi_iseq_push_opfmt_si(exp, SCM_OPCODE_RETURN, 0);
+  i = scm_capi_iseq_push_opfmt_noarg(exp, SCM_OPCODE_RETURN);
   if (i < 0) return SCM_OBJ_NULL;
 
   args = scm_api_nil();
 
-  rslt = scm_capi_trampolining(exp, args, argc, NULL);
+  rslt = scm_capi_trampolining(exp, args, NULL);
   if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   return scm_api_undef();

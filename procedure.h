@@ -11,6 +11,7 @@ typedef struct ScmClosureRec ScmClosure;
 
 #include "object.h"
 #include "api_enum.h"
+#include "api_type.h"
 
 
 /*******************************************************************/
@@ -46,14 +47,12 @@ extern ScmTypeInfo SCM_CLOSURE_TYPE_INFO;
 struct ScmClosureRec {
   ScmObjHeader header;
   ScmObj iseq;
-  ScmObj *free_vars;
-  size_t nr_free_vars;
+  ScmEnvFrame *env;
 };
 
-int scm_closure_initialize(ScmObj clsr, ScmObj iseq, ScmObj *vars, size_t n);
+int scm_closure_initialize(ScmObj clsr, ScmObj iseq, ScmEnvFrame *env);
 void scm_closure_finalize(ScmObj clsr);
-ScmObj scm_closure_new(SCM_MEM_TYPE_T mtype, ScmObj iseq,
-                       ScmObj *vars, size_t n);
+ScmObj scm_closure_new(SCM_MEM_TYPE_T mtype, ScmObj iseq, ScmEnvFrame *env);
 int scm_closure_pretty_print(ScmObj obj, ScmObj port, bool write_p);
 void scm_closure_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_closure_gc_finalize(ScmObj obj);
@@ -67,22 +66,14 @@ scm_closure_body(ScmObj clsr)
   return SCM_CLOSURE(clsr)->iseq;
 }
 
-inline size_t
-scm_closure_nr_free_vars(ScmObj clsr)
+inline ScmEnvFrame *
+scm_closure_env(ScmObj clsr)
 {
   scm_assert_obj_type(clsr, &SCM_CLOSURE_TYPE_INFO);
 
-  return SCM_CLOSURE(clsr)->nr_free_vars;
+  return SCM_CLOSURE(clsr)->env;
 }
 
-inline ScmObj
-scm_closure_free_var(ScmObj clsr, size_t idx)
-{
-  scm_assert_obj_type(clsr, &SCM_CLOSURE_TYPE_INFO);
-  scm_assert(idx < SCM_CLOSURE(clsr)->nr_free_vars);
-
-  return SCM_CLOSURE(clsr)->free_vars[idx];
-}
 
 
 #endif /* INCLUDE_PROCEDURE_H__ */

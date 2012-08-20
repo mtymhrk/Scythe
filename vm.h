@@ -13,7 +13,9 @@ typedef struct ScmVMRec ScmVM;
 #include "object.h"
 #include "memory.h"
 #include "reference.h"
-#include "api.h"
+#include "api_enum.h"
+#include "api_type.h"
+
 
 /***************************************************************************/
 /*  ScmBedrock                                                             */
@@ -128,6 +130,7 @@ typedef enum {
   SCM_VM_CTRL_FLG_RAISE = 0x00000002,
 } SCM_VM_CTRL_FLG_T;
 
+
 struct ScmVMRec {
   ScmObjHeader header;
 
@@ -157,13 +160,16 @@ struct ScmVMRec {
 
 
   /*** VM Stack ***/
-  ScmObj *stack;
+  uint8_t *stack;
   size_t stack_size;
 
   /*** VM Registers ***/
   struct {
-    ScmObj *sp;                   /* stack pointer */
-    ScmObj *fp;                   /* frame pointer */
+    uint8_t *sp;                  /* stack pointer */
+    ScmCntFrame *cfp;             /* continuation frame pointer */
+    ScmCntFrame *icfp;            /* incomplete continuation frame pointer */
+    ScmEnvFrame *efp;             /* environment frame pointer */
+    ScmEnvFrame *iefp;            /* incomplete environment frame pointer */
     ScmObj cp;                    /* closure pointer */
     uint8_t *ip;                  /* instruction pointer */
     ScmObj isp;                   /* instruction sequence object */
@@ -193,16 +199,18 @@ void scm_vm_clean_eval_env(ScmObj vm);
 
 int scm_vm_stack_push(ScmObj vm, ScmObj elm);
 ScmObj scm_vm_stack_pop(ScmObj vm);
-void scm_vm_stack_shorten(ScmObj vm, size_t n);
 int scm_vm_stack_shift(ScmObj vm, size_t nelm, size_t nshift);
 
-ScmObj *scm_vm_cur_frame_argv(ScmObj vm, int argc);
-int scm_vm_make_stack_frame(ScmObj vm, ScmObj fp, ScmObj cp,
-                             ScmObj isp, ScmObj ip);
-void scm_vm_return_to_caller(ScmObj vm, uint32_t nr_param);
+int scm_vm_update_ief_len_if_needed(ScmObj vm);
+int scm_vm_make_cframe(ScmObj vm, ScmEnvFrame * efp,
+                             ScmObj cp, ScmObj isp, uint8_t *ip);
+int scm_vm_commit_cframe(ScmObj vm, ScmCntFrame *cfp, uint8_t *ip);
+int scm_vm_make_eframe(ScmObj vm, size_t nr_arg);
+int scm_vm_commit_eframe(ScmObj vm, ScmEnvFrame *efp, size_t nr_arg);
+int scm_vm_copy_eframe(ScmEnvFrame *ef, size_t n, ScmEnvFrame **copy);
+void scm_vm_return_to_caller(ScmObj vm);
 
-ScmObj scm_vm_make_trampolining_code(ScmObj vm, ScmObj clsr,
-                                     ScmObj args, uint32_t nr_arg_cf,
+ScmObj scm_vm_make_trampolining_code(ScmObj vm, ScmObj clsr, ScmObj args,
                                      ScmObj callback);
 ScmObj scm_vm_make_exception_handler_code(ScmObj vm);
 int scm_vm_setup_to_call_exception_handler(ScmObj vm);
@@ -212,7 +220,7 @@ void scm_vm_ctrl_flg_clr(ScmObj vm, SCM_VM_CTRL_FLG_T flg);
 bool scm_vm_ctrl_flg_set_p(ScmObj vm, SCM_VM_CTRL_FLG_T flg);
 
 int scm_vm_do_op_call(ScmObj vm, SCM_OPCODE_T op,
-                      uint32_t nr_arg, uint32_t nr_param_cf, bool tail_p);
+                      uint32_t argc, bool tail_p);
 int scm_vm_do_op_push(ScmObj vm, SCM_OPCODE_T op);
 int scm_vm_do_op_frame(ScmObj vm, SCM_OPCODE_T op);
 
@@ -220,6 +228,8 @@ void scm_vm_op_call(ScmObj vm, SCM_OPCODE_T op);
 void scm_vm_op_immval(ScmObj vm, SCM_OPCODE_T op);
 void scm_vm_op_push(ScmObj vm, SCM_OPCODE_T op);
 void scm_vm_op_frame(ScmObj vm, SCM_OPCODE_T op);
+void scm_vm_op_cframe(ScmObj vm, SCM_OPCODE_T op);
+void scm_vm_op_eframe(ScmObj vm, SCM_OPCODE_T op);
 void scm_vm_op_return(ScmObj vm, SCM_OPCODE_T op);
 void scm_vm_op_gref(ScmObj vm, SCM_OPCODE_T op);
 void scm_vm_op_gdef(ScmObj vm, SCM_OPCODE_T op);
@@ -234,6 +244,13 @@ void scm_vm_op_raise(ScmObj vm, SCM_OPCODE_T op);
 void scm_vm_op_box(ScmObj vm, SCM_OPCODE_T op);
 void scm_vm_op_unbox(ScmObj vm, SCM_OPCODE_T op);
 void scm_vm_op_close(ScmObj vm, SCM_OPCODE_T op);
+void scm_vm_op_dsref(ScmObj vm, SCM_OPCODE_T op);
+
+int scm_vm_gc_accept_eframe(ScmObj vm, ScmEnvFrame *efp,
+                            ScmObj mem, ScmGCRefHandlerFunc handler);
+int scm_vm_gc_accept_cframe(ScmObj vm, ScmCntFrame *cfp,
+                            ScmObj mem, ScmGCRefHandlerFunc handler);
+int scm_vm_gc_accept_stack(ScmObj vm, ScmObj mem, ScmGCRefHandlerFunc handler);
 
 inline ScmObj
 scm_vm_register_val(ScmObj vm)
@@ -256,8 +273,7 @@ void scm_vm_end(ScmObj vm);
 int scm_vm_setup_system(ScmObj vm);
 void scm_vm_run(ScmObj vm, ScmObj iseq);
 
-int scm_vm_setup_stat_trmp(ScmObj vm, ScmObj target,
-                           ScmObj args, int nr_arg_cf,
+int scm_vm_setup_stat_trmp(ScmObj vm, ScmObj target, ScmObj args,
                            ScmObj (*callback)(int argc, ScmObj *argv));
 void scm_vm_setup_stat_halt(ScmObj vm);
 int scm_vm_setup_stat_raised(ScmObj vm, ScmObj obj);

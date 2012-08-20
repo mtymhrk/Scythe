@@ -4,6 +4,7 @@
 #include "vm.h"
 #include "string.h"
 #include "symbol.h"
+#include "api.h"
 #include "chashtbl.h"
 
 static ScmEvaluator *ev;

@@ -3,6 +3,7 @@
 #include "object.h"
 #include "vm.h"
 #include "reference.h"
+#include "api.h"
 #include "string.h"
 
 static ScmEvaluator *ev;

@@ -14,6 +14,8 @@ static struct {
   { SCM_OPCODE_TAIL_CALL, "tcall" },
   { SCM_OPCODE_RETURN,    "return" },
   { SCM_OPCODE_FRAME,     "frame" },
+  { SCM_OPCODE_CFRAME,    "cframe" },
+  { SCM_OPCODE_EFRAME,    "eframe" },
   { SCM_OPCODE_IMMVAL,    "immval" },
   { SCM_OPCODE_PUSH,      "push" },
   { SCM_OPCODE_GREF,      "gref" },
@@ -21,13 +23,10 @@ static struct {
   { SCM_OPCODE_GSET,      "gset" },
   { SCM_OPCODE_SREF,      "sref" },
   { SCM_OPCODE_SSET,      "sset" },
-  { SCM_OPCODE_CREF,      "cref" },
-  { SCM_OPCODE_CSET,      "cset" },
   { SCM_OPCODE_JMP,       "jmp" },
   { SCM_OPCODE_JMPF,      "jmpf" },
   { SCM_OPCODE_RAISE,     "raise" },
   { SCM_OPCODE_BOX,       "box" },
-  { SCM_OPCODE_UNBOX,     "unbox" },
   { SCM_OPCODE_CLOSE,     "close" },
   { SCM_ASM_PI_LABEL,     "label" },
   { SCM_ASM_PI_ASM,       "asm" },
@@ -94,6 +93,8 @@ scm_iseq_asm_reg_label_ref_idx(ScmCHashTbl *tbl, EArray *labels,
   char label_name[SCM_ISEQ_LABEL_NAME_MAX];
   ssize_t name_sz;
 
+  SCM_STACK_FRAME_PUSH(&label);
+
   scm_assert(tbl != 0);
   scm_assert(scm_capi_symbol_p(label));
 
@@ -151,6 +152,8 @@ scm_asm_reg_label_def_idx(ScmCHashTbl *tbl, EArray *labels,
   char label_name[SCM_ISEQ_LABEL_NAME_MAX];
   ssize_t name_sz;
 
+  SCM_STACK_FRAME_PUSH(&label);
+
   scm_assert(tbl != NULL);
   scm_assert(labels != NULL);
   scm_assert(scm_capi_symbol_p(label));
@@ -207,6 +210,8 @@ scm_asm_reg_label_def_idx(ScmCHashTbl *tbl, EArray *labels,
 static int
 scm_asm_sym2opcode(ScmObj op)
 {
+  SCM_STACK_FRAME_PUSH(&op);
+
   scm_assert(!scm_capi_null_value_p(op));
 
   if (scm_capi_integer_p(op)) {
@@ -245,14 +250,14 @@ scm_asm_inst_noopd(ScmObj iseq, int opcode, ScmObj operator, ScmObj operands,
 {
   ssize_t nr_opd;
 
+  SCM_STACK_FRAME_PUSH(&iseq, &operator, &operands);
+
   scm_assert(scm_capi_iseq_p(iseq));
   scm_assert(0 <= opcode && opcode <= UINT8_MAX);
   scm_assert(scm_capi_symbol_p(operator));
   scm_assert(scm_capi_nil_p(operands) || scm_capi_pair_p(operands));
   scm_assert(label_tbl != NULL);
   scm_assert(labels != NULL);
-
-  SCM_STACK_FRAME_PUSH(&iseq, &operator, &operands);
 
   nr_opd = scm_capi_length(operands);
   if (nr_opd != 0) {
@@ -353,15 +358,15 @@ scm_asm_inst_si_si(ScmObj iseq, int opcode, ScmObj operator, ScmObj operands,
   ssize_t nr_opd;
   int rslt;
 
+  SCM_STACK_FRAME_PUSH(&iseq, &operator, &operands,
+                       &arg1, &arg2);
+
   scm_assert(scm_capi_iseq_p(iseq));
   scm_assert(0 <= opcode && opcode <= UINT8_MAX);
   scm_assert(scm_capi_symbol_p(operator));
   scm_assert(scm_capi_nil_p(operands) || scm_capi_pair_p(operands));
   scm_assert(label_tbl != NULL);
   scm_assert(labels != NULL);
-
-  SCM_STACK_FRAME_PUSH(&iseq, &operator, &operands,
-                       &arg1, &arg2);
 
   nr_opd = scm_capi_length(operands);
   if (nr_opd < 2) {
@@ -418,15 +423,15 @@ scm_asm_inst_si_obj(ScmObj iseq, int opcode, ScmObj operator, ScmObj operands,
   ssize_t nr_opd;
   int rslt;
 
+  SCM_STACK_FRAME_PUSH(&iseq, &operator, &operands,
+                       &arg1, &arg2);
+
   scm_assert(scm_capi_iseq_p(iseq));
   scm_assert(0 <= opcode && opcode <= UINT8_MAX);
   scm_assert(scm_capi_symbol_p(operator));
   scm_assert(scm_capi_nil_p(operands) || scm_capi_pair_p(operands));
   scm_assert(label_tbl != NULL);
   scm_assert(labels != NULL);
-
-  SCM_STACK_FRAME_PUSH(&iseq, &operator, &operands,
-                       &arg1, &arg2);
 
   nr_opd = scm_capi_length(operands);
   if (nr_opd < 2) {
@@ -466,6 +471,9 @@ scm_asm_inst_iof(ScmObj iseq, int opcode, ScmObj operator, ScmObj operands,
 {
   ScmObj label = SCM_OBJ_INIT;
   ssize_t i, nr_opd, rslt;
+
+  SCM_STACK_FRAME_PUSH(&iseq, &operator, &operands,
+                       &label);
 
   scm_assert(scm_capi_iseq_p(iseq));
   scm_assert(0 <= opcode && opcode <= UINT8_MAX);
@@ -510,15 +518,15 @@ scm_asm_inst_label(ScmObj iseq, int opcode, ScmObj operator, ScmObj operands,
   ssize_t nr_opd;
   int rslt;
 
+  SCM_STACK_FRAME_PUSH(&iseq, &operator, &operands,
+                       &arg);
+
   scm_assert(scm_capi_iseq_p(iseq));
   scm_assert(opcode >= SCM_ASM_PI_START);
   scm_assert(scm_capi_symbol_p(operator));
   scm_assert(scm_capi_nil_p(operands) || scm_capi_pair_p(operands));
   scm_assert(label_tbl != NULL);
   scm_assert(labels != NULL);
-
-  SCM_STACK_FRAME_PUSH(&iseq, &operator, &operands,
-                       &arg);
 
   nr_opd = scm_capi_length(operands);
   if (nr_opd < 1) {
@@ -550,15 +558,15 @@ scm_asm_inst_asm(ScmObj iseq, int opcode, ScmObj operator, ScmObj operands,
   ScmObj arg = SCM_OBJ_INIT;
   ssize_t nr_opd;
 
+  SCM_STACK_FRAME_PUSH(&iseq, &operator, &operands,
+                       &arg);
+
   scm_assert(scm_capi_iseq_p(iseq));
   scm_assert(opcode >= SCM_ASM_PI_START);
   scm_assert(scm_capi_symbol_p(operator));
   scm_assert(scm_capi_nil_p(operands) || scm_capi_pair_p(operands));
   scm_assert(label_tbl != NULL);
   scm_assert(labels != NULL);
-
-  SCM_STACK_FRAME_PUSH(&iseq, &operator, &operands,
-                       &arg);
 
   nr_opd = scm_capi_length(operands);
   if (nr_opd < 1) {
@@ -594,15 +602,15 @@ scm_asm_inst_asm_close(ScmObj iseq, int opcode,
   ssize_t nr_opd;
   int rslt;
 
+  SCM_STACK_FRAME_PUSH(&iseq, &operator, &operands,
+                       &arg1, &arg2);
+
   scm_assert(scm_capi_iseq_p(iseq));
   scm_assert(opcode >= SCM_ASM_PI_START);
   scm_assert(scm_capi_symbol_p(operator));
   scm_assert(scm_capi_nil_p(operands) || scm_capi_pair_p(operands));
   scm_assert(label_tbl != NULL);
   scm_assert(labels != NULL);
-
-  SCM_STACK_FRAME_PUSH(&iseq, &operator, &operands,
-                       &arg1, &arg2);
 
   nr_opd = scm_capi_length(operands);
   if (nr_opd < 2) {

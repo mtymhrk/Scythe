@@ -1,3 +1,4 @@
+
 #ifndef INCLUDE_API_CONST_H__
 #define INCLUDE_API_CONST_H__
 
@@ -52,22 +53,24 @@ typedef enum {
   SCM_OPCODE_CALL,                /* 2: function call */
   SCM_OPCODE_TAIL_CALL,           /* 3: function tail call */
   SCM_OPCODE_RETURN,              /* 4: return from function */
-  SCM_OPCODE_FRAME,               /* 5; create stack frame */
-  SCM_OPCODE_IMMVAL,              /* 6: copy immediate value to val register */
-  SCM_OPCODE_PUSH,                /* 7: push value of val register */
-  SCM_OPCODE_GREF,                /* 8: refere global variable */
-  SCM_OPCODE_GDEF,                /* 9: define global variable */
-  SCM_OPCODE_GSET,                /* 10: update global variable */
-  SCM_OPCODE_SREF,                /* 11: refere value in stack */
-  SCM_OPCODE_SSET,                /* 12: update value in stack */
-  SCM_OPCODE_CREF,                /* 13: refere value in closure */
-  SCM_OPCODE_CSET,                /* 14: update value in closure */
-  SCM_OPCODE_JMP,                 /* 15: jump */
-  SCM_OPCODE_JMPF,                /* 16: jump if false */
-  SCM_OPCODE_RAISE,               /* 17: exception handler */
-  SCM_OPCODE_BOX,                 /* 18: boxing */
-  SCM_OPCODE_UNBOX,               /* 19: unboxing */
-  SCM_OPCODE_CLOSE,               /* 20: make closure */
+  SCM_OPCODE_FRAME,               /* 5; create continuation frame */
+                                  /*    and envrionment frame */
+  SCM_OPCODE_CFRAME,              /* 6; create continuation frame */
+  SCM_OPCODE_EFRAME,              /* 7; create environment frame */
+  SCM_OPCODE_EFRAME_COMMIT,       /* 8; commit environment frame */
+  SCM_OPCODE_EFRAME_POP,          /* 9; pop environment frame */
+  SCM_OPCODE_IMMVAL,              /* 10: copy immediate value to val register */
+  SCM_OPCODE_PUSH,                /* 11: push value of val register */
+  SCM_OPCODE_GREF,                /* 12: refere global variable */
+  SCM_OPCODE_GDEF,                /* 13: define global variable */
+  SCM_OPCODE_GSET,                /* 14: update global variable */
+  SCM_OPCODE_SREF,                /* 15: refere value in stack */
+  SCM_OPCODE_SSET,                /* 16: update value in stack */
+  SCM_OPCODE_JMP,                 /* 17: jump */
+  SCM_OPCODE_JMPF,                /* 18: jump if false */
+  SCM_OPCODE_RAISE,               /* 19: exception handler */
+  SCM_OPCODE_BOX,                 /* 20: boxing */
+  SCM_OPCODE_CLOSE,               /* 21: make closure */
 } SCM_OPCODE_T;
 
 typedef enum {

@@ -9,6 +9,7 @@
 #include "reference.h"
 #include "encoding.h"
 #include "api_enum.h"
+#include "api_type.h"
 
 /*******************************************************************/
 /*  Error                                                          */
@@ -225,36 +226,6 @@ int scm_capi_truncate_div(ScmObj x, ScmObj y,
 ScmObj scm_capi_truncate_quo(ScmObj x, ScmObj y);
 ScmObj scm_capi_truncate_rem(ScmObj x, ScmObj y);
 
-inline ScmObj
-scm_capi_frame_ptr_to_fixnum(void *ptr)
-{
-  scm_assert(((scm_uword_t)ptr & 0x01) == 0x00);
-  return SCM_OBJ((scm_uword_t)ptr | 0x01);
-}
-
-inline void *
-scm_capi_fixnum_to_frame_ptr(ScmObj fn)
-{
-  if (!scm_capi_fixnum_p(fn)) return NULL; /* provisional implemntation */
-
-  return (void *)((scm_uword_t)fn ^ 0x01);
-}
-
-inline ScmObj
-scm_capi_inst_ptr_to_fixnum(void *ptr)
-{
-  scm_assert(((scm_uword_t)ptr & 0x01) == 0x00);
-  return SCM_OBJ((scm_uword_t)ptr | 0x01);
-}
-
-inline void *
-scm_capi_fixnum_to_inst_ptr(ScmObj fn)
-{
-  if (!scm_capi_fixnum_p(fn)) return NULL; /* provisional implemntation */
-
-  return (void *)((scm_uword_t)fn ^ 0x01);
-}
-
 
 /*******************************************************************/
 /*  Charactor                                                      */
@@ -371,12 +342,11 @@ bool scm_capi_subrutine_p(ScmObj obj);
 /*  Closure                                                        */
 /*******************************************************************/
 
-ScmObj scm_capi_make_closure(ScmObj iseq, ScmObj *vars, size_t n);
+ScmObj scm_capi_make_closure(ScmObj iseq, ScmEnvFrame *env);
 ScmObj scm_capi_iseq_to_closure(ScmObj iseq);
 bool scm_capi_closure_p(ScmObj obj);
 ScmObj scm_capi_closure_to_iseq(ScmObj clsr);
-ssize_t scm_capi_closure_nr_closed_vars(ScmObj clsr);
-ScmObj scm_capi_closure_closed_var(ScmObj clsr, size_t idx);
+int scm_capi_closure_env(ScmObj clsr, ScmEnvFrame **env);
 
 
 /*******************************************************************/
@@ -475,8 +445,7 @@ ScmObj scm_api_global_var_set(ScmObj sym, ScmObj val);
 /*  Setup Trampolining                                             */
 /*******************************************************************/
 
-int scm_capi_trampolining(ScmObj target,
-                          ScmObj arg, int nr_arg_cf,
+int scm_capi_trampolining(ScmObj target, ScmObj arg,
                           ScmObj (*callback)(int argc, ScmObj *argv));
 
 
@@ -504,12 +473,6 @@ SCM_ENC_T scm_capi_system_encoding(void);
 /*******************************************************************/
 /*  Facade                                                         */
 /*******************************************************************/
-
-typedef struct ScmEvaluatorRec ScmEvaluator;
-
-struct ScmEvaluatorRec {
-  ScmObj vm;
-};
 
 ScmEvaluator *scm_capi_evaluator(void);
 void scm_capi_evaluator_end(ScmEvaluator *ev);

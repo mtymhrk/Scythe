@@ -3200,28 +3200,20 @@ scm_capi_subrutine_p(ScmObj obj)
 /*******************************************************************/
 
 ScmObj
-scm_capi_make_closure(ScmObj iseq, ScmObj *vars, size_t n)
+scm_capi_make_closure(ScmObj iseq, ScmEnvFrame *env)
 {
   if (!scm_capi_iseq_p(iseq)) {
     scm_capi_error("can not make closure: invalid argument", 0);
     return SCM_OBJ_NULL;
   }
-  else if (n > SSIZE_MAX) {
-    scm_capi_error("can not make closure: number of free variable overflow", 0);
-    return SCM_OBJ_NULL;
-  }
-  else if (n > 0 && vars == NULL) {
-    scm_capi_error("can not make closure: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
 
-  return scm_closure_new(SCM_MEM_ALLOC_HEAP, iseq, vars, n);
+  return scm_closure_new(SCM_MEM_ALLOC_HEAP, iseq, env);
 }
 
 ScmObj
 scm_capi_iseq_to_closure(ScmObj iseq)
 {
-  return scm_closure_new(SCM_MEM_ALLOC_HEAP, iseq, NULL, 0);
+  return scm_closure_new(SCM_MEM_ALLOC_HEAP, iseq, NULL);
 }
 
 extern inline bool
@@ -3242,34 +3234,25 @@ scm_capi_closure_to_iseq(ScmObj clsr)
   return scm_closure_body(clsr);
 }
 
-ssize_t
-scm_capi_closure_nr_closed_vars(ScmObj clsr)
+int
+scm_capi_closure_env(ScmObj clsr, ScmEnvFrame **env)
 {
   if (!scm_capi_closure_p(clsr)) {
-    scm_capi_error("can not get number of variables closed by closure: "
+    scm_capi_error("can not get closed environment object from closure: "
+                   "invalid argument", 0);
+    return -1;
+  }
+  else if (env == NULL) {
+    scm_capi_error("can not get closed environment object from closure: "
                    "invalid argument", 0);
     return -1;
   }
 
-  return (ssize_t)scm_closure_nr_free_vars(clsr);
+  *env = scm_closure_env(clsr);
+
+  return 0;
 }
 
-ScmObj
-scm_capi_closure_closed_var(ScmObj clsr, size_t idx)
-{
-  if (!scm_capi_closure_p(clsr)) {
-    scm_capi_error("can not get variable closed by closure: "
-                   "invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-  else if (idx >= scm_closure_nr_free_vars(clsr)) {
-    scm_capi_error("can not get variable closed by closure: "
-                   "out of range", 0);
-    return SCM_OBJ_NULL;
-  }
-
-  return scm_closure_free_var(clsr, idx);
-}
 
 /*******************************************************************/
 /*  Syntax                                                         */
@@ -3560,23 +3543,24 @@ scm_capi_opcode_to_opfmt(int opcode)
     SCM_OPFMT_NOOPD,            /* SCM_OPCODE_NOP */
     SCM_OPFMT_NOOPD,            /* SCM_OPCODE_HALT */
     SCM_OPFMT_SI,               /* SCM_OPCODE_CALL */
-    SCM_OPFMT_SI_SI,            /* SCM_OPCODE_TAIL_CALL */
-    SCM_OPFMT_SI,               /* SCM_OPCODE_RETURN */
+    SCM_OPFMT_SI,               /* SCM_OPCODE_TAIL_CALL */
+    SCM_OPFMT_NOOPD,            /* SCM_OPCODE_RETURN */
     SCM_OPFMT_NOOPD,            /* SCM_OPCODE_FRAME */
+    SCM_OPFMT_NOOPD,            /* SCM_OPCODE_CFRAME */
+    SCM_OPFMT_NOOPD,            /* SCM_OPCODE_EFRAME */
+    SCM_OPFMT_NOOPD,            /* SCM_OPCODE_EFRAME_COMMIT */
+    SCM_OPFMT_NOOPD,            /* SCM_OPCODE_EFRAME_POP */
     SCM_OPFMT_OBJ,              /* SCM_OPCODE_IMMVAL */
     SCM_OPFMT_NOOPD,            /* SCM_OPCODE_PUSH */
     SCM_OPFMT_OBJ,              /* SCM_OPCODE_GREF */
     SCM_OPFMT_OBJ,              /* SCM_OPCODE_GDEF */
     SCM_OPFMT_OBJ,              /* SCM_OPCODE_GSET */
-    SCM_OPFMT_SI,               /* SCM_OPCODE_SREF */
-    SCM_OPFMT_SI,               /* SCM_OPCODE_SSET */
-    SCM_OPFMT_SI,               /* SCM_OPCODE_CREF */
-    SCM_OPFMT_SI,               /* SCM_OPCODE_CSET */
+    SCM_OPFMT_SI_SI,            /* SCM_OPCODE_SREF */
+    SCM_OPFMT_SI_SI,            /* SCM_OPCODE_SSET */
     SCM_OPFMT_IOF,              /* SCM_OPCODE_JMP */
     SCM_OPFMT_IOF,              /* SCM_OPCODE_JMPF */
     SCM_OPFMT_NOOPD,            /* SCM_OPCODE_RAISE */
-    SCM_OPFMT_SI,               /* SCM_OPCODE_BOX */
-    SCM_OPFMT_NOOPD,            /* SCM_OPCODE_UNBOX */
+    SCM_OPFMT_SI_SI,            /* SCM_OPCODE_BOX */
     SCM_OPFMT_SI_OBJ,           /* SCM_OPCODE_CLOSE */
   };
 
@@ -3885,7 +3869,7 @@ scm_api_global_var_set(ScmObj sym, ScmObj val)
 /*******************************************************************/
 
 int
-scm_capi_trampolining(ScmObj target, ScmObj args, int nr_arg_cf,
+scm_capi_trampolining(ScmObj target, ScmObj args,
                       ScmObj (*callback)(int argc, ScmObj *argv))
 {
   if ((!scm_capi_iseq_p(target) && !scm_capi_closure_p(target))) {
@@ -3897,8 +3881,7 @@ scm_capi_trampolining(ScmObj target, ScmObj args, int nr_arg_cf,
     return SCM_OBJ_NULL;
   }
 
-  return scm_vm_setup_stat_trmp(scm_vm_current_vm(),
-                                target, args, nr_arg_cf, callback);
+  return scm_vm_setup_stat_trmp(scm_vm_current_vm(), target, args, callback);
 }
 
 
@@ -3999,12 +3982,12 @@ scm_capi_run_repl(ScmEvaluator *ev)
                                               "   (push)"
                                               "   (gref display)"
                                               "   (call 1)"
-                                              "   (frame)"
+                                              "   (cframe)"
                                               "   (gref flush-output-port)"
                                               "   (call 0)"
                                               "   (frame)"
                                               "   (frame)"
-                                              "   (frame)"
+                                              "   (cframe)"
                                               "   (gref read)"
                                               "   (call 0)"
                                               "   (push)"
@@ -4013,10 +3996,10 @@ scm_capi_run_repl(ScmEvaluator *ev)
                                               "   (push)"
                                               "   (gref write)"
                                               "   (call 1)"
-                                              "   (frame)"
+                                              "   (cframe)"
                                               "   (gref newline)"
                                               "   (call 0)"
-                                              "   (frame)"
+                                              "   (cframe)"
                                               "   (gref flush-output-port)"
                                               "   (call 0)"
                                               "   (jmp loop)"

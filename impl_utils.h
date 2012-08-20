@@ -6,6 +6,8 @@
 #include <stdlib.h>
 #include <errno.h>
 
+#include <execinfo.h>
+
 #if (((~0) >> 1) == ~0) /* 符号付き整数の右シフトが算術シフトか */
   #define SCM_RSHIFT_ARITH(x, y) ((x) >> (y))
 #else
@@ -40,6 +42,14 @@
     fputc('\n', stderr);                                         \
     fflush(stderr);                                              \
   } while (0)
+
+inline void
+scm_print_backtrace(int fd)
+{
+  void *trace[256];
+  int n = backtrace(trace, sizeof(trace) / sizeof(trace[0]));
+  backtrace_symbols_fd(trace, n, fd);
+}
 
 inline unsigned long
 scm_pow_ul(unsigned long x, unsigned long y)

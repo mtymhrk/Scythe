@@ -59,6 +59,11 @@ typedef const ScmObj *ScmCRef;
     (lval) = SCM_CONCAT_SYMBOL__(scm_wb_setq__inner_variable__, __LINE__); \
   } while(0)
 
+#define SCM_WB_EXP(owner, exp)                  \
+  do {                                          \
+    exp;                                        \
+  } while (0)
+
 
 /** definition for scm_csetter_t **********************************************/
 
