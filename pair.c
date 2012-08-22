@@ -42,7 +42,7 @@ scm_pair_new(SCM_MEM_TYPE_T mtype, ScmObj car, ScmObj cdr) /* GC OK */
   scm_assert(scm_obj_not_null_p(car));
   scm_assert(scm_obj_not_null_p(cdr));
 
-  pair = scm_capi_mem_alloc(&SCM_PAIR_TYPE_INFO, mtype);
+  pair = scm_capi_mem_alloc(&SCM_PAIR_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(pair)) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   if (scm_pair_initialize(pair, car, cdr) < 0)

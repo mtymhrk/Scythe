@@ -1051,7 +1051,7 @@ scm_port_new(SCM_MEM_TYPE_T mtype,
   scm_assert(/* buf_mode >= 0 && */ buf_mode < SCM_PORT_NR_BUF_MODE);
   scm_assert(/* 0 <= enc && */ enc < SCM_ENC_NR_ENC && enc != SCM_ENC_SYS);
 
-  port = scm_capi_mem_alloc(&SCM_PORT_TYPE_INFO, mtype);
+  port = scm_capi_mem_alloc(&SCM_PORT_TYPE_INFO, 0, mtype);
 
   rslt = scm_port_initialize(port, io, attr, buf_mode, enc);
   if (rslt < 0) return SCM_OBJ_NULL;      /* [ERR]: [through] */

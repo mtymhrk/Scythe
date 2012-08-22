@@ -47,7 +47,7 @@ scm_iseq_new(SCM_MEM_TYPE_T mtype) /* GC OK */
 
   SCM_STACK_FRAME_PUSH(&iseq);
 
-  iseq = scm_capi_mem_alloc(&SCM_ISEQ_TYPE_INFO, mtype);
+  iseq = scm_capi_mem_alloc(&SCM_ISEQ_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(iseq)) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   if (scm_iseq_initialize(iseq) < 0)

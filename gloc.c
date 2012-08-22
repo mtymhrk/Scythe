@@ -43,7 +43,7 @@ scm_gloc_new(SCM_MEM_TYPE_T mtype, ScmObj sym) /* GC OK */
 
   SCM_STACK_FRAME_PUSH(&gloc, &sym);
 
-  gloc = scm_capi_mem_alloc(&SCM_GLOC_TYPE_INFO, mtype);
+  gloc = scm_capi_mem_alloc(&SCM_GLOC_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(gloc)) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   if (scm_gloc_initialize(gloc, sym, SCM_OBJ_NULL) < 0)
@@ -154,7 +154,7 @@ scm_gloctbl_new(SCM_MEM_TYPE_T mtype) /* GC OK */
 
   SCM_STACK_FRAME_PUSH(&tbl);
 
-  tbl = scm_capi_mem_alloc(&SCM_GLOCTBL_TYPE_INFO, mtype);
+  tbl = scm_capi_mem_alloc(&SCM_GLOCTBL_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(tbl)) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   if (scm_gloctbl_initialize(tbl) < 0)

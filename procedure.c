@@ -42,7 +42,7 @@ scm_subrutine_new(SCM_MEM_TYPE_T mtype, ScmSubrFunc func)
 
   scm_assert(func != NULL);
 
-  subr = scm_capi_mem_alloc(&SCM_SUBRUTINE_TYPE_INFO, mtype);
+  subr = scm_capi_mem_alloc(&SCM_SUBRUTINE_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(subr)) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   if (scm_subrutine_initialize(subr, func))
@@ -121,7 +121,7 @@ scm_closure_new(SCM_MEM_TYPE_T mtype, ScmObj iseq, ScmEnvFrame *env)
 
   scm_assert(scm_capi_iseq_p(iseq));
 
-  clsr = scm_capi_mem_alloc(&SCM_CLOSURE_TYPE_INFO, mtype);
+  clsr = scm_capi_mem_alloc(&SCM_CLOSURE_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(clsr)) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   rslt = scm_closure_initialize(clsr, iseq, env);

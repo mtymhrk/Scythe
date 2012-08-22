@@ -48,7 +48,7 @@ scm_symbol_new(SCM_MEM_TYPE_T mtype, ScmObj str) /* GC OK */
 
   scm_assert_obj_type(str, &SCM_STRING_TYPE_INFO);
 
-  sym = scm_capi_mem_alloc(&SCM_SYMBOL_TYPE_INFO, mtype);
+  sym = scm_capi_mem_alloc(&SCM_SYMBOL_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(sym)) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   if (scm_symbol_initialize(sym, str) < 0)
@@ -201,7 +201,7 @@ scm_symtbl_new(SCM_MEM_TYPE_T mtype)
 
   SCM_STACK_FRAME_PUSH(&tbl);
 
-  tbl = scm_capi_mem_alloc(&SCM_SYMTBL_TYPE_INFO, mtype);
+  tbl = scm_capi_mem_alloc(&SCM_SYMTBL_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(tbl)) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   if (scm_symtbl_initialize(tbl) < 0)

@@ -84,36 +84,36 @@ scm_capi_ref_stack_restore(ScmRefStackInfo *info)
 /*******************************************************************/
 
 extern inline ScmObj
-scm_capi_mem_alloc_heap(ScmTypeInfo *type)
+scm_capi_mem_alloc_heap(ScmTypeInfo *type, size_t add_size)
 {
   if (type == NULL) {
     scm_capi_fatal("memory allocation error: invalid object type");
     return SCM_OBJ_NULL;
   }
 
-  return scm_mem_alloc_heap(scm_vm_current_mm(), type);
+  return scm_mem_alloc_heap(scm_vm_current_mm(), type, add_size);
 }
 
 extern inline ScmObj
-scm_capi_mem_alloc_root(ScmTypeInfo *type)
+scm_capi_mem_alloc_root(ScmTypeInfo *type, size_t add_size)
 {
   if (type == NULL) {
     scm_capi_fatal("memory allocation error: invalid object type");
     return SCM_OBJ_NULL;
   }
 
-  return scm_mem_alloc_root(scm_vm_current_mm(), type);
+  return scm_mem_alloc_root(scm_vm_current_mm(), type, add_size);
 }
 
 extern inline ScmObj
-scm_capi_mem_alloc(ScmTypeInfo *otype, SCM_MEM_TYPE_T mtype)
+scm_capi_mem_alloc(ScmTypeInfo *otype, size_t add_size, SCM_MEM_TYPE_T mtype)
 {
   switch(mtype) {
   case SCM_MEM_HEAP:
-    return scm_capi_mem_alloc_heap(otype);
+    return scm_capi_mem_alloc_heap(otype, add_size);
     break;
   case SCM_MEM_ROOT:
-    return scm_capi_mem_alloc_root(otype);
+    return scm_capi_mem_alloc_root(otype, add_size);
     break;
   default:
     scm_capi_fatal("memory allocation error: invalid memory type");

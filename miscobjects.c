@@ -40,7 +40,7 @@ scm_eof_new(SCM_MEM_TYPE_T mtype)         /* GC OK */
 {
   ScmObj eof;
 
-  eof = scm_capi_mem_alloc(&SCM_EOF_TYPE_INFO, mtype);
+  eof = scm_capi_mem_alloc(&SCM_EOF_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(eof)) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   scm_eof_initialize(eof);
@@ -99,7 +99,7 @@ scm_bool_new(SCM_MEM_TYPE_T mtype, bool value)  /* GC OK */
 
   SCM_STACK_FRAME_PUSH(&bl);
 
-  bl = scm_capi_mem_alloc(&SCM_BOOL_TYPE_INFO, mtype);
+  bl = scm_capi_mem_alloc(&SCM_BOOL_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(bl)) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   scm_bool_initialize(bl, value);
@@ -168,7 +168,7 @@ scm_nil_new(SCM_MEM_TYPE_T mtype)         /* GC OK */
 
   SCM_STACK_FRAME_PUSH(&nil);
 
-  nil = scm_capi_mem_alloc(&SCM_NIL_TYPE_INFO, mtype);
+  nil = scm_capi_mem_alloc(&SCM_NIL_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(nil)) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   scm_nil_initialize(nil);
@@ -225,7 +225,7 @@ scm_undef_new(SCM_MEM_TYPE_T mtype)         /* GC OK */
 
   SCM_STACK_FRAME_PUSH(&undef);
 
-  undef = scm_capi_mem_alloc(&SCM_UNDEF_TYPE_INFO, mtype);
+  undef = scm_capi_mem_alloc(&SCM_UNDEF_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(undef)) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   scm_undef_initialize(undef);

@@ -288,7 +288,7 @@ scm_string_new(SCM_MEM_TYPE_T mtype, const void *src, size_t size, SCM_ENC_T enc
 
   scm_assert(/*0 <= enc && */enc < SCM_ENC_NR_ENC && enc != SCM_ENC_SYS);
 
-  str = scm_capi_mem_alloc(&SCM_STRING_TYPE_INFO, mtype);
+  str = scm_capi_mem_alloc(&SCM_STRING_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(str)) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   if (scm_string_initialize(str, src, size, enc) < 0)
@@ -317,7 +317,7 @@ scm_string_dup(ScmObj src)      /* GC OK */
 
   scm_assert_obj_type(src, &SCM_STRING_TYPE_INFO);
 
-  str = scm_capi_mem_alloc_heap(&SCM_STRING_TYPE_INFO);
+  str = scm_capi_mem_alloc_heap(&SCM_STRING_TYPE_INFO, 0);
 
   SCM_STRING_BUFFER(str) = SCM_STRING_BUFFER(src);
   SCM_STRING_HEAD(str) = SCM_STRING_HEAD(src);

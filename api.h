@@ -68,9 +68,10 @@ scm_capi_realloc(void *ptr, size_t size)
   return p;
 }
 
-ScmObj scm_capi_mem_alloc_heap(ScmTypeInfo *type);
-ScmObj scm_capi_mem_alloc_root(ScmTypeInfo *type);
-ScmObj scm_capi_mem_alloc(ScmTypeInfo *otype, SCM_MEM_TYPE_T mtype);
+ScmObj scm_capi_mem_alloc_heap(ScmTypeInfo *type, size_t add_size);
+ScmObj scm_capi_mem_alloc_root(ScmTypeInfo *type, size_t add_size);
+ScmObj scm_capi_mem_alloc(ScmTypeInfo *otype, size_t add_size,
+                          SCM_MEM_TYPE_T mtype);
 ScmObj scm_capi_mem_free_root(ScmObj obj);
 ScmRef scm_capi_mem_register_extra_rfrn(ScmRef ref);
 

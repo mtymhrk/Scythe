@@ -192,7 +192,7 @@ scm_box_new(SCM_MEM_TYPE_T mtype, ScmObj obj)
 
   scm_assert(scm_obj_not_null_p(obj));
 
-  box = scm_capi_mem_alloc(&SCM_BOX_TYPE_INFO, mtype);
+  box = scm_capi_mem_alloc(&SCM_BOX_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(box)) return SCM_OBJ_NULL;
 
   if (scm_box_initialize(box, obj) < 0)
@@ -1450,7 +1450,7 @@ scm_vm_new(void)
 
   scm_vm__current_mm = mem;
 
-  vm = scm_mem_alloc_root(mem, &SCM_VM_TYPE_INFO);
+  vm = scm_mem_alloc_root(mem, &SCM_VM_TYPE_INFO, 0);
   if (scm_obj_null_p(vm)) goto err;
 
   scm_vm_initialize(vm, bedrock);

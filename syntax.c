@@ -34,7 +34,7 @@ scm_syntax_new(SCM_MEM_TYPE_T mtype, int id, const char *keyword)
   ScmObj syx;
   int rslt;
 
-  syx = scm_capi_mem_alloc(&SCM_SYNTAX_TYPE_INFO, mtype);
+  syx = scm_capi_mem_alloc(&SCM_SYNTAX_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(syx)) return SCM_OBJ_NULL;
 
   rslt = scm_syntax_initialize(syx, id, keyword);

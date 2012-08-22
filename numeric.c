@@ -1238,7 +1238,7 @@ scm_bignum_new_from_ary(SCM_MEM_TYPE_T mtype, char sign,
 {
   ScmObj bn = SCM_OBJ_INIT;
 
-  bn = scm_capi_mem_alloc(&SCM_BIGNUM_TYPE_INFO, mtype);
+  bn = scm_capi_mem_alloc(&SCM_BIGNUM_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(bn)) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   if (scm_bignum_initialize_ary(bn, sign, digits, len, base) < 0)
@@ -1252,7 +1252,7 @@ scm_bignum_new_from_sword(SCM_MEM_TYPE_T mtype, scm_sword_t val)
 {
   ScmObj bn = SCM_OBJ_INIT;
 
-  bn = scm_capi_mem_alloc(&SCM_BIGNUM_TYPE_INFO, mtype);
+  bn = scm_capi_mem_alloc(&SCM_BIGNUM_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(bn)) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   if (scm_bignum_initialize_sword(bn, val) < 0)
@@ -1270,7 +1270,7 @@ scm_bignum_new_from_fixnum(SCM_MEM_TYPE_T mtype, ScmObj fn)
   scm_assert(scm_capi_fixnum_p(fn));
 
   sword = scm_fixnum_value(fn);
-  bn = scm_capi_mem_alloc(&SCM_BIGNUM_TYPE_INFO, mtype);
+  bn = scm_capi_mem_alloc(&SCM_BIGNUM_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(bn)) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   if (scm_bignum_initialize_sword(bn, sword) < 0)

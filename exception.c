@@ -86,7 +86,7 @@ scm_exception_new(SCM_MEM_TYPE_T mtype, ScmObj msg, size_t n, ...)
   scm_assert(scm_capi_string_p(msg));
   scm_assert(n <= SCM_EXCEPTION_IRRITANTS_MAX);
 
-  exc = scm_capi_mem_alloc(&SCM_EXCEPTION_TYPE_INFO, mtype);
+  exc = scm_capi_mem_alloc(&SCM_EXCEPTION_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(exc)) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   va_start(irris, n);
@@ -109,7 +109,7 @@ scm_exception_new_va(SCM_MEM_TYPE_T mtype, ScmObj msg, size_t n, va_list irris)
   scm_assert(scm_capi_string_p(msg));
   scm_assert(n <= SCM_EXCEPTION_IRRITANTS_MAX);
 
-  exc = scm_capi_mem_alloc(&SCM_EXCEPTION_TYPE_INFO, mtype);
+  exc = scm_capi_mem_alloc(&SCM_EXCEPTION_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(exc)) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   rslt = scm_exception_initialize_va(exc, msg, n, irris);
@@ -130,7 +130,7 @@ scm_exception_new_ary(SCM_MEM_TYPE_T mtype, ScmObj msg, size_t n, ScmObj *irris)
   scm_assert(scm_capi_string_p(msg));
   scm_assert(n <= SCM_EXCEPTION_IRRITANTS_MAX);
 
-  exc = scm_capi_mem_alloc(&SCM_EXCEPTION_TYPE_INFO, mtype);
+  exc = scm_capi_mem_alloc(&SCM_EXCEPTION_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(exc)) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   rslt = scm_exception_initialize_ary(exc, msg, n, irris);

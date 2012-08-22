@@ -7,6 +7,7 @@
 
 typedef struct ScmForwardRec ScmForward;
 
+typedef struct ScmMemHeapCellRec ScmMemHeapCell;
 typedef struct ScmMemHeapBlockRec ScmMemHeapBlock;
 typedef struct ScmMemHeapRec ScmMemHeap;
 typedef struct ScmMemRootBlockRec ScmMemRootBlock;
@@ -54,6 +55,11 @@ void scm_forward_initialize(ScmObj obj, ScmObj fwd);
 #define SCM_MEM_OBJ_TBL_HASH_SIZE 1024
 #define SCM_MEM_EXTRA_ROOT_SET_SIZE 256
 
+struct ScmMemHeapCellRec {
+  size_t size;
+  uint8_t body[0] __attribute((aligned(SCM_MEM_ALIGN_BYTE)));
+};
+
 struct ScmMemHeapBlockRec {
   struct ScmMemHeapBlockRec *next;
   struct ScmMemHeapBlockRec *prev;
@@ -96,10 +102,10 @@ struct ScmMemRec {
   bool gc_enabled;
 };
 
-#define SCM_MEM_HEAP_BLOCK_FOR_EACH_OBJ(block, obj)                  \
-  for ((obj) = SCM_OBJ(scm_mem_heap_block_head(block));              \
-       scm_mem_heap_block_ptr_allocated_p(block, (void *)(obj));     \
-       (obj) = scm_mem_heap_block_next_obj(block, obj))
+#define SCM_MEM_HEAP_BLOCK_FOR_EACH_CELL(block, cell)                 \
+  for ((cell) = (ScmMemHeapCell *)scm_mem_heap_block_head(block);     \
+       scm_mem_heap_block_ptr_allocated_p(block, (cell));             \
+       (cell) = scm_mem_heap_block_next_cell(block, (cell)))
 
 #define SCM_MEM_HEAP_FOR_EACH_BLOCK(heap, block) \
   for ((block) = (heap)->head;                   \
@@ -114,9 +120,8 @@ struct ScmMemRec {
 size_t scm_mem_align_size(size_t size);
 void *scm_mem_align_ptr(void *ptr);
 size_t scm_mem_alloc_size_of_obj_has_weak_ref(size_t size);
-size_t scm_mem_alloc_size_in_heap(ScmTypeInfo *type);
-size_t scm_mem_alloc_size_in_heap_aligned(ScmTypeInfo *type);
-size_t scm_mem_alloc_size_in_root(ScmTypeInfo *type);
+size_t scm_mem_alloc_size_in_heap(ScmTypeInfo *type, size_t add);
+size_t scm_mem_alloc_size_in_root(ScmTypeInfo *type, size_t add);
 
 ScmMemHeapBlock *scm_mem_heap_new_block(size_t sz);
 void *scm_mem_heap_delete_block(ScmMemHeapBlock *block);
@@ -130,7 +135,8 @@ bool scm_mem_heap_block_deallocable_p(ScmMemHeapBlock *block, size_t sz);
 void *scm_mem_heap_block_free_ptr(ScmMemHeapBlock *block);
 size_t scm_mem_heap_block_ptr_offset(ScmMemHeapBlock *block, void *ptr);
 bool scm_mem_heap_block_ptr_allocated_p(ScmMemHeapBlock *block, void *ptr);
-ScmObj scm_mem_heap_block_next_obj(ScmMemHeapBlock *block, ScmObj obj);
+ScmMemHeapCell * scm_mem_heap_block_next_cell(ScmMemHeapBlock *block,
+                                              ScmMemHeapCell *cell);
 void scm_mem_heap_block_clean(ScmMemHeapBlock *block);
 bool scm_mem_heap_block_has_obj_p(ScmMemHeapBlock *block, ScmObj obj);
 
@@ -148,7 +154,7 @@ ScmMemHeap *scm_mem_heap_new_heap(int nr_blk, size_t sz);
 void scm_mem_heap_shift(ScmMemHeap *heap);
 void scm_mem_heap_unshift(ScmMemHeap *heap);
 void scm_mem_heap_rewind(ScmMemHeap *heap);
-void *scm_mem_heap_alloc(ScmMemHeap *heap, size_t size);
+ScmMemHeapCell *scm_mem_heap_alloc(ScmMemHeap *heap, size_t size);
 void scm_mem_heap_cancel_alloc(ScmMemHeap *heap, size_t size);
 
 uint8_t scm_mem_root_block_shift_byte(ScmMemRootBlock *block);
@@ -162,6 +168,10 @@ bool scm_mem_root_block_obj_in_blok_p(ScmObj obj);
 
 void scm_mem_add_to_root_set(ScmMemRootBlock **head, ScmMemRootBlock *block);
 void scm_mem_del_from_root_set(ScmMemRootBlock **head, ScmMemRootBlock *block);
+
+ScmObj scm_mem_cell_to_obj(ScmMemHeapCell *cell);
+ScmMemHeapCell *scm_mem_obj_to_cell(ScmObj obj);
+
 ScmRef scm_mem_next_obj_has_weak_ref(ScmTypeInfo *type, ScmObj obj);
 void scm_mem_set_next_obj_has_weak_ref(ScmTypeInfo *type, ScmObj obj,
                                        ScmObj nxt);
@@ -178,7 +188,10 @@ void scm_mem_clean_heap(ScmMem *mem, int which);
 void scm_mem_clean_root(ScmMem *mem);
 void scm_mem_switch_heap(ScmMem *mem);
 bool scm_mem_is_obj_in_heap(ScmMem *mem, ScmObj obj, int which);
-int scm_mem_alloc_heap_mem(ScmMem *mem, ScmTypeInfo *type, ScmRef ref);
+int scm_mem_alloc_heap_mem_obj(ScmMem *mem, ScmTypeInfo *type, size_t size,
+                               ScmRef ref);
+int scm_mem_alloc_heap_mem(ScmMem *mem, ScmTypeInfo *type, size_t add,
+                           ScmRef ref);
 void scm_mem_obj_init(ScmMem *mem, ScmObj obj, ScmTypeInfo *type);
 ScmObj scm_mem_copy_obj(ScmMem *mem, ScmObj obj);
 int scm_mem_copy_children_func(ScmObj mem, ScmObj obj, ScmRef child);
@@ -193,9 +206,9 @@ int scm_mem_adjust_weak_ref_of_obj(ScmMem *mem, ScmObj obj);
 int scm_mem_adjust_weak_ref_of_root_obj(ScmMem *mem, ScmMemRootBlock *head);
 int scm_mem_adjust_weak_ref_of_heap_obj(ScmMem *mem);
 int scm_mem_adjust_weak_ref(ScmMem *mem);
-ScmObj scm_mem_alloc_root_obj(ScmTypeInfo *type, ScmMem *mem,
+ScmObj scm_mem_alloc_root_obj(ScmMem *mem, ScmTypeInfo *type, size_t add,
                               ScmMemRootBlock **head);
-ScmObj scm_mem_free_root_obj(ScmObj obj, ScmMem *mem, ScmMemRootBlock **head);
+ScmObj scm_mem_free_root_obj(ScmMem *mem, ScmObj obj, ScmMemRootBlock **head);
 void scm_mem_free_all_obj_in_root_set(ScmMem *mem, ScmMemRootBlock **head);
 ScmMem *scm_mem_initialize(ScmMem *mem);
 ScmMem *scm_mem_finalize(ScmMem *mem);
@@ -231,11 +244,11 @@ scm_mem_gc_enabled_p(ScmMem *mem)
 ScmMem *scm_mem_new(void);
 ScmMem *scm_mem_end(ScmMem *mem);
 ScmMem *scm_mem_clean(ScmMem *mem);
-ScmObj scm_mem_alloc_heap(ScmMem *mem, ScmTypeInfo *type);
-ScmObj scm_mem_alloc_root(ScmMem *mem, ScmTypeInfo *type);
+ScmObj scm_mem_alloc_heap(ScmMem *mem, ScmTypeInfo *type, size_t add_size);
+ScmObj scm_mem_alloc_root(ScmMem *mem, ScmTypeInfo *type, size_t add_size);
 ScmObj scm_mem_free_root(ScmMem *mem, ScmObj obj);
 ScmRef scm_mem_register_extra_rfrn(ScmMem *mem, ScmRef ref);
-ScmObj scm_mem_alloc(ScmMem *mem, ScmTypeInfo *type,
+ScmObj scm_mem_alloc(ScmMem *mem, ScmTypeInfo *type, size_t add_size,
                      SCM_MEM_ALLOC_TYPE_T alloc);
 int scm_mem_gc_start(ScmMem *mem);
 
