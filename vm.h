@@ -5,9 +5,11 @@
 
 typedef struct ScmBedrockRec ScmBedrock;
 typedef struct ScmBoxRec ScmBox;
+typedef struct ScmEFBoxRec ScmEFBox;
 typedef struct ScmVMRec ScmVM;
 
 #define SCM_BOX(obj) ((ScmBox *)(obj))
+#define SCM_EFBOX(obj) ((ScmEFBox *)(obj))
 #define SCM_VM(obj) ((ScmVM *)(obj))
 
 #include "object.h"
@@ -116,6 +118,46 @@ scm_box_update(ScmObj box, ScmObj obj)
 
 
 /***************************************************************************/
+/*  ScmEnvFrameBox                                                         */
+/***************************************************************************/
+
+extern ScmTypeInfo SCM_EFBOX_TYPE_INFO;
+
+struct ScmEFBoxRec {
+  ScmObjHeader header;
+  ScmEnvFrame frame;
+};
+
+int scm_efbox_initialize(ScmObj efb, ScmEnvFrame *ef);
+ScmObj scm_efbox_new(SCM_MEM_TYPE_T mtype, ScmEnvFrame *ef);
+void scm_efbox_gc_initialize(ScmObj obj, ScmObj mem);
+int scm_efbox_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
+
+inline ScmEnvFrame *
+scm_efbox_to_efp(ScmObj efb)
+{
+  scm_assert_obj_type_accept_null(efb, &SCM_EFBOX_TYPE_INFO);
+
+  if (scm_obj_null_p(efb))
+    return NULL;
+  else
+    return &(SCM_EFBOX(efb)->frame);
+}
+
+inline void
+scm_efbox_update_outer(ScmObj efb, ScmObj outer)
+{
+  scm_assert_obj_type(efb, &SCM_EFBOX_TYPE_INFO);
+  scm_assert_obj_type_accept_null(outer, &SCM_EFBOX_TYPE_INFO);
+
+  if (scm_obj_null_p(outer))
+    SCM_EFBOX(efb)->frame.out = NULL;
+  else
+    SCM_WB_EXP(efb, SCM_EFBOX(efb)->frame.out = scm_efbox_to_efp(outer));
+}
+
+
+/***************************************************************************/
 /*  ScmVM                                                                  */
 /***************************************************************************/
 
@@ -207,7 +249,8 @@ int scm_vm_make_cframe(ScmObj vm, ScmEnvFrame * efp,
 int scm_vm_commit_cframe(ScmObj vm, ScmCntFrame *cfp, uint8_t *ip);
 int scm_vm_make_eframe(ScmObj vm, size_t nr_arg);
 int scm_vm_commit_eframe(ScmObj vm, ScmEnvFrame *efp, size_t nr_arg);
-int scm_vm_copy_eframe(ScmEnvFrame *ef, size_t n, ScmEnvFrame **copy);
+int scm_vm_box_eframe(ScmObj vm, ScmEnvFrame *efp,
+                      size_t depth, scm_csetter_t *box);
 void scm_vm_return_to_caller(ScmObj vm);
 
 ScmObj scm_vm_make_trampolining_code(ScmObj vm, ScmObj clsr, ScmObj args,
@@ -280,6 +323,7 @@ int scm_vm_setup_stat_raised(ScmObj vm, ScmObj obj);
 int scm_vm_clear_stat_raised(ScmObj vm);
 bool scm_vm_raised_p(ScmObj vm);
 int scm_vm_push_exception_handler(ScmObj vm, ScmObj hndlr);
+bool scm_vm_eframe_is_in_stack_p(ScmObj vm, ScmEnvFrame *efp);
 
 void scm_vm_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_vm_gc_finalize(ScmObj obj);

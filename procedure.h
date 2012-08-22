@@ -47,15 +47,13 @@ extern ScmTypeInfo SCM_CLOSURE_TYPE_INFO;
 struct ScmClosureRec {
   ScmObjHeader header;
   ScmObj iseq;
-  ScmEnvFrame *env;
+  ScmObj env;
 };
 
-int scm_closure_initialize(ScmObj clsr, ScmObj iseq, ScmEnvFrame *env);
-void scm_closure_finalize(ScmObj clsr);
-ScmObj scm_closure_new(SCM_MEM_TYPE_T mtype, ScmObj iseq, ScmEnvFrame *env);
+int scm_closure_initialize(ScmObj clsr, ScmObj iseq, ScmObj env);
+ScmObj scm_closure_new(SCM_MEM_TYPE_T mtype, ScmObj iseq, ScmObj env);
 int scm_closure_pretty_print(ScmObj obj, ScmObj port, bool write_p);
 void scm_closure_gc_initialize(ScmObj obj, ScmObj mem);
-void scm_closure_gc_finalize(ScmObj obj);
 int scm_closure_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
 
 inline ScmObj
@@ -66,7 +64,7 @@ scm_closure_body(ScmObj clsr)
   return SCM_CLOSURE(clsr)->iseq;
 }
 
-inline ScmEnvFrame *
+inline ScmObj
 scm_closure_env(ScmObj clsr)
 {
   scm_assert_obj_type(clsr, &SCM_CLOSURE_TYPE_INFO);

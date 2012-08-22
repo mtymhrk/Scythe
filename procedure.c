@@ -78,7 +78,7 @@ ScmTypeInfo SCM_CLOSURE_TYPE_INFO = {
   .pp_func             = scm_closure_pretty_print,
   .obj_size            = sizeof(ScmClosure),
   .gc_ini_func         = scm_closure_gc_initialize,
-  .gc_fin_func         = scm_closure_gc_finalize,
+  .gc_fin_func         = NULL,
   .gc_accept_func      = scm_closure_gc_accept,
   .gc_accept_func_weak = NULL,
   .extra               = NULL,
@@ -87,37 +87,25 @@ ScmTypeInfo SCM_CLOSURE_TYPE_INFO = {
 static ScmObj dummy_free_vars[1] = { SCM_OBJ_NULL };
 
 int
-scm_closure_initialize(ScmObj clsr, ScmObj iseq, ScmEnvFrame *env)
+scm_closure_initialize(ScmObj clsr, ScmObj iseq, ScmObj env)
 {
   scm_assert_obj_type(clsr, &SCM_CLOSURE_TYPE_INFO);
   scm_assert(scm_capi_iseq_p(iseq));
 
   SCM_SLOT_SETQ(ScmClosure, clsr, iseq, iseq);
-
-  SCM_WB_EXP(clsr, SCM_CLOSURE(clsr)->env = env);
+  SCM_SLOT_SETQ(ScmClosure, clsr, env, env);
 
   return 0;
 }
 
-void
-scm_closure_finalize(ScmObj clsr)
-{
-  ScmEnvFrame *p, *q;
-  scm_assert_obj_type(clsr, &SCM_CLOSURE_TYPE_INFO);
-
-  for (p = SCM_CLOSURE(clsr)->env; p != NULL; p = q) {
-    q = p->out;
-    scm_capi_free(p);
-  }
-}
-
 ScmObj
-scm_closure_new(SCM_MEM_TYPE_T mtype, ScmObj iseq, ScmEnvFrame *env)
+scm_closure_new(SCM_MEM_TYPE_T mtype, ScmObj iseq, ScmObj env)
 {
   ScmObj clsr = SCM_OBJ_INIT;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&iseq, &clsr);
+  SCM_STACK_FRAME_PUSH(&iseq, &env,
+                       &clsr);
 
   scm_assert(scm_capi_iseq_p(iseq));
 
@@ -152,13 +140,7 @@ scm_closure_gc_initialize(ScmObj obj, ScmObj mem)
   scm_assert_obj_type(obj, &SCM_CLOSURE_TYPE_INFO);
 
   SCM_CLOSURE(obj)->iseq = SCM_OBJ_NULL;
-  SCM_CLOSURE(obj)->env = NULL;
-}
-
-void
-scm_closure_gc_finalize(ScmObj obj)
-{
-  scm_closure_finalize(obj);
+  SCM_CLOSURE(obj)->env = SCM_OBJ_NULL;
 }
 
 int
@@ -173,12 +155,8 @@ scm_closure_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
   rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_CLOSURE(obj)->iseq, mem);
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
-  for (ScmEnvFrame *p = SCM_CLOSURE(obj)->env; p != NULL; p = p->out) {
-    for (size_t i = 0; i < p->len; i++) {
-      rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, p->arg[i], mem);
-      if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
-    }
-  }
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_CLOSURE(obj)->env, mem);
+  if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
   return rslt;
 }

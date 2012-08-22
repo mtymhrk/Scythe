@@ -3200,7 +3200,7 @@ scm_capi_subrutine_p(ScmObj obj)
 /*******************************************************************/
 
 ScmObj
-scm_capi_make_closure(ScmObj iseq, ScmEnvFrame *env)
+scm_capi_make_closure(ScmObj iseq, ScmObj env)
 {
   if (!scm_capi_iseq_p(iseq)) {
     scm_capi_error("can not make closure: invalid argument", 0);
@@ -3213,7 +3213,7 @@ scm_capi_make_closure(ScmObj iseq, ScmEnvFrame *env)
 ScmObj
 scm_capi_iseq_to_closure(ScmObj iseq)
 {
-  return scm_closure_new(SCM_MEM_ALLOC_HEAP, iseq, NULL);
+  return scm_closure_new(SCM_MEM_ALLOC_HEAP, iseq, SCM_OBJ_NULL);
 }
 
 extern inline bool
@@ -3235,7 +3235,7 @@ scm_capi_closure_to_iseq(ScmObj clsr)
 }
 
 int
-scm_capi_closure_env(ScmObj clsr, ScmEnvFrame **env)
+scm_capi_closure_env(ScmObj clsr, scm_csetter_t *env)
 {
   if (!scm_capi_closure_p(clsr)) {
     scm_capi_error("can not get closed environment object from closure: "
@@ -3248,7 +3248,7 @@ scm_capi_closure_env(ScmObj clsr, ScmEnvFrame **env)
     return -1;
   }
 
-  *env = scm_closure_env(clsr);
+  scm_csetter_setq(env, scm_closure_env(clsr));
 
   return 0;
 }

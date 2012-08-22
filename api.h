@@ -343,11 +343,11 @@ bool scm_capi_subrutine_p(ScmObj obj);
 /*  Closure                                                        */
 /*******************************************************************/
 
-ScmObj scm_capi_make_closure(ScmObj iseq, ScmEnvFrame *env);
+ScmObj scm_capi_make_closure(ScmObj iseq, ScmObj env);
 ScmObj scm_capi_iseq_to_closure(ScmObj iseq);
 bool scm_capi_closure_p(ScmObj obj);
 ScmObj scm_capi_closure_to_iseq(ScmObj clsr);
-int scm_capi_closure_env(ScmObj clsr, ScmEnvFrame **env);
+int scm_capi_closure_env(ScmObj clsr, scm_csetter_t *env);
 
 
 /*******************************************************************/

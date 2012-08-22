@@ -221,6 +221,100 @@ scm_box_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
 
 
 /***************************************************************************/
+/*  ScmEnvFrameBox                                                         */
+/***************************************************************************/
+
+ScmTypeInfo SCM_EFBOX_TYPE_INFO = {
+  .name = "efbox",
+  .flags = SCM_TYPE_FLG_MMO,
+  .pp_func = NULL,
+  .obj_size = sizeof(ScmEFBox),
+  .gc_ini_func = scm_efbox_gc_initialize,
+  .gc_fin_func = NULL,
+  .gc_accept_func = scm_efbox_gc_accept,
+  .gc_accept_func_weak = NULL,
+  .extra = NULL,
+};
+
+scm_local_inline ScmObj
+scm_efbox_efp_to_efbox(ScmEnvFrame *efp)
+{
+  if (efp == NULL)
+    return SCM_OBJ_NULL;
+  else
+    return SCM_OBJ((uint8_t *)efp - offsetof(ScmEFBox, frame));
+}
+
+int
+scm_efbox_initialize(ScmObj efb, ScmEnvFrame *ef)
+{
+  scm_assert_obj_type(efb, &SCM_EFBOX_TYPE_INFO);
+  scm_assert(scm_vm_eframe_is_in_stack_p(scm_vm_current_vm(), ef));
+
+  memcpy(&SCM_EFBOX(efb)->frame, ef, sizeof(*ef) + sizeof(ScmObj) * ef->len);
+
+  if (scm_vm_eframe_is_in_stack_p(scm_vm_current_vm(), ef->out))
+    SCM_EFBOX(efb)->frame.out = NULL;
+
+  return 0;
+}
+
+ScmObj
+scm_efbox_new(SCM_MEM_TYPE_T mtype, ScmEnvFrame *ef)
+{
+  ScmObj efb = SCM_OBJ_INIT;
+  int rslt;
+
+  scm_assert(scm_vm_eframe_is_in_stack_p(scm_vm_current_vm(), ef));
+
+  efb = scm_capi_mem_alloc(&SCM_EFBOX_TYPE_INFO,
+                           sizeof(ScmObj) * ef->len, mtype);
+  if (scm_obj_null_p(efb)) return SCM_OBJ_NULL;
+
+  rslt = scm_efbox_initialize(efb, ef);
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  return efb;
+}
+
+void
+scm_efbox_gc_initialize(ScmObj obj, ScmObj mem)
+{
+  scm_assert_obj_type(obj, &SCM_EFBOX_TYPE_INFO);
+
+  SCM_EFBOX(obj)->frame.out = NULL;
+  SCM_EFBOX(obj)->frame.len = 0;
+}
+
+int
+scm_efbox_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
+{
+  ScmObj outer = SCM_OBJ_INIT;
+  int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
+
+  scm_assert_obj_type(obj, &SCM_EFBOX_TYPE_INFO);
+  scm_assert(scm_obj_null_p(mem));
+  scm_assert(handler != NULL);
+
+  /* XXX: EFBox 内の frame.out は必ず EFBox 内の frame を指す */
+  /*      (VM stack 上の enrioment frame を指すことはない)    */
+  outer = scm_efbox_efp_to_efbox(SCM_EFBOX(obj)->frame.out);
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, outer, mem);
+  if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
+
+  SCM_EFBOX(obj)->frame.out = scm_efbox_to_efp(outer);
+
+  for (size_t i = 0; i < SCM_EFBOX(obj)->frame.len; i++) {
+    rslt = SCM_GC_CALL_REF_HANDLER(handler,
+                                   obj, SCM_EFBOX(obj)->frame.arg[i], mem);
+    if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
+  }
+
+  return rslt;
+}
+
+
+/***************************************************************************/
 /*  ScmVM                                                                  */
 /***************************************************************************/
 
@@ -620,30 +714,56 @@ scm_vm_commit_eframe(ScmObj vm, ScmEnvFrame *efp, size_t nr_arg)
 }
 
 scm_local_func int
-scm_vm_copy_eframe(ScmEnvFrame *ef, size_t n, ScmEnvFrame **copy)
+scm_vm_box_eframe(ScmObj vm, ScmEnvFrame *efp, size_t depth, scm_csetter_t *box)
 {
-  size_t size;
+  ScmObj efb = SCM_OBJ_INIT, prev = SCM_OBJ_INIT;
 
-  scm_assert(copy != NULL);
+  SCM_STACK_FRAME_PUSH(&efb, &prev);
 
-  if (n == 0) {
-    *copy = NULL;
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  if (depth == 0) {
+    scm_csetter_setq(box, SCM_OBJ_NULL);
     return 0;
   };
 
-  if (ef == NULL) {
+  if (efp == NULL) {
     scm_capi_error("invalid access to envrionment frame: out of range", 0);
     return -1;
   }
 
-  size = sizeof(ScmEnvFrame) + sizeof(ScmObj) * ef->len;
+  if (!scm_vm_eframe_is_in_stack_p(vm, efp))
+    efb = scm_efbox_efp_to_efbox(efp);
+  else
+    efb = scm_efbox_new(SCM_MEM_HEAP, efp);
 
-  *copy = scm_capi_malloc(size);
-  if (*copy == NULL) return -1;
+  if (scm_obj_null_p(efb)) return -1;
 
-  memcpy(*copy, ef, size);
+  scm_csetter_setq(box, efb);
 
-  return scm_vm_copy_eframe(ef->out, n - 1, &((*copy)->out));
+  prev = efb;
+  efp = efp->out;
+  for (size_t i = 1; i < depth; i++) {
+    if (efp == NULL) {
+      scm_capi_error("invalid access to envrionment frame: out of range", 0);
+      return -1;
+    }
+
+    if (!scm_vm_eframe_is_in_stack_p(vm, efp))
+      return 0;
+
+    efb = scm_efbox_new(SCM_MEM_HEAP, efp);
+    if (scm_obj_null_p(efb)) return -1;
+
+    scm_efbox_update_outer(prev, efb);
+
+    prev = efb;
+    efp = efp->out;
+  }
+
+  scm_efbox_update_outer(prev, SCM_OBJ_NULL);
+
+  return 0;
 }
 
 scm_local_func void
@@ -808,11 +928,11 @@ scm_vm_ctrl_flg_set_p(ScmObj vm, SCM_VM_CTRL_FLG_T flg)
 scm_local_func int
 scm_vm_do_op_call(ScmObj vm, SCM_OPCODE_T op, uint32_t argc, bool tail_p)
 {
-  ScmObj val = SCM_OBJ_INIT;
+  ScmObj val = SCM_OBJ_INIT, efb = SCM_OBJ_INIT;
   int rslt;
 
   SCM_STACK_FRAME_PUSH(&vm,
-                       &val);
+                       &val, &efb);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
   scm_assert(argc <= INT32_MAX);
@@ -867,13 +987,14 @@ scm_vm_do_op_call(ScmObj vm, SCM_OPCODE_T op, uint32_t argc, bool tail_p)
   else if (scm_capi_closure_p(SCM_VM(vm)->reg.val)) {
     ScmEnvFrame *env;
 
-    rslt = scm_capi_closure_env(SCM_VM(vm)->reg.val, &env);
+    rslt = scm_capi_closure_env(SCM_VM(vm)->reg.val, SCM_CSETTER_L(efb));
     if (rslt < 0) return -1;
 
+    env = scm_efbox_to_efp(efb);
     if (argc > 0)
       SCM_WB_EXP(vm, SCM_VM(vm)->reg.efp->out = env);
     else
-      SCM_VM(vm)->reg.efp = env;
+      SCM_WB_EXP(vm, SCM_VM(vm)->reg.efp = env);
 
     SCM_SLOT_SETQ(ScmVM, vm, reg.cp, SCM_VM(vm)->reg.val);
     SCM_SLOT_SETQ(ScmVM, vm, reg.isp,
@@ -1333,15 +1454,14 @@ scm_vm_op_box(ScmObj vm, SCM_OPCODE_T op)
 scm_local_func void
 scm_vm_op_close(ScmObj vm, SCM_OPCODE_T op)
 {
-  ScmObj clsr = SCM_OBJ_INIT, iseq = SCM_OBJ_INIT;
-  ScmEnvFrame *env;
+  ScmObj clsr = SCM_OBJ_INIT, iseq = SCM_OBJ_INIT, env = SCM_OBJ_INIT;
   size_t idx;
   int32_t nr_env;
   uint8_t *ip;
   int rslt;
 
   SCM_STACK_FRAME_PUSH(&vm,
-                       &clsr);
+                       &clsr, iseq, env);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
@@ -1357,7 +1477,8 @@ scm_vm_op_close(ScmObj vm, SCM_OPCODE_T op)
     return;
   }
 
-  rslt = scm_vm_copy_eframe(SCM_VM(vm)->reg.efp, (size_t)nr_env, &env);
+  rslt = scm_vm_box_eframe(vm, SCM_VM(vm)->reg.efp,
+                           (size_t)nr_env, SCM_CSETTER_L(env));
   if (rslt < 0) return;
 
   clsr = scm_capi_make_closure(iseq, env);
@@ -1726,6 +1847,20 @@ scm_vm_push_exception_handler(ScmObj vm, ScmObj hndlr)
   SCM_SLOT_SETQ(ScmVM, vm, ge.excpt.hndlr, lst);
 
   return 0;
+}
+
+bool
+scm_vm_eframe_is_in_stack_p(ScmObj vm, ScmEnvFrame *efp)
+{
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  if (efp == NULL)
+    return false;
+  else if ((uint8_t *)efp < SCM_VM(vm)->stack
+           || SCM_VM(vm)->reg.sp <= (uint8_t *)efp)
+    return false;
+  else
+    return true;
 }
 
 void
