@@ -611,10 +611,17 @@ scm_vm_update_ief_len_if_needed(ScmObj vm)
 {
   ssize_t n;
 
-  if ((void *)SCM_VM(vm)->reg.iefp <= (void *)SCM_VM(vm)->reg.icfp
-      || (void *)SCM_VM(vm)->reg.iefp <= (void *)SCM_VM(vm)->reg.cfp
-      || (void *)SCM_VM(vm)->reg.iefp <= (void *)SCM_VM(vm)->reg.efp)
+  if (!scm_vm_eframe_is_in_stack_p(vm, SCM_VM(vm)->reg.iefp))
     return 0;
+
+  if ((void *)SCM_VM(vm)->reg.iefp <= (void *)SCM_VM(vm)->reg.icfp
+      || (void *)SCM_VM(vm)->reg.iefp <= (void *)SCM_VM(vm)->reg.cfp)
+    return 0;
+
+  if (scm_vm_eframe_is_in_stack_p(vm, SCM_VM(vm)->reg.efp))
+    if ((void *)SCM_VM(vm)->reg.iefp <= (void *)SCM_VM(vm)->reg.efp)
+      return 0;
+
 
   n = SCM_VM(vm)->reg.sp - (uint8_t *)SCM_VM(vm)->reg.iefp;
   n -= (ssize_t)sizeof(ScmEnvFrame);
