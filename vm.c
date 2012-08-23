@@ -980,6 +980,10 @@ scm_vm_do_op_call(ScmObj vm, SCM_OPCODE_T op, uint32_t argc, bool tail_p)
   }
 
   if (scm_capi_subrutine_p(SCM_VM(vm)->reg.val)) {
+    SCM_VM(vm)->reg.cp = SCM_OBJ_NULL;
+    SCM_VM(vm)->reg.isp = SCM_OBJ_NULL;
+    SCM_VM(vm)->reg.ip = NULL;
+
     if (argc > 0)
       val = scm_api_call_subrutine(SCM_VM(vm)->reg.val,
                                    (int)argc, SCM_VM(vm)->reg.efp->arg);
@@ -993,16 +997,16 @@ scm_vm_do_op_call(ScmObj vm, SCM_OPCODE_T op, uint32_t argc, bool tail_p)
     scm_vm_return_to_caller(vm);
   }
   else if (scm_capi_closure_p(SCM_VM(vm)->reg.val)) {
-    ScmEnvFrame *env;
+    ScmEnvFrame *efp;
 
     rslt = scm_capi_closure_env(SCM_VM(vm)->reg.val, SCM_CSETTER_L(efb));
     if (rslt < 0) return -1;
 
-    env = scm_efbox_to_efp(efb);
+    efp = scm_efbox_to_efp(efb);
     if (argc > 0)
-      SCM_WB_EXP(vm, SCM_VM(vm)->reg.efp->out = env);
+      SCM_WB_EXP(vm, SCM_VM(vm)->reg.efp->out = efp);
     else
-      SCM_WB_EXP(vm, SCM_VM(vm)->reg.efp = env);
+      SCM_WB_EXP(vm, SCM_VM(vm)->reg.efp = efp);
 
     SCM_SLOT_SETQ(ScmVM, vm, reg.cp, SCM_VM(vm)->reg.val);
     SCM_SLOT_SETQ(ScmVM, vm, reg.isp,
