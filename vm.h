@@ -324,6 +324,7 @@ int scm_vm_clear_stat_raised(ScmObj vm);
 bool scm_vm_raised_p(ScmObj vm);
 int scm_vm_push_exception_handler(ScmObj vm, ScmObj hndlr);
 bool scm_vm_eframe_is_in_stack_p(ScmObj vm, ScmEnvFrame *efp);
+bool scm_vm_eframe_is_in_heap_p(ScmObj vm, ScmEnvFrame *ef);
 
 void scm_vm_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_vm_gc_finalize(ScmObj obj);

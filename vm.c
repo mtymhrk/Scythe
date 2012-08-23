@@ -249,11 +249,11 @@ int
 scm_efbox_initialize(ScmObj efb, ScmEnvFrame *ef)
 {
   scm_assert_obj_type(efb, &SCM_EFBOX_TYPE_INFO);
-  scm_assert(scm_vm_eframe_is_in_stack_p(scm_vm_current_vm(), ef));
+  scm_assert(!scm_vm_eframe_is_in_heap_p(scm_vm_current_vm(), ef));
 
   memcpy(&SCM_EFBOX(efb)->frame, ef, sizeof(*ef) + sizeof(ScmObj) * ef->len);
 
-  if (scm_vm_eframe_is_in_stack_p(scm_vm_current_vm(), ef->out))
+  if (!scm_vm_eframe_is_in_heap_p(scm_vm_current_vm(), ef->out))
     SCM_EFBOX(efb)->frame.out = NULL;
 
   return 0;
@@ -265,7 +265,7 @@ scm_efbox_new(SCM_MEM_TYPE_T mtype, ScmEnvFrame *ef)
   ScmObj efb = SCM_OBJ_INIT;
   int rslt;
 
-  scm_assert(scm_vm_eframe_is_in_stack_p(scm_vm_current_vm(), ef));
+  scm_assert(!scm_vm_eframe_is_in_heap_p(scm_vm_current_vm(), ef));
 
   efb = scm_capi_mem_alloc(&SCM_EFBOX_TYPE_INFO,
                            sizeof(ScmObj) * ef->len, mtype);
@@ -296,8 +296,8 @@ scm_efbox_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
   scm_assert(scm_obj_null_p(mem));
   scm_assert(handler != NULL);
 
-  /* XXX: EFBox 内の frame.out は必ず EFBox 内の frame を指す */
-  /*      (VM stack 上の enrioment frame を指すことはない)    */
+  /* XXX: EFBox 内の frame.out は必ずボックス化された frame を指す */
+  /*      (VM stack 上の enrioment frame を指すことはない)         */
   outer = scm_efbox_efp_to_efbox(SCM_EFBOX(obj)->frame.out);
   rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, outer, mem);
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
@@ -732,7 +732,7 @@ scm_vm_box_eframe(ScmObj vm, ScmEnvFrame *efp, size_t depth, scm_csetter_t *box)
     return -1;
   }
 
-  if (!scm_vm_eframe_is_in_stack_p(vm, efp))
+  if (scm_vm_eframe_is_in_heap_p(vm, efp))
     efb = scm_efbox_efp_to_efbox(efp);
   else
     efb = scm_efbox_new(SCM_MEM_HEAP, efp);
@@ -749,7 +749,7 @@ scm_vm_box_eframe(ScmObj vm, ScmEnvFrame *efp, size_t depth, scm_csetter_t *box)
       return -1;
     }
 
-    if (!scm_vm_eframe_is_in_stack_p(vm, efp))
+    if (scm_vm_eframe_is_in_heap_p(vm, efp))
       return 0;
 
     efb = scm_efbox_new(SCM_MEM_HEAP, efp);
@@ -1861,6 +1861,14 @@ scm_vm_eframe_is_in_stack_p(ScmObj vm, ScmEnvFrame *efp)
     return false;
   else
     return true;
+}
+
+extern inline bool
+scm_vm_eframe_is_in_heap_p(ScmObj vm, ScmEnvFrame *ef)
+{
+  /* XXX: continuation を実装した場合、continuation が保持しているスタックを */
+  /*      指している場合も false を返すようにする */
+  return !scm_vm_eframe_is_in_stack_p(vm, ef);
 }
 
 void
