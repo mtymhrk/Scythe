@@ -3210,12 +3210,6 @@ scm_capi_make_closure(ScmObj iseq, ScmObj env)
   return scm_closure_new(SCM_MEM_ALLOC_HEAP, iseq, env);
 }
 
-ScmObj
-scm_capi_iseq_to_closure(ScmObj iseq)
-{
-  return scm_closure_new(SCM_MEM_ALLOC_HEAP, iseq, SCM_OBJ_NULL);
-}
-
 extern inline bool
 scm_capi_closure_p(ScmObj obj)
 {

@@ -884,14 +884,22 @@ scm_vm_make_exception_handler_code(ScmObj vm)
 scm_local_func int
 scm_vm_setup_to_call_exception_handler(ScmObj vm)
 {
-  ScmObj iseq = SCM_OBJ_INIT, clsr = SCM_OBJ_INIT;
+  ScmObj iseq = SCM_OBJ_INIT, env = SCM_OBJ_INIT, clsr = SCM_OBJ_INIT;
+  int rslt;
 
-  SCM_STACK_FRAME_PUSH(&vm, &iseq, &clsr);
+  SCM_STACK_FRAME_PUSH(&vm,
+                       &iseq, &env, &clsr);
 
   iseq = scm_vm_make_exception_handler_code(vm);
   if (scm_obj_null_p(iseq)) return -1;
 
-  clsr = scm_capi_iseq_to_closure(iseq);
+  env = SCM_OBJ_NULL;
+  if (scm_capi_closure_p(SCM_VM(vm)->reg.cp)) {
+    rslt = scm_capi_closure_env(SCM_VM(vm)->reg.cp, SCM_CSETTER_L(env));
+    if (rslt < 0) return -1;
+  }
+
+  clsr = scm_capi_make_closure(iseq, env);
   if (scm_obj_null_p(clsr)) return -1;
 
   SCM_SLOT_SETQ(ScmVM, vm, reg.cp, clsr);
@@ -1644,7 +1652,7 @@ scm_vm_run(ScmObj vm, ScmObj iseq)
   SCM_VM(vm)->reg.icfp = NULL;
   SCM_VM(vm)->reg.efp = NULL;
   SCM_VM(vm)->reg.iefp = NULL;
-  SCM_SLOT_SETQ(ScmVM, vm, reg.cp, scm_capi_iseq_to_closure(iseq));
+  SCM_SLOT_SETQ(ScmVM, vm, reg.cp, scm_capi_make_closure(iseq, SCM_OBJ_NULL));
   SCM_SLOT_SETQ(ScmVM, vm, reg.isp, iseq);
   SCM_VM(vm)->reg.ip = scm_capi_iseq_to_ip(iseq);
   SCM_SLOT_SETQ(ScmVM, vm, reg.val, SCM_VM(vm)->cnsts.undef);
@@ -1743,20 +1751,20 @@ scm_vm_setup_stat_trmp(ScmObj vm, ScmObj target, ScmObj args,
                        ScmObj (*callback)(int argc, ScmObj *argv))
 {
   ScmObj trmp_code = SCM_OBJ_INIT, trmp_clsr = SCM_OBJ_INIT;
-  ScmObj cb_subr = SCM_OBJ_INIT;
+  ScmObj cb_subr = SCM_OBJ_INIT, env = SCM_OBJ_INIT;
   uint8_t *ip;
   int rslt;
 
   SCM_STACK_FRAME_PUSH(&target, &args,
                        &trmp_code, &trmp_clsr,
-                       &cb_subr);
+                       &cb_subr, &env);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
   scm_assert(scm_capi_closure_p(target) || scm_capi_iseq_p(target));
   scm_assert(scm_capi_nil_p(args) || scm_capi_pair_p(args));
 
   if (scm_capi_iseq_p(target)) {
-    target = scm_capi_iseq_to_closure(target);
+    target = scm_capi_make_closure(target, SCM_OBJ_NULL);
     if (scm_obj_null_p(target)) return -1; /* [ERR]: [through] */
   }
 
@@ -1771,7 +1779,13 @@ scm_vm_setup_stat_trmp(ScmObj vm, ScmObj target, ScmObj args,
   trmp_code = scm_vm_make_trampolining_code(vm, target, args, cb_subr);
   if (scm_obj_null_p(trmp_code)) return -1; /* [ERR]: [through] */
 
-  trmp_clsr = scm_capi_iseq_to_closure(trmp_code);
+  env = SCM_OBJ_NULL;
+  if (scm_capi_closure_p(SCM_VM(vm)->reg.cp)) {
+    rslt = scm_capi_closure_env(SCM_VM(vm)->reg.cp, SCM_CSETTER_L(env));
+    if (rslt < 0) return -1;
+  }
+
+  trmp_clsr = scm_capi_make_closure(trmp_code, env);
   if (scm_obj_null_p(trmp_clsr)) return -1; /* [ERR]: [through] */
 
 
