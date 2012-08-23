@@ -1921,7 +1921,7 @@ scm_vm_gc_accept_eframe(ScmObj vm, ScmEnvFrame *efp,
   scm_assert(scm_obj_not_null_p(mem));
   scm_assert(handler != NULL);
 
-  while (efp != NULL) {
+  while (scm_vm_eframe_is_in_stack_p(vm, efp)) {
     for (size_t i = 0; i < efp->len; i++) {
       rslt = SCM_GC_CALL_REF_HANDLER(handler, vm, efp->arg[i], mem);
       if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
