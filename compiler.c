@@ -239,12 +239,12 @@ scm_cmpl_env_new(void)
 static ScmObj
 scm_cmpl_env_cons(ScmObj vars, bool vparam, ScmObj env)
 {
-  ScmObj rib = SCM_OBJ_INIT, rebound = SCM_OBJ_INIT, fls = SCM_OBJ_INIT;
+  ScmObj rib = SCM_OBJ_INIT, assigned = SCM_OBJ_INIT, fls = SCM_OBJ_INIT;
   ScmObj vp_flg = SCM_OBJ_INIT;
   ssize_t len;
 
   SCM_STACK_FRAME_PUSH(&vars, &env,
-                       &rib, &rebound, &fls,
+                       &rib, &assigned, &fls,
                        &vp_flg);
 
   scm_assert(scm_capi_pair_p(vars) || scm_capi_vector_p(vars));
@@ -261,13 +261,13 @@ scm_cmpl_env_cons(ScmObj vars, bool vparam, ScmObj env)
   fls = scm_api_bool_false();
   if (scm_obj_null_p(fls)) return SCM_OBJ_NULL;
 
-  rebound = scm_capi_make_vector((size_t)len, fls);
-  if (scm_obj_null_p(rebound)) return SCM_OBJ_NULL;
+  assigned = scm_capi_make_vector((size_t)len, fls);
+  if (scm_obj_null_p(assigned)) return SCM_OBJ_NULL;
 
   vp_flg = vparam ? scm_api_bool_true() : scm_api_bool_false();
   if (scm_obj_null_p(vp_flg)) return SCM_OBJ_NULL;
 
-  rib = scm_capi_list(3, vars, rebound, vp_flg);
+  rib = scm_capi_list(3, vars, assigned, vp_flg);
   if (scm_obj_null_p(rib)) return SCM_OBJ_NULL;
 
   rib = scm_api_list_to_vector(rib);
@@ -277,14 +277,14 @@ scm_cmpl_env_cons(ScmObj vars, bool vparam, ScmObj env)
 }
 
 static int
-scm_cmpl_env_rebound_flg(ScmObj env, size_t idx, size_t layer, bool *flg)
+scm_cmpl_env_assigned_flg(ScmObj env, size_t idx, size_t layer, bool *flg)
 {
-  ScmObj itr = SCM_OBJ_INIT, rib = SCM_OBJ_INIT, rebound = SCM_OBJ_INIT;
+  ScmObj itr = SCM_OBJ_INIT, rib = SCM_OBJ_INIT, assigned = SCM_OBJ_INIT;
   ScmObj fo = SCM_OBJ_INIT;
   size_t i;
 
   SCM_STACK_FRAME_PUSH(&env,
-                       &itr, &rib, &rebound,
+                       &itr, &rib, &assigned,
                        &fo);
 
   scm_assert(scm_capi_nil_p(env) || scm_capi_pair_p(env));
@@ -300,10 +300,10 @@ scm_cmpl_env_rebound_flg(ScmObj env, size_t idx, size_t layer, bool *flg)
   rib = scm_api_car(itr);
   if (scm_obj_null_p(rib)) return -1;
 
-  rebound = scm_capi_vector_ref(rib, 1);
-  if (scm_obj_null_p(rebound)) return -1;
+  assigned = scm_capi_vector_ref(rib, 1);
+  if (scm_obj_null_p(assigned)) return -1;
 
-  fo = scm_capi_vector_ref(rebound, idx);
+  fo = scm_capi_vector_ref(assigned, idx);
   if (scm_obj_null_p(fo)) return -1;
 
   *flg = scm_capi_true_p(fo);
@@ -312,15 +312,15 @@ scm_cmpl_env_rebound_flg(ScmObj env, size_t idx, size_t layer, bool *flg)
 }
 
 static int
-scm_cmpl_env_resolv(ScmObj env, ScmObj sym, bool rebound,
+scm_cmpl_env_resolv(ScmObj env, ScmObj sym, bool assigned,
                     ssize_t *idx, ssize_t *layer)
 {
   ScmObj itr = SCM_OBJ_INIT, rib = SCM_OBJ_INIT, vars = SCM_OBJ_INIT;
-  ScmObj rb_flgs = SCM_OBJ_INIT,  var = SCM_OBJ_INIT, tr = SCM_OBJ_INIT;
+  ScmObj as_flgs = SCM_OBJ_INIT,  var = SCM_OBJ_INIT, tr = SCM_OBJ_INIT;
 
   SCM_STACK_FRAME_PUSH(&env, &sym,
                        &itr, &rib, &vars,
-                       &rb_flgs, &var, &tr);
+                       &as_flgs, &var, &tr);
 
   scm_assert(scm_capi_nil_p(env) || scm_capi_pair_p(env));
   scm_assert(scm_capi_symbol_p(sym));
@@ -347,15 +347,15 @@ scm_cmpl_env_resolv(ScmObj env, ScmObj sym, bool rebound,
       if (scm_obj_null_p(var)) return -1;
 
       if (scm_capi_eq_p(var, sym)) {
-        if (rebound) {
+        if (assigned) {
 
           tr = scm_api_bool_true();
           if (scm_obj_null_p(tr)) return -1;
 
-          rb_flgs = scm_capi_vector_ref(rib, 1);
-          if (scm_obj_null_p(rb_flgs)) return -1;
+          as_flgs = scm_capi_vector_ref(rib, 1);
+          if (scm_obj_null_p(as_flgs)) return -1;
 
-          tr = scm_capi_vector_set(rb_flgs, (size_t)*idx, tr);
+          tr = scm_capi_vector_set(as_flgs, (size_t)*idx, tr);
           if (scm_obj_null_p(tr)) return -1;
         }
         return 0;
@@ -846,7 +846,7 @@ scm_cmpl_make_closure_code(ScmObj body, ScmObj env,
   ScmObj inst_close = SCM_OBJ_INIT;
   ScmObj body_code = SCM_OBJ_INIT;
   scm_sword_t nr_env;
-  bool rebound;
+  bool assigned;
   int rslt;
 
   SCM_STACK_FRAME_PUSH(&body, &env,
@@ -867,10 +867,10 @@ scm_cmpl_make_closure_code(ScmObj body, ScmObj env,
   if (scm_obj_null_p(body_code)) return SCM_OBJ_NULL;
 
   for (size_t i = 0; i < nr_param; i++) {
-    rslt = scm_cmpl_env_rebound_flg(env, i, 0, &rebound);
+    rslt = scm_cmpl_env_assigned_flg(env, i, 0, &assigned);
     if (rslt < 0) return SCM_OBJ_NULL;
 
-    if (rebound) {
+    if (assigned) {
       inst_box = scm_cmpl_cons_inst_box((scm_sword_t)i, 0);
       if (scm_obj_null_p(inst_box)) return SCM_OBJ_NULL;
 
@@ -1088,7 +1088,7 @@ scm_cmpl_compile_let(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
   ScmObj inst_epop = SCM_OBJ_INIT, inst_ecommit = SCM_OBJ_INIT;
   ScmObj inst_box = SCM_OBJ_INIT;
   ssize_t nr_vars, rd;
-  bool rebound;
+  bool assigned;
   int rslt;
 
   SCM_STACK_FRAME_PUSH(&exp, &env, &next,
@@ -1144,10 +1144,10 @@ scm_cmpl_compile_let(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
     }
 
     for (size_t i = (size_t)nr_vars; i > 0; i--) {
-      rslt = scm_cmpl_env_rebound_flg(new_env, i - 1, 0, &rebound);
+      rslt = scm_cmpl_env_assigned_flg(new_env, i - 1, 0, &assigned);
       if (rslt < 0) return SCM_OBJ_NULL;
 
-      if (rebound) {
+      if (assigned) {
         inst_box = scm_cmpl_cons_inst_box((scm_sword_t)i - 1, 0);
         if (scm_obj_null_p(inst_box)) return SCM_OBJ_NULL;
 
