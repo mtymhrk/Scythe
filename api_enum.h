@@ -57,8 +57,8 @@ typedef enum {
                                   /*    and envrionment frame */
   SCM_OPCODE_CFRAME,              /* 6; create continuation frame */
   SCM_OPCODE_EFRAME,              /* 7; create environment frame */
-  SCM_OPCODE_EFRAME_COMMIT,       /* 8; commit environment frame */
-  SCM_OPCODE_EFRAME_POP,          /* 9; pop environment frame */
+  SCM_OPCODE_ECOMMIT,             /* 8; commit environment frame */
+  SCM_OPCODE_EPOP,                /* 9; pop environment frame */
   SCM_OPCODE_IMMVAL,              /* 10: copy immediate value to val register */
   SCM_OPCODE_PUSH,                /* 11: push value of val register */
   SCM_OPCODE_GREF,                /* 12: refere global variable */

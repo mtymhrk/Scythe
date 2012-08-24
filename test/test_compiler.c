@@ -445,6 +445,129 @@ test_scm_api_compile__lambda_4(void)
 }
 
 void
+test_scm_api_compile__let_1(void)
+{
+  ScmObj exp = SCM_OBJ_INIT, port = SCM_OBJ_INIT;
+  ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+  const char *exp_str = "(let ((x 1)(y 2)) x)";
+  const char *asm_str = "((eframe)"
+                        " (immval 1)(push)"
+                        " (immval 2)(push)"
+                        " (ecommit 2)"
+                        " (sref 0 0)"
+                        " (epop))";
+
+  SCM_STACK_FRAME_PUSH(&exp, &port,
+                       &actual, &expected);
+
+  port = scm_capi_open_input_string_from_cstr(exp_str, SCM_ENC_ASCII);
+  exp = scm_api_read(port);
+
+  port = scm_capi_open_input_string_from_cstr(asm_str, SCM_ENC_ASCII);
+  expected = scm_api_read(port);
+
+  actual = scm_api_compile(exp);
+
+  /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
+  /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
+
+  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+}
+
+void
+test_scm_api_compile__let_2(void)
+{
+  ScmObj exp = SCM_OBJ_INIT, port = SCM_OBJ_INIT;
+  ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+  const char *exp_str = "(let ())";
+  const char *asm_str = "()";
+
+  SCM_STACK_FRAME_PUSH(&exp, &port,
+                       &actual, &expected);
+
+  port = scm_capi_open_input_string_from_cstr(exp_str, SCM_ENC_ASCII);
+  exp = scm_api_read(port);
+
+  port = scm_capi_open_input_string_from_cstr(asm_str, SCM_ENC_ASCII);
+  expected = scm_api_read(port);
+
+  actual = scm_api_compile(exp);
+
+  /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
+  /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
+
+  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+}
+
+void
+test_scm_api_compile__let_3(void)
+{
+  ScmObj exp = SCM_OBJ_INIT, port = SCM_OBJ_INIT;
+  ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+  const char *exp_str = "(let ((x 1)(y 2)) (lambda () (cons x y)))";
+  const char *asm_str = "((eframe)"
+                        " (immval 1)(push)"
+                        " (immval 2)(push)"
+                        " (ecommit 2)"
+                        " (asm-close 1"
+                        "   ((eframe)"
+                        "    (sref 0 0)(push)"
+                        "    (sref 1 0)(push)"
+                        "    (gref cons)"
+                        "    (tcall 2)"
+                        "    (return)))"
+                        " (epop))";
+
+  SCM_STACK_FRAME_PUSH(&exp, &port,
+                       &actual, &expected);
+
+  port = scm_capi_open_input_string_from_cstr(exp_str, SCM_ENC_ASCII);
+  exp = scm_api_read(port);
+
+  port = scm_capi_open_input_string_from_cstr(asm_str, SCM_ENC_ASCII);
+  expected = scm_api_read(port);
+
+  actual = scm_api_compile(exp);
+
+  /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
+  /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
+
+  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+}
+
+void
+test_scm_api_compile__let_4(void)
+{
+  ScmObj exp = SCM_OBJ_INIT, port = SCM_OBJ_INIT;
+  ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+  const char *exp_str = "(let ((x 1)(y 2)) (set! y 100))";
+  const char *asm_str = "((eframe)"
+                        " (immval 1)(push)"
+                        " (immval 2)(push)"
+                        " (ecommit 2)"
+                        " (box 1 0)"
+                        " (immval 100)"
+                        " (sset 1 0)"
+                        " (epop))";
+
+  SCM_STACK_FRAME_PUSH(&exp, &port,
+                       &actual, &expected);
+
+  port = scm_capi_open_input_string_from_cstr(exp_str, SCM_ENC_ASCII);
+  exp = scm_api_read(port);
+
+  port = scm_capi_open_input_string_from_cstr(asm_str, SCM_ENC_ASCII);
+  expected = scm_api_read(port);
+
+  actual = scm_api_compile(exp);
+
+  /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
+  /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
+
+  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+}
+
+void
 test_scm_api_compile__refer_bound_variable_1(void)
 {
   ScmObj exp = SCM_OBJ_INIT, port = SCM_OBJ_INIT;

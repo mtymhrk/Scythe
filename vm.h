@@ -273,6 +273,8 @@ void scm_vm_op_push(ScmObj vm, SCM_OPCODE_T op);
 void scm_vm_op_frame(ScmObj vm, SCM_OPCODE_T op);
 void scm_vm_op_cframe(ScmObj vm, SCM_OPCODE_T op);
 void scm_vm_op_eframe(ScmObj vm, SCM_OPCODE_T op);
+void scm_vm_op_ecommit(ScmObj vm, SCM_OPCODE_T op);
+void scm_vm_op_epop(ScmObj vm, SCM_OPCODE_T op);
 void scm_vm_op_return(ScmObj vm, SCM_OPCODE_T op);
 void scm_vm_op_gref(ScmObj vm, SCM_OPCODE_T op);
 void scm_vm_op_gdef(ScmObj vm, SCM_OPCODE_T op);

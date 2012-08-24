@@ -3542,8 +3542,8 @@ scm_capi_opcode_to_opfmt(int opcode)
     SCM_OPFMT_NOOPD,            /* SCM_OPCODE_FRAME */
     SCM_OPFMT_NOOPD,            /* SCM_OPCODE_CFRAME */
     SCM_OPFMT_NOOPD,            /* SCM_OPCODE_EFRAME */
-    SCM_OPFMT_NOOPD,            /* SCM_OPCODE_EFRAME_COMMIT */
-    SCM_OPFMT_NOOPD,            /* SCM_OPCODE_EFRAME_POP */
+    SCM_OPFMT_SI,               /* SCM_OPCODE_ECOMMIT */
+    SCM_OPFMT_NOOPD,            /* SCM_OPCODE_EPOP */
     SCM_OPFMT_OBJ,              /* SCM_OPCODE_IMMVAL */
     SCM_OPFMT_NOOPD,            /* SCM_OPCODE_PUSH */
     SCM_OPFMT_OBJ,              /* SCM_OPCODE_GREF */

@@ -132,6 +132,18 @@ scm_cmpl_cons_inst_eframe(void)
 }
 
 static ScmObj
+scm_cmpl_cons_inst_ecommit(scm_sword_t narg)
+{
+  return scm_cmpl_cons_inst_si(SCM_OPCODE_ECOMMIT, narg);
+}
+
+static ScmObj
+scm_cmpl_cons_inst_epop(void)
+{
+  return scm_cmpl_cons_inst_noopd(SCM_OPCODE_EPOP);
+}
+
+static ScmObj
 scm_cmpl_cons_inst_immval(ScmObj val)
 {
   return scm_cmpl_cons_inst_obj(SCM_OPCODE_IMMVAL, val);
@@ -927,6 +939,256 @@ scm_cmpl_compile_lambda(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
 }
 
 static int
+scm_cmpl_decons_let(ScmObj exp, scm_csetter_t *name,
+                    scm_csetter_t *bindings, scm_csetter_t *body)
+{
+  ScmObj nao = SCM_OBJ_INIT, bio = SCM_OBJ_INIT, boo = SCM_OBJ_INIT;
+  ScmObj tmp = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&exp,
+                       &nao, &bio, &boo,
+                       &tmp);
+
+  scm_assert(scm_capi_pair_p(exp));
+
+  tmp = scm_api_cdr(exp);
+  if (scm_obj_null_p(tmp)) return -1;
+
+  nao = scm_api_car(tmp);
+  if (scm_obj_null_p(nao)) return -1;
+
+  if (scm_capi_symbol_p(nao)) {
+    tmp = scm_api_cdr(tmp);
+    if (scm_obj_null_p(tmp)) return -1;
+
+    bio = scm_api_car(tmp);
+    if (scm_obj_null_p(bio)) return -1;
+  }
+  else {
+    bio = nao;
+    nao = SCM_OBJ_NULL;
+  }
+
+  boo = scm_api_cdr(tmp);
+  if (scm_obj_null_p(bio)) return -1;
+
+  scm_csetter_setq(name, nao);
+  scm_csetter_setq(bindings, bio);
+  scm_csetter_setq(body, boo);
+
+  return 0;
+}
+
+static int
+scm_cmpl_decons_let_var_init_pair(ScmObj var_init,
+                                  scm_csetter_t *var, scm_csetter_t *init)
+{
+  ScmObj vo = SCM_OBJ_INIT, io = SCM_OBJ_INIT, tmp = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&var_init,
+                       &vo, &io, &tmp);
+
+  scm_assert(scm_capi_pair_p(var_init));
+
+  vo = scm_api_car(var_init);
+  if (scm_obj_null_p(vo)) return -1;
+
+  tmp = scm_api_cdr(var_init);
+  if (scm_obj_null_p(tmp)) return -1;
+
+  io = scm_api_car(tmp);
+  if (scm_obj_null_p(io)) return -1;
+
+  tmp = scm_api_cdr(tmp);
+  if (scm_obj_null_p(tmp)) return -1;
+
+  if (!scm_capi_nil_p(tmp)) {
+    scm_capi_error("compile: syntax error: malformed let", 0);
+    return -1;
+  }
+
+  scm_csetter_setq(var, vo);
+  scm_csetter_setq(init, io);
+
+  return 0;
+}
+
+static int
+scm_cmpl_decons_let_bindings(ScmObj bindings,
+                             scm_csetter_t *vars, scm_csetter_t *inits)
+{
+  ScmObj vi_pair = SCM_OBJ_INIT, var = SCM_OBJ_INIT, init = SCM_OBJ_INIT;
+  ScmObj vars_vec = SCM_OBJ_INIT, inits_vec = SCM_OBJ_INIT;
+  ScmObj cur = SCM_OBJ_INIT, tmp = SCM_OBJ_INIT;
+  ssize_t nr_bindings;
+  size_t idx;
+  int rslt;
+
+  SCM_STACK_FRAME_PUSH(&bindings,
+                       &vi_pair, &var, &init,
+                       &vars_vec, &inits_vec,
+                       &cur, &tmp);
+
+  scm_assert(scm_capi_nil_p(bindings) || scm_capi_pair_p(bindings));
+
+  nr_bindings = scm_capi_length(bindings);
+  if (nr_bindings < 0) return -1;
+
+  vars_vec = scm_capi_make_vector((size_t)nr_bindings, SCM_OBJ_NULL);
+  if (scm_obj_null_p(vars_vec)) return -1;
+
+  inits_vec = scm_capi_make_vector((size_t)nr_bindings, SCM_OBJ_NULL);
+  if (scm_obj_null_p(inits_vec)) return -1;
+
+  for (idx = 0, cur = bindings;
+       scm_capi_pair_p(cur);
+       idx++, cur = scm_api_cdr(cur)) {
+
+    vi_pair = scm_api_car(cur);
+    if (scm_obj_null_p(vi_pair)) return -1;
+
+    rslt = scm_cmpl_decons_let_var_init_pair(vi_pair,
+                                             SCM_CSETTER_L(var),
+                                             SCM_CSETTER_L(init));
+    if (rslt < 0) return -1;
+
+    tmp = scm_capi_vector_set(vars_vec, idx, var);
+    if (scm_obj_null_p(tmp)) return -1;
+
+    tmp = scm_capi_vector_set(inits_vec, idx, init);
+    if (scm_obj_null_p(tmp)) return -1;
+  }
+
+  if (scm_obj_null_p(cur)) return -1;
+
+  scm_csetter_setq(vars, vars_vec);
+  scm_csetter_setq(inits, inits_vec);
+
+  return 0;
+}
+
+static ScmObj
+scm_cmpl_convert_named_let(ScmObj name, ScmObj vars, ScmObj inits, ScmObj body)
+{
+  /* named let を以下の式に変換する */
+  /*  (letrec (({name} (lambda {vars} . {body}))) ({name} . {inits})) */
+
+  scm_capi_error("Compiler: named let is not supported", 0);
+  return SCM_OBJ_NULL;
+}
+
+static ScmObj
+scm_cmpl_compile_let(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
+                     bool toplevel_p, ssize_t *rdepth)
+{
+  ScmObj name = SCM_OBJ_INIT, bindings = SCM_OBJ_INIT, body = SCM_OBJ_INIT;
+  ScmObj vars = SCM_OBJ_INIT, inits = SCM_OBJ_INIT, ini_exp = SCM_OBJ_INIT;
+  ScmObj converted = SCM_OBJ_INIT, new_env = SCM_OBJ_INIT;
+  ScmObj inst_push = SCM_OBJ_INIT, inst_eframe = SCM_OBJ_INIT;
+  ScmObj inst_epop = SCM_OBJ_INIT, inst_ecommit = SCM_OBJ_INIT;
+  ScmObj inst_box = SCM_OBJ_INIT;
+  ssize_t nr_vars, rd;
+  bool rebound;
+  int rslt;
+
+  SCM_STACK_FRAME_PUSH(&exp, &env, &next,
+                       &name, &bindings, &body,
+                       &vars, &inits, &ini_exp,
+                       &converted, &new_env,
+                       &inst_push, &inst_eframe,
+                       &inst_epop, &inst_ecommit,
+                       &inst_box);
+
+  rslt = scm_cmpl_decons_let(exp, SCM_CSETTER_L(name),
+                             SCM_CSETTER_L(bindings), SCM_CSETTER_L(body));
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  rslt = scm_cmpl_decons_let_bindings(bindings, SCM_CSETTER_L(vars),
+                                      SCM_CSETTER_L(inits));
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  if (scm_obj_not_null_p(name)) {
+    converted = scm_cmpl_convert_named_let(name, vars, inits, body);
+    if (scm_obj_null_p(converted)) return SCM_OBJ_INIT;
+
+    return scm_cmpl_compile_exp(converted, env, name,
+                                tail_p, toplevel_p, rdepth);
+  }
+
+  nr_vars = scm_capi_vector_length(vars);
+  if (nr_vars < 0) return SCM_OBJ_NULL;
+
+  if (nr_vars > 0) {
+    new_env = scm_cmpl_env_cons(vars, false, env);
+    if (scm_obj_null_p(new_env)) return SCM_OBJ_NULL;
+
+    inst_epop = scm_cmpl_cons_inst_epop();
+    if (scm_obj_null_p(inst_epop)) return SCM_OBJ_NULL;
+
+    next = scm_api_cons(inst_epop, next);
+    if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
+  }
+  else {
+    new_env = env;
+  }
+
+  next = scm_cmpl_compile_exp_list(body, new_env, next, tail_p, false, rdepth);
+  if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
+
+  if (nr_vars > 0 && *rdepth >= 0) (*rdepth)--;
+
+  if (nr_vars > 0) {
+    if (nr_vars > SCM_SWORD_MAX) {
+      scm_capi_error("Compiler: inner index overflow", 0);
+      return SCM_OBJ_NULL;
+    }
+
+    for (size_t i = (size_t)nr_vars; i > 0; i--) {
+      rslt = scm_cmpl_env_rebound_flg(new_env, i - 1, 0, &rebound);
+      if (rslt < 0) return SCM_OBJ_NULL;
+
+      if (rebound) {
+        inst_box = scm_cmpl_cons_inst_box((scm_sword_t)i - 1, 0);
+        if (scm_obj_null_p(inst_box)) return SCM_OBJ_NULL;
+
+        next = scm_api_cons(inst_box, next);
+        if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
+      }
+    }
+
+    inst_ecommit = scm_cmpl_cons_inst_ecommit(nr_vars);
+    if (scm_obj_null_p(inst_ecommit)) return SCM_OBJ_NULL;
+
+    next = scm_api_cons(inst_ecommit, next);
+    if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
+
+    inst_push = scm_cmpl_cons_inst_push();
+    if (scm_obj_null_p(inst_push)) return SCM_OBJ_NULL;
+
+    for (size_t i = (size_t)nr_vars; i > 0; i--) {
+      next = scm_api_cons(inst_push, next);
+      if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
+
+      ini_exp = scm_capi_vector_ref(inits, i - 1);
+      if (scm_obj_null_p(ini_exp)) return SCM_OBJ_NULL;
+
+      next = scm_cmpl_compile_exp(ini_exp, env, next, false, false, &rd);
+      if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
+
+      if (rd > *rdepth) *rdepth = rd;
+    }
+
+    inst_eframe = scm_cmpl_cons_inst_eframe();
+    if (scm_obj_null_p(inst_eframe)) return SCM_OBJ_NULL;
+
+    next = scm_api_cons(inst_eframe, next);
+    if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
+  }
+
+  return next;
+}
+
+static int
 scm_cmpl_decons_assignment(ScmObj exp, scm_csetter_t *var, scm_csetter_t *val)
 {
   ScmObj ro = SCM_OBJ_INIT, lo = SCM_OBJ_INIT, tmp = SCM_OBJ_INIT;
@@ -1180,11 +1442,11 @@ scm_cmpl_compile_if(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
 enum { SCM_CMPL_DEFINITION, SCM_CMPL_SYNTAX_REFERENCE,
        SCM_CMPL_SYNTAX_SELF_EVAL, SCM_CMPL_SYNTAX_QUOTE,
        SCM_CMPL_SYNTAX_APPLICATION, SCM_CMPL_SYNTAX_LAMBDA,
-       SCM_CMPL_SYNTAX_ASSIGNMENT, SCM_CMPL_SYNTAX_IF,
-       SCM_CMPL_NR_SYNTAX };
+       SCM_CMPL_SYNTAX_LET, SCM_CMPL_SYNTAX_ASSIGNMENT,
+       SCM_CMPL_SYNTAX_IF, SCM_CMPL_NR_SYNTAX };
 
 const char *scm_cmpl_syntax_keywords[] = { "define", NULL, NULL, "quote", NULL,
-                                           "lambda", "set!", "if" };
+                                           "lambda", "let", "set!", "if" };
 ScmObj (*scm_cmpl_compile_funcs[])(ScmObj exp, ScmObj env, ScmObj next,
                                    bool tail_p, bool toplevel_p,
                                    ssize_t *rdepth)
@@ -1195,6 +1457,7 @@ ScmObj (*scm_cmpl_compile_funcs[])(ScmObj exp, ScmObj env, ScmObj next,
   scm_cmpl_compile_quote,
   scm_cmpl_compile_application,
   scm_cmpl_compile_lambda,
+  scm_cmpl_compile_let,
   scm_cmpl_compile_assignment,
   scm_cmpl_compile_if,
 };

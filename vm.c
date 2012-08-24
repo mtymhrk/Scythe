@@ -1140,6 +1140,53 @@ scm_vm_op_eframe(ScmObj vm, SCM_OPCODE_T op)
 }
 
 scm_local_func void
+scm_vm_op_ecommit(ScmObj vm, SCM_OPCODE_T op)
+{
+  int32_t argc;
+  uint8_t *ip;
+
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  ip = scm_capi_inst_fetch_oprand_si(SCM_VM(vm)->reg.ip, &argc);
+  if (ip == NULL) return;       /* [ERR]: [through] */
+
+  if (argc < 0) {
+    scm_capi_error("bytecode format error", 0);
+    return;
+  }
+
+  SCM_VM(vm)->reg.ip = ip;
+
+  scm_vm_commit_eframe(vm, SCM_VM(vm)->reg.efp, (size_t)argc);
+}
+
+scm_local_func void
+scm_vm_op_epop(ScmObj vm, SCM_OPCODE_T op)
+{
+  ScmEnvFrame *efp;
+
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  efp = SCM_VM(vm)->reg.efp;
+
+  if (!scm_vm_eframe_is_in_stack_p(vm, efp)) {
+    scm_capi_error("invalid operation of VM stack: "
+                   "environment frame is not pushed", 0);
+    return;
+  }
+
+  if ((uint8_t *)SCM_VM(vm)->reg.iefp >= (uint8_t *)efp
+      || (uint8_t *)SCM_VM(vm)->reg.icfp >= (uint8_t *)efp) {
+    scm_capi_error("invalid operation of VM stack: "
+                   "incomplete stack frame link will be broken", 0);
+    return;
+  }
+
+  SCM_VM(vm)->reg.efp = efp->out;
+  SCM_VM(vm)->reg.sp = (uint8_t *)efp;
+}
+
+scm_local_func void
 scm_vm_op_return(ScmObj vm, SCM_OPCODE_T op) /* GC OK */
 {
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
@@ -1707,11 +1754,11 @@ scm_vm_run(ScmObj vm, ScmObj iseq)
     case SCM_OPCODE_EFRAME:
       scm_vm_op_eframe(vm, op);
       break;
-    case SCM_OPCODE_EFRAME_COMMIT:
-      scm_capi_error("not implemented opcode", 0);
+    case SCM_OPCODE_ECOMMIT:
+      scm_vm_op_ecommit(vm, op);
       break;
-    case SCM_OPCODE_EFRAME_POP:
-      scm_capi_error("not implemented opcode", 0);
+    case SCM_OPCODE_EPOP:
+      scm_vm_op_epop(vm, op);
       break;
     case SCM_OPCODE_IMMVAL:
       scm_vm_op_immval(vm, op);
