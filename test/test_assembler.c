@@ -41,7 +41,7 @@ test_scm_asm_assemble(void)
                                      SCM_OPCODE_IMMVAL, SCM_OPCODE_JMP,
                                      SCM_OPCODE_JMPF, SCM_OPCODE_IMMVAL,
                                      SCM_OPCODE_RAISE, SCM_OPCODE_BOX,
-                                     SCM_OPCODE_CLOSE };
+                                     SCM_OPCODE_CLOSE, SCM_OPCODE_CLOSE };
   ScmObj actual_immv = SCM_OBJ_INIT;
   ScmObj expected_immv = SCM_OBJ_INIT;
   uint8_t *ip;
