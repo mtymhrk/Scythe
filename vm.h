@@ -291,7 +291,7 @@ void scm_vm_op_unbox(ScmObj vm, SCM_OPCODE_T op);
 void scm_vm_op_close(ScmObj vm, SCM_OPCODE_T op);
 void scm_vm_op_dsref(ScmObj vm, SCM_OPCODE_T op);
 
-int scm_vm_gc_accept_eframe(ScmObj vm, ScmEnvFrame *efp,
+int scm_vm_gc_accept_eframe(ScmObj vm, ScmEnvFrame **efp,
                             ScmObj mem, ScmGCRefHandlerFunc handler);
 int scm_vm_gc_accept_cframe(ScmObj vm, ScmCntFrame *cfp,
                             ScmObj mem, ScmGCRefHandlerFunc handler);

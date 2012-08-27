@@ -1984,22 +1984,31 @@ scm_vm_gc_finalize(ScmObj obj)
 }
 
 scm_local_func int
-scm_vm_gc_accept_eframe(ScmObj vm, ScmEnvFrame *efp,
+scm_vm_gc_accept_eframe(ScmObj vm, ScmEnvFrame **efp,
                         ScmObj mem, ScmGCRefHandlerFunc handler)
 {
+  ScmObj efb = SCM_OBJ_INIT;
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+  scm_assert(efp != NULL);
   scm_assert(scm_obj_not_null_p(mem));
   scm_assert(handler != NULL);
 
-  while (scm_vm_eframe_is_in_stack_p(vm, efp)) {
-    for (size_t i = 0; i < efp->len; i++) {
-      rslt = SCM_GC_CALL_REF_HANDLER(handler, vm, efp->arg[i], mem);
+  while (scm_vm_eframe_is_in_stack_p(vm, *efp)) {
+    for (size_t i = 0; i < (*efp)->len; i++) {
+      rslt = SCM_GC_CALL_REF_HANDLER(handler, vm, (*efp)->arg[i], mem);
       if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
     }
 
-    efp = efp->out;
+    efp = &(*efp)->out;
+  }
+
+  if (scm_vm_eframe_is_in_heap_p(vm, *efp)) {
+    efb = scm_efbox_efp_to_efbox(*efp);
+    rslt = SCM_GC_CALL_REF_HANDLER(handler, vm, efb, mem);
+    if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
+    *efp = scm_efbox_to_efp(efb);
   }
 
   return rslt;
@@ -2016,7 +2025,7 @@ scm_vm_gc_accept_cframe(ScmObj vm, ScmCntFrame *cfp,
   scm_assert(handler != NULL);
 
   while (cfp != NULL) {
-    rslt = scm_vm_gc_accept_eframe(vm, cfp->efp, mem, handler);
+    rslt = scm_vm_gc_accept_eframe(vm, &cfp->efp, mem, handler);
     if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
     rslt = SCM_GC_CALL_REF_HANDLER(handler, vm, cfp->cp, mem);
@@ -2070,10 +2079,10 @@ scm_vm_gc_accept_stack(ScmObj vm, ScmObj mem, ScmGCRefHandlerFunc handler)
   rslt = scm_vm_gc_accept_cframe(vm, SCM_VM(vm)->reg.icfp, mem, handler);
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
-  rslt = scm_vm_gc_accept_eframe(vm, SCM_VM(vm)->reg.efp, mem, handler);
+  rslt = scm_vm_gc_accept_eframe(vm, &SCM_VM(vm)->reg.efp, mem, handler);
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
-  rslt = scm_vm_gc_accept_eframe(vm, SCM_VM(vm)->reg.iefp, mem, handler);
+  rslt = scm_vm_gc_accept_eframe(vm, &SCM_VM(vm)->reg.iefp, mem, handler);
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
   return rslt;
