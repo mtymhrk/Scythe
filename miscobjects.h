@@ -5,11 +5,13 @@ typedef struct ScmEOFRec ScmEOF;
 typedef struct ScmBoolRec ScmBool;
 typedef struct ScmNilRec ScmNil;
 typedef struct ScmUndefRec ScmUndef;
+typedef struct ScmLandmineRec ScmLandmine;
 
 #define SCM_EOF(obj) ((ScmEof *)(obj))
 #define SCM_BOOL(obj) ((ScmBool *)(obj))
 #define SCM_NIL(obj) ((ScmNil *)(obj))
 #define SCM_UNDEF(obj) ((ScmUndef *)(obj))
+#define SCM_LANDMINE(obj) ((ScmLandmine *)(obj))
 
 #include "object.h"
 #include "api_enum.h"
@@ -81,5 +83,22 @@ void scm_undef_initialize(ScmObj undef);
 void scm_udef_finalize(ScmObj undef);
 ScmObj scm_undef_new(SCM_MEM_TYPE_T mtype);
 int scm_undef_pretty_print(ScmObj obj, ScmObj port, bool write_p);
+
+
+/*******************************************************/
+/*  ScmLandmine                                        */
+/*******************************************************/
+
+struct ScmLandmineRec {
+  ScmObjHeader header;
+};
+
+extern ScmTypeInfo SCM_LANDMINE_TYPE_INFO;
+
+void scm_landmine_initialize(ScmObj mine);
+void scm_landmine_finalize(ScmObj mine);
+ScmObj scm_landmine_new(SCM_MEM_TYPE_T mtype);
+int scm_landmine_pretty_print(ScmObj obj, ScmObj port, bool write_p);
+
 
 #endif /*  INCLUDE_MISCOBJECTS_H__ */

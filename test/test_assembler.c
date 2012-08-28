@@ -30,7 +30,8 @@ test_scm_asm_assemble(void)
     "((nop)(halt)(call 5)(tcall 2)(return)(frame)(cframe)(eframe)(push)"
     "(gref vvv)(gdef vvv)(gset vvv)(sref -4 12)(sset -6 13)"
     "(immval vvv)(label lbl)(jmp lbl)(jmpf lbl)(asm ((nop)))(raise)"
-    "(box -8 14)(close 10 vvv)(asm-close 11 ((nop))))";
+    "(box -8 14)(close 10 vvv)(asm-close 11 ((nop)))"
+    "(demine 15 16)(emine 17)(edemine 18 19))";
   const uint8_t expected_codes[] = { SCM_OPCODE_NOP, SCM_OPCODE_HALT,
                                      SCM_OPCODE_CALL, SCM_OPCODE_TAIL_CALL,
                                      SCM_OPCODE_RETURN, SCM_OPCODE_FRAME,
@@ -41,7 +42,9 @@ test_scm_asm_assemble(void)
                                      SCM_OPCODE_IMMVAL, SCM_OPCODE_JMP,
                                      SCM_OPCODE_JMPF, SCM_OPCODE_IMMVAL,
                                      SCM_OPCODE_RAISE, SCM_OPCODE_BOX,
-                                     SCM_OPCODE_CLOSE, SCM_OPCODE_CLOSE };
+                                     SCM_OPCODE_CLOSE, SCM_OPCODE_CLOSE,
+                                     SCM_OPCODE_DEMINE, SCM_OPCODE_EMINE,
+                                     SCM_OPCODE_EDEMINE };
   ScmObj actual_immv = SCM_OBJ_INIT;
   ScmObj expected_immv = SCM_OBJ_INIT;
   uint8_t *ip;
@@ -131,6 +134,22 @@ test_scm_asm_assemble(void)
         cut_assert_equal_int(11, actual_arg);
         cut_assert_true(scm_capi_iseq_p(actual_immv));
       }
+      break;
+    case SCM_OPCODE_DEMINE:
+      SCM_CAPI_INST_FETCH_INT32(ip, actual_arg);
+      cut_assert_equal_int(15, actual_arg);
+      SCM_CAPI_INST_FETCH_INT32(ip, actual_arg);
+      cut_assert_equal_int(16, actual_arg);
+      break;
+    case SCM_OPCODE_EMINE:
+      SCM_CAPI_INST_FETCH_INT32(ip, actual_arg);
+      cut_assert_equal_int(17, actual_arg);
+      break;
+    case SCM_OPCODE_EDEMINE:
+      SCM_CAPI_INST_FETCH_INT32(ip, actual_arg);
+      cut_assert_equal_int(18, actual_arg);
+      SCM_CAPI_INST_FETCH_INT32(ip, actual_arg);
+      cut_assert_equal_int(19, actual_arg);
       break;
     }
   }

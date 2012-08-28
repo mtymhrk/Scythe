@@ -366,6 +366,11 @@ scm_vm_setup_singletons(ScmObj vm)
   if (scm_obj_null_p(SCM_VM(vm)->cnsts.undef))
     return -1;                  /* [ERR]: [through] */
 
+  SCM_SLOT_SETQ(ScmVM, vm, cnsts.landmine,
+                scm_landmine_new(SCM_MEM_ROOT));
+  if (scm_obj_null_p(SCM_VM(vm)->cnsts.landmine))
+    return -1;                  /* [ERR]: [through] */
+
   return 0;
 }
 
@@ -389,11 +394,15 @@ scm_vm_clean_singletons(ScmObj vm)
   if (scm_obj_not_null_p(SCM_VM(vm)->cnsts.undef))
     scm_mem_free_root(SCM_VM(vm)->mem, SCM_VM(vm)->cnsts.undef);
 
+  if (scm_obj_not_null_p(SCM_VM(vm)->cnsts.landmine))
+    scm_mem_free_root(SCM_VM(vm)->mem, SCM_VM(vm)->cnsts.landmine);
+
   SCM_VM(vm)->cnsts.nil = SCM_OBJ_NULL;
   SCM_VM(vm)->cnsts.eof = SCM_OBJ_NULL;
   SCM_VM(vm)->cnsts.b_true = SCM_OBJ_NULL;
   SCM_VM(vm)->cnsts.b_false = SCM_OBJ_NULL;
   SCM_VM(vm)->cnsts.undef = SCM_OBJ_NULL;
+  SCM_VM(vm)->cnsts.landmine = SCM_OBJ_NULL;
 }
 
 scm_local_func int
@@ -705,6 +714,7 @@ scm_vm_commit_eframe(ScmObj vm, ScmEnvFrame *efp, size_t nr_arg)
 {
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
+  /* TODO: use scm_vm_eframe_is_in_stack_p() */
   if (SCM_VM(vm)->reg.iefp == NULL) {
     scm_capi_error("invalid operation of VM stack: "
                    "incomplete environment frame is not pushed", 0);
@@ -716,6 +726,41 @@ scm_vm_commit_eframe(ScmObj vm, ScmEnvFrame *efp, size_t nr_arg)
 
   SCM_VM(vm)->reg.efp->out = efp;
   SCM_VM(vm)->reg.efp->len = nr_arg;
+
+  return 0;
+}
+
+scm_local_func int
+scm_vm_cancel_eframe(ScmObj vm)
+{
+  ScmEnvFrame *iefp;
+
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  iefp = SCM_VM(vm)->reg.iefp;
+
+  if (!scm_vm_eframe_is_in_stack_p(vm, iefp)) {
+    scm_capi_error("invalid operation of VM stack: "
+                   "incomplete environment frame is not pushed", 0);
+    return -1;
+  }
+
+  if (scm_vm_eframe_is_in_stack_p(vm, SCM_VM(vm)->reg.efp)
+      && SCM_VM(vm)->reg.efp > iefp) {
+    scm_capi_error("invalid operation of VM stack: "
+                   "enviromnet frame link will be broken", 0);
+    return -1;
+  }
+
+  if ((uint8_t *)SCM_VM(vm)->reg.icfp > (uint8_t *)iefp
+      || (uint8_t *)SCM_VM(vm)->reg.cfp > (uint8_t *)iefp) {
+    scm_capi_error("invalid operation of VM stack: "
+                   "(incomplete) continuation frame link will be broken", 0);
+    return -1;
+  }
+
+  SCM_VM(vm)->reg.iefp = iefp->out;
+  SCM_VM(vm)->reg.sp = (uint8_t *)iefp;
 
   return 0;
 }
@@ -771,6 +816,43 @@ scm_vm_box_eframe(ScmObj vm, ScmEnvFrame *efp, size_t depth, scm_csetter_t *box)
   scm_efbox_update_outer(prev, SCM_OBJ_NULL);
 
   return 0;
+}
+
+scm_local_func ScmEnvFrame *
+scm_vm_eframe_list_ref(ScmEnvFrame *efp_list, size_t n)
+{
+  ScmEnvFrame *efp;
+  size_t i;
+
+  for (i = 0, efp = efp_list;
+       i < n && efp != NULL;
+       i++, efp = efp->out)
+    ;
+
+  return efp;
+}
+
+scm_local_func ScmObj
+scm_vm_eframe_arg_ref(ScmEnvFrame *efp_list, size_t idx, size_t layer,
+                      ScmEnvFrame **efp)
+{
+  ScmEnvFrame *e;
+
+  e = scm_vm_eframe_list_ref(efp_list, layer);
+
+  if (e == NULL) {
+    scm_capi_error("invalid access to envrionment frame: out of range", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  if (idx >= e->len) {
+    scm_capi_error("invalid access to envrionment frame: out of range", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  if (efp != NULL) *efp = e;
+
+  return e->arg[idx];
 }
 
 scm_local_func void
@@ -1032,6 +1114,7 @@ scm_vm_do_op_push(ScmObj vm, SCM_OPCODE_T op)
 {
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
+  /* TODO: check return value */
   scm_vm_stack_push(vm, SCM_VM(vm)->reg.val);
 
   return 0;
@@ -1059,6 +1142,22 @@ scm_vm_do_op_frame(ScmObj vm, SCM_OPCODE_T op)
   if (rslt < 0) return -1;
 
   return 0;
+}
+
+scm_local_func int
+scm_vm_do_op_eframe(ScmObj vm, SCM_OPCODE_T op)
+{
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  return scm_vm_make_eframe(vm, 0);
+}
+
+scm_local_func int
+scm_vm_do_op_ecommit(ScmObj vm, SCM_OPCODE_T op, size_t argc)
+{
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  return scm_vm_commit_eframe(vm, SCM_VM(vm)->reg.efp, argc);
 }
 
 /* 関数呼出のためのインストラクション */
@@ -1136,7 +1235,7 @@ scm_vm_op_eframe(ScmObj vm, SCM_OPCODE_T op)
 {
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
-  scm_vm_make_eframe(vm, 0);
+  scm_vm_do_op_eframe(vm, op);
 }
 
 scm_local_func void
@@ -1157,7 +1256,7 @@ scm_vm_op_ecommit(ScmObj vm, SCM_OPCODE_T op)
 
   SCM_VM(vm)->reg.ip = ip;
 
-  scm_vm_commit_eframe(vm, SCM_VM(vm)->reg.efp, (size_t)argc);
+  scm_vm_do_op_ecommit(vm, op, (size_t)argc);
 }
 
 scm_local_func void
@@ -1320,9 +1419,8 @@ scm_vm_op_gset(ScmObj vm, SCM_OPCODE_T op)
 scm_local_func void
 scm_vm_op_sref(ScmObj vm, SCM_OPCODE_T op)
 {
-  ScmObj val;
-  ScmEnvFrame *efp;
-  int32_t i, idx, layer;
+  ScmObj val = SCM_OBJ_INIT;
+  int32_t idx, layer;
   uint8_t *ip;
 
   SCM_STACK_FRAME_PUSH(&vm,
@@ -1335,25 +1433,23 @@ scm_vm_op_sref(ScmObj vm, SCM_OPCODE_T op)
 
   SCM_VM(vm)->reg.ip = ip;
 
-  for (i = 0, efp = SCM_VM(vm)->reg.efp;
-       i < layer && efp != NULL;
-       i++, efp = efp->out)
-    ;
-
-  if (layer < 0 || efp == NULL) {
+  if (idx < 0 || layer < 0) {
     scm_capi_error("invalid access to envrionment frame: out of range", 0);
     return;
   }
 
-  if (idx < 0 || (size_t)idx >= efp->len) {
-    scm_capi_error("invalid access to envrionment frame: out of range", 0);
-    return;
-  }
+  val = scm_vm_eframe_arg_ref(SCM_VM(vm)->reg.efp,
+                              (size_t)idx, (size_t)layer, NULL);
+  if (scm_obj_null_p(val)) return;
 
-  val = efp->arg[idx];
   if (scm_obj_type_p(val, &SCM_BOX_TYPE_INFO)) {
     val = scm_box_unbox(val);
     if (scm_obj_null_p(val)) return;
+  }
+
+  if (scm_obj_same_instance_p(val, SCM_VM(vm)->cnsts.landmine)) {
+    scm_capi_error("refarence to uninitialized variable", 0);
+    return;
   }
 
   SCM_SLOT_SETQ(ScmVM, vm, reg.val, val);
@@ -1362,11 +1458,12 @@ scm_vm_op_sref(ScmObj vm, SCM_OPCODE_T op)
 scm_local_func void
 scm_vm_op_sset(ScmObj vm, SCM_OPCODE_T op)
 {
-  ScmEnvFrame *efp;
-  int32_t i, idx, layer;
+  ScmObj val = SCM_OBJ_INIT, o = SCM_OBJ_INIT;
+  int32_t idx, layer;
   uint8_t *ip;
 
-  SCM_STACK_FRAME_PUSH(&vm);
+  SCM_STACK_FRAME_PUSH(&vm,
+                       &val, &o);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
@@ -1375,27 +1472,27 @@ scm_vm_op_sset(ScmObj vm, SCM_OPCODE_T op)
 
   SCM_VM(vm)->reg.ip = ip;
 
-  for (i = 0, efp = SCM_VM(vm)->reg.efp;
-       i < layer && efp != NULL;
-       i++, efp = efp->out)
-    ;
-
-  if (layer < 0 || efp == NULL) {
+  if (idx < 0 || layer < 0) {
     scm_capi_error("invalid access to envrionment frame: out of range", 0);
     return;
   }
 
-  if (idx < 0 || (size_t)idx >= efp->len) {
-    scm_capi_error("invalid access to envrionment frame: out of range", 0);
-    return;
-  }
+  val = scm_vm_eframe_arg_ref(SCM_VM(vm)->reg.efp,
+                              (size_t)idx, (size_t)layer, NULL);
+  if (scm_obj_null_p(val)) return;
 
-  if (!scm_obj_type_p(efp->arg[idx], &SCM_BOX_TYPE_INFO)) {
+  if (!scm_obj_type_p(val, &SCM_BOX_TYPE_INFO)) {
     scm_capi_error("update to variable bound by unboxed object", 0);
     return;
   }
 
-  scm_box_update(efp->arg[idx], SCM_VM(vm)->reg.val);
+  o = scm_box_unbox(val);
+  if (scm_obj_same_instance_p(o, SCM_VM(vm)->cnsts.landmine)) {
+    scm_capi_error("refarence to uninitialized variable", 0);
+    return;
+  }
+
+  scm_box_update(val, SCM_VM(vm)->reg.val);
 }
 
 scm_local_func void
@@ -1476,7 +1573,7 @@ scm_vm_op_box(ScmObj vm, SCM_OPCODE_T op)
 {
   ScmObj box = SCM_OBJ_INIT;
   ScmEnvFrame *efp;
-  int32_t i, idx, layer;
+  int32_t idx, layer;
   uint8_t *ip;
 
   SCM_STACK_FRAME_PUSH(&vm,
@@ -1489,15 +1586,13 @@ scm_vm_op_box(ScmObj vm, SCM_OPCODE_T op)
 
   SCM_VM(vm)->reg.ip = ip;
 
-  for (i = 0, efp = SCM_VM(vm)->reg.efp;
-       i < layer && efp != NULL;
-       i++, efp = efp->out)
-    ;
-
-  if (layer < 0 || efp == NULL) {
+  if (idx < 0 || layer < 0) {
     scm_capi_error("invalid access to envrionment frame: out of range", 0);
     return;
   }
+
+  efp = scm_vm_eframe_list_ref(SCM_VM(vm)->reg.efp, (size_t)layer);
+  if (efp == NULL) return;
 
   /* box 化できるのは VM stack 上にある環境のみに限定する */
   if ((uint8_t *)efp < SCM_VM(vm)->stack
@@ -1506,7 +1601,7 @@ scm_vm_op_box(ScmObj vm, SCM_OPCODE_T op)
     return;
   }
 
-  if (idx < 0 || (size_t)idx >= efp->len) {
+  if ((size_t)idx >= efp->len) {
     scm_capi_error("invalid access to envrionment frame: out of range", 0);
     return;
   }
@@ -1551,6 +1646,135 @@ scm_vm_op_close(ScmObj vm, SCM_OPCODE_T op)
   if (scm_obj_null_p(clsr)) return;
 
   SCM_SLOT_SETQ(ScmVM, vm, reg.val, clsr);
+}
+
+scm_local_func void
+scm_vm_op_demine(ScmObj vm, SCM_OPCODE_T op)
+{
+  ScmObj val;
+  int32_t idx, layer;
+  uint8_t *ip;
+
+  SCM_STACK_FRAME_PUSH(&vm,
+                       &val);
+
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  ip = scm_capi_inst_fetch_oprand_si_si(SCM_VM(vm)->reg.ip, &idx, &layer);
+  if (ip == NULL) return;
+
+  SCM_VM(vm)->reg.ip = ip;
+
+  if (idx < 0 || layer < 0) {
+    scm_capi_error("invalid access to envrionment frame: out of range", 0);
+    return;
+  }
+
+  val = scm_vm_eframe_arg_ref(SCM_VM(vm)->reg.efp,
+                              (size_t)idx, (size_t)layer, NULL);
+  if (scm_obj_null_p(val)) return;
+
+  if (!scm_obj_type_p(val, &SCM_BOX_TYPE_INFO)) {
+    scm_capi_error("update to variable bound by unboxed object", 0);
+    return;
+  }
+
+  scm_box_update(val, SCM_VM(vm)->reg.val);
+}
+
+scm_local_func void
+scm_vm_op_emine(ScmObj vm, SCM_OPCODE_T op)
+{
+  ScmObj box = SCM_OBJ_INIT;
+  int32_t len;
+  uint8_t *ip;
+  int rslt;
+
+  SCM_STACK_FRAME_PUSH(&vm,
+                       &box);
+
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  ip = scm_capi_inst_fetch_oprand_si(SCM_VM(vm)->reg.ip, &len);
+  if (ip == NULL) return;
+
+  SCM_VM(vm)->reg.ip = ip;
+
+  if (len < 0) {
+    scm_capi_error("bytecode format error", 0);
+    return;
+  }
+
+  /* TODO: use scm_vm_do_op_eframe */
+  rslt = scm_vm_do_op_eframe(vm, op);
+  if (rslt < 0) return;
+
+  SCM_SLOT_SETQ(ScmVM, vm, reg.val, SCM_VM(vm)->cnsts.landmine);
+
+  for (int i = 0; i < len; i++) {
+    box = scm_box_new(SCM_MEM_HEAP, SCM_VM(vm)->cnsts.landmine);
+    if (scm_obj_null_p(box)) return;
+
+    SCM_SLOT_SETQ(ScmVM, vm, reg.val, box);
+    rslt = scm_vm_do_op_push(vm, op);
+    if (rslt < 0) return;
+  }
+
+  scm_vm_do_op_ecommit(vm, op, (size_t)len);
+}
+
+scm_local_func void
+scm_vm_op_edemine(ScmObj vm, SCM_OPCODE_T op)
+{
+  ScmObj val;
+  ScmEnvFrame *efp, *iefp;
+  size_t n;
+  int32_t argc, layer;
+  uint8_t *ip;
+
+  SCM_STACK_FRAME_PUSH(&vm,
+                       &val);
+
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  ip = scm_capi_inst_fetch_oprand_si_si(SCM_VM(vm)->reg.ip, &argc, &layer);
+  if (ip == NULL) return;
+
+  SCM_VM(vm)->reg.ip = ip;
+
+  if (argc < 0) {
+    scm_capi_error("bytecode format error", 0);
+    return;
+  }
+
+  if (layer < 0) {
+    scm_capi_error("invalid access to envrionment frame: out of range", 0);
+    return;
+  }
+
+  iefp = SCM_VM(vm)->reg.iefp;
+  if (!scm_vm_eframe_is_in_stack_p(vm, iefp)) {
+    scm_capi_error("invalid operation of VM stack: "
+                   "incomplete environment frame is not pushed", 0);
+    return;
+  }
+
+  efp = scm_vm_eframe_list_ref(SCM_VM(vm)->reg.efp, (size_t)layer);
+  if (efp == NULL) return;
+
+  /* XXX: 以降の処理で GC が発生すると efp の値が不正なになる */
+
+  n = ((size_t) argc < efp->len) ? (size_t)argc : efp->len;
+  for (size_t i = 0; i < n; i++) {
+    if (!scm_obj_type_p(efp->arg[i], &SCM_BOX_TYPE_INFO)) {
+      scm_capi_error("update to variable bound by unboxed object", 0);
+      return;
+    }
+
+    scm_box_update(efp->arg[i], iefp->arg[i]);
+  }
+
+  scm_vm_cancel_eframe(vm);
 }
 
 void
@@ -1796,6 +2020,15 @@ scm_vm_run(ScmObj vm, ScmObj iseq)
     case SCM_OPCODE_CLOSE:
       scm_vm_op_close(vm, op);
       break;
+    case SCM_OPCODE_DEMINE:
+      scm_vm_op_demine(vm, op);
+      break;
+    case SCM_OPCODE_EMINE:
+      scm_vm_op_emine(vm, op);
+      break;
+    case SCM_OPCODE_EDEMINE:
+      scm_vm_op_edemine(vm, op);
+      break;
     default:
       /* TODO: error handling */
       scm_vm_ctrl_flg_set(vm, SCM_VM_CTRL_FLG_HALT);
@@ -1975,6 +2208,7 @@ scm_vm_gc_initialize(ScmObj obj, ScmObj mem)
   SCM_VM(obj)->cnsts.b_true = SCM_OBJ_NULL;
   SCM_VM(obj)->cnsts.b_false = SCM_OBJ_NULL;
   SCM_VM(obj)->cnsts.undef = SCM_OBJ_NULL;
+  SCM_VM(obj)->cnsts.landmine = SCM_OBJ_NULL;
 }
 
 void

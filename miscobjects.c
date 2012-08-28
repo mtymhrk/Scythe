@@ -245,3 +245,60 @@ scm_undef_pretty_print(ScmObj obj, ScmObj port, bool write_p)
 
   return 0;
 }
+
+
+/*******************************************************/
+/*  ScmLandmine                                        */
+/*******************************************************/
+
+ScmTypeInfo SCM_LANDMINE_TYPE_INFO = {
+  .name                = "landmine",
+  .flags               = SCM_TYPE_FLG_MMO,
+  .pp_func             = scm_landmine_pretty_print,
+  .obj_size            = sizeof(ScmLandmine),
+  .gc_ini_func         = NULL,
+  .gc_fin_func         = NULL,
+  .gc_accept_func      = NULL,
+  .gc_accept_func_weak = NULL,
+  .extra               = NULL,
+};
+
+void
+scm_landmine_initialize(ScmObj mine)  /* GC OK */
+{
+  return;                       /* nothing to do */
+}
+
+void
+scm_landmine_finalize(ScmObj mine)    /* GC OK */
+{
+  return;                       /* nothing to do */
+}
+
+ScmObj
+scm_landmine_new(SCM_MEM_TYPE_T mtype)         /* GC OK */
+{
+  ScmObj mine = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&mine);
+
+  mine = scm_capi_mem_alloc(&SCM_LANDMINE_TYPE_INFO, 0, mtype);
+  if (scm_obj_null_p(mine)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+
+  scm_landmine_initialize(mine);
+
+  return mine;
+}
+
+int
+scm_landmine_pretty_print(ScmObj obj, ScmObj port, bool write_p)
+{
+  int rslt;
+
+  scm_assert_obj_type(obj, &SCM_LANDMINE_TYPE_INFO);
+
+  rslt = scm_capi_write_cstr("#<landmine>", SCM_ENC_ASCII, port);
+  if (rslt < 0) return -1;
+
+  return 0;
+}

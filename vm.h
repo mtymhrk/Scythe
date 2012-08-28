@@ -226,6 +226,7 @@ struct ScmVMRec {
     ScmObj b_true;
     ScmObj b_false;
     ScmObj undef;
+    ScmObj landmine;
   } cnsts;
 };
 
@@ -249,8 +250,12 @@ int scm_vm_make_cframe(ScmObj vm, ScmEnvFrame * efp,
 int scm_vm_commit_cframe(ScmObj vm, ScmCntFrame *cfp, uint8_t *ip);
 int scm_vm_make_eframe(ScmObj vm, size_t nr_arg);
 int scm_vm_commit_eframe(ScmObj vm, ScmEnvFrame *efp, size_t nr_arg);
+int scm_vm_cancel_eframe(ScmObj vm);
 int scm_vm_box_eframe(ScmObj vm, ScmEnvFrame *efp,
                       size_t depth, scm_csetter_t *box);
+ScmEnvFrame *scm_vm_eframe_list_ref(ScmEnvFrame *efp_list, size_t n);
+ScmObj scm_vm_eframe_arg_ref(ScmEnvFrame *efp_list,
+                             size_t idx, size_t layer, ScmEnvFrame **efp);
 void scm_vm_return_to_caller(ScmObj vm);
 
 ScmObj scm_vm_make_trampolining_code(ScmObj vm, ScmObj clsr, ScmObj args,
@@ -266,6 +271,8 @@ int scm_vm_do_op_call(ScmObj vm, SCM_OPCODE_T op,
                       uint32_t argc, bool tail_p);
 int scm_vm_do_op_push(ScmObj vm, SCM_OPCODE_T op);
 int scm_vm_do_op_frame(ScmObj vm, SCM_OPCODE_T op);
+int scm_vm_do_op_eframe(ScmObj vm, SCM_OPCODE_T op);
+int scm_vm_do_op_ecommit(ScmObj vm, SCM_OPCODE_T op, size_t argc);
 
 void scm_vm_op_call(ScmObj vm, SCM_OPCODE_T op);
 void scm_vm_op_immval(ScmObj vm, SCM_OPCODE_T op);
@@ -289,7 +296,9 @@ void scm_vm_op_raise(ScmObj vm, SCM_OPCODE_T op);
 void scm_vm_op_box(ScmObj vm, SCM_OPCODE_T op);
 void scm_vm_op_unbox(ScmObj vm, SCM_OPCODE_T op);
 void scm_vm_op_close(ScmObj vm, SCM_OPCODE_T op);
-void scm_vm_op_dsref(ScmObj vm, SCM_OPCODE_T op);
+void scm_vm_op_demine(ScmObj vm, SCM_OPCODE_T op);
+void scm_vm_op_emine(ScmObj vm, SCM_OPCODE_T op);
+void scm_vm_op_edemine(ScmObj vm, SCM_OPCODE_T op);
 
 int scm_vm_gc_accept_eframe(ScmObj vm, ScmEnvFrame **efp,
                             ScmObj mem, ScmGCRefHandlerFunc handler);

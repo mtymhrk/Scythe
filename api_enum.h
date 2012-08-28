@@ -71,6 +71,12 @@ typedef enum {
   SCM_OPCODE_RAISE,               /* 19: exception handler */
   SCM_OPCODE_BOX,                 /* 20: boxing */
   SCM_OPCODE_CLOSE,               /* 21: make closure */
+  SCM_OPCODE_DEMINE,              /* 22: demine variable */
+  SCM_OPCODE_EMINE,               /* 23: make enviroment frame */
+                                  /*     and make it mine field */
+  SCM_OPCODE_EDEMINE,             /* 24: demine enviromnet frame with */
+                                  /*     incomplete enviromnet frame as */
+                                  /*     initial value */
 } SCM_OPCODE_T;
 
 typedef enum {
