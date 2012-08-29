@@ -676,6 +676,10 @@ static ScmObj scm_cmpl_compile_letrec(ScmObj exp, ScmObj env, ScmObj next,
 static ScmObj scm_cmpl_compile_letrec_a(ScmObj exp, ScmObj env, ScmObj next,
                                         bool tail_p, bool toplevel_p,
                                         ssize_t *rdepth);
+static int scm_cmpl_decons_begin(ScmObj exp, scm_csetter_t *exp_lst);
+static ScmObj scm_cmpl_compile_begin(ScmObj exp, ScmObj env, ScmObj next,
+                                     bool tail_p, bool toplevel_p,
+                                     ssize_t *rdepth);
 static int scm_cmpl_decons_assignment(ScmObj exp,
                                       scm_csetter_t *var, scm_csetter_t *val);
 static ScmObj scm_cmpl_compile_assignment(ScmObj exp, ScmObj env, ScmObj next,
@@ -695,13 +699,14 @@ enum { SCM_CMPL_SYNTAX_DEFINITION, SCM_CMPL_SYNTAX_REFERENCE,
        SCM_CMPL_SYNTAX_SELF_EVAL, SCM_CMPL_SYNTAX_QUOTE,
        SCM_CMPL_SYNTAX_APPLICATION, SCM_CMPL_SYNTAX_LAMBDA,
        SCM_CMPL_SYNTAX_LET, SCM_CMPL_SYNTAX_LETREC,
-       SCM_CMPL_SYNTAX_LETREC_A, SCM_CMPL_SYNTAX_ASSIGNMENT,
-       SCM_CMPL_SYNTAX_IF, SCM_CMPL_NR_SYNTAX };
+       SCM_CMPL_SYNTAX_LETREC_A, SCM_CMPL_SYNTAX_BEGIN,
+       SCM_CMPL_SYNTAX_ASSIGNMENT, SCM_CMPL_SYNTAX_IF,
+       SCM_CMPL_NR_SYNTAX };
 
 static const char *scm_cmpl_syntax_keywords[] = { "define", NULL, NULL, "quote",
                                                   NULL, "lambda", "let",
-                                                  "letrec", "letrec*", "set!",
-                                                  "if" };
+                                                  "letrec", "letrec*", "begin",
+                                                  "set!", "if" };
 
 static ScmObj (*scm_cmpl_compile_funcs[])(ScmObj exp, ScmObj env, ScmObj next,
                                           bool tail_p, bool toplevel_p,
@@ -716,6 +721,7 @@ static ScmObj (*scm_cmpl_compile_funcs[])(ScmObj exp, ScmObj env, ScmObj next,
   scm_cmpl_compile_let,
   scm_cmpl_compile_letrec,
   scm_cmpl_compile_letrec_a,
+  scm_cmpl_compile_begin,
   scm_cmpl_compile_assignment,
   scm_cmpl_compile_if,
 };
@@ -860,16 +866,16 @@ scm_cmpl_decons_body(ScmObj body, ScmObj env, bool tail_p, bool toplevel_p,
         rslt = scm_cmpl_stack_push(init_stack, init);
         if (rslt < 0) return -1;
       }
-      /* else if (id == SCM_CMPL_SYNTAX_BEGIN) { */
-      /*   exp_lst = scm_api_cdr(exp_lst); */
-      /*   if (scm_obj_null_p(exp_lst)) return -1; */
+      else if (id == SCM_CMPL_SYNTAX_BEGIN) {
+        exp_lst = scm_api_cdr(exp_lst);
+        if (scm_obj_null_p(exp_lst)) return -1;
 
-      /*   rslt = scm_cmpl_stack_push(exps_stack, exp_lst); */
-      /*   if (rslt < 0) return -1; */
+        rslt = scm_cmpl_stack_push(exps_stack, exp_lst);
+        if (rslt < 0) return -1;
 
-      /*   rslt = scm_cmpl_decons_begin(exp, SCM_CSETTER_L(exp_lst)); */
-      /*   if (rslt < 0) return -1; */
-      /* } */
+        rslt = scm_cmpl_decons_begin(exp, SCM_CSETTER_L(exp_lst));
+        if (rslt < 0) return -1;
+      }
       else {
         rslt = scm_cmpl_stack_push(exps_stack, exp_lst);
         if (rslt < 0) return -1;
@@ -1930,6 +1936,41 @@ scm_cmpl_compile_letrec_a(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
   if (nr_vars > 0 && *rdepth >= 0) (*rdepth)--;
 
   return next;
+}
+
+static int
+scm_cmpl_decons_begin(ScmObj exp, scm_csetter_t *exp_lst)
+{
+  ScmObj eo;
+
+  SCM_STACK_FRAME_PUSH(&exp,
+                       &eo);
+
+  scm_assert(scm_capi_pair_p(exp));
+
+  eo = scm_api_cdr(exp);
+  if (scm_obj_null_p(eo)) return -1;
+
+  scm_csetter_setq(exp_lst, eo);
+
+  return 0;
+}
+
+static ScmObj
+scm_cmpl_compile_begin(ScmObj exp, ScmObj env, ScmObj next,
+                       bool tail_p, bool toplevel_p, ssize_t *rdepth)
+{
+  ScmObj exp_lst = SCM_OBJ_INIT;
+  int rslt;
+
+  SCM_STACK_FRAME_PUSH(&exp, &env, &next,
+                       &exp_lst);
+
+  rslt = scm_cmpl_decons_begin(exp, SCM_CSETTER_L(exp_lst));
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  return scm_cmpl_compile_exp_list(exp_lst, env, next,
+                                   tail_p, toplevel_p, rdepth);
 }
 
 static int
