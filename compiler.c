@@ -627,6 +627,20 @@ scm_cmpl_gen_label(const char *prefix)
   return scm_capi_make_symbol_from_cstr(str, SCM_ENC_ASCII);
 }
 
+static ScmObj
+scm_cmpl_push_inst_return(ScmObj next)
+{
+  ScmObj inst_ret = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&next,
+                       &inst_ret);
+
+  inst_ret = scm_cmpl_cons_inst_return();
+  if (scm_obj_null_p(inst_ret)) return SCM_OBJ_NULL;
+
+  return scm_api_cons(inst_ret, next);
+}
+
 static ScmObj scm_cmpl_compile_exp_list(ScmObj exp_lst, ScmObj env, ScmObj next,
                                         bool tail_p, bool toplevel_p,
                                         ssize_t *rdepth);
@@ -787,6 +801,10 @@ scm_cmpl_compile_exp_list(ScmObj exp_lst, ScmObj env, ScmObj next, bool tail_p,
   if (len < 0) return SCM_OBJ_NULL;
 
   *rdepth = -1;
+
+  if (len == 0 && tail_p)
+    return scm_cmpl_push_inst_return(next);
+
   code = next;
   for (ssize_t i = len; i > 0; i--) {
     exp = scm_capi_vector_ref(exp_vec, (size_t)i - 1);
@@ -933,11 +951,13 @@ scm_cmpl_compile_body(ScmObj body, ScmObj env, ScmObj next, bool tail_p,
     new_env = scm_cmpl_env_cons(vars, false, env);
     if (scm_obj_null_p(new_env)) return SCM_OBJ_NULL;
 
-    inst_epop = scm_cmpl_cons_inst_epop();
-    if (scm_obj_null_p(inst_epop)) return SCM_OBJ_NULL;
+    if (!tail_p) {
+      inst_epop = scm_cmpl_cons_inst_epop();
+      if (scm_obj_null_p(inst_epop)) return SCM_OBJ_NULL;
 
-    next = scm_api_cons(inst_epop, next);
-    if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
+      next = scm_api_cons(inst_epop, next);
+      if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
+    }
   }
   else {
     new_env = env;
@@ -1119,6 +1139,11 @@ scm_cmpl_compile_definition(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
     return SCM_OBJ_NULL;
   }
 
+  if (tail_p) {
+    next = scm_cmpl_push_inst_return(next);
+    if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
+  }
+
   inst_gdef = scm_cmpl_cons_inst_gdef(var);
   if (scm_obj_null_p(inst_gdef)) return SCM_OBJ_NULL;
 
@@ -1149,6 +1174,11 @@ scm_cmpl_compile_reference(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
     return SCM_OBJ_NULL;
   }
 
+  if (tail_p) {
+    next = scm_cmpl_push_inst_return(next);
+    if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
+  }
+
   if (idx >= 0)
     inst_ref = scm_cmpl_cons_inst_sref(idx, layer);
   else
@@ -1169,6 +1199,11 @@ scm_cmpl_compile_self_eval(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
 
   SCM_STACK_FRAME_PUSH(&exp, &env, &next,
                        &inst_immval);
+
+  if (tail_p) {
+    next = scm_cmpl_push_inst_return(next);
+    if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
+  }
 
   inst_immval = scm_cmpl_cons_inst_immval(exp);
   if (scm_obj_null_p(inst_immval)) return SCM_OBJ_NULL;
@@ -1420,27 +1455,20 @@ static ScmObj
 scm_cmpl_make_closure_code(ScmObj body, ScmObj env,
                            size_t nr_param, ssize_t *rdepth)
 {
-  ScmObj inst_ret = SCM_OBJ_INIT, inst_box = SCM_OBJ_INIT;
-  ScmObj inst_close = SCM_OBJ_INIT;
-  ScmObj body_code = SCM_OBJ_INIT;
+  ScmObj inst_box = SCM_OBJ_INIT, inst_close = SCM_OBJ_INIT;
+  ScmObj body_code = SCM_OBJ_INIT, nil = SCM_OBJ_INIT;
   scm_sword_t nr_env;
   bool assigned;
   int rslt;
 
   SCM_STACK_FRAME_PUSH(&body, &env,
-                       &inst_ret, &inst_box,
-                       &inst_close,
-                       &body_code);
+                       &inst_box, &inst_close,
+                       &body_code, &nil);
 
-  inst_ret = scm_cmpl_cons_inst_return();
-  if (scm_obj_null_p(inst_ret)) return SCM_OBJ_NULL;
+  nil = scm_api_nil();
+  if (scm_obj_null_p(nil)) return SCM_OBJ_NULL;
 
-  inst_ret = scm_capi_list(1, inst_ret);
-  if (scm_obj_null_p(inst_ret)) return SCM_OBJ_NULL;
-
-  /* XXX: クロージャの本体最後が tail-call であっても本体のアセンブラコードの最
-   *      後には無条件で return 命令が付与される。 */
-  body_code = scm_cmpl_compile_body(body, env, inst_ret,
+  body_code = scm_cmpl_compile_body(body, env, nil,
                                     true, false, rdepth);
   if (scm_obj_null_p(body_code)) return SCM_OBJ_NULL;
 
@@ -1510,10 +1538,12 @@ scm_cmpl_compile_lambda(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
 
   if (nr_params > 0 && *rdepth >= 0) (*rdepth)--;
 
-  next = scm_api_cons(inst_close, next);
-  if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
+  if (tail_p) {
+    next = scm_cmpl_push_inst_return(next);
+    if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
+  }
 
-  return next;
+  return scm_api_cons(inst_close, next);
 }
 
 static int
@@ -1706,11 +1736,13 @@ scm_cmpl_compile_let(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
     new_env = scm_cmpl_env_cons(vars, false, env);
     if (scm_obj_null_p(new_env)) return SCM_OBJ_NULL;
 
-    inst_epop = scm_cmpl_cons_inst_epop();
-    if (scm_obj_null_p(inst_epop)) return SCM_OBJ_NULL;
+    if (!tail_p) {
+      inst_epop = scm_cmpl_cons_inst_epop();
+      if (scm_obj_null_p(inst_epop)) return SCM_OBJ_NULL;
 
-    next = scm_api_cons(inst_epop, next);
-    if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
+      next = scm_api_cons(inst_epop, next);
+      if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
+    }
   }
   else {
     new_env = env;
@@ -1803,11 +1835,13 @@ scm_cmpl_compile_letrec(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
     new_env = scm_cmpl_env_cons(vars, false, env);
     if (scm_obj_null_p(new_env)) return SCM_OBJ_NULL;
 
-    inst_epop = scm_cmpl_cons_inst_epop();
-    if (scm_obj_null_p(inst_epop)) return SCM_OBJ_NULL;
+    if (!tail_p) {
+      inst_epop = scm_cmpl_cons_inst_epop();
+      if (scm_obj_null_p(inst_epop)) return SCM_OBJ_NULL;
 
-    next = scm_api_cons(inst_epop, next);
-    if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
+      next = scm_api_cons(inst_epop, next);
+      if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
+    }
   }
   else {
     new_env = env;
@@ -1891,11 +1925,13 @@ scm_cmpl_compile_letrec_a(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
     new_env = scm_cmpl_env_cons(vars, false, env);
     if (scm_obj_null_p(new_env)) return SCM_OBJ_NULL;
 
-    inst_epop = scm_cmpl_cons_inst_epop();
-    if (scm_obj_null_p(inst_epop)) return SCM_OBJ_NULL;
+    if (!tail_p) {
+      inst_epop = scm_cmpl_cons_inst_epop();
+      if (scm_obj_null_p(inst_epop)) return SCM_OBJ_NULL;
 
-    next = scm_api_cons(inst_epop, next);
-    if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
+      next = scm_api_cons(inst_epop, next);
+      if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
+    }
   }
   else {
     new_env = env;
@@ -2048,6 +2084,11 @@ scm_cmpl_compile_assignment(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
     return SCM_OBJ_NULL;
   }
 
+  if (tail_p) {
+    next = scm_cmpl_push_inst_return(next);
+    if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
+  }
+
   if (idx >= 0)
     inst_set = scm_cmpl_cons_inst_sset(idx, layer);
   else
@@ -2158,15 +2199,17 @@ scm_cmpl_compile_if(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
 
   if (rslt < 0) return SCM_OBJ_NULL;
 
-  /* if 分岐後の合流地点のラベル定義を next 直前に追加 */
-  lbl_junc = scm_cmpl_gen_label("if-j");
-  if (scm_obj_null_p(lbl_junc)) return SCM_OBJ_NULL;
+  if (!tail_p) {
+    /* if 分岐後の合流地点のラベル定義を next 直前に追加 */
+    lbl_junc = scm_cmpl_gen_label("if-j");
+    if (scm_obj_null_p(lbl_junc)) return SCM_OBJ_NULL;
 
-  def_lbl = scm_cmpl_cons_inst_label(lbl_junc);
-  if (scm_obj_null_p(def_lbl)) return SCM_OBJ_NULL;
+    def_lbl = scm_cmpl_cons_inst_label(lbl_junc);
+    if (scm_obj_null_p(def_lbl)) return SCM_OBJ_NULL;
 
-  next = scm_api_cons(def_lbl, next);
-  if (scm_obj_null_p(next)) return  SCM_OBJ_NULL;
+    next = scm_api_cons(def_lbl, next);
+    if (scm_obj_null_p(next)) return  SCM_OBJ_NULL;
+  }
 
   *rdepth = -1;
   if (scm_obj_not_null_p(alter)) {
@@ -2187,12 +2230,14 @@ scm_cmpl_compile_if(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
     next = scm_api_cons(def_lbl, next);
     if (scm_obj_null_p(next)) return  SCM_OBJ_NULL;
 
-    /* consequnece 節実行後に合流地点へジャンプする命令を追加 */
-    jmp_junc = scm_cmpl_cons_inst_jmp(lbl_junc);
-    if (scm_obj_null_p(jmp_junc)) return  SCM_OBJ_NULL;
+    if (!tail_p) {
+      /* consequnece 節実行後に合流地点へジャンプする命令を追加 */
+      jmp_junc = scm_cmpl_cons_inst_jmp(lbl_junc);
+      if (scm_obj_null_p(jmp_junc)) return  SCM_OBJ_NULL;
 
-    next = scm_api_cons(jmp_junc, next);
-    if (scm_obj_null_p(next)) return  SCM_OBJ_NULL;
+      next = scm_api_cons(jmp_junc, next);
+      if (scm_obj_null_p(next)) return  SCM_OBJ_NULL;
+    }
 
     /* condition 節が false value の場合に alternative 節直前にジャンプする
        命令の作成 */
