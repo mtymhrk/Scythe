@@ -310,8 +310,9 @@ test_parser_parse_quote(void)
 {
   ScmObj lst = SCM_OBJ_INIT, car = SCM_OBJ_INIT;
   ScmObj cdr = SCM_OBJ_INIT, eof = SCM_OBJ_INIT;
+  ScmObj sym = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst, &car, &cdr, &eof);
+  SCM_STACK_FRAME_PUSH(&lst, &car, &cdr, &eof, &sym);
 
   new_parser();
   new_port(" '^abc ");
@@ -324,9 +325,9 @@ test_parser_parse_quote(void)
   cdr = scm_api_cdr(lst);
 
   cut_assert_true(scm_capi_symbol_p(car));
-  cut_assert_true(scm_capi_eq_p(scm_capi_make_symbol_from_cstr("quote",
-                                                               SCM_ENC_ASCII),
-                                car));
+
+  sym = scm_capi_make_symbol_from_cstr("quote", SCM_ENC_ASCII);
+  cut_assert_true(scm_capi_eq_p(sym, car));
 
   cut_assert_true(scm_capi_pair_p(cdr));
 
@@ -334,9 +335,9 @@ test_parser_parse_quote(void)
   cdr = scm_api_cdr(cdr);
 
   cut_assert_true(scm_capi_symbol_p(car));
-  cut_assert_true(scm_capi_eq_p(scm_capi_make_symbol_from_cstr("^abc",
-                                                               SCM_ENC_ASCII),
-                                car));
+
+  sym = scm_capi_make_symbol_from_cstr("^abc", SCM_ENC_ASCII);
+  cut_assert_true(scm_capi_eq_p(sym, car));
 
   cut_assert_true(scm_capi_nil_p(cdr));
 
@@ -349,8 +350,9 @@ test_parser_parse_quasiquote(void)
 {
   ScmObj lst = SCM_OBJ_INIT, car = SCM_OBJ_INIT;
   ScmObj cdr = SCM_OBJ_INIT, eof = SCM_OBJ_INIT;
+  ScmObj sym = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst, &car, &cdr, &eof);
+  SCM_STACK_FRAME_PUSH(&lst, &car, &cdr, &eof, &sym);
 
   new_parser();
   new_port(" `abc12abc ");
@@ -363,9 +365,9 @@ test_parser_parse_quasiquote(void)
   cdr = scm_api_cdr(lst);
 
   cut_assert_true(scm_capi_symbol_p(car));
-  cut_assert_true(scm_capi_eq_p(scm_capi_make_symbol_from_cstr("quasiquote",
-                                                               SCM_ENC_ASCII),
-                                car));
+
+  sym = scm_capi_make_symbol_from_cstr("quasiquote", SCM_ENC_ASCII);
+  cut_assert_true(scm_capi_eq_p(sym, car));
 
   cut_assert_true(scm_capi_pair_p(cdr));
 
@@ -373,9 +375,9 @@ test_parser_parse_quasiquote(void)
   cdr = scm_api_cdr(cdr);
 
   cut_assert_true(scm_capi_symbol_p(car));
-  cut_assert_true(scm_capi_eq_p(scm_capi_make_symbol_from_cstr("abc12abc",
-                                                               SCM_ENC_ASCII),
-                                car));
+
+  sym = scm_capi_make_symbol_from_cstr("abc12abc", SCM_ENC_ASCII);
+  cut_assert_true(scm_capi_eq_p(sym, car));
 
   cut_assert_true(scm_capi_nil_p(cdr));
 
@@ -388,8 +390,9 @@ test_parser_parse_unquote(void)
 {
   ScmObj lst = SCM_OBJ_INIT, car = SCM_OBJ_INIT;
   ScmObj cdr = SCM_OBJ_INIT, eof = SCM_OBJ_INIT;
+  ScmObj sym = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst, &car, &cdr, &eof);
+  SCM_STACK_FRAME_PUSH(&lst, &car, &cdr, &eof, &sym);
 
   new_parser();
   new_port(" ,&ab-12 ");
@@ -402,9 +405,9 @@ test_parser_parse_unquote(void)
   cdr = scm_api_cdr(lst);
 
   cut_assert_true(scm_capi_symbol_p(car));
-  cut_assert_true(scm_capi_eq_p(scm_capi_make_symbol_from_cstr("unquote",
-                                                               SCM_ENC_ASCII),
-                                car));
+
+  sym = scm_capi_make_symbol_from_cstr("unquote", SCM_ENC_ASCII);
+  cut_assert_true(scm_capi_eq_p(sym, car));
 
   cut_assert_true(scm_capi_pair_p(cdr));
 
@@ -412,9 +415,9 @@ test_parser_parse_unquote(void)
   cdr = scm_api_cdr(cdr);
 
   cut_assert_true(scm_capi_symbol_p(car));
-  cut_assert_true(scm_capi_eq_p(scm_capi_make_symbol_from_cstr("&ab-12",
-                                                               SCM_ENC_ASCII),
-                                car));
+
+  sym = scm_capi_make_symbol_from_cstr("&ab-12", SCM_ENC_ASCII);
+  cut_assert_true(scm_capi_eq_p(sym, car));
 
   cut_assert_true(scm_capi_nil_p(cdr));
 
@@ -427,8 +430,9 @@ test_parser_parse_unquote_splicing(void)
 {
   ScmObj lst = SCM_OBJ_INIT, car = SCM_OBJ_INIT;
   ScmObj cdr = SCM_OBJ_INIT, eof = SCM_OBJ_INIT;
+  ScmObj sym = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst, &car, &cdr, &eof);
+  SCM_STACK_FRAME_PUSH(&lst, &car, &cdr, &eof, &sym);
 
   new_parser();
   new_port(" ,@?abc.12 ");
@@ -441,8 +445,9 @@ test_parser_parse_unquote_splicing(void)
   cdr = scm_api_cdr(lst);
 
   cut_assert_true(scm_capi_symbol_p(car));
-  cut_assert_true(scm_capi_eq_p(scm_capi_make_symbol_from_cstr("unquote-splicing", SCM_ENC_ASCII),
-                                car));
+
+  sym = scm_capi_make_symbol_from_cstr("unquote-splicing", SCM_ENC_ASCII);
+  cut_assert_true(scm_capi_eq_p(sym, car));
 
   cut_assert_true(scm_capi_pair_p(cdr));
 
@@ -450,9 +455,9 @@ test_parser_parse_unquote_splicing(void)
   cdr = scm_api_cdr(cdr);
 
   cut_assert_true(scm_capi_symbol_p(car));
-  cut_assert_true(scm_capi_eq_p(scm_capi_make_symbol_from_cstr("?abc.12",
-                                                               SCM_ENC_ASCII),
-                                car));
+
+  sym = scm_capi_make_symbol_from_cstr("?abc.12", SCM_ENC_ASCII);
+  cut_assert_true(scm_capi_eq_p(sym, car));
 
   cut_assert_true(scm_capi_nil_p(cdr));
 
@@ -483,9 +488,9 @@ test_parser_parse_proper_list(void)
   char actual[256];
   scm_sword_t actual_num;
   ScmObj lst = SCM_OBJ_INIT, car= SCM_OBJ_INIT, cdr = SCM_OBJ_INIT;
-  ScmObj eof = SCM_OBJ_INIT;
+  ScmObj eof = SCM_OBJ_INIT, sym = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst, &car, &cdr, &eof);
+  SCM_STACK_FRAME_PUSH(&lst, &car, &cdr, &eof, &sym);
 
   new_parser();
   new_port("(<abc> 123 \"str\" :def:)");
@@ -498,9 +503,9 @@ test_parser_parse_proper_list(void)
   cdr = scm_api_cdr(lst);
 
   cut_assert_true(scm_capi_symbol_p(car));
-  cut_assert_true(scm_capi_eq_p(scm_capi_make_symbol_from_cstr("<abc>",
-                                                               SCM_ENC_ASCII),
-                                car));
+
+  sym = scm_capi_make_symbol_from_cstr("<abc>", SCM_ENC_ASCII);
+  cut_assert_true(scm_capi_eq_p(sym, car));
 
   cut_assert_true(scm_capi_pair_p(cdr));
 
@@ -526,9 +531,9 @@ test_parser_parse_proper_list(void)
   cdr = scm_api_cdr(cdr);
 
   cut_assert_true(scm_capi_symbol_p(car));
-  cut_assert_true(scm_capi_eq_p(scm_capi_make_symbol_from_cstr(":def:",
-                                                               SCM_ENC_ASCII),
-                                car));
+
+  sym = scm_capi_make_symbol_from_cstr(":def:", SCM_ENC_ASCII);
+  cut_assert_true(scm_capi_eq_p(sym, car));
 
   cut_assert_true(scm_capi_nil_p(cdr));
 
@@ -540,10 +545,10 @@ void
 test_parser_parse_improper_list(void)
 {
   ScmObj lst = SCM_OBJ_INIT, car = SCM_OBJ_INIT, cdr = SCM_OBJ_INIT;
-  ScmObj eof = SCM_OBJ_INIT;
+  ScmObj eof = SCM_OBJ_INIT, sym = SCM_OBJ_INIT;
   scm_sword_t actual_num;
 
-  SCM_STACK_FRAME_PUSH(&lst, &car, &cdr, &eof);
+  SCM_STACK_FRAME_PUSH(&lst, &car, &cdr, &eof, &sym);
 
   new_parser();
   new_port(" (<abc> . 123) ");
@@ -556,9 +561,9 @@ test_parser_parse_improper_list(void)
   cdr = scm_api_cdr(lst);
 
   cut_assert_true(scm_capi_symbol_p(car));
-  cut_assert_true(scm_capi_eq_p(scm_capi_make_symbol_from_cstr("<abc>",
-                                                               SCM_ENC_ASCII),
-                                car));
+
+  sym = scm_capi_make_symbol_from_cstr("<abc>", SCM_ENC_ASCII);
+  cut_assert_true(scm_capi_eq_p(sym, car));
 
   cut_assert_true(scm_capi_fixnum_p(cdr));
   scm_capi_num_to_sword(cdr, &actual_num);
@@ -644,10 +649,10 @@ void
 test_parse_parse_list_inserted_comment(void)
 {
   ScmObj lst = SCM_OBJ_INIT, car = SCM_OBJ_INIT, cdr = SCM_OBJ_INIT;
-  ScmObj eof = SCM_OBJ_INIT;
+  ScmObj eof = SCM_OBJ_INIT, sym = SCM_OBJ_INIT;
   scm_sword_t actual_num;
 
-  SCM_STACK_FRAME_PUSH(&lst, &car, &cdr, &eof);
+  SCM_STACK_FRAME_PUSH(&lst, &car, &cdr, &eof, &sym);
 
   new_parser();
   new_port("(<abc> ; comment \n 123)");
@@ -660,9 +665,9 @@ test_parse_parse_list_inserted_comment(void)
   cdr = scm_api_cdr(lst);
 
   cut_assert_true(scm_capi_symbol_p(car));
-  cut_assert_true(scm_capi_eq_p(scm_capi_make_symbol_from_cstr("<abc>",
-                                                               SCM_ENC_ASCII),
-                                car));
+
+  sym = scm_capi_make_symbol_from_cstr("<abc>", SCM_ENC_ASCII);
+  cut_assert_true(scm_capi_eq_p(sym, car));
 
   cut_assert_true(scm_capi_pair_p(cdr));
 
@@ -705,8 +710,9 @@ test_parser_parse_vector(void)
   scm_sword_t actual_num;
   ScmObj vec = SCM_OBJ_INIT, elm0 = SCM_OBJ_INIT, elm1 = SCM_OBJ_INIT;
   ScmObj elm2 = SCM_OBJ_INIT, elm3 = SCM_OBJ_INIT, eof = SCM_OBJ_INIT;
+  ScmObj sym = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec, &elm0, &elm1, &elm2, &elm3, &eof);
+  SCM_STACK_FRAME_PUSH(&vec, &elm0, &elm1, &elm2, &elm3, &eof, &sym);
 
   new_parser();
   new_port(" #(<abc> 123 \"str\" #()) ");
@@ -724,9 +730,9 @@ test_parser_parse_vector(void)
 
 
   cut_assert_true(scm_capi_symbol_p(elm0));
-  cut_assert_true(scm_capi_eq_p(scm_capi_make_symbol_from_cstr("<abc>",
-                                                               SCM_ENC_ASCII),
-                                elm0));
+
+  sym = scm_capi_make_symbol_from_cstr("<abc>", SCM_ENC_ASCII);
+  cut_assert_true(scm_capi_eq_p(sym, elm0));
 
   cut_assert_true(scm_capi_fixnum_p(elm1));
   scm_capi_num_to_sword(elm1, &actual_num);
