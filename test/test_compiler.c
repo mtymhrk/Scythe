@@ -916,6 +916,7 @@ test_scm_api_compile__begin_1(void)
   cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
 }
 
+void
 test_scm_api_compile__begin_2(void)
 {
   ScmObj exp = SCM_OBJ_INIT, port = SCM_OBJ_INIT;
