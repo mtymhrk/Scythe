@@ -831,6 +831,8 @@ scm_cmpl_decons_body(ScmObj body, ScmObj env, bool tail_p, bool toplevel_p,
   ScmObj exp_lst = SCM_OBJ_INIT, exp = SCM_OBJ_INIT;
   ScmObj var = SCM_OBJ_INIT, init = SCM_OBJ_INIT;
   ScmObj vvec = SCM_OBJ_INIT, ivec = SCM_OBJ_INIT, evec = SCM_OBJ_INIT;
+  ScmObj nil = SCM_OBJ_INIT;
+  ssize_t len;
   int id, rslt;
 
   SCM_STACK_FRAME_PUSH(&body, &env,
@@ -838,7 +840,8 @@ scm_cmpl_decons_body(ScmObj body, ScmObj env, bool tail_p, bool toplevel_p,
                        &exps_stack,
                        &exp_lst, &exp,
                        &var, &init,
-                       &vvec, &ivec, &evec);
+                       &vvec, &ivec, &evec,
+                       &nil);
 
   var_stack = scm_cmpl_stack_new();
   if (scm_obj_null_p(var_stack)) return -1;
@@ -888,8 +891,14 @@ scm_cmpl_decons_body(ScmObj body, ScmObj env, bool tail_p, bool toplevel_p,
         exp_lst = scm_api_cdr(exp_lst);
         if (scm_obj_null_p(exp_lst)) return -1;
 
-        rslt = scm_cmpl_stack_push(exps_stack, exp_lst);
-        if (rslt < 0) return -1;
+        if (scm_capi_pair_p(exp_lst)) {
+          rslt = scm_cmpl_stack_push(exps_stack, exp_lst);
+          if (rslt < 0) return -1;
+        }
+        else if (!scm_capi_nil_p(exp_lst)) {
+          scm_capi_error("Compiler: malformed <body>", 0);
+          return -1;
+        }
 
         rslt = scm_cmpl_decons_begin(exp, SCM_CSETTER_L(exp_lst));
         if (rslt < 0) return -1;
@@ -901,9 +910,25 @@ scm_cmpl_decons_body(ScmObj body, ScmObj env, bool tail_p, bool toplevel_p,
         goto done;
       }
     }
+
+    if (!scm_capi_nil_p(exp_lst)) {
+      scm_capi_error("Compiler: malformed <body>", 0);
+      return -1;
+    }
   }
 
  done:
+
+  len = scm_cmpl_stack_len(exps_stack);
+  if (len < 0) return -1;
+
+  if (len == 0) {
+    nil = scm_api_nil();
+    if (scm_obj_null_p(nil)) return SCM_OBJ_NULL;
+
+    rslt = scm_cmpl_stack_push(exps_stack, nil);
+    if (rslt < 0) return -1;
+  }
 
   vvec = scm_cmpl_stack_to_rvec(var_stack);
   if (scm_obj_null_p(vvec)) return SCM_OBJ_NULL;
@@ -966,8 +991,8 @@ scm_cmpl_compile_body(ScmObj body, ScmObj env, ScmObj next, bool tail_p,
   nr_exps = scm_capi_vector_length(expls);
   if (nr_exps < 0) return SCM_OBJ_NULL;
 
-  tl_p = tail_p;
   *rdepth = -1;
+  tl_p = tail_p;
   for (ssize_t i = nr_exps; i > 0; i--) {
     exp_lst = scm_capi_vector_ref(expls, (size_t)i - 1);
     if (scm_obj_null_p(exp_lst)) return SCM_OBJ_NULL;
