@@ -95,11 +95,39 @@ scm_cmpl_cons_inst_undef(void)
 }
 
 static ScmObj
+scm_cmpl_push_inst_undef(ScmObj next)
+{
+  ScmObj inst_undef = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&next,
+                       &inst_undef);
+
+  inst_undef = scm_cmpl_cons_inst_undef();
+  if (scm_obj_null_p(inst_undef)) return SCM_OBJ_NULL;
+
+  return scm_api_cons(inst_undef, next);
+}
+
+static ScmObj
 scm_cmpl_cons_inst_call(scm_sword_t narg)
 {
   scm_assert(narg >= 0);
 
   return scm_cmpl_cons_inst_si(SCM_OPCODE_CALL, narg);
+}
+
+static ScmObj
+scm_cmpl_push_inst_call(scm_sword_t narg, ScmObj next)
+{
+  ScmObj inst_call = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&next,
+                       &inst_call);
+
+  inst_call = scm_cmpl_cons_inst_call(narg);
+  if (scm_obj_null_p(inst_call)) return SCM_OBJ_NULL;
+
+  return scm_api_cons(inst_call, next);
 }
 
 static ScmObj
@@ -111,9 +139,37 @@ scm_cmpl_cons_inst_tcall(scm_sword_t narg)
 }
 
 static ScmObj
+scm_cmpl_push_inst_tcall(scm_sword_t narg, ScmObj next)
+{
+  ScmObj inst_tcall = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&next,
+                       &inst_tcall);
+
+  inst_tcall = scm_cmpl_cons_inst_tcall(narg);
+  if (scm_obj_null_p(inst_tcall)) return SCM_OBJ_NULL;
+
+  return scm_api_cons(inst_tcall, next);
+}
+
+static ScmObj
 scm_cmpl_cons_inst_return(void)
 {
   return scm_cmpl_cons_inst_noopd(SCM_OPCODE_RETURN);
+}
+
+static ScmObj
+scm_cmpl_push_inst_return(ScmObj next)
+{
+  ScmObj inst_ret = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&next,
+                       &inst_ret);
+
+  inst_ret = scm_cmpl_cons_inst_return();
+  if (scm_obj_null_p(inst_ret)) return SCM_OBJ_NULL;
+
+  return scm_api_cons(inst_ret, next);
 }
 
 static ScmObj
@@ -123,9 +179,37 @@ scm_cmpl_cons_inst_frame(void)
 }
 
 static ScmObj
+scm_cmpl_push_inst_frame(ScmObj next)
+{
+  ScmObj inst_frame = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&next,
+                       &inst_frame);
+
+  inst_frame = scm_cmpl_cons_inst_frame();
+  if (scm_obj_null_p(inst_frame)) return SCM_OBJ_NULL;
+
+  return scm_api_cons(inst_frame, next);
+}
+
+static ScmObj
 scm_cmpl_cons_inst_cframe(void)
 {
   return scm_cmpl_cons_inst_noopd(SCM_OPCODE_CFRAME);
+}
+
+static ScmObj
+scm_cmpl_push_inst_cframe(ScmObj next)
+{
+  ScmObj inst_cframe = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&next,
+                       &inst_cframe);
+
+  inst_cframe = scm_cmpl_cons_inst_cframe();
+  if (scm_obj_null_p(inst_cframe)) return SCM_OBJ_NULL;
+
+  return scm_api_cons(inst_cframe, next);
 }
 
 static ScmObj
@@ -135,9 +219,37 @@ scm_cmpl_cons_inst_eframe(void)
 }
 
 static ScmObj
+scm_cmpl_push_inst_eframe(ScmObj next)
+{
+  ScmObj inst_eframe = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&next,
+                       &inst_eframe);
+
+  inst_eframe = scm_cmpl_cons_inst_eframe();
+  if (scm_obj_null_p(inst_eframe)) return SCM_OBJ_NULL;
+
+  return scm_api_cons(inst_eframe, next);
+}
+
+static ScmObj
 scm_cmpl_cons_inst_ecommit(scm_sword_t narg)
 {
   return scm_cmpl_cons_inst_si(SCM_OPCODE_ECOMMIT, narg);
+}
+
+static ScmObj
+scm_cmpl_push_inst_ecommit(scm_sword_t narg, ScmObj next)
+{
+  ScmObj inst_ecommit = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&next,
+                       &inst_ecommit);
+
+  inst_ecommit = scm_cmpl_cons_inst_ecommit(narg);
+  if (scm_obj_null_p(inst_ecommit)) return SCM_OBJ_NULL;
+
+  return scm_api_cons(inst_ecommit, next);
 }
 
 static ScmObj
@@ -147,9 +259,37 @@ scm_cmpl_cons_inst_epop(void)
 }
 
 static ScmObj
+scm_cmpl_push_inst_epop(ScmObj next)
+{
+  ScmObj inst_epop = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&next,
+                       &inst_epop);
+
+  inst_epop = scm_cmpl_cons_inst_epop();
+  if (scm_obj_null_p(inst_epop)) return SCM_OBJ_NULL;
+
+  return scm_api_cons(inst_epop, next);
+}
+
+static ScmObj
 scm_cmpl_cons_inst_immval(ScmObj val)
 {
   return scm_cmpl_cons_inst_obj(SCM_OPCODE_IMMVAL, val);
+}
+
+static ScmObj
+scm_cmpl_push_inst_immval(ScmObj val, ScmObj next)
+{
+  ScmObj inst_immval = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&val, &next,
+                       &inst_immval);
+
+  inst_immval = scm_cmpl_cons_inst_immval(val);
+  if (scm_obj_null_p(inst_immval)) return SCM_OBJ_NULL;
+
+  return scm_api_cons(inst_immval, next);
 }
 
 static ScmObj
@@ -159,15 +299,57 @@ scm_cmpl_cons_inst_push(void)
 }
 
 static ScmObj
+scm_cmpl_push_inst_push(ScmObj next)
+{
+  ScmObj inst_push = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&next,
+                       &inst_push);
+
+  inst_push = scm_cmpl_cons_inst_push();
+  if (scm_obj_null_p(inst_push)) return SCM_OBJ_NULL;
+
+  return scm_api_cons(inst_push, next);
+}
+
+static ScmObj
 scm_cmpl_cons_inst_gref(ScmObj sym)
 {
   return scm_cmpl_cons_inst_obj(SCM_OPCODE_GREF, sym);
 }
 
 static ScmObj
+scm_cmpl_push_inst_gref(ScmObj sym, ScmObj next)
+{
+  ScmObj inst_gref = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&sym, &next,
+                       &inst_gref);
+
+  inst_gref = scm_cmpl_cons_inst_gref(sym);
+  if (scm_obj_null_p(inst_gref)) return SCM_OBJ_NULL;
+
+  return scm_api_cons(inst_gref, next);
+}
+
+static ScmObj
 scm_cmpl_cons_inst_gdef(ScmObj sym)
 {
   return scm_cmpl_cons_inst_obj(SCM_OPCODE_GDEF, sym);
+}
+
+static ScmObj
+scm_cmpl_push_inst_gdef(ScmObj sym, ScmObj next)
+{
+  ScmObj inst_gdef = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&sym, &next,
+                       &inst_gdef);
+
+  inst_gdef = scm_cmpl_cons_inst_gdef(sym);
+  if (scm_obj_null_p(inst_gdef)) return SCM_OBJ_NULL;
+
+  return scm_api_cons(inst_gdef, next);
 }
 
 static ScmObj
@@ -181,12 +363,40 @@ scm_cmpl_cons_inst_gset(ScmObj sym)
 }
 
 static ScmObj
+scm_cmpl_push_inst_gset(ScmObj sym, ScmObj next)
+{
+  ScmObj inst_gset = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&sym, &next,
+                       &inst_gset);
+
+  inst_gset = scm_cmpl_cons_inst_gset(sym);
+  if (scm_obj_null_p(inst_gset)) return SCM_OBJ_NULL;
+
+  return scm_api_cons(inst_gset, next);
+}
+
+static ScmObj
 scm_cmpl_cons_inst_sref(scm_sword_t idx, scm_sword_t layer)
 {
   scm_assert(idx >= 0);
   scm_assert(layer >= 0);
 
   return scm_cmpl_cons_inst_si_si(SCM_OPCODE_SREF, idx, layer);
+}
+
+static ScmObj
+scm_cmpl_push_inst_sref(scm_sword_t idx, scm_sword_t layer, ScmObj next)
+{
+  ScmObj inst_sref = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&next,
+                       &inst_sref);
+
+  inst_sref = scm_cmpl_cons_inst_sref(idx, layer);
+  if (scm_obj_null_p(inst_sref)) return SCM_OBJ_NULL;
+
+  return scm_api_cons(inst_sref, next);
 }
 
 static ScmObj
@@ -199,15 +409,57 @@ scm_cmpl_cons_inst_sset(scm_sword_t idx, scm_sword_t layer)
 }
 
 static ScmObj
+scm_cmpl_push_inst_sset(scm_sword_t idx, scm_sword_t layer, ScmObj next)
+{
+  ScmObj inst_sset = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&next,
+                       &inst_sset);
+
+  inst_sset = scm_cmpl_cons_inst_sset(idx, layer);
+  if (scm_obj_null_p(inst_sset)) return SCM_OBJ_NULL;
+
+  return scm_api_cons(inst_sset, next);
+}
+
+static ScmObj
 scm_cmpl_cons_inst_jmp(ScmObj lbl)
 {
   return scm_cmpl_cons_inst_obj(SCM_OPCODE_JMP, lbl);
 }
 
 static ScmObj
+scm_cmpl_push_inst_jmp(ScmObj lbl, ScmObj next)
+{
+  ScmObj inst_jmp = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&lbl, &next,
+                       &inst_jmp);
+
+  inst_jmp = scm_cmpl_cons_inst_jmp(lbl);
+  if (scm_obj_null_p(inst_jmp)) return SCM_OBJ_NULL;
+
+  return scm_api_cons(inst_jmp, next);
+}
+
+static ScmObj
 scm_cmpl_cons_inst_jmpf(ScmObj lbl)
 {
   return scm_cmpl_cons_inst_obj(SCM_OPCODE_JMPF, lbl);
+}
+
+static ScmObj
+scm_cmpl_push_inst_jmpf(ScmObj lbl, ScmObj next)
+{
+  ScmObj inst_jmpf = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&lbl, &next,
+                       &inst_jmpf);
+
+  inst_jmpf = scm_cmpl_cons_inst_jmpf(lbl);
+  if (scm_obj_null_p(inst_jmpf)) return SCM_OBJ_NULL;
+
+  return scm_api_cons(inst_jmpf, next);
 }
 
 static ScmObj
@@ -220,6 +472,20 @@ scm_cmpl_cons_inst_box(scm_sword_t idx, scm_sword_t layer)
 }
 
 static ScmObj
+scm_cmpl_push_inst_box(scm_sword_t idx, scm_sword_t layer, ScmObj next)
+{
+  ScmObj inst_box = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&next,
+                       &inst_box);
+
+  inst_box = scm_cmpl_cons_inst_box(idx, layer);
+  if (scm_obj_null_p(inst_box)) return SCM_OBJ_NULL;
+
+  return scm_api_cons(inst_box, next);
+}
+
+static ScmObj
 scm_cmpl_cons_inst_demine(scm_sword_t idx, scm_sword_t layer)
 {
   scm_assert(idx >= 0);
@@ -229,11 +495,39 @@ scm_cmpl_cons_inst_demine(scm_sword_t idx, scm_sword_t layer)
 }
 
 static ScmObj
+scm_cmpl_push_inst_demine(scm_sword_t idx, scm_sword_t layer, ScmObj next)
+{
+  ScmObj inst_demine = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&next,
+                       &inst_demine);
+
+  inst_demine = scm_cmpl_cons_inst_demine(idx, layer);
+  if (scm_obj_null_p(inst_demine)) return SCM_OBJ_NULL;
+
+  return scm_api_cons(inst_demine, next);
+}
+
+static ScmObj
 scm_cmpl_cons_inst_emine(scm_sword_t narg)
 {
   scm_assert(narg >= 0);
 
   return scm_cmpl_cons_inst_si(SCM_OPCODE_EMINE, narg);
+}
+
+static ScmObj
+scm_cmpl_push_inst_emine(scm_sword_t narg, ScmObj next)
+{
+  ScmObj inst_emine = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&next,
+                       &inst_emine);
+
+  inst_emine = scm_cmpl_cons_inst_emine(narg);
+  if (scm_obj_null_p(inst_emine)) return SCM_OBJ_NULL;
+
+  return scm_api_cons(inst_emine, next);
 }
 
 static ScmObj
@@ -246,9 +540,37 @@ scm_cmpl_cons_inst_edemine(scm_sword_t narg, scm_sword_t layer)
 }
 
 static ScmObj
+scm_cmpl_push_inst_edemine(scm_sword_t narg, scm_sword_t layer, ScmObj next)
+{
+  ScmObj inst_edemine = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&next,
+                       &inst_edemine);
+
+  inst_edemine = scm_cmpl_cons_inst_edemine(narg, layer);
+  if (scm_obj_null_p(inst_edemine)) return SCM_OBJ_NULL;
+
+  return scm_api_cons(inst_edemine, next);
+}
+
+static ScmObj
 scm_cmpl_cons_inst_label(ScmObj lbl)
 {
   return scm_cmpl_cons_inst_obj(SCM_ASM_PI_LABEL, lbl);
+}
+
+static ScmObj
+scm_cmpl_push_inst_label(ScmObj lbl, ScmObj next)
+{
+  ScmObj inst_label = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&lbl, &next,
+                       &inst_label);
+
+  inst_label = scm_cmpl_cons_inst_label(lbl);
+  if (scm_obj_null_p(inst_label)) return SCM_OBJ_NULL;
+
+  return scm_api_cons(inst_label, next);
 }
 
 static ScmObj
@@ -257,6 +579,20 @@ scm_cmpl_cons_inst_asm_close(scm_sword_t nr_free, ScmObj code)
   scm_assert(nr_free >= 0);
 
   return scm_cmpl_cons_inst_si_obj(SCM_ASM_PI_ASM_CLOSE, nr_free, code);
+}
+
+static ScmObj
+scm_cmpl_push_inst_asm_close(scm_sword_t nr_free, ScmObj code, ScmObj next)
+{
+  ScmObj inst_asm_close = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&next,
+                       &inst_asm_close);
+
+  inst_asm_close = scm_cmpl_cons_inst_asm_close(nr_free, code);
+  if (scm_obj_null_p(inst_asm_close)) return SCM_OBJ_NULL;
+
+  return scm_api_cons(inst_asm_close, next);
 }
 
 static ScmObj
@@ -633,20 +969,6 @@ scm_cmpl_gen_label(const char *prefix)
   return scm_capi_make_symbol_from_cstr(str, SCM_ENC_ASCII);
 }
 
-static ScmObj
-scm_cmpl_push_inst_return(ScmObj next)
-{
-  ScmObj inst_ret = SCM_OBJ_INIT;
-
-  SCM_STACK_FRAME_PUSH(&next,
-                       &inst_ret);
-
-  inst_ret = scm_cmpl_cons_inst_return();
-  if (scm_obj_null_p(inst_ret)) return SCM_OBJ_NULL;
-
-  return scm_api_cons(inst_ret, next);
-}
-
 static ScmObj scm_cmpl_compile_empty(ScmObj exp, ScmObj env, ScmObj next,
                                      bool tail_p, bool toplevel_p,
                                      ssize_t *rdepth);
@@ -684,6 +1006,10 @@ static ScmObj scm_cmpl_compile_application(ScmObj exp, ScmObj env, ScmObj next,
                                            ssize_t *rdepth);
 static int scm_cmpl_decons_lambda(ScmObj exp,
                                   scm_csetter_t *formals, scm_csetter_t *body);
+static ScmObj scm_cmpl_compile_closure_body(ScmObj body, ScmObj env,
+                                            ScmObj next, bool tail_p,
+                                            bool toplevel_p, size_t nr_param,
+                                            ssize_t *rdepth);
 static ScmObj scm_cmpl_compile_lambda(ScmObj exp, ScmObj env, ScmObj next,
                                       bool tail_p, bool toplevel_p,
                                       ssize_t *rdepth);
@@ -796,10 +1122,7 @@ static ScmObj
 scm_cmpl_compile_empty(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
                        bool toplevel_p, ssize_t *rdepth)
 {
-  ScmObj inst_undef = SCM_OBJ_INIT;
-
-  SCM_STACK_FRAME_PUSH(&exp, &env, &next,
-                       &inst_undef);
+  SCM_STACK_FRAME_PUSH(&exp, &env, &next);
 
   *rdepth = -1;
 
@@ -808,11 +1131,7 @@ scm_cmpl_compile_empty(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
     if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
   }
 
-  inst_undef = scm_cmpl_cons_inst_undef();
-  if (scm_obj_null_p(inst_undef)) return SCM_OBJ_NULL;
-
-
-  return scm_api_cons(inst_undef, next);
+  return scm_cmpl_push_inst_undef(next);
 }
 
 static ScmObj
@@ -820,8 +1139,7 @@ scm_cmpl_compile_exp_list(ScmObj exp_lst, ScmObj env, ScmObj next, bool tail_p,
                           bool toplevel_p, ssize_t *rdepth)
 {
   ScmObj exp_vec = SCM_OBJ_INIT, exp = SCM_OBJ_INIT, code = SCM_OBJ_INIT;
-  ssize_t rd;
-  ssize_t len;
+  ssize_t rd, len;
 
   SCM_STACK_FRAME_PUSH(&exp_lst, &env, &next,
                        &exp_vec, &exp, &code);
@@ -984,17 +1302,13 @@ scm_cmpl_compile_body(ScmObj body, ScmObj env, ScmObj next, bool tail_p,
 {
   ScmObj vars = SCM_OBJ_INIT, inits = SCM_OBJ_INIT, expls = SCM_OBJ_INIT;
   ScmObj exp = SCM_OBJ_INIT, exp_lst = SCM_OBJ_INIT, new_env = SCM_OBJ_INIT;
-  ScmObj inst_demine = SCM_OBJ_INIT, inst_emine = SCM_OBJ_INIT;
-  ScmObj inst_epop = SCM_OBJ_INIT;
   ssize_t nr_vars, nr_exps, rd;
   bool tl_p;
   int rslt;
 
   SCM_STACK_FRAME_PUSH(&body, &env, &next,
                        &vars, &inits, &expls,
-                       &exp, &exp_lst, &new_env,
-                       &inst_demine, &inst_emine,
-                       &inst_epop);
+                       &exp, &exp_lst, &new_env);
 
   rslt = scm_cmpl_decons_body(body, env, tail_p, toplevel_p,
                               SCM_CSETTER_L(vars), SCM_CSETTER_L(inits),
@@ -1009,10 +1323,7 @@ scm_cmpl_compile_body(ScmObj body, ScmObj env, ScmObj next, bool tail_p,
     if (scm_obj_null_p(new_env)) return SCM_OBJ_NULL;
 
     if (!tail_p) {
-      inst_epop = scm_cmpl_cons_inst_epop();
-      if (scm_obj_null_p(inst_epop)) return SCM_OBJ_NULL;
-
-      next = scm_api_cons(inst_epop, next);
+      next = scm_cmpl_push_inst_epop(next);
       if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
     }
   }
@@ -1045,10 +1356,7 @@ scm_cmpl_compile_body(ScmObj body, ScmObj env, ScmObj next, bool tail_p,
     }
 
     for (size_t i = (size_t)nr_vars; i > 0; i--) {
-      inst_demine = scm_cmpl_cons_inst_demine((scm_sword_t)i - 1, 0);
-      if (scm_obj_null_p(inst_demine)) return SCM_OBJ_NULL;
-
-      next = scm_api_cons(inst_demine, next);
+      next = scm_cmpl_push_inst_demine((scm_sword_t)i - 1, 0, next);
       if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
 
       exp = scm_capi_vector_ref(inits, i - 1);
@@ -1060,10 +1368,7 @@ scm_cmpl_compile_body(ScmObj body, ScmObj env, ScmObj next, bool tail_p,
       if (rd > *rdepth) *rdepth = rd;
     }
 
-    inst_emine = scm_cmpl_cons_inst_emine(nr_vars);
-    if (scm_obj_null_p(inst_emine)) return SCM_OBJ_NULL;
-
-    next = scm_api_cons(inst_emine, next);
+    next = scm_cmpl_push_inst_emine(nr_vars, next);
     if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
   }
 
@@ -1171,12 +1476,10 @@ scm_cmpl_compile_definition(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
                             bool toplevel_p, ssize_t *rdepth)
 {
   ScmObj var = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
-  ScmObj inst_gdef = SCM_OBJ_INIT;
   int rslt;
 
   SCM_STACK_FRAME_PUSH(&exp, &env, &next,
-                       &var, &val,
-                       &inst_gdef);
+                       &var, &val);
 
   if (!toplevel_p) {
     scm_capi_error("Compiler: definition can appear "
@@ -1201,10 +1504,7 @@ scm_cmpl_compile_definition(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
     if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
   }
 
-  inst_gdef = scm_cmpl_cons_inst_gdef(var);
-  if (scm_obj_null_p(inst_gdef)) return SCM_OBJ_NULL;
-
-  next = scm_api_cons(inst_gdef, next);
+  next = scm_cmpl_push_inst_gdef(var, next);
   if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
 
   return scm_cmpl_compile_exp(val, env, next, false, toplevel_p, rdepth);
@@ -1214,12 +1514,10 @@ static ScmObj
 scm_cmpl_compile_reference(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
                            bool toplevel_p, ssize_t *rdepth)
 {
-  ScmObj inst_ref = SCM_OBJ_INIT;
   ssize_t idx, layer;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&exp, &env, &next,
-                       &inst_ref);
+  SCM_STACK_FRAME_PUSH(&exp, &env, &next);
 
   scm_assert(scm_capi_symbol_p(exp));
 
@@ -1236,37 +1534,28 @@ scm_cmpl_compile_reference(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
     if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
   }
 
-  if (idx >= 0)
-    inst_ref = scm_cmpl_cons_inst_sref(idx, layer);
-  else
-    inst_ref = scm_cmpl_cons_inst_gref(exp);
-
-  if (scm_obj_null_p(inst_ref)) return SCM_OBJ_NULL;
-
   *rdepth = (layer >= 0) ? layer : -1;
 
-  return scm_api_cons(inst_ref, next);
+  if (idx >= 0)
+    return scm_cmpl_push_inst_sref(idx, layer, next);
+  else
+    return scm_cmpl_push_inst_gref(exp, next);
 }
 
 static ScmObj
 scm_cmpl_compile_self_eval(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
                            bool toplevel_p, ssize_t *rdepth)
 {
-  ScmObj inst_immval = SCM_OBJ_INIT;
+  SCM_STACK_FRAME_PUSH(&exp, &env, &next);
 
-  SCM_STACK_FRAME_PUSH(&exp, &env, &next,
-                       &inst_immval);
+  *rdepth = -1;
 
   if (tail_p) {
     next = scm_cmpl_push_inst_return(next);
     if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
   }
 
-  inst_immval = scm_cmpl_cons_inst_immval(exp);
-  if (scm_obj_null_p(inst_immval)) return SCM_OBJ_NULL;
-
-  *rdepth = -1;
-  return scm_api_cons(inst_immval, next);
+  return scm_cmpl_push_inst_immval(exp, next);
 }
 
 static int
@@ -1346,15 +1635,11 @@ scm_cmpl_compile_application(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
                              bool toplevel_p, ssize_t *rdepth)
 {
   ScmObj proc = SCM_OBJ_INIT, args = SCM_OBJ_INIT, elm = SCM_OBJ_INIT;
-  ScmObj inst_push = SCM_OBJ_INIT, inst_call = SCM_OBJ_INIT;
-  ScmObj inst_frame = SCM_OBJ_INIT;
   ssize_t nr_args, rd;
   int rslt;
 
   SCM_STACK_FRAME_PUSH(&exp, &env, &next,
-                       &proc, &args, &elm,
-                       &inst_push, &inst_call,
-                       &inst_frame);
+                       &proc, &args, &elm);
 
   rslt = scm_cmpl_decons_application(exp,
                                      SCM_CSETTER_L(proc),
@@ -1368,26 +1653,20 @@ scm_cmpl_compile_application(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
   if (nr_args < 0) return SCM_OBJ_NULL;
 
   if (tail_p)
-    inst_call = scm_cmpl_cons_inst_tcall((scm_sword_t)nr_args);
+    next = scm_cmpl_push_inst_tcall((scm_sword_t)nr_args, next);
   else
-    inst_call = scm_cmpl_cons_inst_call((scm_sword_t)nr_args);
+    next = scm_cmpl_push_inst_call((scm_sword_t)nr_args, next);
 
-  if (scm_obj_null_p(inst_call)) return SCM_OBJ_NULL;
-
-  next = scm_api_cons(inst_call, next);
   if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
 
   next = scm_cmpl_compile_exp(proc, env, next, false, toplevel_p, rdepth);
   if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
 
-  inst_push = scm_cmpl_cons_inst_push();
-  if (scm_obj_null_p(inst_push)) return SCM_OBJ_NULL;
-
   for (ssize_t i = nr_args; i > 0; i--) {
     elm = scm_capi_vector_ref(args, (size_t)i - 1);
     if (scm_obj_null_p(elm)) return SCM_OBJ_NULL;
 
-    next = scm_api_cons(inst_push, next);
+    next = scm_cmpl_push_inst_push(next);
     if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
 
     next = scm_cmpl_compile_exp(elm, env, next, false, toplevel_p, &rd);
@@ -1396,23 +1675,18 @@ scm_cmpl_compile_application(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
     if (rd > *rdepth) *rdepth = rd;
   }
 
-  inst_frame = SCM_OBJ_NULL;
   if (!tail_p) {
-    inst_frame = (nr_args > 0) ?
-      scm_cmpl_cons_inst_frame() : scm_cmpl_cons_inst_cframe();
-    if (scm_obj_null_p(inst_frame)) return SCM_OBJ_NULL;
+    if (nr_args > 0)
+      return scm_cmpl_push_inst_frame(next);
+    else
+      return scm_cmpl_push_inst_cframe(next);
   }
   else if (nr_args > 0) {
-    inst_frame = scm_cmpl_cons_inst_eframe();
-    if (scm_obj_null_p(inst_frame)) return SCM_OBJ_NULL;
+    return scm_cmpl_push_inst_eframe(next);
   }
-
-  if (scm_obj_not_null_p(inst_frame)) {
-    next = scm_api_cons(inst_frame, next);
-    if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
+  else {
+    return next;
   }
-
-  return next;
 }
 
 static int
@@ -1509,50 +1783,37 @@ scm_cmpl_parse_lambda_formals(ScmObj formals, bool *vparam_p)
 }
 
 static ScmObj
-scm_cmpl_make_closure_code(ScmObj body, ScmObj env,
-                           size_t nr_param, ssize_t *rdepth)
+scm_cmpl_compile_closure_body(ScmObj body, ScmObj env, ScmObj next,
+                              bool tail_p, bool toplevel_p, size_t nr_param,
+                              ssize_t *rdepth)
 {
-  ScmObj inst_box = SCM_OBJ_INIT, inst_close = SCM_OBJ_INIT;
-  ScmObj body_code = SCM_OBJ_INIT, nil = SCM_OBJ_INIT;
-  scm_sword_t nr_env;
+  ScmObj body_code = SCM_OBJ_INIT;
   bool assigned;
   int rslt;
 
   SCM_STACK_FRAME_PUSH(&body, &env,
-                       &inst_box, &inst_close,
-                       &body_code, &nil);
+                       &body_code);
 
-  nil = scm_api_nil();
-  if (scm_obj_null_p(nil)) return SCM_OBJ_NULL;
-
-  body_code = scm_cmpl_compile_body(body, env, nil,
-                                    true, false, rdepth);
+  body_code = scm_cmpl_compile_body(body, env, next,
+                                    tail_p, toplevel_p, rdepth);
   if (scm_obj_null_p(body_code)) return SCM_OBJ_NULL;
+
+  if (nr_param > SCM_SWORD_MAX) {
+    scm_capi_error("Compiler: inner index overflow", 0);
+    return SCM_OBJ_NULL;
+  }
 
   for (size_t i = 0; i < nr_param; i++) {
     rslt = scm_cmpl_env_assigned_flg(env, i, 0, &assigned);
     if (rslt < 0) return SCM_OBJ_NULL;
 
     if (assigned) {
-      inst_box = scm_cmpl_cons_inst_box((scm_sword_t)i, 0);
-      if (scm_obj_null_p(inst_box)) return SCM_OBJ_NULL;
-
-      body_code = scm_api_cons(inst_box, body_code);
+      body_code = scm_cmpl_push_inst_box((scm_sword_t)i, 0, body_code);
       if (scm_obj_null_p(body_code)) return SCM_OBJ_NULL;
     }
   }
 
-  if (*rdepth > SCM_SWORD_MAX - 1) {
-    scm_capi_error("Compiler: inner index overflow", 0);
-    return SCM_OBJ_NULL;
-  }
-
-  if (*rdepth >= 0)
-    nr_env = (nr_param > 0) ? *rdepth : *rdepth + 1;
-  else
-    nr_env = 0;
-
-  return scm_cmpl_cons_inst_asm_close(nr_env, body_code);
+  return body_code;
 }
 
 static ScmObj
@@ -1560,8 +1821,8 @@ scm_cmpl_compile_lambda(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
                         bool toplevel_p, ssize_t *rdepth)
 {
   ScmObj formals = SCM_OBJ_INIT, body = SCM_OBJ_INIT, params = SCM_OBJ_INIT;
-  ScmObj new_env = SCM_OBJ_INIT;
-  ScmObj inst_close = SCM_OBJ_INIT, inst_ref = SCM_OBJ_INIT;
+  ScmObj new_env = SCM_OBJ_INIT, nil = SCM_OBJ_INIT;
+  ScmObj body_code = SCM_OBJ_INIT;
   ssize_t nr_params;
   bool vparam_p;
 
@@ -1569,8 +1830,11 @@ scm_cmpl_compile_lambda(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
 
   SCM_STACK_FRAME_PUSH(&exp, &env, &next,
                        &formals, &body, &params,
-                       &new_env,
-                       &inst_close, &inst_ref);
+                       &new_env, nil,
+                       &body_code);
+
+  nil = scm_api_nil();
+  if (scm_obj_null_p(nil)) return SCM_OBJ_NULL;
 
   rslt = scm_cmpl_decons_lambda(exp,
                                 SCM_CSETTER_L(formals), SCM_CSETTER_L(body));
@@ -1589,9 +1853,10 @@ scm_cmpl_compile_lambda(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
   else
     new_env = env;
 
-  inst_close = scm_cmpl_make_closure_code(body, new_env,
-                                          (size_t)nr_params, rdepth);
-  if (scm_obj_null_p(inst_close)) return SCM_OBJ_NULL;
+  body_code = scm_cmpl_compile_closure_body(body, new_env, nil,
+                                            true, false, (size_t)nr_params,
+                                            rdepth);
+  if (scm_obj_null_p(body_code)) return SCM_OBJ_NULL;
 
   if (nr_params > 0 && *rdepth >= 0) (*rdepth)--;
 
@@ -1600,7 +1865,13 @@ scm_cmpl_compile_lambda(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
     if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
   }
 
-  return scm_api_cons(inst_close, next);
+  if (*rdepth >= 0 && *rdepth > SCM_SWORD_MAX - 1) {
+    scm_capi_error("Compiler: inner index overflow", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_cmpl_push_inst_asm_close((*rdepth >= 0) ? *rdepth + 1 : 0,
+                                      body_code, next);
 }
 
 static int
@@ -1758,20 +2029,13 @@ scm_cmpl_compile_let(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
   ScmObj name = SCM_OBJ_INIT, bindings = SCM_OBJ_INIT, body = SCM_OBJ_INIT;
   ScmObj vars = SCM_OBJ_INIT, inits = SCM_OBJ_INIT, ini_exp = SCM_OBJ_INIT;
   ScmObj converted = SCM_OBJ_INIT, new_env = SCM_OBJ_INIT;
-  ScmObj inst_push = SCM_OBJ_INIT, inst_eframe = SCM_OBJ_INIT;
-  ScmObj inst_epop = SCM_OBJ_INIT, inst_ecommit = SCM_OBJ_INIT;
-  ScmObj inst_box = SCM_OBJ_INIT;
   ssize_t nr_vars, rd;
-  bool assigned;
   int rslt;
 
   SCM_STACK_FRAME_PUSH(&exp, &env, &next,
                        &name, &bindings, &body,
                        &vars, &inits, &ini_exp,
-                       &converted, &new_env,
-                       &inst_push, &inst_eframe,
-                       &inst_epop, &inst_ecommit,
-                       &inst_box);
+                       &converted, &new_env);
 
   rslt = scm_cmpl_decons_let(exp, SCM_CMPL_SYNTAX_LET,
                              SCM_CSETTER_L(name), SCM_CSETTER_L(vars),
@@ -1794,10 +2058,7 @@ scm_cmpl_compile_let(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
     if (scm_obj_null_p(new_env)) return SCM_OBJ_NULL;
 
     if (!tail_p) {
-      inst_epop = scm_cmpl_cons_inst_epop();
-      if (scm_obj_null_p(inst_epop)) return SCM_OBJ_NULL;
-
-      next = scm_api_cons(inst_epop, next);
+      next = scm_cmpl_push_inst_epop(next);
       if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
     }
   }
@@ -1805,7 +2066,8 @@ scm_cmpl_compile_let(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
     new_env = env;
   }
 
-  next = scm_cmpl_compile_body(body, new_env, next, tail_p, false, rdepth);
+  next = scm_cmpl_compile_closure_body(body, new_env, next,
+                                       tail_p, false, (size_t)nr_vars, rdepth);
   if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
 
   if (nr_vars > 0 && *rdepth >= 0) (*rdepth)--;
@@ -1816,30 +2078,11 @@ scm_cmpl_compile_let(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
       return SCM_OBJ_NULL;
     }
 
-    for (size_t i = (size_t)nr_vars; i > 0; i--) {
-      rslt = scm_cmpl_env_assigned_flg(new_env, i - 1, 0, &assigned);
-      if (rslt < 0) return SCM_OBJ_NULL;
-
-      if (assigned) {
-        inst_box = scm_cmpl_cons_inst_box((scm_sword_t)i - 1, 0);
-        if (scm_obj_null_p(inst_box)) return SCM_OBJ_NULL;
-
-        next = scm_api_cons(inst_box, next);
-        if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
-      }
-    }
-
-    inst_ecommit = scm_cmpl_cons_inst_ecommit(nr_vars);
-    if (scm_obj_null_p(inst_ecommit)) return SCM_OBJ_NULL;
-
-    next = scm_api_cons(inst_ecommit, next);
+    next = scm_cmpl_push_inst_ecommit(nr_vars, next);
     if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
 
-    inst_push = scm_cmpl_cons_inst_push();
-    if (scm_obj_null_p(inst_push)) return SCM_OBJ_NULL;
-
     for (size_t i = (size_t)nr_vars; i > 0; i--) {
-      next = scm_api_cons(inst_push, next);
+      next = scm_cmpl_push_inst_push(next);
       if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
 
       ini_exp = scm_capi_vector_ref(inits, i - 1);
@@ -1851,10 +2094,7 @@ scm_cmpl_compile_let(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
       if (rd > *rdepth) *rdepth = rd;
     }
 
-    inst_eframe = scm_cmpl_cons_inst_eframe();
-    if (scm_obj_null_p(inst_eframe)) return SCM_OBJ_NULL;
-
-    next = scm_api_cons(inst_eframe, next);
+    next = scm_cmpl_push_inst_eframe(next);
     if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
   }
 
@@ -1867,18 +2107,12 @@ scm_cmpl_compile_letrec(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
 {
   ScmObj name = SCM_OBJ_INIT, body = SCM_OBJ_INIT, vars = SCM_OBJ_INIT;
   ScmObj inits = SCM_OBJ_INIT, ini_exp = SCM_OBJ_INIT, new_env = SCM_OBJ_INIT;
-  ScmObj inst_push = SCM_OBJ_INIT, inst_eframe = SCM_OBJ_INIT;
-  ScmObj inst_epop = SCM_OBJ_INIT, inst_edemine = SCM_OBJ_INIT;
-  ScmObj inst_emine = SCM_OBJ_INIT;
   ssize_t nr_vars, rd;
   int rslt;
 
   SCM_STACK_FRAME_PUSH(&exp, &env, &next,
                        &name, &body, &vars,
-                       &inits, &ini_exp, &new_env,
-                       &inst_push, &inst_eframe,
-                       &inst_epop, &inst_edemine,
-                       &inst_emine);
+                       &inits, &ini_exp, &new_env);
 
   rslt = scm_cmpl_decons_let(exp, SCM_CMPL_SYNTAX_LETREC,
                              SCM_CSETTER_L(name), SCM_CSETTER_L(vars),
@@ -1893,10 +2127,7 @@ scm_cmpl_compile_letrec(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
     if (scm_obj_null_p(new_env)) return SCM_OBJ_NULL;
 
     if (!tail_p) {
-      inst_epop = scm_cmpl_cons_inst_epop();
-      if (scm_obj_null_p(inst_epop)) return SCM_OBJ_NULL;
-
-      next = scm_api_cons(inst_epop, next);
+      next = scm_cmpl_push_inst_epop(next);
       if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
     }
   }
@@ -1913,17 +2144,11 @@ scm_cmpl_compile_letrec(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
       return SCM_OBJ_NULL;
     }
 
-    inst_edemine = scm_cmpl_cons_inst_edemine(nr_vars, 0);
-    if (scm_obj_null_p(inst_edemine)) return SCM_OBJ_NULL;
-
-    next = scm_api_cons(inst_edemine, next);
+    next = scm_cmpl_push_inst_edemine(nr_vars, 0, next);
     if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
 
-    inst_push = scm_cmpl_cons_inst_push();
-    if (scm_obj_null_p(inst_push)) return SCM_OBJ_NULL;
-
     for (size_t i = (size_t)nr_vars; i > 0; i--) {
-      next = scm_api_cons(inst_push, next);
+      next = scm_cmpl_push_inst_push(next);
       if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
 
       ini_exp = scm_capi_vector_ref(inits, i - 1);
@@ -1935,16 +2160,10 @@ scm_cmpl_compile_letrec(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
       if (rd > *rdepth) *rdepth = rd;
     }
 
-    inst_eframe = scm_cmpl_cons_inst_eframe();
-    if (scm_obj_null_p(inst_eframe)) return SCM_OBJ_NULL;
-
-    next = scm_api_cons(inst_eframe, next);
+    next = scm_cmpl_push_inst_eframe(next);
     if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
 
-    inst_emine = scm_cmpl_cons_inst_emine(nr_vars);
-    if (scm_obj_null_p(inst_emine)) return SCM_OBJ_NULL;
-
-    next = scm_api_cons(inst_emine, next);
+    next = scm_cmpl_push_inst_emine(nr_vars, next);
     if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
   }
 
@@ -1959,16 +2178,12 @@ scm_cmpl_compile_letrec_a(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
 {
   ScmObj name = SCM_OBJ_INIT, body = SCM_OBJ_INIT, vars = SCM_OBJ_INIT;
   ScmObj inits = SCM_OBJ_INIT, ini_exp = SCM_OBJ_INIT, new_env = SCM_OBJ_INIT;
-  ScmObj inst_demine = SCM_OBJ_INIT, inst_emine = SCM_OBJ_INIT;
-  ScmObj inst_epop = SCM_OBJ_INIT;
   ssize_t nr_vars, rd;
   int rslt;
 
   SCM_STACK_FRAME_PUSH(&exp, &env, &next,
                        &name, &body, &vars,
-                       &inits, &ini_exp, &new_env,
-                       &inst_demine, &inst_emine,
-                       &inst_epop);
+                       &inits, &ini_exp, &new_env);
 
   rslt = scm_cmpl_decons_let(exp, SCM_CMPL_SYNTAX_LETREC_A,
                              SCM_CSETTER_L(name), SCM_CSETTER_L(vars),
@@ -1983,10 +2198,7 @@ scm_cmpl_compile_letrec_a(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
     if (scm_obj_null_p(new_env)) return SCM_OBJ_NULL;
 
     if (!tail_p) {
-      inst_epop = scm_cmpl_cons_inst_epop();
-      if (scm_obj_null_p(inst_epop)) return SCM_OBJ_NULL;
-
-      next = scm_api_cons(inst_epop, next);
+      next = scm_cmpl_push_inst_epop(next);
       if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
     }
   }
@@ -2004,10 +2216,7 @@ scm_cmpl_compile_letrec_a(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
     }
 
     for (size_t i = (size_t)nr_vars; i > 0; i--) {
-      inst_demine = scm_cmpl_cons_inst_demine((scm_sword_t)i - 1, 0);
-      if (scm_obj_null_p(inst_demine)) return SCM_OBJ_NULL;
-
-      next = scm_api_cons(inst_demine, next);
+      next = scm_cmpl_push_inst_demine((scm_sword_t)i - 1, 0, next);
       if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
 
       ini_exp = scm_capi_vector_ref(inits, i - 1);
@@ -2019,10 +2228,7 @@ scm_cmpl_compile_letrec_a(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
       if (rd > *rdepth) *rdepth = rd;
     }
 
-    inst_emine = scm_cmpl_cons_inst_emine(nr_vars);
-    if (scm_obj_null_p(inst_emine)) return SCM_OBJ_NULL;
-
-    next = scm_api_cons(inst_emine, next);
+    next = scm_cmpl_push_inst_emine(nr_vars, next);
     if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
   }
 
@@ -2117,7 +2323,6 @@ scm_cmpl_compile_assignment(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
                             bool toplevel_p, ssize_t *rdepth)
 {
   ScmObj var = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
-  ScmObj inst_set = SCM_OBJ_INIT;
   int rslt;
   ssize_t idx, layer, rd;
 
@@ -2147,13 +2352,10 @@ scm_cmpl_compile_assignment(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
   }
 
   if (idx >= 0)
-    inst_set = scm_cmpl_cons_inst_sset(idx, layer);
+    next = scm_cmpl_push_inst_sset(idx, layer, next);
   else
-    inst_set = scm_cmpl_cons_inst_gset(var);
+    next = scm_cmpl_push_inst_gset(var, next);
 
-  if (scm_obj_null_p(inst_set)) return SCM_OBJ_NULL;
-
-  next = scm_api_cons(inst_set, next);
   if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
 
   *rdepth = (layer >= 0) ? layer : -1;
@@ -2240,16 +2442,12 @@ scm_cmpl_compile_if(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
 {
   ScmObj cond = SCM_OBJ_INIT, conse = SCM_OBJ_INIT, alter = SCM_OBJ_INIT;
   ScmObj lbl_junc = SCM_OBJ_INIT, lbl_alt = SCM_OBJ_INIT;
-  ScmObj jmp_junc = SCM_OBJ_INIT, jmpf = SCM_OBJ_INIT;
-  ScmObj def_lbl = SCM_OBJ_INIT;
   ssize_t rd;
   int rslt;
 
   SCM_STACK_FRAME_PUSH(&exp, &env, &next,
                        &cond, &conse, &alter,
-                       &lbl_junc, &lbl_alt,
-                       &jmp_junc, &jmpf,
-                       &def_lbl);
+                       &lbl_junc, &lbl_alt);
 
   rslt = scm_cmpl_decons_if(exp, SCM_CSETTER_L(cond),
                             SCM_CSETTER_L(conse), SCM_CSETTER_L(alter));
@@ -2261,10 +2459,7 @@ scm_cmpl_compile_if(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
     lbl_junc = scm_cmpl_gen_label("if-j");
     if (scm_obj_null_p(lbl_junc)) return SCM_OBJ_NULL;
 
-    def_lbl = scm_cmpl_cons_inst_label(lbl_junc);
-    if (scm_obj_null_p(def_lbl)) return SCM_OBJ_NULL;
-
-    next = scm_api_cons(def_lbl, next);
+    next = scm_cmpl_push_inst_label(lbl_junc, next);
     if (scm_obj_null_p(next)) return  SCM_OBJ_NULL;
   }
 
@@ -2286,18 +2481,12 @@ scm_cmpl_compile_if(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
   lbl_alt = scm_cmpl_gen_label("if-a");
   if (scm_obj_null_p(lbl_alt)) return SCM_OBJ_NULL;
 
-  def_lbl = scm_cmpl_cons_inst_label(lbl_alt);
-  if (scm_obj_null_p(def_lbl)) return SCM_OBJ_NULL;
-
-  next = scm_api_cons(def_lbl, next);
+  next = scm_cmpl_push_inst_label(lbl_alt, next);
   if (scm_obj_null_p(next)) return  SCM_OBJ_NULL;
 
   if (!tail_p) {
-      /* consequnece 節実行後に合流地点へジャンプする命令を追加 */
-    jmp_junc = scm_cmpl_cons_inst_jmp(lbl_junc);
-    if (scm_obj_null_p(jmp_junc)) return  SCM_OBJ_NULL;
-
-    next = scm_api_cons(jmp_junc, next);
+    /* consequnece 節実行後に合流地点へジャンプする命令を追加 */
+    next = scm_cmpl_push_inst_jmp(lbl_junc, next);
     if (scm_obj_null_p(next)) return  SCM_OBJ_NULL;
   }
 
@@ -2309,11 +2498,7 @@ scm_cmpl_compile_if(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
 
   /* condition 節が false value の場合に alternative 節直前にジャンプする
      命令の作成 */
-  jmpf = scm_cmpl_cons_inst_jmpf(lbl_alt);
-  if (scm_obj_null_p(jmpf)) return  SCM_OBJ_NULL;
-
-  /* condition 節実行後の条件ジャンプ命令を付加 */
-  next = scm_api_cons(jmpf, next);
+  next = scm_cmpl_push_inst_jmpf(lbl_alt, next);
   if (scm_obj_null_p(next)) return  SCM_OBJ_NULL;
 
   /* conditio 節を付加 */

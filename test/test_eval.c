@@ -1447,3 +1447,47 @@ test_eval__conditional_4(void)
 
   cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
 }
+
+void
+test_eval__conditional_5(void)
+{
+  ScmObj exp = SCM_OBJ_INIT, port = SCM_OBJ_INIT;
+  ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+  const char *exp_str = "((lambda () (if 'a 'b 'c)))";
+  const char *ect_str = "b";
+
+  SCM_STACK_FRAME_PUSH(&exp, &port,
+                       &actual, &expected);
+
+
+  port = scm_capi_open_input_string_from_cstr(exp_str, SCM_ENC_ASCII);
+  exp = scm_api_read(port);
+
+  port = scm_capi_open_input_string_from_cstr(ect_str, SCM_ENC_ASCII);
+  expected = scm_api_read(port);
+
+  actual = scm_capi_ut_eval(ev, exp);
+
+  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+}
+
+void
+test_eval__conditional_6(void)
+{
+  ScmObj exp = SCM_OBJ_INIT, port = SCM_OBJ_INIT;
+  ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+  const char *exp_str = "((lambda () (if '#f 'b)))";
+
+  SCM_STACK_FRAME_PUSH(&exp, &port,
+                       &actual, &expected);
+
+
+  expected = scm_api_undef();
+
+  port = scm_capi_open_input_string_from_cstr(exp_str, SCM_ENC_ASCII);
+  exp = scm_api_read(port);
+
+  actual = scm_capi_ut_eval(ev, exp);
+
+  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+}
