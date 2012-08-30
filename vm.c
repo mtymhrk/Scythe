@@ -1622,7 +1622,7 @@ scm_vm_op_close(ScmObj vm, SCM_OPCODE_T op)
   int rslt;
 
   SCM_STACK_FRAME_PUSH(&vm,
-                       &clsr, iseq, env);
+                       &clsr, &iseq, &env);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
