@@ -27,24 +27,24 @@ test_scm_asm_assemble(void)
   ScmObj lst = SCM_OBJ_INIT;
   ScmObj port = SCM_OBJ_INIT;
   const char *str =
-    "((nop)(halt)(call 5)(tcall 2)(return)(frame)(cframe)(eframe)(push)"
+    "((nop)(halt)(undef)(call 5)(tcall 2)(return)(frame)(cframe)(eframe)(push)"
     "(gref vvv)(gdef vvv)(gset vvv)(sref -4 12)(sset -6 13)"
     "(immval vvv)(label lbl)(jmp lbl)(jmpf lbl)(asm ((nop)))(raise)"
     "(box -8 14)(close 10 vvv)(asm-close 11 ((nop)))"
     "(demine 15 16)(emine 17)(edemine 18 19))";
   const uint8_t expected_codes[] = { SCM_OPCODE_NOP, SCM_OPCODE_HALT,
-                                     SCM_OPCODE_CALL, SCM_OPCODE_TAIL_CALL,
-                                     SCM_OPCODE_RETURN, SCM_OPCODE_FRAME,
-                                     SCM_OPCODE_CFRAME, SCM_OPCODE_EFRAME,
-                                     SCM_OPCODE_PUSH, SCM_OPCODE_GREF,
-                                     SCM_OPCODE_GDEF, SCM_OPCODE_GSET,
-                                     SCM_OPCODE_SREF, SCM_OPCODE_SSET,
-                                     SCM_OPCODE_IMMVAL, SCM_OPCODE_JMP,
-                                     SCM_OPCODE_JMPF, SCM_OPCODE_IMMVAL,
-                                     SCM_OPCODE_RAISE, SCM_OPCODE_BOX,
-                                     SCM_OPCODE_CLOSE, SCM_OPCODE_CLOSE,
-                                     SCM_OPCODE_DEMINE, SCM_OPCODE_EMINE,
-                                     SCM_OPCODE_EDEMINE };
+                                     SCM_OPCODE_UNDEF, SCM_OPCODE_CALL,
+                                     SCM_OPCODE_TAIL_CALL, SCM_OPCODE_RETURN,
+                                     SCM_OPCODE_FRAME, SCM_OPCODE_CFRAME,
+                                     SCM_OPCODE_EFRAME, SCM_OPCODE_PUSH,
+                                     SCM_OPCODE_GREF, SCM_OPCODE_GDEF,
+                                     SCM_OPCODE_GSET, SCM_OPCODE_SREF,
+                                     SCM_OPCODE_SSET, SCM_OPCODE_IMMVAL,
+                                     SCM_OPCODE_JMP, SCM_OPCODE_JMPF,
+                                     SCM_OPCODE_IMMVAL, SCM_OPCODE_RAISE,
+                                     SCM_OPCODE_BOX, SCM_OPCODE_CLOSE,
+                                     SCM_OPCODE_CLOSE, SCM_OPCODE_DEMINE,
+                                     SCM_OPCODE_EMINE, SCM_OPCODE_EDEMINE };
   ScmObj actual_immv = SCM_OBJ_INIT;
   ScmObj expected_immv = SCM_OBJ_INIT;
   uint8_t *ip;
@@ -81,9 +81,9 @@ test_scm_asm_assemble(void)
     case SCM_OPCODE_IMMVAL:
       SCM_CAPI_INST_FETCH_UINT32(ip, immv_idx);
       actual_immv = scm_capi_iseq_ref_obj(iseq, immv_idx);
-      if (i == 14)
+      if (i == 15)
         cut_assert_true(scm_capi_eq_p(expected_immv, actual_immv));
-      else if (i == 17)
+      else if (i == 18)
         cut_assert_true(scm_capi_iseq_p(actual_immv));
       else
         cut_assert(false);
@@ -126,11 +126,11 @@ test_scm_asm_assemble(void)
       SCM_CAPI_INST_FETCH_INT32(ip, actual_arg);
       SCM_CAPI_INST_FETCH_UINT32(ip, immv_idx);
       actual_immv = scm_capi_iseq_ref_obj(iseq, immv_idx);
-      if (i == 23) {
+      if (i == 24) {
         cut_assert_equal_int(10, actual_arg);
         cut_assert_true(scm_capi_eq_p(expected_immv, actual_immv));
       }
-      else if (i == 24) {
+      else if (i == 25) {
         cut_assert_equal_int(11, actual_arg);
         cut_assert_true(scm_capi_iseq_p(actual_immv));
       }

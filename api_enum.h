@@ -50,31 +50,33 @@ typedef enum {
 typedef enum {
   SCM_OPCODE_NOP = 0x0000,        /* 0: no operation */
   SCM_OPCODE_HALT,                /* 1: stop calculation */
-  SCM_OPCODE_CALL,                /* 2: function call */
-  SCM_OPCODE_TAIL_CALL,           /* 3: function tail call */
-  SCM_OPCODE_RETURN,              /* 4: return from function */
-  SCM_OPCODE_FRAME,               /* 5; create continuation frame */
+  SCM_OPCODE_UNDEF,               /* 2: update val register to undefined */
+                                  /*    value */
+  SCM_OPCODE_CALL,                /* 3: function call */
+  SCM_OPCODE_TAIL_CALL,           /* 4: function tail call */
+  SCM_OPCODE_RETURN,              /* 5: return from function */
+  SCM_OPCODE_FRAME,               /* 6; create continuation frame */
                                   /*    and envrionment frame */
-  SCM_OPCODE_CFRAME,              /* 6; create continuation frame */
-  SCM_OPCODE_EFRAME,              /* 7; create environment frame */
-  SCM_OPCODE_ECOMMIT,             /* 8; commit environment frame */
-  SCM_OPCODE_EPOP,                /* 9; pop environment frame */
-  SCM_OPCODE_IMMVAL,              /* 10: copy immediate value to val register */
-  SCM_OPCODE_PUSH,                /* 11: push value of val register */
-  SCM_OPCODE_GREF,                /* 12: refere global variable */
-  SCM_OPCODE_GDEF,                /* 13: define global variable */
-  SCM_OPCODE_GSET,                /* 14: update global variable */
-  SCM_OPCODE_SREF,                /* 15: refere value in stack */
-  SCM_OPCODE_SSET,                /* 16: update value in stack */
-  SCM_OPCODE_JMP,                 /* 17: jump */
-  SCM_OPCODE_JMPF,                /* 18: jump if false */
-  SCM_OPCODE_RAISE,               /* 19: exception handler */
-  SCM_OPCODE_BOX,                 /* 20: boxing */
-  SCM_OPCODE_CLOSE,               /* 21: make closure */
-  SCM_OPCODE_DEMINE,              /* 22: demine variable */
-  SCM_OPCODE_EMINE,               /* 23: make enviroment frame */
+  SCM_OPCODE_CFRAME,              /* 7; create continuation frame */
+  SCM_OPCODE_EFRAME,              /* 8; create environment frame */
+  SCM_OPCODE_ECOMMIT,             /* 9; commit environment frame */
+  SCM_OPCODE_EPOP,                /* 10; pop environment frame */
+  SCM_OPCODE_IMMVAL,              /* 11: copy immediate value to val register */
+  SCM_OPCODE_PUSH,                /* 12: push value of val register */
+  SCM_OPCODE_GREF,                /* 13: refere global variable */
+  SCM_OPCODE_GDEF,                /* 14: define global variable */
+  SCM_OPCODE_GSET,                /* 15: update global variable */
+  SCM_OPCODE_SREF,                /* 16: refere value in stack */
+  SCM_OPCODE_SSET,                /* 17: update value in stack */
+  SCM_OPCODE_JMP,                 /* 18: jump */
+  SCM_OPCODE_JMPF,                /* 19: jump if false */
+  SCM_OPCODE_RAISE,               /* 20: exception handler */
+  SCM_OPCODE_BOX,                 /* 21: boxing */
+  SCM_OPCODE_CLOSE,               /* 22: make closure */
+  SCM_OPCODE_DEMINE,              /* 23: demine variable */
+  SCM_OPCODE_EMINE,               /* 24: make enviroment frame */
                                   /*     and make it mine field */
-  SCM_OPCODE_EDEMINE,             /* 24: demine enviromnet frame with */
+  SCM_OPCODE_EDEMINE,             /* 25: demine enviromnet frame with */
                                   /*     incomplete enviromnet frame as */
                                   /*     initial value */
 } SCM_OPCODE_T;

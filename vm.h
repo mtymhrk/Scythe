@@ -274,6 +274,7 @@ int scm_vm_do_op_frame(ScmObj vm, SCM_OPCODE_T op);
 int scm_vm_do_op_eframe(ScmObj vm, SCM_OPCODE_T op);
 int scm_vm_do_op_ecommit(ScmObj vm, SCM_OPCODE_T op, size_t argc);
 
+void scm_vm_op_undef(ScmObj vm, SCM_OPCODE_T op);
 void scm_vm_op_call(ScmObj vm, SCM_OPCODE_T op);
 void scm_vm_op_immval(ScmObj vm, SCM_OPCODE_T op);
 void scm_vm_op_push(ScmObj vm, SCM_OPCODE_T op);

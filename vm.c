@@ -1160,6 +1160,12 @@ scm_vm_do_op_ecommit(ScmObj vm, SCM_OPCODE_T op, size_t argc)
   return scm_vm_commit_eframe(vm, SCM_VM(vm)->reg.efp, argc);
 }
 
+scm_local_func void
+scm_vm_op_undef(ScmObj vm, SCM_OPCODE_T op)
+{
+  SCM_SLOT_SETQ(ScmVM, vm, reg.val, SCM_VM(vm)->cnsts.undef);
+}
+
 /* 関数呼出のためのインストラクション */
 scm_local_func void
 scm_vm_op_call(ScmObj vm, SCM_OPCODE_T op)
@@ -1959,6 +1965,9 @@ scm_vm_run(ScmObj vm, ScmObj iseq)
       break;
     case SCM_OPCODE_HALT:
       scm_vm_ctrl_flg_set(vm, SCM_VM_CTRL_FLG_HALT);
+      break;
+    case SCM_OPCODE_UNDEF:
+      scm_vm_op_undef(vm, op);
       break;
     case SCM_OPCODE_CALL:
       scm_vm_op_call(vm, op);

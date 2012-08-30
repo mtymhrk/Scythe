@@ -3536,6 +3536,7 @@ scm_capi_opcode_to_opfmt(int opcode)
   static int tbl[] = {
     SCM_OPFMT_NOOPD,            /* SCM_OPCODE_NOP */
     SCM_OPFMT_NOOPD,            /* SCM_OPCODE_HALT */
+    SCM_OPFMT_NOOPD,            /* SCM_OPCODE_UNDEF */
     SCM_OPFMT_SI,               /* SCM_OPCODE_CALL */
     SCM_OPFMT_SI,               /* SCM_OPCODE_TAIL_CALL */
     SCM_OPFMT_NOOPD,            /* SCM_OPCODE_RETURN */

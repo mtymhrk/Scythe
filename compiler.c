@@ -89,6 +89,12 @@ scm_cmpl_cons_inst_si_obj(SCM_OPCODE_T op, scm_sword_t n, ScmObj obj)
 }
 
 static ScmObj
+scm_cmpl_cons_inst_undef(void)
+{
+  return scm_cmpl_cons_inst_noopd(SCM_OPCODE_UNDEF);
+}
+
+static ScmObj
 scm_cmpl_cons_inst_call(scm_sword_t narg)
 {
   scm_assert(narg >= 0);
@@ -641,6 +647,9 @@ scm_cmpl_push_inst_return(ScmObj next)
   return scm_api_cons(inst_ret, next);
 }
 
+static ScmObj scm_cmpl_compile_empty(ScmObj exp, ScmObj env, ScmObj next,
+                                     bool tail_p, bool toplevel_p,
+                                     ssize_t *rdepth);
 static ScmObj scm_cmpl_compile_exp_list(ScmObj exp_lst, ScmObj env, ScmObj next,
                                         bool tail_p, bool toplevel_p,
                                         ssize_t *rdepth);
@@ -784,6 +793,29 @@ scm_cmpl_syntax_id(ScmObj exp, ScmObj env, bool tail_p, bool toplevel_p)
 }
 
 static ScmObj
+scm_cmpl_compile_empty(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
+                       bool toplevel_p, ssize_t *rdepth)
+{
+  ScmObj inst_undef = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&exp, &env, &next,
+                       &inst_undef);
+
+  *rdepth = -1;
+
+  if (tail_p) {
+    next = scm_cmpl_push_inst_return(next);
+    if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
+  }
+
+  inst_undef = scm_cmpl_cons_inst_undef();
+  if (scm_obj_null_p(inst_undef)) return SCM_OBJ_NULL;
+
+
+  return scm_api_cons(inst_undef, next);
+}
+
+static ScmObj
 scm_cmpl_compile_exp_list(ScmObj exp_lst, ScmObj env, ScmObj next, bool tail_p,
                           bool toplevel_p, ssize_t *rdepth)
 {
@@ -800,11 +832,11 @@ scm_cmpl_compile_exp_list(ScmObj exp_lst, ScmObj env, ScmObj next, bool tail_p,
   len = scm_capi_vector_length(exp_vec);
   if (len < 0) return SCM_OBJ_NULL;
 
+  if (len == 0)
+    return scm_cmpl_compile_empty(exp_lst, env, next,
+                                  tail_p, toplevel_p, rdepth);
+
   *rdepth = -1;
-
-  if (len == 0 && tail_p)
-    return scm_cmpl_push_inst_return(next);
-
   code = next;
   for (ssize_t i = len; i > 0; i--) {
     exp = scm_capi_vector_ref(exp_vec, (size_t)i - 1);
@@ -2241,38 +2273,32 @@ scm_cmpl_compile_if(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
     /* alternative 節を付加 */
     next = scm_cmpl_compile_exp(alter, env, next, tail_p, toplevel_p, &rd);
     if (scm_obj_null_p(next)) return  SCM_OBJ_NULL;
-
-    if (rd > *rdepth) *rdepth = rd;
-
-    /* condition 節実行後に alternative 節に条件ジャンプするためのラベル定義
-       を追加 */
-    lbl_alt = scm_cmpl_gen_label("if-a");
-    if (scm_obj_null_p(lbl_alt)) return SCM_OBJ_NULL;
-
-    def_lbl = scm_cmpl_cons_inst_label(lbl_alt);
-    if (scm_obj_null_p(def_lbl)) return SCM_OBJ_NULL;
-
-    next = scm_api_cons(def_lbl, next);
-    if (scm_obj_null_p(next)) return  SCM_OBJ_NULL;
-
-    if (!tail_p) {
-      /* consequnece 節実行後に合流地点へジャンプする命令を追加 */
-      jmp_junc = scm_cmpl_cons_inst_jmp(lbl_junc);
-      if (scm_obj_null_p(jmp_junc)) return  SCM_OBJ_NULL;
-
-      next = scm_api_cons(jmp_junc, next);
-      if (scm_obj_null_p(next)) return  SCM_OBJ_NULL;
-    }
-
-    /* condition 節が false value の場合に alternative 節直前にジャンプする
-       命令の作成 */
-    jmpf = scm_cmpl_cons_inst_jmpf(lbl_alt);
-    if (scm_obj_null_p(jmpf)) return  SCM_OBJ_NULL;
   }
   else {
-    /* condition 節が false value の場合に合流地点にジャンプする命令の作成 */
-    jmpf = scm_cmpl_cons_inst_jmpf(lbl_junc);
-    if (scm_obj_null_p(jmpf)) return  SCM_OBJ_NULL;
+    next = scm_cmpl_compile_empty(alter, env, next, tail_p, toplevel_p, &rd);
+    if (scm_obj_null_p(next)) return  SCM_OBJ_NULL;
+  }
+
+  if (rd > *rdepth) *rdepth = rd;
+
+  /* condition 節実行後に alternative 節に条件ジャンプするためのラベル定義
+     を追加 */
+  lbl_alt = scm_cmpl_gen_label("if-a");
+  if (scm_obj_null_p(lbl_alt)) return SCM_OBJ_NULL;
+
+  def_lbl = scm_cmpl_cons_inst_label(lbl_alt);
+  if (scm_obj_null_p(def_lbl)) return SCM_OBJ_NULL;
+
+  next = scm_api_cons(def_lbl, next);
+  if (scm_obj_null_p(next)) return  SCM_OBJ_NULL;
+
+  if (!tail_p) {
+      /* consequnece 節実行後に合流地点へジャンプする命令を追加 */
+    jmp_junc = scm_cmpl_cons_inst_jmp(lbl_junc);
+    if (scm_obj_null_p(jmp_junc)) return  SCM_OBJ_NULL;
+
+    next = scm_api_cons(jmp_junc, next);
+    if (scm_obj_null_p(next)) return  SCM_OBJ_NULL;
   }
 
   /* consequence 節を付加 */
@@ -2280,6 +2306,11 @@ scm_cmpl_compile_if(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
   if (scm_obj_null_p(next)) return  SCM_OBJ_NULL;
 
   if (rd > *rdepth) *rdepth = rd;
+
+  /* condition 節が false value の場合に alternative 節直前にジャンプする
+     命令の作成 */
+  jmpf = scm_cmpl_cons_inst_jmpf(lbl_alt);
+  if (scm_obj_null_p(jmpf)) return  SCM_OBJ_NULL;
 
   /* condition 節実行後の条件ジャンプ命令を付加 */
   next = scm_api_cons(jmpf, next);

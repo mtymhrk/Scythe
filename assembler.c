@@ -10,6 +10,7 @@ static struct {
 } opcode2mnemonic_tbl[] = {
   { SCM_OPCODE_NOP,       "nop" },
   { SCM_OPCODE_HALT,      "halt" },
+  { SCM_OPCODE_UNDEF,     "undef" },
   { SCM_OPCODE_CALL,      "call" },
   { SCM_OPCODE_TAIL_CALL, "tcall" },
   { SCM_OPCODE_RETURN,    "return" },
