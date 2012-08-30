@@ -293,7 +293,7 @@ scm_efbox_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
 
   scm_assert_obj_type(obj, &SCM_EFBOX_TYPE_INFO);
-  scm_assert(scm_obj_null_p(mem));
+  scm_assert(scm_obj_not_null_p(mem));
   scm_assert(handler != NULL);
 
   /* XXX: EFBox 内の frame.out は必ずボックス化された frame を指す */
