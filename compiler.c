@@ -1001,15 +1001,23 @@ static ScmObj scm_cmpl_compile_quote(ScmObj exp, ScmObj env, ScmObj next,
 static int scm_cmpl_decons_application(ScmObj exp,
                                        scm_csetter_t *proc,
                                        scm_csetter_t *args);
+static ScmObj scm_cmpl_cmpl_application(ScmObj proc, ScmObj args,
+                                        ScmObj env, ScmObj next,
+                                        bool tail_p, bool toplevel_p,
+                                        ssize_t *rdepth);
 static ScmObj scm_cmpl_compile_application(ScmObj exp, ScmObj env, ScmObj next,
                                            bool tail_p, bool toplevel_p,
                                            ssize_t *rdepth);
 static int scm_cmpl_decons_lambda(ScmObj exp,
                                   scm_csetter_t *formals, scm_csetter_t *body);
-static ScmObj scm_cmpl_compile_closure_body(ScmObj body, ScmObj env,
-                                            ScmObj next, bool tail_p,
-                                            bool toplevel_p, size_t nr_param,
-                                            ssize_t *rdepth);
+static ScmObj scm_cmpl_cmpl_lambda(ScmObj params, bool vparam_p, ScmObj body,
+                                   ScmObj env, ScmObj next,
+                                   bool tail_p, bool toplevel_p,
+                                   ssize_t *rdepth);
+static ScmObj scm_cmpl_cmpl_closure_body(ScmObj body, ScmObj env,
+                                         ScmObj next, bool tail_p,
+                                         bool toplevel_p, size_t nr_param,
+                                         ssize_t *rdepth);
 static ScmObj scm_cmpl_compile_lambda(ScmObj exp, ScmObj env, ScmObj next,
                                       bool tail_p, bool toplevel_p,
                                       ssize_t *rdepth);
@@ -1631,23 +1639,15 @@ scm_cmpl_decons_application(ScmObj exp,
 }
 
 static ScmObj
-scm_cmpl_compile_application(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
-                             bool toplevel_p, ssize_t *rdepth)
+scm_cmpl_cmpl_application(ScmObj proc, ScmObj args,
+                          ScmObj env, ScmObj next, bool tail_p, bool toplevel_p,
+                          ssize_t *rdepth)
 {
-  ScmObj proc = SCM_OBJ_INIT, args = SCM_OBJ_INIT, elm = SCM_OBJ_INIT;
+  ScmObj elm = SCM_OBJ_INIT;
   ssize_t nr_args, rd;
-  int rslt;
 
-  SCM_STACK_FRAME_PUSH(&exp, &env, &next,
-                       &proc, &args, &elm);
-
-  rslt = scm_cmpl_decons_application(exp,
-                                     SCM_CSETTER_L(proc),
-                                     SCM_CSETTER_L(args));
-  if (rslt < 0) return SCM_OBJ_NULL;
-
-  args = scm_api_list_to_vector(args);
-  if (scm_obj_null_p(args)) return SCM_OBJ_NULL;
+  SCM_STACK_FRAME_PUSH(&proc, &args, &env, &next,
+                       &elm);
 
   nr_args = scm_capi_vector_length(args);
   if (nr_args < 0) return SCM_OBJ_NULL;
@@ -1687,6 +1687,28 @@ scm_cmpl_compile_application(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
   else {
     return next;
   }
+}
+
+static ScmObj
+scm_cmpl_compile_application(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
+                             bool toplevel_p, ssize_t *rdepth)
+{
+  ScmObj proc = SCM_OBJ_INIT, args = SCM_OBJ_INIT;
+  int rslt;
+
+  SCM_STACK_FRAME_PUSH(&exp, &env, &next,
+                       &proc, &args);
+
+  rslt = scm_cmpl_decons_application(exp,
+                                     SCM_CSETTER_L(proc),
+                                     SCM_CSETTER_L(args));
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  args = scm_api_list_to_vector(args);
+  if (scm_obj_null_p(args)) return SCM_OBJ_NULL;
+
+  return scm_cmpl_cmpl_application(proc, args,
+                                   env, next, tail_p, toplevel_p, rdepth);
 }
 
 static int
@@ -1783,9 +1805,9 @@ scm_cmpl_parse_lambda_formals(ScmObj formals, bool *vparam_p)
 }
 
 static ScmObj
-scm_cmpl_compile_closure_body(ScmObj body, ScmObj env, ScmObj next,
-                              bool tail_p, bool toplevel_p, size_t nr_param,
-                              ssize_t *rdepth)
+scm_cmpl_cmpl_closure_body(ScmObj body, ScmObj env, ScmObj next,
+                           bool tail_p, bool toplevel_p, size_t nr_param,
+                           ssize_t *rdepth)
 {
   ScmObj body_code = SCM_OBJ_INIT;
   bool assigned;
@@ -1817,31 +1839,18 @@ scm_cmpl_compile_closure_body(ScmObj body, ScmObj env, ScmObj next,
 }
 
 static ScmObj
-scm_cmpl_compile_lambda(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
-                        bool toplevel_p, ssize_t *rdepth)
+scm_cmpl_cmpl_lambda(ScmObj params, bool vparam_p, ScmObj body,
+                     ScmObj env, ScmObj next, bool tail_p, bool toplevel_p,
+                     ssize_t *rdepth)
 {
-  ScmObj formals = SCM_OBJ_INIT, body = SCM_OBJ_INIT, params = SCM_OBJ_INIT;
-  ScmObj new_env = SCM_OBJ_INIT, nil = SCM_OBJ_INIT;
-  ScmObj body_code = SCM_OBJ_INIT;
+  ScmObj new_env = SCM_OBJ_INIT, body_code = SCM_OBJ_INIT, nil = SCM_OBJ_INIT;
   ssize_t nr_params;
-  bool vparam_p;
 
-  int rslt;
-
-  SCM_STACK_FRAME_PUSH(&exp, &env, &next,
-                       &formals, &body, &params,
-                       &new_env, nil,
-                       &body_code);
+  SCM_STACK_FRAME_PUSH(&params, &body, &env, &next,
+                       &new_env, &body_code, &nil);
 
   nil = scm_api_nil();
   if (scm_obj_null_p(nil)) return SCM_OBJ_NULL;
-
-  rslt = scm_cmpl_decons_lambda(exp,
-                                SCM_CSETTER_L(formals), SCM_CSETTER_L(body));
-  if (rslt < 0) return SCM_OBJ_NULL;
-
-  params = scm_cmpl_parse_lambda_formals(formals, &vparam_p);
-  if (scm_obj_null_p(params)) return SCM_OBJ_NULL;
 
   nr_params = scm_capi_vector_length(params);
   if (nr_params < 0) return SCM_OBJ_NULL;
@@ -1853,9 +1862,9 @@ scm_cmpl_compile_lambda(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
   else
     new_env = env;
 
-  body_code = scm_cmpl_compile_closure_body(body, new_env, nil,
-                                            true, false, (size_t)nr_params,
-                                            rdepth);
+  body_code = scm_cmpl_cmpl_closure_body(body, new_env, nil,
+                                         true, false, (size_t)nr_params,
+                                         rdepth);
   if (scm_obj_null_p(body_code)) return SCM_OBJ_NULL;
 
   if (nr_params > 0 && *rdepth >= 0) (*rdepth)--;
@@ -1872,6 +1881,29 @@ scm_cmpl_compile_lambda(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
 
   return scm_cmpl_push_inst_asm_close((*rdepth >= 0) ? *rdepth + 1 : 0,
                                       body_code, next);
+}
+
+static ScmObj
+scm_cmpl_compile_lambda(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
+                        bool toplevel_p, ssize_t *rdepth)
+{
+  ScmObj formals = SCM_OBJ_INIT, body = SCM_OBJ_INIT, params = SCM_OBJ_INIT;
+  bool vparam_p;
+
+  int rslt;
+
+  SCM_STACK_FRAME_PUSH(&exp, &env, &next,
+                       &formals, &body, &params);
+
+  rslt = scm_cmpl_decons_lambda(exp,
+                                SCM_CSETTER_L(formals), SCM_CSETTER_L(body));
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  params = scm_cmpl_parse_lambda_formals(formals, &vparam_p);
+  if (scm_obj_null_p(params)) return SCM_OBJ_NULL;
+
+  return scm_cmpl_cmpl_lambda(params, vparam_p, body, env, next,
+                              tail_p, toplevel_p, rdepth);
 }
 
 static int
@@ -2013,13 +2045,52 @@ scm_cmpl_decons_let(ScmObj exp, int syntax,
 }
 
 static ScmObj
-scm_cmpl_convert_named_let(ScmObj name, ScmObj vars, ScmObj inits, ScmObj body)
+scm_cmpl_cmpl_named_let_body(ScmObj name,
+                             ScmObj vars, ScmObj inits, ScmObj body,
+                             ScmObj env , ScmObj next,
+                             bool tail_p, bool toplevel_p, ssize_t *rdepth)
 {
-  /* named let を以下の式に変換する */
-  /*  (letrec (({name} (lambda {vars} . {body}))) ({name} . {inits})) */
+  /*
+   * named let は以下の式と等価なものにコンパイルする。この関数では letrec*
+   * 以降の部分相当のコードを出力する。上部の let 部分は通常の let と共通に
+   * 処理する。
+   *
+   *  (let ((var init) ...)
+   *    (letrec* (({name} (lambda {vars} . {body})))
+   *      ({name} . {vars})))
+   *
+   */
 
-  scm_capi_error("Compiler: named let is not supported", 0);
-  return SCM_OBJ_NULL;
+  ScmObj letrec_vars = SCM_OBJ_INIT, new_env = SCM_OBJ_INIT;
+  ssize_t rd;
+
+  SCM_STACK_FRAME_PUSH(&name, &vars, &inits, &body, &env, &next,
+                       &letrec_vars, &new_env);
+
+  letrec_vars = scm_capi_make_vector(1, name);
+  if (scm_obj_null_p(letrec_vars)) return SCM_OBJ_NULL;
+
+  new_env = scm_cmpl_env_cons(letrec_vars, false, env);
+  if (scm_obj_null_p(new_env)) return SCM_OBJ_NULL;
+
+  next = scm_cmpl_cmpl_application(name, vars, new_env,
+                                   next, tail_p, false, rdepth);
+
+  next = scm_cmpl_push_inst_demine(0, 0, next);
+  if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
+
+  next = scm_cmpl_cmpl_lambda(vars, false, body,
+                              new_env, next, false, false, &rd);
+  if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
+
+  if (rd > *rdepth) *rdepth = rd;
+
+  next = scm_cmpl_push_inst_emine(1, next);
+  if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
+
+  if (*rdepth >= 0) (*rdepth)--;
+
+  return next;
 }
 
 static ScmObj
@@ -2042,14 +2113,6 @@ scm_cmpl_compile_let(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
                              SCM_CSETTER_L(inits), SCM_CSETTER_L(body));
   if (rslt < 0) return SCM_OBJ_NULL;
 
-  if (scm_obj_not_null_p(name)) {
-    converted = scm_cmpl_convert_named_let(name, vars, inits, body);
-    if (scm_obj_null_p(converted)) return SCM_OBJ_INIT;
-
-    return scm_cmpl_compile_exp(converted, env, name,
-                                tail_p, toplevel_p, rdepth);
-  }
-
   nr_vars = scm_capi_vector_length(vars);
   if (nr_vars < 0) return SCM_OBJ_NULL;
 
@@ -2066,8 +2129,14 @@ scm_cmpl_compile_let(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
     new_env = env;
   }
 
-  next = scm_cmpl_compile_closure_body(body, new_env, next,
-                                       tail_p, false, (size_t)nr_vars, rdepth);
+  if (scm_obj_null_p(name))
+    next = scm_cmpl_cmpl_closure_body(body, new_env, next,
+                                      tail_p, false, (size_t)nr_vars,
+                                      rdepth);
+  else
+    next = scm_cmpl_cmpl_named_let_body(name, vars, inits, body,
+                                        new_env, next, tail_p, false, rdepth);
+
   if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
 
   if (nr_vars > 0 && *rdepth >= 0) (*rdepth)--;
@@ -2177,13 +2246,13 @@ scm_cmpl_compile_letrec_a(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
                           bool toplevel_p, ssize_t *rdepth)
 {
   ScmObj name = SCM_OBJ_INIT, body = SCM_OBJ_INIT, vars = SCM_OBJ_INIT;
-  ScmObj inits = SCM_OBJ_INIT, ini_exp = SCM_OBJ_INIT, new_env = SCM_OBJ_INIT;
+  ScmObj inits = SCM_OBJ_INIT, new_env = SCM_OBJ_INIT, ini_exp = SCM_OBJ_INIT;
   ssize_t nr_vars, rd;
   int rslt;
 
   SCM_STACK_FRAME_PUSH(&exp, &env, &next,
                        &name, &body, &vars,
-                       &inits, &ini_exp, &new_env);
+                       &inits, &new_env, &ini_exp);
 
   rslt = scm_cmpl_decons_let(exp, SCM_CMPL_SYNTAX_LETREC_A,
                              SCM_CSETTER_L(name), SCM_CSETTER_L(vars),
