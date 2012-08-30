@@ -4,9 +4,25 @@
 #include "core_subr.h"
 
 /*******************************************************************/
-/*  List and Pair                                                  */
+/*  nil                                                            */
 /*******************************************************************/
 
+ScmObj
+scm_subr_func_null_P(int argc, ScmObj *argv)
+{
+  if (argc != 1) {
+    /* TODO: change error message */
+    scm_capi_error("cons: 2 arugments required, but got ", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_api_nil_P(argv[0]);
+}
+
+
+/*******************************************************************/
+/*  List and Pair                                                  */
+/*******************************************************************/
 
 ScmObj
 scm_subr_func_cons(int argc, ScmObj *argv)
@@ -276,13 +292,13 @@ scm_subr_func_default_exception_handler(int argc, ScmObj *argv)
 void
 scm_core_subr_system_setup(void)
 {
-  const char *syms[] = { "cons", "car", "cdr", "read", "write", "display",
-                         "newline", "flush-output-port", "eval-asm", "eval",
-                         "exit" };
-  ScmSubrFunc funcs[] = { scm_subr_func_cons, scm_subr_func_car,
-                          scm_subr_func_cdr, scm_subr_func_read,
-                          scm_subr_func_write, scm_subr_func_display,
-                          scm_subr_func_newline,
+  const char *syms[] = { "null?", "cons", "car", "cdr", "read", "write",
+                         "display", "newline", "flush-output-port",
+                         "eval-asm", "eval", "exit" };
+  ScmSubrFunc funcs[] = { scm_subr_func_null_P, scm_subr_func_cons,
+                          scm_subr_func_car, scm_subr_func_cdr,
+                          scm_subr_func_read, scm_subr_func_write,
+                          scm_subr_func_display, scm_subr_func_newline,
                           scm_subr_func_flush_output_port,
                           scm_subr_func_eval_asm, scm_subr_func_eval,
                           scm_subr_func_exit };

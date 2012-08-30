@@ -98,7 +98,7 @@ ScmObj scm_api_equal_P(ScmObj obj1, ScmObj obj2);
 
 ScmObj scm_api_nil(void);
 bool scm_capi_nil_p(ScmObj obj);
-
+ScmObj scm_api_nil_P(ScmObj obj);
 
 /*******************************************************************/
 /*  boolean                                                        */

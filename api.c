@@ -412,6 +412,17 @@ scm_capi_nil_p(ScmObj obj)
   return scm_capi_eq_p(obj, scm_api_nil());
 }
 
+ScmObj
+scm_api_nil_P(ScmObj obj)
+{
+  if (scm_obj_null_p(obj)) {
+    scm_capi_error("null?: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_capi_nil_p(obj) ? scm_api_bool_true() : scm_api_bool_false();
+}
+
 
 /*******************************************************************/
 /*  boolean                                                        */
