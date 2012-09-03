@@ -84,8 +84,6 @@ ScmTypeInfo SCM_CLOSURE_TYPE_INFO = {
   .extra               = NULL,
 };
 
-static ScmObj dummy_free_vars[1] = { SCM_OBJ_NULL };
-
 int
 scm_closure_initialize(ScmObj clsr, ScmObj iseq, ScmObj env)
 {
