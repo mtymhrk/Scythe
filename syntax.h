@@ -25,7 +25,7 @@ bool scm_syntax_id_eq_p(ScmObj syx, int id);
 
 int scm_syntax_pretty_print(ScmObj obj, ScmObj port, bool write_p);
 
-static int
+inline int
 scm_syntax_id(ScmObj syx)
 {
   scm_assert_obj_type(syx, &SCM_SYNTAX_TYPE_INFO);
