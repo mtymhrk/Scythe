@@ -27,6 +27,7 @@ static struct {
   { SCM_OPCODE_SREF,      "sref" },
   { SCM_OPCODE_SSET,      "sset" },
   { SCM_OPCODE_JMP,       "jmp" },
+  { SCM_OPCODE_JMPT,      "jmpt" },
   { SCM_OPCODE_JMPF,      "jmpf" },
   { SCM_OPCODE_RAISE,     "raise" },
   { SCM_OPCODE_BOX,       "box" },

@@ -443,6 +443,26 @@ scm_cmpl_push_inst_jmp(ScmObj lbl, ScmObj next)
 }
 
 static ScmObj
+scm_cmpl_cons_inst_jmpt(ScmObj lbl)
+{
+  return scm_cmpl_cons_inst_obj(SCM_OPCODE_JMPT, lbl);
+}
+
+static ScmObj
+scm_cmpl_push_inst_jmpt(ScmObj lbl, ScmObj next)
+{
+  ScmObj inst_jmpt = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&lbl, &next,
+                       &inst_jmpt);
+
+  inst_jmpt = scm_cmpl_cons_inst_jmpt(lbl);
+  if (scm_obj_null_p(inst_jmpt)) return SCM_OBJ_NULL;
+
+  return scm_api_cons(inst_jmpt, next);
+}
+
+static ScmObj
 scm_cmpl_cons_inst_jmpf(ScmObj lbl)
 {
   return scm_cmpl_cons_inst_obj(SCM_OPCODE_JMPF, lbl);
@@ -1047,7 +1067,12 @@ static int scm_cmpl_decons_if(ScmObj exp, scm_csetter_t *cond,
 static ScmObj scm_cmpl_compile_if(ScmObj exp, ScmObj env, ScmObj next,
                                   bool tail_p, bool toplevel_p,
                                   ssize_t *rdepth);
-
+static int scm_cmpl_decons_cond(ScmObj exp,
+                                scm_csetter_t *tests, scm_csetter_t *expss,
+                                bool *else_exist_p);
+static ScmObj scm_cmpl_compile_cond(ScmObj exp, ScmObj env, ScmObj next,
+                                    bool tail_p, bool toplevel_p,
+                                    ssize_t *rdepth);
 static ScmObj scm_cmpl_compile_exp(ScmObj exp, ScmObj env, ScmObj next,
                                    bool tail_p, bool toplevel_p,
                                    ssize_t *rdepth);
@@ -1058,12 +1083,12 @@ enum { SCM_CMPL_SYNTAX_DEFINITION, SCM_CMPL_SYNTAX_REFERENCE,
        SCM_CMPL_SYNTAX_LET, SCM_CMPL_SYNTAX_LETREC,
        SCM_CMPL_SYNTAX_LETREC_A, SCM_CMPL_SYNTAX_BEGIN,
        SCM_CMPL_SYNTAX_ASSIGNMENT, SCM_CMPL_SYNTAX_IF,
-       SCM_CMPL_NR_SYNTAX };
+       SCM_CMPL_SYNTAX_COND, SCM_CMPL_NR_SYNTAX };
 
 static const char *scm_cmpl_syntax_keywords[] = { "define", NULL, NULL, "quote",
                                                   NULL, "lambda", "let",
                                                   "letrec", "letrec*", "begin",
-                                                  "set!", "if" };
+                                                  "set!", "if", "cond" };
 
 static ScmObj (*scm_cmpl_compile_funcs[])(ScmObj exp, ScmObj env, ScmObj next,
                                           bool tail_p, bool toplevel_p,
@@ -1081,6 +1106,7 @@ static ScmObj (*scm_cmpl_compile_funcs[])(ScmObj exp, ScmObj env, ScmObj next,
   scm_cmpl_compile_begin,
   scm_cmpl_compile_assignment,
   scm_cmpl_compile_if,
+  scm_cmpl_compile_cond,
 };
 
 
@@ -2578,6 +2604,356 @@ scm_cmpl_compile_if(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
   return next;
 }
 
+static int
+scm_cmpl_decons_cond(ScmObj exp, scm_csetter_t *tests, scm_csetter_t *expss,
+                     bool *else_exist_p)
+{
+  ScmObj clauses = SCM_OBJ_INIT, tvec = SCM_OBJ_INIT, evec = SCM_OBJ_INIT;
+  ScmObj cls = SCM_OBJ_INIT, tst = SCM_OBJ_INIT, exs = SCM_OBJ_INIT;
+  ScmObj tmp = SCM_OBJ_INIT, arrow_sym = SCM_OBJ_INIT, else_sym = SCM_OBJ_INIT;
+  ssize_t nr_clauses;
+
+  SCM_STACK_FRAME_PUSH(&exp,
+                       &clauses, &tvec, &evec,
+                       &cls, &tst, &exs,
+                       &tmp, &arrow_sym, &else_sym);
+
+  else_sym= scm_capi_make_symbol_from_cstr("else", SCM_ENC_ASCII);
+  if (scm_obj_null_p(else_sym)) return -1;
+
+  arrow_sym = scm_capi_make_symbol_from_cstr("=>", SCM_ENC_ASCII);
+  if (scm_obj_null_p(arrow_sym)) return -1;
+
+  clauses = scm_api_cdr(exp);
+
+  nr_clauses = scm_capi_length(clauses);
+  if (nr_clauses < 0) return -1;
+
+  tvec = scm_capi_make_vector((size_t)nr_clauses, SCM_OBJ_NULL);
+  if (scm_obj_null_p(tvec)) return -1;
+
+  evec = scm_capi_make_vector((size_t)nr_clauses, SCM_OBJ_NULL);
+  if (scm_obj_null_p(evec)) return -1;
+
+  *else_exist_p = false;
+  for (size_t i = 0; i < (size_t)nr_clauses; i++) {
+    cls = scm_api_car(clauses);
+    if (scm_obj_null_p(cls)) return -1;
+
+    tst = scm_api_car(cls);
+    if (scm_obj_null_p(tst)) return -1;
+
+    if (scm_capi_eq_p(else_sym, tst)) {
+      if (*else_exist_p) {
+        scm_capi_error("malformed cond", 0);
+        return -1;
+      }
+
+      *else_exist_p = true;
+    }
+
+    exs = scm_api_cdr(cls);
+    if (scm_obj_null_p(exs)) return -1;
+
+    if (scm_capi_pair_p(exs)) {
+      tmp = scm_api_car(exs);
+      if (scm_obj_null_p(tmp)) return -1;
+
+      if (scm_capi_eq_p(arrow_sym, tmp)) {
+        if (*else_exist_p) {
+          scm_capi_error("Compiler: malformed cond", 0);
+          return -1;
+        }
+
+        exs = scm_api_cdr(exs);
+        if (scm_obj_null_p(exs)) return -1;
+
+        exs = scm_api_car(exs);
+        if (scm_obj_null_p(exs)) return -1;
+
+        /* (<test> => <expression>) 形式の場合、<expression> を vector で包む。
+         * (<test> <expression> ...) 形式の場合はリストが evec に設定されるが
+         * その形式と区別するため。
+         */
+        exs = scm_capi_make_vector(1, exs);
+        if (scm_obj_null_p(exs)) return -1;
+      }
+    }
+
+    tmp = scm_capi_vector_set(tvec, i, tst);
+    if (scm_obj_null_p(tmp)) return -1;
+
+    tmp = scm_capi_vector_set(evec, i, exs);
+    if (scm_obj_null_p(tmp)) return -1;
+
+    clauses = scm_api_cdr(clauses);
+    if (scm_obj_null_p(clauses)) return -1;
+  }
+
+  scm_csetter_setq(tests, tvec);
+  scm_csetter_setq(expss, evec);
+
+  return 0;
+}
+
+static ScmObj
+scm_cmpl_cmpl_cond_clause_exp(ScmObj exp, ScmObj label, ScmObj env, ScmObj next,
+                              bool tail_p, bool toplevel_p, ssize_t *rdepth)
+{
+  SCM_STACK_FRAME_PUSH(&exp, &env, &next);
+
+  *rdepth = -1;
+
+  if (!scm_capi_nil_p(label)) {
+    next = scm_cmpl_push_inst_jmp(label, next);
+    if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
+  }
+
+  if (scm_capi_pair_p(exp)) {
+    return scm_cmpl_compile_exp_list(exp, env, next,
+                                     tail_p, toplevel_p, rdepth);
+  }
+  else if (scm_capi_nil_p(exp)){
+    if (tail_p)
+      return scm_cmpl_push_inst_return(next);
+    else
+      return next;
+  }
+  else {
+    exp = scm_capi_vector_ref(exp, 0);
+    if (scm_obj_null_p(exp)) return SCM_OBJ_NULL;
+
+    if (tail_p)
+      next = scm_cmpl_push_inst_tcall(1, next);
+    else
+      next = scm_cmpl_push_inst_call(1, next);
+
+    if (scm_obj_null_p(next)) return  SCM_OBJ_NULL;
+
+    next = scm_cmpl_compile_exp(exp, env, next, false, toplevel_p, rdepth);
+    if (scm_obj_null_p(next)) return  SCM_OBJ_NULL;
+
+    next = scm_cmpl_push_inst_push(next);
+    if (scm_obj_null_p(next)) return  SCM_OBJ_NULL;
+
+    if (tail_p)
+      return scm_cmpl_push_inst_eframe(next);
+    else
+      return scm_cmpl_push_inst_frame(next);
+  }
+}
+
+static ScmObj
+scm_cmpl_make_cond_clause_label(ScmObj labels, size_t idx, const char *prefix)
+{
+  ScmObj lbl = SCM_OBJ_INIT, ro = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&labels,
+                       &lbl, &ro);
+
+  lbl = scm_cmpl_gen_label(prefix);
+  if (scm_obj_null_p(lbl)) return SCM_OBJ_NULL;
+
+  ro = scm_capi_vector_set(labels, idx, lbl);
+  if (scm_obj_null_p(ro)) return SCM_OBJ_NULL;
+
+  return lbl;
+}
+
+static ScmObj
+scm_cmpl_push_cond_clause(ScmObj exp, ScmObj junc, ScmObj labels, size_t idx,
+                          ScmObj env, ScmObj next,
+                          bool tail_p, bool toplevel_p, ssize_t *rdepth)
+{
+  ScmObj lbl_cls = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&exp, &junc, &labels, &env, &next,
+                       &lbl_cls);
+
+  next = scm_cmpl_cmpl_cond_clause_exp(exp, junc, env, next,
+                                       tail_p, toplevel_p, rdepth);
+  if (scm_obj_null_p(next)) return  SCM_OBJ_NULL;
+
+  lbl_cls = scm_cmpl_make_cond_clause_label(labels, idx, "cond-c");
+  if (scm_obj_null_p(lbl_cls)) return SCM_OBJ_NULL;
+
+  next = scm_cmpl_push_inst_label(lbl_cls, next);
+  if (scm_obj_null_p(next)) return  SCM_OBJ_NULL;
+
+  return next;
+}
+
+static ScmObj
+scm_cmpl_cmpl_cond_clause_test(ScmObj test, ScmObj label,
+                               ScmObj env, ScmObj next,
+                               bool tail_p, bool toplevel_p, ssize_t *rdepth)
+{
+  SCM_STACK_FRAME_PUSH(&test, &label, &env, &next);
+
+  if (!scm_capi_nil_p(label)) {
+    next = scm_cmpl_push_inst_jmpt(label, next);
+    if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
+  }
+
+  return scm_cmpl_compile_exp(test, env, next, false, toplevel_p, rdepth);
+}
+
+static ScmObj
+scm_cmpl_compile_cond(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
+                      bool toplevel_p, ssize_t *rdepth)
+{
+  ScmObj tests = SCM_OBJ_INIT, expss = SCM_OBJ_INIT;
+  ScmObj texp = SCM_OBJ_INIT, eexp = SCM_OBJ_INIT;
+  ScmObj labels = SCM_OBJ_INIT, lbl_junc = SCM_OBJ_INIT, lbl_cls = SCM_OBJ_INIT;
+  ScmObj lbl = SCM_OBJ_INIT, nil = SCM_OBJ_INIT;
+  ssize_t nr_clauses, rd;
+  bool else_exist_p;
+  int rslt, nr_cls_exp_code;
+
+  SCM_STACK_FRAME_PUSH(&exp, &env, &next,
+                       &tests, &expss,
+                       &texp, &eexp,
+                       &labels, &lbl_junc, &lbl_cls,
+                       &lbl, &nil);
+
+  *rdepth = -1;
+
+  nil = scm_api_nil();
+  if (scm_obj_null_p(nil)) return SCM_OBJ_NULL;
+
+  rslt = scm_cmpl_decons_cond(exp, SCM_CSETTER_L(tests), SCM_CSETTER_L(expss),
+                              &else_exist_p);
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  nr_clauses = scm_capi_vector_length(tests);
+  if (nr_clauses < 0) return SCM_OBJ_NULL;
+
+  if (nr_clauses == 0)
+    return scm_cmpl_compile_empty(exp, env, next, tail_p, toplevel_p,rdepth);
+
+  labels = scm_capi_make_vector((size_t)nr_clauses, nil);
+  if (scm_obj_null_p(labels)) return SCM_OBJ_NULL;
+
+
+  /*
+   * cond 式評価後の合流地点のラベルを設定。cond が tail-expression の場合は、
+   * 各節の <expression> をコンパイルしたコードの部分から直接 return するので
+   * 合流地点のラベルは設定しない。
+   */
+  if (!tail_p) {
+    lbl_junc = scm_cmpl_gen_label("cond-j");
+    if (scm_obj_null_p(lbl_junc)) return SCM_OBJ_NULL;
+
+    next = scm_cmpl_push_inst_label(lbl_junc, next);
+    if (scm_obj_null_p(next)) return  SCM_OBJ_NULL;
+  }
+  else {
+    lbl_junc = nil;
+  }
+
+  nr_cls_exp_code = 0;
+
+  /*
+   * else 節に <expression> が記載されている場合はその式をコンパイルし、その
+   * コードへジャンプするためのラベルを設定する。式の評価後、cond が
+   *  tail-expression なら return する。tail-expression でないなら、何もしな
+   * い (このコード直後がちょうど合流地点になる)
+   */
+  if (else_exist_p) {
+    eexp = scm_capi_vector_ref(expss, (size_t)nr_clauses - 1);
+    if (scm_obj_null_p(eexp)) return SCM_OBJ_NULL;
+
+    if (!scm_capi_nil_p(eexp)) {
+      next = scm_cmpl_push_cond_clause(eexp, nil, labels,
+                                       (size_t)nr_clauses - 1,
+                                       env, next, tail_p, toplevel_p, &rd);
+      if (scm_obj_null_p(next)) return  SCM_OBJ_NULL;
+
+      if (rd > *rdepth) *rdepth = rd;
+      nr_cls_exp_code++;
+    }
+  }
+
+  /*
+   * else 節よりも前に記載しれている節の <expression> 部分をコンパイルし、その
+   * コードへジャンプするためのラベルを設定する。<expression> が空の場合でも、
+   * cond が tail-expression の場合には return 命令だけを出力してラベルを設定
+   * する。<expression> の評価後、cond が tail-expression なら return する。
+   * tail-expression でないなら合流地点へジャンプする。ただし、その
+   *  <expression> が最後の節である場合 (具体的には else 節がない、または else
+   * 節に <expression> の記載がない cond 式の else 節を除いた最後の節の場合)
+   * は、ジャンプしない (そのコードの直後が合流地点ちょうど合流地点になる)
+   */
+  for (size_t i = (size_t)nr_clauses - (else_exist_p ? 1 : 0); i > 0; i--) {
+    eexp = scm_capi_vector_ref(expss, i - 1);
+    if (scm_obj_null_p(eexp)) return SCM_OBJ_NULL;
+
+    if (!scm_capi_nil_p(eexp) || tail_p) {
+      lbl = (!tail_p && nr_cls_exp_code > 0) ? lbl_junc : nil;
+
+      next = scm_cmpl_push_cond_clause(eexp, lbl, labels, i - 1,
+                                       env, next, tail_p, toplevel_p, &rd);
+      if (scm_obj_null_p(next)) return  SCM_OBJ_NULL;
+
+      if (rd > *rdepth) *rdepth = rd;
+      nr_cls_exp_code++;
+    }
+  }
+
+  /*
+   * else 節よりも前に記載しれている節の <test> が全て偽だった場合のコードを
+   * 出力する。else 節に <expression> の記載があれば、それをコンパイルした
+   * コードのところへジャンプする。else 節の <expression> が空、あるいは
+   * else 節そのものがない場合は、undef を実行し return あるいは合流地点へ
+   * ジャンプする。ただし、ジャンプしなくても、<expression> のコードあるいは
+   * 合流地点へいける場合はジャンプしない。
+   */
+  lbl_cls = nil;
+  if (else_exist_p) {
+    lbl_cls = scm_capi_vector_ref(labels, (size_t)nr_clauses - 1);
+    if (scm_obj_null_p(lbl_cls)) return SCM_OBJ_NULL;
+  }
+
+  if (scm_capi_nil_p(lbl_cls)) {
+    if (tail_p)
+      next = scm_cmpl_push_inst_return(next);
+    else if (nr_cls_exp_code > 0)
+      next = scm_cmpl_push_inst_jmp(lbl_junc, next);
+
+    if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
+
+    next = scm_cmpl_push_inst_undef(next);
+    if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
+  }
+  else if (nr_cls_exp_code > 1) {
+    next = scm_cmpl_push_inst_jmp(lbl_cls, next);
+    if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
+  }
+
+  /*
+   * else 節よりも前に記載されている節の <test> 部分をコンパイルする。
+   * <test> の評価結果が真の場合、その節に <expression> 部分の記載があれば、
+   * それをコンパイルしたコードのところへジャンプする。記載がない場合は合流
+   * 地点へジャンプする。
+   */
+  for (size_t i = (size_t)nr_clauses - (else_exist_p ? 1 : 0); i > 0; i--) {
+    texp = scm_capi_vector_ref(tests, i - 1);
+    if (scm_obj_null_p(texp)) return SCM_OBJ_NULL;
+
+    lbl_cls = scm_capi_vector_ref(labels, i - 1);
+    if (scm_obj_null_p(lbl_cls)) return SCM_OBJ_NULL;
+
+    lbl = (scm_capi_nil_p(lbl_cls)) ? lbl_junc : lbl_cls;
+    next = scm_cmpl_cmpl_cond_clause_test(texp, lbl, env, next,
+                                          tail_p, toplevel_p, &rd);
+
+    if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
+
+    if (rd > *rdepth) *rdepth = rd;
+  }
+
+  return next;
+}
 
 static ScmObj
 scm_cmpl_compile_exp(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,

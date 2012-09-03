@@ -1516,6 +1516,23 @@ scm_vm_op_jmp(ScmObj vm, SCM_OPCODE_T op)
 }
 
 scm_local_func void
+scm_vm_op_jmpt(ScmObj vm, SCM_OPCODE_T op)
+{
+  int32_t dst;
+  uint8_t *ip;
+
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  ip = scm_capi_inst_fetch_oprand_iof(SCM_VM(vm)->reg.ip, &dst);
+  if (ip == NULL) return;       /* [ERR]: [through] */
+
+  if (!scm_capi_false_p(SCM_VM(vm)->reg.val))
+    SCM_VM(vm)->reg.ip = ip + dst;
+  else
+    SCM_VM(vm)->reg.ip = ip;
+}
+
+scm_local_func void
 scm_vm_op_jmpf(ScmObj vm, SCM_OPCODE_T op)
 {
   int32_t dst;
@@ -2016,6 +2033,9 @@ scm_vm_run(ScmObj vm, ScmObj iseq)
       break;
     case SCM_OPCODE_JMP:
       scm_vm_op_jmp(vm, op);
+      break;
+    case SCM_OPCODE_JMPT:
+      scm_vm_op_jmpt(vm, op);
       break;
     case SCM_OPCODE_JMPF:
       scm_vm_op_jmpf(vm, op);

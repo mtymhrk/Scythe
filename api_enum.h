@@ -69,14 +69,15 @@ typedef enum {
   SCM_OPCODE_SREF,                /* 16: refere value in stack */
   SCM_OPCODE_SSET,                /* 17: update value in stack */
   SCM_OPCODE_JMP,                 /* 18: jump */
-  SCM_OPCODE_JMPF,                /* 19: jump if false */
-  SCM_OPCODE_RAISE,               /* 20: exception handler */
-  SCM_OPCODE_BOX,                 /* 21: boxing */
-  SCM_OPCODE_CLOSE,               /* 22: make closure */
-  SCM_OPCODE_DEMINE,              /* 23: demine variable */
-  SCM_OPCODE_EMINE,               /* 24: make enviroment frame */
+  SCM_OPCODE_JMPT,                /* 19: jump if true */
+  SCM_OPCODE_JMPF,                /* 20: jump if false */
+  SCM_OPCODE_RAISE,               /* 21: exception handler */
+  SCM_OPCODE_BOX,                 /* 22: boxing */
+  SCM_OPCODE_CLOSE,               /* 23: make closure */
+  SCM_OPCODE_DEMINE,              /* 24: demine variable */
+  SCM_OPCODE_EMINE,               /* 25: make enviroment frame */
                                   /*     and make it mine field */
-  SCM_OPCODE_EDEMINE,             /* 25: demine enviromnet frame with */
+  SCM_OPCODE_EDEMINE,             /* 26: demine enviromnet frame with */
                                   /*     incomplete enviromnet frame as */
                                   /*     initial value */
 } SCM_OPCODE_T;
