@@ -108,6 +108,8 @@ ScmObj scm_api_true(void);
 ScmObj scm_api_false(void);
 bool scm_capi_true_object_p(ScmObj obj);
 bool scm_capi_false_object_p(ScmObj obj);
+bool scm_capi_true_p(ScmObj obj);
+bool scm_capi_false_p(ScmObj obj);
 
 
 /*******************************************************************/

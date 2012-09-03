@@ -1508,7 +1508,7 @@ scm_vm_op_jmpt(ScmObj vm, SCM_OPCODE_T op)
   ip = scm_capi_inst_fetch_oprand_iof(SCM_VM(vm)->reg.ip, &dst);
   if (ip == NULL) return;       /* [ERR]: [through] */
 
-  if (!scm_capi_false_object_p(SCM_VM(vm)->reg.val))
+  if (scm_capi_true_p(SCM_VM(vm)->reg.val))
     SCM_VM(vm)->reg.ip = ip + dst;
   else
     SCM_VM(vm)->reg.ip = ip;
@@ -1525,7 +1525,7 @@ scm_vm_op_jmpf(ScmObj vm, SCM_OPCODE_T op)
   ip = scm_capi_inst_fetch_oprand_iof(SCM_VM(vm)->reg.ip, &dst);
   if (ip == NULL) return;       /* [ERR]: [through] */
 
-  if (scm_capi_false_object_p(SCM_VM(vm)->reg.val))
+  if (scm_capi_false_p(SCM_VM(vm)->reg.val))
     SCM_VM(vm)->reg.ip = ip + dst;
   else
     SCM_VM(vm)->reg.ip = ip;

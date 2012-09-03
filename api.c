@@ -452,6 +452,18 @@ scm_capi_false_object_p(ScmObj obj)
   return scm_capi_eq_p(obj, scm_api_false());
 }
 
+extern inline bool
+scm_capi_true_p(ScmObj obj)
+{
+  return !scm_capi_false_object_p(obj);
+}
+
+extern inline bool
+scm_capi_false_p(ScmObj obj)
+{
+  return scm_capi_false_object_p(obj);
+}
+
 
 /*******************************************************************/
 /*  eof                                                           */
