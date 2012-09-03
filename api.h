@@ -104,10 +104,10 @@ ScmObj scm_api_nil_P(ScmObj obj);
 /*  boolean                                                        */
 /*******************************************************************/
 
-ScmObj scm_api_bool_true(void);
-ScmObj scm_api_bool_false(void);
-bool scm_capi_true_p(ScmObj obj);
-bool scm_capi_false_p(ScmObj obj);
+ScmObj scm_api_true(void);
+ScmObj scm_api_false(void);
+bool scm_capi_true_object_p(ScmObj obj);
+bool scm_capi_false_object_p(ScmObj obj);
 
 
 /*******************************************************************/

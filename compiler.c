@@ -643,13 +643,13 @@ scm_cmpl_env_cons(ScmObj vars, bool vparam, ScmObj env)
   len = scm_capi_vector_length(vars);
   if (len < 0) return SCM_OBJ_NULL;
 
-  fls = scm_api_bool_false();
+  fls = scm_api_false();
   if (scm_obj_null_p(fls)) return SCM_OBJ_NULL;
 
   assigned = scm_capi_make_vector((size_t)len, fls);
   if (scm_obj_null_p(assigned)) return SCM_OBJ_NULL;
 
-  vp_flg = vparam ? scm_api_bool_true() : scm_api_bool_false();
+  vp_flg = vparam ? scm_api_true() : scm_api_false();
   if (scm_obj_null_p(vp_flg)) return SCM_OBJ_NULL;
 
   rib = scm_capi_list(3, vars, assigned, vp_flg);
@@ -691,7 +691,7 @@ scm_cmpl_env_assigned_flg(ScmObj env, size_t idx, size_t layer, bool *flg)
   fo = scm_capi_vector_ref(assigned, idx);
   if (scm_obj_null_p(fo)) return -1;
 
-  *flg = scm_capi_true_p(fo);
+  *flg = scm_capi_true_object_p(fo);
 
   return 0;
 }
@@ -734,7 +734,7 @@ scm_cmpl_env_resolv(ScmObj env, ScmObj sym, bool assigned,
       if (scm_capi_eq_p(var, sym)) {
         if (assigned) {
 
-          tr = scm_api_bool_true();
+          tr = scm_api_true();
           if (scm_obj_null_p(tr)) return -1;
 
           as_flgs = scm_capi_vector_ref(rib, 1);

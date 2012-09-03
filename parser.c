@@ -1723,9 +1723,9 @@ scm_parser_parse_bool(ScmParser *parser, ScmObj port)
   scm_lexer_shift_token(parser->lexer);
 
   if (type == SCM_TOKEN_TYPE_BOOL_TRUE)
-    return scm_api_bool_true();
+    return scm_api_true();
   else
-    return scm_api_bool_false();
+    return scm_api_false();
 }
 
 static ScmObj

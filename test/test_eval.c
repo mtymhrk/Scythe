@@ -35,7 +35,7 @@ test_eval__self_eval_1(void)
 
   actual = scm_capi_ut_eval(ev, exp);
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -86,7 +86,7 @@ test_eval__define_global_variable_2(void)
   /* scm_api_write(expected, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -107,7 +107,7 @@ test_eval__refer_global_variable_1(void)
 
   actual = scm_capi_ut_eval(ev, exp);
 
-  cut_assert_true(scm_capi_true_p(scm_api_eq_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_eq_P(expected, actual)));
 }
 
 void
@@ -134,7 +134,7 @@ test_eval__refer_global_variable_2(void)
 
   actual = scm_capi_ut_eval(ev, exp);
 
-  cut_assert_true(scm_capi_true_p(scm_api_eq_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_eq_P(expected, actual)));
 }
 
 void
@@ -164,7 +164,7 @@ test_eval__update_global_variable_1(void)
 
   actual = scm_api_global_var_ref(sym);
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 
@@ -188,7 +188,7 @@ test_eval__quote_1(void)
 
   actual = scm_capi_ut_eval(ev, exp);
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -211,7 +211,7 @@ test_eval__application_1(void)
 
   actual = scm_capi_ut_eval(ev, exp);
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -237,7 +237,7 @@ test_eval__closure_1(void)
   /* scm_api_write(expected, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -263,7 +263,7 @@ test_eval__closure_2(void)
   /* scm_api_write(expected, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -291,7 +291,7 @@ test_eval__closure_3(void)
   /* scm_api_write(expected, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -319,7 +319,7 @@ test_eval__closure_4(void)
   /* scm_api_write(expected, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -348,7 +348,7 @@ test_eval__closure_5(void)
   /* scm_api_write(expected, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -378,7 +378,7 @@ test_eval__closure_6(void)
   /* scm_api_write(expected, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -404,7 +404,7 @@ test_eval__tail_call_1(void)
   /* scm_api_write(expected, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -430,7 +430,7 @@ test_eval__tail_call_2(void)
   /* scm_api_write(expected, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -456,7 +456,7 @@ test_eval__tail_call_3(void)
   /* scm_api_write(expected, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -482,7 +482,7 @@ test_eval__tail_call_4(void)
   /* scm_api_write(expected, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -559,7 +559,7 @@ test_eval__lambda_4(void)
 
   actual = scm_capi_ut_eval(ev, exp);
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -585,7 +585,7 @@ test_eval__let_1(void)
   /* scm_api_write(expected, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -611,7 +611,7 @@ test_eval__let_2(void)
   /* scm_api_write(expected, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -637,7 +637,7 @@ test_eval__let_3(void)
   /* scm_api_write(expected, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -667,7 +667,7 @@ test_eval__let_4(void)
   /* scm_api_write(expected, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -693,7 +693,7 @@ test_eval__let_5(void)
   /* scm_api_write(expected, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -713,7 +713,7 @@ test_eval__let_6(void)
 
   actual = scm_capi_ut_eval(ev, exp);
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -739,7 +739,7 @@ test_eval__named_let_1(void)
   /* scm_api_write(expected, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -763,7 +763,7 @@ test_eval__named_let_2(void)
   /* scm_api_write(expected, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -793,7 +793,7 @@ test_eval__named_let_3(void)
   /* scm_api_write(expected, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -819,7 +819,7 @@ test_eval__letrec_1(void)
   /* scm_api_write(expected, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -845,7 +845,7 @@ test_eval__letrec_2(void)
   /* scm_api_write(expected, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -871,7 +871,7 @@ test_eval__letrec_3(void)
   /* scm_api_write(expected, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -897,7 +897,7 @@ test_eval__letrec_4(void)
   /* scm_api_write(expected, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -917,7 +917,7 @@ test_eval__letrec_5(void)
 
   actual = scm_capi_ut_eval(ev, exp);
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -943,7 +943,7 @@ test_eval__letrec_a_1(void)
   /* scm_api_write(expected, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -969,7 +969,7 @@ test_eval__letrec_a_2(void)
   /* scm_api_write(expected, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -995,7 +995,7 @@ test_eval__letrec_a_3(void)
   /* scm_api_write(expected, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -1021,7 +1021,7 @@ test_eval__letrec_a_4(void)
   /* scm_api_write(expected, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -1047,7 +1047,7 @@ test_eval__letrec_a_5(void)
   /* scm_api_write(expected, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -1067,7 +1067,7 @@ test_eval__letrec_a_6(void)
 
   actual = scm_capi_ut_eval(ev, exp);
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -1093,7 +1093,7 @@ test_eval__internal_definition_1(void)
   /* scm_api_write(expected, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -1119,7 +1119,7 @@ test_eval__internal_definition_2(void)
   /* scm_api_write(expected, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -1145,7 +1145,7 @@ test_eval__internal_definition_3(void)
   /* scm_api_write(expected, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -1171,7 +1171,7 @@ test_eval__internal_definition_4(void)
   /* scm_api_write(expected, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -1201,7 +1201,7 @@ test_eval__internal_definition_5(void)
   /* scm_api_write(expected, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -1227,7 +1227,7 @@ test_eval__begin_1(void)
   /* scm_api_write(expected, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -1255,7 +1255,7 @@ test_eval__begin_2(void)
   /* scm_api_write(expected, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -1275,7 +1275,7 @@ test_eval__begin_3(void)
 
   actual = scm_capi_ut_eval(ev, exp);
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -1298,7 +1298,7 @@ test_eval__refer_bound_variable_1(void)
 
   actual = scm_capi_ut_eval(ev, exp);
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -1321,7 +1321,7 @@ test_eval__refer_bound_variable_2(void)
 
   actual = scm_capi_ut_eval(ev, exp);
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -1348,7 +1348,7 @@ test_eval__set_bound_variable_1(void)
 
   actual = scm_capi_ut_eval(ev, exp);
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -1375,7 +1375,7 @@ test_eval__set_bound_variable_2(void)
 
   actual = scm_capi_ut_eval(ev, exp);
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -1405,7 +1405,7 @@ test_eval__refer_free_variable_1(void)
   /* scm_api_write(expected, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -1435,7 +1435,7 @@ test_eval__set_free_variable_1(void)
   /* scm_api_write(expected, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -1458,7 +1458,7 @@ test_eval__if_1(void)
 
   actual = scm_capi_ut_eval(ev, exp);
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -1481,7 +1481,7 @@ test_eval__if_2(void)
 
   actual = scm_capi_ut_eval(ev, exp);
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -1504,7 +1504,7 @@ test_eval__if_3(void)
 
   actual = scm_capi_ut_eval(ev, exp);
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -1525,7 +1525,7 @@ test_eval__if_4(void)
 
   actual = scm_capi_ut_eval(ev, exp);
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -1548,7 +1548,7 @@ test_eval__if_5(void)
 
   actual = scm_capi_ut_eval(ev, exp);
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -1569,7 +1569,7 @@ test_eval__if_6(void)
 
   actual = scm_capi_ut_eval(ev, exp);
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -1592,7 +1592,7 @@ test_eval__cond_1(void)
 
   actual = scm_capi_ut_eval(ev, exp);
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -1615,7 +1615,7 @@ test_eval__cond_2(void)
 
   actual = scm_capi_ut_eval(ev, exp);
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -1638,7 +1638,7 @@ test_eval__cond_3(void)
 
   actual = scm_capi_ut_eval(ev, exp);
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -1661,7 +1661,7 @@ test_eval__cond_4(void)
 
   actual = scm_capi_ut_eval(ev, exp);
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -1684,7 +1684,7 @@ test_eval__cond_5(void)
 
   actual = scm_capi_ut_eval(ev, exp);
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -1707,7 +1707,7 @@ test_eval__cond_6(void)
 
   actual = scm_capi_ut_eval(ev, exp);
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -1730,7 +1730,7 @@ test_eval__cond_7(void)
 
   actual = scm_capi_ut_eval(ev, exp);
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -1753,7 +1753,7 @@ test_eval__cond_8(void)
 
   actual = scm_capi_ut_eval(ev, exp);
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -1776,7 +1776,7 @@ test_eval__cond_9(void)
 
   actual = scm_capi_ut_eval(ev, exp);
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -1799,7 +1799,7 @@ test_eval__cond_10(void)
 
   actual = scm_capi_ut_eval(ev, exp);
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -1822,7 +1822,7 @@ test_eval__cond_11(void)
 
   actual = scm_capi_ut_eval(ev, exp);
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -1845,7 +1845,7 @@ test_eval__cond_12(void)
 
   actual = scm_capi_ut_eval(ev, exp);
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -1868,7 +1868,7 @@ test_eval__cond_13(void)
 
   actual = scm_capi_ut_eval(ev, exp);
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -1891,7 +1891,7 @@ test_eval__cond_14(void)
 
   actual = scm_capi_ut_eval(ev, exp);
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -1914,7 +1914,7 @@ test_eval__cond_15(void)
 
   actual = scm_capi_ut_eval(ev, exp);
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 
 void
@@ -1937,5 +1937,5 @@ test_eval__cond_16(void)
 
   actual = scm_capi_ut_eval(ev, exp);
 
-  cut_assert_true(scm_capi_true_p(scm_api_equal_P(expected, actual)));
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }

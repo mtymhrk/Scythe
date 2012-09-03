@@ -184,7 +184,7 @@ scm_api_eq_P(ScmObj obj1, ScmObj obj2)
   }
 
   return (scm_obj_same_instance_p(obj1, obj2) ?
-          scm_api_bool_true() : scm_api_bool_false());
+          scm_api_true() : scm_api_false());
 }
 
 ScmObj
@@ -201,17 +201,17 @@ scm_api_eqv_P(ScmObj obj1, ScmObj obj2)
   }
 
   if (scm_capi_eq_p(obj1, obj2))
-    return scm_api_bool_true();
+    return scm_api_true();
 
   if (scm_capi_number_p(obj1)) {
     if (scm_capi_number_p(obj2))
       return scm_api_num_eq_P(obj1, obj2);
     else
-      return scm_api_bool_false();
+      return scm_api_false();
   }
 
   if (!scm_type_info_same_p(scm_obj_type(obj1), scm_obj_type(obj2)))
-    return scm_api_bool_false();
+    return scm_api_false();
 
   if (scm_capi_char_p(obj1)) {
     return scm_api_char_eq_P(obj1, obj2);
@@ -226,7 +226,7 @@ scm_api_eqv_P(ScmObj obj1, ScmObj obj2)
     return scm_api_string_eq_P(str1, str2);
   }
 
-  return scm_api_bool_false();
+  return scm_api_false();
 }
 
 enum { NON_CIRCULATIVE,
@@ -314,16 +314,16 @@ scm_api_equal_aux_P(ScmObj obj1, ScmObj obj2, ScmObj stack1, ScmObj stack2)
   rslt = scm_api_eqv_P(obj1, obj2);
   if (scm_obj_null_p(rslt)) return SCM_OBJ_NULL;
 
-  if (scm_capi_false_p(rslt)
+  if (scm_capi_false_object_p(rslt)
       && scm_type_info_same_p(scm_obj_type(obj1), scm_obj_type(obj2))
       && (scm_capi_pair_p(obj1) || scm_capi_vector_p(obj1))) {
     if (scm_api_equal_check_circular(obj1, obj2, stack1, stack2, &cir) < 0)
       return SCM_OBJ_NULL;
 
     if (cir == SAME_CIRCULATION)
-      return scm_api_bool_true();
+      return scm_api_true();
     else if (cir == DIFFERENT_CIRCULATION)
-      return scm_api_bool_false();
+      return scm_api_false();
 
     stack1 = scm_api_cons(obj1, stack1);
     if (scm_obj_null_p(stack1)) return SCM_OBJ_NULL;
@@ -340,7 +340,7 @@ scm_api_equal_aux_P(ScmObj obj1, ScmObj obj2, ScmObj stack1, ScmObj stack2)
 
       rslt = scm_api_equal_aux_P(elm1, elm2, stack1, stack2);
       if (scm_obj_null_p(rslt)) return SCM_OBJ_NULL;
-      if (scm_capi_false_p(rslt)) return rslt;
+      if (scm_capi_false_object_p(rslt)) return rslt;
 
       elm1 = scm_api_cdr(obj1);
       if (scm_obj_null_p(elm1)) return SCM_OBJ_NULL;
@@ -355,7 +355,7 @@ scm_api_equal_aux_P(ScmObj obj1, ScmObj obj2, ScmObj stack1, ScmObj stack2)
       ssize_t len2 = scm_capi_vector_length(obj2);
 
       if (len1 < 0 || len2 < 0) return SCM_OBJ_NULL;
-      if (len1 != len2) return scm_api_bool_false();
+      if (len1 != len2) return scm_api_false();
 
       for (ssize_t i = 0; i < len1; i++) {
         elm1 = scm_capi_vector_ref(obj1, (size_t)i);
@@ -366,10 +366,10 @@ scm_api_equal_aux_P(ScmObj obj1, ScmObj obj2, ScmObj stack1, ScmObj stack2)
 
         rslt = scm_api_equal_aux_P(elm1, elm2, stack1, stack2);
         if (scm_obj_null_p(rslt)) return SCM_OBJ_NULL;
-        if (scm_capi_false_p(rslt)) return rslt;
+        if (scm_capi_false_object_p(rslt)) return rslt;
       }
 
-      return scm_api_bool_true();
+      return scm_api_true();
     }
   }
 
@@ -420,7 +420,7 @@ scm_api_nil_P(ScmObj obj)
     return SCM_OBJ_NULL;
   }
 
-  return scm_capi_nil_p(obj) ? scm_api_bool_true() : scm_api_bool_false();
+  return scm_capi_nil_p(obj) ? scm_api_true() : scm_api_false();
 }
 
 
@@ -429,27 +429,27 @@ scm_api_nil_P(ScmObj obj)
 /*******************************************************************/
 
 extern inline ScmObj
-scm_api_bool_true(void)
+scm_api_true(void)
 {
   return scm_vm_true(scm_vm_current_vm());
 }
 
 extern inline ScmObj
-scm_api_bool_false(void)
+scm_api_false(void)
 {
   return scm_vm_false(scm_vm_current_vm());
 }
 
 extern inline bool
-scm_capi_true_p(ScmObj obj)
+scm_capi_true_object_p(ScmObj obj)
 {
-  return scm_capi_eq_p(obj, scm_api_bool_true());
+  return scm_capi_eq_p(obj, scm_api_true());
 }
 
 extern inline bool
-scm_capi_false_p(ScmObj obj)
+scm_capi_false_object_p(ScmObj obj)
 {
-  return scm_capi_eq_p(obj, scm_api_bool_false());
+  return scm_capi_eq_p(obj, scm_api_false());
 }
 
 
@@ -666,7 +666,7 @@ scm_api_pair_P(ScmObj pair)
     return SCM_OBJ_NULL;         /* provisional implemntation */
   }
 
-  return scm_capi_pair_p(pair) ? scm_api_bool_true() : scm_api_bool_false();
+  return scm_capi_pair_p(pair) ? scm_api_true() : scm_api_false();
 }
 
 ScmObj
@@ -738,9 +738,9 @@ scm_api_list_P(ScmObj lst)
   }
 
   if (scm_capi_nil_p(lst))
-    return scm_api_bool_true();
+    return scm_api_true();
   else if (!scm_capi_pair_p(lst))
-    return scm_api_bool_false();
+    return scm_api_false();
 
   rabbit = tortoise = lst;
 
@@ -749,28 +749,28 @@ scm_api_list_P(ScmObj lst)
     if (scm_obj_null_p(tortoise))
       return SCM_OBJ_NULL;
     else if (scm_capi_nil_p(lst))
-      return scm_api_bool_true();
+      return scm_api_true();
     else if (!scm_capi_pair_p(lst))
-      return scm_api_bool_false();
+      return scm_api_false();
 
     rabbit = scm_api_cdr(rabbit);
     if (scm_obj_null_p(rabbit))
       return SCM_OBJ_NULL;
     else if (scm_capi_nil_p(rabbit))
-      return scm_api_bool_true();
+      return scm_api_true();
     else if (!scm_capi_pair_p(lst))
-      return scm_api_bool_false();
+      return scm_api_false();
 
     rabbit = scm_api_cdr(rabbit);
     if (scm_obj_null_p(rabbit))
       return SCM_OBJ_NULL;
     else if (scm_capi_nil_p(rabbit))
-      return scm_api_bool_true();
+      return scm_api_true();
     else if (!scm_capi_pair_p(lst))
-      return scm_api_bool_false();
+      return scm_api_false();
   } while (!scm_capi_eq_p(tortoise, rabbit));
 
-  return scm_api_bool_false();
+  return scm_api_false();
 }
 
 ssize_t
@@ -1056,7 +1056,7 @@ scm_api_num_eq_P(ScmObj n1, ScmObj n2)
   rslt = scm_capi_num_eq(n1, n2, &cmp);
   if (rslt < 0) return SCM_OBJ_NULL;
 
-  return cmp ? scm_api_bool_true() : scm_api_bool_false();
+  return cmp ? scm_api_true() : scm_api_false();
 }
 
 ScmObj
@@ -1068,7 +1068,7 @@ scm_capi_num_eq_ary_P(size_t argc, ScmObj *argv)
   rslt = scm_capi_num_cop_fold("=", scm_capi_num_eq, argc, argv, &cmp);
   if (rslt < 0) return SCM_OBJ_NULL;
 
-  return cmp ? scm_api_bool_true() : scm_api_bool_false();
+  return cmp ? scm_api_true() : scm_api_false();
 }
 
 int
@@ -1128,7 +1128,7 @@ scm_api_num_lt_P(ScmObj n1, ScmObj n2)
   rslt = scm_capi_num_lt(n1, n2, &cmp);
   if (rslt < 0) return SCM_OBJ_NULL;
 
-  return cmp ? scm_api_bool_true() : scm_api_bool_false();
+  return cmp ? scm_api_true() : scm_api_false();
 }
 
 ScmObj
@@ -1140,7 +1140,7 @@ scm_capi_num_lt_ary_P(size_t argc, ScmObj *argv)
   rslt = scm_capi_num_cop_fold("<", scm_capi_num_lt, argc, argv, &cmp);
   if (rslt < 0) return SCM_OBJ_NULL;
 
-  return cmp ? scm_api_bool_true() : scm_api_bool_false();
+  return cmp ? scm_api_true() : scm_api_false();
 }
 
 int
@@ -1200,7 +1200,7 @@ scm_api_num_gt_P(ScmObj n1, ScmObj n2)
   rslt = scm_capi_num_gt(n1, n2, &cmp);
   if (rslt < 0) return SCM_OBJ_NULL;
 
-  return cmp ? scm_api_bool_true() : scm_api_bool_false();
+  return cmp ? scm_api_true() : scm_api_false();
 }
 
 ScmObj
@@ -1212,7 +1212,7 @@ scm_capi_num_gt_ary_P(size_t argc, ScmObj *argv)
   rslt = scm_capi_num_cop_fold(">", scm_capi_num_gt, argc, argv, &cmp);
   if (rslt < 0) return SCM_OBJ_NULL;
 
-  return cmp ? scm_api_bool_true() : scm_api_bool_false();
+  return cmp ? scm_api_true() : scm_api_false();
 }
 
 int
@@ -1272,7 +1272,7 @@ scm_api_num_le_P(ScmObj n1, ScmObj n2)
   rslt = scm_capi_num_le(n1, n2, &cmp);
   if (rslt < 0) return SCM_OBJ_NULL;
 
-  return cmp ? scm_api_bool_true() : scm_api_bool_false();
+  return cmp ? scm_api_true() : scm_api_false();
 }
 
 ScmObj
@@ -1284,7 +1284,7 @@ scm_capi_num_le_ary_P(size_t argc, ScmObj *argv)
   rslt = scm_capi_num_cop_fold("<=", scm_capi_num_le, argc, argv, &cmp);
   if (rslt < 0) return SCM_OBJ_NULL;
 
-  return cmp ? scm_api_bool_true() : scm_api_bool_false();
+  return cmp ? scm_api_true() : scm_api_false();
 }
 
 int
@@ -1344,7 +1344,7 @@ scm_api_num_ge_P(ScmObj n1, ScmObj n2)
   rslt = scm_capi_num_ge(n1, n2, &cmp);
   if (rslt < 0) return SCM_OBJ_NULL;
 
-  return cmp ? scm_api_bool_true() : scm_api_bool_false();
+  return cmp ? scm_api_true() : scm_api_false();
 }
 
 ScmObj
@@ -1356,7 +1356,7 @@ scm_capi_num_ge_ary_P(size_t argc, ScmObj *argv)
   rslt = scm_capi_num_cop_fold(">=", scm_capi_num_ge, argc, argv, &cmp);
   if (rslt < 0) return SCM_OBJ_NULL;
 
-  return cmp ? scm_api_bool_true() : scm_api_bool_false();
+  return cmp ? scm_api_true() : scm_api_false();
 }
 
 static ScmObj
@@ -1957,7 +1957,7 @@ scm_api_char_eq_P(ScmObj chr1, ScmObj chr2)
   rslt = scm_capi_char_eq(chr1, chr2, &cmp);
   if (rslt < 0) return SCM_OBJ_NULL;
 
-  return cmp ? scm_api_bool_true() : scm_api_bool_false();
+  return cmp ? scm_api_true() : scm_api_false();
 }
 
 
@@ -2196,7 +2196,7 @@ scm_api_string_eq_P(ScmObj s1, ScmObj s2)
   rslt = scm_capi_string_eq(s1, s2, &cmp);
   if (rslt < 0) return SCM_OBJ_NULL;
 
-  return cmp ? scm_api_bool_true() : scm_api_bool_false();
+  return cmp ? scm_api_true() : scm_api_false();
 }
 
 
@@ -2572,9 +2572,9 @@ scm_api_input_port_P(ScmObj port)
   }
 
   if (scm_obj_type_p(port, &SCM_PORT_TYPE_INFO) && scm_port_readable_p(port))
-    return scm_api_bool_true();
+    return scm_api_true();
   else
-    return scm_api_bool_false();
+    return scm_api_false();
 }
 
 bool
@@ -2598,9 +2598,9 @@ scm_api_output_port_P(ScmObj port)
   }
 
   if (scm_obj_type_p(port, &SCM_PORT_TYPE_INFO) && scm_port_writable_p(port))
-    return scm_api_bool_true();
+    return scm_api_true();
   else
-    return scm_api_bool_false();
+    return scm_api_false();
 }
 
 int

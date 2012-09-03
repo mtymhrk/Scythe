@@ -235,7 +235,7 @@ test_parser_parse_bool_true(void)
 
   bl = scm_parser_parse_expression(parser, port);
 
-  cut_assert_true(scm_capi_true_p(bl));
+  cut_assert_true(scm_capi_true_object_p(bl));
 
   eof = scm_parser_parse_expression(parser, port);
   cut_assert_true(scm_capi_eof_object_p(eof));
@@ -253,7 +253,7 @@ test_parser_parse_bool_false(void)
 
   bl = scm_parser_parse_expression(parser, port);
 
-  cut_assert_true(scm_capi_false_p(bl));
+  cut_assert_true(scm_capi_false_object_p(bl));
 
   eof = scm_parser_parse_expression(parser, port);
   cut_assert_true(scm_capi_eof_object_p(eof));

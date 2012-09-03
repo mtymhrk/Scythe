@@ -29,68 +29,68 @@ cut_shutdown(void)
 
 
 void
-test_scm_capi_true_p_1(void)
+test_scm_capi_true_object_p_1(void)
 {
   ScmObj bl = SCM_OBJ_INIT;
 
   SCM_STACK_FRAME_PUSH(&bl);
 
-  bl = scm_api_bool_true();
+  bl = scm_api_true();
 
-  cut_assert_true(scm_capi_true_p(bl));
+  cut_assert_true(scm_capi_true_object_p(bl));
   cut_assert_false(scm_capi_raised_p());
 }
 
 void
-test_scm_capi_true_p_2(void)
+test_scm_capi_true_object_p_2(void)
 {
   ScmObj bl = SCM_OBJ_INIT;
 
   SCM_STACK_FRAME_PUSH(&bl);
 
-  bl = scm_api_bool_false();
+  bl = scm_api_false();
 
-  cut_assert_false(scm_capi_true_p(bl));
+  cut_assert_false(scm_capi_true_object_p(bl));
   cut_assert_false(scm_capi_raised_p());
 }
 
 void
-test_scm_capi_true_p_3(void)
+test_scm_capi_true_object_p_3(void)
 {
-  cut_assert_false(scm_capi_true_p(SCM_OBJ_NULL));
+  cut_assert_false(scm_capi_true_object_p(SCM_OBJ_NULL));
   cut_assert_false(scm_capi_raised_p());
 }
 
 void
-test_scm_capi_false_p_1(void)
-{
-  ScmObj bl = SCM_OBJ_INIT;
-
-  SCM_STACK_FRAME_PUSH(&bl);
-
-  bl = scm_api_bool_true();
-
-  cut_assert_false(scm_capi_false_p(bl));
-  cut_assert_false(scm_capi_raised_p());
-}
-
-void
-test_scm_capi_false_p_2(void)
+test_scm_capi_false_object_p_1(void)
 {
   ScmObj bl = SCM_OBJ_INIT;
 
   SCM_STACK_FRAME_PUSH(&bl);
 
-  bl = scm_api_bool_false();
+  bl = scm_api_true();
 
-  cut_assert_true(scm_capi_false_p(bl));
+  cut_assert_false(scm_capi_false_object_p(bl));
   cut_assert_false(scm_capi_raised_p());
 }
 
 void
-test_scm_capi_false_p_3(void)
+test_scm_capi_false_object_p_2(void)
 {
-  cut_assert_false(scm_capi_false_p(SCM_OBJ_NULL));
+  ScmObj bl = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&bl);
+
+  bl = scm_api_false();
+
+  cut_assert_true(scm_capi_false_object_p(bl));
+  cut_assert_false(scm_capi_raised_p());
+}
+
+void
+test_scm_capi_false_object_p_3(void)
+{
+  cut_assert_false(scm_capi_false_object_p(SCM_OBJ_NULL));
   cut_assert_false(scm_capi_raised_p());
 }
 
