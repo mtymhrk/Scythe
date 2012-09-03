@@ -241,8 +241,7 @@ void scm_vm_clean_global_env(ScmObj vm);
 void scm_vm_clean_eval_env(ScmObj vm);
 
 int scm_vm_stack_push(ScmObj vm, ScmObj elm);
-ScmObj scm_vm_stack_pop(ScmObj vm);
-int scm_vm_stack_shift(ScmObj vm, size_t nelm, size_t nshift);
+/* ScmObj scm_vm_stack_pop(ScmObj vm); */
 
 int scm_vm_update_ief_len_if_needed(ScmObj vm);
 int scm_vm_make_cframe(ScmObj vm, ScmEnvFrame * efp,

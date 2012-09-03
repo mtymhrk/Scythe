@@ -581,39 +581,21 @@ scm_vm_stack_push(ScmObj vm, ScmObj elm)
   return 0;
 }
 
-scm_local_func ScmObj
-scm_vm_stack_pop(ScmObj vm)
-{
-  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+/* scm_local_func ScmObj */
+/* scm_vm_stack_pop(ScmObj vm) */
+/* { */
+/*   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO); */
 
-  if (SCM_VM(vm)->reg.sp - sizeof(ScmObj) < SCM_VM(vm)->stack) {
-    scm_capi_fatal("VM stack underflow");
-    /* stack underflow; TODO; handle stack underflow error */
-    return SCM_OBJ_NULL;
-  }
+/*   if (SCM_VM(vm)->reg.sp - sizeof(ScmObj) < SCM_VM(vm)->stack) { */
+/*     scm_capi_fatal("VM stack underflow"); */
+/*     /\* stack underflow; TODO; handle stack underflow error *\/ */
+/*     return SCM_OBJ_NULL; */
+/*   } */
 
-  SCM_VM(vm)->reg.sp -= sizeof(ScmObj);
+/*   SCM_VM(vm)->reg.sp -= sizeof(ScmObj); */
 
-  return *(ScmObj *)SCM_VM(vm)->reg.sp;
-}
-
-scm_local_func int
-scm_vm_stack_shift(ScmObj vm, size_t nelm, size_t nshift)
-{
-  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-
-  if (SCM_VM(vm)->reg.sp - nelm - nshift < SCM_VM(vm)->stack) {
-    scm_capi_fatal("VM stack underflow");
-    return -1;
-  }
-
-  memmove(SCM_VM(vm)->reg.sp - nelm - nshift,
-          SCM_VM(vm)->reg.sp - nelm,
-          nelm);
-  SCM_VM(vm)->reg.sp = SCM_VM(vm)->reg.sp - nshift;
-
-  return 0;
-}
+/*   return *(ScmObj *)SCM_VM(vm)->reg.sp; */
+/* } */
 
 scm_local_inline int
 scm_vm_update_ief_len_if_needed(ScmObj vm)

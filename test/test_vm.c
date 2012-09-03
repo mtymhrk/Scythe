@@ -30,7 +30,7 @@ test_scm_vm_stack_push_scmobj(void)
   scm_vm_stack_push(vm, scm_api_nil());
 
   cut_assert(scm_obj_same_instance_p(scm_api_nil(),
-                                     scm_vm_stack_pop(vm)));
+                                     ((ScmObj *)SCM_VM(vm)->reg.sp)[- 1]));
 }
 
 
