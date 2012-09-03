@@ -8,7 +8,6 @@ string.o: string.c object.h impl_utils.h reference.h api.h encoding.h \
  api_enum.h api_type.h string.h
 symbol.o: symbol.c object.h impl_utils.h reference.h api.h encoding.h \
  api_enum.h api_type.h chashtbl.h string.h symbol.h
-basichash.o: basichash.c basichash.h
 vector.o: vector.c object.h impl_utils.h reference.h api.h encoding.h \
  api_enum.h api_type.h vector.h
 miscobjects.o: miscobjects.c object.h impl_utils.h reference.h api.h \
