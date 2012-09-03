@@ -1318,7 +1318,7 @@ scm_mem_alloc(ScmMem *mem, ScmTypeInfo *type, size_t add_size,
 {
   scm_assert(mem != NULL);
   scm_assert(type != NULL);
-  scm_assert(alloc <  SCM_MEM_NR_ALLOC_TYPE);
+  /* scm_assert(alloc <  SCM_MEM_NR_ALLOC_TYPE); */
 
   switch(alloc) {
   case SCM_MEM_ALLOC_HEAP:
@@ -1328,6 +1328,7 @@ scm_mem_alloc(ScmMem *mem, ScmTypeInfo *type, size_t add_size,
     return scm_mem_alloc_root(mem, type, add_size);
     break;
   default:
+    scm_assert(true);
     return SCM_OBJ_NULL;
   }
 
