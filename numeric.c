@@ -385,7 +385,6 @@ scm_fixnum_truncate_div(ScmObj dvd, ScmObj dvr,
                         scm_csetter_t *quo, scm_csetter_t *rem)
 {
   scm_sword_t x, y, q, r;
-  char x_s, y_s;
   int rslt;
 
   scm_assert_obj_type(dvd, &SCM_FIXNUM_TYPE_INFO);
@@ -402,9 +401,6 @@ scm_fixnum_truncate_div(ScmObj dvd, ScmObj dvr,
 
   x = scm_fixnum_value(dvd);
   y = scm_fixnum_value(dvr);
-
-  x_s = (x >= 0) ? '+' : '-';
-  y_s = (y >= 0) ? '+' : '-';
 
   rslt = scm_fixnum_quo_rem(x, y, &q, &r);
   if (rslt < 0) return -1;
@@ -842,6 +838,7 @@ scm_bignum_nlshift(ScmObj bignum, size_t n)
   /* shift 結果を格納できるようあらかじめ配列を拡張するために 0 を設定する */
   EARY_SET(&SCM_BIGNUM(bignum)->digits, scm_bignum_d_t,
            SCM_BIGNUM(bignum)->nr_digits + n - 1, 0, err);
+  if (err < 0) return -1;
 
   head = EARY_HEAD(&SCM_BIGNUM(bignum)->digits);
   if (n >= SCM_BIGNUM(bignum)->nr_digits)
