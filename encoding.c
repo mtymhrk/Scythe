@@ -157,12 +157,7 @@ scm_str_itr_begin(void *p, size_t size,
 void
 scm_str_itr_next(ScmStrItr *iter)
 {
-  ScmStrItr next;
   ssize_t w;
-
-  next.p = NULL;
-  next.rest = -1;
-  next.char_width = NULL;
 
   if (iter == NULL) return;
   if (iter->rest <= 0) return;
