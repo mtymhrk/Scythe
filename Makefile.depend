@@ -1,5 +1,5 @@
-memory.o: memory.c basichash.h object.h impl_utils.h api.h reference.h \
- encoding.h api_enum.h api_type.h memory.h
+memory.o: memory.c object.h impl_utils.h api.h reference.h encoding.h \
+ api_enum.h api_type.h memory.h
 object.o: object.c object.h impl_utils.h numeric.h api_enum.h earray.h \
  api.h reference.h encoding.h api_type.h
 pair.o: pair.c object.h impl_utils.h api.h reference.h encoding.h \
@@ -18,25 +18,25 @@ char.o: char.c object.h impl_utils.h reference.h api.h encoding.h \
 charconv.o: charconv.c api.h object.h impl_utils.h reference.h encoding.h \
  api_enum.h api_type.h charconv.h
 encoding.o: encoding.c encoding.h api_enum.h
-vm.o: vm.c vm.h object.h impl_utils.h memory.h basichash.h reference.h \
- api_enum.h api_type.h string.h encoding.h symbol.h chashtbl.h gloc.h \
- procedure.h core_subr.h miscobjects.h compiler.h api.h
+vm.o: vm.c vm.h object.h impl_utils.h memory.h reference.h api_enum.h \
+ api_type.h string.h encoding.h symbol.h chashtbl.h gloc.h procedure.h \
+ core_subr.h miscobjects.h compiler.h api.h
 procedure.o: procedure.c object.h impl_utils.h api.h reference.h \
  encoding.h api_enum.h api_type.h procedure.h
 reference.o: reference.c object.h impl_utils.h api.h reference.h \
  encoding.h api_enum.h api_type.h
 numeric.o: numeric.c object.h impl_utils.h reference.h api.h encoding.h \
  api_enum.h api_type.h earray.h numeric.h
-core_subr.o: core_subr.c object.h impl_utils.h vm.h memory.h basichash.h \
- reference.h api_enum.h api_type.h api.h encoding.h core_subr.h
+core_subr.o: core_subr.c object.h impl_utils.h vm.h memory.h reference.h \
+ api_enum.h api_type.h api.h encoding.h core_subr.h
 iseq.o: iseq.c object.h impl_utils.h reference.h chashtbl.h api.h \
  encoding.h api_enum.h api_type.h earray.h iseq.h
 chashtbl.o: chashtbl.c object.h impl_utils.h reference.h api.h encoding.h \
  api_enum.h api_type.h chashtbl.h
-api.o: api.c object.h impl_utils.h memory.h basichash.h vm.h reference.h \
- api_enum.h api_type.h char.h encoding.h string.h symbol.h chashtbl.h \
- procedure.h gloc.h numeric.h earray.h api.h pair.h vector.h port.h \
- parser.h syntax.h iseq.h assembler.h compiler.h exception.h
+api.o: api.c object.h impl_utils.h memory.h vm.h reference.h api_enum.h \
+ api_type.h char.h encoding.h string.h symbol.h chashtbl.h procedure.h \
+ gloc.h numeric.h earray.h api.h pair.h vector.h port.h parser.h syntax.h \
+ iseq.h assembler.h compiler.h exception.h
 gloc.o: gloc.c object.h impl_utils.h reference.h api.h encoding.h \
  api_enum.h api_type.h chashtbl.h gloc.h
 port.o: port.c object.h impl_utils.h reference.h api.h encoding.h \

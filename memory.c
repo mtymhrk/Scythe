@@ -6,7 +6,6 @@
 #include <stdint.h>
 #include <assert.h>
 
-#include "basichash.h"
 #include "object.h"
 #include "api.h"
 #include "impl_utils.h"
@@ -63,20 +62,6 @@ static ScmTypeInfo SCM_MEM_TYPE_INFO = {
 };
 
 
-
-static size_t
-object_table_hash_func(ScmBasicHashKey key)
-{
-  return (size_t)key;
-}
-
-static bool
-object_table_comp_func(ScmBasicHashKey key1, ScmBasicHashKey key2)
-{
-  return (key1 == key2) ? true : false;
-}
-
-
 /** private functions  for alignment *****************************************/
 
 scm_local_inline size_t
@@ -100,6 +85,12 @@ scm_mem_align_ptr(void *ptr)
 }
 
 scm_local_inline size_t
+scm_mem_alloc_size_of_obj_has_fin_func(size_t size)
+{
+  return scm_mem_align_size_by(size, sizeof(ScmObj)) + sizeof(ScmObj) * 2;
+}
+
+scm_local_inline size_t
 scm_mem_alloc_size_of_obj_has_weak_ref(size_t size)
 {
   return scm_mem_align_size_by(size, sizeof(ScmObj)) + sizeof(ScmObj);
@@ -115,6 +106,8 @@ scm_mem_alloc_size_in_heap(ScmTypeInfo *type, size_t add)
   size = scm_type_info_obj_size(type) + add;
   if (size < sizeof(ScmMMObj))
     size = sizeof(ScmMMObj);
+  if (scm_type_info_has_gc_fin_func_p(type))
+    size = scm_mem_alloc_size_of_obj_has_fin_func(size);
   if (scm_type_info_has_instance_weak_ref_p(type))
     size = scm_mem_alloc_size_of_obj_has_weak_ref(size);
   if (size < SCM_MEM_MIN_OBJ_SIZE)
@@ -378,6 +371,7 @@ scm_mem_heap_new_heap(int nr_blk, size_t sz)
   heap->head = NULL;
   heap->tail = NULL;
   heap->current = NULL;
+  heap->fin_list = SCM_OBJ_NULL;
   heap->weak_list = NULL;
   heap->nr_block = 0;
   heap->nr_free_block = 0;
@@ -455,6 +449,12 @@ scm_mem_heap_alloc(ScmMemHeap *heap, size_t size)
   return (ScmMemHeapCell *)ptr;
 }
 
+/* void scm_mem_heap_cancel_alloc(ScmMemHeap *heap, size_t size)
+ *
+ *   scm_mem_alloc_heap_mem_obj 関数内で、scm_mem_heap_alloc の呼出し後にエ
+ *   ラーが発生した場合に scm_mem_heap_alloc で行ったヒープの割り当てを取り
+ *   消す関数。今現在、エラーケースが無いため未使用
+ */
 scm_local_func void
 scm_mem_heap_cancel_alloc(ScmMemHeap *heap, size_t size)
 {
@@ -585,7 +585,78 @@ scm_mem_obj_to_cell(ScmObj obj)
 }
 
 
-/** private functions for list of objects hss weak reference *****************/
+/** private functions for list of objects has finalize function **************/
+
+scm_local_inline ScmRef
+scm_mem_prev_obj_has_fin_func(ScmTypeInfo *type, ScmObj obj)
+{
+  uint8_t *p;
+
+  p = scm_mem_heap_cell_tail(scm_mem_obj_to_cell(obj)) - sizeof(ScmObj) * 2;
+
+  if (scm_type_info_has_instance_weak_ref_p(type))
+    p -= sizeof(ScmObj);
+
+  return (ScmRef)p;
+}
+
+scm_local_inline ScmRef
+scm_mem_next_obj_has_fin_func(ScmTypeInfo *type, ScmObj obj)
+{
+  uint8_t *p;
+
+  p = scm_mem_heap_cell_tail(scm_mem_obj_to_cell(obj)) - sizeof(ScmObj);
+
+  if (scm_type_info_has_instance_weak_ref_p(type))
+    p -= sizeof(ScmObj);
+
+  return (ScmRef)p;
+}
+
+scm_local_inline void
+scm_mem_set_prev_obj_has_fin_func(ScmTypeInfo *type, ScmObj obj, ScmObj prv)
+{
+  ScmRef r = scm_mem_prev_obj_has_fin_func(type, obj);
+  SCM_REF_UPDATE(r, prv);
+}
+
+scm_local_inline void
+scm_mem_set_next_obj_has_fin_func(ScmTypeInfo *type, ScmObj obj, ScmObj prv)
+{
+  ScmRef r = scm_mem_next_obj_has_fin_func(type, obj);
+  SCM_REF_UPDATE(r, prv);
+}
+
+scm_local_inline void
+scm_mem_add_obj_to_fin_list(ScmMemHeap *heap, ScmObj obj, ScmTypeInfo *type)
+{
+  ScmObj nxt = SCM_OBJ(heap->fin_list);
+  scm_mem_set_next_obj_has_fin_func(type, obj, nxt);
+  scm_mem_set_prev_obj_has_fin_func(type, obj, SCM_OBJ_NULL);
+  if (scm_obj_not_null_p(nxt))
+    scm_mem_set_prev_obj_has_fin_func(scm_obj_type(nxt), nxt, obj);
+  heap->fin_list = obj;
+}
+
+scm_local_inline void
+scm_mem_del_obj_from_fin_list(ScmMemHeap *heap, ScmObj obj)
+{
+  ScmObj prv =
+    SCM_REF_DEREF(scm_mem_prev_obj_has_fin_func(scm_obj_type(obj), obj));
+  ScmObj nxt =
+    SCM_REF_DEREF(scm_mem_next_obj_has_fin_func(scm_obj_type(obj), obj));
+
+  if (scm_obj_null_p(prv))
+    heap->fin_list = nxt;
+  else
+    scm_mem_set_next_obj_has_fin_func(scm_obj_type(prv), prv, nxt);
+
+  if (scm_obj_not_null_p(nxt))
+    scm_mem_set_prev_obj_has_fin_func(scm_obj_type(nxt), nxt, prv);
+}
+
+
+/** private functions for list of objects has weak reference *****************/
 
 scm_local_inline ScmRef
 scm_mem_next_obj_has_weak_ref(ScmTypeInfo *type, ScmObj obj)
@@ -664,30 +735,34 @@ scm_mem_release_redundancy_heap_blocks(ScmMem *mem, int nr_margin)
   return nr_leave;
 }
 
-scm_local_func int
-scm_mem_register_obj_if_needed(ScmMem *mem, ScmTypeInfo *type, ScmObj obj)
+scm_local_func void
+scm_mem_register_obj_on_fin_list(ScmMem *mem, ScmTypeInfo *type, ScmObj obj)
 {
   scm_assert(mem != NULL);
   scm_assert(type != NULL);
 
-  if (scm_type_info_has_gc_fin_func_p(type)) {
-    ScmBasicHashEntry *e;
-    e = scm_basic_hash_put(mem->to_obj_tbl,
-                           SCM_BASIC_HASH_KEY(obj),
-                           SCM_BASIC_HASH_VALUE(NULL));
-    if (e == NULL) return -1;
-  }
+  if (scm_type_info_has_gc_fin_func_p(type))
+    scm_mem_add_obj_to_fin_list(mem->to_heap, obj, type);
+}
 
-  return 0;
+
+scm_local_func void
+scm_mem_register_obj_on_weak_list(ScmMem *mem, ScmTypeInfo *type, ScmObj obj)
+{
+  scm_assert(mem != NULL);
+  scm_assert(type != NULL);
+
+  if (scm_type_info_has_instance_weak_ref_p(type))
+    scm_mem_add_obj_to_weak_list(mem->to_heap, obj, type);
 }
 
 scm_local_func void
-scm_mem_unregister_obj(ScmMem *mem, ScmObj obj)
+scm_mem_unregister_obj_from_fin_list(ScmMem *mem, ScmObj obj)
 {
   scm_assert(mem != NULL);
 
   if (scm_obj_has_gc_fin_func_p(obj))
-    scm_basic_hash_delete(mem->from_obj_tbl, SCM_BASIC_HASH_KEY(obj));
+    scm_mem_del_obj_from_fin_list(mem->from_heap, obj);
 }
 
 scm_local_func void
@@ -703,24 +778,23 @@ scm_mem_finalize_obj(ScmMem *mem, ScmObj obj)
 scm_local_func void
 scm_mem_finalize_heap_obj(ScmMem *mem, int which)
 {
-  ScmBasicHashItr itr;
-  ScmBasicHashTable *tbl;
+  ScmMemHeap *heap;
 
   scm_assert(mem != NULL);
   scm_assert(which == TO_HEAP || which == FROM_HEAP);
 
   if (which == TO_HEAP)
-    tbl = mem->to_obj_tbl;
+    heap = mem->to_heap;
   else
-    tbl = mem->from_obj_tbl;
+    heap = mem->from_heap;
 
-  for (SCM_BASIC_HASH_ITR_BEGIN(tbl, itr);
-       !SCM_BASIC_HASH_ITR_IS_END(itr);
-       SCM_BASIC_HASH_ITR_NEXT(itr)) {
-    scm_mem_finalize_obj(mem, SCM_OBJ(SCM_BASIC_HASH_ITR_KEY(itr)));
-  }
+  for (ScmObj obj = heap->fin_list;
+       scm_obj_not_null_p(obj);
+       obj =
+         SCM_REF_DEREF(scm_mem_next_obj_has_fin_func(scm_obj_type(obj), obj)))
+    scm_mem_finalize_obj(mem, obj);
 
-  scm_basic_hash_clear(tbl);
+  heap->fin_list = SCM_OBJ_NULL;
 }
 
 scm_local_func void
@@ -764,14 +838,9 @@ scm_mem_clean_root(ScmMem *mem)
 scm_local_func void
 scm_mem_switch_heap(ScmMem *mem)
 {
-  ScmBasicHashTable *tmp_tbl;
   ScmMemHeap *tmp_heap;
 
   scm_assert(mem != NULL);
-
-  tmp_tbl = mem->from_obj_tbl;
-  mem->from_obj_tbl = mem->to_obj_tbl;
-  mem->to_obj_tbl = tmp_tbl;
 
   tmp_heap = mem->from_heap;
   mem->from_heap = mem->to_heap;
@@ -817,14 +886,8 @@ scm_mem_alloc_heap_mem_obj(ScmMem *mem, ScmTypeInfo *type, size_t size,
 
   obj = scm_mem_cell_to_obj(cell);
 
-  if (scm_mem_register_obj_if_needed(mem, type, obj) < 0) {
-    scm_mem_heap_cancel_alloc(mem->to_heap, size);
-    scm_capi_fatal("Memory Manager Object Management Error");
-    return -1;
-  }
-
-  if (scm_type_info_has_instance_weak_ref_p(type))
-    scm_mem_add_obj_to_weak_list(mem->to_heap, obj, type);
+  scm_mem_register_obj_on_fin_list(mem, type, obj);
+  scm_mem_register_obj_on_weak_list(mem, type, obj);
 
   SCM_REF_UPDATE(ref, obj);
 
@@ -886,7 +949,7 @@ scm_mem_copy_obj(ScmMem *mem, ScmObj obj)
     }
   }
   memcpy(SCM_MMOBJ(box), SCM_MMOBJ(obj), scm_type_info_obj_size(type));
-  scm_mem_unregister_obj(mem, obj);
+  scm_mem_unregister_obj_from_fin_list(mem, obj);
   scm_forward_initialize(obj, box);
 
   return box;
@@ -1147,23 +1210,11 @@ scm_mem_initialize(ScmMem *mem)
   scm_assert(mem != NULL);
 
   scm_obj_init(SCM_OBJ(mem), &SCM_MEM_TYPE_INFO);
-  mem->to_obj_tbl = NULL;
-  mem->from_obj_tbl = NULL;
   mem->to_heap = NULL;
   mem->from_heap = NULL;
   mem->roots = NULL;
   mem->extra_rfrn = NULL;
   mem->gc_enabled = true;
-
-  mem->to_obj_tbl = scm_basic_hash_new(SCM_MEM_OBJ_TBL_HASH_SIZE,
-                                             object_table_hash_func,
-                                             object_table_comp_func);
-  if (mem->to_obj_tbl == NULL) goto err;
-
-  mem->from_obj_tbl = scm_basic_hash_new(SCM_MEM_OBJ_TBL_HASH_SIZE,
-                                               object_table_hash_func,
-                                               object_table_comp_func);
-  if (mem->from_obj_tbl == NULL) goto err;
 
   mem->to_heap = scm_mem_heap_new_heap(1, SCM_MEM_HEAP_INIT_BLOCK_SIZE);
   if (mem->to_heap == NULL) goto err;
@@ -1178,8 +1229,6 @@ scm_mem_initialize(ScmMem *mem)
   return mem;
 
  err:
-  if (mem->to_obj_tbl != NULL) scm_basic_hash_end(mem->to_obj_tbl);
-  if (mem->from_obj_tbl != NULL) scm_basic_hash_end(mem->from_obj_tbl);
   if (mem->to_heap != NULL) mem->to_heap = scm_mem_heap_delete_heap(mem->to_heap);
   if (mem->from_heap != NULL) mem->from_heap = scm_mem_heap_delete_heap(mem->from_heap);
   if (mem->extra_rfrn != NULL) scm_capi_free(mem->extra_rfrn);
@@ -1197,8 +1246,6 @@ scm_mem_finalize(ScmMem *mem)
   scm_mem_free_all_obj_in_root_set(mem, &mem->roots);
   scm_mem_clean(mem);
 
-  if (mem->to_obj_tbl) scm_basic_hash_end(mem->to_obj_tbl);
-  if (mem->from_obj_tbl) scm_basic_hash_end(mem->from_obj_tbl);
   if (mem->to_heap != NULL) mem->to_heap = scm_mem_heap_delete_heap(mem->to_heap);
   if (mem->from_heap != NULL) mem->from_heap = scm_mem_heap_delete_heap(mem->from_heap);
   if (mem->extra_rfrn != NULL) scm_capi_free(mem->extra_rfrn);

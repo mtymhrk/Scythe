@@ -904,8 +904,6 @@ test_scm_mem_new(void)
 
   /* postcondition check */
   cut_assert_not_null(mem);
-  cut_assert_not_null(mem->to_obj_tbl);
-  cut_assert_not_null(mem->from_obj_tbl);
   cut_assert_not_null(mem->to_heap);
   cut_assert_not_null(mem->from_heap);
   cut_assert(mem->gc_enabled);

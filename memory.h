@@ -25,7 +25,6 @@ typedef enum {
 enum { SCM_MEM_NR_ALLOC_TYPE = SCM_MEM_ALLOC_ROOT + 1 };
 
 #include "object.h"
-#include "basichash.h"
 #include "impl_utils.h"
 
 
@@ -72,6 +71,7 @@ struct ScmMemHeapRec {
   ScmMemHeapBlock *head;
   ScmMemHeapBlock *tail;
   ScmMemHeapBlock *current;
+  ScmObj fin_list;
   void *weak_list;
   int nr_block;
   int nr_free_block;
@@ -92,8 +92,6 @@ struct ScmMemRootBlockRec {
 /* ScmMem を GC で管理することはしない (scm_mem_alloc で生成することは不可)  */
 struct ScmMemRec {
   ScmObjHeader header;
-  ScmBasicHashTable *to_obj_tbl;
-  ScmBasicHashTable *from_obj_tbl;
   ScmMemHeap *to_heap;
   ScmMemHeap *from_heap;
   ScmMemRootBlock *roots;
@@ -119,6 +117,7 @@ struct ScmMemRec {
 
 size_t scm_mem_align_size(size_t size);
 void *scm_mem_align_ptr(void *ptr);
+size_t scm_mem_alloc_size_of_obj_has_fin_func(size_t size);
 size_t scm_mem_alloc_size_of_obj_has_weak_ref(size_t size);
 size_t scm_mem_alloc_size_in_heap(ScmTypeInfo *type, size_t add);
 size_t scm_mem_alloc_size_in_root(ScmTypeInfo *type, size_t add);
@@ -172,6 +171,16 @@ void scm_mem_del_from_root_set(ScmMemRootBlock **head, ScmMemRootBlock *block);
 ScmObj scm_mem_cell_to_obj(ScmMemHeapCell *cell);
 ScmMemHeapCell *scm_mem_obj_to_cell(ScmObj obj);
 
+ScmRef scm_mem_prev_obj_has_fin_func(ScmTypeInfo *type, ScmObj obj);
+ScmRef scm_mem_next_obj_has_fin_func(ScmTypeInfo *type, ScmObj obj);
+void scm_mem_set_prev_obj_has_fin_func(ScmTypeInfo *type, ScmObj obj,
+                                       ScmObj prv);
+void scm_mem_set_next_obj_has_fin_func(ScmTypeInfo *type, ScmObj obj,
+                                       ScmObj prv);
+void scm_mem_add_obj_to_fin_list(ScmMemHeap *heap, ScmObj obj,
+                                 ScmTypeInfo *type);
+void scm_mem_del_obj_from_fin_list(ScmMemHeap *heap, ScmObj obj);
+
 ScmRef scm_mem_next_obj_has_weak_ref(ScmTypeInfo *type, ScmObj obj);
 void scm_mem_set_next_obj_has_weak_ref(ScmTypeInfo *type, ScmObj obj,
                                        ScmObj nxt);
@@ -180,8 +189,11 @@ void scm_mem_add_obj_to_weak_list(ScmMemHeap *heap, ScmObj obj,
 
 int scm_mem_expand_heap(ScmMem *mem, int inc_block);
 int scm_mem_release_redundancy_heap_blocks(ScmMem *mem, int nr_margin);
-int scm_mem_register_obj_if_needed(ScmMem *mem, ScmTypeInfo *type, ScmObj obj);
-void scm_mem_unregister_obj(ScmMem *mem, ScmObj obj);
+void scm_mem_register_obj_on_fin_list(ScmMem *mem,
+                                      ScmTypeInfo *type, ScmObj obj);
+void scm_mem_register_obj_on_weak_list(ScmMem *mem,
+                                       ScmTypeInfo *type, ScmObj obj);
+void scm_mem_unregister_obj_from_fin_list(ScmMem *mem, ScmObj obj);
 void scm_mem_finalize_obj(ScmMem *mem, ScmObj obj);
 void scm_mem_finalize_heap_obj(ScmMem *mem, int which);
 void scm_mem_clean_heap(ScmMem *mem, int which);
