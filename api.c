@@ -83,7 +83,7 @@ scm_capi_ref_stack_restore(ScmRefStackInfo *info)
 /*  Memory                                                         */
 /*******************************************************************/
 
-extern inline ScmObj
+ScmObj
 scm_capi_mem_alloc_heap(ScmTypeInfo *type, size_t add_size)
 {
   if (type == NULL) {
@@ -94,7 +94,7 @@ scm_capi_mem_alloc_heap(ScmTypeInfo *type, size_t add_size)
   return scm_mem_alloc_heap(scm_vm_current_mm(), type, add_size);
 }
 
-extern inline ScmObj
+ScmObj
 scm_capi_mem_alloc_root(ScmTypeInfo *type, size_t add_size)
 {
   if (type == NULL) {
@@ -105,7 +105,7 @@ scm_capi_mem_alloc_root(ScmTypeInfo *type, size_t add_size)
   return scm_mem_alloc_root(scm_vm_current_mm(), type, add_size);
 }
 
-extern inline ScmObj
+ScmObj
 scm_capi_mem_alloc(ScmTypeInfo *otype, size_t add_size, SCM_MEM_TYPE_T mtype)
 {
   switch(mtype) {
@@ -122,33 +122,33 @@ scm_capi_mem_alloc(ScmTypeInfo *otype, size_t add_size, SCM_MEM_TYPE_T mtype)
   };
 }
 
-extern inline ScmObj
+ScmObj
 scm_capi_mem_free_root(ScmObj obj)
 {
   if (obj == SCM_OBJ_NULL) return SCM_OBJ_NULL;
   return scm_mem_free_root(scm_vm_current_mm(), obj);
 }
 
-extern inline ScmRef
+ScmRef
 scm_capi_mem_register_extra_rfrn(ScmRef ref)
 {
   if (ref == SCM_REF_NULL) return ref;
   return scm_mem_register_extra_rfrn(scm_vm_current_mm(), ref);
 }
 
-extern inline void
+void
 scm_capi_gc_start(void)
 {
   scm_mem_gc_start(scm_vm_current_mm());
 }
 
-extern inline void
+void
 scm_capi_gc_enable(void)
 {
   scm_mem_enable_gc(scm_vm_current_mm());
 }
 
-extern inline void
+void
 scm_capi_gc_disable(void)
 {
   scm_mem_disable_gc(scm_vm_current_mm());
@@ -175,7 +175,7 @@ scm_capi_eq_p(ScmObj obj1, ScmObj obj2)
   return scm_obj_same_instance_p(obj1, obj2);
 }
 
-extern inline ScmObj
+ScmObj
 scm_api_eq_P(ScmObj obj1, ScmObj obj2)
 {
   if (scm_obj_null_p(obj1) || scm_obj_null_p(obj2)) {
@@ -658,7 +658,7 @@ scm_capi_pair_p(ScmObj pair)
   return (scm_obj_type_p(pair, &SCM_PAIR_TYPE_INFO) ? true : false);
 }
 
-extern inline ScmObj
+ScmObj
 scm_api_pair_P(ScmObj pair)
 {
   if (scm_obj_null_p(pair)) {
@@ -2563,7 +2563,7 @@ scm_capi_input_port_p(ScmObj port)
     return false;
 }
 
-extern inline ScmObj
+ScmObj
 scm_api_input_port_P(ScmObj port)
 {
   if (scm_obj_null_p(port)) {
@@ -2577,7 +2577,7 @@ scm_api_input_port_P(ScmObj port)
     return scm_api_bool_false();
 }
 
-extern inline bool
+bool
 scm_capi_output_port_p(ScmObj port)
 {
   if (scm_obj_null_p(port))
@@ -3263,7 +3263,7 @@ scm_capi_closure_env(ScmObj clsr, scm_csetter_t *env)
 /*  Syntax                                                         */
 /*******************************************************************/
 
-extern inline ScmObj
+ScmObj
 scm_api_make_syntax(int id, const char *keyword)
 {
   return scm_syntax_new(SCM_MEM_HEAP, id, keyword);
@@ -4074,7 +4074,7 @@ scm_capi_ut_eval(ScmEvaluator *ev, ScmObj exp)
   if (scm_obj_null_p(code)) return SCM_OBJ_NULL;
 
   rslt = scm_capi_iseq_push_opfmt_noarg(code, SCM_OPCODE_HALT);
-  if (rslt < 0) return -1;
+  if (rslt < 0) return SCM_OBJ_NULL;
 
   scm_vm_run(ev->vm, code);
 
@@ -4082,3 +4082,6 @@ scm_capi_ut_eval(ScmEvaluator *ev, ScmObj exp)
 }
 
 #endif
+
+
+
