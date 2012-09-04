@@ -661,6 +661,17 @@ scm_cmpl_env_cons(ScmObj vars, bool vparam, ScmObj env)
   return scm_api_cons(rib, env);
 }
 
+static ScmObj
+scm_cmpl_env_outer(ScmObj env)
+{
+  scm_assert(scm_capi_nil_p(env) || scm_capi_pair_p(env));
+
+  if (scm_capi_nil_p(env))
+    return env;
+
+  return scm_api_cdr(env);
+}
+
 static int
 scm_cmpl_env_assigned_flg(ScmObj env, size_t idx, size_t layer, bool *flg)
 {
@@ -1081,6 +1092,9 @@ static int scm_cmpl_decons_let(ScmObj exp, int syntax,
 static ScmObj scm_cmpl_compile_let(ScmObj exp, ScmObj env, ScmObj next,
                                    bool tail_p, bool toplevel_p,
                                    ssize_t *rdepth);
+static ScmObj scm_cmpl_compile_let_a(ScmObj exp, ScmObj env, ScmObj next,
+                                     bool tail_p, bool toplevel_p,
+                                     ssize_t *rdepth);
 static ScmObj scm_cmpl_compile_letrec(ScmObj exp, ScmObj env, ScmObj next,
                                       bool tail_p, bool toplevel_p,
                                       ssize_t *rdepth);
@@ -1102,12 +1116,13 @@ enum { SCM_CMPL_SYNTAX_DEFINITION, SCM_CMPL_SYNTAX_REFERENCE,
        SCM_CMPL_SYNTAX_COND, SCM_CMPL_SYNTAXL_AND,
        SCM_CMPL_SYNTAX_OR, SCM_CMPL_SYNTAX_WHEN,
        SCM_CMPL_SYNTAX_UNLESS, SCM_CMPL_SYNTAX_LET,
-       SCM_CMPL_SYNTAX_LETREC, SCM_CMPL_SYNTAX_LETREC_A,
-       SCM_CMPL_SYNTAX_BEGIN, SCM_CMPL_NR_SYNTAX };
+       SCM_CMPL_SYNTAX_LET_A, SCM_CMPL_SYNTAX_LETREC,
+       SCM_CMPL_SYNTAX_LETREC_A, SCM_CMPL_SYNTAX_BEGIN,
+       SCM_CMPL_NR_SYNTAX };
 
 static const char *scm_cmpl_syntax_keywords[] =
   { "define", NULL, NULL, "quote", NULL, "lambda", "set!", "if",
-    "cond", "and", "or", "when", "unless", "let", "letrec",
+    "cond", "and", "or", "when", "unless", "let", "let*", "letrec",
     "letrec*", "begin" };
 
 static ScmObj (*scm_cmpl_compile_funcs[])(ScmObj exp, ScmObj env, ScmObj next,
@@ -1128,6 +1143,7 @@ static ScmObj (*scm_cmpl_compile_funcs[])(ScmObj exp, ScmObj env, ScmObj next,
   scm_cmpl_compile_when,
   scm_cmpl_compile_unless,
   scm_cmpl_compile_let,
+  scm_cmpl_compile_let_a,
   scm_cmpl_compile_letrec,
   scm_cmpl_compile_letrec_a,
   scm_cmpl_compile_begin,
@@ -3120,6 +3136,94 @@ scm_cmpl_compile_let(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
 
       if (rd > *rdepth) *rdepth = rd;
     }
+
+    next = scm_cmpl_push_inst_eframe(next);
+    if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
+  }
+
+  return next;
+}
+
+static ScmObj
+scm_cmpl_compile_let_a(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
+                       bool toplevel_p, ssize_t *rdepth)
+{
+  ScmObj name = SCM_OBJ_INIT, bindings = SCM_OBJ_INIT, body = SCM_OBJ_INIT;
+  ScmObj vars = SCM_OBJ_INIT, inits = SCM_OBJ_INIT;
+  ScmObj var = SCM_OBJ_INIT, ini_exp = SCM_OBJ_INIT, new_env = SCM_OBJ_INIT;
+  ssize_t nr_vars, rd;
+  bool assigned;
+  int rslt;
+
+
+  SCM_STACK_FRAME_PUSH(&exp, &env, &next,
+                       &name, &bindings, &body,
+                       &vars, &inits,
+                       &var,  &ini_exp, &new_env);
+
+  rslt = scm_cmpl_decons_let(exp, SCM_CMPL_SYNTAX_LET_A,
+                             SCM_CSETTER_L(name), SCM_CSETTER_L(vars),
+                             SCM_CSETTER_L(inits), SCM_CSETTER_L(body));
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  nr_vars = scm_capi_vector_length(vars);
+  if (nr_vars < 0) return SCM_OBJ_NULL;
+
+  new_env = env;
+  for (size_t i = 0; i < (size_t)nr_vars; i++) {
+    var = scm_capi_vector_ref(vars, i);
+    if (scm_obj_null_p(var)) return SCM_OBJ_NULL;
+
+    var = scm_capi_make_vector(1, var);
+    if (scm_obj_null_p(var)) return SCM_OBJ_NULL;
+
+    new_env = scm_cmpl_env_cons(var, false, new_env);
+    if (scm_obj_null_p(new_env)) return SCM_OBJ_NULL;
+
+    if (!tail_p) {
+      next = scm_cmpl_push_inst_epop(next);
+      if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
+    }
+  }
+
+  next = scm_cmpl_cmpl_closure_body(body, new_env, next,
+                                    tail_p, false, (nr_vars > 0) ? 1 : 0,
+                                    rdepth);
+  if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
+
+  if (*rdepth >= nr_vars)
+    *rdepth -= nr_vars;
+  else
+    *rdepth = -1;
+
+  for (ssize_t i = nr_vars; i > 0; i--) {
+    if (i < nr_vars) {
+      rslt = scm_cmpl_env_assigned_flg(new_env, 0, 0, &assigned);
+      if (rslt < 0) return SCM_OBJ_NULL;
+
+      if (assigned) {
+        next = scm_cmpl_push_inst_box(0, 0, next);
+        if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
+      }
+    }
+
+    next = scm_cmpl_push_inst_ecommit(1, next);
+    if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
+
+    next = scm_cmpl_push_inst_push(next);
+    if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
+
+    new_env = scm_cmpl_env_outer(new_env);
+    if (scm_obj_null_p(new_env)) return SCM_OBJ_NULL;
+
+    ini_exp = scm_capi_vector_ref(inits, (size_t)i - 1);
+    if (scm_obj_null_p(ini_exp)) return SCM_OBJ_NULL;
+
+    next = scm_cmpl_compile_exp(ini_exp, new_env, next, false, false, &rd);
+    if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
+
+    if (rd >= i && rd - i > *rdepth)
+       *rdepth = rd - i;
 
     next = scm_cmpl_push_inst_eframe(next);
     if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
