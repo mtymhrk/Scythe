@@ -2643,3 +2643,213 @@ test_scm_api_compile__or_008(void)
 
   cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
+
+void
+test_scm_api_compile__when_001(void)
+{
+  ScmObj exp = SCM_OBJ_INIT, port = SCM_OBJ_INIT;
+  ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+  const char *exp_str = "(when 'a)";
+  const char *asm_str = "(   (immval a)"
+                        "    (jmpf lbl_when-a_41)"
+                        "    (undef)"
+                        "    (jmp lbl_when-j_40)"
+                        " (label lbl_when-a_41)"
+                        "    (undef)"
+                        " (label lbl_when-j_40))";
+
+  SCM_STACK_FRAME_PUSH(&exp, &port,
+                       &actual, &expected);
+
+  port = scm_capi_open_input_string_from_cstr(exp_str, SCM_ENC_ASCII);
+  exp = scm_api_read(port);
+
+  port = scm_capi_open_input_string_from_cstr(asm_str, SCM_ENC_ASCII);
+  expected = scm_api_read(port);
+
+  actual = scm_api_compile(exp);
+
+  /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
+  /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
+
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+}
+
+void
+test_scm_api_compile__when_002(void)
+{
+  ScmObj exp = SCM_OBJ_INIT, port = SCM_OBJ_INIT;
+  ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+  const char *exp_str = "(when 'a 'b)";
+  const char *asm_str = "(   (immval a)"
+                        "    (jmpf lbl_when-a_43)"
+                        "    (immval b)"
+                        "    (jmp lbl_when-j_42)"
+                        " (label lbl_when-a_43)"
+                        "    (undef)"
+                        " (label lbl_when-j_42))";
+
+  SCM_STACK_FRAME_PUSH(&exp, &port,
+                       &actual, &expected);
+
+  port = scm_capi_open_input_string_from_cstr(exp_str, SCM_ENC_ASCII);
+  exp = scm_api_read(port);
+
+  port = scm_capi_open_input_string_from_cstr(asm_str, SCM_ENC_ASCII);
+  expected = scm_api_read(port);
+
+  actual = scm_api_compile(exp);
+
+  /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
+  /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
+
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+}
+
+void
+test_scm_api_compile__when_003(void)
+{
+  ScmObj exp = SCM_OBJ_INIT, port = SCM_OBJ_INIT;
+  ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+  const char *exp_str = "(lambda () (when 'a))";
+  const char *asm_str = "((asm-close 0"
+                        "   (   (immval a)"
+                        "       (jmpf lbl_when-a_44)"
+                        "       (undef)"
+                        "       (return)"
+                        "    (label lbl_when-a_44)"
+                        "       (undef)"
+                        "       (return))))";
+
+  SCM_STACK_FRAME_PUSH(&exp, &port,
+                       &actual, &expected);
+
+  port = scm_capi_open_input_string_from_cstr(exp_str, SCM_ENC_ASCII);
+  exp = scm_api_read(port);
+
+  port = scm_capi_open_input_string_from_cstr(asm_str, SCM_ENC_ASCII);
+  expected = scm_api_read(port);
+
+  actual = scm_api_compile(exp);
+
+  /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
+  /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
+
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+}
+
+void
+test_scm_api_compile__when_004(void)
+{
+  ScmObj exp = SCM_OBJ_INIT, port = SCM_OBJ_INIT;
+  ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+  const char *exp_str = "(lambda () (when 'a 'b))";
+  const char *asm_str = "((asm-close 0"
+                        "   (   (immval a)"
+                        "       (jmpf lbl_when-a_45)"
+                        "       (immval b)"
+                        "       (return)"
+                        "    (label lbl_when-a_45)"
+                        "       (undef)"
+                        "       (return))))";
+
+  SCM_STACK_FRAME_PUSH(&exp, &port,
+                       &actual, &expected);
+
+  port = scm_capi_open_input_string_from_cstr(exp_str, SCM_ENC_ASCII);
+  exp = scm_api_read(port);
+
+  port = scm_capi_open_input_string_from_cstr(asm_str, SCM_ENC_ASCII);
+  expected = scm_api_read(port);
+
+  actual = scm_api_compile(exp);
+
+  /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
+  /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
+
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+}
+
+void
+test_scm_api_compile__when_005(void)
+{
+  ScmObj exp = SCM_OBJ_INIT, port = SCM_OBJ_INIT;
+  ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+  const char *exp_str = "(when (null? '()) (cons 'a 'b))";
+  const char *asm_str = "(   (frame)"
+                        "    (immval ())"
+                        "    (push)"
+                        "    (gref null?)"
+                        "    (call 1)"
+                        "    (jmpf lbl_when-a_47)"
+                        "    (frame)"
+                        "    (immval a)"
+                        "    (push)"
+                        "    (immval b)"
+                        "    (push)"
+                        "    (gref cons)"
+                        "    (call 2)"
+                        "    (jmp lbl_when-j_46)"
+                        " (label lbl_when-a_47)"
+                        "    (undef)"
+                        " (label lbl_when-j_46))";
+
+
+  SCM_STACK_FRAME_PUSH(&exp, &port,
+                       &actual, &expected);
+
+  port = scm_capi_open_input_string_from_cstr(exp_str, SCM_ENC_ASCII);
+  exp = scm_api_read(port);
+
+  port = scm_capi_open_input_string_from_cstr(asm_str, SCM_ENC_ASCII);
+  expected = scm_api_read(port);
+
+  actual = scm_api_compile(exp);
+
+  /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
+  /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
+
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+}
+
+void
+test_scm_api_compile__when_006(void)
+{
+  ScmObj exp = SCM_OBJ_INIT, port = SCM_OBJ_INIT;
+  ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+  const char *exp_str = "(lambda () (when (null? '()) (cons 'a 'b)))";
+  const char *asm_str = "((asm-close 0"
+                        "   (   (frame)"
+                        "       (immval ())"
+                        "       (push)"
+                        "       (gref null?)"
+                        "       (call 1)"
+                        "       (jmpf lbl_when-a_48)"
+                        "       (eframe)"
+                        "       (immval a)"
+                        "       (push)"
+                        "       (immval b)"
+                        "       (push)"
+                        "       (gref cons)"
+                        "       (tcall 2)"
+                        "    (label lbl_when-a_48)"
+                        "       (undef)"
+                        "       (return))))";
+
+
+  SCM_STACK_FRAME_PUSH(&exp, &port,
+                       &actual, &expected);
+
+  port = scm_capi_open_input_string_from_cstr(exp_str, SCM_ENC_ASCII);
+  exp = scm_api_read(port);
+
+  port = scm_capi_open_input_string_from_cstr(asm_str, SCM_ENC_ASCII);
+  expected = scm_api_read(port);
+
+  actual = scm_api_compile(exp);
+
+  /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
+  /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
+
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+}
