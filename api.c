@@ -4093,6 +4093,12 @@ scm_capi_ut_eval(ScmEvaluator *ev, ScmObj exp)
   return scm_vm_register_val(ev->vm);
 }
 
+void
+scm_capi_ut_clear_compiler_label_id(void)
+{
+  scm_cmpl_ut_clear_label_id();
+}
+
 #endif
 
 

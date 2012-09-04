@@ -485,6 +485,7 @@ int scm_capi_run_repl(ScmEvaluator *ev);
 
 void scm_capi_ut_setup_current_vm(ScmEvaluator *ev);
 ScmObj scm_capi_ut_eval(ScmEvaluator *ev, ScmObj exp);
+void scm_capi_ut_clear_compiler_label_id(void);
 
 #endif
 
