@@ -1073,6 +1073,10 @@ static int scm_cmpl_decons_cond(ScmObj exp,
 static ScmObj scm_cmpl_compile_cond(ScmObj exp, ScmObj env, ScmObj next,
                                     bool tail_p, bool toplevel_p,
                                     ssize_t *rdepth);
+static int scm_cmpl_decons_and(ScmObj exp, scm_csetter_t *tests);
+static ScmObj scm_cmpl_compile_and(ScmObj exp, ScmObj env, ScmObj next,
+                                   bool tail_p, bool toplevel_p,
+                                   ssize_t *rdepth);
 static ScmObj scm_cmpl_compile_exp(ScmObj exp, ScmObj env, ScmObj next,
                                    bool tail_p, bool toplevel_p,
                                    ssize_t *rdepth);
@@ -1083,12 +1087,13 @@ enum { SCM_CMPL_SYNTAX_DEFINITION, SCM_CMPL_SYNTAX_REFERENCE,
        SCM_CMPL_SYNTAX_LET, SCM_CMPL_SYNTAX_LETREC,
        SCM_CMPL_SYNTAX_LETREC_A, SCM_CMPL_SYNTAX_BEGIN,
        SCM_CMPL_SYNTAX_ASSIGNMENT, SCM_CMPL_SYNTAX_IF,
-       SCM_CMPL_SYNTAX_COND, SCM_CMPL_NR_SYNTAX };
+       SCM_CMPL_SYNTAX_COND, SCM_CMPL_SYNTAXL_AND,
+       SCM_CMPL_NR_SYNTAX };
 
 static const char *scm_cmpl_syntax_keywords[] = { "define", NULL, NULL, "quote",
                                                   NULL, "lambda", "let",
                                                   "letrec", "letrec*", "begin",
-                                                  "set!", "if", "cond" };
+                                                  "set!", "if", "cond", "and" };
 
 static ScmObj (*scm_cmpl_compile_funcs[])(ScmObj exp, ScmObj env, ScmObj next,
                                           bool tail_p, bool toplevel_p,
@@ -1107,6 +1112,7 @@ static ScmObj (*scm_cmpl_compile_funcs[])(ScmObj exp, ScmObj env, ScmObj next,
   scm_cmpl_compile_assignment,
   scm_cmpl_compile_if,
   scm_cmpl_compile_cond,
+  scm_cmpl_compile_and,
 };
 
 
@@ -2947,6 +2953,83 @@ scm_cmpl_compile_cond(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
     next = scm_cmpl_cmpl_cond_clause_test(texp, lbl, env, next,
                                           tail_p, toplevel_p, &rd);
 
+    if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
+
+    if (rd > *rdepth) *rdepth = rd;
+  }
+
+  return next;
+}
+
+static int
+scm_cmpl_decons_and(ScmObj exp, scm_csetter_t *tests)
+{
+  ScmObj to = SCM_OBJ_NULL;
+
+  SCM_STACK_FRAME_PUSH(&exp,
+                       &to);
+
+  to = scm_api_cdr(exp);
+  if (scm_obj_null_p(to)) return -1;
+
+  to = scm_api_list_to_vector(to);
+  if (scm_obj_null_p(to)) return -1;
+
+  scm_csetter_setq(tests, to);
+
+  return 0;
+}
+
+static ScmObj
+scm_cmpl_compile_and(ScmObj exp, ScmObj env, ScmObj next, bool tail_p,
+                     bool toplevel_p, ssize_t *rdepth)
+{
+  ScmObj tests = SCM_OBJ_NULL, texp = SCM_OBJ_INIT, lbl_junc = SCM_OBJ_NULL;
+  ssize_t len, rd;
+  int rslt;
+
+  SCM_STACK_FRAME_PUSH(&exp, &env, &next,
+                       &tests, &texp, &lbl_junc);
+
+  *rdepth = -1;
+
+  rslt = scm_cmpl_decons_and(exp, SCM_CSETTER_L(tests));
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  len = scm_capi_vector_length(tests);
+  if (len < 0) return SCM_OBJ_NULL;
+
+  if (len != 1 && tail_p) {
+    next = scm_cmpl_push_inst_return(next);
+    if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
+  }
+
+  if (len == 0)
+    return scm_cmpl_push_inst_immval(scm_api_true(), next);
+
+  if (len > 1) {
+    lbl_junc = scm_cmpl_gen_label("and-j");
+    if (scm_obj_null_p(lbl_junc)) return SCM_OBJ_NULL;
+
+    next = scm_cmpl_push_inst_label(lbl_junc, next);
+    if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
+  }
+
+  texp = scm_capi_vector_ref(tests, (size_t)len - 1);
+  if (scm_obj_null_p(texp)) return SCM_OBJ_NULL;
+
+  next = scm_cmpl_compile_exp(texp, env, next, tail_p, toplevel_p, &rd);
+
+  if (rd > *rdepth) *rdepth = rd;
+
+  for (size_t i = (size_t)len - 1; i > 0; i--) {
+    next = scm_cmpl_push_inst_jmpf(lbl_junc, next);
+    if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
+
+    texp = scm_capi_vector_ref(tests, i - 1);
+    if (scm_obj_null_p(texp)) return SCM_OBJ_NULL;
+
+    next = scm_cmpl_compile_exp(texp, env, next, false, toplevel_p, &rd);
     if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
 
     if (rd > *rdepth) *rdepth = rd;
