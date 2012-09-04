@@ -2285,3 +2285,349 @@ test_eval__and_14(void)
 
   cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
+
+void
+test_eval__or_1(void)
+{
+  ScmObj exp = SCM_OBJ_INIT, port = SCM_OBJ_INIT;
+  ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+  const char *exp_str = "(or)";
+  const char *ect_str = "#f";
+
+  SCM_STACK_FRAME_PUSH(&exp, &port,
+                       &actual, &expected);
+
+
+  port = scm_capi_open_input_string_from_cstr(exp_str, SCM_ENC_ASCII);
+  exp = scm_api_read(port);
+
+  port = scm_capi_open_input_string_from_cstr(ect_str, SCM_ENC_ASCII);
+  expected = scm_api_read(port);
+
+  actual = scm_capi_ut_eval(ev, exp);
+
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+}
+
+void
+test_eval__or_2(void)
+{
+  ScmObj exp = SCM_OBJ_INIT, port = SCM_OBJ_INIT;
+  ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+  const char *exp_str = "(or 'a)";
+  const char *ect_str = "a";
+
+  SCM_STACK_FRAME_PUSH(&exp, &port,
+                       &actual, &expected);
+
+
+  port = scm_capi_open_input_string_from_cstr(exp_str, SCM_ENC_ASCII);
+  exp = scm_api_read(port);
+
+  port = scm_capi_open_input_string_from_cstr(ect_str, SCM_ENC_ASCII);
+  expected = scm_api_read(port);
+
+  actual = scm_capi_ut_eval(ev, exp);
+
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+}
+
+void
+test_eval__or_3(void)
+{
+  ScmObj exp = SCM_OBJ_INIT, port = SCM_OBJ_INIT;
+  ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+  const char *exp_str = "(or #f)";
+  const char *ect_str = "#f";
+
+  SCM_STACK_FRAME_PUSH(&exp, &port,
+                       &actual, &expected);
+
+
+  port = scm_capi_open_input_string_from_cstr(exp_str, SCM_ENC_ASCII);
+  exp = scm_api_read(port);
+
+  port = scm_capi_open_input_string_from_cstr(ect_str, SCM_ENC_ASCII);
+  expected = scm_api_read(port);
+
+  actual = scm_capi_ut_eval(ev, exp);
+
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+}
+
+void
+test_eval__or_4(void)
+{
+  ScmObj exp = SCM_OBJ_INIT, port = SCM_OBJ_INIT;
+  ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+  const char *exp_str = "(or 'a 'b)";
+  const char *ect_str = "a";
+
+  SCM_STACK_FRAME_PUSH(&exp, &port,
+                       &actual, &expected);
+
+
+  port = scm_capi_open_input_string_from_cstr(exp_str, SCM_ENC_ASCII);
+  exp = scm_api_read(port);
+
+  port = scm_capi_open_input_string_from_cstr(ect_str, SCM_ENC_ASCII);
+  expected = scm_api_read(port);
+
+  actual = scm_capi_ut_eval(ev, exp);
+
+  /* scm_api_write(expected, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
+  /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
+
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+}
+
+void
+test_eval__or_5(void)
+{
+  ScmObj exp = SCM_OBJ_INIT, port = SCM_OBJ_INIT;
+  ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+  const char *exp_str = "(or #f 'b)";
+  const char *ect_str = "b";
+
+  SCM_STACK_FRAME_PUSH(&exp, &port,
+                       &actual, &expected);
+
+
+  port = scm_capi_open_input_string_from_cstr(exp_str, SCM_ENC_ASCII);
+  exp = scm_api_read(port);
+
+  port = scm_capi_open_input_string_from_cstr(ect_str, SCM_ENC_ASCII);
+  expected = scm_api_read(port);
+
+  actual = scm_capi_ut_eval(ev, exp);
+
+  /* scm_api_write(expected, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
+  /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
+
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+}
+
+void
+test_eval__or_6(void)
+{
+  ScmObj exp = SCM_OBJ_INIT, port = SCM_OBJ_INIT;
+  ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+  const char *exp_str = "(or (null? '()) (null? 'a))";
+  const char *ect_str = "#t";
+
+  SCM_STACK_FRAME_PUSH(&exp, &port,
+                       &actual, &expected);
+
+
+  port = scm_capi_open_input_string_from_cstr(exp_str, SCM_ENC_ASCII);
+  exp = scm_api_read(port);
+
+  port = scm_capi_open_input_string_from_cstr(ect_str, SCM_ENC_ASCII);
+  expected = scm_api_read(port);
+
+  actual = scm_capi_ut_eval(ev, exp);
+
+  /* scm_api_write(expected, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
+  /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
+
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+}
+
+void
+test_eval__or_7(void)
+{
+  ScmObj exp = SCM_OBJ_INIT, port = SCM_OBJ_INIT;
+  ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+  const char *exp_str = "(or (null? 'a) (null? '()))";
+  const char *ect_str = "#t";
+
+  SCM_STACK_FRAME_PUSH(&exp, &port,
+                       &actual, &expected);
+
+
+  port = scm_capi_open_input_string_from_cstr(exp_str, SCM_ENC_ASCII);
+  exp = scm_api_read(port);
+
+  port = scm_capi_open_input_string_from_cstr(ect_str, SCM_ENC_ASCII);
+  expected = scm_api_read(port);
+
+  actual = scm_capi_ut_eval(ev, exp);
+
+  /* scm_api_write(expected, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
+  /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
+
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+}
+
+void
+test_eval__or_8(void)
+{
+  ScmObj exp = SCM_OBJ_INIT, port = SCM_OBJ_INIT;
+  ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+  const char *exp_str = "((lambda () (or)))";
+  const char *ect_str = "#f";
+
+  SCM_STACK_FRAME_PUSH(&exp, &port,
+                       &actual, &expected);
+
+
+  port = scm_capi_open_input_string_from_cstr(exp_str, SCM_ENC_ASCII);
+  exp = scm_api_read(port);
+
+  port = scm_capi_open_input_string_from_cstr(ect_str, SCM_ENC_ASCII);
+  expected = scm_api_read(port);
+
+  actual = scm_capi_ut_eval(ev, exp);
+
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+}
+
+void
+test_eval__or_9(void)
+{
+  ScmObj exp = SCM_OBJ_INIT, port = SCM_OBJ_INIT;
+  ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+  const char *exp_str = "((lambda () (or 'a)))";
+  const char *ect_str = "a";
+
+  SCM_STACK_FRAME_PUSH(&exp, &port,
+                       &actual, &expected);
+
+
+  port = scm_capi_open_input_string_from_cstr(exp_str, SCM_ENC_ASCII);
+  exp = scm_api_read(port);
+
+  port = scm_capi_open_input_string_from_cstr(ect_str, SCM_ENC_ASCII);
+  expected = scm_api_read(port);
+
+  actual = scm_capi_ut_eval(ev, exp);
+
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+}
+
+void
+test_eval__or_10(void)
+{
+  ScmObj exp = SCM_OBJ_INIT, port = SCM_OBJ_INIT;
+  ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+  const char *exp_str = "((lambda () (or #f)))";
+  const char *ect_str = "#f";
+
+  SCM_STACK_FRAME_PUSH(&exp, &port,
+                       &actual, &expected);
+
+
+  port = scm_capi_open_input_string_from_cstr(exp_str, SCM_ENC_ASCII);
+  exp = scm_api_read(port);
+
+  port = scm_capi_open_input_string_from_cstr(ect_str, SCM_ENC_ASCII);
+  expected = scm_api_read(port);
+
+  actual = scm_capi_ut_eval(ev, exp);
+
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+}
+
+void
+test_eval__or_11(void)
+{
+  ScmObj exp = SCM_OBJ_INIT, port = SCM_OBJ_INIT;
+  ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+  const char *exp_str = "((lambda () (or 'a 'b)))";
+  const char *ect_str = "a";
+
+  SCM_STACK_FRAME_PUSH(&exp, &port,
+                       &actual, &expected);
+
+
+  port = scm_capi_open_input_string_from_cstr(exp_str, SCM_ENC_ASCII);
+  exp = scm_api_read(port);
+
+  port = scm_capi_open_input_string_from_cstr(ect_str, SCM_ENC_ASCII);
+  expected = scm_api_read(port);
+
+  actual = scm_capi_ut_eval(ev, exp);
+
+  /* scm_api_write(expected, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
+  /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
+
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+}
+
+void
+test_eval__or_12(void)
+{
+  ScmObj exp = SCM_OBJ_INIT, port = SCM_OBJ_INIT;
+  ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+  const char *exp_str = "((lambda () (or #f 'b)))";
+  const char *ect_str = "b";
+
+  SCM_STACK_FRAME_PUSH(&exp, &port,
+                       &actual, &expected);
+
+
+  port = scm_capi_open_input_string_from_cstr(exp_str, SCM_ENC_ASCII);
+  exp = scm_api_read(port);
+
+  port = scm_capi_open_input_string_from_cstr(ect_str, SCM_ENC_ASCII);
+  expected = scm_api_read(port);
+
+  actual = scm_capi_ut_eval(ev, exp);
+
+  /* scm_api_write(expected, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
+  /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
+
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+}
+
+void
+test_eval__or_13(void)
+{
+  ScmObj exp = SCM_OBJ_INIT, port = SCM_OBJ_INIT;
+  ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+  const char *exp_str = "((lambda () (or (null? '()) (null? 'a))))";
+  const char *ect_str = "#t";
+
+  SCM_STACK_FRAME_PUSH(&exp, &port,
+                       &actual, &expected);
+
+
+  port = scm_capi_open_input_string_from_cstr(exp_str, SCM_ENC_ASCII);
+  exp = scm_api_read(port);
+
+  port = scm_capi_open_input_string_from_cstr(ect_str, SCM_ENC_ASCII);
+  expected = scm_api_read(port);
+
+  actual = scm_capi_ut_eval(ev, exp);
+
+  /* scm_api_write(expected, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
+  /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
+
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+}
+
+void
+test_eval__or_14(void)
+{
+  ScmObj exp = SCM_OBJ_INIT, port = SCM_OBJ_INIT;
+  ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+  const char *exp_str = "((lambda () (or (null? 'a) (null? '()))))";
+  const char *ect_str = "#t";
+
+  SCM_STACK_FRAME_PUSH(&exp, &port,
+                       &actual, &expected);
+
+
+  port = scm_capi_open_input_string_from_cstr(exp_str, SCM_ENC_ASCII);
+  exp = scm_api_read(port);
+
+  port = scm_capi_open_input_string_from_cstr(ect_str, SCM_ENC_ASCII);
+  expected = scm_api_read(port);
+
+  actual = scm_capi_ut_eval(ev, exp);
+
+  /* scm_api_write(expected, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
+  /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
+
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+}
