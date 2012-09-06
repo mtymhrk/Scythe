@@ -61,23 +61,24 @@ typedef enum {
   SCM_OPCODE_EFRAME,              /* 8; create environment frame */
   SCM_OPCODE_ECOMMIT,             /* 9; commit environment frame */
   SCM_OPCODE_EPOP,                /* 10; pop environment frame */
-  SCM_OPCODE_IMMVAL,              /* 11: copy immediate value to val register */
-  SCM_OPCODE_PUSH,                /* 12: push value of val register */
-  SCM_OPCODE_GREF,                /* 13: refere global variable */
-  SCM_OPCODE_GDEF,                /* 14: define global variable */
-  SCM_OPCODE_GSET,                /* 15: update global variable */
-  SCM_OPCODE_SREF,                /* 16: refere value in stack */
-  SCM_OPCODE_SSET,                /* 17: update value in stack */
-  SCM_OPCODE_JMP,                 /* 18: jump */
-  SCM_OPCODE_JMPT,                /* 19: jump if true */
-  SCM_OPCODE_JMPF,                /* 20: jump if false */
-  SCM_OPCODE_RAISE,               /* 21: exception handler */
-  SCM_OPCODE_BOX,                 /* 22: boxing */
-  SCM_OPCODE_CLOSE,               /* 23: make closure */
-  SCM_OPCODE_DEMINE,              /* 24: demine variable */
-  SCM_OPCODE_EMINE,               /* 25: make enviroment frame */
+  SCM_OPCODE_EREBIND,             /* 11; rebind variables */
+  SCM_OPCODE_IMMVAL,              /* 12: copy immediate value to val register */
+  SCM_OPCODE_PUSH,                /* 13: push value of val register */
+  SCM_OPCODE_GREF,                /* 14: refere global variable */
+  SCM_OPCODE_GDEF,                /* 15: define global variable */
+  SCM_OPCODE_GSET,                /* 16: update global variable */
+  SCM_OPCODE_SREF,                /* 17: refere value in stack */
+  SCM_OPCODE_SSET,                /* 18: update value in stack */
+  SCM_OPCODE_JMP,                 /* 19: jump */
+  SCM_OPCODE_JMPT,                /* 20: jump if true */
+  SCM_OPCODE_JMPF,                /* 21: jump if false */
+  SCM_OPCODE_RAISE,               /* 22: exception handler */
+  SCM_OPCODE_BOX,                 /* 23: boxing */
+  SCM_OPCODE_CLOSE,               /* 24: make closure */
+  SCM_OPCODE_DEMINE,              /* 25: demine variable */
+  SCM_OPCODE_EMINE,               /* 26: make enviroment frame */
                                   /*     and make it mine field */
-  SCM_OPCODE_EDEMINE,             /* 26: demine enviromnet frame with */
+  SCM_OPCODE_EDEMINE,             /* 27: demine enviromnet frame with */
                                   /*     incomplete enviromnet frame as */
                                   /*     initial value */
 } SCM_OPCODE_T;

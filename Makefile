@@ -6,7 +6,7 @@ CFLAGS   = -O2 -g -std=gnu99 -Wall -Wextra -Wformat=2 -Wstrict-aliasing=2 \
 INCLUDES =
 SOURCES  = 
 OBJS     = $(SOURCES:.c=.o)
-TARGET   = scyth
+TARGET   = scythe
 DOXYGEN  = doxygen
 DOXYGEN_CONF = doxygen.conf
 

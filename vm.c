@@ -1232,6 +1232,8 @@ scm_vm_op_ecommit(ScmObj vm, SCM_OPCODE_T op)
   int32_t argc;
   uint8_t *ip;
 
+  SCM_STACK_FRAME_PUSH(&vm);
+
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
   ip = scm_capi_inst_fetch_oprand_si(SCM_VM(vm)->reg.ip, &argc);
@@ -1252,6 +1254,8 @@ scm_vm_op_epop(ScmObj vm, SCM_OPCODE_T op)
 {
   ScmEnvFrame *efp;
 
+  SCM_STACK_FRAME_PUSH(&vm);
+
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
   efp = SCM_VM(vm)->reg.efp;
@@ -1271,6 +1275,60 @@ scm_vm_op_epop(ScmObj vm, SCM_OPCODE_T op)
 
   SCM_VM(vm)->reg.efp = efp->out;
   SCM_VM(vm)->reg.sp = (uint8_t *)efp;
+}
+
+scm_local_func void
+scm_vm_op_erebind(ScmObj vm, SCM_OPCODE_T op)
+{
+  ScmEnvFrame *efp;
+  int32_t argc;
+  uint8_t *ip;
+
+  SCM_STACK_FRAME_PUSH(&vm);
+
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  ip = scm_capi_inst_fetch_oprand_si(SCM_VM(vm)->reg.ip, &argc);
+  if (ip == NULL) return;       /* [ERR]: [through] */
+
+  if (argc < 0) {
+    scm_capi_error("bytecode format error", 0);
+    return;
+  }
+
+  SCM_VM(vm)->reg.ip = ip;
+
+  if (SCM_VM(vm)->reg.efp == NULL) {
+    scm_capi_error("invalid operation of enviromnet frame: "
+                   "enviroment frame to be rebound is not exist", 0);
+    return;
+  }
+
+  if (!scm_vm_eframe_is_in_stack_p(vm, SCM_VM(vm)->reg.iefp)) {
+    scm_capi_error("invalid operation of VM stack: "
+                   "incomplete environment frame is not pushed", 0);
+    return;
+  }
+
+  if (scm_vm_eframe_is_in_stack_p(vm, SCM_VM(vm)->reg.efp)) {
+    if (SCM_VM(vm)->reg.iefp->out > SCM_VM(vm)->reg.efp
+        || (uint8_t *)SCM_VM(vm)->reg.icfp > (uint8_t *)SCM_VM(vm)->reg.efp) {
+      scm_capi_error("invalid operation of VM stack: "
+                     "incomplete stack frame link will be broken", 0);
+      return;
+    }
+  }
+
+  scm_vm_do_op_ecommit(vm, op, (size_t)argc);
+  efp = SCM_VM(vm)->reg.efp->out;
+  SCM_VM(vm)->reg.efp->out = efp->out;
+
+  if (scm_vm_eframe_is_in_stack_p(vm, efp)) {
+    memmove(efp, SCM_VM(vm)->reg.efp,
+            sizeof(ScmEnvFrame) + sizeof(ScmObj) * (size_t)argc);
+    SCM_VM(vm)->reg.efp = efp;
+    SCM_VM(vm)->reg.sp = (uint8_t *)efp->arg + sizeof(ScmObj) * (size_t)argc;
+  }
 }
 
 scm_local_func void
@@ -1489,6 +1547,8 @@ scm_vm_op_jmp(ScmObj vm, SCM_OPCODE_T op)
   int32_t dst;
   uint8_t *ip;
 
+  SCM_STACK_FRAME_PUSH(&vm);
+
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
   ip = scm_capi_inst_fetch_oprand_iof(SCM_VM(vm)->reg.ip, &dst);
@@ -1502,6 +1562,8 @@ scm_vm_op_jmpt(ScmObj vm, SCM_OPCODE_T op)
 {
   int32_t dst;
   uint8_t *ip;
+
+  SCM_STACK_FRAME_PUSH(&vm);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
@@ -1519,6 +1581,8 @@ scm_vm_op_jmpf(ScmObj vm, SCM_OPCODE_T op)
 {
   int32_t dst;
   uint8_t *ip;
+
+  SCM_STACK_FRAME_PUSH(&vm);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
@@ -1991,6 +2055,9 @@ scm_vm_run(ScmObj vm, ScmObj iseq)
       break;
     case SCM_OPCODE_EPOP:
       scm_vm_op_epop(vm, op);
+      break;
+    case SCM_OPCODE_EREBIND:
+      scm_vm_op_erebind(vm, op);
       break;
     case SCM_OPCODE_IMMVAL:
       scm_vm_op_immval(vm, op);
