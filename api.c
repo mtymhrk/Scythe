@@ -3251,6 +3251,22 @@ scm_capi_closure_to_iseq(ScmObj clsr)
   return scm_closure_body(clsr);
 }
 
+uint8_t *
+scm_capi_closure_to_ip(ScmObj clsr)
+{
+  ScmObj iseq = SCM_OBJ_INIT;
+
+  if (!scm_capi_closure_p(clsr)) {
+    scm_capi_error("can not get iseq object from closure: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  iseq = scm_closure_body(clsr);
+  if (scm_obj_null_p(iseq)) return NULL;
+
+  return scm_iseq_to_ip(iseq);
+}
+
 int
 scm_capi_closure_env(ScmObj clsr, scm_csetter_t *env)
 {
@@ -3323,10 +3339,10 @@ scm_capi_iseq_to_ip(ScmObj iseq)
   if (!scm_capi_iseq_p(iseq)) {
     scm_capi_error("can not get instruction pointer from iseq: "
                    "invalid argument", 0);
-    return SCM_OBJ_NULL;
+    return NULL;
   }
 
-  return SCM_ISEQ_SEQ(iseq);
+  return scm_iseq_to_ip(iseq);
 }
 
 ssize_t
@@ -3361,7 +3377,7 @@ scm_capi_iseq_push_opfmt_noarg(ScmObj iseq, SCM_OPCODE_T op)
 ssize_t
 scm_capi_iseq_push_opfmt_obj(ScmObj iseq, SCM_OPCODE_T op, ScmObj val)
 {
-  ssize_t rslt, immv_idx;
+  ssize_t rslt;
 
   SCM_STACK_FRAME_PUSH(&iseq, &val);
 
@@ -3375,22 +3391,13 @@ scm_capi_iseq_push_opfmt_obj(ScmObj iseq, SCM_OPCODE_T op, ScmObj val)
     return -1;
   }
 
-  immv_idx = scm_iseq_push_immval(iseq, val);
-  if (immv_idx < 0) return -1;          /* [ERR: [through] */
-
-  if (immv_idx > UINT32_MAX) {
-    scm_capi_error("can not push instruction to iseq: "
-                   "immediate value area overflow", 0);
-    return -1;
-  }
-
   rslt = scm_iseq_push_uint8(iseq, op);
   if (rslt < 0) return -1;      /* [ERR]: [through] */
 
   rslt = scm_iseq_push_uint8(iseq, 0);
   if (rslt < 0) return -1;      /* [ERR]: [through] */
 
-  return scm_iseq_push_uint32(iseq, (uint32_t)immv_idx);
+  return scm_iseq_push_obj(iseq, val);
 }
 
 ssize_t
@@ -3443,7 +3450,7 @@ ssize_t
 scm_capi_iseq_push_opfmt_si_obj(ScmObj iseq, SCM_OPCODE_T op,
                                 int32_t val, ScmObj obj)
 {
-  ssize_t rslt, immv_idx;
+  ssize_t rslt;
 
   SCM_STACK_FRAME_PUSH(&iseq,
                        &obj);
@@ -3458,15 +3465,6 @@ scm_capi_iseq_push_opfmt_si_obj(ScmObj iseq, SCM_OPCODE_T op,
     return -1;
   }
 
-  immv_idx = scm_iseq_push_immval(iseq, obj);
-  if (immv_idx < 0) return -1;          /* [ERR: [through] */
-
-  if (immv_idx > UINT32_MAX) {
-    scm_capi_error("can not push instruction to iseq: "
-                   "immediate value area overflow", 0);
-    return -1;
-  }
-
   rslt = scm_iseq_push_uint8(iseq, op);
   if (rslt < 0) return -1;   /* provisional implemntation */
 
@@ -3476,42 +3474,13 @@ scm_capi_iseq_push_opfmt_si_obj(ScmObj iseq, SCM_OPCODE_T op,
   rslt = scm_iseq_push_uint32(iseq, (uint32_t)val);
   if (rslt < 0) return -1;   /* provisional implemntation */
 
-  return scm_iseq_push_uint32(iseq, (uint32_t)immv_idx);
+  return scm_iseq_push_obj(iseq, obj);
 }
 
 ssize_t
 scm_capi_iseq_push_opfmt_iof(ScmObj iseq, SCM_OPCODE_T op, int32_t offset)
 {
   return scm_capi_iseq_push_opfmt_si(iseq, op, offset);
-}
-
-ssize_t
-scm_capi_iseq_set_obj(ScmObj iseq, size_t idx, ScmObj val)
-{
-  ssize_t rslt;
-
-  SCM_STACK_FRAME_PUSH(&iseq, &val);
-
-  if (!scm_capi_iseq_p(iseq)) {
-    scm_capi_error("can not update immediate value in iseq: "
-                   "invalid argument", 0);
-    return -1;
-  }
-  else if (idx > SSIZE_MAX || (ssize_t)idx >= scm_iseq_nr_immv(iseq)) {
-    scm_capi_error("can not update immediate value in iseq: "
-                   "invalid argument", 0);
-    return -1;
-  }
-  else if (scm_obj_null_p(val)) {
-    scm_capi_error("can not update immediate value in iseq: "
-                   "invalid argument", 0);
-    return -1;   /* provisional implemntation */
-  }
-
-  rslt = scm_iseq_set_immval(iseq, idx, val);
-  if (rslt < 0) return -1;      /* [ERR]: [through] */
-
-  return (ssize_t)idx;
 }
 
 ssize_t
@@ -3534,23 +3503,6 @@ scm_capi_iseq_set_si(ScmObj iseq, size_t idx, int32_t val)
   if (rslt < 0) return -1;   /* provisional implemntation */
 
   return (ssize_t)idx;
-}
-
-ScmObj
-scm_capi_iseq_ref_obj(ScmObj iseq, size_t idx)
-{
-  if (!scm_capi_iseq_p(iseq)) {
-    scm_capi_error("can not get immediate value from iseq: "
-                   "invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-  else if (idx > SSIZE_MAX || (ssize_t)idx >= scm_iseq_nr_immv(iseq)) {
-    scm_capi_error("can not get immediate value from iseq: "
-                   "invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-
-  return scm_iseq_get_immval(iseq, idx);;
 }
 
 int
@@ -3596,24 +3548,14 @@ scm_capi_opcode_to_opfmt(int opcode)
 }
 
 uint8_t *
-scm_capi_inst_fetch_oprand_obj(uint8_t *ip, ScmObj iseq,
-                               size_t *idx, scm_csetter_t *obj)
+scm_capi_inst_fetch_oprand_obj(uint8_t *ip, scm_csetter_t *obj)
 {
   ScmObj opr = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&iseq,
-                       &opr);
+  SCM_STACK_FRAME_PUSH(&opr);
 
   if (ip == NULL) {
     scm_capi_error("can not fetch operands: invalid ip", 0);
-    return NULL;
-  }
-  else if (!scm_capi_iseq_p(iseq)) {
-    scm_capi_error("can not fetch operands: invalid argument", 0);
-    return NULL;
-  }
-  else if (idx == NULL) {
-    scm_capi_error("can not fetch operands: invalid argument", 0);
     return NULL;
   }
   else if (obj == NULL) {
@@ -3621,10 +3563,11 @@ scm_capi_inst_fetch_oprand_obj(uint8_t *ip, ScmObj iseq,
     return NULL;
   }
 
-  SCM_CAPI_INST_FETCH_UINT32(ip, *idx);
-
-  opr = scm_capi_iseq_ref_obj(iseq, *idx);
-  if (scm_obj_null_p(opr)) return NULL;
+#if SCM_UWORD_MAX > UINT32_MAX
+  opr = SCM_OBJ(scm_iseq_fetch_uint64(&ip));
+#else
+  opr = SCM_OBJ_(scm_iseq_fetch_uint32(&ip));
+#endif
 
   scm_csetter_setq(obj, opr);
 
@@ -3643,7 +3586,7 @@ scm_capi_inst_fetch_oprand_si(uint8_t *ip, int32_t *si)
     return NULL;
   }
 
-  SCM_CAPI_INST_FETCH_INT32(ip, *si);
+  *si = scm_iseq_fetch_int32(&ip);
 
   return ip;
 }
@@ -3664,34 +3607,24 @@ scm_capi_inst_fetch_oprand_si_si(uint8_t *ip, int32_t *si1, int32_t *si2)
     return NULL;
   }
 
-  SCM_CAPI_INST_FETCH_INT32(ip, *si1);
-  SCM_CAPI_INST_FETCH_INT32(ip, *si2);
+  *si1 = scm_iseq_fetch_int32(&ip);
+  *si2 = scm_iseq_fetch_int32(&ip);
 
   return ip;
 }
 
 uint8_t *
-scm_capi_inst_fetch_oprand_si_obj(uint8_t *ip, ScmObj iseq,
-                                  int32_t *si, size_t *idx, scm_csetter_t *obj)
+scm_capi_inst_fetch_oprand_si_obj(uint8_t *ip, int32_t *si, scm_csetter_t *obj)
 {
   ScmObj opr = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&iseq,
-                       &opr);
+  SCM_STACK_FRAME_PUSH(&opr);
 
   if (ip == NULL) {
     scm_capi_error("can not fetch operands: invalid ip", 0);
     return NULL;
   }
-  else if (!scm_capi_iseq_p(iseq)) {
-    scm_capi_error("can not fetch operands: invalid argument", 0);
-    return NULL;
-  }
   else if (si == NULL) {
-    scm_capi_error("can not fetch operands: invalid argument", 0);
-    return NULL;
-  }
-  else if (idx == NULL) {
     scm_capi_error("can not fetch operands: invalid argument", 0);
     return NULL;
   }
@@ -3700,11 +3633,13 @@ scm_capi_inst_fetch_oprand_si_obj(uint8_t *ip, ScmObj iseq,
     return NULL;
   }
 
-  SCM_CAPI_INST_FETCH_INT32(ip, *si);
-  SCM_CAPI_INST_FETCH_UINT32(ip, *idx);
+  *si = scm_iseq_fetch_int32(&ip);
 
-  opr = scm_capi_iseq_ref_obj(iseq, *idx);
-  if (scm_obj_null_p(opr)) return NULL;
+#if SCM_UWORD_MAX > UINT32_MAX
+  opr = SCM_OBJ(scm_iseq_fetch_uint64(&ip));
+#else
+  opr = SCM_OBJ(scm_iseq_fetch_uint32(&ip));
+#endif
 
   scm_csetter_setq(obj, opr);
 
@@ -3715,6 +3650,43 @@ uint8_t *
 scm_capi_inst_fetch_oprand_iof(uint8_t *ip, int32_t *offset)
 {
   return scm_capi_inst_fetch_oprand_si(ip, offset);
+}
+
+int
+scm_capi_inst_update_oprand_obj(uint8_t *ip, ScmObj clsr, ScmObj obj)
+{
+  ScmObj iseq;
+  ssize_t idx;
+
+  SCM_STACK_FRAME_PUSH(&clsr, &obj,
+                       &iseq);
+
+  if (ip == NULL) {
+    scm_capi_error("can not updated operands: invalid ip", 0);
+    return -1;
+  }
+  else if (!scm_capi_closure_p(clsr)) {
+    scm_capi_error("can not updated operands: invalid argument", 0);
+    return -1;
+  }
+  else if (scm_obj_null_p(obj)) {
+    scm_capi_error("can not updated operands: invalid argument", 0);
+    return -1;
+  }
+
+  iseq = scm_capi_closure_to_iseq(clsr);
+  if (scm_obj_null_p(iseq)) return -1;
+
+  idx = scm_iseq_ip_to_idx(iseq, ip);
+  if (idx < 0) {
+    scm_capi_error("can not updated operands: invalid ip", 0);
+    return -1;
+  }
+
+  idx = scm_iseq_set_obj(iseq, (size_t)idx, obj);
+  if (idx < 0) return -1;
+
+  return 0;
 }
 
 

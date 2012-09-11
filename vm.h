@@ -214,7 +214,6 @@ struct ScmVMRec {
     ScmEnvFrame *iefp;            /* incomplete environment frame pointer */
     ScmObj cp;                    /* closure pointer */
     uint8_t *ip;                  /* instruction pointer */
-    ScmObj isp;                   /* instruction sequence object */
     ScmObj val;                   /* value register */
     uint32_t flags;
   } reg;
@@ -244,8 +243,7 @@ int scm_vm_stack_push(ScmObj vm, ScmObj elm);
 /* ScmObj scm_vm_stack_pop(ScmObj vm); */
 
 int scm_vm_update_ief_len_if_needed(ScmObj vm);
-int scm_vm_make_cframe(ScmObj vm, ScmEnvFrame * efp,
-                             ScmObj cp, ScmObj isp, uint8_t *ip);
+int scm_vm_make_cframe(ScmObj vm, ScmEnvFrame * efp, ScmObj cp, uint8_t *ip);
 int scm_vm_commit_cframe(ScmObj vm, ScmCntFrame *cfp, uint8_t *ip);
 int scm_vm_make_eframe(ScmObj vm, size_t nr_arg);
 int scm_vm_commit_eframe(ScmObj vm, ScmEnvFrame *efp, size_t nr_arg);

@@ -13,29 +13,38 @@ typedef struct ScmISeqRec ScmISeq;
 #include "earray.h"
 
 #define SCM_ISEQ_DEFAULT_SEQ_SIZE 32
-#define SCM_ISEQ_DEFAULT_IMMVS_SIZE 32
+#define SCM_ISEQ_DEFAULT_INDEX_SIZE 32
 
 extern ScmTypeInfo SCM_ISEQ_TYPE_INFO;
 
 struct ScmISeqRec {
   ScmObjHeader header;
   EArray seq;
-  EArray immvs;
+  EArray index;
 };
 
 #define SCM_ISEQ_EARY_SEQ(obj) (&SCM_ISEQ(obj)->seq)
-#define SCM_ISEQ_EARY_IMMVS(obj) (&SCM_ISEQ(obj)->immvs)
+#define SCM_ISEQ_EARY_INDEX(obj) (&SCM_ISEQ(obj)->index)
 
-#define SCM_ISEQ_SEQ(obj) ((uint8_t *)EARY_HEAD(SCM_ISEQ_EARY_SEQ(obj)))
-#define SCM_ISEQ_IMMVAL_VEC(obj) ((ScmObj *)EARY_HEAD(SCM_ISEQ_EARY_IMMVS(obj)))
+#define SCM_ISEQ_SEQ_VEC(obj) ((uint8_t *)EARY_HEAD(SCM_ISEQ_EARY_SEQ(obj)))
+#define SCM_ISEQ_IDX_VEC(obj) ((size_t *)EARY_HEAD(SCM_ISEQ_EARY_INDEX(obj)))
 #define SCM_ISEQ_SEQ_CAPACITY(obj) (EARY_CAPACITY(SCM_ISEQ_EARY_SEQ(obj)))
 #define SCM_ISEQ_SEQ_LENGTH(obj) (EARY_SIZE(SCM_ISEQ_EARY_SEQ(obj)))
-#define SCM_ISEQ_VEC_CAPACITY(obj) (EARY_CAPACITY(SCM_ISEQ_EARY_IMMVS(obj)))
-#define SCM_ISEQ_VEC_LENGTH(obj) (EARY_SIZE(SCM_ISEQ_EARY_IMMVS(obj)))
+#define SCM_ISEQ_IDX_CAPACITY(obj) (EARY_CAPACITY(SCM_ISEQ_EARY_INDEX(obj)))
+#define SCM_ISEQ_IDX_LENGTH(obj) (EARY_SIZE(SCM_ISEQ_EARY_INDEX(obj)))
 
 int scm_iseq_initialize(ScmObj iseq);
 ScmObj scm_iseq_new(SCM_MEM_TYPE_T mtype);
 void scm_iseq_finalize(ScmObj obj);
+ssize_t scm_iseq_push_uint8(ScmObj iseq, uint8_t val);
+ssize_t scm_iseq_push_uint32(ScmObj iseq, uint32_t val);
+uint32_t scm_iseq_get_uint32(ScmObj iseq, size_t idx);
+ssize_t scm_iseq_set_uint32(ScmObj iseq, size_t idx, uint32_t val);
+ssize_t scm_iseq_push_uint64(ScmObj iseq, uint64_t val);
+uint64_t scm_iseq_get_uint64(ScmObj iseq, size_t idx);
+ssize_t scm_iseq_push_obj(ScmObj iseq, ScmObj obj);
+ScmObj scm_iseq_get_obj(ScmObj iseq, size_t idx);
+ssize_t scm_iseq_set_obj(ScmObj iseq, size_t idx, ScmObj val);
 int scm_iseq_pretty_print(ScmObj obj, ScmObj port, bool write_p);
 void scm_iseq_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_iseq_gc_finalize(ScmObj obj);
@@ -48,162 +57,83 @@ scm_iseq_length(ScmObj iseq)
   return (ssize_t)SCM_ISEQ_SEQ_LENGTH(iseq);
 }
 
-inline ssize_t
-scm_iseq_nr_immv(ScmObj iseq)
+inline uint8_t *
+scm_iseq_to_ip(ScmObj iseq)
 {
   scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
-  return (ssize_t)SCM_ISEQ_VEC_LENGTH(iseq);
-}
-
-inline ScmObj
-scm_iseq_get_immval(ScmObj iseq, size_t idx)
-{
-  scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
-
-  return SCM_ISEQ_IMMVAL_VEC(iseq)[idx];
+  return SCM_ISEQ_SEQ_VEC(iseq);
 }
 
 inline ssize_t
-scm_iseq_push_immval(ScmObj iseq, ScmObj val)
+scm_iseq_ip_to_idx(ScmObj iseq, uint8_t *ip)
 {
-  size_t idx;
-  int err;
+  ssize_t idx;
 
   scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
-  scm_assert(scm_obj_not_null_p(val));
 
-  idx = SCM_ISEQ_VEC_LENGTH(iseq);
-  if (idx == SIZE_MAX) return -1; /* [ERR]: iseq: immediate value area over flow */
-
-  EARY_SET_SCMOBJ(SCM_ISEQ_EARY_IMMVS(iseq), idx, val, iseq, err);
-
-  if(err != 0) return -1;       /* [ERR]: [through] */
-
-  return (ssize_t)idx;
+  idx = ip - SCM_ISEQ_SEQ_VEC(iseq);
+  if (idx < 0 || idx >= (ssize_t)SCM_ISEQ_SEQ_LENGTH(iseq))
+    return -1;
+  else
+    return idx;
 }
 
-inline ssize_t
-scm_iseq_set_immval(ScmObj iseq, size_t idx, ScmObj val)
+inline uint32_t
+scm_iseq_fetch_uint32(uint8_t **ip)
 {
-  int err;
+  uint32_t v;
 
-  scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
-  scm_assert(idx < SCM_ISEQ_VEC_LENGTH(iseq));
-  scm_assert(scm_obj_not_null_p(val));
+  scm_assert(ip != NULL);
+  scm_assert(*ip != NULL);
 
-  EARY_SET_SCMOBJ(SCM_ISEQ_EARY_IMMVS(iseq), (size_t)idx, val, iseq, err);
+  v = ((uint32_t)*(*ip + 3) << 24
+       | (uint32_t)*(*ip + 2) << 16
+       | (uint32_t)*(*ip + 1) << 8
+       | (uint32_t)*(*ip));
 
-  if (err != 0) return -1;      /* [ERR]: [through] */
+  *ip = *ip + 4;
 
-  return (ssize_t)idx;
+  return v;
 }
 
-inline ssize_t
-scm_iseq_get_uint8(ScmObj iseq, size_t idx, uint8_t *val)
+inline int32_t
+scm_iseq_fetch_int32(uint8_t **ip)
 {
-  scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
-  scm_assert(idx <= SCM_ISEQ_SEQ_LENGTH(iseq) - 1);
-  scm_assert(val != NULL);
+  int32_t v;
 
-  *val = SCM_ISEQ_SEQ(iseq)[idx];
+  scm_assert(ip != NULL);
+  scm_assert(*ip != NULL);
 
-  return (ssize_t)idx;
+  v = (int32_t)((uint32_t)*(*ip + 3) << 24
+                | (uint32_t)*(*ip + 2) << 16
+                | (uint32_t)*(*ip + 1) << 8
+                | (uint32_t)*(*ip));
+
+  *ip = *ip + 4;
+
+  return v;
 }
 
-inline ssize_t
-scm_iseq_get_uint32(ScmObj iseq, size_t idx, uint32_t *val)
+inline uint64_t
+scm_iseq_fetch_uint64(uint8_t **ip)
 {
-  uint32_t v1, v2, v3, v4;
+  uint64_t v;
 
-  scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
-  scm_assert(idx <= SCM_ISEQ_SEQ_LENGTH(iseq) - 4);
+  scm_assert(ip != NULL);
+  scm_assert(*ip != NULL);
 
-  v1 = SCM_ISEQ_SEQ(iseq)[idx];
-  v2 = SCM_ISEQ_SEQ(iseq)[idx + 1];
-  v3 = SCM_ISEQ_SEQ(iseq)[idx + 2];
-  v4 = SCM_ISEQ_SEQ(iseq)[idx + 3];
+  v = ((uint64_t)*(*ip + 7) << 56
+       | (uint64_t)*(*ip + 6) << 48
+       | (uint64_t)*(*ip + 5) << 40
+       | (uint64_t)*(*ip + 4) << 32
+       | (uint64_t)*(*ip + 3) << 24
+       | (uint64_t)*(*ip + 2) << 16
+       | (uint64_t)*(*ip + 1) << 8
+       | (uint64_t)*(*ip));
 
-  *val = (v4 << 24) | (v3 << 16) | (v2 << 8) | v1;
+  *ip = *ip + 8;
 
-  return (ssize_t)idx;
-}
-
-inline ssize_t
-scm_iseq_push_uint8(ScmObj iseq, uint8_t val)
-{
-  int err;
-  size_t idx;
-
-  scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
-  scm_assert(EARY_SIZE(SCM_ISEQ_EARY_SEQ(iseq)) < SSIZE_MAX - 1);
-
-  idx = EARY_SIZE(SCM_ISEQ_EARY_SEQ(iseq));
-  EARY_SET(SCM_ISEQ_EARY_SEQ(iseq), uint8_t, idx, val, err);
-  if (err != 0) return -1;
-
-  return (ssize_t)idx + 1;
-}
-
-inline ssize_t
-scm_iseq_push_uint32(ScmObj iseq, uint32_t val)
-{
-  int err;
-  uint8_t v1, v2, v3, v4;
-  size_t idx;
-
-  scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
-  scm_assert(EARY_SIZE(SCM_ISEQ_EARY_SEQ(iseq)) < SSIZE_MAX - 1);
-
-  v1 = (uint8_t)(val & 0xff);
-  v2 = (uint8_t)((val >> 8) & 0xff);
-  v3 = (uint8_t)((val >> 16) & 0xff);
-  v4 = (uint8_t)((val >> 24) & 0xff);
-
-  idx = EARY_SIZE(SCM_ISEQ_EARY_SEQ(iseq));
-
-  EARY_SET(SCM_ISEQ_EARY_SEQ(iseq), uint8_t, idx, v1, err);
-  if (err != 0) return -1;
-
-  EARY_SET(SCM_ISEQ_EARY_SEQ(iseq), uint8_t, idx + 1, v2, err);
-  if (err != 0) return -1;
-
-  EARY_SET(SCM_ISEQ_EARY_SEQ(iseq), uint8_t, idx + 2, v3, err);
-  if (err != 0) return -1;
-
-  EARY_SET(SCM_ISEQ_EARY_SEQ(iseq), uint8_t, idx + 3, v4, err);
-  if (err != 0) return -1;
-
-  return (ssize_t)idx + 4;
-}
-
-inline ssize_t
-scm_iseq_set_uint32(ScmObj iseq, size_t idx, uint32_t val)
-{
-  int err;
-  uint8_t v1, v2, v3, v4;
-
-  scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
-  scm_assert(idx <= SCM_ISEQ_SEQ_LENGTH(iseq) - 4);
-  scm_assert(scm_obj_not_null_p(val));
-
-  v1 = (uint8_t)(val & 0xff);
-  v2 = (uint8_t)((val >> 8) & 0xff);
-  v3 = (uint8_t)((val >> 16) & 0xff);
-  v4 = (uint8_t)((val >> 24) & 0xff);
-
-  EARY_SET(SCM_ISEQ_EARY_SEQ(iseq), uint8_t, idx, v1, err);
-  if (err != 0) return -1;
-
-  EARY_SET(SCM_ISEQ_EARY_SEQ(iseq), uint8_t, idx + 1, v2, err);
-  if (err != 0) return -1;
-
-  EARY_SET(SCM_ISEQ_EARY_SEQ(iseq), uint8_t, idx + 2, v3, err);
-  if (err != 0) return -1;
-
-  EARY_SET(SCM_ISEQ_EARY_SEQ(iseq), uint8_t, idx + 3, v4, err);
-  if (err != 0) return -1;
-
-  return (ssize_t)idx;
+  return v;
 }
 
 #endif /* INCLUDE_ISEQ_H__ */

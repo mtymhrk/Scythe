@@ -349,6 +349,7 @@ bool scm_capi_subrutine_p(ScmObj obj);
 ScmObj scm_capi_make_closure(ScmObj iseq, ScmObj env);
 bool scm_capi_closure_p(ScmObj obj);
 ScmObj scm_capi_closure_to_iseq(ScmObj clsr);
+uint8_t *scm_capi_closure_to_ip(ScmObj clsr);
 int scm_capi_closure_env(ScmObj clsr, scm_csetter_t *env);
 
 
@@ -378,9 +379,7 @@ ssize_t scm_capi_iseq_push_opfmt_si_obj(ScmObj iseq, SCM_OPCODE_T op,
                                         int32_t val, ScmObj obj);
 ssize_t scm_capi_iseq_push_opfmt_iof(ScmObj iseq,
                                      SCM_OPCODE_T op, int32_t offset);
-ssize_t scm_capi_iseq_set_obj(ScmObj iseq, size_t idx, ScmObj val);
 ssize_t scm_capi_iseq_set_si(ScmObj iseq, size_t idx, int32_t val);
-ScmObj scm_capi_iseq_ref_obj(ScmObj iseq, size_t idx);
 
 int scm_capi_opcode_to_opfmt(int opcode);
 
@@ -390,33 +389,15 @@ int scm_capi_opcode_to_opfmt(int opcode);
     (ip) = (uint8_t *)(ip) + 2;        \
   } while (0)
 
-#define SCM_CAPI_INST_FETCH_UINT32(ip, v)                  \
-  do {                                                     \
-  (v) = ((uint32_t)*((uint8_t *)(ip) + 3) << 24            \
-         | (uint32_t)*((uint8_t *)(ip) + 2) << 16          \
-         | (uint32_t)*((uint8_t *)(ip) + 1) << 8           \
-         | (uint32_t)*(uint8_t *)(ip));                    \
-    (ip) = (uint8_t *)(ip) + 4;                            \
-  } while (0)
-
-#define SCM_CAPI_INST_FETCH_INT32(ip, v)                        \
-  do {                                                          \
-    (v) = (int32_t)((uint32_t)*((uint8_t *)(ip) + 3) << 24      \
-                    | (uint32_t)*((uint8_t *)(ip) + 2) << 16    \
-                    | (uint32_t)*((uint8_t *)(ip) + 1) << 8     \
-                    | (uint32_t)*(uint8_t *)(ip));              \
-    (ip) = (uint8_t *)(ip) + 4;                                 \
-  } while (0)
-
-uint8_t *scm_capi_inst_fetch_oprand_obj(uint8_t *ip, ScmObj iseq,
-                                        size_t *idx, scm_csetter_t *obj);
+uint8_t *scm_capi_inst_fetch_oprand_obj(uint8_t *ip, scm_csetter_t *obj);
 uint8_t *scm_capi_inst_fetch_oprand_si(uint8_t *ip, int32_t *si);
 uint8_t *scm_capi_inst_fetch_oprand_si_si(uint8_t *ip,
                                           int32_t *si1, int32_t *si2);
-uint8_t *scm_capi_inst_fetch_oprand_si_obj(uint8_t *ip, ScmObj iseq,
-                                           int32_t *si,
-                                           size_t *idx, scm_csetter_t *obj);
+uint8_t *scm_capi_inst_fetch_oprand_si_obj(uint8_t *ip,
+                                           int32_t *si, scm_csetter_t *obj);
 uint8_t *scm_capi_inst_fetch_oprand_iof(uint8_t *ip, int32_t *offset);
+
+int scm_capi_inst_update_oprand_obj(uint8_t *ip, ScmObj clsr, ScmObj obj);
 
 
 /*******************************************************************/

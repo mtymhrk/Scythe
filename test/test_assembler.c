@@ -67,8 +67,7 @@ test_scm_asm_assemble(void)
 
   for (size_t i = 0; i < sizeof(expected_codes)/sizeof(expected_codes[0]); i++) {
     uint8_t actual_op;
-    uint32_t immv_idx;
-    int32_t actual_arg;
+    int32_t actual_arg1, actual_arg2;;
 
     SCM_CAPI_INST_FETCH_OP(ip, actual_op);
     cut_assert_equal_int(expected_codes[i], actual_op);
@@ -77,13 +76,11 @@ test_scm_asm_assemble(void)
     case SCM_OPCODE_GREF:
     case SCM_OPCODE_GDEF:
     case SCM_OPCODE_GSET:
-      SCM_CAPI_INST_FETCH_UINT32(ip, immv_idx);
-      actual_immv = scm_capi_iseq_ref_obj(iseq, immv_idx);
+      ip = scm_capi_inst_fetch_oprand_obj(ip, SCM_CSETTER_L(actual_immv));
       cut_assert_true(scm_capi_eq_p(expected_immv, actual_immv));
       break;
     case SCM_OPCODE_IMMVAL:
-      SCM_CAPI_INST_FETCH_UINT32(ip, immv_idx);
-      actual_immv = scm_capi_iseq_ref_obj(iseq, immv_idx);
+      ip = scm_capi_inst_fetch_oprand_obj(ip, SCM_CSETTER_L(actual_immv));
       if (i == 18)
         cut_assert_true(scm_capi_eq_p(expected_immv, actual_immv));
       else if (i == 22)
@@ -92,79 +89,74 @@ test_scm_asm_assemble(void)
         cut_assert(false);
       break;
     case SCM_OPCODE_CALL:
-      SCM_CAPI_INST_FETCH_INT32(ip, actual_arg);
-      cut_assert_equal_int(5, actual_arg);
+      ip = scm_capi_inst_fetch_oprand_si(ip, &actual_arg1);
+      cut_assert_equal_int(5, actual_arg1);
       break;
     case SCM_OPCODE_TAIL_CALL:
-      SCM_CAPI_INST_FETCH_INT32(ip, actual_arg);
-      cut_assert_equal_int(2, actual_arg);
+      ip = scm_capi_inst_fetch_oprand_si(ip, &actual_arg1);
+      cut_assert_equal_int(2, actual_arg1);
       break;
     case SCM_OPCODE_ECOMMIT:
-      SCM_CAPI_INST_FETCH_INT32(ip, actual_arg);
-      cut_assert_equal_int(20, actual_arg);
+      ip = scm_capi_inst_fetch_oprand_si(ip, &actual_arg1);
+      cut_assert_equal_int(20, actual_arg1);
       break;
     case SCM_OPCODE_EREBIND:
-      SCM_CAPI_INST_FETCH_INT32(ip, actual_arg);
-      cut_assert_equal_int(21, actual_arg);
+      ip = scm_capi_inst_fetch_oprand_si(ip, &actual_arg1);
+      cut_assert_equal_int(21, actual_arg1);
       break;
     case SCM_OPCODE_SREF:
-      SCM_CAPI_INST_FETCH_INT32(ip, actual_arg);
-      cut_assert_equal_int(-4, actual_arg);
-      SCM_CAPI_INST_FETCH_INT32(ip, actual_arg);
-      cut_assert_equal_int(12, actual_arg);
+      ip = scm_capi_inst_fetch_oprand_si_si(ip, &actual_arg1, &actual_arg2);
+      cut_assert_equal_int(-4, actual_arg1);
+      cut_assert_equal_int(12, actual_arg2);
       break;
     case SCM_OPCODE_SSET:
-      SCM_CAPI_INST_FETCH_INT32(ip, actual_arg);
-      cut_assert_equal_int(-6, actual_arg);
-      SCM_CAPI_INST_FETCH_INT32(ip, actual_arg);
-      cut_assert_equal_int(13, actual_arg);
+      ip = scm_capi_inst_fetch_oprand_si_si(ip, &actual_arg1, &actual_arg2);
+      cut_assert_equal_int(-6, actual_arg1);
+      cut_assert_equal_int(13, actual_arg2);
       break;
     case SCM_OPCODE_BOX:
-      SCM_CAPI_INST_FETCH_INT32(ip, actual_arg);
-      cut_assert_equal_int(-8, actual_arg);
-      SCM_CAPI_INST_FETCH_INT32(ip, actual_arg);
-      cut_assert_equal_int(14, actual_arg);
+      ip = scm_capi_inst_fetch_oprand_si_si(ip, &actual_arg1, &actual_arg2);
+      cut_assert_equal_int(-8, actual_arg1);
+      cut_assert_equal_int(14, actual_arg2);
       break;
     case SCM_OPCODE_JMP:
-      SCM_CAPI_INST_FETCH_INT32(ip, actual_arg);
-      cut_assert_equal_int(-6, actual_arg);
+      ip = scm_capi_inst_fetch_oprand_si(ip, &actual_arg1);
+      cut_assert_equal_int(-6, actual_arg1);
       break;
     case SCM_OPCODE_JMPT:
-      SCM_CAPI_INST_FETCH_INT32(ip, actual_arg);
-      cut_assert_equal_int(-12, actual_arg);
+      ip = scm_capi_inst_fetch_oprand_si(ip, &actual_arg1);
+      cut_assert_equal_int(-12, actual_arg1);
       break;
     case SCM_OPCODE_JMPF:
-      SCM_CAPI_INST_FETCH_INT32(ip, actual_arg);
-      cut_assert_equal_int(-18, actual_arg);
+      ip = scm_capi_inst_fetch_oprand_si(ip, &actual_arg1);
+      cut_assert_equal_int(-18, actual_arg1);
       break;
     case SCM_OPCODE_CLOSE:
-      SCM_CAPI_INST_FETCH_INT32(ip, actual_arg);
-      SCM_CAPI_INST_FETCH_UINT32(ip, immv_idx);
-      actual_immv = scm_capi_iseq_ref_obj(iseq, immv_idx);
+      ip = scm_capi_inst_fetch_oprand_si_obj(ip,
+                                             &actual_arg1,
+                                             SCM_CSETTER_L(actual_immv));
       if (i == 28) {
-        cut_assert_equal_int(10, actual_arg);
+        cut_assert_equal_int(10, actual_arg1);
         cut_assert_true(scm_capi_eq_p(expected_immv, actual_immv));
       }
       else if (i == 29) {
-        cut_assert_equal_int(11, actual_arg);
+        cut_assert_equal_int(11, actual_arg1);
         cut_assert_true(scm_capi_iseq_p(actual_immv));
       }
       break;
     case SCM_OPCODE_DEMINE:
-      SCM_CAPI_INST_FETCH_INT32(ip, actual_arg);
-      cut_assert_equal_int(15, actual_arg);
-      SCM_CAPI_INST_FETCH_INT32(ip, actual_arg);
-      cut_assert_equal_int(16, actual_arg);
+      ip = scm_capi_inst_fetch_oprand_si_si(ip, &actual_arg1, &actual_arg2);
+      cut_assert_equal_int(15, actual_arg1);
+      cut_assert_equal_int(16, actual_arg2);
       break;
     case SCM_OPCODE_EMINE:
-      SCM_CAPI_INST_FETCH_INT32(ip, actual_arg);
-      cut_assert_equal_int(17, actual_arg);
+      ip = scm_capi_inst_fetch_oprand_si(ip, &actual_arg1);
+      cut_assert_equal_int(17, actual_arg1);
       break;
     case SCM_OPCODE_EDEMINE:
-      SCM_CAPI_INST_FETCH_INT32(ip, actual_arg);
-      cut_assert_equal_int(18, actual_arg);
-      SCM_CAPI_INST_FETCH_INT32(ip, actual_arg);
-      cut_assert_equal_int(19, actual_arg);
+      ip = scm_capi_inst_fetch_oprand_si_si(ip, &actual_arg1, &actual_arg2);
+      cut_assert_equal_int(18, actual_arg1);
+      cut_assert_equal_int(19, actual_arg2);
       break;
     }
   }

@@ -118,6 +118,12 @@ eary_truncate(EArray *ary)
     EARY_SET(ary, typ, e_a_r_y__idx_, val, err);      \
   } while(0)
 
+#define EARY_POP(ary, type, val)                \
+  do {                                          \
+    EARY_GET(ary, type, (ary)->used - 1, val);  \
+    (ary)->used--;                              \
+  } while(0)
+
 #define EARY_PUSH_SCMOBJ(ary, val, owner, err)              \
   do {                                                      \
     size_t e_a_r_y__idx_ = (ary)->used;                     \

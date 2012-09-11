@@ -26,7 +26,6 @@ struct ScmCntFrameRec {
   ScmCntFrame *cfp;
   ScmEnvFrame *efp;
   ScmObj cp;
-  ScmObj isp;
   uint8_t *ip;
   ScmObj dummy[0];  /* 構造体サイズを sizeof(ScmObj) の倍数にするためメンバ*/
 };
