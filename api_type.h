@@ -2,6 +2,7 @@
 #define INCLUDE_API_TYPE_H__
 
 #include <stdint.h>
+#include <stddef.h>
 
 typedef struct ScmEnvFrameRec ScmEnvFrame;
 typedef struct ScmCntFrameRec ScmCntFrame;
@@ -23,7 +24,7 @@ struct ScmEnvFrameRec {
 
 /* XXX: 構造体サイズが sizeof(ScmObj) の倍数になるよう調整が必要 */
 struct ScmCntFrameRec {
-  ScmCntFrame *cfp;
+  ptrdiff_t cfp;
   ScmEnvFrame *efp;
   ScmObj cp;
   uint8_t *ip;

@@ -170,6 +170,7 @@ extern ScmMem *scm_vm__current_mm;
 typedef enum {
   SCM_VM_CTRL_FLG_HALT  = 0x00000001,
   SCM_VM_CTRL_FLG_RAISE = 0x00000002,
+  SCM_VM_CTRL_FLG_PCF   = 0x00000004,
 } SCM_VM_CTRL_FLG_T;
 
 
@@ -209,7 +210,6 @@ struct ScmVMRec {
   struct {
     uint8_t *sp;                  /* stack pointer */
     ScmCntFrame *cfp;             /* continuation frame pointer */
-    ScmCntFrame *icfp;            /* incomplete continuation frame pointer */
     ScmEnvFrame *efp;             /* environment frame pointer */
     ScmEnvFrame *iefp;            /* incomplete environment frame pointer */
     ScmObj cp;                    /* closure pointer */
@@ -242,9 +242,16 @@ void scm_vm_clean_eval_env(ScmObj vm);
 int scm_vm_stack_push(ScmObj vm, ScmObj elm);
 /* ScmObj scm_vm_stack_pop(ScmObj vm); */
 
+void scm_vm_ctrl_flg_set(ScmObj vm, SCM_VM_CTRL_FLG_T flg);
+void scm_vm_ctrl_flg_clr(ScmObj vm, SCM_VM_CTRL_FLG_T flg);
+bool scm_vm_ctrl_flg_set_p(ScmObj vm, SCM_VM_CTRL_FLG_T flg);
+
 int scm_vm_update_ief_len_if_needed(ScmObj vm);
-int scm_vm_make_cframe(ScmObj vm, ScmEnvFrame * efp, ScmObj cp, uint8_t *ip);
-int scm_vm_commit_cframe(ScmObj vm, ScmCntFrame *cfp, uint8_t *ip);
+ScmCntFrame *scm_vm_next_cfp(ScmCntFrame *cfp);
+bool scm_vm_next_cfp_partial_p(ScmCntFrame *cfp);
+ptrdiff_t scm_vm_calc_cframe_cfp_val(ScmObj vm, ScmCntFrame *new_cfp);
+int scm_vm_make_cframe(ScmObj vm, ScmEnvFrame * efp, ScmObj cp);
+int scm_vm_commit_cframe(ScmObj vm, uint8_t *ip);
 int scm_vm_make_eframe(ScmObj vm, size_t nr_arg);
 int scm_vm_commit_eframe(ScmObj vm, ScmEnvFrame *efp, size_t nr_arg);
 int scm_vm_cancel_eframe(ScmObj vm);
@@ -259,10 +266,6 @@ ScmObj scm_vm_make_trampolining_code(ScmObj vm, ScmObj clsr, ScmObj args,
                                      ScmObj callback);
 ScmObj scm_vm_make_exception_handler_code(ScmObj vm);
 int scm_vm_setup_to_call_exception_handler(ScmObj vm);
-
-void scm_vm_ctrl_flg_set(ScmObj vm, SCM_VM_CTRL_FLG_T flg);
-void scm_vm_ctrl_flg_clr(ScmObj vm, SCM_VM_CTRL_FLG_T flg);
-bool scm_vm_ctrl_flg_set_p(ScmObj vm, SCM_VM_CTRL_FLG_T flg);
 
 int scm_vm_do_op_call(ScmObj vm, SCM_OPCODE_T op,
                       uint32_t argc, bool tail_p);
