@@ -6,6 +6,7 @@
 #include <assert.h>
 
 #include "vm.h"
+#include "vmstack.h"
 #include "memory.h"
 #include "reference.h"
 #include "object.h"
@@ -217,100 +218,6 @@ scm_box_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
   scm_assert(scm_obj_not_null_p(mem));
 
   return SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_BOX(obj)->obj, mem);
-}
-
-
-/***************************************************************************/
-/*  ScmEnvFrameBox                                                         */
-/***************************************************************************/
-
-ScmTypeInfo SCM_EFBOX_TYPE_INFO = {
-  .name = "efbox",
-  .flags = SCM_TYPE_FLG_MMO,
-  .pp_func = NULL,
-  .obj_size = sizeof(ScmEFBox),
-  .gc_ini_func = scm_efbox_gc_initialize,
-  .gc_fin_func = NULL,
-  .gc_accept_func = scm_efbox_gc_accept,
-  .gc_accept_func_weak = NULL,
-  .extra = NULL,
-};
-
-scm_local_inline ScmObj
-scm_efbox_efp_to_efbox(ScmEnvFrame *efp)
-{
-  if (efp == NULL)
-    return SCM_OBJ_NULL;
-  else
-    return SCM_OBJ((uint8_t *)efp - offsetof(ScmEFBox, frame));
-}
-
-int
-scm_efbox_initialize(ScmObj efb, ScmEnvFrame *ef)
-{
-  scm_assert_obj_type(efb, &SCM_EFBOX_TYPE_INFO);
-  scm_assert(!scm_vm_eframe_is_in_heap_p(scm_vm_current_vm(), ef));
-
-  memcpy(&SCM_EFBOX(efb)->frame, ef, sizeof(*ef) + sizeof(ScmObj) * ef->len);
-
-  if (!scm_vm_eframe_is_in_heap_p(scm_vm_current_vm(), ef->out))
-    SCM_EFBOX(efb)->frame.out = NULL;
-
-  return 0;
-}
-
-ScmObj
-scm_efbox_new(SCM_MEM_TYPE_T mtype, ScmEnvFrame *ef)
-{
-  ScmObj efb = SCM_OBJ_INIT;
-  int rslt;
-
-  scm_assert(!scm_vm_eframe_is_in_heap_p(scm_vm_current_vm(), ef));
-
-  efb = scm_capi_mem_alloc(&SCM_EFBOX_TYPE_INFO,
-                           sizeof(ScmObj) * ef->len, mtype);
-  if (scm_obj_null_p(efb)) return SCM_OBJ_NULL;
-
-  rslt = scm_efbox_initialize(efb, ef);
-  if (rslt < 0) return SCM_OBJ_NULL;
-
-  return efb;
-}
-
-void
-scm_efbox_gc_initialize(ScmObj obj, ScmObj mem)
-{
-  scm_assert_obj_type(obj, &SCM_EFBOX_TYPE_INFO);
-
-  SCM_EFBOX(obj)->frame.out = NULL;
-  SCM_EFBOX(obj)->frame.len = 0;
-}
-
-int
-scm_efbox_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
-{
-  ScmObj outer = SCM_OBJ_INIT;
-  int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
-
-  scm_assert_obj_type(obj, &SCM_EFBOX_TYPE_INFO);
-  scm_assert(scm_obj_not_null_p(mem));
-  scm_assert(handler != NULL);
-
-  /* XXX: EFBox 内の frame.out は必ずボックス化された frame を指す */
-  /*      (VM stack 上の enrioment frame を指すことはない)         */
-  outer = scm_efbox_efp_to_efbox(SCM_EFBOX(obj)->frame.out);
-  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, outer, mem);
-  if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
-
-  SCM_EFBOX(obj)->frame.out = scm_efbox_to_efp(outer);
-
-  for (size_t i = 0; i < SCM_EFBOX(obj)->frame.len; i++) {
-    rslt = SCM_GC_CALL_REF_HANDLER(handler,
-                                   obj, SCM_EFBOX(obj)->frame.arg[i], mem);
-    if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
-  }
-
-  return rslt;
 }
 
 
@@ -620,75 +527,15 @@ scm_vm_ctrl_flg_set_p(ScmObj vm, SCM_VM_CTRL_FLG_T flg)
 scm_local_inline int
 scm_vm_update_ief_len_if_needed(ScmObj vm)
 {
-  ptrdiff_t n;
+  if (scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_PEF)) {
+    ptrdiff_t n = SCM_VM(vm)->reg.sp - (uint8_t *)SCM_VM(vm)->reg.pefp;
+    n -= (ptrdiff_t)sizeof(ScmEnvFrame);
+    n /= (ptrdiff_t)sizeof(ScmObj);
 
-  if (!scm_vm_eframe_is_in_stack_p(vm, SCM_VM(vm)->reg.pefp))
-    return 0;
-
-  if ((void *)SCM_VM(vm)->reg.pefp <= (void *)SCM_VM(vm)->reg.cfp)
-    return 0;
-
-  if (scm_vm_eframe_is_in_stack_p(vm, SCM_VM(vm)->reg.efp))
-    if ((void *)SCM_VM(vm)->reg.pefp <= (void *)SCM_VM(vm)->reg.efp)
-      return 0;
-
-
-  n = SCM_VM(vm)->reg.sp - (uint8_t *)SCM_VM(vm)->reg.pefp;
-  n -= (ptrdiff_t)sizeof(ScmEnvFrame);
-  n /= (ptrdiff_t)sizeof(ScmObj);
-
-  SCM_VM(vm)->reg.pefp->len = (size_t)n;
+    SCM_VM(vm)->reg.pefp->len = (size_t)n;
+  }
 
   return 0;
-}
-
-scm_local_inline ScmCntFrame *
-scm_vm_next_cfp(ScmCntFrame *cfp)
-{
-  scm_assert(cfp != NULL);
-  return (ScmCntFrame *)((uint8_t *)cfp + (cfp->cfp & ~0x01));
-}
-
-scm_local_inline bool
-scm_vm_next_cfp_partial_p(ScmCntFrame *cfp)
-{
-  scm_assert(cfp != NULL);
-  return ((cfp->cfp & 0x01) == 1) ? true : false;
-}
-
-scm_local_inline ptrdiff_t
-scm_vm_calc_cframe_cfp_val(ScmObj vm, ScmCntFrame *new_cfp)
-{
-  ptrdiff_t n;
-
-  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-  scm_assert(new_cfp != NULL);
-
-  /* continuation frame は sizeof(ScmObj) にアライメントされているため少なくと
-   * も continuation frame pointer の最下位 bit は 0 になっている。そのため、
-   * current continuation frame と新しく作成する continuation frame とのオフ
-   * セットも最下位 bit は 0 になる。
-   *
-   * cfp レジスタが partial frame を指している場合(SCM_VM_CTRL_FLG_PCF フラグ
-   * がセットされている、つまり frame 作成命令と対になる call 命令が実行されて
-   * いない場合)、新しく作成する continuation frame の cfp 値の最下位 bit を立
-   * てるようにする。これは、バックトレースがわかるようにすることが目的(cfp メ
-   * ンバの最下位 bit が立っている場合、次の continuation frame は partial
-   * frame であり、バックトレースには含まれない)。
-   *
-   * first-class continuation の 実装方法が、continuation の reinitiate 時に
-   * stack にコピーする方法の場合はこの仕組みは必要ない。ip メンバが NULL であ
-   * れば、その continuation frame は partial frame とわかる。
-   *
-   * また、今のところ (2012.09.11) ではバックトレースに関する機能はなにも持って
-   * いない :p
-   */
-
-  n = (uint8_t *)SCM_VM(vm)->reg.cfp - (uint8_t *)new_cfp;
-  if (scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_PCF))
-    n |= 0x01;
-
-  return n;
 }
 
 scm_local_func int
@@ -707,15 +554,20 @@ scm_vm_make_cframe(ScmObj vm, ScmEnvFrame *efp, ScmObj cp)
   /* instraction pointer は FRAME インストラクション段階ではダミー */
   /* 値(NULL)をプッシュする。本当の値は CALL 時に設定する */
 
-  cfp->cfp = scm_vm_calc_cframe_cfp_val(vm, cfp);
-  cfp->efp = efp;
-  SCM_WB_SETQ(vm, cfp->cp, cp);
-  cfp->ip = NULL;
+  SCM_WB_EXP(vm,
+             scm_vm_cf_init(cfp,
+                            SCM_VM(vm)->reg.cfp,
+                            efp,
+                            cp,
+                            NULL,
+                            scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_PEF),
+                            scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_PCF)));
 
   SCM_VM(vm)->reg.cfp = cfp;
   SCM_VM(vm)->reg.sp += sizeof(ScmCntFrame);
 
   scm_vm_ctrl_flg_set(vm, SCM_VM_CTRL_FLG_PCF);
+  scm_vm_ctrl_flg_clr(vm, SCM_VM_CTRL_FLG_PEF);
 
   return 0;
 }
@@ -733,6 +585,37 @@ scm_vm_commit_cframe(ScmObj vm, uint8_t *ip)
 }
 
 scm_local_func int
+scm_vm_pop_cframe(ScmObj vm)
+{
+  ScmCntFrame *cfp;
+
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  cfp = SCM_VM(vm)->reg.cfp;
+
+  if (scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_PEF)) {
+    scm_capi_error("invalid operation of VM stack: "
+                   "partial environment frame link will be broken", 0);
+    return -1;
+  }
+
+  SCM_VM(vm)->reg.cfp = scm_vm_cf_next(cfp);
+  SCM_VM(vm)->reg.efp = cfp->efp;
+  SCM_SLOT_SETQ(ScmVM, vm, reg.cp, cfp->cp);
+  SCM_VM(vm)->reg.ip = cfp->ip;
+
+  SCM_VM(vm)->reg.sp = (uint8_t *)cfp;
+
+  if (scm_vm_cf_maked_on_pef_p(cfp))
+    scm_vm_ctrl_flg_set(vm, SCM_VM_CTRL_FLG_PEF);
+
+  if (scm_vm_cf_maked_on_pcf_p(cfp))
+    scm_vm_ctrl_flg_set(vm, SCM_VM_CTRL_FLG_PCF);
+
+  return 0;
+}
+
+scm_local_func int
 scm_vm_make_eframe(ScmObj vm, size_t nr_arg)
 {
   ScmEnvFrame *pefp;
@@ -745,11 +628,15 @@ scm_vm_make_eframe(ScmObj vm, size_t nr_arg)
 
   pefp = (ScmEnvFrame *)SCM_VM(vm)->reg.sp;
 
-  pefp->out = SCM_VM(vm)->reg.pefp;
-  pefp->len = nr_arg;
+  scm_vm_ef_init(pefp,
+                 SCM_VM(vm)->reg.pefp,
+                 nr_arg,
+                 scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_PEF));
 
   SCM_VM(vm)->reg.pefp = pefp;
   SCM_VM(vm)->reg.sp += sizeof(ScmEnvFrame);
+
+  scm_vm_ctrl_flg_set(vm, SCM_VM_CTRL_FLG_PEF);
 
   return 0;
 }
@@ -759,18 +646,19 @@ scm_vm_commit_eframe(ScmObj vm, ScmEnvFrame *efp, size_t nr_arg)
 {
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
-  /* TODO: use scm_vm_eframe_is_in_stack_p() */
-  if (SCM_VM(vm)->reg.pefp == NULL) {
+  if (!scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_PEF)) {
     scm_capi_error("invalid operation of VM stack: "
                    "partial environment frame is not pushed", 0);
     return -1;
   }
 
   SCM_VM(vm)->reg.efp = SCM_VM(vm)->reg.pefp;
-  SCM_VM(vm)->reg.pefp = SCM_VM(vm)->reg.pefp->out;
+  SCM_VM(vm)->reg.pefp = scm_vm_ef_outer(SCM_VM(vm)->reg.pefp);
 
-  SCM_VM(vm)->reg.efp->out = efp;
+  scm_vm_ef_replace_outer(SCM_VM(vm)->reg.efp, efp);
   SCM_VM(vm)->reg.efp->len = nr_arg;
+
+  scm_vm_ctrl_flg_clr(vm, SCM_VM_CTRL_FLG_PEF);
 
   return 0;
 }
@@ -782,29 +670,48 @@ scm_vm_cancel_eframe(ScmObj vm)
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
-  pefp = SCM_VM(vm)->reg.pefp;
-
-  if (!scm_vm_eframe_is_in_stack_p(vm, pefp)) {
+  if (!scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_PEF)) {
     scm_capi_error("invalid operation of VM stack: "
                    "partial environment frame is not pushed", 0);
     return -1;
   }
 
-  if (scm_vm_eframe_is_in_stack_p(vm, SCM_VM(vm)->reg.efp)
-      && SCM_VM(vm)->reg.efp > pefp) {
-    scm_capi_error("invalid operation of VM stack: "
-                   "enviromnet frame link will be broken", 0);
-    return -1;
-  }
-
-  if ((uint8_t *)SCM_VM(vm)->reg.cfp > (uint8_t *)pefp) {
-    scm_capi_error("invalid operation of VM stack: "
-                   "(partial) continuation frame link will be broken", 0);
-    return -1;
-  }
-
-  SCM_VM(vm)->reg.pefp = pefp->out;
+  pefp = SCM_VM(vm)->reg.pefp;
+  SCM_VM(vm)->reg.pefp = scm_vm_ef_outer(pefp);
   SCM_VM(vm)->reg.sp = (uint8_t *)pefp;
+
+  if (!scm_vm_ef_maked_on_pef_p(pefp))
+    scm_vm_ctrl_flg_clr(vm, SCM_VM_CTRL_FLG_PEF);
+
+  return 0;
+}
+
+scm_local_func int
+scm_vm_pop_eframe(ScmObj vm)
+{
+  ScmEnvFrame *efp;
+
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  efp = SCM_VM(vm)->reg.efp;
+
+  if (!scm_vm_ef_in_stack_p(efp)) {
+    scm_capi_error("invalid operation of VM stack: "
+                   "environment frame is not pushed", 0);
+    return -1;
+  }
+
+  if (scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_PEF)) {
+    scm_capi_error("invalid operation of VM stack: "
+                   "partial stack frame link will be broken", 0);
+    return -1;
+  }
+
+  SCM_VM(vm)->reg.efp = scm_vm_ef_outer(efp);
+  SCM_VM(vm)->reg.sp = (uint8_t *)efp;
+
+  if (scm_vm_ef_maked_on_pef_p(efp))
+    scm_vm_ctrl_flg_set(vm, SCM_VM_CTRL_FLG_PEF);
 
   return 0;
 }
@@ -814,7 +721,7 @@ scm_vm_box_eframe(ScmObj vm, ScmEnvFrame *efp, size_t depth, scm_csetter_t *box)
 {
   ScmObj efb = SCM_OBJ_INIT, prev = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&efb, &prev);
+  SCM_STACK_FRAME_PUSH(&efb, &prev, &efb, &prev);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
@@ -828,7 +735,7 @@ scm_vm_box_eframe(ScmObj vm, ScmEnvFrame *efp, size_t depth, scm_csetter_t *box)
     return -1;
   }
 
-  if (scm_vm_eframe_is_in_heap_p(vm, efp))
+  if (scm_vm_ef_boxed_p(efp))
     efb = scm_efbox_efp_to_efbox(efp);
   else
     efb = scm_efbox_new(SCM_MEM_HEAP, efp);
@@ -838,14 +745,14 @@ scm_vm_box_eframe(ScmObj vm, ScmEnvFrame *efp, size_t depth, scm_csetter_t *box)
   scm_csetter_setq(box, efb);
 
   prev = efb;
-  efp = efp->out;
+  efp = scm_vm_ef_outer(efp);
   for (size_t i = 1; i < depth; i++) {
     if (efp == NULL) {
       scm_capi_error("invalid access to envrionment frame: out of range", 0);
       return -1;
     }
 
-    if (scm_vm_eframe_is_in_heap_p(vm, efp))
+    if (scm_vm_ef_boxed_p(efp))
       return 0;
 
     efb = scm_efbox_new(SCM_MEM_HEAP, efp);
@@ -854,7 +761,7 @@ scm_vm_box_eframe(ScmObj vm, ScmEnvFrame *efp, size_t depth, scm_csetter_t *box)
     scm_efbox_update_outer(prev, efb);
 
     prev = efb;
-    efp = efp->out;
+    efp = scm_vm_ef_outer(scm_efbox_to_efp(efb));
   }
 
   scm_efbox_update_outer(prev, SCM_OBJ_NULL);
@@ -870,7 +777,7 @@ scm_vm_eframe_list_ref(ScmEnvFrame *efp_list, size_t n)
 
   for (i = 0, efp = efp_list;
        i < n && efp != NULL;
-       i++, efp = efp->out)
+       i++, efp = scm_vm_ef_outer(efp))
     ;
 
   return efp;
@@ -897,30 +804,6 @@ scm_vm_eframe_arg_ref(ScmEnvFrame *efp_list, size_t idx, size_t layer,
   if (efp != NULL) *efp = e;
 
   return e->arg[idx];
-}
-
-scm_local_func void
-scm_vm_return_to_caller(ScmObj vm)
-{
-  ScmCntFrame *cfp;
-
-  cfp = SCM_VM(vm)->reg.cfp;
-
-  if ((uint8_t *)SCM_VM(vm)->reg.pefp >= (uint8_t *)cfp) {
-    scm_capi_error("invalid operation of VM stack: "
-                   "partial environment frame link will be broken", 0);
-    return;
-  }
-
-  SCM_VM(vm)->reg.cfp = scm_vm_next_cfp(cfp);
-  SCM_VM(vm)->reg.efp = cfp->efp;
-  SCM_SLOT_SETQ(ScmVM, vm, reg.cp, cfp->cp);
-  SCM_VM(vm)->reg.ip = cfp->ip;
-
-  SCM_VM(vm)->reg.sp = (uint8_t *)cfp;
-
-  if (scm_vm_next_cfp_partial_p(cfp))
-    scm_vm_ctrl_flg_set(vm, SCM_VM_CTRL_FLG_PCF);
 }
 
 scm_local_func ScmObj
@@ -1063,7 +946,7 @@ scm_vm_do_op_call(ScmObj vm, SCM_OPCODE_T op, uint32_t argc, bool tail_p)
     ScmEnvFrame *ef_dst = (ScmEnvFrame *)((uint8_t *)SCM_VM(vm)->reg.cfp
                                           + sizeof(ScmCntFrame));
 
-    if (SCM_VM(vm)->reg.pefp >= ef_dst) {
+    if (scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_PEF)) {
       scm_capi_error("invalid operation of VM stack: "
                      "partial environment frame link will be broken", 0);
       return -1;
@@ -1101,7 +984,8 @@ scm_vm_do_op_call(ScmObj vm, SCM_OPCODE_T op, uint32_t argc, bool tail_p)
 
     SCM_SLOT_SETQ(ScmVM, vm, reg.val, val);
 
-    scm_vm_return_to_caller(vm);
+    rslt = scm_vm_pop_cframe(vm);
+    if (rslt < 0) return -1;
   }
   else if (scm_capi_closure_p(SCM_VM(vm)->reg.val)) {
     ScmEnvFrame *efp;
@@ -1111,7 +995,7 @@ scm_vm_do_op_call(ScmObj vm, SCM_OPCODE_T op, uint32_t argc, bool tail_p)
 
     efp = scm_efbox_to_efp(efb);
     if (argc > 0)
-      SCM_WB_EXP(vm, SCM_VM(vm)->reg.efp->out = efp);
+      SCM_WB_EXP(vm, scm_vm_ef_replace_outer(SCM_VM(vm)->reg.efp, efp));
     else
       SCM_WB_EXP(vm, SCM_VM(vm)->reg.efp = efp);
 
@@ -1178,7 +1062,6 @@ scm_vm_op_undef(ScmObj vm, SCM_OPCODE_T op)
   SCM_SLOT_SETQ(ScmVM, vm, reg.val, SCM_VM(vm)->cnsts.undef);
 }
 
-/* 関数呼出のためのインストラクション */
 scm_local_func void
 scm_vm_op_call(ScmObj vm, SCM_OPCODE_T op)
 {
@@ -1278,28 +1161,9 @@ scm_vm_op_ecommit(ScmObj vm, SCM_OPCODE_T op)
 scm_local_func void
 scm_vm_op_epop(ScmObj vm, SCM_OPCODE_T op)
 {
-  ScmEnvFrame *efp;
-
-  SCM_STACK_FRAME_PUSH(&vm);
-
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
-  efp = SCM_VM(vm)->reg.efp;
-
-  if (!scm_vm_eframe_is_in_stack_p(vm, efp)) {
-    scm_capi_error("invalid operation of VM stack: "
-                   "environment frame is not pushed", 0);
-    return;
-  }
-
-  if ((uint8_t *)SCM_VM(vm)->reg.pefp >= (uint8_t *)efp) {
-    scm_capi_error("invalid operation of VM stack: "
-                   "partial stack frame link will be broken", 0);
-    return;
-  }
-
-  SCM_VM(vm)->reg.efp = efp->out;
-  SCM_VM(vm)->reg.sp = (uint8_t *)efp;
+  scm_vm_pop_eframe(vm);
 }
 
 scm_local_func void
@@ -1329,14 +1193,14 @@ scm_vm_op_erebind(ScmObj vm, SCM_OPCODE_T op)
     return;
   }
 
-  if (!scm_vm_eframe_is_in_stack_p(vm, SCM_VM(vm)->reg.pefp)) {
+  if (!scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_PEF)) {
     scm_capi_error("invalid operation of VM stack: "
                    "partial environment frame is not pushed", 0);
     return;
   }
 
-  if (scm_vm_eframe_is_in_stack_p(vm, SCM_VM(vm)->reg.efp)) {
-    if (SCM_VM(vm)->reg.pefp->out > SCM_VM(vm)->reg.efp) {
+  if (scm_vm_ef_in_stack_p(SCM_VM(vm)->reg.efp)) {
+    if (scm_vm_ef_maked_on_pef_p(SCM_VM(vm)->reg.pefp)) {
       scm_capi_error("invalid operation of VM stack: "
                      "partial stack frame link will be broken", 0);
       return;
@@ -1344,10 +1208,10 @@ scm_vm_op_erebind(ScmObj vm, SCM_OPCODE_T op)
   }
 
   scm_vm_do_op_ecommit(vm, op, (size_t)argc);
-  efp = SCM_VM(vm)->reg.efp->out;
-  SCM_VM(vm)->reg.efp->out = efp->out;
+  efp = scm_vm_ef_outer(SCM_VM(vm)->reg.efp);
+  scm_vm_ef_replace_outer(SCM_VM(vm)->reg.efp, scm_vm_ef_outer(efp));
 
-  if (scm_vm_eframe_is_in_stack_p(vm, efp)) {
+  if (scm_vm_ef_in_stack_p(efp)) {
     memmove(efp, SCM_VM(vm)->reg.efp,
             sizeof(ScmEnvFrame) + sizeof(ScmObj) * (size_t)argc);
     SCM_VM(vm)->reg.efp = efp;
@@ -1360,7 +1224,7 @@ scm_vm_op_return(ScmObj vm, SCM_OPCODE_T op) /* GC OK */
 {
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
-  scm_vm_return_to_caller(vm);
+  scm_vm_pop_cframe(vm);
 }
 
 scm_local_func void
@@ -1684,8 +1548,7 @@ scm_vm_op_box(ScmObj vm, SCM_OPCODE_T op)
   if (efp == NULL) return;
 
   /* box 化できるのは VM stack 上にある環境のみに限定する */
-  if ((uint8_t *)efp < SCM_VM(vm)->stack
-      || (uint8_t *)SCM_VM(vm)->reg.sp <= (uint8_t *)efp) {
+  if (scm_vm_ef_boxed_p(efp)) {
     scm_capi_error("invalid access to envrionment frame: out of range", 0);
     return;
   }
@@ -1840,7 +1703,7 @@ scm_vm_op_edemine(ScmObj vm, SCM_OPCODE_T op)
   }
 
   pefp = SCM_VM(vm)->reg.pefp;
-  if (!scm_vm_eframe_is_in_stack_p(vm, pefp)) {
+  if (!scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_PEF)) {
     scm_capi_error("invalid operation of VM stack: "
                    "partial environment frame is not pushed", 0);
     return;
@@ -2242,28 +2105,6 @@ scm_vm_push_exception_handler(ScmObj vm, ScmObj hndlr)
   return 0;
 }
 
-bool
-scm_vm_eframe_is_in_stack_p(ScmObj vm, ScmEnvFrame *efp)
-{
-  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-
-  if (efp == NULL)
-    return false;
-  else if ((uint8_t *)efp < SCM_VM(vm)->stack
-           || SCM_VM(vm)->reg.sp <= (uint8_t *)efp)
-    return false;
-  else
-    return true;
-}
-
-extern inline bool
-scm_vm_eframe_is_in_heap_p(ScmObj vm, ScmEnvFrame *ef)
-{
-  /* XXX: continuation を実装した場合、continuation が保持しているスタックを */
-  /*      指している場合も false を返すようにする */
-  return !scm_vm_eframe_is_in_stack_p(vm, ef);
-}
-
 void
 scm_vm_gc_initialize(ScmObj obj, ScmObj mem)
 {
@@ -2309,6 +2150,7 @@ scm_vm_gc_accept_eframe(ScmObj vm, ScmEnvFrame **efp,
                         ScmObj mem, ScmGCRefHandlerFunc handler)
 {
   ScmObj efb = SCM_OBJ_INIT;
+  ScmEnvFrame *prv_ef, *ef;
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
@@ -2316,20 +2158,26 @@ scm_vm_gc_accept_eframe(ScmObj vm, ScmEnvFrame **efp,
   scm_assert(scm_obj_not_null_p(mem));
   scm_assert(handler != NULL);
 
-  while (scm_vm_eframe_is_in_stack_p(vm, *efp)) {
-    for (size_t i = 0; i < (*efp)->len; i++) {
-      rslt = SCM_GC_CALL_REF_HANDLER(handler, vm, (*efp)->arg[i], mem);
+  prv_ef = NULL;
+  ef = *efp;
+  while (scm_vm_ef_in_stack_p(ef)) {
+    for (size_t i = 0; i < ef->len; i++) {
+      rslt = SCM_GC_CALL_REF_HANDLER(handler, vm, ef->arg[i], mem);
       if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
     }
 
-    efp = &(*efp)->out;
+    prv_ef = ef;
+    ef = scm_vm_ef_outer(ef);
   }
 
-  if (scm_vm_eframe_is_in_heap_p(vm, *efp)) {
+  if (ef != NULL && scm_vm_ef_boxed_p(ef)) {
     efb = scm_efbox_efp_to_efbox(*efp);
     rslt = SCM_GC_CALL_REF_HANDLER(handler, vm, efb, mem);
     if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
-    *efp = scm_efbox_to_efp(efb);
+    if (prv_ef == NULL)
+      *efp = scm_efbox_to_efp(efb);
+    else
+      scm_vm_ef_replace_outer(prv_ef, scm_efbox_to_efp(efb));
   }
 
   return rslt;
@@ -2352,7 +2200,7 @@ scm_vm_gc_accept_cframe(ScmObj vm, ScmCntFrame *cfp,
     rslt = SCM_GC_CALL_REF_HANDLER(handler, vm, cfp->cp, mem);
     if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
-    cfp = scm_vm_next_cfp(cfp);
+    cfp = scm_vm_cf_next(cfp);
   }
 
   return rslt;

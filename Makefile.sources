@@ -1,7 +1,7 @@
 SOURCES  = memory.c object.c pair.c string.c symbol.c \
            vector.c \
            miscobjects.c char.c charconv.c \
-           encoding.c vm.c procedure.c reference.c numeric.c \
+           encoding.c vm.c vmstack.c procedure.c reference.c numeric.c \
            core_subr.c iseq.c chashtbl.c api.c \
            gloc.c port.c parser.c assembler.c exception.c syntax.c \
            compiler.c \

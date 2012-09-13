@@ -4,6 +4,7 @@
 #include <stdbool.h>
 
 #include "vm.h"
+#include "api.h"
 #include "port.h"
 
 #define TEST_TEXT_CONTENTS "hello, world\nhello, world!"

@@ -5,19 +5,16 @@
 
 typedef struct ScmBedrockRec ScmBedrock;
 typedef struct ScmBoxRec ScmBox;
-typedef struct ScmEFBoxRec ScmEFBox;
 typedef struct ScmVMRec ScmVM;
 
 #define SCM_BOX(obj) ((ScmBox *)(obj))
-#define SCM_EFBOX(obj) ((ScmEFBox *)(obj))
 #define SCM_VM(obj) ((ScmVM *)(obj))
 
 #include "object.h"
 #include "memory.h"
 #include "reference.h"
 #include "api_enum.h"
-#include "api_type.h"
-
+#include "vmstack.h"
 
 /***************************************************************************/
 /*  ScmBedrock                                                             */
@@ -118,46 +115,6 @@ scm_box_update(ScmObj box, ScmObj obj)
 
 
 /***************************************************************************/
-/*  ScmEnvFrameBox                                                         */
-/***************************************************************************/
-
-extern ScmTypeInfo SCM_EFBOX_TYPE_INFO;
-
-struct ScmEFBoxRec {
-  ScmObjHeader header;
-  ScmEnvFrame frame;
-};
-
-int scm_efbox_initialize(ScmObj efb, ScmEnvFrame *ef);
-ScmObj scm_efbox_new(SCM_MEM_TYPE_T mtype, ScmEnvFrame *ef);
-void scm_efbox_gc_initialize(ScmObj obj, ScmObj mem);
-int scm_efbox_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
-
-inline ScmEnvFrame *
-scm_efbox_to_efp(ScmObj efb)
-{
-  scm_assert_obj_type_accept_null(efb, &SCM_EFBOX_TYPE_INFO);
-
-  if (scm_obj_null_p(efb))
-    return NULL;
-  else
-    return &(SCM_EFBOX(efb)->frame);
-}
-
-inline void
-scm_efbox_update_outer(ScmObj efb, ScmObj outer)
-{
-  scm_assert_obj_type(efb, &SCM_EFBOX_TYPE_INFO);
-  scm_assert_obj_type_accept_null(outer, &SCM_EFBOX_TYPE_INFO);
-
-  if (scm_obj_null_p(outer))
-    SCM_EFBOX(efb)->frame.out = NULL;
-  else
-    SCM_WB_EXP(efb, SCM_EFBOX(efb)->frame.out = scm_efbox_to_efp(outer));
-}
-
-
-/***************************************************************************/
 /*  ScmVM                                                                  */
 /***************************************************************************/
 
@@ -170,7 +127,12 @@ extern ScmMem *scm_vm__current_mm;
 typedef enum {
   SCM_VM_CTRL_FLG_HALT  = 0x00000001,
   SCM_VM_CTRL_FLG_RAISE = 0x00000002,
-  SCM_VM_CTRL_FLG_PCF   = 0x00000004,
+  SCM_VM_CTRL_FLG_PCF   = 0x00000004, /* cfp レジスタが作りかけ(対応する call
+                                         命令を実行していない)フレームを指して
+                                         いる場合セットする */
+  SCM_VM_CTRL_FLG_PEF   = 0x00000008, /* pefp レジスタが指すフレームが efp や
+                                         cfp レジスタが指すフレームよりもス
+                                         タックの上にある場合セットする */
 } SCM_VM_CTRL_FLG_T;
 
 
@@ -247,20 +209,19 @@ void scm_vm_ctrl_flg_clr(ScmObj vm, SCM_VM_CTRL_FLG_T flg);
 bool scm_vm_ctrl_flg_set_p(ScmObj vm, SCM_VM_CTRL_FLG_T flg);
 
 int scm_vm_update_ief_len_if_needed(ScmObj vm);
-ScmCntFrame *scm_vm_next_cfp(ScmCntFrame *cfp);
-bool scm_vm_next_cfp_partial_p(ScmCntFrame *cfp);
-ptrdiff_t scm_vm_calc_cframe_cfp_val(ScmObj vm, ScmCntFrame *new_cfp);
-int scm_vm_make_cframe(ScmObj vm, ScmEnvFrame * efp, ScmObj cp);
+int scm_vm_make_cframe(ScmObj vm, ScmEnvFrame *efp, ScmObj cp);
 int scm_vm_commit_cframe(ScmObj vm, uint8_t *ip);
+int scm_vm_pop_cframe(ScmObj vm);
 int scm_vm_make_eframe(ScmObj vm, size_t nr_arg);
 int scm_vm_commit_eframe(ScmObj vm, ScmEnvFrame *efp, size_t nr_arg);
 int scm_vm_cancel_eframe(ScmObj vm);
+int scm_vm_pop_eframe(ScmObj vm);
+
 int scm_vm_box_eframe(ScmObj vm, ScmEnvFrame *efp,
                       size_t depth, scm_csetter_t *box);
 ScmEnvFrame *scm_vm_eframe_list_ref(ScmEnvFrame *efp_list, size_t n);
 ScmObj scm_vm_eframe_arg_ref(ScmEnvFrame *efp_list,
                              size_t idx, size_t layer, ScmEnvFrame **efp);
-void scm_vm_return_to_caller(ScmObj vm);
 
 ScmObj scm_vm_make_trampolining_code(ScmObj vm, ScmObj clsr, ScmObj args,
                                      ScmObj callback);
@@ -337,12 +298,11 @@ int scm_vm_setup_stat_raised(ScmObj vm, ScmObj obj);
 int scm_vm_clear_stat_raised(ScmObj vm);
 bool scm_vm_raised_p(ScmObj vm);
 int scm_vm_push_exception_handler(ScmObj vm, ScmObj hndlr);
-bool scm_vm_eframe_is_in_stack_p(ScmObj vm, ScmEnvFrame *efp);
-bool scm_vm_eframe_is_in_heap_p(ScmObj vm, ScmEnvFrame *ef);
 
 void scm_vm_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_vm_gc_finalize(ScmObj obj);
 int scm_vm_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
+
 
 inline ScmObj
 scm_vm_symtbl(ScmObj vm)

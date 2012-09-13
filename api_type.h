@@ -4,31 +4,24 @@
 #include <stdint.h>
 #include <stddef.h>
 
-typedef struct ScmEnvFrameRec ScmEnvFrame;
-typedef struct ScmCntFrameRec ScmCntFrame;
+typedef struct ScmForwardRec ScmForward;
 
 typedef struct ScmEvaluatorRec ScmEvaluator;
 
 #include "object.h"
 
-/*******************************************************************/
-/*  VM Continuation Frame, Environment Frame                       */
-/*******************************************************************/
 
-/* XXX: 構造体サイズが sizeof(ScmObj) の倍数になるよう調整が必要 */
-struct ScmEnvFrameRec {
-  ScmEnvFrame * out;
-  size_t len;
-  ScmObj arg[0];
-};
+/****************************************************************************/
+/* Forward Object                                                           */
+/****************************************************************************/
 
-/* XXX: 構造体サイズが sizeof(ScmObj) の倍数になるよう調整が必要 */
-struct ScmCntFrameRec {
-  ptrdiff_t cfp;
-  ScmEnvFrame *efp;
-  ScmObj cp;
-  uint8_t *ip;
-  ScmObj dummy[0];  /* 構造体サイズを sizeof(ScmObj) の倍数にするためメンバ*/
+/* ScmForward オブジェクトの構造体定義を memory.h から移動。ScmEFBox オブジェ
+ * クトが ScmForward オブジェクトのサイズを必要とするため。
+ */
+
+struct ScmForwardRec {
+  ScmObjHeader header;
+  ScmObj forward;
 };
 
 

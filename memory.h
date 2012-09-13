@@ -5,8 +5,6 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-typedef struct ScmForwardRec ScmForward;
-
 typedef struct ScmMemHeapCellRec ScmMemHeapCell;
 typedef struct ScmMemHeapBlockRec ScmMemHeapBlock;
 typedef struct ScmMemHeapRec ScmMemHeap;
@@ -25,6 +23,7 @@ typedef enum {
 enum { SCM_MEM_NR_ALLOC_TYPE = SCM_MEM_ALLOC_ROOT + 1 };
 
 #include "object.h"
+#include "api_type.h"
 #include "impl_utils.h"
 
 
@@ -32,10 +31,14 @@ enum { SCM_MEM_NR_ALLOC_TYPE = SCM_MEM_ALLOC_ROOT + 1 };
 /* Forward Object                                                           */
 /****************************************************************************/
 
-struct ScmForwardRec {
-  ScmObjHeader header;
-  ScmObj forward;
-};
+/* ScmForward オブジェクトの構造体定義を api_enum へ移動。ScmEFBox オブジェク
+ * トが ScmForward オブジェクトのサイズを必要とするため。
+ */
+
+/* struct ScmForwardRec { */
+/*   ScmObjHeader header; */
+/*   ScmObj forward; */
+/* }; */
 
 extern ScmTypeInfo SCM_FORWARD_TYPE_INFO;
 
