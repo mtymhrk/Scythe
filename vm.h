@@ -211,7 +211,7 @@ struct ScmVMRec {
     uint8_t *sp;                  /* stack pointer */
     ScmCntFrame *cfp;             /* continuation frame pointer */
     ScmEnvFrame *efp;             /* environment frame pointer */
-    ScmEnvFrame *iefp;            /* incomplete environment frame pointer */
+    ScmEnvFrame *pefp;            /* partial environment frame pointer */
     ScmObj cp;                    /* closure pointer */
     uint8_t *ip;                  /* instruction pointer */
     ScmObj val;                   /* value register */
