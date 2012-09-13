@@ -87,13 +87,13 @@ scm_mem_align_ptr(void *ptr)
 scm_local_inline size_t
 scm_mem_alloc_size_of_obj_has_fin_func(size_t size)
 {
-  return scm_mem_align_size_by(size, sizeof(ScmObj)) + sizeof(ScmObj) * 2;
+  return scm_mem_align_size_by(size, SCM_ALIGNOF(ScmObj)) + sizeof(ScmObj) * 2;
 }
 
 scm_local_inline size_t
 scm_mem_alloc_size_of_obj_has_weak_ref(size_t size)
 {
-  return scm_mem_align_size_by(size, sizeof(ScmObj)) + sizeof(ScmObj);
+  return scm_mem_align_size_by(size, SCM_ALIGNOF(ScmObj)) + sizeof(ScmObj);
 }
 
 scm_local_inline size_t

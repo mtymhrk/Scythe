@@ -25,6 +25,8 @@
   } while (rslt < 0 && errno == EINTR)
 
 
+#define SCM_ALIGNOF(type) offsetof(struct { char a; type b; }, b)
+
 #ifdef SCM_UNIT_TEST
 #  define scm_local_func
 #  define scm_local_inline extern inline
