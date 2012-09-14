@@ -22,7 +22,7 @@ $(TARGET) $(OBJS): Makefile
 .c.s:
 	$(CC) -S -o $@ $(INCLUDES) $(CFLAGS) $<
 
-scyth: $(OBJS)
+$(TARGET): $(OBJS)
 	$(CC) -o $@ $(OBJS)
 
 .PHONY: clean depend test doxygen check-syntax
