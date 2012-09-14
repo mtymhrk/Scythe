@@ -117,6 +117,19 @@ scm_mem_alloc_size_in_heap(ScmTypeInfo *type, size_t add)
 }
 
 scm_local_inline size_t
+scm_mem_alloc_size_to_obj_size_in_heap(ScmTypeInfo *type, size_t size)
+{
+  scm_assert(type != NULL);
+
+  if (scm_type_info_has_gc_fin_func_p(type))
+    size -= sizeof(ScmObj) * 2;
+  if (scm_type_info_has_instance_weak_ref_p(type))
+    size -= sizeof(ScmObj);
+
+  return size;
+}
+
+scm_local_inline size_t
 scm_mem_alloc_size_in_root(ScmTypeInfo *type, size_t add)
 {
   size_t size;
@@ -948,7 +961,9 @@ scm_mem_copy_obj(ScmMem *mem, ScmObj obj)
       return SCM_OBJ_NULL;
     }
   }
-  memcpy(SCM_MMOBJ(box), SCM_MMOBJ(obj), scm_type_info_obj_size(type));
+
+  size = scm_mem_alloc_size_to_obj_size_in_heap(type, size);
+  memcpy(SCM_MMOBJ(box), SCM_MMOBJ(obj), size);
   scm_mem_unregister_obj_from_fin_list(mem, obj);
   scm_forward_initialize(obj, box);
 

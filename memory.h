@@ -120,6 +120,7 @@ void *scm_mem_align_ptr(void *ptr);
 size_t scm_mem_alloc_size_of_obj_has_fin_func(size_t size);
 size_t scm_mem_alloc_size_of_obj_has_weak_ref(size_t size);
 size_t scm_mem_alloc_size_in_heap(ScmTypeInfo *type, size_t add);
+size_t scm_mem_alloc_size_to_obj_size_in_heap(ScmTypeInfo *type, size_t size);
 size_t scm_mem_alloc_size_in_root(ScmTypeInfo *type, size_t add);
 
 ScmMemHeapBlock *scm_mem_heap_new_block(size_t sz);
