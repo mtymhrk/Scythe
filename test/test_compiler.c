@@ -649,6 +649,7 @@ test_scm_api_compile__named_let_1(void)
                         " (sref 1 1)(push)"
                         " (sref 0 0)"
                         " (call 2)"
+                        " (epop)"
                         " (epop))";
 
   SCM_STACK_FRAME_PUSH(&exp, &port,
@@ -679,7 +680,8 @@ test_scm_api_compile__named_let_2(void)
                         " (demine 0 0)"
                         " (cframe)"
                         " (sref 0 0)"
-                        " (call 0))";
+                        " (call 0)"
+                        "(epop))";
 
 
   SCM_STACK_FRAME_PUSH(&exp, &port,

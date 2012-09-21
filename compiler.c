@@ -3069,6 +3069,11 @@ scm_cmpl_cmpl_named_let_body(ScmObj name,
   SCM_STACK_FRAME_PUSH(&name, &vars, &inits, &body, &env, &next,
                        &letrec_vars, &new_env);
 
+  if (!tail_p) {
+    next = scm_cmpl_push_inst_epop(next);
+    if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
+  }
+
   letrec_vars = scm_capi_make_vector(1, name);
   if (scm_obj_null_p(letrec_vars)) return SCM_OBJ_NULL;
 
@@ -3077,6 +3082,7 @@ scm_cmpl_cmpl_named_let_body(ScmObj name,
 
   next = scm_cmpl_cmpl_application(name, vars, new_env,
                                    next, tail_p, false, rdepth);
+  if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
 
   next = scm_cmpl_push_inst_demine(0, 0, next);
   if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
