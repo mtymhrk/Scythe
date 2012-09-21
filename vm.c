@@ -761,7 +761,7 @@ scm_vm_box_eframe(ScmObj vm, ScmEnvFrame *efp, size_t depth, scm_csetter_t *box)
     scm_efbox_update_outer(prev, efb);
 
     prev = efb;
-    efp = scm_vm_ef_outer(scm_efbox_to_efp(efb));
+    efp = scm_vm_ef_outer(efp);
   }
 
   scm_efbox_update_outer(prev, SCM_OBJ_NULL);
