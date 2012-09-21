@@ -61,7 +61,6 @@ test_bignum.so: test_bignum.o $(TEST_TARGET_OBJ)
 test_compiler.so: test_compiler.o $(TEST_TARGET_OBJ)
 test_eval.so: test_eval.o $(TEST_TARGET_OBJ)
 test_eval_proc.so: test_eval_proc.o $(TEST_TARGET_OBJ)
-perform_refstack: perform_refstack.o $(TEST_TARGET_OBJ)
 
 .c.o:
 	$(CC) -c -o $@ $(INCLUDES) $(CFLAGS) $<
