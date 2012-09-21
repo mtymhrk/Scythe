@@ -426,6 +426,15 @@ ScmObj scm_api_global_var_set(ScmObj sym, ScmObj val);
 
 
 /*******************************************************************/
+/*  Continuation                                                   */
+/*******************************************************************/
+
+ScmObj scm_capi_capture_cont(void);
+bool scm_capi_continuation_p(ScmObj obj);
+ScmObj scm_capi_cont_capture_obj(ScmObj cont);
+
+
+/*******************************************************************/
 /*  Setup Trampolining                                             */
 /*******************************************************************/
 

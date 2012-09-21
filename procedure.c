@@ -158,3 +158,81 @@ scm_closure_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
 
   return rslt;
 }
+
+
+/*******************************************************************/
+/*  Continuation                                                   */
+/*******************************************************************/
+
+ScmTypeInfo SCM_CONTINUATION_TYPE_INFO = {
+  .name                = "continuation",
+  .flags               = SCM_TYPE_FLG_MMO,
+  .pp_func             = scm_cont_pretty_print,
+  .obj_size            = sizeof(ScmContinuation),
+  .gc_ini_func         = scm_cont_gc_initialize,
+  .gc_fin_func         = NULL,
+  .gc_accept_func      = scm_cont_gc_accept,
+  .gc_accept_func_weak = NULL,
+  .extra               = NULL,
+};
+
+int
+scm_cont_initialize(ScmObj cont, ScmObj contcap)
+{
+  scm_assert_obj_type(cont, &SCM_CONTINUATION_TYPE_INFO);
+
+  SCM_SLOT_SETQ(ScmContinuation, cont, contcap, contcap);
+
+  return 0;
+}
+
+ScmObj
+scm_cont_new(SCM_MEM_TYPE_T mtype, ScmObj contcap)
+{
+  ScmObj cont = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&contcap,
+                       &cont);
+
+  cont = scm_capi_mem_alloc(&SCM_CONTINUATION_TYPE_INFO, 0, mtype);
+  if (scm_obj_null_p(cont)) return SCM_OBJ_NULL;
+
+  if (scm_cont_initialize(cont, contcap) < 0)
+    return SCM_OBJ_NULL;
+
+  return cont;
+}
+
+int
+scm_cont_pretty_print(ScmObj obj, ScmObj port, bool write_p)
+{
+  char cstr[64];
+  int rslt;
+
+  scm_assert_obj_type(obj, &SCM_CONTINUATION_TYPE_INFO);
+
+  snprintf(cstr, sizeof(cstr), "#<continuation %llx>", (unsigned long long)obj);
+
+  rslt = scm_capi_write_cstr(cstr, SCM_ENC_ASCII, port);
+  if (rslt < 0) return -1;
+
+  return 0;
+}
+
+void
+scm_cont_gc_initialize(ScmObj obj, ScmObj mem)
+{
+  scm_assert_obj_type(obj, &SCM_CONTINUATION_TYPE_INFO);
+
+  SCM_CONT(obj)->contcap = SCM_OBJ_NULL;
+}
+
+int
+scm_cont_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
+{
+  scm_assert_obj_type(obj, &SCM_CONTINUATION_TYPE_INFO);
+  scm_assert(scm_obj_not_null_p(mem));
+  scm_assert(handler != NULL);
+
+  return SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_CONT(obj)->contcap, mem);
+}

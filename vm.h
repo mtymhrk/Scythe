@@ -133,6 +133,9 @@ typedef enum {
   SCM_VM_CTRL_FLG_PEF   = 0x00000008, /* pefp レジスタが指すフレームが efp や
                                          cfp レジスタが指すフレームよりもス
                                          タックの上にある場合セットする */
+  SCM_VM_CTRL_FLG_CCF   = 0x00000010, /* cfp レジスタがキャプチャされたスタッ
+                                         クセグメント上のフレームを指している
+                                         場合セットする */
 } SCM_VM_CTRL_FLG_T;
 
 
@@ -165,8 +168,7 @@ struct ScmVMRec {
 
 
   /*** VM Stack ***/
-  uint8_t *stack;
-  size_t stack_size;
+  ScmObj stack;
 
   /*** VM Registers ***/
   struct {
@@ -208,7 +210,13 @@ void scm_vm_ctrl_flg_set(ScmObj vm, SCM_VM_CTRL_FLG_T flg);
 void scm_vm_ctrl_flg_clr(ScmObj vm, SCM_VM_CTRL_FLG_T flg);
 bool scm_vm_ctrl_flg_set_p(ScmObj vm, SCM_VM_CTRL_FLG_T flg);
 
-int scm_vm_update_ief_len_if_needed(ScmObj vm);
+int scm_vm_update_pef_len_if_needed(ScmObj vm);
+int scm_vm_copy_pef_to_top_of_stack_if_needed(ScmObj vm);
+ScmObj scm_vm_capture_stack(ScmObj vm);
+int scm_vm_restore_stack(ScmObj vm, ScmObj stack);
+int scm_vm_handle_stack_overflow(ScmObj vm);
+int scm_vm_handle_stack_underflow(ScmObj vm);
+
 int scm_vm_make_cframe(ScmObj vm, ScmEnvFrame *efp, ScmObj cp);
 int scm_vm_commit_cframe(ScmObj vm, uint8_t *ip);
 int scm_vm_pop_cframe(ScmObj vm);
@@ -222,6 +230,8 @@ int scm_vm_box_eframe(ScmObj vm, ScmEnvFrame *efp,
 ScmEnvFrame *scm_vm_eframe_list_ref(ScmEnvFrame *efp_list, size_t n);
 ScmObj scm_vm_eframe_arg_ref(ScmEnvFrame *efp_list,
                              size_t idx, size_t layer, ScmEnvFrame **efp);
+
+
 
 ScmObj scm_vm_make_trampolining_code(ScmObj vm, ScmObj clsr, ScmObj args,
                                      ScmObj callback);
@@ -264,10 +274,6 @@ void scm_vm_op_demine(ScmObj vm, SCM_OPCODE_T op);
 void scm_vm_op_emine(ScmObj vm, SCM_OPCODE_T op);
 void scm_vm_op_edemine(ScmObj vm, SCM_OPCODE_T op);
 
-int scm_vm_gc_accept_eframe(ScmObj vm, ScmEnvFrame **efp,
-                            ScmObj mem, ScmGCRefHandlerFunc handler);
-int scm_vm_gc_accept_cframe(ScmObj vm, ScmCntFrame *cfp,
-                            ScmObj mem, ScmGCRefHandlerFunc handler);
 int scm_vm_gc_accept_stack(ScmObj vm, ScmObj mem, ScmGCRefHandlerFunc handler);
 
 inline ScmObj
@@ -291,6 +297,8 @@ void scm_vm_end(ScmObj vm);
 int scm_vm_setup_system(ScmObj vm);
 void scm_vm_run(ScmObj vm, ScmObj iseq);
 
+ScmObj scm_vm_capture_cont(ScmObj vm);
+int scm_vm_reinstatement_cont(ScmObj vm, ScmObj cc);
 int scm_vm_setup_stat_trmp(ScmObj vm, ScmObj target, ScmObj args,
                            ScmObj (*callback)(int argc, ScmObj *argv));
 void scm_vm_setup_stat_halt(ScmObj vm);

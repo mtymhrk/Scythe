@@ -9,6 +9,10 @@ typedef struct ScmClosureRec ScmClosure;
 
 #define SCM_CLOSURE(obj) ((ScmClosure *)(obj))
 
+typedef struct ScmContinuationRec ScmContinuation;
+
+#define SCM_CONT(obj) ((ScmContinuation *)(obj))
+
 #include "object.h"
 #include "api_enum.h"
 #include "api_type.h"
@@ -72,6 +76,31 @@ scm_closure_env(ScmObj clsr)
   return SCM_CLOSURE(clsr)->env;
 }
 
+
+/*******************************************************************/
+/*  Continuation                                                   */
+/*******************************************************************/
+
+extern ScmTypeInfo SCM_CONTINUATION_TYPE_INFO;
+
+struct ScmContinuationRec {
+  ScmObjHeader header;
+  ScmObj contcap;
+};
+
+int scm_cont_initialize(ScmObj cont, ScmObj contcap);
+ScmObj scm_cont_new(SCM_MEM_TYPE_T mtype, ScmObj contcap);
+int scm_cont_pretty_print(ScmObj obj, ScmObj port, bool write_p);
+void scm_cont_gc_initialize(ScmObj obj, ScmObj mem);
+int scm_cont_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
+
+inline ScmObj
+scm_cont_content(ScmObj cont)
+{
+  scm_assert_obj_type(cont, &SCM_CONTINUATION_TYPE_INFO);
+
+  return SCM_CONT(cont)->contcap;
+}
 
 
 #endif /* INCLUDE_PROCEDURE_H__ */

@@ -492,6 +492,9 @@ scm_assert_obj_type_accept_null(ScmObj obj, ScmTypeInfo *type)
   scm_assert(scm_obj_null_p(obj) || scm_obj_type_p(obj, type));
 }
 
+/* #define scm_assert_obj_type_accept_null(obj, type) \ */
+/*   scm_assert(scm_obj_null_p(obj) || scm_obj_type_p(obj, type)) */
+
 inline void
 scm_obj_init(ScmObj obj, ScmTypeInfo *type)
 {

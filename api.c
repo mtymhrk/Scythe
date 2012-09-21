@@ -3860,6 +3860,43 @@ scm_api_global_var_set(ScmObj sym, ScmObj val)
 
 
 /*******************************************************************/
+/*  Continuation                                                   */
+/*******************************************************************/
+
+ScmObj
+scm_capi_capture_cont(void)
+{
+  ScmObj cap = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&cap);
+
+  cap = scm_vm_capture_cont(scm_vm_current_vm());
+  if (scm_obj_null_p(cap)) return SCM_OBJ_NULL;
+
+  return scm_cont_new(SCM_MEM_HEAP, cap);
+}
+
+bool
+scm_capi_continuation_p(ScmObj obj)
+{
+  if (scm_obj_null_p(obj)) return false;
+  return scm_obj_type_p(obj, &SCM_CONTINUATION_TYPE_INFO);
+}
+
+ScmObj
+scm_capi_cont_capture_obj(ScmObj cont)
+{
+  if (!scm_capi_continuation_p(cont)) {
+    scm_capi_error("faild to get capture object from continuation: "
+                   "invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_cont_content(cont);
+}
+
+
+/*******************************************************************/
 /*  Setup Trampolining                                             */
 /*******************************************************************/
 

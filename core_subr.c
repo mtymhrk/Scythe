@@ -152,6 +152,36 @@ scm_subr_func_flush_output_port(int argc, ScmObj *argv)
 
 
 /*******************************************************************/
+/*  Continuation                                                   */
+/*******************************************************************/
+
+ScmObj
+scm_subr_func_callcc(int argc, ScmObj *argv)
+{
+  ScmObj cont = SCM_OBJ_INIT, args = SCM_OBJ_INIT;
+  int rslt;
+
+  SCM_STACK_FRAME_PUSH(&cont, &args);
+
+  if (argc != 1) {
+    scm_capi_error("call/cc: 1 argumetn is require, but got ", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  cont = scm_capi_capture_cont();
+  if (scm_obj_null_p(cont)) return SCM_OBJ_NULL;
+
+  args = scm_capi_list(1, cont);
+  if (scm_obj_null_p(args)) return SCM_OBJ_NULL;
+
+  rslt = scm_capi_trampolining(argv[0], args,  NULL);
+  if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
+
+  return scm_api_undef();
+}
+
+
+/*******************************************************************/
 /*  Eval                                                           */
 /*******************************************************************/
 
@@ -294,14 +324,14 @@ scm_core_subr_system_setup(void)
 {
   const char *syms[] = { "null?", "cons", "car", "cdr", "read", "write",
                          "display", "newline", "flush-output-port",
-                         "eval-asm", "eval", "exit" };
+                         "call/cc", "eval-asm", "eval", "exit" };
   ScmSubrFunc funcs[] = { scm_subr_func_null_P, scm_subr_func_cons,
                           scm_subr_func_car, scm_subr_func_cdr,
                           scm_subr_func_read, scm_subr_func_write,
                           scm_subr_func_display, scm_subr_func_newline,
                           scm_subr_func_flush_output_port,
-                          scm_subr_func_eval_asm, scm_subr_func_eval,
-                          scm_subr_func_exit };
+                          scm_subr_func_callcc, scm_subr_func_eval_asm,
+                          scm_subr_func_eval, scm_subr_func_exit };
   ScmObj sym  = SCM_OBJ_INIT;
   ScmObj subr = SCM_OBJ_INIT;
   ScmObj rslt = SCM_OBJ_INIT;
