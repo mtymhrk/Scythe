@@ -423,16 +423,17 @@ scm_asm_inst_si_si(ScmObj iseq, int opcode, ScmObj operator, ScmObj operands,
 }
 
 static ssize_t
-scm_asm_inst_si_obj(ScmObj iseq, int opcode, ScmObj operator, ScmObj operands,
-                    size_t idx, ScmCHashTbl *label_tbl, EArray *labels)
+scm_asm_inst_si_si_obj(ScmObj iseq, int opcode,
+                       ScmObj operator, ScmObj operands,
+                       size_t idx, ScmCHashTbl *label_tbl, EArray *labels)
 {
-  ScmObj arg1 = SCM_OBJ_INIT, arg2 = SCM_OBJ_INIT;
-  scm_sword_t val;
+  ScmObj arg1 = SCM_OBJ_INIT, arg2 = SCM_OBJ_INIT, arg3 = SCM_OBJ_INIT;
+  scm_sword_t val1, val2;
   ssize_t nr_opd;
   int rslt;
 
   SCM_STACK_FRAME_PUSH(&iseq, &operator, &operands,
-                       &arg1, &arg2);
+                       &arg1, &arg2, &arg3);
 
   scm_assert(scm_capi_iseq_p(iseq));
   scm_assert(0 <= opcode && opcode <= UINT8_MAX);
@@ -442,11 +443,11 @@ scm_asm_inst_si_obj(ScmObj iseq, int opcode, ScmObj operator, ScmObj operands,
   scm_assert(labels != NULL);
 
   nr_opd = scm_capi_length(operands);
-  if (nr_opd < 2) {
+  if (nr_opd < 3) {
     scm_capi_error("Assembler: too few operands", 2, operator, operands);
     return -1;
   }
-  else if (nr_opd > 2) {
+  else if (nr_opd > 3) {
     scm_capi_error("Assembler: too many operands", 2, operator, operands);
     return -1;
   }
@@ -457,20 +458,37 @@ scm_asm_inst_si_obj(ScmObj iseq, int opcode, ScmObj operator, ScmObj operands,
   arg2 = scm_capi_list_ref(operands, 1);
   if (scm_obj_null_p(arg2)) return -1; /* [ERR]: [throughg] */
 
+  arg3 = scm_capi_list_ref(operands, 2);
+  if (scm_obj_null_p(arg3)) return -1; /* [ERR]: [throughg] */
+
   if (!scm_capi_integer_p(arg1)) {
     scm_capi_error("Assembler: operand is not list", 2, operator, arg1);
     return -1;
   }
 
-  rslt = scm_capi_num_to_sword(arg1, &val);
+  if (!scm_capi_integer_p(arg2)) {
+    scm_capi_error("Assembler: operand is not list", 2, operator, arg2);
+    return -1;
+  }
+
+  rslt = scm_capi_num_to_sword(arg1, &val1);
   if (rslt < 0) return -1;      /* [ERR]: [through] */
 
-  if (val < INT32_MIN || INT32_MAX < val) {
+  if (val1 < INT32_MIN || INT32_MAX < val1) {
     scm_capi_error("Assembler: operand is out of range", 2, operator, arg1);
     return -1;
   }
 
-  return scm_capi_iseq_push_opfmt_si_obj(iseq, opcode, (int32_t)val, arg2);
+  rslt = scm_capi_num_to_sword(arg2, &val2);
+  if (rslt < 0) return -1;      /* [ERR]: [through] */
+
+  if (val2 < INT32_MIN || INT32_MAX < val2) {
+    scm_capi_error("Assembler: operand is out of range", 2, operator, arg2);
+    return -1;
+  }
+
+  return scm_capi_iseq_push_opfmt_si_si_obj(iseq, opcode,
+                                            (int32_t)val1, (int32_t)val2, arg3);
 }
 
 static ssize_t
@@ -605,13 +623,13 @@ scm_asm_inst_asm_close(ScmObj iseq, int opcode,
                        ScmObj operator, ScmObj operands,
                        size_t idx, ScmCHashTbl *label_tbl, EArray *labels)
 {
-  ScmObj arg1 = SCM_OBJ_INIT, arg2 = SCM_OBJ_INIT;
-  scm_sword_t val;
+  ScmObj arg1 = SCM_OBJ_INIT, arg2 = SCM_OBJ_INIT, arg3 = SCM_OBJ_INIT;
+  scm_sword_t val1, val2;
   ssize_t nr_opd;
   int rslt;
 
   SCM_STACK_FRAME_PUSH(&iseq, &operator, &operands,
-                       &arg1, &arg2);
+                       &arg1, &arg2, &arg3);
 
   scm_assert(scm_capi_iseq_p(iseq));
   scm_assert(opcode >= SCM_ASM_PI_START);
@@ -621,11 +639,11 @@ scm_asm_inst_asm_close(ScmObj iseq, int opcode,
   scm_assert(labels != NULL);
 
   nr_opd = scm_capi_length(operands);
-  if (nr_opd < 2) {
+  if (nr_opd < 3) {
     scm_capi_error("Assembler: too few operands", 2, operator, operands);
     return -1;
   }
-  else if (nr_opd > 2) {
+  else if (nr_opd > 3) {
     scm_capi_error("Assembler: too many operands", 2, operator, operands);
     return -1;
   }
@@ -636,29 +654,45 @@ scm_asm_inst_asm_close(ScmObj iseq, int opcode,
   arg2 = scm_capi_list_ref(operands, 1);
   if (scm_obj_null_p(arg2)) return -1; /* [ERR]: [throughg] */
 
+  arg3 = scm_capi_list_ref(operands, 2);
+  if (scm_obj_null_p(arg3)) return -1; /* [ERR]: [throughg] */
+
   if (!scm_capi_integer_p(arg1)) {
     scm_capi_error("Assembler: operand is not list", 2, operator, arg1);
     return -1;
   }
 
-  if (!scm_capi_pair_p(arg2) && !scm_capi_nil_p(arg2)) {
+  if (!scm_capi_integer_p(arg2)) {
+    scm_capi_error("Assembler: operand is not list", 2, operator, arg1);
+    return -1;
+  }
+
+  if (!scm_capi_pair_p(arg3) && !scm_capi_nil_p(arg3)) {
     scm_capi_error("Assembler: operand is not list", 2, operator, arg2);
     return -1;
   }
 
-  rslt = scm_capi_num_to_sword(arg1, &val);
+  rslt = scm_capi_num_to_sword(arg1, &val1);
   if (rslt < 0) return -1;      /* [ERR]: [through] */
 
-  if (val < INT32_MIN || INT32_MAX < val) {
+  if (val1 < INT32_MIN || INT32_MAX < val1) {
     scm_capi_error("Assembler: operand is out of range", 2, operator, arg1);
     return -1;
   }
 
-  arg2 = scm_asm_assemble(arg2);
-  if (scm_obj_null_p(arg2)) return -1; /* [ERR]: [through] */
+  rslt = scm_capi_num_to_sword(arg2, &val2);
+  if (rslt < 0) return -1;      /* [ERR]: [through] */
 
-  return scm_capi_iseq_push_opfmt_si_obj(iseq, SCM_OPCODE_CLOSE,
-                                         (int32_t)val, arg2);
+  if (val2 < INT32_MIN || INT32_MAX < val2) {
+    scm_capi_error("Assembler: operand is out of range", 2, operator, arg2);
+    return -1;
+  }
+
+  arg3 = scm_asm_assemble(arg3);
+  if (scm_obj_null_p(arg3)) return -1; /* [ERR]: [through] */
+
+  return scm_capi_iseq_push_opfmt_si_si_obj(iseq, SCM_OPCODE_CLOSE,
+                                            (int32_t)val1, (int32_t)val2, arg3);
 }
 
 static ssize_t
@@ -712,9 +746,9 @@ scm_asm_inst(ScmObj iseq, ScmObj inst, size_t idx,
       return scm_asm_inst_si_si(iseq, opcode, operator, operands,
                                 idx, label_tbl, labels);
       break;
-    case SCM_OPFMT_SI_OBJ:
-      return scm_asm_inst_si_obj(iseq, opcode, operator, operands,
-                                 idx, label_tbl, labels);
+    case SCM_OPFMT_SI_SI_OBJ:
+      return scm_asm_inst_si_si_obj(iseq, opcode, operator, operands,
+                                    idx, label_tbl, labels);
       break;
     case SCM_OPFMT_IOF:
       return scm_asm_inst_iof(iseq, opcode, operator, operands,

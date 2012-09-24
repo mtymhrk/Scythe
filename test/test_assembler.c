@@ -31,7 +31,7 @@ test_scm_asm_assemble(void)
     "(ecommit 20)(epop)(erebind 21)(push)"
     "(gref vvv)(gdef vvv)(gset vvv)(sref -4 12)(sset -6 13)"
     "(immval vvv)(label lbl)(jmp lbl)(jmpt lbl)(jmpf lbl)(asm ((nop)))(raise)"
-    "(box -8 14)(close 10 vvv)(asm-close 11 ((nop)))"
+    "(box -8 14)(close 10 20 vvv)(asm-close 11 21 ((nop)))"
     "(demine 15 16)(emine 17)(edemine 18 19))";
   const uint8_t expected_codes[] = { SCM_OPCODE_NOP, SCM_OPCODE_HALT,
                                      SCM_OPCODE_UNDEF, SCM_OPCODE_CALL,
@@ -132,15 +132,18 @@ test_scm_asm_assemble(void)
       cut_assert_equal_int(-18, actual_arg1);
       break;
     case SCM_OPCODE_CLOSE:
-      ip = scm_capi_inst_fetch_oprand_si_obj(ip,
-                                             &actual_arg1,
-                                             SCM_CSETTER_L(actual_immv));
+      ip = scm_capi_inst_fetch_oprand_si_si_obj(ip,
+                                                &actual_arg1,
+                                                &actual_arg2,
+                                                SCM_CSETTER_L(actual_immv));
       if (i == 28) {
         cut_assert_equal_int(10, actual_arg1);
+        cut_assert_equal_int(20, actual_arg2);
         cut_assert_true(scm_capi_eq_p(expected_immv, actual_immv));
       }
       else if (i == 29) {
         cut_assert_equal_int(11, actual_arg1);
+        cut_assert_equal_int(21, actual_arg2);
         cut_assert_true(scm_capi_iseq_p(actual_immv));
       }
       break;

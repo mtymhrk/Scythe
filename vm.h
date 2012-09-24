@@ -231,15 +231,15 @@ ScmEnvFrame *scm_vm_eframe_list_ref(ScmEnvFrame *efp_list, size_t n);
 ScmObj scm_vm_eframe_arg_ref(ScmEnvFrame *efp_list,
                              size_t idx, size_t layer, ScmEnvFrame **efp);
 
-
-
+ScmObj scm_vm_copy_list(ScmObj lst);
 ScmObj scm_vm_make_trampolining_code(ScmObj vm, ScmObj clsr, ScmObj args,
                                      ScmObj callback);
 ScmObj scm_vm_make_exception_handler_code(ScmObj vm);
 int scm_vm_setup_to_call_exception_handler(ScmObj vm);
 
+int scm_vm_adjust_arg_to_arity(ScmObj vm, int32_t argc, int arity);
 int scm_vm_do_op_call(ScmObj vm, SCM_OPCODE_T op,
-                      uint32_t argc, bool tail_p);
+                      int32_t argc, bool tail_p);
 int scm_vm_do_op_push(ScmObj vm, SCM_OPCODE_T op);
 int scm_vm_do_op_frame(ScmObj vm, SCM_OPCODE_T op);
 int scm_vm_do_op_eframe(ScmObj vm, SCM_OPCODE_T op);

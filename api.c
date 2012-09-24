@@ -860,7 +860,7 @@ scm_capi_number_p(ScmObj obj)
 {
   if (scm_capi_null_value_p(obj)) return false;
 
-  return scm_obj_type_flag_set_p(obj, SCM_TYPE_FLG_NUM) ? true : false;
+  return scm_obj_type_flag_set_p(obj, SCM_TYPE_FLG_NUM);
 }
 
 extern inline bool
@@ -876,7 +876,7 @@ scm_capi_fixnum_p(ScmObj obj)
 {
   if (scm_capi_null_value_p(obj)) return false;
 
-  return scm_obj_type_p(obj, &SCM_FIXNUM_TYPE_INFO) ? true : false;
+  return scm_obj_type_p(obj, &SCM_FIXNUM_TYPE_INFO);
 }
 
 extern inline bool
@@ -884,7 +884,7 @@ scm_capi_bignum_p(ScmObj obj)
 {
   if (scm_capi_null_value_p(obj)) return false;
 
-  return scm_obj_type_p(obj, &SCM_BIGNUM_TYPE_INFO) ? true : false;
+  return scm_obj_type_p(obj, &SCM_BIGNUM_TYPE_INFO);
 }
 
 int
@@ -3185,18 +3185,48 @@ scm_api_standard_error_port(void)
 
 
 /*******************************************************************/
+/*  Procedure                                                      */
+/*******************************************************************/
+
+bool
+scm_capi_procedure_p(ScmObj proc)
+{
+  if (scm_obj_null_p(proc)) return false;
+
+  return scm_obj_type_flag_set_p(proc, SCM_TYPE_FLG_PROC);
+}
+
+int
+scm_capi_arity(ScmObj proc, int *arity)
+{
+  if (!scm_capi_procedure_p(proc)) {
+    scm_capi_error("arity: invalid argument", 0);
+    return -1;
+  }
+  else if (arity == NULL) {
+    scm_capi_error("arity: invalid argument", 0);
+    return -1;
+  }
+
+  *arity = scm_proc_arity(proc);
+
+  return 0;
+}
+
+
+/*******************************************************************/
 /*  Subrutine                                                      */
 /*******************************************************************/
 
 ScmObj
-scm_capi_make_subrutine(ScmSubrFunc func)
+scm_capi_make_subrutine(ScmSubrFunc func, int arity)
 {
   if (func == NULL) {
     scm_capi_error("can not make subrutine: invaild argument", 0);
     return SCM_OBJ_NULL;
   }
 
-  return scm_subrutine_new(SCM_MEM_ALLOC_HEAP, func);
+  return scm_subrutine_new(SCM_MEM_ALLOC_HEAP, func, SCM_OBJ_NULL, arity);
 }
 
 ScmObj
@@ -3223,14 +3253,14 @@ scm_capi_subrutine_p(ScmObj obj)
 /*******************************************************************/
 
 ScmObj
-scm_capi_make_closure(ScmObj iseq, ScmObj env)
+scm_capi_make_closure(ScmObj iseq, ScmObj env, int arity)
 {
   if (!scm_capi_iseq_p(iseq)) {
     scm_capi_error("can not make closure: invalid argument", 0);
     return SCM_OBJ_NULL;
   }
 
-  return scm_closure_new(SCM_MEM_ALLOC_HEAP, iseq, env);
+  return scm_closure_new(SCM_MEM_ALLOC_HEAP, iseq, env, SCM_OBJ_NULL, arity);
 }
 
 extern inline bool
@@ -3447,8 +3477,8 @@ scm_capi_iseq_push_opfmt_si_si(ScmObj iseq, SCM_OPCODE_T op,
 }
 
 ssize_t
-scm_capi_iseq_push_opfmt_si_obj(ScmObj iseq, SCM_OPCODE_T op,
-                                int32_t val, ScmObj obj)
+scm_capi_iseq_push_opfmt_si_si_obj(ScmObj iseq, SCM_OPCODE_T op,
+                                   int32_t val1, int32_t val2, ScmObj obj)
 {
   ssize_t rslt;
 
@@ -3471,7 +3501,10 @@ scm_capi_iseq_push_opfmt_si_obj(ScmObj iseq, SCM_OPCODE_T op,
   rslt = scm_iseq_push_uint8(iseq, 0);
   if (rslt < 0) return -1;   /* provisional implemntation */
 
-  rslt = scm_iseq_push_uint32(iseq, (uint32_t)val);
+  rslt = scm_iseq_push_uint32(iseq, (uint32_t)val1);
+  if (rslt < 0) return -1;   /* provisional implemntation */
+
+  rslt = scm_iseq_push_uint32(iseq, (uint32_t)val2);
   if (rslt < 0) return -1;   /* provisional implemntation */
 
   return scm_iseq_push_obj(iseq, obj);
@@ -3533,7 +3566,7 @@ scm_capi_opcode_to_opfmt(int opcode)
     SCM_OPFMT_IOF,              /* SCM_OPCODE_JMPF */
     SCM_OPFMT_NOOPD,            /* SCM_OPCODE_RAISE */
     SCM_OPFMT_SI_SI,            /* SCM_OPCODE_BOX */
-    SCM_OPFMT_SI_OBJ,           /* SCM_OPCODE_CLOSE */
+    SCM_OPFMT_SI_SI_OBJ,        /* SCM_OPCODE_CLOSE */
     SCM_OPFMT_SI_SI,            /* SCM_OPCODE_DEMINE */
     SCM_OPFMT_SI,               /* SCM_OPCODE_EMINE */
     SCM_OPFMT_SI_SI,            /* SCM_OPCODE_EDEMINE */
@@ -3614,7 +3647,9 @@ scm_capi_inst_fetch_oprand_si_si(uint8_t *ip, int32_t *si1, int32_t *si2)
 }
 
 uint8_t *
-scm_capi_inst_fetch_oprand_si_obj(uint8_t *ip, int32_t *si, scm_csetter_t *obj)
+scm_capi_inst_fetch_oprand_si_si_obj(uint8_t *ip,
+                                     int32_t *si1, int32_t *si2,
+                                     scm_csetter_t *obj)
 {
   ScmObj opr = SCM_OBJ_INIT;
 
@@ -3624,7 +3659,11 @@ scm_capi_inst_fetch_oprand_si_obj(uint8_t *ip, int32_t *si, scm_csetter_t *obj)
     scm_capi_error("can not fetch operands: invalid ip", 0);
     return NULL;
   }
-  else if (si == NULL) {
+  else if (si1 == NULL) {
+    scm_capi_error("can not fetch operands: invalid argument", 0);
+    return NULL;
+  }
+  else if (si2 == NULL) {
     scm_capi_error("can not fetch operands: invalid argument", 0);
     return NULL;
   }
@@ -3633,7 +3672,8 @@ scm_capi_inst_fetch_oprand_si_obj(uint8_t *ip, int32_t *si, scm_csetter_t *obj)
     return NULL;
   }
 
-  *si = scm_iseq_fetch_int32(&ip);
+  *si1 = scm_iseq_fetch_int32(&ip);
+  *si2 = scm_iseq_fetch_int32(&ip);
 
 #if SCM_UWORD_MAX > UINT32_MAX
   opr = SCM_OBJ(scm_iseq_fetch_uint64(&ip));
@@ -3904,7 +3944,7 @@ int
 scm_capi_trampolining(ScmObj target, ScmObj args,
                       ScmObj (*callback)(int argc, ScmObj *argv))
 {
-  if ((!scm_capi_iseq_p(target) && !scm_capi_closure_p(target))) {
+  if ((!scm_capi_closure_p(target))) {
     scm_capi_error("", 0);
     return SCM_OBJ_NULL;
   }

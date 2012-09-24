@@ -72,20 +72,24 @@ scm_cmpl_cons_inst_si_si(SCM_OPCODE_T op, scm_sword_t n1, scm_sword_t n2)
 }
 
 static ScmObj
-scm_cmpl_cons_inst_si_obj(SCM_OPCODE_T op, scm_sword_t n, ScmObj obj)
+scm_cmpl_cons_inst_si_si_obj(SCM_OPCODE_T op,
+                             scm_sword_t n1, scm_sword_t n2, ScmObj obj)
 {
-  ScmObj mne = SCM_OBJ_INIT, num = SCM_OBJ_INIT;
+  ScmObj mne = SCM_OBJ_INIT, num1 = SCM_OBJ_INIT, num2 = SCM_OBJ_INIT;
 
   SCM_STACK_FRAME_PUSH(&obj,
-                       &mne, &num);
+                       &mne, &num1, &num2);
 
   mne = scm_asm_mnemonic(op);
   if (scm_obj_null_p(mne)) return SCM_OBJ_NULL;
 
-  num = scm_capi_make_number_from_sword(n);
-  if (scm_obj_null_p(num)) return SCM_OBJ_NULL;
+  num1 = scm_capi_make_number_from_sword(n1);
+  if (scm_obj_null_p(num1)) return SCM_OBJ_NULL;
 
-  return scm_capi_list(3, mne, num, obj);
+  num2 = scm_capi_make_number_from_sword(n2);
+  if (scm_obj_null_p(num2)) return SCM_OBJ_NULL;
+
+  return scm_capi_list(4, mne, num1, num2, obj);
 }
 
 static ScmObj
@@ -614,22 +618,25 @@ scm_cmpl_push_inst_label(ScmObj lbl, ScmObj next)
 }
 
 static ScmObj
-scm_cmpl_cons_inst_asm_close(scm_sword_t nr_free, ScmObj code)
+scm_cmpl_cons_inst_asm_close(scm_sword_t nr_free,
+                             scm_sword_t arity, ScmObj code)
 {
   scm_assert(nr_free >= 0);
 
-  return scm_cmpl_cons_inst_si_obj(SCM_ASM_PI_ASM_CLOSE, nr_free, code);
+  return scm_cmpl_cons_inst_si_si_obj(SCM_ASM_PI_ASM_CLOSE,
+                                      nr_free, arity, code);
 }
 
 static ScmObj
-scm_cmpl_push_inst_asm_close(scm_sword_t nr_free, ScmObj code, ScmObj next)
+scm_cmpl_push_inst_asm_close(scm_sword_t nr_free, scm_sword_t arity,
+                             ScmObj code, ScmObj next)
 {
   ScmObj inst_asm_close = SCM_OBJ_INIT;
 
   SCM_STACK_FRAME_PUSH(&next,
                        &inst_asm_close);
 
-  inst_asm_close = scm_cmpl_cons_inst_asm_close(nr_free, code);
+  inst_asm_close = scm_cmpl_cons_inst_asm_close(nr_free, arity, code);
   if (scm_obj_null_p(inst_asm_close)) return SCM_OBJ_NULL;
 
   return scm_api_cons(inst_asm_close, next);
@@ -691,6 +698,38 @@ scm_cmpl_env_outer(ScmObj env)
 
   return scm_api_cdr(env);
 }
+
+#if 0
+
+static int
+scm_cmpl_env_vparam_flg(ScmObj env, size_t layer, bool *flg)
+{
+  ScmObj itr = SCM_OBJ_INIT, rib = SCM_OBJ_INIT, vparam = SCM_OBJ_INIT;;
+  size_t i;
+
+  SCM_STACK_FRAME_PUSH(&env,
+                       &itr, &rib, &vparam);
+
+  scm_assert(scm_capi_nil_p(env) || scm_capi_pair_p(env));
+  scm_assert(flg != NULL);
+
+  for (i = 0, itr = env;
+       i < layer && scm_capi_pair_p(itr);
+       i++, itr = scm_api_cdr(itr))
+    ;
+
+  rib = scm_api_car(itr);
+  if (scm_obj_null_p(rib)) return -1;
+
+  vparam = scm_capi_vector_ref(rib, 2);
+  if (scm_obj_null_p(vparam)) return -1;
+
+  *flg = scm_capi_true_object_p(vparam);
+
+  return 0;
+}
+
+#endif
 
 static int
 scm_cmpl_env_assigned_flg(ScmObj env, size_t idx, size_t layer, bool *flg)
@@ -1938,7 +1977,7 @@ scm_cmpl_cmpl_lambda(ScmObj params, bool vparam_p, ScmObj body,
                      ssize_t *rdepth)
 {
   ScmObj new_env = SCM_OBJ_INIT, body_code = SCM_OBJ_INIT, nil = SCM_OBJ_INIT;
-  ssize_t nr_params;
+  ssize_t nr_params, arity;
 
   SCM_STACK_FRAME_PUSH(&params, &body, &env, &next,
                        &new_env, &body_code, &nil);
@@ -1973,8 +2012,10 @@ scm_cmpl_cmpl_lambda(ScmObj params, bool vparam_p, ScmObj body,
     return SCM_OBJ_NULL;
   }
 
+  arity = vparam_p ? -nr_params : nr_params;
+
   return scm_cmpl_push_inst_asm_close((*rdepth >= 0) ? *rdepth + 1 : 0,
-                                      body_code, next);
+                                      arity, body_code, next);
 }
 
 static ScmObj

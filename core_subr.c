@@ -69,13 +69,20 @@ ScmObj
 scm_subr_func_read(int argc, ScmObj *argv)
 {
   ScmObj port = SCM_OBJ_INIT;
+  ssize_t len;
 
-  if (argc == 0)
-    port = scm_api_current_input_port();
-  else if (argc == 1)
-    port = argv[0];
-  else {
-    scm_capi_error("read: too many arguments", 0);
+  SCM_STACK_FRAME_PUSH(&port);
+
+  len = scm_capi_length(argv[0]);
+  if (len < 0) return SCM_OBJ_NULL;
+
+  port = SCM_OBJ_NULL;
+  if (len == 1) {
+    port = scm_api_car(argv[0]);
+    if (scm_obj_null_p(port)) return SCM_OBJ_NULL;
+  }
+  else if (len > 1) {
+    scm_capi_error("read: too many arugments", 0);
     return SCM_OBJ_NULL;
   }
 
@@ -86,13 +93,20 @@ ScmObj
 scm_subr_func_write(int argc, ScmObj *argv)
 {
   ScmObj port = SCM_OBJ_INIT;
+  ssize_t len;
 
-  if (argc == 1)
-    port = scm_api_current_output_port();
-  else if (argc == 2)
-    port = argv[1];
-  else {
-    scm_capi_error("write: too many arguments", 0);
+  SCM_STACK_FRAME_PUSH(&port);
+
+  len = scm_capi_length(argv[1]);
+  if (len < 0) return SCM_OBJ_NULL;
+
+  port = SCM_OBJ_NULL;
+  if (len == 1) {
+    port = scm_api_car(argv[1]);
+    if (scm_obj_null_p(port)) return SCM_OBJ_NULL;
+  }
+  else if (len > 1) {
+    scm_capi_error("write: too many arugments", 0);
     return SCM_OBJ_NULL;
   }
 
@@ -103,13 +117,20 @@ ScmObj
 scm_subr_func_display(int argc, ScmObj *argv)
 {
   ScmObj port = SCM_OBJ_INIT;
+  ssize_t len;
 
-  if (argc == 1)
-    port = scm_api_current_output_port();
-  else if (argc == 2)
-    port = argv[1];
-  else {
-    scm_capi_error("display: too many arguments", 0);
+  SCM_STACK_FRAME_PUSH(&port);
+
+  len = scm_capi_length(argv[1]);
+  if (len < 0) return SCM_OBJ_NULL;
+
+  port = SCM_OBJ_NULL;
+  if (len == 1) {
+    port = scm_api_car(argv[1]);
+    if (scm_obj_null_p(port)) return SCM_OBJ_NULL;
+  }
+  else if (len > 1) {
+    scm_capi_error("display: too many arugments", 0);
     return SCM_OBJ_NULL;
   }
 
@@ -120,13 +141,20 @@ ScmObj
 scm_subr_func_newline(int argc, ScmObj *argv)
 {
   ScmObj port = SCM_OBJ_INIT;
+  ssize_t len;
 
-  if (argc == 0)
-    port = scm_api_current_output_port();
-  else if (argc == 1)
-    port = argv[1];
-  else {
-    scm_capi_error("newline: too many arguments", 0);
+  SCM_STACK_FRAME_PUSH(&port);
+
+  len = scm_capi_length(argv[0]);
+  if (len < 0) return SCM_OBJ_NULL;
+
+  port = SCM_OBJ_NULL;
+  if (len == 1) {
+    port = scm_api_car(argv[0]);
+    if (scm_obj_null_p(port)) return SCM_OBJ_NULL;
+  }
+  else if (len > 1) {
+    scm_capi_error("newline: too many arugments", 0);
     return SCM_OBJ_NULL;
   }
 
@@ -137,13 +165,20 @@ ScmObj
 scm_subr_func_flush_output_port(int argc, ScmObj *argv)
 {
   ScmObj port = SCM_OBJ_INIT;
+  ssize_t len;
 
-  if (argc == 0)
-    port = scm_api_current_output_port();
-  else if (argc == 1)
-    port = argv[0];
-  else {
-    scm_capi_error("flush-output-port: too many arguments", 0);
+  SCM_STACK_FRAME_PUSH(&port);
+
+  len = scm_capi_length(argv[0]);
+  if (len < 0) return SCM_OBJ_NULL;
+
+  port = SCM_OBJ_NULL;
+  if (len == 1) {
+    port = scm_api_car(argv[0]);
+    if (scm_obj_null_p(port)) return SCM_OBJ_NULL;
+  }
+  else if (len > 1) {
+    scm_capi_error("flush-output-port: too many arugments", 0);
     return SCM_OBJ_NULL;
   }
 
@@ -216,6 +251,9 @@ scm_subr_func_eval_asm(int argc, ScmObj *argv)
   i = scm_capi_iseq_push_opfmt_noarg(code, SCM_OPCODE_RETURN);
   if (i < 0) return SCM_OBJ_NULL;
 
+  code = scm_capi_make_closure(code, SCM_OBJ_NULL, 0);
+  if (scm_obj_null_p(code)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+
   args = scm_api_nil();
 
   rslt = scm_capi_trampolining(code, args,  NULL);
@@ -248,6 +286,9 @@ scm_subr_func_eval(int argc, ScmObj *argv)
   i = scm_capi_iseq_push_opfmt_noarg(exp, SCM_OPCODE_RETURN);
   if (i < 0) return SCM_OBJ_NULL;
 
+  exp = scm_capi_make_closure(exp, SCM_OBJ_NULL, 0);
+  if (scm_obj_null_p(exp)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+
   args = scm_api_nil();
 
   rslt = scm_capi_trampolining(exp, args, NULL);
@@ -264,14 +305,25 @@ scm_subr_func_eval(int argc, ScmObj *argv)
 ScmObj
 scm_subr_func_exit(int argc, ScmObj *argv)
 {
-  if (argc == 0)
-    scm_api_exit(SCM_OBJ_NULL);
-  else if (argc == 1)
-    scm_api_exit(argv[0]);
-  else {
-    scm_capi_error("exit: too many arguments", 0);
+  ScmObj val = SCM_OBJ_INIT;
+  ssize_t len;
+
+  SCM_STACK_FRAME_PUSH(&val);
+
+  len = scm_capi_length(argv[0]);
+  if (len < 0) return SCM_OBJ_NULL;
+
+  val = SCM_OBJ_NULL;
+  if (len == 1) {
+    val = scm_api_car(argv[0]);
+    if (scm_obj_null_p(val)) return SCM_OBJ_NULL;
+  }
+  else if (len > 1) {
+    scm_capi_error("exit: too many arugments", 0);
     return SCM_OBJ_NULL;
   }
+
+  scm_api_exit(val);
 
   return scm_api_undef();
 }
@@ -325,6 +377,7 @@ scm_core_subr_system_setup(void)
   const char *syms[] = { "null?", "cons", "car", "cdr", "read", "write",
                          "display", "newline", "flush-output-port",
                          "call/cc", "eval-asm", "eval", "exit" };
+  int arities[] = { 1, 2, 1, 1, -1, -2, -2, -1, -1, 1, 1, 1, -1 };
   ScmSubrFunc funcs[] = { scm_subr_func_null_P, scm_subr_func_cons,
                           scm_subr_func_car, scm_subr_func_cdr,
                           scm_subr_func_read, scm_subr_func_write,
@@ -340,14 +393,14 @@ scm_core_subr_system_setup(void)
 
   for (size_t i = 0; i < sizeof(syms)/sizeof(syms[0]); i++) {
     sym = scm_capi_make_symbol_from_cstr(syms[i], SCM_ENC_ASCII);
-    subr = scm_capi_make_subrutine(funcs[i]);
+    subr = scm_capi_make_subrutine(funcs[i], arities[i]);
     rslt = scm_api_global_var_define(sym, subr);
 
     if (scm_obj_null_p(rslt) || scm_obj_null_p(subr) ||scm_obj_null_p(sym))
       return;                   /* [ERR]: [through] */
   }
 
-  subr = scm_capi_make_subrutine(scm_subr_func_default_exception_handler);
+  subr = scm_capi_make_subrutine(scm_subr_func_default_exception_handler, 1);
   if (scm_obj_null_p(subr)) return;
 
   scm_capi_push_exception_handler(subr);

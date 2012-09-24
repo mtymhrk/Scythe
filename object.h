@@ -219,8 +219,9 @@ struct ScmTypeInfoRec {
 };
 
 enum {
-  SCM_TYPE_FLG_MMO = 0x00000001,
-  SCM_TYPE_FLG_NUM = 0x00000002,
+  SCM_TYPE_FLG_MMO  = 0x00000001,
+  SCM_TYPE_FLG_NUM  = 0x00000002,
+  SCM_TYPE_FLG_PROC = 0x00000004,
 };
 
 inline bool

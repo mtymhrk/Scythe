@@ -1088,12 +1088,52 @@ scm_vm_eframe_arg_ref(ScmEnvFrame *efp_list, size_t idx, size_t layer,
 }
 
 scm_local_func ScmObj
+scm_vm_copy_list(ScmObj lst)
+{
+  ScmObj cur = SCM_OBJ_INIT, elm = SCM_OBJ_INIT, nil = SCM_OBJ_INIT;
+  ScmObj head = SCM_OBJ_INIT, pair = SCM_OBJ_INIT, prev = SCM_OBJ_INIT;
+  ScmObj rslt = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&lst,
+                       &cur, &elm, &nil,
+                       &head, &pair, &prev,
+                       &rslt);
+
+  scm_assert(scm_capi_nil_p(lst) || scm_capi_pair_p(lst));
+
+  nil = scm_api_nil();
+
+  prev = SCM_OBJ_NULL;
+  head = SCM_OBJ_NULL;
+  for (cur = lst; scm_capi_pair_p(cur); cur = scm_api_cdr(cur)) {
+    elm = scm_api_car(cur);
+    if (scm_obj_null_p(elm)) return SCM_OBJ_NULL;
+
+    pair = scm_api_cons(elm, nil);
+    if (scm_obj_null_p(pair)) return SCM_OBJ_NULL;
+
+    if (scm_obj_not_null_p(prev)) {
+      rslt = scm_api_set_cdr(prev, pair);
+      if (scm_obj_null_p(rslt)) return SCM_OBJ_NULL;
+    }
+    else {
+      head = prev;
+    }
+    prev = pair;
+  }
+
+  if (scm_obj_null_p(cur)) return SCM_OBJ_NULL;
+
+  return scm_obj_null_p(head) ? nil : head;
+}
+
+scm_local_func ScmObj
 scm_vm_make_trampolining_code(ScmObj vm, ScmObj clsr,
                               ScmObj args, ScmObj callback)
 {
   ScmObj iseq = SCM_OBJ_INIT, cur = SCM_OBJ_INIT, arg = SCM_OBJ_INIT;
-  ssize_t rslt;
-  uint32_t argc;
+  int i, arity, minargc;
+  ssize_t len, rslt;
 
   SCM_STACK_FRAME_PUSH(&vm, &clsr, &args, &callback, &iseq, &cur, &arg);
 
@@ -1119,8 +1159,33 @@ scm_vm_make_trampolining_code(ScmObj vm, ScmObj clsr,
     if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
   }
 
-  argc = 0;
-  if (!scm_capi_nil_p(args)) {
+  rslt = scm_capi_arity(clsr, &arity);
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  len = scm_capi_length(args);
+  if (len < 0) return SCM_OBJ_NULL;
+
+  if (arity >= 0) {
+    if (len != arity) {
+      scm_capi_error("", 0);    /* TODO: error message */
+      return SCM_OBJ_NULL;
+    }
+    minargc = arity;
+  }
+  else {
+    if (len < -arity - 1) {
+      scm_capi_error("", 0);    /* TODO: error message */
+      return SCM_OBJ_NULL;
+    }
+    minargc = -arity - 1;
+  }
+
+  if (scm_obj_not_null_p(callback)) {
+    rslt = scm_capi_iseq_push_opfmt_noarg(iseq, SCM_OPCODE_EFRAME);
+    if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
+  }
+
+  if (minargc > 0 || arity < 0) {
     if (scm_obj_null_p(callback)) {
       rslt = scm_capi_iseq_push_opfmt_noarg(iseq, SCM_OPCODE_EFRAME);
       if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
@@ -1130,9 +1195,9 @@ scm_vm_make_trampolining_code(ScmObj vm, ScmObj clsr,
       if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
     }
 
-    for (cur = args, argc = 0;
-         !scm_obj_null_p(cur) && !scm_capi_nil_p(cur);
-         cur = scm_api_cdr(cur), argc++) {
+    for (cur = args, i = 0;
+         scm_capi_pair_p(cur) && i < minargc;
+         cur = scm_api_cdr(cur), i++) {
       arg = scm_api_car(cur);
       if (scm_obj_null_p(arg)) return SCM_OBJ_NULL; /* [ERR: [through] */
 
@@ -1145,9 +1210,15 @@ scm_vm_make_trampolining_code(ScmObj vm, ScmObj clsr,
 
     if (scm_obj_null_p(cur)) return SCM_OBJ_NULL; /* [ERR: [through] */
 
-    if (argc > INT32_MAX) {
-      scm_capi_error("", 0);      /* TODO: error message */
-      return SCM_OBJ_NULL;
+    if (arity < 0) {
+      cur = scm_vm_copy_list(cur);
+      if (scm_obj_null_p(cur)) return SCM_OBJ_NULL;
+
+      rslt = scm_capi_iseq_push_opfmt_obj(iseq, SCM_OPCODE_IMMVAL, cur);
+      if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
+
+      rslt = scm_capi_iseq_push_opfmt_noarg(iseq, SCM_OPCODE_PUSH);
+      if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
     }
   }
 
@@ -1155,19 +1226,20 @@ scm_vm_make_trampolining_code(ScmObj vm, ScmObj clsr,
   if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   if (scm_obj_null_p(callback)) {
-    rslt = scm_capi_iseq_push_opfmt_si(iseq, SCM_OPCODE_TAIL_CALL,
-                                       (int32_t)argc);
+    rslt = scm_capi_iseq_push_opfmt_si(iseq, SCM_OPCODE_TAIL_CALL, arity);
     if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
   }
   else {
-    rslt = scm_capi_iseq_push_opfmt_si(iseq, SCM_OPCODE_CALL, (int32_t)argc);
+    rslt = scm_capi_iseq_push_opfmt_si(iseq, SCM_OPCODE_CALL, arity);
     if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
     rslt = scm_capi_iseq_push_opfmt_noarg(iseq, SCM_OPCODE_PUSH);
     if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
-    rslt = scm_capi_iseq_push_opfmt_si(iseq, SCM_OPCODE_TAIL_CALL,
-                                       (int32_t)argc);
+    rslt = scm_capi_iseq_push_opfmt_obj(iseq, SCM_OPCODE_IMMVAL, callback);
+    if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
+
+    rslt = scm_capi_iseq_push_opfmt_si(iseq, SCM_OPCODE_TAIL_CALL, 1);
     if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
   }
 
@@ -1209,7 +1281,7 @@ scm_vm_setup_to_call_exception_handler(ScmObj vm)
     if (rslt < 0) return -1;
   }
 
-  clsr = scm_capi_make_closure(iseq, env);
+  clsr = scm_capi_make_closure(iseq, env, 0);
   if (scm_obj_null_p(clsr)) return -1;
 
   SCM_SLOT_SETQ(ScmVM, vm, reg.cp, clsr);
@@ -1219,19 +1291,87 @@ scm_vm_setup_to_call_exception_handler(ScmObj vm)
 }
 
 scm_local_func int
-scm_vm_do_op_call(ScmObj vm, SCM_OPCODE_T op, uint32_t argc, bool tail_p)
+scm_vm_adjust_arg_to_arity(ScmObj vm, int32_t argc, int arity)
+{
+  ScmObj lst = SCM_OBJ_INIT;
+  int rslt, len, nr_bind;
+
+  SCM_STACK_FRAME_PUSH(&vm,
+                       &lst);
+
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+  scm_assert(-INT_MAX <= argc && argc <= INT_MAX);
+  scm_assert(-INT_MAX <= arity && arity <= INT_MAX);
+
+  if (arity >= 0) {
+    if (argc != arity) {
+      scm_capi_error("arg error", 0);       /* TODO: chg error message */
+      return -1;
+    }
+    return arity;
+  }
+
+  nr_bind = -arity;
+
+  if (argc < 0) {
+    if (argc != arity) {
+      scm_capi_error("arg error", 0);       /* TODO: chg error message */
+      return -1;
+    }
+    return nr_bind;
+  }
+
+  if (argc < nr_bind - 1) {
+    scm_capi_error("arg error", 0);       /* TODO: chg error message */
+    return -1;
+  }
+
+  if (argc == 0) {
+    rslt = scm_vm_make_eframe(vm, 0);
+    if (rslt < 0) return -1;
+  }
+
+  lst = SCM_VM(vm)->cnsts.nil;
+  len = argc - (nr_bind - 1);
+  for (int i = 0; i < len; i++) {
+    lst = scm_api_cons(SCM_VM(vm)->reg.pefp->arg[argc - i - 1], lst);
+    if (scm_obj_null_p(lst)) return -1;
+  }
+
+  SCM_SLOT_SETQ(ScmVM, vm, reg.pefp->arg[nr_bind - 1], lst);
+
+  SCM_VM(vm)->reg.sp = ((uint8_t *)SCM_VM(vm)->reg.pefp
+                        + sizeof(ScmEnvFrame)
+                        + sizeof(ScmObj) * (size_t)nr_bind);
+
+  return nr_bind;
+}
+
+scm_local_func int
+scm_vm_do_op_call(ScmObj vm, SCM_OPCODE_T op, int32_t argc, bool tail_p)
 {
   ScmObj val = SCM_OBJ_INIT, efb = SCM_OBJ_INIT, contcap = SCM_OBJ_INIT;
-  int rslt;
+  int rslt, arity, nr_bind;
 
   SCM_STACK_FRAME_PUSH(&vm,
                        &val, &efb, &contcap);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-  scm_assert(argc <= INT32_MAX);
+  scm_assert(-INT_MAX <= argc && argc <= INT_MAX);
 
-  if (argc > 0) {
-    rslt = scm_vm_commit_eframe(vm, NULL, argc);
+  if (!scm_capi_procedure_p(SCM_VM(vm)->reg.val)) {
+    scm_capi_error("object is not applicable", 1, SCM_VM(vm)->reg.val);
+    return -1;
+  }
+
+  rslt = scm_capi_arity(SCM_VM(vm)->reg.val, &arity);
+  if (rslt < 0) return -1;
+
+  nr_bind = scm_vm_adjust_arg_to_arity(vm, argc, arity);
+  if (nr_bind < 0) return -1;
+
+  if (nr_bind > 0) {
+    rslt = scm_vm_commit_eframe(vm, NULL, (size_t)nr_bind);
     if (rslt < 0) return -1;
   }
 
@@ -1249,9 +1389,9 @@ scm_vm_do_op_call(ScmObj vm, SCM_OPCODE_T op, uint32_t argc, bool tail_p)
       return -1;
     }
 
-    if (argc > 0) {
+    if (nr_bind > 0) {
       if (SCM_VM(vm)->reg.efp > (ScmEnvFrame *)ef_dst) {
-        size_t ef_sz = sizeof(ScmEnvFrame) + sizeof(ScmObj) * argc;
+        size_t ef_sz = sizeof(ScmEnvFrame) + sizeof(ScmObj) * (size_t)nr_bind;
         memmove(ef_dst, SCM_VM(vm)->reg.efp, ef_sz);
         SCM_VM(vm)->reg.efp = (ScmEnvFrame *)ef_dst;
         SCM_VM(vm)->reg.sp = ef_dst + ef_sz;
@@ -1271,9 +1411,9 @@ scm_vm_do_op_call(ScmObj vm, SCM_OPCODE_T op, uint32_t argc, bool tail_p)
     SCM_VM(vm)->reg.cp = SCM_OBJ_NULL;
     SCM_VM(vm)->reg.ip = NULL;
 
-    if (argc > 0)
+    if (nr_bind > 0)
       val = scm_api_call_subrutine(SCM_VM(vm)->reg.val,
-                                   (int)argc, SCM_VM(vm)->reg.efp->arg);
+                                   (int)arity, SCM_VM(vm)->reg.efp->arg);
     else
       val = scm_api_call_subrutine(SCM_VM(vm)->reg.val, 0, NULL);
 
@@ -1291,7 +1431,7 @@ scm_vm_do_op_call(ScmObj vm, SCM_OPCODE_T op, uint32_t argc, bool tail_p)
     if (rslt < 0) return -1;
 
     efp = scm_efbox_to_efp(efb);
-    if (argc > 0)
+    if (nr_bind > 0)
       SCM_WB_EXP(vm, scm_vm_ef_replace_outer(SCM_VM(vm)->reg.efp, efp));
     else
       SCM_WB_EXP(vm, SCM_VM(vm)->reg.efp = efp);
@@ -1314,7 +1454,7 @@ scm_vm_do_op_call(ScmObj vm, SCM_OPCODE_T op, uint32_t argc, bool tail_p)
     if (rslt < 0) return -1;
   }
   else {
-    scm_capi_error("object is not applicable", 1, SCM_VM(vm)->reg.val);
+    scm_assert(false);          /* must not happen */
   }
 
   return 0;
@@ -1401,7 +1541,7 @@ scm_vm_op_call(ScmObj vm, SCM_OPCODE_T op)
   }
 
   SCM_VM(vm)->reg.ip = ip;
-  scm_vm_do_op_call(vm, op, (uint32_t)argc, (op == SCM_OPCODE_TAIL_CALL));
+  scm_vm_do_op_call(vm, op, argc, (op == SCM_OPCODE_TAIL_CALL));
 }
 
 scm_local_func void
@@ -1890,7 +2030,7 @@ scm_local_func void
 scm_vm_op_close(ScmObj vm, SCM_OPCODE_T op)
 {
   ScmObj clsr = SCM_OBJ_INIT, iseq = SCM_OBJ_INIT, env = SCM_OBJ_INIT;
-  int32_t nr_env;
+  int32_t nr_env, arity;
   uint8_t *ip;
   int rslt;
 
@@ -1899,8 +2039,9 @@ scm_vm_op_close(ScmObj vm, SCM_OPCODE_T op)
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
-  ip = scm_capi_inst_fetch_oprand_si_obj(SCM_VM(vm)->reg.ip,
-                                         &nr_env, SCM_CSETTER_L(iseq));
+  ip = scm_capi_inst_fetch_oprand_si_si_obj(SCM_VM(vm)->reg.ip,
+                                            &nr_env, &arity,
+                                            SCM_CSETTER_L(iseq));
   if (ip == NULL) return;
 
   SCM_VM(vm)->reg.ip = ip;
@@ -1914,7 +2055,7 @@ scm_vm_op_close(ScmObj vm, SCM_OPCODE_T op)
                            (size_t)nr_env, SCM_CSETTER_L(env));
   if (rslt < 0) return;
 
-  clsr = scm_capi_make_closure(iseq, env);
+  clsr = scm_capi_make_closure(iseq, env, arity);
   if (scm_obj_null_p(clsr)) return;
 
   SCM_SLOT_SETQ(ScmVM, vm, reg.val, clsr);
@@ -2192,7 +2333,8 @@ scm_vm_run(ScmObj vm, ScmObj iseq)
   SCM_VM(vm)->reg.flags = 0;
   SCM_SLOT_SETQ(ScmVM, vm, reg.val, SCM_VM(vm)->cnsts.undef);
 
-  SCM_SLOT_SETQ(ScmVM, vm, reg.cp, scm_capi_make_closure(iseq, SCM_OBJ_NULL));
+  SCM_SLOT_SETQ(ScmVM, vm, reg.cp,
+                scm_capi_make_closure(iseq, SCM_OBJ_NULL, 0));
   SCM_VM(vm)->reg.ip = scm_capi_iseq_to_ip(iseq);
 
   while (!scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_HALT)) {
@@ -2362,16 +2504,11 @@ scm_vm_setup_stat_trmp(ScmObj vm, ScmObj target, ScmObj args,
                        &cb_subr, &env);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-  scm_assert(scm_capi_closure_p(target) || scm_capi_iseq_p(target));
+  scm_assert(scm_capi_closure_p(target));
   scm_assert(scm_capi_nil_p(args) || scm_capi_pair_p(args));
 
-  if (scm_capi_iseq_p(target)) {
-    target = scm_capi_make_closure(target, SCM_OBJ_NULL);
-    if (scm_obj_null_p(target)) return -1; /* [ERR]: [through] */
-  }
-
   if (callback != NULL) {
-    cb_subr = scm_capi_make_subrutine(callback);
+    cb_subr = scm_capi_make_subrutine(callback, 1);
     if (scm_obj_null_p(target)) return -1; /* [ERR]: [through] */
   }
   else {
@@ -2387,7 +2524,7 @@ scm_vm_setup_stat_trmp(ScmObj vm, ScmObj target, ScmObj args,
     if (rslt < 0) return -1;
   }
 
-  trmp_clsr = scm_capi_make_closure(trmp_code, env);
+  trmp_clsr = scm_capi_make_closure(trmp_code, env, 0);
   if (scm_obj_null_p(trmp_clsr)) return -1; /* [ERR]: [through] */
 
 
