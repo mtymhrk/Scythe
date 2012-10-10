@@ -175,7 +175,7 @@ scm_csetter_setq(scm_csetter_t *st, ScmObj val)
 
 /* procedure.h に定義を置きたいが、api.h が procedure.h に依存するのを避ける
  * ためにここにで定義する */
-typedef ScmObj (*ScmSubrFunc)(int argc, ScmObj *argv);
+typedef int (*ScmSubrFunc)(int argc, const ScmObj *argv);
 
 
 /** definition  for pretty print function ************************************/

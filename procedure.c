@@ -9,13 +9,14 @@
 /*******************************************************************/
 
 int
-scm_proc_initialize(ScmObj proc, ScmObj name, int arity)
+scm_proc_initialize(ScmObj proc, ScmObj name, int arity, unsigned int flags)
 {
   scm_assert(scm_obj_type_flag_set_p(proc, SCM_TYPE_FLG_PROC));
   scm_assert(scm_obj_null_p(name) || scm_capi_string_p(name));
 
   SCM_SLOT_SETQ(ScmProcedure, proc, name, name);
   SCM_PROCEDURE(proc)->arity = arity;
+  SCM_PROCEDURE(proc)->flags = flags;
 
   return 0;
 }
@@ -54,8 +55,8 @@ ScmTypeInfo SCM_SUBRUTINE_TYPE_INFO = {
 };
 
 int
-scm_subrutine_initialize(ScmObj subr,
-                         ScmSubrFunc func, ScmObj name, int arity)
+scm_subrutine_initialize(ScmObj subr, ScmSubrFunc func,
+                         ScmObj name, int arity, unsigned int flags)
 {
   int rslt;
 
@@ -66,7 +67,7 @@ scm_subrutine_initialize(ScmObj subr,
   scm_assert(func != NULL);
   scm_assert(scm_obj_null_p(name) || scm_capi_string_p(name));
 
-  rslt = scm_proc_initialize(subr, name, arity);
+  rslt = scm_proc_initialize(subr, name, arity, flags);
   if (rslt < 0) return -1;
 
   SCM_SUBRUTINE(subr)->subr_func = func;
@@ -76,7 +77,7 @@ scm_subrutine_initialize(ScmObj subr,
 
 ScmObj
 scm_subrutine_new(SCM_MEM_TYPE_T mtype,
-                  ScmSubrFunc func, ScmObj name, int arity)
+                  ScmSubrFunc func, ScmObj name, int arity, unsigned int flags)
 {
   ScmObj subr = SCM_OBJ_INIT;
 
@@ -89,7 +90,7 @@ scm_subrutine_new(SCM_MEM_TYPE_T mtype,
   subr = scm_capi_mem_alloc(&SCM_SUBRUTINE_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(subr)) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
-  if (scm_subrutine_initialize(subr, func, name, arity))
+  if (scm_subrutine_initialize(subr, func, name, arity, flags))
     return SCM_OBJ_NULL;        /* [ERR]: [through] */
 
   return subr;
@@ -138,7 +139,7 @@ scm_closure_initialize(ScmObj clsr,
   scm_assert(scm_capi_iseq_p(iseq));
   scm_assert(scm_obj_null_p(name) || scm_capi_string_p(name));
 
-  rslt = scm_proc_initialize(clsr, name, arity);
+  rslt = scm_proc_initialize(clsr, name, arity, 0);
   if (rslt < 0) return -1;
 
   SCM_SLOT_SETQ(ScmClosure, clsr, iseq, iseq);
@@ -247,7 +248,7 @@ scm_cont_initialize(ScmObj cont, ScmObj contcap)
   name = scm_capi_make_string_from_cstr("continuation", SCM_ENC_ASCII);
   if (scm_obj_null_p(name)) return -1;
 
-  rslt = scm_proc_initialize(cont, name, 1);
+  rslt = scm_proc_initialize(cont, name, -1, SCM_PROC_ADJ_UNWISHED);
   if (rslt < 0) return -1;
 
   SCM_SLOT_SETQ(ScmContinuation, cont, contcap, contcap);

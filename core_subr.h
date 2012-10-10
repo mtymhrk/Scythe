@@ -5,10 +5,7 @@
 
 #include "object.h"
 
-ScmObj scm_subr_func_cons(int argc, ScmObj *argv);
-ScmObj scm_subr_func_car(int argc, ScmObj *argv);
-ScmObj scm_subr_func_cdr(int argc, ScmObj *argv);
-
 void scm_core_subr_system_setup(void);
+void scm_core_clsr_system_setup(void);
 
 #endif /* INCLUDE_CORE_SUBR_H__ */

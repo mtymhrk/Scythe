@@ -30,9 +30,11 @@ struct ScmProcedureRec {
   ScmObjHeader header;
   ScmObj name;
   int arity;
+  unsigned int flags;
 };
 
-int scm_proc_initialize(ScmObj proc, ScmObj name, int arity);
+int scm_proc_initialize(ScmObj proc,
+                        ScmObj name, int arity, unsigned int flags);
 void scm_proc_gc_initialize(ScmObj obj, ScmObj mem);
 int scm_proc_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
 
@@ -48,6 +50,12 @@ scm_proc_name(ScmObj proc)
   return SCM_PROCEDURE(proc)->name;
 }
 
+inline ScmObj
+scm_proc_flg_set_p(ScmObj proc, SCM_PROC_FLG_T flg)
+{
+  return (SCM_PROCEDURE(proc)->flags & flg) ? true : false;
+}
+
 
 /*******************************************************************/
 /*  Subrutine                                                      */
@@ -60,14 +68,14 @@ struct ScmSubrutineRec {
   ScmSubrFunc subr_func;
 };
 
-int scm_subrutine_initialize(ScmObj subr,
-                             ScmSubrFunc func, ScmObj name, int arity);
-ScmObj scm_subrutine_new(SCM_MEM_TYPE_T mtype,
-                         ScmSubrFunc func, ScmObj name, int arity);
+int scm_subrutine_initialize(ScmObj subr,  ScmSubrFunc func,
+                             ScmObj name, int arity, unsigned int flags);
+ScmObj scm_subrutine_new(SCM_MEM_TYPE_T mtype, ScmSubrFunc func,
+                         ScmObj name, int arity, unsigned int flags);
 int scm_subrutine_pretty_print(ScmObj obj, ScmObj port, bool write_p);
 
-inline ScmObj
-scm_subrutine_call(ScmObj subr, int argc, ScmObj *argv)
+inline int
+scm_subrutine_call(ScmObj subr, int argc, const ScmObj *argv)
 {
   scm_assert_obj_type(subr, &SCM_SUBRUTINE_TYPE_INFO);
 

@@ -27,27 +27,30 @@ test_scm_asm_assemble(void)
   ScmObj lst = SCM_OBJ_INIT;
   ScmObj port = SCM_OBJ_INIT;
   const char *str =
-    "((nop)(halt)(undef)(call 5)(tcall 2)(return)(frame)(cframe)(eframe)"
-    "(ecommit 20)(epop)(erebind 21)(push)"
+    "((nop)(halt)(undef)(call 5)(tcall 2)(apply)(tapply)"
+    "(return)(frame)(cframe)(eframe)"
+    "(ecommit 20)(epop)(erebind 21)(push)(mvpush)"
     "(gref vvv)(gdef vvv)(gset vvv)(sref -4 12)(sset -6 13)"
     "(immval vvv)(label lbl)(jmp lbl)(jmpt lbl)(jmpf lbl)(asm ((nop)))(raise)"
     "(box -8 14)(close 10 20 vvv)(asm-close 11 21 ((nop)))"
-    "(demine 15 16)(emine 17)(edemine 18 19))";
+    "(demine 15 16)(emine 17)(edemine 18 19)(arity 22))";
   const uint8_t expected_codes[] = { SCM_OPCODE_NOP, SCM_OPCODE_HALT,
                                      SCM_OPCODE_UNDEF, SCM_OPCODE_CALL,
-                                     SCM_OPCODE_TAIL_CALL, SCM_OPCODE_RETURN,
+                                     SCM_OPCODE_TAIL_CALL, SCM_OPCODE_APPLY,
+                                     SCM_OPCODE_TAIL_APPLY, SCM_OPCODE_RETURN,
                                      SCM_OPCODE_FRAME, SCM_OPCODE_CFRAME,
                                      SCM_OPCODE_EFRAME, SCM_OPCODE_ECOMMIT,
                                      SCM_OPCODE_EPOP, SCM_OPCODE_EREBIND,
-                                     SCM_OPCODE_PUSH, SCM_OPCODE_GREF,
-                                     SCM_OPCODE_GDEF, SCM_OPCODE_GSET,
-                                     SCM_OPCODE_SREF, SCM_OPCODE_SSET,
-                                     SCM_OPCODE_IMMVAL, SCM_OPCODE_JMP,
-                                     SCM_OPCODE_JMPT, SCM_OPCODE_JMPF,
-                                     SCM_OPCODE_IMMVAL, SCM_OPCODE_RAISE,
-                                     SCM_OPCODE_BOX, SCM_OPCODE_CLOSE,
-                                     SCM_OPCODE_CLOSE, SCM_OPCODE_DEMINE,
-                                     SCM_OPCODE_EMINE, SCM_OPCODE_EDEMINE };
+                                     SCM_OPCODE_PUSH, SCM_OPCODE_MVPUSH,
+                                     SCM_OPCODE_GREF, SCM_OPCODE_GDEF,
+                                     SCM_OPCODE_GSET, SCM_OPCODE_SREF,
+                                     SCM_OPCODE_SSET, SCM_OPCODE_IMMVAL,
+                                     SCM_OPCODE_JMP,  SCM_OPCODE_JMPT,
+                                     SCM_OPCODE_JMPF, SCM_OPCODE_IMMVAL,
+                                     SCM_OPCODE_RAISE, SCM_OPCODE_BOX,
+                                     SCM_OPCODE_CLOSE, SCM_OPCODE_CLOSE,
+                                     SCM_OPCODE_DEMINE, SCM_OPCODE_EMINE,
+                                     SCM_OPCODE_EDEMINE, SCM_OPCODE_ARITY };
   ScmObj actual_immv = SCM_OBJ_INIT;
   ScmObj expected_immv = SCM_OBJ_INIT;
   uint8_t *ip;
@@ -81,9 +84,9 @@ test_scm_asm_assemble(void)
       break;
     case SCM_OPCODE_IMMVAL:
       ip = scm_capi_inst_fetch_oprand_obj(ip, SCM_CSETTER_L(actual_immv));
-      if (i == 18)
+      if (i == 21)
         cut_assert_true(scm_capi_eq_p(expected_immv, actual_immv));
-      else if (i == 22)
+      else if (i == 25)
         cut_assert_true(scm_capi_iseq_p(actual_immv));
       else
         cut_assert(false);
@@ -136,12 +139,12 @@ test_scm_asm_assemble(void)
                                                 &actual_arg1,
                                                 &actual_arg2,
                                                 SCM_CSETTER_L(actual_immv));
-      if (i == 28) {
+      if (i == 31) {
         cut_assert_equal_int(10, actual_arg1);
         cut_assert_equal_int(20, actual_arg2);
         cut_assert_true(scm_capi_eq_p(expected_immv, actual_immv));
       }
-      else if (i == 29) {
+      else if (i == 32) {
         cut_assert_equal_int(11, actual_arg1);
         cut_assert_equal_int(21, actual_arg2);
         cut_assert_true(scm_capi_iseq_p(actual_immv));
@@ -160,6 +163,10 @@ test_scm_asm_assemble(void)
       ip = scm_capi_inst_fetch_oprand_si_si(ip, &actual_arg1, &actual_arg2);
       cut_assert_equal_int(18, actual_arg1);
       cut_assert_equal_int(19, actual_arg2);
+      break;
+    case SCM_OPCODE_ARITY:
+      ip = scm_capi_inst_fetch_oprand_si(ip, &actual_arg1);
+      cut_assert_equal_int(22, actual_arg1);
       break;
     }
   }

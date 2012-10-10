@@ -209,7 +209,7 @@ test_scm_api_compile__application_1(void)
   ScmObj exp = SCM_OBJ_INIT, port = SCM_OBJ_INIT;
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
   const char *exp_str = "(func)";
-  const char *asm_str = "((cframe)(gref func)(call 0))";
+  const char *asm_str = "((cframe)(gref func)(call 0)(arity 1))";
 
   SCM_STACK_FRAME_PUSH(&exp, &port,
                        &actual, &expected);
@@ -238,7 +238,8 @@ test_scm_api_compile__application_2(void)
                         " (immval a)(push)"
                         " (immval b)(push)"
                         " (gref func)"
-                        " (call 2))";
+                        " (call 2)"
+                        " (arity 1))";
 
   SCM_STACK_FRAME_PUSH(&exp, &port,
                        &actual, &expected);
@@ -267,7 +268,8 @@ test_scm_api_compile__application_3(void)
                         " (immval 1)(push)"
                         " (asm-close 0 1"
                         "   ((sref 0 0)(return)))"
-                        " (call 1))";
+                        " (call 1)"
+                        " (arity 1))";
 
   SCM_STACK_FRAME_PUSH(&exp, &port,
                        &actual, &expected);
@@ -302,7 +304,8 @@ test_scm_api_compile__application_4(void)
                         "       (gref cons)"
                         "       (tcall 2)))"
                         "    (return)))"
-                        " (call 1))";
+                        " (call 1)"
+                        " (arity 1))";
 
   SCM_STACK_FRAME_PUSH(&exp, &port,
                        &actual, &expected);
@@ -455,6 +458,43 @@ test_scm_api_compile__lambda_5(void)
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
   const char *exp_str = "(lambda ())";
   const char *asm_str = "((asm-close 0 0 ((undef)(return))))";
+
+  SCM_STACK_FRAME_PUSH(&exp, &port,
+                       &actual, &expected);
+
+  port = scm_capi_open_input_string_from_cstr(exp_str, SCM_ENC_ASCII);
+  exp = scm_api_read(port);
+
+  port = scm_capi_open_input_string_from_cstr(asm_str, SCM_ENC_ASCII);
+  expected = scm_api_read(port);
+
+  actual = scm_api_compile(exp);
+
+  /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
+  /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
+
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+}
+
+void
+test_scm_api_compile__lambda_6(void)
+{
+  ScmObj exp = SCM_OBJ_INIT, port = SCM_OBJ_INIT;
+  ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+  const char *exp_str = "(lambda () (cons 'a 'b) (cons 'c 'd))";
+  const char *asm_str = "((asm-close 0 0"
+                        "   ((frame)"
+                        "    (immval a)(push)"
+                        "    (immval b)(push)"
+                        "    (gref cons)"
+                        "    (call 2)"
+                        "    (arity -1)"
+                        "    (eframe)"
+                        "    (immval c)(push)"
+                        "    (immval d)(push)"
+                        "    (gref cons)"
+                        "    (tcall 2))))";
+
 
   SCM_STACK_FRAME_PUSH(&exp, &port,
                        &actual, &expected);
@@ -627,6 +667,46 @@ test_scm_api_compile__let_5(void)
 }
 
 void
+test_scm_api_compile__let_6(void)
+{
+  ScmObj exp = SCM_OBJ_INIT, port = SCM_OBJ_INIT;
+  ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+  const char *exp_str = "(let ((x 1)) (cons 'a 'b) (cons 'c 'd))";
+  const char *asm_str = "((eframe)"
+                        " (immval 1)(push)"
+                        " (ecommit 1)"
+                        " (frame)"
+                        " (immval a)(push)"
+                        " (immval b)(push)"
+                        " (gref cons)"
+                        " (call 2)"
+                        " (arity -1)"
+                        " (frame)"
+                        " (immval c)(push)"
+                        " (immval d)(push)"
+                        " (gref cons)"
+                        " (call 2)"
+                        " (arity 1)"
+                        " (epop))";
+
+  SCM_STACK_FRAME_PUSH(&exp, &port,
+                       &actual, &expected);
+
+  port = scm_capi_open_input_string_from_cstr(exp_str, SCM_ENC_ASCII);
+  exp = scm_api_read(port);
+
+  port = scm_capi_open_input_string_from_cstr(asm_str, SCM_ENC_ASCII);
+  expected = scm_api_read(port);
+
+  actual = scm_api_compile(exp);
+
+  /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
+  /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
+
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+}
+
+void
 test_scm_api_compile__named_let_1(void)
 {
   ScmObj exp = SCM_OBJ_INIT, port = SCM_OBJ_INIT;
@@ -649,6 +729,7 @@ test_scm_api_compile__named_let_1(void)
                         " (sref 1 1)(push)"
                         " (sref 0 0)"
                         " (call 2)"
+                        " (arity 1)"
                         " (epop)"
                         " (epop))";
 
@@ -681,7 +762,8 @@ test_scm_api_compile__named_let_2(void)
                         " (cframe)"
                         " (sref 0 0)"
                         " (call 0)"
-                        "(epop))";
+                        " (arity 1)"
+                        " (epop))";
 
 
   SCM_STACK_FRAME_PUSH(&exp, &port,
@@ -942,6 +1024,50 @@ test_scm_api_compile__let_a_6(void)
 }
 
 void
+test_scm_api_compile__let_a_7(void)
+{
+  ScmObj exp = SCM_OBJ_INIT, port = SCM_OBJ_INIT;
+  ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+  const char *exp_str = "(let* ((x 1)(y 2)) (cons x y) (cons y x))";
+  const char *asm_str = "((eframe)"
+                        " (immval 1)(push)"
+                        " (ecommit 1)"
+                        " (eframe)"
+                        " (immval 2)(push)"
+                        " (ecommit 1)"
+                        " (frame)"
+                        " (sref 0 1)(push)"
+                        " (sref 0 0)(push)"
+                        " (gref cons)"
+                        " (call 2)"
+                        " (arity -1)"
+                        " (frame)"
+                        " (sref 0 0)(push)"
+                        " (sref 0 1)(push)"
+                        " (gref cons)"
+                        " (call 2)"
+                        " (arity 1)"
+                        " (epop)"
+                        " (epop))";
+
+  SCM_STACK_FRAME_PUSH(&exp, &port,
+                       &actual, &expected);
+
+  port = scm_capi_open_input_string_from_cstr(exp_str, SCM_ENC_ASCII);
+  exp = scm_api_read(port);
+
+  port = scm_capi_open_input_string_from_cstr(asm_str, SCM_ENC_ASCII);
+  expected = scm_api_read(port);
+
+  actual = scm_api_compile(exp);
+
+  /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
+  /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
+
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+}
+
+void
 test_scm_api_compile__letrec_1(void)
 {
   ScmObj exp = SCM_OBJ_INIT, port = SCM_OBJ_INIT;
@@ -1075,6 +1201,48 @@ test_scm_api_compile__letrec_5(void)
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
   const char *exp_str = "(letrec ())";
   const char *asm_str = "((undef))";
+
+  SCM_STACK_FRAME_PUSH(&exp, &port,
+                       &actual, &expected);
+
+  port = scm_capi_open_input_string_from_cstr(exp_str, SCM_ENC_ASCII);
+  exp = scm_api_read(port);
+
+  port = scm_capi_open_input_string_from_cstr(asm_str, SCM_ENC_ASCII);
+  expected = scm_api_read(port);
+
+  actual = scm_api_compile(exp);
+
+  /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
+  /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
+
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+}
+
+void
+test_scm_api_compile__letrec_6(void)
+{
+  ScmObj exp = SCM_OBJ_INIT, port = SCM_OBJ_INIT;
+  ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+  const char *exp_str = "(letrec ((x 1)(y 2)) (cons x y) (cons y x))";
+  const char *asm_str = "((emine 2)"
+                        " (eframe)"
+                        " (immval 1)(push)"
+                        " (immval 2)(push)"
+                        " (edemine 2 0)"
+                        " (frame)"
+                        " (sref 0 0)(push)"
+                        " (sref 1 0)(push)"
+                        " (gref cons)"
+                        " (call 2)"
+                        " (arity -1)"
+                        " (frame)"
+                        " (sref 1 0)(push)"
+                        " (sref 0 0)(push)"
+                        " (gref cons)"
+                        " (call 2)"
+                        " (arity 1)"
+                        " (epop))";
 
   SCM_STACK_FRAME_PUSH(&exp, &port,
                        &actual, &expected);
@@ -1238,6 +1406,46 @@ test_scm_api_compile__letrec_a_5(void)
 }
 
 void
+test_scm_api_compile__letrec_a_6(void)
+{
+  ScmObj exp = SCM_OBJ_INIT, port = SCM_OBJ_INIT;
+  ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+  const char *exp_str = "(letrec* ((x 1)(y 2)) (cons x y) (cons y x))";
+  const char *asm_str = "((emine 2)"
+                        " (immval 1)(demine 0 0)"
+                        " (immval 2)(demine 1 0)"
+                        " (frame)"
+                        " (sref 0 0)(push)"
+                        " (sref 1 0)(push)"
+                        " (gref cons)"
+                        " (call 2)"
+                        " (arity -1)"
+                        " (frame)"
+                        " (sref 1 0)(push)"
+                        " (sref 0 0)(push)"
+                        " (gref cons)"
+                        " (call 2)"
+                        " (arity 1)"
+                        " (epop))";
+
+  SCM_STACK_FRAME_PUSH(&exp, &port,
+                       &actual, &expected);
+
+  port = scm_capi_open_input_string_from_cstr(exp_str, SCM_ENC_ASCII);
+  exp = scm_api_read(port);
+
+  port = scm_capi_open_input_string_from_cstr(asm_str, SCM_ENC_ASCII);
+  expected = scm_api_read(port);
+
+  actual = scm_api_compile(exp);
+
+  /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
+  /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
+
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+}
+
+void
 test_scm_api_compile__internal_definition_1(void)
 {
   ScmObj exp = SCM_OBJ_INIT, port = SCM_OBJ_INIT;
@@ -1374,11 +1582,13 @@ test_scm_api_compile__begin_1(void)
                         " (immval b)(push)"
                         " (gref cons)"
                         " (call 2)"
+                        " (arity -1)"
                         " (frame)"
                         " (immval x)(push)"
                         " (immval y)(push)"
                         " (gref cons)"
-                        " (call 2))";
+                        " (call 2)"
+                        " (arity 1))";
 
 
   SCM_STACK_FRAME_PUSH(&exp, &port,
@@ -1973,6 +2183,7 @@ test_scm_api_compile__cond_006(void)
                         "    (push)"
                         "    (gref write)"
                         "    (call 1)"
+                        "    (arity 1)"
                         " (label lbl_cond-j_0))";
 
   SCM_STACK_FRAME_PUSH(&exp, &port,
@@ -2009,12 +2220,14 @@ test_scm_api_compile__cond_007(void)
                         "    (push)"
                         "    (gref write)"
                         "    (call 1)"
+                        "    (arity 1)"
                         "    (jmp lbl_cond-j_0)"
                         " (label lbl_cond-c_1)"
                         "    (frame)"
                         "    (push)"
                         "    (gref write)"
                         "    (call 1)"
+                        "    (arity 1)"
                         " (label lbl_cond-j_0))";
 
   SCM_STACK_FRAME_PUSH(&exp, &port,
@@ -2468,12 +2681,14 @@ test_scm_api_compile__and_004(void)
                         "   (push)"
                         "   (gref null?)"
                         "   (call 1)"
+                        "   (arity 1)"
                         "   (jmpf lbl_and-j_0)"
                         "   (frame)"
                         "   (immval b)"
                         "   (push)"
                         "   (gref null?)"
                         "   (call 1)"
+                        "   (arity 1)"
                         " (label lbl_and-j_0))";
 
   SCM_STACK_FRAME_PUSH(&exp, &port,
@@ -2588,6 +2803,7 @@ test_scm_api_compile__and_008(void)
                         "       (push)"
                         "       (gref null?)"
                         "       (call 1)"
+                        "       (arity 1)"
                         "       (jmpf lbl_and-j_0)"
                         "       (eframe)"
                         "       (immval b)"
@@ -2703,12 +2919,14 @@ test_scm_api_compile__or_004(void)
                         "   (push)"
                         "   (gref null?)"
                         "   (call 1)"
+                        "   (arity 1)"
                         "   (jmpt lbl_or-j_0)"
                         "   (frame)"
                         "   (immval b)"
                         "   (push)"
                         "   (gref null?)"
                         "   (call 1)"
+                        "   (arity 1)"
                         " (label lbl_or-j_0))";
 
   SCM_STACK_FRAME_PUSH(&exp, &port,
@@ -2823,6 +3041,7 @@ test_scm_api_compile__or_008(void)
                         "       (push)"
                         "       (gref null?)"
                         "       (call 1)"
+                        "       (arity 1)"
                         "       (jmpt lbl_or-j_0)"
                         "       (eframe)"
                         "       (immval b)"
@@ -2986,6 +3205,7 @@ test_scm_api_compile__when_005(void)
                         "    (push)"
                         "    (gref null?)"
                         "    (call 1)"
+                        "    (arity 1)"
                         "    (jmpf lbl_when-a_1)"
                         "    (frame)"
                         "    (immval a)"
@@ -2994,6 +3214,7 @@ test_scm_api_compile__when_005(void)
                         "    (push)"
                         "    (gref cons)"
                         "    (call 2)"
+                        "    (arity 1)"
                         "    (jmp lbl_when-j_0)"
                         " (label lbl_when-a_1)"
                         "    (undef)"
@@ -3029,6 +3250,7 @@ test_scm_api_compile__when_006(void)
                         "       (push)"
                         "       (gref null?)"
                         "       (call 1)"
+                        "       (arity 1)"
                         "       (jmpf lbl_when-a_0)"
                         "       (eframe)"
                         "       (immval a)"
@@ -3040,6 +3262,49 @@ test_scm_api_compile__when_006(void)
                         "    (label lbl_when-a_0)"
                         "       (undef)"
                         "       (return))))";
+
+
+  SCM_STACK_FRAME_PUSH(&exp, &port,
+                       &actual, &expected);
+
+  port = scm_capi_open_input_string_from_cstr(exp_str, SCM_ENC_ASCII);
+  exp = scm_api_read(port);
+
+  port = scm_capi_open_input_string_from_cstr(asm_str, SCM_ENC_ASCII);
+  expected = scm_api_read(port);
+
+  actual = scm_api_compile(exp);
+
+  /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
+  /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
+
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+}
+
+void
+test_scm_api_compile__when_007(void)
+{
+  ScmObj exp = SCM_OBJ_INIT, port = SCM_OBJ_INIT;
+  ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+  const char *exp_str = "(when 'z (cons 'a 'b) (cons 'c 'd))";
+  const char *asm_str = "(   (immval z)"
+                        "    (jmpf lbl_when-a_1)"
+                        "    (frame)"
+                        "    (immval a)(push)"
+                        "    (immval b)(push)"
+                        "    (gref cons)"
+                        "    (call 2)"
+                        "    (arity -1)"
+                        "    (frame)"
+                        "    (immval c)(push)"
+                        "    (immval d)(push)"
+                        "    (gref cons)"
+                        "    (call 2)"
+                        "    (arity 1)"
+                        "    (jmp lbl_when-j_0)"
+                        " (label lbl_when-a_1)"
+                        "    (undef)"
+                        " (label lbl_when-j_0))";
 
 
   SCM_STACK_FRAME_PUSH(&exp, &port,
@@ -3196,6 +3461,7 @@ test_scm_api_compile__unless_005(void)
                         "    (push)"
                         "    (gref null?)"
                         "    (call 1)"
+                        "    (arity 1)"
                         "    (jmpt lbl_unless-a_1)"
                         "    (frame)"
                         "    (immval a)"
@@ -3204,6 +3470,7 @@ test_scm_api_compile__unless_005(void)
                         "    (push)"
                         "    (gref cons)"
                         "    (call 2)"
+                        "    (arity 1)"
                         "    (jmp lbl_unless-j_0)"
                         " (label lbl_unless-a_1)"
                         "    (undef)"
@@ -3239,6 +3506,7 @@ test_scm_api_compile__unless_006(void)
                         "       (push)"
                         "       (gref null?)"
                         "       (call 1)"
+                        "       (arity 1)"
                         "       (jmpt lbl_unless-a_0)"
                         "       (eframe)"
                         "       (immval a)"
@@ -3250,6 +3518,49 @@ test_scm_api_compile__unless_006(void)
                         "    (label lbl_unless-a_0)"
                         "       (undef)"
                         "       (return))))";
+
+
+  SCM_STACK_FRAME_PUSH(&exp, &port,
+                       &actual, &expected);
+
+  port = scm_capi_open_input_string_from_cstr(exp_str, SCM_ENC_ASCII);
+  exp = scm_api_read(port);
+
+  port = scm_capi_open_input_string_from_cstr(asm_str, SCM_ENC_ASCII);
+  expected = scm_api_read(port);
+
+  actual = scm_api_compile(exp);
+
+  /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
+  /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
+
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+}
+
+void
+test_scm_api_compile__unless_007(void)
+{
+  ScmObj exp = SCM_OBJ_INIT, port = SCM_OBJ_INIT;
+  ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+  const char *exp_str = "(unless 'z (cons 'a 'b) (cons 'c 'd))";
+  const char *asm_str = "(   (immval z)"
+                        "    (jmpt lbl_unless-a_1)"
+                        "    (frame)"
+                        "    (immval a)(push)"
+                        "    (immval b)(push)"
+                        "    (gref cons)"
+                        "    (call 2)"
+                        "    (arity -1)"
+                        "    (frame)"
+                        "    (immval c)(push)"
+                        "    (immval d)(push)"
+                        "    (gref cons)"
+                        "    (call 2)"
+                        "    (arity 1)"
+                        "    (jmp lbl_unless-j_0)"
+                        " (label lbl_unless-a_1)"
+                        "    (undef)"
+                        " (label lbl_unless-j_0))";
 
 
   SCM_STACK_FRAME_PUSH(&exp, &port,
@@ -3568,6 +3879,77 @@ test_scm_api_compile__do_007(void)
                         "    (label lbl_do-e_0)"
                         "       (undef)"
                         "       (return))))";
+
+
+  SCM_STACK_FRAME_PUSH(&exp, &port,
+                       &actual, &expected);
+
+  port = scm_capi_open_input_string_from_cstr(exp_str, SCM_ENC_ASCII);
+  exp = scm_api_read(port);
+
+  port = scm_capi_open_input_string_from_cstr(asm_str, SCM_ENC_ASCII);
+  expected = scm_api_read(port);
+
+  actual = scm_api_compile(exp);
+
+  /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
+  /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
+
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+}
+
+void
+test_scm_api_compile__do_008(void)
+{
+  ScmObj exp = SCM_OBJ_INIT, port = SCM_OBJ_INIT;
+  ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+  const char *exp_str = "(do ((x 'ix 'sx)"
+                        "     (y 'iy 'sy))"
+                        "    ('t (cons 'a 'b) (cons 'c 'd))"
+                        "  (cons 'e 'f)"
+                        "  (cons 'g 'h))";
+  const char *asm_str = "(   (eframe)"
+                        "    (immval ix)"
+                        "    (push)"
+                        "    (immval iy)"
+                        "    (push)"
+                        "    (ecommit 2)"
+                        " (label lbl_do-s_1)"
+                        "    (immval t)"
+                        "    (jmpt lbl_do-e_0)"
+                        "    (frame)"
+                        "    (immval e)(push)"
+                        "    (immval f)(push)"
+                        "    (gref cons)"
+                        "    (call 2)"
+                        "    (arity -1)"
+                        "    (frame)"
+                        "    (immval g)(push)"
+                        "    (immval h)(push)"
+                        "    (gref cons)"
+                        "    (call 2)"
+                        "    (arity -1)"
+                        "    (eframe)"
+                        "    (immval sx)"
+                        "    (push)"
+                        "    (immval sy)"
+                        "    (push)"
+                        "    (erebind 2)"
+                        "    (jmp lbl_do-s_1)"
+                        " (label lbl_do-e_0)"
+                        "    (frame)"
+                        "    (immval a)(push)"
+                        "    (immval b)(push)"
+                        "    (gref cons)"
+                        "    (call 2)"
+                        "    (arity -1)"
+                        "    (frame)"
+                        "    (immval c)(push)"
+                        "    (immval d)(push)"
+                        "    (gref cons)"
+                        "    (call 2)"
+                        "    (arity 1)"
+                        "    (epop))";
 
 
   SCM_STACK_FRAME_PUSH(&exp, &port,

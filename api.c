@@ -3213,24 +3213,38 @@ scm_capi_arity(ScmObj proc, int *arity)
   return 0;
 }
 
+int
+scm_capi_procedure_flg_set_p(ScmObj proc, SCM_PROC_FLG_T flg, bool *rslt)
+{
+  if (!scm_capi_procedure_p(proc) || rslt == NULL) {
+    scm_capi_error("failed to get procedure information: invalid argument", 0);
+    return -1;
+  }
+
+  *rslt = scm_proc_flg_set_p(proc, flg);
+
+  return 0;
+}
+
 
 /*******************************************************************/
 /*  Subrutine                                                      */
 /*******************************************************************/
 
 ScmObj
-scm_capi_make_subrutine(ScmSubrFunc func, int arity)
+scm_capi_make_subrutine(ScmSubrFunc func, int arity, unsigned int flags)
 {
   if (func == NULL) {
     scm_capi_error("can not make subrutine: invaild argument", 0);
     return SCM_OBJ_NULL;
   }
 
-  return scm_subrutine_new(SCM_MEM_ALLOC_HEAP, func, SCM_OBJ_NULL, arity);
+  return scm_subrutine_new(SCM_MEM_ALLOC_HEAP, func,
+                           SCM_OBJ_NULL, arity, flags);
 }
 
-ScmObj
-scm_api_call_subrutine(ScmObj subr, int argc, ScmObj *argv)
+int
+scm_api_call_subrutine(ScmObj subr, int argc, const ScmObj *argv)
 {
   if (!scm_capi_subrutine_p(subr)) {
     scm_capi_error("can not call subrutine: invalid argument", 0);
@@ -3541,12 +3555,14 @@ scm_capi_iseq_set_si(ScmObj iseq, size_t idx, int32_t val)
 int
 scm_capi_opcode_to_opfmt(int opcode)
 {
-  static int tbl[] = {
+  static const int tbl[] = {
     SCM_OPFMT_NOOPD,            /* SCM_OPCODE_NOP */
     SCM_OPFMT_NOOPD,            /* SCM_OPCODE_HALT */
     SCM_OPFMT_NOOPD,            /* SCM_OPCODE_UNDEF */
     SCM_OPFMT_SI,               /* SCM_OPCODE_CALL */
     SCM_OPFMT_SI,               /* SCM_OPCODE_TAIL_CALL */
+    SCM_OPFMT_NOOPD,            /* SCM_OPCODE_APPLY */
+    SCM_OPFMT_NOOPD,            /* SCM_OPCODE_TAIL_APPLY */
     SCM_OPFMT_NOOPD,            /* SCM_OPCODE_RETURN */
     SCM_OPFMT_NOOPD,            /* SCM_OPCODE_FRAME */
     SCM_OPFMT_NOOPD,            /* SCM_OPCODE_CFRAME */
@@ -3556,6 +3572,7 @@ scm_capi_opcode_to_opfmt(int opcode)
     SCM_OPFMT_SI,               /* SCM_OPCODE_EREBIND */
     SCM_OPFMT_OBJ,              /* SCM_OPCODE_IMMVAL */
     SCM_OPFMT_NOOPD,            /* SCM_OPCODE_PUSH */
+    SCM_OPFMT_NOOPD,            /* SCM_OPCODE_MVPUSH */
     SCM_OPFMT_OBJ,              /* SCM_OPCODE_GREF */
     SCM_OPFMT_OBJ,              /* SCM_OPCODE_GDEF */
     SCM_OPFMT_OBJ,              /* SCM_OPCODE_GSET */
@@ -3570,6 +3587,7 @@ scm_capi_opcode_to_opfmt(int opcode)
     SCM_OPFMT_SI_SI,            /* SCM_OPCODE_DEMINE */
     SCM_OPFMT_SI,               /* SCM_OPCODE_EMINE */
     SCM_OPFMT_SI_SI,            /* SCM_OPCODE_EDEMINE */
+    SCM_OPFMT_SI,               /* SCM_OPCODE_ARITY */
   };
 
   if (opcode < 0 || sizeof(tbl)/sizeof(tbl[0]) <= (size_t)opcode) {
@@ -3900,6 +3918,26 @@ scm_api_global_var_set(ScmObj sym, ScmObj val)
 
 
 /*******************************************************************/
+/*  Return Value                                                   */
+/*******************************************************************/
+
+int
+scm_capi_return_val(const ScmObj *val, int vc)
+{
+  if (vc < 0) {
+    scm_capi_error("failed to setup return value: invalid argument", 0);
+    return -1;
+  }
+  else if (vc > 0 && val == NULL) {
+    scm_capi_error("failed to setup return value: invalid argument", 0);
+    return -1;
+  }
+
+  return scm_vm_set_val_reg(scm_vm_current_vm(), val, vc);
+}
+
+
+/*******************************************************************/
 /*  Continuation                                                   */
 /*******************************************************************/
 
@@ -3941,8 +3979,7 @@ scm_capi_cont_capture_obj(ScmObj cont)
 /*******************************************************************/
 
 int
-scm_capi_trampolining(ScmObj target, ScmObj args,
-                      ScmObj (*callback)(int argc, ScmObj *argv))
+scm_capi_trampolining(ScmObj target, ScmObj args, ScmSubrFunc callback)
 {
   if ((!scm_capi_closure_p(target))) {
     scm_capi_error("", 0);
@@ -4054,26 +4091,33 @@ scm_capi_run_repl(ScmEvaluator *ev)
                                               "   (push)"
                                               "   (gref display)"
                                               "   (call 1)"
+                                              "   (arity 1)"
                                               "   (cframe)"
                                               "   (gref flush-output-port)"
                                               "   (call 0)"
+                                              "   (arity 1)"
                                               "   (frame)"
                                               "   (frame)"
                                               "   (cframe)"
                                               "   (gref read)"
                                               "   (call 0)"
+                                              "   (arity 1)"
                                               "   (push)"
                                               "   (gref eval)"
                                               "   (call 1)"
+                                              "   (arity 1)"
                                               "   (push)"
                                               "   (gref write)"
                                               "   (call 1)"
+                                              "   (arity 1)"
                                               "   (cframe)"
                                               "   (gref newline)"
                                               "   (call 0)"
+                                              "   (arity 1)"
                                               "   (cframe)"
                                               "   (gref flush-output-port)"
                                               "   (call 0)"
+                                              "   (arity 1)"
                                               "   (jmp loop)"
                                               ")",
                                               SCM_ENC_UTF8);

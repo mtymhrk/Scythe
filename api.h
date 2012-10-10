@@ -339,14 +339,14 @@ ScmObj scm_api_standard_error_port(void);
 
 bool scm_capi_procedure_p(ScmObj proc);
 int scm_capi_arity(ScmObj proc, int *arity);
-
+int scm_capi_procedure_flg_set_p(ScmObj proc, SCM_PROC_FLG_T flg, bool *rslt);
 
 /*******************************************************************/
 /*  Subrutine                                                      */
 /*******************************************************************/
 
-ScmObj scm_capi_make_subrutine(ScmSubrFunc func, int arity);
-ScmObj scm_api_call_subrutine(ScmObj subr, int argc, ScmObj *argv);
+ScmObj scm_capi_make_subrutine(ScmSubrFunc func, int arity, unsigned int flags);
+int scm_api_call_subrutine(ScmObj subr, int argc, const ScmObj *argv);
 bool scm_capi_subrutine_p(ScmObj obj);
 
 
@@ -435,6 +435,13 @@ ScmObj scm_api_global_var_set(ScmObj sym, ScmObj val);
 
 
 /*******************************************************************/
+/*  Return Value                                                   */
+/*******************************************************************/
+
+int scm_capi_return_val(const ScmObj *val, int vc);
+
+
+/*******************************************************************/
 /*  Continuation                                                   */
 /*******************************************************************/
 
@@ -447,8 +454,7 @@ ScmObj scm_capi_cont_capture_obj(ScmObj cont);
 /*  Setup Trampolining                                             */
 /*******************************************************************/
 
-int scm_capi_trampolining(ScmObj target, ScmObj arg,
-                          ScmObj (*callback)(int argc, ScmObj *argv));
+int scm_capi_trampolining(ScmObj target, ScmObj arg, ScmSubrFunc callback);
 
 
 /*******************************************************************/

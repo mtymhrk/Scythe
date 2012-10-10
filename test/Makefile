@@ -80,8 +80,9 @@ clean:
 	-cd $(TEST_CASE_LIB_DIR); rm $(TEST_CASE_LIB)
 
 depend:
-	$(CC) -MM $(INCLUDES) $(CFLAGS) $(TEST_TARGET_SRC) $(TEST_CASE_SRC) \
+	$(CC) -MM $(INCLUDES) $(CFLAGS) $(TEST_TARGET_SRC)  \
 	      | sed 's/^\([^ ]\)/$(TEST_TARGET_DIR)\/\1/' > Makefile.depend
+	$(CC) -MM $(INCLUDES) $(CFLAGS) $(TEST_CASE_SRC) >> Makefile.depend
 
 check-syntax:
 	LANG=C $(CC) -fsyntax-only $(INCLUDES) $(CFLAGS) $(CHK_SOURCES)
