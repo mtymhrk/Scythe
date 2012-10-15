@@ -231,7 +231,7 @@ scm_asm_sym2opcode(ScmObj op)
     int r = scm_capi_num_to_sword(op, &cd);
     if (r < 0) return -1;        /* [ERR]: [through] */
 
-    if (cd >= UINT8_MAX) {
+    if (cd > SCM_BYTE_MAX) {
       scm_capi_error("Assembler: invalid opcode", 1, op);
       return -1;
     }
@@ -265,7 +265,7 @@ scm_asm_inst_noopd(ScmObj iseq, int opcode, ScmObj operator, ScmObj operands,
   SCM_STACK_FRAME_PUSH(&iseq, &operator, &operands);
 
   scm_assert(scm_capi_iseq_p(iseq));
-  scm_assert(0 <= opcode && opcode <= UINT8_MAX);
+  scm_assert(0 <= opcode && opcode <= SCM_BYTE_MAX);
   scm_assert(scm_capi_symbol_p(operator));
   scm_assert(scm_capi_nil_p(operands) || scm_capi_pair_p(operands));
   scm_assert(label_tbl != NULL);
@@ -277,7 +277,7 @@ scm_asm_inst_noopd(ScmObj iseq, int opcode, ScmObj operator, ScmObj operands,
     return -1;
   }
 
-  return scm_capi_iseq_push_opfmt_noarg(iseq, (uint8_t)opcode);
+  return scm_capi_iseq_push_opfmt_noarg(iseq, opcode);
 }
 
 static ssize_t
@@ -291,7 +291,7 @@ scm_asm_inst_obj(ScmObj iseq, int opcode, ScmObj operator, ScmObj operands,
                        &arg);
 
   scm_assert(scm_capi_iseq_p(iseq));
-  scm_assert(0 <= opcode && opcode <= UINT8_MAX);
+  scm_assert(0 <= opcode && opcode <= SCM_BYTE_MAX);
   scm_assert(scm_capi_symbol_p(operator));
   scm_assert(scm_capi_nil_p(operands) || scm_capi_pair_p(operands));
   scm_assert(label_tbl != NULL);
@@ -326,7 +326,7 @@ scm_asm_inst_si(ScmObj iseq, int opcode, ScmObj operator, ScmObj operands,
                        &arg);
 
   scm_assert(scm_capi_iseq_p(iseq));
-  scm_assert(0 <= opcode && opcode <= UINT8_MAX);
+  scm_assert(0 <= opcode && opcode <= SCM_BYTE_MAX);
   scm_assert(scm_capi_symbol_p(operator));
   scm_assert(scm_capi_nil_p(operands) || scm_capi_pair_p(operands));
   scm_assert(label_tbl != NULL);
@@ -353,12 +353,12 @@ scm_asm_inst_si(ScmObj iseq, int opcode, ScmObj operator, ScmObj operands,
   rslt = scm_capi_num_to_sword(arg, &val);
   if (rslt < 0) return -1;      /* [ERR]: [through] */
 
-  if (val < INT32_MIN || INT32_MAX < val) {
+  if (val < INT_MIN || INT_MAX < val) {
     scm_capi_error("Assembler: operand is out of range", 2, operator, arg);
     return -1;
   }
 
-  return scm_capi_iseq_push_opfmt_si(iseq, opcode, (int32_t)val);
+  return scm_capi_iseq_push_opfmt_si(iseq, opcode, (int)val);
 }
 
 static ssize_t
@@ -374,7 +374,7 @@ scm_asm_inst_si_si(ScmObj iseq, int opcode, ScmObj operator, ScmObj operands,
                        &arg1, &arg2);
 
   scm_assert(scm_capi_iseq_p(iseq));
-  scm_assert(0 <= opcode && opcode <= UINT8_MAX);
+  scm_assert(0 <= opcode && opcode <= SCM_BYTE_MAX);
   scm_assert(scm_capi_symbol_p(operator));
   scm_assert(scm_capi_nil_p(operands) || scm_capi_pair_p(operands));
   scm_assert(label_tbl != NULL);
@@ -409,7 +409,7 @@ scm_asm_inst_si_si(ScmObj iseq, int opcode, ScmObj operator, ScmObj operands,
   rslt = scm_capi_num_to_sword(arg1, &val1);
   if (rslt < 0) return -1;      /* [ERR]: [through] */
 
-  if (val1 < INT32_MIN || INT32_MAX < val1) {
+  if (val1 < INT_MIN || INT_MAX < val1) {
     scm_capi_error("Assembler: operand is out of range", 2, operator, arg1);
     return -1;
   }
@@ -417,13 +417,12 @@ scm_asm_inst_si_si(ScmObj iseq, int opcode, ScmObj operator, ScmObj operands,
   rslt = scm_capi_num_to_sword(arg2, &val2);
   if (rslt < 0) return -1;      /* [ERR]: [through] */
 
-  if (val2 < INT32_MIN || INT32_MAX < val2) {
+  if (val2 < INT_MIN || INT_MAX < val2) {
     scm_capi_error("Assembler: operand is out of range", 2, operator, arg2);
     return -1;
   }
 
-  return scm_capi_iseq_push_opfmt_si_si(iseq, opcode,
-                                        (int32_t)val1, (int32_t)val2);
+  return scm_capi_iseq_push_opfmt_si_si(iseq, opcode, (int)val1, (int)val2);
 }
 
 static ssize_t
@@ -440,7 +439,7 @@ scm_asm_inst_si_si_obj(ScmObj iseq, int opcode,
                        &arg1, &arg2, &arg3);
 
   scm_assert(scm_capi_iseq_p(iseq));
-  scm_assert(0 <= opcode && opcode <= UINT8_MAX);
+  scm_assert(0 <= opcode && opcode <= SCM_BYTE_MAX);
   scm_assert(scm_capi_symbol_p(operator));
   scm_assert(scm_capi_nil_p(operands) || scm_capi_pair_p(operands));
   scm_assert(label_tbl != NULL);
@@ -478,7 +477,7 @@ scm_asm_inst_si_si_obj(ScmObj iseq, int opcode,
   rslt = scm_capi_num_to_sword(arg1, &val1);
   if (rslt < 0) return -1;      /* [ERR]: [through] */
 
-  if (val1 < INT32_MIN || INT32_MAX < val1) {
+  if (val1 < INT_MIN || INT_MAX < val1) {
     scm_capi_error("Assembler: operand is out of range", 2, operator, arg1);
     return -1;
   }
@@ -486,13 +485,13 @@ scm_asm_inst_si_si_obj(ScmObj iseq, int opcode,
   rslt = scm_capi_num_to_sword(arg2, &val2);
   if (rslt < 0) return -1;      /* [ERR]: [through] */
 
-  if (val2 < INT32_MIN || INT32_MAX < val2) {
+  if (val2 < INT_MIN || INT_MAX < val2) {
     scm_capi_error("Assembler: operand is out of range", 2, operator, arg2);
     return -1;
   }
 
   return scm_capi_iseq_push_opfmt_si_si_obj(iseq, opcode,
-                                            (int32_t)val1, (int32_t)val2, arg3);
+                                            (int)val1, (int)val2, arg3);
 }
 
 static ssize_t
@@ -506,7 +505,7 @@ scm_asm_inst_iof(ScmObj iseq, int opcode, ScmObj operator, ScmObj operands,
                        &label);
 
   scm_assert(scm_capi_iseq_p(iseq));
-  scm_assert(0 <= opcode && opcode <= UINT8_MAX);
+  scm_assert(0 <= opcode && opcode <= SCM_BYTE_MAX);
   scm_assert(scm_capi_symbol_p(operator));
   scm_assert(scm_capi_nil_p(operands) || scm_capi_pair_p(operands));
   scm_assert(label_tbl != NULL);
@@ -679,7 +678,7 @@ scm_asm_inst_asm_close(ScmObj iseq, int opcode,
   rslt = scm_capi_num_to_sword(arg1, &val1);
   if (rslt < 0) return -1;      /* [ERR]: [through] */
 
-  if (val1 < INT32_MIN || INT32_MAX < val1) {
+  if (val1 < INT_MIN || INT_MAX < val1) {
     scm_capi_error("Assembler: operand is out of range", 2, operator, arg1);
     return -1;
   }
@@ -687,7 +686,7 @@ scm_asm_inst_asm_close(ScmObj iseq, int opcode,
   rslt = scm_capi_num_to_sword(arg2, &val2);
   if (rslt < 0) return -1;      /* [ERR]: [through] */
 
-  if (val2 < INT32_MIN || INT32_MAX < val2) {
+  if (val2 < INT_MIN || INT_MAX < val2) {
     scm_capi_error("Assembler: operand is out of range", 2, operator, arg2);
     return -1;
   }
@@ -696,7 +695,7 @@ scm_asm_inst_asm_close(ScmObj iseq, int opcode,
   if (scm_obj_null_p(arg3)) return -1; /* [ERR]: [through] */
 
   return scm_capi_iseq_push_opfmt_si_si_obj(iseq, SCM_OPCODE_CLOSE,
-                                            (int32_t)val1, (int32_t)val2, arg3);
+                                            (int)val1, (int)val2, arg3);
 }
 
 static ssize_t
@@ -811,18 +810,17 @@ scm_asm_label_resolv(ScmObj iseq, ScmCHashTbl *label_tbl, EArray *labels)
 
     rec = (ScmLabelInfo *)val;
     EARY_FOR_EACH(&rec->ref, idx2,  ref_idx) {
-      if ((ssize_t)rec->idx < INT32_MIN + (ssize_t)*ref_idx + 4) {
+      if ((ssize_t)rec->idx < INT_MIN + (ssize_t)*ref_idx + 4) {
         scm_capi_error("Assember: operand is underflow", 0);
         goto err_free_rec;
       }
-      else if ((ssize_t)*ref_idx - 4 > INT32_MAX - (ssize_t)rec->idx) {
+      else if ((ssize_t)*ref_idx - 4 > INT_MAX - (ssize_t)rec->idx) {
         scm_capi_error("Assember: operand is overflow", 0);
         goto err_free_rec;
       }
 
       scm_capi_iseq_set_si(iseq, *ref_idx,
-                           (int32_t)((ssize_t)rec->idx
-                                     - (ssize_t)*ref_idx - 4));
+                           (int)((ssize_t)rec->idx - (ssize_t)*ref_idx - 4));
     }
 
     rslt = scm_chash_tbl_delete(label_tbl, SCM_CHASH_TBL_KEY(*lbl), NULL, NULL);

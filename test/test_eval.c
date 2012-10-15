@@ -188,6 +188,9 @@ test_eval__quote_1(void)
 
   actual = scm_capi_ut_eval(ev, exp);
 
+  /* scm_api_write(expected, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
+  /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
+
   cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
 

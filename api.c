@@ -3295,7 +3295,7 @@ scm_capi_closure_to_iseq(ScmObj clsr)
   return scm_closure_body(clsr);
 }
 
-uint8_t *
+scm_byte_t *
 scm_capi_closure_to_ip(ScmObj clsr)
 {
   ScmObj iseq = SCM_OBJ_INIT;
@@ -3377,7 +3377,7 @@ scm_capi_iseq_p(ScmObj obj)
   return (scm_obj_type_p(obj, &SCM_ISEQ_TYPE_INFO) ? true : false);
 }
 
-uint8_t *
+scm_byte_t *
 scm_capi_iseq_to_ip(ScmObj iseq)
 {
   if (!scm_capi_iseq_p(iseq)) {
@@ -3404,7 +3404,6 @@ scm_capi_iseq_length(ScmObj iseq)
 ssize_t
 scm_capi_iseq_push_opfmt_noarg(ScmObj iseq, SCM_OPCODE_T op)
 {
-  ssize_t rslt;
   SCM_STACK_FRAME_PUSH(&iseq);
 
   if (!scm_capi_iseq_p(iseq)) {
@@ -3412,10 +3411,7 @@ scm_capi_iseq_push_opfmt_noarg(ScmObj iseq, SCM_OPCODE_T op)
     return -1;
   }
 
-  rslt = scm_iseq_push_uint8(iseq, op);
-  if (rslt < 0) return -1;      /* [ERR: [through] */
-
-  return scm_iseq_push_uint8(iseq, 0);
+  return scm_iseq_push_ushort(iseq, op);
 }
 
 ssize_t
@@ -3435,17 +3431,14 @@ scm_capi_iseq_push_opfmt_obj(ScmObj iseq, SCM_OPCODE_T op, ScmObj val)
     return -1;
   }
 
-  rslt = scm_iseq_push_uint8(iseq, op);
-  if (rslt < 0) return -1;      /* [ERR]: [through] */
-
-  rslt = scm_iseq_push_uint8(iseq, 0);
+  rslt = scm_iseq_push_ushort(iseq, op);
   if (rslt < 0) return -1;      /* [ERR]: [through] */
 
   return scm_iseq_push_obj(iseq, val);
 }
 
 ssize_t
-scm_capi_iseq_push_opfmt_si(ScmObj iseq, SCM_OPCODE_T op, int32_t val)
+scm_capi_iseq_push_opfmt_si(ScmObj iseq, SCM_OPCODE_T op, int val)
 {
   ssize_t rslt;
 
@@ -3456,18 +3449,14 @@ scm_capi_iseq_push_opfmt_si(ScmObj iseq, SCM_OPCODE_T op, int32_t val)
     return -1;
   }
 
-  rslt = scm_iseq_push_uint8(iseq, op);
+  rslt = scm_iseq_push_ushort(iseq, op);
   if (rslt < 0) return -1;   /* provisional implemntation */
 
-  rslt = scm_iseq_push_uint8(iseq, 0);
-  if (rslt < 0) return -1;   /* provisional implemntation */
-
-  return scm_iseq_push_uint32(iseq, (uint32_t)val);
+  return scm_iseq_push_uint(iseq, (unsigned int)val);
 }
 
 ssize_t
-scm_capi_iseq_push_opfmt_si_si(ScmObj iseq, SCM_OPCODE_T op,
-                               int32_t val1, int32_t val2)
+scm_capi_iseq_push_opfmt_si_si(ScmObj iseq, SCM_OPCODE_T op, int val1, int val2)
 {
   ssize_t rslt;
 
@@ -3478,21 +3467,18 @@ scm_capi_iseq_push_opfmt_si_si(ScmObj iseq, SCM_OPCODE_T op,
     return -1;
   }
 
-  rslt = scm_iseq_push_uint8(iseq, op);
+  rslt = scm_iseq_push_ushort(iseq, op);
   if (rslt < 0) return -1;   /* provisional implemntation */
 
-  rslt = scm_iseq_push_uint8(iseq, 0);
+  rslt = scm_iseq_push_uint(iseq, (unsigned int)val1);
   if (rslt < 0) return -1;   /* provisional implemntation */
 
-  rslt = scm_iseq_push_uint32(iseq, (uint32_t)val1);
-  if (rslt < 0) return -1;   /* provisional implemntation */
-
-  return scm_iseq_push_uint32(iseq, (uint32_t)val2);
+  return scm_iseq_push_uint(iseq, (unsigned int)val2);
 }
 
 ssize_t
 scm_capi_iseq_push_opfmt_si_si_obj(ScmObj iseq, SCM_OPCODE_T op,
-                                   int32_t val1, int32_t val2, ScmObj obj)
+                                   int val1, int val2, ScmObj obj)
 {
   ssize_t rslt;
 
@@ -3509,29 +3495,26 @@ scm_capi_iseq_push_opfmt_si_si_obj(ScmObj iseq, SCM_OPCODE_T op,
     return -1;
   }
 
-  rslt = scm_iseq_push_uint8(iseq, op);
+  rslt = scm_iseq_push_ushort(iseq, op);
   if (rslt < 0) return -1;   /* provisional implemntation */
 
-  rslt = scm_iseq_push_uint8(iseq, 0);
+  rslt = scm_iseq_push_uint(iseq, (unsigned int)val1);
   if (rslt < 0) return -1;   /* provisional implemntation */
 
-  rslt = scm_iseq_push_uint32(iseq, (uint32_t)val1);
-  if (rslt < 0) return -1;   /* provisional implemntation */
-
-  rslt = scm_iseq_push_uint32(iseq, (uint32_t)val2);
+  rslt = scm_iseq_push_uint(iseq, (unsigned int)val2);
   if (rslt < 0) return -1;   /* provisional implemntation */
 
   return scm_iseq_push_obj(iseq, obj);
 }
 
 ssize_t
-scm_capi_iseq_push_opfmt_iof(ScmObj iseq, SCM_OPCODE_T op, int32_t offset)
+scm_capi_iseq_push_opfmt_iof(ScmObj iseq, SCM_OPCODE_T op, int offset)
 {
   return scm_capi_iseq_push_opfmt_si(iseq, op, offset);
 }
 
 ssize_t
-scm_capi_iseq_set_si(ScmObj iseq, size_t idx, int32_t val)
+scm_capi_iseq_set_si(ScmObj iseq, size_t idx, int val)
 {
   ssize_t rslt;
 
@@ -3546,7 +3529,7 @@ scm_capi_iseq_set_si(ScmObj iseq, size_t idx, int32_t val)
     return -1;
   }
 
-  rslt = scm_iseq_set_uint32(iseq, idx, (uint32_t)val);
+  rslt = scm_iseq_set_uint(iseq, idx, (unsigned int)val);
   if (rslt < 0) return -1;   /* provisional implemntation */
 
   return (ssize_t)idx;
@@ -3598,8 +3581,8 @@ scm_capi_opcode_to_opfmt(int opcode)
   return tbl[opcode];
 }
 
-uint8_t *
-scm_capi_inst_fetch_oprand_obj(uint8_t *ip, scm_csetter_t *obj)
+scm_byte_t *
+scm_capi_inst_fetch_oprand_obj(scm_byte_t *ip, scm_csetter_t *obj)
 {
   ScmObj opr = SCM_OBJ_INIT;
 
@@ -3614,19 +3597,15 @@ scm_capi_inst_fetch_oprand_obj(uint8_t *ip, scm_csetter_t *obj)
     return NULL;
   }
 
-#if SCM_UWORD_MAX > UINT32_MAX
-  opr = SCM_OBJ(scm_iseq_fetch_uint64(&ip));
-#else
-  opr = SCM_OBJ_(scm_iseq_fetch_uint32(&ip));
-#endif
+  opr = scm_iseq_fetch_obj(&ip);
 
   scm_csetter_setq(obj, opr);
 
   return ip;
 }
 
-uint8_t *
-scm_capi_inst_fetch_oprand_si(uint8_t *ip, int32_t *si)
+scm_byte_t *
+scm_capi_inst_fetch_oprand_si(scm_byte_t *ip, int *si)
 {
   if (ip == NULL) {
     scm_capi_error("can not fetch operands: invalid ip", 0);
@@ -3637,13 +3616,13 @@ scm_capi_inst_fetch_oprand_si(uint8_t *ip, int32_t *si)
     return NULL;
   }
 
-  *si = scm_iseq_fetch_int32(&ip);
+  *si = scm_iseq_fetch_int(&ip);
 
   return ip;
 }
 
-uint8_t *
-scm_capi_inst_fetch_oprand_si_si(uint8_t *ip, int32_t *si1, int32_t *si2)
+scm_byte_t *
+scm_capi_inst_fetch_oprand_si_si(scm_byte_t *ip, int *si1, int *si2)
 {
   if (ip == NULL) {
     scm_capi_error("can not fetch operands: invalid ip", 0);
@@ -3658,16 +3637,15 @@ scm_capi_inst_fetch_oprand_si_si(uint8_t *ip, int32_t *si1, int32_t *si2)
     return NULL;
   }
 
-  *si1 = scm_iseq_fetch_int32(&ip);
-  *si2 = scm_iseq_fetch_int32(&ip);
+  *si1 = scm_iseq_fetch_int(&ip);
+  *si2 = scm_iseq_fetch_int(&ip);
 
   return ip;
 }
 
-uint8_t *
-scm_capi_inst_fetch_oprand_si_si_obj(uint8_t *ip,
-                                     int32_t *si1, int32_t *si2,
-                                     scm_csetter_t *obj)
+scm_byte_t *
+scm_capi_inst_fetch_oprand_si_si_obj(scm_byte_t *ip,
+                                     int *si1, int *si2, scm_csetter_t *obj)
 {
   ScmObj opr = SCM_OBJ_INIT;
 
@@ -3690,28 +3668,23 @@ scm_capi_inst_fetch_oprand_si_si_obj(uint8_t *ip,
     return NULL;
   }
 
-  *si1 = scm_iseq_fetch_int32(&ip);
-  *si2 = scm_iseq_fetch_int32(&ip);
-
-#if SCM_UWORD_MAX > UINT32_MAX
-  opr = SCM_OBJ(scm_iseq_fetch_uint64(&ip));
-#else
-  opr = SCM_OBJ(scm_iseq_fetch_uint32(&ip));
-#endif
+  *si1 = scm_iseq_fetch_int(&ip);
+  *si2 = scm_iseq_fetch_int(&ip);
+  opr = scm_iseq_fetch_obj(&ip);
 
   scm_csetter_setq(obj, opr);
 
   return ip;
 }
 
-uint8_t *
-scm_capi_inst_fetch_oprand_iof(uint8_t *ip, int32_t *offset)
+scm_byte_t *
+scm_capi_inst_fetch_oprand_iof(scm_byte_t *ip, int *offset)
 {
   return scm_capi_inst_fetch_oprand_si(ip, offset);
 }
 
 int
-scm_capi_inst_update_oprand_obj(uint8_t *ip, ScmObj clsr, ScmObj obj)
+scm_capi_inst_update_oprand_obj(scm_byte_t *ip, ScmObj clsr, ScmObj obj)
 {
   ScmObj iseq;
   ssize_t idx;

@@ -357,7 +357,7 @@ bool scm_capi_subrutine_p(ScmObj obj);
 ScmObj scm_capi_make_closure(ScmObj iseq, ScmObj env, int arity);
 bool scm_capi_closure_p(ScmObj obj);
 ScmObj scm_capi_closure_to_iseq(ScmObj clsr);
-uint8_t *scm_capi_closure_to_ip(ScmObj clsr);
+scm_byte_t *scm_capi_closure_to_ip(ScmObj clsr);
 int scm_capi_closure_env(ScmObj clsr, scm_csetter_t *env);
 
 
@@ -376,37 +376,37 @@ int scm_capi_syntax_id(ScmObj syx);
 
 ScmObj scm_api_make_iseq(void);
 bool scm_capi_iseq_p(ScmObj obj);
-uint8_t *scm_capi_iseq_to_ip(ScmObj iseq);
+scm_byte_t *scm_capi_iseq_to_ip(ScmObj iseq);
 ssize_t scm_capi_iseq_length(ScmObj iseq);
 ssize_t scm_capi_iseq_push_opfmt_noarg(ScmObj iseq, SCM_OPCODE_T op);
 ssize_t scm_capi_iseq_push_opfmt_obj(ScmObj iseq, SCM_OPCODE_T op, ScmObj val);
-ssize_t scm_capi_iseq_push_opfmt_si(ScmObj iseq, SCM_OPCODE_T op, int32_t val);
+ssize_t scm_capi_iseq_push_opfmt_si(ScmObj iseq, SCM_OPCODE_T op, int val);
 ssize_t scm_capi_iseq_push_opfmt_si_si(ScmObj iseq, SCM_OPCODE_T op,
-                                       int32_t val1, int32_t val2);
+                                       int val1, int val2);
 ssize_t scm_capi_iseq_push_opfmt_si_si_obj(ScmObj iseq, SCM_OPCODE_T op,
-                                           int32_t val1, int val2, ScmObj obj);
+                                           int val1, int val2, ScmObj obj);
 ssize_t scm_capi_iseq_push_opfmt_iof(ScmObj iseq,
-                                     SCM_OPCODE_T op, int32_t offset);
-ssize_t scm_capi_iseq_set_si(ScmObj iseq, size_t idx, int32_t val);
+                                     SCM_OPCODE_T op, int offset);
+ssize_t scm_capi_iseq_set_si(ScmObj iseq, size_t idx, int val);
 
 int scm_capi_opcode_to_opfmt(int opcode);
 
-#define SCM_CAPI_INST_FETCH_OP(ip, op) \
-  do {                                 \
-    (op) = *(uint8_t *)(ip);           \
-    (ip) = (uint8_t *)(ip) + 2;        \
+#define SCM_CAPI_INST_FETCH_OP(ip, op)                  \
+  do {                                                  \
+    (op) = *(unsigned short *)(ip);                      \
+    (ip) = (scm_byte_t *)(ip) + sizeof(unsigned short); \
   } while (0)
 
-uint8_t *scm_capi_inst_fetch_oprand_obj(uint8_t *ip, scm_csetter_t *obj);
-uint8_t *scm_capi_inst_fetch_oprand_si(uint8_t *ip, int32_t *si);
-uint8_t *scm_capi_inst_fetch_oprand_si_si(uint8_t *ip,
-                                          int32_t *si1, int32_t *si2);
-uint8_t *scm_capi_inst_fetch_oprand_si_si_obj(uint8_t *ip,
-                                              int32_t *si1, int32_t *si2,
-                                              scm_csetter_t *obj);
-uint8_t *scm_capi_inst_fetch_oprand_iof(uint8_t *ip, int32_t *offset);
+scm_byte_t *scm_capi_inst_fetch_oprand_obj(scm_byte_t *ip, scm_csetter_t *obj);
+scm_byte_t *scm_capi_inst_fetch_oprand_si(scm_byte_t *ip, int *si);
+scm_byte_t *scm_capi_inst_fetch_oprand_si_si(scm_byte_t *ip,
+                                             int *si1, int *si2);
+scm_byte_t *scm_capi_inst_fetch_oprand_si_si_obj(scm_byte_t *ip,
+                                                 int *si1, int *si2,
+                                                 scm_csetter_t *obj);
+scm_byte_t *scm_capi_inst_fetch_oprand_iof(scm_byte_t *ip, int *offset);
 
-int scm_capi_inst_update_oprand_obj(uint8_t *ip, ScmObj clsr, ScmObj obj);
+int scm_capi_inst_update_oprand_obj(scm_byte_t *ip, ScmObj clsr, ScmObj obj);
 
 
 /*******************************************************************/

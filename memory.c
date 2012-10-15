@@ -152,10 +152,10 @@ scm_mem_heap_cell_body_size(ScmMemHeapCell *cell)
   return cell->size - sizeof(ScmMemHeapCell);
 }
 
-scm_local_inline uint8_t *
+scm_local_inline scm_byte_t *
 scm_mem_heap_cell_tail(ScmMemHeapCell *cell)
 {
-  return (uint8_t *)cell + cell->size;
+  return (scm_byte_t *)cell + cell->size;
 }
 
 
@@ -166,7 +166,7 @@ scm_mem_heap_new_block(size_t sz)
 {
   ScmMemHeapBlock *block = scm_capi_malloc(sizeof(ScmMemHeapBlock) + (sz));
   if (block != NULL) {
-    uint8_t *p;
+    scm_byte_t *p;
     block->next = NULL;
     block->prev = NULL;
     block->size = sz;
@@ -196,7 +196,7 @@ scm_mem_heap_block_free(ScmMemHeapBlock *block)
   return block->size - block->used;
 }
 
-scm_local_inline uint8_t *
+scm_local_inline scm_byte_t *
 scm_mem_heap_block_head(ScmMemHeapBlock *block)
 {
   return scm_mem_align_ptr(block->heap);
@@ -242,7 +242,7 @@ scm_mem_heap_block_deallocable_p(ScmMemHeapBlock *block, size_t sz)
 scm_local_inline size_t
 scm_mem_heap_block_ptr_offset(ScmMemHeapBlock *block, void *ptr)
 {
-  return (size_t)((uint8_t *)ptr - block->heap);
+  return (size_t)((scm_byte_t *)ptr - block->heap);
 }
 
 scm_local_inline bool
@@ -262,15 +262,15 @@ scm_mem_heap_block_next_cell(ScmMemHeapBlock *block, ScmMemHeapCell *cell)
 scm_local_inline void
 scm_mem_heap_block_clean(ScmMemHeapBlock *block)
 {
-  uint8_t *p = scm_mem_heap_block_head(block);
+  scm_byte_t *p = scm_mem_heap_block_head(block);
   block->used = (size_t)p - (size_t)(block)->heap;
 }
 
 scm_local_inline bool
 scm_mem_heap_block_has_obj_p(ScmMemHeapBlock *block, ScmObj obj)
 {
-  return ((block->heap <= (uint8_t *)obj
-           && (uint8_t *)obj < block->heap + block->used) ?
+  return ((block->heap <= (scm_byte_t *)obj
+           && (scm_byte_t *)obj < block->heap + block->used) ?
           true : false);
 }
 
@@ -490,11 +490,11 @@ scm_mem_heap_cancel_alloc(ScmMemHeap *heap, size_t size)
 
 /** private functions for ScmMemRootBlock ************************************/
 
-scm_local_inline uint8_t
+scm_local_inline scm_byte_t
 scm_mem_root_block_shift_byte(ScmMemRootBlock *block)
 {
-  return (uint8_t)(SCM_MEM_ALIGN_BYTE
-                   - (uintptr_t)(block)->object % SCM_MEM_ALIGN_BYTE);
+  return (scm_byte_t)(SCM_MEM_ALIGN_BYTE
+                      - (uintptr_t)(block)->object % SCM_MEM_ALIGN_BYTE);
 
 }
 
@@ -504,22 +504,22 @@ scm_mem_root_block_object(ScmMemRootBlock *block)
   return SCM_OBJ(block->object + scm_mem_root_block_shift_byte(block));
 }
 
-scm_local_inline uint8_t
+scm_local_inline scm_byte_t
 scm_mem_root_block_obj_shift_byte(ScmObj obj)
 {
-  return *((uint8_t *)obj - 1);
+  return *((scm_byte_t *)obj - 1);
 }
 
 scm_local_inline void
-scm_mem_root_block_obj_set_shit_byte(ScmObj obj, uint8_t sf)
+scm_mem_root_block_obj_set_shit_byte(ScmObj obj, scm_byte_t sf)
 {
-  *((uint8_t *)obj - 1) = sf;
+  *((scm_byte_t *)obj - 1) = sf;
 }
 
 scm_local_inline ScmMemRootBlock *
 scm_mem_root_block_obj_header(ScmObj obj)
 {
-  return (ScmMemRootBlock *)((uint8_t *)obj
+  return (ScmMemRootBlock *)((scm_byte_t *)obj
                              - scm_mem_root_block_obj_shift_byte(obj)
                              - sizeof(ScmMemRootBlockHdr));
 }
@@ -532,7 +532,7 @@ scm_mem_root_block_new(size_t sz)
   block = scm_capi_malloc(sz);
   if (block == NULL) return NULL;
 
-  uint8_t shift = scm_mem_root_block_shift_byte(block);
+  scm_byte_t shift = scm_mem_root_block_shift_byte(block);
   ScmObj obj = scm_mem_root_block_object(block);
   block->hdr.next = NULL;
   block->hdr.prev = NULL;
@@ -594,7 +594,7 @@ scm_mem_cell_to_obj(ScmMemHeapCell *cell)
 scm_local_inline ScmMemHeapCell *
 scm_mem_obj_to_cell(ScmObj obj)
 {
-  return (ScmMemHeapCell *)((uint8_t *)obj - offsetof(ScmMemHeapCell, body));
+  return (ScmMemHeapCell *)((scm_byte_t *)obj - offsetof(ScmMemHeapCell, body));
 }
 
 
@@ -603,7 +603,7 @@ scm_mem_obj_to_cell(ScmObj obj)
 scm_local_inline ScmRef
 scm_mem_prev_obj_has_fin_func(ScmTypeInfo *type, ScmObj obj)
 {
-  uint8_t *p;
+  scm_byte_t *p;
 
   p = scm_mem_heap_cell_tail(scm_mem_obj_to_cell(obj)) - sizeof(ScmObj) * 2;
 
@@ -616,7 +616,7 @@ scm_mem_prev_obj_has_fin_func(ScmTypeInfo *type, ScmObj obj)
 scm_local_inline ScmRef
 scm_mem_next_obj_has_fin_func(ScmTypeInfo *type, ScmObj obj)
 {
-  uint8_t *p;
+  scm_byte_t *p;
 
   p = scm_mem_heap_cell_tail(scm_mem_obj_to_cell(obj)) - sizeof(ScmObj);
 

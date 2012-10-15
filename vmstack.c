@@ -229,7 +229,7 @@ scm_vmss_gc_finalize(ScmObj obj)
 }
 
 int
-scm_vmsr_initialize(ScmObj vmsr, ScmObj segment, uint8_t *base, ScmObj next)
+scm_vmsr_initialize(ScmObj vmsr, ScmObj segment, scm_byte_t *base, ScmObj next)
 {
   scm_assert_obj_type(vmsr, &SCM_VMSTCKRC_TYPE_INFO);
   scm_assert_obj_type(segment, &SCM_VMSTCKSG_TYPE_INFO);
@@ -255,7 +255,7 @@ scm_vmsr_initialize(ScmObj vmsr, ScmObj segment, uint8_t *base, ScmObj next)
 }
 
 ScmObj
-scm_vmsr_new(SCM_MEM_TYPE_T mtype, ScmObj stack, uint8_t *base, ScmObj next)
+scm_vmsr_new(SCM_MEM_TYPE_T mtype, ScmObj stack, scm_byte_t *base, ScmObj next)
 {
   ScmObj vmsr = SCM_OBJ_INIT;
 
@@ -276,7 +276,7 @@ scm_vmsr_new(SCM_MEM_TYPE_T mtype, ScmObj stack, uint8_t *base, ScmObj next)
 }
 
 void
-scm_vmsr_rec(ScmObj vmsr, uint8_t *ceil,
+scm_vmsr_rec(ScmObj vmsr, scm_byte_t *ceil,
              ScmCntFrame *cfp, ScmEnvFrame *efp, ScmEnvFrame *pefp,
              bool pcf, bool pef)
 {
@@ -307,10 +307,10 @@ scm_vmsr_relink(ScmObj vmsr, ScmObj next, ScmCntFrame *cfp)
 {
   scm_assert_obj_type(vmsr, &SCM_VMSTCKRC_TYPE_INFO);
   scm_assert_obj_type_accept_null(next, &SCM_VMSTCKRC_TYPE_INFO);
-  if (scm_obj_null_p(next))
-    scm_assert(cfp == NULL);
-  else
-    scm_assert(cfp == NULL || scm_vmsr_include_p(next, (uint8_t *)cfp));
+  scm_assert((scm_obj_null_p(next) && cfp == NULL)
+             || (scm_obj_not_null_p(next)
+                 && (cfp == NULL
+                     || scm_vmsr_include_p(next, (scm_byte_t *)cfp))));
 
   SCM_SLOT_SETQ(ScmVMStckRc, vmsr, next, next);
   SCM_VMSTCKRC(vmsr)->next_cf = cfp;
@@ -320,12 +320,10 @@ void
 scm_vmsr_relink_cf(ScmObj vmsr, ScmCntFrame *cfp)
 {
   scm_assert_obj_type(vmsr, &SCM_VMSTCKRC_TYPE_INFO);
-
-  if (scm_obj_null_p(SCM_VMSTCKRC(vmsr)->next))
-    scm_assert(cfp == NULL);
-  else
-    scm_assert(cfp == NULL
-               || scm_vmsr_include_p(SCM_VMSTCKRC(vmsr)->next, (uint8_t *)cfp));
+  scm_assert((scm_obj_null_p(SCM_VMSTCKRC(vmsr)->next) && cfp == NULL)
+             || (scm_obj_not_null_p(SCM_VMSTCKRC(vmsr)->next)
+                 && (cfp == NULL
+                     || scm_vmsr_include_p(SCM_VMSTCKRC(vmsr)->next, (scm_byte_t *)cfp))));
 
   SCM_VMSTCKRC(vmsr)->next_cf = cfp;
 }

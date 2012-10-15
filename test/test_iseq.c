@@ -45,7 +45,7 @@ test_scm_iseq_new(void)
 }
 
 void
-test_scm_iseq_push_uint8(void)
+test_scm_iseq_push_ushort(void)
 {
   ScmObj iseq = SCM_OBJ_INIT;
 
@@ -55,20 +55,20 @@ test_scm_iseq_push_uint8(void)
   iseq = scm_iseq_new(SCM_MEM_HEAP);
 
   /* action */
-  ssize_t rslt = scm_iseq_push_uint8(iseq, 123);
-  uint8_t actual = SCM_ISEQ_SEQ_VEC(iseq)[0];;
+  ssize_t rslt = scm_iseq_push_ushort(iseq, 123);
+  unsigned short actual = scm_iseq_get_ushort(iseq, 0);
 
   /* postcondition check */
-  cut_assert_equal_int(1, rslt);
-  cut_assert_equal_uint(1, SCM_ISEQ_SEQ_LENGTH(iseq));
+  cut_assert_equal_int(sizeof(unsigned short), rslt);
+  cut_assert_equal_uint(sizeof(unsigned short), SCM_ISEQ_SEQ_LENGTH(iseq));
   cut_assert_equal_uint(123, actual);
 }
 
 void
-test_scm_iseq_push_uint32_1(void)
+test_scm_iseq_push_uint_1(void)
 {
   ScmObj iseq = SCM_OBJ_INIT;
-  uint32_t actual;
+  unsigned int actual;
 
   SCM_STACK_FRAME_PUSH(&iseq);
 
@@ -76,20 +76,20 @@ test_scm_iseq_push_uint32_1(void)
   iseq = scm_iseq_new(SCM_MEM_HEAP);
 
   /* action */
-  ssize_t rslt = scm_iseq_push_uint32(iseq, UINT32_MAX);
-  actual = scm_iseq_get_uint32(iseq, 0);
+  ssize_t rslt = scm_iseq_push_uint(iseq, UINT32_MAX);
+  actual = scm_iseq_get_uint(iseq, 0);
 
   /* postcondition check */
-  cut_assert_equal_int(4, rslt);
-  cut_assert_equal_uint(4, SCM_ISEQ_SEQ_LENGTH(iseq));
+  cut_assert_equal_int(sizeof(unsigned int), rslt);
+  cut_assert_equal_uint(sizeof(unsigned int), SCM_ISEQ_SEQ_LENGTH(iseq));
   cut_assert_equal_int(UINT32_MAX, actual);
 }
 
 void
-test_scm_iseq_push_uint32_2(void)
+test_scm_iseq_push_uint_2(void)
 {
   ScmObj iseq = SCM_OBJ_INIT;
-  uint32_t actual;
+  unsigned int actual;
 
   SCM_STACK_FRAME_PUSH(&iseq);
 
@@ -97,20 +97,20 @@ test_scm_iseq_push_uint32_2(void)
   iseq = scm_iseq_new(SCM_MEM_HEAP);
 
   /* action */
-  ssize_t rslt = scm_iseq_push_uint32(iseq, 0);
-  actual = scm_iseq_get_uint32(iseq, 0);
+  ssize_t rslt = scm_iseq_push_uint(iseq, 0);
+  actual = scm_iseq_get_uint(iseq, 0);
 
   /* postcondition check */
-  cut_assert_equal_int(4, rslt);
-  cut_assert_equal_uint(4, SCM_ISEQ_SEQ_LENGTH(iseq));
+  cut_assert_equal_int(sizeof(unsigned int), rslt);
+  cut_assert_equal_uint(sizeof(unsigned int), SCM_ISEQ_SEQ_LENGTH(iseq));
   cut_assert_equal_int(0, actual);
 }
 
 void
-test_scm_iseq_push_uint32_3(void)
+test_scm_iseq_push_uint_3(void)
 {
   ScmObj iseq = SCM_OBJ_INIT;
-  int32_t actual;
+  int actual;
 
   SCM_STACK_FRAME_PUSH(&iseq);
 
@@ -118,20 +118,20 @@ test_scm_iseq_push_uint32_3(void)
   iseq = scm_iseq_new(SCM_MEM_HEAP);
 
   /* action */
-  ssize_t rslt = scm_iseq_push_uint32(iseq, INT32_MAX);
-  actual = (int32_t)scm_iseq_get_uint32(iseq, 0);
+  ssize_t rslt = scm_iseq_push_uint(iseq, INT32_MAX);
+  actual = (int)scm_iseq_get_uint(iseq, 0);
 
   /* postcondition check */
-  cut_assert_equal_int(4, rslt);
-  cut_assert_equal_uint(4, SCM_ISEQ_SEQ_LENGTH(iseq));
+  cut_assert_equal_int(sizeof(unsigned int), rslt);
+  cut_assert_equal_uint(sizeof(unsigned int), SCM_ISEQ_SEQ_LENGTH(iseq));
   cut_assert_equal_int(INT32_MAX, actual);
 }
 
 void
-test_scm_iseq_push_uint32_4(void)
+test_scm_iseq_push_uint_4(void)
 {
   ScmObj iseq = SCM_OBJ_INIT;
-  int32_t actual;
+  int actual;
 
   SCM_STACK_FRAME_PUSH(&iseq);
 
@@ -139,12 +139,12 @@ test_scm_iseq_push_uint32_4(void)
   iseq = scm_iseq_new(SCM_MEM_HEAP);
 
   /* action */
-  ssize_t rslt = scm_iseq_push_uint32(iseq, (uint32_t)INT32_MIN);
-  actual = (int32_t)scm_iseq_get_uint32(iseq, 0);
+  ssize_t rslt = scm_iseq_push_uint(iseq, (unsigned int)INT32_MIN);
+  actual = (int)scm_iseq_get_uint(iseq, 0);
 
   /* postcondition check */
-  cut_assert_equal_int(4, rslt);
-  cut_assert_equal_uint(4, SCM_ISEQ_SEQ_LENGTH(iseq));
+  cut_assert_equal_int(sizeof(unsigned int), rslt);
+  cut_assert_equal_uint(sizeof(unsigned int), SCM_ISEQ_SEQ_LENGTH(iseq));
   cut_assert_equal_int(INT32_MIN, actual);
 }
 
@@ -158,23 +158,24 @@ test_scm_iseq__expand_sequence_buffer(void)
   /* preprocess */
   iseq = scm_iseq_new(SCM_MEM_HEAP);
 
-  for (size_t idx = 0; idx < SCM_ISEQ_DEFAULT_SEQ_SIZE; idx++) {
-    ssize_t r = scm_iseq_push_uint8(iseq, (uint8_t)(idx % 255));
-    cut_assert_equal_int((int)idx + 1, r);
+  for (size_t idx = 0; idx < SCM_ISEQ_DEFAULT_SEQ_SIZE / sizeof(short); idx++) {
+    ssize_t r = scm_iseq_push_ushort(iseq, (uint8_t)(idx % 255));
+    cut_assert_equal_int((int)(idx + 1) * (int)sizeof(short), r);
   }
 
   /* action */
-  ssize_t rslt = scm_iseq_push_uint8(iseq, 255);
+  ssize_t rslt = scm_iseq_push_ushort(iseq, 255);
 
   /* postcondition check */
-  cut_assert_equal_int(SCM_ISEQ_DEFAULT_SEQ_SIZE + 1, rslt);
+  cut_assert_equal_int(SCM_ISEQ_DEFAULT_SEQ_SIZE + sizeof(short), rslt);
   cut_assert_true(SCM_ISEQ_SEQ_CAPACITY(iseq) > SCM_ISEQ_DEFAULT_SEQ_SIZE);
 
-  uint8_t actual = SCM_ISEQ_SEQ_VEC(iseq)[SCM_ISEQ_DEFAULT_SEQ_SIZE];
+  unsigned short actual = scm_iseq_get_ushort(iseq, SCM_ISEQ_DEFAULT_SEQ_SIZE);
   cut_assert_equal_uint(255, actual);
 
-  for (size_t i = 0; i < SCM_ISEQ_DEFAULT_SEQ_SIZE; i++) {
-    cut_assert_equal_uint(i % 255, SCM_ISEQ_SEQ_VEC(iseq)[i]);
+  for (size_t i = 0; i < SCM_ISEQ_DEFAULT_SEQ_SIZE / sizeof(short); i++) {
+    cut_assert_equal_uint(i % 255,
+                          scm_iseq_get_ushort(iseq, i * sizeof(short)));;
   }
 }
 

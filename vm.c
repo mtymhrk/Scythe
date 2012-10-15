@@ -252,8 +252,8 @@ scm_contcap_new(SCM_MEM_TYPE_T mtype)
 void
 scm_contcap_cap(ScmObj cc,  ScmObj stack,
                 ScmCntFrame *cfp, ScmEnvFrame *efp, ScmEnvFrame *pefp,
-                ScmObj cp, uint8_t *ip, const ScmObj *val, int vc,
-                uint32_t flags)
+                ScmObj cp, scm_byte_t *ip, const ScmObj *val, int vc,
+                unsigned int flags)
 {
   int n;
 
@@ -287,7 +287,7 @@ scm_contcap_replace_val(ScmObj cc, const ScmObj *val, int vc)
 }
 
 void
-scm_contcap_replace_ip(ScmObj cc, uint8_t *ip, ScmObj cp)
+scm_contcap_replace_ip(ScmObj cc, scm_byte_t *ip, ScmObj cp)
 {
   scm_assert_obj_type(cc, &SCM_CONTCAP_TYPE_INFO);
 
@@ -667,7 +667,7 @@ scm_local_inline int
 scm_vm_update_pef_len_if_needed(ScmObj vm)
 {
   if (scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_PEF)) {
-    ptrdiff_t n = SCM_VM(vm)->reg.sp - (uint8_t *)SCM_VM(vm)->reg.pefp;
+    ptrdiff_t n = SCM_VM(vm)->reg.sp - (scm_byte_t *)SCM_VM(vm)->reg.pefp;
     n -= (ptrdiff_t)sizeof(ScmEnvFrame);
     n /= (ptrdiff_t)sizeof(ScmObj);
 
@@ -683,14 +683,14 @@ scm_local_func int
 scm_vm_copy_pef_to_top_of_stack_if_needed(ScmObj vm)
 {
   size_t size;
-  uint8_t *next_sp;
+  scm_byte_t *next_sp;
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
   if (!scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_PEF))
     return 0;
 
-  if (scm_vmsr_include_p(SCM_VM(vm)->stack, (uint8_t *)SCM_VM(vm)->reg.pefp))
+  if (scm_vmsr_include_p(SCM_VM(vm)->stack, (scm_byte_t *)SCM_VM(vm)->reg.pefp))
     return 0;
 
   size = sizeof(ScmEnvFrame) + sizeof(ScmObj) * SCM_VM(vm)->reg.pefp->len;
@@ -904,7 +904,7 @@ scm_local_func int
 scm_vm_make_cframe(ScmObj vm, ScmEnvFrame *efp, ScmObj cp)
 {
   ScmCntFrame *cfp;
-  uint8_t *next_sp;
+  scm_byte_t *next_sp;
   int rslt;
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
@@ -951,7 +951,7 @@ scm_vm_make_cframe(ScmObj vm, ScmEnvFrame *efp, ScmObj cp)
 }
 
 scm_local_func int
-scm_vm_commit_cframe(ScmObj vm, uint8_t *ip)
+scm_vm_commit_cframe(ScmObj vm, scm_byte_t *ip)
 {
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
@@ -993,7 +993,7 @@ scm_vm_pop_cframe(ScmObj vm)
   if (scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_CCF))
     SCM_VM(vm)->reg.sp = scm_vmsr_base(SCM_VM(vm)->stack);
   else
-    SCM_VM(vm)->reg.sp = (uint8_t *)cfp;
+    SCM_VM(vm)->reg.sp = (scm_byte_t *)cfp;
 
   if (scm_vm_cf_maked_on_pef_p(cfp))
     scm_vm_ctrl_flg_set(vm, SCM_VM_CTRL_FLG_PEF);
@@ -1011,7 +1011,7 @@ scm_local_func int
 scm_vm_make_eframe(ScmObj vm, size_t nr_arg)
 {
   ScmEnvFrame *pefp;
-  uint8_t *next_sp;
+  scm_byte_t *next_sp;
   int rslt;
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
@@ -1080,7 +1080,7 @@ scm_vm_cancel_eframe(ScmObj vm)
 
   pefp = SCM_VM(vm)->reg.pefp;
   SCM_VM(vm)->reg.pefp = scm_vm_ef_outer(pefp);
-  SCM_VM(vm)->reg.sp = (uint8_t *)pefp;
+  SCM_VM(vm)->reg.sp = (scm_byte_t *)pefp;
 
   if (!scm_vm_ef_maked_on_pef_p(pefp))
     scm_vm_ctrl_flg_clr(vm, SCM_VM_CTRL_FLG_PEF);
@@ -1109,8 +1109,8 @@ scm_vm_pop_eframe(ScmObj vm)
 
   SCM_VM(vm)->reg.efp = scm_vm_ef_outer(efp);
 
-  if (scm_vmsr_include_p(SCM_VM(vm)->stack, (uint8_t *)efp))
-    SCM_VM(vm)->reg.sp = (uint8_t *)efp;
+  if (scm_vmsr_include_p(SCM_VM(vm)->stack, (scm_byte_t *)efp))
+    SCM_VM(vm)->reg.sp = (scm_byte_t *)efp;
   else
     SCM_VM(vm)->reg.sp = scm_vmsr_base(SCM_VM(vm)->stack);
 
@@ -1429,7 +1429,7 @@ scm_vm_setup_to_call_exception_handler(ScmObj vm)
 }
 
 scm_local_func int
-scm_vm_cmp_arity(int32_t argc, int arity, bool unwished)
+scm_vm_cmp_arity(int argc, int arity, bool unwished)
 {
   scm_assert(-INT_MAX <= argc && argc <= INT_MAX);
   scm_assert(-INT_MAX <= arity && arity <= INT_MAX);
@@ -1451,8 +1451,7 @@ scm_vm_cmp_arity(int32_t argc, int arity, bool unwished)
 }
 
 scm_local_func int
-scm_vm_adjust_arg_to_arity(ScmObj vm, int32_t argc,
-                           ScmObj proc, int32_t *adjusted)
+scm_vm_adjust_arg_to_arity(ScmObj vm, int argc, ScmObj proc, int *adjusted)
 {
   ScmObj lst = SCM_OBJ_INIT;
   int rslt, len, arity, nr_bind;
@@ -1513,7 +1512,7 @@ scm_vm_adjust_arg_to_arity(ScmObj vm, int32_t argc,
 
   SCM_SLOT_SETQ(ScmVM, vm, reg.pefp->arg[nr_bind - 1], lst);
 
-  SCM_VM(vm)->reg.sp = ((uint8_t *)SCM_VM(vm)->reg.pefp
+  SCM_VM(vm)->reg.sp = ((scm_byte_t *)SCM_VM(vm)->reg.pefp
                         + sizeof(ScmEnvFrame)
                         + sizeof(ScmObj) * (size_t)nr_bind);
 
@@ -1537,7 +1536,7 @@ scm_vm_do_op_return(ScmObj vm, SCM_OPCODE_T op)
 }
 
 scm_local_func int
-scm_vm_do_op_call(ScmObj vm, SCM_OPCODE_T op, int32_t argc, bool tail_p)
+scm_vm_do_op_call(ScmObj vm, SCM_OPCODE_T op, int argc, bool tail_p)
 {
   ScmObj efb = SCM_OBJ_INIT, contcap = SCM_OBJ_INIT;
   int rslt, nr_bind;
@@ -1562,10 +1561,11 @@ scm_vm_do_op_call(ScmObj vm, SCM_OPCODE_T op, int32_t argc, bool tail_p)
   }
 
   if (tail_p) {
-    uint8_t *ef_dst;
+    scm_byte_t *ef_dst;
 
-    if (scm_vmsr_include_p(SCM_VM(vm)->stack, (uint8_t *)SCM_VM(vm)->reg.cfp))
-      ef_dst = (uint8_t *)SCM_VM(vm)->reg.cfp + sizeof(ScmCntFrame);
+    if (scm_vmsr_include_p(SCM_VM(vm)->stack,
+                           (scm_byte_t *)SCM_VM(vm)->reg.cfp))
+      ef_dst = (scm_byte_t *)SCM_VM(vm)->reg.cfp + sizeof(ScmCntFrame);
     else
       ef_dst = scm_vmsr_base(SCM_VM(vm)->stack);
 
@@ -1651,7 +1651,7 @@ scm_vm_do_op_call(ScmObj vm, SCM_OPCODE_T op, int32_t argc, bool tail_p)
 scm_local_func int
 scm_vm_do_op_push(ScmObj vm, SCM_OPCODE_T op)
 {
-  uint8_t *sp;
+  scm_byte_t *sp;
   int rslt;
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
@@ -1684,7 +1684,7 @@ scm_local_func int
 scm_vm_do_op_mvpush(ScmObj vm, SCM_OPCODE_T op)
 {
   ScmObj val = SCM_OBJ_INIT;
-  uint8_t *sp;
+  scm_byte_t *sp;
   int n, rslt;
 
   SCM_STACK_FRAME_PUSH(&vm,
@@ -1777,8 +1777,8 @@ scm_vm_op_undef(ScmObj vm, SCM_OPCODE_T op)
 scm_local_func void
 scm_vm_op_call(ScmObj vm, SCM_OPCODE_T op)
 {
-  int32_t argc;
-  uint8_t *ip;
+  int argc;
+  scm_byte_t *ip;
 
   SCM_STACK_FRAME_PUSH(&vm);
 
@@ -1810,7 +1810,7 @@ scm_vm_op_apply(ScmObj vm, SCM_OPCODE_T op)
     return;
   }
 
-  argc = SCM_VM(vm)->reg.sp - (uint8_t *)SCM_VM(vm)->reg.pefp;
+  argc = SCM_VM(vm)->reg.sp - (scm_byte_t *)SCM_VM(vm)->reg.pefp;
   argc -= (ptrdiff_t)sizeof(ScmEnvFrame);
   argc /= (ptrdiff_t)sizeof(ScmObj);
 
@@ -1821,14 +1821,14 @@ scm_vm_op_apply(ScmObj vm, SCM_OPCODE_T op)
     if (rslt < 0) return;
   }
 
-  scm_vm_do_op_call(vm, op, (int32_t)argc, (op == SCM_OPCODE_TAIL_APPLY));
+  scm_vm_do_op_call(vm, op, (int)argc, (op == SCM_OPCODE_TAIL_APPLY));
 }
 
 scm_local_func void
 scm_vm_op_immval(ScmObj vm, SCM_OPCODE_T op)
 {
   ScmObj val = SCM_OBJ_INIT;
-  uint8_t *ip;
+  scm_byte_t *ip;
 
   SCM_STACK_FRAME_PUSH(&vm, &val);
 
@@ -1887,8 +1887,8 @@ scm_vm_op_eframe(ScmObj vm, SCM_OPCODE_T op)
 scm_local_func void
 scm_vm_op_ecommit(ScmObj vm, SCM_OPCODE_T op)
 {
-  int32_t argc;
-  uint8_t *ip;
+  int argc;
+  scm_byte_t *ip;
 
   SCM_STACK_FRAME_PUSH(&vm);
 
@@ -1919,8 +1919,8 @@ scm_local_func void
 scm_vm_op_erebind(ScmObj vm, SCM_OPCODE_T op)
 {
   ScmEnvFrame *efp;
-  int32_t argc;
-  uint8_t *ip;
+  int argc;
+  scm_byte_t *ip;
 
   SCM_STACK_FRAME_PUSH(&vm);
 
@@ -1948,7 +1948,8 @@ scm_vm_op_erebind(ScmObj vm, SCM_OPCODE_T op)
     return;
   }
 
-  if (scm_vmsr_include_p(SCM_VM(vm)->stack, (uint8_t *)SCM_VM(vm)->reg.efp)) {
+  if (scm_vmsr_include_p(SCM_VM(vm)->stack,
+                         (scm_byte_t *)SCM_VM(vm)->reg.efp)) {
     if (scm_vm_ef_maked_on_pef_p(SCM_VM(vm)->reg.pefp)) {
       scm_capi_error("invalid operation of VM stack: "
                      "partial stack frame link will be broken", 0);
@@ -1960,11 +1961,11 @@ scm_vm_op_erebind(ScmObj vm, SCM_OPCODE_T op)
   efp = scm_vm_ef_outer(SCM_VM(vm)->reg.efp);
   scm_vm_ef_replace_outer(SCM_VM(vm)->reg.efp, scm_vm_ef_outer(efp));
 
-  if (scm_vmsr_include_p(SCM_VM(vm)->stack, (uint8_t *)efp)) {
+  if (scm_vmsr_include_p(SCM_VM(vm)->stack, (scm_byte_t *)efp)) {
     memmove(efp, SCM_VM(vm)->reg.efp,
             sizeof(ScmEnvFrame) + sizeof(ScmObj) * (size_t)argc);
     SCM_VM(vm)->reg.efp = efp;
-    SCM_VM(vm)->reg.sp = (uint8_t *)efp->arg + sizeof(ScmObj) * (size_t)argc;
+    SCM_VM(vm)->reg.sp = (scm_byte_t *)efp->arg + sizeof(ScmObj) * (size_t)argc;
   }
 }
 
@@ -1979,7 +1980,7 @@ scm_vm_op_gref(ScmObj vm, SCM_OPCODE_T op)
 {
   ScmObj gloc = SCM_OBJ_INIT, arg = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
   ssize_t rslt;
-  uint8_t *ip, *prv_ip;
+  scm_byte_t *ip, *prv_ip;
 
   SCM_STACK_FRAME_PUSH(&vm, &arg, &gloc, &val);
 
@@ -2031,7 +2032,7 @@ scm_vm_op_gdef(ScmObj vm, SCM_OPCODE_T op)
 {
   ScmObj gloc = SCM_OBJ_INIT, arg = SCM_OBJ_INIT;
   ssize_t rslt;
-  uint8_t *ip, *prv_ip;
+  scm_byte_t *ip, *prv_ip;
 
   SCM_STACK_FRAME_PUSH(&vm, &arg, &gloc);
 
@@ -2063,7 +2064,7 @@ scm_vm_op_gset(ScmObj vm, SCM_OPCODE_T op)
 {
   ScmObj gloc = SCM_OBJ_INIT, arg = SCM_OBJ_INIT;
   ssize_t rslt;
-  uint8_t *ip, *prv_ip;
+  scm_byte_t *ip, *prv_ip;
 
   SCM_STACK_FRAME_PUSH(&vm, &arg, &gloc);
 
@@ -2100,8 +2101,8 @@ scm_local_func void
 scm_vm_op_sref(ScmObj vm, SCM_OPCODE_T op)
 {
   ScmObj val = SCM_OBJ_INIT;
-  int32_t idx, layer;
-  uint8_t *ip;
+  int idx, layer;
+  scm_byte_t *ip;
 
   SCM_STACK_FRAME_PUSH(&vm,
                        &val);
@@ -2140,8 +2141,8 @@ scm_local_func void
 scm_vm_op_sset(ScmObj vm, SCM_OPCODE_T op)
 {
   ScmObj val = SCM_OBJ_INIT, o = SCM_OBJ_INIT;
-  int32_t idx, layer;
-  uint8_t *ip;
+  int idx, layer;
+  scm_byte_t *ip;
 
   SCM_STACK_FRAME_PUSH(&vm,
                        &val, &o);
@@ -2179,8 +2180,8 @@ scm_vm_op_sset(ScmObj vm, SCM_OPCODE_T op)
 scm_local_func void
 scm_vm_op_jmp(ScmObj vm, SCM_OPCODE_T op)
 {
-  int32_t dst;
-  uint8_t *ip;
+  int dst;
+  scm_byte_t *ip;
 
   SCM_STACK_FRAME_PUSH(&vm);
 
@@ -2195,8 +2196,8 @@ scm_vm_op_jmp(ScmObj vm, SCM_OPCODE_T op)
 scm_local_func void
 scm_vm_op_jmpt(ScmObj vm, SCM_OPCODE_T op)
 {
-  int32_t dst;
-  uint8_t *ip;
+  int dst;
+  scm_byte_t *ip;
 
   SCM_STACK_FRAME_PUSH(&vm);
 
@@ -2214,8 +2215,8 @@ scm_vm_op_jmpt(ScmObj vm, SCM_OPCODE_T op)
 scm_local_func void
 scm_vm_op_jmpf(ScmObj vm, SCM_OPCODE_T op)
 {
-  int32_t dst;
-  uint8_t *ip;
+  int dst;
+  scm_byte_t *ip;
 
   SCM_STACK_FRAME_PUSH(&vm);
 
@@ -2279,8 +2280,8 @@ scm_vm_op_box(ScmObj vm, SCM_OPCODE_T op)
 {
   ScmObj box = SCM_OBJ_INIT;
   ScmEnvFrame *efp;
-  int32_t idx, layer;
-  uint8_t *ip;
+  int idx, layer;
+  scm_byte_t *ip;
 
   SCM_STACK_FRAME_PUSH(&vm,
                        &box);
@@ -2323,9 +2324,8 @@ scm_local_func void
 scm_vm_op_close(ScmObj vm, SCM_OPCODE_T op)
 {
   ScmObj clsr = SCM_OBJ_INIT, iseq = SCM_OBJ_INIT, env = SCM_OBJ_INIT;
-  int32_t nr_env, arity;
-  uint8_t *ip;
-  int rslt;
+  int nr_env, arity, rslt;
+  scm_byte_t *ip;
 
   SCM_STACK_FRAME_PUSH(&vm,
                        &clsr, &iseq, &env);
@@ -2359,8 +2359,8 @@ scm_local_func void
 scm_vm_op_demine(ScmObj vm, SCM_OPCODE_T op)
 {
   ScmObj val;
-  int32_t idx, layer;
-  uint8_t *ip;
+  int idx, layer;
+  scm_byte_t *ip;
 
   SCM_STACK_FRAME_PUSH(&vm,
                        &val);
@@ -2393,9 +2393,8 @@ scm_local_func void
 scm_vm_op_emine(ScmObj vm, SCM_OPCODE_T op)
 {
   ScmObj box = SCM_OBJ_INIT;
-  int32_t len;
-  uint8_t *ip;
-  int rslt;
+  int len, rslt;
+  scm_byte_t *ip;
 
   SCM_STACK_FRAME_PUSH(&vm,
                        &box);
@@ -2434,8 +2433,8 @@ scm_vm_op_edemine(ScmObj vm, SCM_OPCODE_T op)
   ScmObj val;
   ScmEnvFrame *efp, *pefp;
   size_t n;
-  int32_t argc, layer;
-  uint8_t *ip;
+  int argc, layer;
+  scm_byte_t *ip;
 
   SCM_STACK_FRAME_PUSH(&vm,
                        &val);
@@ -2485,9 +2484,8 @@ scm_vm_op_edemine(ScmObj vm, SCM_OPCODE_T op)
 scm_local_func void
 scm_vm_op_arity(ScmObj vm, SCM_OPCODE_T op)
 {
-  int32_t arity;
-  uint8_t *ip;
-  int rslt;
+  int arity, rslt;
+  scm_byte_t *ip;
 
   SCM_STACK_FRAME_PUSH(&vm);
 
@@ -2642,7 +2640,7 @@ scm_vm_setup_system(ScmObj vm)
 void
 scm_vm_run(ScmObj vm, ScmObj iseq)
 {
-  uint8_t op;
+  int op;
 
   SCM_STACK_FRAME_PUSH(&vm, &iseq);
 
@@ -2883,7 +2881,7 @@ scm_vm_setup_stat_trmp(ScmObj vm, ScmObj target, ScmObj args,
 {
   ScmObj trmp_code = SCM_OBJ_INIT, trmp_clsr = SCM_OBJ_INIT;
   ScmObj cb_subr = SCM_OBJ_INIT, env = SCM_OBJ_INIT;
-  uint8_t *ip;
+  scm_byte_t *ip;
   int rslt;
 
   SCM_STACK_FRAME_PUSH(&target, &args,

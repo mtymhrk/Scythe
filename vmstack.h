@@ -65,7 +65,7 @@ struct ScmCntFrameRec {
   ptrdiff_t offset;
   ScmEnvFrame *efp;
   ScmObj cp;
-  uint8_t *ip;
+  scm_byte_t *ip;
 };
 
 int scm_vm_ef_gc_accept(ScmObj owner, ScmEnvFrame **efp,
@@ -76,7 +76,7 @@ int scm_vm_cf_gc_accept(ScmObj owner, ScmCntFrame *cfp,
 inline ScmCntFrame *
 scm_vm_cf_next(ScmCntFrame *cfp) {
   scm_assert(cfp != NULL);
-  return (ScmCntFrame *)((uint8_t *)cfp + (cfp->offset & ~0x03));
+  return (ScmCntFrame *)((scm_byte_t *)cfp + (cfp->offset & ~0x03));
 }
 
 inline ScmEnvFrame *
@@ -122,8 +122,8 @@ scm_vm_ef_in_stack_p(ScmEnvFrame *efp)
 
 inline void
 scm_vm_cf_init(ScmCntFrame *cfp,
-               ScmCntFrame *cur_cfp, ScmEnvFrame *efp, ScmObj cp, uint8_t *ip,
-               bool pef, bool pcf)
+               ScmCntFrame *cur_cfp, ScmEnvFrame *efp, ScmObj cp,
+               scm_byte_t *ip, bool pef, bool pcf)
 {
   scm_assert(SCM_ALIGNOF(ScmCntFrame) == SCM_ALIGNOF(ScmObj));
   scm_assert(SCM_ALIGNOF(ScmCntFrame) >= SCM_VM_FRAME_MIN_ALIGN_SIZE);
@@ -132,7 +132,7 @@ scm_vm_cf_init(ScmCntFrame *cfp,
   scm_assert(((uintptr_t)cfp & 0x03) == 0);
   scm_assert(((uintptr_t)cur_cfp & 0x03) == 0);
 
-  cfp->offset = (uint8_t *)cur_cfp - (uint8_t *)cfp;
+  cfp->offset = (scm_byte_t *)cur_cfp - (scm_byte_t *)cfp;
   cfp->efp = efp;
   cfp->cp = cp;
   cfp->ip = ip;
@@ -186,7 +186,7 @@ extern ScmTypeInfo SCM_EFBOX_TYPE_INFO;
  */
 struct ScmEFBoxRec {
   ScmObjHeader header;
-  uint8_t dummy[sizeof(ScmForward) - sizeof(ScmObjHeader)];
+  scm_byte_t dummy[sizeof(ScmForward) - sizeof(ScmObjHeader)];
   ScmEnvFrame frame;
 };
 
@@ -212,7 +212,7 @@ scm_efbox_efp_to_efbox(ScmEnvFrame *efp)
   if (efp == NULL)
     return SCM_OBJ_NULL;
   else
-    return SCM_OBJ((uint8_t *)efp - offsetof(ScmEFBox, frame));
+    return SCM_OBJ((scm_byte_t *)efp - offsetof(ScmEFBox, frame));
 }
 
 inline void
@@ -239,14 +239,14 @@ extern ScmTypeInfo SCM_VMSTCKRC_TYPE_INFO;
 
 struct ScmVMStckSgRec {
   ScmObjHeader header;
-  uint8_t *stack;
+  scm_byte_t *stack;
   size_t capacity;
 };
 
 struct ScmVMStckRcRec {
   ScmObjHeader header;
   ScmObj segment;
-  uint8_t *base;
+  scm_byte_t *base;
   size_t size;
   struct {
     ScmCntFrame *cfp;
@@ -264,10 +264,10 @@ ScmObj scm_vmss_new(SCM_MEM_TYPE_T mtype, size_t size);
 void scm_vmss_gc_finalize(ScmObj obj);
 
 int scm_vmsr_initialize(ScmObj vmsr, ScmObj segment,
-                        uint8_t *base, ScmObj next);
+                        scm_byte_t *base, ScmObj next);
 ScmObj scm_vmsr_new(SCM_MEM_TYPE_T mtype,
-                    ScmObj segment, uint8_t *base, ScmObj next);
-void scm_vmsr_rec(ScmObj vmsr, uint8_t *ceil,
+                    ScmObj segment, scm_byte_t *base, ScmObj next);
+void scm_vmsr_rec(ScmObj vmsr, scm_byte_t *ceil,
                   ScmCntFrame *cfp, ScmEnvFrame *efp, ScmEnvFrame *pefp,
                   bool pcf, bool pef);
 void scm_vmsr_clear(ScmObj vmsr);
@@ -276,7 +276,7 @@ void scm_vmsr_relink_cf(ScmObj vmsr, ScmCntFrame *cfp);
 void scm_vmsr_gc_initialize(ScmObj obj, ScmObj mem);
 int scm_vmsr_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
 
-inline uint8_t *
+inline scm_byte_t *
 scm_vmss_base(ScmObj vmss)
 {
   scm_assert_obj_type(vmss, &SCM_VMSTCKSG_TYPE_INFO);
@@ -292,7 +292,7 @@ scm_vmss_capacity(ScmObj vmss)
   return SCM_VMSTCKSG(vmss)->capacity;
 }
 
-inline uint8_t *
+inline scm_byte_t *
 scm_vmss_ceiling(ScmObj vmss)
 {
   scm_assert_obj_type(vmss, &SCM_VMSTCKSG_TYPE_INFO);
@@ -308,7 +308,7 @@ scm_vmsr_segment(ScmObj vmsr)
   return SCM_VMSTCKRC(vmsr)->segment;
 }
 
-inline uint8_t *
+inline scm_byte_t *
 scm_vmsr_base(ScmObj vmsr)
 {
   scm_assert_obj_type(vmsr, &SCM_VMSTCKRC_TYPE_INFO);
@@ -316,7 +316,7 @@ scm_vmsr_base(ScmObj vmsr)
   return SCM_VMSTCKRC(vmsr)->base;
 }
 
-inline uint8_t *
+inline scm_byte_t *
 scm_vmsr_ceiling(ScmObj vmsr)
 {
   scm_assert_obj_type(vmsr, &SCM_VMSTCKRC_TYPE_INFO);
@@ -381,7 +381,7 @@ scm_vmsr_pef_p(ScmObj vmsr)
 }
 
 inline bool
-scm_vmsr_overflow_p(ScmObj vmsr, uint8_t *sp)
+scm_vmsr_overflow_p(ScmObj vmsr, scm_byte_t *sp)
 {
   scm_assert_obj_type(vmsr, &SCM_VMSTCKRC_TYPE_INFO);
 
@@ -390,7 +390,7 @@ scm_vmsr_overflow_p(ScmObj vmsr, uint8_t *sp)
 }
 
 inline bool
-scm_vmsr_ceiling_p(ScmObj vmsr, uint8_t *sp)
+scm_vmsr_ceiling_p(ScmObj vmsr, scm_byte_t *sp)
 {
   scm_assert_obj_type(vmsr, &SCM_VMSTCKRC_TYPE_INFO);
 
@@ -399,7 +399,7 @@ scm_vmsr_ceiling_p(ScmObj vmsr, uint8_t *sp)
 }
 
 inline bool
-scm_vmsr_reach_to_ceiling_p(ScmObj vmsr, uint8_t *sp)
+scm_vmsr_reach_to_ceiling_p(ScmObj vmsr, scm_byte_t *sp)
 {
   scm_assert_obj_type(vmsr, &SCM_VMSTCKRC_TYPE_INFO);
 
@@ -408,7 +408,7 @@ scm_vmsr_reach_to_ceiling_p(ScmObj vmsr, uint8_t *sp)
 }
 
 inline bool
-scm_vmsr_underflow_p(ScmObj vmsr, uint8_t *sp)
+scm_vmsr_underflow_p(ScmObj vmsr, scm_byte_t *sp)
 {
   scm_assert_obj_type(vmsr, &SCM_VMSTCKRC_TYPE_INFO);
 
@@ -416,7 +416,7 @@ scm_vmsr_underflow_p(ScmObj vmsr, uint8_t *sp)
 }
 
 inline bool
-scm_vmsr_include_p(ScmObj vmsr, uint8_t *sp)
+scm_vmsr_include_p(ScmObj vmsr, scm_byte_t *sp)
 {
   scm_assert_obj_type(vmsr, &SCM_VMSTCKRC_TYPE_INFO);
 

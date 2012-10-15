@@ -130,20 +130,20 @@ struct ScmContCapRec {
     ScmEnvFrame *efp;
     ScmEnvFrame *pefp;
     ScmObj cp;
-    uint8_t *ip;
+    scm_byte_t *ip;
     ScmObj val[SCM_VM_NR_VAL_REG];
     int vc;
-    uint32_t flags;
+    unsigned int flags;
   } reg;
 };
 
 ScmObj scm_contcap_new(SCM_MEM_TYPE_T mtype);
 void scm_contcap_cap(ScmObj cc,  ScmObj stack,
                      ScmCntFrame *cfp, ScmEnvFrame *efp, ScmEnvFrame *pefp,
-                     ScmObj cp, uint8_t *ip, const ScmObj *val, int vc,
-                     uint32_t flags);
+                     ScmObj cp, scm_byte_t *ip, const ScmObj *val, int vc,
+                     unsigned int flags);
 void scm_contcap_replace_val(ScmObj cc, const ScmObj *val, int vc);
-void scm_contcap_replace_ip(ScmObj cc, uint8_t *ip, ScmObj cp);
+void scm_contcap_replace_ip(ScmObj cc, scm_byte_t *ip, ScmObj cp);
 void scm_contcap_gc_initialize(ScmObj obj, ScmObj mem);
 int scm_contcap_gc_accepct(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
 
@@ -187,7 +187,7 @@ scm_contcap_cp(ScmObj cc)
   return SCM_CONTCAP(cc)->reg.cp;
 }
 
-inline uint8_t *
+inline scm_byte_t *
 scm_contcap_ip(ScmObj cc)
 {
   scm_assert_obj_type(cc, &SCM_CONTCAP_TYPE_INFO);
@@ -211,7 +211,7 @@ scm_contcap_vc(ScmObj cc)
   return SCM_CONTCAP(cc)->reg.vc;
 }
 
-inline uint32_t
+inline uint
 scm_contcap_flags(ScmObj cc)
 {
   scm_assert_obj_type(cc, &SCM_CONTCAP_TYPE_INFO);
@@ -278,15 +278,15 @@ struct ScmVMRec {
 
   /*** VM Registers ***/
   struct {
-    uint8_t *sp;                    /* stack pointer */
+    scm_byte_t *sp;                 /* stack pointer */
     ScmCntFrame *cfp;               /* continuation frame pointer */
     ScmEnvFrame *efp;               /* environment frame pointer */
     ScmEnvFrame *pefp;              /* partial environment frame pointer */
     ScmObj cp;                      /* closure pointer */
-    uint8_t *ip;                    /* instruction pointer */
+    scm_byte_t *ip;                 /* instruction pointer */
     ScmObj val[SCM_VM_NR_VAL_REG];  /* value register */
     int vc;                         /* value count */
-    uint32_t flags;
+    unsigned int flags;
   } reg;
 
   /*** Constant Values ***/
@@ -325,7 +325,7 @@ int scm_vm_handle_stack_overflow(ScmObj vm);
 int scm_vm_handle_stack_underflow(ScmObj vm);
 
 int scm_vm_make_cframe(ScmObj vm, ScmEnvFrame *efp, ScmObj cp);
-int scm_vm_commit_cframe(ScmObj vm, uint8_t *ip);
+int scm_vm_commit_cframe(ScmObj vm, scm_byte_t *ip);
 int scm_vm_pop_cframe(ScmObj vm);
 int scm_vm_make_eframe(ScmObj vm, size_t nr_arg);
 int scm_vm_commit_eframe(ScmObj vm, ScmEnvFrame *efp, size_t nr_arg);
@@ -344,12 +344,10 @@ ScmObj scm_vm_make_trampolining_code(ScmObj vm, ScmObj clsr, ScmObj args,
 ScmObj scm_vm_make_exception_handler_code(ScmObj vm);
 int scm_vm_setup_to_call_exception_handler(ScmObj vm);
 
-int scm_vm_cmp_arity(int32_t argc, int arity, bool unwished);
-int scm_vm_adjust_arg_to_arity(ScmObj vm, int32_t argc,
-                               ScmObj proc, int32_t *adjusted);
+int scm_vm_cmp_arity(int argc, int arity, bool unwished);
+int scm_vm_adjust_arg_to_arity(ScmObj vm, int argc, ScmObj proc, int *adjusted);
 int scm_vm_do_op_return(ScmObj vm, SCM_OPCODE_T op);
-int scm_vm_do_op_call(ScmObj vm, SCM_OPCODE_T op,
-                      int32_t argc, bool tail_p);
+int scm_vm_do_op_call(ScmObj vm, SCM_OPCODE_T op, int argc, bool tail_p);
 int scm_vm_do_op_push(ScmObj vm, SCM_OPCODE_T op);
 int scm_vm_do_op_mvpush(ScmObj vm, SCM_OPCODE_T op);
 int scm_vm_do_op_frame(ScmObj vm, SCM_OPCODE_T op);

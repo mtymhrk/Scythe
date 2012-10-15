@@ -8,6 +8,9 @@
 
 #include <execinfo.h>
 
+#define SCM_SHRT_BIT (sizeof(short) * CHAR_BIT)
+#define SCM_INT_BIT  (sizeof(int) * CHAR_BIT)
+
 #if (((~0) >> 1) == ~0) /* 符号付き整数の右シフトが算術シフトか */
   #define SCM_RSHIFT_ARITH(x, y) ((x) >> (y))
 #else

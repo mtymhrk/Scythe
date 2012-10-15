@@ -59,7 +59,7 @@ void scm_forward_initialize(ScmObj obj, ScmObj fwd);
 
 struct ScmMemHeapCellRec {
   size_t size;
-  uint8_t body[0] __attribute((aligned(SCM_MEM_ALIGN_BYTE)));
+  scm_byte_t body[0] __attribute((aligned(SCM_MEM_ALIGN_BYTE)));
 };
 
 struct ScmMemHeapBlockRec {
@@ -67,7 +67,7 @@ struct ScmMemHeapBlockRec {
   struct ScmMemHeapBlockRec *prev;
   size_t size;
   size_t used;
-  uint8_t heap[0];
+  scm_byte_t heap[0];
 };
 
 struct ScmMemHeapRec {
@@ -87,7 +87,7 @@ typedef struct ScmMemRootBlockHdrRec {
 
 struct ScmMemRootBlockRec {
   ScmMemRootBlockHdr hdr;
-  uint8_t object[SCM_MEM_ALIGN_BYTE];
+  scm_byte_t object[SCM_MEM_ALIGN_BYTE];
 };
 
 /* ScmMem を ScmObj の一種(kind of) として定義する。                         */
@@ -130,7 +130,7 @@ ScmMemHeapBlock *scm_mem_heap_new_block(size_t sz);
 void *scm_mem_heap_delete_block(ScmMemHeapBlock *block);
 size_t scm_mem_heap_block_used(ScmMemHeapBlock *block);
 size_t scm_mem_heap_block_free(ScmMemHeapBlock *block);
-uint8_t *scm_mem_heap_block_head(ScmMemHeapBlock *block);
+scm_byte_t *scm_mem_heap_block_head(ScmMemHeapBlock *block);
 void scm_mem_heap_block_allocated(ScmMemHeapBlock *block, size_t sz);
 void scm_mem_heap_block_deallocated(ScmMemHeapBlock *block, size_t sz);
 bool scm_mem_heap_block_allocable_p(ScmMemHeapBlock *block, size_t sz);
@@ -160,10 +160,10 @@ void scm_mem_heap_rewind(ScmMemHeap *heap);
 ScmMemHeapCell *scm_mem_heap_alloc(ScmMemHeap *heap, size_t size);
 void scm_mem_heap_cancel_alloc(ScmMemHeap *heap, size_t size);
 
-uint8_t scm_mem_root_block_shift_byte(ScmMemRootBlock *block);
+scm_byte_t scm_mem_root_block_shift_byte(ScmMemRootBlock *block);
 ScmObj scm_mem_root_block_object(ScmMemRootBlock *block);
-uint8_t scm_mem_root_block_obj_shift_byte(ScmObj obj);
-void scm_mem_root_block_obj_set_shit_byte(ScmObj obj, uint8_t sf);
+scm_byte_t scm_mem_root_block_obj_shift_byte(ScmObj obj);
+void scm_mem_root_block_obj_set_shit_byte(ScmObj obj, scm_byte_t sf);
 ScmMemRootBlock *scm_mem_root_block_obj_header(ScmObj obj);
 ScmMemRootBlock *scm_mem_root_block_new(size_t sz);
 void scm_mem_root_block_free(ScmMemRootBlock *block);

@@ -8,6 +8,7 @@
 #include "chashtbl.h"
 #include "api.h"
 #include "earray.h"
+#include "impl_utils.h"
 #include "iseq.h"
 
 ScmTypeInfo SCM_ISEQ_TYPE_INFO = {
@@ -23,53 +24,33 @@ ScmTypeInfo SCM_ISEQ_TYPE_INFO = {
 };
 
 static inline void
-scm_iseq_put_uint32(uint8_t **ip, uint32_t val)
+scm_iseq_put_ushort(scm_byte_t **ip, unsigned short val)
 {
-  uint8_t v1, v2, v3, v4;
-
   scm_assert(ip != NULL);
   scm_assert(*ip != NULL);
 
-  v1 = (uint8_t)(val & 0xff);
-  v2 = (uint8_t)((val >> 8) & 0xff);
-  v3 = (uint8_t)((val >> 16) & 0xff);
-  v4 = (uint8_t)((val >> 24) & 0xff);
-
-  (*ip)[0] = v1;
-  (*ip)[1] = v2;
-  (*ip)[2] = v3;
-  (*ip)[3] = v4;
-
-  *ip = *ip + 4;
+  *(unsigned short *)*ip = val;
+  *ip = *ip + sizeof(unsigned short);
 }
 
 static inline void
-scm_iseq_put_uint64(uint8_t **ip, uint64_t val)
+scm_iseq_put_uint(scm_byte_t **ip, unsigned int val)
 {
-  uint8_t v1, v2, v3, v4, v5, v6, v7, v8;
+  scm_iseq_put_ushort(ip, val & USHRT_MAX);
 
-  scm_assert(ip != NULL);
-  scm_assert(*ip != NULL);
+#if UINT_MAX > USHORT_MAX
+  scm_iseq_put_ushort(ip, (unsigned short)((val >> SCM_SHRT_BIT) & USHRT_MAX));
+#endif
+}
 
-  v1 = (uint8_t)(val & 0xff);
-  v2 = (uint8_t)((val >> 8) & 0xff);
-  v3 = (uint8_t)((val >> 16) & 0xff);
-  v4 = (uint8_t)((val >> 24) & 0xff);
-  v5 = (uint8_t)((val >> 32) & 0xff);
-  v6 = (uint8_t)((val >> 40) & 0xff);
-  v7 = (uint8_t)((val >> 48) & 0xff);
-  v8 = (uint8_t)((val >> 56) & 0xff);
+static inline void
+scm_iseq_put_ullong(scm_byte_t **ip, unsigned long long val)
+{
+  scm_iseq_put_uint(ip, val & UINT_MAX);
 
-  (*ip)[0] = v1;
-  (*ip)[1] = v2;
-  (*ip)[2] = v3;
-  (*ip)[3] = v4;
-  (*ip)[4] = v5;
-  (*ip)[5] = v6;
-  (*ip)[6] = v7;
-  (*ip)[7] = v8;
-
-  *ip = *ip + 8;
+#if ULLONG_MAX > UINT_MAX
+  scm_iseq_put_uint(ip, (unsigned int)((val >> SCM_INT_BIT) & UINT_MAX));
+#endif
 }
 
 int
@@ -80,7 +61,7 @@ scm_iseq_initialize(ScmObj iseq) /* GC OK */
   scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
 
   rslt = eary_init(SCM_ISEQ_EARY_SEQ(iseq),
-                   sizeof(uint8_t), SCM_ISEQ_DEFAULT_SEQ_SIZE);
+                   sizeof(scm_byte_t), SCM_ISEQ_DEFAULT_SEQ_SIZE);
   if (rslt != 0) return -1;  /* [ERR]: [through] */
 
   rslt = eary_init(SCM_ISEQ_EARY_INDEX(iseq),
@@ -116,111 +97,134 @@ scm_iseq_finalize(ScmObj obj) /* GC OK */
 }
 
 ssize_t
-scm_iseq_push_uint8(ScmObj iseq, uint8_t val)
+scm_iseq_push_ushort(ScmObj iseq, unsigned short val)
 {
   int err;
+  scm_byte_t *ip;
   size_t idx;
 
   scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
-  scm_assert(EARY_SIZE(SCM_ISEQ_EARY_SEQ(iseq)) <= SSIZE_MAX - 1);
+  scm_assert(EARY_SIZE(SCM_ISEQ_EARY_SEQ(iseq))
+             <= SSIZE_MAX - sizeof(unsigned short));
 
   idx = EARY_SIZE(SCM_ISEQ_EARY_SEQ(iseq));
-  EARY_SET(SCM_ISEQ_EARY_SEQ(iseq), uint8_t, idx, val, err);
+
+  EARY_SET(SCM_ISEQ_EARY_SEQ(iseq),
+           scm_byte_t, idx + sizeof(unsigned short) - 1, 0, err);
   if (err != 0) return -1;
 
-  return (ssize_t)idx + 1;
+  ip = scm_iseq_to_ip(iseq) + idx;
+  scm_iseq_put_ushort(&ip, val);
+
+  return (ssize_t)idx + (ssize_t)sizeof(unsigned short);
+}
+
+unsigned short
+scm_iseq_get_ushort(ScmObj iseq, size_t idx)
+{
+  scm_byte_t *ip;
+
+  scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
+  scm_assert(idx <= EARY_SIZE(SCM_ISEQ_EARY_SEQ(iseq)) - sizeof(unsigned short));
+
+  ip = scm_iseq_to_ip(iseq) + idx;
+  return scm_iseq_fetch_ushort(&ip);
 }
 
 ssize_t
-scm_iseq_push_uint32(ScmObj iseq, uint32_t val)
+scm_iseq_push_uint(ScmObj iseq, unsigned int val)
 {
   int err;
-  uint8_t *ip;
+  scm_byte_t *ip;
   size_t idx;
 
   scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
-  scm_assert(EARY_SIZE(SCM_ISEQ_EARY_SEQ(iseq)) <= SSIZE_MAX - 4);
+  scm_assert(EARY_SIZE(SCM_ISEQ_EARY_SEQ(iseq))
+             <= SSIZE_MAX - sizeof(unsigned int));
 
   idx = EARY_SIZE(SCM_ISEQ_EARY_SEQ(iseq));
 
-  EARY_SET(SCM_ISEQ_EARY_SEQ(iseq), uint8_t, idx + 3, 0, err);
+  EARY_SET(SCM_ISEQ_EARY_SEQ(iseq),
+           scm_byte_t, idx + sizeof(unsigned int) - 1, 0, err);
   if (err != 0) return -1;
 
   ip = scm_iseq_to_ip(iseq) + idx;
-  scm_iseq_put_uint32(&ip, val);
+  scm_iseq_put_uint(&ip, val);
 
-  return (ssize_t)idx + 4;
+  return (ssize_t)idx + (ssize_t)sizeof(unsigned int);
 }
 
-uint32_t
-scm_iseq_get_uint32(ScmObj iseq, size_t idx)
+unsigned int
+scm_iseq_get_uint(ScmObj iseq, size_t idx)
 {
-  uint8_t *ip;
+  scm_byte_t *ip;
 
   scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
-  scm_assert(idx <= EARY_SIZE(SCM_ISEQ_EARY_SEQ(iseq)) - 4);
+  scm_assert(idx <= EARY_SIZE(SCM_ISEQ_EARY_SEQ(iseq)) - sizeof(unsigned int));
 
   ip = scm_iseq_to_ip(iseq) + idx;
-  return scm_iseq_fetch_uint32(&ip);
+  return scm_iseq_fetch_uint(&ip);
 }
 
 ssize_t
-scm_iseq_set_uint32(ScmObj iseq, size_t idx, uint32_t val)
+scm_iseq_set_uint(ScmObj iseq, size_t idx, unsigned int val)
 {
-  uint8_t *ip;
+  scm_byte_t *ip;
 
   scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
-  scm_assert(idx <= SCM_ISEQ_SEQ_LENGTH(iseq) - 4);
+  scm_assert(idx <= SCM_ISEQ_SEQ_LENGTH(iseq) - sizeof(unsigned int));
 
   ip = scm_iseq_to_ip(iseq) + idx;
-  scm_iseq_put_uint32(&ip, val);
+  scm_iseq_put_uint(&ip, val);
 
   return (ssize_t)idx;
 }
 
 ssize_t
-scm_iseq_push_uint64(ScmObj iseq, uint64_t val)
+scm_iseq_push_ullong(ScmObj iseq, unsigned long long val)
 {
   int err;
-  uint8_t *ip;
+  scm_byte_t *ip;
   size_t idx;
 
   scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
-  scm_assert(EARY_SIZE(SCM_ISEQ_EARY_SEQ(iseq)) <= SSIZE_MAX - 8);
+  scm_assert(EARY_SIZE(SCM_ISEQ_EARY_SEQ(iseq))
+             <= SSIZE_MAX - sizeof(unsigned long long));
 
   idx = EARY_SIZE(SCM_ISEQ_EARY_SEQ(iseq));
 
-  EARY_SET(SCM_ISEQ_EARY_SEQ(iseq), uint8_t, idx + 7, 0, err);
+  EARY_SET(SCM_ISEQ_EARY_SEQ(iseq),
+           scm_byte_t, idx + sizeof(unsigned long long) -1, 0, err);
   if (err != 0) return -1;
 
   ip = scm_iseq_to_ip(iseq) + idx;
-  scm_iseq_put_uint64(&ip, val);
+  scm_iseq_put_ullong(&ip, val);
 
-  return (ssize_t)idx + 8;
+  return (ssize_t)idx + (ssize_t)sizeof(unsigned long long);
 }
 
-uint64_t
-scm_iseq_get_uint64(ScmObj iseq, size_t idx)
+unsigned long long
+scm_iseq_get_ullong(ScmObj iseq, size_t idx)
 {
-  uint8_t *ip;
+  scm_byte_t *ip;
 
   scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
-  scm_assert(idx <= EARY_SIZE(SCM_ISEQ_EARY_SEQ(iseq)) - 8);
+  scm_assert(idx <= EARY_SIZE(SCM_ISEQ_EARY_SEQ(iseq)) - sizeof(unsigned long long));
 
   ip = scm_iseq_to_ip(iseq) + idx;
-  return scm_iseq_fetch_uint64(&ip);
+  return scm_iseq_fetch_ullong(&ip);
 }
 
 ssize_t
-scm_iseq_set_uint64(ScmObj iseq, size_t idx, uint64_t val)
+scm_iseq_set_ullong(ScmObj iseq, size_t idx, unsigned long long val)
 {
-  uint8_t *ip;
+  scm_byte_t *ip;
 
   scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
-  scm_assert(idx <= SCM_ISEQ_SEQ_LENGTH(iseq) - 8);
+  scm_assert(idx <= SCM_ISEQ_SEQ_LENGTH(iseq) - sizeof(unsigned long long));
 
   ip = scm_iseq_to_ip(iseq) + idx;
-  scm_iseq_put_uint64(&ip, val);
+  scm_iseq_put_ullong(&ip, val);
 
   return (ssize_t)idx;
 }
@@ -240,10 +244,10 @@ scm_iseq_push_obj(ScmObj iseq, ScmObj obj)
   EARY_PUSH(SCM_ISEQ_EARY_INDEX(iseq), size_t, idx, err);
   if(err != 0) return -1;
 
-#if SCM_UWORD_MAX > UINT32_MAX
-  rslt = scm_iseq_push_uint64(iseq, (uint64_t)obj);
+#if SCM_UWORD_MAX > UINT_MAX
+  rslt = scm_iseq_push_ullong(iseq, (unsigned long long)obj);
 #else
-  rslt = scm_iseq_push_uint32(iseq, (uint32_t)obj);
+  rslt = scm_iseq_push_uint(iseq, (unsigned int)obj);
 #endif
 
   if (rslt < 0) {
@@ -259,10 +263,10 @@ scm_iseq_push_obj(ScmObj iseq, ScmObj obj)
 ScmObj
 scm_iseq_get_obj(ScmObj iseq, size_t idx)
 {
-#if SCM_UWORD_MAX > UINT32_MAX
-  return SCM_OBJ(scm_iseq_get_uint64(iseq, idx));
+#if SCM_UWORD_MAX > UINT_MAX
+  return SCM_OBJ(scm_iseq_get_ullong(iseq, idx));
 #else
-  return SCM_OBJ(scm_iseq_get_uint32(iseq, idx));
+  return SCM_OBJ(scm_iseq_get_uint(iseq, idx));
 #endif
 }
 
@@ -270,9 +274,9 @@ ssize_t
 scm_iseq_set_obj(ScmObj iseq, size_t idx, ScmObj val)
 {
 #if SCM_UWORD_MAX > UINT32_MAX
-  return scm_iseq_set_uint64(iseq, idx, (uint64_t)val);
+  return scm_iseq_set_ullong(iseq, idx, (unsigned long long)val);
 #else
-  return scm_iseq_set_uint32(iseq, idx, (uint32_t)val);
+  return scm_iseq_set_uint(iseq, idx, (unsigned int)val);
 #endif
 
   SCM_WB_EXP(iseq, /* nothing to do */);
@@ -327,9 +331,9 @@ scm_iseq_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler) /* GC OK
       return rslt;
 
 #if SCM_UWORD_MAX > UINT32_MAX
-    scm_iseq_set_uint64(obj, idx, (uint64_t)chld);
+    scm_iseq_set_ullong(obj, idx, (unsigned long long)chld);
 #else
-    scm_iseq_set_uint32(obj, idx, (uint32_t)chld);
+    scm_iseq_set_uint(obj, idx, (unsigned int)chld);
 #endif
   }
 

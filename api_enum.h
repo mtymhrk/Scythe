@@ -109,10 +109,10 @@ typedef enum {
 
 #define SCM_OPFMT_INST_SZ_NOOPD      SCM_OPSIZE
 #define SCM_OPFMT_INST_SZ_OBJ        (SCM_OPSIZE + sizeof(ScmObj))
-#define SCM_OPFMT_INST_SZ_SI         (SCM_OPSIZE + sizeof(int32_t))
-#define SCM_OPFMT_INST_SZ_SI_SI      (SCM_OPSIZE + sizeof(int32_t) * 2)
-#define SCM_OPFMT_INST_SZ_SI_SI_OBJ  (SCM_OPSIZE + sizeof(int32_t) * 2 + sizeof(ScmObj))
-#define SCM_OPFMT_INST_SZ_IOF        (SCM_OPSIZE + sizeof(int32_t))
+#define SCM_OPFMT_INST_SZ_SI         (SCM_OPSIZE + sizeof(int))
+#define SCM_OPFMT_INST_SZ_SI_SI      (SCM_OPSIZE + sizeof(int) * 2)
+#define SCM_OPFMT_INST_SZ_SI_SI_OBJ  (SCM_OPSIZE + sizeof(int) * 2 + sizeof(ScmObj))
+#define SCM_OPFMT_INST_SZ_IOF        (SCM_OPSIZE + sizeof(int))
 
 #define SCM_INST_SZ_NOP         SCM_OPFMT_INST_SZ_NOOPD
 #define SCM_INST_SZ_HALT        SCM_OPFMT_INST_SZ_NOOPD

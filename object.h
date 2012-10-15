@@ -13,10 +13,21 @@ typedef uintptr_t scm_word_t;
 typedef uintptr_t scm_uword_t;
 typedef intptr_t  scm_sword_t;
 
+typedef unsigned char scm_byte_t;
+typedef unsigned char scm_ubyte_t;
+typedef signed char scm_sbyte_t;
+
 #define SCM_UWORD_MAX UINTPTR_MAX
 #define SCM_UWORD_NIN UINTPTR_MIN
 #define SCM_SWORD_MAX INTPTR_MAX
 #define SCM_SWORD_MIN INTPTR_MIN
+
+#define SCM_BYTE_MAX UCHAR_MAX
+#define SCM_BYTE_MIN UCHAR_MIN
+#define SCM_UBYTE_MAX UCHAR_MAX
+#define SCM_UBYTE_MIN UCHAR_MIN
+#define SCM_SBYTE_MAX SCHAR_MAX
+#define SCM_SBYTE_MIN SCHAR_MIN
 
 
 /** definition for ScmObj ****************************************************/
@@ -150,7 +161,8 @@ scm_csetter_setq(scm_csetter_t *st, ScmObj val)
     break;
   case 'S':
     SCM_WB_SETQ(*st->lval.s.owner,
-                *(ScmObj *)((uint8_t *)*st->lval.s.owner + st->lval.s.offset),
+                *(ScmObj *)((scm_byte_t *)*st->lval.s.owner
+                            + st->lval.s.offset),
                 val);
     break;
   }
@@ -208,7 +220,7 @@ scm_gc_ref_handler_failure_p(int ret_val)
 
 struct ScmTypeInfoRec {
   const char *name;
-  uint32_t flags;
+  unsigned int flags;
   ScmPrettyPrintFunction pp_func;
   size_t obj_size;
   ScmGCInitializeFunc gc_ini_func;
@@ -237,7 +249,7 @@ scm_type_info_name(ScmTypeInfo *type)
 }
 
 inline bool
-scm_type_info_flg_set_p(ScmTypeInfo *type, uint32_t flg)
+scm_type_info_flg_set_p(ScmTypeInfo *type, unsigned int flg)
 {
   return ((type->flags & flg) == flg) ? true : false;
 }
@@ -401,7 +413,7 @@ scm_obj_type_name(ScmObj obj)
 }
 
 inline bool
-scm_obj_type_flag_set_p(ScmObj obj, uint32_t flg)
+scm_obj_type_flag_set_p(ScmObj obj, unsigned int flg)
 {
   return scm_type_info_flg_set_p(scm_obj_type(obj), flg);
 }
