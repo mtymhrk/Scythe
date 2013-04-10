@@ -31,11 +31,13 @@ test_scm_string_port_new_input_port(void)
 
   port = scm_port_open_input_string(TEST_TEXT_CONTENTS,
                                     sizeof(TEST_TEXT_CONTENTS) - 1,
-                                    SCM_ENC_ASCII);
+                                    SCM_ENC_UTF8);
 
   cut_assert_true(scm_obj_not_null_p(port));
-  cut_assert_true(scm_port_readable_p(port));
-  cut_assert_false(scm_port_writable_p(port));
+  cut_assert_true(scm_port_input_port_p(port));
+  cut_assert_false(scm_port_output_port_p(port));
+  cut_assert_true(scm_port_textual_port_p(port));
+  cut_assert_false(scm_port_binary_port_p(port));
   cut_assert_false(scm_port_file_port_p(port));
   cut_assert_true(scm_port_string_port_p(port));
   cut_assert_false(scm_port_closed_p(port));
@@ -53,15 +55,15 @@ test_scm_string_port_read_per_bye(void)
 
   port = scm_port_open_input_string(TEST_TEXT_CONTENTS,
                                     sizeof(TEST_TEXT_CONTENTS) - 1,
-                                    SCM_ENC_ASCII);
+                                    SCM_ENC_UTF8);
 
   for (i = 0; i < (int)sizeof(expected_chars) - 1; i++) {
-    ret = scm_port_read(port, &byte, sizeof(byte));
+    ret = scm_port_read_bytes(port, &byte, sizeof(byte));
     cut_assert_equal_int(sizeof(byte), ret);
     cut_assert_equal_int(expected_chars[i], byte);
   }
 
-  ret = scm_port_read(port, &byte, sizeof(byte));
+  ret = scm_port_read_bytes(port, &byte, sizeof(byte));
   cut_assert_equal_int(0, ret);
 }
 
@@ -77,12 +79,12 @@ test_scm_string_port_interleave_read_and_seek(void)
 
   port = scm_port_open_input_string(TEST_TEXT_CONTENTS,
                                     sizeof(TEST_TEXT_CONTENTS) - 1,
-                                    SCM_ENC_ASCII);
+                                    SCM_ENC_UTF8);
 
 
   i = 0;
   while (true) {
-    ret = scm_port_read(port, &byte, sizeof(byte));
+    ret = scm_port_read_bytes(port, &byte, sizeof(byte));
     cut_assert_equal_int(sizeof(byte), ret);
     cut_assert_equal_int(expected_chars[i], byte);
     i++;
@@ -95,7 +97,7 @@ test_scm_string_port_interleave_read_and_seek(void)
 
   i = 0;
   while (true) {
-    ret = scm_port_read(port, &byte, sizeof(byte));
+    ret = scm_port_read_bytes(port, &byte, sizeof(byte));
     cut_assert_equal_int(sizeof(byte), ret);
     cut_assert_equal_int(expected_chars[i], byte);
     i++;
@@ -108,7 +110,7 @@ test_scm_string_port_interleave_read_and_seek(void)
 
   i -= 6;
   while (true) {
-    ret = scm_port_read(port, &byte, sizeof(byte));
+    ret = scm_port_read_bytes(port, &byte, sizeof(byte));
     cut_assert_equal_int(sizeof(byte), ret);
     cut_assert_equal_int(expected_chars[i], byte);
     i++;
@@ -121,7 +123,7 @@ test_scm_string_port_interleave_read_and_seek(void)
 
   i += 13;
 
-  ret = scm_port_read(port, &byte, sizeof(byte));
+  ret = scm_port_read_bytes(port, &byte, sizeof(byte));
   cut_assert_equal_int(0, ret);
 
   ret = scm_port_seek(port, -13, SEEK_END);
@@ -129,7 +131,7 @@ test_scm_string_port_interleave_read_and_seek(void)
 
   i -= 13;
   while (true) {
-    ret = scm_port_read(port, &byte, sizeof(byte));
+    ret = scm_port_read_bytes(port, &byte, sizeof(byte));
     cut_assert_equal_int(sizeof(byte), ret);
     cut_assert_equal_int(expected_chars[i], byte);
     i++;
@@ -137,7 +139,7 @@ test_scm_string_port_interleave_read_and_seek(void)
     if (i >= 26) break;
   }
 
-  ret = scm_port_read(port, &byte, sizeof(byte));
+  ret = scm_port_read_bytes(port, &byte, sizeof(byte));
   cut_assert_equal_int(0, ret);
 }
 
@@ -149,7 +151,7 @@ test_scm_string_port_close_input_port(void)
 
   port = scm_port_open_input_string(TEST_TEXT_CONTENTS,
                                     sizeof(TEST_TEXT_CONTENTS) - 1,
-                                    SCM_ENC_ASCII);
+                                    SCM_ENC_UTF8);
 
   cut_assert_false(scm_port_closed_p(port));
 
@@ -158,7 +160,7 @@ test_scm_string_port_close_input_port(void)
   cut_assert_equal_int(0, ret);
   cut_assert_true(scm_port_closed_p(port));
 
-  cut_assert_equal_int(-1, scm_port_read(port, &data, sizeof(data)));
+  cut_assert_equal_int(-1, scm_port_read_bytes(port, &data, sizeof(data)));
   cut_assert_equal_int(-1, scm_port_seek(port, 0, SEEK_SET));
 }
 
@@ -167,11 +169,13 @@ test_scm_string_port_new_output_port(void)
 {
   ScmObj port = SCM_OBJ_INIT;
 
-  port = scm_port_open_output_string(SCM_ENC_ASCII);
+  port = scm_port_open_output_string(SCM_ENC_UTF8);
 
   cut_assert_true(scm_obj_not_null_p(port));
-  cut_assert_false(scm_port_readable_p(port));
-  cut_assert_true(scm_port_writable_p(port));
+  cut_assert_false(scm_port_input_port_p(port));
+  cut_assert_true(scm_port_output_port_p(port));
+  cut_assert_true(scm_port_textual_port_p(port));
+  cut_assert_false(scm_port_binary_port_p(port));
   cut_assert_false(scm_port_file_port_p(port));
   cut_assert_true(scm_port_string_port_p(port));
   cut_assert_false(scm_port_closed_p(port));
@@ -186,10 +190,10 @@ test_scm_string_port_write_per_byte(void)
 
   ScmObj port = SCM_OBJ_INIT;
 
-  port = scm_port_open_output_string(SCM_ENC_ASCII);
+  port = scm_port_open_output_string(SCM_ENC_UTF8);
 
   for (i = 0; i < (int)sizeof(data) - 1; i++) {
-    ret = scm_port_write(port, data + i, sizeof(char));
+    ret = scm_port_write_bytes(port, data + i, sizeof(char));
     cut_assert_equal_int(sizeof(char), ret);
   }
   scm_port_flush(port);
@@ -210,11 +214,11 @@ test_scm_string_port_interleave_write_and_seek(void)
 
   ScmObj port = SCM_OBJ_INIT;
 
-  port = scm_port_open_output_string(SCM_ENC_ASCII);
+  port = scm_port_open_output_string(SCM_ENC_UTF8);
 
   i = 0;
   while (true) {
-    ret = scm_port_write(port, contents + i, sizeof(contents[i]));
+    ret = scm_port_write_bytes(port, contents + i, sizeof(contents[i]));
     cut_assert_equal_int(sizeof(contents[i]), ret);
     i++;
 
@@ -226,7 +230,7 @@ test_scm_string_port_interleave_write_and_seek(void)
 
   i = 0;
   while (true) {
-    ret = scm_port_write(port, contents + i, sizeof(contents[i]));
+    ret = scm_port_write_bytes(port, contents + i, sizeof(contents[i]));
     cut_assert_equal_int(sizeof(contents[i]), ret);
     i++;
 
@@ -238,7 +242,7 @@ test_scm_string_port_interleave_write_and_seek(void)
 
   i -= 6;
   while (true) {
-    ret = scm_port_write(port, contents + i, sizeof(contents[i]));
+    ret = scm_port_write_bytes(port, contents + i, sizeof(contents[i]));
     cut_assert_equal_int(sizeof(contents[i]), ret);
     i++;
 
@@ -250,7 +254,7 @@ test_scm_string_port_interleave_write_and_seek(void)
 
   i += 10;
   while (true) {
-    ret = scm_port_write(port, contents + i, sizeof(contents[i]));
+    ret = scm_port_write_bytes(port, contents + i, sizeof(contents[i]));
     cut_assert_equal_int(sizeof(contents[i]), ret);
     i++;
 
@@ -262,7 +266,7 @@ test_scm_string_port_interleave_write_and_seek(void)
 
   i -= 13;
   while (true) {
-    ret = scm_port_write(port, contents + i, sizeof(contents[i]));
+    ret = scm_port_write_bytes(port, contents + i, sizeof(contents[i]));
     cut_assert_equal_int(sizeof(contents[i]), ret);
     i++;
 
@@ -285,7 +289,7 @@ test_scm_string_port_close_output_port(void)
   int ret, data;
   ScmObj port = SCM_OBJ_INIT;
 
-  port = scm_port_open_output_string(SCM_ENC_ASCII);
+  port = scm_port_open_output_string(SCM_ENC_UTF8);
 
   cut_assert_false(scm_port_closed_p(port));
 
@@ -294,6 +298,6 @@ test_scm_string_port_close_output_port(void)
   cut_assert_equal_int(0, ret);
   cut_assert_true(scm_port_closed_p(port));
 
-  cut_assert_equal_int(-1, scm_port_write(port, &data, sizeof(data)));
+  cut_assert_equal_int(-1, scm_port_write_bytes(port, &data, sizeof(data)));
   cut_assert_equal_int(-1, scm_port_seek(port, 0, SEEK_SET));
 }

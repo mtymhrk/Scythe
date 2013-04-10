@@ -2569,7 +2569,7 @@ scm_capi_input_port_p(ScmObj port)
   if (scm_obj_null_p(port))
     return false;
 
-  if (scm_obj_type_p(port, &SCM_PORT_TYPE_INFO) && scm_port_readable_p(port))
+  if (scm_obj_type_p(port, &SCM_PORT_TYPE_INFO) && scm_port_input_port_p(port))
     return true;
   else
     return false;
@@ -2583,7 +2583,7 @@ scm_api_input_port_P(ScmObj port)
     return SCM_OBJ_NULL;         /* provisional implemntation */
   }
 
-  if (scm_obj_type_p(port, &SCM_PORT_TYPE_INFO) && scm_port_readable_p(port))
+  if (scm_obj_type_p(port, &SCM_PORT_TYPE_INFO) && scm_port_input_port_p(port))
     return scm_api_true();
   else
     return scm_api_false();
@@ -2595,7 +2595,7 @@ scm_capi_output_port_p(ScmObj port)
   if (scm_obj_null_p(port))
     return false;
 
-  if (scm_obj_type_p(port, &SCM_PORT_TYPE_INFO) && scm_port_writable_p(port))
+  if (scm_obj_type_p(port, &SCM_PORT_TYPE_INFO) && scm_port_output_port_p(port))
     return true;
   else
     return false;
@@ -2609,7 +2609,63 @@ scm_api_output_port_P(ScmObj port)
     return SCM_OBJ_NULL;         /* provisional implemntation */
   }
 
-  if (scm_obj_type_p(port, &SCM_PORT_TYPE_INFO) && scm_port_writable_p(port))
+  if (scm_obj_type_p(port, &SCM_PORT_TYPE_INFO) && scm_port_output_port_p(port))
+    return scm_api_true();
+  else
+    return scm_api_false();
+}
+
+extern inline bool
+scm_capi_textual_port_p(ScmObj port)
+{
+  if (scm_obj_null_p(port))
+    return false;
+
+  if (scm_obj_type_p(port, &SCM_PORT_TYPE_INFO)
+      && scm_port_textual_port_p(port))
+    return true;
+  else
+    return false;
+}
+
+extern inline ScmObj
+scm_api_textual_port_P(ScmObj port)
+{
+  if (scm_obj_null_p(port)) {
+    scm_capi_error("textual-port?: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  if (scm_obj_type_p(port, &SCM_PORT_TYPE_INFO)
+      && scm_port_textual_port_p(port))
+    return scm_api_true();
+  else
+    return scm_api_false();
+}
+
+extern inline bool
+scm_capi_binary_port_p(ScmObj port)
+{
+  if (scm_obj_null_p(port))
+    return false;
+
+  if (scm_obj_type_p(port, &SCM_PORT_TYPE_INFO)
+      && scm_port_binary_port_p(port))
+    return true;
+  else
+    return false;
+}
+
+extern inline ScmObj
+scm_capi_binary_port_P(ScmObj port)
+{
+  if (scm_obj_null_p(port)) {
+    scm_capi_error("binary-port?: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  if (scm_obj_type_p(port, &SCM_PORT_TYPE_INFO)
+      && scm_port_binary_port_p(port))
     return scm_api_true();
   else
     return scm_api_false();
@@ -2681,7 +2737,7 @@ scm_capi_read_raw(void *buf, size_t size, ScmObj port)
     return -1;
   }
 
-  return scm_port_read(port, buf, size);
+  return scm_port_read_bytes(port, buf, size);
 }
 
 ssize_t
@@ -2692,6 +2748,10 @@ scm_capi_read_char(scm_char_t *chr, ScmObj port)
     return -1;
   }
   else if (!scm_capi_input_port_p(port)) {
+    scm_capi_error("read error: invalid argument", 0);
+    return -1;
+  }
+  else if (!scm_capi_textual_port_p(port)) {
     scm_capi_error("read error: invalid argument", 0);
     return -1;
   }
@@ -2723,7 +2783,7 @@ scm_capi_unread_raw(const void *buf, size_t size, ScmObj port)
     return -1;
   }
 
-  return scm_port_pushback(port, buf, size);
+  return scm_port_pushback_bytes(port, buf, size);
 }
 
 ssize_t
@@ -2734,6 +2794,10 @@ scm_capi_unread_char(const scm_char_t *chr, ScmObj port)
     return -1;
   }
   else if (!scm_capi_input_port_p(port)) {
+    scm_capi_error("unread error: invalid argument", 0);
+    return -1;
+  }
+  else if (!scm_capi_textual_port_p(port)) {
     scm_capi_error("unread error: invalid argument", 0);
     return -1;
   }
@@ -2765,7 +2829,7 @@ scm_capi_peek_raw(void *buf, size_t size, ScmObj port)
     return -1;
   }
 
-  return scm_port_peek(port, buf, size);
+  return scm_port_peek_bytes(port, buf, size);
 }
 
 ssize_t
@@ -2776,6 +2840,10 @@ scm_capi_peek_char(scm_char_t *chr, ScmObj port)
     return -1;
   }
   else if (!scm_capi_input_port_p(port)) {
+    scm_capi_error("peek error: invalid argument", 0);
+    return -1;
+  }
+  else if (!scm_capi_textual_port_p(port)) {
     scm_capi_error("peek error: invalid argument", 0);
     return -1;
   }
@@ -2798,6 +2866,10 @@ scm_api_read(ScmObj port)
   }
   else if (!scm_capi_input_port_p(port)) {
     scm_capi_error("read: input-port requried, but got", 1, port);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_textual_port_p(port)) {
+    scm_capi_error("read: textual-port requried, but got", 1, port);
     return SCM_OBJ_NULL;
   }
 
@@ -2831,7 +2903,7 @@ scm_capi_write_raw(const void *buf, size_t size, ScmObj port)
     return -1;
   }
 
-  return scm_port_write(port, buf, size);
+  return scm_port_write_bytes(port, buf, size);
 }
 
 int
@@ -2845,6 +2917,10 @@ scm_capi_write_cstr(const char *str, SCM_ENC_T enc, ScmObj port)
     port = scm_api_current_output_port();
   }
   else if (!scm_capi_output_port_p(port)) {
+    scm_capi_error("write error: invalid argument", 0);
+    return -1;
+  }
+  else if (!scm_capi_textual_port_p(port)) {
     scm_capi_error("write error: invalid argument", 0);
     return -1;
   }
@@ -2874,6 +2950,10 @@ scm_capi_write_bin(const void *buf, size_t size, SCM_ENC_T enc, ScmObj port)
     port = scm_api_current_output_port();
   }
   else if (!scm_capi_output_port_p(port)) {
+    scm_capi_error("write error: invalid argument", 0);
+    return -1;
+  }
+  else if (!scm_capi_textual_port_p(port)) {
     scm_capi_error("write error: invalid argument", 0);
     return -1;
   }
@@ -2914,6 +2994,10 @@ scm_api_write_char(ScmObj chr, ScmObj port)
   }
   else if (!scm_capi_output_port_p(port)) {
     scm_capi_error("write-char: output-port required, but got", 1, port);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_textual_port_p(port)) {
+    scm_capi_error("write-char: textual-port required, but got", 1, port);
     return SCM_OBJ_NULL;
   }
 
@@ -2957,6 +3041,10 @@ scm_api_write_string(ScmObj str, ScmObj port)
   }
   else if (!scm_capi_output_port_p(port)) {
     scm_capi_error("write-string: output-port required, but got", 1, port);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_textual_port_p(port)) {
+    scm_capi_error("write-string: textual-port required, but got", 1, port);
     return SCM_OBJ_NULL;
   }
 
@@ -3012,6 +3100,10 @@ scm_api_write_simple(ScmObj obj, ScmObj port)
     scm_capi_error("write-simple: output-port required, but got", 1, port);
     return SCM_OBJ_NULL;
   }
+  else if (!scm_capi_textual_port_p(port)) {
+    scm_capi_error("write-simple: textual-port required, but got", 1, port);
+    return SCM_OBJ_NULL;
+  }
 
   rslt = scm_obj_call_pp_func(obj, port, true);
   if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
@@ -3038,6 +3130,10 @@ scm_api_display(ScmObj obj, ScmObj port)
     scm_capi_error("display: output-port required, but got", 1, port);
     return SCM_OBJ_NULL;
   }
+  else if (!scm_capi_textual_port_p(port)) {
+    scm_capi_error("display: textual-port required, but got", 1, port);
+    return SCM_OBJ_NULL;
+  }
 
   rslt = scm_obj_call_pp_func(obj, port, false);
   if (rslt < 0) return SCM_OBJ_NULL;
@@ -3058,6 +3154,10 @@ scm_api_newline(ScmObj port)
   }
   else if (!scm_capi_output_port_p(port)) {
     scm_capi_error("newline: output-port required, but got", 1, port);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_textual_port_p(port)) {
+    scm_capi_error("newline: textual-port required, but got", 1, port);
     return SCM_OBJ_NULL;
   }
 
