@@ -44,7 +44,9 @@ scm_io_initialize(ScmIO *io,
                   ScmIOCloseFunc close,
                   ScmIOReadyPFunc readyp,
                   ScmIOBuffModeFunc buf_mode,
-                  ScmIOBlkSizeFunc blk_size)
+                  ScmIOBlkSizeFunc blk_size,
+                  ScmIOFlushFunc flush,
+                  ScmIOClearFunc clear)
 {
   scm_assert(io != NULL);
 
@@ -56,6 +58,8 @@ scm_io_initialize(ScmIO *io,
   io->ready_p_func = readyp;
   io->default_buf_mode_func = buf_mode;
   io->blk_size_func = blk_size;
+  io->flush_func = flush;
+  io->clear_func = clear;
 }
 
 
@@ -127,8 +131,22 @@ scm_io_buffer_mode(ScmIO *io, SCM_IO_MODE_T im, SCM_PORT_BUF_T *mode)
 ssize_t
 scm_io_block_size(ScmIO *io)
 {
-  assert(io != NULL);
+  scm_assert(io != NULL);
   return (io->blk_size_func != NULL) ? io->blk_size_func(io) : 0;
+}
+
+int
+scm_io_flush(ScmIO *io)
+{
+  scm_assert(io != NULL);
+  return (io->flush_func != NULL) ? io->flush_func(io) : 0;
+}
+
+int
+scm_io_clear(ScmIO *io)
+{
+  scm_assert(io != NULL);
+  return (io->clear_func != NULL) ? io->clear_func(io) : 0;
 }
 
 ScmFileIO *
@@ -147,7 +165,9 @@ scm_fileio_new(int fd)
                     (ScmIOCloseFunc)scm_fileio_close,
                     (ScmIOReadyPFunc)scm_fileio_ready_p,
                     (ScmIOBuffModeFunc)scm_fileio_buffer_mode,
-                    (ScmIOBlkSizeFunc)scm_fileio_block_size);
+                    (ScmIOBlkSizeFunc)scm_fileio_block_size,
+                    (ScmIOFlushFunc)NULL,
+                    (ScmIOClearFunc)NULL);
   fileio->fd = fd;
 
   return fileio;
@@ -377,7 +397,9 @@ scm_stringio_new(const char *str, size_t len)
                     (ScmIOCloseFunc)scm_stringio_close,
                     (ScmIOReadyPFunc)scm_stringio_ready_p,
                     (ScmIOBuffModeFunc)scm_stringio_buffer_mode,
-                    (ScmIOBlkSizeFunc)NULL);
+                    (ScmIOBlkSizeFunc)NULL,
+                    (ScmIOFlushFunc)NULL,
+                    (ScmIOClearFunc)NULL);
   strio->string = NULL;
   strio->capacity = 0;
   strio->length = 0;
@@ -540,14 +562,298 @@ scm_stringio_length(ScmStringIO *strio)
 }
 
 scm_local_func int
-scm_port_init_buffer(ScmObj port, SCM_PORT_BUF_T buf_mode)
+scm_bufferedio_init_buffer(ScmBufferedIO *bufio, ScmIO *source)
 {
   ssize_t s;
+
+  scm_assert(bufio != NULL);
+  scm_assert(source != NULL);
+
+  bufio->pos = 0;
+  bufio->used = 0;
+
+  s = scm_io_block_size(source);
+  if (s > 0)
+    bufio->capacity = (size_t)s;
+  else if (s == 0)
+    bufio->capacity = SCM_PORT_DEFAULT_BUF_SIZE;
+  else
+    return -1;
+
+  bufio->buffer = scm_capi_malloc(bufio->capacity);
+  if (bufio->buffer == NULL) return -1;
+
+  return 0;
+}
+
+
+ScmBufferedIO *
+scm_bufferedio_new(ScmIO *io)
+{
+  ScmBufferedIO *bufio;
+  int r;
+
+  bufio = scm_capi_malloc(sizeof(ScmBufferedIO));
+  if (bufio == NULL) return NULL;
+
+  scm_io_initialize((ScmIO *)bufio,
+                    (ScmIOFinFunc)scm_bufferedio_end,
+                    (ScmIOReadFunc)scm_bufferedio_read,
+                    (ScmIOWriteFunc)scm_bufferedio_write,
+                    (ScmIOSeekFunc)scm_bufferedio_seek,
+                    (ScmIOCloseFunc)scm_bufferedio_close,
+                    (ScmIOReadyPFunc)scm_bufferedio_ready_p,
+                    (ScmIOBuffModeFunc)scm_bufferedio_buffer_mode,
+                    (ScmIOBlkSizeFunc)scm_bufferedio_block_size,
+                    (ScmIOFlushFunc)scm_bufferedio_flush,
+                    (ScmIOClearFunc)scm_bufferedio_clear);
+
+  bufio->io = io;
+  bufio->eof_received_p = false;
+
+  r = scm_bufferedio_init_buffer(bufio, io);
+  if (r < 0) {
+    scm_capi_free(bufio);
+    return NULL;
+  }
+
+  return bufio;
+}
+
+void
+scm_bufferedio_end(ScmBufferedIO *bufio)
+{
+  scm_assert(bufio != NULL);
+
+  scm_io_end(bufio->io);
+
+  scm_capi_free(bufio->buffer);
+  scm_capi_free(bufio);
+}
+
+ssize_t
+scm_bufferedio_read(ScmBufferedIO *bufio, void *buf, size_t size)
+{
+  size_t nread, rest;
+  ssize_t rslt;
+
+  scm_assert(bufio != NULL);
+  scm_assert(buf != NULL);
+  scm_assert(size <= SSIZE_MAX);
+
+  nread = 0;
+  rest = size;
+
+  if (bufio->eof_received_p) {
+    bufio->eof_received_p = false;
+    return 0;
+  }
+
+  if (bufio->used > bufio->pos) {
+    size_t n;
+    if (size > bufio->used - bufio->pos)
+      n = bufio->used - bufio->pos;
+    else
+      n = size;
+    memcpy(buf, bufio->buffer + bufio->pos, n);
+    nread += n;
+    rest -= n;
+
+    bufio->pos += n;
+    if (bufio->pos >= bufio->used)
+      bufio->pos = bufio->used = 0;
+
+    if (nread >= size) goto end;
+  }
+
+  if (rest >= bufio->capacity) {
+    size_t n = bufio->capacity * (rest / bufio->capacity);
+    rslt = scm_io_read(bufio->io, (char *)buf + nread, n);
+    if (rslt < 0)
+      return -1;
+    else if (rslt == 0)
+      bufio->eof_received_p = true;
+
+    nread += (size_t)rslt;
+    rest -= (size_t)rslt;
+
+    if (nread >= size || (size_t)rslt < n) goto end;
+  }
+
+  rslt = scm_io_read(bufio->io, bufio->buffer, bufio->capacity);
+  if (rslt < 0)
+    return -1;
+  else if (rslt == 0)
+    bufio->eof_received_p = true;
+  else {
+    size_t n;
+    if (rest > (size_t)rslt)
+      n = (size_t)rslt;
+    else
+      n = rest;
+    memcpy((char *)buf + nread, bufio->buffer, n);
+    bufio->used = (size_t)rslt;
+    bufio->pos = n;
+    nread += n;
+    rest -= n;
+  }
+
+ end:
+  if (nread == 0 && bufio->eof_received_p)
+    bufio->eof_received_p = false;
+
+  return (ssize_t)nread;
+}
+
+ssize_t
+scm_bufferedio_write(ScmBufferedIO *bufio, void *buf, size_t size)
+{
+  size_t n, nwrite, rest;
+  ssize_t rslt;
+
+  scm_assert(bufio != NULL);
+  scm_assert(buf != NULL);
+  scm_assert(size <= SSIZE_MAX);
+
+  nwrite = 0;
+  rest = size;
+
+  if (bufio->pos > 0) {
+    if (rest > bufio->capacity - bufio->pos)
+      n = bufio->capacity - bufio->pos;
+    else
+      n = rest;
+
+    memcpy(bufio->buffer + bufio->pos, (char *)buf + nwrite, n);
+    bufio->pos += n;
+    if (bufio->pos > bufio->used)
+      bufio->used = bufio->pos;
+    nwrite += n;
+    rest -= n;
+
+    if (bufio->capacity == bufio->pos) {
+      rslt = scm_bufferedio_flush(bufio);
+      if (rslt < 0) return -1;
+    }
+
+    if (nwrite >= size) return (ssize_t)nwrite;
+  }
+
+  if (rest >= bufio->capacity) {
+    n = bufio->capacity * (rest / bufio->capacity);
+    rslt = scm_io_write(bufio->io, (char *)buf + nwrite, n);
+    if (rslt < 0) return -1;
+
+    nwrite += (size_t)rslt;
+    rest -= (size_t)rslt;
+
+    if (nwrite >= size || (size_t)rslt < n) return (ssize_t)nwrite;
+  }
+
+  memcpy(bufio->buffer + bufio->pos, (char *)buf + nwrite, rest);
+  bufio->pos += rest;
+  if (bufio->pos > bufio->used)
+    bufio->used = bufio->pos;
+  nwrite += rest;
+  rest = 0;
+
+  return (ssize_t)nwrite;
+}
+
+int
+scm_bufferedio_ready_p(ScmBufferedIO *bufio)
+{
+  scm_assert(bufio != NULL);
+
+  if (bufio->pos > 0)
+    return 1;
+  else if (bufio->eof_received_p)
+    return 1;
+  else
+    return scm_io_ready_p(bufio->io);
+}
+
+off_t
+scm_bufferedio_seek(ScmBufferedIO *bufio, off_t offset, int whence)
+{
+  off_t off;
+  int rslt;
+
+  if (whence == SEEK_CUR)
+    off = offset - (off_t)(bufio->used - bufio->pos);
+  else
+    off = offset;
+
+  off = scm_io_seek(bufio->io, off, whence);
+  if (rslt < 0) return (int)rslt;
+
+  rslt = scm_bufferedio_clear(bufio);
+  if (rslt < 0) return -1;
+
+  return off;
+}
+
+int
+scm_bufferedio_close(ScmBufferedIO *bufio)
+{
+  scm_assert(bufio != NULL);
+
+  return scm_io_close(bufio->io);
+}
+
+int
+scm_bufferedio_buffer_mode(ScmBufferedIO *bufio,
+                           SCM_IO_MODE_T im, SCM_PORT_BUF_T *mode)
+{
+  scm_assert(bufio != NULL);
+  scm_assert(mode != NULL);
+
+  return scm_io_buffer_mode(bufio->io, im, mode);
+}
+
+ssize_t
+scm_bufferedio_block_size(ScmBufferedIO *bufio)
+{
+  scm_assert(bufio != NULL);
+
+  return scm_io_block_size(bufio->io);
+}
+
+int
+scm_bufferedio_flush(ScmBufferedIO *bufio)
+{
+  scm_assert(bufio != NULL);
+
+  if (bufio->used > 0) {
+    ssize_t rslt = scm_io_write(bufio->io, bufio->buffer, bufio->pos);
+    if (rslt < 0) return -1;
+    bufio->used = 0;
+    bufio->pos = 0;
+  }
+
+  return scm_io_flush(bufio->io);
+}
+
+int
+scm_bufferedio_clear(ScmBufferedIO *bufio)
+{
+  scm_assert(bufio != NULL);
+
+  bufio->pos = bufio->used = 0;
+  bufio->eof_received_p = false;
+
+  return scm_io_clear(bufio->io);
+}
+
+scm_local_func int
+scm_port_init_buffer(ScmObj port, SCM_PORT_BUF_T buf_mode)
+{
   int rslt;
   SCM_IO_MODE_T im;
+  ScmIO *bufio;
 
   scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
-  assert(/* buf_mode >= 0 && */ buf_mode < SCM_PORT_NR_BUF_MODE);
+  scm_assert(/* buf_mode >= 0 && */ buf_mode < SCM_PORT_NR_BUF_MODE);
 
   if (buf_mode == SCM_PORT_BUF_DEFAULT) {
     im = (BIT_IS_SETED(SCM_PORT(port)->attr, SCM_PORT_ATTR_READABLE) ?
@@ -559,114 +865,24 @@ scm_port_init_buffer(ScmObj port, SCM_PORT_BUF_T buf_mode)
   else
     SCM_PORT(port)->buf_mode = buf_mode;
 
-  SCM_PORT(port)->pos = 0;
-  SCM_PORT(port)->used = 0;
-  switch (SCM_PORT(port)->buf_mode) {
-  case SCM_PORT_BUF_FULL:   /* fall through */
-  case SCM_PORT_BUF_LINE:   /* fall through */
-  case SCM_PORT_BUF_MODEST: /* fall through */
-    s = scm_io_block_size(SCM_PORT(port)->io);
-    if (s > 0)
-      SCM_PORT(port)->capacity = (size_t)s;
-    else if (s == 0)
-      SCM_PORT(port)->capacity = SCM_PORT_DEFAULT_BUF_SIZE;
-    else
-      return -1;                /* [ERR]: [through] */
-    break;
-  case SCM_PORT_BUF_NONE:
-    SCM_PORT(port)->capacity = 0;
-    break;
-  case SCM_PORT_BUF_DEFAULT:    /* fall through */
-  default:
-    SCM_PORT(port)->capacity = 0; /* must not happen */
-    break;
+  if (SCM_PORT(port)->buf_mode != SCM_PORT_BUF_NONE) {
+    bufio = (ScmIO *)scm_bufferedio_new(SCM_PORT(port)->io);
+    if (bufio == NULL) return -1;
+    SCM_PORT(port)->io = bufio;
   }
-
-  if (SCM_PORT(port)->capacity == 0) {
-    SCM_PORT(port)->buffer = NULL;
-    return 0;
-  }
-
-  SCM_PORT(port)->buffer = scm_capi_malloc(SCM_PORT(port)->capacity);
-  if (SCM_PORT(port)->buffer == NULL)
-    return -1;                  /* [ERR]: [through] */
 
   return 0;
-}
-
-scm_local_inline bool
-scm_port_buffer_empty_p(ScmObj port)
-{
-  scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
-
-  return (SCM_PORT(port)->pos == SCM_PORT(port)->used);
-}
-
-scm_local_inline void
-scm_port_clear_buffer(ScmObj port)
-{
-  scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
-
-  SCM_PORT(port)->used = 0;
-  SCM_PORT(port)->pos = 0;
-}
-
-
-scm_local_func ssize_t
-scm_port_read_from_buffer(ScmObj port, void *buf, size_t size)
-{
-  size_t n;
-
-  scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
-  scm_assert(buf != NULL);
-  scm_assert(scm_port_readable_p(port));
-  scm_assert(!scm_port_closed_p(port));
-  scm_assert(size <= SSIZE_MAX);
-  scm_assert(SCM_PORT(port)->buf_mode != SCM_PORT_BUF_NONE);
-
-  n = SCM_PORT(port)->used - SCM_PORT(port)->pos;
-  n = (n < size) ? n : size;
-
-  memcpy(buf, SCM_PORT(port)->buffer + SCM_PORT(port)->pos, n);
-  SCM_PORT(port)->pos += n;
-
-  return (ssize_t)n;
-}
-
-scm_local_func ssize_t
-scm_port_read_into_buffer(ScmObj port)
-{
-  ssize_t n;
-
-  scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
-  scm_assert(scm_port_readable_p(port));
-  scm_assert(!scm_port_closed_p(port));
-  scm_assert(SCM_PORT(port)->buf_mode != SCM_PORT_BUF_NONE);
-
-  if (SCM_PORT(port)->eof_received_p) return 0;
-
-  n = scm_io_read(SCM_PORT(port)->io,
-                  SCM_PORT(port)->buffer, SCM_PORT(port)->capacity);
-  if (n < 0) return -1;         /* [ERR]: [through] */
-
-  if (n == 0) SCM_PORT(port)->eof_received_p = true;
-
-  SCM_PORT(port)->pos = 0;
-  SCM_PORT(port)->used = (size_t)n;
-
-  return n;
 }
 
 scm_local_func ssize_t
 scm_port_size_up_to_lf(ScmObj port, const void *buf, size_t size)
 {
-  /* provisional implementation */
-  /* 現状、LF 改行にしか対応していない */
-
   const ScmEncVirtualFunc *vf;
   ScmStrItr iter;
-  scm_char_t lf;
   ssize_t len;
+  scm_char_t lf, cr;
+  size_t lf_w, cr_w;
+  bool lf_exists_p, cr_exists_p;
 
   scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
   scm_assert(buf != NULL);
@@ -674,9 +890,17 @@ scm_port_size_up_to_lf(ScmObj port, const void *buf, size_t size)
 
   vf = SCM_ENCODING_VFUNC(SCM_PORT(port)->encoding);
   iter = scm_str_itr_begin((void *)buf, size, vf->char_width);
+
   lf = SCM_ENCODING_CONST_LF_CHR(SCM_PORT(port)->encoding);
+  lf_w = SCM_ENCODING_CONST_LF_WIDTH(SCM_PORT(port)->encoding);
+
+  cr = SCM_ENCODING_CONST_CR_CHR(SCM_PORT(port)->encoding);
+  cr_w = SCM_ENCODING_CONST_CR_WIDTH(SCM_PORT(port)->encoding);
 
   len = 0;
+
+  lf_exists_p = cr_exists_p = false;
+
   while (!SCM_STR_ITR_IS_END(&iter)) {
     ssize_t w = SCM_STR_ITR_WIDTH(&iter);
     if (w < 0) {
@@ -688,8 +912,16 @@ scm_port_size_up_to_lf(ScmObj port, const void *buf, size_t size)
       return 0;
 
     len += w;
-    if (memcmp(lf.bytes, SCM_STR_ITR_PTR(&iter), (size_t)w) == 0)
-      return len;
+    if (lf_w == (size_t)w
+        && memcmp(lf.bytes, SCM_STR_ITR_PTR(&iter), (size_t)w) == 0) {
+      lf_exists_p = true;
+      break;
+    }
+    else if (cr_w == (size_t)w
+             && memcmp(cr.bytes, SCM_STR_ITR_PTR(&iter), (size_t)w) == 0) {
+      cr_exists_p = true;
+      break;
+    }
 
     scm_str_itr_next(&iter);
     if (SCM_STR_ITR_IS_ERR(&iter)) {
@@ -697,6 +929,33 @@ scm_port_size_up_to_lf(ScmObj port, const void *buf, size_t size)
       scm_capi_error("illegal byte sequence", 0);
       return -1; /* TODO: error handling (illegal sequence) */
     }
+  }
+
+  if (lf_exists_p || cr_exists_p) {
+    if (cr_exists_p) {
+      scm_str_itr_next(&iter);
+      if (SCM_STR_ITR_IS_ERR(&iter)) {
+        /* TODO; change error message */
+        scm_capi_error("illegal byte sequence", 0);
+        return -1; /* TODO: error handling (illegal sequence) */
+      }
+
+      if (!SCM_STR_ITR_IS_END(&iter)) {
+        ssize_t w = SCM_STR_ITR_WIDTH(&iter);
+        if (w < 0) {
+          /* TODO; change error message */
+          scm_capi_error("illegal byte sequence", 0);
+          return -1;       /* TODO: error handling (illegal sequence) */
+        }
+
+        if (lf_w == (size_t)w
+            && memcmp(lf.bytes, SCM_STR_ITR_PTR(&iter), (size_t)w) == 0) {
+          len += w;
+        }
+      }
+    }
+
+    return len;
   }
 
   return 0;
@@ -737,41 +996,6 @@ scm_port_read_from_pushback_buf(ScmObj port, void *buf, size_t size)
 }
 
 scm_local_func ssize_t
-scm_port_read_line_from_pushback_buf(ScmObj port,
-                                     void *buf, size_t size, bool *lf_exists_p)
-{
-  size_t n;
-  ssize_t lf;
-  void *head;
-
-  scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
-  scm_assert(buf != NULL);
-  scm_assert(scm_port_readable_p(port));
-  scm_assert(!scm_port_closed_p(port));
-
-  if (SCM_PORT(port)->pb_used == 0) return 0;
-
-  n = (size < SCM_PORT(port)->pb_used) ? size : SCM_PORT(port)->pb_used;
-  head = scm_port_pushback_buff_head(port);
-
-  lf = scm_port_size_up_to_lf(port, head, n);
-  if (lf < 0) return -1;        /* [ERR]: [through] */
-
-  if (lf > 0) {
-    n = (size_t)lf;
-    *lf_exists_p = true;
-  }
-  else {
-    *lf_exists_p = false;
-  }
-
-  memcpy(buf, head, n);
-  SCM_PORT(port)->pb_used -= n;
-
-  return (ssize_t)n;
-}
-
-scm_local_func ssize_t
 scm_port_read_char_from_pushback_buf(ScmObj port, scm_char_t *chr)
 {
   const ScmEncVirtualFunc *vf;
@@ -802,128 +1026,27 @@ scm_port_read_char_from_pushback_buf(ScmObj port, scm_char_t *chr)
   }
 }
 
-enum { WAIT_ALL, DONT_WAIT, BREAK_LF };
-
 scm_local_func ssize_t
-scm_port_read_buf(ScmObj port, void *buf, size_t size, int mode)
+scm_port_read_from_io(ScmObj port, void *buf, size_t size)
 {
-  size_t nr;
-  ssize_t lf;
-  int ready;
+  ssize_t n;
 
   scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
   scm_assert(buf != NULL);
   scm_assert(scm_port_readable_p(port));
   scm_assert(!scm_port_closed_p(port));
   scm_assert(size <= SSIZE_MAX);
-  scm_assert(SCM_PORT(port)->buf_mode != SCM_PORT_BUF_NONE);
-
-  nr = 0;
-  do {
-    size_t n;
-    ssize_t rslt;
-
-    if (scm_port_buffer_empty_p(port)) {
-      rslt = scm_port_read_into_buffer(port);
-      if (rslt < 0) return -1;  /* [ERR]: [through] */
-      if (rslt == 0) break;
-    }
-
-    n = size - nr;
-    lf = 0;
-
-    if (mode == BREAK_LF) {
-      if (SCM_PORT(port)->used - SCM_PORT(port)->pos < n)
-        n = SCM_PORT(port)->used - SCM_PORT(port)->pos;
-
-      lf = scm_port_size_up_to_lf(port,
-                                  SCM_PORT(port)->buffer + SCM_PORT(port)->pos,
-                                  n);
-      if (lf < 0) return -1;
-      if (lf > 0) n = (size_t)lf;
-    }
-
-    rslt = scm_port_read_from_buffer(port, (uint8_t *)buf + nr, (size_t)n);
-    if (rslt < 0) return -1;    /* [ERR: [through] */
-    nr += (size_t)rslt;
-
-    if (nr >= size) break;
-
-  } while (mode == WAIT_ALL
-           || (mode == DONT_WAIT && (ready = scm_port_ready_p(port)) > 0)
-           || (mode == BREAK_LF && lf == 0));
-
-  if (ready < 0) return -1;      /* [ERR]: [through] */
-
-  return (ssize_t)nr;
-}
-
-scm_local_func ssize_t
-scm_port_read_line_nonbuf(ScmObj port, void *buf, size_t size)
-{
-  /* provisional implementation */
-  /* 現状、LF 改行にしか対応していない */
-  const ScmEncVirtualFunc *vf;
-  scm_char_t lf;
-  uint8_t *p;
-  size_t len, pl;
-
-  scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
-  scm_assert(buf != NULL);
-  scm_assert(scm_port_readable_p(port));
-  scm_assert(!scm_port_closed_p(port));
-  scm_assert(size <= SSIZE_MAX);
-  scm_assert(SCM_PORT(port)->buf_mode == SCM_PORT_BUF_NONE);
-
-  if (SCM_PORT(port)->eof_received_p) return 0;
-
-  vf = SCM_ENCODING_VFUNC(SCM_PORT(port)->encoding);
-  lf = SCM_ENCODING_CONST_LF_CHR(SCM_PORT(port)->encoding);
-
-  p = buf;
-  pl = 0;
-  for (len = 0; len < size; len++) {
-    uint8_t c;
-    ssize_t rslt = scm_io_read(SCM_PORT(port)->io, &c, sizeof(c));
-    if (rslt < 0) return -1;
-    if (rslt == 0) {
-      SCM_PORT(port)->eof_received_p = true;
-      break;
-    }
-
-    p[pl++] = c;
-
-    ssize_t w = vf->char_width(p, pl);
-    if (w < 0) {
-      /* TODO; change error message */
-      scm_capi_error("illegal byte sequence", 0);
-      return -1;
-    }
-    else if (w > 0) {
-      if (memcmp(lf.bytes, p, (size_t)w) == 0)
-        return (ssize_t)len + 1;
-      p += pl;
-      pl = 0;
-    }
-  }
-
-  return (ssize_t)len;
-}
-
-scm_local_func ssize_t
-scm_port_read_nonbuf(ScmObj port, void *buf, size_t size)
-{
-  scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
-  scm_assert(buf != NULL);
-  scm_assert(scm_port_readable_p(port));
-  scm_assert(!scm_port_closed_p(port));
-  scm_assert(size <= SSIZE_MAX);
-  scm_assert(SCM_PORT(port)->buf_mode == SCM_PORT_BUF_NONE);
 
   if (SCM_PORT(port)->eof_received_p)
     return 0;
 
-  return scm_io_read(SCM_PORT(port)->io, buf, size);
+  n = scm_io_read(SCM_PORT(port)->io, buf, size);
+  if (n < 0)
+    return -1;
+  else if (n == 0)
+    SCM_PORT(port)->eof_received_p = true;
+
+  return n;
 }
 
 scm_local_func ssize_t
@@ -939,26 +1062,7 @@ scm_port_read_into_pushback_buf(ScmObj port, size_t size)
 
   memcpy(buf, scm_port_pushback_buff_head(port), SCM_PORT(port)->pb_used);
 
-  switch (SCM_PORT(port)->buf_mode) {
-  case SCM_PORT_BUF_FULL: /* fall through */
-  case SCM_PORT_BUF_LINE:
-    ret = scm_port_read_buf(port,
-                            buf + SCM_PORT(port)->pb_used, size, WAIT_ALL);
-    break;
-  case SCM_PORT_BUF_MODEST:
-    ret = scm_port_read_buf(port,
-                            buf + SCM_PORT(port)->pb_used, size, DONT_WAIT);
-    break;
-  case SCM_PORT_BUF_NONE:
-    ret = scm_port_read_nonbuf(port,
-                               buf + SCM_PORT(port)->pb_used, size);
-    break;
-  case SCM_PORT_BUF_DEFAULT:    /* fall through */
-  default:
-    ret = -1; /* must not happen */
-    break;
-  }
-
+  ret = scm_port_read_from_io(port, buf + SCM_PORT(port)->pb_used, size);
   if (ret < 0 || ret == 0) return ret;
 
   memcpy(scm_port_pushback_buff_head(port) - (size_t)ret,
@@ -969,10 +1073,11 @@ scm_port_read_into_pushback_buf(ScmObj port, size_t size)
 }
 
 scm_local_func ssize_t
-scm_port_write_buf(ScmObj port, const void *buf, size_t size)
+scm_port_write_to_io(ScmObj port, const void *buf, size_t size)
 {
-  size_t i, n;
-  ssize_t lf;
+  size_t sz;
+  ssize_t n, nw;
+  int r;
 
   scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
   scm_assert(buf != NULL);
@@ -980,28 +1085,31 @@ scm_port_write_buf(ScmObj port, const void *buf, size_t size)
   scm_assert(scm_port_writable_p(port));
   scm_assert(!scm_port_closed_p(port));
 
-  for (i = 0; i < size; i += n) {
-    n = SCM_PORT(port)->capacity - SCM_PORT(port)->pos;
-    n = (n < size - i) ? n : size - i;
+  sz = size;
+  nw = 0;
 
-    lf = 0;
-    if (SCM_PORT(port)->buf_mode == SCM_PORT_BUF_LINE) {
-      lf = scm_port_size_up_to_lf(port, (const uint8_t *)buf + i, n);
-      if (lf < 0) return -1;    /* [ERR]: [through] */
-      if (lf > 0) n = (size_t)lf;
+  if (SCM_PORT(port)->buf_mode == SCM_PORT_BUF_LINE) {
+    ssize_t lf = scm_port_size_up_to_lf(port, buf, size);
+    if (lf < 0)
+      return -1;
+
+    if (lf > 0) {
+      n = scm_io_write(SCM_PORT(port)->io, buf, (size_t)lf);
+      if (n < 0) return -1;
+      else if (n < lf) return n;
+
+      r = scm_io_flush(SCM_PORT(port)->io);
+      if (r < 0) return -1;
+
+      sz -= (size_t)n;
+      nw += n;
     }
-
-    memcpy(SCM_PORT(port)->buffer + SCM_PORT(port)->pos,
-           (const uint8_t *)buf + i, n);
-    SCM_PORT(port)->pos += n;
-    if (SCM_PORT(port)->pos > SCM_PORT(port)->used)
-      SCM_PORT(port)->used = SCM_PORT(port)->pos;
-
-    if (lf > 0 || SCM_PORT(port)->used >= SCM_PORT(port)->capacity)
-      scm_port_flush(port);
   }
 
-  return (ssize_t)i;
+  n = scm_io_write(SCM_PORT(port)->io, (const char *)buf + nw, sz);
+  if (n < 0) return -1;
+
+  return nw + n;
 }
 
 int
@@ -1017,10 +1125,6 @@ scm_port_initialize(ScmObj port, ScmIO *io,
   SCM_PORT(port)->attr = attr;
   SCM_PORT(port)->io = io;
   SCM_PORT(port)->buf_mode = SCM_PORT_BUF_NONE;
-  SCM_PORT(port)->buffer = NULL;
-  SCM_PORT(port)->capacity = 0;
-  SCM_PORT(port)->pos = 0;
-  SCM_PORT(port)->used = 0;
   SCM_PORT(port)->closed_p = false;
   SCM_PORT(port)->eof_received_p = false;
   SCM_PORT(port)->pb_used = 0;
@@ -1036,7 +1140,6 @@ scm_port_finalize(ScmObj port)
 
   scm_port_close(port);
   scm_io_end(SCM_PORT(port)->io);
-  scm_capi_free(SCM_PORT(port)->buffer);
 }
 
 ScmObj
@@ -1205,18 +1308,13 @@ scm_port_ready_p(ScmObj port)
   if (SCM_PORT(port)->pb_used > 0) {
     return true;
   }
-  else if (scm_port_buffer_empty_p(port)) {
-    if (SCM_PORT(port)->eof_received_p) {
-      return true;
-    }
-    else {
-      int ret = scm_io_ready_p(SCM_PORT(port)->io);
-      if (ret < 0) return false; /* [ERR]: [through] */
-      return (ret == 0) ? false : true;
-    }
+  else if (SCM_PORT(port)->eof_received_p) {
+    return true;
   }
   else {
-    return true;
+    int ret = scm_io_ready_p(SCM_PORT(port)->io);
+    if (ret < 0) return false; /* [ERR]: [through] */
+    return (ret == 0) ? false : true;
   }
 }
 
@@ -1242,14 +1340,7 @@ scm_port_flush(ScmObj port)
     return -1;
   }
 
-  if (SCM_PORT(port)->used > 0) {
-    scm_io_write(SCM_PORT(port)->io,
-                 SCM_PORT(port)->buffer, SCM_PORT(port)->used);
-    SCM_PORT(port)->used = 0;
-    SCM_PORT(port)->pos = 0;
-  }
-
-  return 0;
+  return scm_io_flush(SCM_PORT(port)->io);
 }
 
 int
@@ -1275,8 +1366,6 @@ scm_port_close(ScmObj port)
 ssize_t
 scm_port_read(ScmObj port, void *buf, size_t size)
 {
-  void *bp;
-  size_t sz;
   ssize_t ret, pb_nr;
 
   scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
@@ -1296,81 +1385,14 @@ scm_port_read(ScmObj port, void *buf, size_t size)
   if (pb_nr < 0) return -1;     /* [ERR]: [through] */
   if ((size_t)pb_nr >= size) return pb_nr;
 
-  bp = (uint8_t *)buf + pb_nr;
-  sz = size - (size_t)pb_nr;
+  ret = scm_port_read_from_io(port, (char *)buf + pb_nr, size - (size_t)pb_nr);
+  if (ret < 0)
+    return -1;
 
-  switch (SCM_PORT(port)->buf_mode) {
-  case SCM_PORT_BUF_FULL: /* fall through */
-  case SCM_PORT_BUF_LINE:
-    ret = scm_port_read_buf(port, bp, sz, WAIT_ALL);
-    break;
-  case SCM_PORT_BUF_MODEST:
-    ret = scm_port_read_buf(port, bp, sz, DONT_WAIT);
-    break;
-  case SCM_PORT_BUF_NONE:
-    ret = scm_port_read_nonbuf(port, bp, sz);
-    break;
-  case SCM_PORT_BUF_DEFAULT:    /* fall through */
-  default:
-    ret = -1; /* must not happen */
-    break;
-  }
-
-  if (ret == 0)
+  if (ret == 0 && pb_nr == 0)
     SCM_PORT(port)->eof_received_p = false;
 
-  return (ret < 0) ? ret : ret + pb_nr;
-}
-
-ssize_t
-scm_port_read_line(ScmObj port, void *buf, size_t size)
-{
-  /* provitional impelmentation */
-  /* 現状、ascii コードの LF 改行にしか対応していない */
-  void *bp;
-  size_t sz;
-  ssize_t ret, pb_nr;
-  bool lf_exists_p = false;
-
-  scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
-  scm_assert(buf != NULL);
-  scm_assert(size <= SSIZE_MAX);
-
-  if (!scm_port_readable_p(port)) {
-    scm_capi_error("port is not input port", 0);
-    return -1;
-  }
-  if (scm_port_closed_p(port)) {
-    scm_capi_error("port is already closed", 0);
-    return -1;
-  }
-
-  pb_nr = scm_port_read_line_from_pushback_buf(port, buf, size, &lf_exists_p);
-  if (pb_nr < 0) return -1;     /* [ERR]: [through] */
-  if (lf_exists_p || (size_t)pb_nr >= size) return pb_nr;
-
-  bp = (uint8_t *)buf + pb_nr;
-  sz = size - (size_t)pb_nr;
-
-  switch (SCM_PORT(port)->buf_mode) {
-  case SCM_PORT_BUF_FULL: /* fall through */
-  case SCM_PORT_BUF_LINE: /* fall through */
-  case SCM_PORT_BUF_MODEST:
-    ret = scm_port_read_buf(port, bp, sz, BREAK_LF);
-    break;
-  case SCM_PORT_BUF_NONE:
-    ret = scm_port_read_line_nonbuf(port, bp, sz);
-    break;
-  case SCM_PORT_BUF_DEFAULT:    /* fall through */
-  default:
-    ret = -1; /* must not happen */
-    break;
-  }
-
-  if (ret == 0)
-    SCM_PORT(port)->eof_received_p = false;
-
-  return (ret < 0) ? ret : ret + pb_nr;
+  return ret + pb_nr;
 }
 
 ssize_t
@@ -1395,14 +1417,97 @@ scm_port_read_char(ScmObj port, scm_char_t *chr)
     if (r < 0)
       return -1;                /* [ERR]: [through] */
     else if (r == 0) {
-      if (SCM_PORT(port)->pb_used > 0)
+      if (SCM_PORT(port)->pb_used > 0) {
         return -1;                /* TODO: error handling (illegal sequence) */
-      else
+      }
+      else {
+        SCM_PORT(port)->eof_received_p = false;
         return 0;
+      }
     }
   }
 
   return rslt;
+}
+
+ssize_t
+scm_port_read_line(ScmObj port, void *buf, size_t size)
+{
+  char *bp;
+  size_t sz, lf_w, cr_w;
+  ssize_t ret;
+  scm_char_t chr;
+  scm_char_t lf, cr;
+  bool lf_exists_p, cr_exists_p;
+
+  scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
+  scm_assert(buf != NULL);
+  scm_assert(size <= SSIZE_MAX);
+
+  if (!scm_port_readable_p(port)) {
+    scm_capi_error("port is not input port", 0);
+    return -1;
+  }
+  if (scm_port_closed_p(port)) {
+    scm_capi_error("port is already closed", 0);
+    return -1;
+  }
+
+  lf = SCM_ENCODING_CONST_LF_CHR(SCM_PORT(port)->encoding);
+  lf_w = SCM_ENCODING_CONST_LF_WIDTH(SCM_PORT(port)->encoding);
+
+  cr = SCM_ENCODING_CONST_CR_CHR(SCM_PORT(port)->encoding);
+  cr_w = SCM_ENCODING_CONST_CR_WIDTH(SCM_PORT(port)->encoding);
+
+  bp = buf;
+  sz = 0;
+  lf_exists_p = false;
+  cr_exists_p = false;
+
+  while (sz < size) {
+    ret = scm_port_peek_char(port, &chr);
+    if (ret < 0) return -1;
+    else if (ret == 0) break;
+
+    if ((size_t)ret == lf_w && memcmp(lf.bytes, chr.bytes, lf_w) == 0) {
+      lf_exists_p = true;
+      break;
+    }
+    else if ((size_t)ret == cr_w && memcmp(cr.bytes, chr.bytes, cr_w) == 0) {
+      cr_exists_p = true;
+      break;
+    }
+
+    if (size - sz < (size_t)ret) break;
+
+    memcpy(bp, chr.bytes, (size_t)ret);
+
+    bp += (size_t)ret;
+    sz += (size_t)ret;
+
+    ret = scm_port_read(port, &chr, (size_t)ret);
+    if (ret < 0) return -1;
+  }
+
+  if (lf_exists_p || cr_exists_p) {
+    ret = scm_port_read(port, &chr, (size_t)ret);
+    if (ret < 0) return -1;
+
+    if (cr_exists_p) {
+      ret = scm_port_peek_char(port, &chr);
+      if (ret < 0) return -1;
+
+      if ((size_t)ret == lf_w && memcmp(lf.bytes, chr.bytes, lf_w) == 0) {
+        ret = scm_port_read(port, &chr, (size_t)ret);
+        if (ret < 0) return -1;
+      }
+    }
+  }
+
+  if (sz == 0)
+    SCM_PORT(port)->eof_received_p = false;
+
+  return (ssize_t)sz;
 }
 
 ssize_t
@@ -1561,20 +1666,7 @@ scm_port_write(ScmObj port, const void *buf, size_t size)
     return -1;
   }
 
-  switch (SCM_PORT(port)->buf_mode) {
-  case SCM_PORT_BUF_FULL: /* fall through */
-  case SCM_PORT_BUF_LINE: /* fall through */
-  case SCM_PORT_BUF_MODEST:
-    return scm_port_write_buf(port, buf, size);
-    break;
-  case SCM_PORT_BUF_NONE:
-    return scm_io_write(SCM_PORT(port)->io, buf, size);
-    break;
-  case SCM_PORT_BUF_DEFAULT:    /* fall through */
-  default:
-    return -1; /* must not happen */
-    break;
-  }
+  return scm_port_write_to_io(port, buf, size);
 }
 
 ssize_t
@@ -1608,7 +1700,7 @@ scm_port_write_char(ScmObj port, scm_char_t chr)
 int
 scm_port_seek(ScmObj port, off_t offset, int whence)
 {
-  off_t off, rslt;
+  off_t rslt;
 
   scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
 
@@ -1620,26 +1712,13 @@ scm_port_seek(ScmObj port, off_t offset, int whence)
   if (scm_port_writable_p(port))
     scm_port_flush(port);
 
-  switch (whence) {
-  case SEEK_SET:
-    rslt = scm_io_seek(SCM_PORT(port)->io, offset, whence);
-    break;
-  case SEEK_CUR:
-    off = offset - (ssize_t)(SCM_PORT(port)->used - SCM_PORT(port)->pos);
-    rslt = scm_io_seek(SCM_PORT(port)->io, off, whence);
-    break;
-  case SEEK_END:
-    rslt = scm_io_seek(SCM_PORT(port)->io, offset, whence);
-    break;
-  default:
-    return -1;
-    break;
-  }
-
+  rslt = scm_io_seek(SCM_PORT(port)->io, offset, whence);
   if (rslt < 0) return (int)rslt; /* [ERR]: [through] */
 
-  if (!scm_port_writable_p(port))
-    scm_port_clear_buffer(port);
+  if (!scm_port_writable_p(port)) {
+    int r = scm_io_clear(SCM_PORT(port)->io);
+    if (r < 0) return -1;
+  }
 
   SCM_PORT(port)->eof_received_p = false;
 
@@ -1675,7 +1754,7 @@ scm_port_string_buffer_length(ScmObj port)
 void
 scm_port_gc_initialize(ScmObj obj, ScmObj mem)
 {
-  SCM_PORT(obj)->buffer = NULL;
+  /* nothing to do */
 }
 
 void

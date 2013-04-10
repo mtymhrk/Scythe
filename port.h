@@ -7,6 +7,7 @@
 typedef struct ScmIORec ScmIO;
 typedef struct ScmFileIORec ScmFileIO;
 typedef struct ScmStringIORec ScmStringIO;
+typedef struct ScmBufferedIORec ScmBufferedIO;
 typedef struct ScmCharConvIORec ScmCharConvIO;
 typedef struct ScmPortRec ScmPort;
 
@@ -35,7 +36,8 @@ typedef int (*ScmIOReadyPFunc)(ScmIO *io);
 typedef int (*ScmIOBuffModeFunc)(ScmIO *io, SCM_IO_MODE_T im,
                                  SCM_PORT_BUF_T *mode);
 typedef ssize_t (*ScmIOBlkSizeFunc)(ScmIO *io);
-
+typedef int (*ScmIOFlushFunc)(ScmIO *io);
+typedef int (*ScmIOClearFunc)(ScmIO *io);
 
 struct ScmIORec {
   ScmIOFinFunc fin_func;
@@ -46,6 +48,8 @@ struct ScmIORec {
   ScmIOReadyPFunc ready_p_func;
   ScmIOBuffModeFunc default_buf_mode_func;
   ScmIOBlkSizeFunc blk_size_func;
+  ScmIOFlushFunc flush_func;
+  ScmIOClearFunc clear_func;
 };
 
 struct ScmFileIORec {
@@ -61,6 +65,23 @@ struct ScmStringIORec {
   size_t pos;
 };
 
+struct ScmBufferedIORec {
+  ScmIO io_base;
+  ScmIO *io;
+  char *buffer;
+  size_t capacity;
+  size_t pos;
+  size_t used;
+  bool eof_received_p;
+};
+
+
+#ifdef SCM_UNIT_TEST
+
+int scm_bufferedio_init_buffer(ScmBufferedIO *bufio, ScmIO *source);
+
+#endif
+
 void scm_io_initialize(ScmIO *io,
                        ScmIOFinFunc fin,
                        ScmIOReadFunc read,
@@ -69,7 +90,9 @@ void scm_io_initialize(ScmIO *io,
                        ScmIOCloseFunc close,
                        ScmIOReadyPFunc readyp,
                        ScmIOBuffModeFunc buff_mode,
-                       ScmIOBlkSizeFunc blk_size);
+                       ScmIOBlkSizeFunc blk_size,
+                       ScmIOFlushFunc flush,
+                       ScmIOClearFunc clear);
 void scm_io_end(ScmIO *io);
 ssize_t scm_io_read(ScmIO *io, void *buf, size_t size);
 ssize_t scm_io_write(ScmIO *io, const void *buf, size_t size);
@@ -78,6 +101,8 @@ int scm_io_close(ScmIO *io);
 int scm_io_ready_p(ScmIO *io);
 int scm_io_buffer_mode(ScmIO *io, SCM_IO_MODE_T im, SCM_PORT_BUF_T *mode);
 ssize_t scm_io_block_size(ScmIO *io);
+int scm_io_flush(ScmIO *io);
+int scm_io_clear(ScmIO *io);
 
 ScmFileIO *scm_fileio_new(int fd);
 void scm_fileio_end(ScmFileIO *fileio);
@@ -103,6 +128,19 @@ int scm_stringio_buffer_mode(ScmStringIO *strio, SCM_IO_MODE_T im,
 char *scm_stringio_buffer(ScmStringIO *strio);
 size_t scm_stringio_length(ScmStringIO *strio);
 
+ScmBufferedIO *scm_bufferedio_new(ScmIO *io);
+void scm_bufferedio_end(ScmBufferedIO *bufio);
+ssize_t scm_bufferedio_read(ScmBufferedIO *bufio, void *buf, size_t size);
+ssize_t scm_bufferedio_write(ScmBufferedIO *bufio, void *buf, size_t size);
+int scm_bufferedio_ready_p(ScmBufferedIO *bufio);
+off_t scm_bufferedio_seek(ScmBufferedIO *bufio, off_t offset, int whence);
+int scm_bufferedio_close(ScmBufferedIO *bufio);
+int scm_bufferedio_buffer_mode(ScmBufferedIO *bufio,
+                               SCM_IO_MODE_T im, SCM_PORT_BUF_T *mode);
+ssize_t scm_bufferedio_block_size(ScmBufferedIO *bufio);
+int scm_bufferedio_flush(ScmBufferedIO *bufio);
+int scm_bufferedio_clear(ScmBufferedIO *bufio);
+
 
 /***************************************************************************/
 /*  ScmPort                                                                */
@@ -124,10 +162,6 @@ struct ScmPortRec {
   ScmIO *io;
   SCM_PORT_BUF_T buf_mode;
   SCM_PORT_ATTR attr;
-  char *buffer;
-  size_t capacity;
-  size_t pos;
-  size_t used;
   bool closed_p;
   bool eof_received_p;
   uint8_t pushback[SCM_PORT_PUSHBACK_BUFF_SIZE];
@@ -140,24 +174,16 @@ extern ScmTypeInfo SCM_PORT_TYPE_INFO;
 #ifdef SCM_UNIT_TEST
 
 int scm_port_init_buffer(ScmObj port, SCM_PORT_BUF_T buf_mode);
-bool scm_port_buffer_empty_p(ScmObj port);
-ssize_t scm_port_read_from_buffer(ScmObj port, void *buf, size_t size);
-ssize_t scm_port_read_into_buffer(ScmObj port);
 ssize_t scm_port_size_up_to_lf(ScmObj port, const void *buf, size_t size);
 uint8_t *scm_port_pushback_buff_head(ScmObj port);
 size_t scm_port_pushback_buff_unused(ScmObj port);
 ssize_t scm_port_read_from_pushback_buf(ScmObj port, void *buf, size_t size);
-ssize_t scm_port_read_line_from_pushback_buf(ScmObj port,
-                                             void *buf, size_t size,
-                                             bool *lf_exists_p);
 ssize_t scm_port_read_char_from_pushback_buf(ScmObj port, scm_char_t *chr);
+ssize_t scm_port_read_from_io(ScmObj port, void *buf, size_t size);
 ssize_t scm_port_read_buf(ScmObj port,
                           void *buf, size_t size, int mode);
-ssize_t scm_port_read_line_nonbuf(ScmObj port, void *buf, size_t size);
-ssize_t scm_port_read_nonbuf(ScmObj port, void *buf, size_t size);
 ssize_t scm_port_read_into_pushback_buf(ScmObj port, size_t size);
-ssize_t scm_port_write_buf(ScmObj port,
-                           const void *buf, size_t size);
+ssize_t scm_port_write_to_io(ScmObj port, const void *buf, size_t size);
 
 #endif
 

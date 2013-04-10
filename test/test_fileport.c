@@ -690,7 +690,7 @@ test_scm_port_close_output_port(void)
 void
 xxx_test_scm_port_read_line__read_up_to_lf(ScmObj port)
 {
-  const char *expected1 = "hello, world\n";
+  const char *expected1 = "hello, world";
   const char *expected2 = "hello, world!";
   char actual1[256];
   ssize_t actual1_len;
@@ -765,7 +765,7 @@ void
 xxx_test_scm_port_read_line__read_up_to_buf_filled(ScmObj port)
 {
   const char expected1[] = "hello";
-  const char expected2[] = ", world\n";
+  const char expected2[] = ", world";
   char actual1[sizeof(expected1)];
   ssize_t actual1_len;
   char actual2[256];
@@ -917,8 +917,8 @@ void
 xxx_test_scm_port_pushback__pushback_and_read_line(ScmObj port)
 {
   const char pushbacked[] = "a\nb";
-  const char expected1[] = "a\n";
-  const char expected2[] = "bhello, world\n";
+  const char expected1[] = "a";
+  const char expected2[] = "bhello, world";
   char actual1[256];
   char actual2[256];
   ssize_t ret;
