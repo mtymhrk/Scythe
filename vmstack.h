@@ -12,14 +12,11 @@ typedef struct ScmEFBoxRec ScmEFBox;
 typedef struct ScmVMStckSgRec ScmVMStckSg;
 typedef struct ScmVMStckRcRec ScmVMStckRc;
 
-typedef struct ScmContCapRec ScmContCap;
-
 #define SCM_EFBOX(obj) ((ScmEFBox *)(obj))
 
 #define SCM_VMSTCKSG(obj) ((ScmVMStckSg*)(obj))
 #define SCM_VMSTCKRC(obj) ((ScmVMStckRc*)(obj))
 
-#define SCM_CONTCAP(obj) ((ScmContCap *)(obj))
 
 #include "object.h"
 

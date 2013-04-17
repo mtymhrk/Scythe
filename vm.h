@@ -5,9 +5,12 @@
 
 typedef struct ScmBedrockRec ScmBedrock;
 typedef struct ScmBoxRec ScmBox;
+typedef struct ScmVMRegRec ScmVMReg;
+typedef struct ScmContCapRec ScmContCap;
 typedef struct ScmVMRec ScmVM;
 
 #define SCM_BOX(obj) ((ScmBox *)(obj))
+#define SCM_CONTCAP(obj) ((ScmContCap *)(obj))
 #define SCM_VM(obj) ((ScmVM *)(obj))
 
 #include "object.h"
@@ -115,26 +118,35 @@ scm_box_update(ScmObj box, ScmObj obj)
 
 
 /*******************************************************************/
-/*  VM Continuation Capture                                        */
+/*  VM Registers                                                   */
 /*******************************************************************/
 
 #define SCM_VM_NR_VAL_REG 10
+
+struct ScmVMRegRec {
+  scm_byte_t *sp;                 /* stack pointer */
+  ScmCntFrame *cfp;               /* continuation frame pointer */
+  ScmEnvFrame *efp;               /* environment frame pointer */
+  ScmEnvFrame *pefp;              /* partial environment frame pointer */
+  ScmObj cp;                      /* closure pointer */
+  scm_byte_t *ip;                 /* instruction pointer */
+  ScmObj val[SCM_VM_NR_VAL_REG];  /* value register */
+  int vc;                         /* value count */
+  unsigned int flags;
+};
+
+
+/*******************************************************************/
+/*  VM Continuation Capture                                        */
+/*******************************************************************/
+
 
 extern ScmTypeInfo SCM_CONTCAP_TYPE_INFO;
 
 struct ScmContCapRec {
   ScmObjHeader header;
   ScmObj stack;
-  struct {
-    ScmCntFrame *cfp;
-    ScmEnvFrame *efp;
-    ScmEnvFrame *pefp;
-    ScmObj cp;
-    scm_byte_t *ip;
-    ScmObj val[SCM_VM_NR_VAL_REG];
-    int vc;
-    unsigned int flags;
-  } reg;
+  ScmVMReg reg;
 };
 
 ScmObj scm_contcap_new(SCM_MEM_TYPE_T mtype);
@@ -276,18 +288,7 @@ struct ScmVMRec {
   /*** VM Stack ***/
   ScmObj stack;
 
-  /*** VM Registers ***/
-  struct {
-    scm_byte_t *sp;                 /* stack pointer */
-    ScmCntFrame *cfp;               /* continuation frame pointer */
-    ScmEnvFrame *efp;               /* environment frame pointer */
-    ScmEnvFrame *pefp;              /* partial environment frame pointer */
-    ScmObj cp;                      /* closure pointer */
-    scm_byte_t *ip;                 /* instruction pointer */
-    ScmObj val[SCM_VM_NR_VAL_REG];  /* value register */
-    int vc;                         /* value count */
-    unsigned int flags;
-  } reg;
+  ScmVMReg reg;
 
   /*** Constant Values ***/
   struct {
