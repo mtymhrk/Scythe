@@ -4407,11 +4407,11 @@ int
 scm_capi_trampolining(ScmObj proc, ScmObj args,
                       ScmSubrFunc postproc, ScmObj handover)
 {
-  if ((!scm_capi_closure_p(proc))) {
+  if (!scm_capi_subrutine_p(proc) && !scm_capi_closure_p(proc)) {
     scm_capi_error("", 0);
     return SCM_OBJ_NULL;
   }
-  else if ((!scm_capi_pair_p(args) && !scm_capi_nil_p(args))) {
+  else if (!scm_capi_pair_p(args) && !scm_capi_nil_p(args)) {
     scm_capi_error("", 0);
     return SCM_OBJ_NULL;
   }

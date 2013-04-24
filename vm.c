@@ -1268,7 +1268,7 @@ scm_vm_make_trampolining_code(ScmObj vm, ScmObj proc,
   SCM_STACK_FRAME_PUSH(&vm, &proc, &args, &postproc, &iseq, &cur, &arg);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-  scm_assert(scm_capi_closure_p(proc));
+  scm_assert(scm_capi_subrutine_p(proc) || scm_capi_closure_p(proc));
   scm_assert(scm_capi_nil_p(args) || scm_capi_pair_p(args));
   scm_assert(scm_obj_null_p(postproc)
              || scm_capi_subrutine_p(postproc)
@@ -2935,7 +2935,7 @@ scm_vm_setup_stat_trmp(ScmObj vm, ScmObj proc, ScmObj args,
                        &pp_subr, &env);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-  scm_assert(scm_capi_closure_p(proc));
+  scm_assert(scm_capi_subrutine_p(proc) || scm_capi_closure_p(proc));
   scm_assert(scm_capi_nil_p(args) || scm_capi_pair_p(args));
 
   if (postproc != NULL) {
