@@ -253,7 +253,7 @@ scm_subr_func_callcc(int argc, const ScmObj *argv)
   args = scm_capi_list(1, cont);
   if (scm_obj_null_p(args)) return -1;
 
-  rslt = scm_capi_trampolining(argv[0], args,  NULL);
+  rslt = scm_capi_trampolining(argv[0], args, NULL, SCM_OBJ_NULL);
   if (rslt < 0) return -1; /* [ERR]: [through] */
 
   val = scm_api_undef();
@@ -312,7 +312,7 @@ scm_subr_func_eval_asm(int argc, const ScmObj *argv)
 
   args = scm_api_nil();
 
-  rslt = scm_capi_trampolining(code, args,  NULL);
+  rslt = scm_capi_trampolining(code, args, NULL, SCM_OBJ_NULL);
   if (rslt < 0) return -1; /* [ERR]: [through] */
 
   val = scm_api_undef();
@@ -349,7 +349,7 @@ scm_subr_func_eval(int argc, const ScmObj *argv)
 
   args = scm_api_nil();
 
-  rslt = scm_capi_trampolining(exp, args, NULL);
+  rslt = scm_capi_trampolining(exp, args, NULL, SCM_OBJ_NULL);
   if (rslt < 0) return -1; /* [ERR]: [through] */
 
   val = scm_api_undef();

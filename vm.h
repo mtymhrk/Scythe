@@ -342,7 +342,7 @@ ScmObj scm_vm_eframe_arg_ref(ScmEnvFrame *efp_list,
                              size_t idx, size_t layer, ScmEnvFrame **efp);
 
 ScmObj scm_vm_make_trampolining_code(ScmObj vm, ScmObj clsr, ScmObj args,
-                                     ScmObj callback);
+                                     ScmObj callback, ScmObj handover);
 ScmObj scm_vm_make_exception_handler_code(ScmObj vm);
 int scm_vm_setup_to_call_exception_handler(ScmObj vm);
 
@@ -416,7 +416,7 @@ int scm_vm_set_val_reg(ScmObj vm, const ScmObj *val, int vc);
 ScmObj scm_vm_capture_cont(ScmObj vm);
 int scm_vm_reinstatement_cont(ScmObj vm, ScmObj cc, const ScmObj *val, int vc);
 int scm_vm_setup_stat_trmp(ScmObj vm, ScmObj target, ScmObj args,
-                           ScmSubrFunc callback);
+                           ScmSubrFunc callback, ScmObj handover);
 void scm_vm_setup_stat_halt(ScmObj vm);
 int scm_vm_setup_stat_raised(ScmObj vm, ScmObj obj);
 int scm_vm_clear_stat_raised(ScmObj vm);
