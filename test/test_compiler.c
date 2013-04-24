@@ -55,7 +55,7 @@ test_scm_api_compile__define_global_variable_1(void)
   ScmObj exp = SCM_OBJ_INIT, port = SCM_OBJ_INIT;
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
   const char *exp_str = "(define global_var 1)";
-  const char *asm_str = "((immval 1)(gdef global_var main))";
+  const char *asm_str = "((immval 1)(gdef global_var (main)))";
 
   SCM_STACK_FRAME_PUSH(&exp, &port,
                        &actual, &expected);
@@ -81,7 +81,7 @@ test_scm_api_compile__define_global_variable_2(void)
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
   const char *exp_str = "(define (func x) x)";
   const char *asm_str = "((asm-close 0 1"
-                        "   ((sref 0 0)(return)))(gdef func main))";
+                        "   ((sref 0 0)(return)))(gdef func (main)))";
 
   SCM_STACK_FRAME_PUSH(&exp, &port,
                        &actual, &expected);
@@ -106,7 +106,7 @@ test_scm_api_compile__refer_global_variable_1(void)
   ScmObj exp = SCM_OBJ_INIT, port = SCM_OBJ_INIT;
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
   const char *exp_str = "global_var";
-  const char *asm_str = "((gref global_var main))";
+  const char *asm_str = "((gref global_var (main)))";
 
   SCM_STACK_FRAME_PUSH(&exp, &port,
                        &actual, &expected);
@@ -133,7 +133,7 @@ test_scm_api_compile__refer_global_variable_2(void)
   const char *exp_str = "(lambda (f1 f2) (lambda (b1 b2) global_var))";
   const char *asm_str = "((asm-close 0 2"
                         "   ((asm-close 0 2"
-                        "      ((gref global_var main)(return)))"
+                        "      ((gref global_var (main))(return)))"
                         "    (return))))";
 
 
@@ -160,7 +160,7 @@ test_scm_api_compile__set_global_variable_1(void)
   ScmObj exp = SCM_OBJ_INIT, port = SCM_OBJ_INIT;
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
   const char *exp_str = "(set! global_var 'a)";
-  const char *asm_str = "((immval a)(gset global_var main))";
+  const char *asm_str = "((immval a)(gset global_var (main)))";
 
   SCM_STACK_FRAME_PUSH(&exp, &port,
                        &actual, &expected);
@@ -210,7 +210,7 @@ test_scm_api_compile__application_1(void)
   ScmObj exp = SCM_OBJ_INIT, port = SCM_OBJ_INIT;
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
   const char *exp_str = "(func)";
-  const char *asm_str = "((cframe)(gref func main)(call 0)(arity 1))";
+  const char *asm_str = "((cframe)(gref func (main))(call 0)(arity 1))";
 
   SCM_STACK_FRAME_PUSH(&exp, &port,
                        &actual, &expected);
@@ -238,7 +238,7 @@ test_scm_api_compile__application_2(void)
   const char *asm_str = "((frame)"
                         " (immval a)(push)"
                         " (immval b)(push)"
-                        " (gref func main)"
+                        " (gref func (main))"
                         " (call 2)"
                         " (arity 1))";
 
@@ -302,7 +302,7 @@ test_scm_api_compile__application_4(void)
                         "      ((eframe)"
                         "       (sref 0 1)(push)"
                         "       (sref 0 0)(push)"
-                        "       (gref cons main)"
+                        "       (gref cons (main))"
                         "       (tcall 2)))"
                         "    (return)))"
                         " (call 1)"
@@ -487,13 +487,13 @@ test_scm_api_compile__lambda_6(void)
                         "   ((frame)"
                         "    (immval a)(push)"
                         "    (immval b)(push)"
-                        "    (gref cons main)"
+                        "    (gref cons (main))"
                         "    (call 2)"
                         "    (arity -1)"
                         "    (eframe)"
                         "    (immval c)(push)"
                         "    (immval d)(push)"
-                        "    (gref cons main)"
+                        "    (gref cons (main))"
                         "    (tcall 2))))";
 
 
@@ -583,7 +583,7 @@ test_scm_api_compile__let_3(void)
                         "   ((eframe)"
                         "    (sref 0 0)(push)"
                         "    (sref 1 0)(push)"
-                        "    (gref cons main)"
+                        "    (gref cons (main))"
                         "    (tcall 2)))"
                         " (epop))";
 
@@ -679,13 +679,13 @@ test_scm_api_compile__let_6(void)
                         " (frame)"
                         " (immval a)(push)"
                         " (immval b)(push)"
-                        " (gref cons main)"
+                        " (gref cons (main))"
                         " (call 2)"
                         " (arity -1)"
                         " (frame)"
                         " (immval c)(push)"
                         " (immval d)(push)"
-                        " (gref cons main)"
+                        " (gref cons (main))"
                         " (call 2)"
                         " (arity 1)"
                         " (epop))";
@@ -901,7 +901,7 @@ test_scm_api_compile__let_a_3(void)
                         "   ((eframe)"
                         "    (sref 0 1)(push)"
                         "    (sref 0 0)(push)"
-                        "    (gref cons main)"
+                        "    (gref cons (main))"
                         "    (tcall 2)))"
                         " (epop)"
                         " (epop))";
@@ -1039,13 +1039,13 @@ test_scm_api_compile__let_a_7(void)
                         " (frame)"
                         " (sref 0 1)(push)"
                         " (sref 0 0)(push)"
-                        " (gref cons main)"
+                        " (gref cons (main))"
                         " (call 2)"
                         " (arity -1)"
                         " (frame)"
                         " (sref 0 0)(push)"
                         " (sref 0 1)(push)"
-                        " (gref cons main)"
+                        " (gref cons (main))"
                         " (call 2)"
                         " (arity 1)"
                         " (epop)"
@@ -1234,13 +1234,13 @@ test_scm_api_compile__letrec_6(void)
                         " (frame)"
                         " (sref 0 0)(push)"
                         " (sref 1 0)(push)"
-                        " (gref cons main)"
+                        " (gref cons (main))"
                         " (call 2)"
                         " (arity -1)"
                         " (frame)"
                         " (sref 1 0)(push)"
                         " (sref 0 0)(push)"
-                        " (gref cons main)"
+                        " (gref cons (main))"
                         " (call 2)"
                         " (arity 1)"
                         " (epop))";
@@ -1418,13 +1418,13 @@ test_scm_api_compile__letrec_a_6(void)
                         " (frame)"
                         " (sref 0 0)(push)"
                         " (sref 1 0)(push)"
-                        " (gref cons main)"
+                        " (gref cons (main))"
                         " (call 2)"
                         " (arity -1)"
                         " (frame)"
                         " (sref 1 0)(push)"
                         " (sref 0 0)(push)"
-                        " (gref cons main)"
+                        " (gref cons (main))"
                         " (call 2)"
                         " (arity 1)"
                         " (epop))";
@@ -1581,13 +1581,13 @@ test_scm_api_compile__begin_1(void)
   const char *asm_str = "((frame)"
                         " (immval a)(push)"
                         " (immval b)(push)"
-                        " (gref cons main)"
+                        " (gref cons (main))"
                         " (call 2)"
                         " (arity -1)"
                         " (frame)"
                         " (immval x)(push)"
                         " (immval y)(push)"
-                        " (gref cons main)"
+                        " (gref cons (main))"
                         " (call 2)"
                         " (arity 1))";
 
@@ -1616,7 +1616,7 @@ test_scm_api_compile__begin_2(void)
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
   const char *exp_str = "(begin (define gvar 1))";
   const char *asm_str = "((immval 1)"
-                        " (gdef gvar main))";
+                        " (gdef gvar (main)))";
 
 
   SCM_STACK_FRAME_PUSH(&exp, &port,
@@ -2182,7 +2182,7 @@ test_scm_api_compile__cond_006(void)
                         " (label lbl_cond-c_1)"
                         "    (frame)"
                         "    (push)"
-                        "    (gref write main)"
+                        "    (gref write (main))"
                         "    (call 1)"
                         "    (arity 1)"
                         " (label lbl_cond-j_0))";
@@ -2219,14 +2219,14 @@ test_scm_api_compile__cond_007(void)
                         " (label lbl_cond-c_2)"
                         "    (frame)"
                         "    (push)"
-                        "    (gref write main)"
+                        "    (gref write (main))"
                         "    (call 1)"
                         "    (arity 1)"
                         "    (jmp lbl_cond-j_0)"
                         " (label lbl_cond-c_1)"
                         "    (frame)"
                         "    (push)"
-                        "    (gref write main)"
+                        "    (gref write (main))"
                         "    (call 1)"
                         "    (arity 1)"
                         " (label lbl_cond-j_0))";
@@ -2573,7 +2573,7 @@ test_scm_api_compile__cond_018(void)
                         "    (label lbl_cond-c_0)"
                         "       (eframe)"
                         "       (push)"
-                        "       (gref write main)"
+                        "       (gref write (main))"
                         "       (tcall 1))))";
 
   SCM_STACK_FRAME_PUSH(&exp, &port,
@@ -2680,14 +2680,14 @@ test_scm_api_compile__and_004(void)
   const char *asm_str = "(  (frame)"
                         "   (immval a)"
                         "   (push)"
-                        "   (gref null? main)"
+                        "   (gref null? (main))"
                         "   (call 1)"
                         "   (arity 1)"
                         "   (jmpf lbl_and-j_0)"
                         "   (frame)"
                         "   (immval b)"
                         "   (push)"
-                        "   (gref null? main)"
+                        "   (gref null? (main))"
                         "   (call 1)"
                         "   (arity 1)"
                         " (label lbl_and-j_0))";
@@ -2802,14 +2802,14 @@ test_scm_api_compile__and_008(void)
                         "   (   (frame)"
                         "       (immval a)"
                         "       (push)"
-                        "       (gref null? main)"
+                        "       (gref null? (main))"
                         "       (call 1)"
                         "       (arity 1)"
                         "       (jmpf lbl_and-j_0)"
                         "       (eframe)"
                         "       (immval b)"
                         "       (push)"
-                        "       (gref null? main)"
+                        "       (gref null? (main))"
                         "       (tcall 1)"
                         "    (label lbl_and-j_0)"
                         "       (return))))";
@@ -2918,14 +2918,14 @@ test_scm_api_compile__or_004(void)
   const char *asm_str = "(  (frame)"
                         "   (immval a)"
                         "   (push)"
-                        "   (gref null? main)"
+                        "   (gref null? (main))"
                         "   (call 1)"
                         "   (arity 1)"
                         "   (jmpt lbl_or-j_0)"
                         "   (frame)"
                         "   (immval b)"
                         "   (push)"
-                        "   (gref null? main)"
+                        "   (gref null? (main))"
                         "   (call 1)"
                         "   (arity 1)"
                         " (label lbl_or-j_0))";
@@ -3040,14 +3040,14 @@ test_scm_api_compile__or_008(void)
                         "   (   (frame)"
                         "       (immval a)"
                         "       (push)"
-                        "       (gref null? main)"
+                        "       (gref null? (main))"
                         "       (call 1)"
                         "       (arity 1)"
                         "       (jmpt lbl_or-j_0)"
                         "       (eframe)"
                         "       (immval b)"
                         "       (push)"
-                        "       (gref null? main)"
+                        "       (gref null? (main))"
                         "       (tcall 1)"
                         "    (label lbl_or-j_0)"
                         "       (return))))";
@@ -3204,7 +3204,7 @@ test_scm_api_compile__when_005(void)
   const char *asm_str = "(   (frame)"
                         "    (immval ())"
                         "    (push)"
-                        "    (gref null? main)"
+                        "    (gref null? (main))"
                         "    (call 1)"
                         "    (arity 1)"
                         "    (jmpf lbl_when-a_1)"
@@ -3213,7 +3213,7 @@ test_scm_api_compile__when_005(void)
                         "    (push)"
                         "    (immval b)"
                         "    (push)"
-                        "    (gref cons main)"
+                        "    (gref cons (main))"
                         "    (call 2)"
                         "    (arity 1)"
                         "    (jmp lbl_when-j_0)"
@@ -3249,7 +3249,7 @@ test_scm_api_compile__when_006(void)
                         "   (   (frame)"
                         "       (immval ())"
                         "       (push)"
-                        "       (gref null? main)"
+                        "       (gref null? (main))"
                         "       (call 1)"
                         "       (arity 1)"
                         "       (jmpf lbl_when-a_0)"
@@ -3258,7 +3258,7 @@ test_scm_api_compile__when_006(void)
                         "       (push)"
                         "       (immval b)"
                         "       (push)"
-                        "       (gref cons main)"
+                        "       (gref cons (main))"
                         "       (tcall 2)"
                         "    (label lbl_when-a_0)"
                         "       (undef)"
@@ -3293,13 +3293,13 @@ test_scm_api_compile__when_007(void)
                         "    (frame)"
                         "    (immval a)(push)"
                         "    (immval b)(push)"
-                        "    (gref cons main)"
+                        "    (gref cons (main))"
                         "    (call 2)"
                         "    (arity -1)"
                         "    (frame)"
                         "    (immval c)(push)"
                         "    (immval d)(push)"
-                        "    (gref cons main)"
+                        "    (gref cons (main))"
                         "    (call 2)"
                         "    (arity 1)"
                         "    (jmp lbl_when-j_0)"
@@ -3460,7 +3460,7 @@ test_scm_api_compile__unless_005(void)
   const char *asm_str = "(   (frame)"
                         "    (immval ())"
                         "    (push)"
-                        "    (gref null? main)"
+                        "    (gref null? (main))"
                         "    (call 1)"
                         "    (arity 1)"
                         "    (jmpt lbl_unless-a_1)"
@@ -3469,7 +3469,7 @@ test_scm_api_compile__unless_005(void)
                         "    (push)"
                         "    (immval b)"
                         "    (push)"
-                        "    (gref cons main)"
+                        "    (gref cons (main))"
                         "    (call 2)"
                         "    (arity 1)"
                         "    (jmp lbl_unless-j_0)"
@@ -3505,7 +3505,7 @@ test_scm_api_compile__unless_006(void)
                         "   (   (frame)"
                         "       (immval ())"
                         "       (push)"
-                        "       (gref null? main)"
+                        "       (gref null? (main))"
                         "       (call 1)"
                         "       (arity 1)"
                         "       (jmpt lbl_unless-a_0)"
@@ -3514,7 +3514,7 @@ test_scm_api_compile__unless_006(void)
                         "       (push)"
                         "       (immval b)"
                         "       (push)"
-                        "       (gref cons main)"
+                        "       (gref cons (main))"
                         "       (tcall 2)"
                         "    (label lbl_unless-a_0)"
                         "       (undef)"
@@ -3549,13 +3549,13 @@ test_scm_api_compile__unless_007(void)
                         "    (frame)"
                         "    (immval a)(push)"
                         "    (immval b)(push)"
-                        "    (gref cons main)"
+                        "    (gref cons (main))"
                         "    (call 2)"
                         "    (arity -1)"
                         "    (frame)"
                         "    (immval c)(push)"
                         "    (immval d)(push)"
-                        "    (gref cons main)"
+                        "    (gref cons (main))"
                         "    (call 2)"
                         "    (arity 1)"
                         "    (jmp lbl_unless-j_0)"
@@ -3842,7 +3842,7 @@ test_scm_api_compile__do_006(void)
                         "      (push)"
                         "      (immval b)"
                         "      (push)"
-                        "      (gref cons main)"
+                        "      (gref cons (main))"
                         "      (tcall 2))))";
 
 
@@ -3921,13 +3921,13 @@ test_scm_api_compile__do_008(void)
                         "    (frame)"
                         "    (immval e)(push)"
                         "    (immval f)(push)"
-                        "    (gref cons main)"
+                        "    (gref cons (main))"
                         "    (call 2)"
                         "    (arity -1)"
                         "    (frame)"
                         "    (immval g)(push)"
                         "    (immval h)(push)"
-                        "    (gref cons main)"
+                        "    (gref cons (main))"
                         "    (call 2)"
                         "    (arity -1)"
                         "    (eframe)"
@@ -3941,13 +3941,13 @@ test_scm_api_compile__do_008(void)
                         "    (frame)"
                         "    (immval a)(push)"
                         "    (immval b)(push)"
-                        "    (gref cons main)"
+                        "    (gref cons (main))"
                         "    (call 2)"
                         "    (arity -1)"
                         "    (frame)"
                         "    (immval c)(push)"
                         "    (immval d)(push)"
-                        "    (gref cons main)"
+                        "    (gref cons (main))"
                         "    (call 2)"
                         "    (arity 1)"
                         "    (epop))";

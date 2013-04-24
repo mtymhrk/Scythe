@@ -446,8 +446,8 @@ scm_vm_setup_global_env(ScmObj vm)
   if (scm_obj_null_p(SCM_VM(vm)->ge.symtbl))
     return -1;                  /* [ERR]: [through] */
 
-  SCM_SLOT_SETQ(ScmVM,vm, ge.modtbl, scm_moduletbl_new(SCM_MEM_ROOT));
-  if (scm_obj_null_p(SCM_VM(vm)->ge.modtbl))
+  SCM_SLOT_SETQ(ScmVM,vm, ge.modtree, scm_moduletree_new(SCM_MEM_ROOT));
+  if (scm_obj_null_p(SCM_VM(vm)->ge.modtree))
     return -1;                  /* [ERR]: [through] */
 
   SCM_VM(vm)->ge.stdio.in = SCM_OBJ_NULL;
@@ -471,11 +471,11 @@ scm_vm_clean_global_env(ScmObj vm)
   if (scm_obj_null_p(SCM_VM(vm)->ge.symtbl))
     scm_mem_free_root(SCM_VM(vm)->mem, SCM_VM(vm)->ge.symtbl);
 
-  if (scm_obj_null_p(SCM_VM(vm)->ge.modtbl))
-    scm_mem_free_root(SCM_VM(vm)->mem, SCM_VM(vm)->ge.modtbl);
+  if (scm_obj_null_p(SCM_VM(vm)->ge.modtree))
+    scm_mem_free_root(SCM_VM(vm)->mem, SCM_VM(vm)->ge.modtree);
 
   SCM_VM(vm)->ge.symtbl = SCM_OBJ_NULL;
-  SCM_VM(vm)->ge.modtbl = SCM_OBJ_NULL;
+  SCM_VM(vm)->ge.modtree = SCM_OBJ_NULL;
 
   SCM_VM(vm)->ge.stdio.in = SCM_OBJ_NULL;
   SCM_VM(vm)->ge.stdio.out = SCM_OBJ_NULL;
@@ -502,7 +502,7 @@ scm_vm_init_eval_env(ScmObj vm)
                        &vmss, &vmsr);
 
   scm_symtbl_clean(SCM_VM(vm)->ge.symtbl);
-  scm_moduletbl_clean(SCM_VM(vm)->ge.modtbl);
+  scm_moduletree_clean(SCM_VM(vm)->ge.modtree);
 
   vmss = scm_vmss_new(SCM_MEM_HEAP, SCM_VM_STACK_INIT_SIZE);
   if (scm_obj_null_p(vmss)) return -1;
@@ -582,7 +582,7 @@ scm_vm_clean_eval_env(ScmObj vm)
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
   scm_symtbl_clean(SCM_VM(vm)->ge.symtbl);
-  scm_moduletbl_clean(SCM_VM(vm)->ge.modtbl);
+  scm_moduletree_clean(SCM_VM(vm)->ge.modtree);
 
   SCM_VM(vm)->ge.stdio.in = SCM_OBJ_NULL;
   SCM_VM(vm)->ge.stdio.out = SCM_OBJ_NULL;
@@ -1286,12 +1286,15 @@ scm_vm_copy_list(ScmObj lst)
       if (scm_obj_null_p(rslt)) return SCM_OBJ_NULL;
     }
     else {
-      head = prev;
+      head = pair;
     }
     prev = pair;
   }
 
   if (scm_obj_null_p(cur)) return SCM_OBJ_NULL;
+
+  rslt = scm_api_set_cdr(prev, cur);
+  if (scm_obj_null_p(rslt)) return SCM_OBJ_NULL;
 
   return scm_obj_null_p(head) ? nil : head;
 }
@@ -1387,6 +1390,7 @@ scm_vm_make_trampolining_code(ScmObj vm, ScmObj clsr,
     if (scm_obj_null_p(cur)) return SCM_OBJ_NULL; /* [ERR: [through] */
 
     if (arity < 0 && !unwished) {
+      /* TODO: scm_api_list_copy が実装された場合は、そちらを使う */
       cur = scm_vm_copy_list(cur);
       if (scm_obj_null_p(cur)) return SCM_OBJ_NULL;
 

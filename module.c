@@ -346,7 +346,7 @@ scm_module_initialize(ScmObj mod, ScmObj name)
   SCM_STACK_FRAME_PUSH(&mod, &name);
 
   scm_assert_obj_type(mod, &SCM_MODULE_TYPE_INFO);
-  scm_assert(scm_capi_symbol_p(name));
+  scm_assert(scm_capi_pair_p(name));
 
   SCM_SLOT_SETQ(ScmModule, mod, name, name);
 
@@ -397,7 +397,7 @@ scm_module_new(SCM_MEM_TYPE_T mtype, ScmObj name)
   SCM_STACK_FRAME_PUSH(&name,
                        &mod);
 
-  scm_assert(scm_capi_symbol_p(name));
+  scm_assert(scm_capi_pair_p(name));
 
   mod = scm_capi_mem_alloc(&SCM_MODULE_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(mod)) return SCM_OBJ_NULL;
@@ -549,153 +549,370 @@ scm_module_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
 
 
 /****************************************************************************/
-/*  ModuleTbl                                                               */
+/*  ModuleTree                                                              */
 /****************************************************************************/
 
-ScmTypeInfo SCM_MODULETBL_TYPE_INFO = {
-  .name = "moduletbl",
+ScmTypeInfo SCM_MODULETREE_TYPE_INFO = {
+  .name = "moduletree",
   .flags = SCM_TYPE_FLG_MMO,
   .pp_func = NULL,
-  .obj_size = sizeof(ScmModuleTbl),
-  .gc_ini_func = scm_moduletbl_gc_initialize,
-  .gc_fin_func = scm_moduletbl_gc_finalize,
-  .gc_accept_func = scm_moduletbl_gc_accept,
+  .obj_size = sizeof(ScmModuleTree),
+  .gc_ini_func = scm_moduletree_gc_initialize,
+  .gc_fin_func = scm_moduletree_gc_finalize,
+  .gc_accept_func = scm_moduletree_gc_accept,
   .gc_accept_func_weak = NULL,
-  .extra = NULL,
+  .extra = NULL
 };
 
-#define SCM_MODULETBL_SIZE 256
+enum { ADD, UPDATE, FIND };
 
-static size_t
-scm_moduletbl_hash_func(ScmCHashTblKey key)
+scm_local_func ScmModuleTreeNode *
+scm_moduletree_make_node(void)
 {
-  return scm_capi_symbol_hash_value(SCM_OBJ(key));
+  ScmModuleTreeNode *node;
+
+  node = scm_capi_malloc(sizeof(ScmModuleTreeNode));
+  if (node == NULL) return NULL;
+
+  node->name = SCM_OBJ_NULL;
+  node->module = SCM_OBJ_NULL;
+
+  node->branches = scm_capi_malloc(sizeof(ScmModuleTreeNode *)
+                                   * SCM_MODULETREE_DEFAULT_BRANCH_SIZE);
+  if (node->branches == NULL) {
+    scm_capi_free(node);
+    return NULL;
+  }
+
+  node->capacity = SCM_MODULETREE_DEFAULT_BRANCH_SIZE;
+  node->used = 0;
+
+  return node;
 }
 
-static bool
-scm_moduletbl_cmp_func(ScmCHashTblKey key1, ScmCHashTblKey key2)
+scm_local_func int
+scm_moduletree_free_node(ScmModuleTreeNode *node)
 {
-  return scm_capi_eq_p(SCM_OBJ(key1), SCM_OBJ(key2));
+  if (node == NULL) return 0;
+
+  scm_capi_free(node->branches);
+  scm_capi_free(node);
+
+  return 0;
+}
+
+scm_local_func int
+scm_moduletree_free_tree(ScmModuleTreeNode *root)
+{
+  int r;
+
+  if (root == NULL) return 0;
+
+  for (size_t i = 0; i < root->used; i++) {
+    r = scm_moduletree_free_tree(root->branches[i]);
+    if (r < 0) return -1;
+  }
+
+  r = scm_moduletree_free_node(root);
+  if (r < 0) return -1;
+
+  return 0;
+}
+
+scm_local_func int
+scm_moduletree_node_gc_accept(ScmObj tree, ScmModuleTreeNode *node,
+                              ScmObj mem, ScmGCRefHandlerFunc handler)
+{
+  int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
+
+  if (node == NULL) return rslt;
+
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, tree, node->name, mem);
+  if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
+
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, tree, node->module, mem);
+  if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
+
+  for (size_t i = 0; i < node->used; i++) {
+    rslt = scm_moduletree_node_gc_accept(tree, node->branches[i], mem, handler);
+    if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
+  }
+
+  return 0;
+}
+
+scm_local_func ScmModuleTreeNode *
+scm_moduletree_add_branche(ScmModuleTreeNode *node, ScmObj name)
+{
+  ScmModuleTreeNode *new;
+
+  new = scm_moduletree_make_node();
+  if (new == NULL) return NULL;
+
+  new->name = name;
+
+  if (node->used >= node->capacity) {
+    size_t new_cap;
+    ScmModuleTreeNode **new_bra;
+
+    if (node->capacity > SIZE_MAX / 2)
+      new_cap = SIZE_MAX;
+    else
+      new_cap *= 2;
+
+    new_bra = scm_capi_realloc(node->branches,
+                               sizeof(ScmModuleTreeNode) * new_cap);
+    if (new_bra == NULL) return NULL;
+
+    node->branches = new_bra;
+    node->capacity = new_cap;
+  }
+
+  node->branches[node->used++] = new;
+
+  return new;
+}
+
+scm_local_func int
+scm_moduletree_access(ScmModuleTreeNode *root, ScmObj path, int mode,
+                      ScmModuleTreeNode **node)
+{
+  ScmObj name = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&path,
+                       &name);
+
+  scm_assert(root != NULL);
+  scm_assert(scm_capi_pair_p(path));
+  scm_assert(node != NULL);
+
+  name = scm_api_car(path);
+  if (scm_obj_null_p(name)) return -1;
+
+  if (!scm_capi_symbol_p(name)) {
+    scm_capi_error("failed to access module: "
+                   "module name must be a list whose members are symbols", 0);
+    return -1;
+  }
+
+  path = scm_api_cdr(path);
+  if (scm_obj_null_p(path)) return -1;
+
+  *node = NULL;
+  for (size_t i = 0; i < root->used; i++) {
+    if (scm_capi_eq_p(name, root->branches[i]->name)) {
+      *node = root->branches[i];
+      break;
+    }
+  }
+
+  if (scm_capi_nil_p(path)) {
+    if (mode == ADD || mode == UPDATE) {
+      if (*node == NULL) {
+        ScmModuleTreeNode *new = scm_moduletree_add_branche(root, name);
+        if (new == NULL) return -1;
+        *node = new;
+      }
+      else if (mode == ADD) {
+        *node = NULL;
+      }
+    }
+
+    return 0;
+  }
+
+  if (*node == NULL && (mode == ADD || mode == UPDATE)) {
+    ScmModuleTreeNode *new = scm_moduletree_add_branche(root, name);
+    if (new == NULL) return -1;
+    *node = new;
+  }
+
+  if (*node != NULL)
+    return scm_moduletree_access(*node, path, mode, node);
+  else
+    return 0;
+}
+
+scm_local_func ScmObj
+scm_moduletree_normailize_name(ScmObj name)
+{
+  scm_assert(scm_capi_symbol_p(name) || scm_capi_pair_p(name));
+
+  if (scm_capi_pair_p(name)) return name;
+
+  return scm_capi_list(1, name);
+}
+
+scm_local_func ScmObj
+scm_moduletree_copy_list(ScmObj lst)
+{
+  ScmObj cur = SCM_OBJ_INIT, elm = SCM_OBJ_INIT, nil = SCM_OBJ_INIT;
+  ScmObj head = SCM_OBJ_INIT, pair = SCM_OBJ_INIT, prev = SCM_OBJ_INIT;
+  ScmObj rslt = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&lst,
+                       &cur, &elm, &nil,
+                       &head, &pair, &prev,
+                       &rslt);
+
+  scm_assert(scm_capi_nil_p(lst) || scm_capi_pair_p(lst));
+
+  nil = scm_api_nil();
+
+  prev = SCM_OBJ_NULL;
+  head = SCM_OBJ_NULL;
+  for (cur = lst; scm_capi_pair_p(cur); cur = scm_api_cdr(cur)) {
+    elm = scm_api_car(cur);
+    if (scm_obj_null_p(elm)) return SCM_OBJ_NULL;
+
+    pair = scm_api_cons(elm, nil);
+    if (scm_obj_null_p(pair)) return SCM_OBJ_NULL;
+
+    if (scm_obj_not_null_p(prev)) {
+      rslt = scm_api_set_cdr(prev, pair);
+      if (scm_obj_null_p(rslt)) return SCM_OBJ_NULL;
+    }
+    else {
+      head = pair;
+    }
+    prev = pair;
+  }
+
+  if (scm_obj_null_p(cur)) return SCM_OBJ_NULL;
+
+  rslt = scm_api_set_cdr(prev, cur);
+  if (scm_obj_null_p(rslt)) return SCM_OBJ_NULL;
+
+  return scm_obj_null_p(head) ? nil : head;
 }
 
 int
-scm_moduletbl_initialize(ScmObj tbl)
+scm_moduletree_initialize(ScmObj tree)
 {
-  scm_assert_obj_type(tbl, &SCM_MODULETBL_TYPE_INFO);
+  scm_assert_obj_type(tree, &SCM_MODULETREE_TYPE_INFO);
 
-  SCM_MODULETBL(tbl)->tbl =
-    scm_chash_tbl_new(tbl, SCM_MODULETBL_SIZE,
-                      SCM_CHASH_TBL_SCMOBJ, SCM_CHASH_TBL_SCMOBJ,
-                      scm_moduletbl_hash_func, scm_moduletbl_cmp_func);
-  if (SCM_MODULETBL(tbl)->tbl == NULL) return -1;
+  SCM_MODULETREE(tree)->root = scm_moduletree_make_node();
+  if (SCM_MODULETREE(tree)->root == NULL) return -1;
 
   return 0;
 }
 
 void
-scm_moduletbl_finalize(ScmObj tbl)
+scm_moduletree_finalize(ScmObj tree)
 {
-  scm_assert_obj_type(tbl, &SCM_MODULETBL_TYPE_INFO);
+  scm_assert_obj_type(tree, &SCM_MODULETREE_TYPE_INFO);
 
-  if (SCM_MODULETBL(tbl)->tbl != NULL) {
-    scm_chash_tbl_end(SCM_MODULETBL(tbl)->tbl);
-    SCM_MODULETBL(tbl)->tbl = NULL;
-  }
+  scm_moduletree_free_tree(SCM_MODULETREE(tree)->root);
+  SCM_MODULETREE(tree)->root = NULL;
 }
 
 ScmObj
-scm_moduletbl_new(SCM_MEM_TYPE_T mtype)
+scm_moduletree_new(SCM_MEM_TYPE_T mtype)
 {
-  ScmObj tbl;
+  ScmObj tree = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&tbl);
+  tree = scm_capi_mem_alloc(&SCM_MODULETREE_TYPE_INFO, 0, mtype);
+  if (scm_obj_null_p(tree)) return SCM_OBJ_NULL;
 
-  tbl = scm_capi_mem_alloc(&SCM_MODULETBL_TYPE_INFO, 0, mtype);
-  if (scm_obj_null_p(tbl)) return SCM_OBJ_NULL;
-
-  if (scm_moduletbl_initialize(tbl) < 0)
+  if (scm_moduletree_initialize(tree) < 0)
     return SCM_OBJ_NULL;
 
-  return tbl;
+  return tree;
 }
 
 ScmObj
-scm_moduletbl_module(ScmObj tbl, ScmObj name)
+scm_moduletree_module(ScmObj tree, ScmObj name)
 {
-  ScmObj mod;
-  bool found;
+  ScmObj path = SCM_OBJ_INIT;
+  ScmModuleTreeNode *node;
+  bool need_copy;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&tbl,
-                       &mod);
+  SCM_STACK_FRAME_PUSH(&tree, &name,
+                       &path);
 
-  scm_assert_obj_type(tbl, &SCM_MODULETBL_TYPE_INFO);
-  scm_assert(scm_capi_symbol_p(name));
+  scm_assert_obj_type(tree, &SCM_MODULETREE_TYPE_INFO);
+  scm_assert(scm_capi_symbol_p(name) || scm_capi_pair_p(name));
 
-  rslt = scm_chash_tbl_get(SCM_MODULETBL(tbl)->tbl, name,
-                           (ScmCHashTblVal *)SCM_CSETTER_L(mod), &found);
-  if (rslt != 0) return SCM_OBJ_NULL;
+  path = scm_moduletree_normailize_name(name);
+  if (scm_obj_null_p(path)) return SCM_OBJ_NULL;
 
-  if (found) return mod;
+  need_copy = scm_capi_eq_p(path, name);
 
-  mod = scm_module_new(SCM_MEM_HEAP, name);
-  if (scm_obj_null_p(mod)) return SCM_OBJ_NULL;
+  rslt = scm_moduletree_access(SCM_MODULETREE(tree)->root, path, UPDATE, &node);
+  if (rslt < 0) return SCM_OBJ_NULL;
 
-  rslt = scm_chash_tbl_insert(SCM_MODULETBL(tbl)->tbl, name, mod);
-  if (rslt != 0) return SCM_OBJ_NULL;
+  if (scm_obj_null_p(node->module)) {
+    if (need_copy) {
+      /* TODO: scm_api_list_copy が実装された場合は、そちらを使う */
+      path = scm_moduletree_copy_list(path);
+      if (scm_obj_null_p(path)) return SCM_OBJ_NULL;
+    }
 
-  return mod;
+    node->module = scm_module_new(SCM_MEM_HEAP, path);
+    if (scm_obj_null_p(node->module)) return SCM_OBJ_NULL;
+  }
+
+  return node->module;
 }
 
 int
-scm_moduletbl_find(ScmObj tbl, ScmObj name, scm_csetter_t *mod)
+scm_moduletree_find(ScmObj tree, ScmObj name, scm_csetter_t *mod)
 {
-  bool found;
+  ScmModuleTreeNode *node;
   int rslt;
 
-  scm_assert_obj_type(tbl, &SCM_MODULETBL_TYPE_INFO);
-  scm_assert(scm_capi_symbol_p(name));
+  scm_assert_obj_type(tree, &SCM_MODULETREE_TYPE_INFO);
+  scm_assert(scm_capi_symbol_p(name) || scm_capi_pair_p(name));
   scm_assert(mod != NULL);
 
-  rslt = scm_chash_tbl_get(SCM_MODULETBL(tbl)->tbl,
-                           name, (ScmCHashTblVal *)mod, &found);
-  if (rslt != 0) return -1;
+  name = scm_moduletree_normailize_name(name);
+  if (scm_obj_null_p(name)) return -1;
 
-  if (!found) scm_csetter_setq(mod, SCM_OBJ_NULL);
+  rslt = scm_moduletree_access(SCM_MODULETREE(tree)->root, name, FIND, &node);
+  if (rslt < 0) return -1;
+
+  if (node == NULL)
+    scm_csetter_setq(mod, SCM_OBJ_NULL);
+  else
+    scm_csetter_setq(mod, node->module);
 
   return 0;
 }
 
 int
-scm_moduletbl_clean(ScmObj tbl)
+scm_moduletree_clean(ScmObj tree)
 {
-  scm_assert_obj_type(tbl, &SCM_MODULETBL_TYPE_INFO);
+  scm_assert_obj_type(tree, &SCM_MODULETREE_TYPE_INFO);
 
-  scm_chash_tbl_clean(SCM_MODULETBL(tbl)->tbl);
+  scm_moduletree_free_tree(SCM_MODULETREE(tree)->root);
+  SCM_MODULETREE(tree)->root = scm_moduletree_make_node();
+  if (SCM_MODULETREE(tree)->root == NULL) return -1;
 
   return 0;
 }
 
 void
-scm_moduletbl_gc_initialize(ScmObj obj, ScmObj mem)
+scm_moduletree_gc_initialize(ScmObj obj, ScmObj mem)
 {
-  scm_assert_obj_type(obj, &SCM_MODULETBL_TYPE_INFO);
+  scm_assert_obj_type(obj, &SCM_MODULETREE_TYPE_INFO);
 
-  SCM_MODULETBL(obj)->tbl = NULL;
+  SCM_MODULETREE(obj)->root = NULL;
 }
 
 void
-scm_moduletbl_gc_finalize(ScmObj obj)
+scm_moduletree_gc_finalize(ScmObj obj)
 {
-  scm_moduletbl_finalize(obj);
+  scm_moduletree_finalize(obj);
 }
 
 int
-scm_moduletbl_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
+scm_moduletree_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
 {
-  scm_assert_obj_type(obj, &SCM_MODULETBL_TYPE_INFO);
+  scm_assert_obj_type(obj, &SCM_MODULETREE_TYPE_INFO);
   scm_assert(scm_obj_not_null_p(mem));
   scm_assert(handler != NULL);
 
-  return scm_chash_tbl_gc_accept(SCM_MODULETBL(obj)->tbl, obj, mem, handler);
+  return scm_moduletree_node_gc_accept(obj, SCM_MODULETREE(obj)->root,
+                                       mem, handler);
 }

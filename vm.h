@@ -265,7 +265,7 @@ struct ScmVMRec {
 
   struct {
     ScmObj symtbl;                /* Symbol Table */
-    ScmObj modtbl;
+    ScmObj modtree;
 
     struct {
       ScmObj in;
@@ -438,11 +438,11 @@ scm_vm_symtbl(ScmObj vm)
 }
 
 inline ScmObj
-scm_vm_moduletbl(ScmObj vm)
+scm_vm_moduletree(ScmObj vm)
 {
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
-  return SCM_VM(vm)->ge.modtbl;
+  return SCM_VM(vm)->ge.modtree;
 }
 
 inline ScmObj

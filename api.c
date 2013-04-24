@@ -4058,13 +4058,13 @@ scm_api_make_module(ScmObj name)
   SCM_STACK_FRAME_PUSH(&name,
                        &mod);
 
-  if (!scm_capi_symbol_p(name)) {
+  if (!scm_capi_symbol_p(name) && !scm_capi_pair_p(name)) {
     scm_capi_error("failed to make module: invalid argument", 0);
     return SCM_OBJ_NULL;
   }
 
-  rslt = scm_moduletbl_find(scm_vm_moduletbl(scm_vm_current_vm()),
-                            name, SCM_CSETTER_L(mod));
+  rslt = scm_moduletree_find(scm_vm_moduletree(scm_vm_current_vm()),
+                             name, SCM_CSETTER_L(mod));
   if (rslt < 0) return SCM_OBJ_NULL;
 
   if (scm_obj_not_null_p(mod)) {
@@ -4072,7 +4072,7 @@ scm_api_make_module(ScmObj name)
     return SCM_OBJ_NULL;
   }
 
-  return scm_moduletbl_module(scm_vm_moduletbl(scm_vm_current_vm()), name);
+  return scm_moduletree_module(scm_vm_moduletree(scm_vm_current_vm()), name);
 }
 
 extern inline bool
@@ -4088,12 +4088,12 @@ scm_capi_find_module(ScmObj name, scm_csetter_t *mod)
 {
   SCM_STACK_FRAME_PUSH(&name);
 
-  if (!scm_capi_symbol_p(name)) {
+  if (!scm_capi_symbol_p(name) && !scm_capi_pair_p(name)) {
     scm_capi_error("failed to find module: invalid argument", 0);
-    return SCM_OBJ_NULL;
+    return -1;
   }
 
-  return scm_moduletbl_find(scm_vm_moduletbl(scm_vm_current_vm()), name, mod);
+  return scm_moduletree_find(scm_vm_moduletree(scm_vm_current_vm()), name, mod);
 }
 
 ScmObj

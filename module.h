@@ -3,15 +3,17 @@
 
 typedef struct ScmGLocRec ScmGLoc;
 typedef struct ScmModuleRec ScmModule;
-typedef struct ScmModuleTblRec ScmModuleTbl;
+typedef struct ScmModuleTreeNodeRec ScmModuleTreeNode;
+typedef struct ScmModuleTreeRec ScmModuleTree;
 
 #define SCM_GLOC(obj) ((ScmGLoc *)(obj))
 #define SCM_MODULE(obj) ((ScmModule*)(obj))
-#define SCM_MODULETBL(obj) ((ScmModuleTbl*)(obj))
+#define SCM_MODULETREE(obj) ((ScmModuleTree *)(obj))
 
 #include "object.h"
 #include "api_enum.h"
 #include "chashtbl.h"
+
 
 /****************************************************************************/
 /*  GLoc                                                                    */
@@ -135,26 +137,53 @@ scm_module_name(ScmObj mod)
 
 
 /****************************************************************************/
-/*  ModuleTbl                                                               */
+/*  ModuleTree                                                              */
 /****************************************************************************/
 
-extern ScmTypeInfo SCM_MODULETBL_TYPE_INFO;
+extern ScmTypeInfo SCM_MODULETREE_TYPE_INFO;
 
-struct ScmModuleTblRec {
-  ScmObjHeader header;
-  ScmCHashTbl *tbl;
+struct ScmModuleTreeNodeRec {
+  ScmObj name;
+  ScmObj module;
+  ScmModuleTreeNode **branches;
+  size_t capacity;
+  size_t used;
 };
 
-int scm_moduletbl_initialize(ScmObj tbl);
-void scm_moduletbl_finalize(ScmObj tbl);
-ScmObj scm_moduletbl_new(SCM_MEM_TYPE_T mtype);
-ScmObj scm_moduletbl_module(ScmObj tbl, ScmObj name);
-int scm_moduletbl_find(ScmObj tbl, ScmObj name, scm_csetter_t *mod);
-int scm_moduletbl_clean(ScmObj tbl);
+struct ScmModuleTreeRec {
+  ScmObjHeader header;
+  ScmModuleTreeNode *root;
+};
 
-void scm_moduletbl_gc_initialize(ScmObj obj, ScmObj mem);
-void scm_moduletbl_gc_finalize(ScmObj obj);
-int scm_moduletbl_gc_accept(ScmObj obj,
-                            ScmObj mem, ScmGCRefHandlerFunc handler);
+#define SCM_MODULETREE_DEFAULT_BRANCH_SIZE 16
+
+#ifdef SCM_UNIT_TEST
+
+ScmModuleTreeNode *scm_moduletree_make_node(void);
+int scm_moduletree_free_node(ScmModuleTreeNode *node);
+int scm_moduletree_free_tree(ScmModuleTreeNode *root);
+int scm_moduletree_node_gc_accept(ScmObj tree, ScmModuleTreeNode *node,
+                                    ScmObj mem, ScmGCRefHandlerFunc handler);
+ScmModuleTreeNode *scm_moduletree_add_branche(ScmModuleTreeNode *node,
+                                                ScmObj name);
+int scm_moduletree_access(ScmModuleTreeNode *root, ScmObj path, int mode,
+                            ScmModuleTreeNode **node);
+ScmObj scm_moduletree_normailize_name(ScmObj name);
+ScmObj scm_moduletree_copy_list(ScmObj lst);
+
+#endif
+
+int scm_moduletree_initialize(ScmObj tree);
+void scm_moduletree_finalize(ScmObj tree);
+ScmObj scm_moduletree_new(SCM_MEM_TYPE_T mtype);
+ScmObj scm_moduletree_module(ScmObj tree, ScmObj name);
+int scm_moduletree_find(ScmObj tree, ScmObj name, scm_csetter_t *mod);
+int scm_moduletree_clean(ScmObj tree);
+
+void scm_moduletree_gc_initialize(ScmObj obj, ScmObj mem);
+void scm_moduletree_gc_finalize(ScmObj obj);
+int scm_moduletree_gc_accept(ScmObj obj, ScmObj mem,
+                               ScmGCRefHandlerFunc handler);
+
 
 #endif  /* INCLUDE_MODULE_H__ */

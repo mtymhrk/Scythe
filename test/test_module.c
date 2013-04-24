@@ -17,7 +17,8 @@ find_module(const char *n)
   module = name = undef;
 
   name = scm_capi_make_symbol_from_cstr(n, SCM_ENC_ASCII);
-  scm_capi_find_module(name, SCM_CSETTER_L(module));
+  name = scm_capi_list(1, name);
+  cut_assert_equal_int(0, scm_capi_find_module(name, SCM_CSETTER_L(module)));
 }
 
 void
@@ -26,6 +27,7 @@ make_module(const char *n)
   module = name = undef;
 
   name = scm_capi_make_symbol_from_cstr(n, SCM_ENC_ASCII);
+  name = scm_capi_list(1, name);
   module = scm_api_make_module(name);
 }
 
@@ -93,7 +95,8 @@ test_make_module(void)
   make_module("test");
 
   cut_assert_true(scm_capi_module_p(module));
-  cut_assert_true(scm_capi_eq_p(name, scm_api_module_name(module)));
+  cut_assert_true(scm_capi_true_p(scm_api_equal_P(name,
+                                                  scm_api_module_name(module))));
 }
 
 void
