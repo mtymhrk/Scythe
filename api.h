@@ -156,6 +156,7 @@ ScmObj scm_capi_list(unsigned int n, ...);
 ScmObj scm_capi_list_ref(ScmObj lst, size_t n);
 ScmObj scm_api_list_P(ScmObj lst);
 ssize_t scm_capi_length(ScmObj lst);
+ScmObj scm_api_list_copy(ScmObj lst);
 
 
 /*******************************************************************/

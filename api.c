@@ -826,6 +826,59 @@ scm_capi_length(ScmObj lst)
   }
 }
 
+ScmObj
+scm_api_list_copy(ScmObj lst)
+{
+  ScmObj cur = SCM_OBJ_INIT, elm = SCM_OBJ_INIT, nil = SCM_OBJ_INIT;
+  ScmObj head = SCM_OBJ_INIT, pair = SCM_OBJ_INIT, prev = SCM_OBJ_INIT;
+  ScmObj rslt = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&lst,
+                       &cur, &elm, &nil,
+                       &head, &pair, &prev,
+                       &rslt);
+
+  if (scm_obj_null_p(lst)) {
+    scm_capi_error("list-copy: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (scm_capi_nil_p(lst)) {
+    return lst;
+  }
+  else if (!scm_capi_pair_p(lst)) {
+    scm_capi_error("list-copy: list required, but got", 1, lst);
+    return SCM_OBJ_NULL;
+  }
+
+  nil = scm_api_nil();
+
+  prev = SCM_OBJ_NULL;
+  head = SCM_OBJ_NULL;
+  for (cur = lst; scm_capi_pair_p(cur); cur = scm_api_cdr(cur)) {
+    elm = scm_api_car(cur);
+    if (scm_obj_null_p(elm)) return SCM_OBJ_NULL;
+
+    pair = scm_api_cons(elm, nil);
+    if (scm_obj_null_p(pair)) return SCM_OBJ_NULL;
+
+    if (scm_obj_not_null_p(prev)) {
+      rslt = scm_api_set_cdr(prev, pair);
+      if (scm_obj_null_p(rslt)) return SCM_OBJ_NULL;
+    }
+    else {
+      head = pair;
+    }
+    prev = pair;
+  }
+
+  if (scm_obj_null_p(cur)) return SCM_OBJ_NULL;
+
+  rslt = scm_api_set_cdr(prev, cur);
+  if (scm_obj_null_p(rslt)) return SCM_OBJ_NULL;
+
+  return scm_obj_null_p(head) ? nil : head;
+}
+
 
 /*******************************************************************/
 /*  Numeric                                                        */

@@ -341,7 +341,6 @@ ScmEnvFrame *scm_vm_eframe_list_ref(ScmEnvFrame *efp_list, size_t n);
 ScmObj scm_vm_eframe_arg_ref(ScmEnvFrame *efp_list,
                              size_t idx, size_t layer, ScmEnvFrame **efp);
 
-ScmObj scm_vm_copy_list(ScmObj lst);
 ScmObj scm_vm_make_trampolining_code(ScmObj vm, ScmObj clsr, ScmObj args,
                                      ScmObj callback);
 ScmObj scm_vm_make_exception_handler_code(ScmObj vm);

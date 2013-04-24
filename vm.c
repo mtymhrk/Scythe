@@ -1257,49 +1257,6 @@ scm_vm_eframe_arg_ref(ScmEnvFrame *efp_list, size_t idx, size_t layer,
 }
 
 scm_local_func ScmObj
-scm_vm_copy_list(ScmObj lst)
-{
-  ScmObj cur = SCM_OBJ_INIT, elm = SCM_OBJ_INIT, nil = SCM_OBJ_INIT;
-  ScmObj head = SCM_OBJ_INIT, pair = SCM_OBJ_INIT, prev = SCM_OBJ_INIT;
-  ScmObj rslt = SCM_OBJ_INIT;
-
-  SCM_STACK_FRAME_PUSH(&lst,
-                       &cur, &elm, &nil,
-                       &head, &pair, &prev,
-                       &rslt);
-
-  scm_assert(scm_capi_nil_p(lst) || scm_capi_pair_p(lst));
-
-  nil = scm_api_nil();
-
-  prev = SCM_OBJ_NULL;
-  head = SCM_OBJ_NULL;
-  for (cur = lst; scm_capi_pair_p(cur); cur = scm_api_cdr(cur)) {
-    elm = scm_api_car(cur);
-    if (scm_obj_null_p(elm)) return SCM_OBJ_NULL;
-
-    pair = scm_api_cons(elm, nil);
-    if (scm_obj_null_p(pair)) return SCM_OBJ_NULL;
-
-    if (scm_obj_not_null_p(prev)) {
-      rslt = scm_api_set_cdr(prev, pair);
-      if (scm_obj_null_p(rslt)) return SCM_OBJ_NULL;
-    }
-    else {
-      head = pair;
-    }
-    prev = pair;
-  }
-
-  if (scm_obj_null_p(cur)) return SCM_OBJ_NULL;
-
-  rslt = scm_api_set_cdr(prev, cur);
-  if (scm_obj_null_p(rslt)) return SCM_OBJ_NULL;
-
-  return scm_obj_null_p(head) ? nil : head;
-}
-
-scm_local_func ScmObj
 scm_vm_make_trampolining_code(ScmObj vm, ScmObj clsr,
                               ScmObj args, ScmObj callback)
 {
@@ -1390,8 +1347,7 @@ scm_vm_make_trampolining_code(ScmObj vm, ScmObj clsr,
     if (scm_obj_null_p(cur)) return SCM_OBJ_NULL; /* [ERR: [through] */
 
     if (arity < 0 && !unwished) {
-      /* TODO: scm_api_list_copy が実装された場合は、そちらを使う */
-      cur = scm_vm_copy_list(cur);
+      cur = scm_api_list_copy(cur);
       if (scm_obj_null_p(cur)) return SCM_OBJ_NULL;
 
       rslt = scm_capi_iseq_push_opfmt_obj(iseq, SCM_OPCODE_IMMVAL, cur);

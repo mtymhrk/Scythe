@@ -169,7 +169,6 @@ ScmModuleTreeNode *scm_moduletree_add_branche(ScmModuleTreeNode *node,
 int scm_moduletree_access(ScmModuleTreeNode *root, ScmObj path, int mode,
                             ScmModuleTreeNode **node);
 ScmObj scm_moduletree_normailize_name(ScmObj name);
-ScmObj scm_moduletree_copy_list(ScmObj lst);
 
 #endif
 
