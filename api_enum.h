@@ -99,6 +99,7 @@ typedef enum {
 typedef enum {
   SCM_OPFMT_NOOPD = 0,          /* op(16)  */
   SCM_OPFMT_OBJ,                /* op(16) || scmobj(1 word) */
+  SCM_OPFMT_OBJ_OBJ,            /* op(16) || scmobj(1 word) || scmobj(1 word) */
   SCM_OPFMT_SI,                 /* op(16) || signed_int(32) */
   SCM_OPFMT_SI_SI,              /* op(16) || signed_int(32) || signed_int(32) */
   SCM_OPFMT_SI_SI_OBJ,          /* op(16) || signed_int(32) || signed_int(32) || scmobj(1 word) */
@@ -109,6 +110,7 @@ typedef enum {
 
 #define SCM_OPFMT_INST_SZ_NOOPD      SCM_OPSIZE
 #define SCM_OPFMT_INST_SZ_OBJ        (SCM_OPSIZE + sizeof(ScmObj))
+#define SCM_OPFMT_INST_SZ_OBJ_OBJ    (SCM_OPSIZE + sizeof(ScmObj) * 2)
 #define SCM_OPFMT_INST_SZ_SI         (SCM_OPSIZE + sizeof(int))
 #define SCM_OPFMT_INST_SZ_SI_SI      (SCM_OPSIZE + sizeof(int) * 2)
 #define SCM_OPFMT_INST_SZ_SI_SI_OBJ  (SCM_OPSIZE + sizeof(int) * 2 + sizeof(ScmObj))
@@ -131,9 +133,9 @@ typedef enum {
 #define SCM_INST_SZ_IMMVAL      SCM_OPFMT_INST_SZ_OBJ
 #define SCM_INST_SZ_PUSH        SCM_OPFMT_INST_SZ_NOOPD
 #define SCM_INST_SZ_MVPUSH      SCM_OPFMT_INST_SZ_NOOPD
-#define SCM_INST_SZ_GREF        SCM_OPFMT_INST_SZ_OBJ
-#define SCM_INST_SZ_GDEF        SCM_OPFMT_INST_SZ_OBJ
-#define SCM_INST_SZ_GSET        SCM_OPFMT_INST_SZ_OBJ
+#define SCM_INST_SZ_GREF        SCM_OPFMT_INST_SZ_OBJ_OBJ
+#define SCM_INST_SZ_GDEF        SCM_OPFMT_INST_SZ_OBJ_OBJ
+#define SCM_INST_SZ_GSET        SCM_OPFMT_INST_SZ_OBJ_OBJ
 #define SCM_INST_SZ_SREF        SCM_OPFMT_INST_SZ_SI_SI
 #define SCM_INST_SZ_SSET        SCM_OPFMT_INST_SZ_SI_SI
 #define SCM_INST_SZ_JMP         SCM_OPFMT_INST_SZ_IOF

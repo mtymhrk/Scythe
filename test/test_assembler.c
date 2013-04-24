@@ -30,7 +30,7 @@ test_scm_asm_assemble(void)
     "((nop)(halt)(undef)(call 5)(tcall 2)(apply)(tapply)"
     "(return)(frame)(cframe)(eframe)"
     "(ecommit 20)(epop)(erebind 21)(push)(mvpush)"
-    "(gref vvv)(gdef vvv)(gset vvv)(sref -4 12)(sset -6 13)"
+    "(gref vvv xxx)(gdef vvv xxx)(gset vvv xxx)(sref -4 12)(sset -6 13)"
     "(immval vvv)(label lbl)(jmp lbl)(jmpt lbl)(jmpf lbl)(asm ((nop)))(raise)"
     "(box -8 14)(close 10 20 vvv)(asm-close 11 21 ((nop)))"
     "(demine 15 16)(emine 17)(edemine 18 19)(arity 22))";
@@ -51,13 +51,16 @@ test_scm_asm_assemble(void)
                                      SCM_OPCODE_CLOSE, SCM_OPCODE_CLOSE,
                                      SCM_OPCODE_DEMINE, SCM_OPCODE_EMINE,
                                      SCM_OPCODE_EDEMINE, SCM_OPCODE_ARITY };
-  ScmObj actual_immv = SCM_OBJ_INIT;
-  ScmObj expected_immv = SCM_OBJ_INIT;
-  uint8_t *ip;
+  ScmObj actual_immv1 = SCM_OBJ_INIT, actual_immv2 = SCM_OBJ_INIT;
+  ScmObj expected_immv1 = SCM_OBJ_INIT, expected_immv2 = SCM_OBJ_INIT;
+  scm_byte_t *ip;
 
-  SCM_STACK_FRAME_PUSH(&iseq, &lst, &port, &actual_immv, &expected_immv);
+  SCM_STACK_FRAME_PUSH(&iseq, &lst, &port,
+                       &actual_immv1, &actual_immv2,
+                       &expected_immv1, &expected_immv2);
 
-  expected_immv = scm_capi_make_symbol_from_cstr("vvv", SCM_ENC_ASCII);
+  expected_immv1 = scm_capi_make_symbol_from_cstr("vvv", SCM_ENC_ASCII);
+  expected_immv2 = scm_capi_make_symbol_from_cstr("xxx", SCM_ENC_ASCII);
   port = scm_capi_open_input_string_from_cstr(str, SCM_ENC_ASCII);
   lst = scm_api_read(port);
 
@@ -69,7 +72,7 @@ test_scm_asm_assemble(void)
   ip = scm_capi_iseq_to_ip(iseq);
 
   for (size_t i = 0; i < sizeof(expected_codes)/sizeof(expected_codes[0]); i++) {
-    uint8_t actual_op;
+    int actual_op;
     int32_t actual_arg1, actual_arg2;;
 
     SCM_CAPI_INST_FETCH_OP(ip, actual_op);
@@ -79,15 +82,18 @@ test_scm_asm_assemble(void)
     case SCM_OPCODE_GREF:
     case SCM_OPCODE_GDEF:
     case SCM_OPCODE_GSET:
-      ip = scm_capi_inst_fetch_oprand_obj(ip, SCM_CSETTER_L(actual_immv));
-      cut_assert_true(scm_capi_eq_p(expected_immv, actual_immv));
+      ip = scm_capi_inst_fetch_oprand_obj_obj(ip,
+                                              SCM_CSETTER_L(actual_immv1),
+                                              SCM_CSETTER_L(actual_immv2));
+      cut_assert_true(scm_capi_eq_p(expected_immv1, actual_immv1));
+      cut_assert_true(scm_capi_eq_p(expected_immv2, actual_immv2));
       break;
     case SCM_OPCODE_IMMVAL:
-      ip = scm_capi_inst_fetch_oprand_obj(ip, SCM_CSETTER_L(actual_immv));
+      ip = scm_capi_inst_fetch_oprand_obj(ip, SCM_CSETTER_L(actual_immv1));
       if (i == 21)
-        cut_assert_true(scm_capi_eq_p(expected_immv, actual_immv));
+        cut_assert_true(scm_capi_eq_p(expected_immv1, actual_immv1));
       else if (i == 25)
-        cut_assert_true(scm_capi_iseq_p(actual_immv));
+        cut_assert_true(scm_capi_iseq_p(actual_immv1));
       else
         cut_assert(false);
       break;
@@ -138,16 +144,16 @@ test_scm_asm_assemble(void)
       ip = scm_capi_inst_fetch_oprand_si_si_obj(ip,
                                                 &actual_arg1,
                                                 &actual_arg2,
-                                                SCM_CSETTER_L(actual_immv));
+                                                SCM_CSETTER_L(actual_immv1));
       if (i == 31) {
         cut_assert_equal_int(10, actual_arg1);
         cut_assert_equal_int(20, actual_arg2);
-        cut_assert_true(scm_capi_eq_p(expected_immv, actual_immv));
+        cut_assert_true(scm_capi_eq_p(expected_immv1, actual_immv1));
       }
       else if (i == 32) {
         cut_assert_equal_int(11, actual_arg1);
         cut_assert_equal_int(21, actual_arg2);
-        cut_assert_true(scm_capi_iseq_p(actual_immv));
+        cut_assert_true(scm_capi_iseq_p(actual_immv1));
       }
       break;
     case SCM_OPCODE_DEMINE:

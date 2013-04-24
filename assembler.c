@@ -314,6 +314,42 @@ scm_asm_inst_obj(ScmObj iseq, int opcode, ScmObj operator, ScmObj operands,
 }
 
 static ssize_t
+scm_asm_inst_obj_obj(ScmObj iseq, int opcode, ScmObj operator, ScmObj operands,
+                     size_t idx, ScmCHashTbl *label_tbl, EArray *labels)
+{
+  ScmObj arg1 = SCM_OBJ_INIT, arg2 = SCM_OBJ_INIT;
+  ssize_t nr_opd;
+
+  SCM_STACK_FRAME_PUSH(&iseq, &operator, &operands,
+                       &arg1, &arg2);
+
+  scm_assert(scm_capi_iseq_p(iseq));
+  scm_assert(0 <= opcode && opcode <= SCM_BYTE_MAX);
+  scm_assert(scm_capi_symbol_p(operator));
+  scm_assert(scm_capi_nil_p(operands) || scm_capi_pair_p(operands));
+  scm_assert(label_tbl != NULL);
+  scm_assert(labels != NULL);
+
+  nr_opd = scm_capi_length(operands);
+  if (nr_opd < 2) {
+    scm_capi_error("Assembler: too few operands", 2, operator, operands);
+    return -1;
+  }
+  else if (nr_opd > 2) {
+    scm_capi_error("Assembler: too many operands", 2, operator, operands);
+    return -1;
+  }
+
+  arg1 = scm_capi_list_ref(operands, 0);
+  if (scm_obj_null_p(arg1)) return -1; /* [ERR]: [throughg] */
+
+  arg2 = scm_capi_list_ref(operands, 1);
+  if (scm_obj_null_p(arg2)) return -1; /* [ERR]: [throughg] */
+
+  return scm_capi_iseq_push_opfmt_obj_obj(iseq, opcode, arg1, arg2);
+}
+
+static ssize_t
 scm_asm_inst_si(ScmObj iseq, int opcode, ScmObj operator, ScmObj operands,
                 size_t idx, ScmCHashTbl *label_tbl, EArray *labels)
 {
@@ -740,6 +776,10 @@ scm_asm_inst(ScmObj iseq, ScmObj inst, size_t idx,
     case SCM_OPFMT_OBJ:
       return scm_asm_inst_obj(iseq, opcode, operator, operands,
                               idx, label_tbl, labels);
+      break;
+    case SCM_OPFMT_OBJ_OBJ:
+      return scm_asm_inst_obj_obj(iseq, opcode, operator, operands,
+                                  idx, label_tbl, labels);
       break;
     case SCM_OPFMT_SI:
       return scm_asm_inst_si(iseq, opcode, operator, operands,

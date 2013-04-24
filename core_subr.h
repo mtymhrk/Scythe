@@ -5,7 +5,6 @@
 
 #include "object.h"
 
-void scm_core_subr_system_setup(void);
-void scm_core_clsr_system_setup(void);
+int scm_initialize_module_core(void);
 
 #endif /* INCLUDE_CORE_SUBR_H__ */

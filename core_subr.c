@@ -1,3 +1,4 @@
+
 #include "object.h"
 #include "vm.h"
 #include "api.h"
@@ -334,7 +335,7 @@ scm_subr_func_eval(int argc, const ScmObj *argv)
     return -1;
   }
 
-  exp = scm_api_compile(argv[0]);
+  exp = scm_api_compile(argv[0], SCM_OBJ_NULL);
   if (scm_obj_null_p(exp)) return -1; /* [ERR]: [through] */
 
   exp = scm_api_assemble(exp);
@@ -446,8 +447,8 @@ static const char *scm_clsr_code_callvalues =
 /*******************************************************************/
 /*******************************************************************/
 
-void
-scm_core_subr_system_setup(void)
+static int
+scm_define_procedure(ScmObj module)
 {
   const char *syms[] = { "null?", "cons", "car", "cdr", "read", "write",
                          "display", "newline", "flush-output-port",
@@ -465,55 +466,84 @@ scm_core_subr_system_setup(void)
                           scm_subr_func_exit };
   ScmObj sym  = SCM_OBJ_INIT;
   ScmObj subr = SCM_OBJ_INIT;
-  ScmObj rslt = SCM_OBJ_INIT;
+  int rslt;
 
-  SCM_STACK_FRAME_PUSH(&sym, &subr, &rslt);
+  SCM_STACK_FRAME_PUSH(&module,
+                       &sym, &subr);
 
   for (size_t i = 0; i < sizeof(syms)/sizeof(syms[0]); i++) {
     sym = scm_capi_make_symbol_from_cstr(syms[i], SCM_ENC_ASCII);
     subr = scm_capi_make_subrutine(funcs[i], arities[i], flags[i]);
-    rslt = scm_api_global_var_define(sym, subr);
+    rslt = scm_capi_define_global_var(module, sym, subr, true);
 
-    if (scm_obj_null_p(rslt) || scm_obj_null_p(subr) ||scm_obj_null_p(sym))
-      return;                   /* [ERR]: [through] */
+    if (rslt < 0 || scm_obj_null_p(subr) ||scm_obj_null_p(sym))
+      return -1;                   /* [ERR]: [through] */
   }
 
   subr = scm_capi_make_subrutine(scm_subr_func_default_exception_handler, 1, 0);
-  if (scm_obj_null_p(subr)) return;
+  if (scm_obj_null_p(subr)) return -1;
 
   scm_capi_push_exception_handler(subr);
+
+  return 0;
 }
 
-void
-scm_core_clsr_system_setup(void)
+static int
+scm_define_closure(ScmObj module)
 {
   const char *syms[] = { "call-with-values" };
   int arities[] = { 2 };
   const char *codes[] = { scm_clsr_code_callvalues };
   ScmObj sym  = SCM_OBJ_INIT, code = SCM_OBJ_INIT, clsr = SCM_OBJ_INIT;
-  ScmObj port = SCM_OBJ_INIT, rslt = SCM_OBJ_INIT;
+  ScmObj port = SCM_OBJ_INIT;
+  int rslt;
 
-  SCM_STACK_FRAME_PUSH(&sym, &code, &clsr,
-                       &port, &rslt);
+  SCM_STACK_FRAME_PUSH(&module,
+                       &sym, &code, &clsr,
+                       &port);
 
   for (size_t i = 0; i < sizeof(syms)/sizeof(syms[0]); i++) {
     port = scm_capi_open_input_string_from_cstr(codes[i], SCM_ENC_ASCII);
-    if (scm_obj_null_p(port)) return;
+    if (scm_obj_null_p(port)) return -1;
 
     code = scm_api_read(port);
-    if (scm_obj_null_p(code)) return;
+    if (scm_obj_null_p(code)) return -1;
 
     code = scm_api_assemble(code);
-    if (scm_obj_null_p(code)) return;
+    if (scm_obj_null_p(code)) return -1;
 
     sym = scm_capi_make_symbol_from_cstr(syms[i], SCM_ENC_ASCII);
-    if (scm_obj_null_p(sym)) return;
+    if (scm_obj_null_p(sym)) return -1;
 
     clsr = scm_capi_make_closure(code, SCM_OBJ_NULL, arities[i]);
-    if (scm_obj_null_p(code)) return;
+    if (scm_obj_null_p(code)) return -1;
 
-    rslt = scm_api_global_var_define(sym, clsr);
-    if (scm_obj_null_p(rslt)) return;
+    rslt = scm_capi_define_global_var(module, sym, clsr, true);
+    if (rslt < 0) return -1;
   }
+
+  return 0;
 }
 
+int
+scm_initialize_module_core(void)
+{
+  ScmObj name = SCM_OBJ_INIT, module = SCM_OBJ_INIT;
+  int rslt;
+
+  SCM_STACK_FRAME_PUSH(&name, &module);
+
+  name = scm_capi_make_symbol_from_cstr("core", SCM_ENC_ASCII);
+  if (scm_obj_null_p(name)) return -1;
+
+  module = scm_api_make_module(name);
+  if (scm_obj_null_p(module)) return -1;
+
+  rslt = scm_define_procedure(module);
+  if (rslt < 0) return -1;
+
+  rslt = scm_define_closure(module);
+  if (rslt < 0) return -1;
+
+  return 0;
+}

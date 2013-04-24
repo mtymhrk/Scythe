@@ -265,7 +265,7 @@ struct ScmVMRec {
 
   struct {
     ScmObj symtbl;                /* Symbol Table */
-    ScmObj gloctbl;
+    ScmObj modtbl;
 
     struct {
       ScmObj in;
@@ -310,6 +310,8 @@ void scm_vm_clean_singletons(ScmObj vm);
 int scm_vm_setup_global_env(ScmObj vm);
 void scm_vm_clean_global_env(ScmObj vm);
 void scm_vm_clean_eval_env(ScmObj vm);
+
+int scm_vm_load_builtin_modules(ScmObj vm);
 
 /* int scm_vm_stack_push(ScmObj vm, ScmObj elm); */
 /* ScmObj scm_vm_stack_pop(ScmObj vm); */
@@ -436,11 +438,11 @@ scm_vm_symtbl(ScmObj vm)
 }
 
 inline ScmObj
-scm_vm_gloctbl(ScmObj vm)
+scm_vm_moduletbl(ScmObj vm)
 {
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
-  return SCM_VM(vm)->ge.gloctbl;
+  return SCM_VM(vm)->ge.modtbl;
 }
 
 inline ScmObj

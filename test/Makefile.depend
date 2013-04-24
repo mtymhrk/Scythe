@@ -22,7 +22,7 @@
 ../encoding.o: ../encoding.c ../encoding.h ../api_enum.h
 ../vm.o: ../vm.c ../vm.h ../object.h ../impl_utils.h ../memory.h \
  ../api_type.h ../reference.h ../api_enum.h ../vmstack.h ../string.h \
- ../encoding.h ../symbol.h ../chashtbl.h ../gloc.h ../procedure.h \
+ ../encoding.h ../symbol.h ../chashtbl.h ../module.h ../procedure.h \
  ../core_subr.h ../miscobjects.h ../compiler.h ../api.h
 ../vmstack.o: ../vmstack.c ../object.h ../impl_utils.h ../api.h \
  ../reference.h ../encoding.h ../api_enum.h ../api_type.h ../vmstack.h
@@ -44,11 +44,9 @@
 ../api.o: ../api.c ../object.h ../impl_utils.h ../memory.h ../api_type.h \
  ../vm.h ../reference.h ../api_enum.h ../vmstack.h ../char.h \
  ../encoding.h ../string.h ../symbol.h ../chashtbl.h ../procedure.h \
- ../gloc.h ../numeric.h ../earray.h ../api.h ../pair.h ../vector.h \
- ../port.h ../parser.h ../syntax.h ../iseq.h ../assembler.h ../compiler.h \
- ../exception.h
-../gloc.o: ../gloc.c ../object.h ../impl_utils.h ../reference.h ../api.h \
- ../encoding.h ../api_enum.h ../api_type.h ../chashtbl.h ../gloc.h
+ ../numeric.h ../earray.h ../api.h ../pair.h ../vector.h ../port.h \
+ ../parser.h ../syntax.h ../iseq.h ../module.h ../assembler.h \
+ ../compiler.h ../exception.h
 ../port.o: ../port.c ../object.h ../impl_utils.h ../reference.h ../api.h \
  ../encoding.h ../api_enum.h ../api_type.h ../port.h
 ../parser.o: ../parser.c ../object.h ../impl_utils.h ../reference.h ../api.h \
@@ -63,6 +61,8 @@
 ../compiler.o: ../compiler.c ../object.h ../impl_utils.h ../api.h \
  ../reference.h ../encoding.h ../api_enum.h ../api_type.h ../assembler.h \
  ../earray.h ../compiler.h
+../module.o: ../module.c ../object.h ../impl_utils.h ../api.h ../reference.h \
+ ../encoding.h ../api_enum.h ../api_type.h ../chashtbl.h ../module.h
 ../main.o: ../main.c ../api.h ../object.h ../impl_utils.h ../reference.h \
  ../encoding.h ../api_enum.h ../api_type.h
 test_pair.o: test_pair.c /usr/local/include/cutter/cutter.h \
@@ -466,6 +466,22 @@ test_bignum.o: test_bignum.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-experimental.h ../api.h ../object.h \
  ../impl_utils.h ../reference.h ../encoding.h ../api_enum.h ../api_type.h \
  ../numeric.h ../earray.h ../api.h
+test_module.o: test_module.c /usr/local/include/cutter/cutter.h \
+ /usr/local/include/cutter/cutter/cut-version.h \
+ /usr/local/include/cutter/cutter/cut-features.h \
+ /usr/local/include/cutter/cutter/cut-assertions.h \
+ /usr/local/include/cutter/cutter/cut-assertions-helper.h \
+ /usr/local/include/cutter/cutter/cut-public.h \
+ /usr/local/include/cutter/cutter/cut-config.h \
+ /usr/local/include/cutter/cutter/cut-types.h \
+ /usr/local/include/cutter/cutter/cut-macros.h \
+ /usr/local/include/cutter/cutter/cut-multi-process.h \
+ /usr/local/include/cutter/cutter/cut-test-utils.h \
+ /usr/local/include/cutter/cutter/cut-test-utils-helper.h \
+ /usr/local/include/cutter/cutter/cut-helper.h \
+ /usr/local/include/cutter/cutter/cut-experimental.h ../object.h \
+ ../impl_utils.h ../api.h ../object.h ../reference.h ../encoding.h \
+ ../api_enum.h ../api_type.h
 test_compiler.o: test_compiler.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-version.h \
  /usr/local/include/cutter/cutter/cut-features.h \

@@ -168,6 +168,22 @@ scm_csetter_setq(scm_csetter_t *st, ScmObj val)
   }
 }
 
+inline ScmObj
+scm_csetter_val(scm_csetter_t *st)
+{
+  switch (st->kind) {
+  case 'L':
+    return *st->lval.l;
+  case 'O':
+    return *st->lval.o.ptr;
+  case 'S':
+    return *(ScmObj *)((scm_byte_t *)*st->lval.s.owner
+                       + st->lval.s.offset);
+  default:
+    return SCM_OBJ_NULL;        /* must not happen */
+  }
+}
+
 
 /** definition for ScmRef ****************************************************/
 

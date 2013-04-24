@@ -63,15 +63,17 @@ test_scm_vm_run__call_cons(void)
 {
   ScmObj iseq = SCM_OBJ_INIT;
   ScmObj cons_sym = SCM_OBJ_INIT;
+  ScmObj mod_name = SCM_OBJ_INIT;
   ScmObj car = SCM_OBJ_INIT;
   ScmObj cdr = SCM_OBJ_INIT;
   ScmObj actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&iseq, &cons_sym, &car, &cdr, &actual);
+  SCM_STACK_FRAME_PUSH(&iseq, &cons_sym, &mod_name, &car, &cdr, &actual);
 
   /* preprocess */
   iseq = scm_iseq_new(SCM_MEM_HEAP);
   cons_sym = scm_capi_make_symbol_from_cstr("cons", SCM_ENC_ASCII);
+  mod_name = scm_capi_make_symbol_from_cstr("main", SCM_ENC_ASCII);
   car = scm_capi_make_symbol_from_cstr("foo", SCM_ENC_ASCII);
   cdr = scm_capi_make_symbol_from_cstr("bar", SCM_ENC_ASCII);
 
@@ -81,7 +83,7 @@ test_scm_vm_run__call_cons(void)
   scm_capi_iseq_push_opfmt_noarg(iseq, SCM_OPCODE_PUSH);
   scm_capi_iseq_push_opfmt_obj(iseq, SCM_OPCODE_IMMVAL, cdr);
   scm_capi_iseq_push_opfmt_noarg(iseq, SCM_OPCODE_PUSH);
-  scm_capi_iseq_push_opfmt_obj(iseq, SCM_OPCODE_GREF, cons_sym);
+  scm_capi_iseq_push_opfmt_obj_obj(iseq, SCM_OPCODE_GREF, cons_sym, mod_name);
   scm_capi_iseq_push_opfmt_si(iseq, SCM_OPCODE_CALL, 2);
   scm_capi_iseq_push_opfmt_si(iseq, SCM_OPCODE_ARITY, 1);
   scm_capi_iseq_push_opfmt_noarg(iseq, SCM_OPCODE_HALT);

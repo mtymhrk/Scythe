@@ -384,6 +384,8 @@ scm_byte_t *scm_capi_iseq_to_ip(ScmObj iseq);
 ssize_t scm_capi_iseq_length(ScmObj iseq);
 ssize_t scm_capi_iseq_push_opfmt_noarg(ScmObj iseq, SCM_OPCODE_T op);
 ssize_t scm_capi_iseq_push_opfmt_obj(ScmObj iseq, SCM_OPCODE_T op, ScmObj val);
+ssize_t scm_capi_iseq_push_opfmt_obj_obj(ScmObj iseq, SCM_OPCODE_T op,
+                                         ScmObj val1, ScmObj val2);
 ssize_t scm_capi_iseq_push_opfmt_si(ScmObj iseq, SCM_OPCODE_T op, int val);
 ssize_t scm_capi_iseq_push_opfmt_si_si(ScmObj iseq, SCM_OPCODE_T op,
                                        int val1, int val2);
@@ -402,6 +404,9 @@ int scm_capi_opcode_to_opfmt(int opcode);
   } while (0)
 
 scm_byte_t *scm_capi_inst_fetch_oprand_obj(scm_byte_t *ip, scm_csetter_t *obj);
+scm_byte_t *scm_capi_inst_fetch_oprand_obj_obj(scm_byte_t *ip,
+                                               scm_csetter_t *obj1,
+                                               scm_csetter_t *obj2);
 scm_byte_t *scm_capi_inst_fetch_oprand_si(scm_byte_t *ip, int *si);
 scm_byte_t *scm_capi_inst_fetch_oprand_si_si(scm_byte_t *ip,
                                              int *si1, int *si2);
@@ -424,18 +429,32 @@ ScmObj scm_api_assemble(ScmObj lst);
 /*  Compiler                                                       */
 /*******************************************************************/
 
-ScmObj scm_api_compile(ScmObj exp);
+bool scm_capi_compiler_p(ScmObj obj);
+ScmObj scm_api_current_module(ScmObj cmpl);
+ScmObj scm_api_compile(ScmObj exp, ScmObj arg);
 
 
 /*******************************************************************/
-/*  Global Variable                                                */
+/*  Module                                                         */
 /*******************************************************************/
 
-int scm_capi_global_var_ref(ScmObj sym, scm_csetter_t *val);
-ScmObj scm_api_global_var_ref(ScmObj sym);
-bool scm_capi_global_var_bound_p(ScmObj sym);
-ScmObj scm_api_global_var_define(ScmObj sym, ScmObj val);
-ScmObj scm_api_global_var_set(ScmObj sym, ScmObj val);
+bool scm_capi_gloc_p(ScmObj obj);
+int scm_capi_gloc_value(ScmObj gloc, scm_csetter_t *val);
+int scm_capi_gloc_symbol(ScmObj gloc, scm_csetter_t *sym);
+int scm_capi_gloc_bind(ScmObj gloc, ScmObj val);
+ScmObj scm_api_make_module(ScmObj name);
+bool scm_capi_module_p(ScmObj obj);
+ScmObj scm_api_module_name(ScmObj module);
+int scm_capi_import(ScmObj module, ScmObj imported);
+int scm_capi_find_module(ScmObj name, scm_csetter_t *mod);
+ScmObj scm_capi_make_gloc(ScmObj module, ScmObj sym);
+int scm_capi_find_gloc(ScmObj module, ScmObj sym, scm_csetter_t *gloc);
+int scm_capi_define_global_var(ScmObj module,
+                               ScmObj sym, ScmObj val, bool export);
+int scm_capi_define_global_syx(ScmObj module,
+                               ScmObj sym, ScmObj syx, bool export);
+int scm_capi_global_var_ref(ScmObj module, ScmObj sym, scm_csetter_t *val);
+int scm_capi_global_syx_ref(ScmObj module, ScmObj sym, scm_csetter_t *syx);
 
 
 /*******************************************************************/

@@ -11,7 +11,6 @@
 #include "string.h"
 #include "symbol.h"
 #include "procedure.h"
-#include "gloc.h"
 #include "numeric.h"
 #include "pair.h"
 #include "vector.h"
@@ -19,6 +18,7 @@
 #include "parser.h"
 #include "syntax.h"
 #include "iseq.h"
+#include "module.h"
 #include "assembler.h"
 #include "compiler.h"
 #include "exception.h"
@@ -3538,6 +3538,38 @@ scm_capi_iseq_push_opfmt_obj(ScmObj iseq, SCM_OPCODE_T op, ScmObj val)
 }
 
 ssize_t
+scm_capi_iseq_push_opfmt_obj_obj(ScmObj iseq,
+                                 SCM_OPCODE_T op, ScmObj val1, ScmObj val2)
+{
+  ssize_t rslt;
+
+  SCM_STACK_FRAME_PUSH(&iseq, &val1, &val2);
+
+  if (!scm_capi_iseq_p(iseq)) {
+    scm_capi_error("can not push instruction to iseq: invalid argument", 0);
+    return -1;
+  }
+
+  if (scm_obj_null_p(val1)) {
+    scm_capi_error("can not push instruction to iseq: invalid argument", 0);
+    return -1;
+  }
+
+  if (scm_obj_null_p(val2)) {
+    scm_capi_error("can not push instruction to iseq: invalid argument", 0);
+    return -1;
+  }
+
+  rslt = scm_iseq_push_ushort(iseq, op);
+  if (rslt < 0) return -1;      /* [ERR]: [through] */
+
+  rslt = scm_iseq_push_obj(iseq, val1);
+  if (rslt < 0) return -1;      /* [ERR]: [through] */
+
+  return scm_iseq_push_obj(iseq, val2);
+}
+
+ssize_t
 scm_capi_iseq_push_opfmt_si(ScmObj iseq, SCM_OPCODE_T op, int val)
 {
   ssize_t rslt;
@@ -3656,9 +3688,9 @@ scm_capi_opcode_to_opfmt(int opcode)
     SCM_OPFMT_OBJ,              /* SCM_OPCODE_IMMVAL */
     SCM_OPFMT_NOOPD,            /* SCM_OPCODE_PUSH */
     SCM_OPFMT_NOOPD,            /* SCM_OPCODE_MVPUSH */
-    SCM_OPFMT_OBJ,              /* SCM_OPCODE_GREF */
-    SCM_OPFMT_OBJ,              /* SCM_OPCODE_GDEF */
-    SCM_OPFMT_OBJ,              /* SCM_OPCODE_GSET */
+    SCM_OPFMT_OBJ_OBJ,          /* SCM_OPCODE_GREF */
+    SCM_OPFMT_OBJ_OBJ,          /* SCM_OPCODE_GDEF */
+    SCM_OPFMT_OBJ_OBJ,          /* SCM_OPCODE_GSET */
     SCM_OPFMT_SI_SI,            /* SCM_OPCODE_SREF */
     SCM_OPFMT_SI_SI,            /* SCM_OPCODE_SSET */
     SCM_OPFMT_IOF,              /* SCM_OPCODE_JMP */
@@ -3700,6 +3732,36 @@ scm_capi_inst_fetch_oprand_obj(scm_byte_t *ip, scm_csetter_t *obj)
   opr = scm_iseq_fetch_obj(&ip);
 
   scm_csetter_setq(obj, opr);
+
+  return ip;
+}
+
+scm_byte_t *
+scm_capi_inst_fetch_oprand_obj_obj(scm_byte_t *ip,
+                                   scm_csetter_t *obj1, scm_csetter_t *obj2)
+{
+  ScmObj opr = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&opr);
+
+  if (ip == NULL) {
+    scm_capi_error("can not fetch operands: invalid ip", 0);
+    return NULL;
+  }
+  else if (obj1 == NULL) {
+    scm_capi_error("can not fetch operands: invalid argument", 0);
+    return NULL;
+  }
+  else if (obj2 == NULL) {
+    scm_capi_error("can not fetch operands: invalid argument", 0);
+    return NULL;
+  }
+
+  opr = scm_iseq_fetch_obj(&ip);
+  scm_csetter_setq(obj1, opr);
+
+  opr = scm_iseq_fetch_obj(&ip);
+  scm_csetter_setq(obj2, opr);
 
   return ip;
 }
@@ -3845,148 +3907,385 @@ scm_api_assemble(ScmObj lst)
 /*  Compiler                                                       */
 /*******************************************************************/
 
-ScmObj
-scm_api_compile(ScmObj exp)
+bool
+scm_capi_compiler_p(ScmObj obj)
 {
+  if (scm_obj_null_p(obj)) return false;
+
+  return scm_obj_type_p(obj, &SCM_COMPILER_TYPE_INFO);
+}
+
+ScmObj
+scm_api_current_module(ScmObj cmpl)
+{
+  if (!scm_capi_compiler_p(cmpl)) {
+    scm_capi_error("failed to get current module: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_cmpl_current_module(cmpl);
+}
+
+ScmObj
+scm_api_compile(ScmObj exp, ScmObj arg)
+{
+  ScmObj name = SCM_OBJ_INIT, mod = SCM_OBJ_INIT, cmpl = SCM_OBJ_INIT;
+  int rslt;
+
+  SCM_STACK_FRAME_PUSH(&exp, &arg,
+                       &name, &mod, &cmpl);
+
   if (scm_obj_null_p(exp)) {
     scm_capi_error("compile: invalid argument", 0);
     return SCM_OBJ_NULL;
   }
 
-  return scm_cmpl_compile(exp);
+  name = mod = cmpl = SCM_OBJ_NULL;
+  if (scm_obj_not_null_p(arg)) {
+    if (scm_capi_symbol_p(arg))
+      name = arg;
+    else if (scm_capi_module_p(arg))
+      mod = arg;
+    else if (scm_capi_compiler_p(arg))
+      cmpl = arg;
+    else {
+      scm_capi_error("compile: invalid argument", 0);
+      return SCM_OBJ_NULL;
+    }
+  }
+
+  if (scm_obj_null_p(cmpl)) {
+    if (scm_obj_null_p(mod)) {
+      if (scm_obj_null_p(name)) {
+        name = scm_capi_make_symbol_from_cstr("main", SCM_ENC_ASCII);
+        if (scm_obj_null_p(name)) return SCM_OBJ_NULL;
+      }
+
+      rslt = scm_capi_find_module(name, SCM_CSETTER_L(mod));
+      if (rslt < 0) return SCM_OBJ_NULL;
+
+      if (scm_obj_null_p(mod)) {
+        scm_capi_error("compile: specified module is not exist", 0);
+        return SCM_OBJ_NULL;
+      }
+    }
+
+    cmpl = scm_cmpl_new(SCM_MEM_HEAP);
+    if (scm_obj_null_p(cmpl)) return SCM_OBJ_NULL;
+
+    scm_cmpl_select_module(cmpl, mod);
+  }
+
+  return scm_cmpl_compile(cmpl, exp);
 }
 
 
 /*******************************************************************/
-/*  Global Variable                                                */
+/*  Module                                                         */
 /*******************************************************************/
 
-int
-scm_capi_global_var_ref(ScmObj sym, scm_csetter_t *val)
+bool
+scm_capi_gloc_p(ScmObj obj)
 {
-  ScmObj gloc = SCM_OBJ_INIT;
-  int rslt;
+  if (scm_obj_null_p(obj)) return false;
 
-  SCM_STACK_FRAME_PUSH(&sym, &gloc);
+  return scm_obj_type_p(obj, &SCM_GLOC_TYPE_INFO);
+}
 
-  if (scm_obj_null_p(sym)) {
-    scm_capi_error("can not get value of global variable: invalid argument", 0);
+int
+scm_capi_gloc_value(ScmObj gloc, scm_csetter_t *val)
+{
+  SCM_STACK_FRAME_PUSH(&gloc);
+
+  if (!scm_capi_gloc_p(gloc)) {
+    scm_capi_error("faild to get a value of gloc: invalid argument", 0);
     return -1;
   }
-  else if (!scm_obj_type_p(sym, &SCM_SYMBOL_TYPE_INFO)) {
-    scm_capi_error("can not get value of global variable: invalid argument", 0);
+  else if (val == NULL) {
+    scm_capi_error("faild to get a value of gloc: invalid argument", 0);
     return -1;
   }
 
-  rslt = scm_gloctbl_find(scm_vm_gloctbl(scm_vm_current_vm()),
-                          sym, SCM_CSETTER_L(gloc));
-  if (rslt != 0) return -1; /* [ERR]: [through] */
+  scm_csetter_setq(val, scm_gloc_value(gloc));
 
-  if (scm_obj_null_p(gloc))
-    scm_csetter_setq(val, SCM_OBJ_NULL);
-  else
-    scm_csetter_setq(val, scm_gloc_value(gloc));
+  return 0;
+}
+
+int
+scm_capi_gloc_symbol(ScmObj gloc, scm_csetter_t *sym)
+{
+  SCM_STACK_FRAME_PUSH(&gloc);
+
+  if (!scm_capi_gloc_p(gloc)) {
+    scm_capi_error("faild to get a symbol of gloc: invalid argument", 0);
+    return -1;
+  }
+  else if (sym == NULL) {
+    scm_capi_error("faild to get a symbol of gloc: invalid argument", 0);
+    return -1;
+  }
+
+  scm_csetter_setq(sym, scm_gloc_symbol(gloc));
+
+  return 0;
+}
+
+int
+scm_capi_gloc_bind(ScmObj gloc, ScmObj val)
+{
+  SCM_STACK_FRAME_PUSH(&gloc, &val);
+
+  if (!scm_capi_gloc_p(gloc)) {
+    scm_capi_error("faild to update value of gloc: invalid argument", 0);
+    return -1;
+  }
+  else if (scm_obj_null_p(val)) {
+    scm_capi_error("faild to update value of gloc: invalid argument", 0);
+    return -1;
+  }
+
+  scm_gloc_bind(gloc, val);
 
   return 0;
 }
 
 ScmObj
-scm_api_global_var_ref(ScmObj sym)
+scm_api_make_module(ScmObj name)
 {
-  ScmObj val = SCM_OBJ_INIT;
+  ScmObj mod = SCM_OBJ_INIT;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&sym, &val);
+  SCM_STACK_FRAME_PUSH(&name,
+                       &mod);
 
-  rslt = scm_capi_global_var_ref(sym, SCM_CSETTER_L(val));
+  if (!scm_capi_symbol_p(name)) {
+    scm_capi_error("failed to make module: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  rslt = scm_moduletbl_find(scm_vm_moduletbl(scm_vm_current_vm()),
+                            name, SCM_CSETTER_L(mod));
   if (rslt < 0) return SCM_OBJ_NULL;
 
-  if (scm_obj_null_p(val)) {
-    scm_capi_error("unbound variable", 1, sym);
+  if (scm_obj_not_null_p(mod)) {
+    scm_capi_error("failed to make a module: already exist", 0);
     return SCM_OBJ_NULL;
   }
 
-  return val;
+  return scm_moduletbl_module(scm_vm_moduletbl(scm_vm_current_vm()), name);
 }
 
-bool
-scm_capi_global_var_bound_p(ScmObj sym)
+extern inline bool
+scm_capi_module_p(ScmObj obj)
+{
+  if (scm_obj_null_p(obj)) return false;
+
+  return scm_obj_type_p(obj, &SCM_MODULE_TYPE_INFO);
+}
+
+int
+scm_capi_find_module(ScmObj name, scm_csetter_t *mod)
+{
+  SCM_STACK_FRAME_PUSH(&name);
+
+  if (!scm_capi_symbol_p(name)) {
+    scm_capi_error("failed to find module: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_moduletbl_find(scm_vm_moduletbl(scm_vm_current_vm()), name, mod);
+}
+
+ScmObj
+scm_api_module_name(ScmObj module)
+{
+  if (!scm_capi_module_p(module)) {
+    scm_capi_error("failed to get a name from module: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_module_name(module);
+}
+
+int
+scm_capi_import(ScmObj module, ScmObj imported)
+{
+  if (!scm_capi_module_p(module)) {
+    scm_capi_error("failed to import a module: invalid argument", 0);
+    return -1;
+  }
+  else if (!scm_capi_module_p(imported)) {
+    scm_capi_error("failed to import a module: invalid argument", 0);
+    return -1;
+  }
+
+  return scm_module_import(module, imported);
+}
+
+ScmObj
+scm_capi_make_gloc(ScmObj module, ScmObj sym)
 {
   ScmObj gloc = SCM_OBJ_INIT;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&sym, &gloc);
+  SCM_STACK_FRAME_PUSH(&module, &sym,
+                       &gloc);
 
-  if (scm_obj_null_p(sym)) return false;
-  if (!scm_obj_type_p(sym, &SCM_SYMBOL_TYPE_INFO)) return false;
-
-  rslt = scm_gloctbl_find(scm_vm_gloctbl(scm_vm_current_vm()),
-                          sym, SCM_CSETTER_L(gloc));
-  if (rslt != 0) return false;
-
-  return scm_obj_null_p(gloc) ? false : true;
-}
-
-ScmObj
-scm_api_global_var_define(ScmObj sym, ScmObj val)
-{
-  ScmObj gloc = SCM_OBJ_INIT;
-
-  SCM_STACK_FRAME_PUSH(&sym, &val, &gloc);
-
-  if (scm_obj_null_p(sym)) {
-    scm_capi_error("can not bind global variable: invalid argument", 0);
+  if (!scm_capi_module_p(module)) {
+    scm_capi_error("failed to make a GLoc object: invalid argument", 0);
     return SCM_OBJ_NULL;
   }
-  else if (!scm_obj_type_p(sym, &SCM_SYMBOL_TYPE_INFO)) {
-    scm_capi_error("can not bind global variable: invalid argument", 0);
+  else if (!scm_capi_symbol_p(sym)) {
+    scm_capi_error("failed to make a GLoc object: invalid argument", 0);
     return SCM_OBJ_NULL;
+  }
+
+  rslt = scm_module_find_sym_eval(module, sym, SCM_CSETTER_L(gloc));
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  if (scm_obj_not_null_p(gloc)) {
+    scm_capi_error("failed to make a GLoc object: already exist", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_module_gloc_eval(module, sym);
+}
+
+int
+scm_capi_find_gloc(ScmObj module, ScmObj sym, scm_csetter_t *gloc)
+{
+  SCM_STACK_FRAME_PUSH(&module, &sym);
+
+  if (!scm_capi_module_p(module)) {
+    scm_capi_error("failed to find a GLoc object: invalid argument", 0);
+    return -1;
+  }
+  else if (!scm_capi_symbol_p(sym)) {
+    scm_capi_error("failed to find a GLoc object: invalid argument", 0);
+    return -1;
+  }
+  else if (gloc == NULL) {
+    scm_capi_error("failed to find a GLoc object: invalid argument", 0);
+    return -1;
+  }
+
+  return scm_module_find_sym_eval(module, sym, gloc);
+}
+
+int
+scm_capi_define_global_var(ScmObj module, ScmObj sym, ScmObj val, bool export)
+{
+  SCM_STACK_FRAME_PUSH(&module, &sym, &val);
+
+  if (!scm_capi_module_p(module)) {
+    scm_capi_error("failed to define global variable: invalid argument", 0);
+    return -1;
+  }
+  else if (!scm_capi_symbol_p(sym)) {
+    scm_capi_error("failed to define global variable: invalid argument", 0);
+    return -1;
   }
   else if (scm_obj_null_p(val)) {
-    scm_capi_error("can not bind global variable: invalid argument", 0);
-    return SCM_OBJ_NULL;
+    scm_capi_error("failed to define global variable: invalid argument", 0);
+    return -1;
   }
 
-  gloc = scm_gloctbl_bind(scm_vm_gloctbl(scm_vm_current_vm()), sym, val);
-  if (scm_obj_null_p(gloc)) return SCM_OBJ_NULL;
-
-  return scm_api_undef();
+  return scm_module_define_eval(module, sym, val, export);
 }
 
-ScmObj
-scm_api_global_var_set(ScmObj sym, ScmObj val)
+int
+scm_capi_define_global_syx(ScmObj module, ScmObj sym, ScmObj syx, bool export)
 {
-  ScmObj gloc = SCM_OBJ_INIT;
+  SCM_STACK_FRAME_PUSH(&module, &sym, &syx);
+
+  if (!scm_capi_module_p(module)) {
+    scm_capi_error("failed to define syntax: invalid argument", 0);
+    return -1;
+  }
+  else if (!scm_capi_symbol_p(sym)) {
+    scm_capi_error("failed to define syntax: invalid argument", 0);
+    return -1;
+  }
+  else if (!scm_capi_syntax_p(syx)) {
+    scm_capi_error("failed to define syntax: invalid argument", 0);
+    return -1;
+  }
+
+  return scm_module_define_cmpl(module, sym, syx, export);
+}
+
+int
+scm_capi_global_var_ref(ScmObj module, ScmObj sym, scm_csetter_t *val)
+{
+  ScmObj gloc = SCM_OBJ_INIT, v = SCM_OBJ_INIT;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&sym, &val, &gloc);
+  SCM_STACK_FRAME_PUSH(&module, &sym,
+                       &gloc, &v);
 
-  if (scm_obj_null_p(sym)) {
-    scm_capi_error("can not bind global variable: invalid argument", 0);
-    return SCM_OBJ_NULL;
+  if (!scm_capi_module_p(module)) {
+    scm_capi_error("failed to get a value of global variable:"
+                   " invalid argument", 0);
+    return -1;
   }
-  else if (!scm_obj_type_p(sym, &SCM_SYMBOL_TYPE_INFO)) {
-    scm_capi_error("can not bind global variable: invalid argument", 0);
-    return SCM_OBJ_NULL;
+  else if (!scm_capi_symbol_p(sym)) {
+    scm_capi_error("failed to get a value of global variable:"
+                   " invalid argument", 0);
+    return -1;
   }
-  else if (scm_obj_null_p(val)) {
-    scm_capi_error("can not bind global variable: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-
-  rslt = scm_gloctbl_find(scm_vm_gloctbl(scm_vm_current_vm()),
-                          sym, SCM_CSETTER_L(gloc));
-  if (rslt != 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
-
-  if (scm_obj_null_p(gloc)) {
-    scm_capi_error("unbound variable", 1, sym);
-    return SCM_OBJ_NULL;
+  else if (val == NULL) {
+    scm_capi_error("failed to get a value of global variable:"
+                   " invalid argument", 0);
+    return -1;
   }
 
-  gloc = scm_gloctbl_bind(scm_vm_gloctbl(scm_vm_current_vm()), sym, val);
-  if (scm_obj_null_p(gloc)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+  rslt = scm_module_find_sym_eval(module, sym, SCM_CSETTER_L(gloc));
+  if (rslt < 0) return -1;
 
-  return val;
+  if (scm_obj_not_null_p(gloc))
+    v = scm_gloc_value(gloc);
+  else
+    v = SCM_OBJ_NULL;
+
+  scm_csetter_setq(val, v);
+
+  return 0;
+}
+
+int
+scm_capi_global_syx_ref(ScmObj module, ScmObj sym, scm_csetter_t *syx)
+{
+  ScmObj gloc = SCM_OBJ_INIT, v = SCM_OBJ_INIT;
+  int rslt;
+
+  SCM_STACK_FRAME_PUSH(&module, &sym,
+                       &gloc, &v);
+
+
+  if (!scm_capi_module_p(module)) {
+    scm_capi_error("failed to get a syntax: invalid argument", 0);
+    return -1;
+  }
+  else if (!scm_capi_symbol_p(sym)) {
+    scm_capi_error("failed to get a syntax: invalid argument", 0);
+    return -1;
+  }
+  else if (syx == NULL) {
+    scm_capi_error("failed to get a syntax: invalid argument", 0);
+    return -1;
+  }
+
+  rslt = scm_module_find_sym_cmpl(module, sym, SCM_CSETTER_L(gloc));
+  if (rslt < 0) return -1;
+
+  if (scm_obj_not_null_p(gloc))
+    v = scm_gloc_value(gloc);
+  else
+    v = SCM_OBJ_NULL;
+
+  scm_csetter_setq(syx, v);
+
+  return 0;
 }
 
 
@@ -4162,33 +4461,33 @@ scm_capi_run_repl(ScmEvaluator *ev)
                                               "   (frame)"
                                               "   (immval \"> \")"
                                               "   (push)"
-                                              "   (gref display)"
+                                              "   (gref display main)"
                                               "   (call 1)"
                                               "   (arity 1)"
                                               "   (cframe)"
-                                              "   (gref flush-output-port)"
+                                              "   (gref flush-output-port main)"
                                               "   (call 0)"
                                               "   (arity 1)"
                                               "   (frame)"
                                               "   (frame)"
                                               "   (cframe)"
-                                              "   (gref read)"
+                                              "   (gref read main)"
                                               "   (call 0)"
                                               "   (arity 1)"
                                               "   (push)"
-                                              "   (gref eval)"
+                                              "   (gref eval main)"
                                               "   (call 1)"
                                               "   (arity 1)"
                                               "   (push)"
-                                              "   (gref write)"
+                                              "   (gref write main)"
                                               "   (call 1)"
                                               "   (arity 1)"
                                               "   (cframe)"
-                                              "   (gref newline)"
+                                              "   (gref newline main)"
                                               "   (call 0)"
                                               "   (arity 1)"
                                               "   (cframe)"
-                                              "   (gref flush-output-port)"
+                                              "   (gref flush-output-port main)"
                                               "   (call 0)"
                                               "   (arity 1)"
                                               "   (jmp loop)"
@@ -4246,7 +4545,7 @@ scm_capi_ut_eval(ScmEvaluator *ev, ScmObj exp)
   SCM_STACK_FRAME_PUSH(&exp,
                        &code);
 
-  code = scm_api_compile(exp);
+  code = scm_api_compile(exp, SCM_OBJ_NULL);
   if (scm_obj_null_p(code)) return SCM_OBJ_NULL;
 
   code = scm_api_assemble(code);

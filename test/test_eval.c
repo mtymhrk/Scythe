@@ -17,6 +17,18 @@ cut_shutdown(void)
   scm_capi_evaluator_end(ev);
 }
 
+ScmObj
+main_module(void)
+{
+  ScmObj name = SCM_OBJ_INIT, module = SCM_OBJ_INIT;
+
+  name = scm_capi_make_symbol_from_cstr("main", SCM_ENC_ASCII);
+
+  scm_capi_find_module(name, SCM_CSETTER_L(module));
+
+  return module;
+}
+
 void
 test_eval__self_eval_1(void)
 {
@@ -43,11 +55,15 @@ test_eval__define_global_variable_1(void)
 {
   ScmObj exp = SCM_OBJ_INIT, port = SCM_OBJ_INIT, sym = SCM_OBJ_INIT;
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+  ScmObj module = SCM_OBJ_INIT;
+
   const char *exp_str = "(define (func x) x)";
 
   SCM_STACK_FRAME_PUSH(&exp, &port, &sym,
-                       &actual, &expected);
+                       &actual, &expected,
+                       &module);
 
+  module = main_module();
 
   port = scm_capi_open_input_string_from_cstr(exp_str, SCM_ENC_ASCII);
   exp = scm_api_read(port);
@@ -56,7 +72,7 @@ test_eval__define_global_variable_1(void)
 
   scm_capi_ut_eval(ev, exp);
 
-  actual = scm_api_global_var_ref(sym);
+  scm_capi_global_var_ref(module, sym, SCM_CSETTER_L(actual));
 
   cut_assert_true(scm_capi_closure_p(actual));
 }
@@ -66,11 +82,14 @@ test_eval__define_global_variable_2(void)
 {
   ScmObj exp = SCM_OBJ_INIT, port = SCM_OBJ_INIT, sym = SCM_OBJ_INIT;
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+  ScmObj module = SCM_OBJ_INIT;
   const char *exp_str = "(define var 1)";
 
   SCM_STACK_FRAME_PUSH(&exp, &port, &sym,
-                       &actual, &expected);
+                       &actual, &expected,
+                       &module);
 
+  module = main_module();
 
   port = scm_capi_open_input_string_from_cstr(exp_str, SCM_ENC_ASCII);
   exp = scm_api_read(port);
@@ -81,7 +100,7 @@ test_eval__define_global_variable_2(void)
 
   scm_capi_ut_eval(ev, exp);
 
-  actual = scm_api_global_var_ref(sym);
+  scm_capi_global_var_ref(module, sym, SCM_CSETTER_L(actual));
 
   /* scm_api_write(expected, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -94,16 +113,19 @@ test_eval__refer_global_variable_1(void)
 {
   ScmObj exp = SCM_OBJ_INIT, port = SCM_OBJ_INIT;
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+  ScmObj module = SCM_OBJ_INIT;
   const char *exp_str = "cons";
 
   SCM_STACK_FRAME_PUSH(&exp, &port,
-                       &actual, &expected);
+                       &actual, &expected,
+                       &module);
 
+  module = main_module();
 
   port = scm_capi_open_input_string_from_cstr(exp_str, SCM_ENC_ASCII);
   exp = scm_api_read(port);
 
-  expected = scm_api_global_var_ref(exp);
+  scm_capi_global_var_ref(module, exp, SCM_CSETTER_L(expected));
 
   actual = scm_capi_ut_eval(ev, exp);
 
@@ -116,13 +138,17 @@ test_eval__refer_global_variable_2(void)
   ScmObj exp = SCM_OBJ_INIT, port = SCM_OBJ_INIT;
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
   ScmObj gvar = SCM_OBJ_INIT;
+  ScmObj module = SCM_OBJ_INIT;
   const char *exp_str = "((lambda (x) cons) 1)";
   const char *gvar_str = "cons";
 
   SCM_STACK_FRAME_PUSH(&exp, &port,
                        &actual, &expected,
-                       &gvar);
+                       &gvar,
+                       &module);
 
+
+  module = main_module();
 
   port = scm_capi_open_input_string_from_cstr(exp_str, SCM_ENC_ASCII);
   exp = scm_api_read(port);
@@ -130,7 +156,7 @@ test_eval__refer_global_variable_2(void)
   port = scm_capi_open_input_string_from_cstr(gvar_str, SCM_ENC_ASCII);
   gvar = scm_api_read(port);
 
-  expected = scm_api_global_var_ref(gvar);
+  scm_capi_global_var_ref(module, gvar, SCM_CSETTER_L(expected));
 
   actual = scm_capi_ut_eval(ev, exp);
 
@@ -143,12 +169,15 @@ test_eval__update_global_variable_1(void)
   ScmObj exp = SCM_OBJ_INIT, port = SCM_OBJ_INIT, sym = SCM_OBJ_INIT;
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
   ScmObj val_bef = SCM_OBJ_INIT;
+  ScmObj module = SCM_OBJ_INIT;
   const char *exp_str = "(set! var 10)";
 
   SCM_STACK_FRAME_PUSH(&exp, &port, &sym,
                        &actual, &expected,
-                       &val_bef);
+                       &val_bef,
+                       &module);
 
+  module = main_module();
 
   port = scm_capi_open_input_string_from_cstr(exp_str, SCM_ENC_ASCII);
   exp = scm_api_read(port);
@@ -158,11 +187,11 @@ test_eval__update_global_variable_1(void)
   val_bef = scm_capi_make_number_from_sword(1);
   expected = scm_capi_make_number_from_sword(10);
 
-  scm_api_global_var_define(sym, val_bef);
+  scm_capi_define_global_var(module, sym, val_bef, true);
 
   scm_capi_ut_eval(ev, exp);
 
-  actual = scm_api_global_var_ref(sym);
+  scm_capi_global_var_ref(module,sym, SCM_CSETTER_L(actual));
 
   cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
@@ -1547,11 +1576,14 @@ test_eval__begin_2(void)
 {
   ScmObj exp = SCM_OBJ_INIT, port = SCM_OBJ_INIT, sym = SCM_OBJ_INIT;
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+  ScmObj module = SCM_OBJ_INIT;
   const char *exp_str = "(begin (define gvar 1))";
 
   SCM_STACK_FRAME_PUSH(&exp, &port, &sym,
-                       &actual, &expected);
+                       &actual, &expected,
+                       &module);
 
+  module = main_module();
 
   port = scm_capi_open_input_string_from_cstr(exp_str, SCM_ENC_ASCII);
   exp = scm_api_read(port);
@@ -1562,7 +1594,7 @@ test_eval__begin_2(void)
 
   scm_capi_ut_eval(ev, exp);
 
-  actual = scm_api_global_var_ref(sym);
+  scm_capi_global_var_ref(module, sym, SCM_CSETTER_L(actual));
 
   /* scm_api_write(expected, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */

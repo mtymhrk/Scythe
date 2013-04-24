@@ -12,7 +12,7 @@
 #include "object.h"
 #include "string.h"
 #include "symbol.h"
-#include "gloc.h"
+#include "module.h"
 #include "procedure.h"
 #include "core_subr.h"
 #include "miscobjects.h"
@@ -446,8 +446,8 @@ scm_vm_setup_global_env(ScmObj vm)
   if (scm_obj_null_p(SCM_VM(vm)->ge.symtbl))
     return -1;                  /* [ERR]: [through] */
 
-  SCM_SLOT_SETQ(ScmVM,vm, ge.gloctbl, scm_gloctbl_new(SCM_MEM_ROOT));
-  if (scm_obj_null_p(SCM_VM(vm)->ge.gloctbl))
+  SCM_SLOT_SETQ(ScmVM,vm, ge.modtbl, scm_moduletbl_new(SCM_MEM_ROOT));
+  if (scm_obj_null_p(SCM_VM(vm)->ge.modtbl))
     return -1;                  /* [ERR]: [through] */
 
   SCM_VM(vm)->ge.stdio.in = SCM_OBJ_NULL;
@@ -471,11 +471,11 @@ scm_vm_clean_global_env(ScmObj vm)
   if (scm_obj_null_p(SCM_VM(vm)->ge.symtbl))
     scm_mem_free_root(SCM_VM(vm)->mem, SCM_VM(vm)->ge.symtbl);
 
-  if (scm_obj_null_p(SCM_VM(vm)->ge.gloctbl))
-    scm_mem_free_root(SCM_VM(vm)->mem, SCM_VM(vm)->ge.gloctbl);
+  if (scm_obj_null_p(SCM_VM(vm)->ge.modtbl))
+    scm_mem_free_root(SCM_VM(vm)->mem, SCM_VM(vm)->ge.modtbl);
 
   SCM_VM(vm)->ge.symtbl = SCM_OBJ_NULL;
-  SCM_VM(vm)->ge.gloctbl = SCM_OBJ_NULL;
+  SCM_VM(vm)->ge.modtbl = SCM_OBJ_NULL;
 
   SCM_VM(vm)->ge.stdio.in = SCM_OBJ_NULL;
   SCM_VM(vm)->ge.stdio.out = SCM_OBJ_NULL;
@@ -502,7 +502,7 @@ scm_vm_init_eval_env(ScmObj vm)
                        &vmss, &vmsr);
 
   scm_symtbl_clean(SCM_VM(vm)->ge.symtbl);
-  scm_gloctbl_clean(SCM_VM(vm)->ge.gloctbl);
+  scm_moduletbl_clean(SCM_VM(vm)->ge.modtbl);
 
   vmss = scm_vmss_new(SCM_MEM_HEAP, SCM_VM_STACK_INIT_SIZE);
   if (scm_obj_null_p(vmss)) return -1;
@@ -582,7 +582,7 @@ scm_vm_clean_eval_env(ScmObj vm)
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
   scm_symtbl_clean(SCM_VM(vm)->ge.symtbl);
-  scm_gloctbl_clean(SCM_VM(vm)->ge.gloctbl);
+  scm_moduletbl_clean(SCM_VM(vm)->ge.modtbl);
 
   SCM_VM(vm)->ge.stdio.in = SCM_OBJ_NULL;
   SCM_VM(vm)->ge.stdio.out = SCM_OBJ_NULL;
@@ -604,6 +604,49 @@ scm_vm_clean_eval_env(ScmObj vm)
   SCM_VM(vm)->reg.cp = SCM_OBJ_NULL;
   SCM_VM(vm)->reg.vc = 0;
   SCM_VM(vm)->reg.flags = 0;
+}
+
+scm_local_func int
+scm_vm_load_builtin_modules(ScmObj vm)
+{
+  const char *imported_list[] = { "core-syntax", "core" };
+  ScmObj name = SCM_OBJ_INIT, module = SCM_OBJ_INIT, imported = SCM_OBJ_INIT;
+  int rslt;
+
+  SCM_STACK_FRAME_PUSH(&vm,
+                       &name, &module, &imported);
+
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  rslt = scm_initialize_module_core_syntax();
+  if (rslt < 0) return -1;
+
+  rslt = scm_initialize_module_core();
+  if (rslt < 0) return -1;
+
+  name = scm_capi_make_symbol_from_cstr("main", SCM_ENC_ASCII);
+  if (scm_obj_null_p(name)) return -1;
+
+  module = scm_api_make_module(name);
+  if (scm_obj_null_p(module)) return -1;
+
+  for (size_t i = 0; i < sizeof(imported_list)/sizeof(imported_list[0]); i++) {
+    name = scm_capi_make_symbol_from_cstr(imported_list[i], SCM_ENC_ASCII);
+    if (scm_obj_null_p(name)) return -1;
+
+    rslt = scm_capi_find_module(name, SCM_CSETTER_L(imported));
+    if (rslt < 0) return -1;
+
+    if (scm_obj_null_p(imported)) {
+      scm_capi_error("failed to import a module: not exist", 0);
+      return -1;
+    }
+
+    rslt = scm_capi_import(module, imported);
+    if (rslt < 0) return -1;
+  }
+
+  return 0;
 }
 
 /* scm_local_func int */
@@ -1978,22 +2021,34 @@ scm_vm_op_return(ScmObj vm, SCM_OPCODE_T op) /* GC OK */
 scm_local_func void
 scm_vm_op_gref(ScmObj vm, SCM_OPCODE_T op)
 {
-  ScmObj gloc = SCM_OBJ_INIT, arg = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
+  ScmObj gloc = SCM_OBJ_INIT, arg = SCM_OBJ_INIT, mod = SCM_OBJ_INIT;
+  ScmObj val = SCM_OBJ_INIT, module = SCM_OBJ_INIT, sym = SCM_OBJ_INIT;
   ssize_t rslt;
+  int r;
   scm_byte_t *ip, *prv_ip;
 
-  SCM_STACK_FRAME_PUSH(&vm, &arg, &gloc, &val);
+  SCM_STACK_FRAME_PUSH(&vm, &gloc, &arg, &mod, &val, &module, &sym);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
-  ip = scm_capi_inst_fetch_oprand_obj(SCM_VM(vm)->reg.ip, SCM_CSETTER_L(arg));
+  ip = scm_capi_inst_fetch_oprand_obj_obj(SCM_VM(vm)->reg.ip,
+                                          SCM_CSETTER_L(arg),
+                                          SCM_CSETTER_L(mod));
   if (ip == NULL) return;              /* [ERR]: [through] */
 
   prv_ip = SCM_VM(vm)->reg.ip;
   SCM_VM(vm)->reg.ip = ip;
   if (scm_obj_type_p(arg, &SCM_SYMBOL_TYPE_INFO)) {
-    rslt = scm_gloctbl_find(SCM_VM(vm)->ge.gloctbl, arg, SCM_CSETTER_L(gloc));
-    if (rslt != 0) return;             /* [ERR]: [through] */
+    r = scm_capi_find_module(mod, SCM_CSETTER_L(module));
+    if (r < 0) return;          /* [ERR]: [through] */
+
+    if (scm_obj_null_p(module)) {
+      scm_capi_error("unknown module", 1, mod);
+      return;
+    }
+
+    r = scm_capi_find_gloc(module, arg, SCM_CSETTER_L(gloc));
+    if (r < 0) return;          /* [ERR]: [through] */
 
     if (scm_obj_null_p(gloc)) {
       scm_capi_error("unbound variable", 1, arg);
@@ -2003,98 +2058,130 @@ scm_vm_op_gref(ScmObj vm, SCM_OPCODE_T op)
     rslt = scm_capi_inst_update_oprand_obj(prv_ip, SCM_VM(vm)->reg.cp, gloc);
     if (rslt < 0) return;      /* [ERR]: [through] */
 
-    val = scm_gloc_value(gloc);
-    if (scm_obj_null_p(val)) {
-      scm_capi_error("unbound variable", 1, arg);
-      return;
-    }
-
-    SCM_SLOT_SETQ(ScmVM, vm, reg.val[0], val);
-    SCM_VM(vm)->reg.vc = 1;
+    sym = arg;
   }
   else if (scm_obj_type_p(arg, &SCM_GLOC_TYPE_INFO)) {
-    val = scm_gloc_value(arg);
-    if (scm_obj_null_p(val)) {
-      scm_capi_error("unbound variable", 1, scm_gloc_symbol(arg));
-      return;
-    }
-
-    SCM_SLOT_SETQ(ScmVM, vm, reg.val[0], val);
-    SCM_VM(vm)->reg.vc = 1;
+    gloc = arg;
+    r = scm_capi_gloc_symbol(gloc, SCM_CSETTER_L(sym));
+    if (r < 0) return;          /* [ERR]: [through] */
   }
   else {
     scm_assert(0);
   }
+
+  r = scm_capi_gloc_value(gloc, SCM_CSETTER_L(val));
+  if (r < 0) return;          /* [ERR]: [through] */
+
+  if (scm_obj_null_p(val)) {
+    scm_capi_error("unbound variable", 1, sym);
+    return;
+  }
+
+  SCM_SLOT_SETQ(ScmVM, vm, reg.val[0], val);
+  SCM_VM(vm)->reg.vc = 1;
+
+  return;
 }
 
 scm_local_func void
 scm_vm_op_gdef(ScmObj vm, SCM_OPCODE_T op)
 {
-  ScmObj gloc = SCM_OBJ_INIT, arg = SCM_OBJ_INIT;
+  ScmObj gloc = SCM_OBJ_INIT, arg = SCM_OBJ_INIT, mod = SCM_OBJ_INIT;
+  ScmObj module = SCM_OBJ_INIT;
   ssize_t rslt;
   scm_byte_t *ip, *prv_ip;
 
-  SCM_STACK_FRAME_PUSH(&vm, &arg, &gloc);
+  SCM_STACK_FRAME_PUSH(&vm, &gloc, &arg, &mod, &module);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
-  ip = scm_capi_inst_fetch_oprand_obj(SCM_VM(vm)->reg.ip, SCM_CSETTER_L(arg));
+  ip = scm_capi_inst_fetch_oprand_obj_obj(SCM_VM(vm)->reg.ip,
+                                          SCM_CSETTER_L(arg),
+                                          SCM_CSETTER_L(mod));
   if (ip == NULL) return;              /* [ERR]: [through] */
 
   prv_ip = SCM_VM(vm)->reg.ip;
   SCM_VM(vm)->reg.ip = ip;
   if (scm_obj_type_p(arg, &SCM_SYMBOL_TYPE_INFO)) {
-    gloc = scm_gloctbl_bind(SCM_VM(vm)->ge.gloctbl,
-                            arg, SCM_VM(vm)->reg.val[0]);
-    if (scm_obj_null_p(gloc)) return;  /* [ERR]: [through] */
+    int r = scm_capi_find_module(mod, SCM_CSETTER_L(module));
+    if (r < 0) return;          /* [ERR]: [through] */
+
+    if (scm_obj_null_p(module)) {
+      scm_capi_error("unknown module", 1, mod);
+      return;
+    }
+
+    r = scm_capi_find_gloc(module, arg, SCM_CSETTER_L(gloc));
+    if (r < 0) return;          /* [ERR]: [through] */
+
+    if (scm_obj_null_p(gloc)) {
+      gloc = scm_capi_make_gloc(module, arg);
+      if (scm_obj_null_p(gloc)) return; /* [ERR]: [through] */
+    }
 
     rslt = scm_capi_inst_update_oprand_obj(prv_ip, SCM_VM(vm)->reg.cp, gloc);
     if (rslt < 0) return;             /* [ERR]: [through] */
   }
-  else if (scm_obj_type_p(arg, &SCM_GLOC_TYPE_INFO)) {
-    scm_gloc_bind(arg, SCM_VM(vm)->reg.val[0]);
+  else if (!scm_obj_type_p(arg, &SCM_GLOC_TYPE_INFO)) {
+    gloc = arg;
   }
   else {
     scm_assert(0);
   }
+
+  scm_capi_gloc_bind(gloc, SCM_VM(vm)->reg.val[0]);
 }
 
 scm_local_func void
 scm_vm_op_gset(ScmObj vm, SCM_OPCODE_T op)
 {
-  ScmObj gloc = SCM_OBJ_INIT, arg = SCM_OBJ_INIT;
+  ScmObj gloc = SCM_OBJ_INIT, arg = SCM_OBJ_INIT, mod = SCM_OBJ_INIT;
+  ScmObj module = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
   ssize_t rslt;
   scm_byte_t *ip, *prv_ip;
 
-  SCM_STACK_FRAME_PUSH(&vm, &arg, &gloc);
+  SCM_STACK_FRAME_PUSH(&vm, &gloc, &arg, &mod, &module, &val);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
-  ip = scm_capi_inst_fetch_oprand_obj(SCM_VM(vm)->reg.ip, SCM_CSETTER_L(arg));
+  ip = scm_capi_inst_fetch_oprand_obj_obj(SCM_VM(vm)->reg.ip,
+                                          SCM_CSETTER_L(arg),
+                                          SCM_CSETTER_L(mod));
   if (ip == NULL) return;              /* [ERR]: [through] */
 
   prv_ip = SCM_VM(vm)->reg.ip;
   SCM_VM(vm)->reg.ip = ip;
   if (scm_obj_type_p(arg, &SCM_SYMBOL_TYPE_INFO)) {
-    rslt = scm_gloctbl_find(SCM_VM(vm)->ge.gloctbl, arg, SCM_CSETTER_L(gloc));
-    if (rslt != 0) return;      /* [ERR]: [through] */
+    int r = scm_capi_find_module(mod, SCM_CSETTER_L(module));
+    if (r < 0) return;          /* [ERR]: [through] */
 
-    if (scm_obj_null_p(gloc)) {
+    if (scm_obj_null_p(module)) {
+      scm_capi_error("unknown module", 1,mod);
+      return;
+    }
+
+    r = scm_capi_find_gloc(module, arg, SCM_CSETTER_L(gloc));
+    if (r < 0) return;          /* [ERR]: [through] */
+
+    r = scm_capi_gloc_value(gloc, SCM_CSETTER_L(val));
+    if (r < 0) return;          /* [ERR]: [through] */
+
+    if (scm_obj_null_p(gloc) || scm_obj_null_p(val)) {
       scm_capi_error("unbound variable", 1, arg);
       return;
     }
 
     rslt = scm_capi_inst_update_oprand_obj(prv_ip, SCM_VM(vm)->reg.cp, gloc);
     if (rslt < 0) return;      /* [ERR]: [through] */
-
-    scm_gloc_bind(gloc, SCM_VM(vm)->reg.val[0]);
   }
   else if (scm_obj_type_p(arg, &SCM_GLOC_TYPE_INFO)) {
-    scm_gloc_bind(arg, SCM_VM(vm)->reg.val[0]);
+    gloc = arg;
   }
   else {
     scm_assert(0);
   }
+
+  scm_capi_gloc_bind(gloc, SCM_VM(vm)->reg.val[0]);
 }
 
 scm_local_func void
@@ -2630,9 +2717,8 @@ scm_vm_setup_system(ScmObj vm)
   rslt = scm_vm_init_eval_env(vm);
   if (rslt < 0) return -1;       /* [ERR]: [through] */
 
-  scm_core_subr_system_setup();
-  scm_core_clsr_system_setup();
-  scm_core_syntx_system_setup();
+  rslt = scm_vm_load_builtin_modules(vm);
+  if (rslt < 0) return -1;
 
   return 0;
 }
@@ -2994,7 +3080,6 @@ scm_vm_gc_initialize(ScmObj obj, ScmObj mem)
   SCM_VM(obj)->mem = SCM_MEM(mem);
 
   SCM_VM(obj)->ge.symtbl = SCM_OBJ_NULL;
-  SCM_VM(obj)->ge.gloctbl = SCM_OBJ_NULL;
   SCM_VM(obj)->ge.stdio.in = SCM_OBJ_NULL;
   SCM_VM(obj)->ge.stdio.out = SCM_OBJ_NULL;
   SCM_VM(obj)->ge.stdio.err = SCM_OBJ_NULL;

@@ -6,8 +6,17 @@
 #include "assembler.h"
 #include "compiler.h"
 
-/* XXX: マルチスレッド対応の場合には TLS にする */
-static unsigned int label_id = 0;
+ScmTypeInfo SCM_COMPILER_TYPE_INFO = {
+  .name                            = "compiler",
+  .flags                           = SCM_TYPE_FLG_MMO,
+  .pp_func                         = scm_cmpl_pretty_print,
+  .obj_size                        = sizeof(ScmCompiler),
+  .gc_ini_func                     = scm_cmpl_gc_initialize,
+  .gc_fin_func                     = NULL,
+  .gc_accept_func                  = scm_cmpl_gc_accept,
+  .gc_accept_func_weak             = NULL,
+  .extra                           = NULL,
+};
 
 static ScmObj
 scm_cmpl_cons_inst_noopd(SCM_OPCODE_T op)
@@ -34,6 +43,20 @@ scm_cmpl_cons_inst_obj(SCM_OPCODE_T op, ScmObj obj)
   if (scm_obj_null_p(mne)) return SCM_OBJ_NULL;
 
   return scm_capi_list(2, mne, obj);
+}
+
+static ScmObj
+scm_cmpl_cons_inst_obj_obj(SCM_OPCODE_T op, ScmObj obj1, ScmObj obj2)
+{
+  ScmObj mne = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&obj1, &obj2,
+                       &mne);
+
+  mne = scm_asm_mnemonic(op);
+  if (scm_obj_null_p(mne)) return SCM_OBJ_NULL;
+
+  return scm_capi_list(3, mne, obj1, obj2);
 }
 
 static ScmObj
@@ -357,64 +380,64 @@ scm_cmpl_push_inst_push(ScmObj next)
 }
 
 static ScmObj
-scm_cmpl_cons_inst_gref(ScmObj sym)
+scm_cmpl_cons_inst_gref(ScmObj sym, ScmObj module)
 {
-  return scm_cmpl_cons_inst_obj(SCM_OPCODE_GREF, sym);
+  return scm_cmpl_cons_inst_obj_obj(SCM_OPCODE_GREF, sym, module);
 }
 
 static ScmObj
-scm_cmpl_push_inst_gref(ScmObj sym, ScmObj next)
+scm_cmpl_push_inst_gref(ScmObj sym, ScmObj module, ScmObj next)
 {
   ScmObj inst_gref = SCM_OBJ_INIT;
 
   SCM_STACK_FRAME_PUSH(&sym, &next,
                        &inst_gref);
 
-  inst_gref = scm_cmpl_cons_inst_gref(sym);
+  inst_gref = scm_cmpl_cons_inst_gref(sym, module);
   if (scm_obj_null_p(inst_gref)) return SCM_OBJ_NULL;
 
   return scm_api_cons(inst_gref, next);
 }
 
 static ScmObj
-scm_cmpl_cons_inst_gdef(ScmObj sym)
+scm_cmpl_cons_inst_gdef(ScmObj sym, ScmObj module)
 {
-  return scm_cmpl_cons_inst_obj(SCM_OPCODE_GDEF, sym);
+  return scm_cmpl_cons_inst_obj_obj(SCM_OPCODE_GDEF, sym, module);
 }
 
 static ScmObj
-scm_cmpl_push_inst_gdef(ScmObj sym, ScmObj next)
+scm_cmpl_push_inst_gdef(ScmObj sym, ScmObj module, ScmObj next)
 {
   ScmObj inst_gdef = SCM_OBJ_INIT;
 
   SCM_STACK_FRAME_PUSH(&sym, &next,
                        &inst_gdef);
 
-  inst_gdef = scm_cmpl_cons_inst_gdef(sym);
+  inst_gdef = scm_cmpl_cons_inst_gdef(sym, module);
   if (scm_obj_null_p(inst_gdef)) return SCM_OBJ_NULL;
 
   return scm_api_cons(inst_gdef, next);
 }
 
 static ScmObj
-scm_cmpl_cons_inst_gset(ScmObj sym)
+scm_cmpl_cons_inst_gset(ScmObj sym, ScmObj module)
 {
   ScmObj mne = SCM_OBJ_INIT;
 
   SCM_STACK_FRAME_PUSH(&sym, &mne);
 
-  return scm_cmpl_cons_inst_obj(SCM_OPCODE_GSET, sym);
+  return scm_cmpl_cons_inst_obj_obj(SCM_OPCODE_GSET, sym, module);
 }
 
 static ScmObj
-scm_cmpl_push_inst_gset(ScmObj sym, ScmObj next)
+scm_cmpl_push_inst_gset(ScmObj sym, ScmObj module, ScmObj next)
 {
   ScmObj inst_gset = SCM_OBJ_INIT;
 
   SCM_STACK_FRAME_PUSH(&sym, &next,
                        &inst_gset);
 
-  inst_gset = scm_cmpl_cons_inst_gset(sym);
+  inst_gset = scm_cmpl_cons_inst_gset(sym, module);
   if (scm_obj_null_p(inst_gset)) return SCM_OBJ_NULL;
 
   return scm_api_cons(inst_gset, next);
@@ -1105,132 +1128,174 @@ scm_cmpl_stack_to_rvec(ScmObj stack)
 }
 
 static ScmObj
-scm_cmpl_gen_label(const char *prefix)
+scm_cmpl_gen_label(ScmObj cmpl, const char *prefix)
 {
   char str[256];
 
+  scm_assert_obj_type(cmpl, &SCM_COMPILER_TYPE_INFO);
+
   if (prefix != NULL)
-    snprintf(str, sizeof(str), "lbl_%s_%u", prefix, label_id++);
+    snprintf(str, sizeof(str), "lbl_%s_%u",
+             prefix, SCM_COMPILER(cmpl)->label_id++);
   else
-    snprintf(str, sizeof(str), "lbl_%u", label_id++);
+    snprintf(str, sizeof(str), "lbl_%u",
+             SCM_COMPILER(cmpl)->label_id++);
 
   return scm_capi_make_symbol_from_cstr(str, SCM_ENC_ASCII);
 }
 
-static ScmObj scm_cmpl_compile_empty(ScmObj exp, ScmObj env, ScmObj next,
-                                     int arity, bool tail_p, bool toplevel_p,
+static ScmObj
+scm_cmpl_current_module_name(ScmObj cmpl)
+{
+  ScmObj module = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&cmpl,
+                       &module);
+
+  module = scm_api_current_module(cmpl);
+  if (scm_obj_null_p(module)) return SCM_OBJ_NULL;
+
+  return scm_api_module_name(module);
+}
+
+static ScmObj scm_cmpl_compile_empty(ScmObj cmpl, ScmObj exp, ScmObj env,
+                                     ScmObj next, int arity,
+                                     bool tail_p, bool toplevel_p,
                                      ssize_t *rdepth);
-static ScmObj scm_cmpl_compile_exp_list(ScmObj exp_lst, ScmObj env, ScmObj next,
-                                        int arity, bool tail_p, bool toplevel_p,
+static ScmObj scm_cmpl_compile_exp_list(ScmObj cmpl, ScmObj exp_lst, ScmObj env,
+                                        ScmObj next, int arity,
+                                        bool tail_p, bool toplevel_p,
                                         ssize_t *rdepth);
-static int scm_cmpl_decons_body(ScmObj body, ScmObj env, bool tail_p,
-                                bool toplevel_p,
+static int scm_cmpl_decons_body(ScmObj cmpl, ScmObj body, ScmObj env,
+                                bool tail_p, bool toplevel_p,
                                 scm_csetter_t *vars, scm_csetter_t *inits,
                                 scm_csetter_t *exps);
-static ScmObj scm_cmpl_compile_body(ScmObj body, ScmObj env, ScmObj next,
-                                    int arity, bool tail_p, bool toplevel_p,
+static ScmObj scm_cmpl_compile_body(ScmObj cmpl, ScmObj body, ScmObj env,
+                                    ScmObj next, int arity,
+                                    bool tail_p, bool toplevel_p,
                                     ssize_t *rdepth);
 static ScmObj scm_cmpl_normalize_definition(ScmObj exp);
 static int scm_cmpl_decons_definition(ScmObj exp,
                                       scm_csetter_t *var, scm_csetter_t *val);
-static ScmObj scm_cmpl_compile_definition(ScmObj exp, ScmObj env, ScmObj next,
-                                          int arity, bool tail_p,
-                                          bool toplevel_p, ssize_t *rdepth);
-static ScmObj scm_cmpl_compile_reference(ScmObj exp, ScmObj env, ScmObj next,
-                                         int arity, bool tail_p,
-                                         bool toplevel_p, ssize_t *rdepth);
-static ScmObj scm_cmpl_compile_self_eval(ScmObj exp, ScmObj env, ScmObj next,
-                                         int arity, bool tail_p,
-                                         bool toplevel_p, ssize_t *rdepth);
+static ScmObj scm_cmpl_compile_definition(ScmObj cmpl, ScmObj exp, ScmObj env,
+                                          ScmObj next, int arity,
+                                          bool tail_p, bool toplevel_p,
+                                          ssize_t *rdepth);
+static ScmObj scm_cmpl_compile_reference(ScmObj cmpl, ScmObj exp, ScmObj env,
+                                         ScmObj next, int arity,
+                                         bool tail_p, bool toplevel_p,
+                                         ssize_t *rdepth);
+static ScmObj scm_cmpl_compile_self_eval(ScmObj cmpl, ScmObj exp, ScmObj env,
+                                         ScmObj next, int arity,
+                                         bool tail_p, bool toplevel_p,
+                                         ssize_t *rdepth);
 static int scm_cmpl_decons_quote(ScmObj exp, scm_csetter_t *obj);
-static ScmObj scm_cmpl_compile_quote(ScmObj exp, ScmObj env, ScmObj next,
-                                     int arity, bool tail_p, bool toplevel_p,
+static ScmObj scm_cmpl_compile_quote(ScmObj cmpl, ScmObj exp, ScmObj env,
+                                     ScmObj next, int arity,
+                                     bool tail_p, bool toplevel_p,
                                      ssize_t *rdepth);
 static int scm_cmpl_decons_application(ScmObj exp,
                                        scm_csetter_t *proc,
                                        scm_csetter_t *args);
-static ScmObj scm_cmpl_cmpl_application(ScmObj proc, ScmObj args,
+static ScmObj scm_cmpl_cmpl_application(ScmObj cmpl, ScmObj proc, ScmObj args,
                                         ScmObj env, ScmObj next, int arity,
                                         bool tail_p, bool toplevel_p,
                                         ssize_t *rdepth);
-static ScmObj scm_cmpl_compile_application(ScmObj exp, ScmObj env, ScmObj next,
-                                           int arity, bool tail_p,
-                                           bool toplevel_p, ssize_t *rdepth);
+static ScmObj scm_cmpl_compile_application(ScmObj cmpl, ScmObj exp, ScmObj env,
+                                           ScmObj next, int arity,
+                                           bool tail_p, bool toplevel_p,
+                                           ssize_t *rdepth);
 static int scm_cmpl_decons_lambda(ScmObj exp,
                                   scm_csetter_t *formals, scm_csetter_t *body);
-static ScmObj scm_cmpl_cmpl_lambda(ScmObj params, bool vparam_p, ScmObj body,
+static ScmObj scm_cmpl_cmpl_lambda(ScmObj cmpl,
+                                   ScmObj params, bool vparam_p, ScmObj body,
                                    ScmObj env, ScmObj next, int arity,
                                    bool tail_p, bool toplevel_p,
                                    ssize_t *rdepth);
-static ScmObj scm_cmpl_cmpl_closure_body(ScmObj body, ScmObj env,
+static ScmObj scm_cmpl_cmpl_closure_body(ScmObj cmpl, ScmObj body, ScmObj env,
                                          ScmObj next, int arity, bool tail_p,
                                          bool toplevel_p, size_t nr_param,
                                          ssize_t *rdepth);
-static ScmObj scm_cmpl_compile_lambda(ScmObj exp, ScmObj env, ScmObj next,
-                                      int arity, bool tail_p, bool toplevel_p,
+static ScmObj scm_cmpl_compile_lambda(ScmObj cmpl, ScmObj exp, ScmObj env,
+                                      ScmObj next, int arity,
+                                      bool tail_p, bool toplevel_p,
                                       ssize_t *rdepth);
 static int scm_cmpl_decons_assignment(ScmObj exp,
                                       scm_csetter_t *var, scm_csetter_t *val);
-static ScmObj scm_cmpl_compile_assignment(ScmObj exp, ScmObj env, ScmObj next,
-                                          int arity, bool tail_p,
-                                          bool toplevel_p, ssize_t *rdepth);
+static ScmObj scm_cmpl_compile_assignment(ScmObj cmpl, ScmObj exp, ScmObj env,
+                                          ScmObj next, int arity,
+                                          bool tail_p, bool toplevel_p,
+                                          ssize_t *rdepth);
 static int scm_cmpl_decons_if(ScmObj exp, scm_csetter_t *cond,
                               scm_csetter_t *conse, scm_csetter_t *alter);
-static ScmObj scm_cmpl_compile_if(ScmObj exp, ScmObj env, ScmObj next,
-                                  int arity, bool tail_p, bool toplevel_p,
+static ScmObj scm_cmpl_compile_if(ScmObj cmpl, ScmObj exp, ScmObj env,
+                                  ScmObj next, int arity,
+                                  bool tail_p, bool toplevel_p,
                                   ssize_t *rdepth);
 static int scm_cmpl_decons_cond(ScmObj exp,
                                 scm_csetter_t *tests, scm_csetter_t *expss,
                                 bool *else_exist_p);
-static ScmObj scm_cmpl_compile_cond(ScmObj exp, ScmObj env, ScmObj next,
-                                    int arity, bool tail_p, bool toplevel_p,
+static ScmObj scm_cmpl_compile_cond(ScmObj cmpl, ScmObj exp, ScmObj env,
+                                    ScmObj next, int arity,
+                                    bool tail_p, bool toplevel_p,
                                     ssize_t *rdepth);
 static int scm_cmpl_decons_and(ScmObj exp, scm_csetter_t *tests);
-static ScmObj scm_cmpl_compile_and(ScmObj exp, ScmObj env, ScmObj next,
-                                   int arity, bool tail_p, bool toplevel_p,
+static ScmObj scm_cmpl_compile_and(ScmObj cmpl, ScmObj exp, ScmObj env,
+                                   ScmObj next, int arity,
+                                   bool tail_p, bool toplevel_p,
                                    ssize_t *rdepth);
 static int scm_cmpl_decons_or(ScmObj exp, scm_csetter_t *tests);
-static ScmObj scm_cmpl_compile_or(ScmObj exp, ScmObj env, ScmObj next,
-                                  int arity, bool tail_p, bool toplevel_p,
+static ScmObj scm_cmpl_compile_or(ScmObj cmpl, ScmObj exp, ScmObj env,
+                                  ScmObj next, int arity,
+                                  bool tail_p, bool toplevel_p,
                                   ssize_t *rdepth);
 static int scm_cmpl_decons_when(ScmObj exp,
                                 scm_csetter_t *test, scm_csetter_t *exps);
-static ScmObj scm_cmpl_compile_when(ScmObj exp, ScmObj env, ScmObj next,
-                                    int arity, bool tail_p, bool toplevel_p,
+static ScmObj scm_cmpl_compile_when(ScmObj cmpl, ScmObj exp, ScmObj env,
+                                    ScmObj next, int arity,
+                                    bool tail_p, bool toplevel_p,
                                     ssize_t *rdepth);
 static int scm_cmpl_decons_unless(ScmObj exp,
                                   scm_csetter_t *test, scm_csetter_t *exps);
-static ScmObj scm_cmpl_compile_unless(ScmObj exp, ScmObj env, ScmObj next,
-                                      int arity, bool tail_p, bool toplevel_p,
-                                    ssize_t *rdepth);
+static ScmObj scm_cmpl_compile_unless(ScmObj cmpl, ScmObj exp, ScmObj env,
+                                      ScmObj next, int arity,
+                                      bool tail_p, bool toplevel_p,
+                                      ssize_t *rdepth);
 static int scm_cmpl_decons_let(ScmObj exp, int syntax,
                                scm_csetter_t *name, scm_csetter_t *vars,
                                scm_csetter_t *inits, scm_csetter_t *body);
-static ScmObj scm_cmpl_compile_let(ScmObj exp, ScmObj env, ScmObj next,
-                                   int arity, bool tail_p, bool toplevel_p,
+static ScmObj scm_cmpl_compile_let(ScmObj cmpl, ScmObj exp, ScmObj env,
+                                   ScmObj next, int arity,
+                                   bool tail_p, bool toplevel_p,
                                    ssize_t *rdepth);
-static ScmObj scm_cmpl_compile_let_a(ScmObj exp, ScmObj env, ScmObj next,
-                                     int arity, bool tail_p, bool toplevel_p,
+static ScmObj scm_cmpl_compile_let_a(ScmObj cmpl, ScmObj exp, ScmObj env,
+                                     ScmObj next, int arity,
+                                     bool tail_p, bool toplevel_p,
                                      ssize_t *rdepth);
-static ScmObj scm_cmpl_compile_letrec(ScmObj exp, ScmObj env, ScmObj next,
-                                      int arity, bool tail_p, bool toplevel_p,
+static ScmObj scm_cmpl_compile_letrec(ScmObj cmpl, ScmObj exp, ScmObj env,
+                                      ScmObj next, int arity,
+                                      bool tail_p, bool toplevel_p,
                                       ssize_t *rdepth);
-static ScmObj scm_cmpl_compile_letrec_a(ScmObj exp, ScmObj env, ScmObj next,
-                                        int arity, bool tail_p, bool toplevel_p,
+static ScmObj scm_cmpl_compile_letrec_a(ScmObj cmpl, ScmObj exp, ScmObj env,
+                                        ScmObj next, int arity,
+                                        bool tail_p, bool toplevel_p,
                                         ssize_t *rdepth);
 static int scm_cmpl_decons_begin(ScmObj exp, scm_csetter_t *exp_lst);
-static ScmObj scm_cmpl_compile_begin(ScmObj exp, ScmObj env, ScmObj next,
-                                     int arity, bool tail_p, bool toplevel_p,
+static ScmObj scm_cmpl_compile_begin(ScmObj cmpl,ScmObj exp, ScmObj env,
+                                     ScmObj next, int arity,
+                                     bool tail_p, bool toplevel_p,
                                      ssize_t *rdepth);
 static int scm_cmpl_decons_do(ScmObj exp,
                               scm_csetter_t *vars, scm_csetter_t *inits,
                               scm_csetter_t *steps, scm_csetter_t *test,
                               scm_csetter_t *exps, scm_csetter_t *cmds);
-static ScmObj scm_cmpl_compile_do(ScmObj exp, ScmObj env, ScmObj next,
-                                  int arity, bool tail_p, bool toplevel_p,
+static ScmObj scm_cmpl_compile_do(ScmObj cmpl, ScmObj exp, ScmObj env,
+                                  ScmObj next, int arity,
+                                  bool tail_p, bool toplevel_p,
                                   ssize_t *rdepth);
-static ScmObj scm_cmpl_compile_exp(ScmObj exp, ScmObj env, ScmObj next,
-                                   int arity, bool tail_p, bool toplevel_p,
+static ScmObj scm_cmpl_compile_exp(ScmObj cmpl, ScmObj exp, ScmObj env,
+                                   ScmObj next, int arity,
+                                   bool tail_p, bool toplevel_p,
                                    ssize_t *rdepth);
 
 enum { SCM_CMPL_SYNTAX_DEFINITION, SCM_CMPL_SYNTAX_REFERENCE,
@@ -1249,9 +1314,10 @@ static const char *scm_cmpl_syntax_keywords[] =
     "cond", "and", "or", "when", "unless", "let", "let*", "letrec",
     "letrec*", "begin", "do" };
 
-static ScmObj (*scm_cmpl_compile_funcs[])(ScmObj exp, ScmObj env, ScmObj next,
-                                          int arity, bool tail_p,
-                                          bool toplevel_p, ssize_t *rdepth)
+static ScmObj (*scm_cmpl_compile_funcs[])(ScmObj cmpl, ScmObj exp, ScmObj env,
+                                          ScmObj next, int arity,
+                                          bool tail_p, bool toplevel_p,
+                                          ssize_t *rdepth)
 = {
   scm_cmpl_compile_definition,
   scm_cmpl_compile_reference,
@@ -1276,12 +1342,15 @@ static ScmObj (*scm_cmpl_compile_funcs[])(ScmObj exp, ScmObj env, ScmObj next,
 
 
 static int
-scm_cmpl_syntax_id(ScmObj exp, ScmObj env, bool tail_p, bool toplevel_p)
+scm_cmpl_syntax_id(ScmObj cmpl, ScmObj exp, ScmObj env,
+                   bool tail_p, bool toplevel_p)
 {
-  ScmObj key = SCM_OBJ_INIT, syx = SCM_OBJ_INIT;
+  ScmObj key = SCM_OBJ_INIT, syx = SCM_OBJ_INIT, mod = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&exp, &env,
-                       &key, &syx);
+  SCM_STACK_FRAME_PUSH(&cmpl, &exp, &env,
+                       &key, &syx, &mod);
+
+  scm_assert_obj_type(cmpl, &SCM_COMPILER_TYPE_INFO);
 
   if (scm_capi_symbol_p(exp)) {
     return SCM_CMPL_SYNTAX_REFERENCE;
@@ -1298,7 +1367,10 @@ scm_cmpl_syntax_id(ScmObj exp, ScmObj env, bool tail_p, bool toplevel_p)
       if (rslt < 0) return -1;
 
       if (idx < 0) {
-        rslt = scm_capi_global_var_ref(key, SCM_CSETTER_L(syx));
+        mod = scm_api_current_module(cmpl);
+        if (scm_obj_null_p(mod)) return -1;
+
+        rslt = scm_capi_global_syx_ref(mod, key, SCM_CSETTER_L(syx));
         if (rslt < 0) return -1;
 
         if (scm_capi_syntax_p(syx)) {
@@ -1318,10 +1390,13 @@ scm_cmpl_syntax_id(ScmObj exp, ScmObj env, bool tail_p, bool toplevel_p)
 }
 
 static ScmObj
-scm_cmpl_compile_empty(ScmObj exp, ScmObj env, ScmObj next, int arity,
+scm_cmpl_compile_empty(ScmObj cmpl, ScmObj exp, ScmObj env,
+                       ScmObj next, int arity,
                        bool tail_p, bool toplevel_p, ssize_t *rdepth)
 {
-  SCM_STACK_FRAME_PUSH(&exp, &env, &next);
+  SCM_STACK_FRAME_PUSH(&cmpl, &exp, &env, &next);
+
+  scm_assert_obj_type(cmpl, &SCM_COMPILER_TYPE_INFO);
 
   *rdepth = -1;
 
@@ -1334,14 +1409,17 @@ scm_cmpl_compile_empty(ScmObj exp, ScmObj env, ScmObj next, int arity,
 }
 
 static ScmObj
-scm_cmpl_compile_exp_list(ScmObj exp_lst, ScmObj env, ScmObj next, int arity,
+scm_cmpl_compile_exp_list(ScmObj cmpl, ScmObj exp_lst, ScmObj env,
+                          ScmObj next, int arity,
                           bool tail_p, bool toplevel_p, ssize_t *rdepth)
 {
   ScmObj exp_vec = SCM_OBJ_INIT, exp = SCM_OBJ_INIT, code = SCM_OBJ_INIT;
   ssize_t rd, len;
 
-  SCM_STACK_FRAME_PUSH(&exp_lst, &env, &next,
+  SCM_STACK_FRAME_PUSH(&cmpl, &exp_lst, &env, &next,
                        &exp_vec, &exp, &code);
+
+  scm_assert_obj_type(cmpl, &SCM_COMPILER_TYPE_INFO);
 
   exp_vec = scm_api_list_to_vector(exp_lst);
   if (scm_obj_null_p(exp_vec)) return SCM_OBJ_NULL;
@@ -1350,7 +1428,7 @@ scm_cmpl_compile_exp_list(ScmObj exp_lst, ScmObj env, ScmObj next, int arity,
   if (len < 0) return SCM_OBJ_NULL;
 
   if (len == 0)
-    return scm_cmpl_compile_empty(exp_lst, env, next, arity,
+    return scm_cmpl_compile_empty(cmpl, exp_lst, env, next, arity,
                                   tail_p, toplevel_p, rdepth);
 
   *rdepth = -1;
@@ -1359,7 +1437,8 @@ scm_cmpl_compile_exp_list(ScmObj exp_lst, ScmObj env, ScmObj next, int arity,
     exp = scm_capi_vector_ref(exp_vec, (size_t)i - 1);
     if (scm_obj_null_p(exp)) return SCM_OBJ_NULL;
 
-    code = scm_cmpl_compile_exp(exp, env, code, arity, tail_p, toplevel_p, &rd);
+    code = scm_cmpl_compile_exp(cmpl, exp, env,
+                                code, arity, tail_p, toplevel_p, &rd);
     if (scm_obj_null_p(code)) return SCM_OBJ_NULL;
 
     tail_p = false;
@@ -1372,7 +1451,8 @@ scm_cmpl_compile_exp_list(ScmObj exp_lst, ScmObj env, ScmObj next, int arity,
 }
 
 static int
-scm_cmpl_decons_body(ScmObj body, ScmObj env, bool tail_p, bool toplevel_p,
+scm_cmpl_decons_body(ScmObj cmpl, ScmObj body, ScmObj env,
+                     bool tail_p, bool toplevel_p,
                      scm_csetter_t *vars, scm_csetter_t *inits,
                      scm_csetter_t *exps)
 {
@@ -1385,13 +1465,15 @@ scm_cmpl_decons_body(ScmObj body, ScmObj env, bool tail_p, bool toplevel_p,
   ssize_t len;
   int id, rslt;
 
-  SCM_STACK_FRAME_PUSH(&body, &env,
+  SCM_STACK_FRAME_PUSH(&cmpl, &body, &env,
                        &var_stack, &init_stack,
                        &exps_stack,
                        &exp_lst, &exp,
                        &var, &init,
                        &vvec, &ivec, &evec,
                        &nil);
+
+  scm_assert_obj_type(cmpl, &SCM_COMPILER_TYPE_INFO);
 
   var_stack = scm_cmpl_stack_new();
   if (scm_obj_null_p(var_stack)) return -1;
@@ -1416,7 +1498,7 @@ scm_cmpl_decons_body(ScmObj body, ScmObj env, bool tail_p, bool toplevel_p,
       exp = scm_api_car(exp_lst);
       if (scm_obj_null_p(exp)) return -1;
 
-      id = scm_cmpl_syntax_id(exp, env, tail_p, toplevel_p);
+      id = scm_cmpl_syntax_id(cmpl, exp, env, tail_p, toplevel_p);
       if (id < 0) return -1;
 
       if (id == SCM_CMPL_SYNTAX_DEFINITION) {
@@ -1497,7 +1579,8 @@ scm_cmpl_decons_body(ScmObj body, ScmObj env, bool tail_p, bool toplevel_p,
 }
 
 static ScmObj
-scm_cmpl_compile_body(ScmObj body, ScmObj env, ScmObj next, int arity,
+scm_cmpl_compile_body(ScmObj cmpl, ScmObj body, ScmObj env,
+                      ScmObj next, int arity,
                       bool tail_p, bool toplevel_p, ssize_t *rdepth)
 {
   ScmObj vars = SCM_OBJ_INIT, inits = SCM_OBJ_INIT, expls = SCM_OBJ_INIT;
@@ -1506,11 +1589,13 @@ scm_cmpl_compile_body(ScmObj body, ScmObj env, ScmObj next, int arity,
   bool tl_p;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&body, &env, &next,
+  SCM_STACK_FRAME_PUSH(&cmpl, &body, &env, &next,
                        &vars, &inits, &expls,
                        &exp, &exp_lst, &new_env);
 
-  rslt = scm_cmpl_decons_body(body, env, tail_p, toplevel_p,
+  scm_assert_obj_type(cmpl, &SCM_COMPILER_TYPE_INFO);
+
+  rslt = scm_cmpl_decons_body(cmpl, body, env, tail_p, toplevel_p,
                               SCM_CSETTER_L(vars), SCM_CSETTER_L(inits),
                               SCM_CSETTER_L(expls));
   if (rslt < 0) return SCM_OBJ_NULL;
@@ -1540,7 +1625,7 @@ scm_cmpl_compile_body(ScmObj body, ScmObj env, ScmObj next, int arity,
     exp_lst = scm_capi_vector_ref(expls, (size_t)i - 1);
     if (scm_obj_null_p(exp_lst)) return SCM_OBJ_NULL;
 
-    next = scm_cmpl_compile_exp_list(exp_lst, new_env, next, arity,
+    next = scm_cmpl_compile_exp_list(cmpl, exp_lst, new_env, next, arity,
                                      tl_p, toplevel_p, &rd);
     if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
 
@@ -1563,7 +1648,7 @@ scm_cmpl_compile_body(ScmObj body, ScmObj env, ScmObj next, int arity,
       exp = scm_capi_vector_ref(inits, i - 1);
       if (scm_obj_null_p(exp)) return SCM_OBJ_NULL;
 
-      next = scm_cmpl_compile_exp(exp, new_env, next, 1,
+      next = scm_cmpl_compile_exp(cmpl, exp, new_env, next, 1,
                                   false, toplevel_p, &rd);
       if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
 
@@ -1674,14 +1759,17 @@ scm_cmpl_normalize_definition(ScmObj exp)
 }
 
 static ScmObj
-scm_cmpl_compile_definition(ScmObj exp, ScmObj env, ScmObj next, int arity,
+scm_cmpl_compile_definition(ScmObj cmpl,ScmObj exp, ScmObj env,
+                            ScmObj next, int arity,
                             bool tail_p, bool toplevel_p, ssize_t *rdepth)
 {
-  ScmObj var = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
+  ScmObj var = SCM_OBJ_INIT, val = SCM_OBJ_INIT, module = SCM_OBJ_INIT;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&exp, &env, &next,
-                       &var, &val);
+  SCM_STACK_FRAME_PUSH(&cmpl, &exp, &env, &next,
+                       &var, &val, &module);
+
+  scm_assert_obj_type(cmpl, &SCM_COMPILER_TYPE_INFO);
 
   if (!toplevel_p) {
     scm_capi_error("Compiler: definition can appear "
@@ -1706,20 +1794,29 @@ scm_cmpl_compile_definition(ScmObj exp, ScmObj env, ScmObj next, int arity,
     if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
   }
 
-  next = scm_cmpl_push_inst_gdef(var, next);
+  module = scm_cmpl_current_module_name(cmpl);
+  if (scm_obj_null_p(module)) return SCM_OBJ_NULL;
+
+  next = scm_cmpl_push_inst_gdef(var, module, next);
   if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
 
-  return scm_cmpl_compile_exp(val, env, next, 1, false, toplevel_p, rdepth);
+  return scm_cmpl_compile_exp(cmpl, val, env, next, 1,
+                              false, toplevel_p, rdepth);
 }
 
 static ScmObj
-scm_cmpl_compile_reference(ScmObj exp, ScmObj env, ScmObj next, int arity,
+scm_cmpl_compile_reference(ScmObj cmpl, ScmObj exp, ScmObj env,
+                           ScmObj next, int arity,
                            bool tail_p, bool toplevel_p, ssize_t *rdepth)
 {
+  ScmObj module = SCM_OBJ_INIT;
   ssize_t idx, layer;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&exp, &env, &next);
+  SCM_STACK_FRAME_PUSH(&cmpl, &exp, &env, &next,
+                       &module);
+
+  scm_assert_obj_type(cmpl, &SCM_COMPILER_TYPE_INFO);
 
   scm_assert(scm_capi_symbol_p(exp));
 
@@ -1738,17 +1835,25 @@ scm_cmpl_compile_reference(ScmObj exp, ScmObj env, ScmObj next, int arity,
 
   *rdepth = (layer >= 0) ? layer : -1;
 
-  if (idx >= 0)
+  if (idx >= 0) {
     return scm_cmpl_push_inst_sref(idx, layer, next);
-  else
-    return scm_cmpl_push_inst_gref(exp, next);
+  }
+  else {
+    module = scm_cmpl_current_module_name(cmpl);
+    if (scm_obj_null_p(module)) return SCM_OBJ_NULL;
+
+    return scm_cmpl_push_inst_gref(exp, module, next);
+  }
 }
 
 static ScmObj
-scm_cmpl_compile_self_eval(ScmObj exp, ScmObj env, ScmObj next, int arity,
+scm_cmpl_compile_self_eval(ScmObj cmpl, ScmObj exp, ScmObj env,
+                           ScmObj next, int arity,
                            bool tail_p, bool toplevel_p, ssize_t *rdepth)
 {
-  SCM_STACK_FRAME_PUSH(&exp, &env, &next);
+  SCM_STACK_FRAME_PUSH(&cmpl, &exp, &env, &next);
+
+  scm_assert_obj_type(cmpl, &SCM_COMPILER_TYPE_INFO);
 
   *rdepth = -1;
 
@@ -1794,19 +1899,22 @@ scm_cmpl_decons_quote(ScmObj exp, scm_csetter_t *obj)
 }
 
 static ScmObj
-scm_cmpl_compile_quote(ScmObj exp, ScmObj env, ScmObj next, int arity,
+scm_cmpl_compile_quote(ScmObj cmpl, ScmObj exp, ScmObj env,
+                       ScmObj next, int arity,
                        bool tail_p, bool toplevel_p, ssize_t *rdepth)
 {
   ScmObj obj = SCM_OBJ_INIT;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&exp, &env, &next,
+  SCM_STACK_FRAME_PUSH(&cmpl, &exp, &env, &next,
                        &obj);
+
+  scm_assert_obj_type(cmpl, &SCM_COMPILER_TYPE_INFO);
 
   rslt = scm_cmpl_decons_quote(exp, SCM_CSETTER_L(obj));
   if (rslt < 0) return SCM_OBJ_NULL;
 
-  return scm_cmpl_compile_self_eval(obj, env, next, arity,
+  return scm_cmpl_compile_self_eval(cmpl, obj, env, next, arity,
                                     tail_p, toplevel_p, rdepth);
 }
 
@@ -1834,15 +1942,17 @@ scm_cmpl_decons_application(ScmObj exp,
 }
 
 static ScmObj
-scm_cmpl_cmpl_application(ScmObj proc, ScmObj args,
+scm_cmpl_cmpl_application(ScmObj cmpl, ScmObj proc, ScmObj args,
                           ScmObj env, ScmObj next, int arity,
                           bool tail_p, bool toplevel_p, ssize_t *rdepth)
 {
   ScmObj elm = SCM_OBJ_INIT;
   ssize_t nr_args, rd;
 
-  SCM_STACK_FRAME_PUSH(&proc, &args, &env, &next,
+  SCM_STACK_FRAME_PUSH(&cmpl, &proc, &args, &env, &next,
                        &elm);
+
+  scm_assert_obj_type(cmpl, &SCM_COMPILER_TYPE_INFO);
 
   nr_args = scm_capi_vector_length(args);
   if (nr_args < 0) return SCM_OBJ_NULL;
@@ -1859,7 +1969,8 @@ scm_cmpl_cmpl_application(ScmObj proc, ScmObj args,
     if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
   }
 
-  next = scm_cmpl_compile_exp(proc, env, next, 1, false, toplevel_p, rdepth);
+  next = scm_cmpl_compile_exp(cmpl, proc, env, next, 1,
+                              false, toplevel_p, rdepth);
   if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
 
   for (ssize_t i = nr_args; i > 0; i--) {
@@ -1869,7 +1980,8 @@ scm_cmpl_cmpl_application(ScmObj proc, ScmObj args,
     next = scm_cmpl_push_inst_push(next);
     if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
 
-    next = scm_cmpl_compile_exp(elm, env, next, 1, false, toplevel_p, &rd);
+    next = scm_cmpl_compile_exp(cmpl, elm, env, next, 1,
+                                false, toplevel_p, &rd);
     if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
 
     if (rd > *rdepth) *rdepth = rd;
@@ -1890,14 +2002,17 @@ scm_cmpl_cmpl_application(ScmObj proc, ScmObj args,
 }
 
 static ScmObj
-scm_cmpl_compile_application(ScmObj exp, ScmObj env, ScmObj next, int arity,
+scm_cmpl_compile_application(ScmObj cmpl, ScmObj exp, ScmObj env,
+                             ScmObj next, int arity,
                              bool tail_p, bool toplevel_p, ssize_t *rdepth)
 {
   ScmObj proc = SCM_OBJ_INIT, args = SCM_OBJ_INIT;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&exp, &env, &next,
+  SCM_STACK_FRAME_PUSH(&cmpl, &exp, &env, &next,
                        &proc, &args);
+
+  scm_assert_obj_type(cmpl, &SCM_COMPILER_TYPE_INFO);
 
   rslt = scm_cmpl_decons_application(exp,
                                      SCM_CSETTER_L(proc),
@@ -1907,7 +2022,7 @@ scm_cmpl_compile_application(ScmObj exp, ScmObj env, ScmObj next, int arity,
   args = scm_api_list_to_vector(args);
   if (scm_obj_null_p(args)) return SCM_OBJ_NULL;
 
-  return scm_cmpl_cmpl_application(proc, args, env, next, arity,
+  return scm_cmpl_cmpl_application(cmpl, proc, args, env, next, arity,
                                    tail_p, toplevel_p, rdepth);
 }
 
@@ -2005,7 +2120,8 @@ scm_cmpl_parse_lambda_formals(ScmObj formals, bool *vparam_p)
 }
 
 static ScmObj
-scm_cmpl_cmpl_closure_body(ScmObj body, ScmObj env, ScmObj next, int arity,
+scm_cmpl_cmpl_closure_body(ScmObj cmpl, ScmObj body, ScmObj env,
+                           ScmObj next, int arity,
                            bool tail_p, bool toplevel_p, size_t nr_param,
                            ssize_t *rdepth)
 {
@@ -2013,10 +2129,12 @@ scm_cmpl_cmpl_closure_body(ScmObj body, ScmObj env, ScmObj next, int arity,
   bool assigned;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&body, &env,
+  SCM_STACK_FRAME_PUSH(&cmpl, &body, &env,
                        &body_code);
 
-  body_code = scm_cmpl_compile_body(body, env, next, arity,
+  scm_assert_obj_type(cmpl, &SCM_COMPILER_TYPE_INFO);
+
+  body_code = scm_cmpl_compile_body(cmpl, body, env, next, arity,
                                     tail_p, toplevel_p, rdepth);
   if (scm_obj_null_p(body_code)) return SCM_OBJ_NULL;
 
@@ -2039,15 +2157,17 @@ scm_cmpl_cmpl_closure_body(ScmObj body, ScmObj env, ScmObj next, int arity,
 }
 
 static ScmObj
-scm_cmpl_cmpl_lambda(ScmObj params, bool vparam_p, ScmObj body,
+scm_cmpl_cmpl_lambda(ScmObj cmpl, ScmObj params, bool vparam_p, ScmObj body,
                      ScmObj env, ScmObj next, int arity,
                      bool tail_p, bool toplevel_p, ssize_t *rdepth)
 {
   ScmObj new_env = SCM_OBJ_INIT, body_code = SCM_OBJ_INIT, nil = SCM_OBJ_INIT;
   ssize_t nr_params, func_arity;
 
-  SCM_STACK_FRAME_PUSH(&params, &body, &env, &next,
+  SCM_STACK_FRAME_PUSH(&cmpl, &params, &body, &env, &next,
                        &new_env, &body_code, &nil);
+
+  scm_assert_obj_type(cmpl, &SCM_COMPILER_TYPE_INFO);
 
   nil = scm_api_nil();
   if (scm_obj_null_p(nil)) return SCM_OBJ_NULL;
@@ -2062,7 +2182,7 @@ scm_cmpl_cmpl_lambda(ScmObj params, bool vparam_p, ScmObj body,
   else
     new_env = env;
 
-  body_code = scm_cmpl_cmpl_closure_body(body, new_env, nil, -1,
+  body_code = scm_cmpl_cmpl_closure_body(cmpl, body, new_env, nil, -1,
                                          true, false, (size_t)nr_params,
                                          rdepth);
   if (scm_obj_null_p(body_code)) return SCM_OBJ_NULL;
@@ -2086,7 +2206,8 @@ scm_cmpl_cmpl_lambda(ScmObj params, bool vparam_p, ScmObj body,
 }
 
 static ScmObj
-scm_cmpl_compile_lambda(ScmObj exp, ScmObj env, ScmObj next, int arity,
+scm_cmpl_compile_lambda(ScmObj cmpl, ScmObj exp, ScmObj env,
+                        ScmObj next, int arity,
                         bool tail_p, bool toplevel_p, ssize_t *rdepth)
 {
   ScmObj formals = SCM_OBJ_INIT, body = SCM_OBJ_INIT, params = SCM_OBJ_INIT;
@@ -2094,8 +2215,10 @@ scm_cmpl_compile_lambda(ScmObj exp, ScmObj env, ScmObj next, int arity,
 
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&exp, &env, &next,
+  SCM_STACK_FRAME_PUSH(&cmpl, &exp, &env, &next,
                        &formals, &body, &params);
+
+  scm_assert_obj_type(cmpl, &SCM_COMPILER_TYPE_INFO);
 
   rslt = scm_cmpl_decons_lambda(exp,
                                 SCM_CSETTER_L(formals), SCM_CSETTER_L(body));
@@ -2104,7 +2227,7 @@ scm_cmpl_compile_lambda(ScmObj exp, ScmObj env, ScmObj next, int arity,
   params = scm_cmpl_parse_lambda_formals(formals, &vparam_p);
   if (scm_obj_null_p(params)) return SCM_OBJ_NULL;
 
-  return scm_cmpl_cmpl_lambda(params, vparam_p, body, env, next, arity,
+  return scm_cmpl_cmpl_lambda(cmpl, params, vparam_p, body, env, next, arity,
                               tail_p, toplevel_p, rdepth);
 }
 
@@ -2155,15 +2278,18 @@ scm_cmpl_decons_assignment(ScmObj exp, scm_csetter_t *var, scm_csetter_t *val)
 }
 
 static ScmObj
-scm_cmpl_compile_assignment(ScmObj exp, ScmObj env, ScmObj next, int arity,
+scm_cmpl_compile_assignment(ScmObj cmpl, ScmObj exp, ScmObj env,
+                            ScmObj next, int arity,
                             bool tail_p, bool toplevel_p, ssize_t *rdepth)
 {
-  ScmObj var = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
+  ScmObj var = SCM_OBJ_INIT, val = SCM_OBJ_INIT, module = SCM_OBJ_INIT;
   int rslt;
   ssize_t idx, layer, rd;
 
-  SCM_STACK_FRAME_PUSH(&exp, &env, &next,
-                       &var, &val);
+  SCM_STACK_FRAME_PUSH(&cmpl, &exp, &env, &next,
+                       &var, &val, &module);
+
+  scm_assert_obj_type(cmpl, &SCM_COMPILER_TYPE_INFO);
 
   rslt = scm_cmpl_decons_assignment(exp,
                                     SCM_CSETTER_L(var), SCM_CSETTER_L(val));
@@ -2187,16 +2313,21 @@ scm_cmpl_compile_assignment(ScmObj exp, ScmObj env, ScmObj next, int arity,
     if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
   }
 
-  if (idx >= 0)
+  if (idx >= 0) {
     next = scm_cmpl_push_inst_sset(idx, layer, next);
-  else
-    next = scm_cmpl_push_inst_gset(var, next);
+  }
+  else {
+    module = scm_cmpl_current_module_name(cmpl);
+    if (scm_obj_null_p(module)) return SCM_OBJ_NULL;
+
+    next = scm_cmpl_push_inst_gset(var, module, next);
+  }
 
   if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
 
   *rdepth = (layer >= 0) ? layer : -1;
 
-  next = scm_cmpl_compile_exp(val, env, next, 1, false, toplevel_p, &rd);;
+  next = scm_cmpl_compile_exp(cmpl, val, env, next, 1, false, toplevel_p, &rd);;
   if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
 
   if (rd > *rdepth) *rdepth = rd;
@@ -2273,7 +2404,7 @@ scm_cmpl_decons_if(ScmObj exp, scm_csetter_t *cond,
 }
 
 static ScmObj
-scm_cmpl_compile_if(ScmObj exp, ScmObj env, ScmObj next, int arity,
+scm_cmpl_compile_if(ScmObj cmpl, ScmObj exp, ScmObj env, ScmObj next, int arity,
                     bool tail_p, bool toplevel_p, ssize_t *rdepth)
 {
   ScmObj cond = SCM_OBJ_INIT, conse = SCM_OBJ_INIT, alter = SCM_OBJ_INIT;
@@ -2281,9 +2412,11 @@ scm_cmpl_compile_if(ScmObj exp, ScmObj env, ScmObj next, int arity,
   ssize_t rd;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&exp, &env, &next,
+  SCM_STACK_FRAME_PUSH(&cmpl, &exp, &env, &next,
                        &cond, &conse, &alter,
                        &lbl_junc, &lbl_alt);
+
+  scm_assert_obj_type(cmpl, &SCM_COMPILER_TYPE_INFO);
 
   rslt = scm_cmpl_decons_if(exp, SCM_CSETTER_L(cond),
                             SCM_CSETTER_L(conse), SCM_CSETTER_L(alter));
@@ -2292,7 +2425,7 @@ scm_cmpl_compile_if(ScmObj exp, ScmObj env, ScmObj next, int arity,
 
   if (!tail_p) {
     /* if 分岐後の合流地点のラベル定義を next 直前に追加 */
-    lbl_junc = scm_cmpl_gen_label("if-j");
+    lbl_junc = scm_cmpl_gen_label(cmpl, "if-j");
     if (scm_obj_null_p(lbl_junc)) return SCM_OBJ_NULL;
 
     next = scm_cmpl_push_inst_label(lbl_junc, next);
@@ -2302,12 +2435,12 @@ scm_cmpl_compile_if(ScmObj exp, ScmObj env, ScmObj next, int arity,
   *rdepth = -1;
   if (scm_obj_not_null_p(alter)) {
     /* alternative 節を付加 */
-    next = scm_cmpl_compile_exp(alter, env, next, arity,
+    next = scm_cmpl_compile_exp(cmpl, alter, env, next, arity,
                                 tail_p, toplevel_p, &rd);
     if (scm_obj_null_p(next)) return  SCM_OBJ_NULL;
   }
   else {
-    next = scm_cmpl_compile_empty(alter, env, next, arity,
+    next = scm_cmpl_compile_empty(cmpl, alter, env, next, arity,
                                   tail_p, toplevel_p, &rd);
     if (scm_obj_null_p(next)) return  SCM_OBJ_NULL;
   }
@@ -2316,7 +2449,7 @@ scm_cmpl_compile_if(ScmObj exp, ScmObj env, ScmObj next, int arity,
 
   /* condition 節実行後に alternative 節に条件ジャンプするためのラベル定義
      を追加 */
-  lbl_alt = scm_cmpl_gen_label("if-a");
+  lbl_alt = scm_cmpl_gen_label(cmpl, "if-a");
   if (scm_obj_null_p(lbl_alt)) return SCM_OBJ_NULL;
 
   next = scm_cmpl_push_inst_label(lbl_alt, next);
@@ -2329,7 +2462,8 @@ scm_cmpl_compile_if(ScmObj exp, ScmObj env, ScmObj next, int arity,
   }
 
   /* consequence 節を付加 */
-  next = scm_cmpl_compile_exp(conse, env, next, arity, tail_p, toplevel_p, &rd);
+  next = scm_cmpl_compile_exp(cmpl, conse, env, next, arity,
+                              tail_p, toplevel_p, &rd);
   if (scm_obj_null_p(next)) return  SCM_OBJ_NULL;
 
   if (rd > *rdepth) *rdepth = rd;
@@ -2340,7 +2474,8 @@ scm_cmpl_compile_if(ScmObj exp, ScmObj env, ScmObj next, int arity,
   if (scm_obj_null_p(next)) return  SCM_OBJ_NULL;
 
   /* conditio 節を付加 */
-  next = scm_cmpl_compile_exp(cond, env, next, 1, false, toplevel_p, &rd);
+  next = scm_cmpl_compile_exp(cmpl, cond, env, next, 1,
+                              false, toplevel_p, &rd);
 
   if (rd > *rdepth) *rdepth = rd;
 
@@ -2440,11 +2575,11 @@ scm_cmpl_decons_cond(ScmObj exp, scm_csetter_t *tests, scm_csetter_t *expss,
 }
 
 static ScmObj
-scm_cmpl_cmpl_cond_clause_exp(ScmObj exp, ScmObj label,
+scm_cmpl_cmpl_cond_clause_exp(ScmObj cmpl, ScmObj exp, ScmObj label,
                               ScmObj env, ScmObj next, int arity,
                               bool tail_p, bool toplevel_p, ssize_t *rdepth)
 {
-  SCM_STACK_FRAME_PUSH(&exp, &env, &next);
+  SCM_STACK_FRAME_PUSH(&cmpl, &exp, &env, &next);
 
   *rdepth = -1;
 
@@ -2454,7 +2589,7 @@ scm_cmpl_cmpl_cond_clause_exp(ScmObj exp, ScmObj label,
   }
 
   if (scm_capi_pair_p(exp)) {
-    return scm_cmpl_compile_exp_list(exp, env, next, arity,
+    return scm_cmpl_compile_exp_list(cmpl, exp, env, next, arity,
                                      tail_p, toplevel_p, rdepth);
   }
   else if (scm_capi_nil_p(exp)){
@@ -2479,7 +2614,8 @@ scm_cmpl_cmpl_cond_clause_exp(ScmObj exp, ScmObj label,
       if (scm_obj_null_p(next)) return  SCM_OBJ_NULL;
     }
 
-    next = scm_cmpl_compile_exp(exp, env, next, 1, false, toplevel_p, rdepth);
+    next = scm_cmpl_compile_exp(cmpl, exp, env, next, 1,
+                                false, toplevel_p, rdepth);
     if (scm_obj_null_p(next)) return  SCM_OBJ_NULL;
 
     next = scm_cmpl_push_inst_push(next);
@@ -2493,14 +2629,15 @@ scm_cmpl_cmpl_cond_clause_exp(ScmObj exp, ScmObj label,
 }
 
 static ScmObj
-scm_cmpl_make_cond_clause_label(ScmObj labels, size_t idx, const char *prefix)
+scm_cmpl_make_cond_clause_label(ScmObj cmpl,
+                                ScmObj labels, size_t idx, const char *prefix)
 {
   ScmObj lbl = SCM_OBJ_INIT, ro = SCM_OBJ_INIT;
 
   SCM_STACK_FRAME_PUSH(&labels,
                        &lbl, &ro);
 
-  lbl = scm_cmpl_gen_label(prefix);
+  lbl = scm_cmpl_gen_label(cmpl, prefix);
   if (scm_obj_null_p(lbl)) return SCM_OBJ_NULL;
 
   ro = scm_capi_vector_set(labels, idx, lbl);
@@ -2510,20 +2647,23 @@ scm_cmpl_make_cond_clause_label(ScmObj labels, size_t idx, const char *prefix)
 }
 
 static ScmObj
-scm_cmpl_push_cond_clause(ScmObj exp, ScmObj junc, ScmObj labels, size_t idx,
+scm_cmpl_push_cond_clause(ScmObj cmpl, ScmObj exp, ScmObj junc,
+                          ScmObj labels, size_t idx,
                           ScmObj env, ScmObj next, int arity,
                           bool tail_p, bool toplevel_p, ssize_t *rdepth)
 {
   ScmObj lbl_cls = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&exp, &junc, &labels, &env, &next,
+  SCM_STACK_FRAME_PUSH(&cmpl, &exp, &junc, &labels, &env, &next,
                        &lbl_cls);
 
-  next = scm_cmpl_cmpl_cond_clause_exp(exp, junc, env, next, arity,
+  scm_assert_obj_type(cmpl, &SCM_COMPILER_TYPE_INFO);
+
+  next = scm_cmpl_cmpl_cond_clause_exp(cmpl, exp, junc, env, next, arity,
                                        tail_p, toplevel_p, rdepth);
   if (scm_obj_null_p(next)) return  SCM_OBJ_NULL;
 
-  lbl_cls = scm_cmpl_make_cond_clause_label(labels, idx, "cond-c");
+  lbl_cls = scm_cmpl_make_cond_clause_label(cmpl, labels, idx, "cond-c");
   if (scm_obj_null_p(lbl_cls)) return SCM_OBJ_NULL;
 
   next = scm_cmpl_push_inst_label(lbl_cls, next);
@@ -2533,22 +2673,26 @@ scm_cmpl_push_cond_clause(ScmObj exp, ScmObj junc, ScmObj labels, size_t idx,
 }
 
 static ScmObj
-scm_cmpl_cmpl_cond_clause_test(ScmObj test, ScmObj label,
+scm_cmpl_cmpl_cond_clause_test(ScmObj cmpl, ScmObj test, ScmObj label,
                                ScmObj env, ScmObj next, int arity,
                                bool tail_p, bool toplevel_p, ssize_t *rdepth)
 {
-  SCM_STACK_FRAME_PUSH(&test, &label, &env, &next);
+  SCM_STACK_FRAME_PUSH(&cmpl, &test, &label, &env, &next);
+
+  scm_assert_obj_type(cmpl, &SCM_COMPILER_TYPE_INFO);
 
   if (!scm_capi_nil_p(label)) {
     next = scm_cmpl_push_inst_jmpt(label, next);
     if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
   }
 
-  return scm_cmpl_compile_exp(test, env, next, 1, false, toplevel_p, rdepth);
+  return scm_cmpl_compile_exp(cmpl, test, env, next, 1,
+                              false, toplevel_p, rdepth);
 }
 
 static ScmObj
-scm_cmpl_compile_cond(ScmObj exp, ScmObj env, ScmObj next, int arity,
+scm_cmpl_compile_cond(ScmObj cmpl, ScmObj exp, ScmObj env,
+                      ScmObj next, int arity,
                       bool tail_p, bool toplevel_p, ssize_t *rdepth)
 {
   ScmObj tests = SCM_OBJ_INIT, expss = SCM_OBJ_INIT;
@@ -2559,11 +2703,13 @@ scm_cmpl_compile_cond(ScmObj exp, ScmObj env, ScmObj next, int arity,
   bool else_exist_p;
   int rslt, nr_cls_exp_code;
 
-  SCM_STACK_FRAME_PUSH(&exp, &env, &next,
+  SCM_STACK_FRAME_PUSH(&cmpl, &exp, &env, &next,
                        &tests, &expss,
                        &texp, &eexp,
                        &labels, &lbl_junc, &lbl_cls,
                        &lbl, &nil);
+
+  scm_assert_obj_type(cmpl, &SCM_COMPILER_TYPE_INFO);
 
   *rdepth = -1;
 
@@ -2578,7 +2724,7 @@ scm_cmpl_compile_cond(ScmObj exp, ScmObj env, ScmObj next, int arity,
   if (nr_clauses < 0) return SCM_OBJ_NULL;
 
   if (nr_clauses == 0)
-    return scm_cmpl_compile_empty(exp, env, next, arity,
+    return scm_cmpl_compile_empty(cmpl, exp, env, next, arity,
                                   tail_p, toplevel_p,rdepth);
 
   labels = scm_capi_make_vector((size_t)nr_clauses, nil);
@@ -2591,7 +2737,7 @@ scm_cmpl_compile_cond(ScmObj exp, ScmObj env, ScmObj next, int arity,
    * 合流地点のラベルは設定しない。
    */
   if (!tail_p) {
-    lbl_junc = scm_cmpl_gen_label("cond-j");
+    lbl_junc = scm_cmpl_gen_label(cmpl, "cond-j");
     if (scm_obj_null_p(lbl_junc)) return SCM_OBJ_NULL;
 
     next = scm_cmpl_push_inst_label(lbl_junc, next);
@@ -2614,7 +2760,7 @@ scm_cmpl_compile_cond(ScmObj exp, ScmObj env, ScmObj next, int arity,
     if (scm_obj_null_p(eexp)) return SCM_OBJ_NULL;
 
     if (!scm_capi_nil_p(eexp)) {
-      next = scm_cmpl_push_cond_clause(eexp, nil, labels,
+      next = scm_cmpl_push_cond_clause(cmpl, eexp, nil, labels,
                                        (size_t)nr_clauses - 1,
                                        env, next, arity,
                                        tail_p, toplevel_p, &rd);
@@ -2642,7 +2788,7 @@ scm_cmpl_compile_cond(ScmObj exp, ScmObj env, ScmObj next, int arity,
     if (!scm_capi_nil_p(eexp) || tail_p) {
       lbl = (!tail_p && nr_cls_exp_code > 0) ? lbl_junc : nil;
 
-      next = scm_cmpl_push_cond_clause(eexp, lbl, labels, i - 1,
+      next = scm_cmpl_push_cond_clause(cmpl, eexp, lbl, labels, i - 1,
                                        env, next, arity,
                                        tail_p, toplevel_p, &rd);
       if (scm_obj_null_p(next)) return  SCM_OBJ_NULL;
@@ -2696,7 +2842,7 @@ scm_cmpl_compile_cond(ScmObj exp, ScmObj env, ScmObj next, int arity,
     if (scm_obj_null_p(lbl_cls)) return SCM_OBJ_NULL;
 
     lbl = (scm_capi_nil_p(lbl_cls)) ? lbl_junc : lbl_cls;
-    next = scm_cmpl_cmpl_cond_clause_test(texp, lbl, env, next, 1,
+    next = scm_cmpl_cmpl_cond_clause_test(cmpl, texp, lbl, env, next, 1,
                                           tail_p, toplevel_p, &rd);
 
     if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
@@ -2727,15 +2873,18 @@ scm_cmpl_decons_and(ScmObj exp, scm_csetter_t *tests)
 }
 
 static ScmObj
-scm_cmpl_compile_and(ScmObj exp, ScmObj env, ScmObj next, int arity,
+scm_cmpl_compile_and(ScmObj cmpl, ScmObj exp, ScmObj env,
+                     ScmObj next, int arity,
                      bool tail_p, bool toplevel_p, ssize_t *rdepth)
 {
   ScmObj tests = SCM_OBJ_NULL, texp = SCM_OBJ_INIT, lbl_junc = SCM_OBJ_NULL;
   ssize_t len, rd;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&exp, &env, &next,
+  SCM_STACK_FRAME_PUSH(&cmpl, &exp, &env, &next,
                        &tests, &texp, &lbl_junc);
+
+  scm_assert_obj_type(cmpl, &SCM_COMPILER_TYPE_INFO);
 
   *rdepth = -1;
 
@@ -2754,7 +2903,7 @@ scm_cmpl_compile_and(ScmObj exp, ScmObj env, ScmObj next, int arity,
     return scm_cmpl_push_inst_immval(scm_api_true(), next);
 
   if (len > 1) {
-    lbl_junc = scm_cmpl_gen_label("and-j");
+    lbl_junc = scm_cmpl_gen_label(cmpl, "and-j");
     if (scm_obj_null_p(lbl_junc)) return SCM_OBJ_NULL;
 
     next = scm_cmpl_push_inst_label(lbl_junc, next);
@@ -2764,7 +2913,8 @@ scm_cmpl_compile_and(ScmObj exp, ScmObj env, ScmObj next, int arity,
   texp = scm_capi_vector_ref(tests, (size_t)len - 1);
   if (scm_obj_null_p(texp)) return SCM_OBJ_NULL;
 
-  next = scm_cmpl_compile_exp(texp, env, next, arity, tail_p, toplevel_p, &rd);
+  next = scm_cmpl_compile_exp(cmpl, texp, env, next, arity,
+                              tail_p, toplevel_p, &rd);
 
   if (rd > *rdepth) *rdepth = rd;
 
@@ -2775,7 +2925,8 @@ scm_cmpl_compile_and(ScmObj exp, ScmObj env, ScmObj next, int arity,
     texp = scm_capi_vector_ref(tests, i - 1);
     if (scm_obj_null_p(texp)) return SCM_OBJ_NULL;
 
-    next = scm_cmpl_compile_exp(texp, env, next, 1, false, toplevel_p, &rd);
+    next = scm_cmpl_compile_exp(cmpl, texp, env, next, 1,
+                                false, toplevel_p, &rd);
     if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
 
     if (rd > *rdepth) *rdepth = rd;
@@ -2804,15 +2955,17 @@ scm_cmpl_decons_or(ScmObj exp, scm_csetter_t *tests)
 }
 
 static ScmObj
-scm_cmpl_compile_or(ScmObj exp, ScmObj env, ScmObj next, int arity,
+scm_cmpl_compile_or(ScmObj cmpl, ScmObj exp, ScmObj env, ScmObj next, int arity,
                     bool tail_p, bool toplevel_p, ssize_t *rdepth)
 {
   ScmObj tests = SCM_OBJ_NULL, texp = SCM_OBJ_INIT, lbl_junc = SCM_OBJ_NULL;
   ssize_t len, rd;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&exp, &env, &next,
+  SCM_STACK_FRAME_PUSH(&cmpl, &exp, &env, &next,
                        &tests, &texp, &lbl_junc);
+
+  scm_assert_obj_type(cmpl, &SCM_COMPILER_TYPE_INFO);
 
   *rdepth = -1;
 
@@ -2831,7 +2984,7 @@ scm_cmpl_compile_or(ScmObj exp, ScmObj env, ScmObj next, int arity,
     return scm_cmpl_push_inst_immval(scm_api_false(), next);
 
   if (len > 1) {
-    lbl_junc = scm_cmpl_gen_label("or-j");
+    lbl_junc = scm_cmpl_gen_label(cmpl, "or-j");
     if (scm_obj_null_p(lbl_junc)) return SCM_OBJ_NULL;
 
     next = scm_cmpl_push_inst_label(lbl_junc, next);
@@ -2841,7 +2994,8 @@ scm_cmpl_compile_or(ScmObj exp, ScmObj env, ScmObj next, int arity,
   texp = scm_capi_vector_ref(tests, (size_t)len - 1);
   if (scm_obj_null_p(texp)) return SCM_OBJ_NULL;
 
-  next = scm_cmpl_compile_exp(texp, env, next, arity, tail_p, toplevel_p, &rd);
+  next = scm_cmpl_compile_exp(cmpl, texp, env, next, arity,
+                              tail_p, toplevel_p, &rd);
 
   if (rd > *rdepth) *rdepth = rd;
 
@@ -2852,7 +3006,8 @@ scm_cmpl_compile_or(ScmObj exp, ScmObj env, ScmObj next, int arity,
     texp = scm_capi_vector_ref(tests, i - 1);
     if (scm_obj_null_p(texp)) return SCM_OBJ_NULL;
 
-    next = scm_cmpl_compile_exp(texp, env, next, 1, false, toplevel_p, &rd);
+    next = scm_cmpl_compile_exp(cmpl, texp, env, next, 1,
+                                false, toplevel_p, &rd);
     if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
 
     if (rd > *rdepth) *rdepth = rd;
@@ -2885,7 +3040,8 @@ scm_cmpl_decons_when(ScmObj exp, scm_csetter_t *test, scm_csetter_t *exps)
 }
 
 static ScmObj
-scm_cmpl_compile_when(ScmObj exp, ScmObj env, ScmObj next, int arity,
+scm_cmpl_compile_when(ScmObj cmpl, ScmObj exp, ScmObj env,
+                      ScmObj next, int arity,
                       bool tail_p, bool toplevel_p, ssize_t *rdepth)
 {
   ScmObj test = SCM_OBJ_INIT, exps = SCM_OBJ_INIT;
@@ -2893,8 +3049,10 @@ scm_cmpl_compile_when(ScmObj exp, ScmObj env, ScmObj next, int arity,
   ssize_t rd;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&exp, &env, &next,
+  SCM_STACK_FRAME_PUSH(&cmpl, &exp, &env, &next,
                        &test, &exps, &lbl_junc, &lbl_alt);
+
+  scm_assert_obj_type(cmpl, &SCM_COMPILER_TYPE_INFO);
 
   rslt = scm_cmpl_decons_when(exp, SCM_CSETTER_L(test), SCM_CSETTER_L(exps));
   if (rslt < 0) return SCM_OBJ_NULL;
@@ -2902,7 +3060,7 @@ scm_cmpl_compile_when(ScmObj exp, ScmObj env, ScmObj next, int arity,
   *rdepth = -1;
 
   if (!tail_p) {
-    lbl_junc = scm_cmpl_gen_label("when-j");
+    lbl_junc = scm_cmpl_gen_label(cmpl, "when-j");
     if (scm_obj_null_p(lbl_junc)) return SCM_OBJ_NULL;
 
     next = scm_cmpl_push_inst_label(lbl_junc, next);
@@ -2917,7 +3075,7 @@ scm_cmpl_compile_when(ScmObj exp, ScmObj env, ScmObj next, int arity,
   next = scm_cmpl_push_inst_undef(next);
   if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
 
-  lbl_alt = scm_cmpl_gen_label("when-a");
+  lbl_alt = scm_cmpl_gen_label(cmpl, "when-a");
   if (scm_obj_null_p(lbl_alt)) return SCM_OBJ_NULL;
 
   next = scm_cmpl_push_inst_label(lbl_alt, next);
@@ -2928,7 +3086,7 @@ scm_cmpl_compile_when(ScmObj exp, ScmObj env, ScmObj next, int arity,
     if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
   }
 
-  next = scm_cmpl_compile_exp_list(exps, env, next, arity,
+  next = scm_cmpl_compile_exp_list(cmpl, exps, env, next, arity,
                                    tail_p, toplevel_p, &rd);
   if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
 
@@ -2937,7 +3095,7 @@ scm_cmpl_compile_when(ScmObj exp, ScmObj env, ScmObj next, int arity,
   next = scm_cmpl_push_inst_jmpf(lbl_alt, next);
   if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
 
-  next = scm_cmpl_compile_exp(test, env, next, 1, false, toplevel_p, &rd);
+  next = scm_cmpl_compile_exp(cmpl, test, env, next, 1, false, toplevel_p, &rd);
   if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
 
   if (rd > *rdepth) *rdepth = rd;
@@ -2969,7 +3127,8 @@ scm_cmpl_decons_unless(ScmObj exp, scm_csetter_t *test, scm_csetter_t *exps)
 }
 
 static ScmObj
-scm_cmpl_compile_unless(ScmObj exp, ScmObj env, ScmObj next, int arity,
+scm_cmpl_compile_unless(ScmObj cmpl, ScmObj exp, ScmObj env,
+                        ScmObj next, int arity,
                         bool tail_p, bool toplevel_p, ssize_t *rdepth)
 {
   ScmObj test = SCM_OBJ_INIT, exps = SCM_OBJ_INIT;
@@ -2977,8 +3136,10 @@ scm_cmpl_compile_unless(ScmObj exp, ScmObj env, ScmObj next, int arity,
   ssize_t rd;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&exp, &env, &next,
+  SCM_STACK_FRAME_PUSH(&cmpl, &exp, &env, &next,
                        &test, &exps, &lbl_junc, &lbl_alt);
+
+  scm_assert_obj_type(cmpl, &SCM_COMPILER_TYPE_INFO);
 
   rslt = scm_cmpl_decons_unless(exp, SCM_CSETTER_L(test), SCM_CSETTER_L(exps));
   if (rslt < 0) return SCM_OBJ_NULL;
@@ -2986,7 +3147,7 @@ scm_cmpl_compile_unless(ScmObj exp, ScmObj env, ScmObj next, int arity,
   *rdepth = -1;
 
   if (!tail_p) {
-    lbl_junc = scm_cmpl_gen_label("unless-j");
+    lbl_junc = scm_cmpl_gen_label(cmpl, "unless-j");
     if (scm_obj_null_p(lbl_junc)) return SCM_OBJ_NULL;
 
     next = scm_cmpl_push_inst_label(lbl_junc, next);
@@ -3001,7 +3162,7 @@ scm_cmpl_compile_unless(ScmObj exp, ScmObj env, ScmObj next, int arity,
   next = scm_cmpl_push_inst_undef(next);
   if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
 
-  lbl_alt = scm_cmpl_gen_label("unless-a");
+  lbl_alt = scm_cmpl_gen_label(cmpl, "unless-a");
   if (scm_obj_null_p(lbl_alt)) return SCM_OBJ_NULL;
 
   next = scm_cmpl_push_inst_label(lbl_alt, next);
@@ -3012,7 +3173,7 @@ scm_cmpl_compile_unless(ScmObj exp, ScmObj env, ScmObj next, int arity,
     if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
   }
 
-  next = scm_cmpl_compile_exp_list(exps, env, next, arity,
+  next = scm_cmpl_compile_exp_list(cmpl, exps, env, next, arity,
                                    tail_p, toplevel_p, &rd);
   if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
 
@@ -3021,7 +3182,7 @@ scm_cmpl_compile_unless(ScmObj exp, ScmObj env, ScmObj next, int arity,
   next = scm_cmpl_push_inst_jmpt(lbl_alt, next);
   if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
 
-  next = scm_cmpl_compile_exp(test, env, next, 1, false, toplevel_p, &rd);
+  next = scm_cmpl_compile_exp(cmpl, test, env, next, 1, false, toplevel_p, &rd);
   if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
 
   if (rd > *rdepth) *rdepth = rd;
@@ -3168,7 +3329,7 @@ scm_cmpl_decons_let(ScmObj exp, int syntax,
 }
 
 static ScmObj
-scm_cmpl_cmpl_named_let_body(ScmObj name,
+scm_cmpl_cmpl_named_let_body(ScmObj cmpl, ScmObj name,
                              ScmObj vars, ScmObj inits, ScmObj body,
                              ScmObj env , ScmObj next, int arity,
                              bool tail_p, bool toplevel_p, ssize_t *rdepth)
@@ -3187,8 +3348,10 @@ scm_cmpl_cmpl_named_let_body(ScmObj name,
   ScmObj letrec_vars = SCM_OBJ_INIT, new_env = SCM_OBJ_INIT;
   ssize_t rd;
 
-  SCM_STACK_FRAME_PUSH(&name, &vars, &inits, &body, &env, &next,
+  SCM_STACK_FRAME_PUSH(&cmpl, &name, &vars, &inits, &body, &env, &next,
                        &letrec_vars, &new_env);
+
+  scm_assert_obj_type(cmpl, &SCM_COMPILER_TYPE_INFO);
 
   if (!tail_p) {
     next = scm_cmpl_push_inst_epop(next);
@@ -3201,14 +3364,14 @@ scm_cmpl_cmpl_named_let_body(ScmObj name,
   new_env = scm_cmpl_env_cons(letrec_vars, false, env);
   if (scm_obj_null_p(new_env)) return SCM_OBJ_NULL;
 
-  next = scm_cmpl_cmpl_application(name, vars, new_env,
+  next = scm_cmpl_cmpl_application(cmpl, name, vars, new_env,
                                    next, arity, tail_p, false, rdepth);
   if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
 
   next = scm_cmpl_push_inst_demine(0, 0, next);
   if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
 
-  next = scm_cmpl_cmpl_lambda(vars, false, body,
+  next = scm_cmpl_cmpl_lambda(cmpl, vars, false, body,
                               new_env, next, 1, false, false, &rd);
   if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
 
@@ -3223,7 +3386,8 @@ scm_cmpl_cmpl_named_let_body(ScmObj name,
 }
 
 static ScmObj
-scm_cmpl_compile_let(ScmObj exp, ScmObj env, ScmObj next, int arity,
+scm_cmpl_compile_let(ScmObj cmpl, ScmObj exp, ScmObj env,
+                     ScmObj next, int arity,
                      bool tail_p, bool toplevel_p, ssize_t *rdepth)
 {
   ScmObj name = SCM_OBJ_INIT, bindings = SCM_OBJ_INIT, body = SCM_OBJ_INIT;
@@ -3232,10 +3396,12 @@ scm_cmpl_compile_let(ScmObj exp, ScmObj env, ScmObj next, int arity,
   ssize_t nr_vars, rd;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&exp, &env, &next,
+  SCM_STACK_FRAME_PUSH(&cmpl, &exp, &env, &next,
                        &name, &bindings, &body,
                        &vars, &inits, &ini_exp,
                        &converted, &new_env);
+
+  scm_assert_obj_type(cmpl, &SCM_COMPILER_TYPE_INFO);
 
   rslt = scm_cmpl_decons_let(exp, SCM_CMPL_SYNTAX_LET,
                              SCM_CSETTER_L(name), SCM_CSETTER_L(vars),
@@ -3259,11 +3425,11 @@ scm_cmpl_compile_let(ScmObj exp, ScmObj env, ScmObj next, int arity,
   }
 
   if (scm_obj_null_p(name))
-    next = scm_cmpl_cmpl_closure_body(body, new_env, next, arity,
+    next = scm_cmpl_cmpl_closure_body(cmpl, body, new_env, next, arity,
                                       tail_p, false, (size_t)nr_vars,
                                       rdepth);
   else
-    next = scm_cmpl_cmpl_named_let_body(name, vars, inits, body,
+    next = scm_cmpl_cmpl_named_let_body(cmpl, name, vars, inits, body,
                                         new_env, next, arity,
                                         tail_p, false, rdepth);
 
@@ -3287,7 +3453,8 @@ scm_cmpl_compile_let(ScmObj exp, ScmObj env, ScmObj next, int arity,
       ini_exp = scm_capi_vector_ref(inits, i - 1);
       if (scm_obj_null_p(ini_exp)) return SCM_OBJ_NULL;
 
-      next = scm_cmpl_compile_exp(ini_exp, env, next, 1, false, false, &rd);
+      next = scm_cmpl_compile_exp(cmpl, ini_exp, env, next, 1,
+                                  false, false, &rd);
       if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
 
       if (rd > *rdepth) *rdepth = rd;
@@ -3301,7 +3468,8 @@ scm_cmpl_compile_let(ScmObj exp, ScmObj env, ScmObj next, int arity,
 }
 
 static ScmObj
-scm_cmpl_compile_let_a(ScmObj exp, ScmObj env, ScmObj next, int arity,
+scm_cmpl_compile_let_a(ScmObj cmpl, ScmObj exp, ScmObj env,
+                       ScmObj next, int arity,
                        bool tail_p, bool toplevel_p, ssize_t *rdepth)
 {
   ScmObj name = SCM_OBJ_INIT, bindings = SCM_OBJ_INIT, body = SCM_OBJ_INIT;
@@ -3312,10 +3480,12 @@ scm_cmpl_compile_let_a(ScmObj exp, ScmObj env, ScmObj next, int arity,
   int rslt;
 
 
-  SCM_STACK_FRAME_PUSH(&exp, &env, &next,
+  SCM_STACK_FRAME_PUSH(&cmpl, &exp, &env, &next,
                        &name, &bindings, &body,
                        &vars, &inits,
                        &var,  &ini_exp, &new_env);
+
+  scm_assert_obj_type(cmpl, &SCM_COMPILER_TYPE_INFO);
 
   rslt = scm_cmpl_decons_let(exp, SCM_CMPL_SYNTAX_LET_A,
                              SCM_CSETTER_L(name), SCM_CSETTER_L(vars),
@@ -3342,7 +3512,7 @@ scm_cmpl_compile_let_a(ScmObj exp, ScmObj env, ScmObj next, int arity,
     }
   }
 
-  next = scm_cmpl_cmpl_closure_body(body, new_env, next, arity,
+  next = scm_cmpl_cmpl_closure_body(cmpl, body, new_env, next, arity,
                                     tail_p, false, (nr_vars > 0) ? 1 : 0,
                                     rdepth);
   if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
@@ -3375,7 +3545,8 @@ scm_cmpl_compile_let_a(ScmObj exp, ScmObj env, ScmObj next, int arity,
     ini_exp = scm_capi_vector_ref(inits, (size_t)i - 1);
     if (scm_obj_null_p(ini_exp)) return SCM_OBJ_NULL;
 
-    next = scm_cmpl_compile_exp(ini_exp, new_env, next, 1, false, false, &rd);
+    next = scm_cmpl_compile_exp(cmpl, ini_exp, new_env, next, 1,
+                                false, false, &rd);
     if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
 
     if (rd >= i && rd - i > *rdepth)
@@ -3389,7 +3560,8 @@ scm_cmpl_compile_let_a(ScmObj exp, ScmObj env, ScmObj next, int arity,
 }
 
 static ScmObj
-scm_cmpl_compile_letrec(ScmObj exp, ScmObj env, ScmObj next, int arity,
+scm_cmpl_compile_letrec(ScmObj cmpl, ScmObj exp, ScmObj env,
+                        ScmObj next, int arity,
                         bool tail_p, bool toplevel_p, ssize_t *rdepth)
 {
   ScmObj name = SCM_OBJ_INIT, body = SCM_OBJ_INIT, vars = SCM_OBJ_INIT;
@@ -3397,7 +3569,7 @@ scm_cmpl_compile_letrec(ScmObj exp, ScmObj env, ScmObj next, int arity,
   ssize_t nr_vars, rd;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&exp, &env, &next,
+  SCM_STACK_FRAME_PUSH(&cmpl, &exp, &env, &next,
                        &name, &body, &vars,
                        &inits, &ini_exp, &new_env);
 
@@ -3422,7 +3594,7 @@ scm_cmpl_compile_letrec(ScmObj exp, ScmObj env, ScmObj next, int arity,
     new_env = env;
   }
 
-  next = scm_cmpl_compile_body(body, new_env, next, arity,
+  next = scm_cmpl_compile_body(cmpl, body, new_env, next, arity,
                                tail_p, false, rdepth);
   if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
 
@@ -3442,7 +3614,8 @@ scm_cmpl_compile_letrec(ScmObj exp, ScmObj env, ScmObj next, int arity,
       ini_exp = scm_capi_vector_ref(inits, i - 1);
       if (scm_obj_null_p(ini_exp)) return SCM_OBJ_NULL;
 
-      next = scm_cmpl_compile_exp(ini_exp, new_env, next, 1, false, false, &rd);
+      next = scm_cmpl_compile_exp(cmpl, ini_exp, new_env, next, 1,
+                                  false, false, &rd);
       if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
 
       if (rd > *rdepth) *rdepth = rd;
@@ -3461,7 +3634,8 @@ scm_cmpl_compile_letrec(ScmObj exp, ScmObj env, ScmObj next, int arity,
 }
 
 static ScmObj
-scm_cmpl_compile_letrec_a(ScmObj exp, ScmObj env, ScmObj next, int arity,
+scm_cmpl_compile_letrec_a(ScmObj cmpl, ScmObj exp, ScmObj env,
+                          ScmObj next, int arity,
                           bool tail_p, bool toplevel_p, ssize_t *rdepth)
 {
   ScmObj name = SCM_OBJ_INIT, body = SCM_OBJ_INIT, vars = SCM_OBJ_INIT;
@@ -3469,9 +3643,11 @@ scm_cmpl_compile_letrec_a(ScmObj exp, ScmObj env, ScmObj next, int arity,
   ssize_t nr_vars, rd;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&exp, &env, &next,
+  SCM_STACK_FRAME_PUSH(&cmpl, &exp, &env, &next,
                        &name, &body, &vars,
                        &inits, &new_env, &ini_exp);
+
+  scm_assert_obj_type(cmpl, &SCM_COMPILER_TYPE_INFO);
 
   rslt = scm_cmpl_decons_let(exp, SCM_CMPL_SYNTAX_LETREC_A,
                              SCM_CSETTER_L(name), SCM_CSETTER_L(vars),
@@ -3494,7 +3670,7 @@ scm_cmpl_compile_letrec_a(ScmObj exp, ScmObj env, ScmObj next, int arity,
     new_env = env;
   }
 
-  next = scm_cmpl_compile_body(body, new_env, next, arity,
+  next = scm_cmpl_compile_body(cmpl, body, new_env, next, arity,
                                tail_p, false, rdepth);
   if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
 
@@ -3511,7 +3687,8 @@ scm_cmpl_compile_letrec_a(ScmObj exp, ScmObj env, ScmObj next, int arity,
       ini_exp = scm_capi_vector_ref(inits, i - 1);
       if (scm_obj_null_p(ini_exp)) return SCM_OBJ_NULL;
 
-      next = scm_cmpl_compile_exp(ini_exp, new_env, next, 1, false, false, &rd);
+      next = scm_cmpl_compile_exp(cmpl, ini_exp, new_env, next, 1,
+                                  false, false, &rd);
       if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
 
       if (rd > *rdepth) *rdepth = rd;
@@ -3545,19 +3722,20 @@ scm_cmpl_decons_begin(ScmObj exp, scm_csetter_t *exp_lst)
 }
 
 static ScmObj
-scm_cmpl_compile_begin(ScmObj exp, ScmObj env, ScmObj next, int arity,
+scm_cmpl_compile_begin(ScmObj cmpl, ScmObj exp, ScmObj env,
+                       ScmObj next, int arity,
                        bool tail_p, bool toplevel_p, ssize_t *rdepth)
 {
   ScmObj exp_lst = SCM_OBJ_INIT;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&exp, &env, &next,
+  SCM_STACK_FRAME_PUSH(&cmpl, &exp, &env, &next,
                        &exp_lst);
 
   rslt = scm_cmpl_decons_begin(exp, SCM_CSETTER_L(exp_lst));
   if (rslt < 0) return SCM_OBJ_NULL;
 
-  return scm_cmpl_compile_exp_list(exp_lst, env, next, arity,
+  return scm_cmpl_compile_exp_list(cmpl, exp_lst, env, next, arity,
                                    tail_p, toplevel_p, rdepth);
 }
 
@@ -3685,7 +3863,8 @@ scm_cmpl_decons_do(ScmObj exp, scm_csetter_t *vars, scm_csetter_t *inits,
 }
 
 static ScmObj
-scm_cmpl_compile_do(ScmObj exp, ScmObj env, ScmObj next, int arity,
+scm_cmpl_compile_do(ScmObj cmpl, ScmObj exp, ScmObj env,
+                    ScmObj next, int arity,
                     bool tail_p, bool toplevel_p, ssize_t *rdepth)
 {
   ScmObj vars = SCM_OBJ_INIT, inits = SCM_OBJ_INIT, steps = SCM_OBJ_INIT;
@@ -3697,11 +3876,13 @@ scm_cmpl_compile_do(ScmObj exp, ScmObj env, ScmObj next, int arity,
   bool assigned;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&exp, &env, &next,
+  SCM_STACK_FRAME_PUSH(&cmpl, &exp, &env, &next,
                        &vars, &inits, &steps,
                        &test, &exps, &cmds,
                        &ve, &ie, &se,
                        &lbl_start, &lbl_end, &new_env);
+
+  scm_assert_obj_type(cmpl, &SCM_COMPILER_TYPE_INFO);
 
   rslt = scm_cmpl_decons_do(exp,
                             SCM_CSETTER_L(vars), SCM_CSETTER_L(inits),
@@ -3726,17 +3907,17 @@ scm_cmpl_compile_do(ScmObj exp, ScmObj env, ScmObj next, int arity,
     if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
   }
 
-  next = scm_cmpl_compile_exp_list(exps, new_env, next, arity,
+  next = scm_cmpl_compile_exp_list(cmpl, exps, new_env, next, arity,
                                    tail_p, false, rdepth);
   if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
 
-  lbl_end = scm_cmpl_gen_label("do-e");
+  lbl_end = scm_cmpl_gen_label(cmpl, "do-e");
   if (scm_obj_null_p(lbl_end)) return SCM_OBJ_NULL;
 
   next = scm_cmpl_push_inst_label(lbl_end, next);
   if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
 
-  lbl_start = scm_cmpl_gen_label("do-s");
+  lbl_start = scm_cmpl_gen_label(cmpl, "do-s");
   if (scm_obj_null_p(lbl_start)) return SCM_OBJ_NULL;
 
   next = scm_cmpl_push_inst_jmp(lbl_start, next);
@@ -3770,7 +3951,8 @@ scm_cmpl_compile_do(ScmObj exp, ScmObj env, ScmObj next, int arity,
       next = scm_cmpl_push_inst_push(next);
       if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
 
-      next = scm_cmpl_compile_exp(se, new_env, next, 1, false, false, &rd);
+      next = scm_cmpl_compile_exp(cmpl, se, new_env, next, 1,
+                                  false, false, &rd);
       if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
 
       if (rd > *rdepth) *rdepth = rd;
@@ -3781,7 +3963,7 @@ scm_cmpl_compile_do(ScmObj exp, ScmObj env, ScmObj next, int arity,
   }
 
   if (!scm_capi_nil_p(cmds)) {
-    next = scm_cmpl_compile_exp_list(cmds, new_env, next, -1,
+    next = scm_cmpl_compile_exp_list(cmpl, cmds, new_env, next, -1,
                                      false, false, &rd);
     if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
 
@@ -3791,7 +3973,7 @@ scm_cmpl_compile_do(ScmObj exp, ScmObj env, ScmObj next, int arity,
   next = scm_cmpl_push_inst_jmpt(lbl_end, next);
   if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
 
-  next = scm_cmpl_compile_exp(test, new_env, next, 1, false, false, &rd);
+  next = scm_cmpl_compile_exp(cmpl, test, new_env, next, 1, false, false, &rd);
   if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
 
   if (rd > *rdepth) *rdepth = rd;
@@ -3822,7 +4004,7 @@ scm_cmpl_compile_do(ScmObj exp, ScmObj env, ScmObj next, int arity,
       next = scm_cmpl_push_inst_push(next);
       if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
 
-      next = scm_cmpl_compile_exp(ie, env, next, 1, false, false, &rd);
+      next = scm_cmpl_compile_exp(cmpl, ie, env, next, 1, false, false, &rd);
       if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
 
       if (rd > *rdepth) *rdepth = rd;
@@ -3836,26 +4018,65 @@ scm_cmpl_compile_do(ScmObj exp, ScmObj env, ScmObj next, int arity,
 }
 
 static ScmObj
-scm_cmpl_compile_exp(ScmObj exp, ScmObj env, ScmObj next, int arity,
+scm_cmpl_compile_exp(ScmObj cmpl, ScmObj exp, ScmObj env,
+                     ScmObj next, int arity,
                      bool tail_p, bool toplevel_p, ssize_t *rdepth)
 {
   int syntax_id;
 
-  SCM_STACK_FRAME_PUSH(&exp, &env, &next);
+  SCM_STACK_FRAME_PUSH(&cmpl, &exp, &env, &next);
 
-  syntax_id = scm_cmpl_syntax_id(exp, env, tail_p, toplevel_p);
-  return scm_cmpl_compile_funcs[syntax_id](exp, env, next, arity,
+  scm_assert_obj_type(cmpl, &SCM_COMPILER_TYPE_INFO);
+
+  syntax_id = scm_cmpl_syntax_id(cmpl, exp, env, tail_p, toplevel_p);
+  return scm_cmpl_compile_funcs[syntax_id](cmpl, exp, env, next, arity,
                                            tail_p, toplevel_p, rdepth);
 }
 
+int
+scm_cmpl_initialize(ScmObj cmpl)
+{
+  scm_assert_obj_type(cmpl, &SCM_COMPILER_TYPE_INFO);
+
+  SCM_COMPILER(cmpl)->label_id = 0;
+  SCM_COMPILER(cmpl)->module = SCM_OBJ_NULL;
+
+  return 0;
+}
+
 ScmObj
-scm_cmpl_compile(ScmObj exp)
+scm_cmpl_new(SCM_MEM_TYPE_T mtype)
+{
+  ScmObj cmpl = SCM_OBJ_INIT;
+
+  cmpl = scm_capi_mem_alloc(&SCM_COMPILER_TYPE_INFO, 0, mtype);
+  if (scm_obj_null_p(cmpl)) return SCM_OBJ_NULL;
+
+  if (scm_cmpl_initialize(cmpl) < 0)
+    return SCM_OBJ_NULL;
+
+  return cmpl;
+}
+
+void
+scm_cmpl_select_module(ScmObj cmpl, ScmObj module)
+{
+  scm_assert_obj_type(cmpl, &SCM_COMPILER_TYPE_INFO);
+  scm_assert(scm_capi_module_p(module));
+
+  SCM_SLOT_SETQ(ScmCompiler, cmpl, module, module);
+}
+
+ScmObj
+scm_cmpl_compile(ScmObj cmpl, ScmObj exp)
 {
   ScmObj env = SCM_OBJ_INIT, next = SCM_OBJ_INIT;
   ssize_t rdepth;
 
-  SCM_STACK_FRAME_PUSH(&exp,
+  SCM_STACK_FRAME_PUSH(&cmpl, &exp,
                        &env, &next);
+
+  scm_assert_obj_type(cmpl, &SCM_COMPILER_TYPE_INFO);
 
   env = scm_cmpl_env_new();
   if (scm_obj_null_p(env)) return SCM_OBJ_NULL;
@@ -3863,15 +4084,49 @@ scm_cmpl_compile(ScmObj exp)
   next = scm_api_nil();
   if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
 
-  return scm_cmpl_compile_exp(exp, env, next, 1, false, true, &rdepth);
+  return scm_cmpl_compile_exp(cmpl, exp, env, next, 1, false, true, &rdepth);
 }
+
+int
+scm_cmpl_pretty_print(ScmObj obj, ScmObj port, bool write_p)
+{
+  char str[256];
+  int rslt;
+
+  scm_assert_obj_type(obj, &SCM_COMPILER_TYPE_INFO);
+
+  snprintf(str, sizeof(str), "#<%s %p>", scm_obj_type_name(obj), (void *)obj);
+
+  rslt = scm_capi_write_cstr(str, SCM_ENC_ASCII, port);
+  if (rslt < 0) return -1;
+
+  return 0;
+}
+
+void
+scm_cmpl_gc_initialize(ScmObj obj, ScmObj mem)
+{
+  scm_assert_obj_type(obj, &SCM_COMPILER_TYPE_INFO);
+
+  SCM_COMPILER(obj)->module = SCM_OBJ_NULL;
+}
+
+int
+scm_cmpl_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
+{
+  scm_assert_obj_type(obj, &SCM_COMPILER_TYPE_INFO);
+  scm_assert(scm_obj_not_null_p(mem));
+  scm_assert(handler != NULL);
+
+  return SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_COMPILER(obj)->module, mem);
+}
+
 
 #ifdef SCM_UNIT_TEST
 
 void
 scm_cmpl_ut_clear_label_id(void)
 {
-  label_id = 0;
 }
 
 #endif
@@ -3879,12 +4134,14 @@ scm_cmpl_ut_clear_label_id(void)
 
 /*******************************************************/
 
-int
-scm_core_syntx_system_setup(void)
+static int
+scm_define_syntax(ScmObj module)
 {
-  ScmObj sym = SCM_OBJ_INIT, syx = SCM_OBJ_INIT, rslt = SCM_OBJ_INIT;
+  ScmObj sym = SCM_OBJ_INIT, syx = SCM_OBJ_INIT;
+  int rslt;
 
-  SCM_STACK_FRAME_PUSH(&sym, &syx, &rslt);
+  SCM_STACK_FRAME_PUSH(&module,
+                       &sym, &syx);
 
   for (int i = 0; i < SCM_CMPL_NR_SYNTAX; i++) {
     if (scm_cmpl_syntax_keywords[i] == NULL) continue;
@@ -3896,10 +4153,29 @@ scm_core_syntx_system_setup(void)
     syx = scm_api_make_syntax(i, scm_cmpl_syntax_keywords[i]);
     if (scm_obj_null_p(syx)) return -1;
 
-    rslt = scm_api_global_var_define(sym, syx);
-    if (scm_obj_null_p(rslt)) return -1;
+    rslt = scm_capi_define_global_syx(module, sym, syx, true);
+    if (rslt < 0) return -1;
   }
 
   return 0;
 }
 
+int
+scm_initialize_module_core_syntax(void)
+{
+  ScmObj name = SCM_OBJ_INIT, module = SCM_OBJ_INIT;
+  int rslt;
+
+  SCM_STACK_FRAME_PUSH(&name, &module);
+
+  name = scm_capi_make_symbol_from_cstr("core-syntax", SCM_ENC_ASCII);
+  if (scm_obj_null_p(name)) return -1;
+
+  module = scm_api_make_module(name);
+  if (scm_obj_null_p(module)) return -1;
+
+  rslt = scm_define_syntax(module);
+  if (rslt < 0) return -1;
+
+  return 0;
+}
