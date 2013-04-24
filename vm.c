@@ -1257,29 +1257,29 @@ scm_vm_eframe_arg_ref(ScmEnvFrame *efp_list, size_t idx, size_t layer,
 }
 
 scm_local_func ScmObj
-scm_vm_make_trampolining_code(ScmObj vm, ScmObj clsr,
-                              ScmObj args, ScmObj callback, ScmObj handover)
+scm_vm_make_trampolining_code(ScmObj vm, ScmObj proc,
+                              ScmObj args, ScmObj postproc, ScmObj handover)
 {
   ScmObj iseq = SCM_OBJ_INIT, cur = SCM_OBJ_INIT, arg = SCM_OBJ_INIT;
   int i, arity, nr_decons;
   ssize_t len, rslt;
   bool unwished;
 
-  SCM_STACK_FRAME_PUSH(&vm, &clsr, &args, &callback, &iseq, &cur, &arg);
+  SCM_STACK_FRAME_PUSH(&vm, &proc, &args, &postproc, &iseq, &cur, &arg);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-  scm_assert(scm_capi_closure_p(clsr));
+  scm_assert(scm_capi_closure_p(proc));
   scm_assert(scm_capi_nil_p(args) || scm_capi_pair_p(args));
-  scm_assert(scm_obj_null_p(callback)
-             || scm_capi_subrutine_p(callback)
-             || scm_capi_closure_p(callback));
-  scm_assert(scm_obj_null_p(callback) || scm_obj_not_null_p(handover));
+  scm_assert(scm_obj_null_p(postproc)
+             || scm_capi_subrutine_p(postproc)
+             || scm_capi_closure_p(postproc));
+  scm_assert(scm_obj_null_p(postproc) || scm_obj_not_null_p(handover));
 
   /* 以下の処理を実行する iseq オブエクトを生成する
    * l args を引数として target クロージャを呼出す
-   *   (callback が NULL の場合、target クロージャ の呼出は tail call とする)
-   * 2 callback が非 NULL の場合、handover と target クロージャの戻り値を引数として
-   *   callback を tail call する
+   *   (postproc が NULL の場合、target クロージャ の呼出は tail call とする)
+   * 2 postproc が非 NULL の場合、handover と target クロージャの戻り値を引数として
+   *   postproc を tail call する
    */
 
   iseq = scm_api_make_iseq();
@@ -1288,7 +1288,7 @@ scm_vm_make_trampolining_code(ScmObj vm, ScmObj clsr,
   rslt = scm_capi_iseq_push_opfmt_si(iseq, SCM_OPCODE_ARITY, 1);
   if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
-  if (!scm_obj_null_p(callback)) {
+  if (!scm_obj_null_p(postproc)) {
     rslt = scm_capi_iseq_push_opfmt_noarg(iseq, SCM_OPCODE_EFRAME);
     if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
@@ -1299,10 +1299,10 @@ scm_vm_make_trampolining_code(ScmObj vm, ScmObj clsr,
     if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
   }
 
-  rslt = scm_capi_arity(clsr, &arity);
+  rslt = scm_capi_arity(proc, &arity);
   if (rslt < 0) return SCM_OBJ_NULL;
 
-  rslt = scm_capi_procedure_flg_set_p(clsr, SCM_PROC_ADJ_UNWISHED, &unwished);
+  rslt = scm_capi_procedure_flg_set_p(proc, SCM_PROC_ADJ_UNWISHED, &unwished);
   if (rslt < 0) return SCM_OBJ_NULL;
 
   len = scm_capi_length(args);
@@ -1323,7 +1323,7 @@ scm_vm_make_trampolining_code(ScmObj vm, ScmObj clsr,
     nr_decons = unwished ? (int)len : -arity - 1;
   }
 
-  if (scm_obj_not_null_p(callback)) {
+  if (scm_obj_not_null_p(postproc)) {
     rslt = scm_capi_iseq_push_opfmt_noarg(iseq, SCM_OPCODE_CFRAME);
     if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
   }
@@ -1359,10 +1359,10 @@ scm_vm_make_trampolining_code(ScmObj vm, ScmObj clsr,
     }
   }
 
-  rslt = scm_capi_iseq_push_opfmt_obj(iseq, SCM_OPCODE_IMMVAL, clsr);
+  rslt = scm_capi_iseq_push_opfmt_obj(iseq, SCM_OPCODE_IMMVAL, proc);
   if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
-  if (scm_obj_null_p(callback)) {
+  if (scm_obj_null_p(postproc)) {
     rslt = scm_capi_iseq_push_opfmt_si(iseq, SCM_OPCODE_TAIL_CALL,
                                        unwished ? (int)len : arity);
     if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
@@ -1377,7 +1377,7 @@ scm_vm_make_trampolining_code(ScmObj vm, ScmObj clsr,
     rslt = scm_capi_iseq_push_opfmt_noarg(iseq, SCM_OPCODE_MVPUSH);
     if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
-    rslt = scm_capi_iseq_push_opfmt_obj(iseq, SCM_OPCODE_IMMVAL, callback);
+    rslt = scm_capi_iseq_push_opfmt_obj(iseq, SCM_OPCODE_IMMVAL, postproc);
     if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
     rslt = scm_capi_iseq_push_opfmt_noarg(iseq, SCM_OPCODE_TAIL_APPLY);
@@ -2922,35 +2922,35 @@ scm_vm_reinstatement_cont(ScmObj vm, ScmObj cc, const ScmObj *val, int vc)
 }
 
 int
-scm_vm_setup_stat_trmp(ScmObj vm, ScmObj target, ScmObj args,
-                       ScmSubrFunc callback, ScmObj handover)
+scm_vm_setup_stat_trmp(ScmObj vm, ScmObj proc, ScmObj args,
+                       ScmSubrFunc postproc, ScmObj handover)
 {
   ScmObj trmp_code = SCM_OBJ_INIT, trmp_clsr = SCM_OBJ_INIT;
-  ScmObj cb_subr = SCM_OBJ_INIT, env = SCM_OBJ_INIT;
+  ScmObj pp_subr = SCM_OBJ_INIT, env = SCM_OBJ_INIT;
   scm_byte_t *ip;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&target, &args, handover,
+  SCM_STACK_FRAME_PUSH(&proc, &args, handover,
                        &trmp_code, &trmp_clsr,
-                       &cb_subr, &env);
+                       &pp_subr, &env);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-  scm_assert(scm_capi_closure_p(target));
+  scm_assert(scm_capi_closure_p(proc));
   scm_assert(scm_capi_nil_p(args) || scm_capi_pair_p(args));
 
-  if (callback != NULL) {
-    cb_subr = scm_capi_make_subrutine(callback, -2, SCM_PROC_ADJ_UNWISHED);
-    if (scm_obj_null_p(target)) return -1; /* [ERR]: [through] */
+  if (postproc != NULL) {
+    pp_subr = scm_capi_make_subrutine(postproc, -2, SCM_PROC_ADJ_UNWISHED);
+    if (scm_obj_null_p(pp_subr)) return -1; /* [ERR]: [through] */
   }
   else {
-    cb_subr = SCM_OBJ_NULL;
+    pp_subr = SCM_OBJ_NULL;
   }
 
   if (scm_obj_null_p(handover))
     handover = scm_api_undef();
 
-  trmp_code = scm_vm_make_trampolining_code(vm, target, args,
-                                            cb_subr, handover);
+  trmp_code = scm_vm_make_trampolining_code(vm, proc, args,
+                                            pp_subr, handover);
   if (scm_obj_null_p(trmp_code)) return -1; /* [ERR]: [through] */
 
   env = SCM_OBJ_NULL;

@@ -478,8 +478,8 @@ ScmObj scm_capi_cont_capture_obj(ScmObj cont);
 /*  Setup Trampolining                                             */
 /*******************************************************************/
 
-int scm_capi_trampolining(ScmObj target, ScmObj arg,
-                          ScmSubrFunc callback, ScmObj handover);
+int scm_capi_trampolining(ScmObj proc, ScmObj arg,
+                          ScmSubrFunc postproc, ScmObj handover);
 
 
 /*******************************************************************/

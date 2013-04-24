@@ -4404,10 +4404,10 @@ scm_capi_cont_capture_obj(ScmObj cont)
 /*******************************************************************/
 
 int
-scm_capi_trampolining(ScmObj target, ScmObj args,
-                      ScmSubrFunc callback, ScmObj handover)
+scm_capi_trampolining(ScmObj proc, ScmObj args,
+                      ScmSubrFunc postproc, ScmObj handover)
 {
-  if ((!scm_capi_closure_p(target))) {
+  if ((!scm_capi_closure_p(proc))) {
     scm_capi_error("", 0);
     return SCM_OBJ_NULL;
   }
@@ -4416,8 +4416,8 @@ scm_capi_trampolining(ScmObj target, ScmObj args,
     return SCM_OBJ_NULL;
   }
 
-  return scm_vm_setup_stat_trmp(scm_vm_current_vm(), target, args,
-                                callback, handover);
+  return scm_vm_setup_stat_trmp(scm_vm_current_vm(), proc, args,
+                                postproc, handover);
 }
 
 
