@@ -655,10 +655,16 @@ scm_moduletree_add_branche(ScmModuleTreeNode *node, ScmObj name)
     size_t new_cap;
     ScmModuleTreeNode **new_bra;
 
-    if (node->capacity > SIZE_MAX / 2)
+    if (node->capacity == SIZE_MAX) {
+      scm_capi_error("faild to register a module: buffer overlfow", 0);
+      return NULL;
+    }
+    else if (node->capacity > SIZE_MAX / 2) {
       new_cap = SIZE_MAX;
-    else
-      new_cap *= 2;
+    }
+    else {
+      new_cap = node->capacity * 2;
+    }
 
     new_bra = scm_capi_realloc(node->branches,
                                sizeof(ScmModuleTreeNode) * new_cap);
