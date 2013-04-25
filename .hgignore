@@ -1,0 +1,9 @@
+syntax: glob
+
+src/*.o
+src/experiment/*
+src/test/*.o
+src/test/.lib/*.so
+test/unity/build/*
+test/unity/src/*.o
+test/ut/*.o

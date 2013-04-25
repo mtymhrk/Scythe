@@ -1,47 +1,18 @@
-LD       = ld
-CC       = gcc
-CFLAGS   = -O2 -g -std=gnu99 -Wall -Wextra -Wformat=2 -Wstrict-aliasing=2 \
-           -Wcast-qual -Wcast-align -Wwrite-strings -Wconversion -Wfloat-equal \
-           -Wpointer-arith -Wswitch-enum -Wno-unused-parameter
-INCLUDES =
-SOURCES  = 
-OBJS     = $(SOURCES:.c=.o)
-TARGET   = scythe
-DOXYGEN  = doxygen
-DOXYGEN_CONF = doxygen.conf
+SRC_DIR = src
+TEST_DIR = test
+RAKE=rake1.9
 
-include Makefile.sources
+all: bin
 
-all: $(TARGET) $(OBJS)
+.PHONY: bin unit clean
 
-$(TARGET) $(OBJS): Makefile
+bin:
+	$(MAKE) -C $(SRC_DIR)
 
-.c.o:
-	$(CC) -c -o $@ $(INCLUDES) $(CFLAGS) $<
-
-.c.s:
-	$(CC) -S -o $@ $(INCLUDES) $(CFLAGS) $<
-
-$(TARGET): $(OBJS)
-	$(CC) -o $@ $(OBJS)
-
-.PHONY: clean depend test doxygen check-syntax
+unit:
+	$(MAKE) -C $(SRC_DIR) test_build CMACROS=-DSCM_UNIT_TEST
+	cd $(TEST_DIR); $(RAKE) unit summary
 
 clean:
-	-rm $(TARGET) $(OBJS)
-	$(MAKE) -C ./test clean
-
-depend:
-	$(CC) -MM $(INCLUDES) $(CFLAGS) $(SOURCES) > Makefile.depend
-
-test:
-#	$(MAKE)
-	$(MAKE) -C ./test depend all run
-
-doxygen:
-	$(DOXYGEN) $(DOXYGEN_CONF)
-
-check-syntax:
-	LANG=C $(CC) -fsyntax-only $(INCLUDES) $(CFLAGS) $(CHK_SOURCES)
-
-include Makefile.depend
+	$(MAKE) -C $(SRC_DIR) clean
+	cd $(TEST_DIR); $(RAKE) clean_all

@@ -1,0 +1,41 @@
+compiler:
+  path: gcc
+  source_path:     '../src/'
+  unity_src_path: 'unity/src/'
+  unit_tests_path: &unit_tests_path 'ut/'
+  build_path:      &build_path 'unity/build/'
+  options:
+    - '-c'
+    - '-Wall'
+    - '-Wno-address'
+    - '-std=gnu99'
+    - '-pedantic'
+  includes:
+    prefix: '-I'
+    items:
+      - 'unity/src/'
+      - '../src/'
+      - *unit_tests_path
+  defines:
+    prefix: '-D'
+    items:
+      - UNIT_TEST
+  object_files:
+    prefix: '-o'
+    extension: '.o'
+    destination: *build_path
+linker:
+  path: gcc
+  options:
+  includes:
+    prefix: '-I'
+  object_files:
+    path: ''
+    extension: '.o'
+  bin_files:
+    prefix: '-o'
+    extension: '.run'
+    destination: *build_path
+colour: true
+:unity:
+  :plugins: []
