@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# -*- coding:utf-8 -*-
 require 'yaml'
 require 'fileutils'
 require HERE+'unity/auto/unity_test_summary'
@@ -393,11 +393,15 @@ module RakefileHelpers
 
   # テストファイル毎に runner ファイルと実行ファイルを作成してテストを走らせ
   # るメッソド
-  def run_test_cases_per_test
+  def run_test_cases_individually
+    # テスト対象のオブジェクトファイルと Unity のオブジェクトファイルの一覧
+    # を取得
     objs = get_unit_test_target_objs + get_unity_objs
 
+    # テストコードの Makefile.depend ファイルを更新
     make_test_case_depend_file
 
+    # Unity をコンパイル
     compile_unity
 
     get_unit_test_case_files.each do |test|
@@ -405,43 +409,59 @@ module RakefileHelpers
 
       obj_list = objs.dup
 
+      # テストコードをコンパイルし、そのオブジェクトファイルを一覧に追加
       obj_list << compile_test_case_file(test)
 
+      # テストコードの runner コードを作成
       runner = build_test_runner_file(test)
 
+      # runner コードをコンパイルし、そのオブジェクトファイルを一覧に追加
       obj_list << compile_test_runner_file(runner)
 
+      # 全てのオブジェクトファイルをリンクして実行ファイルを作成
       link_it(test_base, obj_list)
 
+      # 実行ファイルを実行
       run_test_case(test_base)
     end
   end
 
   # 全てのテストをまとめて実行する runner ファイルと実行ファイルを 1 つ作成し
   # てテストを走らせるメッソド
-  def run_test_cases_all_in_one_runner
+  def run_test_cases_jointly
     test_cmd_base = 'test'
 
+    # テスト対象のオブジェクトファイル、テストコードのオブジェクトファイル、
+    # Unity のオブジェクトファイルの一覧を取得
     obj_list = get_unit_test_target_objs
     obj_list += get_unit_test_case_objs
     obj_list += get_unity_objs
 
+    # テストコードの Makefile.depend ファイルを更新
     make_test_case_depend_file
 
+    # Unity をコンパイル
     compile_unity
 
+    # テストコードを全てコンパイル
     compile_test_case_file_all
 
+    # テストコードのファイル一覧を取得
     test_files = get_unit_test_case_files
 
+    # runner コードのファイル名の生成
     runner_path = test_runner_file_path(test_cmd_base)
 
-    runner = build_test_runner_file_bundle_all(test_files, runner_path)
+    # テストコードをまとめて全て実行させる runner コードを作成
+    build_test_runner_file_bundle_all(test_files, runner_path)
 
-    obj_list << compile_test_runner_file(runner)
+    # runner コードをコンパイルし、そのオブジェクトファイルを一覧に追加
+    obj_list << compile_test_runner_file(runner_path)
 
+    # 全てのオブジェクトファイルをリンクして実行ファイルを作成
     link_it(test_cmd_base, obj_list)
 
+    # 実行ファイルを実行
     run_test_case(test_cmd_base)
   end
 

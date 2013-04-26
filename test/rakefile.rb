@@ -12,8 +12,8 @@ DEFAULT_CONFIG_FILE = 'gcc_64.yml'
 configure_toolchain(DEFAULT_CONFIG_FILE)
 
 task :unit do
-  # run_test_cases_per_test
-  run_test_cases_all_in_one_runner
+  # run_test_cases_individually
+  run_test_cases_jointly
 end
 
 task :clean_all => [:clean] do
