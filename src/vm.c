@@ -14,9 +14,8 @@
 #include "symbol.h"
 #include "module.h"
 #include "procedure.h"
-#include "core_subr.h"
 #include "miscobjects.h"
-#include "compiler.h"
+#include "core_modules.h"
 #include "api.h"
 #include "impl_utils.h"
 
@@ -604,49 +603,6 @@ scm_vm_clean_eval_env(ScmObj vm)
   SCM_VM(vm)->reg.cp = SCM_OBJ_NULL;
   SCM_VM(vm)->reg.vc = 0;
   SCM_VM(vm)->reg.flags = 0;
-}
-
-scm_local_func int
-scm_vm_load_builtin_modules(ScmObj vm)
-{
-  const char *imported_list[] = { "core-syntax", "core" };
-  ScmObj name = SCM_OBJ_INIT, module = SCM_OBJ_INIT, imported = SCM_OBJ_INIT;
-  int rslt;
-
-  SCM_STACK_FRAME_PUSH(&vm,
-                       &name, &module, &imported);
-
-  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-
-  rslt = scm_initialize_module_core_syntax();
-  if (rslt < 0) return -1;
-
-  rslt = scm_initialize_module_core();
-  if (rslt < 0) return -1;
-
-  name = scm_capi_make_symbol_from_cstr("main", SCM_ENC_ASCII);
-  if (scm_obj_null_p(name)) return -1;
-
-  module = scm_api_make_module(name);
-  if (scm_obj_null_p(module)) return -1;
-
-  for (size_t i = 0; i < sizeof(imported_list)/sizeof(imported_list[0]); i++) {
-    name = scm_capi_make_symbol_from_cstr(imported_list[i], SCM_ENC_ASCII);
-    if (scm_obj_null_p(name)) return -1;
-
-    rslt = scm_capi_find_module(name, SCM_CSETTER_L(imported));
-    if (rslt < 0) return -1;
-
-    if (scm_obj_null_p(imported)) {
-      scm_capi_error("failed to import a module: not exist", 0);
-      return -1;
-    }
-
-    rslt = scm_capi_import(module, imported);
-    if (rslt < 0) return -1;
-  }
-
-  return 0;
 }
 
 /* scm_local_func int */
@@ -2677,7 +2633,7 @@ scm_vm_setup_system(ScmObj vm)
   rslt = scm_vm_init_eval_env(vm);
   if (rslt < 0) return -1;       /* [ERR]: [through] */
 
-  rslt = scm_vm_load_builtin_modules(vm);
+  rslt = scm_load_core_modules();
   if (rslt < 0) return -1;
 
   return 0;

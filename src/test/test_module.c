@@ -10,6 +10,27 @@ static ScmObj module;
 static ScmObj name;
 static ScmObj gloc;
 static ScmObj symbol;
+static ScmObj syntax;
+
+ScmObj
+dummy_syntax_handler(ScmObj cmpl, ScmObj exp, ScmObj env,
+                     ScmObj next, int arity,
+                     bool tail_p, bool toplevel_p,
+                     ssize_t *rdepth)
+{
+  return SCM_OBJ_NULL;
+}
+
+void
+make_syntax(const char *k)
+{
+  ScmObj key = SCM_OBJ_INIT;
+
+  syntax = undef;
+
+  key = scm_capi_make_symbol_from_cstr(k, SCM_ENC_ASCII);
+  syntax = scm_capi_make_syntax(key, dummy_syntax_handler);
+}
 
 void
 find_module(const char *n)
@@ -76,11 +97,12 @@ cut_setup(void)
   undef = scm_api_undef();
   assert(scm_obj_not_null_p(undef));
 
-  module = name = gloc = symbol = undef;
+  module = name = gloc = symbol = syntax = undef;
   scm_capi_mem_register_extra_rfrn(SCM_REF_MAKE(module));
   scm_capi_mem_register_extra_rfrn(SCM_REF_MAKE(name));
   scm_capi_mem_register_extra_rfrn(SCM_REF_MAKE(gloc));
   scm_capi_mem_register_extra_rfrn(SCM_REF_MAKE(symbol));
+  scm_capi_mem_register_extra_rfrn(SCM_REF_MAKE(syntax));
 }
 
 void
@@ -332,7 +354,9 @@ test_define_global_syx(void)
   SCM_STACK_FRAME_PUSH(&sym, &syx, &actual);
 
   sym = scm_capi_make_symbol_from_cstr("var", SCM_ENC_ASCII);
-  syx = scm_api_make_syntax(123, "foo");
+
+  make_syntax("foo");
+  syx = syntax;
 
   make_module("test");
 
@@ -351,8 +375,12 @@ test_define_global_syx__already_bound(void)
   SCM_STACK_FRAME_PUSH(&sym, &syx1, &syx2, &actual);
 
   sym = scm_capi_make_symbol_from_cstr("var", SCM_ENC_ASCII);
-  syx1 = scm_api_make_syntax(123, "foo");
-  syx2 = scm_api_make_syntax(456, "bar");
+
+  make_syntax("foo");
+  syx1 = syntax;
+
+  make_syntax("bar");
+  syx2 = syntax;
 
   make_module("test");
 
@@ -388,7 +416,9 @@ test_global_syx_ref__refer_exported_symbol_of_imported_module(void)
   SCM_STACK_FRAME_PUSH(&sym, &syx, &actual);
 
   sym = scm_capi_make_symbol_from_cstr("var", SCM_ENC_ASCII);
-  syx = scm_api_make_syntax(123, "foo");
+
+  make_syntax("foo");
+  syx = syntax;
 
   make_module("imp");
   make_module("test");
@@ -412,7 +442,9 @@ test_global_syx_ref__refer_unexported_symbol_of_imported_module(void)
   SCM_STACK_FRAME_PUSH(&sym, &syx, &actual);
 
   sym = scm_capi_make_symbol_from_cstr("var", SCM_ENC_ASCII);
-  syx = scm_api_make_syntax(123, "foo");
+
+  make_syntax("foo");
+  syx = syntax;
 
   make_module("imp");
   make_module("test");

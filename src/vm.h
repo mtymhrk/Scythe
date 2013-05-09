@@ -311,8 +311,6 @@ int scm_vm_setup_global_env(ScmObj vm);
 void scm_vm_clean_global_env(ScmObj vm);
 void scm_vm_clean_eval_env(ScmObj vm);
 
-int scm_vm_load_builtin_modules(ScmObj vm);
-
 /* int scm_vm_stack_push(ScmObj vm, ScmObj elm); */
 /* ScmObj scm_vm_stack_pop(ScmObj vm); */
 

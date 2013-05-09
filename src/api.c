@@ -3489,9 +3489,18 @@ scm_capi_closure_env(ScmObj clsr, scm_csetter_t *env)
 /*******************************************************************/
 
 ScmObj
-scm_api_make_syntax(int id, const char *keyword)
+scm_capi_make_syntax(ScmObj keyword, ScmSyntaxHandlerFunc handler)
 {
-  return scm_syntax_new(SCM_MEM_HEAP, id, keyword);
+  if (!scm_capi_symbol_p(keyword)) {
+    scm_capi_error("failed to make syntax object: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (handler == NULL) {
+    scm_capi_error("failed to make syntax object: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_syntax_new(SCM_MEM_HEAP, keyword, handler);
 }
 
 extern inline bool
@@ -3501,15 +3510,31 @@ scm_capi_syntax_p(ScmObj obj)
   return (scm_obj_type_p(obj, &SCM_SYNTAX_TYPE_INFO) ? true : false);
 }
 
-extern inline int
-scm_capi_syntax_id(ScmObj syx)
+extern inline ScmObj
+scm_api_syntax_keyword(ScmObj syx)
 {
   if (!scm_capi_syntax_p(syx)) {
-    scm_capi_error("can not get syntax-id: invalid argument", 0);
+    scm_capi_error("faild to get syntax keyword: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_syntax_keyword(syx);
+}
+
+extern inline int
+scm_capi_syntax_handler(ScmObj syx, ScmSyntaxHandlerFunc *handler)
+{
+  if (!scm_capi_syntax_p(syx)) {
+    scm_capi_error("faild to get syntax handler: invalid argument", 0);
+    return -1;
+  }
+  else if (handler == NULL) {
+    scm_capi_error("faild to get syntax handler: invalid argument", 0);
     return -1;
   }
 
-  return scm_syntax_id(syx);
+  *handler = scm_syntax_handler(syx);
+  return 0;
 }
 
 

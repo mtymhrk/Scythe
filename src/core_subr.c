@@ -272,6 +272,17 @@ scm_subr_func_values(int argc, const ScmObj *argv)
   return scm_capi_return_val(argv, argc);
 }
 
+const char *scm_clsr_code_call_with_values =
+  "((eframe)"
+  " (cframe)"
+  " (sref 0 0)"
+  " (call 0)"
+  " (arity -1)"
+  " (mvpush)"
+  " (sref 1 0)"
+  " (tapply)"
+  ")";
+
 
 /*******************************************************************/
 /*  Eval                                                           */
@@ -430,120 +441,4 @@ scm_subr_func_default_exception_handler(int argc, const ScmObj *argv)
   val = scm_api_undef();
 
   return scm_capi_return_val(&val, 1);
-}
-
-static const char *scm_clsr_code_callvalues =
-  "((eframe)"
-  " (cframe)"
-  " (sref 0 0)"
-  " (call 0)"
-  " (arity -1)"
-  " (mvpush)"
-  " (sref 1 0)"
-  " (tapply)"
-  ")";
-
-
-/*******************************************************************/
-/*******************************************************************/
-
-static int
-scm_define_procedure(ScmObj module)
-{
-  const char *syms[] = { "null?", "cons", "car", "cdr", "read", "write",
-                         "display", "newline", "flush-output-port",
-                         "call/cc", "values", "eval-asm", "eval", "exit" };
-  int arities[] = { 1, 2, 1, 1, -1, -2, -2, -1, -1, 1, -1, 1, 1, -1 };
-  unsigned int flags[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                           0, SCM_PROC_ADJ_UNWISHED, 0, 0, 0 };
-  ScmSubrFunc funcs[] = { scm_subr_func_null_P, scm_subr_func_cons,
-                          scm_subr_func_car, scm_subr_func_cdr,
-                          scm_subr_func_read, scm_subr_func_write,
-                          scm_subr_func_display, scm_subr_func_newline,
-                          scm_subr_func_flush_output_port,
-                          scm_subr_func_callcc, scm_subr_func_values,
-                          scm_subr_func_eval_asm, scm_subr_func_eval,
-                          scm_subr_func_exit };
-  ScmObj sym  = SCM_OBJ_INIT;
-  ScmObj subr = SCM_OBJ_INIT;
-  int rslt;
-
-  SCM_STACK_FRAME_PUSH(&module,
-                       &sym, &subr);
-
-  for (size_t i = 0; i < sizeof(syms)/sizeof(syms[0]); i++) {
-    sym = scm_capi_make_symbol_from_cstr(syms[i], SCM_ENC_ASCII);
-    subr = scm_capi_make_subrutine(funcs[i], arities[i], flags[i]);
-    rslt = scm_capi_define_global_var(module, sym, subr, true);
-
-    if (rslt < 0 || scm_obj_null_p(subr) ||scm_obj_null_p(sym))
-      return -1;                   /* [ERR]: [through] */
-  }
-
-  subr = scm_capi_make_subrutine(scm_subr_func_default_exception_handler, 1, 0);
-  if (scm_obj_null_p(subr)) return -1;
-
-  scm_capi_push_exception_handler(subr);
-
-  return 0;
-}
-
-static int
-scm_define_closure(ScmObj module)
-{
-  const char *syms[] = { "call-with-values" };
-  int arities[] = { 2 };
-  const char *codes[] = { scm_clsr_code_callvalues };
-  ScmObj sym  = SCM_OBJ_INIT, code = SCM_OBJ_INIT, clsr = SCM_OBJ_INIT;
-  ScmObj port = SCM_OBJ_INIT;
-  int rslt;
-
-  SCM_STACK_FRAME_PUSH(&module,
-                       &sym, &code, &clsr,
-                       &port);
-
-  for (size_t i = 0; i < sizeof(syms)/sizeof(syms[0]); i++) {
-    port = scm_capi_open_input_string_from_cstr(codes[i], SCM_ENC_ASCII);
-    if (scm_obj_null_p(port)) return -1;
-
-    code = scm_api_read(port);
-    if (scm_obj_null_p(code)) return -1;
-
-    code = scm_api_assemble(code);
-    if (scm_obj_null_p(code)) return -1;
-
-    sym = scm_capi_make_symbol_from_cstr(syms[i], SCM_ENC_ASCII);
-    if (scm_obj_null_p(sym)) return -1;
-
-    clsr = scm_capi_make_closure(code, SCM_OBJ_NULL, arities[i]);
-    if (scm_obj_null_p(code)) return -1;
-
-    rslt = scm_capi_define_global_var(module, sym, clsr, true);
-    if (rslt < 0) return -1;
-  }
-
-  return 0;
-}
-
-int
-scm_initialize_module_core(void)
-{
-  ScmObj name = SCM_OBJ_INIT, module = SCM_OBJ_INIT;
-  int rslt;
-
-  SCM_STACK_FRAME_PUSH(&name, &module);
-
-  name = scm_capi_make_symbol_from_cstr("core", SCM_ENC_ASCII);
-  if (scm_obj_null_p(name)) return -1;
-
-  module = scm_api_make_module(name);
-  if (scm_obj_null_p(module)) return -1;
-
-  rslt = scm_define_procedure(module);
-  if (rslt < 0) return -1;
-
-  rslt = scm_define_closure(module);
-  if (rslt < 0) return -1;
-
-  return 0;
 }

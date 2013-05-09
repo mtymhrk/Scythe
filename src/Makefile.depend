@@ -19,7 +19,7 @@ charconv.o: charconv.c api.h object.h impl_utils.h reference.h encoding.h \
 encoding.o: encoding.c encoding.h api_enum.h
 vm.o: vm.c vm.h object.h impl_utils.h memory.h api_type.h reference.h \
  api_enum.h vmstack.h string.h encoding.h symbol.h chashtbl.h module.h \
- procedure.h core_subr.h miscobjects.h compiler.h api.h
+ procedure.h miscobjects.h core_modules.h api.h
 vmstack.o: vmstack.c object.h impl_utils.h api.h reference.h encoding.h \
  api_enum.h api_type.h vmstack.h
 procedure.o: procedure.c object.h impl_utils.h api.h reference.h \
@@ -52,5 +52,7 @@ compiler.o: compiler.c object.h impl_utils.h api.h reference.h encoding.h \
  api_enum.h api_type.h assembler.h earray.h compiler.h
 module.o: module.c object.h impl_utils.h api.h reference.h encoding.h \
  api_enum.h api_type.h chashtbl.h module.h
+core_modules.o: core_modules.c object.h impl_utils.h api.h reference.h \
+ encoding.h api_enum.h api_type.h compiler.h core_subr.h
 main.o: main.c api.h object.h impl_utils.h reference.h encoding.h \
  api_enum.h api_type.h

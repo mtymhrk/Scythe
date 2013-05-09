@@ -26,6 +26,16 @@ struct ScmForwardRec {
 
 
 /*******************************************************************/
+/*  Syntax                                                         */
+/*******************************************************************/
+
+typedef ScmObj (*ScmSyntaxHandlerFunc)(ScmObj cmpl, ScmObj exp, ScmObj env,
+                                       ScmObj next, int arity,
+                                       bool tail_p, bool toplevel_p,
+                                       ssize_t *rdepth);
+
+
+/*******************************************************************/
 /*  Facade                                                         */
 /*******************************************************************/
 
