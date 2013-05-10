@@ -2879,34 +2879,24 @@ scm_vm_reinstatement_cont(ScmObj vm, ScmObj cc, const ScmObj *val, int vc)
 
 int
 scm_vm_setup_stat_trmp(ScmObj vm, ScmObj proc, ScmObj args,
-                       ScmSubrFunc postproc, ScmObj handover)
+                       ScmObj postproc, ScmObj handover)
 {
-  ScmObj trmp_code = SCM_OBJ_INIT, trmp_clsr = SCM_OBJ_INIT;
-  ScmObj pp_subr = SCM_OBJ_INIT, env = SCM_OBJ_INIT;
+  ScmObj trmp_code = SCM_OBJ_INIT, trmp_clsr = SCM_OBJ_INIT, env = SCM_OBJ_INIT;
   scm_byte_t *ip;
   int rslt;
 
   SCM_STACK_FRAME_PUSH(&proc, &args, handover,
-                       &trmp_code, &trmp_clsr,
-                       &pp_subr, &env);
+                       &trmp_code, &trmp_clsr, &env);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-  scm_assert(scm_capi_subrutine_p(proc) || scm_capi_closure_p(proc));
+  scm_assert(scm_capi_procedure_p(proc));
   scm_assert(scm_capi_nil_p(args) || scm_capi_pair_p(args));
-
-  if (postproc != NULL) {
-    pp_subr = scm_capi_make_subrutine(postproc, -2, SCM_PROC_ADJ_UNWISHED);
-    if (scm_obj_null_p(pp_subr)) return -1; /* [ERR]: [through] */
-  }
-  else {
-    pp_subr = SCM_OBJ_NULL;
-  }
+  scm_assert(scm_obj_null_p(postproc) || scm_capi_procedure_p(postproc));
 
   if (scm_obj_null_p(handover))
-    handover = scm_api_undef();
+    handover = scm_api_nil();
 
-  trmp_code = scm_vm_make_trampolining_code(vm, proc, args,
-                                            pp_subr, handover);
+  trmp_code = scm_vm_make_trampolining_code(vm, proc, args, postproc, handover);
   if (scm_obj_null_p(trmp_code)) return -1; /* [ERR]: [through] */
 
   env = SCM_OBJ_NULL;
