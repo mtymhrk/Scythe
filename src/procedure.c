@@ -47,28 +47,32 @@ ScmTypeInfo SCM_SUBRUTINE_TYPE_INFO = {
   .flags               = SCM_TYPE_FLG_PROC | SCM_TYPE_FLG_MMO,
   .pp_func             = scm_subrutine_pretty_print,
   .obj_size            = sizeof(ScmSubrutine),
-  .gc_ini_func         = scm_proc_gc_initialize,
+  .gc_ini_func         = scm_subrutine_gc_initialize,
   .gc_fin_func         = NULL,
-  .gc_accept_func      = scm_proc_gc_accept,
+  .gc_accept_func      = scm_subrutine_gc_accept,
   .gc_accept_func_weak = NULL,
   .extra               = NULL,
 };
 
 int
 scm_subrutine_initialize(ScmObj subr, ScmSubrFunc func,
-                         ScmObj name, int arity, unsigned int flags)
+                         ScmObj name, int arity, unsigned int flags,
+                         ScmObj module)
 {
   int rslt;
 
   SCM_STACK_FRAME_PUSH(&name,
-                       &subr);
+                       &subr, &module);
 
   scm_assert_obj_type(subr, &SCM_SUBRUTINE_TYPE_INFO);
   scm_assert(func != NULL);
   scm_assert(scm_obj_null_p(name) || scm_capi_string_p(name));
+  scm_assert(scm_obj_null_p(module) || scm_capi_module_p(module));
 
   rslt = scm_proc_initialize(subr, name, arity, flags);
   if (rslt < 0) return -1;
+
+  SCM_SLOT_SETQ(ScmSubrutine, subr, module, module);
 
   SCM_SUBRUTINE(subr)->subr_func = func;
 
@@ -77,7 +81,8 @@ scm_subrutine_initialize(ScmObj subr, ScmSubrFunc func,
 
 ScmObj
 scm_subrutine_new(SCM_MEM_TYPE_T mtype,
-                  ScmSubrFunc func, ScmObj name, int arity, unsigned int flags)
+                  ScmSubrFunc func, ScmObj name, int arity, unsigned int flags,
+                  ScmObj module)
 {
   ScmObj subr = SCM_OBJ_INIT;
 
@@ -86,11 +91,12 @@ scm_subrutine_new(SCM_MEM_TYPE_T mtype,
 
   scm_assert(func != NULL);
   scm_assert(scm_obj_null_p(name) || scm_capi_string_p(name));
+  scm_assert(scm_obj_null_p(module) || scm_capi_module_p(module));
 
   subr = scm_capi_mem_alloc(&SCM_SUBRUTINE_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(subr)) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
-  if (scm_subrutine_initialize(subr, func, name, arity, flags))
+  if (scm_subrutine_initialize(subr, func, name, arity, flags, module))
     return SCM_OBJ_NULL;        /* [ERR]: [through] */
 
   return subr;
@@ -110,6 +116,34 @@ scm_subrutine_pretty_print(ScmObj obj, ScmObj port, bool write_p)
   if (rslt < 0) return -1;
 
   return 0;
+}
+
+void
+scm_subrutine_gc_initialize(ScmObj obj, ScmObj mem)
+{
+  scm_assert_obj_type(obj, &SCM_SUBRUTINE_TYPE_INFO);
+
+  scm_proc_gc_initialize(obj, mem);
+
+  SCM_SUBRUTINE(obj)->module = SCM_OBJ_NULL;
+}
+
+int
+scm_subrutine_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
+{
+  int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
+
+  scm_assert_obj_type(obj, &SCM_SUBRUTINE_TYPE_INFO);
+  scm_assert(scm_obj_not_null_p(mem));
+  scm_assert(handler != NULL);
+
+  rslt = scm_proc_gc_accept(obj, mem, handler);
+  if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
+
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_SUBRUTINE(obj)->module, mem);
+  if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
+
+  return rslt;
 }
 
 

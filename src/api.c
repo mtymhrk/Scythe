@@ -3385,15 +3385,20 @@ scm_capi_procedure_flg_set_p(ScmObj proc, SCM_PROC_FLG_T flg, bool *rslt)
 /*******************************************************************/
 
 ScmObj
-scm_capi_make_subrutine(ScmSubrFunc func, int arity, unsigned int flags)
+scm_capi_make_subrutine(ScmSubrFunc func, int arity, unsigned int flags,
+                        ScmObj module)
 {
   if (func == NULL) {
     scm_capi_error("can not make subrutine: invaild argument", 0);
     return SCM_OBJ_NULL;
   }
+  else if (scm_obj_not_null_p(module) && !scm_capi_module_p(module)) {
+    scm_capi_error("failed to make subrutine: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
 
   return scm_subrutine_new(SCM_MEM_ALLOC_HEAP, func,
-                           SCM_OBJ_NULL, arity, flags);
+                           SCM_OBJ_NULL, arity, flags, module);
 }
 
 int
@@ -3412,6 +3417,25 @@ scm_capi_subrutine_p(ScmObj obj)
 {
   if (scm_obj_null_p(obj)) return false;
   return (scm_obj_type_p(obj, &SCM_SUBRUTINE_TYPE_INFO) ? true : false);
+}
+
+int
+scm_capi_subrutine_module(ScmObj subr, scm_csetter_t *mod)
+{
+  if (!scm_capi_subrutine_p(subr)) {
+    scm_capi_error("faild to get a module defines the subrutine: "
+                   "invalid argument", 0);
+    return -1;
+  }
+  else if (mod == NULL) {
+    scm_capi_error("faild to get a module defines the subrutine: "
+                   "invalid argument", 0);
+    return -1;
+  }
+
+  scm_csetter_setq(mod, scm_subrutine_module(subr));
+
+  return 0;
 }
 
 

@@ -346,13 +346,16 @@ bool scm_capi_procedure_p(ScmObj proc);
 int scm_capi_arity(ScmObj proc, int *arity);
 int scm_capi_procedure_flg_set_p(ScmObj proc, SCM_PROC_FLG_T flg, bool *rslt);
 
+
 /*******************************************************************/
 /*  Subrutine                                                      */
 /*******************************************************************/
 
-ScmObj scm_capi_make_subrutine(ScmSubrFunc func, int arity, unsigned int flags);
+ScmObj scm_capi_make_subrutine(ScmSubrFunc func, int arity, unsigned int flags,
+                               ScmObj module);
 int scm_api_call_subrutine(ScmObj subr, int argc, const ScmObj *argv);
 bool scm_capi_subrutine_p(ScmObj obj);
+int scm_capi_subrutine_module(ScmObj subr, scm_csetter_t *mod);
 
 
 /*******************************************************************/

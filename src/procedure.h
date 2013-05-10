@@ -66,13 +66,19 @@ extern ScmTypeInfo SCM_SUBRUTINE_TYPE_INFO;
 struct ScmSubrutineRec {
   ScmProcedure proc;
   ScmSubrFunc subr_func;
+  ScmObj module;
 };
 
 int scm_subrutine_initialize(ScmObj subr,  ScmSubrFunc func,
-                             ScmObj name, int arity, unsigned int flags);
+                             ScmObj name, int arity, unsigned int flags,
+                             ScmObj module);
 ScmObj scm_subrutine_new(SCM_MEM_TYPE_T mtype, ScmSubrFunc func,
-                         ScmObj name, int arity, unsigned int flags);
+                         ScmObj name, int arity, unsigned int flags,
+                         ScmObj module);
 int scm_subrutine_pretty_print(ScmObj obj, ScmObj port, bool write_p);
+void scm_subrutine_gc_initialize(ScmObj obj, ScmObj mem);
+int scm_subrutine_gc_accept(ScmObj obj,
+                            ScmObj mem, ScmGCRefHandlerFunc handler);
 
 inline int
 scm_subrutine_call(ScmObj subr, int argc, const ScmObj *argv)
@@ -80,6 +86,14 @@ scm_subrutine_call(ScmObj subr, int argc, const ScmObj *argv)
   scm_assert_obj_type(subr, &SCM_SUBRUTINE_TYPE_INFO);
 
   return SCM_SUBRUTINE(subr)->subr_func(subr, argc, argv);
+}
+
+inline ScmObj
+scm_subrutine_module(ScmObj subr)
+{
+  scm_assert_obj_type(subr, &SCM_SUBRUTINE_TYPE_INFO);
+
+  return SCM_SUBRUTINE(subr)->module;
 }
 
 

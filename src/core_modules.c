@@ -97,7 +97,8 @@ scm_define_scheme_base_subr(ScmObj module)
     sym = scm_capi_make_symbol_from_cstr(data[i].name, SCM_ENC_ASCII);
     if (scm_obj_null_p(sym)) return -1;
 
-    subr = scm_capi_make_subrutine(data[i].func, data[i].arity, data[i].flag);
+    subr = scm_capi_make_subrutine(data[i].func, data[i].arity, data[i].flag,
+                                   module);
     if (scm_obj_null_p(subr)) return -1;
 
     rslt = scm_capi_define_global_var(module, sym, subr, true);
@@ -106,7 +107,8 @@ scm_define_scheme_base_subr(ScmObj module)
 
   subr = scm_capi_make_subrutine(scm_subr_func_default_exception_handler,
                                  SCM_SUBR_ARITY_DEFAULT_EXCEPTION_HANDLER,
-                                 SCM_SUBR_FLAG_DEFAULT_EXCEPTION_HANDLER);
+                                 SCM_SUBR_FLAG_DEFAULT_EXCEPTION_HANDLER,
+                                 module);
   if (scm_obj_null_p(subr)) return -1;
 
   scm_capi_push_exception_handler(subr);
