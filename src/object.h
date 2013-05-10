@@ -199,13 +199,6 @@ scm_csetter_val(scm_csetter_t *st)
 #define SCM_REF_SETQ(ref, obj) SCM_REF_UPDATE(ref, obj)
 
 
-/** definition for subroutine function ***************************************/
-
-/* procedure.h に定義を置きたいが、api.h が procedure.h に依存するのを避ける
- * ためにここにで定義する */
-typedef int (*ScmSubrFunc)(int argc, const ScmObj *argv);
-
-
 /** definition  for pretty print function ************************************/
 
 typedef int (*ScmPrettyPrintFunction)(ScmObj obj, ScmObj port, bool write_p); // 仮
