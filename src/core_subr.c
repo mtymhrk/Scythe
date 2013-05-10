@@ -9,11 +9,11 @@
 /*******************************************************************/
 
 int
-scm_subr_func_null_P(int argc, const ScmObj *argv)
+scm_subr_func_null_P(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&val);
+  SCM_STACK_FRAME_PUSH(&subr, &val);
 
   if (argc != 1) {
     /* TODO: change error message */
@@ -33,11 +33,12 @@ scm_subr_func_null_P(int argc, const ScmObj *argv)
 /*******************************************************************/
 
 int
-scm_subr_func_cons(int argc, const ScmObj *argv)
+scm_subr_func_cons(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&val);
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
 
   if (argc != 2) {
     /* TODO: change error message */
@@ -52,11 +53,12 @@ scm_subr_func_cons(int argc, const ScmObj *argv)
 }
 
 int
-scm_subr_func_car(int argc, const ScmObj *argv)
+scm_subr_func_car(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&val);
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
 
   if (argc != 1) {
     /* TODO: change error message */
@@ -71,11 +73,12 @@ scm_subr_func_car(int argc, const ScmObj *argv)
 }
 
 int
-scm_subr_func_cdr(int argc, const ScmObj *argv)
+scm_subr_func_cdr(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&val);
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
 
   if (argc != 1) {
     /* TODO: change error message */
@@ -95,12 +98,13 @@ scm_subr_func_cdr(int argc, const ScmObj *argv)
 /*******************************************************************/
 
 int
-scm_subr_func_read(int argc, const ScmObj *argv)
+scm_subr_func_read(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj port = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
   ssize_t len;
 
-  SCM_STACK_FRAME_PUSH(&port, &val);
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &port, &val);
 
   len = scm_capi_length(argv[0]);
   if (len < 0) return -1;
@@ -122,12 +126,13 @@ scm_subr_func_read(int argc, const ScmObj *argv)
 }
 
 int
-scm_subr_func_write(int argc, const ScmObj *argv)
+scm_subr_func_write(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj port = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
   ssize_t len;
 
-  SCM_STACK_FRAME_PUSH(&port, &val);
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &port, &val);
 
   len = scm_capi_length(argv[1]);
   if (len < 0) return -1;
@@ -149,12 +154,13 @@ scm_subr_func_write(int argc, const ScmObj *argv)
 }
 
 int
-scm_subr_func_display(int argc, const ScmObj *argv)
+scm_subr_func_display(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj port = SCM_OBJ_INIT, val = SCM_OBJ_NULL;
   ssize_t len;
 
-  SCM_STACK_FRAME_PUSH(&port, &val);
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &port, &val);
 
   len = scm_capi_length(argv[1]);
   if (len < 0) return -1;
@@ -176,12 +182,13 @@ scm_subr_func_display(int argc, const ScmObj *argv)
 }
 
 int
-scm_subr_func_newline(int argc, const ScmObj *argv)
+scm_subr_func_newline(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj port = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
   ssize_t len;
 
-  SCM_STACK_FRAME_PUSH(&port, &val);
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &port, &val);
 
   len = scm_capi_length(argv[0]);
   if (len < 0) return -1;
@@ -203,12 +210,13 @@ scm_subr_func_newline(int argc, const ScmObj *argv)
 }
 
 int
-scm_subr_func_flush_output_port(int argc, const ScmObj *argv)
+scm_subr_func_flush_output_port(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj port = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
   ssize_t len;
 
-  SCM_STACK_FRAME_PUSH(&port, &val);
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &port, &val);
 
   len = scm_capi_length(argv[0]);
   if (len < 0) return -1;
@@ -235,12 +243,13 @@ scm_subr_func_flush_output_port(int argc, const ScmObj *argv)
 /*******************************************************************/
 
 int
-scm_subr_func_callcc(int argc, const ScmObj *argv)
+scm_subr_func_callcc(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj cont = SCM_OBJ_INIT, args = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&cont, &args, &val);
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &cont, &args, &val);
 
   if (argc != 1) {
     scm_capi_error("call/cc: 1 argumetn is require, but got ", 0);
@@ -267,7 +276,7 @@ scm_subr_func_callcc(int argc, const ScmObj *argv)
 /*******************************************************************/
 
 int
-scm_subr_func_values(int argc, const ScmObj *argv)
+scm_subr_func_values(ScmObj subr, int argc, const ScmObj *argv)
 {
   return scm_capi_return_val(argv, argc);
 }
@@ -289,13 +298,14 @@ const char *scm_clsr_code_call_with_values =
 /*******************************************************************/
 
 int
-scm_subr_func_eval_asm(int argc, const ScmObj *argv)
+scm_subr_func_eval_asm(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj code = SCM_OBJ_INIT, args = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
   ssize_t i;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&code, &args, &val);
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &code, &args, &val);
 
   if (argc != 1) {
     /* TODO: change error message */
@@ -332,13 +342,13 @@ scm_subr_func_eval_asm(int argc, const ScmObj *argv)
 }
 
 int
-scm_subr_func_eval(int argc, const ScmObj *argv)
+scm_subr_func_eval(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj exp = SCM_OBJ_INIT, args = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
   ssize_t i;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&exp, &args, &val);
+  SCM_STACK_FRAME_PUSH(&subr, &exp, &args, &val);
 
   if (argc != 1) {
     /* TODO: change error message */
@@ -374,12 +384,13 @@ scm_subr_func_eval(int argc, const ScmObj *argv)
 /*******************************************************************/
 
 int
-scm_subr_func_exit(int argc, const ScmObj *argv)
+scm_subr_func_exit(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
   ssize_t len;
 
-  SCM_STACK_FRAME_PUSH(&val);
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
 
   len = scm_capi_length(argv[0]);
   if (len < 0) return -1;
@@ -408,11 +419,13 @@ scm_subr_func_exit(int argc, const ScmObj *argv)
 /*******************************************************************/
 
 int
-scm_subr_func_default_exception_handler(int argc, const ScmObj *argv)
+scm_subr_func_default_exception_handler(ScmObj subr,
+                                        int argc, const ScmObj *argv)
 {
   ScmObj port = SCM_OBJ_INIT, ro = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&port, &ro, &val);
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &port, &ro, &val);
 
   if (argc < 1) {
     scm_capi_error("Exception Handler: too few arguments", 0);

@@ -29,7 +29,7 @@ struct ScmForwardRec {
 /*  Procedure                                                      */
 /*******************************************************************/
 
-typedef int (*ScmSubrFunc)(int argc, const ScmObj *argv);
+typedef int (*ScmSubrFunc)(ScmObj subr, int argc, const ScmObj *argv);
 
 
 /*******************************************************************/
