@@ -5,7 +5,7 @@
 #include "procedure.h"
 
 /*******************************************************************/
-/*  Subrutine                                                      */
+/*  Proc                                                           */
 /*******************************************************************/
 
 int
@@ -346,4 +346,105 @@ scm_cont_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
   return SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_CONT(obj)->contcap, mem);
+}
+
+
+/*******************************************************************/
+/*  Parameter                                                      */
+/*******************************************************************/
+
+ScmTypeInfo SCM_PARAMETER_TYPE_INFO = {
+  .name                = "parameter",
+  .flags               = SCM_TYPE_FLG_PROC | SCM_TYPE_FLG_MMO,
+  .pp_func             = scm_parameter_pretty_print,
+  .obj_size            = sizeof(ScmParameter),
+  .gc_ini_func         = scm_parameter_gc_initialize,
+  .gc_fin_func         = NULL,
+  .gc_accept_func      = scm_parameter_gc_accept,
+  .gc_accept_func_weak = NULL,
+  .extra               = NULL,
+};
+
+int
+scm_parameter_initialize(ScmObj prm, ScmObj name, ScmObj conv)
+{
+  int rslt;
+
+  scm_assert_obj_type(prm, &SCM_PARAMETER_TYPE_INFO);
+  scm_assert(scm_obj_null_p(name) || scm_capi_string_p(name));
+  scm_assert(scm_obj_null_p(conv) || scm_capi_procedure_p(conv));
+
+  rslt = scm_proc_initialize(prm, name, 0, 0);
+  if (rslt < 0) return -1;
+
+  SCM_PARAMETER(prm)->init = SCM_OBJ_NULL;
+  SCM_SLOT_SETQ(ScmParameter, prm, conv, conv);
+
+  return 0;
+}
+
+ScmObj
+scm_parameter_new(SCM_MEM_TYPE_T mtype, ScmObj name, ScmObj conv)
+{
+  ScmObj prm = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&prm, &conv);
+
+  scm_assert(scm_obj_null_p(name) || scm_capi_string_p(name));
+  scm_assert(scm_obj_null_p(conv) || scm_capi_procedure_p(conv));
+
+  prm = scm_capi_mem_alloc(&SCM_PARAMETER_TYPE_INFO, 0, mtype);
+  if (scm_obj_null_p(prm)) return SCM_OBJ_NULL;
+
+  if (scm_parameter_initialize(prm, name,conv) < 0)
+    return SCM_OBJ_NULL;
+
+  return prm;
+}
+
+int
+scm_parameter_pretty_print(ScmObj obj, ScmObj port, bool write_p)
+{
+  char cstr[64];
+  int rslt;
+
+  scm_assert_obj_type(obj, &SCM_PARAMETER_TYPE_INFO);
+
+  snprintf(cstr, sizeof(cstr), "#<%s %llx>",
+           SCM_PARAMETER_TYPE_INFO.name, (unsigned long long)obj);
+
+  rslt = scm_capi_write_cstr(cstr, SCM_ENC_ASCII, port);
+  if (rslt < 0) return -1;
+
+  return 0;
+}
+
+void
+scm_parameter_gc_initialize(ScmObj obj, ScmObj mem)
+{
+  scm_assert_obj_type(obj, &SCM_PARAMETER_TYPE_INFO);
+
+  scm_proc_gc_initialize(obj, mem);
+
+  SCM_PARAMETER(obj)->init = SCM_OBJ_NULL;
+  SCM_PARAMETER(obj)->conv = SCM_OBJ_NULL;
+}
+
+int
+scm_parameter_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
+{
+  int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
+
+  scm_assert_obj_type(obj, &SCM_PARAMETER_TYPE_INFO);
+
+  rslt = scm_proc_gc_accept(obj, mem, handler);
+  if (scm_gc_ref_handler_failure_p(rslt)) return -1;
+
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_PARAMETER(obj)->init, mem);
+  if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
+
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_PARAMETER(obj)->conv, mem);
+  if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
+
+  return rslt;
 }

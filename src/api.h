@@ -370,6 +370,18 @@ int scm_capi_closure_env(ScmObj clsr, scm_csetter_t *env);
 
 
 /*******************************************************************/
+/*  Parameter                                                      */
+/*******************************************************************/
+
+ScmObj scm_capi_make_parameter(ScmObj conv);
+bool scm_capi_parameter_p(ScmObj obj);
+int scm_capi_parameter_init_val(ScmObj prm, scm_csetter_t *val);
+int scm_capi_parameter_converter(ScmObj prm, scm_csetter_t *conv);
+int scm_capi_parameter_set_init_val(ScmObj prm, ScmObj val);
+ScmObj scm_capi_parameter_value(ScmObj prm);
+
+
+/*******************************************************************/
 /*  Syntax                                                         */
 /*******************************************************************/
 

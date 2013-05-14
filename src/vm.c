@@ -249,27 +249,26 @@ scm_contcap_new(SCM_MEM_TYPE_T mtype)
 }
 
 void
-scm_contcap_cap(ScmObj cc,  ScmObj stack,
-                ScmCntFrame *cfp, ScmEnvFrame *efp, ScmEnvFrame *pefp,
-                ScmObj cp, scm_byte_t *ip, const ScmObj *val, int vc,
-                unsigned int flags)
+scm_contcap_cap(ScmObj cc,  ScmObj stack, const ScmVMReg *regs)
 {
   int n;
 
   scm_assert_obj_type(cc, &SCM_CONTCAP_TYPE_INFO);
   scm_assert_obj_type(stack, &SCM_VMSTCKRC_TYPE_INFO);
+  scm_assert(regs != NULL);
 
   SCM_SLOT_SETQ(ScmContCap, cc, stack, stack);
-  SCM_CONTCAP(cc)->reg.cfp = cfp;
-  SCM_CONTCAP(cc)->reg.efp = efp;
-  SCM_CONTCAP(cc)->reg.pefp = pefp;
-  SCM_SLOT_SETQ(ScmContCap, cc, reg.cp, cp);
-  SCM_CONTCAP(cc)->reg.ip = ip;
-  n = (vc <= SCM_VM_NR_VAL_REG) ? vc : SCM_VM_NR_VAL_REG;
+  SCM_CONTCAP(cc)->reg.cfp = regs->cfp;
+  SCM_CONTCAP(cc)->reg.efp = regs->efp;
+  SCM_CONTCAP(cc)->reg.pefp = regs->pefp;
+  SCM_SLOT_SETQ(ScmContCap, cc, reg.cp, regs->cp);
+  SCM_CONTCAP(cc)->reg.ip = regs->ip;
+  n = (regs->vc <= SCM_VM_NR_VAL_REG) ? regs->vc : SCM_VM_NR_VAL_REG;
   for (int i = 0; i < n; i++)
-    SCM_SLOT_SETQ(ScmContCap, cc, reg.val[i], val[i]);
-  SCM_CONTCAP(cc)->reg.vc = vc;
-  SCM_CONTCAP(cc)->reg.flags = flags;
+    SCM_SLOT_SETQ(ScmContCap, cc, reg.val[i], regs->val[i]);
+  SCM_CONTCAP(cc)->reg.vc = regs->vc;
+  SCM_SLOT_SETQ(ScmContCap, cc, reg.prm, regs->prm);
+  SCM_CONTCAP(cc)->reg.flags = regs->flags;
 }
 
 void
@@ -306,6 +305,7 @@ scm_contcap_gc_initialize(ScmObj obj, ScmObj mem)
   SCM_CONTCAP(obj)->reg.cp = SCM_OBJ_NULL;
   SCM_CONTCAP(obj)->reg.ip = NULL;
   SCM_CONTCAP(obj)->reg.vc = 0;
+  SCM_CONTCAP(obj)->reg.prm = SCM_OBJ_NULL;
 }
 
 int
@@ -340,6 +340,9 @@ scm_contcap_gc_accepct(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
                                    obj, SCM_CONTCAP(obj)->reg.val[i], mem);
     if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
   }
+
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_CONTCAP(obj)->reg.prm, mem);
+  if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
   return rslt;
 }
@@ -570,6 +573,7 @@ scm_vm_init_eval_env(ScmObj vm)
   SCM_VM(vm)->reg.cp = SCM_OBJ_NULL;
   SCM_VM(vm)->reg.val[0] = SCM_VM(vm)->cnsts.undef;
   SCM_VM(vm)->reg.vc = 1;
+  SCM_VM(vm)->reg.prm = SCM_VM(vm)->cnsts.nil;
   SCM_VM(vm)->reg.flags = 0;
 
   return 0;
@@ -602,6 +606,7 @@ scm_vm_clean_eval_env(ScmObj vm)
   SCM_VM(vm)->reg.ip = NULL;
   SCM_VM(vm)->reg.cp = SCM_OBJ_NULL;
   SCM_VM(vm)->reg.vc = 0;
+  SCM_VM(vm)->reg.prm = SCM_OBJ_NULL;
   SCM_VM(vm)->reg.flags = 0;
 }
 
@@ -1210,6 +1215,62 @@ scm_vm_eframe_arg_ref(ScmEnvFrame *efp_list, size_t idx, size_t layer,
   if (efp != NULL) *efp = e;
 
   return e->arg[idx];
+}
+
+scm_local_func int
+scm_vm_push_dynamic_bindings(ScmObj vm, ScmObj *param, size_t n)
+{
+  ScmObj rib = SCM_OBJ_INIT, x = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&vm,
+                       &rib, &x);
+
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+  scm_assert(param != NULL);
+  scm_assert(n > 0);
+
+  if (n > SSIZE_MAX / 2) {
+    scm_capi_error("faild to extend dynamic bindings: too many parameters", 0);
+    return -1;
+  }
+
+  rib = scm_capi_make_vector(n * 2, SCM_OBJ_NULL);
+  if (scm_obj_null_p(rib)) return -1;
+
+  for (size_t i = 0; i < n * 2; i += 2) {
+    x = scm_capi_vector_set(rib, i, param[i]);
+    if (scm_obj_null_p(x)) return -1;
+
+    x = scm_capi_vector_set(rib, i + 1, param[i + 1]);
+    if (scm_obj_null_p(x)) return -1;
+  }
+
+  x = scm_api_cons(rib, SCM_VM(vm)->reg.prm);
+  if (scm_obj_null_p(x)) return -1;
+
+  SCM_SLOT_SETQ(ScmVM, vm, reg.prm, x);
+
+  return 0;
+}
+
+scm_local_func int
+scm_vm_pop_dynamic_bindings(ScmObj vm)
+{
+  ScmObj x = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&vm);
+
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  if (scm_capi_nil_p(SCM_VM(vm)->reg.prm))
+    return 0;
+
+  x = scm_api_cdr(SCM_VM(vm)->reg.prm);
+  if (scm_obj_null_p(x)) return -1;
+
+  SCM_SLOT_SETQ(ScmVM, vm, reg.prm, x);
+
+  return 0;
 }
 
 scm_local_func ScmObj
@@ -2829,11 +2890,7 @@ scm_vm_capture_cont(ScmObj vm)
   stack = scm_vm_capture_stack(vm);
   if (scm_obj_null_p(stack)) return SCM_OBJ_NULL;
 
-  scm_contcap_cap(cc, stack,
-                  SCM_VM(vm)->reg.cfp, SCM_VM(vm)->reg.efp,
-                  SCM_VM(vm)->reg.pefp, SCM_VM(vm)->reg.cp,
-                  SCM_VM(vm)->reg.ip, SCM_VM(vm)->reg.val,
-                  SCM_VM(vm)->reg.vc, SCM_VM(vm)->reg.flags);
+  scm_contcap_cap(cc, stack, &SCM_VM(vm)->reg);
 
   return cc;
 }
@@ -2871,10 +2928,60 @@ scm_vm_reinstatement_cont(ScmObj vm, ScmObj cc, const ScmObj *val, int vc)
   SCM_VM(vm)->reg.pefp = scm_contcap_pefp(cc);
   SCM_SLOT_SETQ(ScmVM, vm, reg.cp, scm_contcap_cp(cc));
   SCM_VM(vm)->reg.ip = scm_contcap_ip(cc);
-
+  SCM_SLOT_SETQ(ScmVM, vm, reg.prm, scm_contcap_prm(cc));
   SCM_VM(vm)->reg.flags = scm_contcap_flags(cc);
 
   return 0;
+}
+
+ScmObj
+scm_vm_parameter_value(ScmObj vm, ScmObj var)
+{
+  ScmObj rib = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
+  ScmObj x = SCM_OBJ_INIT, p = SCM_OBJ_INIT;
+  ssize_t n;
+  int rslt;
+
+  SCM_STACK_FRAME_PUSH(&vm, &var,
+                       &rib, &val,
+                       &x, &p);
+
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+  scm_assert(scm_obj_not_null_p(var));
+
+  for (x = SCM_VM(vm)->reg.prm; scm_capi_pair_p(x); x = scm_api_cdr(x)) {
+    rib = scm_api_car(x);
+    if (scm_obj_null_p(rib)) return SCM_OBJ_NULL;
+
+    n = scm_capi_vector_length(rib);
+    if (n < 0) return SCM_OBJ_NULL;
+
+    for (ssize_t i = 0; i < n; i += 2) {
+      p = scm_capi_vector_ref(rib, (size_t)i);
+      if (scm_obj_null_p(p)) return SCM_OBJ_NULL;
+
+      if (scm_capi_eq_p(p, var))
+        return scm_capi_vector_ref(rib, (size_t)i + 1);
+    }
+  }
+
+  if (scm_obj_null_p(x)) return SCM_OBJ_NULL;
+
+  if (!scm_capi_parameter_p(var)) {
+    scm_capi_error("failed to get bound value: unbound variable", 1, var);
+    return SCM_OBJ_NULL;
+  }
+
+  rslt = scm_capi_parameter_init_val(var, SCM_CSETTER_L(val));
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  if (scm_obj_null_p(val)) {
+    scm_capi_error("failed to get bound value: "
+                   "parameter does not have initial value", 1, var);
+    return SCM_OBJ_NULL;
+  }
+
+  return val;
 }
 
 int
@@ -3005,6 +3112,7 @@ scm_vm_gc_initialize(ScmObj obj, ScmObj mem)
   SCM_VM(obj)->reg.ip = NULL;
   SCM_VM(obj)->reg.cp = SCM_OBJ_NULL;
   SCM_VM(obj)->reg.vc = 0;
+  SCM_VM(obj)->reg.prm = SCM_OBJ_NULL;
   SCM_VM(obj)->reg.flags = 0;
   SCM_VM(obj)->cnsts.nil = SCM_OBJ_NULL;
   SCM_VM(obj)->cnsts.eof = SCM_OBJ_NULL;
@@ -3089,6 +3197,9 @@ scm_vm_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
   }
 
   rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_VM(obj)->reg.cp, mem);
+  if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
+
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_VM(obj)->reg.prm, mem);
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
   rslt = scm_vm_gc_accept_stack(obj, mem, handler);

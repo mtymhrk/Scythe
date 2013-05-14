@@ -2,20 +2,17 @@
 #define INCLUDE_PROCEDURE_H__
 
 typedef struct ScmProcedureRec ScmProcedure;
+typedef struct ScmSubrutineRec ScmSubrutine;
+typedef struct ScmClosureRec ScmClosure;
+typedef struct ScmContinuationRec ScmContinuation;
+typedef struct ScmParameterRec ScmParameter;
 
 #define SCM_PROCEDURE(obj) ((ScmProcedure *)(obj))
-
-typedef struct ScmSubrutineRec ScmSubrutine;
-
 #define SCM_SUBRUTINE(obj) ((ScmSubrutine *)(obj))
-
-typedef struct ScmClosureRec ScmClosure;
-
 #define SCM_CLOSURE(obj) ((ScmClosure *)(obj))
-
-typedef struct ScmContinuationRec ScmContinuation;
-
 #define SCM_CONT(obj) ((ScmContinuation *)(obj))
+#define SCM_PARAMETER(obj) ((ScmParameter *)(obj))
+
 
 #include "object.h"
 #include "api_enum.h"
@@ -159,5 +156,51 @@ scm_cont_content(ScmObj cont)
   return SCM_CONT(cont)->contcap;
 }
 
+
+/*******************************************************************/
+/*  Parameter                                                      */
+/*******************************************************************/
+
+extern ScmTypeInfo SCM_PARAMETER_TYPE_INFO;
+
+struct ScmParameterRec {
+  ScmProcedure proc;
+  ScmObj init;
+  ScmObj conv;
+};
+
+int scm_parameter_initialize(ScmObj prm, ScmObj name, ScmObj conv);
+ScmObj scm_parameter_new(SCM_MEM_TYPE_T mtype, ScmObj name, ScmObj conv);
+
+int scm_parameter_pretty_print(ScmObj obj, ScmObj port, bool write_p);
+void scm_parameter_gc_initialize(ScmObj obj, ScmObj mem);
+int scm_parameter_gc_accept(ScmObj obj, ScmObj mem,
+                            ScmGCRefHandlerFunc handler);
+
+
+inline ScmObj
+scm_parameter_init_val(ScmObj prm)
+{
+  scm_assert_obj_type(prm, &SCM_PARAMETER_TYPE_INFO);
+
+  return SCM_PARAMETER(prm)->init;
+}
+
+inline ScmObj
+scm_parameter_converter(ScmObj prm)
+{
+  scm_assert_obj_type(prm, &SCM_PARAMETER_TYPE_INFO);
+
+  return SCM_PARAMETER(prm)->conv;
+}
+
+inline void
+scm_parameter_set_init_val(ScmObj prm, ScmObj val)
+{
+  scm_assert_obj_type(prm, &SCM_PARAMETER_TYPE_INFO);
+  scm_assert(scm_obj_not_null_p(val));
+
+  SCM_SLOT_SETQ(ScmParameter, prm, init, val);
+}
 
 #endif /* INCLUDE_PROCEDURE_H__ */

@@ -3509,6 +3509,108 @@ scm_capi_closure_env(ScmObj clsr, scm_csetter_t *env)
 
 
 /*******************************************************************/
+/*  Parameter                                                      */
+/*******************************************************************/
+
+ScmObj
+scm_capi_make_parameter(ScmObj conv)
+{
+  SCM_STACK_FRAME_PUSH(&conv);
+
+  if (scm_obj_not_null_p(conv) && !scm_capi_procedure_p(conv)) {
+    scm_capi_error("faild to make parameter object: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_parameter_new(SCM_MEM_HEAP, SCM_OBJ_NULL, conv);
+}
+
+extern inline bool
+scm_capi_parameter_p(ScmObj obj)
+{
+  if (scm_obj_null_p(obj)) return false;
+
+  return scm_obj_type_p(obj, &SCM_PARAMETER_TYPE_INFO);
+}
+
+int
+scm_capi_parameter_init_val(ScmObj prm, scm_csetter_t *val)
+{
+  SCM_STACK_FRAME_PUSH(&prm);
+
+  if (!scm_capi_parameter_p(prm)) {
+    scm_capi_error("failed to get a initial value of a parameter object: "
+                   "invalid argument", 0);
+    return -1;
+  }
+  else if (val != NULL) {
+    scm_capi_error("failed to get a initial value of a parameter object: "
+                   "invalid argument", 0);
+    return -1;
+  }
+
+  scm_csetter_setq(val, scm_parameter_init_val(prm));
+
+  return 0;
+}
+
+int
+scm_capi_parameter_converter(ScmObj prm, scm_csetter_t *conv)
+{
+  SCM_STACK_FRAME_PUSH(&prm);
+
+  if (!scm_capi_parameter_p(prm)) {
+    scm_capi_error("failed to get a converter from a parameter object: "
+                   "invalid argument", 0);
+    return -1;
+  }
+  else if (conv != NULL) {
+    scm_capi_error("failed to get a converter from a parameter object: "
+                   "invalid argument", 0);
+    return -1;
+  }
+
+  scm_csetter_setq(conv, scm_parameter_converter(prm));
+
+  return 0;
+}
+
+int
+scm_capi_parameter_set_init_val(ScmObj prm, ScmObj val)
+{
+  SCM_STACK_FRAME_PUSH(&prm, &val);
+
+  if (!scm_capi_parameter_p(prm)) {
+    scm_capi_error("failed to set a initial value of a parameter object: "
+                   "invalid argument", 0);
+    return -1;
+  }
+  else if (scm_obj_null_p(val)) {
+    scm_capi_error("failed to set a initial value of a parameter object: "
+                   "invalid argument", 0);
+    return -1;
+  }
+
+  scm_parameter_set_init_val(prm, val);
+
+  return 0;
+}
+
+ScmObj
+scm_capi_parameter_value(ScmObj prm)
+{
+  SCM_STACK_FRAME_PUSH(&prm);
+
+  if (scm_obj_null_p(prm)) {
+    scm_capi_error("failed to get bound value: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_vm_parameter_value(scm_vm_current_vm(), prm);
+}
+
+
+/*******************************************************************/
 /*  Syntax                                                         */
 /*******************************************************************/
 

@@ -132,6 +132,7 @@ struct ScmVMRegRec {
   scm_byte_t *ip;                 /* instruction pointer */
   ScmObj val[SCM_VM_NR_VAL_REG];  /* value register */
   int vc;                         /* value count */
+  ScmObj prm;                     /* dynamic bindings */
   unsigned int flags;
 };
 
@@ -150,10 +151,7 @@ struct ScmContCapRec {
 };
 
 ScmObj scm_contcap_new(SCM_MEM_TYPE_T mtype);
-void scm_contcap_cap(ScmObj cc,  ScmObj stack,
-                     ScmCntFrame *cfp, ScmEnvFrame *efp, ScmEnvFrame *pefp,
-                     ScmObj cp, scm_byte_t *ip, const ScmObj *val, int vc,
-                     unsigned int flags);
+void scm_contcap_cap(ScmObj cc,  ScmObj stack, const ScmVMReg *regs);
 void scm_contcap_replace_val(ScmObj cc, const ScmObj *val, int vc);
 void scm_contcap_replace_ip(ScmObj cc, scm_byte_t *ip, ScmObj cp);
 void scm_contcap_gc_initialize(ScmObj obj, ScmObj mem);
@@ -221,6 +219,14 @@ scm_contcap_vc(ScmObj cc)
   scm_assert_obj_type(cc, &SCM_CONTCAP_TYPE_INFO);
 
   return SCM_CONTCAP(cc)->reg.vc;
+}
+
+inline ScmObj
+scm_contcap_prm(ScmObj cc)
+{
+  scm_assert_obj_type(cc, &SCM_CONTCAP_TYPE_INFO);
+
+  return SCM_CONTCAP(cc)->reg.prm;
 }
 
 inline uint
@@ -339,6 +345,9 @@ ScmEnvFrame *scm_vm_eframe_list_ref(ScmEnvFrame *efp_list, size_t n);
 ScmObj scm_vm_eframe_arg_ref(ScmEnvFrame *efp_list,
                              size_t idx, size_t layer, ScmEnvFrame **efp);
 
+int scm_vm_push_dynamic_bindings(ScmObj vm, ScmObj *param, size_t n);
+int scm_vm_pop_dynamic_bindings(ScmObj vm);
+
 ScmObj scm_vm_make_trampolining_code(ScmObj vm, ScmObj proc, ScmObj args,
                                      ScmObj postproc, ScmObj handover);
 ScmObj scm_vm_make_exception_handler_code(ScmObj vm);
@@ -413,6 +422,7 @@ int scm_vm_set_val_reg(ScmObj vm, const ScmObj *val, int vc);
 
 ScmObj scm_vm_capture_cont(ScmObj vm);
 int scm_vm_reinstatement_cont(ScmObj vm, ScmObj cc, const ScmObj *val, int vc);
+ScmObj scm_vm_parameter_value(ScmObj vm, ScmObj var);
 int scm_vm_setup_stat_trmp(ScmObj vm, ScmObj proc, ScmObj args,
                            ScmObj postproc, ScmObj handover);
 void scm_vm_setup_stat_halt(ScmObj vm);
