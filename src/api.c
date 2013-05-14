@@ -2914,10 +2914,7 @@ scm_api_read(ScmObj port)
   ScmLexer *lexer;
   ScmParser *parser;
 
-  if (scm_obj_null_p(port)) {
-    port = scm_api_current_input_port();
-  }
-  else if (!scm_capi_input_port_p(port)) {
+  if (!scm_capi_input_port_p(port)) {
     scm_capi_error("read: input-port requried, but got", 1, port);
     return SCM_OBJ_NULL;
   }
@@ -2938,10 +2935,7 @@ scm_api_read(ScmObj port)
 ssize_t
 scm_capi_write_raw(const void *buf, size_t size, ScmObj port)
 {
-  if (scm_obj_null_p(port)) {
-    port = scm_api_current_output_port();
-  }
-  else if (!scm_capi_output_port_p(port)) {
+  if (!scm_capi_output_port_p(port)) {
     scm_capi_error("write error: invalid argument", 0);
     return -1;
   }
@@ -2966,10 +2960,7 @@ scm_capi_write_cstr(const char *str, SCM_ENC_T enc, ScmObj port)
 
   SCM_STACK_FRAME_PUSH(&port, &s);
 
-  if (scm_obj_null_p(port)) {
-    port = scm_api_current_output_port();
-  }
-  else if (!scm_capi_output_port_p(port)) {
+  if (!scm_capi_output_port_p(port)) {
     scm_capi_error("write error: invalid argument", 0);
     return -1;
   }
@@ -2999,10 +2990,7 @@ scm_capi_write_bin(const void *buf, size_t size, SCM_ENC_T enc, ScmObj port)
 
   SCM_STACK_FRAME_PUSH(&port, &s);
 
-  if (scm_obj_null_p(port)) {
-    port = scm_api_current_output_port();
-  }
-  else if (!scm_capi_output_port_p(port)) {
+  if (!scm_capi_output_port_p(port)) {
     scm_capi_error("write error: invalid argument", 0);
     return -1;
   }
@@ -3042,10 +3030,7 @@ scm_api_write_char(ScmObj chr, ScmObj port)
     return SCM_OBJ_NULL;
   }
 
-  if (scm_obj_null_p(port)) {
-    port = scm_api_current_output_port();
-  }
-  else if (!scm_capi_output_port_p(port)) {
+  if (!scm_capi_output_port_p(port)) {
     scm_capi_error("write-char: output-port required, but got", 1, port);
     return SCM_OBJ_NULL;
   }
@@ -3089,10 +3074,7 @@ scm_api_write_string(ScmObj str, ScmObj port)
     return SCM_OBJ_NULL;
   }
 
-  if (scm_obj_null_p(port)) {
-    port = scm_api_current_output_port();
-  }
-  else if (!scm_capi_output_port_p(port)) {
+  if (!scm_capi_output_port_p(port)) {
     scm_capi_error("write-string: output-port required, but got", 1, port);
     return SCM_OBJ_NULL;
   }
@@ -3146,10 +3128,7 @@ scm_api_write_simple(ScmObj obj, ScmObj port)
     return SCM_OBJ_NULL;
   }
 
-  if (scm_obj_null_p(port)) {
-    port = scm_api_current_output_port();
-  }
-  else if (!scm_capi_output_port_p(port)) {
+  if (!scm_capi_output_port_p(port)) {
     scm_capi_error("write-simple: output-port required, but got", 1, port);
     return SCM_OBJ_NULL;
   }
@@ -3176,10 +3155,7 @@ scm_api_display(ScmObj obj, ScmObj port)
     return SCM_OBJ_NULL;
   }
 
-  if (scm_obj_null_p(port)) {
-    port = scm_api_current_output_port();
-  }
-  else if (!scm_capi_output_port_p(port)) {
+  if (!scm_capi_output_port_p(port)) {
     scm_capi_error("display: output-port required, but got", 1, port);
     return SCM_OBJ_NULL;
   }
@@ -3202,10 +3178,7 @@ scm_api_newline(ScmObj port)
   ssize_t w;
   int rslt;
 
-  if (scm_obj_null_p(port)) {
-    port = scm_api_current_output_port();
-  }
-  else if (!scm_capi_output_port_p(port)) {
+  if (!scm_capi_output_port_p(port)) {
     scm_capi_error("newline: output-port required, but got", 1, port);
     return SCM_OBJ_NULL;
   }
@@ -3233,10 +3206,7 @@ scm_api_flush_output_port(ScmObj port)
 
   SCM_STACK_FRAME_PUSH(&port);
 
-  if (scm_obj_null_p(port)) {
-    port = scm_api_current_output_port();
-  }
-  else if (!scm_capi_output_port_p(port)) {
+  if (!scm_capi_output_port_p(port)) {
     scm_capi_error("display: output-port required, but got", 1, port);
     return SCM_OBJ_NULL;
   }
@@ -3304,18 +3274,6 @@ scm_api_get_output_string(ScmObj port)
   e = scm_port_encoding(port);
 
   return scm_capi_make_string_from_bin(p, (size_t)s, e);
-}
-
-extern inline ScmObj
-scm_api_current_input_port(void)
-{
-  return scm_vm_current_input_port(scm_vm_current_vm());
-}
-
-extern inline ScmObj
-scm_api_current_output_port(void)
-{
-  return scm_vm_current_output_port(scm_vm_current_vm());
 }
 
 extern inline ScmObj
@@ -3543,7 +3501,7 @@ scm_capi_parameter_init_val(ScmObj prm, scm_csetter_t *val)
                    "invalid argument", 0);
     return -1;
   }
-  else if (val != NULL) {
+  else if (val == NULL) {
     scm_capi_error("failed to get a initial value of a parameter object: "
                    "invalid argument", 0);
     return -1;

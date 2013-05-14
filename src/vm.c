@@ -456,9 +456,6 @@ scm_vm_setup_global_env(ScmObj vm)
   SCM_VM(vm)->ge.stdio.out = SCM_OBJ_NULL;
   SCM_VM(vm)->ge.stdio.err = SCM_OBJ_NULL;
 
-  SCM_VM(vm)->ge.curio.in = SCM_OBJ_NULL;
-  SCM_VM(vm)->ge.curio.out = SCM_OBJ_NULL;
-
   SCM_VM(vm)->ge.excpt.hndlr = SCM_OBJ_NULL;
   SCM_VM(vm)->ge.excpt.raised = SCM_OBJ_NULL;
 
@@ -482,9 +479,6 @@ scm_vm_clean_global_env(ScmObj vm)
   SCM_VM(vm)->ge.stdio.in = SCM_OBJ_NULL;
   SCM_VM(vm)->ge.stdio.out = SCM_OBJ_NULL;
   SCM_VM(vm)->ge.stdio.err = SCM_OBJ_NULL;
-
-  SCM_VM(vm)->ge.curio.in = SCM_OBJ_NULL;
-  SCM_VM(vm)->ge.curio.out = SCM_OBJ_NULL;
 
   SCM_VM(vm)->ge.excpt.hndlr = SCM_OBJ_NULL;
   SCM_VM(vm)->ge.excpt.raised = SCM_OBJ_NULL;
@@ -518,14 +512,14 @@ scm_vm_init_eval_env(ScmObj vm)
     return -1;
   }
 
-  out_fd = dup(0);
+  out_fd = dup(1);
   if (out_fd < 0) {
     scm_capi_error("system call error: dup", 0);
     close(in_fd);
     return -1;
   }
 
-  err_fd = dup(0);
+  err_fd = dup(2);
   if (err_fd < 0) {
     scm_capi_error("system call error: dup", 0);
     close(in_fd); close(out_fd);
@@ -557,9 +551,6 @@ scm_vm_init_eval_env(ScmObj vm)
   SCM_SLOT_SETQ(ScmVM, vm, ge.stdio.out, out);
   SCM_SLOT_SETQ(ScmVM, vm, ge.stdio.err, err);
 
-  SCM_SLOT_SETQ(ScmVM, vm, ge.curio.in, in);
-  SCM_SLOT_SETQ(ScmVM, vm, ge.curio.out, out);
-
   SCM_SLOT_SETQ(ScmVM, vm, ge.excpt.hndlr, SCM_VM(vm)->cnsts.nil);
   SCM_VM(vm)->ge.excpt.raised = SCM_OBJ_NULL;
 
@@ -590,9 +581,6 @@ scm_vm_clean_eval_env(ScmObj vm)
   SCM_VM(vm)->ge.stdio.in = SCM_OBJ_NULL;
   SCM_VM(vm)->ge.stdio.out = SCM_OBJ_NULL;
   SCM_VM(vm)->ge.stdio.err = SCM_OBJ_NULL;
-
-  SCM_VM(vm)->ge.curio.in = SCM_OBJ_NULL;
-  SCM_VM(vm)->ge.curio.out = SCM_OBJ_NULL;
 
   SCM_VM(vm)->ge.excpt.hndlr = SCM_OBJ_NULL;
   SCM_VM(vm)->ge.excpt.raised = SCM_OBJ_NULL;
@@ -3100,8 +3088,6 @@ scm_vm_gc_initialize(ScmObj obj, ScmObj mem)
   SCM_VM(obj)->ge.stdio.in = SCM_OBJ_NULL;
   SCM_VM(obj)->ge.stdio.out = SCM_OBJ_NULL;
   SCM_VM(obj)->ge.stdio.err = SCM_OBJ_NULL;
-  SCM_VM(obj)->ge.curio.in = SCM_OBJ_NULL;
-  SCM_VM(obj)->ge.curio.out = SCM_OBJ_NULL;
   SCM_VM(obj)->ge.excpt.hndlr = SCM_OBJ_NULL;
   SCM_VM(obj)->ge.excpt.raised = SCM_OBJ_NULL;
   SCM_VM(obj)->stack = SCM_OBJ_NULL;
@@ -3173,12 +3159,6 @@ scm_vm_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
   rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_VM(obj)->ge.stdio.err, mem);
-  if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
-
-  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_VM(obj)->ge.curio.in, mem);
-  if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
-
-  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_VM(obj)->ge.curio.out, mem);
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
   rslt = SCM_GC_CALL_REF_HANDLER(handler, obj,

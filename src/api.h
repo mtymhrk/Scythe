@@ -331,8 +331,6 @@ ScmObj scm_api_newline(ScmObj port);
 ScmObj scm_api_flush_output_port(ScmObj port);
 ssize_t scm_capi_get_output_raw(ScmObj port, void *buf, size_t size);
 ScmObj scm_api_get_output_string(ScmObj port);
-ScmObj scm_api_current_input_port(void);
-ScmObj scm_api_current_output_port(void);
 ScmObj scm_api_standard_input_port(void);
 ScmObj scm_api_standard_output_port(void);
 ScmObj scm_api_standard_error_port(void);

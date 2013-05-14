@@ -280,11 +280,6 @@ struct ScmVMRec {
     } stdio;
 
     struct {
-      ScmObj in;
-      ScmObj out;
-    } curio;
-
-    struct {
       ScmObj hndlr;
       ScmObj raised;
     } excpt;
@@ -474,22 +469,6 @@ scm_vm_standard_error_port(ScmObj vm)
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
   return SCM_VM(vm)->ge.stdio.err;
-}
-
-inline ScmObj
-scm_vm_current_input_port(ScmObj vm)
-{
-  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-
-  return SCM_VM(vm)->ge.curio.in;
-}
-
-inline ScmObj
-scm_vm_current_output_port(ScmObj vm)
-{
-  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-
-  return SCM_VM(vm)->ge.curio.out;
 }
 
 inline ScmObj

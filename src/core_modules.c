@@ -1,3 +1,4 @@
+#include <unistd.h>
 #include <stdint.h>
 #include <stdarg.h>
 
@@ -154,6 +155,44 @@ scm_define_scheme_base_clsr(ScmObj module)
 }
 
 static int
+scm_define_scheme_base_current_port(ScmObj module)
+{
+  struct {
+    const char *name;
+    ScmObj (*func)(void);
+  } const data[] = {
+    { "current-input-port", scm_api_standard_input_port },
+    { "current-output-port", scm_api_standard_output_port },
+    { "current-error-port", scm_api_standard_error_port },
+  };
+
+  ScmObj sym = SCM_OBJ_INIT, port = SCM_OBJ_INIT, prm = SCM_OBJ_INIT;
+  int rslt;
+
+  SCM_STACK_FRAME_PUSH(&module,
+                       &sym, &port, &prm);
+
+  for (size_t i = 0; i < sizeof(data)/sizeof(data[0]); i++) {
+    sym = scm_capi_make_symbol_from_cstr(data[i].name, SCM_ENC_ASCII);
+    if (scm_obj_null_p(sym)) return -1;
+
+    prm = scm_capi_make_parameter(SCM_OBJ_NULL);
+    if (scm_obj_null_p(prm)) return -1;
+
+    port = data[i].func();
+    if (scm_obj_null_p(port)) return -1;
+
+    rslt = scm_capi_parameter_set_init_val(prm, port);
+    if (rslt < 0) return -1;
+
+    rslt = scm_capi_define_global_var(module, sym, prm, true);
+    if (rslt < 0) return -1;
+  }
+
+  return 0;
+}
+
+static int
 scm_load_module_scheme_base(void)
 {
   ScmObj name = SCM_OBJ_INIT, mod = SCM_OBJ_INIT, imp = SCM_OBJ_INIT;
@@ -196,6 +235,9 @@ scm_load_module_scheme_base(void)
   if (rslt < 0) return -1;
 
   rslt = scm_define_scheme_base_clsr(mod);
+  if (rslt < 0) return -1;
+
+  rslt = scm_define_scheme_base_current_port(mod);
   if (rslt < 0) return -1;
 
   return 0;
