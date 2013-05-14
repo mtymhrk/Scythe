@@ -913,6 +913,8 @@ scm_vm_make_cframe(ScmObj vm, ScmEnvFrame *efp, ScmObj cp)
   if (scm_vmsr_overflow_p(SCM_VM(vm)->stack, next_sp)) {
     rslt = scm_vm_handle_stack_overflow(vm);
     if (rslt < 0) return -1;
+
+    next_sp = SCM_VM(vm)->reg.sp + sizeof(ScmCntFrame);
   }
 
   rslt = scm_vm_update_pef_len_if_needed(vm);
@@ -1014,6 +1016,8 @@ scm_vm_make_eframe(ScmObj vm, size_t nr_arg)
   if (scm_vmsr_overflow_p(SCM_VM(vm)->stack, next_sp)) {
     rslt = scm_vm_handle_stack_overflow(vm);
     if (rslt < 0) return -1;
+
+    next_sp = SCM_VM(vm)->reg.sp + sizeof(ScmEnvFrame);
   }
 
   rslt = scm_vm_update_pef_len_if_needed(vm);
