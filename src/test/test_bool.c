@@ -35,7 +35,7 @@ test_scm_capi_true_object_p_1(void)
 
   SCM_STACK_FRAME_PUSH(&bl);
 
-  bl = scm_api_true();
+  bl = SCM_TRUE_OBJ;
 
   cut_assert_true(scm_capi_true_object_p(bl));
   cut_assert_false(scm_capi_raised_p());
@@ -48,7 +48,7 @@ test_scm_capi_true_object_p_2(void)
 
   SCM_STACK_FRAME_PUSH(&bl);
 
-  bl = scm_api_false();
+  bl = SCM_FALSE_OBJ;
 
   cut_assert_false(scm_capi_true_object_p(bl));
   cut_assert_false(scm_capi_raised_p());
@@ -68,7 +68,7 @@ test_scm_capi_false_object_p_1(void)
 
   SCM_STACK_FRAME_PUSH(&bl);
 
-  bl = scm_api_true();
+  bl = SCM_TRUE_OBJ;
 
   cut_assert_false(scm_capi_false_object_p(bl));
   cut_assert_false(scm_capi_raised_p());
@@ -81,7 +81,7 @@ test_scm_capi_false_object_p_2(void)
 
   SCM_STACK_FRAME_PUSH(&bl);
 
-  bl = scm_api_false();
+  bl = SCM_FALSE_OBJ;
 
   cut_assert_true(scm_capi_false_object_p(bl));
   cut_assert_false(scm_capi_raised_p());

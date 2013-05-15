@@ -94,7 +94,7 @@ cut_setup(void)
   ev = scm_capi_evaluator();
   scm_capi_ut_setup_current_vm(ev);
 
-  undef = scm_api_undef();
+  undef = SCM_UNDEF_OBJ;
   assert(scm_obj_not_null_p(undef));
 
   module = name = gloc = symbol = syntax = undef;
@@ -235,7 +235,7 @@ test_gloc_bind(void)
   make_module("test");
   make_gloc("var");
 
-  expected = scm_api_eof();
+  expected = SCM_EOF_OBJ;
 
   cut_assert_equal_int(0, scm_capi_gloc_bind(gloc, expected));
   cut_assert_equal_int(0, scm_capi_gloc_value(gloc, SCM_CSETTER_L(actual)));
@@ -250,7 +250,7 @@ test_define_global_var(void)
   SCM_STACK_FRAME_PUSH(&sym, &val, &actual);
 
   sym = scm_capi_make_symbol_from_cstr("var", SCM_ENC_ASCII);
-  val = scm_api_eof();
+  val = SCM_EOF_OBJ;
 
   make_module("test");
 
@@ -269,8 +269,8 @@ test_define_global_var__already_bound(void)
   SCM_STACK_FRAME_PUSH(&sym, &val1, &val2, &actual);
 
   sym = scm_capi_make_symbol_from_cstr("var", SCM_ENC_ASCII);
-  val1 = scm_api_eof();
-  val2 = scm_api_false();
+  val1 = SCM_EOF_OBJ;
+  val2 = SCM_FALSE_OBJ;
 
   make_module("test");
 
@@ -306,7 +306,7 @@ test_global_var_ref__refer_exported_symbol_of_imported_module(void)
   SCM_STACK_FRAME_PUSH(&sym, &val, &actual);
 
   sym = scm_capi_make_symbol_from_cstr("var", SCM_ENC_ASCII);
-  val = scm_api_eof();
+  val = SCM_EOF_OBJ;
 
   make_module("imp");
   make_module("test");
@@ -330,7 +330,7 @@ test_global_var_ref__refer_unexported_symbol_of_imported_module(void)
   SCM_STACK_FRAME_PUSH(&sym, &val, &actual);
 
   sym = scm_capi_make_symbol_from_cstr("var", SCM_ENC_ASCII);
-  val = scm_api_eof();
+  val = SCM_EOF_OBJ;
 
   make_module("imp");
   make_module("test");

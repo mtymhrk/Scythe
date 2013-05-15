@@ -35,7 +35,7 @@ scm_make_module_name(int n, SCM_ENC_T enc, ...)
     if (scm_obj_null_p(str[i])) return SCM_OBJ_NULL;
   }
 
-  name = scm_api_nil();
+  name = SCM_NIL_OBJ;
 
   for (int i = n; i > 0; i--) {
     name = scm_api_cons(str[i - 1], name);

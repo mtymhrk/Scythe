@@ -758,7 +758,7 @@ scm_asm_inst(ScmObj iseq, ScmObj inst, size_t idx,
   }
   else {
     operator = inst;
-    operands = scm_api_nil();
+    operands = SCM_NIL_OBJ;
   }
 
   opcode = scm_asm_sym2opcode(operator);

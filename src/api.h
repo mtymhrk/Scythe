@@ -100,6 +100,9 @@ ScmObj scm_api_nil(void);
 bool scm_capi_nil_p(ScmObj obj);
 ScmObj scm_api_nil_P(ScmObj obj);
 
+#define SCM_NIL_OBJ scm_api_nil()
+
+
 /*******************************************************************/
 /*  boolean                                                        */
 /*******************************************************************/
@@ -111,6 +114,9 @@ bool scm_capi_false_object_p(ScmObj obj);
 bool scm_capi_true_p(ScmObj obj);
 bool scm_capi_false_p(ScmObj obj);
 
+#define SCM_TRUE_OBJ scm_api_true()
+#define SCM_FALSE_OBJ scm_api_false()
+
 
 /*******************************************************************/
 /*  eof                                                           */
@@ -119,6 +125,8 @@ bool scm_capi_false_p(ScmObj obj);
 ScmObj scm_api_eof(void);
 bool scm_capi_eof_object_p(ScmObj obj);
 
+#define SCM_EOF_OBJ scm_api_eof()
+
 
 /*******************************************************************/
 /*  undef                                                          */
@@ -126,6 +134,8 @@ bool scm_capi_eof_object_p(ScmObj obj);
 
 ScmObj scm_api_undef(void);
 bool scm_capi_undef_object_p(ScmObj obj);
+
+#define SCM_UNDEF_OBJ scm_api_undef()
 
 
 /*******************************************************************/

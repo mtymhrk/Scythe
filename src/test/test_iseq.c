@@ -192,7 +192,7 @@ test_scm_iseq_push_obj_1(void)
   /* preprocess */
   iseq = scm_iseq_new(SCM_MEM_HEAP);
 
-  expected = scm_api_nil();
+  expected = SCM_NIL_OBJ;
 
   /* action */
   rslt = scm_iseq_push_obj(iseq, expected);
@@ -217,7 +217,7 @@ test_scm_iseq__expand_object_vector(void)
 
   iseq = scm_iseq_new(SCM_MEM_HEAP);
 
-  val = scm_api_nil();
+  val = SCM_NIL_OBJ;
 
   for (int i; i < SCM_ISEQ_DEFAULT_INDEX_SIZE; i++) {
     ssize_t r = scm_iseq_push_obj(iseq, val);

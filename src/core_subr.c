@@ -310,7 +310,7 @@ scm_subr_func_callcc(ScmObj subr, int argc, const ScmObj *argv)
   rslt = scm_capi_trampolining(argv[0], args, SCM_OBJ_NULL, SCM_OBJ_NULL);
   if (rslt < 0) return -1; /* [ERR]: [through] */
 
-  val = scm_api_undef();
+  val = SCM_UNDEF_OBJ;
 
   return scm_capi_return_val(&val, 1);
 }
@@ -376,12 +376,12 @@ scm_subr_func_eval_asm(ScmObj subr, int argc, const ScmObj *argv)
   code = scm_capi_make_closure(code, SCM_OBJ_NULL, 0);
   if (scm_obj_null_p(code)) return -1; /* [ERR]: [through] */
 
-  args = scm_api_nil();
+  args = SCM_NIL_OBJ;
 
   rslt = scm_capi_trampolining(code, args, SCM_OBJ_NULL, SCM_OBJ_NULL);
   if (rslt < 0) return -1; /* [ERR]: [through] */
 
-  val = scm_api_undef();
+  val = SCM_UNDEF_OBJ;
 
   return scm_capi_return_val(&val, 1);
 }
@@ -413,12 +413,12 @@ scm_subr_func_eval(ScmObj subr, int argc, const ScmObj *argv)
   exp = scm_capi_make_closure(exp, SCM_OBJ_NULL, 0);
   if (scm_obj_null_p(exp)) return -1; /* [ERR]: [through] */
 
-  args = scm_api_nil();
+  args = SCM_NIL_OBJ;
 
   rslt = scm_capi_trampolining(exp, args, SCM_OBJ_NULL, SCM_OBJ_NULL);
   if (rslt < 0) return -1; /* [ERR]: [through] */
 
-  val = scm_api_undef();
+  val = SCM_UNDEF_OBJ;
 
   return scm_capi_return_val(&val, 1);
 }
@@ -453,7 +453,7 @@ scm_subr_func_exit(ScmObj subr, int argc, const ScmObj *argv)
   val = scm_api_exit(val);
   if (scm_obj_null_p(val)) return -1;
 
-  val = scm_api_undef();
+  val = SCM_UNDEF_OBJ;
 
   return scm_capi_return_val(&val, 1);
 }
@@ -493,10 +493,10 @@ scm_subr_func_default_exception_handler(ScmObj subr,
   ro = scm_api_flush_output_port(port);
   if (scm_obj_null_p(ro)) return SCM_OBJ_NULL;
 
-  ro = scm_api_exit(scm_api_undef());
+  ro = scm_api_exit(SCM_UNDEF_OBJ);
   if (scm_obj_null_p(ro)) return SCM_OBJ_NULL;
 
-  val = scm_api_undef();
+  val = SCM_UNDEF_OBJ;
 
   return scm_capi_return_val(&val, 1);
 }

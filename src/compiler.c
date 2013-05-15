@@ -66,7 +66,7 @@ scm_cmpl_compile(ScmObj cmpl, ScmObj exp)
   env = scm_cmpl_env_new();
   if (scm_obj_null_p(env)) return SCM_OBJ_NULL;
 
-  next = scm_api_nil();
+  next = SCM_NIL_OBJ;
   if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
 
   return scm_cmpl_compile_exp(cmpl, exp, env, next, 1, false, true, &rdepth);
@@ -827,7 +827,7 @@ scm_cmpl_push_cont_arity_check(int arity, ScmObj next)
 ScmObj
 scm_cmpl_env_new(void)
 {
-  return scm_api_nil();
+  return SCM_NIL_OBJ;
 }
 
 ScmObj
@@ -852,13 +852,13 @@ scm_cmpl_env_cons(ScmObj vars, bool vparam, ScmObj env)
   len = scm_capi_vector_length(vars);
   if (len < 0) return SCM_OBJ_NULL;
 
-  fls = scm_api_false();
+  fls = SCM_FALSE_OBJ;
   if (scm_obj_null_p(fls)) return SCM_OBJ_NULL;
 
   assigned = scm_capi_make_vector((size_t)len, fls);
   if (scm_obj_null_p(assigned)) return SCM_OBJ_NULL;
 
-  vp_flg = vparam ? scm_api_true() : scm_api_false();
+  vp_flg = vparam ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
   if (scm_obj_null_p(vp_flg)) return SCM_OBJ_NULL;
 
   rib = scm_capi_list(3, vars, assigned, vp_flg);
@@ -982,7 +982,7 @@ scm_cmpl_env_resolv(ScmObj env, ScmObj sym, bool assigned,
       if (scm_capi_eq_p(var, sym)) {
         if (assigned) {
 
-          tr = scm_api_true();
+          tr = SCM_TRUE_OBJ;
           if (scm_obj_null_p(tr)) return -1;
 
           as_flgs = scm_capi_vector_ref(rib, 1);
@@ -1340,7 +1340,7 @@ scm_cmpl_stack_new(void)
   n = scm_capi_make_number_from_sword(0);
   if (scm_obj_null_p(n)) return SCM_OBJ_NULL;
 
-  nil = scm_api_nil();
+  nil = SCM_NIL_OBJ;
   if (scm_obj_null_p(nil)) return SCM_OBJ_NULL;
 
   return scm_api_cons(nil, n);
@@ -1857,7 +1857,7 @@ scm_cmpl_decons_body(ScmObj cmpl, ScmObj body, ScmObj env,
   if (len < 0) return -1;
 
   if (len == 0) {
-    nil = scm_api_nil();
+    nil = SCM_NIL_OBJ;
     if (scm_obj_null_p(nil)) return SCM_OBJ_NULL;
 
     rslt = scm_cmpl_stack_push(exps_stack, nil);
@@ -2302,7 +2302,7 @@ scm_cmpl_cmpl_lambda(ScmObj cmpl, ScmObj params, bool vparam_p, ScmObj body,
 
   scm_assert_obj_type(cmpl, &SCM_COMPILER_TYPE_INFO);
 
-  nil = scm_api_nil();
+  nil = SCM_NIL_OBJ;
   if (scm_obj_null_p(nil)) return SCM_OBJ_NULL;
 
   nr_params = scm_capi_vector_length(params);
@@ -2846,7 +2846,7 @@ scm_cmpl_compile_cond(ScmObj cmpl, ScmObj exp, ScmObj env,
 
   *rdepth = -1;
 
-  nil = scm_api_nil();
+  nil = SCM_NIL_OBJ;
   if (scm_obj_null_p(nil)) return SCM_OBJ_NULL;
 
   rslt = scm_cmpl_decons_cond(exp, SCM_CSETTER_L(tests), SCM_CSETTER_L(expss),
@@ -3033,7 +3033,7 @@ scm_cmpl_compile_and(ScmObj cmpl, ScmObj exp, ScmObj env,
   }
 
   if (len == 0)
-    return scm_cmpl_push_inst_immval(scm_api_true(), next);
+    return scm_cmpl_push_inst_immval(SCM_TRUE_OBJ, next);
 
   if (len > 1) {
     lbl_junc = scm_cmpl_gen_label(cmpl, "and-j");
@@ -3114,7 +3114,7 @@ scm_cmpl_compile_or(ScmObj cmpl, ScmObj exp, ScmObj env, ScmObj next, int arity,
   }
 
   if (len == 0)
-    return scm_cmpl_push_inst_immval(scm_api_false(), next);
+    return scm_cmpl_push_inst_immval(SCM_FALSE_OBJ, next);
 
   if (len > 1) {
     lbl_junc = scm_cmpl_gen_label(cmpl, "or-j");

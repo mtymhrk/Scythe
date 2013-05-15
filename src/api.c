@@ -184,7 +184,7 @@ scm_api_eq_P(ScmObj obj1, ScmObj obj2)
   }
 
   return (scm_obj_same_instance_p(obj1, obj2) ?
-          scm_api_true() : scm_api_false());
+          SCM_TRUE_OBJ : SCM_FALSE_OBJ);
 }
 
 ScmObj
@@ -201,17 +201,17 @@ scm_api_eqv_P(ScmObj obj1, ScmObj obj2)
   }
 
   if (scm_capi_eq_p(obj1, obj2))
-    return scm_api_true();
+    return SCM_TRUE_OBJ;
 
   if (scm_capi_number_p(obj1)) {
     if (scm_capi_number_p(obj2))
       return scm_api_num_eq_P(obj1, obj2);
     else
-      return scm_api_false();
+      return SCM_FALSE_OBJ;
   }
 
   if (!scm_type_info_same_p(scm_obj_type(obj1), scm_obj_type(obj2)))
-    return scm_api_false();
+    return SCM_FALSE_OBJ;
 
   if (scm_capi_char_p(obj1)) {
     return scm_api_char_eq_P(obj1, obj2);
@@ -226,7 +226,7 @@ scm_api_eqv_P(ScmObj obj1, ScmObj obj2)
     return scm_api_string_eq_P(str1, str2);
   }
 
-  return scm_api_false();
+  return SCM_FALSE_OBJ;
 }
 
 enum { NON_CIRCULATIVE,
@@ -321,9 +321,9 @@ scm_api_equal_aux_P(ScmObj obj1, ScmObj obj2, ScmObj stack1, ScmObj stack2)
       return SCM_OBJ_NULL;
 
     if (cir == SAME_CIRCULATION)
-      return scm_api_true();
+      return SCM_TRUE_OBJ;
     else if (cir == DIFFERENT_CIRCULATION)
-      return scm_api_false();
+      return SCM_FALSE_OBJ;
 
     stack1 = scm_api_cons(obj1, stack1);
     if (scm_obj_null_p(stack1)) return SCM_OBJ_NULL;
@@ -355,7 +355,7 @@ scm_api_equal_aux_P(ScmObj obj1, ScmObj obj2, ScmObj stack1, ScmObj stack2)
       ssize_t len2 = scm_capi_vector_length(obj2);
 
       if (len1 < 0 || len2 < 0) return SCM_OBJ_NULL;
-      if (len1 != len2) return scm_api_false();
+      if (len1 != len2) return SCM_FALSE_OBJ;
 
       for (ssize_t i = 0; i < len1; i++) {
         elm1 = scm_capi_vector_ref(obj1, (size_t)i);
@@ -369,7 +369,7 @@ scm_api_equal_aux_P(ScmObj obj1, ScmObj obj2, ScmObj stack1, ScmObj stack2)
         if (scm_capi_false_object_p(rslt)) return rslt;
       }
 
-      return scm_api_true();
+      return SCM_TRUE_OBJ;
     }
   }
 
@@ -389,7 +389,7 @@ scm_api_equal_P(ScmObj obj1, ScmObj obj2)
     return SCM_OBJ_NULL;         /* provisional implemntation */
   }
 
-  stack1 = stack2 = scm_api_nil();
+  stack1 = stack2 = SCM_NIL_OBJ;
   if (scm_obj_null_p(stack1)) return SCM_OBJ_NULL;
 
   return scm_api_equal_aux_P(obj1, obj2, stack1, stack2);
@@ -400,6 +400,10 @@ scm_api_equal_P(ScmObj obj1, ScmObj obj2)
 /*  nil                                                            */
 /*******************************************************************/
 
+/* Memo:
+ *  scm_api_nil() の関数の実行では GC が発生してはダメ。
+ *  (マクロ SCM_NIL_OBJ を定義して定数的に使うため)
+ */
 extern inline ScmObj
 scm_api_nil(void)
 {
@@ -409,7 +413,7 @@ scm_api_nil(void)
 extern inline bool
 scm_capi_nil_p(ScmObj obj)
 {
-  return scm_capi_eq_p(obj, scm_api_nil());
+  return scm_capi_eq_p(obj, SCM_NIL_OBJ);
 }
 
 ScmObj
@@ -420,7 +424,7 @@ scm_api_nil_P(ScmObj obj)
     return SCM_OBJ_NULL;
   }
 
-  return scm_capi_nil_p(obj) ? scm_api_true() : scm_api_false();
+  return scm_capi_nil_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
 }
 
 
@@ -428,12 +432,20 @@ scm_api_nil_P(ScmObj obj)
 /*  boolean                                                        */
 /*******************************************************************/
 
+/* Memo:
+ *  scm_api_true() の関数の実行では GC が発生してはダメ。
+ *  (マクロ SCM_TRUE_OBJ を定義して定数的に使うため)
+ */
 extern inline ScmObj
 scm_api_true(void)
 {
   return scm_vm_true(scm_vm_current_vm());
 }
 
+/* Memo:
+ *  scm_api_false() の関数の実行では GC が発生してはダメ。
+ *  (マクロ SCM_FALSE_OBJ を定義して定数的に使うため)
+ */
 extern inline ScmObj
 scm_api_false(void)
 {
@@ -443,13 +455,13 @@ scm_api_false(void)
 extern inline bool
 scm_capi_true_object_p(ScmObj obj)
 {
-  return scm_capi_eq_p(obj, scm_api_true());
+  return scm_capi_eq_p(obj, SCM_TRUE_OBJ);
 }
 
 extern inline bool
 scm_capi_false_object_p(ScmObj obj)
 {
-  return scm_capi_eq_p(obj, scm_api_false());
+  return scm_capi_eq_p(obj, SCM_FALSE_OBJ);
 }
 
 extern inline bool
@@ -469,6 +481,10 @@ scm_capi_false_p(ScmObj obj)
 /*  eof                                                           */
 /*******************************************************************/
 
+/* Memo:
+ *  scm_api_eof() の関数の実行では GC が発生してはダメ。
+ *  (マクロ SCM_EOF_OBJ を定義して定数的に使うため)
+ */
 extern inline ScmObj
 scm_api_eof(void)
 {
@@ -478,7 +494,7 @@ scm_api_eof(void)
 extern inline bool
 scm_capi_eof_object_p(ScmObj obj)
 {
-  return scm_capi_eq_p(obj, scm_api_eof());
+  return scm_capi_eq_p(obj, SCM_EOF_OBJ);
 }
 
 
@@ -486,6 +502,10 @@ scm_capi_eof_object_p(ScmObj obj)
 /*  undef                                                          */
 /*******************************************************************/
 
+/* Memo:
+ *  scm_api_undef() の関数の実行では GC が発生してはダメ。
+ *  (マクロ SCM_UNDEF_OBJ を定義して定数的に使うため)
+ */
 extern inline ScmObj
 scm_api_undef(void)
 {
@@ -495,7 +515,7 @@ scm_api_undef(void)
 extern inline bool
 scm_capi_undef_object_p(ScmObj obj)
 {
-  return scm_capi_eq_p(obj, scm_api_undef());
+  return scm_capi_eq_p(obj, SCM_UNDEF_OBJ);
 }
 
 
@@ -517,7 +537,7 @@ scm_capi_raise(ScmObj obj)
 extern inline ScmObj
 scm_api_raise(ScmObj obj)
 {
-  return (scm_capi_raise(obj) < 0) ? SCM_OBJ_NULL : scm_api_undef();
+  return (scm_capi_raise(obj) < 0) ? SCM_OBJ_NULL : SCM_UNDEF_OBJ;
 }
 
 extern inline bool
@@ -574,7 +594,7 @@ scm_api_error_ary(ScmObj msg, size_t n, ScmObj *irris)
   rslt = scm_capi_raise(exc);
   if (rslt < 0) return SCM_OBJ_NULL;
 
-  return scm_api_undef();
+  return SCM_UNDEF_OBJ;
 }
 
 extern inline bool
@@ -643,7 +663,7 @@ scm_api_set_car(ScmObj pair, ScmObj elm)
 
   if (scm_pair_set_car(pair, elm) < 0) return SCM_OBJ_NULL;
 
-  return scm_api_undef();
+  return SCM_UNDEF_OBJ;
 }
 
 ScmObj
@@ -660,7 +680,7 @@ scm_api_set_cdr(ScmObj pair, ScmObj elm)
 
   if (scm_pair_set_cdr(pair, elm) < 0) return SCM_OBJ_NULL;
 
-  return scm_api_undef();
+  return SCM_UNDEF_OBJ;
 }
 
 extern inline bool
@@ -678,7 +698,7 @@ scm_api_pair_P(ScmObj pair)
     return SCM_OBJ_NULL;         /* provisional implemntation */
   }
 
-  return scm_capi_pair_p(pair) ? scm_api_true() : scm_api_false();
+  return scm_capi_pair_p(pair) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
 }
 
 ScmObj
@@ -703,7 +723,7 @@ scm_capi_list(unsigned int n, ...)
   for (unsigned int i = 0; i < n; i++)
     SCM_STACK_PUSH(args + i);
 
-  lst = scm_api_nil();
+  lst = SCM_NIL_OBJ;
   for (unsigned int i = n; i > 0; i--) {
     lst = scm_api_cons(args[i - 1], lst);
     if (scm_obj_null_p(lst)) return SCM_OBJ_NULL; /* provisional implemntation */
@@ -750,9 +770,9 @@ scm_api_list_P(ScmObj lst)
   }
 
   if (scm_capi_nil_p(lst))
-    return scm_api_true();
+    return SCM_TRUE_OBJ;
   else if (!scm_capi_pair_p(lst))
-    return scm_api_false();
+    return SCM_FALSE_OBJ;
 
   rabbit = tortoise = lst;
 
@@ -761,28 +781,28 @@ scm_api_list_P(ScmObj lst)
     if (scm_obj_null_p(tortoise))
       return SCM_OBJ_NULL;
     else if (scm_capi_nil_p(lst))
-      return scm_api_true();
+      return SCM_TRUE_OBJ;
     else if (!scm_capi_pair_p(lst))
-      return scm_api_false();
+      return SCM_FALSE_OBJ;
 
     rabbit = scm_api_cdr(rabbit);
     if (scm_obj_null_p(rabbit))
       return SCM_OBJ_NULL;
     else if (scm_capi_nil_p(rabbit))
-      return scm_api_true();
+      return SCM_TRUE_OBJ;
     else if (!scm_capi_pair_p(lst))
-      return scm_api_false();
+      return SCM_FALSE_OBJ;
 
     rabbit = scm_api_cdr(rabbit);
     if (scm_obj_null_p(rabbit))
       return SCM_OBJ_NULL;
     else if (scm_capi_nil_p(rabbit))
-      return scm_api_true();
+      return SCM_TRUE_OBJ;
     else if (!scm_capi_pair_p(lst))
-      return scm_api_false();
+      return SCM_FALSE_OBJ;
   } while (!scm_capi_eq_p(tortoise, rabbit));
 
-  return scm_api_false();
+  return SCM_FALSE_OBJ;
 }
 
 ssize_t
@@ -850,7 +870,7 @@ scm_api_list_copy(ScmObj lst)
     return SCM_OBJ_NULL;
   }
 
-  nil = scm_api_nil();
+  nil = SCM_NIL_OBJ;
 
   prev = SCM_OBJ_NULL;
   head = SCM_OBJ_NULL;
@@ -1121,7 +1141,7 @@ scm_api_num_eq_P(ScmObj n1, ScmObj n2)
   rslt = scm_capi_num_eq(n1, n2, &cmp);
   if (rslt < 0) return SCM_OBJ_NULL;
 
-  return cmp ? scm_api_true() : scm_api_false();
+  return cmp ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
 }
 
 ScmObj
@@ -1133,7 +1153,7 @@ scm_capi_num_eq_ary_P(size_t argc, ScmObj *argv)
   rslt = scm_capi_num_cop_fold("=", scm_capi_num_eq, argc, argv, &cmp);
   if (rslt < 0) return SCM_OBJ_NULL;
 
-  return cmp ? scm_api_true() : scm_api_false();
+  return cmp ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
 }
 
 int
@@ -1193,7 +1213,7 @@ scm_api_num_lt_P(ScmObj n1, ScmObj n2)
   rslt = scm_capi_num_lt(n1, n2, &cmp);
   if (rslt < 0) return SCM_OBJ_NULL;
 
-  return cmp ? scm_api_true() : scm_api_false();
+  return cmp ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
 }
 
 ScmObj
@@ -1205,7 +1225,7 @@ scm_capi_num_lt_ary_P(size_t argc, ScmObj *argv)
   rslt = scm_capi_num_cop_fold("<", scm_capi_num_lt, argc, argv, &cmp);
   if (rslt < 0) return SCM_OBJ_NULL;
 
-  return cmp ? scm_api_true() : scm_api_false();
+  return cmp ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
 }
 
 int
@@ -1265,7 +1285,7 @@ scm_api_num_gt_P(ScmObj n1, ScmObj n2)
   rslt = scm_capi_num_gt(n1, n2, &cmp);
   if (rslt < 0) return SCM_OBJ_NULL;
 
-  return cmp ? scm_api_true() : scm_api_false();
+  return cmp ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
 }
 
 ScmObj
@@ -1277,7 +1297,7 @@ scm_capi_num_gt_ary_P(size_t argc, ScmObj *argv)
   rslt = scm_capi_num_cop_fold(">", scm_capi_num_gt, argc, argv, &cmp);
   if (rslt < 0) return SCM_OBJ_NULL;
 
-  return cmp ? scm_api_true() : scm_api_false();
+  return cmp ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
 }
 
 int
@@ -1337,7 +1357,7 @@ scm_api_num_le_P(ScmObj n1, ScmObj n2)
   rslt = scm_capi_num_le(n1, n2, &cmp);
   if (rslt < 0) return SCM_OBJ_NULL;
 
-  return cmp ? scm_api_true() : scm_api_false();
+  return cmp ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
 }
 
 ScmObj
@@ -1349,7 +1369,7 @@ scm_capi_num_le_ary_P(size_t argc, ScmObj *argv)
   rslt = scm_capi_num_cop_fold("<=", scm_capi_num_le, argc, argv, &cmp);
   if (rslt < 0) return SCM_OBJ_NULL;
 
-  return cmp ? scm_api_true() : scm_api_false();
+  return cmp ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
 }
 
 int
@@ -1409,7 +1429,7 @@ scm_api_num_ge_P(ScmObj n1, ScmObj n2)
   rslt = scm_capi_num_ge(n1, n2, &cmp);
   if (rslt < 0) return SCM_OBJ_NULL;
 
-  return cmp ? scm_api_true() : scm_api_false();
+  return cmp ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
 }
 
 ScmObj
@@ -1421,7 +1441,7 @@ scm_capi_num_ge_ary_P(size_t argc, ScmObj *argv)
   rslt = scm_capi_num_cop_fold(">=", scm_capi_num_ge, argc, argv, &cmp);
   if (rslt < 0) return SCM_OBJ_NULL;
 
-  return cmp ? scm_api_true() : scm_api_false();
+  return cmp ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
 }
 
 static ScmObj
@@ -2022,7 +2042,7 @@ scm_api_char_eq_P(ScmObj chr1, ScmObj chr2)
   rslt = scm_capi_char_eq(chr1, chr2, &cmp);
   if (rslt < 0) return SCM_OBJ_NULL;
 
-  return cmp ? scm_api_true() : scm_api_false();
+  return cmp ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
 }
 
 
@@ -2261,7 +2281,7 @@ scm_api_string_eq_P(ScmObj s1, ScmObj s2)
   rslt = scm_capi_string_eq(s1, s2, &cmp);
   if (rslt < 0) return SCM_OBJ_NULL;
 
-  return cmp ? scm_api_true() : scm_api_false();
+  return cmp ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
 }
 
 
@@ -2278,7 +2298,7 @@ scm_capi_make_vector(size_t len, ScmObj fill)
   }
 
   if (scm_obj_null_p(fill))
-    return scm_vector_new(SCM_MEM_ALLOC_HEAP, len, scm_api_undef());
+    return scm_vector_new(SCM_MEM_ALLOC_HEAP, len, SCM_UNDEF_OBJ);
   else
     return scm_vector_new(SCM_MEM_ALLOC_HEAP, len, fill);
 }
@@ -2637,9 +2657,9 @@ scm_api_input_port_P(ScmObj port)
   }
 
   if (scm_obj_type_p(port, &SCM_PORT_TYPE_INFO) && scm_port_input_port_p(port))
-    return scm_api_true();
+    return SCM_TRUE_OBJ;
   else
-    return scm_api_false();
+    return SCM_FALSE_OBJ;
 }
 
 bool
@@ -2663,9 +2683,9 @@ scm_api_output_port_P(ScmObj port)
   }
 
   if (scm_obj_type_p(port, &SCM_PORT_TYPE_INFO) && scm_port_output_port_p(port))
-    return scm_api_true();
+    return SCM_TRUE_OBJ;
   else
-    return scm_api_false();
+    return SCM_FALSE_OBJ;
 }
 
 extern inline bool
@@ -2691,9 +2711,9 @@ scm_api_textual_port_P(ScmObj port)
 
   if (scm_obj_type_p(port, &SCM_PORT_TYPE_INFO)
       && scm_port_textual_port_p(port))
-    return scm_api_true();
+    return SCM_TRUE_OBJ;
   else
-    return scm_api_false();
+    return SCM_FALSE_OBJ;
 }
 
 extern inline bool
@@ -2719,9 +2739,9 @@ scm_capi_binary_port_P(ScmObj port)
 
   if (scm_obj_type_p(port, &SCM_PORT_TYPE_INFO)
       && scm_port_binary_port_p(port))
-    return scm_api_true();
+    return SCM_TRUE_OBJ;
   else
-    return scm_api_false();
+    return SCM_FALSE_OBJ;
 }
 
 int
@@ -3053,7 +3073,7 @@ scm_api_write_char(ScmObj chr, ScmObj port)
   rslt = scm_port_write_char(port, scm_char_value(chr));
   if (rslt < 0) return SCM_OBJ_NULL; /* [ERR: [through] */
 
-  return scm_api_undef();
+  return SCM_UNDEF_OBJ;
 }
 
 ScmObj
@@ -3106,7 +3126,7 @@ scm_api_write_string(ScmObj str, ScmObj port)
   rslt = scm_capi_write_raw(buf, (size_t)size, port);
   if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
-  return scm_api_undef();
+  return SCM_UNDEF_OBJ;
 }
 
 ScmObj
@@ -3140,7 +3160,7 @@ scm_api_write_simple(ScmObj obj, ScmObj port)
   rslt = scm_obj_call_pp_func(obj, port, true);
   if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
-  return scm_api_undef();
+  return SCM_UNDEF_OBJ;
 }
 
 ScmObj
@@ -3167,7 +3187,7 @@ scm_api_display(ScmObj obj, ScmObj port)
   rslt = scm_obj_call_pp_func(obj, port, false);
   if (rslt < 0) return SCM_OBJ_NULL;
 
-  return scm_api_undef();
+  return SCM_UNDEF_OBJ;
 }
 
 ScmObj
@@ -3196,7 +3216,7 @@ scm_api_newline(ScmObj port)
   rslt = scm_capi_write_bin(nl.bytes, (size_t)w, enc, port);
   if (rslt < 0) return SCM_OBJ_NULL;
 
-  return scm_api_undef();
+  return SCM_UNDEF_OBJ;
 }
 
 ScmObj
@@ -3214,7 +3234,7 @@ scm_api_flush_output_port(ScmObj port)
   rslt = scm_port_flush(port);
   if (rslt < 0) return SCM_OBJ_NULL;
 
-  return scm_api_undef();
+  return SCM_UNDEF_OBJ;
 }
 
 ssize_t
@@ -4561,7 +4581,7 @@ scm_api_exit(ScmObj obj)
 
   scm_vm_setup_stat_halt(scm_vm_current_vm());
 
-  return scm_api_undef();
+  return SCM_UNDEF_OBJ;
 }
 
 

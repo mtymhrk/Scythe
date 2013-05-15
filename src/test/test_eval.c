@@ -676,7 +676,7 @@ test_eval__lambda_4(void)
   SCM_STACK_FRAME_PUSH(&exp, &port,
                        &actual, &expected);
 
-  expected = scm_api_undef();
+  expected = SCM_UNDEF_OBJ;
 
   port = scm_capi_open_input_string_from_cstr(exp_str, SCM_ENC_ASCII);
   exp = scm_api_read(port);
@@ -830,7 +830,7 @@ test_eval__let_6(void)
   SCM_STACK_FRAME_PUSH(&exp, &port,
                        &actual, &expected);
 
-  expected = scm_api_undef();
+  expected = SCM_UNDEF_OBJ;
 
   port = scm_capi_open_input_string_from_cstr(exp_str, SCM_ENC_ASCII);
   exp = scm_api_read(port);
@@ -877,7 +877,7 @@ test_eval__named_let_2(void)
                        &actual, &expected);
 
 
-  expected = scm_api_undef();
+  expected = SCM_UNDEF_OBJ;
 
   port = scm_capi_open_input_string_from_cstr(exp_str, SCM_ENC_ASCII);
   exp = scm_api_read(port);
@@ -904,7 +904,7 @@ test_eval__named_let_3(void)
                        &actual, &expected);
 
 
-  expected = scm_api_undef();
+  expected = SCM_UNDEF_OBJ;
 
   port = scm_capi_open_input_string_from_cstr(exp_str, SCM_ENC_ASCII);
   exp = scm_api_read(port);
@@ -935,7 +935,7 @@ test_eval__named_let_4(void)
                        &actual, &expected);
 
 
-  expected = scm_api_undef();
+  expected = SCM_UNDEF_OBJ;
 
   port = scm_capi_open_input_string_from_cstr(exp_str, SCM_ENC_ASCII);
   exp = scm_api_read(port);
@@ -967,7 +967,7 @@ test_eval__named_let_5(void)
                        &actual, &expected);
 
 
-  expected = scm_api_undef();
+  expected = SCM_UNDEF_OBJ;
 
   port = scm_capi_open_input_string_from_cstr(exp_str, SCM_ENC_ASCII);
   exp = scm_api_read(port);
@@ -1127,7 +1127,7 @@ test_eval__let_a_6(void)
   SCM_STACK_FRAME_PUSH(&exp, &port,
                        &actual, &expected);
 
-  expected = scm_api_undef();
+  expected = SCM_UNDEF_OBJ;
 
   port = scm_capi_open_input_string_from_cstr(exp_str, SCM_ENC_ASCII);
   exp = scm_api_read(port);
@@ -1251,7 +1251,7 @@ test_eval__letrec_5(void)
   SCM_STACK_FRAME_PUSH(&exp, &port,
                        &actual, &expected);
 
-  expected = scm_api_undef();
+  expected = SCM_UNDEF_OBJ;
 
   port = scm_capi_open_input_string_from_cstr(exp_str, SCM_ENC_ASCII);
   exp = scm_api_read(port);
@@ -1401,7 +1401,7 @@ test_eval__letrec_a_6(void)
   SCM_STACK_FRAME_PUSH(&exp, &port,
                        &actual, &expected);
 
-  expected = scm_api_undef();
+  expected = SCM_UNDEF_OBJ;
 
   port = scm_capi_open_input_string_from_cstr(exp_str, SCM_ENC_ASCII);
   exp = scm_api_read(port);
@@ -1612,7 +1612,7 @@ test_eval__begin_3(void)
   SCM_STACK_FRAME_PUSH(&exp, &port,
                        &actual, &expected);
 
-  expected = scm_api_undef();
+  expected = SCM_UNDEF_OBJ;
 
   port = scm_capi_open_input_string_from_cstr(exp_str, SCM_ENC_ASCII);
   exp = scm_api_read(port);
@@ -1862,7 +1862,7 @@ test_eval__if_4(void)
                        &actual, &expected);
 
 
-  expected = scm_api_undef();
+  expected = SCM_UNDEF_OBJ;
 
   port = scm_capi_open_input_string_from_cstr(exp_str, SCM_ENC_ASCII);
   exp = scm_api_read(port);
@@ -1906,7 +1906,7 @@ test_eval__if_6(void)
                        &actual, &expected);
 
 
-  expected = scm_api_undef();
+  expected = SCM_UNDEF_OBJ;
 
   port = scm_capi_open_input_string_from_cstr(exp_str, SCM_ENC_ASCII);
   exp = scm_api_read(port);
@@ -2987,7 +2987,7 @@ test_eval__when_1(void)
                        &actual, &expected);
 
 
-  expected = scm_api_undef();
+  expected = SCM_UNDEF_OBJ;
 
   port = scm_capi_open_input_string_from_cstr(exp_str, SCM_ENC_ASCII);
   exp = scm_api_read(port);
@@ -3037,7 +3037,7 @@ test_eval__when_3(void)
                        &actual, &expected);
 
 
-  expected = scm_api_undef();
+  expected = SCM_UNDEF_OBJ;
 
   port = scm_capi_open_input_string_from_cstr(exp_str, SCM_ENC_ASCII);
   exp = scm_api_read(port);
@@ -3062,7 +3062,7 @@ test_eval__when_4(void)
                        &actual, &expected);
 
 
-  expected = scm_api_undef();
+  expected = SCM_UNDEF_OBJ;
 
   port = scm_capi_open_input_string_from_cstr(exp_str, SCM_ENC_ASCII);
   exp = scm_api_read(port);
@@ -3089,7 +3089,7 @@ test_eval__when_5(void)
                        &actual, &expected);
 
 
-  expected = scm_api_undef();
+  expected = SCM_UNDEF_OBJ;
 
   port = scm_capi_open_input_string_from_cstr(exp_str, SCM_ENC_ASCII);
   exp = scm_api_read(port);
@@ -3139,7 +3139,7 @@ test_eval__when_7(void)
                        &actual, &expected);
 
 
-  expected = scm_api_undef();
+  expected = SCM_UNDEF_OBJ;
 
   port = scm_capi_open_input_string_from_cstr(exp_str, SCM_ENC_ASCII);
   exp = scm_api_read(port);
@@ -3164,7 +3164,7 @@ test_eval__when_8(void)
                        &actual, &expected);
 
 
-  expected = scm_api_undef();
+  expected = SCM_UNDEF_OBJ;
 
   port = scm_capi_open_input_string_from_cstr(exp_str, SCM_ENC_ASCII);
   exp = scm_api_read(port);
@@ -3191,7 +3191,7 @@ test_eval__unless_1(void)
                        &actual, &expected);
 
 
-  expected = scm_api_undef();
+  expected = SCM_UNDEF_OBJ;
 
   port = scm_capi_open_input_string_from_cstr(exp_str, SCM_ENC_ASCII);
   exp = scm_api_read(port);
@@ -3241,7 +3241,7 @@ test_eval__unless_3(void)
                        &actual, &expected);
 
 
-  expected = scm_api_undef();
+  expected = SCM_UNDEF_OBJ;
 
   port = scm_capi_open_input_string_from_cstr(exp_str, SCM_ENC_ASCII);
   exp = scm_api_read(port);
@@ -3266,7 +3266,7 @@ test_eval__unless_4(void)
                        &actual, &expected);
 
 
-  expected = scm_api_undef();
+  expected = SCM_UNDEF_OBJ;
 
   port = scm_capi_open_input_string_from_cstr(exp_str, SCM_ENC_ASCII);
   exp = scm_api_read(port);
@@ -3293,7 +3293,7 @@ test_eval__unless_5(void)
                        &actual, &expected);
 
 
-  expected = scm_api_undef();
+  expected = SCM_UNDEF_OBJ;
 
   port = scm_capi_open_input_string_from_cstr(exp_str, SCM_ENC_ASCII);
   exp = scm_api_read(port);
@@ -3343,7 +3343,7 @@ test_eval__unless_7(void)
                        &actual, &expected);
 
 
-  expected = scm_api_undef();
+  expected = SCM_UNDEF_OBJ;
 
   port = scm_capi_open_input_string_from_cstr(exp_str, SCM_ENC_ASCII);
   exp = scm_api_read(port);
@@ -3450,7 +3450,7 @@ test_eval__do_3(void)
   SCM_STACK_FRAME_PUSH(&exp, &port,
                        &actual, &expected);
 
-  expected = scm_api_undef();
+  expected = SCM_UNDEF_OBJ;
 
   port = scm_capi_open_input_string_from_cstr(exp_str, SCM_ENC_ASCII);
   exp = scm_api_read(port);
@@ -3475,7 +3475,7 @@ test_eval__do_4(void)
   SCM_STACK_FRAME_PUSH(&exp, &port,
                        &actual, &expected);
 
-  expected = scm_api_undef();
+  expected = SCM_UNDEF_OBJ;
 
   port = scm_capi_open_input_string_from_cstr(exp_str, SCM_ENC_ASCII);
   exp = scm_api_read(port);

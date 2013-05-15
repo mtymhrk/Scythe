@@ -1238,7 +1238,7 @@ scm_parser_parse_list(ScmParser *parser, ScmObj port)
 
   if (token->type == SCM_TOKEN_TYPE_RPAREN) {
     scm_lexer_shift_token(parser->lexer);
-    return scm_api_nil();
+    return SCM_NIL_OBJ;
   }
 
   car = scm_parser_parse_expression(parser, port);
@@ -1356,7 +1356,7 @@ scm_parser_parse_quote(ScmParser *parser, ScmObj port)
     return SCM_OBJ_NULL;
   }
 
-  quoted = scm_api_cons(quoted, scm_api_nil());
+  quoted = scm_api_cons(quoted, SCM_NIL_OBJ);
   if (scm_capi_null_value_p(quoted)) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   return scm_api_cons(quote, quoted);
@@ -1723,9 +1723,9 @@ scm_parser_parse_bool(ScmParser *parser, ScmObj port)
   scm_lexer_shift_token(parser->lexer);
 
   if (type == SCM_TOKEN_TYPE_BOOL_TRUE)
-    return scm_api_true();
+    return SCM_TRUE_OBJ;
   else
-    return scm_api_false();
+    return SCM_FALSE_OBJ;
 }
 
 static ScmObj
@@ -1745,7 +1745,7 @@ scm_parser_parse_vector_aux(ScmParser *parser, ScmObj port, size_t *len)
 
   if (token->type == SCM_TOKEN_TYPE_RPAREN) {
     scm_lexer_shift_token(parser->lexer);
-    return scm_api_nil();
+    return SCM_NIL_OBJ;
   }
 
   car = scm_parser_parse_expression(parser, port);
@@ -1852,7 +1852,7 @@ scm_parser_parse_eof(ScmParser *parser, ScmObj port)
   scm_assert(scm_capi_input_port_p(port));
 
   scm_lexer_shift_token(parser->lexer);
-  return scm_api_eof();
+  return SCM_EOF_OBJ;
 }
 
 ScmParser *

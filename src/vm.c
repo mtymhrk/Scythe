@@ -2993,7 +2993,7 @@ scm_vm_setup_stat_trmp(ScmObj vm, ScmObj proc, ScmObj args,
   scm_assert(scm_obj_null_p(postproc) || scm_capi_procedure_p(postproc));
 
   if (scm_obj_null_p(handover))
-    handover = scm_api_nil();
+    handover = SCM_NIL_OBJ;
 
   trmp_code = scm_vm_make_trampolining_code(vm, proc, args, postproc, handover);
   if (scm_obj_null_p(trmp_code)) return -1; /* [ERR]: [through] */

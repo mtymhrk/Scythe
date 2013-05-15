@@ -30,8 +30,8 @@ test_scm_pair_new(void)
   SCM_STACK_FRAME_PUSH(&pair, &car, &cdr);
 
   /* preprocess */
-  car = scm_api_nil();
-  cdr = scm_api_nil();
+  car = SCM_NIL_OBJ;
+  cdr = SCM_NIL_OBJ;
 
   /* action */
   pair = scm_pair_new(SCM_MEM_HEAP, car, cdr);;
@@ -50,8 +50,8 @@ test_scm_pair_car(void)
   SCM_STACK_FRAME_PUSH(&pair, &car, &cdr,&actual_car);
 
   /* preprocess */
-  car = scm_api_nil();
-  cdr = scm_api_eof();
+  car = SCM_NIL_OBJ;
+  cdr = SCM_EOF_OBJ;
   pair = scm_pair_new(SCM_MEM_HEAP, car, cdr);;
 
   /* action  */
@@ -70,8 +70,8 @@ test_scm_pair_cdr(void)
   SCM_STACK_FRAME_PUSH(&pair, &car, &cdr, &actual_cdr);
 
   /* preprocess */
-  car = scm_api_nil();
-  cdr = scm_api_eof();
+  car = SCM_NIL_OBJ;
+  cdr = SCM_EOF_OBJ;
   pair = scm_pair_new(SCM_MEM_HEAP, car, cdr);;
 
   /* action */

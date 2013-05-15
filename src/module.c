@@ -262,7 +262,7 @@ scm_module_export(ScmObj mod, ScmObj sym, int type)
   if (rslt < 0) return -1;
 
   if (scm_obj_null_p(gloc)) {
-    undef = scm_api_undef();
+    undef = SCM_UNDEF_OBJ;
 
     rslt = scm_module_define(mod, sym, undef, true, type);
     if (rslt < 0) return -1;

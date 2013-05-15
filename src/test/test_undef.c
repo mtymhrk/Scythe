@@ -33,7 +33,7 @@ test_scm_undef_object_p_1(void)
 
   SCM_STACK_FRAME_PUSH(&undef);
 
-  undef = scm_api_undef();
+  undef = SCM_UNDEF_OBJ;
 
   cut_assert_true(scm_capi_undef_object_p(undef));
   cut_assert_false(scm_capi_raised_p());
@@ -46,7 +46,7 @@ test_scm_undef_object_p_2(void)
 
   SCM_STACK_FRAME_PUSH(&eof);
 
-  eof = scm_api_eof();
+  eof = SCM_EOF_OBJ;
 
   cut_assert_false(scm_capi_undef_object_p(eof));
   cut_assert_false(scm_capi_raised_p());
