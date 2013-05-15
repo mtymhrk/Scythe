@@ -17,20 +17,60 @@ int scm_subr_func_null_P(ScmObj subr, int argc, const ScmObj *argv);
 
 
 /*******************************************************************/
-/*  List and Pair                                                  */
+/*  Pair and Lists                                                 */
 /*******************************************************************/
 
+#define SCM_SUBR_ARITY_PAIR_P 1
 #define SCM_SUBR_ARITY_CONS 2
 #define SCM_SUBR_ARITY_CAR 1
 #define SCM_SUBR_ARITY_CDR 1
+#define SCM_SUBR_ARITY_SET_CAR 2
+#define SCM_SUBR_ARITY_SET_CDR 2
+#define SCM_SUBR_ARITY_LIST_P 1
+#define SCM_SUBR_ARITY_MAKE_LIST -2
+#define SCM_SUBR_ARITY_LIST -1
+#define SCM_SUBR_ARITY_LENGTH 1
+#define SCM_SUBR_ARITY_APPEND -1
+#define SCM_SUBR_ARITY_REVERSE 1
+#define SCM_SUBR_ARITY_LIST_TAIL 2
+#define SCM_SUBR_ARITY_LIST_REF 2
+#define SCM_SUBR_ARITY_LIST_SET 3
+#define SCM_SUBR_ARITY_LIST_COPY 1
 
+#define SCM_SUBR_FLAG_PAIR_P 0
+#define SCM_SUBR_FLAG_CONS 0
 #define SCM_SUBR_FLAG_CONS 0
 #define SCM_SUBR_FLAG_CAR 0
 #define SCM_SUBR_FLAG_CDR 0
+#define SCM_SUBR_FLAG_SET_CAR 0
+#define SCM_SUBR_FLAG_SET_CDR 0
+#define SCM_SUBR_FLAG_LIST_P 0
+#define SCM_SUBR_FLAG_MAKE_LIST SCM_PROC_ADJ_UNWISHED
+#define SCM_SUBR_FLAG_LIST 0
+#define SCM_SUBR_FLAG_LENGTH 0
+#define SCM_SUBR_FLAG_APPEND SCM_PROC_ADJ_UNWISHED
+#define SCM_SUBR_FLAG_REVERSE 0
+#define SCM_SUBR_FLAG_LIST_TAIL 0
+#define SCM_SUBR_FLAG_LIST_REF 0
+#define SCM_SUBR_FLAG_LIST_SET 0
+#define SCM_SUBR_FLAG_LIST_COPY 0
 
+int scm_subr_func_pair_P(ScmObj subr, int argc, const ScmObj *argv);
 int scm_subr_func_cons(ScmObj subr, int argc, const ScmObj *argv);
 int scm_subr_func_car(ScmObj subr, int argc, const ScmObj *argv);
 int scm_subr_func_cdr(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_set_car(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_set_cdr(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_list_P(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_make_list(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_list(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_length(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_append(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_reverse(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_list_tail(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_list_ref(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_list_set(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_list_copy(ScmObj subr, int argc, const ScmObj *argv);
 
 
 /*******************************************************************/

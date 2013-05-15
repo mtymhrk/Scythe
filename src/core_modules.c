@@ -72,9 +72,23 @@ scm_define_scheme_base_subr(ScmObj module)
     const char *name; int arity; unsigned int flag; ScmSubrFunc func;
   } const data[] = {
     { "null?", SCM_SUBR_ARITY_NULL_P, SCM_SUBR_FLAG_NULL_P, scm_subr_func_null_P },
+    { "pair?", SCM_SUBR_ARITY_PAIR_P, SCM_SUBR_FLAG_PAIR_P, scm_subr_func_pair_P },
     { "cons", SCM_SUBR_ARITY_CONS, SCM_SUBR_FLAG_CONS, scm_subr_func_cons },
     { "car", SCM_SUBR_ARITY_CAR, SCM_SUBR_FLAG_CAR, scm_subr_func_car },
     { "cdr", SCM_SUBR_ARITY_CDR, SCM_SUBR_FLAG_CDR, scm_subr_func_cdr },
+    { "set-car!", SCM_SUBR_ARITY_SET_CAR, SCM_SUBR_FLAG_SET_CAR, scm_subr_func_set_car },
+    { "set-cdr!", SCM_SUBR_ARITY_SET_CDR, SCM_SUBR_FLAG_SET_CDR, scm_subr_func_set_cdr },
+    { "list?", SCM_SUBR_ARITY_LIST_P, SCM_SUBR_FLAG_LIST_P, scm_subr_func_list_P },
+    { "make-list", SCM_SUBR_ARITY_MAKE_LIST, SCM_SUBR_FLAG_MAKE_LIST, scm_subr_func_make_list },
+    { "list", SCM_SUBR_ARITY_LIST, SCM_SUBR_FLAG_LIST, scm_subr_func_list },
+    { "length", SCM_SUBR_ARITY_LENGTH, SCM_SUBR_FLAG_LENGTH, scm_subr_func_length },
+    { "append", SCM_SUBR_ARITY_APPEND, SCM_SUBR_FLAG_APPEND, scm_subr_func_append },
+    { "reverse", SCM_SUBR_ARITY_REVERSE, SCM_SUBR_FLAG_REVERSE, scm_subr_func_reverse },
+    { "list-tail", SCM_SUBR_ARITY_LIST_TAIL, SCM_SUBR_FLAG_LIST_TAIL, scm_subr_func_list_tail },
+    { "list-ref", SCM_SUBR_ARITY_LIST_REF, SCM_SUBR_FLAG_LIST_REF, scm_subr_func_list_ref },
+    { "list-set!", SCM_SUBR_ARITY_LIST_SET, SCM_SUBR_FLAG_LIST_SET, scm_subr_func_list_set },
+    { "list-copy", SCM_SUBR_ARITY_LIST_COPY, SCM_SUBR_FLAG_LIST_COPY, scm_subr_func_list_copy },
+
     { "read", SCM_SUBR_ARITY_READ, SCM_SUBR_FLAG_READ, scm_subr_func_read },
     { "write", SCM_SUBR_ARITY_WRITE, SCM_SUBR_FLAG_WRITE, scm_subr_func_write },
     { "display", SCM_SUBR_ARITY_DISPLAY, SCM_SUBR_FLAG_DISPLAY, scm_subr_func_display },

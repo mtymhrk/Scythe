@@ -285,7 +285,7 @@ scm_api_equal_check_circular(ScmObj obj1, ScmObj obj2,
 }
 
 /*
- * Memo: equal? precedure の動作について
+ * Memo: equal? procedure の動作について
  * 以下の 2 つの循環リストはいずれも、シンボル a、b が交互に表われるリストであ
  * るが、これらの equal? は実装上、偽となる。R6RS ではどうすべきかはよくわから
  * なかった。
@@ -605,8 +605,26 @@ scm_capi_error_object_p(ScmObj obj)
 }
 
 /*******************************************************************/
-/*  List and Pair                                                  */
+/*  Pair and Lists                                                 */
 /*******************************************************************/
+
+extern inline bool
+scm_capi_pair_p(ScmObj pair)
+{
+  if (scm_obj_null_p(pair)) return false;
+  return scm_obj_type_p(pair, &SCM_PAIR_TYPE_INFO);
+}
+
+ScmObj
+scm_api_pair_P(ScmObj pair)
+{
+  if (scm_obj_null_p(pair)) {
+    scm_capi_error("pair?: invalid argument", 0);
+    return SCM_OBJ_NULL;         /* provisional implemntation */
+  }
+
+  return scm_capi_pair_p(pair) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+}
 
 ScmObj
 scm_api_cons(ScmObj car, ScmObj cdr)
@@ -649,112 +667,94 @@ scm_api_cdr(ScmObj pair)
   return scm_pair_cdr(pair);
 }
 
-ScmObj
-scm_api_set_car(ScmObj pair, ScmObj elm)
+int
+scm_capi_set_car(ScmObj pair, ScmObj elm)
 {
   if (scm_obj_null_p(pair) || scm_obj_null_p(elm)) {
     scm_capi_error("set-car!: invalid argument", 0);
-    return SCM_OBJ_NULL;
+    return -1;
   }
   else if (!scm_obj_type_p(pair, &SCM_PAIR_TYPE_INFO)) {
     scm_capi_error("set-car!: pair required, but got", 1, pair);
-    return SCM_OBJ_NULL;
+    return -1;
   }
 
-  if (scm_pair_set_car(pair, elm) < 0) return SCM_OBJ_NULL;
+  if (scm_pair_set_car(pair, elm) < 0)
+    return -1;
+
+  return 0;
+}
+
+ScmObj
+scm_api_set_car(ScmObj pair, ScmObj elm)
+{
+  if (scm_capi_set_car(pair, elm) < 0)
+    return SCM_OBJ_NULL;
 
   return SCM_UNDEF_OBJ;
+}
+
+int
+scm_capi_set_cdr(ScmObj pair, ScmObj elm)
+{
+  if (scm_obj_null_p(pair) || scm_obj_null_p(elm)) {
+    scm_capi_error("set-car!: invalid argument", 0);
+    return -1;
+  }
+  else if (!scm_obj_type_p(pair, &SCM_PAIR_TYPE_INFO)) {
+    scm_capi_error("set-car!: pair required, but got", 1, pair);
+    return -1;
+  }
+
+  if (scm_pair_set_cdr(pair, elm) < 0)
+    return -1;
+
+  return 0;
 }
 
 ScmObj
 scm_api_set_cdr(ScmObj pair, ScmObj elm)
 {
-  if (scm_obj_null_p(pair) || scm_obj_null_p(elm)) {
-    scm_capi_error("set-car!: invalid argument", 0);
+  if (scm_capi_set_cdr(pair, elm) < 0)
     return SCM_OBJ_NULL;
-  }
-  else if (!scm_obj_type_p(pair, &SCM_PAIR_TYPE_INFO)) {
-    scm_capi_error("set-car!: pair required, but got", 1, pair);
-    return SCM_OBJ_NULL;
-  }
 
-  if (scm_pair_set_cdr(pair, elm) < 0) return SCM_OBJ_NULL;
-
-  return SCM_UNDEF_OBJ;
-}
-
-extern inline bool
-scm_capi_pair_p(ScmObj pair)
-{
-  if (scm_obj_null_p(pair)) return false;
-  return (scm_obj_type_p(pair, &SCM_PAIR_TYPE_INFO) ? true : false);
+  return scm_api_undef();
 }
 
 ScmObj
-scm_api_pair_P(ScmObj pair)
+scm_capi_cxr(ScmObj pair, const char *dir)
 {
-  if (scm_obj_null_p(pair)) {
-    scm_capi_error("pair?: invalid argument", 0);
-    return SCM_OBJ_NULL;         /* provisional implemntation */
+  ScmObj x = SCM_OBJ_INIT;
+  size_t i;
+
+  SCM_STACK_FRAME_PUSH(&pair,
+                       &x);
+
+  if (dir == NULL) {
+    scm_capi_error("faild to execute car or cdr: invalid argument", 0);
+    return SCM_OBJ_NULL;
   }
 
-  return scm_capi_pair_p(pair) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
-}
-
-ScmObj
-scm_capi_list(unsigned int n, ...)
-{
-  ScmObj args[n];
-  ScmObj lst = SCM_OBJ_INIT;
-  va_list ap;
-
-  SCM_STACK_FRAME_PUSH(&lst);
-
-  va_start(ap, n);
-  for (unsigned int i = 0; i < n; i++) {
-    args[i] = va_arg(ap, ScmObj);
-    if (scm_obj_null_p(args[i])) {
-      scm_capi_error("list: invalid argument", 0);
+  x = pair;
+  for (i = strlen(dir); i > 0; i--) {
+    switch (dir[i - 1]) {
+    case 'a':                   /* fall through */
+    case 'A':
+      x = scm_api_car(x);
+      break;
+    case 'd':                   /* fall through */
+    case 'D':
+      x = scm_api_cdr(x);
+      break;
+    default:
+      scm_capi_error("faild to execute car or cdr: invalid argument", 0);
       return SCM_OBJ_NULL;
     }
-  }
-  va_end(ap);
 
-  for (unsigned int i = 0; i < n; i++)
-    SCM_STACK_PUSH(args + i);
-
-  lst = SCM_NIL_OBJ;
-  for (unsigned int i = n; i > 0; i--) {
-    lst = scm_api_cons(args[i - 1], lst);
-    if (scm_obj_null_p(lst)) return SCM_OBJ_NULL; /* provisional implemntation */
+    if (scm_obj_null_p(x)) return SCM_OBJ_NULL;
   }
 
-  return lst;
-}
-
-ScmObj
-scm_capi_list_ref(ScmObj lst, size_t n)
-{
-  ScmObj l = SCM_OBJ_NULL;
-
-  SCM_STACK_FRAME_PUSH(&l);
-
-  l = lst;
-  for (size_t i = 0; i < n; i++) {
-    if (scm_capi_pair_p(l))
-      l = scm_api_cdr(l);
-    else {
-      scm_capi_error("list-ref: argument out of range", 0);
-      return SCM_OBJ_NULL;
-    }
-  }
-
-  if (!scm_capi_pair_p(l)) {
-    scm_capi_error("list-ref: argument out of range", 0);
-    return SCM_OBJ_NULL;
-  }
-
-  return scm_api_car(l);
+  return x;
 }
 
 ScmObj
@@ -790,7 +790,7 @@ scm_api_list_P(ScmObj lst)
       return SCM_OBJ_NULL;
     else if (scm_capi_nil_p(rabbit))
       return SCM_TRUE_OBJ;
-    else if (!scm_capi_pair_p(lst))
+    else if (!scm_capi_pair_p(rabbit))
       return SCM_FALSE_OBJ;
 
     rabbit = scm_api_cdr(rabbit);
@@ -798,11 +798,90 @@ scm_api_list_P(ScmObj lst)
       return SCM_OBJ_NULL;
     else if (scm_capi_nil_p(rabbit))
       return SCM_TRUE_OBJ;
-    else if (!scm_capi_pair_p(lst))
+    else if (!scm_capi_pair_p(rabbit))
       return SCM_FALSE_OBJ;
   } while (!scm_capi_eq_p(tortoise, rabbit));
 
   return SCM_FALSE_OBJ;
+}
+
+ScmObj
+scm_capi_make_list(size_t n, ScmObj fill)
+{
+  ScmObj lst = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&fill,
+                       &lst);
+
+  if (scm_obj_null_p(fill))
+    fill = scm_api_undef();
+
+  lst = scm_api_nil();
+  for (size_t i = 0; i < n; i++) {
+    lst = scm_api_cons(fill, lst);
+    if (scm_obj_null_p(lst)) return SCM_OBJ_NULL;
+  }
+
+  return lst;
+}
+
+ScmObj
+scm_api_make_list(ScmObj n, ScmObj fill)
+{
+  size_t s;
+  int r;
+
+  if (!scm_capi_number_p(n)) {
+    scm_capi_error("make-list: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  r = scm_capi_num_to_size_t(n, &s);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return scm_capi_make_list(s, fill);
+}
+
+ScmObj
+scm_capi_list_cv(const ScmObj *elm, size_t n)
+{
+  ScmObj lst = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&lst);
+
+  if (elm == NULL)
+    return scm_api_nil();
+
+  lst = scm_api_nil();
+  for (size_t i = n; i > 0; i--) {
+    if (scm_obj_null_p(elm[i - 1])) {
+      scm_capi_error("list: invalid argument", 0);
+      return SCM_OBJ_NULL;
+    }
+    lst = scm_api_cons(elm[i - 1], lst);
+    if (scm_obj_null_p(lst)) return SCM_OBJ_NULL;
+  }
+
+  return lst;
+}
+
+ScmObj
+scm_capi_list(size_t n, ...)
+{
+  ScmObj args[n];
+  va_list ap;
+
+  SCM_STACK_FRAME;
+
+  va_start(ap, n);
+  for (unsigned int i = 0; i < n; i++)
+    args[i] = va_arg(ap, ScmObj);
+  va_end(ap);
+
+  for (unsigned int i = 0; i < n; i++)
+    SCM_STACK_PUSH(args + i);
+
+  return scm_capi_list_cv(args, n);
 }
 
 ssize_t
@@ -847,6 +926,343 @@ scm_capi_length(ScmObj lst)
 }
 
 ScmObj
+scm_api_length(ScmObj lst)
+{
+  ssize_t len;
+
+  len = scm_capi_length(lst);
+  if (len < 0) return SCM_OBJ_NULL;
+
+  return scm_capi_make_number_from_sword(len);
+}
+
+ScmObj
+scm_capi_append_cv(const ScmObj *lists, size_t n)
+{
+  ScmObj tail = SCM_OBJ_INIT, lst = SCM_OBJ_INIT, elm = SCM_OBJ_INIT;
+  ScmObj new_lst = SCM_OBJ_INIT, prv = SCM_OBJ_INIT, cur = SCM_OBJ_INIT;
+  int rslt;
+
+  SCM_STACK_FRAME_PUSH(&tail, &lst, &elm,
+                       &new_lst, &prv, &cur);
+
+  if (lists == NULL || n == 0)
+    return SCM_NIL_OBJ;
+
+  if (scm_obj_null_p(lists[0])) {
+    scm_capi_error("failed to append lists: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  if (n == 1)
+    return lists[0];
+
+  tail = scm_capi_append_cv(lists + 1, n - 1);
+  if (scm_obj_null_p(tail)) return SCM_OBJ_NULL;
+
+  if (scm_capi_nil_p(lists[0]))
+    return tail;
+
+  new_lst = prv = SCM_OBJ_NULL;
+  for (lst = lists[0]; scm_capi_pair_p(lst); lst = scm_api_cdr(lst)) {
+    elm = scm_api_car(lst);
+    if (scm_obj_null_p(elm)) return SCM_OBJ_NULL;
+
+    cur = scm_api_cons(elm, SCM_NIL_OBJ);
+    if (scm_obj_null_p(cur)) return SCM_OBJ_NULL;
+
+    if (scm_obj_not_null_p(prv)) {
+      rslt  = scm_capi_set_cdr(prv, cur);
+      if (rslt < 0) return SCM_OBJ_NULL;
+    }
+    else {
+      new_lst = cur;
+    }
+
+    prv = cur;
+  }
+
+  if (scm_obj_null_p(lst)) return SCM_OBJ_NULL;
+
+  if (!scm_capi_nil_p(lst)) {
+    scm_capi_error("failed to append lists: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  rslt = scm_capi_set_cdr(prv, tail);
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  return new_lst;
+}
+
+ScmObj
+scm_capi_append(size_t n, ...)
+{
+  ScmObj args[n];
+  va_list ap;
+
+  SCM_STACK_FRAME;
+
+  va_start(ap, n);
+  for (size_t i = 0; i < n; i++)
+    args[i] = va_arg(ap, ScmObj);
+  va_end(ap);
+
+  for (size_t i = 0; i < n; i++)
+    SCM_STACK_PUSH(args + i);
+
+  return scm_capi_append_cv(args, n);
+}
+
+ScmObj
+scm_api_reverse(ScmObj lst)
+{
+  ScmObj new_lst = SCM_OBJ_INIT, cur = SCM_OBJ_INIT, elm = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&lst,
+                       &new_lst, &cur, &elm);
+
+  new_lst = scm_api_nil();
+  for (cur = lst; scm_capi_pair_p(cur); cur = scm_api_cdr(cur)) {
+    elm = scm_api_car(cur);
+    if (scm_obj_null_p(elm)) return SCM_OBJ_NULL;
+
+    new_lst = scm_api_cons(elm, new_lst);
+    if (scm_obj_null_p(new_lst)) return SCM_OBJ_NULL;
+  }
+
+  if (scm_obj_null_p(cur)) return SCM_OBJ_NULL;
+
+  return new_lst;
+}
+
+ScmObj
+scm_capi_list_tail(ScmObj lst, size_t n)
+{
+  ScmObj l = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&lst,
+                       &l);
+
+  l = lst;
+  for (size_t i = 0; i < n; i++) {
+    if (scm_capi_pair_p(l)) {
+      l = scm_api_cdr(l);
+      if (scm_obj_null_p(l)) return SCM_OBJ_NULL;
+    }
+    else {
+      scm_capi_error("list-tail: argument out of range", 0);
+      return SCM_OBJ_NULL;
+    }
+  }
+
+  return l;
+}
+
+ScmObj
+scm_api_list_tail(ScmObj lst, ScmObj n)
+{
+  size_t s;
+  int r;
+
+  if (!scm_capi_number_p(n)) {
+    scm_capi_error("list-tail: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  r = scm_capi_num_to_size_t(n, &s);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return scm_capi_list_tail(lst, s);
+}
+
+ScmObj
+scm_capi_list_ref(ScmObj lst, size_t n)
+{
+  ScmObj l = SCM_OBJ_NULL;
+
+  SCM_STACK_FRAME_PUSH(&l);
+
+  l = lst;
+  for (size_t i = 0; i < n; i++) {
+    if (scm_capi_pair_p(l)) {
+      l = scm_api_cdr(l);
+      if (scm_obj_null_p(l)) return SCM_OBJ_NULL;
+    }
+    else {
+      scm_capi_error("list-ref: argument out of range", 0);
+      return SCM_OBJ_NULL;
+    }
+  }
+
+  if (!scm_capi_pair_p(l)) {
+    scm_capi_error("list-ref: argument out of range", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_api_car(l);
+}
+
+ScmObj
+scm_api_list_ref(ScmObj lst, ScmObj n)
+{
+  size_t s;
+  int r;
+
+  if (!scm_capi_number_p(n)) {
+    scm_capi_error("list-ref: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  r = scm_capi_num_to_size_t(n, &s);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return scm_capi_list_ref(lst, s);
+}
+
+int
+scm_capi_list_set(ScmObj lst, size_t n, ScmObj obj)
+{
+  ScmObj l = SCM_OBJ_NULL;
+
+  SCM_STACK_FRAME_PUSH(&l);
+
+  l = lst;
+  for (size_t i = 0; i < n; i++) {
+    if (scm_capi_pair_p(l))
+      l = scm_api_cdr(l);
+    else {
+      scm_capi_error("list-set: argument out of range", 0);
+      return -1;
+    }
+  }
+
+  if (!scm_capi_pair_p(l)) {
+    scm_capi_error("list-set: argument out of range", 0);
+    return -1;
+  }
+
+  return scm_capi_set_car(l, obj);
+}
+
+ScmObj
+scm_api_list_set(ScmObj lst, ScmObj n, ScmObj obj)
+{
+  size_t s;
+  int r;
+
+  if (!scm_capi_number_p(n)) {
+    scm_capi_error("list-ref: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  r = scm_capi_num_to_size_t(n, &s);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  r = scm_capi_list_set(lst, s, obj);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return SCM_UNDEF_OBJ;
+}
+
+static ScmObj
+scm_capi_member_aux(ScmObj obj, ScmObj lst, ScmObj (*cmp)(ScmObj x, ScmObj y))
+{
+  ScmObj l = SCM_OBJ_INIT, e = SCM_OBJ_INIT, c = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&obj, &lst,
+                       &l, &e, &c);
+
+  scm_assert(cmp != NULL);
+
+  for (l = lst; scm_capi_pair_p(l); l = scm_api_cdr(l)) {
+    e = scm_api_car(l);
+    if (scm_obj_null_p(e)) return SCM_OBJ_NULL;
+
+    c = cmp(e, obj);
+    if (scm_obj_null_p(c)) return SCM_OBJ_NULL;
+
+    if (scm_capi_true_p(c))
+      return l;
+  }
+
+  if (scm_obj_null_p(l)) return SCM_OBJ_NULL;
+
+  return SCM_FALSE_OBJ;
+}
+
+ScmObj
+scm_capi_memq(ScmObj obj, ScmObj lst)
+{
+  return scm_capi_member_aux(obj, lst, scm_api_eq_P);
+}
+
+ScmObj
+scm_capi_memv(ScmObj obj, ScmObj lst)
+{
+  return scm_capi_member_aux(obj, lst, scm_api_eqv_P);
+}
+
+ScmObj
+scm_capi_member(ScmObj obj, ScmObj lst, ScmObj (*cmp)(ScmObj x, ScmObj y))
+{
+  if (cmp == NULL)
+    cmp = scm_api_equal_P;
+
+  return scm_capi_member_aux(obj, lst, cmp);
+}
+
+static ScmObj
+scm_capi_assoc_aux(ScmObj obj, ScmObj alist, ScmObj (*cmp)(ScmObj x, ScmObj y))
+{
+  ScmObj l = SCM_OBJ_INIT, e = SCM_OBJ_INIT, k = SCM_OBJ_INIT, c = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&obj, &alist,
+                       &l, &e, &k, &c);
+
+  scm_assert(cmp != NULL);
+
+  for (l = alist; scm_capi_pair_p(l); l = scm_api_cdr(l)) {
+    e = scm_api_car(l);
+    if (scm_obj_null_p(e)) return SCM_OBJ_NULL;
+
+    k = scm_api_car(e);
+    if (scm_obj_null_p(k)) return SCM_OBJ_NULL;
+
+    c = cmp(k, obj);
+    if (scm_obj_null_p(c)) return SCM_OBJ_NULL;
+
+    if (scm_capi_true_p(c))
+      return e;
+  }
+
+  if (scm_obj_null_p(l)) return SCM_OBJ_NULL;
+
+  return SCM_FALSE_OBJ;
+}
+
+ScmObj
+scm_capi_assq(ScmObj obj, ScmObj alist)
+{
+  return scm_capi_assoc_aux(obj, alist, scm_api_eq_P);
+}
+
+ScmObj
+scm_capi_assv(ScmObj obj, ScmObj alist)
+{
+  return scm_capi_assoc_aux(obj, alist, scm_api_eqv_P);
+}
+
+ScmObj
+scm_capi_assoc(ScmObj obj, ScmObj alist, ScmObj (*cmp)(ScmObj x, ScmObj y))
+{
+  if (cmp == NULL)
+    cmp = scm_api_equal_P;
+
+  return scm_capi_assoc_aux(obj, alist, cmp);
+}
+
+ScmObj
 scm_api_list_copy(ScmObj lst)
 {
   ScmObj cur = SCM_OBJ_INIT, elm = SCM_OBJ_INIT, nil = SCM_OBJ_INIT;
@@ -870,7 +1286,7 @@ scm_api_list_copy(ScmObj lst)
     return SCM_OBJ_NULL;
   }
 
-  nil = SCM_NIL_OBJ;
+  nil = scm_api_nil();
 
   prev = SCM_OBJ_NULL;
   head = SCM_OBJ_NULL;

@@ -152,20 +152,43 @@ bool scm_capi_error_object_p(ScmObj obj);
 
 
 /*******************************************************************/
-/*  List and Pair                                                  */
+/*  Pair and Lists                                                 */
 /*******************************************************************/
 
+bool scm_capi_pair_p(ScmObj pair);
+ScmObj scm_api_pair_P(ScmObj pair);
 ScmObj scm_api_cons(ScmObj car, ScmObj cdr);
 ScmObj scm_api_car(ScmObj pair);
 ScmObj scm_api_cdr(ScmObj pair);
+int scm_capi_set_car(ScmObj pair, ScmObj elm);
 ScmObj scm_api_set_car(ScmObj pair, ScmObj elm);
+int scm_capi_set_cdr(ScmObj pair, ScmObj elm);
 ScmObj scm_api_set_cdr(ScmObj pair, ScmObj elm);
-bool scm_capi_pair_p(ScmObj pair);
-ScmObj scm_api_pair_P(ScmObj pair);
-ScmObj scm_capi_list(unsigned int n, ...);
-ScmObj scm_capi_list_ref(ScmObj lst, size_t n);
+ScmObj scm_capi_cxr(ScmObj pair, const char *dir);
 ScmObj scm_api_list_P(ScmObj lst);
+ScmObj scm_capi_make_list(size_t n, ScmObj fill);
+ScmObj scm_api_make_list(ScmObj n, ScmObj fill);
+ScmObj scm_capi_list_cv(const ScmObj *elm, size_t n);
+ScmObj scm_capi_list(size_t n, ...);
 ssize_t scm_capi_length(ScmObj lst);
+ScmObj scm_api_length(ScmObj lst);
+ScmObj scm_capi_append_cv(const ScmObj *lists, size_t n);
+ScmObj scm_capi_append(size_t n, ...);
+ScmObj scm_api_reverse(ScmObj lst);
+ScmObj scm_capi_list_tail(ScmObj lst, size_t n);
+ScmObj scm_api_list_tail(ScmObj lst, ScmObj n);
+ScmObj scm_capi_list_ref(ScmObj lst, size_t n);
+ScmObj scm_api_list_ref(ScmObj lst, ScmObj n);
+int scm_capi_list_set(ScmObj lst, size_t n, ScmObj obj);
+ScmObj scm_api_list_set(ScmObj lst, ScmObj n, ScmObj obj);
+ScmObj scm_capi_memq(ScmObj obj, ScmObj lst);
+ScmObj scm_capi_memv(ScmObj obj, ScmObj lst);
+ScmObj scm_capi_member(ScmObj obj, ScmObj lst,
+                       ScmObj (*cmp)(ScmObj x, ScmObj y));
+ScmObj scm_capi_assq(ScmObj obj, ScmObj alist);
+ScmObj scm_capi_assv(ScmObj obj, ScmObj alist);
+ScmObj scm_capi_assoc(ScmObj obj, ScmObj alist,
+                      ScmObj (*cmp)(ScmObj x, ScmObj y));
 ScmObj scm_api_list_copy(ScmObj lst);
 
 

@@ -370,6 +370,10 @@ module RakefileHelpers
                     $cfg['compiler']['object_files']['extension'])
   end
 
+  def clean_build_dir
+    FileUtils.rm(Dir.glob(File.join($cfg['compiler']['build_path'], "*.*")))
+  end
+
   def run_test_case(test_base)
     simulator = build_simulator_fields
     executable = File.join($cfg['linker']['bin_files']['destination'],
@@ -394,6 +398,8 @@ module RakefileHelpers
   # テストファイル毎に runner ファイルと実行ファイルを作成してテストを走らせ
   # るメッソド
   def run_test_cases_individually
+    clean_build_dir
+
     # テスト対象のオブジェクトファイルと Unity のオブジェクトファイルの一覧
     # を取得
     objs = get_unit_test_target_objs + get_unity_objs
@@ -430,6 +436,8 @@ module RakefileHelpers
   # てテストを走らせるメッソド
   def run_test_cases_jointly
     test_cmd_base = 'test'
+
+    clean_build_dir
 
     # テスト対象のオブジェクトファイル、テストコードのオブジェクトファイル、
     # Unity のオブジェクトファイルの一覧を取得
