@@ -34,9 +34,13 @@ bool scm_capi_fatal_p(void);
 #define SCM_STACK_PUSH(...)                                             \
   scm_capi_ref_stack_push(0, __VA_ARGS__, NULL)
 
+#define SCM_STACK_PUSH_ARY(ary, n) \
+  scm_capi_ref_stack_push_ary(ary, n)
+
 #define SCM_STACK_FRAME_PUSH(...) \
   SCM_STACK_FRAME; SCM_STACK_PUSH(__VA_ARGS__);
 
+void scm_capi_ref_stack_push_ary(ScmObj *ary, size_t n);
 void scm_capi_ref_stack_push(int dummy, ...);
 void scm_capi_ref_stack_save(ScmRefStackInfo *info);
 void scm_capi_ref_stack_restore(ScmRefStackInfo *info);

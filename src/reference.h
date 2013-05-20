@@ -54,6 +54,7 @@ void scm_ref_stack_finalize(ScmRefStack *stack);
 ScmRefStack *scm_ref_stack_new(size_t size);
 void scm_ref_stack_end(ScmRefStack *stack);
 ScmRefStack *scm_ref_stack_push_va(ScmRefStack *stack, va_list ap);
+ScmRefStack *scm_ref_stack_push_ary(ScmRefStack *stack, ScmObj *ary, size_t n);
 ScmRefStack *scm_ref_stack_push(ScmRefStack *stack, ...);
 ScmRef scm_ref_stack_alloc(ScmRefStack *stack, ScmObj init);
 void scm_ref_stack_save(ScmRefStack *stack, ScmRefStackInfo *info);

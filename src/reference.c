@@ -185,6 +185,18 @@ scm_ref_stack_push_va(ScmRefStack *stack, va_list ap)
 }
 
 ScmRefStack *
+scm_ref_stack_push_ary(ScmRefStack *stack, ScmObj *ary, size_t n)
+{
+  scm_assert(stack != NULL);
+  scm_assert(ary != NULL);
+
+  for (size_t i = 0; i < n; i++)
+    scm_ref_stack_block_push(stack->current, SCM_REF_MAKE(ary[i]));
+
+  return stack;
+}
+
+ScmRefStack *
 scm_ref_stack_push(ScmRefStack *stack, ...)
 {
   ScmRefStack *rslt;
