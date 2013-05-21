@@ -475,6 +475,7 @@ scm_capi_false_object_p(ScmObj obj)
 extern inline bool
 scm_capi_true_p(ScmObj obj)
 {
+  if (scm_obj_null_p(obj)) return false;
   return !scm_capi_false_object_p(obj);
 }
 
