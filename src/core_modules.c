@@ -87,6 +87,12 @@ scm_define_scheme_base_subr(ScmObj module)
     { "list-tail", SCM_SUBR_ARITY_LIST_TAIL, SCM_SUBR_FLAG_LIST_TAIL, scm_subr_func_list_tail },
     { "list-ref", SCM_SUBR_ARITY_LIST_REF, SCM_SUBR_FLAG_LIST_REF, scm_subr_func_list_ref },
     { "list-set!", SCM_SUBR_ARITY_LIST_SET, SCM_SUBR_FLAG_LIST_SET, scm_subr_func_list_set },
+    { "memq", SCM_SUBR_ARITY_MEMQ, SCM_SUBR_FLAG_MEMQ, scm_subr_func_memq },
+    { "memv", SCM_SUBR_ARITY_MEMV, SCM_SUBR_FLAG_MEMV, scm_subr_func_memv },
+    { "member", SCM_SUBR_ARITY_MEMBER, SCM_SUBR_FLAG_MEMBER, scm_subr_func_member },
+    { "assq", SCM_SUBR_ARITY_ASSQ, SCM_SUBR_FLAG_ASSQ, scm_subr_func_assq },
+    { "assv", SCM_SUBR_ARITY_ASSV, SCM_SUBR_FLAG_ASSV, scm_subr_func_assv },
+    { "assoc", SCM_SUBR_ARITY_ASSOC, SCM_SUBR_FLAG_ASSOC, scm_subr_func_assoc },
     { "list-copy", SCM_SUBR_ARITY_LIST_COPY, SCM_SUBR_FLAG_LIST_COPY, scm_subr_func_list_copy },
 
     { "read", SCM_SUBR_ARITY_READ, SCM_SUBR_FLAG_READ, scm_subr_func_read },

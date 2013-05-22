@@ -241,6 +241,48 @@ scm_subr_func_list_set(ScmObj subr, int argc, const ScmObj *argv)
 }
 
 int
+scm_subr_func_memq(ScmObj subr, int argc, const ScmObj *argv)
+{
+  scm_capi_error("memq: not implemented", 0);
+  return -1;
+}
+
+int
+scm_subr_func_memv(ScmObj subr, int argc, const ScmObj *argv)
+{
+  scm_capi_error("memv: not implemented", 0);
+  return -1;
+}
+
+int
+scm_subr_func_member(ScmObj subr, int argc, const ScmObj *argv)
+{
+  scm_capi_error("member: not implemented", 0);
+  return -1;
+}
+
+int
+scm_subr_func_assq(ScmObj subr, int argc, const ScmObj *argv)
+{
+  scm_capi_error("assq: not implemented", 0);
+  return -1;
+}
+
+int
+scm_subr_func_assv(ScmObj subr, int argc, const ScmObj *argv)
+{
+  scm_capi_error("assv: not implemented", 0);
+  return -1;
+}
+
+int
+scm_subr_func_assoc(ScmObj subr, int argc, const ScmObj *argv)
+{
+  scm_capi_error("assoc: not implemented", 0);
+  return -1;
+}
+
+int
 scm_subr_func_list_copy(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;

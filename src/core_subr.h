@@ -35,6 +35,12 @@ int scm_subr_func_null_P(ScmObj subr, int argc, const ScmObj *argv);
 #define SCM_SUBR_ARITY_LIST_TAIL 2
 #define SCM_SUBR_ARITY_LIST_REF 2
 #define SCM_SUBR_ARITY_LIST_SET 3
+#define SCM_SUBR_ARITY_MEMQ 2
+#define SCM_SUBR_ARITY_MEMV 2
+#define SCM_SUBR_ARITY_MEMBER -3
+#define SCM_SUBR_ARITY_ASSQ 2
+#define SCM_SUBR_ARITY_ASSV 2
+#define SCM_SUBR_ARITY_ASSOC -3
 #define SCM_SUBR_ARITY_LIST_COPY 1
 
 #define SCM_SUBR_FLAG_PAIR_P 0
@@ -53,6 +59,12 @@ int scm_subr_func_null_P(ScmObj subr, int argc, const ScmObj *argv);
 #define SCM_SUBR_FLAG_LIST_TAIL 0
 #define SCM_SUBR_FLAG_LIST_REF 0
 #define SCM_SUBR_FLAG_LIST_SET 0
+#define SCM_SUBR_FLAG_MEMQ 0
+#define SCM_SUBR_FLAG_MEMV 0
+#define SCM_SUBR_FLAG_MEMBER 0
+#define SCM_SUBR_FLAG_ASSQ 0
+#define SCM_SUBR_FLAG_ASSV 0
+#define SCM_SUBR_FLAG_ASSOC 0
 #define SCM_SUBR_FLAG_LIST_COPY 0
 
 int scm_subr_func_pair_P(ScmObj subr, int argc, const ScmObj *argv);
@@ -70,6 +82,12 @@ int scm_subr_func_reverse(ScmObj subr, int argc, const ScmObj *argv);
 int scm_subr_func_list_tail(ScmObj subr, int argc, const ScmObj *argv);
 int scm_subr_func_list_ref(ScmObj subr, int argc, const ScmObj *argv);
 int scm_subr_func_list_set(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_memq(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_memv(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_member(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_assq(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_assv(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_assoc(ScmObj subr, int argc, const ScmObj *argv);
 int scm_subr_func_list_copy(ScmObj subr, int argc, const ScmObj *argv);
 
 
