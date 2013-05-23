@@ -176,6 +176,7 @@ ScmObj scm_capi_list_cv(const ScmObj *elm, size_t n);
 ScmObj scm_capi_list(size_t n, ...);
 ssize_t scm_capi_length(ScmObj lst);
 ScmObj scm_api_length(ScmObj lst);
+ScmObj scm_capi_append_lst(ScmObj lst);
 ScmObj scm_capi_append_cv(const ScmObj *lists, size_t n);
 ScmObj scm_capi_append(size_t n, ...);
 ScmObj scm_api_reverse(ScmObj lst);

@@ -946,6 +946,41 @@ scm_api_length(ScmObj lst)
 }
 
 ScmObj
+scm_capi_append_lst(ScmObj lst)
+{
+  ScmObj arg[] = { SCM_OBJ_INIT, SCM_OBJ_INIT };
+  ScmObj l = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&lst);
+  SCM_STACK_PUSH_ARY(arg, sizeof(arg)/sizeof(arg[0]));
+
+  if (scm_obj_null_p(lst)) {
+    scm_capi_error("append: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  lst = scm_api_reverse(lst);
+  if (scm_obj_null_p(lst)) return SCM_OBJ_NULL;
+
+  if (!scm_capi_pair_p(lst))
+    return SCM_NIL_OBJ;
+
+  arg[1] = scm_api_car(lst);
+  if (scm_obj_null_p(arg[1])) return SCM_OBJ_NULL;
+
+  for (l = scm_api_cdr(lst); scm_capi_pair_p(l); l = scm_api_cdr(l)) {
+    arg[0] = scm_api_car(l);
+    if (scm_obj_null_p(arg[0])) return SCM_OBJ_NULL;
+
+    arg[1] = scm_capi_append_cv(arg, 2);
+  }
+
+  if (scm_obj_null_p(l)) return SCM_OBJ_NULL;
+
+  return arg[1];
+}
+
+ScmObj
 scm_capi_append_cv(const ScmObj *lists, size_t n)
 {
   ScmObj tail = SCM_OBJ_INIT, lst = SCM_OBJ_INIT, elm = SCM_OBJ_INIT;
@@ -959,7 +994,7 @@ scm_capi_append_cv(const ScmObj *lists, size_t n)
     return SCM_NIL_OBJ;
 
   if (scm_obj_null_p(lists[0])) {
-    scm_capi_error("failed to append lists: invalid argument", 0);
+    scm_capi_error("append: invalid argument", 0);
     return SCM_OBJ_NULL;
   }
 
@@ -971,6 +1006,11 @@ scm_capi_append_cv(const ScmObj *lists, size_t n)
 
   if (scm_capi_nil_p(lists[0]))
     return tail;
+
+  if (!scm_capi_pair_p(lists[0])) {
+    scm_capi_error("append: list required, but got", 1, lists[0]);
+    return SCM_OBJ_NULL;
+  }
 
   new_lst = prv = SCM_OBJ_NULL;
   for (lst = lists[0]; scm_capi_pair_p(lst); lst = scm_api_cdr(lst)) {

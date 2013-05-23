@@ -178,7 +178,7 @@ scm_subr_func_append(ScmObj subr, int argc, const ScmObj *argv)
   SCM_STACK_FRAME_PUSH(&subr,
                        &val);
 
-  val = scm_capi_append_cv(argv, (size_t)argc);
+  val = scm_capi_append_lst(argv[0]);
   if (scm_obj_null_p(val)) return SCM_OBJ_NULL;
 
   return scm_capi_return_val(&val, 1);

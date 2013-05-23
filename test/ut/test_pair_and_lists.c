@@ -573,6 +573,60 @@ TEST(pair_and_lists, api_length__improper_list__return_ERROR)
   TEST_ASSERT_TRUE(scm_obj_null_p(scm_api_length(lst)));
 }
 
+TEST(pair_and_lists, capi_append_lst)
+{
+  ScmObj lists = SCM_OBJ_INIT;
+  ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&lists, &actual, &expected);
+
+  lists = read_cstr("((a b) (c d) (e f))");
+  expected = read_cstr("(a b c d e f)");
+
+  actual = scm_capi_append_lst(lists);
+
+  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+}
+
+TEST(pair_and_lists, capi_append_lst__list_has_item_is_empty_list)
+{
+  ScmObj lists = SCM_OBJ_INIT;
+  ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&lists, &actual, &expected);
+
+  lists = read_cstr("((a b) () (c d))");
+  expected = read_cstr("(a b c d)");
+
+  actual = scm_capi_append_lst(lists);
+
+  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+}
+
+TEST(pair_and_lists, capi_append_lst__empty_list)
+{
+  ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&actual, &expected);
+
+  expected = SCM_NIL_OBJ;
+
+  actual = scm_capi_append_lst(SCM_NIL_OBJ);
+
+  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+}
+
+TEST(pair_and_lists, capi_append_lst__list_has_item_is_not_list__return_ERROR)
+{
+  ScmObj lists = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&lists);
+
+  lists = read_cstr("((a b) foo (c d))");
+
+  TEST_ASSERT_TRUE(scm_obj_null_p(scm_capi_append_lst(lists)));
+}
+
 TEST(pair_and_lists, capi_append_cv)
 {
   ScmObj lists[2] = { SCM_OBJ_INIT, SCM_OBJ_INIT };
@@ -616,6 +670,22 @@ TEST(pair_and_lists, capi_append_cv__passing_empty_list)
 TEST(pair_and_lists, capi_append_cv__no_arg)
 {
   TEST_ASSERT_TRUE(scm_capi_nil_p(scm_capi_append_cv(NULL, 0)));
+}
+
+TEST(pair_and_lists, capi_append_cv__passing_not_list__return_ERROR)
+{
+  ScmObj lists[2] = { SCM_OBJ_INIT, SCM_OBJ_INIT };
+  ScmObj lst = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&lst, &expected);
+
+  for (size_t i = 0; i < sizeof(lists)/sizeof(lists[0]); i++)
+    SCM_STACK_PUSH(&lists[i]);
+
+  lists[0] = read_cstr("foo");
+  lists[1] = read_cstr("a");
+
+  TEST_ASSERT_TRUE(scm_obj_null_p(scm_capi_append_cv(lists, 2)));
 }
 
 TEST(pair_and_lists, capi_append_cv__return_ERROR)

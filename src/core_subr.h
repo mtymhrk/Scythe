@@ -54,7 +54,7 @@ int scm_subr_func_null_P(ScmObj subr, int argc, const ScmObj *argv);
 #define SCM_SUBR_FLAG_MAKE_LIST SCM_PROC_ADJ_UNWISHED
 #define SCM_SUBR_FLAG_LIST 0
 #define SCM_SUBR_FLAG_LENGTH 0
-#define SCM_SUBR_FLAG_APPEND SCM_PROC_ADJ_UNWISHED
+#define SCM_SUBR_FLAG_APPEND 0
 #define SCM_SUBR_FLAG_REVERSE 0
 #define SCM_SUBR_FLAG_LIST_TAIL 0
 #define SCM_SUBR_FLAG_LIST_REF 0
