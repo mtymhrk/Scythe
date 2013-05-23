@@ -92,6 +92,95 @@ int scm_subr_func_list_copy(ScmObj subr, int argc, const ScmObj *argv);
 
 
 /*******************************************************************/
+/*  Strings                                                        */
+/*******************************************************************/
+
+#define SCM_SUBR_ARITY_STRING_P 1
+#define SCM_SUBR_ARITY_MAKE_STRING -2
+#define SCM_SUBR_ARITY_STRING -1
+#define SCM_SUBR_ARITY_STRING_LENGTH 1
+#define SCM_SUBR_ARITY_STRING_BYTESIZE 1
+#define SCM_SUBR_ARITY_STRING_REF 2
+#define SCM_SUBR_ARITY_STRING_SET_I 3
+#define SCM_SUBR_ARITY_STRING_EQ_P -3
+#define SCM_SUBR_ARITY_STRING_CI_EQ_P -3
+#define SCM_SUBR_ARITY_STRING_LT_P -3
+#define SCM_SUBR_ARITY_STRING_CI_LT_P -3
+#define SCM_SUBR_ARITY_STRING_GT_P -3
+#define SCM_SUBR_ARITY_STRING_CI_GT_P -3
+#define SCM_SUBR_ARITY_STRING_LE_P -3
+#define SCM_SUBR_ARITY_STRING_CI_LE_P -3
+#define SCM_SUBR_ARITY_STRING_GE_P -3
+#define SCM_SUBR_ARITY_STRING_CI_GE_P -3
+#define SCM_SUBR_ARITY_STRING_UPCASE 1
+#define SCM_SUBR_ARITY_STRING_DOWNCASE 1
+#define SCM_SUBR_ARITY_STRING_FOLDCASE 1
+#define SCM_SUBR_ARITY_SUBSTRING 3
+#define SCM_SUBR_ARITY_STRING_APPEND -1
+#define SCM_SUBR_ARITY_STRING_TO_LIST -2
+#define SCM_SUBR_ARITY_LIST_TO_STRING 1
+#define SCM_SUBR_ARITY_STRING_COPY -2
+#define SCM_SUBR_ARITY_STRING_COPY_I -4
+#define SCM_SUBR_ARITY_STRING_FILL_I -3
+
+#define SCM_SUBR_FLAG_STRING_P 0
+#define SCM_SUBR_FLAG_MAKE_STRING 0
+#define SCM_SUBR_FLAG_STRING 0
+#define SCM_SUBR_FLAG_STRING_LENGTH 0
+#define SCM_SUBR_FLAG_STRING_BYTESIZE 0
+#define SCM_SUBR_FLAG_STRING_REF 0
+#define SCM_SUBR_FLAG_STRING_SET_I 0
+#define SCM_SUBR_FLAG_STRING_EQ_P 0
+#define SCM_SUBR_FLAG_STRING_CI_EQ_P 0
+#define SCM_SUBR_FLAG_STRING_LT_P 0
+#define SCM_SUBR_FLAG_STRING_CI_LT_P 0
+#define SCM_SUBR_FLAG_STRING_GT_P 0
+#define SCM_SUBR_FLAG_STRING_CI_GT_P 0
+#define SCM_SUBR_FLAG_STRING_LE_P 0
+#define SCM_SUBR_FLAG_STRING_CI_LE_P 0
+#define SCM_SUBR_FLAG_STRING_GE_P 0
+#define SCM_SUBR_FLAG_STRING_CI_GE_P 0
+#define SCM_SUBR_FLAG_STRING_UPCASE 0
+#define SCM_SUBR_FLAG_STRING_DOWNCASE 0
+#define SCM_SUBR_FLAG_STRING_FOLDCASE 0
+#define SCM_SUBR_FLAG_SUBSTRING 0
+#define SCM_SUBR_FLAG_STRING_APPEND 0
+#define SCM_SUBR_FLAG_STRING_TO_LIST 0
+#define SCM_SUBR_FLAG_LIST_TO_STRING 0
+#define SCM_SUBR_FLAG_STRING_COPY 0
+#define SCM_SUBR_FLAG_STRING_COPY_I 0
+#define SCM_SUBR_FLAG_STRING_FILL_I 0
+
+int scm_subr_func_string_P(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_make_string(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_string(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_string_length(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_string_bytesize(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_string_ref(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_string_set_i(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_string_eq_P(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_string_ci_eq_P(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_string_lt_P(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_string_ci_lt_P(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_string_gt_P(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_string_ci_gt_P(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_string_le_P(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_string_ci_le_P(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_string_ge_P(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_string_ci_ge_P(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_string_upcase(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_string_downcase(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_string_foldcase(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_substring(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_string_append(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_string_to_list(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_list_to_string(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_string_copy(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_string_copy_i(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_string_fill_i(ScmObj subr, int argc, const ScmObj *argv);
+
+
+/*******************************************************************/
 /*  Input Output                                                   */
 /*******************************************************************/
 

@@ -265,7 +265,7 @@ test_scm_string_push_ucs4(void)
   str = scm_string_new(SCM_MEM_HEAP,
                                      row, row_len, SCM_ENC_UCS4);
 
-  cut_assert_true(scm_obj_not_null_p(scm_string_push(str, pushed)));
+  cut_assert_equal_int(0, scm_string_push(str, pushed));
 
   cut_assert_equal_uint(12u, scm_string_length(str));
   cut_assert_equal_uint(expected_len, scm_string_bytesize(str));
@@ -303,7 +303,7 @@ test_scm_string_append_ucs4(void)
   apnd = scm_string_new(SCM_MEM_HEAP,
                                       row2, row2_len, SCM_ENC_UCS4);
 
-  cut_assert_true(scm_obj_not_null_p(scm_string_append(str, apnd)));
+  cut_assert_equal_int(0, scm_string_append(str, apnd));
 
   cut_assert_equal_uint(18u, scm_string_length(str));
   cut_assert_equal_uint(expected_len, scm_string_bytesize(str));
@@ -338,41 +338,40 @@ test_scm_string_ref_ucs4(void)
   str = scm_string_new(SCM_MEM_HEAP,
                                      row, row_len, SCM_ENC_UCS4);
 
-  actual = scm_string_ref(str, 0);
+  cut_assert_equal_int(0, scm_string_ref(str, 0, &actual));
   cut_assert_equal_int(0, memcmp(expected + 0, &actual, sizeof(scm_char_t)));
 
-  actual = scm_string_ref(str, 1);
+  cut_assert_equal_int(0, scm_string_ref(str, 1, &actual));
   cut_assert_equal_int(0, memcmp(expected + 1, &actual, sizeof(scm_char_t)));
 
-  actual = scm_string_ref(str, 2);
+  cut_assert_equal_int(0, scm_string_ref(str, 2, &actual));
   cut_assert_equal_int(0, memcmp(expected + 2, &actual, sizeof(scm_char_t)));
 
-  actual = scm_string_ref(str, 3);
+  cut_assert_equal_int(0, scm_string_ref(str, 3, &actual));
   cut_assert_equal_int(0, memcmp(expected + 3, &actual, sizeof(scm_char_t)));
 
-  actual = scm_string_ref(str, 4);
+  cut_assert_equal_int(0, scm_string_ref(str, 4, &actual));
   cut_assert_equal_int(0, memcmp(expected + 4, &actual, sizeof(scm_char_t)));
 
-  actual = scm_string_ref(str, 5);
+  cut_assert_equal_int(0, scm_string_ref(str, 5, &actual));
   cut_assert_equal_int(0, memcmp(expected + 5, &actual, sizeof(scm_char_t)));
 
-  actual = scm_string_ref(str, 6);
+  cut_assert_equal_int(0, scm_string_ref(str, 6, &actual));
   cut_assert_equal_int(0, memcmp(expected + 6, &actual, sizeof(scm_char_t)));
 
-  actual = scm_string_ref(str, 7);
+  cut_assert_equal_int(0, scm_string_ref(str, 7, &actual));
   cut_assert_equal_int(0, memcmp(expected + 7, &actual, sizeof(scm_char_t)));
 
-  actual = scm_string_ref(str, 8);
+  cut_assert_equal_int(0, scm_string_ref(str, 8, &actual));
   cut_assert_equal_int(0, memcmp(expected + 8, &actual, sizeof(scm_char_t)));
 
-  actual = scm_string_ref(str, 9);
+  cut_assert_equal_int(0, scm_string_ref(str, 9, &actual));
   cut_assert_equal_int(0, memcmp(expected + 9, &actual, sizeof(scm_char_t)));
 
-  actual = scm_string_ref(str, 10);
+  cut_assert_equal_int(0, scm_string_ref(str, 10, &actual));
   cut_assert_equal_int(0, memcmp(expected + 10, &actual, sizeof(scm_char_t)));
 
-  actual = scm_string_ref(str, 11);
-  cut_assert_equal_int(0, memcmp(expected + 11, &actual, sizeof(scm_char_t)));
+  cut_assert_equal_int(-1, scm_string_ref(str, 11, &actual));
 }
 
 void
@@ -394,7 +393,7 @@ test_scm_string_set_same_width_utf4(void)
   str = scm_string_new(SCM_MEM_HEAP,
                                      row, row_len, SCM_ENC_UCS4);
 
-  cut_assert_true(scm_obj_not_null_p(scm_string_set(str, 1, c)));
+  cut_assert_equal_int(0, scm_string_set(str, 1, c));
 
   cut_assert_equal_uint(3u, scm_string_length(str));
   cut_assert_equal_uint(expected_len, scm_string_bytesize(str));
@@ -429,7 +428,7 @@ test_scm_string_fill_ucs4(void)
   str = scm_string_new(SCM_MEM_HEAP,
                                      row, row_len, SCM_ENC_UCS4);
 
-  cut_assert_true(scm_obj_not_null_p(scm_string_fill(str, 8, 3, c)));
+  cut_assert_equal_int(0, scm_string_fill(str, 8, 3, c));
 
   cut_assert_equal_uint(20u, scm_string_length(str));
   cut_assert_equal_uint(expected_len, scm_string_bytesize(str));
@@ -464,7 +463,7 @@ test_scm_string_fill_append_ucs4(void)
   str = scm_string_new(SCM_MEM_HEAP,
                                      row, row_len, SCM_ENC_UCS4);
 
-  cut_assert_true(scm_obj_not_null_p(scm_string_fill(str, 18, 5, c)));
+  cut_assert_equal_int(0, scm_string_fill(str, 18, 5, c));
 
   cut_assert_equal_uint(23u, scm_string_length(str));
   cut_assert_equal_uint(expected_len, scm_string_bytesize(str));

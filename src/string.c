@@ -122,6 +122,56 @@ scm_string_replace_contents(ScmObj target, ScmObj src) /* GC OK */
   SCM_STRING_INC_REF_CNT(target);
 }
 
+static ScmObj
+scm_string_change_case(ScmObj str,
+                       ssize_t (*cnv)(const void *p, size_t s, scm_char_t *c),
+                       int (*char_width)(const void *str, size_t len))
+{
+  ScmObj s = SCM_OBJ_INIT;
+  ScmStrItr itr;
+
+  SCM_STACK_FRAME_PUSH(&str,
+                       &s);
+
+  scm_assert_obj_type(str, &SCM_STRING_TYPE_INFO);
+
+  s = scm_string_new(SCM_MEM_HEAP, NULL, 0, SCM_STRING_ENC(str));
+  if (scm_obj_null_p(s)) return SCM_OBJ_NULL;
+
+  itr = scm_str_itr_begin(SCM_STRING_HEAD(str), SCM_STRING_BYTESIZE(str),
+                          char_width);
+  if (SCM_STR_ITR_IS_ERR(&itr)) {
+    /*  TODO: wirte me */
+    /* scm_capi_error("", 0); */
+    return SCM_OBJ_NULL;
+  }
+
+  while (!SCM_STR_ITR_IS_END(&itr)) {
+    scm_char_t chr;
+    ssize_t w;
+    int r;
+
+    w = cnv(SCM_STR_ITR_PTR(&itr), (size_t)SCM_STR_ITR_REST(&itr), &chr);
+    if (w < 0) {
+      /*  TODO: wirte me */
+      /* scm_capi_error("", 0); */
+      return SCM_OBJ_NULL;
+    }
+
+    r = scm_string_push(s, chr);
+    if (r < 0) return SCM_OBJ_NULL;
+
+    scm_str_itr_next(&itr);
+    if (SCM_STR_ITR_IS_ERR(&itr)) {
+      /*  TODO: wirte me */
+      /* scm_capi_error("", 0); */
+      return SCM_OBJ_NULL;
+    }
+  }
+
+  return s;
+}
+
 static int
 scm_string_write_ext_rep(ScmObj obj, ScmObj port)
 {
@@ -352,6 +402,7 @@ scm_string_is_equal(ScmObj str1, ScmObj str2) /* GC OK */
   scm_assert_obj_type(str1, &SCM_STRING_TYPE_INFO);
   scm_assert_obj_type(str2, &SCM_STRING_TYPE_INFO);
 
+  if (SCM_STRING_ENC(str1) != SCM_STRING_ENC(str2)) return false;
   if (SCM_STRING_LENGTH(str1) != SCM_STRING_LENGTH(str2)) return false;
   if (SCM_STRING_BYTESIZE(str1) != SCM_STRING_BYTESIZE(str2)) return false;
   if (SCM_STRING_HEAD(str1) == SCM_STRING_HEAD(str2)) return true;
@@ -368,7 +419,8 @@ scm_string_encode(ScmObj str, SCM_ENC_T enc)
   ScmObj s = SCM_OBJ_INIT;
   ScmStrItr iter;
   scm_char_t chr;
-  ssize_t rslt;
+  ssize_t w;
+  int rslt;
   const ScmEncVirtualFunc *vf;
 
   scm_assert_obj_type(str, &SCM_STRING_TYPE_INFO);
@@ -392,11 +444,11 @@ scm_string_encode(ScmObj str, SCM_ENC_T enc)
   scm_assert(!SCM_STR_ITR_IS_ERR(&iter));
 
   while (!SCM_STR_ITR_IS_END(&iter)) {
-    rslt = vf->ascii_to(*(char *)SCM_STR_ITR_PTR(&iter), &chr);
-    if (rslt < 0) return SCM_OBJ_NULL;
+    w = vf->ascii_to(*(char *)SCM_STR_ITR_PTR(&iter), &chr);
+    if (w < 0) return SCM_OBJ_NULL;
 
-    s = scm_string_push(s, chr);
-    if (scm_obj_null_p(s)) return SCM_OBJ_NULL;
+    rslt = scm_string_push(s, chr);
+    if (rslt < 0) return SCM_OBJ_NULL;
 
     scm_str_itr_next(&iter);
     scm_assert(!SCM_STR_ITR_IS_ERR(&iter));
@@ -439,7 +491,7 @@ scm_string_substr(ScmObj str, size_t pos, size_t len) /* GC OK */
   return substr;
 }
 
-ScmObj
+int
 scm_string_push(ScmObj str, const scm_char_t c) /* GC OK */
 {
   ScmObj tmp = SCM_OBJ_INIT;
@@ -454,13 +506,13 @@ scm_string_push(ScmObj str, const scm_char_t c) /* GC OK */
   width = char_width(&c, sizeof(c));
   if (width < 0) {
     scm_capi_error("can not push character to string: invalid byte sequence", 0);
-    return SCM_OBJ_NULL;
+    return -1;
   }
 
   if ((*SCM_STRING_REF_CNT(str) > 1) || ROOM_FOR_APPEND(str) < (size_t)width) {
     tmp = scm_string_copy_and_expand(str,
                                      SCM_STRING_BYTESIZE(str) + (size_t)width);
-    if (scm_obj_null_p(tmp)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+    if (scm_obj_null_p(tmp)) return -1; /* [ERR]: [through] */
     scm_string_replace_contents(str, tmp);
     scm_string_finalize(tmp);
   }
@@ -469,10 +521,10 @@ scm_string_push(ScmObj str, const scm_char_t c) /* GC OK */
   SCM_STRING_LENGTH(str) += 1;
   SCM_STRING_BYTESIZE(str) += (size_t)width;
 
-  return str;
+  return 0;
 }
 
-ScmObj
+int
 scm_string_append(ScmObj str, ScmObj append) /* GC OK */
 {
   ScmObj tmp = SCM_OBJ_INIT;
@@ -481,13 +533,14 @@ scm_string_append(ScmObj str, ScmObj append) /* GC OK */
 
   scm_assert_obj_type(str, &SCM_STRING_TYPE_INFO);
   scm_assert_obj_type(append, &SCM_STRING_TYPE_INFO);
+  scm_assert(SCM_STRING_ENC(str) == SCM_STRING_ENC(append));
 
   if ((*SCM_STRING_REF_CNT(str) > 1) ||
       ROOM_FOR_APPEND(str) < SCM_STRING_BYTESIZE(append)) {
     tmp = scm_string_copy_and_expand(str,
                                      SCM_STRING_BYTESIZE(str)
                                      + SCM_STRING_BYTESIZE(append));
-    if (scm_obj_null_p(tmp)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+    if (scm_obj_null_p(tmp)) return -1; /* [ERR]: [through] */
     scm_string_replace_contents(str, tmp);
     scm_string_finalize(tmp);
   }
@@ -497,24 +550,23 @@ scm_string_append(ScmObj str, ScmObj append) /* GC OK */
   SCM_STRING_LENGTH(str) += SCM_STRING_LENGTH(append);
   SCM_STRING_BYTESIZE(str) += SCM_STRING_BYTESIZE(append);
 
-  return str;
+  return 0;
 }
 
-scm_char_t
-scm_string_ref(ScmObj str, size_t pos) /* GC OK */
+int
+scm_string_ref(ScmObj str, size_t pos, scm_char_t *chr) /* GC OK */
 {
   ScmStrItr iter;
-  scm_char_t c;
   ScmStrItr (*index2iter)(void *p, size_t size, size_t idx);
 
   scm_assert_obj_type(str, &SCM_STRING_TYPE_INFO);
   scm_assert(pos <= SSIZE_MAX);
+  scm_assert(chr != NULL);
 
-  c = SCM_CHR_ZERO;
   if (pos >= SCM_STRING_LENGTH(str)) {
     scm_capi_error("can not get a character in string: "
                    "argument is out of range", 0);
-    return c; /* [ERR]: string: argument out of range */
+    return -1;
   }
 
   index2iter = SCM_ENCODING_VFUNC_INDEX2ITER(SCM_STRING_ENC(str));
@@ -523,12 +575,13 @@ scm_string_ref(ScmObj str, size_t pos) /* GC OK */
   scm_assert(!SCM_STR_ITR_IS_ERR(&iter));
   scm_assert(!SCM_STR_ITR_IS_END(&iter));
 
-  memcpy(&c, SCM_STR_ITR_PTR(&iter), (size_t)SCM_STR_ITR_WIDTH(&iter));
+  *chr = SCM_CHR_ZERO;
+  memcpy(chr->bytes, SCM_STR_ITR_PTR(&iter), (size_t)SCM_STR_ITR_WIDTH(&iter));
 
-  return c;
+  return 0;
 }
 
-ScmObj
+int
 scm_string_set(ScmObj str, size_t pos, const scm_char_t c) /* GC OK */
 {
   ScmObj front = SCM_OBJ_NULL, rear = SCM_OBJ_NULL, tmp = SCM_OBJ_NULL;
@@ -545,7 +598,7 @@ scm_string_set(ScmObj str, size_t pos, const scm_char_t c) /* GC OK */
   if (pos >= SCM_STRING_LENGTH(str)) {
     scm_capi_error("can not update a character in string: "
                    "argument out of range", 0);
-    return SCM_OBJ_NULL; /* [ERR]: string: argument out of range */
+    return -1; /* [ERR]: string: argument out of range */
   }
 
   index2iter = SCM_ENCODING_VFUNC_INDEX2ITER(SCM_STRING_ENC(str));
@@ -558,7 +611,7 @@ scm_string_set(ScmObj str, size_t pos, const scm_char_t c) /* GC OK */
   if (cw < 0) {
     scm_capi_error("can not update a character in string: "
                    "invalid byte sequence", 0);
-    return SCM_OBJ_NULL; /* [ERR]: string: invalid byte sequnce has set */
+    return -1; /* [ERR]: string: invalid byte sequnce has set */
   }
 
   iw = SCM_STR_ITR_WIDTH(&iter);
@@ -580,40 +633,40 @@ scm_string_set(ScmObj str, size_t pos, const scm_char_t c) /* GC OK */
     }
     memcpy(SCM_STRING_HEAD(str) + offset, &c, (size_t)cw);
 
-    return str;
+    return 0;
   }
   else if (cw == iw) {
     size_t offset = SCM_STR_ITR_OFFSET(&iter, SCM_STRING_HEAD(str));
     tmp = scm_string_copy(str);
 
-    if (scm_obj_null_p(tmp)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+    if (scm_obj_null_p(tmp)) return -1; /* [ERR]: [through] */
     memcpy(SCM_STRING_HEAD(tmp) + offset, &c, (size_t)cw);
     scm_string_replace_contents(str, tmp);
 
-    return str;
+    return 0;
   }
   else {
     front = scm_string_substr(str, 0, pos);
     rear = scm_string_substr(str, pos + 1, SCM_STRING_LENGTH(str) - pos - 1);
 
     if (scm_obj_null_p(front) || scm_obj_null_p(rear))
-      return SCM_OBJ_NULL; /* [ERR]: [through] */
+      return -1; /* [ERR]: [through] */
 
     tmp = scm_string_copy_and_expand(front,
                                      SCM_STRING_BYTESIZE(front)
                                      + (size_t)cw + SCM_STRING_BYTESIZE(rear));
     if (scm_obj_null_p(tmp)) return SCM_OBJ_NULL; /* [ERR]: [through] */
-    if (scm_obj_null_p(scm_string_push(tmp, c))) return SCM_OBJ_NULL; /* [ERR]: [through] */
-    if (scm_obj_null_p(scm_string_append(tmp, rear))) return SCM_OBJ_NULL; /* [ERR]: [through] */
+    if (scm_string_push(tmp, c) < 0) return -1; /* [ERR]: [through] */
+    if (scm_string_append(tmp, rear) < 0) return -1; /* [ERR]: [through] */
 
     scm_string_replace_contents(str, tmp);
 
-    return str;
+    return 0;
   }
 }
 
 /* TODO: optimize */
-ScmObj
+int
 scm_string_fill(ScmObj str, size_t pos, size_t len, scm_char_t c) /* GC OK */
 {
   int (*char_width)(const void *p, size_t size);
@@ -629,7 +682,7 @@ scm_string_fill(ScmObj str, size_t pos, size_t len, scm_char_t c) /* GC OK */
 
   if (pos > SCM_STRING_LENGTH(str)) {
     scm_capi_error("can not fill string: argument out of range", 0);
-    return SCM_OBJ_NULL;
+    return -1;
   }
 
   char_width = SCM_ENCODING_VFUNC_CHAR_WIDTH(SCM_STRING_ENC(str));
@@ -637,16 +690,16 @@ scm_string_fill(ScmObj str, size_t pos, size_t len, scm_char_t c) /* GC OK */
   filledsize = char_width(&c, sizeof(c)) * (ssize_t)len;
   if (filledsize < 0) {
     scm_capi_error("can not fill string: invalid byte sequence", 0);
-    return SCM_OBJ_NULL;
+    return -1;
   }
 
   front = scm_string_substr(str, 0, pos);
-  if (scm_obj_null_p(front)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+  if (scm_obj_null_p(front)) return -1; /* [ERR]: [through] */
 
   if (pos + len < SCM_STRING_LENGTH(str)) {
     rear = scm_string_substr(str, pos + len,
                              SCM_STRING_LENGTH(str) - pos - len);
-    if (scm_obj_null_p(rear)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+    if (scm_obj_null_p(rear)) return -1; /* [ERR]: [through] */
   }
 
   tmp = scm_string_copy_and_expand(front,
@@ -654,19 +707,44 @@ scm_string_fill(ScmObj str, size_t pos, size_t len, scm_char_t c) /* GC OK */
                                    + len
                                    + (scm_obj_null_p(rear) ?
                                       0 : SCM_STRING_BYTESIZE(rear)));
-  if (scm_obj_null_p(tmp)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+  if (scm_obj_null_p(tmp)) return -1; /* [ERR]: [through] */
 
-  for (i = 0; i < len; i++)
-    if (scm_obj_null_p(scm_string_push(tmp, c)))
-      return SCM_OBJ_NULL; /* [ERR]: [through] */
+  for (i = 0; i < len; i++) {
+    int r = scm_string_push(tmp, c);
+    if (r < 0) return -1; /* [ERR]: [through] */
+  }
 
   if (scm_obj_not_null_p(rear))
-    if (scm_obj_null_p(scm_string_append(tmp, rear)))
-      return SCM_OBJ_NULL; /* [ERR]: [through] */
+    if (scm_string_append(tmp, rear) < 0)
+      return -1; /* [ERR]: [through] */
 
   scm_string_replace_contents(str, tmp);
 
-  return str;
+  return 0;
+}
+
+ScmObj
+scm_string_downcase(ScmObj str)
+{
+  const ScmEncVirtualFunc *vf;
+
+  scm_assert_obj_type(str, &SCM_STRING_TYPE_INFO);
+
+  vf = SCM_ENCODING_VFUNC(SCM_STRING_ENC(str));
+
+  return scm_string_change_case(str, vf->downcase, vf->char_width);
+}
+
+ScmObj
+scm_string_upcase(ScmObj str)
+{
+  const ScmEncVirtualFunc *vf;
+
+  scm_assert_obj_type(str, &SCM_STRING_TYPE_INFO);
+
+  vf = SCM_ENCODING_VFUNC(SCM_STRING_ENC(str));
+
+  return scm_string_change_case(str, vf->upcase, vf->char_width);
 }
 
 ssize_t

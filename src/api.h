@@ -287,18 +287,61 @@ ScmObj scm_api_char_eq_P(ScmObj chr1, ScmObj chr2);
 /*  String                                                         */
 /*******************************************************************/
 
+bool scm_capi_string_p(ScmObj obj);
+ScmObj scm_api_string_P(ScmObj obj);
+ScmObj scm_capi_make_string(size_t n, ScmObj chr);
+ScmObj scm_api_make_string(ScmObj n, ScmObj chr);
 ScmObj scm_capi_make_string_from_cstr(const char *str, SCM_ENC_T enc);
 ScmObj scm_capi_make_string_from_bin(const void *data,
                                      size_t size, SCM_ENC_T enc);
-bool scm_capi_string_p(ScmObj obj);
+ScmObj scm_api_string_lst(ScmObj lst);
+ScmObj scm_capi_string_cv(const ScmObj *chr, size_t n);
+size_t scm_capi_string(size_t n, ...);
 ssize_t scm_capi_string_length(ScmObj str);
+ScmObj scm_api_string_length(ScmObj str);
 ssize_t scm_capi_string_bytesize(ScmObj str);
+ScmObj scm_api_string_bytesize(ScmObj str);
+ScmObj scm_capi_string_ref(ScmObj str, size_t pos);
+ScmObj scm_api_string_ref(ScmObj str, ScmObj pos);
+int scm_capi_string_set_i(ScmObj str, size_t pos, ScmObj chr);
+ScmObj scm_api_string_set_i(ScmObj str, ScmObj pos, ScmObj chr);
+int scm_capi_string_eq(ScmObj s1, ScmObj s2, bool *rslt);
+ScmObj scm_capi_string_eq_P_lst(ScmObj lst);
+ScmObj scm_api_string_eq_P(ScmObj s1, ScmObj s2);
+int scm_capi_string_lt(ScmObj s1, ScmObj s2, bool *rslt);
+ScmObj scm_capi_string_lt_P_lst(ScmObj lst);
+ScmObj scm_api_string_lt_P(ScmObj s1, ScmObj s2);
+int scm_capi_string_gt(ScmObj s1, ScmObj s2, bool *rslt);
+ScmObj scm_capi_string_gt_P_lst(ScmObj lst);
+ScmObj scm_api_string_gt_P(ScmObj s1, ScmObj s2);
+int scm_capi_string_le(ScmObj s1, ScmObj s2, bool *rslt);
+ScmObj scm_capi_string_le_P_lst(ScmObj lst);
+ScmObj scm_api_string_le_P(ScmObj s1, ScmObj s2);
+int scm_capi_string_ge(ScmObj s1, ScmObj s2, bool *rslt);
+ScmObj scm_capi_string_ge_P_lst(ScmObj lst);
+ScmObj scm_api_string_ge_P(ScmObj s1, ScmObj s2);
+ScmObj scm_api_string_upcase(ScmObj str);
+ScmObj scm_api_string_downcase(ScmObj str);
+ScmObj scm_capi_substring(ScmObj str, size_t start, size_t end);
+ScmObj scm_api_substring(ScmObj str, ScmObj start, ScmObj end);
+ScmObj scm_capi_string_append_lst(ScmObj lst);
+ScmObj scm_capi_string_append_cv(ScmObj *ary, size_t n);
+ScmObj scm_capi_string_append(size_t n, ...);
+ScmObj scm_capi_string_to_list(ScmObj str, ssize_t start, ssize_t end);
+ScmObj scm_api_string_to_list(ScmObj str, ScmObj start, ScmObj end);
+ScmObj scm_api_list_to_string(ScmObj lst);
+ScmObj scm_capi_string_copy(ScmObj str, ssize_t start, ssize_t end);
+ScmObj scm_api_string_copy(ScmObj str, ScmObj start, ScmObj end);
+int scm_capi_string_copy_i(ScmObj to, size_t at,
+                           ScmObj from, ssize_t start, ssize_t end);
+ScmObj scm_api_string_copy_i(ScmObj to, ScmObj at,
+                             ScmObj from, ScmObj start, ScmObj end);
+int scm_capi_string_fill_i(ScmObj str, ScmObj fill, ssize_t start, ssize_t end);
+ScmObj scm_api_string_fill_i(ScmObj str, ScmObj fill, ScmObj start, ScmObj end);
 int scm_capi_string_encoding(ScmObj str, SCM_ENC_T *enc);
 ssize_t scm_capi_string_to_cstr(ScmObj str, char *cstr, size_t size);
 int scm_capi_string_push(ScmObj str, scm_char_t chr, SCM_ENC_T enc);
 ScmObj scm_api_string_push(ScmObj str, ScmObj c);
-int scm_capi_string_eq(ScmObj s1, ScmObj s2, bool *rslt);
-ScmObj scm_api_string_eq_P(ScmObj s1, ScmObj s2);
 
 
 /*******************************************************************/

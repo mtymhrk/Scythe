@@ -1607,6 +1607,8 @@ scm_parser_unescape_ident(ScmToken *token, ScmObj str,
   ssize_t width, skip;
   SCM_ENC_T enc;
 
+  SCM_STACK_FRAME_PUSH(&str);
+
   scm_assert(token != NULL);
   scm_assert(scm_capi_string_p(str));
   scm_assert(vf != NULL);

@@ -207,7 +207,7 @@ test_scm_string_push_ascii(void)
                                      sizeof("this string is fault") - 1,
                                      SCM_ENC_ASCII);
 
-  cut_assert_true(scm_obj_not_null_p(scm_string_push(str, pushed)));
+  cut_assert_equal_int(0, scm_string_push(str, pushed));
 
   cut_assert_equal_uint(21u, scm_string_length(str));
   cut_assert_equal_uint(sizeof(expected) - 1, scm_string_bytesize(str));
@@ -237,7 +237,7 @@ test_scm_string_append_ascii(void)
                                       sizeof(" previous sentence is fault") - 1,
                                       SCM_ENC_ASCII);
 
-  cut_assert_true(scm_obj_not_null_p(scm_string_append(str, apnd)));
+  cut_assert_equal_int(0, scm_string_append(str, apnd));
 
   cut_assert_equal_uint(50u, scm_string_length(str));
   cut_assert_equal_uint(sizeof(expected) - 1, scm_string_bytesize(str));
@@ -269,68 +269,67 @@ test_scm_string_ref_ascii(void)
                                      sizeof("this string is fault") - 1,
                                      SCM_ENC_ASCII);
 
-  actual = scm_string_ref(str, 0);
+  cut_assert_equal_int(0, scm_string_ref(str, 0, &actual));
   cut_assert_equal_int(0, memcmp(expected + 0, &actual, sizeof(scm_char_t)));
 
-  actual = scm_string_ref(str, 1);
+  cut_assert_equal_int(0, scm_string_ref(str, 1, &actual));
   cut_assert_equal_int(0, memcmp(expected + 1, &actual, sizeof(scm_char_t)));
 
-  actual = scm_string_ref(str, 2);
+  cut_assert_equal_int(0, scm_string_ref(str, 2, &actual));
   cut_assert_equal_int(0, memcmp(expected + 2, &actual, sizeof(scm_char_t)));
 
-  actual = scm_string_ref(str, 3);
+  cut_assert_equal_int(0, scm_string_ref(str, 3, &actual));
   cut_assert_equal_int(0, memcmp(expected + 3, &actual, sizeof(scm_char_t)));
 
-  actual = scm_string_ref(str, 4);
+  cut_assert_equal_int(0, scm_string_ref(str, 4, &actual));
   cut_assert_equal_int(0, memcmp(expected + 4, &actual, sizeof(scm_char_t)));
 
-  actual = scm_string_ref(str, 5);
+  cut_assert_equal_int(0, scm_string_ref(str, 5, &actual));
   cut_assert_equal_int(0, memcmp(expected + 5, &actual, sizeof(scm_char_t)));
 
-  actual = scm_string_ref(str, 6);
+  cut_assert_equal_int(0, scm_string_ref(str, 6, &actual));
   cut_assert_equal_int(0, memcmp(expected + 6, &actual, sizeof(scm_char_t)));
 
-  actual = scm_string_ref(str, 7);
+  cut_assert_equal_int(0, scm_string_ref(str, 7, &actual));
   cut_assert_equal_int(0, memcmp(expected + 7, &actual, sizeof(scm_char_t)));
 
-  actual = scm_string_ref(str, 8);
+  cut_assert_equal_int(0, scm_string_ref(str, 8, &actual));
   cut_assert_equal_int(0, memcmp(expected + 8, &actual, sizeof(scm_char_t)));
 
-  actual = scm_string_ref(str, 9);
+  cut_assert_equal_int(0, scm_string_ref(str, 9, &actual));
   cut_assert_equal_int(0, memcmp(expected + 9, &actual, sizeof(scm_char_t)));
 
-  actual = scm_string_ref(str, 10);
+  cut_assert_equal_int(0, scm_string_ref(str, 10, &actual));
   cut_assert_equal_int(0, memcmp(expected + 10, &actual, sizeof(scm_char_t)));
 
-  actual = scm_string_ref(str, 11);
+  cut_assert_equal_int(0, scm_string_ref(str, 11, &actual));
   cut_assert_equal_int(0, memcmp(expected + 11, &actual, sizeof(scm_char_t)));
 
-  actual = scm_string_ref(str, 12);
+  cut_assert_equal_int(0, scm_string_ref(str, 12, &actual));
   cut_assert_equal_int(0, memcmp(expected + 12, &actual, sizeof(scm_char_t)));
 
-  actual = scm_string_ref(str, 13);
+  cut_assert_equal_int(0, scm_string_ref(str, 13, &actual));
   cut_assert_equal_int(0, memcmp(expected + 13, &actual, sizeof(scm_char_t)));
 
-  actual = scm_string_ref(str, 14);
+  cut_assert_equal_int(0, scm_string_ref(str, 14, &actual));
   cut_assert_equal_int(0, memcmp(expected + 14, &actual, sizeof(scm_char_t)));
 
-  actual = scm_string_ref(str, 15);
+  cut_assert_equal_int(0, scm_string_ref(str, 15, &actual));
   cut_assert_equal_int(0, memcmp(expected + 15, &actual, sizeof(scm_char_t)));
 
-  actual = scm_string_ref(str, 16);
+  cut_assert_equal_int(0, scm_string_ref(str, 16, &actual));
   cut_assert_equal_int(0, memcmp(expected + 16, &actual, sizeof(scm_char_t)));
 
-  actual = scm_string_ref(str, 17);
+  cut_assert_equal_int(0, scm_string_ref(str, 17, &actual));
   cut_assert_equal_int(0, memcmp(expected + 17, &actual, sizeof(scm_char_t)));
 
-  actual = scm_string_ref(str, 18);
+  cut_assert_equal_int(0, scm_string_ref(str, 18, &actual));
   cut_assert_equal_int(0, memcmp(expected + 18, &actual, sizeof(scm_char_t)));
 
-  actual = scm_string_ref(str, 19);
+  cut_assert_equal_int(0, scm_string_ref(str, 19, &actual));
   cut_assert_equal_int(0, memcmp(expected + 19, &actual, sizeof(scm_char_t)));
 
-  actual = scm_string_ref(str, 20);
-  cut_assert_equal_int(0, memcmp(expected + 20, &actual, sizeof(scm_char_t)));
+  cut_assert_equal_int(-1, scm_string_ref(str, 20, &actual));
 }
 
 void
@@ -351,7 +350,7 @@ test_scm_string_set_same_width_ascii(void)
                                      "abc", sizeof("abc") - 1,
                                      SCM_ENC_ASCII);
 
-  cut_assert_true(scm_obj_not_null_p(scm_string_set(str, 1, c)));
+  cut_assert_equal_int(0, scm_string_set(str, 1, c));
 
   cut_assert_equal_uint(3u, scm_string_length(str));
   cut_assert_equal_uint(sizeof(expected) - 1, scm_string_bytesize(str));
@@ -380,7 +379,7 @@ test_scm_string_fill_ascii(void)
                                      sizeof("next sentence is right. previous sentence is fault") - 1,
                                      SCM_ENC_ASCII);
 
-  cut_assert_true(scm_obj_not_null_p(scm_string_fill(str, 17, 5, c)));
+  cut_assert_equal_int(0, scm_string_fill(str, 17, 5, c));
 
   cut_assert_equal_uint(50u, scm_string_length(str));
   cut_assert_equal_uint(sizeof(expected) - 1, scm_string_bytesize(str));
@@ -410,7 +409,7 @@ test_scm_string_fill_append_ascii(void)
                                      SCM_ENC_ASCII);
 
 
-  cut_assert_true(scm_obj_not_null_p(scm_string_fill(str, 48, 5, c)));
+  cut_assert_equal_int(0, scm_string_fill(str, 48, 5, c));
 
   cut_assert_equal_uint(53u, scm_string_length(str));
   cut_assert_equal_uint(sizeof(expected) - 1, scm_string_bytesize(str));

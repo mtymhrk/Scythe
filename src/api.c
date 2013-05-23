@@ -2475,6 +2475,36 @@ scm_api_char_eq_P(ScmObj chr1, ScmObj chr2)
 /*  String                                                         */
 /*******************************************************************/
 
+extern inline bool
+scm_capi_string_p(ScmObj obj)
+{
+  if (scm_capi_null_value_p(obj)) return false;
+
+  return scm_obj_type_p(obj, &SCM_STRING_TYPE_INFO) ? true : false;
+}
+
+ScmObj
+scm_api_string_P(ScmObj obj)
+{
+  if (scm_obj_null_p(obj)) return SCM_OBJ_NULL;
+
+  return scm_capi_string_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+}
+
+ScmObj
+scm_capi_make_string(size_t n, ScmObj chr)
+{
+  /* TODO: write me */
+  return SCM_OBJ_NULL;
+}
+
+ScmObj
+scm_api_make_string(ScmObj n, ScmObj chr)
+{
+  /* TODO: write me */
+  return SCM_OBJ_NULL;
+}
+
 ScmObj
 scm_capi_make_string_from_cstr(const char *str, SCM_ENC_T enc)
 {
@@ -2522,12 +2552,121 @@ scm_capi_make_string_from_bin(const void *data, size_t size, SCM_ENC_T enc)
   }
 }
 
-extern inline bool
-scm_capi_string_p(ScmObj obj)
+ScmObj
+scm_api_string_lst(ScmObj lst)
 {
-  if (scm_capi_null_value_p(obj)) return false;
+  ScmObj str = SCM_OBJ_INIT, chr = SCM_OBJ_INIT, l = SCM_OBJ_INIT;
+  SCM_ENC_T enc;
 
-  return scm_obj_type_p(obj, &SCM_STRING_TYPE_INFO) ? true : false;
+  SCM_STACK_FRAME_PUSH(&str, &chr, &l);
+
+  enc = 0;
+  str = SCM_OBJ_NULL;
+  for (l = lst; scm_capi_pair_p(l); l = scm_api_cdr(l)) {
+    scm_char_t c;
+    SCM_ENC_T e;
+    int r;
+
+    chr = scm_api_car(l);
+    if (scm_obj_null_p(chr)) return SCM_OBJ_NULL;
+
+    if (!scm_capi_char_p(chr)) {
+      scm_capi_error("string: required character, but got", 1, chr);
+      return SCM_OBJ_NULL;
+    }
+
+    if (scm_obj_null_p(str)) {
+      enc = scm_char_encoding(chr);
+      str = scm_string_new(SCM_MEM_HEAP, NULL, 0, enc);
+      if (scm_obj_null_p(str)) return SCM_OBJ_NULL;
+    }
+
+    e = scm_char_encoding(chr);
+
+    if (e != enc) {
+      scm_capi_error("string: encoding mismatch", 0);
+      return SCM_OBJ_NULL;
+    }
+
+    c = scm_char_value(chr);
+
+    r = scm_string_push(str, c);
+    if (r < 0) return SCM_OBJ_NULL;
+  }
+
+  if (scm_obj_null_p(l)) return SCM_OBJ_NULL;
+
+  if (scm_obj_null_p(str))
+    return scm_string_new(SCM_MEM_HEAP, NULL, 0, scm_capi_system_encoding());
+  else
+    return str;
+}
+
+ScmObj
+scm_capi_string_cv(const ScmObj *chr, size_t n)
+{
+  ScmObj str = SCM_OBJ_INIT;
+  SCM_ENC_T enc;
+
+  SCM_STACK_FRAME_PUSH(&str);
+
+  if (chr == NULL || n == 0)
+    return scm_string_new(SCM_MEM_HEAP, NULL, 0, scm_capi_system_encoding());
+
+  enc = 0;
+  for (size_t i = 0; i < n; i++) {
+    scm_char_t c;
+    SCM_ENC_T e;
+    int r;
+
+    if (scm_obj_null_p(chr[i])) {
+      scm_capi_error("string: invalid argument", 0);
+      return SCM_OBJ_NULL;
+    }
+    else if (!scm_capi_char_p(chr[i])) {
+      scm_capi_error("string: required character, but got", 1, chr[i]);
+      return SCM_OBJ_NULL;
+    }
+
+    if (i == 0) {
+      enc = scm_char_encoding(chr[i]);
+      str = scm_string_new(SCM_MEM_HEAP, NULL, 0, enc);
+      if (scm_obj_null_p(str)) return SCM_OBJ_NULL;
+    }
+
+    e = scm_char_encoding(chr[i]);
+
+    if (e != enc) {
+      scm_capi_error("string: encoding mismatch", 0);
+      return SCM_OBJ_NULL;
+    }
+
+    c = scm_char_value(chr[i]);
+
+    r = scm_string_push(str, c);
+    if (r < 0) return SCM_OBJ_NULL;
+  }
+
+  return str;
+}
+
+size_t
+scm_capi_string(size_t n, ...)
+{
+  ScmObj args[n];
+  va_list ap;
+
+  SCM_STACK_FRAME;
+
+  va_start(ap, n);
+  for (size_t i = 0; i < n; i++)
+    args[i] = va_arg(ap, ScmObj);
+  va_end(ap);
+
+  for (size_t i = 0; i < n; i++)
+    SCM_STACK_PUSH(args + i);
+
+  return scm_capi_string_cv(args, n);
 }
 
 ssize_t
@@ -2545,6 +2684,17 @@ scm_capi_string_length(ScmObj str)
   return (ssize_t)scm_string_length(str);
 }
 
+ScmObj
+scm_api_string_length(ScmObj str)
+{
+  ssize_t len;
+
+  len = scm_capi_string_length(str);
+  if (len < 0) return SCM_OBJ_NULL;
+
+  return scm_capi_make_number_from_sword(len);
+}
+
 ssize_t
 scm_capi_string_bytesize(ScmObj str)
 {
@@ -2559,6 +2709,1167 @@ scm_capi_string_bytesize(ScmObj str)
 
   return (ssize_t)scm_string_bytesize(str);
 }
+
+ScmObj
+scm_api_string_bytesize(ScmObj str)
+{
+  ssize_t len;
+
+  len = scm_capi_string_bytesize(str);
+  if (len < 0) return SCM_OBJ_NULL;
+
+  return scm_capi_make_number_from_sword(len);
+}
+
+ScmObj
+scm_capi_string_ref(ScmObj str, size_t pos)
+{
+  scm_char_t c;
+  SCM_ENC_T enc;
+  int r;
+
+  SCM_STACK_FRAME_PUSH(&str);
+
+  if (scm_obj_null_p(str)) {
+    scm_capi_error("string-ref: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_string_p(str)) {
+    scm_capi_error("string-ref: string required, but got", 1, str);
+    return SCM_OBJ_NULL;
+  }
+  else if (pos >= scm_string_length(str)) {
+    scm_capi_error("string-ref: out of range", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  enc = scm_string_encoding(str);
+  r = scm_string_ref(str, pos, &c);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return scm_capi_make_char(c, enc);
+}
+
+ScmObj
+scm_api_string_ref(ScmObj str, ScmObj pos)
+{
+  size_t s;
+  int r;
+
+  SCM_STACK_FRAME_PUSH(&str, &pos);
+
+  if (scm_obj_null_p(pos)) {
+    scm_capi_error("string-ref: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_number_p(pos)) {
+    scm_capi_error("string-ref: number require, but got", 1, pos);
+  }
+
+  r = scm_capi_num_to_size_t(pos, &s);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return scm_capi_string_ref(str, s);
+}
+
+int
+scm_capi_string_set_i(ScmObj str, size_t pos, ScmObj chr)
+{
+  scm_char_t c;
+
+  SCM_STACK_FRAME_PUSH(&str, &chr);
+
+  if (scm_obj_null_p(str) || scm_obj_null_p(chr)) {
+    scm_capi_error("string-set!: invalid argument", 0);
+    return -1;
+  }
+  else if (!scm_capi_string_p(str)) {
+    scm_capi_error("string-set!: string required, but got", 1, str);
+    return -1;
+  }
+  else if (pos >= scm_string_length(str)) {
+    scm_capi_error("string-set!: out of range", 0);
+    return -1;
+  }
+  else if (!scm_capi_char_p(chr)) {
+    scm_capi_error("string-set!: character require, but got", 1, chr);
+    return -1;
+  }
+  else if (scm_string_encoding(str) != scm_char_encoding(chr)) {
+    scm_capi_error("string-set!: encoding mismatch", 0);
+    return -1;
+  }
+
+  c = scm_char_value(chr);
+  return scm_string_set(str, pos, c);
+}
+
+ScmObj
+scm_api_string_set_i(ScmObj str, ScmObj pos, ScmObj chr)
+{
+  size_t s;
+  int r;
+
+  SCM_STACK_FRAME_PUSH(&str, &pos, &chr);
+
+  if (scm_obj_null_p(pos)) {
+    scm_capi_error("string-ref: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_number_p(pos)) {
+    scm_capi_error("string-ref: number require, but got", 1, pos);
+  }
+
+  r = scm_capi_num_to_size_t(pos, &s);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  r = scm_capi_string_set_i(str, s, chr);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return SCM_UNDEF_OBJ;
+}
+
+int
+scm_capi_string_eq(ScmObj s1, ScmObj s2, bool *rslt)
+{
+  int err, cmp;
+
+  SCM_STACK_FRAME_PUSH(&s1, &s2);
+
+  if (scm_obj_null_p(s1) || scm_obj_null_p(s2)) {
+    scm_capi_error("string=?: invalid argument", 0);
+    return -1;
+  }
+  else if (!scm_capi_string_p(s1)) {
+    scm_capi_error("string=?: string required, but got", 1, s1);
+    return -1;
+  }
+  else if (!scm_capi_string_p(s2)) {
+    scm_capi_error("string=?: string required, but got", 1, s2);
+    return -1;
+  }
+  else if (scm_string_encoding(s1) != scm_string_encoding(s2)) {
+    scm_capi_error("string=?: invalid argument: encoding mismatch", 0);
+    return -1;
+  }
+
+  err = scm_string_cmp(s1, s2, &cmp);
+  if (err < 0) return -1;
+
+  if (rslt != NULL)
+    *rslt = (cmp == 0) ? true : false;
+
+  return 0;
+}
+
+static int
+scm_capi_string_cmp_fold(ScmObj lst,
+                         int (*cmp)(ScmObj s1, ScmObj s2, bool *rslt),
+                         bool *rslt)
+
+{
+  ScmObj str = SCM_OBJ_INIT, prv = SCM_OBJ_INIT, l = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&str, &prv, &l);
+
+  scm_assert(scm_obj_not_null_p(lst));
+  scm_assert(rslt != NULL);
+
+  prv = SCM_OBJ_NULL;
+  for (l = lst; scm_capi_pair_p(l); l = scm_api_cdr(l)) {
+    str = scm_api_car(l);
+
+    if (scm_obj_not_null_p(prv)) {
+      bool cr;
+      int r;
+
+      r = cmp(prv, str, &cr);
+      if (r < 0) return -1;
+
+      if (!cr) {
+        *rslt = false;
+        return 0;
+      }
+    }
+
+    prv = str;
+  }
+
+  if (scm_obj_null_p(l)) return -1;
+
+  *rslt = true;
+
+  return 0;
+}
+
+ScmObj
+scm_capi_string_eq_P_lst(ScmObj lst)
+{
+  bool cmp;
+  int r;
+
+  if (scm_obj_null_p(lst)) {
+    scm_capi_error("string=?: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  r = scm_capi_string_cmp_fold(lst, scm_capi_string_eq, &cmp);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return cmp ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+}
+
+ScmObj
+scm_api_string_eq_P(ScmObj s1, ScmObj s2)
+{
+  bool cmp;
+  int rslt;
+
+  rslt = scm_capi_string_eq(s1, s2, &cmp);
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  return cmp ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+}
+
+int
+scm_capi_string_lt(ScmObj s1, ScmObj s2, bool *rslt)
+{
+  int err, cmp;
+
+  SCM_STACK_FRAME_PUSH(&s1, &s2);
+
+  if (scm_obj_null_p(s1) || scm_obj_null_p(s2)) {
+    scm_capi_error("string<?: invalid argument", 0);
+    return -1;
+  }
+  else if (!scm_capi_string_p(s1)) {
+    scm_capi_error("string<?: string required, but got", 1, s1);
+    return -1;
+  }
+  else if (!scm_capi_string_p(s2)) {
+    scm_capi_error("string<?: string required, but got", 1, s2);
+    return -1;
+  }
+  else if (scm_string_encoding(s1) != scm_string_encoding(s2)) {
+    scm_capi_error("string<?: encoding mismatch", 0);
+    return -1;
+  }
+
+  err = scm_string_cmp(s1, s2, &cmp);
+  if (err < 0) return -1;
+
+  if (rslt != NULL)
+    *rslt = (cmp == -1) ? true : false;
+
+  return 0;
+}
+
+ScmObj
+scm_capi_string_lt_P_lst(ScmObj lst)
+{
+  bool cmp;
+  int r;
+
+  if (scm_obj_null_p(lst)) {
+    scm_capi_error("string<?: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  r = scm_capi_string_cmp_fold(lst, scm_capi_string_lt, &cmp);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return cmp ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+}
+
+ScmObj
+scm_api_string_lt_P(ScmObj s1, ScmObj s2)
+{
+  bool cmp;
+  int rslt;
+
+  rslt = scm_capi_string_lt(s1, s2, &cmp);
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  return cmp ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+}
+
+int
+scm_capi_string_gt(ScmObj s1, ScmObj s2, bool *rslt)
+{
+  int err, cmp;
+
+  SCM_STACK_FRAME_PUSH(&s1, &s2);
+
+  if (scm_obj_null_p(s1) || scm_obj_null_p(s2)) {
+    scm_capi_error("string>?: invalid argument", 0);
+    return -1;
+  }
+  else if (!scm_capi_string_p(s1)) {
+    scm_capi_error("string>?: string required, but got", 1, s1);
+    return -1;
+  }
+  else if (!scm_capi_string_p(s2)) {
+    scm_capi_error("string>?: string required, but got", 1, s2);
+    return -1;
+  }
+  else if (scm_string_encoding(s1) != scm_string_encoding(s2)) {
+    scm_capi_error("string>?: encoding mismatch", 0);
+    return -1;
+  }
+
+  err = scm_string_cmp(s1, s2, &cmp);
+  if (err < 0) return -1;
+
+  if (rslt != NULL)
+    *rslt = (cmp == 1) ? true : false;
+
+  return 0;
+}
+
+ScmObj
+scm_capi_string_gt_P_lst(ScmObj lst)
+{
+  bool cmp;
+  int r;
+
+  if (scm_obj_null_p(lst)) {
+    scm_capi_error("string>?: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  r = scm_capi_string_cmp_fold(lst, scm_capi_string_gt, &cmp);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return cmp ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+}
+
+ScmObj
+scm_api_string_gt_P(ScmObj s1, ScmObj s2)
+{
+  bool cmp;
+  int rslt;
+
+  rslt = scm_capi_string_gt(s1, s2, &cmp);
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  return cmp ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+}
+
+int
+scm_capi_string_le(ScmObj s1, ScmObj s2, bool *rslt)
+{
+  int err, cmp;
+
+  SCM_STACK_FRAME_PUSH(&s1, &s2);
+
+  if (scm_obj_null_p(s1) || scm_obj_null_p(s2)) {
+    scm_capi_error("string<=?: invalid argument", 0);
+    return -1;
+  }
+  else if (!scm_capi_string_p(s1)) {
+    scm_capi_error("string<=?: string required, but got", 1, s1);
+    return -1;
+  }
+  else if (!scm_capi_string_p(s2)) {
+    scm_capi_error("string<=?: string required, but got", 1, s2);
+    return -1;
+  }
+  else if (scm_string_encoding(s1) != scm_string_encoding(s2)) {
+    scm_capi_error("string<=?: encoding mismatch", 0);
+    return -1;
+  }
+
+  err = scm_string_cmp(s1, s2, &cmp);
+  if (err < 0) return -1;
+
+  if (rslt != NULL)
+    *rslt = (cmp == -1 || cmp == 0) ? true : false;
+
+  return 0;
+}
+
+ScmObj
+scm_capi_string_le_P_lst(ScmObj lst)
+{
+  bool cmp;
+  int r;
+
+  if (scm_obj_null_p(lst)) {
+    scm_capi_error("string<=?: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  r = scm_capi_string_cmp_fold(lst, scm_capi_string_le, &cmp);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return cmp ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+}
+
+ScmObj
+scm_api_string_le_P(ScmObj s1, ScmObj s2)
+{
+  bool cmp;
+  int rslt;
+
+  rslt = scm_capi_string_le(s1, s2, &cmp);
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  return cmp ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+}
+
+int
+scm_capi_string_ge(ScmObj s1, ScmObj s2, bool *rslt)
+{
+  int err, cmp;
+
+  SCM_STACK_FRAME_PUSH(&s1, &s2);
+
+  if (scm_obj_null_p(s1) || scm_obj_null_p(s2)) {
+    scm_capi_error("string>=?: invalid argument", 0);
+    return -1;
+  }
+  else if (!scm_capi_string_p(s1)) {
+    scm_capi_error("string>=?: string required, but got", 1, s1);
+    return -1;
+  }
+  else if (!scm_capi_string_p(s2)) {
+    scm_capi_error("string>=?: string required, but got", 1, s2);
+    return -1;
+  }
+  else if (scm_string_encoding(s1) != scm_string_encoding(s2)) {
+    scm_capi_error("string>=?: encoding mismatch", 0);
+    return -1;
+  }
+
+  err = scm_string_cmp(s1, s2, &cmp);
+  if (err < 0) return -1;
+
+  if (rslt != NULL)
+    *rslt = (cmp == 0 || cmp == 1) ? true : false;
+
+  return 0;
+}
+
+ScmObj
+scm_capi_string_ge_P_lst(ScmObj lst)
+{
+  bool cmp;
+  int r;
+
+  if (scm_obj_null_p(lst)) {
+    scm_capi_error("string>=?: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  r = scm_capi_string_cmp_fold(lst, scm_capi_string_ge, &cmp);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return cmp ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+}
+
+ScmObj
+scm_api_string_ge_P(ScmObj s1, ScmObj s2)
+{
+  bool cmp;
+  int rslt;
+
+  rslt = scm_capi_string_ge(s1, s2, &cmp);
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  return cmp ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+}
+
+ScmObj
+scm_api_string_upcase(ScmObj str)
+{
+  if (scm_obj_null_p(str)) {
+    scm_capi_error("string-upcase: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_string_p(str)) {
+    scm_capi_error("string-upcase: string required, but got", 1, str);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_string_upcase(str);
+}
+
+ScmObj
+scm_api_string_downcase(ScmObj str)
+{
+  if (scm_obj_null_p(str)) {
+    scm_capi_error("string-downcase: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_string_p(str)) {
+    scm_capi_error("string-downcase: string required, but got", 1, str);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_string_downcase(str);
+}
+
+ScmObj
+scm_capi_substring(ScmObj str, size_t start, size_t end)
+{
+  SCM_STACK_FRAME_PUSH(&str);
+
+  if (scm_obj_null_p(str)) {
+    scm_capi_error("substring: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_string_p(str)) {
+    scm_capi_error("substring: string required, but got", 1, str);
+    return SCM_OBJ_NULL;
+  }
+  else if (start > SSIZE_MAX || end > SSIZE_MAX || start > end) {
+    scm_capi_error("substring: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_string_substr(str, start, end - start);
+}
+
+ScmObj
+scm_api_substring(ScmObj str, ScmObj start, ScmObj end)
+{
+  size_t ss, se;
+  int r;
+
+  SCM_STACK_FRAME_PUSH(&str, &start, &end);
+
+  if (scm_obj_null_p(start) || scm_obj_null_p(end)) {
+    scm_capi_error("substring: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_number_p(start)) {
+    scm_capi_error("substring: number required, but got", 1, start);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_number_p(end)) {
+    scm_capi_error("substring: number required, but got", 1, end);
+    return SCM_OBJ_NULL;
+  }
+
+  r = scm_capi_num_to_size_t(start, &ss);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  r = scm_capi_num_to_size_t(end, &se);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return scm_capi_substring(str, ss, se);
+}
+
+ScmObj
+scm_capi_string_append_lst(ScmObj lst)
+{
+  ScmObj str = SCM_OBJ_INIT, l = SCM_OBJ_INIT, s = SCM_OBJ_INIT;
+  SCM_ENC_T enc;
+
+  SCM_STACK_FRAME_PUSH(&lst,
+                       &str, &l ,s);
+
+  if (scm_obj_null_p(lst)) {
+    scm_capi_error("string-append: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  enc = 0;
+  str = SCM_OBJ_NULL;
+  for (l = lst; scm_capi_pair_p(l); l = scm_api_cdr(l)) {
+    SCM_ENC_T e;
+    int r;
+
+    s = scm_api_car(l);
+    if (scm_obj_null_p(s)) return SCM_OBJ_NULL;
+
+    if (!scm_capi_string_p(s)) {
+      scm_capi_error("string_append: string required, but got", 1, s);
+      return SCM_OBJ_NULL;
+    }
+
+    if (scm_obj_null_p(str)) {
+      str = scm_string_dup(s);
+      if (scm_obj_null_p(str)) return SCM_OBJ_NULL;
+
+      enc = scm_string_encoding(s);
+    }
+    else {
+      e = scm_string_encoding(s);
+      if (enc != e) {
+        scm_capi_error("string-append: encoding mismatch", 0);
+        return SCM_OBJ_NULL;
+      }
+
+      r = scm_string_append(str, s);
+      if (r < 0) return SCM_OBJ_NULL;
+    }
+  }
+
+  if (scm_obj_null_p(str))
+    return scm_capi_make_string_from_bin(NULL, 0, scm_capi_system_encoding());
+  else
+    return str;
+}
+
+ScmObj
+scm_capi_string_append_cv(ScmObj *ary, size_t n)
+{
+  ScmObj str = SCM_OBJ_NULL;
+  SCM_ENC_T enc, e;
+
+  SCM_STACK_FRAME_PUSH(&str);
+
+  if (ary == NULL || n == 0)
+    return scm_capi_make_string_from_bin(NULL, 0, scm_capi_system_encoding());
+
+  str = scm_capi_string_copy(ary[0], -1, -1);
+  if (scm_obj_null_p(str)) return SCM_OBJ_NULL;
+
+  enc = scm_string_encoding(str);
+
+  for (size_t i = 1; i < n; i++) {
+    int r;
+
+    if (scm_obj_null_p(ary[i])) {
+      scm_capi_error("string-append: invalid argument", 0);
+      return SCM_OBJ_NULL;
+    }
+    else if (!scm_capi_string_p(ary[i])) {
+      scm_capi_error("string-append: string required, but got", 1, ary[i]);
+      return SCM_OBJ_NULL;
+    }
+
+    e = scm_string_encoding(ary[i]);
+    if (enc != e) {
+      scm_capi_error("string-append: encoding mismatch", 0);
+      return SCM_OBJ_NULL;
+    }
+
+    r = scm_string_append(str, ary[i]);
+    if (r < 0) return SCM_OBJ_NULL;
+  }
+
+  return str;
+}
+
+ScmObj
+scm_capi_string_append(size_t n, ...)
+{
+  ScmObj args[n];
+  va_list ap;
+
+  SCM_STACK_FRAME;
+
+  va_start(ap, n);
+  for (unsigned int i = 0; i < n; i++)
+    args[i] = va_arg(ap, ScmObj);
+  va_end(ap);
+
+  for (unsigned int i = 0; i < n; i++)
+    SCM_STACK_PUSH(args + i);
+
+  return scm_capi_string_append_cv(args, n);
+}
+
+static ScmObj
+scm_capi_string_to_list_aux(ScmObj str, size_t pos, size_t len)
+{
+  ScmObj ary[len];
+
+  SCM_STACK_FRAME_PUSH(&str);
+
+  for (size_t i = 0; i < len; i++) {
+    ary[i] = scm_capi_string_ref(str, pos + i);
+    SCM_STACK_PUSH(&ary[i]);
+
+    if (scm_obj_null_p(ary[i])) return SCM_OBJ_NULL;
+  }
+
+  return scm_capi_list_cv(ary, len);
+}
+
+ScmObj
+scm_capi_string_to_list(ScmObj str, ssize_t start, ssize_t end)
+{
+  SCM_STACK_FRAME_PUSH(&str);
+
+  if (scm_obj_null_p(str)) {
+    scm_capi_error("string->list: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_string_p(str)) {
+    scm_capi_error("string->list: string required, but got", 1, str);
+    return SCM_OBJ_NULL;
+  }
+  else if (start >= 0 && end >= 0 && start > end) {
+    scm_capi_error("string->list: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  if (start < 0)
+    start = 0;
+
+  if (end < 0)
+    end = (ssize_t)scm_string_length(str);
+
+  return scm_capi_string_to_list_aux(str, (size_t)start, (size_t)(end - start));
+}
+
+ScmObj
+scm_api_string_to_list(ScmObj str, ScmObj start, ScmObj end)
+{
+  ssize_t sss, sse;
+
+  SCM_STACK_FRAME_PUSH(&str, &start, &end);
+
+  if (scm_obj_not_null_p(start) && !scm_capi_number_p(start)) {
+    scm_capi_error("string->list: number required, but got", 1, start);
+    return SCM_OBJ_NULL;
+  }
+  else if (scm_obj_not_null_p(end) && !scm_capi_number_p(end)) {
+    scm_capi_error("string->list: number required, but got", 1, end);
+    return SCM_OBJ_NULL;
+  }
+
+  sss = -1;
+  if (scm_obj_not_null_p(start)) {
+    size_t s;
+    int r = scm_capi_num_to_size_t(start, &s);
+    if (r < 0) return SCM_OBJ_NULL;
+
+    if (s > SSIZE_MAX) {
+      scm_capi_error("string->list: too big", 1, start);
+      return SCM_OBJ_NULL;
+    }
+
+    sss = (ssize_t)s;
+  }
+
+  sse = -1;
+  if (scm_obj_not_null_p(end)) {
+    size_t s;
+    int r = scm_capi_num_to_size_t(end, &s);
+    if (r < 0) return SCM_OBJ_NULL;
+
+    if (s > SSIZE_MAX) {
+      scm_capi_error("string->list: too big", 1, end);
+      return SCM_OBJ_NULL;
+    }
+
+    sse = (ssize_t)s;
+  }
+
+  return scm_capi_string_to_list(str, sss, sse);
+}
+
+ScmObj
+scm_api_list_to_string(ScmObj lst)
+{
+  ScmObj str = SCM_OBJ_INIT, chr = SCM_OBJ_INIT, l = SCM_OBJ_INIT;
+  SCM_ENC_T enc;
+
+  SCM_STACK_FRAME_PUSH(&lst,
+                       &str, &chr, &l);
+
+  enc = 0;
+  str = SCM_OBJ_NULL;
+  for (l = lst; scm_capi_pair_p(l); l = scm_api_cdr(l)) {
+    scm_char_t c;
+    SCM_ENC_T e;
+    int r;
+
+    chr = scm_api_car(l);
+    if (scm_obj_null_p(chr)) return SCM_OBJ_NULL;
+
+    if (!scm_capi_char_p(chr)) {
+      scm_capi_error("list->string: character require, but got", 1, chr);
+      return SCM_OBJ_NULL;
+    }
+
+    if (scm_obj_null_p(str)) {
+      enc = scm_char_encoding(chr);
+      str = scm_capi_make_string_from_bin(NULL, 0, enc);
+      if (scm_obj_null_p(str)) return SCM_OBJ_NULL;
+    }
+
+    e = scm_char_encoding(chr);
+
+    if (e != enc) {
+      scm_capi_error("list->string: encoding mismatch", 0);
+      return SCM_OBJ_NULL;
+    }
+
+    c = scm_char_value(chr);
+
+    r = scm_string_push(str, c);
+    if (r < 0) return SCM_OBJ_NULL;
+  }
+
+  if (scm_obj_null_p(l)) return SCM_OBJ_NULL;
+
+  if (scm_obj_null_p(str))
+    return scm_capi_make_string_from_bin(NULL, 0, scm_capi_system_encoding());
+  else
+    return str;
+}
+
+ScmObj
+scm_capi_string_copy(ScmObj str, ssize_t start, ssize_t end)
+{
+  SCM_STACK_FRAME_PUSH(&str);
+
+  if (scm_obj_null_p(str)) {
+    scm_capi_error("string-copy: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_string_p(str)) {
+    scm_capi_error("string-copy: string required, but got", 1, str);
+    return SCM_OBJ_NULL;
+  }
+  else if (start >= 0 && end >= 0 && start > end) {
+    scm_capi_error("string-copy: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  if (start < 0)
+    start = 0;
+
+  if (end < 0)
+    end = (ssize_t)scm_string_length(str);
+
+  return scm_string_substr(str, (size_t)start, (size_t)(end - start));
+}
+
+ScmObj
+scm_api_string_copy(ScmObj str, ScmObj start, ScmObj end)
+{
+  ssize_t sss, sse;
+
+  SCM_STACK_FRAME_PUSH(&str, &start, &end);
+
+  if (scm_obj_not_null_p(start) && !scm_capi_number_p(start)) {
+    scm_capi_error("string-copy: number required, but got", 1, start);
+    return SCM_OBJ_NULL;
+  }
+  else if (scm_obj_not_null_p(end) && !scm_capi_number_p(end)) {
+    scm_capi_error("string-copy: number required, but got", 1, end);
+    return SCM_OBJ_NULL;
+  }
+
+  sss = -1;
+  if (scm_obj_not_null_p(start)) {
+    size_t s;
+    int r = scm_capi_num_to_size_t(start, &s);
+    if (r < 0) return SCM_OBJ_NULL;
+
+    if (s > SSIZE_MAX) {
+      scm_capi_error("string-copy: too big", 1, start);
+      return SCM_OBJ_NULL;
+    }
+
+    sss = (ssize_t)s;
+  }
+
+  sse = -1;
+  if (scm_obj_not_null_p(end)) {
+    size_t s;
+    int r = scm_capi_num_to_size_t(end, &s);
+    if (r < 0) return SCM_OBJ_NULL;
+
+    if (s > SSIZE_MAX) {
+      scm_capi_error("string-copy: too big", 1, end);
+      return SCM_OBJ_NULL;
+    }
+
+    sse = (ssize_t)s;
+  }
+
+  return scm_capi_string_copy(str, sss, sse);
+}
+
+static int
+scm_capi_string_copy_i_use_tmp_strage(ScmObj to, size_t at,
+                                      size_t pos, size_t len)
+{
+  scm_char_t chr[len];
+
+  SCM_STACK_FRAME_PUSH(&to);
+
+  for (size_t i = 0; i < len; i++) {
+    int r = scm_string_ref(to, pos + i, chr + i);
+    if (r < 0) return -1;
+  }
+
+  for (size_t i = 0; i < len; i++) {
+    int r = scm_string_set(to, at + i, chr[i]);
+    if (r < 0) return -1;
+  }
+
+  return 0;
+}
+
+static int
+scm_capi_string_copy_i_aux(ScmObj to, size_t at,
+                           ScmObj from, size_t pos, size_t len)
+{
+  scm_char_t chr;
+
+  SCM_STACK_FRAME_PUSH(&to, &from);
+
+  for (size_t i = 0; i < len; i++) {
+    int r = scm_string_ref(from, pos + i, &chr);
+    if (r < 0) return -1;
+
+    r = scm_string_set(to, at + i, chr);
+    if (r < 0) return -1;
+  }
+
+  return 0;
+}
+
+int
+scm_capi_string_copy_i(ScmObj to, size_t at,
+                       ScmObj from, ssize_t start, ssize_t end)
+{
+  size_t to_len, from_len, sub_len, len;
+
+  SCM_STACK_FRAME_PUSH(&to, &from);
+
+  if (scm_obj_null_p(to) || scm_obj_null_p(from)) {
+    scm_capi_error("string-copy!: invalid argument", 0);
+    return -1;
+  }
+  else if (!scm_capi_string_p(to)) {
+    scm_capi_error("string-copy!: string require, but got", 1, to);
+    return -1;
+  }
+  else if (!scm_capi_string_p(from)) {
+    scm_capi_error("string-copy!: string require, but got", 1, from);
+    return -1;
+  }
+  else if (scm_string_encoding(to) != scm_string_encoding(from)) {
+    scm_capi_error("string-copy!: encoding mismatch", 0);
+    return -1;
+  }
+  else if (start > 0 && end > 0 && start > end) {
+    scm_capi_error("string-copy!: invalid argument", 0);
+    return -1;
+  }
+
+  to_len = scm_string_length(to);
+  from_len = scm_string_length(from);
+
+  if (at >= to_len) {
+    scm_capi_error("string-copy!: out of range", 0);
+    return -1;
+  }
+
+  sub_len = to_len - at;
+
+  if (start < 0)
+    start = 0;
+  else if ((size_t)start >= from_len) {
+    scm_capi_error("string-copy!: out of range", 0);
+    return -1;
+  }
+
+  if (end > 0) {
+    if ((size_t)end > from_len) {
+      scm_capi_error("string-copy!: out of range", 0);
+      return -1;
+    }
+    len = (size_t)(end - start);
+    if (len > sub_len) {
+      scm_capi_error("string-copy!: invalid argument", 0);
+      return -1;
+    }
+  }
+  else {
+    if (sub_len < from_len - (size_t)start)
+      len = sub_len;
+    else
+      len = from_len - (size_t)start;
+  }
+
+  if (scm_capi_eq_p(to, from) && (size_t)start < at)
+    return scm_capi_string_copy_i_use_tmp_strage(to, at, (size_t)start, len);
+  else
+    return scm_capi_string_copy_i_aux(to, at, from, (size_t)start, len);
+}
+
+ScmObj
+scm_api_string_copy_i(ScmObj to, ScmObj at,
+                      ScmObj from, ScmObj start, ScmObj end)
+{
+  size_t sa;
+  ssize_t sss, sse;
+  int r;
+
+  SCM_STACK_FRAME_PUSH(&to, &at, &from, &start, &end);
+
+  if (scm_obj_null_p(at)) {
+    scm_capi_error("string->list: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_number_p(at)) {
+    scm_capi_error("string->list: number required, but got", 1, at);
+    return SCM_OBJ_NULL;
+  }
+  else if (scm_obj_not_null_p(start) && !scm_capi_number_p(start)) {
+    scm_capi_error("string->list: number required, but got", 1, start);
+    return SCM_OBJ_NULL;
+  }
+  else if (scm_obj_not_null_p(end) && !scm_capi_number_p(end)) {
+    scm_capi_error("string->list: number required, but got", 1, end);
+    return SCM_OBJ_NULL;
+  }
+
+  r = scm_capi_num_to_size_t(at, &sa);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  sss = -1;
+  if (scm_obj_not_null_p(start)) {
+    size_t s;
+     r = scm_capi_num_to_size_t(start, &s);
+    if (r < 0) return SCM_OBJ_NULL;
+
+    if (s > SSIZE_MAX) {
+      scm_capi_error("string->list: too big", 1, start);
+      return SCM_OBJ_NULL;
+    }
+
+    sss = (ssize_t)s;
+  }
+
+  sse = -1;
+  if (scm_obj_not_null_p(end)) {
+    size_t s;
+    r = scm_capi_num_to_size_t(end, &s);
+    if (r < 0) return SCM_OBJ_NULL;
+
+    if (s > SSIZE_MAX) {
+      scm_capi_error("string->list: too big", 1, end);
+      return SCM_OBJ_NULL;
+    }
+
+    sse = (ssize_t)s;
+  }
+
+  r = scm_capi_string_copy_i(to, sa, from, sss, sse);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return SCM_UNDEF_OBJ;
+}
+
+int
+scm_capi_string_fill_i(ScmObj str, ScmObj fill, ssize_t start, ssize_t end)
+{
+  scm_char_t c;
+  size_t len;
+
+  if (scm_obj_null_p(str) || scm_obj_null_p(fill)) {
+    scm_capi_error("string-fill!: invalid argument", 0);
+    return -1;
+  }
+  else if (!scm_capi_string_p(str)) {
+    scm_capi_error("string-fill!: string required, but got", 1, str);
+    return -1;
+  }
+  else if (!scm_capi_char_p(fill)) {
+    scm_capi_error("string-fill!: character required, but got", 1, fill);
+    return -1;
+  }
+  else if (scm_string_encoding(str) != scm_char_encoding(fill)) {
+    scm_capi_error("string-fill!: encoding mismatch", 0);
+    return -1;
+  }
+  else if (start > 0 && end > 0 && start > end) {
+    scm_capi_error("string-fill!: invalid argument", 0);
+    return -1;
+  }
+
+  len = scm_string_length(str);
+
+  if (start < 0)
+    start = 0;
+  else if ((size_t)start >= len) {
+    scm_capi_error("string-fill!: out of range", 0);
+    return -1;
+  }
+
+  if (end < 0)
+    end = (ssize_t)len;
+  else if ((size_t)end > len) {
+    scm_capi_error("string-fill!: out of range", 0);
+    return -1;
+  }
+
+  c = scm_char_value(fill);
+
+  for (ssize_t i = start; i < end; i++) {
+    int r = scm_string_set(str, (size_t)i, c);
+    if (r < 0) return -1;
+  }
+
+  return 0;
+}
+
+ScmObj
+scm_api_string_fill_i(ScmObj str, ScmObj fill, ScmObj start, ScmObj end)
+{
+  ssize_t sss, sse;
+  int r;
+
+  SCM_STACK_FRAME_PUSH(&str, &start, &end);
+
+  if (scm_obj_not_null_p(start) && !scm_capi_number_p(start)) {
+    scm_capi_error("string-fill!: number required, but got", 1, start);
+    return SCM_OBJ_NULL;
+  }
+  else if (scm_obj_not_null_p(end) && !scm_capi_number_p(end)) {
+    scm_capi_error("string-fill!: number required, but got", 1, end);
+    return SCM_OBJ_NULL;
+  }
+
+  sss = -1;
+  if (scm_obj_not_null_p(start)) {
+    size_t s;
+    r = scm_capi_num_to_size_t(start, &s);
+    if (r < 0) return SCM_OBJ_NULL;
+
+    if (s > SSIZE_MAX) {
+      scm_capi_error("string-fill!: too big", 1, start);
+      return SCM_OBJ_NULL;
+    }
+
+    sss = (ssize_t)s;
+  }
+
+  sse = -1;
+  if (scm_obj_not_null_p(end)) {
+    size_t s;
+    r = scm_capi_num_to_size_t(end, &s);
+    if (r < 0) return SCM_OBJ_NULL;
+
+    if (s > SSIZE_MAX) {
+      scm_capi_error("string-fill!: too big", 1, end);
+      return SCM_OBJ_NULL;
+    }
+
+    sse = (ssize_t)s;
+  }
+
+  r = scm_capi_string_fill_i(str, fill, sss, sse);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return SCM_UNDEF_OBJ;
+}
+
+
+/* TODO: string_encoding, string_to_cstr, string_push はインタフェースの見直し
+ *      が必要
+ */
 
 int
 scm_capi_string_encoding(ScmObj str, SCM_ENC_T *enc)
@@ -2577,7 +3888,6 @@ scm_capi_string_encoding(ScmObj str, SCM_ENC_T *enc)
 
   return 0;
 }
-
 
 ssize_t
 scm_capi_string_to_cstr(ScmObj str, char *cstr, size_t size)
@@ -2621,10 +3931,7 @@ scm_capi_string_push(ScmObj str, scm_char_t chr, SCM_ENC_T enc)
     return -1;
   }
 
-  str = scm_string_push(str, chr);
-  if (scm_obj_null_p(str)) return SCM_OBJ_NULL;
-
-  return 0;
+  return scm_string_push(str, chr);
 }
 
 ScmObj
@@ -2650,7 +3957,7 @@ scm_api_string_push(ScmObj str, ScmObj c)
   rslt = scm_capi_string_encoding(str, &s_enc);
   if (rslt < 0) return SCM_OBJ_NULL;
 
-  rslt = scm_capi_char_encoding(str, &c_enc);
+  rslt = scm_capi_char_encoding(c, &c_enc);
   if (rslt < 0) return SCM_OBJ_NULL;
 
   if (s_enc != c_enc) {
@@ -2660,54 +3967,12 @@ scm_api_string_push(ScmObj str, ScmObj c)
 
   cv = scm_char_value(c);
 
-  str = scm_string_push(str, cv);
-  if (scm_obj_null_p(str)) return SCM_OBJ_NULL;
-
-  return str;
-}
-
-int
-scm_capi_string_eq(ScmObj s1, ScmObj s2, bool *rslt)
-{
-  int err, cmp;
-
-  if (scm_obj_null_p(s1) || scm_obj_null_p(s2)) {
-    scm_capi_error("string=?: invalid argument", 0);
-    return -1;
-  }
-  else if (!scm_capi_string_p(s1)) {
-    scm_capi_error("string=?: string required, but got", 1, s1);
-    return -1;
-  }
-  else if (!scm_capi_string_p(s2)) {
-    scm_capi_error("string=?: string required, but got", 1, s2);
-    return -1;
-  }
-  else if (scm_string_encoding(s1) != scm_string_encoding(s2)) {
-    scm_capi_error("string=?: invalid argument: encoding mismatch", 0);
-    return -1;
-  }
-
-  err = scm_string_cmp(s1, s2, &cmp);
-  if (err < 0) return -1;
-
-  if (rslt != NULL)
-    *rslt = (cmp == 0) ? true : false;
-
-  return 0;
-}
-
-ScmObj
-scm_api_string_eq_P(ScmObj s1, ScmObj s2)
-{
-  bool cmp;
-  int rslt;
-
-  rslt = scm_capi_string_eq(s1, s2, &cmp);
+  rslt = scm_string_push(str, cv);
   if (rslt < 0) return SCM_OBJ_NULL;
 
-  return cmp ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+  return SCM_UNDEF_OBJ;
 }
+
 
 
 /*******************************************************************/
