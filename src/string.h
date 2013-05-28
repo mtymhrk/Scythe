@@ -23,7 +23,7 @@ struct ScmStringRec {
   size_t bytesize;
   size_t length;
   int *ref_cnt;
-  SCM_ENC_T enc;
+  ScmEncoding *enc;
 };
 
 #define SCM_STRING_BUFFER(obj) (SCM_STRING(obj)->buffer)
@@ -38,28 +38,28 @@ struct ScmStringRec {
 #define SCM_STRING_DEC_REF_CNT(obj) ((*SCM_STRING(obj)->ref_cnt)--)
 
 int scm_string_initialize(ScmObj str,
-                          const void *src, size_t size, SCM_ENC_T enc);
+                          const void *src, size_t size, ScmEncoding *enc);
 ScmObj scm_string_new(SCM_MEM_TYPE_T mtype,
-                            const void *src, size_t size, SCM_ENC_T enc);
+                            const void *src, size_t size, ScmEncoding *enc);
 ScmObj scm_string_copy(ScmObj src);
 ScmObj scm_string_dup(ScmObj src);
 size_t scm_string_length(ScmObj str);
 size_t scm_string_bytesize(ScmObj str);
 bool scm_string_is_equal(ScmObj str1, ScmObj str2);
-ScmObj scm_string_encode(ScmObj str, SCM_ENC_T enc);
+ScmObj scm_string_encode(ScmObj str, ScmEncoding *enc);
 ScmObj scm_string_substr(ScmObj str, size_t pos, size_t len);
-int scm_string_push(ScmObj str, const scm_char_t c);
+int scm_string_push(ScmObj str, const scm_char_t *c);
 int scm_string_append(ScmObj str, ScmObj append);
 int scm_string_ref(ScmObj str, size_t pos, scm_char_t *chr);
-int scm_string_set(ScmObj str, size_t pos, const scm_char_t c);
-int scm_string_fill(ScmObj str, size_t pos, size_t len, scm_char_t c);
+int scm_string_set(ScmObj str, size_t pos, const scm_char_t *c);
+int scm_string_fill(ScmObj str, size_t pos, size_t len, const scm_char_t *c);
 ScmObj scm_string_downcase(ScmObj str);
 ScmObj scm_string_upcase(ScmObj str);
 ssize_t scm_string_find_chr(ScmObj str, scm_char_t c);
 ssize_t scm_string_match(ScmObj str, ScmObj pat);
 int scm_string_cmp(ScmObj s1, ScmObj s2, int *rslt);
 ssize_t scm_string_dump(ScmObj str, void *buf, size_t size);
-SCM_ENC_T scm_string_encoding(ScmObj str);
+ScmEncoding *scm_string_encoding(ScmObj str);
 void *scm_string_content(ScmObj str);
 int scm_string_pretty_print(ScmObj obj, ScmObj port, bool write_p);
 int scm_string_escape_ctrl_and_nonascii_write(ScmObj str, ScmObj port);

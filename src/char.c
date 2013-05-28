@@ -27,8 +27,8 @@ ScmTypeInfo SCM_CHAR_TYPE_INFO = {
 static int
 scm_char_write_ext_rep(ScmObj obj, ScmObj port)
 {
-  const ScmEncVirtualFunc *vf;
   ScmObj ro = SCM_OBJ_INIT;
+  ScmEncoding *enc;
   scm_char_t chr;
   int rslt;
 
@@ -36,11 +36,11 @@ scm_char_write_ext_rep(ScmObj obj, ScmObj port)
 
   scm_assert_obj_type(obj, &SCM_CHAR_TYPE_INFO);
 
-  vf = SCM_ENCODING_VFUNC(SCM_CHAR(obj)->enc);
-  chr = SCM_CHAR(obj)->value;
+  enc = SCM_CHAR_ENC(obj);
+  chr = SCM_CHAR_VALUE(obj);
 
-  if (vf->printable_p(chr.bytes, sizeof(chr))) {
-    if (vf->space_p(chr.bytes, sizeof(chr))) {
+  if (scm_enc_printable_p(enc, chr.bytes, sizeof(chr))) {
+    if (scm_enc_space_p(enc, chr.bytes, sizeof(chr))) {
       rslt = scm_capi_write_cstr("#\\space", SCM_ENC_ASCII, port);
       if (rslt < 0) return -1;
     }
@@ -53,41 +53,41 @@ scm_char_write_ext_rep(ScmObj obj, ScmObj port)
     }
   }
   else {
-    if (vf->alarm_p(chr.bytes, sizeof(chr))) {
+    if (scm_enc_alarm_p(enc, chr.bytes, sizeof(chr))) {
       rslt = scm_capi_write_cstr("#\\alarm", SCM_ENC_ASCII, port);
       if (rslt < 0) return -1;
     }
-    else if (vf->backspace_p(chr.bytes, sizeof(chr))) {
+    else if (scm_enc_backspace_p(enc, chr.bytes, sizeof(chr))) {
       rslt = scm_capi_write_cstr("#\\backspaace", SCM_ENC_ASCII, port);
       if (rslt < 0) return -1;
     }
-    else if (vf->delete_p(chr.bytes, sizeof(chr))) {
+    else if (scm_enc_delete_p(enc, chr.bytes, sizeof(chr))) {
       rslt = scm_capi_write_cstr("#\\delete", SCM_ENC_ASCII, port);
       if (rslt < 0) return -1;
     }
-    else if (vf->escape_p(chr.bytes, sizeof(chr))) {
+    else if (scm_enc_escape_p(enc, chr.bytes, sizeof(chr))) {
       rslt = scm_capi_write_cstr("#\\escape", SCM_ENC_ASCII, port);
       if (rslt < 0) return -1;
     }
-    else if (vf->newline_p(chr.bytes, sizeof(chr))) {
+    else if (scm_enc_newline_p(enc, chr.bytes, sizeof(chr))) {
       rslt = scm_capi_write_cstr("#\\newline", SCM_ENC_ASCII, port);
       if (rslt < 0) return -1;
     }
-    else if (vf->null_p(chr.bytes, sizeof(chr))) {
+    else if (scm_enc_null_p(enc, chr.bytes, sizeof(chr))) {
       rslt = scm_capi_write_cstr("#\\null", SCM_ENC_ASCII, port);
       if (rslt < 0) return -1;
     }
-    else if (vf->return_p(chr.bytes, sizeof(chr))) {
+    else if (scm_enc_return_p(enc, chr.bytes, sizeof(chr))) {
       rslt = scm_capi_write_cstr("#\\return", SCM_ENC_ASCII, port);
       if (rslt < 0) return -1;
     }
-    else if (vf->tab_p(chr.bytes, sizeof(chr))) {
+    else if (scm_enc_tab_p(enc, chr.bytes, sizeof(chr))) {
       rslt = scm_capi_write_cstr("#\\tab", SCM_ENC_ASCII, port);
       if (rslt < 0) return -1;
     }
     else {
       char cstr[32];
-      long long scalar = vf->to_scalar(chr.bytes, sizeof(chr));
+      long long scalar = scm_enc_cnv_to_scalar(enc, chr.bytes, sizeof(chr));
       if (scalar < 0) return -1;
       snprintf(cstr, sizeof(cstr), "#\\x%llx", scalar);
       scm_capi_write_cstr(cstr, SCM_ENC_ASCII, port);
@@ -98,37 +98,39 @@ scm_char_write_ext_rep(ScmObj obj, ScmObj port)
 }
 
 int
-scm_char_initialize(ScmObj chr, scm_char_t value, SCM_ENC_T enc) /* GC OK */
+scm_char_initialize(ScmObj chr, const scm_char_t *value, ScmEncoding *enc)
 {
   scm_assert_obj_type(chr, &SCM_CHAR_TYPE_INFO);
-  scm_assert(/* 0 <= enc && */ enc < SCM_ENC_NR_ENC);
+  scm_assert(value != NULL);
+  scm_assert(enc != NULL);
 
-  if (!SCM_ENCODING_VFUNC_VALID_CHAR_P(enc)(value)) {
+  if (!scm_enc_valid_char_p(enc, value)) {
     scm_capi_error("can not make character object: invalid byte sequence", 0);
     return -1;                  /* [ERR] char: invalid byte sequence */
   }
 
-  SCM_CHAR_VALUE(chr) = value;
+  SCM_CHAR_VALUE(chr) = *value;
   SCM_CHAR_ENC(chr) = enc;
 
   return 0;
 }
 
 void
-scm_char_finalize(ScmObj chr)   /* GC OK */
+scm_char_finalize(ScmObj chr)
 {
   return;                       /* nothing to do */
 }
 
 ScmObj
 scm_char_new(SCM_MEM_TYPE_T mtype,
-             scm_char_t value, SCM_ENC_T enc) /* GC OK */
+             const scm_char_t *value, ScmEncoding *enc)
 {
   ScmObj chr = SCM_OBJ_INIT;
 
   SCM_STACK_FRAME_PUSH(&chr);
 
-  scm_assert(/* 0 <= enc && */ enc < SCM_ENC_NR_ENC);
+  scm_assert(value != NULL);
+  scm_assert(enc != NULL);
 
   chr = scm_capi_mem_alloc(&SCM_CHAR_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(chr)) return SCM_OBJ_NULL;
@@ -140,75 +142,77 @@ scm_char_new(SCM_MEM_TYPE_T mtype,
 }
 
 ScmObj
-scm_char_new_newline(SCM_MEM_TYPE_T  mtype, SCM_ENC_T enc) /* GC OK */
+scm_char_new_newline(SCM_MEM_TYPE_T  mtype, ScmEncoding *enc)
 {
-  return scm_char_new(mtype, SCM_ENCODING_CONST_LF_CHR(enc), enc);
+  scm_char_t c;
+  scm_enc_chr_lf(enc, &c, NULL);
+  return scm_char_new(mtype, &c, enc);
 }
 
 ScmObj
-scm_char_new_space(SCM_MEM_TYPE_T mtype, SCM_ENC_T enc) /* GC OK */
+scm_char_new_space(SCM_MEM_TYPE_T mtype, ScmEncoding *enc)
 {
-  return scm_char_new(mtype, SCM_ENCODING_CONST_SP_CHR(enc), enc);
+  scm_char_t c;
+  scm_enc_chr_sp(enc, &c, NULL);
+  return scm_char_new(mtype, &c, enc);
 }
 
 scm_char_t
-scm_char_value(ScmObj chr)      /* GC OK */
+scm_char_value(ScmObj chr)
 {
   scm_assert_obj_type(chr, &SCM_CHAR_TYPE_INFO);
 
   return SCM_CHAR_VALUE(chr);
 }
 
-SCM_ENC_T
-scm_char_encoding(ScmObj chr)   /* GC OK */
+ScmEncoding *
+scm_char_encoding(ScmObj chr)
 {
   scm_assert_obj_type(chr, &SCM_CHAR_TYPE_INFO);
-
   return SCM_CHAR_ENC(chr);
 }
 
 ScmObj
-scm_char_encode(ScmObj chr, SCM_ENC_T enc)
+scm_char_encode(ScmObj chr, ScmEncoding *enc)
 {
-  const ScmEncVirtualFunc *vf;
   scm_char_t c;
   ssize_t rslt;
 
   scm_assert_obj_type(chr, &SCM_CHAR_TYPE_INFO);
-  scm_assert(/*0 <= enc && */enc < SCM_ENC_NR_ENC && enc != SCM_ENC_SYS);
+  scm_assert(enc != NULL);
 
   /* 今のところ ASCII から他のエンコードへの変換しか対応していない */
-  scm_assert(SCM_CHAR(chr)->enc== SCM_ENC_ASCII
-             || SCM_CHAR(chr)->enc == enc);
+  scm_assert(SCM_CHAR_ENC(chr) == SCM_ENC_ASCII
+             || SCM_CHAR_ENC(chr) == enc);
 
   if (SCM_CHAR(chr)->enc == enc)
-    return scm_char_new(SCM_MEM_HEAP, SCM_CHAR(chr)->value, enc);
+    return scm_char_new(SCM_MEM_HEAP, &SCM_CHAR(chr)->value, enc);
 
-  vf = SCM_ENCODING_VFUNC(enc);
-  rslt = vf->ascii_to((char)SCM_CHAR(chr)->value.ascii, &c);
+  rslt = scm_enc_cnv_from_ascii(SCM_CHAR_ENC(chr),
+                                (char)SCM_CHAR_VALUE(chr).ascii, &c);
   if (rslt < 0) return SCM_OBJ_NULL;
 
-  return scm_char_new(SCM_MEM_HEAP, c, enc);
+  return scm_char_new(SCM_MEM_HEAP, &c, enc);
 }
 
 int
 scm_char_cmp(ScmObj chr1, ScmObj chr2, int *rslt)
 {
-  const ScmEncVirtualFunc *vf;
   long long v1, v2;
 
   scm_assert_obj_type(chr1, &SCM_CHAR_TYPE_INFO);
   scm_assert_obj_type(chr2, &SCM_CHAR_TYPE_INFO);
-  scm_assert(SCM_CHAR(chr1)->enc == SCM_CHAR(chr2)->enc);
+  scm_assert(SCM_CHAR_ENC(chr1) == SCM_CHAR_ENC(chr2));
 
-  vf = SCM_ENCODING_VFUNC(SCM_CHAR(chr1)->enc);
-  v1 = vf->to_scalar(SCM_CHAR(chr1)->value.bytes, sizeof(scm_char_t));
+  v1 = scm_enc_cnv_to_scalar(SCM_CHAR_ENC(chr1),
+                             SCM_CHAR_VALUE(chr1).bytes, sizeof(scm_char_t));
   if (v1 < 0) {
     scm_capi_error("can not get scalar value of character", 0);
     return -1;
   }
 
-  v2 = vf->to_scalar(SCM_CHAR(chr2)->value.bytes, sizeof(scm_char_t));
+  v2 = scm_enc_cnv_to_scalar(SCM_CHAR_ENC(chr2),
+                             SCM_CHAR_VALUE(chr2).bytes, sizeof(scm_char_t));
   if (v2 < 0) {
     scm_capi_error("can not get scalar value of character", 0);
     return -1;

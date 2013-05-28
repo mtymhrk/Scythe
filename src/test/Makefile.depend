@@ -19,10 +19,10 @@
  ../encoding.h ../api_enum.h ../api_type.h ../char.h
 ../charconv.o: ../charconv.c ../api.h ../object.h ../impl_utils.h \
  ../reference.h ../encoding.h ../api_enum.h ../api_type.h ../charconv.h
-../encoding.o: ../encoding.c ../encoding.h ../api_enum.h
+../encoding.o: ../encoding.c ../encoding.h
 ../vm.o: ../vm.c ../vm.h ../object.h ../impl_utils.h ../memory.h \
- ../api_type.h ../reference.h ../api_enum.h ../vmstack.h ../string.h \
- ../encoding.h ../symbol.h ../chashtbl.h ../module.h ../procedure.h \
+ ../api_type.h ../reference.h ../encoding.h ../api_enum.h ../vmstack.h \
+ ../string.h ../symbol.h ../chashtbl.h ../module.h ../procedure.h \
  ../miscobjects.h ../core_modules.h ../api.h
 ../vmstack.o: ../vmstack.c ../object.h ../impl_utils.h ../api.h \
  ../reference.h ../encoding.h ../api_enum.h ../api_type.h ../vmstack.h
@@ -34,16 +34,16 @@
  ../api.h ../encoding.h ../api_enum.h ../api_type.h ../earray.h \
  ../numeric.h
 ../core_subr.o: ../core_subr.c ../object.h ../impl_utils.h ../vm.h \
- ../memory.h ../api_type.h ../reference.h ../api_enum.h ../vmstack.h \
- ../api.h ../encoding.h ../core_subr.h
+ ../memory.h ../api_type.h ../reference.h ../encoding.h ../api_enum.h \
+ ../vmstack.h ../api.h ../core_subr.h
 ../iseq.o: ../iseq.c ../object.h ../impl_utils.h ../reference.h \
  ../chashtbl.h ../api.h ../encoding.h ../api_enum.h ../api_type.h \
  ../earray.h ../iseq.h
 ../chashtbl.o: ../chashtbl.c ../object.h ../impl_utils.h ../reference.h \
  ../api.h ../encoding.h ../api_enum.h ../api_type.h ../chashtbl.h
 ../api.o: ../api.c ../object.h ../impl_utils.h ../memory.h ../api_type.h \
- ../vm.h ../reference.h ../api_enum.h ../vmstack.h ../char.h \
- ../encoding.h ../string.h ../symbol.h ../chashtbl.h ../procedure.h \
+ ../vm.h ../reference.h ../encoding.h ../api_enum.h ../vmstack.h \
+ ../char.h ../string.h ../symbol.h ../chashtbl.h ../procedure.h \
  ../numeric.h ../earray.h ../api.h ../pair.h ../vector.h ../port.h \
  ../parser.h ../syntax.h ../iseq.h ../module.h ../assembler.h \
  ../compiler.h ../exception.h
@@ -83,8 +83,8 @@ test_pair.o: test_pair.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-helper.h \
  /usr/local/include/cutter/cutter/cut-experimental.h ../object.h \
  ../impl_utils.h ../vm.h ../object.h ../memory.h ../api_type.h \
- ../reference.h ../api_enum.h ../vmstack.h ../reference.h ../api.h \
- ../encoding.h ../pair.h
+ ../reference.h ../encoding.h ../api_enum.h ../vmstack.h ../reference.h \
+ ../api.h ../pair.h
 test_string.o: test_string.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-version.h \
  /usr/local/include/cutter/cutter/cut-features.h \
@@ -100,8 +100,8 @@ test_string.o: test_string.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-helper.h \
  /usr/local/include/cutter/cutter/cut-experimental.h ../object.h \
  ../impl_utils.h ../vm.h ../object.h ../memory.h ../api_type.h \
- ../reference.h ../api_enum.h ../vmstack.h ../reference.h ../api.h \
- ../encoding.h ../string.h
+ ../reference.h ../encoding.h ../api_enum.h ../vmstack.h ../reference.h \
+ ../api.h ../string.h
 test_symbol.o: test_symbol.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-version.h \
  /usr/local/include/cutter/cutter/cut-features.h \
@@ -117,8 +117,8 @@ test_symbol.o: test_symbol.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-helper.h \
  /usr/local/include/cutter/cutter/cut-experimental.h ../object.h \
  ../impl_utils.h ../vm.h ../object.h ../memory.h ../api_type.h \
- ../reference.h ../api_enum.h ../vmstack.h ../reference.h ../api.h \
- ../encoding.h ../string.h ../symbol.h ../chashtbl.h
+ ../reference.h ../encoding.h ../api_enum.h ../vmstack.h ../reference.h \
+ ../api.h ../string.h ../symbol.h ../chashtbl.h
 test_nil.o: test_nil.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-version.h \
  /usr/local/include/cutter/cutter/cut-features.h \
@@ -134,7 +134,7 @@ test_nil.o: test_nil.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-helper.h \
  /usr/local/include/cutter/cutter/cut-experimental.h ../object.h \
  ../impl_utils.h ../vm.h ../object.h ../memory.h ../api_type.h \
- ../reference.h ../api_enum.h ../vmstack.h ../api.h ../encoding.h \
+ ../reference.h ../encoding.h ../api_enum.h ../vmstack.h ../api.h \
  ../miscobjects.h
 test_vector.o: test_vector.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-version.h \
@@ -151,8 +151,8 @@ test_vector.o: test_vector.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-helper.h \
  /usr/local/include/cutter/cutter/cut-experimental.h ../object.h \
  ../impl_utils.h ../vm.h ../object.h ../memory.h ../api_type.h \
- ../reference.h ../api_enum.h ../vmstack.h ../reference.h ../api.h \
- ../encoding.h ../vector.h
+ ../reference.h ../encoding.h ../api_enum.h ../vmstack.h ../reference.h \
+ ../api.h ../vector.h
 test_eof.o: test_eof.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-version.h \
  /usr/local/include/cutter/cutter/cut-features.h \
@@ -168,8 +168,8 @@ test_eof.o: test_eof.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-helper.h \
  /usr/local/include/cutter/cutter/cut-experimental.h ../object.h \
  ../impl_utils.h ../vm.h ../object.h ../memory.h ../api_type.h \
- ../reference.h ../api_enum.h ../vmstack.h ../reference.h ../api.h \
- ../encoding.h ../miscobjects.h
+ ../reference.h ../encoding.h ../api_enum.h ../vmstack.h ../reference.h \
+ ../api.h ../miscobjects.h
 test_bool.o: test_bool.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-version.h \
  /usr/local/include/cutter/cutter/cut-features.h \
@@ -185,7 +185,7 @@ test_bool.o: test_bool.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-helper.h \
  /usr/local/include/cutter/cutter/cut-experimental.h ../object.h \
  ../impl_utils.h ../vm.h ../object.h ../memory.h ../api_type.h \
- ../reference.h ../api_enum.h ../vmstack.h ../api.h ../encoding.h \
+ ../reference.h ../encoding.h ../api_enum.h ../vmstack.h ../api.h \
  ../miscobjects.h
 test_char.o: test_char.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-version.h \
@@ -202,7 +202,7 @@ test_char.o: test_char.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-helper.h \
  /usr/local/include/cutter/cutter/cut-experimental.h ../object.h \
  ../impl_utils.h ../vm.h ../object.h ../memory.h ../api_type.h \
- ../reference.h ../api_enum.h ../vmstack.h ../api.h ../encoding.h \
+ ../reference.h ../encoding.h ../api_enum.h ../vmstack.h ../api.h \
  ../miscobjects.h ../char.h
 test_charconv.o: test_charconv.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-version.h \
@@ -233,8 +233,8 @@ test_string_utf8.o: test_string_utf8.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-helper.h \
  /usr/local/include/cutter/cutter/cut-experimental.h ../object.h \
  ../impl_utils.h ../vm.h ../object.h ../memory.h ../api_type.h \
- ../reference.h ../api_enum.h ../vmstack.h ../reference.h ../api.h \
- ../encoding.h ../string.h
+ ../reference.h ../encoding.h ../api_enum.h ../vmstack.h ../reference.h \
+ ../api.h ../string.h
 test_string_ucs4.o: test_string_ucs4.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-version.h \
  /usr/local/include/cutter/cutter/cut-features.h \
@@ -250,8 +250,8 @@ test_string_ucs4.o: test_string_ucs4.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-helper.h \
  /usr/local/include/cutter/cutter/cut-experimental.h ../object.h \
  ../impl_utils.h ../vm.h ../object.h ../memory.h ../api_type.h \
- ../reference.h ../api_enum.h ../vmstack.h ../reference.h ../api.h \
- ../encoding.h ../string.h
+ ../reference.h ../encoding.h ../api_enum.h ../vmstack.h ../reference.h \
+ ../api.h ../string.h
 test_string_ascii.o: test_string_ascii.c \
  /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-version.h \
@@ -268,8 +268,8 @@ test_string_ascii.o: test_string_ascii.c \
  /usr/local/include/cutter/cutter/cut-helper.h \
  /usr/local/include/cutter/cutter/cut-experimental.h ../object.h \
  ../impl_utils.h ../vm.h ../object.h ../memory.h ../api_type.h \
- ../reference.h ../api_enum.h ../vmstack.h ../reference.h ../api.h \
- ../encoding.h ../string.h
+ ../reference.h ../encoding.h ../api_enum.h ../vmstack.h ../reference.h \
+ ../api.h ../string.h
 test_string_eucjp.o: test_string_eucjp.c \
  /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-version.h \
@@ -286,8 +286,8 @@ test_string_eucjp.o: test_string_eucjp.c \
  /usr/local/include/cutter/cutter/cut-helper.h \
  /usr/local/include/cutter/cutter/cut-experimental.h ../object.h \
  ../impl_utils.h ../vm.h ../object.h ../memory.h ../api_type.h \
- ../reference.h ../api_enum.h ../vmstack.h ../reference.h ../api.h \
- ../encoding.h ../string.h
+ ../reference.h ../encoding.h ../api_enum.h ../vmstack.h ../reference.h \
+ ../api.h ../string.h
 test_string_sjis.o: test_string_sjis.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-version.h \
  /usr/local/include/cutter/cutter/cut-features.h \
@@ -303,8 +303,8 @@ test_string_sjis.o: test_string_sjis.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-helper.h \
  /usr/local/include/cutter/cutter/cut-experimental.h ../object.h \
  ../impl_utils.h ../vm.h ../object.h ../memory.h ../api_type.h \
- ../reference.h ../api_enum.h ../vmstack.h ../reference.h ../api.h \
- ../encoding.h ../string.h
+ ../reference.h ../encoding.h ../api_enum.h ../vmstack.h ../reference.h \
+ ../api.h ../string.h
 test_memory.o: test_memory.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-version.h \
  /usr/local/include/cutter/cutter/cut-features.h \
@@ -335,8 +335,8 @@ test_vm.o: test_vm.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-test-utils-helper.h \
  /usr/local/include/cutter/cutter/cut-helper.h \
  /usr/local/include/cutter/cutter/cut-experimental.h ../vm.h ../object.h \
- ../impl_utils.h ../memory.h ../api_type.h ../reference.h ../api_enum.h \
- ../vmstack.h ../object.h ../iseq.h ../earray.h ../api.h ../encoding.h \
+ ../impl_utils.h ../memory.h ../api_type.h ../reference.h ../encoding.h \
+ ../api_enum.h ../vmstack.h ../object.h ../iseq.h ../earray.h ../api.h \
  ../api.h ../pair.h
 test_iseq.o: test_iseq.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-version.h \
@@ -352,8 +352,8 @@ test_iseq.o: test_iseq.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-test-utils-helper.h \
  /usr/local/include/cutter/cutter/cut-helper.h \
  /usr/local/include/cutter/cutter/cut-experimental.h ../vm.h ../object.h \
- ../impl_utils.h ../memory.h ../api_type.h ../reference.h ../api_enum.h \
- ../vmstack.h ../api.h ../encoding.h ../iseq.h ../earray.h ../api.h
+ ../impl_utils.h ../memory.h ../api_type.h ../reference.h ../encoding.h \
+ ../api_enum.h ../vmstack.h ../api.h ../iseq.h ../earray.h ../api.h
 test_chashtbl.o: test_chashtbl.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-version.h \
  /usr/local/include/cutter/cutter/cut-features.h \
@@ -369,7 +369,7 @@ test_chashtbl.o: test_chashtbl.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-helper.h \
  /usr/local/include/cutter/cutter/cut-experimental.h ../object.h \
  ../impl_utils.h ../vm.h ../object.h ../memory.h ../api_type.h \
- ../reference.h ../api_enum.h ../vmstack.h ../string.h ../encoding.h \
+ ../reference.h ../encoding.h ../api_enum.h ../vmstack.h ../string.h \
  ../symbol.h ../chashtbl.h ../api.h ../chashtbl.h
 test_fileport.o: test_fileport.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-version.h \
@@ -385,8 +385,8 @@ test_fileport.o: test_fileport.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-test-utils-helper.h \
  /usr/local/include/cutter/cutter/cut-helper.h \
  /usr/local/include/cutter/cutter/cut-experimental.h ../vm.h ../object.h \
- ../impl_utils.h ../memory.h ../api_type.h ../reference.h ../api_enum.h \
- ../vmstack.h ../api.h ../encoding.h ../port.h
+ ../impl_utils.h ../memory.h ../api_type.h ../reference.h ../encoding.h \
+ ../api_enum.h ../vmstack.h ../api.h ../port.h
 test_stringport.o: test_stringport.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-version.h \
  /usr/local/include/cutter/cutter/cut-features.h \
@@ -401,8 +401,8 @@ test_stringport.o: test_stringport.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-test-utils-helper.h \
  /usr/local/include/cutter/cutter/cut-helper.h \
  /usr/local/include/cutter/cutter/cut-experimental.h ../vm.h ../object.h \
- ../impl_utils.h ../memory.h ../api_type.h ../reference.h ../api_enum.h \
- ../vmstack.h ../api.h ../encoding.h ../port.h
+ ../impl_utils.h ../memory.h ../api_type.h ../reference.h ../encoding.h \
+ ../api_enum.h ../vmstack.h ../api.h ../port.h
 test_parser.o: test_parser.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-version.h \
  /usr/local/include/cutter/cutter/cut-features.h \
@@ -418,8 +418,8 @@ test_parser.o: test_parser.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-helper.h \
  /usr/local/include/cutter/cutter/cut-experimental.h ../object.h \
  ../impl_utils.h ../vm.h ../object.h ../memory.h ../api_type.h \
- ../reference.h ../api_enum.h ../vmstack.h ../reference.h ../api.h \
- ../encoding.h ../parser.h
+ ../reference.h ../encoding.h ../api_enum.h ../vmstack.h ../reference.h \
+ ../api.h ../parser.h
 test_assembler.o: test_assembler.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-version.h \
  /usr/local/include/cutter/cutter/cut-features.h \
@@ -434,8 +434,8 @@ test_assembler.o: test_assembler.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-test-utils-helper.h \
  /usr/local/include/cutter/cutter/cut-helper.h \
  /usr/local/include/cutter/cutter/cut-experimental.h ../vm.h ../object.h \
- ../impl_utils.h ../memory.h ../api_type.h ../reference.h ../api_enum.h \
- ../vmstack.h ../api.h ../encoding.h ../assembler.h ../earray.h ../api.h
+ ../impl_utils.h ../memory.h ../api_type.h ../reference.h ../encoding.h \
+ ../api_enum.h ../vmstack.h ../api.h ../assembler.h ../earray.h ../api.h
 test_undef.o: test_undef.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-version.h \
  /usr/local/include/cutter/cutter/cut-features.h \
@@ -451,7 +451,7 @@ test_undef.o: test_undef.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-helper.h \
  /usr/local/include/cutter/cutter/cut-experimental.h ../object.h \
  ../impl_utils.h ../vm.h ../object.h ../memory.h ../api_type.h \
- ../reference.h ../api_enum.h ../vmstack.h ../api.h ../encoding.h \
+ ../reference.h ../encoding.h ../api_enum.h ../vmstack.h ../api.h \
  ../miscobjects.h
 test_bignum.o: test_bignum.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-version.h \
@@ -499,8 +499,8 @@ test_compiler.o: test_compiler.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-test-utils-helper.h \
  /usr/local/include/cutter/cutter/cut-helper.h \
  /usr/local/include/cutter/cutter/cut-experimental.h ../vm.h ../object.h \
- ../impl_utils.h ../memory.h ../api_type.h ../reference.h ../api_enum.h \
- ../vmstack.h ../api.h ../encoding.h
+ ../impl_utils.h ../memory.h ../api_type.h ../reference.h ../encoding.h \
+ ../api_enum.h ../vmstack.h ../api.h
 test_eval.o: test_eval.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-version.h \
  /usr/local/include/cutter/cutter/cut-features.h \

@@ -84,7 +84,7 @@ IGNORE_TEST(string, capi_make_string__specify_chr)
 
   SCM_STACK_FRAME_PUSH(&chr, &actual, &expected);
 
-  chr = scm_capi_make_char((scm_char_t){.ascii = 'a'}, SCM_ENC_UTF8);
+  chr = read_cstr("#\\a");
   expected = scm_capi_make_string_from_cstr("aaa", SCM_ENC_UTF8);
 
   actual = scm_capi_make_string(3, chr);
@@ -100,7 +100,7 @@ IGNORE_TEST(string, api_make_string__specify_chr)
   SCM_STACK_FRAME_PUSH(&n, &chr, &actual, &expected);
 
   n = read_cstr("3");
-  chr = scm_capi_make_char((scm_char_t){.ascii = 'a'}, SCM_ENC_UTF8);
+  chr = read_cstr("#\\a");
   expected = scm_capi_make_string_from_cstr("aaa", SCM_ENC_UTF8);
 
   actual = scm_api_make_string(n, chr);
@@ -183,9 +183,9 @@ TEST(string, capi_string_cv)
   SCM_STACK_FRAME_PUSH(&actual, &expected);
   SCM_STACK_PUSH_ARY(chr, sizeof(chr)/sizeof(chr[0]));
 
-  chr[0] = scm_capi_make_char((scm_char_t){.ascii = 'a'}, SCM_ENC_UTF8);
-  chr[1] = scm_capi_make_char((scm_char_t){.ascii = 'b'}, SCM_ENC_UTF8);
-  chr[2] = scm_capi_make_char((scm_char_t){.ascii = 'c'}, SCM_ENC_UTF8);
+  chr[0] = read_cstr("#\\a");
+  chr[1] = read_cstr("#\\b");
+  chr[2] = read_cstr("#\\c");
   expected = scm_capi_make_string_from_cstr("abc", SCM_ENC_UTF8);
 
   actual = scm_capi_string_cv(chr, sizeof(chr)/sizeof(chr[0]));
@@ -213,9 +213,9 @@ TEST(string, capi_string_cv__ary_has_item_is_not_character__return_ERROR)
   SCM_STACK_FRAME;
   SCM_STACK_PUSH_ARY(chr, sizeof(chr)/sizeof(chr[0]));
 
-  chr[0] = scm_capi_make_char((scm_char_t){.ascii = 'a'}, SCM_ENC_UTF8);
+  chr[0] = read_cstr("#\\a");
   chr[1] = SCM_FALSE_OBJ;
-  chr[2] = scm_capi_make_char((scm_char_t){.ascii = 'c'}, SCM_ENC_UTF8);
+  chr[2] = read_cstr("#\\c");
 
   TEST_ASSERT_TRUE(scm_obj_null_p(scm_capi_string_cv(chr, sizeof(chr)/sizeof(chr[0]))));
 }
@@ -228,9 +228,9 @@ TEST(string, capi_string)
   SCM_STACK_FRAME_PUSH(&actual, &expected);
   SCM_STACK_PUSH_ARY(chr, sizeof(chr)/sizeof(chr[0]));
 
-  chr[0] = scm_capi_make_char((scm_char_t){.ascii = 'a'}, SCM_ENC_UTF8);
-  chr[1] = scm_capi_make_char((scm_char_t){.ascii = 'b'}, SCM_ENC_UTF8);
-  chr[2] = scm_capi_make_char((scm_char_t){.ascii = 'c'}, SCM_ENC_UTF8);
+  chr[0] = read_cstr("#\\a");
+  chr[1] = read_cstr("#\\b");
+  chr[2] = read_cstr("#\\c");
   expected = scm_capi_make_string_from_cstr("abc", SCM_ENC_UTF8);
 
   actual = scm_capi_string(3, chr[0], chr[1], chr[2]);
@@ -258,9 +258,9 @@ TEST(string, capi_string__not_character)
   SCM_STACK_FRAME;
   SCM_STACK_PUSH_ARY(chr, sizeof(chr)/sizeof(chr[0]));
 
-  chr[0] = scm_capi_make_char((scm_char_t){.ascii = 'a'}, SCM_ENC_UTF8);
+  chr[0] = read_cstr("#\\a");
   chr[1] = SCM_FALSE_OBJ;
-  chr[2] = scm_capi_make_char((scm_char_t){.ascii = 'c'}, SCM_ENC_UTF8);
+  chr[2] = read_cstr("#\\c");
 
   TEST_ASSERT_TRUE(scm_obj_null_p(scm_capi_string(3, chr[0], chr[1], chr[2])));
 }
@@ -402,7 +402,7 @@ TEST(string, capi_string_ref)
                        &actual, &expected);
 
   str = scm_capi_make_string_from_cstr("abc", SCM_ENC_UTF8);
-  expected = scm_capi_make_char((scm_char_t){.ascii = 'b'}, SCM_ENC_UTF8);
+  expected = read_cstr("#\\b");
 
   actual = scm_capi_string_ref(str, 1);
 
@@ -435,7 +435,7 @@ TEST(string, api_string_ref)
 
   str = scm_capi_make_string_from_cstr("abc", SCM_ENC_UTF8);
   pos = read_cstr("1");
-  expected = scm_capi_make_char((scm_char_t){.ascii = 'b'}, SCM_ENC_UTF8);
+  expected = read_cstr("#\\b");
 
   actual = scm_api_string_ref(str, pos);
 
@@ -468,7 +468,7 @@ TEST(string, capi_string_set_i)
 
   str = scm_capi_make_string_from_cstr("abc", SCM_ENC_UTF8);
   expected = scm_capi_make_string_from_cstr("azc", SCM_ENC_UTF8);
-  chr = scm_capi_make_char((scm_char_t){.ascii = 'z'}, SCM_ENC_UTF8);
+  chr = read_cstr("#\\z");
 
   TEST_ASSERT_EQUAL_INT(0, scm_capi_string_set_i(str, 1, chr));
   TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_string_eq_P(expected, str)));
@@ -481,7 +481,7 @@ TEST(string, capi_string_set_i__out_of_range__return_ERROR)
   SCM_STACK_FRAME_PUSH(&str, &chr);
 
   str = scm_capi_make_string_from_cstr("abc", SCM_ENC_UTF8);
-  chr = scm_capi_make_char((scm_char_t){.ascii = 'z'}, SCM_ENC_UTF8);
+  chr = read_cstr("#\\z");
 
   TEST_ASSERT_EQUAL_INT(-1, scm_capi_string_set_i(str, 3, chr));
 }
@@ -500,7 +500,7 @@ TEST(string, api_string_set_i)
 
   str = scm_capi_make_string_from_cstr("abc", SCM_ENC_UTF8);
   expected = scm_capi_make_string_from_cstr("azc", SCM_ENC_UTF8);
-  chr = scm_capi_make_char((scm_char_t){.ascii = 'z'}, SCM_ENC_UTF8);
+  chr = read_cstr("#\\z");
   pos = read_cstr("1");
 
   TEST_ASSERT_TRUE(scm_capi_undef_object_p(scm_api_string_set_i(str, pos, chr)));
@@ -514,7 +514,7 @@ TEST(string, api_string_set_i__out_of_range__return_ERROR)
   SCM_STACK_FRAME_PUSH(&str, &chr, &pos);
 
   str = scm_capi_make_string_from_cstr("abc", SCM_ENC_UTF8);
-  chr = scm_capi_make_char((scm_char_t){.ascii = 'z'}, SCM_ENC_UTF8);
+  chr = read_cstr("#\\z");
   pos = read_cstr("3");
 
   TEST_ASSERT_TRUE(scm_obj_null_p(scm_api_string_set_i(str, pos, chr)));
@@ -2455,7 +2455,7 @@ TEST(string, capi_string_fill_i__unspecify_start_end)
   SCM_STACK_FRAME_PUSH(&str, &chr, &expected);
 
   str = scm_capi_make_string_from_cstr("abcde", SCM_ENC_UTF8);
-  chr = scm_capi_make_char((scm_char_t){.ascii = 'z'}, SCM_ENC_UTF8);
+  chr = read_cstr("#\\z");
   expected = scm_capi_make_string_from_cstr("zzzzz", SCM_ENC_UTF8);
 
   TEST_ASSERT_EQUAL_INT(0, scm_capi_string_fill_i(str, chr, -1, -1));
@@ -2470,7 +2470,7 @@ TEST(string, capi_string_fill_i__specify_start)
   SCM_STACK_FRAME_PUSH(&str, &chr, &expected);
 
   str = scm_capi_make_string_from_cstr("abcde", SCM_ENC_UTF8);
-  chr = scm_capi_make_char((scm_char_t){.ascii = 'z'}, SCM_ENC_UTF8);
+  chr = read_cstr("#\\z");
   expected = scm_capi_make_string_from_cstr("azzzz", SCM_ENC_UTF8);
 
   TEST_ASSERT_EQUAL_INT(0, scm_capi_string_fill_i(str, chr, 1, -1));
@@ -2485,7 +2485,7 @@ TEST(string, capi_string_fill_i__specify_start_end)
   SCM_STACK_FRAME_PUSH(&str, &chr, &expected);
 
   str = scm_capi_make_string_from_cstr("abcde", SCM_ENC_UTF8);
-  chr = scm_capi_make_char((scm_char_t){.ascii = 'z'}, SCM_ENC_UTF8);
+  chr = read_cstr("#\\z");
   expected = scm_capi_make_string_from_cstr("azzze", SCM_ENC_UTF8);
 
   TEST_ASSERT_EQUAL_INT(0, scm_capi_string_fill_i(str, chr, 1, 4));
@@ -2500,7 +2500,7 @@ TEST(string, capi_string_fill_i__same_idx)
   SCM_STACK_FRAME_PUSH(&str, &chr, &expected);
 
   str = scm_capi_make_string_from_cstr("abcde", SCM_ENC_UTF8);
-  chr = scm_capi_make_char((scm_char_t){.ascii = 'z'}, SCM_ENC_UTF8);
+  chr = read_cstr("#\\z");
   expected = scm_capi_make_string_from_cstr("abcde", SCM_ENC_UTF8);
 
   TEST_ASSERT_EQUAL_INT(0, scm_capi_string_fill_i(str, chr, 1, 1));
@@ -2515,7 +2515,7 @@ TEST(string, capi_string_fill_i__start_greater_than_end__return_ERROR)
   SCM_STACK_FRAME_PUSH(&str, &chr, &expected);
 
   str = scm_capi_make_string_from_cstr("abcde", SCM_ENC_UTF8);
-  chr = scm_capi_make_char((scm_char_t){.ascii = 'z'}, SCM_ENC_UTF8);
+  chr = read_cstr("#\\z");
   expected = scm_capi_make_string_from_cstr("abcde", SCM_ENC_UTF8);
 
   TEST_ASSERT_EQUAL_INT(-1, scm_capi_string_fill_i(str, chr, 2, 1));
@@ -2530,7 +2530,7 @@ TEST(string, capi_string_fill_i__start_out_of_range__return_ERROR)
   SCM_STACK_FRAME_PUSH(&str, &chr, &expected);
 
   str = scm_capi_make_string_from_cstr("abcde", SCM_ENC_UTF8);
-  chr = scm_capi_make_char((scm_char_t){.ascii = 'z'}, SCM_ENC_UTF8);
+  chr = read_cstr("#\\z");
   expected = scm_capi_make_string_from_cstr("abcde", SCM_ENC_UTF8);
 
   TEST_ASSERT_EQUAL_INT(-1, scm_capi_string_fill_i(str, chr, 5, -1));
@@ -2545,7 +2545,7 @@ TEST(string, capi_string_fill_i__end_out_of_range__return_ERROR)
   SCM_STACK_FRAME_PUSH(&str, &chr, &expected);
 
   str = scm_capi_make_string_from_cstr("abcde", SCM_ENC_UTF8);
-  chr = scm_capi_make_char((scm_char_t){.ascii = 'z'}, SCM_ENC_UTF8);
+  chr = read_cstr("#\\z");
   expected = scm_capi_make_string_from_cstr("abcde", SCM_ENC_UTF8);
 
   TEST_ASSERT_EQUAL_INT(-1, scm_capi_string_fill_i(str, chr, 1, 6));
@@ -2572,7 +2572,7 @@ TEST(string, capi_string_fill_i__return_ERROR)
 
   SCM_STACK_FRAME_PUSH(&chr);
 
-  chr = scm_capi_make_char((scm_char_t){.ascii = 'z'}, SCM_ENC_UTF8);
+  chr = read_cstr("#\\z");
 
   TEST_ASSERT_EQUAL_INT(-1, scm_capi_string_fill_i(SCM_FALSE_OBJ, chr, -1, -1));
 }
@@ -2587,7 +2587,7 @@ TEST(string, api_string_fill_i__unspecify_start_end)
   SCM_STACK_FRAME_PUSH(&str, &chr, &expected);
 
   str = scm_capi_make_string_from_cstr("abcde", SCM_ENC_UTF8);
-  chr = scm_capi_make_char((scm_char_t){.ascii = 'z'}, SCM_ENC_UTF8);
+  chr = read_cstr("#\\z");
   expected = scm_capi_make_string_from_cstr("zzzzz", SCM_ENC_UTF8);
 
   TEST_ASSERT_TRUE(scm_capi_undef_object_p(scm_api_string_fill_i(str, chr, SCM_OBJ_NULL, SCM_OBJ_NULL)));
@@ -2602,7 +2602,7 @@ TEST(string, api_string_fill_i__specify_start)
   SCM_STACK_FRAME_PUSH(&str, &chr, &start, &expected);
 
   str = scm_capi_make_string_from_cstr("abcde", SCM_ENC_UTF8);
-  chr = scm_capi_make_char((scm_char_t){.ascii = 'z'}, SCM_ENC_UTF8);
+  chr = read_cstr("#\\z");
   start = read_cstr("1");
   expected = scm_capi_make_string_from_cstr("azzzz", SCM_ENC_UTF8);
 
@@ -2619,7 +2619,7 @@ TEST(string, api_string_fill_i__specify_start_end)
   SCM_STACK_FRAME_PUSH(&str, &chr, &start, &end, &expected);
 
   str = scm_capi_make_string_from_cstr("abcde", SCM_ENC_UTF8);
-  chr = scm_capi_make_char((scm_char_t){.ascii = 'z'}, SCM_ENC_UTF8);
+  chr = read_cstr("#\\z");
   start = read_cstr("1");
   end = read_cstr("4");
   expected = scm_capi_make_string_from_cstr("azzze", SCM_ENC_UTF8);
@@ -2637,7 +2637,7 @@ TEST(string, api_string_fill_i__same_idx)
   SCM_STACK_FRAME_PUSH(&str, &chr, &start, &end, &expected);
 
   str = scm_capi_make_string_from_cstr("abcde", SCM_ENC_UTF8);
-  chr = scm_capi_make_char((scm_char_t){.ascii = 'z'}, SCM_ENC_UTF8);
+  chr = read_cstr("#\\z");
   start = read_cstr("1");
   end = read_cstr("1");
   expected = scm_capi_make_string_from_cstr("abcde", SCM_ENC_UTF8);
@@ -2655,7 +2655,7 @@ TEST(string, api_string_fill_i__start_greater_than_end__return_ERROR)
   SCM_STACK_FRAME_PUSH(&str, &chr, &start, &end, &expected);
 
   str = scm_capi_make_string_from_cstr("abcde", SCM_ENC_UTF8);
-  chr = scm_capi_make_char((scm_char_t){.ascii = 'z'}, SCM_ENC_UTF8);
+  chr = read_cstr("#\\z");
   start = read_cstr("2");
   end = read_cstr("1");
   expected = scm_capi_make_string_from_cstr("abcde", SCM_ENC_UTF8);
@@ -2672,7 +2672,7 @@ TEST(string, api_string_fill_i__start_out_of_range__return_ERROR)
   SCM_STACK_FRAME_PUSH(&str, &chr, &start, &expected);
 
   str = scm_capi_make_string_from_cstr("abcde", SCM_ENC_UTF8);
-  chr = scm_capi_make_char((scm_char_t){.ascii = 'z'}, SCM_ENC_UTF8);
+  chr = read_cstr("#\\z");
   start = read_cstr("5");
   expected = scm_capi_make_string_from_cstr("abcde", SCM_ENC_UTF8);
 
@@ -2689,7 +2689,7 @@ TEST(string, api_string_fill_i__end_out_of_range__return_ERROR)
   SCM_STACK_FRAME_PUSH(&str, &chr, &start, &end, &expected);
 
   str = scm_capi_make_string_from_cstr("abcde", SCM_ENC_UTF8);
-  chr = scm_capi_make_char((scm_char_t){.ascii = 'z'}, SCM_ENC_UTF8);
+  chr = read_cstr("#\\z");
   start = read_cstr("1");
   end = read_cstr("6");
   expected = scm_capi_make_string_from_cstr("abcde", SCM_ENC_UTF8);
@@ -2718,7 +2718,7 @@ TEST(string, api_string_fill_i__return_ERROR)
 
   SCM_STACK_FRAME_PUSH(&chr);
 
-  chr = scm_capi_make_char((scm_char_t){.ascii = 'z'}, SCM_ENC_UTF8);
+  chr = read_cstr("#\\z");
 
   TEST_ASSERT_TRUE(scm_obj_null_p(scm_api_string_fill_i(SCM_FALSE_OBJ, chr, SCM_OBJ_NULL, SCM_OBJ_NULL)));
 }

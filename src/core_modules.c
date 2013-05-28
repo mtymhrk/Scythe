@@ -16,7 +16,7 @@ struct subr_data {
 };
 
 static ScmObj
-scm_make_module_name(int n, SCM_ENC_T enc, ...)
+scm_make_module_name(int n, ScmEncoding *enc, ...)
 {
   ScmObj str[n];
   ScmObj name = SCM_OBJ_INIT;

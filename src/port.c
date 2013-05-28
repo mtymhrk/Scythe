@@ -1218,35 +1218,6 @@ scm_charconvio_clear(ScmCharConvIO *ccio)
   return 0;
 }
 
-scm_local_func const char *
-scm_port_enc2str(SCM_ENC_T enc)
-{
-  scm_assert(/* enc >= 0 &&  */ enc < SCM_ENC_NR_ENC && enc != SCM_ENC_SYS);
-
-  switch (enc) {
-  case SCM_ENC_ASCII:
-    return "ASCII";
-    break;
-  case SCM_ENC_UCS4:
-    return "UCS4";
-    break;
-  case SCM_ENC_UTF8:
-    return "UTF-8";
-    break;
-  case SCM_ENC_EUCJP:
-    return "EUCJP-JISX0213";
-    break;
-  case SCM_ENC_SJIS:
-    return "SHIFT_JISX0213";
-    break;
-  case SCM_ENC_SYS:             /* fall through */
-  default:
-    scm_assert(false);
-    return NULL;
-    break;
-  }
-}
-
 scm_local_func int
 scm_port_init_buffer(ScmObj port, SCM_PORT_BUF_T buf_mode)
 {
@@ -1280,7 +1251,7 @@ scm_port_init_buffer(ScmObj port, SCM_PORT_BUF_T buf_mode)
 scm_local_func int
 scm_port_init_encode(ScmObj port)
 {
-  SCM_ENC_T sys_enc;
+  ScmEncoding *sys_enc;
   const char *fcode, *tcode;
   ScmIO *io;
 
@@ -1292,12 +1263,12 @@ scm_port_init_encode(ScmObj port)
     return 0;
 
   if (scm_port_input_port_p(port)) {
-    fcode = scm_port_enc2str(SCM_PORT(port)->encoding);
-    tcode = scm_port_enc2str(sys_enc);
+    fcode = SCM_PORT(port)->encoding->iconv_name;
+    tcode = sys_enc->iconv_name;
   }
   else {
-    fcode = scm_port_enc2str(sys_enc);
-    tcode = scm_port_enc2str(SCM_PORT(port)->encoding);
+    fcode = sys_enc->iconv_name;
+    tcode = SCM_PORT(port)->encoding->iconv_name;
   }
 
   if (fcode == NULL || tcode == NULL)
@@ -1315,8 +1286,7 @@ scm_port_init_encode(ScmObj port)
 scm_local_func ssize_t
 scm_port_size_up_to_rearmost_lf(ScmObj port, const void *buf, size_t size)
 {
-  const ScmEncVirtualFunc *vf;
-  SCM_ENC_T encoding;
+  ScmEncoding *enc;
   ScmStrItr iter;
   ssize_t len, found;
   scm_char_t lf, cr;
@@ -1326,22 +1296,17 @@ scm_port_size_up_to_rearmost_lf(ScmObj port, const void *buf, size_t size)
   scm_assert(buf != NULL);
   scm_assert(size <= SSIZE_MAX);
 
-  encoding = scm_capi_system_encoding();
+  enc = scm_capi_system_encoding();
+  scm_str_itr_begin((void *)buf, size, enc, &iter);
 
-  vf = SCM_ENCODING_VFUNC(encoding);
-  iter = scm_str_itr_begin((void *)buf, size, vf->char_width);
-
-  lf = SCM_ENCODING_CONST_LF_CHR(encoding);
-  lf_w = SCM_ENCODING_CONST_LF_WIDTH(encoding);
-
-  cr = SCM_ENCODING_CONST_CR_CHR(encoding);
-  cr_w = SCM_ENCODING_CONST_CR_WIDTH(encoding);
+  scm_enc_chr_lf(enc, &lf, &lf_w);
+  scm_enc_chr_cr(enc, &cr, &cr_w);
 
   len = 0;
   found = 0;
 
-  while (!SCM_STR_ITR_IS_END(&iter)) {
-    ssize_t w = SCM_STR_ITR_WIDTH(&iter);
+  while (!scm_str_itr_end_p(&iter)) {
+    ssize_t w = scm_str_itr_width(&iter);
     if (w < 0) {
       /* TODO; change error message */
       scm_capi_error("illegal byte sequence", 0);
@@ -1352,13 +1317,13 @@ scm_port_size_up_to_rearmost_lf(ScmObj port, const void *buf, size_t size)
 
     len += w;
     if ((lf_w == (size_t)w
-         && memcmp(lf.bytes, SCM_STR_ITR_PTR(&iter), (size_t)w) == 0)
+         && memcmp(lf.bytes, scm_str_itr_ptr(&iter), (size_t)w) == 0)
         || (cr_w == (size_t)w
-            && memcmp(cr.bytes, SCM_STR_ITR_PTR(&iter), (size_t)w) == 0))
+            && memcmp(cr.bytes, scm_str_itr_ptr(&iter), (size_t)w) == 0))
       found = len;
 
     scm_str_itr_next(&iter);
-    if (SCM_STR_ITR_IS_ERR(&iter)) {
+    if (scm_str_itr_err_p(&iter)) {
       /* TODO; change error message */
       scm_capi_error("illegal byte sequence", 0);
       return -1; /* TODO: error handling (illegal sequence) */
@@ -1405,8 +1370,8 @@ scm_port_read_from_pushback_buf(ScmObj port, void *buf, size_t size)
 scm_local_func ssize_t
 scm_port_read_char_from_pushback_buf(ScmObj port, scm_char_t *chr)
 {
-  const ScmEncVirtualFunc *vf;
-  SCM_ENC_T encoding;
+  ScmEncoding *enc;
+  ssize_t width;
 
   scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
   scm_assert(chr != NULL);
@@ -1416,23 +1381,22 @@ scm_port_read_char_from_pushback_buf(ScmObj port, scm_char_t *chr)
 
   if (SCM_PORT(port)->pb_used == 0) return 0;
 
-  encoding = scm_capi_system_encoding();
-  vf = SCM_ENCODING_VFUNC(encoding);
+  enc = scm_capi_system_encoding();
+  width = scm_enc_char_width(enc,
+                             scm_port_pushback_buff_head(port),
+                             SCM_PORT(port)->pb_used);
 
-  ssize_t rslt = vf->char_width(scm_port_pushback_buff_head(port),
-                                SCM_PORT(port)->pb_used);
-
-  if (rslt < 0) {
+  if (width < 0) {
     /* TODO; change error message */
     scm_capi_error("illegal byte sequence", 0);
     return -1;
   }
-  else if (rslt == 0) {
+  else if (width == 0) {
     return 0;
   }
   else {
-    scm_port_read_from_pushback_buf(port, chr->bytes, (size_t)rslt);
-    return rslt;
+    scm_port_read_from_pushback_buf(port, chr->bytes, (size_t)width);
+    return width;
   }
 }
 
@@ -1550,14 +1514,14 @@ scm_port_write(ScmObj port, const void *buf, size_t size)
 int
 scm_port_initialize(ScmObj port, ScmIO *io,
                     SCM_PORT_ATTR attr, SCM_PORT_BUF_T buf_mode,
-                    SCM_ENC_T enc)
+                    ScmEncoding *enc)
 {
   int rslt;
 
   scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
   scm_assert(io != NULL);
   scm_assert(/* buf_mode >= 0 && */ buf_mode < SCM_PORT_NR_BUF_MODE);
-  scm_assert(/* enc >= 0 &&  */ enc < SCM_ENC_NR_ENC && enc != SCM_ENC_SYS);
+  scm_assert(enc != NULL);
 
   SCM_PORT(port)->attr = attr;
   SCM_PORT(port)->io = io;
@@ -1585,14 +1549,14 @@ scm_port_finalize(ScmObj port)
 ScmObj
 scm_port_new(SCM_MEM_TYPE_T mtype,
              ScmIO *io, SCM_PORT_ATTR attr, SCM_PORT_BUF_T buf_mode,
-             SCM_ENC_T enc)
+             ScmEncoding *enc)
 {
   ScmObj port = SCM_OBJ_INIT;
   int rslt;
 
   scm_assert(io != NULL);
   scm_assert(/* buf_mode >= 0 && */ buf_mode < SCM_PORT_NR_BUF_MODE);
-  scm_assert(/* 0 <= enc && */ enc < SCM_ENC_NR_ENC && enc != SCM_ENC_SYS);
+  scm_assert(enc != NULL);
 
   port = scm_capi_mem_alloc(&SCM_PORT_TYPE_INFO, 0, mtype);
 
@@ -1604,7 +1568,7 @@ scm_port_new(SCM_MEM_TYPE_T mtype,
 
 ScmObj
 scm_port_open_input(ScmIO *io, SCM_PORT_ATTR attr,
-                    SCM_PORT_BUF_T buf_mode, SCM_ENC_T enc)
+                    SCM_PORT_BUF_T buf_mode, ScmEncoding *enc)
 {
   return scm_port_new(SCM_MEM_HEAP,
                       io, attr | SCM_PORT_ATTR_INPUT, buf_mode, enc);
@@ -1612,14 +1576,14 @@ scm_port_open_input(ScmIO *io, SCM_PORT_ATTR attr,
 
 ScmObj
 scm_port_open_output(ScmIO *io, SCM_PORT_ATTR attr,
-                     SCM_PORT_BUF_T buf_mode, SCM_ENC_T enc)
+                     SCM_PORT_BUF_T buf_mode, ScmEncoding *enc)
 {
   return scm_port_new(SCM_MEM_HEAP,
                       io, attr | SCM_PORT_ATTR_OUTPUT, buf_mode, enc);
 }
 
 ScmObj
-scm_port_open_input_fd(int fd, SCM_PORT_BUF_T buf_mode, SCM_ENC_T enc)
+scm_port_open_input_fd(int fd, SCM_PORT_BUF_T buf_mode, ScmEncoding *enc)
 {
   ScmIO *io;
 
@@ -1633,7 +1597,7 @@ scm_port_open_input_fd(int fd, SCM_PORT_BUF_T buf_mode, SCM_ENC_T enc)
 }
 
 ScmObj
-scm_port_open_output_fd(int fd, SCM_PORT_BUF_T buf_mode, SCM_ENC_T enc)
+scm_port_open_output_fd(int fd, SCM_PORT_BUF_T buf_mode, ScmEncoding *enc)
 {
   ScmIO *io;
 
@@ -1649,7 +1613,7 @@ scm_port_open_output_fd(int fd, SCM_PORT_BUF_T buf_mode, SCM_ENC_T enc)
 
 ScmObj
 scm_port_open_input_file(const char *path,
-                         SCM_PORT_BUF_T buf_mode, SCM_ENC_T enc)
+                         SCM_PORT_BUF_T buf_mode, ScmEncoding *enc)
 {
   ScmIO *io;
 
@@ -1664,7 +1628,7 @@ scm_port_open_input_file(const char *path,
 
 ScmObj
 scm_port_open_output_file(const char *path,
-                          SCM_PORT_BUF_T buf_mode, SCM_ENC_T enc)
+                          SCM_PORT_BUF_T buf_mode, ScmEncoding *enc)
 {
   ScmIO *io;
 
@@ -1678,7 +1642,7 @@ scm_port_open_output_file(const char *path,
 }
 
 ScmObj
-scm_port_open_input_string(const void *string, size_t size, SCM_ENC_T enc)
+scm_port_open_input_string(const void *string, size_t size, ScmEncoding *enc)
 {
   ScmIO *io;
 
@@ -1692,7 +1656,7 @@ scm_port_open_input_string(const void *string, size_t size, SCM_ENC_T enc)
 }
 
 ScmObj
-scm_port_open_output_string(SCM_ENC_T enc)
+scm_port_open_output_string(ScmEncoding *enc)
 {
   ScmIO *io;
 
@@ -1794,7 +1758,7 @@ scm_port_ready_p(ScmObj port)
   }
 }
 
-SCM_ENC_T
+ScmEncoding *
 scm_port_encoding(ScmObj port)
 {
   scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
@@ -1904,7 +1868,7 @@ scm_port_read_line(ScmObj port, void *buf, size_t size)
   scm_char_t chr;
   scm_char_t lf, cr;
   bool lf_exists_p, cr_exists_p;
-  SCM_ENC_T encoding;
+  ScmEncoding *enc;
 
   scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
   scm_assert(buf != NULL);
@@ -1923,13 +1887,9 @@ scm_port_read_line(ScmObj port, void *buf, size_t size)
     return -1;
   }
 
-  encoding = scm_capi_system_encoding();
-
-  lf = SCM_ENCODING_CONST_LF_CHR(encoding);
-  lf_w = SCM_ENCODING_CONST_LF_WIDTH(encoding);
-
-  cr = SCM_ENCODING_CONST_CR_CHR(encoding);
-  cr_w = SCM_ENCODING_CONST_CR_WIDTH(encoding);
+  enc = scm_capi_system_encoding();
+  scm_enc_chr_lf(enc, &lf, &lf_w);
+  scm_enc_chr_cr(enc, &cr, &cr_w);
 
   bp = buf;
   sz = 0;
@@ -2011,8 +1971,7 @@ scm_port_pushback_bytes(ScmObj port, const void *buf, size_t size)
 ssize_t
 scm_port_pushback_char(ScmObj port, const scm_char_t *chr)
 {
-  const ScmEncVirtualFunc *vf;
-  SCM_ENC_T encoding;
+  ScmEncoding *enc;
   ssize_t w;
 
   scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
@@ -2031,11 +1990,8 @@ scm_port_pushback_char(ScmObj port, const scm_char_t *chr)
     return -1;
   }
 
-  encoding = scm_capi_system_encoding();
-
-  vf = SCM_ENCODING_VFUNC(encoding);
-  w = vf->char_width(chr->bytes, sizeof(scm_char_t));
-
+  enc = scm_capi_system_encoding();
+  w = scm_enc_char_width(enc, chr->bytes, sizeof(scm_char_t));
   if (w <= 0) {
     /* TODO; change error message */
     scm_capi_error("illegal byte sequence", 0);
@@ -2085,8 +2041,7 @@ scm_port_peek_bytes(ScmObj port, void *buf, size_t size)
 ssize_t
 scm_port_peek_char(ScmObj port, scm_char_t *chr)
 {
-  const ScmEncVirtualFunc *vf;
-  SCM_ENC_T encoding;
+  ScmEncoding *enc;
   ssize_t rslt;
 
   scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
@@ -2105,11 +2060,12 @@ scm_port_peek_char(ScmObj port, scm_char_t *chr)
     return -1;
   }
 
-  encoding = scm_capi_system_encoding();
-  vf = SCM_ENCODING_VFUNC(encoding);
+  enc = scm_capi_system_encoding();
 
-  while ((rslt = vf->char_width(scm_port_pushback_buff_head(port),
-                                SCM_PORT(port)->pb_used)) == 0) {
+  while ((rslt = scm_enc_char_width(enc,
+                                    scm_port_pushback_buff_head(port),
+                                    SCM_PORT(port)->pb_used))
+         == 0) {
     ssize_t r = scm_port_read_into_pushback_buf(port, 1);
     if (r < 0)
       return -1;                /* [ERR]: [through] */
@@ -2157,8 +2113,7 @@ scm_port_write_bytes(ScmObj port, const void *buf, size_t size)
 ssize_t
 scm_port_write_char(ScmObj port, scm_char_t chr)
 {
-  const ScmEncVirtualFunc *vf;
-  SCM_ENC_T encoding;
+  ScmEncoding *enc;
   ssize_t s;
 
   scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
@@ -2176,9 +2131,8 @@ scm_port_write_char(ScmObj port, scm_char_t chr)
     return -1;
   }
 
-  encoding = scm_capi_system_encoding();
-  vf = SCM_ENCODING_VFUNC(encoding);
-  s = vf->char_width(chr.bytes, sizeof(chr));
+  enc = scm_capi_system_encoding();
+  s = scm_enc_char_width(enc, chr.bytes, sizeof(chr));
   if (s < 0) {
     /* TODO; change error message */
     scm_capi_error("illegal byte sequence", 0);

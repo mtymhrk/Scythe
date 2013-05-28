@@ -2,21 +2,6 @@
 #ifndef INCLUDE_API_CONST_H__
 #define INCLUDE_API_CONST_H__
 
-/*******************************************************************/
-/*  Encoding                                                       */
-/*******************************************************************/
-
-typedef enum {
-  SCM_ENC_ASCII,
-  SCM_ENC_UCS4,
-  SCM_ENC_UTF8,
-  SCM_ENC_EUCJP,
-  SCM_ENC_SJIS,
-  SCM_ENC_SYS,
-} SCM_ENC_T;
-
-#define SCM_ENC_NR_ENC SCM_ENC_SYS
-
 
 /*******************************************************************/
 /*  Memory                                                         */

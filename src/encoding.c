@@ -3,232 +3,99 @@
 
 #include "encoding.h"
 
-
-const scm_char_t SCM_CHR_ZERO = {{ 0x00, 0x00, 0x00, 0x00 }};
-
-/* ASCII */
-const ScmEncConstants SCM_ENCODING_CONST_ASCII = {
-  .lf   = { .c = { .bytes = { 0x0a, 0x00, 0x00, 0x00 }}, .w = 1 },
-  .sp   = { .c = { .bytes = { 0x20, 0x00, 0x00, 0x00 }}, .w = 1 },
-  .cr   = { .c = { .bytes = { 0x0d, 0x00, 0x00, 0x00 }}, .w = 1 },
-  .tab  = { .c = { .bytes = { 0x09, 0x00, 0x00, 0x00 }}, .w = 1 },
-  .bell = { .c = { .bytes = { 0x07, 0x00, 0x00, 0x00 }}, .w = 1 },
-  .bs   = { .c = { .bytes = { 0x08, 0x00, 0x00, 0x00 }}, .w = 1 },
-};
-
-const ScmEncVirtualFunc SCM_ENCODING_VFUNC_ASCII = {
-  scm_enc_char_width_ascii, scm_enc_index2itr_ascii, scm_enc_is_lf_ascii,
-  scm_enc_valid_char_p_ascii, scm_enc_to_ascii_ascii, scm_enc_ascii_to_ascii,
-  scm_enc_to_scalar_ascii, scm_enc_scalar_to_ascii, scm_enc_downcase_ascii,
-  scm_enc_upcase_ascii, scm_enc_ascii_p_ascii, scm_enc_printable_p_ascii,
-  scm_enc_alarm_p_ascii, scm_enc_backspace_p_ascii, scm_enc_delete_p_ascii,
-  scm_enc_escape_p_ascii, scm_enc_newline_p_ascii, scm_enc_null_p_ascii,
-  scm_enc_return_p_ascii, scm_enc_space_p_ascii, scm_enc_tab_p_ascii,
-  scm_enc_doublequote_p_ascii, scm_enc_backslash_p_ascii
-};
-
-/* UTF-8 */
-const ScmEncConstants SCM_ENCODING_CONST_UTF8 = {
-  .lf   = { .c = { .bytes = { 0x0a, 0x00, 0x00, 0x00 }}, .w = 1 },
-  .sp   = { .c = { .bytes = { 0x20, 0x00, 0x00, 0x00 }}, .w = 1 },
-  .cr   = { .c = { .bytes = { 0x0d, 0x00, 0x00, 0x00 }}, .w = 1 },
-  .tab  = { .c = { .bytes = { 0x09, 0x00, 0x00, 0x00 }}, .w = 1 },
-  .bell = { .c = { .bytes = { 0x07, 0x00, 0x00, 0x00 }}, .w = 1 },
-  .bs   = { .c = { .bytes = { 0x08, 0x00, 0x00, 0x00 }}, .w = 1 },
-};
-
-const ScmEncVirtualFunc SCM_ENCODING_VFUNC_UTF8 = {
-  scm_enc_char_width_utf8, scm_enc_index2itr_utf8, scm_enc_is_lf_ascii,
-  scm_enc_valid_char_p_utf8, scm_enc_to_ascii_utf8, scm_enc_ascii_to_utf8,
-  scm_enc_to_scalar_utf8, scm_enc_scalar_to_utf8, scm_enc_downcase_utf8,
-  scm_enc_upcase_utf8, scm_enc_ascii_p_utf8, scm_enc_printable_p_utf8,
-  scm_enc_alarm_p_utf8, scm_enc_backspace_p_utf8, scm_enc_delete_p_utf8,
-  scm_enc_escape_p_utf8, scm_enc_newline_p_utf8, scm_enc_null_p_utf8,
-  scm_enc_return_p_utf8, scm_enc_space_p_utf8, scm_enc_tab_p_utf8,
-  scm_enc_doublequote_p_utf8, scm_enc_backslash_p_utf8
-};
-
-
-/* UCS4 */
-const ScmEncConstants SCM_ENCODING_CONST_UCS4 = {
-  .lf   = { .c = { .bytes = { 0x00, 0x00, 0x00, 0x0a }}, .w = 4 },
-  .sp   = { .c = { .bytes = { 0x00, 0x00, 0x00, 0x20 }}, .w = 4 },
-  .cr   = { .c = { .bytes = { 0x00, 0x00, 0x00, 0x0d }}, .w = 4 },
-  .tab  = { .c = { .bytes = { 0x00, 0x00, 0x00, 0x09 }}, .w = 4 },
-  .bell = { .c = { .bytes = { 0x00, 0x00, 0x00, 0x07 }}, .w = 4 },
-  .bs   = { .c = { .bytes = { 0x00, 0x00, 0x00, 0x08 }}, .w = 4 },
-};
-
-const ScmEncVirtualFunc SCM_ENCODING_VFUNC_UCS4 = {
-  scm_enc_char_width_ucs4, scm_enc_index2itr_ucs4, scm_enc_is_lf_ucs4,
-  scm_enc_valid_char_p_ucs4, scm_enc_to_ascii_ucs4, scm_enc_ascii_to_ucs4,
-  scm_enc_to_scalar_ucs4, scm_enc_scalar_to_ucs4, scm_enc_downcase_ucs4,
-  scm_enc_upcase_ucs4, scm_enc_ascii_p_ucs4, scm_enc_printable_p_ucs4,
-  scm_enc_alarm_p_ucs4, scm_enc_backspace_p_ucs4, scm_enc_delete_p_ucs4,
-  scm_enc_escape_p_ucs4, scm_enc_newline_p_ucs4, scm_enc_null_p_ucs4,
-  scm_enc_return_p_ucs4, scm_enc_space_p_ucs4, scm_enc_tab_p_ucs4,
-  scm_enc_doublequote_p_ucs4, scm_enc_backslash_p_ucs4
-};
-
-
-/* EUC-JP */
-const ScmEncConstants SCM_ENCODING_CONST_EUCJP = {
-  .lf   = { .c = { .bytes = { 0x0a, 0x00, 0x00, 0x00 }}, .w = 1 },
-  .sp   = { .c = { .bytes = { 0x20, 0x00, 0x00, 0x00 }}, .w = 1 },
-  .cr   = { .c = { .bytes = { 0x0d, 0x00, 0x00, 0x00 }}, .w = 1 },
-  .tab  = { .c = { .bytes = { 0x09, 0x00, 0x00, 0x00 }}, .w = 1 },
-  .bell = { .c = { .bytes = { 0x07, 0x00, 0x00, 0x00 }}, .w = 1 },
-  .bs   = { .c = { .bytes = { 0x08, 0x00, 0x00, 0x00 }}, .w = 1 },
-};
-
-const ScmEncVirtualFunc SCM_ENCODING_VFUNC_EUCJP = {
-  scm_enc_char_width_eucjp, scm_enc_index2itr_eucjp, scm_enc_is_lf_ascii,
-  scm_enc_valid_char_p_eucjp, scm_enc_to_ascii_eucjp, scm_enc_ascii_to_eucjp,
-  scm_enc_to_scalar_eucjp, scm_enc_scalar_to_eucjp, scm_enc_downcase_eucjp,
-  scm_enc_upcase_eucjp, scm_enc_ascii_p_eucjp, scm_enc_printable_p_eucjp,
-  scm_enc_alarm_p_eucjp, scm_enc_backspace_p_eucjp, scm_enc_delete_p_eucjp,
-  scm_enc_escape_p_eucjp, scm_enc_newline_p_eucjp, scm_enc_null_p_eucjp,
-  scm_enc_return_p_eucjp, scm_enc_space_p_eucjp, scm_enc_tab_p_eucjp,
-  scm_enc_doublequote_p_eucjp, scm_enc_backslash_p_eucjp
-};
-
-
-/* SJIS */
-const ScmEncConstants SCM_ENCODING_CONST_SJIS = {
-  .lf   = { .c = { .bytes = { 0x0a, 0x00, 0x00, 0x00 }}, .w = 1 },
-  .sp   = { .c = { .bytes = { 0x20, 0x00, 0x00, 0x00 }}, .w = 1 },
-  .cr   = { .c = { .bytes = { 0x0d, 0x00, 0x00, 0x00 }}, .w = 1 },
-  .tab  = { .c = { .bytes = { 0x09, 0x00, 0x00, 0x00 }}, .w = 1 },
-  .bell = { .c = { .bytes = { 0x07, 0x00, 0x00, 0x00 }}, .w = 1 },
-  .bs   = { .c = { .bytes = { 0x08, 0x00, 0x00, 0x00 }}, .w = 1 },
-};
-
-const ScmEncVirtualFunc SCM_ENCODING_VFUNC_SJIS = {
-  scm_enc_char_width_sjis, scm_enc_index2itr_sjis, scm_enc_is_lf_ascii,
-  scm_enc_valid_char_p_sjis, scm_enc_to_ascii_sjis, scm_enc_ascii_to_sjis,
-  scm_enc_to_scalar_sjis, scm_enc_scalar_to_sjis, scm_enc_downcase_sjis,
-  scm_enc_upcase_sjis, scm_enc_ascii_p_sjis, scm_enc_printable_p_sjis,
-  scm_enc_alarm_p_sjis, scm_enc_backspace_p_sjis, scm_enc_delete_p_sjis,
-  scm_enc_escape_p_sjis, scm_enc_newline_p_sjis, scm_enc_null_p_sjis,
-  scm_enc_return_p_sjis, scm_enc_space_p_sjis, scm_enc_tab_p_sjis,
-  scm_enc_doublequote_p_sjis, scm_enc_backslash_p_sjis
-};
-
-
-const ScmEncConstants *SCM_ENCODING_CONST_TBL[] =
-  { &SCM_ENCODING_CONST_ASCII,
-    &SCM_ENCODING_CONST_UCS4,
-    &SCM_ENCODING_CONST_UTF8,
-    &SCM_ENCODING_CONST_EUCJP,
-    &SCM_ENCODING_CONST_SJIS };
-
-const ScmEncVirtualFunc *SCM_ENCODING_VFUNC_TBL[] =
-  { &SCM_ENCODING_VFUNC_ASCII,
-    &SCM_ENCODING_VFUNC_UCS4,
-    &SCM_ENCODING_VFUNC_UTF8,
-    &SCM_ENCODING_VFUNC_EUCJP,
-    &SCM_ENCODING_VFUNC_SJIS };
-
 #define SCM_STR_ITR_MAKE_ERR(iter)              \
   do {                                          \
     (iter)->p = NULL;                           \
     (iter)->rest = -1;                          \
-    (iter)->char_width = NULL;                  \
+    (iter)->enc = NULL;                         \
   } while(0)
 
-ScmStrItr
-scm_str_itr_begin(void *p, size_t size,
-                  int (*char_width)(const void *p, size_t size))
-{
-  ScmStrItr iter;
-
-  assert(size <= SSIZE_MAX);
-
-  iter.p = p;
-  iter.rest = (ssize_t)size;
-
-  if (p == NULL || char_width == NULL) {
-    iter.char_width = NULL;
-    iter.rest = -1;
-    return iter;
-  }
-  else {
-    iter.char_width = char_width;
-  }
-
-  return iter;
-}
-
-void
-scm_str_itr_next(ScmStrItr *iter)
-{
-  ssize_t w;
-
-  if (iter == NULL) return;
-  if (iter->rest <= 0) return;
-
-  w = SCM_STR_ITR_WIDTH(iter);
-  if (w <= 0) {
-    iter->p = NULL;
-    iter->rest = -1;
-    iter->char_width = NULL;
-    return;
-  }
-
-  iter->p = (uint8_t *)iter->p + w;
-  iter->rest = iter->rest - w;
-}
-
-static ScmStrItr
+static void
 scm_enc_index2itr_fixed_width(void *str, size_t size,
-                              size_t idx, size_t width,
-                              int (*char_width)(const void *str, size_t len))
+                              size_t idx, size_t width, ScmEncoding *enc,
+                              ScmStrItr *iter)
 {
-  ScmStrItr iter;
   uint8_t *p = str;
   size_t offset;
 
   offset = width * idx;
 
-  if (p == NULL) {
-    SCM_STR_ITR_MAKE_ERR(&iter);
-    return iter;
+  if (iter == NULL) {
+    return;
   }
-  else if (offset > size) {
-    SCM_STR_ITR_MAKE_ERR(&iter);
-    return iter;
+  else if (p == NULL || offset > size) {
+    SCM_STR_ITR_MAKE_ERR(iter);
+    return;
   }
 
-  return scm_str_itr_begin(p + offset, size - offset, char_width);
+  scm_str_itr_begin(p + offset, size - offset, enc, iter);
 }
 
-static ScmStrItr
-scm_enc_index2itr_variable_width(void *str, size_t size,
-                                 size_t idx,
-                                 int (*char_width)(const void *str, size_t len))
+static void
+scm_enc_index2itr_variable_width(void *str,
+                                 size_t size, size_t idx, ScmEncoding *enc,
+                                 ScmStrItr *iter)
 {
-  ScmStrItr iter;
   size_t i;
 
-  iter = scm_str_itr_begin(str, size, char_width);
-  if (SCM_STR_ITR_IS_ERR(&iter)) return iter;
+  if (iter == NULL) return;
+
+  scm_str_itr_begin(str, size, enc, iter);
+  if (scm_str_itr_err_p(iter)) return;
 
   i = 0;
-  while (!SCM_STR_ITR_IS_END(&iter) && i < idx) {
-    scm_str_itr_next(&iter);
-    if (SCM_STR_ITR_IS_ERR(&iter)) return iter;
+  while (!scm_str_itr_end_p(iter) && i < idx) {
+    scm_str_itr_next(iter);
+    if (scm_str_itr_err_p(iter)) return;
     i++;
   }
-
-  return iter;
 }
 
 
 /***********************************************************************/
-/*   ASCII                                                             */
+/*   Encding: ASCII                                                    */
 /***********************************************************************/
 
-#define IS_VALID_ASCII(ascii) ((ascii) <= 0x7f)
+static ScmEncoding SCM_ENC_ASCII__ = {
+  .iconv_name = "ASCII",
+  .cnst = {
+    .lf   = { .c = { .bytes = { 0x0a, 0x00, 0x00, 0x00 }}, .w = 1 },
+    .sp   = { .c = { .bytes = { 0x20, 0x00, 0x00, 0x00 }}, .w = 1 },
+    .cr   = { .c = { .bytes = { 0x0d, 0x00, 0x00, 0x00 }}, .w = 1 },
+    .tab  = { .c = { .bytes = { 0x09, 0x00, 0x00, 0x00 }}, .w = 1 },
+    .bell = { .c = { .bytes = { 0x07, 0x00, 0x00, 0x00 }}, .w = 1 },
+    .bs   = { .c = { .bytes = { 0x08, 0x00, 0x00, 0x00 }}, .w = 1 },
+  },
+  .func = {
+    .char_width = scm_enc_char_width_ascii,
+    .index2itr = scm_enc_index2itr_ascii,
+    .valid_char_p = scm_enc_valid_char_p_ascii,
+    .cnv_to_ascii = scm_enc_cnv_to_ascii_ascii,
+    .cnv_from_ascii = scm_enc_cnv_from_ascii_ascii,
+    .cnv_to_scalar = scm_enc_cnv_to_scalar_ascii,
+    .cnv_from_scalar = scm_enc_cnv_from_scalar_ascii,
+    .downcase = scm_enc_downcase_ascii,
+    .upcase = scm_enc_upcase_ascii,
+    .ascii_p = scm_enc_ascii_p_ascii,
+    .printable_p = scm_enc_printable_p_ascii,
+    .alarm_p = scm_enc_alarm_p_ascii,
+    .backspace_p = scm_enc_backspace_p_ascii,
+    .delete_p = scm_enc_delete_p_ascii,
+    .escape_p = scm_enc_escape_p_ascii,
+    .newline_p = scm_enc_newline_p_ascii,
+    .null_p = scm_enc_null_p_ascii,
+    .return_p = scm_enc_return_p_ascii,
+    .space_p = scm_enc_space_p_ascii,
+    .tab_p = scm_enc_tab_p_ascii,
+    .doublequote_p = scm_enc_doublequote_p_ascii,
+    .backslash_p = scm_enc_backslash_p_ascii,
+  },
+};
+
+ScmEncoding *SCM_ENC_ASCII = &SCM_ENC_ASCII__;
+
+
+#define VALID_ASCII_P(ascii) ((ascii) <= 0x7f)
 
 int
 scm_enc_char_width_ascii(const void *str, size_t len)
@@ -239,47 +106,35 @@ scm_enc_char_width_ascii(const void *str, size_t len)
     return -1;
   else if (len < 1)
     return 0;
-  else if (IS_VALID_ASCII(*ascii))
+  else if (VALID_ASCII_P(*ascii))
     return 1;
   else
     return -1;
 }
 
-ScmStrItr
-scm_enc_index2itr_ascii(void *str, size_t size, size_t idx)
+void
+scm_enc_index2itr_ascii(void *str, size_t size, size_t idx, ScmStrItr *iter)
 {
-  return scm_enc_index2itr_fixed_width(str, size, idx, sizeof(scm_char_ascii_t),
-                                       scm_enc_char_width_ascii);
+  scm_enc_index2itr_fixed_width(str, size, idx, sizeof(scm_char_ascii_t),
+                                SCM_ENC_ASCII, iter);
 }
 
 bool
-scm_enc_is_lf_ascii(scm_char_t c)
+scm_enc_valid_char_p_ascii(const scm_char_t *c)
 {
-  return (c.ascii == '\n') ? true : false;
-}
-
-bool
-scm_enc_back_slash_p_ascii(scm_char_t c)
-{
-  return (c.ascii == '\\') ? true : false;
-}
-
-bool
-scm_enc_valid_char_p_ascii(scm_char_t c)
-{
-  return IS_VALID_ASCII(c.bytes[0]) ? true : false;
+  return VALID_ASCII_P(c->bytes[0]) ? true : false;
 }
 
 int
-scm_enc_to_ascii_ascii(scm_char_t c)
+scm_enc_cnv_to_ascii_ascii(const scm_char_t *c)
 {
-  return IS_VALID_ASCII(c.bytes[0]) ? c.bytes[0] : -1;
+  return VALID_ASCII_P(c->bytes[0]) ? c->bytes[0] : -1;
 }
 
 ssize_t
-scm_enc_ascii_to_ascii(char ascii, scm_char_t *chr)
+scm_enc_cnv_from_ascii_ascii(char ascii, scm_char_t *chr)
 {
-  if (IS_VALID_ASCII((uint8_t)ascii)) {
+  if (VALID_ASCII_P((uint8_t)ascii)) {
     chr->ascii = (uint8_t)ascii;
     return 1;
   }
@@ -289,7 +144,7 @@ scm_enc_ascii_to_ascii(char ascii, scm_char_t *chr)
 }
 
 long long
-scm_enc_to_scalar_ascii(const void *p, size_t size)
+scm_enc_cnv_to_scalar_ascii(const void *p, size_t size)
 {
   if (p == NULL || size < 1)
     return -1;
@@ -298,7 +153,7 @@ scm_enc_to_scalar_ascii(const void *p, size_t size)
 }
 
 ssize_t
-scm_enc_scalar_to_ascii(long long scalar, scm_char_t *chr)
+scm_enc_cnv_from_scalar_ascii(long long scalar, scm_char_t *chr)
 {
   if(scalar < 0 || 0x7f < scalar)
     return -1;
@@ -338,7 +193,7 @@ scm_enc_ascii_p_ascii(const void *p, size_t size)
 {
   if (p == NULL || size < 1)
     return false;
-  else if (IS_VALID_ASCII(*(const uint8_t *)p))
+  else if (VALID_ASCII_P(*(const uint8_t *)p))
     return true;
   else
     return false;
@@ -480,206 +335,67 @@ scm_enc_backslash_p_ascii(const void *p, size_t size)
 
 
 /***********************************************************************/
-/*   ASCII-CMPT                                                        */
+/*   Encoding: UTF-8                                                   */
 /***********************************************************************/
 
-int
-scm_enc_char_width_ascii_cmpt(const void *str, size_t len)
-{
-  const scm_char_ascii_t *ascii = str;
+static ScmEncoding SCM_ENC_UTF8__ = {
+  .iconv_name = "UTF-8",
+  .cnst = {
+    .lf   = { .c = { .bytes = { 0x0a, 0x00, 0x00, 0x00 }}, .w = 1 },
+    .sp   = { .c = { .bytes = { 0x20, 0x00, 0x00, 0x00 }}, .w = 1 },
+    .cr   = { .c = { .bytes = { 0x0d, 0x00, 0x00, 0x00 }}, .w = 1 },
+    .tab  = { .c = { .bytes = { 0x09, 0x00, 0x00, 0x00 }}, .w = 1 },
+    .bell = { .c = { .bytes = { 0x07, 0x00, 0x00, 0x00 }}, .w = 1 },
+    .bs   = { .c = { .bytes = { 0x08, 0x00, 0x00, 0x00 }}, .w = 1 },
+  },
+  .func = {
+    .char_width = scm_enc_char_width_utf8,
+    .index2itr = scm_enc_index2itr_utf8,
+    .valid_char_p = scm_enc_valid_char_p_utf8,
+    .cnv_to_ascii = scm_enc_cnv_to_ascii_utf8,
+    .cnv_from_ascii = scm_enc_cnv_from_ascii_utf8,
+    .cnv_to_scalar = scm_enc_cnv_to_scalar_utf8,
+    .cnv_from_scalar = scm_enc_cnv_from_scalar_utf8,
+    .downcase = scm_enc_downcase_utf8,
+    .upcase = scm_enc_upcase_utf8,
+    .ascii_p = scm_enc_ascii_p_utf8,
+    .printable_p = scm_enc_printable_p_utf8,
+    .alarm_p = scm_enc_alarm_p_utf8,
+    .backspace_p = scm_enc_backspace_p_utf8,
+    .delete_p = scm_enc_delete_p_utf8,
+    .escape_p = scm_enc_escape_p_utf8,
+    .newline_p = scm_enc_newline_p_utf8,
+    .null_p = scm_enc_null_p_utf8,
+    .return_p = scm_enc_return_p_utf8,
+    .space_p = scm_enc_space_p_utf8,
+    .tab_p = scm_enc_tab_p_utf8,
+    .doublequote_p = scm_enc_doublequote_p_utf8,
+    .backslash_p = scm_enc_backslash_p_utf8,
+  },
+};
 
-  if (ascii == NULL)
-    return -1;
-  else if (len < 1)
-    return 0;
-  else
-    return 1;
-}
-
-ScmStrItr
-scm_enc_index2itr_ascii_cmpt(void *str, size_t size, size_t idx)
-{
-  return scm_enc_index2itr_fixed_width(str, size, idx, sizeof(scm_char_ascii_t),
-                                       scm_enc_char_width_ascii);
-}
-
-bool
-scm_enc_is_lf_ascii_cmpt(scm_char_t c)
-{
-  return (c.ascii == '\n') ? true : false;
-}
-
-bool
-scm_enc_is_space_ascii_cmpt(scm_char_t c)
-{
-  return (c.ascii == ' ') ? true : false;
-}
-
-bool
-scm_enc_valid_char_p_ascii_cmpt(scm_char_t c)
-{
-  return true;
-}
-
-int
-scm_enc_to_ascii_ascii_cmpt(scm_char_t c)
-{
-  return IS_VALID_ASCII(c.bytes[0]) ? c.bytes[0] : -1;
-}
-
-ssize_t
-scm_enc_ascii_to_ascii_cmpt(char ascii, scm_char_t *chr)
-{
-  chr->ascii = (uint8_t)ascii;
-  return 1;
-}
-
-long long
-scm_enc_to_scalar_ascii_cmpt(const void *p, size_t size)
-{
-  return scm_enc_to_scalar_ascii(p, size);
-}
-
-bool
-scm_enc_printable_p_ascii_cmpt(const void *p, size_t size)
-{
-  return scm_enc_printable_p_ascii(p, size);
-}
-
-bool
-scm_enc_alarm_p_ascii_cmpt(const void *p, size_t size)
-{
-  return scm_enc_alarm_p_ascii(p, size);
-}
-
-bool
-scm_enc_backspace_p_ascii_cmpt(const void *p, size_t size)
-{
-  return scm_enc_backspace_p_ascii(p, size);
-}
-
-bool
-scm_enc_delete_p_ascii_cmpt(const void *p, size_t size)
-{
-  return scm_enc_delete_p_ascii(p, size);
-}
-
-bool
-scm_enc_escape_p_ascii_cmpt(const void *p, size_t size)
-{
-  return scm_enc_escape_p_ascii(p, size);
-}
-
-bool
-scm_enc_newline_p_ascii_cmpt(const void *p, size_t size)
-{
-  return scm_enc_newline_p_ascii(p, size);
-}
-
-bool
-scm_enc_null_p_ascii_cmpt(const void *p, size_t size)
-{
-  return scm_enc_null_p_ascii(p, size);
-}
-
-bool
-scm_enc_return_p_ascii_cmpt(const void *p, size_t size)
-{
-  return scm_enc_return_p_ascii(p, size);
-}
-
-bool
-scm_enc_space_p_ascii_cmpt(const void *p, size_t size)
-{
-  return scm_enc_space_p_ascii(p, size);
-}
-
-bool
-scm_enc_tab_p_ascii_cmpt(const void *p, size_t size)
-{
-  return scm_enc_tab_p_ascii(p, size);
-}
+ScmEncoding *SCM_ENC_UTF8 = &SCM_ENC_UTF8__;
 
 
-/***********************************************************************/
-/*   BINARY                                                            */
-/***********************************************************************/
-
-int
-scm_enc_char_width_bin(const void *str, size_t len)
-{
-  const scm_char_bin_t *ascii = str;
-
-  if (ascii == NULL)
-    return -1;
-  else if (len < 1)
-    return 0;
-  else
-    return 1;
-}
-
-ScmStrItr
-scm_enc_index2itr_bin(void *str, size_t size, size_t idx)
-{
-  return scm_enc_index2itr_fixed_width(str, size, idx, sizeof(scm_char_bin_t),
-                                       scm_enc_char_width_ascii);
-}
-
-bool
-scm_enc_is_lf_bin(scm_char_t c)
-{
-  return false;
-}
-
-bool
-scm_enc_is_space_bin(scm_char_t c)
-{
-  return false;
-}
-
-bool
-scm_enc_valid_char_p_binary(scm_char_t c)
-{
-  return true;
-}
-
-int
-scm_enc_to_ascii_binary(scm_char_t c)
-{
-  return -1;
-}
-
-ssize_t
-scm_enc_ascii_to_binary(char ascii, scm_char_t *chr)
-{
-  chr->bin = (uint8_t)ascii;
-  return 1;
-}
-
-
-/***********************************************************************/
-/*   UTF-8                                                             */
-/***********************************************************************/
-
-#define IS_VALID_UTF8_1(utf8)                   \
+#define VALID_UTF8_1_P(utf8)                    \
   (/*0x00 <= (utf8)[0] && */(utf8)[0] <= 0x7f)
-#define IS_VALID_UTF8_2(utf8)                                           \
-  ((0xc2 <= (utf8)[0] && (utf8)[0] <= 0xdf) && IS_VALID_UTF8_TAIL((utf8)[1]))
-#define IS_VALID_UTF8_3(utf8)                                           \
+#define VALID_UTF8_2_P(utf8)                                            \
+  ((0xc2 <= (utf8)[0] && (utf8)[0] <= 0xdf) && VALID_UTF8_TAIL_P((utf8)[1]))
+#define VALID_UTF8_3_P(utf8)                                            \
   ((((utf8)[0] == 0xe0 && (0xa0 <= (utf8)[1] && (utf8)[1] <= 0xbf))     \
     || ((0xe1 <= (utf8)[0] && (utf8)[0] <= 0xec)                        \
-        && IS_VALID_UTF8_TAIL((utf8)[1]))                               \
+        && VALID_UTF8_TAIL_P((utf8)[1]))                                \
     || ((utf8)[0] == 0xed && (0x80 <= (utf8)[1] && (utf8)[1] <= 0x9f))  \
     || ((0xee <= (utf8)[0] && (utf8)[0] <= 0xef)                        \
-        && IS_VALID_UTF8_TAIL((utf8)[1])))                              \
-   && IS_VALID_UTF8_TAIL((utf8)[2]))
-#define IS_VALID_UTF8_4(utf8)                                           \
+        && VALID_UTF8_TAIL_P((utf8)[1])))                               \
+   && VALID_UTF8_TAIL_P((utf8)[2]))
+#define VALID_UTF8_4_P(utf8)                                            \
   ((((utf8)[0] == 0xf0 && (0x90 <= (utf8)[1] && (utf8)[1] <= 0xbf))     \
     || ((0xf1 <= (utf8)[0] && (utf8)[0] <= 0xf3)                        \
-        && IS_VALID_UTF8_TAIL((utf8)[1]))                               \
+        && VALID_UTF8_TAIL_P((utf8)[1]))                                \
     || ((utf8)[0] == 0xf4 && (0x80 <= (utf8)[1] && (utf8)[1] <= 0x8f))) \
-   && IS_VALID_UTF8_TAIL((utf8)[2]) && IS_VALID_UTF8_TAIL((utf8)[3]))
-#define IS_VALID_UTF8_TAIL(utf8chr)             \
+   && VALID_UTF8_TAIL_P((utf8)[2]) && VALID_UTF8_TAIL_P((utf8)[3]))
+#define VALID_UTF8_TAIL_P(utf8chr)              \
   (0x80 <= (utf8chr) && (utf8chr) <= 0xbf)
 
 
@@ -694,12 +410,12 @@ scm_enc_char_width_utf8(const void *str, size_t len)
   else if (len < 1)
     return 0;
   else if ((utf8[0] & 0x80) == 0x00) {
-    return IS_VALID_UTF8_1(utf8) ? 1 : -1;
+    return VALID_UTF8_1_P(utf8) ? 1 : -1;
   }
   else if ((utf8[0] & 0xe0) == 0xc0) {
     if (len < 2)
       return 0;
-    else if (IS_VALID_UTF8_2(utf8))
+    else if (VALID_UTF8_2_P(utf8))
       return 2;
     else
       return -1;
@@ -707,7 +423,7 @@ scm_enc_char_width_utf8(const void *str, size_t len)
   else if ((utf8[0] & 0xf0) == 0xe0) {
     if (len < 3)
       return 0;
-    else if (IS_VALID_UTF8_3(utf8))
+    else if (VALID_UTF8_3_P(utf8))
       return 3;
     else
       return -1;
@@ -715,7 +431,7 @@ scm_enc_char_width_utf8(const void *str, size_t len)
   else if ((utf8[0] & 0xf8) == 0xf0) {
     if (len < 4)
       return 0;
-    else if (IS_VALID_UTF8_4(utf8))
+    else if (VALID_UTF8_4_P(utf8))
       return 4;
     else
       return -1;
@@ -725,33 +441,32 @@ scm_enc_char_width_utf8(const void *str, size_t len)
   }
 }
 
-ScmStrItr
-scm_enc_index2itr_utf8(void *str, size_t size, size_t idx)
+void
+scm_enc_index2itr_utf8(void *str, size_t size, size_t idx, ScmStrItr *iter)
 {
-  return scm_enc_index2itr_variable_width(str, size, idx,
-                                          scm_enc_char_width_utf8);
+  scm_enc_index2itr_variable_width(str, size, idx, SCM_ENC_UTF8, iter);
 }
 
 bool
-scm_enc_valid_char_p_utf8(scm_char_t c)
+scm_enc_valid_char_p_utf8(const scm_char_t *c)
 {
-  return ((IS_VALID_UTF8_1(c.bytes)
-           || IS_VALID_UTF8_2(c.bytes)
-           || IS_VALID_UTF8_3(c.bytes)
-           || IS_VALID_UTF8_4(c.bytes)) ?
+  return ((VALID_UTF8_1_P(c->bytes)
+           || VALID_UTF8_2_P(c->bytes)
+           || VALID_UTF8_3_P(c->bytes)
+           || VALID_UTF8_4_P(c->bytes)) ?
           true : false);
 }
 
 int
-scm_enc_to_ascii_utf8(scm_char_t c)
+scm_enc_cnv_to_ascii_utf8(const scm_char_t *c)
 {
-  return IS_VALID_UTF8_1(c.bytes) ? c.bytes[0] : -1;
+  return VALID_UTF8_1_P(c->bytes) ? c->bytes[0] : -1;
 }
 
 ssize_t
-scm_enc_ascii_to_utf8(char ascii, scm_char_t *chr)
+scm_enc_cnv_from_ascii_utf8(char ascii, scm_char_t *chr)
 {
-  if (IS_VALID_ASCII((uint8_t)ascii)) {
+  if (VALID_ASCII_P((uint8_t)ascii)) {
     chr->bytes[0] = (uint8_t)ascii;
     return 1;
   }
@@ -761,22 +476,22 @@ scm_enc_ascii_to_utf8(char ascii, scm_char_t *chr)
 }
 
 long long
-scm_enc_to_scalar_utf8(const void *p, size_t size)
+scm_enc_cnv_to_scalar_utf8(const void *p, size_t size)
 {
   scm_char_ucs4_t ucs4;
 
   if (scm_enc_utf8_to_ucs4(p, size, &ucs4) < 1) return -1;
-  return scm_enc_to_scalar_ucs4(&ucs4, sizeof(ucs4));
+  return scm_enc_cnv_to_scalar_ucs4(&ucs4, sizeof(ucs4));
 }
 
 ssize_t
-scm_enc_scalar_to_utf8(long long scalar, scm_char_t *chr)
+scm_enc_cnv_from_scalar_utf8(long long scalar, scm_char_t *chr)
 {
   scm_char_t ucs4;
 
   if (chr == NULL) return -1;
 
-  if (scm_enc_scalar_to_ucs4(scalar, &ucs4) < 0) return -1;
+  if (scm_enc_cnv_from_scalar_ucs4(scalar, &ucs4) < 0) return -1;
 
   return scm_enc_ucs4_to_utf8(ucs4.ucs4, chr->bytes, sizeof(*chr));
 }
@@ -824,7 +539,7 @@ scm_enc_ascii_p_utf8(const void *p, size_t size)
 {
   if (p == NULL || size < 1)
     return false;
-  else if (IS_VALID_UTF8_1((const uint8_t *)p))
+  else if (VALID_UTF8_1_P((const uint8_t *)p))
     return true;
   else
     return false;
@@ -844,7 +559,7 @@ scm_enc_alarm_p_utf8(const void *p, size_t size)
 {
   if (p == NULL || size < 1)
     return false;
-  else if (IS_VALID_UTF8_1((const uint8_t *)p))
+  else if (VALID_UTF8_1_P((const uint8_t *)p))
     return scm_enc_alarm_p_ascii(p, size);
   else
     return false;
@@ -855,7 +570,7 @@ scm_enc_backspace_p_utf8(const void *p, size_t size)
 {
   if (p == NULL || size < 1)
     return false;
-  else if (IS_VALID_UTF8_1((const uint8_t *)p))
+  else if (VALID_UTF8_1_P((const uint8_t *)p))
     return scm_enc_backspace_p_ascii(p, size);
   else
     return false;
@@ -866,7 +581,7 @@ scm_enc_delete_p_utf8(const void *p, size_t size)
 {
   if (p == NULL || size < 1)
     return false;
-  else if (IS_VALID_UTF8_1((const uint8_t *)p))
+  else if (VALID_UTF8_1_P((const uint8_t *)p))
     return scm_enc_delete_p_ascii(p, size);
   else
     return false;
@@ -877,7 +592,7 @@ scm_enc_escape_p_utf8(const void *p, size_t size)
 {
   if (p == NULL || size < 1)
     return false;
-  else if (IS_VALID_UTF8_1((const uint8_t *)p))
+  else if (VALID_UTF8_1_P((const uint8_t *)p))
     return scm_enc_escape_p_ascii(p, size);
   else
     return false;
@@ -888,7 +603,7 @@ scm_enc_newline_p_utf8(const void *p, size_t size)
 {
   if (p == NULL || size < 1)
     return false;
-  else if (IS_VALID_UTF8_1((const uint8_t *)p))
+  else if (VALID_UTF8_1_P((const uint8_t *)p))
     return scm_enc_newline_p_ascii(p, size);
   else
     return false;
@@ -899,7 +614,7 @@ scm_enc_null_p_utf8(const void *p, size_t size)
 {
   if (p == NULL || size < 1)
     return false;
-  else if (IS_VALID_UTF8_1((const uint8_t *)p))
+  else if (VALID_UTF8_1_P((const uint8_t *)p))
     return scm_enc_null_p_ascii(p, size);
   else
     return false;
@@ -910,7 +625,7 @@ scm_enc_return_p_utf8(const void *p, size_t size)
 {
   if (p == NULL || size < 1)
     return false;
-  else if (IS_VALID_UTF8_1((const uint8_t *)p))
+  else if (VALID_UTF8_1_P((const uint8_t *)p))
     return scm_enc_return_p_ascii(p, size);
   else
     return false;
@@ -921,7 +636,7 @@ scm_enc_space_p_utf8(const void *p, size_t size)
 {
   if (p == NULL || size < 1)
     return false;
-  else if (IS_VALID_UTF8_1((const uint8_t *)p))
+  else if (VALID_UTF8_1_P((const uint8_t *)p))
     return scm_enc_space_p_ascii(p, size);
   else
     return false;
@@ -932,7 +647,7 @@ scm_enc_tab_p_utf8(const void *p, size_t size)
 {
   if (p == NULL || size < 1)
     return false;
-  else if (IS_VALID_UTF8_1((const uint8_t *)p))
+  else if (VALID_UTF8_1_P((const uint8_t *)p))
     return scm_enc_tab_p_ascii(p, size);
   else
     return false;
@@ -943,7 +658,7 @@ scm_enc_doublequote_p_utf8(const void *p, size_t size)
 {
   if (p == NULL || size < 1)
     return false;
-  else if (IS_VALID_UTF8_1((const uint8_t *)p))
+  else if (VALID_UTF8_1_P((const uint8_t *)p))
     return scm_enc_doublequote_p_ascii(p, size);
   else
     return false;
@@ -954,7 +669,7 @@ scm_enc_backslash_p_utf8(const void *p, size_t size)
 {
   if (p == NULL || size < 1)
     return false;
-  else if (IS_VALID_UTF8_1((const uint8_t *)p))
+  else if (VALID_UTF8_1_P((const uint8_t *)p))
     return scm_enc_backslash_p_ascii(p, size);
   else
     return false;
@@ -962,11 +677,49 @@ scm_enc_backslash_p_utf8(const void *p, size_t size)
 
 
 /***********************************************************************/
-/*   UCS4                                                              */
+/*   Encoding: UCS4                                                    */
 /***********************************************************************/
 
+static ScmEncoding SCM_ENC_UCS4__ = {
+  .iconv_name = "UCS4",
+  .cnst = {
+    .lf   = { .c = { .bytes = { 0x0a, 0x00, 0x00, 0x00 }}, .w = 1 },
+    .sp   = { .c = { .bytes = { 0x20, 0x00, 0x00, 0x00 }}, .w = 1 },
+    .cr   = { .c = { .bytes = { 0x0d, 0x00, 0x00, 0x00 }}, .w = 1 },
+    .tab  = { .c = { .bytes = { 0x09, 0x00, 0x00, 0x00 }}, .w = 1 },
+    .bell = { .c = { .bytes = { 0x07, 0x00, 0x00, 0x00 }}, .w = 1 },
+    .bs   = { .c = { .bytes = { 0x08, 0x00, 0x00, 0x00 }}, .w = 1 },
+  },
+  .func = {
+    .char_width = scm_enc_char_width_ucs4,
+    .index2itr = scm_enc_index2itr_ucs4,
+    .valid_char_p = scm_enc_valid_char_p_ucs4,
+    .cnv_to_ascii = scm_enc_cnv_to_ascii_ucs4,
+    .cnv_from_ascii = scm_enc_cnv_from_ascii_ucs4,
+    .cnv_to_scalar = scm_enc_cnv_to_scalar_ucs4,
+    .cnv_from_scalar = scm_enc_cnv_from_scalar_ucs4,
+    .downcase = scm_enc_downcase_ucs4,
+    .upcase = scm_enc_upcase_ucs4,
+    .ascii_p = scm_enc_ascii_p_ucs4,
+    .printable_p = scm_enc_printable_p_ucs4,
+    .alarm_p = scm_enc_alarm_p_ucs4,
+    .backspace_p = scm_enc_backspace_p_ucs4,
+    .delete_p = scm_enc_delete_p_ucs4,
+    .escape_p = scm_enc_escape_p_ucs4,
+    .newline_p = scm_enc_newline_p_ucs4,
+    .null_p = scm_enc_null_p_ucs4,
+    .return_p = scm_enc_return_p_ucs4,
+    .space_p = scm_enc_space_p_ucs4,
+    .tab_p = scm_enc_tab_p_ucs4,
+    .doublequote_p = scm_enc_doublequote_p_ucs4,
+    .backslash_p = scm_enc_backslash_p_ucs4,
+  },
+};
+
+ScmEncoding *SCM_ENC_UCS4 = &SCM_ENC_UCS4__;
+
 /* XXX: is this correct ? */
-#define IS_VALID_UCS4(ucs4) \
+#define VALID_UCS4_P(ucs4) \
   (ucs4 <= 0xd7ff || (0xe000 <= ucs4 && ucs4 <= 0xfffd) \
    || (0x10000 <= ucs4 && ucs4 <= 0x10ffff))
 
@@ -979,18 +732,17 @@ scm_enc_char_width_ucs4(const void *str, size_t len)
     return -1;
   else if (len < 4)
     return 0;
-  else if (IS_VALID_UCS4(*ucs4))
+  else if (VALID_UCS4_P(*ucs4))
     return 4;
   else
     return -1;
 }
 
-ScmStrItr
-scm_enc_index2itr_ucs4(void *str, size_t size, size_t idx)
+void
+scm_enc_index2itr_ucs4(void *str, size_t size, size_t idx, ScmStrItr *iter)
 {
-
-  return scm_enc_index2itr_fixed_width(str, size, idx, sizeof(scm_char_ucs4_t),
-                                       scm_enc_char_width_ucs4);
+  scm_enc_index2itr_fixed_width(str, size, idx, sizeof(scm_char_ucs4_t),
+                                SCM_ENC_UCS4, iter);
 }
 
 #define UCS4CHR(c) ((uint32_t)(c))
@@ -1009,20 +761,20 @@ scm_enc_utf8_to_ucs4(const uint8_t *utf8, size_t utf8_len, uint32_t *ucs4)
     return 1;
   }
   else if ((utf8[0] & 0xe0) == 0xc0) {
-    if (utf8_len < 2 || !IS_VALID_UTF8_2(utf8)) return -1;
+    if (utf8_len < 2 || !VALID_UTF8_2_P(utf8)) return -1;
     *ucs4 = UCS4CHR(utf8[0] & 0x1f) << 6;
     *ucs4 |= UCS4CHR(utf8[1] & 0x3f);
     return 2;
   }
   else if ((utf8[0] & 0xf0) == 0xe0) {
-    if (utf8_len < 3 || !IS_VALID_UTF8_3(utf8)) return -1;
+    if (utf8_len < 3 || !VALID_UTF8_3_P(utf8)) return -1;
     *ucs4 = UCS4CHR(utf8[0] & 0x0f) << 12;
     *ucs4 |= UCS4CHR(utf8[1] & 0x3f) << 6;
     *ucs4 |= UCS4CHR(utf8[2] & 0x3f);
     return 3;
   }
   else if ((utf8[0] & 0xf8) == 0xf0) {
-    if (utf8_len < 4 || !IS_VALID_UTF8_4(utf8)) return -1;
+    if (utf8_len < 4 || !VALID_UTF8_4_P(utf8)) return -1;
     *ucs4 = UCS4CHR(utf8[0] & 0x07) << 18;
     *ucs4 |= UCS4CHR(utf8[1] & 0x3f) << 12;
     *ucs4 |= UCS4CHR(utf8[2] & 0x3f) << 6;
@@ -1076,33 +828,21 @@ scm_enc_ucs4_to_utf8(scm_char_ucs4_t ucs4, uint8_t *utf8, size_t sz)
 }
 
 bool
-scm_enc_is_lf_ucs4(scm_char_t c)
+scm_enc_valid_char_p_ucs4(const scm_char_t *c)
 {
-  return (c.ucs4 == '\n') ? true : false;
-}
-
-bool
-scm_enc_is_space_ucs4(scm_char_t c)
-{
-  return (c.ucs4 == ' ') ? true : false;
-}
-
-bool
-scm_enc_valid_char_p_ucs4(scm_char_t c)
-{
-  return IS_VALID_UCS4(c.ucs4) ? true : false;
+  return VALID_UCS4_P(c->ucs4) ? true : false;
 }
 
 int
-scm_enc_to_ascii_ucs4(scm_char_t c)
+scm_enc_cnv_to_ascii_ucs4(const scm_char_t *c)
 {
-  return (/* 0x00 <= c.ucs4 && */ c.ucs4 <= 0x7f) ? (int)c.ucs4 : -1;
+  return (/* 0x00 <= c->ucs4 && */ c->ucs4 <= 0x7f) ? (int)c->ucs4 : -1;
 }
 
 ssize_t
-scm_enc_ascii_to_ucs4(char ascii, scm_char_t *chr)
+scm_enc_cnv_from_ascii_ucs4(char ascii, scm_char_t *chr)
 {
-  if (IS_VALID_ASCII((uint8_t)ascii)) {
+  if (VALID_ASCII_P((uint8_t)ascii)) {
     chr->ucs4 = (scm_char_ucs4_t)ascii;
     return 4;
   }
@@ -1112,7 +852,7 @@ scm_enc_ascii_to_ucs4(char ascii, scm_char_t *chr)
 }
 
 long long
-scm_enc_to_scalar_ucs4(const void *p, size_t size)
+scm_enc_cnv_to_scalar_ucs4(const void *p, size_t size)
 {
   if (p == NULL || size < 4)
     return -1;
@@ -1121,11 +861,11 @@ scm_enc_to_scalar_ucs4(const void *p, size_t size)
 }
 
 ssize_t
-scm_enc_scalar_to_ucs4(long long scalar, scm_char_t *chr)
+scm_enc_cnv_from_scalar_ucs4(long long scalar, scm_char_t *chr)
 {
   if (chr == NULL)
     return -1;
-  else if (IS_VALID_UCS4(scalar)) {
+  else if (VALID_UCS4_P(scalar)) {
     chr->ucs4 = (scm_char_ucs4_t)scalar;
     return 4;
   }
@@ -1308,24 +1048,62 @@ scm_enc_backslash_p_ucs4(const void *p, size_t size)
 
 
 /***********************************************************************/
-/*   EUC-JP-JIS-2004                                                   */
+/*   Encoding: EUC-JP-JIS-2004                                         */
 /***********************************************************************/
 
+static ScmEncoding SCM_ENC_EUCJP__ = {
+  .iconv_name = "EUCJP-JISX0213",
+  .cnst = {
+    .lf   = { .c = { .bytes = { 0x0a, 0x00, 0x00, 0x00 }}, .w = 1 },
+    .sp   = { .c = { .bytes = { 0x20, 0x00, 0x00, 0x00 }}, .w = 1 },
+    .cr   = { .c = { .bytes = { 0x0d, 0x00, 0x00, 0x00 }}, .w = 1 },
+    .tab  = { .c = { .bytes = { 0x09, 0x00, 0x00, 0x00 }}, .w = 1 },
+    .bell = { .c = { .bytes = { 0x07, 0x00, 0x00, 0x00 }}, .w = 1 },
+    .bs   = { .c = { .bytes = { 0x08, 0x00, 0x00, 0x00 }}, .w = 1 },
+  },
+  .func = {
+    .char_width = scm_enc_char_width_eucjp,
+    .index2itr = scm_enc_index2itr_eucjp,
+    .valid_char_p = scm_enc_valid_char_p_eucjp,
+    .cnv_to_ascii = scm_enc_cnv_to_ascii_eucjp,
+    .cnv_from_ascii = scm_enc_cnv_from_ascii_eucjp,
+    .cnv_to_scalar = scm_enc_cnv_to_scalar_eucjp,
+    .cnv_from_scalar = scm_enc_cnv_from_scalar_eucjp,
+    .downcase = scm_enc_downcase_eucjp,
+    .upcase = scm_enc_upcase_eucjp,
+    .ascii_p = scm_enc_ascii_p_eucjp,
+    .printable_p = scm_enc_printable_p_eucjp,
+    .alarm_p = scm_enc_alarm_p_eucjp,
+    .backspace_p = scm_enc_backspace_p_eucjp,
+    .delete_p = scm_enc_delete_p_eucjp,
+    .escape_p = scm_enc_escape_p_eucjp,
+    .newline_p = scm_enc_newline_p_eucjp,
+    .null_p = scm_enc_null_p_eucjp,
+    .return_p = scm_enc_return_p_eucjp,
+    .space_p = scm_enc_space_p_eucjp,
+    .tab_p = scm_enc_tab_p_eucjp,
+    .doublequote_p = scm_enc_doublequote_p_eucjp,
+    .backslash_p = scm_enc_backslash_p_eucjp,
+  },
+};
+
+ScmEncoding *SCM_ENC_EUCJP = &SCM_ENC_EUCJP__;
+
 /* XXX: inexact? */
-#define IS_VALID_EUC_JP_ASCII(euc)              \
+#define VALID_EUC_JP_ASCII_P(euc)               \
   (/* 0x00 <= (euc)[0] && */(euc)[0] <= 0x7f)
-#define IS_EUC_JP_SS2(byte) ((byte) == 0x8e)
-#define IS_EUC_JP_SS3(byte) ((byte) == 0x8f)
-#define IS_VALID_EUC_JP_JIS_X_0201(euc)                                 \
-  (IS_EUC_JP_SS2(euc[0]) && (0xa1 <= (euc)[1] && (euc)[1] <= 0xdf))
-#define IS_VALID_EUC_JP_JIS_X_0213_1_FIRST_BYTE(euc) \
+#define EUC_JP_SS2_P(byte) ((byte) == 0x8e)
+#define EUC_JP_SS3_P(byte) ((byte) == 0x8f)
+#define VALID_EUC_JP_JIS_X_0201_P(euc)                                  \
+  (EUC_JP_SS2_P(euc[0]) && (0xa1 <= (euc)[1] && (euc)[1] <= 0xdf))
+#define VALID_EUC_JP_JIS_X_0213_1_FIRST_BYTE_P(euc) \
   (0xa1 <= (euc)[0] && (euc)[0] <= 0xfe)
-#define IS_VALID_EUC_JP_JIS_X_0213_1(euc)         \
-  (IS_VALID_EUC_JP_JIS_X_0213_1_FIRST_BYTE(euc)   \
+#define VALID_EUC_JP_JIS_X_0213_1_P(euc)         \
+  (VALID_EUC_JP_JIS_X_0213_1_FIRST_BYTE_P(euc)   \
    && (0xa1 <= (euc)[1] && (euc)[1] <= 0xfe))
-#define IS_VALID_EUC_JP_JIS_X_0213_2(euc)         \
-  (IS_EUC_JP_SS3(euc[0])                        \
-   && (0xa1 <= (euc)[1] && (euc)[1] <= 0xfe)    \
+#define VALID_EUC_JP_JIS_X_0213_2_P(euc)         \
+  (EUC_JP_SS3_P(euc[0])                          \
+   && (0xa1 <= (euc)[1] && (euc)[1] <= 0xfe)     \
    && (0xa1 <= (euc)[2] && (euc)[2] <= 0xfe))
 
 int
@@ -1338,29 +1116,29 @@ scm_enc_char_width_eucjp(const void *str, size_t len)
   }
   else if (len < 1)
     return 0;
-  else if (IS_VALID_EUC_JP_ASCII(euc)) {
+  else if (VALID_EUC_JP_ASCII_P(euc)) {
     return 1;
   }
-  else if (IS_VALID_EUC_JP_JIS_X_0213_1_FIRST_BYTE(euc)) {
+  else if (VALID_EUC_JP_JIS_X_0213_1_FIRST_BYTE_P(euc)) {
     if (len < 2)
       return 0;
-    else if (IS_VALID_EUC_JP_JIS_X_0213_1(euc))
+    else if (VALID_EUC_JP_JIS_X_0213_1_P(euc))
       return 2;
     else
       return -1;
   }
-  else if (IS_EUC_JP_SS2(euc[0])) {
+  else if (EUC_JP_SS2_P(euc[0])) {
     if (len < 2)
       return 0;
-    else if (IS_VALID_EUC_JP_JIS_X_0201(euc))
+    else if (VALID_EUC_JP_JIS_X_0201_P(euc))
       return 2;
     else
       return -1;
   }
-  else if (IS_EUC_JP_SS3(euc[0])) {
+  else if (EUC_JP_SS3_P(euc[0])) {
     if (len < 3)
       return 0;
-    else if (IS_VALID_EUC_JP_JIS_X_0213_2(euc))
+    else if (VALID_EUC_JP_JIS_X_0213_2_P(euc))
       return 3;
     else
       return -1;
@@ -1370,33 +1148,32 @@ scm_enc_char_width_eucjp(const void *str, size_t len)
   }
 }
 
-ScmStrItr
-scm_enc_index2itr_eucjp(void *str, size_t size, size_t idx)
+void
+scm_enc_index2itr_eucjp(void *str, size_t size, size_t idx, ScmStrItr *iter)
 {
-  return scm_enc_index2itr_variable_width(str, size, idx,
-                                          scm_enc_char_width_eucjp);
+  scm_enc_index2itr_variable_width(str, size, idx, SCM_ENC_EUCJP, iter);
 }
 
 bool
-scm_enc_valid_char_p_eucjp(scm_char_t c)
+scm_enc_valid_char_p_eucjp(const scm_char_t *c)
 {
-  return ((IS_VALID_EUC_JP_ASCII(c.bytes)
-           || IS_VALID_EUC_JP_JIS_X_0201(c.bytes)
-           || IS_VALID_EUC_JP_JIS_X_0213_1(c.bytes)
-           || IS_VALID_EUC_JP_JIS_X_0213_2(c.bytes)) ?
+  return ((VALID_EUC_JP_ASCII_P(c->bytes)
+           || VALID_EUC_JP_JIS_X_0201_P(c->bytes)
+           || VALID_EUC_JP_JIS_X_0213_1_P(c->bytes)
+           || VALID_EUC_JP_JIS_X_0213_2_P(c->bytes)) ?
           true : false);
 }
 
 int
-scm_enc_to_ascii_eucjp(scm_char_t c)
+scm_enc_cnv_to_ascii_eucjp(const scm_char_t *c)
 {
-  return IS_VALID_EUC_JP_ASCII(c.bytes) ? c.bytes[0] : -1;
+  return VALID_EUC_JP_ASCII_P(c->bytes) ? c->bytes[0] : -1;
 }
 
 ssize_t
-scm_enc_ascii_to_eucjp(char ascii, scm_char_t *chr)
+scm_enc_cnv_from_ascii_eucjp(char ascii, scm_char_t *chr)
 {
-  if (IS_VALID_ASCII((uint8_t)ascii)) {
+  if (VALID_ASCII_P((uint8_t)ascii)) {
     chr->bytes[0] = (uint8_t)ascii;
     return 1;
   }
@@ -1406,7 +1183,7 @@ scm_enc_ascii_to_eucjp(char ascii, scm_char_t *chr)
 }
 
 long long
-scm_enc_to_scalar_eucjp(const void *p, size_t size)
+scm_enc_cnv_to_scalar_eucjp(const void *p, size_t size)
 {
   ssize_t w;
   long long s;
@@ -1436,7 +1213,7 @@ scm_enc_to_scalar_eucjp(const void *p, size_t size)
 }
 
 ssize_t
-scm_enc_scalar_to_eucjp(long long scalar, scm_char_t *chr)
+scm_enc_cnv_from_scalar_eucjp(long long scalar, scm_char_t *chr)
 {
   if (chr == NULL)
     return -1;
@@ -1501,7 +1278,7 @@ scm_enc_ascii_p_eucjp(const void *p, size_t size)
 {
   if (p == NULL || size < 1)
     return false;
-  else if (IS_VALID_EUC_JP_ASCII((const uint8_t *)p))
+  else if (VALID_EUC_JP_ASCII_P((const uint8_t *)p))
     return true;
   else
     return false;
@@ -1512,7 +1289,7 @@ scm_enc_printable_p_eucjp(const void *p, size_t size)
 {
   if (p == NULL || size < 1)
     return false;
-  else if (IS_VALID_EUC_JP_ASCII((const uint8_t *)p))
+  else if (VALID_EUC_JP_ASCII_P((const uint8_t *)p))
     return scm_enc_printable_p_ascii(p, size);
   else
     return true;
@@ -1523,7 +1300,7 @@ scm_enc_alarm_p_eucjp(const void *p, size_t size)
 {
   if (p == NULL || size < 1)
     return false;
-  else if (IS_VALID_EUC_JP_ASCII((const uint8_t *)p))
+  else if (VALID_EUC_JP_ASCII_P((const uint8_t *)p))
     return scm_enc_alarm_p_ascii(p, size);
   else
     return false;;
@@ -1534,7 +1311,7 @@ scm_enc_backspace_p_eucjp(const void *p, size_t size)
 {
   if (p == NULL || size < 1)
     return false;
-  else if (IS_VALID_EUC_JP_ASCII((const uint8_t *)p))
+  else if (VALID_EUC_JP_ASCII_P((const uint8_t *)p))
     return scm_enc_backspace_p_ascii(p, size);
   else
     return false;;
@@ -1545,7 +1322,7 @@ scm_enc_delete_p_eucjp(const void *p, size_t size)
 {
   if (p == NULL || size < 1)
     return false;
-  else if (IS_VALID_EUC_JP_ASCII((const uint8_t *)p))
+  else if (VALID_EUC_JP_ASCII_P((const uint8_t *)p))
     return scm_enc_delete_p_ascii(p, size);
   else
     return false;;
@@ -1556,7 +1333,7 @@ scm_enc_escape_p_eucjp(const void *p, size_t size)
 {
   if (p == NULL || size < 1)
     return false;
-  else if (IS_VALID_EUC_JP_ASCII((const uint8_t *)p))
+  else if (VALID_EUC_JP_ASCII_P((const uint8_t *)p))
     return scm_enc_escape_p_ascii(p, size);
   else
     return false;;
@@ -1567,7 +1344,7 @@ scm_enc_newline_p_eucjp(const void *p, size_t size)
 {
   if (p == NULL || size < 1)
     return false;
-  else if (IS_VALID_EUC_JP_ASCII((const uint8_t *)p))
+  else if (VALID_EUC_JP_ASCII_P((const uint8_t *)p))
     return scm_enc_newline_p_ascii(p, size);
   else
     return false;;
@@ -1578,7 +1355,7 @@ scm_enc_null_p_eucjp(const void *p, size_t size)
 {
   if (p == NULL || size < 1)
     return false;
-  else if (IS_VALID_EUC_JP_ASCII((const uint8_t *)p))
+  else if (VALID_EUC_JP_ASCII_P((const uint8_t *)p))
     return scm_enc_null_p_ascii(p, size);
   else
     return false;;
@@ -1589,7 +1366,7 @@ scm_enc_return_p_eucjp(const void *p, size_t size)
 {
   if (p == NULL || size < 1)
     return false;
-  else if (IS_VALID_EUC_JP_ASCII((const uint8_t *)p))
+  else if (VALID_EUC_JP_ASCII_P((const uint8_t *)p))
     return scm_enc_return_p_ascii(p, size);
   else
     return false;;
@@ -1600,7 +1377,7 @@ scm_enc_space_p_eucjp(const void *p, size_t size)
 {
   if (p == NULL || size < 1)
     return false;
-  else if (IS_VALID_EUC_JP_ASCII((const uint8_t *)p))
+  else if (VALID_EUC_JP_ASCII_P((const uint8_t *)p))
     return scm_enc_space_p_ascii(p, size);
   else
     return false;;
@@ -1611,7 +1388,7 @@ scm_enc_tab_p_eucjp(const void *p, size_t size)
 {
   if (p == NULL || size < 1)
     return false;
-  else if (IS_VALID_EUC_JP_ASCII((const uint8_t *)p))
+  else if (VALID_EUC_JP_ASCII_P((const uint8_t *)p))
     return scm_enc_tab_p_ascii(p, size);
   else
     return false;;
@@ -1622,7 +1399,7 @@ scm_enc_doublequote_p_eucjp(const void *p, size_t size)
 {
   if (p == NULL || size < 1)
     return false;
-  else if (IS_VALID_EUC_JP_ASCII((const uint8_t *)p))
+  else if (VALID_EUC_JP_ASCII_P((const uint8_t *)p))
     return scm_enc_doublequote_p_ascii(p, size);
   else
     return false;;
@@ -1633,7 +1410,7 @@ scm_enc_backslash_p_eucjp(const void *p, size_t size)
 {
   if (p == NULL || size < 1)
     return false;
-  else if (IS_VALID_EUC_JP_ASCII((const uint8_t *)p))
+  else if (VALID_EUC_JP_ASCII_P((const uint8_t *)p))
     return scm_enc_backslash_p_ascii(p, size);
   else
     return false;;
@@ -1641,19 +1418,57 @@ scm_enc_backslash_p_eucjp(const void *p, size_t size)
 
 
 /***********************************************************************/
-/*   SJIS                                                              */
+/*   Encoding: SJIS                                                    */
 /***********************************************************************/
 
+static ScmEncoding SCM_ENC_SJIS__ = {
+  .iconv_name = "SHIFT_JISx0213",
+  .cnst = {
+    .lf   = { .c = { .bytes = { 0x0a, 0x00, 0x00, 0x00 }}, .w = 1 },
+    .sp   = { .c = { .bytes = { 0x20, 0x00, 0x00, 0x00 }}, .w = 1 },
+    .cr   = { .c = { .bytes = { 0x0d, 0x00, 0x00, 0x00 }}, .w = 1 },
+    .tab  = { .c = { .bytes = { 0x09, 0x00, 0x00, 0x00 }}, .w = 1 },
+    .bell = { .c = { .bytes = { 0x07, 0x00, 0x00, 0x00 }}, .w = 1 },
+    .bs   = { .c = { .bytes = { 0x08, 0x00, 0x00, 0x00 }}, .w = 1 },
+  },
+  .func = {
+    .char_width = scm_enc_char_width_sjis,
+    .index2itr = scm_enc_index2itr_sjis,
+    .valid_char_p = scm_enc_valid_char_p_sjis,
+    .cnv_to_ascii = scm_enc_cnv_to_ascii_sjis,
+    .cnv_from_ascii = scm_enc_cnv_from_ascii_sjis,
+    .cnv_to_scalar = scm_enc_cnv_to_scalar_sjis,
+    .cnv_from_scalar = scm_enc_cnv_from_scalar_sjis,
+    .downcase = scm_enc_downcase_sjis,
+    .upcase = scm_enc_upcase_sjis,
+    .ascii_p = scm_enc_ascii_p_sjis,
+    .printable_p = scm_enc_printable_p_sjis,
+    .alarm_p = scm_enc_alarm_p_sjis,
+    .backspace_p = scm_enc_backspace_p_sjis,
+    .delete_p = scm_enc_delete_p_sjis,
+    .escape_p = scm_enc_escape_p_sjis,
+    .newline_p = scm_enc_newline_p_sjis,
+    .null_p = scm_enc_null_p_sjis,
+    .return_p = scm_enc_return_p_sjis,
+    .space_p = scm_enc_space_p_sjis,
+    .tab_p = scm_enc_tab_p_sjis,
+    .doublequote_p = scm_enc_doublequote_p_sjis,
+    .backslash_p = scm_enc_backslash_p_sjis,
+  },
+};
+
+ScmEncoding *SCM_ENC_SJIS = &SCM_ENC_SJIS__;
+
 /* XXX: inexact? */
-#define IS_VALID_SJIS_JIS_X_0201_LATIN(sjis)     \
+#define VALID_SJIS_JIS_X_0201_LATIN_P(sjis)     \
   (/* 0x00 <= (euc)[0] && */(sjis)[0] <= 0x7f)
-#define IS_VALID_SJIS_JIS_X_0201_KATAKANA(sjis) \
+#define VALID_SJIS_JIS_X_0201_KATAKANA_P(sjis)  \
   (0xa1 <= (sjis)[0] && (sjis)[0] <= 0xdf)
-#define IS_VALID_SJIS_2_FIRST_BYTE(sjis)                \
+#define VALID_SJIS_2_FIRST_BYTE_P(sjis)                 \
   ((0x81 <= (sjis)[0] && (sjis)[0] <= 0x9f)             \
    || (0xe0 <= (sjis)[0] && (sjis)[0] <= 0xef))
-#define IS_VALID_SJIS_2(sjis)                             \
-  (IS_VALID_SJIS_2_FIRST_BYTE(sjis)                       \
+#define VALID_SJIS_2_P(sjis)                              \
+  (VALID_SJIS_2_FIRST_BYTE_P(sjis)                        \
    && ((0x40 <= (sjis)[1] && (sjis)[1] <= 0x7e)           \
        || (0x80 <= (sjis)[1] && (sjis)[1] <= 0xfc)))
 
@@ -1668,16 +1483,16 @@ scm_enc_char_width_sjis(const void *str, size_t len)
   else if (len < 1) {
     return 0;
   }
-  else if (IS_VALID_SJIS_JIS_X_0201_LATIN(sjis)) {
+  else if (VALID_SJIS_JIS_X_0201_LATIN_P(sjis)) {
     return 1;
   }
-  else if (IS_VALID_SJIS_JIS_X_0201_KATAKANA(sjis)) {
+  else if (VALID_SJIS_JIS_X_0201_KATAKANA_P(sjis)) {
     return 1;
   }
-  else if (IS_VALID_SJIS_2_FIRST_BYTE(sjis)) {
+  else if (VALID_SJIS_2_FIRST_BYTE_P(sjis)) {
     if (len < 2)
       return 0;
-    else if (IS_VALID_SJIS_2(sjis))
+    else if (VALID_SJIS_2_P(sjis))
       return 2;
     else
       return 2;
@@ -1687,32 +1502,31 @@ scm_enc_char_width_sjis(const void *str, size_t len)
   }
 }
 
-ScmStrItr
-scm_enc_index2itr_sjis(void *str, size_t size, size_t idx)
+void
+scm_enc_index2itr_sjis(void *str, size_t size, size_t idx, ScmStrItr *iter)
 {
-  return scm_enc_index2itr_variable_width(str, size, idx,
-                                          scm_enc_char_width_sjis);
+  scm_enc_index2itr_variable_width(str, size, idx, SCM_ENC_SJIS, iter);
 }
 
 bool
-scm_enc_valid_char_p_sjis(scm_char_t c)
+scm_enc_valid_char_p_sjis(const scm_char_t *c)
 {
-  return ((IS_VALID_SJIS_JIS_X_0201_LATIN(c.bytes)
-           || IS_VALID_SJIS_JIS_X_0201_KATAKANA(c.bytes)
-           || IS_VALID_SJIS_2(c.bytes)) ?
+  return ((VALID_SJIS_JIS_X_0201_LATIN_P(c->bytes)
+           || VALID_SJIS_JIS_X_0201_KATAKANA_P(c->bytes)
+           || VALID_SJIS_2_P(c->bytes)) ?
           true : false);
 }
 
 int
-scm_enc_to_ascii_sjis(scm_char_t c)
+scm_enc_cnv_to_ascii_sjis(const scm_char_t *c)
 {
-  return (IS_VALID_SJIS_JIS_X_0201_LATIN(c.bytes)) ? c.bytes[0] : -1;
+  return (VALID_SJIS_JIS_X_0201_LATIN_P(c->bytes)) ? c->bytes[0] : -1;
 }
 
 ssize_t
-scm_enc_ascii_to_sjis(char ascii, scm_char_t *chr)
+scm_enc_cnv_from_ascii_sjis(char ascii, scm_char_t *chr)
 {
-  if (IS_VALID_ASCII((uint8_t)ascii)) {
+  if (VALID_ASCII_P((uint8_t)ascii)) {
     chr->bytes[0] = (uint8_t)ascii;
     return 1;
   }
@@ -1722,7 +1536,7 @@ scm_enc_ascii_to_sjis(char ascii, scm_char_t *chr)
 }
 
 long long
-scm_enc_to_scalar_sjis(const void *p, size_t size)
+scm_enc_cnv_to_scalar_sjis(const void *p, size_t size)
 {
   ssize_t w;
   long long s;
@@ -1747,7 +1561,7 @@ scm_enc_to_scalar_sjis(const void *p, size_t size)
 }
 
 ssize_t
-scm_enc_scalar_to_sjis(long long scalar, scm_char_t *chr)
+scm_enc_cnv_from_scalar_sjis(long long scalar, scm_char_t *chr)
 {
   if (chr == NULL)
     return -1;
@@ -1806,7 +1620,7 @@ scm_enc_ascii_p_sjis(const void *p, size_t size)
 {
   if (p == NULL || size < 1)
     return false;
-  else if (IS_VALID_SJIS_JIS_X_0201_LATIN((const uint8_t *)p))
+  else if (VALID_SJIS_JIS_X_0201_LATIN_P((const uint8_t *)p))
     return true;
   else
     return false;
@@ -1817,7 +1631,7 @@ scm_enc_printable_p_sjis(const void *p, size_t size)
 {
   if (p == NULL || size < 1)
     return false;
-  else if (IS_VALID_SJIS_JIS_X_0201_LATIN((const uint8_t *)p))
+  else if (VALID_SJIS_JIS_X_0201_LATIN_P((const uint8_t *)p))
     return scm_enc_printable_p_ascii(p, size);
   else
     return true;
@@ -1828,7 +1642,7 @@ scm_enc_alarm_p_sjis(const void *p, size_t size)
 {
   if (p == NULL || size < 1)
     return false;
-  else if (IS_VALID_SJIS_JIS_X_0201_LATIN((const uint8_t *)p))
+  else if (VALID_SJIS_JIS_X_0201_LATIN_P((const uint8_t *)p))
     return scm_enc_alarm_p_ascii(p, size);
   else
     return false;
@@ -1839,7 +1653,7 @@ scm_enc_backspace_p_sjis(const void *p, size_t size)
 {
   if (p == NULL || size < 1)
     return false;
-  else if (IS_VALID_SJIS_JIS_X_0201_LATIN((const uint8_t *)p))
+  else if (VALID_SJIS_JIS_X_0201_LATIN_P((const uint8_t *)p))
     return scm_enc_backspace_p_ascii(p, size);
   else
     return false;
@@ -1850,7 +1664,7 @@ scm_enc_delete_p_sjis(const void *p, size_t size)
 {
   if (p == NULL || size < 1)
     return false;
-  else if (IS_VALID_SJIS_JIS_X_0201_LATIN((const uint8_t *)p))
+  else if (VALID_SJIS_JIS_X_0201_LATIN_P((const uint8_t *)p))
     return scm_enc_delete_p_ascii(p, size);
   else
     return false;
@@ -1861,7 +1675,7 @@ scm_enc_escape_p_sjis(const void *p, size_t size)
 {
   if (p == NULL || size < 1)
     return false;
-  else if (IS_VALID_SJIS_JIS_X_0201_LATIN((const uint8_t *)p))
+  else if (VALID_SJIS_JIS_X_0201_LATIN_P((const uint8_t *)p))
     return scm_enc_escape_p_ascii(p, size);
   else
     return false;
@@ -1872,7 +1686,7 @@ scm_enc_newline_p_sjis(const void *p, size_t size)
 {
   if (p == NULL || size < 1)
     return false;
-  else if (IS_VALID_SJIS_JIS_X_0201_LATIN((const uint8_t *)p))
+  else if (VALID_SJIS_JIS_X_0201_LATIN_P((const uint8_t *)p))
     return scm_enc_newline_p_ascii(p, size);
   else
     return false;
@@ -1883,7 +1697,7 @@ scm_enc_null_p_sjis(const void *p, size_t size)
 {
   if (p == NULL || size < 1)
     return false;
-  else if (IS_VALID_SJIS_JIS_X_0201_LATIN((const uint8_t *)p))
+  else if (VALID_SJIS_JIS_X_0201_LATIN_P((const uint8_t *)p))
     return scm_enc_null_p_ascii(p, size);
   else
     return false;
@@ -1894,7 +1708,7 @@ scm_enc_return_p_sjis(const void *p, size_t size)
 {
   if (p == NULL || size < 1)
     return false;
-  else if (IS_VALID_SJIS_JIS_X_0201_LATIN((const uint8_t *)p))
+  else if (VALID_SJIS_JIS_X_0201_LATIN_P((const uint8_t *)p))
     return scm_enc_return_p_ascii(p, size);
   else
     return false;
@@ -1905,7 +1719,7 @@ scm_enc_space_p_sjis(const void *p, size_t size)
 {
   if (p == NULL || size < 1)
     return false;
-  else if (IS_VALID_SJIS_JIS_X_0201_LATIN((const uint8_t *)p))
+  else if (VALID_SJIS_JIS_X_0201_LATIN_P((const uint8_t *)p))
     return scm_enc_space_p_ascii(p, size);
   else
     return false;
@@ -1916,7 +1730,7 @@ scm_enc_tab_p_sjis(const void *p, size_t size)
 {
   if (p == NULL || size < 1)
     return false;
-  else if (IS_VALID_SJIS_JIS_X_0201_LATIN((const uint8_t *)p))
+  else if (VALID_SJIS_JIS_X_0201_LATIN_P((const uint8_t *)p))
     return scm_enc_tab_p_ascii(p, size);
   else
     return false;
@@ -1927,7 +1741,7 @@ scm_enc_doublequote_p_sjis(const void *p, size_t size)
 {
   if (p == NULL || size < 1)
     return false;
-  else if (IS_VALID_SJIS_JIS_X_0201_LATIN((const uint8_t *)p))
+  else if (VALID_SJIS_JIS_X_0201_LATIN_P((const uint8_t *)p))
     return scm_enc_doublequote_p_ascii(p, size);
   else
     return false;
@@ -1938,8 +1752,51 @@ scm_enc_backslash_p_sjis(const void *p, size_t size)
 {
   if (p == NULL || size < 1)
     return false;
-  else if (IS_VALID_SJIS_JIS_X_0201_LATIN((const uint8_t *)p))
+  else if (VALID_SJIS_JIS_X_0201_LATIN_P((const uint8_t *)p))
     return scm_enc_backslash_p_ascii(p, size);
   else
     return false;
+}
+
+
+/***********************************************************************/
+/*   Iterater                                                          */
+/***********************************************************************/
+
+void
+scm_str_itr_begin(void *p, size_t size, ScmEncoding *enc, ScmStrItr *iter)
+{
+  assert(size <= SSIZE_MAX);
+
+  if (iter == NULL) {
+    return;
+  }
+  else if (p == NULL || enc == NULL) {
+    SCM_STR_ITR_MAKE_ERR(iter);
+    return;
+  }
+
+  iter->p = p;
+  iter->rest = (ssize_t)size;
+  iter->enc = enc;
+}
+
+void
+scm_str_itr_next(ScmStrItr *iter)
+{
+  ssize_t w;
+
+  if (iter == NULL) return;
+  if (iter->rest <= 0) return;
+
+  w = scm_str_itr_width(iter);
+  if (w <= 0) {
+    iter->p = NULL;
+    iter->rest = -1;
+    iter->enc = NULL;
+    return;
+  }
+
+  iter->p = (uint8_t *)iter->p + w;
+  iter->rest = iter->rest - w;
 }

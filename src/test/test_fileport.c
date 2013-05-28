@@ -19,7 +19,6 @@ void
 cut_startup(void)
 {
   FILE *fp;
-  size_t n;
 
   fp = fopen(TEST_TEXT_FILE, "w");
   fputs(TEST_TEXT_FILE_CONTENTS, fp);
@@ -27,7 +26,7 @@ cut_startup(void)
 
   fp = fopen(TEST_BIG_FILE, "w");
   for (uint64_t i = 0; i < (TEST_BIG_FILE_SIZE / sizeof(i)); i++)
-    n = fwrite(&i, sizeof(i), 1, fp);
+    fwrite(&i, sizeof(i), 1, fp);
   fclose(fp);
 
   ev = scm_capi_evaluator();

@@ -252,8 +252,7 @@ scm_lexer_new_token(ScmLexer *lexer)
 }
 
 static int
-scm_lexer_tokenize_init(ScmLexer *lexer, ScmObj port,
-                        const ScmEncVirtualFunc *vf)
+scm_lexer_tokenize_init(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
 {
   const char *one_char_token_chars = "()[]'`";
   const SCM_TOKEN_TYPE_T one_char_token_types[] =
@@ -268,7 +267,7 @@ scm_lexer_tokenize_init(ScmLexer *lexer, ScmObj port,
 
   scm_assert(lexer != NULL);
   scm_assert(scm_capi_input_port_p(port));
-  scm_assert(vf != NULL);
+  scm_assert(enc != NULL);
 
   width = scm_capi_peek_char(&current, port);
 
@@ -282,7 +281,7 @@ scm_lexer_tokenize_init(ScmLexer *lexer, ScmObj port,
     return LEXER_STATE_DONE;
   }
 
-  ascii = vf->to_ascii(current);
+  ascii = scm_enc_cnv_to_ascii(enc, &current);
   if (ascii < 0) {
     scm_capi_read_raw(dummy.bytes, (size_t)width, port);
     rslt = scm_lexer_push_char(lexer, current.bytes, (size_t)width, ascii);
@@ -349,8 +348,7 @@ scm_lexer_tokenize_init(ScmLexer *lexer, ScmObj port,
 }
 
 static int
-scm_lexer_tokenize_identifier(ScmLexer *lexer, ScmObj port,
-                               const ScmEncVirtualFunc *vf)
+scm_lexer_tokenize_identifier(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
 {
   const char *exceptions[] = { "-i", "+i", "+inf.0", "-inf.0", "+nan.0", NULL };
   scm_char_t current, dummy;
@@ -358,7 +356,7 @@ scm_lexer_tokenize_identifier(ScmLexer *lexer, ScmObj port,
 
   scm_assert(lexer != NULL);
   scm_assert(scm_capi_input_port_p(port));
-  scm_assert(vf != NULL);
+  scm_assert(enc != NULL);
 
   while (1) {
     ssize_t width = scm_capi_peek_char(&current, port);
@@ -370,7 +368,7 @@ scm_lexer_tokenize_identifier(ScmLexer *lexer, ScmObj port,
       break;
     }
 
-    ascii = vf->to_ascii(current);
+    ascii = scm_enc_cnv_to_ascii(enc, &current);
     if (ascii >= 0 && delimiter_p(ascii)) {
       break;
     }
@@ -393,15 +391,14 @@ scm_lexer_tokenize_identifier(ScmLexer *lexer, ScmObj port,
 }
 
 static int
-scm_lexer_tokenize_ident_vbar(ScmLexer *lexer, ScmObj port,
-                              const ScmEncVirtualFunc *vf)
+scm_lexer_tokenize_ident_vbar(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
 {
   scm_char_t current, dummy;
   int ascii, rslt;
 
   scm_assert(lexer != NULL);
   scm_assert(scm_capi_input_port_p(port));
-  scm_assert(vf != NULL);
+  scm_assert(enc != NULL);
 
   while (1) {
     ssize_t width = scm_capi_peek_char(&current, port);
@@ -415,7 +412,7 @@ scm_lexer_tokenize_ident_vbar(ScmLexer *lexer, ScmObj port,
       return LEXER_STATE_ERROR;
     }
 
-    ascii = vf->to_ascii(current);
+    ascii = scm_enc_cnv_to_ascii(enc, &current);
     if (ascii == '|') {
       scm_capi_read_raw(dummy.bytes, (size_t)width, port);
       scm_lexer_set_token_type(lexer, SCM_TOKEN_TYPE_IDENTIFIER_VBAR);
@@ -431,8 +428,7 @@ scm_lexer_tokenize_ident_vbar(ScmLexer *lexer, ScmObj port,
 }
 
 static int
-scm_lexer_tokenize_dot(ScmLexer *lexer, ScmObj port,
-                       const ScmEncVirtualFunc *vf)
+scm_lexer_tokenize_dot(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
 {
   scm_char_t current;
   int ascii;
@@ -440,7 +436,7 @@ scm_lexer_tokenize_dot(ScmLexer *lexer, ScmObj port,
 
   scm_assert(lexer != NULL);
   scm_assert(scm_capi_input_port_p(port));
-  scm_assert(vf != NULL);
+  scm_assert(enc != NULL);
 
   width = scm_capi_peek_char(&current, port);
   if (width < 0) {
@@ -452,7 +448,7 @@ scm_lexer_tokenize_dot(ScmLexer *lexer, ScmObj port,
     return  LEXER_STATE_DONE;
   }
 
-  ascii = vf->to_ascii(current);
+  ascii = scm_enc_cnv_to_ascii(enc, &current);
   if (ascii < 0) {
     return LEXER_STATE_IDENTIFIER;
   }
@@ -469,8 +465,7 @@ scm_lexer_tokenize_dot(ScmLexer *lexer, ScmObj port,
 }
 
 static int
-scm_lexer_tokenize_sign(ScmLexer *lexer, ScmObj port,
-                        const ScmEncVirtualFunc *vf)
+scm_lexer_tokenize_sign(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
 {
   scm_char_t current, dummy;
   int ascii, rslt;
@@ -478,7 +473,7 @@ scm_lexer_tokenize_sign(ScmLexer *lexer, ScmObj port,
 
   scm_assert(lexer != NULL);
   scm_assert(scm_capi_input_port_p(port));
-  scm_assert(vf != NULL);
+  scm_assert(enc != NULL);
 
   width = scm_capi_peek_char(&current, port);
   if (width < 0) {
@@ -490,7 +485,7 @@ scm_lexer_tokenize_sign(ScmLexer *lexer, ScmObj port,
     return  LEXER_STATE_DONE;
   }
 
-  ascii = vf->to_ascii(current);
+  ascii = scm_enc_cnv_to_ascii(enc, &current);
   if (ascii == '.') {
     scm_capi_read_raw(dummy.bytes, (size_t)width, port);
     rslt = scm_lexer_push_char(lexer, current.bytes, (size_t)width, ascii);
@@ -506,7 +501,7 @@ scm_lexer_tokenize_sign(ScmLexer *lexer, ScmObj port,
       return  LEXER_STATE_DONE;
     }
 
-    ascii = vf->to_ascii(current);
+    ascii = scm_enc_cnv_to_ascii(enc, &current);
   }
 
   if (dec_digit_p(ascii))
@@ -516,15 +511,14 @@ scm_lexer_tokenize_sign(ScmLexer *lexer, ScmObj port,
 }
 
 static int
-scm_lexer_tokenize_comment(ScmLexer *lexer, ScmObj port,
-                           const ScmEncVirtualFunc *vf)
+scm_lexer_tokenize_comment(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
 {
   scm_char_t current, dummy;
   int ascii;
 
   scm_assert(lexer != NULL);
   scm_assert(scm_capi_input_port_p(port));
-  scm_assert(vf != NULL);
+  scm_assert(enc != NULL);
 
   while (1) {
     ssize_t width = scm_capi_peek_char(&current, port);
@@ -538,7 +532,7 @@ scm_lexer_tokenize_comment(ScmLexer *lexer, ScmObj port,
       return LEXER_STATE_DONE;
     }
 
-    ascii = vf->to_ascii(current);
+    ascii = scm_enc_cnv_to_ascii(enc, &current);
     if (ascii == '\n' || ascii == '\r') {
       scm_capi_read_raw(dummy.bytes, (size_t)width, port);
       return LEXER_STATE_DISREGARD;
@@ -550,8 +544,7 @@ scm_lexer_tokenize_comment(ScmLexer *lexer, ScmObj port,
 }
 
 static int
-scm_lexer_tokenize_unquote(ScmLexer *lexer, ScmObj port,
-                           const ScmEncVirtualFunc *vf)
+scm_lexer_tokenize_unquote(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
 {
   scm_char_t current, dummy;
   int ascii, rslt;
@@ -559,7 +552,7 @@ scm_lexer_tokenize_unquote(ScmLexer *lexer, ScmObj port,
 
   scm_assert(lexer != NULL);
   scm_assert(scm_capi_input_port_p(port));
-  scm_assert(vf != NULL);
+  scm_assert(enc != NULL);
 
   width = scm_capi_peek_char(&current, port);
   if (width < 0) {
@@ -571,7 +564,7 @@ scm_lexer_tokenize_unquote(ScmLexer *lexer, ScmObj port,
     return LEXER_STATE_DONE;
   }
 
-  ascii = vf->to_ascii(current);
+  ascii = scm_enc_cnv_to_ascii(enc, &current);
   if (ascii == '@') {
     scm_capi_read_raw(dummy.bytes, (size_t)width, port);
     rslt = scm_lexer_push_char(lexer, current.bytes, (size_t)width, ascii);
@@ -586,8 +579,7 @@ scm_lexer_tokenize_unquote(ScmLexer *lexer, ScmObj port,
 }
 
 static int
-scm_lexer_tokenize_number_sign(ScmLexer *lexer, ScmObj port,
-                               const ScmEncVirtualFunc *vf)
+scm_lexer_tokenize_number_sign(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
 {
   scm_char_t current, dummy;
   ssize_t width;
@@ -595,7 +587,7 @@ scm_lexer_tokenize_number_sign(ScmLexer *lexer, ScmObj port,
 
   scm_assert(lexer != NULL);
   scm_assert(scm_capi_input_port_p(port));
-  scm_assert(vf != NULL);
+  scm_assert(enc != NULL);
 
   width = scm_capi_peek_char(&current, port);
   if (width < 0) {
@@ -608,7 +600,7 @@ scm_lexer_tokenize_number_sign(ScmLexer *lexer, ScmObj port,
     return LEXER_STATE_ERROR;
   }
 
-  ascii = vf->to_ascii(current);
+  ascii = scm_enc_cnv_to_ascii(enc, &current);
   if (ascii < 0) {
     scm_capi_read_raw(dummy.bytes, (size_t)width, port);
     rslt = scm_lexer_push_char(lexer, current.bytes, (size_t)width, ascii);
@@ -660,8 +652,7 @@ scm_lexer_tokenize_number_sign(ScmLexer *lexer, ScmObj port,
 
 static int
 scm_lexer_tokenize_bool_true_or_false(ScmLexer *lexer, ScmObj port,
-                                      const ScmEncVirtualFunc *vf,
-                                      const char *str,
+                                      ScmEncoding *enc, const char *str,
                                       SCM_TOKEN_TYPE_T ttype)
 {
   scm_char_t current, dummy;
@@ -671,7 +662,7 @@ scm_lexer_tokenize_bool_true_or_false(ScmLexer *lexer, ScmObj port,
 
   scm_assert(lexer != NULL);
   scm_assert(scm_capi_input_port_p(port));
-  scm_assert(vf != NULL);
+  scm_assert(enc != NULL);
   scm_assert(str != NULL);
 
   width = scm_capi_peek_char(&current, port);
@@ -687,7 +678,7 @@ scm_lexer_tokenize_bool_true_or_false(ScmLexer *lexer, ScmObj port,
 
   idx = 0;
 
-  ascii = vf->to_ascii(current);
+  ascii = scm_enc_cnv_to_ascii(enc, &current);
   if (delimiter_p(ascii)) {
     scm_lexer_set_token_type(lexer, ttype);
     return LEXER_STATE_DONE;
@@ -716,7 +707,7 @@ scm_lexer_tokenize_bool_true_or_false(ScmLexer *lexer, ScmObj port,
       return LEXER_STATE_ERROR;
     }
 
-    ascii = vf->to_ascii(current);
+    ascii = scm_enc_cnv_to_ascii(enc, &current);
     if (ascii < 0 || str[idx] != tolower(ascii)) {
       scm_capi_read_raw(dummy.bytes, (size_t)width, port);
       scm_lexer_setup_error_state(lexer, SCM_LEXER_ERR_TYPE_UNEXPECTED_CHAR);
@@ -741,7 +732,7 @@ scm_lexer_tokenize_bool_true_or_false(ScmLexer *lexer, ScmObj port,
     return LEXER_STATE_DONE;
   }
 
-  ascii = vf->to_ascii(current);
+  ascii = scm_enc_cnv_to_ascii(enc, &current);
   if (delimiter_p(ascii)) {
     scm_capi_read_raw(dummy.bytes, 1, port);
     scm_lexer_set_token_type(lexer, ttype);
@@ -755,26 +746,23 @@ scm_lexer_tokenize_bool_true_or_false(ScmLexer *lexer, ScmObj port,
 }
 
 static int
-scm_lexer_tokenize_bool_true(ScmLexer *lexer, ScmObj port,
-                             const ScmEncVirtualFunc *vf)
+scm_lexer_tokenize_bool_true(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
 {
-  return scm_lexer_tokenize_bool_true_or_false(lexer, port, vf,
+  return scm_lexer_tokenize_bool_true_or_false(lexer, port, enc,
                                                "rue",
                                                SCM_TOKEN_TYPE_BOOL_TRUE);
 }
 
 static int
-scm_lexer_tokenize_bool_false(ScmLexer *lexer, ScmObj port,
-                              const ScmEncVirtualFunc *vf)
+scm_lexer_tokenize_bool_false(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
 {
-  return scm_lexer_tokenize_bool_true_or_false(lexer, port, vf,
+  return scm_lexer_tokenize_bool_true_or_false(lexer, port, enc,
                                                "alse",
                                                SCM_TOKEN_TYPE_BOOL_FALSE);
 }
 
 static int
-scm_lexer_tokenize_string(ScmLexer *lexer, ScmObj port,
-                          const ScmEncVirtualFunc *vf)
+scm_lexer_tokenize_string(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
 {
   scm_char_t current, dummy;
   ssize_t width;
@@ -783,7 +771,7 @@ scm_lexer_tokenize_string(ScmLexer *lexer, ScmObj port,
 
   scm_assert(lexer != NULL);
   scm_assert(scm_capi_input_port_p(port));
-  scm_assert(vf != NULL);
+  scm_assert(enc != NULL);
 
   escaped_p = false;
   while (1) {
@@ -798,7 +786,7 @@ scm_lexer_tokenize_string(ScmLexer *lexer, ScmObj port,
       return LEXER_STATE_ERROR;
     }
 
-    ascii = vf->to_ascii(current);
+    ascii = scm_enc_cnv_to_ascii(enc, &current);
     if (escaped_p) {
       scm_capi_read_raw(dummy.bytes, (size_t)width, port);
       rslt = scm_lexer_push_char(lexer, current.bytes, (size_t)width, ascii);
@@ -827,8 +815,7 @@ scm_lexer_tokenize_string(ScmLexer *lexer, ScmObj port,
 }
 
 static int
-scm_lexer_tokenize_char(ScmLexer *lexer, ScmObj port,
-                        const ScmEncVirtualFunc *vf)
+scm_lexer_tokenize_char(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
 {
   scm_char_t current, dummy;
   ssize_t width;
@@ -836,7 +823,7 @@ scm_lexer_tokenize_char(ScmLexer *lexer, ScmObj port,
 
   scm_assert(lexer != NULL);
   scm_assert(scm_capi_input_port_p(port));
-  scm_assert(vf != NULL);
+  scm_assert(enc != NULL);
 
   width = scm_capi_peek_char(&current, port);
   if (width < 0) {
@@ -849,7 +836,7 @@ scm_lexer_tokenize_char(ScmLexer *lexer, ScmObj port,
     return LEXER_STATE_ERROR;
   }
 
-  ascii = vf->to_ascii(current);
+  ascii = scm_enc_cnv_to_ascii(enc, &current);
   scm_capi_read_raw(dummy.bytes, (size_t)width, port);
   rslt = scm_lexer_push_char(lexer, current.bytes, (size_t)width, ascii);
   if (rslt < 0) return LEXER_STATE_ERROR;
@@ -865,7 +852,7 @@ scm_lexer_tokenize_char(ScmLexer *lexer, ScmObj port,
       return LEXER_STATE_DONE;
     }
 
-    ascii = vf->to_ascii(current);
+    ascii = scm_enc_cnv_to_ascii(enc, &current);
     if (delimiter_p(ascii)) {
       scm_lexer_set_token_type(lexer, SCM_TOKEN_TYPE_CHAR);
       return LEXER_STATE_DONE;
@@ -879,8 +866,7 @@ scm_lexer_tokenize_char(ScmLexer *lexer, ScmObj port,
 }
 
 static int
-scm_lexer_tokenize_reference(ScmLexer *lexer, ScmObj port,
-                             const ScmEncVirtualFunc *vf)
+scm_lexer_tokenize_reference(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
 {
   scm_char_t current, dummy;
   ssize_t width;
@@ -888,7 +874,7 @@ scm_lexer_tokenize_reference(ScmLexer *lexer, ScmObj port,
 
   scm_assert(lexer != NULL);
   scm_assert(scm_capi_input_port_p(port));
-  scm_assert(vf != NULL);
+  scm_assert(enc != NULL);
 
   while (1) {
     width = scm_capi_peek_char(&current, port);
@@ -902,7 +888,7 @@ scm_lexer_tokenize_reference(ScmLexer *lexer, ScmObj port,
       return LEXER_STATE_ERROR;
     }
 
-    ascii = vf->to_ascii(current);
+    ascii = scm_enc_cnv_to_ascii(enc, &current);
     if (ascii < 0) {
       scm_capi_read_raw(dummy.bytes, (size_t)width, port);
       scm_lexer_setup_error_state(lexer, SCM_LEXER_ERR_TYPE_UNEXPECTED_CHAR);
@@ -939,8 +925,7 @@ scm_lexer_tokenize_reference(ScmLexer *lexer, ScmObj port,
 }
 
 static int
-scm_lexer_tokenize_numeric(ScmLexer *lexer, ScmObj port,
-                           const ScmEncVirtualFunc *vf)
+scm_lexer_tokenize_numeric(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
 {
   /* provisional implementation */
   scm_char_t current, dummy;
@@ -949,7 +934,7 @@ scm_lexer_tokenize_numeric(ScmLexer *lexer, ScmObj port,
 
   scm_assert(lexer != NULL);
   scm_assert(scm_capi_input_port_p(port));
-  scm_assert(vf != NULL);
+  scm_assert(enc != NULL);
 
   while (1) {
     width = scm_capi_peek_char(&current, port);
@@ -963,7 +948,7 @@ scm_lexer_tokenize_numeric(ScmLexer *lexer, ScmObj port,
       return LEXER_STATE_DONE;
     }
 
-    ascii = vf->to_ascii(current);
+    ascii = scm_enc_cnv_to_ascii(enc, &current);
     if (delimiter_p(ascii)) {
       scm_lexer_set_token_type(lexer, SCM_TOKEN_TYPE_NUMERIC);
       return LEXER_STATE_DONE;
@@ -976,8 +961,7 @@ scm_lexer_tokenize_numeric(ScmLexer *lexer, ScmObj port,
 }
 
 static int
-scm_lexer_tokenize_bv_start(ScmLexer *lexer, ScmObj port,
-                            const ScmEncVirtualFunc *vf)
+scm_lexer_tokenize_bv_start(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
 {
   scm_char_t current, dummy;
   ssize_t width;
@@ -985,7 +969,7 @@ scm_lexer_tokenize_bv_start(ScmLexer *lexer, ScmObj port,
 
   scm_assert(lexer != NULL);
   scm_assert(scm_capi_input_port_p(port));
-  scm_assert(vf != NULL);
+  scm_assert(enc != NULL);
 
   for (const char *p = "8("; *p != '\0'; p++) {
     width = scm_capi_peek_char(&current, port);
@@ -999,7 +983,7 @@ scm_lexer_tokenize_bv_start(ScmLexer *lexer, ScmObj port,
       return LEXER_STATE_ERROR;
     }
 
-    ascii = vf->to_ascii(current);
+    ascii = scm_enc_cnv_to_ascii(enc, &current);
     if (*p != ascii) {
       scm_lexer_setup_error_state(lexer, SCM_LEXER_ERR_TYPE_UNEXPECTED_CHAR);
       return LEXER_STATE_ERROR;
@@ -1021,7 +1005,7 @@ scm_lexer_tokenize_bv_start(ScmLexer *lexer, ScmObj port,
     return LEXER_STATE_DONE;
   }
 
-  ascii = vf->to_ascii(current);
+  ascii = scm_enc_cnv_to_ascii(enc, &current);
   if (!delimiter_p(ascii)) {
     scm_lexer_setup_error_state(lexer, SCM_LEXER_ERR_TYPE_UNEXPECTED_CHAR);
     return LEXER_STATE_ERROR;
@@ -1049,8 +1033,7 @@ scm_lexer_push_token(ScmLexer *lexer, ScmToken *token)
 static int
 scm_lexer_tokenize(ScmLexer *lexer, ScmObj port)
 {
-  const ScmEncVirtualFunc *vf;
-  SCM_ENC_T enc;
+  ScmEncoding *enc;
   LEXER_STATE_T state;
 
   scm_assert(lexer != NULL);
@@ -1063,56 +1046,55 @@ scm_lexer_tokenize(ScmLexer *lexer, ScmObj port)
     return -1;
 
   enc = scm_capi_system_encoding();
-  vf = SCM_ENCODING_VFUNC(enc);
 
   state = LEXER_STATE_INIT;
   while (state != LEXER_STATE_DONE && state != LEXER_STATE_ERROR) {
     switch (state) {
     case LEXER_STATE_INIT:
     case LEXER_STATE_DISREGARD:
-      state = scm_lexer_tokenize_init(lexer, port, vf);
+      state = scm_lexer_tokenize_init(lexer, port, enc);
       break;
     case LEXER_STATE_IDENTIFIER:
-      state = scm_lexer_tokenize_identifier(lexer, port, vf);
+      state = scm_lexer_tokenize_identifier(lexer, port, enc);
       break;
     case LEXER_STATE_IDENTIFIER_VBAR:
-      state = scm_lexer_tokenize_ident_vbar(lexer, port, vf);
+      state = scm_lexer_tokenize_ident_vbar(lexer, port, enc);
       break;
     case LEXER_STATE_DOT:
-      state = scm_lexer_tokenize_dot(lexer, port, vf);
+      state = scm_lexer_tokenize_dot(lexer, port, enc);
       break;
     case LEXER_STATE_SIGN:
-      state = scm_lexer_tokenize_sign(lexer, port, vf);
+      state = scm_lexer_tokenize_sign(lexer, port, enc);
       break;
     case LEXER_STATE_UNQUOTE:
-      state = scm_lexer_tokenize_unquote(lexer, port, vf);
+      state = scm_lexer_tokenize_unquote(lexer, port, enc);
       break;
     case LEXER_STATE_COMMENT:
-      state = scm_lexer_tokenize_comment(lexer, port, vf);
+      state = scm_lexer_tokenize_comment(lexer, port, enc);
       break;
     case LEXER_STATE_NUMBER_SIGN:
-      state = scm_lexer_tokenize_number_sign(lexer, port, vf);
+      state = scm_lexer_tokenize_number_sign(lexer, port, enc);
       break;
     case LEXER_STATE_BOOL_TRUE:
-      state = scm_lexer_tokenize_bool_true(lexer, port, vf);
+      state = scm_lexer_tokenize_bool_true(lexer, port, enc);
       break;
     case LEXER_STATE_BOOL_FALSE:
-      state = scm_lexer_tokenize_bool_false(lexer, port, vf);
+      state = scm_lexer_tokenize_bool_false(lexer, port, enc);
       break;
     case LEXER_STATE_STRING:
-      state = scm_lexer_tokenize_string(lexer, port, vf);
+      state = scm_lexer_tokenize_string(lexer, port, enc);
       break;
     case LEXER_STATE_CHAR:
-      state = scm_lexer_tokenize_char(lexer, port, vf);
+      state = scm_lexer_tokenize_char(lexer, port, enc);
       break;
     case LEXER_STATE_REFERENCE_DECL_OR_USE:
-      state = scm_lexer_tokenize_reference(lexer, port, vf);
+      state = scm_lexer_tokenize_reference(lexer, port, enc);
       break;
     case LEXER_STATE_NUMERIC:
-      state = scm_lexer_tokenize_numeric(lexer, port, vf);
+      state = scm_lexer_tokenize_numeric(lexer, port, enc);
       break;
     case LEXER_STATE_BYTEVECTOR_START:
-      state = scm_lexer_tokenize_bv_start(lexer, port, vf);
+      state = scm_lexer_tokenize_bv_start(lexer, port, enc);
       break;
     case LEXER_STATE_DONE:      /* fall through */
     case LEXER_STATE_ERROR:     /* fall through */
@@ -1444,15 +1426,17 @@ scm_parser_parse_str_fold_eec_seq(const char *str, size_t size)
 }
 
 static ssize_t
-scm_parser_parse_string_esc_seq(const char *str, size_t size, SCM_ENC_T enc,
+scm_parser_parse_string_esc_seq(const char *str, size_t size, ScmEncoding *enc,
                                 scm_char_t *chr, size_t *skip)
 {
   long long hv;
   int rslt;
-  ssize_t width, sk;
+  size_t width;
+  ssize_t w, sk;
 
   scm_assert(str != NULL);
   scm_assert(size <= SSIZE_MAX);
+  scm_assert(enc != NULL);
   scm_assert(chr != NULL);
   scm_assert(skip != NULL);
 
@@ -1463,29 +1447,24 @@ scm_parser_parse_string_esc_seq(const char *str, size_t size, SCM_ENC_T enc,
 
   switch (str[1]) {
   case 'a':
-    *chr = SCM_ENCODING_CONST_BELL_CHR(enc);
+    scm_enc_chr_bell(enc, chr, &width);
     *skip = 2;
-    width = (ssize_t)SCM_ENCODING_CONST_BELL_WIDTH(enc);
     break;
   case 'b':
-    *chr = SCM_ENCODING_CONST_BS_CHR(enc);
+    scm_enc_chr_bs(enc, chr, &width);
     *skip = 2;
-    width = (ssize_t)SCM_ENCODING_CONST_BS_WIDTH(enc);
     break;
   case 't':
-    *chr = SCM_ENCODING_CONST_TAB_CHR(enc);
+    scm_enc_chr_tab(enc, chr, &width);
     *skip = 2;
-    width = (ssize_t)SCM_ENCODING_CONST_TAB_WIDTH(enc);
     break;
   case 'n':
-    *chr = SCM_ENCODING_CONST_LF_CHR(enc);
+    scm_enc_chr_lf(enc, chr, &width);
     *skip = 2;
-    width = (ssize_t)SCM_ENCODING_CONST_LF_WIDTH(enc);
     break;
   case 'r':
-    *chr = SCM_ENCODING_CONST_CR_CHR(enc);
+    scm_enc_chr_cr(enc, chr, &width);
     *skip = 2;
-    width = (ssize_t)SCM_ENCODING_CONST_CR_WIDTH(enc);
     break;
   case ' ':
     sk = scm_parser_parse_str_fold_eec_seq(str, size);
@@ -1497,11 +1476,12 @@ scm_parser_parse_string_esc_seq(const char *str, size_t size, SCM_ENC_T enc,
     rslt = scm_parser_parse_inline_hex_escape(str, size, &hv);
     if (rslt < 0) return -1;  /* [ERR]:  [through] */
     *skip = (size_t)rslt;
-    width = SCM_ENCODING_VFUNC_SCALAR_TO(enc)(hv, chr);
-    if (width < 0) {
+    w = scm_enc_cnv_from_scalar(enc, hv, chr);
+    if (w < 0) {
       scm_capi_error("Parser: invalid scalar value", 0);
       return -1;
     }
+    width = (size_t)w;
     break;
   default:
     *skip = 1;
@@ -1509,31 +1489,27 @@ scm_parser_parse_string_esc_seq(const char *str, size_t size, SCM_ENC_T enc,
     break;
   }
 
-  return width;
+  return (ssize_t)width;
 }
 
 int
-scm_parser_unescape_string(ScmToken *token, ScmObj str,
-                           const ScmEncVirtualFunc *vf)
+scm_parser_unescape_string(ScmToken *token, ScmObj str, ScmEncoding *enc)
 {
   size_t idx, skip;
   ssize_t width;
-  SCM_ENC_T enc;
   int rslt;
   scm_char_t chr;
   ScmStrItr iter;
 
   scm_assert(token != NULL);
   scm_assert(scm_capi_string_p(str));
-  scm_assert(vf != NULL);
+  scm_assert(enc != NULL);
 
-  enc = scm_capi_system_encoding();
-
-  iter = scm_str_itr_begin(token->raw.str, token->raw.size, vf->char_width);
-  if (SCM_STR_ITR_IS_ERR(&iter)) return -1;
+  scm_str_itr_begin(token->raw.str, token->raw.size, enc, &iter);
+  if (scm_str_itr_err_p(&iter)) return -1;
 
   idx = 0;
-  while (!SCM_STR_ITR_IS_END(&iter)) {
+  while (!scm_str_itr_end_p(&iter)) {
     if (token->ascii.str[idx] == '\\') {
       width = scm_parser_parse_string_esc_seq(token->ascii.str + idx,
                                               token->ascii.len - idx,
@@ -1541,10 +1517,10 @@ scm_parser_unescape_string(ScmToken *token, ScmObj str,
       if (width < 0) return -1;  /* [ERR]:  [through] */
     }
     else {
-      width = SCM_STR_ITR_WIDTH(&iter);
+      width = scm_str_itr_width(&iter);
       scm_assert(width > 0);
 
-      memcpy(chr.bytes, SCM_STR_ITR_PTR(&iter), (size_t)width);
+      memcpy(chr.bytes, scm_str_itr_ptr(&iter), (size_t)width);
       skip = 1;
     }
 
@@ -1556,7 +1532,7 @@ scm_parser_unescape_string(ScmToken *token, ScmObj str,
     idx += skip;
     for (size_t i = 0; i < skip; i++) {
       scm_str_itr_next(&iter);
-      scm_assert(!SCM_STR_ITR_IS_ERR(&iter));
+      scm_assert(!scm_str_itr_err_p(&iter));
     }
   }
 
@@ -1568,9 +1544,8 @@ scm_parser_parse_string(ScmParser *parser, ScmObj port)
 {
   ScmObj str = SCM_OBJ_INIT;
   ScmToken *token;
-  SCM_ENC_T enc;
+  ScmEncoding *enc;
   int rslt;
-  const ScmEncVirtualFunc *vf;
 
   SCM_STACK_FRAME_PUSH(&port, &str);
 
@@ -1578,7 +1553,6 @@ scm_parser_parse_string(ScmParser *parser, ScmObj port)
   scm_assert(scm_capi_input_port_p(port));
 
   enc = scm_capi_system_encoding();
-  vf = SCM_ENCODING_VFUNC(enc);
 
   token = scm_lexer_head_token(parser->lexer, port);
   if (token == NULL) return SCM_OBJ_NULL; /* [ERR]: [through] */
@@ -1586,7 +1560,7 @@ scm_parser_parse_string(ScmParser *parser, ScmObj port)
   str = scm_capi_make_string_from_cstr(NULL, enc);
   if (scm_obj_null_p(str)) return SCM_OBJ_NULL; /* [ERR]: [through] */
   if (token->raw.str != NULL) {
-    rslt = scm_parser_unescape_string(token, str, vf);
+    rslt = scm_parser_unescape_string(token, str, enc);
     if (rslt < 0) return SCM_OBJ_NULL; /* [ERR: [through] */
   }
 
@@ -1596,8 +1570,7 @@ scm_parser_parse_string(ScmParser *parser, ScmObj port)
 }
 
 static int
-scm_parser_unescape_ident(ScmToken *token, ScmObj str,
-                          const ScmEncVirtualFunc *vf)
+scm_parser_unescape_ident(ScmToken *token, ScmObj str, ScmEncoding *enc)
 {
   ScmStrItr iter;
   size_t idx;
@@ -1605,38 +1578,35 @@ scm_parser_unescape_ident(ScmToken *token, ScmObj str,
   int rslt;
   scm_char_t chr;
   ssize_t width, skip;
-  SCM_ENC_T enc;
 
   SCM_STACK_FRAME_PUSH(&str);
 
   scm_assert(token != NULL);
   scm_assert(scm_capi_string_p(str));
-  scm_assert(vf != NULL);
+  scm_assert(enc != NULL);
 
-  enc = scm_capi_system_encoding();
-
-  iter = scm_str_itr_begin(token->raw.str, token->raw.size, vf->char_width);
-  if (SCM_STR_ITR_IS_ERR(&iter)) return -1;
+  scm_str_itr_begin(token->raw.str, token->raw.size, enc, &iter);
+  if (scm_str_itr_err_p(&iter)) return -1;
 
   idx = 0;
-  while (!SCM_STR_ITR_IS_END(&iter)) {
+  while (!scm_str_itr_end_p(&iter)) {
     if (token->ascii.str[idx] == '\\') {
       skip = scm_parser_parse_inline_hex_escape(token->ascii.str + idx,
                                                 token->ascii.len - idx,
                                                 &hv);
       if (skip < 0) return -1;  /* [ERR]:  [through] */
 
-      width = vf->scalar_to(hv, &chr);
+      width = scm_enc_cnv_from_scalar(enc, hv, &chr);
       if (width < 0) {
         scm_capi_error("Parser: invalid scalar value", 0);
         return -1;
       }
     }
     else {
-      width = SCM_STR_ITR_WIDTH(&iter);
+      width = scm_str_itr_width(&iter);
       scm_assert(width > 0);
 
-      memcpy(chr.bytes, SCM_STR_ITR_PTR(&iter), (size_t)width);
+      memcpy(chr.bytes, scm_str_itr_ptr(&iter), (size_t)width);
       skip = 1;
     }
 
@@ -1646,7 +1616,7 @@ scm_parser_unescape_ident(ScmToken *token, ScmObj str,
     idx += (size_t)skip;
     for (int i = 0; i < skip; i++) {
       scm_str_itr_next(&iter);
-      scm_assert(!SCM_STR_ITR_IS_ERR(&iter));
+      scm_assert(!scm_str_itr_err_p(&iter));
     }
   }
 
@@ -1658,9 +1628,8 @@ scm_parser_parse_identifier(ScmParser *parser, ScmObj port)
 {
   ScmToken *token;
   ScmObj str = SCM_OBJ_INIT, sym = SCM_OBJ_INIT;
-  SCM_ENC_T enc;
+  ScmEncoding *enc;
   int rslt;
-  const ScmEncVirtualFunc *vf;
 
   SCM_STACK_FRAME_PUSH(&port, &str, &sym);
 
@@ -1668,7 +1637,6 @@ scm_parser_parse_identifier(ScmParser *parser, ScmObj port)
   scm_assert(scm_capi_input_port_p(port));
 
   enc = scm_capi_system_encoding();
-  vf = SCM_ENCODING_VFUNC(enc);
 
   str = scm_capi_make_string_from_cstr(NULL, enc);
   if (scm_obj_null_p(str)) return SCM_OBJ_NULL; /* [ERR: [through] */
@@ -1677,7 +1645,7 @@ scm_parser_parse_identifier(ScmParser *parser, ScmObj port)
   if (token == NULL)  return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   if (token->raw.str != NULL) {
-    rslt = scm_parser_unescape_ident(token, str, vf);
+    rslt = scm_parser_unescape_ident(token, str, enc);
     if (rslt < 0) return SCM_OBJ_NULL; /* [ERR: [through] */
   }
 
@@ -1800,7 +1768,7 @@ scm_parser_parse_char(ScmParser *parser, ScmObj port)
 {
   ScmToken *token;
   ScmObj chr = SCM_OBJ_INIT;
-  SCM_ENC_T enc;
+  ScmEncoding *enc;
 
   scm_assert(parser != NULL);
   scm_assert(scm_capi_input_port_p(port));
@@ -1821,20 +1789,18 @@ scm_parser_parse_char(ScmParser *parser, ScmObj port)
     chr = scm_api_make_char_space(enc);
   }
   else if (token->raw.len == 3) {
-    const ScmEncVirtualFunc *vf;
     ScmStrItr itr;
     scm_char_t c;
 
-    vf = SCM_ENCODING_VFUNC(enc);
-    itr = vf->index2iter(token->raw.str, token->raw.size, 2);
-    if (SCM_STR_ITR_IS_ERR(&itr)) {
+    scm_enc_index2itr(enc, token->raw.str, token->raw.size, 2, &itr);
+    if (scm_str_itr_err_p(&itr)) {
       /* TODO: error handling */
       scm_lexer_shift_token(parser->lexer);
       return SCM_OBJ_NULL;      /* [ERR]: [through] */
     }
 
-    memcpy(c.bytes, SCM_STR_ITR_PTR(&itr), (size_t)SCM_STR_ITR_WIDTH(&itr));
-    chr = scm_capi_make_char(c, enc);
+    memcpy(c.bytes, scm_str_itr_ptr(&itr), (size_t)scm_str_itr_width(&itr));
+    chr = scm_capi_make_char(&c, enc);
   }
   else {
     scm_lexer_shift_token(parser->lexer);
