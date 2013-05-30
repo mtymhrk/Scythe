@@ -92,6 +92,26 @@ int scm_subr_func_list_copy(ScmObj subr, int argc, const ScmObj *argv);
 
 
 /*******************************************************************/
+/*  Symbols                                                        */
+/*******************************************************************/
+
+#define SCM_SUBR_ARITY_SYMBOL_P 1
+#define SCM_SUBR_ARITY_SYMBOL_EQ_P -3
+#define SCM_SUBR_ARITY_SYMBOL_TO_STRING 1
+#define SCM_SUBR_ARITY_STRING_TO_SYMBOL 1
+
+#define SCM_SUBR_FLAG_SYMBOL_P 0
+#define SCM_SUBR_FLAG_SYMBOL_EQ_P 0
+#define SCM_SUBR_FLAG_SYMBOL_TO_STRING 0
+#define SCM_SUBR_FLAG_STRING_TO_SYMBOL 0
+
+int scm_subr_func_symbol_P(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_symbol_eq_P(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_symbol_to_string(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_string_to_symbol(ScmObj subr, int argc, const ScmObj *argv);
+
+
+/*******************************************************************/
 /*  Characters                                                     */
 /*******************************************************************/
 

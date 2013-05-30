@@ -1,1 +1,2 @@
-SOURCES  = test_module.c test_pair_and_lists.c test_strings.c test_characters.c
+SOURCES  = test_module.c test_pair_and_lists.c test_strings.c \
+           test_characters.c test_symbols.c

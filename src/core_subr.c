@@ -298,6 +298,73 @@ scm_subr_func_list_copy(ScmObj subr, int argc, const ScmObj *argv)
 
 
 /*******************************************************************/
+/*  Symbols                                                        */
+/*******************************************************************/
+
+int
+scm_subr_func_symbol_P(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
+
+  val = scm_api_symbol_P(argv[0]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_symbol_eq_P(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT, lst = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val, &lst);
+
+  lst = scm_api_cons(argv[1], argv[2]);
+  if (scm_obj_null_p(lst)) return -1;
+
+  lst = scm_api_cons(argv[0], lst);
+  if (scm_obj_null_p(lst)) return -1;
+
+  val = scm_capi_symbol_eq_P_lst(lst);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_symbol_to_string(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
+
+  val = scm_api_symbol_to_string(argv[0]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_string_to_symbol(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
+
+  val = scm_api_string_to_symbol(argv[0]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+
+/*******************************************************************/
 /*  Characters                                                     */
 /*******************************************************************/
 

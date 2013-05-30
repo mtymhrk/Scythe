@@ -2411,6 +2411,241 @@ scm_capi_truncate_rem(ScmObj x, ScmObj y)
 
 
 /*******************************************************************/
+/*  Symbols                                                        */
+/*******************************************************************/
+
+extern inline bool
+scm_capi_symbol_p(ScmObj obj)
+{
+  if (scm_capi_null_value_p(obj)) return false;
+
+  return scm_obj_type_p(obj, &SCM_SYMBOL_TYPE_INFO) ? true : false;
+}
+
+ScmObj
+scm_api_symbol_P(ScmObj obj)
+{
+  if (scm_obj_null_p(obj)) return SCM_OBJ_NULL;
+
+  return scm_capi_symbol_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+}
+
+int
+scm_capi_symbol_eq(ScmObj sym1, ScmObj sym2, bool *rslt)
+{
+  /* int r, cmp; */
+
+  SCM_STACK_FRAME_PUSH(&sym1, &sym2);
+
+  if (scm_obj_null_p(sym1) || scm_obj_null_p(sym2)) {
+    scm_capi_error("symbol=?: invalid argument", 0);
+    return -1;
+  }
+  else if (!scm_capi_symbol_p(sym1)) {
+    scm_capi_error("symbol=?: symbol required, but got", 1, sym1);
+    return -1;
+  }
+  else if (!scm_capi_symbol_p(sym2)) {
+    scm_capi_error("symbol=?: symbol required, but got", 1, sym2);
+    return -1;
+  }
+
+  /* r = scm_symbol_cmp(sym1, sym2, &cmp); */
+  /* if (r < 0) return -1; */
+
+  /* if (rslt != NULL) */
+  /*   *rslt = (cmp == 0) ? true : false; */
+
+  if (rslt != NULL)
+    *rslt = scm_obj_same_instance_p(sym1, sym2);
+
+  return 0;
+}
+
+static int
+scm_capi_symbol_cmp_fold(ScmObj lst,
+                         int (*cmp)(ScmObj s1, ScmObj s2, bool *rslt),
+                         bool *rslt)
+
+{
+  ScmObj str = SCM_OBJ_INIT, prv = SCM_OBJ_INIT, l = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&str, &prv, &l);
+
+  scm_assert(scm_obj_not_null_p(lst));
+  scm_assert(rslt != NULL);
+
+  prv = SCM_OBJ_NULL;
+  for (l = lst; scm_capi_pair_p(l); l = scm_api_cdr(l)) {
+    str = scm_api_car(l);
+
+    if (scm_obj_not_null_p(prv)) {
+      bool cr;
+      int r;
+
+      r = cmp(prv, str, &cr);
+      if (r < 0) return -1;
+
+      if (!cr) {
+        *rslt = false;
+        return 0;
+      }
+    }
+
+    prv = str;
+  }
+
+  if (scm_obj_null_p(l)) return -1;
+
+  *rslt = true;
+
+  return 0;
+}
+
+ScmObj
+scm_capi_symbol_eq_P_lst(ScmObj lst)
+{
+  bool cmp;
+  int r;
+
+  if (scm_obj_null_p(lst)) {
+    scm_capi_error("symbol=?: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  r = scm_capi_symbol_cmp_fold(lst, scm_capi_symbol_eq, &cmp);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return cmp ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+}
+
+ScmObj
+scm_api_symbol_eq_P(ScmObj sym1, ScmObj sym2)
+{
+  bool cmp;
+  int r;
+
+  r = scm_capi_symbol_eq(sym1, sym2, &cmp);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return cmp ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+}
+
+ScmObj
+scm_api_symbol_to_string(ScmObj sym)
+{
+  if (scm_obj_null_p(sym)) {
+    scm_capi_error("symbol->string: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if  (!scm_capi_symbol_p(sym)) {
+    scm_capi_error("symbol->string: symbol required, but got", 1, sym);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_symbol_string(sym);
+}
+
+ScmObj
+scm_api_string_to_symbol(ScmObj str)
+{
+  ScmEncoding *enc;
+
+  SCM_STACK_FRAME_PUSH(&str);
+
+  if (scm_obj_null_p(str)) {
+    scm_capi_error("string->symbol: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if  (!scm_capi_string_p(str)) {
+    scm_capi_error("string->symbol: string required, but got", 1, str);
+    return SCM_OBJ_NULL;
+  }
+
+  enc = scm_string_encoding(str);
+  if (enc != scm_capi_system_encoding())
+    str = scm_string_encode(str, scm_capi_system_encoding());
+
+  return scm_symtbl_symbol(scm_vm_symtbl(scm_vm_current_vm()), str);
+}
+
+ScmObj
+scm_capi_make_symbol_from_cstr(const char *str, ScmEncoding *enc)
+{
+  ScmObj s = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&s);
+
+  s = scm_capi_make_string_from_cstr(str, enc);
+  if (scm_obj_null_p(s))
+    return SCM_OBJ_NULL;        /* provisional implemntation */
+
+  if (enc != NULL && enc != scm_capi_system_encoding()) {
+    s = scm_string_encode(s, scm_capi_system_encoding());
+    if (scm_obj_null_p(s))
+      return SCM_OBJ_NULL;        /* provisional implemntation */
+  }
+
+  return scm_api_string_to_symbol(s);
+}
+
+ScmObj
+scm_capi_make_symbol_from_bin(const void *data, size_t size, ScmEncoding *enc)
+{
+  ScmObj s = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&s);
+
+  s = scm_capi_make_string_from_bin(data, size, enc);
+  if (scm_obj_null_p(s))
+    return SCM_OBJ_NULL;        /* provisional implemntation */
+
+  if (enc != NULL && enc != scm_capi_system_encoding()) {
+    s = scm_string_encode(s, scm_capi_system_encoding());
+    if (scm_obj_null_p(s))
+      return SCM_OBJ_NULL;        /* provisional implemntation */
+  }
+
+  return scm_api_string_to_symbol(s);
+}
+
+/* TODO: symbol_bytesize, symbol_to_cstr, symbol_hash_value についてはインタ
+ * フェースの見直しが必要
+ */
+
+ssize_t
+scm_capi_symbol_bytesize(ScmObj sym)
+{
+  if (scm_obj_null_p(sym)) {
+    scm_capi_error("symbol-bytesize: invalid argument", 0);
+    return -1;
+  }
+  else if (!scm_capi_symbol_p(sym)) {
+    scm_capi_error("symbol-bytesize: symbol required, but got", 1, sym);
+    return -1;
+  }
+
+  return scm_capi_string_bytesize(scm_api_symbol_to_string(sym));
+}
+
+extern inline ssize_t
+scm_capi_symbol_to_cstr(ScmObj sym, char *cstr, size_t size)
+{
+  return scm_capi_string_to_cstr(scm_api_symbol_to_string(sym),
+                                 cstr, size);
+}
+
+size_t
+scm_capi_symbol_hash_value(ScmObj sym)
+{
+  if (!scm_capi_symbol_p(sym))
+    return SIZE_MAX;                  /* provisional implementation */
+
+  return scm_symbol_hash_value(sym);
+}
+
+
+/*******************************************************************/
 /*  Characters                                                     */
 /*******************************************************************/
 
@@ -4535,128 +4770,6 @@ scm_api_list_to_vector(ScmObj lst)
     scm_capi_error("list->vector: improper list is passed", 0);
     return SCM_OBJ_NULL;
   }
-}
-
-
-/*******************************************************************/
-/*  Symbol                                                         */
-/*******************************************************************/
-
-ScmObj
-scm_api_symbol_to_string(ScmObj sym)
-{
-  if (scm_obj_null_p(sym)) {
-    scm_capi_error("symbol->string: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-  else if  (!scm_capi_symbol_p(sym)) {
-    scm_capi_error("symbol->string: symbol required, but got", 1, sym);
-    return SCM_OBJ_NULL;
-  }
-
-  return scm_symbol_string(sym);
-}
-
-ScmObj
-scm_api_string_to_symbol(ScmObj str)
-{
-  ScmEncoding *enc;
-
-  SCM_STACK_FRAME_PUSH(&str);
-
-  if (scm_obj_null_p(str)) {
-    scm_capi_error("string->symbol: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-  else if  (!scm_capi_string_p(str)) {
-    scm_capi_error("string->symbol: string required, but got", 1, str);
-    return SCM_OBJ_NULL;
-  }
-
-  enc = scm_string_encoding(str);
-  if (enc != scm_capi_system_encoding())
-    str = scm_string_encode(str, scm_capi_system_encoding());
-
-  return scm_symtbl_symbol(scm_vm_symtbl(scm_vm_current_vm()), str);
-}
-
-ScmObj
-scm_capi_make_symbol_from_cstr(const char *str, ScmEncoding *enc)
-{
-  ScmObj s = SCM_OBJ_INIT;
-
-  SCM_STACK_FRAME_PUSH(&s);
-
-  s = scm_capi_make_string_from_cstr(str, enc);
-  if (scm_obj_null_p(s))
-    return SCM_OBJ_NULL;        /* provisional implemntation */
-
-  if (enc != NULL && enc != scm_capi_system_encoding()) {
-    s = scm_string_encode(s, scm_capi_system_encoding());
-    if (scm_obj_null_p(s))
-      return SCM_OBJ_NULL;        /* provisional implemntation */
-  }
-
-  return scm_api_string_to_symbol(s);
-}
-
-ScmObj
-scm_capi_make_symbol_from_bin(const void *data, size_t size, ScmEncoding *enc)
-{
-  ScmObj s = SCM_OBJ_INIT;
-
-  SCM_STACK_FRAME_PUSH(&s);
-
-  s = scm_capi_make_string_from_bin(data, size, enc);
-  if (scm_obj_null_p(s))
-    return SCM_OBJ_NULL;        /* provisional implemntation */
-
-  if (enc != NULL && enc != scm_capi_system_encoding()) {
-    s = scm_string_encode(s, scm_capi_system_encoding());
-    if (scm_obj_null_p(s))
-      return SCM_OBJ_NULL;        /* provisional implemntation */
-  }
-
-  return scm_api_string_to_symbol(s);
-}
-
-extern inline bool
-scm_capi_symbol_p(ScmObj obj)
-{
-  if (scm_capi_null_value_p(obj)) return false;
-
-  return scm_obj_type_p(obj, &SCM_SYMBOL_TYPE_INFO) ? true : false;
-}
-
-ssize_t
-scm_capi_symbol_bytesize(ScmObj sym)
-{
-  if (scm_obj_null_p(sym)) {
-    scm_capi_error("symbol-bytesize: invalid argument", 0);
-    return -1;
-  }
-  else if (!scm_capi_symbol_p(sym)) {
-    scm_capi_error("symbol-bytesize: symbol required, but got", 1, sym);
-    return -1;
-  }
-
-  return scm_capi_string_bytesize(scm_api_symbol_to_string(sym));
-}
-
-extern inline ssize_t
-scm_capi_symbol_to_cstr(ScmObj sym, char *cstr, size_t size)
-{
-  return scm_capi_string_to_cstr(scm_api_symbol_to_string(sym),
-                                 cstr, size);
-}
-
-size_t
-scm_capi_symbol_hash_value(ScmObj sym)
-{
-  if (!scm_capi_symbol_p(sym))
-    return SIZE_MAX;                  /* provisional implementation */
-
-  return scm_symbol_hash_value(sym);
 }
 
 

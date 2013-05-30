@@ -133,6 +133,14 @@ scm_define_scheme_base_subr(ScmObj module)
     { "list-copy", SCM_SUBR_ARITY_LIST_COPY, SCM_SUBR_FLAG_LIST_COPY, scm_subr_func_list_copy },
 
     /*******************************************************************/
+    /*  Symbols                                                        */
+    /*******************************************************************/
+    { "symbol?", SCM_SUBR_ARITY_SYMBOL_P, SCM_SUBR_FLAG_SYMBOL_P, scm_subr_func_symbol_P },
+    { "symbol=?", SCM_SUBR_ARITY_SYMBOL_EQ_P, SCM_SUBR_FLAG_SYMBOL_EQ_P, scm_subr_func_symbol_eq_P },
+    { "symbol->string", SCM_SUBR_ARITY_SYMBOL_TO_STRING, SCM_SUBR_FLAG_SYMBOL_TO_STRING, scm_subr_func_symbol_to_string },
+    { "string->symbol", SCM_SUBR_ARITY_STRING_TO_SYMBOL, SCM_SUBR_FLAG_STRING_TO_SYMBOL, scm_subr_func_string_to_symbol },
+
+    /*******************************************************************/
     /*  Characters                                                     */
     /*******************************************************************/
     { "char?", SCM_SUBR_ARITY_CHAR_P, SCM_SUBR_FLAG_CHAR_P, scm_subr_func_char_P },

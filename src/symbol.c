@@ -70,6 +70,9 @@ scm_symbol_string(ScmObj sym)
 {
   scm_assert_obj_type(sym, &SCM_SYMBOL_TYPE_INFO);
 
+  /* TODO: string を複製するのではなく、シンボルが immutable な文字列を保持す
+   *       るに変更し、それを直接返すようにする
+   */
   return scm_string_dup(SCM_SYMBOL_STR(sym));
 }
 
@@ -220,6 +223,9 @@ scm_symtbl_symbol(ScmObj tbl, ScmObj str)
   SCM_STACK_FRAME_PUSH(&sym, &tbl, &str);
 
   scm_assert_obj_type(tbl, &SCM_SYMTBL_TYPE_INFO);
+
+  str = scm_string_dup(str);
+  if (scm_obj_null_p(str)) return SCM_OBJ_NULL;
 
   rslt = scm_chash_tbl_get(SCM_SYMTBL(tbl)->tbl,
                            str,
