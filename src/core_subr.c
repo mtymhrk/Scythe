@@ -298,6 +298,251 @@ scm_subr_func_list_copy(ScmObj subr, int argc, const ScmObj *argv)
 
 
 /*******************************************************************/
+/*  Characters                                                     */
+/*******************************************************************/
+
+int
+scm_subr_func_char_P(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
+
+  val = scm_api_char_P(argv[0]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_char_eq_P(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT, lst = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val, &lst);
+
+  lst = scm_api_cons(argv[1], argv[2]);
+  if (scm_obj_null_p(lst)) return -1;
+
+  lst = scm_api_cons(argv[0], lst);
+  if (scm_obj_null_p(lst)) return -1;
+
+  val = scm_capi_char_eq_P_lst(lst);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_char_lt_P(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT, lst = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val, &lst);
+
+  lst = scm_api_cons(argv[1], argv[2]);
+  if (scm_obj_null_p(lst)) return -1;
+
+  lst = scm_api_cons(argv[0], lst);
+  if (scm_obj_null_p(lst)) return -1;
+
+  val = scm_capi_char_lt_P_lst(lst);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_char_gt_P(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT, lst = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val, &lst);
+
+  lst = scm_api_cons(argv[1], argv[2]);
+  if (scm_obj_null_p(lst)) return -1;
+
+  lst = scm_api_cons(argv[0], lst);
+  if (scm_obj_null_p(lst)) return -1;
+
+  val = scm_capi_char_gt_P_lst(lst);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_char_le_P(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT, lst = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val, &lst);
+
+  lst = scm_api_cons(argv[1], argv[2]);
+  if (scm_obj_null_p(lst)) return -1;
+
+  lst = scm_api_cons(argv[0], lst);
+  if (scm_obj_null_p(lst)) return -1;
+
+  val = scm_capi_char_le_P_lst(lst);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_char_ge_P(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT, lst = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val, &lst);
+
+  lst = scm_api_cons(argv[1], argv[2]);
+  if (scm_obj_null_p(lst)) return -1;
+
+  lst = scm_api_cons(argv[0], lst);
+  if (scm_obj_null_p(lst)) return -1;
+
+  val = scm_capi_char_ge_P_lst(lst);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_char_ci_eq_P(ScmObj subr, int argc, const ScmObj *argv)
+{
+  scm_capi_error("char-ci=?: not implemented", 0);
+  return -1;
+}
+
+int
+scm_subr_func_char_ci_lt_P(ScmObj subr, int argc, const ScmObj *argv)
+{
+  scm_capi_error("char-ci<?: not implemented", 0);
+  return -1;
+}
+
+int
+scm_subr_func_char_ci_gt_P(ScmObj subr, int argc, const ScmObj *argv)
+{
+  scm_capi_error("char-ci>?: not implemented", 0);
+  return -1;
+}
+
+int
+scm_subr_func_char_ci_le_P(ScmObj subr, int argc, const ScmObj *argv)
+{
+  scm_capi_error("char-ci<=?: not implemented", 0);
+  return -1;
+}
+
+int
+scm_subr_func_char_ci_ge_P(ScmObj subr, int argc, const ScmObj *argv)
+{
+  scm_capi_error("char-ci>=?: not implemented", 0);
+  return -1;
+}
+
+int
+scm_subr_func_char_alphabetic_P(ScmObj subr, int argc, const ScmObj *argv)
+{
+  scm_capi_error("char-alphabetic?: not implemented", 0);
+  return -1;
+}
+
+int
+scm_subr_func_char_numeric_P(ScmObj subr, int argc, const ScmObj *argv)
+{
+  scm_capi_error("char-numeric?: not implemented", 0);
+  return -1;
+}
+
+int
+scm_subr_func_char_whitespace_P(ScmObj subr, int argc, const ScmObj *argv)
+{
+  scm_capi_error("char-whitespace?: not implemented", 0);
+  return -1;
+}
+
+int
+scm_subr_func_char_upper_case_P(ScmObj subr, int argc, const ScmObj *argv)
+{
+  scm_capi_error("char-upper-case?: not implemented", 0);
+  return -1;
+}
+
+int
+scm_subr_func_char_lower_case_P(ScmObj subr, int argc, const ScmObj *argv)
+{
+  scm_capi_error("char-lower-case?: not implemented", 0);
+  return -1;
+}
+
+int
+scm_subr_func_digit_value(ScmObj subr, int argc, const ScmObj *argv)
+{
+  scm_capi_error("digit-value?: not implemented", 0);
+  return -1;
+}
+
+int
+scm_subr_func_char_to_integer(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
+
+  val = scm_api_char_to_integer(argv[0]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_integer_to_char(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
+
+  val = scm_capi_integer_to_char(argv[0], NULL);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_char_upcase(ScmObj subr, int argc, const ScmObj *argv)
+{
+  scm_capi_error("char-upcase: not implemented", 0);
+  return -1;
+}
+
+int
+scm_subr_func_char_downcase(ScmObj subr, int argc, const ScmObj *argv)
+{
+  scm_capi_error("char-downcase: not implemented", 0);
+  return -1;
+}
+
+int
+scm_subr_func_char_foldcase(ScmObj subr, int argc, const ScmObj *argv)
+{
+  scm_capi_error("char-foldcase: not implemented", 0);
+  return -1;
+}
+
+
+/*******************************************************************/
 /*  Strings                                                        */
 /*******************************************************************/
 

@@ -165,6 +165,16 @@ scm_char_value(ScmObj chr)
   return SCM_CHAR_VALUE(chr);
 }
 
+long long
+scm_char_scalar(ScmObj chr)
+{
+  scm_assert_obj_type(chr, &SCM_CHAR_TYPE_INFO);
+
+  return scm_enc_cnv_to_scalar(SCM_CHAR_ENC(chr),
+                               SCM_CHAR_VALUE(chr).bytes,
+                               sizeof(scm_char_t));
+}
+
 ScmEncoding *
 scm_char_encoding(ScmObj chr)
 {

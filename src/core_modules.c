@@ -133,6 +133,18 @@ scm_define_scheme_base_subr(ScmObj module)
     { "list-copy", SCM_SUBR_ARITY_LIST_COPY, SCM_SUBR_FLAG_LIST_COPY, scm_subr_func_list_copy },
 
     /*******************************************************************/
+    /*  Characters                                                     */
+    /*******************************************************************/
+    { "char?", SCM_SUBR_ARITY_CHAR_P, SCM_SUBR_FLAG_CHAR_P, scm_subr_func_char_P },
+    { "char=?", SCM_SUBR_ARITY_CHAR_EQ_P, SCM_SUBR_FLAG_CHAR_EQ_P, scm_subr_func_char_eq_P },
+    { "char<?", SCM_SUBR_ARITY_CHAR_LT_P, SCM_SUBR_FLAG_CHAR_LT_P, scm_subr_func_char_lt_P },
+    { "char>?", SCM_SUBR_ARITY_CHAR_GT_P, SCM_SUBR_FLAG_CHAR_GT_P, scm_subr_func_char_gt_P },
+    { "char<=?", SCM_SUBR_ARITY_CHAR_LE_P, SCM_SUBR_FLAG_CHAR_LE_P, scm_subr_func_char_le_P },
+    { "char>=?", SCM_SUBR_ARITY_CHAR_GE_P, SCM_SUBR_FLAG_CHAR_GE_P, scm_subr_func_char_ge_P },
+    { "char->integer", SCM_SUBR_ARITY_CHAR_TO_INTEGER, SCM_SUBR_FLAG_CHAR_TO_INTEGER, scm_subr_func_char_to_integer },
+    { "integer->char", SCM_SUBR_ARITY_INTEGER_TO_CHAR, SCM_SUBR_FLAG_INTEGER_TO_CHAR, scm_subr_func_integer_to_char },
+
+    /*******************************************************************/
     /*  Strings                                                        */
     /*******************************************************************/
     { "string?", SCM_SUBR_ARITY_STRING_P, SCM_SUBR_FLAG_STRING_P, scm_subr_func_string_P },
@@ -322,6 +334,24 @@ static int
 scm_define_scheme_char_subr(ScmObj module)
 {
   static const struct subr_data data[] = {
+    /*******************************************************************/
+    /*  Characters                                                     */
+    /*******************************************************************/
+    { "char-ci=?", SCM_SUBR_ARITY_CHAR_CI_EQ_P, SCM_SUBR_FLAG_CHAR_CI_EQ_P, scm_subr_func_char_ci_eq_P },
+    { "char-ci<?", SCM_SUBR_ARITY_CHAR_CI_LT_P, SCM_SUBR_FLAG_CHAR_CI_LT_P, scm_subr_func_char_ci_lt_P },
+    { "char-ci>?", SCM_SUBR_ARITY_CHAR_CI_GT_P, SCM_SUBR_FLAG_CHAR_CI_GT_P, scm_subr_func_char_ci_gt_P },
+    { "char-ci<=?", SCM_SUBR_ARITY_CHAR_CI_LE_P, SCM_SUBR_FLAG_CHAR_CI_LE_P, scm_subr_func_char_ci_le_P },
+    { "char-ci>=?", SCM_SUBR_ARITY_CHAR_CI_GE_P, SCM_SUBR_FLAG_CHAR_CI_GE_P, scm_subr_func_char_ci_ge_P },
+    { "char-alphabetic?", SCM_SUBR_ARITY_CHAR_ALPHABETIC_P, SCM_SUBR_FLAG_CHAR_ALPHABETIC_P, scm_subr_func_char_alphabetic_P },
+    { "char-numeric?", SCM_SUBR_ARITY_CHAR_NUMERIC_P, SCM_SUBR_FLAG_CHAR_NUMERIC_P, scm_subr_func_char_numeric_P },
+    { "char-whitespace?", SCM_SUBR_ARITY_CHAR_WHITESPACE_P, SCM_SUBR_FLAG_CHAR_WHITESPACE_P, scm_subr_func_char_whitespace_P },
+    { "char-upper-case?", SCM_SUBR_ARITY_CHAR_UPPER_CASE_P, SCM_SUBR_FLAG_CHAR_UPPER_CASE_P, scm_subr_func_char_upper_case_P },
+    { "char-lower-case?", SCM_SUBR_ARITY_CHAR_LOWER_CASE_P, SCM_SUBR_FLAG_CHAR_LOWER_CASE_P, scm_subr_func_char_lower_case_P },
+    { "digit_value", SCM_SUBR_ARITY_DIGIT_VALUE, SCM_SUBR_FLAG_DIGIT_VALUE, scm_subr_func_digit_value },
+    { "char-upcase", SCM_SUBR_ARITY_CHAR_UPCASE, SCM_SUBR_FLAG_CHAR_UPCASE, scm_subr_func_char_upcase },
+    { "char-downcase", SCM_SUBR_ARITY_CHAR_DOWNCASE, SCM_SUBR_FLAG_CHAR_DOWNCASE, scm_subr_func_char_downcase },
+    { "char-foldcase", SCM_SUBR_ARITY_CHAR_FOLDCASE, SCM_SUBR_FLAG_CHAR_FOLDCASE, scm_subr_func_char_foldcase },
+
     /*******************************************************************/
     /*  Strings                                                        */
     /*******************************************************************/

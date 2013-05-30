@@ -1,4 +1,4 @@
-#ifndef INCLUDE_API_H__
+ #ifndef INCLUDE_API_H__
 #define INCLUDE_API_H__
 
 #include <stdint.h>
@@ -203,6 +203,7 @@ ScmObj scm_api_list_copy(ScmObj lst);
 
 ScmObj scm_capi_make_number_from_literal(const char *literal, size_t size);
 ScmObj scm_capi_make_number_from_sword(scm_sword_t num);
+ScmObj scm_capi_make_number_from_llong(long long num);
 
 bool scm_capi_number_p(ScmObj obj);
 bool scm_capi_integer_p(ScmObj obj);
@@ -211,6 +212,7 @@ bool scm_capi_fixnum_p(ScmObj obj);
 bool scm_capi_bignum_p(ScmObj obj);
 
 int scm_capi_num_to_sword(ScmObj num, scm_sword_t *w);
+int scm_capi_num_to_llong(ScmObj num, long long *ll);
 int scm_capi_num_to_size_t(ScmObj num, size_t *s);
 
 int scm_capi_num_eq(ScmObj n1, ScmObj n2, bool *rslt);
@@ -271,17 +273,33 @@ ScmObj scm_capi_truncate_rem(ScmObj x, ScmObj y);
 
 
 /*******************************************************************/
-/*  Charactor                                                      */
+/*  Characters                                                     */
 /*******************************************************************/
 
 ScmObj scm_capi_make_char(const scm_char_t *chr, ScmEncoding *enc);
 ScmObj scm_api_make_char_newline(ScmEncoding *enc);
 ScmObj scm_api_make_char_space(ScmEncoding *enc);
 bool scm_capi_char_p(ScmObj obj);
+ScmObj scm_api_char_P(ScmObj obj);
+int scm_capi_char_eq(ScmObj chr1, ScmObj chr2, bool *rslt);
+ScmObj scm_capi_char_eq_P_lst(ScmObj lst);
+ScmObj scm_api_char_eq_P(ScmObj chr1, ScmObj chr2);
+int scm_capi_char_lt(ScmObj chr1, ScmObj chr2, bool *rslt);
+ScmObj scm_capi_char_lt_P_lst(ScmObj lst);
+ScmObj scm_api_char_lt_P(ScmObj chr1, ScmObj chr2);
+int scm_capi_char_gt(ScmObj chr1, ScmObj chr2, bool *rslt);
+ScmObj scm_capi_char_gt_P_lst(ScmObj lst);
+ScmObj scm_api_char_gt_P(ScmObj chr1, ScmObj chr2);
+int scm_capi_char_le(ScmObj chr1, ScmObj chr2, bool *rslt);
+ScmObj scm_capi_char_le_P_lst(ScmObj lst);
+ScmObj scm_api_char_le_P(ScmObj chr1, ScmObj chr2);
+int scm_capi_char_ge(ScmObj chr1, ScmObj chr2, bool *rslt);
+ScmObj scm_capi_char_ge_P_lst(ScmObj lst);
+ScmObj scm_api_char_ge_P(ScmObj chr1, ScmObj chr2);
+ScmObj scm_api_char_to_integer(ScmObj chr);
+ScmObj scm_capi_integer_to_char(ScmObj num, ScmEncoding *enc);
 ssize_t scm_capi_char_to_cchar(ScmObj chr, scm_char_t *cp);
 ScmEncoding *scm_capi_char_encoding(ScmObj chr);
-int scm_capi_char_eq(ScmObj chr1, ScmObj chr2, bool *rslt);
-ScmObj scm_api_char_eq_P(ScmObj chr1, ScmObj chr2);
 
 
 /*******************************************************************/

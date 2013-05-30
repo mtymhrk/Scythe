@@ -29,6 +29,7 @@ ScmObj scm_char_new(SCM_MEM_TYPE_T mtype,
 ScmObj scm_char_new_newline(SCM_MEM_TYPE_T mtype, ScmEncoding *enc);
 ScmObj scm_char_new_space(SCM_MEM_TYPE_T mtype, ScmEncoding *enc);
 scm_char_t scm_char_value(ScmObj chr);
+long long scm_char_scalar(ScmObj chr);
 ScmEncoding *scm_char_encoding(ScmObj chr);
 ScmObj scm_char_encode(ScmObj chr, ScmEncoding *enc);
 int scm_char_cmp(ScmObj chr1, ScmObj chr2, int *rslt);

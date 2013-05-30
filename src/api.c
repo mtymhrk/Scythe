@@ -1393,6 +1393,17 @@ scm_capi_make_number_from_sword(scm_sword_t num)
     return scm_fixnum_new(num);
 }
 
+ScmObj
+scm_capi_make_number_from_llong(long long num)
+{
+  if (SCM_FIXNUM_MIN <= num && num <= SCM_FIXNUM_MAX)
+    return scm_fixnum_new((scm_sword_t)num);
+  else if (SCM_SWORD_MIN <= num && num <= SCM_SWORD_MAX)
+    return scm_bignum_new_from_sword(SCM_MEM_HEAP, num);
+  else
+    return SCM_OBJ_NULL;        /* TODO: write me */
+}
+
 extern inline bool
 scm_capi_number_p(ScmObj obj)
 {
@@ -1448,6 +1459,37 @@ scm_capi_num_to_sword(ScmObj num, scm_sword_t *w)
       scm_capi_error("can not convert number to scm_sword_t: overflow", 1, num);
       return -1;
     }
+  }
+
+  return 0;
+}
+
+int
+scm_capi_num_to_llong(ScmObj num, long long *ll)
+{
+  if (scm_obj_null_p(num) || ll == NULL) {
+    scm_capi_error("can not convert number to long long int: "
+                   "invalid argument", 0);
+    return -1;
+  }
+  else if (!scm_capi_integer_p(num)) {
+    scm_capi_error("can not convert number to long long int: "
+                   "integer required, but got", 1, num);
+    return -1;
+  }
+
+  if (scm_capi_fixnum_p(num)) {
+    *ll = scm_fixnum_value(num);
+  }
+  else if (scm_capi_bignum_p(num)) {
+    /* TODO: scm_bignum_to_llong の実装と呼出 */
+    scm_sword_t w;
+    int r = scm_bignum_to_sword(num, &w);
+    if (r < 0) {
+      scm_capi_error("can not convert number to long long int: overflow", 1, num);
+      return -1;
+    }
+    *ll = w;
   }
 
   return 0;
@@ -2369,8 +2411,24 @@ scm_capi_truncate_rem(ScmObj x, ScmObj y)
 
 
 /*******************************************************************/
-/*  charactor                                                      */
+/*  Characters                                                     */
 /*******************************************************************/
+
+extern inline bool
+scm_capi_char_p(ScmObj obj)
+{
+  if (scm_capi_null_value_p(obj)) return false;
+
+  return scm_obj_type_p(obj, &SCM_CHAR_TYPE_INFO) ? true : false;
+}
+
+ScmObj
+scm_api_char_P(ScmObj obj)
+{
+  if (scm_obj_null_p(obj)) return SCM_OBJ_NULL;
+
+  return scm_capi_char_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+}
 
 ScmObj
 scm_capi_make_char(const scm_char_t *chr, ScmEncoding *enc)
@@ -2410,13 +2468,407 @@ scm_api_make_char_space(ScmEncoding *enc)
   return scm_char_new(SCM_MEM_ALLOC_HEAP, &sp, enc);
 }
 
-extern inline bool
-scm_capi_char_p(ScmObj obj)
+int
+scm_capi_char_eq(ScmObj chr1, ScmObj chr2, bool *rslt)
 {
-  if (scm_capi_null_value_p(obj)) return false;
+  int err, cmp;
 
-  return scm_obj_type_p(obj, &SCM_CHAR_TYPE_INFO) ? true : false;
+  if (scm_obj_null_p(chr1) || scm_obj_null_p(chr2)) {
+    scm_capi_error("char=?: invalid argument", 0);
+    return -1;
+  }
+  else if (!scm_capi_char_p(chr1)) {
+    scm_capi_error("char=?: character required, but got", 1, chr1);
+    return -1;
+  }
+  else if (!scm_capi_char_p(chr2)) {
+    scm_capi_error("char=?: character required, but got", 1, chr2);
+    return -1;
+  }
+  else if (scm_char_encoding(chr1) != scm_char_encoding(chr2)) {
+    scm_capi_error("char=?: invalid argument: encoding mismatch", 0);
+    return -1;
+  }
+
+  err = scm_char_cmp(chr1, chr2, &cmp);
+  if (err < 0) return -1;
+
+  if (rslt != NULL)
+    *rslt = (cmp == 0) ? true : false;
+
+  return 0;
 }
+
+static int
+scm_capi_char_cmp_fold(ScmObj lst,
+                       int (*cmp)(ScmObj s1, ScmObj s2, bool *rslt),
+                       bool *rslt)
+
+{
+  ScmObj str = SCM_OBJ_INIT, prv = SCM_OBJ_INIT, l = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&str, &prv, &l);
+
+  scm_assert(scm_obj_not_null_p(lst));
+  scm_assert(rslt != NULL);
+
+  prv = SCM_OBJ_NULL;
+  for (l = lst; scm_capi_pair_p(l); l = scm_api_cdr(l)) {
+    str = scm_api_car(l);
+
+    if (scm_obj_not_null_p(prv)) {
+      bool cr;
+      int r;
+
+      r = cmp(prv, str, &cr);
+      if (r < 0) return -1;
+
+      if (!cr) {
+        *rslt = false;
+        return 0;
+      }
+    }
+
+    prv = str;
+  }
+
+  if (scm_obj_null_p(l)) return -1;
+
+  *rslt = true;
+
+  return 0;
+}
+
+ScmObj
+scm_capi_char_eq_P_lst(ScmObj lst)
+{
+  bool cmp;
+  int r;
+
+  if (scm_obj_null_p(lst)) {
+    scm_capi_error("char=?: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  r = scm_capi_char_cmp_fold(lst, scm_capi_char_eq, &cmp);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return cmp ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+}
+
+ScmObj
+scm_api_char_eq_P(ScmObj chr1, ScmObj chr2)
+{
+  bool cmp;
+  int rslt;
+
+  rslt = scm_capi_char_eq(chr1, chr2, &cmp);
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  return cmp ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+}
+
+int
+scm_capi_char_lt(ScmObj chr1, ScmObj chr2, bool *rslt)
+{
+  int err, cmp;
+
+  if (scm_obj_null_p(chr1) || scm_obj_null_p(chr2)) {
+    scm_capi_error("char<?: invalid argument", 0);
+    return -1;
+  }
+  else if (!scm_capi_char_p(chr1)) {
+    scm_capi_error("char<?: character required, but got", 1, chr1);
+    return -1;
+  }
+  else if (!scm_capi_char_p(chr2)) {
+    scm_capi_error("char<?: character required, but got", 1, chr2);
+    return -1;
+  }
+  else if (scm_char_encoding(chr1) != scm_char_encoding(chr2)) {
+    scm_capi_error("char<?: invalid argument: encoding mismatch", 0);
+    return -1;
+  }
+
+  err = scm_char_cmp(chr1, chr2, &cmp);
+  if (err < 0) return -1;
+
+  if (rslt != NULL)
+    *rslt = (cmp == -1) ? true : false;
+
+  return 0;
+}
+
+ScmObj
+scm_capi_char_lt_P_lst(ScmObj lst)
+{
+  bool cmp;
+  int r;
+
+  if (scm_obj_null_p(lst)) {
+    scm_capi_error("char<?: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  r = scm_capi_char_cmp_fold(lst, scm_capi_char_lt, &cmp);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return cmp ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+}
+
+ScmObj
+scm_api_char_lt_P(ScmObj chr1, ScmObj chr2)
+{
+  bool cmp;
+  int rslt;
+
+  rslt = scm_capi_char_lt(chr1, chr2, &cmp);
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  return cmp ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+}
+
+int
+scm_capi_char_gt(ScmObj chr1, ScmObj chr2, bool *rslt)
+{
+  int err, cmp;
+
+  if (scm_obj_null_p(chr1) || scm_obj_null_p(chr2)) {
+    scm_capi_error("char>?: invalid argument", 0);
+    return -1;
+  }
+  else if (!scm_capi_char_p(chr1)) {
+    scm_capi_error("char>?: character required, but got", 1, chr1);
+    return -1;
+  }
+  else if (!scm_capi_char_p(chr2)) {
+    scm_capi_error("char>?: character required, but got", 1, chr2);
+    return -1;
+  }
+  else if (scm_char_encoding(chr1) != scm_char_encoding(chr2)) {
+    scm_capi_error("char>?: invalid argument: encoding mismatch", 0);
+    return -1;
+  }
+
+  err = scm_char_cmp(chr1, chr2, &cmp);
+  if (err < 0) return -1;
+
+  if (rslt != NULL)
+    *rslt = (cmp == 1) ? true : false;
+
+  return 0;
+}
+
+ScmObj
+scm_capi_char_gt_P_lst(ScmObj lst)
+{
+  bool cmp;
+  int r;
+
+  if (scm_obj_null_p(lst)) {
+    scm_capi_error("char>?: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  r = scm_capi_char_cmp_fold(lst, scm_capi_char_gt, &cmp);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return cmp ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+}
+
+ScmObj
+scm_api_char_gt_P(ScmObj chr1, ScmObj chr2)
+{
+  bool cmp;
+  int rslt;
+
+  rslt = scm_capi_char_gt(chr1, chr2, &cmp);
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  return cmp ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+}
+
+int
+scm_capi_char_le(ScmObj chr1, ScmObj chr2, bool *rslt)
+{
+  int err, cmp;
+
+  if (scm_obj_null_p(chr1) || scm_obj_null_p(chr2)) {
+    scm_capi_error("char<=?: invalid argument", 0);
+    return -1;
+  }
+  else if (!scm_capi_char_p(chr1)) {
+    scm_capi_error("char<=?: character required, but got", 1, chr1);
+    return -1;
+  }
+  else if (!scm_capi_char_p(chr2)) {
+    scm_capi_error("char<=?: character required, but got", 1, chr2);
+    return -1;
+  }
+  else if (scm_char_encoding(chr1) != scm_char_encoding(chr2)) {
+    scm_capi_error("char<=?: invalid argument: encoding mismatch", 0);
+    return -1;
+  }
+
+  err = scm_char_cmp(chr1, chr2, &cmp);
+  if (err < 0) return -1;
+
+  if (rslt != NULL)
+    *rslt = (cmp == -1 || cmp == 0) ? true : false;
+
+  return 0;
+}
+
+ScmObj
+scm_capi_char_le_P_lst(ScmObj lst)
+{
+  bool cmp;
+  int r;
+
+  if (scm_obj_null_p(lst)) {
+    scm_capi_error("char<=?: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  r = scm_capi_char_cmp_fold(lst, scm_capi_char_le, &cmp);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return cmp ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+}
+
+ScmObj
+scm_api_char_le_P(ScmObj chr1, ScmObj chr2)
+{
+  bool cmp;
+  int rslt;
+
+  rslt = scm_capi_char_le(chr1, chr2, &cmp);
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  return cmp ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+}
+
+int
+scm_capi_char_ge(ScmObj chr1, ScmObj chr2, bool *rslt)
+{
+  int err, cmp;
+
+  if (scm_obj_null_p(chr1) || scm_obj_null_p(chr2)) {
+    scm_capi_error("char>=?: invalid argument", 0);
+    return -1;
+  }
+  else if (!scm_capi_char_p(chr1)) {
+    scm_capi_error("char>=?: character required, but got", 1, chr1);
+    return -1;
+  }
+  else if (!scm_capi_char_p(chr2)) {
+    scm_capi_error("char>=?: character required, but got", 1, chr2);
+    return -1;
+  }
+  else if (scm_char_encoding(chr1) != scm_char_encoding(chr2)) {
+    scm_capi_error("char>=?: invalid argument: encoding mismatch", 0);
+    return -1;
+  }
+
+  err = scm_char_cmp(chr1, chr2, &cmp);
+  if (err < 0) return -1;
+
+  if (rslt != NULL)
+    *rslt = (cmp == 0 || cmp == 1) ? true : false;
+
+  return 0;
+}
+
+ScmObj
+scm_capi_char_ge_P_lst(ScmObj lst)
+{
+  bool cmp;
+  int r;
+
+  if (scm_obj_null_p(lst)) {
+    scm_capi_error("char=?: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  r = scm_capi_char_cmp_fold(lst, scm_capi_char_ge, &cmp);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return cmp ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+}
+
+ScmObj
+scm_api_char_ge_P(ScmObj chr1, ScmObj chr2)
+{
+  bool cmp;
+  int rslt;
+
+  rslt = scm_capi_char_ge(chr1, chr2, &cmp);
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  return cmp ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+}
+
+ScmObj
+scm_api_char_to_integer(ScmObj chr)
+{
+  long long scalar;
+
+  if (scm_obj_null_p(chr)) {
+    scm_capi_error("char->integer: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_char_p(chr)) {
+    scm_capi_error("char->integer: character required, but got", 1, chr);
+    return SCM_OBJ_NULL;
+  }
+
+  scalar = scm_char_scalar(chr);
+
+  /* TODO: エンコーディングが Unicode のものではない場合、scalar に 0x110000
+   * を足す
+   */
+
+  return scm_capi_make_number_from_llong(scalar);
+}
+
+ScmObj
+scm_capi_integer_to_char(ScmObj num, ScmEncoding *enc)
+{
+  long long scalar;
+  scm_char_t c;
+  ssize_t s;
+  int r;
+
+  if (scm_obj_null_p(num)) {
+    scm_capi_error("integer->char: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_integer_p(num)) {
+    scm_capi_error("integer->char: integer required, but got", 1, num);
+    return SCM_OBJ_NULL;
+  }
+
+  if (enc == NULL)
+    enc = scm_capi_system_encoding();
+
+  r = scm_capi_num_to_llong(num, &scalar);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  /* TODO: エンコーディングが Unicode のものではない場合、scalar から 0x110000
+   * を引く
+   */
+
+  s = scm_enc_cnv_from_scalar(enc, scalar, &c);
+  /* scalar 値に相当する文字が無い場合、#f を返す。r7rs-draft-9 未定義 */
+  if (s < 0) return SCM_FALSE_OBJ;
+
+  return scm_char_new(SCM_MEM_HEAP, &c, enc);
+}
+
+
+/* TODO: char_to_cchar、char_encoding はインタフェースの見直しが必要
+ */
+
 
 ssize_t
 scm_capi_char_to_cchar(ScmObj chr, scm_char_t *cp)
@@ -2449,49 +2901,6 @@ scm_capi_char_encoding(ScmObj chr)
   }
 
   return scm_char_encoding(chr);
-}
-
-int
-scm_capi_char_eq(ScmObj chr1, ScmObj chr2, bool *rslt)
-{
-  int err, cmp;
-
-  if (scm_obj_null_p(chr1) || scm_obj_null_p(chr2)) {
-    scm_capi_error("char=?: invalid argument", 0);
-    return -1;
-  }
-  else if (!scm_capi_char_p(chr1)) {
-    scm_capi_error("char=?: number required, but got", 1, chr1);
-    return -1;
-  }
-  else if (!scm_capi_char_p(chr2)) {
-    scm_capi_error("char=?: number required, but got", 1, chr2);
-    return -1;
-  }
-  else if (scm_char_encoding(chr1) != scm_char_encoding(chr2)) {
-    scm_capi_error("char=?: invalid argument: encoding mismatch", 0);
-    return -1;
-  }
-
-  err = scm_char_cmp(chr1, chr2, &cmp);
-  if (err < 0) return -1;
-
-  if (rslt != NULL)
-    *rslt = (cmp == 0) ? true : false;
-
-  return 0;
-}
-
-ScmObj
-scm_api_char_eq_P(ScmObj chr1, ScmObj chr2)
-{
-  bool cmp;
-  int rslt;
-
-  rslt = scm_capi_char_eq(chr1, chr2, &cmp);
-  if (rslt < 0) return SCM_OBJ_NULL;
-
-  return cmp ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
 }
 
 

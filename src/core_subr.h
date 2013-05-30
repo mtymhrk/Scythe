@@ -92,6 +92,80 @@ int scm_subr_func_list_copy(ScmObj subr, int argc, const ScmObj *argv);
 
 
 /*******************************************************************/
+/*  Characters                                                     */
+/*******************************************************************/
+
+#define SCM_SUBR_ARITY_CHAR_P 1
+#define SCM_SUBR_ARITY_CHAR_EQ_P -3
+#define SCM_SUBR_ARITY_CHAR_LT_P -3
+#define SCM_SUBR_ARITY_CHAR_GT_P -3
+#define SCM_SUBR_ARITY_CHAR_LE_P -3
+#define SCM_SUBR_ARITY_CHAR_GE_P -3
+#define SCM_SUBR_ARITY_CHAR_CI_EQ_P -3
+#define SCM_SUBR_ARITY_CHAR_CI_LT_P -3
+#define SCM_SUBR_ARITY_CHAR_CI_GT_P -3
+#define SCM_SUBR_ARITY_CHAR_CI_LE_P -3
+#define SCM_SUBR_ARITY_CHAR_CI_GE_P -3
+#define SCM_SUBR_ARITY_CHAR_ALPHABETIC_P 1
+#define SCM_SUBR_ARITY_CHAR_NUMERIC_P 1
+#define SCM_SUBR_ARITY_CHAR_WHITESPACE_P 1
+#define SCM_SUBR_ARITY_CHAR_UPPER_CASE_P 1
+#define SCM_SUBR_ARITY_CHAR_LOWER_CASE_P 1
+#define SCM_SUBR_ARITY_DIGIT_VALUE 1
+#define SCM_SUBR_ARITY_CHAR_TO_INTEGER 1
+#define SCM_SUBR_ARITY_INTEGER_TO_CHAR 1
+#define SCM_SUBR_ARITY_CHAR_UPCASE 1
+#define SCM_SUBR_ARITY_CHAR_DOWNCASE 1
+#define SCM_SUBR_ARITY_CHAR_FOLDCASE 1
+
+#define SCM_SUBR_FLAG_CHAR_P 0
+#define SCM_SUBR_FLAG_CHAR_EQ_P 0
+#define SCM_SUBR_FLAG_CHAR_LT_P 0
+#define SCM_SUBR_FLAG_CHAR_GT_P 0
+#define SCM_SUBR_FLAG_CHAR_LE_P 0
+#define SCM_SUBR_FLAG_CHAR_GE_P 0
+#define SCM_SUBR_FLAG_CHAR_CI_EQ_P 0
+#define SCM_SUBR_FLAG_CHAR_CI_LT_P 0
+#define SCM_SUBR_FLAG_CHAR_CI_GT_P 0
+#define SCM_SUBR_FLAG_CHAR_CI_LE_P 0
+#define SCM_SUBR_FLAG_CHAR_CI_GE_P 0
+#define SCM_SUBR_FLAG_CHAR_ALPHABETIC_P 0
+#define SCM_SUBR_FLAG_CHAR_NUMERIC_P 0
+#define SCM_SUBR_FLAG_CHAR_WHITESPACE_P 0
+#define SCM_SUBR_FLAG_CHAR_UPPER_CASE_P 0
+#define SCM_SUBR_FLAG_CHAR_LOWER_CASE_P 0
+#define SCM_SUBR_FLAG_DIGIT_VALUE 0
+#define SCM_SUBR_FLAG_CHAR_TO_INTEGER 0
+#define SCM_SUBR_FLAG_INTEGER_TO_CHAR 0
+#define SCM_SUBR_FLAG_CHAR_UPCASE 0
+#define SCM_SUBR_FLAG_CHAR_DOWNCASE 0
+#define SCM_SUBR_FLAG_CHAR_FOLDCASE 0
+
+int scm_subr_func_char_P(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_char_eq_P(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_char_lt_P(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_char_gt_P(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_char_le_P(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_char_ge_P(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_char_ci_eq_P(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_char_ci_lt_P(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_char_ci_gt_P(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_char_ci_le_P(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_char_ci_ge_P(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_char_alphabetic_P(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_char_numeric_P(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_char_whitespace_P(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_char_upper_case_P(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_char_lower_case_P(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_digit_value(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_char_to_integer(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_integer_to_char(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_char_upcase(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_char_downcase(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_char_foldcase(ScmObj subr, int argc, const ScmObj *argv);
+
+
+/*******************************************************************/
 /*  Strings                                                        */
 /*******************************************************************/
 
