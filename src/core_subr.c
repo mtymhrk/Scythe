@@ -4,29 +4,6 @@
 #include "api.h"
 #include "core_subr.h"
 
-/*******************************************************************/
-/*  nil                                                            */
-/*******************************************************************/
-
-int
-scm_subr_func_null_P(ScmObj subr, int argc, const ScmObj *argv)
-{
-  ScmObj val = SCM_OBJ_INIT;
-
-  SCM_STACK_FRAME_PUSH(&subr, &val);
-
-  if (argc != 1) {
-    /* TODO: change error message */
-    scm_capi_error("cons: 2 arugments required, but got ", 0);
-    return -1;
-  }
-
-  val = scm_api_nil_P(argv[0]);
-  if (scm_obj_null_p(val)) return -1;
-
-  return scm_capi_return_val(&val, 1);
-}
-
 
 /*******************************************************************/
 /*  Equivalence predicates                                         */
@@ -158,6 +135,20 @@ scm_subr_func_set_cdr_i(ScmObj subr, int argc, const ScmObj *argv)
                        &val);
 
   val = scm_api_set_cdr_i(argv[0], argv[1]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_null_P(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
+
+  val = scm_api_nil_P(argv[0]);
   if (scm_obj_null_p(val)) return -1;
 
   return scm_capi_return_val(&val, 1);

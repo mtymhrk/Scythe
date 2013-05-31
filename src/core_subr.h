@@ -5,16 +5,6 @@
 
 #include "object.h"
 
-/*******************************************************************/
-/*  nil                                                            */
-/*******************************************************************/
-
-#define SCM_SUBR_ARITY_NULL_P 1
-
-#define SCM_SUBR_FLAG_NULL_P 0
-
-int scm_subr_func_null_P(ScmObj subr, int argc, const ScmObj *argv);
-
 
 /*******************************************************************/
 /*  Equivalence predicates                                         */
@@ -43,6 +33,7 @@ int scm_subr_func_equal_P(ScmObj subr, int argc, const ScmObj *argv);
 #define SCM_SUBR_ARITY_CDR 1
 #define SCM_SUBR_ARITY_SET_CAR_I 2
 #define SCM_SUBR_ARITY_SET_CDR_I 2
+#define SCM_SUBR_ARITY_NULL_P 1
 #define SCM_SUBR_ARITY_LIST_P 1
 #define SCM_SUBR_ARITY_MAKE_LIST -2
 #define SCM_SUBR_ARITY_LIST -1
@@ -67,6 +58,7 @@ int scm_subr_func_equal_P(ScmObj subr, int argc, const ScmObj *argv);
 #define SCM_SUBR_FLAG_CDR 0
 #define SCM_SUBR_FLAG_SET_CAR_I 0
 #define SCM_SUBR_FLAG_SET_CDR_I 0
+#define SCM_SUBR_FLAG_NULL_P 0
 #define SCM_SUBR_FLAG_LIST_P 0
 #define SCM_SUBR_FLAG_MAKE_LIST SCM_PROC_ADJ_UNWISHED
 #define SCM_SUBR_FLAG_LIST 0
@@ -90,6 +82,7 @@ int scm_subr_func_car(ScmObj subr, int argc, const ScmObj *argv);
 int scm_subr_func_cdr(ScmObj subr, int argc, const ScmObj *argv);
 int scm_subr_func_set_car_i(ScmObj subr, int argc, const ScmObj *argv);
 int scm_subr_func_set_cdr_i(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_null_P(ScmObj subr, int argc, const ScmObj *argv);
 int scm_subr_func_list_P(ScmObj subr, int argc, const ScmObj *argv);
 int scm_subr_func_make_list(ScmObj subr, int argc, const ScmObj *argv);
 int scm_subr_func_list(ScmObj subr, int argc, const ScmObj *argv);
