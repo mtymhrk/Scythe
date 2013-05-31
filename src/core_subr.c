@@ -29,6 +29,53 @@ scm_subr_func_null_P(ScmObj subr, int argc, const ScmObj *argv)
 
 
 /*******************************************************************/
+/*  Equivalence predicates                                         */
+/*******************************************************************/
+
+int
+scm_subr_func_eq_P(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
+
+  val = scm_api_eq_P(argv[0], argv[1]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_eqv_P(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
+
+  val = scm_api_eqv_P(argv[0], argv[1]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_equal_P(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
+
+  val = scm_api_equal_P(argv[0], argv[1]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+
+/*******************************************************************/
 /*  Pair and Lists                                                 */
 /*******************************************************************/
 

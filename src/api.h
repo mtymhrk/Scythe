@@ -86,13 +86,22 @@ void scm_capi_gc_disable(void);
 
 
 /*******************************************************************/
-/*  Equivalence                                                    */
+/*  NULL Value                                                     */
 /*******************************************************************/
 
 bool scm_capi_null_value_p(ScmObj obj);
+
+
+/*******************************************************************/
+/*  Equivalence predicates                                         */
+/*******************************************************************/
+
 bool scm_capi_eq_p(ScmObj obj1, ScmObj obj2);
+int scm_capi_eq(ScmObj obj1, ScmObj obj2, bool *rslt);
 ScmObj scm_api_eq_P(ScmObj obj1, ScmObj obj2);
+int scm_capi_eqv(ScmObj obj1, ScmObj obj2, bool *rslt);
 ScmObj scm_api_eqv_P(ScmObj obj1, ScmObj obj2);
+int scm_capi_equal(ScmObj obj1, ScmObj obj2, bool *rslt);
 ScmObj scm_api_equal_P(ScmObj obj1, ScmObj obj2);
 
 

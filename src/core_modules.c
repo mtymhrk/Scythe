@@ -106,6 +106,13 @@ scm_define_scheme_base_subr(ScmObj module)
 {
   static const struct subr_data data[] = {
     /*******************************************************************/
+    /*  Equivalence predicates                                         */
+    /*******************************************************************/
+    { "eq?", SCM_SUBR_ARITY_EQ_P, SCM_SUBR_FLAG_EQ_P, scm_subr_func_eq_P },
+    { "eqv?", SCM_SUBR_ARITY_EQV_P, SCM_SUBR_FLAG_EQV_P, scm_subr_func_eqv_P },
+    { "equal?", SCM_SUBR_ARITY_EQUAL_P, SCM_SUBR_FLAG_EQUAL_P, scm_subr_func_equal_P },
+
+    /*******************************************************************/
     /*  Pair and Lists                                                 */
     /*******************************************************************/
     { "null?", SCM_SUBR_ARITY_NULL_P, SCM_SUBR_FLAG_NULL_P, scm_subr_func_null_P },

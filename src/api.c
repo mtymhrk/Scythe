@@ -164,7 +164,19 @@ scm_capi_gc_disable(void)
 
 
 /*******************************************************************/
-/*  Equivalence                                                    */
+/*  NULL Value                                                     */
+/*******************************************************************/
+
+/* TODO: この API は削除する */
+extern inline bool
+scm_capi_null_value_p(ScmObj obj)
+{
+  return scm_obj_null_p(obj);
+}
+
+
+/*******************************************************************/
+/*  Equivalence predicates                                         */
 /*******************************************************************/
 
 /* 述語関数について、C の bool 方を返すものは _p を関数名の後ろに付与する。
@@ -172,69 +184,90 @@ scm_capi_gc_disable(void)
  */
 
 extern inline bool
-scm_capi_null_value_p(ScmObj obj)
-{
-  return scm_obj_null_p(obj);
-}
-
-extern inline bool
 scm_capi_eq_p(ScmObj obj1, ScmObj obj2)
 {
   return scm_obj_same_instance_p(obj1, obj2);
 }
 
-ScmObj
-scm_api_eq_P(ScmObj obj1, ScmObj obj2)
+int
+scm_capi_eq(ScmObj obj1, ScmObj obj2, bool *rslt)
 {
   if (scm_obj_null_p(obj1) || scm_obj_null_p(obj2)) {
     scm_capi_error("eq?: invalid argument", 0);
-    return SCM_OBJ_NULL;         /* provisional implemntation */
+    return -1;
   }
 
-  return (scm_obj_same_instance_p(obj1, obj2) ?
-          SCM_TRUE_OBJ : SCM_FALSE_OBJ);
+  if (rslt != NULL)
+    *rslt = scm_capi_eq_p(obj1, obj2);
+
+  return 0;
+}
+
+ScmObj
+scm_api_eq_P(ScmObj obj1, ScmObj obj2)
+{
+  bool cmp;
+  int r;
+
+  r = scm_capi_eq(obj1, obj2, &cmp);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return cmp ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+}
+
+int
+scm_capi_eqv(ScmObj obj1, ScmObj obj2, bool *rslt)
+{
+  bool cmp;
+
+  SCM_STACK_FRAME_PUSH(&obj1, &obj2);
+
+  if (scm_obj_null_p(obj1) || scm_obj_null_p(obj2)) {
+    scm_capi_error("eqv?: invalid argument", 0);
+    return -1;
+  }
+
+  if (scm_capi_eq_p(obj1, obj2)) {
+    cmp = true;
+  }
+  else if (scm_capi_number_p(obj1)) {
+    if (scm_capi_number_p(obj2)) {
+      int r = scm_capi_num_eq(obj1, obj2, &cmp);
+      if (r < 0) return -1;
+    }
+    else {
+      cmp = false;
+    }
+  }
+  else if (!scm_type_info_same_p(scm_obj_type(obj1), scm_obj_type(obj2))) {
+    cmp = false;
+  }
+  else if (scm_capi_symbol_p(obj1)) {
+    int r = scm_capi_symbol_eq(obj1, obj2, &cmp);
+    if (r < 0) return -1;
+  }
+  else if (scm_capi_char_p(obj1)) {
+    int r = scm_capi_char_eq(obj1, obj2, &cmp);
+    if (r < 0) return -1;
+  }
+  else {
+    cmp = false;
+  }
+
+  if (rslt != NULL) *rslt = cmp;
+  return 0;
 }
 
 ScmObj
 scm_api_eqv_P(ScmObj obj1, ScmObj obj2)
 {
-  ScmObj str1 = SCM_OBJ_INIT, str2 = SCM_OBJ_INIT;
+  bool cmp;
+  int r;
 
-  SCM_STACK_FRAME_PUSH(&obj1, &obj2,
-                       &str1, &str2);
+  r = scm_capi_eqv(obj1, obj2, &cmp);
+  if (r < 0) return SCM_OBJ_NULL;
 
-  if (scm_obj_null_p(obj1) || scm_obj_null_p(obj2)) {
-    scm_capi_error("eqv?: invalid argument", 0);
-    return SCM_OBJ_NULL;         /* provisional implemntation */
-  }
-
-  if (scm_capi_eq_p(obj1, obj2))
-    return SCM_TRUE_OBJ;
-
-  if (scm_capi_number_p(obj1)) {
-    if (scm_capi_number_p(obj2))
-      return scm_api_num_eq_P(obj1, obj2);
-    else
-      return SCM_FALSE_OBJ;
-  }
-
-  if (!scm_type_info_same_p(scm_obj_type(obj1), scm_obj_type(obj2)))
-    return SCM_FALSE_OBJ;
-
-  if (scm_capi_char_p(obj1)) {
-    return scm_api_char_eq_P(obj1, obj2);
-  }
-  else if (scm_capi_symbol_p(obj1)) {
-    str1 = scm_api_symbol_to_string(obj1);
-    if (scm_obj_null_p(str1)) return SCM_OBJ_NULL;
-
-    str2 = scm_api_symbol_to_string(obj2);
-    if (scm_obj_null_p(str2)) return SCM_OBJ_NULL;
-
-    return scm_api_string_eq_P(str1, str2);
-  }
-
-  return SCM_FALSE_OBJ;
+  return cmp ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
 }
 
 enum { NON_CIRCULATIVE,
@@ -295,8 +328,7 @@ scm_api_equal_check_circular(ScmObj obj1, ScmObj obj2,
 /*
  * Memo: equal? procedure の動作について
  * 以下の 2 つの循環リストはいずれも、シンボル a、b が交互に表われるリストであ
- * るが、これらの equal? は実装上、偽となる。R6RS ではどうすべきかはよくわから
- * なかった。
+ * るが、これらの equal? は実装上、偽となる。R7RS では真を返さなければならない。
  *
  *   1. #0=(a b a b . #0#)
  *   2. (a b . #0=(a b . #0#))
@@ -305,11 +337,13 @@ scm_api_equal_check_circular(ScmObj obj1, ScmObj obj2,
  *
  */
 
-static ScmObj
-scm_api_equal_aux_P(ScmObj obj1, ScmObj obj2, ScmObj stack1, ScmObj stack2)
+static int
+scm_capi_equal_aux(ScmObj obj1, ScmObj obj2,
+                   ScmObj stack1, ScmObj stack2, bool *rslt)
 {
-  ScmObj rslt = SCM_OBJ_INIT, elm1 = SCM_OBJ_INIT, elm2 = SCM_OBJ_INIT;
-  int cir;
+  ScmObj elm1 = SCM_OBJ_INIT, elm2 = SCM_OBJ_INIT;
+  bool cmp;
+  int r, cir;
 
   scm_assert(scm_obj_not_null_p(obj1));
   scm_assert(scm_obj_not_null_p(obj2));
@@ -317,75 +351,96 @@ scm_api_equal_aux_P(ScmObj obj1, ScmObj obj2, ScmObj stack1, ScmObj stack2)
   scm_assert(scm_capi_nil_p(stack2) || scm_capi_pair_p(stack2));
 
   SCM_STACK_FRAME_PUSH(&obj1, &obj2, &stack1, &stack2,
-                       &rslt, &elm1, &elm2);
+                       &elm1, &elm2);
 
-  rslt = scm_api_eqv_P(obj1, obj2);
-  if (scm_obj_null_p(rslt)) return SCM_OBJ_NULL;
+  r = scm_capi_eqv(obj1, obj2, &cmp);
+  if (r < 0) return -1;
 
-  if (scm_capi_false_object_p(rslt)
-      && scm_type_info_same_p(scm_obj_type(obj1), scm_obj_type(obj2))
-      && (scm_capi_pair_p(obj1) || scm_capi_vector_p(obj1))) {
-    if (scm_api_equal_check_circular(obj1, obj2, stack1, stack2, &cir) < 0)
-      return SCM_OBJ_NULL;
+  if (!cmp  && scm_type_info_same_p(scm_obj_type(obj1), scm_obj_type(obj2))) {
+    if (scm_capi_pair_p(obj1) || scm_capi_vector_p(obj1)) {
+      r = scm_api_equal_check_circular(obj1, obj2, stack1, stack2, &cir);
+      if (r < 0) return -1;
 
-    if (cir == SAME_CIRCULATION)
-      return SCM_TRUE_OBJ;
-    else if (cir == DIFFERENT_CIRCULATION)
-      return SCM_FALSE_OBJ;
+      if (cir == SAME_CIRCULATION) {
+        cmp = true;
+        goto success;
+      }
+      else if (cir == DIFFERENT_CIRCULATION) {
+        cmp = false;
+        goto success;
+      }
+      else {
+        stack1 = scm_api_cons(obj1, stack1);
+        if (scm_obj_null_p(stack1)) return -1;
 
-    stack1 = scm_api_cons(obj1, stack1);
-    if (scm_obj_null_p(stack1)) return SCM_OBJ_NULL;
+        stack2 = scm_api_cons(obj2, stack2);
+        if (scm_obj_null_p(stack2)) return -1;
+      }
+    }
 
-    stack2 = scm_api_cons(obj2, stack2);
-    if (scm_obj_null_p(stack2)) return SCM_OBJ_NULL;
-
-    if (scm_capi_pair_p(obj1)) {
+    if (scm_capi_string_p(obj1)) {
+      r = scm_capi_string_eq(obj1, obj2, &cmp);
+      if (r < 0) return -1;
+    }
+    else if (scm_capi_pair_p(obj1)) {
       elm1 = scm_api_car(obj1);
-      if (scm_obj_null_p(elm1)) return SCM_OBJ_NULL;
+      if (scm_obj_null_p(elm1)) return -1;
 
       elm2 = scm_api_car(obj2);
-      if (scm_obj_null_p(elm2)) return SCM_OBJ_NULL;
+      if (scm_obj_null_p(elm2)) return -1;
 
-      rslt = scm_api_equal_aux_P(elm1, elm2, stack1, stack2);
-      if (scm_obj_null_p(rslt)) return SCM_OBJ_NULL;
-      if (scm_capi_false_object_p(rslt)) return rslt;
+      r = scm_capi_equal_aux(elm1, elm2, stack1, stack2, &cmp);
+      if (r < 0) return -1;
 
-      elm1 = scm_api_cdr(obj1);
-      if (scm_obj_null_p(elm1)) return SCM_OBJ_NULL;
+      if (cmp) {
+        elm1 = scm_api_cdr(obj1);
+        if (scm_obj_null_p(elm1)) return -1;
 
-      elm2 = scm_api_cdr(obj2);
-      if (scm_obj_null_p(elm2)) return SCM_OBJ_NULL;
+        elm2 = scm_api_cdr(obj2);
+        if (scm_obj_null_p(elm2)) return -1;
 
-      return scm_api_equal_aux_P(elm1, elm2, stack1, stack2);
+        r = scm_capi_equal_aux(elm1, elm2, stack1, stack2, &cmp);
+        if (r < 0) return -1;
+      }
     }
-    else {
+    else if (scm_capi_vector_p(obj1)) {
       ssize_t len1 = scm_capi_vector_length(obj1);
       ssize_t len2 = scm_capi_vector_length(obj2);
 
-      if (len1 < 0 || len2 < 0) return SCM_OBJ_NULL;
-      if (len1 != len2) return SCM_FALSE_OBJ;
+      if (len1 < 0 || len2 < 0) return -1;
 
-      for (ssize_t i = 0; i < len1; i++) {
-        elm1 = scm_capi_vector_ref(obj1, (size_t)i);
-        if (scm_obj_null_p(elm1)) return SCM_OBJ_NULL;
-
-        elm2 = scm_capi_vector_ref(obj2, (size_t)i);
-        if (scm_obj_null_p(elm2)) return SCM_OBJ_NULL;
-
-        rslt = scm_api_equal_aux_P(elm1, elm2, stack1, stack2);
-        if (scm_obj_null_p(rslt)) return SCM_OBJ_NULL;
-        if (scm_capi_false_object_p(rslt)) return rslt;
+      if (len1 != len2) {
+        cmp = false;
       }
+      else {
+        cmp = true;
+        for (ssize_t i = 0; i < len1; i++) {
+          elm1 = scm_capi_vector_ref(obj1, (size_t)i);
+          if (scm_obj_null_p(elm1)) return SCM_OBJ_NULL;
 
-      return SCM_TRUE_OBJ;
+          elm2 = scm_capi_vector_ref(obj2, (size_t)i);
+          if (scm_obj_null_p(elm2)) return SCM_OBJ_NULL;
+
+          r = scm_capi_equal_aux(elm1, elm2, stack1, stack2, &cmp);
+          if (r < 0) return -1;
+
+          if (!cmp) break;
+        }
+      }
+    }
+    else {
+      cmp = false;
     }
   }
 
-  return rslt;
+ success:
+
+  if (rslt != NULL) *rslt = cmp;
+  return 0;
 }
 
-ScmObj
-scm_api_equal_P(ScmObj obj1, ScmObj obj2)
+int
+scm_capi_equal(ScmObj obj1, ScmObj obj2, bool *rslt)
 {
   ScmObj stack1 = SCM_OBJ_INIT, stack2 = SCM_OBJ_INIT;
 
@@ -394,13 +449,24 @@ scm_api_equal_P(ScmObj obj1, ScmObj obj2)
 
   if (scm_obj_null_p(obj1) || scm_obj_null_p(obj2)) {
     scm_capi_error("equal?: invalid argument", 0);
-    return SCM_OBJ_NULL;         /* provisional implemntation */
+    return -1;         /* provisional implemntation */
   }
 
   stack1 = stack2 = SCM_NIL_OBJ;
-  if (scm_obj_null_p(stack1)) return SCM_OBJ_NULL;
 
-  return scm_api_equal_aux_P(obj1, obj2, stack1, stack2);
+  return scm_capi_equal_aux(obj1, obj2, stack1, stack2, rslt);
+}
+
+ScmObj
+scm_api_equal_P(ScmObj obj1, ScmObj obj2)
+{
+  bool cmp;
+  int r;
+
+  r = scm_capi_equal(obj1, obj2, &cmp);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return cmp ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
 }
 
 

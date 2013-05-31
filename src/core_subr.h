@@ -17,6 +17,23 @@ int scm_subr_func_null_P(ScmObj subr, int argc, const ScmObj *argv);
 
 
 /*******************************************************************/
+/*  Equivalence predicates                                         */
+/*******************************************************************/
+
+#define SCM_SUBR_ARITY_EQ_P 2
+#define SCM_SUBR_ARITY_EQV_P 2
+#define SCM_SUBR_ARITY_EQUAL_P 2
+
+#define SCM_SUBR_FLAG_EQ_P 0
+#define SCM_SUBR_FLAG_EQV_P 0
+#define SCM_SUBR_FLAG_EQUAL_P 0
+
+int scm_subr_func_eq_P(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_eqv_P(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_equal_P(ScmObj subr, int argc, const ScmObj *argv);
+
+
+/*******************************************************************/
 /*  Pair and Lists                                                 */
 /*******************************************************************/
 
