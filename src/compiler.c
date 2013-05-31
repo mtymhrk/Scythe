@@ -1367,7 +1367,7 @@ scm_cmpl_stack_inc_cnt(ScmObj stack)
   n = scm_capi_make_number_from_sword(cnt);
   if (scm_obj_null_p(n)) return -1;
 
-  n = scm_api_set_cdr(stack, n);
+  n = scm_api_set_cdr_i(stack, n);
   if (scm_obj_null_p(n)) return -1;
 
   return 0;
@@ -1394,7 +1394,7 @@ scm_cmpl_stack_dec_cnt(ScmObj stack)
   n = scm_capi_make_number_from_sword(cnt);
   if (scm_obj_null_p(n)) return -1;
 
-  n = scm_api_set_cdr(stack, n);
+  n = scm_api_set_cdr_i(stack, n);
   if (scm_obj_null_p(n)) return -1;
 
   return 0;
@@ -1414,7 +1414,7 @@ scm_cmpl_stack_push(ScmObj stack, ScmObj obj)
   st = scm_api_cons(obj, st);
   if (scm_obj_null_p(st)) return -1;
 
-  st = scm_api_set_car(stack, st);
+  st = scm_api_set_car_i(stack, st);
   if (scm_obj_null_p(st)) return -1;
 
   return scm_cmpl_stack_inc_cnt(stack);
@@ -1434,7 +1434,7 @@ scm_cmpl_stack_pop(ScmObj stack)
   st = scm_api_cdr(st);
   if (scm_obj_null_p(st)) return -1;
 
-  st = scm_api_set_car(stack, st);
+  st = scm_api_set_car_i(stack, st);
   if (scm_obj_null_p(st)) return -1;
 
   return scm_cmpl_stack_dec_cnt(stack);

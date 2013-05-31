@@ -583,10 +583,10 @@ TEST(equivalence, api_equal__circularly_linked_list__return_true_1)
   lst2 = read_cstr("(a b c)");
 
   tail = scm_capi_list_tail(lst1, 2);
-  scm_capi_set_cdr(tail, lst1);
+  scm_capi_set_cdr_i(tail, lst1);
 
   tail = scm_capi_list_tail(lst2, 2);
-  scm_capi_set_cdr(tail, lst2);
+  scm_capi_set_cdr_i(tail, lst2);
 
   /* lst1 ;=>  #1=(a b c . #1#) */
   /* lst2 ;=>  #1=(a b c . #1#) */

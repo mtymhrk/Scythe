@@ -743,7 +743,7 @@ scm_api_cdr(ScmObj pair)
 }
 
 int
-scm_capi_set_car(ScmObj pair, ScmObj elm)
+scm_capi_set_car_i(ScmObj pair, ScmObj elm)
 {
   if (scm_obj_null_p(pair) || scm_obj_null_p(elm)) {
     scm_capi_error("set-car!: invalid argument", 0);
@@ -761,16 +761,16 @@ scm_capi_set_car(ScmObj pair, ScmObj elm)
 }
 
 ScmObj
-scm_api_set_car(ScmObj pair, ScmObj elm)
+scm_api_set_car_i(ScmObj pair, ScmObj elm)
 {
-  if (scm_capi_set_car(pair, elm) < 0)
+  if (scm_capi_set_car_i(pair, elm) < 0)
     return SCM_OBJ_NULL;
 
   return SCM_UNDEF_OBJ;
 }
 
 int
-scm_capi_set_cdr(ScmObj pair, ScmObj elm)
+scm_capi_set_cdr_i(ScmObj pair, ScmObj elm)
 {
   if (scm_obj_null_p(pair) || scm_obj_null_p(elm)) {
     scm_capi_error("set-car!: invalid argument", 0);
@@ -788,9 +788,9 @@ scm_capi_set_cdr(ScmObj pair, ScmObj elm)
 }
 
 ScmObj
-scm_api_set_cdr(ScmObj pair, ScmObj elm)
+scm_api_set_cdr_i(ScmObj pair, ScmObj elm)
 {
-  if (scm_capi_set_cdr(pair, elm) < 0)
+  if (scm_capi_set_cdr_i(pair, elm) < 0)
     return SCM_OBJ_NULL;
 
   return scm_api_undef();
@@ -1087,7 +1087,7 @@ scm_capi_append_cv(const ScmObj *lists, size_t n)
     if (scm_obj_null_p(cur)) return SCM_OBJ_NULL;
 
     if (scm_obj_not_null_p(prv)) {
-      rslt  = scm_capi_set_cdr(prv, cur);
+      rslt  = scm_capi_set_cdr_i(prv, cur);
       if (rslt < 0) return SCM_OBJ_NULL;
     }
     else {
@@ -1104,7 +1104,7 @@ scm_capi_append_cv(const ScmObj *lists, size_t n)
     return SCM_OBJ_NULL;
   }
 
-  rslt = scm_capi_set_cdr(prv, tail);
+  rslt = scm_capi_set_cdr_i(prv, tail);
   if (rslt < 0) return SCM_OBJ_NULL;
 
   return new_lst;
@@ -1236,7 +1236,7 @@ scm_api_list_ref(ScmObj lst, ScmObj n)
 }
 
 int
-scm_capi_list_set(ScmObj lst, size_t n, ScmObj obj)
+scm_capi_list_set_i(ScmObj lst, size_t n, ScmObj obj)
 {
   ScmObj l = SCM_OBJ_NULL;
 
@@ -1247,34 +1247,34 @@ scm_capi_list_set(ScmObj lst, size_t n, ScmObj obj)
     if (scm_capi_pair_p(l))
       l = scm_api_cdr(l);
     else {
-      scm_capi_error("list-set: argument out of range", 0);
+      scm_capi_error("list-set!: argument out of range", 0);
       return -1;
     }
   }
 
   if (!scm_capi_pair_p(l)) {
-    scm_capi_error("list-set: argument out of range", 0);
+    scm_capi_error("list-set!: argument out of range", 0);
     return -1;
   }
 
-  return scm_capi_set_car(l, obj);
+  return scm_capi_set_car_i(l, obj);
 }
 
 ScmObj
-scm_api_list_set(ScmObj lst, ScmObj n, ScmObj obj)
+scm_api_list_set_i(ScmObj lst, ScmObj n, ScmObj obj)
 {
   size_t s;
   int r;
 
   if (!scm_capi_number_p(n)) {
-    scm_capi_error("list-ref: invalid argument", 0);
+    scm_capi_error("list-set!: invalid argument", 0);
     return SCM_OBJ_NULL;
   }
 
   r = scm_capi_num_to_size_t(n, &s);
   if (r < 0) return SCM_OBJ_NULL;
 
-  r = scm_capi_list_set(lst, s, obj);
+  r = scm_capi_list_set_i(lst, s, obj);
   if (r < 0) return SCM_OBJ_NULL;
 
   return SCM_UNDEF_OBJ;
@@ -1413,7 +1413,7 @@ scm_api_list_copy(ScmObj lst)
     if (scm_obj_null_p(pair)) return SCM_OBJ_NULL;
 
     if (scm_obj_not_null_p(prev)) {
-      rslt = scm_api_set_cdr(prev, pair);
+      rslt = scm_api_set_cdr_i(prev, pair);
       if (scm_obj_null_p(rslt)) return SCM_OBJ_NULL;
     }
     else {
@@ -1424,7 +1424,7 @@ scm_api_list_copy(ScmObj lst)
 
   if (scm_obj_null_p(cur)) return SCM_OBJ_NULL;
 
-  rslt = scm_api_set_cdr(prev, cur);
+  rslt = scm_api_set_cdr_i(prev, cur);
   if (scm_obj_null_p(rslt)) return SCM_OBJ_NULL;
 
   return scm_obj_null_p(head) ? nil : head;
