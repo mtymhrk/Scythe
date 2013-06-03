@@ -78,6 +78,13 @@ extern ScmEncoding *SCM_ENC_UCS4;
 extern ScmEncoding *SCM_ENC_EUCJP;
 extern ScmEncoding *SCM_ENC_SJIS;
 
+inline const char *
+scm_enc_iconv_name(ScmEncoding *enc)
+{
+  assert(enc != NULL); assert(enc->iconv_name != NULL);
+  return enc->iconv_name;
+}
+
 inline void
 scm_enc_chr_lf(ScmEncoding *enc, scm_char_t *chr, size_t *w)
 {

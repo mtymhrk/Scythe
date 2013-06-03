@@ -1263,12 +1263,12 @@ scm_port_init_encode(ScmObj port)
     return 0;
 
   if (scm_port_input_port_p(port)) {
-    fcode = SCM_PORT(port)->encoding->iconv_name;
-    tcode = sys_enc->iconv_name;
+    fcode = scm_enc_iconv_name(SCM_PORT(port)->encoding);
+    tcode = scm_enc_iconv_name(sys_enc);
   }
   else {
-    fcode = sys_enc->iconv_name;
-    tcode = SCM_PORT(port)->encoding->iconv_name;
+    fcode = scm_enc_iconv_name(sys_enc);
+    tcode = scm_enc_iconv_name(SCM_PORT(port)->encoding);
   }
 
   if (fcode == NULL || tcode == NULL)
