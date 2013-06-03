@@ -4,7 +4,7 @@ RAKE=rake1.9
 
 all: bin
 
-.PHONY: bin unit clean
+.PHONY: bin unit old_test clean
 
 bin:
 	$(MAKE) -C $(SRC_DIR)
@@ -12,6 +12,9 @@ bin:
 unit:
 	$(MAKE) -C $(SRC_DIR) test_build CMACROS=-DSCM_UNIT_TEST
 	cd $(TEST_DIR); $(RAKE) unit summary
+
+old_test:
+	$(MAKE) -C $(SRC_DIR) test
 
 clean:
 	$(MAKE) -C $(SRC_DIR) clean
