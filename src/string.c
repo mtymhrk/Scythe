@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <limits.h>
+#include <iconv.h>
 #include <assert.h>
 
 #include "object.h"
@@ -175,6 +176,88 @@ scm_string_change_case(ScmObj str, int dir)
   }
 
   return s;
+}
+
+static ScmObj
+scm_string_change_encoding(ScmObj src, ScmEncoding *to)
+{
+  ScmObj str = SCM_OBJ_INIT;
+  char *in;
+  char *out;
+  iconv_t cd;
+  size_t ins, outs, rslt;
+
+  SCM_STACK_FRAME_PUSH(&src,
+                       &str);
+
+  scm_assert_obj_type(src, &SCM_STRING_TYPE_INFO);
+  scm_assert(to != NULL);
+
+  str = scm_string_new(SCM_MEM_HEAP, NULL, 0, to);
+  if (scm_obj_null_p(str)) return SCM_OBJ_NULL;
+
+  cd = iconv_open(scm_enc_iconv_name(to),
+                  scm_enc_iconv_name(SCM_STRING_ENC(src)));
+  if (cd == (iconv_t)-1) {
+    scm_capi_error("faild to call 'iconv_open'", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  in = (char *)SCM_STRING_HEAD(src);
+  ins = SCM_STRING_BYTESIZE(src);
+  out = (char *)SCM_STRING_HEAD(str);
+  outs = SCM_STRING_CAPACITY(str);
+
+  do {
+    rslt = iconv(cd, &in, &ins, &out, &outs);
+    if (rslt == (size_t)-1) {
+      if (errno == EILSEQ) {
+        scm_capi_error("fiald to call 'iconv': illegal multibyte sequence", 0);
+        goto err;
+      }
+      else if (errno == EINVAL) {
+        scm_capi_error("faild to call 'iconv': imcomplete multibyte sequence", 0);
+        goto err;
+      }
+      else if (errno == E2BIG) {
+        size_t cap = SCM_STRING_CAPACITY(str);
+        uint8_t *p;
+        ssize_t s;
+
+        if (cap == SIZE_MAX) {
+          scm_capi_error("faild to encode string: too big string", 0);
+          goto err;
+        }
+
+        cap =  (SIZE_MAX / 2 < cap) ? SIZE_MAX : cap * 2;
+        p = scm_capi_realloc(SCM_STRING_BUFFER(str), cap);
+        if (p != NULL) goto err;
+
+        s = out - (char *)SCM_STRING_HEAD(str);
+
+        SCM_STRING_BUFFER(str) = p;
+        SCM_STRING_HEAD(str) = p;
+        SCM_STRING_CAPACITY(str) = cap;
+
+        out = (char *)p + s;
+        outs = cap - (size_t)s;
+      }
+      else {
+        scm_capi_error("faild to call 'iconv': unknown error has occurred", 0);
+        goto err;
+      }
+    }
+  } while (ins > 0);
+
+  SCM_STRING_BYTESIZE(str) = (size_t)((uint8_t *)out - SCM_STRING_HEAD(str));
+  SCM_STRING_LENGTH(str) = SCM_STRING_LENGTH(src);
+
+  iconv_close(cd);
+  return str;
+
+ err:
+  iconv_close(cd);
+  return SCM_OBJ_NULL;
 }
 
 static int
@@ -427,42 +510,15 @@ scm_string_is_equal(ScmObj str1, ScmObj str2) /* GC OK */
 ScmObj
 scm_string_encode(ScmObj str, ScmEncoding *enc)
 {
-  ScmObj s = SCM_OBJ_INIT;
-  ScmStrItr iter;
-  scm_char_t chr;
-  ssize_t w;
-  int rslt;
-
   scm_assert_obj_type(str, &SCM_STRING_TYPE_INFO);
   scm_assert(enc != NULL);
 
-  SCM_STACK_FRAME_PUSH(&str, &s);
-
-  /* 今のところ ASCII から他のエンコードへの変換しか対応していない */
-  scm_assert(SCM_STRING_ENC(str) == SCM_ENC_ASCII
-             || SCM_STRING_ENC(str) == enc);
+  SCM_STACK_FRAME_PUSH(&str);
 
   if (SCM_STRING_ENC(str) == enc)
     return scm_string_dup(str);
 
-  s = scm_string_new(SCM_MEM_HEAP, NULL, 0, enc);
-
-  scm_str_itr_begin((void *)SCM_STRING_HEAD(str),
-                    SCM_STRING_BYTESIZE(str), enc, &iter);
-  scm_assert(!scm_str_itr_err_p(&iter));
-
-  while (!scm_str_itr_end_p(&iter)) {
-    w = scm_enc_cnv_from_ascii(enc, *(char *)scm_str_itr_ptr(&iter), &chr);
-    if (w < 0) return SCM_OBJ_NULL;
-
-    rslt = scm_string_push(s, &chr);
-    if (rslt < 0) return SCM_OBJ_NULL;
-
-    scm_str_itr_next(&iter);
-    scm_assert(!scm_str_itr_err_p(&iter));
-  }
-
-  return s;
+  return scm_string_change_encoding(str, enc);
 }
 
 ScmObj
