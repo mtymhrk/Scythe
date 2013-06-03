@@ -2,6 +2,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdio.h>
+#include <iconv.h>
 #include <assert.h>
 
 #include "object.h"
@@ -186,23 +187,59 @@ ScmObj
 scm_char_encode(ScmObj chr, ScmEncoding *enc)
 {
   scm_char_t c;
-  ssize_t rslt;
+  iconv_t cd;
+  char *in, *out;
+  size_t ins, outs, rslt;
+  int w;
 
   scm_assert_obj_type(chr, &SCM_CHAR_TYPE_INFO);
   scm_assert(enc != NULL);
 
-  /* 今のところ ASCII から他のエンコードへの変換しか対応していない */
-  scm_assert(SCM_CHAR_ENC(chr) == SCM_ENC_ASCII
-             || SCM_CHAR_ENC(chr) == enc);
-
   if (SCM_CHAR(chr)->enc == enc)
     return scm_char_new(SCM_MEM_HEAP, &SCM_CHAR(chr)->value, enc);
 
-  rslt = scm_enc_cnv_from_ascii(SCM_CHAR_ENC(chr),
-                                (char)SCM_CHAR_VALUE(chr).ascii, &c);
-  if (rslt < 0) return SCM_OBJ_NULL;
+  cd = iconv_open(scm_enc_iconv_name(enc),
+                  scm_enc_iconv_name(SCM_CHAR(chr)->enc));
+  if (cd == (iconv_t)-1) {
+    scm_capi_error("faild to call 'iconv_open'", 0);
+    return SCM_OBJ_NULL;
+  }
 
+  w = scm_enc_char_width(SCM_CHAR(chr)->enc,
+                         SCM_CHAR(chr)->value.bytes, sizeof(scm_char_t));
+  scm_assert(w < 0);
+
+  in = (char *)SCM_CHAR(chr)->value.bytes;
+  out = (char *)c.bytes;
+  ins = (size_t)w;
+  outs = sizeof(c);
+
+  rslt = iconv(cd, &in, &ins, &out, &outs);
+  if (rslt == (size_t)-1) {
+    switch (errno) {
+    case EILSEQ:
+      scm_capi_error("faild to call 'iconv': illegal multibyte sequence", 0);
+      break;
+    case EINVAL:
+      scm_capi_error("faild to call 'iconv': imcomplete  multibyte sequence", 0);
+      break;
+    case E2BIG:
+      scm_capi_error("faild to call 'iconv': too big multibyte sequence", 0);
+      break;
+    default:
+      scm_capi_error("faild to call 'iconv': unknown error has occurred", 0);
+      break;
+    }
+
+    goto err;
+  }
+
+  iconv_close(cd);
   return scm_char_new(SCM_MEM_HEAP, &c, enc);
+
+ err:
+  iconv_close(cd);
+  return SCM_OBJ_NULL;
 }
 
 int
