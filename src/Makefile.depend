@@ -35,9 +35,9 @@ iseq.o: iseq.c object.h impl_utils.h reference.h chashtbl.h api.h \
 chashtbl.o: chashtbl.c object.h impl_utils.h reference.h api.h encoding.h \
  api_enum.h api_type.h chashtbl.h
 api.o: api.c object.h impl_utils.h memory.h api_type.h vm.h reference.h \
- encoding.h api_enum.h vmstack.h char.h string.h symbol.h chashtbl.h \
- procedure.h numeric.h earray.h api.h pair.h vector.h port.h parser.h \
- syntax.h iseq.h module.h assembler.h compiler.h exception.h
+ encoding.h api_enum.h vmstack.h miscobjects.h char.h string.h symbol.h \
+ chashtbl.h procedure.h numeric.h earray.h api.h pair.h vector.h port.h \
+ parser.h syntax.h iseq.h module.h assembler.h compiler.h exception.h
 port.o: port.c object.h impl_utils.h reference.h api.h encoding.h \
  api_enum.h api_type.h port.h
 parser.o: parser.c object.h impl_utils.h reference.h api.h encoding.h \

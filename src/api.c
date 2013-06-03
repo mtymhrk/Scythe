@@ -7,6 +7,7 @@
 #include "memory.h"
 #include "vm.h"
 #include "reference.h"
+#include "miscobjects.h"
 #include "char.h"
 #include "string.h"
 #include "symbol.h"
@@ -503,8 +504,26 @@ scm_api_nil_P(ScmObj obj)
 
 
 /*******************************************************************/
-/*  boolean                                                        */
+/*  Booleans                                                       */
 /*******************************************************************/
+
+
+bool
+scm_capi_boolean_p(ScmObj obj)
+{
+  if (scm_obj_null_p(obj)) return false;
+  return scm_obj_type_p(obj, &SCM_BOOL_TYPE_INFO);
+}
+
+ScmObj
+scm_api_boolean_P(ScmObj obj)
+{
+  if (scm_obj_null_p(obj)) {
+    scm_capi_error("boolean?: invaid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  return scm_capi_boolean_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+}
 
 /* Memo:
  *  scm_api_true() の関数の実行では GC が発生してはダメ。
@@ -549,6 +568,17 @@ extern inline bool
 scm_capi_false_p(ScmObj obj)
 {
   return scm_capi_false_object_p(obj);
+}
+
+ScmObj
+scm_api_not(ScmObj obj)
+{
+  if (scm_obj_null_p(obj)) {
+    scm_capi_error("not: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_capi_false_object_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
 }
 
 

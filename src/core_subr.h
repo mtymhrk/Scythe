@@ -24,6 +24,20 @@ int scm_subr_func_equal_P(ScmObj subr, int argc, const ScmObj *argv);
 
 
 /*******************************************************************/
+/*  Booleans                                                       */
+/*******************************************************************/
+
+#define SCM_SUBR_ARITY_NOT 1
+#define SCM_SUBR_ARITY_BOOLEAN_P 1
+
+#define SCM_SUBR_FLAG_NOT 0
+#define SCM_SUBR_FLAG_BOOLEAN_P 0
+
+int scm_subr_func_not(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_boolean_P(ScmObj subr, int argc, const ScmObj *argv);
+
+
+/*******************************************************************/
 /*  Pair and Lists                                                 */
 /*******************************************************************/
 

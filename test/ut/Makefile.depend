@@ -40,3 +40,10 @@ test_equivalence.o: test_equivalence.c ../unity/src/unity_fixture.h \
  ../../src/impl_utils.h ../../src/api.h ../../src/object.h \
  ../../src/reference.h ../../src/encoding.h ../../src/api_enum.h \
  ../../src/api_type.h
+test_booleans.o: test_booleans.c ../unity/src/unity_fixture.h \
+ ../unity/src/unity.h ../unity/src/unity_internals.h \
+ ../unity/src/unity_fixture_malloc_overrides.h \
+ ../unity/src/unity_fixture_internals.h ../../src/object.h \
+ ../../src/impl_utils.h ../../src/api.h ../../src/object.h \
+ ../../src/reference.h ../../src/encoding.h ../../src/api_enum.h \
+ ../../src/api_type.h

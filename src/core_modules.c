@@ -113,6 +113,12 @@ scm_define_scheme_base_subr(ScmObj module)
     { "equal?", SCM_SUBR_ARITY_EQUAL_P, SCM_SUBR_FLAG_EQUAL_P, scm_subr_func_equal_P },
 
     /*******************************************************************/
+    /*  Booleans                                                       */
+    /*******************************************************************/
+    { "not", SCM_SUBR_ARITY_NOT, SCM_SUBR_FLAG_NOT, scm_subr_func_not },
+    { "boolean?", SCM_SUBR_ARITY_BOOLEAN_P, SCM_SUBR_FLAG_BOOLEAN_P, scm_subr_func_boolean_P },
+
+    /*******************************************************************/
     /*  Pair and Lists                                                 */
     /*******************************************************************/
     { "null?", SCM_SUBR_ARITY_NULL_P, SCM_SUBR_FLAG_NULL_P, scm_subr_func_null_P },
