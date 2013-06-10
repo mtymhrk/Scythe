@@ -6,451 +6,30 @@
 #include "reference.h"
 #include "api.h"
 #include "earray.h"
-#include "numeric.h"
-
-
-/***************************************************************************/
-/*  common utils                                                           */
-/***************************************************************************/
-
-static int
-scm_num_calc_base_and_place_for_ary_of_digits(int radix,
-                                              scm_bignum_c_t *base,
-                                              int *place)
-{
-  static int place_tab[] = { 0, 0, 0, 0, 0, 0, 0, 0,
-                             0, 0, 0, 0, 0, 0, 0, 0};
-  static scm_bignum_c_t base_tab[] = { 0, 0, 0, 0, 0, 0, 0, 0,
-                                       0, 0, 0, 0, 0, 0, 0, 0 };
-  scm_assert(radix > 0);
-  scm_assert(base != NULL);
-  scm_assert(place != NULL);
-
-  if ((size_t)radix >= sizeof(place_tab)/sizeof(place_tab[0]))
-    return -1;
-
-  if (place_tab[radix] > 0) {
-    *place = place_tab[radix];
-    *base = base_tab[radix];
-  }
-  else {
-    *place = (int)scm_log_ul((unsigned long)radix, SCM_BIGNUM_BASE);
-    *base = (scm_bignum_c_t)scm_pow_ul((unsigned long)radix,
-                                     (unsigned long)*place);
-    place_tab[radix] = *place;
-    base_tab[radix] = *base;
-  }
-
-  return 0;
-}
-
-static ScmObj
-scm_num_make_int_from_ary(char sign, scm_bignum_d_t *ary, size_t size,
-                          scm_bignum_c_t base)
-{
-  scm_sword_t num, abs_max;
-
-  scm_assert(ary != NULL);
-  scm_assert(size <= SSIZE_MAX);
-  scm_assert(0 < base);
-
-  if (sign == '+' || sign == '\0')
-    abs_max = SCM_FIXNUM_MAX;
-  else
-    abs_max = -SCM_FIXNUM_MIN;
-
-  num = 0;
-  for (ssize_t i = (ssize_t)size - 1; i >= 0; i--) {
-    if (num > (abs_max - (scm_sword_t)ary[i]) / (scm_sword_t)base) {
-      return scm_bignum_new_from_ary(SCM_MEM_HEAP,
-                                     (char)((sign == '\0') ? '+' : sign),
-                                     ary, size, base);
-    }
-    num = num * (scm_sword_t)base + (scm_sword_t)ary[i];
-  }
-
-  if (sign == '+' || sign == '\0')
-    return scm_fixnum_new(num);
-  else
-    return scm_fixnum_new(-num);
-}
-
-
-/***************************************************************************/
-/*  Fixnum                                                                 */
-/***************************************************************************/
-
-ScmNumVFunc SCM_FIXNUM_VFUNC = {
-  .coerce       = scm_fixnum_coerce,
-  .integer_p    = scm_fixnum_integer_p,
-  .cmp          = scm_fixnum_cmp,
-  .plus         = scm_fixnum_plus,
-  .minus        = scm_fixnum_minus,
-  .mul          = scm_fixnum_mul,
-  .floor_div    = scm_fixnum_floor_div,
-  .ceiling_div  = scm_fixnum_ceiling_div,
-  .truncate_div = scm_fixnum_truncate_div,
-};
-
-ScmTypeInfo SCM_FIXNUM_TYPE_INFO = {
-  .name                = "fixnum",
-  .flags               = SCM_TYPE_FLG_NUM,
-  .pp_func             = scm_fixnum_pretty_print,
-  .obj_size            = 0,
-  .gc_ini_func         = NULL,
-  .gc_fin_func         = NULL,
-  .gc_accept_func      = NULL,
-  .gc_accept_func_weak = NULL,
-  .extra               = &SCM_FIXNUM_VFUNC,
-};
-
-static inline bool
-scm_fixnum_multi_overflow_p(scm_sword_t v1, scm_sword_t v2)
-{
-  const scm_sword_t max = 1 << ((SCM_FIXNUM_BITS - 1)/2);
-  const scm_sword_t min = -max;
-
-  if ((v1 < min || max <= v2) || (v2 < min || max <= v2))
-    return true;
-  else
-    return false;
-}
-
-static int
-scm_fixnum_quo_rem(scm_sword_t dvd, scm_sword_t dvr,
-                   scm_sword_t *quo, scm_sword_t *rem)
-{
-  scm_sword_t x, y, q, r;
-  char x_s, y_s;
-
-  if (dvr == 0) {
-    scm_capi_error("divided by zero", 0);
-    return -1;
-  }
-
-  if (dvd == 0) {
-    if (quo != NULL) *quo = 0;
-    if (rem != NULL) *rem = dvr;
-    return 0;
-  }
-
-  if (dvd >= 0) {
-    x = dvd; x_s = '+';
-  }
-  else {
-    x = -dvd; x_s = '-';
-  }
-
-  if (dvr >= 0) {
-    y = dvr; y_s = '+';
-  }
-  else {
-    y = -dvr; y_s = '-';
-  }
-
-  if (quo != NULL) {
-    q = x / y;
-    *quo = (x_s == y_s) ? q : -q;
-  }
-
-  if (rem != NULL) {
-    r = x % y;
-    *rem = (x_s == '+') ? r : -r;
-  }
-
-  return 0;
-}
-
-bool
-scm_fixnum_integer_p(ScmObj fn)
-{
-  scm_assert_obj_type(fn, &SCM_FIXNUM_TYPE_INFO);
-
-  return true;
-}
-
-int
-scm_fixnum_cmp(ScmObj fn, ScmObj num, int *cmp)
-{
-  scm_sword_t v1, v2;
-
-  scm_assert_obj_type(fn, &SCM_FIXNUM_TYPE_INFO);
-  scm_assert(scm_capi_number_p(num));
-
-  if (!scm_capi_fixnum_p(num)) {
-    SCM_STACK_FRAME_PUSH(&fn, &num);
-
-    fn = SCM_NUM_CALL_VFUNC(num, coerce, fn);
-    if (scm_obj_null_p(fn)) return -1;
-
-    return SCM_NUM_CALL_VFUNC(fn, cmp, num, cmp);
-  }
-
-  if (cmp != NULL) {
-    v1 = scm_fixnum_value(fn);
-    v2 = scm_fixnum_value(num);
-
-    if (v1 < v2)
-      *cmp = -1;
-    else if (v1 == v2)
-      *cmp =  0;
-    else
-      *cmp = 1;
-  }
-
-  return 0;
-}
-
-ScmObj
-scm_fixnum_plus(ScmObj aug, ScmObj add)
-{
-  scm_assert_obj_type(aug, &SCM_FIXNUM_TYPE_INFO);
-  scm_assert(scm_capi_number_p(add));
-
-  if (scm_capi_fixnum_p(add)) {
-    scm_sword_t v;
-    v = scm_fixnum_value(aug) + scm_fixnum_value(add);
-
-    if (v < SCM_FIXNUM_MIN || SCM_FIXNUM_MAX < v)
-      return scm_bignum_new_from_sword(SCM_MEM_HEAP, v);
-    else
-      return scm_fixnum_new(v);
-  }
-  else {
-    SCM_STACK_FRAME_PUSH(&aug, &add);
-
-    aug = SCM_NUM_CALL_VFUNC(add, coerce, aug);
-    if (scm_obj_null_p(aug)) return SCM_OBJ_NULL;
-
-    return SCM_NUM_CALL_VFUNC(aug, plus, add);
-  }
-}
-
-ScmObj
-scm_fixnum_minus(ScmObj min, ScmObj sub)
-{
-  scm_assert_obj_type(min, &SCM_FIXNUM_TYPE_INFO);
-  scm_assert(scm_capi_number_p(sub));
-
-  if (scm_capi_fixnum_p(sub)) {
-    scm_sword_t v;
-
-    v = scm_fixnum_value(min) - scm_fixnum_value(sub);
-
-    if (v < SCM_FIXNUM_MIN || SCM_FIXNUM_MAX < v)
-      return scm_bignum_new_from_sword(SCM_MEM_HEAP, v);
-    else
-      return scm_fixnum_new(v);
-  }
-  else {
-    SCM_STACK_FRAME_PUSH(&min, &sub);
-
-    min = SCM_NUM_CALL_VFUNC(sub, coerce, min);
-    if (scm_obj_null_p(min)) return SCM_OBJ_NULL;
-
-    return SCM_NUM_CALL_VFUNC(min, minus, sub);
-  }
-}
-
-ScmObj
-scm_fixnum_mul(ScmObj mud, ScmObj mur)
-{
-  scm_sword_t v, v1, v2;
-
-  scm_assert_obj_type(mud, &SCM_FIXNUM_TYPE_INFO);
-  scm_assert(scm_capi_number_p(mur));
-
-  v1 = scm_fixnum_value(mud);
-  if (v1 == 0) return mud;
-
-  if (scm_capi_fixnum_p(mur)) {
-    v2 = scm_fixnum_value(mur);
-
-    v = v1 * v2;
-
-    if (scm_fixnum_multi_overflow_p(v1, v2)
-        || (v < SCM_FIXNUM_MIN || SCM_FIXNUM_MAX < v)
-        || v / v1 != v2) {
-      SCM_STACK_FRAME_PUSH(&mud, &mur);
-
-      mud = scm_bignum_new_from_fixnum(SCM_MEM_HEAP, mud);
-      if (scm_obj_null_p(mud)) return SCM_OBJ_NULL;
-
-      mur = scm_bignum_new_from_fixnum(SCM_MEM_HEAP, mur);
-      if (scm_obj_null_p(mud)) return SCM_OBJ_NULL;
-
-      return scm_bignum_mul(mud, mur);
-    }
-
-    return scm_fixnum_new(v);
-  }
-  else {
-    SCM_STACK_FRAME_PUSH(&mud, &mur);
-
-    mud = SCM_NUM_CALL_VFUNC(mur, coerce, mud);
-    if (scm_obj_null_p(mud)) return SCM_OBJ_NULL;
-
-    return SCM_NUM_CALL_VFUNC(mud, mul, mur);
-  }
-}
-
-int
-scm_fixnum_floor_div(ScmObj dvd, ScmObj dvr,
-                     scm_csetter_t *quo, scm_csetter_t *rem)
-{
-  scm_sword_t x, y, q, r;
-  char x_s, y_s;
-  int rslt;
-
-  scm_assert_obj_type(dvd, &SCM_FIXNUM_TYPE_INFO);
-  scm_assert(scm_capi_number_p(dvr));
-
-  if (!scm_capi_fixnum_p(dvr)) {
-    SCM_STACK_FRAME_PUSH(&dvd, &dvr);
-
-    dvd = SCM_NUM_CALL_VFUNC(dvr, coerce, dvd);
-    if (scm_obj_null_p(dvd)) return -1;
-
-    return SCM_NUM_CALL_VFUNC(dvd, floor_div, dvr, quo, rem);
-  }
-
-  x = scm_fixnum_value(dvd);
-  y = scm_fixnum_value(dvr);
-
-  x_s = (x >= 0) ? '+' : '-';
-  y_s = (y >= 0) ? '+' : '-';
-
-  rslt = scm_fixnum_quo_rem(x, y, &q, &r);
-  if (rslt < 0) return -1;
-
-  if (r != 0 && x_s != y_s) {
-    q--;
-    r += y;
-  }
-
-  if (quo != NULL)
-    scm_csetter_setq(quo, scm_fixnum_new(q));
-
-  if (rem != NULL)
-    scm_csetter_setq(rem, scm_fixnum_new(r));
-
-  return 0;
-}
-
-int
-scm_fixnum_ceiling_div(ScmObj dvd, ScmObj dvr,
-                       scm_csetter_t *quo, scm_csetter_t *rem)
-{
-  scm_sword_t x, y, q, r;
-  char x_s, y_s;
-  int rslt;
-
-  scm_assert_obj_type(dvd, &SCM_FIXNUM_TYPE_INFO);
-  scm_assert(scm_capi_number_p(dvr));
-
-  if (!scm_capi_fixnum_p(dvr)) {
-    SCM_STACK_FRAME_PUSH(&dvd, &dvr);
-
-    dvd = SCM_NUM_CALL_VFUNC(dvr, coerce, dvd);
-    if (scm_obj_null_p(dvd)) return -1;
-
-    return SCM_NUM_CALL_VFUNC(dvd, ceiling_div, dvr, quo, rem);
-  }
-
-  x = scm_fixnum_value(dvd);
-  y = scm_fixnum_value(dvr);
-
-  x_s = (x >= 0) ? '+' : '-';
-  y_s = (y >= 0) ? '+' : '-';
-
-  rslt = scm_fixnum_quo_rem(x, y, &q, &r);
-  if (rslt < 0) return -1;
-
-  if (r != 0 && x_s == y_s) {
-    q++;
-    r -= y;
-  }
-
-  if (quo != NULL)
-    scm_csetter_setq(quo, scm_fixnum_new(q));
-
-  if (rem != NULL)
-    scm_csetter_setq(rem, scm_fixnum_new(r));
-
-  return 0;
-}
-
-int
-scm_fixnum_truncate_div(ScmObj dvd, ScmObj dvr,
-                        scm_csetter_t *quo, scm_csetter_t *rem)
-{
-  scm_sword_t x, y, q, r;
-  int rslt;
-
-  scm_assert_obj_type(dvd, &SCM_FIXNUM_TYPE_INFO);
-  scm_assert(scm_capi_number_p(dvr));
-
-  if (!scm_capi_fixnum_p(dvr)) {
-    SCM_STACK_FRAME_PUSH(&dvd, &dvr);
-
-    dvd = SCM_NUM_CALL_VFUNC(dvr, coerce, dvd);
-    if (scm_obj_null_p(dvd)) return -1;
-
-    return SCM_NUM_CALL_VFUNC(dvd, truncate_div, dvr, quo, rem);
-  }
-
-  x = scm_fixnum_value(dvd);
-  y = scm_fixnum_value(dvr);
-
-  rslt = scm_fixnum_quo_rem(x, y, &q, &r);
-  if (rslt < 0) return -1;
-
-  if (quo != NULL)
-    scm_csetter_setq(quo, scm_fixnum_new(q));
-
-  if (rem != NULL)
-    scm_csetter_setq(rem, scm_fixnum_new(r));
-
-  return 0;
-}
-
-
-ScmObj
-scm_fixnum_coerce(ScmObj fn, ScmObj num)
-{
-  scm_assert_obj_type(fn, &SCM_FIXNUM_TYPE_INFO);
-  scm_assert(scm_obj_not_null_p(num));
-
-  scm_capi_error("undefined arithmetic operation pattern", 2, fn, num);
-  return SCM_OBJ_NULL;
-}
-
-int
-scm_fixnum_pretty_print(ScmObj obj, ScmObj port, bool write_p)
-{
-  char cstr[32];
-  int rslt;
-
-  scm_assert_obj_type(obj, &SCM_FIXNUM_TYPE_INFO);
-
-  snprintf(cstr, sizeof(cstr), "%lld",
-           (long long)SCM_RSHIFT_ARITH((scm_sword_t)obj, SCM_FIXNUM_SHIFT_BIT));
-
-  rslt = scm_capi_write_cstr(cstr, SCM_ENC_ASCII, port);
-  if (rslt < 0) return -1;
-
-  return 0;
-}
-
-
-/***************************************************************************/
-/*  Bignum                                                                 */
-/***************************************************************************/
-
-ScmNumVFunc SCM_BIGNUM_VFUNC = {
+#include "impl_utils.h"
+#include "number_common.h"
+#include "fixnum.h"
+#include "bignum.h"
+
+ScmNumFunc SCM_BIGNUM_FUNC = {
   .coerce       = scm_bignum_coerce,
+  .copy         = scm_bignum_copy,
+  .complex_p    = scm_bignum_complex_p,
+  .real_p       = scm_bignum_real_p,
+  .rational_p   = scm_bignum_rational_p,
   .integer_p    = scm_bignum_integer_p,
+  .exact_p      = scm_bignum_exact_p,
+  .inexact_p    = scm_bignum_inexact_p,
+  .finite_p     = scm_bignum_finite_p,
+  .infinite_p   = scm_bignum_infinite_p,
+  .nan_p        = scm_bignum_nan_p,
   .cmp          = scm_bignum_cmp,
+  .zero_p       = scm_bignum_zero_p,
+  .positive_p   = scm_bignum_positive_p,
+  .negative_p   = scm_bignum_negative_p,
+  .odd_p        = scm_bignum_odd_p,
+  .even_p       = scm_bignum_even_p,
+  .invert_sign  = scm_bignum_invert_sign,
   .plus         = scm_bignum_plus,
   .minus        = scm_bignum_minus,
   .mul          = scm_bignum_mul,
@@ -468,7 +47,7 @@ ScmTypeInfo SCM_BIGNUM_TYPE_INFO = {
   .gc_fin_func         = scm_bignum_gc_finalize,
   .gc_accept_func      = NULL,
   .gc_accept_func_weak = NULL,
-  .extra               = &SCM_BIGNUM_VFUNC,
+  .extra               = &SCM_BIGNUM_FUNC,
 };
 
 static inline scm_bignum_c_t
@@ -1013,20 +592,6 @@ scm_bignum_2_fixnum_if_possible(ScmObj bignum)
     return scm_fixnum_new(-num);
 }
 
-static bool
-scm_bignum_zero_p(ScmObj bignum)
-{
-  scm_assert_obj_type(bignum, &SCM_BIGNUM_TYPE_INFO);
-
-  if (SCM_BIGNUM(bignum)->nr_digits == 1) {
-    scm_bignum_c_t v;
-    EARY_GET(&SCM_BIGNUM(bignum)->digits, scm_bignum_d_t, 0, v);
-    if (v == 0) return true;
-  }
-
-  return false;
-}
-
 static int
 scm_bignum_quo_rem(ScmObj bn1, ScmObj bn2,
                    scm_csetter_t *quo, scm_csetter_t *rem)
@@ -1345,11 +910,75 @@ scm_bignum_finalize(ScmObj bignum)
 }
 
 bool
+scm_bignum_complex_p(ScmObj bn)
+{
+  scm_assert_obj_type(bn, &SCM_BIGNUM_TYPE_INFO);
+
+  return true;
+}
+
+bool
+scm_bignum_real_p(ScmObj bn)
+{
+  scm_assert_obj_type(bn, &SCM_BIGNUM_TYPE_INFO);
+
+  return true;
+}
+
+bool
+scm_bignum_rational_p(ScmObj bn)
+{
+  scm_assert_obj_type(bn, &SCM_BIGNUM_TYPE_INFO);
+
+  return true;
+}
+
+bool
 scm_bignum_integer_p(ScmObj bn)
 {
   scm_assert_obj_type(bn, &SCM_BIGNUM_TYPE_INFO);
 
   return true;
+}
+
+bool
+scm_bignum_exact_p(ScmObj bn)
+{
+  scm_assert_obj_type(bn, &SCM_BIGNUM_TYPE_INFO);
+
+  return true;
+}
+
+bool
+scm_bignum_inexact_p(ScmObj bn)
+{
+  scm_assert_obj_type(bn, &SCM_BIGNUM_TYPE_INFO);
+
+  return false;
+}
+
+bool
+scm_bignum_finite_p(ScmObj bn)
+{
+  scm_assert_obj_type(bn, &SCM_BIGNUM_TYPE_INFO);
+
+  return true;
+}
+
+bool
+scm_bignum_infinite_p(ScmObj bn)
+{
+  scm_assert_obj_type(bn, &SCM_BIGNUM_TYPE_INFO);
+
+  return false;
+}
+
+bool
+scm_bignum_nan_p(ScmObj bn)
+{
+  scm_assert_obj_type(bn, &SCM_BIGNUM_TYPE_INFO);
+
+  return false;
 }
 
 int
@@ -1365,10 +994,10 @@ scm_bignum_cmp(ScmObj bn, ScmObj num, int *cmp)
     if (scm_obj_null_p(num)) return -1;
   }
   else if (!scm_capi_bignum_p(num)) {
-    bn = SCM_NUM_CALL_VFUNC(num, coerce, bn);
+    bn = SCM_NUM_CALL_FUNC(num, coerce, bn);
     if (scm_obj_null_p(bn)) return -1;
 
-    return SCM_NUM_CALL_VFUNC(bn, cmp, num, cmp);
+    return SCM_NUM_CALL_FUNC(bn, cmp, num, cmp);
   }
 
   if (cmp != NULL) {
@@ -1387,6 +1016,73 @@ scm_bignum_cmp(ScmObj bn, ScmObj num, int *cmp)
   return 0;
 }
 
+bool
+scm_bignum_zero_p(ScmObj bn)
+{
+  scm_assert_obj_type(bn, &SCM_BIGNUM_TYPE_INFO);
+
+  if (SCM_BIGNUM(bn)->nr_digits == 1) {
+    scm_bignum_c_t v;
+    EARY_GET(&SCM_BIGNUM(bn)->digits, scm_bignum_d_t, 0, v);
+    if (v == 0) return true;
+  }
+
+  return false;
+}
+
+bool
+scm_bignum_positive_p(ScmObj bn)
+{
+  scm_assert_obj_type(bn, &SCM_BIGNUM_TYPE_INFO);
+
+  return (SCM_BIGNUM(bn)->sign == '+') ? true : false;
+}
+
+bool
+scm_bignum_negative_p(ScmObj bn)
+{
+  scm_assert_obj_type(bn, &SCM_BIGNUM_TYPE_INFO);
+
+  return (SCM_BIGNUM(bn)->sign == '-') ? true : false;
+}
+
+bool
+scm_bignum_odd_p(ScmObj bn)
+{
+  scm_bignum_c_t v;
+
+  scm_assert_obj_type(bn, &SCM_BIGNUM_TYPE_INFO);
+
+  EARY_GET(&SCM_BIGNUM(bn)->digits, scm_bignum_d_t, 0, v);
+
+  return ((v & 0x01) == 1) ? true : false;
+}
+
+bool
+scm_bignum_even_p(ScmObj bn)
+{
+  scm_bignum_c_t v;
+
+  scm_assert_obj_type(bn, &SCM_BIGNUM_TYPE_INFO);
+
+  EARY_GET(&SCM_BIGNUM(bn)->digits, scm_bignum_d_t, 0, v);
+
+  return ((v & 0x01) == 0) ? true : false;
+}
+
+ScmObj
+scm_bignum_invert_sign(ScmObj bn)
+{
+  scm_assert_obj_type(bn, &SCM_BIGNUM_TYPE_INFO);
+
+  bn = scm_bignum_copy(bn);
+  if (scm_obj_null_p(bn)) return SCM_OBJ_NULL;
+
+  SCM_BIGNUM(bn)->sign = (SCM_BIGNUM(bn)->sign == '+') ? '-' : '+';
+
+  return bn;
+}
+
 ScmObj
 scm_bignum_plus(ScmObj aug, ScmObj add)
 {
@@ -1402,10 +1098,10 @@ scm_bignum_plus(ScmObj aug, ScmObj add)
     if (scm_obj_null_p(add)) return SCM_OBJ_NULL; /* [ERR]: [through] */
   }
   else if (!scm_capi_bignum_p(add)) {
-    aug = SCM_NUM_CALL_VFUNC(add, coerce, aug);
+    aug = SCM_NUM_CALL_FUNC(add, coerce, aug);
     if (scm_obj_null_p(aug)) return SCM_OBJ_NULL;
 
-    return SCM_NUM_CALL_VFUNC(aug, plus, add);
+    return SCM_NUM_CALL_FUNC(aug, plus, add);
   }
 
   place = SCM_BIGNUM(aug)->nr_digits;
@@ -1447,10 +1143,10 @@ scm_bignum_minus(ScmObj min, ScmObj sub)
     if (scm_obj_null_p(sub)) return SCM_OBJ_NULL; /* [ERR]: [through] */
   }
   else if (!scm_capi_bignum_p(sub)) {
-    min = SCM_NUM_CALL_VFUNC(sub, coerce, min);
+    min = SCM_NUM_CALL_FUNC(sub, coerce, min);
     if (scm_obj_null_p(min)) return SCM_OBJ_NULL;
 
-    return SCM_NUM_CALL_VFUNC(min, minus, sub);
+    return SCM_NUM_CALL_FUNC(min, minus, sub);
   }
 
   place = SCM_BIGNUM(min)->nr_digits;
@@ -1493,10 +1189,10 @@ scm_bignum_mul(ScmObj mud, ScmObj mur)
     if (scm_obj_null_p(mur)) return SCM_OBJ_NULL; /* [ERR]: [through] */
   }
   else if (!scm_capi_bignum_p(mur)) {
-    mud = SCM_NUM_CALL_VFUNC(mur, coerce, mud);
+    mud = SCM_NUM_CALL_FUNC(mur, coerce, mud);
     if (scm_obj_null_p(mud)) return SCM_OBJ_NULL;
 
-    return SCM_NUM_CALL_VFUNC(mud, mul, mur);
+    return SCM_NUM_CALL_FUNC(mud, mul, mur);
   }
 
   place = SCM_BIGNUM(mud)->nr_digits + SCM_BIGNUM(mur)->nr_digits;
@@ -1557,10 +1253,10 @@ scm_bignum_floor_div(ScmObj dvd, ScmObj dvr,
     if (scm_obj_null_p(dvr)) return -1;
   }
   else if (!scm_capi_bignum_p(dvr)) {
-    dvd = SCM_NUM_CALL_VFUNC(dvr, coerce, dvd);
+    dvd = SCM_NUM_CALL_FUNC(dvr, coerce, dvd);
     if (scm_obj_null_p(dvd)) return SCM_OBJ_NULL;
 
-    return SCM_NUM_CALL_VFUNC(dvd, floor_div, dvd, quo, rem);
+    return SCM_NUM_CALL_FUNC(dvd, floor_div, dvd, quo, rem);
   }
 
   rslt = scm_bignum_quo_rem(dvd, dvr, SCM_CSETTER_L(qu), SCM_CSETTER_L(re));
@@ -1609,10 +1305,10 @@ scm_bignum_ceiling_div(ScmObj dvd, ScmObj dvr,
     if (scm_obj_null_p(dvr)) return -1;
   }
   else if (!scm_capi_bignum_p(dvr)) {
-    dvd = SCM_NUM_CALL_VFUNC(dvr, coerce, dvd);
+    dvd = SCM_NUM_CALL_FUNC(dvr, coerce, dvd);
     if (scm_obj_null_p(dvd)) return SCM_OBJ_NULL;
 
-    return SCM_NUM_CALL_VFUNC(dvd, ceiling_div, dvd, quo, rem);
+    return SCM_NUM_CALL_FUNC(dvd, ceiling_div, dvd, quo, rem);
   }
 
   rslt = scm_bignum_quo_rem(dvd, dvr, SCM_CSETTER_L(qu), SCM_CSETTER_L(re));
@@ -1661,10 +1357,10 @@ scm_bignum_truncate_div(ScmObj dvd, ScmObj dvr,
     if (scm_obj_null_p(dvr)) return -1;
   }
   else if (!scm_capi_bignum_p(dvr)) {
-    dvd = SCM_NUM_CALL_VFUNC(dvr, coerce, dvd);
+    dvd = SCM_NUM_CALL_FUNC(dvr, coerce, dvd);
     if (scm_obj_null_p(dvd)) return SCM_OBJ_NULL;
 
-    return SCM_NUM_CALL_VFUNC(dvd, truncate_div, dvd, quo, rem);
+    return SCM_NUM_CALL_FUNC(dvd, truncate_div, dvd, quo, rem);
   }
 
   rslt = scm_bignum_quo_rem(dvd, dvr,
@@ -1760,527 +1456,4 @@ void
 scm_bignum_gc_finalize(ScmObj obj)
 {
   scm_bignum_finalize(obj);
-}
-
-
-/***************************************************************************/
-/*  Parser for Literal                                                     */
-/***************************************************************************/
-
-typedef struct ScmNumParseDataRec ScmNumParseData;
-typedef struct ScmNumParseDataRealRec ScmNumParseDataReal;
-
-enum { SCM_NUM_PARSE_NONE, SCM_NUM_PARSE_INF, SCM_NUM_PARSE_NAN };
-enum { SCM_NUM_PARSE_CMPLX_ORTHOG, SCM_NUM_PARSE_CMPLX_POLAR };
-
-struct ScmNumParseDataRealRec {
-  char sign;
-  int infinity;
-  struct {
-    const char *head;
-    size_t size;
-  } p1;
-  char delim;
-  struct {
-    const char *head;
-    size_t size;
-  } p2;
-  struct {
-    char em;
-    char sign;
-    const char *head;
-    size_t size;
-  } sfx;
-};
-
-struct ScmNumParseDataRec {
-  bool exact;
-  int radix;
-  struct {
-    int form;
-    union {
-      struct {
-        bool real_spc;
-        ScmNumParseDataReal real;
-        bool img_spc;
-        ScmNumParseDataReal img;
-      } orthog;
-      struct {
-        ScmNumParseDataReal abs;
-        ScmNumParseDataReal arg;
-      } polar;
-    };
-  } cmplx;
-};
-
-static ssize_t
-scm_num_parse_prefix(const char *literal, size_t size, ScmNumParseData *data)
-{
-  bool radix, exact;
-  size_t idx;
-
-  scm_assert(literal != NULL);
-  scm_assert(size <= SSIZE_MAX);
-  scm_assert(data != NULL);
-
-  data->exact = true;
-  data->radix = 10;
-  radix = exact = false;
-  idx = 0;
-
-  while (!(exact && radix) && idx < size && literal[idx] == '#') {
-    idx++;
-    if (idx >= size) {
-      scm_capi_error("number literal parse error: invalid format", 0);
-      return -1;
-    }
-
-    switch (literal[idx]) {
-    case 'i':                   /* fall through */
-    case 'I':
-      if (exact) {
-        scm_capi_error("number literal parse error: duplicate excatness", 0);
-        return -1;
-      }
-      data->exact = false;
-      exact = true;
-      break;
-    case 'e':                   /* fall through */
-    case 'E':
-      if (exact) {
-        scm_capi_error("number literal parse error: duplicate excatness", 0);
-        return -1;
-      }
-      data->exact = true;
-      exact = true;
-      break;
-    case 'b':                   /* fall through */
-    case 'B':
-      if (radix) {
-        scm_capi_error("number literal parse error: duplicate radix", 0);
-        return -1;
-      }
-      data->radix = 2;
-      radix = true;
-      break;
-    case 'o':                   /* fall through */
-    case 'O':
-      if (radix) {
-        scm_capi_error("number literal parse error: duplicate radix", 0);
-        return -1;
-      }
-      data->radix = 8;
-      radix = true;
-      break;
-    case 'd':                   /* fall through */
-    case 'D':
-      if (radix) {
-        scm_capi_error("number literal parse error: duplicate radix", 0);
-        return -1;
-      }
-      data->radix = 10;
-      radix = true;
-      break;
-    case 'x':                   /* fall through */
-    case 'X':
-      if (radix) {
-        scm_capi_error("number literal parse error: duplicate radix", 0);
-        return -1;
-      }
-      data->radix = 16;
-      radix = true;
-      break;
-    default:
-      scm_capi_error("number literal parse error: unsupported prefix", 0);
-      return -1;
-      break;
-    }
-    idx++;
-  }
-
-  return (ssize_t)idx;
-}
-
-static size_t
-scm_num_parse_digit(const char *literal, size_t size, const char *digits)
-{
-  size_t idx;
-  for (idx = 0; idx < size && strchr(digits, literal[idx]) != NULL; idx++)
-    ;
-  return idx;
-}
-
-static char
-scm_num_parse_sign(const char *literal, size_t size)
-{
-  if (size < 1) return '\0';
-  else if (literal[0] == '+' || literal[0] == '-') return literal[0];
-  else return '\0';
-}
-
-static const char *
-scm_num_digits_string(int radix)
-{
-  static const char *digits_tbl[] = { NULL, NULL, "01", NULL,
-                                      NULL, NULL, NULL, NULL,
-                                      "01234567", NULL, "0123456789", NULL,
-                                      NULL, NULL, NULL, NULL,
-                                      "0123456789abcdefABCDEF" };
-  if (radix < 0
-      || (size_t)radix >= sizeof(digits_tbl)/sizeof(digits_tbl[0]))
-    return NULL;
-
-  return digits_tbl[radix];
-}
-
-static ssize_t
-scm_num_parse_real(const char *literal, size_t size, int radix,
-                   ScmNumParseDataReal *real)
-{
-  struct infinity_tbl {
-    const char *str;
-    size_t len;
-    int type;
-  } inf_tbl[] = { { "inf.0", 5, SCM_NUM_PARSE_INF },
-                  { "nan.0", 5, SCM_NUM_PARSE_NAN },
-                  { NULL, 0, SCM_NUM_PARSE_NONE } };
-  const char *digit;
-  size_t idx;
-
-  scm_assert(literal != NULL);
-  scm_assert(size <= SSIZE_MAX);
-  scm_assert(real != NULL);
-
-  digit = scm_num_digits_string(radix);
-  if (digit == NULL) {
-    scm_capi_error("number literal parse error: unsupported radix", 0);
-    return -1;
-  }
-
-  if (size < 1) {
-    scm_capi_error("number literal parse error: invalid format", 0);
-    return 0;
-  }
-
-  idx = 0;
-  real->sign = scm_num_parse_sign(literal + idx, size - idx);
-  if (real->sign != '\0') idx++;
-
-  if (idx >= size) {
-    scm_capi_error("number literal parse error: invalid format", 0);
-    return -1;
-  }
-
-  real->infinity = SCM_NUM_PARSE_NONE;
-
-  real->p1.head = literal + idx;
-  real->p1.size = scm_num_parse_digit(real->p1.head, size - idx, digit);
-  idx += real->p1.size;
-
-  if (idx >= size) {
-    real->delim = '\0';
-    real->sfx.em = '\0';
-  }
-  else if (literal[idx] == '/') {
-    if (real->p1.size == 0) {
-      scm_capi_error("number literal parse error: invalid format", 0);
-      return -1;
-    }
-
-    real->delim = '/';
-
-    idx++;
-    real->p2.head = literal + idx;
-    real->p2.size = scm_num_parse_digit(real->p2.head, size - idx, digit);
-    idx += real->p2.size;
-
-    if (real->p2.size == 0) {
-      scm_capi_error("number literal parse error: invalid format", 0);
-      return -1;
-    }
-
-    real->sfx.em = '\0';
-  }
-  else if (radix == 10) {
-    if (literal[idx] == '.') {
-      idx++;
-      real->delim = '.';
-      real->p2.head = literal + idx;
-      real->p2.size = scm_num_parse_digit(real->p2.head, size - idx, digit);
-      if (real->p1.size == 0 && real->p2.size == 0) {
-        scm_capi_error("number literal parse error: invalid format", 0);
-        return -1;
-      }
-      idx += real->p2.size;
-    }
-    else if (real->p1.size == 0) {
-      scm_capi_error("number literal parse error: invalid format", 0);
-      return -1;
-    }
-    else {
-      real->delim = '\0';
-    }
-
-    if (idx < size && strchr("esfdlESFDL", literal[idx]) != NULL) {
-      real->sfx.em = literal[idx++];
-      if (idx >= size) {
-        scm_capi_error("number literal parse error: invalid format", 0);
-        return -1;
-      }
-
-      real->sfx.sign = scm_num_parse_sign(literal + idx, size - idx);
-      if (real->sfx.sign != '\0') idx++;
-
-      if (idx >= size) {
-        scm_capi_error("number literal parse error: invalid format", 0);
-        return -1;
-      }
-
-      real->sfx.head = literal + idx;
-      real->sfx.size = scm_num_parse_digit(real->sfx.head, size - idx, digit);
-      if (real->sfx.size == 0) return -1;
-    }
-  }
-  else if (real->p1.size > 0) {
-    real->delim = '\0';
-    real->sfx.em = '\0';
-  }
-  else if (real->sign != '\0') {
-    for (struct infinity_tbl *p = inf_tbl; p->str != NULL; p++) {
-      if (size > p->len && strncmp(p->str, literal + idx, size) == 0) {
-        idx += p->len;
-        real->infinity = p->type;
-        return (ssize_t)idx;
-      }
-    }
-    scm_capi_error("number literal parse error: invalid format", 0);
-    return -1;
-  }
-  else {
-    scm_capi_error("number literal parse error: invalid format", 0);
-    return -1;
-  }
-
-  return (ssize_t)idx;
-}
-
-static ssize_t
-scm_num_parse_complex(const char *literal, size_t size, ScmNumParseData *data)
-{
-  ScmNumParseDataReal real;
-  ssize_t idx;
-
-  scm_assert(literal != NULL);
-  scm_assert(size <= SSIZE_MAX);
-  scm_assert(data != NULL);
-
-  idx = scm_num_parse_real(literal, size, data->radix, &real);
-  if (idx < 0) return -1;       /* [ERR]:[through] */
-
-  if ((size_t)idx == size) {
-    data->cmplx.form = SCM_NUM_PARSE_CMPLX_ORTHOG;
-    data->cmplx.orthog.real_spc = true;
-    data->cmplx.orthog.real = real;
-    data->cmplx.orthog.img_spc = false;
-  }
-  else if (literal[idx] == '@') {
-    ssize_t i;
-
-    data->cmplx.form = SCM_NUM_PARSE_CMPLX_POLAR;
-    data->cmplx.polar.abs = real;
-
-    i = scm_num_parse_real(literal + idx, size - (size_t)idx,
-                           data->radix, &real);
-    if (i < 0) return -1;       /* [ERR]: [through] */
-
-    idx += i;
-    data->cmplx.polar.arg = real;
-  }
-  else if (literal[idx] == '+' || literal[idx] == '-') {
-    if ((size_t)idx + 1 >= size) {
-      scm_capi_error("number literal parse error: invalid format", 0);
-      return -1;
-    }
-
-    data->cmplx.form = SCM_NUM_PARSE_CMPLX_ORTHOG;
-    data->cmplx.orthog.real_spc = true;
-    data->cmplx.orthog.real = real;
-
-    if ((literal[idx + 1] == 'i' || literal[idx + 1] == 'I')
-        && (size_t)idx + 2 == size) {
-      data->cmplx.orthog.img_spc = true;
-      data->cmplx.orthog.img.sign = literal[idx];
-      data->cmplx.orthog.img.infinity = SCM_NUM_PARSE_NONE;
-      data->cmplx.orthog.img.p1.head = NULL;
-      data->cmplx.orthog.img.p1.size = 0;
-    }
-    else {
-      ssize_t i = scm_num_parse_real(literal + idx, size - (size_t)idx,
-                                     data->radix, &real);
-      if (i < 0) return -1;     /* [ERR]: [through] */
-
-      idx += i;
-      data->cmplx.orthog.img_spc = true;
-      data->cmplx.orthog.img = real;
-    }
-  }
-  else if (literal[idx] == 'i' || literal[idx] == 'I') {
-    data->cmplx.form = SCM_NUM_PARSE_CMPLX_ORTHOG;
-    data->cmplx.orthog.real_spc = false;
-    data->cmplx.orthog.img_spc = true;
-    data->cmplx.orthog.img = real;
-    idx++;
-  }
-  else {
-    scm_capi_error("number literal parse error: invalid format", 0);
-    return -1;
-  }
-
-  return idx;
-}
-
-static int
-scm_num_parse_literal(const char *literal, size_t size, ScmNumParseData *data)
-{
-  ssize_t p_idx, c_idx;
-
-  scm_assert(literal != NULL);
-  scm_assert(size <= SSIZE_MAX);
-  scm_assert(data != NULL);
-
-  p_idx = scm_num_parse_prefix(literal, size, data);
-  if (p_idx < 0) return -1;        /* [ERR]: [through] */
-
-  c_idx = scm_num_parse_complex(literal + p_idx, size - (size_t)p_idx, data);
-  if (c_idx < 0) return -1;     /* [ERR]: [through] */
-
-  if ((size_t)p_idx + (size_t)c_idx < size) {
-    scm_capi_error("number literal parse error: invalid format", 0);
-    return -1;
-  }
-
-  return 0;
-}
-
-static int
-scm_num_char_to_int(char c)
-{
-  const char *digits = "0123456789abcdefABCDEF";
-  int v;
-
-  char *p = strchr(digits, c);
-  if (p == NULL) {
-    scm_capi_error("number literal parse error: invalid format", 0);
-    return -1;
-  }
-
-  v = (int)(p - digits);
-  if (v > 15) return v -= 6;
-
-  return v;
-}
-
-static ssize_t
-scm_num_calc_len_of_ary_of_sword(size_t str_size, int radix)
-{
-  scm_bignum_c_t base;
-  int place, rslt;
-
-  scm_assert(str_size <= SSIZE_MAX);
-
-  rslt = scm_num_calc_base_and_place_for_ary_of_digits(radix,
-                                                       &base, &place);
-  if (rslt < 0) return -1;      /* [ERR]: [through] */
-
-  return ((ssize_t)str_size / place
-          + (((ssize_t)str_size % place) ? 1 : 0));
-}
-
-static scm_bignum_sc_t
-scm_num_str_to_ary_of_sword(int radix, const char *str, size_t size,
-                            scm_bignum_d_t *ary, size_t ary_sz)
-{
-  scm_bignum_c_t base;
-  int place, rslt;
-
-  scm_assert(str != NULL);
-  scm_assert(size <= SSIZE_MAX);
-  scm_assert(ary != NULL);
-  scm_assert(0 < ary_sz && ary_sz <= SSIZE_MAX);
-
-  rslt = scm_num_calc_base_and_place_for_ary_of_digits(radix, &base, &place);
-
-  if (rslt < 0) return -1;      /* [ERR]: [through] */
-  for (ssize_t i = (ssize_t)size, idx = 0;
-       i > 0;
-       i -= place, idx++) {
-    ary[idx] = 0;
-
-    for (int j = (i >= place) ? -place : (int)-i; j < 0; j++) {
-      int v = scm_num_char_to_int(str[i + j]);
-      if (v < 0) return -1;     /* [ERR]: [through] */
-
-      ary[idx] = ary[idx] * (scm_bignum_d_t)radix + (scm_bignum_d_t)v;
-    }
-  }
-
-  return (scm_bignum_sc_t)base;
-}
-
-static ScmObj
-scm_num_make_real(int radix, ScmNumParseDataReal *real)
-{
-  ssize_t ary_sz;
-
-  scm_assert(real != NULL);
-
-  if (real->delim != '\0') {
-    scm_capi_error("unsupported number literal", 0);
-    return SCM_OBJ_NULL;
-  }
-
-  if (real->sfx.em != '\0') {
-    return SCM_OBJ_NULL;
-  }
-
-  ary_sz = scm_num_calc_len_of_ary_of_sword(real->p1.size, radix);
-  if (ary_sz < 0) return 0;     /* [ERR]: [through] */
-
-  {
-    scm_bignum_d_t ary[ary_sz];
-    scm_bignum_sc_t base;
-
-    base = scm_num_str_to_ary_of_sword(radix, real->p1.head, real->p1.size,
-                                       ary, (size_t)ary_sz);
-    if (base < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
-
-    return scm_num_make_int_from_ary(real->sign, ary, (size_t)ary_sz,
-                                     (scm_bignum_c_t)base);
-  }
-}
-
-ScmObj
-scm_num_make_from_literal(const char *literal, size_t size)
-{
-  ScmNumParseData data;
-  ssize_t rslt;
-
-  scm_assert(literal != NULL);
-  scm_assert(size <= SSIZE_MAX);
-
-  rslt = scm_num_parse_literal(literal, size, &data);
-  if (rslt < 0) return SCM_OBJ_NULL;      /* [ERR] */
-
-  if (data.cmplx.form == SCM_NUM_PARSE_CMPLX_POLAR
-      || data.cmplx.orthog.img_spc) {
-    scm_capi_error("unsupported number literal", 0);
-    return SCM_OBJ_NULL;
-  }
-
-  if (data.cmplx.orthog.real.infinity != SCM_NUM_PARSE_NONE) {
-    scm_capi_error("unsupported number literal", 0);
-    return SCM_OBJ_NULL;
-  }
-
-  return scm_num_make_real(data.radix, &data.cmplx.orthog.real);
 }

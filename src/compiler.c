@@ -1359,7 +1359,7 @@ scm_cmpl_stack_inc_cnt(ScmObj stack)
   n = scm_api_cdr(stack);
   if (scm_obj_null_p(n)) return -1;
 
-  rslt = scm_capi_num_to_sword(n, &cnt);
+  rslt = scm_capi_integer_to_sword(n, &cnt);
   if (rslt < 0) return -1;
 
   cnt++;
@@ -1386,7 +1386,7 @@ scm_cmpl_stack_dec_cnt(ScmObj stack)
   n = scm_api_cdr(stack);
   if (scm_obj_null_p(n)) return -1;
 
-  rslt = scm_capi_num_to_sword(n, &cnt);
+  rslt = scm_capi_integer_to_sword(n, &cnt);
   if (rslt < 0) return -1;
 
   cnt--;
@@ -1480,7 +1480,7 @@ scm_cmpl_stack_len(ScmObj stack)
   n = scm_api_cdr(stack);
   if (scm_obj_null_p(n)) return -1;
 
-  rslt = scm_capi_num_to_sword(n, &l);
+  rslt = scm_capi_integer_to_sword(n, &l);
   if (rslt < 0) return -1;
 
   return (ssize_t)l;

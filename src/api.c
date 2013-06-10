@@ -12,7 +12,7 @@
 #include "string.h"
 #include "symbol.h"
 #include "procedure.h"
-#include "numeric.h"
+#include "number.h"
 #include "pair.h"
 #include "vector.h"
 #include "port.h"
@@ -936,12 +936,12 @@ scm_api_make_list(ScmObj n, ScmObj fill)
   size_t s;
   int r;
 
-  if (!scm_capi_number_p(n)) {
+  if (!scm_capi_integer_p(n)) {
     scm_capi_error("make-list: invalid argument", 0);
     return SCM_OBJ_NULL;
   }
 
-  r = scm_capi_num_to_size_t(n, &s);
+  r = scm_capi_integer_to_size_t(n, &s);
   if (r < 0) return SCM_OBJ_NULL;
 
   return scm_capi_make_list(s, fill);
@@ -1210,12 +1210,12 @@ scm_api_list_tail(ScmObj lst, ScmObj n)
   size_t s;
   int r;
 
-  if (!scm_capi_number_p(n)) {
+  if (!scm_capi_integer_p(n)) {
     scm_capi_error("list-tail: invalid argument", 0);
     return SCM_OBJ_NULL;
   }
 
-  r = scm_capi_num_to_size_t(n, &s);
+  r = scm_capi_integer_to_size_t(n, &s);
   if (r < 0) return SCM_OBJ_NULL;
 
   return scm_capi_list_tail(lst, s);
@@ -1254,12 +1254,12 @@ scm_api_list_ref(ScmObj lst, ScmObj n)
   size_t s;
   int r;
 
-  if (!scm_capi_number_p(n)) {
+  if (!scm_capi_integer_p(n)) {
     scm_capi_error("list-ref: invalid argument", 0);
     return SCM_OBJ_NULL;
   }
 
-  r = scm_capi_num_to_size_t(n, &s);
+  r = scm_capi_integer_to_size_t(n, &s);
   if (r < 0) return SCM_OBJ_NULL;
 
   return scm_capi_list_ref(lst, s);
@@ -1296,12 +1296,12 @@ scm_api_list_set_i(ScmObj lst, ScmObj n, ScmObj obj)
   size_t s;
   int r;
 
-  if (!scm_capi_number_p(n)) {
+  if (!scm_capi_integer_p(n)) {
     scm_capi_error("list-set!: invalid argument", 0);
     return SCM_OBJ_NULL;
   }
 
-  r = scm_capi_num_to_size_t(n, &s);
+  r = scm_capi_integer_to_size_t(n, &s);
   if (r < 0) return SCM_OBJ_NULL;
 
   r = scm_capi_list_set_i(lst, s, obj);
@@ -1462,8 +1462,276 @@ scm_api_list_copy(ScmObj lst)
 
 
 /*******************************************************************/
-/*  Numeric                                                        */
+/*  Numbers                                                        */
 /*******************************************************************/
+
+extern inline bool
+scm_capi_fixnum_p(ScmObj obj)
+{
+  if (scm_obj_null_p(obj)) return false;
+
+  return scm_obj_type_p(obj, &SCM_FIXNUM_TYPE_INFO);
+}
+
+ScmObj
+scm_api_fixnum_P(ScmObj obj)
+{
+  if (scm_obj_null_p(obj)) {
+    scm_capi_error("fixnum?: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_capi_fixnum_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+}
+
+extern inline bool
+scm_capi_bignum_p(ScmObj obj)
+{
+  if (scm_obj_null_p(obj)) return false;
+
+  return scm_obj_type_p(obj, &SCM_BIGNUM_TYPE_INFO);
+}
+
+ScmObj
+scm_api_bignum_P(ScmObj obj)
+{
+  if (scm_obj_null_p(obj)) {
+    scm_capi_error("bignum?: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_capi_bignum_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+}
+
+extern inline bool
+scm_capi_number_p(ScmObj obj)
+{
+  if (scm_obj_null_p(obj)) return false;
+
+  return scm_obj_type_flag_set_p(obj, SCM_TYPE_FLG_NUM);
+}
+
+ScmObj
+scm_api_number_P(ScmObj obj)
+{
+  if (scm_obj_null_p(obj)) {
+    scm_capi_error("number?: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_capi_number_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+}
+
+extern inline bool
+scm_capi_complex_p(ScmObj obj)
+{
+  SCM_STACK_FRAME_PUSH(&obj);
+
+  if (!scm_capi_number_p(obj)) return false;
+
+  return SCM_NUM_CALL_FUNC(obj, complex_p);
+}
+
+ScmObj
+scm_api_complex_P(ScmObj obj)
+{
+  if (scm_obj_null_p(obj)) {
+    scm_capi_error("complex?: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_capi_complex_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+}
+
+extern inline bool
+scm_capi_real_p(ScmObj obj)
+{
+  SCM_STACK_FRAME_PUSH(&obj);
+
+  if (!scm_capi_number_p(obj)) return false;
+
+  return SCM_NUM_CALL_FUNC(obj, real_p);
+}
+
+ScmObj
+scm_api_real_P(ScmObj obj)
+{
+  if (scm_obj_null_p(obj)) {
+    scm_capi_error("real?: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_capi_real_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+}
+
+extern inline bool
+scm_capi_rational_p(ScmObj obj)
+{
+  SCM_STACK_FRAME_PUSH(&obj);
+
+  if (!scm_capi_number_p(obj)) return false;
+
+  return SCM_NUM_CALL_FUNC(obj, rational_p);
+}
+
+ScmObj
+scm_api_rational_P(ScmObj obj)
+{
+  if (scm_obj_null_p(obj)) {
+    scm_capi_error("rational?: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_capi_rational_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+}
+
+extern inline bool
+scm_capi_integer_p(ScmObj obj)
+{
+  SCM_STACK_FRAME_PUSH(&obj);
+
+  if (!scm_capi_number_p(obj)) return false;
+
+  return SCM_NUM_CALL_FUNC(obj, integer_p);
+}
+
+ScmObj
+scm_api_integer_P(ScmObj obj)
+{
+  if (scm_obj_null_p(obj)) {
+    scm_capi_error("integer?: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_capi_integer_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+}
+
+extern inline bool
+scm_capi_exact_p(ScmObj obj)
+{
+  SCM_STACK_FRAME_PUSH(&obj);
+
+  if (!scm_capi_number_p(obj)) return false;
+
+  return SCM_NUM_CALL_FUNC(obj, exact_p);
+}
+
+ScmObj
+scm_api_exact_P(ScmObj obj)
+{
+  if (scm_obj_null_p(obj)) {
+    scm_capi_error("exact?: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_capi_exact_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+}
+
+extern inline bool
+scm_capi_inexact_p(ScmObj obj)
+{
+  SCM_STACK_FRAME_PUSH(&obj);
+
+  if (!scm_capi_number_p(obj)) return false;
+
+  return SCM_NUM_CALL_FUNC(obj, inexact_p);
+}
+
+ScmObj
+scm_api_inexact_P(ScmObj obj)
+{
+  if (scm_obj_null_p(obj)) {
+    scm_capi_error("inexact?: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_capi_inexact_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+}
+
+extern inline bool
+scm_capi_exact_integer_p(ScmObj obj)
+{
+  SCM_STACK_FRAME_PUSH(&obj);
+
+  if (scm_capi_integer_p(obj) && scm_capi_exact_p(obj))
+    return true;
+  else
+    return false;
+}
+
+ScmObj
+scm_api_exact_integer_P(ScmObj obj)
+{
+  if (scm_obj_null_p(obj)) {
+    scm_capi_error("exact-integer?: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_capi_exact_integer_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+}
+
+extern inline bool
+scm_capi_finite_p(ScmObj obj)
+{
+  SCM_STACK_FRAME_PUSH(&obj);
+
+  if (!scm_capi_number_p(obj)) return false;
+
+  return SCM_NUM_CALL_FUNC(obj, finite_p);
+}
+
+ScmObj
+scm_api_finite_P(ScmObj obj)
+{
+  if (scm_obj_null_p(obj)) {
+    scm_capi_error("finite?: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_capi_finite_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+}
+
+extern inline bool
+scm_capi_infinite_p(ScmObj obj)
+{
+  SCM_STACK_FRAME_PUSH(&obj);
+
+  if (!scm_capi_number_p(obj)) return false;
+
+  return SCM_NUM_CALL_FUNC(obj, infinite_p);
+}
+
+ScmObj
+scm_api_infinite_P(ScmObj obj)
+{
+  if (scm_obj_null_p(obj)) {
+    scm_capi_error("infinite?: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_capi_infinite_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+}
+
+extern inline bool
+scm_capi_nan_p(ScmObj obj)
+{
+  SCM_STACK_FRAME_PUSH(&obj);
+
+  if (!scm_capi_number_p(obj)) return false;
+
+  return SCM_NUM_CALL_FUNC(obj, nan_p);
+}
+
+ScmObj
+scm_api_nan_P(ScmObj obj)
+{
+  if (scm_obj_null_p(obj)) {
+    scm_capi_error("nan?: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_capi_nan_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+}
 
 ScmObj
 scm_capi_make_number_from_literal(const char *literal, size_t size)
@@ -1489,51 +1757,972 @@ scm_capi_make_number_from_sword(scm_sword_t num)
     return scm_fixnum_new(num);
 }
 
-ScmObj
-scm_capi_make_number_from_llong(long long num)
+static int
+scm_capi_num_cmp_fold(ScmObj lst,
+                      int (*cmp)(ScmObj n1, ScmObj n2, bool *rslt),
+                      bool *rslt)
+
 {
-  if (SCM_FIXNUM_MIN <= num && num <= SCM_FIXNUM_MAX)
-    return scm_fixnum_new((scm_sword_t)num);
-  else if (SCM_SWORD_MIN <= num && num <= SCM_SWORD_MAX)
-    return scm_bignum_new_from_sword(SCM_MEM_HEAP, num);
-  else
-    return SCM_OBJ_NULL;        /* TODO: write me */
-}
+  ScmObj num = SCM_OBJ_INIT, prv = SCM_OBJ_INIT, l = SCM_OBJ_INIT;
 
-extern inline bool
-scm_capi_number_p(ScmObj obj)
-{
-  if (scm_capi_null_value_p(obj)) return false;
+  SCM_STACK_FRAME_PUSH(&lst,
+                       &num, &prv, &l);
 
-  return scm_obj_type_flag_set_p(obj, SCM_TYPE_FLG_NUM);
-}
+  scm_assert(scm_obj_not_null_p(lst));
+  scm_assert(rslt != NULL);
 
-extern inline bool
-scm_capi_integer_p(ScmObj obj)
-{
-  if (!scm_capi_number_p(obj)) return false;
+  prv = SCM_OBJ_NULL;
+  for (l = lst; scm_capi_pair_p(l); l = scm_api_cdr(l)) {
+    num = scm_api_car(l);
 
-  return SCM_NUM_CALL_VFUNC(obj, integer_p);
-}
+    if (scm_obj_not_null_p(prv)) {
+      bool cr;
+      int r;
 
-extern inline bool
-scm_capi_fixnum_p(ScmObj obj)
-{
-  if (scm_capi_null_value_p(obj)) return false;
+      r = cmp(prv, num, &cr);
+      if (r < 0) return -1;
 
-  return scm_obj_type_p(obj, &SCM_FIXNUM_TYPE_INFO);
-}
+      if (!cr) {
+        *rslt = false;
+        return 0;
+      }
+    }
 
-extern inline bool
-scm_capi_bignum_p(ScmObj obj)
-{
-  if (scm_capi_null_value_p(obj)) return false;
+    prv = num;
+  }
 
-  return scm_obj_type_p(obj, &SCM_BIGNUM_TYPE_INFO);
+  if (scm_obj_null_p(l)) return -1;
+
+  *rslt = true;
+
+  return 0;
 }
 
 int
-scm_capi_num_to_sword(ScmObj num, scm_sword_t *w)
+scm_capi_num_eq(ScmObj n1, ScmObj n2, bool *rslt)
+{
+  int err, cmp;
+
+  SCM_STACK_FRAME_PUSH(&n1, &n2);
+
+  if (scm_obj_null_p(n1) || scm_obj_null_p(n2)) {
+    scm_capi_error("=: invalid argument", 0);
+    return -1;
+  }
+
+  if (!scm_capi_number_p(n1)) {
+    scm_capi_error("=: number required, but got", 1, n1);
+    return -1;
+  }
+
+  if (!scm_capi_number_p(n2)) {
+    scm_capi_error("=: number required, but got", 1, n2);
+    return -1;
+  }
+
+  err = SCM_NUM_CALL_FUNC(n1, cmp, n2, &cmp);
+  if (err < 0) return -1;
+
+  if (rslt != NULL)
+    *rslt = (cmp == 0) ? true : false;
+
+  return 0;
+}
+
+ScmObj
+scm_capi_num_eq_P_lst(ScmObj lst)
+{
+  bool cmp;
+  int r;
+
+  if (scm_obj_null_p(lst)) {
+    scm_capi_error("=: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  r = scm_capi_num_cmp_fold(lst, scm_capi_num_eq, &cmp);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return cmp ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+}
+
+ScmObj
+scm_api_num_eq_P(ScmObj n1, ScmObj n2)
+{
+  bool cmp;
+  int rslt;
+
+  rslt = scm_capi_num_eq(n1, n2, &cmp);
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  return cmp ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+}
+
+int
+scm_capi_num_lt(ScmObj n1, ScmObj n2, bool *rslt)
+{
+  int err, cmp;
+
+  SCM_STACK_FRAME_PUSH(&n1, &n2);
+
+  if (scm_obj_null_p(n1) || scm_obj_null_p(n2)) {
+    scm_capi_error("<: invalid argument", 0);
+    return -1;
+  }
+
+  if (!scm_capi_number_p(n1)) {
+    scm_capi_error("<: number required, but got", 1, n1);
+    return -1;
+  }
+
+  if (!scm_capi_number_p(n2)) {
+    scm_capi_error("<: number required, but got", 1, n2);
+    return -1;
+  }
+
+  err = SCM_NUM_CALL_FUNC(n1, cmp, n2, &cmp);
+  if (err < 0) return -1;
+
+  if (rslt != NULL)
+    *rslt = (cmp == -1) ? true : false;
+
+  return 0;
+}
+
+ScmObj
+scm_capi_num_lt_P_lst(ScmObj lst)
+{
+  bool cmp;
+  int r;
+
+  if (scm_obj_null_p(lst)) {
+    scm_capi_error("<: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  r = scm_capi_num_cmp_fold(lst, scm_capi_num_lt, &cmp);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return cmp ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+}
+
+ScmObj
+scm_api_num_lt_P(ScmObj n1, ScmObj n2)
+{
+  bool cmp;
+  int rslt;
+
+  rslt = scm_capi_num_lt(n1, n2, &cmp);
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  return cmp ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+}
+
+int
+scm_capi_num_gt(ScmObj n1, ScmObj n2, bool *rslt)
+{
+  int err, cmp;
+
+  SCM_STACK_FRAME_PUSH(&n1, &n2);
+
+  if (scm_obj_null_p(n1) || scm_obj_null_p(n2)) {
+    scm_capi_error(">: invalid argument", 0);
+    return -1;
+  }
+
+  if (!scm_capi_number_p(n1)) {
+    scm_capi_error(">: number required, but got", 1, n1);
+    return -1;
+  }
+
+  if (!scm_capi_number_p(n2)) {
+    scm_capi_error(">: number required, but got", 1, n2);
+    return -1;
+  }
+
+  err = SCM_NUM_CALL_FUNC(n1, cmp, n2, &cmp);
+  if (err < 0) return -1;
+
+  if (rslt != NULL)
+    *rslt = (cmp == 1) ? true : false;
+
+  return 0;
+}
+
+ScmObj
+scm_capi_num_gt_P_lst(ScmObj lst)
+{
+  bool cmp;
+  int r;
+
+  if (scm_obj_null_p(lst)) {
+    scm_capi_error(">: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  r = scm_capi_num_cmp_fold(lst, scm_capi_num_gt, &cmp);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return cmp ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+}
+
+ScmObj
+scm_api_num_gt_P(ScmObj n1, ScmObj n2)
+{
+  bool cmp;
+  int rslt;
+
+  SCM_STACK_FRAME_PUSH(&n1, &n2);
+
+  rslt = scm_capi_num_gt(n1, n2, &cmp);
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  return cmp ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+}
+
+int
+scm_capi_num_le(ScmObj n1, ScmObj n2, bool *rslt)
+{
+  int err, cmp;
+
+  SCM_STACK_FRAME_PUSH(&n1, &n2);
+
+  if (scm_obj_null_p(n1) || scm_obj_null_p(n2)) {
+    scm_capi_error("<=: invalid argument", 0);
+    return -1;
+  }
+
+  if (!scm_capi_number_p(n1)) {
+    scm_capi_error("<=: number required, but got", 1, n1);
+    return -1;
+  }
+
+  if (!scm_capi_number_p(n2)) {
+    scm_capi_error("<=: number required, but got", 1, n2);
+    return -1;
+  }
+
+  err = SCM_NUM_CALL_FUNC(n1, cmp, n2, &cmp);
+  if (err < 0) return -1;
+
+  if (rslt != NULL)
+    *rslt = (cmp == -1 || cmp == 0) ? true : false;
+
+  return 0;
+}
+
+ScmObj
+scm_capi_num_le_P_lst(ScmObj lst)
+{
+  bool cmp;
+  int r;
+
+  if (scm_obj_null_p(lst)) {
+    scm_capi_error("<=: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  r = scm_capi_num_cmp_fold(lst, scm_capi_num_le, &cmp);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return cmp ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+}
+
+ScmObj
+scm_api_num_le_P(ScmObj n1, ScmObj n2)
+{
+  bool cmp;
+  int rslt;
+
+  rslt = scm_capi_num_le(n1, n2, &cmp);
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  return cmp ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+}
+
+int
+scm_capi_num_ge(ScmObj n1, ScmObj n2, bool *rslt)
+{
+  int err, cmp;
+
+  SCM_STACK_FRAME_PUSH(&n1, &n2);
+
+  if (scm_obj_null_p(n1) || scm_obj_null_p(n2)) {
+    scm_capi_error(">=: invalid argument", 0);
+    return -1;
+  }
+
+  if (!scm_capi_number_p(n1)) {
+    scm_capi_error(">=: number required, but got", 1, n1);
+    return -1;
+  }
+
+  if (!scm_capi_number_p(n2)) {
+    scm_capi_error(">=: number required, but got", 1, n2);
+    return -1;
+  }
+
+  err = SCM_NUM_CALL_FUNC(n1, cmp, n2, &cmp);
+  if (err < 0) return -1;
+
+  if (rslt != NULL)
+    *rslt = (cmp == 0 || cmp == 1) ? true : false;
+
+  return 0;
+}
+
+ScmObj
+scm_capi_num_ge_P_lst(ScmObj lst)
+{
+  bool cmp;
+  int r;
+
+  if (scm_obj_null_p(lst)) {
+    scm_capi_error(">=: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  r = scm_capi_num_cmp_fold(lst, scm_capi_num_ge, &cmp);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return cmp ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+}
+
+ScmObj
+scm_api_num_ge_P(ScmObj n1, ScmObj n2)
+{
+  bool cmp;
+  int rslt;
+
+  rslt = scm_capi_num_ge(n1, n2, &cmp);
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  return cmp ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+}
+
+bool
+scm_capi_zero_p(ScmObj num)
+{
+  SCM_STACK_FRAME_PUSH(&num);
+
+  if (!scm_capi_number_p(num)) return false;
+
+  return SCM_NUM_CALL_FUNC(num, zero_p);
+}
+
+ScmObj
+scm_api_zero_P(ScmObj num)
+{
+  SCM_STACK_FRAME_PUSH(&num);
+
+  if (scm_obj_null_p(num)) {
+    scm_capi_error("zero?: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_number_p(num)) {
+    scm_capi_error("zero?: number required, but got", 1, num);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_capi_zero_p(num) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+}
+
+bool
+scm_capi_positive_p(ScmObj num)
+{
+  SCM_STACK_FRAME_PUSH(&num);
+
+  if (!scm_capi_number_p(num)) return false;
+
+  return SCM_NUM_CALL_FUNC(num, positive_p);
+}
+
+ScmObj
+scm_api_positive_P(ScmObj num)
+{
+  SCM_STACK_FRAME_PUSH(&num);
+
+  if (scm_obj_null_p(num)) {
+    scm_capi_error("positive?: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_number_p(num)) {
+    scm_capi_error("positive?: number required, but got", 1, num);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_capi_positive_p(num) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+}
+
+bool
+scm_capi_negative_p(ScmObj num)
+{
+  SCM_STACK_FRAME_PUSH(&num);
+
+  if (!scm_capi_number_p(num)) return false;
+
+  return SCM_NUM_CALL_FUNC(num, negative_p);
+}
+
+ScmObj
+scm_api_negative_P(ScmObj num)
+{
+  SCM_STACK_FRAME_PUSH(&num);
+
+  if (scm_obj_null_p(num)) {
+    scm_capi_error("negative?: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_number_p(num)) {
+    scm_capi_error("negative?: number required, but got", 1, num);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_capi_negative_p(num) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+}
+
+bool
+scm_capi_odd_p(ScmObj num)
+{
+  SCM_STACK_FRAME_PUSH(&num);
+
+  if (!scm_capi_number_p(num)) return false;
+
+  return SCM_NUM_CALL_FUNC(num, odd_p);
+}
+
+ScmObj
+scm_api_odd_P(ScmObj num)
+{
+  SCM_STACK_FRAME_PUSH(&num);
+
+  if (scm_obj_null_p(num)) {
+    scm_capi_error("odd?: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_number_p(num)) {
+    scm_capi_error("odd?: number required, but got", 1, num);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_capi_odd_p(num) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+}
+
+bool
+scm_capi_even_p(ScmObj num)
+{
+  SCM_STACK_FRAME_PUSH(&num);
+
+  if (!scm_capi_number_p(num)) return false;
+
+  return SCM_NUM_CALL_FUNC(num, even_p);
+}
+
+ScmObj
+scm_api_even_P(ScmObj num)
+{
+  SCM_STACK_FRAME_PUSH(&num);
+
+  if (scm_obj_null_p(num)) {
+    scm_capi_error("even?: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_number_p(num)) {
+    scm_capi_error("even?: number required, but got", 1, num);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_capi_even_p(num) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+}
+
+static ScmObj
+scm_capi_num_bop_fold(ScmObj lst,
+                      ScmObj (*func)(ScmObj n1, ScmObj n2))
+{
+  ScmObj rslt = SCM_OBJ_INIT, num = SCM_OBJ_INIT, l = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&lst,
+                       &rslt, &num, &l);
+
+  scm_assert(scm_obj_not_null_p(lst));
+  scm_assert(func != NULL);
+
+  rslt = scm_api_car(lst);
+  if (scm_obj_null_p(rslt)) return SCM_OBJ_NULL;
+
+  for (l = scm_api_cdr(lst); scm_capi_pair_p(l); l = scm_api_cdr(l)) {
+    num = scm_api_car(l);
+    if (scm_obj_null_p(num)) return SCM_OBJ_NULL;
+
+    rslt = func(rslt, num);
+    if (scm_obj_null_p(rslt)) return SCM_OBJ_NULL;
+  }
+
+  if (scm_obj_null_p(l)) return SCM_OBJ_NULL;
+
+  return rslt;
+}
+
+ScmObj
+scm_api_max(ScmObj n1, ScmObj n2)
+{
+  bool n1_ie, n2_ie;
+  int cmp, err;
+
+  SCM_STACK_FRAME_PUSH(&n1, &n2);
+
+  if (scm_obj_null_p(n1) || scm_obj_null_p(n2)) {
+    scm_capi_error("max: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_number_p(n1)) {
+    scm_capi_error("max: number required, but got", 1, n1);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_number_p(n2)) {
+    scm_capi_error("max: number required, but got", 1, n2);
+    return SCM_OBJ_NULL;
+  }
+
+  n1_ie = SCM_NUM_CALL_FUNC(n1, inexact_p);
+  n2_ie = SCM_NUM_CALL_FUNC(n2, inexact_p);
+
+  if (n1_ie && !n2_ie) {
+    n2 = scm_api_inexact(n2);
+    if (scm_obj_null_p(n2)) return SCM_OBJ_NULL;
+  }
+  else if (!n1_ie && n2_ie) {
+    n1 = scm_api_inexact(n1);
+    if (scm_obj_null_p(n1)) return SCM_OBJ_NULL;
+  }
+
+  err = SCM_NUM_CALL_FUNC(n1, cmp, n2, &cmp);
+  if (err < 0) return SCM_OBJ_NULL;
+
+  return (cmp == 0 || cmp == 1) ? n1 : n2;
+}
+
+ScmObj
+scm_capi_max_lst(ScmObj lst)
+{
+  if (scm_obj_null_p(lst)) {
+    scm_capi_error("max: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_capi_num_bop_fold(lst, scm_api_max);
+}
+
+ScmObj
+scm_api_min(ScmObj n1, ScmObj n2)
+{
+  bool n1_ie, n2_ie;
+  int cmp, err;
+
+  SCM_STACK_FRAME_PUSH(&n1, &n2);
+
+  if (scm_obj_null_p(n1) || scm_obj_null_p(n2)) {
+    scm_capi_error("min: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_number_p(n1)) {
+    scm_capi_error("min: number required, but got", 1, n1);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_number_p(n2)) {
+    scm_capi_error("min: number required, but got", 1, n2);
+    return SCM_OBJ_NULL;
+  }
+
+  n1_ie = SCM_NUM_CALL_FUNC(n1, inexact_p);
+  n2_ie = SCM_NUM_CALL_FUNC(n2, inexact_p);
+
+  if (n1_ie && !n2_ie) {
+    n2 = scm_api_inexact(n2);
+    if (scm_obj_null_p(n2)) return SCM_OBJ_NULL;
+  }
+  else if (!n1_ie && n2_ie) {
+    n1 = scm_api_inexact(n1);
+    if (scm_obj_null_p(n1)) return SCM_OBJ_NULL;
+  }
+
+  err = SCM_NUM_CALL_FUNC(n1, cmp, n2, &cmp);
+  if (err < 0) return SCM_OBJ_NULL;
+
+  return (cmp == 0 || cmp == -1) ? n1 : n2;
+}
+
+ScmObj
+scm_capi_min_lst(ScmObj lst)
+{
+  if (scm_obj_null_p(lst)) {
+    scm_capi_error("max: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_capi_num_bop_fold(lst, scm_api_min);
+}
+
+ScmObj
+scm_api_plus(ScmObj x, ScmObj y)
+{
+  SCM_STACK_FRAME_PUSH(&x, &y);
+
+  if (scm_obj_null_p(x) || scm_obj_null_p(y)) {
+    scm_capi_error("+: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_number_p(x)) {
+    scm_capi_error("+: number required, but got", 1, x);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_number_p(y)) {
+    scm_capi_error("+: number required, but got", 1, y);
+    return SCM_OBJ_NULL;
+  }
+
+  return SCM_NUM_CALL_FUNC(x, plus, y);
+}
+
+ScmObj
+scm_capi_plus_lst(ScmObj lst)
+{
+  ScmObj a, d;
+
+  SCM_STACK_FRAME_PUSH(&lst,
+                       &a, &d);
+
+  if (scm_obj_null_p(lst)) {
+    scm_capi_error("+: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  if (scm_capi_nil_p(lst))
+    return SCM_FIXNUM_ZERO;
+
+  a = scm_api_car(lst);
+  if (scm_obj_null_p(a)) return SCM_OBJ_NULL;
+
+  d = scm_api_cdr(lst);
+  if (scm_obj_null_p(d)) return SCM_OBJ_NULL;
+
+  if (scm_capi_nil_p(d))
+    return a;
+
+  return scm_capi_num_bop_fold(lst, scm_api_plus);
+}
+
+ScmObj
+scm_api_mul(ScmObj x, ScmObj y)
+{
+  SCM_STACK_FRAME_PUSH(&x, &y);
+
+  if (scm_obj_null_p(x) || scm_obj_null_p(y)) {
+    scm_capi_error("*: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_number_p(x)) {
+    scm_capi_error("*: number required, but got", 1, x);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_number_p(y)) {
+    scm_capi_error("*: number required, but got", 1, y);
+    return SCM_OBJ_NULL;
+  }
+
+  return SCM_NUM_CALL_FUNC(x, mul, y);
+}
+
+ScmObj
+scm_capi_mul_lst(ScmObj lst)
+{
+  ScmObj a, d;
+
+  SCM_STACK_FRAME_PUSH(&lst,
+                       &a, &d);
+
+  if (scm_obj_null_p(lst)) {
+    scm_capi_error("*: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  if (scm_capi_nil_p(lst))
+    return SCM_FIXNUM_ONE;
+
+  a = scm_api_car(lst);
+  if (scm_obj_null_p(a)) return SCM_OBJ_NULL;
+
+  d = scm_api_cdr(lst);
+  if (scm_obj_null_p(d)) return SCM_OBJ_NULL;
+
+  if (scm_capi_nil_p(d))
+    return a;
+
+  return scm_capi_num_bop_fold(lst, scm_api_mul);
+}
+
+ScmObj
+scm_api_minus(ScmObj x, ScmObj y)
+{
+  SCM_STACK_FRAME_PUSH(&x, &y);
+
+  if (scm_obj_null_p(x) || scm_obj_null_p(y)) {
+    scm_capi_error("-: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_number_p(x)) {
+    scm_capi_error("-: number required, but got", 1, x);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_number_p(y)) {
+    scm_capi_error("-: number required, but got", 1, y);
+    return SCM_OBJ_NULL;
+  }
+
+  return SCM_NUM_CALL_FUNC(x, minus, y);
+}
+
+ScmObj
+scm_capi_minus_lst(ScmObj lst)
+{
+  ScmObj a, d;
+
+  SCM_STACK_FRAME_PUSH(&lst,
+                       &a, &d);
+
+  if (scm_obj_null_p(lst) || scm_capi_nil_p(lst)) {
+    scm_capi_error("*: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  a = scm_api_car(lst);
+  if (scm_obj_null_p(a)) return SCM_OBJ_NULL;
+
+  d = scm_api_cdr(lst);
+  if (scm_obj_null_p(d)) return SCM_OBJ_NULL;
+
+  if (scm_capi_nil_p(d))
+    return SCM_NUM_CALL_FUNC(a, invert_sign);
+
+  return scm_capi_num_bop_fold(lst, scm_api_minus);
+}
+
+ScmObj
+scm_api_abs(ScmObj num)
+{
+  if (scm_obj_null_p(num)) {
+    scm_capi_error("abs: invalid argumnet", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_number_p(num)) {
+    scm_capi_error("abs: number required, bug got", 1, num);
+    return SCM_OBJ_NULL;
+  }
+
+  if (SCM_NUM_CALL_FUNC(num, positive_p))
+    return SCM_NUM_CALL_FUNC(num, copy);
+  else
+    return SCM_NUM_CALL_FUNC(num, invert_sign);
+}
+
+int
+scm_capi_floor_div(ScmObj x, ScmObj y, scm_csetter_t *q, scm_csetter_t *r)
+{
+  SCM_STACK_FRAME_PUSH(&x, &y);
+
+  if (scm_obj_null_p(x) || scm_obj_null_p(y)) {
+    scm_capi_error("floor/: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  if (!scm_capi_integer_p(x)) {
+    scm_capi_error("floor/: integer required, but got", 1, x);
+    return SCM_OBJ_NULL;
+  }
+
+  if (!scm_capi_integer_p(y)) {
+    scm_capi_error("floor/: integer required, but got", 1, y);
+    return SCM_OBJ_NULL;
+  }
+
+  return SCM_NUM_CALL_FUNC(x, floor_div, y, q, r);
+}
+
+ScmObj
+scm_api_floor_quo(ScmObj x, ScmObj y)
+{
+  ScmObj q = SCM_OBJ_INIT;
+  int rslt;
+
+  SCM_STACK_FRAME_PUSH(&x, &y, &q);
+
+  if (scm_obj_null_p(x) || scm_obj_null_p(y)) {
+    scm_capi_error("floor-quotient: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  if (!scm_capi_integer_p(x)) {
+    scm_capi_error("floor-quotient: integer required, but got", 1, x);
+    return SCM_OBJ_NULL;
+  }
+
+  if (!scm_capi_integer_p(y)) {
+    scm_capi_error("floor-quotient: integer required, but got", 1, y);
+    return SCM_OBJ_NULL;
+  }
+
+  rslt = SCM_NUM_CALL_FUNC(x, floor_div, y, SCM_CSETTER_L(q), NULL);
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  return q;
+}
+
+ScmObj
+scm_api_floor_rem(ScmObj x, ScmObj y)
+{
+  ScmObj r = SCM_OBJ_INIT;
+  int rslt;
+
+  SCM_STACK_FRAME_PUSH(&x, &y, &r);
+
+  if (scm_obj_null_p(x) || scm_obj_null_p(y)) {
+    scm_capi_error("floor-remainder: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  if (!scm_capi_integer_p(x)) {
+    scm_capi_error("floor-remainder: integer required, but got", 1, x);
+    return SCM_OBJ_NULL;
+  }
+
+  if (!scm_capi_integer_p(y)) {
+    scm_capi_error("floor-remainder: integer required, but got", 1, y);
+    return SCM_OBJ_NULL;
+  }
+
+  rslt = SCM_NUM_CALL_FUNC(x, floor_div, y, NULL, SCM_CSETTER_L(r));
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  return r;
+}
+
+int
+scm_capi_truncate_div(ScmObj x, ScmObj y, scm_csetter_t *q, scm_csetter_t *r)
+{
+  SCM_STACK_FRAME_PUSH(&x, &y);
+
+  if (scm_obj_null_p(x) || scm_obj_null_p(y)) {
+    scm_capi_error("truncate/: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  if (!scm_capi_integer_p(x)) {
+    scm_capi_error("truncate/: integer required, but got", 1, x);
+    return SCM_OBJ_NULL;
+  }
+
+  if (!scm_capi_integer_p(y)) {
+    scm_capi_error("truncate/: integer required, but got", 1, y);
+    return SCM_OBJ_NULL;
+  }
+
+  return SCM_NUM_CALL_FUNC(x, truncate_div, y, q, r);
+}
+
+ScmObj
+scm_api_truncate_quo(ScmObj x, ScmObj y)
+{
+  ScmObj q = SCM_OBJ_INIT;
+  int rslt;
+
+  SCM_STACK_FRAME_PUSH(&x, &y, &q);
+
+  if (scm_obj_null_p(x) || scm_obj_null_p(y)) {
+    scm_capi_error("truncate-quotient: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  if (!scm_capi_number_p(x)) {
+    scm_capi_error("truncate-quotient: number required, but got", 1, x);
+    return SCM_OBJ_NULL;
+  }
+
+  if (!scm_capi_number_p(y)) {
+    scm_capi_error("truncate-quotient: number required, but got", 1, y);
+    return SCM_OBJ_NULL;
+  }
+
+  rslt = SCM_NUM_CALL_FUNC(x, truncate_div, y, SCM_CSETTER_L(q), NULL);
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  return q;
+}
+
+ScmObj
+scm_api_truncate_rem(ScmObj x, ScmObj y)
+{
+  ScmObj r = SCM_OBJ_INIT;
+  int rslt;
+
+  SCM_STACK_FRAME_PUSH(&x, &y, &r);
+
+  if (scm_obj_null_p(x) || scm_obj_null_p(y)) {
+    scm_capi_error("truncate-remainder: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  if (!scm_capi_integer_p(x)) {
+    scm_capi_error("truncate-remainder: integer required, but got", 1, x);
+    return SCM_OBJ_NULL;
+  }
+
+  if (!scm_capi_integer_p(y)) {
+    scm_capi_error("truncate-remainder: integer required, but got", 1, y);
+    return SCM_OBJ_NULL;
+  }
+
+  rslt = SCM_NUM_CALL_FUNC(x, truncate_div, y, NULL, SCM_CSETTER_L(r));
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  return r;
+}
+
+ScmObj
+scm_api_exact(ScmObj num)
+{
+  /* 仮実装 */
+
+  if (scm_obj_null_p(num)) {
+    scm_capi_error("exact: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_number_p(num)) {
+    scm_capi_error("exact: number required, but got", 1, num);
+    return SCM_OBJ_NULL;
+  }
+
+  return num;
+}
+
+ScmObj
+scm_api_inexact(ScmObj num)
+{
+  /* 仮実装 */
+
+  if (scm_obj_null_p(num)) {
+    scm_capi_error("inexact: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_number_p(num)) {
+    scm_capi_error("inexact: number required, but got", 1, num);
+    return SCM_OBJ_NULL;
+  }
+
+  return num;
+}
+
+int
+scm_capi_integer_to_sword(ScmObj num, scm_sword_t *w)
 {
   if (scm_obj_null_p(num) || w == NULL) {
     scm_capi_error("can not convert number to scm_sword_t: "
@@ -1561,38 +2750,7 @@ scm_capi_num_to_sword(ScmObj num, scm_sword_t *w)
 }
 
 int
-scm_capi_num_to_llong(ScmObj num, long long *ll)
-{
-  if (scm_obj_null_p(num) || ll == NULL) {
-    scm_capi_error("can not convert number to long long int: "
-                   "invalid argument", 0);
-    return -1;
-  }
-  else if (!scm_capi_integer_p(num)) {
-    scm_capi_error("can not convert number to long long int: "
-                   "integer required, but got", 1, num);
-    return -1;
-  }
-
-  if (scm_capi_fixnum_p(num)) {
-    *ll = scm_fixnum_value(num);
-  }
-  else if (scm_capi_bignum_p(num)) {
-    /* TODO: scm_bignum_to_llong の実装と呼出 */
-    scm_sword_t w;
-    int r = scm_bignum_to_sword(num, &w);
-    if (r < 0) {
-      scm_capi_error("can not convert number to long long int: overflow", 1, num);
-      return -1;
-    }
-    *ll = w;
-  }
-
-  return 0;
-}
-
-int
-scm_capi_num_to_size_t(ScmObj num, size_t *s)
+scm_capi_integer_to_size_t(ScmObj num, size_t *s)
 {
   if (scm_obj_null_p(num) || s == NULL) {
     scm_capi_error("can not convert number to size_t: "
@@ -1622,887 +2780,6 @@ scm_capi_num_to_size_t(ScmObj num, size_t *s)
   }
 
   return 0;
-}
-
-static int
-scm_capi_num_cop_fold(const char *op, int (*func)(ScmObj x, ScmObj y, bool *r),
-                      size_t argc, ScmObj *argv, bool *rslt)
-{
-  bool cmp;
-  int err;
-  char err_msg[64];
-
-  if (argc <= 1) {
-    snprintf(err_msg, sizeof(err_msg), "%s: too few arguments", op);
-    scm_capi_error(err_msg, 0);
-    return -1;
-  }
-
-  if (argv == NULL) {
-    snprintf(err_msg, sizeof(err_msg), "%s: invalid argument", op);
-    scm_capi_error(err_msg, 0);
-    return -1;
-  }
-
-  if (rslt != NULL) {
-    *rslt = true;
-    for (size_t i = 1; i < argc; i++) {
-      err = func(argv[i - 1], argv[i], &cmp);
-      if (err < 0) return -1;
-
-      if (!cmp) {
-        *rslt = false;
-        return 0;
-      }
-    }
-  }
-
-  return 0;
-}
-
-static int
-scm_capi_num_cop_va(const char *op,
-                    int (*func)(size_t argc, ScmObj *argv, bool *r),
-                    size_t n, va_list ap, bool *rslt)
-{
-  ScmObj ary[n];
-  char err_msg[64];
-
-  SCM_STACK_FRAME;
-
-  scm_assert(op != NULL);
-
-  if (n == 0) {
-    snprintf(err_msg, sizeof(err_msg), "%s: too few arguments", op);
-    scm_capi_error(err_msg, 0);
-    return SCM_OBJ_NULL;
-  }
-
-  for (size_t i = 0; i < n; i++) {
-    ary[i] = va_arg(ap, ScmObj);
-    SCM_STACK_PUSH(ary + i);
-  }
-
-  return func(n, ary, rslt);
-}
-
-
-int
-scm_capi_num_eq(ScmObj n1, ScmObj n2, bool *rslt)
-{
-  int err, cmp;
-
-  if (scm_obj_null_p(n1) || scm_obj_null_p(n2)) {
-    scm_capi_error("=: invalid argument", 0);
-    return -1;
-  }
-
-  if (!scm_capi_number_p(n1)) {
-    scm_capi_error("=: number required, but got", 1, n1);
-    return -1;
-  }
-
-  if (!scm_capi_number_p(n2)) {
-    scm_capi_error("=: number required, but got", 1, n2);
-    return -1;
-  }
-
-  err = SCM_NUM_CALL_VFUNC(n1, cmp, n2, &cmp);
-  if (err < 0) return -1;
-
-  if (rslt != NULL)
-    *rslt = (cmp == 0) ? true : false;
-
-  return 0;
-}
-
-int
-scm_capi_num_eq_ary(size_t argc, ScmObj *argv, bool *rslt)
-{
-  return scm_capi_num_cop_fold("=", scm_capi_num_eq, argc, argv, rslt);
-}
-
-int
-scm_capi_num_eq_v(bool *rslt, size_t n, ...)
-{
-  int err;
-  va_list ap;
-
-  va_start(ap, n);
-  err = scm_capi_num_cop_va("=", scm_capi_num_eq_ary, n, ap, rslt);
-  va_end(ap);
-
-  return err;
-}
-
-ScmObj
-scm_api_num_eq_P(ScmObj n1, ScmObj n2)
-{
-  bool cmp;
-  int rslt;
-
-  rslt = scm_capi_num_eq(n1, n2, &cmp);
-  if (rslt < 0) return SCM_OBJ_NULL;
-
-  return cmp ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
-}
-
-ScmObj
-scm_capi_num_eq_ary_P(size_t argc, ScmObj *argv)
-{
-  bool cmp;
-  int rslt;
-
-  rslt = scm_capi_num_cop_fold("=", scm_capi_num_eq, argc, argv, &cmp);
-  if (rslt < 0) return SCM_OBJ_NULL;
-
-  return cmp ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
-}
-
-int
-scm_capi_num_lt(ScmObj n1, ScmObj n2, bool *rslt)
-{
-  int err, cmp;
-
-  if (scm_obj_null_p(n1) || scm_obj_null_p(n2)) {
-    scm_capi_error("<: invalid argument", 0);
-    return -1;
-  }
-
-  if (!scm_capi_number_p(n1)) {
-    scm_capi_error("<: number required, but got", 1, n1);
-    return -1;
-  }
-
-  if (!scm_capi_number_p(n2)) {
-    scm_capi_error("<: number required, but got", 1, n2);
-    return -1;
-  }
-
-  err = SCM_NUM_CALL_VFUNC(n1, cmp, n2, &cmp);
-  if (err < 0) return -1;
-
-  if (rslt != NULL)
-    *rslt = (cmp < 0) ? true : false;
-
-  return 0;
-}
-
-int
-scm_capi_num_lt_ary(size_t argc, ScmObj *argv, bool *rslt)
-{
-  return scm_capi_num_cop_fold("<", scm_capi_num_lt, argc, argv, rslt);
-}
-
-int
-scm_capi_num_lt_v(bool *rslt, size_t n, ...)
-{
-  int err;
-  va_list ap;
-
-  va_start(ap, n);
-  err = scm_capi_num_cop_va("<", scm_capi_num_lt_ary, n, ap, rslt);
-  va_end(ap);
-
-  return err;
-}
-
-ScmObj
-scm_api_num_lt_P(ScmObj n1, ScmObj n2)
-{
-  bool cmp;
-  int rslt;
-
-  rslt = scm_capi_num_lt(n1, n2, &cmp);
-  if (rslt < 0) return SCM_OBJ_NULL;
-
-  return cmp ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
-}
-
-ScmObj
-scm_capi_num_lt_ary_P(size_t argc, ScmObj *argv)
-{
-  bool cmp;
-  int rslt;
-
-  rslt = scm_capi_num_cop_fold("<", scm_capi_num_lt, argc, argv, &cmp);
-  if (rslt < 0) return SCM_OBJ_NULL;
-
-  return cmp ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
-}
-
-int
-scm_capi_num_gt(ScmObj n1, ScmObj n2, bool *rslt)
-{
-  int err, cmp;
-
-  if (scm_obj_null_p(n1) || scm_obj_null_p(n2)) {
-    scm_capi_error(">: invalid argument", 0);
-    return -1;
-  }
-
-  if (!scm_capi_number_p(n1)) {
-    scm_capi_error(">: number required, but got", 1, n1);
-    return -1;
-  }
-
-  if (!scm_capi_number_p(n2)) {
-    scm_capi_error(">: number required, but got", 1, n2);
-    return -1;
-  }
-
-  err = SCM_NUM_CALL_VFUNC(n1, cmp, n2, &cmp);
-  if (err < 0) return -1;
-
-  if (rslt != NULL)
-    *rslt = (cmp > 0) ? true : false;
-
-  return 0;
-}
-
-int
-scm_capi_num_gt_ary(size_t argc, ScmObj *argv, bool *rslt)
-{
-  return scm_capi_num_cop_fold(">", scm_capi_num_gt, argc, argv, rslt);
-}
-
-int
-scm_capi_num_gt_v(bool *rslt, size_t n, ...)
-{
-  int err;
-  va_list ap;
-
-  va_start(ap, n);
-  err = scm_capi_num_cop_va(">", scm_capi_num_gt_ary, n, ap, rslt);
-  va_end(ap);
-
-  return err;
-}
-
-ScmObj
-scm_api_num_gt_P(ScmObj n1, ScmObj n2)
-{
-  bool cmp;
-  int rslt;
-
-  rslt = scm_capi_num_gt(n1, n2, &cmp);
-  if (rslt < 0) return SCM_OBJ_NULL;
-
-  return cmp ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
-}
-
-ScmObj
-scm_capi_num_gt_ary_P(size_t argc, ScmObj *argv)
-{
-  bool cmp;
-  int rslt;
-
-  rslt = scm_capi_num_cop_fold(">", scm_capi_num_gt, argc, argv, &cmp);
-  if (rslt < 0) return SCM_OBJ_NULL;
-
-  return cmp ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
-}
-
-int
-scm_capi_num_le(ScmObj n1, ScmObj n2, bool *rslt)
-{
-  int err, cmp;
-
-  if (scm_obj_null_p(n1) || scm_obj_null_p(n2)) {
-    scm_capi_error("<=: invalid argument", 0);
-    return -1;
-  }
-
-  if (!scm_capi_number_p(n1)) {
-    scm_capi_error("<=: number required, but got", 1, n1);
-    return -1;
-  }
-
-  if (!scm_capi_number_p(n2)) {
-    scm_capi_error("<=: number required, but got", 1, n2);
-    return -1;
-  }
-
-  err = SCM_NUM_CALL_VFUNC(n1, cmp, n2, &cmp);
-  if (err < 0) return -1;
-
-  if (rslt != NULL)
-    *rslt = (cmp <= 0) ? true : false;
-
-  return 0;
-}
-
-int
-scm_capi_num_le_ary(size_t argc, ScmObj *argv, bool *rslt)
-{
-  return scm_capi_num_cop_fold("<=", scm_capi_num_le, argc, argv, rslt);
-}
-
-int
-scm_capi_num_le_v(bool *rslt, size_t n, ...)
-{
-  int err;
-  va_list ap;
-
-  va_start(ap, n);
-  err = scm_capi_num_cop_va("<=", scm_capi_num_le_ary, n, ap, rslt);
-  va_end(ap);
-
-  return err;
-}
-
-ScmObj
-scm_api_num_le_P(ScmObj n1, ScmObj n2)
-{
-  bool cmp;
-  int rslt;
-
-  rslt = scm_capi_num_le(n1, n2, &cmp);
-  if (rslt < 0) return SCM_OBJ_NULL;
-
-  return cmp ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
-}
-
-ScmObj
-scm_capi_num_le_ary_P(size_t argc, ScmObj *argv)
-{
-  bool cmp;
-  int rslt;
-
-  rslt = scm_capi_num_cop_fold("<=", scm_capi_num_le, argc, argv, &cmp);
-  if (rslt < 0) return SCM_OBJ_NULL;
-
-  return cmp ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
-}
-
-int
-scm_capi_num_ge(ScmObj n1, ScmObj n2, bool *rslt)
-{
-  int err, cmp;
-
-  if (scm_obj_null_p(n1) || scm_obj_null_p(n2)) {
-    scm_capi_error(">=: invalid argument", 0);
-    return -1;
-  }
-
-  if (!scm_capi_number_p(n1)) {
-    scm_capi_error(">=: number required, but got", 1, n1);
-    return -1;
-  }
-
-  if (!scm_capi_number_p(n2)) {
-    scm_capi_error(">=: number required, but got", 1, n2);
-    return -1;
-  }
-
-  err = SCM_NUM_CALL_VFUNC(n1, cmp, n2, &cmp);
-  if (err < 0) return -1;
-
-  if (rslt != NULL)
-    *rslt = (cmp >= 0) ? true : false;
-
-  return 0;
-}
-
-int
-scm_capi_num_ge_ary(size_t argc, ScmObj *argv, bool *rslt)
-{
-  return scm_capi_num_cop_fold(">=", scm_capi_num_ge, argc, argv, rslt);
-}
-
-int
-scm_capi_num_ge_v(bool *rslt, size_t n, ...)
-{
-  int err;
-  va_list ap;
-
-  va_start(ap, n);
-  err = scm_capi_num_cop_va(">=", scm_capi_num_ge_ary, n, ap, rslt);
-  va_end(ap);
-
-  return err;
-}
-
-ScmObj
-scm_api_num_ge_P(ScmObj n1, ScmObj n2)
-{
-  bool cmp;
-  int rslt;
-
-  rslt = scm_capi_num_ge(n1, n2, &cmp);
-  if (rslt < 0) return SCM_OBJ_NULL;
-
-  return cmp ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
-}
-
-ScmObj
-scm_capi_num_ge_ary_P(size_t argc, ScmObj *argv)
-{
-  bool cmp;
-  int rslt;
-
-  rslt = scm_capi_num_cop_fold(">=", scm_capi_num_ge, argc, argv, &cmp);
-  if (rslt < 0) return SCM_OBJ_NULL;
-
-  return cmp ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
-}
-
-static ScmObj
-scm_capi_num_bop_fold(const char *op, ScmObj (*func)(ScmObj x, ScmObj y),
-                      ScmObj ini, size_t argc, ScmObj *argv)
-{
-  ScmObj rslt = SCM_OBJ_INIT;
-  char err_msg[64];
-
-  SCM_STACK_FRAME_PUSH(&ini, &rslt);
-
-  scm_assert(op != NULL);
-
-  if (argv == NULL) {
-    snprintf(err_msg, sizeof(err_msg), "%s: invalid argument", op);
-    scm_capi_error(err_msg, 0);
-    return SCM_OBJ_NULL;
-  }
-
-  rslt = ini;
-  for (size_t i = 0; i < argc; i++) {
-    rslt = func(rslt, argv[i]);
-    if (scm_obj_null_p(rslt)) return SCM_OBJ_NULL;
-  }
-
-  return rslt;
-}
-
-static ScmObj
-scm_capi_num_bop_va(const char *op, ScmObj (*func)(size_t argc, ScmObj *argv),
-                    size_t n, va_list ap)
-{
-  ScmObj ary[n];
-  char err_msg[64];
-
-  SCM_STACK_FRAME;
-
-  scm_assert(op != NULL);
-
-  if (n == 0) {
-    snprintf(err_msg, sizeof(err_msg), "%s: too few arguments", op);
-    scm_capi_error(err_msg, 0);
-    return SCM_OBJ_NULL;
-  }
-
-  for (size_t i = 0; i < n; i++) {
-    ary[i] = va_arg(ap, ScmObj);
-    SCM_STACK_PUSH(ary + i);
-  }
-
-  return func(n, ary);
-}
-
-
-ScmObj
-scm_api_plus(ScmObj x, ScmObj y)
-{
-  SCM_STACK_FRAME_PUSH(&x, &y);
-
-  if (scm_obj_null_p(x) || scm_obj_null_p(y)) {
-    scm_capi_error("+: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-
-  if (!scm_capi_number_p(x)) {
-    scm_capi_error("+: number required, but got", 1, x);
-    return SCM_OBJ_NULL;
-  }
-
-  if (!scm_capi_number_p(y)) {
-    scm_capi_error("+: number required, but got", 1, y);
-    return SCM_OBJ_NULL;
-  }
-
-  return SCM_NUM_CALL_VFUNC(x, plus, y);
-}
-
-ScmObj
-scm_capi_plus_ary(size_t argc, ScmObj *argv)
-{
-  if (argc == 0) {
-    scm_capi_error("+: too few arguments", 0);
-    return SCM_OBJ_NULL;
-  }
-
-  if (argv == NULL) {
-    scm_capi_error("+: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-
-  return scm_capi_num_bop_fold("+", scm_api_plus,
-                               argv[0], argc - 1, argv + 1);
-}
-
-ScmObj
-scm_capi_plus_v(size_t n, ...)
-{
-  ScmObj rslt = SCM_OBJ_INIT;
-  va_list ap;
-
-  va_start(ap, n);
-  rslt = scm_capi_num_bop_va("+", scm_capi_plus_ary, n, ap);
-  va_end(ap);
-
-  return rslt;
-}
-
-ScmObj
-scm_api_minus(ScmObj x, ScmObj y)
-{
-  SCM_STACK_FRAME_PUSH(&x, &y);
-
-  if (scm_obj_null_p(x) || scm_obj_null_p(y)) {
-    scm_capi_error("-: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-
-  if (!scm_capi_number_p(x)) {
-    scm_capi_error("-: number required, but got", 1, x);
-    return SCM_OBJ_NULL;
-  }
-
-  if (!scm_capi_number_p(y)) {
-    scm_capi_error("-: number required, but got", 1, y);
-    return SCM_OBJ_NULL;
-  }
-
-  return SCM_NUM_CALL_VFUNC(x, minus, y);
-}
-
-ScmObj
-scm_capi_minus_ary(size_t argc, ScmObj *argv)
-{
-  if (argc == 0) {
-    scm_capi_error("-: too few arguments", 0);
-    return SCM_OBJ_NULL;
-  }
-
-  if (argv == NULL) {
-    scm_capi_error("-: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-
-  if (argc == 1)
-    return scm_capi_num_bop_fold("-", scm_api_minus,
-                                 SCM_FIXNUM_ZERO, argc, argv);
-  else
-    return scm_capi_num_bop_fold("-", scm_api_minus,
-                                 argv[0], argc - 1, argv + 1);
-}
-
-ScmObj
-scm_capi_minus_v(size_t n, ...)
-{
-  ScmObj rslt = SCM_OBJ_INIT;
-  va_list ap;
-
-  va_start(ap, n);
-  rslt = scm_capi_num_bop_va("-", scm_capi_minus_ary, n, ap);
-  va_end(ap);
-
-  return rslt;
-}
-
-ScmObj
-scm_api_mul(ScmObj x, ScmObj y)
-{
-  SCM_STACK_FRAME_PUSH(&x, &y);
-
-  if (scm_obj_null_p(x) || scm_obj_null_p(y)) {
-    scm_capi_error("*: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-
-  if (!scm_capi_number_p(x)) {
-    scm_capi_error("*: number required, but got", 1, x);
-    return SCM_OBJ_NULL;
-  }
-
-  if (!scm_capi_number_p(y)) {
-    scm_capi_error("*: number required, but got", 1, y);
-    return SCM_OBJ_NULL;
-  }
-
-  return SCM_NUM_CALL_VFUNC(x, mul, y);
-}
-
-ScmObj
-scm_capi_mul_ary(size_t argc, ScmObj *argv)
-{
-  if (argc == 0) {
-    scm_capi_error("*: too few arguments", 0);
-    return SCM_OBJ_NULL;
-  }
-
-  if (argv == NULL) {
-    scm_capi_error("*: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-
-  return scm_capi_num_bop_fold("*", scm_api_mul,
-                               argv[0], argc - 1, argv + 1);
-}
-
-ScmObj
-scm_capi_mul_v(size_t n, ...)
-{
-  ScmObj rslt = SCM_OBJ_INIT;
-  va_list ap;
-
-  va_start(ap, n);
-  rslt = scm_capi_num_bop_va("*", scm_capi_mul_ary, n, ap);
-  va_end(ap);
-
-  return rslt;
-}
-
-int
-scm_capi_floor_div(ScmObj x, ScmObj y, scm_csetter_t *q, scm_csetter_t *r)
-{
-  SCM_STACK_FRAME_PUSH(&x, &y);
-
-  if (scm_obj_null_p(x) || scm_obj_null_p(y)) {
-    scm_capi_error("floor/: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-
-  if (!scm_capi_integer_p(x)) {
-    scm_capi_error("floor/: integer required, but got", 1, x);
-    return SCM_OBJ_NULL;
-  }
-
-  if (!scm_capi_integer_p(y)) {
-    scm_capi_error("floor/: integer required, but got", 1, y);
-    return SCM_OBJ_NULL;
-  }
-
-  return SCM_NUM_CALL_VFUNC(x, floor_div, y, q, r);
-}
-
-ScmObj
-scm_capi_floor_quo(ScmObj x, ScmObj y)
-{
-  ScmObj q = SCM_OBJ_INIT;
-  int rslt;
-
-  SCM_STACK_FRAME_PUSH(&x, &y, &q);
-
-  if (scm_obj_null_p(x) || scm_obj_null_p(y)) {
-    scm_capi_error("floor-quotient: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-
-  if (!scm_capi_integer_p(x)) {
-    scm_capi_error("floor-quotient: integer required, but got", 1, x);
-    return SCM_OBJ_NULL;
-  }
-
-  if (!scm_capi_integer_p(y)) {
-    scm_capi_error("floor-quotient: integer required, but got", 1, y);
-    return SCM_OBJ_NULL;
-  }
-
-  rslt = SCM_NUM_CALL_VFUNC(x, floor_div, y, SCM_CSETTER_L(q), NULL);
-  if (rslt < 0) return SCM_OBJ_NULL;
-
-  return q;
-}
-
-ScmObj
-scm_capi_floor_rem(ScmObj x, ScmObj y)
-{
-  ScmObj r = SCM_OBJ_INIT;
-  int rslt;
-
-  SCM_STACK_FRAME_PUSH(&x, &y, &r);
-
-  if (scm_obj_null_p(x) || scm_obj_null_p(y)) {
-    scm_capi_error("floor-remainder: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-
-  if (!scm_capi_integer_p(x)) {
-    scm_capi_error("floor-remainder: integer required, but got", 1, x);
-    return SCM_OBJ_NULL;
-  }
-
-  if (!scm_capi_integer_p(y)) {
-    scm_capi_error("floor-remainder: integer required, but got", 1, y);
-    return SCM_OBJ_NULL;
-  }
-
-  rslt = SCM_NUM_CALL_VFUNC(x, floor_div, y, NULL, SCM_CSETTER_L(r));
-  if (rslt < 0) return SCM_OBJ_NULL;
-
-  return r;
-}
-
-int
-scm_capi_ceiling_div(ScmObj x, ScmObj y, scm_csetter_t *q, scm_csetter_t *r)
-{
-  SCM_STACK_FRAME_PUSH(&x, &y);
-
-  if (scm_obj_null_p(x) || scm_obj_null_p(y)) {
-    scm_capi_error("ceiling/: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-
-  if (!scm_capi_integer_p(x)) {
-    scm_capi_error("ceiling/: integer required, but got", 1, x);
-    return SCM_OBJ_NULL;
-  }
-
-  if (!scm_capi_integer_p(y)) {
-    scm_capi_error("fceiling/: integer required, but got", 1, y);
-    return SCM_OBJ_NULL;
-  }
-
-  return SCM_NUM_CALL_VFUNC(x, ceiling_div, y, q, r);
-}
-
-ScmObj
-scm_capi_ceiling_quo(ScmObj x, ScmObj y)
-{
-  ScmObj q = SCM_OBJ_INIT;
-  int rslt;
-
-  SCM_STACK_FRAME_PUSH(&x, &y, &q);
-
-  if (scm_obj_null_p(x) || scm_obj_null_p(y)) {
-    scm_capi_error("ceiling-quotient: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-
-  if (!scm_capi_number_p(x)) {
-    scm_capi_error("ceiling-quotient: number required, but got", 1, x);
-    return SCM_OBJ_NULL;
-  }
-
-  if (!scm_capi_number_p(y)) {
-    scm_capi_error("ceiling-quotient: number required, but got", 1, y);
-    return SCM_OBJ_NULL;
-  }
-
-  rslt = SCM_NUM_CALL_VFUNC(x, ceiling_div, y, SCM_CSETTER_L(q), NULL);
-  if (rslt < 0) return SCM_OBJ_NULL;
-
-  return q;
-}
-
-ScmObj
-scm_capi_ceiling_rem(ScmObj x, ScmObj y)
-{
-  ScmObj r = SCM_OBJ_INIT;
-  int rslt;
-
-  SCM_STACK_FRAME_PUSH(&x, &y, &r);
-
-  if (scm_obj_null_p(x) || scm_obj_null_p(y)) {
-    scm_capi_error("ceiling-remainder: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-
-  if (!scm_capi_integer_p(x)) {
-    scm_capi_error("ceiling-remainder: integer required, but got", 1, x);
-    return SCM_OBJ_NULL;
-  }
-
-  if (!scm_capi_integer_p(y)) {
-    scm_capi_error("ceiling-remainder: integer required, but got", 1, y);
-    return SCM_OBJ_NULL;
-  }
-
-  rslt = SCM_NUM_CALL_VFUNC(x, ceiling_div, y, NULL, SCM_CSETTER_L(r));
-  if (rslt < 0) return SCM_OBJ_NULL;
-
-  return r;
-}
-
-int
-scm_capi_truncate_div(ScmObj x, ScmObj y, scm_csetter_t *q, scm_csetter_t *r)
-{
-  SCM_STACK_FRAME_PUSH(&x, &y);
-
-  if (scm_obj_null_p(x) || scm_obj_null_p(y)) {
-    scm_capi_error("truncate/: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-
-  if (!scm_capi_integer_p(x)) {
-    scm_capi_error("truncate/: integer required, but got", 1, x);
-    return SCM_OBJ_NULL;
-  }
-
-  if (!scm_capi_integer_p(y)) {
-    scm_capi_error("truncate/: integer required, but got", 1, y);
-    return SCM_OBJ_NULL;
-  }
-
-  return SCM_NUM_CALL_VFUNC(x, truncate_div, y, q, r);
-}
-
-ScmObj
-scm_capi_truncate_quo(ScmObj x, ScmObj y)
-{
-  ScmObj q = SCM_OBJ_INIT;
-  int rslt;
-
-  SCM_STACK_FRAME_PUSH(&x, &y, &q);
-
-  if (scm_obj_null_p(x) || scm_obj_null_p(y)) {
-    scm_capi_error("truncate-quotient: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-
-  if (!scm_capi_number_p(x)) {
-    scm_capi_error("truncate-quotient: number required, but got", 1, x);
-    return SCM_OBJ_NULL;
-  }
-
-  if (!scm_capi_number_p(y)) {
-    scm_capi_error("truncate-quotient: number required, but got", 1, y);
-    return SCM_OBJ_NULL;
-  }
-
-  rslt = SCM_NUM_CALL_VFUNC(x, truncate_div, y, SCM_CSETTER_L(q), NULL);
-  if (rslt < 0) return SCM_OBJ_NULL;
-
-  return q;
-}
-
-ScmObj
-scm_capi_truncate_rem(ScmObj x, ScmObj y)
-{
-  ScmObj r = SCM_OBJ_INIT;
-  int rslt;
-
-  SCM_STACK_FRAME_PUSH(&x, &y, &r);
-
-  if (scm_obj_null_p(x) || scm_obj_null_p(y)) {
-    scm_capi_error("truncate-remainder: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-
-  if (!scm_capi_integer_p(x)) {
-    scm_capi_error("truncate-remainder: integer required, but got", 1, x);
-    return SCM_OBJ_NULL;
-  }
-
-  if (!scm_capi_integer_p(y)) {
-    scm_capi_error("truncate-remainder: integer required, but got", 1, y);
-    return SCM_OBJ_NULL;
-  }
-
-  rslt = SCM_NUM_CALL_VFUNC(x, truncate_div, y, NULL, SCM_CSETTER_L(r));
-  if (rslt < 0) return SCM_OBJ_NULL;
-
-  return r;
 }
 
 
@@ -2566,7 +2843,8 @@ scm_capi_symbol_cmp_fold(ScmObj lst,
 {
   ScmObj str = SCM_OBJ_INIT, prv = SCM_OBJ_INIT, l = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&str, &prv, &l);
+  SCM_STACK_FRAME_PUSH(&lst,
+                       &str, &prv, &l);
 
   scm_assert(scm_obj_not_null_p(lst));
   scm_assert(rslt != NULL);
@@ -2838,7 +3116,8 @@ scm_capi_char_cmp_fold(ScmObj lst,
 {
   ScmObj str = SCM_OBJ_INIT, prv = SCM_OBJ_INIT, l = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&str, &prv, &l);
+  SCM_STACK_FRAME_PUSH(&lst,
+                       &str, &prv, &l);
 
   scm_assert(scm_obj_not_null_p(lst));
   scm_assert(rslt != NULL);
@@ -3159,13 +3438,18 @@ scm_api_char_to_integer(ScmObj chr)
    * を足す
    */
 
-  return scm_capi_make_number_from_llong(scalar);
+  if (scalar > SCM_SWORD_MAX) {
+    scm_capi_error("char->integer: internal error: overflow", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_capi_make_number_from_sword((scm_sword_t)scalar);
 }
 
 ScmObj
 scm_capi_integer_to_char(ScmObj num, ScmEncoding *enc)
 {
-  long long scalar;
+  scm_sword_t scalar;
   scm_char_t c;
   ssize_t s;
   int r;
@@ -3182,7 +3466,7 @@ scm_capi_integer_to_char(ScmObj num, ScmEncoding *enc)
   if (enc == NULL)
     enc = scm_capi_system_encoding();
 
-  r = scm_capi_num_to_llong(num, &scalar);
+  r = scm_capi_integer_to_sword(num, &scalar);
   if (r < 0) return SCM_OBJ_NULL;
 
   /* TODO: エンコーディングが Unicode のものではない場合、scalar から 0x110000
@@ -3516,11 +3800,11 @@ scm_api_string_ref(ScmObj str, ScmObj pos)
     scm_capi_error("string-ref: invalid argument", 0);
     return SCM_OBJ_NULL;
   }
-  else if (!scm_capi_number_p(pos)) {
-    scm_capi_error("string-ref: number require, but got", 1, pos);
+  else if (!scm_capi_integer_p(pos)) {
+    scm_capi_error("string-ref: integer required, but got", 1, pos);
   }
 
-  r = scm_capi_num_to_size_t(pos, &s);
+  r = scm_capi_integer_to_size_t(pos, &s);
   if (r < 0) return SCM_OBJ_NULL;
 
   return scm_capi_string_ref(str, s);
@@ -3570,11 +3854,11 @@ scm_api_string_set_i(ScmObj str, ScmObj pos, ScmObj chr)
     scm_capi_error("string-ref: invalid argument", 0);
     return SCM_OBJ_NULL;
   }
-  else if (!scm_capi_number_p(pos)) {
-    scm_capi_error("string-ref: number require, but got", 1, pos);
+  else if (!scm_capi_integer_p(pos)) {
+    scm_capi_error("string-ref: integer required, but got", 1, pos);
   }
 
-  r = scm_capi_num_to_size_t(pos, &s);
+  r = scm_capi_integer_to_size_t(pos, &s);
   if (r < 0) return SCM_OBJ_NULL;
 
   r = scm_capi_string_set_i(str, s, chr);
@@ -3624,7 +3908,8 @@ scm_capi_string_cmp_fold(ScmObj lst,
 {
   ScmObj str = SCM_OBJ_INIT, prv = SCM_OBJ_INIT, l = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&str, &prv, &l);
+  SCM_STACK_FRAME_PUSH(&lst,
+                       &str, &prv, &l);
 
   scm_assert(scm_obj_not_null_p(lst));
   scm_assert(rslt != NULL);
@@ -3996,19 +4281,19 @@ scm_api_substring(ScmObj str, ScmObj start, ScmObj end)
     scm_capi_error("substring: invalid argument", 0);
     return SCM_OBJ_NULL;
   }
-  else if (!scm_capi_number_p(start)) {
-    scm_capi_error("substring: number required, but got", 1, start);
+  else if (!scm_capi_integer_p(start)) {
+    scm_capi_error("substring: integer required, but got", 1, start);
     return SCM_OBJ_NULL;
   }
-  else if (!scm_capi_number_p(end)) {
-    scm_capi_error("substring: number required, but got", 1, end);
+  else if (!scm_capi_integer_p(end)) {
+    scm_capi_error("substring: integer required, but got", 1, end);
     return SCM_OBJ_NULL;
   }
 
-  r = scm_capi_num_to_size_t(start, &ss);
+  r = scm_capi_integer_to_size_t(start, &ss);
   if (r < 0) return SCM_OBJ_NULL;
 
-  r = scm_capi_num_to_size_t(end, &se);
+  r = scm_capi_integer_to_size_t(end, &se);
   if (r < 0) return SCM_OBJ_NULL;
 
   return scm_capi_substring(str, ss, se);
@@ -4177,19 +4462,19 @@ scm_api_string_to_list(ScmObj str, ScmObj start, ScmObj end)
 
   SCM_STACK_FRAME_PUSH(&str, &start, &end);
 
-  if (scm_obj_not_null_p(start) && !scm_capi_number_p(start)) {
-    scm_capi_error("string->list: number required, but got", 1, start);
+  if (scm_obj_not_null_p(start) && !scm_capi_integer_p(start)) {
+    scm_capi_error("string->list: integer required, but got", 1, start);
     return SCM_OBJ_NULL;
   }
-  else if (scm_obj_not_null_p(end) && !scm_capi_number_p(end)) {
-    scm_capi_error("string->list: number required, but got", 1, end);
+  else if (scm_obj_not_null_p(end) && !scm_capi_integer_p(end)) {
+    scm_capi_error("string->list: integer required, but got", 1, end);
     return SCM_OBJ_NULL;
   }
 
   sss = -1;
   if (scm_obj_not_null_p(start)) {
     size_t s;
-    int r = scm_capi_num_to_size_t(start, &s);
+    int r = scm_capi_integer_to_size_t(start, &s);
     if (r < 0) return SCM_OBJ_NULL;
 
     if (s > SSIZE_MAX) {
@@ -4203,7 +4488,7 @@ scm_api_string_to_list(ScmObj str, ScmObj start, ScmObj end)
   sse = -1;
   if (scm_obj_not_null_p(end)) {
     size_t s;
-    int r = scm_capi_num_to_size_t(end, &s);
+    int r = scm_capi_integer_to_size_t(end, &s);
     if (r < 0) return SCM_OBJ_NULL;
 
     if (s > SSIZE_MAX) {
@@ -4302,19 +4587,19 @@ scm_api_string_copy(ScmObj str, ScmObj start, ScmObj end)
 
   SCM_STACK_FRAME_PUSH(&str, &start, &end);
 
-  if (scm_obj_not_null_p(start) && !scm_capi_number_p(start)) {
-    scm_capi_error("string-copy: number required, but got", 1, start);
+  if (scm_obj_not_null_p(start) && !scm_capi_integer_p(start)) {
+    scm_capi_error("string-copy: integer required, but got", 1, start);
     return SCM_OBJ_NULL;
   }
-  else if (scm_obj_not_null_p(end) && !scm_capi_number_p(end)) {
-    scm_capi_error("string-copy: number required, but got", 1, end);
+  else if (scm_obj_not_null_p(end) && !scm_capi_integer_p(end)) {
+    scm_capi_error("string-copy: integer required, but got", 1, end);
     return SCM_OBJ_NULL;
   }
 
   sss = -1;
   if (scm_obj_not_null_p(start)) {
     size_t s;
-    int r = scm_capi_num_to_size_t(start, &s);
+    int r = scm_capi_integer_to_size_t(start, &s);
     if (r < 0) return SCM_OBJ_NULL;
 
     if (s > SSIZE_MAX) {
@@ -4328,7 +4613,7 @@ scm_api_string_copy(ScmObj str, ScmObj start, ScmObj end)
   sse = -1;
   if (scm_obj_not_null_p(end)) {
     size_t s;
-    int r = scm_capi_num_to_size_t(end, &s);
+    int r = scm_capi_integer_to_size_t(end, &s);
     if (r < 0) return SCM_OBJ_NULL;
 
     if (s > SSIZE_MAX) {
@@ -4466,26 +4751,26 @@ scm_api_string_copy_i(ScmObj to, ScmObj at,
     scm_capi_error("string->list: invalid argument", 0);
     return SCM_OBJ_NULL;
   }
-  else if (!scm_capi_number_p(at)) {
-    scm_capi_error("string->list: number required, but got", 1, at);
+  else if (!scm_capi_integer_p(at)) {
+    scm_capi_error("string->list: integer required, but got", 1, at);
     return SCM_OBJ_NULL;
   }
-  else if (scm_obj_not_null_p(start) && !scm_capi_number_p(start)) {
-    scm_capi_error("string->list: number required, but got", 1, start);
+  else if (scm_obj_not_null_p(start) && !scm_capi_integer_p(start)) {
+    scm_capi_error("string->list: integer required, but got", 1, start);
     return SCM_OBJ_NULL;
   }
-  else if (scm_obj_not_null_p(end) && !scm_capi_number_p(end)) {
-    scm_capi_error("string->list: number required, but got", 1, end);
+  else if (scm_obj_not_null_p(end) && !scm_capi_integer_p(end)) {
+    scm_capi_error("string->list: integer required, but got", 1, end);
     return SCM_OBJ_NULL;
   }
 
-  r = scm_capi_num_to_size_t(at, &sa);
+  r = scm_capi_integer_to_size_t(at, &sa);
   if (r < 0) return SCM_OBJ_NULL;
 
   sss = -1;
   if (scm_obj_not_null_p(start)) {
     size_t s;
-     r = scm_capi_num_to_size_t(start, &s);
+     r = scm_capi_integer_to_size_t(start, &s);
     if (r < 0) return SCM_OBJ_NULL;
 
     if (s > SSIZE_MAX) {
@@ -4499,7 +4784,7 @@ scm_api_string_copy_i(ScmObj to, ScmObj at,
   sse = -1;
   if (scm_obj_not_null_p(end)) {
     size_t s;
-    r = scm_capi_num_to_size_t(end, &s);
+    r = scm_capi_integer_to_size_t(end, &s);
     if (r < 0) return SCM_OBJ_NULL;
 
     if (s > SSIZE_MAX) {
@@ -4577,19 +4862,19 @@ scm_api_string_fill_i(ScmObj str, ScmObj fill, ScmObj start, ScmObj end)
 
   SCM_STACK_FRAME_PUSH(&str, &start, &end);
 
-  if (scm_obj_not_null_p(start) && !scm_capi_number_p(start)) {
-    scm_capi_error("string-fill!: number required, but got", 1, start);
+  if (scm_obj_not_null_p(start) && !scm_capi_integer_p(start)) {
+    scm_capi_error("string-fill!: integer required, but got", 1, start);
     return SCM_OBJ_NULL;
   }
-  else if (scm_obj_not_null_p(end) && !scm_capi_number_p(end)) {
-    scm_capi_error("string-fill!: number required, but got", 1, end);
+  else if (scm_obj_not_null_p(end) && !scm_capi_integer_p(end)) {
+    scm_capi_error("string-fill!: integer required, but got", 1, end);
     return SCM_OBJ_NULL;
   }
 
   sss = -1;
   if (scm_obj_not_null_p(start)) {
     size_t s;
-    r = scm_capi_num_to_size_t(start, &s);
+    r = scm_capi_integer_to_size_t(start, &s);
     if (r < 0) return SCM_OBJ_NULL;
 
     if (s > SSIZE_MAX) {
@@ -4603,7 +4888,7 @@ scm_api_string_fill_i(ScmObj str, ScmObj fill, ScmObj start, ScmObj end)
   sse = -1;
   if (scm_obj_not_null_p(end)) {
     size_t s;
-    r = scm_capi_num_to_size_t(end, &s);
+    r = scm_capi_integer_to_size_t(end, &s);
     if (r < 0) return SCM_OBJ_NULL;
 
     if (s > SSIZE_MAX) {
@@ -4754,7 +5039,7 @@ scm_api_make_vector(ScmObj len, ScmObj fill)
     return SCM_OBJ_NULL;
   }
 
-  r = scm_capi_num_to_size_t(len, &sz);
+  r = scm_capi_integer_to_size_t(len, &sz);
   if (r < 0) return SCM_OBJ_NULL;
 
   return scm_capi_make_vector(sz, fill);

@@ -228,7 +228,7 @@ scm_asm_sym2opcode(ScmObj op)
 
   if (scm_capi_integer_p(op)) {
     scm_sword_t cd;
-    int r = scm_capi_num_to_sword(op, &cd);
+    int r = scm_capi_integer_to_sword(op, &cd);
     if (r < 0) return -1;        /* [ERR]: [through] */
 
     if (cd > SCM_BYTE_MAX) {
@@ -386,7 +386,7 @@ scm_asm_inst_si(ScmObj iseq, int opcode, ScmObj operator, ScmObj operands,
     return -1;
   }
 
-  rslt = scm_capi_num_to_sword(arg, &val);
+  rslt = scm_capi_integer_to_sword(arg, &val);
   if (rslt < 0) return -1;      /* [ERR]: [through] */
 
   if (val < INT_MIN || INT_MAX < val) {
@@ -442,7 +442,7 @@ scm_asm_inst_si_si(ScmObj iseq, int opcode, ScmObj operator, ScmObj operands,
     return -1;
   }
 
-  rslt = scm_capi_num_to_sword(arg1, &val1);
+  rslt = scm_capi_integer_to_sword(arg1, &val1);
   if (rslt < 0) return -1;      /* [ERR]: [through] */
 
   if (val1 < INT_MIN || INT_MAX < val1) {
@@ -450,7 +450,7 @@ scm_asm_inst_si_si(ScmObj iseq, int opcode, ScmObj operator, ScmObj operands,
     return -1;
   }
 
-  rslt = scm_capi_num_to_sword(arg2, &val2);
+  rslt = scm_capi_integer_to_sword(arg2, &val2);
   if (rslt < 0) return -1;      /* [ERR]: [through] */
 
   if (val2 < INT_MIN || INT_MAX < val2) {
@@ -510,7 +510,7 @@ scm_asm_inst_si_si_obj(ScmObj iseq, int opcode,
     return -1;
   }
 
-  rslt = scm_capi_num_to_sword(arg1, &val1);
+  rslt = scm_capi_integer_to_sword(arg1, &val1);
   if (rslt < 0) return -1;      /* [ERR]: [through] */
 
   if (val1 < INT_MIN || INT_MAX < val1) {
@@ -518,7 +518,7 @@ scm_asm_inst_si_si_obj(ScmObj iseq, int opcode,
     return -1;
   }
 
-  rslt = scm_capi_num_to_sword(arg2, &val2);
+  rslt = scm_capi_integer_to_sword(arg2, &val2);
   if (rslt < 0) return -1;      /* [ERR]: [through] */
 
   if (val2 < INT_MIN || INT_MAX < val2) {
@@ -711,7 +711,7 @@ scm_asm_inst_asm_close(ScmObj iseq, int opcode,
     return -1;
   }
 
-  rslt = scm_capi_num_to_sword(arg1, &val1);
+  rslt = scm_capi_integer_to_sword(arg1, &val1);
   if (rslt < 0) return -1;      /* [ERR]: [through] */
 
   if (val1 < INT_MIN || INT_MAX < val1) {
@@ -719,7 +719,7 @@ scm_asm_inst_asm_close(ScmObj iseq, int opcode,
     return -1;
   }
 
-  rslt = scm_capi_num_to_sword(arg2, &val2);
+  rslt = scm_capi_integer_to_sword(arg2, &val2);
   if (rslt < 0) return -1;      /* [ERR]: [through] */
 
   if (val2 < INT_MIN || INT_MAX < val2) {

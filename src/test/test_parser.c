@@ -123,7 +123,7 @@ test_parser_parse_fixnum(void)
 
   cut_assert_true(scm_capi_fixnum_p(num));
 
-  scm_capi_num_to_sword(num, &actual);
+  scm_capi_integer_to_sword(num, &actual);
   cut_assert_equal_int(100, actual);
 
   eof = scm_parser_parse_expression(parser, port);
@@ -144,7 +144,7 @@ test_parser_parse_fixnum_max(void)
   num = scm_parser_parse_expression(parser, port);
 
   cut_assert_true(scm_capi_fixnum_p(num));
-  scm_capi_num_to_sword(num, &actual);
+  scm_capi_integer_to_sword(num, &actual);
 
   cut_assert_true(actual == 4611686018427387903ll);
 
@@ -167,7 +167,7 @@ test_parser_parse_fixnum_min(void)
 
   cut_assert_true(scm_capi_fixnum_p(num));
 
-  scm_capi_num_to_sword(num, &actual);
+  scm_capi_integer_to_sword(num, &actual);
   cut_assert_true(actual == -4611686018427387904ll);
 
   eof = scm_parser_parse_expression(parser, port);
@@ -189,7 +189,7 @@ test_parser_parse_fixnum_1d(void)
 
   cut_assert_true(scm_capi_fixnum_p(num));
 
-  scm_capi_num_to_sword(num, &actual);
+  scm_capi_integer_to_sword(num, &actual);
   cut_assert_equal_int(1, actual);
 
   eof = scm_parser_parse_expression(parser, port);
@@ -210,13 +210,13 @@ test_parser_parse_fixnum_signed(void)
   num1 = scm_parser_parse_expression(parser, port);
 
   cut_assert_true(scm_capi_fixnum_p(num1));
-  scm_capi_num_to_sword(num1, &actual);
+  scm_capi_integer_to_sword(num1, &actual);
   cut_assert_equal_int(98, actual);
 
   num2 = scm_parser_parse_expression(parser, port);
 
   cut_assert_true(scm_capi_fixnum_p(num2));
-  scm_capi_num_to_sword(num2, &actual);
+  scm_capi_integer_to_sword(num2, &actual);
   cut_assert_equal_int(-23, actual);
 
   eof = scm_parser_parse_expression(parser, port);
@@ -513,7 +513,7 @@ test_parser_parse_proper_list(void)
   cdr = scm_api_cdr(cdr);
 
   cut_assert_true(scm_capi_fixnum_p(car));
-  scm_capi_num_to_sword(car, &actual_num);
+  scm_capi_integer_to_sword(car, &actual_num);
   cut_assert_equal_int(123, actual_num);
 
   cut_assert_true(scm_capi_pair_p(cdr));
@@ -566,7 +566,7 @@ test_parser_parse_improper_list(void)
   cut_assert_true(scm_capi_eq_p(sym, car));
 
   cut_assert_true(scm_capi_fixnum_p(cdr));
-  scm_capi_num_to_sword(cdr, &actual_num);
+  scm_capi_integer_to_sword(cdr, &actual_num);
   cut_assert_equal_int(123, actual_num);
 
   eof = scm_parser_parse_expression(parser, port);
@@ -675,7 +675,7 @@ test_parse_parse_list_inserted_comment(void)
   cdr = scm_api_cdr(cdr);
 
   cut_assert_true(scm_capi_fixnum_p(car));
-  scm_capi_num_to_sword(car, &actual_num);
+  scm_capi_integer_to_sword(car, &actual_num);
   cut_assert_equal_int(123, actual_num);
 
   cut_assert_true(scm_capi_nil_p(cdr));
@@ -735,7 +735,7 @@ test_parser_parse_vector(void)
   cut_assert_true(scm_capi_eq_p(sym, elm0));
 
   cut_assert_true(scm_capi_fixnum_p(elm1));
-  scm_capi_num_to_sword(elm1, &actual_num);
+  scm_capi_integer_to_sword(elm1, &actual_num);
   cut_assert_equal_int(123, actual_num);
 
   cut_assert_true(scm_capi_string_p(elm2));

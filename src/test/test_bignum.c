@@ -1,7 +1,7 @@
 #include <cutter.h>
 
 #include "api.h"
-#include "numeric.h"
+#include "bignum.h"
 
 static ScmEvaluator *ev;
 

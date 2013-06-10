@@ -24,6 +24,116 @@ int scm_subr_func_equal_P(ScmObj subr, int argc, const ScmObj *argv);
 
 
 /*******************************************************************/
+/*  Numbers                                                        */
+/*******************************************************************/
+
+#define SCM_SUBR_ARITY_NUMBER_P 1
+#define SCM_SUBR_ARITY_COMPLEX_P 1
+#define SCM_SUBR_ARITY_REAL_P 1
+#define SCM_SUBR_ARITY_RATIONAL_P 1
+#define SCM_SUBR_ARITY_INTEGER_P 1
+#define SCM_SUBR_ARITY_EXACT_P 1
+#define SCM_SUBR_ARITY_INEXACT_P 1
+#define SCM_SUBR_ARITY_EXACT_INTEGER_P 1
+#define SCM_SUBR_ARITY_FINITE_P 1
+#define SCM_SUBR_ARITY_INFINITE_P 1
+#define SCM_SUBR_ARITY_NAN_P 1
+#define SCM_SUBR_ARITY_NUM_EQ_P -3
+#define SCM_SUBR_ARITY_NUM_LT_P -3
+#define SCM_SUBR_ARITY_NUM_GT_P -3
+#define SCM_SUBR_ARITY_NUM_LE_P -3
+#define SCM_SUBR_ARITY_NUM_GE_P -3
+#define SCM_SUBR_ARITY_ZERO_P 1
+#define SCM_SUBR_ARITY_POSITIVE_P 1
+#define SCM_SUBR_ARITY_NEGATIVE_P 1
+#define SCM_SUBR_ARITY_ODD_P 1
+#define SCM_SUBR_ARITY_EVEN_P 1
+#define SCM_SUBR_ARITY_MAX -2
+#define SCM_SUBR_ARITY_MIN -2
+#define SCM_SUBR_ARITY_PLUS -1
+#define SCM_SUBR_ARITY_MUL -1
+#define SCM_SUBR_ARITY_MINUS -1
+#define SCM_SUBR_ARITY_DIV -1
+#define SCM_SUBR_ARITY_ABS 1
+#define SCM_SUBR_ARITY_FLOOR_DIV 2
+#define SCM_SUBR_ARITY_FLOOR_QUO 2
+#define SCM_SUBR_ARITY_FLOOR_REM 2
+#define SCM_SUBR_ARITY_TRUNCATE_DIV 2
+#define SCM_SUBR_ARITY_TRUNCATE_QUO 2
+#define SCM_SUBR_ARITY_TRUNCATE_REM 2
+
+#define SCM_SUBR_FLAG_NUMBER_P 0
+#define SCM_SUBR_FLAG_COMPLEX_P 0
+#define SCM_SUBR_FLAG_REAL_P 0
+#define SCM_SUBR_FLAG_RATIONAL_P 0
+#define SCM_SUBR_FLAG_INTEGER_P 0
+#define SCM_SUBR_FLAG_EXACT_P 0
+#define SCM_SUBR_FLAG_INEXACT_P 0
+#define SCM_SUBR_FLAG_EXACT_INTEGER_P 0
+#define SCM_SUBR_FLAG_FINITE_P 0
+#define SCM_SUBR_FLAG_INFINITE_P 0
+#define SCM_SUBR_FLAG_NAN_P 0
+#define SCM_SUBR_FLAG_NUM_EQ_P 0
+#define SCM_SUBR_FLAG_NUM_LT_P 0
+#define SCM_SUBR_FLAG_NUM_GT_P 0
+#define SCM_SUBR_FLAG_NUM_LE_P 0
+#define SCM_SUBR_FLAG_NUM_GE_P 0
+#define SCM_SUBR_FLAG_ZERO_P 0
+#define SCM_SUBR_FLAG_POSITIVE_P 0
+#define SCM_SUBR_FLAG_NEGATIVE_P 0
+#define SCM_SUBR_FLAG_ODD_P 0
+#define SCM_SUBR_FLAG_EVEN_P 0
+#define SCM_SUBR_FLAG_MAX 0
+#define SCM_SUBR_FLAG_MIN 0
+#define SCM_SUBR_FLAG_PLUS 0
+#define SCM_SUBR_FLAG_MUL 0
+#define SCM_SUBR_FLAG_MINUS 0
+#define SCM_SUBR_FLAG_DIV 0
+#define SCM_SUBR_FLAG_ABS 0
+#define SCM_SUBR_FLAG_FLOOR_DIV 0
+#define SCM_SUBR_FLAG_FLOOR_QUO 0
+#define SCM_SUBR_FLAG_FLOOR_REM 0
+#define SCM_SUBR_FLAG_TRUNCATE_DIV 0
+#define SCM_SUBR_FLAG_TRUNCATE_QUO 0
+#define SCM_SUBR_FLAG_TRUNCATE_REM 0
+
+int scm_subr_func_number_P(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_complex_P(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_real_P(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_rational_P(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_integer_P(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_exact_P(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_inexact_P(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_exact_integer_P(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_finite_P(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_infinite_P(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_nan_P(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_num_eq_P(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_num_lt_P(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_num_gt_P(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_num_le_P(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_num_ge_P(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_zero_P(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_positive_P(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_negative_P(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_odd_P(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_even_P(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_max(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_min(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_plus(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_mul(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_minus(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_div(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_abs(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_floor_div(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_floor_quo(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_floor_rem(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_truncate_div(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_truncate_quo(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_truncate_rem(ScmObj subr, int argc, const ScmObj *argv);
+
+
+/*******************************************************************/
 /*  Booleans                                                       */
 /*******************************************************************/
 

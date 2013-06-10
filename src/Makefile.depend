@@ -1,7 +1,8 @@
 memory.o: memory.c object.h impl_utils.h api.h reference.h encoding.h \
  api_enum.h api_type.h memory.h
-object.o: object.c object.h impl_utils.h numeric.h api_enum.h earray.h \
- api.h reference.h encoding.h api_type.h
+object.o: object.c object.h impl_utils.h number.h number_common.h \
+ bignum.h api_enum.h earray.h api.h reference.h encoding.h api_type.h \
+ fixnum.h
 pair.o: pair.c object.h impl_utils.h api.h reference.h encoding.h \
  api_enum.h api_type.h pair.h
 string.o: string.c object.h impl_utils.h reference.h api.h encoding.h \
@@ -26,8 +27,6 @@ procedure.o: procedure.c object.h impl_utils.h api.h reference.h \
  encoding.h api_enum.h api_type.h procedure.h
 reference.o: reference.c object.h impl_utils.h api.h reference.h \
  encoding.h api_enum.h api_type.h
-numeric.o: numeric.c object.h impl_utils.h reference.h api.h encoding.h \
- api_enum.h api_type.h earray.h numeric.h
 core_subr.o: core_subr.c object.h impl_utils.h vm.h memory.h api_type.h \
  reference.h encoding.h api_enum.h vmstack.h api.h core_subr.h
 iseq.o: iseq.c object.h impl_utils.h reference.h chashtbl.h api.h \
@@ -36,8 +35,9 @@ chashtbl.o: chashtbl.c object.h impl_utils.h reference.h api.h encoding.h \
  api_enum.h api_type.h chashtbl.h
 api.o: api.c object.h impl_utils.h memory.h api_type.h vm.h reference.h \
  encoding.h api_enum.h vmstack.h miscobjects.h char.h string.h symbol.h \
- chashtbl.h procedure.h numeric.h earray.h api.h pair.h vector.h port.h \
- parser.h syntax.h iseq.h module.h assembler.h compiler.h exception.h
+ chashtbl.h procedure.h number.h number_common.h bignum.h earray.h api.h \
+ fixnum.h pair.h vector.h port.h parser.h syntax.h iseq.h module.h \
+ assembler.h compiler.h exception.h
 port.o: port.c object.h impl_utils.h reference.h api.h encoding.h \
  api_enum.h api_type.h port.h
 parser.o: parser.c object.h impl_utils.h reference.h api.h encoding.h \
@@ -54,5 +54,15 @@ module.o: module.c object.h impl_utils.h api.h reference.h encoding.h \
  api_enum.h api_type.h chashtbl.h module.h
 core_modules.o: core_modules.c object.h impl_utils.h api.h reference.h \
  encoding.h api_enum.h api_type.h compiler.h core_subr.h
+number_common.o: number_common.c number_common.h object.h impl_utils.h \
+ bignum.h api_enum.h earray.h api.h reference.h encoding.h api_type.h \
+ fixnum.h
+fixnum.o: fixnum.c object.h impl_utils.h reference.h api.h encoding.h \
+ api_enum.h api_type.h number_common.h bignum.h earray.h fixnum.h
+bignum.o: bignum.c object.h impl_utils.h reference.h api.h encoding.h \
+ api_enum.h api_type.h earray.h number_common.h bignum.h fixnum.h
+number.o: number.c object.h impl_utils.h reference.h api.h encoding.h \
+ api_enum.h api_type.h number_common.h bignum.h earray.h number.h \
+ fixnum.h
 main.o: main.c api.h object.h impl_utils.h reference.h encoding.h \
  api_enum.h api_type.h

@@ -53,6 +53,523 @@ scm_subr_func_equal_P(ScmObj subr, int argc, const ScmObj *argv)
 
 
 /*******************************************************************/
+/*  Numbers                                                        */
+/*******************************************************************/
+
+int
+scm_subr_func_number_P(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
+
+  val = scm_api_number_P(argv[0]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_complex_P(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
+
+  val = scm_api_complex_P(argv[0]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_real_P(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
+
+  val = scm_api_real_P(argv[0]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_rational_P(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
+
+  val = scm_api_rational_P(argv[0]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_integer_P(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
+
+  val = scm_api_integer_P(argv[0]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_exact_P(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
+
+  val = scm_api_exact_P(argv[0]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_inexact_P(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
+
+  val = scm_api_inexact_P(argv[0]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_exact_integer_P(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
+
+  val = scm_api_exact_integer_P(argv[0]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_finite_P(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
+
+  val = scm_api_finite_P(argv[0]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_infinite_P(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
+
+  val = scm_api_infinite_P(argv[0]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_nan_P(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
+
+  val = scm_api_nan_P(argv[0]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_num_eq_P(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj lst = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &lst, &val);
+
+  lst = scm_api_cons(argv[1], argv[2]);
+  if (scm_obj_null_p(lst)) return -1;
+
+  lst = scm_api_cons(argv[0], lst);
+  if (scm_obj_null_p(lst)) return -1;
+
+  val = scm_capi_num_eq_P_lst(lst);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_num_lt_P(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj lst = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &lst, &val);
+
+  lst = scm_api_cons(argv[1], argv[2]);
+  if (scm_obj_null_p(lst)) return -1;
+
+  lst = scm_api_cons(argv[0], lst);
+  if (scm_obj_null_p(lst)) return -1;
+
+  val = scm_capi_num_lt_P_lst(lst);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_num_gt_P(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj lst = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &lst, &val);
+
+  lst = scm_api_cons(argv[1], argv[2]);
+  if (scm_obj_null_p(lst)) return -1;
+
+  lst = scm_api_cons(argv[0], lst);
+  if (scm_obj_null_p(lst)) return -1;
+
+  val = scm_capi_num_gt_P_lst(lst);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_num_le_P(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj lst = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &lst, &val);
+
+  lst = scm_api_cons(argv[1], argv[2]);
+  if (scm_obj_null_p(lst)) return -1;
+
+  lst = scm_api_cons(argv[0], lst);
+  if (scm_obj_null_p(lst)) return -1;
+
+  val = scm_capi_num_le_P_lst(lst);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_num_ge_P(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj lst = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &lst, &val);
+
+  lst = scm_api_cons(argv[1], argv[2]);
+  if (scm_obj_null_p(lst)) return -1;
+
+  lst = scm_api_cons(argv[0], lst);
+  if (scm_obj_null_p(lst)) return -1;
+
+  val = scm_capi_num_ge_P_lst(lst);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_zero_P(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
+
+  val = scm_api_zero_P(argv[0]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_positive_P(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
+
+  val = scm_api_positive_P(argv[0]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_negative_P(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
+
+  val = scm_api_negative_P(argv[0]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_odd_P(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
+
+  val = scm_api_odd_P(argv[0]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_even_P(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
+
+  val = scm_api_even_P(argv[0]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_max(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj lst = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &lst, &val);
+
+  lst = scm_api_cons(argv[0], argv[1]);
+  if (scm_obj_null_p(lst)) return -1;
+
+  val = scm_capi_max_lst(lst);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_min(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj lst = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &lst, &val);
+
+  lst = scm_api_cons(argv[0], argv[1]);
+  if (scm_obj_null_p(lst)) return -1;
+
+  val = scm_capi_min_lst(lst);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_plus(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
+
+  val = scm_capi_plus_lst(argv[0]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_mul(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
+
+  val = scm_capi_mul_lst(argv[0]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_minus(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj lst = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &lst, &val);
+
+  lst = scm_api_cons(argv[0], argv[1]);
+  if (scm_obj_null_p(lst)) return -1;
+
+  val = scm_capi_minus_lst(lst);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_div(ScmObj subr, int argc, const ScmObj *argv)
+{
+  scm_capi_error("/: not implemented", 0);
+  return -1;
+}
+
+int
+scm_subr_func_abs(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
+
+  val = scm_api_abs(argv[0]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_floor_div(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val[2] = { SCM_OBJ_INIT, SCM_OBJ_INIT };
+  int r;
+
+  SCM_STACK_FRAME_PUSH(&subr);
+  SCM_STACK_PUSH_ARY(val, sizeof(val)/sizeof(val[0]));
+
+  r = scm_capi_floor_div(argv[0], argv[1],
+                         SCM_CSETTER_L(val[0]), SCM_CSETTER_L(val[1]));
+  if (r < 0) return -1;
+
+  return scm_capi_return_val(val, sizeof(val)/sizeof(val[0]));
+}
+
+int
+scm_subr_func_floor_quo(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
+
+  val = scm_api_floor_quo(argv[0], argv[1]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_floor_rem(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
+
+  val = scm_api_floor_rem(argv[0], argv[1]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_truncate_div(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val[2] = { SCM_OBJ_INIT, SCM_OBJ_INIT };
+  int r;
+
+  SCM_STACK_FRAME_PUSH(&subr);
+  SCM_STACK_PUSH_ARY(val, sizeof(val)/sizeof(val[0]));
+
+  r = scm_capi_truncate_div(argv[0], argv[1],
+                         SCM_CSETTER_L(val[0]), SCM_CSETTER_L(val[1]));
+  if (r < 0) return -1;
+
+  return scm_capi_return_val(val, sizeof(val)/sizeof(val[0]));
+}
+
+int
+scm_subr_func_truncate_quo(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
+
+  val = scm_api_truncate_quo(argv[0], argv[1]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_truncate_rem(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
+
+  val = scm_api_truncate_rem(argv[0], argv[1]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+
+/*******************************************************************/
 /*  Booleans                                                       */
 /*******************************************************************/
 

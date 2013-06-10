@@ -210,78 +210,97 @@ ScmObj scm_api_list_copy(ScmObj lst);
 
 
 /*******************************************************************/
-/*  Number                                                         */
+/*  Numbers                                                        */
 /*******************************************************************/
+
+bool scm_capi_fixnum_p(ScmObj obj);
+ScmObj scm_api_fixnum_P(ScmObj obj);
+bool scm_capi_bignum_p(ScmObj obj);
+ScmObj scm_api_bignum_P(ScmObj obj);
+
+bool scm_capi_number_p(ScmObj obj);
+ScmObj scm_api_number_P(ScmObj obj);
+bool scm_capi_complex_p(ScmObj obj);
+ScmObj scm_api_complex_P(ScmObj obj);
+bool scm_capi_real_p(ScmObj obj);
+ScmObj scm_api_real_P(ScmObj obj);
+bool scm_capi_rational_p(ScmObj obj);
+ScmObj scm_api_rational_P(ScmObj obj);
+bool scm_capi_integer_p(ScmObj obj);
+ScmObj scm_api_integer_P(ScmObj obj);
+
+bool scm_capi_exact_p(ScmObj obj);
+ScmObj scm_api_exact_P(ScmObj obj);
+bool scm_capi_inexact_p(ScmObj obj);
+ScmObj scm_api_inexact_P(ScmObj obj);
+
+bool scm_capi_exact_integer_p(ScmObj obj);
+ScmObj scm_api_exact_integer_P(ScmObj obj);
+
+bool scm_capi_finite_p(ScmObj obj);
+ScmObj scm_api_finite_P(ScmObj obj);
+bool scm_capi_infinite_p(ScmObj obj);
+ScmObj scm_api_infinite_P(ScmObj obj);
+bool scm_capi_nan_p(ScmObj obj);
+ScmObj scm_api_nan_P(ScmObj obj);
 
 ScmObj scm_capi_make_number_from_literal(const char *literal, size_t size);
 ScmObj scm_capi_make_number_from_sword(scm_sword_t num);
-ScmObj scm_capi_make_number_from_llong(long long num);
-
-bool scm_capi_number_p(ScmObj obj);
-bool scm_capi_integer_p(ScmObj obj);
-
-bool scm_capi_fixnum_p(ScmObj obj);
-bool scm_capi_bignum_p(ScmObj obj);
-
-int scm_capi_num_to_sword(ScmObj num, scm_sword_t *w);
-int scm_capi_num_to_llong(ScmObj num, long long *ll);
-int scm_capi_num_to_size_t(ScmObj num, size_t *s);
 
 int scm_capi_num_eq(ScmObj n1, ScmObj n2, bool *rslt);
-int scm_capi_num_eq_ary(size_t argc, ScmObj *argv, bool *rslt);
-int scm_capi_num_eq_v(bool *rslt, size_t n, ...);
+ScmObj scm_capi_num_eq_P_lst(ScmObj lst);
 ScmObj scm_api_num_eq_P(ScmObj n1, ScmObj n2);
-ScmObj scm_capi_num_eq_ary_P(size_t argc, ScmObj *argv);
-
 int scm_capi_num_lt(ScmObj n1, ScmObj n2, bool *rslt);
-int scm_capi_num_lt_ary(size_t argc, ScmObj *argv, bool *rslt);
-int scm_capi_num_lt_v(bool *rslt, size_t n, ...);
+ScmObj scm_capi_num_lt_P_lst(ScmObj lst);
 ScmObj scm_api_num_lt_P(ScmObj n1, ScmObj n2);
-ScmObj scm_capi_num_lt_ary_P(size_t argc, ScmObj *argv);
-
 int scm_capi_num_gt(ScmObj n1, ScmObj n2, bool *rslt);
-int scm_capi_num_gt_ary(size_t argc, ScmObj *argv, bool *rslt);
-int scm_capi_num_gt_v(bool *rslt, size_t n, ...);
+ScmObj scm_capi_num_gt_P_lst(ScmObj lst);
 ScmObj scm_api_num_gt_P(ScmObj n1, ScmObj n2);
-ScmObj scm_capi_num_gt_ary_P(size_t argc, ScmObj *argv);
-
 int scm_capi_num_le(ScmObj n1, ScmObj n2, bool *rslt);
-int scm_capi_num_le_ary(size_t argc, ScmObj *argv, bool *rslt);
-int scm_capi_num_le_v(bool *rslt, size_t n, ...);
+ScmObj scm_capi_num_le_P_lst(ScmObj lst);
 ScmObj scm_api_num_le_P(ScmObj n1, ScmObj n2);
-ScmObj scm_capi_num_le_ary_P(size_t argc, ScmObj *argv);
-
 int scm_capi_num_ge(ScmObj n1, ScmObj n2, bool *rslt);
-int scm_capi_num_ge_ary(size_t argc, ScmObj *argv, bool *rslt);
-int scm_capi_num_ge_v(bool *rslt, size_t n, ...);
+ScmObj scm_capi_num_ge_P_lst(ScmObj lst);
 ScmObj scm_api_num_ge_P(ScmObj n1, ScmObj n2);
-ScmObj scm_capi_num_ge_ary_P(size_t argc, ScmObj *argv);
+
+bool scm_capi_zero_p(ScmObj num);
+ScmObj scm_api_zero_P(ScmObj num);
+bool scm_capi_positive_p(ScmObj num);
+ScmObj scm_api_positive_P(ScmObj num);
+bool scm_capi_negative_p(ScmObj num);
+ScmObj scm_api_negative_P(ScmObj num);
+bool scm_capi_odd_p(ScmObj num);
+ScmObj scm_api_odd_P(ScmObj num);
+bool scm_capi_even_p(ScmObj num);
+ScmObj scm_api_even_P(ScmObj num);
+
+ScmObj scm_api_max(ScmObj n1, ScmObj n2);
+ScmObj scm_capi_max_lst(ScmObj lst);
+ScmObj scm_api_min(ScmObj n1, ScmObj n2);
+ScmObj scm_capi_min_lst(ScmObj lst);
 
 ScmObj scm_api_plus(ScmObj x, ScmObj y);
-ScmObj scm_capi_plus_ary(size_t argc, ScmObj *argv);
-ScmObj scm_capi_plus_v(size_t n, ...);
-
-ScmObj scm_api_minus(ScmObj x, ScmObj y);
-ScmObj scm_capi_minus_ary(size_t argc, ScmObj *argv);
-ScmObj scm_capi_minus_v(size_t n, ...);
-
+ScmObj scm_capi_plus_lst(ScmObj lst);
 ScmObj scm_api_mul(ScmObj x, ScmObj y);
-ScmObj scm_capi_mul_ary(size_t argc, ScmObj *argv);
-ScmObj scm_capi_mul_v(size_t n, ...);
+ScmObj scm_capi_mul_lst(ScmObj lst);
+ScmObj scm_api_minus(ScmObj x, ScmObj y);
+ScmObj scm_capi_minus_lst(ScmObj lst);
+
+ScmObj scm_api_abs(ScmObj num);
 
 int scm_capi_floor_div(ScmObj x, ScmObj y, scm_csetter_t *q, scm_csetter_t *r);
-ScmObj scm_capi_floor_quo(ScmObj x, ScmObj y);
-ScmObj scm_capi_floor_rem(ScmObj x, ScmObj y);
-
-int scm_capi_ceiling_div(ScmObj x, ScmObj y,
-                         scm_csetter_t *q, scm_csetter_t *r);
-ScmObj scm_capi_ceiling_quo(ScmObj x, ScmObj y);
-ScmObj scm_capi_ceiling_rem(ScmObj x, ScmObj y);
-
+ScmObj scm_api_floor_quo(ScmObj x, ScmObj y);
+ScmObj scm_api_floor_rem(ScmObj x, ScmObj y);
 int scm_capi_truncate_div(ScmObj x, ScmObj y,
                           scm_csetter_t *q, scm_csetter_t *r);
-ScmObj scm_capi_truncate_quo(ScmObj x, ScmObj y);
-ScmObj scm_capi_truncate_rem(ScmObj x, ScmObj y);
+ScmObj scm_api_truncate_quo(ScmObj x, ScmObj y);
+ScmObj scm_api_truncate_rem(ScmObj x, ScmObj y);
+
+ScmObj scm_api_exact(ScmObj num);
+ScmObj scm_api_inexact(ScmObj num);
+
+int scm_capi_integer_to_sword(ScmObj num, scm_sword_t *w);
+int scm_capi_integer_to_size_t(ScmObj num, size_t *s);
 
 
 /*******************************************************************/

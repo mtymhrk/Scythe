@@ -113,6 +113,46 @@ scm_define_scheme_base_subr(ScmObj module)
     { "equal?", SCM_SUBR_ARITY_EQUAL_P, SCM_SUBR_FLAG_EQUAL_P, scm_subr_func_equal_P },
 
     /*******************************************************************/
+    /*  Numbers                                                        */
+    /*******************************************************************/
+    { "number?", SCM_SUBR_ARITY_NUMBER_P, SCM_SUBR_FLAG_NUMBER_P, scm_subr_func_number_P },
+    { "complex?", SCM_SUBR_ARITY_COMPLEX_P, SCM_SUBR_FLAG_COMPLEX_P, scm_subr_func_complex_P },
+    { "real?", SCM_SUBR_ARITY_REAL_P, SCM_SUBR_FLAG_REAL_P, scm_subr_func_real_P },
+    { "rational?", SCM_SUBR_ARITY_RATIONAL_P, SCM_SUBR_FLAG_RATIONAL_P, scm_subr_func_rational_P },
+    { "integer?", SCM_SUBR_ARITY_INTEGER_P, SCM_SUBR_FLAG_INTEGER_P, scm_subr_func_integer_P },
+    { "exact?", SCM_SUBR_ARITY_EXACT_P, SCM_SUBR_FLAG_EXACT_P, scm_subr_func_exact_P },
+    { "inexact?", SCM_SUBR_ARITY_INEXACT_P, SCM_SUBR_FLAG_INEXACT_P, scm_subr_func_inexact_P },
+    { "exact-integer?", SCM_SUBR_ARITY_EXACT_INTEGER_P, SCM_SUBR_FLAG_EXACT_INTEGER_P, scm_subr_func_exact_integer_P },
+    { "finite?", SCM_SUBR_ARITY_FINITE_P, SCM_SUBR_FLAG_FINITE_P, scm_subr_func_finite_P },
+    { "infinite?", SCM_SUBR_ARITY_INFINITE_P, SCM_SUBR_FLAG_INFINITE_P, scm_subr_func_infinite_P },
+    { "nan?", SCM_SUBR_ARITY_NAN_P, SCM_SUBR_FLAG_NAN_P, scm_subr_func_nan_P },
+    { "=", SCM_SUBR_ARITY_NUM_EQ_P, SCM_SUBR_FLAG_NUM_EQ_P, scm_subr_func_num_eq_P },
+    { "<", SCM_SUBR_ARITY_NUM_LT_P, SCM_SUBR_FLAG_NUM_LT_P, scm_subr_func_num_lt_P },
+    { ">", SCM_SUBR_ARITY_NUM_GT_P, SCM_SUBR_FLAG_NUM_GT_P, scm_subr_func_num_gt_P },
+    { "<=", SCM_SUBR_ARITY_NUM_LE_P, SCM_SUBR_FLAG_NUM_LE_P, scm_subr_func_num_le_P },
+    { ">=", SCM_SUBR_ARITY_NUM_GE_P, SCM_SUBR_FLAG_NUM_GE_P, scm_subr_func_num_ge_P },
+    { "zero?", SCM_SUBR_ARITY_ZERO_P, SCM_SUBR_FLAG_ZERO_P, scm_subr_func_zero_P },
+    { "positive?", SCM_SUBR_ARITY_POSITIVE_P, SCM_SUBR_FLAG_POSITIVE_P, scm_subr_func_positive_P },
+    { "negative?", SCM_SUBR_ARITY_NEGATIVE_P, SCM_SUBR_FLAG_NEGATIVE_P, scm_subr_func_negative_P },
+    { "odd?", SCM_SUBR_ARITY_ODD_P, SCM_SUBR_FLAG_ODD_P, scm_subr_func_odd_P },
+    { "even?", SCM_SUBR_ARITY_EVEN_P, SCM_SUBR_FLAG_EVEN_P, scm_subr_func_even_P },
+    { "max", SCM_SUBR_ARITY_MAX, SCM_SUBR_FLAG_MAX, scm_subr_func_max },
+    { "min", SCM_SUBR_ARITY_MIN, SCM_SUBR_FLAG_MIN, scm_subr_func_min },
+    { "plus", SCM_SUBR_ARITY_PLUS, SCM_SUBR_FLAG_PLUS, scm_subr_func_plus },
+    { "mul", SCM_SUBR_ARITY_MUL, SCM_SUBR_FLAG_MUL, scm_subr_func_mul },
+    { "minus", SCM_SUBR_ARITY_MINUS, SCM_SUBR_FLAG_MINUS, scm_subr_func_minus },
+    { "div", SCM_SUBR_ARITY_DIV, SCM_SUBR_FLAG_DIV, scm_subr_func_div },
+    { "floor/", SCM_SUBR_ARITY_FLOOR_DIV, SCM_SUBR_FLAG_FLOOR_DIV, scm_subr_func_floor_div },
+    { "floor-quotient", SCM_SUBR_ARITY_FLOOR_QUO, SCM_SUBR_FLAG_FLOOR_QUO, scm_subr_func_floor_quo },
+    { "floor-remainder", SCM_SUBR_ARITY_FLOOR_REM, SCM_SUBR_FLAG_FLOOR_REM, scm_subr_func_floor_rem },
+    { "truncate/", SCM_SUBR_ARITY_TRUNCATE_DIV, SCM_SUBR_FLAG_TRUNCATE_DIV, scm_subr_func_truncate_div },
+    { "truncate-quotient", SCM_SUBR_ARITY_TRUNCATE_QUO, SCM_SUBR_FLAG_TRUNCATE_QUO, scm_subr_func_truncate_quo },
+    { "truncate-remainder", SCM_SUBR_ARITY_TRUNCATE_REM, SCM_SUBR_FLAG_TRUNCATE_REM, scm_subr_func_truncate_rem },
+    { "quotient", SCM_SUBR_ARITY_TRUNCATE_QUO, SCM_SUBR_FLAG_TRUNCATE_QUO, scm_subr_func_truncate_quo },
+    { "remainder", SCM_SUBR_ARITY_TRUNCATE_REM, SCM_SUBR_FLAG_TRUNCATE_REM, scm_subr_func_truncate_rem },
+    { "modulo", SCM_SUBR_ARITY_FLOOR_REM, SCM_SUBR_FLAG_FLOOR_REM, scm_subr_func_floor_rem },
+
+    /*******************************************************************/
     /*  Booleans                                                       */
     /*******************************************************************/
     { "not", SCM_SUBR_ARITY_NOT, SCM_SUBR_FLAG_NOT, scm_subr_func_not },

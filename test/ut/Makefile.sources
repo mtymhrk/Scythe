@@ -1,2 +1,3 @@
 SOURCES  = test_module.c test_pair_and_lists.c test_strings.c \
-           test_characters.c test_symbols.c test_equivalence.c test_booleans.c
+           test_characters.c test_symbols.c test_equivalence.c test_booleans.c \
+           test_fixnum.c test_bignum.c
