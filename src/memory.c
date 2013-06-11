@@ -85,18 +85,6 @@ scm_mem_align_ptr(void *ptr)
 }
 
 scm_local_inline size_t
-scm_mem_alloc_size_of_obj_has_fin_func(size_t size)
-{
-  return scm_mem_align_size_by(size, SCM_ALIGNOF(ScmObj)) + sizeof(ScmObj) * 2;
-}
-
-scm_local_inline size_t
-scm_mem_alloc_size_of_obj_has_weak_ref(size_t size)
-{
-  return scm_mem_align_size_by(size, SCM_ALIGNOF(ScmObj)) + sizeof(ScmObj);
-}
-
-scm_local_inline size_t
 scm_mem_alloc_size_in_heap(ScmTypeInfo *type, size_t add)
 {
   size_t size;
@@ -106,10 +94,6 @@ scm_mem_alloc_size_in_heap(ScmTypeInfo *type, size_t add)
   size = scm_type_info_obj_size(type) + add;
   if (size < sizeof(ScmMMObj))
     size = sizeof(ScmMMObj);
-  if (scm_type_info_has_gc_fin_func_p(type))
-    size = scm_mem_alloc_size_of_obj_has_fin_func(size);
-  if (scm_type_info_has_instance_weak_ref_p(type))
-    size = scm_mem_alloc_size_of_obj_has_weak_ref(size);
   if (size < SCM_MEM_MIN_OBJ_SIZE)
     size = SCM_MEM_MIN_OBJ_SIZE;
 
@@ -120,11 +104,6 @@ scm_local_inline size_t
 scm_mem_alloc_size_to_obj_size_in_heap(ScmTypeInfo *type, size_t size)
 {
   scm_assert(type != NULL);
-
-  if (scm_type_info_has_gc_fin_func_p(type))
-    size -= sizeof(ScmObj) * 2;
-  if (scm_type_info_has_instance_weak_ref_p(type))
-    size -= sizeof(ScmObj);
 
   return size;
 }
@@ -601,95 +580,81 @@ scm_mem_obj_to_cell(ScmObj obj)
 /** private functions for list of objects has finalize function **************/
 
 scm_local_inline ScmRef
-scm_mem_prev_obj_has_fin_func(ScmTypeInfo *type, ScmObj obj)
+scm_mem_prev_obj_has_fin_func(ScmObj obj)
 {
-  scm_byte_t *p;
-
-  p = scm_mem_heap_cell_tail(scm_mem_obj_to_cell(obj)) - sizeof(ScmObj) * 2;
-
-  if (scm_type_info_has_instance_weak_ref_p(type))
-    p -= sizeof(ScmObj);
-
-  return (ScmRef)p;
+  ScmMemHeapCell *cell = scm_mem_obj_to_cell(obj);
+  return SCM_REF_MAKE(cell->fin_info.prev);
 }
 
 scm_local_inline ScmRef
-scm_mem_next_obj_has_fin_func(ScmTypeInfo *type, ScmObj obj)
+scm_mem_next_obj_has_fin_func(ScmObj obj)
 {
-  scm_byte_t *p;
-
-  p = scm_mem_heap_cell_tail(scm_mem_obj_to_cell(obj)) - sizeof(ScmObj);
-
-  if (scm_type_info_has_instance_weak_ref_p(type))
-    p -= sizeof(ScmObj);
-
-  return (ScmRef)p;
+  ScmMemHeapCell *cell = scm_mem_obj_to_cell(obj);
+  return SCM_REF_MAKE(cell->fin_info.next);
 }
 
 scm_local_inline void
-scm_mem_set_prev_obj_has_fin_func(ScmTypeInfo *type, ScmObj obj, ScmObj prv)
+scm_mem_set_prev_obj_has_fin_func(ScmObj obj, ScmObj prv)
 {
-  ScmRef r = scm_mem_prev_obj_has_fin_func(type, obj);
+  ScmRef r = scm_mem_prev_obj_has_fin_func(obj);
   SCM_REF_UPDATE(r, prv);
 }
 
 scm_local_inline void
-scm_mem_set_next_obj_has_fin_func(ScmTypeInfo *type, ScmObj obj, ScmObj prv)
+scm_mem_set_next_obj_has_fin_func(ScmObj obj, ScmObj prv)
 {
-  ScmRef r = scm_mem_next_obj_has_fin_func(type, obj);
+  ScmRef r = scm_mem_next_obj_has_fin_func(obj);
   SCM_REF_UPDATE(r, prv);
 }
 
 scm_local_inline void
-scm_mem_add_obj_to_fin_list(ScmMemHeap *heap, ScmObj obj, ScmTypeInfo *type)
+scm_mem_add_obj_to_fin_list(ScmMemHeap *heap, ScmObj obj)
 {
   ScmObj nxt = SCM_OBJ(heap->fin_list);
-  scm_mem_set_next_obj_has_fin_func(type, obj, nxt);
-  scm_mem_set_prev_obj_has_fin_func(type, obj, SCM_OBJ_NULL);
+  scm_mem_set_next_obj_has_fin_func(obj, nxt);
+  scm_mem_set_prev_obj_has_fin_func(obj, SCM_OBJ_NULL);
   if (scm_obj_not_null_p(nxt))
-    scm_mem_set_prev_obj_has_fin_func(scm_obj_type(nxt), nxt, obj);
+    scm_mem_set_prev_obj_has_fin_func(nxt, obj);
   heap->fin_list = obj;
 }
 
 scm_local_inline void
 scm_mem_del_obj_from_fin_list(ScmMemHeap *heap, ScmObj obj)
 {
-  ScmObj prv =
-    SCM_REF_DEREF(scm_mem_prev_obj_has_fin_func(scm_obj_type(obj), obj));
-  ScmObj nxt =
-    SCM_REF_DEREF(scm_mem_next_obj_has_fin_func(scm_obj_type(obj), obj));
+  ScmObj prv = SCM_REF_DEREF(scm_mem_prev_obj_has_fin_func(obj));
+  ScmObj nxt = SCM_REF_DEREF(scm_mem_next_obj_has_fin_func(obj));
 
   if (scm_obj_null_p(prv))
     heap->fin_list = nxt;
   else
-    scm_mem_set_next_obj_has_fin_func(scm_obj_type(prv), prv, nxt);
+    scm_mem_set_next_obj_has_fin_func(prv, nxt);
 
   if (scm_obj_not_null_p(nxt))
-    scm_mem_set_prev_obj_has_fin_func(scm_obj_type(nxt), nxt, prv);
+    scm_mem_set_prev_obj_has_fin_func(nxt, prv);
 }
 
 
 /** private functions for list of objects has weak reference *****************/
 
 scm_local_inline ScmRef
-scm_mem_next_obj_has_weak_ref(ScmTypeInfo *type, ScmObj obj)
+scm_mem_next_obj_has_weak_ref(ScmObj obj)
 {
-  return ((ScmRef)(scm_mem_heap_cell_tail(scm_mem_obj_to_cell(obj))
-                   - sizeof(ScmObj)));
+  ScmMemHeapCell *cell = scm_mem_obj_to_cell(obj);
+  return SCM_REF_MAKE(cell->wref_info.next);
 }
 
 scm_local_inline void
-scm_mem_set_next_obj_has_weak_ref(ScmTypeInfo *type, ScmObj obj, ScmObj nxt)
+scm_mem_set_next_obj_has_weak_ref(ScmObj obj, ScmObj nxt)
 {
-  ScmRef r = scm_mem_next_obj_has_weak_ref(type, obj);
+  ScmRef r = scm_mem_next_obj_has_weak_ref(obj);
   SCM_REF_UPDATE(r, nxt);
 }
 
 scm_local_func void
-scm_mem_add_obj_to_weak_list(ScmMemHeap *heap, ScmObj obj, ScmTypeInfo *type)
+scm_mem_add_obj_to_weak_list(ScmMemHeap *heap, ScmObj obj)
 {
   ScmObj nxt = SCM_OBJ(heap->weak_list);
-  scm_mem_set_next_obj_has_weak_ref(type, obj, nxt);
+  scm_mem_set_next_obj_has_weak_ref(obj, nxt);
   heap->weak_list = (void *)obj;
 }
 
@@ -755,7 +720,7 @@ scm_mem_register_obj_on_fin_list(ScmMem *mem, ScmTypeInfo *type, ScmObj obj)
   scm_assert(type != NULL);
 
   if (scm_type_info_has_gc_fin_func_p(type))
-    scm_mem_add_obj_to_fin_list(mem->to_heap, obj, type);
+    scm_mem_add_obj_to_fin_list(mem->to_heap, obj);
 }
 
 
@@ -766,7 +731,7 @@ scm_mem_register_obj_on_weak_list(ScmMem *mem, ScmTypeInfo *type, ScmObj obj)
   scm_assert(type != NULL);
 
   if (scm_type_info_has_instance_weak_ref_p(type))
-    scm_mem_add_obj_to_weak_list(mem->to_heap, obj, type);
+    scm_mem_add_obj_to_weak_list(mem->to_heap, obj);
 }
 
 scm_local_func void
@@ -803,8 +768,7 @@ scm_mem_finalize_heap_obj(ScmMem *mem, int which)
 
   for (ScmObj obj = heap->fin_list;
        scm_obj_not_null_p(obj);
-       obj =
-         SCM_REF_DEREF(scm_mem_next_obj_has_fin_func(scm_obj_type(obj), obj)))
+       obj = SCM_REF_DEREF(scm_mem_next_obj_has_fin_func(obj)))
     scm_mem_finalize_obj(mem, obj);
 
   heap->fin_list = SCM_OBJ_NULL;
@@ -1139,8 +1103,7 @@ scm_mem_adjust_weak_ref_of_heap_obj(ScmMem *mem)
 
   for (obj = SCM_OBJ(mem->to_heap->weak_list);
        scm_obj_not_null_p(obj);
-       obj = SCM_REF_DEREF(scm_mem_next_obj_has_weak_ref(scm_obj_type(obj),
-                                                         obj))) {
+       obj = SCM_REF_DEREF(scm_mem_next_obj_has_weak_ref(obj))) {
     rslt = scm_mem_adjust_weak_ref_of_obj(mem, obj);
     if (rslt < 0) return -1;
   }

@@ -987,8 +987,7 @@ test_scm_mem_alloc_size_in_heap__obj_has_weak_ref(void)
   actual_size = scm_mem_alloc_size_in_heap(&type, 0);
 
   /* postcondition check */
-  cut_assert_equal_uint(scm_mem_align_size(sizeof(StubObj) + sizeof(ScmObj)),
-                        actual_size);
+  cut_assert_equal_uint(scm_mem_align_size(sizeof(StubObj)), actual_size);
 }
 
 void

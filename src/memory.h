@@ -5,6 +5,9 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+typedef struct ScmMemHeapCellFinInfoRec ScmMemHeapCellFinInfo;
+typedef struct ScmMemHeapCellWRefInfoRec ScmMemHeapCellWRefInfo;
+typedef struct ScmMemHeapCellTSortInfoRec ScmMemHeapCellTSortInfoRec;
 typedef struct ScmMemHeapCellRec ScmMemHeapCell;
 typedef struct ScmMemHeapBlockRec ScmMemHeapBlock;
 typedef struct ScmMemHeapRec ScmMemHeap;
@@ -57,8 +60,19 @@ void scm_forward_initialize(ScmObj obj, ScmObj fwd);
 #define SCM_MEM_OBJ_TBL_HASH_SIZE 1024
 #define SCM_MEM_EXTRA_ROOT_SET_SIZE 256
 
+struct ScmMemHeapCellFinInfoRec {
+  ScmObj next;
+  ScmObj prev;
+};
+
+struct ScmMemHeapCellWRefInfoRec {
+  ScmObj next;
+};
+
 struct ScmMemHeapCellRec {
   size_t size;
+  ScmMemHeapCellFinInfo fin_info;
+  ScmMemHeapCellWRefInfo wref_info;
   scm_byte_t body[0] __attribute((aligned(SCM_MEM_ALIGN_BYTE)));
 };
 
@@ -175,21 +189,16 @@ void scm_mem_del_from_root_set(ScmMemRootBlock **head, ScmMemRootBlock *block);
 ScmObj scm_mem_cell_to_obj(ScmMemHeapCell *cell);
 ScmMemHeapCell *scm_mem_obj_to_cell(ScmObj obj);
 
-ScmRef scm_mem_prev_obj_has_fin_func(ScmTypeInfo *type, ScmObj obj);
-ScmRef scm_mem_next_obj_has_fin_func(ScmTypeInfo *type, ScmObj obj);
-void scm_mem_set_prev_obj_has_fin_func(ScmTypeInfo *type, ScmObj obj,
-                                       ScmObj prv);
-void scm_mem_set_next_obj_has_fin_func(ScmTypeInfo *type, ScmObj obj,
-                                       ScmObj prv);
-void scm_mem_add_obj_to_fin_list(ScmMemHeap *heap, ScmObj obj,
-                                 ScmTypeInfo *type);
+ScmRef scm_mem_prev_obj_has_fin_func(ScmObj obj);
+ScmRef scm_mem_next_obj_has_fin_func(ScmObj obj);
+void scm_mem_set_prev_obj_has_fin_func(ScmObj obj, ScmObj prv);
+void scm_mem_set_next_obj_has_fin_func(ScmObj obj, ScmObj nxt);
+void scm_mem_add_obj_to_fin_list(ScmMemHeap *heap, ScmObj obj);
 void scm_mem_del_obj_from_fin_list(ScmMemHeap *heap, ScmObj obj);
 
-ScmRef scm_mem_next_obj_has_weak_ref(ScmTypeInfo *type, ScmObj obj);
-void scm_mem_set_next_obj_has_weak_ref(ScmTypeInfo *type, ScmObj obj,
-                                       ScmObj nxt);
-void scm_mem_add_obj_to_weak_list(ScmMemHeap *heap, ScmObj obj,
-                                  ScmTypeInfo *type);
+ScmRef scm_mem_next_obj_has_weak_ref(ScmObj obj);
+void scm_mem_set_next_obj_has_weak_ref(ScmObj obj, ScmObj nxt);
+void scm_mem_add_obj_to_weak_list(ScmMemHeap *heap, ScmObj obj);
 
 int scm_mem_expand_heap(ScmMem *mem, int inc_block);
 int scm_mem_release_redundancy_heap_blocks(ScmMem *mem, int nr_margin);
