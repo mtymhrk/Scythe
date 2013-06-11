@@ -562,24 +562,10 @@ scm_mem_obj_to_cell(ScmObj obj)
 /** private functions for list of objects has finalize function **************/
 
 scm_local_inline ScmRef
-scm_mem_prev_obj_has_fin_func(ScmObj obj)
-{
-  ScmMemHeapCell *cell = scm_mem_obj_to_cell(obj);
-  return SCM_REF_MAKE(cell->fin_info.prev);
-}
-
-scm_local_inline ScmRef
 scm_mem_next_obj_has_fin_func(ScmObj obj)
 {
   ScmMemHeapCell *cell = scm_mem_obj_to_cell(obj);
   return SCM_REF_MAKE(cell->fin_info.next);
-}
-
-scm_local_inline void
-scm_mem_set_prev_obj_has_fin_func(ScmObj obj, ScmObj prv)
-{
-  ScmRef r = scm_mem_prev_obj_has_fin_func(obj);
-  SCM_REF_UPDATE(r, prv);
 }
 
 scm_local_inline void
@@ -594,25 +580,7 @@ scm_mem_add_obj_to_fin_list(ScmMemHeap *heap, ScmObj obj)
 {
   ScmObj nxt = SCM_OBJ(heap->fin_list);
   scm_mem_set_next_obj_has_fin_func(obj, nxt);
-  scm_mem_set_prev_obj_has_fin_func(obj, SCM_OBJ_NULL);
-  if (scm_obj_not_null_p(nxt))
-    scm_mem_set_prev_obj_has_fin_func(nxt, obj);
   heap->fin_list = obj;
-}
-
-scm_local_inline void
-scm_mem_del_obj_from_fin_list(ScmMemHeap *heap, ScmObj obj)
-{
-  ScmObj prv = SCM_REF_DEREF(scm_mem_prev_obj_has_fin_func(obj));
-  ScmObj nxt = SCM_REF_DEREF(scm_mem_next_obj_has_fin_func(obj));
-
-  if (scm_obj_null_p(prv))
-    heap->fin_list = nxt;
-  else
-    scm_mem_set_next_obj_has_fin_func(prv, nxt);
-
-  if (scm_obj_not_null_p(nxt))
-    scm_mem_set_prev_obj_has_fin_func(nxt, prv);
 }
 
 
@@ -717,15 +685,6 @@ scm_mem_register_obj_on_weak_list(ScmMem *mem, ScmTypeInfo *type, ScmObj obj)
 }
 
 scm_local_func void
-scm_mem_unregister_obj_from_fin_list(ScmMem *mem, ScmObj obj)
-{
-  scm_assert(mem != NULL);
-
-  if (scm_obj_has_gc_fin_func_p(obj))
-    scm_mem_del_obj_from_fin_list(mem->from_heap, obj);
-}
-
-scm_local_func void
 scm_mem_finalize_obj(ScmMem *mem, ScmObj obj)
 {
   scm_assert(mem != NULL);
@@ -751,7 +710,8 @@ scm_mem_finalize_heap_obj(ScmMem *mem, int which)
   for (ScmObj obj = heap->fin_list;
        scm_obj_not_null_p(obj);
        obj = SCM_REF_DEREF(scm_mem_next_obj_has_fin_func(obj)))
-    scm_mem_finalize_obj(mem, obj);
+    if (!scm_obj_type_p(obj, &SCM_FORWARD_TYPE_INFO))
+      scm_mem_finalize_obj(mem, obj);
 
   heap->fin_list = SCM_OBJ_NULL;
 }
@@ -910,7 +870,6 @@ scm_mem_copy_obj(ScmMem *mem, ScmObj obj)
 
   size = scm_mem_alloc_size_to_obj_size_in_heap(type, size);
   memcpy(SCM_MMOBJ(box), SCM_MMOBJ(obj), size);
-  scm_mem_unregister_obj_from_fin_list(mem, obj);
   scm_forward_initialize(obj, box);
 
   return box;

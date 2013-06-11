@@ -62,7 +62,6 @@ void scm_forward_initialize(ScmObj obj, ScmObj fwd);
 
 struct ScmMemHeapCellFinInfoRec {
   ScmObj next;
-  ScmObj prev;
 };
 
 struct ScmMemHeapCellWRefInfoRec {
@@ -186,12 +185,9 @@ void scm_mem_del_from_root_set(ScmMemRootBlock **head, ScmMemRootBlock *block);
 ScmObj scm_mem_cell_to_obj(ScmMemHeapCell *cell);
 ScmMemHeapCell *scm_mem_obj_to_cell(ScmObj obj);
 
-ScmRef scm_mem_prev_obj_has_fin_func(ScmObj obj);
 ScmRef scm_mem_next_obj_has_fin_func(ScmObj obj);
-void scm_mem_set_prev_obj_has_fin_func(ScmObj obj, ScmObj prv);
 void scm_mem_set_next_obj_has_fin_func(ScmObj obj, ScmObj nxt);
 void scm_mem_add_obj_to_fin_list(ScmMemHeap *heap, ScmObj obj);
-void scm_mem_del_obj_from_fin_list(ScmMemHeap *heap, ScmObj obj);
 
 ScmRef scm_mem_next_obj_has_weak_ref(ScmObj obj);
 void scm_mem_set_next_obj_has_weak_ref(ScmObj obj, ScmObj nxt);
@@ -203,7 +199,6 @@ void scm_mem_register_obj_on_fin_list(ScmMem *mem,
                                       ScmTypeInfo *type, ScmObj obj);
 void scm_mem_register_obj_on_weak_list(ScmMem *mem,
                                        ScmTypeInfo *type, ScmObj obj);
-void scm_mem_unregister_obj_from_fin_list(ScmMem *mem, ScmObj obj);
 void scm_mem_finalize_obj(ScmMem *mem, ScmObj obj);
 void scm_mem_finalize_heap_obj(ScmMem *mem, int which);
 void scm_mem_clean_heap(ScmMem *mem, int which);
