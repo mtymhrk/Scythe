@@ -1042,21 +1042,17 @@ test_scm_mem_root_block_new(void)
 {
   ScmMemRootBlock *block = NULL;
   ScmObj obj;
-  unsigned int shift;
 
   /* action */
   block = scm_mem_root_block_new(1024);
 
   obj = scm_mem_root_block_object(block);
-  shift = scm_mem_root_block_obj_shift_byte(obj);
 
   /* postcondition check */
   cut_assert_not_null(block);
   cut_assert_null(block->hdr.next);
   cut_assert_null(block->hdr.prev);
   cut_assert_equal_uint(0, (uintptr_t)obj % SCM_MEM_ALIGN_BYTE);
-  cut_assert((uintptr_t)block + sizeof(ScmMemRootBlockHdr) + shift
-             == (uintptr_t)obj);
 
   /* postprocess */
   scm_mem_root_block_free(block);

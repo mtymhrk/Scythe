@@ -101,7 +101,7 @@ typedef struct ScmMemRootBlockHdrRec {
 
 struct ScmMemRootBlockRec {
   ScmMemRootBlockHdr hdr;
-  scm_byte_t object[SCM_MEM_ALIGN_BYTE];
+  scm_byte_t body[0] __attribute((aligned(SCM_MEM_ALIGN_BYTE)));
 };
 
 /* ScmMem を ScmObj の一種(kind of) として定義する。                         */
@@ -174,10 +174,7 @@ void scm_mem_heap_rewind(ScmMemHeap *heap);
 ScmMemHeapCell *scm_mem_heap_alloc(ScmMemHeap *heap, size_t size);
 void scm_mem_heap_cancel_alloc(ScmMemHeap *heap, size_t size);
 
-scm_byte_t scm_mem_root_block_shift_byte(ScmMemRootBlock *block);
 ScmObj scm_mem_root_block_object(ScmMemRootBlock *block);
-scm_byte_t scm_mem_root_block_obj_shift_byte(ScmObj obj);
-void scm_mem_root_block_obj_set_shit_byte(ScmObj obj, scm_byte_t sf);
 ScmMemRootBlock *scm_mem_root_block_obj_header(ScmObj obj);
 ScmMemRootBlock *scm_mem_root_block_new(size_t sz);
 void scm_mem_root_block_free(ScmMemRootBlock *block);

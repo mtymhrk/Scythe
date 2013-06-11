@@ -469,24 +469,10 @@ scm_mem_heap_cancel_alloc(ScmMemHeap *heap, size_t size)
 
 /** private functions for ScmMemRootBlock ************************************/
 
-scm_local_inline scm_byte_t
-scm_mem_root_block_shift_byte(ScmMemRootBlock *block)
-{
-  return (scm_byte_t)(SCM_MEM_ALIGN_BYTE
-                      - (uintptr_t)(block)->object % SCM_MEM_ALIGN_BYTE);
-
-}
-
 scm_local_inline ScmObj
 scm_mem_root_block_object(ScmMemRootBlock *block)
 {
-  return SCM_OBJ(block->object + scm_mem_root_block_shift_byte(block));
-}
-
-scm_local_inline scm_byte_t
-scm_mem_root_block_obj_shift_byte(ScmObj obj)
-{
-  return *((scm_byte_t *)obj - 1);
+  return SCM_OBJ(block->body);
 }
 
 scm_local_inline void
@@ -499,8 +485,7 @@ scm_local_inline ScmMemRootBlock *
 scm_mem_root_block_obj_header(ScmObj obj)
 {
   return (ScmMemRootBlock *)((scm_byte_t *)obj
-                             - scm_mem_root_block_obj_shift_byte(obj)
-                             - sizeof(ScmMemRootBlockHdr));
+                             - offsetof(ScmMemRootBlock, body));
 }
 
 scm_local_func ScmMemRootBlock *
@@ -511,11 +496,8 @@ scm_mem_root_block_new(size_t sz)
   block = scm_capi_malloc(sz);
   if (block == NULL) return NULL;
 
-  scm_byte_t shift = scm_mem_root_block_shift_byte(block);
-  ScmObj obj = scm_mem_root_block_object(block);
   block->hdr.next = NULL;
   block->hdr.prev = NULL;
-  scm_mem_root_block_obj_set_shit_byte(obj, shift);
 
   return block;
 }
