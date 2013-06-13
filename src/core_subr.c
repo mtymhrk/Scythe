@@ -5,6 +5,32 @@
 #include "core_subr.h"
 
 
+static ssize_t
+scm_subr_list_to_cv(ScmObj lst, ScmObj *ary, size_t n)
+{
+  ssize_t len;
+
+  SCM_STACK_FRAME_PUSH(&lst);
+
+  len = 0;
+  for (size_t i = 0; i < n; i++) {
+    if (scm_capi_pair_p(lst)) {
+      ary[i] = scm_api_car(lst);
+      if (scm_obj_null_p(ary[i])) return -1;
+
+      lst = scm_api_cdr(lst);
+      if (scm_obj_null_p(lst)) return -1;
+
+      len++;
+    }
+    else {
+      ary[i] = SCM_OBJ_NULL;
+    }
+  }
+
+  return len;
+}
+
 /*******************************************************************/
 /*  Equivalence predicates                                         */
 /*******************************************************************/
@@ -1201,32 +1227,6 @@ scm_subr_func_char_foldcase(ScmObj subr, int argc, const ScmObj *argv)
 /*  Strings                                                        */
 /*******************************************************************/
 
-static ssize_t
-scm_subr_list_to_cv(ScmObj lst, ScmObj *ary, size_t n)
-{
-  ssize_t len;
-
-  SCM_STACK_FRAME_PUSH(&lst);
-
-  len = 0;
-  for (size_t i = 0; i < n; i++) {
-    if (scm_capi_pair_p(lst)) {
-      ary[i] = scm_api_car(lst);
-      if (scm_obj_null_p(ary[i])) return -1;
-
-      lst = scm_api_cdr(lst);
-      if (scm_obj_null_p(lst)) return -1;
-
-      len++;
-    }
-    else {
-      ary[i] = SCM_OBJ_NULL;
-    }
-  }
-
-  return len;
-}
-
 int
 scm_subr_func_string_P(ScmObj subr, int argc, const ScmObj *argv)
 {
@@ -1596,6 +1596,248 @@ scm_subr_func_string_fill_i(ScmObj subr, int argc, const ScmObj *argv)
   if (r < 0) return -1;
 
   val = scm_api_string_fill_i(argv[0], argv[1], start_end[0], start_end[1]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+
+/*******************************************************************/
+/*  Vectors                                                        */
+/*******************************************************************/
+
+int
+scm_subr_func_vector_P(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
+
+  val = scm_api_vector_P(argv[0]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_make_vector(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT, fill = SCM_OBJ_INIT;
+  ssize_t r;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val, &fill);
+
+  r = scm_subr_list_to_cv(argv[1], &fill, 1);
+  if (r < 0) return -1;
+
+  val = scm_api_make_vector(argv[0], fill);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_vector(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
+
+  val = scm_capi_vector_lst(argv[0]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_vector_length(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
+
+  val = scm_api_vector_length(argv[0]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_vector_ref(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
+
+  val = scm_api_vector_ref(argv[0], argv[1]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_vector_set_i(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
+
+  val = scm_api_vector_set_i(argv[0], argv[1], argv[2]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_vector_to_list(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT, start_end[2] = { SCM_OBJ_INIT, SCM_OBJ_INIT };
+  ssize_t r;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
+  SCM_STACK_PUSH_ARY(start_end,  sizeof(start_end)/sizeof(start_end[0]));
+
+  r = scm_subr_list_to_cv(argv[1],
+                          start_end, sizeof(start_end)/sizeof(start_end[0]));
+  if (r < 0) return -1;
+
+  val = scm_api_vector_to_list(argv[0], start_end[0], start_end[1]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_list_to_vector(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
+
+  val = scm_api_list_to_vector(argv[0]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_vector_to_string(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT, start_end[2] = { SCM_OBJ_INIT, SCM_OBJ_INIT };
+  ssize_t r;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
+  SCM_STACK_PUSH_ARY(start_end,  sizeof(start_end)/sizeof(start_end[0]));
+
+  r = scm_subr_list_to_cv(argv[1],
+                          start_end, sizeof(start_end)/sizeof(start_end[0]));
+  if (r < 0) return -1;
+
+  val = scm_api_vector_to_string(argv[0], start_end[0], start_end[1]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_string_to_vector(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT, start_end[2] = { SCM_OBJ_INIT, SCM_OBJ_INIT };
+  ssize_t r;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
+  SCM_STACK_PUSH_ARY(start_end,  sizeof(start_end)/sizeof(start_end[0]));
+
+  r = scm_subr_list_to_cv(argv[1],
+                          start_end, sizeof(start_end)/sizeof(start_end[0]));
+  if (r < 0) return -1;
+
+  val = scm_api_string_to_vector(argv[0], start_end[0], start_end[1]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_vector_copy(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT, start_end[2] = { SCM_OBJ_INIT, SCM_OBJ_INIT };
+  ssize_t r;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
+  SCM_STACK_PUSH_ARY(start_end,  sizeof(start_end)/sizeof(start_end[0]));
+
+  r = scm_subr_list_to_cv(argv[1],
+                          start_end, sizeof(start_end)/sizeof(start_end[0]));
+  if (r < 0) return -1;
+
+  val = scm_api_vector_copy(argv[0], start_end[0], start_end[1]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_vector_copy_i(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT, start_end[2] = { SCM_OBJ_INIT, SCM_OBJ_INIT };
+  ssize_t r;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
+  SCM_STACK_PUSH_ARY(start_end,  sizeof(start_end)/sizeof(start_end[0]));
+
+  r = scm_subr_list_to_cv(argv[3],
+                          start_end, sizeof(start_end)/sizeof(start_end[0]));
+  if (r < 0) return -1;
+
+  val = scm_api_vector_copy_i(argv[0], argv[1],
+                              argv[2], start_end[0], start_end[1]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_vector_append(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
+
+  val = scm_capi_vector_append_lst(argv[0]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_vector_fill_i(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT, start_end[2] = { SCM_OBJ_INIT, SCM_OBJ_INIT };
+  ssize_t r;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
+  SCM_STACK_PUSH_ARY(start_end,  sizeof(start_end)/sizeof(start_end[0]));
+
+  r = scm_subr_list_to_cv(argv[2],
+                          start_end, sizeof(start_end)/sizeof(start_end[0]));
+  if (r < 0) return -1;
+
+  val = scm_api_vector_fill_i(argv[0], argv[1], start_end[0], start_end[1]);
   if (scm_obj_null_p(val)) return -1;
 
   return scm_capi_return_val(&val, 1);

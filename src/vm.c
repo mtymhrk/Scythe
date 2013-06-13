@@ -1230,11 +1230,11 @@ scm_vm_push_dynamic_bindings(ScmObj vm, ScmObj *param, size_t n)
   if (scm_obj_null_p(rib)) return -1;
 
   for (size_t i = 0; i < n * 2; i += 2) {
-    x = scm_capi_vector_set(rib, i, param[i]);
-    if (scm_obj_null_p(x)) return -1;
+    int rslt = scm_capi_vector_set_i(rib, i, param[i]);
+    if (rslt < 0) return -1;
 
-    x = scm_capi_vector_set(rib, i + 1, param[i + 1]);
-    if (scm_obj_null_p(x)) return -1;
+    rslt = scm_capi_vector_set_i(rib, i + 1, param[i + 1]);
+    if (rslt < 0) return -1;
   }
 
   x = scm_api_cons(rib, SCM_VM(vm)->reg.prm);
@@ -2833,11 +2833,11 @@ scm_vm_run(ScmObj vm, ScmObj iseq)
 int
 scm_vm_set_val_reg(ScmObj vm, const ScmObj *val, int vc)
 {
-  ScmObj vec = SCM_OBJ_INIT, rslt = SCM_OBJ_INIT;
-  int n, rest;
+  ScmObj vec = SCM_OBJ_INIT;
+  int n, rest, rslt;
 
   SCM_STACK_FRAME_PUSH(&vm,
-                       &vec, &rslt);
+                       &vec);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
   scm_assert(vc == 0 || val != NULL);
@@ -2853,9 +2853,9 @@ scm_vm_set_val_reg(ScmObj vm, const ScmObj *val, int vc)
     if (scm_obj_null_p(vec)) return -1;
 
     for (int i = 0; i < rest; i++) {
-      rslt = scm_capi_vector_set(vec, (size_t)i,
-                                 val[SCM_VM_NR_VAL_REG - 1 + i]);
-      if (scm_obj_null_p(rslt)) return -1;
+      rslt = scm_capi_vector_set_i(vec, (size_t)i,
+                                   val[SCM_VM_NR_VAL_REG - 1 + i]);
+      if (rslt < 0) return -1;
     }
 
     SCM_SLOT_SETQ(ScmVM, vm, reg.val[SCM_VM_NR_VAL_REG - 1], vec);

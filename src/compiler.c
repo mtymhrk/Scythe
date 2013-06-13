@@ -950,6 +950,7 @@ scm_cmpl_env_resolv(ScmObj env, ScmObj sym, bool assigned,
 {
   ScmObj itr = SCM_OBJ_INIT, rib = SCM_OBJ_INIT, vars = SCM_OBJ_INIT;
   ScmObj as_flgs = SCM_OBJ_INIT,  var = SCM_OBJ_INIT, tr = SCM_OBJ_INIT;
+  int rslt;
 
   SCM_STACK_FRAME_PUSH(&env, &sym,
                        &itr, &rib, &vars,
@@ -988,8 +989,8 @@ scm_cmpl_env_resolv(ScmObj env, ScmObj sym, bool assigned,
           as_flgs = scm_capi_vector_ref(rib, 1);
           if (scm_obj_null_p(as_flgs)) return -1;
 
-          tr = scm_capi_vector_set(as_flgs, (size_t)*idx, tr);
-          if (scm_obj_null_p(tr)) return -1;
+          rslt = scm_capi_vector_set_i(as_flgs, (size_t)*idx, tr);
+          if (rslt < 0) return -1;
         }
         return 0;
       }
@@ -1491,6 +1492,7 @@ scm_cmpl_stack_to_vec(ScmObj stack)
 {
   ScmObj vec = SCM_OBJ_INIT, lst = SCM_OBJ_INIT, e = SCM_OBJ_INIT;
   ssize_t len;
+  int rslt;
 
   SCM_STACK_FRAME_PUSH(&stack,
                        &vec, &lst, &e);
@@ -1508,8 +1510,8 @@ scm_cmpl_stack_to_vec(ScmObj stack)
     e = scm_api_car(lst);
     if (scm_obj_null_p(e)) return SCM_OBJ_NULL;
 
-    e = scm_capi_vector_set(vec, (size_t)i, e);
-    if (scm_obj_null_p(e)) return SCM_OBJ_NULL;
+    rslt = scm_capi_vector_set_i(vec, (size_t)i, e);
+    if (rslt < 0) return SCM_OBJ_NULL;
 
     lst = scm_api_cdr(lst);
     if (scm_obj_null_p(lst)) return SCM_OBJ_NULL;
@@ -1523,6 +1525,7 @@ scm_cmpl_stack_to_rvec(ScmObj stack)
 {
   ScmObj vec = SCM_OBJ_INIT, lst = SCM_OBJ_INIT, e = SCM_OBJ_INIT;
   ssize_t len;
+  int rslt;
 
   SCM_STACK_FRAME_PUSH(&stack,
                        &vec, &lst, &e);
@@ -1540,8 +1543,8 @@ scm_cmpl_stack_to_rvec(ScmObj stack)
     e = scm_api_car(lst);
     if (scm_obj_null_p(e)) return SCM_OBJ_NULL;
 
-    e = scm_capi_vector_set(vec, (size_t)i - 1, e);
-    if (scm_obj_null_p(e)) return SCM_OBJ_NULL;
+    rslt = scm_capi_vector_set_i(vec, (size_t)i - 1, e);
+    if (rslt < 0) return SCM_OBJ_NULL;
 
     lst = scm_api_cdr(lst);
     if (scm_obj_null_p(lst)) return SCM_OBJ_NULL;
@@ -2195,11 +2198,13 @@ scm_cmpl_decons_lambda(ScmObj exp, scm_csetter_t *formals, scm_csetter_t *body)
 static ScmObj
 scm_cmpl_parse_lambda_formals(ScmObj formals, bool *vparam_p)
 {
-  ScmObj i = SCM_OBJ_INIT, e = SCM_OBJ_INIT, v = SCM_OBJ_INIT, r = SCM_OBJ_INIT;
+  ScmObj i = SCM_OBJ_INIT, e = SCM_OBJ_INIT, v = SCM_OBJ_INIT;
   size_t n, j;
+  int r;
   bool variable;
 
-  SCM_STACK_FRAME_PUSH(&formals, &i, &e, &v, &r);
+
+  SCM_STACK_FRAME_PUSH(&formals, &i, &e, &v);
 
   for (i = formals, n = 0;
        scm_capi_pair_p(i);
@@ -2236,15 +2241,15 @@ scm_cmpl_parse_lambda_formals(ScmObj formals, bool *vparam_p)
     e = scm_api_car(i);
     if (scm_obj_null_p(e)) return SCM_OBJ_NULL;
 
-    r = scm_capi_vector_set(v, j++, e);
-    if (scm_obj_null_p(r)) return SCM_OBJ_NULL;
+    r = scm_capi_vector_set_i(v, j++, e);
+    if (r < 0) return SCM_OBJ_NULL;
   }
 
   if (scm_obj_null_p(i)) return SCM_OBJ_NULL;
 
   if (variable) {
-    r = scm_capi_vector_set(v, j++, i);
-    if (scm_obj_null_p(r)) return SCM_OBJ_NULL;
+    r = scm_capi_vector_set_i(v, j++, i);
+    if (r < 0) return SCM_OBJ_NULL;
   }
 
   if (vparam_p != NULL) *vparam_p = variable;
@@ -2623,6 +2628,7 @@ scm_cmpl_decons_cond(ScmObj exp, scm_csetter_t *tests, scm_csetter_t *expss,
   ScmObj cls = SCM_OBJ_INIT, tst = SCM_OBJ_INIT, exs = SCM_OBJ_INIT;
   ScmObj tmp = SCM_OBJ_INIT, arrow_sym = SCM_OBJ_INIT, else_sym = SCM_OBJ_INIT;
   ssize_t nr_clauses;
+  int rslt;
 
   SCM_STACK_FRAME_PUSH(&exp,
                        &clauses, &tvec, &evec,
@@ -2691,11 +2697,11 @@ scm_cmpl_decons_cond(ScmObj exp, scm_csetter_t *tests, scm_csetter_t *expss,
       }
     }
 
-    tmp = scm_capi_vector_set(tvec, i, tst);
-    if (scm_obj_null_p(tmp)) return -1;
+    rslt = scm_capi_vector_set_i(tvec, i, tst);
+    if (rslt < 0) return -1;
 
-    tmp = scm_capi_vector_set(evec, i, exs);
-    if (scm_obj_null_p(tmp)) return -1;
+    rslt = scm_capi_vector_set_i(evec, i, exs);
+    if (rslt < 0) return -1;
 
     clauses = scm_api_cdr(clauses);
     if (scm_obj_null_p(clauses)) return -1;
@@ -2765,16 +2771,17 @@ static ScmObj
 scm_cmpl_make_cond_clause_label(ScmObj cmpl,
                                 ScmObj labels, size_t idx, const char *prefix)
 {
-  ScmObj lbl = SCM_OBJ_INIT, ro = SCM_OBJ_INIT;
+  ScmObj lbl = SCM_OBJ_INIT;
+  int rslt;
 
   SCM_STACK_FRAME_PUSH(&labels,
-                       &lbl, &ro);
+                       &lbl);
 
   lbl = scm_cmpl_gen_label(cmpl, prefix);
   if (scm_obj_null_p(lbl)) return SCM_OBJ_NULL;
 
-  ro = scm_capi_vector_set(labels, idx, lbl);
-  if (scm_obj_null_p(ro)) return SCM_OBJ_NULL;
+  rslt = scm_capi_vector_set_i(labels, idx, lbl);
+  if (rslt < 0) return SCM_OBJ_NULL;
 
   return lbl;
 }
@@ -3362,16 +3369,14 @@ scm_cmpl_decons_let_bindings(ScmObj bindings,
                              scm_csetter_t *vars, scm_csetter_t *inits)
 {
   ScmObj vi_pair = SCM_OBJ_INIT, var = SCM_OBJ_INIT, init = SCM_OBJ_INIT;
-  ScmObj vars_vec = SCM_OBJ_INIT, inits_vec = SCM_OBJ_INIT;
-  ScmObj cur = SCM_OBJ_INIT, tmp = SCM_OBJ_INIT;
+  ScmObj vars_vec = SCM_OBJ_INIT, inits_vec = SCM_OBJ_INIT, cur = SCM_OBJ_INIT;
   ssize_t nr_bindings;
   size_t idx;
   int rslt;
 
   SCM_STACK_FRAME_PUSH(&bindings,
                        &vi_pair, &var, &init,
-                       &vars_vec, &inits_vec,
-                       &cur, &tmp);
+                       &vars_vec, &inits_vec, &cur);
 
   scm_assert(scm_capi_nil_p(bindings) || scm_capi_pair_p(bindings));
 
@@ -3396,11 +3401,11 @@ scm_cmpl_decons_let_bindings(ScmObj bindings,
                                              SCM_CSETTER_L(init));
     if (rslt < 0) return -1;
 
-    tmp = scm_capi_vector_set(vars_vec, idx, var);
-    if (scm_obj_null_p(tmp)) return -1;
+    rslt = scm_capi_vector_set_i(vars_vec, idx, var);
+    if (rslt < 0) return -1;
 
-    tmp = scm_capi_vector_set(inits_vec, idx, init);
-    if (scm_obj_null_p(tmp)) return -1;
+    rslt = scm_capi_vector_set_i(inits_vec, idx, init);
+    if (rslt < 0) return -1;
   }
 
   if (scm_obj_null_p(cur)) return -1;
@@ -3919,7 +3924,7 @@ scm_cmpl_decons_do(ScmObj exp, scm_csetter_t *vars, scm_csetter_t *inits,
   ScmObj vvec = SCM_OBJ_INIT, ivec = SCM_OBJ_INIT, svec = SCM_OBJ_INIT;
   ScmObj vis = SCM_OBJ_INIT, ve = SCM_OBJ_INIT, ie = SCM_OBJ_INIT;
   ScmObj se = SCM_OBJ_INIT, te = SCM_OBJ_INIT, el = SCM_OBJ_INIT;
-  ScmObj ro = SCM_OBJ_INIT, tmp = SCM_OBJ_INIT;
+  ScmObj tmp = SCM_OBJ_INIT;
   ssize_t nr_vars;
   int rslt;
 
@@ -3928,7 +3933,7 @@ scm_cmpl_decons_do(ScmObj exp, scm_csetter_t *vars, scm_csetter_t *inits,
                        &vvec, &ivec, &svec,
                        &vis, &ve, &ie,
                        &se, &te, &el,
-                       &ro, &tmp);
+                       &tmp);
 
   tmp = scm_api_cdr(exp);
   if (scm_obj_null_p(tmp)) return -1;
@@ -3966,14 +3971,14 @@ scm_cmpl_decons_do(ScmObj exp, scm_csetter_t *vars, scm_csetter_t *inits,
                                   SCM_CSETTER_L(ie), SCM_CSETTER_L(se));
     if (rslt < 0) return -1;
 
-    ro = scm_capi_vector_set(vvec, i, ve);
-    if (scm_obj_null_p(ro)) return -1;
+    rslt = scm_capi_vector_set_i(vvec, i, ve);
+    if (rslt < 0) return -1;
 
-    ro = scm_capi_vector_set(ivec, i, ie);
-    if (scm_obj_null_p(ro)) return -1;
+    rslt = scm_capi_vector_set_i(ivec, i, ie);
+    if (rslt < 0) return -1;
 
-    ro = scm_capi_vector_set(svec, i, se);
-    if (scm_obj_null_p(ro)) return -1;
+    rslt = scm_capi_vector_set_i(svec, i, se);
+    if (rslt < 0) return -1;
 
     tmp = scm_api_cdr(tmp);
     if (scm_obj_null_p(tmp)) return -1;

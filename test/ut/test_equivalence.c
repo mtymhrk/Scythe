@@ -613,6 +613,51 @@ IGNORE_TEST(equivalence, api_equal__circularly_linked_list__return_true_2)
   TEST_ASSERT_TRUE(actual);
 }
 
+TEST(equivalence, capi_equal__vector__return_true)
+{
+  ScmObj vec1 = SCM_OBJ_INIT, vec2 = SCM_OBJ_INIT;
+  bool actual;
+
+  SCM_STACK_FRAME_PUSH(&vec1, &vec2);
+
+  vec1 = read_cstr("#(a b c)");
+  vec2 = read_cstr("#(a b c)");
+
+  TEST_ASSERT_EQUAL_INT(0, scm_capi_equal(vec1, vec2, &actual));
+  TEST_ASSERT_TRUE(actual);
+}
+
+TEST(equivalence, api_equal__vector__return_false)
+{
+  ScmObj vec1 = SCM_OBJ_INIT, vec2 = SCM_OBJ_INIT;
+  bool actual;
+
+  SCM_STACK_FRAME_PUSH(&vec1, &vec2);
+
+  vec1 = read_cstr("#(a b c)");
+  vec2 = read_cstr("#(a b z)");
+
+  TEST_ASSERT_EQUAL_INT(0, scm_capi_equal(vec1, vec2, &actual));
+  TEST_ASSERT_FALSE(actual);
+}
+
+TEST(equivalence, api_equal__circularly_linked_vector__return_true_1)
+{
+  ScmObj vec1 = SCM_OBJ_INIT, vec2 = SCM_OBJ_INIT;
+  bool actual;
+
+  SCM_STACK_FRAME_PUSH(&vec1, &vec2);
+
+  vec1 = read_cstr("#(a b c)");
+  vec2 = read_cstr("#(a b c)");
+
+  TEST_ASSERT_EQUAL_INT(0, scm_capi_vector_set_i(vec1, 2, vec2));
+  TEST_ASSERT_EQUAL_INT(0, scm_capi_vector_set_i(vec2, 2, vec1));
+
+  TEST_ASSERT_EQUAL_INT(0, scm_capi_equal(vec1, vec2, &actual));
+  TEST_ASSERT_TRUE(actual);
+}
+
 TEST(equivalence, capi_equal__string__return_true)
 {
   ScmObj str1 = SCM_OBJ_INIT, str2 = SCM_OBJ_INIT;

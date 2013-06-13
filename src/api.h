@@ -246,6 +246,7 @@ ScmObj scm_api_nan_P(ScmObj obj);
 
 ScmObj scm_capi_make_number_from_literal(const char *literal, size_t size);
 ScmObj scm_capi_make_number_from_sword(scm_sword_t num);
+ScmObj scm_capi_make_number_from_size_t(size_t num);
 
 int scm_capi_num_eq(ScmObj n1, ScmObj n2, bool *rslt);
 ScmObj scm_capi_num_eq_P_lst(ScmObj lst);
@@ -414,16 +415,40 @@ ScmObj scm_api_string_push(ScmObj str, ScmObj c);
 
 
 /*******************************************************************/
-/*  Vector                                                         */
+/*  Vectors                                                        */
 /*******************************************************************/
 
+bool scm_capi_vector_p(ScmObj obj);
+ScmObj scm_api_vector_P(ScmObj obj);
 ScmObj scm_capi_make_vector(size_t len, ScmObj fill);
 ScmObj scm_api_make_vector(ScmObj len, ScmObj fill);
-bool scm_capi_vector_p(ScmObj obj);
-ScmObj scm_capi_vector_set(ScmObj vec, size_t idx, ScmObj obj);
-ScmObj scm_capi_vector_ref(ScmObj vec, size_t idx);
+ScmObj scm_capi_vector_lst(ScmObj lst);
+ScmObj scm_capi_vector_cv(const ScmObj *elm, size_t n);
+ScmObj scm_capi_vector(size_t n, ...);
 ssize_t scm_capi_vector_length(ScmObj vec);
+ScmObj scm_api_vector_length(ScmObj vec);
+ScmObj scm_capi_vector_ref(ScmObj vec, size_t idx);
+ScmObj scm_api_vector_ref(ScmObj vec, ScmObj idx);
+int scm_capi_vector_set_i(ScmObj vec, size_t idx, ScmObj obj);
+ScmObj scm_api_vector_set_i(ScmObj vec, ScmObj idx, ScmObj obj);
+ScmObj scm_capi_vector_to_list(ScmObj vec, ssize_t start, ssize_t end);
+ScmObj scm_api_vector_to_list(ScmObj vec, ScmObj start, ScmObj end);
 ScmObj scm_api_list_to_vector(ScmObj lst);
+ScmObj scm_capi_vector_to_string(ScmObj vec, ssize_t start, ssize_t end);
+ScmObj scm_api_vector_to_string(ScmObj vec, ScmObj start, ScmObj end);
+ScmObj scm_capi_string_to_vector(ScmObj str, ssize_t start, ssize_t end);
+ScmObj scm_api_string_to_vector(ScmObj str, ScmObj start, ScmObj end);
+ScmObj scm_capi_vector_copy(ScmObj vec, ssize_t start, ssize_t end);
+ScmObj scm_api_vector_copy(ScmObj vec, ScmObj start, ScmObj end);
+int scm_capi_vector_copy_i(ScmObj to, size_t at,
+                           ScmObj from, ssize_t start, ssize_t end);
+ScmObj scm_api_vector_copy_i(ScmObj to, ScmObj at,
+                             ScmObj from, ScmObj start, ScmObj end);
+ScmObj scm_capi_vector_append_lst(ScmObj lst);
+ScmObj scm_capi_vector_append_cv(ScmObj *ary, size_t n);
+ScmObj scm_capi_vector_append(size_t n, ...);
+int scm_capi_vector_fill_i(ScmObj vec, ScmObj fill, ssize_t start, ssize_t end);
+ScmObj scm_api_vector_fill_i(ScmObj vec, ScmObj fill, ScmObj start, ScmObj end);
 
 
 /*******************************************************************/

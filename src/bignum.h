@@ -58,11 +58,13 @@ extern ScmTypeInfo SCM_BIGNUM_TYPE_INFO;
 
 
 void scm_bignum_finalize_ary(ScmObj bignum);
+int scm_bignum_initialize_uword(ScmObj bignum, scm_uword_t val);
 int scm_bignum_initialize_sword(ScmObj bignum, scm_sword_t val);
 ScmObj scm_bignum_new_from_ary(SCM_MEM_TYPE_T mtype, char sign,
                                scm_bignum_d_t *digits, size_t len,
                                scm_bignum_c_t base);
 ScmObj scm_bignum_new_from_sword(SCM_MEM_TYPE_T mtype, scm_sword_t val);
+ScmObj scm_bignum_new_from_uword(SCM_MEM_TYPE_T mtype, scm_uword_t val);
 ScmObj scm_bignum_new_from_fixnum(SCM_MEM_TYPE_T mtype, ScmObj fn);
 ScmObj scm_bignum_copy(ScmObj bignum);
 int scm_bignum_to_sword(ScmObj bn, scm_sword_t *w);

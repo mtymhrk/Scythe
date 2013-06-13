@@ -1757,6 +1757,15 @@ scm_capi_make_number_from_sword(scm_sword_t num)
     return scm_fixnum_new(num);
 }
 
+ScmObj
+scm_capi_make_number_from_size_t(size_t num)
+{
+  if (num > SCM_FIXNUM_MAX)
+    return scm_bignum_new_from_uword(SCM_MEM_HEAP, num);
+  else
+    return scm_fixnum_new((scm_sword_t)num);
+}
+
 static int
 scm_capi_num_cmp_fold(ScmObj lst,
                       int (*cmp)(ScmObj n1, ScmObj n2, bool *rslt),
@@ -5005,10 +5014,25 @@ scm_api_string_push(ScmObj str, ScmObj c)
 }
 
 
+/*******************************************************************/
+/*  Vectors                                                        */
+/*******************************************************************/
 
-/*******************************************************************/
-/*  Vector                                                         */
-/*******************************************************************/
+extern inline bool
+scm_capi_vector_p(ScmObj obj)
+{
+  if (scm_obj_null_p(obj)) return false;
+
+  return scm_obj_type_p(obj, &SCM_VECTOR_TYPE_INFO) ? true : false;
+}
+
+ScmObj
+scm_api_vector_P(ScmObj obj)
+{
+  if (scm_obj_null_p(obj)) return SCM_OBJ_NULL;
+
+  return scm_capi_vector_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+}
 
 ScmObj
 scm_capi_make_vector(size_t len, ScmObj fill)
@@ -5045,41 +5069,85 @@ scm_api_make_vector(ScmObj len, ScmObj fill)
   return scm_capi_make_vector(sz, fill);
 }
 
-extern inline bool
-scm_capi_vector_p(ScmObj obj)
+ScmObj
+scm_capi_vector_lst(ScmObj lst)
 {
-  if (scm_capi_null_value_p(obj)) return false;
+  if (scm_obj_null_p(lst)) {
+    scm_capi_error("vector: invalid argumnet", 0);
+    return SCM_OBJ_NULL;
+  }
 
-  return scm_obj_type_p(obj, &SCM_VECTOR_TYPE_INFO) ? true : false;
+  return scm_api_list_to_vector(lst);
 }
 
 ScmObj
-scm_capi_vector_set(ScmObj vec, size_t idx, ScmObj obj)
+scm_capi_vector_cv(const ScmObj *elm, size_t n)
 {
-  if (scm_obj_null_p(vec) || scm_obj_null_p(obj)) {
-    scm_capi_error("vector-set!: invalid argument", 0);
+  if (n > SSIZE_MAX) {
+    scm_capi_error("vector: too long", 0);
     return SCM_OBJ_NULL;
   }
-  else if (!scm_obj_type_p(vec, &SCM_VECTOR_TYPE_INFO)) {
-    scm_capi_error("vector-set!: vector required, but got", 1, vec);
-    return SCM_OBJ_NULL;
-  }
-  else if (idx >= scm_vector_length(vec)) {
-    scm_capi_error("vector-set!: argument out of range", 0);
+  else if (n > 0 && elm == NULL) {
+    scm_capi_error("vector: invalid argument", 0);
     return SCM_OBJ_NULL;
   }
 
-  return scm_vector_set(vec, idx, obj);
+  return scm_vector_new_from_ary(SCM_MEM_HEAP, elm, n);
+}
+
+ScmObj
+scm_capi_vector(size_t n, ...)
+{
+  ScmObj vec, args[n];
+  va_list ap;
+
+  SCM_STACK_FRAME_PUSH(&vec);
+
+  va_start(ap, n);
+  for (size_t i = 0; i < n; i++) {
+    args[i] = va_arg(ap, ScmObj);
+    SCM_STACK_PUSH(args + i);
+  }
+  va_end(ap);
+
+  return scm_capi_vector_cv(args, n);
+}
+
+ssize_t
+scm_capi_vector_length(ScmObj vec)
+{
+  SCM_STACK_FRAME_PUSH(&vec);
+
+  if (scm_obj_null_p(vec)) {
+    scm_capi_error("vector-length: invalid argument", 0);
+    return -1;
+  }
+  else if (!scm_capi_vector_p(vec)) {
+    scm_capi_error("vector-length: vector required, but got", 1, vec);
+    return -1;
+  }
+
+  return (ssize_t)scm_vector_length(vec);
+}
+
+ScmObj
+scm_api_vector_length(ScmObj vec)
+{
+  ssize_t len = scm_capi_vector_length(vec);
+  if (len < 0) return SCM_OBJ_NULL;
+  return scm_capi_make_number_from_size_t((size_t)len);
 }
 
 ScmObj
 scm_capi_vector_ref(ScmObj vec, size_t idx)
 {
+  SCM_STACK_FRAME_PUSH(&vec);
+
   if (scm_obj_null_p(vec)) {
     scm_capi_error("vector-ref: invalid argument", 0);
     return SCM_OBJ_NULL;
   }
-  else if (!scm_obj_type_p(vec, &SCM_VECTOR_TYPE_INFO)) {
+  else if (!scm_capi_vector_p(vec)) {
     scm_capi_error("vector-ref: vector required, but got", 1, vec);
     return SCM_OBJ_NULL;
   }
@@ -5091,66 +5159,711 @@ scm_capi_vector_ref(ScmObj vec, size_t idx)
   return scm_vector_ref(vec, idx);
 }
 
-ssize_t
-scm_capi_vector_length(ScmObj vec)
+ScmObj
+scm_api_vector_ref(ScmObj vec, ScmObj idx)
 {
-    if (scm_obj_null_p(vec)) {
-    scm_capi_error("vector-length: invalid argument", 0);
+  size_t i;
+  int r;
+
+  SCM_STACK_FRAME_PUSH(&vec, &idx);
+
+  if (scm_obj_null_p(idx)) {
+    scm_capi_error("vector-ref: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_integer_p(idx)) {
+    scm_capi_error("vector-ref: integer require, but got", 1, idx);
+    return SCM_OBJ_NULL;
+  }
+
+  r = scm_capi_integer_to_size_t(idx, &i);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return scm_capi_vector_ref(vec, i);
+}
+
+int
+scm_capi_vector_set_i(ScmObj vec, size_t idx, ScmObj obj)
+{
+  SCM_STACK_FRAME_PUSH(&vec, &obj);
+
+  if (scm_obj_null_p(vec) || scm_obj_null_p(obj)) {
+    scm_capi_error("vector-set!: invalid argument", 0);
     return -1;
   }
-  else if (!scm_obj_type_p(vec, &SCM_VECTOR_TYPE_INFO)) {
-    scm_capi_error("vector-length: vector required, but got", 1, vec);
+  else if (!scm_capi_vector_p(vec)) {
+    scm_capi_error("vector-set!: vector required, but got", 1, vec);
+    return -1;
+  }
+  else if (idx >= scm_vector_length(vec)) {
+    scm_capi_error("vector-set!: argument out of range", 0);
     return -1;
   }
 
-  return (ssize_t)scm_vector_length(vec);
+  return scm_vector_set(vec, idx, obj);
+}
+
+ScmObj
+scm_api_vector_set_i(ScmObj vec, ScmObj idx, ScmObj obj)
+{
+  size_t i;
+  int r;
+
+  SCM_STACK_FRAME_PUSH(&vec, &idx, &obj);
+
+  if (scm_obj_null_p(idx)) {
+    scm_capi_error("vector-set!: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_integer_p(idx)) {
+    scm_capi_error("vector-set!: integer require, but got", 1, idx);
+    return SCM_OBJ_NULL;
+  }
+
+  r = scm_capi_integer_to_size_t(idx, &i);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  r = scm_capi_vector_set_i(vec, i, obj);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return SCM_UNDEF_OBJ;
+}
+
+static int
+scm_capi_vector_norm_star_end(const char *op, ScmObj vec,
+                              ssize_t *start, ssize_t *end)
+{
+  char msg[256];
+  size_t len;
+
+  SCM_STACK_FRAME_PUSH(&vec);
+
+  if (*start >= 0 && *end >= 0 && *start > *end) {
+    snprintf(msg, sizeof(msg), "%s: invalid argument", op);
+    scm_capi_error(msg, 0);
+    return -1;
+  }
+
+  len = scm_vector_length(vec);
+  scm_assert(len <= SSIZE_MAX);
+
+  if (*start >= 0 && (size_t)*start >= len) {
+    snprintf(msg, sizeof(msg), "%s: out of range", op);
+    scm_capi_error(msg, 0);
+    return -1;
+  }
+
+  if (*end >= 0 && (size_t)*end > len) {
+    snprintf(msg, sizeof(msg), "%s: out of range", op);
+    scm_capi_error(msg, 0);
+    return -1;
+  }
+
+  if (*start < 0) *start = 0;
+  if (*end < 0) *end = (ssize_t)len;
+
+  return 0;
+}
+
+
+static ScmObj
+scm_capi_vector_to_list_aux(ScmObj vec, size_t start, size_t n)
+{
+  ScmObj elm[n];
+
+  SCM_STACK_FRAME_PUSH(&vec);
+
+  for (size_t i = 0; i < n; i++) {
+    elm[i] = SCM_OBJ_NULL;
+    SCM_STACK_PUSH(&elm[i]);
+
+    elm[i] = scm_vector_ref(vec, start + i);
+    if (scm_obj_null_p(elm[i])) return SCM_OBJ_NULL;
+  }
+
+  return scm_capi_list_cv(elm, n);
+}
+
+ScmObj
+scm_capi_vector_to_list(ScmObj vec, ssize_t start, ssize_t end)
+{
+  int r;
+
+  SCM_STACK_FRAME_PUSH(&vec);
+
+  if (scm_obj_null_p(vec)) {
+    scm_capi_error("vector->list: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_vector_p(vec)) {
+    scm_capi_error("vector->list: vector required, but got", 1, vec);
+    return SCM_OBJ_NULL;
+  }
+
+  r = scm_capi_vector_norm_star_end("vector->list", vec, &start, &end);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return scm_capi_vector_to_list_aux(vec, (size_t)start, (size_t)(end - start));
+}
+
+int
+scm_capi_vector_cnv_start_end(const char *op, ScmObj i, ssize_t *o)
+{
+  char msg[256];
+  size_t n;
+
+  if (scm_obj_null_p(i)) {
+    *o = -1;
+    return 0;
+  }
+  else if (!scm_capi_integer_p(i)) {
+    snprintf(msg, sizeof(msg), "%s: integer required, but got", op);
+    scm_capi_error(msg, 1, i);
+    return -1;
+  }
+  else {
+    int r = scm_capi_integer_to_size_t(i, &n);
+    if (r < 0) return -1;
+
+    if (n > SSIZE_MAX) {
+      snprintf(msg, sizeof(msg), "%s: out of range", op);
+      scm_capi_error(msg, 1, i);
+      return -1;
+    }
+
+    *o = (ssize_t)n;
+    return 0;
+  }
+}
+
+ScmObj
+scm_api_vector_to_list(ScmObj vec, ScmObj start, ScmObj end)
+{
+  ssize_t s, e;
+  int r;
+
+  r = scm_capi_vector_cnv_start_end("vector->list", start, &s);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  r = scm_capi_vector_cnv_start_end("vector->list", end, &e);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return scm_capi_vector_to_list(vec, s, e);
 }
 
 ScmObj
 scm_api_list_to_vector(ScmObj lst)
 {
-  ScmObj vec = SCM_OBJ_INIT, node = SCM_OBJ_INIT, elm = SCM_OBJ_INIT;
-  size_t i;
   ssize_t n;
 
-  SCM_STACK_FRAME_PUSH(&lst,
-                       &vec, &node, &elm);
+  SCM_STACK_FRAME_PUSH(&lst);
 
   if (scm_obj_null_p(lst)) {
     scm_capi_error("list->vector: invalid argument", 0);
     return SCM_OBJ_NULL;
   }
-  else if (!(scm_capi_pair_p(lst) || scm_capi_nil_p(lst))) {
-    scm_capi_error("list->vector: proper list required, but got", 1, vec);
-    return SCM_OBJ_NULL;
+  else if (scm_capi_nil_p(lst) || !scm_capi_pair_p(lst)) {
+    return scm_vector_new(SCM_MEM_HEAP, 0, SCM_OBJ_NULL);
   }
 
   n = scm_capi_length(lst);
   if (n < 0) return SCM_OBJ_NULL;;
 
-  vec = scm_capi_make_vector((size_t)n, SCM_OBJ_NULL);
-  if (scm_obj_null_p(vec)) return SCM_OBJ_NULL;
+  return scm_vector_new_from_list(SCM_MEM_HEAP, (size_t)n, lst);
+}
 
-  for (node = lst, i = 0;
-       scm_capi_pair_p(node);
-       node = scm_api_cdr(node), i++) {
-    elm = scm_api_car(node);
-    if (scm_obj_null_p(elm)) return SCM_OBJ_NULL;
+static ScmObj
+scm_capi_vector_to_string_aux(ScmObj vec, size_t start, size_t n)
+{
+  ScmObj elm[n];
 
-    elm = scm_capi_vector_set(vec, i, elm);
-    if (scm_obj_null_p(elm)) return SCM_OBJ_NULL;
+  SCM_STACK_FRAME_PUSH(&vec);
+
+  for (size_t i = 0; i < n; i++) {
+    elm[i] = SCM_OBJ_NULL;
+    SCM_STACK_PUSH(&elm[i]);
+
+    elm[i] = scm_vector_ref(vec, start + i);
+    if (scm_obj_null_p(elm[i])) return SCM_OBJ_NULL;
   }
 
-  if (scm_obj_null_p(node)) {
+  return scm_capi_string_cv(elm, n);
+}
+
+ScmObj
+scm_capi_vector_to_string(ScmObj vec, ssize_t start, ssize_t end)
+{
+  int r;
+
+  SCM_STACK_FRAME_PUSH(&vec);
+
+  if (scm_obj_null_p(vec)) {
+    scm_capi_error("vector->string: invalid argument", 0);
     return SCM_OBJ_NULL;
   }
-  else if (scm_capi_nil_p(node)) {
-    return vec;
+  else if (!scm_capi_vector_p(vec)) {
+    scm_capi_error("vector->string: vector required, but got", 1, vec);
+    return SCM_OBJ_NULL;
+  }
+
+  r = scm_capi_vector_norm_star_end("vector->string", vec, &start, &end);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return scm_capi_vector_to_string_aux(vec,
+                                       (size_t)start, (size_t)(end - start));
+}
+
+ScmObj
+scm_api_vector_to_string(ScmObj vec, ScmObj start, ScmObj end)
+{
+  ssize_t s, e;
+  int r;
+
+  r = scm_capi_vector_cnv_start_end("vector->string", start, &s);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  r = scm_capi_vector_cnv_start_end("vector->string", end, &e);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return scm_capi_vector_to_string(vec, s, e);
+}
+
+ScmObj
+scm_capi_string_to_vector_aux(ScmObj str, size_t start, size_t n)
+{
+  ScmObj elm[n];
+
+  SCM_STACK_FRAME_PUSH(&str);
+
+  for (size_t i = 0; i < n; i++) {
+    elm[i] = SCM_OBJ_NULL;
+    SCM_STACK_PUSH(&elm[i]);
+
+    elm[i] = scm_capi_string_ref(str, start + i);
+    if (scm_obj_null_p(elm[i])) return SCM_OBJ_NULL;
+  }
+
+  return scm_capi_vector_cv(elm, n);
+}
+
+ScmObj
+scm_capi_string_to_vector(ScmObj str, ssize_t start, ssize_t end)
+{
+  size_t len;
+
+  SCM_STACK_FRAME_PUSH(&str);
+
+  if (scm_obj_null_p(str)) {
+    scm_capi_error("string->vector: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_string_p(str)) {
+    scm_capi_error("string->vector: string required, but got", 1, str);
+    return SCM_OBJ_NULL;
+  }
+  else if (start >= 0 && end >= 0 && start > end) {
+    scm_capi_error("string->vector: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  len = scm_string_length(str);
+  scm_assert(len <= SSIZE_MAX);
+
+  if (start >= 0 && (size_t)start >= len) {
+    scm_capi_error("string->vector: out of range", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  if (end >= 0 && (size_t)end > len) {
+    scm_capi_error("string->vector: out of range", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  if (start < 0) start = 0;
+  if (end < 0) end = (ssize_t)len;
+
+  return scm_capi_string_to_vector_aux(str,
+                                       (size_t)start, (size_t)(end - start));
+}
+
+ScmObj
+scm_api_string_to_vector(ScmObj str, ScmObj start, ScmObj end)
+{
+  ssize_t s, e;
+  int r;
+
+  r = scm_capi_vector_cnv_start_end("string->vector", start, &s);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  r = scm_capi_vector_cnv_start_end("string->vector", end, &e);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return scm_capi_string_to_vector(str, s, e);
+}
+
+ScmObj
+scm_capi_vector_copy(ScmObj vec, ssize_t start, ssize_t end)
+{
+  ScmObj copy = SCM_OBJ_INIT, elm = SCM_OBJ_INIT;
+  size_t n;
+  int r;
+
+  SCM_STACK_FRAME_PUSH(&vec,
+                       &copy);
+
+  if (scm_obj_null_p(vec)) {
+    scm_capi_error("vector-copy: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_vector_p(vec)) {
+    scm_capi_error("vector-copy: vector required, but got", 1, vec);
+    return SCM_OBJ_NULL;
+  }
+
+  r = scm_capi_vector_norm_star_end("vector-copy", vec, &start, &end);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  n = (size_t)(end - start);
+
+  copy = scm_vector_new(SCM_MEM_HEAP, n, SCM_UNDEF_OBJ);
+  if (scm_obj_null_p(copy)) return SCM_OBJ_NULL;
+
+  for (size_t i = 0; i < n; i++) {
+    elm = scm_vector_ref(vec, (size_t)start + i);
+    if (scm_obj_null_p(elm)) return SCM_OBJ_NULL;
+
+    r = scm_vector_set(copy, i, elm);
+    if (r < 0) return SCM_OBJ_NULL;
+  }
+
+  return copy;
+}
+
+ScmObj
+scm_api_vector_copy(ScmObj vec, ScmObj start, ScmObj end)
+{
+  ssize_t s, e;
+  int r;
+
+  r = scm_capi_vector_cnv_start_end("vector-copy", start, &s);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  r = scm_capi_vector_cnv_start_end("vector-copy", end, &e);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return scm_capi_vector_copy(vec, s, e);
+}
+
+static int
+scm_capi_vector_copy_i_aux(ScmObj to, size_t at,
+                           ScmObj from, size_t pos, size_t len)
+{
+  ScmObj elm;
+  int r;
+
+  SCM_STACK_FRAME_PUSH(&to, &from,
+                       &elm);
+
+  for (size_t i = 0; i < len; i++) {
+    elm = scm_vector_ref(from, pos + i);
+    r = scm_vector_set(to, at + i, elm);
+    if (r < 0) return -1;
+  }
+
+  return 0;
+}
+
+static int
+scm_capi_vector_copy_i_aux_in_reverse(ScmObj to, size_t at,
+                                      ScmObj from, size_t pos, size_t len)
+{
+  ScmObj elm;
+  int r;
+
+  SCM_STACK_FRAME_PUSH(&to, &from,
+                       &elm);
+
+  for (size_t i = len; i > 0; i--) {
+    elm = scm_vector_ref(from, pos + i - 1);
+    r = scm_vector_set(to, at + i - 1, elm);
+    if (r < 0) return -1;
+  }
+
+  return 0;
+}
+
+int
+scm_capi_vector_copy_i(ScmObj to, size_t at,
+                       ScmObj from, ssize_t start, ssize_t end)
+{
+  size_t len, to_len, from_len;
+
+  if (scm_obj_null_p(to) || scm_obj_null_p(from)) {
+    scm_capi_error("vector-copy!: invalid argument", 0);
+    return -1;
+  }
+  else if (!scm_capi_vector_p(to)) {
+    scm_capi_error("vector-copy!: vectore required, but got", 1, to);
+    return -1;
+  }
+  else if (!scm_capi_vector_p(from)) {
+    scm_capi_error("vector-copy!: vectore required, but got", 1, from);
+    return -1;
+  }
+  else if (start >= 0 && end >= 0 && start > end) {
+    scm_capi_error("vector-copy!: invalid argument", 0);
+    return -1;
+  }
+
+  to_len = scm_vector_length(to);
+  from_len = scm_vector_length(from);
+
+  if (at >= to_len) {
+    scm_capi_error("vector-copy!: out of range", 0);
+    return -1;
+  }
+
+  if (start < 0) {
+    start = 0;
+  }
+  else if ((size_t)start >= from_len) {
+    scm_capi_error("vector-copy!: out of range", 0);
+    return -1;
+  }
+
+  if (end > 0) {
+    if ((size_t)end > from_len) {
+      scm_capi_error("vector-copy!: out of range", 0);
+      return -1;
+    }
+    len = (size_t)(end - start);
+    if (len > to_len - at) {
+      scm_capi_error("vector-copy!: out of range", 0);
+      return -1;
+    }
   }
   else {
-    scm_capi_error("list->vector: improper list is passed", 0);
+    if (to_len - at < from_len - (size_t)start)
+      len = to_len - at;
+    else
+      len = from_len - (size_t)start;
+  }
+
+  if (scm_capi_eq_p(to, from) && (size_t)start < at)
+    return scm_capi_vector_copy_i_aux_in_reverse(to, at,
+                                                 from, (size_t)start, len);
+  else
+    return scm_capi_vector_copy_i_aux(to, at, from, (size_t)start, len);
+}
+
+ScmObj
+scm_api_vector_copy_i(ScmObj to, ScmObj at,
+                      ScmObj from, ScmObj start, ScmObj end)
+{
+  size_t a;
+  ssize_t s, e;
+  int r;
+
+  SCM_STACK_FRAME_PUSH(&to, &at, &from, &start, &end);
+
+  if (scm_obj_null_p(at)) {
+    scm_capi_error("vector-copy!: invalid argument", 0);
     return SCM_OBJ_NULL;
   }
+  else if (!scm_capi_integer_p(at)) {
+    scm_capi_error("vector-copy!: integer required, but got", 1, at);
+    return SCM_OBJ_NULL;
+  }
+
+  r = scm_capi_integer_to_size_t(at, &a);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  r = scm_capi_vector_cnv_start_end("vector-copy!", start, &s);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  r = scm_capi_vector_cnv_start_end("vector-copy!", end, &e);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  r = scm_capi_vector_copy_i(to, a, from, s, e);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return SCM_UNDEF_OBJ;
+}
+
+ScmObj
+scm_capi_vector_append_lst(ScmObj lst)
+{
+  ScmObj acc = SCM_OBJ_INIT, vec = SCM_OBJ_INIT;
+  ScmObj elm = SCM_OBJ_INIT, ls = SCM_OBJ_INIT;
+  size_t len, sum, idx;
+  int r;
+
+  SCM_STACK_FRAME_PUSH(&lst,
+                       &acc, &vec,
+                       &elm, &ls);
+
+  if (scm_obj_null_p(lst)) {
+    scm_capi_error("vector-append: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  sum = 0;
+  for (ls = lst; scm_capi_pair_p(ls); ls = scm_api_cdr(ls)) {
+    vec = scm_api_car(ls);
+    if (scm_obj_null_p(vec)) return SCM_OBJ_NULL;
+
+    if (!scm_capi_vector_p(vec)) {
+      scm_capi_error("vector-append: vector required, but got", 1, vec);
+      return SCM_OBJ_NULL;
+    }
+
+    len = scm_vector_length(vec);
+    if (SSIZE_MAX - sum < len) {
+      scm_capi_error("vector-append: too long", 0);
+      return SCM_OBJ_NULL;
+    }
+
+    sum += len;
+  }
+
+  if (scm_obj_null_p(ls)) return SCM_OBJ_NULL;
+
+  acc = scm_vector_new(SCM_MEM_HEAP, sum, SCM_OBJ_NULL);
+  if (scm_obj_null_p(acc)) return SCM_OBJ_NULL;
+
+  idx = 0;
+  for (ls = lst; scm_capi_pair_p(ls); ls = scm_api_cdr(ls)) {
+    vec = scm_api_car(ls);
+    if (scm_obj_null_p(vec)) return SCM_OBJ_NULL;
+
+    len = scm_vector_length(vec);
+    for (size_t i = 0; i < len; i++) {
+      elm = scm_vector_ref(vec, i);
+      if (scm_obj_null_p(elm)) return SCM_OBJ_NULL;
+
+      r = scm_vector_set(acc, idx++, elm);
+      if (r < 0) return SCM_OBJ_NULL;
+    }
+  }
+
+  if (scm_obj_null_p(ls)) return SCM_OBJ_NULL;
+
+  return acc;
+}
+
+ScmObj
+scm_capi_vector_append_cv(ScmObj *ary, size_t n)
+{
+  ScmObj vec = SCM_OBJ_INIT, elm = SCM_OBJ_INIT;
+  size_t len, sum, idx;
+  int r;
+
+  SCM_STACK_FRAME_PUSH(&vec, &elm);
+
+  if (ary == NULL || n == 0)
+    return scm_vector_new(SCM_MEM_HEAP, 0, SCM_OBJ_NULL);
+
+  sum = 0;
+  for (size_t i = 0; i < n; i++) {
+    if (scm_obj_null_p(ary[i])) {
+      scm_capi_error("vector-append: invalid argument", 0);
+      return SCM_OBJ_NULL;
+    }
+    else if (!scm_capi_vector_p(ary[i])) {
+      scm_capi_error("vector-append: vector required, but got", 1, ary[i]);
+      return SCM_OBJ_NULL;
+    }
+
+    len = scm_vector_length(ary[i]);
+    if (SSIZE_MAX - sum < len) {
+      scm_capi_error("vector-append: too long", 0);
+      return SCM_OBJ_NULL;
+    }
+
+    sum += len;
+  }
+
+  vec = scm_vector_new(SCM_MEM_HEAP, sum, SCM_OBJ_NULL);
+  if (scm_obj_null_p(vec)) return SCM_OBJ_NULL;
+
+  idx = 0;
+  for (size_t i = 0; i < n; i++) {
+    len = scm_vector_length(ary[i]);
+    for (size_t j = 0; j < len; j++) {
+      elm = scm_vector_ref(ary[i], j);
+      if (scm_obj_null_p(elm)) return SCM_OBJ_NULL;
+
+      r = scm_vector_set(vec, idx++, elm);
+      if (r < 0) return SCM_OBJ_NULL;
+    }
+  }
+
+  return vec;
+}
+
+ScmObj
+scm_capi_vector_append(size_t n, ...)
+{
+  ScmObj ary[n];
+  va_list ap;
+
+  SCM_STACK_FRAME;
+
+  va_start(ap, n);
+  for (size_t i = 0; i < n; i++) {
+    ary[i] = va_arg(ap, ScmObj);
+    SCM_STACK_PUSH(&ary[i]);
+  }
+  va_end(ap);
+
+  return scm_capi_vector_append_cv(ary, n);
+}
+
+int
+scm_capi_vector_fill_i(ScmObj vec, ScmObj fill, ssize_t start, ssize_t end)
+{
+  int r;
+
+  SCM_STACK_FRAME_PUSH(&vec, &fill);
+
+  if (scm_obj_null_p(vec) || scm_obj_null_p(fill)) {
+    scm_capi_error("vector-fill!: invalid argument", 0);
+    return -1;
+  }
+  else if (!scm_capi_vector_p(vec)) {
+    scm_capi_error("vector-fill!: vectore required, but got", 1, vec);
+    return -1;
+  }
+
+  r = scm_capi_vector_norm_star_end("vector-fill!", vec, &start, &end);
+  if (r < 0) return -1;
+
+  for (ssize_t i = start; i < end; i++) {
+    r = scm_vector_set(vec, (size_t)i, fill);
+    if (r < 0) return -1;
+  }
+
+  return 0;
+}
+
+ScmObj
+scm_api_vector_fill_i(ScmObj vec, ScmObj fill, ScmObj start, ScmObj end)
+{
+  ssize_t s, e;
+  int r;
+
+  SCM_STACK_FRAME_PUSH(&vec, &fill);
+
+  r = scm_capi_vector_cnv_start_end("vector-fill!", start, &s);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  r = scm_capi_vector_cnv_start_end("vector-fill!", end, &e);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  r = scm_capi_vector_fill_i(vec, fill, s, e);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return SCM_UNDEF_OBJ;
 }
 
 

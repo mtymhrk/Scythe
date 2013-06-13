@@ -758,9 +758,9 @@ scm_bignum_initialize_ary(ScmObj bignum,
 }
 
 int
-scm_bignum_initialize_sword(ScmObj bignum, scm_sword_t val)
+scm_bignum_initialize_uword(ScmObj bignum, scm_uword_t val)
 {
-  scm_uword_t uval, dg;
+  scm_uword_t dg;
   int err, rslt;
 
   scm_assert_obj_type(bignum, &SCM_BIGNUM_TYPE_INFO);
@@ -768,20 +768,13 @@ scm_bignum_initialize_sword(ScmObj bignum, scm_sword_t val)
   rslt = eary_init(&SCM_BIGNUM(bignum)->digits, sizeof(scm_bignum_d_t), 2);
   if (rslt != 0) return -1;     /* [ERR]: [through] */
 
-  if (val >= 0) {
-    SCM_BIGNUM(bignum)->sign = '+';
-    uval = (scm_uword_t)val;
-  }
-  else {
-    SCM_BIGNUM(bignum)->sign = '-';
-    uval = (scm_uword_t)-val;
-  }
+  SCM_BIGNUM(bignum)->sign = '+';
 
-  dg = uval % SCM_BIGNUM_BASE;
+  dg = val % SCM_BIGNUM_BASE;
   EARY_SET(&SCM_BIGNUM(bignum)->digits, scm_bignum_d_t, 0, dg, err);
   if (err < 0) return -1;
 
-  dg = uval / SCM_BIGNUM_BASE;
+  dg = val / SCM_BIGNUM_BASE;
   if (dg > 0) {
     EARY_SET(&SCM_BIGNUM(bignum)->digits, scm_bignum_d_t, 1, dg, err);
     if (err < 0) return -1;
@@ -790,6 +783,25 @@ scm_bignum_initialize_sword(ScmObj bignum, scm_sword_t val)
   else {
     SCM_BIGNUM(bignum)->nr_digits = 1;
   }
+
+  return 0;
+}
+
+int
+scm_bignum_initialize_sword(ScmObj bignum, scm_sword_t val)
+{
+  scm_uword_t uval;
+  int rslt;
+
+  scm_assert_obj_type(bignum, &SCM_BIGNUM_TYPE_INFO);
+
+  uval = (val >= 0) ? (scm_uword_t)val : (scm_uword_t)-val;
+
+  rslt = scm_bignum_initialize_uword(bignum, uval);
+  if (rslt < 0) return -1;
+
+  if (val < 0)
+    SCM_BIGNUM(bignum)->sign = '-';
 
   return 0;
 }
@@ -818,6 +830,20 @@ scm_bignum_new_from_sword(SCM_MEM_TYPE_T mtype, scm_sword_t val)
   if (scm_obj_null_p(bn)) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   if (scm_bignum_initialize_sword(bn, val) < 0)
+    return SCM_OBJ_NULL;  /* [ERR]: [through] */
+
+  return bn;
+}
+
+ScmObj
+scm_bignum_new_from_uword(SCM_MEM_TYPE_T mtype, scm_uword_t val)
+{
+  ScmObj bn = SCM_OBJ_INIT;
+
+  bn = scm_capi_mem_alloc(&SCM_BIGNUM_TYPE_INFO, 0, mtype);
+  if (scm_obj_null_p(bn)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+
+  if (scm_bignum_initialize_uword(bn, val) < 0)
     return SCM_OBJ_NULL;  /* [ERR]: [through] */
 
   return bn;

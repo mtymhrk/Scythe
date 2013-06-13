@@ -228,6 +228,25 @@ scm_define_scheme_base_subr(ScmObj module)
     { "string-copy!", SCM_SUBR_ARITY_STRING_COPY_I, SCM_SUBR_FLAG_STRING_COPY_I, scm_subr_func_string_copy_i },
     { "string-fill!", SCM_SUBR_ARITY_STRING_FILL_I, SCM_SUBR_FLAG_STRING_FILL_I, scm_subr_func_string_fill_i },
 
+    /*******************************************************************/
+    /*  Vectors                                                        */
+    /*******************************************************************/
+    { "vector?", SCM_SUBR_ARITY_VECTOR_P, SCM_SUBR_FLAG_VECTOR_P, scm_subr_func_vector_P },
+    { "make-vector", SCM_SUBR_ARITY_MAKE_VECTOR, SCM_SUBR_FLAG_MAKE_VECTOR, scm_subr_func_make_vector },
+    { "vector", SCM_SUBR_ARITY_VECTOR, SCM_SUBR_FLAG_VECTOR, scm_subr_func_vector },
+    { "vector-length", SCM_SUBR_ARITY_VECTOR_LENGTH, SCM_SUBR_FLAG_VECTOR_LENGTH, scm_subr_func_vector_length },
+    { "vector-ref", SCM_SUBR_ARITY_VECTOR_REF, SCM_SUBR_FLAG_VECTOR_REF, scm_subr_func_vector_ref },
+    { "vector-set!", SCM_SUBR_ARITY_VECTOR_SET_I, SCM_SUBR_FLAG_VECTOR_SET_I, scm_subr_func_vector_set_i },
+    { "vector->list", SCM_SUBR_ARITY_VECTOR_TO_LIST, SCM_SUBR_FLAG_VECTOR_TO_LIST, scm_subr_func_vector_to_list },
+    { "list->vector", SCM_SUBR_ARITY_LIST_TO_VECTOR, SCM_SUBR_FLAG_LIST_TO_VECTOR, scm_subr_func_list_to_vector },
+    { "vector->string", SCM_SUBR_ARITY_VECTOR_TO_STRING, SCM_SUBR_FLAG_VECTOR_TO_STRING, scm_subr_func_vector_to_string },
+    { "string->vector", SCM_SUBR_ARITY_STRING_TO_VECTOR, SCM_SUBR_FLAG_STRING_TO_VECTOR, scm_subr_func_string_to_vector },
+    { "vector-copy", SCM_SUBR_ARITY_VECTOR_COPY, SCM_SUBR_FLAG_VECTOR_COPY, scm_subr_func_vector_copy },
+    { "vector-copy!", SCM_SUBR_ARITY_VECTOR_COPY_I, SCM_SUBR_FLAG_VECTOR_COPY_I, scm_subr_func_vector_copy_i },
+    { "vector-append", SCM_SUBR_ARITY_VECTOR_APPEND, SCM_SUBR_FLAG_VECTOR_APPEND, scm_subr_func_vector_append },
+    { "vector-fill!", SCM_SUBR_ARITY_VECTOR_FILL_I, SCM_SUBR_FLAG_VECTOR_FILL_I, scm_subr_func_vector_fill_i },
+
+
     { "read", SCM_SUBR_ARITY_READ, SCM_SUBR_FLAG_READ, scm_subr_func_read },
     { "write", SCM_SUBR_ARITY_WRITE, SCM_SUBR_FLAG_WRITE, scm_subr_func_write },
     { "display", SCM_SUBR_ARITY_DISPLAY, SCM_SUBR_FLAG_DISPLAY, scm_subr_func_display },

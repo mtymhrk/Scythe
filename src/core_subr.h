@@ -409,6 +409,56 @@ int scm_subr_func_string_fill_i(ScmObj subr, int argc, const ScmObj *argv);
 
 
 /*******************************************************************/
+/*  Vectors                                                        */
+/*******************************************************************/
+
+#define SCM_SUBR_ARITY_VECTOR_P 1
+#define SCM_SUBR_ARITY_MAKE_VECTOR -2
+#define SCM_SUBR_ARITY_VECTOR -1
+#define SCM_SUBR_ARITY_VECTOR_LENGTH 1
+#define SCM_SUBR_ARITY_VECTOR_REF 2
+#define SCM_SUBR_ARITY_VECTOR_SET_I 3
+#define SCM_SUBR_ARITY_VECTOR_TO_LIST -2
+#define SCM_SUBR_ARITY_LIST_TO_VECTOR 1
+#define SCM_SUBR_ARITY_VECTOR_TO_STRING -2
+#define SCM_SUBR_ARITY_STRING_TO_VECTOR -2
+#define SCM_SUBR_ARITY_VECTOR_COPY -2
+#define SCM_SUBR_ARITY_VECTOR_COPY_I -4
+#define SCM_SUBR_ARITY_VECTOR_APPEND -1
+#define SCM_SUBR_ARITY_VECTOR_FILL_I -3
+
+#define SCM_SUBR_FLAG_VECTOR_P 0
+#define SCM_SUBR_FLAG_MAKE_VECTOR 0
+#define SCM_SUBR_FLAG_VECTOR 0
+#define SCM_SUBR_FLAG_VECTOR_LENGTH 0
+#define SCM_SUBR_FLAG_VECTOR_REF 0
+#define SCM_SUBR_FLAG_VECTOR_SET_I 0
+#define SCM_SUBR_FLAG_VECTOR_TO_LIST 0
+#define SCM_SUBR_FLAG_LIST_TO_VECTOR 0
+#define SCM_SUBR_FLAG_VECTOR_TO_STRING 0
+#define SCM_SUBR_FLAG_STRING_TO_VECTOR 0
+#define SCM_SUBR_FLAG_VECTOR_COPY 0
+#define SCM_SUBR_FLAG_VECTOR_COPY_I 0
+#define SCM_SUBR_FLAG_VECTOR_APPEND 0
+#define SCM_SUBR_FLAG_VECTOR_FILL_I 0
+
+int scm_subr_func_vector_P(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_make_vector(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_vector(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_vector_length(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_vector_ref(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_vector_set_i(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_vector_to_list(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_list_to_vector(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_vector_to_string(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_string_to_vector(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_vector_copy(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_vector_copy_i(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_vector_append(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_vector_fill_i(ScmObj subr, int argc, const ScmObj *argv);
+
+
+/*******************************************************************/
 /*  Input Output                                                   */
 /*******************************************************************/
 

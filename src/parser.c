@@ -1738,6 +1738,7 @@ scm_parser_parse_vector(ScmParser *parser, ScmObj port)
 {
   ScmObj vec = SCM_OBJ_INIT, elms = SCM_OBJ_INIT, elm = SCM_OBJ_INIT;
   size_t len, idx;
+  int rslt;
 
   SCM_STACK_FRAME_PUSH(&port, &vec, &elms, &elm);
 
@@ -1755,7 +1756,8 @@ scm_parser_parse_vector(ScmParser *parser, ScmObj port)
 
   for (idx = 0; idx < len; idx++) {
     elm = scm_api_car(elms);
-    scm_capi_vector_set(vec, idx, elm);
+    rslt = scm_capi_vector_set_i(vec, idx, elm);
+    if (rslt < 0) return SCM_OBJ_NULL;
     elms = scm_api_cdr(elms);
   }
 
