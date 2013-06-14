@@ -1,4 +1,4 @@
-#include "unity_fixture.h"
+#include "test.h"
 
 #include "object.h"
 #include "api.h"
@@ -16,28 +16,6 @@ TEST_SETUP(symbols)
 TEST_TEAR_DOWN(symbols)
 {
   scm_capi_evaluator_end(ev);
-}
-
-static ScmObj
-read_cstr(const char *str)
-{
-  ScmObj port = SCM_OBJ_INIT;
-
-  port = scm_capi_open_input_string_from_cstr(str, SCM_ENC_ASCII);
-  return scm_api_read(port);
-}
-
-static void
-debug_print_obj(ScmObj obj)
-{
-  ScmObj port = SCM_OBJ_INIT;
-
-  SCM_STACK_FRAME_PUSH(&obj,
-                       &port);
-
-  port = scm_api_standard_output_port();
-  scm_api_write(obj, port);
-  scm_api_newline(port);
 }
 
 TEST(symbols, capi_symbol_p__return_true)
@@ -64,17 +42,17 @@ TEST(symbols, api_symbol_P__return_true)
 
   sym = read_cstr("aaa");
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_symbol_P(sym)));
+  TEST_ASSERT_SCM_TRUE(scm_api_symbol_P(sym));
 }
 
 TEST(symbols, api_symbol_P__return_false)
 {
-  TEST_ASSERT_TRUE(scm_capi_false_object_p(scm_api_symbol_P(SCM_TRUE_OBJ)));
+  TEST_ASSERT_SCM_FALSE(scm_api_symbol_P(SCM_TRUE_OBJ));
 }
 
 TEST(symbols, api_symbol_P__return_ERROR)
 {
-  TEST_ASSERT_TRUE(scm_obj_null_p(scm_api_symbol_P(SCM_OBJ_NULL)));
+  TEST_ASSERT_SCM_NULL(scm_api_symbol_P(SCM_OBJ_NULL));
 }
 
 TEST(symbols, capi_symbol_eq__equal)
@@ -126,7 +104,7 @@ TEST(symbols, capi_symbol_eq_P_lst__equal)
 
   lst = read_cstr("(aaa aaa aaa)");
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_capi_symbol_eq_P_lst(lst)));
+  TEST_ASSERT_SCM_TRUE(scm_capi_symbol_eq_P_lst(lst));
 }
 
 TEST(symbols, capi_symbol_eq_P_lst__not_equal)
@@ -137,7 +115,7 @@ TEST(symbols, capi_symbol_eq_P_lst__not_equal)
 
   lst = read_cstr("(aaa aaa zzz)");
 
-  TEST_ASSERT_TRUE(scm_capi_false_object_p(scm_capi_symbol_eq_P_lst(lst)));
+  TEST_ASSERT_SCM_FALSE(scm_capi_symbol_eq_P_lst(lst));
 }
 
 TEST(symbols, capi_symbol_eq_P_lst__empty_list)
@@ -148,7 +126,7 @@ TEST(symbols, capi_symbol_eq_P_lst__empty_list)
 
   lst = SCM_NIL_OBJ;
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_capi_symbol_eq_P_lst(lst)));
+  TEST_ASSERT_SCM_TRUE(scm_capi_symbol_eq_P_lst(lst));
 }
 
 TEST(symbols, capi_symbol_eq_P_lst__list_has_item_is_not_symbol__return_ERROR)
@@ -159,7 +137,7 @@ TEST(symbols, capi_symbol_eq_P_lst__list_has_item_is_not_symbol__return_ERROR)
 
   lst = read_cstr("(aaa \"aaa\" aaa)");
 
-  TEST_ASSERT_TRUE(scm_obj_null_p(scm_capi_symbol_eq_P_lst(lst)));
+  TEST_ASSERT_SCM_NULL(scm_capi_symbol_eq_P_lst(lst));
 }
 
 TEST(symbols, api_symbol_eq_P__equal)
@@ -171,7 +149,7 @@ TEST(symbols, api_symbol_eq_P__equal)
   sym1 = read_cstr("aaa");
   sym2 = read_cstr("aaa");
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_symbol_eq_P(sym1, sym2)));
+  TEST_ASSERT_SCM_TRUE(scm_api_symbol_eq_P(sym1, sym2));
 }
 
 TEST(symbols, api_symbol_eq_P__not_equal)
@@ -183,7 +161,7 @@ TEST(symbols, api_symbol_eq_P__not_equal)
   sym1 = read_cstr("aaa");
   sym2 = read_cstr("bbb");
 
-  TEST_ASSERT_TRUE(scm_capi_false_object_p(scm_api_symbol_eq_P(sym1, sym2)));
+  TEST_ASSERT_SCM_FALSE(scm_api_symbol_eq_P(sym1, sym2));
 }
 
 TEST(symbols, api_symbol_eq_P__return_ERROR)
@@ -195,7 +173,7 @@ TEST(symbols, api_symbol_eq_P__return_ERROR)
   sym1 = read_cstr("aaa");
   sym2 = SCM_EOF_OBJ;
 
-  TEST_ASSERT_TRUE(scm_obj_null_p(scm_api_symbol_eq_P(sym1, sym2)));
+  TEST_ASSERT_SCM_NULL(scm_api_symbol_eq_P(sym1, sym2));
 }
 
 TEST(symbols, api_symbol_to_string)
@@ -209,14 +187,14 @@ TEST(symbols, api_symbol_to_string)
 
   actual = scm_api_symbol_to_string(sym);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_string_eq_P(expected, actual)));
+  TEST_ASSERT_SCM_TRUE(scm_api_string_eq_P(expected, actual));
 
   /* TODO: actual が immutable かチェック */
 }
 
 TEST(symbols, api_symbol_to_string__return_ERROR)
 {
-  TEST_ASSERT_TRUE(scm_obj_null_p(scm_api_symbol_to_string(SCM_EOF_OBJ)));
+  TEST_ASSERT_SCM_NULL(scm_api_symbol_to_string(SCM_EOF_OBJ));
 }
 
 TEST(symbols, api_string_to_symbol)
@@ -230,10 +208,10 @@ TEST(symbols, api_string_to_symbol)
 
   actual = scm_api_string_to_symbol(str);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_eq_P(expected, actual)));
+  TEST_ASSERT_SCM_TRUE(scm_api_eq_P(expected, actual));
 }
 
 TEST(symbols, api_string_to_symbol__return_ERROR)
 {
-  TEST_ASSERT_TRUE(scm_obj_null_p(scm_api_string_to_symbol(SCM_EOF_OBJ)));
+  TEST_ASSERT_SCM_NULL(scm_api_string_to_symbol(SCM_EOF_OBJ));
 }

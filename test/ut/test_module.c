@@ -1,4 +1,4 @@
-#include "unity_fixture.h"
+#include "test.h"
 
 #include "object.h"
 #include "api.h"
@@ -124,7 +124,7 @@ TEST(module, make_module__already_exist)
 {
   make_module("main");
 
-  TEST_ASSERT_TRUE(scm_obj_null_p(module));
+  TEST_ASSERT_SCM_NULL(module);
 }
 
 TEST(module, import)
@@ -154,14 +154,14 @@ TEST(module, find_module)
 
   find_module("test");
 
-  TEST_ASSERT_TRUE(scm_capi_eq_p(mod, module));
+  TEST_ASSERT_SCM_EQ(mod, module);
 }
 
 TEST(module, find_module__not_exist)
 {
   find_module("test");
 
-  TEST_ASSERT_TRUE(scm_obj_null_p(module));
+  TEST_ASSERT_SCM_NULL(module);
 }
 
 TEST(module, make_gloc)
@@ -175,9 +175,9 @@ TEST(module, make_gloc)
 
   TEST_ASSERT_TRUE(scm_capi_gloc_p(gloc));
   TEST_ASSERT_EQUAL_INT(0, scm_capi_gloc_symbol(gloc, SCM_CSETTER_L(sym)));
-  TEST_ASSERT_TRUE(scm_capi_eq_p(symbol, sym));
+  TEST_ASSERT_SCM_EQ(symbol, sym);
   TEST_ASSERT_EQUAL_INT(0, scm_capi_gloc_value(gloc, SCM_CSETTER_L(val)));
-  TEST_ASSERT_TRUE(scm_obj_null_p(val));
+  TEST_ASSERT_SCM_NULL(val);
 }
 
 TEST(module, make_gloc__already_exist)
@@ -186,7 +186,7 @@ TEST(module, make_gloc__already_exist)
   make_gloc("var");
   make_gloc("var");
 
-  TEST_ASSERT_TRUE(scm_obj_null_p(gloc));
+  TEST_ASSERT_SCM_NULL(gloc);
 }
 
 TEST(module, find_gloc)
@@ -201,7 +201,7 @@ TEST(module, find_gloc)
 
   TEST_ASSERT_TRUE(scm_capi_gloc_p(gloc));
   TEST_ASSERT_EQUAL_INT(0, scm_capi_gloc_symbol(gloc, SCM_CSETTER_L(sym)));
-  TEST_ASSERT_TRUE(scm_capi_eq_p(symbol, sym));
+  TEST_ASSERT_SCM_EQ(symbol, sym);
 }
 
 TEST(module, find_gloc__not_exist)
@@ -213,7 +213,7 @@ TEST(module, find_gloc__not_exist)
   make_module("test");
   find_gloc("var");
 
-  TEST_ASSERT_TRUE(scm_obj_null_p(gloc));
+  TEST_ASSERT_SCM_NULL(gloc);
 }
 
 TEST(module, gloc_bind)
@@ -229,7 +229,7 @@ TEST(module, gloc_bind)
 
   TEST_ASSERT_EQUAL_INT(0, scm_capi_gloc_bind(gloc, expected));
   TEST_ASSERT_EQUAL_INT(0, scm_capi_gloc_value(gloc, SCM_CSETTER_L(actual)));
-  TEST_ASSERT_TRUE(scm_capi_eq_p(expected, actual));
+  TEST_ASSERT_SCM_EQ(expected, actual);
 }
 
 TEST(module, define_global_var)
@@ -246,7 +246,7 @@ TEST(module, define_global_var)
   TEST_ASSERT_EQUAL_INT(0, scm_capi_define_global_var(module, sym, val, false));
   TEST_ASSERT_EQUAL_INT(0, scm_capi_global_var_ref(module,
                                                    sym, SCM_CSETTER_L(actual)));
-  TEST_ASSERT_TRUE(scm_capi_eq_p(val, actual));
+  TEST_ASSERT_SCM_EQ(val, actual);
 }
 
 TEST(module, define_global_var__already_bound)
@@ -269,7 +269,7 @@ TEST(module, define_global_var__already_bound)
                                                       sym, val2, false));
   TEST_ASSERT_EQUAL_INT(0, scm_capi_global_var_ref(module,
                                                    sym, SCM_CSETTER_L(actual)));
-  TEST_ASSERT_TRUE(scm_capi_eq_p(val2, actual));
+  TEST_ASSERT_SCM_EQ(val2, actual);
 }
 
 TEST(module, global_var_ref__unbound)
@@ -284,7 +284,7 @@ TEST(module, global_var_ref__unbound)
 
   TEST_ASSERT_EQUAL_INT(0, scm_capi_global_var_ref(module,
                                                    sym, SCM_CSETTER_L(actual)));
-  TEST_ASSERT_TRUE(scm_obj_null_p(actual));
+  TEST_ASSERT_SCM_NULL(actual);
 }
 
 TEST(module, global_var_ref__refer_exported_symbol_of_imported_module)
@@ -307,7 +307,7 @@ TEST(module, global_var_ref__refer_exported_symbol_of_imported_module)
 
   TEST_ASSERT_EQUAL_INT(0, scm_capi_global_var_ref(module,
                                                    sym, SCM_CSETTER_L(actual)));
-  TEST_ASSERT_TRUE(scm_capi_eq_p(val, actual));
+  TEST_ASSERT_SCM_EQ(val, actual);
 }
 
 TEST(module, global_var_ref__refer_unexported_symbol_of_imported_module)
@@ -330,7 +330,7 @@ TEST(module, global_var_ref__refer_unexported_symbol_of_imported_module)
 
   TEST_ASSERT_EQUAL_INT(0, scm_capi_global_var_ref(module,
                                                    sym, SCM_CSETTER_L(actual)));
-  TEST_ASSERT_TRUE(scm_obj_null_p(actual));
+  TEST_ASSERT_SCM_NULL(actual);
 }
 
 TEST(module, define_global_syx)
@@ -349,7 +349,7 @@ TEST(module, define_global_syx)
   TEST_ASSERT_EQUAL_INT(0, scm_capi_define_global_syx(module, sym, syx, false));
   TEST_ASSERT_EQUAL_INT(0, scm_capi_global_syx_ref(module,
                                                    sym, SCM_CSETTER_L(actual)));
-  TEST_ASSERT_TRUE(scm_capi_eq_p(syx, actual));
+  TEST_ASSERT_SCM_EQ(syx, actual);
 }
 
 TEST(module, define_global_syx__already_bound)
@@ -374,7 +374,7 @@ TEST(module, define_global_syx__already_bound)
   TEST_ASSERT_EQUAL_INT(0, scm_capi_define_global_syx(module, sym, syx2, false));
   TEST_ASSERT_EQUAL_INT(0, scm_capi_global_syx_ref(module,
                                                    sym, SCM_CSETTER_L(actual)));
-  TEST_ASSERT_TRUE(scm_capi_eq_p(syx2, actual));
+  TEST_ASSERT_SCM_EQ(syx2, actual);
 }
 
 TEST(module, global_syx_ref__unbound)
@@ -389,7 +389,7 @@ TEST(module, global_syx_ref__unbound)
 
   TEST_ASSERT_EQUAL_INT(0, scm_capi_global_syx_ref(module,
                                                    sym, SCM_CSETTER_L(actual)));
-  TEST_ASSERT_TRUE(scm_obj_null_p(actual));
+  TEST_ASSERT_SCM_NULL(actual);
 }
 
 TEST(module, global_syx_ref__refer_exported_symbol_of_imported_module)
@@ -414,7 +414,7 @@ TEST(module, global_syx_ref__refer_exported_symbol_of_imported_module)
 
   TEST_ASSERT_EQUAL_INT(0, scm_capi_global_syx_ref(module,
                                                    sym, SCM_CSETTER_L(actual)));
-  TEST_ASSERT_TRUE(scm_capi_eq_p(syx, actual));
+  TEST_ASSERT_SCM_EQ(syx, actual);
 }
 
 TEST(module, global_syx_ref__refer_unexported_symbol_of_imported_module)
@@ -439,5 +439,5 @@ TEST(module, global_syx_ref__refer_unexported_symbol_of_imported_module)
 
   TEST_ASSERT_EQUAL_INT(0, scm_capi_global_syx_ref(module,
                                                    sym, SCM_CSETTER_L(actual)));
-  TEST_ASSERT_TRUE(scm_obj_null_p(actual));
+  TEST_ASSERT_SCM_NULL(actual);
 }

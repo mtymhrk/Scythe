@@ -1,4 +1,4 @@
-#include "unity_fixture.h"
+#include "test.h"
 
 #include "object.h"
 #include "api.h"
@@ -19,15 +19,6 @@ TEST_TEAR_DOWN(bignum)
   scm_capi_evaluator_end(ev);
 }
 
-static ScmObj
-read_cstr(const char *str)
-{
-  ScmObj port = SCM_OBJ_INIT;
-
-  port = scm_capi_open_input_string_from_cstr(str, SCM_ENC_ASCII);
-  return scm_api_read(port);
-}
-
 static void
 check_list_elements(ScmObj lst, bool (*check)(ScmObj elm))
 {
@@ -38,19 +29,6 @@ check_list_elements(ScmObj lst, bool (*check)(ScmObj elm))
 
   for (l = lst; scm_capi_pair_p(l); l = scm_api_cdr(l))
     TEST_ASSERT_TRUE(check(scm_api_car(l)));
-}
-
-static void
-debug_print_obj(ScmObj obj)
-{
-  ScmObj port = SCM_OBJ_INIT;
-
-  SCM_STACK_FRAME_PUSH(&obj,
-                       &port);
-
-  port = scm_api_standard_output_port();
-  scm_api_write(obj, port);
-  scm_api_newline(port);
 }
 
 TEST(bignum, capi_bignum_p__return_true)
@@ -82,17 +60,17 @@ TEST(bignum, api_bignum_P__return_true)
 
   bn = scm_capi_make_number_from_sword(SCM_FIXNUM_MAX + 1);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_bignum_P(bn)));
+  TEST_ASSERT_SCM_TRUE(scm_api_bignum_P(bn));
 }
 
 TEST(bignum, api_bignum_P__return_false)
 {
-  TEST_ASSERT_TRUE(scm_capi_false_object_p(scm_api_bignum_P(SCM_EOF_OBJ)));
+  TEST_ASSERT_SCM_FALSE(scm_api_bignum_P(SCM_EOF_OBJ));
 }
 
 TEST(bignum, scm_api_bignum_P__return_ERROR)
 {
-  TEST_ASSERT_TRUE(scm_obj_null_p(scm_api_bignum_P(SCM_OBJ_NULL)));
+  TEST_ASSERT_SCM_NULL(scm_api_bignum_P(SCM_OBJ_NULL));
 }
 
 TEST(bignum, capi_number_p__return_true)
@@ -116,7 +94,7 @@ TEST(bignum, api_number_P__return_true)
   bn = scm_capi_make_number_from_sword(SCM_FIXNUM_MAX + 1);
   TEST_ASSERT_TRUE(scm_capi_bignum_p(bn));
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_number_P(bn)));
+  TEST_ASSERT_SCM_TRUE(scm_api_number_P(bn));
 }
 
 TEST(bignum, capi_complex_p__return_true)
@@ -140,7 +118,7 @@ TEST(bignum, api_complex_P__return_true)
   bn = scm_capi_make_number_from_sword(SCM_FIXNUM_MAX + 1);
   TEST_ASSERT_TRUE(scm_capi_bignum_p(bn));
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_complex_P(bn)));
+  TEST_ASSERT_SCM_TRUE(scm_api_complex_P(bn));
 }
 
 TEST(bignum, capi_real_p__return_true)
@@ -164,7 +142,7 @@ TEST(bignum, api_real_P__return_true)
   bn = scm_capi_make_number_from_sword(SCM_FIXNUM_MAX + 1);
   TEST_ASSERT_TRUE(scm_capi_bignum_p(bn));
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_real_P(bn)));
+  TEST_ASSERT_SCM_TRUE(scm_api_real_P(bn));
 }
 
 TEST(bignum, capi_rational_p__return_true)
@@ -188,7 +166,7 @@ TEST(bignum, api_rational_P__return_true)
   bn = scm_capi_make_number_from_sword(SCM_FIXNUM_MAX + 1);
   TEST_ASSERT_TRUE(scm_capi_bignum_p(bn));
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_rational_P(bn)));
+  TEST_ASSERT_SCM_TRUE(scm_api_rational_P(bn));
 }
 
 TEST(bignum, capi_integer_p__return_true)
@@ -212,7 +190,7 @@ TEST(bignum, api_integer_P__return_true)
   bn = scm_capi_make_number_from_sword(SCM_FIXNUM_MAX + 1);
   TEST_ASSERT_TRUE(scm_capi_bignum_p(bn));
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_integer_P(bn)));
+  TEST_ASSERT_SCM_TRUE(scm_api_integer_P(bn));
 }
 
 TEST(bignum, capi_exact_p__return_true)
@@ -236,7 +214,7 @@ TEST(bignum, api_exact_P__return_true)
   bn = scm_capi_make_number_from_sword(SCM_FIXNUM_MAX + 1);
   TEST_ASSERT_TRUE(scm_capi_bignum_p(bn));
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_exact_P(bn)));
+  TEST_ASSERT_SCM_TRUE(scm_api_exact_P(bn));
 }
 
 TEST(bignum, capi_inexact_p__return_true)
@@ -260,7 +238,7 @@ TEST(bignum, api_inexact_P__return_true)
   bn = scm_capi_make_number_from_sword(SCM_FIXNUM_MAX + 1);
   TEST_ASSERT_TRUE(scm_capi_bignum_p(bn));
 
-  TEST_ASSERT_TRUE(scm_capi_false_object_p(scm_api_inexact_P(bn)));
+  TEST_ASSERT_SCM_FALSE(scm_api_inexact_P(bn));
 }
 
 TEST(bignum, capi_exact_integer_p__return_true)
@@ -284,7 +262,7 @@ TEST(bignum, api_exact_integer_P__return_true)
   bn = scm_capi_make_number_from_sword(SCM_FIXNUM_MAX + 1);
   TEST_ASSERT_TRUE(scm_capi_bignum_p(bn));
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_exact_integer_P(bn)));
+  TEST_ASSERT_SCM_TRUE(scm_api_exact_integer_P(bn));
 }
 
 TEST(bignum, capi_finite_p__return_true)
@@ -308,7 +286,7 @@ TEST(bignum, api_finite_P__return_true)
   bn = scm_capi_make_number_from_sword(SCM_FIXNUM_MAX + 1);
   TEST_ASSERT_TRUE(scm_capi_bignum_p(bn));
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_finite_P(bn)));
+  TEST_ASSERT_SCM_TRUE(scm_api_finite_P(bn));
 }
 
 TEST(bignum, capi_infinite_p__return_true)
@@ -332,7 +310,7 @@ TEST(bignum, api_infinite_P__return_true)
   bn = scm_capi_make_number_from_sword(SCM_FIXNUM_MAX + 1);
   TEST_ASSERT_TRUE(scm_capi_bignum_p(bn));
 
-  TEST_ASSERT_TRUE(scm_capi_false_object_p(scm_api_infinite_P(bn)));
+  TEST_ASSERT_SCM_FALSE(scm_api_infinite_P(bn));
 }
 
 TEST(bignum, capi_nan_p__return_true)
@@ -356,7 +334,7 @@ TEST(bignum, api_nan_P__return_true)
   bn = scm_capi_make_number_from_sword(SCM_FIXNUM_MAX + 1);
   TEST_ASSERT_TRUE(scm_capi_bignum_p(bn));
 
-  TEST_ASSERT_TRUE(scm_capi_false_object_p(scm_api_nan_P(bn)));
+  TEST_ASSERT_SCM_FALSE(scm_api_nan_P(bn));
 }
 
 TEST(bignum, capi_num_eq__return_true)
@@ -424,7 +402,7 @@ TEST(bignum, api_num_eq_P_lst__return_true)
   lst = read_cstr("(4611686018427387904 4611686018427387904 4611686018427387904)");
   check_list_elements(lst, scm_capi_bignum_p);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_capi_num_eq_P_lst(lst)));
+  TEST_ASSERT_SCM_TRUE(scm_capi_num_eq_P_lst(lst));
 }
 
 TEST(bignum, api_num_eq_P__return_false)
@@ -436,7 +414,7 @@ TEST(bignum, api_num_eq_P__return_false)
   lst = read_cstr("(4611686018427387904 4611686018427387904 4611686018427387905)");
   check_list_elements(lst, scm_capi_bignum_p);
 
-  TEST_ASSERT_TRUE(scm_capi_false_object_p(scm_capi_num_eq_P_lst(lst)));
+  TEST_ASSERT_SCM_FALSE(scm_capi_num_eq_P_lst(lst));
 }
 
 TEST(bignum, capi_num_lt__less)
@@ -520,7 +498,7 @@ TEST(bignum, api_num_lt_P_lst__ltss)
   lst = read_cstr("(-4611686018427387905 4611686018427387904 9223372036854775807)");
   check_list_elements(lst, scm_capi_bignum_p);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_capi_num_lt_P_lst(lst)));
+  TEST_ASSERT_SCM_TRUE(scm_capi_num_lt_P_lst(lst));
 }
 
 TEST(bignum, api_num_lt_P_lst__equal)
@@ -532,7 +510,7 @@ TEST(bignum, api_num_lt_P_lst__equal)
   lst = read_cstr("(-4611686018427387905 4611686018427387904 4611686018427387904)");
   check_list_elements(lst, scm_capi_bignum_p);
 
-  TEST_ASSERT_TRUE(scm_capi_false_object_p(scm_capi_num_lt_P_lst(lst)));
+  TEST_ASSERT_SCM_FALSE(scm_capi_num_lt_P_lst(lst));
 }
 
 TEST(bignum, api_num_lt_P_lst__greater)
@@ -544,7 +522,7 @@ TEST(bignum, api_num_lt_P_lst__greater)
   lst = read_cstr("(4611686018427387904 9223372036854775807 -4611686018427387905)");
   check_list_elements(lst, scm_capi_bignum_p);
 
-  TEST_ASSERT_TRUE(scm_capi_false_object_p(scm_capi_num_lt_P_lst(lst)));
+  TEST_ASSERT_SCM_FALSE(scm_capi_num_lt_P_lst(lst));
 }
 
 TEST(bignum, capi_num_gt__less)
@@ -628,7 +606,7 @@ TEST(bignum, api_num_gt_P_lst__less)
   lst = read_cstr("(4611686018427387904 -4611686018427387905 9223372036854775807)");
   check_list_elements(lst, scm_capi_bignum_p);
 
-  TEST_ASSERT_TRUE(scm_capi_false_object_p(scm_capi_num_gt_P_lst(lst)));
+  TEST_ASSERT_SCM_FALSE(scm_capi_num_gt_P_lst(lst));
 }
 
 TEST(bignum, api_num_gt_P_lst__equal)
@@ -640,7 +618,7 @@ TEST(bignum, api_num_gt_P_lst__equal)
   lst = read_cstr("(9223372036854775807 4611686018427387904 4611686018427387904)");
   check_list_elements(lst, scm_capi_bignum_p);
 
-  TEST_ASSERT_TRUE(scm_capi_false_object_p(scm_capi_num_gt_P_lst(lst)));
+  TEST_ASSERT_SCM_FALSE(scm_capi_num_gt_P_lst(lst));
 }
 
 TEST(bignum, api_num_gt_P_lst__greater)
@@ -652,7 +630,7 @@ TEST(bignum, api_num_gt_P_lst__greater)
   lst = read_cstr("(9223372036854775807 4611686018427387904 -4611686018427387905)");
   check_list_elements(lst, scm_capi_bignum_p);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_capi_num_gt_P_lst(lst)));
+  TEST_ASSERT_SCM_TRUE(scm_capi_num_gt_P_lst(lst));
 }
 
 TEST(bignum, capi_num_le__less)
@@ -736,7 +714,7 @@ TEST(bignum, api_num_le_P_lst__less)
   lst = read_cstr("(-4611686018427387905 4611686018427387904 9223372036854775807)");
   check_list_elements(lst, scm_capi_bignum_p);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_capi_num_le_P_lst(lst)));
+  TEST_ASSERT_SCM_TRUE(scm_capi_num_le_P_lst(lst));
 }
 
 TEST(bignum, api_num_le_P_lst__equal)
@@ -748,7 +726,7 @@ TEST(bignum, api_num_le_P_lst__equal)
   lst = read_cstr("(-4611686018427387905 4611686018427387904 4611686018427387904)");
   check_list_elements(lst, scm_capi_bignum_p);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_capi_num_le_P_lst(lst)));
+  TEST_ASSERT_SCM_TRUE(scm_capi_num_le_P_lst(lst));
 }
 
 TEST(bignum, api_num_le_P_lst__greater)
@@ -760,7 +738,7 @@ TEST(bignum, api_num_le_P_lst__greater)
   lst = read_cstr("(4611686018427387904 9223372036854775807 -4611686018427387905)");
   check_list_elements(lst, scm_capi_bignum_p);
 
-  TEST_ASSERT_TRUE(scm_capi_false_object_p(scm_capi_num_le_P_lst(lst)));
+  TEST_ASSERT_SCM_FALSE(scm_capi_num_le_P_lst(lst));
 }
 
 TEST(bignum, capi_num_ge__less)
@@ -844,7 +822,7 @@ TEST(bignum, api_num_ge_P_lst__less)
   lst = read_cstr("(4611686018427387904 -4611686018427387905 9223372036854775807)");
   check_list_elements(lst, scm_capi_bignum_p);
 
-  TEST_ASSERT_TRUE(scm_capi_false_object_p(scm_capi_num_ge_P_lst(lst)));
+  TEST_ASSERT_SCM_FALSE(scm_capi_num_ge_P_lst(lst));
 }
 
 TEST(bignum, api_num_ge_P_lst__equal)
@@ -856,7 +834,7 @@ TEST(bignum, api_num_ge_P_lst__equal)
   lst = read_cstr("(9223372036854775807 4611686018427387904 4611686018427387904)");
   check_list_elements(lst, scm_capi_bignum_p);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_capi_num_ge_P_lst(lst)));
+  TEST_ASSERT_SCM_TRUE(scm_capi_num_ge_P_lst(lst));
 }
 
 TEST(bignum, api_num_ge_P_lst__greater)
@@ -868,7 +846,7 @@ TEST(bignum, api_num_ge_P_lst__greater)
   lst = read_cstr("(9223372036854775807 4611686018427387904 -4611686018427387905)");
   check_list_elements(lst, scm_capi_bignum_p);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_capi_num_ge_P_lst(lst)));
+  TEST_ASSERT_SCM_TRUE(scm_capi_num_ge_P_lst(lst));
 }
 
 IGNORE_TEST(bignum, capi_zero_p__return_true)
@@ -904,7 +882,7 @@ IGNORE_TEST(bignum, api_zero_P__return_true)
   bn = read_cstr("0");
   TEST_ASSERT_TRUE(scm_capi_bignum_p(bn));
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_zero_P(bn)));
+  TEST_ASSERT_SCM_TRUE(scm_api_zero_P(bn));
 }
 
 IGNORE_TEST(bignum, api_zero_P__return_false)
@@ -916,7 +894,7 @@ IGNORE_TEST(bignum, api_zero_P__return_false)
   bn = read_cstr("-1");
   TEST_ASSERT_TRUE(scm_capi_bignum_p(bn));
 
-  TEST_ASSERT_TRUE(scm_capi_false_object_p(scm_api_zero_P(bn)));
+  TEST_ASSERT_SCM_FALSE(scm_api_zero_P(bn));
 }
 
 TEST(bignum, capi_positive_p__return_true)
@@ -952,7 +930,7 @@ TEST(bignum, api_positive_P__return_true)
   bn = scm_capi_make_number_from_sword(SCM_FIXNUM_MAX + 1);
   TEST_ASSERT_TRUE(scm_capi_bignum_p(bn));
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_positive_P(bn)));
+  TEST_ASSERT_SCM_TRUE(scm_api_positive_P(bn));
 }
 
 TEST(bignum, api_positive_P__return_false)
@@ -964,7 +942,7 @@ TEST(bignum, api_positive_P__return_false)
   bn = scm_capi_make_number_from_sword(SCM_FIXNUM_MIN - 1);
   TEST_ASSERT_TRUE(scm_capi_bignum_p(bn));
 
-  TEST_ASSERT_TRUE(scm_capi_false_object_p(scm_api_positive_P(bn)));
+  TEST_ASSERT_SCM_FALSE(scm_api_positive_P(bn));
 }
 
 TEST(bignum, capi_negative_p__return_true)
@@ -1000,7 +978,7 @@ TEST(bignum, api_negative_P__return_true)
   bn = scm_capi_make_number_from_sword(SCM_FIXNUM_MIN - 1);
   TEST_ASSERT_TRUE(scm_capi_bignum_p(bn));
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_negative_P(bn)));
+  TEST_ASSERT_SCM_TRUE(scm_api_negative_P(bn));
 }
 
 TEST(bignum, api_negative_P__return_false)
@@ -1012,7 +990,7 @@ TEST(bignum, api_negative_P__return_false)
   bn = scm_capi_make_number_from_sword(SCM_FIXNUM_MAX + 1);
   TEST_ASSERT_TRUE(scm_capi_bignum_p(bn));
 
-  TEST_ASSERT_TRUE(scm_capi_false_object_p(scm_api_negative_P(bn)));
+  TEST_ASSERT_SCM_FALSE(scm_api_negative_P(bn));
 }
 
 TEST(bignum, capi_odd_p__return_true)
@@ -1048,7 +1026,7 @@ TEST(bignum, api_odd_P__return_true)
   bn = scm_capi_make_number_from_sword(SCM_FIXNUM_MIN - 1);
   TEST_ASSERT_TRUE(scm_capi_bignum_p(bn));
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_odd_P(bn)));
+  TEST_ASSERT_SCM_TRUE(scm_api_odd_P(bn));
 }
 
 TEST(bignum, api_odd_P__return_false)
@@ -1060,7 +1038,7 @@ TEST(bignum, api_odd_P__return_false)
   bn = scm_capi_make_number_from_sword(SCM_FIXNUM_MIN - 2);
   TEST_ASSERT_TRUE(scm_capi_bignum_p(bn));
 
-  TEST_ASSERT_TRUE(scm_capi_false_object_p(scm_api_odd_P(bn)));
+  TEST_ASSERT_SCM_FALSE(scm_api_odd_P(bn));
 }
 
 
@@ -1099,7 +1077,7 @@ TEST(bignum, api_even_P__return_true)
   bn = scm_capi_make_number_from_sword(SCM_FIXNUM_MIN - 2);
   TEST_ASSERT_TRUE(scm_capi_bignum_p(bn));
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_even_P(bn)));
+  TEST_ASSERT_SCM_TRUE(scm_api_even_P(bn));
 }
 
 TEST(bignum, api_even_P__return_false)
@@ -1111,7 +1089,7 @@ TEST(bignum, api_even_P__return_false)
   bn = scm_capi_make_number_from_sword(SCM_FIXNUM_MIN - 1);
   TEST_ASSERT_TRUE(scm_capi_bignum_p(bn));
 
-  TEST_ASSERT_TRUE(scm_capi_false_object_p(scm_api_even_P(bn)));
+  TEST_ASSERT_SCM_FALSE(scm_api_even_P(bn));
 }
 
 TEST(bignum, api_max__first)
@@ -1127,7 +1105,7 @@ TEST(bignum, api_max__first)
 
   actual = scm_api_max(bn1, bn2);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_num_eq_P(bn1, actual)));
+  TEST_ASSERT_SCM_TRUE(scm_api_num_eq_P(bn1, actual));
 }
 
 TEST(bignum, api_max__second)
@@ -1143,7 +1121,7 @@ TEST(bignum, api_max__second)
 
   actual = scm_api_max(bn1, bn2);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_num_eq_P(bn2, actual)));
+  TEST_ASSERT_SCM_TRUE(scm_api_num_eq_P(bn2, actual));
 }
 
 TEST(bignum, api_max__same)
@@ -1159,7 +1137,7 @@ TEST(bignum, api_max__same)
 
   actual = scm_api_max(bn1, bn2);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_num_eq_P(bn1, actual)));
+  TEST_ASSERT_SCM_TRUE(scm_api_num_eq_P(bn1, actual));
 }
 
 TEST(bignum, capi_max_lst)
@@ -1174,7 +1152,7 @@ TEST(bignum, capi_max_lst)
 
   actual = scm_capi_max_lst(lst);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_num_eq_P(expected, actual)));
+  TEST_ASSERT_SCM_TRUE(scm_api_num_eq_P(expected, actual));
 }
 
 TEST(bignum, api_min__first)
@@ -1190,7 +1168,7 @@ TEST(bignum, api_min__first)
 
   actual = scm_api_min(bn1, bn2);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_num_eq_P(bn1, actual)));
+  TEST_ASSERT_SCM_TRUE(scm_api_num_eq_P(bn1, actual));
 }
 
 TEST(bignum, api_min__second)
@@ -1206,7 +1184,7 @@ TEST(bignum, api_min__second)
 
   actual = scm_api_min(bn1, bn2);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_num_eq_P(bn2, actual)));
+  TEST_ASSERT_SCM_TRUE(scm_api_num_eq_P(bn2, actual));
 }
 
 TEST(bignum, api_min__same)
@@ -1222,7 +1200,7 @@ TEST(bignum, api_min__same)
 
   actual = scm_api_min(bn1, bn2);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_num_eq_P(bn1, actual)));
+  TEST_ASSERT_SCM_TRUE(scm_api_num_eq_P(bn1, actual));
 }
 
 TEST(bignum, capi_min_lst)
@@ -1237,7 +1215,7 @@ TEST(bignum, capi_min_lst)
 
   actual = scm_capi_min_lst(lst);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_num_eq_P(expected, actual)));
+  TEST_ASSERT_SCM_TRUE(scm_api_num_eq_P(expected, actual));
 }
 
 TEST(bignum, api_plus__1)
@@ -1255,7 +1233,7 @@ TEST(bignum, api_plus__1)
 
   actual = scm_api_plus(bn1, bn2);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_num_eq_P(expected, actual)));
+  TEST_ASSERT_SCM_TRUE(scm_api_num_eq_P(expected, actual));
 }
 
 TEST(bignum, api_plus__2)
@@ -1273,7 +1251,7 @@ TEST(bignum, api_plus__2)
 
   actual = scm_api_plus(bn1, bn2);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_num_eq_P(expected, actual)));
+  TEST_ASSERT_SCM_TRUE(scm_api_num_eq_P(expected, actual));
 }
 
 TEST(bignum, api_plus__3)
@@ -1291,7 +1269,7 @@ TEST(bignum, api_plus__3)
 
   actual = scm_api_plus(bn1, bn2);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_num_eq_P(expected, actual)));
+  TEST_ASSERT_SCM_TRUE(scm_api_num_eq_P(expected, actual));
 }
 
 TEST(bignum, api_plus__4)
@@ -1309,7 +1287,7 @@ TEST(bignum, api_plus__4)
 
   actual = scm_api_plus(bn1, bn2);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_num_eq_P(expected, actual)));
+  TEST_ASSERT_SCM_TRUE(scm_api_num_eq_P(expected, actual));
 }
 
 TEST(bignum, capi_plus_lst)
@@ -1324,7 +1302,7 @@ TEST(bignum, capi_plus_lst)
 
   actual = scm_capi_plus_lst(lst);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_num_eq_P(expected, actual)));
+  TEST_ASSERT_SCM_TRUE(scm_api_num_eq_P(expected, actual));
 }
 
 TEST(bignum, api_mul__1)
@@ -1342,7 +1320,7 @@ TEST(bignum, api_mul__1)
 
   actual = scm_api_mul(bn1, bn2);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_num_eq_P(expected, actual)));
+  TEST_ASSERT_SCM_TRUE(scm_api_num_eq_P(expected, actual));
 }
 
 TEST(bignum, api_mul__2)
@@ -1360,7 +1338,7 @@ TEST(bignum, api_mul__2)
 
   actual = scm_api_mul(bn1, bn2);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_num_eq_P(expected, actual)));
+  TEST_ASSERT_SCM_TRUE(scm_api_num_eq_P(expected, actual));
 }
 
 TEST(bignum, api_mul__3)
@@ -1378,7 +1356,7 @@ TEST(bignum, api_mul__3)
 
   actual = scm_api_mul(bn1, bn2);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_num_eq_P(expected, actual)));
+  TEST_ASSERT_SCM_TRUE(scm_api_num_eq_P(expected, actual));
 }
 
 TEST(bignum, api_mul__4)
@@ -1396,7 +1374,7 @@ TEST(bignum, api_mul__4)
 
   actual = scm_api_mul(bn1, bn2);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_num_eq_P(expected, actual)));
+  TEST_ASSERT_SCM_TRUE(scm_api_num_eq_P(expected, actual));
 }
 
 TEST(bignum, capi_mul_lst)
@@ -1411,7 +1389,7 @@ TEST(bignum, capi_mul_lst)
 
   actual = scm_capi_mul_lst(lst);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_num_eq_P(expected, actual)));
+  TEST_ASSERT_SCM_TRUE(scm_api_num_eq_P(expected, actual));
 }
 
 TEST(bignum, api_minus__1)
@@ -1429,7 +1407,7 @@ TEST(bignum, api_minus__1)
 
   actual = scm_api_minus(bn1, bn2);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_num_eq_P(expected, actual)));
+  TEST_ASSERT_SCM_TRUE(scm_api_num_eq_P(expected, actual));
 }
 
 TEST(bignum, api_minus__2)
@@ -1447,7 +1425,7 @@ TEST(bignum, api_minus__2)
 
   actual = scm_api_minus(bn1, bn2);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_num_eq_P(expected, actual)));
+  TEST_ASSERT_SCM_TRUE(scm_api_num_eq_P(expected, actual));
 }
 
 TEST(bignum, api_minus__3)
@@ -1465,7 +1443,7 @@ TEST(bignum, api_minus__3)
 
   actual = scm_api_minus(bn1, bn2);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_num_eq_P(expected, actual)));
+  TEST_ASSERT_SCM_TRUE(scm_api_num_eq_P(expected, actual));
 }
 
 TEST(bignum, api_minus__4)
@@ -1483,7 +1461,7 @@ TEST(bignum, api_minus__4)
 
   actual = scm_api_minus(bn1, bn2);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_num_eq_P(expected, actual)));
+  TEST_ASSERT_SCM_TRUE(scm_api_num_eq_P(expected, actual));
 }
 
 TEST(bignum, capi_minus_lst)
@@ -1498,7 +1476,7 @@ TEST(bignum, capi_minus_lst)
 
   actual = scm_capi_minus_lst(lst);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_num_eq_P(expected, actual)));
+  TEST_ASSERT_SCM_TRUE(scm_api_num_eq_P(expected, actual));
 }
 
 TEST(bignum, api_abs__positive)
@@ -1512,7 +1490,7 @@ TEST(bignum, api_abs__positive)
 
   actual = scm_api_abs(bn);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_num_eq_P(bn, actual)));
+  TEST_ASSERT_SCM_TRUE(scm_api_num_eq_P(bn, actual));
 }
 
 TEST(bignum, api_abs__negative)
@@ -1527,7 +1505,7 @@ TEST(bignum, api_abs__negative)
 
   actual = scm_api_abs(bn);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_num_eq_P(expected, actual)));
+  TEST_ASSERT_SCM_TRUE(scm_api_num_eq_P(expected, actual));
 }
 
 TEST(bignum, capi_floor_div__1)
@@ -1551,8 +1529,8 @@ TEST(bignum, capi_floor_div__1)
                                               SCM_CSETTER_L(quo),
                                               SCM_CSETTER_L(rem)));
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_num_eq_P(expected_quo, quo)));
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_num_eq_P(expected_rem, rem)));
+  TEST_ASSERT_SCM_TRUE(scm_api_num_eq_P(expected_quo, quo));
+  TEST_ASSERT_SCM_TRUE(scm_api_num_eq_P(expected_rem, rem));
 }
 
 TEST(bignum, capi_floor_div__2)
@@ -1576,8 +1554,8 @@ TEST(bignum, capi_floor_div__2)
                                               SCM_CSETTER_L(quo),
                                               SCM_CSETTER_L(rem)));
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_num_eq_P(expected_quo, quo)));
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_num_eq_P(expected_rem, rem)));
+  TEST_ASSERT_SCM_TRUE(scm_api_num_eq_P(expected_quo, quo));
+  TEST_ASSERT_SCM_TRUE(scm_api_num_eq_P(expected_rem, rem));
 }
 
 TEST(bignum, capi_floor_div__3)
@@ -1601,8 +1579,8 @@ TEST(bignum, capi_floor_div__3)
                                               SCM_CSETTER_L(quo),
                                               SCM_CSETTER_L(rem)));
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_num_eq_P(expected_quo, quo)));
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_num_eq_P(expected_rem, rem)));
+  TEST_ASSERT_SCM_TRUE(scm_api_num_eq_P(expected_quo, quo));
+  TEST_ASSERT_SCM_TRUE(scm_api_num_eq_P(expected_rem, rem));
 }
 
 TEST(bignum, capi_floor_div__4)
@@ -1626,8 +1604,8 @@ TEST(bignum, capi_floor_div__4)
                                               SCM_CSETTER_L(quo),
                                               SCM_CSETTER_L(rem)));
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_num_eq_P(expected_quo, quo)));
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_num_eq_P(expected_rem, rem)));
+  TEST_ASSERT_SCM_TRUE(scm_api_num_eq_P(expected_quo, quo));
+  TEST_ASSERT_SCM_TRUE(scm_api_num_eq_P(expected_rem, rem));
 }
 
 TEST(bignum, capi_floor_div__division_by_zero)
@@ -1667,8 +1645,8 @@ TEST(bignum, capi_truncate_div__1)
                                                  SCM_CSETTER_L(quo),
                                                  SCM_CSETTER_L(rem)));
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_num_eq_P(expected_quo, quo)));
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_num_eq_P(expected_rem, rem)));
+  TEST_ASSERT_SCM_TRUE(scm_api_num_eq_P(expected_quo, quo));
+  TEST_ASSERT_SCM_TRUE(scm_api_num_eq_P(expected_rem, rem));
 }
 
 TEST(bignum, capi_truncate_div__2)
@@ -1692,8 +1670,8 @@ TEST(bignum, capi_truncate_div__2)
                                                  SCM_CSETTER_L(quo),
                                                  SCM_CSETTER_L(rem)));
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_num_eq_P(expected_quo, quo)));
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_num_eq_P(expected_rem, rem)));
+  TEST_ASSERT_SCM_TRUE(scm_api_num_eq_P(expected_quo, quo));
+  TEST_ASSERT_SCM_TRUE(scm_api_num_eq_P(expected_rem, rem));
 }
 
 TEST(bignum, capi_truncate_div__3)
@@ -1717,8 +1695,8 @@ TEST(bignum, capi_truncate_div__3)
                                                  SCM_CSETTER_L(quo),
                                                  SCM_CSETTER_L(rem)));
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_num_eq_P(expected_quo, quo)));
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_num_eq_P(expected_rem, rem)));
+  TEST_ASSERT_SCM_TRUE(scm_api_num_eq_P(expected_quo, quo));
+  TEST_ASSERT_SCM_TRUE(scm_api_num_eq_P(expected_rem, rem));
 }
 
 TEST(bignum, capi_truncate_div__4)
@@ -1742,8 +1720,8 @@ TEST(bignum, capi_truncate_div__4)
                                                  SCM_CSETTER_L(quo),
                                                  SCM_CSETTER_L(rem)));
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_num_eq_P(expected_quo, quo)));
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_num_eq_P(expected_rem, rem)));
+  TEST_ASSERT_SCM_TRUE(scm_api_num_eq_P(expected_quo, quo));
+  TEST_ASSERT_SCM_TRUE(scm_api_num_eq_P(expected_rem, rem));
 }
 
 TEST(bignum, capi_truncate_div__division_by_zero)

@@ -1,4 +1,4 @@
-#include "unity_fixture.h"
+#include "test.h"
 
 #include "object.h"
 #include "api.h"
@@ -16,28 +16,6 @@ TEST_SETUP(vectors)
 TEST_TEAR_DOWN(vectors)
 {
   scm_capi_evaluator_end(ev);
-}
-
-static ScmObj
-read_cstr(const char *str)
-{
-  ScmObj port = SCM_OBJ_INIT;
-
-  port = scm_capi_open_input_string_from_cstr(str, SCM_ENC_ASCII);
-  return scm_api_read(port);
-}
-
-static void
-debug_print_obj(ScmObj obj)
-{
-  ScmObj port = SCM_OBJ_INIT;
-
-  SCM_STACK_FRAME_PUSH(&obj,
-                       &port);
-
-  port = scm_api_standard_output_port();
-  scm_api_write(obj, port);
-  scm_api_newline(port);
 }
 
 TEST(vectors, capi_vector_p__return_true)
@@ -69,17 +47,17 @@ TEST(vectors, api_vector_P__return_true)
 
   vec = read_cstr("#(a b c)");
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_vector_P(vec)));
+  TEST_ASSERT_SCM_TRUE(scm_api_vector_P(vec));
 }
 
 TEST(vectors, api_vector_P__return_false)
 {
-  TEST_ASSERT_TRUE(scm_capi_false_object_p(scm_api_vector_P(SCM_EOF_OBJ)));
+  TEST_ASSERT_SCM_FALSE(scm_api_vector_P(SCM_EOF_OBJ));
 }
 
 TEST(vectors, api_vector_P__return_ERROR)
 {
-  TEST_ASSERT_TRUE(scm_obj_null_p(scm_api_vector_P(SCM_OBJ_NULL)));
+  TEST_ASSERT_SCM_NULL(scm_api_vector_P(SCM_OBJ_NULL));
 }
 
 TEST(vectors, capi_make_vector__dont_specify_fill)
@@ -95,7 +73,7 @@ TEST(vectors, capi_make_vector__dont_specify_fill)
 
   for (size_t i = 0; i < 3; i++) {
     elm = scm_capi_vector_ref(vec, i);
-    TEST_ASSERT_TRUE(scm_capi_undef_object_p(elm));
+    TEST_ASSERT_SCM_UNDEF(elm);
   }
 }
 
@@ -113,7 +91,7 @@ TEST(vectors, capi_make_vector__specify_fill)
 
   for (size_t i = 0; i < 3; i++) {
     elm = scm_capi_vector_ref(vec, i);
-    TEST_ASSERT_TRUE(scm_capi_eq_p(fill, elm));
+    TEST_ASSERT_SCM_EQ(fill, elm);
   }
 }
 
@@ -128,12 +106,12 @@ TEST(vectors, capi_vector_lst)
 
   actual = scm_capi_vector_lst(lst);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
 }
 
 TEST(vectors, capi_vector_lst__return_ERROR)
 {
-  TEST_ASSERT_TRUE(scm_obj_null_p(scm_capi_vector_lst(SCM_OBJ_NULL)));
+  TEST_ASSERT_SCM_NULL(scm_capi_vector_lst(SCM_OBJ_NULL));
 }
 
 TEST(vectors, capi_vector_cv)
@@ -151,7 +129,7 @@ TEST(vectors, capi_vector_cv)
 
   actual = scm_capi_vector_cv(elm, sizeof(elm)/sizeof(elm[0]));
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
 }
 
 TEST(vectors, capi_vector_cv__empty)
@@ -164,7 +142,7 @@ TEST(vectors, capi_vector_cv__empty)
 
   actual = scm_capi_vector_cv(NULL, 0);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
 }
 
 TEST(vectors, capi_vector_cv__return_ERROR)
@@ -178,7 +156,7 @@ TEST(vectors, capi_vector_cv__return_ERROR)
   elm[1] = SCM_OBJ_NULL;
   elm[2] = read_cstr("c");
 
-  TEST_ASSERT_TRUE(scm_obj_null_p(scm_capi_vector_cv(elm, sizeof(elm)/sizeof(elm[0]))));
+  TEST_ASSERT_SCM_NULL(scm_capi_vector_cv(elm, sizeof(elm)/sizeof(elm[0])));
 }
 
 TEST(vectors, capi_vector)
@@ -196,7 +174,7 @@ TEST(vectors, capi_vector)
 
   actual = scm_capi_vector(3, elm[0], elm[1], elm[2]);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
 }
 
 TEST(vectors, capi_vector__empty)
@@ -209,7 +187,7 @@ TEST(vectors, capi_vector__empty)
 
   actual = scm_capi_vector(0);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
 }
 
 TEST(vectors, capi_vector__return_ERROR)
@@ -223,7 +201,7 @@ TEST(vectors, capi_vector__return_ERROR)
   elm[1] = SCM_OBJ_NULL;;
   elm[2] = read_cstr("c");
 
-  TEST_ASSERT_TRUE(scm_obj_null_p(scm_capi_vector(3, elm[0], elm[1], elm[2])));
+  TEST_ASSERT_SCM_NULL(scm_capi_vector(3, elm[0], elm[1], elm[2]));
 }
 
 TEST(vectors, capi_vector_length)
@@ -253,12 +231,12 @@ TEST(vectors, api_vector_length)
 
   actual = scm_api_vector_length(vec);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_num_eq_P(expected, actual)));
+  TEST_ASSERT_SCM_TRUE(scm_api_num_eq_P(expected, actual));
 }
 
 TEST(vectors, vector_length__return_ERROR)
 {
-  TEST_ASSERT_TRUE(scm_obj_null_p(scm_api_vector_length(SCM_TRUE_OBJ)));
+  TEST_ASSERT_SCM_NULL(scm_api_vector_length(SCM_TRUE_OBJ));
 }
 
 TEST(vectors, capi_vector_ref)
@@ -272,7 +250,7 @@ TEST(vectors, capi_vector_ref)
 
   actual = scm_capi_vector_ref(vec, 1);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
 }
 
 TEST(vectors, capi_vector_ref__out_of_range__return_ERROR)
@@ -283,12 +261,12 @@ TEST(vectors, capi_vector_ref__out_of_range__return_ERROR)
 
   vec = read_cstr("#(a b c)");
 
-  TEST_ASSERT_TRUE(scm_obj_null_p(scm_capi_vector_ref(vec, 3)));
+  TEST_ASSERT_SCM_NULL(scm_capi_vector_ref(vec, 3));
 }
 
 TEST(vectors, capi_vector_ref__return_ERROR)
 {
-  TEST_ASSERT_TRUE(scm_obj_null_p(scm_capi_vector_ref(SCM_FALSE_OBJ, 0)));
+  TEST_ASSERT_SCM_NULL(scm_capi_vector_ref(SCM_FALSE_OBJ, 0));
 }
 
 TEST(vectors, api_vector_ref)
@@ -304,7 +282,7 @@ TEST(vectors, api_vector_ref)
 
   actual = scm_api_vector_ref(vec, num);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
 }
 
 TEST(vectors, api_vector_ref__out_of_range__return_ERROR)
@@ -316,7 +294,7 @@ TEST(vectors, api_vector_ref__out_of_range__return_ERROR)
   vec = read_cstr("#(a b c)");
   num = read_cstr("3");
 
-  TEST_ASSERT_TRUE(scm_obj_null_p(scm_api_vector_ref(vec, num)));
+  TEST_ASSERT_SCM_NULL(scm_api_vector_ref(vec, num));
 }
 
 TEST(vectors, api_vector_ref__return_ERROR)
@@ -327,7 +305,7 @@ TEST(vectors, api_vector_ref__return_ERROR)
 
   num = read_cstr("0");
 
-  TEST_ASSERT_TRUE(scm_obj_null_p(scm_api_vector_ref(SCM_FALSE_OBJ, num)));
+  TEST_ASSERT_SCM_NULL(scm_api_vector_ref(SCM_FALSE_OBJ, num));
 }
 
 TEST(vectors, capi_vector_set_i)
@@ -343,7 +321,7 @@ TEST(vectors, capi_vector_set_i)
 
   TEST_ASSERT_EQUAL_INT(0, scm_capi_vector_set_i(vec, 1, elm));
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, vec)));
+  TEST_ASSERT_SCM_EQUAL(expected, vec);
 }
 
 TEST(vectors, capi_vector_set_i__out_of_range__return_ERROR)
@@ -393,9 +371,9 @@ TEST(vectors, api_vector_set_i)
   num = read_cstr("1");
   expected = read_cstr("#(a z c)");
 
-  TEST_ASSERT_TRUE(scm_capi_undef_object_p(scm_api_vector_set_i(vec, num, elm)));
+  TEST_ASSERT_SCM_UNDEF(scm_api_vector_set_i(vec, num, elm));
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, vec)));
+  TEST_ASSERT_SCM_EQUAL(expected, vec);
 }
 
 TEST(vectors, api_vector_set_i__out_of_range__return_ERROR)
@@ -408,7 +386,7 @@ TEST(vectors, api_vector_set_i__out_of_range__return_ERROR)
   elm = read_cstr("z");
   num = read_cstr("3");
 
-  TEST_ASSERT_TRUE(scm_obj_null_p(scm_api_vector_set_i(vec, num, elm)));
+  TEST_ASSERT_SCM_NULL(scm_api_vector_set_i(vec, num, elm));
 }
 
 TEST(vectors, api_vector_set_i__set_SCM_OBJ_NULL__return_ERROR)
@@ -421,7 +399,7 @@ TEST(vectors, api_vector_set_i__set_SCM_OBJ_NULL__return_ERROR)
   elm = SCM_OBJ_NULL;
   num = read_cstr("1");
 
-  TEST_ASSERT_TRUE(scm_obj_null_p(scm_api_vector_set_i(vec, num, elm)));
+  TEST_ASSERT_SCM_NULL(scm_api_vector_set_i(vec, num, elm));
 }
 
 TEST(vectors, api_vector_set_i__return_ERROR)
@@ -433,7 +411,7 @@ TEST(vectors, api_vector_set_i__return_ERROR)
   elm = read_cstr("z");
   num = read_cstr("0");
 
-  TEST_ASSERT_TRUE(scm_obj_null_p(scm_api_vector_set_i(SCM_TRUE_OBJ, num, elm)));
+  TEST_ASSERT_SCM_NULL(scm_api_vector_set_i(SCM_TRUE_OBJ, num, elm));
 }
 
 TEST(vectors, capi_vector_to_list__unspecify_start_end)
@@ -447,7 +425,7 @@ TEST(vectors, capi_vector_to_list__unspecify_start_end)
 
   actual = scm_capi_vector_to_list(vec, -1, -1);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
 }
 
 TEST(vectors, capi_vector_to_list__specify_start)
@@ -461,7 +439,7 @@ TEST(vectors, capi_vector_to_list__specify_start)
 
   actual = scm_capi_vector_to_list(vec, 1, -1);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
 }
 
 TEST(vectors, capi_vector_to_list__specify_start_end)
@@ -475,7 +453,7 @@ TEST(vectors, capi_vector_to_list__specify_start_end)
 
   actual = scm_capi_vector_to_list(vec, 1, 4);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
 }
 
 TEST(vectors, capi_vector_to_list__same_idx__return_empty_list)
@@ -489,7 +467,7 @@ TEST(vectors, capi_vector_to_list__same_idx__return_empty_list)
 
   actual = scm_capi_vector_to_list(vec, 1, 1);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
 }
 
 TEST(vectors, capi_vector_to_list__start_greater_then_end__return_ERROR)
@@ -500,7 +478,7 @@ TEST(vectors, capi_vector_to_list__start_greater_then_end__return_ERROR)
 
   vec = read_cstr("#(a b c d e)");
 
-  TEST_ASSERT_TRUE(scm_obj_null_p(scm_capi_vector_to_list(vec, 3, 2)));
+  TEST_ASSERT_SCM_NULL(scm_capi_vector_to_list(vec, 3, 2));
 }
 
 TEST(vectors, capi_vector_to_list__out_of_range__return_ERROR)
@@ -511,7 +489,7 @@ TEST(vectors, capi_vector_to_list__out_of_range__return_ERROR)
 
   vec = read_cstr("#(a b c d e)");
 
-  TEST_ASSERT_TRUE(scm_obj_null_p(scm_capi_vector_to_list(vec, 1, 6)));
+  TEST_ASSERT_SCM_NULL(scm_capi_vector_to_list(vec, 1, 6));
 }
 
 TEST(vectors, api_vector_to_list__unspecify_start_end)
@@ -525,7 +503,7 @@ TEST(vectors, api_vector_to_list__unspecify_start_end)
 
   actual = scm_api_vector_to_list(vec, SCM_OBJ_NULL, SCM_OBJ_NULL);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
 }
 
 TEST(vectors, api_vector_to_list__specify_start)
@@ -541,7 +519,7 @@ TEST(vectors, api_vector_to_list__specify_start)
 
   actual = scm_api_vector_to_list(vec, start, SCM_OBJ_NULL);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
 }
 
 TEST(vectors, api_vector_to_list__specify_start_end)
@@ -558,7 +536,7 @@ TEST(vectors, api_vector_to_list__specify_start_end)
 
   actual = scm_api_vector_to_list(vec, start, end);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
 }
 
 TEST(vectors, api_vector_to_list__same_idx__return_empty_list)
@@ -575,7 +553,7 @@ TEST(vectors, api_vector_to_list__same_idx__return_empty_list)
 
   actual = scm_api_vector_to_list(vec, start, end);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
 }
 
 TEST(vectors, api_vector_to_list__start_greater_then_end__return_ERROR)
@@ -588,7 +566,7 @@ TEST(vectors, api_vector_to_list__start_greater_then_end__return_ERROR)
   start = read_cstr("3");
   end = read_cstr("2");
 
-  TEST_ASSERT_TRUE(scm_obj_null_p(scm_api_vector_to_list(vec, start, end)));
+  TEST_ASSERT_SCM_NULL(scm_api_vector_to_list(vec, start, end));
 }
 
 TEST(vectors, api_vector_to_list__out_of_range__return_ERROR)
@@ -601,7 +579,7 @@ TEST(vectors, api_vector_to_list__out_of_range__return_ERROR)
   start = read_cstr("1");
   end = read_cstr("6");
 
-  TEST_ASSERT_TRUE(scm_obj_null_p(scm_api_vector_to_list(vec, start, end)));
+  TEST_ASSERT_SCM_NULL(scm_api_vector_to_list(vec, start, end));
 }
 
 TEST(vectors, api_list_to_vector)
@@ -615,7 +593,7 @@ TEST(vectors, api_list_to_vector)
 
   actual = scm_api_list_to_vector(lst);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
 }
 
 TEST(vectors, api_list_to_vector__empty_list)
@@ -629,7 +607,7 @@ TEST(vectors, api_list_to_vector__empty_list)
 
   actual = scm_api_list_to_vector(lst);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
 }
 
 TEST(vectors, api_list_to_vector__not_list__return_empty_vector)
@@ -642,7 +620,7 @@ TEST(vectors, api_list_to_vector__not_list__return_empty_vector)
 
   actual = scm_api_list_to_vector(SCM_TRUE_OBJ);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
 }
 
 TEST(vectors, api_list_to_vector__return_ERROR)
@@ -651,7 +629,7 @@ TEST(vectors, api_list_to_vector__return_ERROR)
 
   SCM_STACK_FRAME_PUSH(&lst);
 
-  TEST_ASSERT_TRUE(scm_obj_null_p(scm_api_list_to_vector(SCM_OBJ_NULL)));
+  TEST_ASSERT_SCM_NULL(scm_api_list_to_vector(SCM_OBJ_NULL));
 }
 
 TEST(vectors, capi_vector_to_string__unspecify_start_end)
@@ -665,7 +643,7 @@ TEST(vectors, capi_vector_to_string__unspecify_start_end)
 
   actual = scm_capi_vector_to_string(vec, -1, -1);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
 }
 
 TEST(vectors, capi_vector_to_string__specify_start)
@@ -679,7 +657,7 @@ TEST(vectors, capi_vector_to_string__specify_start)
 
   actual = scm_capi_vector_to_string(vec, 1, -1);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
 }
 
 TEST(vectors, capi_vector_to_string__specify_start_end)
@@ -693,7 +671,7 @@ TEST(vectors, capi_vector_to_string__specify_start_end)
 
   actual = scm_capi_vector_to_string(vec, 1, 4);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
 }
 
 TEST(vectors, capi_vector_to_string__same_idx__return_empty_string)
@@ -707,7 +685,7 @@ TEST(vectors, capi_vector_to_string__same_idx__return_empty_string)
 
   actual = scm_capi_vector_to_string(vec, 1, 1);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
 }
 
 TEST(vectors, capi_vector_to_string__start_greater_then_end__return_ERROR)
@@ -718,7 +696,7 @@ TEST(vectors, capi_vector_to_string__start_greater_then_end__return_ERROR)
 
   vec = read_cstr("#(#\\a #\\b #\\c #\\d #\\e)");
 
-  TEST_ASSERT_TRUE(scm_obj_null_p(scm_capi_vector_to_string(vec, 3, 2)));
+  TEST_ASSERT_SCM_NULL(scm_capi_vector_to_string(vec, 3, 2));
 }
 
 TEST(vectors, capi_vector_to_string__vector_has_item_is_not_char__return_ERROR)
@@ -729,7 +707,7 @@ TEST(vectors, capi_vector_to_string__vector_has_item_is_not_char__return_ERROR)
 
   vec = read_cstr("#(#\\a #\\b c #\\d #\\e)");
 
-  TEST_ASSERT_TRUE(scm_obj_null_p(scm_capi_vector_to_string(vec, -1, -1)));
+  TEST_ASSERT_SCM_NULL(scm_capi_vector_to_string(vec, -1, -1));
 }
 
 TEST(vectors, capi_vector_to_string__out_of_range__return_ERROR)
@@ -740,7 +718,7 @@ TEST(vectors, capi_vector_to_string__out_of_range__return_ERROR)
 
   vec = read_cstr("#(#\\a #\\b #\\c #\\d #\\e)");
 
-  TEST_ASSERT_TRUE(scm_obj_null_p(scm_capi_vector_to_string(vec, 1, 6)));
+  TEST_ASSERT_SCM_NULL(scm_capi_vector_to_string(vec, 1, 6));
 }
 
 TEST(vectors, api_vector_to_string__unspecify_start_end)
@@ -754,7 +732,7 @@ TEST(vectors, api_vector_to_string__unspecify_start_end)
 
   actual = scm_api_vector_to_string(vec, SCM_OBJ_NULL, SCM_OBJ_NULL);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
 }
 
 TEST(vectors, api_vector_to_string__specify_start)
@@ -770,7 +748,7 @@ TEST(vectors, api_vector_to_string__specify_start)
 
   actual = scm_api_vector_to_string(vec, start, SCM_OBJ_INIT);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
 }
 
 TEST(vectors, api_vector_to_string__specify_start_end)
@@ -787,7 +765,7 @@ TEST(vectors, api_vector_to_string__specify_start_end)
 
   actual = scm_api_vector_to_string(vec, start, end);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
 }
 
 TEST(vectors, api_vector_to_string__same_idx__return_empty_string)
@@ -804,7 +782,7 @@ TEST(vectors, api_vector_to_string__same_idx__return_empty_string)
 
   actual = scm_api_vector_to_string(vec, start, end);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
 }
 
 TEST(vectors, api_vector_to_string__start_greater_then_end__return_ERROR)
@@ -817,7 +795,7 @@ TEST(vectors, api_vector_to_string__start_greater_then_end__return_ERROR)
   start = read_cstr("3");
   end = read_cstr("2");
 
-  TEST_ASSERT_TRUE(scm_obj_null_p(scm_api_vector_to_string(vec, start, end)));
+  TEST_ASSERT_SCM_NULL(scm_api_vector_to_string(vec, start, end));
 }
 
 TEST(vectors, api_vector_to_string__vector_has_item_is_not_char__return_ERROR)
@@ -828,7 +806,7 @@ TEST(vectors, api_vector_to_string__vector_has_item_is_not_char__return_ERROR)
 
   vec = read_cstr("#(#\\a #\\b c #\\d #\\e)");
 
-  TEST_ASSERT_TRUE(scm_obj_null_p(scm_api_vector_to_string(vec, SCM_OBJ_NULL, SCM_OBJ_NULL)));
+  TEST_ASSERT_SCM_NULL(scm_api_vector_to_string(vec, SCM_OBJ_NULL, SCM_OBJ_NULL));
 }
 
 TEST(vectors, api_vector_to_string__out_of_range__return_ERROR)
@@ -841,7 +819,7 @@ TEST(vectors, api_vector_to_string__out_of_range__return_ERROR)
   start = read_cstr("1");
   end = read_cstr("6");
 
-  TEST_ASSERT_TRUE(scm_obj_null_p(scm_api_vector_to_string(vec, start, end)));
+  TEST_ASSERT_SCM_NULL(scm_api_vector_to_string(vec, start, end));
 }
 
 TEST(vectors, capi_string_to_vector__unspecify_start_end)
@@ -855,7 +833,7 @@ TEST(vectors, capi_string_to_vector__unspecify_start_end)
 
   actual = scm_capi_string_to_vector(str, -1, -1);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
 }
 
 TEST(vectors, capi_string_to_vector__specify_start)
@@ -869,7 +847,7 @@ TEST(vectors, capi_string_to_vector__specify_start)
 
   actual = scm_capi_string_to_vector(str, 1, -1);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
 }
 
 TEST(vectors, capi_string_to_vector__specify_start_end)
@@ -883,7 +861,7 @@ TEST(vectors, capi_string_to_vector__specify_start_end)
 
   actual = scm_capi_string_to_vector(str, 1, 4);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
 }
 
 TEST(vectors, capi_string_to_vector__same_idx__return_empty_vector)
@@ -897,7 +875,7 @@ TEST(vectors, capi_string_to_vector__same_idx__return_empty_vector)
 
   actual = scm_capi_string_to_vector(str, 1, 1);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
 }
 
 TEST(vectors, capi_string_to_vector__start_greater_then_end__return_ERROR)
@@ -908,7 +886,7 @@ TEST(vectors, capi_string_to_vector__start_greater_then_end__return_ERROR)
 
   str = read_cstr("\"abcde\"");
 
-  TEST_ASSERT_TRUE(scm_obj_null_p(scm_capi_string_to_vector(str, 3, 2)));
+  TEST_ASSERT_SCM_NULL(scm_capi_string_to_vector(str, 3, 2));
 }
 
 TEST(vectors, capi_string_to_vector__out_of_range__return_ERROR)
@@ -919,7 +897,7 @@ TEST(vectors, capi_string_to_vector__out_of_range__return_ERROR)
 
   str = read_cstr("\"abcde\"");
 
-  TEST_ASSERT_TRUE(scm_obj_null_p(scm_capi_string_to_vector(str, 1, 6)));
+  TEST_ASSERT_SCM_NULL(scm_capi_string_to_vector(str, 1, 6));
 }
 
 TEST(vectors, api_string_to_vector__unspecify_start_end)
@@ -933,7 +911,7 @@ TEST(vectors, api_string_to_vector__unspecify_start_end)
 
   actual = scm_api_string_to_vector(str, SCM_OBJ_NULL, SCM_OBJ_NULL);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
 }
 
 TEST(vectors, api_string_to_vector__specify_start)
@@ -949,7 +927,7 @@ TEST(vectors, api_string_to_vector__specify_start)
 
   actual = scm_api_string_to_vector(str, start, SCM_OBJ_INIT);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
 }
 
 TEST(vectors, api_string_to_vector__specify_start_end)
@@ -966,7 +944,7 @@ TEST(vectors, api_string_to_vector__specify_start_end)
 
   actual = scm_api_string_to_vector(str, start, end);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
 }
 
 TEST(vectors, api_string_to_vector__same_idx__return_empty_vector)
@@ -983,7 +961,7 @@ TEST(vectors, api_string_to_vector__same_idx__return_empty_vector)
 
   actual = scm_api_string_to_vector(str, start, end);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
 }
 
 TEST(vectors, api_string_to_vector__start_greater_then_end__return_ERROR)
@@ -996,7 +974,7 @@ TEST(vectors, api_string_to_vector__start_greater_then_end__return_ERROR)
   start = read_cstr("3");
   end = read_cstr("2");
 
-  TEST_ASSERT_TRUE(scm_obj_null_p(scm_api_string_to_vector(str, start, end)));
+  TEST_ASSERT_SCM_NULL(scm_api_string_to_vector(str, start, end));
 }
 
 TEST(vectors, api_string_to_vector__out_of_range__return_ERROR)
@@ -1009,7 +987,7 @@ TEST(vectors, api_string_to_vector__out_of_range__return_ERROR)
   start = read_cstr("1");
   end = read_cstr("6");
 
-  TEST_ASSERT_TRUE(scm_obj_null_p(scm_api_string_to_vector(str, start, end)));
+  TEST_ASSERT_SCM_NULL(scm_api_string_to_vector(str, start, end));
 }
 
 TEST(vectors, capi_vector_copy__unspecify_start_end)
@@ -1023,7 +1001,7 @@ TEST(vectors, capi_vector_copy__unspecify_start_end)
 
   actual = scm_capi_vector_copy(vec, -1, -1);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
 }
 
 TEST(vectors, capi_vector_copy__specify_start)
@@ -1037,7 +1015,7 @@ TEST(vectors, capi_vector_copy__specify_start)
 
   actual = scm_capi_vector_copy(vec, 1, -1);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
 }
 
 TEST(vectors, capi_vector_copy__specify_start_end)
@@ -1051,7 +1029,7 @@ TEST(vectors, capi_vector_copy__specify_start_end)
 
   actual = scm_capi_vector_copy(vec, 1, 4);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
 }
 
 TEST(vectors, capi_vector_copy__same_idx__return_empty_vector)
@@ -1065,7 +1043,7 @@ TEST(vectors, capi_vector_copy__same_idx__return_empty_vector)
 
   actual = scm_capi_vector_copy(vec, 1, 1);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
 }
 
 TEST(vectors, capi_vector_copy__start_greater_then_end__return_ERROR)
@@ -1076,7 +1054,7 @@ TEST(vectors, capi_vector_copy__start_greater_then_end__return_ERROR)
 
   vec = read_cstr("#(a b c d e)");
 
-  TEST_ASSERT_TRUE(scm_obj_null_p(scm_capi_vector_copy(vec, 3, 2)));
+  TEST_ASSERT_SCM_NULL(scm_capi_vector_copy(vec, 3, 2));
 }
 
 TEST(vectors, capi_vector_copy__out_of_range__return_ERROR)
@@ -1087,7 +1065,7 @@ TEST(vectors, capi_vector_copy__out_of_range__return_ERROR)
 
   vec = read_cstr("#(a b c d e)");
 
-  TEST_ASSERT_TRUE(scm_obj_null_p(scm_capi_vector_copy(vec, 1, 6)));
+  TEST_ASSERT_SCM_NULL(scm_capi_vector_copy(vec, 1, 6));
 }
 
 TEST(vectors, api_vector_copy__unspecify_start_end)
@@ -1101,7 +1079,7 @@ TEST(vectors, api_vector_copy__unspecify_start_end)
 
   actual = scm_api_vector_copy(vec, SCM_OBJ_NULL, SCM_OBJ_NULL);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
 }
 
 TEST(vectors, api_vector_copy__specify_start)
@@ -1117,7 +1095,7 @@ TEST(vectors, api_vector_copy__specify_start)
 
   actual = scm_api_vector_copy(vec, start, SCM_OBJ_NULL);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
 }
 
 TEST(vectors, api_vector_copy__specify_start_end)
@@ -1134,7 +1112,7 @@ TEST(vectors, api_vector_copy__specify_start_end)
 
   actual = scm_api_vector_copy(vec, start, end);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
 }
 
 TEST(vectors, api_vector_copy__same_idx__return_empty_vector)
@@ -1151,7 +1129,7 @@ TEST(vectors, api_vector_copy__same_idx__return_empty_vector)
 
   actual = scm_api_vector_copy(vec, start, end);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
 }
 
 TEST(vectors, api_vector_copy__start_greater_then_end__return_ERROR)
@@ -1164,7 +1142,7 @@ TEST(vectors, api_vector_copy__start_greater_then_end__return_ERROR)
   start = read_cstr("3");
   end = read_cstr("2");
 
-  TEST_ASSERT_TRUE(scm_obj_null_p(scm_api_vector_copy(vec, start, end)));
+  TEST_ASSERT_SCM_NULL(scm_api_vector_copy(vec, start, end));
 }
 
 TEST(vectors, api_vector_copy__out_of_range__return_ERROR)
@@ -1177,7 +1155,7 @@ TEST(vectors, api_vector_copy__out_of_range__return_ERROR)
   start = read_cstr("1");
   end = read_cstr("6");
 
-  TEST_ASSERT_TRUE(scm_obj_null_p(scm_api_vector_copy(vec, start, end)));
+  TEST_ASSERT_SCM_NULL(scm_api_vector_copy(vec, start, end));
 }
 
 TEST(vectors, capi_vector_copy_i__unspecify_start_end)
@@ -1192,7 +1170,7 @@ TEST(vectors, capi_vector_copy_i__unspecify_start_end)
 
   TEST_ASSERT_EQUAL_INT(0, scm_capi_vector_copy_i(to, 1, from, -1, -1));
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, to)));
+  TEST_ASSERT_SCM_EQUAL(expected, to);
 }
 
 TEST(vectors, capi_vector_copy_i__specify_start)
@@ -1207,7 +1185,7 @@ TEST(vectors, capi_vector_copy_i__specify_start)
 
   TEST_ASSERT_EQUAL_INT(0, scm_capi_vector_copy_i(to, 1, from, 2, -1));
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, to)));
+  TEST_ASSERT_SCM_EQUAL(expected, to);
 }
 
 TEST(vectors, capi_vector_copy_i__specify_start_end)
@@ -1222,7 +1200,7 @@ TEST(vectors, capi_vector_copy_i__specify_start_end)
 
   TEST_ASSERT_EQUAL_INT(0, scm_capi_vector_copy_i(to, 1, from, 2, 4));
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, to)));
+  TEST_ASSERT_SCM_EQUAL(expected, to);
 }
 
 TEST(vectors, capi_vector_copy_i__same_idx)
@@ -1237,7 +1215,7 @@ TEST(vectors, capi_vector_copy_i__same_idx)
 
   TEST_ASSERT_EQUAL_INT(0, scm_capi_vector_copy_i(to, 1, from, 2, 2));
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, to)));
+  TEST_ASSERT_SCM_EQUAL(expected, to);
 }
 
 TEST(vectors, capi_vector_copy_i__overlap_1)
@@ -1251,7 +1229,7 @@ TEST(vectors, capi_vector_copy_i__overlap_1)
 
   TEST_ASSERT_EQUAL_INT(0, scm_capi_vector_copy_i(to, 1, to, 2, 4));
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, to)));
+  TEST_ASSERT_SCM_EQUAL(expected, to);
 }
 
 TEST(vectors, capi_vector_copy_i__overlap_2)
@@ -1265,7 +1243,7 @@ TEST(vectors, capi_vector_copy_i__overlap_2)
 
   TEST_ASSERT_EQUAL_INT(0, scm_capi_vector_copy_i(to, 2, to, 1, 3));
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, to)));
+  TEST_ASSERT_SCM_EQUAL(expected, to);
 }
 
 TEST(vectors, capi_vector_copy_i__start_greater_then_end__return_ERROR)
@@ -1280,7 +1258,7 @@ TEST(vectors, capi_vector_copy_i__start_greater_then_end__return_ERROR)
 
   TEST_ASSERT_EQUAL_INT(-1, scm_capi_vector_copy_i(to, 1, from, 3, 2));
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, to)));
+  TEST_ASSERT_SCM_EQUAL(expected, to);
 }
 
 TEST(vectors, capi_vector_copy_i__too_many_objects_to_be_copied___return_ERROR)
@@ -1295,7 +1273,7 @@ TEST(vectors, capi_vector_copy_i__too_many_objects_to_be_copied___return_ERROR)
 
   TEST_ASSERT_EQUAL_INT(-1, scm_capi_vector_copy_i(to, 2, from, 1, 5));
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, to)));
+  TEST_ASSERT_SCM_EQUAL(expected, to);
 }
 
 TEST(vectors, capi_vector_copy_i__at_out_of_range___return_ERROR)
@@ -1310,7 +1288,7 @@ TEST(vectors, capi_vector_copy_i__at_out_of_range___return_ERROR)
 
   TEST_ASSERT_EQUAL_INT(-1, scm_capi_vector_copy_i(to, 5, from, -1, -1));
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, to)));
+  TEST_ASSERT_SCM_EQUAL(expected, to);
 }
 
 TEST(vectors, capi_vector_copy_i__start_out_of_range___return_ERROR)
@@ -1325,7 +1303,7 @@ TEST(vectors, capi_vector_copy_i__start_out_of_range___return_ERROR)
 
   TEST_ASSERT_EQUAL_INT(-1, scm_capi_vector_copy_i(to, 1, from, 5, -1));
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, to)));
+  TEST_ASSERT_SCM_EQUAL(expected, to);
 }
 
 TEST(vectors, capi_vector_copy_i__end_out_of_range___return_ERROR)
@@ -1340,7 +1318,7 @@ TEST(vectors, capi_vector_copy_i__end_out_of_range___return_ERROR)
 
   TEST_ASSERT_EQUAL_INT(-1, scm_capi_vector_copy_i(to, 1, from, 3, 6));
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, to)));
+  TEST_ASSERT_SCM_EQUAL(expected, to);
 }
 
 
@@ -1359,9 +1337,9 @@ TEST(vectors, api_vector_copy_i__unspecify_start_end)
   at = read_cstr("1");
   expected = read_cstr("#(1 a b c d)");
 
-  TEST_ASSERT_TRUE(scm_capi_undef_object_p(scm_api_vector_copy_i(to, at, from, SCM_OBJ_NULL, SCM_OBJ_NULL)));
+  TEST_ASSERT_SCM_UNDEF(scm_api_vector_copy_i(to, at, from, SCM_OBJ_NULL, SCM_OBJ_NULL));
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, to)));
+  TEST_ASSERT_SCM_EQUAL(expected, to);
 }
 
 TEST(vectors, api_vector_copy_i__specify_start)
@@ -1377,9 +1355,9 @@ TEST(vectors, api_vector_copy_i__specify_start)
   start = read_cstr("2");
   expected = read_cstr("#(1 c d e 5)");
 
-  TEST_ASSERT_TRUE(scm_capi_undef_object_p(scm_api_vector_copy_i(to, at, from, start, SCM_OBJ_NULL)));
+  TEST_ASSERT_SCM_UNDEF(scm_api_vector_copy_i(to, at, from, start, SCM_OBJ_NULL));
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, to)));
+  TEST_ASSERT_SCM_EQUAL(expected, to);
 }
 
 TEST(vectors, api_vector_copy_i__specify_start_end)
@@ -1396,9 +1374,9 @@ TEST(vectors, api_vector_copy_i__specify_start_end)
   end = read_cstr("4");
   expected = read_cstr("#(1 c d 4 5)");
 
-  TEST_ASSERT_TRUE(scm_capi_undef_object_p(scm_api_vector_copy_i(to, at, from, start, end)));
+  TEST_ASSERT_SCM_UNDEF(scm_api_vector_copy_i(to, at, from, start, end));
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, to)));
+  TEST_ASSERT_SCM_EQUAL(expected, to);
 }
 
 TEST(vectors, api_vector_copy_i__same_idx)
@@ -1415,9 +1393,9 @@ TEST(vectors, api_vector_copy_i__same_idx)
   end = read_cstr("2");
   expected = read_cstr("#(1 2 3 4 5)");
 
-  TEST_ASSERT_TRUE(scm_capi_undef_object_p(scm_api_vector_copy_i(to, at, from, start, end)));
+  TEST_ASSERT_SCM_UNDEF(scm_api_vector_copy_i(to, at, from, start, end));
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, to)));
+  TEST_ASSERT_SCM_EQUAL(expected, to);
 }
 
 TEST(vectors, api_vector_copy_i__overlap_1)
@@ -1433,9 +1411,9 @@ TEST(vectors, api_vector_copy_i__overlap_1)
   end = read_cstr("4");
   expected = read_cstr("#(1 3 4 4 5)");
 
-  TEST_ASSERT_TRUE(scm_capi_undef_object_p(scm_api_vector_copy_i(to, at, to, start, end)));
+  TEST_ASSERT_SCM_UNDEF(scm_api_vector_copy_i(to, at, to, start, end));
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, to)));
+  TEST_ASSERT_SCM_EQUAL(expected, to);
 }
 
 TEST(vectors, api_vector_copy_i__overlap_2)
@@ -1451,9 +1429,9 @@ TEST(vectors, api_vector_copy_i__overlap_2)
   end = read_cstr("3");
   expected = read_cstr("#(1 2 2 3 5)");
 
-  TEST_ASSERT_TRUE(scm_capi_undef_object_p(scm_api_vector_copy_i(to, at, to, start, end)));
+  TEST_ASSERT_SCM_UNDEF(scm_api_vector_copy_i(to, at, to, start, end));
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, to)));
+  TEST_ASSERT_SCM_EQUAL(expected, to);
 }
 
 TEST(vectors, api_vector_copy_i__start_greater_then_end__return_ERROR)
@@ -1470,9 +1448,9 @@ TEST(vectors, api_vector_copy_i__start_greater_then_end__return_ERROR)
   end = read_cstr("2");
   expected = read_cstr("#(1 2 3 4 5)");
 
-  TEST_ASSERT_TRUE(scm_obj_null_p(scm_api_vector_copy_i(to, at, from, start, end)));
+  TEST_ASSERT_SCM_NULL(scm_api_vector_copy_i(to, at, from, start, end));
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, to)));
+  TEST_ASSERT_SCM_EQUAL(expected, to);
 }
 
 TEST(vectors, api_vector_copy_i__too_many_objects_to_be_copied___return_ERROR)
@@ -1489,9 +1467,9 @@ TEST(vectors, api_vector_copy_i__too_many_objects_to_be_copied___return_ERROR)
   end = read_cstr("5");
   expected = read_cstr("#(1 2 3 4 5)");
 
-  TEST_ASSERT_TRUE(scm_obj_null_p(scm_api_vector_copy_i(to, at, from, start, end)));
+  TEST_ASSERT_SCM_NULL(scm_api_vector_copy_i(to, at, from, start, end));
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, to)));
+  TEST_ASSERT_SCM_EQUAL(expected, to);
 }
 
 TEST(vectors, api_vector_copy_i__at_out_of_range___return_ERROR)
@@ -1506,9 +1484,9 @@ TEST(vectors, api_vector_copy_i__at_out_of_range___return_ERROR)
   at = read_cstr("5");
   expected = read_cstr("#(1 2 3 4 5)");
 
-  TEST_ASSERT_TRUE(scm_obj_null_p(scm_api_vector_copy_i(to, at, from, SCM_OBJ_NULL, SCM_OBJ_NULL)));
+  TEST_ASSERT_SCM_NULL(scm_api_vector_copy_i(to, at, from, SCM_OBJ_NULL, SCM_OBJ_NULL));
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, to)));
+  TEST_ASSERT_SCM_EQUAL(expected, to);
 }
 
 TEST(vectors, api_vector_copy_i__start_out_of_range___return_ERROR)
@@ -1524,9 +1502,9 @@ TEST(vectors, api_vector_copy_i__start_out_of_range___return_ERROR)
   start = read_cstr("5");
   expected = read_cstr("#(1 2 3 4 5)");
 
-  TEST_ASSERT_TRUE(scm_obj_null_p(scm_api_vector_copy_i(to, at, from, start, SCM_OBJ_NULL)));
+  TEST_ASSERT_SCM_NULL(scm_api_vector_copy_i(to, at, from, start, SCM_OBJ_NULL));
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, to)));
+  TEST_ASSERT_SCM_EQUAL(expected, to);
 }
 
 TEST(vectors, api_vector_copy_i__end_out_of_range___return_ERROR)
@@ -1543,9 +1521,9 @@ TEST(vectors, api_vector_copy_i__end_out_of_range___return_ERROR)
   end = read_cstr("6");
   expected = read_cstr("#(1 2 3 4 5)");
 
-  TEST_ASSERT_TRUE(scm_obj_null_p(scm_api_vector_copy_i(to, at, from, start, end)));
+  TEST_ASSERT_SCM_NULL(scm_api_vector_copy_i(to, at, from, start, end));
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, to)));
+  TEST_ASSERT_SCM_EQUAL(expected, to);
 }
 
 TEST(vectors, capi_vector_append_lst)
@@ -1559,7 +1537,7 @@ TEST(vectors, capi_vector_append_lst)
 
   actual = scm_capi_vector_append_lst(lst);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
 }
 
 TEST(vectors, capi_vector_append_lst__empty_lst)
@@ -1573,7 +1551,7 @@ TEST(vectors, capi_vector_append_lst__empty_lst)
 
   actual = scm_capi_vector_append_lst(lst);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
 }
 
 TEST(vectors, capi_vector_append_lst__arg_is_not_list)
@@ -1587,7 +1565,7 @@ TEST(vectors, capi_vector_append_lst__arg_is_not_list)
 
   actual = scm_capi_vector_append_lst(lst);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
 }
 
 TEST(vectors, capi_vector_append_lst__list_has_object_is_not_vector__return_ERROR)
@@ -1598,7 +1576,7 @@ TEST(vectors, capi_vector_append_lst__list_has_object_is_not_vector__return_ERRO
 
   lst = read_cstr("(#(a b c) def #(g h i))");
 
-  TEST_ASSERT_TRUE(scm_obj_null_p(scm_capi_vector_append_lst(lst)));
+  TEST_ASSERT_SCM_NULL(scm_capi_vector_append_lst(lst));
 }
 
 TEST(vectors, capi_vector_append_cv)
@@ -1616,7 +1594,7 @@ TEST(vectors, capi_vector_append_cv)
 
   actual = scm_capi_vector_append_cv(vec, sizeof(vec)/sizeof(vec[0]));
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
 }
 
 TEST(vectors, capi_vector_append_cv__empty)
@@ -1629,7 +1607,7 @@ TEST(vectors, capi_vector_append_cv__empty)
 
   actual = scm_capi_vector_append_cv(NULL, 0);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
 }
 
 TEST(vectors, capi_vector_append_cv__return_ERROR)
@@ -1644,7 +1622,7 @@ TEST(vectors, capi_vector_append_cv__return_ERROR)
   vec[1] = SCM_OBJ_NULL;
   vec[2] = read_cstr("#(g h i)");
 
-  TEST_ASSERT_TRUE(scm_obj_null_p(scm_capi_vector_append_cv(vec, sizeof(vec)/sizeof(vec[0]))));
+  TEST_ASSERT_SCM_NULL(scm_capi_vector_append_cv(vec, sizeof(vec)/sizeof(vec[0])));
 }
 
 TEST(vectors, capi_vector_append)
@@ -1661,7 +1639,7 @@ TEST(vectors, capi_vector_append)
 
   actual = scm_capi_vector_append(3, v1, v2, v3);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
 }
 
 TEST(vectors, capi_vector_append__empty)
@@ -1674,7 +1652,7 @@ TEST(vectors, capi_vector_append__empty)
 
   actual = scm_capi_vector_append(0);
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
 }
 
 TEST(vectors, capi_vector_append__return_ERROR)
@@ -1689,7 +1667,7 @@ TEST(vectors, capi_vector_append__return_ERROR)
   v3 = read_cstr("#(g h i)");
   expected = read_cstr("#(a b c d e f g h i)");
 
-  TEST_ASSERT_TRUE(scm_obj_null_p(scm_capi_vector_append(3, v1, v2, v3)));
+  TEST_ASSERT_SCM_NULL(scm_capi_vector_append(3, v1, v2, v3));
 }
 
 TEST(vectors, capi_vector_fill_i__unspecify_start_end)
@@ -1704,7 +1682,7 @@ TEST(vectors, capi_vector_fill_i__unspecify_start_end)
 
   TEST_ASSERT_EQUAL_INT(0, scm_capi_vector_fill_i(vec, fill, -1, -1));
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, vec)));
+  TEST_ASSERT_SCM_EQUAL(expected, vec);
 }
 
 TEST(vectors, capi_vector_fill_i__specify_start)
@@ -1719,7 +1697,7 @@ TEST(vectors, capi_vector_fill_i__specify_start)
 
   TEST_ASSERT_EQUAL_INT(0, scm_capi_vector_fill_i(vec, fill, 1, -1));
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, vec)));
+  TEST_ASSERT_SCM_EQUAL(expected, vec);
 }
 
 TEST(vectors, capi_vector_fill_i__specify_start_end)
@@ -1734,7 +1712,7 @@ TEST(vectors, capi_vector_fill_i__specify_start_end)
 
   TEST_ASSERT_EQUAL_INT(0, scm_capi_vector_fill_i(vec, fill, 1, 4));
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, vec)));
+  TEST_ASSERT_SCM_EQUAL(expected, vec);
 }
 
 TEST(vectors, capi_vector_fill_i__same_idx)
@@ -1749,7 +1727,7 @@ TEST(vectors, capi_vector_fill_i__same_idx)
 
   TEST_ASSERT_EQUAL_INT(0, scm_capi_vector_fill_i(vec, fill, 1, 1));
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, vec)));
+  TEST_ASSERT_SCM_EQUAL(expected, vec);
 }
 
 TEST(vectors, capi_vector_fill_i__start_greater_than_end__return_ERROR)
@@ -1764,7 +1742,7 @@ TEST(vectors, capi_vector_fill_i__start_greater_than_end__return_ERROR)
 
   TEST_ASSERT_EQUAL_INT(-1, scm_capi_vector_fill_i(vec, fill, 2, 1));
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, vec)));
+  TEST_ASSERT_SCM_EQUAL(expected, vec);
 }
 
 TEST(vectors, capi_vector_fill_i__start_out_of_range__return_ERROR)
@@ -1779,7 +1757,7 @@ TEST(vectors, capi_vector_fill_i__start_out_of_range__return_ERROR)
 
   TEST_ASSERT_EQUAL_INT(-1, scm_capi_vector_fill_i(vec, fill, 5, -1));
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, vec)));
+  TEST_ASSERT_SCM_EQUAL(expected, vec);
 }
 
 TEST(vectors, capi_vector_fill_i__end_out_of_range__return_ERROR)
@@ -1794,7 +1772,7 @@ TEST(vectors, capi_vector_fill_i__end_out_of_range__return_ERROR)
 
   TEST_ASSERT_EQUAL_INT(-1, scm_capi_vector_fill_i(vec, fill, -1, 6));
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, vec)));
+  TEST_ASSERT_SCM_EQUAL(expected, vec);
 }
 
 TEST(vectors, capi_vector_fill_i__return_ERROR)
@@ -1809,7 +1787,7 @@ TEST(vectors, capi_vector_fill_i__return_ERROR)
 
   TEST_ASSERT_EQUAL_INT(-1, scm_capi_vector_fill_i(vec, fill, -1, -1));
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, vec)));
+  TEST_ASSERT_SCM_EQUAL(expected, vec);
 }
 
 TEST(vectors, api_vector_fill_i__unspecify_start_end)
@@ -1822,9 +1800,9 @@ TEST(vectors, api_vector_fill_i__unspecify_start_end)
   fill = read_cstr("z");
   expected = read_cstr("#(z z z z z)");
 
-  TEST_ASSERT_TRUE(scm_capi_undef_object_p(scm_api_vector_fill_i(vec, fill, SCM_OBJ_NULL, SCM_OBJ_NULL)));
+  TEST_ASSERT_SCM_UNDEF(scm_api_vector_fill_i(vec, fill, SCM_OBJ_NULL, SCM_OBJ_NULL));
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, vec)));
+  TEST_ASSERT_SCM_EQUAL(expected, vec);
 }
 
 TEST(vectors, api_vector_fill_i__specify_start)
@@ -1839,9 +1817,9 @@ TEST(vectors, api_vector_fill_i__specify_start)
   start = read_cstr("1");
   expected = read_cstr("#(a z z z z)");
 
-  TEST_ASSERT_TRUE(scm_capi_undef_object_p(scm_api_vector_fill_i(vec, fill, start, SCM_OBJ_NULL)));
+  TEST_ASSERT_SCM_UNDEF(scm_api_vector_fill_i(vec, fill, start, SCM_OBJ_NULL));
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, vec)));
+  TEST_ASSERT_SCM_EQUAL(expected, vec);
 }
 
 TEST(vectors, api_vector_fill_i__specify_start_end)
@@ -1857,9 +1835,9 @@ TEST(vectors, api_vector_fill_i__specify_start_end)
   end = read_cstr("4");
   expected = read_cstr("#(a z z z e)");
 
-  TEST_ASSERT_TRUE(scm_capi_undef_object_p(scm_api_vector_fill_i(vec, fill, start, end)));
+  TEST_ASSERT_SCM_UNDEF(scm_api_vector_fill_i(vec, fill, start, end));
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, vec)));
+  TEST_ASSERT_SCM_EQUAL(expected, vec);
 }
 
 TEST(vectors, api_vector_fill_i__same_idx)
@@ -1875,9 +1853,9 @@ TEST(vectors, api_vector_fill_i__same_idx)
   end = read_cstr("1");
   expected = read_cstr("#(a b c d e)");
 
-  TEST_ASSERT_TRUE(scm_capi_undef_object_p(scm_api_vector_fill_i(vec, fill, start, end)));
+  TEST_ASSERT_SCM_UNDEF(scm_api_vector_fill_i(vec, fill, start, end));
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, vec)));
+  TEST_ASSERT_SCM_EQUAL(expected, vec);
 }
 
 TEST(vectors, api_vector_fill_i__start_greater_than_end__return_ERROR)
@@ -1893,9 +1871,9 @@ TEST(vectors, api_vector_fill_i__start_greater_than_end__return_ERROR)
   end = read_cstr("1");
   expected = read_cstr("#(a b c d e)");
 
-  TEST_ASSERT_TRUE(scm_obj_null_p(scm_api_vector_fill_i(vec, fill, start, end)));
+  TEST_ASSERT_SCM_NULL(scm_api_vector_fill_i(vec, fill, start, end));
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, vec)));
+  TEST_ASSERT_SCM_EQUAL(expected, vec);
 }
 
 TEST(vectors, api_vector_fill_i__start_out_of_range__return_ERROR)
@@ -1911,9 +1889,9 @@ TEST(vectors, api_vector_fill_i__start_out_of_range__return_ERROR)
   end = SCM_OBJ_NULL;
   expected = read_cstr("#(a b c d e)");
 
-  TEST_ASSERT_TRUE(scm_obj_null_p(scm_api_vector_fill_i(vec, fill, start, end)));
+  TEST_ASSERT_SCM_NULL(scm_api_vector_fill_i(vec, fill, start, end));
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, vec)));
+  TEST_ASSERT_SCM_EQUAL(expected, vec);
 }
 
 TEST(vectors, api_vector_fill_i__end_out_of_range__return_ERROR)
@@ -1929,9 +1907,9 @@ TEST(vectors, api_vector_fill_i__end_out_of_range__return_ERROR)
   end = read_cstr("6");
   expected = read_cstr("#(a b c d e)");
 
-  TEST_ASSERT_TRUE(scm_obj_null_p(scm_api_vector_fill_i(vec, fill, start, end)));
+  TEST_ASSERT_SCM_NULL(scm_api_vector_fill_i(vec, fill, start, end));
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, vec)));
+  TEST_ASSERT_SCM_EQUAL(expected, vec);
 }
 
 TEST(vectors, api_vector_fill_i__return_ERROR)
@@ -1944,7 +1922,7 @@ TEST(vectors, api_vector_fill_i__return_ERROR)
   fill = SCM_OBJ_NULL;
   expected = read_cstr("#(a b c d e)");
 
-  TEST_ASSERT_TRUE(scm_obj_null_p(scm_api_vector_fill_i(vec, fill, SCM_OBJ_NULL, SCM_OBJ_NULL)));
+  TEST_ASSERT_SCM_NULL(scm_api_vector_fill_i(vec, fill, SCM_OBJ_NULL, SCM_OBJ_NULL));
 
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(scm_api_equal_P(expected, vec)));
+  TEST_ASSERT_SCM_EQUAL(expected, vec);
 }

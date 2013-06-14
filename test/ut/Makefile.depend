@@ -1,53 +1,55 @@
-test_module.o: test_module.c ../unity/src/unity_fixture.h \
+test_module.o: test_module.c test.h ../unity/src/unity_fixture.h \
  ../unity/src/unity.h ../unity/src/unity_internals.h \
  ../unity/src/unity_fixture_malloc_overrides.h \
  ../unity/src/unity_fixture_internals.h ../../src/object.h \
  ../../src/impl_utils.h ../../src/api.h ../../src/object.h \
  ../../src/reference.h ../../src/encoding.h ../../src/api_enum.h \
  ../../src/api_type.h
-test_pair_and_lists.o: test_pair_and_lists.c ../unity/src/unity_fixture.h \
+test_pair_and_lists.o: test_pair_and_lists.c test.h \
+ ../unity/src/unity_fixture.h ../unity/src/unity.h \
+ ../unity/src/unity_internals.h \
+ ../unity/src/unity_fixture_malloc_overrides.h \
+ ../unity/src/unity_fixture_internals.h ../../src/object.h \
+ ../../src/impl_utils.h ../../src/api.h ../../src/object.h \
+ ../../src/reference.h ../../src/encoding.h ../../src/api_enum.h \
+ ../../src/api_type.h
+test_strings.o: test_strings.c test.h ../unity/src/unity_fixture.h \
  ../unity/src/unity.h ../unity/src/unity_internals.h \
  ../unity/src/unity_fixture_malloc_overrides.h \
  ../unity/src/unity_fixture_internals.h ../../src/object.h \
  ../../src/impl_utils.h ../../src/api.h ../../src/object.h \
  ../../src/reference.h ../../src/encoding.h ../../src/api_enum.h \
  ../../src/api_type.h
-test_strings.o: test_strings.c ../unity/src/unity_fixture.h \
+test_characters.o: test_characters.c test.h ../unity/src/unity_fixture.h \
  ../unity/src/unity.h ../unity/src/unity_internals.h \
  ../unity/src/unity_fixture_malloc_overrides.h \
  ../unity/src/unity_fixture_internals.h ../../src/object.h \
  ../../src/impl_utils.h ../../src/api.h ../../src/object.h \
  ../../src/reference.h ../../src/encoding.h ../../src/api_enum.h \
  ../../src/api_type.h
-test_characters.o: test_characters.c ../unity/src/unity_fixture.h \
+test_symbols.o: test_symbols.c test.h ../unity/src/unity_fixture.h \
  ../unity/src/unity.h ../unity/src/unity_internals.h \
  ../unity/src/unity_fixture_malloc_overrides.h \
  ../unity/src/unity_fixture_internals.h ../../src/object.h \
  ../../src/impl_utils.h ../../src/api.h ../../src/object.h \
  ../../src/reference.h ../../src/encoding.h ../../src/api_enum.h \
  ../../src/api_type.h
-test_symbols.o: test_symbols.c ../unity/src/unity_fixture.h \
+test_equivalence.o: test_equivalence.c test.h \
+ ../unity/src/unity_fixture.h ../unity/src/unity.h \
+ ../unity/src/unity_internals.h \
+ ../unity/src/unity_fixture_malloc_overrides.h \
+ ../unity/src/unity_fixture_internals.h ../../src/object.h \
+ ../../src/impl_utils.h ../../src/api.h ../../src/object.h \
+ ../../src/reference.h ../../src/encoding.h ../../src/api_enum.h \
+ ../../src/api_type.h
+test_booleans.o: test_booleans.c test.h ../unity/src/unity_fixture.h \
  ../unity/src/unity.h ../unity/src/unity_internals.h \
  ../unity/src/unity_fixture_malloc_overrides.h \
  ../unity/src/unity_fixture_internals.h ../../src/object.h \
  ../../src/impl_utils.h ../../src/api.h ../../src/object.h \
  ../../src/reference.h ../../src/encoding.h ../../src/api_enum.h \
  ../../src/api_type.h
-test_equivalence.o: test_equivalence.c ../unity/src/unity_fixture.h \
- ../unity/src/unity.h ../unity/src/unity_internals.h \
- ../unity/src/unity_fixture_malloc_overrides.h \
- ../unity/src/unity_fixture_internals.h ../../src/object.h \
- ../../src/impl_utils.h ../../src/api.h ../../src/object.h \
- ../../src/reference.h ../../src/encoding.h ../../src/api_enum.h \
- ../../src/api_type.h
-test_booleans.o: test_booleans.c ../unity/src/unity_fixture.h \
- ../unity/src/unity.h ../unity/src/unity_internals.h \
- ../unity/src/unity_fixture_malloc_overrides.h \
- ../unity/src/unity_fixture_internals.h ../../src/object.h \
- ../../src/impl_utils.h ../../src/api.h ../../src/object.h \
- ../../src/reference.h ../../src/encoding.h ../../src/api_enum.h \
- ../../src/api_type.h
-test_fixnum.o: test_fixnum.c ../unity/src/unity_fixture.h \
+test_fixnum.o: test_fixnum.c test.h ../unity/src/unity_fixture.h \
  ../unity/src/unity.h ../unity/src/unity_internals.h \
  ../unity/src/unity_fixture_malloc_overrides.h \
  ../unity/src/unity_fixture_internals.h ../../src/object.h \
@@ -55,7 +57,7 @@ test_fixnum.o: test_fixnum.c ../unity/src/unity_fixture.h \
  ../../src/reference.h ../../src/encoding.h ../../src/api_enum.h \
  ../../src/api_type.h ../../src/number.h ../../src/number_common.h \
  ../../src/bignum.h ../../src/earray.h ../../src/api.h ../../src/fixnum.h
-test_bignum.o: test_bignum.c ../unity/src/unity_fixture.h \
+test_bignum.o: test_bignum.c test.h ../unity/src/unity_fixture.h \
  ../unity/src/unity.h ../unity/src/unity_internals.h \
  ../unity/src/unity_fixture_malloc_overrides.h \
  ../unity/src/unity_fixture_internals.h ../../src/object.h \
@@ -63,7 +65,7 @@ test_bignum.o: test_bignum.c ../unity/src/unity_fixture.h \
  ../../src/reference.h ../../src/encoding.h ../../src/api_enum.h \
  ../../src/api_type.h ../../src/number.h ../../src/number_common.h \
  ../../src/bignum.h ../../src/earray.h ../../src/api.h ../../src/fixnum.h
-test_vectors.o: test_vectors.c ../unity/src/unity_fixture.h \
+test_vectors.o: test_vectors.c test.h ../unity/src/unity_fixture.h \
  ../unity/src/unity.h ../unity/src/unity_internals.h \
  ../unity/src/unity_fixture_malloc_overrides.h \
  ../unity/src/unity_fixture_internals.h ../../src/object.h \
