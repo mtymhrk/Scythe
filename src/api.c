@@ -2500,7 +2500,7 @@ scm_capi_minus_lst(ScmObj lst)
                        &a, &d);
 
   if (scm_obj_null_p(lst) || scm_capi_nil_p(lst)) {
-    scm_capi_error("*: invalid argument", 0);
+    scm_capi_error("-: invalid argument", 0);
     return SCM_OBJ_NULL;
   }
 

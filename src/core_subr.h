@@ -52,8 +52,8 @@ int scm_subr_func_equal_P(ScmObj subr, int argc, const ScmObj *argv);
 #define SCM_SUBR_ARITY_MIN -2
 #define SCM_SUBR_ARITY_PLUS -1
 #define SCM_SUBR_ARITY_MUL -1
-#define SCM_SUBR_ARITY_MINUS -1
-#define SCM_SUBR_ARITY_DIV -1
+#define SCM_SUBR_ARITY_MINUS -2
+#define SCM_SUBR_ARITY_DIV -2
 #define SCM_SUBR_ARITY_ABS 1
 #define SCM_SUBR_ARITY_FLOOR_DIV 2
 #define SCM_SUBR_ARITY_FLOOR_QUO 2
