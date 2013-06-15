@@ -10,9 +10,15 @@ CUTTER   = cutter
 TEST_TARGET_DIR = ..
 TEST_CASE_LIB_DIR = .lib
 
-include $(TEST_TARGET_DIR)/Makefile.sources
+TEST_TARGET_SRC_ = memory.c object.c pair.c string.c symbol.c vector.c \
+                   miscobjects.c char.c charconv.c \
+                   encoding.c vm.c vmstack.c procedure.c reference.c \
+                   core_subr.c iseq.c chashtbl.c api.c \
+                   port.c parser.c assembler.c exception.c syntax.c \
+                   compiler.c module.c core_modules.c\
+                   number_common.c fixnum.c bignum.c number.c \
 
-TEST_TARGET_SRC = $(addprefix $(TEST_TARGET_DIR)/, $(SOURCES))
+TEST_TARGET_SRC = $(addprefix $(TEST_TARGET_DIR)/, $(TEST_TARGET_SRC_))
 TEST_CASE_SRC = test_pair.c test_string.c test_symbol.c test_nil.c \
                 test_vector.c test_eof.c test_bool.c test_char.c \
                 test_charconv.c test_string_utf8.c test_string_ucs4.c \

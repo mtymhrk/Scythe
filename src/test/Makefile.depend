@@ -76,8 +76,6 @@
 ../number.o: ../number.c ../object.h ../impl_utils.h ../reference.h ../api.h \
  ../encoding.h ../api_enum.h ../api_type.h ../number_common.h ../bignum.h \
  ../earray.h ../number.h ../fixnum.h
-../main.o: ../main.c ../api.h ../object.h ../impl_utils.h ../reference.h \
- ../encoding.h ../api_enum.h ../api_type.h
 test_pair.o: test_pair.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-version.h \
  /usr/local/include/cutter/cutter/cut-features.h \
