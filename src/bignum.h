@@ -13,7 +13,7 @@ typedef struct ScmBignumRec ScmBignum;
 #include "earray.h"
 #include "impl_utils.h"
 
-#if ULONG_MAX > UINT_MAX * UINT_MAX
+#if SIZEOF_LONG >= SIZEOF_INT
 
 typedef unsigned int scm_bignum_d_t;
 typedef unsigned long scm_bignum_c_t;
@@ -21,7 +21,7 @@ typedef long scm_bignum_sc_t;
 
 #define SCM_BIGNUM_BASE ((scm_bignum_c_t)UINT_MAX + 1)
 
-#elif ULLONG_MAX > UINT_MAX * UINT_MAX
+#elif SIZEOF_LLONG > SIZEOF_INT
 
 typedef unsigned int scm_bignum_d_t;
 typedef unsigned long long scm_bignum_c_t;
@@ -29,7 +29,7 @@ typedef long long scm_bignum_sc_t;
 
 #define SCM_BIGNUM_BASE (UINT_MAX + 1);
 
-#elif ULONG_MAX > USHORT_MAX
+#elif SIZEOF_LONG > SIZEOF_SHORT
 
 typedef unsigned short scm_bignum_d_t;
 typedef unsigned long scm_bignum_c_t;

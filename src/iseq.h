@@ -41,6 +41,9 @@ unsigned short scm_iseq_get_ushort(ScmObj iseq, size_t idx);
 ssize_t scm_iseq_push_uint(ScmObj iseq, unsigned int val);
 unsigned int scm_iseq_get_uint(ScmObj iseq, size_t idx);
 ssize_t scm_iseq_set_uint(ScmObj iseq, size_t idx, unsigned int val);
+ssize_t scm_iseq_push_ulong(ScmObj iseq, unsigned long val);
+unsigned long scm_iseq_get_ulong(ScmObj iseq, size_t idx);
+ssize_t scm_iseq_set_ulong(ScmObj iseq, size_t idx, unsigned long val);
 ssize_t scm_iseq_push_ullong(ScmObj iseq, unsigned long long val);
 unsigned long long scm_iseq_get_ullong(ScmObj iseq, size_t idx);
 ssize_t scm_iseq_push_obj(ScmObj iseq, ScmObj obj);
@@ -100,7 +103,7 @@ scm_iseq_fetch_uint(scm_byte_t **ip)
 
   v = scm_iseq_fetch_ushort(ip);
 
-#if UINT_MAX > USHORT_MAX
+#if SIZEOF_INT >= SIZEOF_SHORT * 2
   v |= (unsigned int)scm_iseq_fetch_ushort(ip) << SCM_SHRT_BIT;
 #endif
 
@@ -113,6 +116,20 @@ scm_iseq_fetch_int(scm_byte_t **ip)
   return (int)scm_iseq_fetch_uint(ip);
 }
 
+inline unsigned long
+scm_iseq_fetch_ulong(scm_byte_t **ip)
+{
+  unsigned long v;
+
+  v = scm_iseq_fetch_uint(ip);
+
+#if SIZEOF_LONG >= SIZEOF_INT * 2
+  v |= (unsigned long)scm_iseq_fetch_uint(ip) << SCM_INT_BIT;
+#endif
+
+  return v;
+}
+
 inline unsigned long long
 scm_iseq_fetch_ullong(scm_byte_t **ip)
 {
@@ -120,7 +137,7 @@ scm_iseq_fetch_ullong(scm_byte_t **ip)
 
   v = scm_iseq_fetch_uint(ip);
 
-#if ULLONG_MAX > UINT_MAX
+#if SIZEOF_LLONG >= SIZEOF_INT * 2
   v |= (unsigned long long)scm_iseq_fetch_uint(ip) << SCM_INT_BIT;
 #endif
 
@@ -130,10 +147,14 @@ scm_iseq_fetch_ullong(scm_byte_t **ip)
 inline ScmObj
 scm_iseq_fetch_obj(scm_byte_t **ip)
 {
-#if SCM_UWORD_MAX > UINT_MAX
-  return SCM_OBJ(scm_iseq_fetch_ullong(ip));
-#else
+#if SIZEOF_SCM_WORD_T == SIZEOF_SHORT
+  return SCM_OBJ(scm_iseq_fetch_ushort(ip));
+#elsif SIZEOF_SCM_WORD_T == SIZEOF_INT
   return SCM_OBJ(scm_iseq_fetch_uint(ip));
+#elsif SIZEOF_SCM_WORD_T == SIZEOF_LONG
+  return SCM_OBJ(scm_iseq_fetch_ulong(ip));
+#else
+  return SCM_OBJ(scm_iseq_fetch_ullong(ip));
 #endif
 }
 

@@ -38,8 +38,19 @@ scm_iseq_put_uint(scm_byte_t **ip, unsigned int val)
 {
   scm_iseq_put_ushort(ip, val & USHRT_MAX);
 
-#if UINT_MAX > USHORT_MAX
+#if SIZEOF_INT >= SIZEOF_SHORT * 2
   scm_iseq_put_ushort(ip, (unsigned short)((val >> SCM_SHRT_BIT) & USHRT_MAX));
+#endif
+}
+
+
+static inline void
+scm_iseq_put_ulong(scm_byte_t **ip, unsigned long val)
+{
+  scm_iseq_put_uint(ip, val & UINT_MAX);
+
+#if SIZEOF_LONG >= SIZEOF_INT * 2
+  scm_iseq_put_uint(ip, (unsigned int)((val >> SCM_INT_BIT) & UINT_MAX));
 #endif
 }
 
@@ -48,7 +59,7 @@ scm_iseq_put_ullong(scm_byte_t **ip, unsigned long long val)
 {
   scm_iseq_put_uint(ip, val & UINT_MAX);
 
-#if ULLONG_MAX > UINT_MAX
+#if SIZEOF_LLONG >= SIZEOF_INT * 2
   scm_iseq_put_uint(ip, (unsigned int)((val >> SCM_INT_BIT) & UINT_MAX));
 #endif
 }
@@ -181,6 +192,55 @@ scm_iseq_set_uint(ScmObj iseq, size_t idx, unsigned int val)
 }
 
 ssize_t
+scm_iseq_push_ulong(ScmObj iseq, unsigned long val)
+{
+  int err;
+  scm_byte_t *ip;
+  size_t idx;
+
+  scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
+  scm_assert(EARY_SIZE(SCM_ISEQ_EARY_SEQ(iseq))
+             <= SSIZE_MAX - sizeof(unsigned long));
+
+  idx = EARY_SIZE(SCM_ISEQ_EARY_SEQ(iseq));
+
+  EARY_SET(SCM_ISEQ_EARY_SEQ(iseq),
+           scm_byte_t, idx + sizeof(unsigned long) - 1, 0, err);
+  if (err != 0) return -1;
+
+  ip = scm_iseq_to_ip(iseq) + idx;
+  scm_iseq_put_ulong(&ip, val);
+
+  return (ssize_t)idx + (ssize_t)sizeof(unsigned long);
+}
+
+unsigned long
+scm_iseq_get_ulong(ScmObj iseq, size_t idx)
+{
+  scm_byte_t *ip;
+
+  scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
+  scm_assert(idx <= EARY_SIZE(SCM_ISEQ_EARY_SEQ(iseq)) - sizeof(unsigned long));
+
+  ip = scm_iseq_to_ip(iseq) + idx;
+  return scm_iseq_fetch_ulong(&ip);
+}
+
+ssize_t
+scm_iseq_set_ulong(ScmObj iseq, size_t idx, unsigned long val)
+{
+  scm_byte_t *ip;
+
+  scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
+  scm_assert(idx <= SCM_ISEQ_SEQ_LENGTH(iseq) - sizeof(unsigned long));
+
+  ip = scm_iseq_to_ip(iseq) + idx;
+  scm_iseq_put_ulong(&ip, val);
+
+  return (ssize_t)idx;
+}
+
+ssize_t
 scm_iseq_push_ullong(ScmObj iseq, unsigned long long val)
 {
   int err;
@@ -244,10 +304,14 @@ scm_iseq_push_obj(ScmObj iseq, ScmObj obj)
   EARY_PUSH(SCM_ISEQ_EARY_INDEX(iseq), size_t, idx, err);
   if(err != 0) return -1;
 
-#if SCM_UWORD_MAX > UINT_MAX
-  rslt = scm_iseq_push_ullong(iseq, (unsigned long long)obj);
-#else
+#if SIZEOF_SCM_WORD_T == SIZEOF_SHORT
+  rslt = scm_iseq_push_ushort(iseq, (unsigned short)obj);
+#elsif SIZEOF_SCM_WORD_T == SIZEOF_INT
   rslt = scm_iseq_push_uint(iseq, (unsigned int)obj);
+#elsif SIZEOF_SCM_WORD_T == SIZEOF_LONG
+  rslt = scm_iseq_push_ulong(iseq, (unsigned long)obj);
+#else
+  rslt = scm_iseq_push_ullong(iseq, (unsigned long long)obj);
 #endif
 
   if (rslt < 0) {
@@ -263,20 +327,28 @@ scm_iseq_push_obj(ScmObj iseq, ScmObj obj)
 ScmObj
 scm_iseq_get_obj(ScmObj iseq, size_t idx)
 {
-#if SCM_UWORD_MAX > UINT_MAX
-  return SCM_OBJ(scm_iseq_get_ullong(iseq, idx));
-#else
+#if SIZEOF_SCM_WORD_T == SIZEOF_SHORT
+  return SCM_OBJ(scm_iseq_get_ushort(iseq, idx));
+#elsif SIZEOF_SCM_WORD_T == SIZEOF_INT
   return SCM_OBJ(scm_iseq_get_uint(iseq, idx));
+#elsif SIZEOF_SCM_WORD_T == SIZEOF_LONG
+  return SCM_OBJ(scm_iseq_get_ulong(iseq, idx));
+#else
+  return SCM_OBJ(scm_iseq_get_ullong(iseq, idx));
 #endif
 }
 
 ssize_t
 scm_iseq_set_obj(ScmObj iseq, size_t idx, ScmObj val)
 {
-#if SCM_UWORD_MAX > UINT32_MAX
-  return scm_iseq_set_ullong(iseq, idx, (unsigned long long)val);
-#else
+#if SIZEOF_SCM_WORD_T == SIZEOF_SHORT
+  return scm_iseq_set_ushort(iseq, idx, (unsigned short)val);
+#elsif SIZEOF_SCM_WORD_T == SIZEOF_INT
   return scm_iseq_set_uint(iseq, idx, (unsigned int)val);
+#elsif SIZEOF_SCM_WORD_T == SIZEOF_LONG
+  return scm_iseq_set_ulong(iseq, idx, (unsigned long)val);
+#else
+  return scm_iseq_set_ullong(iseq, idx, (unsigned long long)val);
 #endif
 
   SCM_WB_EXP(iseq, /* nothing to do */);
@@ -330,11 +402,7 @@ scm_iseq_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler) /* GC OK
     if (scm_gc_ref_handler_failure_p(rslt))
       return rslt;
 
-#if SCM_UWORD_MAX > UINT32_MAX
-    scm_iseq_set_ullong(obj, idx, (unsigned long long)chld);
-#else
-    scm_iseq_set_uint(obj, idx, (unsigned int)chld);
-#endif
+    scm_iseq_set_obj(obj, idx, chld);
   }
 
   return rslt;

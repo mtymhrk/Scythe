@@ -8,6 +8,7 @@ CHECK_TYPE_SIZE("short" SIZEOF_SHORT)
 CHECK_TYPE_SIZE("int" SIZEOF_INT)
 CHECK_TYPE_SIZE("long" SIZEOF_LONG)
 CHECK_TYPE_SIZE("long long" SIZEOF_LLONG)
+CHECK_TYPE_SIZE("intptr_t" SIZEOF_INTPTR_T)
 
 
 ##===============================================================
@@ -39,12 +40,12 @@ ADD_EXECUTABLE(scythe main.c ${scythe_lib_src})
 
 ADD_CUSTOM_TARGET(
   old_test_depend
-  COMMAND make -C ${CMAKE_CURRENT_SOURCE_DIR}/test depend
+  COMMAND make -C ${CMAKE_CURRENT_SOURCE_DIR}/test EX_INCLUDES='-iquote ${CMAKE_CURRENT_BINARY_DIR}' depend
 )
 
 ADD_CUSTOM_TARGET(
   old_test_all
-  COMMAND make -C ${CMAKE_CURRENT_SOURCE_DIR}/test all
+  COMMAND make -C ${CMAKE_CURRENT_SOURCE_DIR}/test EX_INCLUDES='-iquote ${CMAKE_CURRENT_BINARY_DIR}' all
   DEPENDS old_test_depend
 )
 

@@ -8,6 +8,7 @@
 #include <assert.h>
 
 #include "impl_utils.h"
+#include "config.h"
 
 typedef uintptr_t scm_word_t;
 typedef uintptr_t scm_uword_t;
@@ -21,6 +22,7 @@ typedef signed char scm_sbyte_t;
 #define SCM_UWORD_NIN UINTPTR_MIN
 #define SCM_SWORD_MAX INTPTR_MAX
 #define SCM_SWORD_MIN INTPTR_MIN
+#define SIZEOF_SCM_WORD_T SIZEOF_INTPTR_T
 
 #define SCM_BYTE_MAX UCHAR_MAX
 #define SCM_BYTE_MIN UCHAR_MIN
@@ -28,6 +30,7 @@ typedef signed char scm_sbyte_t;
 #define SCM_UBYTE_MIN UCHAR_MIN
 #define SCM_SBYTE_MAX SCHAR_MAX
 #define SCM_SBYTE_MIN SCHAR_MIN
+#define SIZEOF_SCM_BYTE_T 1
 
 
 /** definition for ScmObj ****************************************************/

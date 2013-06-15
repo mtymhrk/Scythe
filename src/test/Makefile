@@ -5,6 +5,7 @@ CFLAGS   = -O2 -std=gnu99 -Wall -Wextra -Wformat=2 -Wstrict-aliasing=2 \
            -Wpointer-arith -Wswitch-enum -Wno-unused-parameter \
            -fPIC -g -DSCM_UNIT_TEST
 INCLUDES = -I/usr/local/include/cutter -iquote ..
+EX_INCLUDES =
 LDFLAGS  = -lcunit -g
 CUTTER   = cutter
 TEST_TARGET_DIR = ..
@@ -70,7 +71,7 @@ test_eval.so: test_eval.o $(TEST_TARGET_OBJ)
 test_eval_proc.so: test_eval_proc.o $(TEST_TARGET_OBJ)
 
 .c.o:
-	$(CC) -c -o $@ $(INCLUDES) $(CFLAGS) $<
+	$(CC) -c -o $@ $(INCLUDES) $(EX_INCLUDES) $(CFLAGS) $<
 
 %.so:
 	-if [ ! -d $(TEST_CASE_LIB_DIR) ]; then mkdir $(TEST_CASE_LIB_DIR); fi
@@ -87,9 +88,9 @@ clean:
 	-cd $(TEST_CASE_LIB_DIR); rm $(TEST_CASE_LIB)
 
 depend:
-	$(CC) -MM $(INCLUDES) $(CFLAGS) $(TEST_TARGET_SRC)  \
+	$(CC) -MM $(INCLUDES) $(EX_INCLUDES) $(CFLAGS) $(TEST_TARGET_SRC)  \
 	      | sed 's/^\([^ ]\)/$(TEST_TARGET_DIR)\/\1/' > Makefile.depend
-	$(CC) -MM $(INCLUDES) $(CFLAGS) $(TEST_CASE_SRC) >> Makefile.depend
+	$(CC) -MM $(INCLUDES) $(EX_INCLUDES) $(CFLAGS) $(TEST_CASE_SRC) >> Makefile.depend
 
 check-syntax:
 	LANG=C $(CC) -fsyntax-only $(INCLUDES) $(CFLAGS) $(CHK_SOURCES)
