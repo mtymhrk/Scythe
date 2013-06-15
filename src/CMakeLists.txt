@@ -1,8 +1,19 @@
 
 ##===============================================================
-##
+## 型サイズの取得
 
-# configure_file(configure.h.in configure.h)
+INCLUDE(CheckTypeSize)
+
+CHECK_TYPE_SIZE("short" SIZEOF_SHORT)
+CHECK_TYPE_SIZE("int" SIZEOF_INT)
+CHECK_TYPE_SIZE("long" SIZEOF_LONG)
+CHECK_TYPE_SIZE("long long" SIZEOF_LLONG)
+
+
+##===============================================================
+## config.h の生成
+
+configure_file(config.h.in config.h)
 
 
 ##===============================================================
@@ -14,7 +25,7 @@ ADD_DEFINITIONS(
   -Wpointer-arith -Wswitch-enum -Wno-unused-parameter
 )
 
-# INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
 
 
 ##===============================================================

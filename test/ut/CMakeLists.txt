@@ -6,6 +6,7 @@ SET(runner_gen_script
     ${CMAKE_SOURCE_DIR}/${unity_dir}/auto/generate_unity_fixture_runner.rb)
 SET(run_script ${CMAKE_SOURCE_DIR}/${unity_dir}/auto/invoke_runner.rb)
 
+
 ##===============================================================
 ## コンパイルオプション設定
 
@@ -15,7 +16,7 @@ ADD_DEFINITIONS(
   -Wpointer-arith -Wswitch-enum -Wno-unused-parameter -DSCM_UNIT_TEST
 )
 
-# INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/${scythe_src_path})
+INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/${scythe_src_path})
 INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/${unity_src_path})
 
 ## string.h といった C 標準のインクルードファイルとバッティングするファイル
