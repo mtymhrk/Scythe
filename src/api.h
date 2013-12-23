@@ -455,18 +455,25 @@ ScmObj scm_api_vector_fill_i(ScmObj vec, ScmObj fill, ScmObj start, ScmObj end);
 /*  Port                                                           */
 /*******************************************************************/
 
+bool scm_capi_port_p(ScmObj obj);
+ScmObj scm_api_port_P(ScmObj obj);
+bool scm_capi_input_port_p(ScmObj obj);
+ScmObj scm_api_input_port_P(ScmObj obj);
+bool scm_capi_output_port_p(ScmObj obj);
+ScmObj scm_api_output_port_P(ScmObj obj);
+bool scm_capi_textual_port_p(ScmObj obj);
+ScmObj scm_api_textual_port_P(ScmObj obj);
+bool scm_capi_binary_port_p(ScmObj obj);
+ScmObj scm_api_binary_port_P(ScmObj obj);
+int scm_capi_input_port_open_p(ScmObj port, bool *rslt);
+ScmObj scm_api_input_port_open_P(ScmObj port);
+int scm_capi_output_port_open_p(ScmObj port, bool *rslt);
+ScmObj scm_api_output_port_open_P(ScmObj port);
+
 ScmObj scm_capi_open_input_fd(int fd, SCM_PORT_BUF_T mode, const char *enc);
 ScmObj scm_capi_open_output_fd(int fd, SCM_PORT_BUF_T mode, const char *enc);
 ScmObj scm_capi_open_input_string_from_cstr(const char *str, ScmEncoding *enc);
 ScmObj scm_capi_open_output_string();
-bool scm_capi_input_port_p(ScmObj port);
-ScmObj scm_api_input_port_P(ScmObj port);
-bool scm_capi_output_port_p(ScmObj port);
-ScmObj scm_api_output_port_P(ScmObj port);
-bool scm_capi_textual_port_p(ScmObj port);
-ScmObj scm_capi_textual_port_P(ScmObj port);
-bool scm_capi_binary_port_p(ScmObj port);
-ScmObj scm_capi_binary_port_P(ScmObj port);
 const char *scm_capi_port_encoding(ScmObj port);
 int scm_api_close_input_port(ScmObj port);
 int scm_api_close_output_port(ScmObj port);
