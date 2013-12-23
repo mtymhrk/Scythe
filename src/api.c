@@ -5872,7 +5872,7 @@ scm_api_vector_fill_i(ScmObj vec, ScmObj fill, ScmObj start, ScmObj end)
 /*******************************************************************/
 
 ScmObj
-scm_capi_open_input_fd(int fd, SCM_PORT_BUF_T mode, ScmEncoding *enc)
+scm_capi_open_input_fd(int fd, SCM_PORT_BUF_T mode, const char *enc)
 {
   if (fd < 0) {
     scm_capi_error("open-input-fd: invalid file descriptor", 0);
@@ -5883,14 +5883,16 @@ scm_capi_open_input_fd(int fd, SCM_PORT_BUF_T mode, ScmEncoding *enc)
     return SCM_OBJ_NULL;
   }
 
-  if (enc == NULL)
-    enc = scm_capi_system_encoding();
+  if (enc == NULL) {
+    ScmEncoding *e = scm_enc_locale_to_enc();
+    enc = scm_enc_name(e);
+  }
 
   return scm_port_open_input_fd(fd, mode, enc);
 }
 
 ScmObj
-scm_capi_open_output_fd(int fd, SCM_PORT_BUF_T mode, ScmEncoding *enc)
+scm_capi_open_output_fd(int fd, SCM_PORT_BUF_T mode, const char *enc)
 {
   if (fd < 0) {
     scm_capi_error("open-output-fd: invalid file descriptor", 0);
@@ -5901,8 +5903,10 @@ scm_capi_open_output_fd(int fd, SCM_PORT_BUF_T mode, ScmEncoding *enc)
     return SCM_OBJ_NULL;
   }
 
-  if (enc == NULL)
-    enc = scm_capi_system_encoding();
+  if (enc == NULL) {
+    ScmEncoding *e = scm_enc_locale_to_enc();
+    enc = scm_enc_name(e);
+  }
 
   return scm_port_open_output_fd(fd, mode, enc);
 }
@@ -5910,19 +5914,19 @@ scm_capi_open_output_fd(int fd, SCM_PORT_BUF_T mode, ScmEncoding *enc)
 ScmObj
 scm_capi_open_input_string_from_cstr(const char *str, ScmEncoding *enc)
 {
-  if (enc == NULL)
+  if (enc == NULL) {
     enc = scm_capi_system_encoding();
+  }
 
-  return scm_port_open_input_string(str, (str == NULL)? 0 : strlen(str), enc);
+  return scm_port_open_input_string(str,
+                                    (str == NULL)? 0 : strlen(str),
+                                    scm_enc_name(enc));
 }
 
 ScmObj
-scm_capi_open_output_string(ScmEncoding *enc)
+scm_capi_open_output_string(void)
 {
-  if (enc == NULL)
-    enc = scm_capi_system_encoding();
-
-  return scm_port_open_output_string(enc);
+  return scm_port_open_output_string();
 }
 
 extern inline bool
@@ -6033,7 +6037,7 @@ scm_capi_binary_port_P(ScmObj port)
     return SCM_FALSE_OBJ;
 }
 
-ScmEncoding *
+const char *
 scm_capi_port_encoding(ScmObj port)
 {
   if (scm_obj_null_p(port)) {
@@ -6045,7 +6049,7 @@ scm_capi_port_encoding(ScmObj port)
     return NULL;                  /* provisional implemntation */
   }
 
-  return scm_port_encoding(port);
+  return scm_port_external_enc(port);
 }
 
 int
@@ -6337,7 +6341,7 @@ scm_api_write_char(ScmObj chr, ScmObj port)
     return SCM_OBJ_NULL;
   }
 
-  p_enc = scm_port_encoding(port);
+  p_enc = scm_port_internal_enc(port);
   c_enc = scm_char_encoding(chr);
 
   if (p_enc != c_enc) {
@@ -6378,7 +6382,7 @@ scm_api_write_string(ScmObj str, ScmObj port)
     return SCM_OBJ_NULL;
   }
 
-  p_enc = scm_port_encoding(port);
+  p_enc = scm_port_internal_enc(port);
   s_enc = scm_string_encoding(str);
 
   if (p_enc != s_enc) {
@@ -6479,7 +6483,7 @@ scm_api_newline(ScmObj port)
     return SCM_OBJ_NULL;
   }
 
-  enc = scm_port_encoding(port);
+  enc = scm_port_internal_enc(port);
   scm_enc_chr_lf(enc, &nl, &w);
   rslt = scm_capi_write_bin(nl.bytes, w, enc, port);
   if (rslt < 0) return SCM_OBJ_NULL;
@@ -6559,7 +6563,7 @@ scm_api_get_output_string(ScmObj port)
   s = scm_port_string_buffer_length(port);
   if (s < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
-  e = scm_port_encoding(port);
+  e = scm_port_internal_enc(port);
 
   return scm_capi_make_string_from_bin(p, (size_t)s, e);
 }

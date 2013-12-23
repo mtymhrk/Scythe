@@ -37,7 +37,7 @@ typedef union {
 /***********************************************************************/
 
 struct ScmEncodingRec {
-  const char *iconv_name;
+  const char * const *names;
   struct {
     struct { scm_char_t c; size_t w; } lf;
     struct { scm_char_t c; size_t w; } sp;
@@ -72,17 +72,17 @@ struct ScmEncodingRec {
   } func;
 };
 
-extern ScmEncoding *SCM_ENC_ASCII;
-extern ScmEncoding *SCM_ENC_UTF8;
-extern ScmEncoding *SCM_ENC_UCS4;
-extern ScmEncoding *SCM_ENC_EUCJP;
-extern ScmEncoding *SCM_ENC_SJIS;
+extern ScmEncoding * const SCM_ENC_ASCII;
+extern ScmEncoding * const SCM_ENC_UTF8;
+extern ScmEncoding * const SCM_ENC_UCS4;
+extern ScmEncoding * const SCM_ENC_EUCJP;
+extern ScmEncoding * const SCM_ENC_SJIS;
 
 inline const char *
-scm_enc_iconv_name(ScmEncoding *enc)
+scm_enc_name(ScmEncoding *enc)
 {
-  assert(enc != NULL); assert(enc->iconv_name != NULL);
-  return enc->iconv_name;
+  assert(enc != NULL); assert(enc->names != NULL);
+  return enc->names[0];
 }
 
 inline void
@@ -505,6 +505,14 @@ scm_str_itr_offset(const ScmStrItr *iter, const void *head)
 
 void scm_str_itr_begin(void *p, size_t size, ScmEncoding *enc, ScmStrItr *iter);
 void scm_str_itr_next(ScmStrItr *iter);
+
+
+/***********************************************************************/
+/*                                                                     */
+/***********************************************************************/
+
+ScmEncoding *scm_enc_find_enc(const char *name);
+ScmEncoding *scm_enc_locale_to_enc(void);
 
 
 #endif /* INCLUDED_ENCODING_H__ */

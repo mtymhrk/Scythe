@@ -196,8 +196,8 @@ scm_string_change_encoding(ScmObj src, ScmEncoding *to)
   str = scm_string_new(SCM_MEM_HEAP, NULL, 0, to);
   if (scm_obj_null_p(str)) return SCM_OBJ_NULL;
 
-  cd = iconv_open(scm_enc_iconv_name(to),
-                  scm_enc_iconv_name(SCM_STRING_ENC(src)));
+  cd = iconv_open(scm_enc_name(to),
+                  scm_enc_name(SCM_STRING_ENC(src)));
   if (cd == (iconv_t)-1) {
     scm_capi_error("faild to call 'iconv_open'", 0);
     return SCM_OBJ_NULL;

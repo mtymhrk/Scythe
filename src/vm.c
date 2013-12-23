@@ -526,22 +526,19 @@ scm_vm_init_eval_env(ScmObj vm)
     return -1;
   }
 
-  in = scm_capi_open_input_fd(in_fd, SCM_PORT_BUF_DEFAULT,
-                              scm_capi_system_encoding());
+  in = scm_capi_open_input_fd(in_fd, SCM_PORT_BUF_DEFAULT, NULL);
   if (scm_obj_null_p(in)) {
     close(in_fd); close(out_fd); close(err_fd);
     return -1;                  /* [ERR]: [through] */
   }
 
-  out = scm_capi_open_output_fd(out_fd, SCM_PORT_BUF_DEFAULT,
-                               scm_capi_system_encoding());
+  out = scm_capi_open_output_fd(out_fd, SCM_PORT_BUF_DEFAULT, NULL);
   if (scm_obj_null_p(out)) {
     close(out_fd); close(err_fd);
     return -1;                  /* [ERR]: [through] */
   }
 
-  err = scm_capi_open_output_fd(err_fd, SCM_PORT_BUF_DEFAULT,
-                                scm_capi_system_encoding());
+  err = scm_capi_open_output_fd(err_fd, SCM_PORT_BUF_DEFAULT, NULL);
   if (scm_obj_null_p(err)) {
     close(err_fd);
     return -1;                  /* [ERR]: [through] */

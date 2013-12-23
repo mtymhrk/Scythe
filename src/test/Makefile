@@ -5,7 +5,7 @@ CFLAGS   = -O2 -std=gnu99 -Wall -Wextra -Wformat=2 -Wstrict-aliasing=2 \
            -Wpointer-arith -Wswitch-enum -Wno-unused-parameter \
            -fPIC -g -DSCM_UNIT_TEST
 INCLUDES = -I/usr/local/include/cutter -iquote ..
-EX_INCLUDES =
+EX_INCLUDES = -iquote ../../build/src/
 LDFLAGS  = -lcunit -g
 CUTTER   = cutter
 TEST_TARGET_DIR = ..
@@ -93,6 +93,6 @@ depend:
 	$(CC) -MM $(INCLUDES) $(EX_INCLUDES) $(CFLAGS) $(TEST_CASE_SRC) >> Makefile.depend
 
 check-syntax:
-	LANG=C $(CC) -fsyntax-only $(INCLUDES) $(CFLAGS) $(CHK_SOURCES)
+	LANG=C $(CC) -fsyntax-only $(INCLUDES) $(EX_INCLUDES) $(CFLAGS) $(CHK_SOURCES)
 
 include Makefile.depend

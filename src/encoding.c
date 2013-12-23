@@ -1,4 +1,5 @@
 #include <limits.h>
+#include <stdlib.h>
 #include <assert.h>
 
 #include "encoding.h"
@@ -56,8 +57,10 @@ scm_enc_index2itr_variable_width(void *str,
 /*   Encding: ASCII                                                    */
 /***********************************************************************/
 
+static const char *ascii_names[] = { "ASCII", NULL };
+
 static ScmEncoding SCM_ENC_ASCII__ = {
-  .iconv_name = "ASCII",
+  .names = ascii_names,
   .cnst = {
     .lf   = { .c = { .bytes = { 0x0a, 0x00, 0x00, 0x00 }}, .w = 1 },
     .sp   = { .c = { .bytes = { 0x20, 0x00, 0x00, 0x00 }}, .w = 1 },
@@ -92,7 +95,7 @@ static ScmEncoding SCM_ENC_ASCII__ = {
   },
 };
 
-ScmEncoding *SCM_ENC_ASCII = &SCM_ENC_ASCII__;
+ScmEncoding * const SCM_ENC_ASCII = &SCM_ENC_ASCII__;
 
 
 #define VALID_ASCII_P(ascii) ((ascii) <= 0x7f)
@@ -338,8 +341,10 @@ scm_enc_backslash_p_ascii(const void *p, size_t size)
 /*   Encoding: UTF-8                                                   */
 /***********************************************************************/
 
+static const char *utf8_names[] = { "UTF-8", "utf8", NULL };
+
 static ScmEncoding SCM_ENC_UTF8__ = {
-  .iconv_name = "UTF-8",
+  .names = utf8_names,
   .cnst = {
     .lf   = { .c = { .bytes = { 0x0a, 0x00, 0x00, 0x00 }}, .w = 1 },
     .sp   = { .c = { .bytes = { 0x20, 0x00, 0x00, 0x00 }}, .w = 1 },
@@ -374,7 +379,7 @@ static ScmEncoding SCM_ENC_UTF8__ = {
   },
 };
 
-ScmEncoding *SCM_ENC_UTF8 = &SCM_ENC_UTF8__;
+ScmEncoding * const SCM_ENC_UTF8 = &SCM_ENC_UTF8__;
 
 
 #define VALID_UTF8_1_P(utf8)                    \
@@ -680,8 +685,10 @@ scm_enc_backslash_p_utf8(const void *p, size_t size)
 /*   Encoding: UCS4                                                    */
 /***********************************************************************/
 
+static const char *ucs4_names[] = { "UCS4", NULL };
+
 static ScmEncoding SCM_ENC_UCS4__ = {
-  .iconv_name = "UCS4",
+  .names = ucs4_names,
   .cnst = {
     .lf   = { .c = { .bytes = { 0x0a, 0x00, 0x00, 0x00 }}, .w = 1 },
     .sp   = { .c = { .bytes = { 0x20, 0x00, 0x00, 0x00 }}, .w = 1 },
@@ -716,7 +723,7 @@ static ScmEncoding SCM_ENC_UCS4__ = {
   },
 };
 
-ScmEncoding *SCM_ENC_UCS4 = &SCM_ENC_UCS4__;
+ScmEncoding * const SCM_ENC_UCS4 = &SCM_ENC_UCS4__;
 
 /* XXX: is this correct ? */
 #define VALID_UCS4_P(ucs4) \
@@ -1051,8 +1058,10 @@ scm_enc_backslash_p_ucs4(const void *p, size_t size)
 /*   Encoding: EUC-JP-JIS-2004                                         */
 /***********************************************************************/
 
+static const char *eucjp_names[] = { "EUC-JISX0213", "EUC-JP", NULL };
+
 static ScmEncoding SCM_ENC_EUCJP__ = {
-  .iconv_name = "EUCJP-JISX0213",
+  .names = eucjp_names,
   .cnst = {
     .lf   = { .c = { .bytes = { 0x0a, 0x00, 0x00, 0x00 }}, .w = 1 },
     .sp   = { .c = { .bytes = { 0x20, 0x00, 0x00, 0x00 }}, .w = 1 },
@@ -1087,7 +1096,7 @@ static ScmEncoding SCM_ENC_EUCJP__ = {
   },
 };
 
-ScmEncoding *SCM_ENC_EUCJP = &SCM_ENC_EUCJP__;
+ScmEncoding * const SCM_ENC_EUCJP = &SCM_ENC_EUCJP__;
 
 /* XXX: inexact? */
 #define VALID_EUC_JP_ASCII_P(euc)               \
@@ -1421,8 +1430,10 @@ scm_enc_backslash_p_eucjp(const void *p, size_t size)
 /*   Encoding: SJIS                                                    */
 /***********************************************************************/
 
+static const char *sjis_names[] = { "SHIFT_JISX0213", "SHIFT_JIS", NULL };
+
 static ScmEncoding SCM_ENC_SJIS__ = {
-  .iconv_name = "SHIFT_JISx0213",
+  .names = sjis_names,
   .cnst = {
     .lf   = { .c = { .bytes = { 0x0a, 0x00, 0x00, 0x00 }}, .w = 1 },
     .sp   = { .c = { .bytes = { 0x20, 0x00, 0x00, 0x00 }}, .w = 1 },
@@ -1457,7 +1468,7 @@ static ScmEncoding SCM_ENC_SJIS__ = {
   },
 };
 
-ScmEncoding *SCM_ENC_SJIS = &SCM_ENC_SJIS__;
+ScmEncoding * const SCM_ENC_SJIS = &SCM_ENC_SJIS__;
 
 /* XXX: inexact? */
 #define VALID_SJIS_JIS_X_0201_LATIN_P(sjis)     \
@@ -1799,4 +1810,73 @@ scm_str_itr_next(ScmStrItr *iter)
 
   iter->p = (uint8_t *)iter->p + w;
   iter->rest = iter->rest - w;
+}
+
+
+/***********************************************************************/
+/*                                                                     */
+/***********************************************************************/
+
+static ssize_t
+scm_enc_extract_charmap_from_locale(const char *locale, char *out, size_t len)
+{
+  const char *head, *tail;
+
+  if (len == 0) return -1;
+
+  out[0] = '\0';
+
+  for (head = locale; *head != '\0'; head++)
+    if (*head == '.') break;
+
+  if (*head == '\0') return 0;
+
+  for (tail = head++; *tail != '\0'; tail++)
+    if (*tail == '@') break;
+
+  if (head == tail) return 0;
+
+  if (len < (size_t)(tail - head + 1)) return -1;
+
+  memcpy(out, head, (size_t)(tail - head));
+  out[tail - head] = '\0';
+
+  return tail - head + 1;
+}
+
+ScmEncoding *
+scm_enc_find_enc(const char *name)
+{
+  static ScmEncoding *encodings[]
+    = { &SCM_ENC_UTF8__, &SCM_ENC_UCS4__,
+        &SCM_ENC_EUCJP__, &SCM_ENC_SJIS__,
+        &SCM_ENC_ASCII__, NULL };
+
+  for (ScmEncoding **enc = encodings; *enc != NULL; enc++)
+    for (const char * const *p = (*enc)->names; *p != NULL; p++)
+      if (strcasecmp(*p, name) == 0) return *enc;
+
+  return NULL;
+}
+
+ScmEncoding *
+scm_enc_locale_to_enc(void)
+{
+  static const char *env_names[] = { "LC_ALL", "LC_CTYPE", "LANG", NULL };
+  char charmap[64];
+  ScmEncoding *enc;
+  ssize_t r;
+
+  for (const char **env = env_names; *env != NULL; env++) {
+    const char *val = getenv(*env);
+    if (val == NULL) continue;
+
+    r = scm_enc_extract_charmap_from_locale(val, charmap, sizeof(charmap));
+    if (r <= 0) continue;
+
+    enc = scm_enc_find_enc(charmap);
+    if (enc != NULL) return enc;
+  }
+
+  return SCM_ENC_UTF8;
 }

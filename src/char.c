@@ -198,8 +198,8 @@ scm_char_encode(ScmObj chr, ScmEncoding *enc)
   if (SCM_CHAR(chr)->enc == enc)
     return scm_char_new(SCM_MEM_HEAP, &SCM_CHAR(chr)->value, enc);
 
-  cd = iconv_open(scm_enc_iconv_name(enc),
-                  scm_enc_iconv_name(SCM_CHAR(chr)->enc));
+  cd = iconv_open(scm_enc_name(enc),
+                  scm_enc_name(SCM_CHAR(chr)->enc));
   if (cd == (iconv_t)-1) {
     scm_capi_error("faild to call 'iconv_open'", 0);
     return SCM_OBJ_NULL;
