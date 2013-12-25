@@ -666,6 +666,7 @@ scm_capi_error(const char *msg, size_t n, ...)
 
   SCM_STACK_FRAME_PUSH(&str, &exc);
 
+  /* BUG: 可変引数 の PUSH の前に GC が走る可能性がある */
   if (msg == NULL)
     str = scm_capi_make_string_from_cstr("", SCM_ENC_ASCII);
   else
