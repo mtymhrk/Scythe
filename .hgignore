@@ -10,3 +10,4 @@ test/unity/build/*
 test/unity/src/*.o
 test/ut/*.o
 test/ut/Makefile
+tmp/*
