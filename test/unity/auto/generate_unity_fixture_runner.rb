@@ -14,8 +14,8 @@ class UnityFixtureRunnerGenerator
     lines = contents.split(/ (^\s*\#.*$) | (;|\{|\}) /x)
 
     lines.each do |line|
-      if line =~ /^\s*TEST\(\s*([^\s,]+)\s*,\s*([^\s)]+\s*)\)/
-        tbl[$1].push $2
+      if line =~ /^\s*(IGNORE_)?TEST\(\s*([^\s,]+)\s*,\s*([^\s)]+\s*)\)/
+        tbl[$2].push $3
       end
     end
   end
