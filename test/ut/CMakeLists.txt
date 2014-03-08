@@ -85,6 +85,7 @@ SET_SOURCE_FILES_PROPERTIES(${test_runner_src}
 ADD_CUSTOM_COMMAND(
    OUTPUT ${test_runner_src}
    COMMAND sh -c 'ruby ${runner_gen_script} ${unit_test_files} > ${test_runner_src}'
+   DEPENDS ${runner_gen_script} ${unit_test_files}
 )
 
 
