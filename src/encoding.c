@@ -61,14 +61,6 @@ static const char *ascii_names[] = { "ASCII", NULL };
 
 static ScmEncoding SCM_ENC_ASCII__ = {
   .names = ascii_names,
-  .cnst = {
-    .lf   = { .c = { .bytes = { 0x0a, 0x00, 0x00, 0x00 }}, .w = 1 },
-    .sp   = { .c = { .bytes = { 0x20, 0x00, 0x00, 0x00 }}, .w = 1 },
-    .cr   = { .c = { .bytes = { 0x0d, 0x00, 0x00, 0x00 }}, .w = 1 },
-    .tab  = { .c = { .bytes = { 0x09, 0x00, 0x00, 0x00 }}, .w = 1 },
-    .bell = { .c = { .bytes = { 0x07, 0x00, 0x00, 0x00 }}, .w = 1 },
-    .bs   = { .c = { .bytes = { 0x08, 0x00, 0x00, 0x00 }}, .w = 1 },
-  },
   .func = {
     .char_width = scm_enc_char_width_ascii,
     .index2itr = scm_enc_index2itr_ascii,
@@ -82,17 +74,6 @@ static ScmEncoding SCM_ENC_ASCII__ = {
     .same_char_p = scm_enc_same_char_p_ascii,
     .ascii_p = scm_enc_ascii_p_ascii,
     .printable_p = scm_enc_printable_p_ascii,
-    .alarm_p = scm_enc_alarm_p_ascii,
-    .backspace_p = scm_enc_backspace_p_ascii,
-    .delete_p = scm_enc_delete_p_ascii,
-    .escape_p = scm_enc_escape_p_ascii,
-    .newline_p = scm_enc_newline_p_ascii,
-    .null_p = scm_enc_null_p_ascii,
-    .return_p = scm_enc_return_p_ascii,
-    .space_p = scm_enc_space_p_ascii,
-    .tab_p = scm_enc_tab_p_ascii,
-    .doublequote_p = scm_enc_doublequote_p_ascii,
-    .backslash_p = scm_enc_backslash_p_ascii,
   },
 };
 
@@ -227,127 +208,6 @@ scm_enc_printable_p_ascii(const void *p, size_t size)
     return true;
 }
 
-bool
-scm_enc_alarm_p_ascii(const void *p, size_t size)
-{
-  if (p == NULL || size < 1)
-    return false;
-  else if (*(const scm_char_ascii_t *)p == 0x07)
-    return true;
-  else
-    return false;
-}
-
-bool
-scm_enc_backspace_p_ascii(const void *p, size_t size)
-{
-  if (p == NULL || size < 1)
-    return false;
-  else if (*(const scm_char_ascii_t *)p == 0x08)
-    return true;
-  else
-    return false;
-}
-
-bool
-scm_enc_delete_p_ascii(const void *p, size_t size)
-{
-  if (p == NULL || size < 1)
-    return false;
-  else if (*(const scm_char_ascii_t *)p == 0x7f)
-    return true;
-  else
-    return false;
-}
-
-bool
-scm_enc_escape_p_ascii(const void *p, size_t size)
-{
-  if (p == NULL || size < 1)
-    return false;
-  else if (*(const scm_char_ascii_t *)p == 0x1b)
-    return true;
-  else
-    return false;
-}
-
-bool
-scm_enc_newline_p_ascii(const void *p, size_t size)
-{
-  if (p == NULL || size < 1)
-    return false;
-  else if (*(const scm_char_ascii_t *)p == 0x0a)
-    return true;
-  else
-    return false;
-}
-
-bool
-scm_enc_null_p_ascii(const void *p, size_t size)
-{
-  if (p == NULL || size < 1)
-    return false;
-  else if (*(const scm_char_ascii_t *)p == 0x00)
-    return true;
-  else
-    return false;
-}
-
-bool
-scm_enc_return_p_ascii(const void *p, size_t size)
-{
-  if (p == NULL || size < 1)
-    return false;
-  else if (*(const scm_char_ascii_t *)p == 0x0d)
-    return true;
-  else
-    return false;
-}
-
-bool
-scm_enc_space_p_ascii(const void *p, size_t size)
-{
-  if (p == NULL || size < 1)
-    return false;
-  else if (*(const scm_char_ascii_t *)p == 0x20)
-    return true;
-  else
-    return false;
-}
-
-bool
-scm_enc_tab_p_ascii(const void *p, size_t size)
-{
-  if (p == NULL || size < 1)
-    return false;
-  else if (*(const scm_char_ascii_t *)p == 0x09)
-    return true;
-  else
-    return false;
-}
-
-bool
-scm_enc_doublequote_p_ascii(const void *p, size_t size)
-{
-  if (p == NULL || size < 1)
-    return false;
-  else if (*(const scm_char_ascii_t *)p == 0x22)
-    return true;
-  else
-    return false;
-}
-
-bool
-scm_enc_backslash_p_ascii(const void *p, size_t size)
-{
-  if (p == NULL || size < 1)
-    return false;
-  else if (*(const scm_char_ascii_t *)p == 0x5c)
-    return true;
-  else
-    return false;
-}
-
 
 /***********************************************************************/
 /*   Encoding: UTF-8                                                   */
@@ -357,14 +217,6 @@ static const char *utf8_names[] = { "UTF-8", "utf8", NULL };
 
 static ScmEncoding SCM_ENC_UTF8__ = {
   .names = utf8_names,
-  .cnst = {
-    .lf   = { .c = { .bytes = { 0x0a, 0x00, 0x00, 0x00 }}, .w = 1 },
-    .sp   = { .c = { .bytes = { 0x20, 0x00, 0x00, 0x00 }}, .w = 1 },
-    .cr   = { .c = { .bytes = { 0x0d, 0x00, 0x00, 0x00 }}, .w = 1 },
-    .tab  = { .c = { .bytes = { 0x09, 0x00, 0x00, 0x00 }}, .w = 1 },
-    .bell = { .c = { .bytes = { 0x07, 0x00, 0x00, 0x00 }}, .w = 1 },
-    .bs   = { .c = { .bytes = { 0x08, 0x00, 0x00, 0x00 }}, .w = 1 },
-  },
   .func = {
     .char_width = scm_enc_char_width_utf8,
     .index2itr = scm_enc_index2itr_utf8,
@@ -378,17 +230,6 @@ static ScmEncoding SCM_ENC_UTF8__ = {
     .same_char_p = scm_enc_same_char_p_utf8,
     .ascii_p = scm_enc_ascii_p_utf8,
     .printable_p = scm_enc_printable_p_utf8,
-    .alarm_p = scm_enc_alarm_p_utf8,
-    .backspace_p = scm_enc_backspace_p_utf8,
-    .delete_p = scm_enc_delete_p_utf8,
-    .escape_p = scm_enc_escape_p_utf8,
-    .newline_p = scm_enc_newline_p_utf8,
-    .null_p = scm_enc_null_p_utf8,
-    .return_p = scm_enc_return_p_utf8,
-    .space_p = scm_enc_space_p_utf8,
-    .tab_p = scm_enc_tab_p_utf8,
-    .doublequote_p = scm_enc_doublequote_p_utf8,
-    .backslash_p = scm_enc_backslash_p_utf8,
   },
 };
 
@@ -583,127 +424,6 @@ scm_enc_printable_p_utf8(const void *p, size_t size)
   return scm_enc_printable_p_ucs4(&ucs4, sizeof(ucs4));
 }
 
-bool
-scm_enc_alarm_p_utf8(const void *p, size_t size)
-{
-  if (p == NULL || size < 1)
-    return false;
-  else if (VALID_UTF8_1_P((const uint8_t *)p))
-    return scm_enc_alarm_p_ascii(p, size);
-  else
-    return false;
-}
-
-bool
-scm_enc_backspace_p_utf8(const void *p, size_t size)
-{
-  if (p == NULL || size < 1)
-    return false;
-  else if (VALID_UTF8_1_P((const uint8_t *)p))
-    return scm_enc_backspace_p_ascii(p, size);
-  else
-    return false;
-}
-
-bool
-scm_enc_delete_p_utf8(const void *p, size_t size)
-{
-  if (p == NULL || size < 1)
-    return false;
-  else if (VALID_UTF8_1_P((const uint8_t *)p))
-    return scm_enc_delete_p_ascii(p, size);
-  else
-    return false;
-}
-
-bool
-scm_enc_escape_p_utf8(const void *p, size_t size)
-{
-  if (p == NULL || size < 1)
-    return false;
-  else if (VALID_UTF8_1_P((const uint8_t *)p))
-    return scm_enc_escape_p_ascii(p, size);
-  else
-    return false;
-}
-
-bool
-scm_enc_newline_p_utf8(const void *p, size_t size)
-{
-  if (p == NULL || size < 1)
-    return false;
-  else if (VALID_UTF8_1_P((const uint8_t *)p))
-    return scm_enc_newline_p_ascii(p, size);
-  else
-    return false;
-}
-
-bool
-scm_enc_null_p_utf8(const void *p, size_t size)
-{
-  if (p == NULL || size < 1)
-    return false;
-  else if (VALID_UTF8_1_P((const uint8_t *)p))
-    return scm_enc_null_p_ascii(p, size);
-  else
-    return false;
-}
-
-bool
-scm_enc_return_p_utf8(const void *p, size_t size)
-{
-  if (p == NULL || size < 1)
-    return false;
-  else if (VALID_UTF8_1_P((const uint8_t *)p))
-    return scm_enc_return_p_ascii(p, size);
-  else
-    return false;
-}
-
-bool
-scm_enc_space_p_utf8(const void *p, size_t size)
-{
-  if (p == NULL || size < 1)
-    return false;
-  else if (VALID_UTF8_1_P((const uint8_t *)p))
-    return scm_enc_space_p_ascii(p, size);
-  else
-    return false;
-}
-
-bool
-scm_enc_tab_p_utf8(const void *p, size_t size)
-{
-  if (p == NULL || size < 1)
-    return false;
-  else if (VALID_UTF8_1_P((const uint8_t *)p))
-    return scm_enc_tab_p_ascii(p, size);
-  else
-    return false;
-}
-
-bool
-scm_enc_doublequote_p_utf8(const void *p, size_t size)
-{
-  if (p == NULL || size < 1)
-    return false;
-  else if (VALID_UTF8_1_P((const uint8_t *)p))
-    return scm_enc_doublequote_p_ascii(p, size);
-  else
-    return false;
-}
-
-bool
-scm_enc_backslash_p_utf8(const void *p, size_t size)
-{
-  if (p == NULL || size < 1)
-    return false;
-  else if (VALID_UTF8_1_P((const uint8_t *)p))
-    return scm_enc_backslash_p_ascii(p, size);
-  else
-    return false;
-}
-
 
 /***********************************************************************/
 /*   Encoding: UCS4                                                    */
@@ -713,14 +433,6 @@ static const char *ucs4_names[] = { "UCS4", NULL };
 
 static ScmEncoding SCM_ENC_UCS4__ = {
   .names = ucs4_names,
-  .cnst = {
-    .lf   = { .c = { .bytes = { 0x0a, 0x00, 0x00, 0x00 }}, .w = 1 },
-    .sp   = { .c = { .bytes = { 0x20, 0x00, 0x00, 0x00 }}, .w = 1 },
-    .cr   = { .c = { .bytes = { 0x0d, 0x00, 0x00, 0x00 }}, .w = 1 },
-    .tab  = { .c = { .bytes = { 0x09, 0x00, 0x00, 0x00 }}, .w = 1 },
-    .bell = { .c = { .bytes = { 0x07, 0x00, 0x00, 0x00 }}, .w = 1 },
-    .bs   = { .c = { .bytes = { 0x08, 0x00, 0x00, 0x00 }}, .w = 1 },
-  },
   .func = {
     .char_width = scm_enc_char_width_ucs4,
     .index2itr = scm_enc_index2itr_ucs4,
@@ -734,17 +446,6 @@ static ScmEncoding SCM_ENC_UCS4__ = {
     .same_char_p = scm_enc_same_char_p_ucs4,
     .ascii_p = scm_enc_ascii_p_ucs4,
     .printable_p = scm_enc_printable_p_ucs4,
-    .alarm_p = scm_enc_alarm_p_ucs4,
-    .backspace_p = scm_enc_backspace_p_ucs4,
-    .delete_p = scm_enc_delete_p_ucs4,
-    .escape_p = scm_enc_escape_p_ucs4,
-    .newline_p = scm_enc_newline_p_ucs4,
-    .null_p = scm_enc_null_p_ucs4,
-    .return_p = scm_enc_return_p_ucs4,
-    .space_p = scm_enc_space_p_ucs4,
-    .tab_p = scm_enc_tab_p_ucs4,
-    .doublequote_p = scm_enc_doublequote_p_ucs4,
-    .backslash_p = scm_enc_backslash_p_ucs4,
   },
 };
 
@@ -968,127 +669,6 @@ scm_enc_printable_p_ucs4(const void *p, size_t size)
     return true;
 }
 
-bool
-scm_enc_alarm_p_ucs4(const void *p, size_t size)
-{
-  if (p == NULL || size < 4)
-    return false;
-  else if (*(const scm_char_ucs4_t *)p == 0x07)
-    return true;
-  else
-    return false;
-}
-
-bool
-scm_enc_backspace_p_ucs4(const void *p, size_t size)
-{
-  if (p == NULL || size < 4)
-    return false;
-  else if (*(const scm_char_ucs4_t *)p == 0x08)
-    return true;
-  else
-    return false;
-}
-
-bool
-scm_enc_delete_p_ucs4(const void *p, size_t size)
-{
-  if (p == NULL || size < 4)
-    return false;
-  else if (*(const scm_char_ucs4_t *)p == 0x7f)
-    return true;
-  else
-    return false;
-}
-
-bool
-scm_enc_escape_p_ucs4(const void *p, size_t size)
-{
-  if (p == NULL || size < 4)
-    return false;
-  else if (*(const scm_char_ucs4_t *)p == 0x1b)
-    return true;
-  else
-    return false;
-}
-
-bool
-scm_enc_newline_p_ucs4(const void *p, size_t size)
-{
-  if (p == NULL || size < 4)
-    return false;
-  else if (*(const scm_char_ucs4_t *)p == 0x0a)
-    return true;
-  else
-    return false;
-}
-
-bool
-scm_enc_null_p_ucs4(const void *p, size_t size)
-{
-  if (p == NULL || size < 4)
-    return false;
-  else if (*(const scm_char_ucs4_t *)p == 0x00)
-    return true;
-  else
-    return false;
-}
-
-bool
-scm_enc_return_p_ucs4(const void *p, size_t size)
-{
-  if (p == NULL || size < 4)
-    return false;
-  else if (*(const scm_char_ucs4_t *)p == 0x0d)
-    return true;
-  else
-    return false;
-}
-
-bool
-scm_enc_space_p_ucs4(const void *p, size_t size)
-{
-  if (p == NULL || size < 4)
-    return false;
-  else if (*(const scm_char_ucs4_t *)p == 0x20)
-    return true;
-  else
-    return false;
-}
-
-bool
-scm_enc_tab_p_ucs4(const void *p, size_t size)
-{
-  if (p == NULL || size < 4)
-    return false;
-  else if (*(const scm_char_ucs4_t *)p == 0x09)
-    return true;
-  else
-    return false;
-}
-
-bool
-scm_enc_doublequote_p_ucs4(const void *p, size_t size)
-{
-  if (p == NULL || size < 4)
-    return false;
-  else if (*(const scm_char_ucs4_t *)p == 0x22)
-    return true;
-  else
-    return false;
-}
-
-bool
-scm_enc_backslash_p_ucs4(const void *p, size_t size)
-{
-  if (p == NULL || size < 4)
-    return false;
-  else if (*(const scm_char_ucs4_t *)p == 0x5c)
-    return true;
-  else
-    return false;
-}
-
 
 /***********************************************************************/
 /*   Encoding: EUC-JP-JIS-2004                                         */
@@ -1098,14 +678,6 @@ static const char *eucjp_names[] = { "EUC-JISX0213", "EUC-JP", NULL };
 
 static ScmEncoding SCM_ENC_EUCJP__ = {
   .names = eucjp_names,
-  .cnst = {
-    .lf   = { .c = { .bytes = { 0x0a, 0x00, 0x00, 0x00 }}, .w = 1 },
-    .sp   = { .c = { .bytes = { 0x20, 0x00, 0x00, 0x00 }}, .w = 1 },
-    .cr   = { .c = { .bytes = { 0x0d, 0x00, 0x00, 0x00 }}, .w = 1 },
-    .tab  = { .c = { .bytes = { 0x09, 0x00, 0x00, 0x00 }}, .w = 1 },
-    .bell = { .c = { .bytes = { 0x07, 0x00, 0x00, 0x00 }}, .w = 1 },
-    .bs   = { .c = { .bytes = { 0x08, 0x00, 0x00, 0x00 }}, .w = 1 },
-  },
   .func = {
     .char_width = scm_enc_char_width_eucjp,
     .index2itr = scm_enc_index2itr_eucjp,
@@ -1119,17 +691,6 @@ static ScmEncoding SCM_ENC_EUCJP__ = {
     .same_char_p = scm_enc_same_char_p_eucjp,
     .ascii_p = scm_enc_ascii_p_eucjp,
     .printable_p = scm_enc_printable_p_eucjp,
-    .alarm_p = scm_enc_alarm_p_eucjp,
-    .backspace_p = scm_enc_backspace_p_eucjp,
-    .delete_p = scm_enc_delete_p_eucjp,
-    .escape_p = scm_enc_escape_p_eucjp,
-    .newline_p = scm_enc_newline_p_eucjp,
-    .null_p = scm_enc_null_p_eucjp,
-    .return_p = scm_enc_return_p_eucjp,
-    .space_p = scm_enc_space_p_eucjp,
-    .tab_p = scm_enc_tab_p_eucjp,
-    .doublequote_p = scm_enc_doublequote_p_eucjp,
-    .backslash_p = scm_enc_backslash_p_eucjp,
   },
 };
 
@@ -1352,127 +913,6 @@ scm_enc_printable_p_eucjp(const void *p, size_t size)
     return true;
 }
 
-bool
-scm_enc_alarm_p_eucjp(const void *p, size_t size)
-{
-  if (p == NULL || size < 1)
-    return false;
-  else if (VALID_EUC_JP_ASCII_P((const uint8_t *)p))
-    return scm_enc_alarm_p_ascii(p, size);
-  else
-    return false;;
-}
-
-bool
-scm_enc_backspace_p_eucjp(const void *p, size_t size)
-{
-  if (p == NULL || size < 1)
-    return false;
-  else if (VALID_EUC_JP_ASCII_P((const uint8_t *)p))
-    return scm_enc_backspace_p_ascii(p, size);
-  else
-    return false;;
-}
-
-bool
-scm_enc_delete_p_eucjp(const void *p, size_t size)
-{
-  if (p == NULL || size < 1)
-    return false;
-  else if (VALID_EUC_JP_ASCII_P((const uint8_t *)p))
-    return scm_enc_delete_p_ascii(p, size);
-  else
-    return false;;
-}
-
-bool
-scm_enc_escape_p_eucjp(const void *p, size_t size)
-{
-  if (p == NULL || size < 1)
-    return false;
-  else if (VALID_EUC_JP_ASCII_P((const uint8_t *)p))
-    return scm_enc_escape_p_ascii(p, size);
-  else
-    return false;;
-}
-
-bool
-scm_enc_newline_p_eucjp(const void *p, size_t size)
-{
-  if (p == NULL || size < 1)
-    return false;
-  else if (VALID_EUC_JP_ASCII_P((const uint8_t *)p))
-    return scm_enc_newline_p_ascii(p, size);
-  else
-    return false;;
-}
-
-bool
-scm_enc_null_p_eucjp(const void *p, size_t size)
-{
-  if (p == NULL || size < 1)
-    return false;
-  else if (VALID_EUC_JP_ASCII_P((const uint8_t *)p))
-    return scm_enc_null_p_ascii(p, size);
-  else
-    return false;;
-}
-
-bool
-scm_enc_return_p_eucjp(const void *p, size_t size)
-{
-  if (p == NULL || size < 1)
-    return false;
-  else if (VALID_EUC_JP_ASCII_P((const uint8_t *)p))
-    return scm_enc_return_p_ascii(p, size);
-  else
-    return false;;
-}
-
-bool
-scm_enc_space_p_eucjp(const void *p, size_t size)
-{
-  if (p == NULL || size < 1)
-    return false;
-  else if (VALID_EUC_JP_ASCII_P((const uint8_t *)p))
-    return scm_enc_space_p_ascii(p, size);
-  else
-    return false;;
-}
-
-bool
-scm_enc_tab_p_eucjp(const void *p, size_t size)
-{
-  if (p == NULL || size < 1)
-    return false;
-  else if (VALID_EUC_JP_ASCII_P((const uint8_t *)p))
-    return scm_enc_tab_p_ascii(p, size);
-  else
-    return false;;
-}
-
-bool
-scm_enc_doublequote_p_eucjp(const void *p, size_t size)
-{
-  if (p == NULL || size < 1)
-    return false;
-  else if (VALID_EUC_JP_ASCII_P((const uint8_t *)p))
-    return scm_enc_doublequote_p_ascii(p, size);
-  else
-    return false;;
-}
-
-bool
-scm_enc_backslash_p_eucjp(const void *p, size_t size)
-{
-  if (p == NULL || size < 1)
-    return false;
-  else if (VALID_EUC_JP_ASCII_P((const uint8_t *)p))
-    return scm_enc_backslash_p_ascii(p, size);
-  else
-    return false;;
-}
-
 
 /***********************************************************************/
 /*   Encoding: SJIS                                                    */
@@ -1482,14 +922,6 @@ static const char *sjis_names[] = { "SHIFT_JISX0213", "SHIFT_JIS", NULL };
 
 static ScmEncoding SCM_ENC_SJIS__ = {
   .names = sjis_names,
-  .cnst = {
-    .lf   = { .c = { .bytes = { 0x0a, 0x00, 0x00, 0x00 }}, .w = 1 },
-    .sp   = { .c = { .bytes = { 0x20, 0x00, 0x00, 0x00 }}, .w = 1 },
-    .cr   = { .c = { .bytes = { 0x0d, 0x00, 0x00, 0x00 }}, .w = 1 },
-    .tab  = { .c = { .bytes = { 0x09, 0x00, 0x00, 0x00 }}, .w = 1 },
-    .bell = { .c = { .bytes = { 0x07, 0x00, 0x00, 0x00 }}, .w = 1 },
-    .bs   = { .c = { .bytes = { 0x08, 0x00, 0x00, 0x00 }}, .w = 1 },
-  },
   .func = {
     .char_width = scm_enc_char_width_sjis,
     .index2itr = scm_enc_index2itr_sjis,
@@ -1503,17 +935,6 @@ static ScmEncoding SCM_ENC_SJIS__ = {
     .same_char_p = scm_enc_same_char_p_sjis,
     .ascii_p = scm_enc_ascii_p_sjis,
     .printable_p = scm_enc_printable_p_sjis,
-    .alarm_p = scm_enc_alarm_p_sjis,
-    .backspace_p = scm_enc_backspace_p_sjis,
-    .delete_p = scm_enc_delete_p_sjis,
-    .escape_p = scm_enc_escape_p_sjis,
-    .newline_p = scm_enc_newline_p_sjis,
-    .null_p = scm_enc_null_p_sjis,
-    .return_p = scm_enc_return_p_sjis,
-    .space_p = scm_enc_space_p_sjis,
-    .tab_p = scm_enc_tab_p_sjis,
-    .doublequote_p = scm_enc_doublequote_p_sjis,
-    .backslash_p = scm_enc_backslash_p_sjis,
   },
 };
 
@@ -1708,127 +1129,6 @@ scm_enc_printable_p_sjis(const void *p, size_t size)
     return scm_enc_printable_p_ascii(p, size);
   else
     return true;
-}
-
-bool
-scm_enc_alarm_p_sjis(const void *p, size_t size)
-{
-  if (p == NULL || size < 1)
-    return false;
-  else if (VALID_SJIS_JIS_X_0201_LATIN_P((const uint8_t *)p))
-    return scm_enc_alarm_p_ascii(p, size);
-  else
-    return false;
-}
-
-bool
-scm_enc_backspace_p_sjis(const void *p, size_t size)
-{
-  if (p == NULL || size < 1)
-    return false;
-  else if (VALID_SJIS_JIS_X_0201_LATIN_P((const uint8_t *)p))
-    return scm_enc_backspace_p_ascii(p, size);
-  else
-    return false;
-}
-
-bool
-scm_enc_delete_p_sjis(const void *p, size_t size)
-{
-  if (p == NULL || size < 1)
-    return false;
-  else if (VALID_SJIS_JIS_X_0201_LATIN_P((const uint8_t *)p))
-    return scm_enc_delete_p_ascii(p, size);
-  else
-    return false;
-}
-
-bool
-scm_enc_escape_p_sjis(const void *p, size_t size)
-{
-  if (p == NULL || size < 1)
-    return false;
-  else if (VALID_SJIS_JIS_X_0201_LATIN_P((const uint8_t *)p))
-    return scm_enc_escape_p_ascii(p, size);
-  else
-    return false;
-}
-
-bool
-scm_enc_newline_p_sjis(const void *p, size_t size)
-{
-  if (p == NULL || size < 1)
-    return false;
-  else if (VALID_SJIS_JIS_X_0201_LATIN_P((const uint8_t *)p))
-    return scm_enc_newline_p_ascii(p, size);
-  else
-    return false;
-}
-
-bool
-scm_enc_null_p_sjis(const void *p, size_t size)
-{
-  if (p == NULL || size < 1)
-    return false;
-  else if (VALID_SJIS_JIS_X_0201_LATIN_P((const uint8_t *)p))
-    return scm_enc_null_p_ascii(p, size);
-  else
-    return false;
-}
-
-bool
-scm_enc_return_p_sjis(const void *p, size_t size)
-{
-  if (p == NULL || size < 1)
-    return false;
-  else if (VALID_SJIS_JIS_X_0201_LATIN_P((const uint8_t *)p))
-    return scm_enc_return_p_ascii(p, size);
-  else
-    return false;
-}
-
-bool
-scm_enc_space_p_sjis(const void *p, size_t size)
-{
-  if (p == NULL || size < 1)
-    return false;
-  else if (VALID_SJIS_JIS_X_0201_LATIN_P((const uint8_t *)p))
-    return scm_enc_space_p_ascii(p, size);
-  else
-    return false;
-}
-
-bool
-scm_enc_tab_p_sjis(const void *p, size_t size)
-{
-  if (p == NULL || size < 1)
-    return false;
-  else if (VALID_SJIS_JIS_X_0201_LATIN_P((const uint8_t *)p))
-    return scm_enc_tab_p_ascii(p, size);
-  else
-    return false;
-}
-
-bool
-scm_enc_doublequote_p_sjis(const void *p, size_t size)
-{
-  if (p == NULL || size < 1)
-    return false;
-  else if (VALID_SJIS_JIS_X_0201_LATIN_P((const uint8_t *)p))
-    return scm_enc_doublequote_p_ascii(p, size);
-  else
-    return false;
-}
-
-bool
-scm_enc_backslash_p_sjis(const void *p, size_t size)
-{
-  if (p == NULL || size < 1)
-    return false;
-  else if (VALID_SJIS_JIS_X_0201_LATIN_P((const uint8_t *)p))
-    return scm_enc_backslash_p_ascii(p, size);
-  else
-    return false;
 }
 
 
