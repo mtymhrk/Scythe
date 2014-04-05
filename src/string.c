@@ -952,18 +952,15 @@ scm_string_content(ScmObj str)  /* GC OK */
 int
 scm_string_pretty_print(ScmObj obj, ScmObj port, bool write_p)
 {
-  ScmObj ro = SCM_OBJ_INIT;
-  int rslt;
-
   scm_assert_obj_type(obj, &SCM_STRING_TYPE_INFO);
 
   if (write_p) {
-    rslt = scm_string_write_ext_rep(obj, port);
-    if (rslt < 0) return -1;
+    int r = scm_string_write_ext_rep(obj, port);
+    if (r < 0) return -1;
   }
   else {
-    ro = scm_api_write_string(obj, port);
-    if (scm_obj_null_p(ro)) return -1;
+    ssize_t r = scm_capi_write_string(obj, port, -1, -1);
+    if (r < 0) return -1;
   }
 
   return 0;

@@ -512,7 +512,7 @@ void scm_str_itr_next(ScmStrItr *iter);
 /***********************************************************************/
 
 ScmEncoding *scm_enc_find_enc(const char *name);
-ScmEncoding *scm_enc_locale_to_enc(void);
+ssize_t scm_enc_locale_to_enc_name(char *name, size_t size);
 
 
 #endif /* INCLUDED_ENCODING_H__ */

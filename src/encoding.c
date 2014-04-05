@@ -1859,24 +1859,26 @@ scm_enc_find_enc(const char *name)
   return NULL;
 }
 
-ScmEncoding *
-scm_enc_locale_to_enc(void)
+ssize_t
+scm_enc_locale_to_enc_name(char *name, size_t size)
 {
   static const char *env_names[] = { "LC_ALL", "LC_CTYPE", "LANG", NULL };
-  char charmap[64];
-  ScmEncoding *enc;
+  static const char default_name[] = "UTF-8";
   ssize_t r;
 
   for (const char **env = env_names; *env != NULL; env++) {
     const char *val = getenv(*env);
     if (val == NULL) continue;
 
-    r = scm_enc_extract_charmap_from_locale(val, charmap, sizeof(charmap));
-    if (r <= 0) continue;
-
-    enc = scm_enc_find_enc(charmap);
-    if (enc != NULL) return enc;
+    r = scm_enc_extract_charmap_from_locale(val, name, size);
+    if (r < 0) return -1;
+    if (r > 0) return r;
   }
 
-  return SCM_ENC_UTF8;
+  if (size < sizeof(default_name))
+    return -1;
+
+  memcpy(name, default_name, sizeof(default_name));
+
+  return sizeof(default_name);
 }

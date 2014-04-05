@@ -3012,7 +3012,7 @@ scm_capi_symbol_bytesize(ScmObj sym)
   return scm_capi_string_bytesize(scm_api_symbol_to_string(sym));
 }
 
-extern inline ssize_t
+extern inline char *
 scm_capi_symbol_to_cstr(ScmObj sym, char *cstr, size_t size)
 {
   return scm_capi_string_to_cstr(scm_api_symbol_to_string(sym),
@@ -4935,27 +4935,40 @@ scm_capi_string_encoding(ScmObj str)
   return scm_string_encoding(str);
 }
 
-ssize_t
+char *
 scm_capi_string_to_cstr(ScmObj str, char *cstr, size_t size)
 {
-  ssize_t n;
+  size_t n;
 
   if (!scm_capi_string_p(str)) {
-    scm_capi_error("can not get byte sequence from string: invalid argument", 0);
-    return -1;
+    scm_capi_error("faild to get byte sequence from string: "
+                   "invalid argument", 0);
+    return NULL;
   }
 
-  if (cstr == NULL || size == 0) return 0;
+  n = scm_string_bytesize(str);
+  if (n >= SIZE_MAX) {
+    scm_capi_error("faild to get byte sequence from string: "
+                   "too long", 0);
+    return NULL;
+  }
 
-  n = (ssize_t)scm_string_bytesize(str);
-  if (n < 0) return -1;
+  if (cstr == NULL) {
+    size = n + 1;
+    cstr = scm_capi_malloc(size);
+    if (cstr == NULL) return SCM_OBJ_NULL;
+  }
+  else if (size == 0) {
+    return cstr;
+  }
+  else if (size - 1 < n) {
+    n = size - 1;
+  }
 
-  if (size - 1 < (size_t)n) n = (ssize_t)size - 1;
-
-  memcpy(cstr, scm_string_content(str), (size_t)n);
+  memcpy(cstr, scm_string_content(str), n);
   cstr[n] = '\0';
 
-  return n;
+  return cstr;
 }
 
 int
@@ -6024,51 +6037,237 @@ scm_api_output_port_open_P(ScmObj port)
 }
 
 ScmObj
-scm_capi_open_input_fd(int fd, SCM_PORT_BUF_T mode, const char *enc)
+scm_capi_open_input_fd(int fd, const char *enc)
 {
+  char ext_enc_name[64];
+
   if (fd < 0) {
     scm_capi_error("open-input-fd: invalid file descriptor", 0);
     return SCM_OBJ_NULL;
   }
-  else if (mode >= SCM_PORT_NR_BUF_MODE) {
-    scm_capi_error("open-input-fd: unknown buffering mode", 0);
-    return SCM_OBJ_NULL;
-  }
 
   if (enc == NULL) {
-    ScmEncoding *e = scm_enc_locale_to_enc();
-    enc = scm_enc_name(e);
+    ssize_t r = scm_enc_locale_to_enc_name(ext_enc_name, sizeof(ext_enc_name));
+    if (r < 0) {
+      scm_capi_error("open-input-fd: faild to get external encoding name", 0);
+      return SCM_OBJ_NULL;
+    }
+    enc = ext_enc_name;;
   }
 
-  return scm_port_open_fd(fd, "r", mode, scm_capi_system_encoding(), enc);
+  return scm_port_open_fd(fd, "r", SCM_PORT_BUF_DEFAULT,
+                          scm_capi_system_encoding(), enc);
 }
 
 ScmObj
-scm_capi_open_output_fd(int fd, SCM_PORT_BUF_T mode, const char *enc)
+scm_capi_open_output_fd(int fd, const char *enc)
 {
+  char ext_enc_name[64];
+
   if (fd < 0) {
     scm_capi_error("open-output-fd: invalid file descriptor", 0);
     return SCM_OBJ_NULL;
   }
-  else if (mode >= SCM_PORT_NR_BUF_MODE) {
-    scm_capi_error("open-output-fd: unknown buffering mode", 0);
+
+  if (enc == NULL) {
+    ssize_t r = scm_enc_locale_to_enc_name(ext_enc_name, sizeof(ext_enc_name));
+    if (r < 0) {
+      scm_capi_error("open-output-fd: faild to get external encoding name", 0);
+      return SCM_OBJ_NULL;
+    }
+    enc = ext_enc_name;;
+  }
+
+  return scm_port_open_fd(fd, "w", SCM_PORT_BUF_DEFAULT,
+                          scm_capi_system_encoding(), enc);
+}
+
+ScmObj
+scm_capi_open_input_file(const char *path, const char *enc)
+{
+  char ext_enc_name[64];
+
+  if (path == NULL) {
+    scm_capi_error("open-input-file: invalid argument", 0);
     return SCM_OBJ_NULL;
   }
 
   if (enc == NULL) {
-    ScmEncoding *e = scm_enc_locale_to_enc();
-    enc = scm_enc_name(e);
+    ssize_t r = scm_enc_locale_to_enc_name(ext_enc_name, sizeof(ext_enc_name));
+    if (r < 0) {
+      scm_capi_error("open-input-file: faild to get external encoding name", 0);
+      return SCM_OBJ_NULL;
+    }
+    enc = ext_enc_name;;
   }
 
-  return scm_port_open_fd(fd, "w", mode, scm_capi_system_encoding(), enc);
+  return scm_port_open_file(path, "r", SCM_PORT_BUF_DEFAULT,
+                            0, scm_capi_system_encoding(), enc);
 }
 
 ScmObj
-scm_capi_open_input_string_from_cstr(const char *str, ScmEncoding *enc)
+scm_api_open_input_file(ScmObj path)
 {
-  if (enc == NULL) {
-    enc = scm_capi_system_encoding();
+  char ext_enc_name[64];
+  char path_str[PATH_MAX], *p;
+  size_t s;
+  ssize_t r;
+
+  if (scm_obj_null_p(path)) {
+    scm_capi_error("open-input-file: invalid argument", 0);
+    return SCM_OBJ_NULL;
   }
+  else if (!scm_capi_string_p(path)) {
+    scm_capi_error("open-input-file: string required, but got", 1, path);
+    return SCM_OBJ_NULL;
+  }
+
+  r = scm_enc_locale_to_enc_name(ext_enc_name, sizeof(ext_enc_name));
+  if (r < 0) {
+    scm_capi_error("open-input-file: faild to get external encoding name", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  /* TODO: `path' を外部エンーディングへ変換する */
+
+  s = scm_string_bytesize(path);
+  if (s >= PATH_MAX) {
+    scm_capi_error("open-input-file: too long pathname", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  p = scm_capi_string_to_cstr(path, path_str, sizeof(path_str));
+  if (p == NULL) return SCM_OBJ_NULL;
+
+  return scm_capi_open_input_file(path_str, ext_enc_name);
+}
+
+ScmObj
+scm_capi_open_output_file(const char *path, const char *enc)
+{
+  char ext_enc_name[64];
+
+  if (path == NULL) {
+    scm_capi_error("open-output-file: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  if (enc == NULL) {
+    ssize_t r = scm_enc_locale_to_enc_name(ext_enc_name, sizeof(ext_enc_name));
+    if (r < 0) {
+      scm_capi_error("open-output-file: "
+                     "faild to get external encoding name", 0);
+      return SCM_OBJ_NULL;
+    }
+    enc = ext_enc_name;;
+  }
+
+  return scm_port_open_file(path, "w", SCM_PORT_BUF_DEFAULT,
+                            0644, scm_capi_system_encoding(), enc);
+}
+
+ScmObj
+scm_api_open_output_file(ScmObj path)
+{
+  char ext_enc_name[64];
+  char path_str[PATH_MAX], *p;
+  size_t s;
+  ssize_t r;
+
+  if (scm_obj_null_p(path)) {
+    scm_capi_error("open-output-file: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_string_p(path)) {
+    scm_capi_error("open-output-file: string required, but got", 1, path);
+    return SCM_OBJ_NULL;
+  }
+
+  r = scm_enc_locale_to_enc_name(ext_enc_name, sizeof(ext_enc_name));
+  if (r < 0) {
+    scm_capi_error("open-output-file: faild to get external encoding name", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  /* TODO: `path' を外部エンーディングへ変換する */
+
+  s = scm_string_bytesize(path);
+  if (s >= PATH_MAX) {
+    scm_capi_error("open-output-file: too long pathname", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  p = scm_capi_string_to_cstr(path, path_str, sizeof(path_str));
+  if (p == NULL) return SCM_OBJ_NULL;
+
+  return scm_capi_open_output_file(path_str, ext_enc_name);
+}
+
+ScmObj
+scm_api_close_port(ScmObj port)
+{
+  int r;
+
+  if (scm_obj_null_p(port)) {
+    scm_capi_error("close-port: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_port_p(port)) {
+    scm_capi_error("close-port: port required, but got", 1, port);
+    return SCM_OBJ_NULL;;
+  }
+
+  r = scm_port_close(port);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return SCM_UNDEF_OBJ;
+}
+
+ScmObj
+scm_api_close_input_port(ScmObj port)
+{
+  int r;
+
+  if (scm_obj_null_p(port)) {
+    scm_capi_error("close-input-port: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_input_port_p(port)) {
+    scm_capi_error("close-input-port: input-port required, but got", 1, port);
+    return SCM_OBJ_NULL;;
+  }
+
+  r = scm_port_close(port);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return SCM_UNDEF_OBJ;
+}
+
+ScmObj
+scm_api_close_output_port(ScmObj port)
+{
+  int r;
+
+  if (scm_obj_null_p(port)) {
+    scm_capi_error("close-output-port: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_output_port_p(port)) {
+    scm_capi_error("close-output-port: output-port required, but got", 1, port);
+    return SCM_OBJ_NULL;         /* provisional implemntation */
+  }
+
+  r = scm_port_close(port);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return SCM_UNDEF_OBJ;
+}
+
+ScmObj
+scm_capi_open_input_string_cstr(const char *str, ScmEncoding *enc)
+{
+  if (enc == NULL)
+    enc = scm_capi_system_encoding();
 
   return scm_port_open_string(str, (str == NULL)? 0 : strlen(str),
                               "r",
@@ -6076,9 +6275,70 @@ scm_capi_open_input_string_from_cstr(const char *str, ScmEncoding *enc)
 }
 
 ScmObj
-scm_capi_open_output_string(void)
+scm_api_open_input_string(ScmObj str)
+{
+  if (scm_obj_null_p(str)) {
+    scm_capi_error("open-input-string: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_string_p(str)) {
+    scm_capi_error("open-input-string: string required, but got", 1, str);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_port_open_string(scm_string_content(str),
+                              scm_string_bytesize(str),
+                              "r",
+                              scm_capi_system_encoding(),
+                              scm_enc_name(scm_string_encoding(str)));
+}
+
+ScmObj
+scm_api_open_output_string(void)
 {
   return scm_port_open_string(NULL, 0, "w", scm_capi_system_encoding(), NULL);
+}
+
+ScmObj
+scm_api_get_output_string(ScmObj port)
+{
+  const void *p;
+  ssize_t s;
+  const char *enc_name;
+  ScmEncoding *e;
+
+  if (scm_obj_null_p(port)) {
+    scm_capi_error("get-output-string: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_output_port_p(port)) {
+    scm_capi_error("get-output-string: output-port required, but got", 1, port);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_port_string_port_p(port)) {
+    scm_capi_error("get-output-string: string-port required, but got", 1, port);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_port_textual_port_p(port)) {
+    scm_capi_error("get-output-string: "
+                   "textual-port required, but got", 1, port);
+    return SCM_OBJ_NULL;
+  }
+
+  p = scm_port_string_buffer(port);
+  if (p == NULL) return SCM_OBJ_NULL; /* [ERR]: [through] */
+
+  s = scm_port_string_buffer_length(port);
+  if (s < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
+
+  enc_name = scm_port_external_enc(port);
+  e = scm_enc_find_enc(enc_name);
+  if (e == NULL) {
+    scm_capi_error("get-output-string: unsupported encoding", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_capi_make_string_from_bin(p, (size_t)s, e);
 }
 
 const char *
@@ -6096,34 +6356,19 @@ scm_capi_port_encoding(ScmObj port)
   return scm_port_external_enc(port);
 }
 
-int
-scm_api_close_input_port(ScmObj port)
+ScmEncoding *
+scm_capi_port_internal_encoding(ScmObj port)
 {
   if (scm_obj_null_p(port)) {
-    scm_capi_error("close-input-port: invalid argument", 0);
-    return -1;
+    scm_capi_error("port-internal-encoding: invalid argument", 0);
+    return NULL;
   }
-  else if (!scm_capi_input_port_p(port)) {
-    scm_capi_error("close-input-port: input-port required, but got", 1, port);
-    return -1;
-  }
-
-  return scm_port_close(port);
-}
-
-int
-scm_api_close_output_port(ScmObj port)
-{
-  if (scm_obj_null_p(port)) {
-    scm_capi_error("close-output-port: invalid argument", 0);
-    return -1;
-  }
-  else if (!scm_capi_output_port_p(port)) {
-    scm_capi_error("close-output-port: output-port required, but got", 1, port);
-    return -1;         /* provisional implemntation */
+  else if (!scm_capi_port_p(port)) {
+    scm_capi_error("port-internal-encoding: port required, but got", 1, port);
+    return NULL;
   }
 
-  return scm_port_close(port);
+  return scm_port_internal_enc(port);
 }
 
 ssize_t
@@ -6147,29 +6392,6 @@ scm_capi_read_raw(void *buf, size_t size, ScmObj port)
   }
 
   return scm_port_read_bytes(port, buf, size);
-}
-
-ssize_t
-scm_capi_read_char(scm_char_t *chr, ScmObj port)
-{
-  if (scm_obj_null_p(port)) {
-    scm_capi_error("read error: invalid argument", 0);
-    return -1;
-  }
-  else if (!scm_capi_input_port_p(port)) {
-    scm_capi_error("read error: invalid argument", 0);
-    return -1;
-  }
-  else if (!scm_capi_textual_port_p(port)) {
-    scm_capi_error("read error: invalid argument", 0);
-    return -1;
-  }
-  else if (chr == NULL) {
-    scm_capi_error("read error: invalid argument", 0);
-    return -1;
-  }
-
-  return scm_port_read_char(port, chr);
 }
 
 ssize_t
@@ -6242,53 +6464,6 @@ scm_capi_peek_raw(void *buf, size_t size, ScmObj port)
 }
 
 ssize_t
-scm_capi_peek_char(scm_char_t *chr, ScmObj port)
-{
-  if (scm_obj_null_p(port)) {
-    scm_capi_error("peek error: invalid argument", 0);
-    return -1;
-  }
-  else if (!scm_capi_input_port_p(port)) {
-    scm_capi_error("peek error: invalid argument", 0);
-    return -1;
-  }
-  else if (!scm_capi_textual_port_p(port)) {
-    scm_capi_error("peek error: invalid argument", 0);
-    return -1;
-  }
-  else if (chr == NULL) {
-    scm_capi_error("peek error: invalid argument", 0);
-    return -1;
-  }
-
-  return scm_port_peek_char(port, chr);
-}
-
-ScmObj
-scm_api_read(ScmObj port)
-{
-  ScmLexer *lexer;
-  ScmParser *parser;
-
-  if (!scm_capi_input_port_p(port)) {
-    scm_capi_error("read: input-port requried, but got", 1, port);
-    return SCM_OBJ_NULL;
-  }
-  else if (!scm_capi_textual_port_p(port)) {
-    scm_capi_error("read: textual-port requried, but got", 1, port);
-    return SCM_OBJ_NULL;
-  }
-
-  lexer = scm_lexer_new();
-  if (lexer == NULL) return SCM_OBJ_NULL; /* [ERR]: [through] */
-
-  parser = scm_parser_new(lexer);
-  if (parser == NULL) return SCM_OBJ_NULL; /* [ERR]: [through] */
-
-  return scm_parser_parse_expression(parser, port);
-}
-
-ssize_t
 scm_capi_write_raw(const void *buf, size_t size, ScmObj port)
 {
   if (!scm_capi_output_port_p(port)) {
@@ -6310,31 +6485,6 @@ scm_capi_write_raw(const void *buf, size_t size, ScmObj port)
 }
 
 int
-scm_capi_write_cstr(const char *str, ScmEncoding *enc, ScmObj port)
-{
-  ScmObj s = SCM_OBJ_INIT;
-
-  SCM_STACK_FRAME_PUSH(&port, &s);
-
-  if (!scm_capi_output_port_p(port)) {
-    scm_capi_error("write error: invalid argument", 0);
-    return -1;
-  }
-  else if (!scm_capi_textual_port_p(port)) {
-    scm_capi_error("write error: invalid argument", 0);
-    return -1;
-  }
-
-  s = scm_capi_make_string_from_cstr(str, enc);
-  if (scm_obj_null_p(s)) return -1;
-
-  s = scm_api_write_string(s, port);
-  if (scm_obj_null_p(s)) return -1;
-
-  return 0;
-}
-
-int
 scm_capi_write_bin(const void *buf, size_t size, ScmEncoding *enc, ScmObj port)
 {
   ScmObj s = SCM_OBJ_INIT;
@@ -6353,264 +6503,12 @@ scm_capi_write_bin(const void *buf, size_t size, ScmEncoding *enc, ScmObj port)
   s = scm_capi_make_string_from_bin(buf, size, enc);
   if (scm_obj_null_p(s)) return -1;
 
-  s = scm_api_write_string(s, port);
+  s = scm_api_write_string(s, port, SCM_OBJ_NULL, SCM_OBJ_NULL);
   if (scm_obj_null_p(s)) return -1;
 
   return 0;
 }
 
-ScmObj
-scm_api_write_char(ScmObj chr, ScmObj port)
-{
-  ScmEncoding *p_enc, *c_enc;
-  ssize_t rslt;
-
-  SCM_STACK_FRAME_PUSH(&chr, &port);
-
-  if (scm_obj_null_p(chr)) {
-    scm_capi_error("write-char: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-  else if (!scm_capi_char_p(chr)) {
-    scm_capi_error("write-char: character required, but got", 1, chr);
-    return SCM_OBJ_NULL;
-  }
-
-  if (!scm_capi_output_port_p(port)) {
-    scm_capi_error("write-char: output-port required, but got", 1, port);
-    return SCM_OBJ_NULL;
-  }
-  else if (!scm_capi_textual_port_p(port)) {
-    scm_capi_error("write-char: textual-port required, but got", 1, port);
-    return SCM_OBJ_NULL;
-  }
-
-  p_enc = scm_port_internal_enc(port);
-  c_enc = scm_char_encoding(chr);
-
-  if (p_enc != c_enc) {
-    chr = scm_char_encode(chr, p_enc);
-    if (scm_obj_null_p(chr)) return SCM_OBJ_NULL; /* [ERR]: [through] */
-  }
-
-  rslt = scm_port_write_char(port, scm_char_value(chr));
-  if (rslt < 0) return SCM_OBJ_NULL; /* [ERR: [through] */
-
-  return SCM_UNDEF_OBJ;
-}
-
-ScmObj
-scm_api_write_string(ScmObj str, ScmObj port)
-{
-  ScmEncoding *p_enc, *s_enc;
-  ssize_t rslt, size;
-  void *buf;
-
-  SCM_STACK_FRAME_PUSH(&str, &port);
-
-  if (scm_obj_null_p(str)) {
-    scm_capi_error("write-string: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-  else if (!scm_capi_string_p(str)) {
-    scm_capi_error("write-string: string required, but got", 1, str);
-    return SCM_OBJ_NULL;
-  }
-
-  if (!scm_capi_output_port_p(port)) {
-    scm_capi_error("write-string: output-port required, but got", 1, port);
-    return SCM_OBJ_NULL;
-  }
-  else if (!scm_capi_textual_port_p(port)) {
-    scm_capi_error("write-string: textual-port required, but got", 1, port);
-    return SCM_OBJ_NULL;
-  }
-
-  p_enc = scm_port_internal_enc(port);
-  s_enc = scm_string_encoding(str);
-
-  if (p_enc != s_enc) {
-    str = scm_string_encode(str, p_enc);
-    if (scm_obj_null_p(str)) return SCM_OBJ_NULL; /* [ERR]: [through] */
-  }
-
-  size = scm_capi_string_bytesize(str);
-  if (size < 0) return SCM_OBJ_NULL; /* [ERR: [through] */
-
-  buf = scm_capi_malloc((size_t)size + 1);
-  if (buf == NULL) return SCM_OBJ_NULL; /* [ERR]: [through] */
-
-  rslt = scm_capi_string_to_cstr(str, buf, (size_t)size + 1);
-  if (rslt < 0) return SCM_OBJ_NULL; /* [ERR: [through] */
-
-  rslt = scm_capi_write_raw(buf, (size_t)size, port);
-  if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
-
-  return SCM_UNDEF_OBJ;
-}
-
-ScmObj
-scm_api_write(ScmObj obj, ScmObj port)
-{
-  /* TODO: write me */
-  return scm_api_write_simple(obj, port);
-}
-
-ScmObj
-scm_api_write_simple(ScmObj obj, ScmObj port)
-{
-  int rslt;
-
-  SCM_STACK_FRAME_PUSH(&obj, &port);
-
-  if (scm_obj_null_p(obj)) {
-    scm_capi_error("write-simple: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-
-  if (!scm_capi_output_port_p(port)) {
-    scm_capi_error("write-simple: output-port required, but got", 1, port);
-    return SCM_OBJ_NULL;
-  }
-  else if (!scm_capi_textual_port_p(port)) {
-    scm_capi_error("write-simple: textual-port required, but got", 1, port);
-    return SCM_OBJ_NULL;
-  }
-
-  rslt = scm_obj_call_pp_func(obj, port, true);
-  if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
-
-  return SCM_UNDEF_OBJ;
-}
-
-ScmObj
-scm_api_display(ScmObj obj, ScmObj port)
-{
-  int rslt;
-
-  SCM_STACK_FRAME_PUSH(&obj, &port);
-
-  if (scm_obj_null_p(obj)) {
-    scm_capi_error("display: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-
-  if (!scm_capi_output_port_p(port)) {
-    scm_capi_error("display: output-port required, but got", 1, port);
-    return SCM_OBJ_NULL;
-  }
-  else if (!scm_capi_textual_port_p(port)) {
-    scm_capi_error("display: textual-port required, but got", 1, port);
-    return SCM_OBJ_NULL;
-  }
-
-  rslt = scm_obj_call_pp_func(obj, port, false);
-  if (rslt < 0) return SCM_OBJ_NULL;
-
-  return SCM_UNDEF_OBJ;
-}
-
-ScmObj
-scm_api_newline(ScmObj port)
-{
-  ScmEncoding *enc;
-  scm_char_t nl;
-  size_t w;
-  int rslt;
-
-  if (!scm_capi_output_port_p(port)) {
-    scm_capi_error("newline: output-port required, but got", 1, port);
-    return SCM_OBJ_NULL;
-  }
-  else if (!scm_capi_textual_port_p(port)) {
-    scm_capi_error("newline: textual-port required, but got", 1, port);
-    return SCM_OBJ_NULL;
-  }
-
-  enc = scm_port_internal_enc(port);
-  scm_enc_chr_lf(enc, &nl, &w);
-  rslt = scm_capi_write_bin(nl.bytes, w, enc, port);
-  if (rslt < 0) return SCM_OBJ_NULL;
-
-  return SCM_UNDEF_OBJ;
-}
-
-ScmObj
-scm_api_flush_output_port(ScmObj port)
-{
-  int rslt;
-
-  SCM_STACK_FRAME_PUSH(&port);
-
-  if (!scm_capi_output_port_p(port)) {
-    scm_capi_error("display: output-port required, but got", 1, port);
-    return SCM_OBJ_NULL;
-  }
-
-  rslt = scm_port_flush(port);
-  if (rslt < 0) return SCM_OBJ_NULL;
-
-  return SCM_UNDEF_OBJ;
-}
-
-ssize_t
-scm_capi_get_output_raw(ScmObj port, void *buf, size_t size)
-{
-  const void *p;
-  ssize_t s;
-
-  if (!scm_capi_output_port_p(port) || !scm_port_string_port_p(port)) {
-    scm_capi_error("can not get byte sequence from output-string-port: "
-                   "invalid argument ", 0);
-    return -1;
-  }
-  else if (buf == NULL) {
-    scm_capi_error("can not get byte sequence from output-string-port: "
-                   "invalid argument ", 0);
-    return -1;
-  }
-
-  p = scm_port_string_buffer(port);
-  if (p == NULL) return -1;     /* [ERR]: [through] */
-
-  s = scm_port_string_buffer_length(port);
-  if (s < 0) return -1;         /* [ERR]: [through] */
-
-  if ((size_t)s > size)
-    s = (ssize_t)size;
-
-  memcpy(buf, p, (size_t)s);
-
-  return s;
-}
-
-ScmObj
-scm_api_get_output_string(ScmObj port)
-{
-  const void *p;
-  ssize_t s;
-  ScmEncoding *e;
-
-  if (scm_obj_null_p(port)) {
-    scm_capi_error("get-output-string: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-  else if (!scm_capi_output_port_p(port) || !scm_port_string_port_p(port)) {
-    scm_capi_error("get-output-string: "
-                   "output-string-port required, but got", 1, port);
-    return SCM_OBJ_NULL;
-  }
-
-  p = scm_port_string_buffer(port);
-  if (p == NULL) return SCM_OBJ_NULL; /* [ERR]: [through] */
-
-  s = scm_port_string_buffer_length(port);
-  if (s < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
-
-  e = scm_port_internal_enc(port);
-
-  return scm_capi_make_string_from_bin(p, (size_t)s, e);
-}
 
 extern inline ScmObj
 scm_api_standard_input_port(void)
@@ -6628,6 +6526,674 @@ extern inline ScmObj
 scm_api_standard_error_port(void)
 {
   return scm_vm_standard_error_port(scm_vm_current_vm());
+}
+
+
+/*******************************************************************/
+/*  Input                                                          */
+/*******************************************************************/
+
+ScmObj
+scm_api_read(ScmObj port)
+{
+  ScmLexer *lexer;
+  ScmParser *parser;
+
+  /* TODO: 引数の port のは指定省略可能にする (SCM_OBJ_NULL を指定可能にする)
+   * TODO: パーサーエラーの場合 read-error? が #t を返すオブジェクトを raise
+   *       する
+   */
+
+  if (scm_obj_null_p(port)) {
+    scm_capi_error("read: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_input_port_p(port)) {
+    scm_capi_error("read: input-port requried, but got", 1, port);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_textual_port_p(port)) {
+    scm_capi_error("read: textual-port requried, but got", 1, port);
+    return SCM_OBJ_NULL;
+  }
+  else if (scm_port_closed_p(port)) {
+    scm_capi_error("read: input-port is closed", 1, port);
+    return SCM_OBJ_NULL;
+  }
+
+  lexer = scm_lexer_new();
+  if (lexer == NULL) return SCM_OBJ_NULL; /* [ERR]: [through] */
+
+  parser = scm_parser_new(lexer);
+  if (parser == NULL) return SCM_OBJ_NULL; /* [ERR]: [through] */
+
+  return scm_parser_parse_expression(parser, port);
+}
+
+ssize_t
+scm_capi_read_cchar(scm_char_t *chr, ScmObj port)
+{
+  /* TODO: 引数の port のは指定省略可能にする (SCM_OBJ_NULL を指定可能にする) */
+
+  if (scm_obj_null_p(port)) {
+    scm_capi_error("read-char: invalid argument", 0);
+    return -1;
+  }
+  else if (!scm_capi_input_port_p(port)) {
+    scm_capi_error("read-char: input-port required, but got", 1, port);
+    return -1;
+  }
+  else if (!scm_capi_textual_port_p(port)) {
+    scm_capi_error("read-char: textual-port required, but got", 1, port);
+    return -1;
+  }
+  else if (scm_port_closed_p(port)) {
+    scm_capi_error("read-char: input-port is closed", 1, port);
+    return -1;
+  }
+  else if (chr == NULL) {
+    scm_capi_error("read-char: invalid argument", 0);
+    return -1;
+  }
+
+  return scm_port_read_char(port, chr);
+}
+
+ssize_t
+scm_capi_read_char(scm_char_t *chr, ScmObj port)
+{
+  /* OBSOLATE */
+  /* TODO: delete this api */
+
+  return scm_capi_read_cchar(chr, port);
+}
+
+ScmObj
+scm_api_read_char(ScmObj port)
+{
+  scm_char_t chr;
+  ssize_t s;
+
+  SCM_STACK_FRAME_PUSH(&port);
+
+  s = scm_capi_read_char(&chr, port);
+  if (s < 0) return SCM_OBJ_NULL;
+
+  if (s == 0)
+    return scm_api_eof();
+  else
+    return scm_capi_make_char(&chr, scm_port_internal_enc(port));
+}
+
+ssize_t
+scm_capi_peek_cchar(scm_char_t *chr, ScmObj port)
+{
+  /* TODO: 引数の port のは指定省略可能にする (SCM_OBJ_NULL を指定可能にする) */
+
+  if (scm_obj_null_p(port)) {
+    scm_capi_error("peek-char: invalid argument", 0);
+    return -1;
+  }
+  else if (!scm_capi_input_port_p(port)) {
+    scm_capi_error("peek-char: input-port required, but got", 1, port);
+    return -1;
+  }
+  else if (!scm_capi_textual_port_p(port)) {
+    scm_capi_error("peek-char: textual-port required, but got", 1, port);
+    return -1;
+  }
+  else if (scm_port_closed_p(port)) {
+    scm_capi_error("peek-char: input-port is closed", 1, port);
+    return -1;
+  }
+  else if (chr == NULL) {
+    scm_capi_error("peek error: invalid argument", 0);
+    return -1;
+  }
+
+  return scm_port_peek_char(port, chr);
+}
+
+ssize_t
+scm_capi_peek_char(scm_char_t *chr, ScmObj port)
+{
+  /* OBSOLATE */
+  /* TODO: delete this api */
+
+  return scm_capi_peek_cchar(chr, port);
+}
+
+ScmObj
+scm_api_peek_char(ScmObj port)
+{
+  scm_char_t chr;
+  ssize_t s;
+
+  s = scm_capi_peek_char(&chr, port);
+  if (s < 0) return SCM_OBJ_NULL;
+
+  if (s == 0)
+    return scm_api_eof();
+  else
+    return scm_capi_make_char(&chr, scm_port_internal_enc(port));
+}
+
+ScmObj
+scm_api_read_line(ScmObj port)
+{
+  ScmObj line = SCM_OBJ_INIT;
+  ScmStringIO *sio;
+  ssize_t ret;
+
+  SCM_STACK_FRAME_PUSH(&port, &line);
+
+  /* TODO: 引数の port のは指定省略可能にする (SCM_OBJ_NULL を指定可能にする) */
+
+  if (scm_obj_null_p(port)) {
+    scm_capi_error("read-line: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_input_port_p(port)) {
+    scm_capi_error("read-line: input-port required, but got", 1, port);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_textual_port_p(port)) {
+    scm_capi_error("read-line: textual-port required, but got", 1, port);
+    return SCM_OBJ_NULL;
+  }
+  else if (scm_port_closed_p(port)) {
+    scm_capi_error("read-line: input-port is closed", 1, port);
+    return SCM_OBJ_NULL;
+  }
+
+  sio = scm_stringio_new(NULL, 0);
+  if (sio == NULL) return SCM_OBJ_NULL;
+
+  ret = scm_port_read_line(port, (ScmIO *)sio);
+
+  if (ret < 0)
+    line = SCM_OBJ_NULL;
+  else if (ret == 0)
+    line = scm_api_eof();
+  else
+    line = scm_capi_make_string_from_bin(scm_stringio_buffer(sio),
+                                         scm_stringio_length(sio),
+                                         scm_port_internal_enc(port));
+
+  scm_stringio_end(sio);
+
+  return line;
+}
+
+int
+scm_capi_char_ready(ScmObj port, bool *rslt)
+{
+  /* TODO: 引数の port のは指定省略可能にする (SCM_OBJ_NULL を指定可能にする) */
+
+  if (scm_obj_null_p(port)) {
+    scm_capi_error("char-ready?: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_input_port_p(port)) {
+    scm_capi_error("char-ready?: input-port required, but got", 1, port);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_textual_port_p(port)) {
+    scm_capi_error("char-ready?: textual-port required, but got", 1, port);
+    return SCM_OBJ_NULL;
+  }
+  else if (scm_port_closed_p(port)) {
+    scm_capi_error("char-ready?: input-port is closed", 1, port);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_port_char_ready(port, rslt);
+}
+
+ScmObj
+scm_api_char_ready_P(ScmObj port)
+{
+  bool rslt;
+  int ret;
+
+  ret = scm_capi_char_ready(port, &rslt);
+  if (ret < 0) return SCM_OBJ_NULL;
+
+  return rslt ? scm_api_true() : scm_api_false();
+}
+
+ScmObj
+scm_api_read_string(ScmObj n, ScmObj port)
+{
+  ScmObj fn = SCM_OBJ_INIT, str = SCM_OBJ_INIT;
+  ScmStringIO *sio;
+  size_t nc;
+  ssize_t nr;
+  int ret;
+
+  /* TODO: 引数の port のは指定省略可能にする (SCM_OBJ_NULL を指定可能にする) */
+
+  SCM_STACK_FRAME_PUSH(&n, &port,
+                       &fn, &str);
+
+  if (scm_obj_null_p(n)) {
+    scm_capi_error("read-string: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_integer_p(n)) {
+    scm_capi_error("read-string: integer required, but got", 1, n);
+    return SCM_OBJ_NULL;
+  }
+  else if (scm_obj_null_p(port)) {
+    scm_capi_error("read-string: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_input_port_p(port)) {
+    scm_capi_error("read-string: input-port required, but got", 1, port);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_textual_port_p(port)) {
+    scm_capi_error("read-string: textual-port required, but got", 1, port);
+    return SCM_OBJ_NULL;
+  }
+  else if (scm_port_closed_p(port)) {
+    scm_capi_error("read-string: input-port is closed", 1, port);
+    return SCM_OBJ_NULL;
+  }
+
+  if (scm_capi_zero_p(n) || scm_capi_negative_p(n))
+    return scm_capi_make_string_from_bin(NULL, 0, scm_port_internal_enc(port));
+
+  nc = SCM_FIXNUM_MAX;
+  fn = scm_capi_make_number_from_size_t(nc);
+  if (scm_obj_null_p(fn)) return SCM_OBJ_NULL;
+
+  sio = scm_stringio_new(NULL, 0);
+  if (sio == NULL) return SCM_OBJ_NULL;
+
+  str = SCM_OBJ_NULL;
+  while (scm_capi_bignum_p(n)) {
+    nr = scm_port_read_string(nc, port, (ScmIO *)sio);
+    if (nr < 0) goto end;
+    else if (nr == 0) goto mkstr;
+
+    n = scm_api_minus(n, fn);
+    if (scm_obj_null_p(n)) goto end;
+  }
+
+  ret = scm_capi_integer_to_size_t(n, &nc);
+  if (ret < 0) goto end;
+
+  nr = scm_port_read_string(nc, port, (ScmIO *)sio);
+  if (nr < 0) goto end;
+
+ mkstr:
+  if (scm_stringio_length(sio) == 0)
+    str = scm_api_eof();
+  else
+    str = scm_capi_make_string_from_bin(scm_stringio_buffer(sio),
+                                        scm_stringio_length(sio),
+                                        scm_port_internal_enc(port));
+
+ end:
+  scm_stringio_end(sio);
+  return str;
+}
+
+
+/*******************************************************************/
+/*  Output                                                         */
+/*******************************************************************/
+
+ScmObj
+scm_api_write(ScmObj obj, ScmObj port)
+{
+  /* TODO: write me */
+  return scm_api_write_simple(obj, port);
+}
+
+ScmObj
+scm_api_write_simple(ScmObj obj, ScmObj port)
+{
+  int rslt;
+
+  /* TODO: 引数の port のは指定省略可能にする (SCM_OBJ_NULL を指定可能にする) */
+
+  SCM_STACK_FRAME_PUSH(&obj, &port);
+
+  if (scm_obj_null_p(obj)) {
+    scm_capi_error("write-simple: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  if (!scm_capi_output_port_p(port)) {
+    scm_capi_error("write-simple: output-port required, but got", 1, port);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_textual_port_p(port)) {
+    scm_capi_error("write-simple: textual-port required, but got", 1, port);
+    return SCM_OBJ_NULL;
+  }
+  else if (scm_port_closed_p(port)) {
+    scm_capi_error("write-simple: port is closed", 1, port);
+    return SCM_OBJ_NULL;
+  }
+
+  rslt = scm_obj_call_pp_func(obj, port, true);
+  if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
+
+  return SCM_UNDEF_OBJ;
+}
+
+ScmObj
+scm_api_display(ScmObj obj, ScmObj port)
+{
+  int rslt;
+
+  /* TODO: 引数の port のは指定省略可能にする (SCM_OBJ_NULL を指定可能にする) */
+  /* TODO: obj の構造が循環していても無限ループにならないようにする */
+
+  SCM_STACK_FRAME_PUSH(&obj, &port);
+
+  if (scm_obj_null_p(obj)) {
+    scm_capi_error("display: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  if (!scm_capi_output_port_p(port)) {
+    scm_capi_error("display: output-port required, but got", 1, port);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_textual_port_p(port)) {
+    scm_capi_error("display: textual-port required, but got", 1, port);
+    return SCM_OBJ_NULL;
+  }
+  else if (scm_port_closed_p(port)) {
+    scm_capi_error("display: port is closed", 1, port);
+    return SCM_OBJ_NULL;
+  }
+
+  rslt = scm_obj_call_pp_func(obj, port, false);
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  return SCM_UNDEF_OBJ;
+}
+
+ScmObj
+scm_api_newline(ScmObj port)
+{
+  ScmEncoding *enc;
+  scm_char_t nl;
+  size_t w;
+  ssize_t rslt;
+
+  /* TODO: 引数の port のは指定省略可能にする (SCM_OBJ_NULL を指定可能にする) */
+
+  if (scm_obj_null_p(port)) {
+    scm_capi_error("newline: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_output_port_p(port)) {
+    scm_capi_error("newline: output-port required, but got", 1, port);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_textual_port_p(port)) {
+    scm_capi_error("newline: textual-port required, but got", 1, port);
+    return SCM_OBJ_NULL;
+  }
+  else if (scm_port_closed_p(port)) {
+    scm_capi_error("newline: port is closed", 1, port);
+    return SCM_OBJ_NULL;
+  }
+
+  enc = scm_port_internal_enc(port);
+  scm_enc_chr_lf(enc, &nl, &w);
+  rslt = scm_port_write_char(port, nl);
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  return SCM_UNDEF_OBJ;
+}
+
+int
+scm_capi_write_cchar(scm_char_t chr, ScmEncoding *enc, ScmObj port)
+{
+  ScmObj c = SCM_OBJ_INIT, r = SCM_OBJ_INIT;
+
+  /* TODO: 引数の port のは指定省略可能にする (SCM_OBJ_NULL を指定可能にする) */
+
+  SCM_STACK_FRAME_PUSH(&port,
+                       &c, &r);
+
+  if (enc == NULL) {
+    scm_capi_error("write-char: invalid argument", 0);
+    return -1;
+  }
+
+  c = scm_capi_make_char(&chr, enc);
+  if (scm_obj_null_p(c)) return -1;
+
+  r = scm_api_write_char(c, port);
+  if (scm_obj_null_p(r)) return -1;
+
+  return 0;
+}
+
+ScmObj
+scm_api_write_char(ScmObj chr, ScmObj port)
+{
+  ScmEncoding *p_enc, *c_enc;
+  ssize_t rslt;
+
+  /* TODO: 引数の port のは指定省略可能にする (SCM_OBJ_NULL を指定可能にする) */
+
+  SCM_STACK_FRAME_PUSH(&chr, &port);
+
+  if (scm_obj_null_p(chr)) {
+    scm_capi_error("write-char: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_char_p(chr)) {
+    scm_capi_error("write-char: character required, but got", 1, chr);
+    return SCM_OBJ_NULL;
+  }
+
+  if (scm_obj_null_p(port)) {
+    scm_capi_error("write-char: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_output_port_p(port)) {
+    scm_capi_error("write-char: output-port required, but got", 1, port);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_textual_port_p(port)) {
+    scm_capi_error("write-char: textual-port required, but got", 1, port);
+    return SCM_OBJ_NULL;
+  }
+  else if (scm_port_closed_p(port)) {
+    scm_capi_error("write-char: port is closed", 1, port);
+    return SCM_OBJ_NULL;
+  }
+
+  p_enc = scm_port_internal_enc(port);
+  c_enc = scm_char_encoding(chr);
+
+  if (p_enc != c_enc) {
+    chr = scm_char_encode(chr, p_enc);
+    if (scm_obj_null_p(chr)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+  }
+
+  rslt = scm_port_write_char(port, scm_char_value(chr));
+  if (rslt < 0) return SCM_OBJ_NULL; /* [ERR: [through] */
+
+  return SCM_UNDEF_OBJ;
+}
+
+int
+scm_capi_write_cstr(const char *str, ScmEncoding *enc, ScmObj port)
+{
+  ScmObj s = SCM_OBJ_INIT;
+
+  /* TODO: 引数の port のは指定省略可能にする (SCM_OBJ_NULL を指定可能にする) */
+
+  SCM_STACK_FRAME_PUSH(&port, &s);
+
+  if (enc == NULL) {
+    scm_capi_error("write-string: invalid argument", 0);
+    return -1;
+  }
+
+  s = scm_capi_make_string_from_cstr(str, enc);
+  if (scm_obj_null_p(s)) return -1;
+
+  s = scm_api_write_string(s, port, SCM_OBJ_NULL, SCM_OBJ_NULL);
+  if (scm_obj_null_p(s)) return -1;
+
+  return 0;
+}
+
+ssize_t
+scm_capi_write_string(ScmObj str, ScmObj port, ssize_t start, ssize_t end)
+{
+  ScmEncoding *p_enc;
+  ssize_t rslt, size;
+
+  /* TODO: 引数の port のは指定省略可能にする (SCM_OBJ_NULL を指定可能にする) */
+
+  SCM_STACK_FRAME_PUSH(&str, &port);
+
+  if (scm_obj_null_p(str)) {
+    scm_capi_error("write-string: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_string_p(str)) {
+    scm_capi_error("write-string: string required, but got", 1, str);
+    return SCM_OBJ_NULL;
+  }
+
+  if (scm_obj_null_p(port)) {
+    scm_capi_error("write-string: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_output_port_p(port)) {
+    scm_capi_error("write-string: output-port required, but got", 1, port);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_textual_port_p(port)) {
+    scm_capi_error("write-string: textual-port required, but got", 1, port);
+    return SCM_OBJ_NULL;
+  }
+  else if (scm_port_closed_p(port)) {
+    scm_capi_error("write-string: port is closed", 1, port);
+    return SCM_OBJ_NULL;
+  }
+
+  if (start >= 0 && end >= 0 && start > end) {
+    scm_capi_error("write-string: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  if (start < 0)
+    start = 0;
+
+  if (end < 0)
+    end = (ssize_t)scm_string_length(str);
+
+  if (start != 0 || end != (ssize_t)scm_string_length(str)) {
+    str = scm_string_substr(str, (size_t)start, (size_t)(end - start));
+    if (scm_obj_null_p(str)) return SCM_OBJ_NULL;
+  }
+
+  p_enc = scm_port_internal_enc(port);
+  if (p_enc != scm_string_encoding(str)) {
+    str = scm_string_encode(str, p_enc);
+    if (scm_obj_null_p(str)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+  }
+
+  size = scm_capi_string_bytesize(str);
+  if (size < 0) return SCM_OBJ_NULL; /* [ERR: [through] */
+
+  rslt = scm_port_write_bytes(port, scm_string_content(str), (size_t)size);
+  if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
+
+  return end - start;
+}
+
+ScmObj
+scm_api_write_string(ScmObj str, ScmObj port, ScmObj start, ScmObj end)
+{
+  ssize_t sss, sse, rslt;
+
+  SCM_STACK_FRAME_PUSH(&str, &port, &start, &end);
+
+  if (scm_obj_not_null_p(start) && !scm_capi_integer_p(start)) {
+    scm_capi_error("write-string: integer required, but got", 1, start);
+    return SCM_OBJ_NULL;
+  }
+  else if (scm_obj_not_null_p(end) && !scm_capi_integer_p(end)) {
+    scm_capi_error("write-string: integer required, but got", 1, end);
+    return SCM_OBJ_NULL;
+  }
+
+  sss = -1;
+  if (scm_obj_not_null_p(start)) {
+    size_t s;
+    int r = scm_capi_integer_to_size_t(start, &s);
+    if (r < 0) return SCM_OBJ_NULL;
+
+    if (s > SSIZE_MAX) {
+      scm_capi_error("write-string: too big", 1, start);
+      return SCM_OBJ_NULL;
+    }
+
+    sss = (ssize_t)s;
+  }
+
+  sse = -1;
+  if (scm_obj_not_null_p(end)) {
+    size_t s;
+    int r = scm_capi_integer_to_size_t(end, &s);
+    if (r < 0) return SCM_OBJ_NULL;
+
+    if (s > SSIZE_MAX) {
+      scm_capi_error("write-string: too big", 1, end);
+      return SCM_OBJ_NULL;
+    }
+
+    sse = (ssize_t)s;
+  }
+
+  rslt = scm_capi_write_string(str, port, sss, sse);
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  return SCM_UNDEF_OBJ;
+}
+
+ScmObj
+scm_api_flush_output_port(ScmObj port)
+{
+  int rslt;
+
+  /* TODO: 引数の port のは指定省略可能にする (SCM_OBJ_NULL を指定可能にする) */
+
+  SCM_STACK_FRAME_PUSH(&port);
+
+  if (scm_obj_null_p(port)) {
+    scm_capi_error("flush-output-port: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_output_port_p(port)) {
+    scm_capi_error("flush-output-port: output-port required, but got", 1, port);
+    return SCM_OBJ_NULL;
+  }
+  else if (scm_port_closed_p(port)) {
+    scm_capi_error("flush-output-port: port is closed", 1, port);
+    return SCM_OBJ_NULL;
+  }
+
+  rslt = scm_port_flush(port);
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  return SCM_UNDEF_OBJ;
 }
 
 
@@ -7945,7 +8511,7 @@ int
 scm_capi_run_repl(ScmEvaluator *ev)
 {
   ScmObj port = SCM_OBJ_INIT, asmbl = SCM_OBJ_INIT, iseq = SCM_OBJ_INIT;
-  int rslt, ret;
+  int ret;
 
   ret = -1;
 
@@ -7960,50 +8526,50 @@ scm_capi_run_repl(ScmEvaluator *ev)
 
   scm_vm_setup_system(ev->vm);
 
-  port = scm_capi_open_input_string_from_cstr("("
-                                              " (label loop)"
-                                              "   (frame)"
-                                              "   (immval \"> \")"
-                                              "   (push)"
-                                              "   (gref display main)"
-                                              "   (call 1)"
-                                              "   (arity 1)"
-                                              "   (cframe)"
-                                              "   (gref flush-output-port main)"
-                                              "   (call 0)"
-                                              "   (arity 1)"
-                                              "   (frame)"
-                                              "   (frame)"
-                                              "   (cframe)"
-                                              "   (gref read main)"
-                                              "   (call 0)"
-                                              "   (arity 1)"
-                                              "   (push)"
-                                              "   (gref eval main)"
-                                              "   (call 1)"
-                                              "   (arity 1)"
-                                              "   (push)"
-                                              "   (gref write main)"
-                                              "   (call 1)"
-                                              "   (arity 1)"
-                                              "   (cframe)"
-                                              "   (gref newline main)"
-                                              "   (call 0)"
-                                              "   (arity 1)"
-                                              "   (cframe)"
-                                              "   (gref flush-output-port main)"
-                                              "   (call 0)"
-                                              "   (arity 1)"
-                                              "   (jmp loop)"
-                                              ")",
-                                              SCM_ENC_UTF8);
+  port = scm_capi_open_input_string_cstr("("
+                                         " (label loop)"
+                                         "   (frame)"
+                                         "   (immval \"> \")"
+                                         "   (push)"
+                                         "   (gref display main)"
+                                         "   (call 1)"
+                                         "   (arity 1)"
+                                         "   (cframe)"
+                                         "   (gref flush-output-port main)"
+                                         "   (call 0)"
+                                         "   (arity 1)"
+                                         "   (frame)"
+                                         "   (frame)"
+                                         "   (cframe)"
+                                         "   (gref read main)"
+                                         "   (call 0)"
+                                         "   (arity 1)"
+                                         "   (push)"
+                                         "   (gref eval main)"
+                                         "   (call 1)"
+                                         "   (arity 1)"
+                                         "   (push)"
+                                         "   (gref write main)"
+                                         "   (call 1)"
+                                         "   (arity 1)"
+                                         "   (cframe)"
+                                         "   (gref newline main)"
+                                         "   (call 0)"
+                                         "   (arity 1)"
+                                         "   (cframe)"
+                                         "   (gref flush-output-port main)"
+                                         "   (call 0)"
+                                         "   (arity 1)"
+                                         "   (jmp loop)"
+                                         ")",
+                                         SCM_ENC_UTF8);
   if (scm_obj_null_p(port)) goto end;
 
   asmbl = scm_api_read(port);
   if (scm_obj_null_p(asmbl)) goto end;
 
-  rslt = scm_api_close_input_port(port);
-  if (rslt < 0) goto end;
+  port = scm_api_close_input_port(port);
+  if (scm_obj_null_p(port)) goto end;
 
   port = SCM_OBJ_NULL;
 

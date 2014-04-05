@@ -156,6 +156,7 @@ int scm_stringio_buffer_mode(ScmStringIO *strio, SCM_IO_MODE_T im,
                              SCM_PORT_BUF_T *mode);
 char *scm_stringio_buffer(ScmStringIO *strio);
 size_t scm_stringio_length(ScmStringIO *strio);
+char *scm_stringio_chuck_buffer(ScmStringIO *strio);
 
 ScmBufferedIO *scm_bufferedio_new(ScmIO *io);
 void scm_bufferedio_end(ScmBufferedIO *bufio);
@@ -231,6 +232,7 @@ ssize_t scm_port_size_up_to_rearmost_lf(ScmObj port,
 uint8_t *scm_port_pushback_buff_head(ScmObj port);
 size_t scm_port_pushback_buff_unused(ScmObj port);
 ssize_t scm_port_read_from_pushback_buf(ScmObj port, void *buf, size_t size);
+int scm_port_pushback_buf_char_ready(ScmObj port, bool *rslt);
 ssize_t scm_port_read_char_from_pushback_buf(ScmObj port, scm_char_t *chr);
 ssize_t scm_port_read_from_io(ScmObj port, void *buf, size_t size);
 ssize_t scm_port_read_buf(ScmObj port,
@@ -273,13 +275,15 @@ bool scm_port_file_port_p(ScmObj port);
 bool scm_port_string_port_p(ScmObj port);
 bool scm_port_closed_p(ScmObj port);
 bool scm_port_ready_p(ScmObj port);
+int scm_port_char_ready(ScmObj port, bool *rslt);
 ScmEncoding *scm_port_internal_enc(ScmObj port);
 const char *scm_port_external_enc(ScmObj port);
 int scm_port_flush(ScmObj port);
 int scm_port_close(ScmObj port);
 ssize_t scm_port_read_bytes(ScmObj port, void *buf, size_t size);
-ssize_t scm_port_read_line(ScmObj port, void *buf, size_t size);
 ssize_t scm_port_read_char(ScmObj port, scm_char_t *chr);
+ssize_t scm_port_read_line(ScmObj port, ScmIO *io);
+ssize_t scm_port_read_string(size_t n, ScmObj port, ScmIO *io);
 ssize_t scm_port_pushback_bytes(ScmObj port, const void *buf, size_t size);
 ssize_t scm_port_pushback_char(ScmObj port, const scm_char_t *chr);
 ssize_t scm_port_peek_bytes(ScmObj port, void *buf, size_t size);

@@ -159,7 +159,8 @@ scm_exception_pretty_print(ScmObj obj, ScmObj port, bool write_p)
     rslt = scm_capi_write_cstr("#<exception ", SCM_ENC_ASCII, port);
     if (rslt < 0) return -1;    /* [ERR]: [through] */
 
-    ro = scm_api_write_string(SCM_EXCEPTION(obj)->msg, port);
+    ro = scm_api_write_string(SCM_EXCEPTION(obj)->msg, port,
+                              SCM_OBJ_NULL, SCM_OBJ_NULL);
     if (scm_obj_null_p(ro)) return -1; /* [ERR]: [through] */
 
     rslt = scm_capi_write_cstr(cstr, SCM_ENC_ASCII, port);
@@ -172,7 +173,8 @@ scm_exception_pretty_print(ScmObj obj, ScmObj port, bool write_p)
     if (scm_obj_not_null_p(SCM_EXCEPTION(obj)->msg)) {
       const char *dlm;
 
-      ro = scm_api_write_string(SCM_EXCEPTION(obj)->msg, port);
+      ro = scm_api_write_string(SCM_EXCEPTION(obj)->msg, port,
+                                SCM_OBJ_NULL, SCM_OBJ_NULL);
       if (scm_obj_null_p(ro)) return -1; /* [ERR]: [through] */
 
       dlm = ": ";

@@ -477,19 +477,18 @@ scm_module_find_sym_cmpl(ScmObj mod, ScmObj sym, scm_csetter_t *setter)
 int
 scm_module_pretty_print(ScmObj obj, ScmObj port, bool write_p)
 {
-  ScmObj ro = SCM_OBJ_INIT;
+  ssize_t wc;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&obj, &port,
-                       &ro);
+  SCM_STACK_FRAME_PUSH(&obj, &port);
 
   scm_assert_obj_type(obj, &SCM_MODULE_TYPE_INFO);
 
   rslt = scm_capi_write_cstr("#<module ", SCM_ENC_ASCII, port);
   if (rslt < 0) return -1;
 
-  ro = scm_api_write_string(SCM_MODULE(obj)->name, port);
-  if (scm_obj_null_p(ro)) return -1;
+  wc = scm_capi_write_string(SCM_MODULE(obj)->name, port, -1, -1);
+  if (wc < 0) return -1;
 
   rslt = scm_capi_write_cstr(">", SCM_ENC_ASCII, port);
   if (rslt < 0) return -1;

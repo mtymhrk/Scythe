@@ -564,6 +564,24 @@ scm_stringio_length(ScmStringIO *strio)
   return strio->length;
 }
 
+char *
+scm_stringio_chuck_buffer(ScmStringIO *strio)
+{
+  char *p;
+
+  scm_assert(strio != NULL);
+
+  p = strio->string;
+
+  strio->string = NULL;
+  strio->capacity = 0;
+  strio->length = 0;
+  strio->pos = 0;
+
+  return p;
+}
+
+
 scm_local_func int
 scm_bufferedio_init_buffer(ScmBufferedIO *bufio, ScmIO *source)
 {
@@ -1343,9 +1361,8 @@ scm_local_func ssize_t
 scm_port_size_up_to_rearmost_lf(ScmObj port, const void *buf, size_t size)
 {
   ScmStrItr iter;
-  ssize_t len, found;
+  ssize_t len, found, lf_w, cr_w;
   scm_char_t lf, cr;
-  size_t lf_w, cr_w;
 
   scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
   scm_assert(buf != NULL);
@@ -1353,8 +1370,11 @@ scm_port_size_up_to_rearmost_lf(ScmObj port, const void *buf, size_t size)
 
   scm_str_itr_begin((void *)buf, size, SCM_PORT(port)->inn_enc, &iter);
 
-  scm_enc_chr_lf(SCM_PORT(port)->inn_enc, &lf, &lf_w);
-  scm_enc_chr_cr(SCM_PORT(port)->inn_enc, &cr, &cr_w);
+  scm_enc_cnv_from_ascii(SCM_PORT(port)->inn_enc, '\n', &lf);
+  scm_enc_cnv_from_ascii(SCM_PORT(port)->inn_enc, '\r', &cr);
+
+  lf_w = scm_enc_char_width(SCM_PORT(port)->inn_enc, lf.bytes, sizeof(lf));
+  cr_w = scm_enc_char_width(SCM_PORT(port)->inn_enc, cr.bytes, sizeof(cr));
 
   len = 0;
   found = 0;
@@ -1370,9 +1390,9 @@ scm_port_size_up_to_rearmost_lf(ScmObj port, const void *buf, size_t size)
       return 0;
 
     len += w;
-    if ((lf_w == (size_t)w
+    if ((lf_w == w
          && memcmp(lf.bytes, scm_str_itr_ptr(&iter), (size_t)w) == 0)
-        || (cr_w == (size_t)w
+        || (cr_w == w
             && memcmp(cr.bytes, scm_str_itr_ptr(&iter), (size_t)w) == 0))
       found = len;
 
@@ -1419,6 +1439,36 @@ scm_port_read_from_pushback_buf(ScmObj port, void *buf, size_t size)
   SCM_PORT(port)->pb_used -= n;
 
   return (ssize_t)n;
+}
+
+scm_local_func int
+scm_port_pushback_buf_char_ready(ScmObj port, bool *rslt)
+{
+  ssize_t width;
+
+  scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
+  scm_assert(scm_port_input_port_p(port));
+  scm_assert(scm_port_textual_port_p(port));
+  scm_assert(!scm_port_closed_p(port));
+
+  if (SCM_PORT(port)->pb_used == 0) {
+    if (rslt != NULL) *rslt = false;
+    return 0;
+  }
+
+  width = scm_enc_char_width(SCM_PORT(port)->inn_enc,
+                             scm_port_pushback_buff_head(port),
+                             SCM_PORT(port)->pb_used);
+
+  if (width < 0) {
+    /* TODO; change error message */
+    scm_capi_error("illegal byte sequence", 0);
+    return -1;
+  }
+
+  if (rslt != NULL) *rslt = (width == 0) ? false : true;
+
+  return 0;
 }
 
 scm_local_func ssize_t
@@ -1889,6 +1939,59 @@ scm_port_ready_p(ScmObj port)
   }
 }
 
+int
+scm_port_char_ready(ScmObj port, bool *rslt)
+{
+  bool ready_p;
+  int ret;
+
+  scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
+
+  if (!scm_port_input_port_p(port)) {
+    scm_capi_error("port is not input port", 0);
+    return -1;
+  }
+  if (!scm_port_textual_port_p(port)) {
+    scm_capi_error("port is not textual port", 0);
+    return -1;
+  }
+  if (scm_port_closed_p(port)) {
+    scm_capi_error("port is already closed", 0);
+    return -1;
+  }
+
+  ret = scm_port_pushback_buf_char_ready(port, &ready_p);
+  if (ret < 0) return -1;
+
+  while (!ready_p) {
+    ssize_t r;
+
+    if (!scm_port_ready_p(port)) break;
+
+    r = scm_port_read_into_pushback_buf(port, 1);
+    if (r < 0) {
+      return -1;                /* [ERR]: [through] */
+    }
+
+    if (r == 0) {
+      if (SCM_PORT(port)->pb_used > 0) {
+        scm_capi_error("faild to peek a character: illegal byte sequence", 0);
+        return -1;
+      }
+
+      ready_p = true;
+    }
+    else {
+      ret = scm_port_pushback_buf_char_ready(port, &ready_p);
+      if (ret < 0) return -1;
+    }
+  }
+
+  if (rslt != NULL) *rslt = ready_p;
+
+  return 0;
+}
+
 ScmEncoding *
 scm_port_internal_enc(ScmObj port)
 {
@@ -1998,18 +2101,14 @@ scm_port_read_char(ScmObj port, scm_char_t *chr)
 }
 
 ssize_t
-scm_port_read_line(ScmObj port, void *buf, size_t size)
+scm_port_read_line(ScmObj port, ScmIO *io)
 {
-  char *bp;
-  size_t sz, lf_w, cr_w;
-  ssize_t ret;
+  ssize_t ret, nr, lf_w, cr_w;
   scm_char_t chr;
   scm_char_t lf, cr;
-  bool lf_exists_p, cr_exists_p;
+  bool cr_exists_p;
 
   scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
-  scm_assert(buf != NULL);
-  scm_assert(size <= SSIZE_MAX);
 
   if (!scm_port_input_port_p(port)) {
     scm_capi_error("port is not input port", 0);
@@ -2024,58 +2123,85 @@ scm_port_read_line(ScmObj port, void *buf, size_t size)
     return -1;
   }
 
-  scm_enc_chr_lf(SCM_PORT(port)->inn_enc, &lf, &lf_w);
-  scm_enc_chr_cr(SCM_PORT(port)->inn_enc, &cr, &cr_w);
+  scm_enc_cnv_from_ascii(SCM_PORT(port)->inn_enc, '\n', &lf);
+  scm_enc_cnv_from_ascii(SCM_PORT(port)->inn_enc, '\r', &cr);
 
-  bp = buf;
-  sz = 0;
-  lf_exists_p = false;
+  lf_w = scm_enc_char_width(SCM_PORT(port)->inn_enc, lf.bytes, sizeof(lf));
+  cr_w = scm_enc_char_width(SCM_PORT(port)->inn_enc, cr.bytes, sizeof(cr));
+
   cr_exists_p = false;
+  nr = 0;
 
-  while (sz < size) {
-    ret = scm_port_peek_char(port, &chr);
+  while (true) {
+    ret = scm_port_read_char(port, &chr);
     if (ret < 0) return -1;
     else if (ret == 0) break;
 
-    if ((size_t)ret == lf_w && memcmp(lf.bytes, chr.bytes, lf_w) == 0) {
-      lf_exists_p = true;
+    nr++;
+
+    if (ret == lf_w && memcmp(lf.bytes, chr.bytes, (size_t)lf_w) == 0) {
       break;
     }
-    else if ((size_t)ret == cr_w && memcmp(cr.bytes, chr.bytes, cr_w) == 0) {
+    else if (ret == cr_w && memcmp(cr.bytes, chr.bytes, (size_t)cr_w) == 0) {
       cr_exists_p = true;
       break;
     }
 
-    if (size - sz < (size_t)ret) break;
-
-    memcpy(bp, chr.bytes, (size_t)ret);
-
-    bp += (size_t)ret;
-    sz += (size_t)ret;
-
-    ret = scm_port_read(port, &chr, (size_t)ret);
-    if (ret < 0) return -1;
-  }
-
-  if (lf_exists_p || cr_exists_p) {
-    ret = scm_port_read(port, &chr, (size_t)ret);
-    if (ret < 0) return -1;
-
-    if (cr_exists_p) {
-      ret = scm_port_peek_char(port, &chr);
+    if (io != NULL) {
+      ret = scm_io_write(io, chr.bytes, (size_t)ret);
       if (ret < 0) return -1;
-
-      if ((size_t)ret == lf_w && memcmp(lf.bytes, chr.bytes, lf_w) == 0) {
-        ret = scm_port_read(port, &chr, (size_t)ret);
-        if (ret < 0) return -1;
-      }
     }
   }
 
-  if (sz == 0)
-    SCM_PORT(port)->eof_received_p = false;
+  if (cr_exists_p) {
+    ret = scm_port_peek_char(port, &chr);
+    if (ret < 0) return -1;
 
-  return (ssize_t)sz;
+    if (ret == lf_w && memcmp(lf.bytes, chr.bytes, (size_t)lf_w) == 0) {
+      ret = scm_port_read(port, &chr, (size_t)ret);
+      if (ret < 0) return -1;
+      nr++;
+    }
+  }
+
+  return nr;
+}
+
+ssize_t
+scm_port_read_string(size_t n, ScmObj port, ScmIO *io)
+{
+  size_t i;
+  ssize_t ret;
+  scm_char_t chr;
+
+  scm_assert(n < SSIZE_MAX);
+  scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
+
+  if (!scm_port_input_port_p(port)) {
+    scm_capi_error("port is not input port", 0);
+    return -1;
+  }
+  if (!scm_port_textual_port_p(port)) {
+    scm_capi_error("port is not textual port", 0);
+    return -1;
+  }
+  if (scm_port_closed_p(port)) {
+    scm_capi_error("port is already closed", 0);
+    return -1;
+  }
+
+  for (i = 0; i < n; i++) {
+    ret = scm_port_read_char(port, &chr);
+    if (ret < 0) return -1;
+    else if (ret == 0) break;
+
+    if (io != NULL) {
+      ret = scm_io_write(io, chr.bytes, (size_t)ret);
+      if (ret < 0) return -1;
+    }
+  }
+
+  return (ssize_t)i;
 }
 
 ssize_t

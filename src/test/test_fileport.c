@@ -694,34 +694,41 @@ void
 xxx_test_scm_port_read_line__read_up_to_lf(ScmObj port)
 {
   const char *expected1 = "hello, world";
+  const size_t expected1_sz = strlen(expected1);
   const char *expected2 = "hello, world!";
-  char actual1[256];
-  ssize_t actual1_len;
-  char actual2[256];
-  ssize_t actual2_len;
-  char actual3[256];
-  ssize_t actual3_len;
+  const size_t expected2_sz = strlen(expected2);
+  ScmStringIO *actual1;
+  ssize_t actual1_ret;
+  ScmStringIO *actual2;
+  ssize_t actual2_ret;
+  ssize_t actual3_ret;
 
+  actual1 = scm_stringio_new(NULL, 0);
+  actual2 = scm_stringio_new(NULL, 0);
 
   /* 改行まで読み込み */
-  actual1_len = scm_port_read_line(port, actual1, sizeof(actual1));
+  actual1_ret = scm_port_read_line(port, (ScmIO *)actual1);
 
-  cut_assert_equal_int((int)strlen(expected1), (int)actual1_len);
-  actual1[actual1_len] = '\0';
-  cut_assert_equal_string(expected1, actual1);
+  cut_assert_equal_uint(expected1_sz, scm_stringio_length(actual1));
+  cut_assert_not_equal_int(0, actual1_ret);
+  cut_assert_equal_memory(expected1, expected1_sz,
+                          scm_stringio_buffer(actual1), expected1_sz);
 
   /* 改行以降を読み込み */
-  actual2_len = scm_port_read_line(port, actual2, sizeof(actual2));
+  actual2_ret = scm_port_read_line(port, (ScmIO *)actual2);
 
-  cut_assert_equal_int((int)strlen(expected2), (int)actual2_len);
-  actual2[actual2_len] = '\0';
-  cut_assert_equal_string(expected2, actual2);
-
+  cut_assert_equal_uint(expected2_sz, scm_stringio_length(actual2));
+  cut_assert_not_equal_int(0, actual2_ret);
+  cut_assert_equal_memory(expected2, expected2_sz,
+                          scm_stringio_buffer(actual2), expected2_sz);
 
   /* EOF に到達 */
-  actual3_len = scm_port_read_line(port, actual3, sizeof(actual3));
+  actual3_ret = scm_port_read_line(port, NULL);
 
-  cut_assert_equal_int(0, (int)actual3_len);
+  cut_assert_equal_int(0, (int)actual3_ret);
+
+  scm_stringio_end(actual1);
+  scm_stringio_end(actual2);
 }
 
 void
@@ -764,70 +771,70 @@ test_scm_port_read_line__read_up_to_lf__none_buffer(void)
   xxx_test_scm_port_read_line__read_up_to_lf(port);
 }
 
-void
-xxx_test_scm_port_read_line__read_up_to_buf_filled(ScmObj port)
-{
-  const char expected1[] = "hello";
-  const char expected2[] = ", world";
-  char actual1[sizeof(expected1)];
-  ssize_t actual1_len;
-  char actual2[256];
-  ssize_t actual2_len;
+/* void */
+/* xxx_test_scm_port_read_line__read_up_to_buf_filled(ScmObj port) */
+/* { */
+/*   const char expected1[] = "hello"; */
+/*   const char expected2[] = ", world"; */
+/*   char actual1[sizeof(expected1)]; */
+/*   ssize_t actual1_len; */
+/*   char actual2[256]; */
+/*   ssize_t actual2_len; */
 
-  /* actual1 が一杯になるまで読み込み */
-  actual1_len = scm_port_read_line(port, actual1, sizeof(actual1) - 1);
+/*   /\* actual1 が一杯になるまで読み込み *\/ */
+/*   actual1_len = scm_port_read_line(port, actual1, sizeof(actual1) - 1); */
 
-  cut_assert_equal_int((int)strlen(expected1), (int)actual1_len);
-  actual1[actual1_len] = '\0';
-  cut_assert_equal_string(expected1, actual1);
+/*   cut_assert_equal_int((int)strlen(expected1), (int)actual1_len); */
+/*   actual1[actual1_len] = '\0'; */
+/*   cut_assert_equal_string(expected1, actual1); */
 
-  /* 改行までを読み込み */
-  actual2_len = scm_port_read_line(port, actual2, sizeof(actual2));
+/*   /\* 改行までを読み込み *\/ */
+/*   actual2_len = scm_port_read_line(port, actual2, sizeof(actual2)); */
 
-  cut_assert_equal_int((int)strlen(expected2), (int)actual2_len);
-  actual2[actual2_len] = '\0';
-  cut_assert_equal_string(expected2, actual2);
-}
+/*   cut_assert_equal_int((int)strlen(expected2), (int)actual2_len); */
+/*   actual2[actual2_len] = '\0'; */
+/*   cut_assert_equal_string(expected2, actual2); */
+/* } */
 
-void
-test_scm_port_read_line__read_up_to_buf_filled__full_buffer(void)
-{
-  ScmObj port = SCM_OBJ_INIT;
+/* void */
+/* test_scm_port_read_line__read_up_to_buf_filled__full_buffer(void) */
+/* { */
+/*   ScmObj port = SCM_OBJ_INIT; */
 
-  port = scm_port_open_file(TEST_TEXT_FILE, "r",
-                            SCM_PORT_BUF_FULL, 0, SCM_ENC_UTF8, "UTF-8");
-  xxx_test_scm_port_read_line__read_up_to_buf_filled(port);
-}
+/*   port = scm_port_open_file(TEST_TEXT_FILE, "r", */
+/*                             SCM_PORT_BUF_FULL, 0, SCM_ENC_UTF8, "UTF-8"); */
+/*   xxx_test_scm_port_read_line__read_up_to_buf_filled(port); */
+/* } */
 
-void
-test_scm_port_read_line__read_up_to_buf_filled__line_buffer(void)
-{
-  ScmObj port = SCM_OBJ_INIT;
+/* void */
+/* test_scm_port_read_line__read_up_to_buf_filled__line_buffer(void) */
+/* { */
+/*   ScmObj port = SCM_OBJ_INIT; */
 
-  port = scm_port_open_file(TEST_TEXT_FILE, "r",
-                            SCM_PORT_BUF_LINE, 0, SCM_ENC_UTF8, "UTF-8");
-  xxx_test_scm_port_read_line__read_up_to_buf_filled(port);
-}
+/*   port = scm_port_open_file(TEST_TEXT_FILE, "r", */
+/*                             SCM_PORT_BUF_LINE, 0, SCM_ENC_UTF8, "UTF-8"); */
+/*   xxx_test_scm_port_read_line__read_up_to_buf_filled(port); */
+/* } */
 
-void
-test_scm_port_read_line__read_up_to_buf_filled__modest_buffer(void)
-{
-  ScmObj port = SCM_OBJ_INIT;
+/* void */
+/* test_scm_port_read_line__read_up_to_buf_filled__modest_buffer(void) */
+/* { */
+/*   ScmObj port = SCM_OBJ_INIT; */
 
-  port = scm_port_open_file(TEST_TEXT_FILE, "r",
-                            SCM_PORT_BUF_MODEST, 0, SCM_ENC_UTF8, "UTF-8");
-  xxx_test_scm_port_read_line__read_up_to_buf_filled(port);
-}
+/*   port = scm_port_open_file(TEST_TEXT_FILE, "r", */
+/*                             SCM_PORT_BUF_MODEST, 0, SCM_ENC_UTF8, "UTF-8"); */
+/*   xxx_test_scm_port_read_line__read_up_to_buf_filled(port); */
+/* } */
 
-void
-test_scm_port_read_line__read_up_to_buf_filled__none_buffer(void)
-{
-  ScmObj port = SCM_OBJ_INIT;
+/* void */
+/* test_scm_port_read_line__read_up_to_buf_filled__none_buffer(void) */
+/* { */
+/*   ScmObj port = SCM_OBJ_INIT; */
 
-  port = scm_port_open_file(TEST_TEXT_FILE, "r",
-                            SCM_PORT_BUF_NONE, 0, SCM_ENC_UTF8, "UTF-8");
-  xxx_test_scm_port_read_line__read_up_to_buf_filled(port);
-}
+/*   port = scm_port_open_file(TEST_TEXT_FILE, "r", */
+/*                             SCM_PORT_BUF_NONE, 0, SCM_ENC_UTF8, "UTF-8"); */
+/*   xxx_test_scm_port_read_line__read_up_to_buf_filled(port); */
+/* } */
 
 void
 test_scm_port_write__line_buffer_should_flushed_up_to_lf(void)
@@ -922,23 +929,31 @@ xxx_test_scm_port_pushback__pushback_and_read_line(ScmObj port)
 {
   const char pushbacked[] = "a\nb";
   const char expected1[] = "a";
+  const size_t expected1_sz = strlen(expected1);
   const char expected2[] = "bhello, world";
-  char actual1[256];
-  char actual2[256];
+  const size_t expected2_sz = strlen(expected2);
+  ScmStringIO *actual1;
+  ScmStringIO *actual2;
   ssize_t ret;
+
+  actual1 = scm_stringio_new(NULL, 0);
+  actual2 = scm_stringio_new(NULL, 0);
 
   ret = scm_port_pushback_bytes(port, pushbacked, strlen(pushbacked));
   cut_assert_equal_int(strlen(pushbacked), ret);
 
-  ret = scm_port_read_line(port, actual1, sizeof(actual1) - 1);
-  cut_assert_equal_int(strlen(expected1), ret);
-  actual1[ret] = '\0';
-  cut_assert_equal_string(expected1, actual1);
+  ret = scm_port_read_line(port, (ScmIO *)actual1);
+  cut_assert_equal_uint(expected1_sz, scm_stringio_length(actual1));
+  cut_assert_equal_memory(expected1, expected1_sz,
+                          scm_stringio_buffer(actual1), expected1_sz);
 
-  ret = scm_port_read_line(port, actual2, sizeof(actual2) - 1);
-  cut_assert_equal_int(strlen(expected2), ret);
-  actual2[ret] = '\0';
-  cut_assert_equal_string(expected2, actual2);
+  ret = scm_port_read_line(port, (ScmIO *)actual2);
+  cut_assert_equal_uint(expected2_sz, scm_stringio_length(actual2));
+  cut_assert_equal_memory(expected2, expected2_sz,
+                          scm_stringio_buffer(actual2), expected2_sz);
+
+  scm_stringio_end(actual1);
+  scm_stringio_end(actual2);
 }
 
 void

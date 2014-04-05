@@ -104,18 +104,16 @@ scm_symbol_cmp(ScmObj s1, ScmObj s2, int *rslt)
 int
 scm_symbol_pretty_print(ScmObj obj, ScmObj port, bool write_p)
 {
-  ScmObj ro = SCM_OBJ_INIT;
-  int rslt;
-
   scm_assert_obj_type(obj, &SCM_SYMBOL_TYPE_INFO);
 
   if (write_p) {
-    rslt = scm_string_escape_ctrl_and_nonascii_write(SCM_SYMBOL_STR(obj), port);
-    if (rslt < 0) return -1;    /* [ERR]: [through] */
+    int r = scm_string_escape_ctrl_and_nonascii_write(SCM_SYMBOL_STR(obj),
+                                                      port);
+    if (r < 0) return -1;    /* [ERR]: [through] */
   }
   else {
-    ro = scm_api_write_string(SCM_SYMBOL_STR(obj), port);
-    if (scm_obj_null_p(ro)) return -1; /* [ERR]: [through] */
+    ssize_t r = scm_capi_write_string(SCM_SYMBOL_STR(obj), port, -1, -1);
+    if (r < 0) return -1; /* [ERR]: [through] */
   }
 
   return 0;

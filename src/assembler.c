@@ -102,7 +102,7 @@ scm_iseq_asm_reg_label_ref_idx(ScmCHashTbl *tbl, EArray *labels,
   bool found;
   ScmCHashTblVal val;
   ScmLabelInfo *rec;
-  char label_name[SCM_ISEQ_LABEL_NAME_MAX];
+  char label_name[SCM_ISEQ_LABEL_NAME_MAX], *p;
   ssize_t name_sz;
 
   SCM_STACK_FRAME_PUSH(&label);
@@ -118,8 +118,8 @@ scm_iseq_asm_reg_label_ref_idx(ScmCHashTbl *tbl, EArray *labels,
     return -1;
   }
 
-  name_sz = scm_capi_symbol_to_cstr(label, label_name, sizeof(label_name));
-  if (name_sz < 0) return -1;   /* [ERR]: [through] */
+  p = scm_capi_symbol_to_cstr(label, label_name, sizeof(label_name));
+  if (p == NULL) return -1;   /* [ERR]: [through] */
 
   rslt = scm_chash_tbl_get(tbl, SCM_CHASH_TBL_KEY(label_name), &val, &found);
   if (rslt < 0) return -1;      /* [ERR]: [through] */
@@ -161,7 +161,7 @@ scm_asm_reg_label_def_idx(ScmCHashTbl *tbl, EArray *labels,
   bool found;
   ScmCHashTblVal val;
   ScmLabelInfo *rec;
-  char label_name[SCM_ISEQ_LABEL_NAME_MAX];
+  char label_name[SCM_ISEQ_LABEL_NAME_MAX], *p;
   ssize_t name_sz;
 
   SCM_STACK_FRAME_PUSH(&label);
@@ -178,8 +178,8 @@ scm_asm_reg_label_def_idx(ScmCHashTbl *tbl, EArray *labels,
     return -1;
   }
 
-  name_sz = scm_capi_symbol_to_cstr(label, label_name, sizeof(label_name));
-  if (name_sz < 0) return -1;   /* [ERR]: [through] */
+  p = scm_capi_symbol_to_cstr(label, label_name, sizeof(label_name));
+  if (p == NULL) return -1;   /* [ERR]: [through] */
 
   rslt = scm_chash_tbl_get(tbl, SCM_CHASH_TBL_KEY(label_name), &val, &found);
   if (rslt < 0) return -1;      /* [ERR]: [through] */
@@ -238,9 +238,10 @@ scm_asm_sym2opcode(ScmObj op)
     return (int)cd;
   }
   else if (scm_capi_symbol_p(op)) {
+    ssize_t rslt;
     char mne[32];
-    ssize_t rslt = scm_capi_symbol_to_cstr(op, mne, sizeof(mne));
-    if (rslt < 0) return -1;    /* [ERR]: [through] */
+    char *p = scm_capi_symbol_to_cstr(op, mne, sizeof(mne));
+    if (p == NULL) return -1;    /* [ERR]: [through] */
 
     rslt = scm_asm_mnemonic2opcode(mne);
     if (rslt < 0) {
