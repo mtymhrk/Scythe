@@ -79,6 +79,7 @@ static ScmEncoding SCM_ENC_ASCII__ = {
     .cnv_from_scalar = scm_enc_cnv_from_scalar_ascii,
     .downcase = scm_enc_downcase_ascii,
     .upcase = scm_enc_upcase_ascii,
+    .same_char_p = scm_enc_same_char_p_ascii,
     .ascii_p = scm_enc_ascii_p_ascii,
     .printable_p = scm_enc_printable_p_ascii,
     .alarm_p = scm_enc_alarm_p_ascii,
@@ -189,6 +190,17 @@ scm_enc_upcase_ascii(const void *p, size_t s, scm_char_t *chr)
   if (0x61 <= chr->ascii && chr->ascii <= 0x7a)
     chr->ascii = (scm_char_ascii_t)(chr->ascii - 0x20);
   return 1;
+}
+
+bool
+scm_enc_same_char_p_ascii(const void *p, size_t s, char c)
+{
+  if (p == NULL || s < 1)
+    return false;
+  else if (VALID_ASCII_P(*(const uint8_t *)p) && *(const uint8_t *)p == c)
+    return true;
+  else
+    return false;
 }
 
 bool
@@ -363,6 +375,7 @@ static ScmEncoding SCM_ENC_UTF8__ = {
     .cnv_from_scalar = scm_enc_cnv_from_scalar_utf8,
     .downcase = scm_enc_downcase_utf8,
     .upcase = scm_enc_upcase_utf8,
+    .same_char_p = scm_enc_same_char_p_utf8,
     .ascii_p = scm_enc_ascii_p_utf8,
     .printable_p = scm_enc_printable_p_utf8,
     .alarm_p = scm_enc_alarm_p_utf8,
@@ -540,6 +553,17 @@ scm_enc_upcase_utf8(const void *p, size_t s, scm_char_t *chr)
 }
 
 bool
+scm_enc_same_char_p_utf8(const void *p, size_t s, char c)
+{
+  if (p == NULL || s < 1)
+    return false;
+  else if (VALID_UTF8_1_P((const uint8_t *)p) && *(const uint8_t *)p == c)
+    return true;
+  else
+    return false;
+}
+
+bool
 scm_enc_ascii_p_utf8(const void *p, size_t size)
 {
   if (p == NULL || size < 1)
@@ -707,6 +731,7 @@ static ScmEncoding SCM_ENC_UCS4__ = {
     .cnv_from_scalar = scm_enc_cnv_from_scalar_ucs4,
     .downcase = scm_enc_downcase_ucs4,
     .upcase = scm_enc_upcase_ucs4,
+    .same_char_p = scm_enc_same_char_p_ucs4,
     .ascii_p = scm_enc_ascii_p_ucs4,
     .printable_p = scm_enc_printable_p_ucs4,
     .alarm_p = scm_enc_alarm_p_ucs4,
@@ -909,6 +934,17 @@ scm_enc_upcase_ucs4(const void *p, size_t s, scm_char_t *chr)
 }
 
 bool
+scm_enc_same_char_p_ucs4(const void *p, size_t s, char c)
+{
+  if (p == NULL || s < 4)
+    return false;
+  else if (*(const scm_char_ucs4_t *)p == (unsigned char)c)
+    return true;
+  else
+    return false;
+}
+
+bool
 scm_enc_ascii_p_ucs4(const void *p, size_t size)
 {
   if (p == NULL || size < 4)
@@ -1080,6 +1116,7 @@ static ScmEncoding SCM_ENC_EUCJP__ = {
     .cnv_from_scalar = scm_enc_cnv_from_scalar_eucjp,
     .downcase = scm_enc_downcase_eucjp,
     .upcase = scm_enc_upcase_eucjp,
+    .same_char_p = scm_enc_same_char_p_eucjp,
     .ascii_p = scm_enc_ascii_p_eucjp,
     .printable_p = scm_enc_printable_p_eucjp,
     .alarm_p = scm_enc_alarm_p_eucjp,
@@ -1283,6 +1320,17 @@ scm_enc_upcase_eucjp(const void *p, size_t s, scm_char_t *chr)
 }
 
 bool
+scm_enc_same_char_p_eucjp(const void *p, size_t s, char c)
+{
+  if (p == NULL || s < 1)
+    return false;
+  else if (VALID_EUC_JP_ASCII_P((const uint8_t *)p) && *(const uint8_t *)p == c)
+    return true;
+  else
+    return false;
+}
+
+bool
 scm_enc_ascii_p_eucjp(const void *p, size_t size)
 {
   if (p == NULL || size < 1)
@@ -1452,6 +1500,7 @@ static ScmEncoding SCM_ENC_SJIS__ = {
     .cnv_from_scalar = scm_enc_cnv_from_scalar_sjis,
     .downcase = scm_enc_downcase_sjis,
     .upcase = scm_enc_upcase_sjis,
+    .same_char_p = scm_enc_same_char_p_sjis,
     .ascii_p = scm_enc_ascii_p_sjis,
     .printable_p = scm_enc_printable_p_sjis,
     .alarm_p = scm_enc_alarm_p_sjis,
@@ -1624,6 +1673,19 @@ scm_enc_upcase_sjis(const void *p, size_t s, scm_char_t *chr)
     memcpy(chr->bytes, p, (size_t)w);
     return w;
   }
+}
+
+bool
+scm_enc_same_char_p_sjis(const void *p, size_t s, char c)
+{
+  if (p == NULL || s < 1)
+    return false;
+  else if ((VALID_SJIS_JIS_X_0201_LATIN_P((const uint8_t *)p)
+            || VALID_SJIS_JIS_X_0201_KATAKANA_P((const uint8_t *)p))
+           && *(const uint8_t *)p == (uint8_t)c)
+    return true;
+  else
+    return false;
 }
 
 bool

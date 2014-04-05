@@ -56,6 +56,7 @@ struct ScmEncodingRec {
     ssize_t (*cnv_from_scalar)(long long scalar, scm_char_t *c);
     ssize_t (*downcase)(const void *p, size_t s, scm_char_t *c);
     ssize_t (*upcase)(const void *p, size_t s, scm_char_t *c);
+    bool (*same_char_p)(const void *p, size_t s, char c);
     bool (*ascii_p)(const void *p, size_t size);
     bool (*printable_p)(const void *p, size_t size);
     bool (*alarm_p)(const void *p, size_t size);
@@ -197,6 +198,13 @@ scm_enc_upcase(ScmEncoding *enc, const void *p, size_t s, scm_char_t *c)
   return enc->func.upcase(p, s, c);
 }
 
+inline ssize_t
+scm_enc_same_char_p(ScmEncoding *enc, const void *p, size_t s, char c)
+{
+  assert(enc != NULL); assert(enc->func.same_char_p != NULL);
+  return enc->func.same_char_p(p, s, c);
+}
+
 inline bool
 scm_enc_ascii_p(ScmEncoding *enc, const void *p, size_t size)
 {
@@ -303,6 +311,7 @@ long long scm_enc_cnv_to_scalar_ascii(const void *p, size_t size);
 ssize_t scm_enc_cnv_from_scalar_ascii(long long scalar, scm_char_t *chr);
 ssize_t scm_enc_downcase_ascii(const void *p, size_t s, scm_char_t *chr);
 ssize_t scm_enc_upcase_ascii(const void *p, size_t s, scm_char_t *chr);
+bool scm_enc_same_char_p_ascii(const void *p, size_t s, char c);
 bool scm_enc_ascii_p_ascii(const void *p, size_t size);
 bool scm_enc_printable_p_ascii(const void *p, size_t size);
 bool scm_enc_alarm_p_ascii(const void *p, size_t size);
@@ -332,6 +341,7 @@ long long scm_enc_cnv_to_scalar_utf8(const void *p, size_t size);
 ssize_t scm_enc_cnv_from_scalar_utf8(long long scalar, scm_char_t *chr);
 ssize_t scm_enc_downcase_utf8(const void *p, size_t s, scm_char_t *chr);
 ssize_t scm_enc_upcase_utf8(const void *p, size_t s, scm_char_t *chr);
+bool scm_enc_same_char_p_utf8(const void *p, size_t s, char c);
 bool scm_enc_ascii_p_utf8(const void *p, size_t size);
 bool scm_enc_printable_p_utf8(const void *p, size_t size);
 bool scm_enc_alarm_p_utf8(const void *p, size_t size);
@@ -364,6 +374,7 @@ long long scm_enc_cnv_to_scalar_ucs4(const void *p, size_t size);
 ssize_t scm_enc_cnv_from_scalar_ucs4(long long scalar, scm_char_t *chr);
 ssize_t scm_enc_downcase_ucs4(const void *p, size_t s, scm_char_t *chr);
 ssize_t scm_enc_upcase_ucs4(const void *p, size_t s, scm_char_t *chr);
+bool scm_enc_same_char_p_ucs4(const void *p, size_t s, char c);
 bool scm_enc_ascii_p_ucs4(const void *p, size_t size);
 bool scm_enc_printable_p_ucs4(const void *p, size_t size);
 bool scm_enc_alarm_p_ucs4(const void *p, size_t size);
@@ -393,6 +404,7 @@ long long scm_enc_cnv_to_scalar_eucjp(const void *p, size_t size);
 ssize_t scm_enc_cnv_from_scalar_eucjp(long long scalar, scm_char_t *chr);
 ssize_t scm_enc_downcase_eucjp(const void *p, size_t s, scm_char_t *chr);
 ssize_t scm_enc_upcase_eucjp(const void *p, size_t s, scm_char_t *chr);
+bool scm_enc_same_char_p_eucjp(const void *p, size_t s, char c);
 bool scm_enc_ascii_p_eucjp(const void *p, size_t size);
 bool scm_enc_printable_p_eucjp(const void *p, size_t size);
 bool scm_enc_alarm_p_eucjp(const void *p, size_t size);
@@ -422,6 +434,7 @@ long long scm_enc_cnv_to_scalar_sjis(const void *p, size_t size);
 ssize_t scm_enc_cnv_from_scalar_sjis(long long scalar, scm_char_t *chr);
 ssize_t scm_enc_downcase_sjis(const void *p, size_t s, scm_char_t *chr);
 ssize_t scm_enc_upcase_sjis(const void *p, size_t s, scm_char_t *chr);
+bool scm_enc_same_char_p_sjis(const void *p, size_t s, char c);
 bool scm_enc_ascii_p_sjis(const void *p, size_t size);
 bool scm_enc_printable_p_sjis(const void *p, size_t size);
 bool scm_enc_alarm_p_sjis(const void *p, size_t size);
