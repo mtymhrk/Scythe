@@ -10,6 +10,7 @@ typedef struct EArrayRec EArray;
 #include "api.h"
 
 #define EARY_MAG 2
+#define EARY_DEFAULT_CAP 2
 
 struct EArrayRec {
   size_t cap;
@@ -40,7 +41,7 @@ eary_init(EArray *ary, size_t rs, size_t ns)
 inline void
 eary_fin(EArray *ary)
 {
-  free(ary->vec);
+  scm_capi_free(ary->vec);
   ary->vec = NULL;
 }
 
@@ -49,6 +50,9 @@ eary_expand(EArray *ary, size_t rs, size_t ndd)
 {
   if (ary->cap > SIZE_MAX / EARY_MAG)
     return -1;
+
+  if (ary->cap == 0)
+    ary->cap = EARY_DEFAULT_CAP;
 
   size_t ns = ary->cap * EARY_MAG;
   while (ndd > ns) {
@@ -80,6 +84,18 @@ inline void
 eary_truncate(EArray *ary)
 {
   ary->used = 0;
+}
+
+inline void *
+eary_chuck_ary(EArray *ary)
+{
+  void *a = ary->vec;
+
+  ary->vec = NULL;
+  ary->cap = 0;
+  ary->used = 0;
+
+  return a;
 }
 
 #define EARY_GET(ary, typ, idx, val)            \

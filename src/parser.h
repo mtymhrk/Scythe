@@ -10,7 +10,8 @@ typedef struct ScmLexerRec ScmLexer;
 typedef struct ScmTokenRec ScmToken;
 
 #include "object.h"
-
+#include "encoding.h"
+#include "earray.h"
 
 /****************************************************************************/
 /*  ScmToken                                                                */
@@ -42,15 +43,8 @@ typedef enum {
 
 struct ScmTokenRec {
   SCM_TOKEN_TYPE_T type;
-  struct {
-    void *str;
-    size_t size;
-    size_t len;
-  } raw;
-  struct {
-    char *str;
-    size_t len;
-  } ascii;
+  scm_char_t *str;
+  size_t len;
   ScmToken *next;
 };
 
@@ -68,17 +62,7 @@ typedef enum {
 } SCM_LEXER_ERR_TYPE_T;
 
 struct ScmLexerRec {
-  struct {
-    void *head;
-    size_t capacity;
-    size_t used;
-    size_t len;
-  } buf;
-  struct {
-    char *head;
-    size_t capacity;
-    size_t len;
-  } ascii;
+  EArray str;
   SCM_TOKEN_TYPE_T token_type;
   ScmToken *tokens_head;
   ScmToken *tokens_tail;
@@ -87,7 +71,7 @@ struct ScmLexerRec {
 
 ScmLexer *scm_lexer_new(void);
 ScmLexer *scm_lexer_end(ScmLexer *lexer);
-ScmToken *scm_lexer_head_token(ScmLexer *lexer, ScmObj port);
+ScmToken *scm_lexer_head_token(ScmLexer *lexer, ScmObj port, ScmEncoding *enc);
 void scm_lexer_shift_token(ScmLexer *lexer);
 void scm_lexer_clear_error_state(ScmLexer *lexer);
 bool scm_lexer_error_p(ScmLexer *lexer);
