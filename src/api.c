@@ -6040,7 +6040,7 @@ scm_capi_open_input_fd(int fd, SCM_PORT_BUF_T mode, const char *enc)
     enc = scm_enc_name(e);
   }
 
-  return scm_port_open_input_fd(fd, mode, enc);
+  return scm_port_open_fd(fd, "r", mode, scm_capi_system_encoding(), enc);
 }
 
 ScmObj
@@ -6060,7 +6060,7 @@ scm_capi_open_output_fd(int fd, SCM_PORT_BUF_T mode, const char *enc)
     enc = scm_enc_name(e);
   }
 
-  return scm_port_open_output_fd(fd, mode, enc);
+  return scm_port_open_fd(fd, "w", mode, scm_capi_system_encoding(), enc);
 }
 
 ScmObj
@@ -6070,15 +6070,15 @@ scm_capi_open_input_string_from_cstr(const char *str, ScmEncoding *enc)
     enc = scm_capi_system_encoding();
   }
 
-  return scm_port_open_input_string(str,
-                                    (str == NULL)? 0 : strlen(str),
-                                    scm_enc_name(enc));
+  return scm_port_open_string(str, (str == NULL)? 0 : strlen(str),
+                              "r",
+                              scm_capi_system_encoding(), scm_enc_name(enc));
 }
 
 ScmObj
 scm_capi_open_output_string(void)
 {
-  return scm_port_open_output_string();
+  return scm_port_open_string(NULL, 0, "w", scm_capi_system_encoding(), NULL);
 }
 
 const char *
