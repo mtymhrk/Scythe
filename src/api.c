@@ -6365,145 +6365,6 @@ scm_capi_port_internal_encoding(ScmObj port)
   return scm_port_internal_enc(port);
 }
 
-ssize_t
-scm_capi_read_raw(void *buf, size_t size, ScmObj port)
-{
-  if (scm_obj_null_p(port)) {
-    scm_capi_error("read error: invalid argument", 0);
-    return -1;
-  }
-  else if (!scm_capi_input_port_p(port)) {
-    scm_capi_error("read error: invalid argument", 0);
-    return -1;
-  }
-  else if (buf == NULL) {
-    scm_capi_error("read error: invalid argument", 0);
-    return -1;
-  }
-  else if (size > SSIZE_MAX) {
-    scm_capi_error("read error: invalid argument", 0);
-    return -1;
-  }
-
-  return scm_port_read_bytes(port, buf, size);
-}
-
-ssize_t
-scm_capi_unread_raw(const void *buf, size_t size, ScmObj port)
-{
-  if (scm_obj_null_p(port)) {
-    scm_capi_error("unread error: invalid argument", 0);
-    return -1;
-  }
-  else if (!scm_capi_input_port_p(port)) {
-    scm_capi_error("unread error: invalid argument", 0);
-    return -1;
-  }
-  else if (buf == NULL) {
-    scm_capi_error("unread error: invalid argument", 0);
-    return -1;
-  }
-  else if (size > SSIZE_MAX) {
-    scm_capi_error("unread error: invalid argument", 0);
-    return -1;
-  }
-
-  return scm_port_pushback_bytes(port, buf, size);
-}
-
-ssize_t
-scm_capi_unread_char(const scm_char_t *chr, ScmObj port)
-{
-  if (scm_obj_null_p(port)) {
-    scm_capi_error("unread error: invalid argument", 0);
-    return -1;
-  }
-  else if (!scm_capi_input_port_p(port)) {
-    scm_capi_error("unread error: invalid argument", 0);
-    return -1;
-  }
-  else if (!scm_capi_textual_port_p(port)) {
-    scm_capi_error("unread error: invalid argument", 0);
-    return -1;
-  }
-  else if (chr == NULL) {
-    scm_capi_error("unread error: invalid argument", 0);
-    return -1;
-  }
-
-  return scm_port_pushback_char(port, chr);
-}
-
-ssize_t
-scm_capi_peek_raw(void *buf, size_t size, ScmObj port)
-{
-  if (scm_obj_null_p(port)) {
-    scm_capi_error("peek error: invalid argument", 0);
-    return -1;
-  }
-  else if (!scm_capi_input_port_p(port)) {
-    scm_capi_error("peek error: invalid argument", 0);
-    return -1;
-  }
-  else if (buf == NULL) {
-    scm_capi_error("peek error: invalid argument", 0);
-    return -1;
-  }
-  else if (size > SSIZE_MAX) {
-    scm_capi_error("peek error: invalid argument", 0);
-    return -1;
-  }
-
-  return scm_port_peek_bytes(port, buf, size);
-}
-
-ssize_t
-scm_capi_write_raw(const void *buf, size_t size, ScmObj port)
-{
-  if (!scm_capi_output_port_p(port)) {
-    scm_capi_error("write error: invalid argument", 0);
-    return -1;
-  }
-
-  if (buf == NULL) {
-    scm_capi_error("write error: invalid argument", 0);
-    return -1;
-  }
-
-  if (size > SSIZE_MAX) {
-    scm_capi_error("write error: invalid argument", 0);
-    return -1;
-  }
-
-  return scm_port_write_bytes(port, buf, size);
-}
-
-int
-scm_capi_write_bin(const void *buf, size_t size, ScmEncoding *enc, ScmObj port)
-{
-  ScmObj s = SCM_OBJ_INIT;
-
-  SCM_STACK_FRAME_PUSH(&port, &s);
-
-  if (!scm_capi_output_port_p(port)) {
-    scm_capi_error("write error: invalid argument", 0);
-    return -1;
-  }
-  else if (!scm_capi_textual_port_p(port)) {
-    scm_capi_error("write error: invalid argument", 0);
-    return -1;
-  }
-
-  s = scm_capi_make_string_from_bin(buf, size, enc);
-  if (scm_obj_null_p(s)) return -1;
-
-  s = scm_api_write_string(s, port, SCM_OBJ_NULL, SCM_OBJ_NULL);
-  if (scm_obj_null_p(s)) return -1;
-
-  return 0;
-}
-
-
 extern inline ScmObj
 scm_api_standard_input_port(void)
 {
@@ -6593,15 +6454,6 @@ scm_capi_read_cchar(scm_char_t *chr, ScmObj port)
   return scm_port_read_char(port, chr);
 }
 
-ssize_t
-scm_capi_read_char(scm_char_t *chr, ScmObj port)
-{
-  /* OBSOLATE */
-  /* TODO: delete this api */
-
-  return scm_capi_read_cchar(chr, port);
-}
-
 ScmObj
 scm_api_read_char(ScmObj port)
 {
@@ -6610,7 +6462,7 @@ scm_api_read_char(ScmObj port)
 
   SCM_STACK_FRAME_PUSH(&port);
 
-  s = scm_capi_read_char(&chr, port);
+  s = scm_capi_read_cchar(&chr, port);
   if (s < 0) return SCM_OBJ_NULL;
 
   if (s == 0)
@@ -6648,22 +6500,13 @@ scm_capi_peek_cchar(scm_char_t *chr, ScmObj port)
   return scm_port_peek_char(port, chr);
 }
 
-ssize_t
-scm_capi_peek_char(scm_char_t *chr, ScmObj port)
-{
-  /* OBSOLATE */
-  /* TODO: delete this api */
-
-  return scm_capi_peek_cchar(chr, port);
-}
-
 ScmObj
 scm_api_peek_char(ScmObj port)
 {
   scm_char_t chr;
   ssize_t s;
 
-  s = scm_capi_peek_char(&chr, port);
+  s = scm_capi_peek_cchar(&chr, port);
   if (s < 0) return SCM_OBJ_NULL;
 
   if (s == 0)

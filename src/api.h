@@ -486,14 +486,6 @@ ScmObj scm_api_get_output_string(ScmObj port);
 const char *scm_capi_port_encoding(ScmObj port);
 ScmEncoding *scm_capi_port_internal_encoding(ScmObj port);
 
-ssize_t scm_capi_read_raw(void *buf, size_t size, ScmObj port);
-ssize_t scm_capi_unread_raw(const void *buf, size_t size, ScmObj port);
-ssize_t scm_capi_unread_char(const scm_char_t *chr, ScmObj port);
-ssize_t scm_capi_peek_raw(void *buf, size_t size, ScmObj port);
-ssize_t scm_capi_write_raw(const void *buf, size_t size, ScmObj port);
-int scm_capi_write_bin(const void *buf, size_t size, ScmEncoding *enc,
-                       ScmObj port);
-
 ScmObj scm_api_standard_input_port(void);
 ScmObj scm_api_standard_output_port(void);
 ScmObj scm_api_standard_error_port(void);
@@ -505,10 +497,8 @@ ScmObj scm_api_standard_error_port(void);
 
 ScmObj scm_api_read(ScmObj port);
 ssize_t scm_capi_read_cchar(scm_char_t *chr, ScmObj port);
-ssize_t scm_capi_read_char(scm_char_t *chr, ScmObj port);
 ScmObj scm_api_read_char(ScmObj port);
 ssize_t scm_capi_peek_cchar(scm_char_t *chr, ScmObj port);
-ssize_t scm_capi_peek_char(scm_char_t *chr, ScmObj port);
 ScmObj scm_api_peek_char(ScmObj port);
 ScmObj scm_api_read_line(ScmObj port);
 int scm_capi_char_ready(ScmObj port, bool *rslt);
