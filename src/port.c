@@ -49,7 +49,8 @@ scm_io_initialize(ScmIO *io,
                   ScmIOBuffModeFunc buf_mode,
                   ScmIOBlkSizeFunc blk_size,
                   ScmIOFlushFunc flush,
-                  ScmIOClearFunc clear)
+                  ScmIOClearFunc clear,
+                  ScmIOLowerFunc lower)
 {
   scm_assert(io != NULL);
 
@@ -63,6 +64,7 @@ scm_io_initialize(ScmIO *io,
   io->blk_size_func = blk_size;
   io->flush_func = flush;
   io->clear_func = clear;
+  io->lower_func = lower;
 }
 
 
@@ -152,6 +154,13 @@ scm_io_clear(ScmIO *io)
   return (io->clear_func != NULL) ? io->clear_func(io) : 0;
 }
 
+ScmIO *
+scm_io_lower(ScmIO *io)
+{
+  scm_assert(io != NULL);
+  return (io->lower_func != NULL) ? io->lower_func(io) : NULL;
+}
+
 ScmFileIO *
 scm_fileio_new(int fd)
 {
@@ -170,7 +179,8 @@ scm_fileio_new(int fd)
                     (ScmIOBuffModeFunc)scm_fileio_buffer_mode,
                     (ScmIOBlkSizeFunc)scm_fileio_block_size,
                     (ScmIOFlushFunc)NULL,
-                    (ScmIOClearFunc)NULL);
+                    (ScmIOClearFunc)NULL,
+                    (ScmIOLowerFunc)NULL);
   fileio->fd = fd;
 
   return fileio;
@@ -402,7 +412,8 @@ scm_stringio_new(const char *str, size_t len)
                     (ScmIOBuffModeFunc)scm_stringio_buffer_mode,
                     (ScmIOBlkSizeFunc)NULL,
                     (ScmIOFlushFunc)NULL,
-                    (ScmIOClearFunc)NULL);
+                    (ScmIOClearFunc)NULL,
+                    (ScmIOLowerFunc)NULL);
   strio->string = NULL;
   strio->capacity = 0;
   strio->length = 0;
@@ -627,7 +638,8 @@ scm_bufferedio_new(ScmIO *io)
                     (ScmIOBuffModeFunc)scm_bufferedio_buffer_mode,
                     (ScmIOBlkSizeFunc)scm_bufferedio_block_size,
                     (ScmIOFlushFunc)scm_bufferedio_flush,
-                    (ScmIOClearFunc)scm_bufferedio_clear);
+                    (ScmIOClearFunc)scm_bufferedio_clear,
+                    (ScmIOLowerFunc)scm_bufferedio_lower);
 
   bufio->io = io;
   bufio->eof_received_p = false;
@@ -894,6 +906,14 @@ scm_bufferedio_clear(ScmBufferedIO *bufio)
   return scm_io_clear(bufio->io);
 }
 
+ScmIO *
+scm_bufferedio_lower(ScmBufferedIO *bufio)
+{
+  scm_assert(bufio != NULL);
+
+  return bufio->io;
+}
+
 scm_local_func int
 scm_charconvio_init(ScmCharConvIO *ccio,
                     const char *incode, const char *extcode)
@@ -1103,7 +1123,8 @@ scm_charconvio_new(ScmIO *io, const char *incode, const char *extcode)
                     (ScmIOBuffModeFunc)scm_charconvio_buffer_mode,
                     (ScmIOBlkSizeFunc)NULL,
                     (ScmIOFlushFunc)scm_charconvio_flush,
-                    (ScmIOClearFunc)scm_charconvio_clear);
+                    (ScmIOClearFunc)scm_charconvio_clear,
+                    (ScmIOLowerFunc)scm_charconvio_lower);
 
   ccio->io = io;
 
@@ -1295,6 +1316,14 @@ scm_charconvio_clear(ScmCharConvIO *ccio)
   ccio->eof_received_p  = false;
 
   return 0;
+}
+
+ScmIO *
+scm_charconvio_lower(ScmCharConvIO *ccio)
+{
+  scm_assert(ccio != NULL);
+
+  return ccio->io;
 }
 
 scm_local_func int
@@ -2433,6 +2462,8 @@ scm_port_seek(ScmObj port, off_t offset, int whence)
 const void *
 scm_port_string_buffer(ScmObj port)
 {
+  ScmIO *io, *l;
+
   scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
 
   if (!scm_port_string_port_p(port)) {
@@ -2440,12 +2471,16 @@ scm_port_string_buffer(ScmObj port)
     return NULL;
   }
 
-  return (void *)scm_stringio_buffer((ScmStringIO *)SCM_PORT(port)->io);
+  for (io = SCM_PORT(port)->io; (l = scm_io_lower(io)) != NULL; io = l);
+
+  return (void *)scm_stringio_buffer((ScmStringIO *)io);
 }
 
 ssize_t
 scm_port_string_buffer_length(ScmObj port)
 {
+  ScmIO *io, *l;
+
   scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
 
   if (!scm_port_string_port_p(port)) {
@@ -2453,7 +2488,9 @@ scm_port_string_buffer_length(ScmObj port)
     return -1;
   }
 
-  return (ssize_t)scm_stringio_length((ScmStringIO *)SCM_PORT(port)->io);
+  for (io = SCM_PORT(port)->io; (l = scm_io_lower(io)) != NULL; io = l);
+
+  return (ssize_t)scm_stringio_length((ScmStringIO *)io);
 }
 
 void

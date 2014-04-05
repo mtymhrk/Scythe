@@ -39,6 +39,7 @@ typedef int (*ScmIOBuffModeFunc)(ScmIO *io, SCM_IO_MODE_T im,
 typedef ssize_t (*ScmIOBlkSizeFunc)(ScmIO *io);
 typedef int (*ScmIOFlushFunc)(ScmIO *io);
 typedef int (*ScmIOClearFunc)(ScmIO *io);
+typedef ScmIO *(*ScmIOLowerFunc)(ScmIO *io);
 
 struct ScmIORec {
   ScmIOFinFunc fin_func;
@@ -51,6 +52,7 @@ struct ScmIORec {
   ScmIOBlkSizeFunc blk_size_func;
   ScmIOFlushFunc flush_func;
   ScmIOClearFunc clear_func;
+  ScmIOLowerFunc lower_func;
 };
 
 struct ScmFileIORec {
@@ -121,7 +123,8 @@ void scm_io_initialize(ScmIO *io,
                        ScmIOBuffModeFunc buff_mode,
                        ScmIOBlkSizeFunc blk_size,
                        ScmIOFlushFunc flush,
-                       ScmIOClearFunc clear);
+                       ScmIOClearFunc clear,
+                       ScmIOLowerFunc lower);
 void scm_io_end(ScmIO *io);
 ssize_t scm_io_read(ScmIO *io, void *buf, size_t size);
 ssize_t scm_io_write(ScmIO *io, const void *buf, size_t size);
@@ -132,6 +135,7 @@ int scm_io_buffer_mode(ScmIO *io, SCM_IO_MODE_T im, SCM_PORT_BUF_T *mode);
 ssize_t scm_io_block_size(ScmIO *io);
 int scm_io_flush(ScmIO *io);
 int scm_io_clear(ScmIO *io);
+ScmIO *scm_io_lower(ScmIO *io);
 
 ScmFileIO *scm_fileio_new(int fd);
 void scm_fileio_end(ScmFileIO *fileio);
@@ -170,6 +174,7 @@ int scm_bufferedio_buffer_mode(ScmBufferedIO *bufio,
 ssize_t scm_bufferedio_block_size(ScmBufferedIO *bufio);
 int scm_bufferedio_flush(ScmBufferedIO *bufio);
 int scm_bufferedio_clear(ScmBufferedIO *bufio);
+ScmIO *scm_bufferedio_lower(ScmBufferedIO *bufio);
 
 ScmCharConvIO *scm_charconvio_new(ScmIO *io,
                                   const char *incode, const char *extcode);
@@ -182,6 +187,7 @@ int scm_charconvio_buffer_mode(ScmCharConvIO *ccio,
                                SCM_IO_MODE_T im, SCM_PORT_BUF_T *mode);
 int scm_charconvio_flush(ScmCharConvIO *ccio);
 int scm_charconvio_clear(ScmCharConvIO *ccio);
+ScmIO *scm_charconvio_lower(ScmCharConvIO *ccio);
 
 
 /***************************************************************************/
