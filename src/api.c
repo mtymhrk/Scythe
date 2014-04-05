@@ -3066,25 +3066,19 @@ scm_capi_make_char(const scm_char_t *chr, ScmEncoding *enc)
 ScmObj
 scm_api_make_char_newline(ScmEncoding *enc)
 {
-  scm_char_t lf;
-
   if (enc == NULL)
     enc = scm_capi_system_encoding();
 
-  scm_enc_chr_lf(enc, &lf, NULL);
-  return scm_char_new(SCM_MEM_ALLOC_HEAP, &lf, enc);
+  return scm_char_new_newline(SCM_MEM_ALLOC_HEAP, enc);
 }
 
 ScmObj
 scm_api_make_char_space(ScmEncoding *enc)
 {
-  scm_char_t sp;
-
   if (enc == NULL)
     enc = scm_capi_system_encoding();
 
-  scm_enc_chr_sp(enc, &sp, NULL);
-  return scm_char_new(SCM_MEM_ALLOC_HEAP, &sp, enc);
+  return scm_char_new_space(SCM_MEM_ALLOC_HEAP, enc);
 }
 
 int
@@ -6924,7 +6918,6 @@ scm_api_newline(ScmObj port)
 {
   ScmEncoding *enc;
   scm_char_t nl;
-  size_t w;
   ssize_t rslt;
 
   /* TODO: 引数の port のは指定省略可能にする (SCM_OBJ_NULL を指定可能にする) */
@@ -6947,7 +6940,7 @@ scm_api_newline(ScmObj port)
   }
 
   enc = scm_port_internal_enc(port);
-  scm_enc_chr_lf(enc, &nl, &w);
+  scm_enc_cnv_from_ascii(enc, '\n', &nl);
   rslt = scm_port_write_char(port, nl);
   if (rslt < 0) return SCM_OBJ_NULL;
 
