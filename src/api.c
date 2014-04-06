@@ -3485,12 +3485,12 @@ scm_capi_integer_to_char(ScmObj num, ScmEncoding *enc)
 }
 
 
-/* TODO: char_to_cchar、char_encoding はインタフェースの見直しが必要
+/* TODO: char_to_cchr、char_encoding はインタフェースの見直しが必要
  */
 
 
 ssize_t
-scm_capi_char_to_cchar(ScmObj chr, scm_char_t *cp)
+scm_capi_char_to_cchr(ScmObj chr, scm_char_t *cp)
 {
   scm_char_t c;
 
@@ -6426,7 +6426,7 @@ scm_api_read(ScmObj port)
 }
 
 ssize_t
-scm_capi_read_cchar(scm_char_t *chr, ScmObj port)
+scm_capi_read_cchr(scm_char_t *chr, ScmObj port)
 {
   /* TODO: 引数の port のは指定省略可能にする (SCM_OBJ_NULL を指定可能にする) */
 
@@ -6462,7 +6462,7 @@ scm_api_read_char(ScmObj port)
 
   SCM_STACK_FRAME_PUSH(&port);
 
-  s = scm_capi_read_cchar(&chr, port);
+  s = scm_capi_read_cchr(&chr, port);
   if (s < 0) return SCM_OBJ_NULL;
 
   if (s == 0)
@@ -6472,7 +6472,7 @@ scm_api_read_char(ScmObj port)
 }
 
 ssize_t
-scm_capi_peek_cchar(scm_char_t *chr, ScmObj port)
+scm_capi_peek_cchr(scm_char_t *chr, ScmObj port)
 {
   /* TODO: 引数の port のは指定省略可能にする (SCM_OBJ_NULL を指定可能にする) */
 
@@ -6506,7 +6506,7 @@ scm_api_peek_char(ScmObj port)
   scm_char_t chr;
   ssize_t s;
 
-  s = scm_capi_peek_cchar(&chr, port);
+  s = scm_capi_peek_cchr(&chr, port);
   if (s < 0) return SCM_OBJ_NULL;
 
   if (s == 0)
@@ -6791,7 +6791,7 @@ scm_api_newline(ScmObj port)
 }
 
 int
-scm_capi_write_cchar(scm_char_t chr, ScmEncoding *enc, ScmObj port)
+scm_capi_write_cchr(scm_char_t chr, ScmEncoding *enc, ScmObj port)
 {
   ScmObj c = SCM_OBJ_INIT, r = SCM_OBJ_INIT;
 

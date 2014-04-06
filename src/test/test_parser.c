@@ -274,7 +274,7 @@ test_parser_parse_char_newline(void)
   nl = scm_parser_parse_expression(parser, port);
 
   cut_assert_true(scm_capi_char_p(nl));
-  rslt = scm_capi_char_to_cchar(nl, &actual);
+  rslt = scm_capi_char_to_cchr(nl, &actual);
   cut_assert_equal_int(1, rslt);
   cut_assert_equal_int('\n', actual.ascii);
 
@@ -297,7 +297,7 @@ test_parser_parse_char_space(void)
   sp = scm_parser_parse_expression(parser, port);
 
   cut_assert_true(scm_capi_char_p(sp));
-  rslt = scm_capi_char_to_cchar(sp, &actual);
+  rslt = scm_capi_char_to_cchr(sp, &actual);
   cut_assert_equal_int(1, rslt);
   cut_assert_equal_int(' ', actual.ascii);
 

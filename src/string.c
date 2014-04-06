@@ -288,7 +288,7 @@ scm_string_write_ext_rep_inner(ScmObj str, ScmObj port, size_t len)
         if (rslt < 0) return -1; /* [ERR]: [through] */
       }
       else {
-        rslt = scm_capi_write_cchar(ary[i], enc, port);
+        rslt = scm_capi_write_cchr(ary[i], enc, port);
         if (rslt < 0) return -1; /* [ERR]: [through] */
       }
     }
@@ -1003,7 +1003,7 @@ scm_string_escape_ctrl_and_nonascii_write_inner(ScmObj str,
     if (scm_enc_ascii_p(enc, ary[i].bytes, sizeof(ary[i]))
         && scm_enc_printable_p(enc, ary[i].bytes, sizeof(ary[i]))
         && !scm_enc_same_char_p(enc, ary[i].bytes, sizeof(ary[i]), ' ')) {
-      rslt = scm_capi_write_cchar(ary[i], enc, port);
+      rslt = scm_capi_write_cchr(ary[i], enc, port);
       if (rslt < 0) return -1; /* [ERR]: [through] */
     }
     else {

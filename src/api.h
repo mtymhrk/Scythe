@@ -349,7 +349,7 @@ ScmObj scm_capi_char_ge_P_lst(ScmObj lst);
 ScmObj scm_api_char_ge_P(ScmObj chr1, ScmObj chr2);
 ScmObj scm_api_char_to_integer(ScmObj chr);
 ScmObj scm_capi_integer_to_char(ScmObj num, ScmEncoding *enc);
-ssize_t scm_capi_char_to_cchar(ScmObj chr, scm_char_t *cp);
+ssize_t scm_capi_char_to_cchr(ScmObj chr, scm_char_t *cp);
 ScmEncoding *scm_capi_char_encoding(ScmObj chr);
 
 
@@ -496,9 +496,9 @@ ScmObj scm_api_standard_error_port(void);
 /*******************************************************************/
 
 ScmObj scm_api_read(ScmObj port);
-ssize_t scm_capi_read_cchar(scm_char_t *chr, ScmObj port);
+ssize_t scm_capi_read_cchr(scm_char_t *chr, ScmObj port);
 ScmObj scm_api_read_char(ScmObj port);
-ssize_t scm_capi_peek_cchar(scm_char_t *chr, ScmObj port);
+ssize_t scm_capi_peek_cchr(scm_char_t *chr, ScmObj port);
 ScmObj scm_api_peek_char(ScmObj port);
 ScmObj scm_api_read_line(ScmObj port);
 int scm_capi_char_ready(ScmObj port, bool *rslt);
@@ -514,7 +514,7 @@ ScmObj scm_api_write(ScmObj obj, ScmObj port);
 ScmObj scm_api_write_simple(ScmObj obj, ScmObj port);
 ScmObj scm_api_display(ScmObj obj, ScmObj port);
 ScmObj scm_api_newline(ScmObj port);
-int scm_capi_write_cchar(scm_char_t chr, ScmEncoding *enc, ScmObj port);
+int scm_capi_write_cchr(scm_char_t chr, ScmEncoding *enc, ScmObj port);
 ScmObj scm_api_write_char(ScmObj chr, ScmObj port);
 int scm_capi_write_cstr(const char *str, ScmEncoding *enc, ScmObj port);
 ssize_t scm_capi_write_string(ScmObj str, ScmObj port,
