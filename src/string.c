@@ -269,7 +269,7 @@ scm_string_write_ext_rep_inner(ScmObj str, ScmObj port, size_t len)
 
   SCM_STACK_FRAME_PUSH(&str, &port);
 
-  p = scm_string_to_char_ary(str, ary, len);
+  p = scm_string_to_char_ary(str,0, (ssize_t)len, ary);
   if (p == NULL) return -1;
 
   enc = SCM_STRING_ENC(str);
@@ -936,28 +936,37 @@ scm_string_content(ScmObj str)  /* GC OK */
 }
 
 scm_char_t *
-scm_string_to_char_ary(ScmObj str, scm_char_t *ary, size_t len)
+scm_string_to_char_ary(ScmObj str, size_t pos, ssize_t len, scm_char_t *ary)
 {
   ScmStrItr iter;
-  int i;
+  size_t l, i;
 
   scm_assert_obj_type(str, &SCM_STRING_TYPE_INFO);
 
-  if (ary == NULL) {
-    len = SCM_STRING_LENGTH(str);
-    ary = scm_capi_malloc(sizeof(scm_char_t) * len);
-    if (ary == NULL) return NULL;
-  }
-  else if (len == 0) {
-    return ary;
+  if (pos >= SCM_STRING_LENGTH(str)) {
+    scm_capi_error("faild to make array of characters: invalid argument", 0);
+    return NULL;
   }
 
-  scm_str_itr_begin(SCM_STRING_HEAD(str), SCM_STRING_BYTESIZE(str),
-                    SCM_STRING_ENC(str), &iter);
+  if (len == 0)
+    return ary;
+
+  l = (SCM_STRING_LENGTH(str) - pos);
+  if (len > 0 && (size_t)len < l)
+    l = (size_t)len;
+
+  if (ary == NULL) {
+    ary = scm_capi_malloc(sizeof(scm_char_t) * l);
+    if (ary == NULL) return NULL;
+  }
+
+  scm_enc_index2itr(SCM_STRING_ENC(str),
+                    SCM_STRING_HEAD(str), SCM_STRING_BYTESIZE(str), pos, &iter);
+
   if (scm_str_itr_err_p(&iter)) return NULL;
 
   i = 0;
-  while (!scm_str_itr_end_p(&iter)) {
+  while (i < l && !scm_str_itr_end_p(&iter)) {
     memcpy(ary[i++].bytes, scm_str_itr_ptr(&iter),
            (size_t)scm_str_itr_width(&iter));
     scm_str_itr_next(&iter);
@@ -994,7 +1003,7 @@ scm_string_escape_ctrl_and_nonascii_write_inner(ScmObj str,
 
   SCM_STACK_FRAME_PUSH(&str, &port);
 
-  p = scm_string_to_char_ary(str, ary, len);
+  p = scm_string_to_char_ary(str, 0, (ssize_t)len, ary);
   if (p == NULL) return -1;
 
   enc = SCM_STRING_ENC(str);

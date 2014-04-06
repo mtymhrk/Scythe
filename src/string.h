@@ -61,7 +61,8 @@ int scm_string_cmp(ScmObj s1, ScmObj s2, int *rslt);
 ssize_t scm_string_dump(ScmObj str, void *buf, size_t size);
 ScmEncoding *scm_string_encoding(ScmObj str);
 void *scm_string_content(ScmObj str);
-scm_char_t *scm_string_to_char_ary(ScmObj str, scm_char_t *ary, size_t len);
+scm_char_t *scm_string_to_char_ary(ScmObj str, size_t pos, ssize_t len,
+                                   scm_char_t *ary);
 int scm_string_pretty_print(ScmObj obj, ScmObj port, bool write_p);
 int scm_string_escape_ctrl_and_nonascii_write(ScmObj str, ScmObj port);
 void scm_string_gc_initialize(ScmObj obj, ScmObj mem);

@@ -4418,23 +4418,32 @@ scm_capi_string_append(size_t n, ...)
 static ScmObj
 scm_capi_string_to_list_aux(ScmObj str, size_t pos, size_t len)
 {
-  ScmObj ary[len];
+  scm_char_t c_ary[len], *p;
+  ScmObj o_ary[len];
+  ScmEncoding *enc;
 
   SCM_STACK_FRAME_PUSH(&str);
 
-  for (size_t i = 0; i < len; i++) {
-    ary[i] = scm_capi_string_ref(str, pos + i);
-    SCM_STACK_PUSH(&ary[i]);
+  p = scm_string_to_char_ary(str, pos, (ssize_t)len, c_ary);
+  if (p == NULL) return SCM_OBJ_NULL;
 
-    if (scm_obj_null_p(ary[i])) return SCM_OBJ_NULL;
+  enc = scm_string_encoding(str);
+
+  for (size_t i = 0; i < len; i++) {
+    o_ary[i] = scm_char_new(SCM_MEM_ALLOC_HEAP, c_ary + i, enc);
+    SCM_STACK_PUSH(&o_ary[i]);
+
+    if (scm_obj_null_p(o_ary[i])) return SCM_OBJ_NULL;
   }
 
-  return scm_capi_list_cv(ary, len);
+  return scm_capi_list_cv(o_ary, len);
 }
 
 ScmObj
 scm_capi_string_to_list(ScmObj str, ssize_t start, ssize_t end)
 {
+  size_t len;
+
   SCM_STACK_FRAME_PUSH(&str);
 
   if (scm_obj_null_p(str)) {
@@ -4450,11 +4459,21 @@ scm_capi_string_to_list(ScmObj str, ssize_t start, ssize_t end)
     return SCM_OBJ_NULL;
   }
 
-  if (start < 0)
-    start = 0;
+  len = scm_string_length(str);
+  scm_assert(len <= SSIZE_MAX);
 
-  if (end < 0)
-    end = (ssize_t)scm_string_length(str);
+  if (start >= 0 && (size_t)start >= len) {
+    scm_capi_error("string->list: out of range", 1, start);
+    return SCM_OBJ_NULL;
+  }
+
+  if (end >= 0 && (size_t)end > len) {
+    scm_capi_error("string->list: out of range", 1, end);
+    return SCM_OBJ_NULL;
+  }
+
+  if (start < 0) start = 0;
+  if (end < 0)  end = (ssize_t)len;
 
   return scm_capi_string_to_list_aux(str, (size_t)start, (size_t)(end - start));
 }
@@ -4632,39 +4651,18 @@ scm_api_string_copy(ScmObj str, ScmObj start, ScmObj end)
 }
 
 static int
-scm_capi_string_copy_i_use_tmp_strage(ScmObj to, size_t at,
-                                      size_t pos, size_t len)
-{
-  scm_char_t chr[len];
-
-  SCM_STACK_FRAME_PUSH(&to);
-
-  for (size_t i = 0; i < len; i++) {
-    int r = scm_string_ref(to, pos + i, chr + i);
-    if (r < 0) return -1;
-  }
-
-  for (size_t i = 0; i < len; i++) {
-    int r = scm_string_set(to, at + i, &chr[i]);
-    if (r < 0) return -1;
-  }
-
-  return 0;
-}
-
-static int
 scm_capi_string_copy_i_aux(ScmObj to, size_t at,
                            ScmObj from, size_t pos, size_t len)
 {
-  scm_char_t chr;
+  scm_char_t ary[len], *p;
 
   SCM_STACK_FRAME_PUSH(&to, &from);
 
-  for (size_t i = 0; i < len; i++) {
-    int r = scm_string_ref(from, pos + i, &chr);
-    if (r < 0) return -1;
+  p = scm_string_to_char_ary(from, pos, (ssize_t)len, ary);
+  if (p == NULL) return -1;
 
-    r = scm_string_set(to, at + i, &chr);
+  for (size_t i = 0; i < len; i++) {
+    int r = scm_string_set(to, at + i, ary + i);
     if (r < 0) return -1;
   }
 
@@ -4735,10 +4733,7 @@ scm_capi_string_copy_i(ScmObj to, size_t at,
       len = from_len - (size_t)start;
   }
 
-  if (scm_capi_eq_p(to, from) && (size_t)start < at)
-    return scm_capi_string_copy_i_use_tmp_strage(to, at, (size_t)start, len);
-  else
-    return scm_capi_string_copy_i_aux(to, at, from, (size_t)start, len);
+  return scm_capi_string_copy_i_aux(to, at, from, (size_t)start, len);
 }
 
 ScmObj
@@ -5440,14 +5435,20 @@ ScmObj
 scm_capi_string_to_vector_aux(ScmObj str, size_t start, size_t n)
 {
   ScmObj elm[n];
+  scm_char_t ary[n], *p;
+  ScmEncoding *enc;
 
   SCM_STACK_FRAME_PUSH(&str);
 
+  p = scm_string_to_char_ary(str, start, (ssize_t)n, ary);
+  if (p == NULL) return SCM_OBJ_NULL;
+
+  enc = scm_string_encoding(str);
+
   for (size_t i = 0; i < n; i++) {
-    elm[i] = SCM_OBJ_NULL;
+    elm[i] = scm_char_new(SCM_MEM_ALLOC_HEAP, ary + i, enc);
     SCM_STACK_PUSH(&elm[i]);
 
-    elm[i] = scm_capi_string_ref(str, start + i);
     if (scm_obj_null_p(elm[i])) return SCM_OBJ_NULL;
   }
 
