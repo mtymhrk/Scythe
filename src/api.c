@@ -8434,65 +8434,109 @@ scm_capi_run_repl(ScmEvaluator *ev)
 
   scm_vm_change_current_vm(ev->vm);
 
-  SCM_STACK_FRAME_PUSH(&port, &asmbl, &iseq);
+  {
+    SCM_STACK_FRAME_PUSH(&port, &asmbl, &iseq);
 
-  scm_vm_setup_system(ev->vm);
+    scm_vm_setup_system(ev->vm);
 
-  port = scm_capi_open_input_string_cstr("("
-                                         " (label loop)"
-                                         "   (frame)"
-                                         "   (immval \"> \")"
-                                         "   (push)"
-                                         "   (gref display main)"
-                                         "   (call 1)"
-                                         "   (arity 1)"
-                                         "   (cframe)"
-                                         "   (gref flush-output-port main)"
-                                         "   (call 0)"
-                                         "   (arity 1)"
-                                         "   (frame)"
-                                         "   (frame)"
-                                         "   (cframe)"
-                                         "   (gref read main)"
-                                         "   (call 0)"
-                                         "   (arity 1)"
-                                         "   (push)"
-                                         "   (gref eval main)"
-                                         "   (call 1)"
-                                         "   (arity 1)"
-                                         "   (push)"
-                                         "   (gref write main)"
-                                         "   (call 1)"
-                                         "   (arity 1)"
-                                         "   (cframe)"
-                                         "   (gref newline main)"
-                                         "   (call 0)"
-                                         "   (arity 1)"
-                                         "   (cframe)"
-                                         "   (gref flush-output-port main)"
-                                         "   (call 0)"
-                                         "   (arity 1)"
-                                         "   (jmp loop)"
-                                         ")",
-                                         SCM_ENC_UTF8);
-  if (scm_obj_null_p(port)) goto end;
+    port = scm_capi_open_input_string_cstr("("
+                                           " (label loop)"
+                                           "   (frame)"
+                                           "   (immval \"> \")"
+                                           "   (push)"
+                                           "   (gref display main)"
+                                           "   (call 1)"
+                                           "   (arity 1)"
+                                           "   (cframe)"
+                                           "   (gref flush-output-port main)"
+                                           "   (call 0)"
+                                           "   (arity 1)"
+                                           "   (frame)"
+                                           "   (frame)"
+                                           "   (cframe)"
+                                           "   (gref read main)"
+                                           "   (call 0)"
+                                           "   (arity 1)"
+                                           "   (push)"
+                                           "   (gref eval main)"
+                                           "   (call 1)"
+                                           "   (arity 1)"
+                                           "   (push)"
+                                           "   (gref write main)"
+                                           "   (call 1)"
+                                           "   (arity 1)"
+                                           "   (cframe)"
+                                           "   (gref newline main)"
+                                           "   (call 0)"
+                                           "   (arity 1)"
+                                           "   (cframe)"
+                                           "   (gref flush-output-port main)"
+                                           "   (call 0)"
+                                           "   (arity 1)"
+                                           "   (jmp loop)"
+                                           ")",
+                                           SCM_ENC_UTF8);
+    if (scm_obj_null_p(port)) goto end;
 
-  asmbl = scm_api_read(port);
-  if (scm_obj_null_p(asmbl)) goto end;
+    asmbl = scm_api_read(port);
+    if (scm_obj_null_p(asmbl)) goto end;
 
-  port = scm_api_close_input_port(port);
-  if (scm_obj_null_p(port)) goto end;
+    port = scm_api_close_input_port(port);
+    if (scm_obj_null_p(port)) goto end;
 
-  port = SCM_OBJ_NULL;
+    port = SCM_OBJ_NULL;
 
-  iseq = scm_api_assemble(asmbl, SCM_OBJ_NULL);
-  if (scm_obj_null_p(iseq)) goto end;
+    iseq = scm_api_assemble(asmbl, SCM_OBJ_NULL);
+    if (scm_obj_null_p(iseq)) goto end;
 
-  asmbl = SCM_OBJ_NULL;
+    asmbl = SCM_OBJ_NULL;
 
-  scm_vm_run(ev->vm, iseq);
+    scm_vm_run(ev->vm, iseq);
 
-  ret = 0;
+    ret = 0;
+  }
+
+ end:
+  scm_vm_end(ev->vm);
+  ev->vm = SCM_OBJ_NULL;
+
+  return ret;
+}
+
+int
+scm_capi_exec_file(const char *path, ScmEvaluator *ev)
+{
+  ScmObj port = SCM_OBJ_INIT, iseq = SCM_OBJ_INIT;
+  ssize_t r;
+  int ret;
+
+  ret = -1;
+
+  if (ev == NULL) return -1;
+
+  ev->vm = scm_vm_new();
+  if (scm_obj_null_p(ev->vm)) return -1;
+
+  scm_vm_change_current_vm(ev->vm);
+
+  {
+    SCM_STACK_FRAME_PUSH(&port, &iseq);
+
+    scm_vm_setup_system(ev->vm);
+
+    port = scm_capi_open_input_file(path, NULL);
+    if (scm_obj_null_p(port)) goto end;
+
+    iseq = scm_capi_compile_port(port, SCM_OBJ_NULL, false);
+    if (scm_obj_null_p(iseq)) goto end;
+
+    r = scm_capi_iseq_push_opfmt_noarg(iseq, SCM_OPCODE_HALT);
+    if (r < 0) goto end;
+
+    scm_vm_run(ev->vm, iseq);
+
+    ret = 0;
+  }
 
  end:
   scm_vm_end(ev->vm);

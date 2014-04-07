@@ -712,6 +712,7 @@ ScmEncoding *scm_capi_system_encoding(void);
 ScmEvaluator *scm_capi_evaluator(void);
 void scm_capi_evaluator_end(ScmEvaluator *ev);
 int scm_capi_run_repl(ScmEvaluator *ev);
+int scm_capi_exec_file(const char *path, ScmEvaluator *ev);
 
 #ifdef SCM_UNIT_TEST
 
