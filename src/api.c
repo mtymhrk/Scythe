@@ -7832,19 +7832,14 @@ scm_api_current_module(ScmObj cmpl)
   return scm_cmpl_current_module(cmpl);
 }
 
-ScmObj
-scm_api_compile(ScmObj exp, ScmObj arg)
+static ScmObj
+scm_api_compile__get_cmpl(ScmObj arg)
 {
   ScmObj name = SCM_OBJ_INIT, mod = SCM_OBJ_INIT, cmpl = SCM_OBJ_INIT;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&exp, &arg,
+  SCM_STACK_FRAME_PUSH(&arg,
                        &name, &mod, &cmpl);
-
-  if (scm_obj_null_p(exp)) {
-    scm_capi_error("compile: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
 
   name = mod = cmpl = SCM_OBJ_NULL;
   if (scm_obj_not_null_p(arg)) {
@@ -7882,7 +7877,82 @@ scm_api_compile(ScmObj exp, ScmObj arg)
     scm_cmpl_select_module(cmpl, mod);
   }
 
-  return scm_cmpl_compile(cmpl, exp);
+  return cmpl;
+}
+
+ScmObj
+scm_capi_compile(ScmObj exp, ScmObj arg, bool cmpl_only)
+{
+  ScmObj cmpl = SCM_OBJ_INIT, asmbl = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&exp, &arg,
+                       &cmpl, &asmbl);
+
+  if (scm_obj_null_p(exp)) {
+    scm_capi_error("compile: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  cmpl = scm_api_compile__get_cmpl(arg);
+  if (scm_obj_null_p(cmpl)) return SCM_OBJ_NULL;
+
+  asmbl = scm_cmpl_compile(cmpl, exp);
+  if (scm_obj_null_p(asmbl)) return SCM_OBJ_NULL;
+
+  if (cmpl_only)
+    return asmbl;
+
+  return scm_asm_assemble(asmbl, SCM_OBJ_NULL);
+}
+
+ScmObj
+scm_capi_compile_port(ScmObj port, ScmObj arg, bool cmpl_only)
+{
+  ScmObj cmpl = SCM_OBJ_INIT, exp = SCM_OBJ_INIT, asmbl = SCM_OBJ_INIT;
+  ScmObj acc = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&port, &arg,
+                       &cmpl, &exp, &asmbl,
+                       &acc);
+
+  if (scm_obj_null_p(port)) {
+    scm_capi_error("compile: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_input_port_p(port)) {
+    scm_capi_error("compile: inpurt-port required, but got", 1, port);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_textual_port_p(port)) {
+    scm_capi_error("compile: textual-port required, but got", 1, port);
+    return SCM_OBJ_NULL;
+  }
+  else if (scm_port_closed_p(port)) {
+    scm_capi_error("compile: given port is closed", 1, port);
+    return SCM_OBJ_NULL;
+  }
+
+  cmpl = scm_api_compile__get_cmpl(arg);
+  if (scm_obj_null_p(cmpl)) return SCM_OBJ_NULL;
+
+  acc = cmpl_only ? SCM_NIL_OBJ : scm_api_make_iseq();
+  if (scm_obj_null_p(acc)) return SCM_OBJ_NULL;
+
+  while (true) {
+    exp = scm_api_read(port);
+    if (scm_obj_null_p(exp)) return SCM_OBJ_NULL;
+
+    if (scm_capi_eof_object_p(exp))
+      break;
+
+    asmbl = scm_cmpl_compile(cmpl, exp);
+    if (scm_obj_null_p(asmbl)) return SCM_OBJ_NULL;
+
+    acc = cmpl_only ? scm_api_cons(asmbl, acc) : scm_asm_assemble(asmbl, acc);
+    if (scm_obj_null_p(acc)) return SCM_OBJ_NULL;
+  }
+
+  return (cmpl_only ? scm_api_reverse(acc) : acc);
 }
 
 
@@ -8457,10 +8527,7 @@ scm_capi_ut_eval(ScmEvaluator *ev, ScmObj exp)
   SCM_STACK_FRAME_PUSH(&exp,
                        &code);
 
-  code = scm_api_compile(exp, SCM_OBJ_NULL);
-  if (scm_obj_null_p(code)) return SCM_OBJ_NULL;
-
-  code = scm_api_assemble(code, SCM_OBJ_NULL);
+  code = scm_capi_compile(exp, SCM_OBJ_NULL, false);
   if (scm_obj_null_p(code)) return SCM_OBJ_NULL;
 
   rslt = scm_capi_iseq_push_opfmt_noarg(code, SCM_OPCODE_HALT);

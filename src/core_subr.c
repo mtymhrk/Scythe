@@ -2152,10 +2152,7 @@ scm_subr_func_eval(ScmObj subr, int argc, const ScmObj *argv)
     return -1;
   }
 
-  exp = scm_api_compile(argv[0], SCM_OBJ_NULL);
-  if (scm_obj_null_p(exp)) return -1; /* [ERR]: [through] */
-
-  exp = scm_api_assemble(exp, SCM_OBJ_NULL);
+  exp = scm_capi_compile(argv[0], SCM_OBJ_NULL, false);
   if (scm_obj_null_p(exp)) return -1; /* [ERR]: [through] */
 
   i = scm_capi_iseq_push_opfmt_noarg(exp, SCM_OPCODE_RETURN);

@@ -41,7 +41,7 @@ test_scm_api_compile__self_eval_1(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -66,7 +66,7 @@ test_scm_api_compile__define_global_variable_1(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -92,7 +92,7 @@ test_scm_api_compile__define_global_variable_2(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -117,7 +117,7 @@ test_scm_api_compile__refer_global_variable_1(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -146,7 +146,7 @@ test_scm_api_compile__refer_global_variable_2(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -171,7 +171,7 @@ test_scm_api_compile__set_global_variable_1(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -196,7 +196,7 @@ test_scm_api_compile__quote(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -221,7 +221,7 @@ test_scm_api_compile__application_1(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -251,7 +251,7 @@ test_scm_api_compile__application_2(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -281,7 +281,7 @@ test_scm_api_compile__application_3(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -317,7 +317,7 @@ test_scm_api_compile__application_4(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -344,7 +344,7 @@ test_scm_api_compile__application_5(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -369,7 +369,7 @@ test_scm_api_compile__lambda_1(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -394,7 +394,7 @@ test_scm_api_compile__lambda_2(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -419,7 +419,7 @@ test_scm_api_compile__lambda_3(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -444,7 +444,7 @@ test_scm_api_compile__lambda_4(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -469,7 +469,7 @@ test_scm_api_compile__lambda_5(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -506,7 +506,7 @@ test_scm_api_compile__lambda_6(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -536,7 +536,7 @@ test_scm_api_compile__let_1(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -561,7 +561,7 @@ test_scm_api_compile__let_2(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -596,7 +596,7 @@ test_scm_api_compile__let_3(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -628,7 +628,7 @@ test_scm_api_compile__let_4(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -659,7 +659,7 @@ test_scm_api_compile__let_5(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -699,7 +699,7 @@ test_scm_api_compile__let_6(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -743,7 +743,7 @@ test_scm_api_compile__named_let_1(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -776,7 +776,7 @@ test_scm_api_compile__named_let_2(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -819,7 +819,7 @@ test_scm_api_compile__named_let_3(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -852,7 +852,7 @@ test_scm_api_compile__let_a_1(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -877,7 +877,7 @@ test_scm_api_compile__let_a_2(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -915,7 +915,7 @@ test_scm_api_compile__let_a_3(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -950,7 +950,7 @@ test_scm_api_compile__let_a_4(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -983,7 +983,7 @@ test_scm_api_compile__let_a_5(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -1016,7 +1016,7 @@ test_scm_api_compile__let_a_6(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -1060,7 +1060,7 @@ test_scm_api_compile__let_a_7(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -1091,7 +1091,7 @@ test_scm_api_compile__letrec_1(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -1122,7 +1122,7 @@ test_scm_api_compile__letrec_2(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -1155,7 +1155,7 @@ test_scm_api_compile__letrec_3(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -1187,7 +1187,7 @@ test_scm_api_compile__letrec_4(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -1212,7 +1212,7 @@ test_scm_api_compile__letrec_5(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -1254,7 +1254,7 @@ test_scm_api_compile__letrec_6(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -1283,7 +1283,7 @@ test_scm_api_compile__letrec_a_1(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -1312,7 +1312,7 @@ test_scm_api_compile__letrec_a_2(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -1343,7 +1343,7 @@ test_scm_api_compile__letrec_a_3(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -1373,7 +1373,7 @@ test_scm_api_compile__letrec_a_4(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -1398,7 +1398,7 @@ test_scm_api_compile__letrec_a_5(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -1438,7 +1438,7 @@ test_scm_api_compile__letrec_a_6(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -1468,7 +1468,7 @@ test_scm_api_compile__internal_definition_1(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -1498,7 +1498,7 @@ test_scm_api_compile__internal_definition_2(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -1530,7 +1530,7 @@ test_scm_api_compile__internal_definition_3(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -1564,7 +1564,7 @@ test_scm_api_compile__internal_definition_4(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -1601,7 +1601,7 @@ test_scm_api_compile__begin_1(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -1628,7 +1628,7 @@ test_scm_api_compile__begin_2(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -1654,7 +1654,7 @@ test_scm_api_compile__begin_3(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -1682,7 +1682,7 @@ test_scm_api_compile__refer_bound_variable_1(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -1710,7 +1710,7 @@ test_scm_api_compile__refer_bound_variable_2(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -1741,7 +1741,7 @@ test_scm_api_compile__refer_bound_variable_3(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -1769,7 +1769,7 @@ test_scm_api_compile__set_bound_variable_1(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -1797,7 +1797,7 @@ test_scm_api_compile__set_bound_variable_2(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -1825,7 +1825,7 @@ test_scm_api_compile__refer_free_variable_1(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -1856,7 +1856,7 @@ test_scm_api_compile__refer_free_variable_2(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -1885,7 +1885,7 @@ test_scm_api_compile__set_free_variable_1(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -1917,7 +1917,7 @@ test_scm_api_compile__if_1(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -1949,7 +1949,7 @@ test_scm_api_compile__if_2(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -1983,7 +1983,7 @@ test_scm_api_compile__if_3(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -2017,7 +2017,7 @@ test_scm_api_compile__if_4(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -2042,7 +2042,7 @@ test_scm_api_compile__cond_001(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -2067,7 +2067,7 @@ test_scm_api_compile__cond_002(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -2094,7 +2094,7 @@ test_scm_api_compile__cond_003(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -2125,7 +2125,7 @@ test_scm_api_compile__cond_004(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -2161,7 +2161,7 @@ test_scm_api_compile__cond_005(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -2196,7 +2196,7 @@ test_scm_api_compile__cond_006(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -2240,7 +2240,7 @@ test_scm_api_compile__cond_007(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -2268,7 +2268,7 @@ test_scm_api_compile__cond_008(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -2301,7 +2301,7 @@ test_scm_api_compile__cond_009(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -2334,7 +2334,7 @@ test_scm_api_compile__cond_010(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -2360,7 +2360,7 @@ test_scm_api_compile__cond_011(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -2386,7 +2386,7 @@ test_scm_api_compile__cond_012(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -2414,7 +2414,7 @@ test_scm_api_compile__cond_013(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -2446,7 +2446,7 @@ test_scm_api_compile__cond_014(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -2477,7 +2477,7 @@ test_scm_api_compile__cond_015(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -2514,7 +2514,7 @@ test_scm_api_compile__cond_016(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -2551,7 +2551,7 @@ test_scm_api_compile__cond_017(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -2585,7 +2585,7 @@ test_scm_api_compile__cond_018(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -2610,7 +2610,7 @@ test_scm_api_compile__and_001(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -2635,7 +2635,7 @@ test_scm_api_compile__and_002(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -2663,7 +2663,7 @@ test_scm_api_compile__and_003(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -2701,7 +2701,7 @@ test_scm_api_compile__and_004(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -2727,7 +2727,7 @@ test_scm_api_compile__and_005(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -2753,7 +2753,7 @@ test_scm_api_compile__and_006(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -2784,7 +2784,7 @@ test_scm_api_compile__and_007(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -2823,7 +2823,7 @@ test_scm_api_compile__and_008(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -2848,7 +2848,7 @@ test_scm_api_compile__or_001(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -2873,7 +2873,7 @@ test_scm_api_compile__or_002(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -2901,7 +2901,7 @@ test_scm_api_compile__or_003(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -2939,7 +2939,7 @@ test_scm_api_compile__or_004(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -2965,7 +2965,7 @@ test_scm_api_compile__or_005(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -2991,7 +2991,7 @@ test_scm_api_compile__or_006(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -3022,7 +3022,7 @@ test_scm_api_compile__or_007(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -3061,7 +3061,7 @@ test_scm_api_compile__or_008(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -3092,7 +3092,7 @@ test_scm_api_compile__when_001(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -3123,7 +3123,7 @@ test_scm_api_compile__when_002(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -3155,7 +3155,7 @@ test_scm_api_compile__when_003(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -3187,7 +3187,7 @@ test_scm_api_compile__when_004(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -3231,7 +3231,7 @@ test_scm_api_compile__when_005(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -3274,7 +3274,7 @@ test_scm_api_compile__when_006(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -3317,7 +3317,7 @@ test_scm_api_compile__when_007(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -3348,7 +3348,7 @@ test_scm_api_compile__unless_001(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -3379,7 +3379,7 @@ test_scm_api_compile__unless_002(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -3411,7 +3411,7 @@ test_scm_api_compile__unless_003(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -3443,7 +3443,7 @@ test_scm_api_compile__unless_004(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -3487,7 +3487,7 @@ test_scm_api_compile__unless_005(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -3530,7 +3530,7 @@ test_scm_api_compile__unless_006(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -3573,7 +3573,7 @@ test_scm_api_compile__unless_007(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -3621,7 +3621,7 @@ test_scm_api_compile__do_001(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -3668,7 +3668,7 @@ test_scm_api_compile__do_002(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -3718,7 +3718,7 @@ test_scm_api_compile__do_003(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -3750,7 +3750,7 @@ test_scm_api_compile__do_004(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -3800,7 +3800,7 @@ test_scm_api_compile__do_005(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -3855,7 +3855,7 @@ test_scm_api_compile__do_006(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -3891,7 +3891,7 @@ test_scm_api_compile__do_007(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
@@ -3962,7 +3962,7 @@ test_scm_api_compile__do_008(void)
   port = scm_capi_open_input_string_cstr(asm_str, SCM_ENC_ASCII);
   expected = scm_api_read(port);
 
-  actual = scm_api_compile(exp, SCM_OBJ_NULL);
+  actual = scm_capi_compile(exp, SCM_OBJ_NULL, true);
 
   /* scm_api_write(exp, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
   /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
