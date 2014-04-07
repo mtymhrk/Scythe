@@ -652,7 +652,7 @@ scm_asm_inst_asm(ScmObj iseq, int opcode, ScmObj operator, ScmObj operands,
     return -1;
   }
 
-  arg = scm_asm_assemble(arg);
+  arg = scm_asm_assemble(arg, SCM_OBJ_NULL);
   if (scm_obj_null_p(arg)) return -1; /* [ERR]: [through] */
 
   return scm_capi_iseq_push_opfmt_obj(iseq, SCM_OPCODE_IMMVAL, arg);
@@ -728,7 +728,7 @@ scm_asm_inst_asm_close(ScmObj iseq, int opcode,
     return -1;
   }
 
-  arg3 = scm_asm_assemble(arg3);
+  arg3 = scm_asm_assemble(arg3, SCM_OBJ_NULL);
   if (scm_obj_null_p(arg3)) return -1; /* [ERR]: [through] */
 
   return scm_capi_iseq_push_opfmt_si_si_obj(iseq, SCM_OPCODE_CLOSE,
@@ -917,22 +917,24 @@ scm_asm_assemble_aux(ScmObj iseq,
 }
 
 ScmObj
-scm_asm_assemble(ScmObj lst)
+scm_asm_assemble(ScmObj lst, ScmObj iseq)
 {
-  ScmObj iseq = SCM_OBJ_INIT;
   ScmCHashTbl *label_tbl = NULL;
   EArray labels;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&iseq, &lst);
+  SCM_STACK_FRAME_PUSH(&lst, &iseq);
 
   scm_assert(scm_capi_pair_p(lst));
+  scm_assert(scm_obj_null_p(iseq) || scm_capi_iseq_p(iseq));
 
   rslt = eary_init(&labels, sizeof(char *), 32);
   if (rslt) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
-  iseq = scm_api_make_iseq();
-  if (scm_obj_null_p(iseq)) goto err; /* [ERR]: [through] */
+  if (scm_obj_null_p(iseq)) {
+    iseq = scm_api_make_iseq();
+    if (scm_obj_null_p(iseq)) goto err; /* [ERR]: [through] */
+  }
 
   label_tbl = scm_chash_tbl_new(SCM_OBJ_NULL, 32,
                                 SCM_CHASH_TBL_CVAL, SCM_CHASH_TBL_CVAL,

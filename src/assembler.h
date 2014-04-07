@@ -20,6 +20,6 @@ int scm_asm_mnemonic2opcode(const char *mne);
 const char *scm_asm_opcode2mnemonic(int code);
 ScmObj scm_asm_mnemonic(int opcode);
 
-ScmObj scm_asm_assemble(ScmObj lst);
+ScmObj scm_asm_assemble(ScmObj lst, ScmObj iseq);
 
 #endif /* INCLUDE_ASSEMBLER_H__ */

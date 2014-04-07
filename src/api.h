@@ -624,7 +624,7 @@ int scm_capi_inst_update_oprand_obj(scm_byte_t *ip, ScmObj clsr, ScmObj obj);
 /*  Assembler                                                      */
 /*******************************************************************/
 
-ScmObj scm_api_assemble(ScmObj lst);
+ScmObj scm_api_assemble(ScmObj lst, ScmObj iseq);
 
 
 /*******************************************************************/

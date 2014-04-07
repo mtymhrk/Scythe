@@ -64,7 +64,7 @@ test_scm_asm_assemble(void)
   port = scm_capi_open_input_string_cstr(str, SCM_ENC_ASCII);
   lst = scm_api_read(port);
 
-  iseq = scm_asm_assemble(lst);
+  iseq = scm_asm_assemble(lst, SCM_OBJ_NULL);
 
   cut_assert_false(scm_capi_null_value_p(iseq));
   cut_assert_true(scm_capi_iseq_p(iseq));

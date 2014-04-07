@@ -7789,7 +7789,7 @@ scm_capi_inst_update_oprand_obj(scm_byte_t *ip, ScmObj clsr, ScmObj obj)
 /*******************************************************************/
 
 ScmObj
-scm_api_assemble(ScmObj lst)
+scm_api_assemble(ScmObj lst, ScmObj iseq)
 {
   if (scm_obj_null_p(lst)) {
     scm_capi_error("asm: invalid argument", 0);
@@ -7800,7 +7800,12 @@ scm_api_assemble(ScmObj lst)
     return SCM_OBJ_NULL;
   }
 
-  return scm_asm_assemble(lst);
+  if (scm_obj_not_null_p(iseq) && !scm_capi_iseq_p(iseq)) {
+    scm_capi_error("asm: iseq required, but got", 1, iseq);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_asm_assemble(lst, iseq);
 }
 
 
@@ -8410,7 +8415,7 @@ scm_capi_run_repl(ScmEvaluator *ev)
 
   port = SCM_OBJ_NULL;
 
-  iseq = scm_api_assemble(asmbl);
+  iseq = scm_api_assemble(asmbl, SCM_OBJ_NULL);
   if (scm_obj_null_p(iseq)) goto end;
 
   asmbl = SCM_OBJ_NULL;
@@ -8455,7 +8460,7 @@ scm_capi_ut_eval(ScmEvaluator *ev, ScmObj exp)
   code = scm_api_compile(exp, SCM_OBJ_NULL);
   if (scm_obj_null_p(code)) return SCM_OBJ_NULL;
 
-  code = scm_api_assemble(code);
+  code = scm_api_assemble(code, SCM_OBJ_NULL);
   if (scm_obj_null_p(code)) return SCM_OBJ_NULL;
 
   rslt = scm_capi_iseq_push_opfmt_noarg(code, SCM_OPCODE_HALT);

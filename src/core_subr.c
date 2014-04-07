@@ -2110,7 +2110,7 @@ scm_subr_func_eval_asm(ScmObj subr, int argc, const ScmObj *argv)
   }
 
   if (scm_capi_pair_p(argv[0])) {
-    code = scm_api_assemble(argv[0]);
+    code = scm_api_assemble(argv[0], SCM_OBJ_NULL);
     if (scm_obj_null_p(code)) return -1; /* [ERR]: [through] */
   }
   else if (scm_capi_iseq_p(argv[0])) {
@@ -2155,7 +2155,7 @@ scm_subr_func_eval(ScmObj subr, int argc, const ScmObj *argv)
   exp = scm_api_compile(argv[0], SCM_OBJ_NULL);
   if (scm_obj_null_p(exp)) return -1; /* [ERR]: [through] */
 
-  exp = scm_api_assemble(exp);
+  exp = scm_api_assemble(exp, SCM_OBJ_NULL);
   if (scm_obj_null_p(exp)) return -1; /* [ERR]: [through] */
 
   i = scm_capi_iseq_push_opfmt_noarg(exp, SCM_OPCODE_RETURN);

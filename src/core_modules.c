@@ -300,7 +300,7 @@ scm_define_scheme_base_clsr(ScmObj module)
     code = scm_api_read(port);
     if (scm_obj_null_p(code)) return -1;
 
-    code = scm_api_assemble(code);
+    code = scm_api_assemble(code, SCM_OBJ_NULL);
     if (scm_obj_null_p(code)) return -1;
 
     sym = scm_capi_make_symbol_from_cstr(syms[i], SCM_ENC_ASCII);
