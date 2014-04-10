@@ -63,7 +63,8 @@
  ../encoding.h ../api_enum.h ../api_type.h ../port.h
 ../parser.o: ../parser.c ../object.h ../impl_utils.h \
  /home/hiroki/work/scythe/build/src/config.h ../reference.h ../api.h \
- ../encoding.h ../api_enum.h ../api_type.h ../earray.h ../parser.h
+ ../encoding.h ../api_enum.h ../api_type.h ../earray.h ../number_parser.h \
+ ../parser.h
 ../assembler.o: ../assembler.c ../object.h ../impl_utils.h \
  /home/hiroki/work/scythe/build/src/config.h ../api.h ../reference.h \
  ../encoding.h ../api_enum.h ../api_type.h ../chashtbl.h ../earray.h \
@@ -454,7 +455,7 @@ test_parser.o: test_parser.c /usr/local/include/cutter/cutter.h \
  ../impl_utils.h /home/hiroki/work/scythe/build/src/config.h ../vm.h \
  ../object.h ../memory.h ../api_type.h ../reference.h ../encoding.h \
  ../api_enum.h ../vmstack.h ../reference.h ../api.h ../parser.h \
- ../earray.h ../api.h
+ ../earray.h ../api.h ../number_parser.h
 test_assembler.o: test_assembler.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-version.h \
  /usr/local/include/cutter/cutter/cut-features.h \

@@ -12,6 +12,7 @@ typedef struct ScmTokenRec ScmToken;
 #include "object.h"
 #include "encoding.h"
 #include "earray.h"
+#include "number_parser.h"
 
 /****************************************************************************/
 /*  ScmToken                                                                */
@@ -45,6 +46,7 @@ struct ScmTokenRec {
   SCM_TOKEN_TYPE_T type;
   scm_char_t *str;
   size_t len;
+  ScmNumParseData npd;
   ScmToken *next;
 };
 
@@ -62,8 +64,9 @@ typedef enum {
 } SCM_LEXER_ERR_TYPE_T;
 
 struct ScmLexerRec {
-  EArray str;
   SCM_TOKEN_TYPE_T token_type;
+  EArray str;
+  ScmNumParseData npd;
   ScmToken *tokens_head;
   ScmToken *tokens_tail;
   SCM_LEXER_ERR_TYPE_T error_type;
