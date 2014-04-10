@@ -12,11 +12,14 @@
 #include "string.h"
 #include "symbol.h"
 #include "procedure.h"
-#include "number.h"
+#include "number_common.h"
+#include "fixnum.h"
+#include "bignum.h"
 #include "pair.h"
 #include "vector.h"
 #include "port.h"
 #include "parser.h"
+#include "number_parser.h"
 #include "syntax.h"
 #include "iseq.h"
 #include "module.h"
@@ -1746,7 +1749,7 @@ scm_capi_make_number_from_literal(const char *literal, size_t size)
     return SCM_OBJ_NULL;
   }
 
-  return scm_num_make_from_literal(literal, size);
+  return scm_num_make_from_literal(literal, SCM_ENC_UTF8);
 }
 
 ScmObj

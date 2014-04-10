@@ -1,5 +1,5 @@
 #include "object.h"
-#include "number.h"
+#include "fixnum.h"
 
 ScmTypeInfo *SCM_OBJ_TAG2TYPE_TBL[SCM_OBJ_TAG_NR_KIND] = {
   NULL,                         /* 0b000: memory managed object */

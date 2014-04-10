@@ -56,6 +56,11 @@ struct ScmBignumRec {
 
 extern ScmTypeInfo SCM_BIGNUM_TYPE_INFO;
 
+int scm_bignum_calc_base_and_place_for_ary_of_digits(int radix,
+                                                     scm_bignum_c_t *base,
+                                                     int *place);
+ScmObj scm_bignum_make_int_from_ary(char sign, scm_bignum_d_t *ary, size_t size,
+                                    scm_bignum_c_t base);
 
 void scm_bignum_finalize_ary(ScmObj bignum);
 int scm_bignum_initialize_uword(ScmObj bignum, scm_uword_t val);

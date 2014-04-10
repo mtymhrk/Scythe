@@ -735,6 +735,66 @@ scm_bignum_quo_rem(ScmObj bn1, ScmObj bn2,
 }
 
 int
+scm_bignum_calc_base_and_place_for_ary_of_digits(int radix,
+                                                 scm_bignum_c_t *base,
+                                                 int *place)
+{
+  static int place_tab[] = { 0, 0, 0, 0, 0, 0, 0, 0,
+                             0, 0, 0, 0, 0, 0, 0, 0};
+  static scm_bignum_c_t base_tab[] = { 0, 0, 0, 0, 0, 0, 0, 0,
+                                       0, 0, 0, 0, 0, 0, 0, 0 };
+  scm_assert(0 < radix
+             && (size_t)radix <= sizeof(place_tab)/sizeof(place_tab[0]));
+  scm_assert(base != NULL);
+  scm_assert(place != NULL);
+
+  if (place_tab[radix - 1] > 0) {
+    *place = place_tab[radix - 1];
+    *base = base_tab[radix - 1];
+  }
+  else {
+    *place = (int)scm_log_ul((unsigned long)radix, SCM_BIGNUM_BASE);
+    *base = (scm_bignum_c_t)scm_pow_ul((unsigned long)radix,
+                                     (unsigned long)*place);
+    place_tab[radix - 1] = *place;
+    base_tab[radix - 1] = *base;
+  }
+
+  return 0;
+}
+
+ScmObj
+scm_bignum_make_int_from_ary(char sign, scm_bignum_d_t *ary, size_t size,
+                             scm_bignum_c_t base)
+{
+  scm_sword_t num, abs_max;
+
+  scm_assert(ary != NULL);
+  scm_assert(size <= SSIZE_MAX);
+  scm_assert(0 < base);
+
+  if (sign == '+' || sign == '\0')
+    abs_max = SCM_FIXNUM_MAX;
+  else
+    abs_max = -SCM_FIXNUM_MIN;
+
+  num = 0;
+  for (ssize_t i = (ssize_t)size - 1; i >= 0; i--) {
+    if (num > (abs_max - (scm_sword_t)ary[i]) / (scm_sword_t)base) {
+      return scm_bignum_new_from_ary(SCM_MEM_HEAP,
+                                     (char)((sign == '\0') ? '+' : sign),
+                                     ary, size, base);
+    }
+    num = num * (scm_sword_t)base + (scm_sword_t)ary[i];
+  }
+
+  if (sign == '+' || sign == '\0')
+    return scm_fixnum_new(num);
+  else
+    return scm_fixnum_new(-num);
+}
+
+int
 scm_bignum_initialize_ary(ScmObj bignum,
                           char sign, scm_bignum_d_t *digits, size_t len,
                           scm_bignum_c_t base)
@@ -1151,7 +1211,7 @@ scm_bignum_plus(ScmObj aug, ScmObj add)
                    (SCM_BIGNUM(add)->sign == '-') ? true : false,
                    ary, &place, &sign);
 
-  return scm_num_make_int_from_ary(sign, ary, place, SCM_BIGNUM_BASE);
+  return scm_bignum_make_int_from_ary(sign, ary, place, SCM_BIGNUM_BASE);
 }
 
 ScmObj
@@ -1196,7 +1256,7 @@ scm_bignum_minus(ScmObj min, ScmObj sub)
                    (SCM_BIGNUM(sub)->sign == '+') ? true : false,
                    ary, &place, &sign);
 
-  return scm_num_make_int_from_ary(sign, ary, place, SCM_BIGNUM_BASE);
+  return scm_bignum_make_int_from_ary(sign, ary, place, SCM_BIGNUM_BASE);
 }
 
 ScmObj
@@ -1259,7 +1319,7 @@ scm_bignum_mul(ScmObj mud, ScmObj mur)
   else
     sign = '-';
 
-  return scm_num_make_int_from_ary(sign, ary, len, SCM_BIGNUM_BASE);
+  return scm_bignum_make_int_from_ary(sign, ary, len, SCM_BIGNUM_BASE);
 }
 
 int
@@ -1436,7 +1496,7 @@ scm_bignum_pretty_print(ScmObj obj, ScmObj port, bool write_p)
 
   scm_assert_obj_type(obj, &SCM_BIGNUM_TYPE_INFO);
 
-  rslt = scm_num_calc_base_and_place_for_ary_of_digits(10, &base, &place);
+  rslt = scm_bignum_calc_base_and_place_for_ary_of_digits(10, &base, &place);
   if (rslt < 0) return -1;
 
   rslt = eary_init(&ary, sizeof(scm_bignum_d_t), SCM_BIGNUM(obj)->nr_digits);

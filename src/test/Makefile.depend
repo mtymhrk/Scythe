@@ -2,9 +2,7 @@
  /home/hiroki/work/scythe/build/src/config.h ../api.h ../reference.h \
  ../encoding.h ../api_enum.h ../api_type.h ../memory.h
 ../object.o: ../object.c ../object.h ../impl_utils.h \
- /home/hiroki/work/scythe/build/src/config.h ../number.h \
- ../number_common.h ../bignum.h ../api_enum.h ../earray.h ../api.h \
- ../reference.h ../encoding.h ../api_type.h ../fixnum.h
+ /home/hiroki/work/scythe/build/src/config.h ../fixnum.h ../api_enum.h
 ../pair.o: ../pair.c ../object.h ../impl_utils.h \
  /home/hiroki/work/scythe/build/src/config.h ../api.h ../reference.h \
  ../encoding.h ../api_enum.h ../api_type.h ../pair.h
@@ -56,8 +54,8 @@
  /home/hiroki/work/scythe/build/src/config.h ../memory.h ../api_type.h \
  ../vm.h ../reference.h ../encoding.h ../api_enum.h ../vmstack.h \
  ../miscobjects.h ../char.h ../string.h ../symbol.h ../chashtbl.h \
- ../procedure.h ../number.h ../number_common.h ../bignum.h ../earray.h \
- ../api.h ../fixnum.h ../pair.h ../vector.h ../port.h ../parser.h \
+ ../procedure.h ../number_common.h ../fixnum.h ../bignum.h ../earray.h \
+ ../api.h ../pair.h ../vector.h ../port.h ../parser.h ../number_parser.h \
  ../syntax.h ../iseq.h ../module.h ../assembler.h ../compiler.h \
  ../exception.h
 ../port.o: ../port.c ../object.h ../impl_utils.h \
@@ -86,10 +84,6 @@
 ../core_modules.o: ../core_modules.c ../object.h ../impl_utils.h \
  /home/hiroki/work/scythe/build/src/config.h ../api.h ../reference.h \
  ../encoding.h ../api_enum.h ../api_type.h ../compiler.h ../core_subr.h
-../number_common.o: ../number_common.c ../number_common.h ../object.h \
- ../impl_utils.h /home/hiroki/work/scythe/build/src/config.h ../bignum.h \
- ../api_enum.h ../earray.h ../api.h ../reference.h ../encoding.h \
- ../api_type.h ../fixnum.h
 ../fixnum.o: ../fixnum.c ../object.h ../impl_utils.h \
  /home/hiroki/work/scythe/build/src/config.h ../reference.h ../api.h \
  ../encoding.h ../api_enum.h ../api_type.h ../number_common.h ../bignum.h \
@@ -97,11 +91,11 @@
 ../bignum.o: ../bignum.c ../object.h ../impl_utils.h \
  /home/hiroki/work/scythe/build/src/config.h ../reference.h ../api.h \
  ../encoding.h ../api_enum.h ../api_type.h ../earray.h ../number_common.h \
- ../bignum.h ../fixnum.h
-../number.o: ../number.c ../object.h ../impl_utils.h \
- /home/hiroki/work/scythe/build/src/config.h ../reference.h ../api.h \
- ../encoding.h ../api_enum.h ../api_type.h ../number_common.h ../bignum.h \
- ../earray.h ../number.h ../fixnum.h
+ ../fixnum.h ../bignum.h
+../number_parser.o: ../number_parser.c ../object.h ../impl_utils.h \
+ /home/hiroki/work/scythe/build/src/config.h ../encoding.h ../api.h \
+ ../reference.h ../api_enum.h ../api_type.h ../earray.h ../bignum.h \
+ ../number_parser.h
 test_pair.o: test_pair.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-version.h \
  /usr/local/include/cutter/cutter/cut-features.h \

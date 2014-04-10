@@ -40,13 +40,5 @@ struct ScmNumFuncRec {
   ((ScmNumFunc *)scm_obj_type_extra(obj))->func(obj, ## __VA_ARGS__)
 
 
-#include "bignum.h"
-
-int scm_num_calc_base_and_place_for_ary_of_digits(int radix,
-                                                  scm_bignum_c_t *base,
-                                                  int *place);
-ScmObj scm_num_make_int_from_ary(char sign, scm_bignum_d_t *ary, size_t size,
-                                 scm_bignum_c_t base);
-
 #endif  /* INCLUDE_NUMBER_COMMON_H__ */
 

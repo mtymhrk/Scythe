@@ -2,7 +2,8 @@
 
 #include "object.h"
 #include "api.h"
-#include "number.h"
+#include "fixnum.h"
+#include "bignum.h"
 
 TEST_GROUP(bignum);
 

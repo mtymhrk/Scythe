@@ -17,7 +17,7 @@ TEST_TARGET_SRC_ = memory.c object.c pair.c string.c symbol.c vector.c \
                    core_subr.c iseq.c chashtbl.c api.c \
                    port.c parser.c assembler.c exception.c syntax.c \
                    compiler.c module.c core_modules.c\
-                   number_common.c fixnum.c bignum.c number.c \
+                   fixnum.c bignum.c number_parser.c \
 
 TEST_TARGET_SRC = $(addprefix $(TEST_TARGET_DIR)/, $(TEST_TARGET_SRC_))
 TEST_CASE_SRC = test_pair.c test_string.c test_symbol.c test_nil.c \

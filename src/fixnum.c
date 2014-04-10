@@ -3,6 +3,7 @@
 #include "api.h"
 #include "impl_utils.h"
 #include "number_common.h"
+#include "bignum.h"
 #include "fixnum.h"
 
 ScmNumFunc SCM_FIXNUM_FUNC = {
