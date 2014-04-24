@@ -40,17 +40,17 @@ read_cstr(const char *str)
   return scm_api_read(port);
 }
 
-static void
-debug_print_obj(ScmObj obj)
-{
-  ScmObj port = SCM_OBJ_INIT;
+/* static void */
+/* debug_print_obj(ScmObj obj) */
+/* { */
+/*   ScmObj port = SCM_OBJ_INIT; */
 
-  SCM_STACK_FRAME_PUSH(&obj,
-                       &port);
+/*   SCM_STACK_FRAME_PUSH(&obj, */
+/*                        &port); */
 
-  port = scm_api_standard_output_port();
-  scm_api_write(obj, port);
-  scm_api_newline(port);
-}
+/*   port = scm_api_standard_output_port(); */
+/*   scm_api_write(obj, port); */
+/*   scm_api_newline(port); */
+/* } */
 
 #endif  /* INCLUDE_TEST_HELPER_H__ */

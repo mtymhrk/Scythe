@@ -15,10 +15,54 @@ typedef struct ScmVMRec ScmVM;
 
 #include "object.h"
 #include "memory.h"
-#include "reference.h"
 #include "encoding.h"
 #include "api_enum.h"
 #include "vmstack.h"
+
+
+/* vm.c の外部が scm__current_XXX を直接参照するのは禁止。
+   scm_vm_current_XXX() 経由で取得すること。 */
+extern ScmBedrock *scm__current_br;
+extern ScmObj scm__current_vm;
+extern ScmObj scm__current_ref_stack;
+
+
+inline ScmBedrock *
+scm_vm_current_br(void)
+{
+  return scm__current_br;
+}
+
+inline ScmObj
+scm_vm_current_vm(void)
+{
+  return scm__current_vm;
+}
+
+inline ScmObj
+scm_vm_current_ref_stack(void)
+{
+  return scm__current_ref_stack;
+}
+
+inline void
+scm_vm_chg_current_br(ScmBedrock *br)
+{
+  scm__current_br = br;
+}
+
+inline void
+scm_vm_chg_current_vm(ScmObj vm)
+{
+  scm__current_vm = vm;
+}
+
+inline void
+scm_vm_chg_current_ref_stack(ScmObj stack)
+{
+  scm__current_ref_stack = stack;
+}
+
 
 /***************************************************************************/
 /*  ScmBedrock                                                             */
@@ -30,53 +74,111 @@ typedef enum {
   SCM_BEDROCK_ERR_ERROR,
 } SCM_BEDROCK_ERROR_TYPE_T;
 
-extern ScmBedrock *scm_bedrock__current_br;
+
 
 struct ScmBedrockRec {
-  /*** C Lang Stack ***/
-  ScmRefStack *ref_stack;
-
   /*** Error Status ***/
   struct {
     SCM_BEDROCK_ERROR_TYPE_T type;
     char *message;
   } err;
 
-  ScmEncoding *encoding;
+  /*** Constant Values ***/
+  struct {
+    ScmObj nil;
+    ScmObj eof;
+    ScmObj b_true;
+    ScmObj b_false;
+    ScmObj undef;
+    ScmObj landmine;
+  } cnsts;
 
-  ScmObj vm;
+  /*** Memory Manager ***/
+  ScmMem *mem;
+
+  /*** Symbol Table ***/
+  ScmObj symtbl;
+
+  /*** Module Table ***/
+  ScmObj modtree;
+
+  /*** Configurations ***/
+  ScmEncoding *encoding;
 };
 
+int scm_bedrock_setup(ScmBedrock *br);
+int scm_bedrock_cleanup(ScmBedrock *br);
+void scm_bedrock_set_mem(ScmBedrock *br, ScmMem *mem);
+int scm_bedrock_initialize(ScmBedrock *br);
+void scm_bedrock_finalize(ScmBedrock *br);
 ScmBedrock *scm_bedrock_new(void);
 void scm_bedrock_end(ScmBedrock *br);
-void scm_bedrock_clean(ScmBedrock *br);
 void scm_bedrock_fatal(ScmBedrock *br, const char *msg);
 void scm_bedrock_fatal_fmt(ScmBedrock *br, const char *msgfmt, va_list ap);
 bool scm_bedrock_fatal_p(ScmBedrock *br);
 bool scm_bedrock_error_p(ScmBedrock *br);
 
-inline void
-scm_beadrock_bind_vm(ScmBedrock *br, ScmObj vm)
+inline ScmObj
+scm_bedrock_nil(ScmBedrock *br)
 {
-  br->vm = vm;
+  scm_assert(br != NULL);
+  return br->cnsts.nil;
 }
 
 inline ScmObj
-scm_bedrock_vm(ScmBedrock *br)
+scm_bedrock_eof(ScmBedrock *br)
 {
-  return br->vm;
+  scm_assert(br != NULL);
+  return br->cnsts.eof;
 }
 
-inline ScmBedrock *
-scm_bedrock_current_br(void)
+inline ScmObj
+scm_bedrock_true(ScmBedrock *br)
 {
-  return scm_bedrock__current_br;
+  scm_assert(br != NULL);
+  return br->cnsts.b_true;
 }
 
-inline void
-scm_bedrock_change_current_br(ScmBedrock *br)
+inline ScmObj
+scm_bedrock_false(ScmBedrock *br)
 {
-  scm_bedrock__current_br = br;
+  scm_assert(br != NULL);
+  return br->cnsts.b_false;
+}
+
+inline ScmObj
+scm_bedrock_undef(ScmBedrock *br)
+{
+  scm_assert(br != NULL);
+  return br->cnsts.undef;
+}
+
+inline ScmObj
+scm_bedrock_landmine(ScmBedrock *br)
+{
+  scm_assert(br != NULL);
+  return br->cnsts.landmine;
+}
+
+inline ScmMem *
+scm_bedrock_mem(ScmBedrock *br)
+{
+  scm_assert(br != NULL);
+  return br->mem;
+}
+
+inline ScmObj
+scm_bedrock_symtbl(ScmBedrock *br)
+{
+  scm_assert(br != NULL);
+  return br->symtbl;
+}
+
+inline ScmObj
+scm_bedrock_modtree(ScmBedrock *br)
+{
+  scm_assert(br != NULL);
+  return br->modtree;
 }
 
 inline ScmEncoding *
@@ -244,10 +346,6 @@ scm_contcap_flags(ScmObj cc)
 /***************************************************************************/
 
 extern ScmTypeInfo SCM_VM_TYPE_INFO;
-extern ScmObj scm_vm__current_vm;
-extern ScmMem *scm_vm__current_mm;
-  /* vm.c の外部が scm_vm__current_vm を直接参照するのは禁止。
-     scm_vm_current_vm() 経由で取得すること。 */
 
 typedef enum {
   SCM_VM_CTRL_FLG_HALT  = 0x00000001,
@@ -267,19 +365,7 @@ typedef enum {
 struct ScmVMRec {
   ScmObjHeader header;
 
-  ScmBedrock *bedrock;
-  ScmMem *mem;
-
   struct {
-    ScmObj symtbl;                /* Symbol Table */
-    ScmObj modtree;
-
-    struct {
-      ScmObj in;
-      ScmObj out;
-      ScmObj err;
-    } stdio;
-
     struct {
       ScmObj hndlr;
       ScmObj raised;
@@ -291,27 +377,11 @@ struct ScmVMRec {
   ScmObj stack;
 
   ScmVMReg reg;
-
-  /*** Constant Values ***/
-  struct {
-    ScmObj nil;
-    ScmObj eof;
-    ScmObj b_true;
-    ScmObj b_false;
-    ScmObj undef;
-    ScmObj landmine;
-  } cnsts;
 };
 
 /* private functions ******************************************************/
 
 #ifdef SCM_UNIT_TEST
-
-int scm_vm_setup_singletons(ScmObj vm);
-void scm_vm_clean_singletons(ScmObj vm);
-int scm_vm_setup_global_env(ScmObj vm);
-void scm_vm_clean_global_env(ScmObj vm);
-void scm_vm_clean_eval_env(ScmObj vm);
 
 /* int scm_vm_stack_push(ScmObj vm, ScmObj elm); */
 /* ScmObj scm_vm_stack_pop(ScmObj vm); */
@@ -405,13 +475,14 @@ scm_vm_register_val(ScmObj vm)
 
 /* public functions ******************************************************/
 
-void scm_vm_initialize(ScmObj vm, ScmBedrock *bedrock);
+int scm_vm_bootup(void);
+void scm_vm_shutdown(void);
+int scm_vm_initialize(ScmObj vm);
 int scm_vm_init_scmobjs(ScmObj vm);
 void scm_vm_finalize(ScmObj vm);
 ScmObj scm_vm_new(void);
 void scm_vm_end(ScmObj vm);
 
-int scm_vm_setup_system(ScmObj vm);
 void scm_vm_run(ScmObj vm, ScmObj iseq);
 
 int scm_vm_set_val_reg(ScmObj vm, const ScmObj *val, int vc);
@@ -430,109 +501,6 @@ int scm_vm_push_exception_handler(ScmObj vm, ScmObj hndlr);
 void scm_vm_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_vm_gc_finalize(ScmObj obj);
 int scm_vm_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
-
-
-inline ScmObj
-scm_vm_symtbl(ScmObj vm)
-{
-  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-
-  return SCM_VM(vm)->ge.symtbl;
-}
-
-inline ScmObj
-scm_vm_moduletree(ScmObj vm)
-{
-  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-
-  return SCM_VM(vm)->ge.modtree;
-}
-
-inline ScmObj
-scm_vm_standard_input_port(ScmObj vm)
-{
-  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-
-  return SCM_VM(vm)->ge.stdio.in;
-}
-
-inline ScmObj
-scm_vm_standard_output_port(ScmObj vm)
-{
-  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-
-  return SCM_VM(vm)->ge.stdio.out;
-}
-
-inline ScmObj
-scm_vm_standard_error_port(ScmObj vm)
-{
-  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-
-  return SCM_VM(vm)->ge.stdio.err;
-}
-
-inline ScmObj
-scm_vm_nil(ScmObj vm)
-{
-  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-
-  return SCM_VM(vm)->cnsts.nil;
-}
-
-inline ScmObj
-scm_vm_eof(ScmObj vm)
-{
-  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-
-  return SCM_VM(vm)->cnsts.eof;
-}
-
-inline ScmObj
-scm_vm_true(ScmObj vm)
-{
-  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-
-  return SCM_VM(vm)->cnsts.b_true;
-}
-
-inline ScmObj
-scm_vm_false(ScmObj vm)
-{
-  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-
-  return SCM_VM(vm)->cnsts.b_false;
-}
-
-inline ScmObj
-scm_vm_undef(ScmObj vm)
-{
-  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-
-  return SCM_VM(vm)->cnsts.undef;
-}
-
-
-inline ScmObj
-scm_vm_current_vm(void)
-{
-  return scm_vm__current_vm;
-}
-
-inline ScmMem *
-scm_vm_current_mm(void)
-{
-  return scm_vm__current_mm;
-}
-
-inline void
-scm_vm_change_current_vm(ScmObj vm)
-{
-  scm_vm__current_vm = vm;
-  scm_vm__current_mm = SCM_VM(vm)->mem;
-  if (scm_obj_not_null_p(vm))
-    scm_bedrock_change_current_br(SCM_VM(vm)->bedrock);
-}
 
 
 #endif /* INCLUDE_VM_H__ */

@@ -40,7 +40,8 @@ cut_setup(void)
 {
   parser = NULL;
   port = SCM_OBJ_NULL;
-  scm_mem_register_extra_rfrn(scm_vm_current_mm(), SCM_REF_MAKE(port));
+  scm_mem_register_extra_rfrn(scm_bedrock_mem(scm_vm_current_br()),
+                              SCM_REF_MAKE(port));
 }
 
 void

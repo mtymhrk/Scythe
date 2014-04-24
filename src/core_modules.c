@@ -321,15 +321,16 @@ scm_define_scheme_base_current_port(ScmObj module)
 {
   struct {
     const char *name;
-    ScmObj (*func)(void);
+    int fd;
+    ScmObj (*func)(int fd, const char *enc);
   } const data[] = {
-    { "current-input-port", scm_api_standard_input_port },
-    { "current-output-port", scm_api_standard_output_port },
-    { "current-error-port", scm_api_standard_error_port },
+    { "current-input-port", 0, scm_capi_open_input_fd },
+    { "current-output-port", 1, scm_capi_open_output_fd },
+    { "current-error-port", 2, scm_capi_open_output_fd },
   };
 
   ScmObj sym = SCM_OBJ_INIT, port = SCM_OBJ_INIT, prm = SCM_OBJ_INIT;
-  int rslt;
+  int rslt, fd;
 
   SCM_STACK_FRAME_PUSH(&module,
                        &sym, &port, &prm);
@@ -341,8 +342,17 @@ scm_define_scheme_base_current_port(ScmObj module)
     prm = scm_capi_make_parameter(SCM_OBJ_NULL);
     if (scm_obj_null_p(prm)) return -1;
 
-    port = data[i].func();
-    if (scm_obj_null_p(port)) return -1;
+    SCM_SYSCALL(fd, dup(data[i].fd));
+    if (fd < 0) {
+      scm_capi_error("system call error: dup", 0);
+      return -1;
+    }
+
+    port = data[i].func(fd, NULL);
+    if (scm_obj_null_p(port)) {
+      close(fd);
+      return -1;
+    }
 
     rslt = scm_capi_parameter_set_init_val(prm, port);
     if (rslt < 0) return -1;

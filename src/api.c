@@ -30,6 +30,8 @@
 #include "encoding.h"
 #include "impl_utils.h"
 
+#include "core_modules.h"
+
 #include "api_enum.h"
 #include "api.h"
 
@@ -41,7 +43,7 @@
 void
 scm_capi_fatal(const char *msg)
 {
-  scm_bedrock_fatal(scm_bedrock_current_br(), msg);
+  scm_bedrock_fatal(scm_vm_current_br(), msg);
 }
 
 extern inline void
@@ -52,7 +54,7 @@ scm_capi_fatalf(const char *fmt, ...)
 extern inline bool
 scm_capi_fatal_p(void)
 {
-  return scm_bedrock_fatal_p(scm_bedrock_current_br());
+  return scm_bedrock_fatal_p(scm_vm_current_br());
 }
 
 
@@ -65,7 +67,7 @@ scm_capi_ref_stack_push_ary(ScmObj *ary, size_t n)
 {
   if (ary == NULL) return;
 
-  scm_ref_stack_push_ary(scm_bedrock_current_br()->ref_stack, ary, n);
+  scm_ref_stack_push_ary(scm_vm_current_ref_stack(), ary, n);
 }
 
 void
@@ -74,20 +76,20 @@ scm_capi_ref_stack_push(int dummy, ...)
   va_list ap;
 
   va_start(ap, dummy);
-  scm_ref_stack_push_va(scm_bedrock_current_br()->ref_stack, ap);
+  scm_ref_stack_push_va(scm_vm_current_ref_stack(), ap);
   va_end(ap);
 }
 
 void
 scm_capi_ref_stack_save(ScmRefStackInfo *info)
 {
-  scm_ref_stack_save(scm_bedrock_current_br()->ref_stack, info);
+  scm_ref_stack_save(scm_vm_current_ref_stack(), info);
 }
 
 void
 scm_capi_ref_stack_restore(ScmRefStackInfo *info)
 {
-  scm_ref_stack_restore(scm_bedrock_current_br()->ref_stack, info);
+  scm_ref_stack_restore(scm_vm_current_ref_stack(), info);
 }
 
 
@@ -103,7 +105,8 @@ scm_capi_mem_alloc_heap(ScmTypeInfo *type, size_t add_size)
     return SCM_OBJ_NULL;
   }
 
-  return scm_mem_alloc_heap(scm_vm_current_mm(), type, add_size);
+  return scm_mem_alloc_heap(scm_bedrock_mem(scm_vm_current_br()),
+                            type, add_size);
 }
 
 ScmObj
@@ -114,7 +117,8 @@ scm_capi_mem_alloc_root(ScmTypeInfo *type, size_t add_size)
     return SCM_OBJ_NULL;
   }
 
-  return scm_mem_alloc_root(scm_vm_current_mm(), type, add_size);
+  return scm_mem_alloc_root(scm_bedrock_mem(scm_vm_current_br()),
+                            type, add_size);
 }
 
 ScmObj
@@ -138,32 +142,32 @@ ScmObj
 scm_capi_mem_free_root(ScmObj obj)
 {
   if (obj == SCM_OBJ_NULL) return SCM_OBJ_NULL;
-  return scm_mem_free_root(scm_vm_current_mm(), obj);
+  return scm_mem_free_root(scm_bedrock_mem(scm_vm_current_br()), obj);
 }
 
 ScmRef
 scm_capi_mem_register_extra_rfrn(ScmRef ref)
 {
   if (ref == SCM_REF_NULL) return ref;
-  return scm_mem_register_extra_rfrn(scm_vm_current_mm(), ref);
+  return scm_mem_register_extra_rfrn(scm_bedrock_mem(scm_vm_current_br()), ref);
 }
 
 void
 scm_capi_gc_start(void)
 {
-  scm_mem_gc_start(scm_vm_current_mm());
+  scm_mem_gc_start(scm_bedrock_mem(scm_vm_current_br()));
 }
 
 void
 scm_capi_gc_enable(void)
 {
-  scm_mem_enable_gc(scm_vm_current_mm());
+  scm_mem_enable_gc(scm_bedrock_mem(scm_vm_current_br()));
 }
 
 void
 scm_capi_gc_disable(void)
 {
-  scm_mem_disable_gc(scm_vm_current_mm());
+  scm_mem_disable_gc(scm_bedrock_mem(scm_vm_current_br()));
 }
 
 
@@ -485,7 +489,7 @@ scm_api_equal_P(ScmObj obj1, ScmObj obj2)
 extern inline ScmObj
 scm_api_nil(void)
 {
-  return scm_vm_nil(scm_vm_current_vm());
+  return scm_bedrock_nil(scm_vm_current_br());
 }
 
 extern inline bool
@@ -535,7 +539,7 @@ scm_api_boolean_P(ScmObj obj)
 extern inline ScmObj
 scm_api_true(void)
 {
-  return scm_vm_true(scm_vm_current_vm());
+  return scm_bedrock_true(scm_vm_current_br());
 }
 
 /* Memo:
@@ -545,7 +549,7 @@ scm_api_true(void)
 extern inline ScmObj
 scm_api_false(void)
 {
-  return scm_vm_false(scm_vm_current_vm());
+  return scm_bedrock_false(scm_vm_current_br());
 }
 
 extern inline bool
@@ -596,7 +600,7 @@ scm_api_not(ScmObj obj)
 extern inline ScmObj
 scm_api_eof(void)
 {
-  return scm_vm_eof(scm_vm_current_vm());
+  return scm_bedrock_eof(scm_vm_current_br());
 }
 
 extern inline bool
@@ -617,13 +621,34 @@ scm_capi_eof_object_p(ScmObj obj)
 extern inline ScmObj
 scm_api_undef(void)
 {
-  return scm_vm_undef(scm_vm_current_vm());
+  return scm_bedrock_undef(scm_vm_current_br());
 }
 
 extern inline bool
 scm_capi_undef_object_p(ScmObj obj)
 {
   return scm_capi_eq_p(obj, SCM_UNDEF_OBJ);
+}
+
+
+/*******************************************************************/
+/*  Landmine                                                       */
+/*******************************************************************/
+
+/* Memo:
+ *  scm_api_landmine() の関数の実行では GC が発生してはダメ。
+ *  (マクロ SCM_LANDMINE_OBJ を定義して定数的に使うため)
+ */
+extern inline ScmObj
+scm_api_landmine(void)
+{
+  return scm_bedrock_landmine(scm_vm_current_br());
+}
+
+extern inline bool
+scm_capi_landmine_object_p(ScmObj obj)
+{
+  return scm_capi_eq_p(obj, SCM_LANDMINE_OBJ);
 }
 
 
@@ -669,6 +694,11 @@ scm_capi_error(const char *msg, size_t n, ...)
 
   SCM_STACK_FRAME_PUSH(&str, &exc);
 
+  if (scm_obj_null_p(scm_vm_current_vm())) {
+    scm_capi_fatal("Error has occured while initializing or finalizing VM");
+    return 0;
+  }
+
   /* BUG: 可変引数 の PUSH の前に GC が走る可能性がある */
   if (msg == NULL)
     str = scm_capi_make_string_from_cstr("", SCM_ENC_ASCII);
@@ -694,6 +724,11 @@ scm_api_error_ary(ScmObj msg, size_t n, ScmObj *irris)
 {
   ScmObj exc = SCM_OBJ_INIT;
   int rslt;
+
+  if (scm_obj_null_p(scm_vm_current_vm())) {
+    scm_capi_fatal("Error has occured while initializing or finalizing VM");
+    return SCM_OBJ_NULL;
+  }
 
   if (!scm_capi_string_p(msg)) return SCM_OBJ_NULL;
 
@@ -2953,7 +2988,7 @@ scm_api_string_to_symbol(ScmObj str)
   if (enc != scm_capi_system_encoding())
     str = scm_string_encode(str, scm_capi_system_encoding());
 
-  return scm_symtbl_symbol(scm_vm_symtbl(scm_vm_current_vm()), str);
+  return scm_symtbl_symbol(scm_bedrock_symtbl(scm_vm_current_br()), str);
 }
 
 ScmObj
@@ -6369,24 +6404,6 @@ scm_capi_port_internal_encoding(ScmObj port)
   return scm_port_internal_enc(port);
 }
 
-extern inline ScmObj
-scm_api_standard_input_port(void)
-{
-  return scm_vm_standard_input_port(scm_vm_current_vm());
-}
-
-extern inline ScmObj
-scm_api_standard_output_port(void)
-{
-  return scm_vm_standard_output_port(scm_vm_current_vm());
-}
-
-extern inline ScmObj
-scm_api_standard_error_port(void)
-{
-  return scm_vm_standard_error_port(scm_vm_current_vm());
-}
-
 
 /*******************************************************************/
 /*  Input                                                          */
@@ -8042,7 +8059,7 @@ scm_api_make_module(ScmObj name)
     return SCM_OBJ_NULL;
   }
 
-  rslt = scm_moduletree_find(scm_vm_moduletree(scm_vm_current_vm()),
+  rslt = scm_moduletree_find(scm_bedrock_modtree(scm_vm_current_br()),
                              name, SCM_CSETTER_L(mod));
   if (rslt < 0) return SCM_OBJ_NULL;
 
@@ -8051,7 +8068,8 @@ scm_api_make_module(ScmObj name)
     return SCM_OBJ_NULL;
   }
 
-  return scm_moduletree_module(scm_vm_moduletree(scm_vm_current_vm()), name);
+  return scm_moduletree_module(scm_bedrock_modtree(scm_vm_current_br()),
+                               name);
 }
 
 extern inline bool
@@ -8072,7 +8090,8 @@ scm_capi_find_module(ScmObj name, scm_csetter_t *mod)
     return -1;
   }
 
-  return scm_moduletree_find(scm_vm_moduletree(scm_vm_current_vm()), name, mod);
+  return scm_moduletree_find(scm_bedrock_modtree(scm_vm_current_br()),
+                             name, mod);
 }
 
 ScmObj
@@ -8097,7 +8116,6 @@ scm_capi_import(ScmObj module, ScmObj imported)
     scm_capi_error("failed to import a module: invalid argument", 0);
     return -1;
   }
-
   return scm_module_import(module, imported);
 }
 
@@ -8389,7 +8407,7 @@ scm_api_exit(ScmObj obj)
 ScmEncoding *
 scm_capi_system_encoding(void)
 {
-  return scm_bedrock_encoding(scm_bedrock_current_br());
+  return scm_bedrock_encoding(scm_vm_current_br());
 }
 
 
@@ -8415,32 +8433,71 @@ scm_capi_evaluator_end(ScmEvaluator *ev)
 {
   if (ev == NULL) return;
 
-  if (scm_obj_not_null_p(ev->vm)) {
-    scm_vm_end(ev->vm);
-    ev->vm = SCM_OBJ_NULL;
-  }
+  if (scm_obj_not_null_p(ev->vm))
+    scm_capi_evaluator_delete_vm(ev);
+
   free(ev);
+}
+
+int
+scm_capi_evaluator_make_vm(ScmEvaluator *ev)
+{
+  int rslt;
+
+  if (ev == NULL) return -1;
+
+  scm_vm_chg_current_br(NULL);
+  scm_vm_chg_current_vm(SCM_OBJ_NULL);
+  scm_vm_chg_current_ref_stack(SCM_OBJ_NULL);
+
+  ev->vm = scm_vm_new();
+  if (scm_obj_null_p(ev->vm)) return -1;
+
+  ev->bedrock = scm_vm_current_br();
+  ev->stack = scm_vm_current_ref_stack();
+
+  rslt = scm_load_core_modules();
+  if (rslt < 0) return -1;
+
+  return 0;
+}
+
+int
+scm_capi_evaluator_delete_vm(ScmEvaluator *ev)
+{
+  if (ev == NULL) return -1;
+
+  if (scm_obj_null_p(ev->vm)) return 0;
+
+  scm_vm_chg_current_br(ev->bedrock);
+  scm_vm_chg_current_vm(ev->vm);
+  scm_vm_chg_current_ref_stack(ev->stack);
+
+  ev->bedrock = scm_vm_current_br();
+  ev->stack = scm_vm_current_ref_stack();
+
+  scm_vm_end(ev->vm);
+
+  ev->vm = SCM_OBJ_NULL;
+  ev->bedrock = NULL;
+  ev->stack = SCM_OBJ_NULL;
+
+  return 0;
 }
 
 int
 scm_capi_run_repl(ScmEvaluator *ev)
 {
   ScmObj port = SCM_OBJ_INIT, asmbl = SCM_OBJ_INIT, iseq = SCM_OBJ_INIT;
-  int ret;
+  int rslt;
 
-  ret = -1;
+  if (ev == NULL) return -1;
 
-  if (ev == NULL) return ret;
-
-  ev->vm = scm_vm_new();
-  if (scm_obj_null_p(ev->vm)) return ret; /* [ERR]: [through] */
-
-  scm_vm_change_current_vm(ev->vm);
+  rslt = scm_capi_evaluator_make_vm(ev);
+  if (rslt < 0) return -1;
 
   {
     SCM_STACK_FRAME_PUSH(&port, &asmbl, &iseq);
-
-    scm_vm_setup_system(ev->vm);
 
     port = scm_capi_open_input_string_cstr("("
                                            " (label loop)"
@@ -8479,31 +8536,27 @@ scm_capi_run_repl(ScmEvaluator *ev)
                                            "   (jmp loop)"
                                            ")",
                                            SCM_ENC_UTF8);
-    if (scm_obj_null_p(port)) goto end;
+    if (scm_obj_null_p(port)) return -1;
 
     asmbl = scm_api_read(port);
-    if (scm_obj_null_p(asmbl)) goto end;
+    if (scm_obj_null_p(asmbl)) return -1;
 
     port = scm_api_close_input_port(port);
-    if (scm_obj_null_p(port)) goto end;
+    if (scm_obj_null_p(port)) return -1;
 
     port = SCM_OBJ_NULL;
 
     iseq = scm_api_assemble(asmbl, SCM_OBJ_NULL);
-    if (scm_obj_null_p(iseq)) goto end;
+    if (scm_obj_null_p(iseq)) return -1;
 
     asmbl = SCM_OBJ_NULL;
 
-    scm_vm_run(ev->vm, iseq);
-
-    ret = 0;
+    scm_vm_run(scm_vm_current_vm(), iseq);
   }
 
- end:
-  scm_vm_end(ev->vm);
-  ev->vm = SCM_OBJ_NULL;
+  scm_capi_evaluator_delete_vm(ev);
 
-  return ret;
+  return 0;
 }
 
 int
@@ -8511,41 +8564,31 @@ scm_capi_exec_file(const char *path, ScmEvaluator *ev)
 {
   ScmObj port = SCM_OBJ_INIT, iseq = SCM_OBJ_INIT;
   ssize_t r;
-  int ret;
-
-  ret = -1;
+  int rslt;
 
   if (ev == NULL) return -1;
 
-  ev->vm = scm_vm_new();
-  if (scm_obj_null_p(ev->vm)) return -1;
-
-  scm_vm_change_current_vm(ev->vm);
+  rslt = scm_capi_evaluator_make_vm(ev);
+  if (rslt < 0) return -1;
 
   {
     SCM_STACK_FRAME_PUSH(&port, &iseq);
 
-    scm_vm_setup_system(ev->vm);
-
     port = scm_capi_open_input_file(path, NULL);
-    if (scm_obj_null_p(port)) goto end;
+    if (scm_obj_null_p(port)) return -1;
 
     iseq = scm_capi_compile_port(port, SCM_OBJ_NULL, false);
-    if (scm_obj_null_p(iseq)) goto end;
+    if (scm_obj_null_p(iseq)) return -1;
 
     r = scm_capi_iseq_push_opfmt_noarg(iseq, SCM_OPCODE_HALT);
-    if (r < 0) goto end;
+    if (r < 0) return -1;
 
-    scm_vm_run(ev->vm, iseq);
-
-    ret = 0;
+    scm_vm_run(scm_vm_current_vm(), iseq);
   }
 
- end:
-  scm_vm_end(ev->vm);
-  ev->vm = SCM_OBJ_NULL;
+  scm_capi_evaluator_delete_vm(ev);
 
-  return ret;
+  return 0;
 }
 
 
@@ -8556,13 +8599,7 @@ scm_capi_exec_file(const char *path, ScmEvaluator *ev)
 void
 scm_capi_ut_setup_current_vm(ScmEvaluator *ev)
 {
-  if (ev == NULL) return;
-
-  ev->vm = scm_vm_new();
-  if (scm_obj_null_p(ev->vm)) return;
-
-  scm_vm_change_current_vm(ev->vm);
-  scm_vm_setup_system(ev->vm);
+  scm_capi_evaluator_make_vm(ev);
 }
 
 ScmObj
@@ -8580,9 +8617,9 @@ scm_capi_ut_eval(ScmEvaluator *ev, ScmObj exp)
   rslt = scm_capi_iseq_push_opfmt_noarg(code, SCM_OPCODE_HALT);
   if (rslt < 0) return SCM_OBJ_NULL;
 
-  scm_vm_run(ev->vm, code);
+  scm_vm_run(scm_vm_current_vm(), code);
 
-  return scm_vm_register_val(ev->vm);
+  return scm_vm_register_val(scm_vm_current_vm());
 }
 
 void

@@ -2229,7 +2229,7 @@ scm_subr_func_default_exception_handler(ScmObj subr,
     return SCM_OBJ_NULL;
   }
 
-  port = scm_api_standard_error_port();
+  port = scm_get_current_port(subr, "current-error-port");
   if (scm_obj_null_p(port)) return SCM_OBJ_NULL;
 
   ro = scm_api_display(argv[0], port);

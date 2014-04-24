@@ -1,102 +1,99 @@
 ../memory.o: ../memory.c ../object.h ../impl_utils.h \
- /home/hiroki/work/scythe/build/src/config.h ../api.h ../reference.h \
- ../encoding.h ../api_enum.h ../api_type.h ../memory.h
+ /home/hiroki/work/scythe/build/src/config.h ../api.h ../encoding.h \
+ ../api_enum.h ../api_type.h ../memory.h
 ../object.o: ../object.c ../object.h ../impl_utils.h \
  /home/hiroki/work/scythe/build/src/config.h ../fixnum.h ../api_enum.h
 ../pair.o: ../pair.c ../object.h ../impl_utils.h \
- /home/hiroki/work/scythe/build/src/config.h ../api.h ../reference.h \
- ../encoding.h ../api_enum.h ../api_type.h ../pair.h
+ /home/hiroki/work/scythe/build/src/config.h ../api.h ../encoding.h \
+ ../api_enum.h ../api_type.h ../pair.h
 ../string.o: ../string.c ../object.h ../impl_utils.h \
- /home/hiroki/work/scythe/build/src/config.h ../reference.h ../api.h \
- ../encoding.h ../api_enum.h ../api_type.h ../string.h
+ /home/hiroki/work/scythe/build/src/config.h ../reference.h ../api_enum.h \
+ ../api_type.h ../api.h ../encoding.h ../string.h
 ../symbol.o: ../symbol.c ../object.h ../impl_utils.h \
- /home/hiroki/work/scythe/build/src/config.h ../reference.h ../api.h \
- ../encoding.h ../api_enum.h ../api_type.h ../chashtbl.h ../string.h \
+ /home/hiroki/work/scythe/build/src/config.h ../reference.h ../api_enum.h \
+ ../api_type.h ../api.h ../encoding.h ../chashtbl.h ../string.h \
  ../symbol.h
 ../vector.o: ../vector.c ../object.h ../impl_utils.h \
- /home/hiroki/work/scythe/build/src/config.h ../reference.h ../api.h \
- ../encoding.h ../api_enum.h ../api_type.h ../vector.h
+ /home/hiroki/work/scythe/build/src/config.h ../reference.h ../api_enum.h \
+ ../api_type.h ../api.h ../encoding.h ../vector.h
 ../miscobjects.o: ../miscobjects.c ../object.h ../impl_utils.h \
- /home/hiroki/work/scythe/build/src/config.h ../reference.h ../api.h \
- ../encoding.h ../api_enum.h ../api_type.h ../miscobjects.h
+ /home/hiroki/work/scythe/build/src/config.h ../reference.h ../api_enum.h \
+ ../api_type.h ../api.h ../encoding.h ../miscobjects.h
 ../char.o: ../char.c ../object.h ../impl_utils.h \
- /home/hiroki/work/scythe/build/src/config.h ../reference.h ../api.h \
- ../encoding.h ../api_enum.h ../api_type.h ../char.h
+ /home/hiroki/work/scythe/build/src/config.h ../reference.h ../api_enum.h \
+ ../api_type.h ../api.h ../encoding.h ../char.h
 ../charconv.o: ../charconv.c ../api.h ../object.h ../impl_utils.h \
- /home/hiroki/work/scythe/build/src/config.h ../reference.h ../encoding.h \
- ../api_enum.h ../api_type.h ../charconv.h
+ /home/hiroki/work/scythe/build/src/config.h ../encoding.h ../api_enum.h \
+ ../api_type.h ../charconv.h
 ../encoding.o: ../encoding.c ../encoding.h
 ../vm.o: ../vm.c ../vm.h ../object.h ../impl_utils.h \
  /home/hiroki/work/scythe/build/src/config.h ../memory.h ../api_type.h \
- ../reference.h ../encoding.h ../api_enum.h ../vmstack.h ../string.h \
+ ../encoding.h ../api_enum.h ../vmstack.h ../reference.h ../string.h \
  ../symbol.h ../chashtbl.h ../module.h ../procedure.h ../miscobjects.h \
- ../core_modules.h ../api.h
+ ../api.h
 ../vmstack.o: ../vmstack.c ../object.h ../impl_utils.h \
- /home/hiroki/work/scythe/build/src/config.h ../api.h ../reference.h \
- ../encoding.h ../api_enum.h ../api_type.h ../vmstack.h
+ /home/hiroki/work/scythe/build/src/config.h ../api.h ../encoding.h \
+ ../api_enum.h ../api_type.h ../vmstack.h
 ../procedure.o: ../procedure.c ../object.h ../impl_utils.h \
- /home/hiroki/work/scythe/build/src/config.h ../api.h ../reference.h \
- ../encoding.h ../api_enum.h ../api_type.h ../procedure.h
+ /home/hiroki/work/scythe/build/src/config.h ../api.h ../encoding.h \
+ ../api_enum.h ../api_type.h ../procedure.h
 ../reference.o: ../reference.c ../object.h ../impl_utils.h \
- /home/hiroki/work/scythe/build/src/config.h ../api.h ../reference.h \
- ../encoding.h ../api_enum.h ../api_type.h
+ /home/hiroki/work/scythe/build/src/config.h ../api.h ../encoding.h \
+ ../api_enum.h ../api_type.h ../reference.h
 ../core_subr.o: ../core_subr.c ../object.h ../impl_utils.h \
  /home/hiroki/work/scythe/build/src/config.h ../vm.h ../memory.h \
- ../api_type.h ../reference.h ../encoding.h ../api_enum.h ../vmstack.h \
- ../api.h ../core_subr.h
+ ../api_type.h ../encoding.h ../api_enum.h ../vmstack.h ../api.h \
+ ../core_subr.h
 ../iseq.o: ../iseq.c ../object.h ../impl_utils.h \
- /home/hiroki/work/scythe/build/src/config.h ../reference.h ../chashtbl.h \
- ../api.h ../encoding.h ../api_enum.h ../api_type.h ../earray.h ../iseq.h
+ /home/hiroki/work/scythe/build/src/config.h ../reference.h ../api_enum.h \
+ ../api_type.h ../chashtbl.h ../api.h ../encoding.h ../earray.h ../iseq.h
 ../chashtbl.o: ../chashtbl.c ../object.h ../impl_utils.h \
- /home/hiroki/work/scythe/build/src/config.h ../reference.h ../api.h \
- ../encoding.h ../api_enum.h ../api_type.h ../chashtbl.h
+ /home/hiroki/work/scythe/build/src/config.h ../reference.h ../api_enum.h \
+ ../api_type.h ../api.h ../encoding.h ../chashtbl.h
 ../api.o: ../api.c ../object.h ../impl_utils.h \
  /home/hiroki/work/scythe/build/src/config.h ../memory.h ../api_type.h \
- ../vm.h ../reference.h ../encoding.h ../api_enum.h ../vmstack.h \
+ ../vm.h ../encoding.h ../api_enum.h ../vmstack.h ../reference.h \
  ../miscobjects.h ../char.h ../string.h ../symbol.h ../chashtbl.h \
  ../procedure.h ../number_common.h ../fixnum.h ../bignum.h ../earray.h \
  ../api.h ../pair.h ../vector.h ../port.h ../parser.h ../number_parser.h \
  ../syntax.h ../iseq.h ../module.h ../assembler.h ../compiler.h \
- ../exception.h
+ ../exception.h ../core_modules.h
 ../port.o: ../port.c ../object.h ../impl_utils.h \
- /home/hiroki/work/scythe/build/src/config.h ../reference.h ../api.h \
- ../encoding.h ../api_enum.h ../api_type.h ../port.h
+ /home/hiroki/work/scythe/build/src/config.h ../reference.h ../api_enum.h \
+ ../api_type.h ../api.h ../encoding.h ../port.h
 ../parser.o: ../parser.c ../object.h ../impl_utils.h \
- /home/hiroki/work/scythe/build/src/config.h ../reference.h ../api.h \
- ../encoding.h ../api_enum.h ../api_type.h ../earray.h ../number_parser.h \
+ /home/hiroki/work/scythe/build/src/config.h ../reference.h ../api_enum.h \
+ ../api_type.h ../api.h ../encoding.h ../earray.h ../number_parser.h \
  ../parser.h
 ../assembler.o: ../assembler.c ../object.h ../impl_utils.h \
- /home/hiroki/work/scythe/build/src/config.h ../api.h ../reference.h \
- ../encoding.h ../api_enum.h ../api_type.h ../chashtbl.h ../earray.h \
- ../assembler.h
+ /home/hiroki/work/scythe/build/src/config.h ../api.h ../encoding.h \
+ ../api_enum.h ../api_type.h ../chashtbl.h ../earray.h ../assembler.h
 ../exception.o: ../exception.c ../object.h ../impl_utils.h \
- /home/hiroki/work/scythe/build/src/config.h ../api.h ../reference.h \
- ../encoding.h ../api_enum.h ../api_type.h ../exception.h
+ /home/hiroki/work/scythe/build/src/config.h ../api.h ../encoding.h \
+ ../api_enum.h ../api_type.h ../exception.h
 ../syntax.o: ../syntax.c ../object.h ../impl_utils.h \
- /home/hiroki/work/scythe/build/src/config.h ../api.h ../reference.h \
- ../encoding.h ../api_enum.h ../api_type.h ../syntax.h
+ /home/hiroki/work/scythe/build/src/config.h ../api.h ../encoding.h \
+ ../api_enum.h ../api_type.h ../syntax.h
 ../compiler.o: ../compiler.c ../object.h ../impl_utils.h \
- /home/hiroki/work/scythe/build/src/config.h ../api.h ../reference.h \
- ../encoding.h ../api_enum.h ../api_type.h ../assembler.h ../earray.h \
- ../compiler.h
+ /home/hiroki/work/scythe/build/src/config.h ../api.h ../encoding.h \
+ ../api_enum.h ../api_type.h ../assembler.h ../earray.h ../compiler.h
 ../module.o: ../module.c ../object.h ../impl_utils.h \
- /home/hiroki/work/scythe/build/src/config.h ../api.h ../reference.h \
- ../encoding.h ../api_enum.h ../api_type.h ../chashtbl.h ../module.h
+ /home/hiroki/work/scythe/build/src/config.h ../api.h ../encoding.h \
+ ../api_enum.h ../api_type.h ../chashtbl.h ../module.h
 ../core_modules.o: ../core_modules.c ../object.h ../impl_utils.h \
- /home/hiroki/work/scythe/build/src/config.h ../api.h ../reference.h \
- ../encoding.h ../api_enum.h ../api_type.h ../compiler.h ../core_subr.h
+ /home/hiroki/work/scythe/build/src/config.h ../api.h ../encoding.h \
+ ../api_enum.h ../api_type.h ../compiler.h ../core_subr.h
 ../fixnum.o: ../fixnum.c ../object.h ../impl_utils.h \
- /home/hiroki/work/scythe/build/src/config.h ../reference.h ../api.h \
- ../encoding.h ../api_enum.h ../api_type.h ../number_common.h ../bignum.h \
+ /home/hiroki/work/scythe/build/src/config.h ../reference.h ../api_enum.h \
+ ../api_type.h ../api.h ../encoding.h ../number_common.h ../bignum.h \
  ../earray.h ../fixnum.h
 ../bignum.o: ../bignum.c ../object.h ../impl_utils.h \
- /home/hiroki/work/scythe/build/src/config.h ../reference.h ../api.h \
- ../encoding.h ../api_enum.h ../api_type.h ../earray.h ../number_common.h \
+ /home/hiroki/work/scythe/build/src/config.h ../reference.h ../api_enum.h \
+ ../api_type.h ../api.h ../encoding.h ../earray.h ../number_common.h \
  ../fixnum.h ../bignum.h
 ../number_parser.o: ../number_parser.c ../object.h ../impl_utils.h \
  /home/hiroki/work/scythe/build/src/config.h ../encoding.h ../api.h \
- ../reference.h ../api_enum.h ../api_type.h ../earray.h ../bignum.h \
- ../number_parser.h
+ ../api_enum.h ../api_type.h ../earray.h ../bignum.h ../number_parser.h
 test_pair.o: test_pair.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-version.h \
  /usr/local/include/cutter/cutter/cut-features.h \
@@ -112,8 +109,8 @@ test_pair.o: test_pair.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-helper.h \
  /usr/local/include/cutter/cutter/cut-experimental.h ../object.h \
  ../impl_utils.h /home/hiroki/work/scythe/build/src/config.h ../vm.h \
- ../object.h ../memory.h ../api_type.h ../reference.h ../encoding.h \
- ../api_enum.h ../vmstack.h ../reference.h ../api.h ../pair.h
+ ../object.h ../memory.h ../api_type.h ../encoding.h ../api_enum.h \
+ ../vmstack.h ../reference.h ../api.h ../pair.h
 test_string.o: test_string.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-version.h \
  /usr/local/include/cutter/cutter/cut-features.h \
@@ -129,8 +126,8 @@ test_string.o: test_string.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-helper.h \
  /usr/local/include/cutter/cutter/cut-experimental.h ../object.h \
  ../impl_utils.h /home/hiroki/work/scythe/build/src/config.h ../vm.h \
- ../object.h ../memory.h ../api_type.h ../reference.h ../encoding.h \
- ../api_enum.h ../vmstack.h ../reference.h ../api.h ../string.h
+ ../object.h ../memory.h ../api_type.h ../encoding.h ../api_enum.h \
+ ../vmstack.h ../reference.h ../api.h ../string.h
 test_symbol.o: test_symbol.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-version.h \
  /usr/local/include/cutter/cutter/cut-features.h \
@@ -146,9 +143,9 @@ test_symbol.o: test_symbol.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-helper.h \
  /usr/local/include/cutter/cutter/cut-experimental.h ../object.h \
  ../impl_utils.h /home/hiroki/work/scythe/build/src/config.h ../vm.h \
- ../object.h ../memory.h ../api_type.h ../reference.h ../encoding.h \
- ../api_enum.h ../vmstack.h ../reference.h ../api.h ../string.h \
- ../symbol.h ../chashtbl.h
+ ../object.h ../memory.h ../api_type.h ../encoding.h ../api_enum.h \
+ ../vmstack.h ../reference.h ../api.h ../string.h ../symbol.h \
+ ../chashtbl.h
 test_nil.o: test_nil.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-version.h \
  /usr/local/include/cutter/cutter/cut-features.h \
@@ -164,8 +161,8 @@ test_nil.o: test_nil.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-helper.h \
  /usr/local/include/cutter/cutter/cut-experimental.h ../object.h \
  ../impl_utils.h /home/hiroki/work/scythe/build/src/config.h ../vm.h \
- ../object.h ../memory.h ../api_type.h ../reference.h ../encoding.h \
- ../api_enum.h ../vmstack.h ../api.h ../miscobjects.h
+ ../object.h ../memory.h ../api_type.h ../encoding.h ../api_enum.h \
+ ../vmstack.h ../api.h ../miscobjects.h
 test_vector.o: test_vector.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-version.h \
  /usr/local/include/cutter/cutter/cut-features.h \
@@ -181,8 +178,8 @@ test_vector.o: test_vector.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-helper.h \
  /usr/local/include/cutter/cutter/cut-experimental.h ../object.h \
  ../impl_utils.h /home/hiroki/work/scythe/build/src/config.h ../vm.h \
- ../object.h ../memory.h ../api_type.h ../reference.h ../encoding.h \
- ../api_enum.h ../vmstack.h ../reference.h ../api.h ../vector.h
+ ../object.h ../memory.h ../api_type.h ../encoding.h ../api_enum.h \
+ ../vmstack.h ../reference.h ../api.h ../vector.h
 test_eof.o: test_eof.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-version.h \
  /usr/local/include/cutter/cutter/cut-features.h \
@@ -198,8 +195,8 @@ test_eof.o: test_eof.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-helper.h \
  /usr/local/include/cutter/cutter/cut-experimental.h ../object.h \
  ../impl_utils.h /home/hiroki/work/scythe/build/src/config.h ../vm.h \
- ../object.h ../memory.h ../api_type.h ../reference.h ../encoding.h \
- ../api_enum.h ../vmstack.h ../reference.h ../api.h ../miscobjects.h
+ ../object.h ../memory.h ../api_type.h ../encoding.h ../api_enum.h \
+ ../vmstack.h ../reference.h ../api.h ../miscobjects.h
 test_bool.o: test_bool.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-version.h \
  /usr/local/include/cutter/cutter/cut-features.h \
@@ -215,8 +212,8 @@ test_bool.o: test_bool.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-helper.h \
  /usr/local/include/cutter/cutter/cut-experimental.h ../object.h \
  ../impl_utils.h /home/hiroki/work/scythe/build/src/config.h ../vm.h \
- ../object.h ../memory.h ../api_type.h ../reference.h ../encoding.h \
- ../api_enum.h ../vmstack.h ../api.h ../miscobjects.h
+ ../object.h ../memory.h ../api_type.h ../encoding.h ../api_enum.h \
+ ../vmstack.h ../api.h ../miscobjects.h
 test_char.o: test_char.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-version.h \
  /usr/local/include/cutter/cutter/cut-features.h \
@@ -232,8 +229,8 @@ test_char.o: test_char.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-helper.h \
  /usr/local/include/cutter/cutter/cut-experimental.h ../object.h \
  ../impl_utils.h /home/hiroki/work/scythe/build/src/config.h ../vm.h \
- ../object.h ../memory.h ../api_type.h ../reference.h ../encoding.h \
- ../api_enum.h ../vmstack.h ../api.h ../miscobjects.h ../char.h
+ ../object.h ../memory.h ../api_type.h ../encoding.h ../api_enum.h \
+ ../vmstack.h ../api.h ../miscobjects.h ../char.h
 test_charconv.o: test_charconv.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-version.h \
  /usr/local/include/cutter/cutter/cut-features.h \
@@ -263,8 +260,8 @@ test_string_utf8.o: test_string_utf8.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-helper.h \
  /usr/local/include/cutter/cutter/cut-experimental.h ../object.h \
  ../impl_utils.h /home/hiroki/work/scythe/build/src/config.h ../vm.h \
- ../object.h ../memory.h ../api_type.h ../reference.h ../encoding.h \
- ../api_enum.h ../vmstack.h ../reference.h ../api.h ../string.h
+ ../object.h ../memory.h ../api_type.h ../encoding.h ../api_enum.h \
+ ../vmstack.h ../reference.h ../api.h ../string.h
 test_string_ucs4.o: test_string_ucs4.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-version.h \
  /usr/local/include/cutter/cutter/cut-features.h \
@@ -280,8 +277,8 @@ test_string_ucs4.o: test_string_ucs4.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-helper.h \
  /usr/local/include/cutter/cutter/cut-experimental.h ../object.h \
  ../impl_utils.h /home/hiroki/work/scythe/build/src/config.h ../vm.h \
- ../object.h ../memory.h ../api_type.h ../reference.h ../encoding.h \
- ../api_enum.h ../vmstack.h ../reference.h ../api.h ../string.h
+ ../object.h ../memory.h ../api_type.h ../encoding.h ../api_enum.h \
+ ../vmstack.h ../reference.h ../api.h ../string.h
 test_string_ascii.o: test_string_ascii.c \
  /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-version.h \
@@ -298,8 +295,8 @@ test_string_ascii.o: test_string_ascii.c \
  /usr/local/include/cutter/cutter/cut-helper.h \
  /usr/local/include/cutter/cutter/cut-experimental.h ../object.h \
  ../impl_utils.h /home/hiroki/work/scythe/build/src/config.h ../vm.h \
- ../object.h ../memory.h ../api_type.h ../reference.h ../encoding.h \
- ../api_enum.h ../vmstack.h ../reference.h ../api.h ../string.h
+ ../object.h ../memory.h ../api_type.h ../encoding.h ../api_enum.h \
+ ../vmstack.h ../reference.h ../api.h ../string.h
 test_string_eucjp.o: test_string_eucjp.c \
  /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-version.h \
@@ -316,8 +313,8 @@ test_string_eucjp.o: test_string_eucjp.c \
  /usr/local/include/cutter/cutter/cut-helper.h \
  /usr/local/include/cutter/cutter/cut-experimental.h ../object.h \
  ../impl_utils.h /home/hiroki/work/scythe/build/src/config.h ../vm.h \
- ../object.h ../memory.h ../api_type.h ../reference.h ../encoding.h \
- ../api_enum.h ../vmstack.h ../reference.h ../api.h ../string.h
+ ../object.h ../memory.h ../api_type.h ../encoding.h ../api_enum.h \
+ ../vmstack.h ../reference.h ../api.h ../string.h
 test_string_sjis.o: test_string_sjis.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-version.h \
  /usr/local/include/cutter/cutter/cut-features.h \
@@ -333,8 +330,8 @@ test_string_sjis.o: test_string_sjis.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-helper.h \
  /usr/local/include/cutter/cutter/cut-experimental.h ../object.h \
  ../impl_utils.h /home/hiroki/work/scythe/build/src/config.h ../vm.h \
- ../object.h ../memory.h ../api_type.h ../reference.h ../encoding.h \
- ../api_enum.h ../vmstack.h ../reference.h ../api.h ../string.h
+ ../object.h ../memory.h ../api_type.h ../encoding.h ../api_enum.h \
+ ../vmstack.h ../reference.h ../api.h ../string.h
 test_memory.o: test_memory.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-version.h \
  /usr/local/include/cutter/cutter/cut-features.h \
@@ -367,8 +364,8 @@ test_vm.o: test_vm.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-helper.h \
  /usr/local/include/cutter/cutter/cut-experimental.h ../vm.h ../object.h \
  ../impl_utils.h /home/hiroki/work/scythe/build/src/config.h ../memory.h \
- ../api_type.h ../reference.h ../encoding.h ../api_enum.h ../vmstack.h \
- ../object.h ../iseq.h ../earray.h ../api.h ../api.h ../pair.h
+ ../api_type.h ../encoding.h ../api_enum.h ../vmstack.h ../object.h \
+ ../iseq.h ../earray.h ../api.h ../api.h ../pair.h
 test_iseq.o: test_iseq.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-version.h \
  /usr/local/include/cutter/cutter/cut-features.h \
@@ -384,8 +381,8 @@ test_iseq.o: test_iseq.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-helper.h \
  /usr/local/include/cutter/cutter/cut-experimental.h ../vm.h ../object.h \
  ../impl_utils.h /home/hiroki/work/scythe/build/src/config.h ../memory.h \
- ../api_type.h ../reference.h ../encoding.h ../api_enum.h ../vmstack.h \
- ../api.h ../iseq.h ../earray.h ../api.h
+ ../api_type.h ../encoding.h ../api_enum.h ../vmstack.h ../api.h \
+ ../iseq.h ../earray.h ../api.h
 test_chashtbl.o: test_chashtbl.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-version.h \
  /usr/local/include/cutter/cutter/cut-features.h \
@@ -401,9 +398,9 @@ test_chashtbl.o: test_chashtbl.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-helper.h \
  /usr/local/include/cutter/cutter/cut-experimental.h ../object.h \
  ../impl_utils.h /home/hiroki/work/scythe/build/src/config.h ../vm.h \
- ../object.h ../memory.h ../api_type.h ../reference.h ../encoding.h \
- ../api_enum.h ../vmstack.h ../string.h ../symbol.h ../chashtbl.h \
- ../api.h ../chashtbl.h
+ ../object.h ../memory.h ../api_type.h ../encoding.h ../api_enum.h \
+ ../vmstack.h ../string.h ../symbol.h ../chashtbl.h ../api.h \
+ ../chashtbl.h
 test_fileport.o: test_fileport.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-version.h \
  /usr/local/include/cutter/cutter/cut-features.h \
@@ -419,8 +416,8 @@ test_fileport.o: test_fileport.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-helper.h \
  /usr/local/include/cutter/cutter/cut-experimental.h ../vm.h ../object.h \
  ../impl_utils.h /home/hiroki/work/scythe/build/src/config.h ../memory.h \
- ../api_type.h ../reference.h ../encoding.h ../api_enum.h ../vmstack.h \
- ../api.h ../port.h
+ ../api_type.h ../encoding.h ../api_enum.h ../vmstack.h ../api.h \
+ ../port.h
 test_stringport.o: test_stringport.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-version.h \
  /usr/local/include/cutter/cutter/cut-features.h \
@@ -436,8 +433,8 @@ test_stringport.o: test_stringport.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-helper.h \
  /usr/local/include/cutter/cutter/cut-experimental.h ../vm.h ../object.h \
  ../impl_utils.h /home/hiroki/work/scythe/build/src/config.h ../memory.h \
- ../api_type.h ../reference.h ../encoding.h ../api_enum.h ../vmstack.h \
- ../api.h ../port.h
+ ../api_type.h ../encoding.h ../api_enum.h ../vmstack.h ../api.h \
+ ../port.h
 test_parser.o: test_parser.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-version.h \
  /usr/local/include/cutter/cutter/cut-features.h \
@@ -453,9 +450,9 @@ test_parser.o: test_parser.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-helper.h \
  /usr/local/include/cutter/cutter/cut-experimental.h ../object.h \
  ../impl_utils.h /home/hiroki/work/scythe/build/src/config.h ../vm.h \
- ../object.h ../memory.h ../api_type.h ../reference.h ../encoding.h \
- ../api_enum.h ../vmstack.h ../reference.h ../api.h ../parser.h \
- ../earray.h ../api.h ../number_parser.h
+ ../object.h ../memory.h ../api_type.h ../encoding.h ../api_enum.h \
+ ../vmstack.h ../reference.h ../api.h ../parser.h ../earray.h ../api.h \
+ ../number_parser.h
 test_assembler.o: test_assembler.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-version.h \
  /usr/local/include/cutter/cutter/cut-features.h \
@@ -471,8 +468,8 @@ test_assembler.o: test_assembler.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-helper.h \
  /usr/local/include/cutter/cutter/cut-experimental.h ../vm.h ../object.h \
  ../impl_utils.h /home/hiroki/work/scythe/build/src/config.h ../memory.h \
- ../api_type.h ../reference.h ../encoding.h ../api_enum.h ../vmstack.h \
- ../api.h ../assembler.h ../earray.h ../api.h
+ ../api_type.h ../encoding.h ../api_enum.h ../vmstack.h ../api.h \
+ ../assembler.h ../earray.h ../api.h
 test_undef.o: test_undef.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-version.h \
  /usr/local/include/cutter/cutter/cut-features.h \
@@ -488,8 +485,8 @@ test_undef.o: test_undef.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-helper.h \
  /usr/local/include/cutter/cutter/cut-experimental.h ../object.h \
  ../impl_utils.h /home/hiroki/work/scythe/build/src/config.h ../vm.h \
- ../object.h ../memory.h ../api_type.h ../reference.h ../encoding.h \
- ../api_enum.h ../vmstack.h ../api.h ../miscobjects.h
+ ../object.h ../memory.h ../api_type.h ../encoding.h ../api_enum.h \
+ ../vmstack.h ../api.h ../miscobjects.h
 test_bignum.o: test_bignum.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-version.h \
  /usr/local/include/cutter/cutter/cut-features.h \
@@ -505,8 +502,8 @@ test_bignum.o: test_bignum.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-helper.h \
  /usr/local/include/cutter/cutter/cut-experimental.h ../api.h ../object.h \
  ../impl_utils.h /home/hiroki/work/scythe/build/src/config.h \
- ../reference.h ../encoding.h ../api_enum.h ../api_type.h ../bignum.h \
- ../earray.h ../api.h
+ ../encoding.h ../api_enum.h ../api_type.h ../bignum.h ../earray.h \
+ ../api.h
 test_module.o: test_module.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-version.h \
  /usr/local/include/cutter/cutter/cut-features.h \
@@ -522,7 +519,7 @@ test_module.o: test_module.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-helper.h \
  /usr/local/include/cutter/cutter/cut-experimental.h ../object.h \
  ../impl_utils.h /home/hiroki/work/scythe/build/src/config.h ../api.h \
- ../object.h ../reference.h ../encoding.h ../api_enum.h ../api_type.h
+ ../object.h ../encoding.h ../api_enum.h ../api_type.h
 test_compiler.o: test_compiler.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-version.h \
  /usr/local/include/cutter/cutter/cut-features.h \
@@ -538,8 +535,7 @@ test_compiler.o: test_compiler.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-helper.h \
  /usr/local/include/cutter/cutter/cut-experimental.h ../vm.h ../object.h \
  ../impl_utils.h /home/hiroki/work/scythe/build/src/config.h ../memory.h \
- ../api_type.h ../reference.h ../encoding.h ../api_enum.h ../vmstack.h \
- ../api.h
+ ../api_type.h ../encoding.h ../api_enum.h ../vmstack.h ../api.h
 test_eval.o: test_eval.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-version.h \
  /usr/local/include/cutter/cutter/cut-features.h \
@@ -555,7 +551,7 @@ test_eval.o: test_eval.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-helper.h \
  /usr/local/include/cutter/cutter/cut-experimental.h ../api.h ../object.h \
  ../impl_utils.h /home/hiroki/work/scythe/build/src/config.h \
- ../reference.h ../encoding.h ../api_enum.h ../api_type.h
+ ../encoding.h ../api_enum.h ../api_type.h
 test_eval_proc.o: test_eval_proc.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-version.h \
  /usr/local/include/cutter/cutter/cut-features.h \
@@ -571,4 +567,4 @@ test_eval_proc.o: test_eval_proc.c /usr/local/include/cutter/cutter.h \
  /usr/local/include/cutter/cutter/cut-helper.h \
  /usr/local/include/cutter/cutter/cut-experimental.h ../api.h ../object.h \
  ../impl_utils.h /home/hiroki/work/scythe/build/src/config.h \
- ../reference.h ../encoding.h ../api_enum.h ../api_type.h
+ ../encoding.h ../api_enum.h ../api_type.h

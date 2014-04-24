@@ -6,6 +6,9 @@
 
 typedef struct ScmForwardRec ScmForward;
 
+typedef struct ScmRefStackBlockRec ScmRefStackBlock;
+typedef struct ScmRefStackInfoRec ScmRefStackInfo;
+
 typedef struct ScmEvaluatorRec ScmEvaluator;
 
 #include "object.h"
@@ -43,11 +46,31 @@ typedef ScmObj (*ScmSyntaxHandlerFunc)(ScmObj cmpl, ScmObj exp, ScmObj env,
 
 
 /*******************************************************************/
+/*  RefStack                                                       */
+/*******************************************************************/
+
+struct ScmRefStackBlockRec {
+  ScmRefStackBlock *next;
+  ScmRefStackBlock *prev;
+  size_t size;
+  ScmRef *sp;
+  ScmRef stack[0];
+};
+
+struct ScmRefStackInfoRec {
+  ScmRefStackBlock *current;
+  ScmRef *sp;
+};
+
+
+/*******************************************************************/
 /*  Facade                                                         */
 /*******************************************************************/
 
 struct ScmEvaluatorRec {
+  void *bedrock;
   ScmObj vm;
+  ScmObj stack;
 };
 
 

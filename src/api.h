@@ -6,7 +6,6 @@
 #include <stdbool.h>
 
 #include "object.h"
-#include "reference.h"
 #include "encoding.h"
 #include "api_enum.h"
 #include "api_type.h"
@@ -152,6 +151,16 @@ ScmObj scm_api_undef(void);
 bool scm_capi_undef_object_p(ScmObj obj);
 
 #define SCM_UNDEF_OBJ scm_api_undef()
+
+
+/*******************************************************************/
+/*  Landmine                                                       */
+/*******************************************************************/
+
+ScmObj scm_api_landmine(void);
+bool scm_capi_landmine_object_p(ScmObj obj);
+
+#define SCM_LANDMINE_OBJ scm_api_undef()
 
 
 /*******************************************************************/
@@ -486,10 +495,6 @@ ScmObj scm_api_get_output_string(ScmObj port);
 const char *scm_capi_port_encoding(ScmObj port);
 ScmEncoding *scm_capi_port_internal_encoding(ScmObj port);
 
-ScmObj scm_api_standard_input_port(void);
-ScmObj scm_api_standard_output_port(void);
-ScmObj scm_api_standard_error_port(void);
-
 
 /*******************************************************************/
 /*  Input                                                          */
@@ -711,6 +716,8 @@ ScmEncoding *scm_capi_system_encoding(void);
 
 ScmEvaluator *scm_capi_evaluator(void);
 void scm_capi_evaluator_end(ScmEvaluator *ev);
+int scm_capi_evaluator_make_vm(ScmEvaluator *ev);
+int scm_capi_evaluator_delete_vm(ScmEvaluator *ev);
 int scm_capi_run_repl(ScmEvaluator *ev);
 int scm_capi_exec_file(const char *path, ScmEvaluator *ev);
 
