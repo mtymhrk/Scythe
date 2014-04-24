@@ -823,6 +823,8 @@ scm_moduletree_find(ScmObj tree, ScmObj name, scm_csetter_t *mod)
   ScmModuleTreeNode *node;
   int rslt;
 
+  SCM_STACK_FRAME_PUSH(&tree, &name);
+
   scm_assert_obj_type(tree, &SCM_MODULETREE_TYPE_INFO);
   scm_assert(scm_capi_symbol_p(name) || scm_capi_pair_p(name));
   scm_assert(mod != NULL);
