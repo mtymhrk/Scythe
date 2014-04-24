@@ -169,7 +169,7 @@ scm_vector_new_from_list(SCM_MEM_TYPE_T mtype, size_t length, ScmObj lst)
 {
   ScmObj vector = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vector);
+  SCM_STACK_FRAME_PUSH(&lst, &vector);
 
   scm_assert(length <= SSIZE_MAX);
   scm_assert(scm_obj_not_null_p(lst));
