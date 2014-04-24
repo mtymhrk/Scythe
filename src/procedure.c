@@ -87,7 +87,7 @@ scm_subrutine_new(SCM_MEM_TYPE_T mtype,
   ScmObj subr = SCM_OBJ_INIT;
 
   SCM_STACK_FRAME_PUSH(&name,
-                       &subr);
+                       &subr, &module);
 
   scm_assert(func != NULL);
   scm_assert(scm_obj_null_p(name) || scm_capi_string_p(name));
