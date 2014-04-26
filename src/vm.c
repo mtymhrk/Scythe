@@ -344,9 +344,6 @@ scm_contcap_cap(ScmObj cc,  ScmObj stack, const ScmVMReg *regs)
   scm_assert(regs != NULL);
 
   SCM_SLOT_SETQ(ScmContCap, cc, stack, stack);
-  SCM_CONTCAP(cc)->reg.cfp = regs->cfp;
-  SCM_CONTCAP(cc)->reg.efp = regs->efp;
-  SCM_CONTCAP(cc)->reg.pefp = regs->pefp;
   SCM_SLOT_SETQ(ScmContCap, cc, reg.cp, regs->cp);
   SCM_CONTCAP(cc)->reg.ip = regs->ip;
   n = (regs->vc <= SCM_VM_NR_VAL_REG) ? regs->vc : SCM_VM_NR_VAL_REG;
@@ -385,9 +382,6 @@ scm_contcap_gc_initialize(ScmObj obj, ScmObj mem)
   scm_assert_obj_type(obj, &SCM_CONTCAP_TYPE_INFO);
 
   SCM_CONTCAP(obj)->stack = SCM_OBJ_NULL;
-  SCM_CONTCAP(obj)->reg.cfp = NULL;
-  SCM_CONTCAP(obj)->reg.efp = NULL;
-  SCM_CONTCAP(obj)->reg.pefp = NULL;
   SCM_CONTCAP(obj)->reg.cp = SCM_OBJ_NULL;
   SCM_CONTCAP(obj)->reg.ip = NULL;
   SCM_CONTCAP(obj)->reg.vc = 0;
@@ -405,15 +399,6 @@ scm_contcap_gc_accepct(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
   scm_assert(handler != NULL);
 
   rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_CONTCAP(obj)->stack, mem);
-  if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
-
-  rslt = scm_vm_cf_gc_accept(obj, SCM_CONTCAP(obj)->reg.cfp, mem, handler);
-  if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
-
-  rslt = scm_vm_ef_gc_accept(obj, &SCM_CONTCAP(obj)->reg.efp, mem, handler);
-  if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
-
-  rslt = scm_vm_ef_gc_accept(obj, &SCM_CONTCAP(obj)->reg.pefp, mem, handler);
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
   rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_CONTCAP(obj)->reg.cp, mem);
@@ -613,6 +598,8 @@ scm_vm_capture_stack(ScmObj vm)
 scm_local_func int
 scm_vm_restore_stack(ScmObj vm, ScmObj stack)
 {
+  int rslt;
+
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
   scm_assert_obj_type(stack, &SCM_VMSTCKRC_TYPE_INFO);
 
@@ -630,6 +617,9 @@ scm_vm_restore_stack(ScmObj vm, ScmObj stack)
     scm_vm_ctrl_flg_set(vm, SCM_VM_CTRL_FLG_PEF);
 
   scm_vm_ctrl_flg_set(vm, SCM_VM_CTRL_FLG_CCF);
+
+  rslt = scm_vm_copy_pef_to_top_of_stack_if_needed(vm);
+  if (rslt < 0) return -1;
 
   return 0;
 }
@@ -2769,9 +2759,6 @@ scm_vm_reinstatement_cont(ScmObj vm, ScmObj cc, const ScmObj *val, int vc)
   rslt = scm_vm_restore_stack(vm, scm_contcap_stack(cc));
   if (rslt < 0) return -1;
 
-  SCM_VM(vm)->reg.cfp = scm_contcap_cfp(cc);
-  SCM_VM(vm)->reg.efp = scm_contcap_efp(cc);
-  SCM_VM(vm)->reg.pefp = scm_contcap_pefp(cc);
   SCM_SLOT_SETQ(ScmVM, vm, reg.cp, scm_contcap_cp(cc));
   SCM_VM(vm)->reg.ip = scm_contcap_ip(cc);
   SCM_SLOT_SETQ(ScmVM, vm, reg.prm, scm_contcap_prm(cc));

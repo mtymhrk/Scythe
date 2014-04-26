@@ -250,7 +250,14 @@ extern ScmTypeInfo SCM_CONTCAP_TYPE_INFO;
 struct ScmContCapRec {
   ScmObjHeader header;
   ScmObj stack;
-  ScmVMReg reg;
+  struct {
+    ScmObj cp;
+    scm_byte_t *ip;
+    ScmObj val[SCM_VM_NR_VAL_REG];
+    int vc;
+    ScmObj prm;
+    unsigned int flags;
+  } reg;
 };
 
 ScmObj scm_contcap_new(SCM_MEM_TYPE_T mtype);
@@ -266,30 +273,6 @@ scm_contcap_stack(ScmObj cc)
   scm_assert_obj_type(cc, &SCM_CONTCAP_TYPE_INFO);
 
   return SCM_CONTCAP(cc)->stack;
-}
-
-inline ScmCntFrame *
-scm_contcap_cfp(ScmObj cc)
-{
-  scm_assert_obj_type(cc, &SCM_CONTCAP_TYPE_INFO);
-
-  return SCM_CONTCAP(cc)->reg.cfp;
-}
-
-inline ScmEnvFrame *
-scm_contcap_efp(ScmObj cc)
-{
-  scm_assert_obj_type(cc, &SCM_CONTCAP_TYPE_INFO);
-
-  return SCM_CONTCAP(cc)->reg.efp;
-}
-
-inline ScmEnvFrame *
-scm_contcap_pefp(ScmObj cc)
-{
-  scm_assert_obj_type(cc, &SCM_CONTCAP_TYPE_INFO);
-
-  return SCM_CONTCAP(cc)->reg.pefp;
 }
 
 inline ScmObj
