@@ -4501,12 +4501,12 @@ scm_capi_string_to_list(ScmObj str, ssize_t start, ssize_t end)
   scm_assert(len <= SSIZE_MAX);
 
   if (start >= 0 && (size_t)start >= len) {
-    scm_capi_error("string->list: out of range", 1, start);
+    scm_capi_error("string->list: out of range", 0);
     return SCM_OBJ_NULL;
   }
 
   if (end >= 0 && (size_t)end > len) {
-    scm_capi_error("string->list: out of range", 1, end);
+    scm_capi_error("string->list: out of range", 0);
     return SCM_OBJ_NULL;
   }
 
