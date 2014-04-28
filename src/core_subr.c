@@ -2041,11 +2041,10 @@ scm_subr_func_flush_output_port(ScmObj subr, int argc, const ScmObj *argv)
 int
 scm_subr_func_callcc(ScmObj subr, int argc, const ScmObj *argv)
 {
-  ScmObj cont = SCM_OBJ_INIT, args = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
-  int rslt;
+  ScmObj cont = SCM_OBJ_INIT, args = SCM_OBJ_INIT;
 
   SCM_STACK_FRAME_PUSH(&subr,
-                       &cont, &args, &val);
+                       &cont, &args);
 
   if (argc != 1) {
     scm_capi_error("call/cc: 1 argumetn is require, but got ", 0);
@@ -2058,12 +2057,7 @@ scm_subr_func_callcc(ScmObj subr, int argc, const ScmObj *argv)
   args = scm_capi_list(1, cont);
   if (scm_obj_null_p(args)) return -1;
 
-  rslt = scm_capi_trampolining(argv[0], args, SCM_OBJ_NULL, SCM_OBJ_NULL);
-  if (rslt < 0) return -1; /* [ERR]: [through] */
-
-  val = SCM_UNDEF_OBJ;
-
-  return scm_capi_return_val(&val, 1);
+  return scm_capi_trampolining(argv[0], args, SCM_OBJ_NULL, SCM_OBJ_NULL);
 }
 
 
@@ -2096,12 +2090,11 @@ const char *scm_clsr_code_call_with_values =
 int
 scm_subr_func_eval_asm(ScmObj subr, int argc, const ScmObj *argv)
 {
-  ScmObj code = SCM_OBJ_INIT, args = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
+  ScmObj code = SCM_OBJ_INIT, args = SCM_OBJ_INIT;
   ssize_t i;
-  int rslt;
 
   SCM_STACK_FRAME_PUSH(&subr,
-                       &code, &args, &val);
+                       &code, &args);
 
   if (argc != 1) {
     /* TODO: change error message */
@@ -2129,22 +2122,16 @@ scm_subr_func_eval_asm(ScmObj subr, int argc, const ScmObj *argv)
 
   args = SCM_NIL_OBJ;
 
-  rslt = scm_capi_trampolining(code, args, SCM_OBJ_NULL, SCM_OBJ_NULL);
-  if (rslt < 0) return -1; /* [ERR]: [through] */
-
-  val = SCM_UNDEF_OBJ;
-
-  return scm_capi_return_val(&val, 1);
+  return scm_capi_trampolining(code, args, SCM_OBJ_NULL, SCM_OBJ_NULL);
 }
 
 int
 scm_subr_func_eval(ScmObj subr, int argc, const ScmObj *argv)
 {
-  ScmObj exp = SCM_OBJ_INIT, args = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
+  ScmObj exp = SCM_OBJ_INIT, args = SCM_OBJ_INIT;
   ssize_t i;
-  int rslt;
 
-  SCM_STACK_FRAME_PUSH(&subr, &exp, &args, &val);
+  SCM_STACK_FRAME_PUSH(&subr, &exp, &args);
 
   if (argc != 1) {
     /* TODO: change error message */
@@ -2163,12 +2150,7 @@ scm_subr_func_eval(ScmObj subr, int argc, const ScmObj *argv)
 
   args = SCM_NIL_OBJ;
 
-  rslt = scm_capi_trampolining(exp, args, SCM_OBJ_NULL, SCM_OBJ_NULL);
-  if (rslt < 0) return -1; /* [ERR]: [through] */
-
-  val = SCM_UNDEF_OBJ;
-
-  return scm_capi_return_val(&val, 1);
+  return scm_capi_trampolining(exp, args, SCM_OBJ_NULL, SCM_OBJ_NULL);
 }
 
 

@@ -1141,7 +1141,7 @@ scm_vm_make_trampolining_code(ScmObj vm, ScmObj proc,
   iseq = scm_api_make_iseq();
   if (scm_obj_null_p(iseq)) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
-  rslt = scm_capi_iseq_push_opfmt_si(iseq, SCM_OPCODE_ARITY, 1);
+  rslt = scm_capi_iseq_push_opfmt_si(iseq, SCM_OPCODE_ARITY, -1);
   if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   if (!scm_obj_null_p(postproc)) {
@@ -2859,6 +2859,9 @@ scm_vm_setup_stat_trmp(ScmObj vm, ScmObj proc, ScmObj args,
 
   rslt = scm_vm_commit_cframe(vm, ip);
   if (rslt < 0) return -1;
+
+  SCM_SLOT_SETQ(ScmVM, vm, reg.val[0], SCM_NIL_OBJ);
+  SCM_VM(vm)->reg.vc = 1;
 
   return 0;
 }
