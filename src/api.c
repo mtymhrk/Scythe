@@ -3899,6 +3899,7 @@ scm_api_string_set_i(ScmObj str, ScmObj pos, ScmObj chr)
   }
   else if (!scm_capi_integer_p(pos)) {
     scm_capi_error("string-ref: integer required, but got", 1, pos);
+    return SCM_OBJ_NULL;
   }
 
   r = scm_capi_integer_to_size_t(pos, &s);
