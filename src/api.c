@@ -1108,6 +1108,7 @@ scm_capi_append_lst(ScmObj lst)
     if (scm_obj_null_p(arg[0])) return SCM_OBJ_NULL;
 
     arg[1] = scm_capi_append_cv(arg, 2);
+    if (scm_obj_null_p(arg[1])) return SCM_OBJ_NULL;
   }
 
   if (scm_obj_null_p(l)) return SCM_OBJ_NULL;
