@@ -6330,6 +6330,7 @@ ScmObj
 scm_api_open_output_string(void)
 {
   return scm_port_open_string(NULL, 0, "w", scm_capi_system_encoding(), NULL);
+
 }
 
 ScmObj
@@ -6365,10 +6366,15 @@ scm_api_get_output_string(ScmObj port)
   if (s < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   enc_name = scm_port_external_enc(port);
-  e = scm_enc_find_enc(enc_name);
-  if (e == NULL) {
-    scm_capi_error("get-output-string: unsupported encoding", 0);
-    return SCM_OBJ_NULL;
+  if (*enc_name == '\0') {
+    e = scm_port_internal_enc(port);
+  }
+  else {
+    e = scm_enc_find_enc(enc_name);
+    if (e == NULL) {
+      scm_capi_error("get-output-string: unsupported encoding", 0);
+      return SCM_OBJ_NULL;
+    }
   }
 
   return scm_capi_make_string_from_bin(p, (size_t)s, e);
@@ -6377,6 +6383,8 @@ scm_api_get_output_string(ScmObj port)
 const char *
 scm_capi_port_encoding(ScmObj port)
 {
+  const char *enc_name;
+
   if (scm_obj_null_p(port)) {
     scm_capi_error("port-encoding: invalid argument", 0);
     return NULL;
@@ -6386,7 +6394,13 @@ scm_capi_port_encoding(ScmObj port)
     return NULL;                  /* provisional implemntation */
   }
 
-  return scm_port_external_enc(port);
+  enc_name = scm_port_external_enc(port);
+  if (*enc_name == '\0') {
+    ScmEncoding *e = scm_port_internal_enc(port);
+    enc_name = scm_enc_name(e);
+  }
+
+  return enc_name;
 }
 
 ScmEncoding *
