@@ -1646,11 +1646,6 @@ scm_vm_op_call(ScmObj vm, SCM_OPCODE_T op)
   ip = scm_capi_inst_fetch_oprand_si(SCM_VM(vm)->reg.ip, &argc);
   if (ip == NULL) return;       /* [ERR]: [through] */
 
-  if (argc < 0) {
-    scm_capi_error("bytecode format error", 0);
-    return;
-  }
-
   SCM_VM(vm)->reg.ip = ip;
   scm_vm_do_op_call(vm, op, argc, (op == SCM_OPCODE_TAIL_CALL));
 }
