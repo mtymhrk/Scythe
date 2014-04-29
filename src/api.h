@@ -157,10 +157,7 @@ bool scm_capi_undef_object_p(ScmObj obj);
 /*  Landmine                                                       */
 /*******************************************************************/
 
-ScmObj scm_api_landmine(void);
 bool scm_capi_landmine_object_p(ScmObj obj);
-
-#define SCM_LANDMINE_OBJ scm_api_undef()
 
 
 /*******************************************************************/

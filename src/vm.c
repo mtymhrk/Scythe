@@ -2314,7 +2314,7 @@ scm_vm_op_emine(ScmObj vm, SCM_OPCODE_T op)
 
   SCM_VM(vm)->reg.vc = 1;
   for (int i = 0; i < len; i++) {
-    box = scm_box_new(SCM_MEM_HEAP, SCM_LANDMINE_OBJ);
+    box = scm_box_new(SCM_MEM_HEAP, scm_bedrock_landmine(scm_vm_current_br()));
     if (scm_obj_null_p(box)) return;
 
     SCM_SLOT_SETQ(ScmVM, vm, reg.val[0], box);

@@ -635,20 +635,11 @@ scm_capi_undef_object_p(ScmObj obj)
 /*  Landmine                                                       */
 /*******************************************************************/
 
-/* Memo:
- *  scm_api_landmine() の関数の実行では GC が発生してはダメ。
- *  (マクロ SCM_LANDMINE_OBJ を定義して定数的に使うため)
- */
-extern inline ScmObj
-scm_api_landmine(void)
-{
-  return scm_bedrock_landmine(scm_vm_current_br());
-}
 
 extern inline bool
 scm_capi_landmine_object_p(ScmObj obj)
 {
-  return scm_capi_eq_p(obj, SCM_LANDMINE_OBJ);
+  return scm_capi_eq_p(obj, scm_bedrock_landmine(scm_vm_current_br()));
 }
 
 
