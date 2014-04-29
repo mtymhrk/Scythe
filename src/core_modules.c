@@ -268,14 +268,6 @@ scm_define_scheme_base_subr(ScmObj module)
   rslt = scm_define_subr(module, data, sizeof(data)/sizeof(data[0]));
   if (rslt < 0) return -1;
 
-  subr = scm_capi_make_subrutine(scm_subr_func_default_exception_handler,
-                                 SCM_SUBR_ARITY_DEFAULT_EXCEPTION_HANDLER,
-                                 SCM_SUBR_FLAG_DEFAULT_EXCEPTION_HANDLER,
-                                 module);
-  if (scm_obj_null_p(subr)) return -1;
-
-  scm_capi_push_exception_handler(subr);
-
   return 0;
 }
 

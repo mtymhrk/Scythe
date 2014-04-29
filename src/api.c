@@ -2,6 +2,7 @@
 #include <stddef.h>
 #include <stdbool.h>
 #include <limits.h>
+#include <stdio.h>
 
 #include "object.h"
 #include "memory.h"
@@ -655,25 +656,13 @@ scm_capi_raise(ScmObj obj)
     return -1;
   }
 
-  return scm_vm_setup_stat_raised(scm_vm_current_vm(), obj);
+  return scm_vm_setup_stat_raise(scm_vm_current_vm(), obj);
 }
 
 extern inline ScmObj
 scm_api_raise(ScmObj obj)
 {
   return (scm_capi_raise(obj) < 0) ? SCM_OBJ_NULL : SCM_UNDEF_OBJ;
-}
-
-extern inline bool
-scm_capi_raised_p(void)
-{
-  return scm_vm_raised_p(scm_vm_current_vm());
-}
-
-extern inline int
-scm_capi_unraise(void)
-{
-  return scm_vm_clear_stat_raised(scm_vm_current_vm());
 }
 
 int
@@ -8388,7 +8377,7 @@ scm_capi_push_exception_handler(ScmObj handler)
     return -1;
   }
 
-  return scm_vm_push_exception_handler(scm_vm_current_vm(), handler);
+  return scm_vm_push_exc_handler(scm_vm_current_vm(), handler);
 }
 
 
@@ -8561,6 +8550,8 @@ scm_capi_run_repl(ScmEvaluator *ev)
     scm_vm_run(scm_vm_current_vm(), iseq);
   }
 
+  scm_vm_disposal_unhandled_exc(ev->vm);
+
   scm_capi_evaluator_delete_vm(ev);
 
   return 0;
@@ -8592,6 +8583,8 @@ scm_capi_exec_file(const char *path, ScmEvaluator *ev)
 
     scm_vm_run(scm_vm_current_vm(), iseq);
   }
+
+  scm_vm_disposal_unhandled_exc(ev->vm);
 
   scm_capi_evaluator_delete_vm(ev);
 

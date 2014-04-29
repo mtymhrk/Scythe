@@ -529,17 +529,4 @@ int scm_subr_func_eval(ScmObj subr, int argc, const ScmObj *argv);
 
 int scm_subr_func_exit(ScmObj subr, int argc, const ScmObj *argv);
 
-
-/*******************************************************************/
-/*  Default Exception Handler                                      */
-/*******************************************************************/
-
-#define SCM_SUBR_ARITY_DEFAULT_EXCEPTION_HANDLER 1
-
-#define SCM_SUBR_FLAG_DEFAULT_EXCEPTION_HANDLER 0
-
-int scm_subr_func_default_exception_handler(ScmObj subr,
-                                            int argc, const ScmObj *argv);
-
-
 #endif /* INCLUDE_CORE_SUBR_H__ */

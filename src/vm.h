@@ -77,11 +77,13 @@ typedef enum {
 
 
 struct ScmBedrockRec {
+  FILE *output;
+
   /*** Error Status ***/
-  struct {
-    SCM_BEDROCK_ERROR_TYPE_T type;
-    char *message;
-  } err;
+  SCM_BEDROCK_ERROR_TYPE_T err_type;
+
+  /* Exit Status */
+  int exit_stat;
 
   /*** Constant Values ***/
   struct {
@@ -102,6 +104,13 @@ struct ScmBedrockRec {
   /*** Module Table ***/
   ScmObj modtree;
 
+  /*** Subrutines ***/
+  struct {
+    ScmObj exc_hndlr_caller;
+    ScmObj exc_hndlr_caller_cont;
+    ScmObj exc_hndlr_caller_post;
+  } subr;
+
   /*** Configurations ***/
   ScmEncoding *encoding;
 };
@@ -114,7 +123,7 @@ void scm_bedrock_finalize(ScmBedrock *br);
 ScmBedrock *scm_bedrock_new(void);
 void scm_bedrock_end(ScmBedrock *br);
 void scm_bedrock_fatal(ScmBedrock *br, const char *msg);
-void scm_bedrock_fatal_fmt(ScmBedrock *br, const char *msgfmt, va_list ap);
+void scm_bedrock_error(ScmBedrock *br, const char *msg);
 bool scm_bedrock_fatal_p(ScmBedrock *br);
 bool scm_bedrock_error_p(ScmBedrock *br);
 
@@ -181,6 +190,27 @@ scm_bedrock_modtree(ScmBedrock *br)
   return br->modtree;
 }
 
+inline ScmObj
+scm_bedrock_exc_hndlr_caller(ScmBedrock *br)
+{
+  scm_assert(br != NULL);
+  return br->subr.exc_hndlr_caller;
+}
+
+inline ScmObj
+scm_bedrock_exc_hndlr_caller_cont(ScmBedrock *br)
+{
+  scm_assert(br != NULL);
+  return br->subr.exc_hndlr_caller_cont;
+}
+
+inline ScmObj
+scm_bedrock_exc_hndlr_caller_post(ScmBedrock *br)
+{
+  scm_assert(br != NULL);
+  return br->subr.exc_hndlr_caller_post;
+}
+
 inline ScmEncoding *
 scm_bedrock_encoding(ScmBedrock *br)
 {
@@ -236,6 +266,8 @@ struct ScmVMRegRec {
   ScmObj val[SCM_VM_NR_VAL_REG];  /* value register */
   int vc;                         /* value count */
   ScmObj prm;                     /* dynamic bindings */
+  ScmObj exc;                     /* raised object */
+  ScmObj hndlr;                   /* exception handler */
   unsigned int flags;
 };
 
@@ -256,6 +288,8 @@ struct ScmContCapRec {
     ScmObj val[SCM_VM_NR_VAL_REG];
     int vc;
     ScmObj prm;
+    ScmObj exc;
+    ScmObj hndlr;
     unsigned int flags;
   } reg;
 };
@@ -315,6 +349,22 @@ scm_contcap_prm(ScmObj cc)
   return SCM_CONTCAP(cc)->reg.prm;
 }
 
+inline ScmObj
+scm_contcap_exc(ScmObj cc)
+{
+  scm_assert_obj_type(cc, &SCM_CONTCAP_TYPE_INFO);
+
+  return SCM_CONTCAP(cc)->reg.exc;
+}
+
+inline ScmObj
+scm_contcap_hndlr(ScmObj cc)
+{
+  scm_assert_obj_type(cc, &SCM_CONTCAP_TYPE_INFO);
+
+  return SCM_CONTCAP(cc)->reg.hndlr;
+}
+
 inline uint
 scm_contcap_flags(ScmObj cc)
 {
@@ -347,18 +397,7 @@ typedef enum {
 
 struct ScmVMRec {
   ScmObjHeader header;
-
-  struct {
-    struct {
-      ScmObj hndlr;
-      ScmObj raised;
-    } excpt;
-  } ge;
-
-
-  /*** VM Stack ***/
   ScmObj stack;
-
   ScmVMReg reg;
 };
 
@@ -399,8 +438,6 @@ int scm_vm_pop_dynamic_bindings(ScmObj vm);
 
 ScmObj scm_vm_make_trampolining_code(ScmObj vm, ScmObj proc, ScmObj args,
                                      ScmObj postproc, ScmObj handover);
-ScmObj scm_vm_make_exception_handler_code(ScmObj vm);
-int scm_vm_setup_to_call_exception_handler(ScmObj vm);
 
 int scm_vm_cmp_arity(int argc, int arity, bool unwished);
 int scm_vm_adjust_arg_to_arity(ScmObj vm, int argc, ScmObj proc, int *adjusted);
@@ -412,37 +449,35 @@ int scm_vm_do_op_frame(ScmObj vm, SCM_OPCODE_T op);
 int scm_vm_do_op_eframe(ScmObj vm, SCM_OPCODE_T op);
 int scm_vm_do_op_ecommit(ScmObj vm, SCM_OPCODE_T op, size_t argc);
 
-void scm_vm_op_undef(ScmObj vm, SCM_OPCODE_T op);
-void scm_vm_op_call(ScmObj vm, SCM_OPCODE_T op);
-void scm_vm_op_apply(ScmObj vm, SCM_OPCODE_T op);
-void scm_vm_op_immval(ScmObj vm, SCM_OPCODE_T op);
-void scm_vm_op_push(ScmObj vm, SCM_OPCODE_T op);
-void scm_vm_op_frame(ScmObj vm, SCM_OPCODE_T op);
-void scm_vm_op_mvpush(ScmObj vm, SCM_OPCODE_T op);
-void scm_vm_op_cframe(ScmObj vm, SCM_OPCODE_T op);
-void scm_vm_op_eframe(ScmObj vm, SCM_OPCODE_T op);
-void scm_vm_op_ecommit(ScmObj vm, SCM_OPCODE_T op);
-void scm_vm_op_epop(ScmObj vm, SCM_OPCODE_T op);
-void scm_vm_op_erebind(ScmObj vm, SCM_OPCODE_T op);
-void scm_vm_op_return(ScmObj vm, SCM_OPCODE_T op);
-void scm_vm_op_gref(ScmObj vm, SCM_OPCODE_T op);
-void scm_vm_op_gdef(ScmObj vm, SCM_OPCODE_T op);
-void scm_vm_op_gset(ScmObj vm, SCM_OPCODE_T op);
-void scm_vm_op_sref(ScmObj vm, SCM_OPCODE_T op);
-void scm_vm_op_sset(ScmObj vm, SCM_OPCODE_T op);
-void scm_vm_op_cref(ScmObj vm, SCM_OPCODE_T op);
-void scm_vm_op_cset(ScmObj vm, SCM_OPCODE_T op);
-void scm_vm_op_jmp(ScmObj vm, SCM_OPCODE_T op);
-void scm_vm_op_jmpt(ScmObj vm, SCM_OPCODE_T op);
-void scm_vm_op_jmpf(ScmObj vm, SCM_OPCODE_T op);
-void scm_vm_op_raise(ScmObj vm, SCM_OPCODE_T op);
-void scm_vm_op_box(ScmObj vm, SCM_OPCODE_T op);
-void scm_vm_op_unbox(ScmObj vm, SCM_OPCODE_T op);
-void scm_vm_op_close(ScmObj vm, SCM_OPCODE_T op);
-void scm_vm_op_demine(ScmObj vm, SCM_OPCODE_T op);
-void scm_vm_op_emine(ScmObj vm, SCM_OPCODE_T op);
-void scm_vm_op_edemine(ScmObj vm, SCM_OPCODE_T op);
-void scm_vm_op_arity(ScmObj vm, SCM_OPCODE_T op);
+int scm_vm_op_undef(ScmObj vm, SCM_OPCODE_T op);
+int scm_vm_op_call(ScmObj vm, SCM_OPCODE_T op);
+int scm_vm_op_apply(ScmObj vm, SCM_OPCODE_T op);
+int scm_vm_op_immval(ScmObj vm, SCM_OPCODE_T op);
+int scm_vm_op_push(ScmObj vm, SCM_OPCODE_T op);
+int scm_vm_op_frame(ScmObj vm, SCM_OPCODE_T op);
+int scm_vm_op_mvpush(ScmObj vm, SCM_OPCODE_T op);
+int scm_vm_op_cframe(ScmObj vm, SCM_OPCODE_T op);
+int scm_vm_op_eframe(ScmObj vm, SCM_OPCODE_T op);
+int scm_vm_op_ecommit(ScmObj vm, SCM_OPCODE_T op);
+int scm_vm_op_epop(ScmObj vm, SCM_OPCODE_T op);
+int scm_vm_op_erebind(ScmObj vm, SCM_OPCODE_T op);
+int scm_vm_op_return(ScmObj vm, SCM_OPCODE_T op);
+int scm_vm_op_gref(ScmObj vm, SCM_OPCODE_T op);
+int scm_vm_op_gdef(ScmObj vm, SCM_OPCODE_T op);
+int scm_vm_op_gset(ScmObj vm, SCM_OPCODE_T op);
+int scm_vm_op_sref(ScmObj vm, SCM_OPCODE_T op);
+int scm_vm_op_sset(ScmObj vm, SCM_OPCODE_T op);
+int scm_vm_op_cref(ScmObj vm, SCM_OPCODE_T op);
+int scm_vm_op_cset(ScmObj vm, SCM_OPCODE_T op);
+int scm_vm_op_jmp(ScmObj vm, SCM_OPCODE_T op);
+int scm_vm_op_jmpt(ScmObj vm, SCM_OPCODE_T op);
+int scm_vm_op_jmpf(ScmObj vm, SCM_OPCODE_T op);
+int scm_vm_op_box(ScmObj vm, SCM_OPCODE_T op);
+int scm_vm_op_close(ScmObj vm, SCM_OPCODE_T op);
+int scm_vm_op_demine(ScmObj vm, SCM_OPCODE_T op);
+int scm_vm_op_emine(ScmObj vm, SCM_OPCODE_T op);
+int scm_vm_op_edemine(ScmObj vm, SCM_OPCODE_T op);
+int scm_vm_op_arity(ScmObj vm, SCM_OPCODE_T op);
 
 int scm_vm_gc_accept_stack(ScmObj vm, ScmObj mem, ScmGCRefHandlerFunc handler);
 
@@ -476,14 +511,42 @@ ScmObj scm_vm_parameter_value(ScmObj vm, ScmObj var);
 int scm_vm_setup_stat_trmp(ScmObj vm, ScmObj proc, ScmObj args,
                            ScmObj postproc, ScmObj handover);
 void scm_vm_setup_stat_halt(ScmObj vm);
-int scm_vm_setup_stat_raised(ScmObj vm, ScmObj obj);
-int scm_vm_clear_stat_raised(ScmObj vm);
-bool scm_vm_raised_p(ScmObj vm);
-int scm_vm_push_exception_handler(ScmObj vm, ScmObj hndlr);
-
+int scm_vm_setup_stat_raise(ScmObj vm, ScmObj obj);
+int scm_vm_setup_stat_call_exc_hndlr(ScmObj vm);
+int scm_vm_setup_stat_call_exc_hndlr_cont(ScmObj vm);
+int scm_vm_push_exc_handler(ScmObj vm, ScmObj hndlr);
+int scm_vm_pop_exc_handler(ScmObj vm);
+int scm_vm_exc_handler(ScmObj vm, scm_csetter_t *hndlr);
+int scm_vm_subr_exc_hndlr_caller(ScmObj subr, int argc, const ScmObj *argv);
+int scm_vm_subr_exc_hndlr_caller_cont(ScmObj subr,
+                                      int argc, const ScmObj *argv);
+int scm_vm_subr_exc_hndlr_caller_post(ScmObj subr,
+                                      int argc, const ScmObj *argv);
+void scm_vm_disposal_unhandled_exc(ScmObj vm);
 void scm_vm_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_vm_gc_finalize(ScmObj obj);
 int scm_vm_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
+
+inline ScmObj
+scm_vm_raised_obj(ScmObj vm)
+{
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+  return SCM_VM(vm)->reg.exc;
+}
+
+inline bool
+scm_vm_raised_p(ScmObj vm)
+{
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+  return scm_obj_not_null_p(SCM_VM(vm)->reg.exc);
+}
+
+inline void
+scm_vm_discard_raised_obj(ScmObj vm)
+{
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+  SCM_VM(vm)->reg.exc = SCM_OBJ_NULL;
+}
 
 
 #endif /* INCLUDE_VM_H__ */
