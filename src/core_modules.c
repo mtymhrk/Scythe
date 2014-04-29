@@ -246,12 +246,22 @@ scm_define_scheme_base_subr(ScmObj module)
     { "vector-append", SCM_SUBR_ARITY_VECTOR_APPEND, SCM_SUBR_FLAG_VECTOR_APPEND, scm_subr_func_vector_append },
     { "vector-fill!", SCM_SUBR_ARITY_VECTOR_FILL_I, SCM_SUBR_FLAG_VECTOR_FILL_I, scm_subr_func_vector_fill_i },
 
+    /*******************************************************************/
+    /*  Exceptions                                                     */
+    /*******************************************************************/
+    { "with-exception-handler", SCM_SUBR_ARITY_WITH_EXCEPTION_HANDLER, SCM_SUBR_FLAG_WITH_EXCEPTION_HANDLER, scm_subr_func_with_exception_handler },
+    { "raise", SCM_SUBR_ARITY_RAISE, SCM_SUBR_FLAG_RAISE, scm_subr_func_raise },
+    { "raise-continuable", SCM_SUBR_ARITY_RAISE_CONTINUABLE, SCM_SUBR_FLAG_RAISE_CONTINUABLE, scm_subr_func_raise_continuable },
 
+    /*******************************************************************/
+    /*  Input Output                                                   */
+    /*******************************************************************/
     { "read", SCM_SUBR_ARITY_READ, SCM_SUBR_FLAG_READ, scm_subr_func_read },
     { "write", SCM_SUBR_ARITY_WRITE, SCM_SUBR_FLAG_WRITE, scm_subr_func_write },
     { "display", SCM_SUBR_ARITY_DISPLAY, SCM_SUBR_FLAG_DISPLAY, scm_subr_func_display },
     { "newline", SCM_SUBR_ARITY_NEWLINE, SCM_SUBR_FLAG_NEWLINE, scm_subr_func_newline },
     { "flush-output-port", SCM_SUBR_ARITY_FLUSH_OUTPUT_PORT, SCM_SUBR_FLAG_FLUSH_OUTPUT_PORT, scm_subr_func_flush_output_port },
+
     { "call/cc", SCM_SUBR_ARITY_CALLCC, SCM_SUBR_FLAG_CALLCC, scm_subr_func_callcc },
     { "values", SCM_SUBR_ARITY_VALUES, SCM_SUBR_FLAG_VALUES, scm_subr_func_values },
     { "eval-asm", SCM_SUBR_ARITY_EVAL_ASM, SCM_SUBR_FLAG_EVAL_ASM, scm_subr_func_eval_asm },

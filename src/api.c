@@ -645,90 +645,6 @@ scm_capi_landmine_object_p(ScmObj obj)
 
 
 /*******************************************************************/
-/*  Exception                                                      */
-/*******************************************************************/
-
-int
-scm_capi_raise(ScmObj obj)
-{
-  if (scm_obj_null_p(obj)) {
-    scm_capi_error("raise: invalid argument", 0);
-    return -1;
-  }
-
-  return scm_vm_setup_stat_raise(scm_vm_current_vm(), obj);
-}
-
-extern inline ScmObj
-scm_api_raise(ScmObj obj)
-{
-  return (scm_capi_raise(obj) < 0) ? SCM_OBJ_NULL : SCM_UNDEF_OBJ;
-}
-
-int
-scm_capi_error(const char *msg, size_t n, ...)
-{
-  ScmObj str = SCM_OBJ_INIT, exc = SCM_OBJ_INIT;
-  va_list irris;
-  int rslt;
-
-  SCM_STACK_FRAME_PUSH(&str, &exc);
-
-  if (scm_obj_null_p(scm_vm_current_vm())) {
-    scm_capi_fatal("Error has occured while initializing or finalizing VM");
-    return 0;
-  }
-
-  /* BUG: 可変引数 の PUSH の前に GC が走る可能性がある */
-  if (msg == NULL)
-    str = scm_capi_make_string_from_cstr("", SCM_ENC_ASCII);
-  else
-    str = scm_capi_make_string_from_cstr(msg, SCM_ENC_ASCII);
-
-  if (scm_obj_null_p(str)) return -1;
-
-  va_start(irris, n);
-  exc = scm_exception_new_va(SCM_MEM_HEAP, str, n, irris);
-  va_end(irris);
-
-  if (scm_obj_null_p(exc)) return -1;
-
-  rslt = scm_capi_raise(exc);
-  if (rslt < 0) return -1;
-
-  return 0;
-}
-
-ScmObj
-scm_api_error_ary(ScmObj msg, size_t n, ScmObj *irris)
-{
-  ScmObj exc = SCM_OBJ_INIT;
-  int rslt;
-
-  if (scm_obj_null_p(scm_vm_current_vm())) {
-    scm_capi_fatal("Error has occured while initializing or finalizing VM");
-    return SCM_OBJ_NULL;
-  }
-
-  if (!scm_capi_string_p(msg)) return SCM_OBJ_NULL;
-
-  exc = scm_exception_new_ary(SCM_MEM_HEAP, msg, n, irris);
-  if (scm_obj_null_p(exc)) return SCM_OBJ_NULL;
-
-  rslt = scm_capi_raise(exc);
-  if (rslt < 0) return SCM_OBJ_NULL;
-
-  return SCM_UNDEF_OBJ;
-}
-
-extern inline bool
-scm_capi_error_object_p(ScmObj obj)
-{
-  if (scm_obj_null_p(obj)) return false;
-  return scm_obj_type_p(obj, &SCM_EXCEPTION_TYPE_INFO);
-}
-
-/*******************************************************************/
 /*  Pair and Lists                                                 */
 /*******************************************************************/
 
@@ -5897,6 +5813,157 @@ scm_api_vector_fill_i(ScmObj vec, ScmObj fill, ScmObj start, ScmObj end)
 
 
 /*******************************************************************/
+/*  Exceptions                                                     */
+/*******************************************************************/
+
+int
+scm_capi_raise(ScmObj obj)
+{
+  if (scm_obj_null_p(obj)) {
+    scm_capi_error("raise: invalid argument", 0);
+    return -1;
+  }
+
+  return scm_vm_setup_stat_raise(scm_vm_current_vm(), obj);
+}
+
+int
+scm_capi_raise_for_subr(ScmObj obj)
+{
+  int r;
+
+  if (scm_obj_null_p(obj)) {
+    scm_capi_error("raise: invalid argument", 0);
+    return -1;
+  }
+
+  r = scm_vm_setup_stat_raise(scm_vm_current_vm(), obj);
+  if (r < 0) return -1;
+
+  return scm_vm_setup_stat_call_exc_hndlr(scm_vm_current_vm());
+}
+
+int
+scm_capi_raise_continuable_for_subr(ScmObj obj)
+{
+  int r;
+
+  if (scm_obj_null_p(obj)) {
+    scm_capi_error("raise-continuable: invalid argument", 0);
+    return -1;
+  }
+
+  r = scm_vm_setup_stat_raise(scm_vm_current_vm(), obj);
+  if (r < 0) return -1;
+
+  return scm_vm_setup_stat_call_exc_hndlr_cont(scm_vm_current_vm());
+}
+
+bool
+scm_capi_raised_p(void)
+{
+  return scm_vm_raised_p(scm_vm_current_vm());
+}
+
+ScmObj
+scm_capi_raised_obj(void)
+{
+  return scm_vm_raised_obj(scm_vm_current_vm());
+}
+
+void
+scm_capi_discard_raised_obj(void)
+{
+  scm_vm_discard_raised_obj(scm_vm_current_vm());
+}
+
+int
+scm_capi_push_exception_handler(ScmObj handler)
+{
+  if (scm_obj_null_p(handler)) {
+    scm_capi_error("faild to install exception handler: invalid argument", 0);
+    return -1;
+  }
+  else if (!scm_capi_procedure_p(handler)) {
+    scm_capi_error("faild to install exception handler: "
+                   "invalid argument", 1, handler);
+    return -1;
+  }
+
+  return scm_vm_push_exc_handler(scm_vm_current_vm(), handler);
+}
+
+int
+scm_capi_pop_exception_handler(void)
+{
+  return scm_vm_pop_exc_handler(scm_vm_current_vm());
+}
+
+int
+scm_capi_error(const char *msg, size_t n, ...)
+{
+  ScmObj str = SCM_OBJ_INIT, exc = SCM_OBJ_INIT;
+  va_list irris;
+  int rslt;
+
+  SCM_STACK_FRAME_PUSH(&str, &exc);
+
+  if (scm_obj_null_p(scm_vm_current_vm())) {
+    scm_capi_fatal("Error has occured while initializing or finalizing VM");
+    return 0;
+  }
+
+  /* BUG: 可変引数 の PUSH の前に GC が走る可能性がある */
+  if (msg == NULL)
+    str = scm_capi_make_string_from_cstr("", SCM_ENC_ASCII);
+  else
+    str = scm_capi_make_string_from_cstr(msg, SCM_ENC_ASCII);
+
+  if (scm_obj_null_p(str)) return -1;
+
+  va_start(irris, n);
+  exc = scm_exception_new_va(SCM_MEM_HEAP, str, n, irris);
+  va_end(irris);
+
+  if (scm_obj_null_p(exc)) return -1;
+
+  rslt = scm_capi_raise(exc);
+  if (rslt < 0) return -1;
+
+  return 0;
+}
+
+ScmObj
+scm_api_error_ary(ScmObj msg, size_t n, ScmObj *irris)
+{
+  ScmObj exc = SCM_OBJ_INIT;
+  int rslt;
+
+  if (scm_obj_null_p(scm_vm_current_vm())) {
+    scm_capi_fatal("Error has occured while initializing or finalizing VM");
+    return SCM_OBJ_NULL;
+  }
+
+  if (!scm_capi_string_p(msg)) return SCM_OBJ_NULL;
+
+  exc = scm_exception_new_ary(SCM_MEM_HEAP, msg, n, irris);
+  if (scm_obj_null_p(exc)) return SCM_OBJ_NULL;
+
+  rslt = scm_capi_raise(exc);
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  return SCM_UNDEF_OBJ;
+}
+
+extern inline bool
+scm_capi_error_object_p(ScmObj obj)
+{
+  if (scm_obj_null_p(obj)) return false;
+  return scm_obj_type_p(obj, &SCM_EXCEPTION_TYPE_INFO);
+}
+
+
+/*******************************************************************/
 /*  Ports                                                          */
 /*******************************************************************/
 
@@ -8362,22 +8429,6 @@ scm_capi_trampolining(ScmObj proc, ScmObj args,
 
   return scm_vm_setup_stat_trmp(scm_vm_current_vm(), proc, args,
                                 postproc, handover);
-}
-
-
-/*******************************************************************/
-/*  Install Exception Handler                                      */
-/*******************************************************************/
-
-int
-scm_capi_push_exception_handler(ScmObj handler)
-{
-  if (!scm_capi_subrutine_p(handler) && !scm_capi_closure_p(handler)) {
-    scm_capi_error("can not install exception handler: invalid argument", 0);
-    return -1;
-  }
-
-  return scm_vm_push_exc_handler(scm_vm_current_vm(), handler);
 }
 
 

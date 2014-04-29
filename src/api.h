@@ -161,17 +161,6 @@ bool scm_capi_landmine_object_p(ScmObj obj);
 
 
 /*******************************************************************/
-/*  Exception                                                      */
-/*******************************************************************/
-
-int scm_capi_raise(ScmObj obj);
-ScmObj scm_api_raise(ScmObj obj);
-int scm_capi_error(const char *msg, size_t n, ...);
-ScmObj scm_api_error_ary(ScmObj msg, size_t n, ScmObj *irris);
-bool scm_capi_error_object_p(ScmObj obj);
-
-
-/*******************************************************************/
 /*  Pair and Lists                                                 */
 /*******************************************************************/
 
@@ -456,6 +445,23 @@ ScmObj scm_api_vector_fill_i(ScmObj vec, ScmObj fill, ScmObj start, ScmObj end);
 
 
 /*******************************************************************/
+/*  Exception                                                      */
+/*******************************************************************/
+
+int scm_capi_raise(ScmObj obj);
+int scm_capi_raise_for_subr(ScmObj obj);
+int scm_capi_raise_continuable_for_subr(ScmObj obj);
+bool scm_capi_raised_p(void);
+ScmObj scm_capi_raised_obj(void);
+void scm_capi_discard_raised_obj(void);
+int scm_capi_push_exception_handler(ScmObj handler);
+int scm_capi_pop_exception_handler(void);
+int scm_capi_error(const char *msg, size_t n, ...);
+ScmObj scm_api_error_ary(ScmObj msg, size_t n, ScmObj *irris);
+bool scm_capi_error_object_p(ScmObj obj);
+
+
+/*******************************************************************/
 /*  Port                                                           */
 /*******************************************************************/
 
@@ -682,13 +688,6 @@ ScmObj scm_capi_cont_capture_obj(ScmObj cont);
 
 int scm_capi_trampolining(ScmObj proc, ScmObj arg,
                           ScmObj postproc, ScmObj handover);
-
-
-/*******************************************************************/
-/*  Install Exception Handler                                      */
-/*******************************************************************/
-
-int scm_capi_push_exception_handler(ScmObj handler);
 
 
 /*******************************************************************/

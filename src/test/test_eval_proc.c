@@ -360,3 +360,159 @@ test_eval__multiple_return_values_8(void)
 
   cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
 }
+
+void
+test_eval__with_exception_handler__non_raise(void)
+{
+  ScmObj exp = SCM_OBJ_INIT, port = SCM_OBJ_INIT;
+  ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+  const char *exp_str = "(call/cc"
+                        "   (lambda (k)"
+                        "      (with-exception-handler"
+                        "         (lambda (x) (k 100))"
+                        "         (lambda () 10))))";
+  const char *ect_str = "10";
+
+  SCM_STACK_FRAME_PUSH(&exp, &port,
+                       &actual, &expected);
+
+
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  exp = scm_api_read(port);
+
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  expected = scm_api_read(port);
+
+  actual = scm_capi_ut_eval(ev, exp);
+
+  /* scm_api_write(expected, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
+  /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
+
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+}
+
+void
+test_eval__with_exception_handler__raise(void)
+{
+  ScmObj exp = SCM_OBJ_INIT, port = SCM_OBJ_INIT;
+  ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+  const char *exp_str = "(call/cc"
+                        "   (lambda (k)"
+                        "      (with-exception-handler"
+                        "         (lambda (x) (k 100))"
+                        "         (lambda () (raise 'an-error)))))";
+  const char *ect_str = "100";
+
+  SCM_STACK_FRAME_PUSH(&exp, &port,
+                       &actual, &expected);
+
+
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  exp = scm_api_read(port);
+
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  expected = scm_api_read(port);
+
+  actual = scm_capi_ut_eval(ev, exp);
+
+  /* scm_api_write(expected, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
+  /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
+
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+}
+
+void
+test_eval__with_exception_handler__raise_2(void)
+{
+  ScmObj exp = SCM_OBJ_INIT, port = SCM_OBJ_INIT;
+  ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+  const char *exp_str = "(let ((var 0))"
+                        "   (call/cc"
+                        "      (lambda (k)"
+                        "         (with-exception-handler"
+                        "            (lambda (x) (set! var (+ var 100)) (k))"
+                        "            (lambda ()"
+                        "               (with-exception-handler"
+                        "                  (lambda (x) (set! var x))"
+                        "                  (lambda () (raise 10)))))))"
+                        "   var)";
+  const char *ect_str = "110";
+
+  SCM_STACK_FRAME_PUSH(&exp, &port,
+                       &actual, &expected);
+
+
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  exp = scm_api_read(port);
+
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  expected = scm_api_read(port);
+
+  actual = scm_capi_ut_eval(ev, exp);
+
+  /* scm_api_write(expected, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
+  /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
+
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+}
+
+void
+test_eval__with_exception_handler__raise_continuable(void)
+{
+  ScmObj exp = SCM_OBJ_INIT, port = SCM_OBJ_INIT;
+  ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+  const char *exp_str = "(with-exception-handler"
+                        "   (lambda (x) (* x 10))"
+                        "   (lambda () (+ (raise-continuable 1)"
+                        "                 (raise-continuable 2))))";
+  const char *ect_str = "30";
+
+  SCM_STACK_FRAME_PUSH(&exp, &port,
+                       &actual, &expected);
+
+
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  exp = scm_api_read(port);
+
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  expected = scm_api_read(port);
+
+  actual = scm_capi_ut_eval(ev, exp);
+
+  /* scm_api_write(expected, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
+  /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
+
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+}
+
+void
+test_eval__with_exception_handler__raise_continuable_2(void)
+{
+  ScmObj exp = SCM_OBJ_INIT, port = SCM_OBJ_INIT;
+  ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+  const char *exp_str = "(with-exception-handler"
+                        "   (lambda (x) (* x 5))"
+                        "   (lambda ()"
+                        "      (with-exception-handler"
+                        "         (lambda (x) (* (raise-continuable 2) x))"
+                        "         (lambda () (+ (raise-continuable 10) 1)))))";
+
+  const char *ect_str = "101";
+
+  SCM_STACK_FRAME_PUSH(&exp, &port,
+                       &actual, &expected);
+
+
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  exp = scm_api_read(port);
+
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  expected = scm_api_read(port);
+
+  actual = scm_capi_ut_eval(ev, exp);
+
+  /* scm_api_write(expected, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
+  /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
+
+  cut_assert_true(scm_capi_true_object_p(scm_api_equal_P(expected, actual)));
+}

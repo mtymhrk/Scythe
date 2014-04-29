@@ -1172,11 +1172,9 @@ scm_vm_make_trampolining_code(ScmObj vm, ScmObj proc,
   SCM_STACK_FRAME_PUSH(&vm, &proc, &args, &postproc, &iseq, &cur, &arg);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-  scm_assert(scm_capi_subrutine_p(proc) || scm_capi_closure_p(proc));
+  scm_assert(scm_capi_procedure_p(proc));
   scm_assert(scm_capi_nil_p(args) || scm_capi_pair_p(args));
-  scm_assert(scm_obj_null_p(postproc)
-             || scm_capi_subrutine_p(postproc)
-             || scm_capi_closure_p(postproc));
+  scm_assert(scm_obj_null_p(postproc) || scm_capi_procedure_p(postproc));
   scm_assert(scm_obj_null_p(postproc) || scm_obj_not_null_p(handover));
 
   /* 以下の処理を実行する iseq オブエクトを生成する
@@ -2981,8 +2979,7 @@ scm_vm_push_exc_handler(ScmObj vm, ScmObj hndlr)
   SCM_STACK_FRAME_PUSH(&vm, &hndlr, &lst);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-  scm_assert(scm_capi_subrutine_p(hndlr)
-             || scm_capi_closure_p(hndlr));
+  scm_assert(scm_capi_procedure_p(hndlr));
 
   lst = scm_api_cons(hndlr, SCM_VM(vm)->reg.hndlr);
   if (scm_obj_null_p(lst)) return -1; /* [ERR]: [thorugh] */

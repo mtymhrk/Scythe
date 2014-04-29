@@ -1845,6 +1845,60 @@ scm_subr_func_vector_fill_i(ScmObj subr, int argc, const ScmObj *argv)
 
 
 /*******************************************************************/
+/*  Exceptions                                                     */
+/*******************************************************************/
+
+int
+scm_subr_func_with_exception_handler_post(ScmObj subr,
+                                          int argc, const ScmObj *argv)
+{
+  int rslt;
+
+  rslt = scm_capi_pop_exception_handler();
+  if (rslt < 0) return -1;
+
+  return scm_capi_return_val(argv + 1, argc - 1);
+}
+
+int
+scm_subr_func_with_exception_handler(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj module = SCM_OBJ_INIT, postproc = SCM_OBJ_INIT;
+  int rslt;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &module, &postproc);
+
+  rslt = scm_capi_subrutine_module(subr, SCM_CSETTER_L(module));
+  if (rslt < 0) return -1;
+
+  postproc = scm_capi_make_subrutine(scm_subr_func_with_exception_handler_post,
+                                     -2, SCM_PROC_ADJ_UNWISHED, module);
+  if (scm_obj_null_p(postproc)) return -1;
+
+  rslt = scm_capi_trampolining(argv[1], SCM_NIL_OBJ, postproc, SCM_OBJ_NULL);
+  if (rslt < 0) return -1;
+
+  rslt = scm_capi_push_exception_handler(argv[0]);
+  if (rslt < 0) return -1;
+
+  return 0;
+}
+
+int
+scm_subr_func_raise(ScmObj subr, int argc, const ScmObj *argv)
+{
+  return scm_capi_raise_for_subr(argv[0]);
+}
+
+int
+scm_subr_func_raise_continuable(ScmObj subr, int argc, const ScmObj *argv)
+{
+  return scm_capi_raise_continuable_for_subr(argv[0]);
+}
+
+
+/*******************************************************************/
 /*  Input Output                                                   */
 /*******************************************************************/
 
