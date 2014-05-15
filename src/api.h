@@ -457,8 +457,15 @@ void scm_capi_discard_raised_obj(void);
 int scm_capi_push_exception_handler(ScmObj handler);
 int scm_capi_pop_exception_handler(void);
 int scm_capi_error(const char *msg, size_t n, ...);
-ScmObj scm_api_error_ary(ScmObj msg, size_t n, ScmObj *irris);
+int scm_capi_read_error(const char *msg, size_t n, ...);
+int scm_capi_file_error(const char *msg, size_t n, ...);
+int scm_capi_error_for_subr(ScmObj msg, ScmObj irris);
 bool scm_capi_error_object_p(ScmObj obj);
+ScmObj scm_api_error_object_P(ScmObj obj);
+ScmObj scm_api_error_object_message(ScmObj obj);
+ScmObj scm_api_error_object_irritants(ScmObj obj);
+ScmObj scm_api_read_error_P(ScmObj obj);
+ScmObj scm_api_file_error_P(ScmObj obj);
 
 
 /*******************************************************************/

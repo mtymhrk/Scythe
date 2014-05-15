@@ -5899,32 +5899,35 @@ scm_capi_pop_exception_handler(void)
   return scm_vm_pop_exc_handler(scm_vm_current_vm());
 }
 
-int
-scm_capi_error(const char *msg, size_t n, ...)
+static int
+scm_capi_terror_aux(const char *type, const char *msg, size_t n, va_list arg)
 {
-  ScmObj str = SCM_OBJ_INIT, exc = SCM_OBJ_INIT;
-  va_list irris;
+  ScmObj sym = SCM_OBJ_INIT, str = SCM_OBJ_INIT, exc = SCM_OBJ_INIT;
+  ScmObj irris[n];
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&str, &exc);
+  SCM_STACK_FRAME_PUSH(&sym, &str, &exc);
 
   if (scm_obj_null_p(scm_vm_current_vm())) {
     scm_capi_fatal("Error has occured while initializing or finalizing VM");
     return 0;
   }
 
-  /* BUG: 可変引数 の PUSH の前に GC が走る可能性がある */
-  if (msg == NULL)
-    str = scm_capi_make_string_from_cstr("", SCM_ENC_ASCII);
-  else
-    str = scm_capi_make_string_from_cstr(msg, SCM_ENC_ASCII);
+  for (size_t i = 0; i < n; i++) {
+    irris[i] = va_arg(arg, ScmObj);
+    SCM_STACK_PUSH(irris + i);
+  }
 
+  sym = SCM_OBJ_NULL;
+  if (type != NULL) {
+    sym = scm_capi_make_symbol_from_cstr(type, SCM_ENC_UTF8);
+    if (scm_obj_null_p(sym)) return -1;
+  }
+
+  str = scm_capi_make_string_from_cstr((msg == NULL) ? "" : msg, SCM_ENC_UTF8);
   if (scm_obj_null_p(str)) return -1;
 
-  va_start(irris, n);
-  exc = scm_exception_new_va(SCM_MEM_HEAP, str, n, irris);
-  va_end(irris);
-
+  exc = scm_error_new_cv(SCM_MEM_HEAP, str, sym, irris, n);
   if (scm_obj_null_p(exc)) return -1;
 
   rslt = scm_capi_raise(exc);
@@ -5933,33 +5936,172 @@ scm_capi_error(const char *msg, size_t n, ...)
   return 0;
 }
 
-ScmObj
-scm_api_error_ary(ScmObj msg, size_t n, ScmObj *irris)
+int
+scm_capi_error(const char *msg, size_t n, ...)
+{
+  va_list arg;
+  int r;
+
+  va_start(arg, n);
+  r = scm_capi_terror_aux(NULL, msg, n, arg);
+  va_end(arg);
+
+  return r;
+}
+
+int
+scm_capi_read_error(const char *msg, size_t n, ...)
+{
+  va_list arg;
+  int r;
+
+  va_start(arg, n);
+  r = scm_capi_terror_aux("read", msg, n, arg);
+  va_end(arg);
+
+  return r;
+}
+
+int
+scm_capi_file_error(const char *msg, size_t n, ...)
+{
+  va_list arg;
+  int r;
+
+  va_start(arg, n);
+  r = scm_capi_terror_aux("file", msg, n, arg);
+  va_end(arg);
+
+  return r;
+}
+
+int
+scm_capi_error_for_subr(ScmObj msg, ScmObj irris)
 {
   ScmObj exc = SCM_OBJ_INIT;
-  int rslt;
 
   if (scm_obj_null_p(scm_vm_current_vm())) {
     scm_capi_fatal("Error has occured while initializing or finalizing VM");
     return SCM_OBJ_NULL;
   }
 
-  if (!scm_capi_string_p(msg)) return SCM_OBJ_NULL;
+  if (scm_obj_null_p(msg)) {
+    scm_capi_error("error: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_string_p(msg)) {
+    scm_capi_error("error: string required, but got", 1, msg);
+    return SCM_OBJ_NULL;
+  }
 
-  exc = scm_exception_new_ary(SCM_MEM_HEAP, msg, n, irris);
+  if (scm_obj_null_p(irris)) {
+    scm_capi_error("error: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  exc = scm_error_new_lst(SCM_MEM_HEAP, msg, SCM_OBJ_NULL, irris);
   if (scm_obj_null_p(exc)) return SCM_OBJ_NULL;
 
-  rslt = scm_capi_raise(exc);
-  if (rslt < 0) return SCM_OBJ_NULL;
-
-  return SCM_UNDEF_OBJ;
+  return scm_capi_raise_for_subr(exc);
 }
 
 extern inline bool
 scm_capi_error_object_p(ScmObj obj)
 {
   if (scm_obj_null_p(obj)) return false;
-  return scm_obj_type_p(obj, &SCM_EXCEPTION_TYPE_INFO);
+  return scm_obj_type_p(obj, &SCM_ERROR_TYPE_INFO);
+}
+
+ScmObj
+scm_api_error_object_P(ScmObj obj)
+{
+  if (scm_obj_null_p(obj)) return SCM_OBJ_NULL;
+
+  return (scm_capi_error_object_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ);
+}
+
+ScmObj
+scm_api_error_object_message(ScmObj obj)
+{
+  if (scm_obj_null_p(obj)) {
+    scm_capi_error("error-object-message: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_error_object_p(obj)) {
+    scm_capi_error("error-object-message: "
+                   "error-object required, but got", 1, obj);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_exception_msg(obj);
+}
+
+ScmObj
+scm_api_error_object_irritants(ScmObj obj)
+{
+  if (scm_obj_null_p(obj)) {
+    scm_capi_error("error-object-irritants: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_capi_error_object_p(obj)) {
+    scm_capi_error("error-object-irritants: "
+                   "error-object required, but got", 1, obj);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_error_irris_to_list(obj);
+}
+
+static int
+scm_capi_error_object_type_eq(ScmObj obj, const char *type, bool *rslt)
+{
+  ScmObj sym = SCM_OBJ_INIT, etype = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&obj,
+                       &sym, &etype);
+
+  if (scm_obj_null_p(obj)) return -1;
+
+  if (!scm_capi_error_object_p(obj)) {
+    *rslt = false;
+    return 0;
+  }
+
+  etype = scm_error_type(obj);
+
+  sym = SCM_OBJ_NULL;
+  if (type != NULL) {
+    sym = scm_capi_make_symbol_from_cstr(type, SCM_ENC_UTF8);
+    if (scm_obj_null_p(sym)) return -1;
+  }
+
+  *rslt = scm_capi_eq_p(sym, etype);
+
+  return 0;
+}
+
+ScmObj
+scm_api_read_error_P(ScmObj obj)
+{
+  bool cmp;
+  int r;
+
+  r = scm_capi_error_object_type_eq(obj, "read", &cmp);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return (cmp ? SCM_TRUE_OBJ : SCM_FALSE_OBJ);
+}
+
+ScmObj
+scm_api_file_error_P(ScmObj obj)
+{
+  bool cmp;
+  int r;
+
+  r = scm_capi_error_object_type_eq(obj, "file", &cmp);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return (cmp ? SCM_TRUE_OBJ : SCM_FALSE_OBJ);
 }
 
 

@@ -5,54 +5,91 @@
 #include <limits.h>
 
 typedef struct ScmExceptionRec ScmException;
+typedef struct ScmErrorRec ScmError;
 
 #define SCM_EXCEPTION(obj) ((ScmException *)(obj))
+#define SCM_ERROR(obj) ((ScmError *)(obj))
 
 #include "object.h"
 #include "api_enum.h"
 
+
+/*******************************************************************/
+/*  Exception                                                      */
+/*******************************************************************/
+
 struct ScmExceptionRec {
   ScmObjHeader header;
   ScmObj msg;
+};
+
+int scm_exception_initialize(ScmObj exc, ScmObj msg);
+void scm_exception_finalize(ScmObj exc);
+void scm_exception_gc_initialize(ScmObj obj, ScmObj mem);
+int scm_exception_gc_accept(ScmObj obj,
+                            ScmObj mem, ScmGCRefHandlerFunc handler);
+
+inline ScmObj
+scm_exception_msg(ScmObj exc)
+{
+  scm_assert(scm_obj_type_flag_set_p(exc, SCM_TYPE_FLG_EXC));
+
+  return SCM_EXCEPTION(exc)->msg;
+}
+
+
+/*******************************************************************/
+/*  Error                                                          */
+/*******************************************************************/
+
+struct ScmErrorRec {
+  ScmException exc;
+  ScmObj type;
   ScmObj *irritants;
   size_t nr_irris;
 };
 
-extern ScmTypeInfo SCM_EXCEPTION_TYPE_INFO;
+extern ScmTypeInfo SCM_ERROR_TYPE_INFO;
 
-#define SCM_EXCEPTION_IRRITANTS_MAX (SIZE_MAX / sizeof(ScmObj))
+#define SCM_ERROR_IRRITANTS_MAX (SIZE_MAX / sizeof(ScmObj))
 
-int scm_exception_initialize_va(ScmObj exc, ScmObj msg,
-                                size_t n, va_list irris);
-int scm_exception_initialize_ary(ScmObj exc, ScmObj msg,
-                                 size_t n, ScmObj *irris);
-void scm_exception_finalize(ScmObj exc);
-ScmObj scm_exception_new(SCM_MEM_TYPE_T mtype, ScmObj msg, size_t n, ...);
-ScmObj scm_exception_new_va(SCM_MEM_TYPE_T mtype, ScmObj msg,
-                            size_t n, va_list irris);
-ScmObj scm_exception_new_ary(SCM_MEM_TYPE_T mtype, ScmObj msg,
-                             size_t n, ScmObj *irris);
-int scm_exception_pretty_print(ScmObj obj, ScmObj port, bool write_p);
-void scm_exception_gc_initialize(ScmObj obj, ScmObj mem);
-void scm_exception_gc_fianlize(ScmObj obj);
-int scm_exception_gc_accept(ScmObj obj, ScmObj mem,
-                            ScmGCRefHandlerFunc handler);
+int scm_error_initialize_cv(ScmObj exc, ScmObj msg,
+                            ScmObj type, ScmObj *irris, size_t n);
+int scm_error_initialize_lst(ScmObj exc, ScmObj msg, ScmObj type, ScmObj irris);
+void scm_error_finalize(ScmObj exc);
+ScmObj scm_error_new_cv(SCM_MEM_TYPE_T mtype,
+                        ScmObj msg, ScmObj type, ScmObj *irris, size_t n);
+ScmObj scm_error_new_lst(SCM_MEM_TYPE_T mtype,
+                         ScmObj msg, ScmObj type, ScmObj irris);
+ScmObj scm_error_irris_to_list(ScmObj exc);
+int scm_error_pretty_print(ScmObj obj, ScmObj port, bool write_p);
+void scm_error_gc_initialize(ScmObj obj, ScmObj mem);
+void scm_error_gc_fianlize(ScmObj obj);
+int scm_error_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
+
+inline ScmObj
+scm_error_type(ScmObj exc)
+{
+  scm_assert_obj_type(exc, &SCM_ERROR_TYPE_INFO);
+
+  return SCM_ERROR(exc)->type;
+}
 
 inline size_t
-scm_exception_nr_irritants(ScmObj exc)
+scm_error_nr_irritants(ScmObj exc)
 {
-  scm_assert_obj_type(exc, &SCM_EXCEPTION_TYPE_INFO);
+  scm_assert_obj_type(exc, &SCM_ERROR_TYPE_INFO);
 
-  return SCM_EXCEPTION(exc)->nr_irris;
+  return SCM_ERROR(exc)->nr_irris;
 }
 
 inline ScmObj
-scm_exception_irritant(ScmObj exc, size_t idx)
+scm_error_irritant(ScmObj exc, size_t idx)
 {
-  scm_assert_obj_type(exc, &SCM_EXCEPTION_TYPE_INFO);
-  scm_assert(idx < SCM_EXCEPTION(exc)->nr_irris);
+  scm_assert_obj_type(exc, &SCM_ERROR_TYPE_INFO);
+  scm_assert(idx < SCM_ERROR(exc)->nr_irris);
 
-  return SCM_EXCEPTION(exc)->irritants[idx];
+  return SCM_ERROR(exc)->irritants[idx];
 }
 
 #endif /* INCLUDE_EXCEPTION_H__ */

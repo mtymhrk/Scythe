@@ -12,7 +12,7 @@ SET(unit_test_src_path test/ut)
 SET(unit_test_src test_module.c test_pair_and_lists.c test_strings.c
                   test_characters.c test_symbols.c test_equivalence.c
                   test_booleans.c test_fixnum.c test_bignum.c test_vectors.c
-                  test_format.c)
+                  test_format.c test_exceptions.c)
 
 SET(unity_dir test/unity)
 SET(unity_src_path ${unity_dir}/src)
