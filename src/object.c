@@ -19,5 +19,5 @@ scm_obj_default_print_func(ScmObj obj, ScmObj port, bool ext_rep)
   char str[256];
 
   snprintf(str, sizeof(str), "#<%s %lx>", scm_obj_type_name(obj), obj);
-  return scm_capi_write_cstr(str, SCM_ENC_UTF8, port);
+  return scm_capi_write_cstr(str, SCM_ENC_SRC, port);
 }

@@ -1681,7 +1681,7 @@ scm_capi_make_number_from_literal(const char *literal, size_t size)
     return SCM_OBJ_NULL;
   }
 
-  return scm_num_make_from_literal(literal, SCM_ENC_UTF8);
+  return scm_num_make_from_literal(literal, SCM_ENC_SRC);
 }
 
 ScmObj
@@ -5920,11 +5920,11 @@ scm_capi_terror_aux(const char *type, const char *msg, size_t n, va_list arg)
 
   sym = SCM_OBJ_NULL;
   if (type != NULL) {
-    sym = scm_capi_make_symbol_from_cstr(type, SCM_ENC_UTF8);
+    sym = scm_capi_make_symbol_from_cstr(type, SCM_ENC_SRC);
     if (scm_obj_null_p(sym)) return -1;
   }
 
-  str = scm_capi_make_string_from_cstr((msg == NULL) ? "" : msg, SCM_ENC_UTF8);
+  str = scm_capi_make_string_from_cstr((msg == NULL) ? "" : msg, SCM_ENC_SRC);
   if (scm_obj_null_p(str)) return -1;
 
   exc = scm_error_new_cv(SCM_MEM_HEAP, str, sym, irris, n);
@@ -6071,7 +6071,7 @@ scm_capi_error_object_type_eq(ScmObj obj, const char *type, bool *rslt)
 
   sym = SCM_OBJ_NULL;
   if (type != NULL) {
-    sym = scm_capi_make_symbol_from_cstr(type, SCM_ENC_UTF8);
+    sym = scm_capi_make_symbol_from_cstr(type, SCM_ENC_SRC);
     if (scm_obj_null_p(sym)) return -1;
   }
 
@@ -8081,7 +8081,7 @@ scm_api_compile__get_cmpl(ScmObj arg)
   if (scm_obj_null_p(cmpl)) {
     if (scm_obj_null_p(mod)) {
       if (scm_obj_null_p(name)) {
-        name = scm_capi_make_symbol_from_cstr("main", SCM_ENC_ASCII);
+        name = scm_capi_make_symbol_from_cstr("main", SCM_ENC_SRC);
         if (scm_obj_null_p(name)) return SCM_OBJ_NULL;
       }
 
@@ -8888,7 +8888,7 @@ scm_api_pformat_aux(ScmObj port, ScmObj fmt, const char *cfmt,
   }
 
   if (scm_obj_null_p(fmt)) {
-    fmt = scm_capi_make_string_from_cstr(cfmt, SCM_ENC_UTF8);
+    fmt = scm_capi_make_string_from_cstr(cfmt, SCM_ENC_SRC);
     if (scm_obj_null_p(fmt)) return SCM_OBJ_NULL;
   }
 
@@ -9151,7 +9151,7 @@ scm_capi_run_repl(ScmEvaluator *ev)
                                            "   (arity 1)"
                                            "   (jmp loop)"
                                            ")",
-                                           SCM_ENC_UTF8);
+                                           SCM_ENC_SRC);
     if (scm_obj_null_p(port)) return -1;
 
     asmbl = scm_api_read(port);

@@ -232,7 +232,7 @@ scm_vector_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
 
   scm_assert_obj_type(obj, &SCM_VECTOR_TYPE_INFO);
 
-  rslt = scm_capi_write_cstr("#(", SCM_ENC_UTF8, port);
+  rslt = scm_capi_write_cstr("#(", SCM_ENC_SRC, port);
   if (rslt < 0) return -1;
 
   if (SCM_VECTOR_LENGTH(obj) > 0) {
@@ -240,7 +240,7 @@ scm_vector_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
       rslt = scm_obj_call_print_func(SCM_VECTOR_ARRAY(obj)[idx], port, ext_rep);
       if (rslt < 0) return -1;
 
-      rslt = scm_capi_write_cstr(" ", SCM_ENC_UTF8, port);
+      rslt = scm_capi_write_cstr(" ", SCM_ENC_SRC, port);
       if (rslt < 0) return -1;
     }
 
@@ -248,7 +248,7 @@ scm_vector_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
     if (rslt < 0) return -1;
   }
 
-  rslt = scm_capi_write_cstr(")", SCM_ENC_UTF8, port);
+  rslt = scm_capi_write_cstr(")", SCM_ENC_SRC, port);
   if (rslt < 0) return -1;
 
   return 0;

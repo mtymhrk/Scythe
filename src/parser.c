@@ -1066,16 +1066,16 @@ scm_parser_parse_quote(ScmParser *parser, ScmObj port, ScmEncoding *enc)
 
   switch (token->type) {
   case SCM_TOKEN_TYPE_QUOTE:
-    quote = scm_capi_make_symbol_from_cstr(quote_str, SCM_ENC_ASCII);
+    quote = scm_capi_make_symbol_from_cstr(quote_str, SCM_ENC_SRC);
     break;
   case SCM_TOKEN_TYPE_QUASIQUOTE:
-    quote = scm_capi_make_symbol_from_cstr(quasiquote_str, SCM_ENC_ASCII);
+    quote = scm_capi_make_symbol_from_cstr(quasiquote_str, SCM_ENC_SRC);
     break;
   case SCM_TOKEN_TYPE_UNQUOTE:
-    quote = scm_capi_make_symbol_from_cstr(unquote_str, SCM_ENC_ASCII);
+    quote = scm_capi_make_symbol_from_cstr(unquote_str, SCM_ENC_SRC);
     break;
   case SCM_TOKEN_TYPE_UNQUOTE_SPLICING:
-    quote = scm_capi_make_symbol_from_cstr(unquote_splicing_str, SCM_ENC_ASCII);
+    quote = scm_capi_make_symbol_from_cstr(unquote_splicing_str, SCM_ENC_SRC);
     break;
   case SCM_TOKEN_TYPE_NONE:               /* fall through */
   case SCM_TOKEN_TYPE_LPAREN:             /* fall through */

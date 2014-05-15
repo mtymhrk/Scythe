@@ -1986,7 +1986,7 @@ scm_get_current_port(ScmObj subr, const char *var)
   rslt = scm_capi_subrutine_module(subr, SCM_CSETTER_L(mod));
   if (rslt < 0) return SCM_OBJ_NULL;
 
-  sym = scm_capi_make_symbol_from_cstr(var, SCM_ENC_ASCII);
+  sym = scm_capi_make_symbol_from_cstr(var, SCM_ENC_SRC);
   if (scm_obj_null_p(sym)) return SCM_OBJ_NULL;
 
   rslt = scm_capi_global_var_ref(mod, sym, SCM_CSETTER_L(prm));

@@ -3152,7 +3152,7 @@ scm_vm_disposal_unhandled_exc(ScmObj vm)
   port = scm_api_open_output_string();
   if (scm_obj_null_p(port)) return;
 
-  rslt = scm_capi_write_cstr("Unhandled Exception: ", SCM_ENC_UTF8, port);
+  rslt = scm_capi_write_cstr("Unhandled Exception: ", SCM_ENC_SRC, port);
   if (rslt < 0) return;
 
   ro = scm_api_display(SCM_VM(vm)->reg.exc, port);

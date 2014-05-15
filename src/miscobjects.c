@@ -52,7 +52,7 @@ int
 scm_eof_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
 {
   scm_assert_obj_type(obj, &SCM_EOF_TYPE_INFO);
-  return scm_capi_write_cstr("#<eof>", SCM_ENC_UTF8, port);
+  return scm_capi_write_cstr("#<eof>", SCM_ENC_SRC, port);
 }
 
 
@@ -117,9 +117,9 @@ scm_bool_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
   scm_assert_obj_type(obj, &SCM_BOOL_TYPE_INFO);
 
   if (SCM_BOOL(obj)->value == true)
-    rslt = scm_capi_write_cstr("#t", SCM_ENC_UTF8, port);
+    rslt = scm_capi_write_cstr("#t", SCM_ENC_SRC, port);
   else
-    rslt = scm_capi_write_cstr("#f", SCM_ENC_UTF8, port);
+    rslt = scm_capi_write_cstr("#f", SCM_ENC_SRC, port);
 
   if (rslt < 0) return -1;
 
@@ -177,7 +177,7 @@ scm_nil_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
 
   scm_assert_obj_type(obj, &SCM_NIL_TYPE_INFO);
 
-  rslt = scm_capi_write_cstr("()", SCM_ENC_UTF8, port);
+  rslt = scm_capi_write_cstr("()", SCM_ENC_SRC, port);
   if (rslt < 0) return -1;
 
   return 0;
@@ -231,7 +231,7 @@ int
 scm_undef_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
 {
   scm_assert_obj_type(obj, &SCM_UNDEF_TYPE_INFO);
-  return scm_capi_write_cstr("#<undef>", SCM_ENC_UTF8, port);
+  return scm_capi_write_cstr("#<undef>", SCM_ENC_SRC, port);
 }
 
 
@@ -282,5 +282,5 @@ int
 scm_landmine_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
 {
   scm_assert_obj_type(obj, &SCM_LANDMINE_TYPE_INFO);
-  return scm_capi_write_cstr("#<landmine>", SCM_ENC_UTF8, port);
+  return scm_capi_write_cstr("#<landmine>", SCM_ENC_SRC, port);
 }

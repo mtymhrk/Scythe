@@ -265,7 +265,7 @@ scm_cont_initialize(ScmObj cont, ScmObj contcap)
 
   scm_assert_obj_type(cont, &SCM_CONTINUATION_TYPE_INFO);
 
-  name = scm_capi_make_string_from_cstr("continuation", SCM_ENC_ASCII);
+  name = scm_capi_make_string_from_cstr("continuation", SCM_ENC_SRC);
   if (scm_obj_null_p(name)) return -1;
 
   rslt = scm_proc_initialize(cont, name, -1, SCM_PROC_ADJ_UNWISHED);

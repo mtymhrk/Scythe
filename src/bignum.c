@@ -1509,7 +1509,7 @@ scm_bignum_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
   if (rslt < 0) goto err;       /* [ERR]: [through] */
 
   if (SCM_BIGNUM(obj)->sign == '-') {
-    rslt = scm_capi_write_cstr("-", SCM_ENC_UTF8, port);
+    rslt = scm_capi_write_cstr("-", SCM_ENC_SRC, port);
     if (rslt < 0) goto err;    /* [ERR]: [through] */
   }
 
@@ -1517,7 +1517,7 @@ scm_bignum_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
   for (size_t i = EARY_SIZE(&ary); i > 0; i--) {
     EARY_GET(&ary, scm_bignum_d_t, i - 1, val);
     snprintf(str, sizeof(str), "%0*u", width, val);
-    rslt = scm_capi_write_cstr(str, SCM_ENC_UTF8, port);
+    rslt = scm_capi_write_cstr(str, SCM_ENC_SRC, port);
     if (rslt < 0) goto err;    /* [ERR]: [through] */
     width = place;
   }

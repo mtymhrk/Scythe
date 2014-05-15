@@ -61,7 +61,7 @@ scm_pair_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
 
   scm_assert_obj_type(obj, &SCM_PAIR_TYPE_INFO);
 
-  rslt = scm_capi_write_cstr("(", SCM_ENC_UTF8, port);
+  rslt = scm_capi_write_cstr("(", SCM_ENC_SRC, port);
   if (rslt < 0) return -1;      /* [ERR]: [through] */
 
   lst = obj;
@@ -78,7 +78,7 @@ scm_pair_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
       rslt = scm_obj_call_print_func(car, port, ext_rep);
       if (rslt < 0) return -1;
 
-      rslt = scm_capi_write_cstr(" . ", SCM_ENC_UTF8, port);
+      rslt = scm_capi_write_cstr(" . ", SCM_ENC_SRC, port);
       if (rslt < 0) return -1;
 
       rslt = scm_obj_call_print_func(cdr, port, ext_rep);
@@ -89,13 +89,13 @@ scm_pair_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
     rslt = scm_obj_call_print_func(car, port, ext_rep);
     if (rslt < 0) return -1;
 
-    rslt = scm_capi_write_cstr(" ", SCM_ENC_UTF8, port);
+    rslt = scm_capi_write_cstr(" ", SCM_ENC_SRC, port);
     if (rslt < 0) return -1;    /* [ERR]: [through] */
 
     lst = cdr;
   }
 
-  rslt = scm_capi_write_cstr(")", SCM_ENC_UTF8, port);
+  rslt = scm_capi_write_cstr(")", SCM_ENC_SRC, port);
   if (rslt < 0) return -1;      /* [ERR]: [through] */
 
   return 0;

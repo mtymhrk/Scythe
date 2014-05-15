@@ -994,5 +994,5 @@ scm_asm_mnemonic(int opcode)
     return SCM_OBJ_NULL;
   }
 
-  return scm_capi_make_symbol_from_cstr(p, SCM_ENC_ASCII);
+  return scm_capi_make_symbol_from_cstr(p, SCM_ENC_SRC);
 }

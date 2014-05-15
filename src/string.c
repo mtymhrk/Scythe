@@ -274,17 +274,17 @@ scm_string_write_ext_rep_inner(ScmObj str, ScmObj port, size_t len)
 
   enc = SCM_STRING_ENC(str);
 
-  rslt = scm_capi_write_cstr("\"", SCM_ENC_UTF8, port);
+  rslt = scm_capi_write_cstr("\"", SCM_ENC_SRC, port);
   if (rslt < 0) return -1; /* [ERR: [through] */
 
   for (size_t i = 0; i < len; i++) {
     if (scm_enc_printable_p(enc, ary[i].bytes, sizeof(ary[i]))) {
       if (scm_enc_same_char_p(enc, ary[i].bytes, sizeof(ary[i]), '"')) {
-        rslt = scm_capi_write_cstr("\\\"", SCM_ENC_UTF8, port);
+        rslt = scm_capi_write_cstr("\\\"", SCM_ENC_SRC, port);
         if (rslt < 0) return -1; /* [ERR]: [through] */
       }
       else if (scm_enc_same_char_p(enc, ary[i].bytes, sizeof(ary[i]), '\\')) {
-        rslt = scm_capi_write_cstr("\\\\", SCM_ENC_UTF8, port);
+        rslt = scm_capi_write_cstr("\\\\", SCM_ENC_SRC, port);
         if (rslt < 0) return -1; /* [ERR]: [through] */
       }
       else {
@@ -294,23 +294,23 @@ scm_string_write_ext_rep_inner(ScmObj str, ScmObj port, size_t len)
     }
     else {
       if (scm_enc_same_char_p(enc, ary[i].bytes, sizeof(ary[i]), '\a')) {
-        rslt = scm_capi_write_cstr("\\a", SCM_ENC_UTF8, port);
+        rslt = scm_capi_write_cstr("\\a", SCM_ENC_SRC, port);
         if (rslt < 0) return -1; /* [ERR]: [through] */
       }
       else if (scm_enc_same_char_p(enc, ary[i].bytes, sizeof(ary[i]), '\b')) {
-        rslt = scm_capi_write_cstr("\\b", SCM_ENC_UTF8, port);
+        rslt = scm_capi_write_cstr("\\b", SCM_ENC_SRC, port);
         if (rslt < 0) return -1; /* [ERR: [through] */
       }
       else if (scm_enc_same_char_p(enc, ary[i].bytes, sizeof(ary[i]), '\t')) {
-        rslt = scm_capi_write_cstr("\\t", SCM_ENC_UTF8, port);
+        rslt = scm_capi_write_cstr("\\t", SCM_ENC_SRC, port);
         if (rslt < 0) return -1; /* [ERR: [through] */
       }
       else if (scm_enc_same_char_p(enc, ary[i].bytes, sizeof(ary[i]), '\n')) {
-        rslt = scm_capi_write_cstr("\\n", SCM_ENC_UTF8, port);
+        rslt = scm_capi_write_cstr("\\n", SCM_ENC_SRC, port);
         if (rslt < 0) return -1; /* [ERR: [through] */
       }
       else if (scm_enc_same_char_p(enc, ary[i].bytes, sizeof(ary[i]), '\r')) {
-        rslt = scm_capi_write_cstr("\\r", SCM_ENC_UTF8, port);
+        rslt = scm_capi_write_cstr("\\r", SCM_ENC_SRC, port);
         if (rslt < 0) return -1; /* [ERR: [through] */
       }
       else {
@@ -320,13 +320,13 @@ scm_string_write_ext_rep_inner(ScmObj str, ScmObj port, size_t len)
                                                  sizeof(ary[i]));
         scm_assert(scalar >= 0);
         snprintf(cstr, sizeof(cstr), "\\x%llx;", scalar);
-        rslt = scm_capi_write_cstr(cstr, SCM_ENC_UTF8, port);
+        rslt = scm_capi_write_cstr(cstr, SCM_ENC_SRC, port);
         if (rslt < 0) return -1; /* [ERR: [through] */
       }
     }
   }
 
-  rslt = scm_capi_write_cstr("\"", SCM_ENC_UTF8, port);
+  rslt = scm_capi_write_cstr("\"", SCM_ENC_SRC, port);
   if (rslt < 0) return -1; /* [ERR: [through] */
 
   return 0;
@@ -1022,7 +1022,7 @@ scm_string_escape_ctrl_and_nonascii_write_inner(ScmObj str,
 
       scm_assert(scalar >= 0);
       snprintf(cstr, sizeof(cstr), "\\x%llx;", scalar);
-      rslt = scm_capi_write_cstr(cstr, SCM_ENC_ASCII, port);
+      rslt = scm_capi_write_cstr(cstr, SCM_ENC_SRC, port);
       if (rslt < 0) return -1;  /* [ERR]: [through] */
     }
   }

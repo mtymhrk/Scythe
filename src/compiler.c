@@ -1017,7 +1017,7 @@ scm_cmpl_gen_label(ScmObj cmpl, const char *prefix)
     snprintf(str, sizeof(str), "lbl_%u",
              SCM_COMPILER(cmpl)->label_id++);
 
-  return scm_capi_make_symbol_from_cstr(str, SCM_ENC_ASCII);
+  return scm_capi_make_symbol_from_cstr(str, SCM_ENC_SRC);
 }
 
 enum { SCM_CMPL_CORE_SYNTAX_REFERENCE,
@@ -1205,7 +1205,7 @@ scm_cmpl_make_syntax(const char *key, ScmSyntaxHandlerFunc handler)
   scm_assert(key != NULL);
   scm_assert(handler != NULL);
 
-  sym = scm_capi_make_symbol_from_cstr(key, SCM_ENC_ASCII);
+  sym = scm_capi_make_symbol_from_cstr(key, SCM_ENC_SRC);
   if (scm_obj_null_p(sym)) return SCM_OBJ_NULL;
 
   return scm_capi_make_syntax(sym, handler);
@@ -2005,7 +2005,7 @@ scm_cmpl_normalize_definition(ScmObj exp)
                        &lambda,
                        &tmp);
 
-  lambda = scm_capi_make_symbol_from_cstr("lambda", SCM_ENC_ASCII);
+  lambda = scm_capi_make_symbol_from_cstr("lambda", SCM_ENC_SRC);
   if (scm_obj_null_p(lambda)) return SCM_OBJ_NULL;
 
   first = scm_api_car(exp);
@@ -2619,10 +2619,10 @@ scm_cmpl_decons_cond(ScmObj exp, scm_csetter_t *tests, scm_csetter_t *expss,
                        &cls, &tst, &exs,
                        &tmp, &arrow_sym, &else_sym);
 
-  else_sym= scm_capi_make_symbol_from_cstr("else", SCM_ENC_ASCII);
+  else_sym= scm_capi_make_symbol_from_cstr("else", SCM_ENC_SRC);
   if (scm_obj_null_p(else_sym)) return -1;
 
-  arrow_sym = scm_capi_make_symbol_from_cstr("=>", SCM_ENC_ASCII);
+  arrow_sym = scm_capi_make_symbol_from_cstr("=>", SCM_ENC_SRC);
   if (scm_obj_null_p(arrow_sym)) return -1;
 
   clauses = scm_api_cdr(exp);
@@ -4178,7 +4178,7 @@ scm_cmpl_define_syntax(ScmObj module)
 
   for (int i = 0; i < SCM_CMPL_NR_BASE_SYNTAX; i++) {
     sym = scm_capi_make_symbol_from_cstr(scm_cmpl_base_syntax_keywords[i],
-                                         SCM_ENC_ASCII);
+                                         SCM_ENC_SRC);
     if (scm_obj_null_p(sym)) return -1;
 
     syx = scm_capi_make_syntax(sym, scm_cmpl_compile_funcs[i]);

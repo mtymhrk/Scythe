@@ -497,8 +497,14 @@ scm_fixnum_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
   snprintf(cstr, sizeof(cstr), "%lld",
            (long long)SCM_RSHIFT_ARITH((scm_sword_t)obj, SCM_FIXNUM_SHIFT_BIT));
 
-  rslt = scm_capi_write_cstr(cstr, SCM_ENC_UTF8, port);
+  rslt = scm_capi_write_cstr(cstr, SCM_ENC_SRC, port);
   if (rslt < 0) return -1;
 
   return 0;
 }
+
+
+
+
+
+

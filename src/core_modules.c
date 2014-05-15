@@ -62,7 +62,7 @@ scm_define_subr(ScmObj module, const struct subr_data *data, size_t n)
                        &sym, &subr);
 
   for (size_t i = 0; i < n; i++) {
-    sym = scm_capi_make_symbol_from_cstr(data[i].name, SCM_ENC_ASCII);
+    sym = scm_capi_make_symbol_from_cstr(data[i].name, SCM_ENC_SRC);
     if (scm_obj_null_p(sym)) return -1;
 
     subr = scm_capi_make_subrutine(data[i].func, data[i].arity, data[i].flag,
@@ -89,7 +89,7 @@ scm_load_module_scheme_base_syntax(void)
 
   SCM_STACK_FRAME_PUSH(&name, &mod);
 
-  name = scm_make_module_name(3, SCM_ENC_ASCII, "scheme", "base", "syntax");
+  name = scm_make_module_name(3, SCM_ENC_SRC, "scheme", "base", "syntax");
   if (scm_obj_null_p(name)) return -1;
 
   mod = scm_api_make_module(name);
@@ -302,7 +302,7 @@ scm_define_scheme_base_clsr(ScmObj module)
                        &port);
 
   for (size_t i = 0; i < sizeof(syms)/sizeof(syms[0]); i++) {
-    port = scm_capi_open_input_string_cstr(codes[i], SCM_ENC_ASCII);
+    port = scm_capi_open_input_string_cstr(codes[i], SCM_ENC_SRC);
     if (scm_obj_null_p(port)) return -1;
 
     code = scm_api_read(port);
@@ -311,7 +311,7 @@ scm_define_scheme_base_clsr(ScmObj module)
     code = scm_api_assemble(code, SCM_OBJ_NULL);
     if (scm_obj_null_p(code)) return -1;
 
-    sym = scm_capi_make_symbol_from_cstr(syms[i], SCM_ENC_ASCII);
+    sym = scm_capi_make_symbol_from_cstr(syms[i], SCM_ENC_SRC);
     if (scm_obj_null_p(sym)) return -1;
 
     clsr = scm_capi_make_closure(code, SCM_OBJ_NULL, arities[i]);
@@ -344,7 +344,7 @@ scm_define_scheme_base_current_port(ScmObj module)
                        &sym, &port, &prm);
 
   for (size_t i = 0; i < sizeof(data)/sizeof(data[0]); i++) {
-    sym = scm_capi_make_symbol_from_cstr(data[i].name, SCM_ENC_ASCII);
+    sym = scm_capi_make_symbol_from_cstr(data[i].name, SCM_ENC_SRC);
     if (scm_obj_null_p(sym)) return -1;
 
     prm = scm_capi_make_parameter(SCM_OBJ_NULL);
@@ -380,7 +380,7 @@ scm_load_module_scheme_base(void)
 
   SCM_STACK_FRAME_PUSH(&name, &mod, &imp);
 
-  name = scm_make_module_name(2, SCM_ENC_ASCII, "scheme", "base");
+  name = scm_make_module_name(2, SCM_ENC_SRC, "scheme", "base");
   if (scm_obj_null_p(name)) return -1;
 
   mod = scm_api_make_module(name);
@@ -393,7 +393,7 @@ scm_load_module_scheme_base(void)
   rslt = scm_load_module_scheme_base_syntax();
   if (rslt < 0) return -1;
 
-  name = scm_make_module_name(3, SCM_ENC_ASCII, "scheme", "base", "syntax");
+  name = scm_make_module_name(3, SCM_ENC_SRC, "scheme", "base", "syntax");
   if (scm_obj_null_p(name)) return -1;
 
   rslt = scm_capi_find_module(name, SCM_CSETTER_L(imp));
@@ -478,7 +478,7 @@ scm_load_module_scheme_char(void)
 
   SCM_STACK_FRAME_PUSH(&name, &mod);
 
-  name = scm_make_module_name(2, SCM_ENC_ASCII, "scheme", "char");
+  name = scm_make_module_name(2, SCM_ENC_SRC, "scheme", "char");
   if (scm_obj_null_p(name)) return -1;
 
   mod = scm_api_make_module(name);
@@ -523,7 +523,7 @@ scm_load_module_scythe_format(void)
 
   SCM_STACK_FRAME_PUSH(&name, &mod);
 
-  name = scm_make_module_name(2, SCM_ENC_ASCII, "scythe", "format");
+  name = scm_make_module_name(2, SCM_ENC_SRC, "scythe", "format");
   if (scm_obj_null_p(name)) return -1;
 
   mod = scm_api_make_module(name);
@@ -548,7 +548,7 @@ scm_load_module_main(void)
 
   SCM_STACK_FRAME_PUSH(&name, &mod, &imp);
 
-  name = scm_make_module_name(1, SCM_ENC_ASCII, "main");
+  name = scm_make_module_name(1, SCM_ENC_SRC, "main");
   if (scm_obj_null_p(name)) return -1;
 
   mod = scm_api_make_module(name);
@@ -561,7 +561,7 @@ scm_load_module_main(void)
   rslt = scm_load_module_scheme_base();
   if (rslt < 0) return -1;
 
-  name = scm_make_module_name(2, SCM_ENC_ASCII, "scheme", "base");
+  name = scm_make_module_name(2, SCM_ENC_SRC, "scheme", "base");
   if (scm_obj_null_p(name)) return -1;
 
   rslt = scm_capi_find_module(name, SCM_CSETTER_L(imp));
@@ -583,7 +583,7 @@ scm_load_module_main(void)
   rslt = scm_load_module_scheme_char();
   if (rslt < 0) return -1;
 
-  name = scm_make_module_name(2, SCM_ENC_ASCII, "scheme", "char");
+  name = scm_make_module_name(2, SCM_ENC_SRC, "scheme", "char");
   if (scm_obj_null_p(name)) return -1;
 
   rslt = scm_capi_find_module(name, SCM_CSETTER_L(imp));
@@ -605,7 +605,7 @@ scm_load_module_main(void)
   rslt = scm_load_module_scythe_format();
   if (rslt < 0) return -1;
 
-  name = scm_make_module_name(2, SCM_ENC_ASCII, "scythe", "format");
+  name = scm_make_module_name(2, SCM_ENC_SRC, "scythe", "format");
   if (scm_obj_null_p(name)) return -1;
 
   rslt = scm_capi_find_module(name, SCM_CSETTER_L(imp));

@@ -60,6 +60,8 @@ extern ScmEncoding * const SCM_ENC_UCS4;
 extern ScmEncoding * const SCM_ENC_EUCJP;
 extern ScmEncoding * const SCM_ENC_SJIS;
 
+#define SCM_ENC_SRC SCM_ENC_UTF8   /* C source file encoding */
+
 inline const char *
 scm_enc_name(ScmEncoding *enc)
 {
