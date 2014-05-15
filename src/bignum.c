@@ -806,11 +806,11 @@ scm_bignum_initialize_ary(ScmObj bignum,
 
   SCM_BIGNUM(bignum)->sign = sign;
   rslt = eary_init(&SCM_BIGNUM(bignum)->digits, sizeof(scm_bignum_d_t), len);
-  if (rslt != 0) return -1;     /* [ERR]: [through] */
+  if (rslt != 0) return -1;
 
   rslt = scm_bignum_base_conv(digits, len, base,
                               &SCM_BIGNUM(bignum)->digits, SCM_BIGNUM_BASE);
-  if (rslt < 0)  return -1;        /* [ERR]: [through] */
+  if (rslt < 0)  return -1;
 
   SCM_BIGNUM(bignum)->nr_digits = EARY_SIZE(&SCM_BIGNUM(bignum)->digits);
 
@@ -826,7 +826,7 @@ scm_bignum_initialize_uword(ScmObj bignum, scm_uword_t val)
   scm_assert_obj_type(bignum, &SCM_BIGNUM_TYPE_INFO);
 
   rslt = eary_init(&SCM_BIGNUM(bignum)->digits, sizeof(scm_bignum_d_t), 2);
-  if (rslt != 0) return -1;     /* [ERR]: [through] */
+  if (rslt != 0) return -1;
 
   SCM_BIGNUM(bignum)->sign = '+';
 
@@ -873,10 +873,10 @@ scm_bignum_new_from_ary(SCM_MEM_TYPE_T mtype, char sign,
   ScmObj bn = SCM_OBJ_INIT;
 
   bn = scm_capi_mem_alloc(&SCM_BIGNUM_TYPE_INFO, 0, mtype);
-  if (scm_obj_null_p(bn)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+  if (scm_obj_null_p(bn)) return SCM_OBJ_NULL;
 
   if (scm_bignum_initialize_ary(bn, sign, digits, len, base) < 0)
-    return SCM_OBJ_NULL;  /* [ERR]: [through] */
+    return SCM_OBJ_NULL;
 
   return bn;
 }
@@ -887,10 +887,10 @@ scm_bignum_new_from_sword(SCM_MEM_TYPE_T mtype, scm_sword_t val)
   ScmObj bn = SCM_OBJ_INIT;
 
   bn = scm_capi_mem_alloc(&SCM_BIGNUM_TYPE_INFO, 0, mtype);
-  if (scm_obj_null_p(bn)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+  if (scm_obj_null_p(bn)) return SCM_OBJ_NULL;
 
   if (scm_bignum_initialize_sword(bn, val) < 0)
-    return SCM_OBJ_NULL;  /* [ERR]: [through] */
+    return SCM_OBJ_NULL;
 
   return bn;
 }
@@ -901,10 +901,10 @@ scm_bignum_new_from_uword(SCM_MEM_TYPE_T mtype, scm_uword_t val)
   ScmObj bn = SCM_OBJ_INIT;
 
   bn = scm_capi_mem_alloc(&SCM_BIGNUM_TYPE_INFO, 0, mtype);
-  if (scm_obj_null_p(bn)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+  if (scm_obj_null_p(bn)) return SCM_OBJ_NULL;
 
   if (scm_bignum_initialize_uword(bn, val) < 0)
-    return SCM_OBJ_NULL;  /* [ERR]: [through] */
+    return SCM_OBJ_NULL;
 
   return bn;
 }
@@ -919,10 +919,10 @@ scm_bignum_new_from_fixnum(SCM_MEM_TYPE_T mtype, ScmObj fn)
 
   sword = scm_fixnum_value(fn);
   bn = scm_capi_mem_alloc(&SCM_BIGNUM_TYPE_INFO, 0, mtype);
-  if (scm_obj_null_p(bn)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+  if (scm_obj_null_p(bn)) return SCM_OBJ_NULL;
 
   if (scm_bignum_initialize_sword(bn, sword) < 0)
-    return SCM_OBJ_NULL;  /* [ERR]: [through] */
+    return SCM_OBJ_NULL;
 
   return bn;
 }
@@ -1181,7 +1181,7 @@ scm_bignum_plus(ScmObj aug, ScmObj add)
 
   if (scm_capi_fixnum_p(add)) {
     add = scm_bignum_new_from_fixnum(SCM_MEM_HEAP, add);
-    if (scm_obj_null_p(add)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+    if (scm_obj_null_p(add)) return SCM_OBJ_NULL;
   }
   else if (!scm_capi_bignum_p(add)) {
     aug = SCM_NUM_CALL_FUNC(add, coerce, aug);
@@ -1226,7 +1226,7 @@ scm_bignum_minus(ScmObj min, ScmObj sub)
 
   if (scm_capi_fixnum_p(sub)) {
     sub = scm_bignum_new_from_fixnum(SCM_MEM_HEAP, sub);
-    if (scm_obj_null_p(sub)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+    if (scm_obj_null_p(sub)) return SCM_OBJ_NULL;
   }
   else if (!scm_capi_bignum_p(sub)) {
     min = SCM_NUM_CALL_FUNC(sub, coerce, min);
@@ -1272,7 +1272,7 @@ scm_bignum_mul(ScmObj mud, ScmObj mur)
 
   if (scm_capi_fixnum_p(mur)) {
     mur = scm_bignum_new_from_fixnum(SCM_MEM_HEAP, mur);
-    if (scm_obj_null_p(mur)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+    if (scm_obj_null_p(mur)) return SCM_OBJ_NULL;
   }
   else if (!scm_capi_bignum_p(mur)) {
     mud = SCM_NUM_CALL_FUNC(mur, coerce, mud);
@@ -1500,17 +1500,17 @@ scm_bignum_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
   if (rslt < 0) return -1;
 
   rslt = eary_init(&ary, sizeof(scm_bignum_d_t), SCM_BIGNUM(obj)->nr_digits);
-  if (rslt < 0) return -1;      /* [ERR]: [through] */
+  if (rslt < 0) return -1;
 
   rslt = scm_bignum_base_conv(EARY_HEAD(&SCM_BIGNUM(obj)->digits),
                             EARY_SIZE(&SCM_BIGNUM(obj)->digits),
                             SCM_BIGNUM_BASE,
                             &ary, base);
-  if (rslt < 0) goto err;       /* [ERR]: [through] */
+  if (rslt < 0) goto err;
 
   if (SCM_BIGNUM(obj)->sign == '-') {
     rslt = scm_capi_write_cstr("-", SCM_ENC_SRC, port);
-    if (rslt < 0) goto err;    /* [ERR]: [through] */
+    if (rslt < 0) goto err;
   }
 
   width = 0;
@@ -1518,7 +1518,7 @@ scm_bignum_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
     EARY_GET(&ary, scm_bignum_d_t, i - 1, val);
     snprintf(str, sizeof(str), "%0*u", width, val);
     rslt = scm_capi_write_cstr(str, SCM_ENC_SRC, port);
-    if (rslt < 0) goto err;    /* [ERR]: [through] */
+    if (rslt < 0) goto err;
     width = place;
   }
 

@@ -36,12 +36,12 @@ scm_eof_finalize(ScmObj eof)
 }
 
 ScmObj
-scm_eof_new(SCM_MEM_TYPE_T mtype)         /* GC OK */
+scm_eof_new(SCM_MEM_TYPE_T mtype)
 {
   ScmObj eof;
 
   eof = scm_capi_mem_alloc(&SCM_EOF_TYPE_INFO, 0, mtype);
-  if (scm_obj_null_p(eof)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+  if (scm_obj_null_p(eof)) return SCM_OBJ_NULL;
 
   scm_eof_initialize(eof);
 
@@ -73,7 +73,7 @@ ScmTypeInfo SCM_BOOL_TYPE_INFO = {
 };
 
 void
-scm_bool_initialize(ScmObj obj, bool value) /* GC OK */
+scm_bool_initialize(ScmObj obj, bool value)
 {
   scm_assert_obj_type(obj, &SCM_BOOL_TYPE_INFO);
 
@@ -81,20 +81,20 @@ scm_bool_initialize(ScmObj obj, bool value) /* GC OK */
 }
 
 void
-scm_bool_finalize(ScmObj obj)   /* GC OK */
+scm_bool_finalize(ScmObj obj)
 {
   return;                       /* nothing to do */
 }
 
 ScmObj
-scm_bool_new(SCM_MEM_TYPE_T mtype, bool value)  /* GC OK */
+scm_bool_new(SCM_MEM_TYPE_T mtype, bool value)
 {
   ScmObj bl = SCM_OBJ_INIT;;
 
   SCM_STACK_FRAME_PUSH(&bl);
 
   bl = scm_capi_mem_alloc(&SCM_BOOL_TYPE_INFO, 0, mtype);
-  if (scm_obj_null_p(bl)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+  if (scm_obj_null_p(bl)) return SCM_OBJ_NULL;
 
   scm_bool_initialize(bl, value);
 
@@ -102,7 +102,7 @@ scm_bool_new(SCM_MEM_TYPE_T mtype, bool value)  /* GC OK */
 }
 
 bool
-scm_bool_value(ScmObj bl)       /* GC OK */
+scm_bool_value(ScmObj bl)
 {
   scm_assert_obj_type(bl, &SCM_BOOL_TYPE_INFO);
 
@@ -144,26 +144,26 @@ ScmTypeInfo SCM_NIL_TYPE_INFO = {
 };
 
 void
-scm_nil_initialize(ScmObj nil)  /* GC OK */
+scm_nil_initialize(ScmObj nil)
 {
   return;                       /* nothing to do */
 }
 
 void
-scm_nil_finalize(ScmObj nil)    /* GC OK */
+scm_nil_finalize(ScmObj nil)
 {
   return;                       /* nothing to do */
 }
 
 ScmObj
-scm_nil_new(SCM_MEM_TYPE_T mtype)         /* GC OK */
+scm_nil_new(SCM_MEM_TYPE_T mtype)
 {
   ScmObj nil = SCM_OBJ_INIT;
 
   SCM_STACK_FRAME_PUSH(&nil);
 
   nil = scm_capi_mem_alloc(&SCM_NIL_TYPE_INFO, 0, mtype);
-  if (scm_obj_null_p(nil)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+  if (scm_obj_null_p(nil)) return SCM_OBJ_NULL;
 
   scm_nil_initialize(nil);
 
@@ -201,26 +201,26 @@ ScmTypeInfo SCM_UNDEF_TYPE_INFO = {
 };
 
 void
-scm_undef_initialize(ScmObj undef)  /* GC OK */
+scm_undef_initialize(ScmObj undef)
 {
   return;                       /* nothing to do */
 }
 
 void
-scm_udef_finalize(ScmObj undef)    /* GC OK */
+scm_udef_finalize(ScmObj undef)
 {
   return;                       /* nothing to do */
 }
 
 ScmObj
-scm_undef_new(SCM_MEM_TYPE_T mtype)         /* GC OK */
+scm_undef_new(SCM_MEM_TYPE_T mtype)
 {
   ScmObj undef = SCM_OBJ_INIT;
 
   SCM_STACK_FRAME_PUSH(&undef);
 
   undef = scm_capi_mem_alloc(&SCM_UNDEF_TYPE_INFO, 0, mtype);
-  if (scm_obj_null_p(undef)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+  if (scm_obj_null_p(undef)) return SCM_OBJ_NULL;
 
   scm_undef_initialize(undef);
 
@@ -252,26 +252,26 @@ ScmTypeInfo SCM_LANDMINE_TYPE_INFO = {
 };
 
 void
-scm_landmine_initialize(ScmObj mine)  /* GC OK */
+scm_landmine_initialize(ScmObj mine)
 {
   return;                       /* nothing to do */
 }
 
 void
-scm_landmine_finalize(ScmObj mine)    /* GC OK */
+scm_landmine_finalize(ScmObj mine)
 {
   return;                       /* nothing to do */
 }
 
 ScmObj
-scm_landmine_new(SCM_MEM_TYPE_T mtype)         /* GC OK */
+scm_landmine_new(SCM_MEM_TYPE_T mtype)
 {
   ScmObj mine = SCM_OBJ_INIT;
 
   SCM_STACK_FRAME_PUSH(&mine);
 
   mine = scm_capi_mem_alloc(&SCM_LANDMINE_TYPE_INFO, 0, mtype);
-  if (scm_obj_null_p(mine)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+  if (scm_obj_null_p(mine)) return SCM_OBJ_NULL;
 
   scm_landmine_initialize(mine);
 

@@ -213,14 +213,14 @@ scm_error_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
     snprintf(cstr, sizeof(cstr), " 0x%llx>", (unsigned long long)obj);
 
     rslt = scm_capi_write_cstr("#<exception ", SCM_ENC_SRC, port);
-    if (rslt < 0) return -1;    /* [ERR]: [through] */
+    if (rslt < 0) return -1;
 
     ro = scm_api_write_string(SCM_EXCEPTION(obj)->msg, port,
                               SCM_OBJ_NULL, SCM_OBJ_NULL);
-    if (scm_obj_null_p(ro)) return -1; /* [ERR]: [through] */
+    if (scm_obj_null_p(ro)) return -1;
 
     rslt = scm_capi_write_cstr(cstr, SCM_ENC_SRC, port);
-    if (rslt < 0) return -1;    /* [ERR]: [through] */
+    if (rslt < 0) return -1;
   }
   else {
     msg = scm_exception_msg(obj);

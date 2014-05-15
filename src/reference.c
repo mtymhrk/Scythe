@@ -32,7 +32,7 @@ scm_ref_stack_new_block(size_t sz)
   scm_assert((SIZE_MAX - sizeof(ScmRefStackBlock)) / sizeof(ScmRef) >= sz);
 
   block = scm_capi_malloc(sizeof(ScmRefStackBlock) + sizeof(ScmRef) * sz);
-  if (block == NULL) return NULL; /* [ERR]: [through] */
+  if (block == NULL) return NULL;
 
   block->next = NULL;
   block->prev = NULL;

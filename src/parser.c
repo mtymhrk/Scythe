@@ -135,7 +135,7 @@ scm_token_new(SCM_TOKEN_TYPE_T type, scm_char_t *str, size_t len,
 
 
   token = scm_capi_malloc(sizeof(ScmToken));
-  if (token == NULL) return NULL; /* [ERR]: [thgourh] */
+  if (token == NULL) return NULL;
 
   token->type = type;
   token->str = str;
@@ -987,7 +987,7 @@ scm_parser_parse_list(ScmParser *parser, ScmObj port, ScmEncoding *enc)
   scm_assert(enc != NULL);
 
   token = scm_lexer_head_token(parser->lexer, port, enc);
-  if (token == NULL)  return SCM_OBJ_NULL; /* [ERR]: [through] */
+  if (token == NULL)  return SCM_OBJ_NULL;
 
   if (token->type == SCM_TOKEN_TYPE_RPAREN) {
     scm_lexer_shift_token(parser->lexer);
@@ -995,27 +995,27 @@ scm_parser_parse_list(ScmParser *parser, ScmObj port, ScmEncoding *enc)
   }
 
   car = scm_parser_parse_expression(parser, port);
-  if (scm_capi_null_value_p(car)) return SCM_OBJ_NULL; /* [ERR]: [through]] */
+  if (scm_capi_null_value_p(car)) return SCM_OBJ_NULL;
   if (scm_capi_eof_object_p(car)) {
     scm_capi_read_error("Parser: unexpected eof", 0);
     return SCM_OBJ_NULL;
   }
 
   token = scm_lexer_head_token(parser->lexer, port, enc);
-  if (token == NULL) return SCM_OBJ_NULL; /* [ERR]: [through] */
+  if (token == NULL) return SCM_OBJ_NULL;
 
   if (token->type == SCM_TOKEN_TYPE_DOT) {
     scm_lexer_shift_token(parser->lexer);
 
     cdr = scm_parser_parse_expression(parser, port);
-    if (scm_capi_null_value_p(cdr)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+    if (scm_capi_null_value_p(cdr)) return SCM_OBJ_NULL;
     if (scm_capi_eof_object_p(car)) {
       scm_capi_read_error("Parser: unexpected eof", 0);
       return SCM_OBJ_NULL;
     }
 
     token = scm_lexer_head_token(parser->lexer, port, enc);
-    if (token == NULL) return SCM_OBJ_NULL; /* [ERR]: [through] */
+    if (token == NULL) return SCM_OBJ_NULL;
 
     if (token->type == SCM_TOKEN_TYPE_TOKENIZE_ERR) {
       if (scm_lexer_error_type(parser->lexer)
@@ -1025,7 +1025,7 @@ scm_parser_parse_list(ScmParser *parser, ScmObj port, ScmEncoding *enc)
       else {
         scm_capi_read_error("unexpected eof", 0);
       }
-      return SCM_OBJ_NULL; /* [ERR]: parser: unexpected character */
+      return SCM_OBJ_NULL;
     }
     else if (token->type != SCM_TOKEN_TYPE_RPAREN) {
       /* TODO: change error message */
@@ -1037,7 +1037,7 @@ scm_parser_parse_list(ScmParser *parser, ScmObj port, ScmEncoding *enc)
   }
   else {
     cdr = scm_parser_parse_list(parser, port, enc);
-    if (scm_capi_null_value_p(cdr)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+    if (scm_capi_null_value_p(cdr)) return SCM_OBJ_NULL;
   }
 
   return scm_api_cons(car, cdr);
@@ -1062,7 +1062,7 @@ scm_parser_parse_quote(ScmParser *parser, ScmObj port, ScmEncoding *enc)
   scm_assert(enc != NULL);
 
   token = scm_lexer_head_token(parser->lexer, port, enc);
-  if (token == NULL) return SCM_OBJ_NULL; /* [ERR]: [through] */
+  if (token == NULL) return SCM_OBJ_NULL;
 
   switch (token->type) {
   case SCM_TOKEN_TYPE_QUOTE:
@@ -1099,19 +1099,19 @@ scm_parser_parse_quote(ScmParser *parser, ScmObj port, ScmEncoding *enc)
     break;
   }
 
-  if (scm_capi_null_value_p(quote)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+  if (scm_capi_null_value_p(quote)) return SCM_OBJ_NULL;
 
   scm_lexer_shift_token(parser->lexer);
 
   quoted = scm_parser_parse_expression(parser, port);
-  if (scm_capi_null_value_p(quoted)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+  if (scm_capi_null_value_p(quoted)) return SCM_OBJ_NULL;
   if (scm_capi_eof_object_p(quoted)) {
     scm_capi_read_error("Parser: unexpected eof", 0);
     return SCM_OBJ_NULL;
   }
 
   quoted = scm_api_cons(quoted, SCM_NIL_OBJ);
-  if (scm_capi_null_value_p(quoted)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+  if (scm_capi_null_value_p(quoted)) return SCM_OBJ_NULL;
 
   return scm_api_cons(quote, quoted);
 }
@@ -1252,13 +1252,13 @@ scm_parser_parse_string_esc_seq(const scm_char_t *str, size_t size,
   }
   else if (chr_find(" \t\r\n", str[1], enc) != NULL) {
     sk = scm_parser_parse_str_fold_eec_seq(str, size, enc);
-    if (sk < 0) return -1;  /* [ERR]:  [through] */
+    if (sk < 0) return -1;
     *skip = (size_t)sk;
     width = 0;
   }
   else if (chr_same_p(str[1], 'x', true, enc)) {
     rslt = scm_parser_parse_inline_hex_escape(str, size, enc, &hv);
-    if (rslt < 0) return -1;  /* [ERR]:  [through] */
+    if (rslt < 0) return -1;
     *skip = (size_t)rslt;
     w = scm_enc_cnv_from_scalar(enc, hv, chr);
     if (w < 0) {
@@ -1295,7 +1295,7 @@ scm_parser_unescape_string(ScmToken *token, ScmObj str, ScmEncoding *enc)
       width = scm_parser_parse_string_esc_seq(token->str + idx,
                                               token->len - idx,
                                               enc, &chr, &inc);
-      if (width < 0) return -1;  /* [ERR]:  [through] */
+      if (width < 0) return -1;
     }
     else {
       chr = token->str[idx];
@@ -1305,7 +1305,7 @@ scm_parser_unescape_string(ScmToken *token, ScmObj str, ScmEncoding *enc)
 
     if (width > 0) {
       rslt = scm_capi_string_push(str, chr, enc);
-      if (rslt < 0) return -1;   /* [ERR]: [through] */
+      if (rslt < 0) return -1;
     }
 
     idx += inc;
@@ -1328,13 +1328,13 @@ scm_parser_parse_string(ScmParser *parser, ScmObj port, ScmEncoding *enc)
   scm_assert(enc != NULL);
 
   token = scm_lexer_head_token(parser->lexer, port, enc);
-  if (token == NULL) return SCM_OBJ_NULL; /* [ERR]: [through] */
+  if (token == NULL) return SCM_OBJ_NULL;
 
   str = scm_capi_make_string_from_cstr(NULL, enc);
-  if (scm_obj_null_p(str)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+  if (scm_obj_null_p(str)) return SCM_OBJ_NULL;
   if (token->str != NULL) {
     rslt = scm_parser_unescape_string(token, str, enc);
-    if (rslt < 0) return SCM_OBJ_NULL; /* [ERR: [through] */
+    if (rslt < 0) return SCM_OBJ_NULL;
   }
 
   scm_lexer_shift_token(parser->lexer);
@@ -1363,7 +1363,7 @@ scm_parser_unescape_ident(ScmToken *token, ScmObj str, ScmEncoding *enc)
       inc = scm_parser_parse_inline_hex_escape(token->str + idx,
                                                token->len - idx,
                                                enc, &hv);
-      if (inc < 0) return -1;  /* [ERR]:  [through] */
+      if (inc < 0) return -1;
 
       width = scm_enc_cnv_from_scalar(enc, hv, &chr);
       if (width < 0) {
@@ -1378,7 +1378,7 @@ scm_parser_unescape_ident(ScmToken *token, ScmObj str, ScmEncoding *enc)
     }
 
     rslt = scm_capi_string_push(str, chr, enc);
-    if (rslt < 0) return -1;   /* [ERR]: [through] */
+    if (rslt < 0) return -1;
   }
 
   return 0;
@@ -1398,18 +1398,18 @@ scm_parser_parse_identifier(ScmParser *parser, ScmObj port, ScmEncoding *enc)
   scm_assert(enc != NULL);
 
   str = scm_capi_make_string_from_cstr(NULL, enc);
-  if (scm_obj_null_p(str)) return SCM_OBJ_NULL; /* [ERR: [through] */
+  if (scm_obj_null_p(str)) return SCM_OBJ_NULL;
 
   token = scm_lexer_head_token(parser->lexer, port, enc);
-  if (token == NULL)  return SCM_OBJ_NULL; /* [ERR]: [through] */
+  if (token == NULL)  return SCM_OBJ_NULL;
 
   if (token->str != NULL) {
     rslt = scm_parser_unescape_ident(token, str, enc);
-    if (rslt < 0) return SCM_OBJ_NULL; /* [ERR: [through] */
+    if (rslt < 0) return SCM_OBJ_NULL;
   }
 
   sym = scm_api_string_to_symbol(str);
-  if (scm_obj_null_p(sym)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+  if (scm_obj_null_p(sym)) return SCM_OBJ_NULL;
 
   scm_lexer_shift_token(parser->lexer);
 
@@ -1427,10 +1427,10 @@ scm_parser_parse_numeric(ScmParser *parser, ScmObj port, ScmEncoding *enc)
   scm_assert(enc != NULL);
 
   token = scm_lexer_head_token(parser->lexer, port, enc);
-  if (token == NULL) return SCM_OBJ_NULL; /* [ERR]: [through] */
+  if (token == NULL) return SCM_OBJ_NULL;
 
   num = scm_num_make_from_parsedata(token->str, enc, &token->npd);
-  if (scm_obj_null_p(num)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+  if (scm_obj_null_p(num)) return SCM_OBJ_NULL;
 
   scm_lexer_shift_token(parser->lexer);
 
@@ -1448,7 +1448,7 @@ scm_parser_parse_bool(ScmParser *parser, ScmObj port, ScmEncoding *enc)
   scm_assert(enc != NULL);
 
   token = scm_lexer_head_token(parser->lexer, port, enc);
-  if (token == NULL) return SCM_OBJ_NULL; /* [ERR]: [through] */
+  if (token == NULL) return SCM_OBJ_NULL;
 
   type = token->type;
   scm_lexer_shift_token(parser->lexer);
@@ -1474,7 +1474,7 @@ scm_parser_parse_vector_aux(ScmParser *parser,
   scm_assert(len != NULL);
 
   token = scm_lexer_head_token(parser->lexer, port, enc);
-  if (token == NULL)  return SCM_OBJ_NULL; /* [ERR]: [through] */
+  if (token == NULL)  return SCM_OBJ_NULL;
 
   if (token->type == SCM_TOKEN_TYPE_RPAREN) {
     scm_lexer_shift_token(parser->lexer);
@@ -1482,7 +1482,7 @@ scm_parser_parse_vector_aux(ScmParser *parser,
   }
 
   car = scm_parser_parse_expression(parser, port);
-  if (scm_capi_null_value_p(car)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+  if (scm_capi_null_value_p(car)) return SCM_OBJ_NULL;
   if (scm_capi_eof_object_p(car)) {
     scm_capi_read_error("Parser: unexpected eof", 0);
     return SCM_OBJ_NULL;
@@ -1491,7 +1491,7 @@ scm_parser_parse_vector_aux(ScmParser *parser,
   *len += 1;
 
   cdr = scm_parser_parse_vector_aux(parser, port, enc, len);
-  if (scm_capi_null_value_p(cdr)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+  if (scm_capi_null_value_p(cdr)) return SCM_OBJ_NULL;
 
   return scm_api_cons(car, cdr);
 }
@@ -1513,10 +1513,10 @@ scm_parser_parse_vector(ScmParser *parser, ScmObj port, ScmEncoding *enc)
 
   len = 0;
   elms = scm_parser_parse_vector_aux(parser, port, enc, &len);
-  if (scm_capi_null_value_p(elms)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+  if (scm_capi_null_value_p(elms)) return SCM_OBJ_NULL;
 
   vec = scm_capi_make_vector(len, SCM_OBJ_NULL);
-  if (scm_capi_null_value_p(vec)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+  if (scm_capi_null_value_p(vec)) return SCM_OBJ_NULL;
 
   for (idx = 0; idx < len; idx++) {
     elm = scm_api_car(elms);
@@ -1540,7 +1540,7 @@ scm_parser_parse_char(ScmParser *parser, ScmObj port, ScmEncoding *enc)
   scm_assert(enc != NULL);
 
   token = scm_lexer_head_token(parser->lexer, port, enc);
-  if (token == NULL) return SCM_OBJ_NULL; /* [ERR]: [through] */
+  if (token == NULL) return SCM_OBJ_NULL;
 
   if (str_same_p(token->str, token->len, "#\\newline", false, enc)) {
     chr = scm_api_make_char_newline(enc);
@@ -1581,7 +1581,7 @@ scm_parser_new(ScmLexer *lexer)
   scm_assert(lexer != NULL);
 
   parser = scm_capi_malloc(sizeof(ScmParser));
-  if (parser == NULL) return NULL; /* [ERR]: [through] */
+  if (parser == NULL) return NULL;
 
   parser->lexer = lexer;
 
@@ -1604,7 +1604,7 @@ scm_parser_parse_expression(ScmParser *parser, ScmObj port)
   if (enc == NULL) return SCM_OBJ_NULL;
 
   token = scm_lexer_head_token(parser->lexer, port, enc);
-  if (token == NULL) return SCM_OBJ_NULL; /* [ERR]: [through] */
+  if (token == NULL) return SCM_OBJ_NULL;
 
   switch (token->type) {
   case SCM_TOKEN_TYPE_LPAREN:
@@ -1678,7 +1678,7 @@ scm_parser_parse_expression(ScmParser *parser, ScmObj port)
     else {
       scm_capi_read_error("Parser: unexpected eof", 0);
     }
-    return SCM_OBJ_NULL;        /* [ERR]: parser: unepected character after */
+    return SCM_OBJ_NULL;
     break;
   case SCM_TOKEN_TYPE_NONE:     /* fall through */
   default:

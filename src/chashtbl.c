@@ -11,7 +11,7 @@ scm_chash_tbl_initialize(ScmCHashTbl *tbl, ScmObj owner,
                          SCM_CHASH_TBL_VAL_KIND_T key_kind,
                          SCM_CHASH_TBL_VAL_KIND_T val_kind,
                          ScmCHashFunc hash_func,
-                         ScmCHashTblKeyCmpFunc cmp_func) /* GC OK */
+                         ScmCHashTblKeyCmpFunc cmp_func)
 {
   scm_assert(tbl != NULL);
   scm_assert(hash_func != NULL);
@@ -35,7 +35,7 @@ scm_chash_tbl_initialize(ScmCHashTbl *tbl, ScmObj owner,
 }
 
 void
-scm_chash_tbl_finalize(ScmCHashTbl *tbl) /* GC OK */
+scm_chash_tbl_finalize(ScmCHashTbl *tbl)
 {
   scm_assert(tbl != NULL);
 
@@ -66,7 +66,7 @@ scm_chash_tbl_new(ScmObj owner, size_t size,
   ScmCHashTbl *tbl;
 
   tbl = scm_capi_malloc(sizeof(*tbl));
-  if (tbl == NULL) return NULL; /* [ERR]: [through] */
+  if (tbl == NULL) return NULL;
 
   scm_chash_tbl_initialize(tbl, owner, size, key_kind, val_kind,
                            hash_func, cmp_func);
@@ -84,7 +84,7 @@ scm_chash_tbl_end(ScmCHashTbl *tbl)
 }
 
 bool
-scm_chash_tbl_cmp_func_eq(ScmCHashTblKey key1, ScmCHashTblKey key2) /* GC OK */
+scm_chash_tbl_cmp_func_eq(ScmCHashTblKey key1, ScmCHashTblKey key2)
 {
   return scm_obj_same_instance_p(key1, key2) ? true : false;
 }
@@ -98,7 +98,7 @@ scm_chash_tbl_cmp_func_eqv(ScmCHashTblKey key1, ScmCHashTblKey key2)
 
 static ScmCHashTblEntry *
 scm_chash_tbl_access(ScmCHashTbl *tbl,
-                     ScmCHashTblKey key, ScmCHashTblVal val, int mode) /* GC OK */
+                     ScmCHashTblKey key, ScmCHashTblVal val, int mode)
 {
   ScmCHashTblEntry *entry;
   ScmCHashTblEntry **prev;
@@ -167,7 +167,7 @@ scm_chash_tbl_access(ScmCHashTbl *tbl,
  */
 int
 scm_chash_tbl_get(ScmCHashTbl *tbl, ScmCHashTblKey key,
-                  ScmCHashTblVal *val, bool *found) /* GC OK */
+                  ScmCHashTblVal *val, bool *found)
 {
   ScmCHashTblEntry *e;
 
@@ -205,7 +205,7 @@ scm_chash_tbl_get(ScmCHashTbl *tbl, ScmCHashTblKey key,
  */
 int
 scm_chash_tbl_delete(ScmCHashTbl *tbl, ScmCHashTblKey key,
-                     ScmCHashTblKey *val, bool *deleted) /* GC OK */
+                     ScmCHashTblKey *val, bool *deleted)
 {
   ScmCHashTblEntry *e;
 
@@ -241,7 +241,7 @@ scm_chash_tbl_delete(ScmCHashTbl *tbl, ScmCHashTblKey key,
  * を返す。追加が成功した場合は 0 を返す。
  */
 int
-scm_chash_tbl_insert(ScmCHashTbl *tbl, ScmCHashTblKey key, ScmCHashTblVal val) /* GC OK */
+scm_chash_tbl_insert(ScmCHashTbl *tbl, ScmCHashTblKey key, ScmCHashTblVal val)
 {
   ScmCHashTblEntry *e;
 
@@ -258,7 +258,7 @@ scm_chash_tbl_insert(ScmCHashTbl *tbl, ScmCHashTblKey key, ScmCHashTblVal val) /
  * 0 を返す。
  */
 int
-scm_chash_tbl_update(ScmCHashTbl *tbl, ScmCHashTblKey key, ScmCHashTblVal val) /* GC OK */
+scm_chash_tbl_update(ScmCHashTbl *tbl, ScmCHashTblKey key, ScmCHashTblVal val)
 {
   ScmCHashTblEntry *e;
 

@@ -70,12 +70,12 @@ scm_asm_new_label_rec(void)
   ScmLabelInfo *rec;
 
   rec = scm_capi_malloc(sizeof(*rec));
-  if (rec == NULL) return NULL; /* [ERR]: [through] */
+  if (rec == NULL) return NULL;
 
   rslt = eary_init(&rec->ref, sizeof(size_t), 8);
   if (rslt < 0) {
     scm_capi_free(rec);
-    return NULL;                /* [ERR]: [through] */
+    return NULL;
   };
 
   rec->label[0] = '\0';
@@ -111,7 +111,7 @@ scm_iseq_asm_reg_label_ref_idx(ScmCHashTbl *tbl, EArray *labels,
   scm_assert(scm_capi_symbol_p(label));
 
   name_sz = scm_capi_symbol_bytesize(label);
-  if (name_sz < 0) return -1;   /* [ERR]: [through] */
+  if (name_sz < 0) return -1;
 
   if ((size_t)name_sz > sizeof(label_name) - 1) {
     scm_capi_error("Assembler: label name is too long", 1, label);
@@ -119,36 +119,36 @@ scm_iseq_asm_reg_label_ref_idx(ScmCHashTbl *tbl, EArray *labels,
   }
 
   p = scm_capi_symbol_to_cstr(label, label_name, sizeof(label_name));
-  if (p == NULL) return -1;   /* [ERR]: [through] */
+  if (p == NULL) return -1;
 
   rslt = scm_chash_tbl_get(tbl, SCM_CHASH_TBL_KEY(label_name), &val, &found);
-  if (rslt < 0) return -1;      /* [ERR]: [through] */
+  if (rslt < 0) return -1;
 
   if (found) {
     rec = (ScmLabelInfo *)val;
   }
   else {
     rec = scm_asm_new_label_rec();
-    if (rec == NULL) return -1; /* [ERR]: [through] */
+    if (rec == NULL) return -1;
 
     memcpy(rec->label, label_name, (size_t)name_sz + 1);
     rslt = scm_chash_tbl_insert(tbl, SCM_CHASH_TBL_KEY(rec->label),
                                 SCM_CHASH_TBL_VAL(rec));
     if (rslt < 0) {
       scm_asm_del_label_rec(rec);
-      return -1;                /* [ERR]: [through] */
+      return -1;
     }
 
     EARY_PUSH(labels, char *, rec->label, rslt);
     if (rslt < 0) {
       scm_chash_tbl_delete(tbl, SCM_CHASH_TBL_KEY(rec->label), NULL, NULL);
       scm_asm_del_label_rec(rec);
-      return -1;                /* [ERR]: [through] */
+      return -1;
     }
   }
 
   EARY_PUSH(&rec->ref, size_t, ref_idx, rslt);
-  if (rslt < 0) return -1;      /* [ERR]: [through] */
+  if (rslt < 0) return -1;
 
   return 0;
 }
@@ -171,7 +171,7 @@ scm_asm_reg_label_def_idx(ScmCHashTbl *tbl, EArray *labels,
   scm_assert(scm_capi_symbol_p(label));
 
   name_sz = scm_capi_symbol_bytesize(label);
-  if (name_sz < 0) return -1;   /* [ERR]: [through] */
+  if (name_sz < 0) return -1;
 
   if ((size_t)name_sz > sizeof(label_name) - 1) {
     scm_capi_error("Assember: label name is too long", 1, label);
@@ -179,17 +179,17 @@ scm_asm_reg_label_def_idx(ScmCHashTbl *tbl, EArray *labels,
   }
 
   p = scm_capi_symbol_to_cstr(label, label_name, sizeof(label_name));
-  if (p == NULL) return -1;   /* [ERR]: [through] */
+  if (p == NULL) return -1;
 
   rslt = scm_chash_tbl_get(tbl, SCM_CHASH_TBL_KEY(label_name), &val, &found);
-  if (rslt < 0) return -1;      /* [ERR]: [through] */
+  if (rslt < 0) return -1;
 
   if (found) {
     rec = (ScmLabelInfo *)val;
   }
   else {
     rec = scm_asm_new_label_rec();
-    if (rec == NULL) return -1; /* [ERR]: [through] */
+    if (rec == NULL) return -1;
 
     memcpy(rec->label, label_name, (size_t)name_sz + 1);
 
@@ -197,14 +197,14 @@ scm_asm_reg_label_def_idx(ScmCHashTbl *tbl, EArray *labels,
                                 SCM_CHASH_TBL_VAL(rec));
     if (rslt < 0) {
       scm_asm_del_label_rec(rec);
-      return -1;                /* [ERR]: [through] */
+      return -1;
     }
 
     EARY_PUSH(labels, char *, rec->label, rslt);
     if (rslt < 0) {
       scm_chash_tbl_delete(tbl, SCM_CHASH_TBL_KEY(rec->label), NULL, NULL);
       scm_asm_del_label_rec(rec);
-      return -1;                /* [ERR]: [thorugh] */
+      return -1;
     }
   }
 
@@ -229,7 +229,7 @@ scm_asm_sym2opcode(ScmObj op)
   if (scm_capi_integer_p(op)) {
     scm_sword_t cd;
     int r = scm_capi_integer_to_sword(op, &cd);
-    if (r < 0) return -1;        /* [ERR]: [through] */
+    if (r < 0) return -1;
 
     if (cd > SCM_BYTE_MAX) {
       scm_capi_error("Assembler: invalid opcode", 1, op);
@@ -241,7 +241,7 @@ scm_asm_sym2opcode(ScmObj op)
     ssize_t rslt;
     char mne[32];
     char *p = scm_capi_symbol_to_cstr(op, mne, sizeof(mne));
-    if (p == NULL) return -1;    /* [ERR]: [through] */
+    if (p == NULL) return -1;
 
     rslt = scm_asm_mnemonic2opcode(mne);
     if (rslt < 0) {
@@ -253,7 +253,7 @@ scm_asm_sym2opcode(ScmObj op)
   }
   else {
     scm_capi_error("Assembler: invalid opcode", 1, op);
-    return -1;                  /* [ERR]: iseq: unknown op */
+    return -1;
   }
 }
 
@@ -309,7 +309,7 @@ scm_asm_inst_obj(ScmObj iseq, int opcode, ScmObj operator, ScmObj operands,
   }
 
   arg = scm_api_car(operands);
-  if (scm_obj_null_p(arg)) return -1; /* [ERR]: [throughg] */
+  if (scm_obj_null_p(arg)) return -1;
 
   return scm_capi_iseq_push_opfmt_obj(iseq, opcode, arg);
 }
@@ -342,10 +342,10 @@ scm_asm_inst_obj_obj(ScmObj iseq, int opcode, ScmObj operator, ScmObj operands,
   }
 
   arg1 = scm_capi_list_ref(operands, 0);
-  if (scm_obj_null_p(arg1)) return -1; /* [ERR]: [throughg] */
+  if (scm_obj_null_p(arg1)) return -1;
 
   arg2 = scm_capi_list_ref(operands, 1);
-  if (scm_obj_null_p(arg2)) return -1; /* [ERR]: [throughg] */
+  if (scm_obj_null_p(arg2)) return -1;
 
   return scm_capi_iseq_push_opfmt_obj_obj(iseq, opcode, arg1, arg2);
 }
@@ -380,7 +380,7 @@ scm_asm_inst_si(ScmObj iseq, int opcode, ScmObj operator, ScmObj operands,
   }
 
   arg = scm_api_car(operands);
-  if (scm_obj_null_p(arg)) return -1; /* [ERR]: [throughg] */
+  if (scm_obj_null_p(arg)) return -1;
 
   if (!scm_capi_integer_p(arg)) {
     scm_capi_error("Assembler: operand is not integer", 2, operator, arg);
@@ -388,7 +388,7 @@ scm_asm_inst_si(ScmObj iseq, int opcode, ScmObj operator, ScmObj operands,
   }
 
   rslt = scm_capi_integer_to_sword(arg, &val);
-  if (rslt < 0) return -1;      /* [ERR]: [through] */
+  if (rslt < 0) return -1;
 
   if (val < INT_MIN || INT_MAX < val) {
     scm_capi_error("Assembler: operand is out of range", 2, operator, arg);
@@ -428,10 +428,10 @@ scm_asm_inst_si_si(ScmObj iseq, int opcode, ScmObj operator, ScmObj operands,
   }
 
   arg1 = scm_capi_list_ref(operands, 0);
-  if (scm_obj_null_p(arg1)) return -1; /* [ERR]: [throughg] */
+  if (scm_obj_null_p(arg1)) return -1;
 
   arg2 = scm_capi_list_ref(operands, 1);
-  if (scm_obj_null_p(arg2)) return -1; /* [ERR]: [throughg] */
+  if (scm_obj_null_p(arg2)) return -1;
 
   if (!scm_capi_integer_p(arg1)) {
     scm_capi_error("Assembler: operand is not integer", 2, operator, arg1);
@@ -444,7 +444,7 @@ scm_asm_inst_si_si(ScmObj iseq, int opcode, ScmObj operator, ScmObj operands,
   }
 
   rslt = scm_capi_integer_to_sword(arg1, &val1);
-  if (rslt < 0) return -1;      /* [ERR]: [through] */
+  if (rslt < 0) return -1;
 
   if (val1 < INT_MIN || INT_MAX < val1) {
     scm_capi_error("Assembler: operand is out of range", 2, operator, arg1);
@@ -452,7 +452,7 @@ scm_asm_inst_si_si(ScmObj iseq, int opcode, ScmObj operator, ScmObj operands,
   }
 
   rslt = scm_capi_integer_to_sword(arg2, &val2);
-  if (rslt < 0) return -1;      /* [ERR]: [through] */
+  if (rslt < 0) return -1;
 
   if (val2 < INT_MIN || INT_MAX < val2) {
     scm_capi_error("Assembler: operand is out of range", 2, operator, arg2);
@@ -493,13 +493,13 @@ scm_asm_inst_si_si_obj(ScmObj iseq, int opcode,
   }
 
   arg1 = scm_capi_list_ref(operands, 0);
-  if (scm_obj_null_p(arg1)) return -1; /* [ERR]: [throughg] */
+  if (scm_obj_null_p(arg1)) return -1;
 
   arg2 = scm_capi_list_ref(operands, 1);
-  if (scm_obj_null_p(arg2)) return -1; /* [ERR]: [throughg] */
+  if (scm_obj_null_p(arg2)) return -1;
 
   arg3 = scm_capi_list_ref(operands, 2);
-  if (scm_obj_null_p(arg3)) return -1; /* [ERR]: [throughg] */
+  if (scm_obj_null_p(arg3)) return -1;
 
   if (!scm_capi_integer_p(arg1)) {
     scm_capi_error("Assembler: operand is not list", 2, operator, arg1);
@@ -512,7 +512,7 @@ scm_asm_inst_si_si_obj(ScmObj iseq, int opcode,
   }
 
   rslt = scm_capi_integer_to_sword(arg1, &val1);
-  if (rslt < 0) return -1;      /* [ERR]: [through] */
+  if (rslt < 0) return -1;
 
   if (val1 < INT_MIN || INT_MAX < val1) {
     scm_capi_error("Assembler: operand is out of range", 2, operator, arg1);
@@ -520,7 +520,7 @@ scm_asm_inst_si_si_obj(ScmObj iseq, int opcode,
   }
 
   rslt = scm_capi_integer_to_sword(arg2, &val2);
-  if (rslt < 0) return -1;      /* [ERR]: [through] */
+  if (rslt < 0) return -1;
 
   if (val2 < INT_MIN || INT_MAX < val2) {
     scm_capi_error("Assembler: operand is out of range", 2, operator, arg2);
@@ -559,7 +559,7 @@ scm_asm_inst_iof(ScmObj iseq, int opcode, ScmObj operator, ScmObj operands,
   }
 
   label = scm_api_car(operands);
-  if (scm_obj_null_p(label)) return -1; /* [ERR]: [through] */
+  if (scm_obj_null_p(label)) return -1;
 
   if (!scm_capi_symbol_p(label)) {
     scm_capi_error("Assembler: operands is not symbol", 2, operator, label);
@@ -567,11 +567,11 @@ scm_asm_inst_iof(ScmObj iseq, int opcode, ScmObj operator, ScmObj operands,
   }
 
   i = scm_capi_iseq_push_opfmt_iof(iseq, opcode, 0);
-  if (i < 0) return -1;      /* [ERR]: [through] */
+  if (i < 0) return -1;
 
   rslt = scm_iseq_asm_reg_label_ref_idx(label_tbl,
                                         labels, label, (size_t)i - 4);
-  if (rslt < 0) return -1;      /* [ERR]: [through] */
+  if (rslt < 0) return -1;
 
   return i;
 }
@@ -605,7 +605,7 @@ scm_asm_inst_label(ScmObj iseq, int opcode, ScmObj operator, ScmObj operands,
   }
 
   arg = scm_api_car(operands);
-  if (scm_obj_null_p(arg)) return -1; /* [ERR]: [throughg] */
+  if (scm_obj_null_p(arg)) return -1;
 
 
   if (!scm_capi_symbol_p(arg)) {
@@ -645,7 +645,7 @@ scm_asm_inst_asm(ScmObj iseq, int opcode, ScmObj operator, ScmObj operands,
   }
 
   arg = scm_api_car(operands);
-  if (scm_obj_null_p(arg)) return -1; /* [ERR]: [throughg] */
+  if (scm_obj_null_p(arg)) return -1;
 
   if (!scm_capi_pair_p(arg) && !scm_capi_nil_p(arg)) {
     scm_capi_error("Assembler: operand is not list", 2, operator, arg);
@@ -653,7 +653,7 @@ scm_asm_inst_asm(ScmObj iseq, int opcode, ScmObj operator, ScmObj operands,
   }
 
   arg = scm_asm_assemble(arg, SCM_OBJ_NULL);
-  if (scm_obj_null_p(arg)) return -1; /* [ERR]: [through] */
+  if (scm_obj_null_p(arg)) return -1;
 
   return scm_capi_iseq_push_opfmt_obj(iseq, SCM_OPCODE_IMMVAL, arg);
 }
@@ -689,13 +689,13 @@ scm_asm_inst_asm_close(ScmObj iseq, int opcode,
   }
 
   arg1 = scm_capi_list_ref(operands, 0);
-  if (scm_obj_null_p(arg1)) return -1; /* [ERR]: [throughg] */
+  if (scm_obj_null_p(arg1)) return -1;
 
   arg2 = scm_capi_list_ref(operands, 1);
-  if (scm_obj_null_p(arg2)) return -1; /* [ERR]: [throughg] */
+  if (scm_obj_null_p(arg2)) return -1;
 
   arg3 = scm_capi_list_ref(operands, 2);
-  if (scm_obj_null_p(arg3)) return -1; /* [ERR]: [throughg] */
+  if (scm_obj_null_p(arg3)) return -1;
 
   if (!scm_capi_integer_p(arg1)) {
     scm_capi_error("Assembler: operand is not list", 2, operator, arg1);
@@ -713,7 +713,7 @@ scm_asm_inst_asm_close(ScmObj iseq, int opcode,
   }
 
   rslt = scm_capi_integer_to_sword(arg1, &val1);
-  if (rslt < 0) return -1;      /* [ERR]: [through] */
+  if (rslt < 0) return -1;
 
   if (val1 < INT_MIN || INT_MAX < val1) {
     scm_capi_error("Assembler: operand is out of range", 2, operator, arg1);
@@ -721,7 +721,7 @@ scm_asm_inst_asm_close(ScmObj iseq, int opcode,
   }
 
   rslt = scm_capi_integer_to_sword(arg2, &val2);
-  if (rslt < 0) return -1;      /* [ERR]: [through] */
+  if (rslt < 0) return -1;
 
   if (val2 < INT_MIN || INT_MAX < val2) {
     scm_capi_error("Assembler: operand is out of range", 2, operator, arg2);
@@ -729,7 +729,7 @@ scm_asm_inst_asm_close(ScmObj iseq, int opcode,
   }
 
   arg3 = scm_asm_assemble(arg3, SCM_OBJ_NULL);
-  if (scm_obj_null_p(arg3)) return -1; /* [ERR]: [through] */
+  if (scm_obj_null_p(arg3)) return -1;
 
   return scm_capi_iseq_push_opfmt_si_si_obj(iseq, SCM_OPCODE_CLOSE,
                                             (int)val1, (int)val2, arg3);
@@ -752,10 +752,10 @@ scm_asm_inst(ScmObj iseq, ScmObj inst, size_t idx,
 
   if (scm_capi_pair_p(inst)) {
     operator = scm_api_car(inst);
-    if (scm_obj_null_p(operator)) return -1; /* [ERR]: [thorugh] */
+    if (scm_obj_null_p(operator)) return -1;
 
     operands = scm_api_cdr(inst);
-    if (scm_obj_null_p(operands)) return -1; /* [ERR]: [through] */
+    if (scm_obj_null_p(operands)) return -1;
   }
   else {
     operator = inst;
@@ -763,11 +763,11 @@ scm_asm_inst(ScmObj iseq, ScmObj inst, size_t idx,
   }
 
   opcode = scm_asm_sym2opcode(operator);
-  if (opcode < 0) return -1;    /* [ERR]: [through] */
+  if (opcode < 0) return -1;
 
   if (opcode < SCM_ASM_PI_START) {
     int fmtid = scm_capi_opcode_to_opfmt(opcode);
-    if (fmtid < 0) return -1;    /* [ERR]: [through] */
+    if (fmtid < 0) return -1;
 
     switch (fmtid) {
     case SCM_OPFMT_NOOPD:
@@ -842,7 +842,7 @@ scm_asm_label_resolv(ScmObj iseq, ScmCHashTbl *label_tbl, EArray *labels)
 
   EARY_FOR_EACH(labels, idx1, lbl) {
     rslt = scm_chash_tbl_get(label_tbl, SCM_CHASH_TBL_KEY(*lbl), &val, &found);
-    if (rslt < 0) return -1;    /* [ERR]: [through] */
+    if (rslt < 0) return -1;
 
     if (!found) {
       scm_capi_fatal("Assember: inner error occured");
@@ -865,7 +865,7 @@ scm_asm_label_resolv(ScmObj iseq, ScmCHashTbl *label_tbl, EArray *labels)
     }
 
     rslt = scm_chash_tbl_delete(label_tbl, SCM_CHASH_TBL_KEY(*lbl), NULL, NULL);
-    if (rslt < 0) return -1;    /* [ERR]: [through] */
+    if (rslt < 0) return -1;
 
     scm_asm_del_label_rec(rec);
   }
@@ -907,11 +907,11 @@ scm_asm_assemble_aux(ScmObj iseq,
        cur = scm_api_cdr(cur)) {
     inst = scm_api_car(cur);
     idx = scm_asm_inst(iseq, inst, (size_t)idx, label_tbl, labels);
-    if (idx < 0) return -1;     /* [ERR]: [through] */
+    if (idx < 0) return -1;
   }
 
   rslt = scm_asm_label_resolv(iseq, label_tbl, labels);
-  if (rslt < 0) return -1;      /* [ERR]: [through] */
+  if (rslt < 0) return -1;
 
   return 0;
 }
@@ -929,20 +929,20 @@ scm_asm_assemble(ScmObj lst, ScmObj iseq)
   scm_assert(scm_obj_null_p(iseq) || scm_capi_iseq_p(iseq));
 
   rslt = eary_init(&labels, sizeof(char *), 32);
-  if (rslt) return SCM_OBJ_NULL; /* [ERR]: [through] */
+  if (rslt) return SCM_OBJ_NULL;
 
   if (scm_obj_null_p(iseq)) {
     iseq = scm_api_make_iseq();
-    if (scm_obj_null_p(iseq)) goto err; /* [ERR]: [through] */
+    if (scm_obj_null_p(iseq)) goto err;
   }
 
   label_tbl = scm_chash_tbl_new(SCM_OBJ_NULL, 32,
                                 SCM_CHASH_TBL_CVAL, SCM_CHASH_TBL_CVAL,
                                 scm_asm_hash, scm_asm_cmp);
-  if (label_tbl == NULL) goto err; /* [ERR]: [through] */
+  if (label_tbl == NULL) goto err;
 
   rslt = scm_asm_assemble_aux(iseq, label_tbl, &labels, lst);
-  if (rslt < 0) goto err;       /* [ERR]: [through] */
+  if (rslt < 0) goto err;
 
   eary_fin(&labels);
   scm_chash_tbl_end(label_tbl);

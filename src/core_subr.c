@@ -2229,7 +2229,7 @@ scm_subr_func_eval_asm(ScmObj subr, int argc, const ScmObj *argv)
 
   if (scm_capi_pair_p(argv[0])) {
     code = scm_api_assemble(argv[0], SCM_OBJ_NULL);
-    if (scm_obj_null_p(code)) return -1; /* [ERR]: [through] */
+    if (scm_obj_null_p(code)) return -1;
   }
   else if (scm_capi_iseq_p(argv[0])) {
     code = argv[0];
@@ -2243,7 +2243,7 @@ scm_subr_func_eval_asm(ScmObj subr, int argc, const ScmObj *argv)
   if (i < 0) return -1;
 
   code = scm_capi_make_closure(code, SCM_OBJ_NULL, 0);
-  if (scm_obj_null_p(code)) return -1; /* [ERR]: [through] */
+  if (scm_obj_null_p(code)) return -1;
 
   args = SCM_NIL_OBJ;
 
@@ -2265,13 +2265,13 @@ scm_subr_func_eval(ScmObj subr, int argc, const ScmObj *argv)
   }
 
   exp = scm_capi_compile(argv[0], SCM_OBJ_NULL, false);
-  if (scm_obj_null_p(exp)) return -1; /* [ERR]: [through] */
+  if (scm_obj_null_p(exp)) return -1;
 
   i = scm_capi_iseq_push_opfmt_noarg(exp, SCM_OPCODE_RETURN);
   if (i < 0) return -1;
 
   exp = scm_capi_make_closure(exp, SCM_OBJ_NULL, 0);
-  if (scm_obj_null_p(exp)) return -1; /* [ERR]: [through] */
+  if (scm_obj_null_p(exp)) return -1;
 
   args = SCM_NIL_OBJ;
 

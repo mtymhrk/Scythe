@@ -6551,10 +6551,10 @@ scm_api_get_output_string(ScmObj port)
   }
 
   p = scm_port_string_buffer(port);
-  if (p == NULL) return SCM_OBJ_NULL; /* [ERR]: [through] */
+  if (p == NULL) return SCM_OBJ_NULL;
 
   s = scm_port_string_buffer_length(port);
-  if (s < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
+  if (s < 0) return SCM_OBJ_NULL;
 
   enc_name = scm_port_external_enc(port);
   if (*enc_name == '\0') {
@@ -6641,10 +6641,10 @@ scm_api_read(ScmObj port)
   }
 
   lexer = scm_lexer_new();
-  if (lexer == NULL) return SCM_OBJ_NULL; /* [ERR]: [through] */
+  if (lexer == NULL) return SCM_OBJ_NULL;
 
   parser = scm_parser_new(lexer);
-  if (parser == NULL) return SCM_OBJ_NULL; /* [ERR]: [through] */
+  if (parser == NULL) return SCM_OBJ_NULL;
 
   return scm_parser_parse_expression(parser, port);
 }
@@ -6941,7 +6941,7 @@ scm_api_write_simple(ScmObj obj, ScmObj port)
   }
 
   rslt = scm_obj_call_print_func(obj, port, true);
-  if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
+  if (rslt < 0) return SCM_OBJ_NULL;
 
   return SCM_UNDEF_OBJ;
 }
@@ -7079,11 +7079,11 @@ scm_api_write_char(ScmObj chr, ScmObj port)
 
   if (p_enc != c_enc) {
     chr = scm_char_encode(chr, p_enc);
-    if (scm_obj_null_p(chr)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+    if (scm_obj_null_p(chr)) return SCM_OBJ_NULL;
   }
 
   rslt = scm_port_write_char(port, scm_char_value(chr));
-  if (rslt < 0) return SCM_OBJ_NULL; /* [ERR: [through] */
+  if (rslt < 0) return SCM_OBJ_NULL;
 
   return SCM_UNDEF_OBJ;
 }
@@ -7166,14 +7166,14 @@ scm_capi_write_string(ScmObj str, ScmObj port, ssize_t start, ssize_t end)
   p_enc = scm_port_internal_enc(port);
   if (p_enc != scm_string_encoding(str)) {
     str = scm_string_encode(str, p_enc);
-    if (scm_obj_null_p(str)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+    if (scm_obj_null_p(str)) return SCM_OBJ_NULL;
   }
 
   size = scm_capi_string_bytesize(str);
-  if (size < 0) return SCM_OBJ_NULL; /* [ERR: [through] */
+  if (size < 0) return SCM_OBJ_NULL;
 
   rslt = scm_port_write_bytes(port, scm_string_content(str), (size_t)size);
-  if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
+  if (rslt < 0) return SCM_OBJ_NULL;
 
   return end - start;
 }
@@ -7656,7 +7656,7 @@ scm_capi_iseq_push_opfmt_obj(ScmObj iseq, SCM_OPCODE_T op, ScmObj val)
   }
 
   rslt = scm_iseq_push_ushort(iseq, op);
-  if (rslt < 0) return -1;      /* [ERR]: [through] */
+  if (rslt < 0) return -1;
 
   return scm_iseq_push_obj(iseq, val);
 }
@@ -7685,10 +7685,10 @@ scm_capi_iseq_push_opfmt_obj_obj(ScmObj iseq,
   }
 
   rslt = scm_iseq_push_ushort(iseq, op);
-  if (rslt < 0) return -1;      /* [ERR]: [through] */
+  if (rslt < 0) return -1;
 
   rslt = scm_iseq_push_obj(iseq, val1);
-  if (rslt < 0) return -1;      /* [ERR]: [through] */
+  if (rslt < 0) return -1;
 
   return scm_iseq_push_obj(iseq, val2);
 }

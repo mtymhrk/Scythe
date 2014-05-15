@@ -28,7 +28,7 @@ void scm_pair_gc_initialize(ScmObj obj, ScmObj mem);
 int scm_pair_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
 
 inline ScmObj
-scm_pair_car(ScmObj pair)       /* GC OK */
+scm_pair_car(ScmObj pair)
 {
   scm_assert_obj_type(pair, &SCM_PAIR_TYPE_INFO);
 
@@ -36,7 +36,7 @@ scm_pair_car(ScmObj pair)       /* GC OK */
 }
 
 inline ScmObj
-scm_pair_cdr(ScmObj pair)       /* GC OK */
+scm_pair_cdr(ScmObj pair)
 {
   scm_assert_obj_type(pair, &SCM_PAIR_TYPE_INFO);
 

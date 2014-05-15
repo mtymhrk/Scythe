@@ -684,7 +684,7 @@ scm_num_calc_len_of_ary_of_sword(size_t str_size, int radix)
 
   rslt = scm_bignum_calc_base_and_place_for_ary_of_digits(radix,
                                                           &base, &place);
-  if (rslt < 0) return -1;      /* [ERR]: [through] */
+  if (rslt < 0) return -1;
 
   return ((ssize_t)str_size / place
           + (((ssize_t)str_size % place) ? 1 : 0));
@@ -704,7 +704,7 @@ scm_num_str_to_ary_of_sword(int radix, const scm_char_t *str, size_t len,
 
   rslt = scm_bignum_calc_base_and_place_for_ary_of_digits(radix, &base, &place);
 
-  if (rslt < 0) return -1;      /* [ERR]: [through] */
+  if (rslt < 0) return -1;
 
   for (ssize_t i = (ssize_t)len, idx = 0;
        i > 0;
@@ -713,7 +713,7 @@ scm_num_str_to_ary_of_sword(int radix, const scm_char_t *str, size_t len,
 
     for (int j = (i >= place) ? -place : (int)-i; j < 0; j++) {
       int v = scm_num_chr_to_int(str[i + j], enc);
-      if (v < 0) return -1;     /* [ERR]: [through] */
+      if (v < 0) return -1;
 
       ary[idx] = ary[idx] * (scm_bignum_d_t)radix + (scm_bignum_d_t)v;
     }
@@ -765,7 +765,7 @@ scm_num_make_integer(const scm_char_t *str, ScmEncoding *enc,
   }
 
   ary_sz = scm_num_calc_len_of_ary_of_sword(idata->len, radix);
-  if (ary_sz < 0) return 0;     /* [ERR]: [through] */
+  if (ary_sz < 0) return 0;
 
   {
     scm_bignum_d_t ary[ary_sz];
@@ -773,7 +773,7 @@ scm_num_make_integer(const scm_char_t *str, ScmEncoding *enc,
 
     base = scm_num_str_to_ary_of_sword(radix, str + idata->head, idata->len,
                                        enc, ary, (size_t)ary_sz);
-    if (base < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
+    if (base < 0) return SCM_OBJ_NULL;
 
     num = scm_bignum_make_int_from_ary(sign, ary, (size_t)ary_sz,
                                     (scm_bignum_c_t)base);

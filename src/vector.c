@@ -19,7 +19,7 @@ ScmTypeInfo SCM_VECTOR_TYPE_INFO = {
 };
 
 int
-scm_vector_initialize(ScmObj vector, size_t length, ScmObj fill) /* GC OK */
+scm_vector_initialize(ScmObj vector, size_t length, ScmObj fill)
 {
   size_t i;
 
@@ -28,7 +28,7 @@ scm_vector_initialize(ScmObj vector, size_t length, ScmObj fill) /* GC OK */
 
   if (length > 0) {
     SCM_VECTOR_ARRAY(vector) = scm_capi_malloc(sizeof(ScmObj) * length);
-    if (SCM_VECTOR_ARRAY(vector) == NULL) return -1; /* [ERR]: [through] */
+    if (SCM_VECTOR_ARRAY(vector) == NULL) return -1;
   }
   else {
     SCM_VECTOR_ARRAY(vector) = NULL;
@@ -56,7 +56,7 @@ scm_vector_initialize_ary(ScmObj vector, const ScmObj *elms, size_t length)
 
   if (length > 0) {
     SCM_VECTOR_ARRAY(vector) = scm_capi_malloc(sizeof(ScmObj) * length);
-    if (SCM_VECTOR_ARRAY(vector) == NULL) return -1; /* [ERR]: [through] */
+    if (SCM_VECTOR_ARRAY(vector) == NULL) return -1;
   }
   else {
     SCM_VECTOR_ARRAY(vector) = NULL;
@@ -90,7 +90,7 @@ scm_vector_initialize_lst(ScmObj vector, size_t length, ScmObj lst)
 
   if (length > 0) {
     SCM_VECTOR_ARRAY(vector) = scm_capi_malloc(sizeof(ScmObj) * length);
-    if (SCM_VECTOR_ARRAY(vector) == NULL) return -1; /* [ERR]: [through] */
+    if (SCM_VECTOR_ARRAY(vector) == NULL) return -1;
   }
   else {
     SCM_VECTOR_ARRAY(vector) = NULL;
@@ -116,7 +116,7 @@ scm_vector_initialize_lst(ScmObj vector, size_t length, ScmObj lst)
 }
 
 void
-scm_vector_finalize(ScmObj vector) /* GC OK */
+scm_vector_finalize(ScmObj vector)
 {
   scm_assert_obj_type(vector, &SCM_VECTOR_TYPE_INFO);
 
@@ -126,7 +126,7 @@ scm_vector_finalize(ScmObj vector) /* GC OK */
 
 ScmObj
 scm_vector_new(SCM_MEM_TYPE_T mtype,
-               size_t length, ScmObj fill) /* GC OK */
+               size_t length, ScmObj fill)
 {
   ScmObj vector = SCM_OBJ_INIT;
 
@@ -137,10 +137,10 @@ scm_vector_new(SCM_MEM_TYPE_T mtype,
   scm_assert(length <= SSIZE_MAX);
 
   vector = scm_capi_mem_alloc(&SCM_VECTOR_TYPE_INFO, 0, mtype);
-  if (scm_obj_null_p(vector)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+  if (scm_obj_null_p(vector)) return SCM_OBJ_NULL;
 
   if (scm_vector_initialize(vector, length, fill) < 0)
-    return SCM_OBJ_NULL; /* [ERR]: [through] */
+    return SCM_OBJ_NULL;
 
   return vector;
 }
@@ -156,10 +156,10 @@ scm_vector_new_from_ary(SCM_MEM_TYPE_T mtype, const ScmObj *elms, size_t length)
   scm_assert(length <= SSIZE_MAX);
 
   vector = scm_capi_mem_alloc(&SCM_VECTOR_TYPE_INFO, 0, mtype);
-  if (scm_obj_null_p(vector)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+  if (scm_obj_null_p(vector)) return SCM_OBJ_NULL;
 
   if (scm_vector_initialize_ary(vector, elms, length) < 0)
-    return SCM_OBJ_NULL; /* [ERR]: [through] */
+    return SCM_OBJ_NULL;
 
   return vector;
 }
@@ -175,16 +175,16 @@ scm_vector_new_from_list(SCM_MEM_TYPE_T mtype, size_t length, ScmObj lst)
   scm_assert(scm_obj_not_null_p(lst));
 
   vector = scm_capi_mem_alloc(&SCM_VECTOR_TYPE_INFO, 0, mtype);
-  if (scm_obj_null_p(vector)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+  if (scm_obj_null_p(vector)) return SCM_OBJ_NULL;
 
   if (scm_vector_initialize_lst(vector, length, lst) < 0)
-    return SCM_OBJ_NULL; /* [ERR]: [through] */
+    return SCM_OBJ_NULL;
 
   return vector;
 }
 
 size_t
-scm_vector_length(ScmObj vector) /* GC OK */
+scm_vector_length(ScmObj vector)
 {
   scm_assert_obj_type(vector, &SCM_VECTOR_TYPE_INFO);
 
@@ -192,7 +192,7 @@ scm_vector_length(ScmObj vector) /* GC OK */
 }
 
 ScmObj
-scm_vector_ref(ScmObj vector, size_t index) /* GC OK */
+scm_vector_ref(ScmObj vector, size_t index)
 {
   scm_assert_obj_type(vector, &SCM_VECTOR_TYPE_INFO);
   scm_assert(index < SCM_VECTOR_LENGTH(vector));
@@ -201,7 +201,7 @@ scm_vector_ref(ScmObj vector, size_t index) /* GC OK */
 }
 
 int
-scm_vector_set(ScmObj vector, size_t index, ScmObj obj) /* GC OK */
+scm_vector_set(ScmObj vector, size_t index, ScmObj obj)
 {
   scm_assert_obj_type(vector, &SCM_VECTOR_TYPE_INFO);
   scm_assert(index < SCM_VECTOR_LENGTH(vector));
@@ -255,7 +255,7 @@ scm_vector_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
 }
 
 void
-scm_vector_gc_initialize(ScmObj obj, ScmObj mem) /* GC OK */
+scm_vector_gc_initialize(ScmObj obj, ScmObj mem)
 {
   scm_assert_obj_type(obj, &SCM_VECTOR_TYPE_INFO);
 
@@ -264,13 +264,13 @@ scm_vector_gc_initialize(ScmObj obj, ScmObj mem) /* GC OK */
 }
 
 void
-scm_vector_gc_finalize(ScmObj obj) /* GC OK */
+scm_vector_gc_finalize(ScmObj obj)
 {
   scm_vector_finalize(obj);
 }
 
 int
-scm_vector_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler) /* GC OK */
+scm_vector_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
 {
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
   size_t i;

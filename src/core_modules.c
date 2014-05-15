@@ -70,7 +70,7 @@ scm_define_subr(ScmObj module, const struct subr_data *data, size_t n)
     if (scm_obj_null_p(subr)) return -1;
 
     rslt = scm_capi_define_global_var(module, sym, subr, true);
-    if (rslt < 0) return -1;                   /* [ERR]: [through] */
+    if (rslt < 0) return -1;
   }
 
   return 0;

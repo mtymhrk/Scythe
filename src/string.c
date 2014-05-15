@@ -67,7 +67,7 @@ scm_string_copy_bytes_with_check(void *dst, const void *src,
 
   memcpy(dst, src, size);
   len = scm_string_check_bytes(dst, size, enc);
-  if (len < 0) return -1; /* [ERR]: [through] */
+  if (len < 0) return -1;
 
   return len;
 }
@@ -85,7 +85,7 @@ scm_string_copy_and_expand(ScmObj src, size_t size)
 
   str = scm_string_new(SCM_MEM_HEAP,
                        NULL, size, SCM_STRING_ENC(src));
-  if (scm_obj_null_p(str)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+  if (scm_obj_null_p(str)) return SCM_OBJ_NULL;
 
   SCM_STRING_BYTESIZE(str) =
     (size < SCM_STRING_BYTESIZE(src)) ? size : SCM_STRING_BYTESIZE(src);
@@ -275,43 +275,43 @@ scm_string_write_ext_rep_inner(ScmObj str, ScmObj port, size_t len)
   enc = SCM_STRING_ENC(str);
 
   rslt = scm_capi_write_cstr("\"", SCM_ENC_SRC, port);
-  if (rslt < 0) return -1; /* [ERR: [through] */
+  if (rslt < 0) return -1;
 
   for (size_t i = 0; i < len; i++) {
     if (scm_enc_printable_p(enc, ary[i].bytes, sizeof(ary[i]))) {
       if (scm_enc_same_char_p(enc, ary[i].bytes, sizeof(ary[i]), '"')) {
         rslt = scm_capi_write_cstr("\\\"", SCM_ENC_SRC, port);
-        if (rslt < 0) return -1; /* [ERR]: [through] */
+        if (rslt < 0) return -1;
       }
       else if (scm_enc_same_char_p(enc, ary[i].bytes, sizeof(ary[i]), '\\')) {
         rslt = scm_capi_write_cstr("\\\\", SCM_ENC_SRC, port);
-        if (rslt < 0) return -1; /* [ERR]: [through] */
+        if (rslt < 0) return -1;
       }
       else {
         rslt = scm_capi_write_cchr(ary[i], enc, port);
-        if (rslt < 0) return -1; /* [ERR]: [through] */
+        if (rslt < 0) return -1;
       }
     }
     else {
       if (scm_enc_same_char_p(enc, ary[i].bytes, sizeof(ary[i]), '\a')) {
         rslt = scm_capi_write_cstr("\\a", SCM_ENC_SRC, port);
-        if (rslt < 0) return -1; /* [ERR]: [through] */
+        if (rslt < 0) return -1;
       }
       else if (scm_enc_same_char_p(enc, ary[i].bytes, sizeof(ary[i]), '\b')) {
         rslt = scm_capi_write_cstr("\\b", SCM_ENC_SRC, port);
-        if (rslt < 0) return -1; /* [ERR: [through] */
+        if (rslt < 0) return -1;
       }
       else if (scm_enc_same_char_p(enc, ary[i].bytes, sizeof(ary[i]), '\t')) {
         rslt = scm_capi_write_cstr("\\t", SCM_ENC_SRC, port);
-        if (rslt < 0) return -1; /* [ERR: [through] */
+        if (rslt < 0) return -1;
       }
       else if (scm_enc_same_char_p(enc, ary[i].bytes, sizeof(ary[i]), '\n')) {
         rslt = scm_capi_write_cstr("\\n", SCM_ENC_SRC, port);
-        if (rslt < 0) return -1; /* [ERR: [through] */
+        if (rslt < 0) return -1;
       }
       else if (scm_enc_same_char_p(enc, ary[i].bytes, sizeof(ary[i]), '\r')) {
         rslt = scm_capi_write_cstr("\\r", SCM_ENC_SRC, port);
-        if (rslt < 0) return -1; /* [ERR: [through] */
+        if (rslt < 0) return -1;
       }
       else {
         char cstr[32];
@@ -321,13 +321,13 @@ scm_string_write_ext_rep_inner(ScmObj str, ScmObj port, size_t len)
         scm_assert(scalar >= 0);
         snprintf(cstr, sizeof(cstr), "\\x%llx;", scalar);
         rslt = scm_capi_write_cstr(cstr, SCM_ENC_SRC, port);
-        if (rslt < 0) return -1; /* [ERR: [through] */
+        if (rslt < 0) return -1;
       }
     }
   }
 
   rslt = scm_capi_write_cstr("\"", SCM_ENC_SRC, port);
-  if (rslt < 0) return -1; /* [ERR: [through] */
+  if (rslt < 0) return -1;
 
   return 0;
 }
@@ -381,11 +381,11 @@ scm_string_initialize(ScmObj str,
 
   SCM_STRING_BUFFER(str) = scm_capi_malloc(SCM_STRING_CAPACITY(str));
   SCM_STRING_HEAD(str) = SCM_STRING_BUFFER(str);
-  if (SCM_STRING_BUFFER(str) == NULL) return -1; /* [ERR]: [through] */
+  if (SCM_STRING_BUFFER(str) == NULL) return -1;
 
   SCM_STRING_REF_CNT(str) =
     scm_capi_malloc(sizeof(*SCM_STRING_REF_CNT(str)));
-  if (SCM_STRING_REF_CNT(str) == NULL) return -1; /* [ERR]: [through] */
+  if (SCM_STRING_REF_CNT(str) == NULL) return -1;
 
   *SCM_STRING_REF_CNT(str) = 1;
 
@@ -419,16 +419,16 @@ scm_string_new(SCM_MEM_TYPE_T mtype,
   scm_assert(enc != NULL);
 
   str = scm_capi_mem_alloc(&SCM_STRING_TYPE_INFO, 0, mtype);
-  if (scm_obj_null_p(str)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+  if (scm_obj_null_p(str)) return SCM_OBJ_NULL;
 
   if (scm_string_initialize(str, src, size, enc) < 0)
-    return SCM_OBJ_NULL;        /* [ERR]: [through] */
+    return SCM_OBJ_NULL;
 
   return str;
 }
 
 ScmObj
-scm_string_copy(ScmObj src)     /* GC OK */
+scm_string_copy(ScmObj src)
 {
   scm_assert_obj_type(src, &SCM_STRING_TYPE_INFO);
 
@@ -439,7 +439,7 @@ scm_string_copy(ScmObj src)     /* GC OK */
 }
 
 ScmObj
-scm_string_dup(ScmObj src)      /* GC OK */
+scm_string_dup(ScmObj src)
 {
   ScmObj str = SCM_OBJ_INIT;
 
@@ -463,21 +463,21 @@ scm_string_dup(ScmObj src)      /* GC OK */
 }
 
 size_t
-scm_string_length(ScmObj str)   /* GC OK */
+scm_string_length(ScmObj str)
 {
   scm_assert_obj_type(str, &SCM_STRING_TYPE_INFO);
   return SCM_STRING_LENGTH(str);
 }
 
 size_t
-scm_string_bytesize(ScmObj str) /* GC OK */
+scm_string_bytesize(ScmObj str)
 {
   scm_assert_obj_type(str, &SCM_STRING_TYPE_INFO);
   return SCM_STRING_BYTESIZE(str);
 }
 
 bool
-scm_string_is_equal(ScmObj str1, ScmObj str2) /* GC OK */
+scm_string_is_equal(ScmObj str1, ScmObj str2)
 {
   scm_assert_obj_type(str1, &SCM_STRING_TYPE_INFO);
   scm_assert_obj_type(str2, &SCM_STRING_TYPE_INFO);
@@ -560,7 +560,7 @@ scm_string_push(ScmObj str, const scm_char_t *c)
   if ((*SCM_STRING_REF_CNT(str) > 1) || ROOM_FOR_APPEND(str) < (size_t)width) {
     tmp = scm_string_copy_and_expand(str,
                                      SCM_STRING_BYTESIZE(str) + (size_t)width);
-    if (scm_obj_null_p(tmp)) return -1; /* [ERR]: [through] */
+    if (scm_obj_null_p(tmp)) return -1;
     scm_string_replace_contents(str, tmp);
     scm_string_finalize(tmp);
   }
@@ -588,7 +588,7 @@ scm_string_append(ScmObj str, ScmObj append)
     tmp = scm_string_copy_and_expand(str,
                                      SCM_STRING_BYTESIZE(str)
                                      + SCM_STRING_BYTESIZE(append));
-    if (scm_obj_null_p(tmp)) return -1; /* [ERR]: [through] */
+    if (scm_obj_null_p(tmp)) return -1;
     scm_string_replace_contents(str, tmp);
     scm_string_finalize(tmp);
   }
@@ -643,7 +643,7 @@ scm_string_set(ScmObj str, size_t pos, const scm_char_t *c)
   if (pos >= SCM_STRING_LENGTH(str)) {
     scm_capi_error("can not update a character in string: "
                    "argument out of range", 0);
-    return -1; /* [ERR]: string: argument out of range */
+    return -1;
   }
 
   scm_enc_index2itr(SCM_STRING_ENC(str),
@@ -654,7 +654,7 @@ scm_string_set(ScmObj str, size_t pos, const scm_char_t *c)
   if (cw < 0) {
     scm_capi_error("can not update a character in string: "
                    "invalid byte sequence", 0);
-    return -1; /* [ERR]: string: invalid byte sequnce has set */
+    return -1;
   }
 
   iw = scm_str_itr_width(&iter);
@@ -682,7 +682,7 @@ scm_string_set(ScmObj str, size_t pos, const scm_char_t *c)
     size_t offset = scm_str_itr_offset(&iter, SCM_STRING_HEAD(str));
     tmp = scm_string_copy(str);
 
-    if (scm_obj_null_p(tmp)) return -1; /* [ERR]: [through] */
+    if (scm_obj_null_p(tmp)) return -1;
     memcpy(SCM_STRING_HEAD(tmp) + offset, c, (size_t)cw);
     scm_string_replace_contents(str, tmp);
 
@@ -693,14 +693,14 @@ scm_string_set(ScmObj str, size_t pos, const scm_char_t *c)
     rear = scm_string_substr(str, pos + 1, SCM_STRING_LENGTH(str) - pos - 1);
 
     if (scm_obj_null_p(front) || scm_obj_null_p(rear))
-      return -1; /* [ERR]: [through] */
+      return -1;
 
     tmp = scm_string_copy_and_expand(front,
                                      SCM_STRING_BYTESIZE(front)
                                      + (size_t)cw + SCM_STRING_BYTESIZE(rear));
-    if (scm_obj_null_p(tmp)) return SCM_OBJ_NULL; /* [ERR]: [through] */
-    if (scm_string_push(tmp, c) < 0) return -1; /* [ERR]: [through] */
-    if (scm_string_append(tmp, rear) < 0) return -1; /* [ERR]: [through] */
+    if (scm_obj_null_p(tmp)) return SCM_OBJ_NULL;
+    if (scm_string_push(tmp, c) < 0) return -1;
+    if (scm_string_append(tmp, rear) < 0) return -1;
 
     scm_string_replace_contents(str, tmp);
 
@@ -735,12 +735,12 @@ scm_string_fill(ScmObj str, size_t pos, size_t len, const scm_char_t *c)
   }
 
   front = scm_string_substr(str, 0, pos);
-  if (scm_obj_null_p(front)) return -1; /* [ERR]: [through] */
+  if (scm_obj_null_p(front)) return -1;
 
   if (pos + len < SCM_STRING_LENGTH(str)) {
     rear = scm_string_substr(str, pos + len,
                              SCM_STRING_LENGTH(str) - pos - len);
-    if (scm_obj_null_p(rear)) return -1; /* [ERR]: [through] */
+    if (scm_obj_null_p(rear)) return -1;
   }
 
   tmp = scm_string_copy_and_expand(front,
@@ -748,16 +748,16 @@ scm_string_fill(ScmObj str, size_t pos, size_t len, const scm_char_t *c)
                                    + len
                                    + (scm_obj_null_p(rear) ?
                                       0 : SCM_STRING_BYTESIZE(rear)));
-  if (scm_obj_null_p(tmp)) return -1; /* [ERR]: [through] */
+  if (scm_obj_null_p(tmp)) return -1;
 
   for (i = 0; i < len; i++) {
     int r = scm_string_push(tmp, c);
-    if (r < 0) return -1; /* [ERR]: [through] */
+    if (r < 0) return -1;
   }
 
   if (scm_obj_not_null_p(rear))
     if (scm_string_append(tmp, rear) < 0)
-      return -1; /* [ERR]: [through] */
+      return -1;
 
   scm_string_replace_contents(str, tmp);
 
@@ -928,7 +928,7 @@ scm_string_encoding(ScmObj str)
 }
 
 void *
-scm_string_content(ScmObj str)  /* GC OK */
+scm_string_content(ScmObj str)
 {
   scm_assert_obj_type(str, &SCM_STRING_TYPE_INFO);
 
@@ -1013,7 +1013,7 @@ scm_string_escape_ctrl_and_nonascii_write_inner(ScmObj str,
         && scm_enc_printable_p(enc, ary[i].bytes, sizeof(ary[i]))
         && !scm_enc_same_char_p(enc, ary[i].bytes, sizeof(ary[i]), ' ')) {
       rslt = scm_capi_write_cchr(ary[i], enc, port);
-      if (rslt < 0) return -1; /* [ERR]: [through] */
+      if (rslt < 0) return -1;
     }
     else {
       char cstr[32];
@@ -1023,7 +1023,7 @@ scm_string_escape_ctrl_and_nonascii_write_inner(ScmObj str,
       scm_assert(scalar >= 0);
       snprintf(cstr, sizeof(cstr), "\\x%llx;", scalar);
       rslt = scm_capi_write_cstr(cstr, SCM_ENC_SRC, port);
-      if (rslt < 0) return -1;  /* [ERR]: [through] */
+      if (rslt < 0) return -1;
     }
   }
 
@@ -1049,13 +1049,13 @@ scm_string_gc_initialize(ScmObj obj, ScmObj mem)
 }
 
 void
-scm_string_gc_finalize(ScmObj obj) /* GC OK */
+scm_string_gc_finalize(ScmObj obj)
 {
   scm_string_finalize(obj);
 }
 
 size_t
-scm_string_hash_value(ScmObj str) /* GC OK */
+scm_string_hash_value(ScmObj str)
 {
   size_t hash;
   unsigned int i;

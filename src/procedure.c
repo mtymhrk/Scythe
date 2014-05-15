@@ -94,10 +94,10 @@ scm_subrutine_new(SCM_MEM_TYPE_T mtype,
   scm_assert(scm_obj_null_p(module) || scm_capi_module_p(module));
 
   subr = scm_capi_mem_alloc(&SCM_SUBRUTINE_TYPE_INFO, 0, mtype);
-  if (scm_obj_null_p(subr)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+  if (scm_obj_null_p(subr)) return SCM_OBJ_NULL;
 
   if (scm_subrutine_initialize(subr, func, name, arity, flags, module))
-    return SCM_OBJ_NULL;        /* [ERR]: [through] */
+    return SCM_OBJ_NULL;
 
   return subr;
 }
@@ -197,10 +197,10 @@ scm_closure_new(SCM_MEM_TYPE_T mtype,
   scm_assert(scm_capi_iseq_p(iseq));
 
   clsr = scm_capi_mem_alloc(&SCM_CLOSURE_TYPE_INFO, 0, mtype);
-  if (scm_obj_null_p(clsr)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+  if (scm_obj_null_p(clsr)) return SCM_OBJ_NULL;
 
   rslt = scm_closure_initialize(clsr, iseq, env, name, arity);
-  if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
+  if (rslt < 0) return SCM_OBJ_NULL;
 
   return clsr;
 }

@@ -65,7 +65,7 @@ scm_iseq_put_ullong(scm_byte_t **ip, unsigned long long val)
 }
 
 int
-scm_iseq_initialize(ScmObj iseq) /* GC OK */
+scm_iseq_initialize(ScmObj iseq)
 {
   int rslt;
 
@@ -73,33 +73,33 @@ scm_iseq_initialize(ScmObj iseq) /* GC OK */
 
   rslt = eary_init(SCM_ISEQ_EARY_SEQ(iseq),
                    sizeof(scm_byte_t), SCM_ISEQ_DEFAULT_SEQ_SIZE);
-  if (rslt != 0) return -1;  /* [ERR]: [through] */
+  if (rslt != 0) return -1;
 
   rslt = eary_init(SCM_ISEQ_EARY_INDEX(iseq),
                    sizeof(size_t), SCM_ISEQ_DEFAULT_INDEX_SIZE);
-  if (rslt != 0) return -1;  /* [ERR]: [through] */
+  if (rslt != 0) return -1;
 
   return 0;
 }
 
 ScmObj
-scm_iseq_new(SCM_MEM_TYPE_T mtype) /* GC OK */
+scm_iseq_new(SCM_MEM_TYPE_T mtype)
 {
   ScmObj iseq = SCM_OBJ_INIT;
 
   SCM_STACK_FRAME_PUSH(&iseq);
 
   iseq = scm_capi_mem_alloc(&SCM_ISEQ_TYPE_INFO, 0, mtype);
-  if (scm_obj_null_p(iseq)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+  if (scm_obj_null_p(iseq)) return SCM_OBJ_NULL;
 
   if (scm_iseq_initialize(iseq) < 0)
-    return SCM_OBJ_NULL;        /* [ERR]: [through] */
+    return SCM_OBJ_NULL;
 
   return iseq;
 }
 
 void
-scm_iseq_finalize(ScmObj obj) /* GC OK */
+scm_iseq_finalize(ScmObj obj)
 {
   scm_assert_obj_type(obj, &SCM_ISEQ_TYPE_INFO);
 
@@ -355,7 +355,7 @@ scm_iseq_set_obj(ScmObj iseq, size_t idx, ScmObj val)
 }
 
 void
-scm_iseq_gc_initialize(ScmObj obj, ScmObj mem) /* GC OK */
+scm_iseq_gc_initialize(ScmObj obj, ScmObj mem)
 {
   scm_assert_obj_type(obj, &SCM_ISEQ_TYPE_INFO);
 
@@ -364,13 +364,13 @@ scm_iseq_gc_initialize(ScmObj obj, ScmObj mem) /* GC OK */
 }
 
 void
-scm_iseq_gc_finalize(ScmObj obj) /* GC OK */
+scm_iseq_gc_finalize(ScmObj obj)
 {
   scm_iseq_finalize(obj);
 }
 
 int
-scm_iseq_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler) /* GC OK */
+scm_iseq_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
 {
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
 

@@ -20,7 +20,7 @@ ScmTypeInfo SCM_PAIR_TYPE_INFO = {
 
 
 int
-scm_pair_initialize(ScmObj pair, ScmObj car, ScmObj cdr) /* GC OK */
+scm_pair_initialize(ScmObj pair, ScmObj car, ScmObj cdr)
 {
   scm_assert_obj_type(pair, &SCM_PAIR_TYPE_INFO);
   scm_assert(scm_obj_not_null_p(car));
@@ -33,7 +33,7 @@ scm_pair_initialize(ScmObj pair, ScmObj car, ScmObj cdr) /* GC OK */
 }
 
 ScmObj
-scm_pair_new(SCM_MEM_TYPE_T mtype, ScmObj car, ScmObj cdr) /* GC OK */
+scm_pair_new(SCM_MEM_TYPE_T mtype, ScmObj car, ScmObj cdr)
 {
   ScmObj pair = SCM_OBJ_INIT;
 
@@ -43,10 +43,10 @@ scm_pair_new(SCM_MEM_TYPE_T mtype, ScmObj car, ScmObj cdr) /* GC OK */
   scm_assert(scm_obj_not_null_p(cdr));
 
   pair = scm_capi_mem_alloc(&SCM_PAIR_TYPE_INFO, 0, mtype);
-  if (scm_obj_null_p(pair)) return SCM_OBJ_NULL; /* [ERR]: [through] */
+  if (scm_obj_null_p(pair)) return SCM_OBJ_NULL;
 
   if (scm_pair_initialize(pair, car, cdr) < 0)
-    return SCM_OBJ_NULL; /* [ERR]: [through] */
+    return SCM_OBJ_NULL;
 
   return pair;
 }
@@ -62,7 +62,7 @@ scm_pair_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
   scm_assert_obj_type(obj, &SCM_PAIR_TYPE_INFO);
 
   rslt = scm_capi_write_cstr("(", SCM_ENC_SRC, port);
-  if (rslt < 0) return -1;      /* [ERR]: [through] */
+  if (rslt < 0) return -1;
 
   lst = obj;
   while (1) {
@@ -90,13 +90,13 @@ scm_pair_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
     if (rslt < 0) return -1;
 
     rslt = scm_capi_write_cstr(" ", SCM_ENC_SRC, port);
-    if (rslt < 0) return -1;    /* [ERR]: [through] */
+    if (rslt < 0) return -1;
 
     lst = cdr;
   }
 
   rslt = scm_capi_write_cstr(")", SCM_ENC_SRC, port);
-  if (rslt < 0) return -1;      /* [ERR]: [through] */
+  if (rslt < 0) return -1;
 
   return 0;
 }
