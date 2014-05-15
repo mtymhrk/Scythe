@@ -8433,6 +8433,435 @@ scm_capi_trampolining(ScmObj proc, ScmObj args,
 
 
 /*******************************************************************/
+/*  format                                                         */
+/*******************************************************************/
+
+static int
+scm__format_mod(ScmObj port, scm_char_t chr, ScmEncoding *enc, ScmObj obj)
+{
+  scm_assert(scm_capi_output_port_p(port));
+  scm_assert(enc != NULL);
+
+  if (scm_enc_same_char_p(enc, chr.bytes, sizeof(chr), 'a')) {
+    int r;
+
+    if (scm_obj_null_p(obj)) {
+      scm_capi_error("format: too few arguments", 0);
+      return -1;
+    }
+
+    r = scm_obj_call_pp_func(obj, port, false);
+    if (r < 0) return -1;
+
+    return 1;
+  }
+  else if (scm_enc_same_char_p(enc, chr.bytes, sizeof(chr), 's')) {
+    int r;
+
+    if (scm_obj_null_p(obj)) {
+      scm_capi_error("format: too few arugmnets", 0);
+      return -1;
+    }
+
+    r = scm_obj_call_pp_func(obj, port, true);
+    if (r < 0) return -1;
+
+    return 1;
+  }
+  else if (scm_enc_same_char_p(enc, chr.bytes, sizeof(chr), '%')) {
+    ScmObj r = scm_api_newline(port);
+    if (scm_obj_null_p(r)) return -1;
+
+    return 0;
+  }
+  else if (scm_enc_same_char_p(enc, chr.bytes, sizeof(chr), '~')) {
+    int r = scm_capi_write_cchr(chr, enc, port);
+    if (r < 0) return -1;
+
+    return 0;
+  }
+  else {
+    scm_capi_error("format: unknown specifier", 0);
+    return -1;
+  }
+}
+
+static int
+scm__format_aux(ScmObj port, bool *escaped,
+                scm_char_t chr, ScmEncoding *enc, ScmObj obj)
+{
+  scm_assert(scm_capi_output_port_p(port));
+  scm_assert(escaped != NULL);
+  scm_assert(enc != NULL);
+
+  if (*escaped) {
+    int r = scm__format_mod(port, chr, enc, obj);
+    *escaped = false;
+    return r;
+  }
+  else {
+    if (scm_enc_same_char_p(enc, chr.bytes, sizeof(chr), '~')) {
+      *escaped = true;
+      return 0;
+    }
+    else {
+      return scm_capi_write_cchr(chr, enc, port);
+    }
+  }
+}
+
+static int
+scm_capi_pformat_lst_aux(ScmObj port, ScmObj fmt, size_t len, ScmObj lst)
+{
+  ScmObj o = SCM_OBJ_INIT;
+  scm_char_t chr[len], *p;
+  ScmEncoding *enc;
+  bool escaped;
+
+  SCM_STACK_FRAME_PUSH(&port, &fmt,
+                       &o);
+
+  scm_assert(scm_capi_output_port_p(port));
+  scm_assert(scm_capi_string_p(fmt));
+  scm_assert(scm_obj_not_null_p(lst));
+
+  p = scm_string_to_char_ary(fmt, 0, (ssize_t)len, chr);
+  if (p == NULL) return -1;
+
+  enc = scm_string_encoding(fmt);
+  if (enc == NULL) return -1;
+
+  escaped = false;
+
+  o = SCM_OBJ_NULL;
+  if (scm_capi_pair_p(lst)) {
+    o = scm_api_car(lst);
+    if (scm_obj_null_p(o)) return -1;
+
+    lst = scm_api_cdr(lst);
+    if (scm_obj_null_p(lst)) return -1;
+  }
+
+  for (size_t chr_idx = 0; chr_idx < len; chr_idx++) {
+    int r = scm__format_aux(port, &escaped, chr[chr_idx], enc, o);
+    if (r < 0) return -1;
+
+    if (r > 0) {
+      o = SCM_OBJ_NULL;
+      if (scm_capi_pair_p(lst)) {
+        o = scm_api_car(lst);
+        if (scm_obj_null_p(o)) return -1;
+
+        lst = scm_api_cdr(lst);
+        if (scm_obj_null_p(lst)) return -1;
+      }
+    }
+  }
+
+  return 0;
+}
+
+int
+scm_capi_pformat_lst(ScmObj port, ScmObj fmt, ScmObj lst)
+{
+  size_t len;
+
+  SCM_STACK_FRAME_PUSH(&port, &fmt, &lst);
+
+  if (scm_obj_null_p(port)) {
+    scm_capi_error("format: invalid arugment", 0);
+    return -1;
+  }
+  else if (!scm_capi_output_port_p(port)) {
+    scm_capi_error("format: output port required, but got", 1, port);
+    return -1;
+  }
+
+  if (scm_obj_null_p(fmt)) {
+    scm_capi_error("format: invalid arugment", 0);
+    return -1;
+  }
+  else if (!scm_capi_string_p(fmt)) {
+    scm_capi_error("format: string required, but got", 1, fmt);
+    return -1;
+  }
+
+  if (scm_obj_null_p(lst)) {
+    scm_capi_error("format: invalid argument", 0);
+    return -1;
+  }
+
+  len = scm_string_length(fmt);
+
+  return scm_capi_pformat_lst_aux(port, fmt, len, lst);
+}
+
+ScmObj
+scm_capi_format_lst(ScmObj fmt, ScmObj lst)
+{
+  ScmObj port = SCM_OBJ_INIT, str = SCM_OBJ_INIT;
+  ScmEncoding *fenc, *senc;
+  int r;
+
+  SCM_STACK_FRAME_PUSH(&fmt, &lst,
+                       &port, &str);
+
+  port = scm_api_open_output_string();
+  if (scm_obj_null_p(port)) return SCM_OBJ_NULL;
+
+  r = scm_capi_pformat_lst(port, fmt, lst);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  str = scm_api_get_output_string(port);
+  if (scm_obj_null_p(str)) return SCM_OBJ_NULL;
+
+  fenc = scm_string_encoding(fmt);
+  if (fenc == NULL) return SCM_OBJ_NULL;
+
+  senc = scm_string_encoding(str);
+  if (senc == NULL) return SCM_OBJ_NULL;
+
+  return ((fenc == senc) ? str : scm_string_encode(str, fenc));
+}
+
+
+static int
+scm_capi_pformat_cv_aux(ScmObj port,
+                        ScmObj fmt, size_t len, ScmObj *obj, size_t n)
+{
+  ScmObj o = SCM_OBJ_INIT;
+  scm_char_t chr[len], *p;
+  ScmEncoding *enc;
+  bool escaped;
+  size_t obj_idx;
+
+  SCM_STACK_FRAME_PUSH(&port, &fmt,
+                       &o);
+
+  scm_assert(scm_capi_output_port_p(port));
+  scm_assert(scm_capi_string_p(fmt));
+  scm_assert(obj != NULL);
+
+  p = scm_string_to_char_ary(fmt, 0, (ssize_t)len, chr);
+  if (p == NULL) return -1;
+
+  enc = scm_string_encoding(fmt);
+  if (enc == NULL) return -1;
+
+  escaped = false;
+  obj_idx = 0;
+  o = (n == 0) ? SCM_OBJ_NULL : obj[obj_idx++];
+
+  for (size_t chr_idx = 0; chr_idx < len; chr_idx++) {
+    int r = scm__format_aux(port, &escaped, chr[chr_idx], enc, o);
+    if (r < 0) return -1;
+
+    if (r > 0) {
+      o = SCM_OBJ_NULL;
+      if (obj_idx < n) {
+        if (scm_obj_null_p(obj[obj_idx])) {
+          scm_capi_error("format: invalid argument", 0);
+          return -1;
+        }
+        o = obj[obj_idx++];
+      }
+    }
+  }
+
+  return 0;
+}
+
+int
+scm_capi_pformat_cv(ScmObj port, ScmObj fmt, ScmObj *obj, size_t n)
+{
+  size_t len;
+
+  SCM_STACK_FRAME_PUSH(&port, &fmt);
+
+  if (scm_obj_null_p(port)) {
+    scm_capi_error("format: invalid arugment", 0);
+    return -1;
+  }
+  else if (!scm_capi_output_port_p(port)) {
+    scm_capi_error("format: output port required, but got", 1, port);
+    return -1;
+  }
+
+  if (scm_obj_null_p(fmt)) {
+    scm_capi_error("format: invalid arugment", 0);
+    return -1;
+  }
+  else if (!scm_capi_string_p(fmt)) {
+    scm_capi_error("format: string required, but got", 1, fmt);
+    return -1;
+  }
+
+  if (n > 0 && obj == NULL) {
+    scm_capi_error("format: invalid arugment", 0);
+    return -1;
+  }
+
+  len = scm_string_length(fmt);
+
+  return scm_capi_pformat_cv_aux(port, fmt, len, obj, n);
+}
+
+ScmObj
+scm_capi_format_cv(ScmObj fmt, ScmObj *obj, size_t n)
+{
+  ScmObj port = SCM_OBJ_INIT, str = SCM_OBJ_INIT;
+  ScmEncoding *fenc, *senc;
+  int r;
+
+  SCM_STACK_FRAME_PUSH(&fmt,
+                       &port, &str);
+
+  port = scm_api_open_output_string();
+  if (scm_obj_null_p(port)) return SCM_OBJ_NULL;
+
+  r = scm_capi_pformat_cv(port, fmt, obj, n);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  str = scm_api_get_output_string(port);
+  if (scm_obj_null_p(str)) return SCM_OBJ_NULL;
+
+  fenc = scm_string_encoding(fmt);
+  if (fenc == NULL) return SCM_OBJ_NULL;
+
+  senc = scm_string_encoding(str);
+  if (senc == NULL) return SCM_OBJ_NULL;
+
+  return ((fenc == senc) ? str : scm_string_encode(str, fenc));
+}
+
+static ScmObj
+scm_api_pformat_aux(ScmObj port, ScmObj fmt, const char *cfmt,
+                    va_list arg, size_t n)
+{
+  ScmObj obj[n];
+
+  SCM_STACK_FRAME_PUSH(&port, &fmt);
+
+  for (size_t i = 0; i < n; i++) {
+    obj[i] = va_arg(arg, ScmObj);
+    SCM_STACK_PUSH(obj + i);
+  }
+
+  if (scm_obj_null_p(fmt)) {
+    fmt = scm_capi_make_string_from_cstr(cfmt, SCM_ENC_UTF8);
+    if (scm_obj_null_p(fmt)) return SCM_OBJ_NULL;
+  }
+
+  if (scm_obj_not_null_p(port)) {
+    int r = scm_capi_pformat_cv(port, fmt, obj, n);
+    return (r < 0) ? SCM_OBJ_NULL : SCM_UNDEF_OBJ;
+  }
+  else {
+    return scm_capi_format_cv(fmt, obj, n);
+  }
+}
+
+ScmObj
+scm_api_pformat(ScmObj port, ScmObj fmt, ...)
+{
+  ScmObj obj = SCM_OBJ_INIT, ret = SCM_OBJ_INIT;
+  va_list arg;
+  size_t n;
+
+  if (scm_obj_null_p(port)) {
+    scm_capi_error("format: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  va_start(arg, fmt);
+  n = 0;
+  for (obj = va_arg(arg, ScmObj);
+       scm_obj_not_null_p(obj);
+       obj = va_arg(arg, ScmObj))
+    n++;
+  va_end(arg);
+
+  va_start(arg, fmt);
+  ret = scm_api_pformat_aux(port, fmt, NULL, arg, n);
+  va_end(arg);
+
+  return ret;
+}
+
+
+ScmObj
+scm_api_format(ScmObj fmt, ...)
+{
+  ScmObj obj = SCM_OBJ_INIT, ret = SCM_OBJ_INIT;
+  va_list arg;
+  size_t n;
+
+  va_start(arg, fmt);
+  n = 0;
+  for (obj = va_arg(arg, ScmObj);
+       scm_obj_not_null_p(obj);
+       obj = va_arg(arg, ScmObj))
+    n++;
+  va_end(arg);
+
+  va_start(arg, fmt);
+  ret = scm_api_pformat_aux(SCM_OBJ_NULL, fmt, NULL, arg, n);
+  va_end(arg);
+
+  return ret;
+}
+
+int
+scm_capi_pformat_cstr(ScmObj port, const char *fmt, ...)
+{
+  ScmObj obj = SCM_OBJ_INIT, ret = SCM_OBJ_INIT;
+  va_list arg;
+  size_t n;
+
+  if (scm_obj_null_p(port)) {
+    scm_capi_error("format: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  va_start(arg, fmt);
+  n = 0;
+  for (obj = va_arg(arg, ScmObj);
+       scm_obj_not_null_p(obj);
+       obj = va_arg(arg, ScmObj))
+    n++;
+  va_end(arg);
+
+  va_start(arg, fmt);
+  ret = scm_api_pformat_aux(port, SCM_OBJ_NULL, fmt, arg, n);
+  va_end(arg);
+
+  return (scm_obj_null_p(ret) ? -1 : 0);
+}
+
+ScmObj
+scm_capi_format_cstr(const char *fmt, ...)
+{
+  ScmObj obj = SCM_OBJ_INIT, ret = SCM_OBJ_INIT;
+  va_list arg;
+  size_t n;
+
+  va_start(arg, fmt);
+  n = 0;
+  for (obj = va_arg(arg, ScmObj);
+       scm_obj_not_null_p(obj);
+       obj = va_arg(arg, ScmObj))
+    n++;
+  va_end(arg);
+
+  va_start(arg, fmt);
+  ret = scm_api_pformat_aux(SCM_OBJ_NULL, SCM_OBJ_NULL, fmt, arg, n);
+  va_end(arg);
+
+  return ret;
+}
+
+
+/*******************************************************************/
 /*  Exit                                                           */
 /*******************************************************************/
 

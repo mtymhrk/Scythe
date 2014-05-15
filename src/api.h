@@ -705,6 +705,21 @@ ScmEncoding *scm_capi_system_encoding(void);
 
 
 /*******************************************************************/
+/*  format                                                         */
+/*******************************************************************/
+
+int scm_capi_pformat_lst(ScmObj port, ScmObj fmt, ScmObj lst);
+int scm_capi_pformat_cv(ScmObj port, ScmObj fmt, ScmObj *obj, size_t n);
+ScmObj scm_api_pformat(ScmObj port, ScmObj fmt, ...);
+int scm_capi_pformat_cstr(ScmObj port, const char *fmt, ...);
+
+ScmObj scm_capi_format_lst(ScmObj fmt, ScmObj lst);
+ScmObj scm_capi_format_cv(ScmObj fmt, ScmObj *obj, size_t n);
+ScmObj scm_api_format(ScmObj fmt, ...);
+ScmObj scm_capi_format_cstr(const char *fmt, ...);
+
+
+/*******************************************************************/
 /*  Facade                                                         */
 /*******************************************************************/
 

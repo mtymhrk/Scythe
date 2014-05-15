@@ -484,6 +484,52 @@ scm_load_module_scheme_char(void)
   return 0;
 }
 
+
+/*******************************************************************/
+/*  (scythe format)                                                  */
+/*******************************************************************/
+
+static int
+scm_define_scythe_format_subr(ScmObj module)
+{
+  static const struct subr_data data[] = {
+    /*******************************************************************/
+    /*  format                                                         */
+    /*******************************************************************/
+    { "format", SCM_SUBR_ARITY_FORMAT, SCM_SUBR_FLAG_FORMAT, scm_subr_func_format },
+  };
+
+  int rslt;
+
+  SCM_STACK_FRAME_PUSH(&module);
+
+  rslt = scm_define_subr(module, data, sizeof(data)/sizeof(data[0]));
+  if (rslt < 0) return -1;
+
+  return 0;
+}
+
+static int
+scm_load_module_scythe_format(void)
+{
+  ScmObj name = SCM_OBJ_INIT, mod = SCM_OBJ_INIT;
+  int rslt;
+
+  SCM_STACK_FRAME_PUSH(&name, &mod);
+
+  name = scm_make_module_name(2, SCM_ENC_ASCII, "scythe", "format");
+  if (scm_obj_null_p(name)) return -1;
+
+  mod = scm_api_make_module(name);
+  if (scm_obj_null_p(mod)) return -1;
+
+  rslt = scm_define_scythe_format_subr(mod);
+  if (rslt < 0) return -1;
+
+  return 0;
+}
+
+
 /*******************************************************************/
 /*  (main)                                                         */
 /*******************************************************************/
@@ -532,6 +578,28 @@ scm_load_module_main(void)
   if (rslt < 0) return -1;
 
   name = scm_make_module_name(2, SCM_ENC_ASCII, "scheme", "char");
+  if (scm_obj_null_p(name)) return -1;
+
+  rslt = scm_capi_find_module(name, SCM_CSETTER_L(imp));
+  if (rslt < 0) return -1;
+
+  if (scm_obj_null_p(imp)) {
+    scm_capi_error("faild to import module", 1, name);
+    return -1;
+  }
+
+  rslt = scm_capi_import(mod, imp);
+  if (rslt < 0) return -1;
+
+
+  /*
+   * load (scythe format) module and import it
+   */
+
+  rslt = scm_load_module_scythe_format();
+  if (rslt < 0) return -1;
+
+  name = scm_make_module_name(2, SCM_ENC_ASCII, "scythe", "format");
   if (scm_obj_null_p(name)) return -1;
 
   rslt = scm_capi_find_module(name, SCM_CSETTER_L(imp));

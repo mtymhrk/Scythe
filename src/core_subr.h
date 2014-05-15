@@ -547,4 +547,16 @@ int scm_subr_func_eval(ScmObj subr, int argc, const ScmObj *argv);
 
 int scm_subr_func_exit(ScmObj subr, int argc, const ScmObj *argv);
 
+
+/*******************************************************************/
+/*  format                                                         */
+/*******************************************************************/
+
+#define SCM_SUBR_ARITY_FORMAT -2
+
+#define SCM_SUBR_FLAG_FORMAT 0
+
+int scm_subr_func_format(ScmObj subr, int argc, const ScmObj *argv);
+
+
 #endif /* INCLUDE_CORE_SUBR_H__ */
