@@ -8624,17 +8624,18 @@ scm_capi_exec_file(const char *path, ScmEvaluator *ev)
     SCM_STACK_FRAME_PUSH(&port, &iseq);
 
     port = scm_capi_open_input_file(path, NULL);
-    if (scm_obj_null_p(port)) return -1;
+    if (scm_obj_null_p(port)) goto end;
 
     iseq = scm_capi_compile_port(port, SCM_OBJ_NULL, false);
-    if (scm_obj_null_p(iseq)) return -1;
+    if (scm_obj_null_p(iseq)) goto end;
 
     r = scm_capi_iseq_push_opfmt_noarg(iseq, SCM_OPCODE_HALT);
-    if (r < 0) return -1;
+    if (r < 0) goto end;
 
     scm_vm_run(scm_vm_current_vm(), iseq);
   }
 
+ end:
   scm_vm_disposal_unhandled_exc(ev->vm);
 
   scm_capi_evaluator_delete_vm(ev);
