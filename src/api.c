@@ -6621,8 +6621,6 @@ scm_api_read(ScmObj port)
   ScmParser *parser;
 
   /* TODO: 引数の port のは指定省略可能にする (SCM_OBJ_NULL を指定可能にする)
-   * TODO: パーサーエラーの場合 read-error? が #t を返すオブジェクトを raise
-   *       する
    */
 
   if (scm_obj_null_p(port)) {

@@ -997,7 +997,7 @@ scm_parser_parse_list(ScmParser *parser, ScmObj port, ScmEncoding *enc)
   car = scm_parser_parse_expression(parser, port);
   if (scm_capi_null_value_p(car)) return SCM_OBJ_NULL; /* [ERR]: [through]] */
   if (scm_capi_eof_object_p(car)) {
-    scm_capi_error("Parser: unexpected eof", 0);
+    scm_capi_read_error("Parser: unexpected eof", 0);
     return SCM_OBJ_NULL;
   }
 
@@ -1010,7 +1010,7 @@ scm_parser_parse_list(ScmParser *parser, ScmObj port, ScmEncoding *enc)
     cdr = scm_parser_parse_expression(parser, port);
     if (scm_capi_null_value_p(cdr)) return SCM_OBJ_NULL; /* [ERR]: [through] */
     if (scm_capi_eof_object_p(car)) {
-      scm_capi_error("Parser: unexpected eof", 0);
+      scm_capi_read_error("Parser: unexpected eof", 0);
       return SCM_OBJ_NULL;
     }
 
@@ -1023,7 +1023,7 @@ scm_parser_parse_list(ScmParser *parser, ScmObj port, ScmEncoding *enc)
         scm_capi_error("unexpected character", 0);
       }
       else {
-        scm_capi_error("unexpected eof", 0);
+        scm_capi_read_error("unexpected eof", 0);
       }
       return SCM_OBJ_NULL; /* [ERR]: parser: unexpected character */
     }
@@ -1106,7 +1106,7 @@ scm_parser_parse_quote(ScmParser *parser, ScmObj port, ScmEncoding *enc)
   quoted = scm_parser_parse_expression(parser, port);
   if (scm_capi_null_value_p(quoted)) return SCM_OBJ_NULL; /* [ERR]: [through] */
   if (scm_capi_eof_object_p(quoted)) {
-    scm_capi_error("Parser: unexpected eof", 0);
+    scm_capi_read_error("Parser: unexpected eof", 0);
     return SCM_OBJ_NULL;
   }
 
@@ -1484,7 +1484,7 @@ scm_parser_parse_vector_aux(ScmParser *parser,
   car = scm_parser_parse_expression(parser, port);
   if (scm_capi_null_value_p(car)) return SCM_OBJ_NULL; /* [ERR]: [through] */
   if (scm_capi_eof_object_p(car)) {
-    scm_capi_error("Parser: unexpected eof", 0);
+    scm_capi_read_error("Parser: unexpected eof", 0);
     return SCM_OBJ_NULL;
   }
 
@@ -1676,7 +1676,7 @@ scm_parser_parse_expression(ScmParser *parser, ScmObj port)
       scm_capi_error("Parser: unexpected char", 0);
     }
     else {
-      scm_capi_error("Parser: unexpected eof", 0);
+      scm_capi_read_error("Parser: unexpected eof", 0);
     }
     return SCM_OBJ_NULL;        /* [ERR]: parser: unepected character after */
     break;
