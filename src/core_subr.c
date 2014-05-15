@@ -1897,6 +1897,77 @@ scm_subr_func_raise_continuable(ScmObj subr, int argc, const ScmObj *argv)
   return scm_capi_raise_continuable_for_subr(argv[0]);
 }
 
+int
+scm_subr_func_error(ScmObj subr, int argc, const ScmObj *argv)
+{
+  return scm_capi_error_for_subr(argv[0], argv[1]);
+}
+
+int
+scm_subr_func_error_object_P(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
+
+  val = scm_api_error_object_P(argv[0]);
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_error_object_message(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
+
+  val = scm_api_error_object_message(argv[0]);
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_error_object_irritants(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
+
+  val = scm_api_error_object_irritants(argv[0]);
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_read_error_P(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
+
+  val = scm_api_read_error_P(argv[0]);
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_file_error_P(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
+
+  val = scm_api_file_error_P(argv[0]);
+
+  return scm_capi_return_val(&val, 1);
+}
+
 
 /*******************************************************************/
 /*  Input Output                                                   */

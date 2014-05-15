@@ -252,6 +252,12 @@ scm_define_scheme_base_subr(ScmObj module)
     { "with-exception-handler", SCM_SUBR_ARITY_WITH_EXCEPTION_HANDLER, SCM_SUBR_FLAG_WITH_EXCEPTION_HANDLER, scm_subr_func_with_exception_handler },
     { "raise", SCM_SUBR_ARITY_RAISE, SCM_SUBR_FLAG_RAISE, scm_subr_func_raise },
     { "raise-continuable", SCM_SUBR_ARITY_RAISE_CONTINUABLE, SCM_SUBR_FLAG_RAISE_CONTINUABLE, scm_subr_func_raise_continuable },
+    { "error", SCM_SUBR_ARITY_ERROR, SCM_SUBR_FLAG_ERROR, scm_subr_func_error },
+    { "error-object?", SCM_SUBR_ARITY_ERROR_OBJECT_P, SCM_SUBR_FLAG_ERROR_OBJECT_P, scm_subr_func_error_object_P },
+    { "error-object-message", SCM_SUBR_ARITY_ERROR_OBJECT_MESSAGE, SCM_SUBR_FLAG_ERROR_OBJECT_MESSAGE, scm_subr_func_error_object_message },
+    { "error-object-irritants", SCM_SUBR_ARITY_ERROR_OBJECT_IRRITANTS, SCM_SUBR_FLAG_ERROR_OBJECT_IRRITANTS, scm_subr_func_error_object_irritants },
+    { "read-error?", SCM_SUBR_ARITY_READ_ERROR_P, SCM_SUBR_FLAG_READ_ERROR_P, scm_subr_func_read_error_P },
+    { "file-error?", SCM_SUBR_ARITY_FILE_ERROR_P, SCM_SUBR_FLAG_FILE_ERROR_P, scm_subr_func_file_error_P },
 
     /*******************************************************************/
     /*  Input Output                                                   */

@@ -465,15 +465,35 @@ int scm_subr_func_vector_fill_i(ScmObj subr, int argc, const ScmObj *argv);
 #define SCM_SUBR_ARITY_WITH_EXCEPTION_HANDLER 2
 #define SCM_SUBR_ARITY_RAISE 1
 #define SCM_SUBR_ARITY_RAISE_CONTINUABLE 1
+#define SCM_SUBR_ARITY_ERROR -2
+#define SCM_SUBR_ARITY_ERROR_OBJECT_P 1
+#define SCM_SUBR_ARITY_ERROR_OBJECT_MESSAGE 1
+#define SCM_SUBR_ARITY_ERROR_OBJECT_IRRITANTS 1
+#define SCM_SUBR_ARITY_READ_ERROR_P 1
+#define SCM_SUBR_ARITY_FILE_ERROR_P 1
 
 #define SCM_SUBR_FLAG_WITH_EXCEPTION_HANDLER 0
 #define SCM_SUBR_FLAG_RAISE 0
 #define SCM_SUBR_FLAG_RAISE_CONTINUABLE 0
+#define SCM_SUBR_FLAG_ERROR 0
+#define SCM_SUBR_FLAG_ERROR_OBJECT_P 0
+#define SCM_SUBR_FLAG_ERROR_OBJECT_MESSAGE 0
+#define SCM_SUBR_FLAG_ERROR_OBJECT_IRRITANTS 0
+#define SCM_SUBR_FLAG_READ_ERROR_P 0
+#define SCM_SUBR_FLAG_FILE_ERROR_P 0
 
 int scm_subr_func_with_exception_handler(ScmObj subr,
                                            int argc, const ScmObj *argv);
 int scm_subr_func_raise(ScmObj subr, int argc, const ScmObj *argv);
 int scm_subr_func_raise_continuable(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_error(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_error_object_P(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_error_object_message(ScmObj subr,
+                                       int argc, const ScmObj *argv);
+int scm_subr_func_error_object_irritants(ScmObj subr,
+                                         int argc, const ScmObj *argv);
+int scm_subr_func_read_error_P(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_file_error_P(ScmObj subr, int argc, const ScmObj *argv);
 
 
 /*******************************************************************/
