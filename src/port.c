@@ -511,11 +511,17 @@ scm_stringio_seek(ScmStringIO *strio, off_t offset, int whence)
     pos = offset;
     break;
   case SEEK_CUR:
-    if (SSIZE_MAX - (ssize_t)strio->pos < offset) return -1; /* [ERR]: port: file offset is out of range */
+    if (SSIZE_MAX - (ssize_t)strio->pos < offset) {
+      scm_capi_error("faild to seek: offset is out of range", 0);
+      return -1;
+    }
     pos = (ssize_t)strio->pos + offset;
     break;
   case SEEK_END:
-    if (SSIZE_MAX - (ssize_t)strio->length < offset) return -1; /* [ERR]: port: file offset is out of range */
+    if (SSIZE_MAX - (ssize_t)strio->length < offset) {
+      scm_capi_error("faild to seek: offset is out of range", 0);
+      return -1;
+    }
     pos = (ssize_t)strio->length + offset;
     break;
   default:
