@@ -204,7 +204,7 @@ scm_fileio_open(const char *pathname, int flags, mode_t mode)
   SCM_SYSCALL(fd, open(pathname, flags, mode));
   if (fd < 0) {
     /* TODO; change error message */
-    scm_capi_error("system call error: open", 0);
+    scm_capi_file_error("system call error: open", 0);
     return NULL;      /* [ERR]: port: open errr: errno */
   }
 
