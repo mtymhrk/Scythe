@@ -33,6 +33,6 @@ long long scm_char_scalar(ScmObj chr);
 ScmEncoding *scm_char_encoding(ScmObj chr);
 ScmObj scm_char_encode(ScmObj chr, ScmEncoding *enc);
 int scm_char_cmp(ScmObj chr1, ScmObj chr2, int *rslt);
-int scm_char_pretty_print(ScmObj obj, ScmObj port, bool write_p);
+int scm_char_obj_print(ScmObj obj, ScmObj port, bool ext_rep);
 
 #endif /* INCLUDE_CHAR_H__ */

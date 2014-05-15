@@ -36,7 +36,7 @@ ScmNumFunc SCM_FIXNUM_FUNC = {
 ScmTypeInfo SCM_FIXNUM_TYPE_INFO = {
   .name                = "fixnum",
   .flags               = SCM_TYPE_FLG_NUM,
-  .pp_func             = scm_fixnum_pretty_print,
+  .obj_print_func      = scm_fixnum_obj_print,
   .obj_size            = 0,
   .gc_ini_func         = NULL,
   .gc_fin_func         = NULL,
@@ -487,7 +487,7 @@ scm_fixnum_coerce(ScmObj fn, ScmObj num)
 }
 
 int
-scm_fixnum_pretty_print(ScmObj obj, ScmObj port, bool write_p)
+scm_fixnum_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
 {
   char cstr[32];
   int rslt;
@@ -497,7 +497,7 @@ scm_fixnum_pretty_print(ScmObj obj, ScmObj port, bool write_p)
   snprintf(cstr, sizeof(cstr), "%lld",
            (long long)SCM_RSHIFT_ARITH((scm_sword_t)obj, SCM_FIXNUM_SHIFT_BIT));
 
-  rslt = scm_capi_write_cstr(cstr, SCM_ENC_ASCII, port);
+  rslt = scm_capi_write_cstr(cstr, SCM_ENC_UTF8, port);
   if (rslt < 0) return -1;
 
   return 0;

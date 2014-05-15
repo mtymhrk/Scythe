@@ -9,7 +9,7 @@
 ScmTypeInfo SCM_COMPILER_TYPE_INFO = {
   .name                            = "compiler",
   .flags                           = SCM_TYPE_FLG_MMO,
-  .pp_func                         = scm_cmpl_pretty_print,
+  .obj_print_func                  = NULL,
   .obj_size                        = sizeof(ScmCompiler),
   .gc_ini_func                     = scm_cmpl_gc_initialize,
   .gc_fin_func                     = NULL,
@@ -70,22 +70,6 @@ scm_cmpl_compile(ScmObj cmpl, ScmObj exp)
   if (scm_obj_null_p(next)) return SCM_OBJ_NULL;
 
   return scm_cmpl_compile_exp(cmpl, exp, env, next, 1, false, true, &rdepth);
-}
-
-int
-scm_cmpl_pretty_print(ScmObj obj, ScmObj port, bool write_p)
-{
-  char str[256];
-  int rslt;
-
-  scm_assert_obj_type(obj, &SCM_COMPILER_TYPE_INFO);
-
-  snprintf(str, sizeof(str), "#<%s %p>", scm_obj_type_name(obj), (void *)obj);
-
-  rslt = scm_capi_write_cstr(str, SCM_ENC_ASCII, port);
-  if (rslt < 0) return -1;
-
-  return 0;
 }
 
 void

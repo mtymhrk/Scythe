@@ -72,7 +72,6 @@ scm_gloc_export(ScmObj gloc)
 int scm_gloc_initialize(ScmObj gloc, ScmObj sym, ScmObj val);
 ScmObj scm_gloc_new(SCM_MEM_TYPE_T mtype, ScmObj sym);
 
-int scm_gloc_pretty_print(ScmObj obj, ScmObj port, bool write_p);
 void scm_gloc_gc_initialize(ScmObj obj, ScmObj mem);
 int scm_gloc_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
 
@@ -122,7 +121,7 @@ ScmObj scm_module_gloc_cmpl(ScmObj mod, ScmObj sym);
 int scm_module_find_sym_eval(ScmObj mod, ScmObj sym, scm_csetter_t *setter);
 int scm_module_find_sym_cmpl(ScmObj mod, ScmObj sym, scm_csetter_t *setter);
 
-int scm_module_pretty_print(ScmObj obj, ScmObj port, bool write_p);
+int scm_module_obj_print(ScmObj obj, ScmObj port, bool ext_rep);
 void scm_module_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_module_gc_finalize(ScmObj obj);
 int scm_module_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);

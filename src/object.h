@@ -202,9 +202,11 @@ scm_csetter_val(scm_csetter_t *st)
 #define SCM_REF_SETQ(ref, obj) SCM_REF_UPDATE(ref, obj)
 
 
-/** definition  for pretty print function ************************************/
+/** definition for function to print object **********************************/
 
-typedef int (*ScmPrettyPrintFunction)(ScmObj obj, ScmObj port, bool write_p); // 仮
+typedef int (*ScmObjPrintFunc)(ScmObj obj, ScmObj port, bool ext_rep);
+
+int scm_obj_default_print_func(ScmObj obj, ScmObj port, bool ext_rep);
 
 
 /** definition for GC ********************************************************/
@@ -233,7 +235,7 @@ scm_gc_ref_handler_failure_p(int ret_val)
 struct ScmTypeInfoRec {
   const char *name;
   unsigned int flags;
-  ScmPrettyPrintFunction pp_func;
+  ScmObjPrintFunc obj_print_func;
   size_t obj_size;
   ScmGCInitializeFunc gc_ini_func;
   ScmGCFinalizeFunc gc_fin_func;
@@ -274,19 +276,19 @@ scm_type_info_obj_size(ScmTypeInfo *type)
 }
 
 inline bool
-scm_type_info_has_pp_func_p(ScmTypeInfo *type)
+scm_type_info_has_print_func_p(ScmTypeInfo *type)
 {
-  return (type->pp_func != NULL) ? true : false;
+  return (type->obj_print_func != NULL) ? true : false;
 }
 
 inline int
-scm_type_info_call_pp_func(ScmTypeInfo *type,
-                           ScmObj obj, ScmObj port, bool write_p)
+scm_type_info_call_print_func(ScmTypeInfo *type,
+                           ScmObj obj, ScmObj port, bool ext_rep)
 {
-  if (scm_type_info_has_pp_func_p(type))
-    return type->pp_func(obj, port, write_p);
+  if (scm_type_info_has_print_func_p(type))
+    return type->obj_print_func(obj, port, ext_rep);
   else
-    return 0;
+    return scm_obj_default_print_func(obj, port, ext_rep);
 }
 
 inline bool
@@ -438,15 +440,15 @@ scm_obj_size(ScmObj obj)
 }
 
 inline bool
-scm_obj_has_pp_func_p(ScmObj obj)
+scm_obj_has_print_func_p(ScmObj obj)
 {
-  return scm_type_info_has_pp_func_p(scm_obj_type(obj));
+  return scm_type_info_has_print_func_p(scm_obj_type(obj));
 }
 
 inline int
-scm_obj_call_pp_func(ScmObj obj, ScmObj port, bool write_p)
+scm_obj_call_print_func(ScmObj obj, ScmObj port, bool ext_rep)
 {
-  return scm_type_info_call_pp_func(scm_obj_type(obj), obj, port, write_p);
+  return scm_type_info_call_print_func(scm_obj_type(obj), obj, port, ext_rep);
 }
 
 inline bool

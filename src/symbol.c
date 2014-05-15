@@ -17,7 +17,7 @@
 ScmTypeInfo SCM_SYMBOL_TYPE_INFO = {
   .name                = "symbol",
   .flags               = SCM_TYPE_FLG_MMO,
-  .pp_func             = scm_symbol_pretty_print,
+  .obj_print_func      = scm_symbol_obj_print,
   .obj_size            = sizeof(ScmSymbol),
   .gc_ini_func         = scm_symbol_gc_initialize,
   .gc_fin_func         = NULL,
@@ -102,11 +102,11 @@ scm_symbol_cmp(ScmObj s1, ScmObj s2, int *rslt)
 }
 
 int
-scm_symbol_pretty_print(ScmObj obj, ScmObj port, bool write_p)
+scm_symbol_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
 {
   scm_assert_obj_type(obj, &SCM_SYMBOL_TYPE_INFO);
 
-  if (write_p) {
+  if (ext_rep) {
     int r = scm_string_escape_ctrl_and_nonascii_write(SCM_SYMBOL_STR(obj),
                                                       port);
     if (r < 0) return -1;    /* [ERR]: [through] */
@@ -147,7 +147,7 @@ scm_symbol_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler) /* GC 
 ScmTypeInfo SCM_SYMTBL_TYPE_INFO = {
   .name                = "symtbl",
   .flags               = SCM_TYPE_FLG_MMO,
-  .pp_func             = scm_symtbl_pretty_preint,
+  .obj_print_func      = NULL,
   .obj_size            = sizeof(ScmSymTbl),
   .gc_ini_func         = scm_symtbl_gc_initialize,
   .gc_fin_func         = scm_symtbl_gc_finalize,
@@ -248,22 +248,6 @@ scm_symtbl_clean(ScmObj tbl)
   scm_assert_obj_type(tbl, &SCM_SYMTBL_TYPE_INFO);
 
   scm_chash_tbl_clean(SCM_SYMTBL(tbl)->tbl);
-}
-
-int
-scm_symtbl_pretty_preint(ScmObj obj, ScmObj port, bool write_p)
-{
-  char cstr[64];
-  int rslt;
-
-  scm_assert_obj_type(obj, &SCM_SYMTBL_TYPE_INFO);
-
-  snprintf(cstr, sizeof(cstr), "#<gloctbl 0x%llx>", (unsigned long long)obj);
-
-  rslt = scm_capi_write_cstr(cstr, SCM_ENC_ASCII, port);
-  if (rslt < 0) return -1;      /* [ERR]: [through] */
-
-  return 0;
 }
 
 void

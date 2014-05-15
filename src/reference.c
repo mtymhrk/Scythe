@@ -9,7 +9,7 @@
 ScmTypeInfo SCM_REFSTACK_TYPE_INFO = {
   .name                            = "refstack",
   .flags                           = SCM_TYPE_FLG_MMO,
-  .pp_func                         = scm_ref_stack_pretty_print,
+  .obj_print_func                  = NULL,
   .obj_size                        = sizeof(ScmRefStack),
   .gc_ini_func                     = scm_ref_stack_gc_initialize,
   .gc_fin_func                     = scm_ref_stack_gc_finalize,
@@ -254,22 +254,6 @@ scm_ref_stack_init_sp(ScmObj stack)
 
   SCM_REFSTACK(stack)->current = SCM_REFSTACK(stack)->head;
   scm_ref_stack_block_init_sp(SCM_REFSTACK(stack)->current);
-}
-
-int
-scm_ref_stack_pretty_print(ScmObj obj, ScmObj port, bool write_p)
-{
-  char cstr[64];
-  int rslt;
-
-  scm_assert_obj_type(obj, &SCM_REFSTACK_TYPE_INFO);
-
-  snprintf(cstr, sizeof(cstr), "#<refstack %llx>", (unsigned long long)obj);
-
-  rslt = scm_capi_write_cstr(cstr, SCM_ENC_ASCII, port);
-  if (rslt < 0) return -1;
-
-  return 0;
 }
 
 void

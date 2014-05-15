@@ -30,8 +30,7 @@ extern ScmTypeInfo SCM_EOF_TYPE_INFO;
 void scm_eof_initialize(ScmObj eof);
 void scm_eof_finalize(ScmObj eof);
 ScmObj scm_eof_new(SCM_MEM_TYPE_T mtype);
-int scm_eof_pretty_print(ScmObj obj, ScmObj port, bool write_p);
-
+int scm_eof_obj_print(ScmObj obj, ScmObj port, bool ext_rep);
 
 /*******************************************************/
 /*  ScmBool                                            */
@@ -50,7 +49,7 @@ void scm_bool_initialize(ScmObj obj, bool value);
 void scm_bool_finalize(ScmObj obj);
 ScmObj scm_bool_new(SCM_MEM_TYPE_T mtype, bool value);
 bool scm_bool_value(ScmObj bl);
-int scm_bool_pretty_print(ScmObj obj, ScmObj port, bool write_p);
+int scm_bool_obj_print(ScmObj obj, ScmObj port, bool ext_rep);
 
 
 /*******************************************************/
@@ -66,7 +65,7 @@ extern ScmTypeInfo SCM_NIL_TYPE_INFO;
 void scm_nil_initialize(ScmObj nil);
 void scm_nil_finalize(ScmObj nil);
 ScmObj scm_nil_new(SCM_MEM_TYPE_T mtype);
-int scm_nil_pretty_print(ScmObj obj, ScmObj port, bool write_p);
+int scm_nil_obj_print(ScmObj obj, ScmObj port, bool ext_rep);
 
 
 /*******************************************************/
@@ -82,7 +81,7 @@ extern ScmTypeInfo SCM_UNDEF_TYPE_INFO;
 void scm_undef_initialize(ScmObj undef);
 void scm_udef_finalize(ScmObj undef);
 ScmObj scm_undef_new(SCM_MEM_TYPE_T mtype);
-int scm_undef_pretty_print(ScmObj obj, ScmObj port, bool write_p);
+int scm_undef_obj_print(ScmObj obj, ScmObj port, bool ext_rep);
 
 
 /*******************************************************/
@@ -98,7 +97,7 @@ extern ScmTypeInfo SCM_LANDMINE_TYPE_INFO;
 void scm_landmine_initialize(ScmObj mine);
 void scm_landmine_finalize(ScmObj mine);
 ScmObj scm_landmine_new(SCM_MEM_TYPE_T mtype);
-int scm_landmine_pretty_print(ScmObj obj, ScmObj port, bool write_p);
+int scm_landmine_obj_print(ScmObj obj, ScmObj port, bool ext_rep);
 
 
 #endif /*  INCLUDE_MISCOBJECTS_H__ */

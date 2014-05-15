@@ -51,7 +51,6 @@ ScmRef scm_ref_stack_alloc(ScmObj stack, ScmObj init);
 void scm_ref_stack_save(ScmObj stack, ScmRefStackInfo *info);
 void scm_ref_stack_restore(ScmObj stack, ScmRefStackInfo *info);
 void scm_ref_stack_init_sp(ScmObj stack);
-int scm_ref_stack_pretty_print(ScmObj obj, ScmObj port, bool write_p);
 void scm_ref_stack_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_ref_stack_gc_finalize(ScmObj obj);
 int scm_ref_stack_gc_accept(ScmObj obj,

@@ -62,7 +62,7 @@ int scm_fixnum_truncate_div(ScmObj dvd, ScmObj dvr,
 
 ScmObj scm_fixnum_coerce(ScmObj fn, ScmObj num);
 
-int scm_fixnum_pretty_print(ScmObj obj, ScmObj port, bool write_p);
+int scm_fixnum_obj_print(ScmObj obj, ScmObj port, bool ext_rep);
 
 
 #endif  /*  INCLUDE_FIXNUM_H__ */

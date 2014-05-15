@@ -78,15 +78,15 @@ scm_vm_cf_gc_accept(ScmObj owner, ScmCntFrame *cfp,
 /***************************************************************************/
 
 ScmTypeInfo SCM_EFBOX_TYPE_INFO = {
-  .name = "efbox",
-  .flags = SCM_TYPE_FLG_MMO,
-  .pp_func = NULL,
-  .obj_size = sizeof(ScmEFBox),
-  .gc_ini_func = scm_efbox_gc_initialize,
-  .gc_fin_func = NULL,
-  .gc_accept_func = scm_efbox_gc_accept,
-  .gc_accept_func_weak = NULL,
-  .extra = NULL,
+  .name                         = "efbox",
+  .flags                        = SCM_TYPE_FLG_MMO,
+  .obj_print_func               = NULL,
+  .obj_size                     = sizeof(ScmEFBox),
+  .gc_ini_func                  = scm_efbox_gc_initialize,
+  .gc_fin_func                  = NULL,
+  .gc_accept_func               = scm_efbox_gc_accept,
+  .gc_accept_func_weak          = NULL,
+  .extra                        = NULL,
 };
 
 int
@@ -172,27 +172,27 @@ scm_efbox_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
 /***************************************************************************/
 
 ScmTypeInfo SCM_VMSTCKSG_TYPE_INFO = {
-  .name = "vmstcksg",
-  .flags = SCM_TYPE_FLG_MMO,
-  .pp_func = NULL,
-  .obj_size = sizeof(ScmVMStckSg),
-  .gc_ini_func = NULL,
-  .gc_fin_func = scm_vmss_gc_finalize,
-  .gc_accept_func = NULL,
-  .gc_accept_func_weak = NULL,
-  .extra = NULL,
+  .name                            = "vmstcksg",
+  .flags                           = SCM_TYPE_FLG_MMO,
+  .obj_print_func                  = NULL,
+  .obj_size                        = sizeof(ScmVMStckSg),
+  .gc_ini_func                     = NULL,
+  .gc_fin_func                     = scm_vmss_gc_finalize,
+  .gc_accept_func                  = NULL,
+  .gc_accept_func_weak             = NULL,
+  .extra                           = NULL,
 };
 
 ScmTypeInfo SCM_VMSTCKRC_TYPE_INFO = {
-  .name = "vmstckrc",
-  .flags = SCM_TYPE_FLG_MMO,
-  .pp_func = NULL,
-  .obj_size = sizeof(ScmVMStckRc),
-  .gc_ini_func = scm_vmsr_gc_initialize,
-  .gc_fin_func = NULL,
-  .gc_accept_func = scm_vmsr_gc_accept,
-  .gc_accept_func_weak = NULL,
-  .extra = NULL,
+  .name                            = "vmstckrc",
+  .flags                           = SCM_TYPE_FLG_MMO,
+  .obj_print_func                  = NULL,
+  .obj_size                        = sizeof(ScmVMStckRc),
+  .gc_ini_func                     = scm_vmsr_gc_initialize,
+  .gc_fin_func                     = NULL,
+  .gc_accept_func                  = scm_vmsr_gc_accept,
+  .gc_accept_func_weak             = NULL,
+  .extra                           = NULL,
 };
 
 int

@@ -9,7 +9,7 @@
 ScmTypeInfo SCM_PAIR_TYPE_INFO = {
   .name                = "pair",
   .flags               = SCM_TYPE_FLG_MMO,
-  .pp_func             = scm_pair_pretty_print,
+  .obj_print_func      = scm_pair_obj_print,
   .obj_size            = sizeof(ScmPair),
   .gc_ini_func         = scm_pair_gc_initialize,
   .gc_fin_func         = NULL,
@@ -52,17 +52,16 @@ scm_pair_new(SCM_MEM_TYPE_T mtype, ScmObj car, ScmObj cdr) /* GC OK */
 }
 
 int
-scm_pair_pretty_print(ScmObj obj, ScmObj port, bool write_p)
+scm_pair_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
 {
   ScmObj lst = SCM_OBJ_INIT, car = SCM_OBJ_INIT, cdr = SCM_OBJ_INIT;
-  ScmObj ro = SCM_OBJ_INIT;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&obj, &port, &lst, &car, &cdr, &ro);
+  SCM_STACK_FRAME_PUSH(&obj, &port, &lst, &car, &cdr);
 
   scm_assert_obj_type(obj, &SCM_PAIR_TYPE_INFO);
 
-  rslt = scm_capi_write_cstr("(", SCM_ENC_ASCII, port);
+  rslt = scm_capi_write_cstr("(", SCM_ENC_UTF8, port);
   if (rslt < 0) return -1;      /* [ERR]: [through] */
 
   lst = obj;
@@ -71,33 +70,32 @@ scm_pair_pretty_print(ScmObj obj, ScmObj port, bool write_p)
     cdr = scm_pair_cdr(lst);
 
     if (scm_capi_nil_p(cdr)) {
-      ro = scm_api_write_simple(car, port);
-      if (scm_obj_null_p(ro)) return -1; /* [ERR]: [through] */
-
+      rslt = scm_obj_call_print_func(car, port, ext_rep);
+      if (rslt < 0) return -1;
       break;
     }
     else if (!scm_capi_pair_p(cdr)) {
-      ro = scm_api_write_simple(car, port);
-      if (scm_obj_null_p(ro)) return -1; /* [ERR]: [through] */
+      rslt = scm_obj_call_print_func(car, port, ext_rep);
+      if (rslt < 0) return -1;
 
-      rslt = scm_capi_write_cstr(" . ", SCM_ENC_ASCII, port);
-      if (rslt < 0) return -1;  /* [ERR]: [through] */
+      rslt = scm_capi_write_cstr(" . ", SCM_ENC_UTF8, port);
+      if (rslt < 0) return -1;
 
-      ro = scm_api_write_simple(cdr, port);
-      if (scm_obj_null_p(ro)) return -1; /* [ERR]: [through] */
+      rslt = scm_obj_call_print_func(cdr, port, ext_rep);
+      if (rslt < 0) return -1;
       break;
     }
 
-    ro = scm_api_write_simple(car, port);
-    if (scm_obj_null_p(ro)) return -1; /* [ERR]: [thorugh] */
+    rslt = scm_obj_call_print_func(car, port, ext_rep);
+    if (rslt < 0) return -1;
 
-    rslt = scm_capi_write_cstr(" ", SCM_ENC_ASCII, port);
+    rslt = scm_capi_write_cstr(" ", SCM_ENC_UTF8, port);
     if (rslt < 0) return -1;    /* [ERR]: [through] */
 
     lst = cdr;
   }
 
-  rslt = scm_capi_write_cstr(")", SCM_ENC_ASCII, port);
+  rslt = scm_capi_write_cstr(")", SCM_ENC_UTF8, port);
   if (rslt < 0) return -1;      /* [ERR]: [through] */
 
   return 0;

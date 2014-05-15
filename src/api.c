@@ -6940,7 +6940,7 @@ scm_api_write_simple(ScmObj obj, ScmObj port)
     return SCM_OBJ_NULL;
   }
 
-  rslt = scm_obj_call_pp_func(obj, port, true);
+  rslt = scm_obj_call_print_func(obj, port, true);
   if (rslt < 0) return SCM_OBJ_NULL; /* [ERR]: [through] */
 
   return SCM_UNDEF_OBJ;
@@ -6974,7 +6974,7 @@ scm_api_display(ScmObj obj, ScmObj port)
     return SCM_OBJ_NULL;
   }
 
-  rslt = scm_obj_call_pp_func(obj, port, false);
+  rslt = scm_obj_call_print_func(obj, port, false);
   if (rslt < 0) return SCM_OBJ_NULL;
 
   return SCM_UNDEF_OBJ;
@@ -8590,7 +8590,7 @@ scm__format_mod(ScmObj port, scm_char_t chr, ScmEncoding *enc, ScmObj obj)
       return -1;
     }
 
-    r = scm_obj_call_pp_func(obj, port, false);
+    r = scm_obj_call_print_func(obj, port, false);
     if (r < 0) return -1;
 
     return 1;
@@ -8603,7 +8603,7 @@ scm__format_mod(ScmObj port, scm_char_t chr, ScmEncoding *enc, ScmObj obj)
       return -1;
     }
 
-    r = scm_obj_call_pp_func(obj, port, true);
+    r = scm_obj_call_print_func(obj, port, true);
     if (r < 0) return -1;
 
     return 1;

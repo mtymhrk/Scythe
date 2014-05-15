@@ -34,7 +34,7 @@ size_t scm_vector_length(ScmObj vector);
 ScmObj scm_vector_ref(ScmObj vector, size_t index);
 int scm_vector_set(ScmObj vector, size_t index, ScmObj obj);
 void scm_vector_fill(ScmObj vector, ScmObj fill);
-int scm_vector_pretty_print(ScmObj obj, ScmObj port, bool write_p);
+int scm_vector_obj_print(ScmObj obj, ScmObj port, bool ext_rep);
 void scm_vector_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_vector_gc_finalize(ScmObj obj);
 int scm_vector_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);

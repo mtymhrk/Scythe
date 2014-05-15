@@ -2,7 +2,8 @@
  /home/hiroki/work/scythe/build/src/config.h ../api.h ../encoding.h \
  ../api_enum.h ../api_type.h ../memory.h
 ../object.o: ../object.c ../object.h ../impl_utils.h \
- /home/hiroki/work/scythe/build/src/config.h ../fixnum.h ../api_enum.h
+ /home/hiroki/work/scythe/build/src/config.h ../fixnum.h ../api_enum.h \
+ ../api.h ../encoding.h ../api_type.h
 ../pair.o: ../pair.c ../object.h ../impl_utils.h \
  /home/hiroki/work/scythe/build/src/config.h ../api.h ../encoding.h \
  ../api_enum.h ../api_type.h ../pair.h

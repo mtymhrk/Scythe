@@ -41,7 +41,7 @@ ScmNumFunc SCM_BIGNUM_FUNC = {
 ScmTypeInfo SCM_BIGNUM_TYPE_INFO = {
   .name                = "bignum",
   .flags               = SCM_TYPE_FLG_MMO | SCM_TYPE_FLG_NUM,
-  .pp_func             = scm_bignum_pretty_print,
+  .obj_print_func      = scm_bignum_obj_print,
   .obj_size            = sizeof(ScmBignum),
   .gc_ini_func         = scm_bignum_gc_initialize,
   .gc_fin_func         = scm_bignum_gc_finalize,
@@ -1484,7 +1484,7 @@ scm_bignum_coerce(ScmObj bn, ScmObj num)
 
 
 int
-scm_bignum_pretty_print(ScmObj obj, ScmObj port, bool write_p)
+scm_bignum_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
 {
   scm_bignum_c_t base;
   scm_bignum_d_t val;
@@ -1509,7 +1509,7 @@ scm_bignum_pretty_print(ScmObj obj, ScmObj port, bool write_p)
   if (rslt < 0) goto err;       /* [ERR]: [through] */
 
   if (SCM_BIGNUM(obj)->sign == '-') {
-    rslt = scm_capi_write_cstr("-", SCM_ENC_ASCII, port);
+    rslt = scm_capi_write_cstr("-", SCM_ENC_UTF8, port);
     if (rslt < 0) goto err;    /* [ERR]: [through] */
   }
 
@@ -1517,7 +1517,7 @@ scm_bignum_pretty_print(ScmObj obj, ScmObj port, bool write_p)
   for (size_t i = EARY_SIZE(&ary); i > 0; i--) {
     EARY_GET(&ary, scm_bignum_d_t, i - 1, val);
     snprintf(str, sizeof(str), "%0*u", width, val);
-    rslt = scm_capi_write_cstr(str, SCM_ENC_ASCII, port);
+    rslt = scm_capi_write_cstr(str, SCM_ENC_UTF8, port);
     if (rslt < 0) goto err;    /* [ERR]: [through] */
     width = place;
   }

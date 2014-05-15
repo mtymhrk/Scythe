@@ -51,7 +51,7 @@ scm_exception_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
 ScmTypeInfo SCM_ERROR_TYPE_INFO = {
   .name                = "error",
   .flags               = SCM_TYPE_FLG_MMO | SCM_TYPE_FLG_EXC,
-  .pp_func             = scm_error_pretty_print,
+  .obj_print_func      = scm_error_obj_print,
   .obj_size            = sizeof(ScmError),
   .gc_ini_func         = scm_error_gc_initialize,
   .gc_fin_func         = scm_error_gc_fianlize,
@@ -196,7 +196,7 @@ scm_error_irris_to_list(ScmObj exc)
 }
 
 int
-scm_error_pretty_print(ScmObj obj, ScmObj port, bool write_p)
+scm_error_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
 {
   ScmObj msg = SCM_OBJ_INIT, ro = SCM_OBJ_INIT;
   const char *dlm;
@@ -207,7 +207,7 @@ scm_error_pretty_print(ScmObj obj, ScmObj port, bool write_p)
 
   scm_assert_obj_type(obj, &SCM_ERROR_TYPE_INFO);
 
-  if (write_p) {
+  if (ext_rep) {
     char cstr[32];
 
     snprintf(cstr, sizeof(cstr), " 0x%llx>", (unsigned long long)obj);

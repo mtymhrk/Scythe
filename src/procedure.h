@@ -72,7 +72,7 @@ int scm_subrutine_initialize(ScmObj subr,  ScmSubrFunc func,
 ScmObj scm_subrutine_new(SCM_MEM_TYPE_T mtype, ScmSubrFunc func,
                          ScmObj name, int arity, unsigned int flags,
                          ScmObj module);
-int scm_subrutine_pretty_print(ScmObj obj, ScmObj port, bool write_p);
+int scm_subrutine_obj_print(ScmObj obj, ScmObj port, bool ext_rep);
 void scm_subrutine_gc_initialize(ScmObj obj, ScmObj mem);
 int scm_subrutine_gc_accept(ScmObj obj,
                             ScmObj mem, ScmGCRefHandlerFunc handler);
@@ -110,7 +110,6 @@ int scm_closure_initialize(ScmObj clsr,
                            ScmObj iseq, ScmObj env, ScmObj name, int arity);
 ScmObj scm_closure_new(SCM_MEM_TYPE_T mtype,
                        ScmObj iseq, ScmObj env, ScmObj name, int arity);
-int scm_closure_pretty_print(ScmObj obj, ScmObj port, bool write_p);
 void scm_closure_gc_initialize(ScmObj obj, ScmObj mem);
 int scm_closure_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
 
@@ -144,7 +143,6 @@ struct ScmContinuationRec {
 
 int scm_cont_initialize(ScmObj cont, ScmObj contcap);
 ScmObj scm_cont_new(SCM_MEM_TYPE_T mtype, ScmObj contcap);
-int scm_cont_pretty_print(ScmObj obj, ScmObj port, bool write_p);
 void scm_cont_gc_initialize(ScmObj obj, ScmObj mem);
 int scm_cont_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
 
@@ -172,7 +170,6 @@ struct ScmParameterRec {
 int scm_parameter_initialize(ScmObj prm, ScmObj name, ScmObj conv);
 ScmObj scm_parameter_new(SCM_MEM_TYPE_T mtype, ScmObj name, ScmObj conv);
 
-int scm_parameter_pretty_print(ScmObj obj, ScmObj port, bool write_p);
 void scm_parameter_gc_initialize(ScmObj obj, ScmObj mem);
 int scm_parameter_gc_accept(ScmObj obj, ScmObj mem,
                             ScmGCRefHandlerFunc handler);

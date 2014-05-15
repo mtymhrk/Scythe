@@ -49,7 +49,6 @@ unsigned long long scm_iseq_get_ullong(ScmObj iseq, size_t idx);
 ssize_t scm_iseq_push_obj(ScmObj iseq, ScmObj obj);
 ScmObj scm_iseq_get_obj(ScmObj iseq, size_t idx);
 ssize_t scm_iseq_set_obj(ScmObj iseq, size_t idx, ScmObj val);
-int scm_iseq_pretty_print(ScmObj obj, ScmObj port, bool write_p);
 void scm_iseq_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_iseq_gc_finalize(ScmObj obj);
 int scm_iseq_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);

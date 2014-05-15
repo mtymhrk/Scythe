@@ -45,7 +45,7 @@ scm_proc_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
 ScmTypeInfo SCM_SUBRUTINE_TYPE_INFO = {
   .name                = "subrutine",
   .flags               = SCM_TYPE_FLG_PROC | SCM_TYPE_FLG_MMO,
-  .pp_func             = scm_subrutine_pretty_print,
+  .obj_print_func      = scm_subrutine_obj_print,
   .obj_size            = sizeof(ScmSubrutine),
   .gc_ini_func         = scm_subrutine_gc_initialize,
   .gc_fin_func         = NULL,
@@ -103,19 +103,21 @@ scm_subrutine_new(SCM_MEM_TYPE_T mtype,
 }
 
 int
-scm_subrutine_pretty_print(ScmObj obj, ScmObj port, bool write_p)
+scm_subrutine_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
 {
-  char cstr[64];
-  int rslt;
+  ScmObj name = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&obj, &port,
+                       &name);
 
   scm_assert_obj_type(obj, &SCM_SUBRUTINE_TYPE_INFO);
 
-  snprintf(cstr, sizeof(cstr), "#<subr %llx>", (unsigned long long)obj);
+  name = scm_proc_name(obj);
 
-  rslt = scm_capi_write_cstr(cstr, SCM_ENC_ASCII, port);
-  if (rslt < 0) return -1;
+  if (scm_obj_null_p(name))
+    return scm_obj_default_print_func(obj, port, ext_rep);
 
-  return 0;
+  return scm_capi_pformat_cstr(port,"#<subr ~a>", name, SCM_OBJ_NULL);
 }
 
 void
@@ -154,7 +156,7 @@ scm_subrutine_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
 ScmTypeInfo SCM_CLOSURE_TYPE_INFO = {
   .name                = "closure",
   .flags               = SCM_TYPE_FLG_PROC | SCM_TYPE_FLG_MMO,
-  .pp_func             = scm_closure_pretty_print,
+  .obj_print_func      = NULL,
   .obj_size            = sizeof(ScmClosure),
   .gc_ini_func         = scm_closure_gc_initialize,
   .gc_fin_func         = NULL,
@@ -203,22 +205,6 @@ scm_closure_new(SCM_MEM_TYPE_T mtype,
   return clsr;
 }
 
-int
-scm_closure_pretty_print(ScmObj obj, ScmObj port, bool write_p)
-{
-  char cstr[64];
-  int rslt;
-
-  scm_assert_obj_type(obj, &SCM_CLOSURE_TYPE_INFO);
-
-  snprintf(cstr, sizeof(cstr), "#<closure %llx>", (unsigned long long)obj);
-
-  rslt = scm_capi_write_cstr(cstr, SCM_ENC_ASCII, port);
-  if (rslt < 0) return -1;
-
-  return 0;
-}
-
 void
 scm_closure_gc_initialize(ScmObj obj, ScmObj mem)
 {
@@ -259,7 +245,7 @@ scm_closure_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
 ScmTypeInfo SCM_CONTINUATION_TYPE_INFO = {
   .name                = "continuation",
   .flags               = SCM_TYPE_FLG_PROC | SCM_TYPE_FLG_MMO,
-  .pp_func             = scm_cont_pretty_print,
+  .obj_print_func      = NULL,
   .obj_size            = sizeof(ScmContinuation),
   .gc_ini_func         = scm_cont_gc_initialize,
   .gc_fin_func         = NULL,
@@ -307,22 +293,6 @@ scm_cont_new(SCM_MEM_TYPE_T mtype, ScmObj contcap)
   return cont;
 }
 
-int
-scm_cont_pretty_print(ScmObj obj, ScmObj port, bool write_p)
-{
-  char cstr[64];
-  int rslt;
-
-  scm_assert_obj_type(obj, &SCM_CONTINUATION_TYPE_INFO);
-
-  snprintf(cstr, sizeof(cstr), "#<continuation %llx>", (unsigned long long)obj);
-
-  rslt = scm_capi_write_cstr(cstr, SCM_ENC_ASCII, port);
-  if (rslt < 0) return -1;
-
-  return 0;
-}
-
 void
 scm_cont_gc_initialize(ScmObj obj, ScmObj mem)
 {
@@ -356,7 +326,7 @@ scm_cont_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
 ScmTypeInfo SCM_PARAMETER_TYPE_INFO = {
   .name                = "parameter",
   .flags               = SCM_TYPE_FLG_PROC | SCM_TYPE_FLG_MMO,
-  .pp_func             = scm_parameter_pretty_print,
+  .obj_print_func      = NULL,
   .obj_size            = sizeof(ScmParameter),
   .gc_ini_func         = scm_parameter_gc_initialize,
   .gc_fin_func         = NULL,
@@ -400,23 +370,6 @@ scm_parameter_new(SCM_MEM_TYPE_T mtype, ScmObj name, ScmObj conv)
     return SCM_OBJ_NULL;
 
   return prm;
-}
-
-int
-scm_parameter_pretty_print(ScmObj obj, ScmObj port, bool write_p)
-{
-  char cstr[64];
-  int rslt;
-
-  scm_assert_obj_type(obj, &SCM_PARAMETER_TYPE_INFO);
-
-  snprintf(cstr, sizeof(cstr), "#<%s %llx>",
-           SCM_PARAMETER_TYPE_INFO.name, (unsigned long long)obj);
-
-  rslt = scm_capi_write_cstr(cstr, SCM_ENC_ASCII, port);
-  if (rslt < 0) return -1;
-
-  return 0;
 }
 
 void

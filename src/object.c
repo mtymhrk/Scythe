@@ -1,5 +1,6 @@
 #include "object.h"
 #include "fixnum.h"
+#include "api.h"
 
 ScmTypeInfo *SCM_OBJ_TAG2TYPE_TBL[SCM_OBJ_TAG_NR_KIND] = {
   NULL,                         /* 0b000: memory managed object */
@@ -11,3 +12,12 @@ ScmTypeInfo *SCM_OBJ_TAG2TYPE_TBL[SCM_OBJ_TAG_NR_KIND] = {
   NULL,                         /* 0b110: unused                */
   &SCM_FIXNUM_TYPE_INFO,        /* 0b111: fixnum object         */
 };
+
+int
+scm_obj_default_print_func(ScmObj obj, ScmObj port, bool ext_rep)
+{
+  char str[256];
+
+  snprintf(str, sizeof(str), "#<%s %lx>", scm_obj_type_name(obj), obj);
+  return scm_capi_write_cstr(str, SCM_ENC_UTF8, port);
+}

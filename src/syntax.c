@@ -7,7 +7,7 @@
 ScmTypeInfo SCM_SYNTAX_TYPE_INFO = {
   .name                = "syntax",
   .flags               = SCM_TYPE_FLG_MMO,
-  .pp_func             = scm_syntax_pretty_print,
+  .obj_print_func      = scm_syntax_obj_print,
   .obj_size            = sizeof(ScmSyntax),
   .gc_ini_func         = scm_syntax_gc_initialize,
   .gc_fin_func         = NULL,
@@ -49,29 +49,12 @@ scm_syntax_new(SCM_MEM_TYPE_T mtype, ScmObj key, ScmSyntaxHandlerFunc handler)
 
 
 int
-scm_syntax_pretty_print(ScmObj obj, ScmObj port, bool write_p)
+scm_syntax_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
 {
-  ScmObj o = SCM_OBJ_INIT;
-  char str[SCM_SYNTAX_KEYWORD_LEN_MAX + 32];
-  int rslt;
-
-  SCM_STACK_FRAME_PUSH(&obj, &port,
-                       &o);
-
   scm_assert_obj_type(obj, &SCM_SYNTAX_TYPE_INFO);
 
-  snprintf(str, sizeof(str), "#<%s ", scm_obj_type_name(obj));
-
-  rslt = scm_capi_write_cstr(str, SCM_ENC_ASCII, port);
-  if (rslt < 0) return -1;
-
-  o = scm_api_display(SCM_SYNTAX(obj)->keyword, port);
-  if (scm_obj_null_p(o)) return -1;
-
-  rslt = scm_capi_write_cstr(">", SCM_ENC_ASCII, port);
-  if (rslt < 0) return -1;
-
-  return 0;
+  return scm_capi_pformat_cstr(port, "#<syntax ~a>",
+                               SCM_SYNTAX(obj)->keyword, SCM_OBJ_NULL);
 }
 
 void

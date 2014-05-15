@@ -926,7 +926,7 @@ test_scm_mem_alloc_size_in_heap__size_is_smaller_then_forward(void)
   ScmTypeInfo type = {
     .name                = "test",
     .flags               = 0,
-    .pp_func             = NULL,
+    .obj_print_func      = NULL,
     .obj_size            = sizeof(ScmForward) - 1,
     .gc_ini_func         = NULL,
     .gc_fin_func         = NULL,
@@ -950,7 +950,7 @@ test_scm_mem_alloc_size_in_heap__size_is_greater_then_forward(void)
   ScmTypeInfo type = {
     .name                = "test",
     .flags               = 0,
-    .pp_func             = NULL,
+    .obj_print_func      = NULL,
     .obj_size            = expected_size,
     .gc_ini_func         = NULL,
     .gc_fin_func         = NULL,
@@ -973,7 +973,7 @@ test_scm_mem_alloc_size_in_heap__obj_has_weak_ref(void)
   ScmTypeInfo type = {
     .name                = "test",
     .flags               = 0,
-    .pp_func             = NULL,
+    .obj_print_func      = NULL,
     .obj_size            = sizeof(StubObj),
     .gc_ini_func         = NULL,
     .gc_fin_func         = NULL,
@@ -996,7 +996,7 @@ test_scm_mem_alloc_size_in_root__size_is_smaller_than_atom(void)
   ScmTypeInfo type = {
     .name                = "test",
     .flags               = 0,
-    .pp_func             = NULL,
+    .obj_print_func      = NULL,
     .obj_size            = sizeof(ScmMMObj) - 1,
     .gc_ini_func         = NULL,
     .gc_fin_func         = NULL,
@@ -1020,7 +1020,7 @@ test_scm_mem_alloc_size_in_root__size_is_greater_than_atom(void)
   ScmTypeInfo type = {
     .name                = "test",
     .flags               = 0,
-    .pp_func             = NULL,
+    .obj_print_func      = NULL,
     .obj_size            = obj_size,
     .gc_ini_func         = NULL,
     .gc_fin_func         = NULL,
@@ -1232,7 +1232,7 @@ test_scm_mem_alloc_heap(void)
   ScmTypeInfo type = {
     .name                = "test",
     .flags               = 0,
-    .pp_func             = NULL,
+    .obj_print_func      = NULL,
     .obj_size            = sizeof(StubObj),
     .gc_ini_func         = stub_obj_gc_init_func,
     .gc_fin_func         = stub_obj_gc_fin_func,
@@ -1280,7 +1280,7 @@ test_scm_mem_alloc_heap__alignment(void)
   ScmTypeInfo type = {
     .name                = "test",
     .flags               = 0,
-    .pp_func             = NULL,
+    .obj_print_func      = NULL,
     .obj_size            = sizeof(StubObj),
     .gc_ini_func         = stub_obj_gc_init_func,
     .gc_fin_func         = stub_obj_gc_fin_func,
@@ -1322,7 +1322,7 @@ test_scm_mem_alloc_root(void)
   ScmTypeInfo type = {
     .name                = "test",
     .flags               = 0,
-    .pp_func             = NULL,
+    .obj_print_func      = NULL,
     .obj_size            = sizeof(StubObj),
     .gc_ini_func         = stub_obj_gc_init_func,
     .gc_fin_func         = stub_obj_gc_fin_func,
@@ -1362,7 +1362,7 @@ test_scm_mem_free_root(void)
   ScmTypeInfo type = {
     .name                = "test",
     .flags               = 0,
-    .pp_func             = NULL,
+    .obj_print_func      = NULL,
     .obj_size            = sizeof(StubObj),
     .gc_ini_func         = stub_obj_gc_init_func,
     .gc_fin_func         = stub_obj_gc_fin_func,
@@ -1401,7 +1401,7 @@ test_scm_mem_gc_start__not_scavenged(void)
   ScmTypeInfo type = {
     .name                = "test",
     .flags               = 0,
-    .pp_func             = NULL,
+    .obj_print_func      = NULL,
     .obj_size            = sizeof(StubObj),
     .gc_ini_func         = stub_obj_gc_init_func,
     .gc_fin_func         = stub_obj_gc_fin_func,
@@ -1458,7 +1458,7 @@ test_scm_mem_gc_start__scavenged(void)
   ScmTypeInfo type = {
     .name                = "test",
     .flags               = 0,
-    .pp_func             = NULL,
+    .obj_print_func      = NULL,
     .obj_size            = sizeof(StubObj),
     .gc_ini_func         = stub_obj_gc_init_func,
     .gc_fin_func         = stub_obj_gc_fin_func,
@@ -1517,7 +1517,7 @@ test_scm_mem_gc_start__referred_by_two_objects(void)
   ScmTypeInfo type = {
     .name                = "test",
     .flags               = 0,
-    .pp_func             = NULL,
+    .obj_print_func      = NULL,
     .obj_size            = sizeof(StubObj),
     .gc_ini_func         = stub_obj_gc_init_func,
     .gc_fin_func         = stub_obj_gc_fin_func,
@@ -1576,7 +1576,7 @@ test_scm_mem_gc_start__root_obj_referred_by_heap_obj(void)
   ScmTypeInfo type = {
     .name                = "test",
     .flags               = 0,
-    .pp_func             = NULL,
+    .obj_print_func      = NULL,
     .obj_size            = sizeof(StubObj),
     .gc_ini_func         = stub_obj_gc_init_func,
     .gc_fin_func         = stub_obj_gc_fin_func,
@@ -1626,7 +1626,7 @@ test_scm_mem_gc_start__weak_reference_refer_to_obj_not_scavenged(void)
   ScmTypeInfo type = {
     .name                = "test",
     .flags               = 0,
-    .pp_func             = NULL,
+    .obj_print_func      = NULL,
     .obj_size            = sizeof(StubObj),
     .gc_ini_func         = stub_obj_gc_init_func,
     .gc_fin_func         = stub_obj_gc_fin_func,
@@ -1697,7 +1697,7 @@ test_scm_mem_gc_start__weak_reference_refer_to_obj_scavenged(void)
   ScmTypeInfo type = {
     .name                = "test",
     .flags               = 0,
-    .pp_func             = NULL,
+    .obj_print_func      = NULL,
     .obj_size            = sizeof(StubObj),
     .gc_ini_func         = stub_obj_gc_init_func,
     .gc_fin_func         = stub_obj_gc_fin_func,

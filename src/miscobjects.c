@@ -14,7 +14,7 @@
 ScmTypeInfo SCM_EOF_TYPE_INFO = {
   .name                = "eof",
   .flags               = SCM_TYPE_FLG_MMO,
-  .pp_func             = scm_eof_pretty_print,
+  .obj_print_func      = scm_eof_obj_print,
   .obj_size            = sizeof(ScmEOF),
   .gc_ini_func         = NULL,
   .gc_fin_func         = NULL,
@@ -49,16 +49,10 @@ scm_eof_new(SCM_MEM_TYPE_T mtype)         /* GC OK */
 }
 
 int
-scm_eof_pretty_print(ScmObj obj, ScmObj port, bool write_p)
+scm_eof_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
 {
-  int rslt;
-
   scm_assert_obj_type(obj, &SCM_EOF_TYPE_INFO);
-
-  rslt = scm_capi_write_cstr("#<eof>", SCM_ENC_ASCII, port);
-  if (rslt < 0) return -1;
-
-  return 0;
+  return scm_capi_write_cstr("#<eof>", SCM_ENC_UTF8, port);
 }
 
 
@@ -69,7 +63,7 @@ scm_eof_pretty_print(ScmObj obj, ScmObj port, bool write_p)
 ScmTypeInfo SCM_BOOL_TYPE_INFO = {
   .name                = "boolean",
   .flags               = SCM_TYPE_FLG_MMO,
-  .pp_func             = scm_bool_pretty_print,
+  .obj_print_func      = scm_bool_obj_print,
   .obj_size            = sizeof(ScmBool),
   .gc_ini_func         = NULL,
   .gc_fin_func         = NULL,
@@ -116,16 +110,16 @@ scm_bool_value(ScmObj bl)       /* GC OK */
 }
 
 int
-scm_bool_pretty_print(ScmObj obj, ScmObj port, bool write_p)
+scm_bool_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
 {
   int rslt;
 
   scm_assert_obj_type(obj, &SCM_BOOL_TYPE_INFO);
 
   if (SCM_BOOL(obj)->value == true)
-    rslt = scm_capi_write_cstr("#t", SCM_ENC_ASCII, port);
+    rslt = scm_capi_write_cstr("#t", SCM_ENC_UTF8, port);
   else
-    rslt = scm_capi_write_cstr("#f", SCM_ENC_ASCII, port);
+    rslt = scm_capi_write_cstr("#f", SCM_ENC_UTF8, port);
 
   if (rslt < 0) return -1;
 
@@ -140,7 +134,7 @@ scm_bool_pretty_print(ScmObj obj, ScmObj port, bool write_p)
 ScmTypeInfo SCM_NIL_TYPE_INFO = {
   .name                = "nil",
   .flags               = SCM_TYPE_FLG_MMO,
-  .pp_func             = scm_nil_pretty_print,
+  .obj_print_func      = scm_nil_obj_print,
   .obj_size            = sizeof(ScmNil),
   .gc_ini_func         = NULL,
   .gc_fin_func         = NULL,
@@ -177,13 +171,13 @@ scm_nil_new(SCM_MEM_TYPE_T mtype)         /* GC OK */
 }
 
 int
-scm_nil_pretty_print(ScmObj obj, ScmObj port, bool write_p)
+scm_nil_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
 {
   int rslt;
 
   scm_assert_obj_type(obj, &SCM_NIL_TYPE_INFO);
 
-  rslt = scm_capi_write_cstr("()", SCM_ENC_ASCII, port);
+  rslt = scm_capi_write_cstr("()", SCM_ENC_UTF8, port);
   if (rslt < 0) return -1;
 
   return 0;
@@ -197,7 +191,7 @@ scm_nil_pretty_print(ScmObj obj, ScmObj port, bool write_p)
 ScmTypeInfo SCM_UNDEF_TYPE_INFO = {
   .name                = "undef",
   .flags               = SCM_TYPE_FLG_MMO,
-  .pp_func             = scm_undef_pretty_print,
+  .obj_print_func      = scm_undef_obj_print,
   .obj_size            = sizeof(ScmUndef),
   .gc_ini_func         = NULL,
   .gc_fin_func         = NULL,
@@ -234,16 +228,10 @@ scm_undef_new(SCM_MEM_TYPE_T mtype)         /* GC OK */
 }
 
 int
-scm_undef_pretty_print(ScmObj obj, ScmObj port, bool write_p)
+scm_undef_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
 {
-  int rslt;
-
   scm_assert_obj_type(obj, &SCM_UNDEF_TYPE_INFO);
-
-  rslt = scm_capi_write_cstr("#<undef>", SCM_ENC_ASCII, port);
-  if (rslt < 0) return -1;
-
-  return 0;
+  return scm_capi_write_cstr("#<undef>", SCM_ENC_UTF8, port);
 }
 
 
@@ -254,7 +242,7 @@ scm_undef_pretty_print(ScmObj obj, ScmObj port, bool write_p)
 ScmTypeInfo SCM_LANDMINE_TYPE_INFO = {
   .name                = "landmine",
   .flags               = SCM_TYPE_FLG_MMO,
-  .pp_func             = scm_landmine_pretty_print,
+  .obj_print_func      = scm_landmine_obj_print,
   .obj_size            = sizeof(ScmLandmine),
   .gc_ini_func         = NULL,
   .gc_fin_func         = NULL,
@@ -291,14 +279,8 @@ scm_landmine_new(SCM_MEM_TYPE_T mtype)         /* GC OK */
 }
 
 int
-scm_landmine_pretty_print(ScmObj obj, ScmObj port, bool write_p)
+scm_landmine_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
 {
-  int rslt;
-
   scm_assert_obj_type(obj, &SCM_LANDMINE_TYPE_INFO);
-
-  rslt = scm_capi_write_cstr("#<landmine>", SCM_ENC_ASCII, port);
-  if (rslt < 0) return -1;
-
-  return 0;
+  return scm_capi_write_cstr("#<landmine>", SCM_ENC_UTF8, port);
 }

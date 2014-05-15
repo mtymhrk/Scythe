@@ -9,7 +9,7 @@
 ScmTypeInfo SCM_VECTOR_TYPE_INFO = {
   .name                = "vector",
   .flags               = SCM_TYPE_FLG_MMO,
-  .pp_func             = scm_vector_pretty_print,
+  .obj_print_func      = scm_vector_obj_print,
   .obj_size            = sizeof(ScmVector),
   .gc_ini_func         = scm_vector_gc_initialize,
   .gc_fin_func         = scm_vector_gc_finalize,
@@ -223,34 +223,32 @@ scm_vector_fill(ScmObj vector, ScmObj fill)
 }
 
 int
-scm_vector_pretty_print(ScmObj obj, ScmObj port, bool write_p)
+scm_vector_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
 {
-  ScmObj ro = SCM_OBJ_INIT;
   size_t idx;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&obj, &port,
-                       &ro);
+  SCM_STACK_FRAME_PUSH(&obj, &port);
 
   scm_assert_obj_type(obj, &SCM_VECTOR_TYPE_INFO);
 
-  rslt = scm_capi_write_cstr("#(", SCM_ENC_ASCII, port);
+  rslt = scm_capi_write_cstr("#(", SCM_ENC_UTF8, port);
   if (rslt < 0) return -1;
 
   if (SCM_VECTOR_LENGTH(obj) > 0) {
     for (idx = 0; idx < SCM_VECTOR_LENGTH(obj) - 1; idx++) {
-      ro = scm_api_write_simple(SCM_VECTOR_ARRAY(obj)[idx], port);
-      if (scm_obj_null_p(ro)) return -1;
+      rslt = scm_obj_call_print_func(SCM_VECTOR_ARRAY(obj)[idx], port, ext_rep);
+      if (rslt < 0) return -1;
 
-      rslt = scm_capi_write_cstr(" ", SCM_ENC_ASCII, port);
+      rslt = scm_capi_write_cstr(" ", SCM_ENC_UTF8, port);
       if (rslt < 0) return -1;
     }
 
-    ro = scm_api_write_simple(SCM_VECTOR_ARRAY(obj)[idx], port);
-    if (scm_obj_null_p(ro)) return -1;
+    rslt = scm_obj_call_print_func(SCM_VECTOR_ARRAY(obj)[idx], port, ext_rep);
+    if (rslt < 0) return -1;
   }
 
-  rslt = scm_capi_write_cstr(")", SCM_ENC_ASCII, port);
+  rslt = scm_capi_write_cstr(")", SCM_ENC_UTF8, port);
   if (rslt < 0) return -1;
 
   return 0;

@@ -14,7 +14,7 @@
 ScmTypeInfo SCM_GLOC_TYPE_INFO = {
   .name                = "gloc",
   .flags               = SCM_TYPE_FLG_MMO,
-  .pp_func             = scm_gloc_pretty_print,
+  .obj_print_func      = NULL,
   .obj_size            = sizeof(ScmGLoc),
   .gc_ini_func         = scm_gloc_gc_initialize,
   .gc_fin_func         = NULL,
@@ -52,22 +52,6 @@ scm_gloc_new(SCM_MEM_TYPE_T mtype, ScmObj sym) /* GC OK */
   return gloc;
 }
 
-int
-scm_gloc_pretty_print(ScmObj obj, ScmObj port, bool write_p)
-{
-  char cstr[64];
-  int rslt;
-
-  scm_assert_obj_type(obj, &SCM_GLOC_TYPE_INFO);
-
-  snprintf(cstr, sizeof(cstr), "#<gloc %llx>", (unsigned long long)obj);
-
-  rslt = scm_capi_write_cstr(cstr, SCM_ENC_ASCII, port);
-  if (rslt < 0) return -1;      /* [ERR]: [through] */
-
-  return 0;
-}
-
 void
 scm_gloc_gc_initialize(ScmObj obj, ScmObj mem)
 {
@@ -98,7 +82,7 @@ scm_gloc_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
 ScmTypeInfo SCM_MODULE_TYPE_INFO = {
   .name                = "module",
   .flags               = SCM_TYPE_FLG_MMO,
-  .pp_func             = scm_module_pretty_print,
+  .obj_print_func      = scm_module_obj_print,
   .obj_size            = sizeof(ScmModule),
   .gc_ini_func         = scm_module_gc_initialize,
   .gc_fin_func         = scm_module_gc_finalize,
@@ -475,25 +459,12 @@ scm_module_find_sym_cmpl(ScmObj mod, ScmObj sym, scm_csetter_t *setter)
 }
 
 int
-scm_module_pretty_print(ScmObj obj, ScmObj port, bool write_p)
+scm_module_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
 {
-  ssize_t wc;
-  int rslt;
-
-  SCM_STACK_FRAME_PUSH(&obj, &port);
-
   scm_assert_obj_type(obj, &SCM_MODULE_TYPE_INFO);
 
-  rslt = scm_capi_write_cstr("#<module ", SCM_ENC_ASCII, port);
-  if (rslt < 0) return -1;
-
-  wc = scm_capi_write_string(SCM_MODULE(obj)->name, port, -1, -1);
-  if (wc < 0) return -1;
-
-  rslt = scm_capi_write_cstr(">", SCM_ENC_ASCII, port);
-  if (rslt < 0) return -1;
-
-  return 0;
+  return scm_capi_pformat_cstr(port, "#<module ~a>",
+                               SCM_MODULE(obj)->name, SCM_OBJ_NULL);
 }
 
 void
@@ -552,15 +523,15 @@ scm_module_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
 /****************************************************************************/
 
 ScmTypeInfo SCM_MODULETREE_TYPE_INFO = {
-  .name = "moduletree",
-  .flags = SCM_TYPE_FLG_MMO,
-  .pp_func = NULL,
-  .obj_size = sizeof(ScmModuleTree),
-  .gc_ini_func = scm_moduletree_gc_initialize,
-  .gc_fin_func = scm_moduletree_gc_finalize,
-  .gc_accept_func = scm_moduletree_gc_accept,
-  .gc_accept_func_weak = NULL,
-  .extra = NULL
+  .name                              = "moduletree",
+  .flags                             = SCM_TYPE_FLG_MMO,
+  .obj_print_func                    = NULL,
+  .obj_size                          = sizeof(ScmModuleTree),
+  .gc_ini_func                       = scm_moduletree_gc_initialize,
+  .gc_fin_func                       = scm_moduletree_gc_finalize,
+  .gc_accept_func                    = scm_moduletree_gc_accept,
+  .gc_accept_func_weak               = NULL,
+  .extra                             = NULL
 };
 
 enum { ADD, UPDATE, FIND };

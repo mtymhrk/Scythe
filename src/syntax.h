@@ -25,7 +25,7 @@ int scm_syntax_initialize(ScmObj syx, ScmObj key, ScmSyntaxHandlerFunc handler);
 ScmObj scm_syntax_new(SCM_MEM_TYPE_T mtype,
                       ScmObj key, ScmSyntaxHandlerFunc handler);
 
-int scm_syntax_pretty_print(ScmObj obj, ScmObj port, bool write_p);
+int scm_syntax_obj_print(ScmObj obj, ScmObj port, bool ext_rep);
 void scm_syntax_gc_initialize(ScmObj obj, ScmObj mem);
 int scm_syntax_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
 

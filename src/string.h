@@ -63,7 +63,7 @@ ScmEncoding *scm_string_encoding(ScmObj str);
 void *scm_string_content(ScmObj str);
 scm_char_t *scm_string_to_char_ary(ScmObj str, size_t pos, ssize_t len,
                                    scm_char_t *ary);
-int scm_string_pretty_print(ScmObj obj, ScmObj port, bool write_p);
+int scm_string_obj_print(ScmObj obj, ScmObj port, bool ext_rep);
 int scm_string_escape_ctrl_and_nonascii_write(ScmObj str, ScmObj port);
 void scm_string_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_string_gc_finalize(ScmObj obj);

@@ -29,7 +29,7 @@
 ScmTypeInfo SCM_PORT_TYPE_INFO = {
   .name                = "port",
   .flags               = SCM_TYPE_FLG_MMO,
-  .pp_func             = NULL,
+  .obj_print_func      = NULL,
   .obj_size            = sizeof(ScmPort),
   .gc_ini_func         = scm_port_gc_initialize,
   .gc_fin_func         = scm_port_gc_finalize,

@@ -285,7 +285,7 @@ scm_bedrock_error_p(ScmBedrock *br)
 ScmTypeInfo SCM_BOX_TYPE_INFO = {
   .name                = "box",
   .flags               = SCM_TYPE_FLG_MMO,
-  .pp_func             = NULL,
+  .obj_print_func      = NULL,
   .obj_size            = sizeof(ScmBox),
   .gc_ini_func         = scm_box_gc_initialize,
   .gc_fin_func         = NULL,
@@ -348,15 +348,15 @@ scm_box_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
 
 
 ScmTypeInfo SCM_CONTCAP_TYPE_INFO = {
-  .name = "contcap",
-  .flags = SCM_TYPE_FLG_MMO,
-  .pp_func = NULL,
-  .obj_size = sizeof(ScmContCap),
-  .gc_ini_func = scm_contcap_gc_initialize,
-  .gc_fin_func = NULL,
-  .gc_accept_func = scm_contcap_gc_accepct,
+  .name                = "contcap",
+  .flags               = SCM_TYPE_FLG_MMO,
+  .obj_print_func      = NULL,
+  .obj_size            = sizeof(ScmContCap),
+  .gc_ini_func         = scm_contcap_gc_initialize,
+  .gc_fin_func         = NULL,
+  .gc_accept_func      = scm_contcap_gc_accepct,
   .gc_accept_func_weak = NULL,
-  .extra = NULL,
+  .extra               = NULL,
 };
 
 ScmObj
@@ -479,7 +479,7 @@ scm_contcap_gc_accepct(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
 ScmTypeInfo SCM_VM_TYPE_INFO = {
   .name                = "vm",
   .flags               = SCM_TYPE_FLG_MMO,
-  .pp_func             = NULL,
+  .obj_print_func      = NULL,
   .obj_size            = sizeof(ScmVM),
   .gc_ini_func         = scm_vm_gc_initialize,
   .gc_fin_func         = scm_vm_gc_finalize,

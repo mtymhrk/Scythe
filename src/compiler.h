@@ -20,7 +20,6 @@ ScmObj scm_cmpl_new(SCM_MEM_TYPE_T mtype);
 void scm_cmpl_select_module(ScmObj cmpl, ScmObj module);
 ScmObj scm_cmpl_compile(ScmObj cmpl, ScmObj exp);
 
-int scm_cmpl_pretty_print(ScmObj obj, ScmObj port, bool write_p);
 void scm_cmpl_gc_initialize(ScmObj obj, ScmObj mem);
 int scm_cmpl_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
 

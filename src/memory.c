@@ -18,7 +18,7 @@
 ScmTypeInfo SCM_FORWARD_TYPE_INFO = {
   .name                = "forward",
   .flags               = SCM_TYPE_FLG_MMO,
-  .pp_func             = NULL,
+  .obj_print_func      = NULL,
   .obj_size            = sizeof(ScmForward),
   .gc_ini_func         = NULL,
   .gc_fin_func         = NULL,
@@ -52,7 +52,7 @@ enum { TO_HEAP, FROM_HEAP };
 static ScmTypeInfo SCM_MEM_TYPE_INFO = {
   .name                = "mm",
   .flags               = 0,
-  .pp_func             = NULL,
+  .obj_print_func      = NULL,
   .obj_size            = 0,
   .gc_ini_func         = NULL,
   .gc_fin_func         = NULL,

@@ -62,7 +62,7 @@ ScmObj scm_error_new_cv(SCM_MEM_TYPE_T mtype,
 ScmObj scm_error_new_lst(SCM_MEM_TYPE_T mtype,
                          ScmObj msg, ScmObj type, ScmObj irris);
 ScmObj scm_error_irris_to_list(ScmObj exc);
-int scm_error_pretty_print(ScmObj obj, ScmObj port, bool write_p);
+int scm_error_obj_print(ScmObj obj, ScmObj port, bool ext_rep);
 void scm_error_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_error_gc_fianlize(ScmObj obj);
 int scm_error_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);

@@ -15,7 +15,7 @@
 ScmTypeInfo SCM_CHAR_TYPE_INFO = {
   .name                = "char",
   .flags               = SCM_TYPE_FLG_MMO,
-  .pp_func             = scm_char_pretty_print,
+  .obj_print_func      = scm_char_obj_print,
   .obj_size            = sizeof(ScmChar),
   .gc_ini_func         = NULL,
   .gc_fin_func         = NULL,
@@ -42,11 +42,11 @@ scm_char_write_ext_rep(ScmObj obj, ScmObj port)
 
   if (scm_enc_printable_p(enc, chr.bytes, sizeof(chr))) {
     if (scm_enc_same_char_p(enc, chr.bytes, sizeof(chr), ' ')) {
-      rslt = scm_capi_write_cstr("#\\space", SCM_ENC_ASCII, port);
+      rslt = scm_capi_write_cstr("#\\space", SCM_ENC_UTF8, port);
       if (rslt < 0) return -1;
     }
     else {
-      rslt = scm_capi_write_cstr("#\\", SCM_ENC_ASCII, port);
+      rslt = scm_capi_write_cstr("#\\", SCM_ENC_UTF8, port);
       if (rslt < 0) return -1;
 
       ro = scm_api_write_char(obj, port);
@@ -55,35 +55,35 @@ scm_char_write_ext_rep(ScmObj obj, ScmObj port)
   }
   else {
     if (scm_enc_same_char_p(enc, chr.bytes, sizeof(chr), '\a')) {
-      rslt = scm_capi_write_cstr("#\\alarm", SCM_ENC_ASCII, port);
+      rslt = scm_capi_write_cstr("#\\alarm", SCM_ENC_UTF8, port);
       if (rslt < 0) return -1;
     }
     else if (scm_enc_same_char_p(enc, chr.bytes, sizeof(chr), '\b')) {
-      rslt = scm_capi_write_cstr("#\\backspaace", SCM_ENC_ASCII, port);
+      rslt = scm_capi_write_cstr("#\\backspaace", SCM_ENC_UTF8, port);
       if (rslt < 0) return -1;
     }
     else if (scm_enc_same_char_p(enc, chr.bytes, sizeof(chr), 0x7f)) {
-      rslt = scm_capi_write_cstr("#\\delete", SCM_ENC_ASCII, port);
+      rslt = scm_capi_write_cstr("#\\delete", SCM_ENC_UTF8, port);
       if (rslt < 0) return -1;
     }
     else if (scm_enc_same_char_p(enc, chr.bytes, sizeof(chr), 0x1b)) {
-      rslt = scm_capi_write_cstr("#\\escape", SCM_ENC_ASCII, port);
+      rslt = scm_capi_write_cstr("#\\escape", SCM_ENC_UTF8, port);
       if (rslt < 0) return -1;
     }
     else if (scm_enc_same_char_p(enc, chr.bytes, sizeof(chr), '\n')) {
-      rslt = scm_capi_write_cstr("#\\newline", SCM_ENC_ASCII, port);
+      rslt = scm_capi_write_cstr("#\\newline", SCM_ENC_UTF8, port);
       if (rslt < 0) return -1;
     }
     else if (scm_enc_same_char_p(enc, chr.bytes, sizeof(chr), '\0')) {
-      rslt = scm_capi_write_cstr("#\\null", SCM_ENC_ASCII, port);
+      rslt = scm_capi_write_cstr("#\\null", SCM_ENC_UTF8, port);
       if (rslt < 0) return -1;
     }
     else if (scm_enc_same_char_p(enc, chr.bytes, sizeof(chr), '\r')) {
-      rslt = scm_capi_write_cstr("#\\return", SCM_ENC_ASCII, port);
+      rslt = scm_capi_write_cstr("#\\return", SCM_ENC_UTF8, port);
       if (rslt < 0) return -1;
     }
     else if (scm_enc_same_char_p(enc, chr.bytes, sizeof(chr), '\t')) {
-      rslt = scm_capi_write_cstr("#\\tab", SCM_ENC_ASCII, port);
+      rslt = scm_capi_write_cstr("#\\tab", SCM_ENC_UTF8, port);
       if (rslt < 0) return -1;
     }
     else {
@@ -91,7 +91,7 @@ scm_char_write_ext_rep(ScmObj obj, ScmObj port)
       long long scalar = scm_enc_cnv_to_scalar(enc, chr.bytes, sizeof(chr));
       if (scalar < 0) return -1;
       snprintf(cstr, sizeof(cstr), "#\\x%llx", scalar);
-      scm_capi_write_cstr(cstr, SCM_ENC_ASCII, port);
+      scm_capi_write_cstr(cstr, SCM_ENC_UTF8, port);
     }
   }
 
@@ -278,14 +278,14 @@ scm_char_cmp(ScmObj chr1, ScmObj chr2, int *rslt)
 }
 
 int
-scm_char_pretty_print(ScmObj obj, ScmObj port, bool write_p)
+scm_char_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
 {
   ScmObj ro = SCM_OBJ_INIT;
   int rslt;
 
   scm_assert_obj_type(obj, &SCM_CHAR_TYPE_INFO);
 
-  if (write_p) {
+  if (ext_rep) {
     rslt = scm_char_write_ext_rep(obj, port);
     if (rslt < 0) return -1;    /* [ERR]: [through] */
   }
