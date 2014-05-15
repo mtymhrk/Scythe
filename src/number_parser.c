@@ -10,8 +10,7 @@
 #include "number_parser.h"
 
 #define PARSE_RET_INVALID   -1
-#define PARSE_RET_ERR_MEM   -2
-#define PARSE_RET_ERR_PORT  -3
+#define PARSE_RET_INTERNAL_ERR   -2
 
 #define DELIMITER " \t\r\n|()[]\";"
 #define DIGIT_2_CHARS "01"
@@ -67,17 +66,17 @@ scm_num_parse_prefix(ScmObj port, ScmEncoding *enc,
 
   while (radix == '\0' || exact == '\0') {
     width = scm_capi_peek_cchr(&current, port);
-    if (width < 0) return PARSE_RET_ERR_PORT;
+    if (width < 0) return PARSE_RET_INTERNAL_ERR;
     else if (width == 0) return PARSE_RET_INVALID;
 
     if (!chr_same_p(current, '#', true, enc))
       break;
 
     SHIFT_CHAR(port, current, str, e);
-    if (e < 0) return PARSE_RET_ERR_MEM;
+    if (e < 0) return PARSE_RET_INTERNAL_ERR;
 
     width = scm_capi_peek_cchr(&current, port);
-    if (width < 0) return PARSE_RET_ERR_PORT;
+    if (width < 0) return PARSE_RET_INTERNAL_ERR;
     else if (width == 0) return PARSE_RET_INVALID;
 
     if (radix == '\0' && (p = chr_find(radix_chars, current, enc)) != NULL)
@@ -88,7 +87,7 @@ scm_num_parse_prefix(ScmObj port, ScmEncoding *enc,
       return PARSE_RET_INVALID;
 
     SHIFT_CHAR(port, current, str, e);
-    if (e < 0) return PARSE_RET_ERR_MEM;
+    if (e < 0) return PARSE_RET_INTERNAL_ERR;
   }
 
   data->radix = (char)((radix == '\0') ? 'd' : radix);
@@ -111,12 +110,12 @@ scm_num_parse_suffix(ScmObj port, ScmEncoding *enc,
   scm_assert(data != NULL);
 
   width = scm_capi_peek_cchr(&current, port);
-  if (width < 0) return PARSE_RET_ERR_PORT;
+  if (width < 0) return PARSE_RET_INTERNAL_ERR;
   else if (width == 0) return PARSE_RET_INVALID;
 
   if (chr_find(DIGIT_10_CHARS, current, enc) != NULL) {
     SHIFT_CHAR(port, current, str, e);
-    if (e < 0) return PARSE_RET_ERR_MEM;
+    if (e < 0) return PARSE_RET_INTERNAL_ERR;
 
     data->rat.num.s_sign = '+';
     data->rat.num.s_head = EARY_SIZE(str) - 1;
@@ -130,15 +129,15 @@ scm_num_parse_suffix(ScmObj port, ScmEncoding *enc,
       return PARSE_RET_INVALID;
 
     SHIFT_CHAR(port, current, str, e);
-    if (e < 0) return PARSE_RET_ERR_MEM;
+    if (e < 0) return PARSE_RET_INTERNAL_ERR;
 
     width = scm_capi_peek_cchr(&current, port);
-    if (width < 0) return PARSE_RET_ERR_PORT;
+    if (width < 0) return PARSE_RET_INTERNAL_ERR;
     else if (width == 0) return PARSE_RET_INVALID;
 
     if (chr_find(DIGIT_10_CHARS, current, enc) != NULL) {
       SHIFT_CHAR(port, current, str, e);
-      if (e < 0) return PARSE_RET_ERR_MEM;
+      if (e < 0) return PARSE_RET_INTERNAL_ERR;
 
       data->rat.num.s_head = EARY_SIZE(str) - 1;
     }
@@ -149,7 +148,7 @@ scm_num_parse_suffix(ScmObj port, ScmEncoding *enc,
 
   while (true) {
     width = scm_capi_peek_cchr(&current, port);
-    if (width < 0) return PARSE_RET_ERR_PORT;
+    if (width < 0) return PARSE_RET_INTERNAL_ERR;
 
     if (width == 0 || chr_find("iI@+-" DELIMITER, current, enc) != NULL) {
       data->rat.num.s_len = EARY_SIZE(str) - data->rat.num.s_head;
@@ -160,7 +159,7 @@ scm_num_parse_suffix(ScmObj port, ScmEncoding *enc,
     }
 
     SHIFT_CHAR(port, current, str, e);
-    if (e < 0) return PARSE_RET_ERR_MEM;
+    if (e < 0) return PARSE_RET_INTERNAL_ERR;
   }
 }
 
@@ -178,17 +177,17 @@ scm_num_parse_decimal(ScmObj port, ScmEncoding *enc,
   scm_assert(data != NULL);
 
   width = scm_capi_peek_cchr(&current, port);
-  if (width < 0) return PARSE_RET_ERR_PORT;
+  if (width < 0) return PARSE_RET_INTERNAL_ERR;
 
   if (width == 0 || chr_find(DIGIT_10_CHARS, current, enc) == NULL)
     return PARSE_RET_INVALID;
 
   SHIFT_CHAR(port, current, str, e);
-  if (e < 0) return PARSE_RET_ERR_MEM;
+  if (e < 0) return PARSE_RET_INTERNAL_ERR;
 
   while (true) {
     width = scm_capi_peek_cchr(&current, port);
-    if (width < 0) return PARSE_RET_ERR_PORT;
+    if (width < 0) return PARSE_RET_INTERNAL_ERR;
 
     if (width == 0 || chr_find("iI@+-" DELIMITER, current, enc) != NULL) {
       data->rat.num.len = EARY_SIZE(str) - data->rat.num.head;
@@ -197,7 +196,7 @@ scm_num_parse_decimal(ScmObj port, ScmEncoding *enc,
     }
     else if (chr_same_p(current, 'e', true, enc)) {
       SHIFT_CHAR(port, current, str, e);
-      if (e < 0) return PARSE_RET_ERR_MEM;
+      if (e < 0) return PARSE_RET_INTERNAL_ERR;
 
       data->rat.num.len = EARY_SIZE(str) - data->rat.num.head - 1;
 
@@ -211,7 +210,7 @@ scm_num_parse_decimal(ScmObj port, ScmEncoding *enc,
     }
 
     SHIFT_CHAR(port, current, str, e);
-    if (e < 0) return PARSE_RET_ERR_MEM;
+    if (e < 0) return PARSE_RET_INTERNAL_ERR;
   }
 }
 
@@ -238,12 +237,12 @@ scm_num_parse_denominator(ScmObj port, ScmEncoding *enc, char radix,
   }
 
   width = scm_capi_peek_cchr(&current, port);
-  if (width < 0) return PARSE_RET_ERR_MEM;
+  if (width < 0) return PARSE_RET_INTERNAL_ERR;
   else if (width == 0) return PARSE_RET_INVALID;
 
   if (chr_find(digit_chars, current, enc) != NULL) {
     SHIFT_CHAR(port, current, str, e);
-    if (e < 0) return PARSE_RET_ERR_MEM;
+    if (e < 0) return PARSE_RET_INTERNAL_ERR;
 
     data->rat.den.head = EARY_SIZE(str) - 1;
   }
@@ -253,7 +252,7 @@ scm_num_parse_denominator(ScmObj port, ScmEncoding *enc, char radix,
 
   while (true) {
     width = scm_capi_peek_cchr(&current, port);
-    if (width < 0) return PARSE_RET_ERR_PORT;
+    if (width < 0) return PARSE_RET_INTERNAL_ERR;
 
     if (width == 0 || chr_find("iI@+-" DELIMITER, current, enc) != NULL) {
       data->rat.den.len = EARY_SIZE(str) - data->rat.den.head;
@@ -265,7 +264,7 @@ scm_num_parse_denominator(ScmObj port, ScmEncoding *enc, char radix,
     }
 
     SHIFT_CHAR(port, current, str, e);
-    if (e < 0) return PARSE_RET_ERR_MEM;
+    if (e < 0) return PARSE_RET_INTERNAL_ERR;
   }
 }
 
@@ -292,12 +291,12 @@ scm_num_parse_ureal(ScmObj port, ScmEncoding *enc, char radix,
   }
 
   width = scm_capi_peek_cchr(&current, port);
-  if (width < 0) return PARSE_RET_ERR_PORT;
+  if (width < 0) return PARSE_RET_INTERNAL_ERR;
   else if (width == 0) return PARSE_RET_INVALID;
 
   if (radix == 'd' && chr_same_p(current, '.', true, enc)) {
     SHIFT_CHAR(port, current, str, e);
-    if (e < 0) return PARSE_RET_ERR_MEM;
+    if (e < 0) return PARSE_RET_INTERNAL_ERR;
 
     data->type = 'i';
     data->rat.num.head = EARY_SIZE(str) - 1;
@@ -307,7 +306,7 @@ scm_num_parse_ureal(ScmObj port, ScmEncoding *enc, char radix,
   }
   else if (chr_find(digit_chars, current, enc) != NULL) {
     SHIFT_CHAR(port, current, str, e);
-    if (e < 0) return PARSE_RET_ERR_MEM;
+    if (e < 0) return PARSE_RET_INTERNAL_ERR;
 
     data->type = 'i';
     data->rat.num.head = EARY_SIZE(str) - 1;
@@ -318,7 +317,7 @@ scm_num_parse_ureal(ScmObj port, ScmEncoding *enc, char radix,
 
   while (true) {
     width = scm_capi_peek_cchr(&current, port);
-    if (width < 0) return PARSE_RET_ERR_PORT;
+    if (width < 0) return PARSE_RET_INTERNAL_ERR;
 
     if (width == 0 || chr_find("iI@+-" DELIMITER, current, enc) != NULL) {
       data->rat.num.len = EARY_SIZE(str) - data->rat.num.head;
@@ -328,7 +327,7 @@ scm_num_parse_ureal(ScmObj port, ScmEncoding *enc, char radix,
     }
     else if (radix == 'd' && chr_same_p(current, '.', true, enc)) {
       SHIFT_CHAR(port, current, str, e);
-      if (e < 0) return PARSE_RET_ERR_MEM;
+      if (e < 0) return PARSE_RET_INTERNAL_ERR;
 
       data->rat.num.point = (ssize_t)EARY_SIZE(str) - 1;
 
@@ -336,7 +335,7 @@ scm_num_parse_ureal(ScmObj port, ScmEncoding *enc, char radix,
     }
     else if (radix == 'd' && chr_same_p(current, 'e', true, enc)) {
       SHIFT_CHAR(port, current, str, e);
-      if (e < 0) return PARSE_RET_ERR_MEM;
+      if (e < 0) return PARSE_RET_INTERNAL_ERR;
 
       data->rat.num.len = EARY_SIZE(str) - data->rat.num.head - 1;
       data->rat.num.point = -1;
@@ -344,7 +343,7 @@ scm_num_parse_ureal(ScmObj port, ScmEncoding *enc, char radix,
     }
     else if (chr_same_p(current, '/', true, enc)) {
       SHIFT_CHAR(port, current, str, e);
-      if (e < 0) return PARSE_RET_ERR_MEM;
+      if (e < 0) return PARSE_RET_INTERNAL_ERR;
 
       data->type = 'r';
       data->rat.num.len = EARY_SIZE(str) - data->rat.num.head - 1;
@@ -356,7 +355,7 @@ scm_num_parse_ureal(ScmObj port, ScmEncoding *enc, char radix,
     }
 
     SHIFT_CHAR(port, current, str, e);
-    if (e < 0) return PARSE_RET_ERR_MEM;
+    if (e < 0) return PARSE_RET_INTERNAL_ERR;
   }
 }
 
@@ -375,7 +374,7 @@ scm_num_parse_inf_img(ScmObj port, ScmEncoding *enc,
   scm_assert(data != NULL);
 
   width = scm_capi_peek_cchr(&current, port);
-  if (width < 0) return PARSE_RET_ERR_PORT;
+  if (width < 0) return PARSE_RET_INTERNAL_ERR;
 
   if (width == 0 || chr_find(DELIMITER, current, enc) != NULL) {
     data->type = '\0';
@@ -385,25 +384,25 @@ scm_num_parse_inf_img(ScmObj port, ScmEncoding *enc,
   i = 0;
   if (chr_same_p(current, exp[i], false, enc)) {
     SHIFT_CHAR(port, current, str, e);
-    if (e < 0) return PARSE_RET_ERR_MEM;
+    if (e < 0) return PARSE_RET_INTERNAL_ERR;
   }
 
   for (i = 1; exp[i] != '0'; i++) {
     width = scm_capi_peek_cchr(&current, port);
-    if (width < 0) return PARSE_RET_ERR_PORT;
+    if (width < 0) return PARSE_RET_INTERNAL_ERR;
     else if (width == 0) return PARSE_RET_INVALID;
 
     if (!chr_same_p(current, exp[i], false, enc))
       return PARSE_RET_INVALID;
 
     SHIFT_CHAR(port, current, str, e);
-    if (e < 0) return PARSE_RET_ERR_MEM;
+    if (e < 0) return PARSE_RET_INTERNAL_ERR;
   }
 
   data->type = 'I';
 
   width = scm_capi_peek_cchr(&current, port);
-  if (width < 0) return PARSE_RET_ERR_PORT;
+  if (width < 0) return PARSE_RET_INTERNAL_ERR;
 
   if (width == 0 || chr_find("iI@+-" DELIMITER, current, enc) != NULL)
     return 0;
@@ -427,20 +426,20 @@ scm_num_parse_nan(ScmObj port, ScmEncoding *enc,
 
   for (i = 0; exp[i] != '0'; i++) {
     width = scm_capi_peek_cchr(&current, port);
-    if (width < 0) return PARSE_RET_ERR_PORT;
+    if (width < 0) return PARSE_RET_INTERNAL_ERR;
     else if (width == 0) return PARSE_RET_INVALID;
 
     if (!chr_same_p(current, exp[i], false, enc))
       return PARSE_RET_INVALID;
 
     SHIFT_CHAR(port, current, str, e);
-    if (e < 0) return PARSE_RET_ERR_MEM;
+    if (e < 0) return PARSE_RET_INTERNAL_ERR;
   }
 
   data->type = 'N';
 
   width = scm_capi_peek_cchr(&current, port);
-  if (width < 0) return PARSE_RET_ERR_PORT;
+  if (width < 0) return PARSE_RET_INTERNAL_ERR;
 
   if (width == 0 || chr_find("iI@+-" DELIMITER, current, enc) != NULL)
     return 0;
@@ -462,7 +461,7 @@ scm_num_parse_complex(ScmObj port, ScmEncoding *enc,
   scm_assert(data != NULL);
 
   width = scm_capi_peek_cchr(&current, port);
-  if (width < 0) return PARSE_RET_ERR_PORT;
+  if (width < 0) return PARSE_RET_INTERNAL_ERR;
   else if (width == 0) return PARSE_RET_INVALID;
 
   if (chr_same_p(current, '+', true, enc))
@@ -474,22 +473,22 @@ scm_num_parse_complex(ScmObj port, ScmEncoding *enc,
 
   if (data->fir.sign != '\0') {
     SHIFT_CHAR(port, current, str, e);
-    if (e < 0) return PARSE_RET_ERR_MEM;
+    if (e < 0) return PARSE_RET_INTERNAL_ERR;
 
     width = scm_capi_peek_cchr(&current, port);
-    if (width < 0) return PARSE_RET_ERR_PORT;
+    if (width < 0) return PARSE_RET_INTERNAL_ERR;
     else if (width == 0) return PARSE_RET_INVALID;
   }
 
   if (chr_same_p(current, 'i', false, enc)) {
     SHIFT_CHAR(port, current, str, e);
-    if (e < 0) return PARSE_RET_ERR_MEM;
+    if (e < 0) return PARSE_RET_INTERNAL_ERR;
 
     r = scm_num_parse_inf_img(port, enc, str, &data->fir);
   }
   else if (chr_same_p(current, 'n', false, enc)) {
     SHIFT_CHAR(port, current, str, e);
-    if (e < 0) return PARSE_RET_ERR_MEM;
+    if (e < 0) return PARSE_RET_INTERNAL_ERR;
 
     r = scm_num_parse_nan(port, enc, str, &data->fir);
   }
@@ -507,7 +506,7 @@ scm_num_parse_complex(ScmObj port, ScmEncoding *enc,
   }
 
   width = scm_capi_peek_cchr(&current, port);
-  if (width < 0) return PARSE_RET_ERR_PORT;
+  if (width < 0) return PARSE_RET_INTERNAL_ERR;
 
   if (width == 0 || chr_find(DELIMITER, current, enc) != NULL) {
     data->complex = 'o';
@@ -516,7 +515,7 @@ scm_num_parse_complex(ScmObj port, ScmEncoding *enc,
   }
   else if (chr_same_p(current, 'i', false, enc)) {
     SHIFT_CHAR(port, current, str, e);
-    if (e < 0) return PARSE_RET_ERR_MEM;
+    if (e < 0) return PARSE_RET_INTERNAL_ERR;
 
     data->complex = 'O';
     data->sec = data->fir;
@@ -525,20 +524,20 @@ scm_num_parse_complex(ScmObj port, ScmEncoding *enc,
   }
   else if (chr_same_p(current, '@', true, enc)) {
     SHIFT_CHAR(port, current, str, e);
-    if (e < 0) return PARSE_RET_ERR_MEM;
+    if (e < 0) return PARSE_RET_INTERNAL_ERR;
 
     data->complex = '@';
   }
   else if (chr_same_p(current, '+', true, enc)) {
     SHIFT_CHAR(port, current, str, e);
-    if (e < 0) return PARSE_RET_ERR_MEM;
+    if (e < 0) return PARSE_RET_INTERNAL_ERR;
 
     data->complex = 'O';
     data->sec.sign = '+';
   }
   else if (chr_same_p(current, '-', true, enc)) {
     SHIFT_CHAR(port, current, str, e);
-    if (e < 0) return PARSE_RET_ERR_MEM;
+    if (e < 0) return PARSE_RET_INTERNAL_ERR;
 
     data->complex = 'O';
     data->sec.sign = '-';
@@ -549,7 +548,7 @@ scm_num_parse_complex(ScmObj port, ScmEncoding *enc,
 
   if (data->complex == '@') {
     width = scm_capi_peek_cchr(&current, port);
-    if (width < 0) return PARSE_RET_ERR_PORT;
+    if (width < 0) return PARSE_RET_INTERNAL_ERR;
     else if (width == 0) return PARSE_RET_INVALID;
 
     if (chr_same_p(current, '+', true, enc))
@@ -562,22 +561,22 @@ scm_num_parse_complex(ScmObj port, ScmEncoding *enc,
 
   if (data->sec.sign != '\0') {
     SHIFT_CHAR(port, current, str, e);
-    if (e < 0) return PARSE_RET_ERR_MEM;
+    if (e < 0) return PARSE_RET_INTERNAL_ERR;
 
     width = scm_capi_peek_cchr(&current, port);
-    if (width < 0) return PARSE_RET_ERR_PORT;
+    if (width < 0) return PARSE_RET_INTERNAL_ERR;
     else if (width == 0) return PARSE_RET_INVALID;
   }
 
   if (chr_same_p(current, 'i', false, enc)) {
     SHIFT_CHAR(port, current, str, e);
-    if (e < 0) return PARSE_RET_ERR_MEM;
+    if (e < 0) return PARSE_RET_INTERNAL_ERR;
 
     r = scm_num_parse_inf_img(port, enc, str, &data->sec);
   }
   else if (chr_same_p(current, 'n', false, enc)) {
     SHIFT_CHAR(port, current, str, e);
-    if (e < 0) return PARSE_RET_ERR_MEM;
+    if (e < 0) return PARSE_RET_INTERNAL_ERR;
 
     r = scm_num_parse_nan(port, enc, str, &data->sec);
   }
@@ -592,18 +591,18 @@ scm_num_parse_complex(ScmObj port, ScmEncoding *enc,
 
   if (data->complex == 'O') {
     width = scm_capi_peek_cchr(&current, port);
-    if (width < 0) return PARSE_RET_ERR_PORT;
+    if (width < 0) return PARSE_RET_INTERNAL_ERR;
 
     if (width == 0 || !chr_same_p(current, 'i', false, enc))
       return PARSE_RET_INVALID;
 
     SHIFT_CHAR(port, current, str, e);
-    if (e < 0) return PARSE_RET_ERR_MEM;
+    if (e < 0) return PARSE_RET_INTERNAL_ERR;
   }
 
  last:
   width = scm_capi_peek_cchr(&current, port);
-  if (width < 0) return PARSE_RET_ERR_PORT;
+  if (width < 0) return PARSE_RET_INTERNAL_ERR;
 
   if (chr_find(DELIMITER, current, enc) != NULL)
     return 0;
@@ -643,11 +642,8 @@ scm_num_parse(ScmObj port, EArray *str, ScmNumParseData *data)
   case PARSE_RET_INVALID:
     dat->rslt = SCM_NUM_PARSE_INVALID;
     break;
-  case PARSE_RET_ERR_MEM:
-    dat->rslt = SCM_NUM_PARSE_ERR_MEM;
-    break;
-  case PARSE_RET_ERR_PORT:
-    dat->rslt = SCM_NUM_PARSE_ERR_PORT;
+  case PARSE_RET_INTERNAL_ERR:
+    dat->rslt = SCM_NUM_PARSE_INTERNAL_ERR;
     break;
   default:
     scm_assert(false);

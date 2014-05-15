@@ -206,10 +206,9 @@ scm_lexer_new_token(ScmLexer *lexer)
   str = eary_chuck_ary(&lexer->str);
 
   token = scm_token_new(lexer->token_type, str, len, &lexer->npd);
-  if (token != NULL)
-    scm_lexer_clear_state(lexer);
-  else
-    scm_lexer_setup_error_state(lexer, SCM_LEXER_ERR_TYPE_MEM_ERR);
+  if (token == NULL) return NULL;
+
+  scm_lexer_clear_state(lexer);
 
   return token;
 }
@@ -234,8 +233,7 @@ scm_lexer_tokenize_init(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
   width = scm_capi_peek_cchr(&current, port);
 
   if (width < 0) {
-    scm_lexer_setup_error_state(lexer, SCM_LEXER_ERR_TYPE_PORT_ERR);
-    return LEXER_STATE_ERROR;
+      return LEXER_STATE_ERROR;
   }
   else if (width == 0) {
     scm_capi_read_cchr(&current, port);
@@ -306,8 +304,7 @@ scm_lexer_tokenize_identifier(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
   while (1) {
     ssize_t width = scm_capi_peek_cchr(&current, port);
     if (width < 0) {
-      scm_lexer_setup_error_state(lexer, SCM_LEXER_ERR_TYPE_PORT_ERR);
-      return LEXER_STATE_ERROR;
+        return LEXER_STATE_ERROR;
     }
     else if (width == 0) {
       break;
@@ -338,8 +335,7 @@ scm_lexer_tokenize_ident_vbar(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
   while (1) {
     ssize_t width = scm_capi_read_cchr(&current, port);
     if (width < 0) {
-      scm_lexer_setup_error_state(lexer, SCM_LEXER_ERR_TYPE_PORT_ERR);
-      return LEXER_STATE_ERROR;
+        return LEXER_STATE_ERROR;
     }
     else if (width == 0) {
       scm_capi_read_cchr(&current, port);
@@ -370,7 +366,6 @@ scm_lexer_tokenize_dot(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
 
   width = scm_capi_peek_cchr(&current, port);
   if (width < 0) {
-    scm_lexer_setup_error_state(lexer, SCM_LEXER_ERR_TYPE_PORT_ERR);
     return LEXER_STATE_ERROR;
   }
   else if (width == 0) {
@@ -399,7 +394,6 @@ scm_lexer_tokenize_comment(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
   while (1) {
     ssize_t width = scm_capi_read_cchr(&current, port);
     if (width < 0) {
-      scm_lexer_setup_error_state(lexer, SCM_LEXER_ERR_TYPE_PORT_ERR);
       return LEXER_STATE_ERROR;
     }
     else if (width == 0) {
@@ -425,7 +419,6 @@ scm_lexer_tokenize_unquote(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
 
   width = scm_capi_peek_cchr(&current, port);
   if (width < 0) {
-    scm_lexer_setup_error_state(lexer, SCM_LEXER_ERR_TYPE_PORT_ERR);
     return LEXER_STATE_ERROR;
   }
   else if (width == 0) {
@@ -459,7 +452,6 @@ scm_lexer_tokenize_number_sign(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
 
   width = scm_capi_read_cchr(&current, port);
   if (width < 0) {
-    scm_lexer_setup_error_state(lexer, SCM_LEXER_ERR_TYPE_PORT_ERR);
     return LEXER_STATE_ERROR;
   }
   else if (width == 0) {
@@ -515,7 +507,6 @@ scm_lexer_tokenize_bool_true_or_false(ScmLexer *lexer, ScmObj port,
 
   width = scm_capi_peek_cchr(&current, port);
   if (width < 0) {
-    scm_lexer_setup_error_state(lexer, SCM_LEXER_ERR_TYPE_PORT_ERR);
     return LEXER_STATE_ERROR;
   }
   else if (width == 0) {
@@ -546,7 +537,6 @@ scm_lexer_tokenize_bool_true_or_false(ScmLexer *lexer, ScmObj port,
   while (str[idx] != '\0') {
     width = scm_capi_read_cchr(&current, port);
     if (width < 0) {
-      scm_lexer_setup_error_state(lexer, SCM_LEXER_ERR_TYPE_PORT_ERR);
       return LEXER_STATE_ERROR;
     }
     else if (width == 0) {
@@ -566,7 +556,6 @@ scm_lexer_tokenize_bool_true_or_false(ScmLexer *lexer, ScmObj port,
 
   width = scm_capi_peek_cchr(&current, port);
   if (width < 0) {
-    scm_lexer_setup_error_state(lexer, SCM_LEXER_ERR_TYPE_PORT_ERR);
     return LEXER_STATE_ERROR;
   }
   else if (width == 0) {
@@ -617,7 +606,6 @@ scm_lexer_tokenize_string(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
   while (1) {
     width = scm_capi_read_cchr(&current, port);
     if (width < 0) {
-      scm_lexer_setup_error_state(lexer, SCM_LEXER_ERR_TYPE_PORT_ERR);
       return LEXER_STATE_ERROR;
     }
     else if (width == 0) {
@@ -659,7 +647,6 @@ scm_lexer_tokenize_char(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
 
   width = scm_capi_read_cchr(&current, port);
   if (width < 0) {
-    scm_lexer_setup_error_state(lexer, SCM_LEXER_ERR_TYPE_PORT_ERR);
     return LEXER_STATE_ERROR;
   }
   else if (width == 0) {
@@ -673,7 +660,6 @@ scm_lexer_tokenize_char(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
   while (1) {
     width = scm_capi_peek_cchr(&current, port);
     if (width < 0) {
-      scm_lexer_setup_error_state(lexer, SCM_LEXER_ERR_TYPE_PORT_ERR);
       return LEXER_STATE_ERROR;
     }
     else if (width == 0) {
@@ -705,7 +691,6 @@ scm_lexer_tokenize_reference(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
   while (1) {
     width = scm_capi_read_cchr(&current, port);
     if (width < 0) {
-      scm_lexer_setup_error_state(lexer, SCM_LEXER_ERR_TYPE_PORT_ERR);
       return LEXER_STATE_ERROR;
     }
     else if (width == 0) {
@@ -746,7 +731,6 @@ scm_lexer_tokenize_numeric(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
 
   p = scm_num_parse(port, &lexer->str, &lexer->npd);
   if (p == NULL) {
-    scm_lexer_setup_error_state(lexer, SCM_LEXER_ERR_TYPE_MEM_ERR);
     return -1;
   }
 
@@ -754,12 +738,7 @@ scm_lexer_tokenize_numeric(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
     scm_lexer_set_token_type(lexer, SCM_TOKEN_TYPE_NUMERIC);
     return LEXER_STATE_DONE;
   }
-  else if (lexer->npd.rslt == SCM_NUM_PARSE_ERR_MEM) {
-    scm_lexer_setup_error_state(lexer, SCM_LEXER_ERR_TYPE_MEM_ERR);
-    return LEXER_STATE_ERROR;
-  }
-  else if (lexer->npd.rslt == SCM_NUM_PARSE_ERR_PORT) {
-    scm_lexer_setup_error_state(lexer, SCM_LEXER_ERR_TYPE_PORT_ERR);
+  else if (lexer->npd.rslt == SCM_NUM_PARSE_INTERNAL_ERR) {
     return LEXER_STATE_ERROR;
   }
   else if (EARY_SIZE(&lexer->str) != 1) {
@@ -790,7 +769,6 @@ scm_lexer_tokenize_bv_start(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
   for (const char *p = "8("; *p != '\0'; p++) {
     width = scm_capi_peek_cchr(&current, port);
     if (width < 0) {
-      scm_lexer_setup_error_state(lexer, SCM_LEXER_ERR_TYPE_PORT_ERR);
       return LEXER_STATE_ERROR;
     }
     else if (width == 0) {
@@ -832,6 +810,7 @@ static int
 scm_lexer_tokenize(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
 {
   LEXER_STATE_T state;
+  ScmToken *token;
 
   scm_assert(lexer != NULL);
   scm_assert(EARY_SIZE(&lexer->str) == 0);
@@ -839,8 +818,7 @@ scm_lexer_tokenize(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
   scm_assert(scm_capi_input_port_p(port));
   scm_assert(enc != NULL);
 
-  if (lexer->error_type != SCM_LEXER_ERR_TYPE_NONE)
-    return -1;
+  if (scm_lexer_error_p(lexer)) return -1;
 
   state = LEXER_STATE_INIT;
   while (state != LEXER_STATE_DONE && state != LEXER_STATE_ERROR) {
@@ -896,13 +874,13 @@ scm_lexer_tokenize(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
     }
   }
 
-  if (lexer->error_type != SCM_LEXER_ERR_TYPE_PORT_ERR
-      && lexer->error_type != SCM_LEXER_ERR_TYPE_MEM_ERR) {
-    ScmToken *token = scm_lexer_new_token(lexer);
-    if (token == NULL) return -1;
+  if (state == LEXER_STATE_ERROR && !scm_lexer_error_p(lexer))
+    return -1;
 
-    scm_lexer_push_token(lexer, token);
-  }
+  token = scm_lexer_new_token(lexer);
+  if (token == NULL) return -1;
+
+  scm_lexer_push_token(lexer, token);
 
   return 0;
 }
@@ -944,16 +922,14 @@ scm_lexer_end(ScmLexer *lexer)
 ScmToken *
 scm_lexer_head_token(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
 {
-  ScmToken *token;
-
   scm_assert(lexer != NULL);
 
-  if (lexer->tokens_head == NULL)
-    scm_lexer_tokenize(lexer, port, enc);
+  if (lexer->tokens_head == NULL) {
+    int r = scm_lexer_tokenize(lexer, port, enc);
+    if (r < 0) return NULL;
+  }
 
-  token = lexer->tokens_head;
-
-  return token;
+  return lexer->tokens_head;
 }
 
 void
@@ -963,13 +939,14 @@ scm_lexer_shift_token(ScmLexer *lexer)
 
   if (lexer->tokens_head != NULL) {
     ScmToken *token = lexer->tokens_head;
-    if (!scm_lexer_error_p(lexer)
-        || token->type != SCM_TOKEN_TYPE_TOKENIZE_ERR) {
-      lexer->tokens_head = token->next;
-      if (lexer->tokens_head == NULL)
-        lexer->tokens_tail = NULL;
-      scm_token_end(token);
-    }
+
+    lexer->tokens_head = token->next;
+    if (lexer->tokens_head == NULL)
+      lexer->tokens_tail = NULL;
+
+    if (token->type == SCM_TOKEN_TYPE_TOKENIZE_ERR)
+      scm_lexer_clear_error_state(lexer);
+    scm_token_end(token);
   }
 }
 
@@ -1694,7 +1671,6 @@ scm_parser_parse_expression(ScmParser *parser, ScmObj port)
     rslt = scm_parser_parse_eof(parser, port, enc);
     break;
   case SCM_TOKEN_TYPE_TOKENIZE_ERR:
-    scm_lexer_shift_token(parser->lexer);
     if (scm_lexer_error_type(parser->lexer)
         == SCM_LEXER_ERR_TYPE_UNEXPECTED_CHAR) {
       scm_capi_error("Parser: unexpected char", 0);

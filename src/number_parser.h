@@ -9,8 +9,7 @@
 typedef enum {
   SCM_NUM_PARSE_SUCCESS,
   SCM_NUM_PARSE_INVALID,
-  SCM_NUM_PARSE_ERR_MEM,
-  SCM_NUM_PARSE_ERR_PORT,
+  SCM_NUM_PARSE_INTERNAL_ERR,
 } SCM_NUM_PARSE_RSLT_T;
 
 typedef struct ScmNumParseIntDecDataRec ScmNumParseIntDecData;
