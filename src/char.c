@@ -201,7 +201,7 @@ scm_char_encode(ScmObj chr, ScmEncoding *enc)
   cd = iconv_open(scm_enc_name(enc),
                   scm_enc_name(SCM_CHAR(chr)->enc));
   if (cd == (iconv_t)-1) {
-    scm_capi_error("faild to call 'iconv_open'", 0);
+    scm_capi_error("failed to call 'iconv_open'", 0);
     return SCM_OBJ_NULL;
   }
 
@@ -218,16 +218,16 @@ scm_char_encode(ScmObj chr, ScmEncoding *enc)
   if (rslt == (size_t)-1) {
     switch (errno) {
     case EILSEQ:
-      scm_capi_error("faild to call 'iconv': illegal multibyte sequence", 0);
+      scm_capi_error("failed to call 'iconv': illegal multibyte sequence", 0);
       break;
     case EINVAL:
-      scm_capi_error("faild to call 'iconv': imcomplete  multibyte sequence", 0);
+      scm_capi_error("failed to call 'iconv': imcomplete  multibyte sequence", 0);
       break;
     case E2BIG:
-      scm_capi_error("faild to call 'iconv': too big multibyte sequence", 0);
+      scm_capi_error("failed to call 'iconv': too big multibyte sequence", 0);
       break;
     default:
-      scm_capi_error("faild to call 'iconv': unknown error has occurred", 0);
+      scm_capi_error("failed to call 'iconv': unknown error has occurred", 0);
       break;
     }
 

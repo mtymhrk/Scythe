@@ -1993,7 +1993,7 @@ scm_get_current_port(ScmObj subr, const char *var)
   if (rslt < 0) return SCM_OBJ_NULL;
 
   if (scm_obj_null_p(prm)) {
-    scm_capi_error("faild to get current port", 0);
+    scm_capi_error("failed to get current port", 0);
     return SCM_OBJ_NULL;
   }
 

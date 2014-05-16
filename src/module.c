@@ -626,7 +626,7 @@ scm_moduletree_add_branche(ScmModuleTreeNode *node, ScmObj name)
     ScmModuleTreeNode **new_bra;
 
     if (node->capacity == SIZE_MAX) {
-      scm_capi_error("faild to register a module: buffer overlfow", 0);
+      scm_capi_error("failed to register a module: buffer overlfow", 0);
       return NULL;
     }
     else if (node->capacity > SIZE_MAX / 2) {

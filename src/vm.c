@@ -1117,7 +1117,7 @@ scm_vm_push_dynamic_bindings(ScmObj vm, ScmObj *param, size_t n)
   scm_assert(n > 0);
 
   if (n > SSIZE_MAX / 2) {
-    scm_capi_error("faild to extend dynamic bindings: too many parameters", 0);
+    scm_capi_error("failed to extend dynamic bindings: too many parameters", 0);
     return -1;
   }
 

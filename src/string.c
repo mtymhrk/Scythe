@@ -199,7 +199,7 @@ scm_string_change_encoding(ScmObj src, ScmEncoding *to)
   cd = iconv_open(scm_enc_name(to),
                   scm_enc_name(SCM_STRING_ENC(src)));
   if (cd == (iconv_t)-1) {
-    scm_capi_error("faild to call 'iconv_open'", 0);
+    scm_capi_error("failed to call 'iconv_open'", 0);
     return SCM_OBJ_NULL;
   }
 
@@ -216,7 +216,7 @@ scm_string_change_encoding(ScmObj src, ScmEncoding *to)
         goto err;
       }
       else if (errno == EINVAL) {
-        scm_capi_error("faild to call 'iconv': imcomplete multibyte sequence", 0);
+        scm_capi_error("failed to call 'iconv': imcomplete multibyte sequence", 0);
         goto err;
       }
       else if (errno == E2BIG) {
@@ -225,7 +225,7 @@ scm_string_change_encoding(ScmObj src, ScmEncoding *to)
         ssize_t s;
 
         if (cap == SIZE_MAX) {
-          scm_capi_error("faild to encode string: too big string", 0);
+          scm_capi_error("failed to encode string: too big string", 0);
           goto err;
         }
 
@@ -243,7 +243,7 @@ scm_string_change_encoding(ScmObj src, ScmEncoding *to)
         outs = cap - (size_t)s;
       }
       else {
-        scm_capi_error("faild to call 'iconv': unknown error has occurred", 0);
+        scm_capi_error("failed to call 'iconv': unknown error has occurred", 0);
         goto err;
       }
     }
@@ -944,7 +944,7 @@ scm_string_to_char_ary(ScmObj str, size_t pos, ssize_t len, scm_char_t *ary)
   scm_assert_obj_type(str, &SCM_STRING_TYPE_INFO);
 
   if (pos >= SCM_STRING_LENGTH(str)) {
-    scm_capi_error("faild to make array of characters: invalid argument", 0);
+    scm_capi_error("failed to make array of characters: invalid argument", 0);
     return NULL;
   }
 

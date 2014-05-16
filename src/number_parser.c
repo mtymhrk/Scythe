@@ -664,7 +664,7 @@ scm_num_chr_to_int(scm_char_t chr, ScmEncoding *enc)
 
   p = chr_find(digits, chr, enc);
   if (p == NULL) {
-    scm_capi_error("faild to parse number literal: invalid format", 0);
+    scm_capi_error("failed to parse number literal: invalid format", 0);
     return -1;
   }
 
@@ -725,14 +725,14 @@ scm_num_str_to_ary_of_sword(int radix, const scm_char_t *str, size_t len,
 static ScmObj
 scm_num_make_inf(char sing)
 {
-  scm_capi_error("faild to parse number literal: unsupported format", 0);
+  scm_capi_error("failed to parse number literal: unsupported format", 0);
   return SCM_OBJ_NULL;
 }
 
 static ScmObj
 scm_num_make_nan(char sing)
 {
-  scm_capi_error("faild to parse number literal: unsupported format", 0);
+  scm_capi_error("failed to parse number literal: unsupported format", 0);
   return SCM_OBJ_NULL;
 }
 
@@ -780,7 +780,7 @@ scm_num_make_integer(const scm_char_t *str, ScmEncoding *enc,
   }
 
   if (idata->s_sign != '\0') {
-    scm_capi_error("faild to parse number literal: unsupported format", 0);
+    scm_capi_error("failed to parse number literal: unsupported format", 0);
     return SCM_OBJ_NULL;
   }
 
@@ -792,7 +792,7 @@ scm_num_make_float(const scm_char_t *str, ScmEncoding *enc,
                    const ScmNumParseData *data, char sign,
                    const ScmNumParseIntDecData *idata)
 {
-  scm_capi_error("faild to parse number literal: unsupported format", 0);
+  scm_capi_error("failed to parse number literal: unsupported format", 0);
   return SCM_OBJ_NULL;
 }
 
@@ -801,7 +801,7 @@ scm_num_make_float_from_rat(const scm_char_t *str, ScmEncoding *enc,
                             const ScmNumParseData *data, char sign,
                             const ScmNumParseRatData *rdata)
 {
-  scm_capi_error("faild to parse number literal: unsupported format", 0);
+  scm_capi_error("failed to parse number literal: unsupported format", 0);
   return SCM_OBJ_NULL;
 }
 
@@ -820,7 +820,7 @@ scm_num_make_rational(const scm_char_t *str, ScmEncoding *enc,
   scm_assert(sign == '+' || sign == '-');
   scm_assert(rdata != NULL);
 
-  scm_capi_error("faild to parse number literal: unsupported format", 0);
+  scm_capi_error("failed to parse number literal: unsupported format", 0);
   return SCM_OBJ_NULL;
 
   num = scm_num_make_integer(str, enc, data, '+', &rdata->num);
@@ -837,7 +837,7 @@ scm_num_make_rational_from_dec(const scm_char_t *str, ScmEncoding *enc,
                                const ScmNumParseData *data, char sign,
                                const ScmNumParseIntDecData *idata)
 {
-  scm_capi_error("faild to parse number literal: unsupported format", 0);
+  scm_capi_error("failed to parse number literal: unsupported format", 0);
   return SCM_OBJ_NULL;
 }
 
@@ -897,14 +897,14 @@ scm_num_make_real(const scm_char_t *str, ScmEncoding *enc,
 static ScmObj
 scm_num_make_complex_polar(const ScmNumParseData *data, ScmObj rad, ScmObj arg)
 {
-  scm_capi_error("faild to parse number literal: unsupported format", 0);
+  scm_capi_error("failed to parse number literal: unsupported format", 0);
   return SCM_OBJ_NULL;
 }
 
 static ScmObj
 scm_num_make_complex_orth(const ScmNumParseData *data, ScmObj real, ScmObj img)
 {
-  scm_capi_error("faild to parse number literal: unsupported format", 0);
+  scm_capi_error("failed to parse number literal: unsupported format", 0);
   return SCM_OBJ_NULL;
 }
 
@@ -968,7 +968,7 @@ scm_num_make_from_literal(const char *literal, ScmEncoding *enc)
   if (p == NULL) goto ret;
 
   if (data.rslt != SCM_NUM_PARSE_SUCCESS) {
-    scm_capi_error("faild to parse number literal: invalid format", 0);
+    scm_capi_error("failed to parse number literal: invalid format", 0);
     goto ret;
   }
 

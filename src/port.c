@@ -512,14 +512,14 @@ scm_stringio_seek(ScmStringIO *strio, off_t offset, int whence)
     break;
   case SEEK_CUR:
     if (SSIZE_MAX - (ssize_t)strio->pos < offset) {
-      scm_capi_error("faild to seek: offset is out of range", 0);
+      scm_capi_error("failed to seek: offset is out of range", 0);
       return -1;
     }
     pos = (ssize_t)strio->pos + offset;
     break;
   case SEEK_END:
     if (SSIZE_MAX - (ssize_t)strio->length < offset) {
-      scm_capi_error("faild to seek: offset is out of range", 0);
+      scm_capi_error("failed to seek: offset is out of range", 0);
       return -1;
     }
     pos = (ssize_t)strio->length + offset;
@@ -2010,7 +2010,7 @@ scm_port_char_ready(ScmObj port, bool *rslt)
 
     if (r == 0) {
       if (SCM_PORT(port)->pb_used > 0) {
-        scm_capi_error("faild to peek a character: illegal byte sequence", 0);
+        scm_capi_error("failed to peek a character: illegal byte sequence", 0);
         return -1;
       }
 

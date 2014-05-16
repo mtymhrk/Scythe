@@ -400,7 +400,7 @@ scm_load_module_scheme_base(void)
   if (rslt < 0) return -1;
 
   if (scm_obj_null_p(imp)) {
-    scm_capi_error("faild to import module", 1, name);
+    scm_capi_error("failed to import module", 1, name);
     return -1;
   }
 
@@ -568,7 +568,7 @@ scm_load_module_main(void)
   if (rslt < 0) return -1;
 
   if (scm_obj_null_p(imp)) {
-    scm_capi_error("faild to import module", 1, name);
+    scm_capi_error("failed to import module", 1, name);
     return -1;
   }
 
@@ -590,7 +590,7 @@ scm_load_module_main(void)
   if (rslt < 0) return -1;
 
   if (scm_obj_null_p(imp)) {
-    scm_capi_error("faild to import module", 1, name);
+    scm_capi_error("failed to import module", 1, name);
     return -1;
   }
 
@@ -612,7 +612,7 @@ scm_load_module_main(void)
   if (rslt < 0) return -1;
 
   if (scm_obj_null_p(imp)) {
-    scm_capi_error("faild to import module", 1, name);
+    scm_capi_error("failed to import module", 1, name);
     return -1;
   }
 

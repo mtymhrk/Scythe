@@ -771,7 +771,7 @@ scm_capi_cxr(ScmObj pair, const char *dir)
                        &x);
 
   if (dir == NULL) {
-    scm_capi_error("faild to execute car or cdr: invalid argument", 0);
+    scm_capi_error("failed to execute car or cdr: invalid argument", 0);
     return SCM_OBJ_NULL;
   }
 
@@ -787,7 +787,7 @@ scm_capi_cxr(ScmObj pair, const char *dir)
       x = scm_api_cdr(x);
       break;
     default:
-      scm_capi_error("faild to execute car or cdr: invalid argument", 0);
+      scm_capi_error("failed to execute car or cdr: invalid argument", 0);
       return SCM_OBJ_NULL;
     }
 
@@ -4866,14 +4866,14 @@ scm_capi_string_to_cstr(ScmObj str, char *cstr, size_t size)
   size_t n;
 
   if (!scm_capi_string_p(str)) {
-    scm_capi_error("faild to get byte sequence from string: "
+    scm_capi_error("failed to get byte sequence from string: "
                    "invalid argument", 0);
     return NULL;
   }
 
   n = scm_string_bytesize(str);
   if (n >= SIZE_MAX) {
-    scm_capi_error("faild to get byte sequence from string: "
+    scm_capi_error("failed to get byte sequence from string: "
                    "too long", 0);
     return NULL;
   }
@@ -5881,11 +5881,11 @@ int
 scm_capi_push_exception_handler(ScmObj handler)
 {
   if (scm_obj_null_p(handler)) {
-    scm_capi_error("faild to install exception handler: invalid argument", 0);
+    scm_capi_error("failed to install exception handler: invalid argument", 0);
     return -1;
   }
   else if (!scm_capi_procedure_p(handler)) {
-    scm_capi_error("faild to install exception handler: "
+    scm_capi_error("failed to install exception handler: "
                    "invalid argument", 1, handler);
     return -1;
   }
@@ -6273,7 +6273,7 @@ scm_capi_open_input_fd(int fd, const char *enc)
   if (enc == NULL) {
     ssize_t r = scm_enc_locale_to_enc_name(ext_enc_name, sizeof(ext_enc_name));
     if (r < 0) {
-      scm_capi_error("open-input-fd: faild to get external encoding name", 0);
+      scm_capi_error("open-input-fd: failed to get external encoding name", 0);
       return SCM_OBJ_NULL;
     }
     enc = ext_enc_name;;
@@ -6296,7 +6296,7 @@ scm_capi_open_output_fd(int fd, const char *enc)
   if (enc == NULL) {
     ssize_t r = scm_enc_locale_to_enc_name(ext_enc_name, sizeof(ext_enc_name));
     if (r < 0) {
-      scm_capi_error("open-output-fd: faild to get external encoding name", 0);
+      scm_capi_error("open-output-fd: failed to get external encoding name", 0);
       return SCM_OBJ_NULL;
     }
     enc = ext_enc_name;;
@@ -6319,7 +6319,7 @@ scm_capi_open_input_file(const char *path, const char *enc)
   if (enc == NULL) {
     ssize_t r = scm_enc_locale_to_enc_name(ext_enc_name, sizeof(ext_enc_name));
     if (r < 0) {
-      scm_capi_error("open-input-file: faild to get external encoding name", 0);
+      scm_capi_error("open-input-file: failed to get external encoding name", 0);
       return SCM_OBJ_NULL;
     }
     enc = ext_enc_name;;
@@ -6348,7 +6348,7 @@ scm_api_open_input_file(ScmObj path)
 
   r = scm_enc_locale_to_enc_name(ext_enc_name, sizeof(ext_enc_name));
   if (r < 0) {
-    scm_capi_error("open-input-file: faild to get external encoding name", 0);
+    scm_capi_error("open-input-file: failed to get external encoding name", 0);
     return SCM_OBJ_NULL;
   }
 
@@ -6380,7 +6380,7 @@ scm_capi_open_output_file(const char *path, const char *enc)
     ssize_t r = scm_enc_locale_to_enc_name(ext_enc_name, sizeof(ext_enc_name));
     if (r < 0) {
       scm_capi_error("open-output-file: "
-                     "faild to get external encoding name", 0);
+                     "failed to get external encoding name", 0);
       return SCM_OBJ_NULL;
     }
     enc = ext_enc_name;;
@@ -6409,7 +6409,7 @@ scm_api_open_output_file(ScmObj path)
 
   r = scm_enc_locale_to_enc_name(ext_enc_name, sizeof(ext_enc_name));
   if (r < 0) {
-    scm_capi_error("open-output-file: faild to get external encoding name", 0);
+    scm_capi_error("open-output-file: failed to get external encoding name", 0);
     return SCM_OBJ_NULL;
   }
 
@@ -7343,12 +7343,12 @@ int
 scm_capi_subrutine_module(ScmObj subr, scm_csetter_t *mod)
 {
   if (!scm_capi_subrutine_p(subr)) {
-    scm_capi_error("faild to get a module defines the subrutine: "
+    scm_capi_error("failed to get a module defines the subrutine: "
                    "invalid argument", 0);
     return -1;
   }
   else if (mod == NULL) {
-    scm_capi_error("faild to get a module defines the subrutine: "
+    scm_capi_error("failed to get a module defines the subrutine: "
                    "invalid argument", 0);
     return -1;
   }
@@ -7438,7 +7438,7 @@ scm_capi_make_parameter(ScmObj conv)
   SCM_STACK_FRAME_PUSH(&conv);
 
   if (scm_obj_not_null_p(conv) && !scm_capi_procedure_p(conv)) {
-    scm_capi_error("faild to make parameter object: invalid argument", 0);
+    scm_capi_error("failed to make parameter object: invalid argument", 0);
     return SCM_OBJ_NULL;
   }
 
@@ -7560,7 +7560,7 @@ extern inline ScmObj
 scm_api_syntax_keyword(ScmObj syx)
 {
   if (!scm_capi_syntax_p(syx)) {
-    scm_capi_error("faild to get syntax keyword: invalid argument", 0);
+    scm_capi_error("failed to get syntax keyword: invalid argument", 0);
     return SCM_OBJ_NULL;
   }
 
@@ -7571,11 +7571,11 @@ extern inline int
 scm_capi_syntax_handler(ScmObj syx, ScmSyntaxHandlerFunc *handler)
 {
   if (!scm_capi_syntax_p(syx)) {
-    scm_capi_error("faild to get syntax handler: invalid argument", 0);
+    scm_capi_error("failed to get syntax handler: invalid argument", 0);
     return -1;
   }
   else if (handler == NULL) {
-    scm_capi_error("faild to get syntax handler: invalid argument", 0);
+    scm_capi_error("failed to get syntax handler: invalid argument", 0);
     return -1;
   }
 
@@ -8197,11 +8197,11 @@ scm_capi_gloc_value(ScmObj gloc, scm_csetter_t *val)
   SCM_STACK_FRAME_PUSH(&gloc);
 
   if (!scm_capi_gloc_p(gloc)) {
-    scm_capi_error("faild to get a value of gloc: invalid argument", 0);
+    scm_capi_error("failed to get a value of gloc: invalid argument", 0);
     return -1;
   }
   else if (val == NULL) {
-    scm_capi_error("faild to get a value of gloc: invalid argument", 0);
+    scm_capi_error("failed to get a value of gloc: invalid argument", 0);
     return -1;
   }
 
@@ -8216,11 +8216,11 @@ scm_capi_gloc_symbol(ScmObj gloc, scm_csetter_t *sym)
   SCM_STACK_FRAME_PUSH(&gloc);
 
   if (!scm_capi_gloc_p(gloc)) {
-    scm_capi_error("faild to get a symbol of gloc: invalid argument", 0);
+    scm_capi_error("failed to get a symbol of gloc: invalid argument", 0);
     return -1;
   }
   else if (sym == NULL) {
-    scm_capi_error("faild to get a symbol of gloc: invalid argument", 0);
+    scm_capi_error("failed to get a symbol of gloc: invalid argument", 0);
     return -1;
   }
 
@@ -8235,11 +8235,11 @@ scm_capi_gloc_bind(ScmObj gloc, ScmObj val)
   SCM_STACK_FRAME_PUSH(&gloc, &val);
 
   if (!scm_capi_gloc_p(gloc)) {
-    scm_capi_error("faild to update value of gloc: invalid argument", 0);
+    scm_capi_error("failed to update value of gloc: invalid argument", 0);
     return -1;
   }
   else if (scm_obj_null_p(val)) {
-    scm_capi_error("faild to update value of gloc: invalid argument", 0);
+    scm_capi_error("failed to update value of gloc: invalid argument", 0);
     return -1;
   }
 
@@ -8537,7 +8537,7 @@ ScmObj
 scm_capi_cont_capture_obj(ScmObj cont)
 {
   if (!scm_capi_continuation_p(cont)) {
-    scm_capi_error("faild to get capture object from continuation: "
+    scm_capi_error("failed to get capture object from continuation: "
                    "invalid argument", 0);
     return SCM_OBJ_NULL;
   }

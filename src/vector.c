@@ -66,7 +66,7 @@ scm_vector_initialize_ary(ScmObj vector, const ScmObj *elms, size_t length)
 
   for (i = 0; i < length; i++) {
     if (scm_obj_null_p(elms[i])) {
-      scm_capi_error("faild to make vector: invalid element", 0);
+      scm_capi_error("failed to make vector: invalid element", 0);
       return -1;
     }
     SCM_SLOT_SETQ(ScmVector, vector, array[i], elms[i]);
