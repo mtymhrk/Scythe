@@ -81,8 +81,13 @@ scm_error_initialize_cv(ScmObj exc, ScmObj msg,
   if (SCM_ERROR(exc)->irritants == NULL)
     return -1;
 
-  for (size_t i = 0; i < n; i++)
+  for (size_t i = 0; i < n; i++) {
+    if (scm_obj_null_p(irris[i])) {
+      scm_capi_error("failed to make exception object: invalid argument", 0);
+      return -1;
+    }
     SCM_SLOT_SETQ(ScmError, exc, irritants[i], irris[i]);
+  }
 
   SCM_ERROR(exc)->nr_irris = n;
 
