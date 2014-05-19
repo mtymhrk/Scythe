@@ -267,6 +267,7 @@ scm_define_scheme_base_subr(ScmObj module)
     { "display", SCM_SUBR_ARITY_DISPLAY, SCM_SUBR_FLAG_DISPLAY, scm_subr_func_display },
     { "newline", SCM_SUBR_ARITY_NEWLINE, SCM_SUBR_FLAG_NEWLINE, scm_subr_func_newline },
     { "flush-output-port", SCM_SUBR_ARITY_FLUSH_OUTPUT_PORT, SCM_SUBR_FLAG_FLUSH_OUTPUT_PORT, scm_subr_func_flush_output_port },
+    { "eof-object?", SCM_SUBR_ARITY_EOF_OBJECT_P, SCM_SUBR_FLAG_EOF_OBJECT_P, scm_subr_func_eof_object_P },
 
     { "call/cc", SCM_SUBR_ARITY_CALLCC, SCM_SUBR_FLAG_CALLCC, scm_subr_func_callcc },
     { "values", SCM_SUBR_ARITY_VALUES, SCM_SUBR_FLAG_VALUES, scm_subr_func_values },

@@ -2158,6 +2158,19 @@ scm_subr_func_flush_output_port(ScmObj subr, int argc, const ScmObj *argv)
   return scm_capi_return_val(&val, 1);
 }
 
+int
+scm_subr_func_eof_object_P(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
+
+  val = scm_capi_eof_object_p(argv[0]) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+
+  return scm_capi_return_val(&val, 1);
+}
+
 
 /*******************************************************************/
 /*  Continuation                                                   */
