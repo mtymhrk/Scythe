@@ -23,7 +23,7 @@ new_parser()
 ScmObj
 new_port(const char *str)
 {
-  port = scm_capi_open_input_string_cstr(str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(str, SCM_ENC_NAME_SRC);
 
   return port;
 }

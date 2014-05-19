@@ -6488,14 +6488,22 @@ scm_api_close_output_port(ScmObj port)
 }
 
 ScmObj
-scm_capi_open_input_string_cstr(const char *str, ScmEncoding *enc)
+scm_capi_open_input_string_cstr(const char *str, const char *enc)
 {
-  if (enc == NULL)
-    enc = scm_capi_system_encoding();
+  char ext_enc_name[64];
+
+  if (enc == NULL) {
+    ssize_t r = scm_enc_locale_to_enc_name(ext_enc_name, sizeof(ext_enc_name));
+    if (r < 0) {
+      scm_capi_error("open-input-string: "
+                     "failed to get external encoding name", 0);
+      return SCM_OBJ_NULL;
+    }
+    enc = ext_enc_name;;
+  }
 
   return scm_port_open_string(str, (str == NULL)? 0 : strlen(str),
-                              "r",
-                              scm_capi_system_encoding(), scm_enc_name(enc));
+                              "r", scm_capi_system_encoding(), enc);
 }
 
 ScmObj
@@ -9151,7 +9159,7 @@ scm_capi_run_repl(ScmEvaluator *ev)
                                            "   (arity 1)"
                                            "   (jmp loop)"
                                            ")",
-                                           SCM_ENC_SRC);
+                                           SCM_ENC_NAME_SRC);
     if (scm_obj_null_p(port)) return -1;
 
     asmbl = scm_api_read(port);

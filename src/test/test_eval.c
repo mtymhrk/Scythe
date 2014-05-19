@@ -40,7 +40,7 @@ test_eval__self_eval_1(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
   expected = scm_capi_make_number_from_sword(1);
@@ -65,7 +65,7 @@ test_eval__define_global_variable_1(void)
 
   module = main_module();
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
   sym = scm_capi_make_symbol_from_cstr("func", SCM_ENC_ASCII);
@@ -91,7 +91,7 @@ test_eval__define_global_variable_2(void)
 
   module = main_module();
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
   sym = scm_capi_make_symbol_from_cstr("var", SCM_ENC_ASCII);
@@ -122,7 +122,7 @@ test_eval__refer_global_variable_1(void)
 
   module = main_module();
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
   scm_capi_global_var_ref(module, exp, SCM_CSETTER_L(expected));
@@ -150,10 +150,10 @@ test_eval__refer_global_variable_2(void)
 
   module = main_module();
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(gvar_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(gvar_str, SCM_ENC_NAME_SRC);
   gvar = scm_api_read(port);
 
   scm_capi_global_var_ref(module, gvar, SCM_CSETTER_L(expected));
@@ -179,7 +179,7 @@ test_eval__update_global_variable_1(void)
 
   module = main_module();
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
   sym = scm_capi_make_symbol_from_cstr("var", SCM_ENC_ASCII);
@@ -209,10 +209,10 @@ test_eval__quote_1(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -235,10 +235,10 @@ test_eval__application_1(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -258,10 +258,10 @@ test_eval__variable_arity_1(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -281,10 +281,10 @@ test_eval__variable_arity_2(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -304,10 +304,10 @@ test_eval__variable_arity_3(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -327,10 +327,10 @@ test_eval__variable_arity_4(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -350,10 +350,10 @@ test_eval__closure_1(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -376,10 +376,10 @@ test_eval__closure_2(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -404,10 +404,10 @@ test_eval__closure_3(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -432,10 +432,10 @@ test_eval__closure_4(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -461,10 +461,10 @@ test_eval__closure_5(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -491,10 +491,10 @@ test_eval__closure_6(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -517,10 +517,10 @@ test_eval__tail_call_1(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -543,10 +543,10 @@ test_eval__tail_call_2(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -569,10 +569,10 @@ test_eval__tail_call_3(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -595,10 +595,10 @@ test_eval__tail_call_4(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -620,7 +620,7 @@ test_eval__lambda_1(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -639,7 +639,7 @@ test_eval__lambda_2(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -658,7 +658,7 @@ test_eval__lambda_3(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -678,7 +678,7 @@ test_eval__lambda_4(void)
 
   expected = SCM_UNDEF_OBJ;
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -698,10 +698,10 @@ test_eval__let_1(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -724,10 +724,10 @@ test_eval__let_2(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -750,10 +750,10 @@ test_eval__let_3(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -780,10 +780,10 @@ test_eval__let_4(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -806,10 +806,10 @@ test_eval__let_5(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -832,7 +832,7 @@ test_eval__let_6(void)
 
   expected = SCM_UNDEF_OBJ;
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -852,10 +852,10 @@ test_eval__named_let_1(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -879,7 +879,7 @@ test_eval__named_let_2(void)
 
   expected = SCM_UNDEF_OBJ;
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -906,10 +906,10 @@ test_eval__named_let_3(void)
 
   expected = SCM_UNDEF_OBJ;
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -937,10 +937,10 @@ test_eval__named_let_4(void)
 
   expected = SCM_UNDEF_OBJ;
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -969,10 +969,10 @@ test_eval__named_let_5(void)
 
   expected = SCM_UNDEF_OBJ;
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -995,10 +995,10 @@ test_eval__let_a_1(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -1021,10 +1021,10 @@ test_eval__let_a_2(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -1047,10 +1047,10 @@ test_eval__let_a_3(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -1077,10 +1077,10 @@ test_eval__let_a_4(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -1103,10 +1103,10 @@ test_eval__let_a_5(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -1129,7 +1129,7 @@ test_eval__let_a_6(void)
 
   expected = SCM_UNDEF_OBJ;
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -1149,10 +1149,10 @@ test_eval__letrec_1(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -1175,10 +1175,10 @@ test_eval__letrec_2(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -1201,10 +1201,10 @@ test_eval__letrec_3(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -1227,10 +1227,10 @@ test_eval__letrec_4(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -1253,7 +1253,7 @@ test_eval__letrec_5(void)
 
   expected = SCM_UNDEF_OBJ;
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -1273,10 +1273,10 @@ test_eval__letrec_a_1(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -1299,10 +1299,10 @@ test_eval__letrec_a_2(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -1325,10 +1325,10 @@ test_eval__letrec_a_3(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -1351,10 +1351,10 @@ test_eval__letrec_a_4(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -1377,10 +1377,10 @@ test_eval__letrec_a_5(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -1403,7 +1403,7 @@ test_eval__letrec_a_6(void)
 
   expected = SCM_UNDEF_OBJ;
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -1423,10 +1423,10 @@ test_eval__internal_definition_1(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -1449,10 +1449,10 @@ test_eval__internal_definition_2(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -1475,10 +1475,10 @@ test_eval__internal_definition_3(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -1501,10 +1501,10 @@ test_eval__internal_definition_4(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -1531,10 +1531,10 @@ test_eval__internal_definition_5(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -1557,10 +1557,10 @@ test_eval__begin_1(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -1585,7 +1585,7 @@ test_eval__begin_2(void)
 
   module = main_module();
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
   sym = scm_capi_make_symbol_from_cstr("gvar", SCM_ENC_ASCII);
@@ -1614,7 +1614,7 @@ test_eval__begin_3(void)
 
   expected = SCM_UNDEF_OBJ;
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -1634,10 +1634,10 @@ test_eval__refer_bound_variable_1(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -1657,10 +1657,10 @@ test_eval__refer_bound_variable_2(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -1684,10 +1684,10 @@ test_eval__set_bound_variable_1(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -1711,10 +1711,10 @@ test_eval__set_bound_variable_2(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -1738,10 +1738,10 @@ test_eval__refer_free_variable_1(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -1768,10 +1768,10 @@ test_eval__set_free_variable_1(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -1794,10 +1794,10 @@ test_eval__if_1(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -1817,10 +1817,10 @@ test_eval__if_2(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -1840,10 +1840,10 @@ test_eval__if_3(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -1864,7 +1864,7 @@ test_eval__if_4(void)
 
   expected = SCM_UNDEF_OBJ;
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -1884,10 +1884,10 @@ test_eval__if_5(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -1908,7 +1908,7 @@ test_eval__if_6(void)
 
   expected = SCM_UNDEF_OBJ;
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -1928,10 +1928,10 @@ test_eval__cond_1(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -1951,10 +1951,10 @@ test_eval__cond_2(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -1974,10 +1974,10 @@ test_eval__cond_3(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -1997,10 +1997,10 @@ test_eval__cond_4(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -2020,10 +2020,10 @@ test_eval__cond_5(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -2043,10 +2043,10 @@ test_eval__cond_6(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -2066,10 +2066,10 @@ test_eval__cond_7(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -2089,10 +2089,10 @@ test_eval__cond_8(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -2112,10 +2112,10 @@ test_eval__cond_9(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -2135,10 +2135,10 @@ test_eval__cond_10(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -2158,10 +2158,10 @@ test_eval__cond_11(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -2181,10 +2181,10 @@ test_eval__cond_12(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -2204,10 +2204,10 @@ test_eval__cond_13(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -2227,10 +2227,10 @@ test_eval__cond_14(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -2250,10 +2250,10 @@ test_eval__cond_15(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -2273,10 +2273,10 @@ test_eval__cond_16(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -2296,10 +2296,10 @@ test_eval__and_1(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -2319,10 +2319,10 @@ test_eval__and_2(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -2342,10 +2342,10 @@ test_eval__and_3(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -2365,10 +2365,10 @@ test_eval__and_4(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -2391,10 +2391,10 @@ test_eval__and_5(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -2417,10 +2417,10 @@ test_eval__and_6(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -2443,10 +2443,10 @@ test_eval__and_7(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -2469,10 +2469,10 @@ test_eval__and_8(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -2492,10 +2492,10 @@ test_eval__and_9(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -2515,10 +2515,10 @@ test_eval__and_10(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -2538,10 +2538,10 @@ test_eval__and_11(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -2564,10 +2564,10 @@ test_eval__and_12(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -2590,10 +2590,10 @@ test_eval__and_13(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -2616,10 +2616,10 @@ test_eval__and_14(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -2642,10 +2642,10 @@ test_eval__or_1(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -2665,10 +2665,10 @@ test_eval__or_2(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -2688,10 +2688,10 @@ test_eval__or_3(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -2711,10 +2711,10 @@ test_eval__or_4(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -2737,10 +2737,10 @@ test_eval__or_5(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -2763,10 +2763,10 @@ test_eval__or_6(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -2789,10 +2789,10 @@ test_eval__or_7(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -2815,10 +2815,10 @@ test_eval__or_8(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -2838,10 +2838,10 @@ test_eval__or_9(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -2861,10 +2861,10 @@ test_eval__or_10(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -2884,10 +2884,10 @@ test_eval__or_11(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -2910,10 +2910,10 @@ test_eval__or_12(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -2936,10 +2936,10 @@ test_eval__or_13(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -2962,10 +2962,10 @@ test_eval__or_14(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -2989,7 +2989,7 @@ test_eval__when_1(void)
 
   expected = SCM_UNDEF_OBJ;
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -3012,10 +3012,10 @@ test_eval__when_2(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -3039,7 +3039,7 @@ test_eval__when_3(void)
 
   expected = SCM_UNDEF_OBJ;
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -3064,10 +3064,10 @@ test_eval__when_4(void)
 
   expected = SCM_UNDEF_OBJ;
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -3091,7 +3091,7 @@ test_eval__when_5(void)
 
   expected = SCM_UNDEF_OBJ;
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -3114,10 +3114,10 @@ test_eval__when_6(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -3141,7 +3141,7 @@ test_eval__when_7(void)
 
   expected = SCM_UNDEF_OBJ;
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -3166,10 +3166,10 @@ test_eval__when_8(void)
 
   expected = SCM_UNDEF_OBJ;
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -3193,7 +3193,7 @@ test_eval__unless_1(void)
 
   expected = SCM_UNDEF_OBJ;
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -3216,10 +3216,10 @@ test_eval__unless_2(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -3243,7 +3243,7 @@ test_eval__unless_3(void)
 
   expected = SCM_UNDEF_OBJ;
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -3268,10 +3268,10 @@ test_eval__unless_4(void)
 
   expected = SCM_UNDEF_OBJ;
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -3295,7 +3295,7 @@ test_eval__unless_5(void)
 
   expected = SCM_UNDEF_OBJ;
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -3318,10 +3318,10 @@ test_eval__unless_6(void)
                        &actual, &expected);
 
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -3345,7 +3345,7 @@ test_eval__unless_7(void)
 
   expected = SCM_UNDEF_OBJ;
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -3367,10 +3367,10 @@ test_eval__unless_8(void)
   SCM_STACK_FRAME_PUSH(&exp, &port,
                        &actual, &expected);
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -3395,10 +3395,10 @@ test_eval__do_1(void)
   SCM_STACK_FRAME_PUSH(&exp, &port,
                        &actual, &expected);
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -3423,10 +3423,10 @@ test_eval__do_2(void)
   SCM_STACK_FRAME_PUSH(&exp, &port,
                        &actual, &expected);
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -3452,7 +3452,7 @@ test_eval__do_3(void)
 
   expected = SCM_UNDEF_OBJ;
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -3477,7 +3477,7 @@ test_eval__do_4(void)
 
   expected = SCM_UNDEF_OBJ;
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -3503,10 +3503,10 @@ test_eval__do_5(void)
   SCM_STACK_FRAME_PUSH(&exp, &port,
                        &actual, &expected);
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -3532,10 +3532,10 @@ test_eval__do_6(void)
   SCM_STACK_FRAME_PUSH(&exp, &port,
                        &actual, &expected);
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);
@@ -3561,10 +3561,10 @@ test_eval__do_7(void)
   SCM_STACK_FRAME_PUSH(&exp, &port,
                        &actual, &expected);
 
-  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(exp_str, SCM_ENC_NAME_SRC);
   exp = scm_api_read(port);
 
-  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(ect_str, SCM_ENC_NAME_SRC);
   expected = scm_api_read(port);
 
   actual = scm_capi_ut_eval(ev, exp);

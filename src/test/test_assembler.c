@@ -61,7 +61,7 @@ test_scm_asm_assemble(void)
 
   expected_immv1 = scm_capi_make_symbol_from_cstr("vvv", SCM_ENC_ASCII);
   expected_immv2 = scm_capi_make_symbol_from_cstr("xxx", SCM_ENC_ASCII);
-  port = scm_capi_open_input_string_cstr(str, SCM_ENC_ASCII);
+  port = scm_capi_open_input_string_cstr(str, SCM_ENC_NAME_SRC);
   lst = scm_api_read(port);
 
   iseq = scm_asm_assemble(lst, SCM_OBJ_NULL);

@@ -956,7 +956,7 @@ scm_num_make_from_literal(const char *literal, ScmEncoding *enc)
 
   SCM_STACK_FRAME_PUSH(&port, &num);
 
-  port = scm_capi_open_input_string_cstr(literal, enc);
+  port = scm_capi_open_input_string_cstr(literal, scm_enc_name(enc));
   if (scm_obj_null_p(port)) return SCM_OBJ_NULL;
 
   r = eary_init(&str, sizeof(scm_char_t), 0);

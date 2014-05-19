@@ -303,7 +303,7 @@ scm_define_scheme_base_clsr(ScmObj module)
                        &port);
 
   for (size_t i = 0; i < sizeof(syms)/sizeof(syms[0]); i++) {
-    port = scm_capi_open_input_string_cstr(codes[i], SCM_ENC_SRC);
+    port = scm_capi_open_input_string_cstr(codes[i], SCM_ENC_NAME_SRC);
     if (scm_obj_null_p(port)) return -1;
 
     code = scm_api_read(port);
