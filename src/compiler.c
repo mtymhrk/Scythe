@@ -1994,16 +1994,14 @@ scm_cmpl_decons_definition(ScmObj exp, scm_csetter_t *var, scm_csetter_t *val)
 static ScmObj
 scm_cmpl_normalize_definition(ScmObj exp)
 {
-  ScmObj first = SCM_OBJ_INIT, second = SCM_OBJ_INIT, third = SCM_OBJ_INIT;
+  ScmObj first = SCM_OBJ_INIT, second = SCM_OBJ_INIT, rest = SCM_OBJ_INIT;
   ScmObj name = SCM_OBJ_INIT, form = SCM_OBJ_INIT;
   ScmObj lambda = SCM_OBJ_INIT;
-  ScmObj tmp = SCM_OBJ_INIT;
 
   SCM_STACK_FRAME_PUSH(&exp,
-                       &first, &second, &third,
+                       &first, &second, &rest,
                        &name, &form,
-                       &lambda,
-                       &tmp);
+                       &lambda);
 
   lambda = scm_capi_make_symbol_from_cstr("lambda", SCM_ENC_SRC);
   if (scm_obj_null_p(lambda)) return SCM_OBJ_NULL;
@@ -2011,25 +2009,14 @@ scm_cmpl_normalize_definition(ScmObj exp)
   first = scm_api_car(exp);
   if (scm_obj_null_p(first)) return SCM_OBJ_NULL;
 
-  tmp = scm_api_cdr(exp);
-  if (scm_obj_null_p(tmp)) return SCM_OBJ_NULL;
+  rest = scm_api_cdr(exp);
+  if (scm_obj_null_p(rest)) return SCM_OBJ_NULL;
 
-  second = scm_api_car(tmp);
+  second = scm_api_car(rest);
   if (scm_obj_null_p(second)) return SCM_OBJ_NULL;
 
-  tmp = scm_api_cdr(tmp);
-  if (scm_obj_null_p(tmp)) return SCM_OBJ_NULL;
-
-  third = scm_api_car(tmp);
-  if (scm_obj_null_p(third)) return SCM_OBJ_NULL;
-
-  tmp = scm_api_cdr(tmp);
-  if (scm_obj_null_p(tmp)) return SCM_OBJ_NULL;
-
-  if (!scm_capi_nil_p(tmp)) {
-    scm_capi_error("Compiler: syntax error: malformed define", 0);
-    return SCM_OBJ_NULL;
-  }
+  rest = scm_api_cdr(rest);
+  if (scm_obj_null_p(rest)) return SCM_OBJ_NULL;
 
   while (scm_capi_pair_p(second)) {
     name = scm_api_car(second);
@@ -2038,13 +2025,25 @@ scm_cmpl_normalize_definition(ScmObj exp)
     form = scm_api_cdr(second);
     if (scm_obj_null_p(form)) return SCM_OBJ_NULL;
 
-    third = scm_capi_list(3, lambda, form, third);
-    if (scm_obj_null_p(third)) return SCM_OBJ_NULL;
+    rest = scm_api_cons(form, rest);
+    if (scm_obj_null_p(rest)) return SCM_OBJ_NULL;
+
+    rest = scm_api_cons(lambda, rest);
+    if (scm_obj_null_p(rest)) return SCM_OBJ_NULL;
+
+    rest = scm_api_cons(rest, SCM_NIL_OBJ);
+    if (scm_obj_null_p(rest)) return SCM_OBJ_NULL;
 
     second = name;
   }
 
-  return scm_capi_list(3, first, second, third);
+  rest = scm_api_cons(second, rest);
+  if (scm_obj_null_p(rest)) return SCM_OBJ_NULL;
+
+  rest = scm_api_cons(first, rest);
+  if (scm_obj_null_p(rest)) return SCM_OBJ_NULL;
+
+  return rest;
 }
 
 static ScmObj
