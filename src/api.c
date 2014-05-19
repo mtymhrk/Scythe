@@ -9220,6 +9220,44 @@ scm_capi_exec_file(const char *path, ScmEvaluator *ev)
   return 0;
 }
 
+int
+scm_capi_exec_cstr(const char *expr, const char *enc, ScmEvaluator *ev)
+{
+  ScmObj port = SCM_OBJ_INIT, exp = SCM_OBJ_INIT, iseq = SCM_OBJ_INIT;
+  ssize_t r;
+  int rslt;
+
+  if (ev == NULL) return -1;
+
+  rslt = scm_capi_evaluator_make_vm(ev);
+  if (rslt < 0) return -1;
+
+  {
+    SCM_STACK_FRAME_PUSH(&port, &exp, &iseq);
+
+    port = scm_capi_open_input_string_cstr(expr, enc);
+    if (scm_obj_null_p(port)) goto end;
+
+    exp = scm_api_read(port);
+    if (scm_obj_null_p(exp)) goto end;
+
+    iseq = scm_capi_compile(exp, SCM_OBJ_NULL, false);
+    if (scm_obj_null_p(iseq)) goto end;
+
+    r = scm_capi_iseq_push_opfmt_noarg(iseq, SCM_OPCODE_HALT);
+    if (r < 0) goto end;
+
+    scm_vm_run(scm_vm_current_vm(), iseq);
+  }
+
+ end:
+  scm_vm_disposal_unhandled_exc(ev->vm);
+
+  scm_capi_evaluator_delete_vm(ev);
+
+  return 0;
+}
+
 
 #ifdef SCM_UNIT_TEST
 
