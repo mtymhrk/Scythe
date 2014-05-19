@@ -3037,7 +3037,7 @@ scm_vm_subr_exc_hndlr_caller(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj vm = SCM_OBJ_INIT, hndlr = SCM_OBJ_INIT, hndlr_arg = SCM_OBJ_INIT;
   ScmObj val = SCM_OBJ_INIT;
-  int rslt;
+  int rslt, ret;
 
   SCM_STACK_FRAME_PUSH(&subr,
                        &vm, &hndlr, &hndlr_arg,
@@ -3053,8 +3053,10 @@ scm_vm_subr_exc_hndlr_caller(ScmObj subr, int argc, const ScmObj *argv)
   if (scm_obj_null_p(hndlr)) {
     SCM_SLOT_SETQ(ScmVM, vm, reg.exc, argv[0]);
     scm_vm_setup_stat_halt(vm);
-    val = SCM_UNDEF_OBJ;
-    rslt = scm_capi_return_val(&val, 1);
+    ret = -1;   /* 戻り値を -1 にするのは exception handler caller サブルーチ
+                   ンの return 処理を抑制するため。抑制しないと、cframe が一つ
+                   も積まれていない状況で例外処理機構が起動した場合に return
+                   処理で stack underflow が発生してしまう */
     goto end;
   }
 
@@ -3064,11 +3066,11 @@ scm_vm_subr_exc_hndlr_caller(ScmObj subr, int argc, const ScmObj *argv)
   hndlr_arg = scm_api_cons(argv[0], SCM_NIL_OBJ);
   if (scm_obj_null_p(hndlr_arg)) return -1;
 
-  rslt = scm_vm_setup_stat_trmp(vm, hndlr, hndlr_arg, subr, argv[0]);
+  ret = scm_vm_setup_stat_trmp(vm, hndlr, hndlr_arg, subr, argv[0]);
 
  end:
   scm_vm_ctrl_flg_clr(vm, SCM_VM_CTRL_FLG_RAISE);
-  return rslt;
+  return ret;
 }
 
 int
@@ -3076,7 +3078,7 @@ scm_vm_subr_exc_hndlr_caller_cont(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj vm = SCM_OBJ_INIT, hndlr = SCM_OBJ_INIT, hndlr_arg = SCM_OBJ_INIT;
   ScmObj val = SCM_OBJ_INIT;
-  int rslt;
+  int rslt, ret;
 
   SCM_STACK_FRAME_PUSH(&subr,
                        &vm, &hndlr, &hndlr_arg,
@@ -3092,8 +3094,10 @@ scm_vm_subr_exc_hndlr_caller_cont(ScmObj subr, int argc, const ScmObj *argv)
   if (scm_obj_null_p(hndlr)) {
     SCM_SLOT_SETQ(ScmVM, vm, reg.exc, argv[0]);
     scm_vm_setup_stat_halt(vm);
-    val = SCM_UNDEF_OBJ;
-    rslt = scm_capi_return_val(&val, 1);
+    ret = -1;   /* scm_vm_subr_exc_hndlr_caller とは異り、return 処理を抑制
+                   する必要はないが、exception handler が無い場合の戻り値を
+                   scm_vm_subr_exc_hndlr_caller と統一するため、-1 を戻り値
+                   にする */
     goto end;
   }
 
@@ -3103,13 +3107,13 @@ scm_vm_subr_exc_hndlr_caller_cont(ScmObj subr, int argc, const ScmObj *argv)
   hndlr_arg = scm_api_cons(argv[0], SCM_NIL_OBJ);
   if (scm_obj_null_p(hndlr_arg)) return -1;
 
-  rslt = scm_vm_setup_stat_trmp(vm, hndlr, hndlr_arg,
+  ret = scm_vm_setup_stat_trmp(vm, hndlr, hndlr_arg,
                                 scm_bedrock_exc_hndlr_caller_post(scm_vm_current_br()),
                                 hndlr);
 
  end:
   scm_vm_ctrl_flg_clr(vm, SCM_VM_CTRL_FLG_RAISE);
-  return rslt;
+  return ret;
 }
 
 int
