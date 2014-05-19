@@ -74,14 +74,14 @@ int scm_vm_cf_gc_accept(ScmObj owner, ScmCntFrame *cfp,
 inline ScmCntFrame *
 scm_vm_cf_next(ScmCntFrame *cfp) {
   scm_assert(cfp != NULL);
-  return (ScmCntFrame *)((scm_byte_t *)cfp + (cfp->offset & ~0x03));
+  return (ScmCntFrame *)((scm_byte_t *)cfp + (cfp->offset & ~(ptrdiff_t)0x03));
 }
 
 inline ScmEnvFrame *
 scm_vm_ef_outer(ScmEnvFrame *efp)
 {
   scm_assert(efp != NULL);
-  return (ScmEnvFrame *)((uintptr_t)efp->out & ~0x3u);
+  return (ScmEnvFrame *)(efp->out & ~(uintptr_t)0x3);
 }
 
 inline bool
