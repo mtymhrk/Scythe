@@ -8066,7 +8066,7 @@ scm_api_compile__get_cmpl(ScmObj arg)
 
   name = mod = cmpl = SCM_OBJ_NULL;
   if (scm_obj_not_null_p(arg)) {
-    if (scm_capi_symbol_p(arg))
+    if (scm_capi_symbol_p(arg) || scm_capi_pair_p(arg))
       name = arg;
     else if (scm_capi_module_p(arg))
       mod = arg;
