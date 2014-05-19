@@ -61,6 +61,7 @@ struct ScmEnvFrameRec {
 struct ScmCntFrameRec {
   ptrdiff_t offset;
   ScmEnvFrame *efp;
+  ScmEnvFrame *pefp;
   ScmObj cp;
   scm_byte_t *ip;
 };
@@ -119,8 +120,8 @@ scm_vm_ef_in_stack_p(ScmEnvFrame *efp)
 
 inline void
 scm_vm_cf_init(ScmCntFrame *cfp,
-               ScmCntFrame *cur_cfp, ScmEnvFrame *efp, ScmObj cp,
-               scm_byte_t *ip, bool pef, bool pcf)
+               ScmCntFrame *cur_cfp, ScmEnvFrame *efp, ScmEnvFrame *pefp,
+               ScmObj cp, scm_byte_t *ip, bool pef, bool pcf)
 {
   scm_assert(SCM_ALIGNOF(ScmCntFrame) == SCM_ALIGNOF(ScmObj));
   scm_assert(SCM_ALIGNOF(ScmCntFrame) >= SCM_VM_FRAME_MIN_ALIGN_SIZE);
@@ -131,6 +132,7 @@ scm_vm_cf_init(ScmCntFrame *cfp,
 
   cfp->offset = (scm_byte_t *)cur_cfp - (scm_byte_t *)cfp;
   cfp->efp = efp;
+  cfp->pefp = pefp;
   cfp->cp = cp;
   cfp->ip = ip;
 

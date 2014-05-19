@@ -419,7 +419,8 @@ int scm_vm_restore_stack(ScmObj vm, ScmObj stack);
 int scm_vm_handle_stack_overflow(ScmObj vm);
 int scm_vm_handle_stack_underflow(ScmObj vm);
 
-int scm_vm_make_cframe(ScmObj vm, ScmEnvFrame *efp, ScmObj cp);
+int scm_vm_make_cframe(ScmObj vm,
+                       ScmEnvFrame *efp, ScmEnvFrame *pefp, ScmObj cp);
 int scm_vm_commit_cframe(ScmObj vm, scm_byte_t *ip);
 int scm_vm_pop_cframe(ScmObj vm);
 int scm_vm_make_eframe(ScmObj vm, size_t nr_arg);

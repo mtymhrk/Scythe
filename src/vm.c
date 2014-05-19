@@ -788,7 +788,7 @@ scm_vm_handle_stack_underflow(ScmObj vm)
 }
 
 scm_local_func int
-scm_vm_make_cframe(ScmObj vm, ScmEnvFrame *efp, ScmObj cp)
+scm_vm_make_cframe(ScmObj vm, ScmEnvFrame *efp, ScmEnvFrame *pefp, ScmObj cp)
 {
   ScmCntFrame *cfp;
   scm_byte_t *next_sp;
@@ -824,6 +824,7 @@ scm_vm_make_cframe(ScmObj vm, ScmEnvFrame *efp, ScmObj cp)
              scm_vm_cf_init(cfp,
                             SCM_VM(vm)->reg.cfp,
                             efp,
+                            pefp,
                             cp,
                             NULL,
                             scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_PEF),
@@ -861,12 +862,6 @@ scm_vm_pop_cframe(ScmObj vm)
 
   SCM_STACK_FRAME_PUSH(&vm);
 
-  if (scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_PEF)) {
-    scm_capi_error("invalid operation of VM stack: "
-                   "partial environment frame link will be broken", 0);
-    return -1;
-  }
-
   if (SCM_VM(vm)->reg.cfp == NULL) {
     rslt = scm_vm_handle_stack_underflow(vm);
     if (rslt < 0) return -1;
@@ -876,6 +871,7 @@ scm_vm_pop_cframe(ScmObj vm)
 
   SCM_VM(vm)->reg.cfp = scm_vm_cf_next(cfp);
   SCM_VM(vm)->reg.efp = cfp->efp;
+  SCM_VM(vm)->reg.pefp = cfp->pefp;
   SCM_SLOT_SETQ(ScmVM, vm, reg.cp, cfp->cp);
   SCM_VM(vm)->reg.ip = cfp->ip;
 
@@ -1603,6 +1599,7 @@ scm_vm_do_op_frame(ScmObj vm, SCM_OPCODE_T op)
 
   rslt = scm_vm_make_cframe(vm,
                             SCM_VM(vm)->reg.efp,
+                            SCM_VM(vm)->reg.pefp,
                             SCM_VM(vm)->reg.cp);
   if (rslt < 0) return -1;
 
@@ -1741,7 +1738,10 @@ scm_vm_op_cframe(ScmObj vm, SCM_OPCODE_T op)
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
-  rslt = scm_vm_make_cframe(vm, SCM_VM(vm)->reg.efp, SCM_VM(vm)->reg.cp);
+  rslt = scm_vm_make_cframe(vm,
+                            SCM_VM(vm)->reg.efp,
+                            SCM_VM(vm)->reg.pefp,
+                            SCM_VM(vm)->reg.cp);
   if (rslt < 0) return -1;
 
   return 0;
@@ -2884,6 +2884,7 @@ scm_vm_setup_stat_trmp(ScmObj vm, ScmObj proc, ScmObj args,
 
   rslt = scm_vm_make_cframe(vm,
                             SCM_VM(vm)->reg.efp,
+                            SCM_VM(vm)->reg.pefp,
                             trmp_clsr);
   if (rslt < 0) return -1;
 
