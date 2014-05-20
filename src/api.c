@@ -8326,14 +8326,28 @@ scm_api_module_name(ScmObj module)
 int
 scm_capi_import(ScmObj module, ScmObj imported)
 {
+  ScmObj imp = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&module, &imported,
+                       &imp);
+
   if (!scm_capi_module_p(module)) {
     scm_capi_error("failed to import a module: invalid argument", 0);
     return -1;
   }
-  else if (!scm_capi_module_p(imported)) {
-    scm_capi_error("failed to import a module: invalid argument", 0);
-    return -1;
+
+  if (!scm_capi_module_p(imported)) {
+    int r = scm_capi_find_module(imported, SCM_CSETTER_L(imp));
+    if (r < 0) return -1;
+
+    if (scm_obj_null_p(imp)) {
+      scm_capi_error("failed to import a module: not found", 1, imported);
+      return -1;
+    }
+
+    imported = imp;
   }
+
   return scm_module_import(module, imported);
 }
 

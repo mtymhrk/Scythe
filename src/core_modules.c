@@ -376,10 +376,10 @@ scm_define_scheme_base_current_port(ScmObj module)
 static int
 scm_load_module_scheme_base(void)
 {
-  ScmObj name = SCM_OBJ_INIT, mod = SCM_OBJ_INIT, imp = SCM_OBJ_INIT;
+  ScmObj name = SCM_OBJ_INIT, mod = SCM_OBJ_INIT;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&name, &mod, &imp);
+  SCM_STACK_FRAME_PUSH(&name, &mod);
 
   name = scm_make_module_name(2, SCM_ENC_SRC, "scheme", "base");
   if (scm_obj_null_p(name)) return -1;
@@ -397,15 +397,7 @@ scm_load_module_scheme_base(void)
   name = scm_make_module_name(3, SCM_ENC_SRC, "scheme", "base", "syntax");
   if (scm_obj_null_p(name)) return -1;
 
-  rslt = scm_capi_find_module(name, SCM_CSETTER_L(imp));
-  if (rslt < 0) return -1;
-
-  if (scm_obj_null_p(imp)) {
-    scm_capi_error("failed to import module", 1, name);
-    return -1;
-  }
-
-  rslt = scm_capi_import(mod, imp);
+  rslt = scm_capi_import(mod, name);
   if (rslt < 0) return -1;
 
   /*
@@ -544,10 +536,10 @@ scm_load_module_scythe_format(void)
 static int
 scm_load_module_main(void)
 {
-  ScmObj name = SCM_OBJ_INIT, mod = SCM_OBJ_INIT, imp = SCM_OBJ_INIT;
+  ScmObj name = SCM_OBJ_INIT, mod = SCM_OBJ_INIT;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&name, &mod, &imp);
+  SCM_STACK_FRAME_PUSH(&name, &mod);
 
   name = scm_make_module_name(1, SCM_ENC_SRC, "main");
   if (scm_obj_null_p(name)) return -1;
@@ -565,15 +557,7 @@ scm_load_module_main(void)
   name = scm_make_module_name(2, SCM_ENC_SRC, "scheme", "base");
   if (scm_obj_null_p(name)) return -1;
 
-  rslt = scm_capi_find_module(name, SCM_CSETTER_L(imp));
-  if (rslt < 0) return -1;
-
-  if (scm_obj_null_p(imp)) {
-    scm_capi_error("failed to import module", 1, name);
-    return -1;
-  }
-
-  rslt = scm_capi_import(mod, imp);
+  rslt = scm_capi_import(mod, name);
   if (rslt < 0) return -1;
 
 
@@ -587,15 +571,7 @@ scm_load_module_main(void)
   name = scm_make_module_name(2, SCM_ENC_SRC, "scheme", "char");
   if (scm_obj_null_p(name)) return -1;
 
-  rslt = scm_capi_find_module(name, SCM_CSETTER_L(imp));
-  if (rslt < 0) return -1;
-
-  if (scm_obj_null_p(imp)) {
-    scm_capi_error("failed to import module", 1, name);
-    return -1;
-  }
-
-  rslt = scm_capi_import(mod, imp);
+  rslt = scm_capi_import(mod, name);
   if (rslt < 0) return -1;
 
 
@@ -609,15 +585,7 @@ scm_load_module_main(void)
   name = scm_make_module_name(2, SCM_ENC_SRC, "scythe", "format");
   if (scm_obj_null_p(name)) return -1;
 
-  rslt = scm_capi_find_module(name, SCM_CSETTER_L(imp));
-  if (rslt < 0) return -1;
-
-  if (scm_obj_null_p(imp)) {
-    scm_capi_error("failed to import module", 1, name);
-    return -1;
-  }
-
-  rslt = scm_capi_import(mod, imp);
+  rslt = scm_capi_import(mod, name);
   if (rslt < 0) return -1;
 
   return 0;
