@@ -8183,7 +8183,14 @@ scm_capi_compile_port(ScmObj port, ScmObj arg, bool cmpl_only)
     if (scm_obj_null_p(acc)) return SCM_OBJ_NULL;
   }
 
-  return (cmpl_only ? scm_api_reverse(acc) : acc);
+  if (cmpl_only) {
+    acc = scm_api_reverse(acc);
+    if (scm_obj_null_p(acc)) return SCM_OBJ_NULL;
+
+    acc = scm_capi_append_lst(acc);
+  }
+
+  return acc;
 }
 
 
