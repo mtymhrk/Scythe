@@ -4246,7 +4246,7 @@ scm_capi_string_append_lst(ScmObj lst)
   ScmEncoding *enc;
 
   SCM_STACK_FRAME_PUSH(&lst,
-                       &str, &l ,s);
+                       &str, &l, &s);
 
   if (scm_obj_null_p(lst)) {
     scm_capi_error("string-append: invalid argument", 0);

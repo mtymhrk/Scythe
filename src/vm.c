@@ -2855,7 +2855,7 @@ scm_vm_setup_stat_trmp(ScmObj vm, ScmObj proc, ScmObj args,
   scm_byte_t *ip;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&proc, &args, handover,
+  SCM_STACK_FRAME_PUSH(&proc, &args, &handover,
                        &trmp_code, &trmp_clsr, &env);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
