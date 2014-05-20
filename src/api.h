@@ -661,7 +661,7 @@ int scm_capi_gloc_bind(ScmObj gloc, ScmObj val);
 ScmObj scm_api_make_module(ScmObj name);
 bool scm_capi_module_p(ScmObj obj);
 ScmObj scm_api_module_name(ScmObj module);
-int scm_capi_import(ScmObj module, ScmObj imported);
+int scm_capi_import(ScmObj module, ScmObj imported, bool unexport);
 int scm_capi_find_module(ScmObj name, scm_csetter_t *mod);
 ScmObj scm_capi_make_gloc(ScmObj module, ScmObj sym);
 int scm_capi_find_gloc(ScmObj module, ScmObj sym, scm_csetter_t *gloc);

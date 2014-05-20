@@ -8324,7 +8324,7 @@ scm_api_module_name(ScmObj module)
 }
 
 int
-scm_capi_import(ScmObj module, ScmObj imported)
+scm_capi_import(ScmObj module, ScmObj imported, bool restrictive)
 {
   ScmObj imp = SCM_OBJ_INIT;
 
@@ -8348,7 +8348,7 @@ scm_capi_import(ScmObj module, ScmObj imported)
     imported = imp;
   }
 
-  return scm_module_import(module, imported);
+  return scm_module_import(module, imported, restrictive);
 }
 
 ScmObj

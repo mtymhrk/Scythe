@@ -85,16 +85,14 @@ extern ScmTypeInfo SCM_MODULE_TYPE_INFO;
 struct ScmModuleRec {
   ScmObjHeader header;
   ScmObj name;
-  ScmObj *imports;
-  size_t imp_capacity;
-  size_t nr_imp;
+  ScmObj imports;
   ScmCHashTbl *eval_gloctbl;
   ScmCHashTbl *cmpl_gloctbl;
+  bool in_searching;
 };
 
 #ifdef SCM_UNIT_TEST
 
-int scm_module_expand_imports_if_needed(ScmObj mod, unsigned int add);
 int scm_module_search_gloc(ScmObj mod, ScmObj sym, int type,
                            scm_csetter_t *setter);
 ScmObj scm_module_gloc(ScmObj mod, ScmObj sym, int type);
@@ -111,7 +109,7 @@ int scm_module_find_sym(ScmObj mod,
 int scm_module_initialize(ScmObj mod, ScmObj name);
 void scm_module_finalize(ScmObj mod);
 ScmObj scm_module_new(SCM_MEM_TYPE_T mtype, ScmObj name);
-int scm_module_import(ScmObj mod, ScmObj imp);
+int scm_module_import(ScmObj mod, ScmObj imp, bool restrictive);
 int scm_module_define_eval(ScmObj mod, ScmObj sym, ScmObj val, bool export);
 int scm_module_define_cmpl(ScmObj mod, ScmObj sym, ScmObj val, bool export);
 int scm_module_export_eval(ScmObj mod, ScmObj sym);

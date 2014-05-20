@@ -76,7 +76,7 @@ make_module(const char *n)
 }
 
 static void
-import_module(const char *n)
+import_module(const char *n, bool res)
 {
   ScmObj mod = SCM_OBJ_INIT, nam = SCM_OBJ_INIT;
 
@@ -87,7 +87,7 @@ import_module(const char *n)
 
   find_module(n);
 
-  scm_capi_import(mod, module);
+  scm_capi_import(mod, module, res);
 
   name = nam;
   module = mod;
@@ -139,7 +139,7 @@ TEST(module, import)
 
   make_module("test");
 
-  TEST_ASSERT_EQUAL_INT(0, scm_capi_import(module, main_mod));
+  TEST_ASSERT_EQUAL_INT(0, scm_capi_import(module, main_mod, false));
 }
 
 TEST(module, find_module)
@@ -298,7 +298,7 @@ TEST(module, global_var_ref__refer_exported_symbol_of_imported_module)
 
   make_module("imp");
   make_module("test");
-  import_module("imp");
+  import_module("imp", false);
   find_module("imp");
 
   TEST_ASSERT_EQUAL_INT(0, scm_capi_define_global_var(module, sym, val, true));
@@ -321,10 +321,58 @@ TEST(module, global_var_ref__refer_unexported_symbol_of_imported_module)
 
   make_module("imp");
   make_module("test");
-  import_module("imp");
+  import_module("imp", false);
   find_module("imp");
 
   TEST_ASSERT_EQUAL_INT(0, scm_capi_define_global_var(module, sym, val, false));
+
+  find_module("test");
+
+  TEST_ASSERT_EQUAL_INT(0, scm_capi_global_var_ref(module,
+                                                   sym, SCM_CSETTER_L(actual)));
+  TEST_ASSERT_SCM_NULL(actual);
+}
+
+TEST(module, global_var_ref__refer_exported_symbol_of_imported_module__restrictive)
+{
+  ScmObj sym = SCM_OBJ_INIT, val = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&sym, &val, &actual);
+
+  sym = scm_capi_make_symbol_from_cstr("var", SCM_ENC_ASCII);
+  val = scm_api_eof();
+
+  make_module("imp");
+  make_module("test");
+  import_module("imp", true);
+  find_module("imp");
+
+  TEST_ASSERT_EQUAL_INT(0, scm_capi_define_global_var(module, sym, val, true));
+
+  find_module("test");
+
+  TEST_ASSERT_EQUAL_INT(0, scm_capi_global_var_ref(module,
+                                                   sym, SCM_CSETTER_L(actual)));
+  TEST_ASSERT_SCM_EQ(val, actual);
+}
+
+TEST(module, global_var_ref__refer_exported_symbol_of_imported_module__restrictive__2)
+{
+  ScmObj sym = SCM_OBJ_INIT, val = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&sym, &val, &actual);
+
+  sym = scm_capi_make_symbol_from_cstr("var", SCM_ENC_ASCII);
+  val = scm_api_eof();
+
+  make_module("imp-a");
+  make_module("imp-b");
+  import_module("imp-a", true);
+  make_module("test");
+  import_module("imp-b", false);
+  find_module("imp-a");
+
+  TEST_ASSERT_EQUAL_INT(0, scm_capi_define_global_var(module, sym, val, true));
 
   find_module("test");
 
@@ -405,7 +453,7 @@ TEST(module, global_syx_ref__refer_exported_symbol_of_imported_module)
 
   make_module("imp");
   make_module("test");
-  import_module("imp");
+  import_module("imp", false);
   find_module("imp");
 
   TEST_ASSERT_EQUAL_INT(0, scm_capi_define_global_syx(module, sym, syx, true));
@@ -430,10 +478,62 @@ TEST(module, global_syx_ref__refer_unexported_symbol_of_imported_module)
 
   make_module("imp");
   make_module("test");
-  import_module("imp");
+  import_module("imp", false);
   find_module("imp");
 
   TEST_ASSERT_EQUAL_INT(0, scm_capi_define_global_syx(module, sym, syx, false));
+
+  find_module("test");
+
+  TEST_ASSERT_EQUAL_INT(0, scm_capi_global_syx_ref(module,
+                                                   sym, SCM_CSETTER_L(actual)));
+  TEST_ASSERT_SCM_NULL(actual);
+}
+
+TEST(module, global_syx_ref__refer_exported_symbol_of_imported_module__restrictive)
+{
+  ScmObj sym = SCM_OBJ_INIT, syx = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&sym, &syx, &actual);
+
+  sym = scm_capi_make_symbol_from_cstr("var", SCM_ENC_ASCII);
+
+  make_syntax("foo");
+  syx = syntax;
+
+  make_module("imp");
+  make_module("test");
+  import_module("imp", true);
+  find_module("imp");
+
+  TEST_ASSERT_EQUAL_INT(0, scm_capi_define_global_syx(module, sym, syx, true));
+
+  find_module("test");
+
+  TEST_ASSERT_EQUAL_INT(0, scm_capi_global_syx_ref(module,
+                                                   sym, SCM_CSETTER_L(actual)));
+  TEST_ASSERT_SCM_EQ(syx, actual);
+}
+
+TEST(module, global_syx_ref__refer_exported_symbol_of_imported_module__restrictive_2)
+{
+  ScmObj sym = SCM_OBJ_INIT, syx = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&sym, &syx, &actual);
+
+  sym = scm_capi_make_symbol_from_cstr("var", SCM_ENC_ASCII);
+
+  make_syntax("foo");
+  syx = syntax;
+
+  make_module("imp-a");
+  make_module("imp-b");
+  import_module("imp-a", true);
+  make_module("test");
+  import_module("imp-b", false);
+  find_module("imp-a");
+
+  TEST_ASSERT_EQUAL_INT(0, scm_capi_define_global_syx(module, sym, syx, true));
 
   find_module("test");
 

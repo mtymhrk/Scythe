@@ -64,7 +64,7 @@ import_module(const char *n)
 
   find_module(n);
 
-  scm_capi_import(mod, module);
+  scm_capi_import(mod, module, false);
 
   name = nam;
   module = mod;
@@ -142,7 +142,7 @@ test_import(void)
 
   make_module("test");
 
-  cut_assert_equal_int(0, scm_capi_import(module, main_mod));
+  cut_assert_equal_int(0, scm_capi_import(module, main_mod, false));
 }
 
 void
