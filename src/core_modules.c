@@ -485,7 +485,52 @@ scm_load_module_scheme_char(void)
 
 
 /*******************************************************************/
-/*  (scythe format)                                                  */
+/*  (scythe compile)                                               */
+/*******************************************************************/
+
+static int
+scm_define_scythe_compile_subr(ScmObj module)
+{
+  static const struct subr_data data[] = {
+    /*******************************************************************/
+    /*  compile                                                        */
+    /*******************************************************************/
+    { "compile-file", SCM_SUBR_ARITY_COMPILE_FILE, SCM_SUBR_FLAG_COMPILE_FILE, scm_subr_func_compile_file },
+  };
+
+  int rslt;
+
+  SCM_STACK_FRAME_PUSH(&module);
+
+  rslt = scm_define_subr(module, data, sizeof(data)/sizeof(data[0]));
+  if (rslt < 0) return -1;
+
+  return 0;
+}
+
+static int
+scm_load_module_scythe_compile(void)
+{
+  ScmObj name = SCM_OBJ_INIT, mod = SCM_OBJ_INIT;
+  int rslt;
+
+  SCM_STACK_FRAME_PUSH(&name, &mod);
+
+  name = scm_make_module_name(2, SCM_ENC_SRC, "scythe", "compile");
+  if (scm_obj_null_p(name)) return -1;
+
+  mod = scm_api_make_module(name);
+  if (scm_obj_null_p(mod)) return -1;
+
+  rslt = scm_define_scythe_compile_subr(mod);
+  if (rslt < 0) return -1;
+
+  return 0;
+}
+
+
+/*******************************************************************/
+/*  (scythe format)                                                */
 /*******************************************************************/
 
 static int
@@ -572,6 +617,14 @@ scm_load_module_main(void)
   if (scm_obj_null_p(name)) return -1;
 
   rslt = scm_capi_import(mod, name, false);
+  if (rslt < 0) return -1;
+
+
+  /*
+   * load (scythe compile) module  (don't import it)
+   */
+
+  rslt = scm_load_module_scythe_compile();
   if (rslt < 0) return -1;
 
 

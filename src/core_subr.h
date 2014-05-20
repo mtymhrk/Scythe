@@ -572,6 +572,17 @@ int scm_subr_func_exit(ScmObj subr, int argc, const ScmObj *argv);
 
 
 /*******************************************************************/
+/*  Compiler                                                       */
+/*******************************************************************/
+
+#define SCM_SUBR_ARITY_COMPILE_FILE 2
+
+#define SCM_SUBR_FLAG_COMPILE_FILE 0
+
+int scm_subr_func_compile_file(ScmObj subr, int argc, const ScmObj *argv);
+
+
+/*******************************************************************/
 /*  format                                                         */
 /*******************************************************************/
 
