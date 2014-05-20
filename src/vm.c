@@ -1405,7 +1405,7 @@ scm_vm_do_op_call(ScmObj vm, SCM_OPCODE_T op, int argc, bool tail_p)
   scm_assert(-INT_MAX <= argc && argc <= INT_MAX);
 
   if (!scm_capi_procedure_p(SCM_VM(vm)->reg.val[0])) {
-    scm_capi_error("object is not applicable", 1, SCM_VM(vm)->reg.val);
+    scm_capi_error("object is not applicable", 1, SCM_VM(vm)->reg.val[0]);
     return -1;
   }
 
