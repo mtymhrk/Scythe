@@ -1,6 +1,5 @@
 #include <unistd.h>
 #include <stdint.h>
-#include <stdarg.h>
 
 #include "object.h"
 #include "api.h"
@@ -15,36 +14,28 @@ struct subr_data {
   ScmSubrFunc func;
 };
 
+#define STRARY(...) (const char *[]){__VA_ARGS__}
+
+
 static ScmObj
-scm_make_module_name(int n, ScmEncoding *enc, ...)
+scm_make_module_name(const char * const *name_str, size_t n)
 {
   ScmObj str[n];
   ScmObj name = SCM_OBJ_INIT;
-  const char *args[n];
-  va_list ap;
 
   SCM_STACK_FRAME_PUSH(&name);
 
   scm_assert(n > 0);
 
-  for (int i = 0; i < n; i++) {
-    str[i] = SCM_OBJ_INIT;
-    SCM_STACK_PUSH(&str[i]);
-  }
-
-  va_start(ap, enc);
-  for (int i = 0; i < n; i++)
-    args[i] = va_arg(ap, const char *);
-  va_end(ap);
-
-  for (int i = 0; i < n; i++) {
-    str[i] = scm_capi_make_symbol_from_cstr(args[i], enc);
+  for (size_t i = 0; i < n; i++) {
+    str[i] = scm_capi_make_symbol_from_cstr(name_str[i], SCM_ENC_SRC);
     if (scm_obj_null_p(str[i])) return SCM_OBJ_NULL;
+    SCM_STACK_PUSH(&str[i]);
   }
 
   name = SCM_NIL_OBJ;
 
-  for (int i = n; i > 0; i--) {
+  for (size_t i = n; i > 0; i--) {
     name = scm_api_cons(str[i - 1], name);
     if (scm_obj_null_p(name)) return SCM_OBJ_NULL;
   }
@@ -76,29 +67,68 @@ scm_define_subr(ScmObj module, const struct subr_data *data, size_t n)
   return 0;
 }
 
-
-/*******************************************************************/
-/*  (scheme base)                                                  */
-/*******************************************************************/
-
 static int
-scm_load_module_scheme_base_syntax(void)
+scm_load_module(const char * const *name_str, size_t n,
+                int (*load_func)(ScmObj mod))
 {
   ScmObj name = SCM_OBJ_INIT, mod = SCM_OBJ_INIT;
   int rslt;
 
   SCM_STACK_FRAME_PUSH(&name, &mod);
 
-  name = scm_make_module_name(3, SCM_ENC_SRC, "scheme", "base", "syntax");
+  name = scm_make_module_name(name_str, n);
   if (scm_obj_null_p(name)) return -1;
+
+  rslt = scm_capi_find_module(name, SCM_CSETTER_L(mod));
+  if (rslt < 0) return -1;
+
+  if (scm_obj_not_null_p(mod))
+    return 0;
 
   mod = scm_api_make_module(name);
   if (scm_obj_null_p(mod)) return -1;
+
+  return load_func(mod);
+}
+
+
+static int scm_load_module_scheme_base_syntax(void);
+static int scm_load_module_scheme_base(void);
+static int scm_load_module_scheme_char(void);
+static int scm_load_module_scythe_internal_compile(void);
+static int scm_load_module_scythe_base(void);
+static int scm_load_module_main(void);
+
+
+/*******************************************************************/
+/*  (scheme base)                                                  */
+/*******************************************************************/
+
+static int
+scm_load_module_func_scheme_base_syntax(ScmObj mod)
+{
+  ScmObj name = SCM_OBJ_INIT;
+  int rslt;
+
+  SCM_STACK_FRAME_PUSH(&mod,
+                       &name);
+
+
+  /*
+   * define syntax
+   */
 
   rslt = scm_cmpl_define_syntax(mod);
   if (rslt < 0) return -1;
 
   return 0;
+}
+
+static int
+scm_load_module_scheme_base_syntax(void)
+{
+  return scm_load_module(STRARY("scheme", "base", "syntax"), 3,
+                         scm_load_module_func_scheme_base_syntax);
 }
 
 static int
@@ -374,18 +404,13 @@ scm_define_scheme_base_current_port(ScmObj module)
 }
 
 static int
-scm_load_module_scheme_base(void)
+scm_load_module_func_scheme_base(ScmObj mod)
 {
-  ScmObj name = SCM_OBJ_INIT, mod = SCM_OBJ_INIT;
+  ScmObj name = SCM_OBJ_INIT;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&name, &mod);
-
-  name = scm_make_module_name(2, SCM_ENC_SRC, "scheme", "base");
-  if (scm_obj_null_p(name)) return -1;
-
-  mod = scm_api_make_module(name);
-  if (scm_obj_null_p(mod)) return -1;
+  SCM_STACK_FRAME_PUSH(&mod,
+                       &name);
 
   /*
    * load (scheme base syntax) module and import it
@@ -394,7 +419,7 @@ scm_load_module_scheme_base(void)
   rslt = scm_load_module_scheme_base_syntax();
   if (rslt < 0) return -1;
 
-  name = scm_make_module_name(3, SCM_ENC_SRC, "scheme", "base", "syntax");
+  name = scm_make_module_name(STRARY("scheme", "base", "syntax"), 3);
   if (scm_obj_null_p(name)) return -1;
 
   rslt = scm_capi_import(mod, name, false);
@@ -414,6 +439,13 @@ scm_load_module_scheme_base(void)
   if (rslt < 0) return -1;
 
   return 0;
+}
+
+static int
+scm_load_module_scheme_base(void)
+{
+  return scm_load_module((const char *[]){"scheme", "base"}, 2,
+                         scm_load_module_func_scheme_base);
 }
 
 
@@ -464,18 +496,18 @@ scm_define_scheme_char_subr(ScmObj module)
 }
 
 static int
-scm_load_module_scheme_char(void)
+scm_load_module_func_scheme_char(ScmObj mod)
 {
-  ScmObj name = SCM_OBJ_INIT, mod = SCM_OBJ_INIT;
+  ScmObj name = SCM_OBJ_INIT;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&name, &mod);
+  SCM_STACK_FRAME_PUSH(&mod,
+                       &name);
 
-  name = scm_make_module_name(2, SCM_ENC_SRC, "scheme", "char");
-  if (scm_obj_null_p(name)) return -1;
 
-  mod = scm_api_make_module(name);
-  if (scm_obj_null_p(mod)) return -1;
+  /*
+   * define global variables
+   */
 
   rslt = scm_define_scheme_char_subr(mod);
   if (rslt < 0) return -1;
@@ -483,13 +515,20 @@ scm_load_module_scheme_char(void)
   return 0;
 }
 
+static int
+scm_load_module_scheme_char(void)
+{
+  return scm_load_module(STRARY("scheme", "char"), 2,
+                         scm_load_module_func_scheme_char);
+}
+
 
 /*******************************************************************/
-/*  (scythe compile)                                               */
+/*  (scythe internal compile)                                      */
 /*******************************************************************/
 
 static int
-scm_define_scythe_compile_subr(ScmObj module)
+scm_define_scythe_internal_compile_subr(ScmObj module)
 {
   static const struct subr_data data[] = {
     /*******************************************************************/
@@ -509,32 +548,51 @@ scm_define_scythe_compile_subr(ScmObj module)
 }
 
 static int
-scm_load_module_scythe_compile(void)
+scm_load_module_func_scythe_internal_compile(ScmObj mod)
 {
-  ScmObj name = SCM_OBJ_INIT, mod = SCM_OBJ_INIT;
+  ScmObj name = SCM_OBJ_INIT;
   int rslt;
 
   SCM_STACK_FRAME_PUSH(&name, &mod);
 
-  name = scm_make_module_name(2, SCM_ENC_SRC, "scythe", "compile");
+  /*
+   * load (scythe base) module and import it
+   */
+
+  rslt = scm_load_module_scythe_base();
+  if (rslt < 0) return -1;
+
+  name = scm_make_module_name(STRARY("scythe", "base"), 2);
   if (scm_obj_null_p(name)) return -1;
 
-  mod = scm_api_make_module(name);
-  if (scm_obj_null_p(mod)) return -1;
+  rslt = scm_capi_import(mod, name, true);
+  if (rslt < 0) return -1;
 
-  rslt = scm_define_scythe_compile_subr(mod);
+
+  /*
+   * define global variables
+   */
+
+  rslt = scm_define_scythe_internal_compile_subr(mod);
   if (rslt < 0) return -1;
 
   return 0;
 }
 
+static int
+scm_load_module_scythe_internal_compile(void)
+{
+  return scm_load_module(STRARY("scythe", "internal", "compile"), 3,
+                         scm_load_module_func_scythe_internal_compile);
+}
+
 
 /*******************************************************************/
-/*  (scythe format)                                                */
+/*  (scythe base)                                                  */
 /*******************************************************************/
 
 static int
-scm_define_scythe_format_subr(ScmObj module)
+scm_define_scythe_base_subr(ScmObj module)
 {
   static const struct subr_data data[] = {
     /*******************************************************************/
@@ -553,44 +611,15 @@ scm_define_scythe_format_subr(ScmObj module)
   return 0;
 }
 
-static int
-scm_load_module_scythe_format(void)
-{
-  ScmObj name = SCM_OBJ_INIT, mod = SCM_OBJ_INIT;
-  int rslt;
-
-  SCM_STACK_FRAME_PUSH(&name, &mod);
-
-  name = scm_make_module_name(2, SCM_ENC_SRC, "scythe", "format");
-  if (scm_obj_null_p(name)) return -1;
-
-  mod = scm_api_make_module(name);
-  if (scm_obj_null_p(mod)) return -1;
-
-  rslt = scm_define_scythe_format_subr(mod);
-  if (rslt < 0) return -1;
-
-  return 0;
-}
-
-
-/*******************************************************************/
-/*  (scythe base)                                                  */
-/*******************************************************************/
 
 static int
-scm_load_module_scythe_base(void)
+scm_load_module_func_scythe_base(ScmObj mod)
 {
-  ScmObj name = SCM_OBJ_INIT, mod = SCM_OBJ_INIT;
+  ScmObj name = SCM_OBJ_INIT;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&name, &mod);
-
-  name = scm_make_module_name(2, SCM_ENC_SRC, "scythe", "base");
-  if (scm_obj_null_p(name)) return -1;
-
-  mod = scm_api_make_module(name);
-  if (scm_obj_null_p(mod)) return -1;
+  SCM_STACK_FRAME_PUSH(&mod,
+                       &name);
 
   /*
    * load (scheme base) module and import it
@@ -599,7 +628,7 @@ scm_load_module_scythe_base(void)
   rslt = scm_load_module_scheme_base();
   if (rslt < 0) return -1;
 
-  name = scm_make_module_name(2, SCM_ENC_SRC, "scheme", "base");
+  name = scm_make_module_name(STRARY("scheme", "base"), 2);
   if (scm_obj_null_p(name)) return -1;
 
   rslt = scm_capi_import(mod, name, false);
@@ -613,7 +642,7 @@ scm_load_module_scythe_base(void)
   rslt = scm_load_module_scheme_char();
   if (rslt < 0) return -1;
 
-  name = scm_make_module_name(2, SCM_ENC_SRC, "scheme", "char");
+  name = scm_make_module_name(STRARY("scheme", "char"), 2);
   if (scm_obj_null_p(name)) return -1;
 
   rslt = scm_capi_import(mod, name, false);
@@ -621,27 +650,20 @@ scm_load_module_scythe_base(void)
 
 
   /*
-   * load (scythe format) module and import it
+   * define global variables
    */
 
-  rslt = scm_load_module_scythe_format();
-  if (rslt < 0) return -1;
-
-  name = scm_make_module_name(2, SCM_ENC_SRC, "scythe", "format");
-  if (scm_obj_null_p(name)) return -1;
-
-  rslt = scm_capi_import(mod, name, false);
-  if (rslt < 0) return -1;
-
-
-  /*
-   * load (scythe compile) module  (don't import it)
-   */
-
-  rslt = scm_load_module_scythe_compile();
+  rslt = scm_define_scythe_base_subr(mod);
   if (rslt < 0) return -1;
 
   return 0;
+}
+
+static int
+scm_load_module_scythe_base(void)
+{
+  return scm_load_module(STRARY("scythe", "base"), 2,
+                         scm_load_module_func_scythe_base);
 }
 
 
@@ -650,18 +672,13 @@ scm_load_module_scythe_base(void)
 /*******************************************************************/
 
 static int
-scm_load_module_main(void)
+scm_load_module_func_main(ScmObj mod)
 {
-  ScmObj name = SCM_OBJ_INIT, mod = SCM_OBJ_INIT;
+  ScmObj name = SCM_OBJ_INIT;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&name, &mod);
-
-  name = scm_make_module_name(1, SCM_ENC_SRC, "main");
-  if (scm_obj_null_p(name)) return -1;
-
-  mod = scm_api_make_module(name);
-  if (scm_obj_null_p(mod)) return -1;
+  SCM_STACK_FRAME_PUSH(&mod,
+                       &name);
 
   /*
    * load (scythe base) module and import it
@@ -670,7 +687,7 @@ scm_load_module_main(void)
   rslt = scm_load_module_scythe_base();
   if (rslt < 0) return -1;
 
-  name = scm_make_module_name(2, SCM_ENC_SRC, "scythe", "base");
+  name = scm_make_module_name(STRARY("scythe", "base"), 2);
   if (scm_obj_null_p(name)) return -1;
 
   rslt = scm_capi_import(mod, name, false);
@@ -679,8 +696,30 @@ scm_load_module_main(void)
   return 0;
 }
 
+static int
+scm_load_module_main(void)
+{
+  return scm_load_module(STRARY("main"), 1,
+                         scm_load_module_func_main);
+}
+
+
 int
 scm_load_core_modules(void)
 {
-  return scm_load_module_main();
+  int (*func[])(void) = {
+    scm_load_module_scheme_base_syntax,
+    scm_load_module_scheme_base,
+    scm_load_module_scheme_char,
+    scm_load_module_scythe_internal_compile,
+    scm_load_module_scythe_base,
+    scm_load_module_main,
+  };
+
+  for (size_t i = 0; i < sizeof(func)/sizeof(func[0]); i++) {
+    int r = func[i]();
+    if (r < 0) return -1;
+  }
+
+  return 0;
 }
