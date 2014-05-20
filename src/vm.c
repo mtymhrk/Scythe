@@ -2467,14 +2467,17 @@ scm_vm_shutdown(void)
 }
 
 int
-scm_vm_initialize(ScmObj vm)
+scm_vm_initialize(ScmObj vm, ScmObj main_vm)
 {
   ScmObj vmss = SCM_OBJ_INIT, vmsr = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vm,
+  SCM_STACK_FRAME_PUSH(&vm, &main_vm,
                        &vmss, &vmsr);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+  scm_assert_obj_type(main_vm, &SCM_VM_TYPE_INFO);
+
+  SCM_SLOT_SETQ(ScmVM, vm, main, main_vm);
 
   vmss = scm_vmss_new(SCM_MEM_HEAP, SCM_VM_STACK_INIT_SIZE);
   if (scm_obj_null_p(vmss)) return -1;
@@ -2505,6 +2508,7 @@ scm_vm_finalize(ScmObj vm)
 {
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
+  SCM_VM(vm)->main = SCM_OBJ_NULL;
   SCM_VM(vm)->stack = SCM_OBJ_NULL;
   SCM_VM(vm)->reg.sp = NULL;
   SCM_VM(vm)->reg.cfp = NULL;
@@ -2531,9 +2535,8 @@ scm_vm_new(void)
   vm = scm_capi_mem_alloc_root(&SCM_VM_TYPE_INFO, 0);
   if (scm_obj_null_p(vm)) return SCM_OBJ_NULL;
 
-  rslt = scm_vm_initialize(vm);
+  rslt = scm_vm_initialize(vm, vm);
   if (rslt < 0) {
-    scm_vm_finalize(vm);
     scm_capi_mem_free_root(vm);
     return SCM_OBJ_NULL;
   }
@@ -2543,17 +2546,47 @@ scm_vm_new(void)
   return vm;
 }
 
+ScmObj
+scm_vm_clone(ScmObj parent)
+{
+  ScmObj vm = SCM_OBJ_INIT;
+  int rslt;
+
+  SCM_STACK_FRAME_PUSH(&parent,
+                       &vm);
+
+  scm_assert_obj_type(parent, &SCM_VM_TYPE_INFO);
+
+  vm = scm_capi_mem_alloc_root(&SCM_VM_TYPE_INFO, 0);
+  if (scm_obj_null_p(vm)) return SCM_OBJ_NULL;
+
+  rslt = scm_vm_initialize(vm, SCM_VM(parent)->main);
+  if (rslt < 0) {
+    scm_capi_mem_free_root(vm);
+    return SCM_OBJ_NULL;
+  }
+
+  return vm;
+}
+
 void
 scm_vm_end(ScmObj vm)
 {
+  bool main_vm;
+
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
-  scm_capi_gc_start();
+  main_vm = scm_obj_same_instance_p(vm, SCM_VM(vm)->main);
+
+  if (main_vm) {
+    scm_capi_gc_start();
+    scm_vm_chg_current_vm(SCM_OBJ_NULL);
+  }
 
   scm_capi_mem_free_root(vm);
-  scm_vm_chg_current_vm(SCM_OBJ_NULL);
 
-  scm_vm_shutdown();
+  if (main_vm)
+    scm_vm_shutdown();
 }
 
 
@@ -2700,6 +2733,59 @@ scm_vm_run(ScmObj vm, ScmObj iseq)
 
   scm_vm_ctrl_flg_clr(vm, SCM_VM_CTRL_FLG_HALT);
   scm_vm_ctrl_flg_clr(vm, SCM_VM_CTRL_FLG_RAISE);
+}
+
+ScmObj
+scm_vm_run_cloned(ScmObj vm, ScmObj iseq)
+{
+  ScmObj cloned = SCM_OBJ_INIT, raised = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
+  ScmObj elm = SCM_OBJ_INIT;
+  int r, n, rest;
+
+  SCM_STACK_FRAME_PUSH(&vm, &iseq,
+                       &cloned, &raised, &val,
+                       &elm);
+
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+  scm_assert(scm_capi_iseq_p(iseq));
+
+  cloned = scm_vm_clone(vm);
+  if (scm_obj_null_p(cloned)) return SCM_OBJ_NULL;
+
+  scm_vm_chg_current_vm(cloned);
+  scm_vm_run(cloned, iseq);
+  scm_vm_chg_current_vm(vm);
+
+  if (scm_vm_raised_p(cloned)) {
+    raised = scm_vm_raised_obj(cloned);
+    scm_vm_end(cloned);
+    scm_vm_setup_stat_raise(vm, raised);
+    return SCM_OBJ_NULL;
+  }
+
+  val = scm_capi_make_vector((size_t)SCM_VM(cloned)->reg.vc, SCM_UNDEF_OBJ);
+  if (scm_obj_null_p(val)) return SCM_OBJ_NULL;
+
+  n = (SCM_VM(cloned)->reg.vc <= SCM_VM_NR_VAL_REG) ?
+    SCM_VM(cloned)->reg.vc : SCM_VM_NR_VAL_REG - 1;
+  for (size_t i = 0; i < (size_t)n; i++) {
+    r = scm_capi_vector_set_i(val, i, SCM_VM(cloned)->reg.val[i]);
+    if (r < 0) return SCM_OBJ_NULL;;
+  }
+
+  rest = SCM_VM(cloned)->reg.vc - (SCM_VM_NR_VAL_REG - 1);
+  if (rest > 1) {
+    for (int i = 0; i < rest; i++) {
+      elm = scm_capi_vector_ref(SCM_VM(cloned)->reg.val[SCM_VM_NR_VAL_REG - 1],
+                                (size_t)i);
+      if (scm_obj_null_p(elm)) return SCM_OBJ_NULL;
+
+      r = scm_capi_vector_set_i(val, (size_t)(SCM_VM_NR_VAL_REG - 1 + i), elm);
+      if (r < 0) return SCM_OBJ_NULL;
+    }
+  }
+
+  return val;
 }
 
 int
@@ -3181,6 +3267,7 @@ scm_vm_gc_initialize(ScmObj obj, ScmObj mem)
   scm_assert_obj_type(obj, &SCM_VM_TYPE_INFO);
   scm_assert(scm_obj_not_null_p(mem));
 
+  SCM_VM(obj)->main = SCM_OBJ_NULL;
   SCM_VM(obj)->stack = SCM_OBJ_NULL;
   SCM_VM(obj)->reg.sp = NULL;
   SCM_VM(obj)->reg.cfp = NULL;
@@ -3238,6 +3325,9 @@ scm_vm_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
   scm_assert_obj_type(obj, &SCM_VM_TYPE_INFO);
   scm_assert(scm_obj_not_null_p(mem));
   scm_assert(handler != NULL);
+
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_VM(obj)->main, mem);
+  if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
   n = ((SCM_VM(obj)->reg.vc <= SCM_VM_NR_VAL_REG) ?
        SCM_VM(obj)->reg.vc : SCM_VM_NR_VAL_REG);

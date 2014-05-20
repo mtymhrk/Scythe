@@ -397,6 +397,7 @@ typedef enum {
 
 struct ScmVMRec {
   ScmObjHeader header;
+  ScmObj main;
   ScmObj stack;
   ScmVMReg reg;
 };
@@ -496,13 +497,15 @@ scm_vm_register_val(ScmObj vm)
 
 int scm_vm_bootup(void);
 void scm_vm_shutdown(void);
-int scm_vm_initialize(ScmObj vm);
+int scm_vm_initialize(ScmObj vm, ScmObj main_vm);
 int scm_vm_init_scmobjs(ScmObj vm);
 void scm_vm_finalize(ScmObj vm);
 ScmObj scm_vm_new(void);
+ScmObj scm_vm_clone(ScmObj parent);
 void scm_vm_end(ScmObj vm);
 
 void scm_vm_run(ScmObj vm, ScmObj iseq);
+ScmObj scm_vm_run_cloned(ScmObj vm, ScmObj iseq);
 
 int scm_vm_set_val_reg(ScmObj vm, const ScmObj *val, int vc);
 

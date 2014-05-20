@@ -9155,77 +9155,11 @@ scm_capi_evaluator_delete_vm(ScmEvaluator *ev)
 int
 scm_capi_run_repl(ScmEvaluator *ev)
 {
-  ScmObj port = SCM_OBJ_INIT, asmbl = SCM_OBJ_INIT, iseq = SCM_OBJ_INIT;
-  int rslt;
+  const char *code =
+    "(with-module (scythe internal repl)"
+    "  (read-eval-print-loop))";
 
-  if (ev == NULL) return -1;
-
-  rslt = scm_capi_evaluator_make_vm(ev);
-  if (rslt < 0) return -1;
-
-  {
-    SCM_STACK_FRAME_PUSH(&port, &asmbl, &iseq);
-
-    port = scm_capi_open_input_string_cstr("("
-                                           " (label loop)"
-                                           "   (frame)"
-                                           "   (immval \"> \")"
-                                           "   (push)"
-                                           "   (gref display main)"
-                                           "   (call 1)"
-                                           "   (arity 1)"
-                                           "   (cframe)"
-                                           "   (gref flush-output-port main)"
-                                           "   (call 0)"
-                                           "   (arity 1)"
-                                           "   (frame)"
-                                           "   (frame)"
-                                           "   (cframe)"
-                                           "   (gref read main)"
-                                           "   (call 0)"
-                                           "   (arity 1)"
-                                           "   (push)"
-                                           "   (gref eval main)"
-                                           "   (call 1)"
-                                           "   (arity 1)"
-                                           "   (push)"
-                                           "   (gref write main)"
-                                           "   (call 1)"
-                                           "   (arity 1)"
-                                           "   (cframe)"
-                                           "   (gref newline main)"
-                                           "   (call 0)"
-                                           "   (arity 1)"
-                                           "   (cframe)"
-                                           "   (gref flush-output-port main)"
-                                           "   (call 0)"
-                                           "   (arity 1)"
-                                           "   (jmp loop)"
-                                           ")",
-                                           SCM_ENC_NAME_SRC);
-    if (scm_obj_null_p(port)) return -1;
-
-    asmbl = scm_api_read(port);
-    if (scm_obj_null_p(asmbl)) return -1;
-
-    port = scm_api_close_input_port(port);
-    if (scm_obj_null_p(port)) return -1;
-
-    port = SCM_OBJ_NULL;
-
-    iseq = scm_api_assemble(asmbl, SCM_OBJ_NULL);
-    if (scm_obj_null_p(iseq)) return -1;
-
-    asmbl = SCM_OBJ_NULL;
-
-    scm_vm_run(scm_vm_current_vm(), iseq);
-  }
-
-  scm_vm_disposal_unhandled_exc(ev->vm);
-
-  scm_capi_evaluator_delete_vm(ev);
-
-  return 0;
+  return scm_capi_exec_cstr(code, SCM_ENC_NAME_SRC, ev);
 }
 
 int
@@ -9297,6 +9231,34 @@ scm_capi_exec_cstr(const char *expr, const char *enc, ScmEvaluator *ev)
   scm_vm_disposal_unhandled_exc(ev->vm);
 
   scm_capi_evaluator_delete_vm(ev);
+
+  return 0;
+}
+
+
+/*******************************************************************/
+/*  XXX                                                            */
+/*******************************************************************/
+
+int
+scm_capi_load_iseq(ScmObj iseq)
+{
+  ScmObj o = SCM_OBJ_INIT;
+  ssize_t rslt;
+
+  SCM_STACK_FRAME_PUSH(&iseq,
+                       &o);
+
+  if (!scm_capi_iseq_p(iseq)) {
+    scm_capi_error("load: invalid argument", 0);
+    return -1;
+  }
+
+  rslt = scm_capi_iseq_push_opfmt_noarg(iseq, SCM_OPCODE_HALT);
+  if (rslt < 0) return -1;
+
+  o = scm_vm_run_cloned(scm_vm_current_vm(), iseq);
+  if (scm_obj_null_p(o)) return -1;
 
   return 0;
 }

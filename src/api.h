@@ -739,6 +739,14 @@ int scm_capi_run_repl(ScmEvaluator *ev);
 int scm_capi_exec_file(const char *path, ScmEvaluator *ev);
 int scm_capi_exec_cstr(const char *expr, const char *enc, ScmEvaluator *ev);
 
+
+/*******************************************************************/
+/*  XXX                                                            */
+/*******************************************************************/
+
+int scm_capi_load_iseq(ScmObj iseq);
+
+
 #ifdef SCM_UNIT_TEST
 
 void scm_capi_ut_setup_current_vm(ScmEvaluator *ev);

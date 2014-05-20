@@ -96,6 +96,7 @@ static int scm_load_module_scheme_base_syntax(void);
 static int scm_load_module_scheme_base(void);
 static int scm_load_module_scheme_char(void);
 static int scm_load_module_scythe_internal_compile(void);
+static int scm_load_module_scythe_internal_repl(void);
 static int scm_load_module_scythe_base(void);
 static int scm_load_module_main(void);
 
@@ -588,6 +589,72 @@ scm_load_module_scythe_internal_compile(void)
 
 
 /*******************************************************************/
+/*  (scythe internal repl)                                         */
+/*******************************************************************/
+
+#include "repl_code.h"
+
+static int
+scm_define_scythe_internal_repl_closure(ScmObj mod)
+{
+  ScmObj port = SCM_OBJ_INIT, lst = SCM_OBJ_INIT, iseq = SCM_OBJ_INIT;
+  int rslt;
+
+  SCM_STACK_FRAME_PUSH(&mod,
+                       &port, &lst, &iseq);
+
+  port = scm_capi_open_input_string_cstr(repl_code,
+                                         SCM_ENC_NAME_SRC);
+  if (scm_obj_null_p(port)) return -1;
+
+  lst = scm_api_read(port);
+  if (scm_obj_null_p(lst)) return -1;
+
+  iseq = scm_api_assemble(lst, SCM_OBJ_NULL);
+  if (scm_obj_null_p(iseq)) return -1;
+
+  rslt = scm_capi_load_iseq(iseq);
+  if (rslt < 0) return -1;
+
+  return 0;
+}
+
+static int
+scm_load_module_func_scythe_internal_repl(ScmObj mod)
+{
+  ScmObj name = SCM_OBJ_INIT;
+  int rslt;
+
+  SCM_STACK_FRAME_PUSH(&name, &mod);
+
+  /*
+   * load (scythe base) module and import it
+   */
+
+  rslt = scm_load_module_scythe_base();
+  if (rslt < 0) return -1;
+
+  name = scm_make_module_name(STRARY("scythe", "base"), 2);
+  if (scm_obj_null_p(name)) return -1;
+
+  rslt = scm_capi_import(mod, name, true);
+  if (rslt < 0) return -1;
+
+  rslt = scm_define_scythe_internal_repl_closure(mod);
+  if (rslt < 0) return -1;
+
+  return 0;
+}
+
+static int
+scm_load_module_scythe_internal_repl(void)
+{
+  return scm_load_module(STRARY("scythe", "internal", "repl"), 3,
+                         scm_load_module_func_scythe_internal_repl);
+}
+
+
+/*******************************************************************/
 /*  (scythe base)                                                  */
 /*******************************************************************/
 
@@ -712,6 +779,7 @@ scm_load_core_modules(void)
     scm_load_module_scheme_base,
     scm_load_module_scheme_char,
     scm_load_module_scythe_internal_compile,
+    scm_load_module_scythe_internal_repl,
     scm_load_module_scythe_base,
     scm_load_module_main,
   };
