@@ -575,18 +575,18 @@ scm_load_module_scythe_format(void)
 
 
 /*******************************************************************/
-/*  (main)                                                         */
+/*  (scythe base)                                                  */
 /*******************************************************************/
 
 static int
-scm_load_module_main(void)
+scm_load_module_scythe_base(void)
 {
   ScmObj name = SCM_OBJ_INIT, mod = SCM_OBJ_INIT;
   int rslt;
 
   SCM_STACK_FRAME_PUSH(&name, &mod);
 
-  name = scm_make_module_name(1, SCM_ENC_SRC, "main");
+  name = scm_make_module_name(2, SCM_ENC_SRC, "scythe", "base");
   if (scm_obj_null_p(name)) return -1;
 
   mod = scm_api_make_module(name);
@@ -621,14 +621,6 @@ scm_load_module_main(void)
 
 
   /*
-   * load (scythe compile) module  (don't import it)
-   */
-
-  rslt = scm_load_module_scythe_compile();
-  if (rslt < 0) return -1;
-
-
-  /*
    * load (scythe format) module and import it
    */
 
@@ -636,6 +628,49 @@ scm_load_module_main(void)
   if (rslt < 0) return -1;
 
   name = scm_make_module_name(2, SCM_ENC_SRC, "scythe", "format");
+  if (scm_obj_null_p(name)) return -1;
+
+  rslt = scm_capi_import(mod, name, false);
+  if (rslt < 0) return -1;
+
+
+  /*
+   * load (scythe compile) module  (don't import it)
+   */
+
+  rslt = scm_load_module_scythe_compile();
+  if (rslt < 0) return -1;
+
+  return 0;
+}
+
+
+/*******************************************************************/
+/*  (main)                                                         */
+/*******************************************************************/
+
+static int
+scm_load_module_main(void)
+{
+  ScmObj name = SCM_OBJ_INIT, mod = SCM_OBJ_INIT;
+  int rslt;
+
+  SCM_STACK_FRAME_PUSH(&name, &mod);
+
+  name = scm_make_module_name(1, SCM_ENC_SRC, "main");
+  if (scm_obj_null_p(name)) return -1;
+
+  mod = scm_api_make_module(name);
+  if (scm_obj_null_p(mod)) return -1;
+
+  /*
+   * load (scythe base) module and import it
+   */
+
+  rslt = scm_load_module_scythe_base();
+  if (rslt < 0) return -1;
+
+  name = scm_make_module_name(2, SCM_ENC_SRC, "scythe", "base");
   if (scm_obj_null_p(name)) return -1;
 
   rslt = scm_capi_import(mod, name, false);
