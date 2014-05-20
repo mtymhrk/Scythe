@@ -646,6 +646,7 @@ ScmObj scm_api_assemble(ScmObj lst, ScmObj iseq);
 
 bool scm_capi_compiler_p(ScmObj obj);
 ScmObj scm_api_current_module(ScmObj cmpl);
+int scm_capi_select_module(ScmObj cmpl, ScmObj mod);
 ScmObj scm_capi_compile(ScmObj exp, ScmObj arg, bool cmpl_only);
 ScmObj scm_capi_compile_port(ScmObj port, ScmObj arg, bool cmpl_only);
 

@@ -8063,6 +8063,28 @@ scm_api_current_module(ScmObj cmpl)
   return scm_cmpl_current_module(cmpl);
 }
 
+int
+scm_capi_select_module(ScmObj cmpl, ScmObj mod)
+{
+  if (!scm_capi_compiler_p(cmpl)) {
+    scm_capi_error("failed to change current module: invalid argument", 0);
+    return -1;
+  }
+
+  if (scm_obj_null_p(mod)) {
+    scm_capi_error("failed to change current module: invalid argument", 0);
+    return -1;
+  }
+  else if (!scm_capi_module_p(mod)) {
+    scm_capi_error("failed to change current module: invalid argument", 0);
+    return -1;
+  }
+
+  scm_cmpl_select_module(cmpl, mod);
+
+  return 0;
+}
+
 static ScmObj
 scm_api_compile__get_cmpl(ScmObj arg)
 {

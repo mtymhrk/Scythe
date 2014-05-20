@@ -1545,13 +1545,15 @@ enum { SCM_CMPL_BASE_SYNTAX_DEFINITION, SCM_CMPL_BASE_SYNTAX_QUOTE,
        SCM_CMPL_BASE_SYNTAX_LET, SCM_CMPL_BASE_SYNTAX_LET_A,
        SCM_CMPL_BASE_SYNTAX_LETREC, SCM_CMPL_BASE_SYNTAX_LETREC_A,
        SCM_CMPL_BASE_SYNTAX_BEGIN, SCM_CMPL_BASE_SYNTAX_DO,
+       SCM_CMPL_BASE_SYNTAX_WITH_MODULE,
        SCM_CMPL_NR_BASE_SYNTAX };
 
 static ScmObj scm_cmpl_base_syntaxes[SCM_CMPL_NR_BASE_SYNTAX] =
   { SCM_OBJ_NULL, SCM_OBJ_NULL, SCM_OBJ_NULL, SCM_OBJ_NULL,
     SCM_OBJ_NULL, SCM_OBJ_NULL, SCM_OBJ_NULL, SCM_OBJ_NULL,
     SCM_OBJ_NULL, SCM_OBJ_NULL, SCM_OBJ_NULL, SCM_OBJ_NULL,
-    SCM_OBJ_NULL, SCM_OBJ_NULL, SCM_OBJ_NULL, SCM_OBJ_NULL };
+    SCM_OBJ_NULL, SCM_OBJ_NULL, SCM_OBJ_NULL, SCM_OBJ_NULL,
+    SCM_OBJ_NULL };
 
 static bool
 scm_cmpl_syntax_eq_p(ScmObj syntax, int id)
@@ -4138,6 +4140,80 @@ scm_cmpl_compile_do(ScmObj cmpl, ScmObj exp, ScmObj env,
   return next;
 }
 
+static int
+scm_cmpl_decons_with_module(ScmObj exp,
+                            scm_csetter_t *name, scm_csetter_t *exp_lst)
+{
+  ScmObj o = SCM_OBJ_INIT, tmp = SCM_OBJ_INIT;
+
+  scm_assert(scm_capi_pair_p(exp));
+
+  tmp = scm_api_cdr(exp);
+  if (scm_obj_null_p(tmp)) return -1;
+
+  if (!scm_capi_pair_p(tmp)) {
+    scm_capi_error("compile: syntax error: malformed with-module", 0);
+    return -1;
+  }
+
+  o = scm_api_car(tmp);
+  if (scm_obj_null_p(o)) return -1;
+
+  scm_csetter_setq(name, o);
+
+  o = scm_api_cdr(tmp);
+  if (scm_obj_null_p(o)) return -1;
+
+  scm_csetter_setq(exp_lst, o);
+
+  return 0;
+}
+
+static ScmObj
+scm_cmpl_compile_with_module(ScmObj cmpl, ScmObj exp, ScmObj env,
+                             ScmObj next, int arity,
+                             bool tail_p, bool toplevel_p, ssize_t *rdepth)
+{
+  ScmObj name = SCM_OBJ_INIT, exp_lst = SCM_OBJ_INIT;
+  ScmObj backup = SCM_OBJ_INIT, mod = SCM_OBJ_INIT;
+  ScmObj ret = SCM_OBJ_INIT;
+  int rslt;
+
+  SCM_STACK_FRAME_PUSH(&cmpl, &exp, &env, &next,
+                       &name, &exp_lst, &backup, &mod,
+                       &ret);
+
+
+  scm_assert_obj_type(cmpl, &SCM_COMPILER_TYPE_INFO);
+
+  rslt = scm_cmpl_decons_with_module(exp,
+                                     SCM_CSETTER_L(name),
+                                     SCM_CSETTER_L(exp_lst));
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  rslt = scm_capi_find_module(name, SCM_CSETTER_L(mod));
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  if (scm_obj_null_p(mod)) {
+    scm_capi_error("compile: module not found", 1, name);
+    return SCM_OBJ_NULL;
+  }
+
+  backup = scm_api_current_module(cmpl);
+  if (scm_obj_null_p(backup)) return SCM_OBJ_NULL;
+
+  rslt = scm_capi_select_module(cmpl, mod);
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  ret = scm_cmpl_compile_exp_list(cmpl, exp_lst,
+                                  env, next, arity, tail_p, toplevel_p, rdepth);
+
+  rslt = scm_capi_select_module(cmpl, backup);
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  return ret;
+}
+
 
 /**************************************************************************/
 /* Scheme Base Module                                                     */
@@ -4145,7 +4221,8 @@ scm_cmpl_compile_do(ScmObj cmpl, ScmObj exp, ScmObj env,
 
 static const char * const scm_cmpl_base_syntax_keywords[] =
   { "define", "quote", "lambda", "set!", "if", "cond", "and", "or", "when",
-    "unless", "let", "let*", "letrec", "letrec*", "begin", "do" };
+    "unless", "let", "let*", "letrec", "letrec*", "begin", "do",
+    "with-module" };
 
 static ScmSyntaxHandlerFunc scm_cmpl_compile_funcs[] =
   {  scm_cmpl_compile_definition,
@@ -4163,7 +4240,8 @@ static ScmSyntaxHandlerFunc scm_cmpl_compile_funcs[] =
      scm_cmpl_compile_letrec,
      scm_cmpl_compile_letrec_a,
      scm_cmpl_compile_begin,
-     scm_cmpl_compile_do };
+     scm_cmpl_compile_do,
+     scm_cmpl_compile_with_module };
 
 int
 scm_cmpl_define_syntax(ScmObj module)
