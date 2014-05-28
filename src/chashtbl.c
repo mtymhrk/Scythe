@@ -113,7 +113,7 @@ scm_chash_tbl_access(ScmCHashTbl *tbl,
 
   for (entry = tbl->buckets[hash], prev = &tbl->buckets[hash];
        entry != NULL;
-       entry = entry->next, prev = &entry->next) {
+       prev = &entry->next, entry = entry->next) {
     if (tbl->cmp_func(key, entry->key)) {
       switch (mode) {
       case ADD:
