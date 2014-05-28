@@ -1724,9 +1724,16 @@ scm_port_initialize(ScmObj port, ScmIO *io,
   }
 
   rslt = scm_port_init_buffer(port, buf_mode);
-  if (rslt < 0) return -1;
+  if (rslt < 0) goto err;
 
-  return scm_port_init_encode(port);
+  rslt =  scm_port_init_encode(port);
+  if (rslt < 0) goto err;
+
+  return 0;
+
+ err:
+  SCM_PORT(port)->io = NULL;
+  return -1;
 }
 
 void
@@ -1734,8 +1741,10 @@ scm_port_finalize(ScmObj port)
 {
   scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
 
-  scm_port_close(port);
-  scm_io_end(SCM_PORT(port)->io);
+  if (SCM_PORT(port)->io != NULL) {
+    scm_port_close(port);
+    scm_io_end(SCM_PORT(port)->io);
+  }
 }
 
 ScmObj
@@ -1751,6 +1760,7 @@ scm_port_new(SCM_MEM_TYPE_T mtype,
   scm_assert(inn_enc != NULL);
 
   port = scm_capi_mem_alloc(&SCM_PORT_TYPE_INFO, 0, mtype);
+  if (scm_obj_null_p(port)) return SCM_OBJ_NULL;
 
   rslt = scm_port_initialize(port, io, attr, buf_mode, inn_enc, enc);
   if (rslt < 0) return SCM_OBJ_NULL;
@@ -1762,6 +1772,7 @@ ScmObj
 scm_port_open_fd_inter(int fd, SCM_PORT_ATTR attr, SCM_PORT_BUF_T buf_mode,
                        ScmEncoding *inn_enc, const char *enc)
 {
+  ScmObj port = SCM_OBJ_INIT;
   ScmIO *io;
 
   scm_assert(fd >= 0);
@@ -1776,8 +1787,12 @@ scm_port_open_fd_inter(int fd, SCM_PORT_ATTR attr, SCM_PORT_BUF_T buf_mode,
   io = (ScmIO *)scm_fileio_new(fd);
   if (io == NULL) return SCM_OBJ_NULL;
 
-  return scm_port_new(SCM_MEM_HEAP, io,
+  port = scm_port_new(SCM_MEM_HEAP, io,
                       attr | SCM_PORT_ATTR_FILE, buf_mode, inn_enc, enc);
+  if (scm_obj_null_p(port))
+    scm_io_end(io);
+
+  return port;
 }
 
 ScmObj
@@ -1805,6 +1820,7 @@ scm_port_open_file_inter(const char *path,
                          SCM_PORT_BUF_T buf_mode, mode_t perm,
                          ScmEncoding *inn_enc, const char *enc)
 {
+  ScmObj port = SCM_OBJ_INIT;
   ScmIO *io;
   SCM_PORT_ATTR a;
   int flags;
@@ -1834,8 +1850,12 @@ scm_port_open_file_inter(const char *path,
   io = (ScmIO *)scm_fileio_open(path, flags, perm);
   if (io == NULL) return SCM_OBJ_NULL;
 
-  return scm_port_new(SCM_MEM_HEAP, io,
+  port = scm_port_new(SCM_MEM_HEAP, io,
                       attr | SCM_PORT_ATTR_FILE, buf_mode, inn_enc, enc);
+  if (scm_obj_null_p(port))
+    scm_io_end(io);
+
+  return port;
 }
 
 ScmObj
@@ -1865,6 +1885,7 @@ ScmObj
 scm_port_open_string(const void *string, size_t size,
                      const char *mode, ScmEncoding *inn_enc, const char *enc)
 {
+  ScmObj port = SCM_OBJ_INIT;
   ScmIO *io;
   SCM_PORT_ATTR attr;
   int rslt;
@@ -1878,9 +1899,13 @@ scm_port_open_string(const void *string, size_t size,
   io = (ScmIO *)scm_stringio_new(string, size);
   if (io == NULL) return SCM_OBJ_NULL;
 
-  return scm_port_new(SCM_MEM_HEAP, io,
+  port = scm_port_new(SCM_MEM_HEAP, io,
                       attr | SCM_PORT_ATTR_TEXTUAL | SCM_PORT_ATTR_STRING,
                       SCM_PORT_BUF_DEFAULT, inn_enc, enc);
+  if (scm_obj_null_p(port))
+    scm_io_end(io);
+
+  return port;
 }
 
 bool
@@ -2502,7 +2527,7 @@ scm_port_string_buffer_length(ScmObj port)
 void
 scm_port_gc_initialize(ScmObj obj, ScmObj mem)
 {
-  /* nothing to do */
+  SCM_PORT(obj)->io = NULL;
 }
 
 void
