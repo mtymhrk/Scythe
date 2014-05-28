@@ -341,9 +341,9 @@ scm_chash_tbl_gc_accept_weak(ScmCHashTbl *tbl, ScmObj owner,
 
   for (size_t i = 0; i < tbl->tbl_size; i++) {
     ScmCHashTblEntry **prev = &tbl->buckets[i];
-    for (ScmCHashTblEntry *entry = tbl->buckets[i];
+    for (ScmCHashTblEntry *entry = tbl->buckets[i], *next = NULL;
          entry != NULL;
-         entry = entry->next) {
+         entry = next) {
       bool delete_p = false;
 
       if (tbl->key_kind == SCM_CHASH_TBL_SCMOBJ_W) {
@@ -357,6 +357,7 @@ scm_chash_tbl_gc_accept_weak(ScmCHashTbl *tbl, ScmObj owner,
         if (scm_obj_null_p(entry->val)) delete_p = true;
       }
 
+      next = entry->next;
       if (delete_p) {
         *prev = entry->next;
         scm_capi_free(entry);
