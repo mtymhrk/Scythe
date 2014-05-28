@@ -95,6 +95,49 @@ TEST(vectors, capi_make_vector__specify_fill)
   }
 }
 
+TEST(vectors, api_make_vector__dont_specify_fill)
+{
+  ScmObj vec = SCM_OBJ_INIT, len = SCM_OBJ_INIT, elm = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&vec, &len, &elm);
+
+  len = read_cstr("3");
+  vec = scm_api_make_vector(len, SCM_OBJ_NULL);
+
+  TEST_ASSERT_TRUE(scm_capi_vector_p(vec));
+  TEST_ASSERT_EQUAL_INT(3, scm_capi_vector_length(vec));
+
+  for (size_t i = 0; i < 3; i++) {
+    elm = scm_capi_vector_ref(vec, i);
+    TEST_ASSERT_SCM_UNDEF(elm);
+  }
+}
+
+TEST(vectors, api_make_vector__specify_fill)
+{
+  ScmObj vec = SCM_OBJ_INIT, len = SCM_OBJ_INIT, fill = SCM_OBJ_INIT;
+  ScmObj elm = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&vec, &len, &fill, &elm);
+
+  len = read_cstr("3");
+  fill = read_cstr("abc");
+  vec = scm_api_make_vector(len, fill);
+
+  TEST_ASSERT_TRUE(scm_capi_vector_p(vec));
+  TEST_ASSERT_EQUAL_INT(3, scm_capi_vector_length(vec));
+
+  for (size_t i = 0; i < 3; i++) {
+    elm = scm_capi_vector_ref(vec, i);
+    TEST_ASSERT_SCM_EQ(fill, elm);
+  }
+}
+
+TEST(vectors, api_make_vector__return_ERROR)
+{
+  TEST_ASSERT_SCM_NULL(scm_api_make_vector(SCM_FALSE_OBJ, SCM_OBJ_NULL));
+}
+
 TEST(vectors, capi_vector_lst)
 {
   ScmObj lst = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;

@@ -4997,7 +4997,7 @@ scm_api_make_vector(ScmObj len, ScmObj fill)
     scm_capi_error("make-vector: invalid argument", 0);
     return SCM_OBJ_NULL;
   }
-  else if (scm_capi_integer_p(len)) {
+  else if (!scm_capi_integer_p(len)) {
     scm_capi_error("make-vector: integer required, but got", 1, len);
     return SCM_OBJ_NULL;
   }
