@@ -1893,15 +1893,16 @@ scm_port_open_string(const void *string, size_t size,
   scm_assert(mode != NULL);
   scm_assert(inn_enc != NULL);
 
-  rslt = scm_port_analy_modestr(mode, &attr, 0);
+  attr = SCM_PORT_ATTR_TEXTUAL | SCM_PORT_ATTR_STRING;
+
+  rslt = scm_port_analy_modestr(mode, &attr, NULL);
   if (rslt < 0) return SCM_OBJ_NULL;
 
   io = (ScmIO *)scm_stringio_new(string, size);
   if (io == NULL) return SCM_OBJ_NULL;
 
   port = scm_port_new(SCM_MEM_HEAP, io,
-                      attr | SCM_PORT_ATTR_TEXTUAL | SCM_PORT_ATTR_STRING,
-                      SCM_PORT_BUF_DEFAULT, inn_enc, enc);
+                      attr, SCM_PORT_BUF_DEFAULT, inn_enc, enc);
   if (scm_obj_null_p(port))
     scm_io_end(io);
 
