@@ -3829,7 +3829,7 @@ scm_cmpl_compile_letrec_a(ScmObj cmpl, ScmObj exp, ScmObj env,
 static int
 scm_cmpl_decons_begin(ScmObj exp, scm_csetter_t *exp_lst)
 {
-  ScmObj eo;
+  ScmObj eo = SCM_OBJ_INIT;
 
   SCM_STACK_FRAME_PUSH(&exp,
                        &eo);

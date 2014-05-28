@@ -38,7 +38,7 @@ scm_eof_finalize(ScmObj eof)
 ScmObj
 scm_eof_new(SCM_MEM_TYPE_T mtype)
 {
-  ScmObj eof;
+  ScmObj eof = SCM_OBJ_INIT;
 
   eof = scm_capi_mem_alloc(&SCM_EOF_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(eof)) return SCM_OBJ_NULL;

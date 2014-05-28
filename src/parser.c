@@ -1051,8 +1051,8 @@ scm_parser_parse_quote(ScmParser *parser, ScmObj port, ScmEncoding *enc)
   const char *unquote_str = "unquote";
   const char *unquote_splicing_str = "unquote-splicing";
 
-  ScmObj quote;
-  ScmObj quoted;
+  ScmObj quote = SCM_OBJ_INIT;
+  ScmObj quoted = SCM_OBJ_INIT;
   ScmToken *token;
 
   SCM_STACK_FRAME_PUSH(&port, &quote, &quoted);
@@ -1419,7 +1419,7 @@ scm_parser_parse_identifier(ScmParser *parser, ScmObj port, ScmEncoding *enc)
 static ScmObj
 scm_parser_parse_numeric(ScmParser *parser, ScmObj port, ScmEncoding *enc)
 {
-  ScmObj num;
+  ScmObj num = SCM_OBJ_INIT;
   ScmToken *token;
 
   scm_assert(parser != NULL);

@@ -2332,7 +2332,7 @@ scm_api_plus(ScmObj x, ScmObj y)
 ScmObj
 scm_capi_plus_lst(ScmObj lst)
 {
-  ScmObj a, d;
+  ScmObj a = SCM_OBJ_INIT, d = SCM_OBJ_INIT;
 
   SCM_STACK_FRAME_PUSH(&lst,
                        &a, &d);
@@ -2381,7 +2381,7 @@ scm_api_mul(ScmObj x, ScmObj y)
 ScmObj
 scm_capi_mul_lst(ScmObj lst)
 {
-  ScmObj a, d;
+  ScmObj a = SCM_OBJ_INIT, d = SCM_OBJ_INIT;
 
   SCM_STACK_FRAME_PUSH(&lst,
                        &a, &d);
@@ -2430,7 +2430,7 @@ scm_api_minus(ScmObj x, ScmObj y)
 ScmObj
 scm_capi_minus_lst(ScmObj lst)
 {
-  ScmObj a, d;
+  ScmObj a = SCM_OBJ_INIT, d = SCM_OBJ_INIT;
 
   SCM_STACK_FRAME_PUSH(&lst,
                        &a, &d);
@@ -5037,7 +5037,7 @@ scm_capi_vector_cv(const ScmObj *elm, size_t n)
 ScmObj
 scm_capi_vector(size_t n, ...)
 {
-  ScmObj vec, args[n];
+  ScmObj vec = SCM_OBJ_INIT, args[n];
   va_list ap;
 
   SCM_STACK_FRAME_PUSH(&vec);
@@ -5503,7 +5503,7 @@ static int
 scm_capi_vector_copy_i_aux(ScmObj to, size_t at,
                            ScmObj from, size_t pos, size_t len)
 {
-  ScmObj elm;
+  ScmObj elm = SCM_OBJ_INIT;
   int r;
 
   SCM_STACK_FRAME_PUSH(&to, &from,
@@ -5522,7 +5522,7 @@ static int
 scm_capi_vector_copy_i_aux_in_reverse(ScmObj to, size_t at,
                                       ScmObj from, size_t pos, size_t len)
 {
-  ScmObj elm;
+  ScmObj elm = SCM_OBJ_INIT;
   int r;
 
   SCM_STACK_FRAME_PUSH(&to, &from,
@@ -7984,7 +7984,7 @@ scm_capi_inst_fetch_oprand_iof(scm_byte_t *ip, int *offset)
 int
 scm_capi_inst_update_oprand_obj(scm_byte_t *ip, ScmObj clsr, ScmObj obj)
 {
-  ScmObj iseq;
+  ScmObj iseq = SCM_OBJ_INIT;
   ssize_t idx;
 
   SCM_STACK_FRAME_PUSH(&clsr, &obj,

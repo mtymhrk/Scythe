@@ -32,7 +32,7 @@ scm_syntax_initialize(ScmObj syx, ScmObj key, ScmSyntaxHandlerFunc handler)
 ScmObj
 scm_syntax_new(SCM_MEM_TYPE_T mtype, ScmObj key, ScmSyntaxHandlerFunc handler)
 {
-  ScmObj syx;
+  ScmObj syx = SCM_OBJ_INIT;
   int rslt;
 
   scm_assert(scm_capi_symbol_p(key));

@@ -2267,7 +2267,7 @@ scm_vm_op_close(ScmObj vm, SCM_OPCODE_T op)
 scm_local_func int
 scm_vm_op_demine(ScmObj vm, SCM_OPCODE_T op)
 {
-  ScmObj val;
+  ScmObj val = SCM_OBJ_INIT;
   int idx, layer;
   scm_byte_t *ip;
 
@@ -2341,7 +2341,7 @@ scm_vm_op_emine(ScmObj vm, SCM_OPCODE_T op)
 scm_local_func int
 scm_vm_op_edemine(ScmObj vm, SCM_OPCODE_T op)
 {
-  ScmObj val;
+  ScmObj val = SCM_OBJ_INIT;
   ScmEnvFrame *efp, *pefp;
   size_t n;
   int argc, layer, rslt;
