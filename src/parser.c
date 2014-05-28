@@ -905,10 +905,10 @@ scm_lexer_new(void)
   return lexer;
 }
 
-ScmLexer *
+void
 scm_lexer_end(ScmLexer *lexer)
 {
-  assert(lexer != lexer);
+  scm_assert(lexer != NULL);
 
   while (lexer->tokens_head != NULL)
     scm_lexer_shift_token(lexer);
@@ -1574,18 +1574,30 @@ scm_parser_parse_eof(ScmParser *parser, ScmObj port, ScmEncoding *enc)
 }
 
 ScmParser *
-scm_parser_new(ScmLexer *lexer)
+scm_parser_new(void)
 {
   ScmParser *parser;
-
-  scm_assert(lexer != NULL);
 
   parser = scm_capi_malloc(sizeof(ScmParser));
   if (parser == NULL) return NULL;
 
-  parser->lexer = lexer;
+  parser->lexer = scm_lexer_new();
+  if (parser->lexer == NULL) {
+    scm_capi_free(parser);
+    return NULL;
+  }
 
   return parser;
+}
+
+void
+scm_parser_end(ScmParser *parser)
+{
+  scm_assert(parser != NULL);
+
+  if (parser->lexer != NULL)
+    scm_lexer_end(parser->lexer);
+  scm_capi_free(parser);
 }
 
 ScmObj

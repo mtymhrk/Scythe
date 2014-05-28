@@ -6625,8 +6625,11 @@ scm_capi_port_internal_encoding(ScmObj port)
 ScmObj
 scm_api_read(ScmObj port)
 {
-  ScmLexer *lexer;
+  ScmObj obj = SCM_OBJ_INIT;
   ScmParser *parser;
+
+  SCM_STACK_FRAME_PUSH(&port,
+                       &obj);
 
   /* TODO: 引数の port のは指定省略可能にする (SCM_OBJ_NULL を指定可能にする)
    */
@@ -6648,13 +6651,14 @@ scm_api_read(ScmObj port)
     return SCM_OBJ_NULL;
   }
 
-  lexer = scm_lexer_new();
-  if (lexer == NULL) return SCM_OBJ_NULL;
-
-  parser = scm_parser_new(lexer);
+  parser = scm_parser_new();
   if (parser == NULL) return SCM_OBJ_NULL;
 
-  return scm_parser_parse_expression(parser, port);
+  obj = scm_parser_parse_expression(parser, port);
+
+  scm_parser_end(parser);
+
+  return obj;
 }
 
 ssize_t

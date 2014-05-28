@@ -13,9 +13,7 @@ static ScmObj port = SCM_OBJ_INIT;
 ScmParser *
 new_parser()
 {
-  ScmLexer *lexer = scm_lexer_new();
-
-  parser = scm_parser_new(lexer);
+  parser = scm_parser_new();
 
   return parser;
 }
@@ -60,8 +58,7 @@ cut_shutdown(void)
 void
 test_parser_new(void)
 {
-  ScmLexer *lexer = scm_lexer_new();
-  ScmParser *parser = scm_parser_new(lexer);
+   ScmParser *parser = scm_parser_new();
 
   cut_assert_not_null(parser);
 }

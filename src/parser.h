@@ -71,7 +71,7 @@ struct ScmLexerRec {
 };
 
 ScmLexer *scm_lexer_new(void);
-ScmLexer *scm_lexer_end(ScmLexer *lexer);
+void scm_lexer_end(ScmLexer *lexer);
 ScmToken *scm_lexer_head_token(ScmLexer *lexer, ScmObj port, ScmEncoding *enc);
 void scm_lexer_shift_token(ScmLexer *lexer);
 void scm_lexer_clear_error_state(ScmLexer *lexer);
@@ -87,7 +87,8 @@ struct ScmParserRec {
   ScmLexer* lexer;
 };
 
-ScmParser *scm_parser_new(ScmLexer *lexer);
+ScmParser *scm_parser_new(void);
+void scm_parser_end(ScmParser *parser);
 ScmObj scm_parser_parse_expression(ScmParser *parser, ScmObj port);
 
 #endif /* INCLUDE_PARSER_H__ */
