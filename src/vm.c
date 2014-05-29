@@ -2802,8 +2802,13 @@ scm_vm_set_val_reg(ScmObj vm, const ScmObj *val, int vc)
   scm_assert(vc >= 0);
 
   n = (vc <= SCM_VM_NR_VAL_REG) ? vc : SCM_VM_NR_VAL_REG - 1;
-  for (int i = 0; i < n; i++)
+  for (int i = 0; i < n; i++) {
+    if (scm_obj_null_p(val[i])) {
+      scm_capi_error("invalid return value is set", 0);
+      return -1;
+    }
     SCM_SLOT_SETQ(ScmVM, vm, reg.val[i], val[i]);
+  }
 
   rest = vc - (SCM_VM_NR_VAL_REG - 1);
   if (rest > 1) {
@@ -2811,6 +2816,11 @@ scm_vm_set_val_reg(ScmObj vm, const ScmObj *val, int vc)
     if (scm_obj_null_p(vec)) return -1;
 
     for (int i = 0; i < rest; i++) {
+      if (scm_obj_null_p(val[SCM_VM_NR_VAL_REG - 1 + i])) {
+        scm_capi_error("invalid return value is set", 0);
+        return -1;
+      }
+
       rslt = scm_capi_vector_set_i(vec, (size_t)i,
                                    val[SCM_VM_NR_VAL_REG - 1 + i]);
       if (rslt < 0) return -1;
