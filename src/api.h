@@ -662,7 +662,7 @@ bool scm_capi_module_p(ScmObj obj);
 ScmObj scm_api_module_name(ScmObj module);
 int scm_capi_import(ScmObj module, ScmObj imported, bool unexport);
 int scm_capi_find_module(ScmObj name, scm_csetter_t *mod);
-ScmObj scm_capi_make_gloc(ScmObj module, ScmObj sym);
+ScmObj scm_api_get_gloc(ScmObj module, ScmObj sym);
 int scm_capi_find_gloc(ScmObj module, ScmObj sym, scm_csetter_t *gloc);
 int scm_capi_define_global_var(ScmObj module,
                                ScmObj sym, ScmObj val, bool export);
@@ -671,6 +671,7 @@ int scm_capi_define_global_syx(ScmObj module,
 int scm_capi_global_var_ref(ScmObj module, ScmObj sym, scm_csetter_t *val);
 int scm_capi_global_syx_ref(ScmObj module, ScmObj sym, scm_csetter_t *syx);
 int scm_capi_cached_global_var_ref(int kind, scm_csetter_t *val);
+
 
 /*******************************************************************/
 /*  Return Value                                                   */

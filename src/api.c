@@ -8286,28 +8286,14 @@ scm_capi_import(ScmObj module, ScmObj imported, bool restrictive)
 }
 
 ScmObj
-scm_capi_make_gloc(ScmObj module, ScmObj sym)
+scm_api_get_gloc(ScmObj module, ScmObj sym)
 {
-  ScmObj gloc = SCM_OBJ_INIT;
-  int rslt;
-
-  SCM_STACK_FRAME_PUSH(&module, &sym,
-                       &gloc);
-
   if (!scm_capi_module_p(module)) {
-    scm_capi_error("failed to make a GLoc object: invalid argument", 0);
+    scm_capi_error("failed to obtain a GLoc object: invalid argument", 0);
     return SCM_OBJ_NULL;
   }
   else if (!scm_capi_symbol_p(sym)) {
-    scm_capi_error("failed to make a GLoc object: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-
-  rslt = scm_module_find_sym_eval(module, sym, SCM_CSETTER_L(gloc));
-  if (rslt < 0) return SCM_OBJ_NULL;
-
-  if (scm_obj_not_null_p(gloc)) {
-    scm_capi_error("failed to make a GLoc object: already exist", 0);
+    scm_capi_error("failed to obtain a GLoc object: invalid argument", 0);
     return SCM_OBJ_NULL;
   }
 

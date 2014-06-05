@@ -2089,13 +2089,8 @@ scm_vm_op_gdef(ScmObj vm, SCM_OPCODE_T op)
       return -1;
     }
 
-    r = scm_capi_find_gloc(module, arg, SCM_CSETTER_L(gloc));
-    if (r < 0) return -1;
-
-    if (scm_obj_null_p(gloc)) {
-      gloc = scm_capi_make_gloc(module, arg);
-      if (scm_obj_null_p(gloc)) return -1;
-    }
+    gloc = scm_api_get_gloc(module, arg);
+    if (scm_obj_null_p(gloc)) return -1;
 
     rslt = scm_capi_inst_update_oprand_obj(prv_ip, SCM_VM(vm)->reg.cp, gloc);
     if (rslt < 0) return -1;

@@ -95,12 +95,12 @@ import_module(const char *n, bool res)
 }
 
 static void
-make_gloc(const char *n)
+get_gloc(const char *n)
 {
   gloc = symbol = undef;
 
   symbol = scm_capi_make_symbol_from_cstr(n, SCM_ENC_ASCII);
-  gloc = scm_capi_make_gloc(module, symbol);
+  gloc = scm_api_get_gloc(module, symbol);
 }
 
 static void
@@ -172,7 +172,7 @@ TEST(module, make_gloc)
   SCM_STACK_FRAME_PUSH(&sym, &val);
 
   make_module("test");
-  make_gloc("var");
+  get_gloc("var");
 
   TEST_ASSERT_TRUE(scm_capi_gloc_p(gloc));
   TEST_ASSERT_EQUAL_INT(0, scm_capi_gloc_symbol(gloc, SCM_CSETTER_L(sym)));
@@ -183,11 +183,16 @@ TEST(module, make_gloc)
 
 TEST(module, make_gloc__already_exist)
 {
-  make_module("test");
-  make_gloc("var");
-  make_gloc("var");
+  ScmObj prev = SCM_OBJ_INIT;
 
-  TEST_ASSERT_SCM_NULL(gloc);
+  SCM_STACK_FRAME_PUSH(&prev);
+
+  make_module("test");
+  get_gloc("var");
+  prev = gloc;
+  get_gloc("var");
+
+  TEST_ASSERT_SCM_EQ(prev, gloc);
 }
 
 TEST(module, find_gloc)
@@ -197,7 +202,7 @@ TEST(module, find_gloc)
   SCM_STACK_FRAME_PUSH(&sym);
 
   make_module("test");
-  make_gloc("var");
+  get_gloc("var");
   find_gloc("var");
 
   TEST_ASSERT_TRUE(scm_capi_gloc_p(gloc));
@@ -224,7 +229,7 @@ TEST(module, gloc_bind)
   SCM_STACK_FRAME_PUSH(&expected, &actual);
 
   make_module("test");
-  make_gloc("var");
+  get_gloc("var");
 
   expected = scm_api_eof();
 
