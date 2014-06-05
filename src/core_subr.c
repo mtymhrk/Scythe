@@ -1973,59 +1973,19 @@ scm_subr_func_file_error_P(ScmObj subr, int argc, const ScmObj *argv)
 /*  Input Output                                                   */
 /*******************************************************************/
 
-static ScmObj
-scm_get_current_port(ScmObj subr, const char *var)
-{
-  ScmObj mod = SCM_OBJ_INIT;
-  ScmObj sym = SCM_OBJ_INIT, prm = SCM_OBJ_INIT, port = SCM_OBJ_INIT;
-  int rslt;
-
-  SCM_STACK_FRAME_PUSH(&subr,
-                       &mod, &prm, &port);
-
-  rslt = scm_capi_subrutine_module(subr, SCM_CSETTER_L(mod));
-  if (rslt < 0) return SCM_OBJ_NULL;
-
-  sym = scm_capi_make_symbol_from_cstr(var, SCM_ENC_SRC);
-  if (scm_obj_null_p(sym)) return SCM_OBJ_NULL;
-
-  rslt = scm_capi_global_var_ref(mod, sym, SCM_CSETTER_L(prm));
-  if (rslt < 0) return SCM_OBJ_NULL;
-
-  if (scm_obj_null_p(prm)) {
-    scm_capi_error("failed to get current port", 0);
-    return SCM_OBJ_NULL;
-  }
-
-  port = scm_capi_parameter_value(prm);
-  if (scm_obj_null_p(port)) return SCM_OBJ_NULL;
-
-  return port;
-}
 
 int
 scm_subr_func_read(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj port = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
-  ssize_t len;
 
   SCM_STACK_FRAME_PUSH(&subr,
                        &port, &val);
 
-  len = scm_capi_length(argv[0]);
-  if (len < 0) return -1;
-
-  if (len == 0) {
-    port = scm_get_current_port(subr, "current-input-port");
-    if (scm_obj_null_p(port)) return -1;
-  }
-  else if (len == 1) {
+  port = SCM_OBJ_NULL;
+  if (scm_capi_pair_p(argv[0])) {
     port = scm_api_car(argv[0]);
     if (scm_obj_null_p(port)) return -1;
-  }
-  else {
-    scm_capi_error("read: too many arugments", 0);
-    return -1;
   }
 
   val = scm_api_read(port);
@@ -2038,25 +1998,14 @@ int
 scm_subr_func_write(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj port = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
-  ssize_t len;
 
   SCM_STACK_FRAME_PUSH(&subr,
                        &port, &val);
 
-  len = scm_capi_length(argv[1]);
-  if (len < 0) return -1;
-
-  if (len == 0) {
-    port = scm_get_current_port(subr, "current-output-port");
-    if (scm_obj_null_p(port)) return -1;
-  }
-  else if (len == 1) {
+  port = SCM_OBJ_NULL;
+  if (scm_capi_pair_p(argv[1])) {
     port = scm_api_car(argv[1]);
     if (scm_obj_null_p(port)) return -1;
-  }
-  else {
-    scm_capi_error("write: too many arugments", 0);
-    return -1;
   }
 
   val = scm_api_write(argv[0], port);
@@ -2069,25 +2018,14 @@ int
 scm_subr_func_display(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj port = SCM_OBJ_INIT, val = SCM_OBJ_NULL;
-  ssize_t len;
 
   SCM_STACK_FRAME_PUSH(&subr,
                        &port, &val);
 
-  len = scm_capi_length(argv[1]);
-  if (len < 0) return -1;
-
-  if (len == 0) {
-    port = scm_get_current_port(subr, "current-output-port");
+  port = SCM_OBJ_NULL;
+  if (scm_capi_pair_p(argv[0])) {
+    port = scm_api_car(argv[0]);
     if (scm_obj_null_p(port)) return -1;
-  }
-  else if (len == 1) {
-    port = scm_api_car(argv[1]);
-    if (scm_obj_null_p(port)) return -1;
-  }
-  else {
-    scm_capi_error("display: too many arugments", 0);
-    return -1;
   }
 
   val = scm_api_display(argv[0], port);
@@ -2100,25 +2038,14 @@ int
 scm_subr_func_newline(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj port = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
-  ssize_t len;
 
   SCM_STACK_FRAME_PUSH(&subr,
                        &port, &val);
 
-  len = scm_capi_length(argv[0]);
-  if (len < 0) return -1;
-
-  if (len == 0) {
-    port = scm_get_current_port(subr, "current-output-port");
-    if (scm_obj_null_p(port)) return -1;
-  }
-  else if (len == 1) {
+  port = SCM_OBJ_NULL;
+  if (scm_capi_pair_p(argv[0])) {
     port = scm_api_car(argv[0]);
     if (scm_obj_null_p(port)) return -1;
-  }
-  else {
-    scm_capi_error("newline: too many arugments", 0);
-    return -1;
   }
 
   val = scm_api_newline(port);
@@ -2131,25 +2058,14 @@ int
 scm_subr_func_flush_output_port(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj port = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
-  ssize_t len;
 
   SCM_STACK_FRAME_PUSH(&subr,
                        &port, &val);
 
-  len = scm_capi_length(argv[0]);
-  if (len < 0) return -1;
-
-  if (len == 0) {
-    port = scm_get_current_port(subr, "current-output-port");
-    if (scm_obj_null_p(port)) return -1;
-  }
-  else if (len == 1) {
+  port = SCM_OBJ_NULL;
+  if (scm_capi_pair_p(argv[0])) {
     port = scm_api_car(argv[0]);
     if (scm_obj_null_p(port)) return -1;
-  }
-  else {
-    scm_capi_error("flush-output-port: too many arugments", 0);
-    return -1;
   }
 
   val = scm_api_flush_output_port(port);

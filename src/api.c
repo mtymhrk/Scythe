@@ -6622,6 +6622,29 @@ scm_capi_port_internal_encoding(ScmObj port)
 /*  Input                                                          */
 /*******************************************************************/
 
+static ScmObj
+scm_default_input_port(void)
+{
+  ScmObj val = SCM_OBJ_INIT;
+  int r;
+
+  SCM_STACK_FRAME_PUSH(&val);
+
+  r = scm_capi_cached_global_var_ref(SCM_CACHED_GV_CURRENT_INPUT_PORT,
+                                     SCM_CSETTER_L(val));
+  if (r < 0) return SCM_OBJ_NULL;
+
+  if (scm_obj_null_p(val)) {
+    scm_capi_error("unbound variable: current-input-port", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  if (scm_capi_parameter_p(val))
+    return scm_vm_parameter_value(scm_vm_current_vm(), val);
+  else
+    return val;
+}
+
 ScmObj
 scm_api_read(ScmObj port)
 {
@@ -6631,14 +6654,12 @@ scm_api_read(ScmObj port)
   SCM_STACK_FRAME_PUSH(&port,
                        &obj);
 
-  /* TODO: 引数の port のは指定省略可能にする (SCM_OBJ_NULL を指定可能にする)
-   */
-
   if (scm_obj_null_p(port)) {
-    scm_capi_error("read: invalid argument", 0);
-    return SCM_OBJ_NULL;
+    port = scm_default_input_port();
+    if (scm_obj_null_p(port)) return SCM_OBJ_NULL;
   }
-  else if (!scm_capi_input_port_p(port)) {
+
+  if (!scm_capi_input_port_p(port)) {
     scm_capi_error("read: input-port requried, but got", 1, port);
     return SCM_OBJ_NULL;
   }
@@ -6664,13 +6685,12 @@ scm_api_read(ScmObj port)
 ssize_t
 scm_capi_read_cchr(scm_char_t *chr, ScmObj port)
 {
-  /* TODO: 引数の port のは指定省略可能にする (SCM_OBJ_NULL を指定可能にする) */
-
   if (scm_obj_null_p(port)) {
-    scm_capi_error("read-char: invalid argument", 0);
-    return -1;
+    port = scm_default_input_port();
+    if (scm_obj_null_p(port)) return SCM_OBJ_NULL;
   }
-  else if (!scm_capi_input_port_p(port)) {
+
+  if (!scm_capi_input_port_p(port)) {
     scm_capi_error("read-char: input-port required, but got", 1, port);
     return -1;
   }
@@ -6710,13 +6730,12 @@ scm_api_read_char(ScmObj port)
 ssize_t
 scm_capi_peek_cchr(scm_char_t *chr, ScmObj port)
 {
-  /* TODO: 引数の port のは指定省略可能にする (SCM_OBJ_NULL を指定可能にする) */
-
   if (scm_obj_null_p(port)) {
-    scm_capi_error("peek-char: invalid argument", 0);
-    return -1;
+    port = scm_default_input_port();
+    if (scm_obj_null_p(port)) return SCM_OBJ_NULL;
   }
-  else if (!scm_capi_input_port_p(port)) {
+
+  if (!scm_capi_input_port_p(port)) {
     scm_capi_error("peek-char: input-port required, but got", 1, port);
     return -1;
   }
@@ -6760,13 +6779,12 @@ scm_api_read_line(ScmObj port)
 
   SCM_STACK_FRAME_PUSH(&port, &line);
 
-  /* TODO: 引数の port のは指定省略可能にする (SCM_OBJ_NULL を指定可能にする) */
-
   if (scm_obj_null_p(port)) {
-    scm_capi_error("read-line: invalid argument", 0);
-    return SCM_OBJ_NULL;
+    port = scm_default_input_port();
+    if (scm_obj_null_p(port)) return SCM_OBJ_NULL;
   }
-  else if (!scm_capi_input_port_p(port)) {
+
+  if (!scm_capi_input_port_p(port)) {
     scm_capi_error("read-line: input-port required, but got", 1, port);
     return SCM_OBJ_NULL;
   }
@@ -6801,13 +6819,12 @@ scm_api_read_line(ScmObj port)
 int
 scm_capi_char_ready(ScmObj port, bool *rslt)
 {
-  /* TODO: 引数の port のは指定省略可能にする (SCM_OBJ_NULL を指定可能にする) */
-
   if (scm_obj_null_p(port)) {
-    scm_capi_error("char-ready?: invalid argument", 0);
-    return SCM_OBJ_NULL;
+    port = scm_default_input_port();
+    if (scm_obj_null_p(port)) return SCM_OBJ_NULL;
   }
-  else if (!scm_capi_input_port_p(port)) {
+
+  if (!scm_capi_input_port_p(port)) {
     scm_capi_error("char-ready?: input-port required, but got", 1, port);
     return SCM_OBJ_NULL;
   }
@@ -6844,16 +6861,15 @@ scm_api_read_string(ScmObj n, ScmObj port)
   ssize_t nr;
   int ret;
 
-  /* TODO: 引数の port のは指定省略可能にする (SCM_OBJ_NULL を指定可能にする) */
-
   SCM_STACK_FRAME_PUSH(&n, &port,
                        &fn, &str);
 
-  if (scm_obj_null_p(n)) {
-    scm_capi_error("read-string: invalid argument", 0);
-    return SCM_OBJ_NULL;
+  if (scm_obj_null_p(port)) {
+    port = scm_default_input_port();
+    if (scm_obj_null_p(port)) return SCM_OBJ_NULL;
   }
-  else if (!scm_capi_integer_p(n)) {
+
+  if (!scm_capi_integer_p(n)) {
     scm_capi_error("read-string: integer required, but got", 1, n);
     return SCM_OBJ_NULL;
   }
@@ -6918,6 +6934,29 @@ scm_api_read_string(ScmObj n, ScmObj port)
 /*  Output                                                         */
 /*******************************************************************/
 
+static ScmObj
+scm_default_output_port(void)
+{
+  ScmObj val = SCM_OBJ_INIT;
+  int r;
+
+  SCM_STACK_FRAME_PUSH(&val);
+
+  r = scm_capi_cached_global_var_ref(SCM_CACHED_GV_CURRENT_OUTPUT_PORT,
+                                     SCM_CSETTER_L(val));
+  if (r < 0) return SCM_OBJ_NULL;
+
+  if (scm_obj_null_p(val)) {
+    scm_capi_error("unbound variable: current-output-port", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  if (scm_capi_parameter_p(val))
+    return scm_vm_parameter_value(scm_vm_current_vm(), val);
+  else
+    return val;
+}
+
 ScmObj
 scm_api_write(ScmObj obj, ScmObj port)
 {
@@ -6930,13 +6969,16 @@ scm_api_write_simple(ScmObj obj, ScmObj port)
 {
   int rslt;
 
-  /* TODO: 引数の port のは指定省略可能にする (SCM_OBJ_NULL を指定可能にする) */
-
   SCM_STACK_FRAME_PUSH(&obj, &port);
 
   if (scm_obj_null_p(obj)) {
     scm_capi_error("write-simple: invalid argument", 0);
     return SCM_OBJ_NULL;
+  }
+
+  if (scm_obj_null_p(port)) {
+    port = scm_default_output_port();
+    if (scm_obj_null_p(port)) return SCM_OBJ_NULL;
   }
 
   if (!scm_capi_output_port_p(port)) {
@@ -6963,7 +7005,6 @@ scm_api_display(ScmObj obj, ScmObj port)
 {
   int rslt;
 
-  /* TODO: 引数の port のは指定省略可能にする (SCM_OBJ_NULL を指定可能にする) */
   /* TODO: obj の構造が循環していても無限ループにならないようにする */
 
   SCM_STACK_FRAME_PUSH(&obj, &port);
@@ -6971,6 +7012,11 @@ scm_api_display(ScmObj obj, ScmObj port)
   if (scm_obj_null_p(obj)) {
     scm_capi_error("display: invalid argument", 0);
     return SCM_OBJ_NULL;
+  }
+
+  if (scm_obj_null_p(port)) {
+    port = scm_default_output_port();
+    if (scm_obj_null_p(port)) return SCM_OBJ_NULL;
   }
 
   if (!scm_capi_output_port_p(port)) {
@@ -6999,13 +7045,12 @@ scm_api_newline(ScmObj port)
   scm_char_t nl;
   ssize_t rslt;
 
-  /* TODO: 引数の port のは指定省略可能にする (SCM_OBJ_NULL を指定可能にする) */
-
   if (scm_obj_null_p(port)) {
-    scm_capi_error("newline: invalid argument", 0);
-    return SCM_OBJ_NULL;
+    port = scm_default_output_port();
+    if (scm_obj_null_p(port)) return SCM_OBJ_NULL;
   }
-  else if (!scm_capi_output_port_p(port)) {
+
+  if (!scm_capi_output_port_p(port)) {
     scm_capi_error("newline: output-port required, but got", 1, port);
     return SCM_OBJ_NULL;
   }
@@ -7031,8 +7076,6 @@ scm_capi_write_cchr(scm_char_t chr, ScmEncoding *enc, ScmObj port)
 {
   ScmObj c = SCM_OBJ_INIT, r = SCM_OBJ_INIT;
 
-  /* TODO: 引数の port のは指定省略可能にする (SCM_OBJ_NULL を指定可能にする) */
-
   SCM_STACK_FRAME_PUSH(&port,
                        &c, &r);
 
@@ -7056,8 +7099,6 @@ scm_api_write_char(ScmObj chr, ScmObj port)
   ScmEncoding *p_enc, *c_enc;
   ssize_t rslt;
 
-  /* TODO: 引数の port のは指定省略可能にする (SCM_OBJ_NULL を指定可能にする) */
-
   SCM_STACK_FRAME_PUSH(&chr, &port);
 
   if (scm_obj_null_p(chr)) {
@@ -7070,10 +7111,11 @@ scm_api_write_char(ScmObj chr, ScmObj port)
   }
 
   if (scm_obj_null_p(port)) {
-    scm_capi_error("write-char: invalid argument", 0);
-    return SCM_OBJ_NULL;
+    port = scm_default_output_port();
+    if (scm_obj_null_p(port)) return SCM_OBJ_NULL;
   }
-  else if (!scm_capi_output_port_p(port)) {
+
+  if (!scm_capi_output_port_p(port)) {
     scm_capi_error("write-char: output-port required, but got", 1, port);
     return SCM_OBJ_NULL;
   }
@@ -7105,8 +7147,6 @@ scm_capi_write_cstr(const char *str, ScmEncoding *enc, ScmObj port)
 {
   ScmObj s = SCM_OBJ_INIT;
 
-  /* TODO: 引数の port のは指定省略可能にする (SCM_OBJ_NULL を指定可能にする) */
-
   SCM_STACK_FRAME_PUSH(&port, &s);
 
   if (enc == NULL) {
@@ -7129,8 +7169,6 @@ scm_capi_write_string(ScmObj str, ScmObj port, ssize_t start, ssize_t end)
   ScmEncoding *p_enc;
   ssize_t rslt, size;
 
-  /* TODO: 引数の port のは指定省略可能にする (SCM_OBJ_NULL を指定可能にする) */
-
   SCM_STACK_FRAME_PUSH(&str, &port);
 
   if (scm_obj_null_p(str)) {
@@ -7143,10 +7181,11 @@ scm_capi_write_string(ScmObj str, ScmObj port, ssize_t start, ssize_t end)
   }
 
   if (scm_obj_null_p(port)) {
-    scm_capi_error("write-string: invalid argument", 0);
-    return SCM_OBJ_NULL;
+    port = scm_default_output_port();
+    if (scm_obj_null_p(port)) return SCM_OBJ_NULL;
   }
-  else if (!scm_capi_output_port_p(port)) {
+
+  if (!scm_capi_output_port_p(port)) {
     scm_capi_error("write-string: output-port required, but got", 1, port);
     return SCM_OBJ_NULL;
   }
@@ -7245,15 +7284,14 @@ scm_api_flush_output_port(ScmObj port)
 {
   int rslt;
 
-  /* TODO: 引数の port のは指定省略可能にする (SCM_OBJ_NULL を指定可能にする) */
-
   SCM_STACK_FRAME_PUSH(&port);
 
   if (scm_obj_null_p(port)) {
-    scm_capi_error("flush-output-port: invalid argument", 0);
-    return SCM_OBJ_NULL;
+    port = scm_default_output_port();
+    if (scm_obj_null_p(port)) return SCM_OBJ_NULL;
   }
-  else if (!scm_capi_output_port_p(port)) {
+
+  if (!scm_capi_output_port_p(port)) {
     scm_capi_error("flush-output-port: output-port required, but got", 1, port);
     return SCM_OBJ_NULL;
   }
