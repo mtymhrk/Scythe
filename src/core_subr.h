@@ -497,6 +497,17 @@ int scm_subr_func_file_error_P(ScmObj subr, int argc, const ScmObj *argv);
 
 
 /*******************************************************************/
+/*  Ports                                                          */
+/*******************************************************************/
+
+#define SCM_SUBR_ARITY_OPEN_INPUT_FILE 1
+
+#define SCM_SUBR_FLAG_OPEN_INPUT_FILE 0
+
+int scm_subr_func_open_input_file(ScmObj subr, int argc, const ScmObj *argv);
+
+
+/*******************************************************************/
 /*  Input Output                                                   */
 /*******************************************************************/
 
