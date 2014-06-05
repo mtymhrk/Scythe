@@ -170,6 +170,9 @@
   (define (current-module-name cmpl)
     (module-name (compiler-current-module cmpl)))
 
+  (define (compile-error cmpl msg)
+    (error (format "failed to compile: ~a" msg) (compiler-current-expr cmpl)))
+
   (define (get-compiler-from-arg arg)
     (cond
      ((null? arg) (make-compiler))
@@ -206,7 +209,7 @@
     (when tail-p (unshift-inst-return cseq))
     (unshift-inst-immval exp cseq))
 
-  (define (decons-exp-application exp)
+  (define (decons-exp-application cmpl exp)
     (cons (car exp) (list->vector (cdr exp))))
 
   (define (cmpl-application cmpl proc args env arity tail-p toplevel-p
@@ -233,7 +236,7 @@
 
   (define (compile-syntax-application cmpl exp env arity tail-p toplevel-p
                                       rdepth cseq)
-    (let ((x (decons-exp-application exp)))
+    (let ((x (decons-exp-application cmpl exp)))
       (cmpl-application cmpl (car x) (cdr x) env arity tail-p toplevel-p
                         rdepth cseq)))
 
@@ -286,8 +289,7 @@
   (define (cmpl-exp-list cmpl explst env arity tail-p toplevel-p
                          rdepth cseq)
     (unless (list? explst)
-      (error "failed to compile: malformed expression"
-             (compiler-current-expr cmpl)))
+      (compile-error cmpl "malformed expression"))
     (let* ((expvec (list->vector explst))
            (len (vector-length expvec)))
       (if (= len 0)
@@ -300,11 +302,11 @@
                        env -1 #f toplevel-p rdepth cseq)
           (loop (- idx 1))))))
 
-  (define (normalize-definition exp)
+  (define (normalize-definition cmpl exp)
     (let ((key (car exp))
           (rest (cdr exp)))
       (unless (pair? rest)
-        (error "failed to compile: malformed define" exp))
+        (compile-error cmpl "malformed define"))
       (let loop ((x (car rest))
                  (y (cdr rest)))
         (if (pair? x)
@@ -313,31 +315,31 @@
               (loop name (cons (cons 'lambda (cons formals y)) '())))
             (cons key (cons x y))))))
 
-  (define (decons-definition exp)
+  (define (decons-definition cmpl exp)
     (when (not (= (length exp) 3))
-      (error "failed to compile: malformed define" exp))
+      (compile-error cmpl "malformed define"))
     (let ((var (car (cdr exp)))
           (val (car (cdr (cdr exp)))))
       (when (not (symbol? var))
-        (error "failed to compile: malformed define" exp))
+        (compile-error cmpl "malformed define"))
       (cons var val)))
 
   (define (compile-syntax-definition cmpl exp env arity tail-p toplevel-p
                                      rdepth cseq)
     (when (not toplevel-p)
-      (error "failed to compile: definition can apper in the toplevel or beginning of a <body>" exp))
-    (let ((var-val (decons-definition (normalize-definition exp))))
+      (compile-error cmpl "definition can apper in the toplevel or beginning of a <body>"))
+    (let ((var-val (decons-definition cmpl (normalize-definition cmpl exp))))
       (when tail-p
         (unshift-inst-return cseq))
       (unshift-inst-gdef (car var-val) (current-module-name cmpl) cseq)
       (compile-exp cmpl (cdr var-val) env 1 #f toplevel-p rdepth cseq)))
 
-  (define (decons-begin exp)
+  (define (decons-begin cmpl exp)
     (cdr exp))
 
   (define (compile-syntax-begin cmpl exp env arity tail-p toplevel-p
                                 rdepth cseq)
-    (cmpl-exp-list cmpl (decons-begin exp) env
+    (cmpl-exp-list cmpl (decons-begin cmpl exp) env
                    arity tail-p toplevel-p
                    rdepth cseq))
 
@@ -346,20 +348,19 @@
     (cond ((null? body)
            (vector vars inits exps))
           ((not (pair? body))
-           (error "failed to compile: malformed <body>"
-                  (compiler-current-expr cmpl)))
+           (compile-error cmpl "malformed <body>"))
           (else
            (let* ((exp (car body))
                   (syn (syntax cmpl exp env tail-p toplevel-p)))
              (cond
               ((eq? syn compile-syntax-definition)
-               (let ((x (decons-definition exp)))
+               (let ((x (decons-definition cmpl exp)))
                  (decons-body-aux cmpl (cdr body) env tail-p toplevel-p
                                   (cons (car x) vars)
                                   (cons (cdr x) inits)
                                   exps)))
               ((eq? syn compile-syntax-begin)
-               (let ((x (decons-body-aux cmpl (decons-begin exp) env
+               (let ((x (decons-body-aux cmpl (decons-begin cmpl exp) env
                                          tail-p toplevel-p
                                          vars inits exps)))
                  (if (eq? (vector-ref x 2) exps)
@@ -411,22 +412,22 @@
         (unshift-inst-emine nr-vars cseq)
         (rdepth-add! rdepth -1))))
 
-  (define (decons-quote exp)
+  (define (decons-quote cmpl exp)
     (let ((lst (cdr exp)))
       (unless (pair? lst)
-        (error "faild to compile: malformed quote" exp))
+        (compile-error cmpl "malformed quote"))
       (unless (null? (cdr lst))
         (error "faild to compile: malformed quote" exp))
       (car lst)))
 
   (define (compile-syntax-quote cmpl exp env arity tail-p toplevel-p rdepth cseq)
-    (compile-syntax-self-eval cmpl (decons-quote exp) env
+    (compile-syntax-self-eval cmpl (decons-quote cmpl exp) env
                               arity tail-p toplevel-p
                               rdepth cseq))
 
-  (define (decons-lambda exp)
+  (define (decons-lambda cmpl exp)
     (unless (pair? (cdr exp))
-      (error "failed to compile: malformed lambda" exp))
+      (compile-error cmpl "malformed lambda"))
     (let ((formals (car (cdr exp)))
           (body (cdr (cdr exp))))
       (let loop ((fm formals)
@@ -437,12 +438,12 @@
           (loop '() (cons fm params) #t))
          ((pair? fm)
           (unless (symbol? (car fm))
-            (error "failed to compile: malformed lambda" exp))
+            (compile-error cmpl "malformed lambda"))
           (loop (cdr fm) (cons (car fm) params) vparam))
          ((null? fm)
           (vector (list->vector (reverse params)) vparam body))
          (else
-          (error "failed to compile: malformed lambda" exp))))
+          (compile-error cmpl "malformed lambda"))))
       ))
 
   (define (cmpl-closure-body cmpl body nparam env arity tail-p toplevel-p
@@ -479,24 +480,24 @@
     (rdepth-contract! rdepth))
 
   (define (compile-syntax-lambda cmpl exp env arity tail-p toplevel-p rdepth cseq)
-    (let ((x (decons-lambda exp)))
+    (let ((x (decons-lambda cmpl exp)))
       (cmpl-lambda cmpl (vector-ref x 0) (vector-ref x 1) (vector-ref x 2)
                    env arity tail-p toplevel-p rdepth cseq)))
 
-  (define (decons-assignment exp)
+  (define (decons-assignment cmpl exp)
     (unless (list? exp)
-      (error "failed to compile: malformed if" exp))
+      (compile-error cmpl "malformed if"))
     (unless (= (length exp) 3)
-      (error "faild to compile: malformed assignment" exp))
+      (compile-error cmpl "malformed assignment"))
     (let ((var (list-ref exp 1))
           (val (list-ref exp 2)))
       (unless (symbol? var)
-        (error "faild to compile: malformed assignment" exp))
+        (compile-error cmpl "malformed assignment"))
       (cons var val)))
 
   (define (compile-syntax-assignment cmpl exp env arity tail-p toplevel-p
                                      rdepth cseq)
-    (let* ((x (decons-assignment exp))
+    (let* ((x (decons-assignment cmpl exp))
            (var (car x))
            (val (cdr x))
            (rslv (resolve-reference env var #t rdepth)))
@@ -507,19 +508,19 @@
           (unshift-inst-gset var (current-module-name cmpl) cseq))
       (compile-exp cmpl val env 1 #f toplevel-p rdepth cseq)))
 
-  (define (decons-if exp)
+  (define (decons-if cmpl exp)
     (unless (list? exp)
-      (error "failed to compile: malformed if" exp))
+      (compile-error cmpl "malformed if"))
     (let ((len (length exp)))
       (cond ((= len 3)
              (vector (list-ref exp 1) (list-ref exp 2) '() #f))
             ((= len 4)
              (vector (list-ref exp 1) (list-ref exp 2) (list-ref exp 3) #t))
             (else
-             (error "failed to compile: malformed if" exp)))))
+             (compile-error cmpl "malformed if")))))
 
   (define (compile-syntax-if cmpl exp env arity tail-p toplevel-p rdepth cseq)
-    (let* ((x (decons-if exp))
+    (let* ((x (decons-if cmpl exp))
            (condi (vector-ref x 0))
            (conse (vector-ref x 1))
            (alter (vector-ref x 2))
@@ -540,7 +541,7 @@
       (unshift-inst-jmpf lbl-a cseq)
       (compile-exp cmpl condi env 1 #f toplevel-p rdepth cseq)))
 
-  (define (decons-cond exp)
+  (define (decons-cond cmpl exp)
     (let ((else-exist #f))
       (let loop ((clauses (cdr exp))
                  (test-lst '())
@@ -556,16 +557,16 @@
                    (rst (cdr cls)))
               (when (eq? tst 'else)
                 (when else-exist
-                  (error "failed to compile: malformed cond" exp))
+                  (compile-error cmpl "malformed cond"))
                 (set! else-exist #t))
               (if (null? rst)
                   (set! rst (cons (if else-exist 'else '>>) rst))
                   (if (pair? rst)
                       (if (eq? (car rst) '=>)
                           (when (or else-exist (not (= (length rst) 2)))
-                            (error "failed to compile: malformed cond" exp))
+                            (compile-error cmpl "malformed cond"))
                           (set! rst (cons (if else-exist 'else '>>) rst)))
-                      (error "failed to compile: malformed cond" exp)))
+                      (compile-error cmpl "malformed cond")))
               (loop (cdr clauses)
                     (cons tst test-lst)
                     (cons rst expr-lst)))))))
@@ -607,7 +608,7 @@
       lbl))
 
   (define (compile-syntax-cond cmpl exp env arity tail-p toplevel-p rdepth cseq)
-    (let* ((x (decons-cond exp))
+    (let* ((x (decons-cond cmpl exp))
            (test-vec (car x))
            (expr-vec (cdr x))
            (nr-clauses (vector-length test-vec))
@@ -634,13 +635,13 @@
             (compile-exp cmpl exp env 1 #f toplevel-p rdepth cseq))
           (loop (- idx 1))))))
 
-  (define (decons-and exp)
+  (define (decons-and cmpl exp)
     (unless (list? exp)
-      (error "failed to compile: malformed and" exp))
+      (compile-error cmpl "malformed and"))
     (list->vector (cdr exp)))
 
   (define (compile-syntax-and cmpl exp env arity tail-p toplevel-p rdepth cseq)
-    (let* ((tests (decons-and exp))
+    (let* ((tests (decons-and cmpl exp))
            (nr-tests (vector-length tests))
            (lbl-j (generate-label cmpl "and-j")))
       (when (= nr-tests 0)
@@ -661,13 +662,13 @@
                        rdepth cseq)
           (loop (- idx 1))))))
 
-  (define (decons-or exp)
+  (define (decons-or cmpl exp)
     (unless (list? exp)
-      (error "failed to compile: malformed or" exp))
+      (compile-error cmpl "malformed or"))
     (list->vector (cdr exp)))
 
   (define (compile-syntax-or cmpl exp env arity tail-p toplevel-p rdepth cseq)
-    (let* ((tests (decons-or exp))
+    (let* ((tests (decons-or cmpl exp))
            (nr-tests (vector-length tests))
            (lbl-j (generate-label cmpl "or-j")))
       (when (= nr-tests 0)
@@ -688,14 +689,14 @@
                        rdepth cseq)
           (loop (- idx 1))))))
 
-  (define (decons-when exp)
+  (define (decons-when cmpl exp)
     (let ((x (cdr exp)))
       (unless (pair? x)
-        (error "failed to compile: malformed when" exp))
+        (compile-error cmpl "malformed when"))
       x))
 
   (define (compile-syntax-when cmpl exp env arity tail-p toplevel-p rdepth cseq)
-    (let* ((x (decons-when exp))
+    (let* ((x (decons-when cmpl exp))
            (test (car x))
            (exps (cdr x))
            (lbl-j (generate-label cmpl "when-j"))
@@ -711,14 +712,14 @@
       (unshift-inst-jmpf lbl-a cseq)
       (compile-exp cmpl test env 1 #f toplevel-p rdepth cseq)))
 
-  (define (decons-unless exp)
+  (define (decons-unless cmpl exp)
     (let ((x (cdr exp)))
       (unless (pair? x)
-        (error "failed to compile: malformed unless" exp))
+        (compile-error cmpl "malformed unless"))
       x))
 
   (define (compile-syntax-unless cmpl exp env arity tail-p toplevel-p rdepth cseq)
-    (let* ((x (decons-unless exp))
+    (let* ((x (decons-unless cmpl exp))
            (test (car x))
            (exps (cdr x))
            (lbl-j (generate-label cmpl "unless-j"))
@@ -734,18 +735,18 @@
       (unshift-inst-jmpt lbl-a cseq)
       (compile-exp cmpl test env 1 #f toplevel-p rdepth cseq)))
 
-  (define (decons-let exp)
+  (define (decons-let cmpl exp)
     (let ((x (cdr exp))
           (name #f)
           (bind #f)
           (body #f))
       (unless (pair? x)
-        (error "failed to compile: malformed let" exp))
+        (compile-error cmpl "malformed let"))
       (when (symbol? (car x))
         (set! name (car x))
         (set! x (cdr x))
         (unless (pair? x)
-          (error "failed to compile: malformed let" exp)))
+          (compile-error cmpl "malformed let")))
       (set! bind (car x))
       (set! body (cdr x))
       (let loop ((bind bind)
@@ -758,17 +759,17 @@
                     body)
             (begin
               (unless (pair? bind)
-                (error "failed to compiile: malformed let" exp))
+                (compile-error cmpl "malformed let"))
               (let ((x (car bind)) (v #f) (i #f))
                 (unless (pair? x)
-                  (error "failed to compile: malformed let" exp))
+                  (compile-error cmpl "malformed let"))
                 (set! v (car x))
                 (set! x (cdr x))
                 (unless (pair? x)
-                  (error "failed to compile: malformed let" exp))
+                  (compile-error cmpl "malformed let"))
                 (set! i (car x))
                 (unless (null? (cdr x))
-                  (error "failed to compile: malformed let" exp))
+                  (compile-error cmpl "malformed let"))
                 (loop (cdr bind) (cons v vars) (cons i inits))))))))
 
   (define (cmpl-named-let-body cmpl name vars inits body env
@@ -783,7 +784,7 @@
       (rdepth-add! rdepth -1)))
 
   (define (compile-syntax-let cmpl exp env arity tail-p toplevel-p rdepth cseq)
-    (let* ((x (decons-let exp))
+    (let* ((x (decons-let cmpl exp))
            (name (vector-ref x 0))
            (vars (vector-ref x 1))
            (inits (vector-ref x 2))
@@ -813,7 +814,7 @@
         (unshift-inst-eframe cseq))))
 
   (define (compile-syntax-let* cmpl exp env arity tail-p toplevel-p rdepth cseq)
-    (let* ((x (decons-let exp))
+    (let* ((x (decons-let cmpl exp))
            (name (vector-ref x 0))
            (vars (vector-ref x 1))
            (inits (vector-ref x 2))
@@ -821,7 +822,7 @@
            (nr-vars (vector-length vars))
            (new-env env))
       (when name
-        (error "failed to compile: malformed let*" exp))
+        (compile-error cmpl "malformed let*"))
       (let loop ((idx 0))
         (when (< idx nr-vars)
           (set! new-env (cons-env (vector (vector-ref vars idx))
@@ -845,7 +846,7 @@
           (loop (- idx 1))))))
 
   (define (compile-syntax-letrec cmpl exp env arity tail-p toplevel-p rdepth cseq)
-    (let* ((x (decons-let exp))
+    (let* ((x (decons-let cmpl exp))
            (name (vector-ref x 0))
            (vars (vector-ref x 1))
            (inits (vector-ref x 2))
@@ -873,7 +874,7 @@
 
   (define (compile-syntax-letrec* cmpl exp env arity tail-p toplevel-p
                                   rdepth cseq)
-    (let* ((x (decons-let exp))
+    (let* ((x (decons-let cmpl exp))
            (name (vector-ref x 0))
            (vars (vector-ref x 1))
            (inits (vector-ref x 2))
@@ -881,7 +882,7 @@
            (nr-vars (vector-length vars))
            (new-env env))
       (when name
-        (error "failed to compile: malformed letrec*" exp))
+        (compile-error cmpl "malformed letrec*"))
       (when (> nr-vars 0)
         (set! new-env (cons-env vars #f env))
         (unless tail-p
@@ -897,7 +898,7 @@
         (unshift-inst-emine nr-vars cseq)
         (rdepth-add! rdepth -1))))
 
-  (define (decons-do exp)
+  (define (decons-do cmpl exp)
     (let ((x (cdr exp))
           (var-cls #f)
           (tst-cls #f)
@@ -908,15 +909,15 @@
           (inits #f)
           (steps #f))
       (unless (pair? x)
-        (error "failed to compile: malformed do" exp))
+        (compiler-error cmpl "malformed do"))
       (set! var-cls (car x))
       (set! x (cdr x))
       (unless (pair? x)
-        (error "failed to compile: malformed do" exp))
+        (compile-error cmpl "malformed do"))
       (set! tst-cls (car x))
       (set! cmd-cls (cdr x))
       (unless (pair? tst-cls)
-        (error "failed to compile: malformed do" exp))
+        (compile-error cmpl "malformed do"))
       (set! test (car tst-cls))
       (set! exps (cdr tst-cls))
       (let ((n (length var-cls)))
@@ -926,14 +927,14 @@
       (let loop ((vis var-cls) (idx 0))
         (unless (null? vis)
           (unless (pair? vis)
-            (error "failed to compile: malformed do" exp))
+            (compile-error cmpl "malformed do"))
           (let ((x (car vis)))
             (unless (pair? x)
-              (error "failed to compile: malformed do" exp))
+              (compile-error cmpl "malformed do"))
             (vector-set! vars idx (car x))
             (set! x (cdr x))
             (unless (pair? x)
-              (error "failed to compile: malformed do" exp))
+              (compile-error cmpl "malformed do"))
             (vector-set! inits idx (car x))
             (set! x (cdr x))
             (if (pair? x)
@@ -942,12 +943,12 @@
                   (set! x (cdr x)))
                 (vector-set! steps idx (vector-ref vars idx)))
             (unless (null? x)
-              (error "failed to compile: malformed do" exp))
+              (compile-error cmpl "malformed do"))
             (loop (cdr vis) (+ idx 1)))))
       (vector vars inits steps test exps cmd-cls)))
 
   (define (compile-syntax-do cmpl exp env arity tail-p toplevel-p rdepth cseq)
-    (let* ((x (decons-do exp))
+    (let* ((x (decons-do cmpl exp))
            (vars (vector-ref x 0))
            (inits (vector-ref x 1))
            (steps (vector-ref x 2))
@@ -994,15 +995,15 @@
             (loop (- idx 1))))
         (unshift-inst-eframe cseq))))
 
-  (define (decons-with-module exp)
+  (define (decons-with-module cmpl exp)
     (let ((x (cdr exp)))
       (unless (pair? x)
-        (error "failed to compile: malformed with-module" exp))
+        (compile-error cmpl "malformed with-module"))
       x))
 
   (define (compile-syntax-with-module cmpl exp env arity tail-p toplevel-p
                                       rdepth cseq)
-    (let* ((x (decons-with-module exp))
+    (let* ((x (decons-with-module cmpl exp))
            (name (car x))
            (exps (cdr x))
            (mod (current-module-name cmpl)))
