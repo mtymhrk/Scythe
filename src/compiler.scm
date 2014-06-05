@@ -195,7 +195,7 @@
             (append (cseq-code cseq) (rec (read port))))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(define (compile-syntax-reference cmpl exp env arity tail-p toplevel-p
+(define (syntax-handler-reference cmpl exp env arity tail-p toplevel-p
                                   rdepth cseq)
   (when tail-p (unshift-inst-return cseq))
   (let ((rslv (resolve-reference env exp #f rdepth)))
@@ -203,7 +203,7 @@
         (unshift-inst-sref (car rslv) (cdr rslv) cseq)
         (unshift-inst-gref exp (current-module-name cmpl) cseq))))
 
-(define (compile-syntax-self-eval cmpl exp env arity tail-p toplevel-p
+(define (syntax-handler-self-eval cmpl exp env arity tail-p toplevel-p
                                   rdepth cseq)
   (when tail-p (unshift-inst-return cseq))
   (unshift-inst-immval exp cseq))
@@ -233,47 +233,57 @@
             (unshift-inst-frame cseq)
             (unshift-inst-cframe cseq)))))
 
-(define (compile-syntax-application cmpl exp env arity tail-p toplevel-p
+(define (syntax-handler-application cmpl exp env arity tail-p toplevel-p
                                     rdepth cseq)
   (let ((x (decons-exp-application cmpl exp)))
     (cmpl-application cmpl (car x) (cdr x) env arity tail-p toplevel-p
                       rdepth cseq)))
 
+
+(define compiler-syntax-reference
+  (make-syntax 'reference syntax-handler-reference))
+
+(define compiler-syntax-self-eval
+  (make-syntax 'self-eval syntax-handler-self-eval))
+
+(define compiler-syntax-application
+  (make-syntax 'self-eval syntax-handler-application))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (define syntaxes '())
 
-(define (register-syntax sym handler)
-  (set! syntaxes (cons (cons sym handler) syntaxes)))
+(define (register-syntax syx)
+  (set! syntaxes (cons syx syntaxes)))
 
 (define (search-syntax sym)
   (let loop ((lst syntaxes))
     (if (null? lst)
         #f
-        (if (eq? sym (car (car lst)))
-            (cdr (car lst))
+        (if (eq? sym (syntax-keyword (car lst)))
+            (car lst)
             (loop (cdr lst))))))
 
-(define (syntax cmpl exp env tail-p toplevel-p)
+(define (get-syntax cmpl exp env tail-p toplevel-p)
   (cond ((symbol? exp)
-         compile-syntax-reference)
+         compiler-syntax-reference)
         ((pair? exp)
          (let ((key (car exp)))
            (if (symbol? key)
                (if (resolve-reference env key #f (new-rdepth))
-                   compile-syntax-application
+                   compiler-syntax-application
                    (let ((f (search-syntax key)))
                      (if f
                          f
-                         compile-syntax-application)))
-               compile-syntax-application)))
+                         compiler-syntax-application)))
+               compiler-syntax-application)))
         (else
-         compile-syntax-self-eval)))
+         compiler-syntax-self-eval)))
 
 (define (compile-exp cmpl exp env arity tail-p toplevel-p rdepth cseq)
   (let ((ce (compiler-current-expr cmpl)))
     (compiler-select-expr! cmpl exp)
     (rdepth-expand! rdepth)
-    ((syntax cmpl exp env tail-p toplevel-p)
+    ((syntax-handler (get-syntax cmpl exp env tail-p toplevel-p))
      cmpl exp env arity tail-p toplevel-p rdepth cseq)
     (rdepth-contract! rdepth)
     (compiler-select-expr! cmpl ce)))
@@ -323,7 +333,7 @@
       (compile-error cmpl "malformed define"))
     (cons var val)))
 
-(define (compile-syntax-definition cmpl exp env arity tail-p toplevel-p
+(define (syntax-handler-definition cmpl exp env arity tail-p toplevel-p
                                    rdepth cseq)
   (when (not toplevel-p)
     (compile-error cmpl "definition can apper in the toplevel or beginning of a <body>"))
@@ -336,7 +346,7 @@
 (define (decons-begin cmpl exp)
   (cdr exp))
 
-(define (compile-syntax-begin cmpl exp env arity tail-p toplevel-p
+(define (syntax-handler-begin cmpl exp env arity tail-p toplevel-p
                               rdepth cseq)
   (cmpl-exp-list cmpl (decons-begin cmpl exp) env
                  arity tail-p toplevel-p
@@ -350,15 +360,15 @@
          (compile-error cmpl "malformed <body>"))
         (else
          (let* ((exp (car body))
-                (syn (syntax cmpl exp env tail-p toplevel-p)))
+                (syx (get-syntax cmpl exp env tail-p toplevel-p)))
            (cond
-            ((eq? syn compile-syntax-definition)
+            ((eq? syx compiler-syntax-definition)
              (let ((x (decons-definition cmpl exp)))
                (decons-body-aux cmpl (cdr body) env tail-p toplevel-p
                                 (cons (car x) vars)
                                 (cons (cdr x) inits)
                                 exps)))
-            ((eq? syn compile-syntax-begin)
+            ((eq? syx compiler-syntax-begin)
              (let ((x (decons-body-aux cmpl (decons-begin cmpl exp) env
                                        tail-p toplevel-p
                                        vars inits exps)))
@@ -419,8 +429,8 @@
       (error "faild to compile: malformed quote" exp))
     (car lst)))
 
-(define (compile-syntax-quote cmpl exp env arity tail-p toplevel-p rdepth cseq)
-  (compile-syntax-self-eval cmpl (decons-quote cmpl exp) env
+(define (syntax-handler-quote cmpl exp env arity tail-p toplevel-p rdepth cseq)
+  (syntax-handler-self-eval cmpl (decons-quote cmpl exp) env
                             arity tail-p toplevel-p
                             rdepth cseq))
 
@@ -478,7 +488,7 @@
                             cseq))
   (rdepth-contract! rdepth))
 
-(define (compile-syntax-lambda cmpl exp env arity tail-p toplevel-p rdepth cseq)
+(define (syntax-handler-lambda cmpl exp env arity tail-p toplevel-p rdepth cseq)
   (let ((x (decons-lambda cmpl exp)))
     (cmpl-lambda cmpl (vector-ref x 0) (vector-ref x 1) (vector-ref x 2)
                  env arity tail-p toplevel-p rdepth cseq)))
@@ -494,7 +504,7 @@
       (compile-error cmpl "malformed assignment"))
     (cons var val)))
 
-(define (compile-syntax-assignment cmpl exp env arity tail-p toplevel-p
+(define (syntax-handler-assignment cmpl exp env arity tail-p toplevel-p
                                    rdepth cseq)
   (let* ((x (decons-assignment cmpl exp))
          (var (car x))
@@ -518,7 +528,7 @@
           (else
            (compile-error cmpl "malformed if")))))
 
-(define (compile-syntax-if cmpl exp env arity tail-p toplevel-p rdepth cseq)
+(define (syntax-handler-if cmpl exp env arity tail-p toplevel-p rdepth cseq)
   (let* ((x (decons-if cmpl exp))
          (condi (vector-ref x 0))
          (conse (vector-ref x 1))
@@ -606,7 +616,7 @@
       (unshift-inst-label lbl cseq))
     lbl))
 
-(define (compile-syntax-cond cmpl exp env arity tail-p toplevel-p rdepth cseq)
+(define (syntax-handler-cond cmpl exp env arity tail-p toplevel-p rdepth cseq)
   (let* ((x (decons-cond cmpl exp))
          (test-vec (car x))
          (expr-vec (cdr x))
@@ -639,7 +649,7 @@
     (compile-error cmpl "malformed and"))
   (list->vector (cdr exp)))
 
-(define (compile-syntax-and cmpl exp env arity tail-p toplevel-p rdepth cseq)
+(define (syntax-handler-and cmpl exp env arity tail-p toplevel-p rdepth cseq)
   (let* ((tests (decons-and cmpl exp))
          (nr-tests (vector-length tests))
          (lbl-j (generate-label cmpl "and-j")))
@@ -666,7 +676,7 @@
     (compile-error cmpl "malformed or"))
   (list->vector (cdr exp)))
 
-(define (compile-syntax-or cmpl exp env arity tail-p toplevel-p rdepth cseq)
+(define (syntax-handler-or cmpl exp env arity tail-p toplevel-p rdepth cseq)
   (let* ((tests (decons-or cmpl exp))
          (nr-tests (vector-length tests))
          (lbl-j (generate-label cmpl "or-j")))
@@ -694,7 +704,7 @@
       (compile-error cmpl "malformed when"))
     x))
 
-(define (compile-syntax-when cmpl exp env arity tail-p toplevel-p rdepth cseq)
+(define (syntax-handler-when cmpl exp env arity tail-p toplevel-p rdepth cseq)
   (let* ((x (decons-when cmpl exp))
          (test (car x))
          (exps (cdr x))
@@ -717,7 +727,7 @@
       (compile-error cmpl "malformed unless"))
     x))
 
-(define (compile-syntax-unless cmpl exp env arity tail-p toplevel-p rdepth cseq)
+(define (syntax-handler-unless cmpl exp env arity tail-p toplevel-p rdepth cseq)
   (let* ((x (decons-unless cmpl exp))
          (test (car x))
          (exps (cdr x))
@@ -782,7 +792,7 @@
     (unshift-inst-emine 1 cseq)
     (rdepth-add! rdepth -1)))
 
-(define (compile-syntax-let cmpl exp env arity tail-p toplevel-p rdepth cseq)
+(define (syntax-handler-let cmpl exp env arity tail-p toplevel-p rdepth cseq)
   (let* ((x (decons-let cmpl exp))
          (name (vector-ref x 0))
          (vars (vector-ref x 1))
@@ -812,7 +822,7 @@
           (loop (- idx 1))))
       (unshift-inst-eframe cseq))))
 
-(define (compile-syntax-let* cmpl exp env arity tail-p toplevel-p rdepth cseq)
+(define (syntax-handler-let* cmpl exp env arity tail-p toplevel-p rdepth cseq)
   (let* ((x (decons-let cmpl exp))
          (name (vector-ref x 0))
          (vars (vector-ref x 1))
@@ -844,7 +854,7 @@
         (unshift-inst-eframe cseq)
         (loop (- idx 1))))))
 
-(define (compile-syntax-letrec cmpl exp env arity tail-p toplevel-p rdepth cseq)
+(define (syntax-handler-letrec cmpl exp env arity tail-p toplevel-p rdepth cseq)
   (let* ((x (decons-let cmpl exp))
          (name (vector-ref x 0))
          (vars (vector-ref x 1))
@@ -871,7 +881,7 @@
       (unshift-inst-emine nr-vars cseq)
       (rdepth-add! rdepth -1))))
 
-(define (compile-syntax-letrec* cmpl exp env arity tail-p toplevel-p
+(define (syntax-handler-letrec* cmpl exp env arity tail-p toplevel-p
                                 rdepth cseq)
   (let* ((x (decons-let cmpl exp))
          (name (vector-ref x 0))
@@ -946,7 +956,7 @@
           (loop (cdr vis) (+ idx 1)))))
     (vector vars inits steps test exps cmd-cls)))
 
-(define (compile-syntax-do cmpl exp env arity tail-p toplevel-p rdepth cseq)
+(define (syntax-handler-do cmpl exp env arity tail-p toplevel-p rdepth cseq)
   (let* ((x (decons-do cmpl exp))
          (vars (vector-ref x 0))
          (inits (vector-ref x 1))
@@ -1000,7 +1010,7 @@
       (compile-error cmpl "malformed with-module"))
     x))
 
-(define (compile-syntax-with-module cmpl exp env arity tail-p toplevel-p
+(define (syntax-handler-with-module cmpl exp env arity tail-p toplevel-p
                                     rdepth cseq)
   (let* ((x (decons-with-module cmpl exp))
          (name (car x))
@@ -1016,30 +1026,82 @@
       (compile-error cmpl "malformed select-module"))
     (car x)))
 
-(define (compile-syntax-select-module cmpl exp env arity tail-p toplevel-p
+(define (syntax-handler-select-module cmpl exp env arity tail-p toplevel-p
                                       rdepth cseq)
   (compiler-select-module! cmpl (decons-select-module cmpl exp)))
 
-(register-syntax 'define         compile-syntax-definition)
-(register-syntax 'begin          compile-syntax-begin)
-(register-syntax 'quote          compile-syntax-quote)
-(register-syntax 'lambda         compile-syntax-lambda)
-(register-syntax 'set!           compile-syntax-assignment)
-(register-syntax 'if             compile-syntax-if)
-(register-syntax 'cond           compile-syntax-cond)
-(register-syntax 'and            compile-syntax-and)
-(register-syntax 'or             compile-syntax-or)
-(register-syntax 'when           compile-syntax-when)
-(register-syntax 'unless         compile-syntax-unless)
-(register-syntax 'let            compile-syntax-let)
-(register-syntax 'let*           compile-syntax-let*)
-(register-syntax 'letrec         compile-syntax-letrec)
-(register-syntax 'letrec*        compile-syntax-letrec*)
-(register-syntax 'do             compile-syntax-do)
-(register-syntax 'with-module    compile-syntax-with-module)
-(register-syntax 'select-module  compile-syntax-select-module)
+(define compiler-syntax-definition
+  (make-syntax 'define syntax-handler-definition))
 
+(define compiler-syntax-begin
+  (make-syntax 'begin syntax-handler-begin))
 
+(define compiler-syntax-quote
+  (make-syntax 'quote syntax-handler-quote))
+
+(define compiler-syntax-lambda
+  (make-syntax 'lambda syntax-handler-lambda))
+
+(define compiler-syntax-assignment
+  (make-syntax 'set! syntax-handler-assignment))
+
+(define compiler-syntax-if
+  (make-syntax 'if syntax-handler-if))
+
+(define compiler-syntax-cond
+  (make-syntax 'cond syntax-handler-cond))
+
+(define compiler-syntax-and
+  (make-syntax 'and syntax-handler-and))
+
+(define compiler-syntax-or
+  (make-syntax 'or syntax-handler-or))
+
+(define compiler-syntax-when
+  (make-syntax 'when syntax-handler-when))
+
+(define compiler-syntax-unless
+  (make-syntax 'unless syntax-handler-unless))
+
+(define compiler-syntax-let
+  (make-syntax 'let syntax-handler-let))
+
+(define compiler-syntax-let*
+  (make-syntax 'let* syntax-handler-let*))
+
+(define compiler-syntax-letrec
+  (make-syntax 'letrec syntax-handler-letrec))
+
+(define compiler-syntax-letrec*
+  (make-syntax 'letrec* syntax-handler-letrec*))
+
+(define compiler-syntax-do
+  (make-syntax 'do syntax-handler-do))
+
+(define compiler-syntax-with-module
+  (make-syntax 'with-module syntax-handler-with-module))
+
+(define compiler-syntax-select-module
+  (make-syntax 'select-module syntax-handler-select-module))
+
+(register-syntax compiler-syntax-definition)
+(register-syntax compiler-syntax-begin)
+(register-syntax compiler-syntax-quote)
+(register-syntax compiler-syntax-lambda)
+(register-syntax compiler-syntax-assignment)
+(register-syntax compiler-syntax-if)
+(register-syntax compiler-syntax-cond)
+(register-syntax compiler-syntax-and)
+(register-syntax compiler-syntax-or)
+(register-syntax compiler-syntax-when)
+(register-syntax compiler-syntax-unless)
+(register-syntax compiler-syntax-let)
+(register-syntax compiler-syntax-let*)
+(register-syntax compiler-syntax-letrec)
+(register-syntax compiler-syntax-letrec*)
+(register-syntax compiler-syntax-do)
+(register-syntax compiler-syntax-with-module)
+(register-syntax compiler-syntax-select-module)
 
 
 ;; (define *test-nr-test-total* 0)
