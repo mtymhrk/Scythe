@@ -916,18 +916,18 @@ scm_vm_make_cframe(ScmObj vm, ScmEnvFrame *efp, ScmEnvFrame *pefp, ScmObj cp)
 
   SCM_STACK_FRAME_PUSH(&vm);
 
-  if (scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_CCF)) {
-    scm_vmsr_relink_cf(SCM_VM(vm)->stack, SCM_VM(vm)->reg.cfp);
-    SCM_VM(vm)->reg.cfp = NULL;
-    scm_vm_ctrl_flg_clr(vm, SCM_VM_CTRL_FLG_CCF);
-  }
-
   next_sp = SCM_VM(vm)->reg.sp + sizeof(ScmCntFrame);
   if (scm_vmsr_overflow_p(SCM_VM(vm)->stack, next_sp)) {
     rslt = scm_vm_handle_stack_overflow(vm);
     if (rslt < 0) return -1;
 
     next_sp = SCM_VM(vm)->reg.sp + sizeof(ScmCntFrame);
+  }
+
+  if (scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_CCF)) {
+    scm_vmsr_relink_cf(SCM_VM(vm)->stack, SCM_VM(vm)->reg.cfp);
+    SCM_VM(vm)->reg.cfp = NULL;
+    scm_vm_ctrl_flg_clr(vm, SCM_VM_CTRL_FLG_CCF);
   }
 
   rslt = scm_vm_update_pef_len_if_needed(vm);
