@@ -262,20 +262,18 @@
             (car lst)
             (loop (cdr lst))))))
 
-(define (get-syntax cmpl exp env tail-p toplevel-p)
+(define (get-syntax cmpl exp env toplevel-p)
   (cond ((symbol? exp)
          compiler-syntax-reference)
         ((pair? exp)
          (let ((key (car exp)))
            (if (symbol? key)
-               (if (resolve-reference env key #f (new-rdepth))
-                   compiler-syntax-application
-                   (let ((syx (global-syntax-ref (compiler-current-module cmpl)
-                                                 key
-                                                 #f)))
-                     (if syx
-                         syx
-                         compiler-syntax-application)))
+               (let ((syx (global-syntax-ref (compiler-current-module cmpl)
+                                             key
+                                             #f)))
+                 (if syx
+                     syx
+                     compiler-syntax-application))
                compiler-syntax-application)))
         (else
          compiler-syntax-self-eval)))
@@ -284,7 +282,7 @@
   (let ((ce (compiler-current-expr cmpl)))
     (compiler-select-expr! cmpl exp)
     (rdepth-expand! rdepth)
-    ((syntax-handler (get-syntax cmpl exp env tail-p toplevel-p))
+    ((syntax-handler (get-syntax cmpl exp env toplevel-p))
      cmpl exp env arity tail-p toplevel-p rdepth cseq)
     (rdepth-contract! rdepth)
     (compiler-select-expr! cmpl ce)))
@@ -361,7 +359,7 @@
          (compile-error cmpl "malformed <body>"))
         (else
          (let* ((exp (car body))
-                (syx (get-syntax cmpl exp env tail-p toplevel-p)))
+                (syx (get-syntax cmpl exp env toplevel-p)))
            (cond
             ((eq? syx compiler-syntax-definition)
              (let ((x (decons-definition cmpl exp)))
