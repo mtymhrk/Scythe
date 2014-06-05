@@ -249,10 +249,14 @@ scm_vmsr_initialize(ScmObj vmsr, ScmObj segment, scm_byte_t *base, ScmObj next)
   SCM_VMSTCKRC(vmsr)->reg.pcf = false;
   SCM_VMSTCKRC(vmsr)->reg.pef = false;
   SCM_SLOT_SETQ(ScmVMStckRc, vmsr, next, next);
-  if (scm_obj_not_null_p(next))
+  if (scm_obj_not_null_p(next)) {
     SCM_VMSTCKRC(vmsr)->next_cf = SCM_VMSTCKRC(next)->reg.cfp;
-  else
+    SCM_VMSTCKRC(vmsr)->next_cf_pcf = SCM_VMSTCKRC(next)->reg.pcf;
+  }
+  else {
     SCM_VMSTCKRC(vmsr)->next_cf = NULL;
+    SCM_VMSTCKRC(vmsr)->next_cf_pcf = false;
+  }
 
   return 0;
 }
@@ -306,7 +310,7 @@ scm_vmsr_clear(ScmObj vmsr)
 }
 
 void
-scm_vmsr_relink(ScmObj vmsr, ScmObj next, ScmCntFrame *cfp)
+scm_vmsr_relink(ScmObj vmsr, ScmObj next, ScmCntFrame *cfp, bool pcf)
 {
   scm_assert_obj_type(vmsr, &SCM_VMSTCKRC_TYPE_INFO);
   scm_assert_obj_type_accept_null(next, &SCM_VMSTCKRC_TYPE_INFO);
@@ -317,10 +321,11 @@ scm_vmsr_relink(ScmObj vmsr, ScmObj next, ScmCntFrame *cfp)
 
   SCM_SLOT_SETQ(ScmVMStckRc, vmsr, next, next);
   SCM_VMSTCKRC(vmsr)->next_cf = cfp;
+  SCM_VMSTCKRC(vmsr)->next_cf_pcf = pcf;
 }
 
 void
-scm_vmsr_relink_cf(ScmObj vmsr, ScmCntFrame *cfp)
+scm_vmsr_relink_cf(ScmObj vmsr, ScmCntFrame *cfp, bool pcf)
 {
   scm_assert_obj_type(vmsr, &SCM_VMSTCKRC_TYPE_INFO);
   scm_assert((scm_obj_null_p(SCM_VMSTCKRC(vmsr)->next) && cfp == NULL)
@@ -329,6 +334,7 @@ scm_vmsr_relink_cf(ScmObj vmsr, ScmCntFrame *cfp)
                      || scm_vmsr_include_p(SCM_VMSTCKRC(vmsr)->next, (scm_byte_t *)cfp))));
 
   SCM_VMSTCKRC(vmsr)->next_cf = cfp;
+  SCM_VMSTCKRC(vmsr)->next_cf_pcf = pcf;
 }
 
 void

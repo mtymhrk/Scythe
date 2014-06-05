@@ -256,6 +256,7 @@ struct ScmVMStckRcRec {
   } reg;
   ScmObj next;
   ScmCntFrame *next_cf;
+  bool next_cf_pcf;
 };
 
 int scm_vmss_initialize(ScmObj vmss, size_t size);
@@ -270,8 +271,8 @@ void scm_vmsr_rec(ScmObj vmsr, scm_byte_t *ceil,
                   ScmCntFrame *cfp, ScmEnvFrame *efp, ScmEnvFrame *pefp,
                   bool pcf, bool pef);
 void scm_vmsr_clear(ScmObj vmsr);
-void scm_vmsr_relink(ScmObj vmsr, ScmObj next, ScmCntFrame *cfp);
-void scm_vmsr_relink_cf(ScmObj vmsr, ScmCntFrame *cfp);
+void scm_vmsr_relink(ScmObj vmsr, ScmObj next, ScmCntFrame *cfp, bool pcf);
+void scm_vmsr_relink_cf(ScmObj vmsr, ScmCntFrame *cfp, bool pcf);
 void scm_vmsr_gc_initialize(ScmObj obj, ScmObj mem);
 int scm_vmsr_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
 
@@ -377,6 +378,14 @@ scm_vmsr_pef_p(ScmObj vmsr)
   scm_assert_obj_type(vmsr, &SCM_VMSTCKRC_TYPE_INFO);
 
   return SCM_VMSTCKRC(vmsr)->reg.pef;
+}
+
+inline bool
+scm_vmsr_next_cf_pcf_p(ScmObj vmsr)
+{
+  scm_assert_obj_type(vmsr, &SCM_VMSTCKRC_TYPE_INFO);
+
+  return SCM_VMSTCKRC(vmsr)->next_cf_pcf;
 }
 
 inline bool

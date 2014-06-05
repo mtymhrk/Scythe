@@ -721,15 +721,22 @@ scm_vm_capture_stack(ScmObj vm)
     if (SCM_VM(vm)->reg.cfp == NULL
         && !scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_CCF)) {
       SCM_VM(vm)->reg.cfp = scm_vmsr_next_cf(SCM_VM(vm)->stack);
+      if (scm_vmsr_next_cf_pcf_p(SCM_VM(vm)->stack))
+        scm_vm_ctrl_flg_set(vm, SCM_VM_CTRL_FLG_PCF);
+      else
+        scm_vm_ctrl_flg_clr(vm, SCM_VM_CTRL_FLG_PCF);
       scm_vm_ctrl_flg_set(vm, SCM_VM_CTRL_FLG_CCF);
     }
     return scm_vmsr_next(SCM_VM(vm)->stack);
   }
 
   if (scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_CCF)) {
-    scm_vmsr_relink_cf(SCM_VM(vm)->stack, SCM_VM(vm)->reg.cfp);
+    scm_vmsr_relink_cf(SCM_VM(vm)->stack,
+                       SCM_VM(vm)->reg.cfp,
+                       scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_PCF));
     SCM_VM(vm)->reg.cfp = NULL;
     scm_vm_ctrl_flg_clr(vm, SCM_VM_CTRL_FLG_CCF);
+    scm_vm_ctrl_flg_clr(vm, SCM_VM_CTRL_FLG_PCF);
   }
 
   rslt = scm_vm_update_pef_len_if_needed(vm);
@@ -769,7 +776,8 @@ scm_vm_restore_stack(ScmObj vm, ScmObj stack)
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
   scm_assert_obj_type(stack, &SCM_VMSTCKRC_TYPE_INFO);
 
-  scm_vmsr_relink(SCM_VM(vm)->stack, stack, scm_vmsr_cfp(stack));
+  scm_vmsr_relink(SCM_VM(vm)->stack, stack,
+                  scm_vmsr_cfp(stack), scm_vmsr_pcf_p(stack));
 
   SCM_VM(vm)->reg.sp = scm_vmsr_base(SCM_VM(vm)->stack);
   SCM_VM(vm)->reg.cfp = scm_vmsr_cfp(stack);
@@ -795,6 +803,7 @@ scm_vm_handle_stack_overflow(ScmObj vm)
 {
   ScmObj vmss = SCM_OBJ_INIT, vmsr = SCM_OBJ_INIT, next = SCM_OBJ_INIT;
   ScmCntFrame *next_cf;
+  bool next_cf_pcf;
   size_t size;
   int rslt;
 
@@ -804,9 +813,12 @@ scm_vm_handle_stack_overflow(ScmObj vm)
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
   if (scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_CCF)) {
-    scm_vmsr_relink_cf(SCM_VM(vm)->stack, SCM_VM(vm)->reg.cfp);
+    scm_vmsr_relink_cf(SCM_VM(vm)->stack,
+                       SCM_VM(vm)->reg.cfp,
+                       scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_PCF));
     SCM_VM(vm)->reg.cfp = NULL;
     scm_vm_ctrl_flg_clr(vm, SCM_VM_CTRL_FLG_CCF);
+    scm_vm_ctrl_flg_clr(vm, SCM_VM_CTRL_FLG_PCF);
   }
 
   rslt = scm_vm_update_pef_len_if_needed(vm);
@@ -820,10 +832,12 @@ scm_vm_handle_stack_overflow(ScmObj vm)
                  scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_PEF));
     next = SCM_VM(vm)->stack;
     next_cf = SCM_VM(vm)->reg.cfp;
+    next_cf_pcf = scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_PCF);
   }
   else {
     next = scm_vmsr_next(SCM_VM(vm)->stack);
     next_cf = scm_vmsr_next_cf(SCM_VM(vm)->stack);
+    next_cf_pcf = scm_vmsr_next_cf_pcf_p(SCM_VM(vm)->stack);
   }
 
   /* partial environment frame のコピーでスタックオーバーフローが繰り返し発
@@ -855,6 +869,11 @@ scm_vm_handle_stack_overflow(ScmObj vm)
 
   scm_vm_ctrl_flg_set(vm, SCM_VM_CTRL_FLG_CCF);
 
+  if (next_cf_pcf)
+    scm_vm_ctrl_flg_set(vm, SCM_VM_CTRL_FLG_PCF);
+  else
+    scm_vm_ctrl_flg_clr(vm, SCM_VM_CTRL_FLG_PCF);
+
   rslt = scm_vm_copy_pef_to_top_of_stack_if_needed(vm);
   if (rslt < 0) return -1;
 
@@ -866,6 +885,7 @@ scm_vm_handle_stack_underflow(ScmObj vm)
 {
   ScmObj next = SCM_OBJ_INIT;
   ScmCntFrame *next_cf;
+  bool next_cf_pcf;
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
@@ -876,6 +896,8 @@ scm_vm_handle_stack_underflow(ScmObj vm)
     return 0;
 
   next_cf = SCM_VM(vm)->reg.cfp;
+  next_cf_pcf = scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_PCF);
+
   if (scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_CCF))
     next = scm_vmsr_next(SCM_VM(vm)->stack);
   else
@@ -883,6 +905,7 @@ scm_vm_handle_stack_underflow(ScmObj vm)
 
   while (next_cf == NULL) {
     next_cf = scm_vmsr_next_cf(next);
+    next_cf_pcf = scm_vmsr_next_cf_pcf_p(next);
     next = scm_vmsr_next(next);
     if (scm_obj_null_p(next)) {
       scm_capi_error("stack underflow has occurred", 0);
@@ -890,7 +913,7 @@ scm_vm_handle_stack_underflow(ScmObj vm)
     }
   }
 
-  scm_vmsr_relink(SCM_VM(vm)->stack, next, next_cf);
+  scm_vmsr_relink(SCM_VM(vm)->stack, next, next_cf, next_cf_pcf);
 
   /* XXX: pop_cframe で underflow を検出した場合、この地点以降、efp レジス
    *      タが、どこからも参照されていないスタックセグメント上のフレームを
@@ -900,8 +923,11 @@ scm_vm_handle_stack_underflow(ScmObj vm)
    */
 
   SCM_VM(vm)->reg.cfp = next_cf;
-
   scm_vm_ctrl_flg_set(vm, SCM_VM_CTRL_FLG_CCF);
+  if (next_cf_pcf)
+    scm_vm_ctrl_flg_set(vm, SCM_VM_CTRL_FLG_PCF);
+  else
+    scm_vm_ctrl_flg_clr(vm, SCM_VM_CTRL_FLG_PCF);
 
   return 0;
 }
@@ -926,9 +952,12 @@ scm_vm_make_cframe(ScmObj vm, ScmEnvFrame *efp, ScmEnvFrame *pefp, ScmObj cp)
   }
 
   if (scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_CCF)) {
-    scm_vmsr_relink_cf(SCM_VM(vm)->stack, SCM_VM(vm)->reg.cfp);
+    scm_vmsr_relink_cf(SCM_VM(vm)->stack,
+                       SCM_VM(vm)->reg.cfp,
+                       scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_PCF));
     SCM_VM(vm)->reg.cfp = NULL;
     scm_vm_ctrl_flg_clr(vm, SCM_VM_CTRL_FLG_CCF);
+    scm_vm_ctrl_flg_clr(vm, SCM_VM_CTRL_FLG_PCF);
   }
 
   rslt = scm_vm_update_pef_len_if_needed(vm);
