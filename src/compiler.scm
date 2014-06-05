@@ -250,10 +250,9 @@
   (make-syntax 'self-eval syntax-handler-application))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(define syntaxes '())
 
-(define (register-syntax syx)
-  (set! syntaxes (cons syx syntaxes)))
+(define (register-syntax mod syx exp)
+  (global-syntax-bind mod (syntax-keyword syx) syx exp))
 
 (define (search-syntax sym)
   (let loop ((lst syntaxes))
@@ -271,9 +270,11 @@
            (if (symbol? key)
                (if (resolve-reference env key #f (new-rdepth))
                    compiler-syntax-application
-                   (let ((f (search-syntax key)))
-                     (if f
-                         f
+                   (let ((syx (global-syntax-ref (compiler-current-module cmpl)
+                                                 key
+                                                 #f)))
+                     (if syx
+                         syx
                          compiler-syntax-application)))
                compiler-syntax-application)))
         (else
@@ -1084,24 +1085,24 @@
 (define compiler-syntax-select-module
   (make-syntax 'select-module syntax-handler-select-module))
 
-(register-syntax compiler-syntax-definition)
-(register-syntax compiler-syntax-begin)
-(register-syntax compiler-syntax-quote)
-(register-syntax compiler-syntax-lambda)
-(register-syntax compiler-syntax-assignment)
-(register-syntax compiler-syntax-if)
-(register-syntax compiler-syntax-cond)
-(register-syntax compiler-syntax-and)
-(register-syntax compiler-syntax-or)
-(register-syntax compiler-syntax-when)
-(register-syntax compiler-syntax-unless)
-(register-syntax compiler-syntax-let)
-(register-syntax compiler-syntax-let*)
-(register-syntax compiler-syntax-letrec)
-(register-syntax compiler-syntax-letrec*)
-(register-syntax compiler-syntax-do)
-(register-syntax compiler-syntax-with-module)
-(register-syntax compiler-syntax-select-module)
+(register-syntax '(scheme base) compiler-syntax-definition #t)
+(register-syntax '(scheme base) compiler-syntax-begin #t)
+(register-syntax '(scheme base) compiler-syntax-quote #t)
+(register-syntax '(scheme base) compiler-syntax-lambda #t)
+(register-syntax '(scheme base) compiler-syntax-assignment #t)
+(register-syntax '(scheme base) compiler-syntax-if #t)
+(register-syntax '(scheme base) compiler-syntax-cond #t)
+(register-syntax '(scheme base) compiler-syntax-and #t)
+(register-syntax '(scheme base) compiler-syntax-or #t)
+(register-syntax '(scheme base) compiler-syntax-when #t)
+(register-syntax '(scheme base) compiler-syntax-unless #t)
+(register-syntax '(scheme base) compiler-syntax-let #t)
+(register-syntax '(scheme base) compiler-syntax-let* #t)
+(register-syntax '(scheme base) compiler-syntax-letrec #t)
+(register-syntax '(scheme base) compiler-syntax-letrec* #t)
+(register-syntax '(scheme base) compiler-syntax-do #t)
+(register-syntax '(scheme base) compiler-syntax-with-module #t)
+(register-syntax '(scheme base) compiler-syntax-select-module #t)
 
 
 ;; (define *test-nr-test-total* 0)
