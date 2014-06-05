@@ -8642,7 +8642,7 @@ scm_capi_pformat_lst_aux(ScmObj port, ScmObj fmt, size_t len, ScmObj lst)
   ScmEncoding *enc;
   bool escaped;
 
-  SCM_STACK_FRAME_PUSH(&port, &fmt,
+  SCM_STACK_FRAME_PUSH(&port, &fmt, &lst,
                        &o);
 
   scm_assert(scm_capi_output_port_p(port));
