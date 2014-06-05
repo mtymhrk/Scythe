@@ -2224,12 +2224,14 @@ scm_subr_func_eval(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj compile = SCM_OBJ_INIT, postproc = SCM_OBJ_INIT;
   ScmObj subr_mod = SCM_OBJ_INIT, args = SCM_OBJ_INIT;
+  ScmObj cmpl = SCM_OBJ_INIT;
   int r;
 
 
   SCM_STACK_FRAME_PUSH(&subr,
                        &compile, &postproc,
-                       &subr_mod, &args);
+                       &subr_mod, &args,
+                       &cmpl);
 
 
   r = scm_capi_subrutine_module(subr, SCM_CSETTER_L(subr_mod));
@@ -2248,7 +2250,16 @@ scm_subr_func_eval(ScmObj subr, int argc, const ScmObj *argv)
                                      2, 0, subr_mod);
   if (scm_obj_null_p(postproc)) return -1;
 
-  args = scm_api_cons(argv[0], argv[1]);
+  if (scm_capi_nil_p(argv[1])) {
+    cmpl = scm_api_make_compiler(SCM_OBJ_NULL);
+    if (scm_obj_null_p(cmpl)) return -1;
+
+    args = scm_capi_list(2, argv[0], cmpl);
+  }
+  else {
+    args = scm_api_cons(argv[0], argv[1]);
+  }
+
   if (scm_obj_null_p(args)) return -1;
 
   return scm_capi_trampolining(compile, args, postproc, SCM_OBJ_NULL);

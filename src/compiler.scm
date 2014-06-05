@@ -175,17 +175,16 @@
 
   (define (get-compiler-from-arg arg)
     (cond
-     ((null? arg) (make-compiler))
-     ((compiler? (car arg)) (car arg))
-     (else (make-compiler (car arg)))))
+     ((compiler? arg) arg)
+     (else (make-compiler arg))))
 
-  (define (compile exp . arg)
+  (define (compile exp arg)
     (let ((cmpl (get-compiler-from-arg arg))
           (cseq (new-cseq)))
       (compile-exp cmpl exp (new-env) 1 #f #t (new-rdepth) cseq)
       (cseq-code cseq)))
 
-  (define (compile-file file . arg)
+  (define (compile-file file arg)
     (let ((cmpl (get-compiler-from-arg arg))
           (port (open-input-file file)))
       (let rec ((exp (read port)))

@@ -9392,7 +9392,10 @@ scm_capi_ut_compile(ScmEvaluator *ev, ScmObj exp)
     return SCM_OBJ_NULL;
   }
 
-  args = scm_api_cons(exp, SCM_NIL_OBJ);
+  args = scm_api_make_compiler(SCM_OBJ_NULL);
+  if (scm_obj_null_p(args)) return SCM_OBJ_NULL;
+
+  args = scm_capi_list(2, exp, args);
   if (scm_obj_null_p(args)) return SCM_OBJ_NULL;
 
   val = scm_vm_apply(scm_vm_current_vm(), compile, args);
