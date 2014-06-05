@@ -1,0 +1,6 @@
+#ifndef INCLUDE_COMPILER_CODE_H__
+#define INCLUDE_COMPILER_CODE_H__
+
+static const char *compiler_code = <%= code %>;
+
+#endif  /* INCLUDE_COMPILER_CODE_H__ */

@@ -83,7 +83,8 @@
  ../api_enum.h ../api_type.h ../chashtbl.h ../module.h
 ../core_modules.o: ../core_modules.c ../object.h ../impl_utils.h \
  /home/hiroki/work/scythe/build/src/config.h ../api.h ../encoding.h \
- ../api_enum.h ../api_type.h ../compiler.h ../core_subr.h ../repl_code.h
+ ../api_enum.h ../api_type.h ../core_subr.h ../compiler_code.h \
+ ../repl_code.h
 ../fixnum.o: ../fixnum.c ../object.h ../impl_utils.h \
  /home/hiroki/work/scythe/build/src/config.h ../reference.h ../api_enum.h \
  ../api_type.h ../api.h ../encoding.h ../number_common.h ../bignum.h \

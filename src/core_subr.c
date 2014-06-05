@@ -2291,54 +2291,6 @@ scm_subr_func_exit(ScmObj subr, int argc, const ScmObj *argv)
 
 
 /*******************************************************************/
-/*  Compiler                                                       */
-/*******************************************************************/
-
-int
-scm_subr_func_compile(ScmObj subr, int argc, const ScmObj *argv)
-{
-  ScmObj val = SCM_OBJ_INIT, mod = SCM_OBJ_INIT;
-
-  SCM_STACK_FRAME_PUSH(&subr,
-                        &val, &mod);
-
-  mod = SCM_OBJ_NULL;
-  if (scm_capi_pair_p(argv[1])) {
-    mod = scm_api_car(argv[1]);
-    if (scm_obj_null_p(mod)) return -1;
-  }
-
-  val = scm_capi_compile(argv[0], mod, true);
-  if (scm_obj_null_p(val)) return -1;
-
-  return scm_capi_return_val(&val, 1);
-}
-
-int
-scm_subr_func_compile_file(ScmObj subr, int argc, const ScmObj *argv)
-{
-  ScmObj port = SCM_OBJ_INIT, val = SCM_OBJ_INIT, mod = SCM_OBJ_INIT;
-
-  SCM_STACK_FRAME_PUSH(&subr,
-                       &port, &val, &mod);
-
-  mod = SCM_OBJ_NULL;
-  if (scm_capi_pair_p(argv[1])) {
-    mod = scm_api_car(argv[1]);
-    if (scm_obj_null_p(mod)) return -1;
-  }
-
-  port = scm_api_open_input_file(argv[0]);
-  if (scm_obj_null_p(port)) return -1;
-
-  val = scm_capi_compile_port(port, mod, true);
-  if (scm_obj_null_p(val)) return -1;
-
-  return scm_capi_return_val(&val, 1);
-}
-
-
-/*******************************************************************/
 /*  format                                                         */
 /*******************************************************************/
 

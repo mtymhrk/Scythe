@@ -3,7 +3,6 @@
 
 #include "object.h"
 #include "api.h"
-#include "compiler.h"
 #include "core_subr.h"
 #include "impl_utils.h"
 
@@ -92,7 +91,6 @@ scm_load_module(const char * const *name_str, size_t n,
 }
 
 
-static int scm_load_module_scheme_base_syntax(void);
 static int scm_load_module_scheme_base(void);
 static int scm_load_module_scheme_char(void);
 static int scm_load_module_scythe_internal_compile(void);
@@ -105,33 +103,6 @@ static int scm_load_module_main(void);
 /*******************************************************************/
 /*  (scheme base)                                                  */
 /*******************************************************************/
-
-static int
-scm_load_module_func_scheme_base_syntax(ScmObj mod)
-{
-  ScmObj name = SCM_OBJ_INIT;
-  int rslt;
-
-  SCM_STACK_FRAME_PUSH(&mod,
-                       &name);
-
-
-  /*
-   * define syntax
-   */
-
-  rslt = scm_cmpl_define_syntax(mod);
-  if (rslt < 0) return -1;
-
-  return 0;
-}
-
-static int
-scm_load_module_scheme_base_syntax(void)
-{
-  return scm_load_module(STRARY("scheme", "base", "syntax"), 3,
-                         scm_load_module_func_scheme_base_syntax);
-}
 
 static int
 scm_define_scheme_base_subr(ScmObj module)
@@ -419,18 +390,6 @@ scm_load_module_func_scheme_base(ScmObj mod)
   SCM_STACK_FRAME_PUSH(&mod,
                        &name);
 
-  /*
-   * load (scheme base syntax) module and import it
-   */
-
-  rslt = scm_load_module_scheme_base_syntax();
-  if (rslt < 0) return -1;
-
-  name = scm_make_module_name(STRARY("scheme", "base", "syntax"), 3);
-  if (scm_obj_null_p(name)) return -1;
-
-  rslt = scm_capi_import(mod, name, false);
-  if (rslt < 0) return -1;
 
   /*
    * define global variables
@@ -535,21 +494,49 @@ scm_load_module_scheme_char(void)
 /*******************************************************************/
 
 static int
-scm_define_scythe_internal_compile_subr(ScmObj module)
+scm_define_scythe_internal_compile_var(ScmObj module)
 {
-  static const struct subr_data data[] = {
-    /*******************************************************************/
-    /*  compile                                                        */
-    /*******************************************************************/
-    { "compile", SCM_SUBR_ARITY_COMPILE, SCM_SUBR_FLAG_COMPILE, scm_subr_func_compile },
-    { "compile-file", SCM_SUBR_ARITY_COMPILE_FILE, SCM_SUBR_FLAG_COMPILE_FILE, scm_subr_func_compile_file },
-  };
-
+  ScmObj sym = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&module);
+  SCM_STACK_FRAME_PUSH(&module,
+                       &sym, &val);
 
-  rslt = scm_define_subr(module, data, sizeof(data)/sizeof(data[0]));
+  sym = scm_capi_make_symbol_from_cstr("number-of-padding-arity-check",
+                                       SCM_ENC_SRC);
+  if (scm_obj_null_p(sym)) return -1;
+
+  val = scm_capi_make_number_from_sword(SCM_INST_SZ_ARITY / SCM_INST_SZ_NOP);
+  if (scm_obj_null_p(sym)) return -1;
+
+  rslt = scm_capi_define_global_var(module, sym, val, false);
+  if (rslt < 0) return -1;
+
+  return 0;
+}
+
+#include "compiler_code.h"
+
+static int
+scm_define_scythe_internal_compile_closure(ScmObj mod)
+{
+  ScmObj port = SCM_OBJ_INIT, lst = SCM_OBJ_INIT, iseq = SCM_OBJ_INIT;
+  int rslt;
+
+  SCM_STACK_FRAME_PUSH(&mod,
+                       &port, &lst, &iseq);
+
+  port = scm_capi_open_input_string_cstr(compiler_code,
+                                         SCM_ENC_NAME_SRC);
+  if (scm_obj_null_p(port)) return -1;
+
+  lst = scm_api_read(port);
+  if (scm_obj_null_p(lst)) return -1;
+
+  iseq = scm_api_assemble(lst, SCM_OBJ_NULL);
+  if (scm_obj_null_p(iseq)) return -1;
+
+  rslt = scm_capi_load_iseq(iseq);
   if (rslt < 0) return -1;
 
   return 0;
@@ -560,6 +547,10 @@ scm_load_module_func_scythe_internal_compile(ScmObj mod)
 {
   ScmObj name = SCM_OBJ_INIT;
   int rslt;
+
+  /* TODO: compile モジュールのロードが非常に重いので㷀然する
+   *       (compiler のコードのデシリアライズが重い)
+   */
 
   SCM_STACK_FRAME_PUSH(&name, &mod);
 
@@ -581,7 +572,10 @@ scm_load_module_func_scythe_internal_compile(ScmObj mod)
    * define global variables
    */
 
-  rslt = scm_define_scythe_internal_compile_subr(mod);
+  rslt = scm_define_scythe_internal_compile_var(mod);
+  if (rslt < 0) return -1;
+
+  rslt = scm_define_scythe_internal_compile_closure(mod);
   if (rslt < 0) return -1;
 
   return 0;
@@ -830,7 +824,6 @@ int
 scm_load_core_modules(void)
 {
   int (*func[])(void) = {
-    scm_load_module_scheme_base_syntax,
     scm_load_module_scheme_base,
     scm_load_module_scheme_char,
     scm_load_module_scythe_internal_compile,

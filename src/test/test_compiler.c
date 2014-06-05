@@ -13,12 +13,6 @@ cut_startup(void)
 }
 
 void
-cut_setup(void)
-{
-  scm_capi_ut_clear_compiler_label_id();
-}
-
-void
 cut_shutdown(void)
 {
   scm_capi_evaluator_end(ev);
@@ -2037,7 +2031,8 @@ test_scm_api_compile__cond_001(void)
   ScmObj exp = SCM_OBJ_INIT, port = SCM_OBJ_INIT;
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
   const char *exp_str = "(cond)";
-  const char *asm_str = "((undef))";
+  const char *asm_str = "((undef)"
+                        " (label lbl_cond-j_0))";
 
   SCM_STACK_FRAME_PUSH(&exp, &port,
                        &actual, &expected);
@@ -2087,8 +2082,7 @@ test_scm_api_compile__cond_003(void)
   ScmObj exp = SCM_OBJ_INIT, port = SCM_OBJ_INIT;
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
   const char *exp_str = "(cond (else 'a))";
-  const char *asm_str = "((label lbl_cond-c_1)"
-                        "    (immval a)"
+  const char *asm_str = "(   (immval a)"
                         " (label lbl_cond-j_0))";
 
   SCM_STACK_FRAME_PUSH(&exp, &port,
@@ -2146,16 +2140,16 @@ test_scm_api_compile__cond_005(void)
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
   const char *exp_str = "(cond ('a 'b)('c 'd))";
   const char *asm_str = "(   (immval a)"
-                        "    (jmpt lbl_cond-c_2)"
-                        "    (immval c)"
                         "    (jmpt lbl_cond-c_1)"
+                        "    (immval c)"
+                        "    (jmpt lbl_cond-c_2)"
                         "    (undef)"
                         "    (jmp lbl_cond-j_0)"
                         " (label lbl_cond-c_2)"
-                        "    (immval b)"
+                        "    (immval d)"
                         "    (jmp lbl_cond-j_0)"
                         " (label lbl_cond-c_1)"
-                        "    (immval d)"
+                        "    (immval b)"
                         " (label lbl_cond-j_0))";
 
   SCM_STACK_FRAME_PUSH(&exp, &port,
@@ -2217,9 +2211,9 @@ test_scm_api_compile__cond_007(void)
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
   const char *exp_str = "(cond ('a => write)('b => write))";
   const char *asm_str = "(   (immval a)"
-                        "    (jmpt lbl_cond-c_2)"
-                        "    (immval b)"
                         "    (jmpt lbl_cond-c_1)"
+                        "    (immval b)"
+                        "    (jmpt lbl_cond-c_2)"
                         "    (undef)"
                         "    (jmp lbl_cond-j_0)"
                         " (label lbl_cond-c_2)"
@@ -2407,9 +2401,8 @@ test_scm_api_compile__cond_013(void)
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
   const char *exp_str = "(lambda () (cond (else 'a)))";
   const char *asm_str = "((asm-close 0 0"
-                        "   ((label lbl_cond-c_0)"
-                        "       (immval a)"
-                        "       (return))))";
+                        "   ((immval a)"
+                        "    (return))))";
 
   SCM_STACK_FRAME_PUSH(&exp, &port,
                        &actual, &expected);
@@ -2499,15 +2492,15 @@ test_scm_api_compile__cond_016(void)
   const char *exp_str = "(lambda () (cond ('a)('b 'c)))";
   const char *asm_str = "((asm-close 0 0"
                         "   (   (immval a)"
-                        "       (jmpt lbl_cond-c_1)"
-                        "       (immval b)"
                         "       (jmpt lbl_cond-c_0)"
+                        "       (immval b)"
+                        "       (jmpt lbl_cond-c_1)"
                         "       (undef)"
                         "       (return)"
                         "    (label lbl_cond-c_1)"
+                        "       (immval c)"
                         "       (return)"
                         "    (label lbl_cond-c_0)"
-                        "       (immval c)"
                         "       (return))))";
 
 
@@ -2536,15 +2529,15 @@ test_scm_api_compile__cond_017(void)
   const char *exp_str = "(lambda () (cond ('a 'b)('c)))";
   const char *asm_str = "((asm-close 0 0"
                         "   (   (immval a)"
-                        "       (jmpt lbl_cond-c_1)"
-                        "       (immval c)"
                         "       (jmpt lbl_cond-c_0)"
+                        "       (immval c)"
+                        "       (jmpt lbl_cond-c_1)"
                         "       (undef)"
                         "       (return)"
                         "    (label lbl_cond-c_1)"
-                        "       (immval b)"
                         "       (return)"
                         "    (label lbl_cond-c_0)"
+                        "       (immval b)"
                         "       (return))))";
 
 
@@ -3145,10 +3138,10 @@ test_scm_api_compile__when_003(void)
   const char *exp_str = "(lambda () (when 'a))";
   const char *asm_str = "((asm-close 0 0"
                         "   (   (immval a)"
-                        "       (jmpf lbl_when-a_0)"
+                        "       (jmpf lbl_when-a_1)"
                         "       (undef)"
                         "       (return)"
-                        "    (label lbl_when-a_0)"
+                        "    (label lbl_when-a_1)"
                         "       (undef)"
                         "       (return))))";
 
@@ -3177,10 +3170,10 @@ test_scm_api_compile__when_004(void)
   const char *exp_str = "(lambda () (when 'a 'b))";
   const char *asm_str = "((asm-close 0 0"
                         "   (   (immval a)"
-                        "       (jmpf lbl_when-a_0)"
+                        "       (jmpf lbl_when-a_1)"
                         "       (immval b)"
                         "       (return)"
-                        "    (label lbl_when-a_0)"
+                        "    (label lbl_when-a_1)"
                         "       (undef)"
                         "       (return))))";
 
@@ -3258,7 +3251,7 @@ test_scm_api_compile__when_006(void)
                         "       (gref null? (main))"
                         "       (call 1)"
                         "       (arity 1)"
-                        "       (jmpf lbl_when-a_0)"
+                        "       (jmpf lbl_when-a_1)"
                         "       (eframe)"
                         "       (immval a)"
                         "       (push)"
@@ -3266,7 +3259,7 @@ test_scm_api_compile__when_006(void)
                         "       (push)"
                         "       (gref cons (main))"
                         "       (tcall 2)"
-                        "    (label lbl_when-a_0)"
+                        "    (label lbl_when-a_1)"
                         "       (undef)"
                         "       (return))))";
 
@@ -3401,10 +3394,10 @@ test_scm_api_compile__unless_003(void)
   const char *exp_str = "(lambda () (unless 'a))";
   const char *asm_str = "((asm-close 0 0"
                         "   (   (immval a)"
-                        "       (jmpt lbl_unless-a_0)"
+                        "       (jmpt lbl_unless-a_1)"
                         "       (undef)"
                         "       (return)"
-                        "    (label lbl_unless-a_0)"
+                        "    (label lbl_unless-a_1)"
                         "       (undef)"
                         "       (return))))";
 
@@ -3433,10 +3426,10 @@ test_scm_api_compile__unless_004(void)
   const char *exp_str = "(lambda () (unless 'a 'b))";
   const char *asm_str = "((asm-close 0 0"
                         "   (   (immval a)"
-                        "       (jmpt lbl_unless-a_0)"
+                        "       (jmpt lbl_unless-a_1)"
                         "       (immval b)"
                         "       (return)"
-                        "    (label lbl_unless-a_0)"
+                        "    (label lbl_unless-a_1)"
                         "       (undef)"
                         "       (return))))";
 
@@ -3514,7 +3507,7 @@ test_scm_api_compile__unless_006(void)
                         "       (gref null? (main))"
                         "       (call 1)"
                         "       (arity 1)"
-                        "       (jmpt lbl_unless-a_0)"
+                        "       (jmpt lbl_unless-a_1)"
                         "       (eframe)"
                         "       (immval a)"
                         "       (push)"
@@ -3522,7 +3515,7 @@ test_scm_api_compile__unless_006(void)
                         "       (push)"
                         "       (gref cons (main))"
                         "       (tcall 2)"
-                        "    (label lbl_unless-a_0)"
+                        "    (label lbl_unless-a_1)"
                         "       (undef)"
                         "       (return))))";
 
