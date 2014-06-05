@@ -161,40 +161,29 @@
     (resolve-reference-aux env sym assigned rdepth 0))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-  (define (new-compiler mod)
-    (vector 'compiler 0 mod '()))
-
   (define (generate-label cmpl prefix)
-    (let* ((id  (vector-ref cmpl 1))
-           (str (if prefix
-                    (format "lbl_~a_~a" prefix id)
-                    (format "lbl_~a" id))))
-      (vector-set! cmpl 1 (+ id 1))
-      (string->symbol str)))
-
-  (define (select-module! cmpl mod)
-    (vector-set! cmpl 2 mod))
-
-  (define (current-expr cmpl)
-    (vector-ref cmpl 3))
-
-  (define (set-current-expr! cmpl expr)
-    (vector-set! cmpl 3 expr))
-
-  ;; TODO: C 側で定義する
-  (define (module-name x) x)
+    (let ((id  (compiler-assign-label-id! cmpl)))
+      (string->symbol (if prefix
+                          (format "lbl_~a_~a" prefix id)
+                          (format "lbl_~a" id)))))
 
   (define (current-module-name cmpl)
-    (module-name (vector-ref cmpl 2)))
+    (module-name (compiler-current-module cmpl)))
 
-  (define (compile exp . mod)
-    (let ((cmpl (new-compiler (if (null? mod) '(main) (car mod))))
+  (define (get-compiler-from-arg arg)
+    (cond
+     ((null? arg) (make-compiler))
+     ((compiler? (car arg)) (car arg))
+     (else (make-compiler (car arg)))))
+
+  (define (compile exp . arg)
+    (let ((cmpl (get-compiler-from-arg arg))
           (cseq (new-cseq)))
       (compile-exp cmpl exp (new-env) 1 #f #t (new-rdepth) cseq)
       (cseq-code cseq)))
 
-  (define (compile-file file . mod)
-    (let ((cmpl (new-compiler (if (null? mod) '(main) (car mod))))
+  (define (compile-file file . arg)
+    (let ((cmpl (get-compiler-from-arg arg))
           (port (open-input-file file)))
       (let rec ((exp (read port)))
         (if (eof-object? exp)
@@ -279,13 +268,13 @@
            compile-syntax-self-eval)))
 
   (define (compile-exp cmpl exp env arity tail-p toplevel-p rdepth cseq)
-    (let ((ce (current-expr cmpl)))
-      (set-current-expr! cmpl exp)
+    (let ((ce (compiler-current-expr cmpl)))
+      (compiler-select-expr! cmpl exp)
       (rdepth-expand! rdepth)
       ((syntax cmpl exp env tail-p toplevel-p)
        cmpl exp env arity tail-p toplevel-p rdepth cseq)
       (rdepth-contract! rdepth)
-      (set-current-expr! cmpl ce)))
+      (compiler-select-expr! cmpl ce)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -297,7 +286,8 @@
   (define (cmpl-exp-list cmpl explst env arity tail-p toplevel-p
                          rdepth cseq)
     (unless (list? explst)
-      (error "failed to compile: malformed expression" (current-expr cmpl)))
+      (error "failed to compile: malformed expression"
+             (compiler-current-expr cmpl)))
     (let* ((expvec (list->vector explst))
            (len (vector-length expvec)))
       (if (= len 0)
@@ -356,7 +346,8 @@
     (cond ((null? body)
            (vector vars inits exps))
           ((not (pair? body))
-           (error "failed to compile: malformed <body>" (current-expr cmpl)))
+           (error "failed to compile: malformed <body>"
+                  (compiler-current-expr cmpl)))
           (else
            (let* ((exp (car body))
                   (syn (syntax cmpl exp env tail-p toplevel-p)))
@@ -1015,9 +1006,9 @@
            (name (car x))
            (exps (cdr x))
            (mod (current-module-name cmpl)))
-      (select-module! cmpl name)
+      (compiler-select-module! cmpl name)
       (cmpl-exp-list cmpl exps env arity tail-p toplevel-p rdepth cseq)
-      (select-module! cmpl mod)))
+      (compiler-select-module! cmpl mod)))
 
   (register-syntax 'define       compile-syntax-definition)
   (register-syntax 'begin        compile-syntax-begin)
