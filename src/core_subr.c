@@ -2449,13 +2449,21 @@ scm_subr_func_compiler_select_expr_i(ScmObj subr, int argc, const ScmObj *argv)
 static int
 scm_subr_func_eval_file__loop(ScmObj subr, int argc, const ScmObj *argv)
 {
+  ScmObj port = SCM_OBJ_INIT, cmpl = SCM_OBJ_INIT;
   ScmObj eval = SCM_OBJ_INIT, exp = SCM_OBJ_INIT, args = SCM_OBJ_INIT;
   int r;
 
   SCM_STACK_FRAME_PUSH(&subr,
+                       &port, &cmpl,
                        &eval, &exp, &args);
 
-  exp = scm_api_read(argv[0]);
+  port = scm_api_car(argv[0]);
+  if (scm_obj_null_p(port)) return -1;
+
+  cmpl = scm_api_cdr(argv[0]);
+  if (scm_obj_null_p(cmpl)) return -1;
+
+  exp = scm_api_read(port);
   if (scm_obj_null_p(exp)) return -1;
 
   if (scm_capi_eof_object_p(exp))
@@ -2469,7 +2477,7 @@ scm_subr_func_eval_file__loop(ScmObj subr, int argc, const ScmObj *argv)
     return -1;
   }
 
-  args = scm_api_cons(exp, SCM_NIL_OBJ);
+  args = scm_capi_list(2, exp, cmpl);
 
   return scm_capi_trampolining(eval, args, subr, argv[0]);
 }
@@ -2477,21 +2485,28 @@ scm_subr_func_eval_file__loop(ScmObj subr, int argc, const ScmObj *argv)
 int
 scm_subr_func_eval_file(ScmObj subr, int argc, const ScmObj *argv)
 {
-  ScmObj port = SCM_OBJ_INIT, mod = SCM_OBJ_INIT;
+  ScmObj port = SCM_OBJ_INIT, cmpl = SCM_OBJ_INIT, mod = SCM_OBJ_INIT;
   ScmObj loop = SCM_OBJ_INIT, args = SCM_OBJ_INIT;
   int r;
 
   SCM_STACK_FRAME_PUSH(&subr,
-                       &port, &mod,
+                       &port, &cmpl, &mod,
                        &loop, &args);
 
   port = scm_api_open_input_file(argv[0]);
   if (scm_obj_null_p(port)) return -1;
 
+  cmpl = scm_api_make_compiler(SCM_OBJ_NULL);
+  if (scm_obj_null_p(cmpl)) return -1;
+
   r = scm_capi_subrutine_module(subr, SCM_CSETTER_L(mod));
   if (r < 0) return -1;
 
-  args = scm_capi_list(2, port, SCM_UNDEF_OBJ);
+  args = scm_api_cons(port, cmpl);
+  if (scm_obj_null_p(args)) return -1;
+
+  args = scm_capi_list(2, args, SCM_UNDEF_OBJ);
+  if (scm_obj_null_p(args)) return -1;
 
   loop = scm_capi_make_subrutine(scm_subr_func_eval_file__loop,
                                  -2, SCM_PROC_ADJ_UNWISHED, mod);
