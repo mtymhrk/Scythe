@@ -538,6 +538,12 @@ scm_define_scythe_internal_compile_subr(ScmObj module)
     { "make-syntax", SCM_SUBR_ARITY_MAKE_SYNTAX, SCM_SUBR_FLAG_MAKE_SYNTAX, scm_subr_func_make_syntax, false },
     { "syntax-keyword", SCM_SUBR_ARITY_SYNTAX_KEYWORD, SCM_SUBR_FLAG_SYNTAX_KEYWORD, scm_subr_func_syntax_keyword, false },
     { "syntax-handler", SCM_SUBR_ARITY_SYNTAX_HANDLER, SCM_SUBR_FLAG_SYNTAX_HANDLER, scm_subr_func_syntax_handler, false },
+
+    /*******************************************************************/
+    /*  Global Variables                                               */
+    /*******************************************************************/
+    { "global-syntax-bind", SCM_SUBR_ARITY_GLOBAL_SYNTAX_BIND, SCM_SUBR_FLAG_GLOBAL_SYNTAX_BIND, scm_subr_func_global_syntax_bind, false },
+    { "global-syntax-ref", SCM_SUBR_ARITY_GLOBAL_SYNTAX_REF, SCM_SUBR_FLAG_GLOBAL_SYNTAX_REF, scm_subr_func_global_syntax_ref, false },
   };
 
   int rslt;

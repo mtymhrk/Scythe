@@ -2508,6 +2508,61 @@ scm_subr_func_syntax_handler(ScmObj subr, int argc, const ScmObj *argv)
   return scm_capi_return_val(&val, 1);
 }
 
+int
+scm_subr_func_global_syntax_bind(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj obj = SCM_OBJ_INIT;
+  bool export;
+  int r;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &obj);
+
+  export = false;
+  if (scm_capi_pair_p(argv[3])) {
+    obj = scm_api_car(argv[3]);
+    if (scm_obj_null_p(obj)) return -1;
+
+    if (!scm_capi_boolean_p(obj)) {
+      scm_capi_error("global-syntax-bind: invalid argument", 1, obj);
+      return -1;
+    }
+
+    export = scm_capi_true_object_p(obj);
+  }
+
+  r = scm_capi_define_global_syx(argv[0], argv[1], argv[2], export);
+  if (r < 0) return -1;
+
+  obj = SCM_NIL_OBJ;
+  return scm_capi_return_val(&obj, 1);
+}
+
+int
+scm_subr_func_global_syntax_ref(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+  int r;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
+
+  r = scm_capi_global_syx_ref(argv[0], argv[1], SCM_CSETTER_L(val));
+  if (r < 0) return -1;
+
+  if (scm_obj_null_p(val)) {
+    if (scm_capi_nil_p(argv[2])) {
+      scm_capi_error("unbound syntax", 1, argv[1]);
+      return -1;
+    }
+
+    val = scm_api_car(argv[2]);
+    if (scm_obj_null_p(val)) return -1;
+  }
+
+  return scm_capi_return_val(&val, 1);
+}
+
 
 /*******************************************************************/
 /*  Internals                                                      */
