@@ -8086,6 +8086,49 @@ scm_api_assemble(ScmObj lst, ScmObj iseq)
 /*  Compiler                                                       */
 /*******************************************************************/
 
+static ScmObj
+scm_norm_cmpl_arg_mod(ScmObj mod)
+{
+  ScmObj name = SCM_OBJ_INIT;
+  int r;
+
+  SCM_STACK_FRAME_PUSH(&mod,
+                       &name);
+
+  if (scm_capi_module_p(mod))
+    return mod;
+
+  if (scm_obj_null_p(mod)) {
+    name = scm_capi_make_symbol_from_cstr("main", SCM_ENC_SRC);
+    if (scm_obj_null_p(name)) return SCM_OBJ_NULL;
+
+    name = scm_api_cons(name, SCM_NIL_OBJ);
+    if (scm_obj_null_p(name)) return SCM_OBJ_NULL;
+  }
+  else if (scm_capi_symbol_p(mod)) {
+    name = scm_api_cons(mod, SCM_NIL_OBJ);
+    if (scm_obj_null_p(name)) return SCM_OBJ_NULL;
+  }
+  else if (scm_capi_pair_p(mod)) {
+    name = mod;
+  }
+  else {
+    scm_capi_error("no such a module", 1, mod);
+    return SCM_OBJ_NULL;
+  }
+
+
+  r = scm_capi_find_module(name, SCM_CSETTER_L(mod));
+  if (r < 0) return SCM_OBJ_NULL;
+
+  if (scm_obj_null_p(mod)) {
+    scm_capi_error("no such a module", 1, mod);
+    return SCM_OBJ_NULL;
+  }
+
+  return mod;
+}
+
 bool
 scm_capi_compiler_p(ScmObj obj)
 {
@@ -8095,36 +8138,95 @@ scm_capi_compiler_p(ScmObj obj)
 }
 
 ScmObj
-scm_api_current_module(ScmObj cmpl)
+scm_api_compiler_P(ScmObj obj)
+{
+  if (scm_obj_null_p(obj)) {
+    scm_capi_error("compiler?: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  return (scm_obj_type_p(obj, &SCM_COMPILER_TYPE_INFO) ?
+          SCM_TRUE_OBJ : SCM_FALSE_OBJ);
+}
+
+ScmObj
+scm_api_make_compiler(ScmObj mod)
+{
+  mod = scm_norm_cmpl_arg_mod(mod);
+  if (scm_obj_null_p(mod)) return SCM_OBJ_NULL;
+
+  return scm_cmpl_new(SCM_MEM_HEAP, mod);
+}
+
+ScmObj
+scm_api_compiler_current_module(ScmObj cmpl)
 {
   if (!scm_capi_compiler_p(cmpl)) {
     scm_capi_error("failed to get current module: invalid argument", 0);
     return SCM_OBJ_NULL;
   }
 
-  return scm_cmpl_current_module(cmpl);
+  return scm_cmpl_module(cmpl);
+}
+
+ScmObj
+scm_api_compiler_current_expr(ScmObj cmpl)
+{
+    if (!scm_capi_compiler_p(cmpl)) {
+    scm_capi_error("failed to get current expression: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+    return scm_cmpl_expr(cmpl);
+}
+
+ScmObj
+scm_api_compiler_select_module_i(ScmObj cmpl, ScmObj mod)
+{
+  SCM_STACK_FRAME_PUSH(&cmpl, &mod);
+
+  if (!scm_capi_compiler_p(cmpl)) {
+    scm_capi_error("failed to change current module: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  mod = scm_norm_cmpl_arg_mod(mod);
+  if (scm_obj_null_p(mod)) return SCM_OBJ_NULL;
+
+  scm_cmpl_set_module(cmpl, mod);
+
+  return SCM_UNDEF_OBJ;
+}
+
+ScmObj
+scm_api_compiler_select_expr_i(ScmObj cmpl, ScmObj expr)
+{
+  SCM_STACK_FRAME_PUSH(&cmpl, &expr);
+
+  if (!scm_capi_compiler_p(cmpl)) {
+    scm_capi_error("failed to change current expression: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  if (scm_obj_null_p(expr)) {
+    scm_capi_error("failed to change current expression: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  scm_cmpl_set_expr(cmpl, expr);
+
+  return SCM_UNDEF_OBJ;
 }
 
 int
-scm_capi_select_module(ScmObj cmpl, ScmObj mod)
+scm_capi_compiler_assign_label_id_i(ScmObj cmpl)
 {
   if (!scm_capi_compiler_p(cmpl)) {
-    scm_capi_error("failed to change current module: invalid argument", 0);
+    scm_capi_error("failed to assign label id: invalid argument", 0);
     return -1;
   }
 
-  if (scm_obj_null_p(mod)) {
-    scm_capi_error("failed to change current module: invalid argument", 0);
-    return -1;
-  }
-  else if (!scm_capi_module_p(mod)) {
-    scm_capi_error("failed to change current module: invalid argument", 0);
-    return -1;
-  }
-
-  scm_cmpl_select_module(cmpl, mod);
-
-  return 0;
+  return scm_cmpl_assign_label_id(cmpl);
 }
 
 

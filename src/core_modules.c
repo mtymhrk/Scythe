@@ -516,6 +516,29 @@ scm_define_scythe_internal_compile_var(ScmObj module)
   return 0;
 }
 
+static int
+scm_define_scythe_internal_compile_subr(ScmObj module)
+{
+  static const struct subr_data data[] = {
+    { "compiler?", SCM_SUBR_ARITY_COMPILER_P, SCM_SUBR_FLAG_COMPILER_P, scm_subr_func_compiler_P, false },
+    { "make-compiler", SCM_SUBR_ARITY_MAKE_COMPILER, SCM_SUBR_FLAG_MAKE_COMPILER, scm_subr_func_make_compiler, false },
+    { "compiler-assign-label-id!", SCM_SUBR_ARITY_COMPILER_ASSIGN_LABEL_ID_I, SCM_SUBR_FLAG_COMPILER_ASSIGN_LABEL_ID_I, scm_subr_func_compiler_assign_label_id_i, false },
+    { "compiler-current-module", SCM_SUBR_ARITY_COMPILER_CURRENT_MODULE, SCM_SUBR_FLAG_COMPILER_CURRENT_MODULE, scm_subr_func_compiler_current_module, false },
+    { "compiler-select-module!", SCM_SUBR_ARITY_COMPILER_SELECT_MODULE_I, SCM_SUBR_FLAG_COMPILER_SELECT_MODULE_I, scm_subr_func_compiler_select_module_i, false },
+    { "compiler-current-expr", SCM_SUBR_ARITY_COMPILER_CURRENT_EXPR, SCM_SUBR_FLAG_COMPILER_CURRENT_EXPR, scm_subr_func_compiler_current_expr, false },
+    { "compiler-select-expr!", SCM_SUBR_ARITY_COMPILER_SELECT_EXPR_I, SCM_SUBR_FLAG_COMPILER_SELECT_EXPR_I, scm_subr_func_compiler_select_expr_i, false },
+  };
+
+  int rslt;
+
+  SCM_STACK_FRAME_PUSH(&module);
+
+  rslt = scm_define_subr(module, data, sizeof(data)/sizeof(data[0]));
+  if (rslt < 0) return -1;
+
+  return 0;
+}
+
 #include "compiler_code.h"
 
 static int
@@ -574,6 +597,9 @@ scm_load_module_func_scythe_internal_compile(ScmObj mod)
    */
 
   rslt = scm_define_scythe_internal_compile_var(mod);
+  if (rslt < 0) return -1;
+
+  rslt = scm_define_scythe_internal_compile_subr(mod);
   if (rslt < 0) return -1;
 
   rslt = scm_define_scythe_internal_compile_closure(mod);

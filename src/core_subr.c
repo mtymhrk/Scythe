@@ -2310,6 +2310,120 @@ scm_subr_func_format(ScmObj subr, int argc, const ScmObj *argv)
 
 
 /*******************************************************************/
+/*  Internals (Compiler)                                           */
+/*******************************************************************/
+
+int
+scm_subr_func_compiler_P(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
+
+  val = scm_api_compiler_P(argv[0]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_make_compiler(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT, mod = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val, &mod);
+
+  mod = SCM_OBJ_NULL;
+  if (scm_capi_pair_p(argv[0])) {
+    mod = scm_api_car(argv[0]);
+    if (scm_obj_null_p(mod)) return -1;
+  }
+
+  val = scm_api_make_compiler(mod);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_compiler_assign_label_id_i(ScmObj subr,
+                                         int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+  int id;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
+
+  id = scm_capi_compiler_assign_label_id_i(argv[0]);
+  if (id < 0) return -1;
+
+  val = scm_capi_make_number_from_sword(id);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_compiler_current_module(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
+
+  val = scm_api_compiler_current_module(argv[0]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_compiler_select_module_i(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
+
+  val = scm_api_compiler_select_module_i(argv[0], argv[1]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_compiler_current_expr(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
+
+  val = scm_api_compiler_current_expr(argv[0]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_compiler_select_expr_i(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
+
+  val = scm_api_compiler_select_expr_i(argv[0], argv[1]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+
+/*******************************************************************/
 /*  Internals                                                      */
 /*******************************************************************/
 
