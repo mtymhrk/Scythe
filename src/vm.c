@@ -892,10 +892,11 @@ scm_vm_handle_stack_underflow(ScmObj vm)
 
   scm_vmsr_relink(SCM_VM(vm)->stack, next, next_cf);
 
-  /* XXX: この地点以降、efp レジスタが、どこからも参照されていないスタック
-   *      セグメント上のフレームを指している可能性があり、その場合、efp レ
-   *      ジスタが指している領域が開放される。そのため、この関数の呼び出し
-   *      た後は、継続フレームのポップ処理をすぐに行う必要がある。
+  /* XXX: pop_cframe で underflow を検出した場合、この地点以降、efp レジス
+   *      タが、どこからも参照されていないスタックセグメント上のフレームを
+   *      指している可能性があり、その場合、efp レジスタが指している領域が
+   *      開放される。そのため、この関数の呼び出した後は、継続フレームの
+   *      ポップ処理をすぐに行う必要がある。
    */
 
   SCM_VM(vm)->reg.cfp = next_cf;
@@ -962,6 +963,11 @@ scm_local_func int
 scm_vm_commit_cframe(ScmObj vm, scm_byte_t *ip)
 {
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  if (SCM_VM(vm)->reg.cfp == NULL) {
+    int rslt = scm_vm_handle_stack_underflow(vm);
+    if (rslt < 0) return -1;
+  }
 
   SCM_VM(vm)->reg.cfp->ip = ip;
 
