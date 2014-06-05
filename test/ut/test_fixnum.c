@@ -11,7 +11,7 @@ static ScmEvaluator *ev;
 TEST_SETUP(fixnum)
 {
   ev = scm_capi_evaluator();
-  scm_capi_ut_setup_current_vm(ev);
+  scm_capi_evaluator_make_vm(ev);
 }
 
 TEST_TEAR_DOWN(fixnum)

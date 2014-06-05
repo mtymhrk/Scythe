@@ -11,7 +11,7 @@ void
 cut_startup(void)
 {
   ev = scm_capi_evaluator();
-  scm_capi_ut_setup_current_vm(ev);
+  scm_capi_evaluator_make_vm(ev);
 }
 
 void

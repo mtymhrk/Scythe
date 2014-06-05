@@ -9042,8 +9042,6 @@ scm_capi_evaluator_end(ScmEvaluator *ev)
 int
 scm_capi_evaluator_make_vm(ScmEvaluator *ev)
 {
-  int rslt;
-
   if (ev == NULL) return -1;
 
   scm_vm_chg_current_br(NULL);
@@ -9056,10 +9054,17 @@ scm_capi_evaluator_make_vm(ScmEvaluator *ev)
   ev->bedrock = scm_vm_current_br();
   ev->stack = scm_vm_current_ref_stack();
 
-  rslt = scm_load_core_modules();
-  if (rslt < 0) return -1;
-
   return 0;
+}
+
+int
+scm_capi_evaluator_load_core(ScmEvaluator *ev)
+{
+  if (ev == NULL) return -1;
+  scm_vm_chg_current_br(ev->bedrock);
+  scm_vm_chg_current_vm(ev->vm);
+  scm_vm_chg_current_ref_stack(ev->stack);
+  return scm_load_core_modules();
 }
 
 int
@@ -9137,6 +9142,9 @@ scm_capi_run_repl(ScmEvaluator *ev)
   rslt = scm_capi_evaluator_make_vm(ev);
   if (rslt < 0) return -1;
 
+  rslt = scm_capi_evaluator_load_core(ev);
+  if (rslt < 0) goto end;
+
   {
     SCM_STACK_FRAME_PUSH(&proc);
 
@@ -9166,6 +9174,9 @@ scm_capi_exec_file(const char *path, ScmEvaluator *ev)
 
   rslt = scm_capi_evaluator_make_vm(ev);
   if (rslt < 0) return -1;
+
+  rslt = scm_capi_evaluator_load_core(ev);
+  if (rslt < 0) goto end;
 
   {
     SCM_STACK_FRAME_PUSH(&port, &str,
@@ -9208,6 +9219,9 @@ scm_capi_exec_cstr(const char *expr, const char *enc, ScmEvaluator *ev)
 
   rslt = scm_capi_evaluator_make_vm(ev);
   if (rslt < 0) return -1;
+
+  rslt = scm_capi_evaluator_load_core(ev);
+  if (rslt < 0) goto end;
 
   {
     SCM_STACK_FRAME_PUSH(&port, &str,
@@ -9271,12 +9285,6 @@ scm_capi_load_iseq(ScmObj iseq)
 #ifdef SCM_UNIT_TEST
 
 /* unit test 用 api ********************************************************/
-
-void
-scm_capi_ut_setup_current_vm(ScmEvaluator *ev)
-{
-  scm_capi_evaluator_make_vm(ev);
-}
 
 ScmObj
 scm_capi_ut_compile(ScmEvaluator *ev, ScmObj exp)

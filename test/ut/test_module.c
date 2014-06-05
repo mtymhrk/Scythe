@@ -17,7 +17,8 @@ static ScmObj syntax;
 TEST_SETUP(module)
 {
   ev = scm_capi_evaluator();
-  scm_capi_ut_setup_current_vm(ev);
+  scm_capi_evaluator_make_vm(ev);
+  scm_capi_evaluator_load_core(ev);
 
   undef = scm_api_undef();
   assert(scm_obj_not_null_p(undef));

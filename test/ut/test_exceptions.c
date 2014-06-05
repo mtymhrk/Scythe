@@ -28,7 +28,7 @@ check_exception(ScmObj exc, const char *msg, const char *irris)
 TEST_SETUP(exceptions)
 {
   ev = scm_capi_evaluator();
-  scm_capi_ut_setup_current_vm(ev);
+  scm_capi_evaluator_make_vm(ev);
 }
 
 TEST_TEAR_DOWN(exceptions)

@@ -732,6 +732,7 @@ ScmObj scm_capi_format_cstr(const char *fmt, ...);
 ScmEvaluator *scm_capi_evaluator(void);
 void scm_capi_evaluator_end(ScmEvaluator *ev);
 int scm_capi_evaluator_make_vm(ScmEvaluator *ev);
+int scm_capi_evaluator_load_core(ScmEvaluator *ev);
 int scm_capi_evaluator_delete_vm(ScmEvaluator *ev);
 int scm_capi_run_repl(ScmEvaluator *ev);
 int scm_capi_exec_file(const char *path, ScmEvaluator *ev);
@@ -747,7 +748,6 @@ int scm_capi_load_iseq(ScmObj iseq);
 
 #ifdef SCM_UNIT_TEST
 
-void scm_capi_ut_setup_current_vm(ScmEvaluator *ev);
 ScmObj scm_capi_ut_compile(ScmEvaluator *ev, ScmObj exp);
 ScmObj scm_capi_ut_eval(ScmEvaluator *ev, ScmObj exp);
 void scm_capi_ut_clear_compiler_label_id(void);
