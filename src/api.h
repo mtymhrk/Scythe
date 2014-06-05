@@ -672,7 +672,7 @@ int scm_capi_define_global_syx(ScmObj module,
                                ScmObj sym, ScmObj syx, bool export);
 int scm_capi_global_var_ref(ScmObj module, ScmObj sym, scm_csetter_t *val);
 int scm_capi_global_syx_ref(ScmObj module, ScmObj sym, scm_csetter_t *syx);
-
+int scm_capi_cached_global_var_ref(int kind, scm_csetter_t *val);
 
 /*******************************************************************/
 /*  Return Value                                                   */
@@ -750,6 +750,7 @@ int scm_capi_load_iseq(ScmObj iseq);
 #ifdef SCM_UNIT_TEST
 
 void scm_capi_ut_setup_current_vm(ScmEvaluator *ev);
+ScmObj scm_capi_ut_compile(ScmEvaluator *ev, ScmObj exp);
 ScmObj scm_capi_ut_eval(ScmEvaluator *ev, ScmObj exp);
 void scm_capi_ut_clear_compiler_label_id(void);
 

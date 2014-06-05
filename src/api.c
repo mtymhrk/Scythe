@@ -8543,6 +8543,27 @@ scm_capi_global_syx_ref(ScmObj module, ScmObj sym, scm_csetter_t *syx)
   return 0;
 }
 
+int
+scm_capi_cached_global_var_ref(int kind, scm_csetter_t *val)
+{
+  ScmObj gloc = SCM_OBJ_INIT, v = SCM_OBJ_INIT;
+  int r;
+
+  SCM_STACK_FRAME_PUSH(&gloc, &v);
+
+  r = scm_bedrock_cached_gv(scm_vm_current_br(), kind, SCM_CSETTER_L(gloc));
+  if (r < 0) return -1;
+
+  if (scm_obj_not_null_p(gloc))
+    v = scm_gloc_value(gloc);
+  else
+    v = SCM_OBJ_NULL;
+
+  scm_csetter_setq(val, v);
+
+  return 0;
+}
+
 
 /*******************************************************************/
 /*  Return Value                                                   */
@@ -9156,21 +9177,51 @@ scm_capi_evaluator_delete_vm(ScmEvaluator *ev)
   return 0;
 }
 
-int
-scm_capi_run_repl(ScmEvaluator *ev)
+static ScmObj
+scm_get_proc(const char *name, const char * const *module, size_t n)
 {
-  const char *code =
-    "(with-module (scythe internal repl)"
-    "  (read-eval-print-loop))";
+  ScmObj sym = SCM_OBJ_INIT, mod = SCM_OBJ_INIT, mod_name = SCM_OBJ_INIT;
+  ScmObj proc = SCM_OBJ_INIT, o = SCM_OBJ_INIT;
+  int r;
 
-  return scm_capi_exec_cstr(code, SCM_ENC_NAME_SRC, ev);
+  SCM_STACK_FRAME_PUSH(&sym, &mod, &mod_name,
+                       &proc, &o);
+
+  mod_name = SCM_NIL_OBJ;
+  for (size_t i = n; i > 0; i--) {
+    o = scm_capi_make_symbol_from_cstr(module[i - 1], SCM_ENC_SRC);
+    if (scm_obj_null_p(o)) return SCM_OBJ_NULL;
+
+    mod_name = scm_api_cons(o, mod_name);
+    if (scm_obj_null_p(mod_name)) return SCM_OBJ_NULL;
+  }
+
+  sym = scm_capi_make_symbol_from_cstr(name, SCM_ENC_SRC);
+  if (scm_obj_null_p(sym)) return SCM_OBJ_NULL;
+
+  r = scm_capi_find_module(mod_name, SCM_CSETTER_L(mod));
+  if (r < 0) return SCM_OBJ_NULL;
+
+  if (scm_obj_null_p(mod)) {
+    scm_capi_error("failed to find module", 1, mod_name);
+    return SCM_OBJ_NULL;
+  }
+
+  r = scm_capi_global_var_ref(mod, sym, SCM_CSETTER_L(proc));
+  if (r < 0) return SCM_OBJ_NULL;
+
+  if (scm_obj_null_p(proc)) {
+    scm_capi_error("unbund variable", 1, sym);
+    return SCM_OBJ_NULL;
+  }
+
+  return proc;
 }
 
 int
-scm_capi_exec_file(const char *path, ScmEvaluator *ev)
+scm_capi_run_repl(ScmEvaluator *ev)
 {
-  ScmObj port = SCM_OBJ_INIT, iseq = SCM_OBJ_INIT;
-  ssize_t r;
+  ScmObj proc = SCM_OBJ_INIT;
   int rslt;
 
   if (ev == NULL) return -1;
@@ -9179,18 +9230,55 @@ scm_capi_exec_file(const char *path, ScmEvaluator *ev)
   if (rslt < 0) return -1;
 
   {
-    SCM_STACK_FRAME_PUSH(&port, &iseq);
+    SCM_STACK_FRAME_PUSH(&proc);
 
-    port = scm_capi_open_input_file(path, NULL);
+    proc = scm_get_proc("read-eval-print-loop",
+                        (const char *[]){"scythe", "internal", "repl"}, 3);
+    if(scm_obj_null_p(proc)) goto end;
+
+    scm_vm_apply(scm_vm_current_vm(), proc, SCM_NIL_OBJ);
+  }
+
+ end:
+  scm_vm_disposal_unhandled_exc(ev->vm);
+
+  scm_capi_evaluator_delete_vm(ev);
+
+  return 0;
+}
+
+int
+scm_capi_exec_file(const char *path, ScmEvaluator *ev)
+{
+  ScmObj port = SCM_OBJ_INIT, str = SCM_OBJ_INIT;
+  ScmObj proc = SCM_OBJ_INIT, args = SCM_OBJ_INIT;
+  int rslt;
+
+  if (ev == NULL) return -1;
+
+  rslt = scm_capi_evaluator_make_vm(ev);
+  if (rslt < 0) return -1;
+
+  {
+    SCM_STACK_FRAME_PUSH(&port, &str,
+                         &proc, &args);
+
+    port = scm_capi_open_input_string_cstr(path, NULL);
     if (scm_obj_null_p(port)) goto end;
 
-    iseq = scm_capi_compile_port(port, SCM_OBJ_NULL, false);
-    if (scm_obj_null_p(iseq)) goto end;
+    /* TODO: read_line ではなく port から全て読みよっとものを 1 つの文字列に
+     *       する */
+    str = scm_api_read_line(port);
+    if (scm_obj_null_p(port)) goto end;
 
-    r = scm_capi_iseq_push_opfmt_noarg(iseq, SCM_OPCODE_HALT);
-    if (r < 0) goto end;
+    proc = scm_get_proc("eval-file",
+                        (const char *[]){"scythe", "internal", "command"}, 3);
+    if(scm_obj_null_p(proc)) goto end;
 
-    scm_vm_run(scm_vm_current_vm(), iseq);
+    args = scm_api_cons(str, SCM_NIL_OBJ);
+    if (scm_obj_null_p(proc)) goto end;
+
+    scm_vm_apply(scm_vm_current_vm(), proc, args);
   }
 
  end:
@@ -9204,8 +9292,8 @@ scm_capi_exec_file(const char *path, ScmEvaluator *ev)
 int
 scm_capi_exec_cstr(const char *expr, const char *enc, ScmEvaluator *ev)
 {
-  ScmObj port = SCM_OBJ_INIT, exp = SCM_OBJ_INIT, iseq = SCM_OBJ_INIT;
-  ssize_t r;
+  ScmObj port = SCM_OBJ_INIT, str = SCM_OBJ_INIT;
+  ScmObj proc = SCM_OBJ_INIT, args = SCM_OBJ_INIT;
   int rslt;
 
   if (ev == NULL) return -1;
@@ -9214,21 +9302,25 @@ scm_capi_exec_cstr(const char *expr, const char *enc, ScmEvaluator *ev)
   if (rslt < 0) return -1;
 
   {
-    SCM_STACK_FRAME_PUSH(&port, &exp, &iseq);
+    SCM_STACK_FRAME_PUSH(&port, &str,
+                         &proc, &args);
 
-    port = scm_capi_open_input_string_cstr(expr, enc);
+    port = scm_capi_open_input_string_cstr(expr, NULL);
     if (scm_obj_null_p(port)) goto end;
 
-    exp = scm_api_read(port);
-    if (scm_obj_null_p(exp)) goto end;
+    /* TODO: read_line ではなく port から全て読みよっとものを 1 つの文字列に
+     *       する */
+    str = scm_api_read_line(port);
+    if (scm_obj_null_p(port)) goto end;
 
-    iseq = scm_capi_compile(exp, SCM_OBJ_NULL, false);
-    if (scm_obj_null_p(iseq)) goto end;
+    proc = scm_get_proc("eval-string",
+                        (const char *[]){"scythe", "internal", "command"}, 3);
+    if(scm_obj_null_p(proc)) goto end;
 
-    r = scm_capi_iseq_push_opfmt_noarg(iseq, SCM_OPCODE_HALT);
-    if (r < 0) goto end;
+    args = scm_api_cons(str, SCM_NIL_OBJ);
+    if (scm_obj_null_p(proc)) goto end;
 
-    scm_vm_run(scm_vm_current_vm(), iseq);
+    scm_vm_apply(scm_vm_current_vm(), proc, args);
   }
 
  end:
@@ -9279,23 +9371,56 @@ scm_capi_ut_setup_current_vm(ScmEvaluator *ev)
 }
 
 ScmObj
-scm_capi_ut_eval(ScmEvaluator *ev, ScmObj exp)
+scm_capi_ut_compile(ScmEvaluator *ev, ScmObj exp)
 {
-  ScmObj code = SCM_OBJ_INIT;
-  ssize_t rslt;
+  ScmObj compile = SCM_OBJ_INIT, args = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
+  int r;
 
   SCM_STACK_FRAME_PUSH(&exp,
-                       &code);
+                       &compile, &args, &val);
 
-  code = scm_capi_compile(exp, SCM_OBJ_NULL, false);
-  if (scm_obj_null_p(code)) return SCM_OBJ_NULL;
+  r = scm_capi_cached_global_var_ref(SCM_CACHED_GV_COMPILE,
+                                     SCM_CSETTER_L(compile));
+  if (r < 0) return SCM_OBJ_NULL;
 
-  rslt = scm_capi_iseq_push_opfmt_noarg(code, SCM_OPCODE_HALT);
-  if (rslt < 0) return SCM_OBJ_NULL;
+  if (scm_obj_null_p(compile)) {
+    scm_capi_error("unbound variable: compile", 0);
+    return SCM_OBJ_NULL;
+  }
 
-  scm_vm_run(scm_vm_current_vm(), code);
+  args = scm_api_cons(exp, SCM_NIL_OBJ);
+  if (scm_obj_null_p(args)) return SCM_OBJ_NULL;
 
-  return scm_vm_register_val(scm_vm_current_vm());
+  val = scm_vm_apply(scm_vm_current_vm(), compile, args);
+  if (scm_obj_null_p(val)) return SCM_OBJ_NULL;
+
+  return scm_capi_vector_ref(val, 0);
+}
+
+ScmObj
+scm_capi_ut_eval(ScmEvaluator *ev, ScmObj exp)
+{
+  ScmObj eval = SCM_OBJ_INIT, args = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
+  int r;
+
+  SCM_STACK_FRAME_PUSH(&exp,
+                       &eval, &args, &val);
+
+  r = scm_capi_cached_global_var_ref(SCM_CACHED_GV_EVAL, SCM_CSETTER_L(eval));
+  if (r < 0) return SCM_OBJ_NULL;
+
+  if (scm_obj_null_p(eval)) {
+    scm_capi_error("unbound variable: eval", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  args = scm_api_cons(exp, SCM_NIL_OBJ);
+  if (scm_obj_null_p(args)) return SCM_OBJ_NULL;
+
+  val = scm_vm_apply(scm_vm_current_vm(), eval, args);
+  if (scm_obj_null_p(val)) return SCM_OBJ_NULL;
+
+  return scm_capi_vector_ref(val, 0);
 }
 
 void
@@ -9305,6 +9430,3 @@ scm_capi_ut_clear_compiler_label_id(void)
 }
 
 #endif
-
-
-

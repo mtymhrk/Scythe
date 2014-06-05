@@ -2263,32 +2263,60 @@ scm_subr_func_eval_asm(ScmObj subr, int argc, const ScmObj *argv)
   return scm_capi_trampolining(code, args, SCM_OBJ_NULL, SCM_OBJ_NULL);
 }
 
+static int
+scm_subr_func_eval__post_compile(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj iseq = SCM_OBJ_INIT, proc = SCM_OBJ_INIT;
+  ssize_t i;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &iseq, &proc);
+
+  iseq = scm_api_assemble(argv[1], SCM_OBJ_NULL);
+  if (scm_obj_null_p(iseq)) return -1;
+
+  i = scm_capi_iseq_push_opfmt_noarg(iseq, SCM_OPCODE_RETURN);
+  if (i < 0) return -1;
+
+  proc = scm_capi_make_closure(iseq, SCM_OBJ_NULL, 0);
+  if (scm_obj_null_p(proc)) return -1;
+
+  return scm_capi_trampolining(proc, SCM_NIL_OBJ, SCM_OBJ_NULL, SCM_OBJ_NULL);
+}
+
 int
 scm_subr_func_eval(ScmObj subr, int argc, const ScmObj *argv)
 {
-  ScmObj exp = SCM_OBJ_INIT, args = SCM_OBJ_INIT;
-  ssize_t i;
+  ScmObj compile = SCM_OBJ_INIT, postproc = SCM_OBJ_INIT;
+  ScmObj subr_mod = SCM_OBJ_INIT, args = SCM_OBJ_INIT;
+  int r;
 
-  SCM_STACK_FRAME_PUSH(&subr, &exp, &args);
 
-  if (argc != 1) {
-    /* TODO: change error message */
-    scm_capi_error("eval-asm: 1 argument is require, but got ", 0);
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &compile, &postproc,
+                       &subr_mod, &args);
+
+
+  r = scm_capi_subrutine_module(subr, SCM_CSETTER_L(subr_mod));
+  if (r < 0) return -1;
+
+  r = scm_capi_cached_global_var_ref(SCM_CACHED_GV_COMPILE,
+                                     SCM_CSETTER_L(compile));
+  if (r < 0) return -1;
+
+  if (scm_obj_null_p(compile)) {
+    scm_capi_error("unbound variable: compile", 0);
     return -1;
   }
 
-  exp = scm_capi_compile(argv[0], SCM_OBJ_NULL, false);
-  if (scm_obj_null_p(exp)) return -1;
+  postproc = scm_capi_make_subrutine(scm_subr_func_eval__post_compile,
+                                     2, 0, subr_mod);
+  if (scm_obj_null_p(postproc)) return -1;
 
-  i = scm_capi_iseq_push_opfmt_noarg(exp, SCM_OPCODE_RETURN);
-  if (i < 0) return -1;
+  args = scm_api_cons(argv[0], argv[1]);
+  if (scm_obj_null_p(args)) return -1;
 
-  exp = scm_capi_make_closure(exp, SCM_OBJ_NULL, 0);
-  if (scm_obj_null_p(exp)) return -1;
-
-  args = SCM_NIL_OBJ;
-
-  return scm_capi_trampolining(exp, args, SCM_OBJ_NULL, SCM_OBJ_NULL);
+  return scm_capi_trampolining(compile, args, postproc, SCM_OBJ_NULL);
 }
 
 
@@ -2332,17 +2360,43 @@ scm_subr_func_exit(ScmObj subr, int argc, const ScmObj *argv)
 /*******************************************************************/
 
 int
-scm_subr_func_compile_file(ScmObj subr, int argc, const ScmObj *argv)
+scm_subr_func_compile(ScmObj subr, int argc, const ScmObj *argv)
 {
-  ScmObj port = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
+  ScmObj val = SCM_OBJ_INIT, mod = SCM_OBJ_INIT;
 
   SCM_STACK_FRAME_PUSH(&subr,
-                       &port, &val);
+                        &val, &mod);
+
+  mod = SCM_OBJ_NULL;
+  if (scm_capi_pair_p(argv[1])) {
+    mod = scm_api_car(argv[1]);
+    if (scm_obj_null_p(mod)) return -1;
+  }
+
+  val = scm_capi_compile(argv[0], mod, true);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+int
+scm_subr_func_compile_file(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj port = SCM_OBJ_INIT, val = SCM_OBJ_INIT, mod = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &port, &val, &mod);
+
+  mod = SCM_OBJ_NULL;
+  if (scm_capi_pair_p(argv[1])) {
+    mod = scm_api_car(argv[1]);
+    if (scm_obj_null_p(mod)) return -1;
+  }
 
   port = scm_api_open_input_file(argv[0]);
   if (scm_obj_null_p(port)) return -1;
 
-  val = scm_capi_compile_port(port, argv[1], true);
+  val = scm_capi_compile_port(port, mod, true);
   if (scm_obj_null_p(val)) return -1;
 
   return scm_capi_return_val(&val, 1);
@@ -2365,4 +2419,91 @@ scm_subr_func_format(ScmObj subr, int argc, const ScmObj *argv)
   if (scm_obj_null_p(val)) return -1;
 
   return scm_capi_return_val(&val, 1);
+}
+
+
+/*******************************************************************/
+/*  Internals                                                      */
+/*******************************************************************/
+
+static int
+scm_subr_func_eval_file__loop(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj eval = SCM_OBJ_INIT, exp = SCM_OBJ_INIT, args = SCM_OBJ_INIT;
+  int r;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &eval, &exp, &args);
+
+  exp = scm_api_read(argv[0]);
+  if (scm_obj_null_p(exp)) return -1;
+
+  if (scm_capi_eof_object_p(exp))
+    return scm_capi_return_val(argv + 1, argc - 1);
+
+  r = scm_capi_cached_global_var_ref(SCM_CACHED_GV_EVAL, SCM_CSETTER_L(eval));
+  if (r < 0) return -1;
+
+  if (scm_obj_null_p(eval)) {
+    scm_capi_error("unbound variable: eval", 0);
+    return -1;
+  }
+
+  args = scm_api_cons(exp, SCM_NIL_OBJ);
+
+  return scm_capi_trampolining(eval, args, subr, argv[0]);
+}
+
+int
+scm_subr_func_eval_file(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj port = SCM_OBJ_INIT, mod = SCM_OBJ_INIT;
+  ScmObj loop = SCM_OBJ_INIT, args = SCM_OBJ_INIT;
+  int r;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &port, &mod,
+                       &loop, &args);
+
+  port = scm_api_open_input_file(argv[0]);
+  if (scm_obj_null_p(port)) return -1;
+
+  r = scm_capi_subrutine_module(subr, SCM_CSETTER_L(mod));
+  if (r < 0) return -1;
+
+  args = scm_capi_list(2, port, SCM_UNDEF_OBJ);
+
+  loop = scm_capi_make_subrutine(scm_subr_func_eval_file__loop,
+                                 -2, SCM_PROC_ADJ_UNWISHED, mod);
+  if (scm_obj_null_p(loop)) return -1;
+
+  return scm_capi_trampolining(loop, args, SCM_OBJ_NULL, SCM_OBJ_NULL);
+}
+
+
+int
+scm_subr_func_eval_string(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj port = SCM_OBJ_INIT, exp = SCM_OBJ_INIT, eval = SCM_OBJ_INIT;
+  ScmObj args = SCM_OBJ_INIT;
+  int r;
+
+  port = scm_api_open_input_string(argv[0]);
+  if (scm_obj_null_p(port)) return -1;
+
+  exp = scm_api_read(port);
+  if (scm_obj_null_p(exp)) return -1;
+
+  r = scm_capi_cached_global_var_ref(SCM_CACHED_GV_EVAL, SCM_CSETTER_L(eval));
+  if (r < 0) return -1;
+
+  if (scm_obj_null_p(eval)) {
+    scm_capi_error("unbound variable: eval", 0);
+    return -1;
+  }
+
+  args = scm_api_cons(exp, SCM_NIL_OBJ);
+  if (scm_obj_null_p(args)) return -1;
+
+  return scm_capi_trampolining(eval, args, SCM_OBJ_NULL, SCM_OBJ_NULL);
 }

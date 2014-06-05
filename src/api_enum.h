@@ -150,5 +150,16 @@ enum {
 };
 
 
+/*******************************************************************/
+/*  Cached Global Variables                                        */
+/*******************************************************************/
+
+enum {
+  SCM_CACHED_GV_COMPILE,
+  SCM_CACHED_GV_EVAL,
+  SCM_CACHED_GV_CURRENT_INPUT_PORT,
+  SCM_CACHED_GV_CURRENT_OUTPUT_PORT,
+};
+
 
 #endif /* INCLUDE_API_CONST_H__ */

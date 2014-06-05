@@ -551,7 +551,7 @@ extern const char *scm_clsr_code_call_with_values;
 /*******************************************************************/
 
 #define SCM_SUBR_ARITY_EVAL_ASM 1
-#define SCM_SUBR_ARITY_EVAL 1
+#define SCM_SUBR_ARITY_EVAL -2
 
 #define SCM_SUBR_FLAG_EVAL_ASM 0
 #define SCM_SUBR_FLAG_EVAL 0
@@ -575,10 +575,13 @@ int scm_subr_func_exit(ScmObj subr, int argc, const ScmObj *argv);
 /*  Compiler                                                       */
 /*******************************************************************/
 
-#define SCM_SUBR_ARITY_COMPILE_FILE 2
+#define SCM_SUBR_ARITY_COMPILE -2
+#define SCM_SUBR_ARITY_COMPILE_FILE -2
 
+#define SCM_SUBR_FLAG_COMPILE 0
 #define SCM_SUBR_FLAG_COMPILE_FILE 0
 
+int scm_subr_func_compile(ScmObj subr, int argc, const ScmObj *argv);
 int scm_subr_func_compile_file(ScmObj subr, int argc, const ScmObj *argv);
 
 
@@ -592,5 +595,18 @@ int scm_subr_func_compile_file(ScmObj subr, int argc, const ScmObj *argv);
 
 int scm_subr_func_format(ScmObj subr, int argc, const ScmObj *argv);
 
+
+/*******************************************************************/
+/*  Internals                                                      */
+/*******************************************************************/
+
+#define SCM_SUBR_ARITY_EVAL_FILE 1
+#define SCM_SUBR_ARITY_EVAL_STRING 1
+
+#define SCM_SUBR_FLAG_EVAL_FILE 0
+#define SCM_SUBR_FLAG_EVAL_STRING 0
+
+int scm_subr_func_eval_file(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_eval_string(ScmObj subr, int argc, const ScmObj *argv);
 
 #endif /* INCLUDE_CORE_SUBR_H__ */

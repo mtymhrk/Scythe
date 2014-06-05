@@ -111,6 +111,14 @@ struct ScmBedrockRec {
     ScmObj exc_hndlr_caller_post;
   } subr;
 
+  /*** Global Variables  ***/
+  struct {
+    ScmObj compile;
+    ScmObj eval;
+    ScmObj current_input_port;
+    ScmObj current_output_port;
+  } gv;
+
   /*** Configurations ***/
   ScmEncoding *encoding;
 };
@@ -126,6 +134,7 @@ void scm_bedrock_fatal(ScmBedrock *br, const char *msg);
 void scm_bedrock_error(ScmBedrock *br, const char *msg);
 bool scm_bedrock_fatal_p(ScmBedrock *br);
 bool scm_bedrock_error_p(ScmBedrock *br);
+int scm_bedrock_cached_gv(ScmBedrock *br, int kind, scm_csetter_t *gloc);
 
 inline ScmObj
 scm_bedrock_nil(ScmBedrock *br)
@@ -438,6 +447,8 @@ ScmObj scm_vm_eframe_arg_ref(ScmEnvFrame *efp_list,
 int scm_vm_push_dynamic_bindings(ScmObj vm, ScmObj *param, size_t n);
 int scm_vm_pop_dynamic_bindings(ScmObj vm);
 
+int scm_vm_make_proc_call_code(ScmObj iseq,
+                               ScmObj proc, ScmObj args, bool tail);
 ScmObj scm_vm_make_trampolining_code(ScmObj vm, ScmObj proc, ScmObj args,
                                      ScmObj postproc, ScmObj handover);
 
@@ -481,6 +492,8 @@ int scm_vm_op_emine(ScmObj vm, SCM_OPCODE_T op);
 int scm_vm_op_edemine(ScmObj vm, SCM_OPCODE_T op);
 int scm_vm_op_arity(ScmObj vm, SCM_OPCODE_T op);
 
+ScmObj scm_vm_val_reg_to_vector(ScmObj vm);
+
 int scm_vm_gc_accept_stack(ScmObj vm, ScmObj mem, ScmGCRefHandlerFunc handler);
 
 inline ScmObj
@@ -505,6 +518,7 @@ ScmObj scm_vm_clone(ScmObj parent);
 void scm_vm_end(ScmObj vm);
 
 void scm_vm_run(ScmObj vm, ScmObj iseq);
+ScmObj scm_vm_apply(ScmObj vm, ScmObj proc, ScmObj args);
 ScmObj scm_vm_run_cloned(ScmObj vm, ScmObj iseq);
 
 int scm_vm_set_val_reg(ScmObj vm, const ScmObj *val, int vc);

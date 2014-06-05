@@ -97,6 +97,7 @@ static int scm_load_module_scheme_base(void);
 static int scm_load_module_scheme_char(void);
 static int scm_load_module_scythe_internal_compile(void);
 static int scm_load_module_scythe_internal_repl(void);
+static int scm_load_module_scythe_internal_command(void);
 static int scm_load_module_scythe_base(void);
 static int scm_load_module_main(void);
 
@@ -535,6 +536,7 @@ scm_define_scythe_internal_compile_subr(ScmObj module)
     /*******************************************************************/
     /*  compile                                                        */
     /*******************************************************************/
+    { "compile", SCM_SUBR_ARITY_COMPILE, SCM_SUBR_FLAG_COMPILE, scm_subr_func_compile },
     { "compile-file", SCM_SUBR_ARITY_COMPILE_FILE, SCM_SUBR_FLAG_COMPILE_FILE, scm_subr_func_compile_file },
   };
 
@@ -651,6 +653,54 @@ scm_load_module_scythe_internal_repl(void)
 {
   return scm_load_module(STRARY("scythe", "internal", "repl"), 3,
                          scm_load_module_func_scythe_internal_repl);
+}
+
+
+/*******************************************************************/
+/*  (scythe internal command)                                      */
+/*******************************************************************/
+
+static int
+scm_define_scythe_internal_command_subr(ScmObj module)
+{
+  static const struct subr_data data[] = {
+    /*******************************************************************/
+    /*  compile                                                        */
+    /*******************************************************************/
+    { "eval-file", SCM_SUBR_ARITY_EVAL_FILE, SCM_SUBR_FLAG_EVAL_FILE, scm_subr_func_eval_file },
+    { "eval-string", SCM_SUBR_ARITY_EVAL_STRING, SCM_SUBR_FLAG_EVAL_STRING, scm_subr_func_eval_string },
+  };
+
+  int rslt;
+
+  SCM_STACK_FRAME_PUSH(&module);
+
+  rslt = scm_define_subr(module, data, sizeof(data)/sizeof(data[0]));
+  if (rslt < 0) return -1;
+
+  return 0;
+}
+
+static int
+scm_load_module_func_scythe_internal_command(ScmObj mod)
+{
+  int rslt;
+
+  /*
+   * define global variables
+   */
+
+  rslt = scm_define_scythe_internal_command_subr(mod);
+  if (rslt < 0) return -1;
+
+  return 0;
+}
+
+static int
+scm_load_module_scythe_internal_command(void)
+{
+  return scm_load_module(STRARY("scythe", "internal", "command"), 3,
+                         scm_load_module_func_scythe_internal_command);
 }
 
 
@@ -780,6 +830,7 @@ scm_load_core_modules(void)
     scm_load_module_scheme_char,
     scm_load_module_scythe_internal_compile,
     scm_load_module_scythe_internal_repl,
+    scm_load_module_scythe_internal_command,
     scm_load_module_scythe_base,
     scm_load_module_main,
   };
