@@ -8433,9 +8433,12 @@ scm_capi_find_gloc(ScmObj module, ScmObj sym, scm_csetter_t *gloc)
 int
 scm_capi_define_global_var(ScmObj module, ScmObj sym, ScmObj val, bool export)
 {
-  SCM_STACK_FRAME_PUSH(&module, &sym, &val);
+  ScmObj mod = SCM_OBJ_INIT;
 
-  if (!scm_capi_module_p(module)) {
+  SCM_STACK_FRAME_PUSH(&module, &sym, &val,
+                       &mod);
+
+  if (scm_obj_null_p(module)) {
     scm_capi_error("failed to define global variable: invalid argument", 0);
     return -1;
   }
@@ -8448,15 +8451,30 @@ scm_capi_define_global_var(ScmObj module, ScmObj sym, ScmObj val, bool export)
     return -1;
   }
 
+  if (!scm_capi_module_p(module)) {
+    int r = scm_capi_find_module(module, SCM_CSETTER_L(mod));
+    if (r < 0) return -1;
+
+    if (scm_obj_null_p(mod)) {
+      scm_capi_error("failed to define global variable: no such a module",
+                     1, module);
+      return -1;
+    }
+
+    module = mod;
+  }
+
   return scm_module_define_eval(module, sym, val, export);
 }
 
 int
 scm_capi_define_global_syx(ScmObj module, ScmObj sym, ScmObj syx, bool export)
 {
+  ScmObj mod = SCM_OBJ_INIT;
+
   SCM_STACK_FRAME_PUSH(&module, &sym, &syx);
 
-  if (!scm_capi_module_p(module)) {
+  if (scm_obj_null_p(module)) {
     scm_capi_error("failed to define syntax: invalid argument", 0);
     return -1;
   }
@@ -8469,19 +8487,32 @@ scm_capi_define_global_syx(ScmObj module, ScmObj sym, ScmObj syx, bool export)
     return -1;
   }
 
+  if (!scm_capi_module_p(module)) {
+    int r = scm_capi_find_module(module, SCM_CSETTER_L(mod));
+    if (r < 0) return -1;
+
+    if (scm_obj_null_p(mod)) {
+      scm_capi_error("failed to define global syntax: no such a module",
+                     1, module);
+      return -1;
+    }
+
+    module = mod;
+  }
+
   return scm_module_define_cmpl(module, sym, syx, export);
 }
 
 int
 scm_capi_global_var_ref(ScmObj module, ScmObj sym, scm_csetter_t *val)
 {
-  ScmObj gloc = SCM_OBJ_INIT, v = SCM_OBJ_INIT;
+  ScmObj mod = SCM_OBJ_INIT, gloc = SCM_OBJ_INIT, v = SCM_OBJ_INIT;
   int rslt;
 
   SCM_STACK_FRAME_PUSH(&module, &sym,
-                       &gloc, &v);
+                       &mod, &gloc, &v);
 
-  if (!scm_capi_module_p(module)) {
+  if (scm_obj_null_p(module)) {
     scm_capi_error("failed to get a value of global variable:"
                    " invalid argument", 0);
     return -1;
@@ -8495,6 +8526,19 @@ scm_capi_global_var_ref(ScmObj module, ScmObj sym, scm_csetter_t *val)
     scm_capi_error("failed to get a value of global variable:"
                    " invalid argument", 0);
     return -1;
+  }
+
+  if (!scm_capi_module_p(module)) {
+    int r = scm_capi_find_module(module, SCM_CSETTER_L(mod));
+    if (r < 0) return -1;
+
+    if (scm_obj_null_p(mod)) {
+      scm_capi_error("failed to get a value of global variable: "
+                     "no such a module", 1, module);
+      return -1;
+    }
+
+    module = mod;
   }
 
   rslt = scm_module_find_sym_eval(module, sym, SCM_CSETTER_L(gloc));
@@ -8513,14 +8557,14 @@ scm_capi_global_var_ref(ScmObj module, ScmObj sym, scm_csetter_t *val)
 int
 scm_capi_global_syx_ref(ScmObj module, ScmObj sym, scm_csetter_t *syx)
 {
-  ScmObj gloc = SCM_OBJ_INIT, v = SCM_OBJ_INIT;
+  ScmObj mod = SCM_OBJ_INIT, gloc = SCM_OBJ_INIT, v = SCM_OBJ_INIT;
   int rslt;
 
   SCM_STACK_FRAME_PUSH(&module, &sym,
-                       &gloc, &v);
+                       &mod, &gloc, &v);
 
 
-  if (!scm_capi_module_p(module)) {
+  if (scm_obj_null_p(module)) {
     scm_capi_error("failed to get a syntax: invalid argument", 0);
     return -1;
   }
@@ -8531,6 +8575,18 @@ scm_capi_global_syx_ref(ScmObj module, ScmObj sym, scm_csetter_t *syx)
   else if (syx == NULL) {
     scm_capi_error("failed to get a syntax: invalid argument", 0);
     return -1;
+  }
+
+  if (!scm_capi_module_p(module)) {
+    int r = scm_capi_find_module(module, SCM_CSETTER_L(mod));
+    if (r < 0) return -1;
+
+    if (scm_obj_null_p(mod)) {
+      scm_capi_error("failed to get a syntax: no such a module", 1, module);
+      return -1;
+    }
+
+    module = mod;
   }
 
   rslt = scm_module_find_sym_cmpl(module, sym, SCM_CSETTER_L(gloc));
