@@ -835,7 +835,7 @@ scm_vm_handle_stack_overflow(ScmObj vm)
   size = 0;
   if (scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_PEF)) {
     size = sizeof(ScmEnvFrame) + sizeof(ScmObj) * SCM_VM(vm)->reg.pefp->len;
-    scm_assert(size == SIZE_MAX);
+    scm_assert(size != SIZE_MAX);
     size = (size <= SIZE_MAX / 2) ? size * 2 : SIZE_MAX;
   }
 
