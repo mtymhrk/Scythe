@@ -594,6 +594,17 @@ int scm_subr_func_format(ScmObj subr, int argc, const ScmObj *argv);
 
 
 /*******************************************************************/
+/*  Modules                                                        */
+/*******************************************************************/
+
+#define SCM_SUBR_ARITY_MODULE_NAME 1
+
+#define SCM_SUBR_FLAG_MODULE_NAME 0
+
+int scm_subr_func_module_name(ScmObj subr, int argc, const ScmObj *argv);
+
+
+/*******************************************************************/
 /*  Internals (Compiler)                                           */
 /*******************************************************************/
 

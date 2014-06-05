@@ -2310,6 +2310,25 @@ scm_subr_func_format(ScmObj subr, int argc, const ScmObj *argv)
 
 
 /*******************************************************************/
+/*  Modules                                                        */
+/*******************************************************************/
+
+int
+scm_subr_func_module_name(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
+
+  val = scm_api_module_name(argv[0]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+
+/*******************************************************************/
 /*  Internals (Compiler)                                           */
 /*******************************************************************/
 

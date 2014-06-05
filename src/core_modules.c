@@ -739,6 +739,11 @@ scm_define_scythe_base_subr(ScmObj module)
     /*  format                                                         */
     /*******************************************************************/
     { "format", SCM_SUBR_ARITY_FORMAT, SCM_SUBR_FLAG_FORMAT, scm_subr_func_format, true },
+
+    /*******************************************************************/
+    /*  Modules                                                        */
+    /*******************************************************************/
+    { "module-name", SCM_SUBR_ARITY_MODULE_NAME, SCM_SUBR_FLAG_MODULE_NAME, scm_subr_func_module_name, true },
   };
 
   int rslt;
