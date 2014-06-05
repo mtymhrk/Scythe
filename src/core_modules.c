@@ -520,6 +520,9 @@ static int
 scm_define_scythe_internal_compile_subr(ScmObj module)
 {
   static const struct subr_data data[] = {
+    /*******************************************************************/
+    /*  Compiler                                                       */
+    /*******************************************************************/
     { "compiler?", SCM_SUBR_ARITY_COMPILER_P, SCM_SUBR_FLAG_COMPILER_P, scm_subr_func_compiler_P, false },
     { "make-compiler", SCM_SUBR_ARITY_MAKE_COMPILER, SCM_SUBR_FLAG_MAKE_COMPILER, scm_subr_func_make_compiler, false },
     { "compiler-assign-label-id!", SCM_SUBR_ARITY_COMPILER_ASSIGN_LABEL_ID_I, SCM_SUBR_FLAG_COMPILER_ASSIGN_LABEL_ID_I, scm_subr_func_compiler_assign_label_id_i, false },
@@ -527,6 +530,14 @@ scm_define_scythe_internal_compile_subr(ScmObj module)
     { "compiler-select-module!", SCM_SUBR_ARITY_COMPILER_SELECT_MODULE_I, SCM_SUBR_FLAG_COMPILER_SELECT_MODULE_I, scm_subr_func_compiler_select_module_i, false },
     { "compiler-current-expr", SCM_SUBR_ARITY_COMPILER_CURRENT_EXPR, SCM_SUBR_FLAG_COMPILER_CURRENT_EXPR, scm_subr_func_compiler_current_expr, false },
     { "compiler-select-expr!", SCM_SUBR_ARITY_COMPILER_SELECT_EXPR_I, SCM_SUBR_FLAG_COMPILER_SELECT_EXPR_I, scm_subr_func_compiler_select_expr_i, false },
+
+    /*******************************************************************/
+    /*  Syntax                                                         */
+    /*******************************************************************/
+    { "syntax?", SCM_SUBR_ARITY_SYNTAX_P, SCM_SUBR_FLAG_SYNTAX_P, scm_subr_func_syntax_P, false },
+    { "make-syntax", SCM_SUBR_ARITY_MAKE_SYNTAX, SCM_SUBR_FLAG_MAKE_SYNTAX, scm_subr_func_make_syntax, false },
+    { "syntax-keyword", SCM_SUBR_ARITY_SYNTAX_KEYWORD, SCM_SUBR_FLAG_SYNTAX_KEYWORD, scm_subr_func_syntax_keyword, false },
+    { "syntax-handler", SCM_SUBR_ARITY_SYNTAX_HANDLER, SCM_SUBR_FLAG_SYNTAX_HANDLER, scm_subr_func_syntax_handler, false },
   };
 
   int rslt;

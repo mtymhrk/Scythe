@@ -36,16 +36,6 @@ typedef int (*ScmSubrFunc)(ScmObj subr, int argc, const ScmObj *argv);
 
 
 /*******************************************************************/
-/*  Syntax                                                         */
-/*******************************************************************/
-
-typedef ScmObj (*ScmSyntaxHandlerFunc)(ScmObj cmpl, ScmObj exp, ScmObj env,
-                                       ScmObj next, int arity,
-                                       bool tail_p, bool toplevel_p,
-                                       ssize_t *rdepth);
-
-
-/*******************************************************************/
 /*  RefStack                                                       */
 /*******************************************************************/
 

@@ -17,26 +17,26 @@ ScmTypeInfo SCM_SYNTAX_TYPE_INFO = {
 };
 
 int
-scm_syntax_initialize(ScmObj syx, ScmObj key, ScmSyntaxHandlerFunc handler)
+scm_syntax_initialize(ScmObj syx, ScmObj key, ScmObj handler)
 {
   scm_assert_obj_type(syx, &SCM_SYNTAX_TYPE_INFO);
   scm_assert(scm_capi_symbol_p(key));
-  scm_assert(handler != NULL);
+  scm_assert(scm_obj_not_null_p(handler));
 
   SCM_SLOT_SETQ(ScmSyntax, syx, keyword, key);
-  SCM_SYNTAX(syx)->handler = handler;
+  SCM_SLOT_SETQ(ScmSyntax, syx, handler, handler);
 
   return 0;
 }
 
 ScmObj
-scm_syntax_new(SCM_MEM_TYPE_T mtype, ScmObj key, ScmSyntaxHandlerFunc handler)
+scm_syntax_new(SCM_MEM_TYPE_T mtype, ScmObj key, ScmObj handler)
 {
   ScmObj syx = SCM_OBJ_INIT;
   int rslt;
 
   scm_assert(scm_capi_symbol_p(key));
-  scm_assert(handler != NULL);
+  scm_assert(scm_obj_not_null_p(handler));
 
   syx = scm_capi_mem_alloc(&SCM_SYNTAX_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(syx)) return SCM_OBJ_NULL;
@@ -63,14 +63,20 @@ scm_syntax_gc_initialize(ScmObj obj, ScmObj mem)
   scm_assert_obj_type(obj, &SCM_SYNTAX_TYPE_INFO);
 
   SCM_SYNTAX(obj)->keyword = SCM_OBJ_NULL;
+  SCM_SYNTAX(obj)->handler = SCM_OBJ_NULL;
 }
 
 int
 scm_syntax_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
 {
+  int rslt;
+
   scm_assert_obj_type(obj, &SCM_SYNTAX_TYPE_INFO);
   scm_assert(scm_obj_not_null_p(mem));
   scm_assert(handler != NULL);
 
-  return SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_SYNTAX(obj)->keyword, mem);
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_SYNTAX(obj)->keyword, mem);
+  if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
+
+  return SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_SYNTAX(obj)->handler, mem);
 }

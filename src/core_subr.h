@@ -615,6 +615,10 @@ int scm_subr_func_module_name(ScmObj subr, int argc, const ScmObj *argv);
 #define SCM_SUBR_ARITY_COMPILER_SELECT_MODULE_I 2
 #define SCM_SUBR_ARITY_COMPILER_CURRENT_EXPR 1
 #define SCM_SUBR_ARITY_COMPILER_SELECT_EXPR_I 2
+#define SCM_SUBR_ARITY_MAKE_SYNTAX 2
+#define SCM_SUBR_ARITY_SYNTAX_P 1
+#define SCM_SUBR_ARITY_SYNTAX_KEYWORD 1
+#define SCM_SUBR_ARITY_SYNTAX_HANDLER 1
 
 #define SCM_SUBR_FLAG_COMPILER_P 0
 #define SCM_SUBR_FLAG_MAKE_COMPILER 0
@@ -623,6 +627,10 @@ int scm_subr_func_module_name(ScmObj subr, int argc, const ScmObj *argv);
 #define SCM_SUBR_FLAG_COMPILER_SELECT_MODULE_I 0
 #define SCM_SUBR_FLAG_COMPILER_CURRENT_EXPR 0
 #define SCM_SUBR_FLAG_COMPILER_SELECT_EXPR_I 0
+#define SCM_SUBR_FLAG_MAKE_SYNTAX 0
+#define SCM_SUBR_FLAG_SYNTAX_P 0
+#define SCM_SUBR_FLAG_SYNTAX_KEYWORD 0
+#define SCM_SUBR_FLAG_SYNTAX_HANDLER 0
 
 int scm_subr_func_compiler_P(ScmObj subr, int argc, const ScmObj *argv);
 int scm_subr_func_make_compiler(ScmObj subr, int argc, const ScmObj *argv);
@@ -636,6 +644,10 @@ int scm_subr_func_compiler_current_expr(ScmObj subr,
                                         int argc, const ScmObj *argv);
 int scm_subr_func_compiler_select_expr_i(ScmObj subr,
                                          int argc, const ScmObj *argv);
+int scm_subr_func_syntax_P(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_make_syntax(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_syntax_keyword(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_syntax_handler(ScmObj subr, int argc, const ScmObj *argv);
 
 
 /*******************************************************************/

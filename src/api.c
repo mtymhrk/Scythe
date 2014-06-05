@@ -7584,26 +7584,38 @@ scm_capi_parameter_value(ScmObj prm)
 /*  Syntax                                                         */
 /*******************************************************************/
 
-ScmObj
-scm_capi_make_syntax(ScmObj keyword, ScmSyntaxHandlerFunc handler)
-{
-  if (!scm_capi_symbol_p(keyword)) {
-    scm_capi_error("failed to make syntax object: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-  else if (handler == NULL) {
-    scm_capi_error("failed to make syntax object: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-
-  return scm_syntax_new(SCM_MEM_HEAP, keyword, handler);
-}
-
 extern inline bool
 scm_capi_syntax_p(ScmObj obj)
 {
   if (scm_obj_null_p(obj)) return false;
   return (scm_obj_type_p(obj, &SCM_SYNTAX_TYPE_INFO) ? true : false);
+}
+
+ScmObj
+scm_api_syntax_P(ScmObj obj)
+{
+  if (scm_obj_null_p(obj)) {
+    scm_capi_error("syntax?: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  return (scm_obj_type_p(obj, &SCM_SYNTAX_TYPE_INFO) ?
+          SCM_TRUE_OBJ : SCM_FALSE_OBJ);
+}
+
+ScmObj
+scm_api_make_syntax(ScmObj keyword, ScmObj handler)
+{
+  if (!scm_capi_symbol_p(keyword)) {
+    scm_capi_error("failed to make syntax object: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (scm_obj_null_p(handler)) {
+    scm_capi_error("failed to make syntax object: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_syntax_new(SCM_MEM_HEAP, keyword, handler);
 }
 
 extern inline ScmObj
@@ -7617,20 +7629,15 @@ scm_api_syntax_keyword(ScmObj syx)
   return scm_syntax_keyword(syx);
 }
 
-extern inline int
-scm_capi_syntax_handler(ScmObj syx, ScmSyntaxHandlerFunc *handler)
+extern inline ScmObj
+scm_api_syntax_handler(ScmObj syx)
 {
   if (!scm_capi_syntax_p(syx)) {
     scm_capi_error("failed to get syntax handler: invalid argument", 0);
-    return -1;
-  }
-  else if (handler == NULL) {
-    scm_capi_error("failed to get syntax handler: invalid argument", 0);
-    return -1;
+    return SCM_OBJ_NULL;
   }
 
-  *handler = scm_syntax_handler(syx);
-  return 0;
+  return scm_syntax_handler(syx);
 }
 
 

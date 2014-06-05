@@ -583,10 +583,11 @@ ScmObj scm_capi_parameter_value(ScmObj prm);
 /*  Syntax                                                         */
 /*******************************************************************/
 
-ScmObj scm_capi_make_syntax(ScmObj keyword, ScmSyntaxHandlerFunc handler);
 bool scm_capi_syntax_p(ScmObj obj);
+ScmObj scm_api_syntax_P(ScmObj obj);
+ScmObj scm_api_make_syntax(ScmObj keyword, ScmObj handler);
 ScmObj scm_api_syntax_keyword(ScmObj syx);
-int scm_capi_syntax_handler(ScmObj syx, ScmSyntaxHandlerFunc *handler);
+ScmObj scm_api_syntax_handler(ScmObj syx);
 
 
 /*******************************************************************/

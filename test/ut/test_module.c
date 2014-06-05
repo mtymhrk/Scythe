@@ -36,15 +36,6 @@ TEST_TEAR_DOWN(module)
   scm_capi_evaluator_end(ev);
 }
 
-static ScmObj
-dummy_syntax_handler(ScmObj cmpl, ScmObj exp, ScmObj env,
-                     ScmObj next, int arity,
-                     bool tail_p, bool toplevel_p,
-                     ssize_t *rdepth)
-{
-  return SCM_OBJ_NULL;
-}
-
 static void
 make_syntax(const char *k)
 {
@@ -53,7 +44,7 @@ make_syntax(const char *k)
   syntax = undef;
 
   key = scm_capi_make_symbol_from_cstr(k, SCM_ENC_ASCII);
-  syntax = scm_capi_make_syntax(key, dummy_syntax_handler);
+  syntax = scm_api_make_syntax(key, SCM_NIL_OBJ);
 }
 
 static void
