@@ -38,18 +38,7 @@ ADD_EXECUTABLE(scythe main.c ${scythe_lib_src})
 ##===============================================================
 ## src/tools 配下のツールを実行するための設定
 
-FIND_PROGRAM(ruby_bin_path ruby
-             PATHS /usr/local/bin)
-
-FIND_PROGRAM(scythe_sys_bin_path scythe
-             PATHS /usr/local/bin)
-
-IF(NOT ruby_bin_path)
-  MESSAGE(WARNING "Ruby script language is not found")
-ENDIF(NOT ruby_bin_path)
-
 IF(NOT scythe_sys_bin_path)
-  MESSAGE(WARNING "System installed Scythe is not found")
   SET(scythe_sys_bin_path ${CMAKE_CURRENT_BINARY_DIR}/scythe)
 ENDIF(NOT scythe_sys_bin_path)
 
@@ -61,21 +50,6 @@ ADD_CUSTOM_TARGET(
 
 ##===============================================================
 ## src/test 配下にあるテストを実行するための設定
-
-FIND_PATH(cutter_include_path cutter.h
-          PATHS /usr/local/include
-          PATH_SUFFIXES cutter)
-
-FIND_PROGRAM(cutter_bin_path cutter
-             PATHS /usr/local/bin)
-
-IF(NOT cutter_include_path)
-  MESSAGE(WARNING "Header files of Cutter testing framework is not found.")
-ENDIF(NOT cutter_include_path)
-
-IF(NOT cutter_bin_path)
-  MESSAGE(WARNING "Executables of Cutter testing framework is not found.")
-ENDIF(NOT cutter_bin_path)
 
 ADD_CUSTOM_TARGET(
   old_test_depend

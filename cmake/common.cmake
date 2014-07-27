@@ -1,4 +1,6 @@
 
+##===============================================================
+## ビルドやテストに必要となるソースファイルのパス
 
 SET(scythe_src_path src)
 SET(scythe_lib_src memory.c object.c pair.c string.c symbol.c vector.c
@@ -17,3 +19,41 @@ SET(unit_test_src test_module.c test_pair_and_lists.c test_strings.c
 SET(unity_dir test/unity)
 SET(unity_src_path ${unity_dir}/src)
 SET(unity_src unity.c unity_fixture.c)
+
+
+##===============================================================
+## テスト等で必要になる外部ツールの設定
+
+####################
+## Ruby
+
+FIND_PROGRAM(ruby_bin_path ruby
+             PATHS /usr/local/bin)
+
+IF(NOT ruby_bin_path)
+  MESSAGE(WARNING "Ruby script language is not found.")
+ENDIF(NOT ruby_bin_path)
+
+####################
+## Cutter
+
+FIND_PATH(cutter_include_path cutter.h
+          PATHS /usr/local/include
+          PATH_SUFFIXES cutter)
+
+FIND_PROGRAM(cutter_bin_path cutter
+             PATHS /usr/local/bin)
+
+IF((NOT cutter_include_path) OR (NOT cutter_bin_path))
+  MESSAGE(WARNING "Cutter testing framework is not found.")
+ENDIF((NOT cutter_include_path) OR (NOT cutter_bin_path))
+
+####################
+## Scythe
+
+FIND_PROGRAM(scythe_sys_bin_path scythe
+             PATHS /usr/local/bin)
+
+IF(NOT scythe_sys_bin_path)
+  MESSAGE(WARNING "System installed Scythe is not found.")
+ENDIF(NOT scythe_sys_bin_path)

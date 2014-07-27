@@ -6,13 +6,6 @@ SET(runner_gen_script
     ${CMAKE_SOURCE_DIR}/${unity_dir}/auto/generate_unity_fixture_runner.rb)
 SET(run_script ${CMAKE_SOURCE_DIR}/${unity_dir}/auto/invoke_runner.rb)
 
-FIND_PROGRAM(ruby_bin_path ruby
-             PATHS /usr/local/bin)
-
-IF(NOT ruby_bin_path)
-  MESSAGE(WARNING "Ruby script language is not found")
-ENDIF(NOT ruby_bin_path)
-
 
 ##===============================================================
 ## コンパイルオプション設定
