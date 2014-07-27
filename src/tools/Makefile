@@ -1,5 +1,5 @@
 
-RUBY = ruby1.9
+RUBY = ruby
 COMPILER = ../../build/src/scythe
 CONVERTER = scmcompile.rb
 
