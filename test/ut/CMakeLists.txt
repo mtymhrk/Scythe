@@ -6,6 +6,13 @@ SET(runner_gen_script
     ${CMAKE_SOURCE_DIR}/${unity_dir}/auto/generate_unity_fixture_runner.rb)
 SET(run_script ${CMAKE_SOURCE_DIR}/${unity_dir}/auto/invoke_runner.rb)
 
+FIND_PROGRAM(ruby_bin_path ruby
+             PATHS /usr/local/bin)
+
+IF(NOT ruby_bin_path)
+  MESSAGE(WARNING "Ruby script language is not found")
+ENDIF(NOT ruby_bin_path)
+
 
 ##===============================================================
 ## コンパイルオプション設定
@@ -62,7 +69,7 @@ ADD_CUSTOM_TARGET(
 ## 行するターゲット
 ADD_CUSTOM_TARGET(
   unit
-  COMMAND ruby ${run_script} ./${test_runner_exe} ${test_result_file}
+  COMMAND ${ruby_bin_path} ${run_script} ./${test_runner_exe} ${test_result_file}
   DEPENDS ${test_runner_exe} delete_result_file
 )
 
@@ -84,7 +91,7 @@ SET_SOURCE_FILES_PROPERTIES(${test_runner_src}
 ## テストランナーのソースを生成するスクリプトの実行
 ADD_CUSTOM_COMMAND(
    OUTPUT ${test_runner_src}
-   COMMAND sh -c 'ruby ${runner_gen_script} ${unit_test_files} > ${test_runner_src}'
+   COMMAND sh -c '${ruby_bin_path} ${runner_gen_script} ${unit_test_files} > ${test_runner_src}'
    DEPENDS ${runner_gen_script} ${unit_test_files}
 )
 

@@ -5,6 +5,7 @@ src/*.o
 src/Makefile
 src/experiment/*
 src/test/*.o
+src/test/Makefile.depend
 src/test/.lib/*.so
 test/unity/build/*
 test/unity/src/*.o

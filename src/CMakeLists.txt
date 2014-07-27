@@ -38,14 +38,29 @@ ADD_EXECUTABLE(scythe main.c ${scythe_lib_src})
 ##===============================================================
 ## src/test 配下にあるテストを実行するための設定
 
+FIND_PATH(cutter_include_path cutter.h
+          PATHS /usr/local/include
+          PATH_SUFFIXES cutter)
+
+FIND_PROGRAM(cutter_bin_path cutter
+             PATHS /usr/local/bin)
+
+IF(NOT cutter_include_path)
+  MESSAGE(WARNING "Header files of Cutter testing framework is not found.")
+ENDIF(NOT cutter_include_path)
+
+IF(NOT cutter_bin_path)
+  MESSAGE(WARNING "Executables of Cutter testing framework is not found.")
+ENDIF(NOT cutter_bin_path)
+
 ADD_CUSTOM_TARGET(
   old_test_depend
-  COMMAND make -C ${CMAKE_CURRENT_SOURCE_DIR}/test EX_INCLUDES='-iquote ${CMAKE_CURRENT_BINARY_DIR}' depend
+  COMMAND make -C ${CMAKE_CURRENT_SOURCE_DIR}/test EX_INCLUDES='-iquote ${CMAKE_CURRENT_BINARY_DIR}' CUTTER_INCLUDE_PATH='${cutter_include_path}' depend
 )
 
 ADD_CUSTOM_TARGET(
   old_test_all
-  COMMAND make -C ${CMAKE_CURRENT_SOURCE_DIR}/test EX_INCLUDES='-iquote ${CMAKE_CURRENT_BINARY_DIR}' all
+  COMMAND make -C ${CMAKE_CURRENT_SOURCE_DIR}/test EX_INCLUDES='-iquote ${CMAKE_CURRENT_BINARY_DIR}' CUTTER_INCLUDE_PATH='${cutter_include_path}' all
   DEPENDS old_test_depend
 )
 
@@ -56,7 +71,7 @@ ADD_CUSTOM_TARGET(
 
 ADD_CUSTOM_TARGET(
   old_test
-  COMMAND make -C ${CMAKE_CURRENT_SOURCE_DIR}/test run
+  COMMAND make -C ${CMAKE_CURRENT_SOURCE_DIR}/test CUTTER='${cutter_bin_path}' run
   DEPENDS old_test_all
 )
 
