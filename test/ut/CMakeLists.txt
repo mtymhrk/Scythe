@@ -1,10 +1,11 @@
 
 SET(test_runner_src test_runner.c)
 SET(test_runner_exe test.run)
-SET(test_result_file result)
+SET(test_result_file result.txt)
 SET(runner_gen_script
     ${CMAKE_SOURCE_DIR}/${unity_dir}/auto/generate_unity_fixture_runner.rb)
 SET(run_script ${CMAKE_SOURCE_DIR}/${unity_dir}/auto/invoke_runner.rb)
+SET(summarize_script ${CMAKE_SOURCE_DIR}/${unity_dir}/auto/summarize_result.rb)
 
 
 ##===============================================================
@@ -49,33 +50,40 @@ STRING(REGEX REPLACE ";" ";${CMAKE_SOURCE_DIR}/${unit_test_src_path}/"
 STRING(REGEX REPLACE "^;" ""
        unit_test_files "${unit_test_files}")
 
-
-## テストを走らせたときにできるログファイル ${test_result_file}.testpass、
-## ${test_result_file}.testfail を削除するターゲット
+##
+## テストを走らせたときにできるログファイルを削除するターゲット
+##
 ADD_CUSTOM_TARGET(
-  delete_result_file
-  COMMAND sh -c 'for f in ${test_result_file}.*\; do if [ -e $$f ]\; then rm $$f\; fi\; done'
+  unit_delete_result_file
+  COMMAND sh -c "if [ -f ${test_result_file} ]\;then rm ${test_result_file}\; fi"
 )
 
-
+##
 ## テストの実行ファイルのビルド、テストログファイルの削除を行い、テストを実
 ## 行するターゲット
+##
 ADD_CUSTOM_TARGET(
   unit
-  COMMAND ${ruby_bin_path} ${run_script} ./${test_runner_exe} ${test_result_file}
-  DEPENDS ${test_runner_exe} delete_result_file
+  COMMAND ${ruby_bin_path} ${run_script} ${test_result_file} ./${test_runner_exe}
+  DEPENDS ${test_runner_exe} unit_delete_result_file
 )
 
+##
+## テストログファイルをもとに結果を表示するターゲット
+##
+ADD_CUSTOM_TARGET(
+  unit_summary
+  COMMAND sh -c "${ruby_bin_path} ${summarize_script} ${test_result_file}"
+)
 
-## テストの実行ファイルのビルド
+##
+## テストランナーのビルド
+##
 ADD_EXECUTABLE(${test_runner_exe} EXCLUDE_FROM_ALL
                                   ${test_runner_src}
                                   ${unit_test_src}
                                   ${unity_files}
                                   ${scythe_files})
-
-
-## テストランナーを自動生成するための設定
 
 ## テストランナーのソースファイルがビルド中に生成されることを cmake に教える
 SET_SOURCE_FILES_PROPERTIES(${test_runner_src}
