@@ -1,31 +1,31 @@
 
-SET(test_runner_src test_runner.c)
-SET(test_runner_exe test.run)
-SET(test_result_file result.txt)
-SET(runner_gen_script
+set(test_runner_src test_runner.c)
+set(test_runner_exe test.run)
+set(test_result_file result.txt)
+set(runner_gen_script
     ${CMAKE_SOURCE_DIR}/${unity_dir}/auto/generate_unity_fixture_runner.rb)
-SET(run_script ${CMAKE_SOURCE_DIR}/${unity_dir}/auto/invoke_runner.rb)
-SET(summarize_script ${CMAKE_SOURCE_DIR}/${unity_dir}/auto/summarize_result.rb)
+set(run_script ${CMAKE_SOURCE_DIR}/${unity_dir}/auto/invoke_runner.rb)
+set(summarize_script ${CMAKE_SOURCE_DIR}/${unity_dir}/auto/summarize_result.rb)
 
 
 ##===============================================================
 ## コンパイルオプション設定
 
-ADD_DEFINITIONS(
+add_definitions(
   -O2 -g -std=gnu99 -Wall -Wextra -Wformat=2 -Wstrict-aliasing=2
   -Wcast-qual -Wcast-align -Wwrite-strings -Wconversion -Wfloat-equal
   -Wpointer-arith -Wswitch-enum -Wno-unused-parameter -DSCM_UNIT_TEST
 )
 
-INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/${scythe_src_path})
-INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/${unity_src_path})
+include_directories(${CMAKE_BINARY_DIR}/${scythe_src_path})
+include_directories(${CMAKE_SOURCE_DIR}/${unity_src_path})
 
 ## string.h といった C 標準のインクルードファイルとバッティングするファイル
 ## 名を使用しているので、-iquote オプションでインクルードパスを指定したいが、
 ## cmake の INCLUDE_DIRECTORIES コマンドで指定したディレクトリは -iquote で
 ## はなく -I で指定されるため、CMAKE_C_FLAGS を変更して gcc のオプションを指
 ## 定する。
-SET(CMAKE_C_FLAGS
+set(CMAKE_C_FLAGS
     "${CMAKE_C_FLAGS} -iquote ${CMAKE_SOURCE_DIR}/${scythe_src_path}")
 
 
@@ -33,27 +33,27 @@ SET(CMAKE_C_FLAGS
 ## ターゲット設定
 
 ## unity_src 変数の各ソースファイル名を絶対パスに変換
-STRING(REGEX REPLACE ";" ";${CMAKE_SOURCE_DIR}/${unity_src_path}/"
+string(REGEX REPLACE ";" ";${CMAKE_SOURCE_DIR}/${unity_src_path}/"
        unity_files ";${unity_src}")
-STRING(REGEX REPLACE "^;" ""
+string(REGEX REPLACE "^;" ""
         unity_files "${unity_files}")
 
 ## scythe_lib_src 変数の各ソースファイル名を絶対パスに変換
-STRING(REGEX REPLACE ";" ";${CMAKE_SOURCE_DIR}/${scythe_src_path}/"
+string(REGEX REPLACE ";" ";${CMAKE_SOURCE_DIR}/${scythe_src_path}/"
        scythe_files ";${scythe_lib_src}")
-STRING(REGEX REPLACE "^;" ""
+string(REGEX REPLACE "^;" ""
        scyte_files "${scythe_files}")
 
 ## unit_test_src 変数の各ソースファイル名を絶対パスに変換
-STRING(REGEX REPLACE ";" ";${CMAKE_SOURCE_DIR}/${unit_test_src_path}/"
+string(REGEX REPLACE ";" ";${CMAKE_SOURCE_DIR}/${unit_test_src_path}/"
        unit_test_files ";${unit_test_src}")
-STRING(REGEX REPLACE "^;" ""
+string(REGEX REPLACE "^;" ""
        unit_test_files "${unit_test_files}")
 
 ##
 ## テストを走らせたときにできるログファイルを削除するターゲット
 ##
-ADD_CUSTOM_TARGET(
+add_custom_target(
   unit_delete_result_file
   COMMAND sh -c "if [ -f ${test_result_file} ]\;then rm ${test_result_file}\; fi"
 )
@@ -62,7 +62,7 @@ ADD_CUSTOM_TARGET(
 ## テストの実行ファイルのビルド、テストログファイルの削除を行い、テストを実
 ## 行するターゲット
 ##
-ADD_CUSTOM_TARGET(
+add_custom_target(
   unit
   COMMAND ${ruby_bin_path} ${run_script} ${test_result_file} ./${test_runner_exe}
   DEPENDS ${test_runner_exe} unit_delete_result_file
@@ -71,7 +71,7 @@ ADD_CUSTOM_TARGET(
 ##
 ## テストログファイルをもとに結果を表示するターゲット
 ##
-ADD_CUSTOM_TARGET(
+add_custom_target(
   unit_summary
   COMMAND sh -c "${ruby_bin_path} ${summarize_script} ${test_result_file}"
 )
@@ -79,18 +79,18 @@ ADD_CUSTOM_TARGET(
 ##
 ## テストランナーのビルド
 ##
-ADD_EXECUTABLE(${test_runner_exe} EXCLUDE_FROM_ALL
+add_executable(${test_runner_exe} EXCLUDE_FROM_ALL
                                   ${test_runner_src}
                                   ${unit_test_src}
                                   ${unity_files}
                                   ${scythe_files})
 
 ## テストランナーのソースファイルがビルド中に生成されることを cmake に教える
-SET_SOURCE_FILES_PROPERTIES(${test_runner_src}
+set_source_files_properties(${test_runner_src}
                             PROPERTIES GENERATED TRUE)
 
 ## テストランナーのソースを生成するスクリプトの実行
-ADD_CUSTOM_COMMAND(
+add_custom_command(
    OUTPUT ${test_runner_src}
    COMMAND sh -c '${ruby_bin_path} ${runner_gen_script} ${unit_test_files} > ${test_runner_src}'
    DEPENDS ${runner_gen_script} ${unit_test_files}

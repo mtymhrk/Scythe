@@ -1,8 +1,8 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
+cmake_minimum_required(VERSION 2.6)
 
-PROJECT(Scythe C)
+project(Scythe C)
 
-INCLUDE("${CMAKE_SOURCE_DIR}/cmake/common.cmake")
+include("${CMAKE_SOURCE_DIR}/cmake/common.cmake")
 
-ADD_SUBDIRECTORY(src)
-ADD_SUBDIRECTORY(test/ut)
+add_subdirectory(src)
+add_subdirectory(test/ut)
