@@ -54,6 +54,7 @@ class UnityFixtureRunnerGenerator
   def generate_main(output)
     output.puts 'int main(int argc, char *argv[])'
     output.puts '{'
+    output.puts '  setbuf(stdout, NULL);'
     output.puts '  return  UnityMain(argc, argv, RunAllTests);'
     output.puts '}'
   end
