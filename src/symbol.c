@@ -26,6 +26,321 @@ ScmTypeInfo SCM_SYMBOL_TYPE_INFO = {
   .extra               = NULL,
 };
 
+#define IDENT_SPECIAL_INITIAL_CHARS "!$%&*/:<=>?^_~"
+
+enum { CHK_IDENT_ADAPT = 0,
+       CHK_IDENT_PECULIAR,
+       CHK_IDENT_PRINT,
+       CHK_IDENT_NONPRINT };
+
+static int
+check_ident_initial_char(scm_char_t chr, ScmEncoding *enc)
+{
+  int c;
+
+  if (!scm_enc_ascii_p(enc, chr.bytes, sizeof(chr)))
+    return CHK_IDENT_ADAPT;
+
+  c = scm_enc_cnv_to_ascii(enc, &chr);
+  scm_assert(c >= 0);
+
+  if ((0x41 <= c && c <= 0x5a) || (0x61 <= c && c <= 0x7a))
+    return CHK_IDENT_ADAPT;
+  else if (strchr(IDENT_SPECIAL_INITIAL_CHARS, c) != NULL)
+    return CHK_IDENT_ADAPT;
+  else if (strchr("+-.", c) != NULL)
+    return CHK_IDENT_PECULIAR;
+  else if (0x20 <= c && c <= 0x7e)
+    return CHK_IDENT_PRINT;
+  else
+    return CHK_IDENT_NONPRINT;
+}
+
+static int
+check_ident_subsequent_char(scm_char_t chr, ScmEncoding *enc)
+{
+  int c;
+
+  if (!scm_enc_ascii_p(enc, chr.bytes, sizeof(chr)))
+    return CHK_IDENT_ADAPT;
+
+  c = scm_enc_cnv_to_ascii(enc, &chr);
+  scm_assert(c >= 0);
+
+  if ((0x41 <= c && c <= 0x5a) || (0x61 <= c && c <= 0x7a))
+    return CHK_IDENT_ADAPT;
+  else if (0x30 <= c && c <= 0x39)
+    return CHK_IDENT_ADAPT;
+  else if (strchr(IDENT_SPECIAL_INITIAL_CHARS, c) != NULL)
+    return CHK_IDENT_ADAPT;
+  else if (strchr("+-.@", c) != NULL)
+    return CHK_IDENT_ADAPT;
+  else if (0x20 <= c && c <= 0x7e)
+    return CHK_IDENT_PRINT;
+  else
+    return CHK_IDENT_NONPRINT;
+}
+
+static int
+check_ident_sign_subsequent_char(scm_char_t chr, ScmEncoding *enc)
+{
+  int c;
+
+  if (!scm_enc_ascii_p(enc, chr.bytes, sizeof(chr)))
+    return CHK_IDENT_ADAPT;
+
+  c = scm_enc_cnv_to_ascii(enc, &chr);
+  scm_assert(c >= 0);
+
+  if ((0x41 <= c && c <= 0x5a) || (0x61 <= c && c <= 0x7a))
+    return CHK_IDENT_ADAPT;
+  else if (strchr(IDENT_SPECIAL_INITIAL_CHARS, c) != NULL)
+    return CHK_IDENT_ADAPT;
+  else if (strchr("+-@", c) != NULL)
+    return CHK_IDENT_ADAPT;
+  else if (0x20 <= c && c <= 0x7e)
+    return CHK_IDENT_PRINT;
+  else
+    return CHK_IDENT_NONPRINT;
+}
+
+static int
+check_ident_dot_subsequent_char(scm_char_t chr, ScmEncoding *enc)
+{
+  int c;
+
+  if (!scm_enc_ascii_p(enc, chr.bytes, sizeof(chr)))
+    return CHK_IDENT_ADAPT;
+
+  c = scm_enc_cnv_to_ascii(enc, &chr);
+  scm_assert(c >= 0);
+
+  if ((0x41 <= c && c <= 0x5a) || (0x61 <= c && c <= 0x7a))
+    return CHK_IDENT_ADAPT;
+  else if (strchr(IDENT_SPECIAL_INITIAL_CHARS, c) != NULL)
+    return CHK_IDENT_ADAPT;
+  else if (strchr("+-@.", c) != NULL)
+    return CHK_IDENT_ADAPT;
+  else if (0x20 <= c && c <= 0x7e)
+    return CHK_IDENT_PRINT;
+  else
+    return CHK_IDENT_NONPRINT;
+}
+
+static int
+check_ident_printable_char(scm_char_t chr, ScmEncoding *enc)
+{
+  int c;
+
+  if (!scm_enc_ascii_p(enc, chr.bytes, sizeof(chr)))
+    return CHK_IDENT_ADAPT;
+
+  c = scm_enc_cnv_to_ascii(enc, &chr);
+  scm_assert(c >= 0);
+
+  if (0x20 <= c && c <= 0x7e)
+    return CHK_IDENT_ADAPT;
+  else
+    return CHK_IDENT_NONPRINT;
+}
+
+static int
+escape_print(scm_char_t chr, ScmEncoding *enc, ScmObj port)
+{
+  SCM_STACK_FRAME_PUSH(&port);
+
+  if (scm_enc_same_char_p(enc, chr.bytes, sizeof(chr), '\a'))
+    return scm_capi_write_cstr("\\a", SCM_ENC_SRC, port);
+  else if (scm_enc_same_char_p(enc, chr.bytes, sizeof(chr), '\b'))
+    return scm_capi_write_cstr("\\b", SCM_ENC_SRC, port);
+  else if (scm_enc_same_char_p(enc, chr.bytes, sizeof(chr), '\t'))
+    return scm_capi_write_cstr("\\t", SCM_ENC_SRC, port);
+  else if (scm_enc_same_char_p(enc, chr.bytes, sizeof(chr), '\n'))
+    return scm_capi_write_cstr("\\n", SCM_ENC_SRC, port);
+  else if (scm_enc_same_char_p(enc, chr.bytes, sizeof(chr), '\r'))
+    return scm_capi_write_cstr("\\c", SCM_ENC_SRC, port);
+  else
+    return scm_string_inline_hex_escape(chr, enc, port);
+}
+
+static int
+scm_symbol_write_ext_rep_peculiar(const scm_char_t *ary, ScmObj port,
+                                  size_t len, ScmEncoding *enc,
+                                  bool *need_vline_p)
+{
+  size_t idx;
+  int type, r;
+
+  SCM_STACK_FRAME_PUSH(&port);
+
+  idx = 0;
+
+  if (scm_enc_same_char_p(enc, ary[idx].bytes, sizeof(ary[0]), '+')
+      || scm_enc_same_char_p(enc, ary[idx].bytes, sizeof(ary[0]), '-')) {
+    r = scm_capi_write_cchr(ary[idx++], enc, port);
+    if (r < 0) return -1;
+
+    if (idx >= len) return 0;
+
+    type = check_ident_sign_subsequent_char(ary[idx], enc);
+    if (type != CHK_IDENT_ADAPT) goto dot_start;
+
+    r = scm_capi_write_cchr(ary[idx++], enc, port);
+    if (r < 0) return -1;
+
+    if (idx >= len) return 0;
+
+    while (check_ident_subsequent_char(ary[idx], enc) == CHK_IDENT_ADAPT) {
+      r = scm_capi_write_cchr(ary[idx++], enc, port);
+      if (r < 0) return -1;
+
+      if (idx >= len) return 0;
+    }
+  }
+
+ dot_start:
+
+  if (scm_enc_same_char_p(enc, ary[idx].bytes, sizeof(ary[0]), '.')) {
+    r = scm_capi_write_cchr(ary[idx++], enc, port);
+    if (r < 0) return -1;
+
+    if (idx >= len) return 0;
+
+    type = check_ident_dot_subsequent_char(ary[idx], enc);
+    if (type != CHK_IDENT_ADAPT) goto non_peculiar;
+
+    r = scm_capi_write_cchr(ary[idx++], enc, port);
+    if (r < 0) return -1;
+
+    if (idx >= len) return 0;
+
+    while (check_ident_subsequent_char(ary[idx], enc) == CHK_IDENT_ADAPT) {
+      r = scm_capi_write_cchr(ary[idx++], enc, port);
+      if (r < 0) return -1;
+
+      if (idx >= len) return 0;
+    }
+  }
+
+ non_peculiar:
+
+  *need_vline_p = true;
+  while (idx < len) {
+    type = check_ident_printable_char(ary[idx], enc);
+    if (type == CHK_IDENT_ADAPT)
+      r = scm_capi_write_cchr(ary[idx++], enc, port);
+    else
+      r = escape_print(ary[idx++], enc, port);
+    if (r < 0) return -1;
+  }
+
+  return 0;
+}
+
+static int
+scm_symbol_write_ext_rep_inner(ScmObj str, ScmObj port, size_t len,
+                               bool *need_vline_p)
+{
+  scm_char_t ary[len], *p;
+  ScmEncoding *enc;
+  int type, r;
+
+  SCM_STACK_FRAME_PUSH(&str, &port);
+
+  p = scm_string_to_char_ary(str, 0, (ssize_t)len, ary);
+  if (p == NULL) return -1;
+
+  enc = scm_string_encoding(str);
+
+  *need_vline_p = false;
+  type = check_ident_initial_char(ary[0], enc);
+  switch (type) {
+  case CHK_IDENT_ADAPT:
+    r = scm_capi_write_cchr(ary[0], enc, port);
+    if (r < 0) return -1;
+    break;
+  case CHK_IDENT_PECULIAR:
+    return scm_symbol_write_ext_rep_peculiar(ary, port, len, enc, need_vline_p);
+    break;
+  case CHK_IDENT_PRINT:
+    *need_vline_p = true;
+    r = scm_capi_write_cchr(ary[0], enc, port);
+    if (r < 0) return -1;
+    break;
+  case CHK_IDENT_NONPRINT:
+    *need_vline_p = true;
+    r = escape_print(ary[0], enc, port);
+    if (r < 0) return -1;
+    break;
+  default:
+    scm_assert(false);           /* must not happend */
+    break;
+  }
+
+  for (size_t i = 1; i < len; i++) {
+    type = check_ident_subsequent_char(ary[i], enc);
+    switch (type) {
+    case CHK_IDENT_ADAPT:
+      r = scm_capi_write_cchr(ary[i], enc, port);
+      if (r < 0) return -1;
+      break;
+    case CHK_IDENT_PRINT:
+      *need_vline_p = true;
+      r = scm_capi_write_cchr(ary[i], enc, port);
+      if (r < 0) return -1;
+      break;
+    case CHK_IDENT_NONPRINT:
+      *need_vline_p = true;
+      r = escape_print(ary[i], enc, port);
+      if (r < 0) return -1;
+      break;
+    default:
+      scm_assert(false);           /* must not happend */
+      break;
+    }
+  }
+
+  return 0;
+}
+
+int
+scm_symbol_write_ext_rep(ScmObj sym, ScmObj port)
+{
+  ScmObj strport = SCM_OBJ_INIT, str = SCM_OBJ_INIT;
+  int r;
+  bool need_vline_p;
+
+  SCM_STACK_FRAME_PUSH(&sym, &port,
+                       &strport, &str);
+
+  strport = scm_api_open_output_string();
+  if (scm_obj_null_p(strport)) return -1;
+
+  r = scm_symbol_write_ext_rep_inner(SCM_SYMBOL(sym)->str,
+                                     strport,
+                                     scm_string_length(SCM_SYMBOL(sym)->str),
+                                     &need_vline_p);
+  if (r < 0) return -1;
+
+  if (need_vline_p) {
+    r = scm_capi_write_cstr("|", SCM_ENC_SRC, port);
+    if (r < 0) return -1;
+  }
+
+  str = scm_api_get_output_string(strport);
+  if (scm_obj_null_p(str)) return -1;
+
+  r = scm_capi_write_string(str, port, -1, -1);
+  if (r < 0) return -1;
+
+  if (need_vline_p) {
+    r = scm_capi_write_cstr("|", SCM_ENC_SRC, port);
+    if (r < 0) return -1;
+  }
+
+  return 0;
+}
+
 int
 scm_symbol_initialize(ScmObj sym, ScmObj str)
 {
@@ -107,8 +422,7 @@ scm_symbol_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
   scm_assert_obj_type(obj, &SCM_SYMBOL_TYPE_INFO);
 
   if (ext_rep) {
-    int r = scm_string_escape_ctrl_and_nonascii_write(SCM_SYMBOL_STR(obj),
-                                                      port);
+    int r = scm_symbol_write_ext_rep(obj, port);
     if (r < 0) return -1;
   }
   else {
