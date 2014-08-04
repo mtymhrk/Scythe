@@ -530,8 +530,7 @@ ScmObj scm_api_newline(ScmObj port);
 int scm_capi_write_cchr(scm_char_t chr, ScmEncoding *enc, ScmObj port);
 ScmObj scm_api_write_char(ScmObj chr, ScmObj port);
 int scm_capi_write_cstr(const char *str, ScmEncoding *enc, ScmObj port);
-ssize_t scm_capi_write_string(ScmObj str, ScmObj port,
-                              ssize_t start, ssize_t end);
+int scm_capi_write_string(ScmObj str, ScmObj port, ssize_t start, ssize_t end);
 ScmObj scm_api_write_string(ScmObj str, ScmObj port, ScmObj start, ScmObj end);
 ScmObj scm_api_flush_output_port(ScmObj port);
 

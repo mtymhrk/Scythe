@@ -986,7 +986,7 @@ scm_string_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
     if (r < 0) return -1;
   }
   else {
-    ssize_t r = scm_capi_write_string(obj, port, -1, -1);
+    int r = scm_capi_write_string(obj, port, -1, -1);
     if (r < 0) return -1;
   }
 

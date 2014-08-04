@@ -112,7 +112,7 @@ scm_symbol_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
     if (r < 0) return -1;
   }
   else {
-    ssize_t r = scm_capi_write_string(SCM_SYMBOL_STR(obj), port, -1, -1);
+    int r = scm_capi_write_string(SCM_SYMBOL_STR(obj), port, -1, -1);
     if (r < 0) return -1;
   }
 

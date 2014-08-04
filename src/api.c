@@ -7131,13 +7131,10 @@ scm_capi_write_cstr(const char *str, ScmEncoding *enc, ScmObj port)
   s = scm_capi_make_string_from_cstr(str, enc);
   if (scm_obj_null_p(s)) return -1;
 
-  s = scm_api_write_string(s, port, SCM_OBJ_NULL, SCM_OBJ_NULL);
-  if (scm_obj_null_p(s)) return -1;
-
-  return 0;
+  return scm_capi_write_string(s, port, -1, -1);
 }
 
-ssize_t
+int
 scm_capi_write_string(ScmObj str, ScmObj port, ssize_t start, ssize_t end)
 {
   ScmEncoding *p_enc;
@@ -7147,34 +7144,34 @@ scm_capi_write_string(ScmObj str, ScmObj port, ssize_t start, ssize_t end)
 
   if (scm_obj_null_p(str)) {
     scm_capi_error("write-string: invalid argument", 0);
-    return SCM_OBJ_NULL;
+    return -1;
   }
   else if (!scm_capi_string_p(str)) {
     scm_capi_error("write-string: string required, but got", 1, str);
-    return SCM_OBJ_NULL;
+    return -1;
   }
 
   if (scm_obj_null_p(port)) {
     port = scm_default_output_port();
-    if (scm_obj_null_p(port)) return SCM_OBJ_NULL;
+    if (scm_obj_null_p(port)) return -1;
   }
 
   if (!scm_capi_output_port_p(port)) {
     scm_capi_error("write-string: output-port required, but got", 1, port);
-    return SCM_OBJ_NULL;
+    return -1;
   }
   else if (!scm_capi_textual_port_p(port)) {
     scm_capi_error("write-string: textual-port required, but got", 1, port);
-    return SCM_OBJ_NULL;
+    return -1;
   }
   else if (scm_port_closed_p(port)) {
     scm_capi_error("write-string: port is closed", 1, port);
-    return SCM_OBJ_NULL;
+    return -1;
   }
 
   if (start >= 0 && end >= 0 && start > end) {
     scm_capi_error("write-string: invalid argument", 0);
-    return SCM_OBJ_NULL;
+    return -1;
   }
 
   if (start < 0)
@@ -7185,28 +7182,29 @@ scm_capi_write_string(ScmObj str, ScmObj port, ssize_t start, ssize_t end)
 
   if (start != 0 || end != (ssize_t)scm_string_length(str)) {
     str = scm_string_substr(str, (size_t)start, (size_t)(end - start));
-    if (scm_obj_null_p(str)) return SCM_OBJ_NULL;
+    if (scm_obj_null_p(str)) return -1;
   }
 
   p_enc = scm_port_internal_enc(port);
   if (p_enc != scm_string_encoding(str)) {
     str = scm_string_encode(str, p_enc);
-    if (scm_obj_null_p(str)) return SCM_OBJ_NULL;
+    if (scm_obj_null_p(str)) return -1;
   }
 
   size = scm_capi_string_bytesize(str);
-  if (size < 0) return SCM_OBJ_NULL;
+  if (size < 0) return -1;
 
   rslt = scm_port_write_bytes(port, scm_string_content(str), (size_t)size);
-  if (rslt < 0) return SCM_OBJ_NULL;
+  if (rslt < 0) return -1;
 
-  return end - start;
+  return 0;
 }
 
 ScmObj
 scm_api_write_string(ScmObj str, ScmObj port, ScmObj start, ScmObj end)
 {
-  ssize_t sss, sse, rslt;
+  ssize_t sss, sse;
+  int rslt;
 
   SCM_STACK_FRAME_PUSH(&str, &port, &start, &end);
 
