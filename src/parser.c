@@ -109,7 +109,7 @@ typedef enum {
   LEXER_STATE_INIT,
   LEXER_STATE_DISREGARD,
   LEXER_STATE_IDENTIFIER,
-  LEXER_STATE_IDENTIFIER_VBAR,
+  LEXER_STATE_IDENTIFIER_VLINE,
   LEXER_STATE_DOT,
   LEXER_STATE_UNQUOTE,
   LEXER_STATE_COMMENT,
@@ -281,7 +281,7 @@ scm_lexer_tokenize_init(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
   }
   else if (chr_same_p(current, '|', true, enc)) {
     scm_capi_read_cchr(&current, port);
-    return LEXER_STATE_IDENTIFIER_VBAR;
+    return LEXER_STATE_IDENTIFIER_VLINE;
   }
   else {
     scm_capi_read_cchr(&current, port);
@@ -323,7 +323,7 @@ scm_lexer_tokenize_identifier(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
 }
 
 static int
-scm_lexer_tokenize_ident_vbar(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
+scm_lexer_tokenize_ident_vline(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
 {
   scm_char_t current;
   int rslt;
@@ -351,7 +351,7 @@ scm_lexer_tokenize_ident_vbar(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
       escaped_p = false;
     }
     else if (chr_same_p(current, '|', true, enc)) {
-      scm_lexer_set_token_type(lexer, SCM_TOKEN_TYPE_IDENTIFIER_VBAR);
+      scm_lexer_set_token_type(lexer, SCM_TOKEN_TYPE_IDENTIFIER_VLINE);
       return LEXER_STATE_DONE;
     }
     else if (chr_same_p(current, '\\', true, enc)) {
@@ -844,8 +844,8 @@ scm_lexer_tokenize(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
     case LEXER_STATE_IDENTIFIER:
       state = scm_lexer_tokenize_identifier(lexer, port, enc);
       break;
-    case LEXER_STATE_IDENTIFIER_VBAR:
-      state = scm_lexer_tokenize_ident_vbar(lexer, port, enc);
+    case LEXER_STATE_IDENTIFIER_VLINE:
+      state = scm_lexer_tokenize_ident_vline(lexer, port, enc);
       break;
     case LEXER_STATE_DOT:
       state = scm_lexer_tokenize_dot(lexer, port, enc);
@@ -1097,7 +1097,7 @@ scm_parser_parse_quote(ScmParser *parser, ScmObj port, ScmEncoding *enc)
   case SCM_TOKEN_TYPE_DOT:                /* fall through */
   case SCM_TOKEN_TYPE_STRING:             /* fall through */
   case SCM_TOKEN_TYPE_IDENTIFIER:         /* fall through */
-  case SCM_TOKEN_TYPE_IDENTIFIER_VBAR:    /* fall through */
+  case SCM_TOKEN_TYPE_IDENTIFIER_VLINE:   /* fall through */
   case SCM_TOKEN_TYPE_REFERENCE_DECL:     /* fall through */
   case SCM_TOKEN_TYPE_REFERENCE_USE:      /* fall through */
   case SCM_TOKEN_TYPE_NUMERIC:            /* fall through */
@@ -1720,7 +1720,7 @@ scm_parser_parse_expression(ScmParser *parser, ScmObj port)
     rslt = scm_parser_parse_string(parser, port, enc);
     break;
   case SCM_TOKEN_TYPE_IDENTIFIER:
-  case SCM_TOKEN_TYPE_IDENTIFIER_VBAR: /* fall through */
+  case SCM_TOKEN_TYPE_IDENTIFIER_VLINE: /* fall through */
     rslt = scm_parser_parse_identifier(parser, port, enc);
     break;
   case SCM_TOKEN_TYPE_REFERENCE_DECL:
