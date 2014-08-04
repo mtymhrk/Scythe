@@ -6196,68 +6196,42 @@ scm_api_binary_port_P(ScmObj obj)
   return scm_capi_binary_port_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
 }
 
-int
-scm_capi_input_port_open_p(ScmObj port, bool *rslt)
+extern inline bool
+scm_capi_input_port_open_p(ScmObj port)
 {
-  SCM_STACK_FRAME_PUSH(&port);
-
-  if (scm_obj_null_p(port)) {
-    scm_capi_error("input-port-open?: invalid argument", 0);
-    return -1;
-  }
-  else if (scm_capi_input_port_p(port)) {
-    scm_capi_error("input-port-open?: input-port required, but got", 1, port);
-    return -1;
-  }
-
-  if (rslt != NULL)
-    *rslt = scm_port_closed_p(port);
-
-  return 0;
+  return (scm_capi_input_port_p(port) && !scm_port_closed_p(port));
 }
 
 ScmObj
 scm_api_input_port_open_P(ScmObj port)
 {
-  bool o;
-  int r;
-
-  r = scm_capi_input_port_open_p(port, &o);
-  if (r < 0) return SCM_OBJ_NULL;
-
-  return o ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
-}
-
-int
-scm_capi_output_port_open_p(ScmObj port, bool *rslt)
-{
   SCM_STACK_FRAME_PUSH(&port);
 
   if (scm_obj_null_p(port)) {
-    scm_capi_error("output-port-open?: invalid argument", 0);
-    return -1;
-  }
-  else if (scm_capi_output_port_p(port)) {
-    scm_capi_error("output-port-open?: output-port required, but got", 1, port);
-    return -1;
+    scm_capi_error("input-port-open?: invalid argument", 0);
+    return SCM_OBJ_NULL;
   }
 
-  if (rslt != NULL)
-    *rslt = scm_port_closed_p(port);
+  return scm_capi_input_port_open_p(port) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+}
 
-  return 0;
+extern inline bool
+scm_capi_output_port_open_p(ScmObj port)
+{
+  return (scm_capi_output_port_p(port) && !scm_port_closed_p(port));
 }
 
 ScmObj
 scm_api_output_port_open_P(ScmObj port)
 {
-  bool o;
-  int r;
+  SCM_STACK_FRAME_PUSH(&port);
 
-  r = scm_capi_output_port_open_p(port, &o);
-  if (r < 0) return SCM_OBJ_NULL;
+  if (scm_obj_null_p(port)) {
+    scm_capi_error("output-port-open?: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
 
-  return o ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+  return scm_capi_output_port_open_p(port) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
 }
 
 ScmObj

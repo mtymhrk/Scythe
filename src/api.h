@@ -482,9 +482,9 @@ bool scm_capi_textual_port_p(ScmObj obj);
 ScmObj scm_api_textual_port_P(ScmObj obj);
 bool scm_capi_binary_port_p(ScmObj obj);
 ScmObj scm_api_binary_port_P(ScmObj obj);
-int scm_capi_input_port_open_p(ScmObj port, bool *rslt);
+bool scm_capi_input_port_open_p(ScmObj port);
 ScmObj scm_api_input_port_open_P(ScmObj port);
-int scm_capi_output_port_open_p(ScmObj port, bool *rslt);
+bool scm_capi_output_port_open_p(ScmObj port);
 ScmObj scm_api_output_port_open_P(ScmObj port);
 
 ScmObj scm_capi_open_input_fd(int fd, const char *enc);
