@@ -327,11 +327,13 @@ scm_lexer_tokenize_ident_vbar(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
 {
   scm_char_t current;
   int rslt;
+  bool escaped_p;
 
   scm_assert(lexer != NULL);
   scm_assert(scm_capi_input_port_p(port));
   scm_assert(enc != NULL);
 
+  escaped_p = false;
   while (1) {
     ssize_t width = scm_capi_read_cchr(&current, port);
     if (width < 0) {
@@ -342,13 +344,25 @@ scm_lexer_tokenize_ident_vbar(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
       scm_lexer_setup_error_state(lexer, SCM_LEXER_ERR_TYPE_UNEXPECTED_EOF);
       return LEXER_STATE_ERROR;
     }
+
+    if (escaped_p) {
+      rslt = scm_lexer_push_char(lexer, current);
+      if (rslt < 0) return LEXER_STATE_ERROR;
+      escaped_p = false;
+    }
     else if (chr_same_p(current, '|', true, enc)) {
       scm_lexer_set_token_type(lexer, SCM_TOKEN_TYPE_IDENTIFIER_VBAR);
       return LEXER_STATE_DONE;
     }
-
-    rslt = scm_lexer_push_char(lexer, current);
-    if (rslt < 0) return LEXER_STATE_ERROR;
+    else if (chr_same_p(current, '\\', true, enc)) {
+      rslt = scm_lexer_push_char(lexer, current);
+      if (rslt < 0) return LEXER_STATE_ERROR;
+      escaped_p = true;
+    }
+    else {
+      rslt = scm_lexer_push_char(lexer, current);
+      if (rslt < 0) return LEXER_STATE_ERROR;
+    }
   }
 
   return 0;
@@ -1162,6 +1176,52 @@ scm_parser_parse_inline_hex_escape(const scm_char_t *str, size_t size,
 }
 
 static ssize_t
+scm_parser_parse_mnemonic_escape(const scm_char_t *str, size_t size,
+                                 ScmEncoding *enc,
+                                 scm_char_t *chr, size_t *skip)
+{
+  ssize_t width;
+
+  scm_assert(str != NULL);
+  scm_assert(size <= SSIZE_MAX);
+  scm_assert(enc != NULL);
+  scm_assert(chr != NULL);
+  scm_assert(skip != NULL);
+
+  if (chr_same_p(str[1], 'a', true, enc)) {
+    scm_enc_cnv_from_ascii(enc, '\a', chr);
+    width = scm_enc_char_width(enc, chr->bytes, sizeof(*chr));
+    *skip = 2;
+  }
+  else if (chr_same_p(str[1], 'b', true, enc)) {
+    scm_enc_cnv_from_ascii(enc, '\b', chr);
+    width = scm_enc_char_width(enc, chr->bytes, sizeof(*chr));
+    *skip = 2;
+  }
+  else if (chr_same_p(str[1], 't', true, enc)) {
+    scm_enc_cnv_from_ascii(enc, '\t', chr);
+    width = scm_enc_char_width(enc, chr->bytes, sizeof(*chr));
+    *skip = 2;
+  }
+  else if (chr_same_p(str[1], 'n', true, enc)) {
+    scm_enc_cnv_from_ascii(enc, '\n', chr);
+    width = scm_enc_char_width(enc, chr->bytes, sizeof(*chr));
+    *skip = 2;
+  }
+  else if (chr_same_p(str[1], 'r', true, enc)) {
+    scm_enc_cnv_from_ascii(enc, '\r', chr);
+    width = scm_enc_char_width(enc, chr->bytes, sizeof(*chr));
+    *skip = 2;
+  }
+  else {
+    *skip = 1;
+    width = 0;
+  }
+
+  return width;
+}
+
+static ssize_t
 scm_parser_parse_str_fold_eec_seq(const scm_char_t *str, size_t size,
                                   ScmEncoding *enc)
 {
@@ -1211,8 +1271,8 @@ scm_parser_parse_string_esc_seq(const scm_char_t *str, size_t size,
 {
   long long hv;
   int rslt;
-  size_t width;
-  ssize_t w, sk;
+  ssize_t width;
+  ssize_t sk;
 
   scm_assert(str != NULL);
   scm_assert(size <= SSIZE_MAX);
@@ -1225,32 +1285,7 @@ scm_parser_parse_string_esc_seq(const scm_char_t *str, size_t size,
     return -1;
   }
 
-  if (chr_same_p(str[1], 'a', true, enc)) {
-    scm_enc_cnv_from_ascii(enc, '\a', chr);
-    width = (size_t)scm_enc_char_width(enc, chr->bytes, sizeof(*chr));
-    *skip = 2;
-  }
-  else if (chr_same_p(str[1], 'b', true, enc)) {
-    scm_enc_cnv_from_ascii(enc, '\b', chr);
-    width = (size_t)scm_enc_char_width(enc, chr->bytes, sizeof(*chr));
-    *skip = 2;
-  }
-  else if (chr_same_p(str[1], 't', true, enc)) {
-    scm_enc_cnv_from_ascii(enc, '\t', chr);
-    width = (size_t)scm_enc_char_width(enc, chr->bytes, sizeof(*chr));
-    *skip = 2;
-  }
-  else if (chr_same_p(str[1], 'n', true, enc)) {
-    scm_enc_cnv_from_ascii(enc, '\n', chr);
-    width = (size_t)scm_enc_char_width(enc, chr->bytes, sizeof(*chr));
-    *skip = 2;
-  }
-  else if (chr_same_p(str[1], 'r', true, enc)) {
-    scm_enc_cnv_from_ascii(enc, '\r', chr);
-    width = (size_t)scm_enc_char_width(enc, chr->bytes, sizeof(*chr));
-    *skip = 2;
-  }
-  else if (chr_find(" \t\r\n", str[1], enc) != NULL) {
+  if (chr_find(" \t\r\n", str[1], enc) != NULL) {
     sk = scm_parser_parse_str_fold_eec_seq(str, size, enc);
     if (sk < 0) return -1;
     *skip = (size_t)sk;
@@ -1260,19 +1295,16 @@ scm_parser_parse_string_esc_seq(const scm_char_t *str, size_t size,
     rslt = scm_parser_parse_inline_hex_escape(str, size, enc, &hv);
     if (rslt < 0) return -1;
     *skip = (size_t)rslt;
-    w = scm_enc_cnv_from_scalar(enc, hv, chr);
-    if (w < 0) {
+    width = scm_enc_cnv_from_scalar(enc, hv, chr);
+    if (width < 0) {
       scm_capi_error("Parser: invalid scalar value", 0);
       return -1;
     }
-    width = (size_t)w;
   }
-  else {
-    *skip = 1;
-    width = 0;
-  }
+  else
+    width = scm_parser_parse_mnemonic_escape(str, size, enc, chr, skip);
 
-  return (ssize_t)width;
+  return width;
 }
 
 int
@@ -1342,14 +1374,54 @@ scm_parser_parse_string(ScmParser *parser, ScmObj port, ScmEncoding *enc)
   return str;
 }
 
+static ssize_t
+scm_parser_parse_ident_esc_seq(const scm_char_t *str, size_t size,
+                               ScmEncoding *enc,
+                               scm_char_t *chr, size_t *skip)
+{
+  long long hv;
+  int rslt;
+  ssize_t width;
+
+  scm_assert(str != NULL);
+  scm_assert(size <= SSIZE_MAX);
+  scm_assert(enc != NULL);
+  scm_assert(chr != NULL);
+  scm_assert(skip != NULL);
+
+  if (size < 2 || !chr_same_p(str[0], '\\', true, enc)) {
+    scm_capi_error("Parser: invalid escpase sequence", 0);
+    return -1;
+  }
+
+  if (chr_same_p(str[1], '|', true, enc)) {
+    scm_enc_cnv_from_ascii(enc, '|', chr);
+    width = scm_enc_char_width(enc, chr->bytes, sizeof(*chr));
+    *skip = 2;
+  }
+  else if (chr_same_p(str[1], 'x', true, enc)) {
+    rslt = scm_parser_parse_inline_hex_escape(str, size, enc, &hv);
+    if (rslt < 0) return -1;
+    *skip = (size_t)rslt;
+    width = scm_enc_cnv_from_scalar(enc, hv, chr);
+    if (width < 0) {
+      scm_capi_error("Parser: invalid scalar value", 0);
+      return -1;
+    }
+  }
+  else
+    width = scm_parser_parse_mnemonic_escape(str, size, enc, chr, skip);
+
+  return width;
+}
+
 static int
 scm_parser_unescape_ident(ScmToken *token, ScmObj str, ScmEncoding *enc)
 {
-  size_t idx;
-  long long hv;
+  size_t idx, inc;
   int rslt;
   scm_char_t chr;
-  ssize_t width, inc;
+  ssize_t width;
 
   SCM_STACK_FRAME_PUSH(&str);
 
@@ -1360,25 +1432,24 @@ scm_parser_unescape_ident(ScmToken *token, ScmObj str, ScmEncoding *enc)
   idx = 0;
   while (idx < token->len) {
     if (chr_same_p(token->str[idx], '\\', true, enc)) {
-      inc = scm_parser_parse_inline_hex_escape(token->str + idx,
-                                               token->len - idx,
-                                               enc, &hv);
-      if (inc < 0) return -1;
-
-      width = scm_enc_cnv_from_scalar(enc, hv, &chr);
-      if (width < 0) {
-        scm_capi_error("Parser: invalid scalar value", 0);
-        return -1;
-      }
-
-      idx += (size_t)inc;
+      width = scm_parser_parse_ident_esc_seq(token->str + idx,
+                                             token->len - idx,
+                                             enc,
+                                             &chr, &inc);
+      if (width < 0) return -1;
     }
     else {
-      chr = token->str[idx++];
+      chr = token->str[idx];
+      width = 1;
+      inc = 1;
     }
 
-    rslt = scm_capi_string_push(str, chr, enc);
-    if (rslt < 0) return -1;
+    if (width > 0) {
+      rslt = scm_capi_string_push(str, chr, enc);
+      if (rslt < 0) return -1;
+    }
+
+    idx += inc;
   }
 
   return 0;
