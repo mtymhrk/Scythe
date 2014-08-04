@@ -1148,7 +1148,7 @@ scm_parser_parse_inline_hex_escape(const scm_char_t *str, size_t size,
   }
 
   *scalar = 0;
-  for (i = 2; i < size && chr_same_p(str[i], ';', true, enc); i++) {
+  for (i = 2; i < size && !chr_same_p(str[i], ';', true, enc); i++) {
     const char *p = chr_find(hex, str[i], enc);
     if (p == NULL) {
       scm_capi_error("Paraser: invalid inline hex escape sequence", 0);
