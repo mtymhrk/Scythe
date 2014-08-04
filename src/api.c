@@ -6795,20 +6795,20 @@ scm_capi_char_ready(ScmObj port, bool *rslt)
 {
   if (scm_obj_null_p(port)) {
     port = scm_default_input_port();
-    if (scm_obj_null_p(port)) return SCM_OBJ_NULL;
+    if (scm_obj_null_p(port)) return -1;
   }
 
   if (!scm_capi_input_port_p(port)) {
     scm_capi_error("char-ready?: input-port required, but got", 1, port);
-    return SCM_OBJ_NULL;
+    return -1;
   }
   else if (!scm_capi_textual_port_p(port)) {
     scm_capi_error("char-ready?: textual-port required, but got", 1, port);
-    return SCM_OBJ_NULL;
+    return -1;
   }
   else if (scm_port_closed_p(port)) {
     scm_capi_error("char-ready?: input-port is closed", 1, port);
-    return SCM_OBJ_NULL;
+    return -1;
   }
 
   return scm_port_char_ready(port, rslt);
