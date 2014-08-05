@@ -30,14 +30,6 @@
 
 #define SCM_ALIGNOF(type) offsetof(struct { char a; type b; }, b)
 
-#ifdef SCM_UNIT_TEST
-#  define scm_local_func
-#  define scm_local_inline extern inline
-#else
-#  define scm_local_func static
-#  define scm_local_inline static inline
-#endif
-
 #include <stdio.h>
 
 #define scm_debug(...)                                           \

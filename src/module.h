@@ -91,20 +91,6 @@ struct ScmModuleRec {
   bool in_searching;
 };
 
-#ifdef SCM_UNIT_TEST
-
-int scm_module_search_gloc(ScmObj mod, ScmObj sym, int type,
-                           scm_csetter_t *setter);
-ScmObj scm_module_gloc(ScmObj mod, ScmObj sym, int type);
-int scm_module_define(ScmObj mod,
-                      ScmObj sym, ScmObj val, bool export, int type);
-int scm_module_export(ScmObj mod, ScmObj sym, int type);
-int scm_module_find_exported_sym(ScmObj mod,
-                                 ScmObj sym, int type, scm_csetter_t *setter);
-int scm_module_find_sym(ScmObj mod,
-                        ScmObj sym, int type, scm_csetter_t *setter);
-
-#endif
 
 int scm_module_initialize(ScmObj mod, ScmObj name);
 void scm_module_finalize(ScmObj mod);
@@ -154,20 +140,6 @@ struct ScmModuleTreeRec {
 
 #define SCM_MODULETREE_DEFAULT_BRANCH_SIZE 16
 
-#ifdef SCM_UNIT_TEST
-
-ScmModuleTreeNode *scm_moduletree_make_node(void);
-int scm_moduletree_free_node(ScmModuleTreeNode *node);
-int scm_moduletree_free_tree(ScmModuleTreeNode *root);
-int scm_moduletree_node_gc_accept(ScmObj tree, ScmModuleTreeNode *node,
-                                    ScmObj mem, ScmGCRefHandlerFunc handler);
-ScmModuleTreeNode *scm_moduletree_add_branche(ScmModuleTreeNode *node,
-                                                ScmObj name);
-int scm_moduletree_access(ScmModuleTreeNode *root, ScmObj path, int mode,
-                            ScmModuleTreeNode **node);
-ScmObj scm_moduletree_normailize_name(ScmObj name);
-
-#endif
 
 int scm_moduletree_initialize(ScmObj tree);
 void scm_moduletree_finalize(ScmObj tree);

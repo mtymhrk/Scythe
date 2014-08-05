@@ -599,7 +599,7 @@ scm_stringio_chuck_buffer(ScmStringIO *strio)
 }
 
 
-scm_local_func int
+static int
 scm_bufferedio_init_buffer(ScmBufferedIO *bufio, ScmIO *source)
 {
   ssize_t s;
@@ -920,7 +920,7 @@ scm_bufferedio_lower(ScmBufferedIO *bufio)
   return bufio->io;
 }
 
-scm_local_func int
+static int
 scm_charconvio_init(ScmCharConvIO *ccio,
                     const char *incode, const char *extcode)
 {
@@ -963,7 +963,7 @@ scm_charconvio_init(ScmCharConvIO *ccio,
   return 0;
 }
 
-scm_local_func ssize_t
+static ssize_t
 scm_charconvio_read_from_io(ScmCharConvIO *ccio)
 {
   ssize_t rslt;
@@ -991,7 +991,7 @@ scm_charconvio_read_from_io(ScmCharConvIO *ccio)
   return rslt;
 }
 
-scm_local_func ssize_t
+static ssize_t
 scm_charconvio_conv_read(ScmCharConvIO *ccio, void *buf, size_t size,
                          size_t *cnsm, int *err)
 {
@@ -1035,7 +1035,7 @@ scm_charconvio_conv_read(ScmCharConvIO *ccio, void *buf, size_t size,
   return (ssize_t)(size - outs);
 }
 
-scm_local_func int
+static int
 scm_charconvio_read_into_cnvd(ScmCharConvIO *ccio)
 {
   size_t cnsm;
@@ -1060,7 +1060,7 @@ scm_charconvio_read_into_cnvd(ScmCharConvIO *ccio)
   return 0;
 }
 
-scm_local_func ssize_t
+static ssize_t
 scm_charconvio_write_aux(ScmCharConvIO *ccio, const void *buf, size_t size)
 {
   char outbuf[256];
@@ -1332,7 +1332,7 @@ scm_charconvio_lower(ScmCharConvIO *ccio)
   return ccio->io;
 }
 
-scm_local_func int
+static int
 scm_port_init_buffer(ScmObj port, SCM_PORT_BUF_T buf_mode)
 {
   int rslt;
@@ -1362,7 +1362,7 @@ scm_port_init_buffer(ScmObj port, SCM_PORT_BUF_T buf_mode)
   return 0;
 }
 
-scm_local_func int
+static int
 scm_port_init_encode(ScmObj port)
 {
   ScmEncoding *enc;
@@ -1392,7 +1392,7 @@ scm_port_init_encode(ScmObj port)
   return 0;
 }
 
-scm_local_func ssize_t
+static ssize_t
 scm_port_size_up_to_rearmost_lf(ScmObj port, const void *buf, size_t size)
 {
   ScmStrItr iter;
@@ -1442,20 +1442,20 @@ scm_port_size_up_to_rearmost_lf(ScmObj port, const void *buf, size_t size)
   return found;
 }
 
-scm_local_inline uint8_t *
+inline uint8_t *
 scm_port_pushback_buff_head(ScmObj port)
 {
   return (SCM_PORT(port)->pushback
           + (SCM_PORT_PUSHBACK_BUFF_SIZE - SCM_PORT(port)->pb_used));
 }
 
-scm_local_inline size_t
+inline size_t
 scm_port_pushback_buff_unused(ScmObj port)
 {
   return SCM_PORT_PUSHBACK_BUFF_SIZE - SCM_PORT(port)->pb_used;
 }
 
-scm_local_func ssize_t
+static ssize_t
 scm_port_read_from_pushback_buf(ScmObj port, void *buf, size_t size)
 {
   size_t n;
@@ -1476,7 +1476,7 @@ scm_port_read_from_pushback_buf(ScmObj port, void *buf, size_t size)
   return (ssize_t)n;
 }
 
-scm_local_func int
+static int
 scm_port_pushback_buf_char_ready(ScmObj port, bool *rslt)
 {
   ssize_t width;
@@ -1506,7 +1506,7 @@ scm_port_pushback_buf_char_ready(ScmObj port, bool *rslt)
   return 0;
 }
 
-scm_local_func ssize_t
+static ssize_t
 scm_port_read_char_from_pushback_buf(ScmObj port, scm_char_t *chr)
 {
   ssize_t width;
@@ -1537,7 +1537,7 @@ scm_port_read_char_from_pushback_buf(ScmObj port, scm_char_t *chr)
   }
 }
 
-scm_local_func ssize_t
+static ssize_t
 scm_port_read_from_io(ScmObj port, void *buf, size_t size)
 {
   ssize_t n;
@@ -1560,7 +1560,7 @@ scm_port_read_from_io(ScmObj port, void *buf, size_t size)
   return n;
 }
 
-scm_local_func ssize_t
+static ssize_t
 scm_port_read_into_pushback_buf(ScmObj port, size_t size)
 {
   ssize_t ret;
@@ -1583,7 +1583,7 @@ scm_port_read_into_pushback_buf(ScmObj port, size_t size)
   return ret;
 }
 
-scm_local_func ssize_t
+static ssize_t
 scm_port_read(ScmObj port, void *buf, size_t size)
 {
   ssize_t ret, pb_nr;
@@ -1608,7 +1608,7 @@ scm_port_read(ScmObj port, void *buf, size_t size)
   return ret + pb_nr;
 }
 
-scm_local_func ssize_t
+static ssize_t
 scm_port_write(ScmObj port, const void *buf, size_t size)
 {
   size_t sz;
@@ -1648,7 +1648,7 @@ scm_port_write(ScmObj port, const void *buf, size_t size)
   return nw + n;
 }
 
-scm_local_func int
+static int
 scm_port_analy_modestr(const char *mode,
                        SCM_PORT_ATTR *attr, SCM_PORT_OFLG *oflg)
 {

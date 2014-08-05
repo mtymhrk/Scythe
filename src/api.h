@@ -752,12 +752,4 @@ int scm_capi_exec_cstr(const char *expr, const char *enc, ScmEvaluator *ev);
 int scm_capi_load_iseq(ScmObj iseq);
 
 
-#ifdef SCM_UNIT_TEST
-
-ScmObj scm_capi_ut_compile(ScmEvaluator *ev, ScmObj exp);
-ScmObj scm_capi_ut_eval(ScmEvaluator *ev, ScmObj exp);
-void scm_capi_ut_clear_compiler_label_id(void);
-
-#endif
-
 #endif /* INCLUDE_API_H__ */

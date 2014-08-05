@@ -18,13 +18,13 @@ ScmTypeInfo SCM_REFSTACK_TYPE_INFO = {
   .extra                           = NULL,
 };
 
-scm_local_inline bool
+inline bool
 scm_ref_stack_block_full_p(ScmRefStackBlock *block)
 {
   return (block->stack + block->size <= block->sp) ? true : false;
 }
 
-scm_local_inline ScmRefStackBlock *
+inline ScmRefStackBlock *
 scm_ref_stack_new_block(size_t sz)
 {
   ScmRefStackBlock *block;
@@ -42,19 +42,19 @@ scm_ref_stack_new_block(size_t sz)
   return block;
 }
 
-scm_local_inline void
+inline void
 scm_ref_stack_block_push(ScmRefStackBlock *block, ScmRef ref)
 {
   *(block->sp++) = ref;
 }
 
-scm_local_inline void
+inline void
 scm_ref_stack_block_init_sp(ScmRefStackBlock *block)
 {
   block->sp = block->stack;
 }
 
-scm_local_func void
+static void
 scm_ref_stack_add_block(ScmObj stack, ScmRefStackBlock *block)
 {
   scm_assert_obj_type(stack, &SCM_REFSTACK_TYPE_INFO);
@@ -72,7 +72,7 @@ scm_ref_stack_add_block(ScmObj stack, ScmRefStackBlock *block)
   }
 }
 
-scm_local_func void
+static void
 scm_ref_stack_decrease_block(ScmObj stack)
 {
   ScmRefStackBlock *block;
@@ -95,7 +95,7 @@ scm_ref_stack_decrease_block(ScmObj stack)
   }
 }
 
-scm_local_inline void
+inline void
 scm_ref_stack_shift_stack_block(ScmObj stack)
 {
   scm_assert_obj_type(stack, &SCM_REFSTACK_TYPE_INFO);
@@ -106,7 +106,7 @@ scm_ref_stack_shift_stack_block(ScmObj stack)
 }
 
 
-scm_local_func int
+static int
 scm_ref_stack_add_new_block(ScmObj stack, size_t size)
 {
   ScmRefStackBlock *block;
@@ -121,7 +121,7 @@ scm_ref_stack_add_new_block(ScmObj stack, size_t size)
   return 0;
 }
 
-scm_local_func int
+static int
 scm_ref_stack_growth_if_needed(ScmObj stack)
 {
   scm_assert_obj_type(stack, &SCM_REFSTACK_TYPE_INFO);
@@ -139,7 +139,7 @@ scm_ref_stack_growth_if_needed(ScmObj stack)
   return 0;
 }
 
-scm_local_func void
+static void
 scm_ref_stack_decrease_if_possible(ScmObj stack)
 {
   ;                             /* TODO: write me */

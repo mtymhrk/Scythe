@@ -107,7 +107,7 @@ scm_module_cmp_func(ScmCHashTblKey key1, ScmCHashTblKey key2)
 
 enum { SCM_MODULE_EVAL, SCM_MODULE_CMPL };
 
-scm_local_func int
+static int
 scm_module_search_gloc(ScmObj mod, ScmObj sym, int type, scm_csetter_t *setter)
 {
   bool found;
@@ -132,7 +132,7 @@ scm_module_search_gloc(ScmObj mod, ScmObj sym, int type, scm_csetter_t *setter)
   return 0;
 }
 
-scm_local_func ScmObj
+static ScmObj
 scm_module_gloc(ScmObj mod, ScmObj sym, int type)
 {
   ScmObj gloc = SCM_OBJ_INIT;
@@ -171,7 +171,7 @@ scm_module_gloc(ScmObj mod, ScmObj sym, int type)
 }
 
 
-scm_local_func int
+static int
 scm_module_define(ScmObj mod, ScmObj sym, ScmObj val, bool export, int type)
 {
   ScmObj gloc = SCM_OBJ_INIT;
@@ -195,7 +195,7 @@ scm_module_define(ScmObj mod, ScmObj sym, ScmObj val, bool export, int type)
   return 0;
 }
 
-scm_local_func int
+static int
 scm_module_export(ScmObj mod, ScmObj sym, int type)
 {
   ScmObj gloc = SCM_OBJ_INIT;
@@ -222,7 +222,7 @@ scm_module_export(ScmObj mod, ScmObj sym, int type)
   return 0;
 }
 
-scm_local_func int
+static int
 scm_module_find_exported_sym(ScmObj mod,
                              ScmObj sym, int type, scm_csetter_t *setter)
 {
@@ -286,7 +286,7 @@ scm_module_find_exported_sym(ScmObj mod,
   return -1;
 }
 
-scm_local_func int
+static int
 scm_module_find_sym(ScmObj mod, ScmObj sym, int type, scm_csetter_t *setter)
 {
   ScmObj lst = SCM_OBJ_INIT, elm = SCM_OBJ_INIT, imp = SCM_OBJ_INIT;
@@ -550,7 +550,7 @@ ScmTypeInfo SCM_MODULETREE_TYPE_INFO = {
 
 enum { ADD, UPDATE, FIND };
 
-scm_local_func ScmModuleTreeNode *
+static ScmModuleTreeNode *
 scm_moduletree_make_node(void)
 {
   ScmModuleTreeNode *node;
@@ -574,7 +574,7 @@ scm_moduletree_make_node(void)
   return node;
 }
 
-scm_local_func int
+static int
 scm_moduletree_free_node(ScmModuleTreeNode *node)
 {
   if (node == NULL) return 0;
@@ -585,7 +585,7 @@ scm_moduletree_free_node(ScmModuleTreeNode *node)
   return 0;
 }
 
-scm_local_func int
+static int
 scm_moduletree_free_tree(ScmModuleTreeNode *root)
 {
   int r;
@@ -603,7 +603,7 @@ scm_moduletree_free_tree(ScmModuleTreeNode *root)
   return 0;
 }
 
-scm_local_func int
+static int
 scm_moduletree_node_gc_accept(ScmObj tree, ScmModuleTreeNode *node,
                               ScmObj mem, ScmGCRefHandlerFunc handler)
 {
@@ -625,7 +625,7 @@ scm_moduletree_node_gc_accept(ScmObj tree, ScmModuleTreeNode *node,
   return 0;
 }
 
-scm_local_func ScmModuleTreeNode *
+static ScmModuleTreeNode *
 scm_moduletree_add_branche(ScmModuleTreeNode *node, ScmObj name)
 {
   ScmModuleTreeNode *new;
@@ -663,7 +663,7 @@ scm_moduletree_add_branche(ScmModuleTreeNode *node, ScmObj name)
   return new;
 }
 
-scm_local_func int
+static int
 scm_moduletree_access(ScmModuleTreeNode *root, ScmObj path, int mode,
                       ScmModuleTreeNode **node)
 {
@@ -723,7 +723,7 @@ scm_moduletree_access(ScmModuleTreeNode *root, ScmObj path, int mode,
     return 0;
 }
 
-scm_local_func ScmObj
+static ScmObj
 scm_moduletree_normailize_name(ScmObj name)
 {
   scm_assert(scm_capi_symbol_p(name) || scm_capi_pair_p(name));

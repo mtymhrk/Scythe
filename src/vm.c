@@ -606,7 +606,7 @@ ScmTypeInfo SCM_VM_TYPE_INFO = {
   .extra               = NULL,
 };
 
-/* scm_local_func int */
+/* static int */
 /* scm_vm_stack_push(ScmObj vm, ScmObj elm) */
 /* { */
 /*   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO); */
@@ -623,7 +623,7 @@ ScmTypeInfo SCM_VM_TYPE_INFO = {
 /*   return 0; */
 /* } */
 
-/* scm_local_func ScmObj */
+/* static ScmObj */
 /* scm_vm_stack_pop(ScmObj vm) */
 /* { */
 /*   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO); */
@@ -639,7 +639,7 @@ ScmTypeInfo SCM_VM_TYPE_INFO = {
 /*   return *(ScmObj *)SCM_VM(vm)->reg.sp; */
 /* } */
 
-scm_local_inline void
+inline void
 scm_vm_ctrl_flg_set(ScmObj vm, SCM_VM_CTRL_FLG_T flg)
 {
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
@@ -647,7 +647,7 @@ scm_vm_ctrl_flg_set(ScmObj vm, SCM_VM_CTRL_FLG_T flg)
   SCM_VM(vm)->reg.flags |= flg;
 }
 
-scm_local_inline void
+inline void
 scm_vm_ctrl_flg_clr(ScmObj vm, SCM_VM_CTRL_FLG_T flg)
 {
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
@@ -655,7 +655,7 @@ scm_vm_ctrl_flg_clr(ScmObj vm, SCM_VM_CTRL_FLG_T flg)
   SCM_VM(vm)->reg.flags &= ~flg;
 }
 
-scm_local_inline bool
+inline bool
 scm_vm_ctrl_flg_set_p(ScmObj vm, SCM_VM_CTRL_FLG_T flg)
 {
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
@@ -663,7 +663,7 @@ scm_vm_ctrl_flg_set_p(ScmObj vm, SCM_VM_CTRL_FLG_T flg)
   return (SCM_VM(vm)->reg.flags & flg) ? true : false;
 }
 
-scm_local_inline int
+inline int
 scm_vm_update_pef_len_if_needed(ScmObj vm)
 {
   if (scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_PEF)) {
@@ -677,9 +677,9 @@ scm_vm_update_pef_len_if_needed(ScmObj vm)
   return 0;
 }
 
-scm_local_func int scm_vm_handle_stack_overflow(ScmObj vm);
+static int scm_vm_handle_stack_overflow(ScmObj vm);
 
-scm_local_func int
+static int
 scm_vm_copy_pef_to_top_of_stack_if_needed(ScmObj vm)
 {
   size_t size;
@@ -706,7 +706,7 @@ scm_vm_copy_pef_to_top_of_stack_if_needed(ScmObj vm)
   return 0;
 }
 
-scm_local_func ScmObj
+static ScmObj
 scm_vm_capture_stack(ScmObj vm)
 {
   ScmObj vmsr = SCM_OBJ_INIT, next = SCM_OBJ_INIT;
@@ -768,7 +768,7 @@ scm_vm_capture_stack(ScmObj vm)
   return scm_vmsr_next(SCM_VM(vm)->stack);;
 }
 
-scm_local_func int
+static int
 scm_vm_restore_stack(ScmObj vm, ScmObj stack)
 {
   int rslt;
@@ -798,7 +798,7 @@ scm_vm_restore_stack(ScmObj vm, ScmObj stack)
   return 0;
 }
 
-scm_local_func int
+static int
 scm_vm_handle_stack_overflow(ScmObj vm)
 {
   ScmObj vmss = SCM_OBJ_INIT, vmsr = SCM_OBJ_INIT, next = SCM_OBJ_INIT;
@@ -880,7 +880,7 @@ scm_vm_handle_stack_overflow(ScmObj vm)
   return 0;
 }
 
-scm_local_func int
+static int
 scm_vm_handle_stack_underflow(ScmObj vm)
 {
   ScmObj next = SCM_OBJ_INIT;
@@ -932,7 +932,7 @@ scm_vm_handle_stack_underflow(ScmObj vm)
   return 0;
 }
 
-scm_local_func int
+static int
 scm_vm_make_cframe(ScmObj vm, ScmEnvFrame *efp, ScmEnvFrame *pefp, ScmObj cp)
 {
   ScmCntFrame *cfp;
@@ -988,7 +988,7 @@ scm_vm_make_cframe(ScmObj vm, ScmEnvFrame *efp, ScmEnvFrame *pefp, ScmObj cp)
   return 0;
 }
 
-scm_local_func int
+static int
 scm_vm_commit_cframe(ScmObj vm, scm_byte_t *ip)
 {
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
@@ -1005,7 +1005,7 @@ scm_vm_commit_cframe(ScmObj vm, scm_byte_t *ip)
   return 0;
 }
 
-scm_local_func int
+static int
 scm_vm_pop_cframe(ScmObj vm)
 {
   ScmCntFrame *cfp;
@@ -1045,7 +1045,7 @@ scm_vm_pop_cframe(ScmObj vm)
   return 0;
 }
 
-scm_local_func int
+static int
 scm_vm_make_eframe(ScmObj vm, size_t nr_arg)
 {
   ScmEnvFrame *pefp;
@@ -1082,7 +1082,7 @@ scm_vm_make_eframe(ScmObj vm, size_t nr_arg)
   return 0;
 }
 
-scm_local_func int
+static int
 scm_vm_commit_eframe(ScmObj vm, ScmEnvFrame *efp, size_t nr_arg)
 {
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
@@ -1104,7 +1104,7 @@ scm_vm_commit_eframe(ScmObj vm, ScmEnvFrame *efp, size_t nr_arg)
   return 0;
 }
 
-scm_local_func int
+static int
 scm_vm_cancel_eframe(ScmObj vm)
 {
   ScmEnvFrame *pefp;
@@ -1131,7 +1131,7 @@ scm_vm_cancel_eframe(ScmObj vm)
   return 0;
 }
 
-scm_local_func int
+static int
 scm_vm_pop_eframe(ScmObj vm)
 {
   ScmEnvFrame *efp;
@@ -1163,7 +1163,7 @@ scm_vm_pop_eframe(ScmObj vm)
   return 0;
 }
 
-scm_local_func int
+static int
 scm_vm_box_eframe(ScmObj vm, ScmEnvFrame *efp, size_t depth, scm_csetter_t *box)
 {
   ScmObj efb = SCM_OBJ_INIT, prev = SCM_OBJ_INIT;
@@ -1216,7 +1216,7 @@ scm_vm_box_eframe(ScmObj vm, ScmEnvFrame *efp, size_t depth, scm_csetter_t *box)
   return 0;
 }
 
-scm_local_func ScmEnvFrame *
+static ScmEnvFrame *
 scm_vm_eframe_list_ref(ScmEnvFrame *efp_list, size_t n)
 {
   ScmEnvFrame *efp;
@@ -1230,7 +1230,7 @@ scm_vm_eframe_list_ref(ScmEnvFrame *efp_list, size_t n)
   return efp;
 }
 
-scm_local_func ScmObj
+static ScmObj
 scm_vm_eframe_arg_ref(ScmEnvFrame *efp_list, size_t idx, size_t layer,
                       ScmEnvFrame **efp)
 {
@@ -1253,7 +1253,7 @@ scm_vm_eframe_arg_ref(ScmEnvFrame *efp_list, size_t idx, size_t layer,
   return e->arg[idx];
 }
 
-scm_local_func int
+static int
 scm_vm_push_dynamic_bindings(ScmObj vm, ScmObj *param, size_t n)
 {
   ScmObj rib = SCM_OBJ_INIT, x = SCM_OBJ_INIT;
@@ -1289,7 +1289,7 @@ scm_vm_push_dynamic_bindings(ScmObj vm, ScmObj *param, size_t n)
   return 0;
 }
 
-scm_local_func int
+static int
 scm_vm_pop_dynamic_bindings(ScmObj vm)
 {
   ScmObj x = SCM_OBJ_INIT;
@@ -1309,7 +1309,7 @@ scm_vm_pop_dynamic_bindings(ScmObj vm)
   return 0;
 }
 
-scm_local_func int
+static int
 scm_vm_make_proc_call_code(ScmObj iseq, ScmObj proc, ScmObj args, bool tail)
 {
   ScmObj cur = SCM_OBJ_INIT, arg = SCM_OBJ_INIT;
@@ -1403,7 +1403,7 @@ scm_vm_make_proc_call_code(ScmObj iseq, ScmObj proc, ScmObj args, bool tail)
   return 0;
 }
 
-scm_local_func ScmObj
+static ScmObj
 scm_vm_make_trampolining_code(ScmObj vm, ScmObj proc,
                               ScmObj args, ScmObj postproc, ScmObj handover)
 {
@@ -1458,7 +1458,7 @@ scm_vm_make_trampolining_code(ScmObj vm, ScmObj proc,
   return iseq;
 }
 
-scm_local_func int
+static int
 scm_vm_cmp_arity(int argc, int arity, bool unwished)
 {
   scm_assert(-INT_MAX <= argc && argc <= INT_MAX);
@@ -1480,7 +1480,7 @@ scm_vm_cmp_arity(int argc, int arity, bool unwished)
   return 0;
 }
 
-scm_local_func int
+static int
 scm_vm_adjust_arg_to_arity(ScmObj vm, int argc, ScmObj proc, int *adjusted)
 {
   ScmObj lst = SCM_OBJ_INIT;
@@ -1549,7 +1549,7 @@ scm_vm_adjust_arg_to_arity(ScmObj vm, int argc, ScmObj proc, int *adjusted)
   return nr_bind;
 }
 
-scm_local_func int
+static int
 scm_vm_do_op_return(ScmObj vm, SCM_OPCODE_T op)
 {
   int rslt;
@@ -1565,7 +1565,7 @@ scm_vm_do_op_return(ScmObj vm, SCM_OPCODE_T op)
   return 0;
 }
 
-scm_local_func int
+static int
 scm_vm_do_op_call(ScmObj vm, SCM_OPCODE_T op, int argc, bool tail_p)
 {
   ScmObj efb = SCM_OBJ_INIT, contcap = SCM_OBJ_INIT;
@@ -1678,7 +1678,7 @@ scm_vm_do_op_call(ScmObj vm, SCM_OPCODE_T op, int argc, bool tail_p)
   return 0;
 }
 
-scm_local_func int
+static int
 scm_vm_do_op_push(ScmObj vm, SCM_OPCODE_T op)
 {
   scm_byte_t *sp;
@@ -1710,7 +1710,7 @@ scm_vm_do_op_push(ScmObj vm, SCM_OPCODE_T op)
   return 0;
 }
 
-scm_local_func int
+static int
 scm_vm_do_op_mvpush(ScmObj vm, SCM_OPCODE_T op)
 {
   ScmObj val = SCM_OBJ_INIT;
@@ -1761,7 +1761,7 @@ scm_vm_do_op_mvpush(ScmObj vm, SCM_OPCODE_T op)
   return 0;
 }
 
-scm_local_func int
+static int
 scm_vm_do_op_frame(ScmObj vm, SCM_OPCODE_T op)
 {
   int rslt;
@@ -1782,7 +1782,7 @@ scm_vm_do_op_frame(ScmObj vm, SCM_OPCODE_T op)
   return 0;
 }
 
-scm_local_func int
+static int
 scm_vm_do_op_eframe(ScmObj vm, SCM_OPCODE_T op)
 {
   int rslt;
@@ -1795,7 +1795,7 @@ scm_vm_do_op_eframe(ScmObj vm, SCM_OPCODE_T op)
   return 0;
 }
 
-scm_local_func int
+static int
 scm_vm_do_op_ecommit(ScmObj vm, SCM_OPCODE_T op, size_t argc)
 {
   int rslt;
@@ -1808,7 +1808,7 @@ scm_vm_do_op_ecommit(ScmObj vm, SCM_OPCODE_T op, size_t argc)
   return 0;
 }
 
-scm_local_func int
+static int
 scm_vm_op_undef(ScmObj vm, SCM_OPCODE_T op)
 {
   SCM_SLOT_SETQ(ScmVM, vm, reg.val[0], SCM_UNDEF_OBJ);
@@ -1816,7 +1816,7 @@ scm_vm_op_undef(ScmObj vm, SCM_OPCODE_T op)
   return 0;
 }
 
-scm_local_func int
+static int
 scm_vm_op_call(ScmObj vm, SCM_OPCODE_T op)
 {
   int argc;
@@ -1833,7 +1833,7 @@ scm_vm_op_call(ScmObj vm, SCM_OPCODE_T op)
   return scm_vm_do_op_call(vm, op, argc, (op == SCM_OPCODE_TAIL_CALL));
 }
 
-scm_local_func int
+static int
 scm_vm_op_apply(ScmObj vm, SCM_OPCODE_T op)
 {
   ptrdiff_t argc;
@@ -1860,7 +1860,7 @@ scm_vm_op_apply(ScmObj vm, SCM_OPCODE_T op)
   return scm_vm_do_op_call(vm, op, (int)argc, (op == SCM_OPCODE_TAIL_APPLY));
 }
 
-scm_local_func int
+static int
 scm_vm_op_immval(ScmObj vm, SCM_OPCODE_T op)
 {
   ScmObj val = SCM_OBJ_INIT;
@@ -1880,7 +1880,7 @@ scm_vm_op_immval(ScmObj vm, SCM_OPCODE_T op)
   return 0;
 }
 
-scm_local_func int
+static int
 scm_vm_op_push(ScmObj vm, SCM_OPCODE_T op)
 {
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
@@ -1888,7 +1888,7 @@ scm_vm_op_push(ScmObj vm, SCM_OPCODE_T op)
   return scm_vm_do_op_push(vm, op);
 }
 
-scm_local_func int
+static int
 scm_vm_op_mvpush(ScmObj vm, SCM_OPCODE_T op)
 {
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
@@ -1896,7 +1896,7 @@ scm_vm_op_mvpush(ScmObj vm, SCM_OPCODE_T op)
   return scm_vm_do_op_mvpush(vm, op);
 }
 
-scm_local_func int
+static int
 scm_vm_op_frame(ScmObj vm, SCM_OPCODE_T op)
 {
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
@@ -1904,7 +1904,7 @@ scm_vm_op_frame(ScmObj vm, SCM_OPCODE_T op)
   return scm_vm_do_op_frame(vm, op);
 }
 
-scm_local_func int
+static int
 scm_vm_op_cframe(ScmObj vm, SCM_OPCODE_T op)
 {
   int rslt;
@@ -1920,7 +1920,7 @@ scm_vm_op_cframe(ScmObj vm, SCM_OPCODE_T op)
   return 0;
 }
 
-scm_local_func int
+static int
 scm_vm_op_eframe(ScmObj vm, SCM_OPCODE_T op)
 {
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
@@ -1928,7 +1928,7 @@ scm_vm_op_eframe(ScmObj vm, SCM_OPCODE_T op)
   return scm_vm_do_op_eframe(vm, op);
 }
 
-scm_local_func int
+static int
 scm_vm_op_ecommit(ScmObj vm, SCM_OPCODE_T op)
 {
   int argc;
@@ -1951,7 +1951,7 @@ scm_vm_op_ecommit(ScmObj vm, SCM_OPCODE_T op)
   return scm_vm_do_op_ecommit(vm, op, (size_t)argc);
 }
 
-scm_local_func int
+static int
 scm_vm_op_epop(ScmObj vm, SCM_OPCODE_T op)
 {
   int rslt;
@@ -1964,7 +1964,7 @@ scm_vm_op_epop(ScmObj vm, SCM_OPCODE_T op)
   return 0;
 }
 
-scm_local_func int
+static int
 scm_vm_op_erebind(ScmObj vm, SCM_OPCODE_T op)
 {
   ScmEnvFrame *efp;
@@ -2022,7 +2022,7 @@ scm_vm_op_erebind(ScmObj vm, SCM_OPCODE_T op)
   return 0;
 }
 
-scm_local_func int
+static int
 scm_vm_op_return(ScmObj vm, SCM_OPCODE_T op)
 {
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
@@ -2030,7 +2030,7 @@ scm_vm_op_return(ScmObj vm, SCM_OPCODE_T op)
   return scm_vm_do_op_return(vm, op);
 }
 
-scm_local_func int
+static int
 scm_vm_op_gref(ScmObj vm, SCM_OPCODE_T op)
 {
   ScmObj gloc = SCM_OBJ_INIT, arg = SCM_OBJ_INIT, mod = SCM_OBJ_INIT;
@@ -2095,7 +2095,7 @@ scm_vm_op_gref(ScmObj vm, SCM_OPCODE_T op)
   return 0;
 }
 
-scm_local_func int
+static int
 scm_vm_op_gdef(ScmObj vm, SCM_OPCODE_T op)
 {
   ScmObj gloc = SCM_OBJ_INIT, arg = SCM_OBJ_INIT, mod = SCM_OBJ_INIT;
@@ -2143,7 +2143,7 @@ scm_vm_op_gdef(ScmObj vm, SCM_OPCODE_T op)
   return 0;
 }
 
-scm_local_func int
+static int
 scm_vm_op_gset(ScmObj vm, SCM_OPCODE_T op)
 {
   ScmObj gloc = SCM_OBJ_INIT, arg = SCM_OBJ_INIT, mod = SCM_OBJ_INIT;
@@ -2204,7 +2204,7 @@ scm_vm_op_gset(ScmObj vm, SCM_OPCODE_T op)
   return 0;
 }
 
-scm_local_func int
+static int
 scm_vm_op_sref(ScmObj vm, SCM_OPCODE_T op)
 {
   ScmObj val = SCM_OBJ_INIT;
@@ -2246,7 +2246,7 @@ scm_vm_op_sref(ScmObj vm, SCM_OPCODE_T op)
   return 0;
 }
 
-scm_local_func int
+static int
 scm_vm_op_sset(ScmObj vm, SCM_OPCODE_T op)
 {
   ScmObj val = SCM_OBJ_INIT, o = SCM_OBJ_INIT;
@@ -2288,7 +2288,7 @@ scm_vm_op_sset(ScmObj vm, SCM_OPCODE_T op)
   return 0;
 }
 
-scm_local_func int
+static int
 scm_vm_op_jmp(ScmObj vm, SCM_OPCODE_T op)
 {
   int dst;
@@ -2306,7 +2306,7 @@ scm_vm_op_jmp(ScmObj vm, SCM_OPCODE_T op)
   return 0;
 }
 
-scm_local_func int
+static int
 scm_vm_op_jmpt(ScmObj vm, SCM_OPCODE_T op)
 {
   int dst;
@@ -2327,7 +2327,7 @@ scm_vm_op_jmpt(ScmObj vm, SCM_OPCODE_T op)
   return 0;
 }
 
-scm_local_func int
+static int
 scm_vm_op_jmpf(ScmObj vm, SCM_OPCODE_T op)
 {
   int dst;
@@ -2348,7 +2348,7 @@ scm_vm_op_jmpf(ScmObj vm, SCM_OPCODE_T op)
   return 0;
 }
 
-scm_local_func int
+static int
 scm_vm_op_box(ScmObj vm, SCM_OPCODE_T op)
 {
   ScmObj box = SCM_OBJ_INIT;
@@ -2395,7 +2395,7 @@ scm_vm_op_box(ScmObj vm, SCM_OPCODE_T op)
   return 0;
 }
 
-scm_local_func int
+static int
 scm_vm_op_close(ScmObj vm, SCM_OPCODE_T op)
 {
   ScmObj clsr = SCM_OBJ_INIT, iseq = SCM_OBJ_INIT, env = SCM_OBJ_INIT;
@@ -2432,7 +2432,7 @@ scm_vm_op_close(ScmObj vm, SCM_OPCODE_T op)
   return 0;
 }
 
-scm_local_func int
+static int
 scm_vm_op_demine(ScmObj vm, SCM_OPCODE_T op)
 {
   ScmObj val = SCM_OBJ_INIT;
@@ -2468,7 +2468,7 @@ scm_vm_op_demine(ScmObj vm, SCM_OPCODE_T op)
   return 0;
 }
 
-scm_local_func int
+static int
 scm_vm_op_emine(ScmObj vm, SCM_OPCODE_T op)
 {
   ScmObj box = SCM_OBJ_INIT;
@@ -2506,7 +2506,7 @@ scm_vm_op_emine(ScmObj vm, SCM_OPCODE_T op)
   return scm_vm_do_op_ecommit(vm, op, (size_t)len);
 }
 
-scm_local_func int
+static int
 scm_vm_op_edemine(ScmObj vm, SCM_OPCODE_T op)
 {
   ScmObj val = SCM_OBJ_INIT;
@@ -2563,7 +2563,7 @@ scm_vm_op_edemine(ScmObj vm, SCM_OPCODE_T op)
   return 0;
 }
 
-scm_local_func int
+static int
 scm_vm_op_arity(ScmObj vm, SCM_OPCODE_T op)
 {
   int arity, rslt, ret;
@@ -2903,7 +2903,7 @@ scm_vm_run(ScmObj vm, ScmObj iseq)
   scm_vm_ctrl_flg_clr(vm, SCM_VM_CTRL_FLG_RAISE);
 }
 
-scm_local_func ScmObj
+static ScmObj
 scm_vm_val_reg_to_vector(ScmObj vm)
 {
   ScmObj val = SCM_OBJ_INIT, elm = SCM_OBJ_INIT;
@@ -3508,7 +3508,7 @@ scm_vm_gc_finalize(ScmObj obj)
   scm_vm_finalize(obj);
 }
 
-scm_local_func int
+static int
 scm_vm_gc_accept_stack(ScmObj vm, ScmObj mem, ScmGCRefHandlerFunc handler)
 {
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT, r;

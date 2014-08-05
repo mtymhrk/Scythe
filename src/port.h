@@ -99,19 +99,6 @@ struct ScmCharConvIORec {
   bool eof_received_p;
 };
 
-#ifdef SCM_UNIT_TEST
-
-int scm_bufferedio_init_buffer(ScmBufferedIO *bufio, ScmIO *source);
-int scm_port_init_encode(ScmObj port);
-
-int scm_charconvio_init(ScmCharConvIO *ccio,
-                        const char *incode, const char *extcode);
-ssize_t scm_charconvio_read_from_io(ScmCharConvIO *ccio);
-ssize_t scm_charconvio_conv_read(ScmCharConvIO *ccio, void *buf, size_t size,
-                                 size_t *cnsm, int *err);
-int scm_charconvio_read_into_cnvd(ScmCharConvIO *ccio);
-
-#endif
 
 void scm_io_initialize(ScmIO *io,
                        ScmIOFinFunc fin,
@@ -230,25 +217,6 @@ struct ScmPortRec {
 
 extern ScmTypeInfo SCM_PORT_TYPE_INFO;
 
-#ifdef SCM_UNIT_TEST
-
-int scm_port_init_buffer(ScmObj port, SCM_PORT_BUF_T buf_mode);
-ssize_t scm_port_size_up_to_rearmost_lf(ScmObj port,
-                                        const void *buf, size_t size);
-uint8_t *scm_port_pushback_buff_head(ScmObj port);
-size_t scm_port_pushback_buff_unused(ScmObj port);
-ssize_t scm_port_read_from_pushback_buf(ScmObj port, void *buf, size_t size);
-int scm_port_pushback_buf_char_ready(ScmObj port, bool *rslt);
-ssize_t scm_port_read_char_from_pushback_buf(ScmObj port, scm_char_t *chr);
-ssize_t scm_port_read_from_io(ScmObj port, void *buf, size_t size);
-ssize_t scm_port_read_buf(ScmObj port,
-                          void *buf, size_t size, int mode);
-ssize_t scm_port_read_into_pushback_buf(ScmObj port, size_t size);
-ssize_t scm_port_read(ScmObj port, void *buf, size_t size);
-ssize_t scm_port_write(ScmObj port, const void *buf, size_t size);
-int scm_port_analy_modestr(const char *mode,
-                           SCM_PORT_ATTR *attr, SCM_PORT_OFLG *oflg);
-#endif
 
 int scm_port_initialize(ScmObj port, ScmIO *io,
                         SCM_PORT_ATTR attr, SCM_PORT_BUF_T buf_mode,
