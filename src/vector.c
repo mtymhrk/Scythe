@@ -18,6 +18,27 @@ ScmTypeInfo SCM_VECTOR_TYPE_INFO = {
   .extra               = NULL,
 };
 
+static ssize_t
+length_of_vector_maked_with_list(ScmObj lst)
+{
+  ScmObj l = SCM_OBJ_INIT;
+  ssize_t cnt;
+
+  SCM_STACK_FRAME_PUSH(&lst,
+                       &l);
+
+  if (scm_obj_null_p(lst))
+    return 0;
+
+  cnt = 0;
+  for (l = lst; scm_capi_pair_p(l); l = scm_api_cdr(l))
+    cnt++;
+
+  if (scm_obj_null_p(l)) return -1;
+
+  return cnt;
+}
+
 int
 scm_vector_initialize(ScmObj vector, size_t length, ScmObj fill)
 {
@@ -165,19 +186,20 @@ scm_vector_new_from_ary(SCM_MEM_TYPE_T mtype, const ScmObj *elms, size_t length)
 }
 
 ScmObj
-scm_vector_new_from_list(SCM_MEM_TYPE_T mtype, size_t length, ScmObj lst)
+scm_vector_new_from_list(SCM_MEM_TYPE_T mtype, ScmObj lst)
 {
   ScmObj vector = SCM_OBJ_INIT;
+  ssize_t len;
 
   SCM_STACK_FRAME_PUSH(&lst, &vector);
 
-  scm_assert(length <= SSIZE_MAX);
-  scm_assert(scm_obj_not_null_p(lst));
+  len = length_of_vector_maked_with_list(lst);
+  if (len < 0) return SCM_OBJ_NULL;
 
   vector = scm_capi_mem_alloc(&SCM_VECTOR_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(vector)) return SCM_OBJ_NULL;
 
-  if (scm_vector_initialize_lst(vector, length, lst) < 0)
+  if (scm_vector_initialize_lst(vector, (size_t)len, lst) < 0)
     return SCM_OBJ_NULL;
 
   return vector;

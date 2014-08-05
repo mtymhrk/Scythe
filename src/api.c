@@ -4754,17 +4754,7 @@ scm_api_vector_to_list(ScmObj vec, ScmObj start, ScmObj end)
 ScmObj
 scm_api_list_to_vector(ScmObj lst)
 {
-  ssize_t n;
-
-  SCM_STACK_FRAME_PUSH(&lst);
-
-  if (scm_capi_nil_p(lst) || !scm_capi_pair_p(lst))
-    return scm_vector_new(SCM_MEM_HEAP, 0, SCM_OBJ_NULL);
-
-  n = scm_capi_length(lst);
-  if (n < 0) return SCM_OBJ_NULL;;
-
-  return scm_vector_new_from_list(SCM_MEM_HEAP, (size_t)n, lst);
+  return scm_vector_new_from_list(SCM_MEM_HEAP, lst);
 }
 
 ScmObj

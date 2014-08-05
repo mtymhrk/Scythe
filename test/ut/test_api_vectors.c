@@ -656,6 +656,20 @@ TEST(api_vectors, api_list_to_vector__not_list__return_empty_vector)
   TEST_ASSERT_SCM_EQUAL(expected, actual);
 }
 
+TEST(api_vectors, api_list_to_vector__improper_list)
+{
+  ScmObj lst = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&lst, &expected, &actual);
+
+  lst = read_cstr("(a b . c)");
+  expected = read_cstr("#(a b)");
+
+  actual = scm_api_list_to_vector(lst);
+
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
+}
+
 TEST(api_vectors, capi_vector_to_string__unspecify_start_end)
 {
   ScmObj vec = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;

@@ -28,8 +28,7 @@ void scm_vector_finalize(ScmObj vector);
 ScmObj scm_vector_new(SCM_MEM_TYPE_T mtype, size_t length, ScmObj fill);
 ScmObj scm_vector_new_from_ary(SCM_MEM_TYPE_T mtype,
                                const ScmObj *elms, size_t length);
-ScmObj scm_vector_new_from_list(SCM_MEM_TYPE_T mtype,
-                                size_t length, ScmObj lst);
+ScmObj scm_vector_new_from_list(SCM_MEM_TYPE_T mtype, ScmObj lst);;
 size_t scm_vector_length(ScmObj vector);
 ScmObj scm_vector_ref(ScmObj vector, size_t index);
 int scm_vector_set(ScmObj vector, size_t index, ScmObj obj);
