@@ -1292,15 +1292,8 @@ scm_api_list_copy(ScmObj lst)
                        &head, &pair, &prev,
                        &rslt);
 
-  if (scm_capi_nil_p(lst)) {
+  if (scm_capi_nil_p(lst) || !scm_capi_pair_p(lst))
     return lst;
-  }
-  else if (!scm_capi_pair_p(lst)) {
-    scm_capi_error("list-copy: list required, but got", 1, lst);
-    return SCM_OBJ_NULL;
-  }
-
-  nil = scm_api_nil();
 
   prev = SCM_OBJ_NULL;
   head = SCM_OBJ_NULL;
@@ -1308,7 +1301,7 @@ scm_api_list_copy(ScmObj lst)
     elm = scm_api_car(cur);
     if (scm_obj_null_p(elm)) return SCM_OBJ_NULL;
 
-    pair = scm_api_cons(elm, nil);
+    pair = scm_api_cons(elm, SCM_NIL_OBJ);
     if (scm_obj_null_p(pair)) return SCM_OBJ_NULL;
 
     if (scm_obj_not_null_p(prev)) {

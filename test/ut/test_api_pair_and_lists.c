@@ -1343,7 +1343,7 @@ TEST(api_pair_and_lists, api_list_copy__empty_list)
   TEST_ASSERT_SCM_EQUAL(lst,  replica);
 }
 
-TEST(api_pair_and_lists, api_list_copy__not_list__return_ERROR)
+TEST(api_pair_and_lists, api_list_copy__not_list__return_obj)
 {
-  TEST_ASSERT_SCM_NULL(scm_api_list_copy(SCM_TRUE_OBJ));
+  TEST_ASSERT_SCM_EQ(SCM_EOF_OBJ, scm_api_list_copy(SCM_EOF_OBJ));
 }
