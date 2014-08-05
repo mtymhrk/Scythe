@@ -1,4 +1,5 @@
 
+set(unit_test_aux_src test.c)
 set(unit_test_src_apnd test_api_module.c test_api_pair_and_lists.c
                        test_api_strings.c test_api_characters.c
                        test_api_symbols.c test_api_equivalence.c
@@ -92,6 +93,7 @@ add_custom_target(
 ##
 add_executable(${test_runner_exe} EXCLUDE_FROM_ALL
                                   ${test_runner_src}
+                                  ${unit_test_aux_src}
                                   ${unit_test_src}
                                   ${unity_files})
 

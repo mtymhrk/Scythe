@@ -31,27 +31,7 @@
   TEST_ASSERT_SCM_TRUE(scm_api_equal_P(expected, actual))
 
 
-static ScmObj
-read_cstr(const char *str)
-{
-  ScmObj port = SCM_OBJ_INIT;
-
-  port = scm_capi_open_input_string_cstr(str, SCM_ENC_NAME_SRC);
-  return scm_api_read(port);
-}
-
-/* static void */
-/* debug_print_obj(ScmObj obj) */
-/* { */
-/*   ScmObj port = SCM_OBJ_INIT; */
-
-/*   SCM_STACK_FRAME_PUSH(&obj, */
-/*                        &port); */
-
-/*   port = scm_api_standard_output_port(); */
-/*   scm_api_write(obj, port); */
-/*   scm_api_newline(port); */
-/* } */
+ScmObj read_cstr(const char *str);
 
 ScmObj scm_capi_ut_compile(ScmEvaluator *ev, ScmObj exp);
 ScmObj scm_capi_ut_eval(ScmEvaluator *ev, ScmObj exp);
