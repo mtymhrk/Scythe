@@ -2757,17 +2757,23 @@ scm_vm_end(ScmObj vm)
     scm_vm_shutdown();
 }
 
+static int
+scm_vm_check_op_retval(ScmObj *vm, SCM_OPCODE_T op, int retval)
+{
+ retry:
+  if (scm_vm_ctrl_flg_set_p(*vm, SCM_VM_CTRL_FLG_HALT))
+    return -1;
 
-#define SCM_VM_RUN_EXC_HNDLR_CALLER_IF_NEEDED(vm, r, op)        \
-  if ((r) < 0 && scm_vm_raised_p(vm)) {                         \
-    r = scm_vm_setup_stat_call_exc_hndlr(vm);                   \
-    if (r < 0) continue;                                        \
-    r = scm_vm_do_op_return(vm, op);                            \
-    continue;                                                   \
-  }                                                             \
-  else {                                                        \
-    scm_vm_discard_raised_obj(vm);                              \
+  if (retval < 0 && scm_vm_raised_p(*vm)) {
+    retval = scm_vm_setup_stat_call_exc_hndlr(*vm);
+    if (retval < 0) goto retry;
+    retval = scm_vm_do_op_return(*vm, op);
+    goto retry;
   }
+
+  scm_vm_discard_raised_obj(*vm);
+  return 0;
+}
 
 void
 scm_vm_run(ScmObj vm, ScmObj iseq)
@@ -2795,8 +2801,9 @@ scm_vm_run(ScmObj vm, ScmObj iseq)
 
   op = SCM_OPCODE_NOP;
   r = 0;
-  while (!scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_HALT)) {
-    SCM_VM_RUN_EXC_HNDLR_CALLER_IF_NEEDED(vm, r, op);
+  while (true) {
+    r = scm_vm_check_op_retval(&vm, op, r);
+    if (r < 0) break;
 
     SCM_CAPI_INST_FETCH_OP(SCM_VM(vm)->reg.ip, op);
 
