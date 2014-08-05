@@ -53,4 +53,8 @@ read_cstr(const char *str)
 /*   scm_api_newline(port); */
 /* } */
 
+ScmObj scm_capi_ut_compile(ScmEvaluator *ev, ScmObj exp);
+ScmObj scm_capi_ut_eval(ScmEvaluator *ev, ScmObj exp);
+
+
 #endif  /* INCLUDE_TEST_HELPER_H__ */

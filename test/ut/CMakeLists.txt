@@ -1,4 +1,21 @@
 
+set(unit_test_src_apnd test_api_module.c test_api_pair_and_lists.c
+                       test_api_strings.c test_api_characters.c
+                       test_api_symbols.c test_api_equivalence.c
+                       test_api_booleans.c test_api_fixnum.c test_api_bignum.c
+                       test_api_vectors.c test_api_format.c
+                       test_api_exceptions.c test_api_assembler.c
+                       test_api_ports.c test_api_input.c test_api_output.c
+                       test_api_nil.c test_api_undef.c
+                       test_exec_compiler.c test_exec_syntax.c test_exec_proc.c)
+string(REGEX REPLACE ";" ";test_" unit_test_src ";${scythe_lib_src}")
+string(REGEX REPLACE "^;" "" unit_test_src "${unit_test_src}")
+set(unit_test_src "${unit_test_src};${unit_test_src_apnd}")
+
+set(unity_dir test/unity)
+set(unity_src_path ${unity_dir}/src)
+set(unity_src unity.c unity_fixture.c)
+
 set(test_runner_src test_runner.c)
 set(test_runner_exe test.run)
 set(test_result_file result.txt)
@@ -14,7 +31,7 @@ set(summarize_script ${CMAKE_SOURCE_DIR}/${unity_dir}/auto/summarize_result.rb)
 add_definitions(
   -O2 -g -std=gnu99 -Wall -Wextra -Wformat=2 -Wstrict-aliasing=2
   -Wcast-qual -Wcast-align -Wwrite-strings -Wconversion -Wfloat-equal
-  -Wpointer-arith -Wswitch-enum -Wno-unused-parameter -DSCM_UNIT_TEST
+  -Wpointer-arith -Wswitch-enum -Wno-unused-parameter
 )
 
 include_directories(${CMAKE_BINARY_DIR}/${scythe_src_path})
@@ -38,14 +55,8 @@ string(REGEX REPLACE ";" ";${CMAKE_SOURCE_DIR}/${unity_src_path}/"
 string(REGEX REPLACE "^;" ""
         unity_files "${unity_files}")
 
-## scythe_lib_src 変数の各ソースファイル名を絶対パスに変換
-string(REGEX REPLACE ";" ";${CMAKE_SOURCE_DIR}/${scythe_src_path}/"
-       scythe_files ";${scythe_lib_src}")
-string(REGEX REPLACE "^;" ""
-       scyte_files "${scythe_files}")
-
 ## unit_test_src 変数の各ソースファイル名を絶対パスに変換
-string(REGEX REPLACE ";" ";${CMAKE_SOURCE_DIR}/${unit_test_src_path}/"
+string(REGEX REPLACE ";" ";${CMAKE_CURRENT_SOURCE_DIR}/"
        unit_test_files ";${unit_test_src}")
 string(REGEX REPLACE "^;" ""
        unit_test_files "${unit_test_files}")
@@ -82,8 +93,7 @@ add_custom_target(
 add_executable(${test_runner_exe} EXCLUDE_FROM_ALL
                                   ${test_runner_src}
                                   ${unit_test_src}
-                                  ${unity_files}
-                                  ${scythe_files})
+                                  ${unity_files})
 
 ## テストランナーのソースファイルがビルド中に生成されることを cmake に教える
 set_source_files_properties(${test_runner_src}
