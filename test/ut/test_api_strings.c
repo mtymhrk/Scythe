@@ -50,11 +50,6 @@ TEST(api_strings, api_string_P__return_false)
   TEST_ASSERT_SCM_FALSE(scm_api_string_P(SCM_TRUE_OBJ));
 }
 
-TEST(api_strings, api_string_P__return_ERROR)
-{
-  TEST_ASSERT_SCM_NULL(scm_api_string_P(SCM_OBJ_NULL));
-}
-
 IGNORE_TEST(api_strings, capi_make_string__specify_chr)
 {
   ScmObj chr = SCM_OBJ_INIT;

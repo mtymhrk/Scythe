@@ -68,11 +68,6 @@ TEST(api_fixnum, api_fixnum_P__return_false)
   TEST_ASSERT_SCM_FALSE(scm_api_fixnum_P(SCM_TRUE_OBJ));
 }
 
-TEST(api_fixnum, api_fixnum_P__return_ERROR)
-{
-  TEST_ASSERT_SCM_NULL(scm_api_fixnum_P(SCM_OBJ_NULL));
-}
-
 TEST(api_fixnum, capi_number_p__return_true)
 {
   ScmObj fn = SCM_OBJ_INIT;
@@ -1340,6 +1335,20 @@ TEST(api_fixnum, capi_plus_lst__arg_0)
   TEST_ASSERT_SCM_TRUE(scm_api_num_eq_P(expected, actual));
 }
 
+TEST(api_fixnum, capi_plus_lst__arg_1)
+{
+  ScmObj lst = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&lst, &expected, &actual);
+
+  lst = read_cstr("(123)");
+  expected = read_cstr("123");
+
+  actual = scm_capi_plus_lst(lst);
+
+  TEST_ASSERT_SCM_TRUE(scm_api_num_eq_P(expected, actual));
+}
+
 TEST(api_fixnum, capi_plus_lst)
 {
   ScmObj lst = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
@@ -1504,6 +1513,20 @@ TEST(api_fixnum, api_mul_lst__arg_0)
 
   lst = read_cstr("()");
   expected = read_cstr("1");
+
+  actual = scm_capi_mul_lst(lst);
+
+  TEST_ASSERT_SCM_TRUE(scm_api_num_eq_P(expected, actual));
+}
+
+TEST(api_fixnum, api_mul_lst__arg_1)
+{
+  ScmObj lst = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&lst, &expected, &actual);
+
+  lst = read_cstr("(123)");
+  expected = read_cstr("123");
 
   actual = scm_capi_mul_lst(lst);
 

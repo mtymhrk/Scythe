@@ -357,6 +357,13 @@ scm_type_info_extra(ScmTypeInfo *type)
 
 
 /****************************************************************************/
+/** SCM_OBJ_NULL                                                            */
+/****************************************************************************/
+
+extern ScmTypeInfo SCM_NULL_OBJ_TYPE_INFO;
+
+
+/****************************************************************************/
 /** ScmObj                                                                  */
 /****************************************************************************/
 
@@ -400,19 +407,15 @@ scm_obj_mem_managed_p(ScmObj obj)
   return (scm_obj_not_null_p(obj) && scm_obj_tag(obj) == 0x00u) ? true : false;
 }
 
-inline bool
-scm_obj_has_ptr_to_type_info_p(ScmObj obj)
-{
-  return (scm_obj_not_null_p(obj) && scm_obj_tag(obj) == 0x00u) ? true : false;
-}
-
 inline ScmTypeInfo *
 scm_obj_type(ScmObj obj)
 {
-  if (scm_obj_has_ptr_to_type_info_p(obj))
-    return SCM_MMOBJ(obj)->header.type;
+  ScmTypeInfo *t = SCM_OBJ_TAG2TYPE_TBL[scm_obj_tag(obj)];
+  if (t != NULL)
+    return t;
   else
-    return SCM_OBJ_TAG2TYPE_TBL[scm_obj_tag(obj)];
+    return (scm_obj_null_p(obj) ?
+            &SCM_NULL_OBJ_TYPE_INFO : SCM_MMOBJ(obj)->header.type);
 }
 
 inline bool
@@ -526,7 +529,6 @@ scm_assert_obj_type_accept_null(ScmObj obj, ScmTypeInfo *type)
 inline void
 scm_obj_init(ScmObj obj, ScmTypeInfo *type)
 {
-  scm_assert(scm_obj_not_null_p(obj));
   scm_assert(type != NULL);
 
   if (scm_obj_mem_managed_p(obj))

@@ -36,8 +36,3 @@ TEST(api_nil, api_nil_P__return_false)
 {
   TEST_ASSERT_SCM_FALSE(scm_api_nil_P(SCM_EOF_OBJ));
 }
-
-TEST(api_nil, api_nil_P__return_ERROR)
-{
-  TEST_ASSERT_SCM_NULL(scm_api_nil_P(SCM_OBJ_NULL));
-}

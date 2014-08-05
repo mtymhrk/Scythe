@@ -69,11 +69,6 @@ TEST(api_bignum, api_bignum_P__return_false)
   TEST_ASSERT_SCM_FALSE(scm_api_bignum_P(SCM_EOF_OBJ));
 }
 
-TEST(api_bignum, scm_api_bignum_P__return_ERROR)
-{
-  TEST_ASSERT_SCM_NULL(scm_api_bignum_P(SCM_OBJ_NULL));
-}
-
 TEST(api_bignum, capi_number_p__return_true)
 {
   ScmObj bn = SCM_OBJ_INIT;

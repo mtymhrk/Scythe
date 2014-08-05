@@ -55,11 +55,6 @@ TEST(api_vectors, api_vector_P__return_false)
   TEST_ASSERT_SCM_FALSE(scm_api_vector_P(SCM_EOF_OBJ));
 }
 
-TEST(api_vectors, api_vector_P__return_ERROR)
-{
-  TEST_ASSERT_SCM_NULL(scm_api_vector_P(SCM_OBJ_NULL));
-}
-
 TEST(api_vectors, capi_make_vector__dont_specify_fill)
 {
   ScmObj vec = SCM_OBJ_INIT, elm = SCM_OBJ_INIT;
@@ -150,11 +145,6 @@ TEST(api_vectors, capi_vector_lst)
   actual = scm_capi_vector_lst(lst);
 
   TEST_ASSERT_SCM_EQUAL(expected, actual);
-}
-
-TEST(api_vectors, capi_vector_lst__return_ERROR)
-{
-  TEST_ASSERT_SCM_NULL(scm_capi_vector_lst(SCM_OBJ_NULL));
 }
 
 TEST(api_vectors, capi_vector_cv)
@@ -664,15 +654,6 @@ TEST(api_vectors, api_list_to_vector__not_list__return_empty_vector)
   actual = scm_api_list_to_vector(SCM_TRUE_OBJ);
 
   TEST_ASSERT_SCM_EQUAL(expected, actual);
-}
-
-TEST(api_vectors, api_list_to_vector__return_ERROR)
-{
-  ScmObj lst = SCM_OBJ_INIT;
-
-  SCM_STACK_FRAME_PUSH(&lst);
-
-  TEST_ASSERT_SCM_NULL(scm_api_list_to_vector(SCM_OBJ_NULL));
 }
 
 TEST(api_vectors, capi_vector_to_string__unspecify_start_end)

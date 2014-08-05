@@ -688,7 +688,6 @@ static void
 scm_mem_finalize_obj(ScmMem *mem, ScmObj obj)
 {
   scm_assert(mem != NULL);
-  scm_assert(scm_obj_not_null_p(obj));;
 
   if (scm_obj_has_gc_fin_func_p(obj))
     scm_obj_call_gc_fin_func(obj);
@@ -773,8 +772,10 @@ scm_mem_is_obj_in_heap(ScmMem *mem, ScmObj obj, int which)
   ScmMemHeapBlock *block;
 
   scm_assert(mem != NULL);
-  scm_assert(scm_obj_not_null_p(obj));
   scm_assert(which == TO_HEAP || which == FROM_HEAP);
+
+  if (!scm_obj_mem_managed_p(obj))
+    return false;
 
   if (which == TO_HEAP)
     heap = mem->to_heap;
@@ -826,7 +827,6 @@ static void
 scm_mem_obj_init(ScmMem *mem, ScmObj obj, ScmTypeInfo *type)
 {
   scm_assert(mem != NULL);
-  scm_assert(scm_obj_not_null_p(obj));
   scm_assert(type != NULL);
 
   scm_obj_init(obj, type);
@@ -842,7 +842,11 @@ scm_mem_copy_obj(ScmMem *mem, ScmObj obj)
   int rslt;
 
   scm_assert(mem != NULL);
+
+  /* SCM_OBJ_NULL エラー戻り値として使用しているため、引数 obj が
+     SCM_OBJ_NULL 値なのは受け付けない */
   scm_assert(scm_obj_not_null_p(obj));
+
 
   if (!scm_mem_is_obj_in_heap(mem, obj, FROM_HEAP))
     return obj;
@@ -883,8 +887,7 @@ scm_mem_copy_children_func(ScmObj mem, ScmObj obj, ScmRef child)
   scm_assert(scm_obj_not_null_p(obj));
   scm_assert(child != SCM_REF_NULL);
 
-  if (scm_obj_not_null_p(SCM_REF_DEREF(child))
-      && scm_obj_mem_managed_p(SCM_REF_DEREF(child))) {
+  if (scm_obj_mem_managed_p(SCM_REF_DEREF(child))) {
     ScmObj cpy = scm_mem_copy_obj(SCM_MEM(mem), SCM_REF_DEREF(child));
     if (scm_obj_null_p(cpy))  return -1;
     SCM_REF_UPDATE(child, cpy);
@@ -897,7 +900,6 @@ static int
 scm_mem_copy_children(ScmMem *mem, ScmObj obj)
 {
   scm_assert(mem != NULL);
-  scm_assert(scm_obj_not_null_p(obj));
 
  int rslt = scm_obj_call_gc_accept_func(obj, SCM_OBJ(mem),
                                         scm_mem_copy_children_func);
@@ -1009,7 +1011,6 @@ static int
 scm_mem_adjust_weak_ref_of_obj(ScmMem *mem, ScmObj obj)
 {
   scm_assert(mem != NULL);
-  scm_assert(scm_obj_not_null_p(obj));
 
   int rslt =
     scm_obj_call_gc_accept_func_weak(obj, SCM_OBJ(mem),

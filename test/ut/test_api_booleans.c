@@ -53,11 +53,6 @@ TEST(api_booleans, api_boolean_P__return_false)
   TEST_ASSERT_SCM_FALSE(scm_api_boolean_P(SCM_UNDEF_OBJ));
 }
 
-TEST(api_booleans, api_boolean_P__return_ERROR)
-{
-  TEST_ASSERT_SCM_NULL(scm_api_boolean_P(SCM_OBJ_NULL));
-}
-
 TEST(api_booleans, capi_true_object_p__return_true)
 {
   TEST_ASSERT_SCM_TRUE(SCM_TRUE_OBJ);
@@ -166,7 +161,3 @@ TEST(api_booleans, api_not__return_false_3)
   TEST_ASSERT_SCM_FALSE(scm_api_not(num));
 }
 
-TEST(api_booleans, api_not__return_ERROR)
-{
-  TEST_ASSERT_SCM_NULL(scm_api_not(SCM_OBJ_NULL));
-}

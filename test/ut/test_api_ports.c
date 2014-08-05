@@ -75,11 +75,6 @@ TEST(api_ports, api_port_P__return_false)
   TEST_ASSERT_SCM_FALSE(scm_api_port_P(SCM_TRUE_OBJ));
 }
 
-TEST(api_ports, api_port_P__return_ERROR)
-{
-  TEST_ASSERT_SCM_NULL(scm_api_port_P(SCM_OBJ_NULL));
-}
-
 TEST(api_ports, capi_input_port_p__return_true)
 {
   ScmObj port = SCM_OBJ_INIT;
@@ -124,11 +119,6 @@ TEST(api_ports, api_input_port_P__return_false)
   TEST_ASSERT_SCM_FALSE(scm_api_input_port_P(port));
 }
 
-TEST(api_ports, api_input_port_P__return_ERROR)
-{
-  TEST_ASSERT_SCM_NULL(scm_api_input_port_P(SCM_OBJ_NULL));
-}
-
 TEST(api_ports, capi_output_port_p__return_true)
 {
   ScmObj port = SCM_OBJ_INIT;
@@ -171,11 +161,6 @@ TEST(api_ports, api_output_port_P__return_false)
   port = scm_capi_open_input_file(TEST_FILE_PATH, NULL);
 
   TEST_ASSERT_SCM_FALSE(scm_api_output_port_P(port));
-}
-
-TEST(api_ports, api_output_port_P__return_ERROR)
-{
-  TEST_ASSERT_SCM_NULL(scm_api_output_port_P(SCM_OBJ_NULL));
 }
 
 TEST(api_ports, capi_textual_port_p__return_true)
@@ -224,11 +209,6 @@ IGNORE_TEST(api_ports, api_textual_port_P__return_false)
   TEST_ASSERT_SCM_FALSE(scm_api_textual_port_P(port));
 }
 
-TEST(api_ports, api_textual_port_P__return_ERROR)
-{
-  TEST_ASSERT_SCM_NULL(scm_api_textual_port_P(SCM_OBJ_NULL));
-}
-
 IGNORE_TEST(api_ports, capi_binary_port_p__return_true)
 /* binary port が未実装 */
 {
@@ -273,11 +253,6 @@ TEST(api_ports, api_binary_port_P__return_false)
   port = scm_capi_open_input_file(TEST_FILE_PATH, NULL);
 
   TEST_ASSERT_SCM_FALSE(scm_api_binary_port_P(port));
-}
-
-TEST(api_ports, api_binary_port_P__return_ERROR)
-{
-  TEST_ASSERT_SCM_NULL(scm_api_binary_port_P(SCM_OBJ_NULL));
 }
 
 TEST(api_ports, capi_input_port_open_p__return_true)
@@ -326,11 +301,6 @@ TEST(api_ports, api_input_port_open_P__return_false)
   TEST_ASSERT_SCM_FALSE(scm_api_input_port_open_P(port));
 }
 
-TEST(api_ports, api_input_port_open_P__return_ERROR)
-{
-  TEST_ASSERT_SCM_NULL(scm_api_input_port_open_P(SCM_OBJ_NULL));
-}
-
 TEST(api_ports, capi_output_port_open_p__return_true)
 {
   ScmObj port = SCM_OBJ_INIT;
@@ -375,11 +345,6 @@ TEST(api_ports, api_output_port_open_P__return_false)
   scm_api_close_port(port);
 
   TEST_ASSERT_SCM_FALSE(scm_api_output_port_open_P(port));
-}
-
-TEST(api_ports, api_output_port_open_P__return_ERROR)
-{
-  TEST_ASSERT_SCM_NULL(scm_api_output_port_open_P(SCM_OBJ_NULL));
 }
 
 IGNORE_TEST(api_ports, capi_open_input_fd)

@@ -222,6 +222,14 @@ scm_vector_fill(ScmObj vector, ScmObj fill)
     SCM_SLOT_SETQ(ScmVector, vector, array[i], fill);
 }
 
+const ScmObj *
+scm_vector_content(ScmObj vector)
+{
+  scm_assert_obj_type(vector, &SCM_VECTOR_TYPE_INFO);
+
+  return SCM_VECTOR_ARRAY(vector);
+}
+
 int
 scm_vector_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
 {

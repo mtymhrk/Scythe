@@ -50,11 +50,6 @@ TEST(api_symbols, api_symbol_P__return_false)
   TEST_ASSERT_SCM_FALSE(scm_api_symbol_P(SCM_TRUE_OBJ));
 }
 
-TEST(api_symbols, api_symbol_P__return_ERROR)
-{
-  TEST_ASSERT_SCM_NULL(scm_api_symbol_P(SCM_OBJ_NULL));
-}
-
 TEST(api_symbols, capi_symbol_eq__equal)
 {
   ScmObj sym1 = SCM_OBJ_INIT, sym2 = SCM_OBJ_INIT;

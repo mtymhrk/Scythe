@@ -198,30 +198,10 @@ scm_capi_eq_p(ScmObj obj1, ScmObj obj2)
   return scm_obj_same_instance_p(obj1, obj2);
 }
 
-int
-scm_capi_eq(ScmObj obj1, ScmObj obj2, bool *rslt)
-{
-  if (scm_obj_null_p(obj1) || scm_obj_null_p(obj2)) {
-    scm_capi_error("eq?: invalid argument", 0);
-    return -1;
-  }
-
-  if (rslt != NULL)
-    *rslt = scm_capi_eq_p(obj1, obj2);
-
-  return 0;
-}
-
 ScmObj
 scm_api_eq_P(ScmObj obj1, ScmObj obj2)
 {
-  bool cmp;
-  int r;
-
-  r = scm_capi_eq(obj1, obj2, &cmp);
-  if (r < 0) return SCM_OBJ_NULL;
-
-  return cmp ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+  return (scm_capi_eq_p(obj1, obj2) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ);
 }
 
 int
@@ -230,11 +210,6 @@ scm_capi_eqv(ScmObj obj1, ScmObj obj2, bool *rslt)
   bool cmp;
 
   SCM_STACK_FRAME_PUSH(&obj1, &obj2);
-
-  if (scm_obj_null_p(obj1) || scm_obj_null_p(obj2)) {
-    scm_capi_error("eqv?: invalid argument", 0);
-    return -1;
-  }
 
   if (scm_capi_eq_p(obj1, obj2)) {
     cmp = true;
@@ -354,8 +329,6 @@ scm_capi_equal_aux(ScmObj obj1, ScmObj obj2,
   bool cmp;
   int r, cir;
 
-  scm_assert(scm_obj_not_null_p(obj1));
-  scm_assert(scm_obj_not_null_p(obj2));
   scm_assert(scm_capi_nil_p(stack1) || scm_capi_pair_p(stack1));
   scm_assert(scm_capi_nil_p(stack2) || scm_capi_pair_p(stack2));
 
@@ -451,19 +424,7 @@ scm_capi_equal_aux(ScmObj obj1, ScmObj obj2,
 int
 scm_capi_equal(ScmObj obj1, ScmObj obj2, bool *rslt)
 {
-  ScmObj stack1 = SCM_OBJ_INIT, stack2 = SCM_OBJ_INIT;
-
-  SCM_STACK_FRAME_PUSH(&obj1, &obj2,
-                       &stack1, &stack2);
-
-  if (scm_obj_null_p(obj1) || scm_obj_null_p(obj2)) {
-    scm_capi_error("equal?: invalid argument", 0);
-    return -1;         /* provisional implemntation */
-  }
-
-  stack1 = stack2 = SCM_NIL_OBJ;
-
-  return scm_capi_equal_aux(obj1, obj2, stack1, stack2, rslt);
+  return scm_capi_equal_aux(obj1, obj2, SCM_NIL_OBJ, SCM_NIL_OBJ, rslt);
 }
 
 ScmObj
@@ -502,11 +463,6 @@ scm_capi_nil_p(ScmObj obj)
 ScmObj
 scm_api_nil_P(ScmObj obj)
 {
-  if (scm_obj_null_p(obj)) {
-    scm_capi_error("null?: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-
   return scm_capi_nil_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
 }
 
@@ -519,17 +475,12 @@ scm_api_nil_P(ScmObj obj)
 bool
 scm_capi_boolean_p(ScmObj obj)
 {
-  if (scm_obj_null_p(obj)) return false;
   return scm_obj_type_p(obj, &SCM_BOOL_TYPE_INFO);
 }
 
 ScmObj
 scm_api_boolean_P(ScmObj obj)
 {
-  if (scm_obj_null_p(obj)) {
-    scm_capi_error("boolean?: invaid argument", 0);
-    return SCM_OBJ_NULL;
-  }
   return scm_capi_boolean_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
 }
 
@@ -568,7 +519,6 @@ scm_capi_false_object_p(ScmObj obj)
 extern inline bool
 scm_capi_true_p(ScmObj obj)
 {
-  if (scm_obj_null_p(obj)) return false;
   return !scm_capi_false_object_p(obj);
 }
 
@@ -581,11 +531,6 @@ scm_capi_false_p(ScmObj obj)
 ScmObj
 scm_api_not(ScmObj obj)
 {
-  if (scm_obj_null_p(obj)) {
-    scm_capi_error("not: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-
   return scm_capi_false_object_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
 }
 
@@ -651,26 +596,24 @@ scm_capi_landmine_object_p(ScmObj obj)
 extern inline bool
 scm_capi_pair_p(ScmObj pair)
 {
-  if (scm_obj_null_p(pair)) return false;
   return scm_obj_type_p(pair, &SCM_PAIR_TYPE_INFO);
 }
 
 ScmObj
 scm_api_pair_P(ScmObj pair)
 {
-  if (scm_obj_null_p(pair)) {
-    scm_capi_error("pair?: invalid argument", 0);
-    return SCM_OBJ_NULL;         /* provisional implemntation */
-  }
-
   return scm_capi_pair_p(pair) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
 }
 
 ScmObj
 scm_api_cons(ScmObj car, ScmObj cdr)
 {
-  if (scm_obj_null_p(car) || scm_obj_null_p(cdr)) {
-    scm_capi_error("cons: invalid argument", 0);
+  if (scm_obj_null_p(car)) {
+    scm_capi_error("cons: invalid argument", 1, car);
+    return SCM_OBJ_NULL;
+  }
+  else if (scm_obj_null_p(cdr)) {
+    scm_capi_error("cons: invalid argument", 1, cdr);
     return SCM_OBJ_NULL;
   }
 
@@ -680,11 +623,7 @@ scm_api_cons(ScmObj car, ScmObj cdr)
 ScmObj
 scm_api_car(ScmObj pair)
 {
-  if (scm_obj_null_p(pair)) {
-    scm_capi_error("car: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-  else if (!scm_obj_type_p(pair, &SCM_PAIR_TYPE_INFO)) {
+  if (!scm_obj_type_p(pair, &SCM_PAIR_TYPE_INFO)) {
     scm_capi_error("car: pair required, but got", 1, pair);
     return SCM_OBJ_NULL;
   }
@@ -695,11 +634,7 @@ scm_api_car(ScmObj pair)
 ScmObj
 scm_api_cdr(ScmObj pair)
 {
-  if (scm_obj_null_p(pair)) {
-    scm_capi_error("cdr: invalid argument", 0);
-    return SCM_OBJ_NULL;         /* provisional implemntation */
-  }
-  else if (!scm_obj_type_p(pair, &SCM_PAIR_TYPE_INFO)) {
+  if (!scm_obj_type_p(pair, &SCM_PAIR_TYPE_INFO)) {
     scm_capi_error("cdr: pair required, but got", 1, pair);
     return SCM_OBJ_NULL;
   }
@@ -710,12 +645,12 @@ scm_api_cdr(ScmObj pair)
 int
 scm_capi_set_car_i(ScmObj pair, ScmObj elm)
 {
-  if (scm_obj_null_p(pair) || scm_obj_null_p(elm)) {
-    scm_capi_error("set-car!: invalid argument", 0);
+  if (!scm_obj_type_p(pair, &SCM_PAIR_TYPE_INFO)) {
+    scm_capi_error("set-car!: pair required, but got", 1, pair);
     return -1;
   }
-  else if (!scm_obj_type_p(pair, &SCM_PAIR_TYPE_INFO)) {
-    scm_capi_error("set-car!: pair required, but got", 1, pair);
+  else if (scm_obj_null_p(elm)) {
+    scm_capi_error("set-car!: invalid argument", 1, elm);
     return -1;
   }
 
@@ -737,12 +672,12 @@ scm_api_set_car_i(ScmObj pair, ScmObj elm)
 int
 scm_capi_set_cdr_i(ScmObj pair, ScmObj elm)
 {
-  if (scm_obj_null_p(pair) || scm_obj_null_p(elm)) {
-    scm_capi_error("set-car!: invalid argument", 0);
+  if (!scm_obj_type_p(pair, &SCM_PAIR_TYPE_INFO)) {
+    scm_capi_error("set-cdr!: pair required, but got", 1, pair);
     return -1;
   }
-  else if (!scm_obj_type_p(pair, &SCM_PAIR_TYPE_INFO)) {
-    scm_capi_error("set-car!: pair required, but got", 1, pair);
+  else if (scm_obj_null_p(elm)) {
+    scm_capi_error("set-cdr!: invalid argument", 1, elm);
     return -1;
   }
 
@@ -771,7 +706,7 @@ scm_capi_cxr(ScmObj pair, const char *dir)
                        &x);
 
   if (dir == NULL) {
-    scm_capi_error("failed to execute car or cdr: invalid argument", 0);
+    scm_capi_error("failed to execute cxr: invalid argument", 0);
     return SCM_OBJ_NULL;
   }
 
@@ -787,7 +722,7 @@ scm_capi_cxr(ScmObj pair, const char *dir)
       x = scm_api_cdr(x);
       break;
     default:
-      scm_capi_error("failed to execute car or cdr: invalid argument", 0);
+      scm_capi_error("failed to execute cxr: invalid argument", 0);
       return SCM_OBJ_NULL;
     }
 
@@ -803,11 +738,6 @@ scm_api_list_P(ScmObj lst)
   ScmObj rabbit = SCM_OBJ_INIT, tortoise = SCM_OBJ_INIT;
 
   SCM_STACK_FRAME_PUSH(&lst, &rabbit, &tortoise);
-
-  if (scm_obj_null_p(lst)) {
-    scm_capi_error("list?: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
 
   if (scm_capi_nil_p(lst))
     return SCM_TRUE_OBJ;
@@ -872,7 +802,7 @@ scm_api_make_list(ScmObj n, ScmObj fill)
   int r;
 
   if (!scm_capi_integer_p(n)) {
-    scm_capi_error("make-list: invalid argument", 0);
+    scm_capi_error("make-list: invalid argument", 1, n);
     return SCM_OBJ_NULL;
   }
 
@@ -895,7 +825,7 @@ scm_capi_list_cv(const ScmObj *elm, size_t n)
   lst = scm_api_nil();
   for (size_t i = n; i > 0; i--) {
     if (scm_obj_null_p(elm[i - 1])) {
-      scm_capi_error("list: invalid argument", 0);
+      scm_capi_error("list: invalid argument", 1, elm[i - 1]);
       return SCM_OBJ_NULL;
     }
     lst = scm_api_cons(elm[i - 1], lst);
@@ -932,11 +862,7 @@ scm_capi_length(ScmObj lst)
 
   SCM_STACK_FRAME_PUSH(&node);
 
-  if (scm_obj_null_p(lst)) {
-    scm_capi_error("length: invalid argument", 0);
-    return -1;
-  }
-  else if (scm_capi_nil_p(lst)) {
+  if (scm_capi_nil_p(lst)) {
     return 0;
   }
   else if (!scm_capi_pair_p(lst)) {
@@ -986,7 +912,7 @@ scm_capi_append_lst(ScmObj lst)
   SCM_STACK_PUSH_ARY(arg, sizeof(arg)/sizeof(arg[0]));
 
   if (scm_obj_null_p(lst)) {
-    scm_capi_error("append: invalid argument", 0);
+    scm_capi_error("append: invalid argument", 1, lst);
     return SCM_OBJ_NULL;
   }
 
@@ -1026,7 +952,7 @@ scm_capi_append_cv(const ScmObj *lists, size_t n)
     return SCM_NIL_OBJ;
 
   if (scm_obj_null_p(lists[0])) {
-    scm_capi_error("append: invalid argument", 0);
+    scm_capi_error("append: invalid argument", 1, lists[0]);
     return SCM_OBJ_NULL;
   }
 
@@ -1066,7 +992,7 @@ scm_capi_append_cv(const ScmObj *lists, size_t n)
   if (scm_obj_null_p(lst)) return SCM_OBJ_NULL;
 
   if (!scm_capi_nil_p(lst)) {
-    scm_capi_error("failed to append lists: invalid argument", 0);
+    scm_capi_error("failed to append lists: invalid argument", 1, lists[0]);
     return SCM_OBJ_NULL;
   }
 
@@ -1102,6 +1028,11 @@ scm_api_reverse(ScmObj lst)
 
   SCM_STACK_FRAME_PUSH(&lst,
                        &new_lst, &cur, &elm);
+
+  if (scm_obj_null_p(lst)) {
+    scm_capi_error("reverse: invalid argument", 1, lst);
+    return SCM_OBJ_NULL;
+  }
 
   new_lst = scm_api_nil();
   for (cur = lst; scm_capi_pair_p(cur); cur = scm_api_cdr(cur)) {
@@ -1256,6 +1187,9 @@ scm_capi_member_aux(ScmObj obj, ScmObj lst, ScmObj (*cmp)(ScmObj x, ScmObj y))
 
   scm_assert(cmp != NULL);
 
+  if (scm_obj_null_p(lst))
+    return SCM_FALSE_OBJ;
+
   for (l = lst; scm_capi_pair_p(l); l = scm_api_cdr(l)) {
     e = scm_api_car(l);
     if (scm_obj_null_p(e)) return SCM_OBJ_NULL;
@@ -1302,6 +1236,9 @@ scm_capi_assoc_aux(ScmObj obj, ScmObj alist, ScmObj (*cmp)(ScmObj x, ScmObj y))
                        &l, &e, &k, &c);
 
   scm_assert(cmp != NULL);
+
+  if (scm_obj_null_p(alist))
+    return SCM_FALSE_OBJ;
 
   for (l = alist; scm_capi_pair_p(l); l = scm_api_cdr(l)) {
     e = scm_api_car(l);
@@ -1355,11 +1292,7 @@ scm_api_list_copy(ScmObj lst)
                        &head, &pair, &prev,
                        &rslt);
 
-  if (scm_obj_null_p(lst)) {
-    scm_capi_error("list-copy: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-  else if (scm_capi_nil_p(lst)) {
+  if (scm_capi_nil_p(lst)) {
     return lst;
   }
   else if (!scm_capi_pair_p(lst)) {
@@ -1404,57 +1337,36 @@ scm_api_list_copy(ScmObj lst)
 extern inline bool
 scm_capi_fixnum_p(ScmObj obj)
 {
-  if (scm_obj_null_p(obj)) return false;
-
   return scm_obj_type_p(obj, &SCM_FIXNUM_TYPE_INFO);
 }
 
 ScmObj
 scm_api_fixnum_P(ScmObj obj)
 {
-  if (scm_obj_null_p(obj)) {
-    scm_capi_error("fixnum?: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-
   return scm_capi_fixnum_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
 }
 
 extern inline bool
 scm_capi_bignum_p(ScmObj obj)
 {
-  if (scm_obj_null_p(obj)) return false;
-
   return scm_obj_type_p(obj, &SCM_BIGNUM_TYPE_INFO);
 }
 
 ScmObj
 scm_api_bignum_P(ScmObj obj)
 {
-  if (scm_obj_null_p(obj)) {
-    scm_capi_error("bignum?: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-
   return scm_capi_bignum_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
 }
 
 extern inline bool
 scm_capi_number_p(ScmObj obj)
 {
-  if (scm_obj_null_p(obj)) return false;
-
   return scm_obj_type_flag_set_p(obj, SCM_TYPE_FLG_NUM);
 }
 
 ScmObj
 scm_api_number_P(ScmObj obj)
 {
-  if (scm_obj_null_p(obj)) {
-    scm_capi_error("number?: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-
   return scm_capi_number_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
 }
 
@@ -1471,11 +1383,6 @@ scm_capi_complex_p(ScmObj obj)
 ScmObj
 scm_api_complex_P(ScmObj obj)
 {
-  if (scm_obj_null_p(obj)) {
-    scm_capi_error("complex?: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-
   return scm_capi_complex_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
 }
 
@@ -1492,11 +1399,6 @@ scm_capi_real_p(ScmObj obj)
 ScmObj
 scm_api_real_P(ScmObj obj)
 {
-  if (scm_obj_null_p(obj)) {
-    scm_capi_error("real?: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-
   return scm_capi_real_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
 }
 
@@ -1513,11 +1415,6 @@ scm_capi_rational_p(ScmObj obj)
 ScmObj
 scm_api_rational_P(ScmObj obj)
 {
-  if (scm_obj_null_p(obj)) {
-    scm_capi_error("rational?: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-
   return scm_capi_rational_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
 }
 
@@ -1534,11 +1431,6 @@ scm_capi_integer_p(ScmObj obj)
 ScmObj
 scm_api_integer_P(ScmObj obj)
 {
-  if (scm_obj_null_p(obj)) {
-    scm_capi_error("integer?: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-
   return scm_capi_integer_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
 }
 
@@ -1555,11 +1447,6 @@ scm_capi_exact_p(ScmObj obj)
 ScmObj
 scm_api_exact_P(ScmObj obj)
 {
-  if (scm_obj_null_p(obj)) {
-    scm_capi_error("exact?: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-
   return scm_capi_exact_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
 }
 
@@ -1576,11 +1463,6 @@ scm_capi_inexact_p(ScmObj obj)
 ScmObj
 scm_api_inexact_P(ScmObj obj)
 {
-  if (scm_obj_null_p(obj)) {
-    scm_capi_error("inexact?: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-
   return scm_capi_inexact_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
 }
 
@@ -1598,11 +1480,6 @@ scm_capi_exact_integer_p(ScmObj obj)
 ScmObj
 scm_api_exact_integer_P(ScmObj obj)
 {
-  if (scm_obj_null_p(obj)) {
-    scm_capi_error("exact-integer?: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-
   return scm_capi_exact_integer_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
 }
 
@@ -1619,11 +1496,6 @@ scm_capi_finite_p(ScmObj obj)
 ScmObj
 scm_api_finite_P(ScmObj obj)
 {
-  if (scm_obj_null_p(obj)) {
-    scm_capi_error("finite?: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-
   return scm_capi_finite_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
 }
 
@@ -1640,11 +1512,6 @@ scm_capi_infinite_p(ScmObj obj)
 ScmObj
 scm_api_infinite_P(ScmObj obj)
 {
-  if (scm_obj_null_p(obj)) {
-    scm_capi_error("infinite?: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-
   return scm_capi_infinite_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
 }
 
@@ -1661,11 +1528,6 @@ scm_capi_nan_p(ScmObj obj)
 ScmObj
 scm_api_nan_P(ScmObj obj)
 {
-  if (scm_obj_null_p(obj)) {
-    scm_capi_error("nan?: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-
   return scm_capi_nan_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
 }
 
@@ -1673,11 +1535,11 @@ ScmObj
 scm_capi_make_number_from_literal(const char *literal, size_t size)
 {
   if (literal == NULL) {
-    scm_capi_error("can not make number: invalid argument", 0);
+    scm_capi_error("failed to make number: invalid literal", 0);
     return SCM_OBJ_NULL;
   }
   else if (size > SSIZE_MAX) {
-    scm_capi_error("can not make number: too long literal", 0);
+    scm_capi_error("failed to make number: too long literal", 0);
     return SCM_OBJ_NULL;
   }
 
@@ -1750,11 +1612,6 @@ scm_capi_num_eq(ScmObj n1, ScmObj n2, bool *rslt)
 
   SCM_STACK_FRAME_PUSH(&n1, &n2);
 
-  if (scm_obj_null_p(n1) || scm_obj_null_p(n2)) {
-    scm_capi_error("=: invalid argument", 0);
-    return -1;
-  }
-
   if (!scm_capi_number_p(n1)) {
     scm_capi_error("=: number required, but got", 1, n1);
     return -1;
@@ -1781,7 +1638,7 @@ scm_capi_num_eq_P_lst(ScmObj lst)
   int r;
 
   if (scm_obj_null_p(lst)) {
-    scm_capi_error("=: invalid argument", 0);
+    scm_capi_error("=: invalid argument", 1, lst);
     return SCM_OBJ_NULL;
   }
 
@@ -1810,11 +1667,6 @@ scm_capi_num_lt(ScmObj n1, ScmObj n2, bool *rslt)
 
   SCM_STACK_FRAME_PUSH(&n1, &n2);
 
-  if (scm_obj_null_p(n1) || scm_obj_null_p(n2)) {
-    scm_capi_error("<: invalid argument", 0);
-    return -1;
-  }
-
   if (!scm_capi_number_p(n1)) {
     scm_capi_error("<: number required, but got", 1, n1);
     return -1;
@@ -1841,7 +1693,7 @@ scm_capi_num_lt_P_lst(ScmObj lst)
   int r;
 
   if (scm_obj_null_p(lst)) {
-    scm_capi_error("<: invalid argument", 0);
+    scm_capi_error("<: invalid argument", 1, lst);
     return SCM_OBJ_NULL;
   }
 
@@ -1870,11 +1722,6 @@ scm_capi_num_gt(ScmObj n1, ScmObj n2, bool *rslt)
 
   SCM_STACK_FRAME_PUSH(&n1, &n2);
 
-  if (scm_obj_null_p(n1) || scm_obj_null_p(n2)) {
-    scm_capi_error(">: invalid argument", 0);
-    return -1;
-  }
-
   if (!scm_capi_number_p(n1)) {
     scm_capi_error(">: number required, but got", 1, n1);
     return -1;
@@ -1901,7 +1748,7 @@ scm_capi_num_gt_P_lst(ScmObj lst)
   int r;
 
   if (scm_obj_null_p(lst)) {
-    scm_capi_error(">: invalid argument", 0);
+    scm_capi_error(">: invalid argument", 1, lst);
     return SCM_OBJ_NULL;
   }
 
@@ -1932,11 +1779,6 @@ scm_capi_num_le(ScmObj n1, ScmObj n2, bool *rslt)
 
   SCM_STACK_FRAME_PUSH(&n1, &n2);
 
-  if (scm_obj_null_p(n1) || scm_obj_null_p(n2)) {
-    scm_capi_error("<=: invalid argument", 0);
-    return -1;
-  }
-
   if (!scm_capi_number_p(n1)) {
     scm_capi_error("<=: number required, but got", 1, n1);
     return -1;
@@ -1963,7 +1805,7 @@ scm_capi_num_le_P_lst(ScmObj lst)
   int r;
 
   if (scm_obj_null_p(lst)) {
-    scm_capi_error("<=: invalid argument", 0);
+    scm_capi_error("<=: invalid argument", 1, lst);
     return SCM_OBJ_NULL;
   }
 
@@ -1992,11 +1834,6 @@ scm_capi_num_ge(ScmObj n1, ScmObj n2, bool *rslt)
 
   SCM_STACK_FRAME_PUSH(&n1, &n2);
 
-  if (scm_obj_null_p(n1) || scm_obj_null_p(n2)) {
-    scm_capi_error(">=: invalid argument", 0);
-    return -1;
-  }
-
   if (!scm_capi_number_p(n1)) {
     scm_capi_error(">=: number required, but got", 1, n1);
     return -1;
@@ -2023,7 +1860,7 @@ scm_capi_num_ge_P_lst(ScmObj lst)
   int r;
 
   if (scm_obj_null_p(lst)) {
-    scm_capi_error(">=: invalid argument", 0);
+    scm_capi_error(">=: invalid argument", 1, lst);
     return SCM_OBJ_NULL;
   }
 
@@ -2060,11 +1897,7 @@ scm_api_zero_P(ScmObj num)
 {
   SCM_STACK_FRAME_PUSH(&num);
 
-  if (scm_obj_null_p(num)) {
-    scm_capi_error("zero?: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-  else if (!scm_capi_number_p(num)) {
+  if (!scm_capi_number_p(num)) {
     scm_capi_error("zero?: number required, but got", 1, num);
     return SCM_OBJ_NULL;
   }
@@ -2087,11 +1920,7 @@ scm_api_positive_P(ScmObj num)
 {
   SCM_STACK_FRAME_PUSH(&num);
 
-  if (scm_obj_null_p(num)) {
-    scm_capi_error("positive?: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-  else if (!scm_capi_number_p(num)) {
+  if (!scm_capi_number_p(num)) {
     scm_capi_error("positive?: number required, but got", 1, num);
     return SCM_OBJ_NULL;
   }
@@ -2114,11 +1943,7 @@ scm_api_negative_P(ScmObj num)
 {
   SCM_STACK_FRAME_PUSH(&num);
 
-  if (scm_obj_null_p(num)) {
-    scm_capi_error("negative?: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-  else if (!scm_capi_number_p(num)) {
+  if (!scm_capi_number_p(num)) {
     scm_capi_error("negative?: number required, but got", 1, num);
     return SCM_OBJ_NULL;
   }
@@ -2141,11 +1966,7 @@ scm_api_odd_P(ScmObj num)
 {
   SCM_STACK_FRAME_PUSH(&num);
 
-  if (scm_obj_null_p(num)) {
-    scm_capi_error("odd?: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-  else if (!scm_capi_number_p(num)) {
+  if (!scm_capi_number_p(num)) {
     scm_capi_error("odd?: number required, but got", 1, num);
     return SCM_OBJ_NULL;
   }
@@ -2168,11 +1989,7 @@ scm_api_even_P(ScmObj num)
 {
   SCM_STACK_FRAME_PUSH(&num);
 
-  if (scm_obj_null_p(num)) {
-    scm_capi_error("even?: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-  else if (!scm_capi_number_p(num)) {
+  if (!scm_capi_number_p(num)) {
     scm_capi_error("even?: number required, but got", 1, num);
     return SCM_OBJ_NULL;
   }
@@ -2189,7 +2006,7 @@ scm_capi_num_bop_fold(ScmObj lst,
   SCM_STACK_FRAME_PUSH(&lst,
                        &rslt, &num, &l);
 
-  scm_assert(scm_obj_not_null_p(lst));
+  scm_assert(scm_capi_pair_p(lst));
   scm_assert(func != NULL);
 
   rslt = scm_api_car(lst);
@@ -2216,11 +2033,7 @@ scm_api_max(ScmObj n1, ScmObj n2)
 
   SCM_STACK_FRAME_PUSH(&n1, &n2);
 
-  if (scm_obj_null_p(n1) || scm_obj_null_p(n2)) {
-    scm_capi_error("max: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-  else if (!scm_capi_number_p(n1)) {
+  if (!scm_capi_number_p(n1)) {
     scm_capi_error("max: number required, but got", 1, n1);
     return SCM_OBJ_NULL;
   }
@@ -2250,8 +2063,8 @@ scm_api_max(ScmObj n1, ScmObj n2)
 ScmObj
 scm_capi_max_lst(ScmObj lst)
 {
-  if (scm_obj_null_p(lst)) {
-    scm_capi_error("max: invalid argument", 0);
+  if (!scm_capi_pair_p(lst)) {
+    scm_capi_error("max: invalid argument", 1, lst);
     return SCM_OBJ_NULL;
   }
 
@@ -2266,11 +2079,7 @@ scm_api_min(ScmObj n1, ScmObj n2)
 
   SCM_STACK_FRAME_PUSH(&n1, &n2);
 
-  if (scm_obj_null_p(n1) || scm_obj_null_p(n2)) {
-    scm_capi_error("min: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-  else if (!scm_capi_number_p(n1)) {
+  if (!scm_capi_number_p(n1)) {
     scm_capi_error("min: number required, but got", 1, n1);
     return SCM_OBJ_NULL;
   }
@@ -2300,8 +2109,8 @@ scm_api_min(ScmObj n1, ScmObj n2)
 ScmObj
 scm_capi_min_lst(ScmObj lst)
 {
-  if (scm_obj_null_p(lst)) {
-    scm_capi_error("max: invalid argument", 0);
+  if (!scm_capi_pair_p(lst)) {
+    scm_capi_error("max: invalid argument", 1, lst);
     return SCM_OBJ_NULL;
   }
 
@@ -2313,11 +2122,7 @@ scm_api_plus(ScmObj x, ScmObj y)
 {
   SCM_STACK_FRAME_PUSH(&x, &y);
 
-  if (scm_obj_null_p(x) || scm_obj_null_p(y)) {
-    scm_capi_error("+: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-  else if (!scm_capi_number_p(x)) {
+  if (!scm_capi_number_p(x)) {
     scm_capi_error("+: number required, but got", 1, x);
     return SCM_OBJ_NULL;
   }
@@ -2332,27 +2137,15 @@ scm_api_plus(ScmObj x, ScmObj y)
 ScmObj
 scm_capi_plus_lst(ScmObj lst)
 {
-  ScmObj a = SCM_OBJ_INIT, d = SCM_OBJ_INIT;
+  SCM_STACK_FRAME_PUSH(&lst);
 
-  SCM_STACK_FRAME_PUSH(&lst,
-                       &a, &d);
-
-  if (scm_obj_null_p(lst)) {
-    scm_capi_error("+: invalid argument", 0);
+  if (scm_capi_nil_p(lst)) {
+    return SCM_FIXNUM_ZERO;
+  }
+  else if (!scm_capi_pair_p(lst)) {
+    scm_capi_error("+: invalid argument", 1, lst);
     return SCM_OBJ_NULL;
   }
-
-  if (scm_capi_nil_p(lst))
-    return SCM_FIXNUM_ZERO;
-
-  a = scm_api_car(lst);
-  if (scm_obj_null_p(a)) return SCM_OBJ_NULL;
-
-  d = scm_api_cdr(lst);
-  if (scm_obj_null_p(d)) return SCM_OBJ_NULL;
-
-  if (scm_capi_nil_p(d))
-    return a;
 
   return scm_capi_num_bop_fold(lst, scm_api_plus);
 }
@@ -2362,11 +2155,7 @@ scm_api_mul(ScmObj x, ScmObj y)
 {
   SCM_STACK_FRAME_PUSH(&x, &y);
 
-  if (scm_obj_null_p(x) || scm_obj_null_p(y)) {
-    scm_capi_error("*: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-  else if (!scm_capi_number_p(x)) {
+  if (!scm_capi_number_p(x)) {
     scm_capi_error("*: number required, but got", 1, x);
     return SCM_OBJ_NULL;
   }
@@ -2381,27 +2170,15 @@ scm_api_mul(ScmObj x, ScmObj y)
 ScmObj
 scm_capi_mul_lst(ScmObj lst)
 {
-  ScmObj a = SCM_OBJ_INIT, d = SCM_OBJ_INIT;
+  SCM_STACK_FRAME_PUSH(&lst);
 
-  SCM_STACK_FRAME_PUSH(&lst,
-                       &a, &d);
-
-  if (scm_obj_null_p(lst)) {
-    scm_capi_error("*: invalid argument", 0);
+  if (scm_capi_nil_p(lst)) {
+    return SCM_FIXNUM_ONE;
+  }
+  else if (!scm_capi_pair_p(lst)) {
+    scm_capi_error("*: invalid argument", 1, lst);
     return SCM_OBJ_NULL;
   }
-
-  if (scm_capi_nil_p(lst))
-    return SCM_FIXNUM_ONE;
-
-  a = scm_api_car(lst);
-  if (scm_obj_null_p(a)) return SCM_OBJ_NULL;
-
-  d = scm_api_cdr(lst);
-  if (scm_obj_null_p(d)) return SCM_OBJ_NULL;
-
-  if (scm_capi_nil_p(d))
-    return a;
 
   return scm_capi_num_bop_fold(lst, scm_api_mul);
 }
@@ -2411,11 +2188,7 @@ scm_api_minus(ScmObj x, ScmObj y)
 {
   SCM_STACK_FRAME_PUSH(&x, &y);
 
-  if (scm_obj_null_p(x) || scm_obj_null_p(y)) {
-    scm_capi_error("-: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-  else if (!scm_capi_number_p(x)) {
+  if (!scm_capi_number_p(x)) {
     scm_capi_error("-: number required, but got", 1, x);
     return SCM_OBJ_NULL;
   }
@@ -2435,8 +2208,8 @@ scm_capi_minus_lst(ScmObj lst)
   SCM_STACK_FRAME_PUSH(&lst,
                        &a, &d);
 
-  if (scm_obj_null_p(lst) || scm_capi_nil_p(lst)) {
-    scm_capi_error("-: invalid argument", 0);
+  if (!scm_capi_pair_p(lst)) {
+    scm_capi_error("-: invalid argument", 1, lst);
     return SCM_OBJ_NULL;
   }
 
@@ -2446,7 +2219,7 @@ scm_capi_minus_lst(ScmObj lst)
   d = scm_api_cdr(lst);
   if (scm_obj_null_p(d)) return SCM_OBJ_NULL;
 
-  if (scm_capi_nil_p(d))
+  if (!scm_capi_pair_p(d))
     return SCM_NUM_CALL_FUNC(a, invert_sign);
 
   return scm_capi_num_bop_fold(lst, scm_api_minus);
@@ -2455,11 +2228,7 @@ scm_capi_minus_lst(ScmObj lst)
 ScmObj
 scm_api_abs(ScmObj num)
 {
-  if (scm_obj_null_p(num)) {
-    scm_capi_error("abs: invalid argumnet", 0);
-    return SCM_OBJ_NULL;
-  }
-  else if (!scm_capi_number_p(num)) {
+  if (!scm_capi_number_p(num)) {
     scm_capi_error("abs: number required, bug got", 1, num);
     return SCM_OBJ_NULL;
   }
@@ -2474,11 +2243,6 @@ int
 scm_capi_floor_div(ScmObj x, ScmObj y, scm_csetter_t *q, scm_csetter_t *r)
 {
   SCM_STACK_FRAME_PUSH(&x, &y);
-
-  if (scm_obj_null_p(x) || scm_obj_null_p(y)) {
-    scm_capi_error("floor/: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
 
   if (!scm_capi_integer_p(x)) {
     scm_capi_error("floor/: integer required, but got", 1, x);
@@ -2500,11 +2264,6 @@ scm_api_floor_quo(ScmObj x, ScmObj y)
   int rslt;
 
   SCM_STACK_FRAME_PUSH(&x, &y, &q);
-
-  if (scm_obj_null_p(x) || scm_obj_null_p(y)) {
-    scm_capi_error("floor-quotient: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
 
   if (!scm_capi_integer_p(x)) {
     scm_capi_error("floor-quotient: integer required, but got", 1, x);
@@ -2530,11 +2289,6 @@ scm_api_floor_rem(ScmObj x, ScmObj y)
 
   SCM_STACK_FRAME_PUSH(&x, &y, &r);
 
-  if (scm_obj_null_p(x) || scm_obj_null_p(y)) {
-    scm_capi_error("floor-remainder: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-
   if (!scm_capi_integer_p(x)) {
     scm_capi_error("floor-remainder: integer required, but got", 1, x);
     return SCM_OBJ_NULL;
@@ -2556,11 +2310,6 @@ scm_capi_truncate_div(ScmObj x, ScmObj y, scm_csetter_t *q, scm_csetter_t *r)
 {
   SCM_STACK_FRAME_PUSH(&x, &y);
 
-  if (scm_obj_null_p(x) || scm_obj_null_p(y)) {
-    scm_capi_error("truncate/: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-
   if (!scm_capi_integer_p(x)) {
     scm_capi_error("truncate/: integer required, but got", 1, x);
     return SCM_OBJ_NULL;
@@ -2581,11 +2330,6 @@ scm_api_truncate_quo(ScmObj x, ScmObj y)
   int rslt;
 
   SCM_STACK_FRAME_PUSH(&x, &y, &q);
-
-  if (scm_obj_null_p(x) || scm_obj_null_p(y)) {
-    scm_capi_error("truncate-quotient: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
 
   if (!scm_capi_number_p(x)) {
     scm_capi_error("truncate-quotient: number required, but got", 1, x);
@@ -2611,11 +2355,6 @@ scm_api_truncate_rem(ScmObj x, ScmObj y)
 
   SCM_STACK_FRAME_PUSH(&x, &y, &r);
 
-  if (scm_obj_null_p(x) || scm_obj_null_p(y)) {
-    scm_capi_error("truncate-remainder: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-
   if (!scm_capi_integer_p(x)) {
     scm_capi_error("truncate-remainder: integer required, but got", 1, x);
     return SCM_OBJ_NULL;
@@ -2636,12 +2375,7 @@ ScmObj
 scm_api_exact(ScmObj num)
 {
   /* 仮実装 */
-
-  if (scm_obj_null_p(num)) {
-    scm_capi_error("exact: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-  else if (!scm_capi_number_p(num)) {
+  if (!scm_capi_number_p(num)) {
     scm_capi_error("exact: number required, but got", 1, num);
     return SCM_OBJ_NULL;
   }
@@ -2653,12 +2387,7 @@ ScmObj
 scm_api_inexact(ScmObj num)
 {
   /* 仮実装 */
-
-  if (scm_obj_null_p(num)) {
-    scm_capi_error("inexact: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-  else if (!scm_capi_number_p(num)) {
+  if (!scm_capi_number_p(num)) {
     scm_capi_error("inexact: number required, but got", 1, num);
     return SCM_OBJ_NULL;
   }
@@ -2669,13 +2398,8 @@ scm_api_inexact(ScmObj num)
 int
 scm_capi_integer_to_sword(ScmObj num, scm_sword_t *w)
 {
-  if (scm_obj_null_p(num) || w == NULL) {
-    scm_capi_error("can not convert number to scm_sword_t: "
-                   "invalid argument", 0);
-    return -1;
-  }
-  else if (!scm_capi_integer_p(num)) {
-    scm_capi_error("can not convert number to scm_sword_t: "
+  if (!scm_capi_integer_p(num)) {
+    scm_capi_error("failed to convert number to scm_sword_t: "
                    "integer required, but got", 1, num);
     return -1;
   }
@@ -2686,7 +2410,7 @@ scm_capi_integer_to_sword(ScmObj num, scm_sword_t *w)
   else if (scm_capi_bignum_p(num)) {
     int r = scm_bignum_to_sword(num, w);
     if (r < 0) {
-      scm_capi_error("can not convert number to scm_sword_t: overflow", 1, num);
+      scm_capi_error("failed to convert number to scm_sword_t: overflow", 1, num);
       return -1;
     }
   }
@@ -2697,13 +2421,8 @@ scm_capi_integer_to_sword(ScmObj num, scm_sword_t *w)
 int
 scm_capi_integer_to_size_t(ScmObj num, size_t *s)
 {
-  if (scm_obj_null_p(num) || s == NULL) {
-    scm_capi_error("can not convert number to size_t: "
-                   "invalid argument", 0);
-    return -1;
-  }
-  else if (!scm_capi_integer_p(num)) {
-    scm_capi_error("can not convert number to size_t: "
+  if (!scm_capi_integer_p(num)) {
+    scm_capi_error("failed to convert number to size_t: "
                    "integer required, but got", 1, num);
     return -1;
   }
@@ -2711,7 +2430,7 @@ scm_capi_integer_to_size_t(ScmObj num, size_t *s)
   if (scm_capi_fixnum_p(num)) {
     scm_sword_t w = scm_fixnum_value(num);
     if (w < 0) {
-      scm_capi_error("can not convert number to size_t: overflow", 1, num);
+      scm_capi_error("failed to convert number to size_t: overflow", 1, num);
       return -1;
     }
     *s = (size_t)w;
@@ -2719,7 +2438,7 @@ scm_capi_integer_to_size_t(ScmObj num, size_t *s)
   else if (scm_capi_bignum_p(num)) {
     int r = scm_bignum_to_size_t(num, s);
     if (r < 0) {
-      scm_capi_error("can not convert number to size_t: overflow", 1, num);
+      scm_capi_error("failed to convert number to size_t: overflow", 1, num);
       return -1;
     }
   }
@@ -2735,31 +2454,21 @@ scm_capi_integer_to_size_t(ScmObj num, size_t *s)
 extern inline bool
 scm_capi_symbol_p(ScmObj obj)
 {
-  if (scm_capi_null_value_p(obj)) return false;
-
   return scm_obj_type_p(obj, &SCM_SYMBOL_TYPE_INFO) ? true : false;
 }
 
 ScmObj
 scm_api_symbol_P(ScmObj obj)
 {
-  if (scm_obj_null_p(obj)) return SCM_OBJ_NULL;
-
   return scm_capi_symbol_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
 }
 
 int
 scm_capi_symbol_eq(ScmObj sym1, ScmObj sym2, bool *rslt)
 {
-  /* int r, cmp; */
-
   SCM_STACK_FRAME_PUSH(&sym1, &sym2);
 
-  if (scm_obj_null_p(sym1) || scm_obj_null_p(sym2)) {
-    scm_capi_error("symbol=?: invalid argument", 0);
-    return -1;
-  }
-  else if (!scm_capi_symbol_p(sym1)) {
+  if (!scm_capi_symbol_p(sym1)) {
     scm_capi_error("symbol=?: symbol required, but got", 1, sym1);
     return -1;
   }
@@ -2767,12 +2476,6 @@ scm_capi_symbol_eq(ScmObj sym1, ScmObj sym2, bool *rslt)
     scm_capi_error("symbol=?: symbol required, but got", 1, sym2);
     return -1;
   }
-
-  /* r = scm_symbol_cmp(sym1, sym2, &cmp); */
-  /* if (r < 0) return -1; */
-
-  /* if (rslt != NULL) */
-  /*   *rslt = (cmp == 0) ? true : false; */
 
   if (rslt != NULL)
     *rslt = scm_obj_same_instance_p(sym1, sym2);
@@ -2828,7 +2531,7 @@ scm_capi_symbol_eq_P_lst(ScmObj lst)
   int r;
 
   if (scm_obj_null_p(lst)) {
-    scm_capi_error("symbol=?: invalid argument", 0);
+    scm_capi_error("symbol=?: invalid argument", 1, lst);
     return SCM_OBJ_NULL;
   }
 
@@ -2853,11 +2556,7 @@ scm_api_symbol_eq_P(ScmObj sym1, ScmObj sym2)
 ScmObj
 scm_api_symbol_to_string(ScmObj sym)
 {
-  if (scm_obj_null_p(sym)) {
-    scm_capi_error("symbol->string: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-  else if  (!scm_capi_symbol_p(sym)) {
+  if  (!scm_capi_symbol_p(sym)) {
     scm_capi_error("symbol->string: symbol required, but got", 1, sym);
     return SCM_OBJ_NULL;
   }
@@ -2872,11 +2571,7 @@ scm_api_string_to_symbol(ScmObj str)
 
   SCM_STACK_FRAME_PUSH(&str);
 
-  if (scm_obj_null_p(str)) {
-    scm_capi_error("string->symbol: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-  else if  (!scm_capi_string_p(str)) {
+  if  (!scm_capi_string_p(str)) {
     scm_capi_error("string->symbol: string required, but got", 1, str);
     return SCM_OBJ_NULL;
   }
@@ -2935,11 +2630,7 @@ scm_capi_make_symbol_from_bin(const void *data, size_t size, ScmEncoding *enc)
 ssize_t
 scm_capi_symbol_bytesize(ScmObj sym)
 {
-  if (scm_obj_null_p(sym)) {
-    scm_capi_error("symbol-bytesize: invalid argument", 0);
-    return -1;
-  }
-  else if (!scm_capi_symbol_p(sym)) {
+  if (!scm_capi_symbol_p(sym)) {
     scm_capi_error("symbol-bytesize: symbol required, but got", 1, sym);
     return -1;
   }
@@ -2971,16 +2662,12 @@ scm_capi_symbol_hash_value(ScmObj sym)
 extern inline bool
 scm_capi_char_p(ScmObj obj)
 {
-  if (scm_capi_null_value_p(obj)) return false;
-
   return scm_obj_type_p(obj, &SCM_CHAR_TYPE_INFO) ? true : false;
 }
 
 ScmObj
 scm_api_char_P(ScmObj obj)
 {
-  if (scm_obj_null_p(obj)) return SCM_OBJ_NULL;
-
   return scm_capi_char_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
 }
 
@@ -3021,11 +2708,7 @@ scm_capi_char_eq(ScmObj chr1, ScmObj chr2, bool *rslt)
 {
   int err, cmp;
 
-  if (scm_obj_null_p(chr1) || scm_obj_null_p(chr2)) {
-    scm_capi_error("char=?: invalid argument", 0);
-    return -1;
-  }
-  else if (!scm_capi_char_p(chr1)) {
+  if (!scm_capi_char_p(chr1)) {
     scm_capi_error("char=?: character required, but got", 1, chr1);
     return -1;
   }
@@ -3095,7 +2778,7 @@ scm_capi_char_eq_P_lst(ScmObj lst)
   int r;
 
   if (scm_obj_null_p(lst)) {
-    scm_capi_error("char=?: invalid argument", 0);
+    scm_capi_error("char=?: invalid argument", 1, lst);
     return SCM_OBJ_NULL;
   }
 
@@ -3122,11 +2805,7 @@ scm_capi_char_lt(ScmObj chr1, ScmObj chr2, bool *rslt)
 {
   int err, cmp;
 
-  if (scm_obj_null_p(chr1) || scm_obj_null_p(chr2)) {
-    scm_capi_error("char<?: invalid argument", 0);
-    return -1;
-  }
-  else if (!scm_capi_char_p(chr1)) {
+  if (!scm_capi_char_p(chr1)) {
     scm_capi_error("char<?: character required, but got", 1, chr1);
     return -1;
   }
@@ -3155,7 +2834,7 @@ scm_capi_char_lt_P_lst(ScmObj lst)
   int r;
 
   if (scm_obj_null_p(lst)) {
-    scm_capi_error("char<?: invalid argument", 0);
+    scm_capi_error("char<?: invalid argument", 1, lst);
     return SCM_OBJ_NULL;
   }
 
@@ -3182,11 +2861,7 @@ scm_capi_char_gt(ScmObj chr1, ScmObj chr2, bool *rslt)
 {
   int err, cmp;
 
-  if (scm_obj_null_p(chr1) || scm_obj_null_p(chr2)) {
-    scm_capi_error("char>?: invalid argument", 0);
-    return -1;
-  }
-  else if (!scm_capi_char_p(chr1)) {
+  if (!scm_capi_char_p(chr1)) {
     scm_capi_error("char>?: character required, but got", 1, chr1);
     return -1;
   }
@@ -3215,7 +2890,7 @@ scm_capi_char_gt_P_lst(ScmObj lst)
   int r;
 
   if (scm_obj_null_p(lst)) {
-    scm_capi_error("char>?: invalid argument", 0);
+    scm_capi_error("char>?: invalid argument", 1, lst);
     return SCM_OBJ_NULL;
   }
 
@@ -3242,11 +2917,7 @@ scm_capi_char_le(ScmObj chr1, ScmObj chr2, bool *rslt)
 {
   int err, cmp;
 
-  if (scm_obj_null_p(chr1) || scm_obj_null_p(chr2)) {
-    scm_capi_error("char<=?: invalid argument", 0);
-    return -1;
-  }
-  else if (!scm_capi_char_p(chr1)) {
+  if (!scm_capi_char_p(chr1)) {
     scm_capi_error("char<=?: character required, but got", 1, chr1);
     return -1;
   }
@@ -3275,7 +2946,7 @@ scm_capi_char_le_P_lst(ScmObj lst)
   int r;
 
   if (scm_obj_null_p(lst)) {
-    scm_capi_error("char<=?: invalid argument", 0);
+    scm_capi_error("char<=?: invalid argument", 1, lst);
     return SCM_OBJ_NULL;
   }
 
@@ -3302,11 +2973,7 @@ scm_capi_char_ge(ScmObj chr1, ScmObj chr2, bool *rslt)
 {
   int err, cmp;
 
-  if (scm_obj_null_p(chr1) || scm_obj_null_p(chr2)) {
-    scm_capi_error("char>=?: invalid argument", 0);
-    return -1;
-  }
-  else if (!scm_capi_char_p(chr1)) {
+  if (!scm_capi_char_p(chr1)) {
     scm_capi_error("char>=?: character required, but got", 1, chr1);
     return -1;
   }
@@ -3335,7 +3002,7 @@ scm_capi_char_ge_P_lst(ScmObj lst)
   int r;
 
   if (scm_obj_null_p(lst)) {
-    scm_capi_error("char=?: invalid argument", 0);
+    scm_capi_error("char=?: invalid argument", 1, lst);
     return SCM_OBJ_NULL;
   }
 
@@ -3362,11 +3029,7 @@ scm_api_char_to_integer(ScmObj chr)
 {
   long long scalar;
 
-  if (scm_obj_null_p(chr)) {
-    scm_capi_error("char->integer: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-  else if (!scm_capi_char_p(chr)) {
+  if (!scm_capi_char_p(chr)) {
     scm_capi_error("char->integer: character required, but got", 1, chr);
     return SCM_OBJ_NULL;
   }
@@ -3393,11 +3056,7 @@ scm_capi_integer_to_char(ScmObj num, ScmEncoding *enc)
   ssize_t s;
   int r;
 
-  if (scm_obj_null_p(num)) {
-    scm_capi_error("integer->char: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-  else if (!scm_capi_integer_p(num)) {
+  if (!scm_capi_integer_p(num)) {
     scm_capi_error("integer->char: integer required, but got", 1, num);
     return SCM_OBJ_NULL;
   }
@@ -3445,11 +3104,7 @@ scm_capi_char_to_cchr(ScmObj chr, scm_char_t *cp)
 ScmEncoding *
 scm_capi_char_encoding(ScmObj chr)
 {
-  if (scm_obj_null_p(chr)) {
-    scm_capi_error("char-encoding: invalid argument", 0);
-    return NULL;
-  }
-  else if (!scm_capi_char_p(chr)) {
+  if (!scm_capi_char_p(chr)) {
     scm_capi_error("char-encoding: character required, but got", 1, chr);
     return NULL;
   }
@@ -3465,16 +3120,12 @@ scm_capi_char_encoding(ScmObj chr)
 extern inline bool
 scm_capi_string_p(ScmObj obj)
 {
-  if (scm_capi_null_value_p(obj)) return false;
-
   return scm_obj_type_p(obj, &SCM_STRING_TYPE_INFO) ? true : false;
 }
 
 ScmObj
 scm_api_string_P(ScmObj obj)
 {
-  if (scm_obj_null_p(obj)) return SCM_OBJ_NULL;
-
   return scm_capi_string_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
 }
 
@@ -3532,51 +3183,7 @@ scm_capi_make_string_from_bin(const void *data, size_t size, ScmEncoding *enc)
 ScmObj
 scm_api_string_lst(ScmObj lst)
 {
-  ScmObj str = SCM_OBJ_INIT, chr = SCM_OBJ_INIT, l = SCM_OBJ_INIT;
-  ScmEncoding *enc;
-
-  SCM_STACK_FRAME_PUSH(&str, &chr, &l);
-
-  enc = 0;
-  str = SCM_OBJ_NULL;
-  for (l = lst; scm_capi_pair_p(l); l = scm_api_cdr(l)) {
-    scm_char_t c;
-    ScmEncoding *e;
-    int r;
-
-    chr = scm_api_car(l);
-    if (scm_obj_null_p(chr)) return SCM_OBJ_NULL;
-
-    if (!scm_capi_char_p(chr)) {
-      scm_capi_error("string: required character, but got", 1, chr);
-      return SCM_OBJ_NULL;
-    }
-
-    if (scm_obj_null_p(str)) {
-      enc = scm_char_encoding(chr);
-      str = scm_string_new(SCM_MEM_HEAP, NULL, 0, enc);
-      if (scm_obj_null_p(str)) return SCM_OBJ_NULL;
-    }
-
-    e = scm_char_encoding(chr);
-
-    if (e != enc) {
-      scm_capi_error("string: encoding mismatch", 0);
-      return SCM_OBJ_NULL;
-    }
-
-    c = scm_char_value(chr);
-
-    r = scm_string_push(str, &c);
-    if (r < 0) return SCM_OBJ_NULL;
-  }
-
-  if (scm_obj_null_p(l)) return SCM_OBJ_NULL;
-
-  if (scm_obj_null_p(str))
-    return scm_string_new(SCM_MEM_HEAP, NULL, 0, scm_capi_system_encoding());
-  else
-    return str;
+  return scm_api_list_to_string(lst);
 }
 
 ScmObj
@@ -3596,11 +3203,7 @@ scm_capi_string_cv(const ScmObj *chr, size_t n)
     ScmEncoding *e;
     int r;
 
-    if (scm_obj_null_p(chr[i])) {
-      scm_capi_error("string: invalid argument", 0);
-      return SCM_OBJ_NULL;
-    }
-    else if (!scm_capi_char_p(chr[i])) {
+    if (!scm_capi_char_p(chr[i])) {
       scm_capi_error("string: required character, but got", 1, chr[i]);
       return SCM_OBJ_NULL;
     }
@@ -3649,11 +3252,7 @@ scm_capi_string(size_t n, ...)
 ssize_t
 scm_capi_string_length(ScmObj str)
 {
-  if (scm_obj_null_p(str)) {
-    scm_capi_error("string-length: invalid argument", 0);
-    return -1;
-  }
-  else if (!scm_capi_string_p(str)) {
+  if (!scm_capi_string_p(str)) {
     scm_capi_error("string-length: string required, but got", 1, str);
     return -1;
   }
@@ -3675,11 +3274,7 @@ scm_api_string_length(ScmObj str)
 ssize_t
 scm_capi_string_bytesize(ScmObj str)
 {
-  if (scm_obj_null_p(str)) {
-    scm_capi_error("string-bytesize: invalid argument", 0);
-    return -1;
-  }
-  else if (!scm_capi_string_p(str)) {
+  if (!scm_capi_string_p(str)) {
     scm_capi_error("string-bytesize: string required, but got", 1, str);
     return -1;
   }
@@ -3707,11 +3302,7 @@ scm_capi_string_ref(ScmObj str, size_t pos)
 
   SCM_STACK_FRAME_PUSH(&str);
 
-  if (scm_obj_null_p(str)) {
-    scm_capi_error("string-ref: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-  else if (!scm_capi_string_p(str)) {
+  if (!scm_capi_string_p(str)) {
     scm_capi_error("string-ref: string required, but got", 1, str);
     return SCM_OBJ_NULL;
   }
@@ -3735,11 +3326,7 @@ scm_api_string_ref(ScmObj str, ScmObj pos)
 
   SCM_STACK_FRAME_PUSH(&str, &pos);
 
-  if (scm_obj_null_p(pos)) {
-    scm_capi_error("string-ref: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-  else if (!scm_capi_integer_p(pos)) {
+  if (!scm_capi_integer_p(pos)) {
     scm_capi_error("string-ref: integer required, but got", 1, pos);
   }
 
@@ -3756,11 +3343,7 @@ scm_capi_string_set_i(ScmObj str, size_t pos, ScmObj chr)
 
   SCM_STACK_FRAME_PUSH(&str, &chr);
 
-  if (scm_obj_null_p(str) || scm_obj_null_p(chr)) {
-    scm_capi_error("string-set!: invalid argument", 0);
-    return -1;
-  }
-  else if (!scm_capi_string_p(str)) {
+  if (!scm_capi_string_p(str)) {
     scm_capi_error("string-set!: string required, but got", 1, str);
     return -1;
   }
@@ -3789,11 +3372,7 @@ scm_api_string_set_i(ScmObj str, ScmObj pos, ScmObj chr)
 
   SCM_STACK_FRAME_PUSH(&str, &pos, &chr);
 
-  if (scm_obj_null_p(pos)) {
-    scm_capi_error("string-ref: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-  else if (!scm_capi_integer_p(pos)) {
+  if (!scm_capi_integer_p(pos)) {
     scm_capi_error("string-ref: integer required, but got", 1, pos);
     return SCM_OBJ_NULL;
   }
@@ -3814,11 +3393,7 @@ scm_capi_string_eq(ScmObj s1, ScmObj s2, bool *rslt)
 
   SCM_STACK_FRAME_PUSH(&s1, &s2);
 
-  if (scm_obj_null_p(s1) || scm_obj_null_p(s2)) {
-    scm_capi_error("string=?: invalid argument", 0);
-    return -1;
-  }
-  else if (!scm_capi_string_p(s1)) {
+  if (!scm_capi_string_p(s1)) {
     scm_capi_error("string=?: string required, but got", 1, s1);
     return -1;
   }
@@ -3888,7 +3463,7 @@ scm_capi_string_eq_P_lst(ScmObj lst)
   int r;
 
   if (scm_obj_null_p(lst)) {
-    scm_capi_error("string=?: invalid argument", 0);
+    scm_capi_error("string=?: invalid argument", 1, lst);
     return SCM_OBJ_NULL;
   }
 
@@ -3917,11 +3492,7 @@ scm_capi_string_lt(ScmObj s1, ScmObj s2, bool *rslt)
 
   SCM_STACK_FRAME_PUSH(&s1, &s2);
 
-  if (scm_obj_null_p(s1) || scm_obj_null_p(s2)) {
-    scm_capi_error("string<?: invalid argument", 0);
-    return -1;
-  }
-  else if (!scm_capi_string_p(s1)) {
+  if (!scm_capi_string_p(s1)) {
     scm_capi_error("string<?: string required, but got", 1, s1);
     return -1;
   }
@@ -3950,7 +3521,7 @@ scm_capi_string_lt_P_lst(ScmObj lst)
   int r;
 
   if (scm_obj_null_p(lst)) {
-    scm_capi_error("string<?: invalid argument", 0);
+    scm_capi_error("string<?: invalid argument", 1, lst);
     return SCM_OBJ_NULL;
   }
 
@@ -3979,11 +3550,7 @@ scm_capi_string_gt(ScmObj s1, ScmObj s2, bool *rslt)
 
   SCM_STACK_FRAME_PUSH(&s1, &s2);
 
-  if (scm_obj_null_p(s1) || scm_obj_null_p(s2)) {
-    scm_capi_error("string>?: invalid argument", 0);
-    return -1;
-  }
-  else if (!scm_capi_string_p(s1)) {
+  if (!scm_capi_string_p(s1)) {
     scm_capi_error("string>?: string required, but got", 1, s1);
     return -1;
   }
@@ -4012,7 +3579,7 @@ scm_capi_string_gt_P_lst(ScmObj lst)
   int r;
 
   if (scm_obj_null_p(lst)) {
-    scm_capi_error("string>?: invalid argument", 0);
+    scm_capi_error("string>?: invalid argument", 1, lst);
     return SCM_OBJ_NULL;
   }
 
@@ -4041,11 +3608,7 @@ scm_capi_string_le(ScmObj s1, ScmObj s2, bool *rslt)
 
   SCM_STACK_FRAME_PUSH(&s1, &s2);
 
-  if (scm_obj_null_p(s1) || scm_obj_null_p(s2)) {
-    scm_capi_error("string<=?: invalid argument", 0);
-    return -1;
-  }
-  else if (!scm_capi_string_p(s1)) {
+  if (!scm_capi_string_p(s1)) {
     scm_capi_error("string<=?: string required, but got", 1, s1);
     return -1;
   }
@@ -4074,7 +3637,7 @@ scm_capi_string_le_P_lst(ScmObj lst)
   int r;
 
   if (scm_obj_null_p(lst)) {
-    scm_capi_error("string<=?: invalid argument", 0);
+    scm_capi_error("string<=?: invalid argument", 1, lst);
     return SCM_OBJ_NULL;
   }
 
@@ -4103,11 +3666,7 @@ scm_capi_string_ge(ScmObj s1, ScmObj s2, bool *rslt)
 
   SCM_STACK_FRAME_PUSH(&s1, &s2);
 
-  if (scm_obj_null_p(s1) || scm_obj_null_p(s2)) {
-    scm_capi_error("string>=?: invalid argument", 0);
-    return -1;
-  }
-  else if (!scm_capi_string_p(s1)) {
+  if (!scm_capi_string_p(s1)) {
     scm_capi_error("string>=?: string required, but got", 1, s1);
     return -1;
   }
@@ -4136,7 +3695,7 @@ scm_capi_string_ge_P_lst(ScmObj lst)
   int r;
 
   if (scm_obj_null_p(lst)) {
-    scm_capi_error("string>=?: invalid argument", 0);
+    scm_capi_error("string>=?: invalid argument", 1, lst);
     return SCM_OBJ_NULL;
   }
 
@@ -4161,11 +3720,7 @@ scm_api_string_ge_P(ScmObj s1, ScmObj s2)
 ScmObj
 scm_api_string_upcase(ScmObj str)
 {
-  if (scm_obj_null_p(str)) {
-    scm_capi_error("string-upcase: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-  else if (!scm_capi_string_p(str)) {
+   if (!scm_capi_string_p(str)) {
     scm_capi_error("string-upcase: string required, but got", 1, str);
     return SCM_OBJ_NULL;
   }
@@ -4176,11 +3731,7 @@ scm_api_string_upcase(ScmObj str)
 ScmObj
 scm_api_string_downcase(ScmObj str)
 {
-  if (scm_obj_null_p(str)) {
-    scm_capi_error("string-downcase: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-  else if (!scm_capi_string_p(str)) {
+  if (!scm_capi_string_p(str)) {
     scm_capi_error("string-downcase: string required, but got", 1, str);
     return SCM_OBJ_NULL;
   }
@@ -4193,11 +3744,7 @@ scm_capi_substring(ScmObj str, size_t start, size_t end)
 {
   SCM_STACK_FRAME_PUSH(&str);
 
-  if (scm_obj_null_p(str)) {
-    scm_capi_error("substring: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-  else if (!scm_capi_string_p(str)) {
+  if (!scm_capi_string_p(str)) {
     scm_capi_error("substring: string required, but got", 1, str);
     return SCM_OBJ_NULL;
   }
@@ -4217,11 +3764,7 @@ scm_api_substring(ScmObj str, ScmObj start, ScmObj end)
 
   SCM_STACK_FRAME_PUSH(&str, &start, &end);
 
-  if (scm_obj_null_p(start) || scm_obj_null_p(end)) {
-    scm_capi_error("substring: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-  else if (!scm_capi_integer_p(start)) {
+  if (!scm_capi_integer_p(start)) {
     scm_capi_error("substring: integer required, but got", 1, start);
     return SCM_OBJ_NULL;
   }
@@ -4248,10 +3791,8 @@ scm_capi_string_append_lst(ScmObj lst)
   SCM_STACK_FRAME_PUSH(&lst,
                        &str, &l, &s);
 
-  if (scm_obj_null_p(lst)) {
-    scm_capi_error("string-append: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
+  if (scm_obj_null_p(lst))
+    return scm_capi_make_string_from_bin(NULL, 0, scm_capi_system_encoding());
 
   enc = 0;
   str = SCM_OBJ_NULL;
@@ -4310,11 +3851,7 @@ scm_capi_string_append_cv(ScmObj *ary, size_t n)
   for (size_t i = 1; i < n; i++) {
     int r;
 
-    if (scm_obj_null_p(ary[i])) {
-      scm_capi_error("string-append: invalid argument", 0);
-      return SCM_OBJ_NULL;
-    }
-    else if (!scm_capi_string_p(ary[i])) {
+    if (!scm_capi_string_p(ary[i])) {
       scm_capi_error("string-append: string required, but got", 1, ary[i]);
       return SCM_OBJ_NULL;
     }
@@ -4382,11 +3919,7 @@ scm_capi_string_to_list(ScmObj str, ssize_t start, ssize_t end)
 
   SCM_STACK_FRAME_PUSH(&str);
 
-  if (scm_obj_null_p(str)) {
-    scm_capi_error("string->list: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-  else if (!scm_capi_string_p(str)) {
+  if (!scm_capi_string_p(str)) {
     scm_capi_error("string->list: string required, but got", 1, str);
     return SCM_OBJ_NULL;
   }
@@ -4470,6 +4003,9 @@ scm_api_list_to_string(ScmObj lst)
   SCM_STACK_FRAME_PUSH(&lst,
                        &str, &chr, &l);
 
+  if (scm_obj_null_p(lst))
+    return scm_capi_make_string_from_bin(NULL, 0, scm_capi_system_encoding());
+
   enc = 0;
   str = SCM_OBJ_NULL;
   for (l = lst; scm_capi_pair_p(l); l = scm_api_cdr(l)) {
@@ -4517,11 +4053,7 @@ scm_capi_string_copy(ScmObj str, ssize_t start, ssize_t end)
 {
   SCM_STACK_FRAME_PUSH(&str);
 
-  if (scm_obj_null_p(str)) {
-    scm_capi_error("string-copy: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-  else if (!scm_capi_string_p(str)) {
+  if (!scm_capi_string_p(str)) {
     scm_capi_error("string-copy: string required, but got", 1, str);
     return SCM_OBJ_NULL;
   }
@@ -4613,11 +4145,7 @@ scm_capi_string_copy_i(ScmObj to, size_t at,
 
   SCM_STACK_FRAME_PUSH(&to, &from);
 
-  if (scm_obj_null_p(to) || scm_obj_null_p(from)) {
-    scm_capi_error("string-copy!: invalid argument", 0);
-    return -1;
-  }
-  else if (!scm_capi_string_p(to)) {
+  if (!scm_capi_string_p(to)) {
     scm_capi_error("string-copy!: string require, but got", 1, to);
     return -1;
   }
@@ -4682,11 +4210,7 @@ scm_api_string_copy_i(ScmObj to, ScmObj at,
 
   SCM_STACK_FRAME_PUSH(&to, &at, &from, &start, &end);
 
-  if (scm_obj_null_p(at)) {
-    scm_capi_error("string->list: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-  else if (!scm_capi_integer_p(at)) {
+  if (!scm_capi_integer_p(at)) {
     scm_capi_error("string->list: integer required, but got", 1, at);
     return SCM_OBJ_NULL;
   }
@@ -4742,11 +4266,7 @@ scm_capi_string_fill_i(ScmObj str, ScmObj fill, ssize_t start, ssize_t end)
   scm_char_t c;
   size_t len;
 
-  if (scm_obj_null_p(str) || scm_obj_null_p(fill)) {
-    scm_capi_error("string-fill!: invalid argument", 0);
-    return -1;
-  }
-  else if (!scm_capi_string_p(str)) {
+  if (!scm_capi_string_p(str)) {
     scm_capi_error("string-fill!: string required, but got", 1, str);
     return -1;
   }
@@ -4848,11 +4368,7 @@ scm_api_string_fill_i(ScmObj str, ScmObj fill, ScmObj start, ScmObj end)
 ScmEncoding *
 scm_capi_string_encoding(ScmObj str)
 {
-  if (scm_obj_null_p(str)) {
-    scm_capi_error("string-encoding: invalid argument", 0);
-    return NULL;
-  }
-  else if (!scm_capi_string_p(str)) {
+  if (!scm_capi_string_p(str)) {
     scm_capi_error("string-encoding: string required, but got", 1, str);
     return NULL;
   }
@@ -4923,11 +4439,7 @@ scm_api_string_push(ScmObj str, ScmObj c)
   scm_char_t cv;
   int rslt;
 
-  if (scm_obj_null_p(str) || scm_obj_null_p(c)) {
-    scm_capi_error("string-push: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-  else if (!scm_capi_string_p(str)) {
+  if (!scm_capi_string_p(str)) {
     scm_capi_error("string-push: string required, but got", 1, str);
     return SCM_OBJ_NULL;                  /* provisional implementation */
   }
@@ -4960,16 +4472,12 @@ scm_api_string_push(ScmObj str, ScmObj c)
 extern inline bool
 scm_capi_vector_p(ScmObj obj)
 {
-  if (scm_obj_null_p(obj)) return false;
-
   return scm_obj_type_p(obj, &SCM_VECTOR_TYPE_INFO) ? true : false;
 }
 
 ScmObj
 scm_api_vector_P(ScmObj obj)
 {
-  if (scm_obj_null_p(obj)) return SCM_OBJ_NULL;
-
   return scm_capi_vector_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
 }
 
@@ -4993,11 +4501,7 @@ scm_api_make_vector(ScmObj len, ScmObj fill)
   size_t sz;
   int r;
 
-  if (scm_obj_null_p(len)) {
-    scm_capi_error("make-vector: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-  else if (!scm_capi_integer_p(len)) {
+  if (!scm_capi_integer_p(len)) {
     scm_capi_error("make-vector: integer required, but got", 1, len);
     return SCM_OBJ_NULL;
   }
@@ -5011,11 +4515,6 @@ scm_api_make_vector(ScmObj len, ScmObj fill)
 ScmObj
 scm_capi_vector_lst(ScmObj lst)
 {
-  if (scm_obj_null_p(lst)) {
-    scm_capi_error("vector: invalid argumnet", 0);
-    return SCM_OBJ_NULL;
-  }
-
   return scm_api_list_to_vector(lst);
 }
 
@@ -5057,11 +4556,7 @@ scm_capi_vector_length(ScmObj vec)
 {
   SCM_STACK_FRAME_PUSH(&vec);
 
-  if (scm_obj_null_p(vec)) {
-    scm_capi_error("vector-length: invalid argument", 0);
-    return -1;
-  }
-  else if (!scm_capi_vector_p(vec)) {
+  if (!scm_capi_vector_p(vec)) {
     scm_capi_error("vector-length: vector required, but got", 1, vec);
     return -1;
   }
@@ -5082,11 +4577,7 @@ scm_capi_vector_ref(ScmObj vec, size_t idx)
 {
   SCM_STACK_FRAME_PUSH(&vec);
 
-  if (scm_obj_null_p(vec)) {
-    scm_capi_error("vector-ref: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-  else if (!scm_capi_vector_p(vec)) {
+  if (!scm_capi_vector_p(vec)) {
     scm_capi_error("vector-ref: vector required, but got", 1, vec);
     return SCM_OBJ_NULL;
   }
@@ -5106,11 +4597,7 @@ scm_api_vector_ref(ScmObj vec, ScmObj idx)
 
   SCM_STACK_FRAME_PUSH(&vec, &idx);
 
-  if (scm_obj_null_p(idx)) {
-    scm_capi_error("vector-ref: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-  else if (!scm_capi_integer_p(idx)) {
+  if (!scm_capi_integer_p(idx)) {
     scm_capi_error("vector-ref: integer require, but got", 1, idx);
     return SCM_OBJ_NULL;
   }
@@ -5126,16 +4613,16 @@ scm_capi_vector_set_i(ScmObj vec, size_t idx, ScmObj obj)
 {
   SCM_STACK_FRAME_PUSH(&vec, &obj);
 
-  if (scm_obj_null_p(vec) || scm_obj_null_p(obj)) {
-    scm_capi_error("vector-set!: invalid argument", 0);
-    return -1;
-  }
-  else if (!scm_capi_vector_p(vec)) {
+  if (!scm_capi_vector_p(vec)) {
     scm_capi_error("vector-set!: vector required, but got", 1, vec);
     return -1;
   }
   else if (idx >= scm_vector_length(vec)) {
     scm_capi_error("vector-set!: argument out of range", 0);
+    return -1;
+  }
+  else if (scm_obj_null_p(obj)) {
+    scm_capi_error("vector-set!: invalid argument", 1, obj);
     return -1;
   }
 
@@ -5150,11 +4637,7 @@ scm_api_vector_set_i(ScmObj vec, ScmObj idx, ScmObj obj)
 
   SCM_STACK_FRAME_PUSH(&vec, &idx, &obj);
 
-  if (scm_obj_null_p(idx)) {
-    scm_capi_error("vector-set!: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-  else if (!scm_capi_integer_p(idx)) {
+  if (!scm_capi_integer_p(idx)) {
     scm_capi_error("vector-set!: integer require, but got", 1, idx);
     return SCM_OBJ_NULL;
   }
@@ -5204,25 +4687,6 @@ scm_capi_vector_norm_star_end(const char *op, ScmObj vec,
   return 0;
 }
 
-
-static ScmObj
-scm_capi_vector_to_list_aux(ScmObj vec, size_t start, size_t n)
-{
-  ScmObj elm[n];
-
-  SCM_STACK_FRAME_PUSH(&vec);
-
-  for (size_t i = 0; i < n; i++) {
-    elm[i] = SCM_OBJ_NULL;
-    SCM_STACK_PUSH(&elm[i]);
-
-    elm[i] = scm_vector_ref(vec, start + i);
-    if (scm_obj_null_p(elm[i])) return SCM_OBJ_NULL;
-  }
-
-  return scm_capi_list_cv(elm, n);
-}
-
 ScmObj
 scm_capi_vector_to_list(ScmObj vec, ssize_t start, ssize_t end)
 {
@@ -5230,11 +4694,7 @@ scm_capi_vector_to_list(ScmObj vec, ssize_t start, ssize_t end)
 
   SCM_STACK_FRAME_PUSH(&vec);
 
-  if (scm_obj_null_p(vec)) {
-    scm_capi_error("vector->list: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-  else if (!scm_capi_vector_p(vec)) {
+  if (!scm_capi_vector_p(vec)) {
     scm_capi_error("vector->list: vector required, but got", 1, vec);
     return SCM_OBJ_NULL;
   }
@@ -5242,7 +4702,8 @@ scm_capi_vector_to_list(ScmObj vec, ssize_t start, ssize_t end)
   r = scm_capi_vector_norm_star_end("vector->list", vec, &start, &end);
   if (r < 0) return SCM_OBJ_NULL;
 
-  return scm_capi_vector_to_list_aux(vec, (size_t)start, (size_t)(end - start));
+  return scm_capi_list_cv(scm_vector_content(vec) + start,
+                          (size_t)(end - start));
 }
 
 int
@@ -5297,36 +4758,13 @@ scm_api_list_to_vector(ScmObj lst)
 
   SCM_STACK_FRAME_PUSH(&lst);
 
-  if (scm_obj_null_p(lst)) {
-    scm_capi_error("list->vector: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-  else if (scm_capi_nil_p(lst) || !scm_capi_pair_p(lst)) {
+  if (scm_capi_nil_p(lst) || !scm_capi_pair_p(lst))
     return scm_vector_new(SCM_MEM_HEAP, 0, SCM_OBJ_NULL);
-  }
 
   n = scm_capi_length(lst);
   if (n < 0) return SCM_OBJ_NULL;;
 
   return scm_vector_new_from_list(SCM_MEM_HEAP, (size_t)n, lst);
-}
-
-static ScmObj
-scm_capi_vector_to_string_aux(ScmObj vec, size_t start, size_t n)
-{
-  ScmObj elm[n];
-
-  SCM_STACK_FRAME_PUSH(&vec);
-
-  for (size_t i = 0; i < n; i++) {
-    elm[i] = SCM_OBJ_NULL;
-    SCM_STACK_PUSH(&elm[i]);
-
-    elm[i] = scm_vector_ref(vec, start + i);
-    if (scm_obj_null_p(elm[i])) return SCM_OBJ_NULL;
-  }
-
-  return scm_capi_string_cv(elm, n);
 }
 
 ScmObj
@@ -5336,11 +4774,7 @@ scm_capi_vector_to_string(ScmObj vec, ssize_t start, ssize_t end)
 
   SCM_STACK_FRAME_PUSH(&vec);
 
-  if (scm_obj_null_p(vec)) {
-    scm_capi_error("vector->string: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-  else if (!scm_capi_vector_p(vec)) {
+  if (!scm_capi_vector_p(vec)) {
     scm_capi_error("vector->string: vector required, but got", 1, vec);
     return SCM_OBJ_NULL;
   }
@@ -5348,8 +4782,8 @@ scm_capi_vector_to_string(ScmObj vec, ssize_t start, ssize_t end)
   r = scm_capi_vector_norm_star_end("vector->string", vec, &start, &end);
   if (r < 0) return SCM_OBJ_NULL;
 
-  return scm_capi_vector_to_string_aux(vec,
-                                       (size_t)start, (size_t)(end - start));
+  return scm_capi_string_cv(scm_vector_content(vec) + start,
+                            (size_t)(end - start));
 }
 
 ScmObj
@@ -5398,11 +4832,7 @@ scm_capi_string_to_vector(ScmObj str, ssize_t start, ssize_t end)
 
   SCM_STACK_FRAME_PUSH(&str);
 
-  if (scm_obj_null_p(str)) {
-    scm_capi_error("string->vector: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-  else if (!scm_capi_string_p(str)) {
+  if (!scm_capi_string_p(str)) {
     scm_capi_error("string->vector: string required, but got", 1, str);
     return SCM_OBJ_NULL;
   }
@@ -5456,11 +4886,7 @@ scm_capi_vector_copy(ScmObj vec, ssize_t start, ssize_t end)
   SCM_STACK_FRAME_PUSH(&vec,
                        &copy);
 
-  if (scm_obj_null_p(vec)) {
-    scm_capi_error("vector-copy: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-  else if (!scm_capi_vector_p(vec)) {
+  if (!scm_capi_vector_p(vec)) {
     scm_capi_error("vector-copy: vector required, but got", 1, vec);
     return SCM_OBJ_NULL;
   }
@@ -5543,11 +4969,7 @@ scm_capi_vector_copy_i(ScmObj to, size_t at,
 {
   size_t len, to_len, from_len;
 
-  if (scm_obj_null_p(to) || scm_obj_null_p(from)) {
-    scm_capi_error("vector-copy!: invalid argument", 0);
-    return -1;
-  }
-  else if (!scm_capi_vector_p(to)) {
+  if (!scm_capi_vector_p(to)) {
     scm_capi_error("vector-copy!: vectore required, but got", 1, to);
     return -1;
   }
@@ -5611,11 +5033,7 @@ scm_api_vector_copy_i(ScmObj to, ScmObj at,
 
   SCM_STACK_FRAME_PUSH(&to, &at, &from, &start, &end);
 
-  if (scm_obj_null_p(at)) {
-    scm_capi_error("vector-copy!: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-  else if (!scm_capi_integer_p(at)) {
+  if (!scm_capi_integer_p(at)) {
     scm_capi_error("vector-copy!: integer required, but got", 1, at);
     return SCM_OBJ_NULL;
   }
@@ -5647,10 +5065,8 @@ scm_capi_vector_append_lst(ScmObj lst)
                        &acc, &vec,
                        &elm, &ls);
 
-  if (scm_obj_null_p(lst)) {
-    scm_capi_error("vector-append: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
+  if (scm_obj_null_p(lst))
+    return scm_vector_new(SCM_MEM_HEAP, 0, SCM_OBJ_NULL);
 
   sum = 0;
   for (ls = lst; scm_capi_pair_p(ls); ls = scm_api_cdr(ls)) {
@@ -5771,12 +5187,12 @@ scm_capi_vector_fill_i(ScmObj vec, ScmObj fill, ssize_t start, ssize_t end)
 
   SCM_STACK_FRAME_PUSH(&vec, &fill);
 
-  if (scm_obj_null_p(vec) || scm_obj_null_p(fill)) {
-    scm_capi_error("vector-fill!: invalid argument", 0);
+  if (!scm_capi_vector_p(vec)) {
+    scm_capi_error("vector-fill!: vectore required, but got", 1, vec);
     return -1;
   }
-  else if (!scm_capi_vector_p(vec)) {
-    scm_capi_error("vector-fill!: vectore required, but got", 1, vec);
+  else if (scm_obj_null_p(fill)) {
+    scm_capi_error("vector-fill!: invalid argument", 1, fill);
     return -1;
   }
 
@@ -5820,7 +5236,7 @@ int
 scm_capi_raise(ScmObj obj)
 {
   if (scm_obj_null_p(obj)) {
-    scm_capi_error("raise: invalid argument", 0);
+    scm_capi_error("raise: invalid argument", 1, obj);
     return -1;
   }
 
@@ -5833,7 +5249,7 @@ scm_capi_raise_for_subr(ScmObj obj)
   int r;
 
   if (scm_obj_null_p(obj)) {
-    scm_capi_error("raise: invalid argument", 0);
+    scm_capi_error("raise: invalid argument", 1, obj);
     return -1;
   }
 
@@ -5849,7 +5265,7 @@ scm_capi_raise_continuable_for_subr(ScmObj obj)
   int r;
 
   if (scm_obj_null_p(obj)) {
-    scm_capi_error("raise-continuable: invalid argument", 0);
+    scm_capi_error("raise-continuable: invalid argument", 1, obj);
     return -1;
   }
 
@@ -5880,11 +5296,7 @@ scm_capi_discard_raised_obj(void)
 int
 scm_capi_push_exception_handler(ScmObj handler)
 {
-  if (scm_obj_null_p(handler)) {
-    scm_capi_error("failed to install exception handler: invalid argument", 0);
-    return -1;
-  }
-  else if (!scm_capi_procedure_p(handler)) {
+  if (!scm_capi_procedure_p(handler)) {
     scm_capi_error("failed to install exception handler: "
                    "invalid argument", 1, handler);
     return -1;
@@ -5985,17 +5397,13 @@ scm_capi_error_for_subr(ScmObj msg, ScmObj irris)
     return SCM_OBJ_NULL;
   }
 
-  if (scm_obj_null_p(msg)) {
-    scm_capi_error("error: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-  else if (!scm_capi_string_p(msg)) {
+  if (!scm_capi_string_p(msg)) {
     scm_capi_error("error: string required, but got", 1, msg);
     return SCM_OBJ_NULL;
   }
 
   if (scm_obj_null_p(irris)) {
-    scm_capi_error("error: invalid argument", 0);
+    scm_capi_error("error: invalid argument", 1, irris);
     return SCM_OBJ_NULL;
   }
 
@@ -6008,26 +5416,19 @@ scm_capi_error_for_subr(ScmObj msg, ScmObj irris)
 extern inline bool
 scm_capi_error_object_p(ScmObj obj)
 {
-  if (scm_obj_null_p(obj)) return false;
   return scm_obj_type_p(obj, &SCM_ERROR_TYPE_INFO);
 }
 
 ScmObj
 scm_api_error_object_P(ScmObj obj)
 {
-  if (scm_obj_null_p(obj)) return SCM_OBJ_NULL;
-
   return (scm_capi_error_object_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ);
 }
 
 ScmObj
 scm_api_error_object_message(ScmObj obj)
 {
-  if (scm_obj_null_p(obj)) {
-    scm_capi_error("error-object-message: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-  else if (!scm_capi_error_object_p(obj)) {
+  if (!scm_capi_error_object_p(obj)) {
     scm_capi_error("error-object-message: "
                    "error-object required, but got", 1, obj);
     return SCM_OBJ_NULL;
@@ -6039,11 +5440,7 @@ scm_api_error_object_message(ScmObj obj)
 ScmObj
 scm_api_error_object_irritants(ScmObj obj)
 {
-  if (scm_obj_null_p(obj)) {
-    scm_capi_error("error-object-irritants: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-  else if (!scm_capi_error_object_p(obj)) {
+  if (!scm_capi_error_object_p(obj)) {
     scm_capi_error("error-object-irritants: "
                    "error-object required, but got", 1, obj);
     return SCM_OBJ_NULL;
@@ -6059,8 +5456,6 @@ scm_capi_error_object_type_eq(ScmObj obj, const char *type, bool *rslt)
 
   SCM_STACK_FRAME_PUSH(&obj,
                        &sym, &etype);
-
-  if (scm_obj_null_p(obj)) return -1;
 
   if (!scm_capi_error_object_p(obj)) {
     *rslt = false;
@@ -6112,19 +5507,12 @@ scm_api_file_error_P(ScmObj obj)
 extern inline bool
 scm_capi_port_p(ScmObj obj)
 {
-  if (scm_obj_null_p(obj)) return false;
-
   return scm_obj_type_p(obj, &SCM_PORT_TYPE_INFO);
 }
 
 ScmObj
 scm_api_port_P(ScmObj obj)
 {
-  if (scm_obj_null_p(obj)) {
-    scm_capi_error("port?: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-
   return scm_capi_port_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
 }
 
@@ -6137,11 +5525,6 @@ scm_capi_input_port_p(ScmObj obj)
 ScmObj
 scm_api_input_port_P(ScmObj obj)
 {
-  if (scm_obj_null_p(obj)) {
-    scm_capi_error("input-port?: invaid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-
   return scm_capi_input_port_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
 }
 
@@ -6154,11 +5537,6 @@ scm_capi_output_port_p(ScmObj obj)
 ScmObj
 scm_api_output_port_P(ScmObj obj)
 {
-  if (scm_obj_null_p(obj)) {
-    scm_capi_error("output-port?: invaid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-
   return scm_capi_output_port_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
 }
 
@@ -6171,11 +5549,6 @@ scm_capi_textual_port_p(ScmObj obj)
 ScmObj
 scm_api_textual_port_P(ScmObj obj)
 {
-  if (scm_obj_null_p(obj)) {
-    scm_capi_error("textual-port?: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-
   return scm_capi_textual_port_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
 }
 
@@ -6188,11 +5561,6 @@ scm_capi_binary_port_p(ScmObj obj)
 ScmObj
 scm_api_binary_port_P(ScmObj obj)
 {
-  if (scm_obj_null_p(obj)) {
-    scm_capi_error("binary-port?: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-
   return scm_capi_binary_port_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
 }
 
@@ -6205,13 +5573,6 @@ scm_capi_input_port_open_p(ScmObj port)
 ScmObj
 scm_api_input_port_open_P(ScmObj port)
 {
-  SCM_STACK_FRAME_PUSH(&port);
-
-  if (scm_obj_null_p(port)) {
-    scm_capi_error("input-port-open?: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-
   return scm_capi_input_port_open_p(port) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
 }
 
@@ -6224,13 +5585,6 @@ scm_capi_output_port_open_p(ScmObj port)
 ScmObj
 scm_api_output_port_open_P(ScmObj port)
 {
-  SCM_STACK_FRAME_PUSH(&port);
-
-  if (scm_obj_null_p(port)) {
-    scm_capi_error("output-port-open?: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-
   return scm_capi_output_port_open_p(port) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
 }
 
@@ -6311,11 +5665,7 @@ scm_api_open_input_file(ScmObj path)
   size_t s;
   ssize_t r;
 
-  if (scm_obj_null_p(path)) {
-    scm_capi_error("open-input-file: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-  else if (!scm_capi_string_p(path)) {
+  if (!scm_capi_string_p(path)) {
     scm_capi_error("open-input-file: string required, but got", 1, path);
     return SCM_OBJ_NULL;
   }
@@ -6372,11 +5722,7 @@ scm_api_open_output_file(ScmObj path)
   size_t s;
   ssize_t r;
 
-  if (scm_obj_null_p(path)) {
-    scm_capi_error("open-output-file: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-  else if (!scm_capi_string_p(path)) {
+  if (!scm_capi_string_p(path)) {
     scm_capi_error("open-output-file: string required, but got", 1, path);
     return SCM_OBJ_NULL;
   }
@@ -6406,11 +5752,7 @@ scm_api_close_port(ScmObj port)
 {
   int r;
 
-  if (scm_obj_null_p(port)) {
-    scm_capi_error("close-port: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-  else if (!scm_capi_port_p(port)) {
+  if (!scm_capi_port_p(port)) {
     scm_capi_error("close-port: port required, but got", 1, port);
     return SCM_OBJ_NULL;;
   }
@@ -6426,11 +5768,7 @@ scm_api_close_input_port(ScmObj port)
 {
   int r;
 
-  if (scm_obj_null_p(port)) {
-    scm_capi_error("close-input-port: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-  else if (!scm_capi_input_port_p(port)) {
+  if (!scm_capi_input_port_p(port)) {
     scm_capi_error("close-input-port: input-port required, but got", 1, port);
     return SCM_OBJ_NULL;;
   }
@@ -6446,11 +5784,7 @@ scm_api_close_output_port(ScmObj port)
 {
   int r;
 
-  if (scm_obj_null_p(port)) {
-    scm_capi_error("close-output-port: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-  else if (!scm_capi_output_port_p(port)) {
+  if (!scm_capi_output_port_p(port)) {
     scm_capi_error("close-output-port: output-port required, but got", 1, port);
     return SCM_OBJ_NULL;         /* provisional implemntation */
   }
@@ -6483,11 +5817,7 @@ scm_capi_open_input_string_cstr(const char *str, const char *enc)
 ScmObj
 scm_api_open_input_string(ScmObj str)
 {
-  if (scm_obj_null_p(str)) {
-    scm_capi_error("open-input-string: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-  else if (!scm_capi_string_p(str)) {
+  if (!scm_capi_string_p(str)) {
     scm_capi_error("open-input-string: string required, but got", 1, str);
     return SCM_OBJ_NULL;
   }
@@ -6503,7 +5833,6 @@ ScmObj
 scm_api_open_output_string(void)
 {
   return scm_port_open_string(NULL, 0, "w", scm_capi_system_encoding(), NULL);
-
 }
 
 ScmObj
@@ -6514,11 +5843,7 @@ scm_api_get_output_string(ScmObj port)
   const char *enc_name;
   ScmEncoding *e;
 
-  if (scm_obj_null_p(port)) {
-    scm_capi_error("get-output-string: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-  else if (!scm_capi_output_port_p(port)) {
+  if (!scm_capi_output_port_p(port)) {
     scm_capi_error("get-output-string: output-port required, but got", 1, port);
     return SCM_OBJ_NULL;
   }
@@ -6558,11 +5883,7 @@ scm_capi_port_encoding(ScmObj port)
 {
   const char *enc_name;
 
-  if (scm_obj_null_p(port)) {
-    scm_capi_error("port-encoding: invalid argument", 0);
-    return NULL;
-  }
-  else if (!scm_obj_type_p(port, &SCM_PORT_TYPE_INFO)) {
+  if (!scm_capi_port_p(port)) {
     scm_capi_error("port-encoding: port required, but got", 1, port);
     return NULL;                  /* provisional implemntation */
   }
@@ -6579,11 +5900,7 @@ scm_capi_port_encoding(ScmObj port)
 ScmEncoding *
 scm_capi_port_internal_encoding(ScmObj port)
 {
-  if (scm_obj_null_p(port)) {
-    scm_capi_error("port-internal-encoding: invalid argument", 0);
-    return NULL;
-  }
-  else if (!scm_capi_port_p(port)) {
+  if (!scm_capi_port_p(port)) {
     scm_capi_error("port-internal-encoding: port required, but got", 1, port);
     return NULL;
   }
@@ -6847,10 +6164,6 @@ scm_api_read_string(ScmObj n, ScmObj port)
     scm_capi_error("read-string: integer required, but got", 1, n);
     return SCM_OBJ_NULL;
   }
-  else if (scm_obj_null_p(port)) {
-    scm_capi_error("read-string: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
   else if (!scm_capi_input_port_p(port)) {
     scm_capi_error("read-string: input-port required, but got", 1, port);
     return SCM_OBJ_NULL;
@@ -6946,7 +6259,7 @@ scm_api_write_simple(ScmObj obj, ScmObj port)
   SCM_STACK_FRAME_PUSH(&obj, &port);
 
   if (scm_obj_null_p(obj)) {
-    scm_capi_error("write-simple: invalid argument", 0);
+    scm_capi_error("write-simple: invalid argument", 1, obj);
     return SCM_OBJ_NULL;
   }
 
@@ -6984,7 +6297,7 @@ scm_api_display(ScmObj obj, ScmObj port)
   SCM_STACK_FRAME_PUSH(&obj, &port);
 
   if (scm_obj_null_p(obj)) {
-    scm_capi_error("display: invalid argument", 0);
+    scm_capi_error("display: invalid argument", 1, obj);
     return SCM_OBJ_NULL;
   }
 
@@ -7075,11 +6388,7 @@ scm_api_write_char(ScmObj chr, ScmObj port)
 
   SCM_STACK_FRAME_PUSH(&chr, &port);
 
-  if (scm_obj_null_p(chr)) {
-    scm_capi_error("write-char: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-  else if (!scm_capi_char_p(chr)) {
+  if (!scm_capi_char_p(chr)) {
     scm_capi_error("write-char: character required, but got", 1, chr);
     return SCM_OBJ_NULL;
   }
@@ -7142,11 +6451,7 @@ scm_capi_write_string(ScmObj str, ScmObj port, ssize_t start, ssize_t end)
 
   SCM_STACK_FRAME_PUSH(&str, &port);
 
-  if (scm_obj_null_p(str)) {
-    scm_capi_error("write-string: invalid argument", 0);
-    return -1;
-  }
-  else if (!scm_capi_string_p(str)) {
+  if (!scm_capi_string_p(str)) {
     scm_capi_error("write-string: string required, but got", 1, str);
     return -1;
   }
@@ -7286,8 +6591,6 @@ scm_api_flush_output_port(ScmObj port)
 bool
 scm_capi_procedure_p(ScmObj proc)
 {
-  if (scm_obj_null_p(proc)) return false;
-
   return scm_obj_type_flag_set_p(proc, SCM_TYPE_FLG_PROC);
 }
 
@@ -7295,15 +6598,12 @@ int
 scm_capi_arity(ScmObj proc, int *arity)
 {
   if (!scm_capi_procedure_p(proc)) {
-    scm_capi_error("arity: invalid argument", 0);
-    return -1;
-  }
-  else if (arity == NULL) {
-    scm_capi_error("arity: invalid argument", 0);
+    scm_capi_error("arity: procedure required, but got", 1, proc);
     return -1;
   }
 
-  *arity = scm_proc_arity(proc);
+  if (arity != NULL)
+    *arity = scm_proc_arity(proc);
 
   return 0;
 }
@@ -7311,12 +6611,14 @@ scm_capi_arity(ScmObj proc, int *arity)
 int
 scm_capi_procedure_flg_set_p(ScmObj proc, SCM_PROC_FLG_T flg, bool *rslt)
 {
-  if (!scm_capi_procedure_p(proc) || rslt == NULL) {
-    scm_capi_error("failed to get procedure information: invalid argument", 0);
+  if (!scm_capi_procedure_p(proc)) {
+    scm_capi_error("failed to get procedure information: "
+                   "invalid argument", 1, proc);
     return -1;
   }
 
-  *rslt = scm_proc_flg_set_p(proc, flg);
+  if (rslt != NULL)
+    *rslt = scm_proc_flg_set_p(proc, flg);
 
   return 0;
 }
@@ -7331,11 +6633,11 @@ scm_capi_make_subrutine(ScmSubrFunc func, int arity, unsigned int flags,
                         ScmObj module)
 {
   if (func == NULL) {
-    scm_capi_error("can not make subrutine: invaild argument", 0);
+    scm_capi_error("failed to make subrutine: invaild argument", 0);
     return SCM_OBJ_NULL;
   }
   else if (scm_obj_not_null_p(module) && !scm_capi_module_p(module)) {
-    scm_capi_error("failed to make subrutine: invalid argument", 0);
+    scm_capi_error("failed to make subrutine: invalid argument", 1, module);
     return SCM_OBJ_NULL;
   }
 
@@ -7347,7 +6649,7 @@ int
 scm_api_call_subrutine(ScmObj subr, int argc, const ScmObj *argv)
 {
   if (!scm_capi_subrutine_p(subr)) {
-    scm_capi_error("can not call subrutine: invalid argument", 0);
+    scm_capi_error("failed to call subrutine: invalid argument", 1, subr);
     return SCM_OBJ_NULL;
   }
 
@@ -7357,7 +6659,6 @@ scm_api_call_subrutine(ScmObj subr, int argc, const ScmObj *argv)
 extern inline bool
 scm_capi_subrutine_p(ScmObj obj)
 {
-  if (scm_obj_null_p(obj)) return false;
   return (scm_obj_type_p(obj, &SCM_SUBRUTINE_TYPE_INFO) ? true : false);
 }
 
@@ -7366,16 +6667,12 @@ scm_capi_subrutine_module(ScmObj subr, scm_csetter_t *mod)
 {
   if (!scm_capi_subrutine_p(subr)) {
     scm_capi_error("failed to get a module defines the subrutine: "
-                   "invalid argument", 0);
-    return -1;
-  }
-  else if (mod == NULL) {
-    scm_capi_error("failed to get a module defines the subrutine: "
-                   "invalid argument", 0);
+                   "invalid argument", 1, subr);
     return -1;
   }
 
-  scm_csetter_setq(mod, scm_subrutine_module(subr));
+  if (mod != NULL)
+    scm_csetter_setq(mod, scm_subrutine_module(subr));
 
   return 0;
 }
@@ -7389,7 +6686,7 @@ ScmObj
 scm_capi_make_closure(ScmObj iseq, ScmObj env, int arity)
 {
   if (!scm_capi_iseq_p(iseq)) {
-    scm_capi_error("can not make closure: invalid argument", 0);
+    scm_capi_error("failed to make closure: invalid argument", 1, iseq);
     return SCM_OBJ_NULL;
   }
 
@@ -7399,7 +6696,6 @@ scm_capi_make_closure(ScmObj iseq, ScmObj env, int arity)
 extern inline bool
 scm_capi_closure_p(ScmObj obj)
 {
-  if (scm_obj_null_p(obj)) return false;
   return (scm_obj_type_p(obj, &SCM_CLOSURE_TYPE_INFO) ? true : false);
 }
 
@@ -7407,7 +6703,8 @@ ScmObj
 scm_capi_closure_to_iseq(ScmObj clsr)
 {
   if (!scm_capi_closure_p(clsr)) {
-    scm_capi_error("can not get iseq object from closure: invalid argument", 0);
+    scm_capi_error("failed to get iseq object from closure: "
+                   "invalid argument", 1, clsr);
     return SCM_OBJ_NULL;
   }
 
@@ -7420,8 +6717,9 @@ scm_capi_closure_to_ip(ScmObj clsr)
   ScmObj iseq = SCM_OBJ_INIT;
 
   if (!scm_capi_closure_p(clsr)) {
-    scm_capi_error("can not get iseq object from closure: invalid argument", 0);
-    return SCM_OBJ_NULL;
+    scm_capi_error("failed to get iseq object from closure: "
+                   "invalid argument", 1, clsr);
+    return NULL;
   }
 
   iseq = scm_closure_body(clsr);
@@ -7434,17 +6732,13 @@ int
 scm_capi_closure_env(ScmObj clsr, scm_csetter_t *env)
 {
   if (!scm_capi_closure_p(clsr)) {
-    scm_capi_error("can not get closed environment object from closure: "
-                   "invalid argument", 0);
-    return -1;
-  }
-  else if (env == NULL) {
-    scm_capi_error("can not get closed environment object from closure: "
-                   "invalid argument", 0);
+    scm_capi_error("failed to get closed environment object from closure: "
+                   "invalid argument", 1, clsr);
     return -1;
   }
 
-  scm_csetter_setq(env, scm_closure_env(clsr));
+  if (env != NULL)
+    scm_csetter_setq(env, scm_closure_env(clsr));
 
   return 0;
 }
@@ -7460,7 +6754,8 @@ scm_capi_make_parameter(ScmObj conv)
   SCM_STACK_FRAME_PUSH(&conv);
 
   if (scm_obj_not_null_p(conv) && !scm_capi_procedure_p(conv)) {
-    scm_capi_error("failed to make parameter object: invalid argument", 0);
+    scm_capi_error("failed to make parameter object: "
+                   "invalid argument", 1, conv);
     return SCM_OBJ_NULL;
   }
 
@@ -7470,8 +6765,6 @@ scm_capi_make_parameter(ScmObj conv)
 extern inline bool
 scm_capi_parameter_p(ScmObj obj)
 {
-  if (scm_obj_null_p(obj)) return false;
-
   return scm_obj_type_p(obj, &SCM_PARAMETER_TYPE_INFO);
 }
 
@@ -7482,16 +6775,12 @@ scm_capi_parameter_init_val(ScmObj prm, scm_csetter_t *val)
 
   if (!scm_capi_parameter_p(prm)) {
     scm_capi_error("failed to get a initial value of a parameter object: "
-                   "invalid argument", 0);
-    return -1;
-  }
-  else if (val == NULL) {
-    scm_capi_error("failed to get a initial value of a parameter object: "
-                   "invalid argument", 0);
+                   "invalid argument", 1, prm);
     return -1;
   }
 
-  scm_csetter_setq(val, scm_parameter_init_val(prm));
+  if (val != NULL)
+    scm_csetter_setq(val, scm_parameter_init_val(prm));
 
   return 0;
 }
@@ -7503,16 +6792,12 @@ scm_capi_parameter_converter(ScmObj prm, scm_csetter_t *conv)
 
   if (!scm_capi_parameter_p(prm)) {
     scm_capi_error("failed to get a converter from a parameter object: "
-                   "invalid argument", 0);
-    return -1;
-  }
-  else if (conv != NULL) {
-    scm_capi_error("failed to get a converter from a parameter object: "
-                   "invalid argument", 0);
+                   "invalid argument", 1, prm);
     return -1;
   }
 
-  scm_csetter_setq(conv, scm_parameter_converter(prm));
+  if (conv != NULL)
+    scm_csetter_setq(conv, scm_parameter_converter(prm));
 
   return 0;
 }
@@ -7524,12 +6809,12 @@ scm_capi_parameter_set_init_val(ScmObj prm, ScmObj val)
 
   if (!scm_capi_parameter_p(prm)) {
     scm_capi_error("failed to set a initial value of a parameter object: "
-                   "invalid argument", 0);
+                   "invalid argument", 1, prm);
     return -1;
   }
   else if (scm_obj_null_p(val)) {
     scm_capi_error("failed to set a initial value of a parameter object: "
-                   "invalid argument", 0);
+                   "invalid argument", 1, val);
     return -1;
   }
 
@@ -7544,7 +6829,7 @@ scm_capi_parameter_value(ScmObj prm)
   SCM_STACK_FRAME_PUSH(&prm);
 
   if (scm_obj_null_p(prm)) {
-    scm_capi_error("failed to get bound value: invalid argument", 0);
+    scm_capi_error("failed to get bound value: invalid argument", 1, prm);
     return SCM_OBJ_NULL;
   }
 
@@ -7559,18 +6844,12 @@ scm_capi_parameter_value(ScmObj prm)
 extern inline bool
 scm_capi_syntax_p(ScmObj obj)
 {
-  if (scm_obj_null_p(obj)) return false;
   return (scm_obj_type_p(obj, &SCM_SYNTAX_TYPE_INFO) ? true : false);
 }
 
 ScmObj
 scm_api_syntax_P(ScmObj obj)
 {
-  if (scm_obj_null_p(obj)) {
-    scm_capi_error("syntax?: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-
   return (scm_obj_type_p(obj, &SCM_SYNTAX_TYPE_INFO) ?
           SCM_TRUE_OBJ : SCM_FALSE_OBJ);
 }
@@ -7579,11 +6858,13 @@ ScmObj
 scm_api_make_syntax(ScmObj keyword, ScmObj handler)
 {
   if (!scm_capi_symbol_p(keyword)) {
-    scm_capi_error("failed to make syntax object: invalid argument", 0);
+    scm_capi_error("failed to make syntax object: "
+                   "invalid argument", 1, keyword);
     return SCM_OBJ_NULL;
   }
   else if (scm_obj_null_p(handler)) {
-    scm_capi_error("failed to make syntax object: invalid argument", 0);
+    scm_capi_error("failed to make syntax object: "
+                   "invalid argument", 1, handler);
     return SCM_OBJ_NULL;
   }
 
@@ -7594,7 +6875,7 @@ extern inline ScmObj
 scm_api_syntax_keyword(ScmObj syx)
 {
   if (!scm_capi_syntax_p(syx)) {
-    scm_capi_error("failed to get syntax keyword: invalid argument", 0);
+    scm_capi_error("failed to get syntax keyword: invalid argument", 1, syx);
     return SCM_OBJ_NULL;
   }
 
@@ -7605,7 +6886,7 @@ extern inline ScmObj
 scm_api_syntax_handler(ScmObj syx)
 {
   if (!scm_capi_syntax_p(syx)) {
-    scm_capi_error("failed to get syntax handler: invalid argument", 0);
+    scm_capi_error("failed to get syntax handler: invalid argument", 1, syx);
     return SCM_OBJ_NULL;
   }
 
@@ -7626,7 +6907,6 @@ scm_api_make_iseq(void)
 extern inline bool
 scm_capi_iseq_p(ScmObj obj)
 {
-  if (scm_obj_null_p(obj)) return false;
   return (scm_obj_type_p(obj, &SCM_ISEQ_TYPE_INFO) ? true : false);
 }
 
@@ -7634,8 +6914,8 @@ scm_byte_t *
 scm_capi_iseq_to_ip(ScmObj iseq)
 {
   if (!scm_capi_iseq_p(iseq)) {
-    scm_capi_error("can not get instruction pointer from iseq: "
-                   "invalid argument", 0);
+    scm_capi_error("failed to get instruction pointer from iseq: "
+                   "invalid argument", 1, iseq);
     return NULL;
   }
 
@@ -7646,8 +6926,8 @@ ssize_t
 scm_capi_iseq_length(ScmObj iseq)
 {
   if (!scm_capi_iseq_p(iseq)) {
-    scm_capi_error("can not get length of instruction seqeunce: "
-                   "invalid argument", 0);
+    scm_capi_error("failed to get length of instruction seqeunce: "
+                   "invalid argument", 1, iseq);
     return -1;
   }
 
@@ -7660,7 +6940,8 @@ scm_capi_iseq_push_opfmt_noarg(ScmObj iseq, SCM_OPCODE_T op)
   SCM_STACK_FRAME_PUSH(&iseq);
 
   if (!scm_capi_iseq_p(iseq)) {
-    scm_capi_error("can not push instruction to iseq: invalid argument", 0);
+    scm_capi_error("failed to push instruction to iseq: "
+                   "invalid argument", 1, iseq);
     return -1;
   }
 
@@ -7675,12 +6956,14 @@ scm_capi_iseq_push_opfmt_obj(ScmObj iseq, SCM_OPCODE_T op, ScmObj val)
   SCM_STACK_FRAME_PUSH(&iseq, &val);
 
   if (!scm_capi_iseq_p(iseq)) {
-    scm_capi_error("can not push instruction to iseq: invalid argument", 0);
+    scm_capi_error("failed to push instruction to iseq: "
+                   "invalid argument", 1, iseq);
     return -1;
   }
 
   if (scm_obj_null_p(val)) {
-    scm_capi_error("can not push instruction to iseq: invalid argument", 0);
+    scm_capi_error("failed to push instruction to iseq: "
+                   "invalid argument", 1, iseq);
     return -1;
   }
 
@@ -7699,17 +6982,20 @@ scm_capi_iseq_push_opfmt_obj_obj(ScmObj iseq,
   SCM_STACK_FRAME_PUSH(&iseq, &val1, &val2);
 
   if (!scm_capi_iseq_p(iseq)) {
-    scm_capi_error("can not push instruction to iseq: invalid argument", 0);
+    scm_capi_error("failed to push instruction to iseq: "
+                   "invalid argument", 1, iseq);
     return -1;
   }
 
   if (scm_obj_null_p(val1)) {
-    scm_capi_error("can not push instruction to iseq: invalid argument", 0);
+    scm_capi_error("failed to push instruction to iseq: "
+                   "invalid argument", 1, val1);
     return -1;
   }
 
   if (scm_obj_null_p(val2)) {
-    scm_capi_error("can not push instruction to iseq: invalid argument", 0);
+    scm_capi_error("failed to push instruction to iseq: "
+                   "invalid argument", 1, val2);
     return -1;
   }
 
@@ -7730,7 +7016,8 @@ scm_capi_iseq_push_opfmt_si(ScmObj iseq, SCM_OPCODE_T op, int val)
   SCM_STACK_FRAME_PUSH(&iseq);
 
   if (!scm_capi_iseq_p(iseq)) {
-    scm_capi_error("can not push instruction to iseq: invalid argument", 0);
+    scm_capi_error("failed to push instruction to iseq: "
+                   "invalid argument", 1, iseq);
     return -1;
   }
 
@@ -7748,7 +7035,8 @@ scm_capi_iseq_push_opfmt_si_si(ScmObj iseq, SCM_OPCODE_T op, int val1, int val2)
   SCM_STACK_FRAME_PUSH(&iseq);
 
   if (!scm_capi_iseq_p(iseq)) {
-    scm_capi_error("can not push instruction to iseq: invalid argument", 0);
+    scm_capi_error("failed to push instruction to iseq: "
+                   "invalid argument", 1, iseq);
     return -1;
   }
 
@@ -7771,12 +7059,14 @@ scm_capi_iseq_push_opfmt_si_si_obj(ScmObj iseq, SCM_OPCODE_T op,
                        &obj);
 
   if (!scm_capi_iseq_p(iseq)) {
-    scm_capi_error("can not push instruction to iseq: invalid argument", 0);
+    scm_capi_error("failed to push instruction to iseq: "
+                   "invalid argument", 1, iseq);
     return -1;
   }
 
   if (scm_obj_null_p(obj)) {
-    scm_capi_error("can not push instruction to iseq: invalid argument", 0);
+    scm_capi_error("failed to push instruction to iseq: "
+                   "invalid argument", 1, obj);
     return -1;
   }
 
@@ -7804,13 +7094,13 @@ scm_capi_iseq_set_si(ScmObj iseq, size_t idx, int val)
   ssize_t rslt;
 
   if (!scm_capi_iseq_p(iseq)) {
-    scm_capi_error("can not update instruction operand in iseq: "
-                   "invalid argument", 0);
+    scm_capi_error("failed to update instruction operand in iseq: "
+                   "invalid argument", 1, iseq);
     return -1;
   }
   else if (idx > SSIZE_MAX || (ssize_t)idx > scm_iseq_length(iseq) - 4) {
-    scm_capi_error("can not update instruction operand in iseq: "
-                   "invalid argument", 0);
+    scm_capi_error("failed to update instruction operand in iseq: "
+                   "out of range", 0);
     return -1;
   }
 
@@ -7874,17 +7164,14 @@ scm_capi_inst_fetch_oprand_obj(scm_byte_t *ip, scm_csetter_t *obj)
   SCM_STACK_FRAME_PUSH(&opr);
 
   if (ip == NULL) {
-    scm_capi_error("can not fetch operands: invalid ip", 0);
-    return NULL;
-  }
-  else if (obj == NULL) {
-    scm_capi_error("can not fetch operands: invalid argument", 0);
+    scm_capi_error("failed to fetch operands: invalid ip", 0);
     return NULL;
   }
 
   opr = scm_iseq_fetch_obj(&ip);
 
-  scm_csetter_setq(obj, opr);
+  if (obj != NULL)
+    scm_csetter_setq(obj, opr);
 
   return ip;
 }
@@ -7898,23 +7185,19 @@ scm_capi_inst_fetch_oprand_obj_obj(scm_byte_t *ip,
   SCM_STACK_FRAME_PUSH(&opr);
 
   if (ip == NULL) {
-    scm_capi_error("can not fetch operands: invalid ip", 0);
-    return NULL;
-  }
-  else if (obj1 == NULL) {
-    scm_capi_error("can not fetch operands: invalid argument", 0);
-    return NULL;
-  }
-  else if (obj2 == NULL) {
-    scm_capi_error("can not fetch operands: invalid argument", 0);
+    scm_capi_error("failed to fetch operands: invalid ip", 0);
     return NULL;
   }
 
   opr = scm_iseq_fetch_obj(&ip);
-  scm_csetter_setq(obj1, opr);
+
+  if (obj1 != NULL)
+    scm_csetter_setq(obj1, opr);
 
   opr = scm_iseq_fetch_obj(&ip);
-  scm_csetter_setq(obj2, opr);
+
+  if (obj2 != NULL)
+    scm_csetter_setq(obj2, opr);
 
   return ip;
 }
@@ -7922,16 +7205,16 @@ scm_capi_inst_fetch_oprand_obj_obj(scm_byte_t *ip,
 scm_byte_t *
 scm_capi_inst_fetch_oprand_si(scm_byte_t *ip, int *si)
 {
+  int x;
+
   if (ip == NULL) {
-    scm_capi_error("can not fetch operands: invalid ip", 0);
-    return NULL;
-  }
-  else if (si == NULL) {
-    scm_capi_error("can not fetch operands: invalid argument", 0);
+    scm_capi_error("failed to fetch operands: invalid ip", 0);
     return NULL;
   }
 
-  *si = scm_iseq_fetch_int(&ip);
+  x = scm_iseq_fetch_int(&ip);
+  if (si != NULL)
+    *si = x;
 
   return ip;
 }
@@ -7939,21 +7222,20 @@ scm_capi_inst_fetch_oprand_si(scm_byte_t *ip, int *si)
 scm_byte_t *
 scm_capi_inst_fetch_oprand_si_si(scm_byte_t *ip, int *si1, int *si2)
 {
+  int x;
+
   if (ip == NULL) {
-    scm_capi_error("can not fetch operands: invalid ip", 0);
-    return NULL;
-  }
-  else if (si1 == NULL) {
-    scm_capi_error("can not fetch operands: invalid argument", 0);
-    return NULL;
-  }
-  else if (si2 == NULL) {
-    scm_capi_error("can not fetch operands: invalid argument", 0);
+    scm_capi_error("failed to fetch operands: invalid ip", 0);
     return NULL;
   }
 
-  *si1 = scm_iseq_fetch_int(&ip);
-  *si2 = scm_iseq_fetch_int(&ip);
+  x = scm_iseq_fetch_int(&ip);
+  if (si1 != NULL)
+    *si1 = x;
+
+  x = scm_iseq_fetch_int(&ip);
+  if (si2 != NULL)
+    *si2 = x;
 
   return ip;
 }
@@ -7963,31 +7245,26 @@ scm_capi_inst_fetch_oprand_si_si_obj(scm_byte_t *ip,
                                      int *si1, int *si2, scm_csetter_t *obj)
 {
   ScmObj opr = SCM_OBJ_INIT;
+  int x;
 
   SCM_STACK_FRAME_PUSH(&opr);
 
   if (ip == NULL) {
-    scm_capi_error("can not fetch operands: invalid ip", 0);
-    return NULL;
-  }
-  else if (si1 == NULL) {
-    scm_capi_error("can not fetch operands: invalid argument", 0);
-    return NULL;
-  }
-  else if (si2 == NULL) {
-    scm_capi_error("can not fetch operands: invalid argument", 0);
-    return NULL;
-  }
-  else if (obj == NULL) {
-    scm_capi_error("can not fetch operands: invalid argument", 0);
+    scm_capi_error("failed to fetch operands: invalid ip", 0);
     return NULL;
   }
 
-  *si1 = scm_iseq_fetch_int(&ip);
-  *si2 = scm_iseq_fetch_int(&ip);
+  x = scm_iseq_fetch_int(&ip);
+  if (si1 != NULL)
+    *si1 = x;
+
+  x = scm_iseq_fetch_int(&ip);
+  if (si2 != NULL)
+    *si2 = x;
+
   opr = scm_iseq_fetch_obj(&ip);
-
-  scm_csetter_setq(obj, opr);
+  if (obj != NULL)
+    scm_csetter_setq(obj, opr);
 
   return ip;
 }
@@ -8008,15 +7285,15 @@ scm_capi_inst_update_oprand_obj(scm_byte_t *ip, ScmObj clsr, ScmObj obj)
                        &iseq);
 
   if (ip == NULL) {
-    scm_capi_error("can not updated operands: invalid ip", 0);
+    scm_capi_error("failed to updated operands: invalid ip", 0);
     return -1;
   }
   else if (!scm_capi_closure_p(clsr)) {
-    scm_capi_error("can not updated operands: invalid argument", 0);
+    scm_capi_error("failed to updated operands: invalid argument", 1, clsr);
     return -1;
   }
   else if (scm_obj_null_p(obj)) {
-    scm_capi_error("can not updated operands: invalid argument", 0);
+    scm_capi_error("failed to updated operands: invalid argument", 1, obj);
     return -1;
   }
 
@@ -8111,19 +7388,12 @@ scm_norm_cmpl_arg_mod(ScmObj mod)
 bool
 scm_capi_compiler_p(ScmObj obj)
 {
-  if (scm_obj_null_p(obj)) return false;
-
   return scm_obj_type_p(obj, &SCM_COMPILER_TYPE_INFO);
 }
 
 ScmObj
 scm_api_compiler_P(ScmObj obj)
 {
-  if (scm_obj_null_p(obj)) {
-    scm_capi_error("compiler?: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-
   return (scm_obj_type_p(obj, &SCM_COMPILER_TYPE_INFO) ?
           SCM_TRUE_OBJ : SCM_FALSE_OBJ);
 }
@@ -8141,7 +7411,7 @@ ScmObj
 scm_api_compiler_current_module(ScmObj cmpl)
 {
   if (!scm_capi_compiler_p(cmpl)) {
-    scm_capi_error("failed to get current module: invalid argument", 0);
+    scm_capi_error("failed to get current module: invalid argument", 1, cmpl);
     return SCM_OBJ_NULL;
   }
 
@@ -8151,8 +7421,9 @@ scm_api_compiler_current_module(ScmObj cmpl)
 ScmObj
 scm_api_compiler_current_expr(ScmObj cmpl)
 {
-    if (!scm_capi_compiler_p(cmpl)) {
-    scm_capi_error("failed to get current expression: invalid argument", 0);
+  if (!scm_capi_compiler_p(cmpl)) {
+    scm_capi_error("failed to get current expression: "
+                   "invalid argument", 1, cmpl);
     return SCM_OBJ_NULL;
   }
 
@@ -8165,7 +7436,8 @@ scm_api_compiler_select_module_i(ScmObj cmpl, ScmObj mod)
   SCM_STACK_FRAME_PUSH(&cmpl, &mod);
 
   if (!scm_capi_compiler_p(cmpl)) {
-    scm_capi_error("failed to change current module: invalid argument", 0);
+    scm_capi_error("failed to change current module: "
+                   "invalid argument", 1, cmpl);
     return SCM_OBJ_NULL;
   }
 
@@ -8183,12 +7455,14 @@ scm_api_compiler_select_expr_i(ScmObj cmpl, ScmObj expr)
   SCM_STACK_FRAME_PUSH(&cmpl, &expr);
 
   if (!scm_capi_compiler_p(cmpl)) {
-    scm_capi_error("failed to change current expression: invalid argument", 0);
+    scm_capi_error("failed to change current expression: "
+                   "invalid argument", 1, cmpl);
     return SCM_OBJ_NULL;
   }
 
   if (scm_obj_null_p(expr)) {
-    scm_capi_error("failed to change current expression: invalid argument", 0);
+    scm_capi_error("failed to change current expression: "
+                   "invalid argument", 1, expr);
     return SCM_OBJ_NULL;
   }
 
@@ -8201,7 +7475,7 @@ int
 scm_capi_compiler_assign_label_id_i(ScmObj cmpl)
 {
   if (!scm_capi_compiler_p(cmpl)) {
-    scm_capi_error("failed to assign label id: invalid argument", 0);
+    scm_capi_error("failed to assign label id: invalid argument", 1, cmpl);
     return -1;
   }
 
@@ -8216,8 +7490,6 @@ scm_capi_compiler_assign_label_id_i(ScmObj cmpl)
 bool
 scm_capi_gloc_p(ScmObj obj)
 {
-  if (scm_obj_null_p(obj)) return false;
-
   return scm_obj_type_p(obj, &SCM_GLOC_TYPE_INFO);
 }
 
@@ -8227,15 +7499,12 @@ scm_capi_gloc_value(ScmObj gloc, scm_csetter_t *val)
   SCM_STACK_FRAME_PUSH(&gloc);
 
   if (!scm_capi_gloc_p(gloc)) {
-    scm_capi_error("failed to get a value of gloc: invalid argument", 0);
-    return -1;
-  }
-  else if (val == NULL) {
-    scm_capi_error("failed to get a value of gloc: invalid argument", 0);
+    scm_capi_error("failed to get a value of gloc: invalid argument", 1, gloc);
     return -1;
   }
 
-  scm_csetter_setq(val, scm_gloc_value(gloc));
+  if (val != NULL)
+    scm_csetter_setq(val, scm_gloc_value(gloc));
 
   return 0;
 }
@@ -8246,15 +7515,12 @@ scm_capi_gloc_symbol(ScmObj gloc, scm_csetter_t *sym)
   SCM_STACK_FRAME_PUSH(&gloc);
 
   if (!scm_capi_gloc_p(gloc)) {
-    scm_capi_error("failed to get a symbol of gloc: invalid argument", 0);
-    return -1;
-  }
-  else if (sym == NULL) {
-    scm_capi_error("failed to get a symbol of gloc: invalid argument", 0);
+    scm_capi_error("failed to get a symbol of gloc: invalid argument", 1, gloc);
     return -1;
   }
 
-  scm_csetter_setq(sym, scm_gloc_symbol(gloc));
+  if (sym != NULL)
+    scm_csetter_setq(sym, scm_gloc_symbol(gloc));
 
   return 0;
 }
@@ -8265,11 +7531,11 @@ scm_capi_gloc_bind(ScmObj gloc, ScmObj val)
   SCM_STACK_FRAME_PUSH(&gloc, &val);
 
   if (!scm_capi_gloc_p(gloc)) {
-    scm_capi_error("failed to update value of gloc: invalid argument", 0);
+    scm_capi_error("failed to update value of gloc: invalid argument", 1, gloc);
     return -1;
   }
   else if (scm_obj_null_p(val)) {
-    scm_capi_error("failed to update value of gloc: invalid argument", 0);
+    scm_capi_error("failed to update value of gloc: invalid argument", 1, val);
     return -1;
   }
 
@@ -8288,7 +7554,7 @@ scm_api_make_module(ScmObj name)
                        &mod);
 
   if (!scm_capi_symbol_p(name) && !scm_capi_pair_p(name)) {
-    scm_capi_error("failed to make module: invalid argument", 0);
+    scm_capi_error("failed to make module: invalid argument", 1, name);
     return SCM_OBJ_NULL;
   }
 
@@ -8297,7 +7563,7 @@ scm_api_make_module(ScmObj name)
   if (rslt < 0) return SCM_OBJ_NULL;
 
   if (scm_obj_not_null_p(mod)) {
-    scm_capi_error("failed to make a module: already exist", 0);
+    scm_capi_error("failed to make a module: already exist", 1, name);
     return SCM_OBJ_NULL;
   }
 
@@ -8308,8 +7574,6 @@ scm_api_make_module(ScmObj name)
 extern inline bool
 scm_capi_module_p(ScmObj obj)
 {
-  if (scm_obj_null_p(obj)) return false;
-
   return scm_obj_type_p(obj, &SCM_MODULE_TYPE_INFO);
 }
 
@@ -8319,7 +7583,7 @@ scm_capi_find_module(ScmObj name, scm_csetter_t *mod)
   SCM_STACK_FRAME_PUSH(&name);
 
   if (!scm_capi_symbol_p(name) && !scm_capi_pair_p(name)) {
-    scm_capi_error("failed to find module: invalid argument", 0);
+    scm_capi_error("failed to find module: invalid argument", 1, name);
     return -1;
   }
 
@@ -8331,7 +7595,8 @@ ScmObj
 scm_api_module_name(ScmObj module)
 {
   if (!scm_capi_module_p(module)) {
-    scm_capi_error("failed to get a name from module: invalid argument", 0);
+    scm_capi_error("failed to get a name from module: "
+                   "invalid argument", 1, module);
     return SCM_OBJ_NULL;
   }
 
@@ -8347,7 +7612,7 @@ scm_capi_import(ScmObj module, ScmObj imported, bool restrictive)
                        &imp);
 
   if (!scm_capi_module_p(module)) {
-    scm_capi_error("failed to import a module: invalid argument", 0);
+    scm_capi_error("failed to import a module: invalid argument", 1, module);
     return -1;
   }
 
@@ -8370,11 +7635,13 @@ ScmObj
 scm_api_get_gloc(ScmObj module, ScmObj sym)
 {
   if (!scm_capi_module_p(module)) {
-    scm_capi_error("failed to obtain a GLoc object: invalid argument", 0);
+    scm_capi_error("failed to obtain a GLoc object: "
+                   "invalid argument", 1, module);
     return SCM_OBJ_NULL;
   }
   else if (!scm_capi_symbol_p(sym)) {
-    scm_capi_error("failed to obtain a GLoc object: invalid argument", 0);
+    scm_capi_error("failed to obtain a GLoc object: "
+                   "invalid argument", 1, sym);
     return SCM_OBJ_NULL;
   }
 
@@ -8387,19 +7654,18 @@ scm_capi_find_gloc(ScmObj module, ScmObj sym, scm_csetter_t *gloc)
   SCM_STACK_FRAME_PUSH(&module, &sym);
 
   if (!scm_capi_module_p(module)) {
-    scm_capi_error("failed to find a GLoc object: invalid argument", 0);
+    scm_capi_error("failed to find a GLoc object: invalid argument", 1, module);
     return -1;
   }
   else if (!scm_capi_symbol_p(sym)) {
-    scm_capi_error("failed to find a GLoc object: invalid argument", 0);
-    return -1;
-  }
-  else if (gloc == NULL) {
-    scm_capi_error("failed to find a GLoc object: invalid argument", 0);
+    scm_capi_error("failed to find a GLoc object: invalid argument", 1, sym);
     return -1;
   }
 
-  return scm_module_find_sym_eval(module, sym, gloc);
+  if (gloc != NULL)
+    return scm_module_find_sym_eval(module, sym, gloc);
+  else
+    return 0;
 }
 
 int
@@ -8411,15 +7677,18 @@ scm_capi_define_global_var(ScmObj module, ScmObj sym, ScmObj val, bool export)
                        &mod);
 
   if (scm_obj_null_p(module)) {
-    scm_capi_error("failed to define global variable: invalid argument", 0);
+    scm_capi_error("failed to define global variable: "
+                   "invalid argument", 1, module);
     return -1;
   }
   else if (!scm_capi_symbol_p(sym)) {
-    scm_capi_error("failed to define global variable: invalid argument", 0);
+    scm_capi_error("failed to define global variable: "
+                   "invalid argument", 1, sym);
     return -1;
   }
   else if (scm_obj_null_p(val)) {
-    scm_capi_error("failed to define global variable: invalid argument", 0);
+    scm_capi_error("failed to define global variable: "
+                   "invalid argument", 1, val);
     return -1;
   }
 
@@ -8447,15 +7716,15 @@ scm_capi_define_global_syx(ScmObj module, ScmObj sym, ScmObj syx, bool export)
   SCM_STACK_FRAME_PUSH(&module, &sym, &syx);
 
   if (scm_obj_null_p(module)) {
-    scm_capi_error("failed to define syntax: invalid argument", 0);
+    scm_capi_error("failed to define syntax: invalid argument", 1, module);
     return -1;
   }
   else if (!scm_capi_symbol_p(sym)) {
-    scm_capi_error("failed to define syntax: invalid argument", 0);
+    scm_capi_error("failed to define syntax: invalid argument", 1, sym);
     return -1;
   }
   else if (!scm_capi_syntax_p(syx)) {
-    scm_capi_error("failed to define syntax: invalid argument", 0);
+    scm_capi_error("failed to define syntax: invalid argument", 1, syx);
     return -1;
   }
 
@@ -8486,17 +7755,12 @@ scm_capi_global_var_ref(ScmObj module, ScmObj sym, scm_csetter_t *val)
 
   if (scm_obj_null_p(module)) {
     scm_capi_error("failed to get a value of global variable:"
-                   " invalid argument", 0);
+                   " invalid argument", 1, module);
     return -1;
   }
   else if (!scm_capi_symbol_p(sym)) {
     scm_capi_error("failed to get a value of global variable:"
-                   " invalid argument", 0);
-    return -1;
-  }
-  else if (val == NULL) {
-    scm_capi_error("failed to get a value of global variable:"
-                   " invalid argument", 0);
+                   " invalid argument", 1, sym);
     return -1;
   }
 
@@ -8516,12 +7780,14 @@ scm_capi_global_var_ref(ScmObj module, ScmObj sym, scm_csetter_t *val)
   rslt = scm_module_find_sym_eval(module, sym, SCM_CSETTER_L(gloc));
   if (rslt < 0) return -1;
 
+
   if (scm_obj_not_null_p(gloc))
     v = scm_gloc_value(gloc);
   else
     v = SCM_OBJ_NULL;
 
-  scm_csetter_setq(val, v);
+  if (val != NULL)
+    scm_csetter_setq(val, v);
 
   return 0;
 }
@@ -8537,15 +7803,11 @@ scm_capi_global_syx_ref(ScmObj module, ScmObj sym, scm_csetter_t *syx)
 
 
   if (scm_obj_null_p(module)) {
-    scm_capi_error("failed to get a syntax: invalid argument", 0);
+    scm_capi_error("failed to get a syntax: invalid argument", 1, module);
     return -1;
   }
   else if (!scm_capi_symbol_p(sym)) {
-    scm_capi_error("failed to get a syntax: invalid argument", 0);
-    return -1;
-  }
-  else if (syx == NULL) {
-    scm_capi_error("failed to get a syntax: invalid argument", 0);
+    scm_capi_error("failed to get a syntax: invalid argument", 1, sym);
     return -1;
   }
 
@@ -8569,7 +7831,8 @@ scm_capi_global_syx_ref(ScmObj module, ScmObj sym, scm_csetter_t *syx)
   else
     v = SCM_OBJ_NULL;
 
-  scm_csetter_setq(syx, v);
+  if (syx != NULL)
+    scm_csetter_setq(syx, v);
 
   return 0;
 }
@@ -8590,7 +7853,8 @@ scm_capi_cached_global_var_ref(int kind, scm_csetter_t *val)
   else
     v = SCM_OBJ_NULL;
 
-  scm_csetter_setq(val, v);
+  if (val != NULL)
+    scm_csetter_setq(val, v);
 
   return 0;
 }
@@ -8604,11 +7868,11 @@ int
 scm_capi_return_val(const ScmObj *val, int vc)
 {
   if (vc < 0) {
-    scm_capi_error("failed to setup return value: invalid argument", 0);
+    scm_capi_error("failed to setup return value: invalid VC value", 0);
     return -1;
   }
   else if (vc > 0 && val == NULL) {
-    scm_capi_error("failed to setup return value: invalid argument", 0);
+    scm_capi_error("failed to setup return value: invalid VAL", 0);
     return -1;
   }
 
@@ -8636,7 +7900,6 @@ scm_capi_capture_cont(void)
 bool
 scm_capi_continuation_p(ScmObj obj)
 {
-  if (scm_obj_null_p(obj)) return false;
   return scm_obj_type_p(obj, &SCM_CONTINUATION_TYPE_INFO);
 }
 
@@ -8645,7 +7908,7 @@ scm_capi_cont_capture_obj(ScmObj cont)
 {
   if (!scm_capi_continuation_p(cont)) {
     scm_capi_error("failed to get capture object from continuation: "
-                   "invalid argument", 0);
+                   "invalid argument", 1, cont);
     return SCM_OBJ_NULL;
   }
 
@@ -8770,7 +8033,6 @@ scm_capi_pformat_lst_aux(ScmObj port, ScmObj fmt, size_t len, ScmObj lst)
 
   scm_assert(scm_capi_output_port_p(port));
   scm_assert(scm_capi_string_p(fmt));
-  scm_assert(scm_obj_not_null_p(lst));
 
   p = scm_string_to_char_ary(fmt, 0, (ssize_t)len, chr);
   if (p == NULL) return -1;
@@ -8815,26 +8077,13 @@ scm_capi_pformat_lst(ScmObj port, ScmObj fmt, ScmObj lst)
 
   SCM_STACK_FRAME_PUSH(&port, &fmt, &lst);
 
-  if (scm_obj_null_p(port)) {
-    scm_capi_error("format: invalid arugment", 0);
-    return -1;
-  }
-  else if (!scm_capi_output_port_p(port)) {
+  if (!scm_capi_output_port_p(port)) {
     scm_capi_error("format: output port required, but got", 1, port);
     return -1;
   }
 
-  if (scm_obj_null_p(fmt)) {
-    scm_capi_error("format: invalid arugment", 0);
-    return -1;
-  }
-  else if (!scm_capi_string_p(fmt)) {
+  if (!scm_capi_string_p(fmt)) {
     scm_capi_error("format: string required, but got", 1, fmt);
-    return -1;
-  }
-
-  if (scm_obj_null_p(lst)) {
-    scm_capi_error("format: invalid argument", 0);
     return -1;
   }
 
@@ -8925,20 +8174,12 @@ scm_capi_pformat_cv(ScmObj port, ScmObj fmt, ScmObj *obj, size_t n)
 
   SCM_STACK_FRAME_PUSH(&port, &fmt);
 
-  if (scm_obj_null_p(port)) {
-    scm_capi_error("format: invalid arugment", 0);
-    return -1;
-  }
-  else if (!scm_capi_output_port_p(port)) {
+  if (!scm_capi_output_port_p(port)) {
     scm_capi_error("format: output port required, but got", 1, port);
     return -1;
   }
 
-  if (scm_obj_null_p(fmt)) {
-    scm_capi_error("format: invalid arugment", 0);
-    return -1;
-  }
-  else if (!scm_capi_string_p(fmt)) {
+  if (!scm_capi_string_p(fmt)) {
     scm_capi_error("format: string required, but got", 1, fmt);
     return -1;
   }
@@ -9015,8 +8256,8 @@ scm_api_pformat(ScmObj port, ScmObj fmt, ...)
   va_list arg;
   size_t n;
 
-  if (scm_obj_null_p(port)) {
-    scm_capi_error("format: invalid argument", 0);
+  if (!scm_capi_output_port_p(port)) {
+    scm_capi_error("format: output port required, but got", 1, port);
     return SCM_OBJ_NULL;
   }
 
@@ -9065,9 +8306,9 @@ scm_capi_pformat_cstr(ScmObj port, const char *fmt, ...)
   va_list arg;
   size_t n;
 
-  if (scm_obj_null_p(port)) {
-    scm_capi_error("format: invalid argument", 0);
-    return SCM_OBJ_NULL;
+  if (!scm_capi_output_port_p(port)) {
+    scm_capi_error("format: output port required, but got", 1, port);
+    return -1;
   }
 
   va_start(arg, fmt);
@@ -9391,7 +8632,7 @@ scm_capi_load_iseq(ScmObj iseq)
                        &o);
 
   if (!scm_capi_iseq_p(iseq)) {
-    scm_capi_error("load: invalid argument", 0);
+    scm_capi_error("load: invalid argument", 1, iseq);
     return -1;
   }
 
