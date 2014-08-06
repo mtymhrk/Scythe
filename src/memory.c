@@ -126,6 +126,12 @@ scm_mem_alloc_size_in_root(ScmTypeInfo *type, size_t add)
 /** ScmMemHeapCell **********************************************************/
 
 inline size_t
+scm_mem_heap_cell_size(ScmMemHeapCell *cell)
+{
+  return cell->size;
+}
+
+inline size_t
 scm_mem_heap_cell_body_size(ScmMemHeapCell *cell)
 {
   return cell->size - sizeof(ScmMemHeapCell);
@@ -161,6 +167,12 @@ scm_mem_heap_delete_block(ScmMemHeapBlock *block)
 {
   scm_capi_free(block);
   return NULL;
+}
+
+inline size_t
+scm_mem_heap_block_size(ScmMemHeapBlock *block)
+{
+  return block->size;
 }
 
 inline size_t
@@ -308,6 +320,7 @@ scm_mem_heap_add_block(ScmMemHeap *heap, ScmMemHeapBlock *block)
     heap->current = block;
   else
     heap->nr_free_block++;
+  heap->total_size += scm_mem_heap_block_size(block);
 }
 
 static void
@@ -331,6 +344,7 @@ scm_mem_heap_del_block(ScmMemHeap *heap)
     }
     heap->nr_block--;
 
+    heap->total_size -= scm_mem_heap_block_size(b);
     scm_mem_heap_delete_block(b);
   }
 }
@@ -367,6 +381,7 @@ scm_mem_heap_new_heap(int nr_blk, size_t sz)
   heap->weak_list = NULL;
   heap->nr_block = 0;
   heap->nr_free_block = 0;
+  heap->total_size = 0;
 
   for (i = 0; i < nr_blk; i++) {
     ScmMemHeapBlock *block;
@@ -381,6 +396,12 @@ scm_mem_heap_new_heap(int nr_blk, size_t sz)
   heap->current = heap->head;
 
   return heap;
+}
+
+static size_t
+scm_mem_heap_total_size(ScmMemHeap *heap)
+{
+  return heap->total_size;
 }
 
 static void
@@ -804,6 +825,7 @@ scm_mem_alloc_heap_mem_obj(ScmMem *mem, ScmTypeInfo *type, size_t size,
   if (cell == NULL)
     return SCM_OBJ_NULL;
 
+  mem->alloc_cnt += scm_mem_heap_cell_size(cell);
   obj = scm_mem_cell_to_obj(cell);
 
   scm_mem_register_obj_on_fin_list(mem, type, obj);
@@ -1124,6 +1146,17 @@ scm_mem_free_all_obj_in_root_set(ScmMem *mem, ScmMemRootBlock **head)
   }
 }
 
+static bool
+scm_mem_need_to_exec_gc_p(ScmMem *mem)
+{
+  if (!scm_mem_gc_enabled_p(mem))
+    return false;
+  else if (mem->alloc_cnt < scm_mem_heap_total_size(mem->to_heap) / 2)
+    return false;
+  else
+    return true;
+}
+
 static ScmMem *
 scm_mem_initialize(ScmMem *mem)
 {
@@ -1135,6 +1168,7 @@ scm_mem_initialize(ScmMem *mem)
   mem->roots = NULL;
   mem->extra_rfrn = NULL;
   mem->gc_enabled = true;
+  mem->alloc_cnt = 0;
 
   mem->to_heap = scm_mem_heap_new_heap(1, SCM_MEM_HEAP_INIT_BLOCK_SIZE);
   if (mem->to_heap == NULL) goto err;
@@ -1222,7 +1256,7 @@ scm_mem_alloc_heap(ScmMem *mem, ScmTypeInfo *type, size_t add_size)
 
   if (scm_obj_not_null_p(obj)) goto success;
 
-  if (mem->gc_enabled) {
+  if (scm_mem_need_to_exec_gc_p(mem)) {
     rslt = scm_mem_gc_start(mem);
     if (rslt < 0) return SCM_OBJ_NULL;
   }
@@ -1322,13 +1356,10 @@ scm_mem_gc_start(ScmMem *mem)
   scm_mem_clean_heap(mem, FROM_HEAP);
 
   nr_free = scm_mem_heap_nr_free_block(mem->to_heap);
-  if (nr_free == 0) {
-    rslt = scm_mem_expand_heap(mem, 1);
-    if (rslt < 0) return -1;
-  }
-  else if (nr_free > 1) {
+  if (nr_free > 1)
     scm_mem_release_redundancy_heap_blocks(mem, 1);
-  }
+
+  mem->alloc_cnt = 0;
 
   return 0;
 }

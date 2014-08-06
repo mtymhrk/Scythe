@@ -91,6 +91,7 @@ struct ScmMemHeapRec {
   void *weak_list;
   int nr_block;
   int nr_free_block;
+  size_t total_size;
 };
 
 typedef struct ScmMemRootBlockHdrRec {
@@ -114,6 +115,7 @@ struct ScmMemRec {
   ScmRef *extra_rfrn;
   size_t nr_extra;
   bool gc_enabled;
+  size_t alloc_cnt;
 };
 
 #define SCM_MEM_HEAP_BLOCK_FOR_EACH_CELL(block, cell)                 \
