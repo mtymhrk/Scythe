@@ -979,6 +979,7 @@ scm_vm_make_cframe(ScmObj vm, ScmEnvFrame *efp, ScmEnvFrame *pefp, ScmObj cp)
                             scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_PCF)));
 
   SCM_VM(vm)->reg.cfp = cfp;
+  SCM_VM(vm)->reg.pefp = NULL;
   SCM_VM(vm)->reg.sp = next_sp;
 
   scm_vm_ctrl_flg_set(vm, SCM_VM_CTRL_FLG_PCF);
@@ -1593,17 +1594,25 @@ scm_vm_do_op_call(ScmObj vm, SCM_OPCODE_T op, int argc, bool tail_p)
   if (tail_p) {
     scm_byte_t *ef_dst;
 
+    /* cfp レジスタが指している cframe は pertial ではない
+     * (SCM_VM_CTRL_FLG_PCF フラグが立っていない) ことが前提。しかし、例外が発
+     * 生しそのために exception handler caller プロシージャをトランポリンコード
+     * から呼び出す (この時の呼出は tail call になる) 場合には、efp レジスタが
+     * partial cframe を指している可能性がある (例えば、do_op_call 関数内部で、
+     * scm_vm_commit_cframe() を実行するまでの間にエラーが発生した場合)。ただ
+     * し、exception handler caller は exception handler が無くなるまで末尾再帰
+     * を続け、RETURN 命令を実行しないため、問題にはならないはずである
+     * (exception hanlder が無くなった場合、RETURN 命令は実行せず、VM の実行が停
+     * 止する)。
+     */
     if (scm_vmsr_include_p(SCM_VM(vm)->stack,
                            (scm_byte_t *)SCM_VM(vm)->reg.cfp))
       ef_dst = (scm_byte_t *)SCM_VM(vm)->reg.cfp + sizeof(ScmCntFrame);
     else
       ef_dst = scm_vmsr_base(SCM_VM(vm)->stack);
 
-    if (scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_PEF)) {
-      scm_capi_error("invalid operation of VM stack: "
-                     "partial environment frame link will be broken", 0);
-      return -1;
-    }
+    SCM_VM(vm)->reg.pefp = NULL;
+    scm_vm_ctrl_flg_clr(vm, SCM_VM_CTRL_FLG_PEF);
 
     if (nr_bind > 0) {
       if (SCM_VM(vm)->reg.efp > (ScmEnvFrame *)ef_dst) {
