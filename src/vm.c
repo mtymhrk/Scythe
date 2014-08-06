@@ -2989,10 +2989,10 @@ scm_vm_apply(ScmObj vm, ScmObj proc, ScmObj args)
 ScmObj
 scm_vm_run_cloned(ScmObj vm, ScmObj iseq)
 {
-  ScmObj cloned = SCM_OBJ_INIT, raised = SCM_OBJ_INIT;
+  ScmObj cloned = SCM_OBJ_INIT, raised = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
 
   SCM_STACK_FRAME_PUSH(&vm, &iseq,
-                       &cloned, &raised);
+                       &cloned, &raised, &val);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
   scm_assert(scm_capi_iseq_p(iseq));
@@ -3011,7 +3011,10 @@ scm_vm_run_cloned(ScmObj vm, ScmObj iseq)
     return SCM_OBJ_NULL;
   }
 
-  return scm_vm_val_reg_to_vector(vm);
+  val = scm_vm_val_reg_to_vector(cloned);
+  scm_vm_end(cloned);
+
+  return val;
 }
 
 int
