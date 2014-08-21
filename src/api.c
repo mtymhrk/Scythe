@@ -8599,6 +8599,63 @@ scm_capi_exec_cstr(const char *expr, ScmEvaluator *ev)
   return 0;
 }
 
+int
+scm_capi_compile_file(const char *path, ScmEvaluator *ev)
+{
+  ScmObj port = SCM_OBJ_INIT, str = SCM_OBJ_INIT, mod = SCM_OBJ_INIT;
+  ScmObj proc = SCM_OBJ_INIT, args = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
+  int rslt;
+
+  if (ev == NULL) return -1;
+
+  rslt = scm_capi_evaluator_make_vm(ev);
+  if (rslt < 0) return -1;
+
+  rslt = scm_capi_evaluator_load_core(ev);
+  if (rslt < 0) goto end;
+
+  {
+    SCM_STACK_FRAME_PUSH(&port, &str, &mod,
+                         &proc, &args, &val);
+
+    port = scm_capi_open_input_string_cstr(path, NULL);
+    if (scm_obj_null_p(port)) goto end;
+
+    /* TODO: read_line ではなく port から全て読みよっとものを 1 つの文字列に
+     *       する */
+    str = scm_api_read_line(port);
+    if (scm_obj_null_p(str)) goto end;
+
+    port = scm_capi_open_input_string_cstr("(main)", SCM_ENC_NAME_SRC);
+    if (scm_obj_null_p(port)) goto end;
+
+    mod = scm_api_read(port);
+    if (scm_obj_null_p(str)) goto end;
+
+    proc = scm_get_proc("compile-file",
+                        (const char *[]){"scythe", "internal", "compile"}, 3);
+    if(scm_obj_null_p(proc)) goto end;
+
+    args = scm_capi_list(2, str, mod);
+    if (scm_obj_null_p(args)) goto end;
+
+    val = scm_vm_apply(scm_vm_current_vm(), proc, args);
+    if (scm_obj_null_p(val)) goto end;
+
+    val = scm_capi_vector_ref(val, 0);
+    if (scm_obj_null_p(val)) goto end;
+
+    scm_api_write(val, SCM_OBJ_NULL);
+  }
+
+ end:
+  scm_vm_disposal_unhandled_exc(ev->vm);
+
+  scm_capi_evaluator_delete_vm(ev);
+
+  return 0;
+}
+
 
 /*******************************************************************/
 /*  XXX                                                            */

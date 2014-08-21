@@ -32,19 +32,22 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 ##===============================================================
 ## ターゲット設定
 
-add_executable(scythe main.c ${scythe_lib_src})
+add_library(scythe-lib OBJECT ${scythe_lib_src})
+
+add_executable(scythe
+               main.c $<TARGET_OBJECTS:scythe-lib>)
+add_executable(scythe-compile-file
+               main_compile_file.c $<TARGET_OBJECTS:scythe-lib>)
 
 
 ##===============================================================
 ## src/tools 配下のツールを実行するための設定
 
-if(NOT scythe_sys_bin_path)
-  SET(scythe_sys_bin_path ${CMAKE_CURRENT_BINARY_DIR}/scythe)
-endif(NOT scythe_sys_bin_path)
+set(scythe_compiler "${CMAKE_CURRENT_BINARY_DIR}/scythe-compile-file")
 
 add_custom_target(
   src_tools
-  COMMAND make -C ${CMAKE_CURRENT_SOURCE_DIR}/tools RUBY=${ruby_bin_path} COMPILER=${scythe_sys_bin_path} all
+  COMMAND make -C ${CMAKE_CURRENT_SOURCE_DIR}/tools RUBY=${ruby_bin_path} COMPILER=${scythe_compiler} all
 )
 
 

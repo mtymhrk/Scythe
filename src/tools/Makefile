@@ -1,6 +1,6 @@
 
 RUBY = ruby
-COMPILER = ../../build/src/scythe
+COMPILER = ../../build/src/scythe-compile-file
 CONVERTER = scmcompile.rb
 
 all: ../repl_code.h ../compiler_code.h

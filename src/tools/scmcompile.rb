@@ -1,7 +1,7 @@
 require 'erb'
 
 def exec_compile(cmd, file)
-  `#{cmd} -e "(write (with-module (scythe internal compile) (compile-file \\\"#{file}\\\" '(main))))"`.chomp
+  `#{cmd} #{file}`.chomp
 end
 
 if ARGV.length < 4

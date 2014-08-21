@@ -22,13 +22,3 @@ find_program(ruby_bin_path ruby
 if(NOT ruby_bin_path)
   message(WARNING "Ruby script language is not found.")
 endif(NOT ruby_bin_path)
-
-####################
-## Scythe
-
-find_program(scythe_sys_bin_path scythe
-             PATHS /usr/local/bin)
-
-if(NOT scythe_sys_bin_path)
-  message(WARNING "System installed Scythe is not found.")
-endif(NOT scythe_sys_bin_path)
