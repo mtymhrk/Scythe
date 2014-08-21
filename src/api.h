@@ -742,7 +742,7 @@ int scm_capi_evaluator_load_core(ScmEvaluator *ev);
 int scm_capi_evaluator_delete_vm(ScmEvaluator *ev);
 int scm_capi_run_repl(ScmEvaluator *ev);
 int scm_capi_exec_file(const char *path, ScmEvaluator *ev);
-int scm_capi_exec_cstr(const char *expr, const char *enc, ScmEvaluator *ev);
+int scm_capi_exec_cstr(const char *expr, ScmEvaluator *ev);
 
 
 /*******************************************************************/

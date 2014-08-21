@@ -99,7 +99,7 @@ execute_opt_expr(void)
   ev = scm_capi_evaluator();
   if (ev == NULL) return -1;
 
-  rslt = scm_capi_exec_cstr(opt_expr, NULL, ev);
+  rslt = scm_capi_exec_cstr(opt_expr, ev);
 
   scm_capi_evaluator_end(ev);
 

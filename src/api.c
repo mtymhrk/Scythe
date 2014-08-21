@@ -8534,14 +8534,14 @@ scm_capi_exec_file(const char *path, ScmEvaluator *ev)
     /* TODO: read_line ではなく port から全て読みよっとものを 1 つの文字列に
      *       する */
     str = scm_api_read_line(port);
-    if (scm_obj_null_p(port)) goto end;
+    if (scm_obj_null_p(str)) goto end;
 
     proc = scm_get_proc("eval-file",
                         (const char *[]){"scythe", "internal", "command"}, 3);
     if(scm_obj_null_p(proc)) goto end;
 
     args = scm_api_cons(str, SCM_NIL_OBJ);
-    if (scm_obj_null_p(proc)) goto end;
+    if (scm_obj_null_p(args)) goto end;
 
     scm_vm_apply(scm_vm_current_vm(), proc, args);
   }
@@ -8555,7 +8555,7 @@ scm_capi_exec_file(const char *path, ScmEvaluator *ev)
 }
 
 int
-scm_capi_exec_cstr(const char *expr, const char *enc, ScmEvaluator *ev)
+scm_capi_exec_cstr(const char *expr, ScmEvaluator *ev)
 {
   ScmObj port = SCM_OBJ_INIT, str = SCM_OBJ_INIT;
   ScmObj proc = SCM_OBJ_INIT, args = SCM_OBJ_INIT;
@@ -8579,14 +8579,14 @@ scm_capi_exec_cstr(const char *expr, const char *enc, ScmEvaluator *ev)
     /* TODO: read_line ではなく port から全て読みよっとものを 1 つの文字列に
      *       する */
     str = scm_api_read_line(port);
-    if (scm_obj_null_p(port)) goto end;
+    if (scm_obj_null_p(str)) goto end;
 
     proc = scm_get_proc("eval-string",
                         (const char *[]){"scythe", "internal", "command"}, 3);
     if(scm_obj_null_p(proc)) goto end;
 
     args = scm_api_cons(str, SCM_NIL_OBJ);
-    if (scm_obj_null_p(proc)) goto end;
+    if (scm_obj_null_p(args)) goto end;
 
     scm_vm_apply(scm_vm_current_vm(), proc, args);
   }
