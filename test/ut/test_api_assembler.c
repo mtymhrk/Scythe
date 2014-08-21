@@ -356,11 +356,6 @@ TEST(api_assembler, asm)
   check_following(ip);
 }
 
-TEST(api_assembler, raise)
-{
-  test_assemble_noopd("((raise)(nop))", SCM_OPCODE_RAISE);
-}
-
 TEST(api_assembler, box)
 {
   test_assemble_si_si("((box -8 14)(nop))", SCM_OPCODE_BOX, -8, 14);

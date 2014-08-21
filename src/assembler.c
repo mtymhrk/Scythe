@@ -33,7 +33,6 @@ static struct {
   { SCM_OPCODE_JMP,         "jmp" },
   { SCM_OPCODE_JMPT,        "jmpt" },
   { SCM_OPCODE_JMPF,        "jmpf" },
-  { SCM_OPCODE_RAISE,       "raise" },
   { SCM_OPCODE_BOX,         "box" },
   { SCM_OPCODE_CLOSE,       "close" },
   { SCM_OPCODE_DEMINE,      "demine" },

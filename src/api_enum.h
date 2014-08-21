@@ -69,16 +69,15 @@ typedef enum {
   SCM_OPCODE_JMP,                 /* 22: jump */
   SCM_OPCODE_JMPT,                /* 23: jump if true */
   SCM_OPCODE_JMPF,                /* 24: jump if false */
-  SCM_OPCODE_RAISE,               /* 25: exception handler */
-  SCM_OPCODE_BOX,                 /* 26: boxing */
-  SCM_OPCODE_CLOSE,               /* 27: make closure */
-  SCM_OPCODE_DEMINE,              /* 28: demine variable */
-  SCM_OPCODE_EMINE,               /* 29: make enviroment frame */
+  SCM_OPCODE_BOX,                 /* 25: boxing */
+  SCM_OPCODE_CLOSE,               /* 26: make closure */
+  SCM_OPCODE_DEMINE,              /* 27: demine variable */
+  SCM_OPCODE_EMINE,               /* 28: make enviroment frame */
                                   /*     and make it mine field */
-  SCM_OPCODE_EDEMINE,             /* 30: demine enviromnet frame with */
+  SCM_OPCODE_EDEMINE,             /* 39: demine enviromnet frame with */
                                   /*     incomplete enviromnet frame as */
                                   /*     initial value */
-  SCM_OPCODE_ARITY,               /* 31: check number of return values */
+  SCM_OPCODE_ARITY,               /* 30: check number of return values */
 } SCM_OPCODE_T;
 
 typedef enum {
@@ -126,7 +125,6 @@ typedef enum {
 #define SCM_INST_SZ_JMP         SCM_OPFMT_INST_SZ_IOF
 #define SCM_INST_SZ_JMPT        SCM_OPFMT_INST_SZ_IOF
 #define SCM_INST_SZ_JMPF        SCM_OPFMT_INST_SZ_IOF
-#define SCM_INST_SZ_RAISE       SCM_OPFMT_INST_SZ_NOOPD
 #define SCM_INST_SZ_BOX         SCM_OPFMT_INST_SZ_SI_SI
 #define SCM_INST_SZ_CLOSE       SCM_OPFMT_INST_SZ_SI_SI_OBJ
 #define SCM_INST_SZ_DEMINE      SCM_OPFMT_INST_SZ_SI_SI
