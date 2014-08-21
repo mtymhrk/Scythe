@@ -1019,7 +1019,8 @@
 
 (define (syntax-handler-select-module cmpl exp env arity tail-p toplevel-p
                                       rdepth cseq)
-  (compiler-select-module! cmpl (decons-select-module cmpl exp)))
+  (compiler-select-module! cmpl (decons-select-module cmpl exp))
+  (unshift-inst-undef cseq))
 
 (define compiler-syntax-definition
   (make-syntax 'define syntax-handler-definition))
