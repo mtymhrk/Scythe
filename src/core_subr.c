@@ -2144,16 +2144,11 @@ scm_subr_func_values(ScmObj subr, int argc, const ScmObj *argv)
   return scm_capi_return_val(argv, argc);
 }
 
-const char *scm_clsr_code_call_with_values =
-  "((eframe)"
-  " (cframe)"
-  " (sref 0 0)"
-  " (call 0)"
-  " (nop)"
-  " (mvpush)"
-  " (sref 1 0)"
-  " (tapply)"
-  ")";
+int
+scm_subr_func_call_with_values(ScmObj subr, int argc, const ScmObj *argv)
+{
+  return scm_capi_trampolining(argv[0], SCM_NIL_OBJ, argv[1], SCM_OBJ_NULL);
+}
 
 
 /*******************************************************************/

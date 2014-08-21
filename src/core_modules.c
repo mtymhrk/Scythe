@@ -280,6 +280,7 @@ scm_define_scheme_base_subr(ScmObj module)
 
     { "call/cc", SCM_SUBR_ARITY_CALLCC, SCM_SUBR_FLAG_CALLCC, scm_subr_func_callcc, true },
     { "values", SCM_SUBR_ARITY_VALUES, SCM_SUBR_FLAG_VALUES, scm_subr_func_values, true },
+    { "call-with-values", SCM_SUBR_ARITY_CALL_WITH_VALUES, SCM_SUBR_FLAG_CALL_WITH_VALUES, scm_subr_func_call_with_values, true },
     { "eval-asm", SCM_SUBR_ARITY_EVAL_ASM, SCM_SUBR_FLAG_EVAL_ASM, scm_subr_func_eval_asm, true },
     { "eval", SCM_SUBR_ARITY_EVAL, SCM_SUBR_FLAG_EVAL, scm_subr_func_eval, true },
     { "exit", SCM_SUBR_ARITY_EXIT, SCM_SUBR_FLAG_EXIT, scm_subr_func_exit, true },
@@ -293,43 +294,6 @@ scm_define_scheme_base_subr(ScmObj module)
 
   rslt = scm_define_subr(module, data, sizeof(data)/sizeof(data[0]));
   if (rslt < 0) return -1;
-
-  return 0;
-}
-
-static int
-scm_define_scheme_base_clsr(ScmObj module)
-{
-  const char *syms[] = { "call-with-values" };
-  int arities[] = { 2 };
-  const char *codes[] = { scm_clsr_code_call_with_values };
-  ScmObj sym  = SCM_OBJ_INIT, code = SCM_OBJ_INIT, clsr = SCM_OBJ_INIT;
-  ScmObj port = SCM_OBJ_INIT;
-  int rslt;
-
-  SCM_STACK_FRAME_PUSH(&module,
-                       &sym, &code, &clsr,
-                       &port);
-
-  for (size_t i = 0; i < sizeof(syms)/sizeof(syms[0]); i++) {
-    port = scm_capi_open_input_string_cstr(codes[i], SCM_ENC_NAME_SRC);
-    if (scm_obj_null_p(port)) return -1;
-
-    code = scm_api_read(port);
-    if (scm_obj_null_p(code)) return -1;
-
-    code = scm_api_assemble(code, SCM_OBJ_NULL);
-    if (scm_obj_null_p(code)) return -1;
-
-    sym = scm_capi_make_symbol_from_cstr(syms[i], SCM_ENC_SRC);
-    if (scm_obj_null_p(sym)) return -1;
-
-    clsr = scm_capi_make_closure(code, SCM_OBJ_NULL, arities[i]);
-    if (scm_obj_null_p(code)) return -1;
-
-    rslt = scm_capi_define_global_var(module, sym, clsr, true);
-    if (rslt < 0) return -1;
-  }
 
   return 0;
 }
@@ -397,9 +361,6 @@ scm_load_module_func_scheme_base(ScmObj mod)
    */
 
   rslt = scm_define_scheme_base_subr(mod);
-  if (rslt < 0) return -1;
-
-  rslt = scm_define_scheme_base_clsr(mod);
   if (rslt < 0) return -1;
 
   rslt = scm_define_scheme_base_current_port(mod);

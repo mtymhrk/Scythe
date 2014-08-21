@@ -549,12 +549,13 @@ int scm_subr_func_callcc(ScmObj subr, int argc, const ScmObj *argv);
 /*******************************************************************/
 
 #define SCM_SUBR_ARITY_VALUES -1
+#define SCM_SUBR_ARITY_CALL_WITH_VALUES 2
 
 #define SCM_SUBR_FLAG_VALUES SCM_PROC_ADJ_UNWISHED
+#define SCM_SUBR_FLAG_CALL_WITH_VALUES 0
 
 int scm_subr_func_values(ScmObj subr, int argc, const ScmObj *argv);
-
-extern const char *scm_clsr_code_call_with_values;
+int scm_subr_func_call_with_values(ScmObj subr, int argc, const ScmObj *argv);
 
 
 /*******************************************************************/
