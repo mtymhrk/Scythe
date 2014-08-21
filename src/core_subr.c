@@ -1857,7 +1857,7 @@ scm_subr_func_with_exception_handler_post(ScmObj subr,
   rslt = scm_capi_pop_exception_handler();
   if (rslt < 0) return -1;
 
-  return scm_capi_return_val(argv + 1, argc - 1);
+  return scm_capi_return_val(argv, argc);
 }
 
 int
@@ -1873,7 +1873,7 @@ scm_subr_func_with_exception_handler(ScmObj subr, int argc, const ScmObj *argv)
   if (rslt < 0) return -1;
 
   postproc = scm_capi_make_subrutine(scm_subr_func_with_exception_handler_post,
-                                     -2, SCM_PROC_ADJ_UNWISHED, module);
+                                     -1, SCM_PROC_ADJ_UNWISHED, module);
   if (scm_obj_null_p(postproc)) return -1;
 
   rslt = scm_capi_trampolining(argv[1], SCM_NIL_OBJ, postproc, SCM_OBJ_NULL);
@@ -2207,7 +2207,7 @@ scm_subr_func_eval__post_compile(ScmObj subr, int argc, const ScmObj *argv)
   SCM_STACK_FRAME_PUSH(&subr,
                        &iseq, &proc);
 
-  iseq = scm_api_assemble(argv[1], SCM_OBJ_NULL);
+  iseq = scm_api_assemble(argv[0], SCM_OBJ_NULL);
   if (scm_obj_null_p(iseq)) return -1;
 
   i = scm_capi_iseq_push_opfmt_noarg(iseq, SCM_OPCODE_RETURN);
@@ -2247,7 +2247,7 @@ scm_subr_func_eval(ScmObj subr, int argc, const ScmObj *argv)
   }
 
   postproc = scm_capi_make_subrutine(scm_subr_func_eval__post_compile,
-                                     2, 0, subr_mod);
+                                     1, 0, subr_mod);
   if (scm_obj_null_p(postproc)) return -1;
 
   if (scm_capi_nil_p(argv[1])) {

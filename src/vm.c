@@ -1416,7 +1416,6 @@ scm_vm_make_trampolining_code(ScmObj vm, ScmObj proc,
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
   scm_assert(scm_obj_null_p(postproc) || scm_capi_procedure_p(postproc));
-  scm_assert(scm_obj_null_p(postproc) || scm_obj_not_null_p(handover));
 
   /* 以下の処理を実行する iseq オブエクトを生成する
    * l args を引数として target クロージャを呼出す
@@ -1435,11 +1434,13 @@ scm_vm_make_trampolining_code(ScmObj vm, ScmObj proc,
     rslt = scm_capi_iseq_push_opfmt_noarg(iseq, SCM_OPCODE_EFRAME);
     if (rslt < 0) return SCM_OBJ_NULL;
 
-    rslt = scm_capi_iseq_push_opfmt_obj(iseq, SCM_OPCODE_IMMVAL, handover);
-    if (rslt < 0) return SCM_OBJ_NULL;
+    if (scm_obj_not_null_p(handover)) {
+      rslt = scm_capi_iseq_push_opfmt_obj(iseq, SCM_OPCODE_IMMVAL, handover);
+      if (rslt < 0) return SCM_OBJ_NULL;
 
-    rslt = scm_capi_iseq_push_opfmt_noarg(iseq, SCM_OPCODE_PUSH);
-    if (rslt < 0) return SCM_OBJ_NULL;
+      rslt = scm_capi_iseq_push_opfmt_noarg(iseq, SCM_OPCODE_PUSH);
+      if (rslt < 0) return SCM_OBJ_NULL;
+    }
   }
 
   rslt = scm_vm_make_proc_call_code(iseq, proc, args, scm_obj_null_p(postproc));
@@ -3264,9 +3265,6 @@ scm_vm_setup_stat_trmp(ScmObj vm, ScmObj proc, ScmObj args,
   scm_assert(scm_capi_procedure_p(proc));
   scm_assert(scm_capi_nil_p(args) || scm_capi_pair_p(args));
   scm_assert(scm_obj_null_p(postproc) || scm_capi_procedure_p(postproc));
-
-  if (scm_obj_null_p(handover))
-    handover = SCM_NIL_OBJ;
 
   trmp_code = scm_vm_make_trampolining_code(vm, proc, args, postproc, handover);
   if (scm_obj_null_p(trmp_code)) return -1;
