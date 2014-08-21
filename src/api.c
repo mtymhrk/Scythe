@@ -6588,10 +6588,16 @@ scm_api_flush_output_port(ScmObj port)
 /*  Procedure                                                      */
 /*******************************************************************/
 
-bool
+extern inline bool
 scm_capi_procedure_p(ScmObj proc)
 {
   return scm_obj_type_flag_set_p(proc, SCM_TYPE_FLG_PROC);
+}
+
+ScmObj
+scm_api_procedure_P(ScmObj proc)
+{
+  return (scm_capi_procedure_p(proc) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ);
 }
 
 int

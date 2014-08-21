@@ -541,6 +541,7 @@ ScmObj scm_api_flush_output_port(ScmObj port);
 /*******************************************************************/
 
 bool scm_capi_procedure_p(ScmObj proc);
+ScmObj scm_api_procedure_P(ScmObj proc);
 int scm_capi_arity(ScmObj proc, int *arity);
 int scm_capi_procedure_flg_set_p(ScmObj proc, SCM_PROC_FLG_T flg, bool *rslt);
 

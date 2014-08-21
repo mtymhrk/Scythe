@@ -1873,6 +1873,25 @@ scm_subr_func_vector_fill_i(ScmObj subr, int argc, const ScmObj *argv)
 
 
 /*******************************************************************/
+/*  Control features                                               */
+/*******************************************************************/
+
+int
+scm_subr_func_procedure_P(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
+
+  val = scm_api_procedure_P(argv[0]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
+}
+
+
+/*******************************************************************/
 /*  Exceptions                                                     */
 /*******************************************************************/
 

@@ -251,6 +251,11 @@ scm_define_scheme_base_subr(ScmObj module)
     { "vector-fill!", SCM_SUBR_ARITY_VECTOR_FILL_I, SCM_SUBR_FLAG_VECTOR_FILL_I, scm_subr_func_vector_fill_i, true },
 
     /*******************************************************************/
+    /*  Control features                                               */
+    /*******************************************************************/
+    { "procedure?", SCM_SUBR_ARITY_PROCEDURE_P, SCM_SUBR_FLAG_PROCEDURE_P, scm_subr_func_procedure_P, true },
+
+    /*******************************************************************/
     /*  Exceptions                                                     */
     /*******************************************************************/
     { "with-exception-handler", SCM_SUBR_ARITY_WITH_EXCEPTION_HANDLER, SCM_SUBR_FLAG_WITH_EXCEPTION_HANDLER, scm_subr_func_with_exception_handler, true },

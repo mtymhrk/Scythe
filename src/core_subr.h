@@ -459,6 +459,17 @@ int scm_subr_func_vector_fill_i(ScmObj subr, int argc, const ScmObj *argv);
 
 
 /*******************************************************************/
+/*  Control features                                               */
+/*******************************************************************/
+
+#define SCM_SUBR_ARITY_PROCEDURE_P 1
+
+#define SCM_SUBR_FLAG_PROCEDURE_P 0
+
+int scm_subr_func_procedure_P(ScmObj subr, int argc, const ScmObj *argv);
+
+
+/*******************************************************************/
 /*  Exceptions                                                     */
 /*******************************************************************/
 
