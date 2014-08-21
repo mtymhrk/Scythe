@@ -857,15 +857,29 @@ scm_subr_func_list_set_i(ScmObj subr, int argc, const ScmObj *argv)
 int
 scm_subr_func_memq(ScmObj subr, int argc, const ScmObj *argv)
 {
-  scm_capi_error("memq: not implemented", 0);
-  return -1;
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
+
+  val = scm_capi_memq(argv[0], argv[1]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
 }
 
 int
 scm_subr_func_memv(ScmObj subr, int argc, const ScmObj *argv)
 {
-  scm_capi_error("memv: not implemented", 0);
-  return -1;
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
+
+  val = scm_capi_memv(argv[0], argv[1]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
 }
 
 int
@@ -878,15 +892,29 @@ scm_subr_func_member(ScmObj subr, int argc, const ScmObj *argv)
 int
 scm_subr_func_assq(ScmObj subr, int argc, const ScmObj *argv)
 {
-  scm_capi_error("assq: not implemented", 0);
-  return -1;
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
+
+  val = scm_capi_assq(argv[0], argv[1]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
 }
 
 int
 scm_subr_func_assv(ScmObj subr, int argc, const ScmObj *argv)
 {
-  scm_capi_error("assv: not implemented", 0);
-  return -1;
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &val);
+
+  val = scm_capi_assv(argv[0], argv[1]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_capi_return_val(&val, 1);
 }
 
 int
