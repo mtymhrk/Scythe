@@ -5210,6 +5210,23 @@ scm_api_vector_fill_i(ScmObj vec, ScmObj fill, ScmObj start, ScmObj end)
   return SCM_UNDEF_OBJ;
 }
 
+int
+scm_capi_vector_push(ScmObj vec, ScmObj obj)
+{
+  if (!scm_capi_vector_p(vec)) {
+    scm_capi_error("failed to add object into vector: "
+                   "vectore required, but got", 1, vec);
+    return -1;
+  }
+  else if (scm_obj_null_p(obj)) {
+    scm_capi_error("failed to add object into vector: "
+                   "invalid argument", 1, obj);
+    return -1;
+  }
+
+  return scm_vector_push(vec, obj);
+}
+
 
 /*******************************************************************/
 /*  Exceptions                                                     */

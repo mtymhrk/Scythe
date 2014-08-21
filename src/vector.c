@@ -244,6 +244,30 @@ scm_vector_fill(ScmObj vector, ScmObj fill)
     SCM_SLOT_SETQ(ScmVector, vector, array[i], fill);
 }
 
+int
+scm_vector_push(ScmObj vector, ScmObj obj)
+{
+  ScmObj *p;
+
+  scm_assert_obj_type(vector, &SCM_VECTOR_TYPE_INFO);
+  scm_assert(scm_obj_not_null_p(obj));
+
+  if (SCM_VECTOR_LENGTH(vector) >= SSIZE_MAX) {
+    scm_capi_error("failed to expand vector: overflow", 0);
+    return -1;
+  }
+
+  p = scm_capi_realloc(SCM_VECTOR_ARRAY(vector),
+                       sizeof(ScmObj) * (SCM_VECTOR_LENGTH(vector) + 1));
+  if (p == NULL) return -1;
+
+  SCM_VECTOR_ARRAY(vector) = p;
+  SCM_VECTOR_ARRAY(vector)[SCM_VECTOR_LENGTH(vector)] = obj;
+  SCM_VECTOR_LENGTH(vector)++;
+
+  return 0;
+}
+
 const ScmObj *
 scm_vector_content(ScmObj vector)
 {

@@ -442,6 +442,7 @@ ScmObj scm_capi_vector_append_cv(ScmObj *ary, size_t n);
 ScmObj scm_capi_vector_append(size_t n, ...);
 int scm_capi_vector_fill_i(ScmObj vec, ScmObj fill, ssize_t start, ssize_t end);
 ScmObj scm_api_vector_fill_i(ScmObj vec, ScmObj fill, ScmObj start, ScmObj end);
+int scm_capi_vector_push(ScmObj vec, ScmObj obj);
 
 
 /*******************************************************************/
