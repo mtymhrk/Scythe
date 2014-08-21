@@ -2020,6 +2020,7 @@ scm_vm_op_erebind(ScmObj vm, SCM_OPCODE_T op)
 
   efp = scm_vm_ef_outer(SCM_VM(vm)->reg.efp);
   scm_vm_ef_replace_outer(SCM_VM(vm)->reg.efp, scm_vm_ef_outer(efp));
+  scm_vm_ef_copy_flag(SCM_VM(vm)->reg.efp, efp);
 
   if (scm_vmsr_include_p(SCM_VM(vm)->stack, (scm_byte_t *)efp)) {
     memmove(efp, SCM_VM(vm)->reg.efp,

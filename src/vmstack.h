@@ -164,6 +164,15 @@ scm_vm_ef_replace_outer(ScmEnvFrame *efp, ScmEnvFrame *out)
 }
 
 inline void
+scm_vm_ef_copy_flag(ScmEnvFrame *dst, ScmEnvFrame *src)
+{
+  scm_assert(dst != NULL);
+  scm_assert(src != NULL);
+
+  dst->out |= (src->out & 0x03);
+}
+
+inline void
 scm_vm_ef_boxed(ScmEnvFrame *efp)
 {
   efp->out |= 0x02;
