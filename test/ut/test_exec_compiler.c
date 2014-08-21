@@ -95,7 +95,7 @@ TEST(exec_compiler, quote)
 TEST(exec_compiler, application_1)
 {
   test_compile("(func)",
-               "((cframe)(gref func (main))(call 0)(arity 1))");
+               "((cframe)(gref func (main))(call 0)(mrve))");
 }
 
 TEST(exec_compiler, application_2)
@@ -106,7 +106,7 @@ TEST(exec_compiler, application_2)
                " (immval b)(push)"
                " (gref func (main))"
                " (call 2)"
-               " (arity 1))");
+               " (mrve))");
 }
 
 TEST(exec_compiler, application_3)
@@ -117,7 +117,7 @@ TEST(exec_compiler, application_3)
                " (asm-close 0 1"
                "   ((sref 0 0)(return)))"
                " (call 1)"
-               " (arity 1))");
+               " (mrve))");
 }
 
 TEST(exec_compiler, application_4)
@@ -134,7 +134,7 @@ TEST(exec_compiler, application_4)
                "       (tcall 2)))"
                "    (return)))"
                " (call 1)"
-               " (arity 1))");
+               " (mrve))");
 }
 
 TEST(exec_compiler, application_5)
@@ -184,7 +184,7 @@ TEST(exec_compiler, lambda_6)
                "    (immval b)(push)"
                "    (gref cons (main))"
                "    (call 2)"
-               "    (arity -1)"
+               "    (nop)"
                "    (eframe)"
                "    (immval c)(push)"
                "    (immval d)(push)"
@@ -261,13 +261,13 @@ TEST(exec_compiler, let_6)
                " (immval b)(push)"
                " (gref cons (main))"
                " (call 2)"
-               " (arity -1)"
+               " (nop)"
                " (frame)"
                " (immval c)(push)"
                " (immval d)(push)"
                " (gref cons (main))"
                " (call 2)"
-               " (arity 1)"
+               " (mrve)"
                " (epop))");
 }
 
@@ -291,7 +291,7 @@ TEST(exec_compiler, named_let_1)
                " (sref 1 1)(push)"
                " (sref 0 0)"
                " (call 2)"
-               " (arity 1)"
+               " (mrve)"
                " (epop)"
                " (epop))");
 }
@@ -305,7 +305,7 @@ TEST(exec_compiler, named_let_2)
                " (cframe)"
                " (sref 0 0)"
                " (call 0)"
-               " (arity 1)"
+               " (mrve)"
                " (epop))");
 }
 
@@ -429,13 +429,13 @@ TEST(exec_compiler, let_a_7)
                " (sref 0 0)(push)"
                " (gref cons (main))"
                " (call 2)"
-               " (arity -1)"
+               " (nop)"
                " (frame)"
                " (sref 0 0)(push)"
                " (sref 0 1)(push)"
                " (gref cons (main))"
                " (call 2)"
-               " (arity 1)"
+               " (mrve)"
                " (epop)"
                " (epop))");
 }
@@ -510,13 +510,13 @@ TEST(exec_compiler, letrec_6)
                " (sref 1 0)(push)"
                " (gref cons (main))"
                " (call 2)"
-               " (arity -1)"
+               " (nop)"
                " (frame)"
                " (sref 1 0)(push)"
                " (sref 0 0)(push)"
                " (gref cons (main))"
                " (call 2)"
-               " (arity 1)"
+               " (mrve)"
                " (epop))");
 }
 
@@ -580,13 +580,13 @@ TEST(exec_compiler, letrec_a_6)
                " (sref 1 0)(push)"
                " (gref cons (main))"
                " (call 2)"
-               " (arity -1)"
+               " (nop)"
                " (frame)"
                " (sref 1 0)(push)"
                " (sref 0 0)(push)"
                " (gref cons (main))"
                " (call 2)"
-               " (arity 1)"
+               " (mrve)"
                " (epop))");
 }
 
@@ -648,13 +648,13 @@ TEST(exec_compiler, begin_1)
                " (immval b)(push)"
                " (gref cons (main))"
                " (call 2)"
-               " (arity -1)"
+               " (nop)"
                " (frame)"
                " (immval x)(push)"
                " (immval y)(push)"
                " (gref cons (main))"
                " (call 2)"
-               " (arity 1))");
+               " (mrve))");
 }
 
 TEST(exec_compiler, begin_2)
@@ -668,6 +668,18 @@ TEST(exec_compiler, begin_3)
 {
   test_compile("(begin)",
                "((undef))");
+}
+
+TEST(exec_compiler, begin_4)
+{
+  test_compile("(lambda ()"
+               "  (begin (cons 'a 'b)))",
+               "((asm-close 0 0"
+               "   ((eframe)"
+               "    (immval a)(push)"
+               "    (immval b)(push)"
+               "    (gref cons (main))"
+               "    (tcall 2))))");
 }
 
 TEST(exec_compiler, refer_bound_variable_1)
@@ -869,7 +881,7 @@ TEST(exec_compiler, cond_006)
                "    (push)"
                "    (gref write (main))"
                "    (call 1)"
-               "    (arity 1)"
+               "    (mrve)"
                " (label lbl_cond-j_0))");
 }
 
@@ -887,14 +899,14 @@ TEST(exec_compiler, cond_007)
                "    (push)"
                "    (gref write (main))"
                "    (call 1)"
-               "    (arity 1)"
+               "    (mrve)"
                "    (jmp lbl_cond-j_0)"
                " (label lbl_cond-c_1)"
                "    (frame)"
                "    (push)"
                "    (gref write (main))"
                "    (call 1)"
-               "    (arity 1)"
+               "    (mrve)"
                " (label lbl_cond-j_0))");
 }
 
@@ -1062,14 +1074,14 @@ TEST(exec_compiler, and_004)
                "   (push)"
                "   (gref null? (main))"
                "   (call 1)"
-               "   (arity 1)"
+               "   (mrve)"
                "   (jmpf lbl_and-j_0)"
                "   (frame)"
                "   (immval b)"
                "   (push)"
                "   (gref null? (main))"
                "   (call 1)"
-               "   (arity 1)"
+               "   (mrve)"
                " (label lbl_and-j_0))");
 }
 
@@ -1108,7 +1120,7 @@ TEST(exec_compiler, and_008)
                "       (push)"
                "       (gref null? (main))"
                "       (call 1)"
-               "       (arity 1)"
+               "       (mrve)"
                "       (jmpf lbl_and-j_0)"
                "       (eframe)"
                "       (immval b)"
@@ -1148,14 +1160,14 @@ TEST(exec_compiler, or_004)
                "   (push)"
                "   (gref null? (main))"
                "   (call 1)"
-               "   (arity 1)"
+               "   (mrve)"
                "   (jmpt lbl_or-j_0)"
                "   (frame)"
                "   (immval b)"
                "   (push)"
                "   (gref null? (main))"
                "   (call 1)"
-               "   (arity 1)"
+               "   (mrve)"
                " (label lbl_or-j_0))");
 }
 
@@ -1195,7 +1207,7 @@ TEST(exec_compiler, or_008)
                "       (push)"
                "       (gref null? (main))"
                "       (call 1)"
-               "       (arity 1)"
+               "       (mrve)"
                "       (jmpt lbl_or-j_0)"
                "       (eframe)"
                "       (immval b)"
@@ -1264,7 +1276,7 @@ TEST(exec_compiler, when_005)
                "    (push)"
                "    (gref null? (main))"
                "    (call 1)"
-               "    (arity 1)"
+               "    (mrve)"
                "    (jmpf lbl_when-a_1)"
                "    (frame)"
                "    (immval a)"
@@ -1273,7 +1285,7 @@ TEST(exec_compiler, when_005)
                "    (push)"
                "    (gref cons (main))"
                "    (call 2)"
-               "    (arity 1)"
+               "    (mrve)"
                "    (jmp lbl_when-j_0)"
                " (label lbl_when-a_1)"
                "    (undef)"
@@ -1290,7 +1302,7 @@ TEST(exec_compiler, when_006)
                "       (push)"
                "       (gref null? (main))"
                "       (call 1)"
-               "       (arity 1)"
+               "       (mrve)"
                "       (jmpf lbl_when-a_1)"
                "       (eframe)"
                "       (immval a)"
@@ -1315,13 +1327,13 @@ TEST(exec_compiler, when_007)
                "    (immval b)(push)"
                "    (gref cons (main))"
                "    (call 2)"
-               "    (arity -1)"
+               "    (nop)"
                "    (frame)"
                "    (immval c)(push)"
                "    (immval d)(push)"
                "    (gref cons (main))"
                "    (call 2)"
-               "    (arity 1)"
+               "    (mrve)"
                "    (jmp lbl_when-j_0)"
                " (label lbl_when-a_1)"
                "    (undef)"
@@ -1388,7 +1400,7 @@ TEST(exec_compiler, unless_005)
                "    (push)"
                "    (gref null? (main))"
                "    (call 1)"
-               "    (arity 1)"
+               "    (mrve)"
                "    (jmpt lbl_unless-a_1)"
                "    (frame)"
                "    (immval a)"
@@ -1397,7 +1409,7 @@ TEST(exec_compiler, unless_005)
                "    (push)"
                "    (gref cons (main))"
                "    (call 2)"
-               "    (arity 1)"
+               "    (mrve)"
                "    (jmp lbl_unless-j_0)"
                " (label lbl_unless-a_1)"
                "    (undef)"
@@ -1413,7 +1425,7 @@ TEST(exec_compiler, unless_006)
                "       (push)"
                "       (gref null? (main))"
                "       (call 1)"
-               "       (arity 1)"
+               "       (mrve)"
                "       (jmpt lbl_unless-a_1)"
                "       (eframe)"
                "       (immval a)"
@@ -1437,13 +1449,13 @@ TEST(exec_compiler, unless_007)
                "    (immval b)(push)"
                "    (gref cons (main))"
                "    (call 2)"
-               "    (arity -1)"
+               "    (nop)"
                "    (frame)"
                "    (immval c)(push)"
                "    (immval d)(push)"
                "    (gref cons (main))"
                "    (call 2)"
-               "    (arity 1)"
+               "    (mrve)"
                "    (jmp lbl_unless-j_0)"
                " (label lbl_unless-a_1)"
                "    (undef)"
@@ -1651,13 +1663,13 @@ TEST(exec_compiler, do_008)
                "    (immval f)(push)"
                "    (gref cons (main))"
                "    (call 2)"
-               "    (arity -1)"
+               "    (nop)"
                "    (frame)"
                "    (immval g)(push)"
                "    (immval h)(push)"
                "    (gref cons (main))"
                "    (call 2)"
-               "    (arity -1)"
+               "    (nop)"
                "    (eframe)"
                "    (immval sx)"
                "    (push)"
@@ -1671,12 +1683,12 @@ TEST(exec_compiler, do_008)
                "    (immval b)(push)"
                "    (gref cons (main))"
                "    (call 2)"
-               "    (arity -1)"
+               "    (nop)"
                "    (frame)"
                "    (immval c)(push)"
                "    (immval d)(push)"
                "    (gref cons (main))"
                "    (call 2)"
-               "    (arity 1)"
+               "    (mrve)"
                "    (epop))");
 }

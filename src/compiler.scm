@@ -1,9 +1,6 @@
 
 (select-module (scythe internal compile))
 
-;; TODO 以下の定数は C 側で定義する
-;; (define +number-of-padding-arity-check+ 3)
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (define (new-cseq)
   (cons '() '()))
@@ -50,7 +47,10 @@
   (unshift-inst (cons-inst 'nop) cseq))
 (define (unshift-inst-undef cseq)
   (unshift-inst (cons-inst 'undef) cseq))
-(define (unshift-inst-call narg cseq)
+(define (unshift-inst-call narg mrv cseq)
+  (if (= mrv 1)
+      (unshift-inst-mrve cseq)
+      (unshift-inst-nop cseq))
   (unshift-inst (cons-inst 'call narg) cseq))
 (define (unshift-inst-tcall narg cseq)
   (unshift-inst (cons-inst 'tcall narg) cseq))
@@ -96,19 +96,14 @@
   (unshift-inst (cons-inst 'emine narg) cseq))
 (define (unshift-inst-edemine narg layer cseq)
   (unshift-inst (cons-inst 'edemine narg layer) cseq))
-(define (unshift-inst-arity arity cseq)
-  (unshift-inst (cons-inst 'arity arity) cseq))
+(define (unshift-inst-mrvc arity cseq)
+  (unshift-inst (cons-inst 'mrvc arity) cseq))
+(define (unshift-inst-mrve cseq)
+  (unshift-inst (cons-inst 'mrve) cseq))
 (define (unshift-inst-label lbl cseq)
   (unshift-inst (cons-inst 'label lbl) cseq))
 (define (unshift-inst-asm-close nr-free arity code cseq)
   (unshift-inst (cons-inst 'asm-close nr-free arity code) cseq))
-(define (unshift-arity-check arity cseq)
-  (if (<= arity 1)
-      (unshift-inst-arity arity cseq)
-      (let rec ((i 0) (cseq cseq))
-        (if (>= i number-of-padding-arity-check)
-            cseq
-            (rec (+ i 1) (unshift-inst-nop cseq))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (define (new-env)
@@ -216,9 +211,7 @@
   (let ((nr-args (vector-length args)))
     (if tail-p
         (unshift-inst-tcall nr-args cseq)
-        (begin
-          (unshift-arity-check arity cseq)
-          (unshift-inst-call nr-args cseq)))
+        (unshift-inst-call nr-args arity cseq))
     (compile-exp cmpl proc env 1 #f toplevel-p rdepth cseq)
     (let loop ((idx (- nr-args 1)))
       (when (>= idx 0)
@@ -604,8 +597,7 @@
              (unshift-inst-jmp junc cseq))
            (if tail-p
                (unshift-inst-tcall 1 cseq)
-               (begin (unshift-arity-check arity cseq)
-                      (unshift-inst-call 1 cseq)))
+               (unshift-inst-call 1 arity cseq))
            (compile-exp cmpl (car exps) env 1 #f toplevel-p rdepth cseq)
            (unshift-inst-push cseq)
            (if tail-p

@@ -2149,7 +2149,7 @@ const char *scm_clsr_code_call_with_values =
   " (cframe)"
   " (sref 0 0)"
   " (call 0)"
-  " (arity -1)"
+  " (nop)"
   " (mvpush)"
   " (sref 1 0)"
   " (tapply)"

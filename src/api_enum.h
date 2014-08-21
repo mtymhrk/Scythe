@@ -77,7 +77,8 @@ typedef enum {
   SCM_OPCODE_EDEMINE,             /* 39: demine enviromnet frame with */
                                   /*     incomplete enviromnet frame as */
                                   /*     initial value */
-  SCM_OPCODE_ARITY,               /* 30: check number of return values */
+  SCM_OPCODE_MRVC,                /* 40: Multiple-Return-Value Check */
+  SCM_OPCODE_MRVE,                /* 41: Multiple-Return-Value Error */
 } SCM_OPCODE_T;
 
 typedef enum {
@@ -130,7 +131,8 @@ typedef enum {
 #define SCM_INST_SZ_DEMINE      SCM_OPFMT_INST_SZ_SI_SI
 #define SCM_INST_SZ_EMINE       SCM_OPFMT_INST_SZ_SI
 #define SCM_INST_SZ_EDEMINE     SCM_OPFMT_INST_SZ_SI_SI
-#define SCM_INST_SZ_ARITY       SCM_OPFMT_INST_SZ_SI
+#define SCM_INST_SZ_MRVC        SCM_OPFMT_INST_SZ_SI
+#define SCM_INST_SZ_MRVE        SCM_OPFMT_INST_SZ_NOOPD
 
 
 /*******************************************************************/

@@ -413,7 +413,17 @@ TEST(api_assembler, edemine)
   test_assemble_si_si("((edemine 18 19)(nop))", SCM_OPCODE_EDEMINE, 18, 19);
 }
 
-TEST(api_assembler, arity)
+TEST(api_assembler, mrvc)
 {
-  test_assemble_si("((arity 22)(nop))", SCM_OPCODE_ARITY, 22);
+  test_assemble_si("((mrvc 5)(nop))", SCM_OPCODE_MRVC, 5);
+}
+
+TEST(api_assembler, mrve)
+{
+  test_assemble_noopd("((mrve)(nop))", SCM_OPCODE_MRVE);
+}
+
+TEST(api_assembler, mrve_size)
+{
+  TEST_ASSERT_EQUAL_INT(SCM_INST_SZ_NOP, SCM_INST_SZ_MRVE);
 }

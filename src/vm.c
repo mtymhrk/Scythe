@@ -1397,7 +1397,7 @@ scm_vm_make_proc_call_code(ScmObj iseq, ScmObj proc, ScmObj args, bool tail)
     r = scm_capi_iseq_push_opfmt_si(iseq, SCM_OPCODE_CALL, arity);
     if (r < 0) return -1;
 
-    r = scm_capi_iseq_push_opfmt_si(iseq, SCM_OPCODE_ARITY, -1);
+    r = scm_capi_iseq_push_opfmt_noarg(iseq, SCM_OPCODE_NOP);
     if (r < 0) return -1;
   }
 
@@ -1428,7 +1428,7 @@ scm_vm_make_trampolining_code(ScmObj vm, ScmObj proc,
   iseq = scm_api_make_iseq();
   if (scm_obj_null_p(iseq)) return SCM_OBJ_NULL;
 
-  rslt = scm_capi_iseq_push_opfmt_si(iseq, SCM_OPCODE_ARITY, -1);
+  rslt = scm_capi_iseq_push_opfmt_noarg(iseq, SCM_OPCODE_NOP);
   if (rslt < 0) return SCM_OBJ_NULL;
 
   if (!scm_obj_null_p(postproc)) {
@@ -1479,6 +1479,87 @@ scm_vm_cmp_arity(int argc, int arity, bool unwished)
   if (argc < -arity - 1) return -1; /* too few arguments */
 
   return 0;
+}
+
+static int
+scm_vm_adjust_val_to_arity(ScmObj vm, int arity)
+{
+  ScmObj lst = SCM_OBJ_INIT, obj = SCM_OBJ_INIT;
+  int rslt, nr;
+
+  SCM_STACK_FRAME_PUSH(&vm,
+                       &lst, &obj);
+
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+  scm_assert(-INT_MAX <= arity && arity <= INT_MAX);
+
+  rslt = scm_vm_cmp_arity(SCM_VM(vm)->reg.vc, arity, false);
+  switch (rslt) {
+  case 1:
+    scm_capi_error("too many return values", 0);
+    return -1;
+    break;
+  case 0:
+    break;
+  case -1:
+    scm_capi_error("too few return values", 0);
+    return -1;
+    break;
+  case -2:                    /* fall through */
+  default:
+    scm_assert(false);        /* must not happen */
+    break;
+  }
+
+  if (arity >= 0)
+    return arity;
+
+  nr = -arity;
+  lst = SCM_NIL_OBJ;
+  for (int i = SCM_VM(vm)->reg.vc; i >= nr; i--) {
+    if (i >= SCM_VM_NR_VAL_REG && SCM_VM(vm)->reg.vc > SCM_VM_NR_VAL_REG) {
+      obj = scm_capi_vector_ref(SCM_VM(vm)->reg.val[SCM_VM_NR_VAL_REG - 1],
+                                (size_t)(i - SCM_VM_NR_VAL_REG));
+      if (scm_obj_null_p(obj)) return -1;
+    }
+    else {
+      obj = SCM_VM(vm)->reg.val[i - 1];
+    }
+
+    lst = scm_api_cons(obj, lst);
+    if (scm_obj_null_p(lst)) return -1;
+  }
+
+  if (nr > SCM_VM_NR_VAL_REG) {
+    if (SCM_VM(vm)->reg.vc == SCM_VM_NR_VAL_REG) {
+      obj = scm_capi_vector(2, SCM_VM(vm)->reg.val[SCM_VM_NR_VAL_REG - 1], lst);
+      if (scm_obj_null_p(obj)) return -1;
+
+      SCM_VM(vm)->reg.val[SCM_VM_NR_VAL_REG - 1] = obj;
+    }
+    else if (SCM_VM(vm)->reg.vc == nr - 1) {
+      rslt = scm_capi_vector_push(SCM_VM(vm)->reg.val[SCM_VM_NR_VAL_REG - 1],
+                                  lst);
+      if (rslt < 0) return -1;
+    }
+    else {
+      rslt = scm_capi_vector_set_i(SCM_VM(vm)->reg.val[SCM_VM_NR_VAL_REG - 1],
+                                   (size_t)(nr - SCM_VM_NR_VAL_REG),
+                                   lst);
+      if (rslt < 0) return -1;
+      /* インデックス (nr - SCM_VM_NR_VAL_REG) 以降の要素は不要になるが、vc レ
+       * ジスタで必要な値の数はわかるため、ベクタを作り直す必要もないので、そ
+       * のまま残す。
+       */
+    }
+  }
+  else {
+    SCM_VM(vm)->reg.val[nr - 1] = lst;
+  }
+
+  SCM_VM(vm)->reg.vc = nr;
+
+  return nr;
 }
 
 static int
@@ -1550,6 +1631,8 @@ scm_vm_adjust_arg_to_arity(ScmObj vm, int argc, ScmObj proc, int *adjusted)
   return nr_bind;
 }
 
+
+
 static int
 scm_vm_do_op_return(ScmObj vm, SCM_OPCODE_T op)
 {
@@ -1561,7 +1644,7 @@ scm_vm_do_op_return(ScmObj vm, SCM_OPCODE_T op)
   if (rslt < 0) return -1;
 
   if (SCM_VM(vm)->reg.vc == 1)
-    SCM_VM(vm)->reg.ip += SCM_INST_SZ_ARITY;
+    SCM_VM(vm)->reg.ip += SCM_INST_SZ_NOP;
 
   return 0;
 }
@@ -2574,9 +2657,9 @@ scm_vm_op_edemine(ScmObj vm, SCM_OPCODE_T op)
 }
 
 static int
-scm_vm_op_arity(ScmObj vm, SCM_OPCODE_T op)
+scm_vm_op_mrvc(ScmObj vm, SCM_OPCODE_T op)
 {
-  int arity, rslt, ret;
+  int arity, rslt;
   scm_byte_t *ip;
 
   SCM_STACK_FRAME_PUSH(&vm);
@@ -2588,27 +2671,17 @@ scm_vm_op_arity(ScmObj vm, SCM_OPCODE_T op)
 
   SCM_VM(vm)->reg.ip = ip;
 
-  rslt = scm_vm_cmp_arity(SCM_VM(vm)->reg.vc, arity, false);
-  switch (rslt) {
-  case 1:
-    scm_capi_error("too many return values", 0);
-    ret = -1;
-    break;
-  case 0:
-    ret = 0;
-    break;
-  case -1:
-    scm_capi_error("too few return values", 0);
-    ret = -1;
-    break;
-  case -2:                    /* fall through */
-  default:
-    scm_assert(false);        /* must not happen */
-    ret = -1;
-    break;
-  }
+  rslt = scm_vm_adjust_val_to_arity(vm, arity);
+  if (rslt < 0) return -1;
 
-  return ret;
+  return 0;
+}
+
+static int
+scm_vm_op_mrve(ScmObj vm, SCM_OPCODE_T op)
+{
+  scm_capi_error("multiple-return-value error", 0);
+  return -1;
 }
 
 int
@@ -2906,8 +2979,11 @@ scm_vm_run(ScmObj vm, ScmObj iseq)
     case SCM_OPCODE_EDEMINE:
       r = scm_vm_op_edemine(vm, op);
       break;
-    case SCM_OPCODE_ARITY:
-      r = scm_vm_op_arity(vm, op);
+    case SCM_OPCODE_MRVC:
+      r = scm_vm_op_mrvc(vm, op);
+      break;
+    case SCM_OPCODE_MRVE:
+      r = scm_vm_op_mrve(vm, op);
       break;
     default:
       scm_capi_error("invalid instruction code", 0);

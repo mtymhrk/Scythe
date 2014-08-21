@@ -7144,7 +7144,8 @@ scm_capi_opcode_to_opfmt(int opcode)
     SCM_OPFMT_SI_SI,            /* SCM_OPCODE_DEMINE */
     SCM_OPFMT_SI,               /* SCM_OPCODE_EMINE */
     SCM_OPFMT_SI_SI,            /* SCM_OPCODE_EDEMINE */
-    SCM_OPFMT_SI,               /* SCM_OPCODE_ARITY */
+    SCM_OPFMT_SI,               /* SCM_OPCODE_MRVC */
+    SCM_OPFMT_NOOPD,            /* SCM_OPCODE_MRVE */
   };
 
   if (opcode < 0 || sizeof(tbl)/sizeof(tbl[0]) <= (size_t)opcode) {

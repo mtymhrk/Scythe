@@ -495,28 +495,6 @@ scm_load_module_scheme_char(void)
 /*******************************************************************/
 
 static int
-scm_define_scythe_internal_compile_var(ScmObj module)
-{
-  ScmObj sym = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
-  int rslt;
-
-  SCM_STACK_FRAME_PUSH(&module,
-                       &sym, &val);
-
-  sym = scm_capi_make_symbol_from_cstr("number-of-padding-arity-check",
-                                       SCM_ENC_SRC);
-  if (scm_obj_null_p(sym)) return -1;
-
-  val = scm_capi_make_number_from_sword(SCM_INST_SZ_ARITY / SCM_INST_SZ_NOP);
-  if (scm_obj_null_p(sym)) return -1;
-
-  rslt = scm_capi_define_global_var(module, sym, val, false);
-  if (rslt < 0) return -1;
-
-  return 0;
-}
-
-static int
 scm_define_scythe_internal_compile_subr(ScmObj module)
 {
   static const struct subr_data data[] = {
@@ -612,9 +590,6 @@ scm_load_module_func_scythe_internal_compile(ScmObj mod)
   /*
    * define global variables
    */
-
-  rslt = scm_define_scythe_internal_compile_var(mod);
-  if (rslt < 0) return -1;
 
   rslt = scm_define_scythe_internal_compile_subr(mod);
   if (rslt < 0) return -1;
