@@ -7320,11 +7320,7 @@ scm_capi_inst_update_oprand_obj(scm_byte_t *ip, ScmObj clsr, ScmObj obj)
 ScmObj
 scm_api_assemble(ScmObj lst, ScmObj iseq)
 {
-  if (scm_obj_null_p(lst)) {
-    scm_capi_error("asm: invalid argument", 0);
-    return SCM_OBJ_NULL;
-  }
-  else if (!scm_capi_pair_p(lst)) {
+  if (!(scm_capi_pair_p(lst) || scm_capi_nil_p(lst))) {
     scm_capi_error("asm: pair required, but got", 1, lst);
     return SCM_OBJ_NULL;
   }

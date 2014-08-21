@@ -899,7 +899,7 @@ scm_asm_assemble_aux(ScmObj iseq,
   scm_assert(scm_capi_iseq_p(iseq));
   scm_assert(label_tbl != NULL);
   scm_assert(labels != NULL);
-  scm_assert(scm_capi_pair_p(lst));
+  scm_assert(scm_capi_pair_p(lst) || scm_capi_nil_p(lst));
 
   idx = 0;
   for (cur = lst;
@@ -925,7 +925,7 @@ scm_asm_assemble(ScmObj lst, ScmObj iseq)
 
   SCM_STACK_FRAME_PUSH(&lst, &iseq);
 
-  scm_assert(scm_capi_pair_p(lst));
+  scm_assert(scm_capi_pair_p(lst) || scm_capi_nil_p(lst));
   scm_assert(scm_obj_null_p(iseq) || scm_capi_iseq_p(iseq));
 
   rslt = eary_init(&labels, sizeof(char *), 32);
