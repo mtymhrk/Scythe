@@ -1692,3 +1692,344 @@ TEST(exec_compiler, do_008)
                "    (mrve)"
                "    (epop))");
 }
+
+TEST(exec_compiler, let_values_1)
+{
+  test_compile("(let-values (((a) 1)) a)",
+               "((eframe)"
+               " (immval 1)"
+               " (mvpush)"
+               " (ecommit 1)"
+               " (sref 0 0)"
+               " (epop))");
+}
+
+TEST(exec_compiler, let_values_2)
+{
+  test_compile("(let-values ((a 1)) a)",
+               "((eframe)"
+               " (immval 1)"
+               " (mrvc -1)"
+               " (mvpush)"
+               " (ecommit 1)"
+               " (sref 0 0)"
+               " (epop))");
+}
+
+TEST(exec_compiler, let_values_3)
+{
+  test_compile("(let-values (((a b) (values 1 2))) b)",
+               "((eframe)"
+               " (frame)"
+               " (immval 1) (push)"
+               " (immval 2) (push)"
+               " (gref values (main))"
+               " (call 2)"
+               " (nop)"
+               " (mrvc 2)"
+               " (mvpush)"
+               " (ecommit 2)"
+               " (sref 1 0)"
+               " (epop))");
+}
+
+TEST(exec_compiler, let_values_4)
+{
+  test_compile("(let-values (((a b . c) (values 1 2 3 4))) c)",
+               "((eframe)"
+               " (frame)"
+               " (immval 1) (push)"
+               " (immval 2) (push)"
+               " (immval 3) (push)"
+               " (immval 4) (push)"
+               " (gref values (main))"
+               " (call 4)"
+               " (nop)"
+               " (mrvc -3)"
+               " (mvpush)"
+               " (ecommit 3)"
+               " (sref 2 0)"
+               " (epop))");
+}
+
+TEST(exec_compiler, let_values_5)
+{
+  test_compile("(let-values ((() (values))))",
+               "((cframe)"
+               " (gref values (main))"
+               " (call 0)"
+               " (nop)"
+               " (mrvc 0)"
+               " (undef))");
+}
+
+TEST(exec_compiler, let_values_6)
+{
+  test_compile("(let-values (((a b) (values 1 2))"
+               "             ((c d) (values 3 4)))"
+               "  c)",
+               "((eframe)"
+               " (frame)"
+               " (immval 1) (push)"
+               " (immval 2) (push)"
+               " (gref values (main))"
+               " (call 2)"
+               " (nop)"
+               " (mrvc 2)"
+               " (mvpush)"
+               " (frame)"
+               " (immval 3) (push)"
+               " (immval 4) (push)"
+               " (gref values (main))"
+               " (call 2)"
+               " (nop)"
+               " (mrvc 2)"
+               " (mvpush)"
+               " (ecommit 4)"
+               " (sref 2 0)"
+               " (epop))");
+}
+
+TEST(exec_compiler, let_values_7)
+{
+  test_compile("(let-values (((a b) (values 1 2))"
+               "             (() (values)))"
+               "  a)",
+               "((eframe)"
+               " (frame)"
+               " (immval 1) (push)"
+               " (immval 2) (push)"
+               " (gref values (main))"
+               " (call 2)"
+               " (nop)"
+               " (mrvc 2)"
+               " (mvpush)"
+               " (cframe)"
+               " (gref values (main))"
+               " (call 0)"
+               " (nop)"
+               " (mrvc 0)"
+               " (ecommit 2)"
+               " (sref 0 0)"
+               " (epop))");
+}
+
+TEST(exec_compiler, let_values_8)
+{
+  test_compile("(let-values (((a b) (values 1 2)))"
+               "  (set! a 100))",
+               "((eframe)"
+               " (frame)"
+               " (immval 1) (push)"
+               " (immval 2) (push)"
+               " (gref values (main))"
+               " (call 2)"
+               " (nop)"
+               " (mrvc 2)"
+               " (mvpush)"
+               " (ecommit 2)"
+               " (box 0 0)"
+               " (immval 100)"
+               " (sset 0 0)"
+               " (epop))");
+}
+
+TEST(exec_compiler, let_values_9)
+{
+  test_compile("(lambda () (let-values (((a) 1)) (a)))",
+               "((asm-close 0 0"
+               "   ((eframe)"
+               "    (immval 1)"
+               "    (mvpush)"
+               "    (ecommit 1)"
+               "    (sref 0 0)"
+               "    (tcall 0))))");
+}
+
+TEST(exec_compiler, let_a_values_1)
+{
+  test_compile("(let*-values (((a) 1)) a)",
+               "((eframe)"
+               " (immval 1)"
+               " (mvpush)"
+               " (ecommit 1)"
+               " (sref 0 0)"
+               " (epop))");
+}
+
+TEST(exec_compiler, let_a_values_2)
+{
+  test_compile("(let*-values ((a 1)) a)",
+               "((eframe)"
+               " (immval 1)"
+               " (mrvc -1)"
+               " (mvpush)"
+               " (ecommit 1)"
+               " (sref 0 0)"
+               " (epop))");
+}
+
+TEST(exec_compiler, let_a_values_3)
+{
+  test_compile("(let*-values (((a b) (values 1 2))) b)",
+               "((eframe)"
+               " (frame)"
+               " (immval 1) (push)"
+               " (immval 2) (push)"
+               " (gref values (main))"
+               " (call 2)"
+               " (nop)"
+               " (mrvc 2)"
+               " (mvpush)"
+               " (ecommit 2)"
+               " (sref 1 0)"
+               " (epop))");
+}
+
+TEST(exec_compiler, let_a_values_4)
+{
+  test_compile("(let*-values (((a b . c) (values 1 2 3 4))) c)",
+               "((eframe)"
+               " (frame)"
+               " (immval 1) (push)"
+               " (immval 2) (push)"
+               " (immval 3) (push)"
+               " (immval 4) (push)"
+               " (gref values (main))"
+               " (call 4)"
+               " (nop)"
+               " (mrvc -3)"
+               " (mvpush)"
+               " (ecommit 3)"
+               " (sref 2 0)"
+               " (epop))");
+}
+
+TEST(exec_compiler, let_a_values_5)
+{
+  test_compile("(let*-values ((() (values))))",
+               "((cframe)"
+               " (gref values (main))"
+               " (call 0)"
+               " (nop)"
+               " (mrvc 0)"
+               " (undef))");
+}
+
+TEST(exec_compiler, let_a_values_6)
+{
+  test_compile("(let*-values (((a b) (values 1 2))"
+               "              ((c d) (values 3 4)))"
+               "  (list a b c d))",
+               "((eframe)"
+               " (frame)"
+               " (immval 1) (push)"
+               " (immval 2) (push)"
+               " (gref values (main))"
+               " (call 2)"
+               " (nop)"
+               " (mrvc 2)"
+               " (mvpush)"
+               " (ecommit 2)"
+               " (eframe)"
+               " (frame)"
+               " (immval 3) (push)"
+               " (immval 4) (push)"
+               " (gref values (main))"
+               " (call 2)"
+               " (nop)"
+               " (mrvc 2)"
+               " (mvpush)"
+               " (ecommit 2)"
+               " (frame)"
+               " (sref 0 1) (push)"
+               " (sref 1 1) (push)"
+               " (sref 0 0) (push)"
+               " (sref 1 0) (push)"
+               " (gref list (main))"
+               " (call 4)"
+               " (mrve)"
+               " (epop)"
+               " (epop))");
+}
+
+TEST(exec_compiler, let_a_values_7)
+{
+  test_compile("(let*-values (((a b) (values 1 2))"
+               "              ((c d) (values a 4)))"
+               "  (list a b c d))",
+               "((eframe)"
+               " (frame)"
+               " (immval 1) (push)"
+               " (immval 2) (push)"
+               " (gref values (main))"
+               " (call 2)"
+               " (nop)"
+               " (mrvc 2)"
+               " (mvpush)"
+               " (ecommit 2)"
+               " (eframe)"
+               " (frame)"
+               " (sref 0 0) (push)"
+               " (immval 4) (push)"
+               " (gref values (main))"
+               " (call 2)"
+               " (nop)"
+               " (mrvc 2)"
+               " (mvpush)"
+               " (ecommit 2)"
+               " (frame)"
+               " (sref 0 1) (push)"
+               " (sref 1 1) (push)"
+               " (sref 0 0) (push)"
+               " (sref 1 0) (push)"
+               " (gref list (main))"
+               " (call 4)"
+               " (mrve)"
+               " (epop)"
+               " (epop))");
+}
+
+TEST(exec_compiler, let_a_values_8)
+{
+  test_compile("(let*-values (((a b) (values 1 2))"
+               "              ((c d) (values 3 4)))"
+               "  (set! b 100))",
+               "((eframe)"
+               " (frame)"
+               " (immval 1) (push)"
+               " (immval 2) (push)"
+               " (gref values (main))"
+               " (call 2)"
+               " (nop)"
+               " (mrvc 2)"
+               " (mvpush)"
+               " (ecommit 2)"
+               " (box 1 0)"
+               " (eframe)"
+               " (frame)"
+               " (immval 3) (push)"
+               " (immval 4) (push)"
+               " (gref values (main))"
+               " (call 2)"
+               " (nop)"
+               " (mrvc 2)"
+               " (mvpush)"
+               " (ecommit 2)"
+               " (immval 100)"
+               " (sset 1 1)"
+               " (epop)"
+               " (epop))");
+}
+
+TEST(exec_compiler, let_a_values_9)
+{
+  test_compile("(lambda () (let*-values (((a) 1)) (a)))",
+               "((asm-close 0 0"
+               "   ((eframe)"
+               "    (immval 1)"
+               "    (mvpush)"
+               "    (ecommit 1)"
+               "    (sref 0 0)"
+               "    (tcall 0))))");
+}

@@ -1039,3 +1039,132 @@ TEST(exec_syntax, do_7)
                                "      (set! y (cons (car x) y)))))",
                                "(c b a)");
 }
+
+TEST(exec_syntax, let_values_1)
+{
+  test_eval__comp_val_with_obj("(let-values (((a) 1)) a)",
+                               "1");
+}
+
+TEST(exec_syntax, let_values_2)
+{
+  test_eval__comp_val_with_obj("(let-values ((a 1)) a)",
+                               "(1)");
+}
+
+TEST(exec_syntax, let_values_3)
+{
+  test_eval__comp_val_with_obj("(let-values (((a b) (values 1 2)))"
+                               "   (list a b))",
+                               "(1 2)");
+}
+
+TEST(exec_syntax, let_values_4)
+{
+  test_eval__comp_val_with_obj("(let-values (((a b . c) (values 1 2 3 4)))"
+                               "   c)",
+                               "(3 4)");
+}
+
+TEST(exec_syntax, let_values_5)
+{
+  test_eval__chk_val_type("(let-values ((() (values))))",
+                          scm_capi_undef_object_p);
+}
+
+TEST(exec_syntax, let_values_6)
+{
+  test_eval__comp_val_with_obj("(let-values (((a b) (values 1 2))"
+                               "             ((c d) (values 3 4)))"
+                               "  (list b c))",
+                               "(2 3)");
+}
+
+TEST(exec_syntax, let_values_7)
+{
+  test_eval__comp_val_with_obj("(let-values (((a b) (values 1 2))"
+                               "             (() (values)))"
+                               "  (list a b))",
+                               "(1 2)");
+}
+
+TEST(exec_syntax, let_values_8)
+{
+  test_eval__comp_val_with_obj("(let-values (((a b) (values 1 2)))"
+                               "  (set! a 100)"
+                               "  a)",
+                               "100");
+}
+
+TEST(exec_syntax, let_values_9)
+{
+  test_eval__comp_val_with_obj("((lambda ()"
+                               "   (let-values (((a) 1))"
+                               "     (list a))))",
+                               "(1)");
+}
+
+TEST(exec_syntax, let_a_values_1)
+{
+  test_eval__comp_val_with_obj("(let*-values (((a) 1)) a)",
+                               "1");
+}
+
+TEST(exec_syntax, let_a_values_2)
+{
+  test_eval__comp_val_with_obj("(let*-values ((a 1)) a)",
+                               "(1)");
+}
+
+TEST(exec_syntax, let_a_values_3)
+{
+  test_eval__comp_val_with_obj("(let*-values (((a b) (values 1 2)))"
+                               "  (list a b))",
+                               "(1 2)");
+}
+
+TEST(exec_syntax, let_a_values_4)
+{
+  test_eval__comp_val_with_obj("(let*-values (((a b . c) (values 1 2 3 4)))"
+                               "  c)",
+                               "(3 4)");
+}
+
+TEST(exec_syntax, let_a_values_5)
+{
+  test_eval__chk_val_type("(let*-values ((() (values))))",
+                          scm_capi_undef_object_p);
+}
+
+TEST(exec_syntax, let_a_values_6)
+{
+  test_eval__comp_val_with_obj("(let*-values (((a b) (values 1 2))"
+                               "              ((c d) (values 3 4)))"
+                               "  (list a b c d))",
+                               "(1 2 3 4)");
+}
+
+TEST(exec_syntax, let_a_values_7)
+{
+  test_eval__comp_val_with_obj("(let*-values (((a b) (values 1 2))"
+                               "              ((c d) (values a 4)))"
+                               "  (list a b c d))",
+                               "(1 2 1 4)");
+}
+
+TEST(exec_syntax, let_a_values_8)
+{
+  test_eval__comp_val_with_obj("(let*-values (((a b) (values 1 2))"
+                               "              ((c d) (values 3 4)))"
+                               "  (set! b 100)"
+                               "  (list a b c d))",
+                               "(1 100 3 4)");
+}
+
+TEST(exec_syntax, let_a_values_9)
+{
+  test_eval__comp_val_with_obj("((lambda ()"
+                               "    (let*-values (((a) 1))"
+                               "       (list a))))",
+                               "(1)");
+}
