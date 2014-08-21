@@ -35,6 +35,7 @@ ScmObj read_cstr(const char *str);
 
 ScmObj scm_capi_ut_compile(ScmEvaluator *ev, ScmObj exp);
 ScmObj scm_capi_ut_eval(ScmEvaluator *ev, ScmObj exp);
+void scm_capi_ut_disposal_unhandled_exc(ScmEvaluator *ev);
 
 
 #endif  /* INCLUDE_TEST_HELPER_H__ */

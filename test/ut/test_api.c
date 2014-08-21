@@ -55,3 +55,9 @@ scm_capi_ut_eval(ScmEvaluator *ev, ScmObj exp)
 
   return scm_capi_vector_ref(val, 0);
 }
+
+void
+scm_capi_ut_disposal_unhandled_exc(ScmEvaluator *ev)
+{
+  scm_vm_disposal_unhandled_exc(ev->vm);
+}
