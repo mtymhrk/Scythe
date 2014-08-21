@@ -178,7 +178,7 @@
 (define (compile exp arg)
   (let ((cmpl (get-compiler-from-arg arg))
         (cseq (new-cseq)))
-    (compile-exp cmpl exp (new-env) 1 #f #t (new-rdepth) cseq)
+    (compile-exp cmpl exp (new-env) -1 #f #t (new-rdepth) cseq)
     (cseq-code cseq)))
 
 (define (compile-file file arg)
@@ -188,7 +188,7 @@
       (if (eof-object? exp)
           '()
           (let ((cseq (new-cseq)))
-            (compile-exp cmpl exp (new-env) 1 #f #t (new-rdepth) cseq)
+            (compile-exp cmpl exp (new-env) -1 #f #t (new-rdepth) cseq)
             (append (cseq-code cseq) (rec (read port))))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
