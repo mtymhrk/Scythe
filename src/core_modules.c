@@ -254,6 +254,7 @@ scm_define_scheme_base_subr(ScmObj module)
     /*  Control features                                               */
     /*******************************************************************/
     { "procedure?", SCM_SUBR_ARITY_PROCEDURE_P, SCM_SUBR_FLAG_PROCEDURE_P, scm_subr_func_procedure_P, true },
+    { "apply", SCM_SUBR_ARITY_APPLY, SCM_SUBR_FLAG_APPLY, scm_subr_func_apply, true },
 
     /*******************************************************************/
     /*  Exceptions                                                     */

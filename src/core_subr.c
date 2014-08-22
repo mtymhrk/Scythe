@@ -1890,6 +1890,60 @@ scm_subr_func_procedure_P(ScmObj subr, int argc, const ScmObj *argv)
   return scm_capi_return_val(&val, 1);
 }
 
+int
+scm_subr_func_apply(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj arg = SCM_OBJ_INIT, prv = SCM_OBJ_INIT, cur = SCM_OBJ_INIT;
+  ScmObj itr = SCM_OBJ_INIT, obj = SCM_OBJ_INIT, nxt = SCM_OBJ_INIT;
+
+  SCM_STACK_FRAME_PUSH(&subr,
+                       &arg, &prv, &cur,
+                       &itr, &obj, &nxt);
+
+  if (!scm_capi_procedure_p(argv[0])) {
+    scm_capi_error("apply: procedure required, but got", 1, argv[0]);
+    return -1;
+  }
+
+  arg = scm_api_cons(argv[1], argv[2]);
+  if (scm_obj_null_p(arg)) return -1;
+
+  prv = SCM_OBJ_NULL;
+  for (itr = arg; scm_capi_pair_p(itr); itr = nxt) {
+    obj = scm_api_car(itr);
+    if (scm_obj_null_p(obj)) return -1;
+
+    nxt = scm_api_cdr(itr);
+    if (scm_obj_null_p(nxt)) return -1;
+
+    if (scm_capi_pair_p(nxt)) {
+      cur = scm_api_cons(obj, SCM_NIL_OBJ);
+      if (scm_obj_null_p(cur)) return -1;
+    }
+    else {
+      if (!scm_capi_pair_p(obj)) {
+        scm_capi_error("apply: list required, but got", 1, obj);
+        return -1;
+      }
+      cur = obj;
+    }
+
+    if (scm_obj_null_p(prv)) {
+      arg = cur;
+    }
+    else {
+      int r = scm_capi_set_cdr_i(prv, cur);
+      if (r < 0) return -1;
+    }
+
+    prv = cur;
+  }
+
+  if (scm_obj_null_p(itr)) return -1;
+
+  return scm_capi_trampolining(argv[0], arg, SCM_OBJ_NULL, SCM_OBJ_NULL);
+}
+
 
 /*******************************************************************/
 /*  Exceptions                                                     */

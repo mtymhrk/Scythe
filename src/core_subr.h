@@ -463,10 +463,13 @@ int scm_subr_func_vector_fill_i(ScmObj subr, int argc, const ScmObj *argv);
 /*******************************************************************/
 
 #define SCM_SUBR_ARITY_PROCEDURE_P 1
+#define SCM_SUBR_ARITY_APPLY -3
 
 #define SCM_SUBR_FLAG_PROCEDURE_P 0
+#define SCM_SUBR_FLAG_APPLY 0
 
 int scm_subr_func_procedure_P(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_apply(ScmObj subr, int argc, const ScmObj *argv);
 
 
 /*******************************************************************/
