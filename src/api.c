@@ -7926,17 +7926,17 @@ int
 scm_capi_trampolining(ScmObj proc, ScmObj args,
                       ScmObj postproc, ScmObj handover)
 {
-  if (!scm_capi_subrutine_p(proc) && !scm_capi_closure_p(proc)) {
+  if (!scm_capi_procedure_p(proc)) {
     scm_capi_error("", 0);
-    return SCM_OBJ_NULL;
+    return -1;
   }
   else if (!scm_capi_pair_p(args) && !scm_capi_nil_p(args)) {
     scm_capi_error("", 0);
-    return SCM_OBJ_NULL;
+    return -1;
   }
   else if (scm_obj_not_null_p(postproc) && !scm_capi_procedure_p(postproc)) {
     scm_capi_error("", 0);
-    return SCM_OBJ_NULL;
+    return -1;
   }
 
   return scm_vm_setup_stat_trmp(scm_vm_current_vm(), proc, args,
