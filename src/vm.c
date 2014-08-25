@@ -1793,6 +1793,7 @@ scm_vm_do_op_push(ScmObj vm, SCM_OPCODE_T op)
   if (scm_vmsr_overflow_p(SCM_VM(vm)->stack, sp)) {
     rslt = scm_vm_handle_stack_overflow(vm);
     if (rslt < 0) return -1;
+    sp = SCM_VM(vm)->reg.sp + sizeof(ScmObj);
   }
 
   SCM_WB_EXP(SCM_VM(vm)->stack,
