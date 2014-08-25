@@ -908,7 +908,7 @@ scm_capi_append_lst(ScmObj lst)
   ScmObj arg[] = { SCM_OBJ_INIT, SCM_OBJ_INIT };
   ScmObj l = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst);
+  SCM_STACK_FRAME_PUSH(&lst, &l);
   SCM_STACK_PUSH_ARY(arg, sizeof(arg)/sizeof(arg[0]));
 
   if (scm_obj_null_p(lst)) {

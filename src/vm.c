@@ -1411,7 +1411,7 @@ scm_vm_make_trampolining_code(ScmObj vm, ScmObj proc,
   ScmObj iseq = SCM_OBJ_INIT;
   ssize_t rslt;
 
-  SCM_STACK_FRAME_PUSH(&vm, &proc, &args, &postproc,
+  SCM_STACK_FRAME_PUSH(&vm, &proc, &args, &postproc, &handover,
                        &iseq);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
@@ -1570,7 +1570,7 @@ scm_vm_adjust_arg_to_arity(ScmObj vm, int argc, ScmObj proc, int *adjusted)
   int rslt, len, arity, nr_bind;
   bool unwished;
 
-  SCM_STACK_FRAME_PUSH(&vm,
+  SCM_STACK_FRAME_PUSH(&vm, &proc,
                        &lst);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
@@ -3148,7 +3148,7 @@ scm_vm_capture_cont(ScmObj vm)
   ScmObj cc = SCM_OBJ_INIT, stack = SCM_OBJ_INIT;
 
   SCM_STACK_FRAME_PUSH(&vm,
-                       &cc);
+                       &cc, &stack);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
@@ -3259,7 +3259,7 @@ scm_vm_setup_stat_trmp(ScmObj vm, ScmObj proc, ScmObj args,
   scm_byte_t *ip;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&proc, &args, &handover,
+  SCM_STACK_FRAME_PUSH(&vm, &proc, &args, &postproc, &handover,
                        &trmp_code, &trmp_clsr, &env);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
