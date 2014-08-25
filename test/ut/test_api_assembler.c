@@ -262,7 +262,7 @@ TEST(api_assembler, gref)
 {
   ScmObj obj1 = SCM_OBJ_INIT, obj2 = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&obj1, obj2);
+  SCM_STACK_FRAME_PUSH(&obj1, &obj2);
 
   obj1 = read_cstr("vvv");
   obj2 = read_cstr("xxx");
@@ -275,7 +275,7 @@ TEST(api_assembler, gdef)
 {
   ScmObj obj1 = SCM_OBJ_INIT, obj2 = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&obj1, obj2);
+  SCM_STACK_FRAME_PUSH(&obj1, &obj2);
 
   obj1 = read_cstr("vvv");
   obj2 = read_cstr("xxx");
@@ -288,7 +288,7 @@ TEST(api_assembler, gset)
 {
   ScmObj obj1 = SCM_OBJ_INIT, obj2 = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&obj1, obj2);
+  SCM_STACK_FRAME_PUSH(&obj1, &obj2);
 
   obj1 = read_cstr("vvv");
   obj2 = read_cstr("xxx");

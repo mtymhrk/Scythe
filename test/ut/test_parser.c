@@ -54,7 +54,7 @@ test_tokenize(SCM_TOKEN_TYPE_T expe_type, const char *expe_str,
   ScmToken *token;
   ScmEncoding *enc;
 
-  SCM_STACK_FRAME_PUSH(port);
+  SCM_STACK_FRAME_PUSH(&port);
 
   port = scm_capi_open_input_string_cstr(data, SCM_ENC_NAME_SRC);
   enc = scm_capi_port_internal_encoding(port);

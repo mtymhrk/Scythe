@@ -90,7 +90,7 @@ TEST(chashtbl, scm_chash_tbl_insert__insert_an_entry_already_registered)
   ScmObj val3 = SCM_OBJ_INIT;
   bool found;
 
-  SCM_STACK_FRAME_PUSH(&tbl, &key1, &val1, &val2, &val3);
+  SCM_STACK_FRAME_PUSH(&key1, &val1, &val2, &val3);
 
   /* preprocess */
   tbl = scm_chash_tbl_new(SCM_OBJ_NULL, 256,
@@ -125,7 +125,7 @@ TEST(chashtbl, scm_chash_tbl_update__update_new_entry)
   ScmObj val2 = SCM_OBJ_INIT;
   bool found;
 
-  SCM_STACK_FRAME_PUSH(&tbl, &key1, &val1, &val2);
+  SCM_STACK_FRAME_PUSH(&key1, &val1, &val2);
 
   /* preprocess */
   tbl =  scm_chash_tbl_new(SCM_OBJ_NULL, 256,
@@ -159,7 +159,7 @@ TEST(chashtbl, scm_chash_tbl_update__update_an_entry_already_registered)
   ScmObj val3 = SCM_OBJ_INIT;
   bool found;
 
-  SCM_STACK_FRAME_PUSH(&tbl, &key1, &val1, &val2, &val3);
+  SCM_STACK_FRAME_PUSH(&key1, &val1, &val2, &val3);
 
   /* preprocess */
   tbl = scm_chash_tbl_new(SCM_OBJ_NULL, 256,
@@ -194,7 +194,7 @@ TEST(chashtbl, scm_chash_tbl_delete__delete_an_entry_not_registered)
   ScmObj val2 = SCM_OBJ_INIT;
   bool deleted;
 
-  SCM_STACK_FRAME_PUSH(&tbl, &key1, &val1, &val2);
+  SCM_STACK_FRAME_PUSH(&key1, &val1, &val2);
 
   /* preprocess */
   tbl = scm_chash_tbl_new(SCM_OBJ_NULL, 256,
@@ -225,7 +225,7 @@ TEST(chashtbl, scm_chash_tbl_delete__delete_an_entry_already_registered)
   ScmObj val3 = SCM_OBJ_INIT;
   bool found, deleted;
 
-  SCM_STACK_FRAME_PUSH(&tbl, &key1, &val1, &val2, &val3);
+  SCM_STACK_FRAME_PUSH(&key1, &val1, &val2, &val3);
 
   /* preprocess */
   tbl =  scm_chash_tbl_new(SCM_OBJ_NULL, 256,

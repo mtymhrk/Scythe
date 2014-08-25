@@ -392,7 +392,7 @@ TEST(api_fixnum, api_num_eq_P_lst__return_true)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(lst);
+  SCM_STACK_FRAME_PUSH(&lst);
 
   lst = read_cstr("(123 123 123)");
   check_list_elements(lst, scm_capi_fixnum_p);

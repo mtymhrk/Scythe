@@ -142,7 +142,7 @@ test_api_read_char(ScmObj port)
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
   SCM_STACK_FRAME_PUSH(&port,
-                       &actual, expected);
+                       &actual, &expected);
 
   expected = scm_capi_make_char(&(scm_char_t){ .ascii = TEST_FILE_CONTENTS[0] },
                                 SCM_ENC_SRC);
@@ -225,7 +225,7 @@ test_capi_peek_cchr__return_EOF(ScmObj port)
 {
   scm_char_t actual;
 
-  SCM_STACK_FRAME_PUSH(port);
+  SCM_STACK_FRAME_PUSH(&port);
 
   for (size_t i = 0; i < strlen(TEST_FILE_CONTENTS); i++)
     scm_capi_read_cchr(&actual, port);
@@ -251,7 +251,7 @@ test_api_peek_char(ScmObj port)
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
   SCM_STACK_FRAME_PUSH(&port,
-                       &actual, expected);
+                       &actual, &expected);
 
   expected = scm_capi_make_char(&(scm_char_t){ .ascii = '(' }, SCM_ENC_SRC);
 
@@ -266,7 +266,7 @@ test_api_peek_char__return_same_char_with_preceding_peek_char(ScmObj port)
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
   SCM_STACK_FRAME_PUSH(&port,
-                       &actual, expected);
+                       &actual, &expected);
 
   expected = scm_api_peek_char(port);
   actual = scm_api_peek_char(port);
@@ -280,7 +280,7 @@ test_api_peek_char__return_same_char_with_next_call_to_read_char(ScmObj port)
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
   SCM_STACK_FRAME_PUSH(&port,
-                       &actual, expected);
+                       &actual, &expected);
 
   actual = scm_api_peek_char(port);
   expected = scm_api_read_char(port);
@@ -314,7 +314,7 @@ test_api_read_line__upt_to_EOL(ScmObj port)
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
   SCM_STACK_FRAME_PUSH(&port,
-                       &actual, expected);
+                       &actual, &expected);
 
   expected = scm_capi_make_string_from_cstr(TEST_FILE_CONTENTS_1ST_LINE,
                                             SCM_ENC_SRC);
@@ -329,7 +329,7 @@ test_api_read_line__upt_to_EOF(ScmObj port)
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
   SCM_STACK_FRAME_PUSH(&port,
-                       &actual, expected);
+                       &actual, &expected);
 
   expected = scm_capi_make_string_from_cstr(TEST_FILE_CONTENTS_2ND_LINE,
                                             SCM_ENC_SRC);

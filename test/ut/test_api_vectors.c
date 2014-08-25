@@ -22,7 +22,7 @@ TEST(api_vectors, capi_vector_p__return_true)
 {
   ScmObj vec = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(vec);
+  SCM_STACK_FRAME_PUSH(&vec);
 
   vec = read_cstr("#(a b c)");
 
@@ -43,7 +43,7 @@ TEST(api_vectors, api_vector_P__return_true)
 {
   ScmObj vec = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(vec);
+  SCM_STACK_FRAME_PUSH(&vec);
 
   vec = read_cstr("#(a b c)");
 
