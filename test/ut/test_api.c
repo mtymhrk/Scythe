@@ -6,7 +6,7 @@ scm_capi_ut_compile(ScmEvaluator *ev, ScmObj exp)
   ScmObj compile = SCM_OBJ_INIT, args = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
   int r;
 
-  SCM_STACK_FRAME_PUSH(&exp,
+  SCM_REFSTK_INIT_REG(&exp,
                        &compile, &args, &val);
 
   r = scm_capi_cached_global_var_ref(SCM_CACHED_GV_COMPILE,
@@ -36,7 +36,7 @@ scm_capi_ut_eval(ScmEvaluator *ev, ScmObj exp)
   ScmObj eval = SCM_OBJ_INIT, args = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
   int r;
 
-  SCM_STACK_FRAME_PUSH(&exp,
+  SCM_REFSTK_INIT_REG(&exp,
                        &eval, &args, &val);
 
   r = scm_capi_cached_global_var_ref(SCM_CACHED_GV_EVAL, SCM_CSETTER_L(eval));

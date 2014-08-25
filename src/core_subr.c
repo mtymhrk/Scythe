@@ -10,7 +10,7 @@ scm_subr_list_to_cv(ScmObj lst, ScmObj *ary, size_t n)
 {
   ssize_t len;
 
-  SCM_STACK_FRAME_PUSH(&lst);
+  SCM_REFSTK_INIT_REG(&lst);
 
   len = 0;
   for (size_t i = 0; i < n; i++) {
@@ -40,7 +40,7 @@ scm_subr_func_eq_P(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_eq_P(argv[0], argv[1]);
@@ -54,7 +54,7 @@ scm_subr_func_eqv_P(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_eqv_P(argv[0], argv[1]);
@@ -68,7 +68,7 @@ scm_subr_func_equal_P(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_equal_P(argv[0], argv[1]);
@@ -87,7 +87,7 @@ scm_subr_func_number_P(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_number_P(argv[0]);
@@ -101,7 +101,7 @@ scm_subr_func_complex_P(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_complex_P(argv[0]);
@@ -115,7 +115,7 @@ scm_subr_func_real_P(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_real_P(argv[0]);
@@ -129,7 +129,7 @@ scm_subr_func_rational_P(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_rational_P(argv[0]);
@@ -143,7 +143,7 @@ scm_subr_func_integer_P(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_integer_P(argv[0]);
@@ -157,7 +157,7 @@ scm_subr_func_exact_P(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_exact_P(argv[0]);
@@ -171,7 +171,7 @@ scm_subr_func_inexact_P(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_inexact_P(argv[0]);
@@ -185,7 +185,7 @@ scm_subr_func_exact_integer_P(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_exact_integer_P(argv[0]);
@@ -199,7 +199,7 @@ scm_subr_func_finite_P(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_finite_P(argv[0]);
@@ -213,7 +213,7 @@ scm_subr_func_infinite_P(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_infinite_P(argv[0]);
@@ -227,7 +227,7 @@ scm_subr_func_nan_P(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_nan_P(argv[0]);
@@ -241,7 +241,7 @@ scm_subr_func_num_eq_P(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj lst = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &lst, &val);
 
   lst = scm_api_cons(argv[1], argv[2]);
@@ -261,7 +261,7 @@ scm_subr_func_num_lt_P(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj lst = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &lst, &val);
 
   lst = scm_api_cons(argv[1], argv[2]);
@@ -281,7 +281,7 @@ scm_subr_func_num_gt_P(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj lst = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &lst, &val);
 
   lst = scm_api_cons(argv[1], argv[2]);
@@ -301,7 +301,7 @@ scm_subr_func_num_le_P(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj lst = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &lst, &val);
 
   lst = scm_api_cons(argv[1], argv[2]);
@@ -321,7 +321,7 @@ scm_subr_func_num_ge_P(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj lst = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &lst, &val);
 
   lst = scm_api_cons(argv[1], argv[2]);
@@ -341,7 +341,7 @@ scm_subr_func_zero_P(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_zero_P(argv[0]);
@@ -355,7 +355,7 @@ scm_subr_func_positive_P(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_positive_P(argv[0]);
@@ -369,7 +369,7 @@ scm_subr_func_negative_P(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_negative_P(argv[0]);
@@ -383,7 +383,7 @@ scm_subr_func_odd_P(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_odd_P(argv[0]);
@@ -397,7 +397,7 @@ scm_subr_func_even_P(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_even_P(argv[0]);
@@ -411,7 +411,7 @@ scm_subr_func_max(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj lst = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &lst, &val);
 
   lst = scm_api_cons(argv[0], argv[1]);
@@ -428,7 +428,7 @@ scm_subr_func_min(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj lst = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &lst, &val);
 
   lst = scm_api_cons(argv[0], argv[1]);
@@ -445,7 +445,7 @@ scm_subr_func_plus(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_capi_plus_lst(argv[0]);
@@ -459,7 +459,7 @@ scm_subr_func_mul(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_capi_mul_lst(argv[0]);
@@ -473,7 +473,7 @@ scm_subr_func_minus(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj lst = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &lst, &val);
 
   lst = scm_api_cons(argv[0], argv[1]);
@@ -497,7 +497,7 @@ scm_subr_func_abs(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_abs(argv[0]);
@@ -512,8 +512,8 @@ scm_subr_func_floor_div(ScmObj subr, int argc, const ScmObj *argv)
   ScmObj val[2] = { SCM_OBJ_INIT, SCM_OBJ_INIT };
   int r;
 
-  SCM_STACK_FRAME_PUSH(&subr);
-  SCM_STACK_PUSH_ARY(val, sizeof(val)/sizeof(val[0]));
+  SCM_REFSTK_INIT_REG(&subr);
+  SCM_REFSTK_REG_ARY(val, sizeof(val)/sizeof(val[0]));
 
   r = scm_capi_floor_div(argv[0], argv[1],
                          SCM_CSETTER_L(val[0]), SCM_CSETTER_L(val[1]));
@@ -527,7 +527,7 @@ scm_subr_func_floor_quo(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_floor_quo(argv[0], argv[1]);
@@ -541,7 +541,7 @@ scm_subr_func_floor_rem(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_floor_rem(argv[0], argv[1]);
@@ -556,8 +556,8 @@ scm_subr_func_truncate_div(ScmObj subr, int argc, const ScmObj *argv)
   ScmObj val[2] = { SCM_OBJ_INIT, SCM_OBJ_INIT };
   int r;
 
-  SCM_STACK_FRAME_PUSH(&subr);
-  SCM_STACK_PUSH_ARY(val, sizeof(val)/sizeof(val[0]));
+  SCM_REFSTK_INIT_REG(&subr);
+  SCM_REFSTK_REG_ARY(val, sizeof(val)/sizeof(val[0]));
 
   r = scm_capi_truncate_div(argv[0], argv[1],
                          SCM_CSETTER_L(val[0]), SCM_CSETTER_L(val[1]));
@@ -571,7 +571,7 @@ scm_subr_func_truncate_quo(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_truncate_quo(argv[0], argv[1]);
@@ -585,7 +585,7 @@ scm_subr_func_truncate_rem(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_truncate_rem(argv[0], argv[1]);
@@ -604,7 +604,7 @@ scm_subr_func_not(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_not(argv[0]);
@@ -618,7 +618,7 @@ scm_subr_func_boolean_P(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_boolean_P(argv[0]);
@@ -637,7 +637,7 @@ scm_subr_func_pair_P(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_pair_P(argv[0]);
@@ -651,7 +651,7 @@ scm_subr_func_cons(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_cons(argv[0], argv[1]);
@@ -665,7 +665,7 @@ scm_subr_func_car(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_car(argv[0]);
@@ -679,7 +679,7 @@ scm_subr_func_cdr(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_cdr(argv[0]);
@@ -693,7 +693,7 @@ scm_subr_func_set_car_i(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_set_car_i(argv[0], argv[1]);
@@ -707,7 +707,7 @@ scm_subr_func_set_cdr_i(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_set_cdr_i(argv[0], argv[1]);
@@ -721,7 +721,7 @@ scm_subr_func_null_P(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_nil_P(argv[0]);
@@ -735,7 +735,7 @@ scm_subr_func_list_P(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_list_P(argv[0]);
@@ -749,7 +749,7 @@ scm_subr_func_make_list(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT, fill = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val, &fill);
 
   if (argc > 2) {
@@ -775,7 +775,7 @@ scm_subr_func_length(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_length(argv[0]);
@@ -789,7 +789,7 @@ scm_subr_func_append(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_capi_append_lst(argv[0]);
@@ -803,7 +803,7 @@ scm_subr_func_reverse(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_reverse(argv[0]);
@@ -817,7 +817,7 @@ scm_subr_func_list_tail(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_list_tail(argv[0], argv[1]);
@@ -831,7 +831,7 @@ scm_subr_func_list_ref(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_list_ref(argv[0], argv[1]);
@@ -845,7 +845,7 @@ scm_subr_func_list_set_i(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_list_set_i(argv[0], argv[1], argv[2]);
@@ -859,7 +859,7 @@ scm_subr_func_memq(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_capi_memq(argv[0], argv[1]);
@@ -873,7 +873,7 @@ scm_subr_func_memv(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_capi_memv(argv[0], argv[1]);
@@ -894,7 +894,7 @@ scm_subr_func_assq(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_capi_assq(argv[0], argv[1]);
@@ -908,7 +908,7 @@ scm_subr_func_assv(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_capi_assv(argv[0], argv[1]);
@@ -929,7 +929,7 @@ scm_subr_func_list_copy(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_list_copy(argv[0]);
@@ -948,7 +948,7 @@ scm_subr_func_symbol_P(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_symbol_P(argv[0]);
@@ -962,7 +962,7 @@ scm_subr_func_symbol_eq_P(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT, lst = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val, &lst);
 
   lst = scm_api_cons(argv[1], argv[2]);
@@ -982,7 +982,7 @@ scm_subr_func_symbol_to_string(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_symbol_to_string(argv[0]);
@@ -996,7 +996,7 @@ scm_subr_func_string_to_symbol(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_string_to_symbol(argv[0]);
@@ -1015,7 +1015,7 @@ scm_subr_func_char_P(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_char_P(argv[0]);
@@ -1029,7 +1029,7 @@ scm_subr_func_char_eq_P(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT, lst = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val, &lst);
 
   lst = scm_api_cons(argv[1], argv[2]);
@@ -1049,7 +1049,7 @@ scm_subr_func_char_lt_P(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT, lst = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val, &lst);
 
   lst = scm_api_cons(argv[1], argv[2]);
@@ -1069,7 +1069,7 @@ scm_subr_func_char_gt_P(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT, lst = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val, &lst);
 
   lst = scm_api_cons(argv[1], argv[2]);
@@ -1089,7 +1089,7 @@ scm_subr_func_char_le_P(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT, lst = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val, &lst);
 
   lst = scm_api_cons(argv[1], argv[2]);
@@ -1109,7 +1109,7 @@ scm_subr_func_char_ge_P(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT, lst = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val, &lst);
 
   lst = scm_api_cons(argv[1], argv[2]);
@@ -1206,7 +1206,7 @@ scm_subr_func_char_to_integer(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_char_to_integer(argv[0]);
@@ -1220,7 +1220,7 @@ scm_subr_func_integer_to_char(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_capi_integer_to_char(argv[0], NULL);
@@ -1260,7 +1260,7 @@ scm_subr_func_string_P(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_string_P(argv[0]);
@@ -1281,7 +1281,7 @@ scm_subr_func_string(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_string_lst(argv[0]);
@@ -1295,7 +1295,7 @@ scm_subr_func_string_length(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_string_length(argv[0]);
@@ -1309,7 +1309,7 @@ scm_subr_func_string_bytesize(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_string_bytesize(argv[0]);
@@ -1323,7 +1323,7 @@ scm_subr_func_string_ref(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_string_ref(argv[0], argv[1]);
@@ -1337,7 +1337,7 @@ scm_subr_func_string_set_i(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_string_set_i(argv[0], argv[1], argv[2]);
@@ -1351,7 +1351,7 @@ scm_subr_func_string_eq_P(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT, lst = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val, &lst);
 
   lst = scm_api_cons(argv[1], argv[2]);
@@ -1378,7 +1378,7 @@ scm_subr_func_string_lt_P(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT, lst = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val, &lst);
 
   lst = scm_api_cons(argv[1], argv[2]);
@@ -1405,7 +1405,7 @@ scm_subr_func_string_gt_P(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT, lst = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val, &lst);
 
   lst = scm_api_cons(argv[1], argv[2]);
@@ -1432,7 +1432,7 @@ scm_subr_func_string_le_P(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT, lst = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val, &lst);
 
   lst = scm_api_cons(argv[1], argv[2]);
@@ -1459,7 +1459,7 @@ scm_subr_func_string_ge_P(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT, lst = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val, &lst);
 
   lst = scm_api_cons(argv[1], argv[2]);
@@ -1507,7 +1507,7 @@ scm_subr_func_substring(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_substring(argv[0], argv[1], argv[2]);
@@ -1521,7 +1521,7 @@ scm_subr_func_string_append(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_capi_string_append_lst(argv[0]);
@@ -1537,9 +1537,9 @@ scm_subr_func_string_to_list(ScmObj subr, int argc, const ScmObj *argv)
   ScmObj start_end[2] = { SCM_OBJ_INIT,  SCM_OBJ_INIT };
   ssize_t r;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
-  SCM_STACK_PUSH_ARY(start_end, sizeof(start_end)/sizeof(start_end[0]));
+  SCM_REFSTK_REG_ARY(start_end, sizeof(start_end)/sizeof(start_end[0]));
 
   r = scm_subr_list_to_cv(argv[1],
                           start_end, sizeof(start_end)/sizeof(start_end[0]));
@@ -1556,7 +1556,7 @@ scm_subr_func_list_to_string(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_list_to_string(argv[0]);
@@ -1572,9 +1572,9 @@ scm_subr_func_string_copy(ScmObj subr, int argc, const ScmObj *argv)
   ScmObj start_end[2] = { SCM_OBJ_INIT,  SCM_OBJ_INIT };
   ssize_t r;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
-  SCM_STACK_PUSH_ARY(start_end, sizeof(start_end)/sizeof(start_end[0]));
+  SCM_REFSTK_REG_ARY(start_end, sizeof(start_end)/sizeof(start_end[0]));
 
   r = scm_subr_list_to_cv(argv[1],
                           start_end, sizeof(start_end)/sizeof(start_end[0]));
@@ -1593,9 +1593,9 @@ scm_subr_func_string_copy_i(ScmObj subr, int argc, const ScmObj *argv)
   ScmObj start_end[2] = { SCM_OBJ_INIT,  SCM_OBJ_INIT };
   ssize_t r;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
-  SCM_STACK_PUSH_ARY(start_end, sizeof(start_end)/sizeof(start_end[0]));
+  SCM_REFSTK_REG_ARY(start_end, sizeof(start_end)/sizeof(start_end[0]));
 
   r = scm_subr_list_to_cv(argv[3],
                           start_end, sizeof(start_end)/sizeof(start_end[0]));
@@ -1615,9 +1615,9 @@ scm_subr_func_string_fill_i(ScmObj subr, int argc, const ScmObj *argv)
   ScmObj start_end[2] = { SCM_OBJ_INIT,  SCM_OBJ_INIT };
   ssize_t r;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
-  SCM_STACK_PUSH_ARY(start_end, sizeof(start_end)/sizeof(start_end[0]));
+  SCM_REFSTK_REG_ARY(start_end, sizeof(start_end)/sizeof(start_end[0]));
 
   r = scm_subr_list_to_cv(argv[3],
                           start_end, sizeof(start_end)/sizeof(start_end[0]));
@@ -1639,7 +1639,7 @@ scm_subr_func_vector_P(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_vector_P(argv[0]);
@@ -1654,7 +1654,7 @@ scm_subr_func_make_vector(ScmObj subr, int argc, const ScmObj *argv)
   ScmObj val = SCM_OBJ_INIT, fill = SCM_OBJ_INIT;
   ssize_t r;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val, &fill);
 
   r = scm_subr_list_to_cv(argv[1], &fill, 1);
@@ -1671,7 +1671,7 @@ scm_subr_func_vector(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_capi_vector_lst(argv[0]);
@@ -1685,7 +1685,7 @@ scm_subr_func_vector_length(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_vector_length(argv[0]);
@@ -1699,7 +1699,7 @@ scm_subr_func_vector_ref(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_vector_ref(argv[0], argv[1]);
@@ -1713,7 +1713,7 @@ scm_subr_func_vector_set_i(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_vector_set_i(argv[0], argv[1], argv[2]);
@@ -1728,9 +1728,9 @@ scm_subr_func_vector_to_list(ScmObj subr, int argc, const ScmObj *argv)
   ScmObj val = SCM_OBJ_INIT, start_end[2] = { SCM_OBJ_INIT, SCM_OBJ_INIT };
   ssize_t r;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
-  SCM_STACK_PUSH_ARY(start_end,  sizeof(start_end)/sizeof(start_end[0]));
+  SCM_REFSTK_REG_ARY(start_end,  sizeof(start_end)/sizeof(start_end[0]));
 
   r = scm_subr_list_to_cv(argv[1],
                           start_end, sizeof(start_end)/sizeof(start_end[0]));
@@ -1747,7 +1747,7 @@ scm_subr_func_list_to_vector(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_list_to_vector(argv[0]);
@@ -1762,9 +1762,9 @@ scm_subr_func_vector_to_string(ScmObj subr, int argc, const ScmObj *argv)
   ScmObj val = SCM_OBJ_INIT, start_end[2] = { SCM_OBJ_INIT, SCM_OBJ_INIT };
   ssize_t r;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
-  SCM_STACK_PUSH_ARY(start_end,  sizeof(start_end)/sizeof(start_end[0]));
+  SCM_REFSTK_REG_ARY(start_end,  sizeof(start_end)/sizeof(start_end[0]));
 
   r = scm_subr_list_to_cv(argv[1],
                           start_end, sizeof(start_end)/sizeof(start_end[0]));
@@ -1782,9 +1782,9 @@ scm_subr_func_string_to_vector(ScmObj subr, int argc, const ScmObj *argv)
   ScmObj val = SCM_OBJ_INIT, start_end[2] = { SCM_OBJ_INIT, SCM_OBJ_INIT };
   ssize_t r;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
-  SCM_STACK_PUSH_ARY(start_end,  sizeof(start_end)/sizeof(start_end[0]));
+  SCM_REFSTK_REG_ARY(start_end,  sizeof(start_end)/sizeof(start_end[0]));
 
   r = scm_subr_list_to_cv(argv[1],
                           start_end, sizeof(start_end)/sizeof(start_end[0]));
@@ -1802,9 +1802,9 @@ scm_subr_func_vector_copy(ScmObj subr, int argc, const ScmObj *argv)
   ScmObj val = SCM_OBJ_INIT, start_end[2] = { SCM_OBJ_INIT, SCM_OBJ_INIT };
   ssize_t r;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
-  SCM_STACK_PUSH_ARY(start_end,  sizeof(start_end)/sizeof(start_end[0]));
+  SCM_REFSTK_REG_ARY(start_end,  sizeof(start_end)/sizeof(start_end[0]));
 
   r = scm_subr_list_to_cv(argv[1],
                           start_end, sizeof(start_end)/sizeof(start_end[0]));
@@ -1822,9 +1822,9 @@ scm_subr_func_vector_copy_i(ScmObj subr, int argc, const ScmObj *argv)
   ScmObj val = SCM_OBJ_INIT, start_end[2] = { SCM_OBJ_INIT, SCM_OBJ_INIT };
   ssize_t r;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
-  SCM_STACK_PUSH_ARY(start_end,  sizeof(start_end)/sizeof(start_end[0]));
+  SCM_REFSTK_REG_ARY(start_end,  sizeof(start_end)/sizeof(start_end[0]));
 
   r = scm_subr_list_to_cv(argv[3],
                           start_end, sizeof(start_end)/sizeof(start_end[0]));
@@ -1842,7 +1842,7 @@ scm_subr_func_vector_append(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_capi_vector_append_lst(argv[0]);
@@ -1857,9 +1857,9 @@ scm_subr_func_vector_fill_i(ScmObj subr, int argc, const ScmObj *argv)
   ScmObj val = SCM_OBJ_INIT, start_end[2] = { SCM_OBJ_INIT, SCM_OBJ_INIT };
   ssize_t r;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
-  SCM_STACK_PUSH_ARY(start_end,  sizeof(start_end)/sizeof(start_end[0]));
+  SCM_REFSTK_REG_ARY(start_end,  sizeof(start_end)/sizeof(start_end[0]));
 
   r = scm_subr_list_to_cv(argv[2],
                           start_end, sizeof(start_end)/sizeof(start_end[0]));
@@ -1881,7 +1881,7 @@ scm_subr_func_procedure_P(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_procedure_P(argv[0]);
@@ -1896,7 +1896,7 @@ scm_subr_func_apply(ScmObj subr, int argc, const ScmObj *argv)
   ScmObj arg = SCM_OBJ_INIT, prv = SCM_OBJ_INIT, cur = SCM_OBJ_INIT;
   ScmObj itr = SCM_OBJ_INIT, obj = SCM_OBJ_INIT, nxt = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &arg, &prv, &cur,
                        &itr, &obj, &nxt);
 
@@ -1967,7 +1967,7 @@ scm_subr_func_with_exception_handler(ScmObj subr, int argc, const ScmObj *argv)
   ScmObj module = SCM_OBJ_INIT, postproc = SCM_OBJ_INIT;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &module, &postproc);
 
   rslt = scm_capi_subrutine_module(subr, SCM_CSETTER_L(module));
@@ -2009,7 +2009,7 @@ scm_subr_func_error_object_P(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_error_object_P(argv[0]);
@@ -2022,7 +2022,7 @@ scm_subr_func_error_object_message(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_error_object_message(argv[0]);
@@ -2035,7 +2035,7 @@ scm_subr_func_error_object_irritants(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_error_object_irritants(argv[0]);
@@ -2048,7 +2048,7 @@ scm_subr_func_read_error_P(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_read_error_P(argv[0]);
@@ -2061,7 +2061,7 @@ scm_subr_func_file_error_P(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_file_error_P(argv[0]);
@@ -2079,7 +2079,7 @@ scm_subr_func_open_input_file(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_open_input_file(argv[0]);
@@ -2099,7 +2099,7 @@ scm_subr_func_read(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj port = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &port, &val);
 
   port = SCM_OBJ_NULL;
@@ -2119,7 +2119,7 @@ scm_subr_func_write(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj port = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &port, &val);
 
   port = SCM_OBJ_NULL;
@@ -2139,7 +2139,7 @@ scm_subr_func_display(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj port = SCM_OBJ_INIT, val = SCM_OBJ_NULL;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &port, &val);
 
   port = SCM_OBJ_NULL;
@@ -2159,7 +2159,7 @@ scm_subr_func_newline(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj port = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &port, &val);
 
   port = SCM_OBJ_NULL;
@@ -2179,7 +2179,7 @@ scm_subr_func_flush_output_port(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj port = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &port, &val);
 
   port = SCM_OBJ_NULL;
@@ -2199,7 +2199,7 @@ scm_subr_func_eof_object_P(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_capi_eof_object_p(argv[0]) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
@@ -2217,7 +2217,7 @@ scm_subr_func_callcc(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj cont = SCM_OBJ_INIT, args = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &cont, &args);
 
   if (argc != 1) {
@@ -2262,7 +2262,7 @@ scm_subr_func_eval_asm(ScmObj subr, int argc, const ScmObj *argv)
   ScmObj code = SCM_OBJ_INIT, args = SCM_OBJ_INIT;
   ssize_t i;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &code, &args);
 
   if (argc != 1) {
@@ -2300,7 +2300,7 @@ scm_subr_func_eval__post_compile(ScmObj subr, int argc, const ScmObj *argv)
   ScmObj iseq = SCM_OBJ_INIT, proc = SCM_OBJ_INIT;
   ssize_t i;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &iseq, &proc);
 
   iseq = scm_api_assemble(argv[0], SCM_OBJ_NULL);
@@ -2324,7 +2324,7 @@ scm_subr_func_eval(ScmObj subr, int argc, const ScmObj *argv)
   int r;
 
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &compile, &postproc,
                        &subr_mod, &args,
                        &cmpl);
@@ -2372,7 +2372,7 @@ scm_subr_func_exit(ScmObj subr, int argc, const ScmObj *argv)
   ScmObj val = SCM_OBJ_INIT;
   ssize_t len;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   len = scm_capi_length(argv[0]);
@@ -2406,7 +2406,7 @@ scm_subr_func_format(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_capi_format_lst(argv[0], argv[1]);
@@ -2425,7 +2425,7 @@ scm_subr_func_module_name(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_module_name(argv[0]);
@@ -2444,7 +2444,7 @@ scm_subr_func_compiler_P(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_compiler_P(argv[0]);
@@ -2458,7 +2458,7 @@ scm_subr_func_make_compiler(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT, mod = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val, &mod);
 
   mod = SCM_OBJ_NULL;
@@ -2480,7 +2480,7 @@ scm_subr_func_compiler_assign_label_id_i(ScmObj subr,
   ScmObj val = SCM_OBJ_INIT;
   int id;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   id = scm_capi_compiler_assign_label_id_i(argv[0]);
@@ -2497,7 +2497,7 @@ scm_subr_func_compiler_current_module(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_compiler_current_module(argv[0]);
@@ -2511,7 +2511,7 @@ scm_subr_func_compiler_select_module_i(ScmObj subr, int argc, const ScmObj *argv
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_compiler_select_module_i(argv[0], argv[1]);
@@ -2525,7 +2525,7 @@ scm_subr_func_compiler_current_expr(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_compiler_current_expr(argv[0]);
@@ -2539,7 +2539,7 @@ scm_subr_func_compiler_select_expr_i(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_compiler_select_expr_i(argv[0], argv[1]);
@@ -2553,7 +2553,7 @@ scm_subr_func_syntax_P(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_syntax_P(argv[0]);
@@ -2567,7 +2567,7 @@ scm_subr_func_make_syntax(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_make_syntax(argv[0], argv[1]);
@@ -2581,7 +2581,7 @@ scm_subr_func_syntax_keyword(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_syntax_keyword(argv[0]);
@@ -2595,7 +2595,7 @@ scm_subr_func_syntax_handler(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   val = scm_api_syntax_handler(argv[0]);
@@ -2611,7 +2611,7 @@ scm_subr_func_global_syntax_bind(ScmObj subr, int argc, const ScmObj *argv)
   bool export;
   int r;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &obj);
 
   export = false;
@@ -2640,7 +2640,7 @@ scm_subr_func_global_syntax_ref(ScmObj subr, int argc, const ScmObj *argv)
   ScmObj val = SCM_OBJ_INIT;
   int r;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &val);
 
   r = scm_capi_global_syx_ref(argv[0], argv[1], SCM_CSETTER_L(val));
@@ -2671,7 +2671,7 @@ scm_subr_func_eval_file__loop(ScmObj subr, int argc, const ScmObj *argv)
   ScmObj eval = SCM_OBJ_INIT, exp = SCM_OBJ_INIT, args = SCM_OBJ_INIT;
   int r;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &port, &cmpl,
                        &eval, &exp, &args);
 
@@ -2707,7 +2707,7 @@ scm_subr_func_eval_file(ScmObj subr, int argc, const ScmObj *argv)
   ScmObj loop = SCM_OBJ_INIT, args = SCM_OBJ_INIT;
   int r;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &port, &cmpl, &mod,
                        &loop, &args);
 

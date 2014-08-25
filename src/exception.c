@@ -66,7 +66,7 @@ scm_error_initialize_cv(ScmObj exc, ScmObj msg,
 {
   int r;
 
-  SCM_STACK_FRAME_PUSH(&exc, &msg, &type);
+  SCM_REFSTK_INIT_REG(&exc, &msg, &type);
 
   scm_assert_obj_type(exc, &SCM_ERROR_TYPE_INFO);
   scm_assert(scm_obj_null_p(type) || scm_capi_symbol_p(type));
@@ -102,7 +102,7 @@ scm_error_initialize_lst(ScmObj exc, ScmObj msg, ScmObj type, ScmObj irris)
   size_t i;
   int r;
 
-  SCM_STACK_FRAME_PUSH(&exc, &msg, &type, &irris,
+  SCM_REFSTK_INIT_REG(&exc, &msg, &type, &irris,
                        &rest, &ir);
 
   scm_assert_obj_type(exc, &SCM_ERROR_TYPE_INFO);
@@ -154,7 +154,7 @@ scm_error_new_cv(SCM_MEM_TYPE_T mtype, ScmObj msg,
   ScmObj exc = SCM_OBJ_INIT;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&msg, &type,
+  SCM_REFSTK_INIT_REG(&msg, &type,
                        &exc);
 
   scm_assert(scm_obj_null_p(type) || scm_capi_symbol_p(type));
@@ -176,7 +176,7 @@ scm_error_new_lst(SCM_MEM_TYPE_T mtype, ScmObj msg, ScmObj type, ScmObj irris)
   ScmObj exc = SCM_OBJ_INIT;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&msg, &type, &irris,
+  SCM_REFSTK_INIT_REG(&msg, &type, &irris,
                        &exc);
 
   scm_assert(scm_obj_null_p(type) || scm_capi_symbol_p(type));
@@ -207,7 +207,7 @@ scm_error_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
   const char *dlm;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&obj, &port,
+  SCM_REFSTK_INIT_REG(&obj, &port,
                        &msg, &ro);
 
   scm_assert_obj_type(obj, &SCM_ERROR_TYPE_INFO);

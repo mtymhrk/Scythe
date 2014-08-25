@@ -22,7 +22,7 @@ TEST(api_equivalence, capi_eq_p__symbol_return_true)
 {
   ScmObj sym1 = SCM_OBJ_INIT, sym2 = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&sym1, &sym2);
+  SCM_REFSTK_INIT_REG(&sym1, &sym2);
 
   sym1 = read_cstr("aaa");
   sym2 = read_cstr("aaa");
@@ -34,7 +34,7 @@ TEST(api_equivalence, capi_eq_p__symbol_return_false)
 {
   ScmObj sym1 = SCM_OBJ_INIT, sym2 = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&sym1, &sym2);
+  SCM_REFSTK_INIT_REG(&sym1, &sym2);
 
   sym1 = read_cstr("aaa");
   sym2 = read_cstr("bbb");
@@ -46,7 +46,7 @@ TEST(api_equivalence, capi_eq_p__list__return_true)
 {
   ScmObj lst1 = SCM_OBJ_INIT, lst2 = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst1, &lst2);
+  SCM_REFSTK_INIT_REG(&lst1, &lst2);
 
   lst1 = read_cstr("(a b c)");
   lst2 = lst1;
@@ -58,7 +58,7 @@ TEST(api_equivalence, capi_eq_p__list__return_false)
 {
   ScmObj lst1 = SCM_OBJ_INIT, lst2 = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst1, &lst2);
+  SCM_REFSTK_INIT_REG(&lst1, &lst2);
 
   lst1 = read_cstr("(a b c)");
   lst2 = read_cstr("(a b c)");
@@ -70,7 +70,7 @@ TEST(api_equivalence, capi_eq_p__empty_list__return_true)
 {
   ScmObj lst1 = SCM_OBJ_INIT, lst2 = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst1, &lst2);
+  SCM_REFSTK_INIT_REG(&lst1, &lst2);
 
   lst1 = read_cstr("()");
   lst2 = read_cstr("()");
@@ -82,7 +82,7 @@ TEST(api_equivalence, capi_eq_p__string__return_true)
 {
   ScmObj str1 = SCM_OBJ_INIT, str2 = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&str1, &str2);
+  SCM_REFSTK_INIT_REG(&str1, &str2);
 
   str1 = read_cstr("\"abc\"");
   str2 = str1;
@@ -94,7 +94,7 @@ TEST(api_equivalence, capi_eq_p__string__return_false)
 {
   ScmObj str1 = SCM_OBJ_INIT, str2 = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&str1, &str2);
+  SCM_REFSTK_INIT_REG(&str1, &str2);
 
   str1 = read_cstr("\"abc\"");
   str2 = read_cstr("\"abc\"");
@@ -106,7 +106,7 @@ TEST(api_equivalence, capi_eq_p__empty_string__return_false)
 {
   ScmObj str1 = SCM_OBJ_INIT, str2 = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&str1, &str2);
+  SCM_REFSTK_INIT_REG(&str1, &str2);
 
   str1 = read_cstr("\"\"");
   str2 = read_cstr("\"\"");
@@ -118,7 +118,7 @@ TEST(api_equivalence, capi_eq_p__fixnum__return_true)
 {
   ScmObj num1 = SCM_OBJ_INIT, num2 = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&num1, &num2);
+  SCM_REFSTK_INIT_REG(&num1, &num2);
 
   num1 = read_cstr("123");
   num2 = read_cstr("123");
@@ -130,7 +130,7 @@ TEST(api_equivalence, capi_eq_p__fixnum__return_false)
 {
   ScmObj num1 = SCM_OBJ_INIT, num2 = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&num1, &num2);
+  SCM_REFSTK_INIT_REG(&num1, &num2);
 
   num1 = read_cstr("123");
   num2 = read_cstr("321");
@@ -142,7 +142,7 @@ TEST(api_equivalence, capi_eq_p__bignum__return_true)
 {
   ScmObj num1 = SCM_OBJ_INIT, num2 = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&num1, &num2);
+  SCM_REFSTK_INIT_REG(&num1, &num2);
 
   num1 = read_cstr("99999999999999999999999999999999999");
   num2 = num1;
@@ -154,7 +154,7 @@ TEST(api_equivalence, capi_eq_p__bignum__return_false)
 {
   ScmObj num1 = SCM_OBJ_INIT, num2 = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&num1, &num2);
+  SCM_REFSTK_INIT_REG(&num1, &num2);
 
   num1 = read_cstr("99999999999999999999999999999999999");
   num2 = read_cstr("99999999999999999999999999999999999");
@@ -166,7 +166,7 @@ TEST(api_equivalence, capi_eq_p__char__return_true)
 {
   ScmObj chr1 = SCM_OBJ_INIT, chr2 = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&chr1, &chr2);
+  SCM_REFSTK_INIT_REG(&chr1, &chr2);
 
   chr1 = read_cstr("#\\a");
   chr2 = chr1;
@@ -178,7 +178,7 @@ TEST(api_equivalence, capi_eq_p__char__return_false)
 {
   ScmObj chr1 = SCM_OBJ_INIT, chr2 = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&chr1, &chr2);
+  SCM_REFSTK_INIT_REG(&chr1, &chr2);
 
   chr1 = read_cstr("#\\a");
   chr2 = read_cstr("#\\a");
@@ -195,7 +195,7 @@ TEST(api_equivalence, api_eq_P__return_true)
 {
   ScmObj sym1 = SCM_OBJ_INIT, sym2 = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&sym1, &sym2);
+  SCM_REFSTK_INIT_REG(&sym1, &sym2);
 
   sym1 = read_cstr("aaa");
   sym2 = read_cstr("aaa");
@@ -207,7 +207,7 @@ TEST(api_equivalence, api_eq_P__return_false)
 {
   ScmObj sym1 = SCM_OBJ_INIT, sym2 = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&sym1, &sym2);
+  SCM_REFSTK_INIT_REG(&sym1, &sym2);
 
   sym1 = read_cstr("aaa");
   sym2 = read_cstr("bbb");
@@ -220,7 +220,7 @@ TEST(api_equivalence, capi_eqv__symbol__return_true)
   ScmObj sym1 = SCM_OBJ_INIT, sym2 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&sym1, &sym2);
+  SCM_REFSTK_INIT_REG(&sym1, &sym2);
 
   sym1 = read_cstr("aaa");
   sym2 = read_cstr("aaa");
@@ -234,7 +234,7 @@ TEST(api_equivalence, capi_eqv__symbol__return_false)
   ScmObj sym1 = SCM_OBJ_INIT, sym2 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&sym1, &sym2);
+  SCM_REFSTK_INIT_REG(&sym1, &sym2);
 
   sym1 = read_cstr("aaa");
   sym2 = read_cstr("bbb");
@@ -248,7 +248,7 @@ TEST(api_equivalence, capi_eqv__list__return_true)
   ScmObj lst1 = SCM_OBJ_INIT, lst2 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&lst1, &lst2);
+  SCM_REFSTK_INIT_REG(&lst1, &lst2);
 
   lst1 = read_cstr("(a b c)");
   lst2 = lst1;
@@ -262,7 +262,7 @@ TEST(api_equivalence, api_eqv__list__return_false)
   ScmObj lst1 = SCM_OBJ_INIT, lst2 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&lst1, &lst2);
+  SCM_REFSTK_INIT_REG(&lst1, &lst2);
 
   lst1 = read_cstr("(a b c)");
   lst2 = read_cstr("(a b c)");
@@ -276,7 +276,7 @@ TEST(api_equivalence, capi_eqv__empty_list__return_true)
   ScmObj lst1 = SCM_OBJ_INIT, lst2 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&lst1, &lst2);
+  SCM_REFSTK_INIT_REG(&lst1, &lst2);
 
   lst1 = read_cstr("()");
   lst2 = read_cstr("()");
@@ -290,7 +290,7 @@ TEST(api_equivalence, capi_eqv__string__return_true)
   ScmObj str1 = SCM_OBJ_INIT, str2 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&str1, &str2);
+  SCM_REFSTK_INIT_REG(&str1, &str2);
 
   str1 = read_cstr("\"abc\"");
   str2 = str1;
@@ -304,7 +304,7 @@ TEST(api_equivalence, capi_eqv__string__return_false)
   ScmObj str1 = SCM_OBJ_INIT, str2 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&str1, &str2);
+  SCM_REFSTK_INIT_REG(&str1, &str2);
 
   str1 = read_cstr("\"abc\"");
   str2 = read_cstr("\"abc\"");
@@ -318,7 +318,7 @@ TEST(api_equivalence, capi_eqv__empty_string__return_false)
   ScmObj str1 = SCM_OBJ_INIT, str2 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&str1, &str2);
+  SCM_REFSTK_INIT_REG(&str1, &str2);
 
   str1 = read_cstr("\"\"");
   str2 = read_cstr("\"\"");
@@ -332,7 +332,7 @@ TEST(api_equivalence, capi_eqv__fixnum__return_true)
   ScmObj num1 = SCM_OBJ_INIT, num2 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&num1, &num2);
+  SCM_REFSTK_INIT_REG(&num1, &num2);
 
   num1 = read_cstr("123");
   num2 = read_cstr("123");
@@ -346,7 +346,7 @@ TEST(api_equivalence, capi_eqv__fixnum__return_false)
   ScmObj num1 = SCM_OBJ_INIT, num2 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&num1, &num2);
+  SCM_REFSTK_INIT_REG(&num1, &num2);
 
   num1 = read_cstr("123");
   num2 = read_cstr("321");
@@ -360,7 +360,7 @@ TEST(api_equivalence, capi_eqv__bignum__return_true)
   ScmObj num1 = SCM_OBJ_INIT, num2 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&num1, &num2);
+  SCM_REFSTK_INIT_REG(&num1, &num2);
 
   num1 = read_cstr("99999999999999999999999999999999999");
   num2 = read_cstr("99999999999999999999999999999999999");
@@ -374,7 +374,7 @@ TEST(api_equivalence, capi_eqv__bignum__return_false)
   ScmObj num1 = SCM_OBJ_INIT, num2 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&num1, &num2);
+  SCM_REFSTK_INIT_REG(&num1, &num2);
 
   num1 = read_cstr("99999999999999999999999999999999999");
   num2 = read_cstr("88888888888888888888888888888888888");
@@ -388,7 +388,7 @@ TEST(api_equivalence, capi_eqv__char__return_true)
   ScmObj chr1 = SCM_OBJ_INIT, chr2 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&chr1, &chr2);
+  SCM_REFSTK_INIT_REG(&chr1, &chr2);
 
   chr1 = read_cstr("#\\a");
   chr2 = read_cstr("#\\a");
@@ -402,7 +402,7 @@ TEST(api_equivalence, capi_eqv__char__return_false)
   ScmObj chr1 = SCM_OBJ_INIT, chr2 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&chr1, &chr2);
+  SCM_REFSTK_INIT_REG(&chr1, &chr2);
 
   chr1 = read_cstr("#\\a");
   chr2 = read_cstr("#\\b");
@@ -423,7 +423,7 @@ TEST(api_equivalence, api_eqv_P__return_true)
 {
   ScmObj sym1 = SCM_OBJ_INIT, sym2 = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&sym1, &sym2);
+  SCM_REFSTK_INIT_REG(&sym1, &sym2);
 
   sym1 = read_cstr("aaa");
   sym2 = read_cstr("aaa");
@@ -435,7 +435,7 @@ TEST(api_equivalence, api_eqv_P__return_false)
 {
   ScmObj sym1 = SCM_OBJ_INIT, sym2 = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&sym1, &sym2);
+  SCM_REFSTK_INIT_REG(&sym1, &sym2);
 
   sym1 = read_cstr("aaa");
   sym2 = read_cstr("bbb");
@@ -448,7 +448,7 @@ TEST(api_equivalence, capi_equal__symbol__return_true)
   ScmObj sym1 = SCM_OBJ_INIT, sym2 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&sym1, &sym2);
+  SCM_REFSTK_INIT_REG(&sym1, &sym2);
 
   sym1 = read_cstr("aaa");
   sym2 = read_cstr("aaa");
@@ -462,7 +462,7 @@ TEST(api_equivalence, capi_equal__symbol__return_false)
   ScmObj sym1 = SCM_OBJ_INIT, sym2 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&sym1, &sym2);
+  SCM_REFSTK_INIT_REG(&sym1, &sym2);
 
   sym1 = read_cstr("aaa");
   sym2 = read_cstr("bbb");
@@ -476,7 +476,7 @@ TEST(api_equivalence, capi_equal__list__return_true)
   ScmObj lst1 = SCM_OBJ_INIT, lst2 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&lst1, &lst2);
+  SCM_REFSTK_INIT_REG(&lst1, &lst2);
 
   lst1 = read_cstr("(a b c)");
   lst2 = read_cstr("(a b c)");
@@ -490,7 +490,7 @@ TEST(api_equivalence, api_equal__list__return_false)
   ScmObj lst1 = SCM_OBJ_INIT, lst2 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&lst1, &lst2);
+  SCM_REFSTK_INIT_REG(&lst1, &lst2);
 
   lst1 = read_cstr("(a b c)");
   lst2 = read_cstr("(a b z)");
@@ -504,7 +504,7 @@ TEST(api_equivalence, api_equal__circularly_linked_list__return_true_1)
   ScmObj lst1 = SCM_OBJ_INIT, lst2 = SCM_OBJ_INIT, tail = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&lst1, &lst2, &tail);
+  SCM_REFSTK_INIT_REG(&lst1, &lst2, &tail);
 
   lst1 = read_cstr("(a b c)");
   lst2 = read_cstr("(a b c)");
@@ -531,7 +531,7 @@ IGNORE_TEST(api_equivalence, api_equal__circularly_linked_list__return_true_2)
   ScmObj lst1 = SCM_OBJ_INIT, lst2 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&lst1, &lst2);
+  SCM_REFSTK_INIT_REG(&lst1, &lst2);
 
   lst1 = read_cstr("#1=(a b . #1#)");
   lst2 = read_cstr("#1=(a b a b . #1#)");
@@ -545,7 +545,7 @@ TEST(api_equivalence, capi_equal__vector__return_true)
   ScmObj vec1 = SCM_OBJ_INIT, vec2 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&vec1, &vec2);
+  SCM_REFSTK_INIT_REG(&vec1, &vec2);
 
   vec1 = read_cstr("#(a b c)");
   vec2 = read_cstr("#(a b c)");
@@ -559,7 +559,7 @@ TEST(api_equivalence, api_equal__vector__return_false)
   ScmObj vec1 = SCM_OBJ_INIT, vec2 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&vec1, &vec2);
+  SCM_REFSTK_INIT_REG(&vec1, &vec2);
 
   vec1 = read_cstr("#(a b c)");
   vec2 = read_cstr("#(a b z)");
@@ -573,7 +573,7 @@ TEST(api_equivalence, api_equal__circularly_linked_vector__return_true_1)
   ScmObj vec1 = SCM_OBJ_INIT, vec2 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&vec1, &vec2);
+  SCM_REFSTK_INIT_REG(&vec1, &vec2);
 
   vec1 = read_cstr("#(a b c)");
   vec2 = read_cstr("#(a b c)");
@@ -590,7 +590,7 @@ TEST(api_equivalence, capi_equal__string__return_true)
   ScmObj str1 = SCM_OBJ_INIT, str2 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&str1, &str2);
+  SCM_REFSTK_INIT_REG(&str1, &str2);
 
   str1 = read_cstr("\"abc\"");
   str2 = read_cstr("\"abc\"");
@@ -604,7 +604,7 @@ TEST(api_equivalence, capi_equal__string__return_false)
   ScmObj str1 = SCM_OBJ_INIT, str2 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&str1, &str2);
+  SCM_REFSTK_INIT_REG(&str1, &str2);
 
   str1 = read_cstr("\"abc\"");
   str2 = read_cstr("\"abz\"");
@@ -618,7 +618,7 @@ TEST(api_equivalence, capi_equal__fixnum__return_true)
   ScmObj num1 = SCM_OBJ_INIT, num2 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&num1, &num2);
+  SCM_REFSTK_INIT_REG(&num1, &num2);
 
   num1 = read_cstr("123");
   num2 = read_cstr("123");
@@ -632,7 +632,7 @@ TEST(api_equivalence, capi_equal__fixnum__return_false)
   ScmObj num1 = SCM_OBJ_INIT, num2 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&num1, &num2);
+  SCM_REFSTK_INIT_REG(&num1, &num2);
 
   num1 = read_cstr("123");
   num2 = read_cstr("321");
@@ -646,7 +646,7 @@ TEST(api_equivalence, capi_equal__bignum__return_true)
   ScmObj num1 = SCM_OBJ_INIT, num2 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&num1, &num2);
+  SCM_REFSTK_INIT_REG(&num1, &num2);
 
   num1 = read_cstr("99999999999999999999999999999999999");
   num2 = read_cstr("99999999999999999999999999999999999");
@@ -660,7 +660,7 @@ TEST(api_equivalence, capi_equal__bignum__return_false)
   ScmObj num1 = SCM_OBJ_INIT, num2 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&num1, &num2);
+  SCM_REFSTK_INIT_REG(&num1, &num2);
 
   num1 = read_cstr("99999999999999999999999999999999999");
   num2 = read_cstr("88888888888888888888888888888888888");
@@ -674,7 +674,7 @@ TEST(api_equivalence, capi_equal__char__return_true)
   ScmObj chr1 = SCM_OBJ_INIT, chr2 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&chr1, &chr2);
+  SCM_REFSTK_INIT_REG(&chr1, &chr2);
 
   chr1 = read_cstr("#\\a");
   chr2 = read_cstr("#\\a");
@@ -688,7 +688,7 @@ TEST(api_equivalence, capi_equal__char__return_false)
   ScmObj chr1 = SCM_OBJ_INIT, chr2 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&chr1, &chr2);
+  SCM_REFSTK_INIT_REG(&chr1, &chr2);
 
   chr1 = read_cstr("#\\a");
   chr2 = read_cstr("#\\b");
@@ -709,7 +709,7 @@ TEST(api_equivalence, api_equal_P__return_true)
 {
   ScmObj sym1 = SCM_OBJ_INIT, sym2 = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&sym1, &sym2);
+  SCM_REFSTK_INIT_REG(&sym1, &sym2);
 
   sym1 = read_cstr("aaa");
   sym2 = read_cstr("aaa");
@@ -721,7 +721,7 @@ TEST(api_equivalence, api_equal_P__return_false)
 {
   ScmObj sym1 = SCM_OBJ_INIT, sym2 = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&sym1, &sym2);
+  SCM_REFSTK_INIT_REG(&sym1, &sym2);
 
   sym1 = read_cstr("aaa");
   sym2 = read_cstr("bbb");

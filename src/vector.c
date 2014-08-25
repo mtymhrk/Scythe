@@ -24,7 +24,7 @@ length_of_vector_maked_with_list(ScmObj lst)
   ScmObj l = SCM_OBJ_INIT;
   ssize_t cnt;
 
-  SCM_STACK_FRAME_PUSH(&lst,
+  SCM_REFSTK_INIT_REG(&lst,
                        &l);
 
   if (scm_obj_null_p(lst))
@@ -102,7 +102,7 @@ scm_vector_initialize_lst(ScmObj vector, size_t length, ScmObj lst)
   ScmObj l = SCM_OBJ_INIT, e = SCM_OBJ_INIT;
   size_t i;
 
-  SCM_STACK_FRAME_PUSH(&vector, &lst,
+  SCM_REFSTK_INIT_REG(&vector, &lst,
                        &l, &e);
 
   scm_assert_obj_type(vector, &SCM_VECTOR_TYPE_INFO);
@@ -151,7 +151,7 @@ scm_vector_new(SCM_MEM_TYPE_T mtype,
 {
   ScmObj vector = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fill, &vector);
+  SCM_REFSTK_INIT_REG(&fill, &vector);
 
   /* Vector の実装として、length を SSIZE_MAX 以下に制限する必要はないが、
      api.c との兼ね合いで制限する */
@@ -171,7 +171,7 @@ scm_vector_new_from_ary(SCM_MEM_TYPE_T mtype, const ScmObj *elms, size_t length)
 {
   ScmObj vector = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vector);
+  SCM_REFSTK_INIT_REG(&vector);
 
   scm_assert(length == 0 || (length > 0 && elms != NULL));
   scm_assert(length <= SSIZE_MAX);
@@ -191,7 +191,7 @@ scm_vector_new_from_list(SCM_MEM_TYPE_T mtype, ScmObj lst)
   ScmObj vector = SCM_OBJ_INIT;
   ssize_t len;
 
-  SCM_STACK_FRAME_PUSH(&lst, &vector);
+  SCM_REFSTK_INIT_REG(&lst, &vector);
 
   len = length_of_vector_maked_with_list(lst);
   if (len < 0) return SCM_OBJ_NULL;
@@ -282,7 +282,7 @@ scm_vector_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
   size_t idx;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&obj, &port);
+  SCM_REFSTK_INIT_REG(&obj, &port);
 
   scm_assert_obj_type(obj, &SCM_VECTOR_TYPE_INFO);
 

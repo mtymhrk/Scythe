@@ -33,7 +33,7 @@ scm_char_write_ext_rep(ScmObj obj, ScmObj port)
   scm_char_t chr;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&obj, &port, &ro);
+  SCM_REFSTK_INIT_REG(&obj, &port, &ro);
 
   scm_assert_obj_type(obj, &SCM_CHAR_TYPE_INFO);
 
@@ -128,7 +128,7 @@ scm_char_new(SCM_MEM_TYPE_T mtype,
 {
   ScmObj chr = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&chr);
+  SCM_REFSTK_INIT_REG(&chr);
 
   scm_assert(value != NULL);
   scm_assert(enc != NULL);

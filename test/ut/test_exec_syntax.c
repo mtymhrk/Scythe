@@ -29,7 +29,7 @@ def_global_var(const char *sym, const char *obj)
 {
   ScmObj m = SCM_OBJ_INIT, s = SCM_OBJ_INIT, o = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&m, &s, &o);
+  SCM_REFSTK_INIT_REG(&m, &s, &o);
 
   m = scm_capi_make_symbol_from_cstr("main", SCM_ENC_SRC);
   s = scm_capi_make_symbol_from_cstr(sym, SCM_ENC_SRC);
@@ -43,7 +43,7 @@ ref_global_var(const char *sym)
 {
   ScmObj m = SCM_OBJ_INIT, s = SCM_OBJ_INIT, o = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&m, &s, &o);
+  SCM_REFSTK_INIT_REG(&m, &s, &o);
 
   m = scm_capi_make_symbol_from_cstr("main", SCM_ENC_SRC);
   s = scm_capi_make_symbol_from_cstr(sym, SCM_ENC_SRC);
@@ -58,7 +58,7 @@ test_eval__comp_val_with_obj(const char *expr, const char *expc)
 {
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&actual, &expected);
+  SCM_REFSTK_INIT_REG(&actual, &expected);
 
   expected = read_cstr(expc);
   actual = eval_cstr(expr);
@@ -71,7 +71,7 @@ test_eval__comp_gv_with_obj(const char *expr, const char *sym, const char *expc)
 {
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&actual, &expected);
+  SCM_REFSTK_INIT_REG(&actual, &expected);
 
   expected = read_cstr(expc);
   eval_cstr(expr);
@@ -85,7 +85,7 @@ test_eval__comp_val_with_gv(const char *expr, const char *sym)
 {
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&actual, &expected);
+  SCM_REFSTK_INIT_REG(&actual, &expected);
 
   expected = ref_global_var(sym);
   actual = eval_cstr(expr);
@@ -99,7 +99,7 @@ test_eval__chk_val_type(const char *expr, bool (*func)(ScmObj))
 {
   ScmObj actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&actual);
+  SCM_REFSTK_INIT_REG(&actual);
 
   actual = eval_cstr(expr);
 
@@ -112,7 +112,7 @@ test_eval__chk_gv_type(const char *expr, const char *sym,
 {
   ScmObj actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&actual);
+  SCM_REFSTK_INIT_REG(&actual);
 
   eval_cstr(expr);
   actual = ref_global_var(sym);

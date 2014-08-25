@@ -23,14 +23,14 @@ scm_make_module_name(const char * const *name_str, size_t n)
   ScmObj str[n];
   ScmObj name = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&name);
+  SCM_REFSTK_INIT_REG(&name);
 
   scm_assert(n > 0);
 
   for (size_t i = 0; i < n; i++) {
     str[i] = scm_capi_make_symbol_from_cstr(name_str[i], SCM_ENC_SRC);
     if (scm_obj_null_p(str[i])) return SCM_OBJ_NULL;
-    SCM_STACK_PUSH(&str[i]);
+    SCM_REFSTK_REG(&str[i]);
   }
 
   name = SCM_NIL_OBJ;
@@ -49,7 +49,7 @@ scm_define_subr(ScmObj module, const struct subr_data *data, size_t n)
   ScmObj sym  = SCM_OBJ_INIT, subr = SCM_OBJ_INIT;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&module,
+  SCM_REFSTK_INIT_REG(&module,
                        &sym, &subr);
 
   for (size_t i = 0; i < n; i++) {
@@ -74,7 +74,7 @@ scm_load_module(const char * const *name_str, size_t n,
   ScmObj name = SCM_OBJ_INIT, mod = SCM_OBJ_INIT;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&name, &mod);
+  SCM_REFSTK_INIT_REG(&name, &mod);
 
   name = scm_make_module_name(name_str, n);
   if (scm_obj_null_p(name)) return -1;
@@ -295,7 +295,7 @@ scm_define_scheme_base_subr(ScmObj module)
   ScmObj sym  = SCM_OBJ_INIT, subr = SCM_OBJ_INIT;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&module,
+  SCM_REFSTK_INIT_REG(&module,
                        &sym, &subr);
 
   rslt = scm_define_subr(module, data, sizeof(data)/sizeof(data[0]));
@@ -320,7 +320,7 @@ scm_define_scheme_base_current_port(ScmObj module)
   ScmObj sym = SCM_OBJ_INIT, port = SCM_OBJ_INIT, prm = SCM_OBJ_INIT;
   int rslt, fd;
 
-  SCM_STACK_FRAME_PUSH(&module,
+  SCM_REFSTK_INIT_REG(&module,
                        &sym, &port, &prm);
 
   for (size_t i = 0; i < sizeof(data)/sizeof(data[0]); i++) {
@@ -358,7 +358,7 @@ scm_load_module_func_scheme_base(ScmObj mod)
   ScmObj name = SCM_OBJ_INIT;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&mod,
+  SCM_REFSTK_INIT_REG(&mod,
                        &name);
 
 
@@ -421,7 +421,7 @@ scm_define_scheme_char_subr(ScmObj module)
 
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&module);
+  SCM_REFSTK_INIT_REG(&module);
 
   rslt = scm_define_subr(module, data, sizeof(data)/sizeof(data[0]));
   if (rslt < 0) return -1;
@@ -435,7 +435,7 @@ scm_load_module_func_scheme_char(ScmObj mod)
   ScmObj name = SCM_OBJ_INIT;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&mod,
+  SCM_REFSTK_INIT_REG(&mod,
                        &name);
 
 
@@ -493,7 +493,7 @@ scm_define_scythe_internal_compile_subr(ScmObj module)
 
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&module);
+  SCM_REFSTK_INIT_REG(&module);
 
   rslt = scm_define_subr(module, data, sizeof(data)/sizeof(data[0]));
   if (rslt < 0) return -1;
@@ -509,7 +509,7 @@ scm_define_scythe_internal_compile_closure(ScmObj mod)
   ScmObj port = SCM_OBJ_INIT, lst = SCM_OBJ_INIT, iseq = SCM_OBJ_INIT;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&mod,
+  SCM_REFSTK_INIT_REG(&mod,
                        &port, &lst, &iseq);
 
   port = scm_capi_open_input_string_cstr(compiler_code,
@@ -538,7 +538,7 @@ scm_load_module_func_scythe_internal_compile(ScmObj mod)
    *       (compiler のコードのデシリアライズが重い)
    */
 
-  SCM_STACK_FRAME_PUSH(&name, &mod);
+  SCM_REFSTK_INIT_REG(&name, &mod);
 
   /*
    * load (scythe base) module and import it
@@ -587,7 +587,7 @@ scm_define_scythe_internal_repl_closure(ScmObj mod)
   ScmObj port = SCM_OBJ_INIT, lst = SCM_OBJ_INIT, iseq = SCM_OBJ_INIT;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&mod,
+  SCM_REFSTK_INIT_REG(&mod,
                        &port, &lst, &iseq);
 
   port = scm_capi_open_input_string_cstr(repl_code,
@@ -612,7 +612,7 @@ scm_load_module_func_scythe_internal_repl(ScmObj mod)
   ScmObj name = SCM_OBJ_INIT;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&name, &mod);
+  SCM_REFSTK_INIT_REG(&name, &mod);
 
   /*
    * load (scythe base) module and import it
@@ -655,7 +655,7 @@ scm_define_scythe_internal_command_subr(ScmObj module)
 
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&module);
+  SCM_REFSTK_INIT_REG(&module);
 
   rslt = scm_define_subr(module, data, sizeof(data)/sizeof(data[0]));
   if (rslt < 0) return -1;
@@ -707,7 +707,7 @@ scm_define_scythe_base_subr(ScmObj module)
 
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&module);
+  SCM_REFSTK_INIT_REG(&module);
 
   rslt = scm_define_subr(module, data, sizeof(data)/sizeof(data[0]));
   if (rslt < 0) return -1;
@@ -722,7 +722,7 @@ scm_load_module_func_scythe_base(ScmObj mod)
   ScmObj name = SCM_OBJ_INIT;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&mod,
+  SCM_REFSTK_INIT_REG(&mod,
                        &name);
 
   /*
@@ -781,7 +781,7 @@ scm_load_module_func_main(ScmObj mod)
   ScmObj name = SCM_OBJ_INIT;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&mod,
+  SCM_REFSTK_INIT_REG(&mod,
                        &name);
 
   /*

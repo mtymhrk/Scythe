@@ -26,7 +26,7 @@ TEST(vm, vm_run__op_immval)
   ScmObj iseq = SCM_OBJ_INIT;
   ScmObj sym = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&iseq, &sym);
+  SCM_REFSTK_INIT_REG(&iseq, &sym);
 
   /* preprocess */
   iseq = scm_api_make_iseq();
@@ -49,9 +49,9 @@ test_adjust_val_to_arity_aux(ScmObj val, size_t vl, int arity,
 {
   ScmObj v[vl], e[el];
 
-  SCM_STACK_FRAME_PUSH(&val, &expected);
-  SCM_STACK_PUSH_ARY(v, vl);
-  SCM_STACK_PUSH_ARY(e, el);
+  SCM_REFSTK_INIT_REG(&val, &expected);
+  SCM_REFSTK_REG_ARY(v, vl);
+  SCM_REFSTK_REG_ARY(e, el);
 
   for (size_t i = 0; i < vl; i++)
     v[i] = scm_capi_vector_ref(val, i);
@@ -74,7 +74,7 @@ test_adjust_val_to_arity(const char *val, int arity, const char *expected)
   ScmObj v = SCM_OBJ_INIT, e = SCM_OBJ_INIT;
   ssize_t vl, el;
 
-  SCM_STACK_FRAME_PUSH(&v, &e);
+  SCM_REFSTK_INIT_REG(&v, &e);
 
   v = read_cstr(val);
   e = read_cstr(expected);

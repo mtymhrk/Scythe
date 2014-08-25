@@ -60,7 +60,7 @@ chk_string_port_contents(ScmObj port, const char *expected)
 {
   ScmObj actual = SCM_OBJ_INIT, expe;
 
-  SCM_STACK_FRAME_PUSH(&port,
+  SCM_REFSTK_INIT_REG(&port,
                        &actual, &expe);
 
   expe = scm_capi_make_string_from_cstr(expected, SCM_ENC_SRC);
@@ -75,7 +75,7 @@ test_api_write_simple(ScmObj port, int type)
   const char *expected = "\"hello\"";
   ScmObj o = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&port,
+  SCM_REFSTK_INIT_REG(&port,
                        &o);
 
   o = scm_capi_make_string_from_cstr("hello", SCM_ENC_SRC);
@@ -95,7 +95,7 @@ test_api_write_simple__specify_closed_port__return_ERROR(ScmObj port, int type)
 {
   ScmObj o = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&port,
+  SCM_REFSTK_INIT_REG(&port,
                        &o);
 
   o = scm_capi_make_string_from_cstr("hello", SCM_ENC_SRC);
@@ -110,7 +110,7 @@ test_api_display(ScmObj port, int type)
   const char *expected = "hello";
   ScmObj o = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&port,
+  SCM_REFSTK_INIT_REG(&port,
                        &o);
 
   o = scm_capi_make_string_from_cstr("hello", SCM_ENC_SRC);
@@ -130,7 +130,7 @@ test_api_display__specify_closed_port__return_ERROR(ScmObj port, int type)
 {
   ScmObj o = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&port,
+  SCM_REFSTK_INIT_REG(&port,
                        &o);
 
   o = scm_capi_make_string_from_cstr("hello", SCM_ENC_SRC);
@@ -144,7 +144,7 @@ test_api_newline(ScmObj port, int type)
 {
   const char *expected = "\n";
 
-  SCM_STACK_FRAME_PUSH(&port);
+  SCM_REFSTK_INIT_REG(&port);
 
   TEST_ASSERT_SCM_EQ(SCM_UNDEF_OBJ, scm_api_newline(port));
 
@@ -159,7 +159,7 @@ test_api_newline(ScmObj port, int type)
 static void
 test_api_newline__specify_closed_port__return_ERROR(ScmObj port, int type)
 {
-  SCM_STACK_FRAME_PUSH(&port);
+  SCM_REFSTK_INIT_REG(&port);
 
   scm_api_close_port(port);
   TEST_ASSERT_SCM_NULL(scm_api_newline(port));
@@ -171,7 +171,7 @@ test_capi_write_cchr(ScmObj port, int type)
   const char *expected = "?";
   scm_char_t c = { .ascii = '?' };
 
-  SCM_STACK_FRAME_PUSH(&port);
+  SCM_REFSTK_INIT_REG(&port);
 
   TEST_ASSERT_EQUAL_INT(0, scm_capi_write_cchr(c, SCM_ENC_SRC, port));
 
@@ -188,7 +188,7 @@ test_capi_write_cchr__specify_closed_port__return_ERROR(ScmObj port, int type)
 {
   scm_char_t c = { .ascii = '?' };
 
-  SCM_STACK_FRAME_PUSH(&port);
+  SCM_REFSTK_INIT_REG(&port);
 
   scm_api_close_port(port);
   TEST_ASSERT_EQUAL_INT(-1, scm_capi_write_cchr(c, SCM_ENC_SRC, port));
@@ -200,7 +200,7 @@ test_api_write_char(ScmObj port, int type)
   const char *expected = "?";
   ScmObj c = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&port,
+  SCM_REFSTK_INIT_REG(&port,
                        &c);
 
   c = scm_capi_make_char(&(scm_char_t){ .ascii = '?' }, SCM_ENC_SRC);
@@ -219,7 +219,7 @@ test_api_write_char__specify_closed_port__return_ERROR(ScmObj port, int type)
 {
   ScmObj c = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&port,
+  SCM_REFSTK_INIT_REG(&port,
                        &c);
 
   c = scm_capi_make_char(&(scm_char_t){ .ascii = '?' }, SCM_ENC_SRC);
@@ -232,7 +232,7 @@ test_capi_write_cstr(ScmObj port, int type)
 {
   const char *expected = "hello";
 
-  SCM_STACK_FRAME_PUSH(&port);
+  SCM_REFSTK_INIT_REG(&port);
 
   TEST_ASSERT_EQUAL_INT(0, scm_capi_write_cstr(expected, SCM_ENC_SRC, port));
 
@@ -247,7 +247,7 @@ test_capi_write_cstr(ScmObj port, int type)
 static void
 test_capi_write_cstr__specify_closed_port__return_ERROR(ScmObj port, int type)
 {
-  SCM_STACK_FRAME_PUSH(&port);
+  SCM_REFSTK_INIT_REG(&port);
 
   scm_api_close_port(port);
 
@@ -260,7 +260,7 @@ test_capi_write_string(ScmObj port, int type)
   const char *expected = "hello";
   ScmObj s = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&port,
+  SCM_REFSTK_INIT_REG(&port,
                        &s);
 
   s = scm_capi_make_string_from_cstr(expected, SCM_ENC_SRC);
@@ -280,7 +280,7 @@ test_capi_write_string__specify_start(ScmObj port, int type)
   const char *expected = "ello";
   ScmObj s = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&port,
+  SCM_REFSTK_INIT_REG(&port,
                        &s);
 
   s = scm_capi_make_string_from_cstr("hello", SCM_ENC_SRC);
@@ -300,7 +300,7 @@ test_capi_write_string__specify_start_end(ScmObj port, int type)
   const char *expected = "ell";
   ScmObj s = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&port,
+  SCM_REFSTK_INIT_REG(&port,
                        &s);
 
   s = scm_capi_make_string_from_cstr("hello", SCM_ENC_SRC);
@@ -319,7 +319,7 @@ test_capi_write_string__specify_invalid_start_end__return_ERROR(ScmObj port, int
 {
   ScmObj s = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&port,
+  SCM_REFSTK_INIT_REG(&port,
                        &s);
 
   s = scm_capi_make_string_from_cstr("hello", SCM_ENC_SRC);
@@ -332,7 +332,7 @@ test_api_write_string(ScmObj port, int type)
   const char *expected = "hello";
   ScmObj s = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&port,
+  SCM_REFSTK_INIT_REG(&port,
                        &s);
 
   s = scm_capi_make_string_from_cstr(expected, SCM_ENC_SRC);
@@ -353,7 +353,7 @@ test_api_write_string__specify_start(ScmObj port, int type)
   const char *expected = "llo";
   ScmObj s = SCM_OBJ_INIT, n1 = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&port,
+  SCM_REFSTK_INIT_REG(&port,
                        &s, &n1);
 
   s = scm_capi_make_string_from_cstr("hello", SCM_ENC_SRC);
@@ -375,7 +375,7 @@ test_api_write_string__specify_start_end(ScmObj port, int type)
   const char *expected = "l";
   ScmObj s = SCM_OBJ_INIT, n1 = SCM_OBJ_INIT, n2 = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&port,
+  SCM_REFSTK_INIT_REG(&port,
                        &s, &n1, &n2);
 
   s = scm_capi_make_string_from_cstr("hello", SCM_ENC_SRC);
@@ -396,7 +396,7 @@ test_api_write_string__specify_invalid_start_end__return_ERROR(ScmObj port, int 
 {
   ScmObj s = SCM_OBJ_INIT, n1 = SCM_OBJ_INIT, n2 = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&port,
+  SCM_REFSTK_INIT_REG(&port,
                        &s, &n1, &n2);
 
   s = scm_capi_make_string_from_cstr("hello", SCM_ENC_SRC);
@@ -410,7 +410,7 @@ test_api_flush_output_port(ScmObj port, int type)
 {
   const char *expected = "hello";
 
-  SCM_STACK_FRAME_PUSH(&port);
+  SCM_REFSTK_INIT_REG(&port);
 
   scm_capi_write_cstr(expected, SCM_ENC_SRC, port);
   TEST_ASSERT_SCM_EQ(SCM_UNDEF_OBJ, scm_api_flush_output_port(port));
@@ -424,7 +424,7 @@ test_api_flush_output_port(ScmObj port, int type)
 static void
 test_api_flush_output_port__specify_closed_port__return_ERROR(ScmObj port, int type)
 {
-  SCM_STACK_FRAME_PUSH(&port);
+  SCM_REFSTK_INIT_REG(&port);
 
   scm_api_close_port(port);
   TEST_ASSERT_SCM_NULL(scm_api_flush_output_port(port));

@@ -197,7 +197,7 @@ scm_capi_eqv(ScmObj obj1, ScmObj obj2, bool *rslt)
 {
   bool cmp;
 
-  SCM_STACK_FRAME_PUSH(&obj1, &obj2);
+  SCM_REFSTK_INIT_REG(&obj1, &obj2);
 
   if (scm_capi_eq_p(obj1, obj2)) {
     cmp = true;
@@ -260,7 +260,7 @@ scm_api_equal_check_circular(ScmObj obj1, ScmObj obj2,
   scm_assert(scm_capi_nil_p(stack2) || scm_capi_pair_p(stack2));
   scm_assert(rslt != NULL);
 
-  SCM_STACK_FRAME_PUSH(&obj1, &obj2, &stack1, &stack2,
+  SCM_REFSTK_INIT_REG(&obj1, &obj2, &stack1, &stack2,
                        &elm1, &elm2,
                        &lst1, &lst2);
 
@@ -320,7 +320,7 @@ scm_capi_equal_aux(ScmObj obj1, ScmObj obj2,
   scm_assert(scm_capi_nil_p(stack1) || scm_capi_pair_p(stack1));
   scm_assert(scm_capi_nil_p(stack2) || scm_capi_pair_p(stack2));
 
-  SCM_STACK_FRAME_PUSH(&obj1, &obj2, &stack1, &stack2,
+  SCM_REFSTK_INIT_REG(&obj1, &obj2, &stack1, &stack2,
                        &elm1, &elm2);
 
   r = scm_capi_eqv(obj1, obj2, &cmp);
@@ -690,7 +690,7 @@ scm_capi_cxr(ScmObj pair, const char *dir)
   ScmObj x = SCM_OBJ_INIT;
   size_t i;
 
-  SCM_STACK_FRAME_PUSH(&pair,
+  SCM_REFSTK_INIT_REG(&pair,
                        &x);
 
   if (dir == NULL) {
@@ -725,7 +725,7 @@ scm_api_list_P(ScmObj lst)
 {
   ScmObj rabbit = SCM_OBJ_INIT, tortoise = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst, &rabbit, &tortoise);
+  SCM_REFSTK_INIT_REG(&lst, &rabbit, &tortoise);
 
   if (scm_capi_nil_p(lst))
     return SCM_TRUE_OBJ;
@@ -768,7 +768,7 @@ scm_capi_make_list(size_t n, ScmObj fill)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fill,
+  SCM_REFSTK_INIT_REG(&fill,
                        &lst);
 
   if (scm_obj_null_p(fill))
@@ -805,7 +805,7 @@ scm_capi_list_cv(const ScmObj *elm, size_t n)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst);
+  SCM_REFSTK_INIT_REG(&lst);
 
   if (elm == NULL)
     return scm_api_nil();
@@ -829,7 +829,7 @@ scm_capi_list(size_t n, ...)
   ScmObj args[n];
   va_list ap;
 
-  SCM_STACK_FRAME;
+  SCM_REFSTK_INIT;
 
   va_start(ap, n);
   for (unsigned int i = 0; i < n; i++)
@@ -837,7 +837,7 @@ scm_capi_list(size_t n, ...)
   va_end(ap);
 
   for (unsigned int i = 0; i < n; i++)
-    SCM_STACK_PUSH(args + i);
+    SCM_REFSTK_REG(args + i);
 
   return scm_capi_list_cv(args, n);
 }
@@ -848,7 +848,7 @@ scm_capi_length(ScmObj lst)
   ScmObj node = SCM_OBJ_INIT;
   size_t n;
 
-  SCM_STACK_FRAME_PUSH(&node);
+  SCM_REFSTK_INIT_REG(&node);
 
   if (scm_capi_nil_p(lst)) {
     return 0;
@@ -896,8 +896,8 @@ scm_capi_append_lst(ScmObj lst)
   ScmObj arg[] = { SCM_OBJ_INIT, SCM_OBJ_INIT };
   ScmObj l = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst, &l);
-  SCM_STACK_PUSH_ARY(arg, sizeof(arg)/sizeof(arg[0]));
+  SCM_REFSTK_INIT_REG(&lst, &l);
+  SCM_REFSTK_REG_ARY(arg, sizeof(arg)/sizeof(arg[0]));
 
   if (scm_obj_null_p(lst)) {
     scm_capi_error("append: invalid argument", 1, lst);
@@ -933,7 +933,7 @@ scm_capi_append_cv(const ScmObj *lists, size_t n)
   ScmObj new_lst = SCM_OBJ_INIT, prv = SCM_OBJ_INIT, cur = SCM_OBJ_INIT;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&tail, &lst, &elm,
+  SCM_REFSTK_INIT_REG(&tail, &lst, &elm,
                        &new_lst, &prv, &cur);
 
   if (lists == NULL || n == 0)
@@ -996,7 +996,7 @@ scm_capi_append(size_t n, ...)
   ScmObj args[n];
   va_list ap;
 
-  SCM_STACK_FRAME;
+  SCM_REFSTK_INIT;
 
   va_start(ap, n);
   for (size_t i = 0; i < n; i++)
@@ -1004,7 +1004,7 @@ scm_capi_append(size_t n, ...)
   va_end(ap);
 
   for (size_t i = 0; i < n; i++)
-    SCM_STACK_PUSH(args + i);
+    SCM_REFSTK_REG(args + i);
 
   return scm_capi_append_cv(args, n);
 }
@@ -1014,7 +1014,7 @@ scm_api_reverse(ScmObj lst)
 {
   ScmObj new_lst = SCM_OBJ_INIT, cur = SCM_OBJ_INIT, elm = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst,
+  SCM_REFSTK_INIT_REG(&lst,
                        &new_lst, &cur, &elm);
 
   if (scm_obj_null_p(lst)) {
@@ -1041,7 +1041,7 @@ scm_capi_list_tail(ScmObj lst, size_t n)
 {
   ScmObj l = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst,
+  SCM_REFSTK_INIT_REG(&lst,
                        &l);
 
   l = lst;
@@ -1081,7 +1081,7 @@ scm_capi_list_ref(ScmObj lst, size_t n)
 {
   ScmObj l = SCM_OBJ_NULL;
 
-  SCM_STACK_FRAME_PUSH(&l);
+  SCM_REFSTK_INIT_REG(&l);
 
   l = lst;
   for (size_t i = 0; i < n; i++) {
@@ -1125,7 +1125,7 @@ scm_capi_list_set_i(ScmObj lst, size_t n, ScmObj obj)
 {
   ScmObj l = SCM_OBJ_NULL;
 
-  SCM_STACK_FRAME_PUSH(&l);
+  SCM_REFSTK_INIT_REG(&l);
 
   l = lst;
   for (size_t i = 0; i < n; i++) {
@@ -1170,7 +1170,7 @@ scm_capi_member_aux(ScmObj obj, ScmObj lst, ScmObj (*cmp)(ScmObj x, ScmObj y))
 {
   ScmObj l = SCM_OBJ_INIT, e = SCM_OBJ_INIT, c = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&obj, &lst,
+  SCM_REFSTK_INIT_REG(&obj, &lst,
                        &l, &e, &c);
 
   scm_assert(cmp != NULL);
@@ -1220,7 +1220,7 @@ scm_capi_assoc_aux(ScmObj obj, ScmObj alist, ScmObj (*cmp)(ScmObj x, ScmObj y))
 {
   ScmObj l = SCM_OBJ_INIT, e = SCM_OBJ_INIT, k = SCM_OBJ_INIT, c = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&obj, &alist,
+  SCM_REFSTK_INIT_REG(&obj, &alist,
                        &l, &e, &k, &c);
 
   scm_assert(cmp != NULL);
@@ -1275,7 +1275,7 @@ scm_api_list_copy(ScmObj lst)
   ScmObj head = SCM_OBJ_INIT, pair = SCM_OBJ_INIT, prev = SCM_OBJ_INIT;
   ScmObj rslt = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst,
+  SCM_REFSTK_INIT_REG(&lst,
                        &cur, &elm, &nil,
                        &head, &pair, &prev,
                        &rslt);
@@ -1354,7 +1354,7 @@ scm_api_number_P(ScmObj obj)
 extern inline bool
 scm_capi_complex_p(ScmObj obj)
 {
-  SCM_STACK_FRAME_PUSH(&obj);
+  SCM_REFSTK_INIT_REG(&obj);
 
   if (!scm_capi_number_p(obj)) return false;
 
@@ -1370,7 +1370,7 @@ scm_api_complex_P(ScmObj obj)
 extern inline bool
 scm_capi_real_p(ScmObj obj)
 {
-  SCM_STACK_FRAME_PUSH(&obj);
+  SCM_REFSTK_INIT_REG(&obj);
 
   if (!scm_capi_number_p(obj)) return false;
 
@@ -1386,7 +1386,7 @@ scm_api_real_P(ScmObj obj)
 extern inline bool
 scm_capi_rational_p(ScmObj obj)
 {
-  SCM_STACK_FRAME_PUSH(&obj);
+  SCM_REFSTK_INIT_REG(&obj);
 
   if (!scm_capi_number_p(obj)) return false;
 
@@ -1402,7 +1402,7 @@ scm_api_rational_P(ScmObj obj)
 extern inline bool
 scm_capi_integer_p(ScmObj obj)
 {
-  SCM_STACK_FRAME_PUSH(&obj);
+  SCM_REFSTK_INIT_REG(&obj);
 
   if (!scm_capi_number_p(obj)) return false;
 
@@ -1418,7 +1418,7 @@ scm_api_integer_P(ScmObj obj)
 extern inline bool
 scm_capi_exact_p(ScmObj obj)
 {
-  SCM_STACK_FRAME_PUSH(&obj);
+  SCM_REFSTK_INIT_REG(&obj);
 
   if (!scm_capi_number_p(obj)) return false;
 
@@ -1434,7 +1434,7 @@ scm_api_exact_P(ScmObj obj)
 extern inline bool
 scm_capi_inexact_p(ScmObj obj)
 {
-  SCM_STACK_FRAME_PUSH(&obj);
+  SCM_REFSTK_INIT_REG(&obj);
 
   if (!scm_capi_number_p(obj)) return false;
 
@@ -1450,7 +1450,7 @@ scm_api_inexact_P(ScmObj obj)
 extern inline bool
 scm_capi_exact_integer_p(ScmObj obj)
 {
-  SCM_STACK_FRAME_PUSH(&obj);
+  SCM_REFSTK_INIT_REG(&obj);
 
   if (scm_capi_integer_p(obj) && scm_capi_exact_p(obj))
     return true;
@@ -1467,7 +1467,7 @@ scm_api_exact_integer_P(ScmObj obj)
 extern inline bool
 scm_capi_finite_p(ScmObj obj)
 {
-  SCM_STACK_FRAME_PUSH(&obj);
+  SCM_REFSTK_INIT_REG(&obj);
 
   if (!scm_capi_number_p(obj)) return false;
 
@@ -1483,7 +1483,7 @@ scm_api_finite_P(ScmObj obj)
 extern inline bool
 scm_capi_infinite_p(ScmObj obj)
 {
-  SCM_STACK_FRAME_PUSH(&obj);
+  SCM_REFSTK_INIT_REG(&obj);
 
   if (!scm_capi_number_p(obj)) return false;
 
@@ -1499,7 +1499,7 @@ scm_api_infinite_P(ScmObj obj)
 extern inline bool
 scm_capi_nan_p(ScmObj obj)
 {
-  SCM_STACK_FRAME_PUSH(&obj);
+  SCM_REFSTK_INIT_REG(&obj);
 
   if (!scm_capi_number_p(obj)) return false;
 
@@ -1553,7 +1553,7 @@ scm_capi_num_cmp_fold(ScmObj lst,
 {
   ScmObj num = SCM_OBJ_INIT, prv = SCM_OBJ_INIT, l = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst,
+  SCM_REFSTK_INIT_REG(&lst,
                        &num, &prv, &l);
 
   scm_assert(scm_obj_not_null_p(lst));
@@ -1591,7 +1591,7 @@ scm_capi_num_eq(ScmObj n1, ScmObj n2, bool *rslt)
 {
   int err, cmp;
 
-  SCM_STACK_FRAME_PUSH(&n1, &n2);
+  SCM_REFSTK_INIT_REG(&n1, &n2);
 
   if (!scm_capi_number_p(n1)) {
     scm_capi_error("=: number required, but got", 1, n1);
@@ -1646,7 +1646,7 @@ scm_capi_num_lt(ScmObj n1, ScmObj n2, bool *rslt)
 {
   int err, cmp;
 
-  SCM_STACK_FRAME_PUSH(&n1, &n2);
+  SCM_REFSTK_INIT_REG(&n1, &n2);
 
   if (!scm_capi_number_p(n1)) {
     scm_capi_error("<: number required, but got", 1, n1);
@@ -1701,7 +1701,7 @@ scm_capi_num_gt(ScmObj n1, ScmObj n2, bool *rslt)
 {
   int err, cmp;
 
-  SCM_STACK_FRAME_PUSH(&n1, &n2);
+  SCM_REFSTK_INIT_REG(&n1, &n2);
 
   if (!scm_capi_number_p(n1)) {
     scm_capi_error(">: number required, but got", 1, n1);
@@ -1745,7 +1745,7 @@ scm_api_num_gt_P(ScmObj n1, ScmObj n2)
   bool cmp;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&n1, &n2);
+  SCM_REFSTK_INIT_REG(&n1, &n2);
 
   rslt = scm_capi_num_gt(n1, n2, &cmp);
   if (rslt < 0) return SCM_OBJ_NULL;
@@ -1758,7 +1758,7 @@ scm_capi_num_le(ScmObj n1, ScmObj n2, bool *rslt)
 {
   int err, cmp;
 
-  SCM_STACK_FRAME_PUSH(&n1, &n2);
+  SCM_REFSTK_INIT_REG(&n1, &n2);
 
   if (!scm_capi_number_p(n1)) {
     scm_capi_error("<=: number required, but got", 1, n1);
@@ -1813,7 +1813,7 @@ scm_capi_num_ge(ScmObj n1, ScmObj n2, bool *rslt)
 {
   int err, cmp;
 
-  SCM_STACK_FRAME_PUSH(&n1, &n2);
+  SCM_REFSTK_INIT_REG(&n1, &n2);
 
   if (!scm_capi_number_p(n1)) {
     scm_capi_error(">=: number required, but got", 1, n1);
@@ -1866,7 +1866,7 @@ scm_api_num_ge_P(ScmObj n1, ScmObj n2)
 bool
 scm_capi_zero_p(ScmObj num)
 {
-  SCM_STACK_FRAME_PUSH(&num);
+  SCM_REFSTK_INIT_REG(&num);
 
   if (!scm_capi_number_p(num)) return false;
 
@@ -1876,7 +1876,7 @@ scm_capi_zero_p(ScmObj num)
 ScmObj
 scm_api_zero_P(ScmObj num)
 {
-  SCM_STACK_FRAME_PUSH(&num);
+  SCM_REFSTK_INIT_REG(&num);
 
   if (!scm_capi_number_p(num)) {
     scm_capi_error("zero?: number required, but got", 1, num);
@@ -1889,7 +1889,7 @@ scm_api_zero_P(ScmObj num)
 bool
 scm_capi_positive_p(ScmObj num)
 {
-  SCM_STACK_FRAME_PUSH(&num);
+  SCM_REFSTK_INIT_REG(&num);
 
   if (!scm_capi_number_p(num)) return false;
 
@@ -1899,7 +1899,7 @@ scm_capi_positive_p(ScmObj num)
 ScmObj
 scm_api_positive_P(ScmObj num)
 {
-  SCM_STACK_FRAME_PUSH(&num);
+  SCM_REFSTK_INIT_REG(&num);
 
   if (!scm_capi_number_p(num)) {
     scm_capi_error("positive?: number required, but got", 1, num);
@@ -1912,7 +1912,7 @@ scm_api_positive_P(ScmObj num)
 bool
 scm_capi_negative_p(ScmObj num)
 {
-  SCM_STACK_FRAME_PUSH(&num);
+  SCM_REFSTK_INIT_REG(&num);
 
   if (!scm_capi_number_p(num)) return false;
 
@@ -1922,7 +1922,7 @@ scm_capi_negative_p(ScmObj num)
 ScmObj
 scm_api_negative_P(ScmObj num)
 {
-  SCM_STACK_FRAME_PUSH(&num);
+  SCM_REFSTK_INIT_REG(&num);
 
   if (!scm_capi_number_p(num)) {
     scm_capi_error("negative?: number required, but got", 1, num);
@@ -1935,7 +1935,7 @@ scm_api_negative_P(ScmObj num)
 bool
 scm_capi_odd_p(ScmObj num)
 {
-  SCM_STACK_FRAME_PUSH(&num);
+  SCM_REFSTK_INIT_REG(&num);
 
   if (!scm_capi_number_p(num)) return false;
 
@@ -1945,7 +1945,7 @@ scm_capi_odd_p(ScmObj num)
 ScmObj
 scm_api_odd_P(ScmObj num)
 {
-  SCM_STACK_FRAME_PUSH(&num);
+  SCM_REFSTK_INIT_REG(&num);
 
   if (!scm_capi_number_p(num)) {
     scm_capi_error("odd?: number required, but got", 1, num);
@@ -1958,7 +1958,7 @@ scm_api_odd_P(ScmObj num)
 bool
 scm_capi_even_p(ScmObj num)
 {
-  SCM_STACK_FRAME_PUSH(&num);
+  SCM_REFSTK_INIT_REG(&num);
 
   if (!scm_capi_number_p(num)) return false;
 
@@ -1968,7 +1968,7 @@ scm_capi_even_p(ScmObj num)
 ScmObj
 scm_api_even_P(ScmObj num)
 {
-  SCM_STACK_FRAME_PUSH(&num);
+  SCM_REFSTK_INIT_REG(&num);
 
   if (!scm_capi_number_p(num)) {
     scm_capi_error("even?: number required, but got", 1, num);
@@ -1984,7 +1984,7 @@ scm_capi_num_bop_fold(ScmObj lst,
 {
   ScmObj rslt = SCM_OBJ_INIT, num = SCM_OBJ_INIT, l = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst,
+  SCM_REFSTK_INIT_REG(&lst,
                        &rslt, &num, &l);
 
   scm_assert(scm_capi_pair_p(lst));
@@ -2012,7 +2012,7 @@ scm_api_max(ScmObj n1, ScmObj n2)
   bool n1_ie, n2_ie;
   int cmp, err;
 
-  SCM_STACK_FRAME_PUSH(&n1, &n2);
+  SCM_REFSTK_INIT_REG(&n1, &n2);
 
   if (!scm_capi_number_p(n1)) {
     scm_capi_error("max: number required, but got", 1, n1);
@@ -2058,7 +2058,7 @@ scm_api_min(ScmObj n1, ScmObj n2)
   bool n1_ie, n2_ie;
   int cmp, err;
 
-  SCM_STACK_FRAME_PUSH(&n1, &n2);
+  SCM_REFSTK_INIT_REG(&n1, &n2);
 
   if (!scm_capi_number_p(n1)) {
     scm_capi_error("min: number required, but got", 1, n1);
@@ -2101,7 +2101,7 @@ scm_capi_min_lst(ScmObj lst)
 ScmObj
 scm_api_plus(ScmObj x, ScmObj y)
 {
-  SCM_STACK_FRAME_PUSH(&x, &y);
+  SCM_REFSTK_INIT_REG(&x, &y);
 
   if (!scm_capi_number_p(x)) {
     scm_capi_error("+: number required, but got", 1, x);
@@ -2118,7 +2118,7 @@ scm_api_plus(ScmObj x, ScmObj y)
 ScmObj
 scm_capi_plus_lst(ScmObj lst)
 {
-  SCM_STACK_FRAME_PUSH(&lst);
+  SCM_REFSTK_INIT_REG(&lst);
 
   if (scm_capi_nil_p(lst)) {
     return SCM_FIXNUM_ZERO;
@@ -2134,7 +2134,7 @@ scm_capi_plus_lst(ScmObj lst)
 ScmObj
 scm_api_mul(ScmObj x, ScmObj y)
 {
-  SCM_STACK_FRAME_PUSH(&x, &y);
+  SCM_REFSTK_INIT_REG(&x, &y);
 
   if (!scm_capi_number_p(x)) {
     scm_capi_error("*: number required, but got", 1, x);
@@ -2151,7 +2151,7 @@ scm_api_mul(ScmObj x, ScmObj y)
 ScmObj
 scm_capi_mul_lst(ScmObj lst)
 {
-  SCM_STACK_FRAME_PUSH(&lst);
+  SCM_REFSTK_INIT_REG(&lst);
 
   if (scm_capi_nil_p(lst)) {
     return SCM_FIXNUM_ONE;
@@ -2167,7 +2167,7 @@ scm_capi_mul_lst(ScmObj lst)
 ScmObj
 scm_api_minus(ScmObj x, ScmObj y)
 {
-  SCM_STACK_FRAME_PUSH(&x, &y);
+  SCM_REFSTK_INIT_REG(&x, &y);
 
   if (!scm_capi_number_p(x)) {
     scm_capi_error("-: number required, but got", 1, x);
@@ -2186,7 +2186,7 @@ scm_capi_minus_lst(ScmObj lst)
 {
   ScmObj a = SCM_OBJ_INIT, d = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst,
+  SCM_REFSTK_INIT_REG(&lst,
                        &a, &d);
 
   if (!scm_capi_pair_p(lst)) {
@@ -2223,7 +2223,7 @@ scm_api_abs(ScmObj num)
 int
 scm_capi_floor_div(ScmObj x, ScmObj y, scm_csetter_t *q, scm_csetter_t *r)
 {
-  SCM_STACK_FRAME_PUSH(&x, &y);
+  SCM_REFSTK_INIT_REG(&x, &y);
 
   if (!scm_capi_integer_p(x)) {
     scm_capi_error("floor/: integer required, but got", 1, x);
@@ -2244,7 +2244,7 @@ scm_api_floor_quo(ScmObj x, ScmObj y)
   ScmObj q = SCM_OBJ_INIT;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&x, &y, &q);
+  SCM_REFSTK_INIT_REG(&x, &y, &q);
 
   if (!scm_capi_integer_p(x)) {
     scm_capi_error("floor-quotient: integer required, but got", 1, x);
@@ -2268,7 +2268,7 @@ scm_api_floor_rem(ScmObj x, ScmObj y)
   ScmObj r = SCM_OBJ_INIT;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&x, &y, &r);
+  SCM_REFSTK_INIT_REG(&x, &y, &r);
 
   if (!scm_capi_integer_p(x)) {
     scm_capi_error("floor-remainder: integer required, but got", 1, x);
@@ -2289,7 +2289,7 @@ scm_api_floor_rem(ScmObj x, ScmObj y)
 int
 scm_capi_truncate_div(ScmObj x, ScmObj y, scm_csetter_t *q, scm_csetter_t *r)
 {
-  SCM_STACK_FRAME_PUSH(&x, &y);
+  SCM_REFSTK_INIT_REG(&x, &y);
 
   if (!scm_capi_integer_p(x)) {
     scm_capi_error("truncate/: integer required, but got", 1, x);
@@ -2310,7 +2310,7 @@ scm_api_truncate_quo(ScmObj x, ScmObj y)
   ScmObj q = SCM_OBJ_INIT;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&x, &y, &q);
+  SCM_REFSTK_INIT_REG(&x, &y, &q);
 
   if (!scm_capi_number_p(x)) {
     scm_capi_error("truncate-quotient: number required, but got", 1, x);
@@ -2334,7 +2334,7 @@ scm_api_truncate_rem(ScmObj x, ScmObj y)
   ScmObj r = SCM_OBJ_INIT;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&x, &y, &r);
+  SCM_REFSTK_INIT_REG(&x, &y, &r);
 
   if (!scm_capi_integer_p(x)) {
     scm_capi_error("truncate-remainder: integer required, but got", 1, x);
@@ -2447,7 +2447,7 @@ scm_api_symbol_P(ScmObj obj)
 int
 scm_capi_symbol_eq(ScmObj sym1, ScmObj sym2, bool *rslt)
 {
-  SCM_STACK_FRAME_PUSH(&sym1, &sym2);
+  SCM_REFSTK_INIT_REG(&sym1, &sym2);
 
   if (!scm_capi_symbol_p(sym1)) {
     scm_capi_error("symbol=?: symbol required, but got", 1, sym1);
@@ -2472,7 +2472,7 @@ scm_capi_symbol_cmp_fold(ScmObj lst,
 {
   ScmObj str = SCM_OBJ_INIT, prv = SCM_OBJ_INIT, l = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst,
+  SCM_REFSTK_INIT_REG(&lst,
                        &str, &prv, &l);
 
   scm_assert(scm_obj_not_null_p(lst));
@@ -2550,7 +2550,7 @@ scm_api_string_to_symbol(ScmObj str)
 {
   ScmEncoding *enc;
 
-  SCM_STACK_FRAME_PUSH(&str);
+  SCM_REFSTK_INIT_REG(&str);
 
   if  (!scm_capi_string_p(str)) {
     scm_capi_error("string->symbol: string required, but got", 1, str);
@@ -2569,7 +2569,7 @@ scm_capi_make_symbol_from_cstr(const char *str, ScmEncoding *enc)
 {
   ScmObj s = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&s);
+  SCM_REFSTK_INIT_REG(&s);
 
   s = scm_capi_make_string_from_cstr(str, enc);
   if (scm_obj_null_p(s))
@@ -2589,7 +2589,7 @@ scm_capi_make_symbol_from_bin(const void *data, size_t size, ScmEncoding *enc)
 {
   ScmObj s = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&s);
+  SCM_REFSTK_INIT_REG(&s);
 
   s = scm_capi_make_string_from_bin(data, size, enc);
   if (scm_obj_null_p(s))
@@ -2719,7 +2719,7 @@ scm_capi_char_cmp_fold(ScmObj lst,
 {
   ScmObj str = SCM_OBJ_INIT, prv = SCM_OBJ_INIT, l = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst,
+  SCM_REFSTK_INIT_REG(&lst,
                        &str, &prv, &l);
 
   scm_assert(scm_obj_not_null_p(lst));
@@ -3173,7 +3173,7 @@ scm_capi_string_cv(const ScmObj *chr, size_t n)
   ScmObj str = SCM_OBJ_INIT;
   ScmEncoding *enc;
 
-  SCM_STACK_FRAME_PUSH(&str);
+  SCM_REFSTK_INIT_REG(&str);
 
   if (chr == NULL || n == 0)
     return scm_string_new(SCM_MEM_HEAP, NULL, 0, scm_capi_system_encoding());
@@ -3217,7 +3217,7 @@ scm_capi_string(size_t n, ...)
   ScmObj args[n];
   va_list ap;
 
-  SCM_STACK_FRAME;
+  SCM_REFSTK_INIT;
 
   va_start(ap, n);
   for (size_t i = 0; i < n; i++)
@@ -3225,7 +3225,7 @@ scm_capi_string(size_t n, ...)
   va_end(ap);
 
   for (size_t i = 0; i < n; i++)
-    SCM_STACK_PUSH(args + i);
+    SCM_REFSTK_REG(args + i);
 
   return scm_capi_string_cv(args, n);
 }
@@ -3281,7 +3281,7 @@ scm_capi_string_ref(ScmObj str, size_t pos)
   ScmEncoding *enc;
   int r;
 
-  SCM_STACK_FRAME_PUSH(&str);
+  SCM_REFSTK_INIT_REG(&str);
 
   if (!scm_capi_string_p(str)) {
     scm_capi_error("string-ref: string required, but got", 1, str);
@@ -3305,7 +3305,7 @@ scm_api_string_ref(ScmObj str, ScmObj pos)
   size_t s;
   int r;
 
-  SCM_STACK_FRAME_PUSH(&str, &pos);
+  SCM_REFSTK_INIT_REG(&str, &pos);
 
   if (!scm_capi_integer_p(pos)) {
     scm_capi_error("string-ref: integer required, but got", 1, pos);
@@ -3322,7 +3322,7 @@ scm_capi_string_set_i(ScmObj str, size_t pos, ScmObj chr)
 {
   scm_char_t c;
 
-  SCM_STACK_FRAME_PUSH(&str, &chr);
+  SCM_REFSTK_INIT_REG(&str, &chr);
 
   if (!scm_capi_string_p(str)) {
     scm_capi_error("string-set!: string required, but got", 1, str);
@@ -3351,7 +3351,7 @@ scm_api_string_set_i(ScmObj str, ScmObj pos, ScmObj chr)
   size_t s;
   int r;
 
-  SCM_STACK_FRAME_PUSH(&str, &pos, &chr);
+  SCM_REFSTK_INIT_REG(&str, &pos, &chr);
 
   if (!scm_capi_integer_p(pos)) {
     scm_capi_error("string-ref: integer required, but got", 1, pos);
@@ -3372,7 +3372,7 @@ scm_capi_string_eq(ScmObj s1, ScmObj s2, bool *rslt)
 {
   int err, cmp;
 
-  SCM_STACK_FRAME_PUSH(&s1, &s2);
+  SCM_REFSTK_INIT_REG(&s1, &s2);
 
   if (!scm_capi_string_p(s1)) {
     scm_capi_error("string=?: string required, but got", 1, s1);
@@ -3404,7 +3404,7 @@ scm_capi_string_cmp_fold(ScmObj lst,
 {
   ScmObj str = SCM_OBJ_INIT, prv = SCM_OBJ_INIT, l = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst,
+  SCM_REFSTK_INIT_REG(&lst,
                        &str, &prv, &l);
 
   scm_assert(scm_obj_not_null_p(lst));
@@ -3471,7 +3471,7 @@ scm_capi_string_lt(ScmObj s1, ScmObj s2, bool *rslt)
 {
   int err, cmp;
 
-  SCM_STACK_FRAME_PUSH(&s1, &s2);
+  SCM_REFSTK_INIT_REG(&s1, &s2);
 
   if (!scm_capi_string_p(s1)) {
     scm_capi_error("string<?: string required, but got", 1, s1);
@@ -3529,7 +3529,7 @@ scm_capi_string_gt(ScmObj s1, ScmObj s2, bool *rslt)
 {
   int err, cmp;
 
-  SCM_STACK_FRAME_PUSH(&s1, &s2);
+  SCM_REFSTK_INIT_REG(&s1, &s2);
 
   if (!scm_capi_string_p(s1)) {
     scm_capi_error("string>?: string required, but got", 1, s1);
@@ -3587,7 +3587,7 @@ scm_capi_string_le(ScmObj s1, ScmObj s2, bool *rslt)
 {
   int err, cmp;
 
-  SCM_STACK_FRAME_PUSH(&s1, &s2);
+  SCM_REFSTK_INIT_REG(&s1, &s2);
 
   if (!scm_capi_string_p(s1)) {
     scm_capi_error("string<=?: string required, but got", 1, s1);
@@ -3645,7 +3645,7 @@ scm_capi_string_ge(ScmObj s1, ScmObj s2, bool *rslt)
 {
   int err, cmp;
 
-  SCM_STACK_FRAME_PUSH(&s1, &s2);
+  SCM_REFSTK_INIT_REG(&s1, &s2);
 
   if (!scm_capi_string_p(s1)) {
     scm_capi_error("string>=?: string required, but got", 1, s1);
@@ -3723,7 +3723,7 @@ scm_api_string_downcase(ScmObj str)
 ScmObj
 scm_capi_substring(ScmObj str, size_t start, size_t end)
 {
-  SCM_STACK_FRAME_PUSH(&str);
+  SCM_REFSTK_INIT_REG(&str);
 
   if (!scm_capi_string_p(str)) {
     scm_capi_error("substring: string required, but got", 1, str);
@@ -3743,7 +3743,7 @@ scm_api_substring(ScmObj str, ScmObj start, ScmObj end)
   size_t ss, se;
   int r;
 
-  SCM_STACK_FRAME_PUSH(&str, &start, &end);
+  SCM_REFSTK_INIT_REG(&str, &start, &end);
 
   if (!scm_capi_integer_p(start)) {
     scm_capi_error("substring: integer required, but got", 1, start);
@@ -3769,7 +3769,7 @@ scm_capi_string_append_lst(ScmObj lst)
   ScmObj str = SCM_OBJ_INIT, l = SCM_OBJ_INIT, s = SCM_OBJ_INIT;
   ScmEncoding *enc;
 
-  SCM_STACK_FRAME_PUSH(&lst,
+  SCM_REFSTK_INIT_REG(&lst,
                        &str, &l, &s);
 
   if (scm_obj_null_p(lst))
@@ -3819,7 +3819,7 @@ scm_capi_string_append_cv(ScmObj *ary, size_t n)
   ScmObj str = SCM_OBJ_NULL;
   ScmEncoding *enc, *e;
 
-  SCM_STACK_FRAME_PUSH(&str);
+  SCM_REFSTK_INIT_REG(&str);
 
   if (ary == NULL || n == 0)
     return scm_capi_make_string_from_bin(NULL, 0, scm_capi_system_encoding());
@@ -3856,7 +3856,7 @@ scm_capi_string_append(size_t n, ...)
   ScmObj args[n];
   va_list ap;
 
-  SCM_STACK_FRAME;
+  SCM_REFSTK_INIT;
 
   va_start(ap, n);
   for (unsigned int i = 0; i < n; i++)
@@ -3864,7 +3864,7 @@ scm_capi_string_append(size_t n, ...)
   va_end(ap);
 
   for (unsigned int i = 0; i < n; i++)
-    SCM_STACK_PUSH(args + i);
+    SCM_REFSTK_REG(args + i);
 
   return scm_capi_string_append_cv(args, n);
 }
@@ -3876,7 +3876,7 @@ scm_capi_string_to_list_aux(ScmObj str, size_t pos, size_t len)
   ScmObj o_ary[len];
   ScmEncoding *enc;
 
-  SCM_STACK_FRAME_PUSH(&str);
+  SCM_REFSTK_INIT_REG(&str);
 
   p = scm_string_to_char_ary(str, pos, (ssize_t)len, c_ary);
   if (p == NULL) return SCM_OBJ_NULL;
@@ -3885,7 +3885,7 @@ scm_capi_string_to_list_aux(ScmObj str, size_t pos, size_t len)
 
   for (size_t i = 0; i < len; i++) {
     o_ary[i] = scm_char_new(SCM_MEM_ALLOC_HEAP, c_ary + i, enc);
-    SCM_STACK_PUSH(&o_ary[i]);
+    SCM_REFSTK_REG(&o_ary[i]);
 
     if (scm_obj_null_p(o_ary[i])) return SCM_OBJ_NULL;
   }
@@ -3898,7 +3898,7 @@ scm_capi_string_to_list(ScmObj str, ssize_t start, ssize_t end)
 {
   size_t len;
 
-  SCM_STACK_FRAME_PUSH(&str);
+  SCM_REFSTK_INIT_REG(&str);
 
   if (!scm_capi_string_p(str)) {
     scm_capi_error("string->list: string required, but got", 1, str);
@@ -3933,7 +3933,7 @@ scm_api_string_to_list(ScmObj str, ScmObj start, ScmObj end)
 {
   ssize_t sss, sse;
 
-  SCM_STACK_FRAME_PUSH(&str, &start, &end);
+  SCM_REFSTK_INIT_REG(&str, &start, &end);
 
   if (scm_obj_not_null_p(start) && !scm_capi_integer_p(start)) {
     scm_capi_error("string->list: integer required, but got", 1, start);
@@ -3981,7 +3981,7 @@ scm_api_list_to_string(ScmObj lst)
   ScmObj str = SCM_OBJ_INIT, chr = SCM_OBJ_INIT, l = SCM_OBJ_INIT;
   ScmEncoding *enc;
 
-  SCM_STACK_FRAME_PUSH(&lst,
+  SCM_REFSTK_INIT_REG(&lst,
                        &str, &chr, &l);
 
   if (scm_obj_null_p(lst))
@@ -4032,7 +4032,7 @@ scm_api_list_to_string(ScmObj lst)
 ScmObj
 scm_capi_string_copy(ScmObj str, ssize_t start, ssize_t end)
 {
-  SCM_STACK_FRAME_PUSH(&str);
+  SCM_REFSTK_INIT_REG(&str);
 
   if (!scm_capi_string_p(str)) {
     scm_capi_error("string-copy: string required, but got", 1, str);
@@ -4057,7 +4057,7 @@ scm_api_string_copy(ScmObj str, ScmObj start, ScmObj end)
 {
   ssize_t sss, sse;
 
-  SCM_STACK_FRAME_PUSH(&str, &start, &end);
+  SCM_REFSTK_INIT_REG(&str, &start, &end);
 
   if (scm_obj_not_null_p(start) && !scm_capi_integer_p(start)) {
     scm_capi_error("string-copy: integer required, but got", 1, start);
@@ -4105,7 +4105,7 @@ scm_capi_string_copy_i_aux(ScmObj to, size_t at,
 {
   scm_char_t ary[len], *p;
 
-  SCM_STACK_FRAME_PUSH(&to, &from);
+  SCM_REFSTK_INIT_REG(&to, &from);
 
   p = scm_string_to_char_ary(from, pos, (ssize_t)len, ary);
   if (p == NULL) return -1;
@@ -4124,7 +4124,7 @@ scm_capi_string_copy_i(ScmObj to, size_t at,
 {
   size_t to_len, from_len, sub_len, len;
 
-  SCM_STACK_FRAME_PUSH(&to, &from);
+  SCM_REFSTK_INIT_REG(&to, &from);
 
   if (!scm_capi_string_p(to)) {
     scm_capi_error("string-copy!: string require, but got", 1, to);
@@ -4189,7 +4189,7 @@ scm_api_string_copy_i(ScmObj to, ScmObj at,
   ssize_t sss, sse;
   int r;
 
-  SCM_STACK_FRAME_PUSH(&to, &at, &from, &start, &end);
+  SCM_REFSTK_INIT_REG(&to, &at, &from, &start, &end);
 
   if (!scm_capi_integer_p(at)) {
     scm_capi_error("string->list: integer required, but got", 1, at);
@@ -4296,7 +4296,7 @@ scm_api_string_fill_i(ScmObj str, ScmObj fill, ScmObj start, ScmObj end)
   ssize_t sss, sse;
   int r;
 
-  SCM_STACK_FRAME_PUSH(&str, &start, &end);
+  SCM_REFSTK_INIT_REG(&str, &start, &end);
 
   if (scm_obj_not_null_p(start) && !scm_capi_integer_p(start)) {
     scm_capi_error("string-fill!: integer required, but got", 1, start);
@@ -4520,12 +4520,12 @@ scm_capi_vector(size_t n, ...)
   ScmObj vec = SCM_OBJ_INIT, args[n];
   va_list ap;
 
-  SCM_STACK_FRAME_PUSH(&vec);
+  SCM_REFSTK_INIT_REG(&vec);
 
   va_start(ap, n);
   for (size_t i = 0; i < n; i++) {
     args[i] = va_arg(ap, ScmObj);
-    SCM_STACK_PUSH(args + i);
+    SCM_REFSTK_REG(args + i);
   }
   va_end(ap);
 
@@ -4535,7 +4535,7 @@ scm_capi_vector(size_t n, ...)
 ssize_t
 scm_capi_vector_length(ScmObj vec)
 {
-  SCM_STACK_FRAME_PUSH(&vec);
+  SCM_REFSTK_INIT_REG(&vec);
 
   if (!scm_capi_vector_p(vec)) {
     scm_capi_error("vector-length: vector required, but got", 1, vec);
@@ -4556,7 +4556,7 @@ scm_api_vector_length(ScmObj vec)
 ScmObj
 scm_capi_vector_ref(ScmObj vec, size_t idx)
 {
-  SCM_STACK_FRAME_PUSH(&vec);
+  SCM_REFSTK_INIT_REG(&vec);
 
   if (!scm_capi_vector_p(vec)) {
     scm_capi_error("vector-ref: vector required, but got", 1, vec);
@@ -4576,7 +4576,7 @@ scm_api_vector_ref(ScmObj vec, ScmObj idx)
   size_t i;
   int r;
 
-  SCM_STACK_FRAME_PUSH(&vec, &idx);
+  SCM_REFSTK_INIT_REG(&vec, &idx);
 
   if (!scm_capi_integer_p(idx)) {
     scm_capi_error("vector-ref: integer require, but got", 1, idx);
@@ -4592,7 +4592,7 @@ scm_api_vector_ref(ScmObj vec, ScmObj idx)
 int
 scm_capi_vector_set_i(ScmObj vec, size_t idx, ScmObj obj)
 {
-  SCM_STACK_FRAME_PUSH(&vec, &obj);
+  SCM_REFSTK_INIT_REG(&vec, &obj);
 
   if (!scm_capi_vector_p(vec)) {
     scm_capi_error("vector-set!: vector required, but got", 1, vec);
@@ -4616,7 +4616,7 @@ scm_api_vector_set_i(ScmObj vec, ScmObj idx, ScmObj obj)
   size_t i;
   int r;
 
-  SCM_STACK_FRAME_PUSH(&vec, &idx, &obj);
+  SCM_REFSTK_INIT_REG(&vec, &idx, &obj);
 
   if (!scm_capi_integer_p(idx)) {
     scm_capi_error("vector-set!: integer require, but got", 1, idx);
@@ -4639,7 +4639,7 @@ scm_capi_vector_norm_star_end(const char *op, ScmObj vec,
   char msg[256];
   size_t len;
 
-  SCM_STACK_FRAME_PUSH(&vec);
+  SCM_REFSTK_INIT_REG(&vec);
 
   if (*start >= 0 && *end >= 0 && *start > *end) {
     snprintf(msg, sizeof(msg), "%s: invalid argument", op);
@@ -4673,7 +4673,7 @@ scm_capi_vector_to_list(ScmObj vec, ssize_t start, ssize_t end)
 {
   int r;
 
-  SCM_STACK_FRAME_PUSH(&vec);
+  SCM_REFSTK_INIT_REG(&vec);
 
   if (!scm_capi_vector_p(vec)) {
     scm_capi_error("vector->list: vector required, but got", 1, vec);
@@ -4743,7 +4743,7 @@ scm_capi_vector_to_string(ScmObj vec, ssize_t start, ssize_t end)
 {
   int r;
 
-  SCM_STACK_FRAME_PUSH(&vec);
+  SCM_REFSTK_INIT_REG(&vec);
 
   if (!scm_capi_vector_p(vec)) {
     scm_capi_error("vector->string: vector required, but got", 1, vec);
@@ -4779,7 +4779,7 @@ scm_capi_string_to_vector_aux(ScmObj str, size_t start, size_t n)
   scm_char_t ary[n], *p;
   ScmEncoding *enc;
 
-  SCM_STACK_FRAME_PUSH(&str);
+  SCM_REFSTK_INIT_REG(&str);
 
   p = scm_string_to_char_ary(str, start, (ssize_t)n, ary);
   if (p == NULL) return SCM_OBJ_NULL;
@@ -4788,7 +4788,7 @@ scm_capi_string_to_vector_aux(ScmObj str, size_t start, size_t n)
 
   for (size_t i = 0; i < n; i++) {
     elm[i] = scm_char_new(SCM_MEM_ALLOC_HEAP, ary + i, enc);
-    SCM_STACK_PUSH(&elm[i]);
+    SCM_REFSTK_REG(&elm[i]);
 
     if (scm_obj_null_p(elm[i])) return SCM_OBJ_NULL;
   }
@@ -4801,7 +4801,7 @@ scm_capi_string_to_vector(ScmObj str, ssize_t start, ssize_t end)
 {
   size_t len;
 
-  SCM_STACK_FRAME_PUSH(&str);
+  SCM_REFSTK_INIT_REG(&str);
 
   if (!scm_capi_string_p(str)) {
     scm_capi_error("string->vector: string required, but got", 1, str);
@@ -4854,7 +4854,7 @@ scm_capi_vector_copy(ScmObj vec, ssize_t start, ssize_t end)
   size_t n;
   int r;
 
-  SCM_STACK_FRAME_PUSH(&vec,
+  SCM_REFSTK_INIT_REG(&vec,
                        &copy);
 
   if (!scm_capi_vector_p(vec)) {
@@ -4903,7 +4903,7 @@ scm_capi_vector_copy_i_aux(ScmObj to, size_t at,
   ScmObj elm = SCM_OBJ_INIT;
   int r;
 
-  SCM_STACK_FRAME_PUSH(&to, &from,
+  SCM_REFSTK_INIT_REG(&to, &from,
                        &elm);
 
   for (size_t i = 0; i < len; i++) {
@@ -4922,7 +4922,7 @@ scm_capi_vector_copy_i_aux_in_reverse(ScmObj to, size_t at,
   ScmObj elm = SCM_OBJ_INIT;
   int r;
 
-  SCM_STACK_FRAME_PUSH(&to, &from,
+  SCM_REFSTK_INIT_REG(&to, &from,
                        &elm);
 
   for (size_t i = len; i > 0; i--) {
@@ -5002,7 +5002,7 @@ scm_api_vector_copy_i(ScmObj to, ScmObj at,
   ssize_t s, e;
   int r;
 
-  SCM_STACK_FRAME_PUSH(&to, &at, &from, &start, &end);
+  SCM_REFSTK_INIT_REG(&to, &at, &from, &start, &end);
 
   if (!scm_capi_integer_p(at)) {
     scm_capi_error("vector-copy!: integer required, but got", 1, at);
@@ -5032,7 +5032,7 @@ scm_capi_vector_append_lst(ScmObj lst)
   size_t len, sum, idx;
   int r;
 
-  SCM_STACK_FRAME_PUSH(&lst,
+  SCM_REFSTK_INIT_REG(&lst,
                        &acc, &vec,
                        &elm, &ls);
 
@@ -5090,7 +5090,7 @@ scm_capi_vector_append_cv(ScmObj *ary, size_t n)
   size_t len, sum, idx;
   int r;
 
-  SCM_STACK_FRAME_PUSH(&vec, &elm);
+  SCM_REFSTK_INIT_REG(&vec, &elm);
 
   if (ary == NULL || n == 0)
     return scm_vector_new(SCM_MEM_HEAP, 0, SCM_OBJ_NULL);
@@ -5139,12 +5139,12 @@ scm_capi_vector_append(size_t n, ...)
   ScmObj ary[n];
   va_list ap;
 
-  SCM_STACK_FRAME;
+  SCM_REFSTK_INIT;
 
   va_start(ap, n);
   for (size_t i = 0; i < n; i++) {
     ary[i] = va_arg(ap, ScmObj);
-    SCM_STACK_PUSH(&ary[i]);
+    SCM_REFSTK_REG(&ary[i]);
   }
   va_end(ap);
 
@@ -5156,7 +5156,7 @@ scm_capi_vector_fill_i(ScmObj vec, ScmObj fill, ssize_t start, ssize_t end)
 {
   int r;
 
-  SCM_STACK_FRAME_PUSH(&vec, &fill);
+  SCM_REFSTK_INIT_REG(&vec, &fill);
 
   if (!scm_capi_vector_p(vec)) {
     scm_capi_error("vector-fill!: vectore required, but got", 1, vec);
@@ -5184,7 +5184,7 @@ scm_api_vector_fill_i(ScmObj vec, ScmObj fill, ScmObj start, ScmObj end)
   ssize_t s, e;
   int r;
 
-  SCM_STACK_FRAME_PUSH(&vec, &fill);
+  SCM_REFSTK_INIT_REG(&vec, &fill);
 
   r = scm_capi_vector_cnv_start_end("vector-fill!", start, &s);
   if (r < 0) return SCM_OBJ_NULL;
@@ -5306,7 +5306,7 @@ scm_capi_terror_aux(const char *type, const char *msg, size_t n, va_list arg)
   ScmObj irris[n];
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&sym, &str, &exc);
+  SCM_REFSTK_INIT_REG(&sym, &str, &exc);
 
   if (scm_obj_null_p(scm_vm_current_vm())) {
     scm_capi_fatal("Error has occured while initializing or finalizing VM");
@@ -5315,7 +5315,7 @@ scm_capi_terror_aux(const char *type, const char *msg, size_t n, va_list arg)
 
   for (size_t i = 0; i < n; i++) {
     irris[i] = va_arg(arg, ScmObj);
-    SCM_STACK_PUSH(irris + i);
+    SCM_REFSTK_REG(irris + i);
   }
 
   sym = SCM_OBJ_NULL;
@@ -5442,7 +5442,7 @@ scm_capi_error_object_type_eq(ScmObj obj, const char *type, bool *rslt)
 {
   ScmObj sym = SCM_OBJ_INIT, etype = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&obj,
+  SCM_REFSTK_INIT_REG(&obj,
                        &sym, &etype);
 
   if (!scm_capi_error_object_p(obj)) {
@@ -5907,7 +5907,7 @@ scm_default_input_port(void)
   ScmObj val = SCM_OBJ_INIT;
   int r;
 
-  SCM_STACK_FRAME_PUSH(&val);
+  SCM_REFSTK_INIT_REG(&val);
 
   r = scm_capi_cached_global_var_ref(SCM_CACHED_GV_CURRENT_INPUT_PORT,
                                      SCM_CSETTER_L(val));
@@ -5930,7 +5930,7 @@ scm_api_read(ScmObj port)
   ScmObj obj = SCM_OBJ_INIT;
   ScmParser *parser;
 
-  SCM_STACK_FRAME_PUSH(&port,
+  SCM_REFSTK_INIT_REG(&port,
                        &obj);
 
   if (scm_obj_null_p(port)) {
@@ -5995,7 +5995,7 @@ scm_api_read_char(ScmObj port)
   scm_char_t chr;
   ssize_t s;
 
-  SCM_STACK_FRAME_PUSH(&port);
+  SCM_REFSTK_INIT_REG(&port);
 
   s = scm_capi_read_cchr(&chr, port);
   if (s < 0) return SCM_OBJ_NULL;
@@ -6056,7 +6056,7 @@ scm_api_read_line(ScmObj port)
   ScmStringIO *sio;
   ssize_t ret;
 
-  SCM_STACK_FRAME_PUSH(&port, &line);
+  SCM_REFSTK_INIT_REG(&port, &line);
 
   if (scm_obj_null_p(port)) {
     port = scm_default_input_port();
@@ -6140,7 +6140,7 @@ scm_api_read_string(ScmObj n, ScmObj port)
   ssize_t nr;
   int ret;
 
-  SCM_STACK_FRAME_PUSH(&n, &port,
+  SCM_REFSTK_INIT_REG(&n, &port,
                        &fn, &str);
 
   if (scm_obj_null_p(port)) {
@@ -6215,7 +6215,7 @@ scm_default_output_port(void)
   ScmObj val = SCM_OBJ_INIT;
   int r;
 
-  SCM_STACK_FRAME_PUSH(&val);
+  SCM_REFSTK_INIT_REG(&val);
 
   r = scm_capi_cached_global_var_ref(SCM_CACHED_GV_CURRENT_OUTPUT_PORT,
                                      SCM_CSETTER_L(val));
@@ -6244,7 +6244,7 @@ scm_api_write_simple(ScmObj obj, ScmObj port)
 {
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&obj, &port);
+  SCM_REFSTK_INIT_REG(&obj, &port);
 
   if (scm_obj_null_p(obj)) {
     scm_capi_error("write-simple: invalid argument", 1, obj);
@@ -6282,7 +6282,7 @@ scm_api_display(ScmObj obj, ScmObj port)
 
   /* TODO: obj の構造が循環していても無限ループにならないようにする */
 
-  SCM_STACK_FRAME_PUSH(&obj, &port);
+  SCM_REFSTK_INIT_REG(&obj, &port);
 
   if (scm_obj_null_p(obj)) {
     scm_capi_error("display: invalid argument", 1, obj);
@@ -6351,7 +6351,7 @@ scm_capi_write_cchr(scm_char_t chr, ScmEncoding *enc, ScmObj port)
 {
   ScmObj c = SCM_OBJ_INIT, r = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&port,
+  SCM_REFSTK_INIT_REG(&port,
                        &c, &r);
 
   if (enc == NULL) {
@@ -6374,7 +6374,7 @@ scm_api_write_char(ScmObj chr, ScmObj port)
   ScmEncoding *p_enc, *c_enc;
   ssize_t rslt;
 
-  SCM_STACK_FRAME_PUSH(&chr, &port);
+  SCM_REFSTK_INIT_REG(&chr, &port);
 
   if (!scm_capi_char_p(chr)) {
     scm_capi_error("write-char: character required, but got", 1, chr);
@@ -6418,7 +6418,7 @@ scm_capi_write_cstr(const char *str, ScmEncoding *enc, ScmObj port)
 {
   ScmObj s = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&port, &s);
+  SCM_REFSTK_INIT_REG(&port, &s);
 
   if (enc == NULL) {
     scm_capi_error("write-string: invalid argument", 0);
@@ -6437,7 +6437,7 @@ scm_capi_write_string(ScmObj str, ScmObj port, ssize_t start, ssize_t end)
   ScmEncoding *p_enc;
   ssize_t rslt, size;
 
-  SCM_STACK_FRAME_PUSH(&str, &port);
+  SCM_REFSTK_INIT_REG(&str, &port);
 
   if (!scm_capi_string_p(str)) {
     scm_capi_error("write-string: string required, but got", 1, str);
@@ -6499,7 +6499,7 @@ scm_api_write_string(ScmObj str, ScmObj port, ScmObj start, ScmObj end)
   ssize_t sss, sse;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&str, &port, &start, &end);
+  SCM_REFSTK_INIT_REG(&str, &port, &start, &end);
 
   if (scm_obj_not_null_p(start) && !scm_capi_integer_p(start)) {
     scm_capi_error("write-string: integer required, but got", 1, start);
@@ -6549,7 +6549,7 @@ scm_api_flush_output_port(ScmObj port)
 {
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&port);
+  SCM_REFSTK_INIT_REG(&port);
 
   if (scm_obj_null_p(port)) {
     port = scm_default_output_port();
@@ -6745,7 +6745,7 @@ scm_capi_closure_env(ScmObj clsr, scm_csetter_t *env)
 ScmObj
 scm_capi_make_parameter(ScmObj conv)
 {
-  SCM_STACK_FRAME_PUSH(&conv);
+  SCM_REFSTK_INIT_REG(&conv);
 
   if (scm_obj_not_null_p(conv) && !scm_capi_procedure_p(conv)) {
     scm_capi_error("failed to make parameter object: "
@@ -6765,7 +6765,7 @@ scm_capi_parameter_p(ScmObj obj)
 int
 scm_capi_parameter_init_val(ScmObj prm, scm_csetter_t *val)
 {
-  SCM_STACK_FRAME_PUSH(&prm);
+  SCM_REFSTK_INIT_REG(&prm);
 
   if (!scm_capi_parameter_p(prm)) {
     scm_capi_error("failed to get a initial value of a parameter object: "
@@ -6782,7 +6782,7 @@ scm_capi_parameter_init_val(ScmObj prm, scm_csetter_t *val)
 int
 scm_capi_parameter_converter(ScmObj prm, scm_csetter_t *conv)
 {
-  SCM_STACK_FRAME_PUSH(&prm);
+  SCM_REFSTK_INIT_REG(&prm);
 
   if (!scm_capi_parameter_p(prm)) {
     scm_capi_error("failed to get a converter from a parameter object: "
@@ -6799,7 +6799,7 @@ scm_capi_parameter_converter(ScmObj prm, scm_csetter_t *conv)
 int
 scm_capi_parameter_set_init_val(ScmObj prm, ScmObj val)
 {
-  SCM_STACK_FRAME_PUSH(&prm, &val);
+  SCM_REFSTK_INIT_REG(&prm, &val);
 
   if (!scm_capi_parameter_p(prm)) {
     scm_capi_error("failed to set a initial value of a parameter object: "
@@ -6820,7 +6820,7 @@ scm_capi_parameter_set_init_val(ScmObj prm, ScmObj val)
 ScmObj
 scm_capi_parameter_value(ScmObj prm)
 {
-  SCM_STACK_FRAME_PUSH(&prm);
+  SCM_REFSTK_INIT_REG(&prm);
 
   if (scm_obj_null_p(prm)) {
     scm_capi_error("failed to get bound value: invalid argument", 1, prm);
@@ -6931,7 +6931,7 @@ scm_capi_iseq_length(ScmObj iseq)
 ssize_t
 scm_capi_iseq_push_opfmt_noarg(ScmObj iseq, SCM_OPCODE_T op)
 {
-  SCM_STACK_FRAME_PUSH(&iseq);
+  SCM_REFSTK_INIT_REG(&iseq);
 
   if (!scm_capi_iseq_p(iseq)) {
     scm_capi_error("failed to push instruction to iseq: "
@@ -6947,7 +6947,7 @@ scm_capi_iseq_push_opfmt_obj(ScmObj iseq, SCM_OPCODE_T op, ScmObj val)
 {
   ssize_t rslt;
 
-  SCM_STACK_FRAME_PUSH(&iseq, &val);
+  SCM_REFSTK_INIT_REG(&iseq, &val);
 
   if (!scm_capi_iseq_p(iseq)) {
     scm_capi_error("failed to push instruction to iseq: "
@@ -6973,7 +6973,7 @@ scm_capi_iseq_push_opfmt_obj_obj(ScmObj iseq,
 {
   ssize_t rslt;
 
-  SCM_STACK_FRAME_PUSH(&iseq, &val1, &val2);
+  SCM_REFSTK_INIT_REG(&iseq, &val1, &val2);
 
   if (!scm_capi_iseq_p(iseq)) {
     scm_capi_error("failed to push instruction to iseq: "
@@ -7007,7 +7007,7 @@ scm_capi_iseq_push_opfmt_si(ScmObj iseq, SCM_OPCODE_T op, int val)
 {
   ssize_t rslt;
 
-  SCM_STACK_FRAME_PUSH(&iseq);
+  SCM_REFSTK_INIT_REG(&iseq);
 
   if (!scm_capi_iseq_p(iseq)) {
     scm_capi_error("failed to push instruction to iseq: "
@@ -7026,7 +7026,7 @@ scm_capi_iseq_push_opfmt_si_si(ScmObj iseq, SCM_OPCODE_T op, int val1, int val2)
 {
   ssize_t rslt;
 
-  SCM_STACK_FRAME_PUSH(&iseq);
+  SCM_REFSTK_INIT_REG(&iseq);
 
   if (!scm_capi_iseq_p(iseq)) {
     scm_capi_error("failed to push instruction to iseq: "
@@ -7049,7 +7049,7 @@ scm_capi_iseq_push_opfmt_si_si_obj(ScmObj iseq, SCM_OPCODE_T op,
 {
   ssize_t rslt;
 
-  SCM_STACK_FRAME_PUSH(&iseq,
+  SCM_REFSTK_INIT_REG(&iseq,
                        &obj);
 
   if (!scm_capi_iseq_p(iseq)) {
@@ -7155,7 +7155,7 @@ scm_capi_inst_fetch_oprand_obj(scm_byte_t *ip, scm_csetter_t *obj)
 {
   ScmObj opr = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&opr);
+  SCM_REFSTK_INIT_REG(&opr);
 
   if (ip == NULL) {
     scm_capi_error("failed to fetch operands: invalid ip", 0);
@@ -7176,7 +7176,7 @@ scm_capi_inst_fetch_oprand_obj_obj(scm_byte_t *ip,
 {
   ScmObj opr = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&opr);
+  SCM_REFSTK_INIT_REG(&opr);
 
   if (ip == NULL) {
     scm_capi_error("failed to fetch operands: invalid ip", 0);
@@ -7241,7 +7241,7 @@ scm_capi_inst_fetch_oprand_si_si_obj(scm_byte_t *ip,
   ScmObj opr = SCM_OBJ_INIT;
   int x;
 
-  SCM_STACK_FRAME_PUSH(&opr);
+  SCM_REFSTK_INIT_REG(&opr);
 
   if (ip == NULL) {
     scm_capi_error("failed to fetch operands: invalid ip", 0);
@@ -7275,7 +7275,7 @@ scm_capi_inst_update_oprand_obj(scm_byte_t *ip, ScmObj clsr, ScmObj obj)
   ScmObj iseq = SCM_OBJ_INIT;
   ssize_t idx;
 
-  SCM_STACK_FRAME_PUSH(&clsr, &obj,
+  SCM_REFSTK_INIT_REG(&clsr, &obj,
                        &iseq);
 
   if (ip == NULL) {
@@ -7338,7 +7338,7 @@ scm_norm_cmpl_arg_mod(ScmObj mod)
   ScmObj name = SCM_OBJ_INIT;
   int r;
 
-  SCM_STACK_FRAME_PUSH(&mod,
+  SCM_REFSTK_INIT_REG(&mod,
                        &name);
 
   if (scm_capi_module_p(mod))
@@ -7423,7 +7423,7 @@ scm_api_compiler_current_expr(ScmObj cmpl)
 ScmObj
 scm_api_compiler_select_module_i(ScmObj cmpl, ScmObj mod)
 {
-  SCM_STACK_FRAME_PUSH(&cmpl, &mod);
+  SCM_REFSTK_INIT_REG(&cmpl, &mod);
 
   if (!scm_capi_compiler_p(cmpl)) {
     scm_capi_error("failed to change current module: "
@@ -7442,7 +7442,7 @@ scm_api_compiler_select_module_i(ScmObj cmpl, ScmObj mod)
 ScmObj
 scm_api_compiler_select_expr_i(ScmObj cmpl, ScmObj expr)
 {
-  SCM_STACK_FRAME_PUSH(&cmpl, &expr);
+  SCM_REFSTK_INIT_REG(&cmpl, &expr);
 
   if (!scm_capi_compiler_p(cmpl)) {
     scm_capi_error("failed to change current expression: "
@@ -7486,7 +7486,7 @@ scm_capi_gloc_p(ScmObj obj)
 int
 scm_capi_gloc_value(ScmObj gloc, scm_csetter_t *val)
 {
-  SCM_STACK_FRAME_PUSH(&gloc);
+  SCM_REFSTK_INIT_REG(&gloc);
 
   if (!scm_capi_gloc_p(gloc)) {
     scm_capi_error("failed to get a value of gloc: invalid argument", 1, gloc);
@@ -7502,7 +7502,7 @@ scm_capi_gloc_value(ScmObj gloc, scm_csetter_t *val)
 int
 scm_capi_gloc_symbol(ScmObj gloc, scm_csetter_t *sym)
 {
-  SCM_STACK_FRAME_PUSH(&gloc);
+  SCM_REFSTK_INIT_REG(&gloc);
 
   if (!scm_capi_gloc_p(gloc)) {
     scm_capi_error("failed to get a symbol of gloc: invalid argument", 1, gloc);
@@ -7518,7 +7518,7 @@ scm_capi_gloc_symbol(ScmObj gloc, scm_csetter_t *sym)
 int
 scm_capi_gloc_bind(ScmObj gloc, ScmObj val)
 {
-  SCM_STACK_FRAME_PUSH(&gloc, &val);
+  SCM_REFSTK_INIT_REG(&gloc, &val);
 
   if (!scm_capi_gloc_p(gloc)) {
     scm_capi_error("failed to update value of gloc: invalid argument", 1, gloc);
@@ -7540,7 +7540,7 @@ scm_api_make_module(ScmObj name)
   ScmObj mod = SCM_OBJ_INIT;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&name,
+  SCM_REFSTK_INIT_REG(&name,
                        &mod);
 
   if (!scm_capi_symbol_p(name) && !scm_capi_pair_p(name)) {
@@ -7570,7 +7570,7 @@ scm_capi_module_p(ScmObj obj)
 int
 scm_capi_find_module(ScmObj name, scm_csetter_t *mod)
 {
-  SCM_STACK_FRAME_PUSH(&name);
+  SCM_REFSTK_INIT_REG(&name);
 
   if (!scm_capi_symbol_p(name) && !scm_capi_pair_p(name)) {
     scm_capi_error("failed to find module: invalid argument", 1, name);
@@ -7598,7 +7598,7 @@ scm_capi_import(ScmObj module, ScmObj imported, bool restrictive)
 {
   ScmObj imp = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&module, &imported,
+  SCM_REFSTK_INIT_REG(&module, &imported,
                        &imp);
 
   if (!scm_capi_module_p(module)) {
@@ -7641,7 +7641,7 @@ scm_api_get_gloc(ScmObj module, ScmObj sym)
 int
 scm_capi_find_gloc(ScmObj module, ScmObj sym, scm_csetter_t *gloc)
 {
-  SCM_STACK_FRAME_PUSH(&module, &sym);
+  SCM_REFSTK_INIT_REG(&module, &sym);
 
   if (!scm_capi_module_p(module)) {
     scm_capi_error("failed to find a GLoc object: invalid argument", 1, module);
@@ -7663,7 +7663,7 @@ scm_capi_define_global_var(ScmObj module, ScmObj sym, ScmObj val, bool export)
 {
   ScmObj mod = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&module, &sym, &val,
+  SCM_REFSTK_INIT_REG(&module, &sym, &val,
                        &mod);
 
   if (scm_obj_null_p(module)) {
@@ -7703,7 +7703,7 @@ scm_capi_define_global_syx(ScmObj module, ScmObj sym, ScmObj syx, bool export)
 {
   ScmObj mod = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&module, &sym, &syx);
+  SCM_REFSTK_INIT_REG(&module, &sym, &syx);
 
   if (scm_obj_null_p(module)) {
     scm_capi_error("failed to define syntax: invalid argument", 1, module);
@@ -7740,7 +7740,7 @@ scm_capi_global_var_ref(ScmObj module, ScmObj sym, scm_csetter_t *val)
   ScmObj mod = SCM_OBJ_INIT, gloc = SCM_OBJ_INIT, v = SCM_OBJ_INIT;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&module, &sym,
+  SCM_REFSTK_INIT_REG(&module, &sym,
                        &mod, &gloc, &v);
 
   if (scm_obj_null_p(module)) {
@@ -7788,7 +7788,7 @@ scm_capi_global_syx_ref(ScmObj module, ScmObj sym, scm_csetter_t *syx)
   ScmObj mod = SCM_OBJ_INIT, gloc = SCM_OBJ_INIT, v = SCM_OBJ_INIT;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&module, &sym,
+  SCM_REFSTK_INIT_REG(&module, &sym,
                        &mod, &gloc, &v);
 
 
@@ -7833,7 +7833,7 @@ scm_capi_cached_global_var_ref(int kind, scm_csetter_t *val)
   ScmObj gloc = SCM_OBJ_INIT, v = SCM_OBJ_INIT;
   int r;
 
-  SCM_STACK_FRAME_PUSH(&gloc, &v);
+  SCM_REFSTK_INIT_REG(&gloc, &v);
 
   r = scm_bedrock_cached_gv(scm_vm_current_br(), kind, SCM_CSETTER_L(gloc));
   if (r < 0) return -1;
@@ -7879,7 +7879,7 @@ scm_capi_capture_cont(void)
 {
   ScmObj cap = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&cap);
+  SCM_REFSTK_INIT_REG(&cap);
 
   cap = scm_vm_capture_cont(scm_vm_current_vm());
   if (scm_obj_null_p(cap)) return SCM_OBJ_NULL;
@@ -8018,7 +8018,7 @@ scm_capi_pformat_lst_aux(ScmObj port, ScmObj fmt, size_t len, ScmObj lst)
   ScmEncoding *enc;
   bool escaped;
 
-  SCM_STACK_FRAME_PUSH(&port, &fmt, &lst,
+  SCM_REFSTK_INIT_REG(&port, &fmt, &lst,
                        &o);
 
   scm_assert(scm_capi_output_port_p(port));
@@ -8065,7 +8065,7 @@ scm_capi_pformat_lst(ScmObj port, ScmObj fmt, ScmObj lst)
 {
   size_t len;
 
-  SCM_STACK_FRAME_PUSH(&port, &fmt, &lst);
+  SCM_REFSTK_INIT_REG(&port, &fmt, &lst);
 
   if (!scm_capi_output_port_p(port)) {
     scm_capi_error("format: output port required, but got", 1, port);
@@ -8089,7 +8089,7 @@ scm_capi_format_lst(ScmObj fmt, ScmObj lst)
   ScmEncoding *fenc, *senc;
   int r;
 
-  SCM_STACK_FRAME_PUSH(&fmt, &lst,
+  SCM_REFSTK_INIT_REG(&fmt, &lst,
                        &port, &str);
 
   port = scm_api_open_output_string();
@@ -8121,7 +8121,7 @@ scm_capi_pformat_cv_aux(ScmObj port,
   bool escaped;
   size_t obj_idx;
 
-  SCM_STACK_FRAME_PUSH(&port, &fmt,
+  SCM_REFSTK_INIT_REG(&port, &fmt,
                        &o);
 
   scm_assert(scm_capi_output_port_p(port));
@@ -8162,7 +8162,7 @@ scm_capi_pformat_cv(ScmObj port, ScmObj fmt, ScmObj *obj, size_t n)
 {
   size_t len;
 
-  SCM_STACK_FRAME_PUSH(&port, &fmt);
+  SCM_REFSTK_INIT_REG(&port, &fmt);
 
   if (!scm_capi_output_port_p(port)) {
     scm_capi_error("format: output port required, but got", 1, port);
@@ -8191,7 +8191,7 @@ scm_capi_format_cv(ScmObj fmt, ScmObj *obj, size_t n)
   ScmEncoding *fenc, *senc;
   int r;
 
-  SCM_STACK_FRAME_PUSH(&fmt,
+  SCM_REFSTK_INIT_REG(&fmt,
                        &port, &str);
 
   port = scm_api_open_output_string();
@@ -8218,11 +8218,11 @@ scm_api_pformat_aux(ScmObj port, ScmObj fmt, const char *cfmt,
 {
   ScmObj obj[n];
 
-  SCM_STACK_FRAME_PUSH(&port, &fmt);
+  SCM_REFSTK_INIT_REG(&port, &fmt);
 
   for (size_t i = 0; i < n; i++) {
     obj[i] = va_arg(arg, ScmObj);
-    SCM_STACK_PUSH(obj + i);
+    SCM_REFSTK_REG(obj + i);
   }
 
   if (scm_obj_null_p(fmt)) {
@@ -8451,7 +8451,7 @@ scm_get_proc(const char *name, const char * const *module, size_t n)
   ScmObj proc = SCM_OBJ_INIT, o = SCM_OBJ_INIT;
   int r;
 
-  SCM_STACK_FRAME_PUSH(&sym, &mod, &mod_name,
+  SCM_REFSTK_INIT_REG(&sym, &mod, &mod_name,
                        &proc, &o);
 
   mod_name = SCM_NIL_OBJ;
@@ -8500,7 +8500,7 @@ scm_capi_run_repl(ScmEvaluator *ev)
   if (rslt < 0) goto end;
 
   {
-    SCM_STACK_FRAME_PUSH(&proc);
+    SCM_REFSTK_INIT_REG(&proc);
 
     proc = scm_get_proc("read-eval-print-loop",
                         (const char *[]){"scythe", "internal", "repl"}, 3);
@@ -8533,7 +8533,7 @@ scm_capi_exec_file(const char *path, ScmEvaluator *ev)
   if (rslt < 0) goto end;
 
   {
-    SCM_STACK_FRAME_PUSH(&port, &str,
+    SCM_REFSTK_INIT_REG(&port, &str,
                          &proc, &args);
 
     port = scm_capi_open_input_string_cstr(path, NULL);
@@ -8578,7 +8578,7 @@ scm_capi_exec_cstr(const char *expr, ScmEvaluator *ev)
   if (rslt < 0) goto end;
 
   {
-    SCM_STACK_FRAME_PUSH(&port, &str,
+    SCM_REFSTK_INIT_REG(&port, &str,
                          &proc, &args);
 
     port = scm_capi_open_input_string_cstr(expr, NULL);
@@ -8623,7 +8623,7 @@ scm_capi_compile_file(const char *path, ScmEvaluator *ev)
   if (rslt < 0) goto end;
 
   {
-    SCM_STACK_FRAME_PUSH(&port, &str, &mod,
+    SCM_REFSTK_INIT_REG(&port, &str, &mod,
                          &proc, &args, &val);
 
     port = scm_capi_open_input_string_cstr(path, NULL);
@@ -8675,7 +8675,7 @@ scm_capi_load_iseq(ScmObj iseq)
   ScmObj o = SCM_OBJ_INIT;
   ssize_t rslt;
 
-  SCM_STACK_FRAME_PUSH(&iseq,
+  SCM_REFSTK_INIT_REG(&iseq,
                        &o);
 
   if (!scm_capi_iseq_p(iseq)) {

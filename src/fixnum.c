@@ -200,7 +200,7 @@ scm_fixnum_cmp(ScmObj fn, ScmObj num, int *cmp)
   scm_assert(scm_capi_number_p(num));
 
   if (!scm_capi_fixnum_p(num)) {
-    SCM_STACK_FRAME_PUSH(&fn, &num);
+    SCM_REFSTK_INIT_REG(&fn, &num);
 
     fn = SCM_NUM_CALL_FUNC(num, coerce, fn);
     if (scm_obj_null_p(fn)) return -1;
@@ -274,7 +274,7 @@ scm_fixnum_invert_sign(ScmObj fn)
 ScmObj
 scm_fixnum_plus(ScmObj aug, ScmObj add)
 {
-  SCM_STACK_FRAME_PUSH(&add);
+  SCM_REFSTK_INIT_REG(&add);
 
   scm_assert_obj_type(aug, &SCM_FIXNUM_TYPE_INFO);
   scm_assert(scm_capi_number_p(add));
@@ -298,7 +298,7 @@ scm_fixnum_plus(ScmObj aug, ScmObj add)
 ScmObj
 scm_fixnum_minus(ScmObj min, ScmObj sub)
 {
-  SCM_STACK_FRAME_PUSH(&sub);
+  SCM_REFSTK_INIT_REG(&sub);
 
   scm_assert_obj_type(min, &SCM_FIXNUM_TYPE_INFO);
   scm_assert(scm_capi_number_p(sub));
@@ -324,7 +324,7 @@ scm_fixnum_mul(ScmObj mud, ScmObj mur)
 {
   scm_sword_t v, v1, v2;
 
-  SCM_STACK_FRAME_PUSH(&mur);
+  SCM_REFSTK_INIT_REG(&mur);
 
   scm_assert_obj_type(mud, &SCM_FIXNUM_TYPE_INFO);
   scm_assert(scm_capi_number_p(mur));
@@ -363,7 +363,7 @@ scm_fixnum_floor_div(ScmObj dvd, ScmObj dvr,
   char x_s, y_s;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&dvr);
+  SCM_REFSTK_INIT_REG(&dvr);
 
   scm_assert_obj_type(dvd, &SCM_FIXNUM_TYPE_INFO);
   scm_assert(scm_capi_number_p(dvr));
@@ -406,7 +406,7 @@ scm_fixnum_ceiling_div(ScmObj dvd, ScmObj dvr,
   char x_s, y_s;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&dvr);
+  SCM_REFSTK_INIT_REG(&dvr);
 
   scm_assert_obj_type(dvd, &SCM_FIXNUM_TYPE_INFO);
   scm_assert(scm_capi_number_p(dvr));
@@ -448,7 +448,7 @@ scm_fixnum_truncate_div(ScmObj dvd, ScmObj dvr,
   scm_sword_t x, y, q, r;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&dvr);
+  SCM_REFSTK_INIT_REG(&dvr);
 
   scm_assert_obj_type(dvd, &SCM_FIXNUM_TYPE_INFO);
   scm_assert(scm_capi_number_p(dvr));

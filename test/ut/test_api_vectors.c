@@ -22,7 +22,7 @@ TEST(api_vectors, capi_vector_p__return_true)
 {
   ScmObj vec = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec);
+  SCM_REFSTK_INIT_REG(&vec);
 
   vec = read_cstr("#(a b c)");
 
@@ -43,7 +43,7 @@ TEST(api_vectors, api_vector_P__return_true)
 {
   ScmObj vec = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec);
+  SCM_REFSTK_INIT_REG(&vec);
 
   vec = read_cstr("#(a b c)");
 
@@ -59,7 +59,7 @@ TEST(api_vectors, capi_make_vector__dont_specify_fill)
 {
   ScmObj vec = SCM_OBJ_INIT, elm = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec, &elm);
+  SCM_REFSTK_INIT_REG(&vec, &elm);
 
   vec = scm_capi_make_vector(3, SCM_OBJ_NULL);
 
@@ -76,7 +76,7 @@ TEST(api_vectors, capi_make_vector__specify_fill)
 {
   ScmObj vec = SCM_OBJ_INIT, fill = SCM_OBJ_INIT, elm = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec, &fill, &elm);
+  SCM_REFSTK_INIT_REG(&vec, &fill, &elm);
 
   fill = read_cstr("abc");
   vec = scm_capi_make_vector(3, fill);
@@ -94,7 +94,7 @@ TEST(api_vectors, api_make_vector__dont_specify_fill)
 {
   ScmObj vec = SCM_OBJ_INIT, len = SCM_OBJ_INIT, elm = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec, &len, &elm);
+  SCM_REFSTK_INIT_REG(&vec, &len, &elm);
 
   len = read_cstr("3");
   vec = scm_api_make_vector(len, SCM_OBJ_NULL);
@@ -113,7 +113,7 @@ TEST(api_vectors, api_make_vector__specify_fill)
   ScmObj vec = SCM_OBJ_INIT, len = SCM_OBJ_INIT, fill = SCM_OBJ_INIT;
   ScmObj elm = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec, &len, &fill, &elm);
+  SCM_REFSTK_INIT_REG(&vec, &len, &fill, &elm);
 
   len = read_cstr("3");
   fill = read_cstr("abc");
@@ -137,7 +137,7 @@ TEST(api_vectors, capi_vector_lst)
 {
   ScmObj lst = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&lst, &expected, &actual);
 
   lst = read_cstr("(a b c)");
   expected = read_cstr("#(a b c)");
@@ -152,8 +152,8 @@ TEST(api_vectors, capi_vector_cv)
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
   ScmObj elm[3] = { SCM_OBJ_INIT, SCM_OBJ_INIT, SCM_OBJ_INIT };
 
-  SCM_STACK_FRAME_PUSH(&actual, &expected);
-  SCM_STACK_PUSH_ARY(elm, sizeof(elm)/sizeof(elm[0]));
+  SCM_REFSTK_INIT_REG(&actual, &expected);
+  SCM_REFSTK_REG_ARY(elm, sizeof(elm)/sizeof(elm[0]));
 
   elm[0] = read_cstr("a");
   elm[1] = read_cstr("b");
@@ -169,7 +169,7 @@ TEST(api_vectors, capi_vector_cv__empty)
 {
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&actual, &expected);
+  SCM_REFSTK_INIT_REG(&actual, &expected);
 
   expected = read_cstr("#()");
 
@@ -182,8 +182,8 @@ TEST(api_vectors, capi_vector_cv__return_ERROR)
 {
   ScmObj elm[3] = { SCM_OBJ_INIT, SCM_OBJ_INIT, SCM_OBJ_INIT };
 
-  SCM_STACK_FRAME;
-  SCM_STACK_PUSH_ARY(elm, sizeof(elm)/sizeof(elm[0]));
+  SCM_REFSTK_INIT;
+  SCM_REFSTK_REG_ARY(elm, sizeof(elm)/sizeof(elm[0]));
 
   elm[0] = read_cstr("a");
   elm[1] = SCM_OBJ_NULL;
@@ -197,8 +197,8 @@ TEST(api_vectors, capi_vector)
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
   ScmObj elm[3] = { SCM_OBJ_INIT, SCM_OBJ_INIT, SCM_OBJ_INIT };
 
-  SCM_STACK_FRAME_PUSH(&actual, &expected);
-  SCM_STACK_PUSH_ARY(elm, sizeof(elm)/sizeof(elm[0]));
+  SCM_REFSTK_INIT_REG(&actual, &expected);
+  SCM_REFSTK_REG_ARY(elm, sizeof(elm)/sizeof(elm[0]));
 
   elm[0] = read_cstr("a");
   elm[1] = read_cstr("b");
@@ -214,7 +214,7 @@ TEST(api_vectors, capi_vector__empty)
 {
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&actual, &expected);
+  SCM_REFSTK_INIT_REG(&actual, &expected);
 
   expected = read_cstr("#()");
 
@@ -227,8 +227,8 @@ TEST(api_vectors, capi_vector__return_ERROR)
 {
   ScmObj elm[3] = { SCM_OBJ_INIT, SCM_OBJ_INIT, SCM_OBJ_INIT };
 
-  SCM_STACK_FRAME;
-  SCM_STACK_PUSH_ARY(elm, sizeof(elm)/sizeof(elm[0]));
+  SCM_REFSTK_INIT;
+  SCM_REFSTK_REG_ARY(elm, sizeof(elm)/sizeof(elm[0]));
 
   elm[0] = read_cstr("a");
   elm[1] = SCM_OBJ_NULL;;
@@ -241,7 +241,7 @@ TEST(api_vectors, capi_vector_length)
 {
   ScmObj vec = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec);
+  SCM_REFSTK_INIT_REG(&vec);
 
   vec = read_cstr("#(a b c)");
 
@@ -257,7 +257,7 @@ TEST(api_vectors, api_vector_length)
 {
   ScmObj vec = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&vec, &expected, &actual);
 
   vec = read_cstr("#(a b c)");
   expected = read_cstr("3");
@@ -276,7 +276,7 @@ TEST(api_vectors, capi_vector_ref)
 {
   ScmObj vec = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&vec, &expected, &actual);
 
   vec = read_cstr("#(a b c)");
   expected = read_cstr("b");
@@ -290,7 +290,7 @@ TEST(api_vectors, capi_vector_ref__out_of_range__return_ERROR)
 {
   ScmObj vec = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec);
+  SCM_REFSTK_INIT_REG(&vec);
 
   vec = read_cstr("#(a b c)");
 
@@ -307,7 +307,7 @@ TEST(api_vectors, api_vector_ref)
   ScmObj vec = SCM_OBJ_INIT, num = SCM_OBJ_INIT;
   ScmObj expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec, &num, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&vec, &num, &expected, &actual);
 
   vec = read_cstr("#(a b c)");
   num = read_cstr("1");
@@ -322,7 +322,7 @@ TEST(api_vectors, api_vector_ref__out_of_range__return_ERROR)
 {
   ScmObj vec = SCM_OBJ_INIT, num = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec, &num);
+  SCM_REFSTK_INIT_REG(&vec, &num);
 
   vec = read_cstr("#(a b c)");
   num = read_cstr("3");
@@ -334,7 +334,7 @@ TEST(api_vectors, api_vector_ref__return_ERROR)
 {
   ScmObj num = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&num);
+  SCM_REFSTK_INIT_REG(&num);
 
   num = read_cstr("0");
 
@@ -346,7 +346,7 @@ TEST(api_vectors, capi_vector_set_i)
   ScmObj vec = SCM_OBJ_INIT, elm = SCM_OBJ_INIT;
   ScmObj expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec, &elm, &expected);
+  SCM_REFSTK_INIT_REG(&vec, &elm, &expected);
 
   vec = read_cstr("#(a b c)");
   elm = read_cstr("z");
@@ -361,7 +361,7 @@ TEST(api_vectors, capi_vector_set_i__out_of_range__return_ERROR)
 {
   ScmObj vec = SCM_OBJ_INIT, elm = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec, &elm);
+  SCM_REFSTK_INIT_REG(&vec, &elm);
 
   vec = read_cstr("#(a b c)");
   elm = read_cstr("z");
@@ -373,7 +373,7 @@ TEST(api_vectors, capi_vector_set_i__set_SCM_OBJ_NULL__return_ERROR)
 {
   ScmObj vec = SCM_OBJ_INIT, elm = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec, &elm);
+  SCM_REFSTK_INIT_REG(&vec, &elm);
 
   vec = read_cstr("#(a b c)");
   elm = SCM_OBJ_NULL;
@@ -385,7 +385,7 @@ TEST(api_vectors, capi_vector_set_i__return_ERROR)
 {
   ScmObj elm = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&elm);
+  SCM_REFSTK_INIT_REG(&elm);
 
   elm = read_cstr("z");
 
@@ -397,7 +397,7 @@ TEST(api_vectors, api_vector_set_i)
   ScmObj vec = SCM_OBJ_INIT, elm = SCM_OBJ_INIT, num = SCM_OBJ_INIT;
   ScmObj expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec, &elm, &num, &expected);
+  SCM_REFSTK_INIT_REG(&vec, &elm, &num, &expected);
 
   vec = read_cstr("#(a b c)");
   elm = read_cstr("z");
@@ -413,7 +413,7 @@ TEST(api_vectors, api_vector_set_i__out_of_range__return_ERROR)
 {
   ScmObj vec = SCM_OBJ_INIT, elm = SCM_OBJ_INIT, num = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec, &elm, &num);
+  SCM_REFSTK_INIT_REG(&vec, &elm, &num);
 
   vec = read_cstr("#(a b c)");
   elm = read_cstr("z");
@@ -426,7 +426,7 @@ TEST(api_vectors, api_vector_set_i__set_SCM_OBJ_NULL__return_ERROR)
 {
   ScmObj vec = SCM_OBJ_INIT, elm = SCM_OBJ_INIT, num = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec, &elm, &num);
+  SCM_REFSTK_INIT_REG(&vec, &elm, &num);
 
   vec = read_cstr("#(a b c)");
   elm = SCM_OBJ_NULL;
@@ -439,7 +439,7 @@ TEST(api_vectors, api_vector_set_i__return_ERROR)
 {
   ScmObj elm = SCM_OBJ_INIT, num = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&elm, &num);
+  SCM_REFSTK_INIT_REG(&elm, &num);
 
   elm = read_cstr("z");
   num = read_cstr("0");
@@ -451,7 +451,7 @@ TEST(api_vectors, capi_vector_to_list__unspecify_start_end)
 {
   ScmObj vec = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&vec, &expected, &actual);
 
   vec = read_cstr("#(a b c d e)");
   expected = read_cstr("(a b c d e)");
@@ -465,7 +465,7 @@ TEST(api_vectors, capi_vector_to_list__specify_start)
 {
   ScmObj vec = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&vec, &expected, &actual);
 
   vec = read_cstr("#(a b c d e)");
   expected = read_cstr("(b c d e)");
@@ -479,7 +479,7 @@ TEST(api_vectors, capi_vector_to_list__specify_start_end)
 {
   ScmObj vec = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&vec, &expected, &actual);
 
   vec = read_cstr("#(a b c d e)");
   expected = read_cstr("(b c d)");
@@ -493,7 +493,7 @@ TEST(api_vectors, capi_vector_to_list__same_idx__return_empty_list)
 {
   ScmObj vec = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&vec, &expected, &actual);
 
   vec = read_cstr("#(a b c d e)");
   expected = read_cstr("()");
@@ -507,7 +507,7 @@ TEST(api_vectors, capi_vector_to_list__start_greater_then_end__return_ERROR)
 {
   ScmObj vec = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec);
+  SCM_REFSTK_INIT_REG(&vec);
 
   vec = read_cstr("#(a b c d e)");
 
@@ -518,7 +518,7 @@ TEST(api_vectors, capi_vector_to_list__out_of_range__return_ERROR)
 {
   ScmObj vec = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec);
+  SCM_REFSTK_INIT_REG(&vec);
 
   vec = read_cstr("#(a b c d e)");
 
@@ -529,7 +529,7 @@ TEST(api_vectors, api_vector_to_list__unspecify_start_end)
 {
   ScmObj vec = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&vec, &expected, &actual);
 
   vec = read_cstr("#(a b c d e)");
   expected = read_cstr("(a b c d e)");
@@ -544,7 +544,7 @@ TEST(api_vectors, api_vector_to_list__specify_start)
   ScmObj vec = SCM_OBJ_INIT, start = SCM_OBJ_INIT;
   ScmObj expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec, &start, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&vec, &start, &expected, &actual);
 
   vec = read_cstr("#(a b c d e)");
   start = read_cstr("1");
@@ -560,7 +560,7 @@ TEST(api_vectors, api_vector_to_list__specify_start_end)
   ScmObj vec = SCM_OBJ_INIT, start = SCM_OBJ_INIT, end = SCM_OBJ_INIT;
   ScmObj expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec, &start, &end, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&vec, &start, &end, &expected, &actual);
 
   vec = read_cstr("#(a b c d e)");
   start = read_cstr("1");
@@ -577,7 +577,7 @@ TEST(api_vectors, api_vector_to_list__same_idx__return_empty_list)
   ScmObj vec = SCM_OBJ_INIT, start = SCM_OBJ_INIT, end = SCM_OBJ_INIT;
   ScmObj expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec, &start, &end, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&vec, &start, &end, &expected, &actual);
 
   vec = read_cstr("#(a b c d e)");
   start = read_cstr("1");
@@ -593,7 +593,7 @@ TEST(api_vectors, api_vector_to_list__start_greater_then_end__return_ERROR)
 {
   ScmObj vec = SCM_OBJ_INIT, start = SCM_OBJ_INIT, end = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec, &start, &end);
+  SCM_REFSTK_INIT_REG(&vec, &start, &end);
 
   vec = read_cstr("#(a b c d e)");
   start = read_cstr("3");
@@ -606,7 +606,7 @@ TEST(api_vectors, api_vector_to_list__out_of_range__return_ERROR)
 {
   ScmObj vec = SCM_OBJ_INIT, start = SCM_OBJ_INIT, end = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec, &start, &end);
+  SCM_REFSTK_INIT_REG(&vec, &start, &end);
 
   vec = read_cstr("#(a b c d e)");
   start = read_cstr("1");
@@ -619,7 +619,7 @@ TEST(api_vectors, api_list_to_vector)
 {
   ScmObj lst = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&lst, &expected, &actual);
 
   lst = read_cstr("(a b c)");
   expected = read_cstr("#(a b c)");
@@ -633,7 +633,7 @@ TEST(api_vectors, api_list_to_vector__empty_list)
 {
   ScmObj lst = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&lst, &expected, &actual);
 
   lst = read_cstr("()");
   expected = read_cstr("#()");
@@ -647,7 +647,7 @@ TEST(api_vectors, api_list_to_vector__not_list__return_empty_vector)
 {
   ScmObj lst = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&lst, &expected, &actual);
 
   expected = read_cstr("#()");
 
@@ -660,7 +660,7 @@ TEST(api_vectors, api_list_to_vector__improper_list)
 {
   ScmObj lst = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&lst, &expected, &actual);
 
   lst = read_cstr("(a b . c)");
   expected = read_cstr("#(a b)");
@@ -674,7 +674,7 @@ TEST(api_vectors, capi_vector_to_string__unspecify_start_end)
 {
   ScmObj vec = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&vec, &expected, &actual);
 
   vec = read_cstr("#(#\\a #\\b #\\c #\\d #\\e)");
   expected = read_cstr("\"abcde\"");
@@ -688,7 +688,7 @@ TEST(api_vectors, capi_vector_to_string__specify_start)
 {
   ScmObj vec = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&vec, &expected, &actual);
 
   vec = read_cstr("#(#\\a #\\b #\\c #\\d #\\e)");
   expected = read_cstr("\"bcde\"");
@@ -702,7 +702,7 @@ TEST(api_vectors, capi_vector_to_string__specify_start_end)
 {
   ScmObj vec = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&vec, &expected, &actual);
 
   vec = read_cstr("#(#\\a #\\b #\\c #\\d #\\e)");
   expected = read_cstr("\"bcd\"");
@@ -716,7 +716,7 @@ TEST(api_vectors, capi_vector_to_string__same_idx__return_empty_string)
 {
   ScmObj vec = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&vec, &expected, &actual);
 
   vec = read_cstr("#(#\\a #\\b #\\c #\\d #\\e)");
   expected = read_cstr("\"\"");
@@ -730,7 +730,7 @@ TEST(api_vectors, capi_vector_to_string__start_greater_then_end__return_ERROR)
 {
   ScmObj vec = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec);
+  SCM_REFSTK_INIT_REG(&vec);
 
   vec = read_cstr("#(#\\a #\\b #\\c #\\d #\\e)");
 
@@ -741,7 +741,7 @@ TEST(api_vectors, capi_vector_to_string__vector_has_item_is_not_char__return_ERR
 {
   ScmObj vec = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec);
+  SCM_REFSTK_INIT_REG(&vec);
 
   vec = read_cstr("#(#\\a #\\b c #\\d #\\e)");
 
@@ -752,7 +752,7 @@ TEST(api_vectors, capi_vector_to_string__out_of_range__return_ERROR)
 {
   ScmObj vec = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec);
+  SCM_REFSTK_INIT_REG(&vec);
 
   vec = read_cstr("#(#\\a #\\b #\\c #\\d #\\e)");
 
@@ -763,7 +763,7 @@ TEST(api_vectors, api_vector_to_string__unspecify_start_end)
 {
   ScmObj vec = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&vec, &expected, &actual);
 
   vec = read_cstr("#(#\\a #\\b #\\c #\\d #\\e)");
   expected = read_cstr("\"abcde\"");
@@ -778,7 +778,7 @@ TEST(api_vectors, api_vector_to_string__specify_start)
   ScmObj vec = SCM_OBJ_INIT, start = SCM_OBJ_INIT;
   ScmObj expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec, &start, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&vec, &start, &expected, &actual);
 
   vec = read_cstr("#(#\\a #\\b #\\c #\\d #\\e)");
   start = read_cstr("1");
@@ -794,7 +794,7 @@ TEST(api_vectors, api_vector_to_string__specify_start_end)
   ScmObj vec = SCM_OBJ_INIT, start = SCM_OBJ_INIT, end = SCM_OBJ_INIT;
   ScmObj expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec, &start, &end, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&vec, &start, &end, &expected, &actual);
 
   vec = read_cstr("#(#\\a #\\b #\\c #\\d #\\e)");
   start = read_cstr("1");
@@ -811,7 +811,7 @@ TEST(api_vectors, api_vector_to_string__same_idx__return_empty_string)
   ScmObj vec = SCM_OBJ_INIT, start = SCM_OBJ_INIT, end = SCM_OBJ_INIT;
   ScmObj expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec, &start, &end, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&vec, &start, &end, &expected, &actual);
 
   vec = read_cstr("#(#\\a #\\b #\\c #\\d #\\e)");
   start = read_cstr("1");
@@ -827,7 +827,7 @@ TEST(api_vectors, api_vector_to_string__start_greater_then_end__return_ERROR)
 {
   ScmObj vec = SCM_OBJ_INIT, start = SCM_OBJ_INIT, end = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec, &start, &end);
+  SCM_REFSTK_INIT_REG(&vec, &start, &end);
 
   vec = read_cstr("#(#\\a #\\b #\\c #\\d #\\e)");
   start = read_cstr("3");
@@ -840,7 +840,7 @@ TEST(api_vectors, api_vector_to_string__vector_has_item_is_not_char__return_ERRO
 {
   ScmObj vec = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec);
+  SCM_REFSTK_INIT_REG(&vec);
 
   vec = read_cstr("#(#\\a #\\b c #\\d #\\e)");
 
@@ -851,7 +851,7 @@ TEST(api_vectors, api_vector_to_string__out_of_range__return_ERROR)
 {
   ScmObj vec = SCM_OBJ_INIT, start = SCM_OBJ_INIT, end = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec, &start, &end);;
+  SCM_REFSTK_INIT_REG(&vec, &start, &end);;
 
   vec = read_cstr("#(#\\a #\\b #\\c #\\d #\\e)");
   start = read_cstr("1");
@@ -864,7 +864,7 @@ TEST(api_vectors, capi_string_to_vector__unspecify_start_end)
 {
   ScmObj str = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&str, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&str, &expected, &actual);
 
   str = read_cstr("\"abcde\"");
   expected = read_cstr("#(#\\a #\\b #\\c #\\d #\\e)");
@@ -878,7 +878,7 @@ TEST(api_vectors, capi_string_to_vector__specify_start)
 {
   ScmObj str = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&str, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&str, &expected, &actual);
 
   str = read_cstr("\"abcde\"");
   expected = read_cstr("#(#\\b #\\c #\\d #\\e)");
@@ -892,7 +892,7 @@ TEST(api_vectors, capi_string_to_vector__specify_start_end)
 {
   ScmObj str = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&str, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&str, &expected, &actual);
 
   str = read_cstr("\"abcde\"");
   expected = read_cstr("#(#\\b #\\c #\\d)");
@@ -906,7 +906,7 @@ TEST(api_vectors, capi_string_to_vector__same_idx__return_empty_vector)
 {
   ScmObj str = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&str, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&str, &expected, &actual);
 
   str = read_cstr("\"abcde\"");
   expected = read_cstr("#()");
@@ -920,7 +920,7 @@ TEST(api_vectors, capi_string_to_vector__start_greater_then_end__return_ERROR)
 {
   ScmObj str = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&str);
+  SCM_REFSTK_INIT_REG(&str);
 
   str = read_cstr("\"abcde\"");
 
@@ -931,7 +931,7 @@ TEST(api_vectors, capi_string_to_vector__out_of_range__return_ERROR)
 {
   ScmObj str = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&str);
+  SCM_REFSTK_INIT_REG(&str);
 
   str = read_cstr("\"abcde\"");
 
@@ -942,7 +942,7 @@ TEST(api_vectors, api_string_to_vector__unspecify_start_end)
 {
   ScmObj str = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&str, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&str, &expected, &actual);
 
   str = read_cstr("\"abcde\"");
   expected = read_cstr("#(#\\a #\\b #\\c #\\d #\\e)");
@@ -957,7 +957,7 @@ TEST(api_vectors, api_string_to_vector__specify_start)
   ScmObj str = SCM_OBJ_INIT, start = SCM_OBJ_INIT;
   ScmObj expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&str, &start, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&str, &start, &expected, &actual);
 
   str = read_cstr("\"abcde\"");
   start = read_cstr("1");
@@ -973,7 +973,7 @@ TEST(api_vectors, api_string_to_vector__specify_start_end)
   ScmObj str = SCM_OBJ_INIT, start = SCM_OBJ_INIT, end = SCM_OBJ_INIT;
   ScmObj expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&str, &start, &end, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&str, &start, &end, &expected, &actual);
 
   str = read_cstr("\"abcde\"");
   start = read_cstr("1");
@@ -990,7 +990,7 @@ TEST(api_vectors, api_string_to_vector__same_idx__return_empty_vector)
   ScmObj str = SCM_OBJ_INIT, start = SCM_OBJ_INIT, end = SCM_OBJ_INIT;
   ScmObj expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&str, &start, &end, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&str, &start, &end, &expected, &actual);
 
   str = read_cstr("\"abcde\"");
   start = read_cstr("1");
@@ -1006,7 +1006,7 @@ TEST(api_vectors, api_string_to_vector__start_greater_then_end__return_ERROR)
 {
   ScmObj str = SCM_OBJ_INIT, start = SCM_OBJ_INIT, end = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&str, &start, &end);
+  SCM_REFSTK_INIT_REG(&str, &start, &end);
 
   str = read_cstr("\"abcde\"");
   start = read_cstr("3");
@@ -1019,7 +1019,7 @@ TEST(api_vectors, api_string_to_vector__out_of_range__return_ERROR)
 {
   ScmObj str = SCM_OBJ_INIT, start = SCM_OBJ_INIT, end = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&str, &start, &end);;
+  SCM_REFSTK_INIT_REG(&str, &start, &end);;
 
   str = read_cstr("\"abcde\"");
   start = read_cstr("1");
@@ -1032,7 +1032,7 @@ TEST(api_vectors, capi_vector_copy__unspecify_start_end)
 {
   ScmObj vec = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&vec, &expected, &actual);
 
   vec = read_cstr("#(a b c d e)");
   expected = read_cstr("#(a b c d e)");
@@ -1046,7 +1046,7 @@ TEST(api_vectors, capi_vector_copy__specify_start)
 {
   ScmObj vec = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&vec, &expected, &actual);
 
   vec = read_cstr("#(a b c d e)");
   expected = read_cstr("#(b c d e)");
@@ -1060,7 +1060,7 @@ TEST(api_vectors, capi_vector_copy__specify_start_end)
 {
   ScmObj vec = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&vec, &expected, &actual);
 
   vec = read_cstr("#(a b c d e)");
   expected = read_cstr("#(b c d)");
@@ -1074,7 +1074,7 @@ TEST(api_vectors, capi_vector_copy__same_idx__return_empty_vector)
 {
   ScmObj vec = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&vec, &expected, &actual);
 
   vec = read_cstr("#(a b c d e)");
   expected = read_cstr("#()");
@@ -1088,7 +1088,7 @@ TEST(api_vectors, capi_vector_copy__start_greater_then_end__return_ERROR)
 {
   ScmObj vec = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec);
+  SCM_REFSTK_INIT_REG(&vec);
 
   vec = read_cstr("#(a b c d e)");
 
@@ -1099,7 +1099,7 @@ TEST(api_vectors, capi_vector_copy__out_of_range__return_ERROR)
 {
   ScmObj vec = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec);
+  SCM_REFSTK_INIT_REG(&vec);
 
   vec = read_cstr("#(a b c d e)");
 
@@ -1110,7 +1110,7 @@ TEST(api_vectors, api_vector_copy__unspecify_start_end)
 {
   ScmObj vec = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&vec, &expected, &actual);
 
   vec = read_cstr("#(a b c d e)");
   expected = read_cstr("#(a b c d e)");
@@ -1125,7 +1125,7 @@ TEST(api_vectors, api_vector_copy__specify_start)
   ScmObj vec = SCM_OBJ_INIT, start = SCM_OBJ_INIT;
   ScmObj expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec, &start, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&vec, &start, &expected, &actual);
 
   vec = read_cstr("#(a b c d e)");
   start = read_cstr("1");
@@ -1141,7 +1141,7 @@ TEST(api_vectors, api_vector_copy__specify_start_end)
   ScmObj vec = SCM_OBJ_INIT, start = SCM_OBJ_INIT, end = SCM_OBJ_INIT;
   ScmObj expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec, &start, &end, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&vec, &start, &end, &expected, &actual);
 
   vec = read_cstr("#(a b c d e)");
   start = read_cstr("1");
@@ -1158,7 +1158,7 @@ TEST(api_vectors, api_vector_copy__same_idx__return_empty_vector)
   ScmObj vec = SCM_OBJ_INIT, start = SCM_OBJ_INIT, end = SCM_OBJ_INIT;
   ScmObj expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec, &start, &end, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&vec, &start, &end, &expected, &actual);
 
   vec = read_cstr("#(a b c d e)");
   start = read_cstr("1");
@@ -1174,7 +1174,7 @@ TEST(api_vectors, api_vector_copy__start_greater_then_end__return_ERROR)
 {
   ScmObj vec = SCM_OBJ_INIT, start = SCM_OBJ_INIT, end = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec, &start, &end);
+  SCM_REFSTK_INIT_REG(&vec, &start, &end);
 
   vec = read_cstr("#(a b c d e)");
   start = read_cstr("3");
@@ -1187,7 +1187,7 @@ TEST(api_vectors, api_vector_copy__out_of_range__return_ERROR)
 {
   ScmObj vec = SCM_OBJ_INIT, start = SCM_OBJ_INIT, end = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec, &start, &end);
+  SCM_REFSTK_INIT_REG(&vec, &start, &end);
 
   vec = read_cstr("#(a b c d e)");
   start = read_cstr("1");
@@ -1200,7 +1200,7 @@ TEST(api_vectors, capi_vector_copy_i__unspecify_start_end)
 {
   ScmObj to = SCM_OBJ_INIT, from = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&to, &from, &expected);
+  SCM_REFSTK_INIT_REG(&to, &from, &expected);
 
   to = read_cstr("#(1 2 3 4 5)");
   from = read_cstr("#(a b c d e)");
@@ -1215,7 +1215,7 @@ TEST(api_vectors, capi_vector_copy_i__specify_start)
 {
   ScmObj to = SCM_OBJ_INIT, from = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&to, &from, &expected);
+  SCM_REFSTK_INIT_REG(&to, &from, &expected);
 
   to = read_cstr("#(1 2 3 4 5)");
   from = read_cstr("#(a b c d e)");
@@ -1230,7 +1230,7 @@ TEST(api_vectors, capi_vector_copy_i__specify_start_end)
 {
   ScmObj to = SCM_OBJ_INIT, from = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&to, &from, &expected);
+  SCM_REFSTK_INIT_REG(&to, &from, &expected);
 
   to = read_cstr("#(1 2 3 4 5)");
   from = read_cstr("#(a b c d e)");
@@ -1245,7 +1245,7 @@ TEST(api_vectors, capi_vector_copy_i__same_idx)
 {
   ScmObj to = SCM_OBJ_INIT, from = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&to, &from, &expected);
+  SCM_REFSTK_INIT_REG(&to, &from, &expected);
 
   to = read_cstr("#(1 2 3 4 5)");
   from = read_cstr("#(a b c d e)");
@@ -1260,7 +1260,7 @@ TEST(api_vectors, capi_vector_copy_i__overlap_1)
 {
   ScmObj to = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&to, &expected);
+  SCM_REFSTK_INIT_REG(&to, &expected);
 
   to = read_cstr("#(1 2 3 4 5)");
   expected = read_cstr("#(1 3 4 4 5)");
@@ -1274,7 +1274,7 @@ TEST(api_vectors, capi_vector_copy_i__overlap_2)
 {
   ScmObj to = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&to, &expected);
+  SCM_REFSTK_INIT_REG(&to, &expected);
 
   to = read_cstr("#(1 2 3 4 5)");
   expected = read_cstr("#(1 2 2 3 5)");
@@ -1288,7 +1288,7 @@ TEST(api_vectors, capi_vector_copy_i__start_greater_then_end__return_ERROR)
 {
   ScmObj to = SCM_OBJ_INIT, from = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&to, &from, &expected);
+  SCM_REFSTK_INIT_REG(&to, &from, &expected);
 
   to = read_cstr("#(1 2 3 4 5)");
   from = read_cstr("#(a b c d e)");
@@ -1303,7 +1303,7 @@ TEST(api_vectors, capi_vector_copy_i__too_many_objects_to_be_copied___return_ERR
 {
   ScmObj to = SCM_OBJ_INIT, from = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&to, &from, &expected);
+  SCM_REFSTK_INIT_REG(&to, &from, &expected);
 
   to = read_cstr("#(1 2 3 4 5)");
   from = read_cstr("#(a b c d e)");
@@ -1318,7 +1318,7 @@ TEST(api_vectors, capi_vector_copy_i__at_out_of_range___return_ERROR)
 {
   ScmObj to = SCM_OBJ_INIT, from = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&to, &from, &expected);
+  SCM_REFSTK_INIT_REG(&to, &from, &expected);
 
   to = read_cstr("#(1 2 3 4 5)");
   from = read_cstr("#(a b c d e)");
@@ -1333,7 +1333,7 @@ TEST(api_vectors, capi_vector_copy_i__start_out_of_range___return_ERROR)
 {
   ScmObj to = SCM_OBJ_INIT, from = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&to, &from, &expected);
+  SCM_REFSTK_INIT_REG(&to, &from, &expected);
 
   to = read_cstr("#(1 2 3 4 5)");
   from = read_cstr("#(a b c d e)");
@@ -1348,7 +1348,7 @@ TEST(api_vectors, capi_vector_copy_i__end_out_of_range___return_ERROR)
 {
   ScmObj to = SCM_OBJ_INIT, from = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&to, &from, &expected);
+  SCM_REFSTK_INIT_REG(&to, &from, &expected);
 
   to = read_cstr("#(1 2 3 4 5)");
   from = read_cstr("#(a b c d e)");
@@ -1368,7 +1368,7 @@ TEST(api_vectors, api_vector_copy_i__unspecify_start_end)
   ScmObj to = SCM_OBJ_INIT, from = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
   ScmObj at = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&to, &from, &expected, &at);
+  SCM_REFSTK_INIT_REG(&to, &from, &expected, &at);
 
   to = read_cstr("#(1 2 3 4 5)");
   from = read_cstr("#(a b c d e)");
@@ -1385,7 +1385,7 @@ TEST(api_vectors, api_vector_copy_i__specify_start)
   ScmObj to = SCM_OBJ_INIT, from = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
   ScmObj at = SCM_OBJ_INIT, start = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&to, &from, &expected, &at, &start);
+  SCM_REFSTK_INIT_REG(&to, &from, &expected, &at, &start);
 
   to = read_cstr("#(1 2 3 4 5)");
   from = read_cstr("#(a b c d e)");
@@ -1403,7 +1403,7 @@ TEST(api_vectors, api_vector_copy_i__specify_start_end)
   ScmObj to = SCM_OBJ_INIT, from = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
   ScmObj at = SCM_OBJ_INIT, start = SCM_OBJ_INIT, end = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&to, &from, &expected, &at, &start, &end);
+  SCM_REFSTK_INIT_REG(&to, &from, &expected, &at, &start, &end);
 
   to = read_cstr("#(1 2 3 4 5)");
   from = read_cstr("#(a b c d e)");
@@ -1422,7 +1422,7 @@ TEST(api_vectors, api_vector_copy_i__same_idx)
   ScmObj to = SCM_OBJ_INIT, from = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
   ScmObj at = SCM_OBJ_INIT, start = SCM_OBJ_INIT, end = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&to, &from, &expected, &at, &start, &end);
+  SCM_REFSTK_INIT_REG(&to, &from, &expected, &at, &start, &end);
 
   to = read_cstr("#(1 2 3 4 5)");
   from = read_cstr("#(a b c d e)");
@@ -1441,7 +1441,7 @@ TEST(api_vectors, api_vector_copy_i__overlap_1)
   ScmObj to = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
   ScmObj at = SCM_OBJ_INIT, start = SCM_OBJ_INIT, end = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&to, &expected, &at, &start, &end);
+  SCM_REFSTK_INIT_REG(&to, &expected, &at, &start, &end);
 
   to = read_cstr("#(1 2 3 4 5)");
   at = read_cstr("1");
@@ -1459,7 +1459,7 @@ TEST(api_vectors, api_vector_copy_i__overlap_2)
   ScmObj to = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
   ScmObj at = SCM_OBJ_INIT, start = SCM_OBJ_INIT, end = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&to, &expected, &at, &start, &end);
+  SCM_REFSTK_INIT_REG(&to, &expected, &at, &start, &end);
 
   to = read_cstr("#(1 2 3 4 5)");
   at = read_cstr("2");
@@ -1477,7 +1477,7 @@ TEST(api_vectors, api_vector_copy_i__start_greater_then_end__return_ERROR)
   ScmObj to = SCM_OBJ_INIT, from = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
   ScmObj at = SCM_OBJ_INIT, start = SCM_OBJ_INIT, end = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&to, &from, &expected, &at, &start, &end);
+  SCM_REFSTK_INIT_REG(&to, &from, &expected, &at, &start, &end);
 
   to = read_cstr("#(1 2 3 4 5)");
   from = read_cstr("#(a b c d e)");
@@ -1496,7 +1496,7 @@ TEST(api_vectors, api_vector_copy_i__too_many_objects_to_be_copied___return_ERRO
   ScmObj to = SCM_OBJ_INIT, from = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
   ScmObj at = SCM_OBJ_INIT, start = SCM_OBJ_INIT, end = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&to, &from, &expected, &at, &start, &end);
+  SCM_REFSTK_INIT_REG(&to, &from, &expected, &at, &start, &end);
 
   to = read_cstr("#(1 2 3 4 5)");
   from = read_cstr("#(a b c d e)");
@@ -1515,7 +1515,7 @@ TEST(api_vectors, api_vector_copy_i__at_out_of_range___return_ERROR)
   ScmObj to = SCM_OBJ_INIT, from = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
   ScmObj at = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&to, &from, &expected, &at);
+  SCM_REFSTK_INIT_REG(&to, &from, &expected, &at);
 
   to = read_cstr("#(1 2 3 4 5)");
   from = read_cstr("#(a b c d e)");
@@ -1532,7 +1532,7 @@ TEST(api_vectors, api_vector_copy_i__start_out_of_range___return_ERROR)
   ScmObj to = SCM_OBJ_INIT, from = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
   ScmObj at = SCM_OBJ_INIT, start = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&to, &from, &expected, &at, &start);
+  SCM_REFSTK_INIT_REG(&to, &from, &expected, &at, &start);
 
   to = read_cstr("#(1 2 3 4 5)");
   from = read_cstr("#(a b c d e)");
@@ -1550,7 +1550,7 @@ TEST(api_vectors, api_vector_copy_i__end_out_of_range___return_ERROR)
   ScmObj to = SCM_OBJ_INIT, from = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
   ScmObj at = SCM_OBJ_INIT, start = SCM_OBJ_INIT, end = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&to, &from, &expected, &at, &start, &end);
+  SCM_REFSTK_INIT_REG(&to, &from, &expected, &at, &start, &end);
 
   to = read_cstr("#(1 2 3 4 5)");
   from = read_cstr("#(a b c d e)");
@@ -1568,7 +1568,7 @@ TEST(api_vectors, capi_vector_append_lst)
 {
   ScmObj lst = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&lst, &expected, &actual);
 
   lst = read_cstr("(#(a b c) #(d e f) #(g h i))");
   expected = read_cstr("#(a b c d e f g h i)");
@@ -1582,7 +1582,7 @@ TEST(api_vectors, capi_vector_append_lst__empty_lst)
 {
   ScmObj lst = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&lst, &expected, &actual);
 
   lst = read_cstr("()");
   expected = read_cstr("#()");
@@ -1596,7 +1596,7 @@ TEST(api_vectors, capi_vector_append_lst__arg_is_not_list)
 {
   ScmObj lst = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&lst, &expected, &actual);
 
   lst = read_cstr("a");
   expected = read_cstr("#()");
@@ -1610,7 +1610,7 @@ TEST(api_vectors, capi_vector_append_lst__list_has_object_is_not_vector__return_
 {
   ScmObj lst = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&lst, &expected, &actual);
 
   lst = read_cstr("(#(a b c) def #(g h i))");
 
@@ -1622,8 +1622,8 @@ TEST(api_vectors, capi_vector_append_cv)
   ScmObj expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
   ScmObj vec[3] = { SCM_OBJ_INIT, SCM_OBJ_INIT, SCM_OBJ_INIT};
 
-  SCM_STACK_FRAME_PUSH(&expected, &actual);
-  SCM_STACK_PUSH_ARY(vec, sizeof(vec)/sizeof(vec[0]));
+  SCM_REFSTK_INIT_REG(&expected, &actual);
+  SCM_REFSTK_REG_ARY(vec, sizeof(vec)/sizeof(vec[0]));
 
   vec[0] = read_cstr("#(a b c)");
   vec[1] = read_cstr("#(d e f)");
@@ -1639,7 +1639,7 @@ TEST(api_vectors, capi_vector_append_cv__empty)
 {
   ScmObj expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&expected, &actual);
+  SCM_REFSTK_INIT_REG(&expected, &actual);
 
   expected = read_cstr("#()");
 
@@ -1653,8 +1653,8 @@ TEST(api_vectors, capi_vector_append_cv__return_ERROR)
   ScmObj expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
   ScmObj vec[3] = { SCM_OBJ_INIT, SCM_OBJ_INIT, SCM_OBJ_INIT};
 
-  SCM_STACK_FRAME_PUSH(&expected, &actual);
-  SCM_STACK_PUSH_ARY(vec, sizeof(vec)/sizeof(vec[0]));
+  SCM_REFSTK_INIT_REG(&expected, &actual);
+  SCM_REFSTK_REG_ARY(vec, sizeof(vec)/sizeof(vec[0]));
 
   vec[0] = read_cstr("#(a b c)");
   vec[1] = SCM_OBJ_NULL;
@@ -1668,7 +1668,7 @@ TEST(api_vectors, capi_vector_append)
   ScmObj v1 = SCM_OBJ_INIT, v2 = SCM_OBJ_INIT, v3 = SCM_OBJ_INIT;
   ScmObj expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&v1, &v2, &v3, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&v1, &v2, &v3, &expected, &actual);
 
   v1 = read_cstr("#(a b c)");
   v2 = read_cstr("#(d e f)");
@@ -1684,7 +1684,7 @@ TEST(api_vectors, capi_vector_append__empty)
 {
   ScmObj expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&expected, &actual);
+  SCM_REFSTK_INIT_REG(&expected, &actual);
 
   expected = read_cstr("#()");
 
@@ -1698,7 +1698,7 @@ TEST(api_vectors, capi_vector_append__return_ERROR)
   ScmObj v1 = SCM_OBJ_INIT, v2 = SCM_OBJ_INIT, v3 = SCM_OBJ_INIT;
   ScmObj expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&v1, &v2, &v3, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&v1, &v2, &v3, &expected, &actual);
 
   v1 = read_cstr("#(a b c)");
   v2 = SCM_OBJ_NULL;
@@ -1712,7 +1712,7 @@ TEST(api_vectors, capi_vector_fill_i__unspecify_start_end)
 {
   ScmObj vec = SCM_OBJ_INIT, fill = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec, &fill, &expected);
+  SCM_REFSTK_INIT_REG(&vec, &fill, &expected);
 
   vec = read_cstr("#(a b c d e)");
   fill = read_cstr("z");
@@ -1727,7 +1727,7 @@ TEST(api_vectors, capi_vector_fill_i__specify_start)
 {
   ScmObj vec = SCM_OBJ_INIT, fill = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec, &fill, &expected);
+  SCM_REFSTK_INIT_REG(&vec, &fill, &expected);
 
   vec = read_cstr("#(a b c d e)");
   fill = read_cstr("z");
@@ -1742,7 +1742,7 @@ TEST(api_vectors, capi_vector_fill_i__specify_start_end)
 {
   ScmObj vec = SCM_OBJ_INIT, fill = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec, &fill, &expected);
+  SCM_REFSTK_INIT_REG(&vec, &fill, &expected);
 
   vec = read_cstr("#(a b c d e)");
   fill = read_cstr("z");
@@ -1757,7 +1757,7 @@ TEST(api_vectors, capi_vector_fill_i__same_idx)
 {
   ScmObj vec = SCM_OBJ_INIT, fill = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec, &fill, &expected);
+  SCM_REFSTK_INIT_REG(&vec, &fill, &expected);
 
   vec = read_cstr("#(a b c d e)");
   fill = read_cstr("z");
@@ -1772,7 +1772,7 @@ TEST(api_vectors, capi_vector_fill_i__start_greater_than_end__return_ERROR)
 {
   ScmObj vec = SCM_OBJ_INIT, fill = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec, &fill, &expected);
+  SCM_REFSTK_INIT_REG(&vec, &fill, &expected);
 
   vec = read_cstr("#(a b c d e)");
   fill = read_cstr("z");
@@ -1787,7 +1787,7 @@ TEST(api_vectors, capi_vector_fill_i__start_out_of_range__return_ERROR)
 {
   ScmObj vec = SCM_OBJ_INIT, fill = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec, &fill, &expected);
+  SCM_REFSTK_INIT_REG(&vec, &fill, &expected);
 
   vec = read_cstr("#(a b c d e)");
   fill = read_cstr("z");
@@ -1802,7 +1802,7 @@ TEST(api_vectors, capi_vector_fill_i__end_out_of_range__return_ERROR)
 {
   ScmObj vec = SCM_OBJ_INIT, fill = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec, &fill, &expected);
+  SCM_REFSTK_INIT_REG(&vec, &fill, &expected);
 
   vec = read_cstr("#(a b c d e)");
   fill = read_cstr("z");
@@ -1817,7 +1817,7 @@ TEST(api_vectors, capi_vector_fill_i__return_ERROR)
 {
   ScmObj vec = SCM_OBJ_INIT, fill = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec, &fill, &expected);
+  SCM_REFSTK_INIT_REG(&vec, &fill, &expected);
 
   vec = read_cstr("#(a b c d e)");
   fill = SCM_OBJ_NULL;
@@ -1832,7 +1832,7 @@ TEST(api_vectors, api_vector_fill_i__unspecify_start_end)
 {
   ScmObj vec = SCM_OBJ_INIT, fill = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec, &fill, &expected);
+  SCM_REFSTK_INIT_REG(&vec, &fill, &expected);
 
   vec = read_cstr("#(a b c d e)");
   fill = read_cstr("z");
@@ -1848,7 +1848,7 @@ TEST(api_vectors, api_vector_fill_i__specify_start)
   ScmObj vec = SCM_OBJ_INIT, fill = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
   ScmObj start = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec, &fill, &expected, &start);
+  SCM_REFSTK_INIT_REG(&vec, &fill, &expected, &start);
 
   vec = read_cstr("#(a b c d e)");
   fill = read_cstr("z");
@@ -1865,7 +1865,7 @@ TEST(api_vectors, api_vector_fill_i__specify_start_end)
   ScmObj vec = SCM_OBJ_INIT, fill = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
   ScmObj start = SCM_OBJ_INIT, end = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec, &fill, &expected, &start, &end);
+  SCM_REFSTK_INIT_REG(&vec, &fill, &expected, &start, &end);
 
   vec = read_cstr("#(a b c d e)");
   fill = read_cstr("z");
@@ -1883,7 +1883,7 @@ TEST(api_vectors, api_vector_fill_i__same_idx)
   ScmObj vec = SCM_OBJ_INIT, fill = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
   ScmObj start = SCM_OBJ_INIT, end = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec, &fill, &expected, &start, &end);
+  SCM_REFSTK_INIT_REG(&vec, &fill, &expected, &start, &end);
 
   vec = read_cstr("#(a b c d e)");
   fill = read_cstr("z");
@@ -1901,7 +1901,7 @@ TEST(api_vectors, api_vector_fill_i__start_greater_than_end__return_ERROR)
   ScmObj vec = SCM_OBJ_INIT, fill = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
   ScmObj start = SCM_OBJ_INIT, end = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec, &fill, &expected, &start, &end);
+  SCM_REFSTK_INIT_REG(&vec, &fill, &expected, &start, &end);
 
   vec = read_cstr("#(a b c d e)");
   fill = read_cstr("z");
@@ -1919,7 +1919,7 @@ TEST(api_vectors, api_vector_fill_i__start_out_of_range__return_ERROR)
   ScmObj vec = SCM_OBJ_INIT, fill = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
   ScmObj start = SCM_OBJ_INIT, end = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec, &fill, &expected, &start, &end);
+  SCM_REFSTK_INIT_REG(&vec, &fill, &expected, &start, &end);
 
   vec = read_cstr("#(a b c d e)");
   fill = read_cstr("z");
@@ -1937,7 +1937,7 @@ TEST(api_vectors, api_vector_fill_i__end_out_of_range__return_ERROR)
   ScmObj vec = SCM_OBJ_INIT, fill = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
   ScmObj start = SCM_OBJ_INIT, end = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec, &fill, &expected, &start, &end);
+  SCM_REFSTK_INIT_REG(&vec, &fill, &expected, &start, &end);
 
   vec = read_cstr("#(a b c d e)");
   fill = read_cstr("z");
@@ -1954,7 +1954,7 @@ TEST(api_vectors, api_vector_fill_i__return_ERROR)
 {
   ScmObj vec = SCM_OBJ_INIT, fill = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vec, &fill, &expected);
+  SCM_REFSTK_INIT_REG(&vec, &fill, &expected);
 
   vec = read_cstr("#(a b c d e)");
   fill = SCM_OBJ_NULL;

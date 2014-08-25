@@ -97,7 +97,7 @@ TEST(api_booleans, capi_true_p__return_true_3)
 {
   ScmObj num = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&num);
+  SCM_REFSTK_INIT_REG(&num);
 
   num = read_cstr("1");
 
@@ -128,7 +128,7 @@ TEST(api_booleans, capi_false_p__return_false_3)
 {
   ScmObj num = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&num);
+  SCM_REFSTK_INIT_REG(&num);
 
   num = read_cstr("1");
 
@@ -154,7 +154,7 @@ TEST(api_booleans, api_not__return_false_3)
 {
   ScmObj num = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&num);
+  SCM_REFSTK_INIT_REG(&num);
 
   num = read_cstr("1");
 

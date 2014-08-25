@@ -24,7 +24,7 @@ check_list_elements(ScmObj lst, bool (*check)(ScmObj elm))
 {
   ScmObj l = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst,
+  SCM_REFSTK_INIT_REG(&lst,
                        &l);
 
   for (l = lst; scm_capi_pair_p(l); l = scm_api_cdr(l))
@@ -35,7 +35,7 @@ TEST(api_fixnum, capi_fixnum_p__return_true)
 {
   ScmObj fn = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn);
+  SCM_REFSTK_INIT_REG(&fn);
 
   fn = read_cstr("1");
 
@@ -56,7 +56,7 @@ TEST(api_fixnum, api_fixnum_P__return_true)
 {
   ScmObj fn = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn);
+  SCM_REFSTK_INIT_REG(&fn);
 
   fn = read_cstr("1");
 
@@ -72,7 +72,7 @@ TEST(api_fixnum, capi_number_p__return_true)
 {
   ScmObj fn = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn);
+  SCM_REFSTK_INIT_REG(&fn);
 
   fn = read_cstr("1");
   TEST_ASSERT_TRUE(scm_capi_fixnum_p(fn));
@@ -84,7 +84,7 @@ TEST(api_fixnum, api_number_P__return_true)
 {
   ScmObj fn = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn);
+  SCM_REFSTK_INIT_REG(&fn);
 
   fn = read_cstr("1");
   TEST_ASSERT_TRUE(scm_capi_fixnum_p(fn));
@@ -96,7 +96,7 @@ TEST(api_fixnum, capi_complex_p__return_true)
 {
   ScmObj fn = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn);
+  SCM_REFSTK_INIT_REG(&fn);
 
   fn = read_cstr("1");
   TEST_ASSERT_TRUE(scm_capi_fixnum_p(fn));
@@ -108,7 +108,7 @@ TEST(api_fixnum, api_complex_P__return_true)
 {
   ScmObj fn = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn);
+  SCM_REFSTK_INIT_REG(&fn);
 
   fn = read_cstr("1");
   TEST_ASSERT_TRUE(scm_capi_fixnum_p(fn));
@@ -120,7 +120,7 @@ TEST(api_fixnum, capi_real_p__return_true)
 {
   ScmObj fn = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn);
+  SCM_REFSTK_INIT_REG(&fn);
 
   fn = read_cstr("1");
   TEST_ASSERT_TRUE(scm_capi_fixnum_p(fn));
@@ -132,7 +132,7 @@ TEST(api_fixnum, api_real_P__return_true)
 {
   ScmObj fn = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn);
+  SCM_REFSTK_INIT_REG(&fn);
 
   fn = read_cstr("1");
   TEST_ASSERT_TRUE(scm_capi_fixnum_p(fn));
@@ -144,7 +144,7 @@ TEST(api_fixnum, capi_rational_p__return_true)
 {
   ScmObj fn = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn);
+  SCM_REFSTK_INIT_REG(&fn);
 
   fn = read_cstr("1");
   TEST_ASSERT_TRUE(scm_capi_fixnum_p(fn));
@@ -156,7 +156,7 @@ TEST(api_fixnum, api_rational_P__return_true)
 {
   ScmObj fn = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn);
+  SCM_REFSTK_INIT_REG(&fn);
 
   fn = read_cstr("1");
   TEST_ASSERT_TRUE(scm_capi_fixnum_p(fn));
@@ -168,7 +168,7 @@ TEST(api_fixnum, capi_integer_p__return_true)
 {
   ScmObj fn = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn);
+  SCM_REFSTK_INIT_REG(&fn);
 
   fn = read_cstr("1");
   TEST_ASSERT_TRUE(scm_capi_fixnum_p(fn));
@@ -180,7 +180,7 @@ TEST(api_fixnum, api_integer_P__return_true)
 {
   ScmObj fn = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn);
+  SCM_REFSTK_INIT_REG(&fn);
 
   fn = read_cstr("1");
   TEST_ASSERT_TRUE(scm_capi_fixnum_p(fn));
@@ -192,7 +192,7 @@ TEST(api_fixnum, capi_exact_p__return_true)
 {
   ScmObj fn = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn);
+  SCM_REFSTK_INIT_REG(&fn);
 
   fn = read_cstr("1");
   TEST_ASSERT_TRUE(scm_capi_fixnum_p(fn));
@@ -204,7 +204,7 @@ TEST(api_fixnum, api_exact_P__return_true)
 {
   ScmObj fn = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn);
+  SCM_REFSTK_INIT_REG(&fn);
 
   fn = read_cstr("1");
   TEST_ASSERT_TRUE(scm_capi_fixnum_p(fn));
@@ -216,7 +216,7 @@ TEST(api_fixnum, capi_inexact_p__return_false)
 {
   ScmObj fn = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn);
+  SCM_REFSTK_INIT_REG(&fn);
 
   fn = read_cstr("1");
   TEST_ASSERT_TRUE(scm_capi_fixnum_p(fn));
@@ -228,7 +228,7 @@ TEST(api_fixnum, api_inexact_P__return_false)
 {
   ScmObj fn = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn);
+  SCM_REFSTK_INIT_REG(&fn);
 
   fn = read_cstr("1");
   TEST_ASSERT_TRUE(scm_capi_fixnum_p(fn));
@@ -240,7 +240,7 @@ TEST(api_fixnum, capi_exact_integer_p__return_true)
 {
   ScmObj fn = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn);
+  SCM_REFSTK_INIT_REG(&fn);
 
   fn = read_cstr("1");
   TEST_ASSERT_TRUE(scm_capi_fixnum_p(fn));
@@ -252,7 +252,7 @@ TEST(api_fixnum, api_exact_integer_P__return_true)
 {
   ScmObj fn = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn);
+  SCM_REFSTK_INIT_REG(&fn);
 
   fn = read_cstr("1");
   TEST_ASSERT_TRUE(scm_capi_fixnum_p(fn));
@@ -264,7 +264,7 @@ TEST(api_fixnum, capi_finite_p__return_true)
 {
   ScmObj fn = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn);
+  SCM_REFSTK_INIT_REG(&fn);
 
   fn = read_cstr("1");
   TEST_ASSERT_TRUE(scm_capi_fixnum_p(fn));
@@ -276,7 +276,7 @@ TEST(api_fixnum, api_finite_P__return_true)
 {
   ScmObj fn = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn);
+  SCM_REFSTK_INIT_REG(&fn);
 
   fn = read_cstr("1");
   TEST_ASSERT_TRUE(scm_capi_fixnum_p(fn));
@@ -288,7 +288,7 @@ TEST(api_fixnum, capi_infinite_p__return_true)
 {
   ScmObj fn = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn);
+  SCM_REFSTK_INIT_REG(&fn);
 
   fn = read_cstr("1");
   TEST_ASSERT_TRUE(scm_capi_fixnum_p(fn));
@@ -300,7 +300,7 @@ TEST(api_fixnum, api_infinite_P__return_true)
 {
   ScmObj fn = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn);
+  SCM_REFSTK_INIT_REG(&fn);
 
   fn = read_cstr("1");
   TEST_ASSERT_TRUE(scm_capi_fixnum_p(fn));
@@ -312,7 +312,7 @@ TEST(api_fixnum, capi_nan_p__return_true)
 {
   ScmObj fn = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn);
+  SCM_REFSTK_INIT_REG(&fn);
 
   fn = read_cstr("1");
   TEST_ASSERT_TRUE(scm_capi_fixnum_p(fn));
@@ -324,7 +324,7 @@ TEST(api_fixnum, api_nan_P__return_true)
 {
   ScmObj fn = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn);
+  SCM_REFSTK_INIT_REG(&fn);
 
   fn = read_cstr("1");
   TEST_ASSERT_TRUE(scm_capi_fixnum_p(fn));
@@ -337,7 +337,7 @@ TEST(api_fixnum, capi_num_eq__return_true)
   ScmObj fn1 = SCM_OBJ_INIT, fn2 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&fn1, &fn2);
+  SCM_REFSTK_INIT_REG(&fn1, &fn2);
 
   fn1 = scm_capi_make_number_from_sword(SCM_FIXNUM_MIN);
   fn2 = scm_capi_make_number_from_sword(SCM_FIXNUM_MIN);
@@ -353,7 +353,7 @@ TEST(api_fixnum, capi_num_eq__return_false)
   ScmObj fn1 = SCM_OBJ_INIT, fn2 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&fn1, &fn2);
+  SCM_REFSTK_INIT_REG(&fn1, &fn2);
 
   fn1 = scm_capi_make_number_from_sword(SCM_FIXNUM_MIN);
   fn2 = scm_capi_make_number_from_sword(SCM_FIXNUM_MAX);
@@ -369,7 +369,7 @@ TEST(api_fixnum, capi_num_eq__transitive)
   ScmObj fn1 = SCM_OBJ_INIT, fn2 = SCM_OBJ_INIT, fn3 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&fn1, &fn2, &fn3);
+  SCM_REFSTK_INIT_REG(&fn1, &fn2, &fn3);
 
   fn1 = scm_capi_make_number_from_sword(SCM_FIXNUM_MIN);
   fn2 = scm_capi_make_number_from_sword(SCM_FIXNUM_MIN);
@@ -392,7 +392,7 @@ TEST(api_fixnum, api_num_eq_P_lst__return_true)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst);
+  SCM_REFSTK_INIT_REG(&lst);
 
   lst = read_cstr("(123 123 123)");
   check_list_elements(lst, scm_capi_fixnum_p);
@@ -404,7 +404,7 @@ TEST(api_fixnum, api_num_eq_P__return_false)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst);
+  SCM_REFSTK_INIT_REG(&lst);
 
   lst = read_cstr("(123 123 124)");
   check_list_elements(lst, scm_capi_fixnum_p);
@@ -417,7 +417,7 @@ TEST(api_fixnum, capi_num_lt__less)
   ScmObj fn1 = SCM_OBJ_INIT, fn2 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&fn1, &fn2);
+  SCM_REFSTK_INIT_REG(&fn1, &fn2);
 
   fn1 = scm_capi_make_number_from_sword(SCM_FIXNUM_MIN);
   fn2 = scm_capi_make_number_from_sword(SCM_FIXNUM_MAX);
@@ -433,7 +433,7 @@ TEST(api_fixnum, capi_num_lt__equal)
   ScmObj fn1 = SCM_OBJ_INIT, fn2 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&fn1, &fn2);
+  SCM_REFSTK_INIT_REG(&fn1, &fn2);
 
   fn1 = scm_capi_make_number_from_sword(SCM_FIXNUM_MAX);
   fn2 = scm_capi_make_number_from_sword(SCM_FIXNUM_MAX);
@@ -449,7 +449,7 @@ TEST(api_fixnum, capi_num_lt__greater)
   ScmObj fn1 = SCM_OBJ_INIT, fn2 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&fn1, &fn2);
+  SCM_REFSTK_INIT_REG(&fn1, &fn2);
 
   fn1 = scm_capi_make_number_from_sword(SCM_FIXNUM_MAX);
   fn2 = scm_capi_make_number_from_sword(SCM_FIXNUM_MIN);
@@ -465,7 +465,7 @@ TEST(api_fixnum, capi_num_lt__transitive)
   ScmObj fn1 = SCM_OBJ_INIT, fn2 = SCM_OBJ_INIT, fn3 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&fn1, &fn2, &fn3);
+  SCM_REFSTK_INIT_REG(&fn1, &fn2, &fn3);
 
   fn1 = scm_capi_make_number_from_sword(SCM_FIXNUM_MIN);
   fn2 = scm_capi_make_number_from_sword(0);
@@ -488,7 +488,7 @@ TEST(api_fixnum, api_num_lt_P_lst__less)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst);
+  SCM_REFSTK_INIT_REG(&lst);
 
   lst = read_cstr("(123 231 312)");
   check_list_elements(lst, scm_capi_fixnum_p);
@@ -500,7 +500,7 @@ TEST(api_fixnum, api_num_lt_P_lst__equal)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst);
+  SCM_REFSTK_INIT_REG(&lst);
 
   lst = read_cstr("(123 231 231)");
   check_list_elements(lst, scm_capi_fixnum_p);
@@ -512,7 +512,7 @@ TEST(api_fixnum, api_num_lt_P_lst__greater)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst);
+  SCM_REFSTK_INIT_REG(&lst);
 
   lst = read_cstr("(231 312 123)");
   check_list_elements(lst, scm_capi_fixnum_p);
@@ -525,7 +525,7 @@ TEST(api_fixnum, capi_num_gt__less)
   ScmObj fn1 = SCM_OBJ_INIT, fn2 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&fn1, &fn2);
+  SCM_REFSTK_INIT_REG(&fn1, &fn2);
 
   fn1 = scm_capi_make_number_from_sword(SCM_FIXNUM_MIN);
   fn2 = scm_capi_make_number_from_sword(SCM_FIXNUM_MAX);
@@ -541,7 +541,7 @@ TEST(api_fixnum, capi_num_gt__equal)
   ScmObj fn1 = SCM_OBJ_INIT, fn2 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&fn1, &fn2);
+  SCM_REFSTK_INIT_REG(&fn1, &fn2);
 
   fn1 = scm_capi_make_number_from_sword(SCM_FIXNUM_MAX);
   fn2 = scm_capi_make_number_from_sword(SCM_FIXNUM_MAX);
@@ -557,7 +557,7 @@ TEST(api_fixnum, capi_num_gt__greater)
   ScmObj fn1 = SCM_OBJ_INIT, fn2 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&fn1, &fn2);
+  SCM_REFSTK_INIT_REG(&fn1, &fn2);
 
   fn1 = scm_capi_make_number_from_sword(SCM_FIXNUM_MAX);
   fn2 = scm_capi_make_number_from_sword(SCM_FIXNUM_MIN);
@@ -573,7 +573,7 @@ TEST(api_fixnum, capi_num_gt__transitive)
   ScmObj fn1 = SCM_OBJ_INIT, fn2 = SCM_OBJ_INIT, fn3 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&fn1, &fn2, &fn3);
+  SCM_REFSTK_INIT_REG(&fn1, &fn2, &fn3);
 
   fn1 = scm_capi_make_number_from_sword(SCM_FIXNUM_MAX);
   fn2 = scm_capi_make_number_from_sword(0);
@@ -596,7 +596,7 @@ TEST(api_fixnum, api_num_gt_P_lst__less)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst);
+  SCM_REFSTK_INIT_REG(&lst);
 
   lst = read_cstr("(231 123 312)");
   check_list_elements(lst, scm_capi_fixnum_p);
@@ -608,7 +608,7 @@ TEST(api_fixnum, api_num_gt_P_lst__equal)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst);
+  SCM_REFSTK_INIT_REG(&lst);
 
   lst = read_cstr("(312 231 231)");
   check_list_elements(lst, scm_capi_fixnum_p);
@@ -620,7 +620,7 @@ TEST(api_fixnum, api_num_gt_P_lst__greater)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst);
+  SCM_REFSTK_INIT_REG(&lst);
 
   lst = read_cstr("(312 231 123)");
   check_list_elements(lst, scm_capi_fixnum_p);
@@ -636,7 +636,7 @@ TEST(api_fixnum, capi_num_le__less)
   ScmObj fn1 = SCM_OBJ_INIT, fn2 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&fn1, &fn2);
+  SCM_REFSTK_INIT_REG(&fn1, &fn2);
 
   fn1 = scm_capi_make_number_from_sword(SCM_FIXNUM_MIN);
   fn2 = scm_capi_make_number_from_sword(SCM_FIXNUM_MAX);
@@ -652,7 +652,7 @@ TEST(api_fixnum, capi_num_le__equal)
   ScmObj fn1 = SCM_OBJ_INIT, fn2 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&fn1, &fn2);
+  SCM_REFSTK_INIT_REG(&fn1, &fn2);
 
   fn1 = scm_capi_make_number_from_sword(SCM_FIXNUM_MAX);
   fn2 = scm_capi_make_number_from_sword(SCM_FIXNUM_MAX);
@@ -668,7 +668,7 @@ TEST(api_fixnum, capi_num_le__greater)
   ScmObj fn1 = SCM_OBJ_INIT, fn2 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&fn1, &fn2);
+  SCM_REFSTK_INIT_REG(&fn1, &fn2);
 
   fn1 = scm_capi_make_number_from_sword(SCM_FIXNUM_MAX);
   fn2 = scm_capi_make_number_from_sword(SCM_FIXNUM_MIN);
@@ -684,7 +684,7 @@ TEST(api_fixnum, capi_num_le__transitive)
   ScmObj fn1 = SCM_OBJ_INIT, fn2 = SCM_OBJ_INIT, fn3 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&fn1, &fn2, &fn3);
+  SCM_REFSTK_INIT_REG(&fn1, &fn2, &fn3);
 
   fn1 = scm_capi_make_number_from_sword(SCM_FIXNUM_MIN);
   fn2 = scm_capi_make_number_from_sword(0);
@@ -707,7 +707,7 @@ TEST(api_fixnum, api_num_le_P_lst__less)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst);
+  SCM_REFSTK_INIT_REG(&lst);
 
   lst = read_cstr("(123 231 312)");
   check_list_elements(lst, scm_capi_fixnum_p);
@@ -719,7 +719,7 @@ TEST(api_fixnum, api_num_le_P_lst__equal)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst);
+  SCM_REFSTK_INIT_REG(&lst);
 
   lst = read_cstr("(123 231 231)");
   check_list_elements(lst, scm_capi_fixnum_p);
@@ -731,7 +731,7 @@ TEST(api_fixnum, api_num_le_P_lst__greater)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst);
+  SCM_REFSTK_INIT_REG(&lst);
 
   lst = read_cstr("(231 312 123)");
   check_list_elements(lst, scm_capi_fixnum_p);
@@ -744,7 +744,7 @@ TEST(api_fixnum, capi_num_ge__less)
   ScmObj fn1 = SCM_OBJ_INIT, fn2 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&fn1, &fn2);
+  SCM_REFSTK_INIT_REG(&fn1, &fn2);
 
   fn1 = scm_capi_make_number_from_sword(SCM_FIXNUM_MIN);
   fn2 = scm_capi_make_number_from_sword(SCM_FIXNUM_MAX);
@@ -760,7 +760,7 @@ TEST(api_fixnum, capi_num_ge__equal)
   ScmObj fn1 = SCM_OBJ_INIT, fn2 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&fn1, &fn2);
+  SCM_REFSTK_INIT_REG(&fn1, &fn2);
 
   fn1 = scm_capi_make_number_from_sword(SCM_FIXNUM_MAX);
   fn2 = scm_capi_make_number_from_sword(SCM_FIXNUM_MAX);
@@ -776,7 +776,7 @@ TEST(api_fixnum, capi_num_ge__greater)
   ScmObj fn1 = SCM_OBJ_INIT, fn2 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&fn1, &fn2);
+  SCM_REFSTK_INIT_REG(&fn1, &fn2);
 
   fn1 = scm_capi_make_number_from_sword(SCM_FIXNUM_MAX);
   fn2 = scm_capi_make_number_from_sword(SCM_FIXNUM_MIN);
@@ -792,7 +792,7 @@ TEST(api_fixnum, capi_num_ge__transitive)
   ScmObj fn1 = SCM_OBJ_INIT, fn2 = SCM_OBJ_INIT, fn3 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&fn1, &fn2, &fn3);
+  SCM_REFSTK_INIT_REG(&fn1, &fn2, &fn3);
 
   fn1 = scm_capi_make_number_from_sword(SCM_FIXNUM_MAX);
   fn2 = scm_capi_make_number_from_sword(0);
@@ -815,7 +815,7 @@ TEST(api_fixnum, api_num_ge_P_lst__less)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst);
+  SCM_REFSTK_INIT_REG(&lst);
 
   lst = read_cstr("(231 123 312)");
   check_list_elements(lst, scm_capi_fixnum_p);
@@ -827,7 +827,7 @@ TEST(api_fixnum, api_num_ge_P_lst__equal)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst);
+  SCM_REFSTK_INIT_REG(&lst);
 
   lst = read_cstr("(312 231 231)");
   check_list_elements(lst, scm_capi_fixnum_p);
@@ -839,7 +839,7 @@ TEST(api_fixnum, api_num_ge_P_lst__greater)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst);
+  SCM_REFSTK_INIT_REG(&lst);
 
   lst = read_cstr("(312 231 123)");
   check_list_elements(lst, scm_capi_fixnum_p);
@@ -851,7 +851,7 @@ TEST(api_fixnum, capi_zero_p__return_true)
 {
   ScmObj fn = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn);
+  SCM_REFSTK_INIT_REG(&fn);
 
   fn = read_cstr("0");
   TEST_ASSERT_TRUE(scm_capi_fixnum_p(fn));
@@ -863,7 +863,7 @@ TEST(api_fixnum, capi_zero_p__return_false)
 {
   ScmObj fn = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn);
+  SCM_REFSTK_INIT_REG(&fn);
 
   fn = read_cstr("1");
   TEST_ASSERT_TRUE(scm_capi_fixnum_p(fn));
@@ -875,7 +875,7 @@ TEST(api_fixnum, api_zero_P__return_true)
 {
   ScmObj fn = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn);
+  SCM_REFSTK_INIT_REG(&fn);
 
   fn = read_cstr("0");
   TEST_ASSERT_TRUE(scm_capi_fixnum_p(fn));
@@ -887,7 +887,7 @@ TEST(api_fixnum, api_zero_P__return_false)
 {
   ScmObj fn = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn);
+  SCM_REFSTK_INIT_REG(&fn);
 
   fn = read_cstr("-1");
   TEST_ASSERT_TRUE(scm_capi_fixnum_p(fn));
@@ -899,7 +899,7 @@ TEST(api_fixnum, capi_positive_p__return_true)
 {
   ScmObj fn = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn);
+  SCM_REFSTK_INIT_REG(&fn);
 
   fn = read_cstr("0");
   TEST_ASSERT_TRUE(scm_capi_fixnum_p(fn));
@@ -911,7 +911,7 @@ TEST(api_fixnum, capi_positive_p__return_false)
 {
   ScmObj fn = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn);
+  SCM_REFSTK_INIT_REG(&fn);
 
   fn = read_cstr("-1");
   TEST_ASSERT_TRUE(scm_capi_fixnum_p(fn));
@@ -923,7 +923,7 @@ TEST(api_fixnum, api_positive_P__return_true)
 {
   ScmObj fn = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn);
+  SCM_REFSTK_INIT_REG(&fn);
 
   fn = scm_capi_make_number_from_sword(SCM_FIXNUM_MAX);
   TEST_ASSERT_TRUE(scm_capi_fixnum_p(fn));
@@ -935,7 +935,7 @@ TEST(api_fixnum, api_positive_P__return_false)
 {
   ScmObj fn = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn);
+  SCM_REFSTK_INIT_REG(&fn);
 
   fn = scm_capi_make_number_from_sword(SCM_FIXNUM_MIN);
   TEST_ASSERT_TRUE(scm_capi_fixnum_p(fn));
@@ -947,7 +947,7 @@ TEST(api_fixnum, capi_negative_p__return_true)
 {
   ScmObj fn = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn);
+  SCM_REFSTK_INIT_REG(&fn);
 
   fn = read_cstr("-1");
   TEST_ASSERT_TRUE(scm_capi_fixnum_p(fn));
@@ -959,7 +959,7 @@ TEST(api_fixnum, capi_negative_p__return_false)
 {
   ScmObj fn = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn);
+  SCM_REFSTK_INIT_REG(&fn);
 
   fn = read_cstr("0");
   TEST_ASSERT_TRUE(scm_capi_fixnum_p(fn));
@@ -971,7 +971,7 @@ TEST(api_fixnum, api_negative_P__return_true)
 {
   ScmObj fn = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn);
+  SCM_REFSTK_INIT_REG(&fn);
 
   fn = scm_capi_make_number_from_sword(SCM_FIXNUM_MIN);
   TEST_ASSERT_TRUE(scm_capi_fixnum_p(fn));
@@ -983,7 +983,7 @@ TEST(api_fixnum, api_negative_P__return_false)
 {
   ScmObj fn = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn);
+  SCM_REFSTK_INIT_REG(&fn);
 
   fn = scm_capi_make_number_from_sword(SCM_FIXNUM_MAX);
   TEST_ASSERT_TRUE(scm_capi_fixnum_p(fn));
@@ -995,7 +995,7 @@ TEST(api_fixnum, capi_odd_p__return_true)
 {
   ScmObj fn = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn);
+  SCM_REFSTK_INIT_REG(&fn);
 
   fn = read_cstr("1");
   TEST_ASSERT_TRUE(scm_capi_fixnum_p(fn));
@@ -1007,7 +1007,7 @@ TEST(api_fixnum, capi_odd_p__return_false)
 {
   ScmObj fn = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn);
+  SCM_REFSTK_INIT_REG(&fn);
 
   fn = read_cstr("0");
   TEST_ASSERT_TRUE(scm_capi_fixnum_p(fn));
@@ -1019,7 +1019,7 @@ TEST(api_fixnum, api_odd_P__return_true)
 {
   ScmObj fn = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn);
+  SCM_REFSTK_INIT_REG(&fn);
 
   fn = read_cstr("-1");
   TEST_ASSERT_TRUE(scm_capi_fixnum_p(fn));
@@ -1031,7 +1031,7 @@ TEST(api_fixnum, api_odd_P__return_false)
 {
   ScmObj fn = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn);
+  SCM_REFSTK_INIT_REG(&fn);
 
   fn = read_cstr("2");
   TEST_ASSERT_TRUE(scm_capi_fixnum_p(fn));
@@ -1043,7 +1043,7 @@ TEST(api_fixnum, capi_even_p__return_true)
 {
   ScmObj fn = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn);
+  SCM_REFSTK_INIT_REG(&fn);
 
   fn = read_cstr("0");
   TEST_ASSERT_TRUE(scm_capi_fixnum_p(fn));
@@ -1055,7 +1055,7 @@ TEST(api_fixnum, capi_even_p__return_false)
 {
   ScmObj fn = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn);
+  SCM_REFSTK_INIT_REG(&fn);
 
   fn = read_cstr("1");
   TEST_ASSERT_TRUE(scm_capi_fixnum_p(fn));
@@ -1067,7 +1067,7 @@ TEST(api_fixnum, api_even_P__return_true)
 {
   ScmObj fn = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn);
+  SCM_REFSTK_INIT_REG(&fn);
 
   fn = read_cstr("2");
   TEST_ASSERT_TRUE(scm_capi_fixnum_p(fn));
@@ -1079,7 +1079,7 @@ TEST(api_fixnum, api_even_P__return_false)
 {
   ScmObj fn = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn);
+  SCM_REFSTK_INIT_REG(&fn);
 
   fn = read_cstr("-1");
   TEST_ASSERT_TRUE(scm_capi_fixnum_p(fn));
@@ -1091,7 +1091,7 @@ TEST(api_fixnum, api_max__first)
 {
   ScmObj fn1 = SCM_OBJ_INIT, fn2 = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn1, &fn2, &actual);
+  SCM_REFSTK_INIT_REG(&fn1, &fn2, &actual);
 
   fn1 = read_cstr("1");
   fn2 = read_cstr("-1");
@@ -1107,7 +1107,7 @@ TEST(api_fixnum, api_max__second)
 {
   ScmObj fn1 = SCM_OBJ_INIT, fn2 = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn1, &fn2, &actual);
+  SCM_REFSTK_INIT_REG(&fn1, &fn2, &actual);
 
   fn1 = scm_capi_make_number_from_sword(SCM_FIXNUM_MAX - 1);
   fn2 = scm_capi_make_number_from_sword(SCM_FIXNUM_MAX);
@@ -1123,7 +1123,7 @@ TEST(api_fixnum, api_max__same)
 {
   ScmObj fn1 = SCM_OBJ_INIT, fn2 = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn1, &fn2, &actual);
+  SCM_REFSTK_INIT_REG(&fn1, &fn2, &actual);
 
   fn1 = scm_capi_make_number_from_sword(SCM_FIXNUM_MIN);
   fn2 = scm_capi_make_number_from_sword(SCM_FIXNUM_MIN);
@@ -1139,7 +1139,7 @@ TEST(api_fixnum, capi_max_lst)
 {
   ScmObj lst = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&lst, &expected, &actual);
 
   lst = read_cstr("(-51 23 0 46 -21)");
   check_list_elements(lst, scm_capi_fixnum_p);
@@ -1154,7 +1154,7 @@ TEST(api_fixnum, api_min__first)
 {
   ScmObj fn1 = SCM_OBJ_INIT, fn2 = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn1, &fn2, &actual);
+  SCM_REFSTK_INIT_REG(&fn1, &fn2, &actual);
 
   fn1 = read_cstr("-1");
   fn2 = read_cstr("1");
@@ -1170,7 +1170,7 @@ TEST(api_fixnum, api_min__second)
 {
   ScmObj fn1 = SCM_OBJ_INIT, fn2 = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn1, &fn2, &actual);
+  SCM_REFSTK_INIT_REG(&fn1, &fn2, &actual);
 
   fn1 = scm_capi_make_number_from_sword(SCM_FIXNUM_MIN + 1);
   fn2 = scm_capi_make_number_from_sword(SCM_FIXNUM_MIN);
@@ -1186,7 +1186,7 @@ TEST(api_fixnum, api_min__same)
 {
   ScmObj fn1 = SCM_OBJ_INIT, fn2 = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn1, &fn2, &actual);
+  SCM_REFSTK_INIT_REG(&fn1, &fn2, &actual);
 
   fn1 = scm_capi_make_number_from_sword(SCM_FIXNUM_MAX);
   fn2 = scm_capi_make_number_from_sword(SCM_FIXNUM_MAX);
@@ -1202,7 +1202,7 @@ TEST(api_fixnum, capi_min_lst)
 {
   ScmObj lst = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&lst, &expected, &actual);
 
   lst = read_cstr("(-51 23 0 46 -21)");
   check_list_elements(lst, scm_capi_fixnum_p);
@@ -1218,7 +1218,7 @@ TEST(api_fixnum, api_plus__1)
   ScmObj fn1 = SCM_OBJ_INIT, fn2 = SCM_OBJ_INIT;
   ScmObj expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn1, &fn2, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&fn1, &fn2, &expected, &actual);
 
   fn1 = read_cstr("123");
   fn2 = read_cstr("765");
@@ -1236,7 +1236,7 @@ TEST(api_fixnum, api_plus__2)
   ScmObj fn1 = SCM_OBJ_INIT, fn2 = SCM_OBJ_INIT;
   ScmObj expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn1, &fn2, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&fn1, &fn2, &expected, &actual);
 
   fn1 = read_cstr("-123");
   fn2 = read_cstr("765");
@@ -1254,7 +1254,7 @@ TEST(api_fixnum, api_plus__3)
   ScmObj fn1 = SCM_OBJ_INIT, fn2 = SCM_OBJ_INIT;
   ScmObj expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn1, &fn2, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&fn1, &fn2, &expected, &actual);
 
   fn1 = read_cstr("123");
   fn2 = read_cstr("-765");
@@ -1272,7 +1272,7 @@ TEST(api_fixnum, api_plus__4)
   ScmObj fn1 = SCM_OBJ_INIT, fn2 = SCM_OBJ_INIT;
   ScmObj expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn1, &fn2, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&fn1, &fn2, &expected, &actual);
 
   fn1 = scm_capi_make_number_from_sword(SCM_FIXNUM_MAX);
   fn2 = scm_capi_make_number_from_sword(SCM_FIXNUM_MIN);
@@ -1290,7 +1290,7 @@ TEST(api_fixnum, api_plus__5)
   ScmObj fn1 = SCM_OBJ_INIT, fn2 = SCM_OBJ_INIT;
   ScmObj expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn1, &fn2, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&fn1, &fn2, &expected, &actual);
 
   fn1 = scm_capi_make_number_from_sword(SCM_FIXNUM_MAX);
   fn2 = read_cstr("1");
@@ -1308,7 +1308,7 @@ TEST(api_fixnum, api_plus__6)
   ScmObj fn1 = SCM_OBJ_INIT, fn2 = SCM_OBJ_INIT;
   ScmObj expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn1, &fn2, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&fn1, &fn2, &expected, &actual);
 
   fn1 = scm_capi_make_number_from_sword(SCM_FIXNUM_MIN);
   fn2 = read_cstr("-1");
@@ -1325,7 +1325,7 @@ TEST(api_fixnum, capi_plus_lst__arg_0)
 {
   ScmObj lst = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&lst, &expected, &actual);
 
   lst = read_cstr("()");
   expected = read_cstr("0");
@@ -1339,7 +1339,7 @@ TEST(api_fixnum, capi_plus_lst__arg_1)
 {
   ScmObj lst = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&lst, &expected, &actual);
 
   lst = read_cstr("(123)");
   expected = read_cstr("123");
@@ -1353,7 +1353,7 @@ TEST(api_fixnum, capi_plus_lst)
 {
   ScmObj lst = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&lst, &expected, &actual);
 
   lst = read_cstr("(123 456 789)");
   expected = read_cstr("1368");
@@ -1368,7 +1368,7 @@ TEST(api_fixnum, api_mul__1)
   ScmObj fn1 = SCM_OBJ_INIT, fn2 = SCM_OBJ_INIT;
   ScmObj expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn1, &fn2, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&fn1, &fn2, &expected, &actual);
 
   fn1 = read_cstr("51");
   fn2 = read_cstr("25");
@@ -1386,7 +1386,7 @@ TEST(api_fixnum, api_mul__2)
   ScmObj fn1 = SCM_OBJ_INIT, fn2 = SCM_OBJ_INIT;
   ScmObj expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn1, &fn2, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&fn1, &fn2, &expected, &actual);
 
   fn1 = read_cstr("-51");
   fn2 = read_cstr("25");
@@ -1404,7 +1404,7 @@ TEST(api_fixnum, api_mul__3)
   ScmObj fn1 = SCM_OBJ_INIT, fn2 = SCM_OBJ_INIT;
   ScmObj expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn1, &fn2, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&fn1, &fn2, &expected, &actual);
 
   fn1 = scm_capi_make_number_from_sword(SCM_FIXNUM_MAX);
   fn2 = scm_capi_make_number_from_sword(SCM_FIXNUM_MIN);
@@ -1423,7 +1423,7 @@ TEST(api_fixnum, api_mul__4)
   ScmObj expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
   scm_sword_t v1, v2;
 
-  SCM_STACK_FRAME_PUSH(&fn1, &fn2, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&fn1, &fn2, &expected, &actual);
 
   v1 = (scm_sword_t)1 << ((SCM_FIXNUM_BITS - 1)/2);
   v2 = (scm_sword_t)1 << ((SCM_FIXNUM_BITS - 1)/2);
@@ -1445,7 +1445,7 @@ TEST(api_fixnum, api_mul__5)
   ScmObj expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
   scm_sword_t v1, v2;
 
-  SCM_STACK_FRAME_PUSH(&fn1, &fn2, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&fn1, &fn2, &expected, &actual);
 
   v1 = -((scm_sword_t)1 << ((SCM_FIXNUM_BITS - 1)/2));
   v2 = -((scm_sword_t)1 << ((SCM_FIXNUM_BITS - 1)/2));
@@ -1467,7 +1467,7 @@ TEST(api_fixnum, api_mul__6)
   ScmObj expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
   scm_sword_t v1, v2;
 
-  SCM_STACK_FRAME_PUSH(&fn1, &fn2, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&fn1, &fn2, &expected, &actual);
 
   v1 = ((scm_sword_t)1 << ((SCM_FIXNUM_BITS - 1)/2)) + 2;
   v2 = ((scm_sword_t)1 << ((SCM_FIXNUM_BITS - 1)/2)) - 1;
@@ -1489,7 +1489,7 @@ TEST(api_fixnum, api_mul__7)
   ScmObj expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
   scm_sword_t v1, v2;
 
-  SCM_STACK_FRAME_PUSH(&fn1, &fn2, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&fn1, &fn2, &expected, &actual);
 
   v1 = ((scm_sword_t)1 << ((SCM_FIXNUM_BITS - 1)/2)) - 1;
   v2 = SCM_SWORD_MAX / v1 + 1;
@@ -1509,7 +1509,7 @@ TEST(api_fixnum, api_mul_lst__arg_0)
 {
   ScmObj lst = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&lst, &expected, &actual);
 
   lst = read_cstr("()");
   expected = read_cstr("1");
@@ -1523,7 +1523,7 @@ TEST(api_fixnum, api_mul_lst__arg_1)
 {
   ScmObj lst = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&lst, &expected, &actual);
 
   lst = read_cstr("(123)");
   expected = read_cstr("123");
@@ -1537,7 +1537,7 @@ TEST(api_fixnum, capi_mul_lst)
 {
   ScmObj lst = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&lst, &expected, &actual);
 
   lst = read_cstr("(123 456 789)");
   expected = read_cstr("44253432");
@@ -1552,7 +1552,7 @@ TEST(api_fixnum, api_minus__1)
   ScmObj fn1 = SCM_OBJ_INIT, fn2 = SCM_OBJ_INIT;
   ScmObj expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn1, &fn2, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&fn1, &fn2, &expected, &actual);
 
   fn1 = read_cstr("765");
   fn2 = read_cstr("123");
@@ -1570,7 +1570,7 @@ TEST(api_fixnum, api_minus__2)
   ScmObj fn1 = SCM_OBJ_INIT, fn2 = SCM_OBJ_INIT;
   ScmObj expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn1, &fn2, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&fn1, &fn2, &expected, &actual);
 
   fn1 = read_cstr("-123");
   fn2 = read_cstr("765");
@@ -1588,7 +1588,7 @@ TEST(api_fixnum, api_minus__3)
   ScmObj fn1 = SCM_OBJ_INIT, fn2 = SCM_OBJ_INIT;
   ScmObj expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn1, &fn2, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&fn1, &fn2, &expected, &actual);
 
   fn1 = read_cstr("123");
   fn2 = read_cstr("-765");
@@ -1606,7 +1606,7 @@ TEST(api_fixnum, api_minus__4)
   ScmObj fn1 = SCM_OBJ_INIT, fn2 = SCM_OBJ_INIT;
   ScmObj expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn1, &fn2, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&fn1, &fn2, &expected, &actual);
 
   fn1 = scm_capi_make_number_from_sword(SCM_FIXNUM_MAX);
   fn2 = scm_capi_make_number_from_sword(SCM_FIXNUM_MIN);
@@ -1624,7 +1624,7 @@ TEST(api_fixnum, api_minus__5)
   ScmObj fn1 = SCM_OBJ_INIT, fn2 = SCM_OBJ_INIT;
   ScmObj expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn1, &fn2, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&fn1, &fn2, &expected, &actual);
 
   fn1 = scm_capi_make_number_from_sword(SCM_FIXNUM_MAX);
   fn2 = read_cstr("-1");
@@ -1642,7 +1642,7 @@ TEST(api_fixnum, api_minus__6)
   ScmObj fn1 = SCM_OBJ_INIT, fn2 = SCM_OBJ_INIT;
   ScmObj expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn1, &fn2, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&fn1, &fn2, &expected, &actual);
 
   fn1 = scm_capi_make_number_from_sword(SCM_FIXNUM_MIN);
   fn2 = read_cstr("1");
@@ -1659,7 +1659,7 @@ TEST(api_fixnum, capi_minus_lst__arg_1)
 {
   ScmObj lst = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&lst, &expected, &actual);
 
   lst = read_cstr("(1)");
   expected = read_cstr("-1");
@@ -1673,7 +1673,7 @@ TEST(api_fixnum, capi_minus_lst)
 {
   ScmObj lst = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&lst, &expected, &actual);
 
   lst = read_cstr("(987 654 321)");
   expected = read_cstr("12");
@@ -1687,7 +1687,7 @@ TEST(api_fixnum, api_abs__positive)
 {
   ScmObj fn = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn, &actual);
+  SCM_REFSTK_INIT_REG(&fn, &actual);
 
   fn = read_cstr("123");
   TEST_ASSERT_TRUE(scm_capi_fixnum_p(fn));
@@ -1701,7 +1701,7 @@ TEST(api_fixnum, api_abs__negative_1)
 {
   ScmObj fn = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&fn, &expected, &actual);
 
   fn = read_cstr("-123");
   TEST_ASSERT_TRUE(scm_capi_fixnum_p(fn));
@@ -1716,7 +1716,7 @@ TEST(api_fixnum, api_abs__negative_2)
 {
   ScmObj fn = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn, &expected, &actual);
+  SCM_REFSTK_INIT_REG(&fn, &expected, &actual);
 
   fn = scm_capi_make_number_from_sword(SCM_FIXNUM_MIN);
   TEST_ASSERT_TRUE(scm_capi_fixnum_p(fn));
@@ -1733,7 +1733,7 @@ TEST(api_fixnum, capi_floor_div__1)
   ScmObj quo = SCM_OBJ_INIT, rem = SCM_OBJ_INIT;
   ScmObj expected_quo = SCM_OBJ_INIT, expected_rem = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn1, &fn2, &quo, &rem,
+  SCM_REFSTK_INIT_REG(&fn1, &fn2, &quo, &rem,
                        &expected_quo, &expected_rem);
 
   fn1 = read_cstr("5");
@@ -1758,7 +1758,7 @@ TEST(api_fixnum, capi_floor_div__2)
   ScmObj quo = SCM_OBJ_INIT, rem = SCM_OBJ_INIT;
   ScmObj expected_quo = SCM_OBJ_INIT, expected_rem = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn1, &fn2, &quo, &rem,
+  SCM_REFSTK_INIT_REG(&fn1, &fn2, &quo, &rem,
                        &expected_quo, &expected_rem);
 
   fn1 = read_cstr("-5");
@@ -1783,7 +1783,7 @@ TEST(api_fixnum, capi_floor_div__3)
   ScmObj quo = SCM_OBJ_INIT, rem = SCM_OBJ_INIT;
   ScmObj expected_quo = SCM_OBJ_INIT, expected_rem = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn1, &fn2, &quo, &rem,
+  SCM_REFSTK_INIT_REG(&fn1, &fn2, &quo, &rem,
                        &expected_quo, &expected_rem);
 
   fn1 = read_cstr("5");
@@ -1808,7 +1808,7 @@ TEST(api_fixnum, capi_floor_div__4)
   ScmObj quo = SCM_OBJ_INIT, rem = SCM_OBJ_INIT;
   ScmObj expected_quo = SCM_OBJ_INIT, expected_rem = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn1, &fn2, &quo, &rem,
+  SCM_REFSTK_INIT_REG(&fn1, &fn2, &quo, &rem,
                        &expected_quo, &expected_rem);
 
   fn1 = read_cstr("-5");
@@ -1832,7 +1832,7 @@ TEST(api_fixnum, capi_floor_div__division_by_zero)
   ScmObj fn1 = SCM_OBJ_INIT, fn2 = SCM_OBJ_INIT;
   ScmObj quo = SCM_OBJ_INIT, rem = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn1, &fn2, &quo, &rem);
+  SCM_REFSTK_INIT_REG(&fn1, &fn2, &quo, &rem);
 
   fn1 = read_cstr("5");
   fn2 = read_cstr("0");
@@ -1850,7 +1850,7 @@ TEST(api_fixnum, capi_truncate_div__1)
   ScmObj quo = SCM_OBJ_INIT, rem = SCM_OBJ_INIT;
   ScmObj expected_quo = SCM_OBJ_INIT, expected_rem = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn1, &fn2, &quo, &rem,
+  SCM_REFSTK_INIT_REG(&fn1, &fn2, &quo, &rem,
                        &expected_quo, &expected_rem);
 
   fn1 = read_cstr("5");
@@ -1875,7 +1875,7 @@ TEST(api_fixnum, capi_truncate_div__2)
   ScmObj quo = SCM_OBJ_INIT, rem = SCM_OBJ_INIT;
   ScmObj expected_quo = SCM_OBJ_INIT, expected_rem = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn1, &fn2, &quo, &rem,
+  SCM_REFSTK_INIT_REG(&fn1, &fn2, &quo, &rem,
                        &expected_quo, &expected_rem);
 
   fn1 = read_cstr("-5");
@@ -1900,7 +1900,7 @@ TEST(api_fixnum, capi_truncate_div__3)
   ScmObj quo = SCM_OBJ_INIT, rem = SCM_OBJ_INIT;
   ScmObj expected_quo = SCM_OBJ_INIT, expected_rem = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn1, &fn2, &quo, &rem,
+  SCM_REFSTK_INIT_REG(&fn1, &fn2, &quo, &rem,
                        &expected_quo, &expected_rem);
 
   fn1 = read_cstr("5");
@@ -1925,7 +1925,7 @@ TEST(api_fixnum, capi_truncate_div__4)
   ScmObj quo = SCM_OBJ_INIT, rem = SCM_OBJ_INIT;
   ScmObj expected_quo = SCM_OBJ_INIT, expected_rem = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn1, &fn2, &quo, &rem,
+  SCM_REFSTK_INIT_REG(&fn1, &fn2, &quo, &rem,
                        &expected_quo, &expected_rem);
 
   fn1 = read_cstr("-5");
@@ -1949,7 +1949,7 @@ TEST(api_fixnum, capi_truncate_div__division_by_zero)
   ScmObj fn1 = SCM_OBJ_INIT, fn2 = SCM_OBJ_INIT;
   ScmObj quo = SCM_OBJ_INIT, rem = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&fn1, &fn2, &quo, &rem);
+  SCM_REFSTK_INIT_REG(&fn1, &fn2, &quo, &rem);
 
   fn1 = read_cstr("5");
   fn2 = read_cstr("0");

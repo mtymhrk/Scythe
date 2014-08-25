@@ -752,7 +752,7 @@ scm_num_make_integer(const scm_char_t *str, ScmEncoding *enc,
   scm_assert(sign == '+' || sign == '-');
   scm_assert(idata != NULL);
 
-  SCM_STACK_FRAME_PUSH(&num);
+  SCM_REFSTK_INIT_REG(&num);
 
   switch (data->radix) {
   case 'b': radix = 2; break;
@@ -812,7 +812,7 @@ scm_num_make_rational(const scm_char_t *str, ScmEncoding *enc,
 {
   ScmObj num = SCM_OBJ_INIT, den = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&num, &den);
+  SCM_REFSTK_INIT_REG(&num, &den);
 
   scm_assert(str != NULL);
   scm_assert(enc != NULL);
@@ -919,7 +919,7 @@ scm_num_make_from_parsedata(const scm_char_t *str, ScmEncoding *enc,
   scm_assert(data != NULL && data->rslt == SCM_NUM_PARSE_SUCCESS);
 
 
-  SCM_STACK_FRAME_PUSH(&real1, &real2);
+  SCM_REFSTK_INIT_REG(&real1, &real2);
 
   if (data->fir.type != '\0')
     real1 = scm_num_make_real(str, enc, data, &data->fir);
@@ -954,7 +954,7 @@ scm_num_make_from_literal(const char *literal, ScmEncoding *enc)
   scm_assert(literal != NULL);
   scm_assert(enc != NULL);
 
-  SCM_STACK_FRAME_PUSH(&port, &num);
+  SCM_REFSTK_INIT_REG(&port, &num);
 
   port = scm_capi_open_input_string_cstr(literal, scm_enc_name(enc));
   if (scm_obj_null_p(port)) return SCM_OBJ_NULL;

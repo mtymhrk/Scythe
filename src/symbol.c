@@ -147,7 +147,7 @@ check_ident_printable_char(scm_char_t chr, ScmEncoding *enc)
 static int
 escape_print(scm_char_t chr, ScmEncoding *enc, ScmObj port)
 {
-  SCM_STACK_FRAME_PUSH(&port);
+  SCM_REFSTK_INIT_REG(&port);
 
   if (scm_enc_same_char_p(enc, chr.bytes, sizeof(chr), '\a'))
     return scm_capi_write_cstr("\\a", SCM_ENC_SRC, port);
@@ -171,7 +171,7 @@ scm_symbol_write_ext_rep_peculiar(const scm_char_t *ary, ScmObj port,
   size_t idx;
   int type, r;
 
-  SCM_STACK_FRAME_PUSH(&port);
+  SCM_REFSTK_INIT_REG(&port);
 
   idx = 0;
 
@@ -245,7 +245,7 @@ scm_symbol_write_ext_rep_inner(ScmObj str, ScmObj port, size_t len,
   ScmEncoding *enc;
   int type, r;
 
-  SCM_STACK_FRAME_PUSH(&str, &port);
+  SCM_REFSTK_INIT_REG(&str, &port);
 
   p = scm_string_to_char_ary(str, 0, (ssize_t)len, ary);
   if (p == NULL) return -1;
@@ -310,7 +310,7 @@ scm_symbol_write_ext_rep(ScmObj sym, ScmObj port)
   int r;
   bool need_vline_p;
 
-  SCM_STACK_FRAME_PUSH(&sym, &port,
+  SCM_REFSTK_INIT_REG(&sym, &port,
                        &strport, &str);
 
   strport = scm_api_open_output_string();
@@ -344,7 +344,7 @@ scm_symbol_write_ext_rep(ScmObj sym, ScmObj port)
 int
 scm_symbol_initialize(ScmObj sym, ScmObj str)
 {
-  SCM_STACK_FRAME_PUSH(&sym, &str);
+  SCM_REFSTK_INIT_REG(&sym, &str);
 
   scm_assert_obj_type(sym, &SCM_SYMBOL_TYPE_INFO);
   scm_assert_obj_type(str, &SCM_STRING_TYPE_INFO);
@@ -359,7 +359,7 @@ scm_symbol_new(SCM_MEM_TYPE_T mtype, ScmObj str)
 {
   ScmObj sym = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&str, &sym);
+  SCM_REFSTK_INIT_REG(&str, &sym);
 
   scm_assert_obj_type(str, &SCM_STRING_TYPE_INFO);
 
@@ -514,7 +514,7 @@ scm_symtbl_new(SCM_MEM_TYPE_T mtype)
 {
   ScmObj tbl = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&tbl);
+  SCM_REFSTK_INIT_REG(&tbl);
 
   tbl = scm_capi_mem_alloc(&SCM_SYMTBL_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(tbl)) return SCM_OBJ_NULL;
@@ -532,7 +532,7 @@ scm_symtbl_symbol(ScmObj tbl, ScmObj str)
   bool found;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&sym, &tbl, &str);
+  SCM_REFSTK_INIT_REG(&sym, &tbl, &str);
 
   scm_assert_obj_type(tbl, &SCM_SYMTBL_TYPE_INFO);
 

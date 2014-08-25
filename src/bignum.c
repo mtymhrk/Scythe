@@ -601,7 +601,7 @@ scm_bignum_quo_rem(ScmObj bn1, ScmObj bn2,
   ScmObj mq = SCM_OBJ_INIT;
   int cmp;
 
-  SCM_STACK_FRAME_PUSH(&bn1, &bn2, &qu, &re, &a, &m, &c, &mq);
+  SCM_REFSTK_INIT_REG(&bn1, &bn2, &qu, &re, &a, &m, &c, &mq);
 
   scm_assert_obj_type(bn1, &SCM_BIGNUM_TYPE_INFO);
   scm_assert_obj_type(bn2, &SCM_BIGNUM_TYPE_INFO);
@@ -1070,7 +1070,7 @@ scm_bignum_nan_p(ScmObj bn)
 int
 scm_bignum_cmp(ScmObj bn, ScmObj num, int *cmp)
 {
-  SCM_STACK_FRAME_PUSH(&bn, &num);
+  SCM_REFSTK_INIT_REG(&bn, &num);
 
   scm_assert_obj_type(bn, &SCM_BIGNUM_TYPE_INFO);
   scm_assert(scm_capi_number_p(num));
@@ -1174,7 +1174,7 @@ scm_bignum_plus(ScmObj aug, ScmObj add)
 {
   size_t place;
 
-  SCM_STACK_FRAME_PUSH(&aug, &add);
+  SCM_REFSTK_INIT_REG(&aug, &add);
 
   scm_assert_obj_type(aug, &SCM_BIGNUM_TYPE_INFO);
   scm_assert(scm_capi_number_p(add));
@@ -1219,7 +1219,7 @@ scm_bignum_minus(ScmObj min, ScmObj sub)
 {
   size_t place;
 
-  SCM_STACK_FRAME_PUSH(&min, &sub);
+  SCM_REFSTK_INIT_REG(&min, &sub);
 
   scm_assert_obj_type(min, &SCM_BIGNUM_TYPE_INFO);
   scm_assert(scm_capi_number_p(sub));
@@ -1265,7 +1265,7 @@ scm_bignum_mul(ScmObj mud, ScmObj mur)
   char sign;
   size_t place;
 
-  SCM_STACK_FRAME_PUSH(&mud, &mur);
+  SCM_REFSTK_INIT_REG(&mud, &mur);
 
   scm_assert_obj_type(mud, &SCM_BIGNUM_TYPE_INFO);
   scm_assert(scm_capi_number_p(mur));
@@ -1329,7 +1329,7 @@ scm_bignum_floor_div(ScmObj dvd, ScmObj dvr,
   ScmObj qu = SCM_OBJ_INIT, re = SCM_OBJ_INIT;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&dvd, &dvr, &qu, &re);
+  SCM_REFSTK_INIT_REG(&dvd, &dvr, &qu, &re);
 
   scm_assert_obj_type(dvd, &SCM_BIGNUM_TYPE_INFO);
   scm_assert(scm_capi_number_p(dvr));
@@ -1381,7 +1381,7 @@ scm_bignum_ceiling_div(ScmObj dvd, ScmObj dvr,
   ScmObj qu = SCM_OBJ_INIT, re = SCM_OBJ_INIT;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&dvd, &dvr, &qu, &re);
+  SCM_REFSTK_INIT_REG(&dvd, &dvr, &qu, &re);
 
   scm_assert_obj_type(dvd, &SCM_BIGNUM_TYPE_INFO);
   scm_assert(scm_capi_number_p(dvr));
@@ -1433,7 +1433,7 @@ scm_bignum_truncate_div(ScmObj dvd, ScmObj dvr,
   ScmObj qu = SCM_OBJ_INIT, re = SCM_OBJ_INIT;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&dvd, &dvr, &qu, &re);
+  SCM_REFSTK_INIT_REG(&dvd, &dvr, &qu, &re);
 
   scm_assert_obj_type(dvd, &SCM_BIGNUM_TYPE_INFO);
   scm_assert(scm_capi_number_p(dvr));
@@ -1492,7 +1492,7 @@ scm_bignum_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
   int rslt, place, width;
   char str[32];
 
-  SCM_STACK_FRAME_PUSH(&obj, &port);
+  SCM_REFSTK_INIT_REG(&obj, &port);
 
   scm_assert_obj_type(obj, &SCM_BIGNUM_TYPE_INFO);
 

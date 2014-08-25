@@ -994,7 +994,7 @@ scm_parser_parse_list(ScmParser *parser, ScmObj port, ScmEncoding *enc)
   ScmToken *token;
   ScmObj car = SCM_OBJ_INIT, cdr = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&port, &car, &cdr);
+  SCM_REFSTK_INIT_REG(&port, &car, &cdr);
 
   scm_assert(parser != NULL);
   scm_assert(scm_capi_input_port_p(port));
@@ -1069,7 +1069,7 @@ scm_parser_parse_quote(ScmParser *parser, ScmObj port, ScmEncoding *enc)
   ScmObj quoted = SCM_OBJ_INIT;
   ScmToken *token;
 
-  SCM_STACK_FRAME_PUSH(&port, &quote, &quoted);
+  SCM_REFSTK_INIT_REG(&port, &quote, &quoted);
 
   scm_assert(parser != NULL);
   scm_assert(scm_capi_input_port_p(port));
@@ -1315,7 +1315,7 @@ scm_parser_unescape_string(ScmToken *token, ScmObj str, ScmEncoding *enc)
   int rslt;
   scm_char_t chr;
 
-  SCM_STACK_FRAME_PUSH(&str);
+  SCM_REFSTK_INIT_REG(&str);
 
   scm_assert(token != NULL);
   scm_assert(scm_capi_string_p(str));
@@ -1353,7 +1353,7 @@ scm_parser_parse_string(ScmParser *parser, ScmObj port, ScmEncoding *enc)
   ScmToken *token;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&port, &str);
+  SCM_REFSTK_INIT_REG(&port, &str);
 
   scm_assert(parser != NULL);
   scm_assert(scm_capi_input_port_p(port));
@@ -1423,7 +1423,7 @@ scm_parser_unescape_ident(ScmToken *token, ScmObj str, ScmEncoding *enc)
   scm_char_t chr;
   ssize_t width;
 
-  SCM_STACK_FRAME_PUSH(&str);
+  SCM_REFSTK_INIT_REG(&str);
 
   scm_assert(token != NULL);
   scm_assert(scm_capi_string_p(str));
@@ -1462,7 +1462,7 @@ scm_parser_parse_identifier(ScmParser *parser, ScmObj port, ScmEncoding *enc)
   ScmObj str = SCM_OBJ_INIT, sym = SCM_OBJ_INIT;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&port, &str, &sym);
+  SCM_REFSTK_INIT_REG(&port, &str, &sym);
 
   scm_assert(parser != NULL);
   scm_assert(scm_capi_input_port_p(port));
@@ -1537,7 +1537,7 @@ scm_parser_parse_vector_aux(ScmParser *parser,
   ScmToken *token;
   ScmObj car = SCM_OBJ_INIT, cdr = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&port, &car, &cdr);
+  SCM_REFSTK_INIT_REG(&port, &car, &cdr);
 
   scm_assert(parser != NULL);
   scm_assert(scm_capi_input_port_p(port));
@@ -1574,7 +1574,7 @@ scm_parser_parse_vector(ScmParser *parser, ScmObj port, ScmEncoding *enc)
   size_t len, idx;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&port, &vec, &elms, &elm);
+  SCM_REFSTK_INIT_REG(&port, &vec, &elms, &elm);
 
   scm_assert(parser != NULL);
   scm_assert(scm_capi_input_port_p(port));
@@ -1678,7 +1678,7 @@ scm_parser_parse_expression(ScmParser *parser, ScmObj port)
   ScmToken *token;
   ScmEncoding *enc;
 
-  SCM_STACK_FRAME_PUSH(&port, &rslt);
+  SCM_REFSTK_INIT_REG(&port, &rslt);
 
   scm_assert(parser != NULL);
   scm_assert(scm_capi_input_port_p(port));

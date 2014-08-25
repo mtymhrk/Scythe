@@ -115,7 +115,7 @@ TEST(iseq, iseq_push_obj_1)
   ScmObj actual = SCM_OBJ_INIT;
   ssize_t rslt;
 
-  SCM_STACK_FRAME_PUSH(&actual);
+  SCM_REFSTK_INIT_REG(&actual);
 
   /* action */
   rslt = scm_iseq_push_obj(iseq, SCM_NIL_OBJ);
@@ -134,7 +134,7 @@ TEST(iseq, expand_object_vector)
 {
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&actual, &expected);
+  SCM_REFSTK_INIT_REG(&actual, &expected);
 
   expected = scm_capi_make_symbol_from_cstr("foo", SCM_ENC_SRC);
 

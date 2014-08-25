@@ -54,7 +54,7 @@ test_tokenize(SCM_TOKEN_TYPE_T expe_type, const char *expe_str,
   ScmToken *token;
   ScmEncoding *enc;
 
-  SCM_STACK_FRAME_PUSH(&port);
+  SCM_REFSTK_INIT_REG(&port);
 
   port = scm_capi_open_input_string_cstr(data, SCM_ENC_NAME_SRC);
   enc = scm_capi_port_internal_encoding(port);
@@ -271,13 +271,13 @@ make_list_of_symbol(bool proper, size_t n, ...)
   size_t x;
   va_list ap;
 
-  SCM_STACK_FRAME_PUSH(&l);
+  SCM_REFSTK_INIT_REG(&l);
 
   va_start(ap, n);
   for (size_t i = 0; i < n; i++) {
     const char *p = va_arg(ap, const char *);
     s[i] = scm_capi_make_symbol_from_cstr(p, SCM_ENC_SRC);
-    SCM_STACK_PUSH(&s[i]);
+    SCM_REFSTK_REG(&s[i]);
   }
   va_end(ap);
 
@@ -302,13 +302,13 @@ make_vector_of_symbol(size_t n, ...)
   ScmObj s[n];
   va_list ap;
 
-  SCM_STACK_FRAME;
+  SCM_REFSTK_INIT;
 
   va_start(ap, n);
   for (size_t i = 0; i < n; i++) {
     const char *p = va_arg(ap, const char *);
     s[i] = scm_capi_make_symbol_from_cstr(p, SCM_ENC_SRC);
-    SCM_STACK_PUSH(&s[i]);
+    SCM_REFSTK_REG(&s[i]);
   }
   va_end(ap);
 
@@ -320,7 +320,7 @@ test_parse(ScmObj expected, const char *data)
 {
   ScmObj port = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&port, &actual);
+  SCM_REFSTK_INIT_REG(&port, &actual);
 
   port = scm_capi_open_input_string_cstr(data, SCM_ENC_NAME_SRC);
   parser = scm_parser_new();
@@ -335,7 +335,7 @@ TEST(parser, parse_string)
 {
   ScmObj expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&expected);
+  SCM_REFSTK_INIT_REG(&expected);
 
   expected = scm_capi_make_string_from_cstr("this is a string", SCM_ENC_SRC);
 
@@ -346,7 +346,7 @@ TEST(parser, parse_string_escape)
 {
   ScmObj expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&expected);
+  SCM_REFSTK_INIT_REG(&expected);
 
   expected = scm_capi_make_string_from_cstr("abc\ndef", SCM_ENC_SRC);
 
@@ -357,7 +357,7 @@ TEST(parser, parse_symbol)
 {
   ScmObj expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&expected);
+  SCM_REFSTK_INIT_REG(&expected);
 
   expected = scm_capi_make_symbol_from_cstr("symbol", SCM_ENC_SRC);
 
@@ -368,7 +368,7 @@ TEST(parser, parse_symbol_vline)
 {
   ScmObj expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&expected);
+  SCM_REFSTK_INIT_REG(&expected);
 
   expected = scm_capi_make_symbol_from_cstr("symbol", SCM_ENC_SRC);
 
@@ -379,7 +379,7 @@ TEST(parser, parse_symbol_vline_escape)
 {
   ScmObj expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&expected);
+  SCM_REFSTK_INIT_REG(&expected);
 
   expected = scm_capi_make_symbol_from_cstr("foo\nbar\tbaz", SCM_ENC_SRC);
 
@@ -390,7 +390,7 @@ TEST(parser, parse_number_int)
 {
   ScmObj expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&expected);
+  SCM_REFSTK_INIT_REG(&expected);
 
   expected = scm_capi_make_number_from_sword(123);
 
@@ -401,7 +401,7 @@ TEST(parser, parse_number_int_plus)
 {
   ScmObj expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&expected);
+  SCM_REFSTK_INIT_REG(&expected);
 
   expected = scm_capi_make_number_from_sword(123);
 
@@ -412,7 +412,7 @@ TEST(parser, parse_number_int_minus)
 {
   ScmObj expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&expected);
+  SCM_REFSTK_INIT_REG(&expected);
 
   expected = scm_capi_make_number_from_sword(-123);
 
@@ -443,7 +443,7 @@ TEST(parser, parse_char)
 {
   ScmObj expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&expected);
+  SCM_REFSTK_INIT_REG(&expected);
 
   expected = scm_capi_make_char(&(scm_char_t){ .ascii = 'a' }, SCM_ENC_SRC);
 
@@ -454,7 +454,7 @@ TEST(parser, parse_char_name_newline)
 {
   ScmObj expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&expected);
+  SCM_REFSTK_INIT_REG(&expected);
 
   expected = scm_capi_make_char(&(scm_char_t){ .ascii = '\n' }, SCM_ENC_SRC);
 
@@ -466,7 +466,7 @@ IGNORE_TEST(parser, parse_char_name_hex_scalar_value)
 {
   ScmObj expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&expected);
+  SCM_REFSTK_INIT_REG(&expected);
 
   expected = scm_capi_make_char(&(scm_char_t){ .ascii = 'b' }, SCM_ENC_SRC);
 
@@ -477,7 +477,7 @@ TEST(parser, parse_quote)
 {
   ScmObj expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&expected);
+  SCM_REFSTK_INIT_REG(&expected);
 
   expected = make_list_of_symbol(true, 2, "quote", "abc");
 
@@ -488,7 +488,7 @@ TEST(parser, parse_quasiquote)
 {
   ScmObj expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&expected);
+  SCM_REFSTK_INIT_REG(&expected);
 
   expected = make_list_of_symbol(true, 2, "quasiquote", "abc");
 
@@ -499,7 +499,7 @@ TEST(parser, parse_unquote)
 {
   ScmObj expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&expected);
+  SCM_REFSTK_INIT_REG(&expected);
 
   expected = make_list_of_symbol(true, 2, "unquote", "abc");
 
@@ -510,7 +510,7 @@ TEST(parser, parse_unquote_splicing)
 {
   ScmObj expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&expected);
+  SCM_REFSTK_INIT_REG(&expected);
 
   expected = make_list_of_symbol(true, 2, "unquote-splicing", "abc");
 
@@ -526,7 +526,7 @@ TEST(parser, parse_proper_list)
 {
   ScmObj expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&expected);
+  SCM_REFSTK_INIT_REG(&expected);
 
   expected = make_list_of_symbol(true, 2, "abc", "def");
 
@@ -537,7 +537,7 @@ TEST(parser, parse_improper_list)
 {
   ScmObj expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&expected);
+  SCM_REFSTK_INIT_REG(&expected);
 
   expected = make_list_of_symbol(false, 2, "abc", "def");
 
@@ -548,7 +548,7 @@ TEST(parser, parse_nexted_list)
 {
   ScmObj expected = SCM_OBJ_INIT, o = SCM_OBJ_INIT, x = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&expected, &o, &x);
+  SCM_REFSTK_INIT_REG(&expected, &o, &x);
 
   expected = make_list_of_symbol(true, 3, "abc", "def", "ghi");
   o = make_list_of_symbol(true, 2, "+", "-");
@@ -562,7 +562,7 @@ TEST(parser, parse_list__comment)
 {
   ScmObj expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&expected);
+  SCM_REFSTK_INIT_REG(&expected);
 
   expected = make_list_of_symbol(true, 3, "abc", "def", "ghi");
 
@@ -573,7 +573,7 @@ TEST(parser, parse_empty_vector)
 {
   ScmObj expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&expected);
+  SCM_REFSTK_INIT_REG(&expected);
 
   expected = make_vector_of_symbol(0);
 
@@ -584,7 +584,7 @@ TEST(parser, parse_vector)
 {
   ScmObj expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&expected);
+  SCM_REFSTK_INIT_REG(&expected);
 
   expected = make_vector_of_symbol(2, "abc", "def");
 

@@ -12,7 +12,7 @@ check_exception(ScmObj exc, const char *msg, const char *irris)
 {
   ScmObj msg_str = SCM_OBJ_INIT, ir_lst = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&exc,
+  SCM_REFSTK_INIT_REG(&exc,
                        &msg_str, &ir_lst);
 
 
@@ -55,7 +55,7 @@ TEST(api_exceptions, capi_error)
 {
   ScmObj exc = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&exc);
+  SCM_REFSTK_INIT_REG(&exc);
 
   TEST_ASSERT_EQUAL_INT(0,
                         scm_capi_error("bar", 2, SCM_TRUE_OBJ, SCM_FALSE_OBJ));
@@ -75,7 +75,7 @@ TEST(api_exceptions, capi_read_error)
 {
   ScmObj exc = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&exc);
+  SCM_REFSTK_INIT_REG(&exc);
 
   TEST_ASSERT_EQUAL_INT(0,
                         scm_capi_read_error("bar",
@@ -96,7 +96,7 @@ TEST(api_exceptions, capi_file_error)
 {
   ScmObj exc = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&exc);
+  SCM_REFSTK_INIT_REG(&exc);
 
   TEST_ASSERT_EQUAL_INT(0,
                         scm_capi_file_error("bar",

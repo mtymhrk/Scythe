@@ -24,27 +24,27 @@ bool scm_capi_fatal_p(void);
 /*  C Stack                                                        */
 /*******************************************************************/
 
-#define SCM_STACK_FRAME                                                 \
+#define SCM_REFSTK_INIT                                                 \
   __attribute__((__cleanup__(scm_capi_ref_stack_restore)))              \
   ScmRefStackInfo SCM_CONCAT_SYMBOL__(scm_ref_stack_info__, __LINE__) = { .stack = NULL }; \
   scm_capi_ref_stack_save(&SCM_CONCAT_SYMBOL__(scm_ref_stack_info__, __LINE__));
 
-#define SCM_STACK_PUSH(...)                                             \
+#define SCM_REFSTK_REG(...)                                             \
   scm_capi_ref_stack_push(&(ScmRefStackBlock){                          \
       .next = NULL,                                                     \
       .type = SCM_REFSTACK_RARY,                                        \
       .ref = { .rary = (ScmObj *[]){__VA_ARGS__, NULL} }                \
     })
 
-#define SCM_STACK_PUSH_ARY(a, l)                                        \
+#define SCM_REFSTK_REG_ARY(a, l)                                        \
   scm_capi_ref_stack_push(&(ScmRefStackBlock){                          \
       .next = NULL,                                                     \
       .type = SCM_REFSTACK_ARY,                                         \
       .ref = { .ary = { .head = (a), .n = (l) } }                       \
     })
 
-#define SCM_STACK_FRAME_PUSH(...) \
-  SCM_STACK_FRAME; SCM_STACK_PUSH(__VA_ARGS__);
+#define SCM_REFSTK_INIT_REG(...)                \
+  SCM_REFSTK_INIT; SCM_REFSTK_REG(__VA_ARGS__);
 
 void scm_capi_ref_stack_push(ScmRefStackBlock *block);
 void scm_capi_ref_stack_save(ScmRefStackInfo *info);

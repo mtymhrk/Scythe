@@ -41,7 +41,7 @@ scm_gloc_new(SCM_MEM_TYPE_T mtype, ScmObj sym)
 {
   ScmObj gloc = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&gloc, &sym);
+  SCM_REFSTK_INIT_REG(&gloc, &sym);
 
   gloc = scm_capi_mem_alloc(&SCM_GLOC_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(gloc)) return SCM_OBJ_NULL;
@@ -113,7 +113,7 @@ scm_module_search_gloc(ScmObj mod, ScmObj sym, int type, scm_csetter_t *setter)
   bool found;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&mod, &sym);
+  SCM_REFSTK_INIT_REG(&mod, &sym);
 
   scm_assert_obj_type(mod, &SCM_MODULE_TYPE_INFO);
   scm_assert(scm_capi_symbol_p(sym));
@@ -139,7 +139,7 @@ scm_module_gloc(ScmObj mod, ScmObj sym, int type)
   bool found;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&mod, &sym,
+  SCM_REFSTK_INIT_REG(&mod, &sym,
                        &gloc);
 
   scm_assert_obj_type(mod, &SCM_MODULE_TYPE_INFO);
@@ -176,7 +176,7 @@ scm_module_define(ScmObj mod, ScmObj sym, ScmObj val, bool export, int type)
 {
   ScmObj gloc = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&mod, &sym, &val,
+  SCM_REFSTK_INIT_REG(&mod, &sym, &val,
                        &gloc);
 
   scm_assert_obj_type(mod, &SCM_MODULE_TYPE_INFO);
@@ -201,7 +201,7 @@ scm_module_export(ScmObj mod, ScmObj sym, int type)
   ScmObj gloc = SCM_OBJ_INIT;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&mod, &sym,
+  SCM_REFSTK_INIT_REG(&mod, &sym,
                        &gloc);
 
   scm_assert_obj_type(mod, &SCM_MODULE_TYPE_INFO);
@@ -230,7 +230,7 @@ scm_module_find_exported_sym(ScmObj mod,
   ScmObj res = SCM_OBJ_INIT, gloc = SCM_OBJ_INIT;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&mod, &sym,
+  SCM_REFSTK_INIT_REG(&mod, &sym,
                        &lst, &elm, &imp,
                        &res, &gloc);
 
@@ -292,7 +292,7 @@ scm_module_find_sym(ScmObj mod, ScmObj sym, int type, scm_csetter_t *setter)
   ScmObj lst = SCM_OBJ_INIT, elm = SCM_OBJ_INIT, imp = SCM_OBJ_INIT;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&mod, &sym,
+  SCM_REFSTK_INIT_REG(&mod, &sym,
                        &lst, &elm, &imp);
 
   scm_assert_obj_type(mod, &SCM_MODULE_TYPE_INFO);
@@ -341,7 +341,7 @@ scm_module_find_sym(ScmObj mod, ScmObj sym, int type, scm_csetter_t *setter)
 int
 scm_module_initialize(ScmObj mod, ScmObj name)
 {
-  SCM_STACK_FRAME_PUSH(&mod, &name);
+  SCM_REFSTK_INIT_REG(&mod, &name);
 
   scm_assert_obj_type(mod, &SCM_MODULE_TYPE_INFO);
   scm_assert(scm_capi_pair_p(name));
@@ -391,7 +391,7 @@ scm_module_new(SCM_MEM_TYPE_T mtype, ScmObj name)
 {
   ScmObj mod = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&name,
+  SCM_REFSTK_INIT_REG(&name,
                        &mod);
 
   scm_assert(scm_capi_pair_p(name));
@@ -410,7 +410,7 @@ scm_module_import(ScmObj mod, ScmObj imp, bool res)
 {
   ScmObj elm = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&mod, &imp,
+  SCM_REFSTK_INIT_REG(&mod, &imp,
                        &elm);
 
   scm_assert_obj_type(mod, &SCM_MODULE_TYPE_INFO);
@@ -669,7 +669,7 @@ scm_moduletree_access(ScmModuleTreeNode *root, ScmObj path, int mode,
 {
   ScmObj name = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&path,
+  SCM_REFSTK_INIT_REG(&path,
                        &name);
 
   scm_assert(root != NULL);
@@ -775,7 +775,7 @@ scm_moduletree_module(ScmObj tree, ScmObj name)
   bool need_copy;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&tree, &name,
+  SCM_REFSTK_INIT_REG(&tree, &name,
                        &path);
 
   scm_assert_obj_type(tree, &SCM_MODULETREE_TYPE_INFO);
@@ -808,7 +808,7 @@ scm_moduletree_find(ScmObj tree, ScmObj name, scm_csetter_t *mod)
   ScmModuleTreeNode *node;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&tree, &name);
+  SCM_REFSTK_INIT_REG(&tree, &name);
 
   scm_assert_obj_type(tree, &SCM_MODULETREE_TYPE_INFO);
   scm_assert(scm_capi_symbol_p(name) || scm_capi_pair_p(name));

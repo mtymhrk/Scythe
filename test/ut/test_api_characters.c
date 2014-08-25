@@ -22,7 +22,7 @@ TEST(api_characters, capi_char_p__return_true)
 {
   ScmObj chr = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&chr);
+  SCM_REFSTK_INIT_REG(&chr);
 
   chr = read_cstr("#\\a");
 
@@ -38,7 +38,7 @@ TEST(api_characters, api_char_P__return_true)
 {
   ScmObj chr = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&chr);
+  SCM_REFSTK_INIT_REG(&chr);
 
   chr = read_cstr("#\\a");
 
@@ -55,7 +55,7 @@ TEST(api_characters, capi_char_eq__equal)
   ScmObj c1 = SCM_OBJ_INIT, c2 = SCM_OBJ_INIT;
   bool cmp;
 
-  SCM_STACK_FRAME_PUSH(&c1, &c2);
+  SCM_REFSTK_INIT_REG(&c1, &c2);
 
   c1 = read_cstr("#\\a");
   c2 = read_cstr("#\\a");
@@ -69,7 +69,7 @@ TEST(api_characters, capi_char_eq__not_equal)
   ScmObj c1 = SCM_OBJ_INIT, c2 = SCM_OBJ_INIT;
   bool cmp;
 
-  SCM_STACK_FRAME_PUSH(&c1, &c2);
+  SCM_REFSTK_INIT_REG(&c1, &c2);
 
   c1 = read_cstr("#\\a");
   c2 = read_cstr("#\\b");
@@ -83,7 +83,7 @@ TEST(api_characters, capi_char_eq__return_ERROR)
   ScmObj c1 = SCM_OBJ_INIT, c2 = SCM_OBJ_INIT;
   bool cmp;
 
-  SCM_STACK_FRAME_PUSH(&c1, &c2);
+  SCM_REFSTK_INIT_REG(&c1, &c2);
 
   c1 = read_cstr("#\\a");
   c2 = SCM_FALSE_OBJ;
@@ -95,7 +95,7 @@ TEST(api_characters, capi_char_eq_P_lst__equal)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst);
+  SCM_REFSTK_INIT_REG(&lst);
 
   lst = read_cstr("(#\\a #\\a #\\a)");
 
@@ -106,7 +106,7 @@ TEST(api_characters, capi_char_eq_P_lst__not_equal)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst);
+  SCM_REFSTK_INIT_REG(&lst);
 
   lst = read_cstr("(#\\a #\\a #\\z)");
 
@@ -122,7 +122,7 @@ TEST(api_characters, capi_char_eq_P__list_has_item_is_not_character__return_ERRO
 {
   ScmObj lst = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst);
+  SCM_REFSTK_INIT_REG(&lst);
 
   lst = read_cstr("(#\\a a #\\a)");
 
@@ -133,7 +133,7 @@ TEST(api_characters, api_char_eq_P__equal)
 {
   ScmObj c1 = SCM_OBJ_INIT, c2 = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&c1, &c2);
+  SCM_REFSTK_INIT_REG(&c1, &c2);
 
   c1 = read_cstr("#\\a");
   c2 = read_cstr("#\\a");
@@ -145,7 +145,7 @@ TEST(api_characters, api_char_eq_P__not_equal)
 {
   ScmObj c1 = SCM_OBJ_INIT, c2 = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&c1, &c2);
+  SCM_REFSTK_INIT_REG(&c1, &c2);
 
   c1 = read_cstr("#\\a");
   c2 = read_cstr("#\\b");
@@ -157,7 +157,7 @@ TEST(api_characters, api_char_eq_P__return_ERROR)
 {
   ScmObj c1 = SCM_OBJ_INIT, c2 = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&c1, &c2);
+  SCM_REFSTK_INIT_REG(&c1, &c2);
 
   c1 = read_cstr("#\\a");
   c2 = SCM_EOF_OBJ;
@@ -170,7 +170,7 @@ TEST(api_characters, capi_char_lt__less)
   ScmObj c1 = SCM_OBJ_INIT, c2 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&c1, &c2);
+  SCM_REFSTK_INIT_REG(&c1, &c2);
 
   c1 = read_cstr("#\\a");
   c2 = read_cstr("#\\b");
@@ -184,7 +184,7 @@ TEST(api_characters, capi_char_lt__greater)
   ScmObj c1 = SCM_OBJ_INIT, c2 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&c1, &c2);
+  SCM_REFSTK_INIT_REG(&c1, &c2);
 
   c1 = read_cstr("#\\b");
   c2 = read_cstr("#\\a");
@@ -198,7 +198,7 @@ TEST(api_characters, capi_char_lt__equal)
   ScmObj c1 = SCM_OBJ_INIT, c2 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&c1, &c2);
+  SCM_REFSTK_INIT_REG(&c1, &c2);
 
   c1 = read_cstr("#\\a");
   c2 = read_cstr("#\\a");
@@ -212,7 +212,7 @@ TEST(api_characters, capi_char_lt__transitive)
   ScmObj c1 = SCM_OBJ_INIT, c2 = SCM_OBJ_INIT, c3 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&c1, &c2, &c3);
+  SCM_REFSTK_INIT_REG(&c1, &c2, &c3);
 
   c1 = read_cstr("#\\a");
   c2 = read_cstr("#\\b");
@@ -233,7 +233,7 @@ TEST(api_characters, capi_char_lt__return_ERROR)
   ScmObj c1 = SCM_OBJ_INIT, c2 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&c1, &c2);
+  SCM_REFSTK_INIT_REG(&c1, &c2);
 
   c1 = read_cstr("#\\a");
   c2 = SCM_EOF_OBJ;
@@ -245,7 +245,7 @@ TEST(api_characters, capi_char_lt_P_lst__less)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst);
+  SCM_REFSTK_INIT_REG(&lst);
 
   lst = read_cstr("(#\\a #\\b #\\c)");
 
@@ -256,7 +256,7 @@ TEST(api_characters, capi_char_lt_P_lst__equal)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst);
+  SCM_REFSTK_INIT_REG(&lst);
 
   lst = read_cstr("(#\\a #\\b #\\b)");
 
@@ -267,7 +267,7 @@ TEST(api_characters, capi_char_lt_P_lst__greater)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst);
+  SCM_REFSTK_INIT_REG(&lst);
 
   lst = read_cstr("(#\\b #\\c #\\a)");
 
@@ -283,7 +283,7 @@ TEST(api_characters, capi_char_lt_P_lst__list_has_item_is_not_character__return_
 {
   ScmObj lst = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst);
+  SCM_REFSTK_INIT_REG(&lst);
 
   lst = read_cstr("(#\\a b #\\c)");
 
@@ -294,7 +294,7 @@ TEST(api_characters, api_char_lt_P__less)
 {
   ScmObj c1 = SCM_OBJ_INIT, c2 = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&c1, &c2);
+  SCM_REFSTK_INIT_REG(&c1, &c2);
 
   c1 = read_cstr("#\\a");
   c2 = read_cstr("#\\b");
@@ -306,7 +306,7 @@ TEST(api_characters, api_char_lt_P__greater)
 {
   ScmObj c1 = SCM_OBJ_INIT, c2 = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&c1, &c2);
+  SCM_REFSTK_INIT_REG(&c1, &c2);
 
   c1 = read_cstr("#\\b");
   c2 = read_cstr("#\\a");
@@ -318,7 +318,7 @@ TEST(api_characters, api_char_lt_P__equal)
 {
   ScmObj c1 = SCM_OBJ_INIT, c2 = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&c1, &c2);
+  SCM_REFSTK_INIT_REG(&c1, &c2);
 
   c1 = read_cstr("#\\a");
   c2 = read_cstr("#\\a");
@@ -330,7 +330,7 @@ TEST(api_characters, api_char_lt_P__transitive)
 {
   ScmObj c1 = SCM_OBJ_INIT, c2 = SCM_OBJ_INIT, c3 = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&c1, &c2, &c3);
+  SCM_REFSTK_INIT_REG(&c1, &c2, &c3);
 
   c1 = read_cstr("#\\a");
   c2 = read_cstr("#\\b");
@@ -345,7 +345,7 @@ TEST(api_characters, api_char_lt_P__return_ERROR)
 {
   ScmObj c1 = SCM_OBJ_INIT, c2 = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&c1, &c2);
+  SCM_REFSTK_INIT_REG(&c1, &c2);
 
   c1 = read_cstr("#\\a");
   c2 = SCM_EOF_OBJ;
@@ -358,7 +358,7 @@ TEST(api_characters, capi_char_gt__less)
   ScmObj c1 = SCM_OBJ_INIT, c2 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&c1, &c2);
+  SCM_REFSTK_INIT_REG(&c1, &c2);
 
   c1 = read_cstr("#\\a");
   c2 = read_cstr("#\\b");
@@ -372,7 +372,7 @@ TEST(api_characters, capi_char_gt__greater)
   ScmObj c1 = SCM_OBJ_INIT, c2 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&c1, &c2);
+  SCM_REFSTK_INIT_REG(&c1, &c2);
 
   c1 = read_cstr("#\\b");
   c2 = read_cstr("#\\a");
@@ -386,7 +386,7 @@ TEST(api_characters, capi_char_gt__equal)
   ScmObj c1 = SCM_OBJ_INIT, c2 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&c1, &c2);
+  SCM_REFSTK_INIT_REG(&c1, &c2);
 
   c1 = read_cstr("#\\a");
   c2 = read_cstr("#\\a");
@@ -400,7 +400,7 @@ TEST(api_characters, capi_char_gt__transitive)
   ScmObj c1 = SCM_OBJ_INIT, c2 = SCM_OBJ_INIT, c3 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&c1, &c2, &c3);
+  SCM_REFSTK_INIT_REG(&c1, &c2, &c3);
 
   c1 = read_cstr("#\\c");
   c2 = read_cstr("#\\b");
@@ -421,7 +421,7 @@ TEST(api_characters, capi_char_gt__return_ERROR)
   ScmObj c1 = SCM_OBJ_INIT, c2 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&c1, &c2);
+  SCM_REFSTK_INIT_REG(&c1, &c2);
 
   c1 = read_cstr("#\\a");
   c2 = SCM_EOF_OBJ;
@@ -433,7 +433,7 @@ TEST(api_characters, capi_char_gt_P_lst__less)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst);
+  SCM_REFSTK_INIT_REG(&lst);
 
   lst = read_cstr("(#\\b #\\a #\\c)");
 
@@ -444,7 +444,7 @@ TEST(api_characters, capi_char_gt_P_lst__equal)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst);
+  SCM_REFSTK_INIT_REG(&lst);
 
   lst = read_cstr("(#\\c #\\b #\\b)");
 
@@ -455,7 +455,7 @@ TEST(api_characters, capi_char_gt_P_lst__greater)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst);
+  SCM_REFSTK_INIT_REG(&lst);
 
   lst = read_cstr("(#\\c #\\b #\\a)");
 
@@ -471,7 +471,7 @@ TEST(api_characters, capi_char_gt_P_lst__list_has_item_is_not_character__return_
 {
   ScmObj lst = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst);
+  SCM_REFSTK_INIT_REG(&lst);
 
   lst = read_cstr("(#\\c b #\\a)");
 
@@ -482,7 +482,7 @@ TEST(api_characters, api_char_gt_P__less)
 {
   ScmObj c1 = SCM_OBJ_INIT, c2 = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&c1, &c2);
+  SCM_REFSTK_INIT_REG(&c1, &c2);
 
   c1 = read_cstr("#\\a");
   c2 = read_cstr("#\\b");
@@ -494,7 +494,7 @@ TEST(api_characters, api_char_gt_P__greater)
 {
   ScmObj c1 = SCM_OBJ_INIT, c2 = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&c1, &c2);
+  SCM_REFSTK_INIT_REG(&c1, &c2);
 
   c1 = read_cstr("#\\b");
   c2 = read_cstr("#\\a");
@@ -506,7 +506,7 @@ TEST(api_characters, api_char_gt_P__equal)
 {
   ScmObj c1 = SCM_OBJ_INIT, c2 = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&c1, &c2);
+  SCM_REFSTK_INIT_REG(&c1, &c2);
 
   c1 = read_cstr("#\\a");
   c2 = read_cstr("#\\a");
@@ -518,7 +518,7 @@ TEST(api_characters, api_char_gt_P__transitive)
 {
   ScmObj c1 = SCM_OBJ_INIT, c2 = SCM_OBJ_INIT, c3 = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&c1, &c2, &c3);
+  SCM_REFSTK_INIT_REG(&c1, &c2, &c3);
 
   c1 = read_cstr("#\\c");
   c2 = read_cstr("#\\b");
@@ -533,7 +533,7 @@ TEST(api_characters, api_char_gt_P__return_ERROR)
 {
   ScmObj c1 = SCM_OBJ_INIT, c2 = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&c1, &c2);
+  SCM_REFSTK_INIT_REG(&c1, &c2);
 
   c1 = read_cstr("#\\a");
   c2 = SCM_EOF_OBJ;
@@ -546,7 +546,7 @@ TEST(api_characters, capi_char_le__less)
   ScmObj c1 = SCM_OBJ_INIT, c2 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&c1, &c2);
+  SCM_REFSTK_INIT_REG(&c1, &c2);
 
   c1 = read_cstr("#\\a");
   c2 = read_cstr("#\\b");
@@ -560,7 +560,7 @@ TEST(api_characters, capi_char_le__greater)
   ScmObj c1 = SCM_OBJ_INIT, c2 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&c1, &c2);
+  SCM_REFSTK_INIT_REG(&c1, &c2);
 
   c1 = read_cstr("#\\b");
   c2 = read_cstr("#\\a");
@@ -574,7 +574,7 @@ TEST(api_characters, capi_char_le__equal)
   ScmObj c1 = SCM_OBJ_INIT, c2 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&c1, &c2);
+  SCM_REFSTK_INIT_REG(&c1, &c2);
 
   c1 = read_cstr("#\\a");
   c2 = read_cstr("#\\a");
@@ -588,7 +588,7 @@ TEST(api_characters, capi_char_le__transitive)
   ScmObj c1 = SCM_OBJ_INIT, c2 = SCM_OBJ_INIT, c3 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&c1, &c2, &c3);
+  SCM_REFSTK_INIT_REG(&c1, &c2, &c3);
 
   c1 = read_cstr("#\\a");
   c2 = read_cstr("#\\b");
@@ -609,7 +609,7 @@ TEST(api_characters, capi_char_le__return_ERROR)
   ScmObj c1 = SCM_OBJ_INIT, c2 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&c1, &c2);
+  SCM_REFSTK_INIT_REG(&c1, &c2);
 
   c1 = read_cstr("#\\a");
   c2 = SCM_EOF_OBJ;
@@ -621,7 +621,7 @@ TEST(api_characters, capi_char_le_P_lst__less)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst);
+  SCM_REFSTK_INIT_REG(&lst);
 
   lst = read_cstr("(#\\a #\\b #\\c)");
 
@@ -632,7 +632,7 @@ TEST(api_characters, capi_char_le_P_lst__equal)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst);
+  SCM_REFSTK_INIT_REG(&lst);
 
   lst = read_cstr("(#\\a #\\b #\\b)");
 
@@ -643,7 +643,7 @@ TEST(api_characters, capi_char_le_P_lst__greater)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst);
+  SCM_REFSTK_INIT_REG(&lst);
 
   lst = read_cstr("(#\\b #\\c #\\a)");
 
@@ -659,7 +659,7 @@ TEST(api_characters, capi_char_le_P_lst__list_has_item_is_not_character__return_
 {
   ScmObj lst = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst);
+  SCM_REFSTK_INIT_REG(&lst);
 
   lst = read_cstr("(#\\a b #\\c)");
 
@@ -670,7 +670,7 @@ TEST(api_characters, api_char_le_P__less)
 {
   ScmObj c1 = SCM_OBJ_INIT, c2 = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&c1, &c2);
+  SCM_REFSTK_INIT_REG(&c1, &c2);
 
   c1 = read_cstr("#\\a");
   c2 = read_cstr("#\\b");
@@ -682,7 +682,7 @@ TEST(api_characters, api_char_le_P__greater)
 {
   ScmObj c1 = SCM_OBJ_INIT, c2 = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&c1, &c2);
+  SCM_REFSTK_INIT_REG(&c1, &c2);
 
   c1 = read_cstr("#\\b");
   c2 = read_cstr("#\\a");
@@ -694,7 +694,7 @@ TEST(api_characters, api_char_le_P__equal)
 {
   ScmObj c1 = SCM_OBJ_INIT, c2 = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&c1, &c2);
+  SCM_REFSTK_INIT_REG(&c1, &c2);
 
   c1 = read_cstr("#\\a");
   c2 = read_cstr("#\\a");
@@ -706,7 +706,7 @@ TEST(api_characters, api_char_le_P__transitive)
 {
   ScmObj c1 = SCM_OBJ_INIT, c2 = SCM_OBJ_INIT, c3 = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&c1, &c2, &c3);
+  SCM_REFSTK_INIT_REG(&c1, &c2, &c3);
 
   c1 = read_cstr("#\\a");
   c2 = read_cstr("#\\b");
@@ -721,7 +721,7 @@ TEST(api_characters, api_char_le_P__return_ERROR)
 {
   ScmObj c1 = SCM_OBJ_INIT, c2 = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&c1, &c2);
+  SCM_REFSTK_INIT_REG(&c1, &c2);
 
   c1 = read_cstr("#\\a");
   c2 = SCM_EOF_OBJ;
@@ -734,7 +734,7 @@ TEST(api_characters, capi_char_ge__less)
   ScmObj c1 = SCM_OBJ_INIT, c2 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&c1, &c2);
+  SCM_REFSTK_INIT_REG(&c1, &c2);
 
   c1 = read_cstr("#\\a");
   c2 = read_cstr("#\\b");
@@ -748,7 +748,7 @@ TEST(api_characters, capi_char_ge__greater)
   ScmObj c1 = SCM_OBJ_INIT, c2 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&c1, &c2);
+  SCM_REFSTK_INIT_REG(&c1, &c2);
 
   c1 = read_cstr("#\\b");
   c2 = read_cstr("#\\a");
@@ -762,7 +762,7 @@ TEST(api_characters, capi_char_ge__equal)
   ScmObj c1 = SCM_OBJ_INIT, c2 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&c1, &c2);
+  SCM_REFSTK_INIT_REG(&c1, &c2);
 
   c1 = read_cstr("#\\a");
   c2 = read_cstr("#\\a");
@@ -776,7 +776,7 @@ TEST(api_characters, capi_char_ge__transitive)
   ScmObj c1 = SCM_OBJ_INIT, c2 = SCM_OBJ_INIT, c3 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&c1, &c2, &c3);
+  SCM_REFSTK_INIT_REG(&c1, &c2, &c3);
 
   c1 = read_cstr("#\\c");
   c2 = read_cstr("#\\b");
@@ -797,7 +797,7 @@ TEST(api_characters, capi_char_ge__return_ERROR)
   ScmObj c1 = SCM_OBJ_INIT, c2 = SCM_OBJ_INIT;
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&c1, &c2);
+  SCM_REFSTK_INIT_REG(&c1, &c2);
 
   c1 = read_cstr("#\\a");
   c2 = SCM_EOF_OBJ;
@@ -809,7 +809,7 @@ TEST(api_characters, capi_char_ge_P_lst__less)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst);
+  SCM_REFSTK_INIT_REG(&lst);
 
   lst = read_cstr("(#\\b #\\a #\\c)");
 
@@ -820,7 +820,7 @@ TEST(api_characters, capi_char_ge_P_lst__equal)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst);
+  SCM_REFSTK_INIT_REG(&lst);
 
   lst = read_cstr("(#\\c #\\b #\\b)");
 
@@ -831,7 +831,7 @@ TEST(api_characters, capi_char_ge_P_lst__greater)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst);
+  SCM_REFSTK_INIT_REG(&lst);
 
   lst = read_cstr("(#\\c #\\b #\\a)");
 
@@ -847,7 +847,7 @@ TEST(api_characters, capi_char_ge_P_lst__list_has_item_is_not_character__return_
 {
   ScmObj lst = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst);
+  SCM_REFSTK_INIT_REG(&lst);
 
   lst = read_cstr("(#\\c b #\\a)");
 
@@ -858,7 +858,7 @@ TEST(api_characters, api_char_ge_P__less)
 {
   ScmObj c1 = SCM_OBJ_INIT, c2 = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&c1, &c2);
+  SCM_REFSTK_INIT_REG(&c1, &c2);
 
   c1 = read_cstr("#\\a");
   c2 = read_cstr("#\\b");
@@ -870,7 +870,7 @@ TEST(api_characters, api_char_ge_P__greater)
 {
   ScmObj c1 = SCM_OBJ_INIT, c2 = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&c1, &c2);
+  SCM_REFSTK_INIT_REG(&c1, &c2);
 
   c1 = read_cstr("#\\b");
   c2 = read_cstr("#\\a");
@@ -882,7 +882,7 @@ TEST(api_characters, api_char_ge_P__equal)
 {
   ScmObj c1 = SCM_OBJ_INIT, c2 = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&c1, &c2);
+  SCM_REFSTK_INIT_REG(&c1, &c2);
 
   c1 = read_cstr("#\\a");
   c2 = read_cstr("#\\a");
@@ -894,7 +894,7 @@ TEST(api_characters, api_char_ge_P__transitive)
 {
   ScmObj c1 = SCM_OBJ_INIT, c2 = SCM_OBJ_INIT, c3 = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&c1, &c2, &c3);
+  SCM_REFSTK_INIT_REG(&c1, &c2, &c3);
 
   c1 = read_cstr("#\\c");
   c2 = read_cstr("#\\b");
@@ -909,7 +909,7 @@ TEST(api_characters, api_char_ge_P__return_ERROR)
 {
   ScmObj c1 = SCM_OBJ_INIT, c2 = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&c1, &c2);
+  SCM_REFSTK_INIT_REG(&c1, &c2);
 
   c1 = read_cstr("#\\a");
   c2 = SCM_EOF_OBJ;
@@ -921,7 +921,7 @@ TEST(api_characters, api_char_to_integer)
 {
   ScmObj chr = SCM_OBJ_INIT, actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&chr, &actual, &expected);
+  SCM_REFSTK_INIT_REG(&chr, &actual, &expected);
 
   chr = read_cstr("#\\a");
   expected = read_cstr("97");
@@ -940,7 +940,7 @@ TEST(api_characters, capi_integer_to_char)
 {
   ScmObj num = SCM_OBJ_INIT, actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&num, &actual, &expected);
+  SCM_REFSTK_INIT_REG(&num, &actual, &expected);
 
   num = read_cstr("97");
   expected = read_cstr("#\\a");
@@ -954,7 +954,7 @@ TEST(api_characters, capi_integer_to_char__not_unicode_scalar__return_false)
 {
   ScmObj num = SCM_OBJ_INIT, actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&num, &actual, &expected);
+  SCM_REFSTK_INIT_REG(&num, &actual, &expected);
 
   num = read_cstr("55296");  /* 55295 = 0xd800  */
 

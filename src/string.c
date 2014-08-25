@@ -78,7 +78,7 @@ scm_string_copy_and_expand(ScmObj src, size_t size)
   ScmObj str = SCM_OBJ_INIT;;
   ssize_t len;
 
-  SCM_STACK_FRAME_PUSH(&str);
+  SCM_REFSTK_INIT_REG(&str);
 
   scm_assert_obj_type(src, &SCM_STRING_TYPE_INFO);
   scm_assert(size <= SSIZE_MAX);
@@ -130,7 +130,7 @@ scm_string_change_case(ScmObj str, int dir)
   ScmObj s = SCM_OBJ_INIT;
   ScmStrItr itr;
 
-  SCM_STACK_FRAME_PUSH(&str,
+  SCM_REFSTK_INIT_REG(&str,
                        &s);
 
   scm_assert_obj_type(str, &SCM_STRING_TYPE_INFO);
@@ -187,7 +187,7 @@ scm_string_change_encoding(ScmObj src, ScmEncoding *to)
   iconv_t cd;
   size_t ins, outs, rslt;
 
-  SCM_STACK_FRAME_PUSH(&src,
+  SCM_REFSTK_INIT_REG(&src,
                        &str);
 
   scm_assert_obj_type(src, &SCM_STRING_TYPE_INFO);
@@ -267,7 +267,7 @@ scm_string_write_ext_rep_inner(ScmObj str, ScmObj port, size_t len)
   ScmEncoding *enc;
   int rslt, c;
 
-  SCM_STACK_FRAME_PUSH(&str, &port);
+  SCM_REFSTK_INIT_REG(&str, &port);
 
   p = scm_string_to_char_ary(str,0, (ssize_t)len, ary);
   if (p == NULL) return -1;
@@ -360,7 +360,7 @@ int
 scm_string_initialize(ScmObj str,
                       const void *src, size_t size, ScmEncoding *enc)
 {
-  SCM_STACK_FRAME_PUSH(&str);
+  SCM_REFSTK_INIT_REG(&str);
 
   scm_assert_obj_type(str, &SCM_STRING_TYPE_INFO);
   scm_assert(size <= SSIZE_MAX);
@@ -410,7 +410,7 @@ scm_string_new(SCM_MEM_TYPE_T mtype,
 {
   ScmObj str = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&str);
+  SCM_REFSTK_INIT_REG(&str);
   scm_assert(size <= SSIZE_MAX);
   scm_assert(enc != NULL);
 
@@ -439,7 +439,7 @@ scm_string_dup(ScmObj src)
 {
   ScmObj str = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&src, &str);
+  SCM_REFSTK_INIT_REG(&src, &str);
 
   scm_assert_obj_type(src, &SCM_STRING_TYPE_INFO);
 
@@ -495,7 +495,7 @@ scm_string_encode(ScmObj str, ScmEncoding *enc)
   scm_assert_obj_type(str, &SCM_STRING_TYPE_INFO);
   scm_assert(enc != NULL);
 
-  SCM_STACK_FRAME_PUSH(&str);
+  SCM_REFSTK_INIT_REG(&str);
 
   if (SCM_STRING_ENC(str) == enc)
     return scm_string_dup(str);
@@ -509,7 +509,7 @@ scm_string_substr(ScmObj str, size_t pos, size_t len)
   ScmObj substr = SCM_OBJ_INIT;
   ScmStrItr head, tail;
 
-  SCM_STACK_FRAME_PUSH(&str, &substr);
+  SCM_REFSTK_INIT_REG(&str, &substr);
   scm_assert(pos <= SSIZE_MAX);
   scm_assert(len <= SSIZE_MAX);
 
@@ -543,7 +543,7 @@ scm_string_push(ScmObj str, const scm_char_t *c)
   ScmObj tmp = SCM_OBJ_INIT;
   ssize_t width;
 
-  SCM_STACK_FRAME_PUSH(&str, &tmp);
+  SCM_REFSTK_INIT_REG(&str, &tmp);
 
   scm_assert_obj_type(str, &SCM_STRING_TYPE_INFO);
 
@@ -573,7 +573,7 @@ scm_string_append(ScmObj str, ScmObj append)
 {
   ScmObj tmp = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&str, &tmp);
+  SCM_REFSTK_INIT_REG(&str, &tmp);
 
   scm_assert_obj_type(str, &SCM_STRING_TYPE_INFO);
   scm_assert_obj_type(append, &SCM_STRING_TYPE_INFO);
@@ -631,7 +631,7 @@ scm_string_set(ScmObj str, size_t pos, const scm_char_t *c)
   ScmStrItr iter;
   int cw, iw;
 
-  SCM_STACK_FRAME_PUSH(&str, &front, &rear, &tmp);
+  SCM_REFSTK_INIT_REG(&str, &front, &rear, &tmp);
 
   scm_assert_obj_type(str, &SCM_STRING_TYPE_INFO);
   scm_assert(pos <= SSIZE_MAX);

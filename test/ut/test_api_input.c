@@ -60,7 +60,7 @@ test_capi_read(ScmObj port)
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, sym = SCM_OBJ_INIT;
   const char *str[] = { "world", "hello", NULL };
 
-  SCM_STACK_FRAME_PUSH(&port,
+  SCM_REFSTK_INIT_REG(&port,
                        &actual, &expected, &sym);
 
   expected = SCM_NIL_OBJ;
@@ -77,7 +77,7 @@ test_capi_read(ScmObj port)
 static void
 test_capi_read__return_EOF(ScmObj port)
 {
-  SCM_STACK_FRAME_PUSH(&port);
+  SCM_REFSTK_INIT_REG(&port);
 
   for (int i = 0; i < TEST_FILE_NR_S_EXPR; i++)
     scm_api_read(port);
@@ -88,7 +88,7 @@ test_capi_read__return_EOF(ScmObj port)
 static void
 test_api_read__specify_closed_port__return_ERROR(ScmObj port)
 {
-  SCM_STACK_FRAME_PUSH(&port);
+  SCM_REFSTK_INIT_REG(&port);
 
   scm_api_close_port(port);
   TEST_ASSERT_SCM_NULL(scm_api_read(port));
@@ -100,7 +100,7 @@ test_capi_read_cchr(ScmObj port)
   scm_char_t actual, expected;
   ssize_t sz;
 
-  SCM_STACK_FRAME_PUSH(&port);
+  SCM_REFSTK_INIT_REG(&port);
 
   expected.ascii = TEST_FILE_CONTENTS[0];
 
@@ -117,7 +117,7 @@ test_capi_read_cchr__return_EOF(ScmObj port)
 {
   scm_char_t actual;
 
-  SCM_STACK_FRAME_PUSH(&port);
+  SCM_REFSTK_INIT_REG(&port);
 
   for (size_t i = 0; i < strlen(TEST_FILE_CONTENTS); i++)
     scm_capi_read_cchr(&actual, port);
@@ -130,7 +130,7 @@ test_capi_read_cchr__specify_closed_port__return_ERROR(ScmObj port)
 {
   scm_char_t actual;
 
-  SCM_STACK_FRAME_PUSH(&port);
+  SCM_REFSTK_INIT_REG(&port);
 
   scm_api_close_port(port);
   TEST_ASSERT_EQUAL_INT(-1, scm_capi_read_cchr(&actual, port));
@@ -141,7 +141,7 @@ test_api_read_char(ScmObj port)
 {
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&port,
+  SCM_REFSTK_INIT_REG(&port,
                        &actual, &expected);
 
   expected = scm_capi_make_char(&(scm_char_t){ .ascii = TEST_FILE_CONTENTS[0] },
@@ -155,7 +155,7 @@ test_api_read_char(ScmObj port)
 static void
 test_api_read_char__return_EOF(ScmObj port)
 {
-  SCM_STACK_FRAME_PUSH(&port);
+  SCM_REFSTK_INIT_REG(&port);
 
   for (size_t i = 0; i < strlen(TEST_FILE_CONTENTS); i++)
     scm_api_read_char(port);
@@ -166,7 +166,7 @@ test_api_read_char__return_EOF(ScmObj port)
 static void
 test_api_read_char__specify_closed_port__return_ERROR(ScmObj port)
 {
-  SCM_STACK_FRAME_PUSH(&port);
+  SCM_REFSTK_INIT_REG(&port);
 
   scm_api_close_port(port);
   TEST_ASSERT_SCM_NULL(scm_api_read_char(port));
@@ -178,7 +178,7 @@ test_capi_peek_cchr(ScmObj port)
   scm_char_t actual, expected;
   ssize_t sz;
 
-  SCM_STACK_FRAME_PUSH(&port);
+  SCM_REFSTK_INIT_REG(&port);
 
   expected.ascii = TEST_FILE_CONTENTS[0];
 
@@ -196,7 +196,7 @@ test_capi_peek_cchr__return_same_char_with_preceding_peek_cchr(ScmObj port)
   scm_char_t actual, expected;
   ssize_t sz_a, sz_e;
 
-  SCM_STACK_FRAME_PUSH(&port);
+  SCM_REFSTK_INIT_REG(&port);
 
   sz_e = scm_capi_peek_cchr(&expected, port);
   sz_a = scm_capi_peek_cchr(&actual, port);
@@ -211,7 +211,7 @@ test_capi_peek_cchr__return_same_char_with_next_call_to_read_cchr(ScmObj port)
   scm_char_t actual, expected;
   ssize_t sz_a, sz_e;
 
-  SCM_STACK_FRAME_PUSH(&port);
+  SCM_REFSTK_INIT_REG(&port);
 
   sz_a = scm_capi_peek_cchr(&actual, port);
   sz_e = scm_capi_read_cchr(&expected, port);
@@ -225,7 +225,7 @@ test_capi_peek_cchr__return_EOF(ScmObj port)
 {
   scm_char_t actual;
 
-  SCM_STACK_FRAME_PUSH(&port);
+  SCM_REFSTK_INIT_REG(&port);
 
   for (size_t i = 0; i < strlen(TEST_FILE_CONTENTS); i++)
     scm_capi_read_cchr(&actual, port);
@@ -238,7 +238,7 @@ test_capi_peek_cchr__specify_closed_port__return_ERROR(ScmObj port)
 {
   scm_char_t actual;
 
-  SCM_STACK_FRAME_PUSH(&port);
+  SCM_REFSTK_INIT_REG(&port);
 
   scm_api_close_port(port);
 
@@ -250,7 +250,7 @@ test_api_peek_char(ScmObj port)
 {
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&port,
+  SCM_REFSTK_INIT_REG(&port,
                        &actual, &expected);
 
   expected = scm_capi_make_char(&(scm_char_t){ .ascii = '(' }, SCM_ENC_SRC);
@@ -265,7 +265,7 @@ test_api_peek_char__return_same_char_with_preceding_peek_char(ScmObj port)
 {
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&port,
+  SCM_REFSTK_INIT_REG(&port,
                        &actual, &expected);
 
   expected = scm_api_peek_char(port);
@@ -279,7 +279,7 @@ test_api_peek_char__return_same_char_with_next_call_to_read_char(ScmObj port)
 {
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&port,
+  SCM_REFSTK_INIT_REG(&port,
                        &actual, &expected);
 
   actual = scm_api_peek_char(port);
@@ -291,7 +291,7 @@ test_api_peek_char__return_same_char_with_next_call_to_read_char(ScmObj port)
 static void
 test_api_peek_char__return_EOF(ScmObj port)
 {
-  SCM_STACK_FRAME_PUSH(&port);
+  SCM_REFSTK_INIT_REG(&port);
 
   for (size_t i = 0; i < strlen(TEST_FILE_CONTENTS); i++)
     scm_api_read_char(port);
@@ -302,7 +302,7 @@ test_api_peek_char__return_EOF(ScmObj port)
 static void
 test_api_peek_char__specify_closed_port__return_ERROR(ScmObj port)
 {
-  SCM_STACK_FRAME_PUSH(&port);
+  SCM_REFSTK_INIT_REG(&port);
 
   scm_api_close_port(port);
   TEST_ASSERT_SCM_NULL(scm_api_peek_char(port));
@@ -313,7 +313,7 @@ test_api_read_line__upt_to_EOL(ScmObj port)
 {
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&port,
+  SCM_REFSTK_INIT_REG(&port,
                        &actual, &expected);
 
   expected = scm_capi_make_string_from_cstr(TEST_FILE_CONTENTS_1ST_LINE,
@@ -328,7 +328,7 @@ test_api_read_line__upt_to_EOF(ScmObj port)
 {
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&port,
+  SCM_REFSTK_INIT_REG(&port,
                        &actual, &expected);
 
   expected = scm_capi_make_string_from_cstr(TEST_FILE_CONTENTS_2ND_LINE,
@@ -342,7 +342,7 @@ test_api_read_line__upt_to_EOF(ScmObj port)
 static void
 test_api_read_line__return_EOF(ScmObj port)
 {
-  SCM_STACK_FRAME_PUSH(&port);
+  SCM_REFSTK_INIT_REG(&port);
 
   for (int i = 0; i < TEST_FILE_NR_LINE; i++)
     scm_api_read_line(port);
@@ -353,7 +353,7 @@ test_api_read_line__return_EOF(ScmObj port)
 static void
 test_api_read_line__specify_closed_port__return_ERROR(ScmObj port)
 {
-  SCM_STACK_FRAME_PUSH(&port);
+  SCM_REFSTK_INIT_REG(&port);
 
   scm_api_close_port(port);
   TEST_ASSERT_SCM_NULL(scm_api_read_line(port));
@@ -364,7 +364,7 @@ test_capi_char_ready__return_TRUE(ScmObj port)
 {
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&port);
+  SCM_REFSTK_INIT_REG(&port);
 
   TEST_ASSERT_EQUAL_INT(0, scm_capi_char_ready(port, &actual));
   TEST_ASSERT_TRUE(actual);
@@ -375,7 +375,7 @@ test_capi_char_ready__specify_closed_port__return_ERROR(ScmObj port)
 {
   bool actual;
 
-  SCM_STACK_FRAME_PUSH(&port);
+  SCM_REFSTK_INIT_REG(&port);
 
   scm_api_close_port(port);
 
@@ -391,7 +391,7 @@ test_api_char_ready_P__return_TRUE(ScmObj port)
 static void
 test_api_char_ready_P__specify_closed_port__return_ERROR(ScmObj port)
 {
-  SCM_STACK_FRAME_PUSH(&port);
+  SCM_REFSTK_INIT_REG(&port);
 
   scm_api_close_port(port);
 
@@ -405,7 +405,7 @@ test_api_read_string(ScmObj port)
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_NULL, n = SCM_OBJ_INIT;
   char str[len + 1];
 
-  SCM_STACK_FRAME_PUSH(&port,
+  SCM_REFSTK_INIT_REG(&port,
                        &actual, &expected, &n);
 
   strncpy(str, TEST_FILE_CONTENTS, len);
@@ -424,7 +424,7 @@ test_api_read_string__read_up_to_EOF(ScmObj port)
   const size_t len = strlen(TEST_FILE_CONTENTS) + 1;
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_NULL, n = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&port,
+  SCM_REFSTK_INIT_REG(&port,
                        &actual, &expected, &n);
 
   n = scm_capi_make_number_from_size_t(len);
@@ -439,7 +439,7 @@ test_api_read_string__return_EOF(ScmObj port)
 {
   ScmObj n = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&port,
+  SCM_REFSTK_INIT_REG(&port,
                        &n);
 
   n = scm_capi_make_number_from_size_t(strlen(TEST_FILE_CONTENTS));
@@ -453,7 +453,7 @@ test_api_read_string__specify_closed_port__return_ERROR(ScmObj port)
 {
   ScmObj n = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&port,
+  SCM_REFSTK_INIT_REG(&port,
                        &n);
 
   n = scm_capi_make_number_from_size_t(strlen(TEST_FILE_CONTENTS));

@@ -299,7 +299,7 @@ scm_bedrock_search_gv(const char *sym_str, const char * const *name_str, size_t 
   ScmObj name_sym[n];
   int r;
 
-  SCM_STACK_FRAME_PUSH(&sym, &mod, &name);
+  SCM_REFSTK_INIT_REG(&sym, &mod, &name);
 
   scm_assert(sym_str != NULL);
   scm_assert(name_str != NULL);
@@ -308,7 +308,7 @@ scm_bedrock_search_gv(const char *sym_str, const char * const *name_str, size_t 
   for (size_t i = 0; i < n; i++) {
     name_sym[i] = scm_capi_make_symbol_from_cstr(name_str[i], SCM_ENC_SRC);
     if (scm_obj_null_p(name_sym[i])) return -1;
-    SCM_STACK_PUSH(name_sym + i);
+    SCM_REFSTK_REG(name_sym + i);
   }
 
   sym = scm_capi_make_symbol_from_cstr(sym_str, SCM_ENC_SRC);
@@ -427,7 +427,7 @@ scm_box_new(SCM_MEM_TYPE_T mtype, ScmObj obj)
 {
   ScmObj box = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&obj, &box);
+  SCM_REFSTK_INIT_REG(&obj, &box);
 
   scm_assert(scm_obj_not_null_p(obj));
 
@@ -711,7 +711,7 @@ scm_vm_capture_stack(ScmObj vm)
   ScmObj vmsr = SCM_OBJ_INIT, next = SCM_OBJ_INIT;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&vm,
+  SCM_REFSTK_INIT_REG(&vm,
                        &vmsr, &next);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
@@ -806,7 +806,7 @@ scm_vm_handle_stack_overflow(ScmObj vm)
   size_t size;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&vm,
+  SCM_REFSTK_INIT_REG(&vm,
                        &vmss, &vmsr, &next);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
@@ -888,7 +888,7 @@ scm_vm_handle_stack_underflow(ScmObj vm)
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
-  SCM_STACK_FRAME_PUSH(&vm,
+  SCM_REFSTK_INIT_REG(&vm,
                        &next);
 
   if (SCM_VM(vm)->reg.cfp != NULL)
@@ -940,7 +940,7 @@ scm_vm_make_cframe(ScmObj vm, ScmEnvFrame *efp, ScmEnvFrame *pefp, ScmObj cp)
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
-  SCM_STACK_FRAME_PUSH(&vm);
+  SCM_REFSTK_INIT_REG(&vm);
 
   next_sp = SCM_VM(vm)->reg.sp + sizeof(ScmCntFrame);
   if (scm_vmsr_overflow_p(SCM_VM(vm)->stack, next_sp)) {
@@ -1013,7 +1013,7 @@ scm_vm_pop_cframe(ScmObj vm)
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
-  SCM_STACK_FRAME_PUSH(&vm);
+  SCM_REFSTK_INIT_REG(&vm);
 
   if (SCM_VM(vm)->reg.cfp == NULL) {
     rslt = scm_vm_handle_stack_underflow(vm);
@@ -1054,7 +1054,7 @@ scm_vm_make_eframe(ScmObj vm, size_t nr_arg)
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
-  SCM_STACK_FRAME_PUSH(&vm);
+  SCM_REFSTK_INIT_REG(&vm);
 
   next_sp = SCM_VM(vm)->reg.sp + sizeof(ScmEnvFrame);
   if (scm_vmsr_overflow_p(SCM_VM(vm)->stack, next_sp)) {
@@ -1168,7 +1168,7 @@ scm_vm_box_eframe(ScmObj vm, ScmEnvFrame *efp, size_t depth, scm_csetter_t *box)
 {
   ScmObj efb = SCM_OBJ_INIT, prev = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&efb, &prev, &efb, &prev);
+  SCM_REFSTK_INIT_REG(&efb, &prev, &efb, &prev);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
@@ -1258,7 +1258,7 @@ scm_vm_push_dynamic_bindings(ScmObj vm, ScmObj *param, size_t n)
 {
   ScmObj rib = SCM_OBJ_INIT, x = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vm,
+  SCM_REFSTK_INIT_REG(&vm,
                        &rib, &x);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
@@ -1294,7 +1294,7 @@ scm_vm_pop_dynamic_bindings(ScmObj vm)
 {
   ScmObj x = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vm);
+  SCM_REFSTK_INIT_REG(&vm);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
@@ -1317,7 +1317,7 @@ scm_vm_make_proc_call_code(ScmObj iseq, ScmObj proc, ScmObj args, bool tail)
   int i, rslt, arity, nr_decons;
   bool unwished;
 
-  SCM_STACK_FRAME_PUSH(&iseq, &proc, &args,
+  SCM_REFSTK_INIT_REG(&iseq, &proc, &args,
                        &cur, &arg);
 
   scm_assert(scm_capi_iseq_p(iseq));
@@ -1410,7 +1410,7 @@ scm_vm_make_trampolining_code(ScmObj vm, ScmObj proc,
   ScmObj iseq = SCM_OBJ_INIT;
   ssize_t rslt;
 
-  SCM_STACK_FRAME_PUSH(&vm, &proc, &args, &postproc, &handover,
+  SCM_REFSTK_INIT_REG(&vm, &proc, &args, &postproc, &handover,
                        &iseq);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
@@ -1487,7 +1487,7 @@ scm_vm_adjust_val_to_arity(ScmObj vm, int arity)
   ScmObj lst = SCM_OBJ_INIT, obj = SCM_OBJ_INIT;
   int rslt, nr;
 
-  SCM_STACK_FRAME_PUSH(&vm,
+  SCM_REFSTK_INIT_REG(&vm,
                        &lst, &obj);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
@@ -1569,7 +1569,7 @@ scm_vm_adjust_arg_to_arity(ScmObj vm, int argc, ScmObj proc, int *adjusted)
   int rslt, len, arity, nr_bind;
   bool unwished;
 
-  SCM_STACK_FRAME_PUSH(&vm, &proc,
+  SCM_REFSTK_INIT_REG(&vm, &proc,
                        &lst);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
@@ -1655,7 +1655,7 @@ scm_vm_do_op_call(ScmObj vm, SCM_OPCODE_T op, int argc, bool tail_p)
   ScmObj efb = SCM_OBJ_INIT, contcap = SCM_OBJ_INIT;
   int rslt, nr_bind;
 
-  SCM_STACK_FRAME_PUSH(&vm,
+  SCM_REFSTK_INIT_REG(&vm,
                        &efb, &contcap);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
@@ -1810,7 +1810,7 @@ scm_vm_do_op_mvpush(ScmObj vm, SCM_OPCODE_T op)
   scm_byte_t *sp;
   int n, rslt;
 
-  SCM_STACK_FRAME_PUSH(&vm,
+  SCM_REFSTK_INIT_REG(&vm,
                        &val);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
@@ -1859,7 +1859,7 @@ scm_vm_do_op_frame(ScmObj vm, SCM_OPCODE_T op)
 {
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&vm);
+  SCM_REFSTK_INIT_REG(&vm);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
@@ -1915,7 +1915,7 @@ scm_vm_op_call(ScmObj vm, SCM_OPCODE_T op)
   int argc;
   scm_byte_t *ip;
 
-  SCM_STACK_FRAME_PUSH(&vm);
+  SCM_REFSTK_INIT_REG(&vm);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
@@ -1959,7 +1959,7 @@ scm_vm_op_immval(ScmObj vm, SCM_OPCODE_T op)
   ScmObj val = SCM_OBJ_INIT;
   scm_byte_t *ip;
 
-  SCM_STACK_FRAME_PUSH(&vm, &val);
+  SCM_REFSTK_INIT_REG(&vm, &val);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
@@ -2027,7 +2027,7 @@ scm_vm_op_ecommit(ScmObj vm, SCM_OPCODE_T op)
   int argc;
   scm_byte_t *ip;
 
-  SCM_STACK_FRAME_PUSH(&vm);
+  SCM_REFSTK_INIT_REG(&vm);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
@@ -2064,7 +2064,7 @@ scm_vm_op_erebind(ScmObj vm, SCM_OPCODE_T op)
   int argc, rslt;
   scm_byte_t *ip;
 
-  SCM_STACK_FRAME_PUSH(&vm);
+  SCM_REFSTK_INIT_REG(&vm);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
@@ -2133,7 +2133,7 @@ scm_vm_op_gref(ScmObj vm, SCM_OPCODE_T op)
   int r;
   scm_byte_t *ip, *prv_ip;
 
-  SCM_STACK_FRAME_PUSH(&vm, &gloc, &arg, &mod, &val, &module, &sym);
+  SCM_REFSTK_INIT_REG(&vm, &gloc, &arg, &mod, &val, &module, &sym);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
@@ -2198,7 +2198,7 @@ scm_vm_op_gdef(ScmObj vm, SCM_OPCODE_T op)
   scm_byte_t *ip, *prv_ip;
   int r;
 
-  SCM_STACK_FRAME_PUSH(&vm, &gloc, &arg, &mod, &module);
+  SCM_REFSTK_INIT_REG(&vm, &gloc, &arg, &mod, &module);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
@@ -2246,7 +2246,7 @@ scm_vm_op_gset(ScmObj vm, SCM_OPCODE_T op)
   scm_byte_t *ip, *prv_ip;
   int r;
 
-  SCM_STACK_FRAME_PUSH(&vm, &gloc, &arg, &mod, &module, &val);
+  SCM_REFSTK_INIT_REG(&vm, &gloc, &arg, &mod, &module, &val);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
@@ -2305,7 +2305,7 @@ scm_vm_op_sref(ScmObj vm, SCM_OPCODE_T op)
   int idx, layer;
   scm_byte_t *ip;
 
-  SCM_STACK_FRAME_PUSH(&vm,
+  SCM_REFSTK_INIT_REG(&vm,
                        &val);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
@@ -2347,7 +2347,7 @@ scm_vm_op_sset(ScmObj vm, SCM_OPCODE_T op)
   int idx, layer;
   scm_byte_t *ip;
 
-  SCM_STACK_FRAME_PUSH(&vm,
+  SCM_REFSTK_INIT_REG(&vm,
                        &val, &o);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
@@ -2388,7 +2388,7 @@ scm_vm_op_jmp(ScmObj vm, SCM_OPCODE_T op)
   int dst;
   scm_byte_t *ip;
 
-  SCM_STACK_FRAME_PUSH(&vm);
+  SCM_REFSTK_INIT_REG(&vm);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
@@ -2406,7 +2406,7 @@ scm_vm_op_jmpt(ScmObj vm, SCM_OPCODE_T op)
   int dst;
   scm_byte_t *ip;
 
-  SCM_STACK_FRAME_PUSH(&vm);
+  SCM_REFSTK_INIT_REG(&vm);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
@@ -2427,7 +2427,7 @@ scm_vm_op_jmpf(ScmObj vm, SCM_OPCODE_T op)
   int dst;
   scm_byte_t *ip;
 
-  SCM_STACK_FRAME_PUSH(&vm);
+  SCM_REFSTK_INIT_REG(&vm);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
@@ -2450,7 +2450,7 @@ scm_vm_op_box(ScmObj vm, SCM_OPCODE_T op)
   int idx, layer;
   scm_byte_t *ip;
 
-  SCM_STACK_FRAME_PUSH(&vm,
+  SCM_REFSTK_INIT_REG(&vm,
                        &box);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
@@ -2496,7 +2496,7 @@ scm_vm_op_close(ScmObj vm, SCM_OPCODE_T op)
   int nr_env, arity, rslt;
   scm_byte_t *ip;
 
-  SCM_STACK_FRAME_PUSH(&vm,
+  SCM_REFSTK_INIT_REG(&vm,
                        &clsr, &iseq, &env);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
@@ -2533,7 +2533,7 @@ scm_vm_op_demine(ScmObj vm, SCM_OPCODE_T op)
   int idx, layer;
   scm_byte_t *ip;
 
-  SCM_STACK_FRAME_PUSH(&vm,
+  SCM_REFSTK_INIT_REG(&vm,
                        &val);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
@@ -2569,7 +2569,7 @@ scm_vm_op_emine(ScmObj vm, SCM_OPCODE_T op)
   int len, rslt;
   scm_byte_t *ip;
 
-  SCM_STACK_FRAME_PUSH(&vm,
+  SCM_REFSTK_INIT_REG(&vm,
                        &box);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
@@ -2609,7 +2609,7 @@ scm_vm_op_edemine(ScmObj vm, SCM_OPCODE_T op)
   int argc, layer, rslt;
   scm_byte_t *ip;
 
-  SCM_STACK_FRAME_PUSH(&vm,
+  SCM_REFSTK_INIT_REG(&vm,
                        &val);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
@@ -2663,7 +2663,7 @@ scm_vm_op_mrvc(ScmObj vm, SCM_OPCODE_T op)
   int arity, rslt;
   scm_byte_t *ip;
 
-  SCM_STACK_FRAME_PUSH(&vm);
+  SCM_REFSTK_INIT_REG(&vm);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
@@ -2723,7 +2723,7 @@ scm_vm_initialize(ScmObj vm, ScmObj main_vm)
 {
   ScmObj vmss = SCM_OBJ_INIT, vmsr = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vm, &main_vm,
+  SCM_REFSTK_INIT_REG(&vm, &main_vm,
                        &vmss, &vmsr);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
@@ -2804,7 +2804,7 @@ scm_vm_clone(ScmObj parent)
   ScmObj vm = SCM_OBJ_INIT;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&parent,
+  SCM_REFSTK_INIT_REG(&parent,
                        &vm);
 
   scm_assert_obj_type(parent, &SCM_VM_TYPE_INFO);
@@ -2864,7 +2864,7 @@ scm_vm_run(ScmObj vm, ScmObj iseq)
 {
   int op, r;
 
-  SCM_STACK_FRAME_PUSH(&vm, &iseq);
+  SCM_REFSTK_INIT_REG(&vm, &iseq);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
   scm_assert(scm_capi_iseq_p(iseq));
@@ -3003,7 +3003,7 @@ scm_vm_val_reg_to_vector(ScmObj vm)
   ScmObj val = SCM_OBJ_INIT, elm = SCM_OBJ_INIT;
   int r, n, rest;
 
-  SCM_STACK_FRAME_PUSH(&vm,
+  SCM_REFSTK_INIT_REG(&vm,
                        &val, &elm);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
@@ -3040,7 +3040,7 @@ scm_vm_apply(ScmObj vm, ScmObj proc, ScmObj args)
   ssize_t s;
   int r;
 
-  SCM_STACK_FRAME_PUSH(&vm, &proc, &args,
+  SCM_REFSTK_INIT_REG(&vm, &proc, &args,
                        &iseq);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
@@ -3069,7 +3069,7 @@ scm_vm_run_cloned(ScmObj vm, ScmObj iseq)
 {
   ScmObj cloned = SCM_OBJ_INIT, raised = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vm, &iseq,
+  SCM_REFSTK_INIT_REG(&vm, &iseq,
                        &cloned, &raised, &val);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
@@ -3101,7 +3101,7 @@ scm_vm_set_val_reg(ScmObj vm, const ScmObj *val, int vc)
   ScmObj vec = SCM_OBJ_INIT;
   int n, rest, rslt;
 
-  SCM_STACK_FRAME_PUSH(&vm,
+  SCM_REFSTK_INIT_REG(&vm,
                        &vec);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
@@ -3146,7 +3146,7 @@ scm_vm_capture_cont(ScmObj vm)
 {
   ScmObj cc = SCM_OBJ_INIT, stack = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vm,
+  SCM_REFSTK_INIT_REG(&vm,
                        &cc, &stack);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
@@ -3168,7 +3168,7 @@ scm_vm_reinstatement_cont(ScmObj vm, ScmObj cc, const ScmObj *val, int vc)
   const ScmObj *v;
   int n, rslt;
 
-  SCM_STACK_FRAME_PUSH(&vm, &cc);
+  SCM_REFSTK_INIT_REG(&vm, &cc);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
   scm_assert_obj_type(cc, &SCM_CONTCAP_TYPE_INFO);
@@ -3208,7 +3208,7 @@ scm_vm_parameter_value(ScmObj vm, ScmObj var)
   ssize_t n;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&vm, &var,
+  SCM_REFSTK_INIT_REG(&vm, &var,
                        &rib, &val,
                        &x, &p);
 
@@ -3258,7 +3258,7 @@ scm_vm_setup_stat_trmp(ScmObj vm, ScmObj proc, ScmObj args,
   scm_byte_t *ip;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&vm, &proc, &args, &postproc, &handover,
+  SCM_REFSTK_INIT_REG(&vm, &proc, &args, &postproc, &handover,
                        &trmp_code, &trmp_clsr, &env);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
@@ -3327,7 +3327,7 @@ scm_vm_setup_stat_call_exc_hndlr(ScmObj vm)
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
-  SCM_STACK_FRAME_PUSH(&vm,
+  SCM_REFSTK_INIT_REG(&vm,
                        &args);
 
   if (!scm_vm_raised_p(vm))
@@ -3352,7 +3352,7 @@ scm_vm_setup_stat_call_exc_hndlr_cont(ScmObj vm)
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
-  SCM_STACK_FRAME_PUSH(&vm,
+  SCM_REFSTK_INIT_REG(&vm,
                        &args);
 
   if (!scm_vm_raised_p(vm))
@@ -3377,7 +3377,7 @@ scm_vm_push_exc_handler(ScmObj vm, ScmObj hndlr)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vm, &hndlr, &lst);
+  SCM_REFSTK_INIT_REG(&vm, &hndlr, &lst);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
   scm_assert(scm_capi_procedure_p(hndlr));
@@ -3395,7 +3395,7 @@ scm_vm_pop_exc_handler(ScmObj vm)
 {
   ScmObj rest = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&vm,
+  SCM_REFSTK_INIT_REG(&vm,
                        &rest);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
@@ -3439,7 +3439,7 @@ scm_vm_subr_exc_hndlr_caller(ScmObj subr, int argc, const ScmObj *argv)
   ScmObj val = SCM_OBJ_INIT;
   int rslt, ret;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &vm, &hndlr, &hndlr_arg,
                        &val);
 
@@ -3480,7 +3480,7 @@ scm_vm_subr_exc_hndlr_caller_cont(ScmObj subr, int argc, const ScmObj *argv)
   ScmObj val = SCM_OBJ_INIT;
   int rslt, ret;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &vm, &hndlr, &hndlr_arg,
                        &val);
 
@@ -3522,7 +3522,7 @@ scm_vm_subr_exc_hndlr_caller_post(ScmObj subr, int argc, const ScmObj *argv)
   ScmObj vm = SCM_OBJ_INIT, hndlr = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&subr,
+  SCM_REFSTK_INIT_REG(&subr,
                        &vm, &hndlr, &val)
 
   vm = scm_vm_current_vm();
@@ -3547,7 +3547,7 @@ scm_vm_disposal_unhandled_exc(ScmObj vm)
   char msg[256], *p;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&vm,
+  SCM_REFSTK_INIT_REG(&vm,
                        &raised, &port, &str,
                        &ro);
 

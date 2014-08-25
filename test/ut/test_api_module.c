@@ -72,7 +72,7 @@ import_module(const char *n, bool res)
 {
   ScmObj mod = SCM_OBJ_INIT, nam = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&mod, &nam);
+  SCM_REFSTK_INIT_REG(&mod, &nam);
 
   nam = name;
   mod = module;
@@ -138,7 +138,7 @@ TEST(api_module, find_module)
 {
   ScmObj mod = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&mod);
+  SCM_REFSTK_INIT_REG(&mod);
 
   make_module("test");
 
@@ -160,7 +160,7 @@ TEST(api_module, make_gloc)
 {
   ScmObj sym = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&sym, &val);
+  SCM_REFSTK_INIT_REG(&sym, &val);
 
   make_module("test");
   get_gloc("var");
@@ -176,7 +176,7 @@ TEST(api_module, make_gloc__already_exist)
 {
   ScmObj prev = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&prev);
+  SCM_REFSTK_INIT_REG(&prev);
 
   make_module("test");
   get_gloc("var");
@@ -190,7 +190,7 @@ TEST(api_module, find_gloc)
 {
   ScmObj sym = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&sym);
+  SCM_REFSTK_INIT_REG(&sym);
 
   make_module("test");
   get_gloc("var");
@@ -205,7 +205,7 @@ TEST(api_module, find_gloc__not_exist)
 {
   ScmObj sym = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&sym);
+  SCM_REFSTK_INIT_REG(&sym);
 
   make_module("test");
   find_gloc("var");
@@ -217,7 +217,7 @@ TEST(api_module, gloc_bind)
 {
   ScmObj expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&expected, &actual);
+  SCM_REFSTK_INIT_REG(&expected, &actual);
 
   make_module("test");
   get_gloc("var");
@@ -233,7 +233,7 @@ TEST(api_module, define_global_var)
 {
   ScmObj sym = SCM_OBJ_INIT, val = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&sym, &val, &actual);
+  SCM_REFSTK_INIT_REG(&sym, &val, &actual);
 
   sym = scm_capi_make_symbol_from_cstr("var", SCM_ENC_ASCII);
   val = scm_api_eof();
@@ -251,7 +251,7 @@ TEST(api_module, define_global_var__already_bound)
   ScmObj sym = SCM_OBJ_INIT, val1 = SCM_OBJ_INIT, val2 = SCM_OBJ_INIT;
   ScmObj actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&sym, &val1, &val2, &actual);
+  SCM_REFSTK_INIT_REG(&sym, &val1, &val2, &actual);
 
   sym = scm_capi_make_symbol_from_cstr("var", SCM_ENC_ASCII);
   val1 = scm_api_eof();
@@ -273,7 +273,7 @@ TEST(api_module, global_var_ref__unbound)
 {
   ScmObj sym = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&sym, &actual);
+  SCM_REFSTK_INIT_REG(&sym, &actual);
 
   sym = scm_capi_make_symbol_from_cstr("var", SCM_ENC_ASCII);
 
@@ -288,7 +288,7 @@ TEST(api_module, global_var_ref__refer_exported_symbol_of_imported_module)
 {
   ScmObj sym = SCM_OBJ_INIT, val = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&sym, &val, &actual);
+  SCM_REFSTK_INIT_REG(&sym, &val, &actual);
 
   sym = scm_capi_make_symbol_from_cstr("var", SCM_ENC_ASCII);
   val = scm_api_eof();
@@ -311,7 +311,7 @@ TEST(api_module, global_var_ref__refer_unexported_symbol_of_imported_module)
 {
   ScmObj sym = SCM_OBJ_INIT, val = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&sym, &val, &actual);
+  SCM_REFSTK_INIT_REG(&sym, &val, &actual);
 
   sym = scm_capi_make_symbol_from_cstr("var", SCM_ENC_ASCII);
   val = scm_api_eof();
@@ -334,7 +334,7 @@ TEST(api_module, global_var_ref__refer_exported_symbol_of_imported_module__restr
 {
   ScmObj sym = SCM_OBJ_INIT, val = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&sym, &val, &actual);
+  SCM_REFSTK_INIT_REG(&sym, &val, &actual);
 
   sym = scm_capi_make_symbol_from_cstr("var", SCM_ENC_ASCII);
   val = scm_api_eof();
@@ -357,7 +357,7 @@ TEST(api_module, global_var_ref__refer_exported_symbol_of_imported_module__restr
 {
   ScmObj sym = SCM_OBJ_INIT, val = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&sym, &val, &actual);
+  SCM_REFSTK_INIT_REG(&sym, &val, &actual);
 
   sym = scm_capi_make_symbol_from_cstr("var", SCM_ENC_ASCII);
   val = scm_api_eof();
@@ -382,7 +382,7 @@ TEST(api_module, define_global_syx)
 {
   ScmObj sym = SCM_OBJ_INIT, syx = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&sym, &syx, &actual);
+  SCM_REFSTK_INIT_REG(&sym, &syx, &actual);
 
   sym = scm_capi_make_symbol_from_cstr("var", SCM_ENC_ASCII);
 
@@ -402,7 +402,7 @@ TEST(api_module, define_global_syx__already_bound)
   ScmObj sym = SCM_OBJ_INIT, syx1 = SCM_OBJ_INIT, syx2 = SCM_OBJ_INIT;
   ScmObj actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&sym, &syx1, &syx2, &actual);
+  SCM_REFSTK_INIT_REG(&sym, &syx1, &syx2, &actual);
 
   sym = scm_capi_make_symbol_from_cstr("var", SCM_ENC_ASCII);
 
@@ -426,7 +426,7 @@ TEST(api_module, global_syx_ref__unbound)
 {
   ScmObj sym = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&sym, &actual);
+  SCM_REFSTK_INIT_REG(&sym, &actual);
 
   sym = scm_capi_make_symbol_from_cstr("var", SCM_ENC_ASCII);
 
@@ -441,7 +441,7 @@ TEST(api_module, global_syx_ref__refer_exported_symbol_of_imported_module)
 {
   ScmObj sym = SCM_OBJ_INIT, syx = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&sym, &syx, &actual);
+  SCM_REFSTK_INIT_REG(&sym, &syx, &actual);
 
   sym = scm_capi_make_symbol_from_cstr("var", SCM_ENC_ASCII);
 
@@ -466,7 +466,7 @@ TEST(api_module, global_syx_ref__refer_unexported_symbol_of_imported_module)
 {
   ScmObj sym = SCM_OBJ_INIT, syx = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&sym, &syx, &actual);
+  SCM_REFSTK_INIT_REG(&sym, &syx, &actual);
 
   sym = scm_capi_make_symbol_from_cstr("var", SCM_ENC_ASCII);
 
@@ -491,7 +491,7 @@ TEST(api_module, global_syx_ref__refer_exported_symbol_of_imported_module__restr
 {
   ScmObj sym = SCM_OBJ_INIT, syx = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&sym, &syx, &actual);
+  SCM_REFSTK_INIT_REG(&sym, &syx, &actual);
 
   sym = scm_capi_make_symbol_from_cstr("var", SCM_ENC_ASCII);
 
@@ -516,7 +516,7 @@ TEST(api_module, global_syx_ref__refer_exported_symbol_of_imported_module__restr
 {
   ScmObj sym = SCM_OBJ_INIT, syx = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&sym, &syx, &actual);
+  SCM_REFSTK_INIT_REG(&sym, &syx, &actual);
 
   sym = scm_capi_make_symbol_from_cstr("var", SCM_ENC_ASCII);
 

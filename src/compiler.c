@@ -36,7 +36,7 @@ scm_cmpl_new(SCM_MEM_TYPE_T mtype, ScmObj module)
 {
   ScmObj cmpl = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&module,
+  SCM_REFSTK_INIT_REG(&module,
                        &cmpl);
 
   scm_assert(scm_capi_module_p(module));

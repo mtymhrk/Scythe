@@ -22,7 +22,7 @@ TEST(api_pair_and_lists, capi_pair_p__return_true)
 {
   ScmObj pair = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&pair);
+  SCM_REFSTK_INIT_REG(&pair);
 
   pair = scm_api_cons(SCM_FALSE_OBJ, SCM_TRUE_OBJ);
 
@@ -43,7 +43,7 @@ TEST(api_pair_and_lists, api_pair_P__return_true_obj)
 {
   ScmObj pair = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&pair);
+  SCM_REFSTK_INIT_REG(&pair);
 
   pair = scm_api_cons(SCM_FALSE_OBJ, SCM_TRUE_OBJ);
 
@@ -59,7 +59,7 @@ TEST(api_pair_and_lists, api_cons__return_pair)
 {
   ScmObj pair = SCM_OBJ_INIT, car = SCM_OBJ_INIT, cdr = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&pair, &car, &cdr);
+  SCM_REFSTK_INIT_REG(&pair, &car, &cdr);
 
   pair = scm_api_cons(SCM_TRUE_OBJ, SCM_FALSE_OBJ);
 
@@ -76,7 +76,7 @@ TEST(api_pair_and_lists, api_cons__return_ERROR)
 {
   ScmObj pair = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&pair);
+  SCM_REFSTK_INIT_REG(&pair);
 
   pair = scm_api_cons(SCM_TRUE_OBJ, SCM_OBJ_NULL);
 
@@ -87,7 +87,7 @@ TEST(api_pair_and_lists, capi_car__return_car_of_pair)
 {
   ScmObj pair = SCM_OBJ_INIT, car = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&pair, &car);
+  SCM_REFSTK_INIT_REG(&pair, &car);
 
   pair = scm_api_cons(SCM_TRUE_OBJ, SCM_FALSE_OBJ);
   car = scm_api_car(pair);
@@ -104,7 +104,7 @@ TEST(api_pair_and_lists, capi_cdr__return_cdr_of_pair)
 {
   ScmObj pair = SCM_OBJ_INIT, cdr = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&pair, &cdr);
+  SCM_REFSTK_INIT_REG(&pair, &cdr);
 
   pair = scm_api_cons(SCM_TRUE_OBJ, SCM_FALSE_OBJ);
   cdr = scm_api_cdr(pair);
@@ -121,7 +121,7 @@ TEST(api_pair_and_lists, capi_set_car_i)
 {
   ScmObj pair = SCM_OBJ_INIT, car = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&pair, &car);
+  SCM_REFSTK_INIT_REG(&pair, &car);
 
   pair = scm_api_cons(SCM_TRUE_OBJ, SCM_FALSE_OBJ);
 
@@ -141,7 +141,7 @@ TEST(api_pair_and_lists, capi_set_car_i__return_ERROR_2)
 {
   ScmObj pair = SCM_OBJ_INIT, car = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&pair, &car);
+  SCM_REFSTK_INIT_REG(&pair, &car);
 
   pair = scm_api_cons(SCM_TRUE_OBJ, SCM_FALSE_OBJ);
 
@@ -152,7 +152,7 @@ TEST(api_pair_and_lists, api_set_car_i)
 {
   ScmObj pair = SCM_OBJ_INIT, car = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&pair, &car);
+  SCM_REFSTK_INIT_REG(&pair, &car);
 
   pair = scm_api_cons(SCM_TRUE_OBJ, SCM_FALSE_OBJ);
 
@@ -172,7 +172,7 @@ TEST(api_pair_and_lists, api_set_car_i__return_ERROR_2)
 {
   ScmObj pair = SCM_OBJ_INIT, car = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&pair, &car);
+  SCM_REFSTK_INIT_REG(&pair, &car);
 
   pair = scm_api_cons(SCM_TRUE_OBJ, SCM_FALSE_OBJ);
 
@@ -183,7 +183,7 @@ TEST(api_pair_and_lists, capi_set_cdr_i)
 {
   ScmObj pair = SCM_OBJ_INIT, cdr = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&pair, &cdr);
+  SCM_REFSTK_INIT_REG(&pair, &cdr);
 
   pair = scm_api_cons(SCM_TRUE_OBJ, SCM_FALSE_OBJ);
 
@@ -203,7 +203,7 @@ TEST(api_pair_and_lists, capi_set_cdr_i__return_ERROR_2)
 {
   ScmObj pair = SCM_OBJ_INIT, cdr = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&pair, &cdr);
+  SCM_REFSTK_INIT_REG(&pair, &cdr);
 
   pair = scm_api_cons(SCM_TRUE_OBJ, SCM_FALSE_OBJ);
 
@@ -214,7 +214,7 @@ TEST(api_pair_and_lists, api_set_cdr_i)
 {
   ScmObj pair = SCM_OBJ_INIT, cdr = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&pair, &cdr);
+  SCM_REFSTK_INIT_REG(&pair, &cdr);
 
   pair = scm_api_cons(SCM_TRUE_OBJ, SCM_FALSE_OBJ);
 
@@ -234,7 +234,7 @@ TEST(api_pair_and_lists, api_set_cdr_i__return_ERROR_2)
 {
   ScmObj pair = SCM_OBJ_INIT, cdr = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&pair, &cdr);
+  SCM_REFSTK_INIT_REG(&pair, &cdr);
 
   pair = scm_api_cons(SCM_TRUE_OBJ, SCM_FALSE_OBJ);
 
@@ -245,7 +245,7 @@ TEST(api_pair_and_lists, capi_cxr__a)
 {
   ScmObj pair = SCM_OBJ_INIT, car = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&pair, &car);
+  SCM_REFSTK_INIT_REG(&pair, &car);
 
   pair = scm_api_cons(SCM_TRUE_OBJ, SCM_FALSE_OBJ);
   car = scm_capi_cxr(pair, "a");
@@ -257,7 +257,7 @@ TEST(api_pair_and_lists, capi_cxr__d)
 {
   ScmObj pair = SCM_OBJ_INIT, cdr = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&pair, &cdr);
+  SCM_REFSTK_INIT_REG(&pair, &cdr);
 
   pair = scm_api_cons(SCM_TRUE_OBJ, SCM_FALSE_OBJ);
   cdr = scm_capi_cxr(pair, "d");
@@ -269,7 +269,7 @@ TEST(api_pair_and_lists, capi_cxr__ad)
 {
   ScmObj pair = SCM_OBJ_INIT, act = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&pair, &act);
+  SCM_REFSTK_INIT_REG(&pair, &act);
 
   pair = scm_api_cons(SCM_TRUE_OBJ, SCM_FALSE_OBJ);
   pair = scm_api_cons(SCM_EOF_OBJ, pair);
@@ -282,7 +282,7 @@ TEST(api_pair_and_lists, capi_cxr__passing_unknown_direcitve_return_ERROR)
 {
   ScmObj pair = SCM_OBJ_INIT, act = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&pair, &act);
+  SCM_REFSTK_INIT_REG(&pair, &act);
 
   pair = scm_api_cons(SCM_TRUE_OBJ, SCM_FALSE_OBJ);
 
@@ -303,7 +303,7 @@ TEST(api_pair_and_lists, api_list_P__proper_list)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst);
+  SCM_REFSTK_INIT_REG(&lst);
 
   lst = scm_api_cons(SCM_TRUE_OBJ, SCM_NIL_OBJ);
   lst = scm_api_cons(SCM_FALSE_OBJ, lst);
@@ -315,7 +315,7 @@ TEST(api_pair_and_lists, api_list_P__improper_list)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst);
+  SCM_REFSTK_INIT_REG(&lst);
 
   lst = scm_api_cons(SCM_TRUE_OBJ, SCM_EOF_OBJ);
   lst = scm_api_cons(SCM_FALSE_OBJ, lst);
@@ -332,7 +332,7 @@ TEST(api_pair_and_lists, api_list_P__circularly_linked_list)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst);
+  SCM_REFSTK_INIT_REG(&lst);
 
   lst = scm_api_cons(SCM_TRUE_OBJ, SCM_NIL_OBJ);
   scm_capi_set_cdr_i(lst, lst);
@@ -344,7 +344,7 @@ TEST(api_pair_and_lists, capi_make_list__specifying_fill)
 {
   ScmObj lst = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst, &expected);
+  SCM_REFSTK_INIT_REG(&lst, &expected);
 
   expected = read_cstr("(#t #t #t)");
 
@@ -357,7 +357,7 @@ TEST(api_pair_and_lists, capi_make_list__unspecifying_fill)
 {
   ScmObj lst = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst, &expected);
+  SCM_REFSTK_INIT_REG(&lst, &expected);
 
   expected = SCM_NIL_OBJ;
   for (int i = 0; i < 3; i++)
@@ -372,7 +372,7 @@ TEST(api_pair_and_lists, api_make_list__specifying_fill)
 {
   ScmObj lst = SCM_OBJ_INIT, n = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst, &n, &expected);
+  SCM_REFSTK_INIT_REG(&lst, &n, &expected);
 
   expected = read_cstr("(#t #t #t)");
 
@@ -387,7 +387,7 @@ TEST(api_pair_and_lists, api_make_list__unspecifying_fill)
 {
   ScmObj lst = SCM_OBJ_INIT, n = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst, &n, &expected);
+  SCM_REFSTK_INIT_REG(&lst, &n, &expected);
 
   expected = SCM_NIL_OBJ;
   for (int i = 0; i < 3; i++)
@@ -405,10 +405,10 @@ TEST(api_pair_and_lists, capi_list_cv)
   ScmObj objs[2] = { SCM_TRUE_OBJ, SCM_FALSE_OBJ };
   ScmObj lst = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst, &expected);
+  SCM_REFSTK_INIT_REG(&lst, &expected);
 
   for (size_t i = 0; i < sizeof(objs)/sizeof(objs[0]); i++)
-    SCM_STACK_PUSH(&objs[i]);
+    SCM_REFSTK_REG(&objs[i]);
 
   expected = read_cstr("(#t #f)");
 
@@ -421,7 +421,7 @@ TEST(api_pair_and_lists, capi_list_cv__return_empty_list)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst);
+  SCM_REFSTK_INIT_REG(&lst);
 
   lst = scm_capi_list_cv(NULL, 0);
 
@@ -432,10 +432,10 @@ TEST(api_pair_and_lists, capi_list_cv__return_ERROR)
 {
   ScmObj objs[2] = { SCM_TRUE_OBJ, SCM_OBJ_NULL };
 
-  SCM_STACK_FRAME;
+  SCM_REFSTK_INIT;
 
   for (size_t i = 0; i < sizeof(objs)/sizeof(objs[0]); i++)
-    SCM_STACK_PUSH(&objs[i]);
+    SCM_REFSTK_REG(&objs[i]);
 
   TEST_ASSERT_SCM_NULL(scm_capi_list_cv(objs, 2));
 }
@@ -444,7 +444,7 @@ TEST(api_pair_and_lists, capi_list)
 {
   ScmObj lst = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst, &expected);
+  SCM_REFSTK_INIT_REG(&lst, &expected);
 
   expected = read_cstr("(#t #f)");
 
@@ -457,7 +457,7 @@ TEST(api_pair_and_lists, capi_list__return_empty_list)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst);
+  SCM_REFSTK_INIT_REG(&lst);
 
   lst = scm_capi_list(0);
 
@@ -473,7 +473,7 @@ TEST(api_pair_and_lists, capi_length)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst);
+  SCM_REFSTK_INIT_REG(&lst);
 
   lst = read_cstr("(a (b c) d)");
 
@@ -494,7 +494,7 @@ TEST(api_pair_and_lists, capi_length__improper_list__return_ERROR)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst);
+  SCM_REFSTK_INIT_REG(&lst);
 
   lst = read_cstr("(a b . c)");
 
@@ -505,7 +505,7 @@ TEST(api_pair_and_lists, api_length)
 {
   ScmObj lst = SCM_OBJ_INIT, len = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst, &len, &expected);
+  SCM_REFSTK_INIT_REG(&lst, &len, &expected);
 
   expected = scm_capi_make_number_from_sword(3);
 
@@ -520,7 +520,7 @@ TEST(api_pair_and_lists, api_length__empty_list)
 {
   ScmObj len = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&len, &expected);
+  SCM_REFSTK_INIT_REG(&len, &expected);
 
   expected = scm_capi_make_number_from_sword(0);
 
@@ -538,7 +538,7 @@ TEST(api_pair_and_lists, api_length__improper_list__return_ERROR)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst);
+  SCM_REFSTK_INIT_REG(&lst);
 
   lst = read_cstr("(a b . c)");
 
@@ -550,7 +550,7 @@ TEST(api_pair_and_lists, capi_append_lst)
   ScmObj lists = SCM_OBJ_INIT;
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lists, &actual, &expected);
+  SCM_REFSTK_INIT_REG(&lists, &actual, &expected);
 
   lists = read_cstr("((a b) (c d) (e f))");
   expected = read_cstr("(a b c d e f)");
@@ -565,7 +565,7 @@ TEST(api_pair_and_lists, capi_append_lst__list_has_item_is_empty_list)
   ScmObj lists = SCM_OBJ_INIT;
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lists, &actual, &expected);
+  SCM_REFSTK_INIT_REG(&lists, &actual, &expected);
 
   lists = read_cstr("((a b) () (c d))");
   expected = read_cstr("(a b c d)");
@@ -579,7 +579,7 @@ TEST(api_pair_and_lists, capi_append_lst__empty_list)
 {
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&actual, &expected);
+  SCM_REFSTK_INIT_REG(&actual, &expected);
 
   expected = SCM_NIL_OBJ;
 
@@ -592,7 +592,7 @@ TEST(api_pair_and_lists, capi_append_lst__list_has_item_is_not_list__return_ERRO
 {
   ScmObj lists = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lists);
+  SCM_REFSTK_INIT_REG(&lists);
 
   lists = read_cstr("((a b) foo (c d))");
 
@@ -604,10 +604,10 @@ TEST(api_pair_and_lists, capi_append_cv)
   ScmObj lists[2] = { SCM_OBJ_INIT, SCM_OBJ_INIT };
   ScmObj lst = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst, &expected);
+  SCM_REFSTK_INIT_REG(&lst, &expected);
 
   for (size_t i = 0; i < sizeof(lists)/sizeof(lists[0]); i++)
-    SCM_STACK_PUSH(&lists[i]);
+    SCM_REFSTK_REG(&lists[i]);
 
   expected = read_cstr("(a b c d)");
 
@@ -624,10 +624,10 @@ TEST(api_pair_and_lists, capi_append_cv__passing_empty_list)
   ScmObj lists[2] = { SCM_OBJ_INIT, SCM_OBJ_INIT };
   ScmObj lst = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst, &expected);
+  SCM_REFSTK_INIT_REG(&lst, &expected);
 
   for (size_t i = 0; i < sizeof(lists)/sizeof(lists[0]); i++)
-    SCM_STACK_PUSH(&lists[i]);
+    SCM_REFSTK_REG(&lists[i]);
 
   expected = read_cstr("a");
 
@@ -649,10 +649,10 @@ TEST(api_pair_and_lists, capi_append_cv__passing_not_list__return_ERROR)
   ScmObj lists[2] = { SCM_OBJ_INIT, SCM_OBJ_INIT };
   ScmObj lst = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst, &expected);
+  SCM_REFSTK_INIT_REG(&lst, &expected);
 
   for (size_t i = 0; i < sizeof(lists)/sizeof(lists[0]); i++)
-    SCM_STACK_PUSH(&lists[i]);
+    SCM_REFSTK_REG(&lists[i]);
 
   lists[0] = read_cstr("foo");
   lists[1] = read_cstr("a");
@@ -665,10 +665,10 @@ TEST(api_pair_and_lists, capi_append_cv__return_ERROR)
   ScmObj lists[2] = { SCM_OBJ_INIT, SCM_OBJ_INIT };
   ScmObj lst = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst);
+  SCM_REFSTK_INIT_REG(&lst);
 
   for (size_t i = 0; i < sizeof(lists)/sizeof(lists[0]); i++)
-    SCM_STACK_PUSH(&lists[i]);
+    SCM_REFSTK_REG(&lists[i]);
 
   lists[0] = read_cstr("a");
   lists[1] = read_cstr("(b c)");
@@ -681,10 +681,10 @@ TEST(api_pair_and_lists, capi_append)
   ScmObj lists[2] = { SCM_OBJ_INIT, SCM_OBJ_INIT };
   ScmObj lst = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst, &expected);
+  SCM_REFSTK_INIT_REG(&lst, &expected);
 
   for (size_t i = 0; i < sizeof(lists)/sizeof(lists[0]); i++)
-    SCM_STACK_PUSH(&lists[i]);
+    SCM_REFSTK_REG(&lists[i]);
 
   expected = read_cstr("(a b c d)");
 
@@ -701,10 +701,10 @@ TEST(api_pair_and_lists, capi_append__passing_empty_list)
   ScmObj lists[2] = { SCM_OBJ_INIT, SCM_OBJ_INIT };
   ScmObj lst = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst, &expected);
+  SCM_REFSTK_INIT_REG(&lst, &expected);
 
   for (size_t i = 0; i < sizeof(lists)/sizeof(lists[0]); i++)
-    SCM_STACK_PUSH(&lists[i]);
+    SCM_REFSTK_REG(&lists[i]);
 
   expected = read_cstr("a");
 
@@ -726,10 +726,10 @@ TEST(api_pair_and_lists, capi_append__return_ERROR)
   ScmObj lists[2] = { SCM_OBJ_INIT, SCM_OBJ_INIT };
   ScmObj lst = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst);
+  SCM_REFSTK_INIT_REG(&lst);
 
   for (size_t i = 0; i < sizeof(lists)/sizeof(lists[0]); i++)
-    SCM_STACK_PUSH(&lists[i]);
+    SCM_REFSTK_REG(&lists[i]);
 
   lists[0] = read_cstr("a");
   lists[1] = read_cstr("(b c)");
@@ -741,7 +741,7 @@ TEST(api_pair_and_lists, capi_reverse)
 {
   ScmObj lst = SCM_OBJ_INIT, actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst, &actual, &expected);
+  SCM_REFSTK_INIT_REG(&lst, &actual, &expected);
 
   expected = read_cstr("(c b a)");
   lst = read_cstr("(a b c)");
@@ -755,7 +755,7 @@ TEST(api_pair_and_lists, capi_reverse__improper_list)
 {
   ScmObj lst = SCM_OBJ_INIT, actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst, &actual, &expected);
+  SCM_REFSTK_INIT_REG(&lst, &actual, &expected);
 
   expected = read_cstr("(b a)");
   lst = read_cstr("(a b . c)");
@@ -774,7 +774,7 @@ TEST(api_pair_and_lists, capi_list_tail)
 {
   ScmObj lst = SCM_OBJ_INIT, actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst, &actual, &expected);
+  SCM_REFSTK_INIT_REG(&lst, &actual, &expected);
 
   lst = read_cstr("(a b c)");
   expected = scm_api_cdr(lst);
@@ -788,7 +788,7 @@ TEST(api_pair_and_lists, capi_list_tail__return_ERROR)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst);
+  SCM_REFSTK_INIT_REG(&lst);
 
   lst = read_cstr("(a b c)");
 
@@ -805,7 +805,7 @@ TEST(api_pair_and_lists, api_list_tail)
   ScmObj lst = SCM_OBJ_INIT, n = SCM_OBJ_INIT;
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst, &n,
+  SCM_REFSTK_INIT_REG(&lst, &n,
                        &actual, &expected);
 
 
@@ -822,7 +822,7 @@ TEST(api_pair_and_lists, api_list_tail__return_ERROR)
 {
   ScmObj lst = SCM_OBJ_INIT, n = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst, &n);
+  SCM_REFSTK_INIT_REG(&lst, &n);
 
   lst = read_cstr("(a b c)");
   n = read_cstr("4");
@@ -834,7 +834,7 @@ TEST(api_pair_and_lists, api_list_tail__return_ERROR_2)
 {
   ScmObj n = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&n);
+  SCM_REFSTK_INIT_REG(&n);
 
   n = read_cstr("1");
 
@@ -845,7 +845,7 @@ TEST(api_pair_and_lists, api_list_tail__return_ERROR_3)
 {
   ScmObj lst = SCM_OBJ_INIT, n = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst, &n);
+  SCM_REFSTK_INIT_REG(&lst, &n);
 
   lst = read_cstr("(a b c)");
   n = read_cstr("z");
@@ -857,7 +857,7 @@ TEST(api_pair_and_lists, capi_list_ref)
 {
   ScmObj lst = SCM_OBJ_INIT, actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst, &actual, &expected);
+  SCM_REFSTK_INIT_REG(&lst, &actual, &expected);
 
   lst = read_cstr("(a (b) c)");
   expected = scm_capi_cxr(lst, "ad");
@@ -871,7 +871,7 @@ TEST(api_pair_and_lists, capi_list_ref__return_ERROR)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst);
+  SCM_REFSTK_INIT_REG(&lst);
 
   lst = read_cstr("(a b c)");
 
@@ -888,7 +888,7 @@ TEST(api_pair_and_lists, api_list_ref)
   ScmObj lst = SCM_OBJ_INIT, n = SCM_OBJ_INIT;
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst, &n,
+  SCM_REFSTK_INIT_REG(&lst, &n,
                        &actual, &expected);
 
   lst = read_cstr("(a (b) c)");
@@ -904,7 +904,7 @@ TEST(api_pair_and_lists, api_list_ref__return_ERROR)
 {
   ScmObj lst = SCM_OBJ_INIT, n = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst, &n);
+  SCM_REFSTK_INIT_REG(&lst, &n);
 
   lst = read_cstr("(a b c)");
   n = read_cstr("3");
@@ -916,7 +916,7 @@ TEST(api_pair_and_lists, api_list_ref__return_ERROR_2)
 {
   ScmObj n = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&n);
+  SCM_REFSTK_INIT_REG(&n);
 
   n = read_cstr("0");
 
@@ -927,7 +927,7 @@ TEST(api_pair_and_lists, api_list_ref__return_ERROR_3)
 {
   ScmObj lst = SCM_OBJ_INIT, n = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst, &n);
+  SCM_REFSTK_INIT_REG(&lst, &n);
 
   lst = read_cstr("(a b c)");
   n = read_cstr("z");
@@ -939,7 +939,7 @@ TEST(api_pair_and_lists, capi_list_set_i)
 {
   ScmObj lst = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst, &expected);
+  SCM_REFSTK_INIT_REG(&lst, &expected);
 
   expected = read_cstr("(a #t c)");
   lst = read_cstr("(a b c)");
@@ -952,7 +952,7 @@ TEST(api_pair_and_lists, capi_list_set_i__return_ERROR_1)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst);
+  SCM_REFSTK_INIT_REG(&lst);
 
   lst = read_cstr("(a b c)");
 
@@ -968,7 +968,7 @@ TEST(api_pair_and_lists, api_list_set_i)
 {
   ScmObj lst = SCM_OBJ_INIT, n = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst, &n, &expected);
+  SCM_REFSTK_INIT_REG(&lst, &n, &expected);
 
   expected = read_cstr("(a #t c)");
   lst = read_cstr("(a b c)");
@@ -982,7 +982,7 @@ TEST(api_pair_and_lists, api_list_set_i__return_ERROR_1)
 {
   ScmObj lst = SCM_OBJ_INIT, n = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst, &n);
+  SCM_REFSTK_INIT_REG(&lst, &n);
 
   lst = read_cstr("(a b c)");
   n = read_cstr("3");
@@ -994,7 +994,7 @@ TEST(api_pair_and_lists, api_list_set_i__return_ERROR_2)
 {
   ScmObj n = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&n);
+  SCM_REFSTK_INIT_REG(&n);
 
   n = read_cstr("0");
 
@@ -1005,7 +1005,7 @@ TEST(api_pair_and_lists, api_list_set_i__return_ERROR_3)
 {
   ScmObj lst = SCM_OBJ_INIT, n = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst, &n);
+  SCM_REFSTK_INIT_REG(&lst, &n);
 
   lst = read_cstr("(a b c)");
   n = read_cstr("z");
@@ -1018,7 +1018,7 @@ TEST(api_pair_and_lists, capi_memq__matched)
   ScmObj lst = SCM_OBJ_INIT, o = SCM_OBJ_INIT;
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst, &o,
+  SCM_REFSTK_INIT_REG(&lst, &o,
                        &actual, &expected);
 
   lst = read_cstr("(a b c)");
@@ -1034,7 +1034,7 @@ TEST(api_pair_and_lists, capi_memq__unmatched)
 {
   ScmObj lst = SCM_OBJ_INIT, o = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst, &o);
+  SCM_REFSTK_INIT_REG(&lst, &o);
 
   lst = read_cstr("(a (b) c)");
   o = read_cstr("(b)");
@@ -1046,7 +1046,7 @@ TEST(api_pair_and_lists, capi_memq__not_list)
 {
   ScmObj lst = SCM_OBJ_INIT, o = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst, &o);
+  SCM_REFSTK_INIT_REG(&lst, &o);
 
   lst = SCM_TRUE_OBJ;
   o = read_cstr("(b)");
@@ -1059,7 +1059,7 @@ TEST(api_pair_and_lists, capi_memv__matched)
   ScmObj lst = SCM_OBJ_INIT, o = SCM_OBJ_INIT;
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst, &o,
+  SCM_REFSTK_INIT_REG(&lst, &o,
                        &actual, &expected);
 
   lst = read_cstr("(a #\\b c)");
@@ -1075,7 +1075,7 @@ TEST(api_pair_and_lists, capi_memv__unmatched)
 {
   ScmObj lst = SCM_OBJ_INIT, o = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst, &o);
+  SCM_REFSTK_INIT_REG(&lst, &o);
 
   lst = read_cstr("(a (b) c)");
   o = read_cstr("(b)");
@@ -1087,7 +1087,7 @@ TEST(api_pair_and_lists, capi_memv__not_list)
 {
   ScmObj lst = SCM_OBJ_INIT, o = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst, &o);
+  SCM_REFSTK_INIT_REG(&lst, &o);
 
   lst = SCM_TRUE_OBJ;
   o = read_cstr("#\\b");
@@ -1100,7 +1100,7 @@ TEST(api_pair_and_lists, capi_member__matched)
   ScmObj lst = SCM_OBJ_INIT, o = SCM_OBJ_INIT;
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst, &o,
+  SCM_REFSTK_INIT_REG(&lst, &o,
                        &actual, &expected);
 
   lst = read_cstr("(a (b) c)");
@@ -1116,7 +1116,7 @@ TEST(api_pair_and_lists, capi_member__unmatched)
 {
   ScmObj lst = SCM_OBJ_INIT, o = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst, &o);
+  SCM_REFSTK_INIT_REG(&lst, &o);
 
   lst = read_cstr("(a (b) c)");
   o = read_cstr("z");
@@ -1129,7 +1129,7 @@ TEST(api_pair_and_lists, capi_member__specify_compare__matched)
   ScmObj lst = SCM_OBJ_INIT, o = SCM_OBJ_INIT;
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst, &o,
+  SCM_REFSTK_INIT_REG(&lst, &o,
                        &actual, &expected);
 
   lst = read_cstr("(a b c)");
@@ -1145,7 +1145,7 @@ TEST(api_pair_and_lists, capi_member__specify_compare__unmatched)
 {
   ScmObj lst = SCM_OBJ_INIT, o = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst, &o);
+  SCM_REFSTK_INIT_REG(&lst, &o);
 
   lst = read_cstr("(a (b) c)");
   o = read_cstr("(b)");
@@ -1157,7 +1157,7 @@ TEST(api_pair_and_lists, capi_member__not_list)
 {
   ScmObj lst = SCM_OBJ_INIT, o = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst, &o);
+  SCM_REFSTK_INIT_REG(&lst, &o);
 
   lst = SCM_TRUE_OBJ;
   o = read_cstr("(b)");
@@ -1170,7 +1170,7 @@ TEST(api_pair_and_lists, capi_assq__matched)
   ScmObj alist = SCM_OBJ_INIT, k = SCM_OBJ_INIT;
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&alist, &k,
+  SCM_REFSTK_INIT_REG(&alist, &k,
                        &actual, &expected);
 
   alist = read_cstr("((a 1) (b 2) (c 2))");
@@ -1186,7 +1186,7 @@ TEST(api_pair_and_lists, capi_assq__unmatched)
 {
   ScmObj alist = SCM_OBJ_INIT, k = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&alist, &k);
+  SCM_REFSTK_INIT_REG(&alist, &k);
 
   alist = read_cstr("((a 1) (#\\b 2) (c 2))");
   k = read_cstr("#\\b");
@@ -1198,7 +1198,7 @@ TEST(api_pair_and_lists, capi_assq__not_list)
 {
   ScmObj alist = SCM_OBJ_INIT, k = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&alist, &k);
+  SCM_REFSTK_INIT_REG(&alist, &k);
 
   alist = SCM_TRUE_OBJ;
   k = read_cstr("b");
@@ -1211,7 +1211,7 @@ TEST(api_pair_and_lists, capi_assv__matched)
   ScmObj alist = SCM_OBJ_INIT, k = SCM_OBJ_INIT;
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&alist, &k,
+  SCM_REFSTK_INIT_REG(&alist, &k,
                        &actual, &expected);
 
   alist = read_cstr("((a 1) (#\\b 2) (c 2))");
@@ -1227,7 +1227,7 @@ TEST(api_pair_and_lists, capi_assv__unmatched)
 {
   ScmObj alist = SCM_OBJ_INIT, k = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&alist, &k);
+  SCM_REFSTK_INIT_REG(&alist, &k);
 
   alist = read_cstr("((a 1) ((b) 2) (c 2))");
   k = read_cstr("(b)");
@@ -1239,7 +1239,7 @@ TEST(api_pair_and_lists, capi_assv__not_list)
 {
   ScmObj alist = SCM_OBJ_INIT, k = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&alist, &k);
+  SCM_REFSTK_INIT_REG(&alist, &k);
 
   alist = SCM_TRUE_OBJ;
   k = read_cstr("#\\b");
@@ -1252,7 +1252,7 @@ TEST(api_pair_and_lists, capi_assoc__matched)
   ScmObj alist = SCM_OBJ_INIT, k = SCM_OBJ_INIT;
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&alist, &k,
+  SCM_REFSTK_INIT_REG(&alist, &k,
                        &actual, &expected);
 
   alist = read_cstr("((a 1) ((b) 2) (c 2))");
@@ -1268,7 +1268,7 @@ TEST(api_pair_and_lists, capi_assoc__unmatched)
 {
   ScmObj alist = SCM_OBJ_INIT, k = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&alist, &k);
+  SCM_REFSTK_INIT_REG(&alist, &k);
 
   alist = read_cstr("((a 1) ((b) 2) (c 2))");
   k = read_cstr("z");
@@ -1281,7 +1281,7 @@ TEST(api_pair_and_lists, capi_assoc__specify_compare__matched)
   ScmObj alist = SCM_OBJ_INIT, k = SCM_OBJ_INIT;
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&alist, &k,
+  SCM_REFSTK_INIT_REG(&alist, &k,
                        &actual, &expected);
 
   alist = read_cstr("((a 1) (b 2) (c 2))");
@@ -1297,7 +1297,7 @@ TEST(api_pair_and_lists, capi_assoc__specify_compare__unmatched)
 {
   ScmObj alist = SCM_OBJ_INIT, k = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&alist, &k);
+  SCM_REFSTK_INIT_REG(&alist, &k);
 
   alist = read_cstr("((a 1) ((b) 2) (c 2))");
   k = read_cstr("(b)");
@@ -1309,7 +1309,7 @@ TEST(api_pair_and_lists, capi_assoc__not_list)
 {
   ScmObj alist = SCM_OBJ_INIT, k = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&alist, &k);
+  SCM_REFSTK_INIT_REG(&alist, &k);
 
   alist = SCM_TRUE_OBJ;
   k = read_cstr("(b)");
@@ -1321,7 +1321,7 @@ TEST(api_pair_and_lists, api_list_copy)
 {
   ScmObj lst = SCM_OBJ_INIT, replica = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst, &replica);
+  SCM_REFSTK_INIT_REG(&lst, &replica);
 
   lst = read_cstr("(a b c)");
 
@@ -1334,7 +1334,7 @@ TEST(api_pair_and_lists, api_list_copy__empty_list)
 {
   ScmObj lst = SCM_OBJ_INIT, replica = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&lst, &replica);
+  SCM_REFSTK_INIT_REG(&lst, &replica);
 
   lst = SCM_NIL_OBJ;
 

@@ -35,7 +35,7 @@ test_compile(const char *expr, const char *asmbl)
 {
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&actual, &expected);
+  SCM_REFSTK_INIT_REG(&actual, &expected);
 
   expected = read_cstr(asmbl);
   actual = compile_cstr(expr);

@@ -29,7 +29,7 @@ test_eval__comp_val_with_obj(const char *expr, const char *expc)
 {
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&actual, &expected);
+  SCM_REFSTK_INIT_REG(&actual, &expected);
 
   expected = read_cstr(expc);
   actual = eval_cstr(expr);

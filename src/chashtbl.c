@@ -104,10 +104,10 @@ scm_chash_tbl_access(ScmCHashTbl *tbl,
   ScmCHashTblEntry **prev;
   size_t hash;
 
-  SCM_STACK_FRAME;
+  SCM_REFSTK_INIT;
 
-  if (tbl->key_kind != SCM_CHASH_TBL_CVAL) SCM_STACK_PUSH(&key);
-  if (tbl->val_kind != SCM_CHASH_TBL_CVAL) SCM_STACK_PUSH(&val);
+  if (tbl->key_kind != SCM_CHASH_TBL_CVAL) SCM_REFSTK_REG(&key);
+  if (tbl->val_kind != SCM_CHASH_TBL_CVAL) SCM_REFSTK_REG(&val);
 
   hash = tbl->hash_func(key) % tbl->tbl_size;
 

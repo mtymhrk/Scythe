@@ -37,7 +37,7 @@ scm_pair_new(SCM_MEM_TYPE_T mtype, ScmObj car, ScmObj cdr)
 {
   ScmObj pair = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&pair, &car, &cdr);
+  SCM_REFSTK_INIT_REG(&pair, &car, &cdr);
 
   scm_assert(scm_obj_not_null_p(car));
   scm_assert(scm_obj_not_null_p(cdr));
@@ -57,7 +57,7 @@ scm_pair_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
   ScmObj lst = SCM_OBJ_INIT, car = SCM_OBJ_INIT, cdr = SCM_OBJ_INIT;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&obj, &port, &lst, &car, &cdr);
+  SCM_REFSTK_INIT_REG(&obj, &port, &lst, &car, &cdr);
 
   scm_assert_obj_type(obj, &SCM_PAIR_TYPE_INFO);
 

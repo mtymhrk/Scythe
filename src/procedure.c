@@ -61,7 +61,7 @@ scm_subrutine_initialize(ScmObj subr, ScmSubrFunc func,
 {
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&name,
+  SCM_REFSTK_INIT_REG(&name,
                        &subr, &module);
 
   scm_assert_obj_type(subr, &SCM_SUBRUTINE_TYPE_INFO);
@@ -86,7 +86,7 @@ scm_subrutine_new(SCM_MEM_TYPE_T mtype,
 {
   ScmObj subr = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&name,
+  SCM_REFSTK_INIT_REG(&name,
                        &subr, &module);
 
   scm_assert(func != NULL);
@@ -107,7 +107,7 @@ scm_subrutine_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
 {
   ScmObj name = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&obj, &port,
+  SCM_REFSTK_INIT_REG(&obj, &port,
                        &name);
 
   scm_assert_obj_type(obj, &SCM_SUBRUTINE_TYPE_INFO);
@@ -191,7 +191,7 @@ scm_closure_new(SCM_MEM_TYPE_T mtype,
   ScmObj clsr = SCM_OBJ_INIT;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&iseq, &env, &name,
+  SCM_REFSTK_INIT_REG(&iseq, &env, &name,
                        &clsr);
 
   scm_assert(scm_capi_iseq_p(iseq));
@@ -260,7 +260,7 @@ scm_cont_initialize(ScmObj cont, ScmObj contcap)
   ScmObj name = SCM_OBJ_INIT;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&cont, &contcap,
+  SCM_REFSTK_INIT_REG(&cont, &contcap,
                        &name);
 
   scm_assert_obj_type(cont, &SCM_CONTINUATION_TYPE_INFO);
@@ -281,7 +281,7 @@ scm_cont_new(SCM_MEM_TYPE_T mtype, ScmObj contcap)
 {
   ScmObj cont = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&contcap,
+  SCM_REFSTK_INIT_REG(&contcap,
                        &cont);
 
   cont = scm_capi_mem_alloc(&SCM_CONTINUATION_TYPE_INFO, 0, mtype);
@@ -358,7 +358,7 @@ scm_parameter_new(SCM_MEM_TYPE_T mtype, ScmObj name, ScmObj conv)
 {
   ScmObj prm = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&prm, &conv);
+  SCM_REFSTK_INIT_REG(&prm, &conv);
 
   scm_assert(scm_obj_null_p(name) || scm_capi_string_p(name));
   scm_assert(scm_obj_null_p(conv) || scm_capi_procedure_p(conv));

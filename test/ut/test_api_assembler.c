@@ -22,7 +22,7 @@ make_iseq(const char *asmbl)
 {
   ScmObj iseq = SCM_OBJ_INIT, lst = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&iseq, &lst);
+  SCM_REFSTK_INIT_REG(&iseq, &lst);
 
   lst = read_cstr(asmbl);
 
@@ -48,7 +48,7 @@ test_assemble_noopd(const char *asmbl, uint8_t code)
   scm_byte_t *ip;
   int actual_op;
 
-  SCM_STACK_FRAME_PUSH(&iseq);
+  SCM_REFSTK_INIT_REG(&iseq);
 
   iseq = make_iseq(asmbl);
   ip = scm_capi_iseq_to_ip(iseq);
@@ -67,7 +67,7 @@ test_assemble_obj(const char *asmbl, uint8_t code, ScmObj obj)
   scm_byte_t *ip;
   int actual_op;
 
-  SCM_STACK_FRAME_PUSH(&obj,
+  SCM_REFSTK_INIT_REG(&obj,
                        &iseq, &actual_immv);
 
   iseq = make_iseq(asmbl);
@@ -90,7 +90,7 @@ test_assemble_obj_obj(const char *asmbl, uint8_t code, ScmObj obj1, ScmObj obj2)
   scm_byte_t *ip;
   int actual_op;
 
-  SCM_STACK_FRAME_PUSH(&obj1, &obj2,
+  SCM_REFSTK_INIT_REG(&obj1, &obj2,
                        &iseq, &actual_immv1, &actual_immv2);
 
   iseq = make_iseq(asmbl);
@@ -115,7 +115,7 @@ test_assemble_si(const char *asmbl, uint8_t code, int si)
   scm_byte_t *ip;
   int actual_op, actual_si;
 
-  SCM_STACK_FRAME_PUSH(&iseq);
+  SCM_REFSTK_INIT_REG(&iseq);
 
   iseq = make_iseq(asmbl);
   ip = scm_capi_iseq_to_ip(iseq);
@@ -136,7 +136,7 @@ test_assemble_si_si(const char *asmbl, uint8_t code, int si1, int si2)
   scm_byte_t *ip;
   int actual_op, actual_si1, actual_si2;
 
-  SCM_STACK_FRAME_PUSH(&iseq);
+  SCM_REFSTK_INIT_REG(&iseq);
 
   iseq = make_iseq(asmbl);
   ip = scm_capi_iseq_to_ip(iseq);
@@ -159,7 +159,7 @@ test_assemble_si_si_obj(const char *asmbl,
   scm_byte_t *ip;
   int actual_op, actual_si1, actual_si2;
 
-  SCM_STACK_FRAME_PUSH(&obj,
+  SCM_REFSTK_INIT_REG(&obj,
                        &iseq, &actual_immv);
 
   iseq = make_iseq(asmbl);
@@ -262,7 +262,7 @@ TEST(api_assembler, gref)
 {
   ScmObj obj1 = SCM_OBJ_INIT, obj2 = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&obj1, &obj2);
+  SCM_REFSTK_INIT_REG(&obj1, &obj2);
 
   obj1 = read_cstr("vvv");
   obj2 = read_cstr("xxx");
@@ -275,7 +275,7 @@ TEST(api_assembler, gdef)
 {
   ScmObj obj1 = SCM_OBJ_INIT, obj2 = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&obj1, &obj2);
+  SCM_REFSTK_INIT_REG(&obj1, &obj2);
 
   obj1 = read_cstr("vvv");
   obj2 = read_cstr("xxx");
@@ -288,7 +288,7 @@ TEST(api_assembler, gset)
 {
   ScmObj obj1 = SCM_OBJ_INIT, obj2 = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&obj1, &obj2);
+  SCM_REFSTK_INIT_REG(&obj1, &obj2);
 
   obj1 = read_cstr("vvv");
   obj2 = read_cstr("xxx");
@@ -311,7 +311,7 @@ TEST(api_assembler, immval)
 {
   ScmObj obj = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&obj);
+  SCM_REFSTK_INIT_REG(&obj);
 
   obj = read_cstr("aaa");
 
@@ -342,7 +342,7 @@ TEST(api_assembler, asm)
   scm_byte_t *ip;
   int actual_op;
 
-  SCM_STACK_FRAME_PUSH(&iseq, &actual_immv);
+  SCM_REFSTK_INIT_REG(&iseq, &actual_immv);
 
   iseq = make_iseq("((asm ((nop)))(nop))");
   ip = scm_capi_iseq_to_ip(iseq);
@@ -365,7 +365,7 @@ TEST(api_assembler, close)
 {
   ScmObj obj = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&obj);
+  SCM_REFSTK_INIT_REG(&obj);
 
   obj = read_cstr("foo");
 
@@ -379,7 +379,7 @@ TEST(api_assembler, asm_close)
   scm_byte_t *ip;
   int actual_op, actual_si1, actual_si2;
 
-  SCM_STACK_FRAME_PUSH(&iseq, &actual_immv);
+  SCM_REFSTK_INIT_REG(&iseq, &actual_immv);
 
   iseq = make_iseq("((asm-close 11 21 ((nop)))(nop))");
   ip = scm_capi_iseq_to_ip(iseq);

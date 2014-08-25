@@ -87,7 +87,7 @@ scm_iseq_new(SCM_MEM_TYPE_T mtype)
 {
   ScmObj iseq = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&iseq);
+  SCM_REFSTK_INIT_REG(&iseq);
 
   iseq = scm_capi_mem_alloc(&SCM_ISEQ_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(iseq)) return SCM_OBJ_NULL;

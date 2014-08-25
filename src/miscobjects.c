@@ -91,7 +91,7 @@ scm_bool_new(SCM_MEM_TYPE_T mtype, bool value)
 {
   ScmObj bl = SCM_OBJ_INIT;;
 
-  SCM_STACK_FRAME_PUSH(&bl);
+  SCM_REFSTK_INIT_REG(&bl);
 
   bl = scm_capi_mem_alloc(&SCM_BOOL_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(bl)) return SCM_OBJ_NULL;
@@ -160,7 +160,7 @@ scm_nil_new(SCM_MEM_TYPE_T mtype)
 {
   ScmObj nil = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&nil);
+  SCM_REFSTK_INIT_REG(&nil);
 
   nil = scm_capi_mem_alloc(&SCM_NIL_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(nil)) return SCM_OBJ_NULL;
@@ -217,7 +217,7 @@ scm_undef_new(SCM_MEM_TYPE_T mtype)
 {
   ScmObj undef = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&undef);
+  SCM_REFSTK_INIT_REG(&undef);
 
   undef = scm_capi_mem_alloc(&SCM_UNDEF_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(undef)) return SCM_OBJ_NULL;
@@ -268,7 +268,7 @@ scm_landmine_new(SCM_MEM_TYPE_T mtype)
 {
   ScmObj mine = SCM_OBJ_INIT;
 
-  SCM_STACK_FRAME_PUSH(&mine);
+  SCM_REFSTK_INIT_REG(&mine);
 
   mine = scm_capi_mem_alloc(&SCM_LANDMINE_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(mine)) return SCM_OBJ_NULL;

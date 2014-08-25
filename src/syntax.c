@@ -35,7 +35,7 @@ scm_syntax_new(SCM_MEM_TYPE_T mtype, ScmObj key, ScmObj handler)
   ScmObj syx = SCM_OBJ_INIT;
   int rslt;
 
-  SCM_STACK_FRAME_PUSH(&key, &handler,
+  SCM_REFSTK_INIT_REG(&key, &handler,
                        &syx);
 
   scm_assert(scm_capi_symbol_p(key));
