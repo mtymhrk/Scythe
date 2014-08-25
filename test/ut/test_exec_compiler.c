@@ -640,6 +640,21 @@ TEST(exec_compiler, internal_definition_4)
                "   (return))))");
 }
 
+TEST(exec_compiler, internal_definition_5)
+{
+  test_compile("(lambda ()"
+               "  (define x 1)"
+               "  (begin"
+               "    (define y 2))"
+               "  x)",
+               "((asm-close 0 0"
+               "  ((emine 2)"
+               "   (immval 1)(demine 0 0)"
+               "   (immval 2)(demine 1 0)"
+               "   (sref 0 0)"
+               "   (return))))");
+}
+
 TEST(exec_compiler, begin_1)
 {
   test_compile("(begin (cons 'a 'b) (cons 'x 'y))",

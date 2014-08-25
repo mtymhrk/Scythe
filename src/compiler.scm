@@ -368,8 +368,8 @@
                                        vars inits exps)))
                (if (eq? (vector-ref x 2) exps)
                    (decons-body-aux cmpl (cdr body) env tail-p toplevel-p
-                                    (cons (vector-ref x 0) vars)
-                                    (cons (vector-ref x 1) inits)
+                                    (vector-ref x 0)
+                                    (vector-ref x 1)
                                     exps)
                    (begin
                      (unless (null? (cdr body))
