@@ -17,25 +17,43 @@ extern ScmTypeInfo SCM_REFSTACK_TYPE_INFO;
 
 struct ScmRefStackRec {
   ScmObjHeader *header;
-  ScmRefStackBlock *head;
-  ScmRefStackBlock *tail;
-  ScmRefStackBlock *current;
+  ScmRefStackBlock *stack;
 };
 
 
-int scm_ref_stack_initialize(ScmObj stack, size_t size);
-void scm_ref_stack_finalize(ScmObj stack);
-ScmObj scm_ref_stack_new(SCM_MEM_TYPE_T mtype, size_t size);
-int scm_ref_stack_push_va(ScmObj stack, va_list ap);
-int scm_ref_stack_push_ary(ScmObj stack, ScmObj *ary, size_t n);
-int scm_ref_stack_push(ScmObj stack, ...);
-ScmRef scm_ref_stack_alloc(ScmObj stack, ScmObj init);
-void scm_ref_stack_save(ScmObj stack, ScmRefStackInfo *info);
-void scm_ref_stack_restore(ScmObj stack, ScmRefStackInfo *info);
-void scm_ref_stack_init_sp(ScmObj stack);
+int scm_ref_stack_initialize(ScmObj stack);
+ScmObj scm_ref_stack_new(SCM_MEM_TYPE_T mtyp);
 void scm_ref_stack_gc_initialize(ScmObj obj, ScmObj mem);
-void scm_ref_stack_gc_finalize(ScmObj obj);
 int scm_ref_stack_gc_accept(ScmObj obj,
                             ScmObj mem, ScmGCRefHandlerFunc handler);
+
+inline void
+scm_ref_stack_push(ScmObj stack, ScmRefStackBlock *block)
+{
+  scm_assert_obj_type(stack, &SCM_REFSTACK_TYPE_INFO);
+  scm_assert(block != NULL);
+
+  block->next = SCM_REFSTACK(stack)->stack;
+  SCM_REFSTACK(stack)->stack = block;
+}
+
+inline void
+scm_ref_stack_save(ScmObj stack, ScmRefStackInfo *info)
+{
+  scm_assert_obj_type(stack, &SCM_REFSTACK_TYPE_INFO);
+  scm_assert(info != NULL);
+
+  info->stack = SCM_REFSTACK(stack)->stack;
+}
+
+inline void
+scm_ref_stack_restore(ScmObj stack, ScmRefStackInfo *info)
+{
+  scm_assert_obj_type(stack, &SCM_REFSTACK_TYPE_INFO);
+  scm_assert(info != NULL);
+
+  SCM_REFSTACK(stack)->stack = info->stack;
+}
+
 
 #endif /* INCLUDE_REFERENCE_H__ */

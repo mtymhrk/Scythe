@@ -39,17 +39,22 @@ typedef int (*ScmSubrFunc)(ScmObj subr, int argc, const ScmObj *argv);
 /*  RefStack                                                       */
 /*******************************************************************/
 
+enum { SCM_REFSTACK_RARY, SCM_REFSTACK_ARY };
+
 struct ScmRefStackBlockRec {
   ScmRefStackBlock *next;
-  ScmRefStackBlock *prev;
-  size_t size;
-  ScmRef *sp;
-  ScmRef stack[0];
+  int type;
+  union {
+    ScmObj **rary;
+    struct {
+      ScmObj *head;
+      size_t n;
+    } ary;
+  } ref;
 };
 
 struct ScmRefStackInfoRec {
-  ScmRefStackBlock *current;
-  ScmRef *sp;
+  ScmRefStackBlock *stack;
 };
 
 

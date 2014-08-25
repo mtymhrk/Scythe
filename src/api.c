@@ -64,21 +64,9 @@ scm_capi_fatal_p(void)
 /*******************************************************************/
 
 void
-scm_capi_ref_stack_push_ary(ScmObj *ary, size_t n)
+scm_capi_ref_stack_push(ScmRefStackBlock *block)
 {
-  if (ary == NULL) return;
-
-  scm_ref_stack_push_ary(scm_vm_current_ref_stack(), ary, n);
-}
-
-void
-scm_capi_ref_stack_push(int dummy, ...)
-{
-  va_list ap;
-
-  va_start(ap, dummy);
-  scm_ref_stack_push_va(scm_vm_current_ref_stack(), ap);
-  va_end(ap);
+  scm_ref_stack_push(scm_vm_current_ref_stack(), block);
 }
 
 void

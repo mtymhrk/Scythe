@@ -28,7 +28,6 @@ ScmObj scm__current_ref_stack = SCM_OBJ_INIT;
 /*  ScmBedrock                                                             */
 /***************************************************************************/
 
-#define SCM_BEDROCK_REF_STACK_INIT_SIZE 512
 #define SCM_BEDROCK_ERR_MSG_SIZE 256
 
 static void
@@ -2696,7 +2695,7 @@ scm_vm_bootup(void)
   bedrock = scm_bedrock_new();
   if (bedrock == NULL) return -1;
 
-  stack = scm_ref_stack_new(SCM_MEM_ROOT, SCM_BEDROCK_REF_STACK_INIT_SIZE);
+  stack = scm_ref_stack_new(SCM_MEM_ROOT);
   if (scm_obj_null_p(stack)) return -1;
 
   scm_vm_chg_current_ref_stack(stack);
