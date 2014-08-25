@@ -325,7 +325,7 @@ TEST(exec_syntax, let_5)
 TEST(exec_syntax, let_6)
 {
   test_eval__chk_val_type("(let ())",
-                            scm_capi_undef_object_p);
+                          scm_capi_undef_object_p);
 }
 
 TEST(exec_syntax, named_let_1)

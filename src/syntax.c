@@ -36,7 +36,7 @@ scm_syntax_new(SCM_MEM_TYPE_T mtype, ScmObj key, ScmObj handler)
   int rslt;
 
   SCM_REFSTK_INIT_REG(&key, &handler,
-                       &syx);
+                      &syx);
 
   scm_assert(scm_capi_symbol_p(key));
   scm_assert(scm_obj_not_null_p(handler));

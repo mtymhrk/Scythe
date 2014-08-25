@@ -25,7 +25,7 @@ length_of_vector_maked_with_list(ScmObj lst)
   ssize_t cnt;
 
   SCM_REFSTK_INIT_REG(&lst,
-                       &l);
+                      &l);
 
   if (scm_obj_null_p(lst))
     return 0;
@@ -103,7 +103,7 @@ scm_vector_initialize_lst(ScmObj vector, size_t length, ScmObj lst)
   size_t i;
 
   SCM_REFSTK_INIT_REG(&vector, &lst,
-                       &l, &e);
+                      &l, &e);
 
   scm_assert_obj_type(vector, &SCM_VECTOR_TYPE_INFO);
   scm_assert(length <= SSIZE_MAX);

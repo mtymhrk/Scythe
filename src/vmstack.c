@@ -267,7 +267,7 @@ scm_vmsr_new(SCM_MEM_TYPE_T mtype, ScmObj stack, scm_byte_t *base, ScmObj next)
   ScmObj vmsr = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&stack, &next,
-                       &vmsr);
+                      &vmsr);
 
   scm_assert_obj_type(stack, &SCM_VMSTCKSG_TYPE_INFO);
   scm_assert(base != NULL);

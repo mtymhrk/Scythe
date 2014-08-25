@@ -103,7 +103,7 @@ scm_error_initialize_lst(ScmObj exc, ScmObj msg, ScmObj type, ScmObj irris)
   int r;
 
   SCM_REFSTK_INIT_REG(&exc, &msg, &type, &irris,
-                       &rest, &ir);
+                      &rest, &ir);
 
   scm_assert_obj_type(exc, &SCM_ERROR_TYPE_INFO);
   scm_assert(scm_obj_null_p(type) || scm_capi_symbol_p(type));
@@ -155,7 +155,7 @@ scm_error_new_cv(SCM_MEM_TYPE_T mtype, ScmObj msg,
   int rslt;
 
   SCM_REFSTK_INIT_REG(&msg, &type,
-                       &exc);
+                      &exc);
 
   scm_assert(scm_obj_null_p(type) || scm_capi_symbol_p(type));
   scm_assert(n <= SCM_ERROR_IRRITANTS_MAX);
@@ -177,7 +177,7 @@ scm_error_new_lst(SCM_MEM_TYPE_T mtype, ScmObj msg, ScmObj type, ScmObj irris)
   int rslt;
 
   SCM_REFSTK_INIT_REG(&msg, &type, &irris,
-                       &exc);
+                      &exc);
 
   scm_assert(scm_obj_null_p(type) || scm_capi_symbol_p(type));
   scm_assert(scm_obj_not_null_p(irris));
@@ -208,7 +208,7 @@ scm_error_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
   int rslt;
 
   SCM_REFSTK_INIT_REG(&obj, &port,
-                       &msg, &ro);
+                      &msg, &ro);
 
   scm_assert_obj_type(obj, &SCM_ERROR_TYPE_INFO);
 

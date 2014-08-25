@@ -502,9 +502,3 @@ scm_fixnum_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
 
   return 0;
 }
-
-
-
-
-
-

@@ -806,7 +806,7 @@ TEST(api_pair_and_lists, api_list_tail)
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&lst, &n,
-                       &actual, &expected);
+                      &actual, &expected);
 
 
   lst = read_cstr("(a b c)");
@@ -889,7 +889,7 @@ TEST(api_pair_and_lists, api_list_ref)
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&lst, &n,
-                       &actual, &expected);
+                      &actual, &expected);
 
   lst = read_cstr("(a (b) c)");
   expected = scm_capi_cxr(lst, "ad");
@@ -1019,7 +1019,7 @@ TEST(api_pair_and_lists, capi_memq__matched)
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&lst, &o,
-                       &actual, &expected);
+                      &actual, &expected);
 
   lst = read_cstr("(a b c)");
   o = read_cstr("b");
@@ -1060,7 +1060,7 @@ TEST(api_pair_and_lists, capi_memv__matched)
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&lst, &o,
-                       &actual, &expected);
+                      &actual, &expected);
 
   lst = read_cstr("(a #\\b c)");
   o = read_cstr("#\\b");
@@ -1101,7 +1101,7 @@ TEST(api_pair_and_lists, capi_member__matched)
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&lst, &o,
-                       &actual, &expected);
+                      &actual, &expected);
 
   lst = read_cstr("(a (b) c)");
   o = read_cstr("(b)");
@@ -1130,7 +1130,7 @@ TEST(api_pair_and_lists, capi_member__specify_compare__matched)
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&lst, &o,
-                       &actual, &expected);
+                      &actual, &expected);
 
   lst = read_cstr("(a b c)");
   o = read_cstr("b");
@@ -1171,7 +1171,7 @@ TEST(api_pair_and_lists, capi_assq__matched)
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&alist, &k,
-                       &actual, &expected);
+                      &actual, &expected);
 
   alist = read_cstr("((a 1) (b 2) (c 2))");
   k = read_cstr("b");
@@ -1212,7 +1212,7 @@ TEST(api_pair_and_lists, capi_assv__matched)
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&alist, &k,
-                       &actual, &expected);
+                      &actual, &expected);
 
   alist = read_cstr("((a 1) (#\\b 2) (c 2))");
   k = read_cstr("#\\b");
@@ -1253,7 +1253,7 @@ TEST(api_pair_and_lists, capi_assoc__matched)
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&alist, &k,
-                       &actual, &expected);
+                      &actual, &expected);
 
   alist = read_cstr("((a 1) ((b) 2) (c 2))");
   k = read_cstr("(b)");
@@ -1282,7 +1282,7 @@ TEST(api_pair_and_lists, capi_assoc__specify_compare__matched)
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&alist, &k,
-                       &actual, &expected);
+                      &actual, &expected);
 
   alist = read_cstr("((a 1) (b 2) (c 2))");
   k = read_cstr("b");

@@ -68,7 +68,7 @@ test_assemble_obj(const char *asmbl, uint8_t code, ScmObj obj)
   int actual_op;
 
   SCM_REFSTK_INIT_REG(&obj,
-                       &iseq, &actual_immv);
+                      &iseq, &actual_immv);
 
   iseq = make_iseq(asmbl);
   ip = scm_capi_iseq_to_ip(iseq);
@@ -91,7 +91,7 @@ test_assemble_obj_obj(const char *asmbl, uint8_t code, ScmObj obj1, ScmObj obj2)
   int actual_op;
 
   SCM_REFSTK_INIT_REG(&obj1, &obj2,
-                       &iseq, &actual_immv1, &actual_immv2);
+                      &iseq, &actual_immv1, &actual_immv2);
 
   iseq = make_iseq(asmbl);
   ip = scm_capi_iseq_to_ip(iseq);
@@ -160,7 +160,7 @@ test_assemble_si_si_obj(const char *asmbl,
   int actual_op, actual_si1, actual_si2;
 
   SCM_REFSTK_INIT_REG(&obj,
-                       &iseq, &actual_immv);
+                      &iseq, &actual_immv);
 
   iseq = make_iseq(asmbl);
   ip = scm_capi_iseq_to_ip(iseq);

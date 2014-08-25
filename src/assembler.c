@@ -289,7 +289,7 @@ scm_asm_inst_obj(ScmObj iseq, int opcode, ScmObj operator, ScmObj operands,
   ssize_t nr_opd;
 
   SCM_REFSTK_INIT_REG(&iseq, &operator, &operands,
-                       &arg);
+                      &arg);
 
   scm_assert(scm_capi_iseq_p(iseq));
   scm_assert(0 <= opcode && opcode <= SCM_BYTE_MAX);
@@ -322,7 +322,7 @@ scm_asm_inst_obj_obj(ScmObj iseq, int opcode, ScmObj operator, ScmObj operands,
   ssize_t nr_opd;
 
   SCM_REFSTK_INIT_REG(&iseq, &operator, &operands,
-                       &arg1, &arg2);
+                      &arg1, &arg2);
 
   scm_assert(scm_capi_iseq_p(iseq));
   scm_assert(0 <= opcode && opcode <= SCM_BYTE_MAX);
@@ -360,7 +360,7 @@ scm_asm_inst_si(ScmObj iseq, int opcode, ScmObj operator, ScmObj operands,
   int rslt;
 
   SCM_REFSTK_INIT_REG(&iseq, &operator, &operands,
-                       &arg);
+                      &arg);
 
   scm_assert(scm_capi_iseq_p(iseq));
   scm_assert(0 <= opcode && opcode <= SCM_BYTE_MAX);
@@ -408,7 +408,7 @@ scm_asm_inst_si_si(ScmObj iseq, int opcode, ScmObj operator, ScmObj operands,
   int rslt;
 
   SCM_REFSTK_INIT_REG(&iseq, &operator, &operands,
-                       &arg1, &arg2);
+                      &arg1, &arg2);
 
   scm_assert(scm_capi_iseq_p(iseq));
   scm_assert(0 <= opcode && opcode <= SCM_BYTE_MAX);
@@ -473,7 +473,7 @@ scm_asm_inst_si_si_obj(ScmObj iseq, int opcode,
   int rslt;
 
   SCM_REFSTK_INIT_REG(&iseq, &operator, &operands,
-                       &arg1, &arg2, &arg3);
+                      &arg1, &arg2, &arg3);
 
   scm_assert(scm_capi_iseq_p(iseq));
   scm_assert(0 <= opcode && opcode <= SCM_BYTE_MAX);
@@ -539,7 +539,7 @@ scm_asm_inst_iof(ScmObj iseq, int opcode, ScmObj operator, ScmObj operands,
   ssize_t i, nr_opd, rslt;
 
   SCM_REFSTK_INIT_REG(&iseq, &operator, &operands,
-                       &label);
+                      &label);
 
   scm_assert(scm_capi_iseq_p(iseq));
   scm_assert(0 <= opcode && opcode <= SCM_BYTE_MAX);
@@ -578,14 +578,14 @@ scm_asm_inst_iof(ScmObj iseq, int opcode, ScmObj operator, ScmObj operands,
 
 static ssize_t
 scm_asm_inst_label(ScmObj iseq, int opcode, ScmObj operator, ScmObj operands,
-                          size_t idx, ScmCHashTbl *label_tbl, EArray *labels)
+                   size_t idx, ScmCHashTbl *label_tbl, EArray *labels)
 {
   ScmObj arg = SCM_OBJ_INIT;
   ssize_t nr_opd;
   int rslt;
 
   SCM_REFSTK_INIT_REG(&iseq, &operator, &operands,
-                       &arg);
+                      &arg);
 
   scm_assert(scm_capi_iseq_p(iseq));
   scm_assert(opcode >= SCM_ASM_PI_START);
@@ -625,7 +625,7 @@ scm_asm_inst_asm(ScmObj iseq, int opcode, ScmObj operator, ScmObj operands,
   ssize_t nr_opd;
 
   SCM_REFSTK_INIT_REG(&iseq, &operator, &operands,
-                       &arg);
+                      &arg);
 
   scm_assert(scm_capi_iseq_p(iseq));
   scm_assert(opcode >= SCM_ASM_PI_START);
@@ -669,7 +669,7 @@ scm_asm_inst_asm_close(ScmObj iseq, int opcode,
   int rslt;
 
   SCM_REFSTK_INIT_REG(&iseq, &operator, &operands,
-                       &arg1, &arg2, &arg3);
+                      &arg1, &arg2, &arg3);
 
   scm_assert(scm_capi_iseq_p(iseq));
   scm_assert(opcode >= SCM_ASM_PI_START);
@@ -743,7 +743,7 @@ scm_asm_inst(ScmObj iseq, ScmObj inst, size_t idx,
   int opcode;
 
   SCM_REFSTK_INIT_REG(&iseq, &inst,
-                       &operator, &operands);
+                      &operator, &operands);
 
   scm_assert(scm_capi_iseq_p(iseq));
   scm_assert(!scm_obj_null_p(inst));

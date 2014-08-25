@@ -15,23 +15,23 @@
 #define SCM_LEXER_INITIAL_BUFFER_SIZE 16
 
 #define IDENTIFIER_START_CHARS "abcdefghijklmnopqrstuvwxyz!$%&*/:<=>?~_^"
-#define IDENTIFIER_FOLLOW_ON_CHARS \
+#define IDENTIFIER_FOLLOW_ON_CHARS              \
   IDENTIFIER_START_CHARS "0123456789.+-"
 #define IDENTIFIER_DELIMITER "()'`,\"[] \t\n\r;"
 #define NUMERIC_START_CHAR "+-0123456789"
 
 #define IS_LINE_FEED(c) ((c) == '\n')
 
-#define IS_IDENTIFIER_START_CHAR(c) \
+#define IS_IDENTIFIER_START_CHAR(c)                     \
   (strchr(IDENTIFIER_START_CHARS, tolower(c)) != NULL)
 
-#define IS_IDENTIFIER_FOLLOW_ON_CHAR(c) \
+#define IS_IDENTIFIER_FOLLOW_ON_CHAR(c)                         \
   (strchr(IDENTIFIER_FOLLOW_ON_CHARS, tolower(c)) != NULL)
 
-#define IDENTIFIER_DELIMITER_P(c) \
+#define IDENTIFIER_DELIMITER_P(c)                       \
   (strchr(IDENTIFIER_DELIMITER, tolower(c)) != NULL)
 
-#define IS_NUMERIC_START_CHAR(c) \
+#define IS_NUMERIC_START_CHAR(c)                        \
   (strchr(NUMERIC_START_CHAR, tolower(c)) != NULL)
 
 #define NONASCII ((char)0xff)
@@ -233,7 +233,7 @@ scm_lexer_tokenize_init(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
   width = scm_capi_peek_cchr(&current, port);
 
   if (width < 0) {
-      return LEXER_STATE_ERROR;
+    return LEXER_STATE_ERROR;
   }
   else if (width == 0) {
     scm_capi_read_cchr(&current, port);
@@ -304,7 +304,7 @@ scm_lexer_tokenize_identifier(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
   while (1) {
     ssize_t width = scm_capi_peek_cchr(&current, port);
     if (width < 0) {
-        return LEXER_STATE_ERROR;
+      return LEXER_STATE_ERROR;
     }
     else if (width == 0) {
       break;
@@ -337,7 +337,7 @@ scm_lexer_tokenize_ident_vline(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
   while (1) {
     ssize_t width = scm_capi_read_cchr(&current, port);
     if (width < 0) {
-        return LEXER_STATE_ERROR;
+      return LEXER_STATE_ERROR;
     }
     else if (width == 0) {
       scm_capi_read_cchr(&current, port);

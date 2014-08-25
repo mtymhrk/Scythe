@@ -131,7 +131,7 @@ scm_string_change_case(ScmObj str, int dir)
   ScmStrItr itr;
 
   SCM_REFSTK_INIT_REG(&str,
-                       &s);
+                      &s);
 
   scm_assert_obj_type(str, &SCM_STRING_TYPE_INFO);
   scm_assert(dir == DOWNCASE || dir == UPCASE);
@@ -188,7 +188,7 @@ scm_string_change_encoding(ScmObj src, ScmEncoding *to)
   size_t ins, outs, rslt;
 
   SCM_REFSTK_INIT_REG(&src,
-                       &str);
+                      &str);
 
   scm_assert_obj_type(src, &SCM_STRING_TYPE_INFO);
   scm_assert(to != NULL);

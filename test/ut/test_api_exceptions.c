@@ -13,7 +13,7 @@ check_exception(ScmObj exc, const char *msg, const char *irris)
   ScmObj msg_str = SCM_OBJ_INIT, ir_lst = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&exc,
-                       &msg_str, &ir_lst);
+                      &msg_str, &ir_lst);
 
 
   msg_str = scm_capi_make_string_from_cstr((msg == NULL) ? "" : msg,

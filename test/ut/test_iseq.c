@@ -106,7 +106,7 @@ TEST(iseq, expand_sequence_buffer)
 
   for (size_t i = 0; i < SCM_ISEQ_DEFAULT_SEQ_SIZE / sizeof(short); i++) {
     TEST_ASSERT_EQUAL_UINT(i % 255,
-                          scm_iseq_get_ushort(iseq, i * sizeof(short)));;
+                           scm_iseq_get_ushort(iseq, i * sizeof(short)));;
   }
 }
 

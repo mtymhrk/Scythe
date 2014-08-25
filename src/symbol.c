@@ -311,7 +311,7 @@ scm_symbol_write_ext_rep(ScmObj sym, ScmObj port)
   bool need_vline_p;
 
   SCM_REFSTK_INIT_REG(&sym, &port,
-                       &strport, &str);
+                      &strport, &str);
 
   strport = scm_api_open_output_string();
   if (scm_obj_null_p(strport)) return -1;

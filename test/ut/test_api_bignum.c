@@ -26,7 +26,7 @@ check_list_elements(ScmObj lst, bool (*check)(ScmObj elm))
   ScmObj l = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&lst,
-                       &l);
+                      &l);
 
   for (l = lst; scm_capi_pair_p(l); l = scm_api_cdr(l))
     TEST_ASSERT_TRUE(check(scm_api_car(l)));
@@ -1511,7 +1511,7 @@ TEST(api_bignum, capi_floor_div__1)
   ScmObj expected_quo = SCM_OBJ_INIT, expected_rem = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&bn1, &bn2, &quo, &rem,
-                       &expected_quo, &expected_rem);
+                      &expected_quo, &expected_rem);
 
   bn1 = read_cstr("23058430092136939520");
   bn2 = read_cstr("9223372036854775808");
@@ -1536,7 +1536,7 @@ TEST(api_bignum, capi_floor_div__2)
   ScmObj expected_quo = SCM_OBJ_INIT, expected_rem = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&bn1, &bn2, &quo, &rem,
-                       &expected_quo, &expected_rem);
+                      &expected_quo, &expected_rem);
 
   bn1 = read_cstr("-23058430092136939520");
   bn2 = read_cstr("9223372036854775808");
@@ -1561,7 +1561,7 @@ TEST(api_bignum, capi_floor_div__3)
   ScmObj expected_quo = SCM_OBJ_INIT, expected_rem = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&bn1, &bn2, &quo, &rem,
-                       &expected_quo, &expected_rem);
+                      &expected_quo, &expected_rem);
 
   bn1 = read_cstr("23058430092136939520");
   bn2 = read_cstr("-9223372036854775808");
@@ -1586,7 +1586,7 @@ TEST(api_bignum, capi_floor_div__4)
   ScmObj expected_quo = SCM_OBJ_INIT, expected_rem = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&bn1, &bn2, &quo, &rem,
-                       &expected_quo, &expected_rem);
+                      &expected_quo, &expected_rem);
 
   bn1 = read_cstr("-23058430092136939520");
   bn2 = read_cstr("-9223372036854775808");
@@ -1627,7 +1627,7 @@ TEST(api_bignum, capi_truncate_div__1)
   ScmObj expected_quo = SCM_OBJ_INIT, expected_rem = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&bn1, &bn2, &quo, &rem,
-                       &expected_quo, &expected_rem);
+                      &expected_quo, &expected_rem);
 
   bn1 = read_cstr("23058430092136939520");
   bn2 = read_cstr("9223372036854775808");
@@ -1652,7 +1652,7 @@ TEST(api_bignum, capi_truncate_div__2)
   ScmObj expected_quo = SCM_OBJ_INIT, expected_rem = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&bn1, &bn2, &quo, &rem,
-                       &expected_quo, &expected_rem);
+                      &expected_quo, &expected_rem);
 
   bn1 = read_cstr("-23058430092136939520");
   bn2 = read_cstr("9223372036854775808");
@@ -1677,7 +1677,7 @@ TEST(api_bignum, capi_truncate_div__3)
   ScmObj expected_quo = SCM_OBJ_INIT, expected_rem = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&bn1, &bn2, &quo, &rem,
-                       &expected_quo, &expected_rem);
+                      &expected_quo, &expected_rem);
 
   bn1 = read_cstr("23058430092136939520");
   bn2 = read_cstr("-9223372036854775808");
@@ -1702,7 +1702,7 @@ TEST(api_bignum, capi_truncate_div__4)
   ScmObj expected_quo = SCM_OBJ_INIT, expected_rem = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&bn1, &bn2, &quo, &rem,
-                       &expected_quo, &expected_rem);
+                      &expected_quo, &expected_rem);
 
   bn1 = read_cstr("-23058430092136939520");
   bn2 = read_cstr("-9223372036854775808");

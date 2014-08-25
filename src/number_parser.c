@@ -776,7 +776,7 @@ scm_num_make_integer(const scm_char_t *str, ScmEncoding *enc,
     if (base < 0) return SCM_OBJ_NULL;
 
     num = scm_bignum_make_int_from_ary(sign, ary, (size_t)ary_sz,
-                                    (scm_bignum_c_t)base);
+                                       (scm_bignum_c_t)base);
   }
 
   if (idata->s_sign != '\0') {

@@ -261,8 +261,8 @@ scm_api_equal_check_circular(ScmObj obj1, ScmObj obj2,
   scm_assert(rslt != NULL);
 
   SCM_REFSTK_INIT_REG(&obj1, &obj2, &stack1, &stack2,
-                       &elm1, &elm2,
-                       &lst1, &lst2);
+                      &elm1, &elm2,
+                      &lst1, &lst2);
 
   for (lst1 = stack1, cnt1 = 0;
        scm_capi_pair_p(lst1);
@@ -321,7 +321,7 @@ scm_capi_equal_aux(ScmObj obj1, ScmObj obj2,
   scm_assert(scm_capi_nil_p(stack2) || scm_capi_pair_p(stack2));
 
   SCM_REFSTK_INIT_REG(&obj1, &obj2, &stack1, &stack2,
-                       &elm1, &elm2);
+                      &elm1, &elm2);
 
   r = scm_capi_eqv(obj1, obj2, &cmp);
   if (r < 0) return -1;
@@ -691,7 +691,7 @@ scm_capi_cxr(ScmObj pair, const char *dir)
   size_t i;
 
   SCM_REFSTK_INIT_REG(&pair,
-                       &x);
+                      &x);
 
   if (dir == NULL) {
     scm_capi_error("failed to execute cxr: invalid argument", 0);
@@ -769,7 +769,7 @@ scm_capi_make_list(size_t n, ScmObj fill)
   ScmObj lst = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&fill,
-                       &lst);
+                      &lst);
 
   if (scm_obj_null_p(fill))
     fill = scm_api_undef();
@@ -934,7 +934,7 @@ scm_capi_append_cv(const ScmObj *lists, size_t n)
   int rslt;
 
   SCM_REFSTK_INIT_REG(&tail, &lst, &elm,
-                       &new_lst, &prv, &cur);
+                      &new_lst, &prv, &cur);
 
   if (lists == NULL || n == 0)
     return SCM_NIL_OBJ;
@@ -1015,7 +1015,7 @@ scm_api_reverse(ScmObj lst)
   ScmObj new_lst = SCM_OBJ_INIT, cur = SCM_OBJ_INIT, elm = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&lst,
-                       &new_lst, &cur, &elm);
+                      &new_lst, &cur, &elm);
 
   if (scm_obj_null_p(lst)) {
     scm_capi_error("reverse: invalid argument", 1, lst);
@@ -1042,7 +1042,7 @@ scm_capi_list_tail(ScmObj lst, size_t n)
   ScmObj l = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&lst,
-                       &l);
+                      &l);
 
   l = lst;
   for (size_t i = 0; i < n; i++) {
@@ -1171,7 +1171,7 @@ scm_capi_member_aux(ScmObj obj, ScmObj lst, ScmObj (*cmp)(ScmObj x, ScmObj y))
   ScmObj l = SCM_OBJ_INIT, e = SCM_OBJ_INIT, c = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&obj, &lst,
-                       &l, &e, &c);
+                      &l, &e, &c);
 
   scm_assert(cmp != NULL);
 
@@ -1221,7 +1221,7 @@ scm_capi_assoc_aux(ScmObj obj, ScmObj alist, ScmObj (*cmp)(ScmObj x, ScmObj y))
   ScmObj l = SCM_OBJ_INIT, e = SCM_OBJ_INIT, k = SCM_OBJ_INIT, c = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&obj, &alist,
-                       &l, &e, &k, &c);
+                      &l, &e, &k, &c);
 
   scm_assert(cmp != NULL);
 
@@ -1276,9 +1276,9 @@ scm_api_list_copy(ScmObj lst)
   ScmObj rslt = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&lst,
-                       &cur, &elm, &nil,
-                       &head, &pair, &prev,
-                       &rslt);
+                      &cur, &elm, &nil,
+                      &head, &pair, &prev,
+                      &rslt);
 
   if (scm_capi_nil_p(lst) || !scm_capi_pair_p(lst))
     return lst;
@@ -1554,7 +1554,7 @@ scm_capi_num_cmp_fold(ScmObj lst,
   ScmObj num = SCM_OBJ_INIT, prv = SCM_OBJ_INIT, l = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&lst,
-                       &num, &prv, &l);
+                      &num, &prv, &l);
 
   scm_assert(scm_obj_not_null_p(lst));
   scm_assert(rslt != NULL);
@@ -1985,7 +1985,7 @@ scm_capi_num_bop_fold(ScmObj lst,
   ScmObj rslt = SCM_OBJ_INIT, num = SCM_OBJ_INIT, l = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&lst,
-                       &rslt, &num, &l);
+                      &rslt, &num, &l);
 
   scm_assert(scm_capi_pair_p(lst));
   scm_assert(func != NULL);
@@ -2187,7 +2187,7 @@ scm_capi_minus_lst(ScmObj lst)
   ScmObj a = SCM_OBJ_INIT, d = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&lst,
-                       &a, &d);
+                      &a, &d);
 
   if (!scm_capi_pair_p(lst)) {
     scm_capi_error("-: invalid argument", 1, lst);
@@ -2473,7 +2473,7 @@ scm_capi_symbol_cmp_fold(ScmObj lst,
   ScmObj str = SCM_OBJ_INIT, prv = SCM_OBJ_INIT, l = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&lst,
-                       &str, &prv, &l);
+                      &str, &prv, &l);
 
   scm_assert(scm_obj_not_null_p(lst));
   scm_assert(rslt != NULL);
@@ -2720,7 +2720,7 @@ scm_capi_char_cmp_fold(ScmObj lst,
   ScmObj str = SCM_OBJ_INIT, prv = SCM_OBJ_INIT, l = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&lst,
-                       &str, &prv, &l);
+                      &str, &prv, &l);
 
   scm_assert(scm_obj_not_null_p(lst));
   scm_assert(rslt != NULL);
@@ -3405,7 +3405,7 @@ scm_capi_string_cmp_fold(ScmObj lst,
   ScmObj str = SCM_OBJ_INIT, prv = SCM_OBJ_INIT, l = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&lst,
-                       &str, &prv, &l);
+                      &str, &prv, &l);
 
   scm_assert(scm_obj_not_null_p(lst));
   scm_assert(rslt != NULL);
@@ -3701,7 +3701,7 @@ scm_api_string_ge_P(ScmObj s1, ScmObj s2)
 ScmObj
 scm_api_string_upcase(ScmObj str)
 {
-   if (!scm_capi_string_p(str)) {
+  if (!scm_capi_string_p(str)) {
     scm_capi_error("string-upcase: string required, but got", 1, str);
     return SCM_OBJ_NULL;
   }
@@ -3770,7 +3770,7 @@ scm_capi_string_append_lst(ScmObj lst)
   ScmEncoding *enc;
 
   SCM_REFSTK_INIT_REG(&lst,
-                       &str, &l, &s);
+                      &str, &l, &s);
 
   if (scm_obj_null_p(lst))
     return scm_capi_make_string_from_bin(NULL, 0, scm_capi_system_encoding());
@@ -3982,7 +3982,7 @@ scm_api_list_to_string(ScmObj lst)
   ScmEncoding *enc;
 
   SCM_REFSTK_INIT_REG(&lst,
-                       &str, &chr, &l);
+                      &str, &chr, &l);
 
   if (scm_obj_null_p(lst))
     return scm_capi_make_string_from_bin(NULL, 0, scm_capi_system_encoding());
@@ -4210,7 +4210,7 @@ scm_api_string_copy_i(ScmObj to, ScmObj at,
   sss = -1;
   if (scm_obj_not_null_p(start)) {
     size_t s;
-     r = scm_capi_integer_to_size_t(start, &s);
+    r = scm_capi_integer_to_size_t(start, &s);
     if (r < 0) return SCM_OBJ_NULL;
 
     if (s > SSIZE_MAX) {
@@ -4855,7 +4855,7 @@ scm_capi_vector_copy(ScmObj vec, ssize_t start, ssize_t end)
   int r;
 
   SCM_REFSTK_INIT_REG(&vec,
-                       &copy);
+                      &copy);
 
   if (!scm_capi_vector_p(vec)) {
     scm_capi_error("vector-copy: vector required, but got", 1, vec);
@@ -4904,7 +4904,7 @@ scm_capi_vector_copy_i_aux(ScmObj to, size_t at,
   int r;
 
   SCM_REFSTK_INIT_REG(&to, &from,
-                       &elm);
+                      &elm);
 
   for (size_t i = 0; i < len; i++) {
     elm = scm_vector_ref(from, pos + i);
@@ -4923,7 +4923,7 @@ scm_capi_vector_copy_i_aux_in_reverse(ScmObj to, size_t at,
   int r;
 
   SCM_REFSTK_INIT_REG(&to, &from,
-                       &elm);
+                      &elm);
 
   for (size_t i = len; i > 0; i--) {
     elm = scm_vector_ref(from, pos + i - 1);
@@ -5033,8 +5033,8 @@ scm_capi_vector_append_lst(ScmObj lst)
   int r;
 
   SCM_REFSTK_INIT_REG(&lst,
-                       &acc, &vec,
-                       &elm, &ls);
+                      &acc, &vec,
+                      &elm, &ls);
 
   if (scm_obj_null_p(lst))
     return scm_vector_new(SCM_MEM_HEAP, 0, SCM_OBJ_NULL);
@@ -5443,7 +5443,7 @@ scm_capi_error_object_type_eq(ScmObj obj, const char *type, bool *rslt)
   ScmObj sym = SCM_OBJ_INIT, etype = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&obj,
-                       &sym, &etype);
+                      &sym, &etype);
 
   if (!scm_capi_error_object_p(obj)) {
     *rslt = false;
@@ -5931,7 +5931,7 @@ scm_api_read(ScmObj port)
   ScmParser *parser;
 
   SCM_REFSTK_INIT_REG(&port,
-                       &obj);
+                      &obj);
 
   if (scm_obj_null_p(port)) {
     port = scm_default_input_port();
@@ -6141,7 +6141,7 @@ scm_api_read_string(ScmObj n, ScmObj port)
   int ret;
 
   SCM_REFSTK_INIT_REG(&n, &port,
-                       &fn, &str);
+                      &fn, &str);
 
   if (scm_obj_null_p(port)) {
     port = scm_default_input_port();
@@ -6352,7 +6352,7 @@ scm_capi_write_cchr(scm_char_t chr, ScmEncoding *enc, ScmObj port)
   ScmObj c = SCM_OBJ_INIT, r = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&port,
-                       &c, &r);
+                      &c, &r);
 
   if (enc == NULL) {
     scm_capi_error("write-char: invalid argument", 0);
@@ -7050,7 +7050,7 @@ scm_capi_iseq_push_opfmt_si_si_obj(ScmObj iseq, SCM_OPCODE_T op,
   ssize_t rslt;
 
   SCM_REFSTK_INIT_REG(&iseq,
-                       &obj);
+                      &obj);
 
   if (!scm_capi_iseq_p(iseq)) {
     scm_capi_error("failed to push instruction to iseq: "
@@ -7276,7 +7276,7 @@ scm_capi_inst_update_oprand_obj(scm_byte_t *ip, ScmObj clsr, ScmObj obj)
   ssize_t idx;
 
   SCM_REFSTK_INIT_REG(&clsr, &obj,
-                       &iseq);
+                      &iseq);
 
   if (ip == NULL) {
     scm_capi_error("failed to updated operands: invalid ip", 0);
@@ -7339,7 +7339,7 @@ scm_norm_cmpl_arg_mod(ScmObj mod)
   int r;
 
   SCM_REFSTK_INIT_REG(&mod,
-                       &name);
+                      &name);
 
   if (scm_capi_module_p(mod))
     return mod;
@@ -7417,7 +7417,7 @@ scm_api_compiler_current_expr(ScmObj cmpl)
     return SCM_OBJ_NULL;
   }
 
-    return scm_cmpl_expr(cmpl);
+  return scm_cmpl_expr(cmpl);
 }
 
 ScmObj
@@ -7541,7 +7541,7 @@ scm_api_make_module(ScmObj name)
   int rslt;
 
   SCM_REFSTK_INIT_REG(&name,
-                       &mod);
+                      &mod);
 
   if (!scm_capi_symbol_p(name) && !scm_capi_pair_p(name)) {
     scm_capi_error("failed to make module: invalid argument", 1, name);
@@ -7599,7 +7599,7 @@ scm_capi_import(ScmObj module, ScmObj imported, bool restrictive)
   ScmObj imp = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&module, &imported,
-                       &imp);
+                      &imp);
 
   if (!scm_capi_module_p(module)) {
     scm_capi_error("failed to import a module: invalid argument", 1, module);
@@ -7664,7 +7664,7 @@ scm_capi_define_global_var(ScmObj module, ScmObj sym, ScmObj val, bool export)
   ScmObj mod = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&module, &sym, &val,
-                       &mod);
+                      &mod);
 
   if (scm_obj_null_p(module)) {
     scm_capi_error("failed to define global variable: "
@@ -7741,7 +7741,7 @@ scm_capi_global_var_ref(ScmObj module, ScmObj sym, scm_csetter_t *val)
   int rslt;
 
   SCM_REFSTK_INIT_REG(&module, &sym,
-                       &mod, &gloc, &v);
+                      &mod, &gloc, &v);
 
   if (scm_obj_null_p(module)) {
     scm_capi_error("failed to get a value of global variable:"
@@ -7789,7 +7789,7 @@ scm_capi_global_syx_ref(ScmObj module, ScmObj sym, scm_csetter_t *syx)
   int rslt;
 
   SCM_REFSTK_INIT_REG(&module, &sym,
-                       &mod, &gloc, &v);
+                      &mod, &gloc, &v);
 
 
   if (scm_obj_null_p(module)) {
@@ -8019,7 +8019,7 @@ scm_capi_pformat_lst_aux(ScmObj port, ScmObj fmt, size_t len, ScmObj lst)
   bool escaped;
 
   SCM_REFSTK_INIT_REG(&port, &fmt, &lst,
-                       &o);
+                      &o);
 
   scm_assert(scm_capi_output_port_p(port));
   scm_assert(scm_capi_string_p(fmt));
@@ -8090,7 +8090,7 @@ scm_capi_format_lst(ScmObj fmt, ScmObj lst)
   int r;
 
   SCM_REFSTK_INIT_REG(&fmt, &lst,
-                       &port, &str);
+                      &port, &str);
 
   port = scm_api_open_output_string();
   if (scm_obj_null_p(port)) return SCM_OBJ_NULL;
@@ -8122,7 +8122,7 @@ scm_capi_pformat_cv_aux(ScmObj port,
   size_t obj_idx;
 
   SCM_REFSTK_INIT_REG(&port, &fmt,
-                       &o);
+                      &o);
 
   scm_assert(scm_capi_output_port_p(port));
   scm_assert(scm_capi_string_p(fmt));
@@ -8192,7 +8192,7 @@ scm_capi_format_cv(ScmObj fmt, ScmObj *obj, size_t n)
   int r;
 
   SCM_REFSTK_INIT_REG(&fmt,
-                       &port, &str);
+                      &port, &str);
 
   port = scm_api_open_output_string();
   if (scm_obj_null_p(port)) return SCM_OBJ_NULL;
@@ -8452,7 +8452,7 @@ scm_get_proc(const char *name, const char * const *module, size_t n)
   int r;
 
   SCM_REFSTK_INIT_REG(&sym, &mod, &mod_name,
-                       &proc, &o);
+                      &proc, &o);
 
   mod_name = SCM_NIL_OBJ;
   for (size_t i = n; i > 0; i--) {
@@ -8534,7 +8534,7 @@ scm_capi_exec_file(const char *path, ScmEvaluator *ev)
 
   {
     SCM_REFSTK_INIT_REG(&port, &str,
-                         &proc, &args);
+                        &proc, &args);
 
     port = scm_capi_open_input_string_cstr(path, NULL);
     if (scm_obj_null_p(port)) goto end;
@@ -8579,7 +8579,7 @@ scm_capi_exec_cstr(const char *expr, ScmEvaluator *ev)
 
   {
     SCM_REFSTK_INIT_REG(&port, &str,
-                         &proc, &args);
+                        &proc, &args);
 
     port = scm_capi_open_input_string_cstr(expr, NULL);
     if (scm_obj_null_p(port)) goto end;
@@ -8624,7 +8624,7 @@ scm_capi_compile_file(const char *path, ScmEvaluator *ev)
 
   {
     SCM_REFSTK_INIT_REG(&port, &str, &mod,
-                         &proc, &args, &val);
+                        &proc, &args, &val);
 
     port = scm_capi_open_input_string_cstr(path, NULL);
     if (scm_obj_null_p(port)) goto end;
@@ -8676,7 +8676,7 @@ scm_capi_load_iseq(ScmObj iseq)
   ssize_t rslt;
 
   SCM_REFSTK_INIT_REG(&iseq,
-                       &o);
+                      &o);
 
   if (!scm_capi_iseq_p(iseq)) {
     scm_capi_error("load: invalid argument", 1, iseq);

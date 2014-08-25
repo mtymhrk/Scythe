@@ -50,7 +50,7 @@ scm_define_subr(ScmObj module, const struct subr_data *data, size_t n)
   int rslt;
 
   SCM_REFSTK_INIT_REG(&module,
-                       &sym, &subr);
+                      &sym, &subr);
 
   for (size_t i = 0; i < n; i++) {
     sym = scm_capi_make_symbol_from_cstr(data[i].name, SCM_ENC_SRC);
@@ -296,7 +296,7 @@ scm_define_scheme_base_subr(ScmObj module)
   int rslt;
 
   SCM_REFSTK_INIT_REG(&module,
-                       &sym, &subr);
+                      &sym, &subr);
 
   rslt = scm_define_subr(module, data, sizeof(data)/sizeof(data[0]));
   if (rslt < 0) return -1;
@@ -321,7 +321,7 @@ scm_define_scheme_base_current_port(ScmObj module)
   int rslt, fd;
 
   SCM_REFSTK_INIT_REG(&module,
-                       &sym, &port, &prm);
+                      &sym, &port, &prm);
 
   for (size_t i = 0; i < sizeof(data)/sizeof(data[0]); i++) {
     sym = scm_capi_make_symbol_from_cstr(data[i].name, SCM_ENC_SRC);
@@ -359,7 +359,7 @@ scm_load_module_func_scheme_base(ScmObj mod)
   int rslt;
 
   SCM_REFSTK_INIT_REG(&mod,
-                       &name);
+                      &name);
 
 
   /*
@@ -436,7 +436,7 @@ scm_load_module_func_scheme_char(ScmObj mod)
   int rslt;
 
   SCM_REFSTK_INIT_REG(&mod,
-                       &name);
+                      &name);
 
 
   /*
@@ -510,7 +510,7 @@ scm_define_scythe_internal_compile_closure(ScmObj mod)
   int rslt;
 
   SCM_REFSTK_INIT_REG(&mod,
-                       &port, &lst, &iseq);
+                      &port, &lst, &iseq);
 
   port = scm_capi_open_input_string_cstr(compiler_code,
                                          SCM_ENC_NAME_SRC);
@@ -588,7 +588,7 @@ scm_define_scythe_internal_repl_closure(ScmObj mod)
   int rslt;
 
   SCM_REFSTK_INIT_REG(&mod,
-                       &port, &lst, &iseq);
+                      &port, &lst, &iseq);
 
   port = scm_capi_open_input_string_cstr(repl_code,
                                          SCM_ENC_NAME_SRC);
@@ -723,7 +723,7 @@ scm_load_module_func_scythe_base(ScmObj mod)
   int rslt;
 
   SCM_REFSTK_INIT_REG(&mod,
-                       &name);
+                      &name);
 
   /*
    * load (scheme base) module and import it
@@ -782,7 +782,7 @@ scm_load_module_func_main(ScmObj mod)
   int rslt;
 
   SCM_REFSTK_INIT_REG(&mod,
-                       &name);
+                      &name);
 
   /*
    * load (scythe base) module and import it

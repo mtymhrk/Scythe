@@ -372,7 +372,7 @@ TEST(api_strings, capi_string_ref)
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&str,
-                       &actual, &expected);
+                      &actual, &expected);
 
   str = scm_capi_make_string_from_cstr("abc", SCM_ENC_UTF8);
   expected = read_cstr("#\\b");
@@ -404,7 +404,7 @@ TEST(api_strings, api_string_ref)
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&str, &pos,
-                       &actual, &expected);
+                      &actual, &expected);
 
   str = scm_capi_make_string_from_cstr("abc", SCM_ENC_UTF8);
   pos = read_cstr("1");

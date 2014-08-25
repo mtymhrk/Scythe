@@ -755,7 +755,7 @@ scm_bignum_calc_base_and_place_for_ary_of_digits(int radix,
   else {
     *place = (int)scm_log_ul((unsigned long)radix, SCM_BIGNUM_BASE);
     *base = (scm_bignum_c_t)scm_pow_ul((unsigned long)radix,
-                                     (unsigned long)*place);
+                                       (unsigned long)*place);
     place_tab[radix - 1] = *place;
     base_tab[radix - 1] = *base;
   }
@@ -1503,9 +1503,9 @@ scm_bignum_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
   if (rslt < 0) return -1;
 
   rslt = scm_bignum_base_conv(EARY_HEAD(&SCM_BIGNUM(obj)->digits),
-                            EARY_SIZE(&SCM_BIGNUM(obj)->digits),
-                            SCM_BIGNUM_BASE,
-                            &ary, base);
+                              EARY_SIZE(&SCM_BIGNUM(obj)->digits),
+                              SCM_BIGNUM_BASE,
+                              &ary, base);
   if (rslt < 0) goto err;
 
   if (SCM_BIGNUM(obj)->sign == '-') {

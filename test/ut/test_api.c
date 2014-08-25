@@ -7,7 +7,7 @@ scm_capi_ut_compile(ScmEvaluator *ev, ScmObj exp)
   int r;
 
   SCM_REFSTK_INIT_REG(&exp,
-                       &compile, &args, &val);
+                      &compile, &args, &val);
 
   r = scm_capi_cached_global_var_ref(SCM_CACHED_GV_COMPILE,
                                      SCM_CSETTER_L(compile));
@@ -37,7 +37,7 @@ scm_capi_ut_eval(ScmEvaluator *ev, ScmObj exp)
   int r;
 
   SCM_REFSTK_INIT_REG(&exp,
-                       &eval, &args, &val);
+                      &eval, &args, &val);
 
   r = scm_capi_cached_global_var_ref(SCM_CACHED_GV_EVAL, SCM_CSETTER_L(eval));
   if (r < 0) return SCM_OBJ_NULL;

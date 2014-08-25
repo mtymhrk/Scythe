@@ -74,9 +74,9 @@ TEST(chashtbl, scm_chash_tbl_insert__insert_new_entry)
   /* 登録済みの key の get は成功し true を返し、登録されている val を第 3 引
      数に設定 */
   TEST_ASSERT_EQUAL_INT(0,
-                       scm_chash_tbl_get(tbl, key1,
-                                         (ScmCHashTblVal *)SCM_CSETTER_L(val2),
-                                         &found));
+                        scm_chash_tbl_get(tbl, key1,
+                                          (ScmCHashTblVal *)SCM_CSETTER_L(val2),
+                                          &found));
   TEST_ASSERT_EQUAL_INT(true, found);
   TEST_ASSERT(scm_obj_same_instance_p(val1, val2));
 }
@@ -110,9 +110,9 @@ TEST(chashtbl, scm_chash_tbl_insert__insert_an_entry_already_registered)
   /* precondition check  */
   /* 失敗した insert では登録されている値を変更しない */
   TEST_ASSERT_EQUAL_INT(0,
-                       scm_chash_tbl_get(tbl, key1,
-                                         (ScmCHashTblVal *)SCM_CSETTER_L(val3),
-                                         &found));
+                        scm_chash_tbl_get(tbl, key1,
+                                          (ScmCHashTblVal *)SCM_CSETTER_L(val3),
+                                          &found));
   TEST_ASSERT_EQUAL_INT(true, found);
   TEST_ASSERT(scm_obj_same_instance_p(val1, val3));
 }
@@ -143,9 +143,9 @@ TEST(chashtbl, scm_chash_tbl_update__update_new_entry)
   /* 登録済みの key の get は成功し true を返し、登録されている val を第 3 引
      数に設定 */
   TEST_ASSERT_EQUAL_INT(0,
-                       scm_chash_tbl_get(tbl, key1,
-                                         (ScmCHashTblVal *)SCM_CSETTER_L(val2),
-                                         &found));
+                        scm_chash_tbl_get(tbl, key1,
+                                          (ScmCHashTblVal *)SCM_CSETTER_L(val2),
+                                          &found));
   TEST_ASSERT_EQUAL_INT(true, found);
   TEST_ASSERT(scm_obj_same_instance_p(val1, val2));
 }
@@ -179,9 +179,9 @@ TEST(chashtbl, scm_chash_tbl_update__update_an_entry_already_registered)
   /* precondition check  */
   /* 成功した update では登録されている値を変更する */
   TEST_ASSERT_EQUAL_INT(0,
-                       scm_chash_tbl_get(tbl, key1,
-                                         (ScmCHashTblVal *)SCM_CSETTER_L(val3),
-                                         &found));
+                        scm_chash_tbl_get(tbl, key1,
+                                          (ScmCHashTblVal *)SCM_CSETTER_L(val3),
+                                          &found));
   TEST_ASSERT_EQUAL_INT(true, found);
   TEST_ASSERT(scm_obj_same_instance_p(val2, val3));
 }
@@ -207,9 +207,9 @@ TEST(chashtbl, scm_chash_tbl_delete__delete_an_entry_not_registered)
   /* action */
   /* 未登録の key/value の delete は 0 を返す */
   TEST_ASSERT_EQUAL_INT(0,
-                       scm_chash_tbl_delete(tbl, key1,
-                                            (ScmCHashTblVal *)SCM_CSETTER_L(val1),
-                                            &deleted));
+                        scm_chash_tbl_delete(tbl, key1,
+                                             (ScmCHashTblVal *)SCM_CSETTER_L(val1),
+                                             &deleted));
 
   /* precondition check  */
   /* 未登録の key/value の delete は deleted に false を設定する */
@@ -240,9 +240,9 @@ TEST(chashtbl, scm_chash_tbl_delete__delete_an_entry_already_registered)
   /* action */
   /* 未登録の key/value の insert は成功し 0 を返す */
   TEST_ASSERT_EQUAL_INT(0,
-                       scm_chash_tbl_delete(tbl, key1,
-                                            (ScmCHashTblVal *)SCM_CSETTER_L(val2),
-                                            &deleted));
+                        scm_chash_tbl_delete(tbl, key1,
+                                             (ScmCHashTblVal *)SCM_CSETTER_L(val2),
+                                             &deleted));
 
   /* precondition check  */
   /* 登録済み key の delete は deleted に true を設定し、val に削除された値を
@@ -252,9 +252,9 @@ TEST(chashtbl, scm_chash_tbl_delete__delete_an_entry_already_registered)
 
   /* 削除後は get による取得はできないため、found に false を返す */
   TEST_ASSERT_EQUAL_INT(0,
-                       scm_chash_tbl_get(tbl, key1,
-                                         (ScmCHashTblVal *)SCM_CSETTER_L(val3),
-                                         &found));
+                        scm_chash_tbl_get(tbl, key1,
+                                          (ScmCHashTblVal *)SCM_CSETTER_L(val3),
+                                          &found));
   TEST_ASSERT_EQUAL_INT(false, found);
 }
 

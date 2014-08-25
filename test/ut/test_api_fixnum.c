@@ -25,7 +25,7 @@ check_list_elements(ScmObj lst, bool (*check)(ScmObj elm))
   ScmObj l = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&lst,
-                       &l);
+                      &l);
 
   for (l = lst; scm_capi_pair_p(l); l = scm_api_cdr(l))
     TEST_ASSERT_TRUE(check(scm_api_car(l)));
@@ -1734,7 +1734,7 @@ TEST(api_fixnum, capi_floor_div__1)
   ScmObj expected_quo = SCM_OBJ_INIT, expected_rem = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&fn1, &fn2, &quo, &rem,
-                       &expected_quo, &expected_rem);
+                      &expected_quo, &expected_rem);
 
   fn1 = read_cstr("5");
   fn2 = read_cstr("2");
@@ -1759,7 +1759,7 @@ TEST(api_fixnum, capi_floor_div__2)
   ScmObj expected_quo = SCM_OBJ_INIT, expected_rem = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&fn1, &fn2, &quo, &rem,
-                       &expected_quo, &expected_rem);
+                      &expected_quo, &expected_rem);
 
   fn1 = read_cstr("-5");
   fn2 = read_cstr("2");
@@ -1784,7 +1784,7 @@ TEST(api_fixnum, capi_floor_div__3)
   ScmObj expected_quo = SCM_OBJ_INIT, expected_rem = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&fn1, &fn2, &quo, &rem,
-                       &expected_quo, &expected_rem);
+                      &expected_quo, &expected_rem);
 
   fn1 = read_cstr("5");
   fn2 = read_cstr("-2");
@@ -1809,7 +1809,7 @@ TEST(api_fixnum, capi_floor_div__4)
   ScmObj expected_quo = SCM_OBJ_INIT, expected_rem = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&fn1, &fn2, &quo, &rem,
-                       &expected_quo, &expected_rem);
+                      &expected_quo, &expected_rem);
 
   fn1 = read_cstr("-5");
   fn2 = read_cstr("-2");
@@ -1851,7 +1851,7 @@ TEST(api_fixnum, capi_truncate_div__1)
   ScmObj expected_quo = SCM_OBJ_INIT, expected_rem = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&fn1, &fn2, &quo, &rem,
-                       &expected_quo, &expected_rem);
+                      &expected_quo, &expected_rem);
 
   fn1 = read_cstr("5");
   fn2 = read_cstr("2");
@@ -1876,7 +1876,7 @@ TEST(api_fixnum, capi_truncate_div__2)
   ScmObj expected_quo = SCM_OBJ_INIT, expected_rem = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&fn1, &fn2, &quo, &rem,
-                       &expected_quo, &expected_rem);
+                      &expected_quo, &expected_rem);
 
   fn1 = read_cstr("-5");
   fn2 = read_cstr("2");
@@ -1901,7 +1901,7 @@ TEST(api_fixnum, capi_truncate_div__3)
   ScmObj expected_quo = SCM_OBJ_INIT, expected_rem = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&fn1, &fn2, &quo, &rem,
-                       &expected_quo, &expected_rem);
+                      &expected_quo, &expected_rem);
 
   fn1 = read_cstr("5");
   fn2 = read_cstr("-2");
@@ -1926,7 +1926,7 @@ TEST(api_fixnum, capi_truncate_div__4)
   ScmObj expected_quo = SCM_OBJ_INIT, expected_rem = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&fn1, &fn2, &quo, &rem,
-                       &expected_quo, &expected_rem);
+                      &expected_quo, &expected_rem);
 
   fn1 = read_cstr("-5");
   fn2 = read_cstr("-2");
