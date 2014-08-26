@@ -299,7 +299,10 @@ scm_bedrock_search_gv(const char *sym_str, const char * const *name_str, size_t 
   ScmObj name_sym[n];
   int r;
 
+  for (size_t i = 0; i < n; i++) name_sym[i] = SCM_OBJ_NULL;
+
   SCM_REFSTK_INIT_REG(&sym, &mod, &name);
+  SCM_REFSTK_REG_ARY(name_sym, n);
 
   scm_assert(sym_str != NULL);
   scm_assert(name_str != NULL);
@@ -308,7 +311,6 @@ scm_bedrock_search_gv(const char *sym_str, const char * const *name_str, size_t 
   for (size_t i = 0; i < n; i++) {
     name_sym[i] = scm_capi_make_symbol_from_cstr(name_str[i], SCM_ENC_SRC);
     if (scm_obj_null_p(name_sym[i])) return -1;
-    SCM_REFSTK_REG(name_sym + i);
   }
 
   sym = scm_capi_make_symbol_from_cstr(sym_str, SCM_ENC_SRC);

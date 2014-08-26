@@ -406,9 +406,7 @@ TEST(api_pair_and_lists, capi_list_cv)
   ScmObj lst = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&lst, &expected);
-
-  for (size_t i = 0; i < sizeof(objs)/sizeof(objs[0]); i++)
-    SCM_REFSTK_REG(&objs[i]);
+  SCM_REFSTK_REG_ARY(objs, 2);
 
   expected = read_cstr("(#t #f)");
 
@@ -433,9 +431,7 @@ TEST(api_pair_and_lists, capi_list_cv__return_ERROR)
   ScmObj objs[2] = { SCM_TRUE_OBJ, SCM_OBJ_NULL };
 
   SCM_REFSTK_INIT;
-
-  for (size_t i = 0; i < sizeof(objs)/sizeof(objs[0]); i++)
-    SCM_REFSTK_REG(&objs[i]);
+  SCM_REFSTK_REG_ARY(objs, 2);
 
   TEST_ASSERT_SCM_NULL(scm_capi_list_cv(objs, 2));
 }
@@ -605,9 +601,7 @@ TEST(api_pair_and_lists, capi_append_cv)
   ScmObj lst = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&lst, &expected);
-
-  for (size_t i = 0; i < sizeof(lists)/sizeof(lists[0]); i++)
-    SCM_REFSTK_REG(&lists[i]);
+  SCM_REFSTK_REG_ARY(lists, 2);
 
   expected = read_cstr("(a b c d)");
 
@@ -625,9 +619,7 @@ TEST(api_pair_and_lists, capi_append_cv__passing_empty_list)
   ScmObj lst = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&lst, &expected);
-
-  for (size_t i = 0; i < sizeof(lists)/sizeof(lists[0]); i++)
-    SCM_REFSTK_REG(&lists[i]);
+  SCM_REFSTK_REG_ARY(lists, 2);
 
   expected = read_cstr("a");
 
@@ -650,9 +642,7 @@ TEST(api_pair_and_lists, capi_append_cv__passing_not_list__return_ERROR)
   ScmObj lst = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&lst, &expected);
-
-  for (size_t i = 0; i < sizeof(lists)/sizeof(lists[0]); i++)
-    SCM_REFSTK_REG(&lists[i]);
+  SCM_REFSTK_REG_ARY(lists, 2);
 
   lists[0] = read_cstr("foo");
   lists[1] = read_cstr("a");
@@ -666,9 +656,7 @@ TEST(api_pair_and_lists, capi_append_cv__return_ERROR)
   ScmObj lst = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&lst);
-
-  for (size_t i = 0; i < sizeof(lists)/sizeof(lists[0]); i++)
-    SCM_REFSTK_REG(&lists[i]);
+  SCM_REFSTK_REG_ARY(lists, 2);
 
   lists[0] = read_cstr("a");
   lists[1] = read_cstr("(b c)");
@@ -682,9 +670,7 @@ TEST(api_pair_and_lists, capi_append)
   ScmObj lst = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&lst, &expected);
-
-  for (size_t i = 0; i < sizeof(lists)/sizeof(lists[0]); i++)
-    SCM_REFSTK_REG(&lists[i]);
+  SCM_REFSTK_REG_ARY(lists, 2);
 
   expected = read_cstr("(a b c d)");
 
@@ -702,9 +688,7 @@ TEST(api_pair_and_lists, capi_append__passing_empty_list)
   ScmObj lst = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&lst, &expected);
-
-  for (size_t i = 0; i < sizeof(lists)/sizeof(lists[0]); i++)
-    SCM_REFSTK_REG(&lists[i]);
+  SCM_REFSTK_REG_ARY(lists, 2);
 
   expected = read_cstr("a");
 
@@ -727,9 +711,7 @@ TEST(api_pair_and_lists, capi_append__return_ERROR)
   ScmObj lst = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&lst);
-
-  for (size_t i = 0; i < sizeof(lists)/sizeof(lists[0]); i++)
-    SCM_REFSTK_REG(&lists[i]);
+  SCM_REFSTK_REG_ARY(lists, 2);
 
   lists[0] = read_cstr("a");
   lists[1] = read_cstr("(b c)");

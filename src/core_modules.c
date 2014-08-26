@@ -23,14 +23,16 @@ scm_make_module_name(const char * const *name_str, size_t n)
   ScmObj str[n];
   ScmObj name = SCM_OBJ_INIT;
 
+  for (size_t i = 0; i < n; i++) str[i] = SCM_OBJ_NULL;
+
   SCM_REFSTK_INIT_REG(&name);
+  SCM_REFSTK_REG_ARY(str, n);
 
   scm_assert(n > 0);
 
   for (size_t i = 0; i < n; i++) {
     str[i] = scm_capi_make_symbol_from_cstr(name_str[i], SCM_ENC_SRC);
     if (scm_obj_null_p(str[i])) return SCM_OBJ_NULL;
-    SCM_REFSTK_REG(&str[i]);
   }
 
   name = SCM_NIL_OBJ;

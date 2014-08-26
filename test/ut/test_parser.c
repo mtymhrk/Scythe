@@ -271,13 +271,15 @@ make_list_of_symbol(bool proper, size_t n, ...)
   size_t x;
   va_list ap;
 
+  for (size_t i = 0; i < n; i++) s[i] = SCM_OBJ_NULL;
+
   SCM_REFSTK_INIT_REG(&l);
+  SCM_REFSTK_REG_ARY(s, n);
 
   va_start(ap, n);
   for (size_t i = 0; i < n; i++) {
     const char *p = va_arg(ap, const char *);
     s[i] = scm_capi_make_symbol_from_cstr(p, SCM_ENC_SRC);
-    SCM_REFSTK_REG(&s[i]);
   }
   va_end(ap);
 
@@ -302,7 +304,10 @@ make_vector_of_symbol(size_t n, ...)
   ScmObj s[n];
   va_list ap;
 
+  for (size_t i = 0; i < n; i++) s[i] = SCM_OBJ_NULL;
+
   SCM_REFSTK_INIT;
+  SCM_REFSTK_REG_ARY(s, n);
 
   va_start(ap, n);
   for (size_t i = 0; i < n; i++) {

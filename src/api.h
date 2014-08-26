@@ -29,6 +29,22 @@ bool scm_capi_fatal_p(void);
   ScmRefStackInfo SCM_CONCAT_SYMBOL__(scm_ref_stack_info__, __LINE__) = { .stack = NULL }; \
   scm_capi_ref_stack_save(&SCM_CONCAT_SYMBOL__(scm_ref_stack_info__, __LINE__));
 
+#define SCM_REFSTK_BLK_INIT(name, ...)                  \
+  ScmRefStackBlock name = {                             \
+    .next = NULL,                                       \
+    .type = SCM_REFSTACK_RARY,                          \
+    .ref = { .rary = (ScmObj *[]){__VA_ARGS__, NULL} }  \
+  }
+
+#define SCM_REFSTK_BLK_INIT_ARY(name, a, l)       \
+  ScmRefStackBlock name = {                       \
+    .next = NULL,                                 \
+    .type = SCM_REFSTACK_ARY,                     \
+    .ref = { .ary = { .head = (a), .n = (l)} }    \
+  }
+
+#define SCM_REFSTK_PUSH(name) scm_capi_ref_stack_push(&(name));
+
 #define SCM_REFSTK_REG(...)                                             \
   scm_capi_ref_stack_push(&(ScmRefStackBlock){                          \
       .next = NULL,                                                     \

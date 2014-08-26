@@ -836,8 +836,7 @@ scm_capi_list(size_t n, ...)
     args[i] = va_arg(ap, ScmObj);
   va_end(ap);
 
-  for (unsigned int i = 0; i < n; i++)
-    SCM_REFSTK_REG(args + i);
+  SCM_REFSTK_REG_ARY(args, n);
 
   return scm_capi_list_cv(args, n);
 }
@@ -1003,8 +1002,7 @@ scm_capi_append(size_t n, ...)
     args[i] = va_arg(ap, ScmObj);
   va_end(ap);
 
-  for (size_t i = 0; i < n; i++)
-    SCM_REFSTK_REG(args + i);
+  SCM_REFSTK_REG_ARY(args, n);
 
   return scm_capi_append_cv(args, n);
 }
@@ -3224,8 +3222,7 @@ scm_capi_string(size_t n, ...)
     args[i] = va_arg(ap, ScmObj);
   va_end(ap);
 
-  for (size_t i = 0; i < n; i++)
-    SCM_REFSTK_REG(args + i);
+  SCM_REFSTK_REG_ARY(args, n);
 
   return scm_capi_string_cv(args, n);
 }
@@ -3863,8 +3860,7 @@ scm_capi_string_append(size_t n, ...)
     args[i] = va_arg(ap, ScmObj);
   va_end(ap);
 
-  for (unsigned int i = 0; i < n; i++)
-    SCM_REFSTK_REG(args + i);
+  SCM_REFSTK_REG_ARY(args, n);
 
   return scm_capi_string_append_cv(args, n);
 }
@@ -3876,7 +3872,10 @@ scm_capi_string_to_list_aux(ScmObj str, size_t pos, size_t len)
   ScmObj o_ary[len];
   ScmEncoding *enc;
 
+  for (size_t i = 0; i < len; i++) o_ary[i] = SCM_OBJ_NULL;
+
   SCM_REFSTK_INIT_REG(&str);
+  SCM_REFSTK_REG_ARY(o_ary, len);
 
   p = scm_string_to_char_ary(str, pos, (ssize_t)len, c_ary);
   if (p == NULL) return SCM_OBJ_NULL;
@@ -3885,7 +3884,6 @@ scm_capi_string_to_list_aux(ScmObj str, size_t pos, size_t len)
 
   for (size_t i = 0; i < len; i++) {
     o_ary[i] = scm_char_new(SCM_MEM_ALLOC_HEAP, c_ary + i, enc);
-    SCM_REFSTK_REG(&o_ary[i]);
 
     if (scm_obj_null_p(o_ary[i])) return SCM_OBJ_NULL;
   }
@@ -4523,11 +4521,11 @@ scm_capi_vector(size_t n, ...)
   SCM_REFSTK_INIT_REG(&vec);
 
   va_start(ap, n);
-  for (size_t i = 0; i < n; i++) {
+  for (size_t i = 0; i < n; i++)
     args[i] = va_arg(ap, ScmObj);
-    SCM_REFSTK_REG(args + i);
-  }
   va_end(ap);
+
+  SCM_REFSTK_REG_ARY(args, n);
 
   return scm_capi_vector_cv(args, n);
 }
@@ -4779,7 +4777,10 @@ scm_capi_string_to_vector_aux(ScmObj str, size_t start, size_t n)
   scm_char_t ary[n], *p;
   ScmEncoding *enc;
 
+  for (size_t i = 0; i < n; i++) elm[i] = SCM_OBJ_NULL;
+
   SCM_REFSTK_INIT_REG(&str);
+  SCM_REFSTK_REG_ARY(elm, n);
 
   p = scm_string_to_char_ary(str, start, (ssize_t)n, ary);
   if (p == NULL) return SCM_OBJ_NULL;
@@ -4788,8 +4789,6 @@ scm_capi_string_to_vector_aux(ScmObj str, size_t start, size_t n)
 
   for (size_t i = 0; i < n; i++) {
     elm[i] = scm_char_new(SCM_MEM_ALLOC_HEAP, ary + i, enc);
-    SCM_REFSTK_REG(&elm[i]);
-
     if (scm_obj_null_p(elm[i])) return SCM_OBJ_NULL;
   }
 
@@ -5142,11 +5141,11 @@ scm_capi_vector_append(size_t n, ...)
   SCM_REFSTK_INIT;
 
   va_start(ap, n);
-  for (size_t i = 0; i < n; i++) {
+  for (size_t i = 0; i < n; i++)
     ary[i] = va_arg(ap, ScmObj);
-    SCM_REFSTK_REG(&ary[i]);
-  }
   va_end(ap);
+
+  SCM_REFSTK_REG_ARY(ary, n);
 
   return scm_capi_vector_append_cv(ary, n);
 }
@@ -5313,10 +5312,10 @@ scm_capi_terror_aux(const char *type, const char *msg, size_t n, va_list arg)
     return 0;
   }
 
-  for (size_t i = 0; i < n; i++) {
+  for (size_t i = 0; i < n; i++)
     irris[i] = va_arg(arg, ScmObj);
-    SCM_REFSTK_REG(irris + i);
-  }
+
+  SCM_REFSTK_REG_ARY(irris, n);
 
   sym = SCM_OBJ_NULL;
   if (type != NULL) {
@@ -8220,10 +8219,10 @@ scm_api_pformat_aux(ScmObj port, ScmObj fmt, const char *cfmt,
 
   SCM_REFSTK_INIT_REG(&port, &fmt);
 
-  for (size_t i = 0; i < n; i++) {
+  for (size_t i = 0; i < n; i++)
     obj[i] = va_arg(arg, ScmObj);
-    SCM_REFSTK_REG(obj + i);
-  }
+
+  SCM_REFSTK_REG_ARY(obj, n);
 
   if (scm_obj_null_p(fmt)) {
     fmt = scm_capi_make_string_from_cstr(cfmt, SCM_ENC_SRC);
