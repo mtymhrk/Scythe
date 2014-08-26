@@ -3638,7 +3638,11 @@ scm_vm_gc_accept_stack(ScmObj vm, ScmObj mem, ScmGCRefHandlerFunc handler)
   rslt = scm_vm_ef_gc_accept(vm, &SCM_VM(vm)->reg.efp, mem, handler);
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
-  rslt = scm_vm_ef_gc_accept(vm, &SCM_VM(vm)->reg.pefp, mem, handler);
+  /* XXX: scm_vm_pef_gc_accept の呼び出しの前に、SCM_VM(vm)->stack に対して
+   *      GC の handler を実行している必要がある。
+   */
+  rslt = scm_vm_pef_gc_accept(vm, SCM_VM(vm)->stack, SCM_VM(vm)->reg.pefp,
+                              mem, handler);
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
   return rslt;

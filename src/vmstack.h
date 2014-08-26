@@ -67,6 +67,8 @@ struct ScmCntFrameRec {
 
 int scm_vm_ef_gc_accept(ScmObj owner, ScmEnvFrame **efp,
                         ScmObj mem, ScmGCRefHandlerFunc handler);
+int scm_vm_pef_gc_accept(ScmObj owner, ScmObj vmsr, ScmEnvFrame *fp,
+                         ScmObj mem, ScmGCRefHandlerFunc handler);
 int scm_vm_cf_gc_accept(ScmObj owner, ScmCntFrame *cfp,
                         ScmObj mem, ScmGCRefHandlerFunc handler);
 

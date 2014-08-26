@@ -50,6 +50,34 @@ scm_vm_ef_gc_accept(ScmObj owner, ScmEnvFrame **efp,
 }
 
 int
+scm_vm_pef_gc_accept(ScmObj owner, ScmObj vmsr, ScmEnvFrame *efp,
+                     ScmObj mem, ScmGCRefHandlerFunc handler)
+{
+  int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
+
+  scm_assert(scm_obj_not_null_p(owner));
+  scm_assert(scm_obj_not_null_p(vmsr));
+  scm_assert(scm_obj_not_null_p(mem));
+  scm_assert(handler != NULL);
+
+  /* XXX: GC 中に他のオブジェクト (vmsr: VMStckRc) にアクセスする実装になって
+   *      いる点に注意。scm_vmsr_include_p 内部で、VMStckRc の参照先オブジェク
+   *      トにアクセスしていて、そのオブジェクトが GC によってまだトレースされ
+   *      ていない場合はうまく動かない。
+   */
+  for (ScmEnvFrame *ef = efp;
+       scm_vmsr_include_p(vmsr, (scm_byte_t *)ef);
+       ef = scm_vm_ef_outer(ef)) {
+    for (size_t i = 0; i < ef->len; i++) {
+      rslt = SCM_GC_CALL_REF_HANDLER(handler, owner, ef->arg[i], mem);
+      if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
+    }
+  }
+
+  return rslt;
+}
+
+int
 scm_vm_cf_gc_accept(ScmObj owner, ScmCntFrame *cfp,
                     ScmObj mem, ScmGCRefHandlerFunc handler)
 {
@@ -367,7 +395,8 @@ scm_vmsr_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
   rslt = scm_vm_ef_gc_accept(obj, &SCM_VMSTCKRC(obj)->reg.efp, mem, handler);
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
-  rslt = scm_vm_ef_gc_accept(obj, &SCM_VMSTCKRC(obj)->reg.pefp, mem, handler);
+  rslt = scm_vm_pef_gc_accept(obj, obj, SCM_VMSTCKRC(obj)->reg.pefp,
+                              mem, handler);
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
   return rslt;
