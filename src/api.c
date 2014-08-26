@@ -7110,18 +7110,21 @@ scm_capi_opcode_to_opfmt(int opcode)
     SCM_OPFMT_NOOPD,            /* SCM_OPCODE_NOP */
     SCM_OPFMT_NOOPD,            /* SCM_OPCODE_HALT */
     SCM_OPFMT_NOOPD,            /* SCM_OPCODE_UNDEF */
-    SCM_OPFMT_SI,               /* SCM_OPCODE_CALL */
-    SCM_OPFMT_SI,               /* SCM_OPCODE_TAIL_CALL */
-    SCM_OPFMT_NOOPD,            /* SCM_OPCODE_RETURN */
-    SCM_OPFMT_NOOPD,            /* SCM_OPCODE_FRAME */
     SCM_OPFMT_NOOPD,            /* SCM_OPCODE_CFRAME */
+    SCM_OPFMT_SI,               /* SCM_OPCODE_CCOMMIT */
     SCM_OPFMT_NOOPD,            /* SCM_OPCODE_EFRAME */
     SCM_OPFMT_SI,               /* SCM_OPCODE_ECOMMIT */
     SCM_OPFMT_NOOPD,            /* SCM_OPCODE_EPOP */
+    SCM_OPFMT_SI   ,            /* SCM_OPCODE_ESHIFT */
     SCM_OPFMT_SI,               /* SCM_OPCODE_EREBIND */
+    SCM_OPFMT_NOOPD,            /* SCM_OPCODE_FRAME */
     SCM_OPFMT_OBJ,              /* SCM_OPCODE_IMMVAL */
     SCM_OPFMT_NOOPD,            /* SCM_OPCODE_PUSH */
     SCM_OPFMT_NOOPD,            /* SCM_OPCODE_MVPUSH */
+    SCM_OPFMT_NOOPD,            /* SCM_OPCODE_RETURN */
+    SCM_OPFMT_SI,               /* SCM_OPCODE_PCALL */
+    SCM_OPFMT_SI,               /* SCM_OPCODE_CALL */
+    SCM_OPFMT_SI,               /* SCM_OPCODE_TAIL_CALL */
     SCM_OPFMT_OBJ_OBJ,          /* SCM_OPCODE_GREF */
     SCM_OPFMT_OBJ_OBJ,          /* SCM_OPCODE_GDEF */
     SCM_OPFMT_OBJ_OBJ,          /* SCM_OPCODE_GSET */

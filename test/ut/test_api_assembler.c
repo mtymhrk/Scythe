@@ -196,29 +196,14 @@ TEST(api_assembler, undef)
   test_assemble_noopd("((undef)(nop))", SCM_OPCODE_UNDEF);
 }
 
-TEST(api_assembler, call)
-{
-  test_assemble_si("((call 5)(nop))", SCM_OPCODE_CALL, 5);
-}
-
-TEST(api_assembler, tcall)
-{
-  test_assemble_si("((tcall 5)(nop))", SCM_OPCODE_TAIL_CALL, 5);
-}
-
-TEST(api_assembler, return)
-{
-  test_assemble_noopd("((return)(nop))", SCM_OPCODE_RETURN);
-}
-
-TEST(api_assembler, frame)
-{
-  test_assemble_noopd("((frame)(nop))", SCM_OPCODE_FRAME);
-}
-
 TEST(api_assembler, cframe)
 {
   test_assemble_noopd("((cframe)(nop))", SCM_OPCODE_CFRAME);
+}
+
+TEST(api_assembler, ccommit)
+{
+  test_assemble_si("((ccommit 10)(nop))", SCM_OPCODE_CCOMMIT, 10);
 }
 
 TEST(api_assembler, eframe)
@@ -236,9 +221,19 @@ TEST(api_assembler, epop)
   test_assemble_noopd("((epop)(nop))", SCM_OPCODE_EPOP);
 }
 
+TEST(api_assembler, eshift)
+{
+  test_assemble_si("((eshift -1)(nop))", SCM_OPCODE_ESHIFT, -1);
+}
+
 TEST(api_assembler, erebind)
 {
   test_assemble_si("((erebind 21)(nop))", SCM_OPCODE_EREBIND, 21);
+}
+
+TEST(api_assembler, frame)
+{
+  test_assemble_noopd("((frame)(nop))", SCM_OPCODE_FRAME);
 }
 
 TEST(api_assembler, push)
@@ -249,6 +244,26 @@ TEST(api_assembler, push)
 TEST(api_assembler, mvpush)
 {
   test_assemble_noopd("((mvpush)(nop))", SCM_OPCODE_MVPUSH);
+}
+
+TEST(api_assembler, return)
+{
+  test_assemble_noopd("((return)(nop))", SCM_OPCODE_RETURN);
+}
+
+TEST(api_assembler, pcall)
+{
+  test_assemble_si("((pcall 5)(nop))", SCM_OPCODE_PCALL, 5);
+}
+
+TEST(api_assembler, call)
+{
+  test_assemble_si("((call 5)(nop))", SCM_OPCODE_CALL, 5);
+}
+
+TEST(api_assembler, tcall)
+{
+  test_assemble_si("((tcall 5)(nop))", SCM_OPCODE_TAIL_CALL, 5);
 }
 
 TEST(api_assembler, gref)
