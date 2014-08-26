@@ -431,7 +431,7 @@ ScmObj scm_vm_capture_cont(ScmObj vm);
 int scm_vm_reinstatement_cont(ScmObj vm, ScmObj cc, const ScmObj *val, int vc);
 ScmObj scm_vm_parameter_value(ScmObj vm, ScmObj var);
 int scm_vm_setup_stat_trmp(ScmObj vm, ScmObj proc, ScmObj args,
-                           ScmObj postproc, ScmObj handover);
+                           ScmObj postproc, ScmObj handover, bool tail);
 void scm_vm_setup_stat_halt(ScmObj vm);
 int scm_vm_setup_stat_raise(ScmObj vm, ScmObj obj);
 int scm_vm_setup_stat_call_exc_hndlr(ScmObj vm);

@@ -7927,7 +7927,7 @@ scm_capi_trampolining(ScmObj proc, ScmObj args,
   }
 
   return scm_vm_setup_stat_trmp(scm_vm_current_vm(), proc, args,
-                                postproc, handover);
+                                postproc, handover, true);
 }
 
 

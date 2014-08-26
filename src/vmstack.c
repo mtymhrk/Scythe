@@ -63,9 +63,6 @@ scm_vm_cf_gc_accept(ScmObj owner, ScmCntFrame *cfp,
     rslt = scm_vm_ef_gc_accept(owner, &cfp->efp, mem, handler);
     if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
-    rslt = scm_vm_ef_gc_accept(owner, &cfp->pefp, mem, handler);
-    if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
-
     rslt = SCM_GC_CALL_REF_HANDLER(handler, owner, cfp->cp, mem);
     if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 

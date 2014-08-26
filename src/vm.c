@@ -934,7 +934,7 @@ scm_vm_handle_stack_underflow(ScmObj vm)
 }
 
 static int
-scm_vm_make_cframe(ScmObj vm, ScmEnvFrame *efp, ScmEnvFrame *pefp, ScmObj cp)
+scm_vm_make_cframe(ScmObj vm, ScmEnvFrame *efp, ScmObj cp)
 {
   ScmCntFrame *cfp;
   scm_byte_t *next_sp;
@@ -973,14 +973,12 @@ scm_vm_make_cframe(ScmObj vm, ScmEnvFrame *efp, ScmEnvFrame *pefp, ScmObj cp)
              scm_vm_cf_init(cfp,
                             SCM_VM(vm)->reg.cfp,
                             efp,
-                            pefp,
                             cp,
                             NULL,
                             scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_PEF),
                             scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_PCF)));
 
   SCM_VM(vm)->reg.cfp = cfp;
-  SCM_VM(vm)->reg.pefp = NULL;
   SCM_VM(vm)->reg.sp = next_sp;
 
   scm_vm_ctrl_flg_set(vm, SCM_VM_CTRL_FLG_PCF);
@@ -1026,7 +1024,6 @@ scm_vm_pop_cframe(ScmObj vm)
 
   SCM_VM(vm)->reg.cfp = scm_vm_cf_next(cfp);
   SCM_VM(vm)->reg.efp = cfp->efp;
-  SCM_VM(vm)->reg.pefp = cfp->pefp;
   SCM_SLOT_SETQ(ScmVM, vm, reg.cp, cfp->cp);
   SCM_VM(vm)->reg.ip = cfp->ip;
 
@@ -1407,7 +1404,8 @@ scm_vm_make_proc_call_code(ScmObj iseq, ScmObj proc, ScmObj args, bool tail)
 
 static ScmObj
 scm_vm_make_trampolining_code(ScmObj vm, ScmObj proc,
-                              ScmObj args, ScmObj postproc, ScmObj handover)
+                              ScmObj args, ScmObj postproc, ScmObj handover,
+                              bool tail)
 {
   ScmObj iseq = SCM_OBJ_INIT;
   ssize_t rslt;
@@ -1419,10 +1417,12 @@ scm_vm_make_trampolining_code(ScmObj vm, ScmObj proc,
   scm_assert(scm_obj_null_p(postproc) || scm_capi_procedure_p(postproc));
 
   /* 以下の処理を実行する iseq オブエクトを生成する
-   * l args を引数として target クロージャを呼出す
-   *   (postproc が NULL の場合、target クロージャ の呼出は tail call とする)
-   * 2 postproc が非 NULL の場合、handover と target クロージャの戻り値を引数として
-   *   postproc を tail call する
+   * l args を引数として proc プロシージャを呼び出す
+   *   (tail が true かつ、postproc が NULL の場合、proc の呼び出しは
+   *    tail-call と する)
+   * 2 postproc が非 NULL の場合、handover と proc の戻り値を引数として
+   *   postproc を呼び出す
+   *   (tail が true の場合、postprco の呼び出しは tail-call とする)
    */
 
   iseq = scm_api_make_iseq();
@@ -1432,7 +1432,11 @@ scm_vm_make_trampolining_code(ScmObj vm, ScmObj proc,
   if (rslt < 0) return SCM_OBJ_NULL;
 
   if (!scm_obj_null_p(postproc)) {
-    rslt = scm_capi_iseq_push_opfmt_noarg(iseq, SCM_OPCODE_EFRAME);
+    if (tail)
+      rslt = scm_capi_iseq_push_opfmt_noarg(iseq, SCM_OPCODE_EFRAME);
+    else
+      rslt = scm_capi_iseq_push_opfmt_noarg(iseq, SCM_OPCODE_FRAME);
+
     if (rslt < 0) return SCM_OBJ_NULL;
 
     if (scm_obj_not_null_p(handover)) {
@@ -1444,7 +1448,8 @@ scm_vm_make_trampolining_code(ScmObj vm, ScmObj proc,
     }
   }
 
-  rslt = scm_vm_make_proc_call_code(iseq, proc, args, scm_obj_null_p(postproc));
+  rslt = scm_vm_make_proc_call_code(iseq, proc, args,
+                                    (tail && scm_obj_null_p(postproc)));
   if (rslt < 0) return SCM_OBJ_NULL;
 
   if (!scm_obj_null_p(postproc)) {
@@ -1454,8 +1459,20 @@ scm_vm_make_trampolining_code(ScmObj vm, ScmObj proc,
     rslt = scm_capi_iseq_push_opfmt_obj(iseq, SCM_OPCODE_IMMVAL, postproc);
     if (rslt < 0) return SCM_OBJ_NULL;
 
-    rslt = scm_capi_iseq_push_opfmt_noarg(iseq, SCM_OPCODE_TAIL_APPLY);
-    if (rslt < 0) return SCM_OBJ_NULL;
+    if (tail) {
+      rslt = scm_capi_iseq_push_opfmt_noarg(iseq, SCM_OPCODE_TAIL_APPLY);
+      if (rslt < 0) return SCM_OBJ_NULL;
+    }
+    else {
+      rslt = scm_capi_iseq_push_opfmt_noarg(iseq, SCM_OPCODE_APPLY);
+      if (rslt < 0) return SCM_OBJ_NULL;
+
+      rslt = scm_capi_iseq_push_opfmt_noarg(iseq, SCM_OPCODE_NOP);
+      if (rslt < 0) return SCM_OBJ_NULL;
+
+      rslt = scm_capi_iseq_push_opfmt_noarg(iseq, SCM_OPCODE_HALT);
+      if (rslt < 0) return SCM_OBJ_NULL;
+    }
   }
 
   return iseq;
@@ -1679,25 +1696,23 @@ scm_vm_do_op_call(ScmObj vm, SCM_OPCODE_T op, int argc, bool tail_p)
   if (tail_p) {
     scm_byte_t *ef_dst;
 
-    /* cfp レジスタが指している cframe は pertial ではない
-     * (SCM_VM_CTRL_FLG_PCF フラグが立っていない) ことが前提。しかし、例外が発
-     * 生しそのために exception handler caller プロシージャをトランポリンコード
-     * から呼び出す (この時の呼出は tail call になる) 場合には、efp レジスタが
-     * partial cframe を指している可能性がある (例えば、do_op_call 関数内部で、
-     * scm_vm_commit_cframe() を実行するまでの間にエラーが発生した場合)。ただ
-     * し、exception handler caller は exception handler が無くなるまで末尾再帰
-     * を続け、RETURN 命令を実行しないため、問題にはならないはずである
-     * (exception hanlder が無くなった場合、RETURN 命令は実行せず、VM の実行が停
-     * 止する)。
-     */
+    if (scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_PCF)) {
+      scm_capi_error("invalid operation of VM stack: "
+                     "tail call with partial continuation frame", 0);
+      return -1;
+    }
+
     if (scm_vmsr_include_p(SCM_VM(vm)->stack,
                            (scm_byte_t *)SCM_VM(vm)->reg.cfp))
       ef_dst = (scm_byte_t *)SCM_VM(vm)->reg.cfp + sizeof(ScmCntFrame);
     else
       ef_dst = scm_vmsr_base(SCM_VM(vm)->stack);
 
-    SCM_VM(vm)->reg.pefp = NULL;
-    scm_vm_ctrl_flg_clr(vm, SCM_VM_CTRL_FLG_PEF);
+    if (scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_PEF)) {
+      scm_capi_error("invalid operation of VM stack: "
+                     "partial stack frame link will be broken", 0);
+      return -1;
+    }
 
     if (nr_bind > 0) {
       if (SCM_VM(vm)->reg.efp > (ScmEnvFrame *)ef_dst) {
@@ -1867,7 +1882,6 @@ scm_vm_do_op_frame(ScmObj vm, SCM_OPCODE_T op)
 
   rslt = scm_vm_make_cframe(vm,
                             SCM_VM(vm)->reg.efp,
-                            SCM_VM(vm)->reg.pefp,
                             SCM_VM(vm)->reg.cp);
   if (rslt < 0) return -1;
 
@@ -2008,7 +2022,6 @@ scm_vm_op_cframe(ScmObj vm, SCM_OPCODE_T op)
 
   rslt = scm_vm_make_cframe(vm,
                             SCM_VM(vm)->reg.efp,
-                            SCM_VM(vm)->reg.pefp,
                             SCM_VM(vm)->reg.cp);
   if (rslt < 0) return -1;
 
@@ -3255,7 +3268,8 @@ scm_vm_parameter_value(ScmObj vm, ScmObj var)
 
 int
 scm_vm_setup_stat_trmp(ScmObj vm, ScmObj proc, ScmObj args,
-                       ScmObj postproc, ScmObj handover)
+                       ScmObj postproc, ScmObj handover,
+                       bool tail)
 {
   ScmObj trmp_code = SCM_OBJ_INIT, trmp_clsr = SCM_OBJ_INIT, env = SCM_OBJ_INIT;
   scm_byte_t *ip;
@@ -3269,7 +3283,8 @@ scm_vm_setup_stat_trmp(ScmObj vm, ScmObj proc, ScmObj args,
   scm_assert(scm_capi_nil_p(args) || scm_capi_pair_p(args));
   scm_assert(scm_obj_null_p(postproc) || scm_capi_procedure_p(postproc));
 
-  trmp_code = scm_vm_make_trampolining_code(vm, proc, args, postproc, handover);
+  trmp_code = scm_vm_make_trampolining_code(vm, proc, args,
+                                            postproc, handover, tail);
   if (scm_obj_null_p(trmp_code)) return -1;
 
   env = SCM_OBJ_NULL;
@@ -3287,7 +3302,6 @@ scm_vm_setup_stat_trmp(ScmObj vm, ScmObj proc, ScmObj args,
 
   rslt = scm_vm_make_cframe(vm,
                             SCM_VM(vm)->reg.efp,
-                            SCM_VM(vm)->reg.pefp,
                             trmp_clsr);
   if (rslt < 0) return -1;
 
@@ -3345,7 +3359,7 @@ scm_vm_setup_stat_call_exc_hndlr(ScmObj vm)
 
   return scm_vm_setup_stat_trmp(vm,
                                 scm_bedrock_exc_hndlr_caller(scm_vm_current_br()),
-                                args, SCM_OBJ_NULL, SCM_OBJ_NULL);
+                                args, SCM_OBJ_NULL, SCM_OBJ_NULL, false);
 }
 
 int
@@ -3370,7 +3384,7 @@ scm_vm_setup_stat_call_exc_hndlr_cont(ScmObj vm)
 
   return scm_vm_setup_stat_trmp(vm,
                                 scm_bedrock_exc_hndlr_caller_cont(scm_vm_current_br()),
-                                args, SCM_OBJ_NULL, SCM_OBJ_NULL);
+                                args, SCM_OBJ_NULL, SCM_OBJ_NULL, true);
 
   return 0;
 }
@@ -3456,10 +3470,8 @@ scm_vm_subr_exc_hndlr_caller(ScmObj subr, int argc, const ScmObj *argv)
   if (scm_obj_null_p(hndlr)) {
     SCM_SLOT_SETQ(ScmVM, vm, reg.exc, argv[0]);
     scm_vm_setup_stat_halt(vm);
-    ret = -1;   /* 戻り値を -1 にするのは exception handler caller サブルーチ
-                   ンの return 処理を抑制するため。抑制しないと、cframe が一つ
-                   も積まれていない状況で例外処理機構が起動した場合に return
-                   処理で stack underflow が発生してしまう */
+    val = SCM_UNDEF_OBJ;
+    ret = scm_vm_set_val_reg(vm, &val, 1);
     goto end;
   }
 
@@ -3469,7 +3481,7 @@ scm_vm_subr_exc_hndlr_caller(ScmObj subr, int argc, const ScmObj *argv)
   hndlr_arg = scm_api_cons(argv[0], SCM_NIL_OBJ);
   if (scm_obj_null_p(hndlr_arg)) return -1;
 
-  ret = scm_vm_setup_stat_trmp(vm, hndlr, hndlr_arg, subr, argv[0]);
+  ret = scm_vm_setup_stat_trmp(vm, hndlr, hndlr_arg, subr, argv[0], true);
 
  end:
   scm_vm_ctrl_flg_clr(vm, SCM_VM_CTRL_FLG_RAISE);
@@ -3497,10 +3509,8 @@ scm_vm_subr_exc_hndlr_caller_cont(ScmObj subr, int argc, const ScmObj *argv)
   if (scm_obj_null_p(hndlr)) {
     SCM_SLOT_SETQ(ScmVM, vm, reg.exc, argv[0]);
     scm_vm_setup_stat_halt(vm);
-    ret = -1;   /* scm_vm_subr_exc_hndlr_caller とは異り、return 処理を抑制
-                   する必要はないが、exception handler が無い場合の戻り値を
-                   scm_vm_subr_exc_hndlr_caller と統一するため、-1 を戻り値
-                   にする */
+    val = SCM_UNDEF_OBJ;
+    ret = scm_vm_set_val_reg(vm, &val, 1);
     goto end;
   }
 
@@ -3512,7 +3522,7 @@ scm_vm_subr_exc_hndlr_caller_cont(ScmObj subr, int argc, const ScmObj *argv)
 
   ret = scm_vm_setup_stat_trmp(vm, hndlr, hndlr_arg,
                                scm_bedrock_exc_hndlr_caller_post(scm_vm_current_br()),
-                               hndlr);
+                               hndlr, true);
 
  end:
   scm_vm_ctrl_flg_clr(vm, SCM_VM_CTRL_FLG_RAISE);
