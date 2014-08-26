@@ -1085,12 +1085,7 @@ static int
 scm_vm_commit_eframe(ScmObj vm, ScmEnvFrame *efp, size_t nr_arg)
 {
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-
-  if (!scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_PEF)) {
-    scm_capi_error("invalid operation of VM stack: "
-                   "partial environment frame is not pushed", 0);
-    return -1;
-  }
+  scm_assert(scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_PEF));
 
   SCM_VM(vm)->reg.efp = SCM_VM(vm)->reg.pefp;
   SCM_VM(vm)->reg.pefp = scm_vm_ef_outer(SCM_VM(vm)->reg.pefp);
@@ -1110,12 +1105,7 @@ scm_vm_cancel_eframe(ScmObj vm)
   int rslt;
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-
-  if (!scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_PEF)) {
-    scm_capi_error("invalid operation of VM stack: "
-                   "partial environment frame is not pushed", 0);
-    return -1;
-  }
+  scm_assert(scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_PEF));
 
   pefp = SCM_VM(vm)->reg.pefp;
   SCM_VM(vm)->reg.pefp = scm_vm_ef_outer(pefp);
@@ -1137,14 +1127,9 @@ scm_vm_pop_eframe(ScmObj vm)
   int rslt;
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+  scm_assert(!scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_PEF));
 
   efp = SCM_VM(vm)->reg.efp;
-
-  if (scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_PEF)) {
-    scm_capi_error("invalid operation of VM stack: "
-                   "partial stack frame link will be broken", 0);
-    return -1;
-  }
 
   SCM_VM(vm)->reg.efp = scm_vm_ef_outer(efp);
 
@@ -1696,11 +1681,8 @@ scm_vm_do_op_call(ScmObj vm, SCM_OPCODE_T op, int argc, bool tail_p)
   if (tail_p) {
     scm_byte_t *ef_dst;
 
-    if (scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_PCF)) {
-      scm_capi_error("invalid operation of VM stack: "
-                     "tail call with partial continuation frame", 0);
-      return -1;
-    }
+    scm_assert(!scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_PCF));
+    scm_assert(!scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_PEF));
 
     if (scm_vmsr_include_p(SCM_VM(vm)->stack,
                            (scm_byte_t *)SCM_VM(vm)->reg.cfp))
@@ -1708,11 +1690,6 @@ scm_vm_do_op_call(ScmObj vm, SCM_OPCODE_T op, int argc, bool tail_p)
     else
       ef_dst = scm_vmsr_base(SCM_VM(vm)->stack);
 
-    if (scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_PEF)) {
-      scm_capi_error("invalid operation of VM stack: "
-                     "partial stack frame link will be broken", 0);
-      return -1;
-    }
 
     if (nr_bind > 0) {
       if (SCM_VM(vm)->reg.efp > (ScmEnvFrame *)ef_dst) {
@@ -1795,15 +1772,9 @@ scm_vm_do_op_push(ScmObj vm, SCM_OPCODE_T op)
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
   scm_assert(SCM_VM(vm)->reg.vc > 0);
-
-  if (!scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_PEF)) {
-    /* 現状、VM stack の GC の制約上、pertial environmnet frame がスタック
-       のトップにないとプッシュできない */
-    scm_capi_error("invlid operation of VM stack: "
-                   "push instruction can be executed only while "
-                   "partial environment frame is in top of stack", 0);
-    return -1;
-  }
+  scm_assert(scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_PEF));
+  /* 現状、VM stack の GC の制約上、pertial environmnet frame がスタック
+     のトップにないとプッシュできない */
 
   sp = SCM_VM(vm)->reg.sp + sizeof(ScmObj);
   if (scm_vmsr_overflow_p(SCM_VM(vm)->stack, sp)) {
@@ -1831,15 +1802,9 @@ scm_vm_do_op_mvpush(ScmObj vm, SCM_OPCODE_T op)
                       &val);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-
-  if (!scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_PEF)) {
-    /* 現状、VM stack の GC の制約上、pertial environmnet frame がスタック
-       のトップにないとプッシュできない */
-    scm_capi_error("invlid operation of VM stack: "
-                   "push instruction can be executed only while "
-                   "partial environment frame is in top of stack", 0);
-    return -1;
-  }
+  scm_assert(scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_PEF));
+  /* 現状、VM stack の GC の制約上、pertial environmnet frame がスタック
+     のトップにないとプッシュできない */
 
   sp = SCM_VM(vm)->reg.sp + sizeof(ScmObj) * (size_t)SCM_VM(vm)->reg.vc;
   if (scm_vmsr_overflow_p(SCM_VM(vm)->stack, sp)) {
@@ -1948,12 +1913,7 @@ scm_vm_op_apply(ScmObj vm, SCM_OPCODE_T op)
   ptrdiff_t argc;
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-
-  if (!scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_PEF)) {
-    scm_capi_error("invalid operation of VM stack: "
-                   "partial environment frame is not pushed", 0);
-    return -1;
-  }
+  scm_assert(scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_PEF));
 
   argc = SCM_VM(vm)->reg.sp - (scm_byte_t *)SCM_VM(vm)->reg.pefp;
   argc -= (ptrdiff_t)sizeof(ScmEnvFrame);
@@ -2093,26 +2053,11 @@ scm_vm_op_erebind(ScmObj vm, SCM_OPCODE_T op)
 
   SCM_VM(vm)->reg.ip = ip;
 
-  if (SCM_VM(vm)->reg.efp == NULL) {
-    scm_capi_error("invalid operation of enviromnet frame: "
-                   "enviroment frame to be rebound is not exist", 0);
-    return -1;
-  }
-
-  if (!scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_PEF)) {
-    scm_capi_error("invalid operation of VM stack: "
-                   "partial environment frame is not pushed", 0);
-    return -1;
-  }
-
-  if (scm_vmsr_include_p(SCM_VM(vm)->stack,
-                         (scm_byte_t *)SCM_VM(vm)->reg.efp)) {
-    if (scm_vm_ef_maked_on_pef_p(SCM_VM(vm)->reg.pefp)) {
-      scm_capi_error("invalid operation of VM stack: "
-                     "partial stack frame link will be broken", 0);
-      return -1;
-    }
-  }
+  scm_assert(SCM_VM(vm)->reg.efp != NULL);
+  scm_assert(scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_PEF));
+  scm_assert(!(scm_vmsr_include_p(SCM_VM(vm)->stack,
+                                  (scm_byte_t *)SCM_VM(vm)->reg.efp)
+               &&scm_vm_ef_maked_on_pef_p(SCM_VM(vm)->reg.pefp)));
 
   rslt = scm_vm_do_op_ecommit(vm, op, (size_t)argc);
   if (rslt < 0) return -1;
