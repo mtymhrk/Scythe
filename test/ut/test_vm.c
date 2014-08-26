@@ -7,6 +7,7 @@
 TEST_GROUP(vm);
 
 static ScmEvaluator *ev;
+static ScmRefStackInfo rsi;
 static ScmObj vm;
 
 TEST_SETUP(vm)
@@ -14,10 +15,12 @@ TEST_SETUP(vm)
   ev = scm_capi_evaluator();
   scm_capi_evaluator_make_vm(ev);
   vm = scm_vm_current_vm();
+  scm_capi_ref_stack_save(&rsi);
 }
 
 TEST_TEAR_DOWN(vm)
 {
+  scm_capi_ref_stack_restore(&rsi);
   scm_capi_evaluator_end(ev);
 }
 

@@ -6,15 +6,18 @@
 TEST_GROUP(api_vectors);
 
 static ScmEvaluator *ev;
+static ScmRefStackInfo rsi;
 
 TEST_SETUP(api_vectors)
 {
   ev = scm_capi_evaluator();
   scm_capi_evaluator_make_vm(ev);
+  scm_capi_ref_stack_save(&rsi);
 }
 
 TEST_TEAR_DOWN(api_vectors)
 {
+  scm_capi_ref_stack_restore(&rsi);
   scm_capi_evaluator_end(ev);
 }
 

@@ -7,6 +7,7 @@ TEST_GROUP(api_output);
 #define TEST_FILE_PATH "test_api_output_test_file"
 
 static ScmEvaluator *ev;
+static ScmRefStackInfo rsi;
 static ScmObj file_port = SCM_OBJ_INIT;
 static ScmObj string_port = SCM_OBJ_INIT;
 
@@ -20,6 +21,7 @@ TEST_SETUP(api_output)
 {
   ev = scm_capi_evaluator();
   scm_capi_evaluator_make_vm(ev);
+  scm_capi_ref_stack_save(&rsi);
 
   file_port = string_port = SCM_OBJ_NULL;
   scm_capi_mem_register_extra_rfrn(SCM_REF_MAKE(file_port));
@@ -32,6 +34,7 @@ TEST_TEAR_DOWN(api_output)
 {
   delete_test_file();
 
+  scm_capi_ref_stack_restore(&rsi);
   scm_capi_evaluator_end(ev);
 }
 

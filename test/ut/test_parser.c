@@ -9,16 +9,21 @@
 TEST_GROUP(parser);
 
 static ScmEvaluator *ev;
+static ScmRefStackInfo rsi;
+
 static void (*tear_down_func)(void);
 
 TEST_SETUP(parser)
 {
   ev = scm_capi_evaluator();
   scm_capi_evaluator_make_vm(ev);
+  scm_capi_ref_stack_save(&rsi);
 }
 
 TEST_TEAR_DOWN(parser)
 {
+  scm_capi_ref_stack_restore(&rsi);
+
   if (tear_down_func != NULL)
     tear_down_func();
 

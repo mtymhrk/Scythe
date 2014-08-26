@@ -5,16 +5,19 @@
 TEST_GROUP(exec_syntax);
 
 static ScmEvaluator *ev;
+static ScmRefStackInfo rsi;
 
 TEST_SETUP(exec_syntax)
 {
   ev = scm_capi_evaluator();
   scm_capi_evaluator_make_vm(ev);
   scm_capi_evaluator_load_core(ev);
+  scm_capi_ref_stack_save(&rsi);
 }
 
 TEST_TEAR_DOWN(exec_syntax)
 {
+  scm_capi_ref_stack_restore(&rsi);
   scm_capi_evaluator_end(ev);
 }
 

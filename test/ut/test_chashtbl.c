@@ -7,6 +7,7 @@
 TEST_GROUP(chashtbl);
 
 static ScmEvaluator *ev;
+static ScmRefStackInfo rsi;
 
 static size_t
 hash_func(ScmCHashTblKey key)
@@ -24,10 +25,12 @@ TEST_SETUP(chashtbl)
 {
   ev = scm_capi_evaluator();
   scm_capi_evaluator_make_vm(ev);
+  scm_capi_ref_stack_save(&rsi);
 }
 
 TEST_TEAR_DOWN(chashtbl)
 {
+  scm_capi_ref_stack_restore(&rsi);
   scm_capi_evaluator_end(ev);
 }
 

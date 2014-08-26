@@ -6,6 +6,7 @@
 TEST_GROUP(api_exceptions);
 
 static ScmEvaluator *ev;
+static ScmRefStackInfo rsi;
 
 static void
 check_exception(ScmObj exc, const char *msg, const char *irris)
@@ -29,10 +30,12 @@ TEST_SETUP(api_exceptions)
 {
   ev = scm_capi_evaluator();
   scm_capi_evaluator_make_vm(ev);
+  scm_capi_ref_stack_save(&rsi);
 }
 
 TEST_TEAR_DOWN(api_exceptions)
 {
+  scm_capi_ref_stack_restore(&rsi);
   scm_capi_evaluator_end(ev);
 }
 
