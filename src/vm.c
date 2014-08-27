@@ -94,6 +94,12 @@ scm_bedrock_setup(ScmBedrock *br)
                             -2, SCM_PROC_ADJ_UNWISHED, SCM_OBJ_NULL);
   if (scm_obj_null_p(br->subr.exc_hndlr_caller_post)) return -1;
 
+  scm_capi_mem_register_extra_rfrn(SCM_REF_MAKE(br->subr.trmp_apply));
+
+  br->subr.trmp_apply =
+    scm_capi_make_subrutine(scm_vm_subr_trmp_apply, -3, 0, SCM_OBJ_NULL);
+  if (scm_obj_null_p(br->subr.trmp_apply)) return -1;
+
   scm_capi_mem_register_extra_rfrn(SCM_REF_MAKE(br->gv.compile));
   scm_capi_mem_register_extra_rfrn(SCM_REF_MAKE(br->gv.eval));
   scm_capi_mem_register_extra_rfrn(SCM_REF_MAKE(br->gv.current_input_port));
@@ -112,6 +118,7 @@ scm_bedrock_cleanup(ScmBedrock *br)
   br->gv.eval = SCM_OBJ_NULL;
   br->gv.compile = SCM_OBJ_NULL;
 
+  br->subr.trmp_apply = SCM_OBJ_NULL;
   br->subr.exc_hndlr_caller_post = SCM_OBJ_NULL;
   br->subr.exc_hndlr_caller_cont = SCM_OBJ_NULL;
   br->subr.exc_hndlr_caller = SCM_OBJ_NULL;
@@ -192,6 +199,7 @@ scm_bedrock_initialize(ScmBedrock *br)
   br->subr.exc_hndlr_caller = SCM_OBJ_NULL;
   br->subr.exc_hndlr_caller_cont = SCM_OBJ_NULL;
   br->subr.exc_hndlr_caller_post = SCM_OBJ_NULL;
+  br->subr.trmp_apply = SCM_OBJ_NULL;
 
   br->gv.compile = SCM_OBJ_NULL;
   br->gv.eval = SCM_OBJ_NULL;
@@ -1387,16 +1395,41 @@ scm_vm_make_proc_call_code(ScmObj iseq, ScmObj proc, ScmObj args, bool tail)
   return 0;
 }
 
+int
+scm_vm_subr_trmp_apply(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj args = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&subr,
+                      &args);
+
+  if (scm_capi_nil_p(argv[2])) {
+    args = argv[1];
+  }
+  else {
+    args = scm_api_car(argv[2]);
+    if (scm_obj_null_p(args))
+      return -1;
+
+    args = scm_api_cons(argv[1], args);
+    if (scm_obj_null_p(args))
+      return -1;
+  }
+
+  return scm_capi_trampolining(argv[0], args, SCM_OBJ_NULL, SCM_OBJ_NULL);
+}
+
 static ScmObj
 scm_vm_make_trampolining_code(ScmObj vm, ScmObj proc,
                               ScmObj args, ScmObj postproc, ScmObj handover,
                               bool tail)
 {
-  ScmObj iseq = SCM_OBJ_INIT;
+  ScmObj iseq = SCM_OBJ_INIT, apply = SCM_OBJ_INIT;
   ssize_t rslt;
+  int apply_argc;
 
   SCM_REFSTK_INIT_REG(&vm, &proc, &args, &postproc, &handover,
-                      &iseq);
+                      &iseq, &apply);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
   scm_assert(scm_obj_null_p(postproc) || scm_capi_procedure_p(postproc));
@@ -1409,6 +1442,8 @@ scm_vm_make_trampolining_code(ScmObj vm, ScmObj proc,
    *   postproc を呼び出す
    *   (tail が true の場合、postprco の呼び出しは tail-call とする)
    */
+
+  apply_argc = 2;
 
   iseq = scm_api_make_iseq();
   if (scm_obj_null_p(iseq)) return SCM_OBJ_NULL;
@@ -1424,12 +1459,20 @@ scm_vm_make_trampolining_code(ScmObj vm, ScmObj proc,
 
     if (rslt < 0) return SCM_OBJ_NULL;
 
+    rslt = scm_capi_iseq_push_opfmt_obj(iseq, SCM_OPCODE_IMMVAL, postproc);
+    if (rslt < 0) return SCM_OBJ_NULL;
+
+    rslt = scm_capi_iseq_push_opfmt_noarg(iseq, SCM_OPCODE_PUSH);
+    if (rslt < 0) return SCM_OBJ_NULL;
+
     if (scm_obj_not_null_p(handover)) {
       rslt = scm_capi_iseq_push_opfmt_obj(iseq, SCM_OPCODE_IMMVAL, handover);
       if (rslt < 0) return SCM_OBJ_NULL;
 
       rslt = scm_capi_iseq_push_opfmt_noarg(iseq, SCM_OPCODE_PUSH);
       if (rslt < 0) return SCM_OBJ_NULL;
+
+      apply_argc = 3;
     }
   }
 
@@ -1438,18 +1481,24 @@ scm_vm_make_trampolining_code(ScmObj vm, ScmObj proc,
   if (rslt < 0) return SCM_OBJ_NULL;
 
   if (!scm_obj_null_p(postproc)) {
+
+    rslt = scm_capi_iseq_push_opfmt_si(iseq, SCM_OPCODE_MRVC, -1);
+    if (rslt < 0) return SCM_OBJ_NULL;
+
     rslt = scm_capi_iseq_push_opfmt_noarg(iseq, SCM_OPCODE_MVPUSH);
     if (rslt < 0) return SCM_OBJ_NULL;
 
-    rslt = scm_capi_iseq_push_opfmt_obj(iseq, SCM_OPCODE_IMMVAL, postproc);
+    apply = scm_bedrock_trmp_apply(scm_vm_current_br());
+    rslt = scm_capi_iseq_push_opfmt_obj(iseq, SCM_OPCODE_IMMVAL, apply);
     if (rslt < 0) return SCM_OBJ_NULL;
 
     if (tail) {
-      rslt = scm_capi_iseq_push_opfmt_noarg(iseq, SCM_OPCODE_TAIL_APPLY);
+      rslt = scm_capi_iseq_push_opfmt_si(iseq,
+                                         SCM_OPCODE_TAIL_CALL, apply_argc);
       if (rslt < 0) return SCM_OBJ_NULL;
     }
     else {
-      rslt = scm_capi_iseq_push_opfmt_noarg(iseq, SCM_OPCODE_APPLY);
+      rslt = scm_capi_iseq_push_opfmt_si(iseq, SCM_OPCODE_CALL, apply_argc);
       if (rslt < 0) return SCM_OBJ_NULL;
 
       rslt = scm_capi_iseq_push_opfmt_noarg(iseq, SCM_OPCODE_NOP);
@@ -1905,28 +1954,6 @@ scm_vm_op_call(ScmObj vm, SCM_OPCODE_T op)
 
   SCM_VM(vm)->reg.ip = ip;
   return scm_vm_do_op_call(vm, op, argc, (op == SCM_OPCODE_TAIL_CALL));
-}
-
-static int
-scm_vm_op_apply(ScmObj vm, SCM_OPCODE_T op)
-{
-  ptrdiff_t argc;
-
-  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-  scm_assert(scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_PEF));
-
-  argc = SCM_VM(vm)->reg.sp - (scm_byte_t *)SCM_VM(vm)->reg.pefp;
-  argc -= (ptrdiff_t)sizeof(ScmEnvFrame);
-  argc /= (ptrdiff_t)sizeof(ScmObj);
-
-  scm_assert(argc >= 0);
-
-  if (argc == 0) {
-    int rslt = scm_vm_cancel_eframe(vm);
-    if (rslt < 0) return -1;
-  }
-
-  return scm_vm_do_op_call(vm, op, (int)argc, (op == SCM_OPCODE_TAIL_APPLY));
 }
 
 static int
@@ -2867,10 +2894,6 @@ scm_vm_run(ScmObj vm, ScmObj iseq)
     case SCM_OPCODE_CALL:       /* fall through */
     case SCM_OPCODE_TAIL_CALL:
       r = scm_vm_op_call(vm, op);
-      break;
-    case SCM_OPCODE_APPLY:      /* fall through */
-    case SCM_OPCODE_TAIL_APPLY:
-      r = scm_vm_op_apply(vm, op);
       break;
     case SCM_OPCODE_RETURN:
       r = scm_vm_op_return(vm, op);

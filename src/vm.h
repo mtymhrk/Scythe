@@ -109,6 +109,7 @@ struct ScmBedrockRec {
     ScmObj exc_hndlr_caller;
     ScmObj exc_hndlr_caller_cont;
     ScmObj exc_hndlr_caller_post;
+    ScmObj trmp_apply;
   } subr;
 
   /*** Global Variables  ***/
@@ -218,6 +219,13 @@ scm_bedrock_exc_hndlr_caller_post(ScmBedrock *br)
 {
   scm_assert(br != NULL);
   return br->subr.exc_hndlr_caller_post;
+}
+
+inline ScmObj
+scm_bedrock_trmp_apply(ScmBedrock *br)
+{
+  scm_assert(br != NULL);
+  return br->subr.trmp_apply;
 }
 
 inline ScmEncoding *
@@ -411,6 +419,7 @@ struct ScmVMRec {
   ScmVMReg reg;
 };
 
+int scm_vm_subr_trmp_apply(ScmObj subr, int argc, const ScmObj *argv);
 
 int scm_vm_bootup(void);
 void scm_vm_shutdown(void);

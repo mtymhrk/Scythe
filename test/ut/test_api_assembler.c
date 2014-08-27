@@ -206,16 +206,6 @@ TEST(api_assembler, tcall)
   test_assemble_si("((tcall 5)(nop))", SCM_OPCODE_TAIL_CALL, 5);
 }
 
-TEST(api_assembler, apply)
-{
-  test_assemble_noopd("((apply)(nop))", SCM_OPCODE_APPLY);
-}
-
-TEST(api_assembler, tapply)
-{
-  test_assemble_noopd("((tapply)(nop))", SCM_OPCODE_TAIL_APPLY);
-}
-
 TEST(api_assembler, return)
 {
   test_assemble_noopd("((return)(nop))", SCM_OPCODE_RETURN);

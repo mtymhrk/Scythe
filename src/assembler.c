@@ -13,8 +13,6 @@ static struct {
   { SCM_OPCODE_UNDEF,       "undef" },
   { SCM_OPCODE_CALL,        "call" },
   { SCM_OPCODE_TAIL_CALL,   "tcall" },
-  { SCM_OPCODE_APPLY,       "apply" },
-  { SCM_OPCODE_TAIL_APPLY,  "tapply" },
   { SCM_OPCODE_RETURN,      "return" },
   { SCM_OPCODE_FRAME,       "frame" },
   { SCM_OPCODE_CFRAME,      "cframe" },
