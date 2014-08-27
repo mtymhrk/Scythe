@@ -52,7 +52,6 @@ typedef enum {
   SCM_OPCODE_ECOMMIT,             /*  6; commit a environment frame */
   SCM_OPCODE_EPOP,                /*  7; pop a environment frame */
   SCM_OPCODE_ESHIFT,              /*  8; shift environment frames */
-  SCM_OPCODE_EREBIND,             /*  9; rebind variables */
   SCM_OPCODE_FRAME,               /* 10; create a continuation frame */
                                   /*     and a envrionment frame */
   SCM_OPCODE_IMMVAL,              /* 11: copy immediate value to val register */
@@ -111,7 +110,6 @@ typedef enum {
 #define SCM_INST_SZ_ECOMMIT     SCM_OPFMT_INST_SZ_SI
 #define SCM_INST_SZ_EPOP        SCM_OPFMT_INST_SZ_NOOPD
 #define SCM_INST_SZ_ESHIFT      SCM_OPFMT_INST_SZ_SI
-#define SCM_INST_SZ_EREBIND     SCM_OPFMT_INST_SZ_SI
 #define SCM_INST_SZ_FRAME       SCM_OPFMT_INST_SZ_NOOPD
 #define SCM_INST_SZ_IMMVAL      SCM_OPFMT_INST_SZ_OBJ
 #define SCM_INST_SZ_PUSH        SCM_OPFMT_INST_SZ_NOOPD

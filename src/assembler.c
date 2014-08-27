@@ -17,7 +17,6 @@ static struct {
   { SCM_OPCODE_ECOMMIT,     "ecommit" },
   { SCM_OPCODE_EPOP,        "epop" },
   { SCM_OPCODE_ESHIFT,      "eshift" },
-  { SCM_OPCODE_EREBIND,     "erebind" },
   { SCM_OPCODE_FRAME,       "frame" },
   { SCM_OPCODE_IMMVAL,      "immval" },
   { SCM_OPCODE_PUSH,        "push" },

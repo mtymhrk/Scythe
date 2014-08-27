@@ -226,11 +226,6 @@ TEST(api_assembler, eshift)
   test_assemble_si("((eshift -1)(nop))", SCM_OPCODE_ESHIFT, -1);
 }
 
-TEST(api_assembler, erebind)
-{
-  test_assemble_si("((erebind 21)(nop))", SCM_OPCODE_EREBIND, 21);
-}
-
 TEST(api_assembler, frame)
 {
   test_assemble_noopd("((frame)(nop))", SCM_OPCODE_FRAME);

@@ -2072,50 +2072,6 @@ scm_vm_op_eshift(ScmObj vm, SCM_OPCODE_T op)
 }
 
 static int
-scm_vm_op_erebind(ScmObj vm, SCM_OPCODE_T op)
-{
-  ScmEnvFrame *efp;
-  int argc, rslt;
-  scm_byte_t *ip;
-
-  SCM_REFSTK_INIT_REG(&vm);
-
-  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-
-  ip = scm_capi_inst_fetch_oprand_si(SCM_VM(vm)->reg.ip, &argc);
-  if (ip == NULL) return -1;
-
-  if (argc < 0) {
-    scm_capi_error("bytecode format error", 0);
-    return -1;
-  }
-
-  SCM_VM(vm)->reg.ip = ip;
-
-  scm_assert(SCM_VM(vm)->reg.efp != NULL);
-  scm_assert(scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_PEF));
-  scm_assert(!(scm_vmsr_include_p(SCM_VM(vm)->stack,
-                                  (scm_byte_t *)SCM_VM(vm)->reg.efp)
-               &&scm_vm_ef_maked_on_pef_p(SCM_VM(vm)->reg.pefp)));
-
-  rslt = scm_vm_do_op_ecommit(vm, op, (size_t)argc);
-  if (rslt < 0) return -1;
-
-  efp = scm_vm_ef_outer(SCM_VM(vm)->reg.efp);
-  scm_vm_ef_replace_outer(SCM_VM(vm)->reg.efp, scm_vm_ef_outer(efp));
-  scm_vm_ef_copy_flag(SCM_VM(vm)->reg.efp, efp);
-
-  if (scm_vmsr_include_p(SCM_VM(vm)->stack, (scm_byte_t *)efp)) {
-    memmove(efp, SCM_VM(vm)->reg.efp,
-            sizeof(ScmEnvFrame) + sizeof(ScmObj) * (size_t)argc);
-    SCM_VM(vm)->reg.efp = efp;
-    SCM_VM(vm)->reg.sp = (scm_byte_t *)efp->arg + sizeof(ScmObj) * (size_t)argc;
-  }
-
-  return 0;
-}
-
-static int
 scm_vm_op_frame(ScmObj vm, SCM_OPCODE_T op)
 {
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
@@ -3033,9 +2989,6 @@ scm_vm_run(ScmObj vm, ScmObj iseq)
       break;
     case SCM_OPCODE_ESHIFT:
       r = scm_vm_op_eshift(vm, op);
-      break;
-    case SCM_OPCODE_EREBIND:
-      r = scm_vm_op_erebind(vm, op);
       break;
     case SCM_OPCODE_FRAME:
       r = scm_vm_op_frame(vm, op);
