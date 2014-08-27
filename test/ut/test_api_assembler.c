@@ -196,6 +196,11 @@ TEST(api_assembler, undef)
   test_assemble_noopd("((undef)(nop))", SCM_OPCODE_UNDEF);
 }
 
+TEST(api_assembler, uninit)
+{
+  test_assemble_noopd("((uninit)(nop))", SCM_OPCODE_UNINIT);
+}
+
 TEST(api_assembler, cframe)
 {
   test_assemble_noopd("((cframe)(nop))", SCM_OPCODE_CFRAME);

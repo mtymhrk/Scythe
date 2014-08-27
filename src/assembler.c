@@ -11,6 +11,7 @@ static struct {
   { SCM_OPCODE_NOP,         "nop" },
   { SCM_OPCODE_HALT,        "halt" },
   { SCM_OPCODE_UNDEF,       "undef" },
+  { SCM_OPCODE_UNINIT,      "uninit" },
   { SCM_OPCODE_CFRAME,      "cframe" },
   { SCM_OPCODE_CCOMMIT,     "ccommit" },
   { SCM_OPCODE_EFRAME,      "eframe" },

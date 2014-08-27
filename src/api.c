@@ -7110,6 +7110,7 @@ scm_capi_opcode_to_opfmt(int opcode)
     SCM_OPFMT_NOOPD,            /* SCM_OPCODE_NOP */
     SCM_OPFMT_NOOPD,            /* SCM_OPCODE_HALT */
     SCM_OPFMT_NOOPD,            /* SCM_OPCODE_UNDEF */
+    SCM_OPFMT_NOOPD,            /* SCM_OPCODE_UNINIT */
     SCM_OPFMT_NOOPD,            /* SCM_OPCODE_CFRAME */
     SCM_OPFMT_SI,               /* SCM_OPCODE_CCOMMIT */
     SCM_OPFMT_NOOPD,            /* SCM_OPCODE_EFRAME */

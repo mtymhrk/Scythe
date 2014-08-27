@@ -46,12 +46,14 @@ typedef enum {
   SCM_OPCODE_HALT,                /*  1: stop calculation */
   SCM_OPCODE_UNDEF,               /*  2: update val register to undefined */
                                   /*     value */
-  SCM_OPCODE_CFRAME,              /*  3; create a continuation frame */
-  SCM_OPCODE_CCOMMIT,             /*  4; commit a continuation frame */
-  SCM_OPCODE_EFRAME,              /*  5; create a environment frame */
-  SCM_OPCODE_ECOMMIT,             /*  6; commit a environment frame */
-  SCM_OPCODE_EPOP,                /*  7; pop a environment frame */
-  SCM_OPCODE_ESHIFT,              /*  8; shift environment frames */
+  SCM_OPCODE_UNINIT,              /*  3: update val register to uninitialized */
+                                  /*     value */
+  SCM_OPCODE_CFRAME,              /*  4; create a continuation frame */
+  SCM_OPCODE_CCOMMIT,             /*  5; commit a continuation frame */
+  SCM_OPCODE_EFRAME,              /*  6; create a environment frame */
+  SCM_OPCODE_ECOMMIT,             /*  7; commit a environment frame */
+  SCM_OPCODE_EPOP,                /*  8; pop a environment frame */
+  SCM_OPCODE_ESHIFT,              /*  9; shift environment frames */
   SCM_OPCODE_FRAME,               /* 10; create a continuation frame */
                                   /*     and a envrionment frame */
   SCM_OPCODE_IMMVAL,              /* 11: copy immediate value to val register */
@@ -104,6 +106,7 @@ typedef enum {
 #define SCM_INST_SZ_NOP         SCM_OPFMT_INST_SZ_NOOPD
 #define SCM_INST_SZ_HALT        SCM_OPFMT_INST_SZ_NOOPD
 #define SCM_INST_SZ_UNDEF       SCM_OPFMT_INST_SZ_NOOPD
+#define SCM_INST_SZ_UNINIT      SCM_OPFMT_INST_SZ_NOOPD
 #define SCM_INST_SZ_CFRAME      SCM_OPFMT_INST_SZ_NOOPD
 #define SCM_INST_SZ_COMMIT      SCM_OPFMT_INST_SZ_SI
 #define SCM_INST_SZ_EFRAME      SCM_OPFMT_INST_SZ_NOOPD
