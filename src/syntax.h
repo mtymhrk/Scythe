@@ -8,7 +8,6 @@ typedef struct ScmSyntaxRec ScmSyntax;
 #define SCM_SYNTAX(obj) ((ScmSyntax *)(obj))
 
 #include "object.h"
-#include "api_enum.h"
 #include "api_type.h"
 
 #define SCM_SYNTAX_KEYWORD_LEN_MAX 64

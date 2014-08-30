@@ -11,7 +11,7 @@ typedef struct ScmModuleTreeRec ScmModuleTree;
 #define SCM_MODULETREE(obj) ((ScmModuleTree *)(obj))
 
 #include "object.h"
-#include "api_enum.h"
+#include "api_type.h"
 #include "chashtbl.h"
 
 

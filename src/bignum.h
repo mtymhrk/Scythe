@@ -9,7 +9,7 @@ typedef struct ScmBignumRec ScmBignum;
 #define SCM_BIGNUM(obj) ((ScmBignum *)(obj))
 
 #include "object.h"
-#include "api_enum.h"
+#include "api_type.h"
 #include "earray.h"
 #include "impl_utils.h"
 

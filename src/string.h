@@ -10,7 +10,7 @@ typedef struct ScmStringRec ScmString;
 #define SCM_STRING(obj) ((ScmString *)(obj))
 
 #include "object.h"
-#include "api_enum.h"
+#include "api_type.h"
 #include "encoding.h"
 
 extern ScmTypeInfo SCM_STRING_TYPE_INFO;

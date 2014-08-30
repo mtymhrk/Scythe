@@ -9,7 +9,6 @@ typedef struct ScmRefStackRec ScmRefStack;
 #define SCM_REFSTACK(obj) ((ScmRefStack *)(obj))
 
 #include "object.h"
-#include "api_enum.h"
 #include "api_type.h"
 #include "impl_utils.h"
 

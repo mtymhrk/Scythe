@@ -2,7 +2,7 @@
 #define INCLUDE_FIXNUM_H__
 
 #include "object.h"
-#include "api_enum.h"
+#include "api_type.h"
 #include "impl_utils.h"
 
 extern ScmTypeInfo SCM_FIXNUM_TYPE_INFO;

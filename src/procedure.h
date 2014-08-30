@@ -15,7 +15,6 @@ typedef struct ScmParameterRec ScmParameter;
 
 
 #include "object.h"
-#include "api_enum.h"
 #include "api_type.h"
 
 

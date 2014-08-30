@@ -11,7 +11,7 @@ typedef struct ScmErrorRec ScmError;
 #define SCM_ERROR(obj) ((ScmError *)(obj))
 
 #include "object.h"
-#include "api_enum.h"
+#include "api_type.h"
 
 
 /*******************************************************************/

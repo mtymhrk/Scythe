@@ -9,6 +9,16 @@
 
 #define SCM_ISEQ_LABEL_NAME_MAX 256
 
+#define SCM_ASM_PI_START 0x10000
+
+enum {
+  SCM_ASM_PI_LABEL = SCM_ASM_PI_START,  /* define a label */
+  SCM_ASM_PI_ASM,                       /* make ScmISeq object
+                                           and set it to VAL register */
+  SCM_ASM_PI_ASM_CLOSE,                 /* assemble, make a closure,
+                                           and set it to VAL register */
+};
+
 typedef struct {
   char label[SCM_ISEQ_LABEL_NAME_MAX];
   EArray ref;

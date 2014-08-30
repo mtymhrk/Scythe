@@ -8,7 +8,6 @@
 #include "object.h"
 #include "encoding.h"
 #include "vminst.h"
-#include "api_enum.h"
 #include "api_type.h"
 
 

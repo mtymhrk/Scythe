@@ -16,7 +16,7 @@ typedef struct ScmVMRec ScmVM;
 #include "object.h"
 #include "memory.h"
 #include "encoding.h"
-#include "api_enum.h"
+#include "api_type.h"
 #include "vmstack.h"
 
 

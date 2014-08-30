@@ -16,7 +16,7 @@ typedef struct ScmPortRec ScmPort;
 
 #include "object.h"
 #include "encoding.h"
-#include "api_enum.h"
+#include "api_type.h"
 
 
 /***************************************************************************/

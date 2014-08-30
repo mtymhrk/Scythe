@@ -8,7 +8,7 @@ typedef struct ScmPairRec ScmPair;
 #define SCM_PAIR(obj) ((ScmPair *)(obj))
 
 #include "object.h"
-#include "api_enum.h"
+#include "api_type.h"
 
 extern ScmTypeInfo SCM_PAIR_TYPE_INFO;
 
