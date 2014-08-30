@@ -40,123 +40,200 @@ TEST(iseq, iseq_new)
   TEST_ASSERT_EQUAL_UINT(0, SCM_ISEQ_IDX_LENGTH(iseq));
 }
 
-TEST(iseq, iseq_push_ushort)
+TEST(iseq, iseq_push_inst_noopd)
 {
-  ssize_t rslt = scm_iseq_push_ushort(iseq, 123);
-  unsigned short actual = scm_iseq_get_ushort(iseq, 0);
+  scm_opcode_t actual_op;
+  ssize_t actual_ret_value;
+  scm_byte_t *ip;
 
-  TEST_ASSERT_EQUAL_INT(sizeof(unsigned short), rslt);
-  TEST_ASSERT_EQUAL_UINT(sizeof(unsigned short), SCM_ISEQ_SEQ_LENGTH(iseq));
-  TEST_ASSERT_EQUAL_INT(123, actual);
+  actual_ret_value = scm_iseq_push_inst_noopd(iseq, SCM_OPCODE_PUSH);
+
+  ip = scm_iseq_to_ip(iseq);
+  SCM_VMINST_FETCH_OP(ip, actual_op);
+
+  TEST_ASSERT_EQUAL_INT(SCM_INST_SZ_PUSH, actual_ret_value);
+  TEST_ASSERT_EQUAL_INT(SCM_OPCODE_PUSH, actual_op);
 }
 
-TEST(iseq, iseq_push_uint_1)
+TEST(iseq, iseq_push_inst_obj)
 {
-  ssize_t rslt = scm_iseq_push_uint(iseq, UINT32_MAX);
-  unsigned int actual = scm_iseq_get_uint(iseq, 0);
+  ScmObj actual_opd = SCM_OBJ_INIT;
+  scm_opcode_t actual_op;
+  ssize_t actual_ret_value;
+  scm_byte_t *ip;
 
-  TEST_ASSERT_EQUAL_INT(sizeof(unsigned int), rslt);
-  TEST_ASSERT_EQUAL_UINT(sizeof(unsigned int), SCM_ISEQ_SEQ_LENGTH(iseq));
-  TEST_ASSERT_EQUAL_INT(UINT32_MAX, actual);
+  SCM_REFSTK_INIT_REG(&actual_opd);
+
+  actual_ret_value = scm_iseq_push_inst_obj(iseq,
+                                            SCM_OPCODE_IMMVAL,
+                                            SCM_NIL_OBJ);
+
+  ip = scm_iseq_to_ip(iseq);
+  SCM_VMINST_FETCH_OP(ip, actual_op);
+  SCM_VMINST_FETCH_OPD_OBJ(ip, actual_opd);
+
+  TEST_ASSERT_EQUAL_INT(SCM_INST_SZ_IMMVAL, actual_ret_value);
+  TEST_ASSERT_EQUAL_INT(SCM_OPCODE_IMMVAL, actual_op);
+  TEST_ASSERT_SCM_EQ(SCM_NIL_OBJ, actual_opd);
 }
 
-TEST(iseq, iseq_push_uint_2)
+TEST(iseq, iseq_push_inst_obj__index)
 {
-  ssize_t rslt = scm_iseq_push_uint(iseq, 0);
-  unsigned int actual = scm_iseq_get_uint(iseq, 0);
+  scm_iseq_push_inst_obj(iseq, SCM_OPCODE_IMMVAL, SCM_NIL_OBJ);
 
-  TEST_ASSERT_EQUAL_INT(sizeof(unsigned int), rslt);
-  TEST_ASSERT_EQUAL_UINT(sizeof(unsigned int), SCM_ISEQ_SEQ_LENGTH(iseq));
-  TEST_ASSERT_EQUAL_INT(0, actual);
+  TEST_ASSERT_EQUAL_INT(1, SCM_ISEQ_IDX_LENGTH(iseq));
+  TEST_ASSERT_EQUAL_INT(0, SCM_ISEQ_IDX_VEC(iseq)[0]);
 }
 
-TEST(iseq, iseq_push_uint_3)
+TEST(iseq, iseq_push_inst_obj_obj)
 {
-  ssize_t rslt = scm_iseq_push_uint(iseq, INT32_MAX);
-  int actual = (int)scm_iseq_get_uint(iseq, 0);
+  ScmObj actual_opd1 = SCM_OBJ_INIT, actual_opd2 = SCM_OBJ_INIT;
+  scm_opcode_t actual_op;
+  ssize_t actual_ret_value;
+  scm_byte_t *ip;
 
-  TEST_ASSERT_EQUAL_INT(sizeof(unsigned int), rslt);
-  TEST_ASSERT_EQUAL_UINT(sizeof(unsigned int), SCM_ISEQ_SEQ_LENGTH(iseq));
-  TEST_ASSERT_EQUAL_INT(INT32_MAX, actual);
+  SCM_REFSTK_INIT_REG(&actual_opd1, &actual_opd2);
+
+  actual_ret_value = scm_iseq_push_inst_obj_obj(iseq,
+                                                SCM_OPCODE_GREF,
+                                                SCM_NIL_OBJ,
+                                                SCM_UNDEF_OBJ);
+
+  ip = scm_iseq_to_ip(iseq);
+  SCM_VMINST_FETCH_OP(ip, actual_op);
+  SCM_VMINST_FETCH_OPD_OBJ_OBJ(ip, actual_opd1, actual_opd2);
+
+  TEST_ASSERT_EQUAL_INT(SCM_INST_SZ_GREF, actual_ret_value);
+  TEST_ASSERT_EQUAL_INT(SCM_OPCODE_GREF, actual_op);
+  TEST_ASSERT_SCM_EQ(SCM_NIL_OBJ, actual_opd1);
+  TEST_ASSERT_SCM_EQ(SCM_UNDEF_OBJ, actual_opd2);
 }
 
-TEST(iseq, iseq_push_uint_4)
+TEST(iseq, iseq_push_inst_obj_obj__index)
 {
-  ssize_t rslt = scm_iseq_push_uint(iseq, (unsigned int)INT32_MIN);
-  int actual = (int)scm_iseq_get_uint(iseq, 0);
+  scm_iseq_push_inst_obj_obj(iseq, SCM_OPCODE_GREF, SCM_NIL_OBJ, SCM_UNDEF_OBJ);
 
-  TEST_ASSERT_EQUAL_INT(sizeof(unsigned int), rslt);
-  TEST_ASSERT_EQUAL_UINT(sizeof(unsigned int), SCM_ISEQ_SEQ_LENGTH(iseq));
-  TEST_ASSERT_EQUAL_INT(INT32_MIN, actual);
+  TEST_ASSERT_EQUAL_INT(1, SCM_ISEQ_IDX_LENGTH(iseq));
+  TEST_ASSERT_EQUAL_INT(0, SCM_ISEQ_IDX_VEC(iseq)[0]);
+}
+
+TEST(iseq, iseq_push_inst_si)
+{
+  int actual_opd;
+  scm_opcode_t actual_op;
+  ssize_t actual_ret_value;
+  scm_byte_t *ip;
+
+  actual_ret_value = scm_iseq_push_inst_si(iseq,
+                                           SCM_OPCODE_CALL,
+                                           128);
+
+  ip = scm_iseq_to_ip(iseq);
+  SCM_VMINST_FETCH_OP(ip, actual_op);
+  SCM_VMINST_FETCH_OPD_SI(ip, actual_opd);
+
+  TEST_ASSERT_EQUAL_INT(SCM_INST_SZ_CALL, actual_ret_value);
+  TEST_ASSERT_EQUAL_INT(SCM_OPCODE_CALL, actual_op);
+  TEST_ASSERT_EQUAL_INT(128, actual_opd);
+}
+
+TEST(iseq, iseq_push_inst_si_si)
+{
+  int actual_opd1, actual_opd2;
+  scm_opcode_t actual_op;
+  ssize_t actual_ret_value;
+  scm_byte_t *ip;
+
+  actual_ret_value = scm_iseq_push_inst_si_si(iseq,
+                                              SCM_OPCODE_SREF,
+                                              128,
+                                              -64);
+
+  ip = scm_iseq_to_ip(iseq);
+  SCM_VMINST_FETCH_OP(ip, actual_op);
+  SCM_VMINST_FETCH_OPD_SI_SI(ip, actual_opd1, actual_opd2);
+
+  TEST_ASSERT_EQUAL_INT(SCM_INST_SZ_SREF, actual_ret_value);
+  TEST_ASSERT_EQUAL_INT(SCM_OPCODE_SREF, actual_op);
+  TEST_ASSERT_EQUAL_INT(128, actual_opd1);
+  TEST_ASSERT_EQUAL_INT(-64, actual_opd2);
+}
+
+TEST(iseq, iseq_push_inst_si_si_obj)
+{
+  ScmObj actual_opd3 = SCM_OBJ_INIT;
+  int actual_opd1, actual_opd2;
+  scm_opcode_t actual_op;
+  ssize_t actual_ret_value;
+  scm_byte_t *ip;
+
+  SCM_REFSTK_INIT_REG(&actual_opd3);
+
+  actual_ret_value = scm_iseq_push_inst_si_si_obj(iseq,
+                                                  SCM_OPCODE_CLOSE,
+                                                  128,
+                                                  -64,
+                                                  SCM_NIL_OBJ);
+
+  ip = scm_iseq_to_ip(iseq);
+  SCM_VMINST_FETCH_OP(ip, actual_op);
+  SCM_VMINST_FETCH_OPD_SI_SI_OBJ(ip, actual_opd1, actual_opd2, actual_opd3);
+
+  TEST_ASSERT_EQUAL_INT(SCM_INST_SZ_CLOSE, actual_ret_value);
+  TEST_ASSERT_EQUAL_INT(SCM_OPCODE_CLOSE, actual_op);
+  TEST_ASSERT_EQUAL_INT(128, actual_opd1);
+  TEST_ASSERT_EQUAL_INT(-64, actual_opd2);
+  TEST_ASSERT_SCM_EQ(SCM_NIL_OBJ, actual_opd3);
+}
+
+TEST(iseq, iseq_push_inst_si_si_obj__index)
+{
+  scm_iseq_push_inst_si_si_obj(iseq, SCM_OPCODE_CLOSE, 128, -64, SCM_NIL_OBJ);
+
+  TEST_ASSERT_EQUAL_INT(1, SCM_ISEQ_IDX_LENGTH(iseq));
+  TEST_ASSERT_EQUAL_INT(0, SCM_ISEQ_IDX_VEC(iseq)[0]);
+}
+
+TEST(iseq, iseq_push_inst_iof)
+{
+  int actual_opd;
+  scm_opcode_t actual_op;
+  ssize_t actual_ret_value;
+  scm_byte_t *ip;
+
+  actual_ret_value = scm_iseq_push_inst_si(iseq,
+                                           SCM_OPCODE_JMP,
+                                           128);
+
+  ip = scm_iseq_to_ip(iseq);
+  SCM_VMINST_FETCH_OP(ip, actual_op);
+  SCM_VMINST_FETCH_OPD_IOF(ip, actual_opd);
+
+  TEST_ASSERT_EQUAL_INT(SCM_INST_SZ_JMP, actual_ret_value);
+  TEST_ASSERT_EQUAL_INT(SCM_OPCODE_JMP, actual_op);
+  TEST_ASSERT_EQUAL_INT(128, actual_opd);
 }
 
 TEST(iseq, expand_sequence_buffer)
 {
-  for (size_t idx = 0; idx < SCM_ISEQ_DEFAULT_SEQ_SIZE / sizeof(short); idx++) {
-    ssize_t r = scm_iseq_push_ushort(iseq, (uint8_t)(idx % 255));
-    TEST_ASSERT_EQUAL_INT((int)(idx + 1) * (int)sizeof(short), r);
-  }
+  size_t sum;
+  ssize_t ret_value;
 
-  /* action */
-  ssize_t rslt = scm_iseq_push_ushort(iseq, 255);
+  for (sum = 0; sum < SCM_ISEQ_DEFAULT_SEQ_SIZE; sum += SCM_INST_SZ_NOP)
+    scm_iseq_push_inst_noopd(iseq, SCM_OPCODE_NOP);
 
-  /* postcondition check */
-  TEST_ASSERT_EQUAL_INT(SCM_ISEQ_DEFAULT_SEQ_SIZE + sizeof(short), rslt);
+  ret_value = scm_iseq_push_inst_noopd(iseq, SCM_OPCODE_NOP);
+
+  TEST_ASSERT_EQUAL_INT(sum + SCM_INST_SZ_NOP, ret_value);
   TEST_ASSERT_TRUE(SCM_ISEQ_SEQ_CAPACITY(iseq) > SCM_ISEQ_DEFAULT_SEQ_SIZE);
-
-  unsigned short actual = scm_iseq_get_ushort(iseq, SCM_ISEQ_DEFAULT_SEQ_SIZE);
-  TEST_ASSERT_EQUAL_UINT(255, actual);
-
-  for (size_t i = 0; i < SCM_ISEQ_DEFAULT_SEQ_SIZE / sizeof(short); i++) {
-    TEST_ASSERT_EQUAL_UINT(i % 255,
-                           scm_iseq_get_ushort(iseq, i * sizeof(short)));;
-  }
 }
 
-TEST(iseq, iseq_push_obj_1)
+TEST(iseq, expand_index_buffer)
 {
-  ScmObj actual = SCM_OBJ_INIT;
-  ssize_t rslt;
+  for (size_t sum = 0; sum < SCM_ISEQ_DEFAULT_INDEX_SIZE; sum++)
+    scm_iseq_push_inst_obj(iseq, SCM_OPCODE_IMMVAL, SCM_NIL_OBJ);
 
-  SCM_REFSTK_INIT_REG(&actual);
+  scm_iseq_push_inst_obj(iseq, SCM_OPCODE_IMMVAL, SCM_NIL_OBJ);
 
-  /* action */
-  rslt = scm_iseq_push_obj(iseq, SCM_NIL_OBJ);
-  actual = scm_iseq_get_obj(iseq, 0);
-
-  /* postcondition check */
-  TEST_ASSERT_EQUAL_INT(sizeof(ScmObj), rslt);
-  TEST_ASSERT_EQUAL_UINT(sizeof(ScmObj), SCM_ISEQ_SEQ_LENGTH(iseq));
-  TEST_ASSERT_SCM_EQ(SCM_NIL_OBJ, actual);
-
-  TEST_ASSERT_EQUAL_UINT(1, SCM_ISEQ_IDX_LENGTH(iseq));
-  TEST_ASSERT_EQUAL_UINT(0, SCM_ISEQ_IDX_VEC(iseq)[0]);
-}
-
-TEST(iseq, expand_object_vector)
-{
-  ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
-
-  SCM_REFSTK_INIT_REG(&actual, &expected);
-
-  expected = scm_capi_make_symbol_from_cstr("foo", SCM_ENC_SRC);
-
-  for (int i = 0; i < SCM_ISEQ_DEFAULT_INDEX_SIZE; i++) {
-    ssize_t r = scm_iseq_push_obj(iseq, SCM_NIL_OBJ);
-    TEST_ASSERT(r >= 0);
-  }
-
-  /* action */
-  ssize_t rslt = scm_iseq_push_obj(iseq, expected);
-  actual = scm_iseq_get_obj(iseq, SCM_ISEQ_IDX_VEC(iseq)[SCM_ISEQ_DEFAULT_INDEX_SIZE]);
-
-  /* postcondition check */
-  TEST_ASSERT(rslt >= 0);
-  TEST_ASSERT_TRUE(SCM_ISEQ_IDX_CAPACITY(iseq) > SCM_ISEQ_DEFAULT_INDEX_SIZE);
-  TEST_ASSERT_SCM_EQ(expected, actual);
-
-  for (size_t i = 0; i < SCM_ISEQ_DEFAULT_INDEX_SIZE; i++) {
-    actual = scm_iseq_get_obj(iseq, SCM_ISEQ_IDX_VEC(iseq)[i]);
-    TEST_ASSERT_SCM_EQ(SCM_NIL_OBJ, actual);
-  }
+  TEST_ASSERT_TRUE(SCM_ISEQ_SEQ_CAPACITY(iseq) > SCM_ISEQ_DEFAULT_SEQ_SIZE);
 }

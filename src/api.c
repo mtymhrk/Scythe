@@ -2,6 +2,7 @@
 #include <stddef.h>
 #include <stdbool.h>
 #include <limits.h>
+#include <stdarg.h>
 #include <stdio.h>
 
 #include "object.h"
@@ -6924,349 +6925,121 @@ scm_capi_iseq_length(ScmObj iseq)
     return -1;
   }
 
-  return scm_iseq_length(iseq);
+  return (ssize_t)scm_iseq_length(iseq);
 }
 
 ssize_t
-scm_capi_iseq_push_opfmt_noarg(ScmObj iseq, SCM_OPCODE_T op)
+scm_capi_iseq_push_inst(ScmObj iseq, scm_opcode_t op, ...)
 {
-  SCM_REFSTK_INIT_REG(&iseq);
-
-  if (!scm_capi_iseq_p(iseq)) {
-    scm_capi_error("failed to push instruction to iseq: "
-                   "invalid argument", 1, iseq);
-    return -1;
-  }
-
-  return scm_iseq_push_ushort(iseq, op);
-}
-
-ssize_t
-scm_capi_iseq_push_opfmt_obj(ScmObj iseq, SCM_OPCODE_T op, ScmObj val)
-{
-  ssize_t rslt;
-
-  SCM_REFSTK_INIT_REG(&iseq, &val);
-
-  if (!scm_capi_iseq_p(iseq)) {
-    scm_capi_error("failed to push instruction to iseq: "
-                   "invalid argument", 1, iseq);
-    return -1;
-  }
-
-  if (scm_obj_null_p(val)) {
-    scm_capi_error("failed to push instruction to iseq: "
-                   "invalid argument", 1, iseq);
-    return -1;
-  }
-
-  rslt = scm_iseq_push_ushort(iseq, op);
-  if (rslt < 0) return -1;
-
-  return scm_iseq_push_obj(iseq, val);
-}
-
-ssize_t
-scm_capi_iseq_push_opfmt_obj_obj(ScmObj iseq,
-                                 SCM_OPCODE_T op, ScmObj val1, ScmObj val2)
-{
-  ssize_t rslt;
-
-  SCM_REFSTK_INIT_REG(&iseq, &val1, &val2);
-
-  if (!scm_capi_iseq_p(iseq)) {
-    scm_capi_error("failed to push instruction to iseq: "
-                   "invalid argument", 1, iseq);
-    return -1;
-  }
-
-  if (scm_obj_null_p(val1)) {
-    scm_capi_error("failed to push instruction to iseq: "
-                   "invalid argument", 1, val1);
-    return -1;
-  }
-
-  if (scm_obj_null_p(val2)) {
-    scm_capi_error("failed to push instruction to iseq: "
-                   "invalid argument", 1, val2);
-    return -1;
-  }
-
-  rslt = scm_iseq_push_ushort(iseq, op);
-  if (rslt < 0) return -1;
-
-  rslt = scm_iseq_push_obj(iseq, val1);
-  if (rslt < 0) return -1;
-
-  return scm_iseq_push_obj(iseq, val2);
-}
-
-ssize_t
-scm_capi_iseq_push_opfmt_si(ScmObj iseq, SCM_OPCODE_T op, int val)
-{
-  ssize_t rslt;
-
-  SCM_REFSTK_INIT_REG(&iseq);
-
-  if (!scm_capi_iseq_p(iseq)) {
-    scm_capi_error("failed to push instruction to iseq: "
-                   "invalid argument", 1, iseq);
-    return -1;
-  }
-
-  rslt = scm_iseq_push_ushort(iseq, op);
-  if (rslt < 0) return -1;   /* provisional implemntation */
-
-  return scm_iseq_push_uint(iseq, (unsigned int)val);
-}
-
-ssize_t
-scm_capi_iseq_push_opfmt_si_si(ScmObj iseq, SCM_OPCODE_T op, int val1, int val2)
-{
-  ssize_t rslt;
-
-  SCM_REFSTK_INIT_REG(&iseq);
-
-  if (!scm_capi_iseq_p(iseq)) {
-    scm_capi_error("failed to push instruction to iseq: "
-                   "invalid argument", 1, iseq);
-    return -1;
-  }
-
-  rslt = scm_iseq_push_ushort(iseq, op);
-  if (rslt < 0) return -1;   /* provisional implemntation */
-
-  rslt = scm_iseq_push_uint(iseq, (unsigned int)val1);
-  if (rslt < 0) return -1;   /* provisional implemntation */
-
-  return scm_iseq_push_uint(iseq, (unsigned int)val2);
-}
-
-ssize_t
-scm_capi_iseq_push_opfmt_si_si_obj(ScmObj iseq, SCM_OPCODE_T op,
-                                   int val1, int val2, ScmObj obj)
-{
-  ssize_t rslt;
+  ScmObj opd_obj1 = SCM_OBJ_INIT, opd_obj2 = SCM_OBJ_INIT;
+  int opd_si1, opd_si2;
+  ssize_t ret;
+  va_list ap;
 
   SCM_REFSTK_INIT_REG(&iseq,
-                      &obj);
+                      &opd_obj1, &opd_obj2);
 
   if (!scm_capi_iseq_p(iseq)) {
-    scm_capi_error("failed to push instruction to iseq: "
-                   "invalid argument", 1, iseq);
+    scm_capi_error("failed to push a instruction to ISeq: Invalid argument",
+                   1, iseq);
+    return -1;
+  }
+  else if (op < 0 || SCM_VMINST_NR_OP <= op) {
+    scm_capi_error("failed to push a instruction to ISeq: unknown opcode", 0);
     return -1;
   }
 
-  if (scm_obj_null_p(obj)) {
-    scm_capi_error("failed to push instruction to iseq: "
-                   "invalid argument", 1, obj);
-    return -1;
+  va_start(ap, op);
+  ret = -1;
+
+  switch (scm_opfmt_table[op]) {
+  case SCM_OPFMT_NOOPD:
+    ret = scm_iseq_push_inst_noopd(iseq, op);
+    break;
+  case SCM_OPFMT_OBJ:
+    opd_obj1 = va_arg(ap, ScmObj);
+    if (scm_obj_null_p(opd_obj1)) {
+      scm_capi_error("failed to push a instruction to ISeq: Invalid argument",
+                     1, opd_obj1);
+      break;
+    }
+    ret = scm_iseq_push_inst_obj(iseq, op, opd_obj1);
+    break;
+  case SCM_OPFMT_OBJ_OBJ:
+    opd_obj1 = va_arg(ap, ScmObj);
+    opd_obj2 = va_arg(ap, ScmObj);
+
+    if (scm_obj_null_p(opd_obj1)) {
+      scm_capi_error("failed to push a instruction to ISeq: Invalid argument",
+                     1, opd_obj1);
+      break;
+    }
+    else if (scm_obj_null_p(opd_obj2)) {
+      scm_capi_error("failed to push a instruction to ISeq: Invalid argument",
+                     1, opd_obj2);
+      break;
+    }
+
+    ret = scm_iseq_push_inst_obj_obj(iseq, op, opd_obj1, opd_obj2);
+    break;
+  case SCM_OPFMT_SI:
+    opd_si1 = va_arg(ap, int);
+    ret = scm_iseq_push_inst_si(iseq, op, opd_si1);
+    break;
+  case SCM_OPFMT_SI_SI:
+    opd_si1 = va_arg(ap, int);
+    opd_si2 = va_arg(ap, int);
+    ret = scm_iseq_push_inst_si_si(iseq, op, opd_si1, opd_si2);
+    break;
+  case SCM_OPFMT_SI_SI_OBJ:
+    opd_si1 = va_arg(ap, int);
+    opd_si2 = va_arg(ap, int);
+    opd_obj1 = va_arg(ap, ScmObj);
+
+    if (scm_obj_null_p(opd_obj1)) {
+      scm_capi_error("failed to push a instruction to ISeq: Invalid argument",
+                     1, opd_obj1);
+      break;
+    }
+
+    ret = scm_iseq_push_inst_si_si_obj(iseq, op, opd_si1, opd_si2, opd_obj1);
+    break;
+  case SCM_OPFMT_IOF:
+    opd_si1 = va_arg(ap, int);
+    ret = scm_iseq_push_inst_iof(iseq, op, opd_si1);
+    break;
+  default:
+    scm_assert(false);          /* must not happen */
+    break;
   }
 
-  rslt = scm_iseq_push_ushort(iseq, op);
-  if (rslt < 0) return -1;   /* provisional implemntation */
+  va_end(ap);
 
-  rslt = scm_iseq_push_uint(iseq, (unsigned int)val1);
-  if (rslt < 0) return -1;   /* provisional implemntation */
-
-  rslt = scm_iseq_push_uint(iseq, (unsigned int)val2);
-  if (rslt < 0) return -1;   /* provisional implemntation */
-
-  return scm_iseq_push_obj(iseq, obj);
+  return ret;
 }
 
-ssize_t
-scm_capi_iseq_push_opfmt_iof(ScmObj iseq, SCM_OPCODE_T op, int offset)
+int
+scm_capi_iseq_update_oprand_iof(ScmObj iseq, size_t idx, int offset)
 {
-  return scm_capi_iseq_push_opfmt_si(iseq, op, offset);
-}
-
-ssize_t
-scm_capi_iseq_set_si(ScmObj iseq, size_t idx, int val)
-{
-  ssize_t rslt;
+  int rslt;
 
   if (!scm_capi_iseq_p(iseq)) {
     scm_capi_error("failed to update instruction operand in iseq: "
                    "invalid argument", 1, iseq);
     return -1;
   }
-  else if (idx > SSIZE_MAX || (ssize_t)idx > scm_iseq_length(iseq) - 4) {
+  else if (idx > SSIZE_MAX
+           || scm_iseq_length(iseq) < SCM_OPFMT_INST_SZ_IOF
+           || idx > scm_iseq_length(iseq) - SCM_OPFMT_INST_SZ_IOF) {
     scm_capi_error("failed to update instruction operand in iseq: "
                    "out of range", 0);
     return -1;
   }
 
-  rslt = scm_iseq_set_uint(iseq, idx, (unsigned int)val);
+  rslt = scm_iseq_update_opd_iof(iseq, idx, offset);
   if (rslt < 0) return -1;   /* provisional implemntation */
 
-  return (ssize_t)idx;
-}
-
-int
-scm_capi_opcode_to_opfmt(int opcode)
-{
-  static const int tbl[] = {
-    SCM_OPFMT_NOOPD,            /* SCM_OPCODE_NOP */
-    SCM_OPFMT_NOOPD,            /* SCM_OPCODE_HALT */
-    SCM_OPFMT_NOOPD,            /* SCM_OPCODE_UNDEF */
-    SCM_OPFMT_NOOPD,            /* SCM_OPCODE_UNINIT */
-    SCM_OPFMT_NOOPD,            /* SCM_OPCODE_CFRAME */
-    SCM_OPFMT_SI,               /* SCM_OPCODE_CCOMMIT */
-    SCM_OPFMT_NOOPD,            /* SCM_OPCODE_EFRAME */
-    SCM_OPFMT_SI,               /* SCM_OPCODE_ECOMMIT */
-    SCM_OPFMT_NOOPD,            /* SCM_OPCODE_EPOP */
-    SCM_OPFMT_SI   ,            /* SCM_OPCODE_ESHIFT */
-    SCM_OPFMT_NOOPD,            /* SCM_OPCODE_FRAME */
-    SCM_OPFMT_OBJ,              /* SCM_OPCODE_IMMVAL */
-    SCM_OPFMT_NOOPD,            /* SCM_OPCODE_PUSH */
-    SCM_OPFMT_NOOPD,            /* SCM_OPCODE_MVPUSH */
-    SCM_OPFMT_NOOPD,            /* SCM_OPCODE_RETURN */
-    SCM_OPFMT_SI,               /* SCM_OPCODE_PCALL */
-    SCM_OPFMT_SI,               /* SCM_OPCODE_CALL */
-    SCM_OPFMT_SI,               /* SCM_OPCODE_TAIL_CALL */
-    SCM_OPFMT_OBJ_OBJ,          /* SCM_OPCODE_GREF */
-    SCM_OPFMT_OBJ_OBJ,          /* SCM_OPCODE_GDEF */
-    SCM_OPFMT_OBJ_OBJ,          /* SCM_OPCODE_GSET */
-    SCM_OPFMT_SI_SI,            /* SCM_OPCODE_SREF */
-    SCM_OPFMT_SI_SI,            /* SCM_OPCODE_SSET */
-    SCM_OPFMT_IOF,              /* SCM_OPCODE_JMP */
-    SCM_OPFMT_IOF,              /* SCM_OPCODE_JMPT */
-    SCM_OPFMT_IOF,              /* SCM_OPCODE_JMPF */
-    SCM_OPFMT_SI_SI,            /* SCM_OPCODE_BOX */
-    SCM_OPFMT_SI_SI_OBJ,        /* SCM_OPCODE_CLOSE */
-    SCM_OPFMT_SI_SI,            /* SCM_OPCODE_DEMINE */
-    SCM_OPFMT_SI,               /* SCM_OPCODE_EMINE */
-    SCM_OPFMT_SI_SI,            /* SCM_OPCODE_EDEMINE */
-    SCM_OPFMT_SI,               /* SCM_OPCODE_MRVC */
-    SCM_OPFMT_NOOPD,            /* SCM_OPCODE_MRVE */
-  };
-
-  if (opcode < 0 || sizeof(tbl)/sizeof(tbl[0]) <= (size_t)opcode) {
-    scm_capi_error("can not get opcode format id: invalid opcode", 0);
-    return -1;
-  }
-
-  return tbl[opcode];
-}
-
-scm_byte_t *
-scm_capi_inst_fetch_oprand_obj(scm_byte_t *ip, scm_csetter_t *obj)
-{
-  ScmObj opr = SCM_OBJ_INIT;
-
-  SCM_REFSTK_INIT_REG(&opr);
-
-  if (ip == NULL) {
-    scm_capi_error("failed to fetch operands: invalid ip", 0);
-    return NULL;
-  }
-
-  opr = scm_iseq_fetch_obj(&ip);
-
-  if (obj != NULL)
-    scm_csetter_setq(obj, opr);
-
-  return ip;
-}
-
-scm_byte_t *
-scm_capi_inst_fetch_oprand_obj_obj(scm_byte_t *ip,
-                                   scm_csetter_t *obj1, scm_csetter_t *obj2)
-{
-  ScmObj opr = SCM_OBJ_INIT;
-
-  SCM_REFSTK_INIT_REG(&opr);
-
-  if (ip == NULL) {
-    scm_capi_error("failed to fetch operands: invalid ip", 0);
-    return NULL;
-  }
-
-  opr = scm_iseq_fetch_obj(&ip);
-
-  if (obj1 != NULL)
-    scm_csetter_setq(obj1, opr);
-
-  opr = scm_iseq_fetch_obj(&ip);
-
-  if (obj2 != NULL)
-    scm_csetter_setq(obj2, opr);
-
-  return ip;
-}
-
-scm_byte_t *
-scm_capi_inst_fetch_oprand_si(scm_byte_t *ip, int *si)
-{
-  int x;
-
-  if (ip == NULL) {
-    scm_capi_error("failed to fetch operands: invalid ip", 0);
-    return NULL;
-  }
-
-  x = scm_iseq_fetch_int(&ip);
-  if (si != NULL)
-    *si = x;
-
-  return ip;
-}
-
-scm_byte_t *
-scm_capi_inst_fetch_oprand_si_si(scm_byte_t *ip, int *si1, int *si2)
-{
-  int x;
-
-  if (ip == NULL) {
-    scm_capi_error("failed to fetch operands: invalid ip", 0);
-    return NULL;
-  }
-
-  x = scm_iseq_fetch_int(&ip);
-  if (si1 != NULL)
-    *si1 = x;
-
-  x = scm_iseq_fetch_int(&ip);
-  if (si2 != NULL)
-    *si2 = x;
-
-  return ip;
-}
-
-scm_byte_t *
-scm_capi_inst_fetch_oprand_si_si_obj(scm_byte_t *ip,
-                                     int *si1, int *si2, scm_csetter_t *obj)
-{
-  ScmObj opr = SCM_OBJ_INIT;
-  int x;
-
-  SCM_REFSTK_INIT_REG(&opr);
-
-  if (ip == NULL) {
-    scm_capi_error("failed to fetch operands: invalid ip", 0);
-    return NULL;
-  }
-
-  x = scm_iseq_fetch_int(&ip);
-  if (si1 != NULL)
-    *si1 = x;
-
-  x = scm_iseq_fetch_int(&ip);
-  if (si2 != NULL)
-    *si2 = x;
-
-  opr = scm_iseq_fetch_obj(&ip);
-  if (obj != NULL)
-    scm_csetter_setq(obj, opr);
-
-  return ip;
-}
-
-scm_byte_t *
-scm_capi_inst_fetch_oprand_iof(scm_byte_t *ip, int *offset)
-{
-  return scm_capi_inst_fetch_oprand_si(ip, offset);
+  return 0;
 }
 
 int
@@ -7274,6 +7047,7 @@ scm_capi_inst_update_oprand_obj(scm_byte_t *ip, ScmObj clsr, ScmObj obj)
 {
   ScmObj iseq = SCM_OBJ_INIT;
   ssize_t idx;
+  int rslt;
 
   SCM_REFSTK_INIT_REG(&clsr, &obj,
                       &iseq);
@@ -7300,8 +7074,8 @@ scm_capi_inst_update_oprand_obj(scm_byte_t *ip, ScmObj clsr, ScmObj obj)
     return -1;
   }
 
-  idx = scm_iseq_set_obj(iseq, (size_t)idx, obj);
-  if (idx < 0) return -1;
+  rslt = scm_iseq_update_opd_obj(iseq, (size_t)idx, obj);
+  if (rslt < 0) return -1;
 
   return 0;
 }
@@ -8683,7 +8457,7 @@ scm_capi_load_iseq(ScmObj iseq)
     return -1;
   }
 
-  rslt = scm_capi_iseq_push_opfmt_noarg(iseq, SCM_OPCODE_HALT);
+  rslt = scm_capi_iseq_push_inst(iseq, SCM_OPCODE_HALT);
   if (rslt < 0) return -1;
 
   o = scm_vm_run_cloned(scm_vm_current_vm(), iseq);

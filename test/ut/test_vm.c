@@ -35,8 +35,8 @@ TEST(vm, vm_run__op_immval)
   iseq = scm_api_make_iseq();
   sym = scm_capi_make_symbol_from_cstr("abc", SCM_ENC_SRC);
 
-  scm_capi_iseq_push_opfmt_obj(iseq, SCM_OPCODE_IMMVAL, sym);
-  scm_capi_iseq_push_opfmt_noarg(iseq, SCM_OPCODE_HALT);
+  scm_capi_iseq_push_inst(iseq, SCM_OPCODE_IMMVAL, sym);
+  scm_capi_iseq_push_inst(iseq, SCM_OPCODE_HALT);
 
   /* action */
   scm_vm_run(vm, iseq);

@@ -2283,7 +2283,7 @@ scm_subr_func_eval_asm(ScmObj subr, int argc, const ScmObj *argv)
     return -1;
   }
 
-  i = scm_capi_iseq_push_opfmt_noarg(code, SCM_OPCODE_RETURN);
+  i = scm_capi_iseq_push_inst(code, SCM_OPCODE_RETURN);
   if (i < 0) return -1;
 
   code = scm_capi_make_closure(code, SCM_OBJ_NULL, 0);
@@ -2306,7 +2306,7 @@ scm_subr_func_eval__post_compile(ScmObj subr, int argc, const ScmObj *argv)
   iseq = scm_api_assemble(argv[0], SCM_OBJ_NULL);
   if (scm_obj_null_p(iseq)) return -1;
 
-  i = scm_capi_iseq_push_opfmt_noarg(iseq, SCM_OPCODE_RETURN);
+  i = scm_capi_iseq_push_inst(iseq, SCM_OPCODE_RETURN);
   if (i < 0) return -1;
 
   proc = scm_capi_make_closure(iseq, SCM_OBJ_NULL, 0);

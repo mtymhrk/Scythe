@@ -7,6 +7,7 @@
 
 #include "object.h"
 #include "encoding.h"
+#include "vminst.h"
 #include "api_enum.h"
 #include "api_type.h"
 
@@ -621,38 +622,8 @@ ScmObj scm_api_make_iseq(void);
 bool scm_capi_iseq_p(ScmObj obj);
 scm_byte_t *scm_capi_iseq_to_ip(ScmObj iseq);
 ssize_t scm_capi_iseq_length(ScmObj iseq);
-ssize_t scm_capi_iseq_push_opfmt_noarg(ScmObj iseq, SCM_OPCODE_T op);
-ssize_t scm_capi_iseq_push_opfmt_obj(ScmObj iseq, SCM_OPCODE_T op, ScmObj val);
-ssize_t scm_capi_iseq_push_opfmt_obj_obj(ScmObj iseq, SCM_OPCODE_T op,
-                                         ScmObj val1, ScmObj val2);
-ssize_t scm_capi_iseq_push_opfmt_si(ScmObj iseq, SCM_OPCODE_T op, int val);
-ssize_t scm_capi_iseq_push_opfmt_si_si(ScmObj iseq, SCM_OPCODE_T op,
-                                       int val1, int val2);
-ssize_t scm_capi_iseq_push_opfmt_si_si_obj(ScmObj iseq, SCM_OPCODE_T op,
-                                           int val1, int val2, ScmObj obj);
-ssize_t scm_capi_iseq_push_opfmt_iof(ScmObj iseq,
-                                     SCM_OPCODE_T op, int offset);
-ssize_t scm_capi_iseq_set_si(ScmObj iseq, size_t idx, int val);
-
-int scm_capi_opcode_to_opfmt(int opcode);
-
-#define SCM_CAPI_INST_FETCH_OP(ip, op)                  \
-  do {                                                  \
-    (op) = *(unsigned short *)(ip);                      \
-    (ip) = (scm_byte_t *)(ip) + sizeof(unsigned short); \
-  } while (0)
-
-scm_byte_t *scm_capi_inst_fetch_oprand_obj(scm_byte_t *ip, scm_csetter_t *obj);
-scm_byte_t *scm_capi_inst_fetch_oprand_obj_obj(scm_byte_t *ip,
-                                               scm_csetter_t *obj1,
-                                               scm_csetter_t *obj2);
-scm_byte_t *scm_capi_inst_fetch_oprand_si(scm_byte_t *ip, int *si);
-scm_byte_t *scm_capi_inst_fetch_oprand_si_si(scm_byte_t *ip,
-                                             int *si1, int *si2);
-scm_byte_t *scm_capi_inst_fetch_oprand_si_si_obj(scm_byte_t *ip,
-                                                 int *si1, int *si2,
-                                                 scm_csetter_t *obj);
-scm_byte_t *scm_capi_inst_fetch_oprand_iof(scm_byte_t *ip, int *offset);
+ssize_t scm_capi_iseq_push_inst(ScmObj iseq, scm_opcode_t op, ...);
+int scm_capi_iseq_update_oprand_iof(ScmObj iseq, size_t idx, int offset);
 
 int scm_capi_inst_update_oprand_obj(scm_byte_t *ip, ScmObj clsr, ScmObj obj);
 
