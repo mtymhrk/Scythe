@@ -891,7 +891,7 @@ scm_api_length(ScmObj lst)
 }
 
 ScmObj
-scm_capi_append_lst(ScmObj lst)
+scm_api_append_lst(ScmObj lst)
 {
   ScmObj arg[] = { SCM_OBJ_INIT, SCM_OBJ_INIT };
   ScmObj l = SCM_OBJ_INIT;
@@ -1194,13 +1194,13 @@ scm_capi_member_aux(ScmObj obj, ScmObj lst, ScmObj (*cmp)(ScmObj x, ScmObj y))
 }
 
 ScmObj
-scm_capi_memq(ScmObj obj, ScmObj lst)
+scm_api_memq(ScmObj obj, ScmObj lst)
 {
   return scm_capi_member_aux(obj, lst, scm_api_eq_P);
 }
 
 ScmObj
-scm_capi_memv(ScmObj obj, ScmObj lst)
+scm_api_memv(ScmObj obj, ScmObj lst)
 {
   return scm_capi_member_aux(obj, lst, scm_api_eqv_P);
 }
@@ -1247,13 +1247,13 @@ scm_capi_assoc_aux(ScmObj obj, ScmObj alist, ScmObj (*cmp)(ScmObj x, ScmObj y))
 }
 
 ScmObj
-scm_capi_assq(ScmObj obj, ScmObj alist)
+scm_api_assq(ScmObj obj, ScmObj alist)
 {
   return scm_capi_assoc_aux(obj, alist, scm_api_eq_P);
 }
 
 ScmObj
-scm_capi_assv(ScmObj obj, ScmObj alist)
+scm_api_assv(ScmObj obj, ScmObj alist)
 {
   return scm_capi_assoc_aux(obj, alist, scm_api_eqv_P);
 }
@@ -1612,7 +1612,7 @@ scm_capi_num_eq(ScmObj n1, ScmObj n2, bool *rslt)
 }
 
 ScmObj
-scm_capi_num_eq_P_lst(ScmObj lst)
+scm_api_num_eq_P_lst(ScmObj lst)
 {
   bool cmp;
   int r;
@@ -1667,7 +1667,7 @@ scm_capi_num_lt(ScmObj n1, ScmObj n2, bool *rslt)
 }
 
 ScmObj
-scm_capi_num_lt_P_lst(ScmObj lst)
+scm_api_num_lt_P_lst(ScmObj lst)
 {
   bool cmp;
   int r;
@@ -1722,7 +1722,7 @@ scm_capi_num_gt(ScmObj n1, ScmObj n2, bool *rslt)
 }
 
 ScmObj
-scm_capi_num_gt_P_lst(ScmObj lst)
+scm_api_num_gt_P_lst(ScmObj lst)
 {
   bool cmp;
   int r;
@@ -1779,7 +1779,7 @@ scm_capi_num_le(ScmObj n1, ScmObj n2, bool *rslt)
 }
 
 ScmObj
-scm_capi_num_le_P_lst(ScmObj lst)
+scm_api_num_le_P_lst(ScmObj lst)
 {
   bool cmp;
   int r;
@@ -1834,7 +1834,7 @@ scm_capi_num_ge(ScmObj n1, ScmObj n2, bool *rslt)
 }
 
 ScmObj
-scm_capi_num_ge_P_lst(ScmObj lst)
+scm_api_num_ge_P_lst(ScmObj lst)
 {
   bool cmp;
   int r;
@@ -2041,7 +2041,7 @@ scm_api_max(ScmObj n1, ScmObj n2)
 }
 
 ScmObj
-scm_capi_max_lst(ScmObj lst)
+scm_api_max_lst(ScmObj lst)
 {
   if (!scm_capi_pair_p(lst)) {
     scm_capi_error("max: invalid argument", 1, lst);
@@ -2087,7 +2087,7 @@ scm_api_min(ScmObj n1, ScmObj n2)
 }
 
 ScmObj
-scm_capi_min_lst(ScmObj lst)
+scm_api_min_lst(ScmObj lst)
 {
   if (!scm_capi_pair_p(lst)) {
     scm_capi_error("max: invalid argument", 1, lst);
@@ -2115,7 +2115,7 @@ scm_api_plus(ScmObj x, ScmObj y)
 }
 
 ScmObj
-scm_capi_plus_lst(ScmObj lst)
+scm_api_plus_lst(ScmObj lst)
 {
   SCM_REFSTK_INIT_REG(&lst);
 
@@ -2148,7 +2148,7 @@ scm_api_mul(ScmObj x, ScmObj y)
 }
 
 ScmObj
-scm_capi_mul_lst(ScmObj lst)
+scm_api_mul_lst(ScmObj lst)
 {
   SCM_REFSTK_INIT_REG(&lst);
 
@@ -2181,7 +2181,7 @@ scm_api_minus(ScmObj x, ScmObj y)
 }
 
 ScmObj
-scm_capi_minus_lst(ScmObj lst)
+scm_api_minus_lst(ScmObj lst)
 {
   ScmObj a = SCM_OBJ_INIT, d = SCM_OBJ_INIT;
 
@@ -2505,7 +2505,7 @@ scm_capi_symbol_cmp_fold(ScmObj lst,
 }
 
 ScmObj
-scm_capi_symbol_eq_P_lst(ScmObj lst)
+scm_api_symbol_eq_P_lst(ScmObj lst)
 {
   bool cmp;
   int r;
@@ -2752,7 +2752,7 @@ scm_capi_char_cmp_fold(ScmObj lst,
 }
 
 ScmObj
-scm_capi_char_eq_P_lst(ScmObj lst)
+scm_api_char_eq_P_lst(ScmObj lst)
 {
   bool cmp;
   int r;
@@ -2808,7 +2808,7 @@ scm_capi_char_lt(ScmObj chr1, ScmObj chr2, bool *rslt)
 }
 
 ScmObj
-scm_capi_char_lt_P_lst(ScmObj lst)
+scm_api_char_lt_P_lst(ScmObj lst)
 {
   bool cmp;
   int r;
@@ -2864,7 +2864,7 @@ scm_capi_char_gt(ScmObj chr1, ScmObj chr2, bool *rslt)
 }
 
 ScmObj
-scm_capi_char_gt_P_lst(ScmObj lst)
+scm_api_char_gt_P_lst(ScmObj lst)
 {
   bool cmp;
   int r;
@@ -2920,7 +2920,7 @@ scm_capi_char_le(ScmObj chr1, ScmObj chr2, bool *rslt)
 }
 
 ScmObj
-scm_capi_char_le_P_lst(ScmObj lst)
+scm_api_char_le_P_lst(ScmObj lst)
 {
   bool cmp;
   int r;
@@ -2976,7 +2976,7 @@ scm_capi_char_ge(ScmObj chr1, ScmObj chr2, bool *rslt)
 }
 
 ScmObj
-scm_capi_char_ge_P_lst(ScmObj lst)
+scm_api_char_ge_P_lst(ScmObj lst)
 {
   bool cmp;
   int r;
@@ -3436,7 +3436,7 @@ scm_capi_string_cmp_fold(ScmObj lst,
 }
 
 ScmObj
-scm_capi_string_eq_P_lst(ScmObj lst)
+scm_api_string_eq_P_lst(ScmObj lst)
 {
   bool cmp;
   int r;
@@ -3494,7 +3494,7 @@ scm_capi_string_lt(ScmObj s1, ScmObj s2, bool *rslt)
 }
 
 ScmObj
-scm_capi_string_lt_P_lst(ScmObj lst)
+scm_api_string_lt_P_lst(ScmObj lst)
 {
   bool cmp;
   int r;
@@ -3552,7 +3552,7 @@ scm_capi_string_gt(ScmObj s1, ScmObj s2, bool *rslt)
 }
 
 ScmObj
-scm_capi_string_gt_P_lst(ScmObj lst)
+scm_api_string_gt_P_lst(ScmObj lst)
 {
   bool cmp;
   int r;
@@ -3610,7 +3610,7 @@ scm_capi_string_le(ScmObj s1, ScmObj s2, bool *rslt)
 }
 
 ScmObj
-scm_capi_string_le_P_lst(ScmObj lst)
+scm_api_string_le_P_lst(ScmObj lst)
 {
   bool cmp;
   int r;
@@ -3668,7 +3668,7 @@ scm_capi_string_ge(ScmObj s1, ScmObj s2, bool *rslt)
 }
 
 ScmObj
-scm_capi_string_ge_P_lst(ScmObj lst)
+scm_api_string_ge_P_lst(ScmObj lst)
 {
   bool cmp;
   int r;
@@ -3762,7 +3762,7 @@ scm_api_substring(ScmObj str, ScmObj start, ScmObj end)
 }
 
 ScmObj
-scm_capi_string_append_lst(ScmObj lst)
+scm_api_string_append_lst(ScmObj lst)
 {
   ScmObj str = SCM_OBJ_INIT, l = SCM_OBJ_INIT, s = SCM_OBJ_INIT;
   ScmEncoding *enc;
@@ -4493,7 +4493,7 @@ scm_api_make_vector(ScmObj len, ScmObj fill)
 }
 
 ScmObj
-scm_capi_vector_lst(ScmObj lst)
+scm_api_vector_lst(ScmObj lst)
 {
   return scm_api_list_to_vector(lst);
 }
@@ -5025,7 +5025,7 @@ scm_api_vector_copy_i(ScmObj to, ScmObj at,
 }
 
 ScmObj
-scm_capi_vector_append_lst(ScmObj lst)
+scm_api_vector_append_lst(ScmObj lst)
 {
   ScmObj acc = SCM_OBJ_INIT, vec = SCM_OBJ_INIT;
   ScmObj elm = SCM_OBJ_INIT, ls = SCM_OBJ_INIT;
@@ -5270,13 +5270,13 @@ scm_capi_raised_p(void)
 }
 
 ScmObj
-scm_capi_raised_obj(void)
+scm_api_raised_obj(void)
 {
   return scm_vm_raised_obj(scm_vm_current_vm());
 }
 
 void
-scm_capi_discard_raised_obj(void)
+scm_api_discard_raised_obj(void)
 {
   scm_vm_discard_raised_obj(scm_vm_current_vm());
 }
@@ -6694,7 +6694,7 @@ scm_capi_closure_p(ScmObj obj)
 }
 
 ScmObj
-scm_capi_closure_to_iseq(ScmObj clsr)
+scm_api_closure_to_iseq(ScmObj clsr)
 {
   if (!scm_capi_closure_p(clsr)) {
     scm_capi_error("failed to get iseq object from closure: "
@@ -6743,7 +6743,7 @@ scm_capi_closure_env(ScmObj clsr, scm_csetter_t *env)
 /*******************************************************************/
 
 ScmObj
-scm_capi_make_parameter(ScmObj conv)
+scm_api_make_parameter(ScmObj conv)
 {
   SCM_REFSTK_INIT_REG(&conv);
 
@@ -6818,7 +6818,7 @@ scm_capi_parameter_set_init_val(ScmObj prm, ScmObj val)
 }
 
 ScmObj
-scm_capi_parameter_value(ScmObj prm)
+scm_api_parameter_value(ScmObj prm)
 {
   SCM_REFSTK_INIT_REG(&prm);
 
@@ -7065,7 +7065,7 @@ scm_capi_inst_update_oprand_obj(scm_byte_t *ip, ScmObj clsr, ScmObj obj)
     return -1;
   }
 
-  iseq = scm_capi_closure_to_iseq(clsr);
+  iseq = scm_api_closure_to_iseq(clsr);
   if (scm_obj_null_p(iseq)) return -1;
 
   idx = scm_iseq_ip_to_idx(iseq, ip);
@@ -7649,7 +7649,7 @@ scm_capi_return_val(const ScmObj *val, int vc)
 /*******************************************************************/
 
 ScmObj
-scm_capi_capture_cont(void)
+scm_api_capture_cont(void)
 {
   ScmObj cap = SCM_OBJ_INIT;
 
@@ -7668,7 +7668,7 @@ scm_capi_continuation_p(ScmObj obj)
 }
 
 ScmObj
-scm_capi_cont_capture_obj(ScmObj cont)
+scm_api_cont_capture_obj(ScmObj cont)
 {
   if (!scm_capi_continuation_p(cont)) {
     scm_capi_error("failed to get capture object from continuation: "
@@ -7857,7 +7857,7 @@ scm_capi_pformat_lst(ScmObj port, ScmObj fmt, ScmObj lst)
 }
 
 ScmObj
-scm_capi_format_lst(ScmObj fmt, ScmObj lst)
+scm_api_format_lst(ScmObj fmt, ScmObj lst)
 {
   ScmObj port = SCM_OBJ_INIT, str = SCM_OBJ_INIT;
   ScmEncoding *fenc, *senc;

@@ -136,7 +136,7 @@ TEST(api_vectors, api_make_vector__return_ERROR)
   TEST_ASSERT_SCM_NULL(scm_api_make_vector(SCM_FALSE_OBJ, SCM_OBJ_NULL));
 }
 
-TEST(api_vectors, capi_vector_lst)
+TEST(api_vectors, api_vector_lst)
 {
   ScmObj lst = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
@@ -145,7 +145,7 @@ TEST(api_vectors, capi_vector_lst)
   lst = read_cstr("(a b c)");
   expected = read_cstr("#(a b c)");
 
-  actual = scm_capi_vector_lst(lst);
+  actual = scm_api_vector_lst(lst);
 
   TEST_ASSERT_SCM_EQUAL(expected, actual);
 }
@@ -1567,7 +1567,7 @@ TEST(api_vectors, api_vector_copy_i__end_out_of_range___return_ERROR)
   TEST_ASSERT_SCM_EQUAL(expected, to);
 }
 
-TEST(api_vectors, capi_vector_append_lst)
+TEST(api_vectors, api_vector_append_lst)
 {
   ScmObj lst = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
@@ -1576,12 +1576,12 @@ TEST(api_vectors, capi_vector_append_lst)
   lst = read_cstr("(#(a b c) #(d e f) #(g h i))");
   expected = read_cstr("#(a b c d e f g h i)");
 
-  actual = scm_capi_vector_append_lst(lst);
+  actual = scm_api_vector_append_lst(lst);
 
   TEST_ASSERT_SCM_EQUAL(expected, actual);
 }
 
-TEST(api_vectors, capi_vector_append_lst__empty_lst)
+TEST(api_vectors, api_vector_append_lst__empty_lst)
 {
   ScmObj lst = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
@@ -1590,12 +1590,12 @@ TEST(api_vectors, capi_vector_append_lst__empty_lst)
   lst = read_cstr("()");
   expected = read_cstr("#()");
 
-  actual = scm_capi_vector_append_lst(lst);
+  actual = scm_api_vector_append_lst(lst);
 
   TEST_ASSERT_SCM_EQUAL(expected, actual);
 }
 
-TEST(api_vectors, capi_vector_append_lst__arg_is_not_list)
+TEST(api_vectors, api_vector_append_lst__arg_is_not_list)
 {
   ScmObj lst = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
@@ -1604,12 +1604,12 @@ TEST(api_vectors, capi_vector_append_lst__arg_is_not_list)
   lst = read_cstr("a");
   expected = read_cstr("#()");
 
-  actual = scm_capi_vector_append_lst(lst);
+  actual = scm_api_vector_append_lst(lst);
 
   TEST_ASSERT_SCM_EQUAL(expected, actual);
 }
 
-TEST(api_vectors, capi_vector_append_lst__list_has_object_is_not_vector__return_ERROR)
+TEST(api_vectors, api_vector_append_lst__list_has_object_is_not_vector__return_ERROR)
 {
   ScmObj lst = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
@@ -1617,7 +1617,7 @@ TEST(api_vectors, capi_vector_append_lst__list_has_object_is_not_vector__return_
 
   lst = read_cstr("(#(a b c) def #(g h i))");
 
-  TEST_ASSERT_SCM_NULL(scm_capi_vector_append_lst(lst));
+  TEST_ASSERT_SCM_NULL(scm_api_vector_append_lst(lst));
 }
 
 TEST(api_vectors, capi_vector_append_cv)

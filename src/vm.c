@@ -1975,7 +1975,7 @@ scm_vm_do_op_pcall(ScmObj vm, scm_opcode_t op, int argc)
     scm_assert(argc >= 0);      /* continuation への引数の可変部分はリスト化 */
                                 /* されないことが前提                        */
 
-    contcap = scm_capi_cont_capture_obj(SCM_VM(vm)->reg.val[0]);
+    contcap = scm_api_cont_capture_obj(SCM_VM(vm)->reg.val[0]);
     if (scm_obj_null_p(contcap)) return -1;
 
     if (nr_bind > 0)

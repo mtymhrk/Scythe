@@ -401,7 +401,7 @@ TEST(api_bignum, api_num_eq_P_lst__return_true)
   lst = read_cstr("(4611686018427387904 4611686018427387904 4611686018427387904)");
   check_list_elements(lst, scm_capi_bignum_p);
 
-  TEST_ASSERT_SCM_TRUE(scm_capi_num_eq_P_lst(lst));
+  TEST_ASSERT_SCM_TRUE(scm_api_num_eq_P_lst(lst));
 }
 
 TEST(api_bignum, api_num_eq_P__return_false)
@@ -413,7 +413,7 @@ TEST(api_bignum, api_num_eq_P__return_false)
   lst = read_cstr("(4611686018427387904 4611686018427387904 4611686018427387905)");
   check_list_elements(lst, scm_capi_bignum_p);
 
-  TEST_ASSERT_SCM_FALSE(scm_capi_num_eq_P_lst(lst));
+  TEST_ASSERT_SCM_FALSE(scm_api_num_eq_P_lst(lst));
 }
 
 TEST(api_bignum, capi_num_lt__less)
@@ -497,7 +497,7 @@ TEST(api_bignum, api_num_lt_P_lst__ltss)
   lst = read_cstr("(-4611686018427387905 4611686018427387904 9223372036854775807)");
   check_list_elements(lst, scm_capi_bignum_p);
 
-  TEST_ASSERT_SCM_TRUE(scm_capi_num_lt_P_lst(lst));
+  TEST_ASSERT_SCM_TRUE(scm_api_num_lt_P_lst(lst));
 }
 
 TEST(api_bignum, api_num_lt_P_lst__equal)
@@ -509,7 +509,7 @@ TEST(api_bignum, api_num_lt_P_lst__equal)
   lst = read_cstr("(-4611686018427387905 4611686018427387904 4611686018427387904)");
   check_list_elements(lst, scm_capi_bignum_p);
 
-  TEST_ASSERT_SCM_FALSE(scm_capi_num_lt_P_lst(lst));
+  TEST_ASSERT_SCM_FALSE(scm_api_num_lt_P_lst(lst));
 }
 
 TEST(api_bignum, api_num_lt_P_lst__greater)
@@ -521,7 +521,7 @@ TEST(api_bignum, api_num_lt_P_lst__greater)
   lst = read_cstr("(4611686018427387904 9223372036854775807 -4611686018427387905)");
   check_list_elements(lst, scm_capi_bignum_p);
 
-  TEST_ASSERT_SCM_FALSE(scm_capi_num_lt_P_lst(lst));
+  TEST_ASSERT_SCM_FALSE(scm_api_num_lt_P_lst(lst));
 }
 
 TEST(api_bignum, capi_num_gt__less)
@@ -605,7 +605,7 @@ TEST(api_bignum, api_num_gt_P_lst__less)
   lst = read_cstr("(4611686018427387904 -4611686018427387905 9223372036854775807)");
   check_list_elements(lst, scm_capi_bignum_p);
 
-  TEST_ASSERT_SCM_FALSE(scm_capi_num_gt_P_lst(lst));
+  TEST_ASSERT_SCM_FALSE(scm_api_num_gt_P_lst(lst));
 }
 
 TEST(api_bignum, api_num_gt_P_lst__equal)
@@ -617,7 +617,7 @@ TEST(api_bignum, api_num_gt_P_lst__equal)
   lst = read_cstr("(9223372036854775807 4611686018427387904 4611686018427387904)");
   check_list_elements(lst, scm_capi_bignum_p);
 
-  TEST_ASSERT_SCM_FALSE(scm_capi_num_gt_P_lst(lst));
+  TEST_ASSERT_SCM_FALSE(scm_api_num_gt_P_lst(lst));
 }
 
 TEST(api_bignum, api_num_gt_P_lst__greater)
@@ -629,7 +629,7 @@ TEST(api_bignum, api_num_gt_P_lst__greater)
   lst = read_cstr("(9223372036854775807 4611686018427387904 -4611686018427387905)");
   check_list_elements(lst, scm_capi_bignum_p);
 
-  TEST_ASSERT_SCM_TRUE(scm_capi_num_gt_P_lst(lst));
+  TEST_ASSERT_SCM_TRUE(scm_api_num_gt_P_lst(lst));
 }
 
 TEST(api_bignum, capi_num_le__less)
@@ -713,7 +713,7 @@ TEST(api_bignum, api_num_le_P_lst__less)
   lst = read_cstr("(-4611686018427387905 4611686018427387904 9223372036854775807)");
   check_list_elements(lst, scm_capi_bignum_p);
 
-  TEST_ASSERT_SCM_TRUE(scm_capi_num_le_P_lst(lst));
+  TEST_ASSERT_SCM_TRUE(scm_api_num_le_P_lst(lst));
 }
 
 TEST(api_bignum, api_num_le_P_lst__equal)
@@ -725,7 +725,7 @@ TEST(api_bignum, api_num_le_P_lst__equal)
   lst = read_cstr("(-4611686018427387905 4611686018427387904 4611686018427387904)");
   check_list_elements(lst, scm_capi_bignum_p);
 
-  TEST_ASSERT_SCM_TRUE(scm_capi_num_le_P_lst(lst));
+  TEST_ASSERT_SCM_TRUE(scm_api_num_le_P_lst(lst));
 }
 
 TEST(api_bignum, api_num_le_P_lst__greater)
@@ -737,7 +737,7 @@ TEST(api_bignum, api_num_le_P_lst__greater)
   lst = read_cstr("(4611686018427387904 9223372036854775807 -4611686018427387905)");
   check_list_elements(lst, scm_capi_bignum_p);
 
-  TEST_ASSERT_SCM_FALSE(scm_capi_num_le_P_lst(lst));
+  TEST_ASSERT_SCM_FALSE(scm_api_num_le_P_lst(lst));
 }
 
 TEST(api_bignum, capi_num_ge__less)
@@ -821,7 +821,7 @@ TEST(api_bignum, api_num_ge_P_lst__less)
   lst = read_cstr("(4611686018427387904 -4611686018427387905 9223372036854775807)");
   check_list_elements(lst, scm_capi_bignum_p);
 
-  TEST_ASSERT_SCM_FALSE(scm_capi_num_ge_P_lst(lst));
+  TEST_ASSERT_SCM_FALSE(scm_api_num_ge_P_lst(lst));
 }
 
 TEST(api_bignum, api_num_ge_P_lst__equal)
@@ -833,7 +833,7 @@ TEST(api_bignum, api_num_ge_P_lst__equal)
   lst = read_cstr("(9223372036854775807 4611686018427387904 4611686018427387904)");
   check_list_elements(lst, scm_capi_bignum_p);
 
-  TEST_ASSERT_SCM_TRUE(scm_capi_num_ge_P_lst(lst));
+  TEST_ASSERT_SCM_TRUE(scm_api_num_ge_P_lst(lst));
 }
 
 TEST(api_bignum, api_num_ge_P_lst__greater)
@@ -845,7 +845,7 @@ TEST(api_bignum, api_num_ge_P_lst__greater)
   lst = read_cstr("(9223372036854775807 4611686018427387904 -4611686018427387905)");
   check_list_elements(lst, scm_capi_bignum_p);
 
-  TEST_ASSERT_SCM_TRUE(scm_capi_num_ge_P_lst(lst));
+  TEST_ASSERT_SCM_TRUE(scm_api_num_ge_P_lst(lst));
 }
 
 IGNORE_TEST(api_bignum, capi_zero_p__return_true)
@@ -1139,7 +1139,7 @@ TEST(api_bignum, api_max__same)
   TEST_ASSERT_SCM_TRUE(scm_api_num_eq_P(bn1, actual));
 }
 
-TEST(api_bignum, capi_max_lst)
+TEST(api_bignum, api_max_lst)
 {
   ScmObj lst = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
@@ -1149,7 +1149,7 @@ TEST(api_bignum, capi_max_lst)
   check_list_elements(lst, scm_capi_bignum_p);
   expected = read_cstr("4611686022722355200");
 
-  actual = scm_capi_max_lst(lst);
+  actual = scm_api_max_lst(lst);
 
   TEST_ASSERT_SCM_TRUE(scm_api_num_eq_P(expected, actual));
 }
@@ -1202,7 +1202,7 @@ TEST(api_bignum, api_min__same)
   TEST_ASSERT_SCM_TRUE(scm_api_num_eq_P(bn1, actual));
 }
 
-TEST(api_bignum, capi_min_lst)
+TEST(api_bignum, api_min_lst)
 {
   ScmObj lst = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
@@ -1212,7 +1212,7 @@ TEST(api_bignum, capi_min_lst)
   check_list_elements(lst, scm_capi_bignum_p);
   expected = read_cstr("-4611686022722355200");
 
-  actual = scm_capi_min_lst(lst);
+  actual = scm_api_min_lst(lst);
 
   TEST_ASSERT_SCM_TRUE(scm_api_num_eq_P(expected, actual));
 }
@@ -1289,7 +1289,7 @@ TEST(api_bignum, api_plus__4)
   TEST_ASSERT_SCM_TRUE(scm_api_num_eq_P(expected, actual));
 }
 
-TEST(api_bignum, capi_plus_lst)
+TEST(api_bignum, api_plus_lst)
 {
   ScmObj lst = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
@@ -1299,7 +1299,7 @@ TEST(api_bignum, capi_plus_lst)
   check_list_elements(lst, scm_capi_bignum_p);
   expected = read_cstr("18446744078004518912");
 
-  actual = scm_capi_plus_lst(lst);
+  actual = scm_api_plus_lst(lst);
 
   TEST_ASSERT_SCM_TRUE(scm_api_num_eq_P(expected, actual));
 }
@@ -1376,7 +1376,7 @@ TEST(api_bignum, api_mul__4)
   TEST_ASSERT_SCM_TRUE(scm_api_num_eq_P(expected, actual));
 }
 
-TEST(api_bignum, capi_mul_lst)
+TEST(api_bignum, api_mul_lst)
 {
   ScmObj lst = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
@@ -1386,7 +1386,7 @@ TEST(api_bignum, capi_mul_lst)
   check_list_elements(lst, scm_capi_bignum_p);
   expected = read_cstr("196159429413521478536231284250700179592733985096492646400");
 
-  actual = scm_capi_mul_lst(lst);
+  actual = scm_api_mul_lst(lst);
 
   TEST_ASSERT_SCM_TRUE(scm_api_num_eq_P(expected, actual));
 }
@@ -1463,7 +1463,7 @@ TEST(api_bignum, api_minus__4)
   TEST_ASSERT_SCM_TRUE(scm_api_num_eq_P(expected, actual));
 }
 
-TEST(api_bignum, capi_minus_lst)
+TEST(api_bignum, api_minus_lst)
 {
   ScmObj lst = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
@@ -1473,7 +1473,7 @@ TEST(api_bignum, capi_minus_lst)
   check_list_elements(lst, scm_capi_bignum_p);
   expected = read_cstr("-9223372041149743104");
 
-  actual = scm_capi_minus_lst(lst);
+  actual = scm_api_minus_lst(lst);
 
   TEST_ASSERT_SCM_TRUE(scm_api_num_eq_P(expected, actual));
 }

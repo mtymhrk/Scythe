@@ -541,36 +541,36 @@ TEST(api_strings, capi_string_eq__return_ERROR)
   TEST_ASSERT_EQUAL_INT(-1, scm_capi_string_eq(s1, SCM_EOF_OBJ, &actual));
 }
 
-TEST(api_strings, capi_string_eq_P_lst__equal)
+TEST(api_strings, api_string_eq_P_lst__equal)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
   lst = read_cstr("(\"abc\" \"abc\" \"abc\")");
 
-  TEST_ASSERT_SCM_TRUE(scm_capi_string_eq_P_lst(lst));
+  TEST_ASSERT_SCM_TRUE(scm_api_string_eq_P_lst(lst));
 }
 
-TEST(api_strings, capi_string_eq_P_lst__not_equal)
+TEST(api_strings, api_string_eq_P_lst__not_equal)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
   lst = read_cstr("(\"abc\" \"abc\" \"def\")");
 
-  TEST_ASSERT_SCM_FALSE(scm_capi_string_eq_P_lst(lst));
+  TEST_ASSERT_SCM_FALSE(scm_api_string_eq_P_lst(lst));
 }
 
-TEST(api_strings, capi_string_eq_P_lst__empty_list)
+TEST(api_strings, api_string_eq_P_lst__empty_list)
 {
-  TEST_ASSERT_SCM_TRUE(scm_capi_string_eq_P_lst(SCM_NIL_OBJ));
+  TEST_ASSERT_SCM_TRUE(scm_api_string_eq_P_lst(SCM_NIL_OBJ));
 }
 
-TEST(api_strings, capi_string_eq_P_lst__list_has_item_is_not_string__return_ERROR)
+TEST(api_strings, api_string_eq_P_lst__list_has_item_is_not_string__return_ERROR)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
   lst = read_cstr("(\"abc\" abc \"def\")");
 
-  TEST_ASSERT_SCM_NULL(scm_capi_string_eq_P_lst(lst));
+  TEST_ASSERT_SCM_NULL(scm_api_string_eq_P_lst(lst));
 }
 
 TEST(api_strings, api_string_eq_P__euqal)
@@ -683,45 +683,45 @@ TEST(api_strings, capi_string_lt__return_ERROR)
   TEST_ASSERT_EQUAL_INT(-1, scm_capi_string_lt(s1, SCM_EOF_OBJ, &actual));
 }
 
-TEST(api_strings, capi_string_lt_P_lst__less)
+TEST(api_strings, api_string_lt_P_lst__less)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
   lst = read_cstr("(\"abc\" \"def\" \"ghi\")");
 
-  TEST_ASSERT_SCM_TRUE(scm_capi_string_lt_P_lst(lst));
+  TEST_ASSERT_SCM_TRUE(scm_api_string_lt_P_lst(lst));
 }
 
-TEST(api_strings, capi_string_lt_P_lst__equal)
+TEST(api_strings, api_string_lt_P_lst__equal)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
   lst = read_cstr("(\"abc\" \"def\" \"def\")");
 
-  TEST_ASSERT_SCM_FALSE(scm_capi_string_lt_P_lst(lst));
+  TEST_ASSERT_SCM_FALSE(scm_api_string_lt_P_lst(lst));
 }
 
-TEST(api_strings, capi_string_lt_P_lst__greater)
+TEST(api_strings, api_string_lt_P_lst__greater)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
   lst = read_cstr("(\"def\" \"ghi\" \"abc\")");
 
-  TEST_ASSERT_SCM_FALSE(scm_capi_string_lt_P_lst(lst));
+  TEST_ASSERT_SCM_FALSE(scm_api_string_lt_P_lst(lst));
 }
 
-TEST(api_strings, capi_string_lt_P_lst__empty_list)
+TEST(api_strings, api_string_lt_P_lst__empty_list)
 {
-  TEST_ASSERT_SCM_TRUE(scm_capi_string_lt_P_lst(SCM_NIL_OBJ));
+  TEST_ASSERT_SCM_TRUE(scm_api_string_lt_P_lst(SCM_NIL_OBJ));
 }
 
-TEST(api_strings, capi_string_lt_P_lst__list_has_item_is_not_string__return_ERROR)
+TEST(api_strings, api_string_lt_P_lst__list_has_item_is_not_string__return_ERROR)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
   lst = read_cstr("(\"abc\" def \"ghi\")");
 
-  TEST_ASSERT_SCM_NULL(scm_capi_string_lt_P_lst(lst));
+  TEST_ASSERT_SCM_NULL(scm_api_string_lt_P_lst(lst));
 }
 
 TEST(api_strings, api_string_lt_P__less)
@@ -861,45 +861,45 @@ TEST(api_strings, capi_string_gt__return_ERROR)
   TEST_ASSERT_EQUAL_INT(-1, scm_capi_string_gt(s1, SCM_EOF_OBJ, &actual));
 }
 
-TEST(api_strings, capi_string_gt_P_lst__less)
+TEST(api_strings, api_string_gt_P_lst__less)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
   lst = read_cstr("(\"def\" \"abc\" \"ghi\")");
 
-  TEST_ASSERT_SCM_FALSE(scm_capi_string_gt_P_lst(lst));
+  TEST_ASSERT_SCM_FALSE(scm_api_string_gt_P_lst(lst));
 }
 
-TEST(api_strings, capi_string_gt_P_lst__equal)
+TEST(api_strings, api_string_gt_P_lst__equal)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
   lst = read_cstr("(\"ghi\" \"def\" \"def\")");
 
-  TEST_ASSERT_SCM_FALSE(scm_capi_string_gt_P_lst(lst));
+  TEST_ASSERT_SCM_FALSE(scm_api_string_gt_P_lst(lst));
 }
 
-TEST(api_strings, capi_string_gt_P_lst__greater)
+TEST(api_strings, api_string_gt_P_lst__greater)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
   lst = read_cstr("(\"ghi\" \"def\" \"abc\")");
 
-  TEST_ASSERT_SCM_TRUE(scm_capi_string_gt_P_lst(lst));
+  TEST_ASSERT_SCM_TRUE(scm_api_string_gt_P_lst(lst));
 }
 
-TEST(api_strings, capi_string_gt_P_lst__empty_list)
+TEST(api_strings, api_string_gt_P_lst__empty_list)
 {
-  TEST_ASSERT_SCM_TRUE(scm_capi_string_gt_P_lst(SCM_NIL_OBJ));
+  TEST_ASSERT_SCM_TRUE(scm_api_string_gt_P_lst(SCM_NIL_OBJ));
 }
 
-TEST(api_strings, capi_string_gt_P_lst__list_has_item_is_not_string__return_ERROR)
+TEST(api_strings, api_string_gt_P_lst__list_has_item_is_not_string__return_ERROR)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
   lst = read_cstr("(\"ghi\" def \"abc\")");
 
-  TEST_ASSERT_SCM_NULL(scm_capi_string_gt_P_lst(lst));
+  TEST_ASSERT_SCM_NULL(scm_api_string_gt_P_lst(lst));
 }
 
 TEST(api_strings, api_string_gt_P__less)
@@ -1039,45 +1039,45 @@ TEST(api_strings, capi_string_le__return_ERROR)
   TEST_ASSERT_EQUAL_INT(-1, scm_capi_string_le(s1, SCM_EOF_OBJ, &actual));
 }
 
-TEST(api_strings, capi_string_le_P_lst__less)
+TEST(api_strings, api_string_le_P_lst__less)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
   lst = read_cstr("(\"abc\" \"def\" \"ghi\")");
 
-  TEST_ASSERT_SCM_TRUE(scm_capi_string_le_P_lst(lst));
+  TEST_ASSERT_SCM_TRUE(scm_api_string_le_P_lst(lst));
 }
 
-TEST(api_strings, capi_string_le_P_lst__equal)
+TEST(api_strings, api_string_le_P_lst__equal)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
   lst = read_cstr("(\"abc\" \"def\" \"def\")");
 
-  TEST_ASSERT_SCM_TRUE(scm_capi_string_le_P_lst(lst));
+  TEST_ASSERT_SCM_TRUE(scm_api_string_le_P_lst(lst));
 }
 
-TEST(api_strings, capi_string_le_P_lst__greater)
+TEST(api_strings, api_string_le_P_lst__greater)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
   lst = read_cstr("(\"ghi\" \"def\" \"abc\")");
 
-  TEST_ASSERT_SCM_FALSE(scm_capi_string_le_P_lst(lst));
+  TEST_ASSERT_SCM_FALSE(scm_api_string_le_P_lst(lst));
 }
 
-TEST(api_strings, capi_string_le_P_lst__empty_list)
+TEST(api_strings, api_string_le_P_lst__empty_list)
 {
-  TEST_ASSERT_SCM_TRUE(scm_capi_string_le_P_lst(SCM_NIL_OBJ));
+  TEST_ASSERT_SCM_TRUE(scm_api_string_le_P_lst(SCM_NIL_OBJ));
 }
 
-TEST(api_strings, capi_string_le_P_lst__list_has_item_is_not_string__return_ERROR)
+TEST(api_strings, api_string_le_P_lst__list_has_item_is_not_string__return_ERROR)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
   lst = read_cstr("(\"abc\" def \"ghi\")");
 
-  TEST_ASSERT_SCM_NULL(scm_capi_string_le_P_lst(lst));
+  TEST_ASSERT_SCM_NULL(scm_api_string_le_P_lst(lst));
 }
 
 TEST(api_strings, api_string_le_P__less)
@@ -1217,45 +1217,45 @@ TEST(api_strings, capi_string_ge__return_ERROR)
   TEST_ASSERT_EQUAL_INT(-1, scm_capi_string_ge(s1, SCM_EOF_OBJ, &actual));
 }
 
-TEST(api_strings, capi_string_ge_P_lst__less)
+TEST(api_strings, api_string_ge_P_lst__less)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
   lst = read_cstr("(\"def\" \"abc\" \"ghi\")");
 
-  TEST_ASSERT_SCM_FALSE(scm_capi_string_ge_P_lst(lst));
+  TEST_ASSERT_SCM_FALSE(scm_api_string_ge_P_lst(lst));
 }
 
-TEST(api_strings, capi_string_ge_P_lst__equal)
+TEST(api_strings, api_string_ge_P_lst__equal)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
   lst = read_cstr("(\"ghi\" \"def\" \"def\")");
 
-  TEST_ASSERT_SCM_TRUE(scm_capi_string_ge_P_lst(lst));
+  TEST_ASSERT_SCM_TRUE(scm_api_string_ge_P_lst(lst));
 }
 
-TEST(api_strings, capi_string_ge_P_lst__greater)
+TEST(api_strings, api_string_ge_P_lst__greater)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
   lst = read_cstr("(\"ghi\" \"def\" \"abc\")");
 
-  TEST_ASSERT_SCM_TRUE(scm_capi_string_ge_P_lst(lst));
+  TEST_ASSERT_SCM_TRUE(scm_api_string_ge_P_lst(lst));
 }
 
-TEST(api_strings, capi_string_ge_P_lst__empty_list)
+TEST(api_strings, api_string_ge_P_lst__empty_list)
 {
-  TEST_ASSERT_SCM_TRUE(scm_capi_string_ge_P_lst(SCM_NIL_OBJ));
+  TEST_ASSERT_SCM_TRUE(scm_api_string_ge_P_lst(SCM_NIL_OBJ));
 }
 
-TEST(api_strings, capi_string_ge_P_lst__list_has_item_is_not_string__return_ERROR)
+TEST(api_strings, api_string_ge_P_lst__list_has_item_is_not_string__return_ERROR)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
   lst = read_cstr("(\"ghi\" def \"abc\")");
 
-  TEST_ASSERT_SCM_NULL(scm_capi_string_ge_P_lst(lst));
+  TEST_ASSERT_SCM_NULL(scm_api_string_ge_P_lst(lst));
 }
 
 TEST(api_strings, api_string_ge_P__less)
@@ -1426,7 +1426,7 @@ TEST(api_strings, api_substring__return_ERROR)
   TEST_ASSERT_SCM_NULL(scm_capi_substring(SCM_TRUE_OBJ, SCM_EOF_OBJ, SCM_FALSE_OBJ));
 }
 
-TEST(api_strings, capi_string_append_lst)
+TEST(api_strings, api_string_append_lst)
 {
   ScmObj lst = SCM_OBJ_INIT;
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
@@ -1436,12 +1436,12 @@ TEST(api_strings, capi_string_append_lst)
   lst = read_cstr("(\"abc\" \"def\" \"ghi\")");
   expected = scm_capi_make_string_from_cstr("abcdefghi", SCM_ENC_UTF8);
 
-  actual = scm_capi_string_append_lst(lst);
+  actual = scm_api_string_append_lst(lst);
 
   TEST_ASSERT_SCM_TRUE(scm_api_string_eq_P(expected, actual));
 }
 
-TEST(api_strings, capi_string_append_lst__empty_list)
+TEST(api_strings, api_string_append_lst__empty_list)
 {
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
@@ -1449,12 +1449,12 @@ TEST(api_strings, capi_string_append_lst__empty_list)
 
   expected = scm_capi_make_string_from_cstr("", SCM_ENC_UTF8);
 
-  actual = scm_capi_string_append_lst(SCM_NIL_OBJ);
+  actual = scm_api_string_append_lst(SCM_NIL_OBJ);
 
   TEST_ASSERT_SCM_TRUE(scm_api_string_eq_P(expected, actual));
 }
 
-TEST(api_strings, capi_string_append_lst__list_has_item_is_not_string)
+TEST(api_strings, api_string_append_lst__list_has_item_is_not_string)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
@@ -1462,7 +1462,7 @@ TEST(api_strings, capi_string_append_lst__list_has_item_is_not_string)
 
   lst = read_cstr("(\"abc\" def \"ghi\")");
 
-  TEST_ASSERT_SCM_NULL(scm_capi_string_append_lst(lst));
+  TEST_ASSERT_SCM_NULL(scm_api_string_append_lst(lst));
 }
 
 TEST(api_strings, capi_string_append_cv)

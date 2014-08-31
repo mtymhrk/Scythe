@@ -21,7 +21,7 @@ TEST_TEAR_DOWN(api_format)
   scm_capi_evaluator_end(ev);
 }
 
-TEST(api_format, capi_format_lst)
+TEST(api_format, api_format_lst)
 {
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
   ScmObj format = SCM_OBJ_INIT, arg = SCM_OBJ_INIT;
@@ -32,12 +32,12 @@ TEST(api_format, capi_format_lst)
   arg = read_cstr("(\"foo\" \"bar\")");
   expected = read_cstr("\"[foo] [\\\"bar\\\"] [~] [\\n]\"");
 
-  actual = scm_capi_format_lst(format, arg);
+  actual = scm_api_format_lst(format, arg);
 
   TEST_ASSERT_SCM_TRUE(scm_api_string_eq_P(expected, actual));
 }
 
-TEST(api_format, capi_format_lst__too_many_arguments)
+TEST(api_format, api_format_lst__too_many_arguments)
 {
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
   ScmObj format = SCM_OBJ_INIT, arg = SCM_OBJ_INIT;
@@ -48,12 +48,12 @@ TEST(api_format, capi_format_lst__too_many_arguments)
   arg = read_cstr("(\"foo\" \"bar\" \"baz\")");
   expected = read_cstr("\"[foo] [\\\"bar\\\"] [~] [\\n]\"");
 
-  actual = scm_capi_format_lst(format, arg);
+  actual = scm_api_format_lst(format, arg);
 
   TEST_ASSERT_SCM_TRUE(scm_api_string_eq_P(expected, actual));
 }
 
-TEST(api_format, capi_format_lst__error_too_few_arguments)
+TEST(api_format, api_format_lst__error_too_few_arguments)
 {
   ScmObj actual = SCM_OBJ_INIT, format = SCM_OBJ_INIT, arg = SCM_OBJ_INIT;
 
@@ -62,7 +62,7 @@ TEST(api_format, capi_format_lst__error_too_few_arguments)
   format = read_cstr("\"[~a] [~s] [~~] [~%]\"");
   arg = read_cstr("(\"foo\")");
 
-  actual = scm_capi_format_lst(format, arg);
+  actual = scm_api_format_lst(format, arg);
 
   TEST_ASSERT_SCM_NULL(actual);
 }

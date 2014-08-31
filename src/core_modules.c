@@ -329,7 +329,7 @@ scm_define_scheme_base_current_port(ScmObj module)
     sym = scm_capi_make_symbol_from_cstr(data[i].name, SCM_ENC_SRC);
     if (scm_obj_null_p(sym)) return -1;
 
-    prm = scm_capi_make_parameter(SCM_OBJ_NULL);
+    prm = scm_api_make_parameter(SCM_OBJ_NULL);
     if (scm_obj_null_p(prm)) return -1;
 
     SCM_SYSCALL(fd, dup(data[i].fd));

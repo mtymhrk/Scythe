@@ -250,7 +250,7 @@ scm_subr_func_num_eq_P(ScmObj subr, int argc, const ScmObj *argv)
   lst = scm_api_cons(argv[0], lst);
   if (scm_obj_null_p(lst)) return -1;
 
-  val = scm_capi_num_eq_P_lst(lst);
+  val = scm_api_num_eq_P_lst(lst);
   if (scm_obj_null_p(val)) return -1;
 
   return scm_capi_return_val(&val, 1);
@@ -270,7 +270,7 @@ scm_subr_func_num_lt_P(ScmObj subr, int argc, const ScmObj *argv)
   lst = scm_api_cons(argv[0], lst);
   if (scm_obj_null_p(lst)) return -1;
 
-  val = scm_capi_num_lt_P_lst(lst);
+  val = scm_api_num_lt_P_lst(lst);
   if (scm_obj_null_p(val)) return -1;
 
   return scm_capi_return_val(&val, 1);
@@ -290,7 +290,7 @@ scm_subr_func_num_gt_P(ScmObj subr, int argc, const ScmObj *argv)
   lst = scm_api_cons(argv[0], lst);
   if (scm_obj_null_p(lst)) return -1;
 
-  val = scm_capi_num_gt_P_lst(lst);
+  val = scm_api_num_gt_P_lst(lst);
   if (scm_obj_null_p(val)) return -1;
 
   return scm_capi_return_val(&val, 1);
@@ -310,7 +310,7 @@ scm_subr_func_num_le_P(ScmObj subr, int argc, const ScmObj *argv)
   lst = scm_api_cons(argv[0], lst);
   if (scm_obj_null_p(lst)) return -1;
 
-  val = scm_capi_num_le_P_lst(lst);
+  val = scm_api_num_le_P_lst(lst);
   if (scm_obj_null_p(val)) return -1;
 
   return scm_capi_return_val(&val, 1);
@@ -330,7 +330,7 @@ scm_subr_func_num_ge_P(ScmObj subr, int argc, const ScmObj *argv)
   lst = scm_api_cons(argv[0], lst);
   if (scm_obj_null_p(lst)) return -1;
 
-  val = scm_capi_num_ge_P_lst(lst);
+  val = scm_api_num_ge_P_lst(lst);
   if (scm_obj_null_p(val)) return -1;
 
   return scm_capi_return_val(&val, 1);
@@ -417,7 +417,7 @@ scm_subr_func_max(ScmObj subr, int argc, const ScmObj *argv)
   lst = scm_api_cons(argv[0], argv[1]);
   if (scm_obj_null_p(lst)) return -1;
 
-  val = scm_capi_max_lst(lst);
+  val = scm_api_max_lst(lst);
   if (scm_obj_null_p(val)) return -1;
 
   return scm_capi_return_val(&val, 1);
@@ -434,7 +434,7 @@ scm_subr_func_min(ScmObj subr, int argc, const ScmObj *argv)
   lst = scm_api_cons(argv[0], argv[1]);
   if (scm_obj_null_p(lst)) return -1;
 
-  val = scm_capi_min_lst(lst);
+  val = scm_api_min_lst(lst);
   if (scm_obj_null_p(val)) return -1;
 
   return scm_capi_return_val(&val, 1);
@@ -448,7 +448,7 @@ scm_subr_func_plus(ScmObj subr, int argc, const ScmObj *argv)
   SCM_REFSTK_INIT_REG(&subr,
                       &val);
 
-  val = scm_capi_plus_lst(argv[0]);
+  val = scm_api_plus_lst(argv[0]);
   if (scm_obj_null_p(val)) return -1;
 
   return scm_capi_return_val(&val, 1);
@@ -462,7 +462,7 @@ scm_subr_func_mul(ScmObj subr, int argc, const ScmObj *argv)
   SCM_REFSTK_INIT_REG(&subr,
                       &val);
 
-  val = scm_capi_mul_lst(argv[0]);
+  val = scm_api_mul_lst(argv[0]);
   if (scm_obj_null_p(val)) return -1;
 
   return scm_capi_return_val(&val, 1);
@@ -479,7 +479,7 @@ scm_subr_func_minus(ScmObj subr, int argc, const ScmObj *argv)
   lst = scm_api_cons(argv[0], argv[1]);
   if (scm_obj_null_p(lst)) return -1;
 
-  val = scm_capi_minus_lst(lst);
+  val = scm_api_minus_lst(lst);
   if (scm_obj_null_p(val)) return -1;
 
   return scm_capi_return_val(&val, 1);
@@ -792,7 +792,7 @@ scm_subr_func_append(ScmObj subr, int argc, const ScmObj *argv)
   SCM_REFSTK_INIT_REG(&subr,
                       &val);
 
-  val = scm_capi_append_lst(argv[0]);
+  val = scm_api_append_lst(argv[0]);
   if (scm_obj_null_p(val)) return SCM_OBJ_NULL;
 
   return scm_capi_return_val(&val, 1);
@@ -862,7 +862,7 @@ scm_subr_func_memq(ScmObj subr, int argc, const ScmObj *argv)
   SCM_REFSTK_INIT_REG(&subr,
                       &val);
 
-  val = scm_capi_memq(argv[0], argv[1]);
+  val = scm_api_memq(argv[0], argv[1]);
   if (scm_obj_null_p(val)) return -1;
 
   return scm_capi_return_val(&val, 1);
@@ -876,7 +876,7 @@ scm_subr_func_memv(ScmObj subr, int argc, const ScmObj *argv)
   SCM_REFSTK_INIT_REG(&subr,
                       &val);
 
-  val = scm_capi_memv(argv[0], argv[1]);
+  val = scm_api_memv(argv[0], argv[1]);
   if (scm_obj_null_p(val)) return -1;
 
   return scm_capi_return_val(&val, 1);
@@ -897,7 +897,7 @@ scm_subr_func_assq(ScmObj subr, int argc, const ScmObj *argv)
   SCM_REFSTK_INIT_REG(&subr,
                       &val);
 
-  val = scm_capi_assq(argv[0], argv[1]);
+  val = scm_api_assq(argv[0], argv[1]);
   if (scm_obj_null_p(val)) return -1;
 
   return scm_capi_return_val(&val, 1);
@@ -911,7 +911,7 @@ scm_subr_func_assv(ScmObj subr, int argc, const ScmObj *argv)
   SCM_REFSTK_INIT_REG(&subr,
                       &val);
 
-  val = scm_capi_assv(argv[0], argv[1]);
+  val = scm_api_assv(argv[0], argv[1]);
   if (scm_obj_null_p(val)) return -1;
 
   return scm_capi_return_val(&val, 1);
@@ -971,7 +971,7 @@ scm_subr_func_symbol_eq_P(ScmObj subr, int argc, const ScmObj *argv)
   lst = scm_api_cons(argv[0], lst);
   if (scm_obj_null_p(lst)) return -1;
 
-  val = scm_capi_symbol_eq_P_lst(lst);
+  val = scm_api_symbol_eq_P_lst(lst);
   if (scm_obj_null_p(val)) return -1;
 
   return scm_capi_return_val(&val, 1);
@@ -1038,7 +1038,7 @@ scm_subr_func_char_eq_P(ScmObj subr, int argc, const ScmObj *argv)
   lst = scm_api_cons(argv[0], lst);
   if (scm_obj_null_p(lst)) return -1;
 
-  val = scm_capi_char_eq_P_lst(lst);
+  val = scm_api_char_eq_P_lst(lst);
   if (scm_obj_null_p(val)) return -1;
 
   return scm_capi_return_val(&val, 1);
@@ -1058,7 +1058,7 @@ scm_subr_func_char_lt_P(ScmObj subr, int argc, const ScmObj *argv)
   lst = scm_api_cons(argv[0], lst);
   if (scm_obj_null_p(lst)) return -1;
 
-  val = scm_capi_char_lt_P_lst(lst);
+  val = scm_api_char_lt_P_lst(lst);
   if (scm_obj_null_p(val)) return -1;
 
   return scm_capi_return_val(&val, 1);
@@ -1078,7 +1078,7 @@ scm_subr_func_char_gt_P(ScmObj subr, int argc, const ScmObj *argv)
   lst = scm_api_cons(argv[0], lst);
   if (scm_obj_null_p(lst)) return -1;
 
-  val = scm_capi_char_gt_P_lst(lst);
+  val = scm_api_char_gt_P_lst(lst);
   if (scm_obj_null_p(val)) return -1;
 
   return scm_capi_return_val(&val, 1);
@@ -1098,7 +1098,7 @@ scm_subr_func_char_le_P(ScmObj subr, int argc, const ScmObj *argv)
   lst = scm_api_cons(argv[0], lst);
   if (scm_obj_null_p(lst)) return -1;
 
-  val = scm_capi_char_le_P_lst(lst);
+  val = scm_api_char_le_P_lst(lst);
   if (scm_obj_null_p(val)) return -1;
 
   return scm_capi_return_val(&val, 1);
@@ -1118,7 +1118,7 @@ scm_subr_func_char_ge_P(ScmObj subr, int argc, const ScmObj *argv)
   lst = scm_api_cons(argv[0], lst);
   if (scm_obj_null_p(lst)) return -1;
 
-  val = scm_capi_char_ge_P_lst(lst);
+  val = scm_api_char_ge_P_lst(lst);
   if (scm_obj_null_p(val)) return -1;
 
   return scm_capi_return_val(&val, 1);
@@ -1360,7 +1360,7 @@ scm_subr_func_string_eq_P(ScmObj subr, int argc, const ScmObj *argv)
   lst = scm_api_cons(argv[0], lst);
   if (scm_obj_null_p(lst)) return -1;
 
-  val = scm_capi_string_eq_P_lst(lst);
+  val = scm_api_string_eq_P_lst(lst);
   if (scm_obj_null_p(val)) return -1;
 
   return scm_capi_return_val(&val, 1);
@@ -1387,7 +1387,7 @@ scm_subr_func_string_lt_P(ScmObj subr, int argc, const ScmObj *argv)
   lst = scm_api_cons(argv[0], lst);
   if (scm_obj_null_p(lst)) return -1;
 
-  val = scm_capi_string_lt_P_lst(lst);
+  val = scm_api_string_lt_P_lst(lst);
   if (scm_obj_null_p(val)) return -1;
 
   return scm_capi_return_val(&val, 1);
@@ -1414,7 +1414,7 @@ scm_subr_func_string_gt_P(ScmObj subr, int argc, const ScmObj *argv)
   lst = scm_api_cons(argv[0], lst);
   if (scm_obj_null_p(lst)) return -1;
 
-  val = scm_capi_string_gt_P_lst(lst);
+  val = scm_api_string_gt_P_lst(lst);
   if (scm_obj_null_p(val)) return -1;
 
   return scm_capi_return_val(&val, 1);
@@ -1441,7 +1441,7 @@ scm_subr_func_string_le_P(ScmObj subr, int argc, const ScmObj *argv)
   lst = scm_api_cons(argv[0], lst);
   if (scm_obj_null_p(lst)) return -1;
 
-  val = scm_capi_string_le_P_lst(lst);
+  val = scm_api_string_le_P_lst(lst);
   if (scm_obj_null_p(val)) return -1;
 
   return scm_capi_return_val(&val, 1);
@@ -1468,7 +1468,7 @@ scm_subr_func_string_ge_P(ScmObj subr, int argc, const ScmObj *argv)
   lst = scm_api_cons(argv[0], lst);
   if (scm_obj_null_p(lst)) return -1;
 
-  val = scm_capi_string_ge_P_lst(lst);
+  val = scm_api_string_ge_P_lst(lst);
   if (scm_obj_null_p(val)) return -1;
 
   return scm_capi_return_val(&val, 1);
@@ -1524,7 +1524,7 @@ scm_subr_func_string_append(ScmObj subr, int argc, const ScmObj *argv)
   SCM_REFSTK_INIT_REG(&subr,
                       &val);
 
-  val = scm_capi_string_append_lst(argv[0]);
+  val = scm_api_string_append_lst(argv[0]);
   if (scm_obj_null_p(val)) return -1;
 
   return scm_capi_return_val(&val, 1);
@@ -1674,7 +1674,7 @@ scm_subr_func_vector(ScmObj subr, int argc, const ScmObj *argv)
   SCM_REFSTK_INIT_REG(&subr,
                       &val);
 
-  val = scm_capi_vector_lst(argv[0]);
+  val = scm_api_vector_lst(argv[0]);
   if (scm_obj_null_p(val)) return -1;
 
   return scm_capi_return_val(&val, 1);
@@ -1845,7 +1845,7 @@ scm_subr_func_vector_append(ScmObj subr, int argc, const ScmObj *argv)
   SCM_REFSTK_INIT_REG(&subr,
                       &val);
 
-  val = scm_capi_vector_append_lst(argv[0]);
+  val = scm_api_vector_append_lst(argv[0]);
   if (scm_obj_null_p(val)) return -1;
 
   return scm_capi_return_val(&val, 1);
@@ -2225,7 +2225,7 @@ scm_subr_func_callcc(ScmObj subr, int argc, const ScmObj *argv)
     return -1;
   }
 
-  cont = scm_capi_capture_cont();
+  cont = scm_api_capture_cont();
   if (scm_obj_null_p(cont)) return -1;
 
   args = scm_capi_list(1, cont);
@@ -2409,7 +2409,7 @@ scm_subr_func_format(ScmObj subr, int argc, const ScmObj *argv)
   SCM_REFSTK_INIT_REG(&subr,
                       &val);
 
-  val = scm_capi_format_lst(argv[0], argv[1]);
+  val = scm_api_format_lst(argv[0], argv[1]);
   if (scm_obj_null_p(val)) return -1;
 
   return scm_capi_return_val(&val, 1);

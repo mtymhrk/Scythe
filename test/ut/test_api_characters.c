@@ -94,7 +94,7 @@ TEST(api_characters, capi_char_eq__return_ERROR)
   TEST_ASSERT_EQUAL_INT(-1, scm_capi_char_eq(c1, c2, &cmp));
 }
 
-TEST(api_characters, capi_char_eq_P_lst__equal)
+TEST(api_characters, api_char_eq_P_lst__equal)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
@@ -102,10 +102,10 @@ TEST(api_characters, capi_char_eq_P_lst__equal)
 
   lst = read_cstr("(#\\a #\\a #\\a)");
 
-  TEST_ASSERT_SCM_TRUE(scm_capi_char_eq_P_lst(lst));
+  TEST_ASSERT_SCM_TRUE(scm_api_char_eq_P_lst(lst));
 }
 
-TEST(api_characters, capi_char_eq_P_lst__not_equal)
+TEST(api_characters, capi_har_eq_P_lst__not_equal)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
@@ -113,15 +113,15 @@ TEST(api_characters, capi_char_eq_P_lst__not_equal)
 
   lst = read_cstr("(#\\a #\\a #\\z)");
 
-  TEST_ASSERT_SCM_FALSE(scm_capi_char_eq_P_lst(lst));
+  TEST_ASSERT_SCM_FALSE(scm_api_char_eq_P_lst(lst));
 }
 
-TEST(api_characters, capi_char_eq_P_lst__empty_list)
+TEST(api_characters, api_char_eq_P_lst__empty_list)
 {
-  TEST_ASSERT_SCM_TRUE(scm_capi_char_eq_P_lst(SCM_NIL_OBJ));
+  TEST_ASSERT_SCM_TRUE(scm_api_char_eq_P_lst(SCM_NIL_OBJ));
 }
 
-TEST(api_characters, capi_char_eq_P__list_has_item_is_not_character__return_ERROR)
+TEST(api_characters, api_char_eq_P__list_has_item_is_not_character__return_ERROR)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
@@ -129,7 +129,7 @@ TEST(api_characters, capi_char_eq_P__list_has_item_is_not_character__return_ERRO
 
   lst = read_cstr("(#\\a a #\\a)");
 
-  TEST_ASSERT_SCM_NULL(scm_capi_char_eq_P_lst(lst));
+  TEST_ASSERT_SCM_NULL(scm_api_char_eq_P_lst(lst));
 }
 
 TEST(api_characters, api_char_eq_P__equal)
@@ -244,7 +244,7 @@ TEST(api_characters, capi_char_lt__return_ERROR)
   TEST_ASSERT_EQUAL_INT(-1, scm_capi_char_lt(c1, c2, &actual));
 }
 
-TEST(api_characters, capi_char_lt_P_lst__less)
+TEST(api_characters, api_char_lt_P_lst__less)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
@@ -252,10 +252,10 @@ TEST(api_characters, capi_char_lt_P_lst__less)
 
   lst = read_cstr("(#\\a #\\b #\\c)");
 
-  TEST_ASSERT_SCM_TRUE(scm_capi_char_lt_P_lst(lst));
+  TEST_ASSERT_SCM_TRUE(scm_api_char_lt_P_lst(lst));
 }
 
-TEST(api_characters, capi_char_lt_P_lst__equal)
+TEST(api_characters, api_char_lt_P_lst__equal)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
@@ -263,10 +263,10 @@ TEST(api_characters, capi_char_lt_P_lst__equal)
 
   lst = read_cstr("(#\\a #\\b #\\b)");
 
-  TEST_ASSERT_SCM_FALSE(scm_capi_char_lt_P_lst(lst));
+  TEST_ASSERT_SCM_FALSE(scm_api_char_lt_P_lst(lst));
 }
 
-TEST(api_characters, capi_char_lt_P_lst__greater)
+TEST(api_characters, api_char_lt_P_lst__greater)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
@@ -274,15 +274,15 @@ TEST(api_characters, capi_char_lt_P_lst__greater)
 
   lst = read_cstr("(#\\b #\\c #\\a)");
 
-  TEST_ASSERT_SCM_FALSE(scm_capi_char_lt_P_lst(lst));
+  TEST_ASSERT_SCM_FALSE(scm_api_char_lt_P_lst(lst));
 }
 
-TEST(api_characters, capi_char_lt_P_lst__empty_list)
+TEST(api_characters, api_char_lt_P_lst__empty_list)
 {
-  TEST_ASSERT_SCM_TRUE(scm_capi_char_lt_P_lst(SCM_NIL_OBJ));
+  TEST_ASSERT_SCM_TRUE(scm_api_char_lt_P_lst(SCM_NIL_OBJ));
 }
 
-TEST(api_characters, capi_char_lt_P_lst__list_has_item_is_not_character__return_ERROR)
+TEST(api_characters, api_char_lt_P_lst__list_has_item_is_not_character__return_ERROR)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
@@ -290,7 +290,7 @@ TEST(api_characters, capi_char_lt_P_lst__list_has_item_is_not_character__return_
 
   lst = read_cstr("(#\\a b #\\c)");
 
-  TEST_ASSERT_SCM_NULL(scm_capi_char_lt_P_lst(lst));
+  TEST_ASSERT_SCM_NULL(scm_api_char_lt_P_lst(lst));
 }
 
 TEST(api_characters, api_char_lt_P__less)
@@ -432,7 +432,7 @@ TEST(api_characters, capi_char_gt__return_ERROR)
   TEST_ASSERT_EQUAL_INT(-1, scm_capi_char_lt(c1, c2, &actual));
 }
 
-TEST(api_characters, capi_char_gt_P_lst__less)
+TEST(api_characters, api_char_gt_P_lst__less)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
@@ -440,10 +440,10 @@ TEST(api_characters, capi_char_gt_P_lst__less)
 
   lst = read_cstr("(#\\b #\\a #\\c)");
 
-  TEST_ASSERT_SCM_FALSE(scm_capi_char_gt_P_lst(lst));
+  TEST_ASSERT_SCM_FALSE(scm_api_char_gt_P_lst(lst));
 }
 
-TEST(api_characters, capi_char_gt_P_lst__equal)
+TEST(api_characters, api_char_gt_P_lst__equal)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
@@ -451,10 +451,10 @@ TEST(api_characters, capi_char_gt_P_lst__equal)
 
   lst = read_cstr("(#\\c #\\b #\\b)");
 
-  TEST_ASSERT_SCM_FALSE(scm_capi_char_gt_P_lst(lst));
+  TEST_ASSERT_SCM_FALSE(scm_api_char_gt_P_lst(lst));
 }
 
-TEST(api_characters, capi_char_gt_P_lst__greater)
+TEST(api_characters, api_char_gt_P_lst__greater)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
@@ -462,15 +462,15 @@ TEST(api_characters, capi_char_gt_P_lst__greater)
 
   lst = read_cstr("(#\\c #\\b #\\a)");
 
-  TEST_ASSERT_SCM_TRUE(scm_capi_char_gt_P_lst(lst));
+  TEST_ASSERT_SCM_TRUE(scm_api_char_gt_P_lst(lst));
 }
 
-TEST(api_characters, capi_char_gt_P_lst__empty_list)
+TEST(api_characters, api_char_gt_P_lst__empty_list)
 {
-  TEST_ASSERT_SCM_TRUE(scm_capi_char_gt_P_lst(SCM_NIL_OBJ));
+  TEST_ASSERT_SCM_TRUE(scm_api_char_gt_P_lst(SCM_NIL_OBJ));
 }
 
-TEST(api_characters, capi_char_gt_P_lst__list_has_item_is_not_character__return_ERROR)
+TEST(api_characters, api_char_gt_P_lst__list_has_item_is_not_character__return_ERROR)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
@@ -478,7 +478,7 @@ TEST(api_characters, capi_char_gt_P_lst__list_has_item_is_not_character__return_
 
   lst = read_cstr("(#\\c b #\\a)");
 
-  TEST_ASSERT_SCM_NULL(scm_capi_char_gt_P_lst(lst));
+  TEST_ASSERT_SCM_NULL(scm_api_char_gt_P_lst(lst));
 }
 
 TEST(api_characters, api_char_gt_P__less)
@@ -620,7 +620,7 @@ TEST(api_characters, capi_char_le__return_ERROR)
   TEST_ASSERT_EQUAL_INT(-1, scm_capi_char_le(c1, c2, &actual));
 }
 
-TEST(api_characters, capi_char_le_P_lst__less)
+TEST(api_characters, api_char_le_P_lst__less)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
@@ -628,10 +628,10 @@ TEST(api_characters, capi_char_le_P_lst__less)
 
   lst = read_cstr("(#\\a #\\b #\\c)");
 
-  TEST_ASSERT_SCM_TRUE(scm_capi_char_le_P_lst(lst));
+  TEST_ASSERT_SCM_TRUE(scm_api_char_le_P_lst(lst));
 }
 
-TEST(api_characters, capi_char_le_P_lst__equal)
+TEST(api_characters, api_char_le_P_lst__equal)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
@@ -639,10 +639,10 @@ TEST(api_characters, capi_char_le_P_lst__equal)
 
   lst = read_cstr("(#\\a #\\b #\\b)");
 
-  TEST_ASSERT_SCM_TRUE(scm_capi_char_le_P_lst(lst));
+  TEST_ASSERT_SCM_TRUE(scm_api_char_le_P_lst(lst));
 }
 
-TEST(api_characters, capi_char_le_P_lst__greater)
+TEST(api_characters, api_char_le_P_lst__greater)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
@@ -650,15 +650,15 @@ TEST(api_characters, capi_char_le_P_lst__greater)
 
   lst = read_cstr("(#\\b #\\c #\\a)");
 
-  TEST_ASSERT_SCM_FALSE(scm_capi_char_le_P_lst(lst));
+  TEST_ASSERT_SCM_FALSE(scm_api_char_le_P_lst(lst));
 }
 
-TEST(api_characters, capi_char_le_P_lst__empty_list)
+TEST(api_characters, api_char_le_P_lst__empty_list)
 {
-  TEST_ASSERT_SCM_TRUE(scm_capi_char_le_P_lst(SCM_NIL_OBJ));
+  TEST_ASSERT_SCM_TRUE(scm_api_char_le_P_lst(SCM_NIL_OBJ));
 }
 
-TEST(api_characters, capi_char_le_P_lst__list_has_item_is_not_character__return_ERROR)
+TEST(api_characters, api_char_le_P_lst__list_has_item_is_not_character__return_ERROR)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
@@ -666,7 +666,7 @@ TEST(api_characters, capi_char_le_P_lst__list_has_item_is_not_character__return_
 
   lst = read_cstr("(#\\a b #\\c)");
 
-  TEST_ASSERT_SCM_NULL(scm_capi_char_le_P_lst(lst));
+  TEST_ASSERT_SCM_NULL(scm_api_char_le_P_lst(lst));
 }
 
 TEST(api_characters, api_char_le_P__less)
@@ -808,7 +808,7 @@ TEST(api_characters, capi_char_ge__return_ERROR)
   TEST_ASSERT_EQUAL_INT(-1, scm_capi_char_le(c1, c2, &actual));
 }
 
-TEST(api_characters, capi_char_ge_P_lst__less)
+TEST(api_characters, api_char_ge_P_lst__less)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
@@ -816,10 +816,10 @@ TEST(api_characters, capi_char_ge_P_lst__less)
 
   lst = read_cstr("(#\\b #\\a #\\c)");
 
-  TEST_ASSERT_SCM_FALSE(scm_capi_char_ge_P_lst(lst));
+  TEST_ASSERT_SCM_FALSE(scm_api_char_ge_P_lst(lst));
 }
 
-TEST(api_characters, capi_char_ge_P_lst__equal)
+TEST(api_characters, api_char_ge_P_lst__equal)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
@@ -827,10 +827,10 @@ TEST(api_characters, capi_char_ge_P_lst__equal)
 
   lst = read_cstr("(#\\c #\\b #\\b)");
 
-  TEST_ASSERT_SCM_TRUE(scm_capi_char_ge_P_lst(lst));
+  TEST_ASSERT_SCM_TRUE(scm_api_char_ge_P_lst(lst));
 }
 
-TEST(api_characters, capi_char_ge_P_lst__greater)
+TEST(api_characters, api_char_ge_P_lst__greater)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
@@ -838,15 +838,15 @@ TEST(api_characters, capi_char_ge_P_lst__greater)
 
   lst = read_cstr("(#\\c #\\b #\\a)");
 
-  TEST_ASSERT_SCM_TRUE(scm_capi_char_ge_P_lst(lst));
+  TEST_ASSERT_SCM_TRUE(scm_api_char_ge_P_lst(lst));
 }
 
-TEST(api_characters, capi_char_ge_P_lst__empty_list)
+TEST(api_characters, api_char_ge_P_lst__empty_list)
 {
-  TEST_ASSERT_SCM_TRUE(scm_capi_char_ge_P_lst(SCM_NIL_OBJ));
+  TEST_ASSERT_SCM_TRUE(scm_api_char_ge_P_lst(SCM_NIL_OBJ));
 }
 
-TEST(api_characters, capi_char_ge_P_lst__list_has_item_is_not_character__return_ERROR)
+TEST(api_characters, api_char_ge_P_lst__list_has_item_is_not_character__return_ERROR)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
@@ -854,7 +854,7 @@ TEST(api_characters, capi_char_ge_P_lst__list_has_item_is_not_character__return_
 
   lst = read_cstr("(#\\c b #\\a)");
 
-  TEST_ASSERT_SCM_NULL(scm_capi_char_ge_P_lst(lst));
+  TEST_ASSERT_SCM_NULL(scm_api_char_ge_P_lst(lst));
 }
 
 TEST(api_characters, api_char_ge_P__less)

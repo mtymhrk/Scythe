@@ -544,7 +544,7 @@ TEST(api_pair_and_lists, api_length__improper_list__return_ERROR)
   TEST_ASSERT_SCM_NULL(scm_api_length(lst));
 }
 
-TEST(api_pair_and_lists, capi_append_lst)
+TEST(api_pair_and_lists, api_append_lst)
 {
   ScmObj lists = SCM_OBJ_INIT;
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
@@ -554,12 +554,12 @@ TEST(api_pair_and_lists, capi_append_lst)
   lists = read_cstr("((a b) (c d) (e f))");
   expected = read_cstr("(a b c d e f)");
 
-  actual = scm_capi_append_lst(lists);
+  actual = scm_api_append_lst(lists);
 
   TEST_ASSERT_SCM_EQUAL(expected, actual);
 }
 
-TEST(api_pair_and_lists, capi_append_lst__list_has_item_is_empty_list)
+TEST(api_pair_and_lists, api_append_lst__list_has_item_is_empty_list)
 {
   ScmObj lists = SCM_OBJ_INIT;
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
@@ -569,12 +569,12 @@ TEST(api_pair_and_lists, capi_append_lst__list_has_item_is_empty_list)
   lists = read_cstr("((a b) () (c d))");
   expected = read_cstr("(a b c d)");
 
-  actual = scm_capi_append_lst(lists);
+  actual = scm_api_append_lst(lists);
 
   TEST_ASSERT_SCM_EQUAL(expected, actual);
 }
 
-TEST(api_pair_and_lists, capi_append_lst__empty_list)
+TEST(api_pair_and_lists, api_append_lst__empty_list)
 {
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
 
@@ -582,12 +582,12 @@ TEST(api_pair_and_lists, capi_append_lst__empty_list)
 
   expected = SCM_NIL_OBJ;
 
-  actual = scm_capi_append_lst(SCM_NIL_OBJ);
+  actual = scm_api_append_lst(SCM_NIL_OBJ);
 
   TEST_ASSERT_SCM_EQUAL(expected, actual);
 }
 
-TEST(api_pair_and_lists, capi_append_lst__list_has_item_is_not_list__return_ERROR)
+TEST(api_pair_and_lists, api_append_lst__list_has_item_is_not_list__return_ERROR)
 {
   ScmObj lists = SCM_OBJ_INIT;
 
@@ -595,7 +595,7 @@ TEST(api_pair_and_lists, capi_append_lst__list_has_item_is_not_list__return_ERRO
 
   lists = read_cstr("((a b) foo (c d))");
 
-  TEST_ASSERT_SCM_NULL(scm_capi_append_lst(lists));
+  TEST_ASSERT_SCM_NULL(scm_api_append_lst(lists));
 }
 
 TEST(api_pair_and_lists, capi_append_cv)
@@ -998,7 +998,7 @@ TEST(api_pair_and_lists, api_list_set_i__return_ERROR_3)
   TEST_ASSERT_SCM_NULL(scm_api_list_set_i(lst, n, SCM_TRUE_OBJ));
 }
 
-TEST(api_pair_and_lists, capi_memq__matched)
+TEST(api_pair_and_lists, api_memq__matched)
 {
   ScmObj lst = SCM_OBJ_INIT, o = SCM_OBJ_INIT;
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
@@ -1010,12 +1010,12 @@ TEST(api_pair_and_lists, capi_memq__matched)
   o = read_cstr("b");
   expected = scm_capi_list_tail(lst, 1);
 
-  actual = scm_capi_memq(o, lst);
+  actual = scm_api_memq(o, lst);
 
   TEST_ASSERT_SCM_EQ(expected, actual);
 }
 
-TEST(api_pair_and_lists, capi_memq__unmatched)
+TEST(api_pair_and_lists, api_memq__unmatched)
 {
   ScmObj lst = SCM_OBJ_INIT, o = SCM_OBJ_INIT;
 
@@ -1024,10 +1024,10 @@ TEST(api_pair_and_lists, capi_memq__unmatched)
   lst = read_cstr("(a (b) c)");
   o = read_cstr("(b)");
 
-  TEST_ASSERT_SCM_FALSE(scm_capi_memq(o, lst));
+  TEST_ASSERT_SCM_FALSE(scm_api_memq(o, lst));
 }
 
-TEST(api_pair_and_lists, capi_memq__not_list)
+TEST(api_pair_and_lists, api_memq__not_list)
 {
   ScmObj lst = SCM_OBJ_INIT, o = SCM_OBJ_INIT;
 
@@ -1036,10 +1036,10 @@ TEST(api_pair_and_lists, capi_memq__not_list)
   lst = SCM_TRUE_OBJ;
   o = read_cstr("(b)");
 
-  TEST_ASSERT_SCM_FALSE(scm_capi_memq(o, lst));
+  TEST_ASSERT_SCM_FALSE(scm_api_memq(o, lst));
 }
 
-TEST(api_pair_and_lists, capi_memv__matched)
+TEST(api_pair_and_lists, api_memv__matched)
 {
   ScmObj lst = SCM_OBJ_INIT, o = SCM_OBJ_INIT;
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
@@ -1051,12 +1051,12 @@ TEST(api_pair_and_lists, capi_memv__matched)
   o = read_cstr("#\\b");
   expected = scm_capi_list_tail(lst, 1);
 
-  actual = scm_capi_memv(o, lst);
+  actual = scm_api_memv(o, lst);
 
   TEST_ASSERT_SCM_EQ(expected, actual);
 }
 
-TEST(api_pair_and_lists, capi_memv__unmatched)
+TEST(api_pair_and_lists, api_memv__unmatched)
 {
   ScmObj lst = SCM_OBJ_INIT, o = SCM_OBJ_INIT;
 
@@ -1065,10 +1065,10 @@ TEST(api_pair_and_lists, capi_memv__unmatched)
   lst = read_cstr("(a (b) c)");
   o = read_cstr("(b)");
 
-  TEST_ASSERT_SCM_FALSE(scm_capi_memv(o, lst));
+  TEST_ASSERT_SCM_FALSE(scm_api_memv(o, lst));
 }
 
-TEST(api_pair_and_lists, capi_memv__not_list)
+TEST(api_pair_and_lists, api_memv__not_list)
 {
   ScmObj lst = SCM_OBJ_INIT, o = SCM_OBJ_INIT;
 
@@ -1077,7 +1077,7 @@ TEST(api_pair_and_lists, capi_memv__not_list)
   lst = SCM_TRUE_OBJ;
   o = read_cstr("#\\b");
 
-  TEST_ASSERT_SCM_FALSE(scm_capi_memv(o, lst));
+  TEST_ASSERT_SCM_FALSE(scm_api_memv(o, lst));
 }
 
 TEST(api_pair_and_lists, capi_member__matched)
@@ -1150,7 +1150,7 @@ TEST(api_pair_and_lists, capi_member__not_list)
   TEST_ASSERT_SCM_FALSE(scm_capi_member(o, lst, NULL));
 }
 
-TEST(api_pair_and_lists, capi_assq__matched)
+TEST(api_pair_and_lists, api_assq__matched)
 {
   ScmObj alist = SCM_OBJ_INIT, k = SCM_OBJ_INIT;
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
@@ -1162,12 +1162,12 @@ TEST(api_pair_and_lists, capi_assq__matched)
   k = read_cstr("b");
   expected = scm_capi_cxr(alist, "ad");
 
-  actual = scm_capi_assq(k, alist);
+  actual = scm_api_assq(k, alist);
 
   TEST_ASSERT_SCM_EQ(expected, actual);
 }
 
-TEST(api_pair_and_lists, capi_assq__unmatched)
+TEST(api_pair_and_lists, api_assq__unmatched)
 {
   ScmObj alist = SCM_OBJ_INIT, k = SCM_OBJ_INIT;
 
@@ -1176,10 +1176,10 @@ TEST(api_pair_and_lists, capi_assq__unmatched)
   alist = read_cstr("((a 1) (#\\b 2) (c 2))");
   k = read_cstr("#\\b");
 
-  TEST_ASSERT_SCM_FALSE(scm_capi_assq(k, alist));
+  TEST_ASSERT_SCM_FALSE(scm_api_assq(k, alist));
 }
 
-TEST(api_pair_and_lists, capi_assq__not_list)
+TEST(api_pair_and_lists, api_assq__not_list)
 {
   ScmObj alist = SCM_OBJ_INIT, k = SCM_OBJ_INIT;
 
@@ -1188,10 +1188,10 @@ TEST(api_pair_and_lists, capi_assq__not_list)
   alist = SCM_TRUE_OBJ;
   k = read_cstr("b");
 
-  TEST_ASSERT_SCM_FALSE(scm_capi_assq(k, alist));
+  TEST_ASSERT_SCM_FALSE(scm_api_assq(k, alist));
 }
 
-TEST(api_pair_and_lists, capi_assv__matched)
+TEST(api_pair_and_lists, api_assv__matched)
 {
   ScmObj alist = SCM_OBJ_INIT, k = SCM_OBJ_INIT;
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
@@ -1203,12 +1203,12 @@ TEST(api_pair_and_lists, capi_assv__matched)
   k = read_cstr("#\\b");
   expected = scm_capi_cxr(alist, "ad");
 
-  actual = scm_capi_assv(k, alist);
+  actual = scm_api_assv(k, alist);
 
   TEST_ASSERT_SCM_EQ(expected, actual);
 }
 
-TEST(api_pair_and_lists, capi_assv__unmatched)
+TEST(api_pair_and_lists, api_assv__unmatched)
 {
   ScmObj alist = SCM_OBJ_INIT, k = SCM_OBJ_INIT;
 
@@ -1217,10 +1217,10 @@ TEST(api_pair_and_lists, capi_assv__unmatched)
   alist = read_cstr("((a 1) ((b) 2) (c 2))");
   k = read_cstr("(b)");
 
-  TEST_ASSERT_SCM_FALSE(scm_capi_assv(k, alist));
+  TEST_ASSERT_SCM_FALSE(scm_api_assv(k, alist));
 }
 
-TEST(api_pair_and_lists, capi_assv__not_list)
+TEST(api_pair_and_lists, api_assv__not_list)
 {
   ScmObj alist = SCM_OBJ_INIT, k = SCM_OBJ_INIT;
 
@@ -1229,7 +1229,7 @@ TEST(api_pair_and_lists, capi_assv__not_list)
   alist = SCM_TRUE_OBJ;
   k = read_cstr("#\\b");
 
-  TEST_ASSERT_SCM_FALSE(scm_capi_assv(k, alist));
+  TEST_ASSERT_SCM_FALSE(scm_api_assv(k, alist));
 }
 
 TEST(api_pair_and_lists, capi_assoc__matched)
