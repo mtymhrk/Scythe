@@ -13,25 +13,25 @@ typedef struct ScmISeqRec ScmISeq;
 #include "earray.h"
 
 #define SCM_ISEQ_DEFAULT_SEQ_SIZE 32
-#define SCM_ISEQ_DEFAULT_INDEX_SIZE 32
+#define SCM_ISEQ_DEFAULT_OBJS_SIZE 32
 
 extern ScmTypeInfo SCM_ISEQ_TYPE_INFO;
 
 struct ScmISeqRec {
   ScmObjHeader header;
   EArray seq;
-  EArray index;
+  EArray objs;
 };
 
 #define SCM_ISEQ_EARY_SEQ(obj) (&SCM_ISEQ(obj)->seq)
-#define SCM_ISEQ_EARY_INDEX(obj) (&SCM_ISEQ(obj)->index)
+#define SCM_ISEQ_EARY_OBJS(obj) (&SCM_ISEQ(obj)->objs)
 
 #define SCM_ISEQ_SEQ_VEC(obj) ((scm_byte_t *)EARY_HEAD(SCM_ISEQ_EARY_SEQ(obj)))
-#define SCM_ISEQ_IDX_VEC(obj) ((size_t *)EARY_HEAD(SCM_ISEQ_EARY_INDEX(obj)))
+#define SCM_ISEQ_OBJS_VEC(obj) ((size_t *)EARY_HEAD(SCM_ISEQ_EARY_OBJS(obj)))
 #define SCM_ISEQ_SEQ_CAPACITY(obj) (EARY_CAPACITY(SCM_ISEQ_EARY_SEQ(obj)))
 #define SCM_ISEQ_SEQ_LENGTH(obj) (EARY_SIZE(SCM_ISEQ_EARY_SEQ(obj)))
-#define SCM_ISEQ_IDX_CAPACITY(obj) (EARY_CAPACITY(SCM_ISEQ_EARY_INDEX(obj)))
-#define SCM_ISEQ_IDX_LENGTH(obj) (EARY_SIZE(SCM_ISEQ_EARY_INDEX(obj)))
+#define SCM_ISEQ_OBJS_CAPACITY(obj) (EARY_CAPACITY(SCM_ISEQ_EARY_OBJS(obj)))
+#define SCM_ISEQ_OBJS_LENGTH(obj) (EARY_SIZE(SCM_ISEQ_EARY_OBJS(obj)))
 
 int scm_iseq_initialize(ScmObj iseq);
 ScmObj scm_iseq_new(SCM_MEM_TYPE_T mtype);

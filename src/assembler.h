@@ -22,7 +22,7 @@ enum {
 typedef struct {
   char label[SCM_ISEQ_LABEL_NAME_MAX];
   EArray ref;
-  size_t idx;
+  size_t offset;
   bool defined_p;
 } ScmLabelInfo;
 

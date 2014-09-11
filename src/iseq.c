@@ -34,8 +34,8 @@ scm_iseq_initialize(ScmObj iseq)
                    sizeof(scm_byte_t), SCM_ISEQ_DEFAULT_SEQ_SIZE);
   if (rslt != 0) return -1;
 
-  rslt = eary_init(SCM_ISEQ_EARY_INDEX(iseq),
-                   sizeof(size_t), SCM_ISEQ_DEFAULT_INDEX_SIZE);
+  rslt = eary_init(SCM_ISEQ_EARY_OBJS(iseq),
+                   sizeof(size_t), SCM_ISEQ_DEFAULT_OBJS_SIZE);
   if (rslt != 0) return -1;
 
   return 0;
@@ -63,7 +63,7 @@ scm_iseq_finalize(ScmObj obj)
   scm_assert_obj_type(obj, &SCM_ISEQ_TYPE_INFO);
 
   eary_fin(SCM_ISEQ_EARY_SEQ(obj));
-  eary_fin(SCM_ISEQ_EARY_INDEX(obj));
+  eary_fin(SCM_ISEQ_EARY_OBJS(obj));
 }
 
 ssize_t
@@ -72,20 +72,20 @@ scm_iseq_push_inst_noopd(ScmObj iseq, scm_opcode_t op)
   const size_t inst_size = SCM_OPFMT_INST_SZ_NOOPD;
   int err;
   scm_byte_t *ip;
-  size_t idx;
+  size_t offset;
 
   scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
   scm_assert(EARY_SIZE(SCM_ISEQ_EARY_SEQ(iseq)) <= SSIZE_MAX - inst_size);
 
-  idx = EARY_SIZE(SCM_ISEQ_EARY_SEQ(iseq));
+  offset = EARY_SIZE(SCM_ISEQ_EARY_SEQ(iseq));
 
-  EARY_SET(SCM_ISEQ_EARY_SEQ(iseq), scm_byte_t, idx + inst_size - 1, 0, err);
+  EARY_SET(SCM_ISEQ_EARY_SEQ(iseq), scm_byte_t, offset + inst_size - 1, 0, err);
   if (err != 0) return -1;
 
-  ip = scm_iseq_to_ip(iseq) + idx;
+  ip = scm_iseq_to_ip(iseq) + offset;
   scm_vminst_set_inst_noopd(ip, op);
 
-  return (ssize_t)(idx + inst_size);
+  return (ssize_t)(offset + inst_size);
 }
 
 ssize_t
@@ -94,24 +94,24 @@ scm_iseq_push_inst_obj(ScmObj iseq, scm_opcode_t op, ScmObj obj)
   const size_t inst_size = SCM_OPFMT_INST_SZ_OBJ;
   int err;
   scm_byte_t *ip;
-  size_t idx;
+  size_t offset;
 
   scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
   scm_assert(scm_obj_not_null_p(obj));
   scm_assert(EARY_SIZE(SCM_ISEQ_EARY_SEQ(iseq)) <= SSIZE_MAX - inst_size);
 
-  idx = EARY_SIZE(SCM_ISEQ_EARY_SEQ(iseq));
+  offset = EARY_SIZE(SCM_ISEQ_EARY_SEQ(iseq));
 
-  EARY_SET(SCM_ISEQ_EARY_SEQ(iseq), scm_byte_t, idx + inst_size - 1, 0, err);
+  EARY_SET(SCM_ISEQ_EARY_SEQ(iseq), scm_byte_t, offset + inst_size - 1, 0, err);
   if (err != 0) return -1;
 
-  ip = scm_iseq_to_ip(iseq) + idx;
+  ip = scm_iseq_to_ip(iseq) + offset;
   SCM_WB_EXP(iseq, scm_vminst_set_inst_obj(ip, op, obj));
 
-  EARY_PUSH(SCM_ISEQ_EARY_INDEX(iseq), size_t, idx, err);
+  EARY_PUSH(SCM_ISEQ_EARY_OBJS(iseq), size_t, offset, err);
   if(err != 0) return -1;
 
-  return (ssize_t)(idx + inst_size);
+  return (ssize_t)(offset + inst_size);
 }
 
 ssize_t
@@ -121,25 +121,25 @@ scm_iseq_push_inst_obj_obj(ScmObj iseq,
   const size_t inst_size = SCM_OPFMT_INST_SZ_OBJ_OBJ;
   int err;
   scm_byte_t *ip;
-  size_t idx;
+  size_t offset;
 
   scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
   scm_assert(scm_obj_not_null_p(obj1));
   scm_assert(scm_obj_not_null_p(obj2));
   scm_assert(EARY_SIZE(SCM_ISEQ_EARY_SEQ(iseq)) <= SSIZE_MAX - inst_size);
 
-  idx = EARY_SIZE(SCM_ISEQ_EARY_SEQ(iseq));
+  offset = EARY_SIZE(SCM_ISEQ_EARY_SEQ(iseq));
 
-  EARY_SET(SCM_ISEQ_EARY_SEQ(iseq), scm_byte_t, idx + inst_size - 1, 0, err);
+  EARY_SET(SCM_ISEQ_EARY_SEQ(iseq), scm_byte_t, offset + inst_size - 1, 0, err);
   if (err != 0) return -1;
 
-  ip = scm_iseq_to_ip(iseq) + idx;
+  ip = scm_iseq_to_ip(iseq) + offset;
   SCM_WB_EXP(iseq, scm_vminst_set_inst_obj_obj(ip, op, obj1, obj2));
 
-  EARY_PUSH(SCM_ISEQ_EARY_INDEX(iseq), size_t, idx, err);
+  EARY_PUSH(SCM_ISEQ_EARY_OBJS(iseq), size_t, offset, err);
   if(err != 0) return -1;
 
-  return (ssize_t)(idx + inst_size);
+  return (ssize_t)(offset + inst_size);
 }
 
 ssize_t
@@ -148,20 +148,20 @@ scm_iseq_push_inst_si(ScmObj iseq, scm_opcode_t op, int si)
   const size_t inst_size = SCM_OPFMT_INST_SZ_SI;
   int err;
   scm_byte_t *ip;
-  size_t idx;
+  size_t offset;
 
   scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
   scm_assert(EARY_SIZE(SCM_ISEQ_EARY_SEQ(iseq)) <= SSIZE_MAX - inst_size);
 
-  idx = EARY_SIZE(SCM_ISEQ_EARY_SEQ(iseq));
+  offset = EARY_SIZE(SCM_ISEQ_EARY_SEQ(iseq));
 
-  EARY_SET(SCM_ISEQ_EARY_SEQ(iseq), scm_byte_t, idx + inst_size - 1, 0, err);
+  EARY_SET(SCM_ISEQ_EARY_SEQ(iseq), scm_byte_t, offset + inst_size - 1, 0, err);
   if (err != 0) return -1;
 
-  ip = scm_iseq_to_ip(iseq) + idx;
+  ip = scm_iseq_to_ip(iseq) + offset;
   scm_vminst_set_inst_si(ip, op, si);
 
-  return (ssize_t)(idx + inst_size);
+  return (ssize_t)(offset + inst_size);
 }
 
 ssize_t
@@ -170,20 +170,20 @@ scm_iseq_push_inst_si_si(ScmObj iseq, scm_opcode_t op, int si1, int si2)
   const size_t inst_size = SCM_OPFMT_INST_SZ_SI_SI;
   int err;
   scm_byte_t *ip;
-  size_t idx;
+  size_t offset;
 
   scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
   scm_assert(EARY_SIZE(SCM_ISEQ_EARY_SEQ(iseq)) <= SSIZE_MAX - inst_size);
 
-  idx = EARY_SIZE(SCM_ISEQ_EARY_SEQ(iseq));
+  offset = EARY_SIZE(SCM_ISEQ_EARY_SEQ(iseq));
 
-  EARY_SET(SCM_ISEQ_EARY_SEQ(iseq), scm_byte_t, idx + inst_size - 1, 0, err);
+  EARY_SET(SCM_ISEQ_EARY_SEQ(iseq), scm_byte_t, offset + inst_size - 1, 0, err);
   if (err != 0) return -1;
 
-  ip = scm_iseq_to_ip(iseq) + idx;
+  ip = scm_iseq_to_ip(iseq) + offset;
   scm_vminst_set_inst_si_si(ip, op, si1, si2);
 
-  return (ssize_t)(idx + inst_size);
+  return (ssize_t)(offset + inst_size);
 }
 
 ssize_t
@@ -193,24 +193,24 @@ scm_iseq_push_inst_si_si_obj(ScmObj iseq,
   const size_t inst_size = SCM_OPFMT_INST_SZ_SI_SI_OBJ;
   int err;
   scm_byte_t *ip;
-  size_t idx;
+  size_t offset;
 
   scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
   scm_assert(scm_obj_not_null_p(obj));
   scm_assert(EARY_SIZE(SCM_ISEQ_EARY_SEQ(iseq)) <= SSIZE_MAX - inst_size);
 
-  idx = EARY_SIZE(SCM_ISEQ_EARY_SEQ(iseq));
+  offset = EARY_SIZE(SCM_ISEQ_EARY_SEQ(iseq));
 
-  EARY_SET(SCM_ISEQ_EARY_SEQ(iseq), scm_byte_t, idx + inst_size - 1, 0, err);
+  EARY_SET(SCM_ISEQ_EARY_SEQ(iseq), scm_byte_t, offset + inst_size - 1, 0, err);
   if (err != 0) return -1;
 
-  ip = scm_iseq_to_ip(iseq) + idx;
+  ip = scm_iseq_to_ip(iseq) + offset;
   SCM_WB_EXP(iseq, scm_vminst_set_inst_si_si_obj(ip, op, si1, si2, obj));
 
-  EARY_PUSH(SCM_ISEQ_EARY_INDEX(iseq), size_t, idx, err);
+  EARY_PUSH(SCM_ISEQ_EARY_OBJS(iseq), size_t, offset, err);
   if(err != 0) return -1;
 
-  return (ssize_t)(idx + inst_size);
+  return (ssize_t)(offset + inst_size);
 }
 
 ssize_t
@@ -219,45 +219,45 @@ scm_iseq_push_inst_iof(ScmObj iseq, scm_opcode_t op, int iof)
   const size_t inst_size = SCM_OPFMT_INST_SZ_IOF;
   int err;
   scm_byte_t *ip;
-  size_t idx;
+  size_t offset;
 
   scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
   scm_assert(EARY_SIZE(SCM_ISEQ_EARY_SEQ(iseq)) <= SSIZE_MAX - inst_size);
 
-  idx = EARY_SIZE(SCM_ISEQ_EARY_SEQ(iseq));
+  offset = EARY_SIZE(SCM_ISEQ_EARY_SEQ(iseq));
 
-  EARY_SET(SCM_ISEQ_EARY_SEQ(iseq), scm_byte_t, idx + inst_size - 1, 0, err);
+  EARY_SET(SCM_ISEQ_EARY_SEQ(iseq), scm_byte_t, offset + inst_size - 1, 0, err);
   if (err != 0) return -1;
 
-  ip = scm_iseq_to_ip(iseq) + idx;
+  ip = scm_iseq_to_ip(iseq) + offset;
   scm_vminst_set_inst_iof(ip, op, iof);
 
-  return (ssize_t)(idx + inst_size);
+  return (ssize_t)(offset + inst_size);
 }
 
 int
-scm_iseq_update_opd_iof(ScmObj iseq, size_t idx, int iof)
+scm_iseq_update_opd_iof(ScmObj iseq, size_t offset, int iof)
 {
   scm_byte_t *ip;
 
   scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
-  scm_assert(idx <= SCM_ISEQ_SEQ_LENGTH(iseq) - SCM_OPFMT_INST_SZ_IOF);
+  scm_assert(offset <= SCM_ISEQ_SEQ_LENGTH(iseq) - SCM_OPFMT_INST_SZ_IOF);
 
-  ip = scm_iseq_to_ip(iseq) + idx;
+  ip = scm_iseq_to_ip(iseq) + offset;
   SCM_WB_EXP(iseq, scm_vminst_update_opd_iof(ip, iof, SCM_VMINST_UPD_FLG_OPD1));
 
   return 0;
 }
 
 int
-scm_iseq_update_opd_obj(ScmObj iseq, size_t idx, ScmObj obj)
+scm_iseq_update_opd_obj(ScmObj iseq, size_t offset, ScmObj obj)
 {
   scm_byte_t *ip;
 
   scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
-  scm_assert(idx <= SCM_ISEQ_SEQ_LENGTH(iseq) - SCM_OPFMT_INST_SZ_OBJ);
+  scm_assert(offset <= SCM_ISEQ_SEQ_LENGTH(iseq) - SCM_OPFMT_INST_SZ_OBJ);
 
-  ip = scm_iseq_to_ip(iseq) + idx;
+  ip = scm_iseq_to_ip(iseq) + offset;
   scm_vminst_update_opd_obj(ip, obj, SCM_VMINST_UPD_FLG_OPD1);
 
   return 0;
@@ -269,7 +269,7 @@ scm_iseq_gc_initialize(ScmObj obj, ScmObj mem)
   scm_assert_obj_type(obj, &SCM_ISEQ_TYPE_INFO);
 
   eary_init(SCM_ISEQ_EARY_SEQ(obj), 0, 0);
-  eary_init(SCM_ISEQ_EARY_INDEX(obj), 0, 0);
+  eary_init(SCM_ISEQ_EARY_OBJS(obj), 0, 0);
 }
 
 void
@@ -287,14 +287,14 @@ scm_iseq_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
   scm_assert(scm_obj_not_null_p(mem));
   scm_assert(handler != NULL);
 
-  for (size_t i = 0; i < SCM_ISEQ_IDX_LENGTH(obj); i++) {
-    size_t idx = SCM_ISEQ_IDX_VEC(obj)[i];
+  for (size_t i = 0; i < SCM_ISEQ_OBJS_LENGTH(obj); i++) {
+    size_t offset = SCM_ISEQ_OBJS_VEC(obj)[i];
     scm_byte_t *ip, *save;
     scm_opcode_t op;
     ScmObj chld1, chld2;
     int unused;
 
-    ip = save = scm_iseq_to_ip(obj) + idx;
+    ip = save = scm_iseq_to_ip(obj) + offset;
     SCM_VMINST_FETCH_OP(ip, op);
     scm_assert(0 <= op && op <= SCM_VMINST_NR_OP);
 

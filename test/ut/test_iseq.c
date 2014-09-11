@@ -32,12 +32,12 @@ TEST(iseq, iseq_new)
   TEST_ASSERT_TRUE(scm_obj_not_null_p(iseq));
   TEST_ASSERT_TRUE(scm_obj_type_p(iseq, &SCM_ISEQ_TYPE_INFO));
   TEST_ASSERT_NOT_NULL(SCM_ISEQ_SEQ_VEC(iseq));
-  TEST_ASSERT_NOT_NULL(SCM_ISEQ_IDX_VEC(iseq));
+  TEST_ASSERT_NOT_NULL(SCM_ISEQ_OBJS_VEC(iseq));
   TEST_ASSERT_EQUAL_UINT(SCM_ISEQ_DEFAULT_SEQ_SIZE, SCM_ISEQ_SEQ_CAPACITY(iseq));
   TEST_ASSERT_EQUAL_UINT(0, SCM_ISEQ_SEQ_LENGTH(iseq));
-  TEST_ASSERT_EQUAL_UINT(SCM_ISEQ_DEFAULT_INDEX_SIZE,
-                         SCM_ISEQ_IDX_CAPACITY(iseq));
-  TEST_ASSERT_EQUAL_UINT(0, SCM_ISEQ_IDX_LENGTH(iseq));
+  TEST_ASSERT_EQUAL_UINT(SCM_ISEQ_DEFAULT_OBJS_SIZE,
+                         SCM_ISEQ_OBJS_CAPACITY(iseq));
+  TEST_ASSERT_EQUAL_UINT(0, SCM_ISEQ_OBJS_LENGTH(iseq));
 }
 
 TEST(iseq, iseq_push_inst_noopd)
@@ -81,8 +81,8 @@ TEST(iseq, iseq_push_inst_obj__index)
 {
   scm_iseq_push_inst_obj(iseq, SCM_OPCODE_IMMVAL, SCM_NIL_OBJ);
 
-  TEST_ASSERT_EQUAL_INT(1, SCM_ISEQ_IDX_LENGTH(iseq));
-  TEST_ASSERT_EQUAL_INT(0, SCM_ISEQ_IDX_VEC(iseq)[0]);
+  TEST_ASSERT_EQUAL_INT(1, SCM_ISEQ_OBJS_LENGTH(iseq));
+  TEST_ASSERT_EQUAL_INT(0, SCM_ISEQ_OBJS_VEC(iseq)[0]);
 }
 
 TEST(iseq, iseq_push_inst_obj_obj)
@@ -113,8 +113,8 @@ TEST(iseq, iseq_push_inst_obj_obj__index)
 {
   scm_iseq_push_inst_obj_obj(iseq, SCM_OPCODE_GREF, SCM_NIL_OBJ, SCM_UNDEF_OBJ);
 
-  TEST_ASSERT_EQUAL_INT(1, SCM_ISEQ_IDX_LENGTH(iseq));
-  TEST_ASSERT_EQUAL_INT(0, SCM_ISEQ_IDX_VEC(iseq)[0]);
+  TEST_ASSERT_EQUAL_INT(1, SCM_ISEQ_OBJS_LENGTH(iseq));
+  TEST_ASSERT_EQUAL_INT(0, SCM_ISEQ_OBJS_VEC(iseq)[0]);
 }
 
 TEST(iseq, iseq_push_inst_si)
@@ -190,8 +190,8 @@ TEST(iseq, iseq_push_inst_si_si_obj__index)
 {
   scm_iseq_push_inst_si_si_obj(iseq, SCM_OPCODE_CLOSE, 128, -64, SCM_NIL_OBJ);
 
-  TEST_ASSERT_EQUAL_INT(1, SCM_ISEQ_IDX_LENGTH(iseq));
-  TEST_ASSERT_EQUAL_INT(0, SCM_ISEQ_IDX_VEC(iseq)[0]);
+  TEST_ASSERT_EQUAL_INT(1, SCM_ISEQ_OBJS_LENGTH(iseq));
+  TEST_ASSERT_EQUAL_INT(0, SCM_ISEQ_OBJS_VEC(iseq)[0]);
 }
 
 TEST(iseq, iseq_push_inst_iof)
@@ -230,10 +230,14 @@ TEST(iseq, expand_sequence_buffer)
 
 TEST(iseq, expand_index_buffer)
 {
-  for (size_t sum = 0; sum < SCM_ISEQ_DEFAULT_INDEX_SIZE; sum++)
+  for (size_t sum = 0; sum < SCM_ISEQ_DEFAULT_OBJS_SIZE; sum++)
     scm_iseq_push_inst_obj(iseq, SCM_OPCODE_IMMVAL, SCM_NIL_OBJ);
 
   scm_iseq_push_inst_obj(iseq, SCM_OPCODE_IMMVAL, SCM_NIL_OBJ);
 
   TEST_ASSERT_TRUE(SCM_ISEQ_SEQ_CAPACITY(iseq) > SCM_ISEQ_DEFAULT_SEQ_SIZE);
 }
+
+
+
+

@@ -7019,7 +7019,7 @@ scm_capi_iseq_push_inst(ScmObj iseq, scm_opcode_t op, ...)
 }
 
 int
-scm_capi_iseq_update_oprand_iof(ScmObj iseq, size_t idx, int offset)
+scm_capi_iseq_update_oprand_iof(ScmObj iseq, size_t offset, int iof)
 {
   int rslt;
 
@@ -7028,15 +7028,15 @@ scm_capi_iseq_update_oprand_iof(ScmObj iseq, size_t idx, int offset)
                    "invalid argument", 1, iseq);
     return -1;
   }
-  else if (idx > SSIZE_MAX
+  else if (offset > SSIZE_MAX
            || scm_iseq_length(iseq) < SCM_OPFMT_INST_SZ_IOF
-           || idx > scm_iseq_length(iseq) - SCM_OPFMT_INST_SZ_IOF) {
+           || offset > scm_iseq_length(iseq) - SCM_OPFMT_INST_SZ_IOF) {
     scm_capi_error("failed to update instruction operand in iseq: "
                    "out of range", 0);
     return -1;
   }
 
-  rslt = scm_iseq_update_opd_iof(iseq, idx, offset);
+  rslt = scm_iseq_update_opd_iof(iseq, offset, iof);
   if (rslt < 0) return -1;   /* provisional implemntation */
 
   return 0;
