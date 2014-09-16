@@ -5,3 +5,9 @@ src/Makefile
 src/experiment/*
 test/ut/Makefile
 tmp/*
+GPATH
+GRTAGS
+GSYMS
+GTAGS
+GTAGSROOT
+gtags.conf
