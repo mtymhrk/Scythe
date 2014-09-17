@@ -18,13 +18,7 @@ configure_file(config.h.in config.h)
 
 
 ##===============================================================
-## コンパイルオプション設定
-
-add_definitions(
-  -O2 -g -std=gnu99 -Wall -Wextra -Wformat=2 -Wstrict-aliasing=2
-  -Wcast-qual -Wcast-align -Wwrite-strings -Wconversion -Wfloat-equal
-  -Wpointer-arith -Wswitch-enum -Wno-unused-parameter
-)
+## ヘッダの依存関係、コンパイルオプションの設定
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 

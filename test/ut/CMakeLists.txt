@@ -27,13 +27,7 @@ set(summarize_script ${CMAKE_SOURCE_DIR}/${unity_dir}/auto/summarize_result.rb)
 
 
 ##===============================================================
-## コンパイルオプション設定
-
-add_definitions(
-  -O2 -g -std=gnu99 -Wall -Wextra -Wformat=2 -Wstrict-aliasing=2
-  -Wcast-qual -Wcast-align -Wwrite-strings -Wconversion -Wfloat-equal
-  -Wpointer-arith -Wswitch-enum -Wno-unused-parameter
-)
+## ヘッダの依存関係、コンパイルオプション設定
 
 include_directories(${CMAKE_BINARY_DIR}/${scythe_src_path})
 include_directories(${CMAKE_SOURCE_DIR}/${unity_src_path})

@@ -11,6 +11,27 @@ set(scythe_lib_src memory.c object.c pair.c string.c symbol.c vector.c
 
 
 ##===============================================================
+## コンパイラの設定
+
+set(scythe_compile_options
+  -O2 -g -std=gnu99 -Wall -Wextra -Wformat=2 -Wstrict-aliasing=2
+  -Wcast-qual -Wcast-align -Wwrite-strings -Wconversion -Wfloat-equal
+  -Wpointer-arith -Wswitch-enum -Wno-unused-parameter)
+
+find_program(gcc_bin_path gcc PATHS /usr/local/bin)
+
+if(gcc_bin_path)
+  set(CMAKE_C_COMPILER ${gcc_bin_path})
+else(gcc_bin_path)
+  message(WARNING "GCC is not found")
+endif(gcc_bin_path)
+
+foreach(flg ${scythe_compile_options})
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${flg}")
+endforeach(flg)
+
+
+##===============================================================
 ## テスト等で必要になる外部ツールの設定
 
 ####################
