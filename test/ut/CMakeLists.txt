@@ -9,9 +9,15 @@ set(unit_test_src_apnd test_api_module.c test_api_pair_and_lists.c
                        test_api_ports.c test_api_input.c test_api_output.c
                        test_api_nil.c test_api_undef.c
                        test_exec_compiler.c test_exec_syntax.c test_exec_proc.c)
-string(REGEX REPLACE ";" ";test_" unit_test_src ";${scythe_lib_src}")
-string(REGEX REPLACE "^;" "" unit_test_src "${unit_test_src}")
-set(unit_test_src "${unit_test_src};${unit_test_src_apnd}")
+set(unit_test_src "")
+
+foreach(file ${scythe_lib_src})
+  list(APPEND unit_test_src test_${file})
+endforeach(file)
+
+foreach(file ${unit_test_src_apnd})
+  list(APPEND unit_test_src ${file})
+endforeach(file)
 
 set(unity_dir test/unity)
 set(unity_src_path ${unity_dir}/src)
@@ -45,16 +51,16 @@ set(CMAKE_C_FLAGS
 ## ターゲット設定
 
 ## unity_src 変数の各ソースファイル名を絶対パスに変換
-string(REGEX REPLACE ";" ";${CMAKE_SOURCE_DIR}/${unity_src_path}/"
-       unity_files ";${unity_src}")
-string(REGEX REPLACE "^;" ""
-        unity_files "${unity_files}")
+set(unity_files "")
+foreach(file ${unity_src})
+  list(APPEND unity_files ${CMAKE_SOURCE_DIR}/${unity_src_path}/${file})
+endforeach(file)
 
 ## unit_test_src 変数の各ソースファイル名を絶対パスに変換
-string(REGEX REPLACE ";" ";${CMAKE_CURRENT_SOURCE_DIR}/"
-       unit_test_files ";${unit_test_src}")
-string(REGEX REPLACE "^;" ""
-       unit_test_files "${unit_test_files}")
+set(unit_test_files "")
+foreach(file ${unit_test_src})
+  list(APPEND unit_test_files ${CMAKE_CURRENT_SOURCE_DIR}/${file})
+endforeach(file)
 
 ##
 ## テストを走らせたときにできるログファイルを削除するターゲット
