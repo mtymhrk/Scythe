@@ -110,7 +110,6 @@ add_custom_command(
 
 
 ##===============================================================
-## cmake で Makefile を生成した後に flymake 用に check-syntax ルールを追加す
-## るスクリプトに必要な情報を設定
-##
-## <<FLYMAKE>> : test.run
+## コンパイルオプション等の情報をテキストファイルに吐き出す
+
+dump_build_info(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
