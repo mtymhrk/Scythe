@@ -1,1 +1,1 @@
-#include "../../src/pair.c"
+#include "pair.c"

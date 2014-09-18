@@ -35,16 +35,10 @@ set(summarize_script ${CMAKE_SOURCE_DIR}/${unity_dir}/auto/summarize_result.rb)
 ##===============================================================
 ## ヘッダの依存関係、コンパイルオプション設定
 
-include_directories(${CMAKE_BINARY_DIR}/${scythe_src_path})
 include_directories(${CMAKE_SOURCE_DIR}/${unity_src_path})
-
-## string.h といった C 標準のインクルードファイルとバッティングするファイル
-## 名を使用しているので、-iquote オプションでインクルードパスを指定したいが、
-## cmake の INCLUDE_DIRECTORIES コマンドで指定したディレクトリは -iquote で
-## はなく -I で指定されるため、CMAKE_C_FLAGS を変更して gcc のオプションを指
-## 定する。
-set(CMAKE_C_FLAGS
-    "${CMAKE_C_FLAGS} -iquote ${CMAKE_SOURCE_DIR}/${scythe_src_path}")
+include_directories(${CMAKE_BINARY_DIR}/${scythe_src_path}/include)
+include_directories(${CMAKE_SOURCE_DIR}/${scythe_src_path}/include)
+include_directories(${CMAKE_SOURCE_DIR}/${scythe_src_path})
 
 
 ##===============================================================

@@ -7,8 +7,8 @@ typedef struct ScmVectorRec ScmVector;
 
 #define SCM_VECTOR(obj) ((ScmVector *)(obj))
 
-#include "object.h"
-#include "api_type.h"
+#include "scythe/object.h"
+#include "scythe/api_type.h"
 
 extern ScmTypeInfo SCM_VECTOR_TYPE_INFO;
 

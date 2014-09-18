@@ -1,1 +1,1 @@
-#include "../../src/vmstack.c"
+#include "vmstack.c"

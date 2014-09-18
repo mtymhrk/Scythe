@@ -1,1 +1,1 @@
-#include "../../src/char.c"
+#include "char.c"

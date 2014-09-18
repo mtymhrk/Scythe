@@ -1,9 +1,9 @@
-#include "object.h"
-#include "api.h"
-#include "chashtbl.h"
-#include "earray.h"
-#include "vminst.h"
-#include "assembler.h"
+#include "scythe/object.h"
+#include "scythe/api.h"
+#include "scythe/chashtbl.h"
+#include "scythe/earray.h"
+#include "scythe/vminst.h"
+#include "scythe/assembler.h"
 
 static struct {
   int code;

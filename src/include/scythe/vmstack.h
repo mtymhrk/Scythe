@@ -18,7 +18,7 @@ typedef struct ScmVMStckRcRec ScmVMStckRc;
 #define SCM_VMSTCKRC(obj) ((ScmVMStckRc*)(obj))
 
 
-#include "object.h"
+#include "scythe/object.h"
 
 
 /*******************************************************************/

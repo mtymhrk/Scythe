@@ -1,4 +1,4 @@
-#include "../../src/api.c"
+#include "api.c"
 
 ScmObj
 scm_capi_ut_compile(ScmEvaluator *ev, ScmObj exp)

@@ -7,11 +7,11 @@
 #include <iconv.h>
 #include <assert.h>
 
-#include "object.h"
-#include "reference.h"
-#include "api.h"
-#include "encoding.h"
-#include "string.h"
+#include "scythe/object.h"
+#include "scythe/reference.h"
+#include "scythe/api.h"
+#include "scythe/encoding.h"
+#include "scythe/string.h"
 
 #define SCM_STRING_BLOCK_SIZE  64
 #define CAPACITY(str) (SCM_STRING_CAPACITY(str)                 \

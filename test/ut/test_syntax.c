@@ -1,1 +1,1 @@
-#include "../../src/syntax.c"
+#include "syntax.c"

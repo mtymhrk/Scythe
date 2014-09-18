@@ -10,8 +10,8 @@ typedef struct ScmErrorRec ScmError;
 #define SCM_EXCEPTION(obj) ((ScmException *)(obj))
 #define SCM_ERROR(obj) ((ScmError *)(obj))
 
-#include "object.h"
-#include "api_type.h"
+#include "scythe/object.h"
+#include "scythe/api_type.h"
 
 
 /*******************************************************************/

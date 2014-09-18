@@ -1,1 +1,1 @@
-#include "../../src/encoding.c"
+#include "encoding.c"

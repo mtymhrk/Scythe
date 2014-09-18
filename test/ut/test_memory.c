@@ -1,6 +1,6 @@
-#include "../../src/memory.c"
+#include "memory.c"
 
-#include "object.h"
+#include "scythe/object.h"
 
 #include "test.h"
 

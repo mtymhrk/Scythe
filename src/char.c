@@ -5,11 +5,11 @@
 #include <iconv.h>
 #include <assert.h>
 
-#include "object.h"
-#include "reference.h"
-#include "api.h"
-#include "encoding.h"
-#include "char.h"
+#include "scythe/object.h"
+#include "scythe/reference.h"
+#include "scythe/api.h"
+#include "scythe/encoding.h"
+#include "scythe/char.h"
 
 
 ScmTypeInfo SCM_CHAR_TYPE_INFO = {

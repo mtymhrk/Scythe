@@ -1,6 +1,6 @@
-#include "../../src/iseq.c"
+#include "iseq.c"
 
-#include "api.h"
+#include "scythe/api.h"
 
 #include "test.h"
 

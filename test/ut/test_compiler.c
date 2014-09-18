@@ -1,1 +1,1 @@
-#include "../../src/compiler.c"
+#include "compiler.c"

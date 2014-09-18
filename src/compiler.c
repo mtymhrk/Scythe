@@ -1,10 +1,10 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-#include "object.h"
-#include "api.h"
-#include "assembler.h"
-#include "compiler.h"
+#include "scythe/object.h"
+#include "scythe/api.h"
+#include "scythe/assembler.h"
+#include "scythe/compiler.h"
 
 ScmTypeInfo SCM_COMPILER_TYPE_INFO = {
   .name                            = "compiler",

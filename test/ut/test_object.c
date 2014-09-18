@@ -1,1 +1,1 @@
-#include "../../src/object.c"
+#include "object.c"

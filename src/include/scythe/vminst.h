@@ -1,9 +1,9 @@
 #ifndef INCLUDE_VMINST_H__
 #define INCLUDE_VMINST_H__
 
-#include "object.h"
-#include "config.h"
-#include "impl_utils.h"
+#include "scythe/object.h"
+#include "scythe/config.h"
+#include "scythe/impl_utils.h"
 
 #define SCM_VMINST_INST_ALIGN SIZEOF_SCM_WORD_T
 

@@ -14,9 +14,9 @@ typedef struct ScmPortRec ScmPort;
 
 #define SCM_PORT(obj) ((ScmPort *)(obj))
 
-#include "object.h"
-#include "encoding.h"
-#include "api_type.h"
+#include "scythe/object.h"
+#include "scythe/encoding.h"
+#include "scythe/api_type.h"
 
 
 /***************************************************************************/

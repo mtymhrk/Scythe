@@ -1,1 +1,1 @@
-#include "../../src/assembler.c"
+#include "assembler.c"

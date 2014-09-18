@@ -6,10 +6,10 @@
 #include <stdint.h>
 #include <assert.h>
 
-#include "object.h"
-#include "api.h"
-#include "impl_utils.h"
-#include "memory.h"
+#include "scythe/object.h"
+#include "scythe/api.h"
+#include "scythe/impl_utils.h"
+#include "scythe/memory.h"
 
 /****************************************************************************/
 /* Forward Object                                                           */

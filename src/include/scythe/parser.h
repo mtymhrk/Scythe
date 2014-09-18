@@ -9,10 +9,10 @@ typedef struct ScmParserRec ScmParser;
 typedef struct ScmLexerRec ScmLexer;
 typedef struct ScmTokenRec ScmToken;
 
-#include "object.h"
-#include "encoding.h"
-#include "earray.h"
-#include "number_parser.h"
+#include "scythe/object.h"
+#include "scythe/encoding.h"
+#include "scythe/earray.h"
+#include "scythe/number_parser.h"
 
 /****************************************************************************/
 /*  ScmToken                                                                */

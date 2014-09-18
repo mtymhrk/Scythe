@@ -1,8 +1,8 @@
 #include <string.h>
 
-#include "object.h"
-#include "api.h"
-#include "syntax.h"
+#include "scythe/object.h"
+#include "scythe/api.h"
+#include "scythe/syntax.h"
 
 ScmTypeInfo SCM_SYNTAX_TYPE_INFO = {
   .name                = "syntax",

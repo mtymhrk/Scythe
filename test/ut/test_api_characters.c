@@ -1,5 +1,5 @@
-#include "object.h"
-#include "api.h"
+#include "scythe/object.h"
+#include "scythe/api.h"
 
 #include "test.h"
 

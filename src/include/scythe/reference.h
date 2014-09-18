@@ -8,9 +8,9 @@ typedef struct ScmRefStackRec ScmRefStack;
 
 #define SCM_REFSTACK(obj) ((ScmRefStack *)(obj))
 
-#include "object.h"
-#include "api_type.h"
-#include "impl_utils.h"
+#include "scythe/object.h"
+#include "scythe/api_type.h"
+#include "scythe/impl_utils.h"
 
 extern ScmTypeInfo SCM_REFSTACK_TYPE_INFO;
 

@@ -1,1 +1,1 @@
-#include "../../src/core_subr.c"
+#include "core_subr.c"

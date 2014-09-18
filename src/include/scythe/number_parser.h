@@ -3,8 +3,8 @@
 
 #include <stddef.h>
 
-#include "encoding.h"
-#include "earray.h"
+#include "scythe/encoding.h"
+#include "scythe/earray.h"
 
 typedef enum {
   SCM_NUM_PARSE_SUCCESS,

@@ -4,12 +4,12 @@
 #include <assert.h>
 
 
-#include "object.h"
-#include "reference.h"
-#include "api.h"
-#include "chashtbl.h"
-#include "string.h"
-#include "symbol.h"
+#include "scythe/object.h"
+#include "scythe/reference.h"
+#include "scythe/api.h"
+#include "scythe/chashtbl.h"
+#include "scythe/string.h"
+#include "scythe/symbol.h"
 
 #define SCM_SYMBOL_TABLE_SIZE 256
 

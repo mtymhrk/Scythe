@@ -11,9 +11,9 @@ typedef struct ScmSymTblRec ScmSymTbl;
 
 #define SCM_SYMTBL(obj) ((ScmSymTbl *)(obj))
 
-#include "object.h"
-#include "api_type.h"
-#include "chashtbl.h"
+#include "scythe/object.h"
+#include "scythe/api_type.h"
+#include "scythe/chashtbl.h"
 
 extern ScmTypeInfo SCM_SYMBOL_TYPE_INFO;
 

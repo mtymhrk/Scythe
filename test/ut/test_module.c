@@ -1,1 +1,1 @@
-#include "../../src/module.c"
+#include "module.c"

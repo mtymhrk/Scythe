@@ -2,12 +2,12 @@
 #ifndef INCLUDE_EARRAY_H__
 #define INCLUDE_EARRAY_H__
 
-#include "stdlib.h"
+#include <stdlib.h>
 
 typedef struct EArrayRec EArray;
 
-#include "object.h"
-#include "api.h"
+#include "scythe/object.h"
+#include "scythe/api.h"
 
 #define EARY_MAG 2
 #define EARY_DEFAULT_CAP 2

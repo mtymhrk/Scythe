@@ -1,1 +1,1 @@
-#include "../../src/vector.c"
+#include "vector.c"

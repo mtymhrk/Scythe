@@ -5,19 +5,19 @@
 #include <stdio.h>
 #include <assert.h>
 
-#include "vm.h"
-#include "vmstack.h"
-#include "vminst.h"
-#include "memory.h"
-#include "reference.h"
-#include "object.h"
-#include "string.h"
-#include "symbol.h"
-#include "module.h"
-#include "procedure.h"
-#include "miscobjects.h"
-#include "api.h"
-#include "impl_utils.h"
+#include "scythe/vm.h"
+#include "scythe/vmstack.h"
+#include "scythe/vminst.h"
+#include "scythe/memory.h"
+#include "scythe/reference.h"
+#include "scythe/object.h"
+#include "scythe/string.h"
+#include "scythe/symbol.h"
+#include "scythe/module.h"
+#include "scythe/procedure.h"
+#include "scythe/miscobjects.h"
+#include "scythe/api.h"
+#include "scythe/impl_utils.h"
 
 
 ScmBedrock *scm__current_br = NULL;

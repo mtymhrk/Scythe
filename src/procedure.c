@@ -1,8 +1,8 @@
 #include <stdio.h>
 
-#include "object.h"
-#include "api.h"
-#include "procedure.h"
+#include "scythe/object.h"
+#include "scythe/api.h"
+#include "scythe/procedure.h"
 
 /*******************************************************************/
 /*  Proc                                                           */

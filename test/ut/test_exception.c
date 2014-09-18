@@ -1,1 +1,1 @@
-#include "../../src/exception.c"
+#include "exception.c"

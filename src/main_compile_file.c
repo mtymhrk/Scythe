@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#include "api.h"
+#include "scythe/api.h"
 
 int
 main(int argc, char **argv)

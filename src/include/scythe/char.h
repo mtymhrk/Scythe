@@ -7,9 +7,9 @@ typedef struct ScmCharRec ScmChar;
 
 #define SCM_CHAR(obj) ((ScmChar *)(obj))
 
-#include "object.h"
-#include "encoding.h"
-#include "api_type.h"
+#include "scythe/object.h"
+#include "scythe/encoding.h"
+#include "scythe/api_type.h"
 
 extern ScmTypeInfo SCM_CHAR_TYPE_INFO;
 

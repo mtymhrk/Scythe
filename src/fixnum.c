@@ -1,10 +1,10 @@
-#include "object.h"
-#include "reference.h"
-#include "api.h"
-#include "impl_utils.h"
-#include "number_common.h"
-#include "bignum.h"
-#include "fixnum.h"
+#include "scythe/object.h"
+#include "scythe/reference.h"
+#include "scythe/api.h"
+#include "scythe/impl_utils.h"
+#include "scythe/number_common.h"
+#include "scythe/bignum.h"
+#include "scythe/fixnum.h"
 
 ScmNumFunc SCM_FIXNUM_FUNC = {
   .coerce       = scm_fixnum_coerce,

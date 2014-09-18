@@ -1,1 +1,1 @@
-#include "../../src/vminst.c"
+#include "vminst.c"

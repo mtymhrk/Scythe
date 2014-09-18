@@ -1,1 +1,1 @@
-#include "../../src/reference.c"
+#include "reference.c"

@@ -1,1 +1,1 @@
-#include "../../src/number_parser.c"
+#include "number_parser.c"

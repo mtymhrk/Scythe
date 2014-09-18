@@ -7,8 +7,8 @@
 #include <limits.h>
 #include <assert.h>
 
-#include "impl_utils.h"
-#include "config.h"
+#include "scythe/impl_utils.h"
+#include "scythe/config.h"
 
 typedef uintptr_t scm_word_t;
 typedef uintptr_t scm_uword_t;

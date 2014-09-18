@@ -1,6 +1,6 @@
-#include "object.h"
-#include "fixnum.h"
-#include "api.h"
+#include "scythe/object.h"
+#include "scythe/fixnum.h"
+#include "scythe/api.h"
 
 ScmTypeInfo SCM_NULL_OBJ_TYPE_INFO = {
   .name                = "INTERNAL-NULL-VALUE",

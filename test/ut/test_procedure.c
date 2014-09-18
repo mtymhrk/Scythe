@@ -1,1 +1,1 @@
-#include "../../src/procedure.c"
+#include "procedure.c"

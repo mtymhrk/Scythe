@@ -14,13 +14,14 @@ check_type_size("intptr_t" SIZEOF_INTPTR_T)
 ##===============================================================
 ## config.h の生成
 
-configure_file(config.h.in config.h)
+configure_file(include/scythe/config.h.in include/scythe/config.h)
 
 
 ##===============================================================
 ## ヘッダの依存関係、コンパイルオプションの設定
 
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 
 ##===============================================================

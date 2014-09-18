@@ -1,1 +1,1 @@
-#include "../../src/fixnum.c"
+#include "fixnum.c"

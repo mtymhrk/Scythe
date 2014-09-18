@@ -2,11 +2,12 @@
 RUBY = ruby
 COMPILER = ../../build/src/scythe-compile-file
 CONVERTER = scmcompile.rb
+HEADER_PATH = ../include/scythe
 
-all: ../repl_code.h ../compiler_code.h
+all: ${HEADER_PATH}/repl_code.h ${HEADER_PATH}/compiler_code.h
 
-../repl_code.h: ../repl.scm ../repl_code.h.in
+${HEADER_PATH}/repl_code.h: ../repl.scm ${HEADER_PATH}/repl_code.h.in
 	${RUBY} ${CONVERTER} ${COMPILER} $^ $@
 
-../compiler_code.h: ../compiler.scm ../compiler_code.h.in
+${HEADER_PATH}/compiler_code.h: ../compiler.scm ${HEADER_PATH}/compiler_code.h.in
 	${RUBY} ${CONVERTER} ${COMPILER} $^ $@

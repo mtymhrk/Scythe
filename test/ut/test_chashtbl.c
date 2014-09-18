@@ -1,6 +1,6 @@
-#include "../../src/chashtbl.c"
+#include "chashtbl.c"
 
-#include "string.h"
+#include "scythe/string.h"
 
 #include "test.h"
 

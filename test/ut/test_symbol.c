@@ -1,1 +1,1 @@
-#include "../../src/symbol.c"
+#include "symbol.c"

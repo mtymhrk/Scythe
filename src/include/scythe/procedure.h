@@ -14,8 +14,8 @@ typedef struct ScmParameterRec ScmParameter;
 #define SCM_PARAMETER(obj) ((ScmParameter *)(obj))
 
 
-#include "object.h"
-#include "api_type.h"
+#include "scythe/object.h"
+#include "scythe/api_type.h"
 
 
 /*******************************************************************/

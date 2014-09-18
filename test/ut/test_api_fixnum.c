@@ -1,6 +1,6 @@
-#include "object.h"
-#include "api.h"
-#include "fixnum.h"
+#include "scythe/object.h"
+#include "scythe/api.h"
+#include "scythe/fixnum.h"
 
 #include "test.h"
 

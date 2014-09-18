@@ -3,7 +3,7 @@
 
 typedef struct ScmNumFuncRec ScmNumFunc;
 
-#include "object.h"
+#include "scythe/object.h"
 
 struct ScmNumFuncRec {
   ScmObj (*coerce)(ScmObj obj, ScmObj num);

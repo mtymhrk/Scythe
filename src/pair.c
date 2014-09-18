@@ -1,10 +1,10 @@
 #include <stdbool.h>
 #include <assert.h>
 
-#include "object.h"
-#include "impl_utils.h"
-#include "api.h"
-#include "pair.h"
+#include "scythe/object.h"
+#include "scythe/impl_utils.h"
+#include "scythe/api.h"
+#include "scythe/pair.h"
 
 ScmTypeInfo SCM_PAIR_TYPE_INFO = {
   .name                = "pair",

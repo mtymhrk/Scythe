@@ -1,8 +1,8 @@
 
-#include "object.h"
-#include "vm.h"
-#include "api.h"
-#include "core_subr.h"
+#include "scythe/object.h"
+#include "scythe/vm.h"
+#include "scythe/api.h"
+#include "scythe/core_subr.h"
 
 
 static ssize_t

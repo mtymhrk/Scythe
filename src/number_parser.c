@@ -1,13 +1,13 @@
 #include <stddef.h>
 #include <ctype.h>
 
-#include "object.h"
-#include "encoding.h"
-#include "api.h"
-#include "earray.h"
-#include "impl_utils.h"
-#include "bignum.h"
-#include "number_parser.h"
+#include "scythe/object.h"
+#include "scythe/encoding.h"
+#include "scythe/api.h"
+#include "scythe/earray.h"
+#include "scythe/impl_utils.h"
+#include "scythe/bignum.h"
+#include "scythe/number_parser.h"
 
 #define PARSE_RET_INVALID   -1
 #define PARSE_RET_INTERNAL_ERR   -2

@@ -1,10 +1,10 @@
 #include <stdbool.h>
 #include <assert.h>
 
-#include "object.h"
-#include "reference.h"
-#include "api.h"
-#include "vector.h"
+#include "scythe/object.h"
+#include "scythe/reference.h"
+#include "scythe/api.h"
+#include "scythe/vector.h"
 
 ScmTypeInfo SCM_VECTOR_TYPE_INFO = {
   .name                = "vector",

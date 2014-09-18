@@ -20,7 +20,7 @@ typedef enum {
   SCM_CHASH_TBL_SCMOBJ_W
 } SCM_CHASH_TBL_VAL_KIND_T;
 
-#include "object.h"
+#include "scythe/object.h"
 
 struct ScmCHashTblRec {
   ScmObj owner;

@@ -1,1 +1,1 @@
-#include "../../src/miscobjects.c"
+#include "miscobjects.c"

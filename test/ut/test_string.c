@@ -1,1 +1,1 @@
-#include "../../src/string.c"
+#include "string.c"

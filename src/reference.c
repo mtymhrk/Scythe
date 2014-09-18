@@ -2,9 +2,9 @@
 #include <stdarg.h>
 #include <assert.h>
 
-#include "object.h"
-#include "api.h"
-#include "reference.h"
+#include "scythe/object.h"
+#include "scythe/api.h"
+#include "scythe/reference.h"
 
 ScmTypeInfo SCM_REFSTACK_TYPE_INFO = {
   .name                            = "refstack",

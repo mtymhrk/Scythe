@@ -1,7 +1,7 @@
-#include "object.h"
-#include "api.h"
-#include "fixnum.h"
-#include "bignum.h"
+#include "scythe/object.h"
+#include "scythe/api.h"
+#include "scythe/fixnum.h"
+#include "scythe/bignum.h"
 
 #include "test.h"
 

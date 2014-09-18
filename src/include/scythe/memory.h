@@ -25,9 +25,9 @@ typedef enum {
 
 enum { SCM_MEM_NR_ALLOC_TYPE = SCM_MEM_ALLOC_ROOT + 1 };
 
-#include "object.h"
-#include "api_type.h"
-#include "impl_utils.h"
+#include "scythe/object.h"
+#include "scythe/api_type.h"
+#include "scythe/impl_utils.h"
 
 
 /****************************************************************************/

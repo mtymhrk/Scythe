@@ -4,13 +4,13 @@
 #include <ctype.h>
 #include <assert.h>
 
-#include "object.h"
-#include "reference.h"
-#include "api.h"
-#include "impl_utils.h"
-#include "earray.h"
-#include "number_parser.h"
-#include "parser.h"
+#include "scythe/object.h"
+#include "scythe/reference.h"
+#include "scythe/api.h"
+#include "scythe/impl_utils.h"
+#include "scythe/earray.h"
+#include "scythe/number_parser.h"
+#include "scythe/parser.h"
 
 #define SCM_LEXER_INITIAL_BUFFER_SIZE 16
 

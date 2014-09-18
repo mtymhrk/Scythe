@@ -5,10 +5,10 @@
 #include <stddef.h>
 #include <stdbool.h>
 
-#include "object.h"
-#include "encoding.h"
-#include "vminst.h"
-#include "api_type.h"
+#include "scythe/object.h"
+#include "scythe/encoding.h"
+#include "scythe/vminst.h"
+#include "scythe/api_type.h"
 
 
 /*******************************************************************/

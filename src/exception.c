@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-#include "object.h"
-#include "api.h"
-#include "exception.h"
+#include "scythe/object.h"
+#include "scythe/api.h"
+#include "scythe/exception.h"
 
 
 /*******************************************************************/

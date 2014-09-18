@@ -1,1 +1,1 @@
-#include "../../src/core_modules.c"
+#include "core_modules.c"

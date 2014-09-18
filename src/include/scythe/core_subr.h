@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#include "object.h"
+#include "scythe/object.h"
 
 
 /*******************************************************************/

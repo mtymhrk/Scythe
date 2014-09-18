@@ -1,10 +1,10 @@
 #include <limits.h>
 
-#include "object.h"
-#include "impl_utils.h"
-#include "api.h"
-#include "chashtbl.h"
-#include "module.h"
+#include "scythe/object.h"
+#include "scythe/impl_utils.h"
+#include "scythe/api.h"
+#include "scythe/chashtbl.h"
+#include "scythe/module.h"
 
 
 /****************************************************************************/

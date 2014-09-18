@@ -1,10 +1,10 @@
 #include <unistd.h>
 #include <stdint.h>
 
-#include "object.h"
-#include "api.h"
-#include "core_subr.h"
-#include "impl_utils.h"
+#include "scythe/object.h"
+#include "scythe/api.h"
+#include "scythe/core_subr.h"
+#include "scythe/impl_utils.h"
 
 struct subr_data {
   const char *name;
@@ -503,7 +503,7 @@ scm_define_scythe_internal_compile_subr(ScmObj module)
   return 0;
 }
 
-#include "compiler_code.h"
+#include "scythe/compiler_code.h"
 
 static int
 scm_define_scythe_internal_compile_closure(ScmObj mod)
@@ -581,7 +581,7 @@ scm_load_module_scythe_internal_compile(void)
 /*  (scythe internal repl)                                         */
 /*******************************************************************/
 
-#include "repl_code.h"
+#include "scythe/repl_code.h"
 
 static int
 scm_define_scythe_internal_repl_closure(ScmObj mod)

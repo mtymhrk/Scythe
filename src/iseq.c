@@ -3,13 +3,13 @@
 #include <limits.h>
 #include <assert.h>
 
-#include "object.h"
-#include "reference.h"
-#include "chashtbl.h"
-#include "api.h"
-#include "earray.h"
-#include "impl_utils.h"
-#include "iseq.h"
+#include "scythe/object.h"
+#include "scythe/reference.h"
+#include "scythe/chashtbl.h"
+#include "scythe/api.h"
+#include "scythe/earray.h"
+#include "scythe/impl_utils.h"
+#include "scythe/iseq.h"
 
 ScmTypeInfo SCM_ISEQ_TYPE_INFO = {
   .name                = "iseq",

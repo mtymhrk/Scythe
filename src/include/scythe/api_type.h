@@ -11,7 +11,7 @@ typedef struct ScmRefStackInfoRec ScmRefStackInfo;
 
 typedef struct ScmEvaluatorRec ScmEvaluator;
 
-#include "object.h"
+#include "scythe/object.h"
 
 
 /*******************************************************************/

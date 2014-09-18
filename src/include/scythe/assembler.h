@@ -4,8 +4,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "object.h"
-#include "earray.h"
+#include "scythe/object.h"
+#include "scythe/earray.h"
 
 #define SCM_ISEQ_LABEL_NAME_MAX 256
 

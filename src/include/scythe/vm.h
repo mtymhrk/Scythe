@@ -13,11 +13,11 @@ typedef struct ScmVMRec ScmVM;
 #define SCM_CONTCAP(obj) ((ScmContCap *)(obj))
 #define SCM_VM(obj) ((ScmVM *)(obj))
 
-#include "object.h"
-#include "memory.h"
-#include "encoding.h"
-#include "api_type.h"
-#include "vmstack.h"
+#include "scythe/object.h"
+#include "scythe/memory.h"
+#include "scythe/encoding.h"
+#include "scythe/api_type.h"
+#include "scythe/vmstack.h"
 
 
 /* vm.c の外部が scm__current_XXX を直接参照するのは禁止。

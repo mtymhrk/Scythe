@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#include "encoding.h"
+#include "scythe/encoding.h"
 
 #define SCM_STR_ITR_MAKE_ERR(iter)              \
   do {                                          \

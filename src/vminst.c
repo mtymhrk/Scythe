@@ -1,4 +1,4 @@
-#include "vminst.h"
+#include "scythe/vminst.h"
 
 const int scm_opfmt_table[SCM_VMINST_NR_OP] = {
     SCM_OPFMT_NOOPD,            /* SCM_OPCODE_NOP */

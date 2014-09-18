@@ -2,14 +2,14 @@
 #include <string.h>
 #include <limits.h>
 
-#include "object.h"
-#include "reference.h"
-#include "api.h"
-#include "earray.h"
-#include "impl_utils.h"
-#include "number_common.h"
-#include "fixnum.h"
-#include "bignum.h"
+#include "scythe/object.h"
+#include "scythe/reference.h"
+#include "scythe/api.h"
+#include "scythe/earray.h"
+#include "scythe/impl_utils.h"
+#include "scythe/number_common.h"
+#include "scythe/fixnum.h"
+#include "scythe/bignum.h"
 
 ScmNumFunc SCM_BIGNUM_FUNC = {
   .coerce       = scm_bignum_coerce,

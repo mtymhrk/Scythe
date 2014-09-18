@@ -3,7 +3,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#include "api.h"
+#include "scythe/api.h"
 
 static const char *command_name = NULL;
 static const char *opt_expr = NULL;
