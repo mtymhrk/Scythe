@@ -1,0 +1,3 @@
+syntax: glob
+
+cmake/run_cmake.conf
