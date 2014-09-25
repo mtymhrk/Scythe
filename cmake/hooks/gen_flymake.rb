@@ -1,5 +1,7 @@
 #!/usr/bin/env ruby
 
+require 'fileutils'
+require 'tempfile'
 require 'yaml'
 
 MAKEIFLE = 'Makefile'
@@ -16,11 +18,20 @@ def makefile_path(builddir, yml_file)
   File.join(dir, MAKEIFLE)
 end
 
+def replace_file_contents(path)
+  return unless block_given?
+
+  file = Tempfile.open(File.basename(path))
+  yield(file)
+  file.close(false)
+  FileUtils.mv(file.path, path)
+end
+
 def delete_old_check_syntax_rule(makefile_path)
   return unless File.exist?(makefile_path)
 
   lines = File.open(makefile_path) { |f| f.readlines }
-  File.open(makefile_path, 'w') do |file|
+  replace_file_contents(makefile_path) do |file|
     lines.each do |line|
       l = line.chomp
       file.print(line) unless (l == START_LINE)..(l == END_LINE)
