@@ -18,6 +18,9 @@ set(scythe_compile_options
   -Wcast-qual -Wcast-align -Wwrite-strings -Wconversion -Wfloat-equal
   -Wpointer-arith -Wswitch-enum -Wno-unused-parameter)
 
+set(scythe_compile_definitions_debug
+  -DSCM_DEBUG)
+
 find_program(gcc_bin_path gcc PATHS /usr/local/bin)
 
 if(gcc_bin_path)

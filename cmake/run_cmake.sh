@@ -12,6 +12,7 @@ else
   BUILD_DIR="${1}"
 fi
 
+build_type="None"
 post_cmake_hooks=""
 
 if [ -f "${CONF_FILE}" ]; then
@@ -25,7 +26,7 @@ if [ ! -e "${BUILD_DIR}" ]; then
 fi
 
 echo "${0}: EXECUTE cmake"
-(cd ${BUILD_DIR}; cmake ${PRJ_DIR})
+(cd ${BUILD_DIR}; cmake -DCMAKE_BUILD_TYPE=${build_type} ${PRJ_DIR})
 
 for hook in ${post_cmake_hooks}; do
   if [ -x "${TOOLS_DIR}/hooks/${hook}" ]; then

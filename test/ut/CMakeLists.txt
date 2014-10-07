@@ -40,6 +40,8 @@ include_directories(${CMAKE_BINARY_DIR}/${scythe_src_path}/include)
 include_directories(${CMAKE_SOURCE_DIR}/${scythe_src_path}/include)
 include_directories(${CMAKE_SOURCE_DIR}/${scythe_src_path})
 
+add_definitions(${scythe_compile_definitions_debug})
+
 
 ##===============================================================
 ## ターゲット設定

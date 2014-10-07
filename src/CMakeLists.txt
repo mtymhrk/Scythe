@@ -23,6 +23,11 @@ configure_file(include/scythe/config.h.in include/scythe/config.h)
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
+string(COMPARE EQUAL ${CMAKE_BUILD_TYPE} "Debug" debug)
+if(debug)
+  add_definitions(${scythe_compile_definitions_debug})
+endif(debug)
+
 
 ##===============================================================
 ## ターゲット設定
