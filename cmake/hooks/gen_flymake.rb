@@ -66,7 +66,7 @@ end
 
 def format_compile_c_defines_str(info)
   if info['definitions']
-    info['definitions'].join(' ')
+    info['definitions'].map { |x| "-D#{x}" }.join(' ')
   else
     ''
   end
