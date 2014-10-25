@@ -27,8 +27,16 @@ scm_vm_ef_gc_accept(ScmObj owner, ScmEnvFrame **efp,
   prv_ef = NULL;
   ef = *efp;
   while (scm_vm_ef_in_stack_p(ef)) {
-    for (size_t i = 0; i < ef->len; i++) {
-      rslt = SCM_GC_CALL_REF_HANDLER(handler, owner, ef->arg[i], mem);
+    ScmObj *partial = scm_vm_ef_partial_base(ef);
+
+    for (int i = 0; i < ef->len; i++) {
+      rslt = SCM_GC_CALL_REF_HANDLER(handler,
+                                     owner, scm_vm_ef_values(ef)[i], mem);
+      if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
+    }
+
+    for (int i = 0; i < ef->partial; i++) {
+      rslt = SCM_GC_CALL_REF_HANDLER(handler, owner, partial[i], mem);
       if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
     }
 
@@ -50,34 +58,6 @@ scm_vm_ef_gc_accept(ScmObj owner, ScmEnvFrame **efp,
 }
 
 int
-scm_vm_pef_gc_accept(ScmObj owner, ScmObj vmsr, ScmEnvFrame *efp,
-                     ScmObj mem, ScmGCRefHandlerFunc handler)
-{
-  int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
-
-  scm_assert(scm_obj_not_null_p(owner));
-  scm_assert(scm_obj_not_null_p(vmsr));
-  scm_assert(scm_obj_not_null_p(mem));
-  scm_assert(handler != NULL);
-
-  /* XXX: GC 中に他のオブジェクト (vmsr: VMStckRc) にアクセスする実装になって
-   *      いる点に注意。scm_vmsr_include_p 内部で、VMStckRc の参照先オブジェク
-   *      トにアクセスしていて、そのオブジェクトが GC によってまだトレースされ
-   *      ていない場合はうまく動かない。
-   */
-  for (ScmEnvFrame *ef = efp;
-       scm_vmsr_include_p(vmsr, (scm_byte_t *)ef);
-       ef = scm_vm_ef_outer(ef)) {
-    for (size_t i = 0; i < ef->len; i++) {
-      rslt = SCM_GC_CALL_REF_HANDLER(handler, owner, ef->arg[i], mem);
-      if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
-    }
-  }
-
-  return rslt;
-}
-
-int
 scm_vm_cf_gc_accept(ScmObj owner, ScmCntFrame *cfp,
                     ScmObj mem, ScmGCRefHandlerFunc handler)
 {
@@ -88,6 +68,13 @@ scm_vm_cf_gc_accept(ScmObj owner, ScmCntFrame *cfp,
   scm_assert(handler != NULL);
 
   while (cfp != NULL) {
+    ScmObj *partial = scm_vm_cf_partial_base(cfp);
+
+    for (int i = 0; i < cfp->partial; i++) {
+      rslt = SCM_GC_CALL_REF_HANDLER(handler, owner, partial[i], mem);
+      if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
+    }
+
     rslt = scm_vm_ef_gc_accept(owner, &cfp->efp, mem, handler);
     if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
@@ -120,21 +107,30 @@ ScmTypeInfo SCM_EFBOX_TYPE_INFO = {
 int
 scm_efbox_initialize(ScmObj efb, ScmEnvFrame *ef)
 {
-  ScmEnvFrame *out;
+  ScmEnvFrame *out, *efp;
 
   scm_assert_obj_type(efb, &SCM_EFBOX_TYPE_INFO);
   scm_assert(ef != NULL);
   scm_assert(!scm_vm_ef_boxed_p(ef));
 
-  memcpy(&SCM_EFBOX(efb)->frame, ef, sizeof(*ef) + sizeof(ScmObj) * ef->len);
+  SCM_EFBOX(efb)->offset = (ptrdiff_t)(sizeof(ScmObj) * (size_t)ef->len);
+
+  efp = scm_efbox_to_efp(efb);
+  efp->partial = 0;
+  efp->len = ef->len;
+
+  for (int i = 0; i < ef->len; i++) {
+    SCM_WB_EXP(efb,
+               scm_vm_ef_value_set(efp, i, scm_vm_ef_value_ref(ef, i)));
+  }
 
   out = scm_vm_ef_outer(ef);
   if (out != NULL && scm_vm_ef_boxed_p(out))
-    scm_vm_ef_replace_outer(&SCM_EFBOX(efb)->frame, out);
+    scm_vm_ef_replace_outer(efp, out);
   else
-    scm_vm_ef_replace_outer(&SCM_EFBOX(efb)->frame, NULL);
+    scm_vm_ef_replace_outer(efp, NULL);
 
-  scm_vm_ef_boxed(&SCM_EFBOX(efb)->frame);
+  scm_vm_ef_boxed(efp);
 
   return 0;
 }
@@ -149,7 +145,8 @@ scm_efbox_new(SCM_MEM_TYPE_T mtype, ScmEnvFrame *ef)
   scm_assert(!scm_vm_ef_boxed_p(ef));
 
   efb = scm_capi_mem_alloc(&SCM_EFBOX_TYPE_INFO,
-                           sizeof(ScmObj) * ef->len, mtype);
+                           sizeof(ScmEnvFrame) + sizeof(ScmObj) * (size_t)ef->len,
+                           mtype);
   if (scm_obj_null_p(efb)) return SCM_OBJ_NULL;
 
   rslt = scm_efbox_initialize(efb, ef);
@@ -163,31 +160,35 @@ scm_efbox_gc_initialize(ScmObj obj, ScmObj mem)
 {
   scm_assert_obj_type(obj, &SCM_EFBOX_TYPE_INFO);
 
-  SCM_EFBOX(obj)->frame.out = 0;
-  SCM_EFBOX(obj)->frame.len = 0;
+  SCM_EFBOX(obj)->offset = -1;
 }
 
 int
 scm_efbox_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
 {
   ScmObj outer = SCM_OBJ_INIT;
+  ScmEnvFrame *efp;
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
 
   scm_assert_obj_type(obj, &SCM_EFBOX_TYPE_INFO);
   scm_assert(scm_obj_not_null_p(mem));
   scm_assert(handler != NULL);
 
+  if (SCM_EFBOX(obj)->offset == -1)
+    return rslt;
+
+  efp = scm_efbox_to_efp(obj);
+
   /* XXX: EFBox 内の frame.out は必ずボックス化された frame を指す */
   /*      (VM stack 上の enrioment frame を指すことはない)         */
-  outer = scm_efbox_efp_to_efbox(scm_vm_ef_outer(&SCM_EFBOX(obj)->frame));
+  outer = scm_efbox_efp_to_efbox(scm_vm_ef_outer(efp));
   rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, outer, mem);
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
-  scm_vm_ef_replace_outer(&SCM_EFBOX(obj)->frame, scm_efbox_to_efp(outer));
+  scm_vm_ef_replace_outer(efp, scm_efbox_to_efp(outer));
 
-  for (size_t i = 0; i < SCM_EFBOX(obj)->frame.len; i++) {
-    rslt = SCM_GC_CALL_REF_HANDLER(handler,
-                                   obj, SCM_EFBOX(obj)->frame.arg[i], mem);
+  for (int i = 0; i < efp->len; i++) {
+    rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, scm_vm_ef_values(efp)[i], mem);
     if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
   }
 
@@ -270,9 +271,8 @@ scm_vmsr_initialize(ScmObj vmsr, ScmObj segment, scm_byte_t *base, ScmObj next)
   SCM_VMSTCKRC(vmsr)->size = (size_t)(scm_vmss_ceiling(segment) - base);
   SCM_VMSTCKRC(vmsr)->reg.cfp = NULL;
   SCM_VMSTCKRC(vmsr)->reg.efp = NULL;
-  SCM_VMSTCKRC(vmsr)->reg.pefp = NULL;
+  SCM_VMSTCKRC(vmsr)->reg.partial = 0;
   SCM_VMSTCKRC(vmsr)->reg.pcf = false;
-  SCM_VMSTCKRC(vmsr)->reg.pef = false;
   SCM_SLOT_SETQ(ScmVMStckRc, vmsr, next, next);
   if (scm_obj_not_null_p(next)) {
     SCM_VMSTCKRC(vmsr)->next_cf = SCM_VMSTCKRC(next)->reg.cfp;
@@ -309,8 +309,7 @@ scm_vmsr_new(SCM_MEM_TYPE_T mtype, ScmObj stack, scm_byte_t *base, ScmObj next)
 
 void
 scm_vmsr_rec(ScmObj vmsr, scm_byte_t *ceil,
-             ScmCntFrame *cfp, ScmEnvFrame *efp, ScmEnvFrame *pefp,
-             bool pcf, bool pef)
+             ScmCntFrame *cfp, ScmEnvFrame *efp, int partial, bool pcf)
 {
   scm_assert_obj_type(vmsr, &SCM_VMSTCKRC_TYPE_INFO);
   scm_assert(SCM_VMSTCKRC(vmsr)->base <= ceil);
@@ -319,9 +318,8 @@ scm_vmsr_rec(ScmObj vmsr, scm_byte_t *ceil,
   SCM_VMSTCKRC(vmsr)->size = (size_t)(ceil - SCM_VMSTCKRC(vmsr)->base);
   SCM_VMSTCKRC(vmsr)->reg.cfp = cfp;
   SCM_VMSTCKRC(vmsr)->reg.efp = efp;
-  SCM_VMSTCKRC(vmsr)->reg.pefp = pefp;
+  SCM_VMSTCKRC(vmsr)->reg.partial = partial;
   SCM_VMSTCKRC(vmsr)->reg.pcf = pcf;
-  SCM_VMSTCKRC(vmsr)->reg.pef = pef;
 }
 
 void
@@ -331,7 +329,8 @@ scm_vmsr_clear(ScmObj vmsr)
 
   SCM_VMSTCKRC(vmsr)->reg.cfp = NULL;
   SCM_VMSTCKRC(vmsr)->reg.efp = NULL;
-  SCM_VMSTCKRC(vmsr)->reg.pefp = NULL;
+  SCM_VMSTCKRC(vmsr)->reg.partial = 0;
+  SCM_VMSTCKRC(vmsr)->reg.pcf = false;
 }
 
 void
@@ -370,13 +369,13 @@ scm_vmsr_gc_initialize(ScmObj obj, ScmObj mem)
   SCM_VMSTCKRC(obj)->segment = SCM_OBJ_NULL;
   SCM_VMSTCKRC(obj)->reg.cfp = NULL;
   SCM_VMSTCKRC(obj)->reg.efp = NULL;
-  SCM_VMSTCKRC(obj)->reg.pefp = NULL;
   SCM_VMSTCKRC(obj)->next = SCM_OBJ_NULL;
 }
 
 int
 scm_vmsr_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
 {
+  ScmObj *partial;
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
 
   scm_assert_obj_type(obj, &SCM_VMSTCKRC_TYPE_INFO);
@@ -389,14 +388,16 @@ scm_vmsr_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
   rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_VMSTCKRC(obj)->next, mem);
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
+  partial = scm_vmsr_partial_base(obj);
+  for (int i = 0; i < SCM_VMSTCKRC(obj)->reg.partial; i++) {
+    rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, partial[i], mem);
+    if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
+  }
+
   rslt = scm_vm_cf_gc_accept(obj, SCM_VMSTCKRC(obj)->reg.cfp, mem, handler);
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
   rslt = scm_vm_ef_gc_accept(obj, &SCM_VMSTCKRC(obj)->reg.efp, mem, handler);
-  if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
-
-  rslt = scm_vm_pef_gc_accept(obj, obj, SCM_VMSTCKRC(obj)->reg.pefp,
-                              mem, handler);
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
   return rslt;

@@ -210,12 +210,7 @@ TEST(api_assembler, ccommit)
 
 TEST(api_assembler, eframe)
 {
-  test_assemble_noopd("((eframe)(nop))", SCM_OPCODE_EFRAME);
-}
-
-TEST(api_assembler, ecommit)
-{
-  test_assemble_si("((ecommit 20)(nop))", SCM_OPCODE_ECOMMIT, 20);
+  test_assemble_si("((eframe 20)(nop))", SCM_OPCODE_EFRAME, 20);
 }
 
 TEST(api_assembler, epop)
@@ -226,11 +221,6 @@ TEST(api_assembler, epop)
 TEST(api_assembler, eshift)
 {
   test_assemble_si("((eshift -1)(nop))", SCM_OPCODE_ESHIFT, -1);
-}
-
-TEST(api_assembler, frame)
-{
-  test_assemble_noopd("((frame)(nop))", SCM_OPCODE_FRAME);
 }
 
 TEST(api_assembler, push)

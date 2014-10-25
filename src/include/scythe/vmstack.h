@@ -19,6 +19,7 @@ typedef struct ScmVMStckRcRec ScmVMStckRc;
 
 
 #include "scythe/object.h"
+#include "scythe/api_type.h"
 
 
 /*******************************************************************/
@@ -27,33 +28,43 @@ typedef struct ScmVMStckRcRec ScmVMStckRc;
 
 /*
  * 継続フレームと環境フレームの環実装上の制約:
- * 1. 構造体のアライメントサイズが ScmObj のアライメントサイズと同じでないと
- *    いけない
+ * 1. 構造体のアライメントサイズが ScmObj のアライメントサイズ以上でないとい
+ *    けない
  *    --> VM スタック操作ではアライメントを考慮したな処理を行っていないため
  * 2. 構造体のアライメントサイズが SCM_VM_FRAME_MIN_ALIGN_SIZE(4) 以上でない
  *    といけない
- *    --> ポインタ値の下位 2bit をフラグとして使用しているため
+ *    --> ポインタ値の下位 2 bit をフラグとして使用しているため
  *
  */
 
 #define SCM_VM_FRAME_MIN_ALIGN_SIZE 4
+#define SCM_VM_FRAME_FLG_MASK 0x03u
+#define SCM_VM_FRAME_ENV_FLG_BOXED 0x02u
+#define SCM_VM_FRAME_CNT_FLG_PCF 0x02u
 
+#if SCM_VM_FRAME_MIN_ALIGN_SIZE > SIZEOF_SCM_WORD_T
+
+#define SCM_VM_FRAME_ALIGN_SIZE SCM_VM_FRAME_MIN_ALIGN_SIZE
+
+#else  /* SCM_VM_FRAME_MIN_ALIGN_SIZE <= SIZEOF_SCM_WORD_T */
+
+#define SCM_VM_FRAME_ALIGN_SIZE SIZEOF_SCM_WORD_T
+
+#endif /* SCM_VM_FRAME_MIN_ALIGN_SIZE > SIZEOF_SCM_WORD_T */
 
 /* out メンバの下位 2bit をフラグとして使用する
- *   0 bit: 作りかけの環境フレームの直上に作られたフレームはこの bit をセット
- *          する。continuation 関連の操作に使用する予定。
+ *   0 bit: 未使用
  *   1 bit: box 化してヒープにコピーされた環境フレームはこの bit をセットする。
  *          GC 時のフレームのトレース等に使用する。
  */
 struct ScmEnvFrameRec {
   uintptr_t out;
-  size_t len;
-  ScmObj arg[0];
-};
+  int partial;
+  int len;
+} __attribute((aligned(SCM_VM_FRAME_ALIGN_SIZE)));
 
 /* offset メンバの下位 2bit をフラグとして使用する
- *   0 bit: 作りかけの環境フレームの直上に作られたフレームはこの bit をセット
- *          する。continuation 関連の操作に使用する予定。
+ *   0 bit: 未使用
  *   1 bit: 継続フレームを作成し、対応する call 命令を実行する前に新たに継続フ
  *          レームを作成した場合、新しく作成したフレームのこの bit をセットす
  *          る。バックトレース情報取得に使用する予定。
@@ -61,56 +72,116 @@ struct ScmEnvFrameRec {
 struct ScmCntFrameRec {
   ptrdiff_t offset;
   ScmEnvFrame *efp;
+  int partial;
   ScmObj cp;
   scm_byte_t *ip;
-};
+} __attribute((aligned(SCM_VM_FRAME_ALIGN_SIZE)));
 
 int scm_vm_ef_gc_accept(ScmObj owner, ScmEnvFrame **efp,
                         ScmObj mem, ScmGCRefHandlerFunc handler);
-int scm_vm_pef_gc_accept(ScmObj owner, ScmObj vmsr, ScmEnvFrame *fp,
-                         ScmObj mem, ScmGCRefHandlerFunc handler);
 int scm_vm_cf_gc_accept(ScmObj owner, ScmCntFrame *cfp,
                         ScmObj mem, ScmGCRefHandlerFunc handler);
 
 inline ScmCntFrame *
 scm_vm_cf_next(ScmCntFrame *cfp) {
   scm_assert(cfp != NULL);
-  return (ScmCntFrame *)((scm_byte_t *)cfp + (cfp->offset & ~(ptrdiff_t)0x03));
+  return (ScmCntFrame *)((scm_byte_t *)cfp
+                         + (cfp->offset & ~(ptrdiff_t)SCM_VM_FRAME_FLG_MASK));
 }
 
 inline ScmEnvFrame *
 scm_vm_ef_outer(ScmEnvFrame *efp)
 {
   scm_assert(efp != NULL);
-  return (ScmEnvFrame *)(efp->out & ~(uintptr_t)0x3);
+  return (ScmEnvFrame *)(efp->out & ~(uintptr_t)SCM_VM_FRAME_FLG_MASK);
 }
 
-inline bool
-scm_vm_cf_maked_on_pef_p(ScmCntFrame *cfp)
+inline ScmObj *
+scm_vm_cf_partial_base(ScmCntFrame *cfp)
 {
   scm_assert(cfp != NULL);
-  return ((cfp->offset & 0x01) == 0) ? false : true;
+  if (cfp->partial == 0)
+    return NULL;
+  else
+    return (ScmObj *)cfp - cfp->partial;
+}
+
+inline ScmObj *
+scm_vm_ef_partial_base(ScmEnvFrame *efp)
+{
+  scm_assert(efp != NULL);
+  if (efp->partial == 0)
+    return NULL;
+  else
+    return (ScmObj *)efp - efp->len - efp->partial;
 }
 
 inline bool
 scm_vm_cf_maked_on_pcf_p(ScmCntFrame *cfp)
 {
   scm_assert(cfp != NULL);
-  return ((cfp->offset & 0x02) == 0) ? false : true;
+  return ((cfp->offset & SCM_VM_FRAME_CNT_FLG_PCF) == 0) ? false : true;
 }
 
-inline bool
-scm_vm_ef_maked_on_pef_p(ScmEnvFrame *efp)
+inline ScmObj *
+scm_vm_ef_values(ScmEnvFrame *efp)
 {
   scm_assert(efp != NULL);
-  return ((efp->out & 0x01u) == 0) ? false : true;
+
+  return (ScmObj *)efp - efp->len;;
+}
+
+inline ScmObj
+scm_vm_ef_value_ref(ScmEnvFrame *efp, int idx)
+{
+  scm_assert(efp != NULL);
+  scm_assert(0 <= idx && idx < efp->len);
+
+  return *((ScmObj *)efp - efp->len + idx);
+}
+
+inline void
+scm_vm_ef_value_set(ScmEnvFrame *efp, int idx, ScmObj val)
+{
+  scm_assert(efp != NULL);
+  scm_assert(0 <= idx && idx < efp->len);
+
+  *((ScmObj *)efp - efp->len + idx) = val;
+}
+
+inline scm_byte_t *
+scm_vm_cf_ceiling(ScmCntFrame *cfp)
+{
+  scm_assert(cfp != NULL);
+  return (scm_byte_t *)(cfp + 1);
+}
+
+inline scm_byte_t *
+scm_vm_ef_ceiling(ScmCntFrame *efp)
+{
+  scm_assert(efp != NULL);
+  return (scm_byte_t *)(efp + 1);
+}
+
+inline scm_byte_t *
+scm_vm_cf_bottom(ScmCntFrame *cfp)
+{
+  scm_assert(cfp != NULL);
+  return (scm_byte_t *)cfp;
+}
+
+inline scm_byte_t *
+scm_vm_ef_bottom(ScmEnvFrame *efp)
+{
+  scm_assert(efp != NULL);
+  return (scm_byte_t *)((ScmObj *)efp - efp->len);
 }
 
 inline bool
 scm_vm_ef_boxed_p(ScmEnvFrame *efp)
 {
   scm_assert(efp != NULL);
-  return ((efp->out & 0x02u) == 0) ? false : true;
+  return ((efp->out & SCM_VM_FRAME_ENV_FLG_BOXED) == 0) ? false : true;
 }
 
 inline bool
@@ -121,8 +192,8 @@ scm_vm_ef_in_stack_p(ScmEnvFrame *efp)
 
 inline void
 scm_vm_cf_init(ScmCntFrame *cfp,
-               ScmCntFrame *cur_cfp, ScmEnvFrame *efp, ScmObj cp,
-               scm_byte_t *ip, bool pef, bool pcf)
+               ScmCntFrame *cur_cfp, ScmEnvFrame *efp, int partial, ScmObj cp,
+               scm_byte_t *ip, bool pcf)
 {
   scm_assert(SCM_ALIGNOF(ScmCntFrame) == SCM_ALIGNOF(ScmObj));
   scm_assert(SCM_ALIGNOF(ScmCntFrame) >= SCM_VM_FRAME_MIN_ALIGN_SIZE);
@@ -130,18 +201,20 @@ scm_vm_cf_init(ScmCntFrame *cfp,
   scm_assert(cfp != NULL);
   scm_assert(((uintptr_t)cfp & 0x03) == 0);
   scm_assert(((uintptr_t)cur_cfp & 0x03) == 0);
+  scm_assert(partial >= 0);
 
   cfp->offset = (scm_byte_t *)cur_cfp - (scm_byte_t *)cfp;
   cfp->efp = efp;
+  cfp->partial = partial;
   cfp->cp = cp;
   cfp->ip = ip;
 
-  if (pef) cfp->offset |= 0x01;
-  if (pcf) cfp->offset |= 0x02;
+  if (pcf) cfp->offset |= SCM_VM_FRAME_CNT_FLG_PCF;
 }
 
 inline void
-scm_vm_ef_init(ScmEnvFrame *efp, ScmEnvFrame *out, size_t len, bool pef)
+scm_vm_ef_init(ScmEnvFrame *efp,
+               ScmEnvFrame *out, int partial, int len)
 {
   scm_assert(SCM_ALIGNOF(ScmEnvFrame) == SCM_ALIGNOF(ScmObj));
   scm_assert(SCM_ALIGNOF(ScmEnvFrame) >= SCM_VM_FRAME_MIN_ALIGN_SIZE);
@@ -149,10 +222,12 @@ scm_vm_ef_init(ScmEnvFrame *efp, ScmEnvFrame *out, size_t len, bool pef)
   scm_assert(efp != NULL);
   scm_assert(((uintptr_t)efp & 0x03) == 0);
   scm_assert(((uintptr_t)out & 0x03) == 0);
+  scm_assert(partial >= 0);
+  scm_assert(len > 0);
 
   efp->out = (uintptr_t)out;
+  efp->partial = partial;
   efp->len = len;
-  if (pef) efp->out |= 0x01u;
 }
 
 inline void
@@ -169,13 +244,13 @@ scm_vm_ef_copy_flag(ScmEnvFrame *dst, ScmEnvFrame *src)
   scm_assert(dst != NULL);
   scm_assert(src != NULL);
 
-  dst->out |= (src->out & 0x03);
+  /* nothing to do */
 }
 
 inline void
 scm_vm_ef_boxed(ScmEnvFrame *efp)
 {
-  efp->out |= 0x02;
+  efp->out |= SCM_VM_FRAME_ENV_FLG_BOXED;
 }
 
 
@@ -195,7 +270,8 @@ extern ScmTypeInfo SCM_EFBOX_TYPE_INFO;
 struct ScmEFBoxRec {
   ScmObjHeader header;
   scm_byte_t dummy[sizeof(ScmForward) - sizeof(ScmObjHeader)];
-  ScmEnvFrame frame;
+  ptrdiff_t offset;
+  scm_byte_t body[0] __attribute((aligned(SIZEOF_SCM_WORD_T)));
 };
 
 int scm_efbox_initialize(ScmObj efb, ScmEnvFrame *ef);
@@ -211,7 +287,7 @@ scm_efbox_to_efp(ScmObj efb)
   if (scm_obj_null_p(efb))
     return NULL;
   else
-    return &(SCM_EFBOX(efb)->frame);
+    return (ScmEnvFrame *)(SCM_EFBOX(efb)->body + SCM_EFBOX(efb)->offset);
 }
 
 inline ScmObj
@@ -220,7 +296,9 @@ scm_efbox_efp_to_efbox(ScmEnvFrame *efp)
   if (efp == NULL)
     return SCM_OBJ_NULL;
   else
-    return SCM_OBJ((scm_byte_t *)efp - offsetof(ScmEFBox, frame));
+    return SCM_OBJ((scm_byte_t *)efp
+                   - sizeof(ScmObj) * (size_t)efp->len
+                   - offsetof(ScmEFBox, body));
 }
 
 inline void
@@ -230,10 +308,10 @@ scm_efbox_update_outer(ScmObj efb, ScmObj outer)
   scm_assert_obj_type_accept_null(outer, &SCM_EFBOX_TYPE_INFO);
 
   if (scm_obj_null_p(outer))
-    scm_vm_ef_replace_outer(&SCM_EFBOX(efb)->frame, NULL);
+    scm_vm_ef_replace_outer(scm_efbox_to_efp(efb), NULL);
   else
     SCM_WB_EXP(efb,
-               scm_vm_ef_replace_outer(&SCM_EFBOX(efb)->frame,
+               scm_vm_ef_replace_outer(scm_efbox_to_efp(efb),
                                        scm_efbox_to_efp(outer)));
 }
 
@@ -259,9 +337,8 @@ struct ScmVMStckRcRec {
   struct {
     ScmCntFrame *cfp;
     ScmEnvFrame *efp;
-    ScmEnvFrame *pefp;
+    int partial;
     bool pcf;
-    bool pef;
   } reg;
   ScmObj next;
   ScmCntFrame *next_cf;
@@ -277,8 +354,8 @@ int scm_vmsr_initialize(ScmObj vmsr, ScmObj segment,
 ScmObj scm_vmsr_new(SCM_MEM_TYPE_T mtype,
                     ScmObj segment, scm_byte_t *base, ScmObj next);
 void scm_vmsr_rec(ScmObj vmsr, scm_byte_t *ceil,
-                  ScmCntFrame *cfp, ScmEnvFrame *efp, ScmEnvFrame *pefp,
-                  bool pcf, bool pef);
+                  ScmCntFrame *cfp, ScmEnvFrame *efp,
+                  int partial, bool pcf);
 void scm_vmsr_clear(ScmObj vmsr);
 void scm_vmsr_relink(ScmObj vmsr, ScmObj next, ScmCntFrame *cfp, bool pcf);
 void scm_vmsr_relink_cf(ScmObj vmsr, ScmCntFrame *cfp, bool pcf);
@@ -333,6 +410,18 @@ scm_vmsr_ceiling(ScmObj vmsr)
   return SCM_VMSTCKRC(vmsr)->base + SCM_VMSTCKRC(vmsr)->size;
 }
 
+inline ScmObj *
+scm_vmsr_partial_base(ScmObj vmsr)
+{
+  scm_assert_obj_type(vmsr, &SCM_VMSTCKRC_TYPE_INFO);
+
+  if (SCM_VMSTCKRC(vmsr)->reg.partial == 0)
+    return NULL;
+  else
+    return (ScmObj *)(scm_vmsr_ceiling(vmsr)
+                      - sizeof(ScmObj) * (size_t)SCM_VMSTCKRC(vmsr)->reg.partial);
+}
+
 inline ScmCntFrame *
 scm_vmsr_cfp(ScmObj vmsr)
 {
@@ -349,12 +438,12 @@ scm_vmsr_efp(ScmObj vmsr)
   return SCM_VMSTCKRC(vmsr)->reg.efp;
 }
 
-inline ScmEnvFrame *
-scm_vmsr_pefp(ScmObj vmsr)
+inline int
+scm_vmsr_partial(ScmObj vmsr)
 {
   scm_assert_obj_type(vmsr, &SCM_VMSTCKRC_TYPE_INFO);
 
-  return SCM_VMSTCKRC(vmsr)->reg.pefp;
+  return SCM_VMSTCKRC(vmsr)->reg.partial;
 }
 
 inline ScmObj
@@ -379,14 +468,6 @@ scm_vmsr_pcf_p(ScmObj vmsr)
   scm_assert_obj_type(vmsr, &SCM_VMSTCKRC_TYPE_INFO);
 
   return SCM_VMSTCKRC(vmsr)->reg.pcf;
-}
-
-inline bool
-scm_vmsr_pef_p(ScmObj vmsr)
-{
-  scm_assert_obj_type(vmsr, &SCM_VMSTCKRC_TYPE_INFO);
-
-  return SCM_VMSTCKRC(vmsr)->reg.pef;
 }
 
 inline bool

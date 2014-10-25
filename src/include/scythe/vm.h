@@ -277,7 +277,7 @@ struct ScmVMRegRec {
   scm_byte_t *sp;                 /* stack pointer */
   ScmCntFrame *cfp;               /* continuation frame pointer */
   ScmEnvFrame *efp;               /* environment frame pointer */
-  ScmEnvFrame *pefp;              /* partial environment frame pointer */
+  int partial;                    /* partial environment frame */
   ScmObj cp;                      /* closure pointer */
   scm_byte_t *ip;                 /* instruction pointer */
   ScmObj val[SCM_VM_NR_VAL_REG];  /* value register */
@@ -403,9 +403,6 @@ typedef enum {
   SCM_VM_CTRL_FLG_PCF   = 0x00000004, /* cfp レジスタが作りかけ(対応する call
                                          命令を実行していない)フレームを指して
                                          いる場合セットする */
-  SCM_VM_CTRL_FLG_PEF   = 0x00000008, /* pefp レジスタが指すフレームが efp や
-                                         cfp レジスタが指すフレームよりもス
-                                         タックの上にある場合セットする */
   SCM_VM_CTRL_FLG_CCF   = 0x00000010, /* cfp レジスタがキャプチャされたスタッ
                                          クセグメント上のフレームを指している
                                          場合セットする */

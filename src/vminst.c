@@ -7,11 +7,9 @@ const int scm_opfmt_table[SCM_VMINST_NR_OP] = {
     SCM_OPFMT_NOOPD,            /* SCM_OPCODE_UNINIT */
     SCM_OPFMT_NOOPD,            /* SCM_OPCODE_CFRAME */
     SCM_OPFMT_SI,               /* SCM_OPCODE_CCOMMIT */
-    SCM_OPFMT_NOOPD,            /* SCM_OPCODE_EFRAME */
-    SCM_OPFMT_SI,               /* SCM_OPCODE_ECOMMIT */
+    SCM_OPFMT_SI,               /* SCM_OPCODE_EFRAME */
     SCM_OPFMT_NOOPD,            /* SCM_OPCODE_EPOP */
     SCM_OPFMT_SI   ,            /* SCM_OPCODE_ESHIFT */
-    SCM_OPFMT_NOOPD,            /* SCM_OPCODE_FRAME */
     SCM_OPFMT_OBJ,              /* SCM_OPCODE_IMMVAL */
     SCM_OPFMT_NOOPD,            /* SCM_OPCODE_PUSH */
     SCM_OPFMT_NOOPD,            /* SCM_OPCODE_MVPUSH */
