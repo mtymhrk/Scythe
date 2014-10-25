@@ -77,7 +77,7 @@ struct ScmCntFrameRec {
   scm_byte_t *ip;
 } __attribute((aligned(SCM_VM_FRAME_ALIGN_SIZE)));
 
-int scm_vm_ef_gc_accept(ScmObj owner, ScmEnvFrame **efp,
+int scm_vm_ef_gc_accept(ScmObj owner, ScmEnvFrame *efp,
                         ScmObj mem, ScmGCRefHandlerFunc handler);
 int scm_vm_cf_gc_accept(ScmObj owner, ScmCntFrame *cfp,
                         ScmObj mem, ScmGCRefHandlerFunc handler);
@@ -131,24 +131,6 @@ scm_vm_ef_values(ScmEnvFrame *efp)
   return (ScmObj *)efp - efp->len;;
 }
 
-inline ScmObj
-scm_vm_ef_value_ref(ScmEnvFrame *efp, int idx)
-{
-  scm_assert(efp != NULL);
-  scm_assert(0 <= idx && idx < efp->len);
-
-  return *((ScmObj *)efp - efp->len + idx);
-}
-
-inline void
-scm_vm_ef_value_set(ScmEnvFrame *efp, int idx, ScmObj val)
-{
-  scm_assert(efp != NULL);
-  scm_assert(0 <= idx && idx < efp->len);
-
-  *((ScmObj *)efp - efp->len + idx) = val;
-}
-
 inline scm_byte_t *
 scm_vm_cf_ceiling(ScmCntFrame *cfp)
 {
@@ -182,12 +164,6 @@ scm_vm_ef_boxed_p(ScmEnvFrame *efp)
 {
   scm_assert(efp != NULL);
   return ((efp->out & SCM_VM_FRAME_ENV_FLG_BOXED) == 0) ? false : true;
-}
-
-inline bool
-scm_vm_ef_in_stack_p(ScmEnvFrame *efp)
-{
-  return (efp == NULL || scm_vm_ef_boxed_p(efp)) ? false : true;
 }
 
 inline void
@@ -260,23 +236,22 @@ scm_vm_ef_boxed(ScmEnvFrame *efp)
 
 extern ScmTypeInfo SCM_EFBOX_TYPE_INFO;
 
-/* GC 時、copying gc のコピー元のオブジェクトはコピー後に ScmForward オブ
- * ジェクトで上書きされる。GC 時に frame メンバのフラグ情報を利用する必要
- * があるが、frame メンバが上書きされると、コピー元をまだ参照している変数
- * を処理する際にその情報を得ることができなくなってしまう。上書きされても
- * frame メンバの情報を読みとれるよう、ScmFoward オブジェクトのサイズ以降
- * に frame メンバを配置するために dummy メンバを追加している。
+/* 環境フレーム本体は data メンバが指す領域に保持し、先頭の環境フレームへの
+ * ポインタを efp メンバに保持する。boxing された環境フレームは partial メン
+ * バの値が 1 になり、partial 領域に自身の ScmEFBox オブジェクト値を保持して
+ * いる。
  */
 struct ScmEFBoxRec {
   ScmObjHeader header;
-  scm_byte_t dummy[sizeof(ScmForward) - sizeof(ScmObjHeader)];
-  ptrdiff_t offset;
-  scm_byte_t body[0] __attribute((aligned(SIZEOF_SCM_WORD_T)));
+  ScmEnvFrame *efp;
+  size_t size;
+  scm_byte_t *data;
 };
 
-int scm_efbox_initialize(ScmObj efb, ScmEnvFrame *ef);
-ScmObj scm_efbox_new(SCM_MEM_TYPE_T mtype, ScmEnvFrame *ef);
+int scm_efbox_initialize(ScmObj efb, ScmEnvFrame *efp, size_t depth);
+ScmObj scm_efbox_new(SCM_MEM_TYPE_T mtype, ScmEnvFrame *efp, size_t depth);
 void scm_efbox_gc_initialize(ScmObj obj, ScmObj mem);
+void scm_efbox_gc_finalize(ScmObj obj);
 int scm_efbox_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
 
 inline ScmEnvFrame *
@@ -287,32 +262,30 @@ scm_efbox_to_efp(ScmObj efb)
   if (scm_obj_null_p(efb))
     return NULL;
   else
-    return (ScmEnvFrame *)(SCM_EFBOX(efb)->body + SCM_EFBOX(efb)->offset);
+    return SCM_EFBOX(efb)->efp;
 }
 
 inline ScmObj
-scm_efbox_efp_to_efbox(ScmEnvFrame *efp)
+scm_efbox_efp_to_owner(ScmEnvFrame *efp)
 {
+  scm_assert(efp == NULL || scm_vm_ef_boxed_p(efp));
+
   if (efp == NULL)
     return SCM_OBJ_NULL;
   else
-    return SCM_OBJ((scm_byte_t *)efp
-                   - sizeof(ScmObj) * (size_t)efp->len
-                   - offsetof(ScmEFBox, body));
+    return scm_vm_ef_partial_base(efp)[0];
 }
 
-inline void
-scm_efbox_update_outer(ScmObj efb, ScmObj outer)
+inline bool
+scm_efbox_include_p(ScmObj efb, ScmEnvFrame *efp)
 {
   scm_assert_obj_type(efb, &SCM_EFBOX_TYPE_INFO);
-  scm_assert_obj_type_accept_null(outer, &SCM_EFBOX_TYPE_INFO);
 
-  if (scm_obj_null_p(outer))
-    scm_vm_ef_replace_outer(scm_efbox_to_efp(efb), NULL);
+  if (SCM_EFBOX(efb)->data == NULL)
+    return false;
   else
-    SCM_WB_EXP(efb,
-               scm_vm_ef_replace_outer(scm_efbox_to_efp(efb),
-                                       scm_efbox_to_efp(outer)));
+    return (SCM_EFBOX(efb)->data <= (scm_byte_t *)efp
+            && (scm_byte_t *)efp < SCM_EFBOX(efb)->data + SCM_EFBOX(efb)->size);
 }
 
 

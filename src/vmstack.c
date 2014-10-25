@@ -12,46 +12,42 @@
 /*******************************************************************/
 
 int
-scm_vm_ef_gc_accept(ScmObj owner, ScmEnvFrame **efp,
+scm_vm_ef_gc_accept(ScmObj owner, ScmEnvFrame *efp,
                     ScmObj mem, ScmGCRefHandlerFunc handler)
 {
-  ScmObj efb = SCM_OBJ_INIT;
-  ScmEnvFrame *prv_ef, *ef;
+  ScmObj *partial, *values;
+  ScmEnvFrame *ef;
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
 
   scm_assert(scm_obj_not_null_p(owner));
-  scm_assert(efp != NULL);
   scm_assert(scm_obj_not_null_p(mem));
   scm_assert(handler != NULL);
 
-  prv_ef = NULL;
-  ef = *efp;
-  while (scm_vm_ef_in_stack_p(ef)) {
-    ScmObj *partial = scm_vm_ef_partial_base(ef);
-
-    for (int i = 0; i < ef->len; i++) {
-      rslt = SCM_GC_CALL_REF_HANDLER(handler,
-                                     owner, scm_vm_ef_values(ef)[i], mem);
-      if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
+  for (ef = efp; ef != NULL; ef = scm_vm_ef_outer(ef)) {
+    if (scm_obj_type_p(owner, &SCM_EFBOX_TYPE_INFO)) {
+      if (!scm_efbox_include_p(owner, ef))
+        break;
+    }
+    else if (scm_vm_ef_boxed_p(ef)){
+      break;
     }
 
+    partial = scm_vm_ef_partial_base(ef);
     for (int i = 0; i < ef->partial; i++) {
       rslt = SCM_GC_CALL_REF_HANDLER(handler, owner, partial[i], mem);
       if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
     }
 
-    prv_ef = ef;
-    ef = scm_vm_ef_outer(ef);
+    values = scm_vm_ef_values(ef);
+    for (int i = 0; i < ef->len; i++) {
+      rslt = SCM_GC_CALL_REF_HANDLER(handler, owner, values[i], mem);
+      if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
+    }
   }
 
   if (ef != NULL && scm_vm_ef_boxed_p(ef)) {
-    efb = scm_efbox_efp_to_efbox(ef);
+    ScmObj efb = scm_efbox_efp_to_owner(ef);
     rslt = SCM_GC_CALL_REF_HANDLER(handler, owner, efb, mem);
-    if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
-    if (prv_ef == NULL)
-      *efp = scm_efbox_to_efp(efb);
-    else
-      scm_vm_ef_replace_outer(prv_ef, scm_efbox_to_efp(efb));
   }
 
   return rslt;
@@ -75,7 +71,7 @@ scm_vm_cf_gc_accept(ScmObj owner, ScmCntFrame *cfp,
       if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
     }
 
-    rslt = scm_vm_ef_gc_accept(owner, &cfp->efp, mem, handler);
+    rslt = scm_vm_ef_gc_accept(owner, cfp->efp, mem, handler);
     if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
     rslt = SCM_GC_CALL_REF_HANDLER(handler, owner, cfp->cp, mem);
@@ -98,58 +94,146 @@ ScmTypeInfo SCM_EFBOX_TYPE_INFO = {
   .obj_print_func               = NULL,
   .obj_size                     = sizeof(ScmEFBox),
   .gc_ini_func                  = scm_efbox_gc_initialize,
-  .gc_fin_func                  = NULL,
+  .gc_fin_func                  = scm_efbox_gc_finalize,
   .gc_accept_func               = scm_efbox_gc_accept,
   .gc_accept_func_weak          = NULL,
   .extra                        = NULL,
 };
 
-int
-scm_efbox_initialize(ScmObj efb, ScmEnvFrame *ef)
+static ssize_t
+scm_efbox_calc_data_size(ScmEnvFrame *efp, size_t depth)
 {
-  ScmEnvFrame *out, *efp;
+  ScmEnvFrame *e;
+  size_t total;
 
-  scm_assert_obj_type(efb, &SCM_EFBOX_TYPE_INFO);
-  scm_assert(ef != NULL);
-  scm_assert(!scm_vm_ef_boxed_p(ef));
+  scm_assert(efp != NULL);
+  scm_assert(depth > 0);
 
-  SCM_EFBOX(efb)->offset = (ptrdiff_t)(sizeof(ScmObj) * (size_t)ef->len);
+  total = 0;
+  e = efp;
 
-  efp = scm_efbox_to_efp(efb);
-  efp->partial = 0;
-  efp->len = ef->len;
+  for (size_t i = 0; i < depth; i++) {
+    if (e == NULL) {
+      scm_capi_error("invalid access to environment frame: out of range", 0);
+      return -1;
+    }
 
-  for (int i = 0; i < ef->len; i++) {
-    SCM_WB_EXP(efb,
-               scm_vm_ef_value_set(efp, i, scm_vm_ef_value_ref(ef, i)));
+    if (scm_vm_ef_boxed_p(e))
+      break;
+
+    /* + 1 しているのは partial 領域用 */
+    total += sizeof(ScmEnvFrame) + sizeof(ScmObj) * ((size_t)e->len + 1);
+
+    e = scm_vm_ef_outer(e);
   }
 
-  out = scm_vm_ef_outer(ef);
-  if (out != NULL && scm_vm_ef_boxed_p(out))
-    scm_vm_ef_replace_outer(efp, out);
-  else
-    scm_vm_ef_replace_outer(efp, NULL);
+  return (ssize_t)total;
+}
 
-  scm_vm_ef_boxed(efp);
+static ScmEnvFrame *
+scm_efbox_copy_ef(ScmObj efb, ScmEnvFrame *efp, size_t depth)
+{
+  ScmEnvFrame *head, *prev, *copy, *e;
+  scm_byte_t *p;
+
+  scm_assert(efp != NULL);
+  scm_assert(depth > 0);
+
+  e = efp;
+  p = SCM_EFBOX(efb)->data;
+  head = prev = NULL;
+  for (size_t i = 0; i < depth; i++) {
+    scm_assert(e != NULL);
+
+    if (scm_vm_ef_boxed_p(e))
+      return head;
+
+    /* 自分自身 (efb) を環境フレームの partial 領域に保持する */
+    *(ScmObj *)p = efb;
+    p += sizeof(ScmObj);
+
+    for (int j = 0; j < e->len; j++) {
+      SCM_WB_EXP(efb,
+                 *(ScmObj *)p = scm_vm_ef_values(e)[j]);
+      p += sizeof(ScmObj);
+    }
+
+    copy = (ScmEnvFrame *)p;
+    p += sizeof(ScmEnvFrame);
+
+    *copy = *e;
+    copy->partial = 1;
+    scm_vm_ef_boxed(copy);
+
+    if (prev != NULL)
+      scm_vm_ef_replace_outer(prev, copy);
+
+    if (head == NULL)
+      head = copy;
+
+    prev = copy;
+    e = scm_vm_ef_outer(e);
+  }
+
+  scm_vm_ef_replace_outer(copy, NULL);
+
+  return head;
+}
+
+int
+scm_efbox_initialize(ScmObj efb, ScmEnvFrame *efp, size_t depth)
+{
+  ssize_t data_size;
+
+  scm_assert_obj_type(efb, &SCM_EFBOX_TYPE_INFO);
+  scm_assert(efp != NULL);
+  scm_assert(depth > 0 );
+
+  data_size = scm_efbox_calc_data_size(efp, depth);
+  if (data_size < 0) return -1;
+
+  if (data_size == 0) {
+    SCM_EFBOX(efb)->size = 0;
+    SCM_EFBOX(efb)->data = NULL;
+    SCM_EFBOX(efb)->efp = efp;
+    return 0;
+  }
+
+  SCM_EFBOX(efb)->size = (size_t)data_size;
+  SCM_EFBOX(efb)->data = scm_capi_malloc((size_t)data_size);
+  if (SCM_EFBOX(efb)->data == NULL) return -1;
+
+  SCM_EFBOX(efb)->efp = scm_efbox_copy_ef(efb, efp, depth);
+  if (SCM_EFBOX(efb)->efp == NULL) return -1;
 
   return 0;
 }
 
+void
+scm_efbox_finalize(ScmObj efb)
+{
+  scm_assert_obj_type(efb, &SCM_EFBOX_TYPE_INFO);
+
+  if (SCM_EFBOX(efb)->data == NULL)
+    return;
+
+  scm_capi_free(SCM_EFBOX(efb)->data);
+  SCM_EFBOX(efb)->data = NULL;
+}
+
 ScmObj
-scm_efbox_new(SCM_MEM_TYPE_T mtype, ScmEnvFrame *ef)
+scm_efbox_new(SCM_MEM_TYPE_T mtype, ScmEnvFrame *efp, size_t depth)
 {
   ScmObj efb = SCM_OBJ_INIT;
   int rslt;
 
-  scm_assert(ef != NULL);
-  scm_assert(!scm_vm_ef_boxed_p(ef));
+  scm_assert(efp != NULL);
+  scm_assert(depth > 0);
 
-  efb = scm_capi_mem_alloc(&SCM_EFBOX_TYPE_INFO,
-                           sizeof(ScmEnvFrame) + sizeof(ScmObj) * (size_t)ef->len,
-                           mtype);
+  efb = scm_capi_mem_alloc(&SCM_EFBOX_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(efb)) return SCM_OBJ_NULL;
 
-  rslt = scm_efbox_initialize(efb, ef);
+  rslt = scm_efbox_initialize(efb, efp, depth);
   if (rslt < 0) return SCM_OBJ_NULL;
 
   return efb;
@@ -160,39 +244,31 @@ scm_efbox_gc_initialize(ScmObj obj, ScmObj mem)
 {
   scm_assert_obj_type(obj, &SCM_EFBOX_TYPE_INFO);
 
-  SCM_EFBOX(obj)->offset = -1;
+  SCM_EFBOX(obj)->efp = NULL;
+  SCM_EFBOX(obj)->data = NULL;
+  SCM_EFBOX(obj)->size = 0;
+}
+
+void
+scm_efbox_gc_finalize(ScmObj obj)
+{
+  scm_efbox_finalize(obj);
 }
 
 int
 scm_efbox_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
 {
-  ScmObj outer = SCM_OBJ_INIT;
-  ScmEnvFrame *efp;
-  int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
-
   scm_assert_obj_type(obj, &SCM_EFBOX_TYPE_INFO);
   scm_assert(scm_obj_not_null_p(mem));
   scm_assert(handler != NULL);
 
-  if (SCM_EFBOX(obj)->offset == -1)
-    return rslt;
-
-  efp = scm_efbox_to_efp(obj);
-
-  /* XXX: EFBox 内の frame.out は必ずボックス化された frame を指す */
-  /*      (VM stack 上の enrioment frame を指すことはない)         */
-  outer = scm_efbox_efp_to_efbox(scm_vm_ef_outer(efp));
-  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, outer, mem);
-  if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
-
-  scm_vm_ef_replace_outer(efp, scm_efbox_to_efp(outer));
-
-  for (int i = 0; i < efp->len; i++) {
-    rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, scm_vm_ef_values(efp)[i], mem);
-    if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
+  if (SCM_EFBOX(obj)->data != NULL) {
+    return scm_vm_ef_gc_accept(obj, SCM_EFBOX(obj)->efp, mem, handler);
   }
-
-  return rslt;
+  else {
+    ScmObj holder = scm_efbox_efp_to_owner(SCM_EFBOX(obj)->efp);
+    return SCM_GC_CALL_REF_HANDLER(handler, obj, holder, mem);
+  }
 }
 
 
@@ -397,7 +473,7 @@ scm_vmsr_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
   rslt = scm_vm_cf_gc_accept(obj, SCM_VMSTCKRC(obj)->reg.cfp, mem, handler);
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
-  rslt = scm_vm_ef_gc_accept(obj, &SCM_VMSTCKRC(obj)->reg.efp, mem, handler);
+  rslt = scm_vm_ef_gc_accept(obj, SCM_VMSTCKRC(obj)->reg.efp, mem, handler);
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
   return rslt;

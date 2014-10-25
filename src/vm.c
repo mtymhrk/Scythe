@@ -1078,53 +1078,33 @@ scm_vm_pop_eframe(ScmObj vm)
 static int
 scm_vm_box_eframe(ScmObj vm, ScmEnvFrame *efp, size_t depth, scm_csetter_t *box)
 {
-  ScmObj efb = SCM_OBJ_INIT, prev = SCM_OBJ_INIT;
+  ScmObj efb = SCM_OBJ_INIT;
 
-  SCM_REFSTK_INIT_REG(&efb, &prev, &efb, &prev);
-
-  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+  SCM_REFSTK_INIT_REG(&vm,
+                      &efb);
 
   if (depth == 0) {
     scm_csetter_setq(box, SCM_OBJ_NULL);
     return 0;
-  };
+  }
 
   if (efp == NULL) {
     scm_capi_error("invalid access to envrionment frame: out of range", 0);
     return -1;
   }
 
-  if (scm_vm_ef_boxed_p(efp))
-    efb = scm_efbox_efp_to_efbox(efp);
-  else
-    efb = scm_efbox_new(SCM_MEM_HEAP, efp);
+  if (scm_vm_ef_boxed_p(efp)) {
+    efb = scm_efbox_efp_to_owner(efp);
+    if (efp == scm_efbox_to_efp(efb)) {
+      scm_csetter_setq(box, efb);
+      return 0;
+    }
+  }
 
+  efb = scm_efbox_new(SCM_MEM_HEAP, efp, depth);
   if (scm_obj_null_p(efb)) return -1;
 
   scm_csetter_setq(box, efb);
-
-  prev = efb;
-  efp = scm_vm_ef_outer(efp);
-  for (size_t i = 1; i < depth; i++) {
-    if (efp == NULL) {
-      scm_capi_error("invalid access to envrionment frame: out of range", 0);
-      return -1;
-    }
-
-    if (scm_vm_ef_boxed_p(efp))
-      return 0;
-
-    efb = scm_efbox_new(SCM_MEM_HEAP, efp);
-    if (scm_obj_null_p(efb)) return -1;
-
-    scm_efbox_update_outer(prev, efb);
-
-    prev = efb;
-    efp = scm_vm_ef_outer(efp);
-  }
-
-  scm_efbox_update_outer(prev, SCM_OBJ_NULL);
-
   return 0;
 }
 
@@ -1164,7 +1144,7 @@ scm_vm_eframe_arg_ref(ScmEnvFrame *efp_list, int idx, size_t layer,
 
   if (efp != NULL) *efp = e;
 
-  return scm_vm_ef_value_ref(e, idx);
+  return scm_vm_ef_values(e)[idx];
 }
 
 static int
@@ -1679,15 +1659,16 @@ scm_vm_adjust_arg_to_arity(ScmObj vm, int argc, ScmObj proc, int *adjusted)
   lst = SCM_NIL_OBJ;
 
   if (argc > 0) {
+    ScmObj *values = scm_vm_ef_values(SCM_VM(vm)->reg.efp);
+
     len = argc - (nr_bind - 1);
     for (int i = 0; i < len; i++) {
-      lst = scm_api_cons(scm_vm_ef_value_ref(SCM_VM(vm)->reg.efp, argc - i - 1),
-                         lst);
+      lst = scm_api_cons(values[argc - i - 1], lst);
       if (scm_obj_null_p(lst)) return -1;
     }
 
     for (int i = 0; i < nr_bind - 1; i++) {
-      rslt = scm_vm_stack_push(vm, scm_vm_ef_value_ref(SCM_VM(vm)->reg.efp, i));
+      rslt = scm_vm_stack_push(vm, values[i]);
       if (rslt < 0) return -1;
     }
   }
@@ -1988,10 +1969,10 @@ scm_vm_do_op_box(ScmObj vm, scm_opcode_t op, int idx, int layer)
     return -1;
   }
 
-  box = scm_box_new(SCM_MEM_HEAP, scm_vm_ef_value_ref(efp, idx));
+  box = scm_box_new(SCM_MEM_HEAP, scm_vm_ef_values(efp)[idx]);
   if (scm_obj_null_p(box)) return -1;
 
-  SCM_WB_EXP(vm, scm_vm_ef_value_set(efp, idx, box));
+  SCM_WB_EXP(vm, scm_vm_ef_values(efp)[idx] = box);
 
   return 0;
 }
@@ -3578,7 +3559,7 @@ scm_vm_gc_accept_stack(ScmObj vm, ScmObj mem, ScmGCRefHandlerFunc handler)
   rslt = scm_vm_cf_gc_accept(vm, SCM_VM(vm)->reg.cfp, mem, handler);
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
-  rslt = scm_vm_ef_gc_accept(vm, &SCM_VM(vm)->reg.efp, mem, handler);
+  rslt = scm_vm_ef_gc_accept(vm, SCM_VM(vm)->reg.efp, mem, handler);
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
   return rslt;

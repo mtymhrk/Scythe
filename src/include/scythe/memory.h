@@ -34,14 +34,10 @@ enum { SCM_MEM_NR_ALLOC_TYPE = SCM_MEM_ALLOC_ROOT + 1 };
 /* Forward Object                                                           */
 /****************************************************************************/
 
-/* ScmForward オブジェクトの構造体定義を api_enum へ移動。ScmEFBox オブジェク
- * トが ScmForward オブジェクトのサイズを必要とするため。
- */
-
-/* struct ScmForwardRec { */
-/*   ScmObjHeader header; */
-/*   ScmObj forward; */
-/* }; */
+struct ScmForwardRec {
+  ScmObjHeader header;
+  ScmObj forward;
+};
 
 extern ScmTypeInfo SCM_FORWARD_TYPE_INFO;
 
