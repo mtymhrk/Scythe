@@ -272,15 +272,15 @@ scm_vmsr_initialize(ScmObj vmsr, ScmObj segment, scm_byte_t *base, ScmObj next)
   SCM_VMSTCKRC(vmsr)->reg.cfp = NULL;
   SCM_VMSTCKRC(vmsr)->reg.efp = NULL;
   SCM_VMSTCKRC(vmsr)->reg.partial = 0;
-  SCM_VMSTCKRC(vmsr)->reg.pcf = false;
+  SCM_VMSTCKRC(vmsr)->reg.ucf = false;
   SCM_SLOT_SETQ(ScmVMStckRc, vmsr, next, next);
   if (scm_obj_not_null_p(next)) {
     SCM_VMSTCKRC(vmsr)->next_cf = SCM_VMSTCKRC(next)->reg.cfp;
-    SCM_VMSTCKRC(vmsr)->next_cf_pcf = SCM_VMSTCKRC(next)->reg.pcf;
+    SCM_VMSTCKRC(vmsr)->next_cf_ucf = SCM_VMSTCKRC(next)->reg.ucf;
   }
   else {
     SCM_VMSTCKRC(vmsr)->next_cf = NULL;
-    SCM_VMSTCKRC(vmsr)->next_cf_pcf = false;
+    SCM_VMSTCKRC(vmsr)->next_cf_ucf = false;
   }
 
   return 0;
@@ -309,7 +309,7 @@ scm_vmsr_new(SCM_MEM_TYPE_T mtype, ScmObj stack, scm_byte_t *base, ScmObj next)
 
 void
 scm_vmsr_rec(ScmObj vmsr, scm_byte_t *ceil,
-             ScmCntFrame *cfp, ScmEnvFrame *efp, int partial, bool pcf)
+             ScmCntFrame *cfp, ScmEnvFrame *efp, int partial, bool ucf)
 {
   scm_assert_obj_type(vmsr, &SCM_VMSTCKRC_TYPE_INFO);
   scm_assert(SCM_VMSTCKRC(vmsr)->base <= ceil);
@@ -319,7 +319,7 @@ scm_vmsr_rec(ScmObj vmsr, scm_byte_t *ceil,
   SCM_VMSTCKRC(vmsr)->reg.cfp = cfp;
   SCM_VMSTCKRC(vmsr)->reg.efp = efp;
   SCM_VMSTCKRC(vmsr)->reg.partial = partial;
-  SCM_VMSTCKRC(vmsr)->reg.pcf = pcf;
+  SCM_VMSTCKRC(vmsr)->reg.ucf = ucf;
 }
 
 void
@@ -330,11 +330,11 @@ scm_vmsr_clear(ScmObj vmsr)
   SCM_VMSTCKRC(vmsr)->reg.cfp = NULL;
   SCM_VMSTCKRC(vmsr)->reg.efp = NULL;
   SCM_VMSTCKRC(vmsr)->reg.partial = 0;
-  SCM_VMSTCKRC(vmsr)->reg.pcf = false;
+  SCM_VMSTCKRC(vmsr)->reg.ucf = false;
 }
 
 void
-scm_vmsr_relink(ScmObj vmsr, ScmObj next, ScmCntFrame *cfp, bool pcf)
+scm_vmsr_relink(ScmObj vmsr, ScmObj next, ScmCntFrame *cfp, bool ucf)
 {
   scm_assert_obj_type(vmsr, &SCM_VMSTCKRC_TYPE_INFO);
   scm_assert_obj_type_accept_null(next, &SCM_VMSTCKRC_TYPE_INFO);
@@ -345,11 +345,11 @@ scm_vmsr_relink(ScmObj vmsr, ScmObj next, ScmCntFrame *cfp, bool pcf)
 
   SCM_SLOT_SETQ(ScmVMStckRc, vmsr, next, next);
   SCM_VMSTCKRC(vmsr)->next_cf = cfp;
-  SCM_VMSTCKRC(vmsr)->next_cf_pcf = pcf;
+  SCM_VMSTCKRC(vmsr)->next_cf_ucf = ucf;
 }
 
 void
-scm_vmsr_relink_cf(ScmObj vmsr, ScmCntFrame *cfp, bool pcf)
+scm_vmsr_relink_cf(ScmObj vmsr, ScmCntFrame *cfp, bool ucf)
 {
   scm_assert_obj_type(vmsr, &SCM_VMSTCKRC_TYPE_INFO);
   scm_assert((scm_obj_null_p(SCM_VMSTCKRC(vmsr)->next) && cfp == NULL)
@@ -358,7 +358,7 @@ scm_vmsr_relink_cf(ScmObj vmsr, ScmCntFrame *cfp, bool pcf)
                      || scm_vmsr_include_p(SCM_VMSTCKRC(vmsr)->next, (scm_byte_t *)cfp))));
 
   SCM_VMSTCKRC(vmsr)->next_cf = cfp;
-  SCM_VMSTCKRC(vmsr)->next_cf_pcf = pcf;
+  SCM_VMSTCKRC(vmsr)->next_cf_ucf = ucf;
 }
 
 void

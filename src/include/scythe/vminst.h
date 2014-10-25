@@ -56,35 +56,34 @@ enum {
   SCM_OPCODE_UNINIT,              /*  3: update val register to uninitialized */
                                   /*     value */
   SCM_OPCODE_CFRAME,              /*  4; create a continuation frame */
-  SCM_OPCODE_CCOMMIT,             /*  5; commit a continuation frame */
-  SCM_OPCODE_EFRAME,              /*  6; create a environment frame */
-  SCM_OPCODE_EPOP,                /*  7; pop a environment frame */
-  SCM_OPCODE_ESHIFT,              /*  8; shift environment frames */
-  SCM_OPCODE_IMMVAL,              /*  9: copy immediate value to val register */
-  SCM_OPCODE_PUSH,                /* 10: push value of val register */
-  SCM_OPCODE_MVPUSH,              /* 11: push value of val register */
-  SCM_OPCODE_RETURN,              /* 12: return from function */
-  SCM_OPCODE_PCALL,               /* 13: primitive function call */
-  SCM_OPCODE_CALL,                /* 14: function call */
-  SCM_OPCODE_TAIL_CALL,           /* 15: function tail call */
-  SCM_OPCODE_GREF,                /* 16: refere global variable */
-  SCM_OPCODE_GDEF,                /* 17: define global variable */
-  SCM_OPCODE_GSET,                /* 18: update global variable */
-  SCM_OPCODE_SREF,                /* 19: refere value in stack */
-  SCM_OPCODE_SSET,                /* 20: update value in stack */
-  SCM_OPCODE_JMP,                 /* 21: jump */
-  SCM_OPCODE_JMPT,                /* 22: jump if true */
-  SCM_OPCODE_JMPF,                /* 23: jump if false */
-  SCM_OPCODE_BOX,                 /* 24: boxing */
-  SCM_OPCODE_CLOSE,               /* 25: make closure */
-  SCM_OPCODE_DEMINE,              /* 26: demine variable */
-  SCM_OPCODE_EMINE,               /* 27: make enviroment frame */
+  SCM_OPCODE_EFRAME,              /*  5; create a environment frame */
+  SCM_OPCODE_EPOP,                /*  6; pop a environment frame */
+  SCM_OPCODE_ESHIFT,              /*  7; shift environment frames */
+  SCM_OPCODE_IMMVAL,              /*  8: copy immediate value to val register */
+  SCM_OPCODE_PUSH,                /*  9: push value of val register */
+  SCM_OPCODE_MVPUSH,              /* 10: push value of val register */
+  SCM_OPCODE_RETURN,              /* 11: return from function */
+  SCM_OPCODE_PCALL,               /* 12: primitive function call */
+  SCM_OPCODE_CALL,                /* 13: function call */
+  SCM_OPCODE_TAIL_CALL,           /* 14: function tail call */
+  SCM_OPCODE_GREF,                /* 15: refere global variable */
+  SCM_OPCODE_GDEF,                /* 16: define global variable */
+  SCM_OPCODE_GSET,                /* 17: update global variable */
+  SCM_OPCODE_SREF,                /* 18: refere value in stack */
+  SCM_OPCODE_SSET,                /* 19: update value in stack */
+  SCM_OPCODE_JMP,                 /* 20: jump */
+  SCM_OPCODE_JMPT,                /* 21: jump if true */
+  SCM_OPCODE_JMPF,                /* 22: jump if false */
+  SCM_OPCODE_BOX,                 /* 23: boxing */
+  SCM_OPCODE_CLOSE,               /* 24: make closure */
+  SCM_OPCODE_DEMINE,              /* 25: demine variable */
+  SCM_OPCODE_EMINE,               /* 26: make enviroment frame */
                                   /*     and make it mine field */
-  SCM_OPCODE_EDEMINE,             /* 28: demine enviromnet frame with */
+  SCM_OPCODE_EDEMINE,             /* 27: demine enviromnet frame with */
                                   /*     incomplete enviromnet frame as */
                                   /*     initial value */
-  SCM_OPCODE_MRVC,                /* 29: Multiple-Return-Value Check */
-  SCM_OPCODE_MRVE,                /* 30: Multiple-Return-Value Error */
+  SCM_OPCODE_MRVC,                /* 28: Multiple-Return-Value Check */
+  SCM_OPCODE_MRVE,                /* 29: Multiple-Return-Value Error */
 
   SCM_VMINST_NR_OP,
 };
@@ -113,8 +112,7 @@ enum {
 #define SCM_INST_SZ_HALT        SCM_OPFMT_INST_SZ_NOOPD
 #define SCM_INST_SZ_UNDEF       SCM_OPFMT_INST_SZ_NOOPD
 #define SCM_INST_SZ_UNINIT      SCM_OPFMT_INST_SZ_NOOPD
-#define SCM_INST_SZ_CFRAME      SCM_OPFMT_INST_SZ_NOOPD
-#define SCM_INST_SZ_COMMIT      SCM_OPFMT_INST_SZ_SI
+#define SCM_INST_SZ_CFRAME      SCM_OPFMT_INST_SZ_IOF
 #define SCM_INST_SZ_EFRAME      SCM_OPFMT_INST_SZ_SI
 #define SCM_INST_SZ_EPOP        SCM_OPFMT_INST_SZ_NOOPD
 #define SCM_INST_SZ_ESHIFT      SCM_OPFMT_INST_SZ_SI

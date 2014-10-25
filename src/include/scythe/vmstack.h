@@ -40,7 +40,7 @@ typedef struct ScmVMStckRcRec ScmVMStckRc;
 #define SCM_VM_FRAME_MIN_ALIGN_SIZE 4
 #define SCM_VM_FRAME_FLG_MASK 0x03u
 #define SCM_VM_FRAME_ENV_FLG_BOXED 0x02u
-#define SCM_VM_FRAME_CNT_FLG_PCF 0x02u
+#define SCM_VM_FRAME_CNT_FLG_UCF 0x02u
 
 #if SCM_VM_FRAME_MIN_ALIGN_SIZE > SIZEOF_SCM_WORD_T
 
@@ -117,10 +117,10 @@ scm_vm_ef_partial_base(ScmEnvFrame *efp)
 }
 
 inline bool
-scm_vm_cf_maked_on_pcf_p(ScmCntFrame *cfp)
+scm_vm_cf_maked_on_ucf_p(ScmCntFrame *cfp)
 {
   scm_assert(cfp != NULL);
-  return ((cfp->offset & SCM_VM_FRAME_CNT_FLG_PCF) == 0) ? false : true;
+  return ((cfp->offset & SCM_VM_FRAME_CNT_FLG_UCF) == 0) ? false : true;
 }
 
 inline ScmObj *
@@ -193,7 +193,7 @@ scm_vm_ef_in_stack_p(ScmEnvFrame *efp)
 inline void
 scm_vm_cf_init(ScmCntFrame *cfp,
                ScmCntFrame *cur_cfp, ScmEnvFrame *efp, int partial, ScmObj cp,
-               scm_byte_t *ip, bool pcf)
+               scm_byte_t *ip, bool ucf)
 {
   scm_assert(SCM_ALIGNOF(ScmCntFrame) == SCM_ALIGNOF(ScmObj));
   scm_assert(SCM_ALIGNOF(ScmCntFrame) >= SCM_VM_FRAME_MIN_ALIGN_SIZE);
@@ -209,7 +209,7 @@ scm_vm_cf_init(ScmCntFrame *cfp,
   cfp->cp = cp;
   cfp->ip = ip;
 
-  if (pcf) cfp->offset |= SCM_VM_FRAME_CNT_FLG_PCF;
+  if (ucf) cfp->offset |= SCM_VM_FRAME_CNT_FLG_UCF;
 }
 
 inline void
@@ -338,11 +338,11 @@ struct ScmVMStckRcRec {
     ScmCntFrame *cfp;
     ScmEnvFrame *efp;
     int partial;
-    bool pcf;
+    bool ucf;
   } reg;
   ScmObj next;
   ScmCntFrame *next_cf;
-  bool next_cf_pcf;
+  bool next_cf_ucf;
 };
 
 int scm_vmss_initialize(ScmObj vmss, size_t size);
@@ -355,10 +355,10 @@ ScmObj scm_vmsr_new(SCM_MEM_TYPE_T mtype,
                     ScmObj segment, scm_byte_t *base, ScmObj next);
 void scm_vmsr_rec(ScmObj vmsr, scm_byte_t *ceil,
                   ScmCntFrame *cfp, ScmEnvFrame *efp,
-                  int partial, bool pcf);
+                  int partial, bool ucf);
 void scm_vmsr_clear(ScmObj vmsr);
-void scm_vmsr_relink(ScmObj vmsr, ScmObj next, ScmCntFrame *cfp, bool pcf);
-void scm_vmsr_relink_cf(ScmObj vmsr, ScmCntFrame *cfp, bool pcf);
+void scm_vmsr_relink(ScmObj vmsr, ScmObj next, ScmCntFrame *cfp, bool ucf);
+void scm_vmsr_relink_cf(ScmObj vmsr, ScmCntFrame *cfp, bool ucf);
 void scm_vmsr_gc_initialize(ScmObj obj, ScmObj mem);
 int scm_vmsr_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
 
@@ -463,19 +463,19 @@ scm_vmsr_next_cf(ScmObj vmsr)
 }
 
 inline bool
-scm_vmsr_pcf_p(ScmObj vmsr)
+scm_vmsr_ucf_p(ScmObj vmsr)
 {
   scm_assert_obj_type(vmsr, &SCM_VMSTCKRC_TYPE_INFO);
 
-  return SCM_VMSTCKRC(vmsr)->reg.pcf;
+  return SCM_VMSTCKRC(vmsr)->reg.ucf;
 }
 
 inline bool
-scm_vmsr_next_cf_pcf_p(ScmObj vmsr)
+scm_vmsr_next_cf_ucf_p(ScmObj vmsr)
 {
   scm_assert_obj_type(vmsr, &SCM_VMSTCKRC_TYPE_INFO);
 
-  return SCM_VMSTCKRC(vmsr)->next_cf_pcf;
+  return SCM_VMSTCKRC(vmsr)->next_cf_ucf;
 }
 
 inline bool

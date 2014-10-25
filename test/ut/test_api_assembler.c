@@ -200,12 +200,8 @@ TEST(api_assembler, uninit)
 
 TEST(api_assembler, cframe)
 {
-  test_assemble_noopd("((cframe)(nop))", SCM_OPCODE_CFRAME);
-}
-
-TEST(api_assembler, ccommit)
-{
-  test_assemble_si("((ccommit 10)(nop))", SCM_OPCODE_CCOMMIT, 10);
+  test_assemble_si("((cframe lbl)(nop)(label lbl))",
+                   SCM_OPCODE_CFRAME, SCM_INST_SZ_NOP);
 }
 
 TEST(api_assembler, eframe)

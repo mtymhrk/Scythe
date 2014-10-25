@@ -400,10 +400,10 @@ extern ScmTypeInfo SCM_VM_TYPE_INFO;
 typedef enum {
   SCM_VM_CTRL_FLG_HALT  = 0x00000001,
   SCM_VM_CTRL_FLG_RAISE = 0x00000002,
-  SCM_VM_CTRL_FLG_PCF   = 0x00000004, /* cfp レジスタが作りかけ(対応する call
-                                         命令を実行していない)フレームを指して
-                                         いる場合セットする */
-  SCM_VM_CTRL_FLG_CCF   = 0x00000010, /* cfp レジスタがキャプチャされたスタッ
+  SCM_VM_CTRL_FLG_UCF   = 0x00000004, /* cfp レジスタが、対応する call 令を実
+                                         行していないフレームを指している場合
+                                         セットする */
+  SCM_VM_CTRL_FLG_CCF   = 0x00000008, /* cfp レジスタがキャプチャされたスタッ
                                          クセグメント上のフレームを指している
                                          場合セットする */
 } SCM_VM_CTRL_FLG_T;

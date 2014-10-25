@@ -68,8 +68,8 @@
   (push-inst (cons-inst 'nop) cseq))
 (define (push-inst-undef cseq)
   (push-inst (cons-inst 'undef) cseq))
-(define (push-inst-cframe cseq)
-  (push-inst (cons-inst 'cframe) cseq))
+(define (push-inst-cframe lbl cseq)
+  (push-inst (cons-inst 'cframe lbl) cseq))
 (define (push-inst-eframe narg cseq)
   (push-inst (cons-inst 'eframe narg) cseq))
 (define (push-inst-epop cseq)
@@ -84,11 +84,12 @@
   (push-inst (cons-inst 'mvpush) cseq))
 (define (push-inst-return cseq)
   (push-inst (cons-inst 'return) cseq))
-(define (push-inst-call narg mrv cseq)
+(define (push-inst-call narg mrv lbl cseq)
   (push-inst (cons-inst 'call narg) cseq)
   (if (= mrv 1)
       (push-inst-mrve cseq)
-      (push-inst-nop cseq)))
+      (push-inst-nop cseq))
+  (push-inst-label lbl cseq))
 (define (push-inst-tcall narg cseq)
   (push-inst (cons-inst 'tcall narg) cseq))
 (define (push-inst-gref sym mod cseq)
@@ -272,9 +273,11 @@
 ;;;    <procedure> : <expr>
 ;;;    <arg>       : <expr>
 (define (p2-syntax-handler-call cmpl exp arity tail-p cseq)
-  (let ((len (vector-length exp)))
+  (let ((len (vector-length exp))
+        (lbl #f))
     (unless tail-p
-      (push-inst-cframe cseq))
+      (set! lbl (generate-label cmpl "call-cont"))
+      (push-inst-cframe lbl cseq))
     (let loop ((idx 2))
       (when (< idx len)
         (p2-compile-exp cmpl (vector-ref exp idx) 1 #f cseq)
@@ -283,7 +286,7 @@
     (p2-compile-exp cmpl (vector-ref exp 1) 1 #f cseq)
     (if tail-p
         (push-inst-tcall (- len 2) cseq)
-        (push-inst-call (- len 2) arity cseq))))
+        (push-inst-call (- len 2) arity lbl cseq))))
 
 ;;; #(gdef <symbol> <module> <expr>)
 ;;;    <module> : <list of symbols>
@@ -411,19 +414,21 @@
                  (loop (- idx 1) lbl-j))
 
                 ((eq? typ '=>)
-                 (when lbl (push-inst-jmp lbl cseq))
-                 (push-inst-label (vector-ref lbl-c idx) cseq)
-                 (unless tail-p
-                   (push-inst-cframe cseq))
-                 (push-inst-push cseq)
-                 (p2-compile-exp cmpl (vector-ref cls 2) 1 #f cseq)
-                 (if tail-p
-                     (begin
-                       (push-inst-tcall 1 cseq)
-                       (loop (- idx 1) #f))
-                     (begin
-                       (push-inst-call 1 arity cseq)
-                       (loop (- idx 1) lbl-j))))
+                 (let ((lbl-call #f))
+                   (when lbl (push-inst-jmp lbl cseq))
+                   (push-inst-label (vector-ref lbl-c idx) cseq)
+                   (unless tail-p
+                     (set! lbl-call (generate-label cmpl "call-cont"))
+                     (push-inst-cframe lbl-call cseq))
+                   (push-inst-push cseq)
+                   (p2-compile-exp cmpl (vector-ref cls 2) 1 #f cseq)
+                   (if tail-p
+                       (begin
+                         (push-inst-tcall 1 cseq)
+                         (loop (- idx 1) #f))
+                       (begin
+                         (push-inst-call 1 arity lbl-call cseq)
+                         (loop (- idx 1) lbl-j)))))
 
                 ((eq? typ '<>)
                  (when tail-p

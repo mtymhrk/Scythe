@@ -707,10 +707,10 @@ scm_vm_capture_stack(ScmObj vm)
     if (SCM_VM(vm)->reg.cfp == NULL
         && !scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_CCF)) {
       SCM_VM(vm)->reg.cfp = scm_vmsr_next_cf(SCM_VM(vm)->stack);
-      if (scm_vmsr_next_cf_pcf_p(SCM_VM(vm)->stack))
-        scm_vm_ctrl_flg_set(vm, SCM_VM_CTRL_FLG_PCF);
+      if (scm_vmsr_next_cf_ucf_p(SCM_VM(vm)->stack))
+        scm_vm_ctrl_flg_set(vm, SCM_VM_CTRL_FLG_UCF);
       else
-        scm_vm_ctrl_flg_clr(vm, SCM_VM_CTRL_FLG_PCF);
+        scm_vm_ctrl_flg_clr(vm, SCM_VM_CTRL_FLG_UCF);
       scm_vm_ctrl_flg_set(vm, SCM_VM_CTRL_FLG_CCF);
     }
     return scm_vmsr_next(SCM_VM(vm)->stack);
@@ -719,16 +719,16 @@ scm_vm_capture_stack(ScmObj vm)
   if (scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_CCF)) {
     scm_vmsr_relink_cf(SCM_VM(vm)->stack,
                        SCM_VM(vm)->reg.cfp,
-                       scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_PCF));
+                       scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_UCF));
     SCM_VM(vm)->reg.cfp = NULL;
     scm_vm_ctrl_flg_clr(vm, SCM_VM_CTRL_FLG_CCF);
-    scm_vm_ctrl_flg_clr(vm, SCM_VM_CTRL_FLG_PCF);
+    scm_vm_ctrl_flg_clr(vm, SCM_VM_CTRL_FLG_UCF);
   }
 
   scm_vmsr_rec(SCM_VM(vm)->stack,
                SCM_VM(vm)->reg.sp, SCM_VM(vm)->reg.cfp, SCM_VM(vm)->reg.efp,
                SCM_VM(vm)->reg.partial,
-               scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_PCF));
+               scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_UCF));
   next = SCM_VM(vm)->stack;
 
   vmsr = scm_vmsr_new(SCM_MEM_HEAP,
@@ -759,15 +759,15 @@ scm_vm_restore_stack(ScmObj vm, ScmObj stack)
   scm_assert_obj_type(stack, &SCM_VMSTCKRC_TYPE_INFO);
 
   scm_vmsr_relink(SCM_VM(vm)->stack, stack,
-                  scm_vmsr_cfp(stack), scm_vmsr_pcf_p(stack));
+                  scm_vmsr_cfp(stack), scm_vmsr_ucf_p(stack));
 
   SCM_VM(vm)->reg.sp = scm_vmsr_base(SCM_VM(vm)->stack);
   SCM_VM(vm)->reg.cfp = scm_vmsr_cfp(stack);
   SCM_VM(vm)->reg.efp = scm_vmsr_efp(stack);
   SCM_VM(vm)->reg.partial = scm_vmsr_partial(stack);
 
-  if (scm_vmsr_pcf_p(stack))
-    scm_vm_ctrl_flg_set(vm, SCM_VM_CTRL_FLG_PCF);
+  if (scm_vmsr_ucf_p(stack))
+    scm_vm_ctrl_flg_set(vm, SCM_VM_CTRL_FLG_UCF);
 
   scm_vm_ctrl_flg_set(vm, SCM_VM_CTRL_FLG_CCF);
 
@@ -782,7 +782,7 @@ scm_vm_handle_stack_overflow(ScmObj vm)
 {
   ScmObj vmss = SCM_OBJ_INIT, vmsr = SCM_OBJ_INIT, next = SCM_OBJ_INIT;
   ScmCntFrame *next_cf;
-  bool next_cf_pcf;
+  bool next_cf_ucf;
   size_t size;
   int rslt;
 
@@ -794,25 +794,25 @@ scm_vm_handle_stack_overflow(ScmObj vm)
   if (scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_CCF)) {
     scm_vmsr_relink_cf(SCM_VM(vm)->stack,
                        SCM_VM(vm)->reg.cfp,
-                       scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_PCF));
+                       scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_UCF));
     SCM_VM(vm)->reg.cfp = NULL;
     scm_vm_ctrl_flg_clr(vm, SCM_VM_CTRL_FLG_CCF);
-    scm_vm_ctrl_flg_clr(vm, SCM_VM_CTRL_FLG_PCF);
+    scm_vm_ctrl_flg_clr(vm, SCM_VM_CTRL_FLG_UCF);
   }
 
   if (SCM_VM(vm)->reg.sp != scm_vmsr_base(SCM_VM(vm)->stack)) {
     scm_vmsr_rec(SCM_VM(vm)->stack,
                  SCM_VM(vm)->reg.sp, SCM_VM(vm)->reg.cfp, SCM_VM(vm)->reg.efp,
                  SCM_VM(vm)->reg.partial,
-                 scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_PCF));
+                 scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_UCF));
     next = SCM_VM(vm)->stack;
     next_cf = SCM_VM(vm)->reg.cfp;
-    next_cf_pcf = scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_PCF);
+    next_cf_ucf = scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_UCF);
   }
   else {
     next = scm_vmsr_next(SCM_VM(vm)->stack);
     next_cf = scm_vmsr_next_cf(SCM_VM(vm)->stack);
-    next_cf_pcf = scm_vmsr_next_cf_pcf_p(SCM_VM(vm)->stack);
+    next_cf_ucf = scm_vmsr_next_cf_ucf_p(SCM_VM(vm)->stack);
   }
 
   /* partial environment frame のコピーでスタックオーバーフローが繰り返し発
@@ -841,10 +841,10 @@ scm_vm_handle_stack_overflow(ScmObj vm)
 
   scm_vm_ctrl_flg_set(vm, SCM_VM_CTRL_FLG_CCF);
 
-  if (next_cf_pcf)
-    scm_vm_ctrl_flg_set(vm, SCM_VM_CTRL_FLG_PCF);
+  if (next_cf_ucf)
+    scm_vm_ctrl_flg_set(vm, SCM_VM_CTRL_FLG_UCF);
   else
-    scm_vm_ctrl_flg_clr(vm, SCM_VM_CTRL_FLG_PCF);
+    scm_vm_ctrl_flg_clr(vm, SCM_VM_CTRL_FLG_UCF);
 
   rslt = scm_vm_copy_pef_to_top_of_stack_if_needed(vm, NULL, NULL, next);
   if (rslt < 0) return -1;
@@ -857,7 +857,7 @@ scm_vm_handle_stack_underflow(ScmObj vm)
 {
   ScmObj next = SCM_OBJ_INIT;
   ScmCntFrame *next_cf;
-  bool next_cf_pcf;
+  bool next_cf_ucf;
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
@@ -868,7 +868,7 @@ scm_vm_handle_stack_underflow(ScmObj vm)
     return 0;
 
   next_cf = SCM_VM(vm)->reg.cfp;
-  next_cf_pcf = scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_PCF);
+  next_cf_ucf = scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_UCF);
 
   if (scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_CCF))
     next = scm_vmsr_next(SCM_VM(vm)->stack);
@@ -877,7 +877,7 @@ scm_vm_handle_stack_underflow(ScmObj vm)
 
   while (next_cf == NULL) {
     next_cf = scm_vmsr_next_cf(next);
-    next_cf_pcf = scm_vmsr_next_cf_pcf_p(next);
+    next_cf_ucf = scm_vmsr_next_cf_ucf_p(next);
     next = scm_vmsr_next(next);
     if (scm_obj_null_p(next)) {
       scm_capi_error("stack underflow has occurred", 0);
@@ -885,7 +885,7 @@ scm_vm_handle_stack_underflow(ScmObj vm)
     }
   }
 
-  scm_vmsr_relink(SCM_VM(vm)->stack, next, next_cf, next_cf_pcf);
+  scm_vmsr_relink(SCM_VM(vm)->stack, next, next_cf, next_cf_ucf);
 
   /* XXX: pop_cframe で underflow を検出した場合、この地点以降、efp レジス
    *      タが、どこからも参照されていないスタックセグメント上のフレームを
@@ -896,10 +896,10 @@ scm_vm_handle_stack_underflow(ScmObj vm)
 
   SCM_VM(vm)->reg.cfp = next_cf;
   scm_vm_ctrl_flg_set(vm, SCM_VM_CTRL_FLG_CCF);
-  if (next_cf_pcf)
-    scm_vm_ctrl_flg_set(vm, SCM_VM_CTRL_FLG_PCF);
+  if (next_cf_ucf)
+    scm_vm_ctrl_flg_set(vm, SCM_VM_CTRL_FLG_UCF);
   else
-    scm_vm_ctrl_flg_clr(vm, SCM_VM_CTRL_FLG_PCF);
+    scm_vm_ctrl_flg_clr(vm, SCM_VM_CTRL_FLG_UCF);
 
   return 0;
 }
@@ -931,7 +931,7 @@ scm_vm_stack_push(ScmObj vm, ScmObj val)
 }
 
 static int
-scm_vm_make_cframe(ScmObj vm, ScmEnvFrame *efp, ScmObj cp)
+scm_vm_make_cframe(ScmObj vm, ScmEnvFrame *efp, ScmObj cp, scm_byte_t *ip)
 {
   ScmCntFrame *cfp;
   scm_byte_t *next_sp;
@@ -952,16 +952,13 @@ scm_vm_make_cframe(ScmObj vm, ScmEnvFrame *efp, ScmObj cp)
   if (scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_CCF)) {
     scm_vmsr_relink_cf(SCM_VM(vm)->stack,
                        SCM_VM(vm)->reg.cfp,
-                       scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_PCF));
+                       scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_UCF));
     SCM_VM(vm)->reg.cfp = NULL;
     scm_vm_ctrl_flg_clr(vm, SCM_VM_CTRL_FLG_CCF);
-    scm_vm_ctrl_flg_clr(vm, SCM_VM_CTRL_FLG_PCF);
+    scm_vm_ctrl_flg_clr(vm, SCM_VM_CTRL_FLG_UCF);
   }
 
   cfp = (ScmCntFrame *)SCM_VM(vm)->reg.sp;
-
-  /* instraction pointer は FRAME インストラクション段階ではダミー */
-  /* 値(NULL)をプッシュする。本当の値は CALL 時に設定する */
 
   SCM_WB_EXP(vm,
              scm_vm_cf_init(cfp,
@@ -969,32 +966,15 @@ scm_vm_make_cframe(ScmObj vm, ScmEnvFrame *efp, ScmObj cp)
                             efp,
                             SCM_VM(vm)->reg.partial,
                             cp,
-                            NULL,
-                            scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_PCF)));
+                            ip,
+                            scm_vm_ctrl_flg_set_p(vm, SCM_VM_CTRL_FLG_UCF)));
 
   SCM_VM(vm)->reg.partial = 0;
   SCM_VM(vm)->reg.cfp = cfp;
   SCM_VM(vm)->reg.sp = next_sp;
 
-  scm_vm_ctrl_flg_set(vm, SCM_VM_CTRL_FLG_PCF);
+  scm_vm_ctrl_flg_set(vm, SCM_VM_CTRL_FLG_UCF);
   scm_vm_ctrl_flg_clr(vm, SCM_VM_CTRL_FLG_CCF);
-
-  return 0;
-}
-
-static int
-scm_vm_commit_cframe(ScmObj vm, scm_byte_t *ip)
-{
-  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-
-  if (SCM_VM(vm)->reg.cfp == NULL) {
-    int rslt = scm_vm_handle_stack_underflow(vm);
-    if (rslt < 0) return -1;
-  }
-
-  SCM_VM(vm)->reg.cfp->ip = ip;
-
-  scm_vm_ctrl_flg_clr(vm, SCM_VM_CTRL_FLG_PCF);
 
   return 0;
 }
@@ -1027,8 +1007,8 @@ scm_vm_pop_cframe(ScmObj vm)
   else
     SCM_VM(vm)->reg.sp = scm_vm_cf_bottom(cfp);
 
-  if (scm_vm_cf_maked_on_pcf_p(cfp))
-    scm_vm_ctrl_flg_set(vm, SCM_VM_CTRL_FLG_PCF);
+  if (scm_vm_cf_maked_on_ucf_p(cfp))
+    scm_vm_ctrl_flg_set(vm, SCM_VM_CTRL_FLG_UCF);
 
   rslt = scm_vm_copy_pef_to_top_of_stack_if_needed(vm, cfp, NULL, SCM_OBJ_NULL);
   if (rslt < 0) return -1;
@@ -1325,7 +1305,7 @@ static int
 scm_vm_make_proc_call_code(ScmObj iseq, ScmObj proc, ScmObj args, bool tail)
 {
   ScmObj cur = SCM_OBJ_INIT, arg = SCM_OBJ_INIT;
-  ssize_t r, len;
+  ssize_t r, len, cframe, after;
   int i, rslt, arity, nr_decons;
   bool unwished;
 
@@ -1360,9 +1340,14 @@ scm_vm_make_proc_call_code(ScmObj iseq, ScmObj proc, ScmObj args, bool tail)
     nr_decons = unwished ? (int)len : -arity - 1;
   }
 
+  cframe = after = 0;
+
   if (!tail) {
-    r = scm_capi_iseq_push_inst(iseq, SCM_OPCODE_CFRAME);
-    if (r < 0) return SCM_OBJ_NULL;
+    cframe = scm_capi_iseq_length(iseq);
+    if (cframe < 0) return SCM_OBJ_NULL;
+
+    after = scm_capi_iseq_push_inst(iseq, SCM_OPCODE_CFRAME, 0);
+    if (after < 0) return SCM_OBJ_NULL;
   }
 
   if (nr_decons > 0 || arity < 0) {
@@ -1407,6 +1392,10 @@ scm_vm_make_proc_call_code(ScmObj iseq, ScmObj proc, ScmObj args, bool tail)
 
     r = scm_capi_iseq_push_inst(iseq, SCM_OPCODE_NOP);
     if (r < 0) return -1;
+
+    rslt = scm_capi_iseq_update_oprand_iof(iseq,
+                                           (size_t)cframe, (int)(r - after));
+    if (rslt < 0) return -1;
   }
 
   return 0;
@@ -1442,8 +1431,8 @@ scm_vm_make_trampolining_code(ScmObj vm, ScmObj proc,
                               bool tail)
 {
   ScmObj iseq = SCM_OBJ_INIT, apply = SCM_OBJ_INIT;
-  ssize_t rslt;
-  int apply_argc;
+  ssize_t rslt, cframe, after;
+  int apply_argc, r;
 
   SCM_REFSTK_INIT_REG(&vm, &proc, &args, &postproc, &handover,
                       &iseq, &apply);
@@ -1461,6 +1450,7 @@ scm_vm_make_trampolining_code(ScmObj vm, ScmObj proc,
    */
 
   apply_argc = 2;
+  cframe = after = 0;
 
   iseq = scm_api_make_iseq();
   if (scm_obj_null_p(iseq)) return SCM_OBJ_NULL;
@@ -1470,8 +1460,11 @@ scm_vm_make_trampolining_code(ScmObj vm, ScmObj proc,
 
   if (!scm_obj_null_p(postproc)) {
     if (!tail) {
-      rslt = scm_capi_iseq_push_inst(iseq, SCM_OPCODE_CFRAME);
-      if (rslt < 0) return SCM_OBJ_NULL;
+      cframe = scm_capi_iseq_length(iseq);
+      if (cframe < 0) return SCM_OBJ_NULL;
+
+      after = scm_capi_iseq_push_inst(iseq, SCM_OPCODE_CFRAME);
+      if (after < 0) return SCM_OBJ_NULL;
     }
 
     rslt = scm_capi_iseq_push_inst(iseq, SCM_OPCODE_IMMVAL, postproc);
@@ -1518,6 +1511,10 @@ scm_vm_make_trampolining_code(ScmObj vm, ScmObj proc,
 
       rslt = scm_capi_iseq_push_inst(iseq, SCM_OPCODE_NOP);
       if (rslt < 0) return SCM_OBJ_NULL;
+
+      r = scm_capi_iseq_update_oprand_iof(iseq,
+                                          (size_t)cframe, (int)(rslt - after));
+      if (r < 0) return SCM_OBJ_NULL;
 
       rslt = scm_capi_iseq_push_inst(iseq, SCM_OPCODE_HALT);
       if (rslt < 0) return SCM_OBJ_NULL;
@@ -1724,19 +1721,6 @@ scm_vm_do_op_uninit(ScmObj vm, scm_opcode_t op)
 }
 
 static int
-scm_vm_do_op_ccommit(ScmObj vm, scm_opcode_t op, int offset)
-{
-  int rslt;
-
-  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-
-  rslt = scm_vm_commit_cframe(vm, SCM_VM(vm)->reg.ip + offset);
-  if (rslt < 0) return -1;
-
-  return 0;
-}
-
-static int
 scm_vm_do_op_eframe(ScmObj vm, scm_opcode_t op, int argc)
 {
   int rslt;
@@ -1849,8 +1833,8 @@ scm_vm_do_op_return(ScmObj vm, scm_opcode_t op)
   rslt = scm_vm_pop_cframe(vm);
   if (rslt < 0) return -1;
 
-  if (SCM_VM(vm)->reg.vc == 1)
-    SCM_VM(vm)->reg.ip += SCM_INST_SZ_NOP;
+  if (SCM_VM(vm)->reg.vc != 1)
+    SCM_VM(vm)->reg.ip -= SCM_INST_SZ_NOP;
 
   return 0;
 }
@@ -1872,6 +1856,8 @@ scm_vm_do_op_pcall(ScmObj vm, scm_opcode_t op, int argc)
     scm_capi_error("inapplicable object", 1, SCM_VM(vm)->reg.val[0]);
     return -1;
   }
+
+  scm_vm_ctrl_flg_clr(vm, SCM_VM_CTRL_FLG_UCF);
 
   nr_bind = scm_vm_adjust_arg_to_arity(vm, argc, SCM_VM(vm)->reg.val[0], &argc);
   if (nr_bind < 0) return -1;
@@ -2063,32 +2049,16 @@ scm_vm_op_uninit(ScmObj vm, scm_opcode_t op)
 static int
 scm_vm_op_cframe(ScmObj vm, scm_opcode_t op)
 {
-  int rslt;
+  int rslt, dst;
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
-  SCM_VMINST_FETCH_OPD_NOOPD(SCM_VM(vm)->reg.ip);
+  SCM_VMINST_FETCH_OPD_IOF(SCM_VM(vm)->reg.ip, dst);
 
   rslt = scm_vm_make_cframe(vm,
                             SCM_VM(vm)->reg.efp,
-                            SCM_VM(vm)->reg.cp);
-  if (rslt < 0) return -1;
-
-  return 0;
-}
-
-static int
-scm_vm_op_ccommit(ScmObj vm, scm_opcode_t op)
-{
-  int off, rslt;
-
-  SCM_REFSTK_INIT_REG(&vm);
-
-  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-
-  SCM_VMINST_FETCH_OPD_SI(SCM_VM(vm)->reg.ip, off);
-
-  rslt = scm_vm_do_op_ccommit(vm, op, off);
+                            SCM_VM(vm)->reg.cp,
+                            SCM_VM(vm)->reg.ip + dst);
   if (rslt < 0) return -1;
 
   return 0;
@@ -2214,9 +2184,6 @@ scm_vm_op_call(ScmObj vm, scm_opcode_t op)
     rslt = scm_vm_do_op_eframe(vm, op, abs(argc));
     if (rslt < 0) return -1;
   }
-
-  rslt = scm_vm_do_op_ccommit(vm, op, 0);
-  if (rslt < 0) return -1;
 
   rslt = scm_vm_do_op_pcall(vm, op, argc);
   if (rslt < 0) return -1;
@@ -2899,9 +2866,6 @@ scm_vm_run(ScmObj vm, ScmObj iseq)
     case SCM_OPCODE_CFRAME:
       r = scm_vm_op_cframe(vm, op);
       break;
-    case SCM_OPCODE_CCOMMIT:
-      r = scm_vm_op_ccommit(vm, op);
-      break;
     case SCM_OPCODE_EFRAME:
       r = scm_vm_op_eframe(vm, op);
       break;
@@ -3277,10 +3241,8 @@ scm_vm_setup_stat_trmp(ScmObj vm, ScmObj proc, ScmObj args,
 
   rslt = scm_vm_make_cframe(vm,
                             SCM_VM(vm)->reg.efp,
-                            trmp_clsr);
-  if (rslt < 0) return -1;
-
-  rslt = scm_vm_commit_cframe(vm, ip);
+                            trmp_clsr,
+                            ip);
   if (rslt < 0) return -1;
 
   SCM_SLOT_SETQ(ScmVM, vm, reg.val[0], SCM_NIL_OBJ);

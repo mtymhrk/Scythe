@@ -14,7 +14,6 @@ static struct {
   { SCM_OPCODE_UNDEF,       "undef" },
   { SCM_OPCODE_UNINIT,      "uninit" },
   { SCM_OPCODE_CFRAME,      "cframe" },
-  { SCM_OPCODE_CCOMMIT,     "ccommit" },
   { SCM_OPCODE_EFRAME,      "eframe" },
   { SCM_OPCODE_EPOP,        "epop" },
   { SCM_OPCODE_ESHIFT,      "eshift" },
