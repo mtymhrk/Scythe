@@ -617,7 +617,7 @@ ScmTypeInfo SCM_VM_TYPE_INFO = {
 };
 
 
-inline void
+static inline void
 scm_vm_ctrl_flg_set(ScmObj vm, SCM_VM_CTRL_FLG_T flg)
 {
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
@@ -625,7 +625,7 @@ scm_vm_ctrl_flg_set(ScmObj vm, SCM_VM_CTRL_FLG_T flg)
   SCM_VM(vm)->reg.flags |= flg;
 }
 
-inline void
+static inline void
 scm_vm_ctrl_flg_clr(ScmObj vm, SCM_VM_CTRL_FLG_T flg)
 {
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
@@ -633,7 +633,7 @@ scm_vm_ctrl_flg_clr(ScmObj vm, SCM_VM_CTRL_FLG_T flg)
   SCM_VM(vm)->reg.flags &= ~flg;
 }
 
-inline bool
+static inline bool
 scm_vm_ctrl_flg_set_p(ScmObj vm, SCM_VM_CTRL_FLG_T flg)
 {
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);

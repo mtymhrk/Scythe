@@ -194,20 +194,20 @@ extern const int scm_opfmt_table[SCM_VMINST_NR_OP];
 
 
 
-inline void
+static inline void
 scm_vminst_set_inst_noopd(scm_byte_t *ip, scm_opcode_t op)
 {
   ((struct scm_vm_inst_obj *)ip)->op = op;
 }
 
-inline void
+static inline void
 scm_vminst_set_inst_obj(scm_byte_t *ip, scm_opcode_t op, ScmObj obj)
 {
   ((struct scm_vm_inst_obj *)ip)->op = op;
   ((struct scm_vm_inst_obj *)ip)->opd1 = obj;
 }
 
-inline void
+static inline void
 scm_vminst_set_inst_obj_obj(scm_byte_t *ip,
                             scm_opcode_t op, ScmObj obj1, ScmObj obj2)
 {
@@ -216,14 +216,14 @@ scm_vminst_set_inst_obj_obj(scm_byte_t *ip,
   ((struct scm_vm_inst_obj_obj *)ip)->opd2 = obj2;
 }
 
-inline void
+static inline void
 scm_vminst_set_inst_si(scm_byte_t *ip, scm_opcode_t op, int si)
 {
   ((struct scm_vm_inst_si *)ip)->op = op;
   ((struct scm_vm_inst_si *)ip)->opd1 = si;
 }
 
-inline void
+static inline void
 scm_vminst_set_inst_si_si(scm_byte_t *ip, scm_opcode_t op, int si1, int si2)
 {
   ((struct scm_vm_inst_si_si *)ip)->op = op;
@@ -231,7 +231,7 @@ scm_vminst_set_inst_si_si(scm_byte_t *ip, scm_opcode_t op, int si1, int si2)
   ((struct scm_vm_inst_si_si *)ip)->opd2 = si2;
 }
 
-inline void
+static inline void
 scm_vminst_set_inst_si_si_obj(scm_byte_t *ip,
                               scm_opcode_t op, int si1, int si2, ScmObj obj)
 {
@@ -241,7 +241,7 @@ scm_vminst_set_inst_si_si_obj(scm_byte_t *ip,
   ((struct scm_vm_inst_si_si_obj *)ip)->opd3 = obj;
 }
 
-inline void
+static inline void
 scm_vminst_set_inst_iof(scm_byte_t *ip, scm_opcode_t op, int iof)
 {
   ((struct scm_vm_inst_iof *)ip)->op = op;
@@ -253,7 +253,7 @@ scm_vminst_set_inst_iof(scm_byte_t *ip, scm_opcode_t op, int iof)
 #define SCM_VMINST_UPD_FLG_OPD2 0x02u
 #define SCM_VMINST_UPD_FLG_OPD3 0x04u
 
-inline void
+static inline void
 scm_vminst_update_opd_obj(scm_byte_t *ip, ScmObj obj,
                           unsigned int flg)
 {
@@ -261,7 +261,7 @@ scm_vminst_update_opd_obj(scm_byte_t *ip, ScmObj obj,
     ((struct scm_vm_inst_obj *)ip)->opd1 = obj;
 }
 
-inline void
+static inline void
 scm_vminst_update_opd_obj_obj(scm_byte_t *ip, ScmObj obj1, ScmObj obj2,
                               unsigned int flg)
 {
@@ -272,14 +272,14 @@ scm_vminst_update_opd_obj_obj(scm_byte_t *ip, ScmObj obj1, ScmObj obj2,
     ((struct scm_vm_inst_obj_obj *)ip)->opd2 = obj2;
 }
 
-inline void
+static inline void
 scm_vminst_update_opd_si(scm_byte_t *ip, int si, unsigned int flg)
 {
   if (flg & SCM_VMINST_UPD_FLG_OPD1)
     ((struct scm_vm_inst_si *)ip)->opd1 = si;
 }
 
-inline void
+static inline void
 scm_vminst_update_opd_si_si(scm_byte_t *ip, int si1, int si2, unsigned int flg)
 {
   if (flg & SCM_VMINST_UPD_FLG_OPD1)
@@ -289,7 +289,7 @@ scm_vminst_update_opd_si_si(scm_byte_t *ip, int si1, int si2, unsigned int flg)
     ((struct scm_vm_inst_si_si *)ip)->opd2 = si2;
 }
 
-inline void
+static inline void
 scm_vminst_update_opd_si_si_obj(scm_byte_t *ip, int si1, int si2, ScmObj obj,
                                   unsigned int flg)
 {
@@ -303,7 +303,7 @@ scm_vminst_update_opd_si_si_obj(scm_byte_t *ip, int si1, int si2, ScmObj obj,
     ((struct scm_vm_inst_si_si_obj *)ip)->opd3 = obj;
 }
 
-inline void
+static inline void
 scm_vminst_update_opd_iof(scm_byte_t *ip, int iof, unsigned int flg)
 {
   if (flg & SCM_VMINST_UPD_FLG_OPD1)

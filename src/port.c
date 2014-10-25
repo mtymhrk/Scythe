@@ -1442,14 +1442,14 @@ scm_port_size_up_to_rearmost_lf(ScmObj port, const void *buf, size_t size)
   return found;
 }
 
-inline uint8_t *
+static inline uint8_t *
 scm_port_pushback_buff_head(ScmObj port)
 {
   return (SCM_PORT(port)->pushback
           + (SCM_PORT_PUSHBACK_BUFF_SIZE - SCM_PORT(port)->pb_used));
 }
 
-inline size_t
+static inline size_t
 scm_port_pushback_buff_unused(ScmObj port)
 {
   return SCM_PORT_PUSHBACK_BUFF_SIZE - SCM_PORT(port)->pb_used;

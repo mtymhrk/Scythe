@@ -125,7 +125,7 @@ struct ScmMemRec {
        (block) = (block)->next)
 
 
-inline void
+static inline void
 scm_mem_enable_gc(ScmMem *mem)
 {
   scm_assert(mem != NULL);
@@ -133,7 +133,7 @@ scm_mem_enable_gc(ScmMem *mem)
   mem->gc_enabled = true;
 }
 
-inline void
+static inline void
 scm_mem_disable_gc(ScmMem *mem)
 {
   scm_assert(mem != NULL);
@@ -141,7 +141,7 @@ scm_mem_disable_gc(ScmMem *mem)
   mem->gc_enabled = false;
 }
 
-inline bool
+static inline bool
 scm_mem_gc_enabled_p(ScmMem *mem)
 {
   scm_assert(mem != NULL);

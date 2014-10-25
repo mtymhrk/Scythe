@@ -26,7 +26,7 @@ void scm_ref_stack_gc_initialize(ScmObj obj, ScmObj mem);
 int scm_ref_stack_gc_accept(ScmObj obj,
                             ScmObj mem, ScmGCRefHandlerFunc handler);
 
-inline void
+static inline void
 scm_ref_stack_push(ScmObj stack, ScmRefStackBlock *block)
 {
   scm_assert_obj_type(stack, &SCM_REFSTACK_TYPE_INFO);
@@ -36,7 +36,7 @@ scm_ref_stack_push(ScmObj stack, ScmRefStackBlock *block)
   SCM_REFSTACK(stack)->stack = block;
 }
 
-inline void
+static inline void
 scm_ref_stack_save(ScmObj stack, ScmRefStackInfo *info)
 {
   scm_assert_obj_type(stack, &SCM_REFSTACK_TYPE_INFO);
@@ -45,7 +45,7 @@ scm_ref_stack_save(ScmObj stack, ScmRefStackInfo *info)
   info->stack = SCM_REFSTACK(stack)->stack;
 }
 
-inline void
+static inline void
 scm_ref_stack_restore(ScmObj stack, ScmRefStackInfo *info)
 {
   scm_assert_obj_type(stack, &SCM_REFSTACK_TYPE_INFO);

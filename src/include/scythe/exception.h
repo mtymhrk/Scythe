@@ -29,7 +29,7 @@ void scm_exception_gc_initialize(ScmObj obj, ScmObj mem);
 int scm_exception_gc_accept(ScmObj obj,
                             ScmObj mem, ScmGCRefHandlerFunc handler);
 
-inline ScmObj
+static inline ScmObj
 scm_exception_msg(ScmObj exc)
 {
   scm_assert(scm_obj_type_flag_set_p(exc, SCM_TYPE_FLG_EXC));
@@ -67,7 +67,7 @@ void scm_error_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_error_gc_fianlize(ScmObj obj);
 int scm_error_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
 
-inline ScmObj
+static inline ScmObj
 scm_error_type(ScmObj exc)
 {
   scm_assert_obj_type(exc, &SCM_ERROR_TYPE_INFO);
@@ -75,7 +75,7 @@ scm_error_type(ScmObj exc)
   return SCM_ERROR(exc)->type;
 }
 
-inline size_t
+static inline size_t
 scm_error_nr_irritants(ScmObj exc)
 {
   scm_assert_obj_type(exc, &SCM_ERROR_TYPE_INFO);
@@ -83,7 +83,7 @@ scm_error_nr_irritants(ScmObj exc)
   return SCM_ERROR(exc)->nr_irris;
 }
 
-inline ScmObj
+static inline ScmObj
 scm_error_irritant(ScmObj exc, size_t idx)
 {
   scm_assert_obj_type(exc, &SCM_ERROR_TYPE_INFO);

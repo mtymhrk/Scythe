@@ -28,7 +28,7 @@ struct ScmGLocRec {
   bool exported;
 };
 
-inline void
+static inline void
 scm_gloc_bind(ScmObj gloc, ScmObj val)
 {
   scm_assert_obj_type(gloc, &SCM_GLOC_TYPE_INFO);
@@ -37,7 +37,7 @@ scm_gloc_bind(ScmObj gloc, ScmObj val)
   SCM_SLOT_SETQ(ScmGLoc, gloc, val, val);
 }
 
-inline ScmObj
+static inline ScmObj
 scm_gloc_symbol(ScmObj gloc)
 {
   scm_assert_obj_type(gloc, &SCM_GLOC_TYPE_INFO);
@@ -45,7 +45,7 @@ scm_gloc_symbol(ScmObj gloc)
   return SCM_GLOC(gloc)->sym;
 }
 
-inline ScmObj
+static inline ScmObj
 scm_gloc_value(ScmObj gloc)
 {
   scm_assert_obj_type(gloc, &SCM_GLOC_TYPE_INFO);
@@ -53,7 +53,7 @@ scm_gloc_value(ScmObj gloc)
   return SCM_GLOC(gloc)->val;
 }
 
-inline bool
+static inline bool
 scm_gloc_exported_p(ScmObj gloc)
 {
   scm_assert_obj_type(gloc, &SCM_GLOC_TYPE_INFO);
@@ -61,7 +61,7 @@ scm_gloc_exported_p(ScmObj gloc)
   return SCM_GLOC(gloc)->exported;
 }
 
-inline void
+static inline void
 scm_gloc_export(ScmObj gloc)
 {
   scm_assert_obj_type(gloc, &SCM_GLOC_TYPE_INFO);
@@ -110,7 +110,7 @@ void scm_module_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_module_gc_finalize(ScmObj obj);
 int scm_module_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
 
-inline ScmObj
+static inline ScmObj
 scm_module_name(ScmObj mod)
 {
   scm_assert_obj_type(mod, &SCM_MODULE_TYPE_INFO);

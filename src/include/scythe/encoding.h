@@ -63,21 +63,21 @@ extern ScmEncoding * const SCM_ENC_SJIS;
 #define SCM_ENC_SRC SCM_ENC_UTF8   /* C source file encoding */
 #define SCM_ENC_NAME_SRC scm_enc_name(SCM_ENC_SRC)
 
-inline const char *
+static inline const char *
 scm_enc_name(ScmEncoding *enc)
 {
   assert(enc != NULL); assert(enc->names != NULL);
   return enc->names[0];
 }
 
-inline int
+static inline int
 scm_enc_char_width(ScmEncoding *enc, const void *p, size_t size)
 {
   assert(enc != NULL); assert(enc->func.char_width != NULL);
   return enc->func.char_width(p, size);
 }
 
-inline void
+static inline void
 scm_enc_index2itr(ScmEncoding *enc,
                   void *p, size_t size, size_t idx, ScmStrItr *iter)
 {
@@ -85,70 +85,70 @@ scm_enc_index2itr(ScmEncoding *enc,
   return enc->func.index2itr(p, size, idx, iter);
 }
 
-inline bool
+static inline bool
 scm_enc_valid_char_p(ScmEncoding *enc, const scm_char_t *c)
 {
   assert(enc != NULL); assert(enc->func.valid_char_p != NULL);
   return enc->func.valid_char_p(c);
 }
 
-inline int
+static inline int
 scm_enc_cnv_to_ascii(ScmEncoding *enc, const scm_char_t *c)
 {
   assert(enc != NULL); assert(enc->func.cnv_to_ascii != NULL);
   return enc->func.cnv_to_ascii(c);
 }
 
-inline ssize_t
+static inline ssize_t
 scm_enc_cnv_from_ascii(ScmEncoding *enc, char ascii, scm_char_t *c)
 {
   assert(enc != NULL); assert(enc->func.cnv_from_ascii != NULL);
   return enc->func.cnv_from_ascii(ascii, c);
 }
 
-inline long long
+static inline long long
 scm_enc_cnv_to_scalar(ScmEncoding *enc, const void *p, size_t size)
 {
   assert(enc != NULL); assert(enc->func.cnv_to_scalar != NULL);
   return enc->func.cnv_to_scalar(p, size);
 }
 
-inline ssize_t
+static inline ssize_t
 scm_enc_cnv_from_scalar(ScmEncoding *enc, long long scalar, scm_char_t *c)
 {
   assert(enc != NULL); assert(enc->func.cnv_from_scalar != NULL);
   return enc->func.cnv_from_scalar(scalar, c);
 }
 
-inline ssize_t
+static inline ssize_t
 scm_enc_downcase(ScmEncoding *enc, const void *p, size_t s, scm_char_t *c)
 {
   assert(enc != NULL); assert(enc->func.downcase != NULL);
   return enc->func.downcase(p, s, c);
 }
 
-inline ssize_t
+static inline ssize_t
 scm_enc_upcase(ScmEncoding *enc, const void *p, size_t s, scm_char_t *c)
 {
   assert(enc != NULL); assert(enc->func.upcase != NULL);
   return enc->func.upcase(p, s, c);
 }
 
-inline ssize_t
+static inline ssize_t
 scm_enc_same_char_p(ScmEncoding *enc, const void *p, size_t s, char c)
 {
   assert(enc != NULL); assert(enc->func.same_char_p != NULL);
   return enc->func.same_char_p(p, s, c);
 }
 
-inline bool
+static inline bool
 scm_enc_ascii_p(ScmEncoding *enc, const void *p, size_t size)
 {
   assert(enc != NULL); assert(enc->func.ascii_p != NULL);
   return enc->func.ascii_p(p, size);
 }
 
-inline bool
+static inline bool
 scm_enc_printable_p(ScmEncoding *enc, const void *p, size_t size)
 {
   assert(enc != NULL); assert(enc->func.printable_p != NULL);
@@ -264,56 +264,56 @@ struct ScmStrItrRec {
   ScmEncoding *enc;
 };
 
-inline bool
+static inline bool
 scm_str_itr_end_p(const ScmStrItr *iter)
 {
   assert(iter != NULL);
   return (iter->rest == 0) ? true : false;
 }
 
-inline bool
+static inline bool
 scm_str_itr_err_p(const ScmStrItr *iter)
 {
   assert(iter != NULL);
   return (iter->rest < 0) ? true : false;
 }
 
-inline void *
+static inline void *
 scm_str_itr_ptr(const ScmStrItr *iter)
 {
   assert(iter != NULL);
   return iter->p;
 }
 
-inline ssize_t
+static inline ssize_t
 scm_str_itr_rest(const ScmStrItr *iter)
 {
   assert(iter != NULL);
   return iter->rest;
 }
 
-inline ScmEncoding *
+static inline ScmEncoding *
 scm_str_itr_enc(const ScmStrItr *iter)
 {
   assert(iter != NULL);
   return iter->enc;
 }
 
-inline int
+static inline int
 scm_str_itr_width(const ScmStrItr *iter)
 {
   assert(iter != NULL); assert(!scm_str_itr_err_p(iter));
   return scm_enc_char_width(iter->enc, iter->p, (size_t)iter->rest);
 }
 
-inline void
+static inline void
 scm_str_itr_copy(const ScmStrItr *src, ScmStrItr *dst)
 {
   assert(src != NULL); assert(dst != NULL);
   *dst = *src;
 }
 
-inline size_t
+static inline size_t
 scm_str_itr_offset(const ScmStrItr *iter, const void *head)
 {
   return (size_t)((const uint8_t *)scm_str_itr_ptr(iter)

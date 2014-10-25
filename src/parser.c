@@ -40,7 +40,7 @@
 #define DELIMITER (WHITESPACE "()[]\";|")
 
 
-inline bool
+static inline bool
 chr_same_p(scm_char_t c1, char c2, bool c_sensitive, ScmEncoding *enc)
 {
   if (c_sensitive)
@@ -50,7 +50,7 @@ chr_same_p(scm_char_t c1, char c2, bool c_sensitive, ScmEncoding *enc)
             || scm_enc_same_char_p(enc, c1.bytes, sizeof(c1), tolower(c2)));
 }
 
-inline const char *
+static inline const char *
 chr_find(const char *str, scm_char_t c, ScmEncoding *enc)
 {
   for (const char *p = str; *p != '\0'; p++)
@@ -59,31 +59,31 @@ chr_find(const char *str, scm_char_t c, ScmEncoding *enc)
   return NULL;
 }
 
-inline bool
+static inline bool
 chr_whitespace_p(scm_char_t c, ScmEncoding *enc)
 {
   return (chr_find(WHITESPACE, c, enc) != NULL);
 }
 
-inline bool
+static inline bool
 chr_intraline_whitespace_p(scm_char_t c, ScmEncoding *enc)
 {
   return (chr_find(" \t", c, enc) != NULL);
 }
 
-inline bool
+static inline bool
 chr_delimiter_p(scm_char_t c, ScmEncoding *enc)
 {
   return (chr_find(DELIMITER, c, enc) != NULL);
 }
 
-inline bool
+static inline bool
 chr_sign_p(scm_char_t c, ScmEncoding *enc)
 {
   return (chr_find("-+", c, enc) != NULL);
 }
 
-inline bool
+static inline bool
 chr_dec_digit_p(scm_char_t c, ScmEncoding *enc)
 {
   return (chr_find("0123456789", c, enc) != NULL);

@@ -53,21 +53,21 @@ void scm_iseq_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_iseq_gc_finalize(ScmObj obj);
 int scm_iseq_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
 
-inline size_t
+static inline size_t
 scm_iseq_length(ScmObj iseq)
 {
   scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
   return (size_t)SCM_ISEQ_SEQ_LENGTH(iseq);
 }
 
-inline scm_byte_t *
+static inline scm_byte_t *
 scm_iseq_to_ip(ScmObj iseq)
 {
   scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
   return SCM_ISEQ_SEQ_VEC(iseq);
 }
 
-inline ssize_t
+static inline ssize_t
 scm_iseq_ip_to_idx(ScmObj iseq, scm_byte_t *ip)
 {
   ptrdiff_t idx;

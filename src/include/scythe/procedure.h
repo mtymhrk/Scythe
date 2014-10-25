@@ -34,19 +34,19 @@ int scm_proc_initialize(ScmObj proc,
 void scm_proc_gc_initialize(ScmObj obj, ScmObj mem);
 int scm_proc_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
 
-inline int
+static inline int
 scm_proc_arity(ScmObj proc)
 {
   return SCM_PROCEDURE(proc)->arity;
 }
 
-inline ScmObj
+static inline ScmObj
 scm_proc_name(ScmObj proc)
 {
   return SCM_PROCEDURE(proc)->name;
 }
 
-inline ScmObj
+static inline ScmObj
 scm_proc_flg_set_p(ScmObj proc, SCM_PROC_FLG_T flg)
 {
   return (SCM_PROCEDURE(proc)->flags & flg) ? true : false;
@@ -76,7 +76,7 @@ void scm_subrutine_gc_initialize(ScmObj obj, ScmObj mem);
 int scm_subrutine_gc_accept(ScmObj obj,
                             ScmObj mem, ScmGCRefHandlerFunc handler);
 
-inline int
+static inline int
 scm_subrutine_call(ScmObj subr, int argc, const ScmObj *argv)
 {
   scm_assert_obj_type(subr, &SCM_SUBRUTINE_TYPE_INFO);
@@ -84,7 +84,7 @@ scm_subrutine_call(ScmObj subr, int argc, const ScmObj *argv)
   return SCM_SUBRUTINE(subr)->subr_func(subr, argc, argv);
 }
 
-inline ScmObj
+static inline ScmObj
 scm_subrutine_module(ScmObj subr)
 {
   scm_assert_obj_type(subr, &SCM_SUBRUTINE_TYPE_INFO);
@@ -112,7 +112,7 @@ ScmObj scm_closure_new(SCM_MEM_TYPE_T mtype,
 void scm_closure_gc_initialize(ScmObj obj, ScmObj mem);
 int scm_closure_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
 
-inline ScmObj
+static inline ScmObj
 scm_closure_body(ScmObj clsr)
 {
   scm_assert_obj_type(clsr, &SCM_CLOSURE_TYPE_INFO);
@@ -120,7 +120,7 @@ scm_closure_body(ScmObj clsr)
   return SCM_CLOSURE(clsr)->iseq;
 }
 
-inline ScmObj
+static inline ScmObj
 scm_closure_env(ScmObj clsr)
 {
   scm_assert_obj_type(clsr, &SCM_CLOSURE_TYPE_INFO);
@@ -145,7 +145,7 @@ ScmObj scm_cont_new(SCM_MEM_TYPE_T mtype, ScmObj contcap);
 void scm_cont_gc_initialize(ScmObj obj, ScmObj mem);
 int scm_cont_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
 
-inline ScmObj
+static inline ScmObj
 scm_cont_content(ScmObj cont)
 {
   scm_assert_obj_type(cont, &SCM_CONTINUATION_TYPE_INFO);
@@ -174,7 +174,7 @@ int scm_parameter_gc_accept(ScmObj obj, ScmObj mem,
                             ScmGCRefHandlerFunc handler);
 
 
-inline ScmObj
+static inline ScmObj
 scm_parameter_init_val(ScmObj prm)
 {
   scm_assert_obj_type(prm, &SCM_PARAMETER_TYPE_INFO);
@@ -182,7 +182,7 @@ scm_parameter_init_val(ScmObj prm)
   return SCM_PARAMETER(prm)->init;
 }
 
-inline ScmObj
+static inline ScmObj
 scm_parameter_converter(ScmObj prm)
 {
   scm_assert_obj_type(prm, &SCM_PARAMETER_TYPE_INFO);
@@ -190,7 +190,7 @@ scm_parameter_converter(ScmObj prm)
   return SCM_PARAMETER(prm)->conv;
 }
 
-inline void
+static inline void
 scm_parameter_set_init_val(ScmObj prm, ScmObj val)
 {
   scm_assert_obj_type(prm, &SCM_PARAMETER_TYPE_INFO);

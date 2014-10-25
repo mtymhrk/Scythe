@@ -25,7 +25,7 @@
   } while(0)
 
 
-inline bool
+static inline bool
 chr_same_p(scm_char_t c1, char c2, bool c_sensitive, ScmEncoding *enc)
 {
   if (c_sensitive)
@@ -35,7 +35,7 @@ chr_same_p(scm_char_t c1, char c2, bool c_sensitive, ScmEncoding *enc)
             || scm_enc_same_char_p(enc, c1.bytes, sizeof(c1), tolower(c2)));
 }
 
-inline const char *
+static inline const char *
 chr_find(const char *str, scm_char_t c, ScmEncoding *enc)
 {
   for (const char *p = str; *p != '\0'; p++)

@@ -25,7 +25,7 @@ int scm_cmpl_assign_label_id(ScmObj cmpl);
 void scm_cmpl_gc_initialize(ScmObj obj, ScmObj mem);
 int scm_cmpl_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
 
-inline ScmObj
+static inline ScmObj
 scm_cmpl_module(ScmObj cmpl)
 {
   scm_assert_obj_type(cmpl, &SCM_COMPILER_TYPE_INFO);
@@ -33,7 +33,7 @@ scm_cmpl_module(ScmObj cmpl)
   return SCM_COMPILER(cmpl)->module;
 }
 
-inline ScmObj
+static inline ScmObj
 scm_cmpl_expr(ScmObj cmpl)
 {
   scm_assert_obj_type(cmpl, &SCM_COMPILER_TYPE_INFO);

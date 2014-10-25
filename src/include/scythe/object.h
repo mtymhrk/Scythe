@@ -152,7 +152,7 @@ typedef struct {
 #define SCM_CSETTER_S(type, obj, slt) \
   &(scm_csetter_t){ 'S', { .s = { &(obj), offsetof(type, slt) }}}
 
-inline void
+static inline void
 scm_csetter_setq(scm_csetter_t *st, ScmObj val)
 {
   switch (st->kind) {
@@ -171,7 +171,7 @@ scm_csetter_setq(scm_csetter_t *st, ScmObj val)
   }
 }
 
-inline ScmObj
+static inline ScmObj
 scm_csetter_val(scm_csetter_t *st)
 {
   switch (st->kind) {
@@ -221,7 +221,7 @@ typedef int (*ScmGCAcceptFunc)(ScmObj obj,
 #define SCM_GC_CALL_REF_HANDLER(handler, obj, child, mem)       \
   (handler(mem, obj, SCM_REF_MAKE(child)))
 
-inline bool
+static inline bool
 scm_gc_ref_handler_failure_p(int ret_val)
 {
   return (ret_val < 0) ? true : false;
@@ -251,37 +251,37 @@ enum {
   SCM_TYPE_FLG_EXC  = 0x00000008,
 };
 
-inline bool
+static inline bool
 scm_type_info_same_p(ScmTypeInfo *type1, ScmTypeInfo *type2)
 {
   return (type1 == type2) ? true : false;
 }
 
-inline const char *
+static inline const char *
 scm_type_info_name(ScmTypeInfo *type)
 {
   return type->name;
 }
 
-inline bool
+static inline bool
 scm_type_info_flg_set_p(ScmTypeInfo *type, unsigned int flg)
 {
   return ((type->flags & flg) == flg) ? true : false;
 }
 
-inline size_t
+static inline size_t
 scm_type_info_obj_size(ScmTypeInfo *type)
 {
   return type->obj_size;
 }
 
-inline bool
+static inline bool
 scm_type_info_has_print_func_p(ScmTypeInfo *type)
 {
   return (type->obj_print_func != NULL) ? true : false;
 }
 
-inline int
+static inline int
 scm_type_info_call_print_func(ScmTypeInfo *type,
                            ScmObj obj, ScmObj port, bool ext_rep)
 {
@@ -291,39 +291,39 @@ scm_type_info_call_print_func(ScmTypeInfo *type,
     return scm_obj_default_print_func(obj, port, ext_rep);
 }
 
-inline bool
+static inline bool
 scm_type_info_has_gc_ini_func_p(ScmTypeInfo *type)
 {
   return (type->gc_ini_func != NULL) ? true : false;
 }
 
-inline void
+static inline void
 scm_type_info_call_gc_ini_func(ScmTypeInfo *type, ScmObj obj, ScmObj mem)
 {
   if (scm_type_info_has_gc_ini_func_p(type))
     type->gc_ini_func(obj, mem);
 }
 
-inline bool
+static inline bool
 scm_type_info_has_gc_fin_func_p(ScmTypeInfo *type)
 {
   return (type->gc_fin_func != NULL) ? true : false;
 }
 
-inline void
+static inline void
 scm_type_info_call_gc_fin_func(ScmTypeInfo *type, ScmObj obj)
 {
   if (scm_type_info_has_gc_fin_func_p(type))
     type->gc_fin_func(obj);
 }
 
-inline bool
+static inline bool
 scm_type_info_has_gc_accept_func_p(ScmTypeInfo *type)
 {
   return (type->gc_accept_func != NULL) ? true : false;
 }
 
-inline int
+static inline int
 scm_type_info_call_gc_accept_func(ScmTypeInfo *type, ScmObj obj,
                                   ScmObj mem, ScmGCRefHandlerFunc handler)
 {
@@ -333,13 +333,13 @@ scm_type_info_call_gc_accept_func(ScmTypeInfo *type, ScmObj obj,
     return SCM_GC_REF_HANDLER_VAL_INIT;
 }
 
-inline bool
+static inline bool
 scm_type_info_has_instance_weak_ref_p(ScmTypeInfo *type)
 {
   return (type->gc_accept_func_weak != NULL) ? true : false;
 }
 
-inline int
+static inline int
 scm_type_info_call_gc_accept_func_weak(ScmTypeInfo *type, ScmObj obj,
                                        ScmObj mem, ScmGCRefHandlerFunc handler)
 {
@@ -349,7 +349,7 @@ scm_type_info_call_gc_accept_func_weak(ScmTypeInfo *type, ScmObj obj,
     return SCM_GC_REF_HANDLER_VAL_INIT;
 }
 
-inline void *
+static inline void *
 scm_type_info_extra(ScmTypeInfo *type)
 {
   return type->extra;
@@ -377,37 +377,37 @@ struct ScmMMObjRec {
 
 extern ScmTypeInfo *SCM_OBJ_TAG2TYPE_TBL[];
 
-inline bool
+static inline bool
 scm_obj_null_p(ScmObj obj)
 {
   return (obj == SCM_OBJ_NULL) ? true : false;
 }
 
-inline bool
+static inline bool
 scm_obj_not_null_p(ScmObj obj)
 {
   return (obj != SCM_OBJ_NULL) ? true : false;
 }
 
-inline bool
+static inline bool
 scm_obj_same_instance_p(ScmObj obj1, ScmObj obj2)
 {
   return (scm_obj_not_null_p(obj1) && (obj1 == obj2)) ? true : false;
 }
 
-inline unsigned int
+static inline unsigned int
 scm_obj_tag(ScmObj obj)
 {
   return (scm_uword_t)obj & SCM_OBJ_TAG_MASK;
 }
 
-inline bool
+static inline bool
 scm_obj_mem_managed_p(ScmObj obj)
 {
   return (scm_obj_not_null_p(obj) && scm_obj_tag(obj) == 0x00u) ? true : false;
 }
 
-inline ScmTypeInfo *
+static inline ScmTypeInfo *
 scm_obj_type(ScmObj obj)
 {
   ScmTypeInfo *t = SCM_OBJ_TAG2TYPE_TBL[scm_obj_tag(obj)];
@@ -418,61 +418,61 @@ scm_obj_type(ScmObj obj)
             &SCM_NULL_OBJ_TYPE_INFO : SCM_MMOBJ(obj)->header.type);
 }
 
-inline bool
+static inline bool
 scm_obj_type_p(ScmObj obj, ScmTypeInfo *type)
 {
   return scm_type_info_same_p(scm_obj_type(obj), type);
 }
 
-inline const char *
+static inline const char *
 scm_obj_type_name(ScmObj obj)
 {
   return scm_type_info_name(scm_obj_type(obj));
 }
 
-inline bool
+static inline bool
 scm_obj_type_flag_set_p(ScmObj obj, unsigned int flg)
 {
   return scm_type_info_flg_set_p(scm_obj_type(obj), flg);
 }
 
-inline size_t
+static inline size_t
 scm_obj_size(ScmObj obj)
 {
   return scm_type_info_obj_size(scm_obj_type(obj));
 }
 
-inline bool
+static inline bool
 scm_obj_has_print_func_p(ScmObj obj)
 {
   return scm_type_info_has_print_func_p(scm_obj_type(obj));
 }
 
-inline int
+static inline int
 scm_obj_call_print_func(ScmObj obj, ScmObj port, bool ext_rep)
 {
   return scm_type_info_call_print_func(scm_obj_type(obj), obj, port, ext_rep);
 }
 
-inline bool
+static inline bool
 scm_obj_has_gc_ini_func_p(ScmObj obj)
 {
   return scm_type_info_has_gc_ini_func_p(scm_obj_type(obj));
 }
 
-inline void
+static inline void
 scm_obj_call_gc_fin_func(ScmObj obj)
 {
   scm_type_info_call_gc_fin_func(scm_obj_type(obj), obj);
 }
 
-inline bool
+static inline bool
 scm_obj_has_gc_fin_func_p(ScmObj obj)
 {
   return scm_type_info_has_gc_fin_func_p(scm_obj_type(obj));
 }
 
-inline int
+static inline int
 scm_obj_call_gc_accept_func(ScmObj obj,
                             ScmObj mem, ScmGCRefHandlerFunc handler)
 {
@@ -480,14 +480,14 @@ scm_obj_call_gc_accept_func(ScmObj obj,
                                            obj, mem, handler);
 }
 
-inline bool
+static inline bool
 scm_obj_has_gc_accpet_func_p(ScmObj obj)
 {
   return scm_type_info_has_gc_accept_func_p(scm_obj_type(obj));
 }
 
 
-inline int
+static inline int
 scm_obj_call_gc_accept_func_weak(ScmObj obj,
                             ScmObj mem, ScmGCRefHandlerFunc handler)
 {
@@ -495,13 +495,13 @@ scm_obj_call_gc_accept_func_weak(ScmObj obj,
                                                 obj, mem, handler);
 }
 
-inline int
+static inline int
 scm_obj_has_weak_ref_p(ScmObj obj)
 {
   return scm_type_info_has_instance_weak_ref_p(scm_obj_type(obj));
 }
 
-inline void *
+static inline void *
 scm_obj_type_extra(ScmObj obj)
 {
   return scm_type_info_extra(scm_obj_type(obj));
@@ -512,14 +512,14 @@ scm_obj_type_extra(ScmObj obj)
 
 #define scm_assert(...) assert(__VA_ARGS__)
 
-inline void
+static inline void
 scm_assert_obj_type(ScmObj obj, ScmTypeInfo *type)
 {
   scm_assert(scm_obj_not_null_p(obj));
   scm_assert(scm_obj_type_p(obj, type));
 }
 
-inline void
+static inline void
 scm_assert_obj_type_accept_null(ScmObj obj, ScmTypeInfo *type)
 {
   scm_assert(scm_obj_null_p(obj) || scm_obj_type_p(obj, type));
@@ -537,7 +537,7 @@ scm_assert_obj_type_accept_null(ScmObj obj, ScmTypeInfo *type)
 /* #define scm_assert_obj_type_accept_null(obj, type) \ */
 /*   scm_assert(scm_obj_null_p(obj) || scm_obj_type_p(obj, type)) */
 
-inline void
+static inline void
 scm_obj_init(ScmObj obj, ScmTypeInfo *type)
 {
   scm_assert(type != NULL);

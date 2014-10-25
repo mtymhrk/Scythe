@@ -27,37 +27,37 @@ extern ScmObj scm__current_vm;
 extern ScmObj scm__current_ref_stack;
 
 
-inline ScmBedrock *
+static inline ScmBedrock *
 scm_vm_current_br(void)
 {
   return scm__current_br;
 }
 
-inline ScmObj
+static inline ScmObj
 scm_vm_current_vm(void)
 {
   return scm__current_vm;
 }
 
-inline ScmObj
+static inline ScmObj
 scm_vm_current_ref_stack(void)
 {
   return scm__current_ref_stack;
 }
 
-inline void
+static inline void
 scm_vm_chg_current_br(ScmBedrock *br)
 {
   scm__current_br = br;
 }
 
-inline void
+static inline void
 scm_vm_chg_current_vm(ScmObj vm)
 {
   scm__current_vm = vm;
 }
 
-inline void
+static inline void
 scm_vm_chg_current_ref_stack(ScmObj stack)
 {
   scm__current_ref_stack = stack;
@@ -137,98 +137,98 @@ bool scm_bedrock_fatal_p(ScmBedrock *br);
 bool scm_bedrock_error_p(ScmBedrock *br);
 int scm_bedrock_cached_gv(ScmBedrock *br, int kind, scm_csetter_t *gloc);
 
-inline ScmObj
+static inline ScmObj
 scm_bedrock_nil(ScmBedrock *br)
 {
   scm_assert(br != NULL);
   return br->cnsts.nil;
 }
 
-inline ScmObj
+static inline ScmObj
 scm_bedrock_eof(ScmBedrock *br)
 {
   scm_assert(br != NULL);
   return br->cnsts.eof;
 }
 
-inline ScmObj
+static inline ScmObj
 scm_bedrock_true(ScmBedrock *br)
 {
   scm_assert(br != NULL);
   return br->cnsts.b_true;
 }
 
-inline ScmObj
+static inline ScmObj
 scm_bedrock_false(ScmBedrock *br)
 {
   scm_assert(br != NULL);
   return br->cnsts.b_false;
 }
 
-inline ScmObj
+static inline ScmObj
 scm_bedrock_undef(ScmBedrock *br)
 {
   scm_assert(br != NULL);
   return br->cnsts.undef;
 }
 
-inline ScmObj
+static inline ScmObj
 scm_bedrock_landmine(ScmBedrock *br)
 {
   scm_assert(br != NULL);
   return br->cnsts.landmine;
 }
 
-inline ScmMem *
+static inline ScmMem *
 scm_bedrock_mem(ScmBedrock *br)
 {
   scm_assert(br != NULL);
   return br->mem;
 }
 
-inline ScmObj
+static inline ScmObj
 scm_bedrock_symtbl(ScmBedrock *br)
 {
   scm_assert(br != NULL);
   return br->symtbl;
 }
 
-inline ScmObj
+static inline ScmObj
 scm_bedrock_modtree(ScmBedrock *br)
 {
   scm_assert(br != NULL);
   return br->modtree;
 }
 
-inline ScmObj
+static inline ScmObj
 scm_bedrock_exc_hndlr_caller(ScmBedrock *br)
 {
   scm_assert(br != NULL);
   return br->subr.exc_hndlr_caller;
 }
 
-inline ScmObj
+static inline ScmObj
 scm_bedrock_exc_hndlr_caller_cont(ScmBedrock *br)
 {
   scm_assert(br != NULL);
   return br->subr.exc_hndlr_caller_cont;
 }
 
-inline ScmObj
+static inline ScmObj
 scm_bedrock_exc_hndlr_caller_post(ScmBedrock *br)
 {
   scm_assert(br != NULL);
   return br->subr.exc_hndlr_caller_post;
 }
 
-inline ScmObj
+static inline ScmObj
 scm_bedrock_trmp_apply(ScmBedrock *br)
 {
   scm_assert(br != NULL);
   return br->subr.trmp_apply;
 }
 
-inline ScmEncoding *
+static inline ScmEncoding *
 scm_bedrock_encoding(ScmBedrock *br)
 {
   scm_assert(br != NULL);
@@ -250,14 +250,14 @@ struct ScmBoxRec {
 void scm_box_gc_initialize(ScmObj obj, ScmObj mem);
 int scm_box_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
 
-inline ScmObj
+static inline ScmObj
 scm_box_unbox(ScmObj box)
 {
   scm_assert_obj_type(box, &SCM_BOX_TYPE_INFO);
   return SCM_BOX(box)->obj;
 }
 
-inline void
+static inline void
 scm_box_update(ScmObj box, ScmObj obj)
 {
   scm_assert_obj_type(box, &SCM_BOX_TYPE_INFO);
@@ -318,7 +318,7 @@ void scm_contcap_replace_ip(ScmObj cc, scm_byte_t *ip, ScmObj cp);
 void scm_contcap_gc_initialize(ScmObj obj, ScmObj mem);
 int scm_contcap_gc_accepct(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
 
-inline ScmObj
+static inline ScmObj
 scm_contcap_stack(ScmObj cc)
 {
   scm_assert_obj_type(cc, &SCM_CONTCAP_TYPE_INFO);
@@ -326,7 +326,7 @@ scm_contcap_stack(ScmObj cc)
   return SCM_CONTCAP(cc)->stack;
 }
 
-inline ScmObj
+static inline ScmObj
 scm_contcap_cp(ScmObj cc)
 {
   scm_assert_obj_type(cc, &SCM_CONTCAP_TYPE_INFO);
@@ -334,7 +334,7 @@ scm_contcap_cp(ScmObj cc)
   return SCM_CONTCAP(cc)->reg.cp;
 }
 
-inline scm_byte_t *
+static inline scm_byte_t *
 scm_contcap_ip(ScmObj cc)
 {
   scm_assert_obj_type(cc, &SCM_CONTCAP_TYPE_INFO);
@@ -342,7 +342,7 @@ scm_contcap_ip(ScmObj cc)
   return SCM_CONTCAP(cc)->reg.ip;
 }
 
-inline const ScmObj *
+static inline const ScmObj *
 scm_contcap_val(ScmObj cc)
 {
   scm_assert_obj_type(cc, &SCM_CONTCAP_TYPE_INFO);
@@ -350,7 +350,7 @@ scm_contcap_val(ScmObj cc)
   return SCM_CONTCAP(cc)->reg.val;
 }
 
-inline int
+static inline int
 scm_contcap_vc(ScmObj cc)
 {
   scm_assert_obj_type(cc, &SCM_CONTCAP_TYPE_INFO);
@@ -358,7 +358,7 @@ scm_contcap_vc(ScmObj cc)
   return SCM_CONTCAP(cc)->reg.vc;
 }
 
-inline ScmObj
+static inline ScmObj
 scm_contcap_prm(ScmObj cc)
 {
   scm_assert_obj_type(cc, &SCM_CONTCAP_TYPE_INFO);
@@ -366,7 +366,7 @@ scm_contcap_prm(ScmObj cc)
   return SCM_CONTCAP(cc)->reg.prm;
 }
 
-inline ScmObj
+static inline ScmObj
 scm_contcap_exc(ScmObj cc)
 {
   scm_assert_obj_type(cc, &SCM_CONTCAP_TYPE_INFO);
@@ -374,7 +374,7 @@ scm_contcap_exc(ScmObj cc)
   return SCM_CONTCAP(cc)->reg.exc;
 }
 
-inline ScmObj
+static inline ScmObj
 scm_contcap_hndlr(ScmObj cc)
 {
   scm_assert_obj_type(cc, &SCM_CONTCAP_TYPE_INFO);
@@ -382,7 +382,7 @@ scm_contcap_hndlr(ScmObj cc)
   return SCM_CONTCAP(cc)->reg.hndlr;
 }
 
-inline uint
+static inline uint
 scm_contcap_flags(ScmObj cc)
 {
   scm_assert_obj_type(cc, &SCM_CONTCAP_TYPE_INFO);
@@ -455,21 +455,21 @@ void scm_vm_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_vm_gc_finalize(ScmObj obj);
 int scm_vm_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
 
-inline ScmObj
+static inline ScmObj
 scm_vm_raised_obj(ScmObj vm)
 {
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
   return SCM_VM(vm)->reg.exc;
 }
 
-inline bool
+static inline bool
 scm_vm_raised_p(ScmObj vm)
 {
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
   return scm_obj_not_null_p(SCM_VM(vm)->reg.exc);
 }
 
-inline void
+static inline void
 scm_vm_discard_raised_obj(ScmObj vm)
 {
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);

@@ -64,13 +64,13 @@ static ScmTypeInfo SCM_MEM_TYPE_INFO = {
 
 /** alignment ***************************************************************/
 
-inline size_t
+static inline size_t
 scm_mem_align_size_by(size_t size, size_t align)
 {
   return ((size + align - 1) / align * align);
 }
 
-inline size_t
+static inline size_t
 scm_mem_align_size(size_t size)
 {
   return ((size + SCM_MEM_ALIGN_BYTE - 1)
@@ -78,13 +78,13 @@ scm_mem_align_size(size_t size)
           * SCM_MEM_ALIGN_BYTE);
 }
 
-inline void *
+static inline void *
 scm_mem_align_ptr(void *ptr)
 {
   return (void *)scm_mem_align_size((uintptr_t)ptr);
 }
 
-inline size_t
+static inline size_t
 scm_mem_alloc_size_in_heap(ScmTypeInfo *type, size_t add)
 {
   size_t size;
@@ -100,7 +100,7 @@ scm_mem_alloc_size_in_heap(ScmTypeInfo *type, size_t add)
   return size;
 }
 
-inline size_t
+static inline size_t
 scm_mem_alloc_size_to_obj_size_in_heap(ScmTypeInfo *type, size_t size)
 {
   scm_assert(type != NULL);
@@ -108,7 +108,7 @@ scm_mem_alloc_size_to_obj_size_in_heap(ScmTypeInfo *type, size_t size)
   return size;
 }
 
-inline size_t
+static inline size_t
 scm_mem_alloc_size_in_root(ScmTypeInfo *type, size_t add)
 {
   size_t size;
@@ -125,19 +125,19 @@ scm_mem_alloc_size_in_root(ScmTypeInfo *type, size_t add)
 
 /** ScmMemHeapCell **********************************************************/
 
-inline size_t
+static inline size_t
 scm_mem_heap_cell_size(ScmMemHeapCell *cell)
 {
   return cell->size;
 }
 
-inline size_t
+static inline size_t
 scm_mem_heap_cell_body_size(ScmMemHeapCell *cell)
 {
   return cell->size - sizeof(ScmMemHeapCell);
 }
 
-inline scm_byte_t *
+static inline scm_byte_t *
 scm_mem_heap_cell_tail(ScmMemHeapCell *cell)
 {
   return (scm_byte_t *)cell + cell->size;
@@ -162,44 +162,44 @@ scm_mem_heap_new_block(size_t sz)
   return block;
 }
 
-inline void *
+static inline void *
 scm_mem_heap_delete_block(ScmMemHeapBlock *block)
 {
   scm_capi_free(block);
   return NULL;
 }
 
-inline size_t
+static inline size_t
 scm_mem_heap_block_size(ScmMemHeapBlock *block)
 {
   return block->size;
 }
 
-inline size_t
+static inline size_t
 scm_mem_heap_block_used(ScmMemHeapBlock *block)
 {
   return block->used;
 }
 
-inline size_t
+static inline size_t
 scm_mem_heap_block_free(ScmMemHeapBlock *block)
 {
   return block->size - block->used;
 }
 
-inline scm_byte_t *
+static inline scm_byte_t *
 scm_mem_heap_block_head(ScmMemHeapBlock *block)
 {
   return scm_mem_align_ptr(block->heap);
 }
 
-inline void *
+static inline void *
 scm_mem_heap_block_free_ptr(ScmMemHeapBlock *block)
 {
   return (void *)(block->heap + block->used);
 }
 
-inline void
+static inline void
 scm_mem_heap_block_allocated(ScmMemHeapBlock *block, size_t sz)
 {
   ScmMemHeapCell *p = scm_mem_heap_block_free_ptr(block);
@@ -207,13 +207,13 @@ scm_mem_heap_block_allocated(ScmMemHeapBlock *block, size_t sz)
   block->used += scm_mem_align_size(p->size);
 }
 
-inline void
+static inline void
 scm_mem_heap_block_deallocated(ScmMemHeapBlock *block, size_t sz)
 {
   block->used -= scm_mem_align_size(sizeof(ScmMemHeapCell) + sz);
 }
 
-inline bool
+static inline bool
 scm_mem_heap_block_allocable_p(ScmMemHeapBlock *block, size_t sz)
 {
   /* scm_mem_align_size で size を調整しているのは不要 ? */
@@ -222,7 +222,7 @@ scm_mem_heap_block_allocable_p(ScmMemHeapBlock *block, size_t sz)
           true : false);
 }
 
-inline bool
+static inline bool
 scm_mem_heap_block_deallocable_p(ScmMemHeapBlock *block, size_t sz)
 {
   return ((scm_mem_align_size(sizeof(ScmMemHeapCell) + sz)
@@ -230,13 +230,13 @@ scm_mem_heap_block_deallocable_p(ScmMemHeapBlock *block, size_t sz)
           true : false);
 }
 
-inline size_t
+static inline size_t
 scm_mem_heap_block_ptr_offset(ScmMemHeapBlock *block, void *ptr)
 {
   return (size_t)((scm_byte_t *)ptr - block->heap);
 }
 
-inline bool
+static inline bool
 scm_mem_heap_block_ptr_allocated_p(ScmMemHeapBlock *block, void *ptr)
 {
   return ((scm_mem_heap_block_ptr_offset(block, ptr)
@@ -244,20 +244,20 @@ scm_mem_heap_block_ptr_allocated_p(ScmMemHeapBlock *block, void *ptr)
           true : false);
 }
 
-inline ScmMemHeapCell *
+static inline ScmMemHeapCell *
 scm_mem_heap_block_next_cell(ScmMemHeapBlock *block, ScmMemHeapCell *cell)
 {
   return (ScmMemHeapCell *)scm_mem_align_ptr(scm_mem_heap_cell_tail(cell));
 }
 
-inline void
+static inline void
 scm_mem_heap_block_clean(ScmMemHeapBlock *block)
 {
   scm_byte_t *p = scm_mem_heap_block_head(block);
   block->used = (size_t)p - (size_t)(block)->heap;
 }
 
-inline bool
+static inline bool
 scm_mem_heap_block_has_obj_p(ScmMemHeapBlock *block, ScmObj obj)
 {
   return ((block->heap <= (scm_byte_t *)obj
@@ -268,38 +268,38 @@ scm_mem_heap_block_has_obj_p(ScmMemHeapBlock *block, ScmObj obj)
 
 /** ScmMemHeap **************************************************************/
 
-inline size_t
+static inline size_t
 scm_mem_heap_cur_block_free_size(ScmMemHeap *heap)
 {
   return ((heap->current == NULL) ?
           0 : scm_mem_heap_block_free(heap->current));
 }
 
-inline bool
+static inline bool
 scm_mem_heap_cur_block_tail_p(ScmMemHeap *heap)
 {
   return ((heap->current == heap->tail) ? true : false);
 }
 
-inline int
+static inline int
 scm_mem_heap_nr_block(ScmMemHeap *heap)
 {
   return heap->nr_block;
 }
 
-inline int
+static inline int
 scm_mem_heap_nr_free_block(ScmMemHeap *heap)
 {
   return heap->nr_free_block;
 }
 
-inline int
+static inline int
 scm_mem_heap_nr_used_block(ScmMemHeap *heap)
 {
   return heap->nr_block - heap->nr_free_block;
 }
 
-inline size_t
+static inline size_t
 scm_mem_heap_tail_block_size(ScmMemHeap *heap)
 {
   return ((heap->tail == NULL) ? 0U : heap->tail->size);
@@ -490,19 +490,19 @@ scm_mem_heap_cancel_alloc(ScmMemHeap *heap, size_t size)
 
 /** ScmMemRootBlock *********************************************************/
 
-inline ScmObj
+static inline ScmObj
 scm_mem_root_block_object(ScmMemRootBlock *block)
 {
   return SCM_OBJ(block->body);
 }
 
-inline void
+static inline void
 scm_mem_root_block_obj_set_shit_byte(ScmObj obj, scm_byte_t sf)
 {
   *((scm_byte_t *)obj - 1) = sf;
 }
 
-inline ScmMemRootBlock *
+static inline ScmMemRootBlock *
 scm_mem_root_block_obj_header(ScmObj obj)
 {
   return (ScmMemRootBlock *)((scm_byte_t *)obj
@@ -523,13 +523,13 @@ scm_mem_root_block_new(size_t sz)
   return block;
 }
 
-inline void
+static inline void
 scm_mem_root_block_free(ScmMemRootBlock *block)
 {
   scm_capi_free(block);
 }
 
-inline bool
+static inline bool
 scm_mem_root_block_obj_in_blok_p(ScmObj obj)
 {
   return (((unsigned int)(obj) > sizeof(ScmMemRootBlock)) ?
@@ -567,13 +567,13 @@ scm_mem_del_from_root_set(ScmMemRootBlock **head, ScmMemRootBlock *block)
 
 /** relation of ScmObj and ScmMemHeapCell ***********************************/
 
-inline ScmObj
+static inline ScmObj
 scm_mem_cell_to_obj(ScmMemHeapCell *cell)
 {
   return SCM_OBJ(cell->body);
 }
 
-inline ScmMemHeapCell *
+static inline ScmMemHeapCell *
 scm_mem_obj_to_cell(ScmObj obj)
 {
   return (ScmMemHeapCell *)((scm_byte_t *)obj - offsetof(ScmMemHeapCell, body));
@@ -582,21 +582,21 @@ scm_mem_obj_to_cell(ScmObj obj)
 
 /** list of objects has finalize function ***********************************/
 
-inline ScmRef
+static inline ScmRef
 scm_mem_next_obj_has_fin_func(ScmObj obj)
 {
   ScmMemHeapCell *cell = scm_mem_obj_to_cell(obj);
   return SCM_REF_MAKE(cell->fin_info.next);
 }
 
-inline void
+static inline void
 scm_mem_set_next_obj_has_fin_func(ScmObj obj, ScmObj prv)
 {
   ScmRef r = scm_mem_next_obj_has_fin_func(obj);
   SCM_REF_UPDATE(r, prv);
 }
 
-inline void
+static inline void
 scm_mem_add_obj_to_fin_list(ScmMemHeap *heap, ScmObj obj)
 {
   ScmObj nxt = SCM_OBJ(heap->fin_list);
@@ -607,14 +607,14 @@ scm_mem_add_obj_to_fin_list(ScmMemHeap *heap, ScmObj obj)
 
 /** list of objects has weak reference **************************************/
 
-inline ScmRef
+static inline ScmRef
 scm_mem_next_obj_has_weak_ref(ScmObj obj)
 {
   ScmMemHeapCell *cell = scm_mem_obj_to_cell(obj);
   return SCM_REF_MAKE(cell->wref_info.next);
 }
 
-inline void
+static inline void
 scm_mem_set_next_obj_has_weak_ref(ScmObj obj, ScmObj nxt)
 {
   ScmRef r = scm_mem_next_obj_has_weak_ref(obj);

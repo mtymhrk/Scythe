@@ -27,7 +27,7 @@ int scm_syntax_obj_print(ScmObj obj, ScmObj port, bool ext_rep);
 void scm_syntax_gc_initialize(ScmObj obj, ScmObj mem);
 int scm_syntax_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
 
-inline ScmObj
+static inline ScmObj
 scm_syntax_keyword(ScmObj syx)
 {
   scm_assert_obj_type(syx, &SCM_SYNTAX_TYPE_INFO);
@@ -35,7 +35,7 @@ scm_syntax_keyword(ScmObj syx)
   return SCM_SYNTAX(syx)->keyword;
 }
 
-inline ScmObj
+static inline ScmObj
 scm_syntax_handler(ScmObj syx)
 {
   scm_assert_obj_type(syx, &SCM_SYNTAX_TYPE_INFO);

@@ -40,7 +40,7 @@
     fflush(stderr);                                              \
   } while (0)
 
-inline void
+static inline void
 scm_print_backtrace(int fd)
 {
   void *trace[256];
@@ -48,7 +48,7 @@ scm_print_backtrace(int fd)
   backtrace_symbols_fd(trace, n, fd);
 }
 
-inline unsigned long
+static inline unsigned long
 scm_pow_ul(unsigned long x, unsigned long y)
 {
   unsigned long z = 1;
@@ -57,7 +57,7 @@ scm_pow_ul(unsigned long x, unsigned long y)
   return z;
 }
 
-inline unsigned long
+static inline unsigned long
 scm_log_ul(unsigned long b, unsigned long x)
 {
   unsigned long i, z = x;

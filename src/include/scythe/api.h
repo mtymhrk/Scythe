@@ -71,7 +71,7 @@ void scm_capi_ref_stack_restore(ScmRefStackInfo *info);
 /*  Memory                                                         */
 /*******************************************************************/
 
-inline void *
+static inline void *
 scm_capi_malloc(size_t size)
 {
   void *p = malloc(size);
@@ -79,14 +79,14 @@ scm_capi_malloc(size_t size)
   return p;
 }
 
-inline void *
+static inline void *
 scm_capi_free(void *ptr)
 {
   free(ptr);
   return NULL;
 }
 
-inline void *
+static inline void *
 scm_capi_realloc(void *ptr, size_t size)
 {
   void *p = realloc(ptr, size);
