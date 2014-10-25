@@ -1387,7 +1387,8 @@ scm_vm_make_proc_call_code(ScmObj iseq, ScmObj proc, ScmObj args, bool tail)
     if (r < 0) return -1;
   }
   else {
-    r = scm_capi_iseq_push_inst(iseq, SCM_OPCODE_CALL, arity);
+    r = scm_capi_iseq_push_inst(iseq, SCM_OPCODE_CALL,
+                                unwished ? (int)len : arity);
     if (r < 0) return -1;
 
     r = scm_capi_iseq_push_inst(iseq, SCM_OPCODE_NOP);
