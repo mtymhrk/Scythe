@@ -896,7 +896,9 @@ scm_asm_assemble_aux(ScmObj iseq,
   scm_assert(labels != NULL);
   scm_assert(scm_capi_pair_p(lst) || scm_capi_nil_p(lst));
 
-  offset = 0;
+  offset = scm_capi_iseq_length(iseq);
+  if (offset < 0) return -1;
+
   for (cur = lst;
        scm_obj_not_null_p(cur) && !scm_capi_nil_p(cur);
        cur = scm_api_cdr(cur)) {
