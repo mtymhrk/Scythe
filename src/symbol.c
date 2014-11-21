@@ -585,7 +585,8 @@ scm_symtbl_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
 {
   scm_assert_obj_type(obj, &SCM_SYMTBL_TYPE_INFO);
 
-  return scm_chash_tbl_gc_accept(SCM_SYMTBL(obj)->tbl, obj, mem, handler);
+  return scm_chash_tbl_gc_accept(SCM_SYMTBL(obj)->tbl,
+                                 obj, mem, handler, false);
 }
 
 int

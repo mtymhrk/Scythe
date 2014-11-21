@@ -518,13 +518,13 @@ scm_module_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
 
   if (SCM_MODULE(obj)->eval_gloctbl != NULL) {
     rslt = scm_chash_tbl_gc_accept(SCM_MODULE(obj)->eval_gloctbl,
-                                   obj, mem, handler);
+                                   obj, mem, handler, false);
     if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
   }
 
   if (SCM_MODULE(obj)->cmpl_gloctbl != NULL) {
     rslt = scm_chash_tbl_gc_accept(SCM_MODULE(obj)->cmpl_gloctbl,
-                                   obj, mem, handler);
+                                   obj, mem, handler, false);
     if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
   }
 

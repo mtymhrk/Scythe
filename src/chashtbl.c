@@ -293,8 +293,10 @@ scm_chash_tbl_clean(ScmCHashTbl *tbl)
 
 int
 scm_chash_tbl_gc_accept(ScmCHashTbl *tbl, ScmObj owner,
-                        ScmObj mem, ScmGCRefHandlerFunc handler)
+                        ScmObj mem, ScmGCRefHandlerFunc handler, bool rehash)
 {
+  ScmCHashTblEntry *buckets[tbl->tbl_size];
+  ScmCHashTblEntry *next;
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
 
   scm_assert(tbl != NULL);
@@ -309,13 +311,24 @@ scm_chash_tbl_gc_accept(ScmCHashTbl *tbl, ScmObj owner,
   rslt = SCM_GC_CALL_REF_HANDLER(handler, owner, tbl->owner, mem);
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
+  if (rehash)
+    for (size_t i = 0; i < tbl->tbl_size; i++) buckets[i] = NULL;
+
   for (size_t i = 0; i < tbl->tbl_size; i++) {
     for (ScmCHashTblEntry *entry = tbl->buckets[i];
          entry != NULL;
-         entry = entry->next) {
+         entry = next) {
+      next = entry->next;
+
       if (tbl->key_kind == SCM_CHASH_TBL_SCMOBJ) {
         rslt = SCM_GC_CALL_REF_HANDLER(handler, owner, entry->key, mem);
         if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
+
+        if (rehash) {
+          size_t hash = tbl->hash_func(entry->key) % tbl->tbl_size;
+          entry->next = buckets[hash];
+          buckets[hash] = entry;
+        }
       }
       if (tbl->val_kind == SCM_CHASH_TBL_SCMOBJ) {
         rslt = SCM_GC_CALL_REF_HANDLER(handler, owner, entry->val, mem);
@@ -323,6 +336,9 @@ scm_chash_tbl_gc_accept(ScmCHashTbl *tbl, ScmObj owner,
       }
     }
   }
+
+  if (rehash)
+    memcpy(tbl->buckets, buckets, sizeof(ScmCHashTblEntry *) * tbl->tbl_size);
 
   return rslt;
 }
