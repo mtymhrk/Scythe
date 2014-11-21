@@ -38,6 +38,10 @@ scm_iseq_initialize(ScmObj iseq)
                    sizeof(size_t), SCM_ISEQ_DEFAULT_OBJS_SIZE);
   if (rslt != 0) return -1;
 
+  rslt = eary_init(SCM_ISEQ_EARY_DSTS(iseq),
+                   sizeof(size_t), SCM_ISEQ_DEFAULT_DSTS_SIZE);
+  if (rslt != 0) return -1;
+
   return 0;
 }
 
@@ -64,6 +68,7 @@ scm_iseq_finalize(ScmObj obj)
 
   eary_fin(SCM_ISEQ_EARY_SEQ(obj));
   eary_fin(SCM_ISEQ_EARY_OBJS(obj));
+  eary_fin(SCM_ISEQ_EARY_DSTS(obj));
 }
 
 ssize_t
@@ -259,6 +264,37 @@ scm_iseq_update_opd_obj(ScmObj iseq, size_t offset, ScmObj obj)
 
   ip = scm_iseq_to_ip(iseq) + offset;
   scm_vminst_update_opd_obj(ip, obj, SCM_VMINST_UPD_FLG_OPD1);
+
+  return 0;
+}
+
+int
+scm_iseq_push_dst(ScmObj iseq, size_t offset)
+{
+  size_t *ary;
+  int err;
+  size_t idx;
+
+  scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
+  scm_assert(offset <= SCM_ISEQ_SEQ_LENGTH(iseq));
+
+  EARY_PUSH(SCM_ISEQ_EARY_DSTS(iseq), size_t, 0, err);
+  if (err != 0) return -1;
+
+  idx = SCM_ISEQ_DSTS_LENGTH(iseq) - 1;
+  ary = SCM_ISEQ_DSTS_VEC(iseq);
+  while (idx > 0 && offset < ary[idx - 1])
+    idx--;
+
+  if (offset == ary[idx - 1]) {
+    /* XXX: POP することが目的で、その値を offset に設定している意味はない */
+    EARY_POP(SCM_ISEQ_EARY_DSTS(iseq), size_t, offset);
+    return 0;
+  }
+
+  for (size_t i = SCM_ISEQ_DSTS_LENGTH(iseq) - 1; i > idx; i--)
+    ary[i] = ary[i - 1];
+  ary[idx] = offset;
 
   return 0;
 }

@@ -178,6 +178,31 @@ test_assemble_si_si_obj(const char *asmbl,
   check_following(ip);
 }
 
+static void
+test_assemble_iof(const char *asmbl, uint8_t code, int si, size_t dst)
+{
+  ScmObj iseq = SCM_OBJ_INIT;
+  scm_byte_t *ip;
+  const size_t *dsts;
+  int actual_op, actual_si;
+
+  SCM_REFSTK_INIT_REG(&iseq);
+
+  iseq = make_iseq(asmbl);
+  ip = scm_capi_iseq_to_ip(iseq);
+
+  SCM_VMINST_FETCH_OP(ip, actual_op);
+  SCM_VMINST_FETCH_OPD_IOF(ip, actual_si);
+
+  TEST_ASSERT_EQUAL_INT(code, actual_op);
+  TEST_ASSERT_EQUAL_INT(si, actual_si);
+
+  dsts = scm_capi_iseq_br_dsts(iseq);
+  TEST_ASSERT_EQUAL_INT(dst, dsts[0]);
+
+  check_following(ip);
+}
+
 TEST(api_assembler, nop)
 {
   test_assemble_noopd("((nop)(nop))", SCM_OPCODE_NOP);
@@ -311,20 +336,23 @@ TEST(api_assembler, immval)
 
 TEST(api_assembler, label_jmp)
 {
-  test_assemble_si("((label lbl)(jmp lbl)(nop))",
-                   SCM_OPCODE_JMP, -(int)SCM_INST_SZ_JMP);
+  test_assemble_iof("((label lbl)(jmp lbl)(nop))",
+                    SCM_OPCODE_JMP, -(int)SCM_INST_SZ_JMP,
+                    0);
 }
 
 TEST(api_assembler, label_jmpt)
 {
-  test_assemble_si("((label lbl)(jmpt lbl)(nop))",
-                   SCM_OPCODE_JMPT, -(int)SCM_INST_SZ_JMPT);
+  test_assemble_iof("((label lbl)(jmpt lbl)(nop))",
+                    SCM_OPCODE_JMPT, -(int)SCM_INST_SZ_JMPT,
+                    0);
 }
 
 TEST(api_assembler, label_jmpf)
 {
-  test_assemble_si("((label lbl)(jmpf lbl)(nop))",
-                   SCM_OPCODE_JMPF, -(int)SCM_INST_SZ_JMPF);
+  test_assemble_iof("((label lbl)(jmpf lbl)(nop))",
+                    SCM_OPCODE_JMPF, -(int)SCM_INST_SZ_JMPF,
+                    0);
 }
 
 TEST(api_assembler, asm)

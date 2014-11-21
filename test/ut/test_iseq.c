@@ -214,6 +214,24 @@ TEST(iseq, iseq_push_inst_iof)
   TEST_ASSERT_EQUAL_INT(128, actual_opd);
 }
 
+TEST(iseq, iseq_push_dst)
+{
+  TEST_ASSERT_EQUAL_INT(0, scm_iseq_push_dst(iseq, 0));
+  TEST_ASSERT_EQUAL_INT(0, scm_iseq_dst(iseq, 0));
+}
+
+TEST(iseq, iseq_push_dst__sorted)
+{
+  ssize_t o;
+
+  o = scm_iseq_push_inst_noopd(iseq, SCM_OPCODE_NOP);
+  scm_iseq_push_dst(iseq, (size_t)o);
+  scm_iseq_push_dst(iseq, 0);
+
+  TEST_ASSERT_EQUAL_INT(0, scm_iseq_dst(iseq, 0));
+  TEST_ASSERT_EQUAL_INT(o, scm_iseq_dst(iseq, 1));
+}
+
 TEST(iseq, expand_sequence_buffer)
 {
   size_t sum;
@@ -238,6 +256,17 @@ TEST(iseq, expand_index_buffer)
   TEST_ASSERT_TRUE(SCM_ISEQ_OBJS_CAPACITY(iseq) > SCM_ISEQ_DEFAULT_OBJS_SIZE);
 }
 
+TEST(iseq, expand_dsts_buffer)
+{
+  for (size_t sum = 0;
+       sum < SCM_ISEQ_DEFAULT_DSTS_SIZE + SCM_INST_SZ_NOP;
+       sum += SCM_INST_SZ_NOP)
+    scm_iseq_push_inst_noopd(iseq, SCM_OPCODE_NOP);
 
+  for (size_t i = 0; i < SCM_ISEQ_DEFAULT_DSTS_SIZE; i++)
+    scm_iseq_push_dst(iseq, i);
 
+  scm_iseq_push_dst(iseq, SCM_ISEQ_DEFAULT_DSTS_SIZE);
 
+  TEST_ASSERT_TRUE(SCM_ISEQ_DSTS_CAPACITY(iseq) > SCM_ISEQ_DEFAULT_DSTS_SIZE);
+}

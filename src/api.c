@@ -7326,6 +7326,42 @@ scm_capi_iseq_push_inst(ScmObj iseq, scm_opcode_t op, ...)
 }
 
 int
+scm_capi_iseq_push_br_dst(ScmObj iseq, size_t offset)
+{
+  if (!scm_capi_iseq_p(iseq)) {
+    scm_capi_error("failed to push branch destination to ISeq: "
+                   "invalid argument", 1, iseq);
+    return -1;
+  }
+
+  return scm_iseq_push_dst(iseq, offset);
+}
+
+ssize_t
+scm_capi_iseq_nr_br_dst(ScmObj iseq)
+{
+  if (!scm_capi_iseq_p(iseq)) {
+    scm_capi_error("failed to get number of branch destinations from ISeq: "
+                   "invalid argument", 1, iseq);
+    return -1;
+  }
+
+  return (ssize_t)scm_iseq_nr_dst(iseq);
+}
+
+const size_t *
+scm_capi_iseq_br_dsts(ScmObj iseq)
+{
+  if (!scm_capi_iseq_p(iseq)) {
+    scm_capi_error("failed to get branch destination from ISeq: "
+                   "invalid argument", 1, iseq);
+    return NULL;
+  }
+
+  return scm_iseq_dsts(iseq);
+}
+
+int
 scm_capi_iseq_update_oprand_iof(ScmObj iseq, size_t offset, int iof)
 {
   int rslt;

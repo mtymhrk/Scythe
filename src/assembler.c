@@ -603,6 +603,9 @@ scm_asm_inst_label(ScmObj iseq, int opcode, ScmObj operator, ScmObj operands,
     return -1;
   }
 
+  rslt = scm_capi_iseq_push_br_dst(iseq, offset);
+  if (rslt < 0) return -1;
+
   rslt = scm_asm_reg_label_def(label_tbl, labels, arg, offset);
   return (rslt < 0) ?  -1 : (ssize_t)offset;
 }
