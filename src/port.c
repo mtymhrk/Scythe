@@ -1750,10 +1750,16 @@ scm_port_finalize(ScmObj port)
 {
   scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
 
-  if (SCM_PORT(port)->io != NULL) {
-    scm_port_close(port);
-    scm_io_end(SCM_PORT(port)->io);
+  if (SCM_PORT(port)->io == NULL) return;
+
+  if (!scm_port_closed_p(port)) {
+    if (scm_port_output_port_p(port))
+      scm_port_flush(port);
+    scm_io_close(SCM_PORT(port)->io);
   }
+
+  scm_io_end(SCM_PORT(port)->io);
+  SCM_PORT(port)->io = NULL;
 }
 
 ScmObj
@@ -2097,17 +2103,19 @@ scm_port_flush(ScmObj port)
 int
 scm_port_close(ScmObj port)
 {
-  int ret;
+  int rslt;
 
   scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
 
   if (scm_port_closed_p(port)) return 0;
 
-  if (scm_port_output_port_p(port))
-    scm_port_flush(port);
+  if (scm_port_output_port_p(port)) {
+    rslt = scm_port_flush(port);
+    if (rslt < 0) return -1;
+  }
 
-  ret = scm_io_close(SCM_PORT(port)->io);
-  if (ret < 0) return ret;
+  rslt = scm_io_close(SCM_PORT(port)->io);
+  if (rslt < 0) return -1;
 
   SCM_PORT(port)->closed_p = true;
   return 0;
