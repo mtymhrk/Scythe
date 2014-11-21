@@ -25,6 +25,7 @@
 #include "scythe/syntax.h"
 #include "scythe/iseq.h"
 #include "scythe/module.h"
+#include "scythe/marshal.h"
 #include "scythe/assembler.h"
 #include "scythe/compiler.h"
 #include "scythe/exception.h"
@@ -8479,6 +8480,107 @@ scm_capi_format_cstr(const char *fmt, ...)
   va_end(arg);
 
   return ret;
+}
+
+
+/*******************************************************************/
+/*  Marshal/Unmarshal                                              */
+/*******************************************************************/
+
+extern inline bool
+scm_capi_marshal_p(ScmObj obj)
+{
+  return scm_obj_type_p(obj, &SCM_MARSHAL_TYPE_INFO);
+}
+
+ScmObj
+scm_api_make_marshal(void)
+{
+  return scm_marshal_new(SCM_MEM_HEAP);
+}
+
+int
+scm_capi_marshal_push(ScmObj marshal, ScmObj obj)
+{
+  if (!scm_capi_marshal_p(marshal)) {
+    scm_capi_error("failed to marshal object: "
+                   "marshaling object required, but got", 1, marshal);
+    return -1;
+  }
+  else if (scm_marshal_terminated_p(marshal)) {
+    scm_capi_error("failed to marshal object: "
+                   "marshaling object has already terminated", 1, marshal);
+    return -1;
+  }
+  else if (scm_obj_null_p(obj)) {
+    scm_capi_error("failed to marshal object: invalid argument", 1, obj);
+    return -1;
+  }
+
+  return scm_marshal_push_obj(marshal, obj);
+}
+
+void *
+scm_capi_marshal_terminate(ScmObj marshal, size_t *size)
+{
+  if (!scm_capi_marshal_p(marshal)) {
+    scm_capi_error("failed to marshal object: "
+                   "marshaling object required, but got", 1, marshal);
+    return NULL;
+  }
+  else if (scm_marshal_terminated_p(marshal)) {
+    scm_capi_error("failed to marshal object: "
+                   "marshaling object has already terminated", 1, marshal);
+    return NULL;
+  }
+
+  return scm_marshal_terminate(marshal, size);
+}
+
+extern inline bool
+scm_capi_unmarshal_p(ScmObj obj)
+{
+  return scm_obj_type_p(obj, &SCM_UNMARSHAL_TYPE_INFO);
+}
+
+ScmObj
+scm_capi_make_unmarshal(const void *data)
+{
+  if (data == NULL) {
+    scm_capi_error("failed to make unmarshal: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_unmarshal_new(SCM_MEM_HEAP, data);
+}
+
+ScmObj
+scm_capi_unmarshal_ref(ScmObj unmarshal, size_t idx)
+{
+  if (!scm_capi_unmarshal_p(unmarshal)) {
+    scm_capi_error("failed to unmarshal object: "
+                   "unmarshaling object required, but got", 1, unmarshal);
+    return SCM_OBJ_NULL;
+  }
+  else if (idx >= scm_unmarshal_num_of_objs(unmarshal)) {
+    scm_capi_error("failed to unmarshal object: out of range", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_unmarshal_ref(unmarshal, idx);
+}
+
+void *
+scm_capi_marshal(size_t *size, ...)
+{
+  void *data;
+  va_list args;
+
+  va_start(args, size);
+  data = scm_marshal_va(size, args);
+  va_end(args);
+
+  return data;
 }
 
 

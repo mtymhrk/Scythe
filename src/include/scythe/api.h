@@ -727,6 +727,21 @@ int scm_capi_trampolining(ScmObj proc, ScmObj arg,
 
 
 /*******************************************************************/
+/*  Marshal/Unmarshal                                              */
+/*******************************************************************/
+
+bool scm_capi_marshal_p(ScmObj obj);
+ScmObj scm_api_make_marshal(void);
+int scm_capi_marshal_push(ScmObj marshal, ScmObj obj);
+void *scm_capi_marshal_terminate(ScmObj marshal, size_t *size);
+bool scm_capi_unmarshal_p(ScmObj obj);
+ScmObj scm_capi_make_unmarshal(const void *data);
+ScmObj scm_capi_unmarshal_ref(ScmObj unmarshal, size_t idx);
+
+void *scm_capi_marshal(size_t *size, ...);
+
+
+/*******************************************************************/
 /*  Exit                                                           */
 /*******************************************************************/
 
