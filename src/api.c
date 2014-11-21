@@ -1515,7 +1515,8 @@ scm_api_nan_P(ScmObj obj)
 }
 
 ScmObj
-scm_capi_make_number_from_literal(const char *literal, size_t size)
+scm_capi_make_number_from_literal(const void *literal, size_t size,
+                                  ScmEncoding *enc)
 {
   if (literal == NULL) {
     scm_capi_error("failed to make number: invalid literal", 0);
@@ -1526,7 +1527,10 @@ scm_capi_make_number_from_literal(const char *literal, size_t size)
     return SCM_OBJ_NULL;
   }
 
-  return scm_num_make_from_literal(literal, SCM_ENC_SRC);
+  if (enc == NULL)
+    enc = scm_capi_system_encoding();
+
+  return scm_num_make_from_literal(literal, enc);
 }
 
 ScmObj

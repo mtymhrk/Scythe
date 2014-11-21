@@ -259,7 +259,8 @@ ScmObj scm_api_infinite_P(ScmObj obj);
 bool scm_capi_nan_p(ScmObj obj);
 ScmObj scm_api_nan_P(ScmObj obj);
 
-ScmObj scm_capi_make_number_from_literal(const char *literal, size_t size);
+ScmObj scm_capi_make_number_from_literal(const void *literal, size_t size,
+                                         ScmEncoding *enc);
 ScmObj scm_capi_make_number_from_sword(scm_sword_t num);
 ScmObj scm_capi_make_number_from_size_t(size_t num);
 
