@@ -6204,6 +6204,40 @@ scm_api_read_string(ScmObj n, ScmObj port)
   return str;
 }
 
+ssize_t
+scm_capi_read_cbytes(void *buf, size_t size, ScmObj port)
+{
+  SCM_REFSTK_INIT_REG(&port);
+
+  if (scm_obj_null_p(port)) {
+    port = scm_default_input_port();
+    if (scm_obj_null_p(port)) return SCM_OBJ_NULL;
+  }
+
+  if (buf == NULL) {
+    scm_capi_error("read-bytevector: invalid argument", 0);
+    return -1;
+  }
+  else if (size > SSIZE_MAX) {
+    scm_capi_error("read-bytevector: invalid argument", 0);
+    return -1;
+  }
+  else if (!scm_capi_input_port_p(port)) {
+    scm_capi_error("read-bytevector: input-port required, but got", 1, port);
+    return -1;
+  }
+  else if (!scm_capi_binary_port_p(port)) {
+    scm_capi_error("read-bytevector: binary-port required, but got", 1, port);
+    return -1;
+  }
+  else if (scm_port_closed_p(port)) {
+    scm_capi_error("read-bytevector: input-port is closed", 1, port);
+    return -1;
+  }
+
+  return scm_port_read_bytes(port, buf, size);
+}
+
 
 /*******************************************************************/
 /*  Output                                                         */

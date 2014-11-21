@@ -540,6 +540,7 @@ ScmObj scm_api_read_line(ScmObj port);
 int scm_capi_char_ready(ScmObj port, bool *rslt);
 ScmObj scm_api_char_ready_P(ScmObj port);
 ScmObj scm_api_read_string(ScmObj n, ScmObj port);
+ssize_t scm_capi_read_cbytes(void *buf, size_t size, ScmObj port);
 
 
 /*******************************************************************/
