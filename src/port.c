@@ -2217,7 +2217,8 @@ scm_port_close(ScmObj port)
 ssize_t
 scm_port_read_bytes(ScmObj port, void *buf, size_t size)
 {
-  ssize_t nr;
+  ssize_t n;
+  size_t nr;
 
   scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
   scm_assert(buf != NULL);
@@ -2234,12 +2235,20 @@ scm_port_read_bytes(ScmObj port, void *buf, size_t size)
   if (size == 0)
     return 0;
 
-  nr = scm_port_read(port, buf, size);
+  for (nr = 0; nr < size; nr += (size_t)n) {
+    n = scm_port_read(port, buf, size);
+    if (n < 0)
+      return -1;
+    else if (n == 0)
+      break;
+    else if (SCM_PORT(port)->buf_mode == SCM_PORT_BUF_MODEST)
+      break;
+  }
 
   if (nr == 0)
     SCM_PORT(port)->eof_received_p = false;
 
-  return nr;
+  return (ssize_t)nr;
 }
 
 ssize_t
@@ -2304,6 +2313,15 @@ scm_port_read_line(ScmObj port, ScmIO *io)
   nr = 0;
 
   while (true) {
+    if (nr > 0 && SCM_PORT(port)->buf_mode == SCM_PORT_BUF_MODEST) {
+      bool ready_p;
+      int r = scm_port_char_ready(port, &ready_p);
+      if (r < 0)
+        return -1;
+      else if (!ready_p)
+        break;
+    }
+
     ret = scm_port_read_char_inter(port, &chr);
     if (ret < 0) return -1;
     else if (ret == 0) break;
@@ -2368,6 +2386,15 @@ scm_port_read_string(size_t n, ScmObj port, ScmIO *io)
     return 0;
 
   for (i = 0; i < n; i++) {
+    if (i > 0 && SCM_PORT(port)->buf_mode == SCM_PORT_BUF_MODEST) {
+      bool ready_p;
+      int r = scm_port_char_ready(port, &ready_p);
+      if (r < 0)
+        return -1;
+      else if (!ready_p)
+        break;
+    }
+
     ret = scm_port_read_char_inter(port, &chr);
     if (ret < 0) return -1;
     else if (ret == 0) break;
@@ -2466,10 +2493,15 @@ scm_port_peek_bytes(ScmObj port, void *buf, size_t size)
     return -1;
   }
 
-  if (size > SCM_PORT(port)->pb_used) {
+  while (size > SCM_PORT(port)->pb_used) {
     ssize_t ret =
       scm_port_read_into_pushback_buf(port, size - SCM_PORT(port)->pb_used);
-    if (ret < 0) return -1;
+    if (ret < 0)
+      return -1;
+    else if (ret == 0)
+      break;
+    else if (SCM_PORT(port)->buf_mode == SCM_PORT_BUF_MODEST)
+      break;
   }
 
   npeek = (size < SCM_PORT(port)->pb_used) ? size : SCM_PORT(port)->pb_used;
