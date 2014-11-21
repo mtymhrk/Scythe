@@ -503,25 +503,21 @@ scm_define_scythe_internal_compile_subr(ScmObj module)
   return 0;
 }
 
-#include "scythe/compiler_code.h"
+extern const unsigned char scm_compiler_data[];
 
 static int
 scm_define_scythe_internal_compile_closure(ScmObj mod)
 {
-  ScmObj port = SCM_OBJ_INIT, lst = SCM_OBJ_INIT, iseq = SCM_OBJ_INIT;
+  ScmObj unmarshal = SCM_OBJ_INIT, iseq = SCM_OBJ_INIT;
   int rslt;
 
   SCM_REFSTK_INIT_REG(&mod,
-                      &port, &lst, &iseq);
+                      &unmarshal, &iseq);
 
-  port = scm_capi_open_input_string_cstr(compiler_code,
-                                         SCM_ENC_NAME_SRC);
-  if (scm_obj_null_p(port)) return -1;
+  unmarshal = scm_capi_make_unmarshal(scm_compiler_data);
+  if (scm_obj_null_p(unmarshal)) return -1;
 
-  lst = scm_api_read(port);
-  if (scm_obj_null_p(lst)) return -1;
-
-  iseq = scm_api_assemble(lst, SCM_OBJ_NULL);
+  iseq = scm_capi_unmarshal_ref(unmarshal, 0);
   if (scm_obj_null_p(iseq)) return -1;
 
   rslt = scm_capi_load_iseq(iseq);
@@ -535,10 +531,6 @@ scm_load_module_func_scythe_internal_compile(ScmObj mod)
 {
   ScmObj name = SCM_OBJ_INIT;
   int rslt;
-
-  /* TODO: compile モジュールのロードが非常に重いので㷀然する
-   *       (compiler のコードのデシリアライズが重い)
-   */
 
   SCM_REFSTK_INIT_REG(&name, &mod);
 
@@ -581,25 +573,21 @@ scm_load_module_scythe_internal_compile(void)
 /*  (scythe internal repl)                                         */
 /*******************************************************************/
 
-#include "scythe/repl_code.h"
+extern const unsigned char scm_repl_data[];
 
 static int
 scm_define_scythe_internal_repl_closure(ScmObj mod)
 {
-  ScmObj port = SCM_OBJ_INIT, lst = SCM_OBJ_INIT, iseq = SCM_OBJ_INIT;
+  ScmObj unmarshal = SCM_OBJ_INIT, iseq = SCM_OBJ_INIT;
   int rslt;
 
   SCM_REFSTK_INIT_REG(&mod,
-                      &port, &lst, &iseq);
+                      &unmarshal, &iseq);
 
-  port = scm_capi_open_input_string_cstr(repl_code,
-                                         SCM_ENC_NAME_SRC);
-  if (scm_obj_null_p(port)) return -1;
+  unmarshal = scm_capi_make_unmarshal(scm_repl_data);
+  if (scm_obj_null_p(unmarshal)) return -1;
 
-  lst = scm_api_read(port);
-  if (scm_obj_null_p(lst)) return -1;
-
-  iseq = scm_api_assemble(lst, SCM_OBJ_NULL);
+  iseq = scm_capi_unmarshal_ref(unmarshal, 0);
   if (scm_obj_null_p(iseq)) return -1;
 
   rslt = scm_capi_load_iseq(iseq);

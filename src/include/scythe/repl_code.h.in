@@ -1,6 +1,0 @@
-#ifndef INCLUDE_REPL_CODE_H__
-#define INCLUDE_REPL_CODE_H__
-
-static const char *repl_code = <%= code %>;
-
-#endif  /*  INCLUDE_REPL_CODE_H__ */

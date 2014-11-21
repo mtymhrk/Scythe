@@ -8,7 +8,7 @@ set(scythe_lib_src memory.c object.c pair.c string.c symbol.c vector.c
                    procedure.c reference.c core_subr.c iseq.c chashtbl.c api.c
                    port.c parser.c assembler.c exception.c syntax.c compiler.c
                    module.c core_modules.c fixnum.c bignum.c number_parser.c
-                   marshal.c)
+                   marshal.c compiler_data.c repl_data.c)
 
 
 ##===============================================================

@@ -8852,11 +8852,47 @@ scm_capi_exec_cstr(const char *expr, ScmEvaluator *ev)
   return 0;
 }
 
+static int
+dump_marshal(const char *path, const char *ext,
+             const void *marshal, size_t size)
+{
+  FILE *fp = NULL;
+  char *str = NULL;
+  size_t path_len, ext_len, n;
+
+  path_len = strlen(path);
+  ext_len = (ext != NULL) ? strlen(ext) : 0;
+  str = scm_capi_malloc(path_len + ext_len + 1);
+  if (str == NULL) goto err;
+
+  memcpy(str, path, path_len);
+  memcpy(str + path_len, ext, ext_len);
+  str[path_len + ext_len] = '\0';
+
+  fp = fopen(str, "wb");
+  if (fp == NULL) goto err;
+
+  n = fwrite(marshal, 1, size, fp);
+  if (n < size) goto err;
+
+  fclose(fp);
+  scm_capi_free(str);
+  return 0;
+
+ err:
+  scm_capi_error("failed to dump marshale data", 0);
+  if (fp != NULL) fclose(fp);
+  if (str != NULL) scm_capi_free(str);
+  return -1;
+}
+
 int
 scm_capi_compile_file(const char *path, ScmEvaluator *ev)
 {
   ScmObj port = SCM_OBJ_INIT, str = SCM_OBJ_INIT, mod = SCM_OBJ_INIT;
   ScmObj proc = SCM_OBJ_INIT, args = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
+  void *marshal;
+  size_t size;
   int rslt;
 
   if (ev == NULL) return -1;
@@ -8898,7 +8934,14 @@ scm_capi_compile_file(const char *path, ScmEvaluator *ev)
     val = scm_capi_vector_ref(val, 0);
     if (scm_obj_null_p(val)) goto end;
 
-    scm_api_write(val, SCM_OBJ_NULL);
+    val = scm_api_assemble(val, SCM_OBJ_NULL);
+    if (scm_obj_null_p(val)) goto end;
+
+    marshal = scm_capi_marshal(&size, val, SCM_OBJ_NULL);
+    if (marshal == NULL) goto end;
+
+    dump_marshal("marshal.out", NULL, marshal, size);
+    scm_capi_free(marshal);
   }
 
  end:
