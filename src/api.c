@@ -5563,6 +5563,26 @@ scm_api_file_error_P(ScmObj obj)
 /*  Ports                                                          */
 /*******************************************************************/
 
+static ssize_t
+scm_port_path_str_to_cstr(ScmObj path, char *cstr)
+{
+  size_t s;
+  char *p;
+
+  /* TODO: `path' を外部エンーディングへ変換する */
+
+  s = scm_string_bytesize(path);
+  if (s >= PATH_MAX) {
+    scm_capi_error("too long pathname", 1, path);
+    return -1;
+  }
+
+  p = scm_capi_string_to_cstr(path, cstr, PATH_MAX);
+  if (p == NULL) return -1;
+
+  return (ssize_t)s;
+}
+
 extern inline bool
 scm_capi_port_p(ScmObj obj)
 {
@@ -5671,6 +5691,18 @@ scm_capi_open_input_fd(int fd, const char *enc)
 }
 
 ScmObj
+scm_capi_open_binary_input_fd(int fd)
+{
+  if (fd < 0) {
+    scm_capi_error("open-binary-input-fd: invalid file descriptor", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_port_open_fd(fd, "rb", SCM_PORT_BUF_DEFAULT,
+                          scm_capi_system_encoding(), NULL);
+}
+
+ScmObj
 scm_capi_open_output_fd(int fd, const char *enc)
 {
   char ext_enc_name[64];
@@ -5691,6 +5723,18 @@ scm_capi_open_output_fd(int fd, const char *enc)
 
   return scm_port_open_fd(fd, "w", SCM_PORT_BUF_DEFAULT,
                           scm_capi_system_encoding(), enc);
+}
+
+ScmObj
+scm_capi_open_binary_output_fd(int fd)
+{
+  if (fd < 0) {
+    scm_capi_error("open-binary-output-fd: invalid file descriptor", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_port_open_fd(fd, "wb", SCM_PORT_BUF_DEFAULT,
+                          scm_capi_system_encoding(), NULL);
 }
 
 ScmObj
@@ -5717,11 +5761,22 @@ scm_capi_open_input_file(const char *path, const char *enc)
 }
 
 ScmObj
+scm_capi_open_binary_input_file(const char *path)
+{
+  if (path == NULL) {
+    scm_capi_error("open-binary-input-file: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_port_open_file(path, "rb", SCM_PORT_BUF_DEFAULT,
+                            0, scm_capi_system_encoding(), NULL);
+}
+
+ScmObj
 scm_api_open_input_file(ScmObj path)
 {
   char ext_enc_name[64];
-  char path_str[PATH_MAX], *p;
-  size_t s;
+  char path_str[PATH_MAX];
   ssize_t r;
 
   if (!scm_capi_string_p(path)) {
@@ -5735,18 +5790,27 @@ scm_api_open_input_file(ScmObj path)
     return SCM_OBJ_NULL;
   }
 
-  /* TODO: `path' を外部エンーディングへ変換する */
+  r = scm_port_path_str_to_cstr(path, path_str);
+  if (r < 0) return SCM_OBJ_NULL;
 
-  s = scm_string_bytesize(path);
-  if (s >= PATH_MAX) {
-    scm_capi_error("open-input-file: too long pathname", 0);
+  return scm_capi_open_input_file(path_str, ext_enc_name);
+}
+
+ScmObj
+scm_api_open_binary_input_file(ScmObj path)
+{
+  char path_str[PATH_MAX];
+  ssize_t r;
+
+  if (!scm_capi_string_p(path)) {
+    scm_capi_error("open-binary-input-file: string required, but got", 1, path);
     return SCM_OBJ_NULL;
   }
 
-  p = scm_capi_string_to_cstr(path, path_str, sizeof(path_str));
-  if (p == NULL) return SCM_OBJ_NULL;
+  r = scm_port_path_str_to_cstr(path, path_str);
+  if (r < 0) return SCM_OBJ_NULL;
 
-  return scm_capi_open_input_file(path_str, ext_enc_name);
+  return scm_capi_open_binary_input_file(path_str);
 }
 
 ScmObj
@@ -5774,11 +5838,22 @@ scm_capi_open_output_file(const char *path, const char *enc)
 }
 
 ScmObj
+scm_capi_open_binary_output_file(const char *path)
+{
+  if (path == NULL) {
+    scm_capi_error("open-bianry-output-file: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_port_open_file(path, "wb", SCM_PORT_BUF_DEFAULT,
+                            0644, scm_capi_system_encoding(), NULL);
+}
+
+ScmObj
 scm_api_open_output_file(ScmObj path)
 {
   char ext_enc_name[64];
-  char path_str[PATH_MAX], *p;
-  size_t s;
+  char path_str[PATH_MAX];
   ssize_t r;
 
   if (!scm_capi_string_p(path)) {
@@ -5792,18 +5867,28 @@ scm_api_open_output_file(ScmObj path)
     return SCM_OBJ_NULL;
   }
 
-  /* TODO: `path' を外部エンーディングへ変換する */
+  r = scm_port_path_str_to_cstr(path, path_str);
+  if (r < 0) return SCM_OBJ_NULL;
 
-  s = scm_string_bytesize(path);
-  if (s >= PATH_MAX) {
-    scm_capi_error("open-output-file: too long pathname", 0);
+  return scm_capi_open_output_file(path_str, ext_enc_name);
+}
+
+ScmObj
+scm_api_open_binary_output_file(ScmObj path)
+{
+  char path_str[PATH_MAX];
+  ssize_t r;
+
+  if (!scm_capi_string_p(path)) {
+    scm_capi_error("open-binary-output-file: string required, but got",
+                   1, path);
     return SCM_OBJ_NULL;
   }
 
-  p = scm_capi_string_to_cstr(path, path_str, sizeof(path_str));
-  if (p == NULL) return SCM_OBJ_NULL;
+  r = scm_port_path_str_to_cstr(path, path_str);
+  if (r < 0) return SCM_OBJ_NULL;
 
-  return scm_capi_open_output_file(path_str, ext_enc_name);
+  return scm_capi_open_binary_output_file(path_str);
 }
 
 ScmObj
@@ -5935,6 +6020,65 @@ scm_api_get_output_string(ScmObj port)
   }
 
   return scm_capi_make_string_from_bin(p, (size_t)s, e);
+}
+
+ScmObj
+scm_capi_open_input_bytevector_cbytes(const void *bytes, size_t size)
+{
+  return scm_port_open_string(bytes, (bytes == NULL) ? 0 : size,
+                              "rb", scm_capi_system_encoding(), NULL);
+}
+
+ScmObj
+scm_api_open_input_bytevector(ScmObj vec)
+{
+  if (!scm_capi_bytevector_p(vec)) {
+    scm_capi_error("open-input-bytevector: bytevector required, but got", 1, vec);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_port_open_string(scm_bytevector_content(vec),
+                              scm_bytevector_length(vec),
+                              "rb",
+                              scm_capi_system_encoding(),
+                              NULL);
+}
+
+ScmObj
+scm_api_open_output_bytevector(void)
+{
+  return scm_port_open_string(NULL, 0, "wb", scm_capi_system_encoding(), NULL);
+}
+
+ScmObj
+scm_api_get_output_bytevector(ScmObj port)
+{
+  const void *p;
+  ssize_t s;
+
+  if (!scm_capi_output_port_p(port)) {
+    scm_capi_error("get-output-bytevector: "
+                   "output-port required, but got", 1, port);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_port_string_port_p(port)) {
+    scm_capi_error("get-output-bytevector: "
+                   "bytevector-port required, but got", 1, port);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_port_binary_port_p(port)) {
+    scm_capi_error("get-output-bytevector: "
+                   "binary-port required, but got", 1, port);
+    return SCM_OBJ_NULL;
+  }
+
+  p = scm_port_string_buffer(port);
+  if (p == NULL) return SCM_OBJ_NULL;
+
+  s = scm_port_string_buffer_length(port);
+  if (s < 0) return SCM_OBJ_NULL;
+
+  return scm_bytevector_new_cbyte(SCM_MEM_HEAP, p, (size_t)s);
 }
 
 off_t

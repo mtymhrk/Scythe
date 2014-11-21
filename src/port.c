@@ -1437,7 +1437,8 @@ scm_port_init_encode(ScmObj port)
 
   scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
 
-  if (SCM_PORT(port)->encoding[0] == '\0')
+  if (SCM_PORT(port)->encoding[0] == '\0'
+      && BIT_IS_SET(SCM_PORT(port)->attr, SCM_PORT_ATTR_BINARY))
     return 0;
 
   enc = scm_enc_find_enc(SCM_PORT(port)->encoding);
@@ -1748,11 +1749,17 @@ scm_port_analy_modestr(const char *mode,
     case 'x':
       o |= SCM_PORT_OFLG_EXCL;
       break;
+    case 'b':
+      a |= SCM_PORT_ATTR_BINARY;
+      break;
     default:
       scm_capi_error("unknown mode", 0);
       return -1;
     }
   }
+
+  if (!BIT_IS_SET(a, SCM_PORT_ATTR_BINARY))
+    a |= SCM_PORT_ATTR_TEXTUAL;
 
   if (attr != NULL) *attr |= a;
   if (oflg != NULL) *oflg |= o;
@@ -1878,7 +1885,7 @@ scm_port_open_fd(int fd, const char *mode, SCM_PORT_BUF_T buf_mode,
   scm_assert(mode != NULL);
   scm_assert(inn_enc != NULL);
 
-  attr = SCM_PORT_ATTR_TEXTUAL;
+  attr = 0;
 
   rslt = scm_port_analy_modestr(mode, &attr, NULL);
   if (rslt < 0) return SCM_OBJ_NULL;
@@ -1943,7 +1950,7 @@ scm_port_open_file(const char *path, const char *mode,
   scm_assert(mode != NULL);
   scm_assert(inn_enc != NULL);
 
-  attr = SCM_PORT_ATTR_TEXTUAL;
+  attr = 0;
   oflg = 0;
 
   rslt = scm_port_analy_modestr(mode, &attr, &oflg);
@@ -1965,7 +1972,7 @@ scm_port_open_string(const void *string, size_t size,
   scm_assert(mode != NULL);
   scm_assert(inn_enc != NULL);
 
-  attr = SCM_PORT_ATTR_TEXTUAL | SCM_PORT_ATTR_STRING;
+  attr = SCM_PORT_ATTR_STRING;
 
   rslt = scm_port_analy_modestr(mode, &attr, NULL);
   if (rslt < 0) return SCM_OBJ_NULL;
