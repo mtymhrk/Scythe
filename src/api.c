@@ -5867,6 +5867,17 @@ scm_api_get_output_string(ScmObj port)
 }
 
 off_t
+scm_capi_port_seek(ScmObj port, off_t offset, int whence)
+{
+  if (!scm_capi_port_p(port)) {
+    scm_capi_error("port required, but got", 1, port);
+    return -1;
+  }
+
+  return scm_port_seek(port, offset, whence);
+}
+
+off_t
 scm_capi_port_pos(ScmObj port)
 {
   if (!scm_capi_port_p(port)) {

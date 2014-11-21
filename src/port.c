@@ -2533,10 +2533,10 @@ scm_port_write_char(ScmObj port, scm_char_t chr)
   return scm_port_write(port, chr.bytes, (size_t)s);
 }
 
-int
+off_t
 scm_port_seek(ScmObj port, off_t offset, int whence)
 {
-  off_t rslt;
+  off_t ret;
 
   scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
 
@@ -2552,8 +2552,11 @@ scm_port_seek(ScmObj port, off_t offset, int whence)
   if (scm_port_output_port_p(port))
     scm_port_flush(port);
 
-  rslt = scm_io_seek(SCM_PORT(port)->io, offset, whence);
-  if (rslt < 0) return (int)rslt;
+  if (whence == SEEK_CUR)
+    offset -= (off_t)SCM_PORT(port)->pb_used;
+
+  ret = scm_io_seek(SCM_PORT(port)->io, offset, whence);
+  if (ret < 0) return -1;
 
   if (scm_port_input_port_p(port)) {
     int r = scm_io_clear(SCM_PORT(port)->io);
@@ -2561,8 +2564,9 @@ scm_port_seek(ScmObj port, off_t offset, int whence)
   }
 
   SCM_PORT(port)->eof_received_p = false;
+  SCM_PORT(port)->pb_used = 0;
 
-  return 0;
+  return ret;
 }
 
 off_t
