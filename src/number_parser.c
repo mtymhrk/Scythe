@@ -18,12 +18,74 @@
 #define DIGIT_10_CHARS "0123456789"
 #define DIGIT_16_CHARS "0123456789aAbBcCdDeEfF"
 
-#define SHIFT_CHAR(port, chr, str, e)           \
-  do {                                          \
-    scm_capi_read_cchr(&(current), port);       \
-    EARY_PUSH(str, scm_char_t, current, e);     \
-  } while(0)
+typedef struct ScmNumParseItrRec {
+  ScmStrItr itr;
+  ScmObj port;
+  ScmEncoding *enc;
+} ScmNumParseItr;
 
+static void
+scm_num_itr_init(ScmNumParseItr *itr, ScmObj port,
+                 const char *str, ScmEncoding *enc)
+{
+  scm_assert(itr != NULL);
+  scm_assert((scm_obj_not_null_p(port) && str == NULL)
+             || (str != NULL && scm_obj_null_p(port)));
+  scm_assert(enc != NULL);
+
+  if (str != NULL)
+    scm_str_itr_begin(str, strlen(str), enc, &itr->itr);
+
+  itr->port = port;
+  itr->enc = enc;
+}
+
+static inline ScmEncoding *
+itr_enc(ScmNumParseItr *itr)
+{
+  scm_assert(itr != NULL);
+  return itr->enc;
+}
+
+static inline int
+peek_chr(ScmNumParseItr *itr, scm_char_t *chr)
+{
+  int w;
+
+  if (scm_obj_null_p(itr->port)) {
+    w = scm_str_itr_chr(&itr->itr, chr);
+    if (w < 0) {
+      scm_capi_error("failed to parse number literal: "
+                     "invalid byte sequence", 0);
+      return PARSE_RET_INTERNAL_ERR;
+    }
+  }
+  else {
+    w = (int)scm_capi_peek_cchr(chr, itr->port);
+  }
+
+  return w;
+}
+
+static inline int
+shift_chr(ScmNumParseItr *itr, scm_char_t *chr, EArray *str)
+{
+  int e;
+  if (scm_obj_null_p(itr->port)) {
+    scm_str_itr_next(&itr->itr);
+    if (scm_str_itr_err_p(&itr->itr)) {
+      scm_capi_error("failed to parse number literal: "
+                     "invalid byte sequence", 0);
+      return -1;
+    }
+  }
+  else {
+    ssize_t w = scm_capi_read_cchr(chr, itr->port);
+    if (w < 0) return -1;
+  }
+  EARY_PUSH(str, scm_char_t, *chr, e);
+  return e;
+}
 
 static inline bool
 chr_same_p(scm_char_t c1, char c2, bool c_sensitive, ScmEncoding *enc)
@@ -46,47 +108,47 @@ chr_find(const char *str, scm_char_t c, ScmEncoding *enc)
 
 
 static int
-scm_num_parse_prefix(ScmObj port, ScmEncoding *enc,
-                     EArray *str, ScmNumParseData *data)
+scm_num_parse_prefix(ScmNumParseItr *itr, EArray *str, ScmNumParseData *data)
 {
   const char * const radix_chars = "bBoOdDxX";
   const char * const exact_chars = "iIeE";
   scm_char_t current;
-  ssize_t width;
+  int width;
   const char *p;
   char radix, exact;
   int e;
 
-  scm_assert(scm_capi_input_port_p(port));
-  scm_assert(enc != NULL);
+  scm_assert(itr != NULL);
   scm_assert(str != NULL);
   scm_assert(data != NULL);
 
   radix = exact = '\0';
 
   while (radix == '\0' || exact == '\0') {
-    width = scm_capi_peek_cchr(&current, port);
+    width = peek_chr(itr, &current);
     if (width < 0) return PARSE_RET_INTERNAL_ERR;
     else if (width == 0) return PARSE_RET_INVALID;
 
-    if (!chr_same_p(current, '#', true, enc))
+    if (!chr_same_p(current, '#', true, itr_enc(itr)))
       break;
 
-    SHIFT_CHAR(port, current, str, e);
+    e = shift_chr(itr, &current, str);
     if (e < 0) return PARSE_RET_INTERNAL_ERR;
 
-    width = scm_capi_peek_cchr(&current, port);
+    width = peek_chr(itr, &current);
     if (width < 0) return PARSE_RET_INTERNAL_ERR;
     else if (width == 0) return PARSE_RET_INVALID;
 
-    if (radix == '\0' && (p = chr_find(radix_chars, current, enc)) != NULL)
+    if (radix == '\0' &&
+        (p = chr_find(radix_chars, current, itr_enc(itr))) != NULL)
       radix = tolower(*p);
-    else if (exact == '\0' && (p = chr_find(exact_chars, current, enc)) != NULL)
+    else if (exact == '\0' &&
+             (p = chr_find(exact_chars, current, itr_enc(itr))) != NULL)
       exact = tolower(*p);
     else
       return PARSE_RET_INVALID;
 
-    SHIFT_CHAR(port, current, str, e);
+    e = shift_chr(itr, &current, str);
     if (e < 0) return PARSE_RET_INTERNAL_ERR;
   }
 
@@ -97,46 +159,44 @@ scm_num_parse_prefix(ScmObj port, ScmEncoding *enc,
 }
 
 static int
-scm_num_parse_suffix(ScmObj port, ScmEncoding *enc,
-                     EArray *str, ScmNumParseRealData *data)
+scm_num_parse_suffix(ScmNumParseItr *itr, EArray *str, ScmNumParseRealData *data)
 {
   scm_char_t current;
-  ssize_t width;
+  int width;
   int e;
 
-  scm_assert(scm_capi_input_port_p(port));
-  scm_assert(enc != NULL);
+  scm_assert(itr != NULL);
   scm_assert(str != NULL);
   scm_assert(data != NULL);
 
-  width = scm_capi_peek_cchr(&current, port);
+  width = peek_chr(itr, &current);
   if (width < 0) return PARSE_RET_INTERNAL_ERR;
   else if (width == 0) return PARSE_RET_INVALID;
 
-  if (chr_find(DIGIT_10_CHARS, current, enc) != NULL) {
-    SHIFT_CHAR(port, current, str, e);
+  if (chr_find(DIGIT_10_CHARS, current, itr_enc(itr)) != NULL) {
+    e = shift_chr(itr, &current, str);
     if (e < 0) return PARSE_RET_INTERNAL_ERR;
 
     data->rat.num.s_sign = '+';
     data->rat.num.s_head = EARY_SIZE(str) - 1;
   }
   else {
-    if (chr_same_p(current, '+', true, enc))
+    if (chr_same_p(current, '+', true, itr_enc(itr)))
       data->rat.num.s_sign = '+';
-    else if (chr_same_p(current, '-', true, enc))
+    else if (chr_same_p(current, '-', true, itr_enc(itr)))
       data->rat.num.s_sign = '+';
     else
       return PARSE_RET_INVALID;
 
-    SHIFT_CHAR(port, current, str, e);
+    e = shift_chr(itr, &current, str);
     if (e < 0) return PARSE_RET_INTERNAL_ERR;
 
-    width = scm_capi_peek_cchr(&current, port);
+    width = peek_chr(itr, &current);
     if (width < 0) return PARSE_RET_INTERNAL_ERR;
     else if (width == 0) return PARSE_RET_INVALID;
 
-    if (chr_find(DIGIT_10_CHARS, current, enc) != NULL) {
-      SHIFT_CHAR(port, current, str, e);
+    if (chr_find(DIGIT_10_CHARS, current, itr_enc(itr)) != NULL) {
+      e = shift_chr(itr, &current, str);
       if (e < 0) return PARSE_RET_INTERNAL_ERR;
 
       data->rat.num.s_head = EARY_SIZE(str) - 1;
@@ -147,55 +207,55 @@ scm_num_parse_suffix(ScmObj port, ScmEncoding *enc,
   }
 
   while (true) {
-    width = scm_capi_peek_cchr(&current, port);
+    width = peek_chr(itr, &current);
     if (width < 0) return PARSE_RET_INTERNAL_ERR;
 
-    if (width == 0 || chr_find("iI@+-" DELIMITER, current, enc) != NULL) {
+    if (width == 0
+        || chr_find("iI@+-" DELIMITER, current, itr_enc(itr)) != NULL) {
       data->rat.num.s_len = EARY_SIZE(str) - data->rat.num.s_head;
       return 0;
     }
-    else if (chr_find(DIGIT_10_CHARS, current, enc) == NULL) {
+    else if (chr_find(DIGIT_10_CHARS, current, itr_enc(itr)) == NULL) {
       return PARSE_RET_INVALID;
     }
 
-    SHIFT_CHAR(port, current, str, e);
+    e = shift_chr(itr, &current, str);
     if (e < 0) return PARSE_RET_INTERNAL_ERR;
   }
 }
 
 static int
-scm_num_parse_decimal(ScmObj port, ScmEncoding *enc,
-                      EArray *str, ScmNumParseRealData *data)
+scm_num_parse_decimal(ScmNumParseItr *itr, EArray *str, ScmNumParseRealData *data)
 {
   scm_char_t current;
-  ssize_t width;
+  int width;
   int e;
 
-  scm_assert(scm_capi_input_port_p(port));
-  scm_assert(enc != NULL);
+  scm_assert(itr != NULL);
   scm_assert(str != NULL);
   scm_assert(data != NULL);
 
-  width = scm_capi_peek_cchr(&current, port);
+  width = peek_chr(itr, &current);
   if (width < 0) return PARSE_RET_INTERNAL_ERR;
 
-  if (width == 0 || chr_find(DIGIT_10_CHARS, current, enc) == NULL)
+  if (width == 0 || chr_find(DIGIT_10_CHARS, current, itr_enc(itr)) == NULL)
     return PARSE_RET_INVALID;
 
-  SHIFT_CHAR(port, current, str, e);
+  e = shift_chr(itr, &current, str);
   if (e < 0) return PARSE_RET_INTERNAL_ERR;
 
   while (true) {
-    width = scm_capi_peek_cchr(&current, port);
+    width = peek_chr(itr, &current);
     if (width < 0) return PARSE_RET_INTERNAL_ERR;
 
-    if (width == 0 || chr_find("iI@+-" DELIMITER, current, enc) != NULL) {
+    if (width == 0
+        || chr_find("iI@+-" DELIMITER, current, itr_enc(itr)) != NULL) {
       data->rat.num.len = EARY_SIZE(str) - data->rat.num.head;
       data->rat.num.s_sign = '\0';
       return 0;
     }
-    else if (chr_same_p(current, 'e', true, enc)) {
-      SHIFT_CHAR(port, current, str, e);
+    else if (chr_same_p(current, 'e', true, itr_enc(itr))) {
+      e = shift_chr(itr, &current, str);
       if (e < 0) return PARSE_RET_INTERNAL_ERR;
 
       data->rat.num.len = EARY_SIZE(str) - data->rat.num.head - 1;
@@ -203,28 +263,27 @@ scm_num_parse_decimal(ScmObj port, ScmEncoding *enc,
       if (data->rat.num.len == 1)
         return PARSE_RET_INVALID;
 
-      return scm_num_parse_suffix(port, enc, str, data);
+      return scm_num_parse_suffix(itr, str, data);
     }
-    else if (chr_find(DIGIT_10_CHARS, current, enc) == NULL) {
+    else if (chr_find(DIGIT_10_CHARS, current, itr_enc(itr)) == NULL) {
       return PARSE_RET_INVALID;
     }
 
-    SHIFT_CHAR(port, current, str, e);
+    e = shift_chr(itr, &current, str);
     if (e < 0) return PARSE_RET_INTERNAL_ERR;
   }
 }
 
 static int
-scm_num_parse_denominator(ScmObj port, ScmEncoding *enc, char radix,
+scm_num_parse_denominator(ScmNumParseItr *itr, char radix,
                           EArray *str, ScmNumParseRealData *data)
 {
   const char *digit_chars;
   scm_char_t current;
-  ssize_t width;
+  int width;
   int e;
 
-  scm_assert(scm_capi_input_port_p(port));
-  scm_assert(enc != NULL);
+  scm_assert(itr != NULL);
   scm_assert(str != NULL);
   scm_assert(data != NULL);
 
@@ -236,12 +295,12 @@ scm_num_parse_denominator(ScmObj port, ScmEncoding *enc, char radix,
   default: scm_assert(false); break; /* must not happen */
   }
 
-  width = scm_capi_peek_cchr(&current, port);
+  width = peek_chr(itr, &current);
   if (width < 0) return PARSE_RET_INTERNAL_ERR;
   else if (width == 0) return PARSE_RET_INVALID;
 
-  if (chr_find(digit_chars, current, enc) != NULL) {
-    SHIFT_CHAR(port, current, str, e);
+  if (chr_find(digit_chars, current, itr_enc(itr)) != NULL) {
+    e = shift_chr(itr, &current, str);
     if (e < 0) return PARSE_RET_INTERNAL_ERR;
 
     data->rat.den.head = EARY_SIZE(str) - 1;
@@ -251,34 +310,34 @@ scm_num_parse_denominator(ScmObj port, ScmEncoding *enc, char radix,
   }
 
   while (true) {
-    width = scm_capi_peek_cchr(&current, port);
+    width = peek_chr(itr, &current);
     if (width < 0) return PARSE_RET_INTERNAL_ERR;
 
-    if (width == 0 || chr_find("iI@+-" DELIMITER, current, enc) != NULL) {
+    if (width == 0
+        || chr_find("iI@+-" DELIMITER, current, itr_enc(itr)) != NULL) {
       data->rat.den.len = EARY_SIZE(str) - data->rat.den.head;
       data->rat.den.s_sign = '\0';
       return 0;
     }
-    else if (chr_find(digit_chars, current, enc) == NULL) {
+    else if (chr_find(digit_chars, current, itr_enc(itr)) == NULL) {
       return PARSE_RET_INVALID;
     }
 
-    SHIFT_CHAR(port, current, str, e);
+    e = shift_chr(itr, &current, str);
     if (e < 0) return PARSE_RET_INTERNAL_ERR;
   }
 }
 
 static int
-scm_num_parse_ureal(ScmObj port, ScmEncoding *enc, char radix,
+scm_num_parse_ureal(ScmNumParseItr *itr, char radix,
                     EArray *str,ScmNumParseRealData *data)
 {
   const char *digit_chars;
   scm_char_t current;
-  ssize_t width;
+  int width;
   int e;
 
-  scm_assert(scm_capi_input_port_p(port));
-  scm_assert(enc != NULL);
+  scm_assert(itr != NULL);
   scm_assert(str != NULL);
   scm_assert(data != NULL);
 
@@ -290,22 +349,22 @@ scm_num_parse_ureal(ScmObj port, ScmEncoding *enc, char radix,
   default: scm_assert(false); break; /* must not happen */
   }
 
-  width = scm_capi_peek_cchr(&current, port);
+  width = peek_chr(itr, &current);
   if (width < 0) return PARSE_RET_INTERNAL_ERR;
   else if (width == 0) return PARSE_RET_INVALID;
 
-  if (radix == 'd' && chr_same_p(current, '.', true, enc)) {
-    SHIFT_CHAR(port, current, str, e);
+  if (radix == 'd' && chr_same_p(current, '.', true, itr_enc(itr))) {
+    e = shift_chr(itr, &current, str);
     if (e < 0) return PARSE_RET_INTERNAL_ERR;
 
     data->type = 'i';
     data->rat.num.head = EARY_SIZE(str) - 1;
     data->rat.num.point = (ssize_t)EARY_SIZE(str) - 1;
 
-    return scm_num_parse_decimal(port, enc, str, data);
+    return scm_num_parse_decimal(itr, str, data);
   }
-  else if (chr_find(digit_chars, current, enc) != NULL) {
-    SHIFT_CHAR(port, current, str, e);
+  else if (chr_find(digit_chars, current, itr_enc(itr)) != NULL) {
+    e = shift_chr(itr, &current, str);
     if (e < 0) return PARSE_RET_INTERNAL_ERR;
 
     data->type = 'i';
@@ -316,184 +375,179 @@ scm_num_parse_ureal(ScmObj port, ScmEncoding *enc, char radix,
   }
 
   while (true) {
-    width = scm_capi_peek_cchr(&current, port);
+    width = peek_chr(itr, &current);
     if (width < 0) return PARSE_RET_INTERNAL_ERR;
 
-    if (width == 0 || chr_find("iI@+-" DELIMITER, current, enc) != NULL) {
+    if (width == 0
+        || chr_find("iI@+-" DELIMITER, current, itr_enc(itr)) != NULL) {
       data->rat.num.len = EARY_SIZE(str) - data->rat.num.head;
       data->rat.num.point = -1;
       data->rat.num.s_sign = '\0';
       return 0;
     }
-    else if (radix == 'd' && chr_same_p(current, '.', true, enc)) {
-      SHIFT_CHAR(port, current, str, e);
+    else if (radix == 'd' && chr_same_p(current, '.', true, itr_enc(itr))) {
+      e = shift_chr(itr, &current, str);
       if (e < 0) return PARSE_RET_INTERNAL_ERR;
 
       data->rat.num.point = (ssize_t)EARY_SIZE(str) - 1;
 
-      return scm_num_parse_decimal(port, enc, str, data);
+      return scm_num_parse_decimal(itr, str, data);
     }
-    else if (radix == 'd' && chr_same_p(current, 'e', true, enc)) {
-      SHIFT_CHAR(port, current, str, e);
+    else if (radix == 'd' && chr_same_p(current, 'e', true, itr_enc(itr))) {
+      e = shift_chr(itr, &current, str);
       if (e < 0) return PARSE_RET_INTERNAL_ERR;
 
       data->rat.num.len = EARY_SIZE(str) - data->rat.num.head - 1;
       data->rat.num.point = -1;
-      return scm_num_parse_suffix(port, enc, str, data);
+      return scm_num_parse_suffix(itr, str, data);
     }
-    else if (chr_same_p(current, '/', true, enc)) {
-      SHIFT_CHAR(port, current, str, e);
+    else if (chr_same_p(current, '/', true, itr_enc(itr))) {
+      e = shift_chr(itr, &current, str);
       if (e < 0) return PARSE_RET_INTERNAL_ERR;
 
       data->type = 'r';
       data->rat.num.len = EARY_SIZE(str) - data->rat.num.head - 1;
       data->rat.num.point = -1;
-      return scm_num_parse_denominator(port, enc, radix, str, data);
+      return scm_num_parse_denominator(itr, radix, str, data);
     }
-    else if (chr_find(digit_chars, current, enc) == NULL) {
+    else if (chr_find(digit_chars, current, itr_enc(itr)) == NULL) {
       return PARSE_RET_INVALID;
     }
 
-    SHIFT_CHAR(port, current, str, e);
+    e = shift_chr(itr, &current, str);
     if (e < 0) return PARSE_RET_INTERNAL_ERR;
   }
 }
 
 static int
-scm_num_parse_inf_img(ScmObj port, ScmEncoding *enc,
-                      EArray *str, ScmNumParseRealData *data)
+scm_num_parse_inf_img(ScmNumParseItr *itr, EArray *str, ScmNumParseRealData *data)
 {
   const char * const exp = "nf.0";
   scm_char_t current;
-  ssize_t width;
+  int width;
   int e, i;
 
-  scm_assert(scm_capi_input_port_p(port));
-  scm_assert(enc != NULL);
+  scm_assert(itr != NULL);
   scm_assert(str != NULL);
   scm_assert(data != NULL);
 
-  width = scm_capi_peek_cchr(&current, port);
+  width = peek_chr(itr, &current);
   if (width < 0) return PARSE_RET_INTERNAL_ERR;
 
-  if (width == 0 || chr_find(DELIMITER, current, enc) != NULL) {
+  if (width == 0 || chr_find(DELIMITER, current, itr_enc(itr)) != NULL) {
     data->type = '\0';
     return 0;
   }
 
   i = 0;
-  if (chr_same_p(current, exp[i], false, enc)) {
-    SHIFT_CHAR(port, current, str, e);
+  if (chr_same_p(current, exp[i], false, itr_enc(itr))) {
+    e = shift_chr(itr, &current, str);
     if (e < 0) return PARSE_RET_INTERNAL_ERR;
   }
 
   for (i = 1; exp[i] != '0'; i++) {
-    width = scm_capi_peek_cchr(&current, port);
+    width = peek_chr(itr, &current);
     if (width < 0) return PARSE_RET_INTERNAL_ERR;
     else if (width == 0) return PARSE_RET_INVALID;
 
-    if (!chr_same_p(current, exp[i], false, enc))
+    if (!chr_same_p(current, exp[i], false, itr_enc(itr)))
       return PARSE_RET_INVALID;
 
-    SHIFT_CHAR(port, current, str, e);
+    e = shift_chr(itr, &current, str);
     if (e < 0) return PARSE_RET_INTERNAL_ERR;
   }
 
   data->type = 'I';
 
-  width = scm_capi_peek_cchr(&current, port);
+  width = peek_chr(itr, &current);
   if (width < 0) return PARSE_RET_INTERNAL_ERR;
 
-  if (width == 0 || chr_find("iI@+-" DELIMITER, current, enc) != NULL)
+  if (width == 0 || chr_find("iI@+-" DELIMITER, current, itr_enc(itr)) != NULL)
     return 0;
   else
     return PARSE_RET_INVALID;
 }
 
 static int
-scm_num_parse_nan(ScmObj port, ScmEncoding *enc,
-                  EArray *str, ScmNumParseRealData *data)
+scm_num_parse_nan(ScmNumParseItr *itr, EArray *str, ScmNumParseRealData *data)
 {
   const char * const exp = "an.0";
   scm_char_t current;
-  ssize_t width;
+  int width;
   int e, i;
 
-  scm_assert(scm_capi_input_port_p(port));
-  scm_assert(enc != NULL);
+  scm_assert(itr != NULL);
   scm_assert(str != NULL);
   scm_assert(data != NULL);
 
   for (i = 0; exp[i] != '0'; i++) {
-    width = scm_capi_peek_cchr(&current, port);
+    width = peek_chr(itr, &current);
     if (width < 0) return PARSE_RET_INTERNAL_ERR;
     else if (width == 0) return PARSE_RET_INVALID;
 
-    if (!chr_same_p(current, exp[i], false, enc))
+    if (!chr_same_p(current, exp[i], false, itr_enc(itr)))
       return PARSE_RET_INVALID;
 
-    SHIFT_CHAR(port, current, str, e);
+    e = shift_chr(itr, &current, str);
     if (e < 0) return PARSE_RET_INTERNAL_ERR;
   }
 
   data->type = 'N';
 
-  width = scm_capi_peek_cchr(&current, port);
+  width = peek_chr(itr, &current);
   if (width < 0) return PARSE_RET_INTERNAL_ERR;
 
-  if (width == 0 || chr_find("iI@+-" DELIMITER, current, enc) != NULL)
+  if (width == 0 || chr_find("iI@+-" DELIMITER, current, itr_enc(itr)) != NULL)
     return 0;
   else
     return PARSE_RET_INVALID;
 }
 
 static int
-scm_num_parse_complex(ScmObj port, ScmEncoding *enc,
-                      EArray *str, ScmNumParseData *data)
+scm_num_parse_complex(ScmNumParseItr *itr, EArray *str, ScmNumParseData *data)
 {
   scm_char_t current;
-  ssize_t width;
+  int width;
   int e, r;
 
-  scm_assert(scm_capi_input_port_p(port));
-  scm_assert(enc != NULL);
+  scm_assert(itr != NULL);
   scm_assert(str != NULL);
   scm_assert(data != NULL);
 
-  width = scm_capi_peek_cchr(&current, port);
+  width = peek_chr(itr, &current);
   if (width < 0) return PARSE_RET_INTERNAL_ERR;
   else if (width == 0) return PARSE_RET_INVALID;
 
-  if (chr_same_p(current, '+', true, enc))
+  if (chr_same_p(current, '+', true, itr_enc(itr)))
     data->fir.sign = '+';
-  else if (chr_same_p(current, '-', true, enc))
+  else if (chr_same_p(current, '-', true, itr_enc(itr)))
     data->fir.sign = '-';
   else
     data->fir.sign = '\0';
 
   if (data->fir.sign != '\0') {
-    SHIFT_CHAR(port, current, str, e);
+    e = shift_chr(itr, &current, str);
     if (e < 0) return PARSE_RET_INTERNAL_ERR;
 
-    width = scm_capi_peek_cchr(&current, port);
+    width = peek_chr(itr, &current);
     if (width < 0) return PARSE_RET_INTERNAL_ERR;
     else if (width == 0) return PARSE_RET_INVALID;
   }
 
-  if (chr_same_p(current, 'i', false, enc)) {
-    SHIFT_CHAR(port, current, str, e);
+  if (chr_same_p(current, 'i', false, itr_enc(itr))) {
+    e = shift_chr(itr, &current, str);
     if (e < 0) return PARSE_RET_INTERNAL_ERR;
 
-    r = scm_num_parse_inf_img(port, enc, str, &data->fir);
+    r = scm_num_parse_inf_img(itr, str, &data->fir);
   }
-  else if (chr_same_p(current, 'n', false, enc)) {
-    SHIFT_CHAR(port, current, str, e);
+  else if (chr_same_p(current, 'n', false, itr_enc(itr))) {
+    e = shift_chr(itr, &current, str);
     if (e < 0) return PARSE_RET_INTERNAL_ERR;
 
-    r = scm_num_parse_nan(port, enc, str, &data->fir);
+    r = scm_num_parse_nan(itr, str, &data->fir);
   }
   else {
-    r = scm_num_parse_ureal(port, enc, data->radix, str, &data->fir);
+    r = scm_num_parse_ureal(itr, data->radix, str, &data->fir);
   }
 
   if (r < 0) return r;
@@ -505,16 +559,16 @@ scm_num_parse_complex(ScmObj port, ScmEncoding *enc,
     return 0;
   }
 
-  width = scm_capi_peek_cchr(&current, port);
+  width = peek_chr(itr, &current);
   if (width < 0) return PARSE_RET_INTERNAL_ERR;
 
-  if (width == 0 || chr_find(DELIMITER, current, enc) != NULL) {
+  if (width == 0 || chr_find(DELIMITER, current, itr_enc(itr)) != NULL) {
     data->complex = 'o';
     data->sec.sign = data->sec.type = '\0';
     return 0;
   }
-  else if (chr_same_p(current, 'i', false, enc)) {
-    SHIFT_CHAR(port, current, str, e);
+  else if (chr_same_p(current, 'i', false, itr_enc(itr))) {
+    e = shift_chr(itr, &current, str);
     if (e < 0) return PARSE_RET_INTERNAL_ERR;
 
     data->complex = 'O';
@@ -522,21 +576,21 @@ scm_num_parse_complex(ScmObj port, ScmEncoding *enc,
     data->fir.type = '\0';
     goto last;
   }
-  else if (chr_same_p(current, '@', true, enc)) {
-    SHIFT_CHAR(port, current, str, e);
+  else if (chr_same_p(current, '@', true, itr_enc(itr))) {
+    e = shift_chr(itr, &current, str);
     if (e < 0) return PARSE_RET_INTERNAL_ERR;
 
     data->complex = '@';
   }
-  else if (chr_same_p(current, '+', true, enc)) {
-    SHIFT_CHAR(port, current, str, e);
+  else if (chr_same_p(current, '+', true, itr_enc(itr))) {
+    e = shift_chr(itr, &current, str);
     if (e < 0) return PARSE_RET_INTERNAL_ERR;
 
     data->complex = 'O';
     data->sec.sign = '+';
   }
-  else if (chr_same_p(current, '-', true, enc)) {
-    SHIFT_CHAR(port, current, str, e);
+  else if (chr_same_p(current, '-', true, itr_enc(itr))) {
+    e = shift_chr(itr, &current, str);
     if (e < 0) return PARSE_RET_INTERNAL_ERR;
 
     data->complex = 'O';
@@ -547,41 +601,41 @@ scm_num_parse_complex(ScmObj port, ScmEncoding *enc,
   }
 
   if (data->complex == '@') {
-    width = scm_capi_peek_cchr(&current, port);
+    width = peek_chr(itr, &current);
     if (width < 0) return PARSE_RET_INTERNAL_ERR;
     else if (width == 0) return PARSE_RET_INVALID;
 
-    if (chr_same_p(current, '+', true, enc))
+    if (chr_same_p(current, '+', true, itr_enc(itr)))
       data->sec.sign = '+';
-    else if (chr_same_p(current, '-', true, enc))
+    else if (chr_same_p(current, '-', true, itr_enc(itr)))
       data->sec.sign = '-';
     else
       data->sec.sign = '\0';
   }
 
   if (data->sec.sign != '\0') {
-    SHIFT_CHAR(port, current, str, e);
+    e = shift_chr(itr, &current, str);
     if (e < 0) return PARSE_RET_INTERNAL_ERR;
 
-    width = scm_capi_peek_cchr(&current, port);
+    width = peek_chr(itr, &current);
     if (width < 0) return PARSE_RET_INTERNAL_ERR;
     else if (width == 0) return PARSE_RET_INVALID;
   }
 
-  if (chr_same_p(current, 'i', false, enc)) {
-    SHIFT_CHAR(port, current, str, e);
+  if (chr_same_p(current, 'i', false, itr_enc(itr))) {
+    e = shift_chr(itr, &current, str);
     if (e < 0) return PARSE_RET_INTERNAL_ERR;
 
-    r = scm_num_parse_inf_img(port, enc, str, &data->sec);
+    r = scm_num_parse_inf_img(itr, str, &data->sec);
   }
-  else if (chr_same_p(current, 'n', false, enc)) {
-    SHIFT_CHAR(port, current, str, e);
+  else if (chr_same_p(current, 'n', false, itr_enc(itr))) {
+    e = shift_chr(itr, &current, str);
     if (e < 0) return PARSE_RET_INTERNAL_ERR;
 
-    r = scm_num_parse_nan(port, enc, str, &data->sec);
+    r = scm_num_parse_nan(itr, str, &data->sec);
   }
   else {
-    r = scm_num_parse_ureal(port, enc, data->radix, str, &data->sec);
+    r = scm_num_parse_ureal(itr, data->radix, str, &data->sec);
   }
 
   if (r < 0) return r;
@@ -590,37 +644,33 @@ scm_num_parse_complex(ScmObj port, ScmEncoding *enc,
     return 0;
 
   if (data->complex == 'O') {
-    width = scm_capi_peek_cchr(&current, port);
+    width = peek_chr(itr, &current);
     if (width < 0) return PARSE_RET_INTERNAL_ERR;
 
-    if (width == 0 || !chr_same_p(current, 'i', false, enc))
+    if (width == 0 || !chr_same_p(current, 'i', false, itr_enc(itr)))
       return PARSE_RET_INVALID;
 
-    SHIFT_CHAR(port, current, str, e);
+    e = shift_chr(itr, &current, str);
     if (e < 0) return PARSE_RET_INTERNAL_ERR;
   }
 
  last:
-  width = scm_capi_peek_cchr(&current, port);
+  width = peek_chr(itr, &current);
   if (width < 0) return PARSE_RET_INTERNAL_ERR;
 
-  if (chr_find(DELIMITER, current, enc) != NULL)
+  if (chr_find(DELIMITER, current, itr_enc(itr)) != NULL)
     return 0;
   else
     return PARSE_RET_INVALID;
 }
 
-ScmNumParseData *
-scm_num_parse(ScmObj port, EArray *str, ScmNumParseData *data)
+static ScmNumParseData *
+scm_num_parse_internal(ScmNumParseItr *itr, EArray *str, ScmNumParseData *data)
 {
   ScmNumParseData *dat;
-  ScmEncoding *enc;
   int r;
 
-  scm_assert(scm_capi_input_port_p(port));
-
-  enc = scm_capi_port_internal_encoding(port);
-  if (enc == NULL) return NULL;
+  scm_assert(itr != NULL);
 
   dat = data;
   if (data == NULL) {
@@ -628,10 +678,10 @@ scm_num_parse(ScmObj port, EArray *str, ScmNumParseData *data)
     if (dat == NULL) return NULL;
   }
 
-  r = scm_num_parse_prefix(port, enc, str, dat);
+  r = scm_num_parse_prefix(itr, str, dat);
   if (r < 0) goto err;
 
-  r = scm_num_parse_complex(port, enc, str, dat);
+  r = scm_num_parse_complex(itr, str, dat);
   if (r < 0) goto err;
 
   dat->rslt = SCM_NUM_PARSE_SUCCESS;
@@ -652,6 +702,24 @@ scm_num_parse(ScmObj port, EArray *str, ScmNumParseData *data)
   return dat;
 }
 
+ScmNumParseData *
+scm_num_parse(ScmObj port, EArray *str, ScmNumParseData *data)
+{
+  ScmNumParseItr itr;
+  ScmEncoding *enc;
+
+  SCM_REFSTK_INIT_REG(&port,
+                      &itr.port);
+
+  scm_assert(scm_capi_input_port_p(port));
+
+  enc = scm_capi_port_internal_encoding(port);
+  if (enc == NULL) return NULL;
+
+  scm_num_itr_init(&itr, port, NULL, enc);
+
+  return scm_num_parse_internal(&itr, str, data);
+}
 
 
 
@@ -946,7 +1014,8 @@ scm_num_make_from_parsedata(const scm_char_t *str, ScmEncoding *enc,
 ScmObj
 scm_num_make_from_literal(const char *literal, ScmEncoding *enc)
 {
-  ScmObj port = SCM_OBJ_INIT, num = SCM_OBJ_INIT;
+  ScmObj num = SCM_OBJ_INIT;
+  ScmNumParseItr itr;
   ScmNumParseData data, *p;
   EArray str;
   int r;
@@ -954,26 +1023,22 @@ scm_num_make_from_literal(const char *literal, ScmEncoding *enc)
   scm_assert(literal != NULL);
   scm_assert(enc != NULL);
 
-  SCM_REFSTK_INIT_REG(&port, &num);
+  SCM_REFSTK_INIT_REG(&num);
 
-  port = scm_capi_open_input_string_cstr(literal, scm_enc_name(enc));
-  if (scm_obj_null_p(port)) return SCM_OBJ_NULL;
+  scm_num_itr_init(&itr, SCM_OBJ_NULL, literal, enc);
 
   r = eary_init(&str, sizeof(scm_char_t), 0);
   if (r < 0) return SCM_OBJ_NULL;
 
   num = SCM_OBJ_NULL;
 
-  p = scm_num_parse(port, &str, &data);
+  p = scm_num_parse_internal(&itr, &str, &data);
   if (p == NULL) goto ret;
 
   if (data.rslt != SCM_NUM_PARSE_SUCCESS) {
     scm_capi_error("failed to parse number literal: invalid format", 0);
     goto ret;
   }
-
-  enc = scm_capi_port_internal_encoding(port);
-  if (enc == NULL) goto ret;
 
   num = scm_num_make_from_parsedata(EARY_HEAD(&str), enc, &data);
 

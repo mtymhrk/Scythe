@@ -306,6 +306,17 @@ scm_str_itr_width(const ScmStrItr *iter)
   return scm_enc_char_width(iter->enc, iter->p, (size_t)iter->rest);
 }
 
+static inline int
+scm_str_itr_chr(const ScmStrItr *iter, scm_char_t *chr)
+{
+  int w;
+  assert(iter != NULL); assert(!scm_str_itr_err_p(iter));
+  assert(chr != NULL);
+  w = scm_enc_char_width(iter->enc, iter->p, (size_t)iter->rest);
+  memcpy(chr->bytes, iter->p, (size_t)w);
+  return w;
+}
+
 static inline void
 scm_str_itr_copy(const ScmStrItr *src, ScmStrItr *dst)
 {

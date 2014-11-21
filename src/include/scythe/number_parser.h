@@ -17,7 +17,6 @@ typedef struct ScmNumParseRatDataRec ScmNumParseRatData;
 typedef struct ScmNumParseRealDataRec ScmNumParseRealData;
 typedef struct ScmNumParseDataRec ScmNumParseData;
 
-
 struct ScmNumParseIntDecDataRec {
   size_t head;                  /* 先頭数字 index                           */
   size_t len;                   /* 数字文字数 (小数点含む、suffix 含まず)   */
