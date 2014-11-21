@@ -6,6 +6,11 @@
 #include "scythe/api.h"
 #include "scythe/vector.h"
 
+
+/*******************************************************************/
+/*  Vector                                                         */
+/*******************************************************************/
+
 ScmTypeInfo SCM_VECTOR_TYPE_INFO = {
   .name                = "vector",
   .flags               = SCM_TYPE_FLG_MMO,
@@ -340,4 +345,188 @@ scm_vector_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
   }
 
   return rslt;
+}
+
+
+/*******************************************************************/
+/*  ByteVector                                                     */
+/*******************************************************************/
+
+ScmTypeInfo SCM_BYTEVECTOR_TYPE_INFO = {
+  .name = "bytevector",
+  .flags = SCM_TYPE_FLG_MMO,
+  .obj_print_func = scm_bytevector_obj_print,
+  .obj_size = sizeof(ScmByteVector),
+  .gc_ini_func = scm_bytevector_gc_initialize,
+  .gc_fin_func = scm_bytevector_gc_finalize,
+  .gc_accept_func = NULL,
+  .gc_accept_func_weak = NULL,
+  .extra = NULL,
+};
+
+int
+scm_bytevector_initialize(ScmObj vec, size_t length, int fill)
+{
+  scm_assert_obj_type(vec, &SCM_BYTEVECTOR_TYPE_INFO);
+  scm_assert(length <= SSIZE_MAX);
+  scm_assert(fill < 256);
+
+  if (length > 0) {
+    SCM_BYTEVECTOR_ARRAY(vec) = scm_capi_malloc(length);
+    if (SCM_BYTEVECTOR_ARRAY(vec) == NULL) return -1;
+  }
+  else {
+    SCM_BYTEVECTOR_ARRAY(vec) = NULL;
+  }
+
+  SCM_BYTEVECTOR_LENGTH(vec) = length;
+
+  if (fill < 0)
+    fill = 0;
+
+  for (size_t i = 0; i < length; i++)
+    SCM_BYTEVECTOR_ARRAY(vec)[i] = (uint8_t)fill;
+
+  return 0;
+}
+
+int
+scm_bytevector_initialize_cbytes(ScmObj vec, const void *bytes, size_t length)
+{
+  scm_assert_obj_type(vec, &SCM_BYTEVECTOR_TYPE_INFO);
+  scm_assert(length == 0 || bytes != NULL);
+  scm_assert(length <= SSIZE_MAX);
+
+  if (length > 0) {
+    SCM_BYTEVECTOR_ARRAY(vec) = scm_capi_malloc(length);
+    if (SCM_BYTEVECTOR_ARRAY(vec) == NULL) return -1;
+
+    memcpy(SCM_BYTEVECTOR_ARRAY(vec), bytes, length);
+  }
+  else {
+    SCM_BYTEVECTOR_ARRAY(vec) = NULL;
+  }
+
+  SCM_BYTEVECTOR_LENGTH(vec) = length;
+
+  return 0;
+}
+
+void
+scm_bytevector_finalize(ScmObj vec)
+{
+  scm_assert_obj_type(vec, &SCM_BYTEVECTOR_TYPE_INFO);
+
+  if (SCM_BYTEVECTOR_ARRAY(vec) == NULL)
+    return;
+
+  scm_capi_free(SCM_BYTEVECTOR_ARRAY(vec));
+  SCM_BYTEVECTOR_ARRAY(vec) = NULL;
+  SCM_BYTEVECTOR_LENGTH(vec) = 0;
+}
+
+ScmObj
+scm_bytevector_new(SCM_MEM_TYPE_T mtype, size_t length, int fill)
+{
+  ScmObj vec = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&vec);
+
+  scm_assert(length <= SSIZE_MAX);
+  scm_assert(fill < 256);
+
+  vec = scm_capi_mem_alloc(&SCM_BYTEVECTOR_TYPE_INFO, 0, mtype);
+  if (scm_obj_null_p(vec)) return SCM_OBJ_NULL;
+
+  if (scm_bytevector_initialize(vec, length, fill) < 0)
+    return SCM_OBJ_NULL;
+
+  return vec;
+}
+
+ScmObj
+scm_bytevector_new_cbyte(SCM_MEM_TYPE_T mtype, const void *bytes, size_t length)
+{
+  ScmObj vec = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&vec);
+
+  scm_assert(length == 0 || bytes != NULL);
+  scm_assert(length <= SSIZE_MAX);
+
+  vec = scm_capi_mem_alloc(&SCM_BYTEVECTOR_TYPE_INFO, 0, mtype);
+  if (scm_obj_null_p(vec)) return SCM_OBJ_NULL;
+
+  if (scm_bytevector_initialize_cbytes(vec, bytes, length) < 0)
+    return SCM_OBJ_NULL;
+
+  return vec;
+}
+
+int
+scm_bytevector_cmp(ScmObj v1, ScmObj v2)
+{
+  size_t len;
+  int cmp;
+
+  scm_assert_obj_type(v1, &SCM_BYTEVECTOR_TYPE_INFO);
+  scm_assert_obj_type(v2, &SCM_BYTEVECTOR_TYPE_INFO);
+
+  if (SCM_BYTEVECTOR_LENGTH(v1) == SCM_BYTEVECTOR_LENGTH(v2))
+    return memcmp(SCM_BYTEVECTOR_ARRAY(v1), SCM_BYTEVECTOR_ARRAY(v2),
+                  SCM_BYTEVECTOR_LENGTH(v1));
+
+  len = ((SCM_BYTEVECTOR_LENGTH(v1) < SCM_BYTEVECTOR_LENGTH(v2)) ?
+         SCM_BYTEVECTOR_LENGTH(v1) : SCM_BYTEVECTOR_LENGTH(v2));
+  cmp = memcmp(SCM_BYTEVECTOR_ARRAY(v1), SCM_BYTEVECTOR_ARRAY(v2), len);
+  if (cmp == 0)
+    return ((SCM_BYTEVECTOR_LENGTH(v1) < SCM_BYTEVECTOR_LENGTH(v2)) ? -1 : 1);
+  else
+    return cmp;
+}
+
+int
+scm_bytevector_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
+{
+  int r;
+
+  SCM_REFSTK_INIT_REG(&obj, &port);
+
+  scm_assert_obj_type(obj, &SCM_BYTEVECTOR_TYPE_INFO);
+
+  r = scm_capi_write_cstr("#u8(", SCM_ENC_SRC, port);
+  if (r < 0) return -1;
+
+  if (SCM_BYTEVECTOR_LENGTH(obj) > 0) {
+    char str[8];
+    size_t idx;
+    for (idx = 0; idx < SCM_BYTEVECTOR_LENGTH(obj) - 1; idx++) {
+      snprintf(str, sizeof(str), "%d ", SCM_BYTEVECTOR_ARRAY(obj)[idx]);
+
+      r = scm_capi_write_cstr(str, SCM_ENC_SRC, port);
+      if (r < 0) return -1;
+    }
+
+    snprintf(str, sizeof(str), "%d", SCM_BYTEVECTOR_ARRAY(obj)[idx]);
+  }
+
+  r = scm_capi_write_cstr(")", SCM_ENC_SRC, port);
+  if (r < 0) return -1;
+
+  return 0;
+}
+
+void
+scm_bytevector_gc_initialize(ScmObj obj, ScmObj mem)
+{
+  scm_assert_obj_type(obj, &SCM_BYTEVECTOR_TYPE_INFO);
+
+  SCM_BYTEVECTOR_ARRAY(obj) = NULL;
+  SCM_BYTEVECTOR_LENGTH(obj) = 0;
+}
+
+void
+scm_bytevector_gc_finalize(ScmObj obj)
+{
+  scm_bytevector_finalize(obj);
 }

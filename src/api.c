@@ -353,6 +353,9 @@ scm_capi_equal_aux(ScmObj obj1, ScmObj obj2,
       r = scm_capi_string_eq(obj1, obj2, &cmp);
       if (r < 0) return -1;
     }
+    else if (scm_capi_bytevector_p(obj1)) {
+      cmp = (scm_bytevector_cmp(obj1, obj2) == 0) ? true : false;
+    }
     else if (scm_capi_pair_p(obj1)) {
       elm1 = scm_api_car(obj1);
       if (scm_obj_null_p(elm1)) return -1;
@@ -5213,6 +5216,74 @@ scm_capi_vector_push(ScmObj vec, ScmObj obj)
   }
 
   return scm_vector_push(vec, obj);
+}
+
+
+/*******************************************************************/
+/*  Bytevectors                                                    */
+/*******************************************************************/
+
+bool
+scm_capi_bytevector_p(ScmObj obj)
+{
+  return scm_obj_type_p(obj, &SCM_BYTEVECTOR_TYPE_INFO) ? true : false;
+}
+
+ScmObj
+scm_api_bytevector_P(ScmObj obj)
+{
+  return scm_capi_bytevector_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+}
+
+ScmObj
+scm_capi_make_bytevector_from_cv(const void *bytes, size_t length)
+{
+  if (bytes == NULL && length > 0) {
+    scm_capi_error("failed to make bytevector: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (length > SSIZE_MAX) {
+    scm_capi_error("failed to make bytevector: too large", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_bytevector_new_cbyte(SCM_MEM_HEAP, bytes, length);
+}
+
+ssize_t
+scm_capi_bytevector_length(ScmObj vec)
+{
+  if (!scm_capi_bytevector_p(vec)) {
+    scm_capi_error("bytevector-length: bytevector required, but got", vec);
+    return -1;
+  }
+
+  return (ssize_t)scm_bytevector_length(vec);
+}
+
+void *
+scm_capi_bytevector_to_cv(ScmObj vec, void *buf, size_t size)
+{
+  size_t n;
+
+  if (!scm_capi_bytevector_p(vec)) {
+    scm_capi_error("failed to get byte sequence from bytevector: "
+                   "invalid argument", 0);
+    return NULL;
+  }
+
+  n = scm_bytevector_length(vec);
+  if (buf == NULL) {
+    buf = scm_capi_malloc(n);
+    if (buf == NULL) return NULL;
+  }
+  else if (size < n) {
+    n = size;
+  }
+
+  memcpy(buf, scm_bytevector_content(vec), n);
+
+  return buf;
 }
 
 

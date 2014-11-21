@@ -1,14 +1,23 @@
 #ifndef INCLUDE_VECTOR_H__
 #define INCLUDE_VECTOR_H__
 
+#include <stdint.h>
 #include <stdbool.h>
+#include <string.h>
 
 typedef struct ScmVectorRec ScmVector;
+typedef struct ScmByteVectorRec ScmByteVector;
 
 #define SCM_VECTOR(obj) ((ScmVector *)(obj))
+#define SCM_BYTEVECTOR(obj) ((ScmByteVector *)(obj))
 
 #include "scythe/object.h"
 #include "scythe/api_type.h"
+
+
+/*******************************************************************/
+/*  Vector                                                         */
+/*******************************************************************/
 
 extern ScmTypeInfo SCM_VECTOR_TYPE_INFO;
 
@@ -39,5 +48,49 @@ int scm_vector_obj_print(ScmObj obj, ScmObj port, bool ext_rep);
 void scm_vector_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_vector_gc_finalize(ScmObj obj);
 int scm_vector_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
+
+
+/*******************************************************************/
+/*  ByteVector                                                     */
+/*******************************************************************/
+
+extern ScmTypeInfo SCM_BYTEVECTOR_TYPE_INFO;
+
+struct ScmByteVectorRec {
+  ScmObjHeader header;
+  uint8_t *array;
+  size_t length;
+};
+
+#define SCM_BYTEVECTOR_ARRAY(obj) (SCM_BYTEVECTOR(obj)->array)
+#define SCM_BYTEVECTOR_LENGTH(obj) (SCM_BYTEVECTOR(obj)->length)
+
+int scm_bytevector_initialize(ScmObj vec, size_t length, int fill);
+int scm_bytevector_initialize_cbytes(ScmObj vec,
+                                     const void *bytes, size_t length);
+void scm_bytevector_finalize(ScmObj vec);
+ScmObj scm_bytevector_new(SCM_MEM_TYPE_T mtype, size_t length, int fill);
+ScmObj scm_bytevector_new_cbyte(SCM_MEM_TYPE_T mtype,
+                                const void *bytes, size_t length);
+int scm_bytevector_cmp(ScmObj v1, ScmObj v2);
+int scm_bytevector_obj_print(ScmObj obj, ScmObj port, bool ext_rep);
+void scm_bytevector_gc_initialize(ScmObj obj, ScmObj mem);
+void scm_bytevector_gc_finalize(ScmObj obj);
+
+static inline const void *
+scm_bytevector_content(ScmObj vec)
+{
+  scm_assert_obj_type(vec, &SCM_BYTEVECTOR_TYPE_INFO);
+
+  return SCM_BYTEVECTOR_ARRAY(vec);
+}
+
+static inline size_t
+scm_bytevector_length(ScmObj vec)
+{
+  scm_assert_obj_type(vec, &SCM_BYTEVECTOR_TYPE_INFO);
+
+  return SCM_BYTEVECTOR_LENGTH(vec);
+}
 
 #endif /* INCLUDE_VECTOR_H__ */
