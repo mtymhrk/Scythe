@@ -402,6 +402,10 @@ scm_capi_equal_aux(ScmObj obj1, ScmObj obj2,
         }
       }
     }
+    else if (scm_capi_iseq_p(obj1)) {
+      r = scm_iseq_eq(obj1, obj2, &cmp);
+      if (r < 0) return -1;
+    }
     else {
       cmp = false;
     }
@@ -7233,6 +7237,28 @@ scm_capi_iseq_length(ScmObj iseq)
   }
 
   return (ssize_t)scm_iseq_length(iseq);
+}
+
+int
+scm_capi_iseq_eq(ScmObj iseq1, ScmObj iseq2, bool *rslt)
+{
+  bool cmp;
+  int r;
+
+  if (!scm_capi_iseq_p(iseq1)) {
+    scm_capi_error("iseq=?: iseq required, but got", 1, iseq1);
+    return -1;
+  }
+  else if (!scm_capi_iseq_p(iseq2)) {
+    scm_capi_error("iseq=?: iseq required, but got", 1, iseq2);
+    return -1;
+  }
+
+  r = scm_iseq_eq(iseq1, iseq2, &cmp);
+  if (r < 0) return 0;
+
+  if (rslt != NULL) *rslt = cmp;
+  return 0;
 }
 
 ssize_t

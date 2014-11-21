@@ -9,6 +9,7 @@ TEST_GROUP(iseq);
 static ScmEvaluator *ev;
 static ScmRefStackInfo rsi;
 static ScmObj iseq;
+static ScmObj iseq2;
 
 TEST_SETUP(iseq)
 {
@@ -19,6 +20,10 @@ TEST_SETUP(iseq)
   iseq = SCM_OBJ_NULL;
   scm_capi_mem_register_extra_rfrn(SCM_REF_MAKE(iseq));
   iseq = scm_iseq_new(SCM_MEM_HEAP);
+
+  iseq2 = SCM_OBJ_NULL;
+  scm_capi_mem_register_extra_rfrn(SCM_REF_MAKE(iseq2));
+  iseq2 = scm_iseq_new(SCM_MEM_HEAP);
 }
 
 TEST_TEAR_DOWN(iseq)
@@ -269,4 +274,118 @@ TEST(iseq, expand_dsts_buffer)
   scm_iseq_push_dst(iseq, SCM_ISEQ_DEFAULT_DSTS_SIZE);
 
   TEST_ASSERT_TRUE(SCM_ISEQ_DSTS_CAPACITY(iseq) > SCM_ISEQ_DEFAULT_DSTS_SIZE);
+}
+
+static void
+test_iseq_eq__equal(ScmObj iseq1, ScmObj iseq2)
+{
+  bool actual_rslt;
+  TEST_ASSERT_EQUAL_INT(0, scm_iseq_eq(iseq, iseq2, &actual_rslt));
+  TEST_ASSERT_TRUE(actual_rslt);
+}
+
+static void
+test_iseq_eq__not_equal(ScmObj iseq1, ScmObj iseq2)
+{
+  bool actual_rslt;
+  TEST_ASSERT_EQUAL_INT(0, scm_iseq_eq(iseq, iseq2, &actual_rslt));
+  TEST_ASSERT_FALSE(actual_rslt);
+}
+
+TEST(iseq, iseq_eq__noopd__equal)
+{
+  scm_iseq_push_inst_noopd(iseq, SCM_OPCODE_PUSH);
+  scm_iseq_push_inst_noopd(iseq2, SCM_OPCODE_PUSH);
+  test_iseq_eq__equal(iseq, iseq2);
+}
+
+TEST(iseq, iseq_eq__noopd__not_equal)
+{
+  scm_iseq_push_inst_noopd(iseq, SCM_OPCODE_PUSH);
+  scm_iseq_push_inst_noopd(iseq2, SCM_OPCODE_NOP);
+  test_iseq_eq__not_equal(iseq, iseq2);
+}
+
+TEST(iseq, iseq_eq__obj__equal)
+{
+  scm_iseq_push_inst_obj(iseq, SCM_OPCODE_IMMVAL, SCM_NIL_OBJ);
+  scm_iseq_push_inst_obj(iseq2, SCM_OPCODE_IMMVAL, SCM_NIL_OBJ);
+  test_iseq_eq__equal(iseq, iseq2);
+}
+
+TEST(iseq, iseq_eq__obj__not_equal)
+{
+  scm_iseq_push_inst_obj(iseq, SCM_OPCODE_IMMVAL, SCM_NIL_OBJ);
+  scm_iseq_push_inst_obj(iseq2, SCM_OPCODE_IMMVAL, SCM_EOF_OBJ);
+  test_iseq_eq__not_equal(iseq, iseq2);
+}
+
+TEST(iseq, iseq_eq__obj_obj__equal)
+{
+  scm_iseq_push_inst_obj_obj(iseq, SCM_OPCODE_GREF, SCM_NIL_OBJ, SCM_EOF_OBJ);
+  scm_iseq_push_inst_obj_obj(iseq2, SCM_OPCODE_GREF, SCM_NIL_OBJ, SCM_EOF_OBJ);
+  test_iseq_eq__equal(iseq, iseq2);
+}
+
+TEST(iseq, iseq_eq__obj_obj__not_equal)
+{
+  scm_iseq_push_inst_obj_obj(iseq, SCM_OPCODE_GREF, SCM_NIL_OBJ, SCM_EOF_OBJ);
+  scm_iseq_push_inst_obj_obj(iseq2, SCM_OPCODE_GREF, SCM_NIL_OBJ, SCM_NIL_OBJ);
+  test_iseq_eq__not_equal(iseq, iseq2);
+}
+
+TEST(iseq, iseq_eq__si__equal)
+{
+  scm_iseq_push_inst_si(iseq, SCM_OPCODE_CALL, 1);
+  scm_iseq_push_inst_si(iseq2, SCM_OPCODE_CALL, 1);
+  test_iseq_eq__equal(iseq, iseq2);
+}
+
+TEST(iseq, iseq_eq__si__not_equal)
+{
+  scm_iseq_push_inst_si(iseq, SCM_OPCODE_CALL, 1);
+  scm_iseq_push_inst_si(iseq2, SCM_OPCODE_CALL, 10);
+  test_iseq_eq__not_equal(iseq, iseq2);
+}
+
+TEST(iseq, iseq_eq__si_si__equal)
+{
+  scm_iseq_push_inst_si_si(iseq, SCM_OPCODE_SREF, 1, 1);
+  scm_iseq_push_inst_si_si(iseq2, SCM_OPCODE_SREF, 1, 1);
+  test_iseq_eq__equal(iseq, iseq2);
+}
+
+TEST(iseq, iseq_eq__si_si__not_equal)
+{
+  scm_iseq_push_inst_si_si(iseq, SCM_OPCODE_SREF, 1, 1);
+  scm_iseq_push_inst_si_si(iseq2, SCM_OPCODE_SREF, 1, -20);
+  test_iseq_eq__not_equal(iseq, iseq2);
+}
+
+TEST(iseq, iseq_eq__si_si_obj__equal)
+{
+  scm_iseq_push_inst_si_si_obj(iseq, SCM_OPCODE_CLOSE, 1, 1, SCM_NIL_OBJ);
+  scm_iseq_push_inst_si_si_obj(iseq2, SCM_OPCODE_CLOSE, 1, 1, SCM_NIL_OBJ);
+  test_iseq_eq__equal(iseq, iseq2);
+}
+
+TEST(iseq, iseq_eq__si_si_obj__not_equal)
+{
+  scm_iseq_push_inst_si_si_obj(iseq, SCM_OPCODE_CLOSE, 1, 1, SCM_NIL_OBJ);
+  scm_iseq_push_inst_si_si_obj(iseq2, SCM_OPCODE_CLOSE, 1, 1, SCM_EOF_OBJ);
+  test_iseq_eq__not_equal(iseq, iseq2);
+}
+
+TEST(iseq, iseq_eq__iof__equal)
+{
+  scm_iseq_push_inst_iof(iseq, SCM_OPCODE_JMP, 1);
+  scm_iseq_push_inst_iof(iseq2, SCM_OPCODE_JMP, 1);
+  test_iseq_eq__equal(iseq, iseq2);
+}
+
+TEST(iseq, iseq_eq__iof__not_equal)
+{
+  scm_iseq_push_inst_iof(iseq, SCM_OPCODE_JMP, 1);
+  scm_iseq_push_inst_iof(iseq2, SCM_OPCODE_JMP, 100);
+  test_iseq_eq__not_equal(iseq, iseq2);
 }

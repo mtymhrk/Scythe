@@ -647,6 +647,7 @@ ScmObj scm_api_make_iseq(void);
 bool scm_capi_iseq_p(ScmObj obj);
 scm_byte_t *scm_capi_iseq_to_ip(ScmObj iseq);
 ssize_t scm_capi_iseq_length(ScmObj iseq);
+int scm_capi_iseq_eq(ScmObj iseq1, ScmObj iseq2, bool *rslt);
 ssize_t scm_capi_iseq_push_inst(ScmObj iseq, scm_opcode_t op, ...);
 int scm_capi_iseq_push_br_dst(ScmObj iseq, size_t offset);
 ssize_t scm_capi_iseq_nr_br_dst(ScmObj iseq);

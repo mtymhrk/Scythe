@@ -56,6 +56,7 @@ ssize_t scm_iseq_push_inst_iof(ScmObj iseq, scm_opcode_t op, int iof);
 int scm_iseq_update_opd_iof(ScmObj iseq, size_t idx, int iof);
 int scm_iseq_update_opd_obj(ScmObj iseq, size_t idx, ScmObj obj);
 int scm_iseq_push_dst(ScmObj iseq, size_t offset);
+int scm_iseq_eq(ScmObj iseq1, ScmObj iseq2, bool *rslt);
 void scm_iseq_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_iseq_gc_finalize(ScmObj obj);
 int scm_iseq_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
