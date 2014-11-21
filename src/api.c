@@ -6544,6 +6544,38 @@ scm_api_write_string(ScmObj str, ScmObj port, ScmObj start, ScmObj end)
   return SCM_UNDEF_OBJ;
 }
 
+int
+scm_capi_write_cbytes(const void *bytes, size_t size, ScmObj port)
+{
+  ssize_t rslt;
+
+  if (scm_obj_null_p(port)) {
+    port = scm_default_output_port();
+    if (scm_obj_null_p(port)) return -1;
+  }
+
+  if (!scm_capi_output_port_p(port)) {
+    scm_capi_error("write-cbytes: output-port required, but got", 1, port);
+    return -1;
+  }
+  else if (!scm_capi_binary_port_p(port)) {
+    scm_capi_error("write-cbytes: binary-port required, but got", 1, port);
+    return -1;
+  }
+  else if (scm_port_closed_p(port)) {
+    scm_capi_error("write-cbytes: port is closed", 1, port);
+    return -1;
+  }
+
+  if (bytes == NULL || size == 0)
+    return 0;
+
+  rslt = scm_port_write_bytes(port, bytes, size);
+  if (rslt < 0) return -1;
+
+  return 0;
+}
+
 ScmObj
 scm_api_flush_output_port(ScmObj port)
 {
