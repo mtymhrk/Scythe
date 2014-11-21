@@ -823,7 +823,7 @@ scm_mem_alloc_heap_mem_obj(ScmMem *mem, ScmTypeInfo *type, size_t size,
 
   cell = scm_mem_heap_alloc(mem->to_heap, size);
   if (cell == NULL)
-    return SCM_OBJ_NULL;
+    return 0;
 
   mem->alloc_cnt += scm_mem_heap_cell_size(cell);
   obj = scm_mem_cell_to_obj(cell);
