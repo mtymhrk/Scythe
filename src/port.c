@@ -44,6 +44,7 @@ scm_io_initialize(ScmIO *io,
                   ScmIOReadFunc read,
                   ScmIOWriteFunc write,
                   ScmIOSeekFunc seek,
+                  ScmIOPosFunc pos,
                   ScmIOCloseFunc close,
                   ScmIOReadyPFunc readyp,
                   ScmIOBuffModeFunc buf_mode,
@@ -58,6 +59,7 @@ scm_io_initialize(ScmIO *io,
   io->read_func = read;
   io->write_func = write;
   io->seek_func = seek;
+  io->pos_func = pos;
   io->close_func = close;
   io->ready_p_func = readyp;
   io->default_buf_mode_func = buf_mode;
@@ -102,6 +104,14 @@ scm_io_seek(ScmIO *io, off_t offset, int whence)
   scm_assert(io != NULL);
 
   return (io->seek_func != NULL) ? io->seek_func(io, offset, whence) : 0;
+}
+
+off_t
+scm_io_pos(ScmIO *io)
+{
+  scm_assert(io != NULL);
+
+  return (io->pos_func != NULL) ? io->pos_func(io) : 0;
 }
 
 int
@@ -174,6 +184,7 @@ scm_fileio_new(int fd)
                     (ScmIOReadFunc)scm_fileio_read,
                     (ScmIOWriteFunc)scm_fileio_write,
                     (ScmIOSeekFunc)scm_fileio_seek,
+                    (ScmIOPosFunc)scm_fileio_pos,
                     (ScmIOCloseFunc)scm_fileio_close,
                     (ScmIOReadyPFunc)scm_fileio_ready_p,
                     (ScmIOBuffModeFunc)scm_fileio_buffer_mode,
@@ -290,6 +301,23 @@ scm_fileio_seek(ScmFileIO *fileio, off_t offset, int whence)
   scm_assert(fileio != NULL);
 
   SCM_SYSCALL(n, lseek(fileio->fd, offset, whence));
+  if (n < 0) {
+    /* TODO; change error message */
+    scm_capi_error("system call error: lseek", 0);
+    return n;
+  }
+
+  return n;
+}
+
+off_t
+scm_fileio_pos(ScmFileIO *fileio)
+{
+  off_t n;
+
+  scm_assert(fileio != NULL);
+
+  SCM_SYSCALL(n, lseek(fileio->fd, 0, SEEK_CUR));
   if (n < 0) {
     /* TODO; change error message */
     scm_capi_error("system call error: lseek", 0);
@@ -416,6 +444,7 @@ scm_stringio_new(const char *str, size_t len)
                     (ScmIOReadFunc)scm_stringio_read,
                     (ScmIOWriteFunc)scm_stringio_write,
                     (ScmIOSeekFunc)scm_stringio_seek,
+                    (ScmIOPosFunc)scm_stringio_pos,
                     (ScmIOCloseFunc)scm_stringio_close,
                     (ScmIOReadyPFunc)scm_stringio_ready_p,
                     (ScmIOBuffModeFunc)scm_stringio_buffer_mode,
@@ -552,6 +581,14 @@ scm_stringio_seek(ScmStringIO *strio, off_t offset, int whence)
   return pos;
 }
 
+off_t
+scm_stringio_pos(ScmStringIO *strio)
+{
+  scm_assert(strio != NULL);
+
+  return (off_t)strio->pos;
+}
+
 int
 scm_stringio_close(ScmStringIO *strio)
 {
@@ -648,6 +685,7 @@ scm_bufferedio_new(ScmIO *io)
                     (ScmIOReadFunc)scm_bufferedio_read,
                     (ScmIOWriteFunc)scm_bufferedio_write,
                     (ScmIOSeekFunc)scm_bufferedio_seek,
+                    (ScmIOPosFunc)scm_bufferedio_pos,
                     (ScmIOCloseFunc)scm_bufferedio_close,
                     (ScmIOReadyPFunc)scm_bufferedio_ready_p,
                     (ScmIOBuffModeFunc)scm_bufferedio_buffer_mode,
@@ -864,6 +902,24 @@ scm_bufferedio_seek(ScmBufferedIO *bufio, off_t offset, int whence)
   if (rslt < 0) return -1;
 
   return off;
+}
+
+off_t
+scm_bufferedio_pos(ScmBufferedIO *bufio)
+{
+  off_t pos;
+
+  scm_assert(bufio != NULL);
+
+  pos = scm_io_pos(bufio->io);
+  if (pos < 0) return -1;
+
+  if (bufio->stat == SCM_BUFFEREDIO_ST_READ)
+    return pos - (off_t)(bufio->used - bufio->pos);
+  else if (bufio->stat == SCM_BUFFEREDIO_ST_WRITE)
+    return pos + (off_t)bufio->pos;
+  else
+    return pos;
 }
 
 int
@@ -1133,6 +1189,7 @@ scm_charconvio_new(ScmIO *io, const char *incode, const char *extcode)
                     (ScmIOReadFunc)scm_charconvio_read,
                     (ScmIOWriteFunc)scm_charconvio_write,
                     (ScmIOSeekFunc)NULL,
+                    (ScmIOPosFunc)NULL,
                     (ScmIOCloseFunc)scm_charconvio_close,
                     (ScmIOReadyPFunc)scm_charconvio_ready_p,
                     (ScmIOBuffModeFunc)scm_charconvio_buffer_mode,
@@ -2506,6 +2563,29 @@ scm_port_seek(ScmObj port, off_t offset, int whence)
   SCM_PORT(port)->eof_received_p = false;
 
   return 0;
+}
+
+off_t
+scm_port_pos(ScmObj port)
+{
+  off_t pos;
+
+  scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
+
+  if (scm_port_closed_p(port)) {
+    scm_capi_error("port is already closed", 1, port);
+    return -1;
+  }
+  else if (scm_port_code_converted_port_p(port)) {
+    scm_capi_error("pos operation to code-converted port is not supported",
+                   1, port);
+    return -1;
+  }
+
+  pos = scm_io_pos(SCM_PORT(port)->io);
+  if (pos < 0) return -1;
+
+  return pos - (off_t)SCM_PORT(port)->pb_used;
 }
 
 const void *

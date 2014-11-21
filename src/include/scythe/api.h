@@ -523,6 +523,7 @@ ScmObj scm_capi_open_input_string_cstr(const char *str, const char *enc);
 ScmObj scm_api_open_input_string(ScmObj str);
 ScmObj scm_api_open_output_string();
 ScmObj scm_api_get_output_string(ScmObj port);
+off_t scm_capi_port_pos(ScmObj port);
 const char *scm_capi_port_encoding(ScmObj port);
 ScmEncoding *scm_capi_port_internal_encoding(ScmObj port);
 

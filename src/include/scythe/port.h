@@ -32,6 +32,7 @@ typedef void (*ScmIOFinFunc)(ScmIO *io);
 typedef ssize_t (*ScmIOReadFunc)(ScmIO *io, void *buf, size_t size);
 typedef ssize_t (*ScmIOWriteFunc)(ScmIO *io, const void *buf, size_t size);
 typedef off_t (*ScmIOSeekFunc)(ScmIO *io, off_t offset, int whence);
+typedef off_t (*ScmIOPosFunc)(ScmIO *io);
 typedef int (*ScmIOCloseFunc)(ScmIO *io);
 typedef int (*ScmIOReadyPFunc)(ScmIO *io);
 typedef int (*ScmIOBuffModeFunc)(ScmIO *io, SCM_IO_MODE_T im,
@@ -46,6 +47,7 @@ struct ScmIORec {
   ScmIOReadFunc read_func;
   ScmIOWriteFunc write_func;
   ScmIOSeekFunc seek_func;
+  ScmIOPosFunc pos_func;
   ScmIOCloseFunc close_func;
   ScmIOReadyPFunc ready_p_func;
   ScmIOBuffModeFunc default_buf_mode_func;
@@ -105,6 +107,7 @@ void scm_io_initialize(ScmIO *io,
                        ScmIOReadFunc read,
                        ScmIOWriteFunc write,
                        ScmIOSeekFunc seek,
+                       ScmIOPosFunc pos,
                        ScmIOCloseFunc close,
                        ScmIOReadyPFunc readyp,
                        ScmIOBuffModeFunc buff_mode,
@@ -116,6 +119,7 @@ void scm_io_end(ScmIO *io);
 ssize_t scm_io_read(ScmIO *io, void *buf, size_t size);
 ssize_t scm_io_write(ScmIO *io, const void *buf, size_t size);
 off_t scm_io_seek(ScmIO *io, off_t offset, int whence);
+off_t scm_io_pos(ScmIO *io);
 int scm_io_close(ScmIO *io);
 int scm_io_ready_p(ScmIO *io);
 int scm_io_buffer_mode(ScmIO *io, SCM_IO_MODE_T im, SCM_PORT_BUF_T *mode);
@@ -131,6 +135,7 @@ ssize_t scm_fileio_read(ScmFileIO *fileio, void *buf, size_t size);
 ssize_t scm_fileio_write(ScmFileIO *fileio, const void *buf, size_t size);
 int scm_fileio_ready_p(ScmFileIO *fileio);
 off_t scm_fileio_seek(ScmFileIO *fileio, off_t offset, int whence);
+off_t scm_fileio_pos(ScmFileIO *fileio);
 int scm_fileio_close(ScmFileIO *fileio);
 int scm_fileio_buffer_mode(ScmFileIO *fileio, SCM_IO_MODE_T im,
                            SCM_PORT_BUF_T *mode);
@@ -142,6 +147,7 @@ ssize_t scm_stringio_read(ScmStringIO *strio, void *buf, size_t size);
 ssize_t scm_stringio_write(ScmStringIO *strio, const void *buf, size_t size);
 int scm_stringio_ready_p(ScmStringIO *strio);
 off_t scm_stringio_seek(ScmStringIO *strio, off_t offset, int whence);
+off_t scm_stringio_pos(ScmStringIO *strio);
 int scm_stringio_close(ScmStringIO *strio);
 int scm_stringio_buffer_mode(ScmStringIO *strio, SCM_IO_MODE_T im,
                              SCM_PORT_BUF_T *mode);
@@ -155,6 +161,7 @@ ssize_t scm_bufferedio_read(ScmBufferedIO *bufio, void *buf, size_t size);
 ssize_t scm_bufferedio_write(ScmBufferedIO *bufio, void *buf, size_t size);
 int scm_bufferedio_ready_p(ScmBufferedIO *bufio);
 off_t scm_bufferedio_seek(ScmBufferedIO *bufio, off_t offset, int whence);
+off_t scm_bufferedio_pos(ScmBufferedIO *bufio);
 int scm_bufferedio_close(ScmBufferedIO *bufio);
 int scm_bufferedio_buffer_mode(ScmBufferedIO *bufio,
                                SCM_IO_MODE_T im, SCM_PORT_BUF_T *mode);
@@ -265,6 +272,7 @@ ssize_t scm_port_peek_char(ScmObj port, scm_char_t *chr);
 ssize_t scm_port_write_bytes(ScmObj port, const void *buf, size_t size);
 ssize_t scm_port_write_char(ScmObj port, scm_char_t chr);
 int scm_port_seek(ScmObj port, off_t offset, int whence);
+off_t scm_port_pos(ScmObj port);
 const void *scm_port_string_buffer(ScmObj port);
 ssize_t scm_port_string_buffer_length(ScmObj port);
 void scm_port_gc_initialize(ScmObj obj, ScmObj mem);

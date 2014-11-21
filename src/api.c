@@ -5866,6 +5866,17 @@ scm_api_get_output_string(ScmObj port)
   return scm_capi_make_string_from_bin(p, (size_t)s, e);
 }
 
+off_t
+scm_capi_port_pos(ScmObj port)
+{
+  if (!scm_capi_port_p(port)) {
+    scm_capi_error("port required, but got", 1, port);
+    return -1;
+  }
+
+  return scm_port_pos(port);
+}
+
 const char *
 scm_capi_port_encoding(ScmObj port)
 {
