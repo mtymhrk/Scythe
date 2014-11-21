@@ -234,19 +234,28 @@ ssize_t
 scm_fileio_write(ScmFileIO *fileio, const void *buf, size_t size)
 {
   ssize_t n;
+  size_t rest;
+  const char *p;
 
   scm_assert(fileio != NULL);
   scm_assert(buf != NULL);
   scm_assert(size <= SSIZE_MAX);
 
-  SCM_SYSCALL(n, write(fileio->fd, buf, size));
-  if (n < 0) {
-    /* TODO; change error message */
-    scm_capi_error("system call error: write", 0);
-    return n;
+  rest = size;
+  p = buf;
+  while (rest > 0) {
+    SCM_SYSCALL(n, write(fileio->fd, p, rest));
+    if (n < 0) {
+      /* TODO; change error message */
+      scm_capi_error("system call error: write", 0);
+      return n;
+    }
+
+    rest -= (size_t)n;
+    p += n;
   }
 
-  return n;
+  return (ssize_t)(size - rest);
 }
 
 int
