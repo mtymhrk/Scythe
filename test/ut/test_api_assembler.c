@@ -40,7 +40,7 @@ check_following(scm_byte_t *ip)
 {
   int op;
 
-  SCM_VMINST_FETCH_OP(ip, op);
+  op = SCM_VMINST_GET_OP(ip);
   TEST_ASSERT_EQUAL_INT(SCM_OPCODE_NOP, op);
 }
 
@@ -56,7 +56,7 @@ test_assemble_noopd(const char *asmbl, uint8_t code)
   iseq = make_iseq(asmbl);
   ip = scm_capi_iseq_to_ip(iseq);
 
-  SCM_VMINST_FETCH_OP(ip, actual_op);
+  actual_op = SCM_VMINST_GET_OP(ip);
   SCM_VMINST_FETCH_OPD_NOOPD(ip);
 
   TEST_ASSERT_EQUAL_INT(code, actual_op);
@@ -77,7 +77,7 @@ test_assemble_obj(const char *asmbl, uint8_t code, ScmObj obj)
   iseq = make_iseq(asmbl);
   ip = scm_capi_iseq_to_ip(iseq);
 
-  SCM_VMINST_FETCH_OP(ip, actual_op);
+  actual_op = SCM_VMINST_GET_OP(ip);
   SCM_VMINST_FETCH_OPD_OBJ(ip, actual_immv);
 
   TEST_ASSERT_EQUAL_INT(code, actual_op);
@@ -100,7 +100,7 @@ test_assemble_obj_obj(const char *asmbl, uint8_t code, ScmObj obj1, ScmObj obj2)
   iseq = make_iseq(asmbl);
   ip = scm_capi_iseq_to_ip(iseq);
 
-  SCM_VMINST_FETCH_OP(ip, actual_op);
+  actual_op = SCM_VMINST_GET_OP(ip);
   SCM_VMINST_FETCH_OPD_OBJ_OBJ(ip, actual_immv1, actual_immv2);
 
   TEST_ASSERT_EQUAL_INT(code, actual_op);
@@ -122,7 +122,7 @@ test_assemble_si(const char *asmbl, uint8_t code, int si)
   iseq = make_iseq(asmbl);
   ip = scm_capi_iseq_to_ip(iseq);
 
-  SCM_VMINST_FETCH_OP(ip, actual_op);
+  actual_op = SCM_VMINST_GET_OP(ip);
   SCM_VMINST_FETCH_OPD_SI(ip, actual_si);
 
   TEST_ASSERT_EQUAL_INT(code, actual_op);
@@ -143,7 +143,7 @@ test_assemble_si_si(const char *asmbl, uint8_t code, int si1, int si2)
   iseq = make_iseq(asmbl);
   ip = scm_capi_iseq_to_ip(iseq);
 
-  SCM_VMINST_FETCH_OP(ip, actual_op);
+  actual_op = SCM_VMINST_GET_OP(ip);
   SCM_VMINST_FETCH_OPD_SI_SI(ip, actual_si1, actual_si2);
 
   TEST_ASSERT_EQUAL_INT(code, actual_op);
@@ -167,7 +167,7 @@ test_assemble_si_si_obj(const char *asmbl,
   iseq = make_iseq(asmbl);
   ip = scm_capi_iseq_to_ip(iseq);
 
-  SCM_VMINST_FETCH_OP(ip, actual_op);
+  actual_op = SCM_VMINST_GET_OP(ip);
   SCM_VMINST_FETCH_OPD_SI_SI_OBJ(ip, actual_si1, actual_si2, actual_immv);
 
   TEST_ASSERT_EQUAL_INT(code, actual_op);
@@ -191,7 +191,7 @@ test_assemble_iof(const char *asmbl, uint8_t code, int si, size_t dst)
   iseq = make_iseq(asmbl);
   ip = scm_capi_iseq_to_ip(iseq);
 
-  SCM_VMINST_FETCH_OP(ip, actual_op);
+  actual_op = SCM_VMINST_GET_OP(ip);
   SCM_VMINST_FETCH_OPD_IOF(ip, actual_si);
 
   TEST_ASSERT_EQUAL_INT(code, actual_op);
@@ -366,7 +366,7 @@ TEST(api_assembler, asm)
   iseq = make_iseq("((asm ((nop)))(nop))");
   ip = scm_capi_iseq_to_ip(iseq);
 
-  SCM_VMINST_FETCH_OP(ip, actual_op);
+  actual_op = SCM_VMINST_GET_OP(ip);
   SCM_VMINST_FETCH_OPD_OBJ(ip, actual_immv);
 
   TEST_ASSERT_EQUAL_INT(SCM_OPCODE_IMMVAL, actual_op);
@@ -403,7 +403,7 @@ TEST(api_assembler, asm_close)
   iseq = make_iseq("((asm-close 11 21 ((nop)))(nop))");
   ip = scm_capi_iseq_to_ip(iseq);
 
-  SCM_VMINST_FETCH_OP(ip, actual_op);
+  actual_op = SCM_VMINST_GET_OP(ip);
   SCM_VMINST_FETCH_OPD_SI_SI_OBJ(ip, actual_si1, actual_si2, actual_immv);
 
   TEST_ASSERT_EQUAL_INT(SCM_OPCODE_CLOSE, actual_op);

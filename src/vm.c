@@ -2827,7 +2827,7 @@ scm_vm_run(ScmObj vm, ScmObj iseq)
     r = scm_vm_check_op_retval(&vm, op, r);
     if (r < 0) break;
 
-    SCM_VMINST_FETCH_OP(SCM_VM(vm)->reg.ip, op);
+    op = SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip);
 
     switch(op) {
     case SCM_OPCODE_NOP:

@@ -54,7 +54,7 @@ TEST(iseq, iseq_push_inst_noopd)
   actual_ret_value = scm_iseq_push_inst_noopd(iseq, SCM_OPCODE_PUSH);
 
   ip = scm_iseq_to_ip(iseq);
-  SCM_VMINST_FETCH_OP(ip, actual_op);
+  actual_op = SCM_VMINST_GET_OP(ip);
 
   TEST_ASSERT_EQUAL_INT(SCM_INST_SZ_PUSH, actual_ret_value);
   TEST_ASSERT_EQUAL_INT(SCM_OPCODE_PUSH, actual_op);
@@ -74,7 +74,7 @@ TEST(iseq, iseq_push_inst_obj)
                                             SCM_NIL_OBJ);
 
   ip = scm_iseq_to_ip(iseq);
-  SCM_VMINST_FETCH_OP(ip, actual_op);
+  actual_op = SCM_VMINST_GET_OP(ip);
   SCM_VMINST_FETCH_OPD_OBJ(ip, actual_opd);
 
   TEST_ASSERT_EQUAL_INT(SCM_INST_SZ_IMMVAL, actual_ret_value);
@@ -105,7 +105,7 @@ TEST(iseq, iseq_push_inst_obj_obj)
                                                 SCM_UNDEF_OBJ);
 
   ip = scm_iseq_to_ip(iseq);
-  SCM_VMINST_FETCH_OP(ip, actual_op);
+  actual_op = SCM_VMINST_GET_OP(ip);
   SCM_VMINST_FETCH_OPD_OBJ_OBJ(ip, actual_opd1, actual_opd2);
 
   TEST_ASSERT_EQUAL_INT(SCM_INST_SZ_GREF, actual_ret_value);
@@ -134,7 +134,7 @@ TEST(iseq, iseq_push_inst_si)
                                            128);
 
   ip = scm_iseq_to_ip(iseq);
-  SCM_VMINST_FETCH_OP(ip, actual_op);
+  actual_op = SCM_VMINST_GET_OP(ip);
   SCM_VMINST_FETCH_OPD_SI(ip, actual_opd);
 
   TEST_ASSERT_EQUAL_INT(SCM_INST_SZ_CALL, actual_ret_value);
@@ -155,7 +155,7 @@ TEST(iseq, iseq_push_inst_si_si)
                                               -64);
 
   ip = scm_iseq_to_ip(iseq);
-  SCM_VMINST_FETCH_OP(ip, actual_op);
+  actual_op = SCM_VMINST_GET_OP(ip);
   SCM_VMINST_FETCH_OPD_SI_SI(ip, actual_opd1, actual_opd2);
 
   TEST_ASSERT_EQUAL_INT(SCM_INST_SZ_SREF, actual_ret_value);
@@ -181,7 +181,7 @@ TEST(iseq, iseq_push_inst_si_si_obj)
                                                   SCM_NIL_OBJ);
 
   ip = scm_iseq_to_ip(iseq);
-  SCM_VMINST_FETCH_OP(ip, actual_op);
+  actual_op = SCM_VMINST_GET_OP(ip);
   SCM_VMINST_FETCH_OPD_SI_SI_OBJ(ip, actual_opd1, actual_opd2, actual_opd3);
 
   TEST_ASSERT_EQUAL_INT(SCM_INST_SZ_CLOSE, actual_ret_value);
@@ -211,7 +211,7 @@ TEST(iseq, iseq_push_inst_iof)
                                            128);
 
   ip = scm_iseq_to_ip(iseq);
-  SCM_VMINST_FETCH_OP(ip, actual_op);
+  actual_op = SCM_VMINST_GET_OP(ip);
   SCM_VMINST_FETCH_OPD_IOF(ip, actual_opd);
 
   TEST_ASSERT_EQUAL_INT(SCM_INST_SZ_JMP, actual_ret_value);

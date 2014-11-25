@@ -328,8 +328,8 @@ scm_iseq_eq(ScmObj iseq1, ScmObj iseq2, bool *rslt)
   while ((size_t)(ip1 - head) < SCM_ISEQ_SEQ_LENGTH(iseq1)) {
     scm_opcode_t op1, op2;
 
-    SCM_VMINST_FETCH_OP(ip1, op1);
-    SCM_VMINST_FETCH_OP(ip2, op2);
+    op1 = SCM_VMINST_GET_OP(ip1);
+    op2 = SCM_VMINST_GET_OP(ip2);
     if (op1 != op2) goto not_equal;
 
     switch (scm_opfmt_table[op1]) {
@@ -433,7 +433,7 @@ scm_iseq_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
     int unused;
 
     ip = save = scm_iseq_to_ip(obj) + offset;
-    SCM_VMINST_FETCH_OP(ip, op);
+    op = SCM_VMINST_GET_OP(ip);
     scm_assert(0 <= op && op <= SCM_VMINST_NR_OP);
 
     switch (scm_opfmt_table[op]) {

@@ -142,10 +142,7 @@ enum {
 extern const int scm_opfmt_table[SCM_VMINST_NR_OP];
 
 
-#define SCM_VMINST_FETCH_OP(ip, op)                             \
-  do {                                                          \
-    (op) = *(scm_opcode_t *)(ip);                               \
-  } while (0)
+#define SCM_VMINST_GET_OP(ip) *(scm_opcode_t *)(ip)
 
 #define SCM_VMINST_FETCH_OPD_NOOPD(ip)                                  \
   do {                                                                  \

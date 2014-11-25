@@ -2777,7 +2777,7 @@ scm_marshal_obj_iseq_inst(ScmMarshalObjStat *stat, ScmObj marshal,
     if (idx < nr_branch && (size_t)(ip - head) == branches[idx])
       branch_pos[idx++] = scm_marshal_buffer_pos(output);
 
-    SCM_VMINST_FETCH_OP(ip, op);
+    op = SCM_VMINST_GET_OP(ip);
     switch (scm_opfmt_table[op]) {
     case SCM_OPFMT_NOOPD:
       SCM_VMINST_FETCH_OPD_NOOPD(ip);
@@ -2934,7 +2934,7 @@ scm_marshal_obj_iseq_opd(ScmMarshalObjStat *stat, ScmObj marshal,
     ssize_t oft1, oft2;
     int si1, si2, r;
 
-    SCM_VMINST_FETCH_OP(ip, op);
+    op = SCM_VMINST_GET_OP(ip);
     switch (scm_opfmt_table[op]) {
     case SCM_OPFMT_NOOPD:
       SCM_VMINST_FETCH_OPD_NOOPD(ip);
