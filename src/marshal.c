@@ -2771,7 +2771,7 @@ scm_marshal_obj_iseq_inst(ScmMarshalObjStat *stat, ScmObj marshal,
   *nr_iof = 0;
   while (ip - head < seq_len) {
     size_t key, *p;
-    ScmObj opd;
+    ScmObj opd __attribute((unused));
     int si1, si2;
 
     if (idx < nr_branch && (size_t)(ip - head) == branches[idx])

@@ -430,7 +430,7 @@ scm_iseq_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
     scm_byte_t *ip, *save;
     scm_opcode_t op;
     ScmObj chld1, chld2;
-    int unused;
+    int opd_si __attribute((unused));
 
     ip = save = scm_iseq_to_ip(obj) + offset;
     op = SCM_VMINST_GET_OP(ip);
@@ -464,7 +464,7 @@ scm_iseq_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
                                      | SCM_VMINST_UPD_FLG_OPD2));
       break;
     case SCM_OPFMT_SI_SI_OBJ:
-      SCM_VMINST_FETCH_OPD_SI_SI_OBJ(ip, unused, unused, chld1);
+      SCM_VMINST_FETCH_OPD_SI_SI_OBJ(ip, opd_si, opd_si, chld1);
       ip = save;
 
       rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, chld1, mem);
