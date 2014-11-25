@@ -15,11 +15,12 @@ function(dump_build_info src dst)
 
   file(APPEND ${out} "compiler: ${CMAKE_C_COMPILER}\n")
 
-  ## CMAKE_C_FLAGS の値から -iquote フラグとそれ以外を、それぞれ quoted_paths、
-  ## flags 変数に分離
+  ## CMAKE_C_FLAGS の値から -iquote フラグとそれ以外を、それぞれ
+  ## quoted_paths、flags 変数に分離
   set(quoted_paths "")
   set(found "FALSE")
-  string(REGEX REPLACE " +" ";" flags ${CMAKE_C_FLAGS})
+  string(TOUPPER ${CMAKE_BUILD_TYPE} type)
+  string(REGEX REPLACE " +" ";" flags "${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_${type}}")
   foreach(f ${flags})
     if(found)
       list(REMOVE_ITEM flags ${f})

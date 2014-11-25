@@ -12,7 +12,7 @@ else
   BUILD_DIR="${1}"
 fi
 
-build_type="None"
+build_type="Release"
 post_cmake_hooks=""
 
 if [ -f "${CONF_FILE}" ]; then

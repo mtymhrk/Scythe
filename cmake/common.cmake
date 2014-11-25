@@ -14,13 +14,12 @@ set(scythe_lib_src memory.c object.c pair.c string.c symbol.c vector.c
 ##===============================================================
 ## コンパイラの設定
 
-set(scythe_compile_options
-  -O2 -g -std=gnu99 -Wall -Wextra -Wformat=2 -Wstrict-aliasing=2
-  -Wcast-qual -Wcast-align -Wwrite-strings -Wconversion -Wfloat-equal
-  -Wpointer-arith -Wswitch-enum -Wno-unused-parameter)
+set(CMAKE_C_FLAGS "-g -std=gnu99 -Wall -Wextra -Wformat=2 -Wstrict-aliasing=2 -Wcast-qual -Wcast-align -Wwrite-strings -Wconversion -Wfloat-equal -Wpointer-arith -Wswitch-enum -Wno-unused-parameter")
+set(CMAKE_C_FLAGS_DEBUG "-O0")
+set(CMAKE_C_FLAGS_RELEASE "-O2")
+set(CMAKE_C_FLAGS_RELWITHDEBINFO "-O2")
 
-set(scythe_compile_definitions_debug
-  -DSCM_DEBUG)
+set(scythe_compile_definitions_debug -DSCM_DEBUG)
 
 find_program(gcc_bin_path gcc PATHS /usr/local/bin)
 
@@ -29,10 +28,6 @@ if(gcc_bin_path)
 else(gcc_bin_path)
   message(WARNING "GCC is not found")
 endif(gcc_bin_path)
-
-foreach(flg ${scythe_compile_options})
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${flg}")
-endforeach(flg)
 
 
 ##===============================================================
@@ -47,3 +42,13 @@ find_program(ruby_bin_path ruby
 if(NOT ruby_bin_path)
   message(WARNING "Ruby script language is not found.")
 endif(NOT ruby_bin_path)
+
+
+##===============================================================
+## デフォルトの build type の設定
+
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Release CACHE STRING
+    "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel."
+      FORCE)
+endif(NOT CMAKE_BUILD_TYPE)
