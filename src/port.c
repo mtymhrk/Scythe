@@ -1474,7 +1474,7 @@ scm_port_size_up_to_rearmost_lf(ScmObj port, const void *buf, size_t size)
   scm_assert(buf != NULL);
   scm_assert(size <= SSIZE_MAX);
 
-  scm_str_itr_begin((void *)buf, size, SCM_PORT(port)->inn_enc, &iter);
+  scm_str_itr_begin(buf, size, SCM_PORT(port)->inn_enc, &iter);
 
   scm_enc_cnv_from_ascii(SCM_PORT(port)->inn_enc, '\n', &lf);
   scm_enc_cnv_from_ascii(SCM_PORT(port)->inn_enc, '\r', &cr);

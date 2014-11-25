@@ -528,11 +528,11 @@ scm_string_substr(ScmObj str, size_t pos, size_t len)
   scm_assert(!scm_str_itr_err_p(&head) && !scm_str_itr_err_p(&tail));
 
   substr = scm_string_dup(str);
-  SCM_STRING_HEAD(substr) = (uint8_t *)scm_str_itr_ptr(&head);
+  SCM_STRING_HEAD(substr) = SCM_STR_ITR_PTR(&head, SCM_STRING_HEAD(str));
   SCM_STRING_LENGTH(substr) = len;
   SCM_STRING_BYTESIZE(substr)
-    = (size_t)((uint8_t *)scm_str_itr_ptr(&tail)
-               - (uint8_t *)scm_str_itr_ptr(&head));
+    = (size_t)((const uint8_t *)scm_str_itr_ptr(&tail)
+               - (const uint8_t *)scm_str_itr_ptr(&head));
 
   return substr;
 }

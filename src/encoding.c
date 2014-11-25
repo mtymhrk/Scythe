@@ -12,11 +12,11 @@
   } while(0)
 
 static void
-scm_enc_index2itr_fixed_width(void *str, size_t size,
+scm_enc_index2itr_fixed_width(const void *str, size_t size,
                               size_t idx, size_t width, ScmEncoding *enc,
                               ScmStrItr *iter)
 {
-  uint8_t *p = str;
+  const uint8_t *p = str;
   size_t offset;
 
   offset = width * idx;
@@ -33,7 +33,7 @@ scm_enc_index2itr_fixed_width(void *str, size_t size,
 }
 
 static void
-scm_enc_index2itr_variable_width(void *str,
+scm_enc_index2itr_variable_width(const void *str,
                                  size_t size, size_t idx, ScmEncoding *enc,
                                  ScmStrItr *iter)
 {
@@ -98,7 +98,7 @@ scm_enc_char_width_ascii(const void *str, size_t len)
 }
 
 void
-scm_enc_index2itr_ascii(void *str, size_t size, size_t idx, ScmStrItr *iter)
+scm_enc_index2itr_ascii(const void *str, size_t size, size_t idx, ScmStrItr *iter)
 {
   scm_enc_index2itr_fixed_width(str, size, idx, sizeof(scm_char_ascii_t),
                                 SCM_ENC_ASCII, iter);
@@ -301,7 +301,8 @@ scm_enc_char_width_utf8(const void *str, size_t len)
 }
 
 void
-scm_enc_index2itr_utf8(void *str, size_t size, size_t idx, ScmStrItr *iter)
+scm_enc_index2itr_utf8(const void *str, size_t size, size_t idx,
+                       ScmStrItr *iter)
 {
   scm_enc_index2itr_variable_width(str, size, idx, SCM_ENC_UTF8, iter);
 }
@@ -472,7 +473,8 @@ scm_enc_char_width_ucs4(const void *str, size_t len)
 }
 
 void
-scm_enc_index2itr_ucs4(void *str, size_t size, size_t idx, ScmStrItr *iter)
+scm_enc_index2itr_ucs4(const void *str, size_t size, size_t idx,
+                       ScmStrItr *iter)
 {
   scm_enc_index2itr_fixed_width(str, size, idx, sizeof(scm_char_ucs4_t),
                                 SCM_ENC_UCS4, iter);
@@ -756,7 +758,8 @@ scm_enc_char_width_eucjp(const void *str, size_t len)
 }
 
 void
-scm_enc_index2itr_eucjp(void *str, size_t size, size_t idx, ScmStrItr *iter)
+scm_enc_index2itr_eucjp(const void *str, size_t size, size_t idx,
+                        ScmStrItr *iter)
 {
   scm_enc_index2itr_variable_width(str, size, idx, SCM_ENC_EUCJP, iter);
 }
@@ -984,7 +987,8 @@ scm_enc_char_width_sjis(const void *str, size_t len)
 }
 
 void
-scm_enc_index2itr_sjis(void *str, size_t size, size_t idx, ScmStrItr *iter)
+scm_enc_index2itr_sjis(const void *str, size_t size, size_t idx,
+                       ScmStrItr *iter)
 {
   scm_enc_index2itr_variable_width(str, size, idx, SCM_ENC_SJIS, iter);
 }
@@ -1137,7 +1141,7 @@ scm_enc_printable_p_sjis(const void *p, size_t size)
 /***********************************************************************/
 
 void
-scm_str_itr_begin(void *p, size_t size, ScmEncoding *enc, ScmStrItr *iter)
+scm_str_itr_begin(const void *p, size_t size, ScmEncoding *enc, ScmStrItr *iter)
 {
   assert(size <= SSIZE_MAX);
 
@@ -1170,7 +1174,7 @@ scm_str_itr_next(ScmStrItr *iter)
     return;
   }
 
-  iter->p = (uint8_t *)iter->p + w;
+  iter->p = (const uint8_t *)iter->p + w;
   iter->rest = iter->rest - w;
 }
 

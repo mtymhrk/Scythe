@@ -40,7 +40,7 @@ struct ScmEncodingRec {
   const char * const *names;
   struct {
     int (*char_width)(const void *p, size_t size);
-    void (*index2itr)(void *p, size_t size, size_t idx, ScmStrItr *iter);
+    void (*index2itr)(const void *p, size_t size, size_t idx, ScmStrItr *iter);
     bool (*valid_char_p)(const scm_char_t *c);
     int (*cnv_to_ascii)(const scm_char_t *c);
     ssize_t (*cnv_from_ascii)(char ascii, scm_char_t *chr);
@@ -161,7 +161,7 @@ scm_enc_printable_p(ScmEncoding *enc, const void *p, size_t size)
 /***********************************************************************/
 
 int scm_enc_char_width_ascii(const void *str, size_t len);
-void scm_enc_index2itr_ascii(void *str, size_t size, size_t idx,
+void scm_enc_index2itr_ascii(const void *str, size_t size, size_t idx,
                              ScmStrItr *iter);
 bool scm_enc_valid_char_p_ascii(const scm_char_t *c);
 int scm_enc_cnv_to_ascii_ascii(const scm_char_t *c);
@@ -180,7 +180,7 @@ bool scm_enc_printable_p_ascii(const void *p, size_t size);
 /***********************************************************************/
 
 int scm_enc_char_width_utf8(const void *str, size_t len);
-void scm_enc_index2itr_utf8(void *str, size_t size, size_t idx,
+void scm_enc_index2itr_utf8(const void *str, size_t size, size_t idx,
                             ScmStrItr *iter);
 bool scm_enc_valid_char_p_utf8(const scm_char_t *c);
 int scm_enc_cnv_to_ascii_utf8(const scm_char_t *c);
@@ -199,7 +199,7 @@ bool scm_enc_printable_p_utf8(const void *p, size_t size);
 /***********************************************************************/
 
 int scm_enc_char_width_ucs4(const void *str, size_t len);
-void scm_enc_index2itr_ucs4(void *str, size_t size, size_t idx,
+void scm_enc_index2itr_ucs4(const void *str, size_t size, size_t idx,
                             ScmStrItr *iter);
 ssize_t scm_enc_utf8_to_ucs4(const uint8_t *utf8, size_t utf8_len,
                              uint32_t *ucs4);
@@ -221,7 +221,7 @@ bool scm_enc_printable_p_ucs4(const void *p, size_t size);
 /***********************************************************************/
 
 int scm_enc_char_width_eucjp(const void *str, size_t len);
-void scm_enc_index2itr_eucjp(void *str, size_t size, size_t idx,
+void scm_enc_index2itr_eucjp(const void *str, size_t size, size_t idx,
                              ScmStrItr *iter);
 bool scm_enc_valid_char_p_eucjp(const scm_char_t *c);
 int scm_enc_cnv_to_ascii_eucjp(const scm_char_t *c);
@@ -240,7 +240,7 @@ bool scm_enc_printable_p_eucjp(const void *p, size_t size);
 /***********************************************************************/
 
 int scm_enc_char_width_sjis(const void *str, size_t len);
-void scm_enc_index2itr_sjis(void *str, size_t size, size_t idx,
+void scm_enc_index2itr_sjis(const void *str, size_t size, size_t idx,
                             ScmStrItr *iter);
 bool scm_enc_valid_char_p_sjis(const scm_char_t *c);
 int scm_enc_cnv_to_ascii_sjis(const scm_char_t *c);
@@ -259,7 +259,7 @@ bool scm_enc_printable_p_sjis(const void *p, size_t size);
 /***********************************************************************/
 
 struct ScmStrItrRec {
-  void *p;
+  const void *p;
   ssize_t rest;
   ScmEncoding *enc;
 };
@@ -278,7 +278,7 @@ scm_str_itr_err_p(const ScmStrItr *iter)
   return (iter->rest < 0) ? true : false;
 }
 
-static inline void *
+static inline const void *
 scm_str_itr_ptr(const ScmStrItr *iter)
 {
   assert(iter != NULL);
@@ -331,7 +331,13 @@ scm_str_itr_offset(const ScmStrItr *iter, const void *head)
                   - (const uint8_t *)head);
 }
 
-void scm_str_itr_begin(void *p, size_t size, ScmEncoding *enc, ScmStrItr *iter);
+#define SCM_STR_ITR_PTR(iter, head)                                     \
+  (typeof(head))((uint8_t *)head + ((const uint8_t *)scm_str_itr_ptr(iter) \
+                                    - (const uint8_t *)head))
+
+
+void scm_str_itr_begin(const void *p, size_t size, ScmEncoding *enc,
+                       ScmStrItr *iter);
 void scm_str_itr_next(ScmStrItr *iter);
 
 
