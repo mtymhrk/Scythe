@@ -2839,6 +2839,10 @@ scm_vm_run(ScmObj vm, ScmObj iseq)
       scm_vm_ctrl_flg_set(vm, SCM_VM_CTRL_FLG_HALT);
       r = 0;
       break;
+    case SCM_OPCODE_INT:
+      scm_capi_error("not implemented instruction code", 0);
+      r = -1;
+      break;
     case SCM_OPCODE_UNDEF:
       r = scm_vm_op_undef(vm, op);
       break;

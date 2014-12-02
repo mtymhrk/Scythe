@@ -3,6 +3,7 @@
 const int scm_opfmt_table[SCM_VMINST_NR_OP] = {
     SCM_OPFMT_NOOPD,            /* SCM_OPCODE_NOP */
     SCM_OPFMT_NOOPD,            /* SCM_OPCODE_HALT */
+    SCM_OPFMT_SI,               /* SCM_OPCODE_INT */
     SCM_OPFMT_NOOPD,            /* SCM_OPCODE_UNDEF */
     SCM_OPFMT_NOOPD,            /* SCM_OPCODE_UNINIT */
     SCM_OPFMT_IOF,              /* SCM_OPCODE_CFRAME */

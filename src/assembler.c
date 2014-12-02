@@ -11,6 +11,7 @@ static struct {
 } opcode2mnemonic_tbl[] = {
   { SCM_OPCODE_NOP,         "nop" },
   { SCM_OPCODE_HALT,        "halt" },
+  { SCM_OPCODE_INT,         "int" },
   { SCM_OPCODE_UNDEF,       "undef" },
   { SCM_OPCODE_UNINIT,      "uninit" },
   { SCM_OPCODE_CFRAME,      "cframe" },
