@@ -142,22 +142,6 @@ scm_char_new(SCM_MEM_TYPE_T mtype,
   return chr;
 }
 
-ScmObj
-scm_char_new_newline(SCM_MEM_TYPE_T  mtype, ScmEncoding *enc)
-{
-  scm_char_t c;
-  scm_enc_cnv_from_ascii(enc, '\n', &c);
-  return scm_char_new(mtype, &c, enc);
-}
-
-ScmObj
-scm_char_new_space(SCM_MEM_TYPE_T mtype, ScmEncoding *enc)
-{
-  scm_char_t c;
-  scm_enc_cnv_from_ascii(enc, ' ', &c);
-  return scm_char_new(mtype, &c, enc);
-}
-
 scm_char_t
 scm_char_value(ScmObj chr)
 {

@@ -344,8 +344,6 @@ size_t scm_capi_symbol_hash_value(ScmObj sym);
 /*******************************************************************/
 
 ScmObj scm_capi_make_char(const scm_char_t *chr, ScmEncoding *enc);
-ScmObj scm_api_make_char_newline(ScmEncoding *enc);
-ScmObj scm_api_make_char_space(ScmEncoding *enc);
 bool scm_capi_char_p(ScmObj obj);
 ScmObj scm_api_char_P(ScmObj obj);
 int scm_capi_char_eq(ScmObj chr1, ScmObj chr2, bool *rslt);

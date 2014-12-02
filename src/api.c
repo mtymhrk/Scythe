@@ -2677,24 +2677,6 @@ scm_capi_make_char(const scm_char_t *chr, ScmEncoding *enc)
   return scm_char_new(SCM_MEM_ALLOC_HEAP, chr, enc);
 }
 
-ScmObj
-scm_api_make_char_newline(ScmEncoding *enc)
-{
-  if (enc == NULL)
-    enc = scm_capi_system_encoding();
-
-  return scm_char_new_newline(SCM_MEM_ALLOC_HEAP, enc);
-}
-
-ScmObj
-scm_api_make_char_space(ScmEncoding *enc)
-{
-  if (enc == NULL)
-    enc = scm_capi_system_encoding();
-
-  return scm_char_new_space(SCM_MEM_ALLOC_HEAP, enc);
-}
-
 int
 scm_capi_char_eq(ScmObj chr1, ScmObj chr2, bool *rslt)
 {
