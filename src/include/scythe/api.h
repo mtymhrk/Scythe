@@ -493,7 +493,7 @@ int scm_capi_pop_exception_handler(void);
 int scm_capi_error(const char *msg, size_t n, ...);
 int scm_capi_read_error(const char *msg, size_t n, ...);
 int scm_capi_file_error(const char *msg, size_t n, ...);
-int scm_capi_error_for_subr(ScmObj msg, ScmObj irris);
+ScmObj scm_api_error_lst(ScmObj msg, ScmObj irris);
 bool scm_capi_error_object_p(ScmObj obj);
 ScmObj scm_api_error_object_P(ScmObj obj);
 ScmObj scm_api_error_object_message(ScmObj obj);

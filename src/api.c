@@ -5434,10 +5434,11 @@ scm_capi_file_error(const char *msg, size_t n, ...)
   return r;
 }
 
-int
-scm_capi_error_for_subr(ScmObj msg, ScmObj irris)
+ScmObj
+scm_api_error_lst(ScmObj msg, ScmObj irris)
 {
   ScmObj exc = SCM_OBJ_INIT;
+  int r;
 
   if (scm_obj_null_p(scm_vm_current_vm())) {
     scm_capi_fatal("Error has occured while initializing or finalizing VM");
@@ -5457,7 +5458,10 @@ scm_capi_error_for_subr(ScmObj msg, ScmObj irris)
   exc = scm_error_new_lst(SCM_MEM_HEAP, msg, SCM_OBJ_NULL, irris);
   if (scm_obj_null_p(exc)) return SCM_OBJ_NULL;
 
-  return scm_capi_raise(exc);
+  r = scm_capi_raise(exc);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return SCM_UNDEF_OBJ;
 }
 
 extern inline bool

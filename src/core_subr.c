@@ -2000,7 +2000,12 @@ scm_subr_func_raise_continuable(ScmObj subr, int argc, const ScmObj *argv)
 int
 scm_subr_func_error(ScmObj subr, int argc, const ScmObj *argv)
 {
-  return scm_capi_error_for_subr(argv[0], argv[1]);
+  ScmObj r = SCM_OBJ_INIT;
+
+  r = scm_api_error_lst(argv[0], argv[1]);
+  if (scm_obj_null_p(r)) return -1;
+
+  return 0;
 }
 
 int
