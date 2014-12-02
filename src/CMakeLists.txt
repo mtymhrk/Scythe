@@ -24,7 +24,7 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
-  # nothing to do
+  add_definitions(${scythe_compile_definitions_release})
 else(CMAKE_BUILD_TYPE STREQUAL "Release")
   add_definitions(${scythe_compile_definitions_debug})
 endif(CMAKE_BUILD_TYPE STREQUAL "Release")

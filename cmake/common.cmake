@@ -20,6 +20,7 @@ set(CMAKE_C_FLAGS_RELEASE "-O2")
 set(CMAKE_C_FLAGS_RELWITHDEBINFO "-O2")
 
 set(scythe_compile_definitions_debug -DSCM_DEBUG)
+set(scythe_compile_definitions_release -DNDEBUG)
 
 find_program(gcc_bin_path gcc PATHS /usr/local/bin)
 
