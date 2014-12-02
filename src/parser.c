@@ -649,6 +649,47 @@ scm_lexer_tokenize_string(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
 }
 
 static int
+scm_lexer_tokenize_char_hex_scalar(ScmLexer *lexer, ScmObj port,
+                                   ScmEncoding *enc)
+{
+  scm_char_t current;
+  ssize_t width;
+  int rslt;
+
+  scm_assert(lexer != NULL);
+  scm_assert(scm_capi_input_port_p(port));
+  scm_assert(enc != NULL);
+
+  width = scm_capi_peek_cchr(&current, port);
+  if (width < 0) {
+    return LEXER_STATE_ERROR;
+  }
+
+  if (width == 0 || chr_delimiter_p(current, enc)) {
+    scm_lexer_set_token_type(lexer, SCM_TOKEN_TYPE_CHAR);
+    return LEXER_STATE_DONE;
+  }
+
+  do {
+    width = scm_capi_read_cchr(&current, port);
+    if (width < 0) {
+      return LEXER_STATE_ERROR;
+    }
+    else if (width == 0) {
+      scm_lexer_setup_error_state(lexer, SCM_LEXER_ERR_TYPE_UNEXPECTED_EOF);
+      return LEXER_STATE_ERROR;
+    }
+
+    rslt = scm_lexer_push_char(lexer, current);
+    if (rslt < 0) return LEXER_STATE_ERROR;
+
+  } while (!chr_same_p(current, ';', true, enc));
+
+  scm_lexer_set_token_type(lexer, SCM_TOKEN_TYPE_CHAR);
+  return LEXER_STATE_DONE;
+}
+
+static int
 scm_lexer_tokenize_char(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
 {
   scm_char_t current;
@@ -670,6 +711,9 @@ scm_lexer_tokenize_char(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
 
   rslt = scm_lexer_push_char(lexer, current);
   if (rslt < 0) return LEXER_STATE_ERROR;
+
+  if (chr_same_p(current, 'x', false, enc))
+    return scm_lexer_tokenize_char_hex_scalar(lexer, port, enc);
 
   while (1) {
     width = scm_capi_peek_cchr(&current, port);
@@ -1131,9 +1175,9 @@ scm_parser_parse_quote(ScmParser *parser, ScmObj port, ScmEncoding *enc)
 }
 
 static int
-scm_parser_parse_inline_hex_escape(const scm_char_t *str, size_t size,
-                                   ScmEncoding *enc,
-                                   long long *scalar)
+scm_parser_parse_hex_scalar_value(const scm_char_t *str, size_t size,
+                                  ScmEncoding *enc,
+                                  long long *scalar)
 {
   const char *hex = "0123456789abcdefABCDEF";
   size_t i;
@@ -1141,17 +1185,11 @@ scm_parser_parse_inline_hex_escape(const scm_char_t *str, size_t size,
   scm_assert(str != NULL);
   scm_assert(scalar != NULL);
 
-  if (size < 4
-      || !str_same_p(str, 2, "\\x", false, enc)) {
-    scm_capi_error("Paraser: invalid inline hex escape sequence", 0);
-    return -1;
-  }
-
   *scalar = 0;
-  for (i = 2; i < size && !chr_same_p(str[i], ';', true, enc); i++) {
+  for (i = 0; i < size && !chr_same_p(str[i], ';', true, enc); i++) {
     const char *p = chr_find(hex, str[i], enc);
     if (p == NULL) {
-      scm_capi_error("Paraser: invalid inline hex escape sequence", 0);
+      scm_capi_error("Paraser: invalid hex scalar value", 0);
       return -1;
     }
 
@@ -1167,12 +1205,34 @@ scm_parser_parse_inline_hex_escape(const scm_char_t *str, size_t size,
       *scalar |= ((p - hex) - 6);
   }
 
-  if (i == 2 || i >= size) {
-    scm_capi_error("Paraser: invalid inline hex escape sequence", 0);
+  if (i == 0 || i >= size) {
+    scm_capi_error("Paraser: invalid hex scalar value", 0);
     return -1;
   }
 
   return (int)i + 1;
+}
+
+static int
+scm_parser_parse_inline_hex_escape(const scm_char_t *str, size_t size,
+                                   ScmEncoding *enc,
+                                   long long *scalar)
+{
+  int i;
+
+  scm_assert(str != NULL);
+  scm_assert(scalar != NULL);
+
+  if (size < 4
+      || !str_same_p(str, 2, "\\x", false, enc)) {
+    scm_capi_error("Paraser: invalid inline hex escape sequence", 0);
+    return -1;
+  }
+
+  i = scm_parser_parse_hex_scalar_value(str + 2, size - 2, enc, scalar);
+  if (i < 0) return -1;
+
+  return i + 2;
 }
 
 static ssize_t
@@ -1599,6 +1659,30 @@ scm_parser_parse_vector(ScmParser *parser, ScmObj port, ScmEncoding *enc)
   return vec;
 }
 
+static ScmObj
+scm_parser_parse_char_hex_scalar(const scm_char_t *str, size_t size,
+                                 ScmEncoding *enc)
+{
+  long long hv;
+  scm_char_t c;
+  ssize_t w;
+  int r;
+
+  scm_assert(str != NULL);
+  scm_assert(size <= SSIZE_MAX);
+  scm_assert(enc != NULL);
+
+  r = scm_parser_parse_hex_scalar_value(str + 3, size - 3, enc, &hv);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  w = scm_enc_cnv_from_scalar(enc, hv, &c);
+  if (w < 0) {
+    scm_capi_error("Parser: invalid scalar value", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_capi_make_char(&c, enc);
+}
 
 static ScmObj
 scm_parser_parse_char(ScmParser *parser, ScmObj port, ScmEncoding *enc)
@@ -1613,14 +1697,17 @@ scm_parser_parse_char(ScmParser *parser, ScmObj port, ScmEncoding *enc)
   token = scm_lexer_head_token(parser->lexer, port, enc);
   if (token == NULL) return SCM_OBJ_NULL;
 
-  if (str_same_p(token->str, token->len, "#\\newline", false, enc)) {
+  if (token->len == 3) {
+    chr = scm_capi_make_char(token->str + 2, enc);
+  }
+  else if (token->len > 3 && chr_same_p(token->str[2], 'x', false, enc)) {
+    chr = scm_parser_parse_char_hex_scalar(token->str, token->len, enc);
+  }
+  else if (str_same_p(token->str, token->len, "#\\newline", false, enc)) {
     chr = scm_api_make_char_newline(enc);
   }
   else if (str_same_p(token->str, token->len, "#\\space", false, enc)) {
     chr = scm_api_make_char_space(enc);
-  }
-  else if (token->len == 3) {
-    chr = scm_capi_make_char(token->str + 2, enc);
   }
   else {
     scm_lexer_shift_token(parser->lexer);

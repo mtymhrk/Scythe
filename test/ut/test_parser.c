@@ -244,10 +244,9 @@ TEST(parser, tokenize_char_name)
                 " #\\newline ");
 }
 
-IGNORE_TEST(parser, tokenize_char_hex_scalar)
-/* not implemented */
+TEST(parser, tokenize_char_hex_scalar)
 {
-  test_tokenize(SCM_TOKEN_TYPE_CHAR, "#\\x08ab",
+  test_tokenize(SCM_TOKEN_TYPE_CHAR, "#\\x08ab;",
                 " #\\x08ab; ");
 }
 
@@ -471,8 +470,7 @@ TEST(parser, parse_char_name_newline)
   test_parse(expected, "#\\newline");
 }
 
-IGNORE_TEST(parser, parse_char_name_hex_scalar_value)
-/* not implemented */
+TEST(parser, parse_char_name_hex_scalar_value)
 {
   ScmObj expected = SCM_OBJ_INIT;
 
@@ -481,6 +479,17 @@ IGNORE_TEST(parser, parse_char_name_hex_scalar_value)
   expected = scm_capi_make_char(&(scm_char_t){ .ascii = 'b' }, SCM_ENC_SRC);
 
   test_parse(expected, "#\\x62;");
+}
+
+TEST(parser, parse_char_x)
+{
+  ScmObj expected = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&expected);
+
+  expected = scm_capi_make_char(&(scm_char_t){ .ascii = 'x' }, SCM_ENC_SRC);
+
+  test_parse(expected, "#\\x");
 }
 
 TEST(parser, parse_quote)
