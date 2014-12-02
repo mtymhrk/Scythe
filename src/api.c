@@ -5308,39 +5308,18 @@ scm_capi_raise(ScmObj obj)
     return -1;
   }
 
-  return scm_vm_setup_stat_raise(scm_vm_current_vm(), obj);
+  return scm_vm_setup_stat_raise(scm_vm_current_vm(), obj, false);
 }
 
 int
-scm_capi_raise_for_subr(ScmObj obj)
+scm_capi_raise_continuable(ScmObj obj)
 {
-  int r;
-
-  if (scm_obj_null_p(obj)) {
-    scm_capi_error("raise: invalid argument", 1, obj);
-    return -1;
-  }
-
-  r = scm_vm_setup_stat_raise(scm_vm_current_vm(), obj);
-  if (r < 0) return -1;
-
-  return scm_vm_setup_stat_call_exc_hndlr(scm_vm_current_vm());
-}
-
-int
-scm_capi_raise_continuable_for_subr(ScmObj obj)
-{
-  int r;
-
   if (scm_obj_null_p(obj)) {
     scm_capi_error("raise-continuable: invalid argument", 1, obj);
     return -1;
   }
 
-  r = scm_vm_setup_stat_raise(scm_vm_current_vm(), obj);
-  if (r < 0) return -1;
-
-  return scm_vm_setup_stat_call_exc_hndlr_cont(scm_vm_current_vm());
+  return scm_vm_setup_stat_raise(scm_vm_current_vm(), obj, true);
 }
 
 bool
@@ -5478,7 +5457,7 @@ scm_capi_error_for_subr(ScmObj msg, ScmObj irris)
   exc = scm_error_new_lst(SCM_MEM_HEAP, msg, SCM_OBJ_NULL, irris);
   if (scm_obj_null_p(exc)) return SCM_OBJ_NULL;
 
-  return scm_capi_raise_for_subr(exc);
+  return scm_capi_raise(exc);
 }
 
 extern inline bool

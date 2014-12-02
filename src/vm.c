@@ -1505,6 +1505,112 @@ scm_vm_make_trampolining_code(ScmObj vm, ScmObj proc,
   return iseq;
 }
 
+static inline bool
+scm_vm_interrupt_act_p(ScmObj vm, int num)
+{
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+  scm_assert(0 <= num && num < SCM_VM_NR_INTERRUPTIONS);
+
+  return ((SCM_VM(vm)->inttbl.activated & (0x01u << num)) ? true : false);
+}
+
+static inline bool
+scm_vm_interrupt_act_any_p(ScmObj vm)
+{
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  return (SCM_VM(vm)->inttbl.activated ? true : false);
+}
+
+static inline void
+scm_vm_interrupt_act_flg_set(ScmObj vm, int num)
+{
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+  scm_assert(0 <= num && num < SCM_VM_NR_INTERRUPTIONS);
+
+  SCM_VM(vm)->inttbl.activated |= (0x01u << num);
+}
+
+static inline void
+scm_vm_interrupt_restore(ScmObj vm, int num)
+{
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+  scm_assert(0 <= num && num < SCM_VM_NR_INTERRUPTIONS);
+
+  if (scm_vm_interrupt_act_p(vm, num)) {
+    SCM_VM(vm)->reg.ip = SCM_VM(vm)->inttbl.table[num].save;
+    SCM_VM(vm)->inttbl.table[num].save = NULL;
+    SCM_VM(vm)->inttbl.activated ^= 0x01u << num;
+  }
+}
+
+static inline int
+scm_vm_interrupt_prior(ScmObj vm, int num)
+{
+  unsigned int bits;
+  int p;
+
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+  scm_assert(0 <= num && num < SCM_VM_NR_INTERRUPTIONS);
+
+  bits = SCM_VM(vm)->inttbl.activated & ((0x01u << num) - 1u);
+  if (bits == 0) return -1;
+
+  p = 0;
+
+#if SCM_VM_NR_INTERRUPTIONS >= 16
+  if (bits & 0xffff0000) { bits &= 0xffff0000; p |= 0x10; }
+#endif  /* SCM_VM_NR_INTERRUPTIONS >= 16 */
+
+#if SCM_VM_NR_INTERRUPTIONS >= 8
+  if (bits & 0xff00ff00) { bits &= 0xff00ff00; p |= 0x08; }
+#endif  /* SCM_VM_NR_INTERRUPTIONS >= 8 */
+
+#if SCM_VM_NR_INTERRUPTIONS >= 4
+  if (bits & 0xf0f0f0f0) { bits &= 0xf0f0f0f0; p |= 0x04; }
+#endif  /* SCM_VM_NR_INTERRUPTIONS >= 4 */
+
+#if SCM_VM_NR_INTERRUPTIONS >= 2
+  if (bits & 0xcccccccc) { bits &= 0xcccccccc; p |= 0x02; }
+#endif  /* SCM_VM_NR_INTERRUPTIONS >= 2 */
+
+  if (bits & 0xaaaaaaaa) { p |= 0x01; }
+  return p;
+}
+
+static int
+scm_vm_interrupt_activate(ScmObj vm, int num)
+{
+  static struct scm_vm_inst_si scm_vm_int_inst[SCM_VM_NR_INTERRUPTIONS] = {
+    { .op = SCM_OPCODE_INT, .opd1 = SCM_VM_INT_GC },
+    { .op = SCM_OPCODE_INT, .opd1 = SCM_VM_INT_HALT },
+    { .op = SCM_OPCODE_INT, .opd1 = SCM_VM_INT_RAISE },
+    { .op = SCM_OPCODE_INT, .opd1 = SCM_VM_INT_RAISE_CONT },
+    { .op = SCM_OPCODE_INT, .opd1 = SCM_VM_INT_RETURN },
+  };
+  int prior;
+
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+  scm_assert(0 <= num && num < SCM_VM_NR_INTERRUPTIONS);
+
+  if (scm_vm_interrupt_act_p(vm, num))
+    return 0;
+
+  prior = scm_vm_interrupt_prior(vm, num);
+  if (prior >= 0) {
+    SCM_VM(vm)->inttbl.table[num].save = SCM_VM(vm)->inttbl.table[prior].save;
+    SCM_VM(vm)->inttbl.table[prior].save = (scm_byte_t *)&scm_vm_int_inst[num];
+  }
+  else {
+    SCM_VM(vm)->inttbl.table[num].save = SCM_VM(vm)->reg.ip;
+    SCM_VM(vm)->reg.ip = (scm_byte_t *)&scm_vm_int_inst[num];
+  }
+
+  scm_vm_interrupt_act_flg_set(vm, num);
+
+  return 0;
+}
+
 static int
 scm_vm_cmp_arity(int argc, int arity, bool unwished)
 {
@@ -1857,7 +1963,10 @@ scm_vm_do_op_pcall(ScmObj vm, scm_opcode_t op, int argc)
 
     if (rslt < 0) return -1;
 
-    rslt = scm_vm_do_op_return(vm, SCM_OPCODE_RETURN);
+    if (scm_vm_interrupt_act_any_p(vm))
+      rslt = scm_vm_setup_stat_return(vm);
+    else
+      rslt = scm_vm_do_op_return(vm, op);
     if (rslt < 0) return -1;
   }
   else if (scm_capi_closure_p(SCM_VM(vm)->reg.val[0])) {
@@ -1891,7 +2000,10 @@ scm_vm_do_op_pcall(ScmObj vm, scm_opcode_t op, int argc)
 
     if (rslt < 0) return -1;
 
-    rslt = scm_vm_do_op_return(vm, SCM_OPCODE_RETURN);
+    if (scm_vm_interrupt_act_any_p(vm))
+      rslt = scm_vm_setup_stat_return(vm);
+    else
+      rslt = scm_vm_do_op_return(vm, op);
     if (rslt < 0) return -1;
   }
   else {
@@ -2004,6 +2116,22 @@ scm_vm_do_op_demine(ScmObj vm, scm_opcode_t op, int idx, int layer)
   scm_box_update(val, SCM_VM(vm)->reg.val[0]);
 
   return 0;
+}
+
+static int
+scm_vm_op_int(ScmObj vm, scm_opcode_t op)
+{
+  int num;
+
+  SCM_VMINST_FETCH_OPD_SI(SCM_VM(vm)->reg.ip, num);
+
+  if (num < 0 || SCM_VM_NR_INTERRUPTIONS <= num) {
+    scm_capi_error("unsupported interruption number", 0);
+    return -1;
+  }
+
+  scm_vm_interrupt_restore(vm, num);
+  return SCM_VM(vm)->inttbl.table[num].func(vm);
 }
 
 static int
@@ -2615,6 +2743,74 @@ scm_vm_op_mrve(ScmObj vm, scm_opcode_t op)
   return -1;
 }
 
+static int
+scm_vm_interrupt_func_run_gc(ScmObj vm)
+{
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+  scm_capi_gc_start();
+  return 0;
+}
+
+static int
+scm_vm_interrupt_func_halt(ScmObj vm)
+{
+  static struct scm_vm_inst_noopd inst = { .op = SCM_OPCODE_HALT };
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+  SCM_VM(vm)->reg.ip = (scm_byte_t *)&inst;
+  return 0;
+}
+
+static int
+scm_vm_interrupt_func_raise(ScmObj vm)
+{
+  int r;
+
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  if (!scm_vm_raised_p(vm))
+    return 0;
+
+  r = scm_vm_setup_stat_call_exc_hndlr(vm);
+  if (r < 0) return -1;
+
+  r = scm_vm_setup_stat_return(vm);
+  if (r < 0) return -1;
+
+  return 0;
+}
+
+static int
+scm_vm_interrupt_func_raise_cont(ScmObj vm)
+{
+  int r;
+
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  if (!scm_vm_raised_p(vm))
+    return 0;
+
+  r = scm_vm_setup_stat_call_exc_hndlr_cont(vm);
+  if (r < 0) return -1;
+
+  r = scm_vm_setup_stat_return(vm);
+  if (r < 0) return -1;
+
+  return 0;
+}
+
+static int
+scm_vm_interrupt_func_return(ScmObj vm)
+{
+  int r;
+
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  r = scm_vm_do_op_return(vm, SCM_OPCODE_INT);
+  if (r < 0) return -1;
+
+  return 0;
+}
+
 int
 scm_vm_bootup(void)
 {
@@ -2681,6 +2877,13 @@ scm_vm_initialize(ScmObj vm, ScmObj main_vm)
   SCM_VM(vm)->reg.exc = SCM_OBJ_NULL;
   SCM_SLOT_SETQ(ScmVM, vm, reg.hndlr, SCM_NIL_OBJ);
   SCM_VM(vm)->reg.flags = 0;
+
+  SCM_VM(vm)->inttbl.table[SCM_VM_INT_GC].func = scm_vm_interrupt_func_run_gc;
+  SCM_VM(vm)->inttbl.table[SCM_VM_INT_HALT].func = scm_vm_interrupt_func_halt;
+  SCM_VM(vm)->inttbl.table[SCM_VM_INT_RAISE].func = scm_vm_interrupt_func_raise;
+  SCM_VM(vm)->inttbl.table[SCM_VM_INT_RAISE_CONT].func = scm_vm_interrupt_func_raise_cont;
+  SCM_VM(vm)->inttbl.table[SCM_VM_INT_RETURN].func = scm_vm_interrupt_func_return;
+  SCM_VM(vm)->inttbl.activated = 0;
 
   return 0;
 }
@@ -2771,24 +2974,6 @@ scm_vm_end(ScmObj vm)
     scm_vm_shutdown();
 }
 
-static int
-scm_vm_check_op_retval(ScmObj *vm, scm_opcode_t op, int retval)
-{
- retry:
-  if (scm_vm_ctrl_flg_set_p(*vm, SCM_VM_CTRL_FLG_HALT))
-    return -1;
-
-  if (retval < 0 && scm_vm_raised_p(*vm)) {
-    retval = scm_vm_setup_stat_call_exc_hndlr(*vm);
-    if (retval < 0) goto retry;
-    retval = scm_vm_do_op_return(*vm, op);
-    goto retry;
-  }
-
-  scm_vm_discard_raised_obj(*vm);
-  return 0;
-}
-
 static void
 scm_vm_run_init(ScmObj vm)
 {
@@ -2803,12 +2988,14 @@ scm_vm_run_init(ScmObj vm)
   SCM_VM(vm)->reg.flags = 0;
   SCM_SLOT_SETQ(ScmVM, vm, reg.val[0], SCM_UNDEF_OBJ);
   SCM_VM(vm)->reg.vc = 1;
+
+  SCM_VM(vm)->inttbl.activated = 0;
 }
 
 void
 scm_vm_run(ScmObj vm, ScmObj iseq)
 {
-  int op, r;
+  int op;
 
   SCM_REFSTK_INIT_REG(&vm, &iseq);
 
@@ -2821,120 +3008,111 @@ scm_vm_run(ScmObj vm, ScmObj iseq)
                 scm_capi_make_closure(iseq, SCM_OBJ_NULL, 0));
   SCM_VM(vm)->reg.ip = scm_capi_iseq_to_ip(iseq);
 
-  op = SCM_OPCODE_NOP;
-  r = 0;
   while (true) {
-    r = scm_vm_check_op_retval(&vm, op, r);
-    if (r < 0) break;
-
     op = SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip);
 
     switch(op) {
     case SCM_OPCODE_NOP:
       SCM_VMINST_FETCH_OPD_NOOPD(SCM_VM(vm)->reg.ip);
-      r = 0;
       break;
     case SCM_OPCODE_HALT:
       SCM_VMINST_FETCH_OPD_NOOPD(SCM_VM(vm)->reg.ip);
-      scm_vm_ctrl_flg_set(vm, SCM_VM_CTRL_FLG_HALT);
-      r = 0;
+      goto end;
       break;
     case SCM_OPCODE_INT:
-      scm_capi_error("not implemented instruction code", 0);
-      r = -1;
+      scm_vm_op_int(vm, op);
       break;
     case SCM_OPCODE_UNDEF:
-      r = scm_vm_op_undef(vm, op);
+      scm_vm_op_undef(vm, op);
       break;
     case SCM_OPCODE_UNINIT:
-      r = scm_vm_op_uninit(vm, op);
+      scm_vm_op_uninit(vm, op);
       break;
     case SCM_OPCODE_CFRAME:
-      r = scm_vm_op_cframe(vm, op);
+      scm_vm_op_cframe(vm, op);
       break;
     case SCM_OPCODE_EFRAME:
-      r = scm_vm_op_eframe(vm, op);
+      scm_vm_op_eframe(vm, op);
       break;
     case SCM_OPCODE_EPOP:
-      r = scm_vm_op_epop(vm, op);
+      scm_vm_op_epop(vm, op);
       break;
     case SCM_OPCODE_ESHIFT:
-      r = scm_vm_op_eshift(vm, op);
+      scm_vm_op_eshift(vm, op);
       break;
     case SCM_OPCODE_IMMVAL:
-      r = scm_vm_op_immval(vm, op);
+      scm_vm_op_immval(vm, op);
       break;
     case SCM_OPCODE_PUSH:
-      r = scm_vm_op_push(vm, op);
+      scm_vm_op_push(vm, op);
       break;
     case SCM_OPCODE_MVPUSH:
-      r = scm_vm_op_mvpush(vm, op);
+      scm_vm_op_mvpush(vm, op);
       break;
     case SCM_OPCODE_RETURN:
-      r = scm_vm_op_return(vm, op);
+      scm_vm_op_return(vm, op);
       break;
     case SCM_OPCODE_PCALL:
-      r = scm_vm_op_pcall(vm, op);
+      scm_vm_op_pcall(vm, op);
       break;
     case SCM_OPCODE_CALL:
-      r = scm_vm_op_call(vm, op);
+      scm_vm_op_call(vm, op);
       break;
     case SCM_OPCODE_TAIL_CALL:
-      r = scm_vm_op_tail_call(vm, op);
+      scm_vm_op_tail_call(vm, op);
       break;
     case SCM_OPCODE_GREF:
-      r = scm_vm_op_gref(vm, op);
+      scm_vm_op_gref(vm, op);
       break;
     case SCM_OPCODE_GDEF:
-      r = scm_vm_op_gdef(vm, op);
+      scm_vm_op_gdef(vm, op);
       break;
     case SCM_OPCODE_GSET:
-      r = scm_vm_op_gset(vm, op);
+      scm_vm_op_gset(vm, op);
       break;
     case SCM_OPCODE_SREF:
-      r = scm_vm_op_sref(vm, op);
+      scm_vm_op_sref(vm, op);
       break;
     case SCM_OPCODE_SSET:
-      r = scm_vm_op_sset(vm, op);
+      scm_vm_op_sset(vm, op);
       break;
     case SCM_OPCODE_JMP:
-      r = scm_vm_op_jmp(vm, op);
+      scm_vm_op_jmp(vm, op);
       break;
     case SCM_OPCODE_JMPT:
-      r = scm_vm_op_jmpt(vm, op);
+      scm_vm_op_jmpt(vm, op);
       break;
     case SCM_OPCODE_JMPF:
-      r = scm_vm_op_jmpf(vm, op);
+      scm_vm_op_jmpf(vm, op);
       break;
     case SCM_OPCODE_BOX:
-      r = scm_vm_op_box(vm, op);
+      scm_vm_op_box(vm, op);
       break;
     case SCM_OPCODE_CLOSE:
-      r = scm_vm_op_close(vm, op);
+      scm_vm_op_close(vm, op);
       break;
     case SCM_OPCODE_DEMINE:
-      r = scm_vm_op_demine(vm, op);
+      scm_vm_op_demine(vm, op);
       break;
     case SCM_OPCODE_EMINE:
-      r = scm_vm_op_emine(vm, op);
+      scm_vm_op_emine(vm, op);
       break;
     case SCM_OPCODE_EDEMINE:
-      r = scm_vm_op_edemine(vm, op);
+      scm_vm_op_edemine(vm, op);
       break;
     case SCM_OPCODE_MRVC:
-      r = scm_vm_op_mrvc(vm, op);
+      scm_vm_op_mrvc(vm, op);
       break;
     case SCM_OPCODE_MRVE:
-      r = scm_vm_op_mrve(vm, op);
+      scm_vm_op_mrve(vm, op);
       break;
     default:
       scm_capi_error("invalid instruction code", 0);
-      r = -1;
       break;
     }
   }
 
-  scm_vm_ctrl_flg_clr(vm, SCM_VM_CTRL_FLG_HALT);
+ end:
   scm_vm_ctrl_flg_clr(vm, SCM_VM_CTRL_FLG_RAISE);
 }
 
@@ -3026,7 +3204,7 @@ scm_vm_run_cloned(ScmObj vm, ScmObj iseq)
   if (scm_vm_raised_p(cloned)) {
     raised = scm_vm_raised_obj(cloned);
     scm_vm_end(cloned);
-    scm_vm_setup_stat_raise(vm, raised);
+    scm_vm_setup_stat_raise(vm, raised, false);
     return SCM_OBJ_NULL;
   }
 
@@ -3237,16 +3415,15 @@ scm_vm_setup_stat_trmp(ScmObj vm, ScmObj proc, ScmObj args,
   return 0;
 }
 
-void
+int
 scm_vm_setup_stat_halt(ScmObj vm)
 {
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-
-  scm_vm_ctrl_flg_set(vm, SCM_VM_CTRL_FLG_HALT);
+  return scm_vm_interrupt_activate(vm, SCM_VM_INT_HALT);
 }
 
 int
-scm_vm_setup_stat_raise(ScmObj vm, ScmObj obj)
+scm_vm_setup_stat_raise(ScmObj vm, ScmObj obj, bool continuable)
 {
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
   scm_assert(scm_obj_not_null_p(obj));
@@ -3257,7 +3434,17 @@ scm_vm_setup_stat_raise(ScmObj vm, ScmObj obj)
   }
 
   SCM_SLOT_SETQ(ScmVM, vm, reg.exc, obj);
-  return 0;
+  if (continuable)
+    return scm_vm_interrupt_activate(vm, SCM_VM_INT_RAISE_CONT);
+  else
+    return scm_vm_interrupt_activate(vm, SCM_VM_INT_RAISE);
+}
+
+int
+scm_vm_setup_stat_return(ScmObj vm)
+{
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+  return scm_vm_interrupt_activate(vm, SCM_VM_INT_RETURN);
 }
 
 int

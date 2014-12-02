@@ -1988,13 +1988,13 @@ scm_subr_func_with_exception_handler(ScmObj subr, int argc, const ScmObj *argv)
 int
 scm_subr_func_raise(ScmObj subr, int argc, const ScmObj *argv)
 {
-  return scm_capi_raise_for_subr(argv[0]);
+  return scm_capi_raise(argv[0]);
 }
 
 int
 scm_subr_func_raise_continuable(ScmObj subr, int argc, const ScmObj *argv)
 {
-  return scm_capi_raise_continuable_for_subr(argv[0]);
+  return scm_capi_raise_continuable(argv[0]);
 }
 
 int

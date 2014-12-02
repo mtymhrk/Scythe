@@ -484,8 +484,7 @@ void *scm_capi_bytevector_to_cv(ScmObj vec, void *buf, size_t size);
 /*******************************************************************/
 
 int scm_capi_raise(ScmObj obj);
-int scm_capi_raise_for_subr(ScmObj obj);
-int scm_capi_raise_continuable_for_subr(ScmObj obj);
+int scm_capi_raise_continuable(ScmObj obj);
 bool scm_capi_raised_p(void);
 ScmObj scm_api_raised_obj(void);
 void scm_api_discard_raised_obj(void);

@@ -5,6 +5,8 @@
 
 typedef struct ScmBedrockRec ScmBedrock;
 typedef struct ScmBoxRec ScmBox;
+typedef struct ScmVMIntTblEntryRec ScmVMIntTblEntry;
+typedef struct ScmVMIntTableRec ScmVMIntTable;
 typedef struct ScmVMRegRec ScmVMReg;
 typedef struct ScmContCapRec ScmContCap;
 typedef struct ScmVMRec ScmVM;
@@ -268,6 +270,31 @@ scm_box_update(ScmObj box, ScmObj obj)
 
 
 /*******************************************************************/
+/*  VM Interruptions                                               */
+/*******************************************************************/
+
+enum {
+  SCM_VM_INT_GC = 0,
+  SCM_VM_INT_HALT,
+  SCM_VM_INT_RAISE,
+  SCM_VM_INT_RAISE_CONT,
+  SCM_VM_INT_RETURN,
+};
+
+#define SCM_VM_NR_INTERRUPTIONS 5
+
+struct ScmVMIntTblEntryRec {
+  int (*func)(ScmObj vm);
+  scm_byte_t *save;
+};
+
+struct ScmVMIntTableRec {
+  ScmVMIntTblEntry table[SCM_VM_NR_INTERRUPTIONS];
+  unsigned int activated;
+};
+
+
+/*******************************************************************/
 /*  VM Registers                                                   */
 /*******************************************************************/
 
@@ -398,12 +425,11 @@ scm_contcap_flags(ScmObj cc)
 extern ScmTypeInfo SCM_VM_TYPE_INFO;
 
 typedef enum {
-  SCM_VM_CTRL_FLG_HALT  = 0x00000001,
-  SCM_VM_CTRL_FLG_RAISE = 0x00000002,
-  SCM_VM_CTRL_FLG_UCF   = 0x00000004, /* cfp レジスタが、対応する call 令を実
+  SCM_VM_CTRL_FLG_RAISE = 0x00000001,
+  SCM_VM_CTRL_FLG_UCF   = 0x00000002, /* cfp レジスタが、対応する call 令を実
                                          行していないフレームを指している場合
                                          セットする */
-  SCM_VM_CTRL_FLG_CCF   = 0x00000008, /* cfp レジスタがキャプチャされたスタッ
+  SCM_VM_CTRL_FLG_CCF   = 0x00000004, /* cfp レジスタがキャプチャされたスタッ
                                          クセグメント上のフレームを指している
                                          場合セットする */
 } SCM_VM_CTRL_FLG_T;
@@ -414,6 +440,7 @@ struct ScmVMRec {
   ScmObj main;
   ScmObj stack;
   ScmVMReg reg;
+  ScmVMIntTable inttbl;
 };
 
 int scm_vm_subr_trmp_apply(ScmObj subr, int argc, const ScmObj *argv);
@@ -438,8 +465,9 @@ int scm_vm_reinstatement_cont(ScmObj vm, ScmObj cc, const ScmObj *val, int vc);
 ScmObj scm_vm_parameter_value(ScmObj vm, ScmObj var);
 int scm_vm_setup_stat_trmp(ScmObj vm, ScmObj proc, ScmObj args,
                            ScmObj postproc, ScmObj handover, bool tail);
-void scm_vm_setup_stat_halt(ScmObj vm);
-int scm_vm_setup_stat_raise(ScmObj vm, ScmObj obj);
+int scm_vm_setup_stat_halt(ScmObj vm);
+int scm_vm_setup_stat_raise(ScmObj vm, ScmObj obj, bool continuable);
+int scm_vm_setup_stat_return(ScmObj vm);
 int scm_vm_setup_stat_call_exc_hndlr(ScmObj vm);
 int scm_vm_setup_stat_call_exc_hndlr_cont(ScmObj vm);
 int scm_vm_push_exc_handler(ScmObj vm, ScmObj hndlr);
