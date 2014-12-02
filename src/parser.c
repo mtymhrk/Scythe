@@ -1687,6 +1687,18 @@ scm_parser_parse_char_hex_scalar(const scm_char_t *str, size_t size,
 static ScmObj
 scm_parser_parse_char(ScmParser *parser, ScmObj port, ScmEncoding *enc)
 {
+  static const struct { const char *name; char chr; } chr_names[] = {
+    { .name = "alarm",     .chr = '\a' },
+    { .name = "backspace", .chr = '\b' },
+    { .name = "delete",    .chr = 0x7f },
+    { .name = "escape",    .chr = 0x1b },
+    { .name = "newline",   .chr = '\n' },
+    { .name = "null",      .chr = '\0' },
+    { .name = "return",    .chr = '\r' },
+    { .name = "space",     .chr = ' '  },
+    { .name = "tab",       .chr = '\t' },
+    { .name = NULL,        .chr = '\0' }
+  };
   ScmToken *token;
   ScmObj chr = SCM_OBJ_INIT;
 
@@ -1703,16 +1715,23 @@ scm_parser_parse_char(ScmParser *parser, ScmObj port, ScmEncoding *enc)
   else if (token->len > 3 && chr_same_p(token->str[2], 'x', false, enc)) {
     chr = scm_parser_parse_char_hex_scalar(token->str, token->len, enc);
   }
-  else if (str_same_p(token->str, token->len, "#\\newline", false, enc)) {
-    chr = scm_api_make_char_newline(enc);
-  }
-  else if (str_same_p(token->str, token->len, "#\\space", false, enc)) {
-    chr = scm_api_make_char_space(enc);
-  }
   else {
-    scm_lexer_shift_token(parser->lexer);
-    scm_capi_error("Parser: unknown character name", 0);
-    return SCM_OBJ_NULL;
+    size_t i;
+    for (i = 0; chr_names[i].name != NULL; i++) {
+      if (str_same_p(token->str + 2, token->len - 2,
+                     chr_names[i].name, false, enc)) {
+        scm_char_t c;
+        scm_enc_cnv_from_ascii(enc, chr_names[i].chr, &c);
+        chr = scm_capi_make_char(&c, enc);
+        break;
+      }
+    }
+
+    if (chr_names[i].name == NULL) {
+      scm_lexer_shift_token(parser->lexer);
+      scm_capi_error("Parser: unknown character name", 0);
+      return SCM_OBJ_NULL;
+    }
   }
 
   scm_lexer_shift_token(parser->lexer);

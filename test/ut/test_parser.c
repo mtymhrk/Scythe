@@ -459,6 +459,50 @@ TEST(parser, parse_char)
   test_parse(expected, "#\\a");
 }
 
+TEST(parser, parse_char_name_alarm)
+{
+  ScmObj expected = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&expected);
+
+  expected = scm_capi_make_char(&(scm_char_t){ .ascii = '\a' }, SCM_ENC_SRC);
+
+  test_parse(expected, "#\\alarm");
+}
+
+TEST(parser, parse_char_name_backspace)
+{
+  ScmObj expected = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&expected);
+
+  expected = scm_capi_make_char(&(scm_char_t){ .ascii = '\b' }, SCM_ENC_SRC);
+
+  test_parse(expected, "#\\backspace");
+}
+
+TEST(parser, parse_char_name_delete)
+{
+  ScmObj expected = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&expected);
+
+  expected = scm_capi_make_char(&(scm_char_t){ .ascii = 0x7f }, SCM_ENC_SRC);
+
+  test_parse(expected, "#\\delete");
+}
+
+TEST(parser, parse_char_name_escape)
+{
+  ScmObj expected = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&expected);
+
+  expected = scm_capi_make_char(&(scm_char_t){ .ascii = 0x1b }, SCM_ENC_SRC);
+
+  test_parse(expected, "#\\escape");
+}
+
 TEST(parser, parse_char_name_newline)
 {
   ScmObj expected = SCM_OBJ_INIT;
@@ -468,6 +512,50 @@ TEST(parser, parse_char_name_newline)
   expected = scm_capi_make_char(&(scm_char_t){ .ascii = '\n' }, SCM_ENC_SRC);
 
   test_parse(expected, "#\\newline");
+}
+
+TEST(parser, parse_char_name_null)
+{
+  ScmObj expected = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&expected);
+
+  expected = scm_capi_make_char(&(scm_char_t){ .ascii = '\0' }, SCM_ENC_SRC);
+
+  test_parse(expected, "#\\null");
+}
+
+TEST(parser, parse_char_name_return)
+{
+  ScmObj expected = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&expected);
+
+  expected = scm_capi_make_char(&(scm_char_t){ .ascii = '\r' }, SCM_ENC_SRC);
+
+  test_parse(expected, "#\\return");
+}
+
+TEST(parser, parse_char_name_space)
+{
+  ScmObj expected = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&expected);
+
+  expected = scm_capi_make_char(&(scm_char_t){ .ascii = ' ' }, SCM_ENC_SRC);
+
+  test_parse(expected, "#\\space");
+}
+
+TEST(parser, parse_char_name_tab)
+{
+  ScmObj expected = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&expected);
+
+  expected = scm_capi_make_char(&(scm_char_t){ .ascii = '\t' }, SCM_ENC_SRC);
+
+  test_parse(expected, "#\\tab");
 }
 
 TEST(parser, parse_char_name_hex_scalar_value)
