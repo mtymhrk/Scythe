@@ -3,6 +3,7 @@
 #define INCLUDE_EARRAY_H__
 
 #include <stdlib.h>
+#include <assert.h>
 
 typedef struct EArrayRec EArray;
 

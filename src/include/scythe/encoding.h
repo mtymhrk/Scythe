@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 typedef struct ScmEncodingRec ScmEncoding;
 typedef struct ScmStrItrRec ScmStrItr;
