@@ -6,13 +6,14 @@ CONF_FILE=${TOOLS_DIR}/run_cmake.conf
 
 if [ ! -n "${1}" ]; then
     echo "${0}: too few arguments"
-    echo "Usage: ${0} BUILD_DIR_NAME"
+    echo "Usage: ${0} BUILD_BASE_DIR_NAME"
     exit 1
 else
-  BUILD_DIR="${1}"
+  BUILD_BASE_DIR="${1}"
 fi
 
-build_type="Release"
+build_types="Debug RelWithDebInfo Release"
+post_hook_target="RelWithDebInfo"
 post_cmake_hooks=""
 
 if [ -f "${CONF_FILE}" ]; then
@@ -20,17 +21,23 @@ if [ -f "${CONF_FILE}" ]; then
   . ${CONF_FILE}
 fi
 
-if [ ! -e "${BUILD_DIR}" ]; then
-  echo "${0}: MAKE DIR ${BUILD_DIR}"
-  mkdir ${BUILD_DIR}
-fi
+for type in ${build_types}; do
+  build_dir=${BUILD_BASE_DIR}/${type}
 
-echo "${0}: EXECUTE cmake"
-(cd ${BUILD_DIR}; cmake -DCMAKE_BUILD_TYPE=${build_type} ${PRJ_DIR})
+  if [ ! -e "${build_dir}" ]; then
+    echo "${0}: MAKE DIR ${build_dir}"
+    mkdir -p ${build_dir}
+  fi
 
-for hook in ${post_cmake_hooks}; do
-  if [ -x "${TOOLS_DIR}/hooks/${hook}" ]; then
-    echo "${0}: EXECUTE ${hook}"
-    ${TOOLS_DIR}/hooks/${hook} ${BUILD_DIR}
+  echo "${0}: EXECUTE cmake"
+  (cd ${build_dir}; cmake -DCMAKE_BUILD_TYPE=${type} ${PRJ_DIR})
+
+  if [ "${type}" = "${post_hook_target}" ]; then
+    for hook in ${post_cmake_hooks}; do
+      if [ -x "${TOOLS_DIR}/hooks/${hook}" ]; then
+        echo "${0}: EXECUTE ${hook}"
+        ${TOOLS_DIR}/hooks/${hook} ${build_dir}
+      fi
+    done
   fi
 done
