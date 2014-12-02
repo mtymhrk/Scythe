@@ -3544,7 +3544,7 @@ scm_vm_exc_handler(ScmObj vm, scm_csetter_t *hndlr)
   ScmObj val = SCM_OBJ_INIT;
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-  assert(hndlr != NULL);
+  scm_assert(hndlr != NULL);
 
   if (scm_capi_pair_p(SCM_VM(vm)->reg.hndlr)) {
     val = scm_api_car(SCM_VM(vm)->reg.hndlr);

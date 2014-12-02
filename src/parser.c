@@ -852,8 +852,8 @@ scm_lexer_tokenize_bv_start(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
 static void
 scm_lexer_push_token(ScmLexer *lexer, ScmToken *token)
 {
-  assert(lexer != NULL);
-  assert(token != NULL);
+  scm_assert(lexer != NULL);
+  scm_assert(token != NULL);
 
   if (lexer->tokens_head == NULL)
     lexer->tokens_head = token;
@@ -927,7 +927,7 @@ scm_lexer_tokenize(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
     case LEXER_STATE_DONE:      /* fall through */
     case LEXER_STATE_ERROR:     /* fall through */
     default:
-      assert(false); // must not happen
+      scm_assert(false);        /* must not happen */
       break;
     }
   }

@@ -531,7 +531,7 @@ scm_stringio_write(ScmStringIO *strio, const void *buf, size_t size)
 int
 scm_stringio_ready_p(ScmStringIO *strio)
 {
-  assert(strio != NULL);
+  scm_assert(strio != NULL);
 
   /* eof 相当のケースでも読取可能と返す */
   return (strio->pos <= strio->length) ? 1 : 0;
@@ -542,7 +542,7 @@ scm_stringio_seek(ScmStringIO *strio, off_t offset, int whence)
 {
   ssize_t pos;
 
-  assert(strio != NULL);
+  scm_assert(strio != NULL);
 
   switch (whence) {
   case SEEK_SET:
