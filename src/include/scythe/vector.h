@@ -72,6 +72,7 @@ void scm_bytevector_finalize(ScmObj vec);
 ScmObj scm_bytevector_new(SCM_MEM_TYPE_T mtype, size_t length, int fill);
 ScmObj scm_bytevector_new_cbyte(SCM_MEM_TYPE_T mtype,
                                 const void *bytes, size_t length);
+int scm_bytevector_u8_set(ScmObj vec, size_t idx, int val);
 int scm_bytevector_cmp(ScmObj v1, ScmObj v2);
 int scm_bytevector_obj_print(ScmObj obj, ScmObj port, bool ext_rep);
 void scm_bytevector_gc_initialize(ScmObj obj, ScmObj mem);

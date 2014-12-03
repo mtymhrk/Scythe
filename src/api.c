@@ -5267,6 +5267,25 @@ scm_capi_bytevector_length(ScmObj vec)
   return (ssize_t)scm_bytevector_length(vec);
 }
 
+int
+scm_capi_bytevector_u8_set_i(ScmObj vec, size_t idx, int val)
+{
+  if (!scm_capi_bytevector_p(vec)) {
+    scm_capi_error("bytevector-u8-set!: bytevector required, but got", vec);
+    return -1;
+  }
+  else if (idx >= scm_bytevector_length(vec)) {
+    scm_capi_error("bytevector-u8-set!: argument out of range", 0);
+    return -1;
+  }
+  else if (val < 0 || 255 < val) {
+    scm_capi_error("bytevector-u8-set!: invalid argument", 0);
+    return -1;
+  }
+
+  return scm_bytevector_u8_set(vec, idx, val);
+}
+
 void *
 scm_capi_bytevector_to_cv(ScmObj vec, void *buf, size_t size)
 {

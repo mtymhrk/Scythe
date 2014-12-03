@@ -475,6 +475,7 @@ ScmObj scm_api_bytevector_P(ScmObj obj);
 ScmObj scm_capi_make_bytevector(size_t len, int fill);
 ScmObj scm_capi_make_bytevector_from_cv(const void *bytes, size_t length);
 ssize_t scm_capi_bytevector_length(ScmObj vec);
+int scm_capi_bytevector_u8_set_i(ScmObj vec, size_t idx, int val);
 void *scm_capi_bytevector_to_cv(ScmObj vec, void *buf, size_t size);
 
 

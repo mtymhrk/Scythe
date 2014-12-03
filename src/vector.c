@@ -464,6 +464,17 @@ scm_bytevector_new_cbyte(SCM_MEM_TYPE_T mtype, const void *bytes, size_t length)
 }
 
 int
+scm_bytevector_u8_set(ScmObj vec, size_t idx, int val)
+{
+  scm_assert_obj_type(vec, &SCM_BYTEVECTOR_TYPE_INFO);
+  scm_assert(idx < SCM_BYTEVECTOR_LENGTH(vec));
+  scm_assert(0 <= val && val <= 255);
+
+  SCM_BYTEVECTOR_ARRAY(vec)[idx] = (uint8_t)val;
+  return 0;
+}
+
+int
 scm_bytevector_cmp(ScmObj v1, ScmObj v2)
 {
   size_t len;
