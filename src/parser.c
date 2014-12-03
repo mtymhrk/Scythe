@@ -1659,6 +1659,81 @@ scm_parser_parse_vector(ScmParser *parser, ScmObj port, ScmEncoding *enc)
   return vec;
 }
 
+static int
+scm_parser_check_bv_element(ScmParser *parser, ScmObj elm,
+                            ScmObj min, ScmObj max)
+{
+  bool cmp;
+  int r;
+  SCM_REFSTK_INIT_REG(&elm, &min, &max);
+
+  scm_assert(parser != NULL);
+
+  if (!scm_capi_exact_integer_p(elm))
+    goto invalid;
+
+  r = scm_capi_num_le(min, elm, &cmp);
+  if (r < 0) return -1;
+
+  if (!cmp)
+    goto invalid;
+
+  r = scm_capi_num_le(elm, max, &cmp);
+  if (r < 0) return -1;
+
+  if (!cmp)
+    goto invalid;
+
+  return 0;
+
+ invalid:
+  scm_capi_error("Parser: invalid bytevector element", elm);
+  return -1;
+}
+
+static ScmObj
+scm_parser_parse_bytevector(ScmParser *parser, ScmObj port, ScmEncoding *enc)
+{
+  ScmObj vec = SCM_OBJ_INIT, elms = SCM_OBJ_INIT, elm = SCM_OBJ_INIT;
+  ScmObj min = SCM_OBJ_INIT, max = SCM_OBJ_INIT;
+  size_t len, idx;
+  int rslt;
+
+  SCM_REFSTK_INIT_REG(&port, &vec, &elms, &elm);
+
+  scm_assert(parser != NULL);
+  scm_assert(scm_capi_input_port_p(port));
+  scm_assert(enc != NULL);
+
+  scm_lexer_shift_token(parser->lexer);
+
+  len = 0;
+  elms = scm_parser_parse_vector_aux(parser, port, enc, &len);
+  if (scm_capi_null_value_p(elms)) return SCM_OBJ_NULL;
+
+  vec = scm_capi_make_bytevector(len, 0);
+  if (scm_capi_null_value_p(vec)) return SCM_OBJ_NULL;
+
+  min = scm_capi_make_number_from_sword(0);
+  if (scm_obj_null_p(min)) return SCM_OBJ_NULL;
+
+  max = scm_capi_make_number_from_sword(255);
+  if (scm_obj_null_p(max)) return SCM_OBJ_NULL;
+
+  for (idx = 0; idx < len; idx++) {
+    scm_sword_t v;
+    elm = scm_api_car(elms);
+    rslt = scm_parser_check_bv_element(parser, elm, min, max);
+    if (rslt < 0) return SCM_OBJ_NULL;
+    scm_capi_integer_to_sword(elm, &v);
+    rslt = scm_capi_bytevector_u8_set_i(vec, idx, (int)v);
+    if (rslt < 0) return SCM_OBJ_NULL;
+    elms = scm_api_cdr(elms);
+  }
+
+  return vec;
+}
+
 static ScmObj
 scm_parser_parse_char_hex_scalar(const scm_char_t *str, size_t size,
                                  ScmEncoding *enc)
@@ -1850,8 +1925,7 @@ scm_parser_parse_expression(ScmParser *parser, ScmObj port)
     rslt = scm_parser_parse_vector(parser, port, enc);
     break;
   case SCM_TOKEN_TYPE_BYTEVECTOR_START:
-    scm_capi_error("Parser: byte vector  not supported", 0);
-    return SCM_OBJ_NULL;
+    rslt = scm_parser_parse_bytevector(parser, port, enc);
     break;
   case SCM_TOKEN_TYPE_CHAR:
     rslt = scm_parser_parse_char(parser, port, enc);

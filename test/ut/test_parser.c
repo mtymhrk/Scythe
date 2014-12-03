@@ -698,6 +698,30 @@ TEST(parser, parse_vector)
   test_parse(expected, "#(abc def)");
 }
 
+TEST(parser, parse_empty_bytevector)
+{
+  ScmObj expected = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&expected);
+
+  expected = scm_capi_make_bytevector(0, -1);
+  scm_api_write(expected, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL);
+  test_parse(expected, "#u8()");
+}
+
+TEST(parser, parse_bytevector)
+{
+  uint8_t contents[] = { 0, 127, 255 };
+  ScmObj expected = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&expected);
+
+  expected = scm_capi_make_bytevector_from_cv(contents,
+                                              sizeof(contents)/sizeof(contents[0]));
+  scm_api_write(expected, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL);
+  test_parse(expected, "#u8(0 #e#x7f 255)");
+}
+
 TEST(parser, parse_eof)
 {
   test_parse(SCM_EOF_OBJ, "");
