@@ -5227,6 +5227,21 @@ scm_api_bytevector_P(ScmObj obj)
 }
 
 ScmObj
+scm_capi_make_bytevector(size_t len, int fill)
+{
+  if (len > SSIZE_MAX) {
+    scm_capi_error("failed to make bytevector: too large", 0);
+    return SCM_OBJ_NULL;
+  }
+  else if (fill > 255) {
+    scm_capi_error("failed to make bytevector: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_bytevector_new(SCM_MEM_HEAP, len, fill);
+}
+
+ScmObj
 scm_capi_make_bytevector_from_cv(const void *bytes, size_t length)
 {
   if (bytes == NULL && length > 0) {
