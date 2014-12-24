@@ -22,27 +22,6 @@ ScmTypeInfo SCM_VECTOR_TYPE_INFO = {
   .extra               = NULL,
 };
 
-static ssize_t
-length_of_vector_maked_with_list(ScmObj lst)
-{
-  ScmObj l = SCM_OBJ_INIT;
-  ssize_t cnt;
-
-  SCM_REFSTK_INIT_REG(&lst,
-                      &l);
-
-  if (scm_obj_null_p(lst))
-    return 0;
-
-  cnt = 0;
-  for (l = lst; scm_fcd_pair_p(l); l = scm_fcd_cdr(l))
-    cnt++;
-
-  if (scm_obj_null_p(l)) return -1;
-
-  return cnt;
-}
-
 int
 scm_vector_initialize(ScmObj vector, size_t length, ScmObj fill)
 {
@@ -145,66 +124,6 @@ scm_vector_finalize(ScmObj vector)
 
   if (SCM_VECTOR_ARRAY(vector) != NULL)
     scm_fcd_free(SCM_VECTOR_ARRAY(vector));
-}
-
-ScmObj
-scm_vector_new(SCM_MEM_TYPE_T mtype,
-               size_t length, ScmObj fill)
-{
-  ScmObj vector = SCM_OBJ_INIT;
-
-  SCM_REFSTK_INIT_REG(&fill, &vector);
-
-  /* Vector の実装として、length を SSIZE_MAX 以下に制限する必要はないが、
-     api との兼ね合いで制限する */
-  scm_assert(length <= SSIZE_MAX);
-
-  vector = scm_fcd_mem_alloc(&SCM_VECTOR_TYPE_INFO, 0, mtype);
-  if (scm_obj_null_p(vector)) return SCM_OBJ_NULL;
-
-  if (scm_vector_initialize(vector, length, fill) < 0)
-    return SCM_OBJ_NULL;
-
-  return vector;
-}
-
-ScmObj
-scm_vector_new_from_ary(SCM_MEM_TYPE_T mtype, const ScmObj *elms, size_t length)
-{
-  ScmObj vector = SCM_OBJ_INIT;
-
-  SCM_REFSTK_INIT_REG(&vector);
-
-  scm_assert(length == 0 || (length > 0 && elms != NULL));
-  scm_assert(length <= SSIZE_MAX);
-
-  vector = scm_fcd_mem_alloc(&SCM_VECTOR_TYPE_INFO, 0, mtype);
-  if (scm_obj_null_p(vector)) return SCM_OBJ_NULL;
-
-  if (scm_vector_initialize_ary(vector, elms, length) < 0)
-    return SCM_OBJ_NULL;
-
-  return vector;
-}
-
-ScmObj
-scm_vector_new_from_list(SCM_MEM_TYPE_T mtype, ScmObj lst)
-{
-  ScmObj vector = SCM_OBJ_INIT;
-  ssize_t len;
-
-  SCM_REFSTK_INIT_REG(&lst, &vector);
-
-  len = length_of_vector_maked_with_list(lst);
-  if (len < 0) return SCM_OBJ_NULL;
-
-  vector = scm_fcd_mem_alloc(&SCM_VECTOR_TYPE_INFO, 0, mtype);
-  if (scm_obj_null_p(vector)) return SCM_OBJ_NULL;
-
-  if (scm_vector_initialize_lst(vector, (size_t)len, lst) < 0)
-    return SCM_OBJ_NULL;
-
-  return vector;
 }
 
 size_t

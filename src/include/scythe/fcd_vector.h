@@ -5,6 +5,7 @@
 #include <stddef.h>
 
 #include "scythe/object.h"
+#include "scythe/fcd_type.h"
 
 
 /*******************************************************************/
@@ -13,6 +14,10 @@
 
 bool scm_fcd_vector_p(ScmObj obj);
 ScmObj scm_fcd_vector_P(ScmObj obj);
+ScmObj scm_fcd_vector_new(SCM_MEM_TYPE_T mtype, size_t length, ScmObj fill);
+ScmObj scm_fcd_vector_new_cv(SCM_MEM_TYPE_T mtype,
+                             const ScmObj *elms, size_t length);
+ScmObj scm_fcd_vector_new_lst(SCM_MEM_TYPE_T mtype, ScmObj lst);
 ScmObj scm_fcd_make_vector(size_t len, ScmObj fill);
 ScmObj scm_fcd_vector_lst(ScmObj lst);
 ScmObj scm_fcd_vector_cv(const ScmObj *elm, size_t n);

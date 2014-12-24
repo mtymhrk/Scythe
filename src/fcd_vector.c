@@ -14,6 +14,27 @@
 /*  Vectors                                                        */
 /*******************************************************************/
 
+static ssize_t
+length_of_vector_maked_with_list(ScmObj lst)
+{
+  ScmObj l = SCM_OBJ_INIT;
+  ssize_t cnt;
+
+  SCM_REFSTK_INIT_REG(&lst,
+                      &l);
+
+  if (scm_obj_null_p(lst))
+    return 0;
+
+  cnt = 0;
+  for (l = lst; scm_fcd_pair_p(l); l = scm_fcd_cdr(l))
+    cnt++;
+
+  if (scm_obj_null_p(l)) return -1;
+
+  return cnt;
+}
+
 extern inline bool
 scm_fcd_vector_p(ScmObj obj)
 {
@@ -27,14 +48,73 @@ scm_fcd_vector_P(ScmObj obj)
 }
 
 ScmObj
+scm_fcd_vector_new(SCM_MEM_TYPE_T mtype, size_t length, ScmObj fill)
+{
+  ScmObj vector = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&fill, &vector);
+
+  /* Vector の実装として、length を SSIZE_MAX 以下に制限する必要はないが、
+     api との兼ね合いで制限する */
+  scm_assert(length <= SSIZE_MAX);
+
+  vector = scm_fcd_mem_alloc(&SCM_VECTOR_TYPE_INFO, 0, mtype);
+  if (scm_obj_null_p(vector)) return SCM_OBJ_NULL;
+
+  if (scm_vector_initialize(vector, length, fill) < 0)
+    return SCM_OBJ_NULL;
+
+  return vector;
+}
+
+ScmObj
+scm_fcd_vector_new_cv(SCM_MEM_TYPE_T mtype, const ScmObj *elms, size_t length)
+{
+  ScmObj vector = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&vector);
+
+  scm_assert(length == 0 || (length > 0 && elms != NULL));
+  scm_assert(length <= SSIZE_MAX);
+
+  vector = scm_fcd_mem_alloc(&SCM_VECTOR_TYPE_INFO, 0, mtype);
+  if (scm_obj_null_p(vector)) return SCM_OBJ_NULL;
+
+  if (scm_vector_initialize_ary(vector, elms, length) < 0)
+    return SCM_OBJ_NULL;
+
+  return vector;
+}
+
+ScmObj
+scm_fcd_vector_new_lst(SCM_MEM_TYPE_T mtype, ScmObj lst)
+{
+  ScmObj vector = SCM_OBJ_INIT;
+  ssize_t len;
+
+  SCM_REFSTK_INIT_REG(&lst, &vector);
+
+  len = length_of_vector_maked_with_list(lst);
+  if (len < 0) return SCM_OBJ_NULL;
+
+  vector = scm_fcd_mem_alloc(&SCM_VECTOR_TYPE_INFO, 0, mtype);
+  if (scm_obj_null_p(vector)) return SCM_OBJ_NULL;
+
+  if (scm_vector_initialize_lst(vector, (size_t)len, lst) < 0)
+    return SCM_OBJ_NULL;
+
+  return vector;
+}
+
+ScmObj
 scm_fcd_make_vector(size_t len, ScmObj fill)
 {
   scm_assert(len <= SSIZE_MAX);
 
   if (scm_obj_null_p(fill))
-    return scm_vector_new(SCM_MEM_HEAP, len, SCM_UNDEF_OBJ);
+    return scm_fcd_vector_new(SCM_MEM_HEAP, len, SCM_UNDEF_OBJ);
   else
-    return scm_vector_new(SCM_MEM_HEAP, len, fill);
+    return scm_fcd_vector_new(SCM_MEM_HEAP, len, fill);
 }
 
 ScmObj
@@ -48,7 +128,7 @@ scm_fcd_vector_cv(const ScmObj *elm, size_t n)
 {
   scm_assert(n <= SIZE_MAX);
   scm_assert(n == 0 || elm != NULL);
-  return scm_vector_new_from_ary(SCM_MEM_HEAP, elm, n);
+  return scm_fcd_vector_new_cv(SCM_MEM_HEAP, elm, n);
 }
 
 ScmObj
@@ -120,7 +200,7 @@ scm_fcd_vector_to_list(ScmObj vec, ssize_t start, ssize_t end)
 ScmObj
 scm_fcd_list_to_vector(ScmObj lst)
 {
-  return scm_vector_new_from_list(SCM_MEM_HEAP, lst);
+  return scm_fcd_vector_new_lst(SCM_MEM_HEAP, lst);
 }
 
 ScmObj
@@ -193,7 +273,7 @@ scm_fcd_vector_copy(ScmObj vec, ssize_t start, ssize_t end)
   vector_norm_star_end(vec, &start, &end);
   n = (size_t)(end - start);
 
-  copy = scm_vector_new(SCM_MEM_HEAP, n, SCM_UNDEF_OBJ);
+  copy = scm_fcd_vector_new(SCM_MEM_HEAP, n, SCM_UNDEF_OBJ);
   if (scm_obj_null_p(copy)) return SCM_OBJ_NULL;
 
   for (size_t i = 0; i < n; i++) {
@@ -283,7 +363,7 @@ scm_fcd_vector_append_lst(ScmObj lst)
                       &elm, &ls);
 
   if (scm_obj_null_p(lst))
-    return scm_vector_new(SCM_MEM_HEAP, 0, SCM_OBJ_NULL);
+    return scm_fcd_vector_new(SCM_MEM_HEAP, 0, SCM_OBJ_NULL);
 
   sum = 0;
   for (ls = lst; scm_fcd_pair_p(ls); ls = scm_fcd_cdr(ls)) {
@@ -305,7 +385,7 @@ scm_fcd_vector_append_lst(ScmObj lst)
     sum += len;
   }
 
-  acc = scm_vector_new(SCM_MEM_HEAP, sum, SCM_OBJ_NULL);
+  acc = scm_fcd_vector_new(SCM_MEM_HEAP, sum, SCM_OBJ_NULL);
   if (scm_obj_null_p(acc)) return SCM_OBJ_NULL;
 
   idx = 0;
@@ -332,7 +412,7 @@ scm_fcd_vector_append_cv(ScmObj *ary, size_t n)
   SCM_REFSTK_INIT_REG(&vec, &elm);
 
   if (ary == NULL || n == 0)
-    return scm_vector_new(SCM_MEM_HEAP, 0, SCM_OBJ_NULL);
+    return scm_fcd_vector_new(SCM_MEM_HEAP, 0, SCM_OBJ_NULL);
 
   sum = 0;
   for (size_t i = 0; i < n; i++) {
@@ -351,7 +431,7 @@ scm_fcd_vector_append_cv(ScmObj *ary, size_t n)
     sum += len;
   }
 
-  vec = scm_vector_new(SCM_MEM_HEAP, sum, SCM_OBJ_NULL);
+  vec = scm_fcd_vector_new(SCM_MEM_HEAP, sum, SCM_OBJ_NULL);
   if (scm_obj_null_p(vec)) return SCM_OBJ_NULL;
 
   idx = 0;
