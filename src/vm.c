@@ -8,7 +8,6 @@
 #include "scythe/vm.h"
 #include "scythe/vmstack.h"
 #include "scythe/vminst.h"
-#include "scythe/memory.h"
 #include "scythe/object.h"
 #include "scythe/refstk.h"
 #include "scythe/string.h"
@@ -119,42 +118,42 @@ scm_bedrock_cleanup(ScmBedrock *br)
   br->subr.exc_hndlr_caller = SCM_OBJ_NULL;
 
   if (scm_obj_not_null_p(br->modtree)) {
-    scm_mem_free_root(br->mem, br->modtree);
+    scm_fcd_mem_free_root(br->modtree);
     br->modtree = SCM_OBJ_NULL;
   }
 
   if (scm_obj_not_null_p(br->symtbl)) {
-    scm_mem_free_root(br->mem, br->symtbl);
+    scm_fcd_mem_free_root(br->symtbl);
     br->modtree = SCM_OBJ_NULL;
   }
 
   if (scm_obj_not_null_p(br->cnsts.landmine)) {
-    scm_mem_free_root(br->mem, br->cnsts.landmine);
+    scm_fcd_mem_free_root(br->cnsts.landmine);
     br->cnsts.landmine = SCM_OBJ_NULL;
   }
 
   if (scm_obj_not_null_p(br->cnsts.undef)) {
-    scm_mem_free_root(br->mem, br->cnsts.undef);
+    scm_fcd_mem_free_root(br->cnsts.undef);
     br->cnsts.undef = SCM_OBJ_NULL;
   }
 
   if (scm_obj_not_null_p(br->cnsts.b_false)) {
-    scm_mem_free_root(br->mem, br->cnsts.b_false);
+    scm_fcd_mem_free_root(br->cnsts.b_false);
     br->cnsts.b_false = SCM_OBJ_NULL;
   }
 
   if (scm_obj_not_null_p(br->cnsts.b_true)) {
-    scm_mem_free_root(br->mem, br->cnsts.b_true);
+    scm_fcd_mem_free_root(br->cnsts.b_true);
     br->cnsts.b_true = SCM_OBJ_NULL;
   }
 
   if (scm_obj_not_null_p(br->cnsts.eof)) {
-    scm_mem_free_root(br->mem, br->cnsts.eof);
+    scm_fcd_mem_free_root(br->cnsts.eof);
     br->cnsts.eof = SCM_OBJ_NULL;
   }
 
   if (scm_obj_not_null_p(br->cnsts.nil)) {
-    scm_mem_free_root(br->mem, br->cnsts.nil);
+    scm_fcd_mem_free_root(br->cnsts.nil);
     br->cnsts.nil = SCM_OBJ_NULL;
   }
 
@@ -2799,8 +2798,7 @@ scm_vm_shutdown(void)
 {
   scm_bedrock_cleanup(scm_fcd_current_br());
 
-  scm_mem_free_root(scm_bedrock_mem(scm_fcd_current_br()),
-                    scm_fcd_current_ref_stack());
+  scm_fcd_mem_free_root(scm_fcd_current_ref_stack());
   scm_fcd_chg_current_ref_stack(SCM_OBJ_NULL);
 
   scm_bedrock_end(scm_fcd_current_br());
