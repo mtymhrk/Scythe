@@ -3,7 +3,6 @@
 
 #include "stddef.h"
 #include "stdbool.h"
-#include "stdarg.h"
 
 typedef struct ScmMarshalHeaderRec ScmMarshalHeader;
 typedef struct ScmMarshalBufferRec ScmMarshalBuffer;
@@ -78,8 +77,6 @@ void scm_unmarshal_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_unmarshal_gc_finalize(ScmObj obj);
 int scm_unmarshal_gc_accept(ScmObj obj, ScmObj mem,
                             ScmGCRefHandlerFunc handler);
-
-void *scm_marshal_va(size_t *size, va_list args);
 
 static inline bool
 scm_marshal_terminated_p(ScmObj marshal)

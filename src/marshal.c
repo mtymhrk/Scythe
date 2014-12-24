@@ -2,7 +2,6 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
-#include <stdarg.h>
 
 #include "scythe/object.h"
 #include "scythe/fcd.h"
@@ -3325,48 +3324,4 @@ scm_unmarshal_obj(ScmUnmarshalObjStat *container, ScmObj unmarshal)
   }
 
   return stat.obj;
-}
-
-static void *
-scm_marshal_va_internal(size_t *size, size_t nr_obj, va_list args)
-{
-  ScmObj marshal = SCM_OBJ_INIT, obj[nr_obj];
-
-  for (size_t i = 0; i < nr_obj; i++) obj[i] = va_arg(args, ScmObj);
-
-  SCM_REFSTK_INIT_REG(&marshal);
-  SCM_REFSTK_REG_ARY(obj, nr_obj);
-
-  marshal = scm_fcd_marshal_new(SCM_MEM_HEAP);
-  if (scm_obj_null_p(marshal)) return NULL;
-
-  for (size_t i = 0; i < nr_obj; i++) {
-    int r = scm_marshal_push_obj(marshal, obj[i]);
-    if (r < 0) return NULL;
-  }
-
-  return scm_marshal_terminate(marshal, size);
-}
-
-void *
-scm_marshal_va(size_t *size, va_list args)
-{
-  ScmObj o = SCM_OBJ_INIT;
-  size_t n;
-  void *p;
-  va_list copy;
-
-  va_copy(copy, args);
-
-  n = 0;
-  while (true) {
-    o = va_arg(args, ScmObj);
-    if (scm_obj_null_p(o)) break;
-    n++;
-  }
-
-  p = scm_marshal_va_internal(size, n, copy);
-  va_end(copy);
-
-  return p;
 }
