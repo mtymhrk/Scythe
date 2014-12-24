@@ -19,8 +19,8 @@ check_exception(ScmObj exc, const char *msg, const char *irris)
                       &msg_str, &ir_lst);
 
 
-  msg_str = scm_capi_make_string_from_cstr((msg == NULL) ? "" : msg,
-                                           SCM_ENC_UTF8);
+  msg_str = scm_fcd_make_string_from_cstr((msg == NULL) ? "" : msg,
+                                          SCM_ENC_UTF8);
 
   ir_lst = read_cstr(irris);
 

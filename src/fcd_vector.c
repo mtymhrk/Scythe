@@ -136,7 +136,7 @@ scm_fcd_vector_to_string(ScmObj vec, ssize_t start, ssize_t end)
                            (size_t)(end - start));
 }
 
-ScmObj
+static ScmObj
 string_to_vector_aux(ScmObj str, size_t start, size_t n)
 {
   ScmObj elm[n];

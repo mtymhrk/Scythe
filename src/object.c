@@ -1,6 +1,6 @@
 #include "scythe/object.h"
 #include "scythe/fixnum.h"
-#include "scythe/api.h"
+#include "scythe/fcd.h"
 
 ScmTypeInfo SCM_NULL_OBJ_TYPE_INFO = {
   .name                = "INTERNAL-NULL-VALUE",
@@ -31,5 +31,5 @@ scm_obj_default_print_func(ScmObj obj, ScmObj port, bool ext_rep)
   char str[256];
 
   snprintf(str, sizeof(str), "#<%s %lx>", scm_obj_type_name(obj), obj);
-  return scm_capi_write_cstr(str, SCM_ENC_SRC, port);
+  return scm_fcd_write_cstr(str, SCM_ENC_SRC, port);
 }

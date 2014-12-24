@@ -43,8 +43,8 @@ TEST_SETUP(fcd_input)
   make_test_file();
 
   file_port = string_port = SCM_OBJ_NULL;
-  scm_capi_mem_register_extra_rfrn(SCM_REF_MAKE(file_port));
-  scm_capi_mem_register_extra_rfrn(SCM_REF_MAKE(string_port));
+  scm_fcd_mem_register_extra_rfrn(SCM_REF_MAKE(file_port));
+  scm_fcd_mem_register_extra_rfrn(SCM_REF_MAKE(string_port));
   file_port = scm_fcd_open_input_file(TEST_FILE_PATH, NULL);
   string_port = scm_fcd_open_input_string_cstr(TEST_FILE_CONTENTS,
                                                SCM_ENC_NAME_SRC);

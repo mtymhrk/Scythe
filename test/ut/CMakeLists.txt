@@ -5,9 +5,8 @@ set(unit_test_src_apnd test_api_module.c test_api_pair_and_lists.c
                        test_api_symbols.c test_api_equivalence.c
                        test_api_booleans.c test_api_fixnum.c test_api_bignum.c
                        test_api_vectors.c test_api_format.c
-                       test_api_exceptions.c test_api_assembler.c
-                       test_api_ports.c test_api_input.c test_api_output.c
-                       test_api_nil.c test_api_undef.c
+                       test_api_exceptions.c test_api_ports.c test_api_input.c
+                       test_api_output.c test_api_nil.c
                        test_fcd_bignum.c test_fcd_booleans.c test_fcd_fixnum.c
                        test_fcd_input.c test_fcd_nil.c test_fcd_output.c
                        test_fcd_undef.c

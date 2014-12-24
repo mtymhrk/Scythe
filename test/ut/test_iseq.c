@@ -18,11 +18,11 @@ TEST_SETUP(iseq)
   scm_fcd_ref_stack_save(&rsi);
 
   iseq = SCM_OBJ_NULL;
-  scm_capi_mem_register_extra_rfrn(SCM_REF_MAKE(iseq));
+  scm_fcd_mem_register_extra_rfrn(SCM_REF_MAKE(iseq));
   iseq = scm_iseq_new(SCM_MEM_HEAP);
 
   iseq2 = SCM_OBJ_NULL;
-  scm_capi_mem_register_extra_rfrn(SCM_REF_MAKE(iseq2));
+  scm_fcd_mem_register_extra_rfrn(SCM_REF_MAKE(iseq2));
   iseq2 = scm_iseq_new(SCM_MEM_HEAP);
 }
 

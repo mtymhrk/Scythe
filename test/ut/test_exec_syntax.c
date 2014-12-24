@@ -34,11 +34,11 @@ def_global_var(const char *sym, const char *obj)
 
   SCM_REFSTK_INIT_REG(&m, &s, &o);
 
-  m = scm_capi_make_symbol_from_cstr("main", SCM_ENC_SRC);
-  s = scm_capi_make_symbol_from_cstr(sym, SCM_ENC_SRC);
+  m = scm_fcd_make_symbol_from_cstr("main", SCM_ENC_SRC);
+  s = scm_fcd_make_symbol_from_cstr(sym, SCM_ENC_SRC);
   o = read_cstr(obj);
 
-  scm_capi_define_global_var(m, s, o, true);
+  scm_fcd_define_global_var(m, s, o, true);
 }
 
 static ScmObj
@@ -48,10 +48,10 @@ ref_global_var(const char *sym)
 
   SCM_REFSTK_INIT_REG(&m, &s, &o);
 
-  m = scm_capi_make_symbol_from_cstr("main", SCM_ENC_SRC);
-  s = scm_capi_make_symbol_from_cstr(sym, SCM_ENC_SRC);
+  m = scm_fcd_make_symbol_from_cstr("main", SCM_ENC_SRC);
+  s = scm_fcd_make_symbol_from_cstr(sym, SCM_ENC_SRC);
 
-  scm_capi_global_var_ref(m, s, SCM_CSETTER_L(o));
+  scm_fcd_global_var_ref(m, s, SCM_CSETTER_L(o));
 
   return o;
 }
@@ -132,7 +132,7 @@ TEST(exec_syntax, self_eval_1)
 TEST(exec_syntax, define_global_variable_1)
 {
   test_eval__chk_gv_type("(define (func x) x)", "func",
-                         scm_capi_closure_p);
+                         scm_fcd_closure_p);
 }
 
 TEST(exec_syntax, define_global_variable_2)
@@ -270,25 +270,25 @@ TEST(exec_syntax, tail_call_4)
 TEST(exec_syntax, lambda_1)
 {
   test_eval__chk_val_type("(lambda () 'a)",
-                          scm_capi_closure_p);
+                          scm_fcd_closure_p);
 }
 
 TEST(exec_syntax, lambda_2)
 {
   test_eval__chk_val_type("(lambda (v1 v2) 'a)",
-                          scm_capi_closure_p);
+                          scm_fcd_closure_p);
 }
 
 TEST(exec_syntax, lambda_3)
 {
   test_eval__chk_val_type("(lambda (v1 v2 . v3) 'a)",
-                          scm_capi_closure_p);
+                          scm_fcd_closure_p);
 }
 
 TEST(exec_syntax, lambda_4)
 {
   test_eval__chk_val_type("((lambda ()))",
-                          scm_capi_undef_object_p);
+                          scm_fcd_undef_object_p);
 }
 
 TEST(exec_syntax, let_1)
@@ -328,7 +328,7 @@ TEST(exec_syntax, let_5)
 TEST(exec_syntax, let_6)
 {
   test_eval__chk_val_type("(let ())",
-                          scm_capi_undef_object_p);
+                          scm_fcd_undef_object_p);
 }
 
 TEST(exec_syntax, named_let_1)
@@ -340,7 +340,7 @@ TEST(exec_syntax, named_let_1)
 TEST(exec_syntax, named_let_2)
 {
   test_eval__chk_val_type("(let loop ())",
-                          scm_capi_undef_object_p);
+                          scm_fcd_undef_object_p);
 }
 
 TEST(exec_syntax, named_let_3)
@@ -407,7 +407,7 @@ TEST(exec_syntax, let_a_5)
 TEST(exec_syntax, let_a_6)
 {
   test_eval__chk_val_type("(let* ())",
-                          scm_capi_undef_object_p);
+                          scm_fcd_undef_object_p);
 }
 
 TEST(exec_syntax, letrec_1)
@@ -437,7 +437,7 @@ TEST(exec_syntax, letrec_4)
 TEST(exec_syntax, letrec_5)
 {
   test_eval__chk_val_type("(letrec ())",
-                          scm_capi_undef_object_p);
+                          scm_fcd_undef_object_p);
 }
 
 TEST(exec_syntax, letrec_a_1)
@@ -473,7 +473,7 @@ TEST(exec_syntax, letrec_a_5)
 TEST(exec_syntax, letrec_a_6)
 {
   test_eval__chk_val_type("(letrec* ())",
-                          scm_capi_undef_object_p);
+                          scm_fcd_undef_object_p);
 }
 
 TEST(exec_syntax, internal_definition_1)
@@ -525,7 +525,7 @@ TEST(exec_syntax, begin_2)
 TEST(exec_syntax, begin_3)
 {
   test_eval__chk_val_type("(begin)",
-                          scm_capi_undef_object_p);
+                          scm_fcd_undef_object_p);
 }
 
 TEST(exec_syntax, refe_bound_variable_1)
@@ -601,7 +601,7 @@ TEST(exec_syntax, if_3)
 TEST(exec_syntax, if_4)
 {
   test_eval__chk_val_type("(if #f 'b)",
-                          scm_capi_undef_object_p);
+                          scm_fcd_undef_object_p);
 }
 
 TEST(exec_syntax, if_5)
@@ -613,7 +613,7 @@ TEST(exec_syntax, if_5)
 TEST(exec_syntax, if_6)
 {
   test_eval__chk_val_type("((lambda () (if '#f 'b)))",
-                          scm_capi_undef_object_p);
+                          scm_fcd_undef_object_p);
 }
 
 TEST(exec_syntax, cond_1)
@@ -883,7 +883,7 @@ TEST(exec_syntax, or_14)
 TEST(exec_syntax, when_1)
 {
   test_eval__chk_val_type("(when 'a)",
-                          scm_capi_undef_object_p);
+                          scm_fcd_undef_object_p);
 }
 
 TEST(exec_syntax, when_2)
@@ -896,7 +896,7 @@ TEST(exec_syntax, when_2)
 TEST(exec_syntax, when_3)
 {
   test_eval__chk_val_type("(when #f 'a)",
-                          scm_capi_undef_object_p);
+                          scm_fcd_undef_object_p);
 }
 
 TEST(exec_syntax, when_4)
@@ -908,7 +908,7 @@ TEST(exec_syntax, when_4)
 TEST(exec_syntax, when_5)
 {
   test_eval__chk_val_type("((lambda () (when 'a)))",
-                          scm_capi_undef_object_p);
+                          scm_fcd_undef_object_p);
 }
 
 
@@ -921,7 +921,7 @@ TEST(exec_syntax, when_6)
 TEST(exec_syntax, when_7)
 {
   test_eval__chk_val_type("((lambda () (when #f 'a)))",
-                          scm_capi_undef_object_p);
+                          scm_fcd_undef_object_p);
 }
 
 TEST(exec_syntax, when_8)
@@ -933,7 +933,7 @@ TEST(exec_syntax, when_8)
 TEST(exec_syntax, unless_1)
 {
   test_eval__chk_val_type("(unless 'a)",
-                          scm_capi_undef_object_p);
+                          scm_fcd_undef_object_p);
 }
 
 TEST(exec_syntax, unless_2)
@@ -945,7 +945,7 @@ TEST(exec_syntax, unless_2)
 TEST(exec_syntax, unless_3)
 {
   test_eval__chk_val_type("(unless 'a 'b)",
-                          scm_capi_undef_object_p);
+                          scm_fcd_undef_object_p);
 }
 
 TEST(exec_syntax, unless_4)
@@ -957,7 +957,7 @@ TEST(exec_syntax, unless_4)
 TEST(exec_syntax, unless_5)
 {
   test_eval__chk_val_type("((lambda () (unless 'a)))",
-                          scm_capi_undef_object_p);
+                          scm_fcd_undef_object_p);
 }
 
 TEST(exec_syntax, unless_6)
@@ -969,7 +969,7 @@ TEST(exec_syntax, unless_6)
 TEST(exec_syntax, unless_7)
 {
   test_eval__chk_val_type("((lambda () (unless 'a 'b)))",
-                          scm_capi_undef_object_p);
+                          scm_fcd_undef_object_p);
 }
 
 TEST(exec_syntax, unless_8)
@@ -1002,7 +1002,7 @@ TEST(exec_syntax, do_3)
                           "     (y '() (cons (car x) y)))"
                           "    ((null? x))"
                           "  )",
-                          scm_capi_undef_object_p);
+                          scm_fcd_undef_object_p);
 }
 
 TEST(exec_syntax, do_4)
@@ -1010,7 +1010,7 @@ TEST(exec_syntax, do_4)
   test_eval__chk_val_type("(do ()"
                           "    (#t)"
                           "  )",
-                          scm_capi_undef_object_p);
+                          scm_fcd_undef_object_p);
 }
 
 TEST(exec_syntax, do_5)
@@ -1072,7 +1072,7 @@ TEST(exec_syntax, let_values_4)
 TEST(exec_syntax, let_values_5)
 {
   test_eval__chk_val_type("(let-values ((() (values))))",
-                          scm_capi_undef_object_p);
+                          scm_fcd_undef_object_p);
 }
 
 TEST(exec_syntax, let_values_6)
@@ -1136,7 +1136,7 @@ TEST(exec_syntax, let_a_values_4)
 TEST(exec_syntax, let_a_values_5)
 {
   test_eval__chk_val_type("(let*-values ((() (values))))",
-                          scm_capi_undef_object_p);
+                          scm_fcd_undef_object_p);
 }
 
 TEST(exec_syntax, let_a_values_6)

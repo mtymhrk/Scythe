@@ -1,5 +1,5 @@
 #include "scythe/object.h"
-#include "scythe/api.h"
+#include "scythe/fcd.h"
 #include "scythe/impl_utils.h"
 #include "scythe/number_common.h"
 #include "scythe/bignum.h"
@@ -73,7 +73,7 @@ scm_fixnum_quo_rem(scm_sword_t dvd, scm_sword_t dvr,
   char x_s, y_s;
 
   if (dvr == 0) {
-    scm_capi_error("divided by zero", 0);
+    scm_fcd_error("divided by zero", 0);
     return -1;
   }
 
@@ -196,9 +196,9 @@ scm_fixnum_cmp(ScmObj fn, ScmObj num, int *cmp)
   scm_sword_t v1, v2;
 
   scm_assert_obj_type(fn, &SCM_FIXNUM_TYPE_INFO);
-  scm_assert(scm_capi_number_p(num));
+  scm_assert(scm_fcd_number_p(num));
 
-  if (!scm_capi_fixnum_p(num)) {
+  if (!scm_fcd_fixnum_p(num)) {
     SCM_REFSTK_INIT_REG(&fn, &num);
 
     fn = SCM_NUM_CALL_FUNC(num, coerce, fn);
@@ -267,7 +267,7 @@ scm_fixnum_invert_sign(ScmObj fn)
 {
   scm_assert_obj_type(fn, &SCM_FIXNUM_TYPE_INFO);
 
-  return scm_capi_make_number_from_sword(-scm_fixnum_value(fn));
+  return scm_fcd_make_number_from_sword(-scm_fixnum_value(fn));
 }
 
 ScmObj
@@ -276,9 +276,9 @@ scm_fixnum_plus(ScmObj aug, ScmObj add)
   SCM_REFSTK_INIT_REG(&add);
 
   scm_assert_obj_type(aug, &SCM_FIXNUM_TYPE_INFO);
-  scm_assert(scm_capi_number_p(add));
+  scm_assert(scm_fcd_number_p(add));
 
-  if (scm_capi_fixnum_p(add)) {
+  if (scm_fcd_fixnum_p(add)) {
     scm_sword_t v = scm_fixnum_value(aug) + scm_fixnum_value(add);
 
     if (v < SCM_FIXNUM_MIN || SCM_FIXNUM_MAX < v)
@@ -300,9 +300,9 @@ scm_fixnum_minus(ScmObj min, ScmObj sub)
   SCM_REFSTK_INIT_REG(&sub);
 
   scm_assert_obj_type(min, &SCM_FIXNUM_TYPE_INFO);
-  scm_assert(scm_capi_number_p(sub));
+  scm_assert(scm_fcd_number_p(sub));
 
-  if (scm_capi_fixnum_p(sub)) {
+  if (scm_fcd_fixnum_p(sub)) {
     scm_sword_t v = scm_fixnum_value(min) - scm_fixnum_value(sub);
 
     if (v < SCM_FIXNUM_MIN || SCM_FIXNUM_MAX < v)
@@ -326,12 +326,12 @@ scm_fixnum_mul(ScmObj mud, ScmObj mur)
   SCM_REFSTK_INIT_REG(&mur);
 
   scm_assert_obj_type(mud, &SCM_FIXNUM_TYPE_INFO);
-  scm_assert(scm_capi_number_p(mur));
+  scm_assert(scm_fcd_number_p(mur));
 
   v1 = scm_fixnum_value(mud);
   if (v1 == 0) return mud;
 
-  if (scm_capi_fixnum_p(mur)) {
+  if (scm_fcd_fixnum_p(mur)) {
     v2 = scm_fixnum_value(mur);
 
     if (scm_fixnum_multi(v1, v2, &v) == -1) {
@@ -365,9 +365,9 @@ scm_fixnum_floor_div(ScmObj dvd, ScmObj dvr,
   SCM_REFSTK_INIT_REG(&dvr);
 
   scm_assert_obj_type(dvd, &SCM_FIXNUM_TYPE_INFO);
-  scm_assert(scm_capi_number_p(dvr));
+  scm_assert(scm_fcd_number_p(dvr));
 
-  if (!scm_capi_fixnum_p(dvr)) {
+  if (!scm_fcd_fixnum_p(dvr)) {
     dvd = SCM_NUM_CALL_FUNC(dvr, coerce, dvd);
     if (scm_obj_null_p(dvd)) return -1;
 
@@ -408,9 +408,9 @@ scm_fixnum_ceiling_div(ScmObj dvd, ScmObj dvr,
   SCM_REFSTK_INIT_REG(&dvr);
 
   scm_assert_obj_type(dvd, &SCM_FIXNUM_TYPE_INFO);
-  scm_assert(scm_capi_number_p(dvr));
+  scm_assert(scm_fcd_number_p(dvr));
 
-  if (!scm_capi_fixnum_p(dvr)) {
+  if (!scm_fcd_fixnum_p(dvr)) {
     dvd = SCM_NUM_CALL_FUNC(dvr, coerce, dvd);
     if (scm_obj_null_p(dvd)) return -1;
 
@@ -450,9 +450,9 @@ scm_fixnum_truncate_div(ScmObj dvd, ScmObj dvr,
   SCM_REFSTK_INIT_REG(&dvr);
 
   scm_assert_obj_type(dvd, &SCM_FIXNUM_TYPE_INFO);
-  scm_assert(scm_capi_number_p(dvr));
+  scm_assert(scm_fcd_number_p(dvr));
 
-  if (!scm_capi_fixnum_p(dvr)) {
+  if (!scm_fcd_fixnum_p(dvr)) {
     dvd = SCM_NUM_CALL_FUNC(dvr, coerce, dvd);
     if (scm_obj_null_p(dvd)) return -1;
 
@@ -481,7 +481,7 @@ scm_fixnum_coerce(ScmObj fn, ScmObj num)
   scm_assert_obj_type(fn, &SCM_FIXNUM_TYPE_INFO);
   scm_assert(scm_obj_not_null_p(num));
 
-  scm_capi_error("undefined arithmetic operation pattern", 2, fn, num);
+  scm_fcd_error("undefined arithmetic operation pattern", 2, fn, num);
   return SCM_OBJ_NULL;
 }
 
@@ -496,7 +496,7 @@ scm_fixnum_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
   snprintf(cstr, sizeof(cstr), "%lld",
            (long long)SCM_RSHIFT_ARITH((scm_sword_t)obj, SCM_FIXNUM_SHIFT_BIT));
 
-  rslt = scm_capi_write_cstr(cstr, SCM_ENC_SRC, port);
+  rslt = scm_fcd_write_cstr(cstr, SCM_ENC_SRC, port);
   if (rslt < 0) return -1;
 
   return 0;

@@ -1961,8 +1961,8 @@ scm_subr_func_with_exception_handler(ScmObj subr, int argc, const ScmObj *argv)
                       &module, &postproc);
 
   module = scm_fcd_subrutine_module(subr);
-  postproc = scm_capi_make_subrutine(scm_subr_func_with_exception_handler_post,
-                                     -1, SCM_PROC_ADJ_UNWISHED, module);
+  postproc = scm_fcd_make_subrutine(scm_subr_func_with_exception_handler_post,
+                                    -1, SCM_PROC_ADJ_UNWISHED, module);
   if (scm_obj_null_p(postproc)) return -1;
 
   rslt = scm_capi_trampolining(argv[1], SCM_NIL_OBJ, postproc, SCM_OBJ_NULL);

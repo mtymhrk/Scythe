@@ -23,7 +23,6 @@ void scm_fcd_vector_set_i(ScmObj vec, size_t idx, ScmObj obj);
 ScmObj scm_fcd_vector_to_list(ScmObj vec, ssize_t start, ssize_t end);
 ScmObj scm_fcd_list_to_vector(ScmObj lst);
 ScmObj scm_fcd_vector_to_string(ScmObj vec, ssize_t start, ssize_t end);
-ScmObj string_to_vector_aux(ScmObj str, size_t start, size_t n);
 ScmObj scm_fcd_string_to_vector(ScmObj str, ssize_t start, ssize_t end);
 ScmObj scm_fcd_vector_copy(ScmObj vec, ssize_t start, ssize_t end);
 int scm_fcd_vector_copy_i(ScmObj to, size_t at,

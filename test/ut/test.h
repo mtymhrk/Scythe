@@ -10,25 +10,25 @@
   TEST_ASSERT_TRUE(scm_obj_null_p(obj))
 
 #define TEST_ASSERT_SCM_TRUE(obj) \
-  TEST_ASSERT_TRUE(scm_capi_true_object_p(obj))
+  TEST_ASSERT_TRUE(scm_fcd_true_object_p(obj))
 
 #define TEST_ASSERT_SCM_FALSE(obj) \
-  TEST_ASSERT_TRUE(scm_capi_false_object_p(obj))
+  TEST_ASSERT_TRUE(scm_fcd_false_object_p(obj))
 
 #define TEST_ASSERT_SCM_UNDEF(obj) \
-  TEST_ASSERT_TRUE(scm_capi_undef_object_p(obj))
+  TEST_ASSERT_TRUE(scm_fcd_undef_object_p(obj))
 
 #define TEST_ASSERT_SCM_NIL(obj) \
-  TEST_ASSERT_TRUE(scm_capi_nil_p(obj))
+  TEST_ASSERT_TRUE(scm_fcd_nil_p(obj))
 
 #define TEST_ASSERT_SCM_EQ(expected, actual) \
-  TEST_ASSERT_TRUE(scm_capi_eq_p(expected, actual))
+  TEST_ASSERT_TRUE(scm_fcd_eq_p(expected, actual))
 
 #define TEST_ASSERT_SCM_EQV(expected, actual) \
-  TEST_ASSERT_SCM_TRUE(scm_api_eqv_P(expected, actual))
+  TEST_ASSERT_SCM_TRUE(scm_fcd_eqv_P(expected, actual))
 
 #define TEST_ASSERT_SCM_EQUAL(expected, actual) \
-  TEST_ASSERT_SCM_TRUE(scm_api_equal_P(expected, actual))
+  TEST_ASSERT_SCM_TRUE(scm_fcd_equal_P(expected, actual))
 
 
 ScmObj read_cstr(const char *str);

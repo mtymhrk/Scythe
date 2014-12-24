@@ -17,8 +17,8 @@ check_exception(ScmObj exc, const char *msg, const char *irris)
                       &msg_str, &ir_lst);
 
 
-  msg_str = scm_capi_make_string_from_cstr((msg == NULL) ? "" : msg,
-                                           SCM_ENC_UTF8);
+  msg_str = scm_fcd_make_string_from_cstr((msg == NULL) ? "" : msg,
+                                          SCM_ENC_UTF8);
 
   ir_lst = read_cstr(irris);
 
@@ -41,17 +41,17 @@ TEST_TEAR_DOWN(api_exceptions)
 
 TEST(api_exceptions, capi_raise)
 {
-  TEST_ASSERT_FALSE(scm_capi_raised_p());
+  TEST_ASSERT_FALSE(scm_fcd_raised_p());
   TEST_ASSERT_EQUAL_INT(0, scm_capi_raise(SCM_NIL_OBJ));
-  TEST_ASSERT_TRUE(scm_capi_raised_p());
-  TEST_ASSERT_SCM_EQ(SCM_NIL_OBJ, scm_api_raised_obj());
+  TEST_ASSERT_TRUE(scm_fcd_raised_p());
+  TEST_ASSERT_SCM_EQ(SCM_NIL_OBJ, scm_fcd_raised_obj());
 }
 
 TEST(api_exceptions, api_discard_raised_obj)
 {
   scm_capi_raise(SCM_NIL_OBJ);
-  scm_api_discard_raised_obj();
-  TEST_ASSERT_FALSE(scm_capi_raised_p());
+  scm_fcd_discard_raised_obj();
+  TEST_ASSERT_FALSE(scm_fcd_raised_p());
 }
 
 TEST(api_exceptions, capi_error)
@@ -63,11 +63,11 @@ TEST(api_exceptions, capi_error)
   TEST_ASSERT_EQUAL_INT(0,
                         scm_capi_error("bar", 2, SCM_TRUE_OBJ, SCM_FALSE_OBJ));
 
-  TEST_ASSERT_TRUE(scm_capi_raised_p());
+  TEST_ASSERT_TRUE(scm_fcd_raised_p());
 
-  exc = scm_api_raised_obj();
+  exc = scm_fcd_raised_obj();
 
-  TEST_ASSERT_TRUE(scm_capi_error_object_p(exc));
+  TEST_ASSERT_TRUE(scm_fcd_error_object_p(exc));
   TEST_ASSERT_SCM_FALSE(scm_api_read_error_P(exc));
   TEST_ASSERT_SCM_FALSE(scm_api_file_error_P(exc));
 
@@ -84,11 +84,11 @@ TEST(api_exceptions, capi_read_error)
                         scm_capi_read_error("bar",
                                             2, SCM_TRUE_OBJ, SCM_FALSE_OBJ));
 
-  TEST_ASSERT_TRUE(scm_capi_raised_p());
+  TEST_ASSERT_TRUE(scm_fcd_raised_p());
 
-  exc = scm_api_raised_obj();
+  exc = scm_fcd_raised_obj();
 
-  TEST_ASSERT_TRUE(scm_capi_error_object_p(exc));
+  TEST_ASSERT_TRUE(scm_fcd_error_object_p(exc));
   TEST_ASSERT_SCM_TRUE(scm_api_read_error_P(exc));
   TEST_ASSERT_SCM_FALSE(scm_api_file_error_P(exc));
 
@@ -105,11 +105,11 @@ TEST(api_exceptions, capi_file_error)
                         scm_capi_file_error("bar",
                                             2, SCM_TRUE_OBJ, SCM_FALSE_OBJ));
 
-  TEST_ASSERT_TRUE(scm_capi_raised_p());
+  TEST_ASSERT_TRUE(scm_fcd_raised_p());
 
-  exc = scm_api_raised_obj();
+  exc = scm_fcd_raised_obj();
 
-  TEST_ASSERT_TRUE(scm_capi_error_object_p(exc));
+  TEST_ASSERT_TRUE(scm_fcd_error_object_p(exc));
   TEST_ASSERT_SCM_FALSE(scm_api_read_error_P(exc));
   TEST_ASSERT_SCM_TRUE(scm_api_file_error_P(exc));
 

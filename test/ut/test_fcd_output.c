@@ -25,8 +25,8 @@ TEST_SETUP(fcd_output)
   scm_fcd_ref_stack_save(&rsi);
 
   file_port = string_port = SCM_OBJ_NULL;
-  scm_capi_mem_register_extra_rfrn(SCM_REF_MAKE(file_port));
-  scm_capi_mem_register_extra_rfrn(SCM_REF_MAKE(string_port));
+  scm_fcd_mem_register_extra_rfrn(SCM_REF_MAKE(file_port));
+  scm_fcd_mem_register_extra_rfrn(SCM_REF_MAKE(string_port));
   file_port = scm_fcd_open_output_file(TEST_FILE_PATH, NULL);
   string_port = scm_fcd_open_output_string();
 }

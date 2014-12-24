@@ -32,11 +32,11 @@ TEST(vm, vm_run__op_immval)
   SCM_REFSTK_INIT_REG(&iseq, &sym);
 
   /* preprocess */
-  iseq = scm_api_make_iseq();
-  sym = scm_capi_make_symbol_from_cstr("abc", SCM_ENC_SRC);
+  iseq = scm_fcd_make_iseq();
+  sym = scm_fcd_make_symbol_from_cstr("abc", SCM_ENC_SRC);
 
-  scm_capi_iseq_push_inst(iseq, SCM_OPCODE_IMMVAL, sym);
-  scm_capi_iseq_push_inst(iseq, SCM_OPCODE_HALT);
+  scm_fcd_iseq_push_inst(iseq, SCM_OPCODE_IMMVAL, sym);
+  scm_fcd_iseq_push_inst(iseq, SCM_OPCODE_HALT);
 
   /* action */
   scm_vm_run(vm, iseq);
@@ -57,10 +57,10 @@ test_adjust_val_to_arity_aux(ScmObj val, size_t vl, int arity,
   SCM_REFSTK_REG_ARY(e, el);
 
   for (size_t i = 0; i < vl; i++)
-    v[i] = scm_capi_vector_ref(val, i);
+    v[i] = scm_fcd_vector_ref(val, i);
 
   for (size_t i = 0; i < el; i++)
-    e[i] = scm_capi_vector_ref(expected, i);
+    e[i] = scm_fcd_vector_ref(expected, i);
 
   scm_vm_set_val_reg(vm, v, (int)vl);
 
@@ -75,15 +75,15 @@ static void
 test_adjust_val_to_arity(const char *val, int arity, const char *expected)
 {
   ScmObj v = SCM_OBJ_INIT, e = SCM_OBJ_INIT;
-  ssize_t vl, el;
+  size_t vl, el;
 
   SCM_REFSTK_INIT_REG(&v, &e);
 
   v = read_cstr(val);
   e = read_cstr(expected);
 
-  vl = scm_capi_vector_length(v);
-  el = scm_capi_vector_length(e);
+  vl = scm_fcd_vector_length(v);
+  el = scm_fcd_vector_length(e);
 
   test_adjust_val_to_arity_aux(v, (size_t)vl, arity, e, (size_t)el);
 }

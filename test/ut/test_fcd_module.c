@@ -25,15 +25,15 @@ TEST_SETUP(fcd_module)
   scm_capi_evaluator_load_core(ev);
   scm_fcd_ref_stack_save(&rsi);
 
-  undef = scm_api_undef();
+  undef = SCM_UNDEF_OBJ;
   assert(scm_obj_not_null_p(undef));
 
   module = name = gloc = symbol = syntax = undef;
-  scm_capi_mem_register_extra_rfrn(SCM_REF_MAKE(module));
-  scm_capi_mem_register_extra_rfrn(SCM_REF_MAKE(name));
-  scm_capi_mem_register_extra_rfrn(SCM_REF_MAKE(gloc));
-  scm_capi_mem_register_extra_rfrn(SCM_REF_MAKE(symbol));
-  scm_capi_mem_register_extra_rfrn(SCM_REF_MAKE(syntax));
+  scm_fcd_mem_register_extra_rfrn(SCM_REF_MAKE(module));
+  scm_fcd_mem_register_extra_rfrn(SCM_REF_MAKE(name));
+  scm_fcd_mem_register_extra_rfrn(SCM_REF_MAKE(gloc));
+  scm_fcd_mem_register_extra_rfrn(SCM_REF_MAKE(symbol));
+  scm_fcd_mem_register_extra_rfrn(SCM_REF_MAKE(syntax));
 }
 
 TEST_TEAR_DOWN(fcd_module)
