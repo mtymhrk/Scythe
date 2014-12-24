@@ -143,6 +143,45 @@ enum {
 
 
 /*******************************************************************/
+/*  Bignum                                                         */
+/*******************************************************************/
+
+#if SIZEOF_LONG >= SIZEOF_INT
+
+typedef unsigned int scm_bignum_d_t;
+typedef unsigned long scm_bignum_c_t;
+typedef long scm_bignum_sc_t;
+
+#define SCM_BIGNUM_BASE ((scm_bignum_c_t)UINT_MAX + 1)
+
+#elif SIZEOF_LLONG > SIZEOF_INT
+
+typedef unsigned int scm_bignum_d_t;
+typedef unsigned long long scm_bignum_c_t;
+typedef long long scm_bignum_sc_t;
+
+#define SCM_BIGNUM_BASE (UINT_MAX + 1);
+
+#elif SIZEOF_LONG > SIZEOF_SHORT
+
+typedef unsigned short scm_bignum_d_t;
+typedef unsigned long scm_bignum_c_t;
+typedef long scm_bignum_sc_t;
+
+#define SCM_BIGNUM_BASE (USHORT_MAX + 1);
+
+#else
+
+typedef unsigned short scm_bignum_d_t;
+typedef unsigned long scm_bignum_c_t;
+typedef long scm_bignum_sc_t;
+
+#define SCM_BIGNUM_BASE;
+
+#endif
+
+
+/*******************************************************************/
 /*  Facade                                                         */
 /*******************************************************************/
 

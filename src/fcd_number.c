@@ -43,6 +43,67 @@ scm_fcd_bignum_P(ScmObj obj)
   return scm_fcd_bignum_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
 }
 
+ScmObj
+scm_fcd_bignum_new_cv(SCM_MEM_TYPE_T mtype, char sign,
+                      scm_bignum_d_t *digits, size_t len, scm_bignum_c_t base)
+{
+  ScmObj bn = SCM_OBJ_INIT;
+
+  bn = scm_fcd_mem_alloc(&SCM_BIGNUM_TYPE_INFO, 0, mtype);
+  if (scm_obj_null_p(bn)) return SCM_OBJ_NULL;
+
+  if (scm_bignum_initialize_ary(bn, sign, digits, len, base) < 0)
+    return SCM_OBJ_NULL;
+
+  return bn;
+}
+
+ScmObj
+scm_fcd_bignum_new_sword(SCM_MEM_TYPE_T mtype, scm_sword_t val)
+{
+  ScmObj bn = SCM_OBJ_INIT;
+
+  bn = scm_fcd_mem_alloc(&SCM_BIGNUM_TYPE_INFO, 0, mtype);
+  if (scm_obj_null_p(bn)) return SCM_OBJ_NULL;
+
+  if (scm_bignum_initialize_sword(bn, val) < 0)
+    return SCM_OBJ_NULL;
+
+  return bn;
+}
+
+ScmObj
+scm_fcd_bignum_new_uword(SCM_MEM_TYPE_T mtype, scm_uword_t val)
+{
+  ScmObj bn = SCM_OBJ_INIT;
+
+  bn = scm_fcd_mem_alloc(&SCM_BIGNUM_TYPE_INFO, 0, mtype);
+  if (scm_obj_null_p(bn)) return SCM_OBJ_NULL;
+
+  if (scm_bignum_initialize_uword(bn, val) < 0)
+    return SCM_OBJ_NULL;
+
+  return bn;
+}
+
+ScmObj
+scm_fcd_bignum_new_fixnum(SCM_MEM_TYPE_T mtype, ScmObj fn)
+{
+  ScmObj bn = SCM_OBJ_INIT;
+  scm_sword_t sword;
+
+  scm_assert(scm_fcd_fixnum_p(fn));
+
+  sword = scm_fixnum_value(fn);
+  bn = scm_fcd_mem_alloc(&SCM_BIGNUM_TYPE_INFO, 0, mtype);
+  if (scm_obj_null_p(bn)) return SCM_OBJ_NULL;
+
+  if (scm_bignum_initialize_sword(bn, sword) < 0)
+    return SCM_OBJ_NULL;
+
+  return bn;
+}
+
 extern inline bool
 scm_fcd_number_p(ScmObj obj)
 {
@@ -200,7 +261,7 @@ ScmObj
 scm_fcd_make_number_from_sword(scm_sword_t num)
 {
   if (num < SCM_FIXNUM_MIN || SCM_FIXNUM_MAX < num)
-    return scm_bignum_new_from_sword(SCM_MEM_HEAP, num);
+    return scm_fcd_bignum_new_sword(SCM_MEM_HEAP, num);
   else
     return scm_fcd_fixnum_new(num);
 }
@@ -209,7 +270,7 @@ ScmObj
 scm_fcd_make_number_from_size_t(size_t num)
 {
   if (num > SCM_FIXNUM_MAX)
-    return scm_bignum_new_from_uword(SCM_MEM_HEAP, num);
+    return scm_fcd_bignum_new_uword(SCM_MEM_HEAP, num);
   else
     return scm_fcd_fixnum_new((scm_sword_t)num);
 }

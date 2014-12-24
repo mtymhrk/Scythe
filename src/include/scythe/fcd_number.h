@@ -5,12 +5,19 @@
 
 #include "scythe/object.h"
 #include "scythe/encoding.h"
+#include "scythe/fcd_type.h"
 
 bool scm_fcd_fixnum_p(ScmObj obj);
 ScmObj scm_fcd_fixnum_P(ScmObj obj);
 ScmObj scm_fcd_fixnum_new(scm_sword_t num);
 bool scm_fcd_bignum_p(ScmObj obj);
 ScmObj scm_fcd_bignum_P(ScmObj obj);
+ScmObj scm_fcd_bignum_new_cv(SCM_MEM_TYPE_T mtype, char sign,
+                             scm_bignum_d_t *digits, size_t len,
+                             scm_bignum_c_t base);
+ScmObj scm_fcd_bignum_new_sword(SCM_MEM_TYPE_T mtype, scm_sword_t val);
+ScmObj scm_fcd_bignum_new_uword(SCM_MEM_TYPE_T mtype, scm_uword_t val);
+ScmObj scm_fcd_bignum_new_fixnum(SCM_MEM_TYPE_T mtype, ScmObj fn);
 bool scm_fcd_number_p(ScmObj obj);
 ScmObj scm_fcd_number_P(ScmObj obj);
 bool scm_fcd_complex_p(ScmObj obj);

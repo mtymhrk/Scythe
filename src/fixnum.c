@@ -282,7 +282,7 @@ scm_fixnum_plus(ScmObj aug, ScmObj add)
     scm_sword_t v = scm_fixnum_value(aug) + scm_fixnum_value(add);
 
     if (v < SCM_FIXNUM_MIN || SCM_FIXNUM_MAX < v)
-      return scm_bignum_new_from_sword(SCM_MEM_HEAP, v);
+      return scm_fcd_bignum_new_sword(SCM_MEM_HEAP, v);
     else
       return scm_fcd_fixnum_new(v);
   }
@@ -306,7 +306,7 @@ scm_fixnum_minus(ScmObj min, ScmObj sub)
     scm_sword_t v = scm_fixnum_value(min) - scm_fixnum_value(sub);
 
     if (v < SCM_FIXNUM_MIN || SCM_FIXNUM_MAX < v)
-      return scm_bignum_new_from_sword(SCM_MEM_HEAP, v);
+      return scm_fcd_bignum_new_sword(SCM_MEM_HEAP, v);
     else
       return scm_fcd_fixnum_new(v);
   }
@@ -335,10 +335,10 @@ scm_fixnum_mul(ScmObj mud, ScmObj mur)
     v2 = scm_fixnum_value(mur);
 
     if (scm_fixnum_multi(v1, v2, &v) == -1) {
-      mud = scm_bignum_new_from_fixnum(SCM_MEM_HEAP, mud);
+      mud = scm_fcd_bignum_new_fixnum(SCM_MEM_HEAP, mud);
       if (scm_obj_null_p(mud)) return SCM_OBJ_NULL;
 
-      mur = scm_bignum_new_from_fixnum(SCM_MEM_HEAP, mur);
+      mur = scm_fcd_bignum_new_fixnum(SCM_MEM_HEAP, mur);
       if (scm_obj_null_p(mud)) return SCM_OBJ_NULL;
 
       return scm_bignum_mul(mud, mur);
