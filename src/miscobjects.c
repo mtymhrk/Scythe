@@ -34,19 +34,6 @@ scm_eof_finalize(ScmObj eof)
   return;                       /* nothing to do */
 }
 
-ScmObj
-scm_eof_new(SCM_MEM_TYPE_T mtype)
-{
-  ScmObj eof = SCM_OBJ_INIT;
-
-  eof = scm_fcd_mem_alloc(&SCM_EOF_TYPE_INFO, 0, mtype);
-  if (scm_obj_null_p(eof)) return SCM_OBJ_NULL;
-
-  scm_eof_initialize(eof);
-
-  return eof;
-}
-
 int
 scm_eof_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
 {
@@ -83,21 +70,6 @@ void
 scm_bool_finalize(ScmObj obj)
 {
   return;                       /* nothing to do */
-}
-
-ScmObj
-scm_bool_new(SCM_MEM_TYPE_T mtype, bool value)
-{
-  ScmObj bl = SCM_OBJ_INIT;;
-
-  SCM_REFSTK_INIT_REG(&bl);
-
-  bl = scm_fcd_mem_alloc(&SCM_BOOL_TYPE_INFO, 0, mtype);
-  if (scm_obj_null_p(bl)) return SCM_OBJ_NULL;
-
-  scm_bool_initialize(bl, value);
-
-  return bl;
 }
 
 bool
@@ -154,21 +126,6 @@ scm_nil_finalize(ScmObj nil)
   return;                       /* nothing to do */
 }
 
-ScmObj
-scm_nil_new(SCM_MEM_TYPE_T mtype)
-{
-  ScmObj nil = SCM_OBJ_INIT;
-
-  SCM_REFSTK_INIT_REG(&nil);
-
-  nil = scm_fcd_mem_alloc(&SCM_NIL_TYPE_INFO, 0, mtype);
-  if (scm_obj_null_p(nil)) return SCM_OBJ_NULL;
-
-  scm_nil_initialize(nil);
-
-  return nil;
-}
-
 int
 scm_nil_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
 {
@@ -211,21 +168,6 @@ scm_udef_finalize(ScmObj undef)
   return;                       /* nothing to do */
 }
 
-ScmObj
-scm_undef_new(SCM_MEM_TYPE_T mtype)
-{
-  ScmObj undef = SCM_OBJ_INIT;
-
-  SCM_REFSTK_INIT_REG(&undef);
-
-  undef = scm_fcd_mem_alloc(&SCM_UNDEF_TYPE_INFO, 0, mtype);
-  if (scm_obj_null_p(undef)) return SCM_OBJ_NULL;
-
-  scm_undef_initialize(undef);
-
-  return undef;
-}
-
 int
 scm_undef_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
 {
@@ -260,21 +202,6 @@ void
 scm_landmine_finalize(ScmObj mine)
 {
   return;                       /* nothing to do */
-}
-
-ScmObj
-scm_landmine_new(SCM_MEM_TYPE_T mtype)
-{
-  ScmObj mine = SCM_OBJ_INIT;
-
-  SCM_REFSTK_INIT_REG(&mine);
-
-  mine = scm_fcd_mem_alloc(&SCM_LANDMINE_TYPE_INFO, 0, mtype);
-  if (scm_obj_null_p(mine)) return SCM_OBJ_NULL;
-
-  scm_landmine_initialize(mine);
-
-  return mine;
 }
 
 int

@@ -15,7 +15,6 @@
 #include "scythe/symbol.h"
 #include "scythe/module.h"
 #include "scythe/procedure.h"
-#include "scythe/miscobjects.h"
 #include "scythe/fcd.h"
 #include "scythe/impl_utils.h"
 
@@ -46,22 +45,22 @@ scm_bedrock_setup(ScmBedrock *br)
 {
   scm_assert(br != NULL);
 
-  br->cnsts.nil = scm_nil_new(SCM_MEM_ROOT);
+  br->cnsts.nil = scm_fcd_nil_new(SCM_MEM_ROOT);
   if (scm_obj_null_p(br->cnsts.nil)) return -1;
 
-  br->cnsts.eof = scm_eof_new(SCM_MEM_ROOT);
+  br->cnsts.eof = scm_fcd_eof_new(SCM_MEM_ROOT);
   if (scm_obj_null_p(br->cnsts.eof)) return -1;
 
-  br->cnsts.b_true = scm_bool_new(SCM_MEM_ROOT, true);
+  br->cnsts.b_true = scm_fcd_bool_new(SCM_MEM_ROOT, true);
   if (scm_obj_null_p(br->cnsts.b_true)) return -1;
 
-  br->cnsts.b_false = scm_bool_new(SCM_MEM_ROOT, false);
+  br->cnsts.b_false = scm_fcd_bool_new(SCM_MEM_ROOT, false);
   if (scm_obj_null_p(br->cnsts.b_false)) return -1;
 
-  br->cnsts.undef = scm_undef_new(SCM_MEM_ROOT);
+  br->cnsts.undef = scm_fcd_undef_new(SCM_MEM_ROOT);
   if (scm_obj_null_p(br->cnsts.undef)) return -1;
 
-  br->cnsts.landmine = scm_landmine_new(SCM_MEM_ROOT);
+  br->cnsts.landmine = scm_fcd_landmine_new(SCM_MEM_ROOT);
   if (scm_obj_null_p(br->cnsts.landmine)) return -1;
 
   br->symtbl = scm_symtbl_new(SCM_MEM_ROOT);
