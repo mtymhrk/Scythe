@@ -3,7 +3,7 @@
 
 #include "scythe/object.h"
 #include "scythe/reference.h"
-#include "scythe/api.h"
+#include "scythe/fcd.h"
 #include "scythe/miscobjects.h"
 
 
@@ -40,7 +40,7 @@ scm_eof_new(SCM_MEM_TYPE_T mtype)
 {
   ScmObj eof = SCM_OBJ_INIT;
 
-  eof = scm_capi_mem_alloc(&SCM_EOF_TYPE_INFO, 0, mtype);
+  eof = scm_fcd_mem_alloc(&SCM_EOF_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(eof)) return SCM_OBJ_NULL;
 
   scm_eof_initialize(eof);
@@ -52,7 +52,7 @@ int
 scm_eof_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
 {
   scm_assert_obj_type(obj, &SCM_EOF_TYPE_INFO);
-  return scm_capi_write_cstr("#<eof>", SCM_ENC_SRC, port);
+  return scm_fcd_write_cstr("#<eof>", SCM_ENC_SRC, port);
 }
 
 
@@ -93,7 +93,7 @@ scm_bool_new(SCM_MEM_TYPE_T mtype, bool value)
 
   SCM_REFSTK_INIT_REG(&bl);
 
-  bl = scm_capi_mem_alloc(&SCM_BOOL_TYPE_INFO, 0, mtype);
+  bl = scm_fcd_mem_alloc(&SCM_BOOL_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(bl)) return SCM_OBJ_NULL;
 
   scm_bool_initialize(bl, value);
@@ -117,9 +117,9 @@ scm_bool_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
   scm_assert_obj_type(obj, &SCM_BOOL_TYPE_INFO);
 
   if (SCM_BOOL(obj)->value == true)
-    rslt = scm_capi_write_cstr("#t", SCM_ENC_SRC, port);
+    rslt = scm_fcd_write_cstr("#t", SCM_ENC_SRC, port);
   else
-    rslt = scm_capi_write_cstr("#f", SCM_ENC_SRC, port);
+    rslt = scm_fcd_write_cstr("#f", SCM_ENC_SRC, port);
 
   if (rslt < 0) return -1;
 
@@ -162,7 +162,7 @@ scm_nil_new(SCM_MEM_TYPE_T mtype)
 
   SCM_REFSTK_INIT_REG(&nil);
 
-  nil = scm_capi_mem_alloc(&SCM_NIL_TYPE_INFO, 0, mtype);
+  nil = scm_fcd_mem_alloc(&SCM_NIL_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(nil)) return SCM_OBJ_NULL;
 
   scm_nil_initialize(nil);
@@ -177,7 +177,7 @@ scm_nil_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
 
   scm_assert_obj_type(obj, &SCM_NIL_TYPE_INFO);
 
-  rslt = scm_capi_write_cstr("()", SCM_ENC_SRC, port);
+  rslt = scm_fcd_write_cstr("()", SCM_ENC_SRC, port);
   if (rslt < 0) return -1;
 
   return 0;
@@ -219,7 +219,7 @@ scm_undef_new(SCM_MEM_TYPE_T mtype)
 
   SCM_REFSTK_INIT_REG(&undef);
 
-  undef = scm_capi_mem_alloc(&SCM_UNDEF_TYPE_INFO, 0, mtype);
+  undef = scm_fcd_mem_alloc(&SCM_UNDEF_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(undef)) return SCM_OBJ_NULL;
 
   scm_undef_initialize(undef);
@@ -231,7 +231,7 @@ int
 scm_undef_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
 {
   scm_assert_obj_type(obj, &SCM_UNDEF_TYPE_INFO);
-  return scm_capi_write_cstr("#<undef>", SCM_ENC_SRC, port);
+  return scm_fcd_write_cstr("#<undef>", SCM_ENC_SRC, port);
 }
 
 
@@ -270,7 +270,7 @@ scm_landmine_new(SCM_MEM_TYPE_T mtype)
 
   SCM_REFSTK_INIT_REG(&mine);
 
-  mine = scm_capi_mem_alloc(&SCM_LANDMINE_TYPE_INFO, 0, mtype);
+  mine = scm_fcd_mem_alloc(&SCM_LANDMINE_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(mine)) return SCM_OBJ_NULL;
 
   scm_landmine_initialize(mine);
@@ -282,5 +282,5 @@ int
 scm_landmine_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
 {
   scm_assert_obj_type(obj, &SCM_LANDMINE_TYPE_INFO);
-  return scm_capi_write_cstr("#<landmine>", SCM_ENC_SRC, port);
+  return scm_fcd_write_cstr("#<landmine>", SCM_ENC_SRC, port);
 }

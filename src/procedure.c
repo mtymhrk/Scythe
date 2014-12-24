@@ -1,7 +1,7 @@
 #include <stdio.h>
 
 #include "scythe/object.h"
-#include "scythe/api.h"
+#include "scythe/fcd.h"
 #include "scythe/procedure.h"
 
 /*******************************************************************/
@@ -12,7 +12,7 @@ int
 scm_proc_initialize(ScmObj proc, ScmObj name, int arity, unsigned int flags)
 {
   scm_assert(scm_obj_type_flag_set_p(proc, SCM_TYPE_FLG_PROC));
-  scm_assert(scm_obj_null_p(name) || scm_capi_string_p(name));
+  scm_assert(scm_obj_null_p(name) || scm_fcd_string_p(name));
 
   SCM_SLOT_SETQ(ScmProcedure, proc, name, name);
   SCM_PROCEDURE(proc)->arity = arity;
@@ -66,8 +66,8 @@ scm_subrutine_initialize(ScmObj subr, ScmSubrFunc func,
 
   scm_assert_obj_type(subr, &SCM_SUBRUTINE_TYPE_INFO);
   scm_assert(func != NULL);
-  scm_assert(scm_obj_null_p(name) || scm_capi_string_p(name));
-  scm_assert(scm_obj_null_p(module) || scm_capi_module_p(module));
+  scm_assert(scm_obj_null_p(name) || scm_fcd_string_p(name));
+  scm_assert(scm_obj_null_p(module) || scm_fcd_module_p(module));
 
   rslt = scm_proc_initialize(subr, name, arity, flags);
   if (rslt < 0) return -1;
@@ -90,10 +90,10 @@ scm_subrutine_new(SCM_MEM_TYPE_T mtype,
                       &subr, &module);
 
   scm_assert(func != NULL);
-  scm_assert(scm_obj_null_p(name) || scm_capi_string_p(name));
-  scm_assert(scm_obj_null_p(module) || scm_capi_module_p(module));
+  scm_assert(scm_obj_null_p(name) || scm_fcd_string_p(name));
+  scm_assert(scm_obj_null_p(module) || scm_fcd_module_p(module));
 
-  subr = scm_capi_mem_alloc(&SCM_SUBRUTINE_TYPE_INFO, 0, mtype);
+  subr = scm_fcd_mem_alloc(&SCM_SUBRUTINE_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(subr)) return SCM_OBJ_NULL;
 
   if (scm_subrutine_initialize(subr, func, name, arity, flags, module))
@@ -117,7 +117,7 @@ scm_subrutine_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
   if (scm_obj_null_p(name))
     return scm_obj_default_print_func(obj, port, ext_rep);
 
-  return scm_capi_pformat_cstr(port,"#<subr ~a>", name, SCM_OBJ_NULL);
+  return scm_fcd_pformat_cstr(port,"#<subr ~a>", name, SCM_OBJ_NULL);
 }
 
 void
@@ -172,8 +172,8 @@ scm_closure_initialize(ScmObj clsr,
   int rslt;
 
   scm_assert_obj_type(clsr, &SCM_CLOSURE_TYPE_INFO);
-  scm_assert(scm_capi_iseq_p(iseq));
-  scm_assert(scm_obj_null_p(name) || scm_capi_string_p(name));
+  scm_assert(scm_fcd_iseq_p(iseq));
+  scm_assert(scm_obj_null_p(name) || scm_fcd_string_p(name));
 
   rslt = scm_proc_initialize(clsr, name, arity, 0);
   if (rslt < 0) return -1;
@@ -194,9 +194,9 @@ scm_closure_new(SCM_MEM_TYPE_T mtype,
   SCM_REFSTK_INIT_REG(&iseq, &env, &name,
                       &clsr);
 
-  scm_assert(scm_capi_iseq_p(iseq));
+  scm_assert(scm_fcd_iseq_p(iseq));
 
-  clsr = scm_capi_mem_alloc(&SCM_CLOSURE_TYPE_INFO, 0, mtype);
+  clsr = scm_fcd_mem_alloc(&SCM_CLOSURE_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(clsr)) return SCM_OBJ_NULL;
 
   rslt = scm_closure_initialize(clsr, iseq, env, name, arity);
@@ -265,7 +265,7 @@ scm_cont_initialize(ScmObj cont, ScmObj contcap)
 
   scm_assert_obj_type(cont, &SCM_CONTINUATION_TYPE_INFO);
 
-  name = scm_capi_make_string_from_cstr("continuation", SCM_ENC_SRC);
+  name = scm_fcd_make_string_from_cstr("continuation", SCM_ENC_SRC);
   if (scm_obj_null_p(name)) return -1;
 
   rslt = scm_proc_initialize(cont, name, -1, SCM_PROC_ADJ_UNWISHED);
@@ -284,7 +284,7 @@ scm_cont_new(SCM_MEM_TYPE_T mtype, ScmObj contcap)
   SCM_REFSTK_INIT_REG(&contcap,
                       &cont);
 
-  cont = scm_capi_mem_alloc(&SCM_CONTINUATION_TYPE_INFO, 0, mtype);
+  cont = scm_fcd_mem_alloc(&SCM_CONTINUATION_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(cont)) return SCM_OBJ_NULL;
 
   if (scm_cont_initialize(cont, contcap) < 0)
@@ -341,8 +341,8 @@ scm_parameter_initialize(ScmObj prm, ScmObj name, ScmObj conv)
   int rslt;
 
   scm_assert_obj_type(prm, &SCM_PARAMETER_TYPE_INFO);
-  scm_assert(scm_obj_null_p(name) || scm_capi_string_p(name));
-  scm_assert(scm_obj_null_p(conv) || scm_capi_procedure_p(conv));
+  scm_assert(scm_obj_null_p(name) || scm_fcd_string_p(name));
+  scm_assert(scm_obj_null_p(conv) || scm_fcd_procedure_p(conv));
 
   rslt = scm_proc_initialize(prm, name, 0, 0);
   if (rslt < 0) return -1;
@@ -360,10 +360,10 @@ scm_parameter_new(SCM_MEM_TYPE_T mtype, ScmObj name, ScmObj conv)
 
   SCM_REFSTK_INIT_REG(&prm, &conv);
 
-  scm_assert(scm_obj_null_p(name) || scm_capi_string_p(name));
-  scm_assert(scm_obj_null_p(conv) || scm_capi_procedure_p(conv));
+  scm_assert(scm_obj_null_p(name) || scm_fcd_string_p(name));
+  scm_assert(scm_obj_null_p(conv) || scm_fcd_procedure_p(conv));
 
-  prm = scm_capi_mem_alloc(&SCM_PARAMETER_TYPE_INFO, 0, mtype);
+  prm = scm_fcd_mem_alloc(&SCM_PARAMETER_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(prm)) return SCM_OBJ_NULL;
 
   if (scm_parameter_initialize(prm, name,conv) < 0)

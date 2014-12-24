@@ -128,3 +128,23 @@ scm_fcd_system_encoding(void)
 {
   return scm_bedrock_encoding(scm_fcd_current_br());
 }
+
+int
+scm_fcd_load_iseq(ScmObj iseq)
+{
+  ScmObj o = SCM_OBJ_INIT;
+  ssize_t rslt;
+
+  SCM_REFSTK_INIT_REG(&iseq,
+                      &o);
+
+  scm_assert(scm_fcd_iseq_p(iseq));
+
+  rslt = scm_fcd_iseq_push_inst(iseq, SCM_OPCODE_HALT);
+  if (rslt < 0) return -1;
+
+  o = scm_fcd_vm_run_cloned(scm_fcd_current_vm(), iseq);
+  if (scm_obj_null_p(o)) return -1;
+
+  return 0;
+}

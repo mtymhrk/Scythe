@@ -1,6 +1,6 @@
 #include "scythe/object.h"
 #include "scythe/reference.h"
-#include "scythe/api.h"
+#include "scythe/fcd.h"
 #include "scythe/chashtbl.h"
 
 enum { ADD, UPDATE, DELETE, FIND };
@@ -21,7 +21,7 @@ scm_chash_tbl_initialize(ScmCHashTbl *tbl, ScmObj owner,
 
   SCM_WB_SETQ(owner, tbl->owner, owner);
 
-  tbl->buckets = scm_capi_malloc(sizeof(ScmCHashTblEntry *) * size);
+  tbl->buckets = scm_fcd_malloc(sizeof(ScmCHashTblEntry *) * size);
   if (tbl->buckets == NULL) return;
 
   tbl->tbl_size = size;
@@ -44,13 +44,13 @@ scm_chash_tbl_finalize(ScmCHashTbl *tbl)
       ScmCHashTblEntry *e = tbl->buckets[i];
       while (e != NULL) {
         ScmCHashTblEntry *n = e->next;
-        scm_capi_free(e);
+        scm_fcd_free(e);
         e = n;
       }
     }
   }
 
-  scm_capi_free(tbl->buckets);
+  scm_fcd_free(tbl->buckets);
   tbl->buckets = NULL;
   tbl->tbl_size = 0;
   tbl->owner = SCM_OBJ_NULL;
@@ -65,7 +65,7 @@ scm_chash_tbl_new(ScmObj owner, size_t size,
 {
   ScmCHashTbl *tbl;
 
-  tbl = scm_capi_malloc(sizeof(*tbl));
+  tbl = scm_fcd_malloc(sizeof(*tbl));
   if (tbl == NULL) return NULL;
 
   scm_chash_tbl_initialize(tbl, owner, size, key_kind, val_kind,
@@ -80,7 +80,7 @@ scm_chash_tbl_end(ScmCHashTbl *tbl)
   scm_assert(tbl != NULL);
 
   scm_chash_tbl_finalize(tbl);
-  scm_capi_free(tbl);
+  scm_fcd_free(tbl);
 }
 
 bool
@@ -142,7 +142,7 @@ scm_chash_tbl_access(ScmCHashTbl *tbl,
   }
 
   if (mode == ADD || mode == UPDATE) {
-    ScmCHashTblEntry *new = scm_capi_malloc(sizeof(ScmCHashTblEntry));
+    ScmCHashTblEntry *new = scm_fcd_malloc(sizeof(ScmCHashTblEntry));
     if (new == NULL) return NULL;
     /* XXX: ADD のすでにエントリが存在するケースと区別がつかない */
 
@@ -230,7 +230,7 @@ scm_chash_tbl_delete(ScmCHashTbl *tbl, ScmCHashTblKey key,
         scm_csetter_setq((scm_csetter_t *)val, e->val);
     }
 
-    scm_capi_free(e);
+    scm_fcd_free(e);
 
     if (deleted != NULL) *deleted = true;
     return 0;
@@ -283,7 +283,7 @@ scm_chash_tbl_clean(ScmCHashTbl *tbl)
       ScmCHashTblEntry *e = tbl->buckets[i];
       while (e != NULL) {
         ScmCHashTblEntry *n = e->next;
-        scm_capi_free(e);
+        scm_fcd_free(e);
         e = n;
       }
       tbl->buckets[i] = NULL;
@@ -379,7 +379,7 @@ scm_chash_tbl_gc_accept_weak(ScmCHashTbl *tbl, ScmObj owner,
       next = entry->next;
       if (delete_p) {
         *prev = entry->next;
-        scm_capi_free(entry);
+        scm_fcd_free(entry);
       }
       else
         prev = &entry->next;

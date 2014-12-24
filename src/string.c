@@ -9,7 +9,7 @@
 
 #include "scythe/object.h"
 #include "scythe/reference.h"
-#include "scythe/api.h"
+#include "scythe/fcd.h"
 #include "scythe/encoding.h"
 #include "scythe/string.h"
 
@@ -114,8 +114,8 @@ scm_string_replace_contents(ScmObj target, ScmObj src)
     SCM_STRING_DEC_REF_CNT(target);
   }
   else {
-    scm_capi_free(SCM_STRING_BUFFER(target));
-    scm_capi_free(SCM_STRING_REF_CNT(target));
+    scm_fcd_free(SCM_STRING_BUFFER(target));
+    scm_fcd_free(SCM_STRING_REF_CNT(target));
   }
 
   *SCM_STRING(target) = *SCM_STRING(src);
@@ -199,7 +199,7 @@ scm_string_change_encoding(ScmObj src, ScmEncoding *to)
   cd = iconv_open(scm_enc_name(to),
                   scm_enc_name(SCM_STRING_ENC(src)));
   if (cd == (iconv_t)-1) {
-    scm_capi_error("failed to call 'iconv_open'", 0);
+    scm_fcd_error("failed to call 'iconv_open'", 0);
     return SCM_OBJ_NULL;
   }
 
@@ -212,11 +212,11 @@ scm_string_change_encoding(ScmObj src, ScmEncoding *to)
     rslt = iconv(cd, &in, &ins, &out, &outs);
     if (rslt == (size_t)-1) {
       if (errno == EILSEQ) {
-        scm_capi_error("fiald to call 'iconv': illegal multibyte sequence", 0);
+        scm_fcd_error("fiald to call 'iconv': illegal multibyte sequence", 0);
         goto err;
       }
       else if (errno == EINVAL) {
-        scm_capi_error("failed to call 'iconv': imcomplete multibyte sequence", 0);
+        scm_fcd_error("failed to call 'iconv': imcomplete multibyte sequence", 0);
         goto err;
       }
       else if (errno == E2BIG) {
@@ -225,12 +225,12 @@ scm_string_change_encoding(ScmObj src, ScmEncoding *to)
         ssize_t s;
 
         if (cap == SIZE_MAX) {
-          scm_capi_error("failed to encode string: too big string", 0);
+          scm_fcd_error("failed to encode string: too big string", 0);
           goto err;
         }
 
         cap =  (SIZE_MAX / 2 < cap) ? SIZE_MAX : cap * 2;
-        p = scm_capi_realloc(SCM_STRING_BUFFER(str), cap);
+        p = scm_fcd_realloc(SCM_STRING_BUFFER(str), cap);
         if (p != NULL) goto err;
 
         s = out - (char *)SCM_STRING_HEAD(str);
@@ -243,7 +243,7 @@ scm_string_change_encoding(ScmObj src, ScmEncoding *to)
         outs = cap - (size_t)s;
       }
       else {
-        scm_capi_error("failed to call 'iconv': unknown error has occurred", 0);
+        scm_fcd_error("failed to call 'iconv': unknown error has occurred", 0);
         goto err;
       }
     }
@@ -274,12 +274,12 @@ scm_string_write_ext_rep_inner(ScmObj str, ScmObj port, size_t len)
 
   enc = SCM_STRING_ENC(str);
 
-  rslt = scm_capi_write_cstr("\"", SCM_ENC_SRC, port);
+  rslt = scm_fcd_write_cstr("\"", SCM_ENC_SRC, port);
   if (rslt < 0) return -1;
 
   for (size_t i = 0; i < len; i++) {
     if (!scm_enc_ascii_p(enc, ary[i].bytes, sizeof(ary[i]))) {
-      rslt = scm_capi_write_cchr(ary[i], enc, port);
+      rslt = scm_fcd_write_cchr(ary[i], enc, port);
       if (rslt < 0) return -1;
 
       continue;
@@ -287,7 +287,7 @@ scm_string_write_ext_rep_inner(ScmObj str, ScmObj port, size_t len)
 
     c = scm_enc_cnv_to_ascii(enc, &ary[i]);
     if (0x20 <= c && c <= 0x7f) {
-      rslt = scm_capi_write_cchr(ary[i], enc, port);
+      rslt = scm_fcd_write_cchr(ary[i], enc, port);
       if (rslt < 0) return -1;
 
       continue;
@@ -295,25 +295,25 @@ scm_string_write_ext_rep_inner(ScmObj str, ScmObj port, size_t len)
 
     switch (c) {
     case '"':
-      rslt = scm_capi_write_cstr("\\\"", SCM_ENC_SRC, port);
+      rslt = scm_fcd_write_cstr("\\\"", SCM_ENC_SRC, port);
       break;
     case '\\':
-      rslt = scm_capi_write_cstr("\\\\", SCM_ENC_SRC, port);
+      rslt = scm_fcd_write_cstr("\\\\", SCM_ENC_SRC, port);
       break;
     case '\a':
-      rslt = scm_capi_write_cstr("\\a", SCM_ENC_SRC, port);
+      rslt = scm_fcd_write_cstr("\\a", SCM_ENC_SRC, port);
       break;
     case '\b':
-      rslt = scm_capi_write_cstr("\\b", SCM_ENC_SRC, port);
+      rslt = scm_fcd_write_cstr("\\b", SCM_ENC_SRC, port);
       break;
     case '\t':
-      rslt = scm_capi_write_cstr("\\t", SCM_ENC_SRC, port);
+      rslt = scm_fcd_write_cstr("\\t", SCM_ENC_SRC, port);
       break;
     case '\n':
-      rslt = scm_capi_write_cstr("\\n", SCM_ENC_SRC, port);
+      rslt = scm_fcd_write_cstr("\\n", SCM_ENC_SRC, port);
       break;
     case '\r':
-      rslt = scm_capi_write_cstr("\\r", SCM_ENC_SRC, port);
+      rslt = scm_fcd_write_cstr("\\r", SCM_ENC_SRC, port);
       break;
     default:
       rslt = scm_string_inline_hex_escape(ary[i], enc, port);
@@ -322,7 +322,7 @@ scm_string_write_ext_rep_inner(ScmObj str, ScmObj port, size_t len)
     if (rslt < 0) return -1;
   }
 
-  rslt = scm_capi_write_cstr("\"", SCM_ENC_SRC, port);
+  rslt = scm_fcd_write_cstr("\"", SCM_ENC_SRC, port);
   if (rslt < 0) return -1;
 
   return 0;
@@ -344,8 +344,8 @@ scm_string_finalize(ScmObj str)
   if (SCM_STRING_REF_CNT(str) != NULL && *SCM_STRING_REF_CNT(str) > 1)
     SCM_STRING_DEC_REF_CNT(str);
   else {
-    scm_capi_free(SCM_STRING_BUFFER(str));
-    scm_capi_free(SCM_STRING_REF_CNT(str));
+    scm_fcd_free(SCM_STRING_BUFFER(str));
+    scm_fcd_free(SCM_STRING_REF_CNT(str));
   }
 
   /* push() 関数や append() 関数内の tmp はこれらの関数から直接 finalize()
@@ -375,12 +375,12 @@ scm_string_initialize(ScmObj str,
        SCM_STRING_CAPACITY(str) *= 2)
     ;
 
-  SCM_STRING_BUFFER(str) = scm_capi_malloc(SCM_STRING_CAPACITY(str));
+  SCM_STRING_BUFFER(str) = scm_fcd_malloc(SCM_STRING_CAPACITY(str));
   SCM_STRING_HEAD(str) = SCM_STRING_BUFFER(str);
   if (SCM_STRING_BUFFER(str) == NULL) return -1;
 
   SCM_STRING_REF_CNT(str) =
-    scm_capi_malloc(sizeof(*SCM_STRING_REF_CNT(str)));
+    scm_fcd_malloc(sizeof(*SCM_STRING_REF_CNT(str)));
   if (SCM_STRING_REF_CNT(str) == NULL) return -1;
 
   *SCM_STRING_REF_CNT(str) = 1;
@@ -389,7 +389,7 @@ scm_string_initialize(ScmObj str,
     ssize_t len = scm_string_copy_bytes_with_check(SCM_STRING_BUFFER(str),
                                                    src, size, enc);
     if (len < 0) {
-      scm_capi_error("can not make string object: invalid byte sequence", 0);
+      scm_fcd_error("can not make string object: invalid byte sequence", 0);
       return -1;
     }
 
@@ -414,7 +414,7 @@ scm_string_new(SCM_MEM_TYPE_T mtype,
   scm_assert(size <= SSIZE_MAX);
   scm_assert(enc != NULL);
 
-  str = scm_capi_mem_alloc(&SCM_STRING_TYPE_INFO, 0, mtype);
+  str = scm_fcd_mem_alloc(&SCM_STRING_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(str)) return SCM_OBJ_NULL;
 
   if (scm_string_initialize(str, src, size, enc) < 0)
@@ -443,7 +443,7 @@ scm_string_dup(ScmObj src)
 
   scm_assert_obj_type(src, &SCM_STRING_TYPE_INFO);
 
-  str = scm_capi_mem_alloc_heap(&SCM_STRING_TYPE_INFO, 0);
+  str = scm_fcd_mem_alloc_heap(&SCM_STRING_TYPE_INFO, 0);
 
   SCM_STRING_BUFFER(str) = SCM_STRING_BUFFER(src);
   SCM_STRING_HEAD(str) = SCM_STRING_HEAD(src);
@@ -516,7 +516,7 @@ scm_string_substr(ScmObj str, size_t pos, size_t len)
   if (pos >= SCM_STRING_LENGTH(str)
       || (ssize_t)pos > (ssize_t)SCM_STRING_LENGTH(str) - (ssize_t)len) {
     /* TODO: change error message */
-    scm_capi_error("can not make substring: argument is out of range", 0);
+    scm_fcd_error("can not make substring: argument is out of range", 0);
     return SCM_OBJ_NULL;
   }
 
@@ -549,7 +549,7 @@ scm_string_push(ScmObj str, const scm_char_t *c)
 
   width = scm_enc_char_width(SCM_STRING_ENC(str), c, sizeof(*c));
   if (width < 0) {
-    scm_capi_error("can not push character to string: invalid byte sequence", 0);
+    scm_fcd_error("can not push character to string: invalid byte sequence", 0);
     return -1;
   }
 
@@ -607,7 +607,7 @@ scm_string_ref(ScmObj str, size_t pos, scm_char_t *chr)
   scm_assert(chr != NULL);
 
   if (pos >= SCM_STRING_LENGTH(str)) {
-    scm_capi_error("can not get a character in string: "
+    scm_fcd_error("can not get a character in string: "
                    "argument is out of range", 0);
     return -1;
   }
@@ -637,7 +637,7 @@ scm_string_set(ScmObj str, size_t pos, const scm_char_t *c)
   scm_assert(pos <= SSIZE_MAX);
 
   if (pos >= SCM_STRING_LENGTH(str)) {
-    scm_capi_error("can not update a character in string: "
+    scm_fcd_error("can not update a character in string: "
                    "argument out of range", 0);
     return -1;
   }
@@ -648,7 +648,7 @@ scm_string_set(ScmObj str, size_t pos, const scm_char_t *c)
 
   cw = scm_enc_char_width(SCM_STRING_ENC(str), c, sizeof(*c));
   if (cw < 0) {
-    scm_capi_error("can not update a character in string: "
+    scm_fcd_error("can not update a character in string: "
                    "invalid byte sequence", 0);
     return -1;
   }
@@ -793,7 +793,7 @@ scm_string_to_char_ary(ScmObj str, size_t pos, ssize_t len, scm_char_t *ary)
   scm_assert_obj_type(str, &SCM_STRING_TYPE_INFO);
 
   if (pos >= SCM_STRING_LENGTH(str)) {
-    scm_capi_error("failed to make array of characters: invalid argument", 0);
+    scm_fcd_error("failed to make array of characters: invalid argument", 0);
     return NULL;
   }
 
@@ -805,7 +805,7 @@ scm_string_to_char_ary(ScmObj str, size_t pos, ssize_t len, scm_char_t *ary)
     l = (size_t)len;
 
   if (ary == NULL) {
-    ary = scm_capi_malloc(sizeof(scm_char_t) * l);
+    ary = scm_fcd_malloc(sizeof(scm_char_t) * l);
     if (ary == NULL) return NULL;
   }
 
@@ -835,7 +835,7 @@ scm_string_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
     if (r < 0) return -1;
   }
   else {
-    int r = scm_capi_write_string(obj, port, -1, -1);
+    int r = scm_fcd_write_string(obj, port, -1, -1);
     if (r < 0) return -1;
   }
 
@@ -886,5 +886,5 @@ scm_string_inline_hex_escape(scm_char_t chr, ScmEncoding *enc, ScmObj port)
   else                       width = 8;
 
   snprintf(cstr, sizeof(cstr), "\\x%0*llx;", width, scalar);
-  return scm_capi_write_cstr(cstr, SCM_ENC_SRC, port);
+  return scm_fcd_write_cstr(cstr, SCM_ENC_SRC, port);
 }

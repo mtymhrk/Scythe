@@ -5809,22 +5809,10 @@ scm_capi_compile_file(const char *path, ScmEvaluator *ev)
 int
 scm_capi_load_iseq(ScmObj iseq)
 {
-  ScmObj o = SCM_OBJ_INIT;
-  ssize_t rslt;
-
-  SCM_REFSTK_INIT_REG(&iseq,
-                      &o);
-
   if (!scm_capi_iseq_p(iseq)) {
     scm_capi_error("load: invalid argument", 1, iseq);
     return -1;
   }
 
-  rslt = scm_capi_iseq_push_inst(iseq, SCM_OPCODE_HALT);
-  if (rslt < 0) return -1;
-
-  o = scm_fcd_vm_run_cloned(scm_fcd_current_vm(), iseq);
-  if (scm_obj_null_p(o)) return -1;
-
-  return 0;
+  return scm_fcd_load_iseq(iseq);
 }

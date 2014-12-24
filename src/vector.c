@@ -3,7 +3,7 @@
 
 #include "scythe/object.h"
 #include "scythe/reference.h"
-#include "scythe/api.h"
+#include "scythe/fcd.h"
 #include "scythe/vector.h"
 
 
@@ -36,7 +36,7 @@ length_of_vector_maked_with_list(ScmObj lst)
     return 0;
 
   cnt = 0;
-  for (l = lst; scm_capi_pair_p(l); l = scm_api_cdr(l))
+  for (l = lst; scm_fcd_pair_p(l); l = scm_fcd_cdr(l))
     cnt++;
 
   if (scm_obj_null_p(l)) return -1;
@@ -53,7 +53,7 @@ scm_vector_initialize(ScmObj vector, size_t length, ScmObj fill)
   scm_assert(length <= SSIZE_MAX);
 
   if (length > 0) {
-    SCM_VECTOR_ARRAY(vector) = scm_capi_malloc(sizeof(ScmObj) * length);
+    SCM_VECTOR_ARRAY(vector) = scm_fcd_malloc(sizeof(ScmObj) * length);
     if (SCM_VECTOR_ARRAY(vector) == NULL) return -1;
   }
   else {
@@ -81,7 +81,7 @@ scm_vector_initialize_ary(ScmObj vector, const ScmObj *elms, size_t length)
   scm_assert(length <= SSIZE_MAX);
 
   if (length > 0) {
-    SCM_VECTOR_ARRAY(vector) = scm_capi_malloc(sizeof(ScmObj) * length);
+    SCM_VECTOR_ARRAY(vector) = scm_fcd_malloc(sizeof(ScmObj) * length);
     if (SCM_VECTOR_ARRAY(vector) == NULL) return -1;
   }
   else {
@@ -92,7 +92,7 @@ scm_vector_initialize_ary(ScmObj vector, const ScmObj *elms, size_t length)
 
   for (i = 0; i < length; i++) {
     if (scm_obj_null_p(elms[i])) {
-      scm_capi_error("failed to make vector: invalid element", 0);
+      scm_fcd_error("failed to make vector: invalid element", 0);
       return -1;
     }
     SCM_SLOT_SETQ(ScmVector, vector, array[i], elms[i]);
@@ -115,7 +115,7 @@ scm_vector_initialize_lst(ScmObj vector, size_t length, ScmObj lst)
   scm_assert(scm_obj_not_null_p(lst));
 
   if (length > 0) {
-    SCM_VECTOR_ARRAY(vector) = scm_capi_malloc(sizeof(ScmObj) * length);
+    SCM_VECTOR_ARRAY(vector) = scm_fcd_malloc(sizeof(ScmObj) * length);
     if (SCM_VECTOR_ARRAY(vector) == NULL) return -1;
   }
   else {
@@ -125,11 +125,9 @@ scm_vector_initialize_lst(ScmObj vector, size_t length, ScmObj lst)
   SCM_VECTOR_LENGTH(vector) = length;
 
   for (l = lst, i = 0;
-       scm_capi_pair_p(l) && i < length;
-       l = scm_api_cdr(l), i++) {
-    e = scm_api_car(l);
-    if (scm_obj_null_p(e)) return -1;
-
+       scm_fcd_pair_p(l) && i < length;
+       l = scm_fcd_cdr(l), i++) {
+    e = scm_fcd_car(l);
     SCM_SLOT_SETQ(ScmVector, vector, array[i], e);
   }
 
@@ -147,7 +145,7 @@ scm_vector_finalize(ScmObj vector)
   scm_assert_obj_type(vector, &SCM_VECTOR_TYPE_INFO);
 
   if (SCM_VECTOR_ARRAY(vector) != NULL)
-    scm_capi_free(SCM_VECTOR_ARRAY(vector));
+    scm_fcd_free(SCM_VECTOR_ARRAY(vector));
 }
 
 ScmObj
@@ -159,10 +157,10 @@ scm_vector_new(SCM_MEM_TYPE_T mtype,
   SCM_REFSTK_INIT_REG(&fill, &vector);
 
   /* Vector の実装として、length を SSIZE_MAX 以下に制限する必要はないが、
-     api.c との兼ね合いで制限する */
+     api との兼ね合いで制限する */
   scm_assert(length <= SSIZE_MAX);
 
-  vector = scm_capi_mem_alloc(&SCM_VECTOR_TYPE_INFO, 0, mtype);
+  vector = scm_fcd_mem_alloc(&SCM_VECTOR_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(vector)) return SCM_OBJ_NULL;
 
   if (scm_vector_initialize(vector, length, fill) < 0)
@@ -181,7 +179,7 @@ scm_vector_new_from_ary(SCM_MEM_TYPE_T mtype, const ScmObj *elms, size_t length)
   scm_assert(length == 0 || (length > 0 && elms != NULL));
   scm_assert(length <= SSIZE_MAX);
 
-  vector = scm_capi_mem_alloc(&SCM_VECTOR_TYPE_INFO, 0, mtype);
+  vector = scm_fcd_mem_alloc(&SCM_VECTOR_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(vector)) return SCM_OBJ_NULL;
 
   if (scm_vector_initialize_ary(vector, elms, length) < 0)
@@ -201,7 +199,7 @@ scm_vector_new_from_list(SCM_MEM_TYPE_T mtype, ScmObj lst)
   len = length_of_vector_maked_with_list(lst);
   if (len < 0) return SCM_OBJ_NULL;
 
-  vector = scm_capi_mem_alloc(&SCM_VECTOR_TYPE_INFO, 0, mtype);
+  vector = scm_fcd_mem_alloc(&SCM_VECTOR_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(vector)) return SCM_OBJ_NULL;
 
   if (scm_vector_initialize_lst(vector, (size_t)len, lst) < 0)
@@ -258,11 +256,11 @@ scm_vector_push(ScmObj vector, ScmObj obj)
   scm_assert(scm_obj_not_null_p(obj));
 
   if (SCM_VECTOR_LENGTH(vector) >= SSIZE_MAX) {
-    scm_capi_error("failed to expand vector: overflow", 0);
+    scm_fcd_error("failed to expand vector: overflow", 0);
     return -1;
   }
 
-  p = scm_capi_realloc(SCM_VECTOR_ARRAY(vector),
+  p = scm_fcd_realloc(SCM_VECTOR_ARRAY(vector),
                        sizeof(ScmObj) * (SCM_VECTOR_LENGTH(vector) + 1));
   if (p == NULL) return -1;
 
@@ -291,7 +289,7 @@ scm_vector_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
 
   scm_assert_obj_type(obj, &SCM_VECTOR_TYPE_INFO);
 
-  rslt = scm_capi_write_cstr("#(", SCM_ENC_SRC, port);
+  rslt = scm_fcd_write_cstr("#(", SCM_ENC_SRC, port);
   if (rslt < 0) return -1;
 
   if (SCM_VECTOR_LENGTH(obj) > 0) {
@@ -299,7 +297,7 @@ scm_vector_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
       rslt = scm_obj_call_print_func(SCM_VECTOR_ARRAY(obj)[idx], port, ext_rep);
       if (rslt < 0) return -1;
 
-      rslt = scm_capi_write_cstr(" ", SCM_ENC_SRC, port);
+      rslt = scm_fcd_write_cstr(" ", SCM_ENC_SRC, port);
       if (rslt < 0) return -1;
     }
 
@@ -307,7 +305,7 @@ scm_vector_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
     if (rslt < 0) return -1;
   }
 
-  rslt = scm_capi_write_cstr(")", SCM_ENC_SRC, port);
+  rslt = scm_fcd_write_cstr(")", SCM_ENC_SRC, port);
   if (rslt < 0) return -1;
 
   return 0;
@@ -372,7 +370,7 @@ scm_bytevector_initialize(ScmObj vec, size_t length, int fill)
   scm_assert(fill < 256);
 
   if (length > 0) {
-    SCM_BYTEVECTOR_ARRAY(vec) = scm_capi_malloc(length);
+    SCM_BYTEVECTOR_ARRAY(vec) = scm_fcd_malloc(length);
     if (SCM_BYTEVECTOR_ARRAY(vec) == NULL) return -1;
   }
   else {
@@ -398,7 +396,7 @@ scm_bytevector_initialize_cbytes(ScmObj vec, const void *bytes, size_t length)
   scm_assert(length <= SSIZE_MAX);
 
   if (length > 0) {
-    SCM_BYTEVECTOR_ARRAY(vec) = scm_capi_malloc(length);
+    SCM_BYTEVECTOR_ARRAY(vec) = scm_fcd_malloc(length);
     if (SCM_BYTEVECTOR_ARRAY(vec) == NULL) return -1;
 
     memcpy(SCM_BYTEVECTOR_ARRAY(vec), bytes, length);
@@ -420,7 +418,7 @@ scm_bytevector_finalize(ScmObj vec)
   if (SCM_BYTEVECTOR_ARRAY(vec) == NULL)
     return;
 
-  scm_capi_free(SCM_BYTEVECTOR_ARRAY(vec));
+  scm_fcd_free(SCM_BYTEVECTOR_ARRAY(vec));
   SCM_BYTEVECTOR_ARRAY(vec) = NULL;
   SCM_BYTEVECTOR_LENGTH(vec) = 0;
 }
@@ -435,7 +433,7 @@ scm_bytevector_new(SCM_MEM_TYPE_T mtype, size_t length, int fill)
   scm_assert(length <= SSIZE_MAX);
   scm_assert(fill < 256);
 
-  vec = scm_capi_mem_alloc(&SCM_BYTEVECTOR_TYPE_INFO, 0, mtype);
+  vec = scm_fcd_mem_alloc(&SCM_BYTEVECTOR_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(vec)) return SCM_OBJ_NULL;
 
   if (scm_bytevector_initialize(vec, length, fill) < 0)
@@ -454,7 +452,7 @@ scm_bytevector_new_cbyte(SCM_MEM_TYPE_T mtype, const void *bytes, size_t length)
   scm_assert(length == 0 || bytes != NULL);
   scm_assert(length <= SSIZE_MAX);
 
-  vec = scm_capi_mem_alloc(&SCM_BYTEVECTOR_TYPE_INFO, 0, mtype);
+  vec = scm_fcd_mem_alloc(&SCM_BYTEVECTOR_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(vec)) return SCM_OBJ_NULL;
 
   if (scm_bytevector_initialize_cbytes(vec, bytes, length) < 0)
@@ -505,7 +503,7 @@ scm_bytevector_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
 
   scm_assert_obj_type(obj, &SCM_BYTEVECTOR_TYPE_INFO);
 
-  r = scm_capi_write_cstr("#u8(", SCM_ENC_SRC, port);
+  r = scm_fcd_write_cstr("#u8(", SCM_ENC_SRC, port);
   if (r < 0) return -1;
 
   if (SCM_BYTEVECTOR_LENGTH(obj) > 0) {
@@ -514,14 +512,14 @@ scm_bytevector_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
     for (idx = 0; idx < SCM_BYTEVECTOR_LENGTH(obj) - 1; idx++) {
       snprintf(str, sizeof(str), "%d ", SCM_BYTEVECTOR_ARRAY(obj)[idx]);
 
-      r = scm_capi_write_cstr(str, SCM_ENC_SRC, port);
+      r = scm_fcd_write_cstr(str, SCM_ENC_SRC, port);
       if (r < 0) return -1;
     }
 
     snprintf(str, sizeof(str), "%d", SCM_BYTEVECTOR_ARRAY(obj)[idx]);
   }
 
-  r = scm_capi_write_cstr(")", SCM_ENC_SRC, port);
+  r = scm_fcd_write_cstr(")", SCM_ENC_SRC, port);
   if (r < 0) return -1;
 
   return 0;

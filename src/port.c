@@ -10,7 +10,7 @@
 
 #include "scythe/object.h"
 #include "scythe/reference.h"
-#include "scythe/api.h"
+#include "scythe/fcd.h"
 #include "scythe/port.h"
 #include "scythe/encoding.h"
 #include "scythe/impl_utils.h"
@@ -176,7 +176,7 @@ scm_fileio_new(int fd)
 {
   ScmFileIO *fileio;
 
-  fileio = scm_capi_malloc(sizeof(ScmFileIO));
+  fileio = scm_fcd_malloc(sizeof(ScmFileIO));
   if (fileio == NULL) return NULL;
 
   scm_io_initialize((ScmIO *)fileio,
@@ -202,7 +202,7 @@ scm_fileio_end(ScmFileIO *fileio)
 {
   scm_assert(fileio != NULL);
 
-  scm_capi_free(fileio);
+  scm_fcd_free(fileio);
 }
 
 ScmFileIO *
@@ -215,7 +215,7 @@ scm_fileio_open(const char *pathname, int flags, mode_t mode)
   SCM_SYSCALL(fd, open(pathname, flags, mode));
   if (fd < 0) {
     /* TODO; change error message */
-    scm_capi_file_error("system call error: open", 0);
+    scm_fcd_file_error("system call error: open", 0);
     return NULL;
   }
 
@@ -234,7 +234,7 @@ scm_fileio_read(ScmFileIO *fileio, void *buf, size_t size)
   SCM_SYSCALL(n, read(fileio->fd, buf, size));
   if (n < 0) {
     /* TODO; change error message */
-    scm_capi_error("system call error: read", 0);
+    scm_fcd_error("system call error: read", 0);
     return n;
   }
 
@@ -258,7 +258,7 @@ scm_fileio_write(ScmFileIO *fileio, const void *buf, size_t size)
     SCM_SYSCALL(n, write(fileio->fd, p, rest));
     if (n < 0) {
       /* TODO; change error message */
-      scm_capi_error("system call error: write", 0);
+      scm_fcd_error("system call error: write", 0);
       return n;
     }
 
@@ -286,7 +286,7 @@ scm_fileio_ready_p(ScmFileIO *fileio)
   SCM_SYSCALL(n, select(fileio->fd + 1, &readfds, NULL, NULL, &tout));
   if (n < 0) {
     /* TODO; change error message */
-    scm_capi_error("system call error: select", 0);
+    scm_fcd_error("system call error: select", 0);
     return -1;
   }
 
@@ -303,7 +303,7 @@ scm_fileio_seek(ScmFileIO *fileio, off_t offset, int whence)
   SCM_SYSCALL(n, lseek(fileio->fd, offset, whence));
   if (n < 0) {
     /* TODO; change error message */
-    scm_capi_error("system call error: lseek", 0);
+    scm_fcd_error("system call error: lseek", 0);
     return n;
   }
 
@@ -320,7 +320,7 @@ scm_fileio_pos(ScmFileIO *fileio)
   SCM_SYSCALL(n, lseek(fileio->fd, 0, SEEK_CUR));
   if (n < 0) {
     /* TODO; change error message */
-    scm_capi_error("system call error: lseek", 0);
+    scm_fcd_error("system call error: lseek", 0);
     return n;
   }
 
@@ -337,7 +337,7 @@ scm_fileio_close(ScmFileIO *fileio)
   SCM_SYSCALL(n, close(fileio->fd));
   if (n < 0) {
     /* TODO; change error message */
-    scm_capi_error("system call error: close", 0);
+    scm_fcd_error("system call error: close", 0);
     return n;
   }
 
@@ -362,7 +362,7 @@ scm_fileio_buffer_mode(ScmFileIO *fileio, SCM_IO_MODE_T im,
   SCM_SYSCALL(ret, fstat(fileio->fd, &st));
   if (ret < 0) {
     /* TODO; change error message */
-    scm_capi_error("system call error: fstat", 0);
+    scm_fcd_error("system call error: fstat", 0);
     return -1;
   }
 
@@ -389,7 +389,7 @@ scm_fileio_block_size(ScmFileIO *fileio)
   SCM_SYSCALL(rslt, fstat(fileio->fd, &stat));
   if (rslt < 0) {
     /* TODO; change error message */
-    scm_capi_error("system call error: fstat", 0);
+    scm_fcd_error("system call error: fstat", 0);
     return -1;
   }
 
@@ -414,11 +414,11 @@ scm_stringio_expand_buffer(ScmStringIO *strio, size_t needed_size)
   if (new_size < needed_size) new_size = SSIZE_MAX;
 
   if (strio->string == NULL) {
-    strio->string = scm_capi_malloc(new_size);
+    strio->string = scm_fcd_malloc(new_size);
     strio->capacity = new_size;
   }
   else if (new_size > strio->capacity) {
-    char *new_buffer = scm_capi_realloc(strio->string, new_size);
+    char *new_buffer = scm_fcd_realloc(strio->string, new_size);
     if (new_buffer == NULL) return -1;
     strio->string = new_buffer;
     strio->capacity = new_size;
@@ -436,7 +436,7 @@ scm_stringio_new(const char *str, size_t len)
 
   scm_assert(len <= SSIZE_MAX);
 
-  strio = scm_capi_malloc(sizeof(ScmStringIO));
+  strio = scm_fcd_malloc(sizeof(ScmStringIO));
   if (strio == NULL) return NULL;
 
   scm_io_initialize((ScmIO *)strio,
@@ -471,7 +471,7 @@ scm_stringio_new(const char *str, size_t len)
   return strio;
 
  err:
-  scm_capi_free(strio);
+  scm_fcd_free(strio);
   return NULL;
 }
 
@@ -480,8 +480,8 @@ scm_stringio_end(ScmStringIO *strio)
 {
   scm_assert(strio != NULL);
 
-  scm_capi_free(strio->string);
-  scm_capi_free(strio);
+  scm_fcd_free(strio->string);
+  scm_fcd_free(strio);
 }
 
 ssize_t
@@ -550,14 +550,14 @@ scm_stringio_seek(ScmStringIO *strio, off_t offset, int whence)
     break;
   case SEEK_CUR:
     if (SSIZE_MAX - (ssize_t)strio->pos < offset) {
-      scm_capi_error("failed to seek: offset is out of range", 0);
+      scm_fcd_error("failed to seek: offset is out of range", 0);
       return -1;
     }
     pos = (ssize_t)strio->pos + offset;
     break;
   case SEEK_END:
     if (SSIZE_MAX - (ssize_t)strio->length < offset) {
-      scm_capi_error("failed to seek: offset is out of range", 0);
+      scm_fcd_error("failed to seek: offset is out of range", 0);
       return -1;
     }
     pos = (ssize_t)strio->length + offset;
@@ -569,7 +569,7 @@ scm_stringio_seek(ScmStringIO *strio, off_t offset, int whence)
 
   if (pos < 0) {
     /* TODO; change error message */
-    scm_capi_error("offset is out of range", 0);
+    scm_fcd_error("offset is out of range", 0);
     return -1;
   }
 
@@ -664,7 +664,7 @@ scm_bufferedio_init_buffer(ScmBufferedIO *bufio, ScmIO *source)
   else
     return -1;
 
-  bufio->buffer = scm_capi_malloc(bufio->capacity);
+  bufio->buffer = scm_fcd_malloc(bufio->capacity);
   if (bufio->buffer == NULL) return -1;
 
   return 0;
@@ -677,7 +677,7 @@ scm_bufferedio_new(ScmIO *io)
   ScmBufferedIO *bufio;
   int r;
 
-  bufio = scm_capi_malloc(sizeof(ScmBufferedIO));
+  bufio = scm_fcd_malloc(sizeof(ScmBufferedIO));
   if (bufio == NULL) return NULL;
 
   scm_io_initialize((ScmIO *)bufio,
@@ -700,7 +700,7 @@ scm_bufferedio_new(ScmIO *io)
 
   r = scm_bufferedio_init_buffer(bufio, io);
   if (r < 0) {
-    scm_capi_free(bufio);
+    scm_fcd_free(bufio);
     return NULL;
   }
 
@@ -714,8 +714,8 @@ scm_bufferedio_end(ScmBufferedIO *bufio)
 
   scm_io_end(bufio->io);
 
-  scm_capi_free(bufio->buffer);
-  scm_capi_free(bufio);
+  scm_fcd_free(bufio->buffer);
+  scm_fcd_free(bufio);
 }
 
 ssize_t
@@ -1003,18 +1003,18 @@ scm_charconvio_init(ScmCharConvIO *ccio,
     return -1;
   }
 
-  ccio->unconverted = scm_capi_malloc(SCM_CHARCONVIO_UC_BUF_SIZE);
+  ccio->unconverted = scm_fcd_malloc(SCM_CHARCONVIO_UC_BUF_SIZE);
   if (ccio->unconverted == NULL) {
     iconv_close(ccio->rcd);
     iconv_close(ccio->wcd);
     return -1;
   }
 
-  ccio->converted = scm_capi_malloc(SCM_CHARCONVIO_CO_BUF_SIZE);
+  ccio->converted = scm_fcd_malloc(SCM_CHARCONVIO_CO_BUF_SIZE);
   if (ccio->converted == NULL) {
     iconv_close(ccio->rcd);
     iconv_close(ccio->wcd);
-    scm_capi_free(ccio->unconverted);
+    scm_fcd_free(ccio->unconverted);
     return -1;
   }
 
@@ -1182,7 +1182,7 @@ scm_charconvio_new(ScmIO *io, const char *incode, const char *extcode)
   ScmCharConvIO *ccio;
   int rslt;
 
-  ccio = scm_capi_malloc(sizeof(ScmCharConvIO));
+  ccio = scm_fcd_malloc(sizeof(ScmCharConvIO));
   if (ccio == NULL) return NULL;
 
   scm_io_initialize((ScmIO *)ccio,
@@ -1203,7 +1203,7 @@ scm_charconvio_new(ScmIO *io, const char *incode, const char *extcode)
 
   rslt = scm_charconvio_init(ccio, incode, extcode);
   if (rslt < 0) {
-    scm_capi_free(ccio);
+    scm_fcd_free(ccio);
     return NULL;
   }
 
@@ -1215,9 +1215,9 @@ scm_charconvio_end(ScmCharConvIO *ccio)
 {
   scm_assert(ccio != NULL);
 
-  scm_capi_free(ccio->unconverted);
-  scm_capi_free(ccio->converted);
-  scm_capi_free(ccio);
+  scm_fcd_free(ccio->unconverted);
+  scm_fcd_free(ccio->converted);
+  scm_fcd_free(ccio);
 }
 
 ssize_t
@@ -1489,7 +1489,7 @@ scm_port_size_up_to_rearmost_lf(ScmObj port, const void *buf, size_t size)
     ssize_t w = scm_str_itr_width(&iter);
     if (w < 0) {
       /* TODO; change error message */
-      scm_capi_error("illegal byte sequence", 0);
+      scm_fcd_error("illegal byte sequence", 0);
       return -1;       /* TODO: error handling (illegal sequence) */
     }
     else if (w == 0)
@@ -1505,7 +1505,7 @@ scm_port_size_up_to_rearmost_lf(ScmObj port, const void *buf, size_t size)
     scm_str_itr_next(&iter);
     if (scm_str_itr_err_p(&iter)) {
       /* TODO; change error message */
-      scm_capi_error("illegal byte sequence", 0);
+      scm_fcd_error("illegal byte sequence", 0);
       return -1; /* TODO: error handling (illegal sequence) */
     }
   }
@@ -1568,7 +1568,7 @@ scm_port_pushback_buf_char_ready(ScmObj port, bool *rslt)
 
   if (width < 0) {
     /* TODO; change error message */
-    scm_capi_error("illegal byte sequence", 0);
+    scm_fcd_error("illegal byte sequence", 0);
     return -1;
   }
 
@@ -1596,7 +1596,7 @@ scm_port_read_char_from_pushback_buf(ScmObj port, scm_char_t *chr)
 
   if (width < 0) {
     /* TODO; change error message */
-    scm_capi_error("illegal byte sequence", 0);
+    scm_fcd_error("illegal byte sequence", 0);
     return -1;
   }
   else if (width == 0) {
@@ -1766,7 +1766,7 @@ scm_port_analy_modestr(const char *mode,
     o = SCM_PORT_OFLG_APPEND | SCM_PORT_OFLG_CREATE;
     break;
   default:
-    scm_capi_error("unknown mode", 0);
+    scm_fcd_error("unknown mode", 0);
     return -1;
   }
 
@@ -1782,7 +1782,7 @@ scm_port_analy_modestr(const char *mode,
       a |= SCM_PORT_ATTR_BINARY;
       break;
     default:
-      scm_capi_error("unknown mode", 0);
+      scm_fcd_error("unknown mode", 0);
       return -1;
     }
   }
@@ -1867,7 +1867,7 @@ scm_port_new(SCM_MEM_TYPE_T mtype,
   scm_assert(/* buf_mode >= 0 && */ buf_mode < SCM_PORT_NR_BUF_MODE);
   scm_assert(inn_enc != NULL);
 
-  port = scm_capi_mem_alloc(&SCM_PORT_TYPE_INFO, 0, mtype);
+  port = scm_fcd_mem_alloc(&SCM_PORT_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(port)) return SCM_OBJ_NULL;
 
   rslt = scm_port_initialize(port, io, attr, buf_mode, inn_enc, enc);
@@ -2117,15 +2117,15 @@ scm_port_char_ready(ScmObj port, bool *rslt)
   scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
 
   if (!scm_port_input_port_p(port)) {
-    scm_capi_error("port is not input port", 0);
+    scm_fcd_error("port is not input port", 0);
     return -1;
   }
   if (!scm_port_textual_port_p(port)) {
-    scm_capi_error("port is not textual port", 0);
+    scm_fcd_error("port is not textual port", 0);
     return -1;
   }
   if (scm_port_closed_p(port)) {
-    scm_capi_error("port is already closed", 0);
+    scm_fcd_error("port is already closed", 0);
     return -1;
   }
 
@@ -2144,7 +2144,7 @@ scm_port_char_ready(ScmObj port, bool *rslt)
 
     if (r == 0) {
       if (SCM_PORT(port)->pb_used > 0) {
-        scm_capi_error("failed to peek a character: illegal byte sequence", 0);
+        scm_fcd_error("failed to peek a character: illegal byte sequence", 0);
         return -1;
       }
 
@@ -2181,12 +2181,12 @@ scm_port_flush(ScmObj port)
   scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
 
   if (!scm_port_output_port_p(port)) {
-    scm_capi_error("port is not output port", 0);
+    scm_fcd_error("port is not output port", 0);
     return -1;
   }
 
   if (scm_port_closed_p(port)) {
-    scm_capi_error("port is already closed", 0);
+    scm_fcd_error("port is already closed", 0);
     return -1;
   }
 
@@ -2224,11 +2224,11 @@ scm_port_read_bytes(ScmObj port, void *buf, size_t size)
   scm_assert(buf != NULL);
 
   if (!scm_port_input_port_p(port)) {
-    scm_capi_error("port is not input port", 0);
+    scm_fcd_error("port is not input port", 0);
     return -1;
   }
   if (scm_port_closed_p(port)) {
-    scm_capi_error("port is already closed", 0);
+    scm_fcd_error("port is already closed", 0);
     return -1;
   }
 
@@ -2260,15 +2260,15 @@ scm_port_read_char(ScmObj port, scm_char_t *chr)
   scm_assert(chr != NULL);
 
   if (!scm_port_input_port_p(port)) {
-    scm_capi_error("port is not input port", 0);
+    scm_fcd_error("port is not input port", 0);
     return -1;
   }
   if (!scm_port_textual_port_p(port)) {
-    scm_capi_error("port is not textual port", 0);
+    scm_fcd_error("port is not textual port", 0);
     return -1;
   }
   if (scm_port_closed_p(port)) {
-    scm_capi_error("port is already closed", 0);
+    scm_fcd_error("port is already closed", 0);
     return -1;
   }
 
@@ -2291,15 +2291,15 @@ scm_port_read_line(ScmObj port, ScmIO *io)
   scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
 
   if (!scm_port_input_port_p(port)) {
-    scm_capi_error("port is not input port", 0);
+    scm_fcd_error("port is not input port", 0);
     return -1;
   }
   if (!scm_port_textual_port_p(port)) {
-    scm_capi_error("port is not textual port", 0);
+    scm_fcd_error("port is not textual port", 0);
     return -1;
   }
   if (scm_port_closed_p(port)) {
-    scm_capi_error("port is already closed", 0);
+    scm_fcd_error("port is already closed", 0);
     return -1;
   }
 
@@ -2370,15 +2370,15 @@ scm_port_read_string(size_t n, ScmObj port, ScmIO *io)
   scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
 
   if (!scm_port_input_port_p(port)) {
-    scm_capi_error("port is not input port", 0);
+    scm_fcd_error("port is not input port", 0);
     return -1;
   }
   if (!scm_port_textual_port_p(port)) {
-    scm_capi_error("port is not textual port", 0);
+    scm_fcd_error("port is not textual port", 0);
     return -1;
   }
   if (scm_port_closed_p(port)) {
-    scm_capi_error("port is already closed", 0);
+    scm_fcd_error("port is already closed", 0);
     return -1;
   }
 
@@ -2418,16 +2418,16 @@ scm_port_pushback_bytes(ScmObj port, const void *buf, size_t size)
   scm_assert(buf != NULL);
 
   if (!scm_port_input_port_p(port)) {
-    scm_capi_error("port is not input port", 0);
+    scm_fcd_error("port is not input port", 0);
     return -1;
   }
   if (scm_port_closed_p(port)) {
-    scm_capi_error("port is already closed", 0);
+    scm_fcd_error("port is already closed", 0);
     return -1;
   }
   if (size > scm_port_pushback_buff_unused(port)) {
     /* TODO; change error message */
-    scm_capi_error("pushback buffer overflow", 0);
+    scm_fcd_error("pushback buffer overflow", 0);
     return -1;
   }
 
@@ -2446,15 +2446,15 @@ scm_port_pushback_char(ScmObj port, const scm_char_t *chr)
   scm_assert(chr != NULL);
 
   if (!scm_port_input_port_p(port)) {
-    scm_capi_error("port is not input port", 0);
+    scm_fcd_error("port is not input port", 0);
     return -1;
   }
   if (!scm_port_textual_port_p(port)) {
-    scm_capi_error("port is not textual port", 0);
+    scm_fcd_error("port is not textual port", 0);
     return -1;
   }
   if (scm_port_closed_p(port)) {
-    scm_capi_error("port is already closed", 0);
+    scm_fcd_error("port is already closed", 0);
     return -1;
   }
 
@@ -2462,7 +2462,7 @@ scm_port_pushback_char(ScmObj port, const scm_char_t *chr)
                          chr->bytes, sizeof(scm_char_t));
   if (w <= 0) {
     /* TODO; change error message */
-    scm_capi_error("illegal byte sequence", 0);
+    scm_fcd_error("illegal byte sequence", 0);
     return -1;
   }
 
@@ -2481,15 +2481,15 @@ scm_port_peek_bytes(ScmObj port, void *buf, size_t size)
   scm_assert(buf != NULL);
 
   if (!scm_port_input_port_p(port)) {
-    scm_capi_error("port is not input port", 0);
+    scm_fcd_error("port is not input port", 0);
     return -1;
   }
   if (scm_port_closed_p(port)) {
-    scm_capi_error("port is already closed", 0);
+    scm_fcd_error("port is already closed", 0);
     return -1;
   }
   if (size > SCM_PORT_PUSHBACK_BUFF_SIZE) {
-    scm_capi_error("pushback buffer overflow", 0);
+    scm_fcd_error("pushback buffer overflow", 0);
     return -1;
   }
 
@@ -2520,15 +2520,15 @@ scm_port_peek_char(ScmObj port, scm_char_t *chr)
   scm_assert(chr != NULL);
 
   if (!scm_port_input_port_p(port)) {
-    scm_capi_error("port is not input port", 0);
+    scm_fcd_error("port is not input port", 0);
     return -1;
   }
   if (!scm_port_textual_port_p(port)) {
-    scm_capi_error("port is not textual port", 0);
+    scm_fcd_error("port is not textual port", 0);
     return -1;
   }
   if (scm_port_closed_p(port)) {
-    scm_capi_error("port is already closed", 0);
+    scm_fcd_error("port is already closed", 0);
     return -1;
   }
 
@@ -2542,7 +2542,7 @@ scm_port_peek_char(ScmObj port, scm_char_t *chr)
     else if (r == 0) {
       if (SCM_PORT(port)->pb_used > 0) {
         /* TODO; change error message */
-        scm_capi_error("illegal byte sequence", 0);
+        scm_fcd_error("illegal byte sequence", 0);
         return -1;
       }
       else
@@ -2552,7 +2552,7 @@ scm_port_peek_char(ScmObj port, scm_char_t *chr)
 
   if (rslt < 0) {
     /* TODO; change error message */
-    scm_capi_error("illegal byte sequence", 0);
+    scm_fcd_error("illegal byte sequence", 0);
     return rslt;
   }
 
@@ -2569,11 +2569,11 @@ scm_port_write_bytes(ScmObj port, const void *buf, size_t size)
   scm_assert(size <= SSIZE_MAX);
 
   if (!scm_port_output_port_p(port)) {
-    scm_capi_error("port is not output port", 0);
+    scm_fcd_error("port is not output port", 0);
     return -1;
   }
   if (scm_port_closed_p(port)) {
-    scm_capi_error("port is already closed", 0);
+    scm_fcd_error("port is already closed", 0);
     return -1;
   }
 
@@ -2588,22 +2588,22 @@ scm_port_write_char(ScmObj port, scm_char_t chr)
   scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
 
   if (!scm_port_output_port_p(port)) {
-    scm_capi_error("port is not output port", 0);
+    scm_fcd_error("port is not output port", 0);
     return -1;
   }
   if (!scm_port_textual_port_p(port)) {
-    scm_capi_error("port is not textual port", 0);
+    scm_fcd_error("port is not textual port", 0);
     return -1;
   }
   if (scm_port_closed_p(port)) {
-    scm_capi_error("port is already closed", 0);
+    scm_fcd_error("port is already closed", 0);
     return -1;
   }
 
   s = scm_enc_char_width(SCM_PORT(port)->inn_enc, chr.bytes, sizeof(chr));
   if (s < 0) {
     /* TODO; change error message */
-    scm_capi_error("illegal byte sequence", 0);
+    scm_fcd_error("illegal byte sequence", 0);
     return -1;
   }
 
@@ -2618,11 +2618,11 @@ scm_port_seek(ScmObj port, off_t offset, int whence)
   scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
 
   if (scm_port_closed_p(port)) {
-    scm_capi_error("port is already closed", 0);
+    scm_fcd_error("port is already closed", 0);
     return -1;
   }
   else if (scm_port_code_converted_port_p(port)) {
-    scm_capi_error("seek operation of the port is not supported", 0);
+    scm_fcd_error("seek operation of the port is not supported", 0);
     return -1;
   }
 
@@ -2654,11 +2654,11 @@ scm_port_pos(ScmObj port)
   scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
 
   if (scm_port_closed_p(port)) {
-    scm_capi_error("port is already closed", 1, port);
+    scm_fcd_error("port is already closed", 1, port);
     return -1;
   }
   else if (scm_port_code_converted_port_p(port)) {
-    scm_capi_error("pos operation to code-converted port is not supported",
+    scm_fcd_error("pos operation to code-converted port is not supported",
                    1, port);
     return -1;
   }
@@ -2677,7 +2677,7 @@ scm_port_string_buffer(ScmObj port)
   scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
 
   if (!scm_port_string_port_p(port)) {
-    scm_capi_error("port is not string port", 0);
+    scm_fcd_error("port is not string port", 0);
     return NULL;
   }
 
@@ -2694,7 +2694,7 @@ scm_port_string_buffer_length(ScmObj port)
   scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
 
   if (!scm_port_string_port_p(port)) {
-    scm_capi_error("port is not string port", 0);
+    scm_fcd_error("port is not string port", 0);
     return -1;
   }
 

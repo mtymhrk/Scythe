@@ -2,7 +2,7 @@
 
 #include "scythe/object.h"
 #include "scythe/impl_utils.h"
-#include "scythe/api.h"
+#include "scythe/fcd.h"
 #include "scythe/chashtbl.h"
 #include "scythe/module.h"
 
@@ -27,7 +27,7 @@ int
 scm_gloc_initialize(ScmObj gloc, ScmObj sym, ScmObj val)
 {
   scm_assert_obj_type(gloc, &SCM_GLOC_TYPE_INFO);
-  scm_assert(scm_capi_symbol_p(sym));
+  scm_assert(scm_fcd_symbol_p(sym));
 
   SCM_SLOT_SETQ(ScmGLoc, gloc, sym, sym);
   SCM_SLOT_SETQ(ScmGLoc, gloc, val, val);
@@ -43,7 +43,7 @@ scm_gloc_new(SCM_MEM_TYPE_T mtype, ScmObj sym)
 
   SCM_REFSTK_INIT_REG(&gloc, &sym);
 
-  gloc = scm_capi_mem_alloc(&SCM_GLOC_TYPE_INFO, 0, mtype);
+  gloc = scm_fcd_mem_alloc(&SCM_GLOC_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(gloc)) return SCM_OBJ_NULL;
 
   if (scm_gloc_initialize(gloc, sym, SCM_OBJ_NULL) < 0)
@@ -96,13 +96,13 @@ ScmTypeInfo SCM_MODULE_TYPE_INFO = {
 static size_t
 scm_module_hash_func(ScmCHashTblKey key)
 {
-  return scm_capi_symbol_hash_value(SCM_OBJ(key));
+  return scm_fcd_symbol_hash_value(SCM_OBJ(key));
 }
 
 static bool
 scm_module_cmp_func(ScmCHashTblKey key1, ScmCHashTblKey key2)
 {
-  return scm_capi_eq_p(SCM_OBJ(key1), SCM_OBJ(key2));
+  return scm_fcd_eq_p(SCM_OBJ(key1), SCM_OBJ(key2));
 }
 
 enum { SCM_MODULE_EVAL, SCM_MODULE_CMPL };
@@ -116,7 +116,7 @@ scm_module_search_gloc(ScmObj mod, ScmObj sym, int type, scm_csetter_t *setter)
   SCM_REFSTK_INIT_REG(&mod, &sym);
 
   scm_assert_obj_type(mod, &SCM_MODULE_TYPE_INFO);
-  scm_assert(scm_capi_symbol_p(sym));
+  scm_assert(scm_fcd_symbol_p(sym));
   scm_assert(type == SCM_MODULE_EVAL || type == SCM_MODULE_CMPL);
 
   if (type == SCM_MODULE_EVAL)
@@ -143,7 +143,7 @@ scm_module_gloc(ScmObj mod, ScmObj sym, int type)
                       &gloc);
 
   scm_assert_obj_type(mod, &SCM_MODULE_TYPE_INFO);
-  scm_assert(scm_capi_symbol_p(sym));
+  scm_assert(scm_fcd_symbol_p(sym));
   scm_assert(type == SCM_MODULE_EVAL || type == SCM_MODULE_CMPL);
 
   if (type == SCM_MODULE_EVAL)
@@ -180,7 +180,7 @@ scm_module_define(ScmObj mod, ScmObj sym, ScmObj val, bool export, int type)
                       &gloc);
 
   scm_assert_obj_type(mod, &SCM_MODULE_TYPE_INFO);
-  scm_assert(scm_capi_symbol_p(sym));
+  scm_assert(scm_fcd_symbol_p(sym));
   scm_assert(scm_obj_not_null_p(val));
   scm_assert(type == SCM_MODULE_EVAL || type == SCM_MODULE_CMPL);
 
@@ -205,7 +205,7 @@ scm_module_export(ScmObj mod, ScmObj sym, int type)
                       &gloc);
 
   scm_assert_obj_type(mod, &SCM_MODULE_TYPE_INFO);
-  scm_assert(scm_capi_symbol_p(sym));
+  scm_assert(scm_fcd_symbol_p(sym));
   scm_assert(type == SCM_MODULE_EVAL || type == SCM_MODULE_CMPL);
 
   rslt = scm_module_search_gloc(mod, sym, type, SCM_CSETTER_L(gloc));
@@ -235,7 +235,7 @@ scm_module_find_exported_sym(ScmObj mod,
                       &res, &gloc);
 
   scm_assert_obj_type(mod, &SCM_MODULE_TYPE_INFO);
-  scm_assert(scm_capi_symbol_p(sym));
+  scm_assert(scm_fcd_symbol_p(sym));
   scm_assert(type == SCM_MODULE_EVAL || type == SCM_MODULE_CMPL);
   scm_assert(setter != NULL);
 
@@ -254,18 +254,12 @@ scm_module_find_exported_sym(ScmObj mod,
   scm_csetter_setq(setter, SCM_OBJ_NULL);
 
   for (lst = SCM_MODULE(mod)->imports;
-       scm_capi_pair_p(lst);
-       lst = scm_api_cdr(lst)) {
-    elm = scm_api_car(lst);
-    if (scm_obj_null_p(elm)) goto err;
-
-    imp = scm_api_car(elm);
-    if (scm_obj_null_p(elm)) goto err;
-
-    res = scm_api_cdr(elm);
-    if (scm_obj_null_p(res)) goto err;
-
-    if (scm_capi_true_p(res))
+       scm_fcd_pair_p(lst);
+       lst = scm_fcd_cdr(lst)) {
+    elm = scm_fcd_car(lst);
+    imp = scm_fcd_car(elm);
+    res = scm_fcd_cdr(elm);
+    if (scm_fcd_true_p(res))
       continue;
 
     rslt = scm_module_find_exported_sym(imp, sym, type, setter);
@@ -274,8 +268,6 @@ scm_module_find_exported_sym(ScmObj mod,
     if (scm_obj_not_null_p(scm_csetter_val(setter)))
       goto done;
   }
-
-  if (scm_obj_null_p(lst)) goto err;
 
  done:
   SCM_MODULE(mod)->in_searching = false;
@@ -296,7 +288,7 @@ scm_module_find_sym(ScmObj mod, ScmObj sym, int type, scm_csetter_t *setter)
                       &lst, &elm, &imp);
 
   scm_assert_obj_type(mod, &SCM_MODULE_TYPE_INFO);
-  scm_assert(scm_capi_symbol_p(sym));
+  scm_assert(scm_fcd_symbol_p(sym));
   scm_assert(type == SCM_MODULE_EVAL || type == SCM_MODULE_CMPL);
   scm_assert(setter != NULL);
 
@@ -312,22 +304,16 @@ scm_module_find_sym(ScmObj mod, ScmObj sym, int type, scm_csetter_t *setter)
     goto done;
 
   for (lst = SCM_MODULE(mod)->imports;
-       scm_capi_pair_p(lst);
-       lst = scm_api_cdr(lst)) {
-    elm = scm_api_car(lst);
-    if (scm_obj_null_p(elm)) goto err;;
-
-    imp = scm_api_car(elm);
-    if (scm_obj_null_p(elm)) goto err;;
-
+       scm_fcd_pair_p(lst);
+       lst = scm_fcd_cdr(lst)) {
+    elm = scm_fcd_car(lst);
+    imp = scm_fcd_car(elm);
     rslt = scm_module_find_exported_sym(imp, sym, type, setter);
     if (rslt < 0) goto err;;
 
     if (scm_obj_not_null_p(scm_csetter_val(setter)))
       goto done;
   }
-
-  if (scm_obj_null_p(lst)) goto err;
 
  done:
   SCM_MODULE(mod)->in_searching = false;
@@ -344,7 +330,7 @@ scm_module_initialize(ScmObj mod, ScmObj name)
   SCM_REFSTK_INIT_REG(&mod, &name);
 
   scm_assert_obj_type(mod, &SCM_MODULE_TYPE_INFO);
-  scm_assert(scm_capi_pair_p(name));
+  scm_assert(scm_fcd_pair_p(name));
 
   SCM_SLOT_SETQ(ScmModule, mod, name, name);
 
@@ -394,9 +380,9 @@ scm_module_new(SCM_MEM_TYPE_T mtype, ScmObj name)
   SCM_REFSTK_INIT_REG(&name,
                       &mod);
 
-  scm_assert(scm_capi_pair_p(name));
+  scm_assert(scm_fcd_pair_p(name));
 
-  mod = scm_capi_mem_alloc(&SCM_MODULE_TYPE_INFO, 0, mtype);
+  mod = scm_fcd_mem_alloc(&SCM_MODULE_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(mod)) return SCM_OBJ_NULL;
 
   if (scm_module_initialize(mod, name) < 0)
@@ -416,10 +402,10 @@ scm_module_import(ScmObj mod, ScmObj imp, bool res)
   scm_assert_obj_type(mod, &SCM_MODULE_TYPE_INFO);
   scm_assert_obj_type(imp, &SCM_MODULE_TYPE_INFO);
 
-  elm = scm_api_cons(imp, res ? SCM_TRUE_OBJ : SCM_FALSE_OBJ);
+  elm = scm_fcd_cons(imp, res ? SCM_TRUE_OBJ : SCM_FALSE_OBJ);
   if (scm_obj_null_p(elm)) return -1;
 
-  elm = scm_api_cons(elm, SCM_MODULE(mod)->imports);
+  elm = scm_fcd_cons(elm, SCM_MODULE(mod)->imports);
   if (scm_obj_null_p(elm)) return -1;
 
   SCM_SLOT_SETQ(ScmModule, mod, imports, elm);
@@ -480,7 +466,7 @@ scm_module_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
 {
   scm_assert_obj_type(obj, &SCM_MODULE_TYPE_INFO);
 
-  return scm_capi_pformat_cstr(port, "#<module ~a>",
+  return scm_fcd_pformat_cstr(port, "#<module ~a>",
                                SCM_MODULE(obj)->name, SCM_OBJ_NULL);
 }
 
@@ -555,16 +541,16 @@ scm_moduletree_make_node(void)
 {
   ScmModuleTreeNode *node;
 
-  node = scm_capi_malloc(sizeof(ScmModuleTreeNode));
+  node = scm_fcd_malloc(sizeof(ScmModuleTreeNode));
   if (node == NULL) return NULL;
 
   node->name = SCM_OBJ_NULL;
   node->module = SCM_OBJ_NULL;
 
-  node->branches = scm_capi_malloc(sizeof(ScmModuleTreeNode *)
+  node->branches = scm_fcd_malloc(sizeof(ScmModuleTreeNode *)
                                    * SCM_MODULETREE_DEFAULT_BRANCH_SIZE);
   if (node->branches == NULL) {
-    scm_capi_free(node);
+    scm_fcd_free(node);
     return NULL;
   }
 
@@ -579,8 +565,8 @@ scm_moduletree_free_node(ScmModuleTreeNode *node)
 {
   if (node == NULL) return 0;
 
-  scm_capi_free(node->branches);
-  scm_capi_free(node);
+  scm_fcd_free(node->branches);
+  scm_fcd_free(node);
 
   return 0;
 }
@@ -640,7 +626,7 @@ scm_moduletree_add_branche(ScmModuleTreeNode *node, ScmObj name)
     ScmModuleTreeNode **new_bra;
 
     if (node->capacity == SIZE_MAX) {
-      scm_capi_error("failed to register a module: buffer overlfow", 0);
+      scm_fcd_error("failed to register a module: buffer overlfow", 0);
       return NULL;
     }
     else if (node->capacity > SIZE_MAX / 2) {
@@ -650,7 +636,7 @@ scm_moduletree_add_branche(ScmModuleTreeNode *node, ScmObj name)
       new_cap = node->capacity * 2;
     }
 
-    new_bra = scm_capi_realloc(node->branches,
+    new_bra = scm_fcd_realloc(node->branches,
                                sizeof(ScmModuleTreeNode) * new_cap);
     if (new_bra == NULL) return NULL;
 
@@ -673,30 +659,26 @@ scm_moduletree_access(ScmModuleTreeNode *root, ScmObj path, int mode,
                       &name);
 
   scm_assert(root != NULL);
-  scm_assert(scm_capi_pair_p(path));
+  scm_assert(scm_fcd_pair_p(path));
   scm_assert(node != NULL);
 
-  name = scm_api_car(path);
-  if (scm_obj_null_p(name)) return -1;
-
-  if (!scm_capi_symbol_p(name)) {
-    scm_capi_error("failed to access module: "
+  name = scm_fcd_car(path);
+  if (!scm_fcd_symbol_p(name)) {
+    scm_fcd_error("failed to access module: "
                    "module name must be a list whose members are symbols", 0);
     return -1;
   }
 
-  path = scm_api_cdr(path);
-  if (scm_obj_null_p(path)) return -1;
-
+  path = scm_fcd_cdr(path);
   *node = NULL;
   for (size_t i = 0; i < root->used; i++) {
-    if (scm_capi_eq_p(name, root->branches[i]->name)) {
+    if (scm_fcd_eq_p(name, root->branches[i]->name)) {
       *node = root->branches[i];
       break;
     }
   }
 
-  if (scm_capi_nil_p(path)) {
+  if (scm_fcd_nil_p(path)) {
     if (mode == ADD || mode == UPDATE) {
       if (*node == NULL) {
         ScmModuleTreeNode *new = scm_moduletree_add_branche(root, name);
@@ -726,11 +708,11 @@ scm_moduletree_access(ScmModuleTreeNode *root, ScmObj path, int mode,
 static ScmObj
 scm_moduletree_normailize_name(ScmObj name)
 {
-  scm_assert(scm_capi_symbol_p(name) || scm_capi_pair_p(name));
+  scm_assert(scm_fcd_symbol_p(name) || scm_fcd_pair_p(name));
 
-  if (scm_capi_pair_p(name)) return name;
+  if (scm_fcd_pair_p(name)) return name;
 
-  return scm_capi_list(1, name);
+  return scm_fcd_list(1, name);
 }
 
 int
@@ -758,7 +740,7 @@ scm_moduletree_new(SCM_MEM_TYPE_T mtype)
 {
   ScmObj tree = SCM_OBJ_INIT;
 
-  tree = scm_capi_mem_alloc(&SCM_MODULETREE_TYPE_INFO, 0, mtype);
+  tree = scm_fcd_mem_alloc(&SCM_MODULETREE_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(tree)) return SCM_OBJ_NULL;
 
   if (scm_moduletree_initialize(tree) < 0)
@@ -779,19 +761,19 @@ scm_moduletree_module(ScmObj tree, ScmObj name)
                       &path);
 
   scm_assert_obj_type(tree, &SCM_MODULETREE_TYPE_INFO);
-  scm_assert(scm_capi_symbol_p(name) || scm_capi_pair_p(name));
+  scm_assert(scm_fcd_symbol_p(name) || scm_fcd_pair_p(name));
 
   path = scm_moduletree_normailize_name(name);
   if (scm_obj_null_p(path)) return SCM_OBJ_NULL;
 
-  need_copy = scm_capi_eq_p(path, name);
+  need_copy = scm_fcd_eq_p(path, name);
 
   rslt = scm_moduletree_access(SCM_MODULETREE(tree)->root, path, UPDATE, &node);
   if (rslt < 0) return SCM_OBJ_NULL;
 
   if (scm_obj_null_p(node->module)) {
     if (need_copy) {
-      path = scm_api_list_copy(path);
+      path = scm_fcd_list_copy(path);
       if (scm_obj_null_p(path)) return SCM_OBJ_NULL;
     }
 
@@ -811,7 +793,7 @@ scm_moduletree_find(ScmObj tree, ScmObj name, scm_csetter_t *mod)
   SCM_REFSTK_INIT_REG(&tree, &name);
 
   scm_assert_obj_type(tree, &SCM_MODULETREE_TYPE_INFO);
-  scm_assert(scm_capi_symbol_p(name) || scm_capi_pair_p(name));
+  scm_assert(scm_fcd_symbol_p(name) || scm_fcd_pair_p(name));
   scm_assert(mod != NULL);
 
   name = scm_moduletree_normailize_name(name);

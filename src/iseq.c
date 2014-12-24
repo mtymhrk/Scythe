@@ -6,7 +6,7 @@
 #include "scythe/object.h"
 #include "scythe/reference.h"
 #include "scythe/chashtbl.h"
-#include "scythe/api.h"
+#include "scythe/fcd.h"
 #include "scythe/earray.h"
 #include "scythe/impl_utils.h"
 #include "scythe/iseq.h"
@@ -52,7 +52,7 @@ scm_iseq_new(SCM_MEM_TYPE_T mtype)
 
   SCM_REFSTK_INIT_REG(&iseq);
 
-  iseq = scm_capi_mem_alloc(&SCM_ISEQ_TYPE_INFO, 0, mtype);
+  iseq = scm_fcd_mem_alloc(&SCM_ISEQ_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(iseq)) return SCM_OBJ_NULL;
 
   if (scm_iseq_initialize(iseq) < 0)
@@ -340,27 +340,21 @@ scm_iseq_eq(ScmObj iseq1, ScmObj iseq2, bool *rslt)
     case SCM_OPFMT_OBJ:
       SCM_VMINST_FETCH_OPD_OBJ(ip1, opd_obj11);
       SCM_VMINST_FETCH_OPD_OBJ(ip2, opd_obj21);
-      r = scm_capi_equal(opd_obj11, opd_obj21, rslt);
+      r = scm_fcd_equal(opd_obj11, opd_obj21, rslt);
       if (r < 0) return -1;
       if (!*rslt) return 0;
       break;
     case SCM_OPFMT_OBJ_OBJ:
       SCM_VMINST_FETCH_OPD_OBJ_OBJ(ip1, opd_obj11, opd_obj12);
       SCM_VMINST_FETCH_OPD_OBJ_OBJ(ip2, opd_obj21, opd_obj22);
-      if (scm_capi_gloc_p(opd_obj11)) {
-        r = scm_capi_gloc_symbol(opd_obj11, SCM_CSETTER_L(tmp));
-        if (r < 0) return -1;
-        opd_obj11 = tmp;
-      }
-      if (scm_capi_gloc_p(opd_obj21)) {
-        r = scm_capi_gloc_symbol(opd_obj21, SCM_CSETTER_L(tmp));
-        if (r < 0) return -1;
-        opd_obj21 = tmp;
-      }
-      r = scm_capi_equal(opd_obj11, opd_obj21, rslt);
+      if (scm_fcd_gloc_p(opd_obj11))
+        opd_obj11 = scm_fcd_gloc_symbol(opd_obj11);
+      if (scm_fcd_gloc_p(opd_obj21))
+        opd_obj21 = scm_fcd_gloc_symbol(opd_obj21);
+      r = scm_fcd_equal(opd_obj11, opd_obj21, rslt);
       if (r < 0) return -1;
       if (!*rslt) return 0;
-      r = scm_capi_equal(opd_obj12, opd_obj22, rslt);
+      r = scm_fcd_equal(opd_obj12, opd_obj22, rslt);
       if (r < 0) return -1;
       if (!*rslt) return 0;
       break;
@@ -378,7 +372,7 @@ scm_iseq_eq(ScmObj iseq1, ScmObj iseq2, bool *rslt)
       SCM_VMINST_FETCH_OPD_SI_SI_OBJ(ip1, opd_si11, opd_si12, opd_obj11);
       SCM_VMINST_FETCH_OPD_SI_SI_OBJ(ip2, opd_si21, opd_si22, opd_obj21);
       if (opd_si11 != opd_si21 || opd_si12 != opd_si22) goto not_equal;
-      r = scm_capi_equal(opd_obj11, opd_obj21, rslt);
+      r = scm_fcd_equal(opd_obj11, opd_obj21, rslt);
       if (r < 0) return -1;
       if (!*rslt) return 0;
       break;

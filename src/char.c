@@ -6,8 +6,7 @@
 #include <assert.h>
 
 #include "scythe/object.h"
-#include "scythe/reference.h"
-#include "scythe/api.h"
+#include "scythe/fcd.h"
 #include "scythe/encoding.h"
 #include "scythe/char.h"
 
@@ -28,12 +27,11 @@ ScmTypeInfo SCM_CHAR_TYPE_INFO = {
 static int
 scm_char_write_ext_rep(ScmObj obj, ScmObj port)
 {
-  ScmObj ro = SCM_OBJ_INIT;
   ScmEncoding *enc;
   scm_char_t chr;
   int rslt;
 
-  SCM_REFSTK_INIT_REG(&obj, &port, &ro);
+  SCM_REFSTK_INIT_REG(&obj, &port);
 
   scm_assert_obj_type(obj, &SCM_CHAR_TYPE_INFO);
 
@@ -42,48 +40,48 @@ scm_char_write_ext_rep(ScmObj obj, ScmObj port)
 
   if (scm_enc_printable_p(enc, chr.bytes, sizeof(chr))) {
     if (scm_enc_same_char_p(enc, chr.bytes, sizeof(chr), ' ')) {
-      rslt = scm_capi_write_cstr("#\\space", SCM_ENC_SRC, port);
+      rslt = scm_fcd_write_cstr("#\\space", SCM_ENC_SRC, port);
       if (rslt < 0) return -1;
     }
     else {
-      rslt = scm_capi_write_cstr("#\\", SCM_ENC_SRC, port);
+      rslt = scm_fcd_write_cstr("#\\", SCM_ENC_SRC, port);
       if (rslt < 0) return -1;
 
-      ro = scm_api_write_char(obj, port);
-      if (scm_obj_null_p(ro)) return -1;
+      rslt = scm_fcd_write_char(obj, port);
+      if (rslt < 0) return -1;
     }
   }
   else {
     if (scm_enc_same_char_p(enc, chr.bytes, sizeof(chr), '\a')) {
-      rslt = scm_capi_write_cstr("#\\alarm", SCM_ENC_SRC, port);
+      rslt = scm_fcd_write_cstr("#\\alarm", SCM_ENC_SRC, port);
       if (rslt < 0) return -1;
     }
     else if (scm_enc_same_char_p(enc, chr.bytes, sizeof(chr), '\b')) {
-      rslt = scm_capi_write_cstr("#\\backspaace", SCM_ENC_SRC, port);
+      rslt = scm_fcd_write_cstr("#\\backspaace", SCM_ENC_SRC, port);
       if (rslt < 0) return -1;
     }
     else if (scm_enc_same_char_p(enc, chr.bytes, sizeof(chr), 0x7f)) {
-      rslt = scm_capi_write_cstr("#\\delete", SCM_ENC_SRC, port);
+      rslt = scm_fcd_write_cstr("#\\delete", SCM_ENC_SRC, port);
       if (rslt < 0) return -1;
     }
     else if (scm_enc_same_char_p(enc, chr.bytes, sizeof(chr), 0x1b)) {
-      rslt = scm_capi_write_cstr("#\\escape", SCM_ENC_SRC, port);
+      rslt = scm_fcd_write_cstr("#\\escape", SCM_ENC_SRC, port);
       if (rslt < 0) return -1;
     }
     else if (scm_enc_same_char_p(enc, chr.bytes, sizeof(chr), '\n')) {
-      rslt = scm_capi_write_cstr("#\\newline", SCM_ENC_SRC, port);
+      rslt = scm_fcd_write_cstr("#\\newline", SCM_ENC_SRC, port);
       if (rslt < 0) return -1;
     }
     else if (scm_enc_same_char_p(enc, chr.bytes, sizeof(chr), '\0')) {
-      rslt = scm_capi_write_cstr("#\\null", SCM_ENC_SRC, port);
+      rslt = scm_fcd_write_cstr("#\\null", SCM_ENC_SRC, port);
       if (rslt < 0) return -1;
     }
     else if (scm_enc_same_char_p(enc, chr.bytes, sizeof(chr), '\r')) {
-      rslt = scm_capi_write_cstr("#\\return", SCM_ENC_SRC, port);
+      rslt = scm_fcd_write_cstr("#\\return", SCM_ENC_SRC, port);
       if (rslt < 0) return -1;
     }
     else if (scm_enc_same_char_p(enc, chr.bytes, sizeof(chr), '\t')) {
-      rslt = scm_capi_write_cstr("#\\tab", SCM_ENC_SRC, port);
+      rslt = scm_fcd_write_cstr("#\\tab", SCM_ENC_SRC, port);
       if (rslt < 0) return -1;
     }
     else {
@@ -91,7 +89,7 @@ scm_char_write_ext_rep(ScmObj obj, ScmObj port)
       long long scalar = scm_enc_cnv_to_scalar(enc, chr.bytes, sizeof(chr));
       if (scalar < 0) return -1;
       snprintf(cstr, sizeof(cstr), "#\\x%llx", scalar);
-      scm_capi_write_cstr(cstr, SCM_ENC_SRC, port);
+      scm_fcd_write_cstr(cstr, SCM_ENC_SRC, port);
     }
   }
 
@@ -106,7 +104,7 @@ scm_char_initialize(ScmObj chr, const scm_char_t *value, ScmEncoding *enc)
   scm_assert(enc != NULL);
 
   if (!scm_enc_valid_char_p(enc, value)) {
-    scm_capi_error("can not make character object: invalid byte sequence", 0);
+    scm_fcd_error("can not make character object: invalid byte sequence", 0);
     return -1;
   }
 
@@ -133,7 +131,7 @@ scm_char_new(SCM_MEM_TYPE_T mtype,
   scm_assert(value != NULL);
   scm_assert(enc != NULL);
 
-  chr = scm_capi_mem_alloc(&SCM_CHAR_TYPE_INFO, 0, mtype);
+  chr = scm_fcd_mem_alloc(&SCM_CHAR_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(chr)) return SCM_OBJ_NULL;
 
   if (scm_char_initialize(chr, value, enc) < 0)
@@ -185,7 +183,7 @@ scm_char_encode(ScmObj chr, ScmEncoding *enc)
   cd = iconv_open(scm_enc_name(enc),
                   scm_enc_name(SCM_CHAR(chr)->enc));
   if (cd == (iconv_t)-1) {
-    scm_capi_error("failed to call 'iconv_open'", 0);
+    scm_fcd_error("failed to call 'iconv_open'", 0);
     return SCM_OBJ_NULL;
   }
 
@@ -202,16 +200,16 @@ scm_char_encode(ScmObj chr, ScmEncoding *enc)
   if (rslt == (size_t)-1) {
     switch (errno) {
     case EILSEQ:
-      scm_capi_error("failed to call 'iconv': illegal multibyte sequence", 0);
+      scm_fcd_error("failed to call 'iconv': illegal multibyte sequence", 0);
       break;
     case EINVAL:
-      scm_capi_error("failed to call 'iconv': imcomplete  multibyte sequence", 0);
+      scm_fcd_error("failed to call 'iconv': imcomplete  multibyte sequence", 0);
       break;
     case E2BIG:
-      scm_capi_error("failed to call 'iconv': too big multibyte sequence", 0);
+      scm_fcd_error("failed to call 'iconv': too big multibyte sequence", 0);
       break;
     default:
-      scm_capi_error("failed to call 'iconv': unknown error has occurred", 0);
+      scm_fcd_error("failed to call 'iconv': unknown error has occurred", 0);
       break;
     }
 
@@ -238,14 +236,14 @@ scm_char_cmp(ScmObj chr1, ScmObj chr2, int *rslt)
   v1 = scm_enc_cnv_to_scalar(SCM_CHAR_ENC(chr1),
                              SCM_CHAR_VALUE(chr1).bytes, sizeof(scm_char_t));
   if (v1 < 0) {
-    scm_capi_error("can not get scalar value of character", 0);
+    scm_fcd_error("can not get scalar value of character", 0);
     return -1;
   }
 
   v2 = scm_enc_cnv_to_scalar(SCM_CHAR_ENC(chr2),
                              SCM_CHAR_VALUE(chr2).bytes, sizeof(scm_char_t));
   if (v2 < 0) {
-    scm_capi_error("can not get scalar value of character", 0);
+    scm_fcd_error("can not get scalar value of character", 0);
     return -1;
   }
 
@@ -264,7 +262,6 @@ scm_char_cmp(ScmObj chr1, ScmObj chr2, int *rslt)
 int
 scm_char_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
 {
-  ScmObj ro = SCM_OBJ_INIT;
   int rslt;
 
   scm_assert_obj_type(obj, &SCM_CHAR_TYPE_INFO);
@@ -274,8 +271,8 @@ scm_char_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
     if (rslt < 0) return -1;
   }
   else {
-    ro = scm_api_write_char(obj, port);
-    if (scm_obj_null_p(ro)) return -1;
+    rslt = scm_fcd_write_char(obj, port);
+    if (rslt < 0) return -1;
   }
 
   return 0;

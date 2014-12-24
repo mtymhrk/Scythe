@@ -1,10 +1,10 @@
 #ifndef INCLUDE_TEST_HELPER_H__
 #define INCLUDE_TEST_HELPER_H__
 
-#include "unity_fixture.h"
-
 #include "scythe/object.h"
 #include "scythe/api.h"
+
+#include "unity_fixture.h"
 
 #define TEST_ASSERT_SCM_NULL(obj) \
   TEST_ASSERT_TRUE(scm_obj_null_p(obj))

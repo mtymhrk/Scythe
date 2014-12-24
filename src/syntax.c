@@ -1,7 +1,7 @@
 #include <string.h>
 
 #include "scythe/object.h"
-#include "scythe/api.h"
+#include "scythe/fcd.h"
 #include "scythe/syntax.h"
 
 ScmTypeInfo SCM_SYNTAX_TYPE_INFO = {
@@ -20,7 +20,7 @@ int
 scm_syntax_initialize(ScmObj syx, ScmObj key, ScmObj handler)
 {
   scm_assert_obj_type(syx, &SCM_SYNTAX_TYPE_INFO);
-  scm_assert(scm_capi_symbol_p(key));
+  scm_assert(scm_fcd_symbol_p(key));
   scm_assert(scm_obj_not_null_p(handler));
 
   SCM_SLOT_SETQ(ScmSyntax, syx, keyword, key);
@@ -38,10 +38,10 @@ scm_syntax_new(SCM_MEM_TYPE_T mtype, ScmObj key, ScmObj handler)
   SCM_REFSTK_INIT_REG(&key, &handler,
                       &syx);
 
-  scm_assert(scm_capi_symbol_p(key));
+  scm_assert(scm_fcd_symbol_p(key));
   scm_assert(scm_obj_not_null_p(handler));
 
-  syx = scm_capi_mem_alloc(&SCM_SYNTAX_TYPE_INFO, 0, mtype);
+  syx = scm_fcd_mem_alloc(&SCM_SYNTAX_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(syx)) return SCM_OBJ_NULL;
 
   rslt = scm_syntax_initialize(syx, key, handler);
@@ -56,7 +56,7 @@ scm_syntax_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
 {
   scm_assert_obj_type(obj, &SCM_SYNTAX_TYPE_INFO);
 
-  return scm_capi_pformat_cstr(port, "#<syntax ~a>",
+  return scm_fcd_pformat_cstr(port, "#<syntax ~a>",
                                SCM_SYNTAX(obj)->keyword, SCM_OBJ_NULL);
 }
 

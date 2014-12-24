@@ -7,7 +7,7 @@
 #include <assert.h>
 
 #include "scythe/object.h"
-#include "scythe/api.h"
+#include "scythe/fcd.h"
 #include "scythe/impl_utils.h"
 #include "scythe/memory.h"
 
@@ -149,7 +149,7 @@ scm_mem_heap_cell_tail(ScmMemHeapCell *cell)
 static ScmMemHeapBlock *
 scm_mem_heap_new_block(size_t sz)
 {
-  ScmMemHeapBlock *block = scm_capi_malloc(sizeof(ScmMemHeapBlock) + (sz));
+  ScmMemHeapBlock *block = scm_fcd_malloc(sizeof(ScmMemHeapBlock) + (sz));
   if (block != NULL) {
     scm_byte_t *p;
     block->next = NULL;
@@ -165,7 +165,7 @@ scm_mem_heap_new_block(size_t sz)
 static inline void *
 scm_mem_heap_delete_block(ScmMemHeapBlock *block)
 {
-  scm_capi_free(block);
+  scm_fcd_free(block);
   return NULL;
 }
 
@@ -361,7 +361,7 @@ static ScmMemHeap *
 scm_mem_heap_delete_heap(ScmMemHeap *heap)
 {
   scm_mem_heap_release_blocks(heap, 0);
-  scm_capi_free(heap);
+  scm_fcd_free(heap);
   return heap;
 }
 
@@ -371,7 +371,7 @@ scm_mem_heap_new_heap(int nr_blk, size_t sz)
   ScmMemHeap *heap;
   int i;
 
-  heap = scm_capi_malloc(sizeof(*heap));
+  heap = scm_fcd_malloc(sizeof(*heap));
   if (heap == NULL) return NULL;
 
   heap->head = NULL;
@@ -514,7 +514,7 @@ scm_mem_root_block_new(size_t sz)
 {
   ScmMemRootBlock *block;
 
-  block = scm_capi_malloc(sz);
+  block = scm_fcd_malloc(sz);
   if (block == NULL) return NULL;
 
   block->hdr.next = NULL;
@@ -526,7 +526,7 @@ scm_mem_root_block_new(size_t sz)
 static inline void
 scm_mem_root_block_free(ScmMemRootBlock *block)
 {
-  scm_capi_free(block);
+  scm_fcd_free(block);
 }
 
 static inline bool
@@ -660,8 +660,8 @@ scm_mem_expand_heap(ScmMem *mem, int inc_block)
   return i;
 
  err:
-  if (to_block != NULL) scm_capi_free(to_block);
-  if (from_block != NULL) scm_capi_free(from_block);
+  if (to_block != NULL) scm_fcd_free(to_block);
+  if (from_block != NULL) scm_fcd_free(from_block);
   return i;
 }
 
@@ -889,7 +889,7 @@ scm_mem_copy_obj(ScmMem *mem, ScmObj obj)
     if (rslt < 0) return SCM_OBJ_NULL;
 
     if (scm_obj_null_p(box)) {
-      scm_capi_fatal("Memory Manager Heap Accesss Error");
+      scm_fcd_fatal("Memory Manager Heap Accesss Error");
       return SCM_OBJ_NULL;
     }
   }
@@ -1176,7 +1176,7 @@ scm_mem_initialize(ScmMem *mem)
   mem->from_heap = scm_mem_heap_new_heap(1, SCM_MEM_HEAP_INIT_BLOCK_SIZE);
   if (mem->from_heap == NULL) goto err;
 
-  mem->extra_rfrn = scm_capi_malloc(sizeof(ScmRef) * SCM_MEM_EXTRA_RFRN_SIZE);
+  mem->extra_rfrn = scm_fcd_malloc(sizeof(ScmRef) * SCM_MEM_EXTRA_RFRN_SIZE);
   if (mem->extra_rfrn == NULL) goto err;
   mem->nr_extra = 0;
 
@@ -1185,9 +1185,9 @@ scm_mem_initialize(ScmMem *mem)
  err:
   if (mem->to_heap != NULL) mem->to_heap = scm_mem_heap_delete_heap(mem->to_heap);
   if (mem->from_heap != NULL) mem->from_heap = scm_mem_heap_delete_heap(mem->from_heap);
-  if (mem->extra_rfrn != NULL) scm_capi_free(mem->extra_rfrn);
+  if (mem->extra_rfrn != NULL) scm_fcd_free(mem->extra_rfrn);
 
-  scm_capi_fatal("Memory Manager Initialization Error");
+  scm_fcd_fatal("Memory Manager Initialization Error");
 
   return NULL;
 }
@@ -1202,7 +1202,7 @@ scm_mem_finalize(ScmMem *mem)
 
   if (mem->to_heap != NULL) mem->to_heap = scm_mem_heap_delete_heap(mem->to_heap);
   if (mem->from_heap != NULL) mem->from_heap = scm_mem_heap_delete_heap(mem->from_heap);
-  if (mem->extra_rfrn != NULL) scm_capi_free(mem->extra_rfrn);
+  if (mem->extra_rfrn != NULL) scm_fcd_free(mem->extra_rfrn);
 
   return NULL;
 }
@@ -1213,7 +1213,7 @@ scm_mem_new(void)
 {
   ScmMem *mem = NULL;
 
-  mem = scm_capi_malloc(sizeof(*mem));
+  mem = scm_fcd_malloc(sizeof(*mem));
   if (mem == NULL) return NULL;
 
   return scm_mem_initialize(mem);
@@ -1225,7 +1225,7 @@ scm_mem_end(ScmMem *mem)
   if (mem == NULL) return NULL;
 
   scm_mem_finalize(mem);
-  scm_capi_free(mem);
+  scm_fcd_free(mem);
 
   return NULL;
 }
@@ -1270,7 +1270,7 @@ scm_mem_alloc_heap(ScmMem *mem, ScmTypeInfo *type, size_t add_size)
 
   if (scm_obj_not_null_p(obj)) goto success;
 
-  scm_capi_fatal("Memory Manager Memory Allocation Error");
+  scm_fcd_fatal("Memory Manager Memory Allocation Error");
   return SCM_OBJ_NULL;
 
  success:

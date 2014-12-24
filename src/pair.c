@@ -3,7 +3,7 @@
 
 #include "scythe/object.h"
 #include "scythe/impl_utils.h"
-#include "scythe/api.h"
+#include "scythe/fcd.h"
 #include "scythe/pair.h"
 
 ScmTypeInfo SCM_PAIR_TYPE_INFO = {
@@ -42,7 +42,7 @@ scm_pair_new(SCM_MEM_TYPE_T mtype, ScmObj car, ScmObj cdr)
   scm_assert(scm_obj_not_null_p(car));
   scm_assert(scm_obj_not_null_p(cdr));
 
-  pair = scm_capi_mem_alloc(&SCM_PAIR_TYPE_INFO, 0, mtype);
+  pair = scm_fcd_mem_alloc(&SCM_PAIR_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(pair)) return SCM_OBJ_NULL;
 
   if (scm_pair_initialize(pair, car, cdr) < 0)
@@ -61,7 +61,7 @@ scm_pair_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
 
   scm_assert_obj_type(obj, &SCM_PAIR_TYPE_INFO);
 
-  rslt = scm_capi_write_cstr("(", SCM_ENC_SRC, port);
+  rslt = scm_fcd_write_cstr("(", SCM_ENC_SRC, port);
   if (rslt < 0) return -1;
 
   lst = obj;
@@ -69,16 +69,16 @@ scm_pair_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
     car = scm_pair_car(lst);
     cdr = scm_pair_cdr(lst);
 
-    if (scm_capi_nil_p(cdr)) {
+    if (scm_fcd_nil_p(cdr)) {
       rslt = scm_obj_call_print_func(car, port, ext_rep);
       if (rslt < 0) return -1;
       break;
     }
-    else if (!scm_capi_pair_p(cdr)) {
+    else if (!scm_fcd_pair_p(cdr)) {
       rslt = scm_obj_call_print_func(car, port, ext_rep);
       if (rslt < 0) return -1;
 
-      rslt = scm_capi_write_cstr(" . ", SCM_ENC_SRC, port);
+      rslt = scm_fcd_write_cstr(" . ", SCM_ENC_SRC, port);
       if (rslt < 0) return -1;
 
       rslt = scm_obj_call_print_func(cdr, port, ext_rep);
@@ -89,13 +89,13 @@ scm_pair_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
     rslt = scm_obj_call_print_func(car, port, ext_rep);
     if (rslt < 0) return -1;
 
-    rslt = scm_capi_write_cstr(" ", SCM_ENC_SRC, port);
+    rslt = scm_fcd_write_cstr(" ", SCM_ENC_SRC, port);
     if (rslt < 0) return -1;
 
     lst = cdr;
   }
 
-  rslt = scm_capi_write_cstr(")", SCM_ENC_SRC, port);
+  rslt = scm_fcd_write_cstr(")", SCM_ENC_SRC, port);
   if (rslt < 0) return -1;
 
   return 0;

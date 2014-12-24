@@ -70,4 +70,6 @@ void scm_fcd_exit(ScmObj obj);
 
 ScmEncoding *scm_fcd_system_encoding(void);
 
+int scm_fcd_load_iseq(ScmObj iseq);
+
 #endif  /* INCLUDE_FCD_VM_H__ */

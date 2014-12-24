@@ -6,7 +6,7 @@
 
 #include "scythe/object.h"
 #include "scythe/reference.h"
-#include "scythe/api.h"
+#include "scythe/fcd.h"
 #include "scythe/chashtbl.h"
 #include "scythe/string.h"
 #include "scythe/symbol.h"
@@ -150,15 +150,15 @@ escape_print(scm_char_t chr, ScmEncoding *enc, ScmObj port)
   SCM_REFSTK_INIT_REG(&port);
 
   if (scm_enc_same_char_p(enc, chr.bytes, sizeof(chr), '\a'))
-    return scm_capi_write_cstr("\\a", SCM_ENC_SRC, port);
+    return scm_fcd_write_cstr("\\a", SCM_ENC_SRC, port);
   else if (scm_enc_same_char_p(enc, chr.bytes, sizeof(chr), '\b'))
-    return scm_capi_write_cstr("\\b", SCM_ENC_SRC, port);
+    return scm_fcd_write_cstr("\\b", SCM_ENC_SRC, port);
   else if (scm_enc_same_char_p(enc, chr.bytes, sizeof(chr), '\t'))
-    return scm_capi_write_cstr("\\t", SCM_ENC_SRC, port);
+    return scm_fcd_write_cstr("\\t", SCM_ENC_SRC, port);
   else if (scm_enc_same_char_p(enc, chr.bytes, sizeof(chr), '\n'))
-    return scm_capi_write_cstr("\\n", SCM_ENC_SRC, port);
+    return scm_fcd_write_cstr("\\n", SCM_ENC_SRC, port);
   else if (scm_enc_same_char_p(enc, chr.bytes, sizeof(chr), '\r'))
-    return scm_capi_write_cstr("\\c", SCM_ENC_SRC, port);
+    return scm_fcd_write_cstr("\\c", SCM_ENC_SRC, port);
   else
     return scm_string_inline_hex_escape(chr, enc, port);
 }
@@ -177,7 +177,7 @@ scm_symbol_write_ext_rep_peculiar(const scm_char_t *ary, ScmObj port,
 
   if (scm_enc_same_char_p(enc, ary[idx].bytes, sizeof(ary[0]), '+')
       || scm_enc_same_char_p(enc, ary[idx].bytes, sizeof(ary[0]), '-')) {
-    r = scm_capi_write_cchr(ary[idx++], enc, port);
+    r = scm_fcd_write_cchr(ary[idx++], enc, port);
     if (r < 0) return -1;
 
     if (idx >= len) return 0;
@@ -185,13 +185,13 @@ scm_symbol_write_ext_rep_peculiar(const scm_char_t *ary, ScmObj port,
     type = check_ident_sign_subsequent_char(ary[idx], enc);
     if (type != CHK_IDENT_ADAPT) goto dot_start;
 
-    r = scm_capi_write_cchr(ary[idx++], enc, port);
+    r = scm_fcd_write_cchr(ary[idx++], enc, port);
     if (r < 0) return -1;
 
     if (idx >= len) return 0;
 
     while (check_ident_subsequent_char(ary[idx], enc) == CHK_IDENT_ADAPT) {
-      r = scm_capi_write_cchr(ary[idx++], enc, port);
+      r = scm_fcd_write_cchr(ary[idx++], enc, port);
       if (r < 0) return -1;
 
       if (idx >= len) return 0;
@@ -201,7 +201,7 @@ scm_symbol_write_ext_rep_peculiar(const scm_char_t *ary, ScmObj port,
  dot_start:
 
   if (scm_enc_same_char_p(enc, ary[idx].bytes, sizeof(ary[0]), '.')) {
-    r = scm_capi_write_cchr(ary[idx++], enc, port);
+    r = scm_fcd_write_cchr(ary[idx++], enc, port);
     if (r < 0) return -1;
 
     if (idx >= len) return 0;
@@ -209,13 +209,13 @@ scm_symbol_write_ext_rep_peculiar(const scm_char_t *ary, ScmObj port,
     type = check_ident_dot_subsequent_char(ary[idx], enc);
     if (type != CHK_IDENT_ADAPT) goto non_peculiar;
 
-    r = scm_capi_write_cchr(ary[idx++], enc, port);
+    r = scm_fcd_write_cchr(ary[idx++], enc, port);
     if (r < 0) return -1;
 
     if (idx >= len) return 0;
 
     while (check_ident_subsequent_char(ary[idx], enc) == CHK_IDENT_ADAPT) {
-      r = scm_capi_write_cchr(ary[idx++], enc, port);
+      r = scm_fcd_write_cchr(ary[idx++], enc, port);
       if (r < 0) return -1;
 
       if (idx >= len) return 0;
@@ -228,7 +228,7 @@ scm_symbol_write_ext_rep_peculiar(const scm_char_t *ary, ScmObj port,
   while (idx < len) {
     type = check_ident_printable_char(ary[idx], enc);
     if (type == CHK_IDENT_ADAPT)
-      r = scm_capi_write_cchr(ary[idx++], enc, port);
+      r = scm_fcd_write_cchr(ary[idx++], enc, port);
     else
       r = escape_print(ary[idx++], enc, port);
     if (r < 0) return -1;
@@ -256,7 +256,7 @@ scm_symbol_write_ext_rep_inner(ScmObj str, ScmObj port, size_t len,
   type = check_ident_initial_char(ary[0], enc);
   switch (type) {
   case CHK_IDENT_ADAPT:
-    r = scm_capi_write_cchr(ary[0], enc, port);
+    r = scm_fcd_write_cchr(ary[0], enc, port);
     if (r < 0) return -1;
     break;
   case CHK_IDENT_PECULIAR:
@@ -264,7 +264,7 @@ scm_symbol_write_ext_rep_inner(ScmObj str, ScmObj port, size_t len,
     break;
   case CHK_IDENT_PRINT:
     *need_vline_p = true;
-    r = scm_capi_write_cchr(ary[0], enc, port);
+    r = scm_fcd_write_cchr(ary[0], enc, port);
     if (r < 0) return -1;
     break;
   case CHK_IDENT_NONPRINT:
@@ -281,12 +281,12 @@ scm_symbol_write_ext_rep_inner(ScmObj str, ScmObj port, size_t len,
     type = check_ident_subsequent_char(ary[i], enc);
     switch (type) {
     case CHK_IDENT_ADAPT:
-      r = scm_capi_write_cchr(ary[i], enc, port);
+      r = scm_fcd_write_cchr(ary[i], enc, port);
       if (r < 0) return -1;
       break;
     case CHK_IDENT_PRINT:
       *need_vline_p = true;
-      r = scm_capi_write_cchr(ary[i], enc, port);
+      r = scm_fcd_write_cchr(ary[i], enc, port);
       if (r < 0) return -1;
       break;
     case CHK_IDENT_NONPRINT:
@@ -313,7 +313,7 @@ scm_symbol_write_ext_rep(ScmObj sym, ScmObj port)
   SCM_REFSTK_INIT_REG(&sym, &port,
                       &strport, &str);
 
-  strport = scm_api_open_output_string();
+  strport = scm_fcd_open_output_string();
   if (scm_obj_null_p(strport)) return -1;
 
   r = scm_symbol_write_ext_rep_inner(SCM_SYMBOL(sym)->str,
@@ -323,18 +323,18 @@ scm_symbol_write_ext_rep(ScmObj sym, ScmObj port)
   if (r < 0) return -1;
 
   if (need_vline_p) {
-    r = scm_capi_write_cstr("|", SCM_ENC_SRC, port);
+    r = scm_fcd_write_cstr("|", SCM_ENC_SRC, port);
     if (r < 0) return -1;
   }
 
-  str = scm_api_get_output_string(strport);
+  str = scm_fcd_get_output_string(strport);
   if (scm_obj_null_p(str)) return -1;
 
-  r = scm_capi_write_string(str, port, -1, -1);
+  r = scm_fcd_write_string(str, port, -1, -1);
   if (r < 0) return -1;
 
   if (need_vline_p) {
-    r = scm_capi_write_cstr("|", SCM_ENC_SRC, port);
+    r = scm_fcd_write_cstr("|", SCM_ENC_SRC, port);
     if (r < 0) return -1;
   }
 
@@ -363,7 +363,7 @@ scm_symbol_new(SCM_MEM_TYPE_T mtype, ScmObj str)
 
   scm_assert_obj_type(str, &SCM_STRING_TYPE_INFO);
 
-  sym = scm_capi_mem_alloc(&SCM_SYMBOL_TYPE_INFO, 0, mtype);
+  sym = scm_fcd_mem_alloc(&SCM_SYMBOL_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(sym)) return SCM_OBJ_NULL;
 
   if (scm_symbol_initialize(sym, str) < 0)
@@ -426,7 +426,7 @@ scm_symbol_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
     if (r < 0) return -1;
   }
   else {
-    int r = scm_capi_write_string(SCM_SYMBOL_STR(obj), port, -1, -1);
+    int r = scm_fcd_write_string(SCM_SYMBOL_STR(obj), port, -1, -1);
     if (r < 0) return -1;
   }
 
@@ -516,7 +516,7 @@ scm_symtbl_new(SCM_MEM_TYPE_T mtype)
 
   SCM_REFSTK_INIT_REG(&tbl);
 
-  tbl = scm_capi_mem_alloc(&SCM_SYMTBL_TYPE_INFO, 0, mtype);
+  tbl = scm_fcd_mem_alloc(&SCM_SYMTBL_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(tbl)) return SCM_OBJ_NULL;
 
   if (scm_symtbl_initialize(tbl) < 0)

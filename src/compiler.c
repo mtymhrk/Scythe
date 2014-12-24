@@ -2,7 +2,7 @@
 #include <stdbool.h>
 
 #include "scythe/object.h"
-#include "scythe/api.h"
+#include "scythe/fcd.h"
 #include "scythe/assembler.h"
 #include "scythe/compiler.h"
 
@@ -22,7 +22,7 @@ int
 scm_cmpl_initialize(ScmObj cmpl, ScmObj module)
 {
   scm_assert_obj_type(cmpl, &SCM_COMPILER_TYPE_INFO);
-  scm_assert(scm_capi_module_p(module));
+  scm_assert(scm_fcd_module_p(module));
 
   SCM_COMPILER(cmpl)->label_id = 0;
   SCM_SLOT_SETQ(ScmCompiler, cmpl, module, module);
@@ -39,9 +39,9 @@ scm_cmpl_new(SCM_MEM_TYPE_T mtype, ScmObj module)
   SCM_REFSTK_INIT_REG(&module,
                       &cmpl);
 
-  scm_assert(scm_capi_module_p(module));
+  scm_assert(scm_fcd_module_p(module));
 
-  cmpl = scm_capi_mem_alloc(&SCM_COMPILER_TYPE_INFO, 0, mtype);
+  cmpl = scm_fcd_mem_alloc(&SCM_COMPILER_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(cmpl)) return SCM_OBJ_NULL;
 
   if (scm_cmpl_initialize(cmpl, module) < 0)
@@ -54,7 +54,7 @@ void
 scm_cmpl_set_module(ScmObj cmpl, ScmObj module)
 {
   scm_assert_obj_type(cmpl, &SCM_COMPILER_TYPE_INFO);
-  scm_assert(scm_capi_module_p(module));
+  scm_assert(scm_fcd_module_p(module));
 
   SCM_SLOT_SETQ(ScmCompiler, cmpl, module, module);
 }
