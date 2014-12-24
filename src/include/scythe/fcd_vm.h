@@ -3,8 +3,7 @@
 
 #include "scythe/object.h"
 #include "scythe/encoding.h"
-
-typedef struct ScmBedrockRec ScmBedrock;
+#include "scythe/fcd_type.h"
 
 /* vm.c の外部が scm__current_XXX を直接参照するのは禁止。
    scm_fcd_current_XXX() 経由で取得すること。 */

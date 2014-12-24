@@ -3,7 +3,6 @@
 
 #include <stdint.h>
 
-typedef struct ScmBedrockRec ScmBedrock;
 typedef struct ScmBoxRec ScmBox;
 typedef struct ScmVMIntTblEntryRec ScmVMIntTblEntry;
 typedef struct ScmVMIntTableRec ScmVMIntTable;
@@ -16,7 +15,6 @@ typedef struct ScmVMRec ScmVM;
 #define SCM_VM(obj) ((ScmVM *)(obj))
 
 #include "scythe/object.h"
-#include "scythe/memory.h"
 #include "scythe/encoding.h"
 #include "scythe/api_type.h"
 #include "scythe/vmstack.h"

@@ -6,6 +6,7 @@ typedef struct ScmCompilerRec ScmCompiler;
 #define SCM_COMPILER(obj) ((ScmCompiler *)(obj))
 
 #include "scythe/object.h"
+#include "scythe/fcd_type.h"
 
 struct ScmCompilerRec {
   ScmObjHeader header;

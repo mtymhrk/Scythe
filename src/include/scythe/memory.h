@@ -12,7 +12,6 @@ typedef struct ScmMemHeapCellRec ScmMemHeapCell;
 typedef struct ScmMemHeapBlockRec ScmMemHeapBlock;
 typedef struct ScmMemHeapRec ScmMemHeap;
 typedef struct ScmMemRootBlockRec ScmMemRootBlock;
-typedef struct ScmMemRec ScmMem;
 
 #define SCM_FORWARD(obj) ((ScmForward *)(obj))
 
