@@ -906,23 +906,6 @@ scm_marshal_finalize(ScmObj marshal)
   eary_fin(&SCM_MARSHAL(marshal)->shared);
 }
 
-ScmObj
-scm_marshal_new(SCM_MEM_TYPE_T mtype)
-{
-  ScmObj marshal = SCM_OBJ_INIT;
-  int r;
-
-  SCM_REFSTK_INIT_REG(&marshal);
-
-  marshal = scm_fcd_mem_alloc(&SCM_MARSHAL_TYPE_INFO, 0, mtype);
-  if (scm_obj_null_p(marshal)) return SCM_OBJ_NULL;
-
-  r = scm_marshal_initialize(marshal);
-  if (r < 0) return SCM_OBJ_NULL;
-
-  return marshal;
-}
-
 static inline ScmMarshalBuffer *
 scm_marshal_output(ScmObj marshal)
 {
@@ -1253,23 +1236,6 @@ scm_unmarshal_finalize(ScmObj unmarshal)
     scm_fcd_free(SCM_UNMARSHAL(unmarshal)->input);
     SCM_UNMARSHAL(unmarshal)->input = NULL;
   }
-}
-
-ScmObj
-scm_unmarshal_new(SCM_MEM_TYPE_T mtype, const void *data)
-{
-  ScmObj unmarshal = SCM_OBJ_INIT;
-  int r;
-
-  scm_assert(data != NULL);
-
-  unmarshal = scm_fcd_mem_alloc(&SCM_UNMARSHAL_TYPE_INFO, 0, mtype);
-  if (scm_obj_null_p(unmarshal)) return SCM_OBJ_NULL;
-
-  r = scm_unmarshal_initialize(unmarshal, data);
-  if (r < 0) return SCM_OBJ_NULL;
-
-  return unmarshal;
 }
 
 static inline ScmMarshalBuffer *
@@ -3371,7 +3337,7 @@ scm_marshal_va_internal(size_t *size, size_t nr_obj, va_list args)
   SCM_REFSTK_INIT_REG(&marshal);
   SCM_REFSTK_REG_ARY(obj, nr_obj);
 
-  marshal = scm_marshal_new(SCM_MEM_HEAP);
+  marshal = scm_fcd_marshal_new(SCM_MEM_HEAP);
   if (scm_obj_null_p(marshal)) return NULL;
 
   for (size_t i = 0; i < nr_obj; i++) {

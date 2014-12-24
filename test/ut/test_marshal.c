@@ -33,14 +33,14 @@ test_marshal_unmarshal(ScmObj obj)
                       &marshal, &unmarshal,
                       &actual);
 
-  marshal = scm_marshal_new(SCM_MEM_HEAP);
+  marshal = scm_fcd_marshal_new(SCM_MEM_HEAP);
 
   TEST_ASSERT_EQUAL_INT(0, scm_marshal_push_obj(marshal, obj));
 
   data = scm_marshal_terminate(marshal, NULL);
   TEST_ASSERT(data != NULL);
 
-  unmarshal = scm_unmarshal_new(SCM_MEM_HEAP, data);
+  unmarshal = scm_fcd_unmarshal_new(SCM_MEM_HEAP, data);
   TEST_ASSERT_SCM_EQUAL(obj, scm_unmarshal_ref(unmarshal, 0));
 }
 
