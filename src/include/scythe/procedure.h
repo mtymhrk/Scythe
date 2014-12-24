@@ -136,7 +136,6 @@ struct ScmContinuationRec {
 };
 
 int scm_cont_initialize(ScmObj cont, ScmObj contcap);
-ScmObj scm_cont_new(SCM_MEM_TYPE_T mtype, ScmObj contcap);
 void scm_cont_gc_initialize(ScmObj obj, ScmObj mem);
 int scm_cont_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
 
