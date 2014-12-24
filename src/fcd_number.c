@@ -20,6 +20,17 @@ scm_fcd_fixnum_P(ScmObj obj)
   return scm_fcd_fixnum_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
 }
 
+extern inline ScmObj
+scm_fcd_fixnum_new(scm_sword_t num)
+{
+  scm_assert(num >= SCM_FIXNUM_MIN);
+  scm_assert(num <= SCM_FIXNUM_MAX);
+
+  num <<= SCM_FIXNUM_SHIFT_BIT;
+
+  return SCM_OBJ(num + 1);
+}
+
 extern inline bool
 scm_fcd_bignum_p(ScmObj obj)
 {
@@ -191,7 +202,7 @@ scm_fcd_make_number_from_sword(scm_sword_t num)
   if (num < SCM_FIXNUM_MIN || SCM_FIXNUM_MAX < num)
     return scm_bignum_new_from_sword(SCM_MEM_HEAP, num);
   else
-    return scm_fixnum_new(num);
+    return scm_fcd_fixnum_new(num);
 }
 
 ScmObj
@@ -200,7 +211,7 @@ scm_fcd_make_number_from_size_t(size_t num)
   if (num > SCM_FIXNUM_MAX)
     return scm_bignum_new_from_uword(SCM_MEM_HEAP, num);
   else
-    return scm_fixnum_new((scm_sword_t)num);
+    return scm_fcd_fixnum_new((scm_sword_t)num);
 }
 
 static int

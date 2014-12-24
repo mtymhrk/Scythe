@@ -14,17 +14,6 @@ extern ScmTypeInfo SCM_FIXNUM_TYPE_INFO;
 #define SCM_FIXNUM_ZERO ((0 << SCM_FIXNUM_SHIFT_BIT) + 1)
 #define SCM_FIXNUM_ONE ((1 << SCM_FIXNUM_SHIFT_BIT) + 1)
 
-static inline ScmObj
-scm_fixnum_new(scm_sword_t num)
-{
-  scm_assert(num >= SCM_FIXNUM_MIN);
-  scm_assert(num <= SCM_FIXNUM_MAX);
-
-  num <<= SCM_FIXNUM_SHIFT_BIT;
-
-  return SCM_OBJ(num + 1);
-}
-
 static inline scm_sword_t
 scm_fixnum_value(ScmObj num)
 {

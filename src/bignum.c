@@ -586,9 +586,9 @@ scm_bignum_2_fixnum_if_possible(ScmObj bignum)
   }
 
   if (SCM_BIGNUM(bignum)->sign == '+')
-    return scm_fixnum_new(num);
+    return scm_fcd_fixnum_new(num);
   else
-    return scm_fixnum_new(-num);
+    return scm_fcd_fixnum_new(-num);
 }
 
 static int
@@ -788,9 +788,9 @@ scm_bignum_make_int_from_ary(char sign, scm_bignum_d_t *ary, size_t size,
   }
 
   if (sign == '+' || sign == '\0')
-    return scm_fixnum_new(num);
+    return scm_fcd_fixnum_new(num);
   else
-    return scm_fixnum_new(-num);
+    return scm_fcd_fixnum_new(-num);
 }
 
 int

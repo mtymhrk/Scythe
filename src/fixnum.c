@@ -284,7 +284,7 @@ scm_fixnum_plus(ScmObj aug, ScmObj add)
     if (v < SCM_FIXNUM_MIN || SCM_FIXNUM_MAX < v)
       return scm_bignum_new_from_sword(SCM_MEM_HEAP, v);
     else
-      return scm_fixnum_new(v);
+      return scm_fcd_fixnum_new(v);
   }
   else {
     aug = SCM_NUM_CALL_FUNC(add, coerce, aug);
@@ -308,7 +308,7 @@ scm_fixnum_minus(ScmObj min, ScmObj sub)
     if (v < SCM_FIXNUM_MIN || SCM_FIXNUM_MAX < v)
       return scm_bignum_new_from_sword(SCM_MEM_HEAP, v);
     else
-      return scm_fixnum_new(v);
+      return scm_fcd_fixnum_new(v);
   }
   else {
     min = SCM_NUM_CALL_FUNC(sub, coerce, min);
@@ -344,7 +344,7 @@ scm_fixnum_mul(ScmObj mud, ScmObj mur)
       return scm_bignum_mul(mud, mur);
     }
 
-    return scm_fixnum_new(v);
+    return scm_fcd_fixnum_new(v);
   }
   else {
     mud = SCM_NUM_CALL_FUNC(mur, coerce, mud);
@@ -389,10 +389,10 @@ scm_fixnum_floor_div(ScmObj dvd, ScmObj dvr,
   }
 
   if (quo != NULL)
-    scm_csetter_setq(quo, scm_fixnum_new(q));
+    scm_csetter_setq(quo, scm_fcd_fixnum_new(q));
 
   if (rem != NULL)
-    scm_csetter_setq(rem, scm_fixnum_new(r));
+    scm_csetter_setq(rem, scm_fcd_fixnum_new(r));
 
   return 0;
 }
@@ -432,10 +432,10 @@ scm_fixnum_ceiling_div(ScmObj dvd, ScmObj dvr,
   }
 
   if (quo != NULL)
-    scm_csetter_setq(quo, scm_fixnum_new(q));
+    scm_csetter_setq(quo, scm_fcd_fixnum_new(q));
 
   if (rem != NULL)
-    scm_csetter_setq(rem, scm_fixnum_new(r));
+    scm_csetter_setq(rem, scm_fcd_fixnum_new(r));
 
   return 0;
 }
@@ -466,10 +466,10 @@ scm_fixnum_truncate_div(ScmObj dvd, ScmObj dvr,
   if (rslt < 0) return -1;
 
   if (quo != NULL)
-    scm_csetter_setq(quo, scm_fixnum_new(q));
+    scm_csetter_setq(quo, scm_fcd_fixnum_new(q));
 
   if (rem != NULL)
-    scm_csetter_setq(rem, scm_fixnum_new(r));
+    scm_csetter_setq(rem, scm_fcd_fixnum_new(r));
 
   return 0;
 }

@@ -8,6 +8,7 @@
 
 bool scm_fcd_fixnum_p(ScmObj obj);
 ScmObj scm_fcd_fixnum_P(ScmObj obj);
+ScmObj scm_fcd_fixnum_new(scm_sword_t num);
 bool scm_fcd_bignum_p(ScmObj obj);
 ScmObj scm_fcd_bignum_P(ScmObj obj);
 bool scm_fcd_number_p(ScmObj obj);
