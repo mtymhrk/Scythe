@@ -6,9 +6,12 @@
 
 #include "scythe/object.h"
 #include "scythe/encoding.h"
+#include "scythe/fcd_type.h"
 
 bool scm_fcd_char_p(ScmObj obj);
 ScmObj scm_fcd_char_P(ScmObj obj);
+ScmObj scm_fcd_char_new(SCM_MEM_TYPE_T mtype,
+                        const scm_char_t *value, ScmEncoding *enc);
 ScmObj scm_fcd_make_char(const scm_char_t *chr, ScmEncoding *enc);
 int scm_fcd_char_eq(ScmObj chr1, ScmObj chr2, bool *rslt);
 ScmObj scm_fcd_char_eq_P(ScmObj chr1, ScmObj chr2);

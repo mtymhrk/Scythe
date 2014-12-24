@@ -581,7 +581,7 @@ string_to_list_aux(ScmObj str, size_t pos, size_t len)
   enc = scm_string_encoding(str);
 
   for (size_t i = 0; i < len; i++) {
-    o_ary[i] = scm_char_new(SCM_MEM_HEAP, c_ary + i, enc);
+    o_ary[i] = scm_fcd_char_new(SCM_MEM_HEAP, c_ary + i, enc);
 
     if (scm_obj_null_p(o_ary[i])) return SCM_OBJ_NULL;
   }

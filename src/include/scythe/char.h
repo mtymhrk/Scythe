@@ -24,10 +24,6 @@ struct ScmCharRec {
 
 int scm_char_initialize(ScmObj chr, const scm_char_t *value, ScmEncoding *enc);
 void scm_char_finalize(ScmObj chr);
-ScmObj scm_char_new(SCM_MEM_TYPE_T mtype,
-                    const scm_char_t *value, ScmEncoding *enc);
-ScmObj scm_char_new_newline(SCM_MEM_TYPE_T mtype, ScmEncoding *enc);
-ScmObj scm_char_new_space(SCM_MEM_TYPE_T mtype, ScmEncoding *enc);
 scm_char_t scm_char_value(ScmObj chr);
 long long scm_char_scalar(ScmObj chr);
 ScmEncoding *scm_char_encoding(ScmObj chr);

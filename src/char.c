@@ -120,26 +120,6 @@ scm_char_finalize(ScmObj chr)
   return;                       /* nothing to do */
 }
 
-ScmObj
-scm_char_new(SCM_MEM_TYPE_T mtype,
-             const scm_char_t *value, ScmEncoding *enc)
-{
-  ScmObj chr = SCM_OBJ_INIT;
-
-  SCM_REFSTK_INIT_REG(&chr);
-
-  scm_assert(value != NULL);
-  scm_assert(enc != NULL);
-
-  chr = scm_fcd_mem_alloc(&SCM_CHAR_TYPE_INFO, 0, mtype);
-  if (scm_obj_null_p(chr)) return SCM_OBJ_NULL;
-
-  if (scm_char_initialize(chr, value, enc) < 0)
-    return SCM_OBJ_NULL;
-
-  return chr;
-}
-
 scm_char_t
 scm_char_value(ScmObj chr)
 {
@@ -178,7 +158,7 @@ scm_char_encode(ScmObj chr, ScmEncoding *enc)
   scm_assert(enc != NULL);
 
   if (SCM_CHAR(chr)->enc == enc)
-    return scm_char_new(SCM_MEM_HEAP, &SCM_CHAR(chr)->value, enc);
+    return scm_fcd_char_new(SCM_MEM_HEAP, &SCM_CHAR(chr)->value, enc);
 
   cd = iconv_open(scm_enc_name(enc),
                   scm_enc_name(SCM_CHAR(chr)->enc));
@@ -217,7 +197,7 @@ scm_char_encode(ScmObj chr, ScmEncoding *enc)
   }
 
   iconv_close(cd);
-  return scm_char_new(SCM_MEM_HEAP, &c, enc);
+  return scm_fcd_char_new(SCM_MEM_HEAP, &c, enc);
 
  err:
   iconv_close(cd);

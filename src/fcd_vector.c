@@ -154,7 +154,7 @@ string_to_vector_aux(ScmObj str, size_t start, size_t n)
   enc = scm_string_encoding(str);
 
   for (size_t i = 0; i < n; i++) {
-    elm[i] = scm_char_new(SCM_MEM_HEAP, ary + i, enc);
+    elm[i] = scm_fcd_char_new(SCM_MEM_HEAP, ary + i, enc);
     if (scm_obj_null_p(elm[i])) return SCM_OBJ_NULL;
   }
 

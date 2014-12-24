@@ -18,6 +18,26 @@ scm_fcd_char_P(ScmObj obj)
 }
 
 ScmObj
+scm_fcd_char_new(SCM_MEM_TYPE_T mtype,
+                 const scm_char_t *value, ScmEncoding *enc)
+{
+  ScmObj chr = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&chr);
+
+  scm_assert(value != NULL);
+  scm_assert(enc != NULL);
+
+  chr = scm_fcd_mem_alloc(&SCM_CHAR_TYPE_INFO, 0, mtype);
+  if (scm_obj_null_p(chr)) return SCM_OBJ_NULL;
+
+  if (scm_char_initialize(chr, value, enc) < 0)
+    return SCM_OBJ_NULL;
+
+  return chr;
+}
+
+ScmObj
 scm_fcd_make_char(const scm_char_t *chr, ScmEncoding *enc)
 {
   if (enc == NULL)
@@ -28,7 +48,7 @@ scm_fcd_make_char(const scm_char_t *chr, ScmEncoding *enc)
     return SCM_OBJ_NULL;
   }
 
-  return scm_char_new(SCM_MEM_HEAP, chr, enc);
+  return scm_fcd_char_new(SCM_MEM_HEAP, chr, enc);
 }
 
 static int
@@ -366,7 +386,7 @@ scm_fcd_integer_to_char(ScmObj num, ScmEncoding *enc)
   /* scalar 値に相当する文字が無い場合、#f を返す。r7rs-draft-9 未定義 */
   if (s < 0) return SCM_FALSE_OBJ;
 
-  return scm_char_new(SCM_MEM_HEAP, &c, enc);
+  return scm_fcd_char_new(SCM_MEM_HEAP, &c, enc);
 }
 
 
