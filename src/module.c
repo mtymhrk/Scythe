@@ -701,20 +701,6 @@ scm_moduletree_finalize(ScmObj tree)
 }
 
 ScmObj
-scm_moduletree_new(SCM_MEM_TYPE_T mtype)
-{
-  ScmObj tree = SCM_OBJ_INIT;
-
-  tree = scm_fcd_mem_alloc(&SCM_MODULETREE_TYPE_INFO, 0, mtype);
-  if (scm_obj_null_p(tree)) return SCM_OBJ_NULL;
-
-  if (scm_moduletree_initialize(tree) < 0)
-    return SCM_OBJ_NULL;
-
-  return tree;
-}
-
-ScmObj
 scm_moduletree_module(ScmObj tree, ScmObj name)
 {
   ScmObj path = SCM_OBJ_INIT;

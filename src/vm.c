@@ -65,7 +65,7 @@ scm_bedrock_setup(ScmBedrock *br)
   br->symtbl = scm_symtbl_new(SCM_MEM_ROOT);
   if (scm_obj_null_p(br->symtbl)) return -1;
 
-  br->modtree = scm_moduletree_new(SCM_MEM_ROOT);
+  br->modtree = scm_fcd_moduletree_new(SCM_MEM_ROOT);
   if (scm_obj_null_p(br->modtree)) return -1;
 
   scm_fcd_mem_register_extra_rfrn(SCM_REF_MAKE(br->subr.exc_hndlr_caller));

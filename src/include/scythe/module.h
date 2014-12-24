@@ -141,7 +141,6 @@ struct ScmModuleTreeRec {
 
 int scm_moduletree_initialize(ScmObj tree);
 void scm_moduletree_finalize(ScmObj tree);
-ScmObj scm_moduletree_new(SCM_MEM_TYPE_T mtype);
 ScmObj scm_moduletree_module(ScmObj tree, ScmObj name);
 int scm_moduletree_find(ScmObj tree, ScmObj name, scm_csetter_t *mod);
 int scm_moduletree_clean(ScmObj tree);

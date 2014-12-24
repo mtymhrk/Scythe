@@ -15,6 +15,7 @@ bool scm_fcd_module_p(ScmObj obj);
 bool scm_fcd_module_name_p(ScmObj obj);
 bool scm_fcd_module_specifier_p(ScmObj obj);
 ScmObj scm_fcd_module_new(SCM_MEM_TYPE_T mtype, ScmObj name);
+ScmObj scm_fcd_moduletree_new(SCM_MEM_TYPE_T mtype);
 ScmObj scm_fcd_make_module(ScmObj name);
 int scm_fcd_find_module(ScmObj name, scm_csetter_t *mod);
 ScmObj scm_fcd_module_name(ScmObj module);
