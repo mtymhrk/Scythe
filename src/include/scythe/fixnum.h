@@ -7,21 +7,6 @@
 
 extern ScmTypeInfo SCM_FIXNUM_TYPE_INFO;
 
-#define SCM_FIXNUM_SHIFT_BIT 1
-#define SCM_FIXNUM_MAX (SCM_SWORD_MAX >> SCM_FIXNUM_SHIFT_BIT)
-#define SCM_FIXNUM_MIN (SCM_RSHIFT_ARITH(SCM_SWORD_MIN, SCM_FIXNUM_SHIFT_BIT))
-#define SCM_FIXNUM_BITS (sizeof(scm_sword_t) * CHAR_BIT - SCM_FIXNUM_SHIFT_BIT)
-#define SCM_FIXNUM_ZERO ((0 << SCM_FIXNUM_SHIFT_BIT) + 1)
-#define SCM_FIXNUM_ONE ((1 << SCM_FIXNUM_SHIFT_BIT) + 1)
-
-static inline scm_sword_t
-scm_fixnum_value(ScmObj num)
-{
-  scm_assert_obj_type(num, &SCM_FIXNUM_TYPE_INFO);
-
-  return SCM_RSHIFT_ARITH((scm_sword_t)num, SCM_FIXNUM_SHIFT_BIT);
-}
-
 ScmObj scm_fixnum_copy(ScmObj fn);
 bool scm_fixnum_complex_p(ScmObj fn);
 bool scm_fixnum_real_p(ScmObj fn);

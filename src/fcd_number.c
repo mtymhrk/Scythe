@@ -20,17 +20,6 @@ scm_fcd_fixnum_P(ScmObj obj)
   return scm_fcd_fixnum_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
 }
 
-extern inline ScmObj
-scm_fcd_fixnum_new(scm_sword_t num)
-{
-  scm_assert(num >= SCM_FIXNUM_MIN);
-  scm_assert(num <= SCM_FIXNUM_MAX);
-
-  num <<= SCM_FIXNUM_SHIFT_BIT;
-
-  return SCM_OBJ(num + 1);
-}
-
 extern inline bool
 scm_fcd_bignum_p(ScmObj obj)
 {
@@ -94,7 +83,7 @@ scm_fcd_bignum_new_fixnum(SCM_MEM_TYPE_T mtype, ScmObj fn)
 
   scm_assert(scm_fcd_fixnum_p(fn));
 
-  sword = scm_fixnum_value(fn);
+  sword = scm_fcd_fixnum_value(fn);
   bn = scm_fcd_mem_alloc(&SCM_BIGNUM_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(bn)) return SCM_OBJ_NULL;
 
@@ -899,7 +888,7 @@ scm_fcd_integer_to_sword(ScmObj num, scm_sword_t *w)
   scm_assert(scm_fcd_integer_p(num));
 
   if (scm_fcd_fixnum_p(num)) {
-    *w = scm_fixnum_value(num);
+    *w = scm_fcd_fixnum_value(num);
   }
   else if (scm_fcd_bignum_p(num)) {
     int r = scm_bignum_to_sword(num, w);
@@ -918,7 +907,7 @@ scm_fcd_integer_to_size_t(ScmObj num, size_t *s)
   scm_assert(scm_fcd_integer_p(num));
 
   if (scm_fcd_fixnum_p(num)) {
-    scm_sword_t w = scm_fixnum_value(num);
+    scm_sword_t w = scm_fcd_fixnum_value(num);
     if (w < 0) {
       scm_fcd_error("failed to convert number to size_t: overflow", 1, num);
       return -1;

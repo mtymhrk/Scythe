@@ -7,9 +7,36 @@
 #include "scythe/encoding.h"
 #include "scythe/fcd_type.h"
 
+#define SCM_FIXNUM_SHIFT_BIT 1
+#define SCM_FIXNUM_MAX (SCM_SWORD_MAX >> SCM_FIXNUM_SHIFT_BIT)
+#define SCM_FIXNUM_MIN (SCM_RSHIFT_ARITH(SCM_SWORD_MIN, SCM_FIXNUM_SHIFT_BIT))
+#define SCM_FIXNUM_BITS (sizeof(scm_sword_t) * CHAR_BIT - SCM_FIXNUM_SHIFT_BIT)
+#define SCM_FIXNUM_ZERO ((0 << SCM_FIXNUM_SHIFT_BIT) + 1)
+#define SCM_FIXNUM_ONE ((1 << SCM_FIXNUM_SHIFT_BIT) + 1)
+
+
 bool scm_fcd_fixnum_p(ScmObj obj);
 ScmObj scm_fcd_fixnum_P(ScmObj obj);
-ScmObj scm_fcd_fixnum_new(scm_sword_t num);
+
+static inline ScmObj
+scm_fcd_fixnum_new(scm_sword_t num)
+{
+  scm_assert(num >= SCM_FIXNUM_MIN);
+  scm_assert(num <= SCM_FIXNUM_MAX);
+
+  num <<= SCM_FIXNUM_SHIFT_BIT;
+
+  return SCM_OBJ(num + 1);
+}
+
+static inline scm_sword_t
+scm_fcd_fixnum_value(ScmObj num)
+{
+  scm_assert(scm_fcd_fixnum_p(num));
+
+  return SCM_RSHIFT_ARITH((scm_sword_t)num, SCM_FIXNUM_SHIFT_BIT);
+}
+
 bool scm_fcd_bignum_p(ScmObj obj);
 ScmObj scm_fcd_bignum_P(ScmObj obj);
 ScmObj scm_fcd_bignum_new_cv(SCM_MEM_TYPE_T mtype, char sign,

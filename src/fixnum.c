@@ -208,8 +208,8 @@ scm_fixnum_cmp(ScmObj fn, ScmObj num, int *cmp)
   }
 
   if (cmp != NULL) {
-    v1 = scm_fixnum_value(fn);
-    v2 = scm_fixnum_value(num);
+    v1 = scm_fcd_fixnum_value(fn);
+    v2 = scm_fcd_fixnum_value(num);
 
     if (v1 < v2)
       *cmp = -1;
@@ -235,7 +235,7 @@ scm_fixnum_positive_p(ScmObj fn)
 {
   scm_assert_obj_type(fn, &SCM_FIXNUM_TYPE_INFO);
 
-  return (scm_fixnum_value(fn) >= 0) ? true : false;
+  return (scm_fcd_fixnum_value(fn) >= 0) ? true : false;
 }
 
 bool
@@ -243,7 +243,7 @@ scm_fixnum_negative_p(ScmObj fn)
 {
   scm_assert_obj_type(fn, &SCM_FIXNUM_TYPE_INFO);
 
-  return (scm_fixnum_value(fn) < 0) ? true : false;
+  return (scm_fcd_fixnum_value(fn) < 0) ? true : false;
 }
 
 bool
@@ -267,7 +267,7 @@ scm_fixnum_invert_sign(ScmObj fn)
 {
   scm_assert_obj_type(fn, &SCM_FIXNUM_TYPE_INFO);
 
-  return scm_fcd_make_number_from_sword(-scm_fixnum_value(fn));
+  return scm_fcd_make_number_from_sword(-scm_fcd_fixnum_value(fn));
 }
 
 ScmObj
@@ -279,7 +279,7 @@ scm_fixnum_plus(ScmObj aug, ScmObj add)
   scm_assert(scm_fcd_number_p(add));
 
   if (scm_fcd_fixnum_p(add)) {
-    scm_sword_t v = scm_fixnum_value(aug) + scm_fixnum_value(add);
+    scm_sword_t v = scm_fcd_fixnum_value(aug) + scm_fcd_fixnum_value(add);
 
     if (v < SCM_FIXNUM_MIN || SCM_FIXNUM_MAX < v)
       return scm_fcd_bignum_new_sword(SCM_MEM_HEAP, v);
@@ -303,7 +303,7 @@ scm_fixnum_minus(ScmObj min, ScmObj sub)
   scm_assert(scm_fcd_number_p(sub));
 
   if (scm_fcd_fixnum_p(sub)) {
-    scm_sword_t v = scm_fixnum_value(min) - scm_fixnum_value(sub);
+    scm_sword_t v = scm_fcd_fixnum_value(min) - scm_fcd_fixnum_value(sub);
 
     if (v < SCM_FIXNUM_MIN || SCM_FIXNUM_MAX < v)
       return scm_fcd_bignum_new_sword(SCM_MEM_HEAP, v);
@@ -328,11 +328,11 @@ scm_fixnum_mul(ScmObj mud, ScmObj mur)
   scm_assert_obj_type(mud, &SCM_FIXNUM_TYPE_INFO);
   scm_assert(scm_fcd_number_p(mur));
 
-  v1 = scm_fixnum_value(mud);
+  v1 = scm_fcd_fixnum_value(mud);
   if (v1 == 0) return mud;
 
   if (scm_fcd_fixnum_p(mur)) {
-    v2 = scm_fixnum_value(mur);
+    v2 = scm_fcd_fixnum_value(mur);
 
     if (scm_fixnum_multi(v1, v2, &v) == -1) {
       mud = scm_fcd_bignum_new_fixnum(SCM_MEM_HEAP, mud);
@@ -374,8 +374,8 @@ scm_fixnum_floor_div(ScmObj dvd, ScmObj dvr,
     return SCM_NUM_CALL_FUNC(dvd, floor_div, dvr, quo, rem);
   }
 
-  x = scm_fixnum_value(dvd);
-  y = scm_fixnum_value(dvr);
+  x = scm_fcd_fixnum_value(dvd);
+  y = scm_fcd_fixnum_value(dvr);
 
   x_s = (x >= 0) ? '+' : '-';
   y_s = (y >= 0) ? '+' : '-';
@@ -417,8 +417,8 @@ scm_fixnum_ceiling_div(ScmObj dvd, ScmObj dvr,
     return SCM_NUM_CALL_FUNC(dvd, ceiling_div, dvr, quo, rem);
   }
 
-  x = scm_fixnum_value(dvd);
-  y = scm_fixnum_value(dvr);
+  x = scm_fcd_fixnum_value(dvd);
+  y = scm_fcd_fixnum_value(dvr);
 
   x_s = (x >= 0) ? '+' : '-';
   y_s = (y >= 0) ? '+' : '-';
@@ -459,8 +459,8 @@ scm_fixnum_truncate_div(ScmObj dvd, ScmObj dvr,
     return SCM_NUM_CALL_FUNC(dvd, truncate_div, dvr, quo, rem);
   }
 
-  x = scm_fixnum_value(dvd);
-  y = scm_fixnum_value(dvr);
+  x = scm_fcd_fixnum_value(dvd);
+  y = scm_fcd_fixnum_value(dvr);
 
   rslt = scm_fixnum_quo_rem(x, y, &q, &r);
   if (rslt < 0) return -1;
