@@ -1,8 +1,8 @@
 #ifndef INCLUDE_MARSHAL_H__
 #define INCLUDE_MARSHAL_H__
 
-#include "stddef.h"
-#include "stdbool.h"
+#include <stddef.h>
+#include <stdbool.h>
 
 typedef struct ScmMarshalHeaderRec ScmMarshalHeader;
 typedef struct ScmMarshalBufferRec ScmMarshalBuffer;
