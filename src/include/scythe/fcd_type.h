@@ -20,6 +20,46 @@ typedef struct ScmEvaluatorRec ScmEvaluator;
 
 typedef struct ScmBedrockRec ScmBedrock;
 
+extern ScmBedrock *scm_fcd__current_br;
+extern ScmObj scm_fcd__current_vm;
+extern ScmObj scm_fcd__current_ref_stack;
+
+static inline ScmBedrock *
+scm_fcd_current_br(void)
+{
+  return scm_fcd__current_br;
+}
+
+static inline ScmObj
+scm_fcd_current_vm(void)
+{
+  return scm_fcd__current_vm;
+}
+
+static inline ScmObj
+scm_fcd_current_ref_stack(void)
+{
+  return scm_fcd__current_ref_stack;
+}
+
+static inline void
+scm_fcd_chg_current_br(ScmBedrock *br)
+{
+  scm_fcd__current_br = br;
+}
+
+static inline void
+scm_fcd_chg_current_vm(ScmObj vm)
+{
+  scm_fcd__current_vm = vm;
+}
+
+static inline void
+scm_fcd_chg_current_ref_stack(ScmObj stack)
+{
+  scm_fcd__current_ref_stack = stack;
+}
+
 
 /*******************************************************************/
 /*  Memory                                                         */
