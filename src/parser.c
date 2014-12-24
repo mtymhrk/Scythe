@@ -1053,7 +1053,7 @@ scm_parser_parse_list(ScmParser *parser, ScmObj port, ScmEncoding *enc)
   }
 
   car = scm_parser_parse_expression(parser, port);
-  if (scm_capi_null_value_p(car)) return SCM_OBJ_NULL;
+  if (scm_obj_null_p(car)) return SCM_OBJ_NULL;
   if (scm_capi_eof_object_p(car)) {
     scm_capi_read_error("Parser: unexpected eof", 0);
     return SCM_OBJ_NULL;
@@ -1066,7 +1066,7 @@ scm_parser_parse_list(ScmParser *parser, ScmObj port, ScmEncoding *enc)
     scm_lexer_shift_token(parser->lexer);
 
     cdr = scm_parser_parse_expression(parser, port);
-    if (scm_capi_null_value_p(cdr)) return SCM_OBJ_NULL;
+    if (scm_obj_null_p(cdr)) return SCM_OBJ_NULL;
     if (scm_capi_eof_object_p(car)) {
       scm_capi_read_error("Parser: unexpected eof", 0);
       return SCM_OBJ_NULL;
@@ -1095,7 +1095,7 @@ scm_parser_parse_list(ScmParser *parser, ScmObj port, ScmEncoding *enc)
   }
   else {
     cdr = scm_parser_parse_list(parser, port, enc);
-    if (scm_capi_null_value_p(cdr)) return SCM_OBJ_NULL;
+    if (scm_obj_null_p(cdr)) return SCM_OBJ_NULL;
   }
 
   return scm_api_cons(car, cdr);
@@ -1157,19 +1157,19 @@ scm_parser_parse_quote(ScmParser *parser, ScmObj port, ScmEncoding *enc)
     break;
   }
 
-  if (scm_capi_null_value_p(quote)) return SCM_OBJ_NULL;
+  if (scm_obj_null_p(quote)) return SCM_OBJ_NULL;
 
   scm_lexer_shift_token(parser->lexer);
 
   quoted = scm_parser_parse_expression(parser, port);
-  if (scm_capi_null_value_p(quoted)) return SCM_OBJ_NULL;
+  if (scm_obj_null_p(quoted)) return SCM_OBJ_NULL;
   if (scm_capi_eof_object_p(quoted)) {
     scm_capi_read_error("Parser: unexpected eof", 0);
     return SCM_OBJ_NULL;
   }
 
   quoted = scm_api_cons(quoted, SCM_NIL_OBJ);
-  if (scm_capi_null_value_p(quoted)) return SCM_OBJ_NULL;
+  if (scm_obj_null_p(quoted)) return SCM_OBJ_NULL;
 
   return scm_api_cons(quote, quoted);
 }
@@ -1613,7 +1613,7 @@ scm_parser_parse_vector_aux(ScmParser *parser,
   }
 
   car = scm_parser_parse_expression(parser, port);
-  if (scm_capi_null_value_p(car)) return SCM_OBJ_NULL;
+  if (scm_obj_null_p(car)) return SCM_OBJ_NULL;
   if (scm_capi_eof_object_p(car)) {
     scm_capi_read_error("Parser: unexpected eof", 0);
     return SCM_OBJ_NULL;
@@ -1622,7 +1622,7 @@ scm_parser_parse_vector_aux(ScmParser *parser,
   *len += 1;
 
   cdr = scm_parser_parse_vector_aux(parser, port, enc, len);
-  if (scm_capi_null_value_p(cdr)) return SCM_OBJ_NULL;
+  if (scm_obj_null_p(cdr)) return SCM_OBJ_NULL;
 
   return scm_api_cons(car, cdr);
 }
@@ -1644,10 +1644,10 @@ scm_parser_parse_vector(ScmParser *parser, ScmObj port, ScmEncoding *enc)
 
   len = 0;
   elms = scm_parser_parse_vector_aux(parser, port, enc, &len);
-  if (scm_capi_null_value_p(elms)) return SCM_OBJ_NULL;
+  if (scm_obj_null_p(elms)) return SCM_OBJ_NULL;
 
   vec = scm_capi_make_vector(len, SCM_OBJ_NULL);
-  if (scm_capi_null_value_p(vec)) return SCM_OBJ_NULL;
+  if (scm_obj_null_p(vec)) return SCM_OBJ_NULL;
 
   for (idx = 0; idx < len; idx++) {
     elm = scm_api_car(elms);
@@ -1709,10 +1709,10 @@ scm_parser_parse_bytevector(ScmParser *parser, ScmObj port, ScmEncoding *enc)
 
   len = 0;
   elms = scm_parser_parse_vector_aux(parser, port, enc, &len);
-  if (scm_capi_null_value_p(elms)) return SCM_OBJ_NULL;
+  if (scm_obj_null_p(elms)) return SCM_OBJ_NULL;
 
   vec = scm_capi_make_bytevector(len, 0);
-  if (scm_capi_null_value_p(vec)) return SCM_OBJ_NULL;
+  if (scm_obj_null_p(vec)) return SCM_OBJ_NULL;
 
   min = scm_capi_make_number_from_sword(0);
   if (scm_obj_null_p(min)) return SCM_OBJ_NULL;

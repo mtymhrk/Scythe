@@ -24,7 +24,7 @@ scm_capi_ut_compile(ScmEvaluator *ev, ScmObj exp)
   args = scm_capi_list(2, exp, args);
   if (scm_obj_null_p(args)) return SCM_OBJ_NULL;
 
-  val = scm_vm_apply(scm_vm_current_vm(), compile, args);
+  val = scm_fcd_vm_apply(scm_fcd_current_vm(), compile, args);
   if (scm_obj_null_p(val)) return SCM_OBJ_NULL;
 
   return scm_capi_vector_ref(val, 0);
@@ -50,7 +50,7 @@ scm_capi_ut_eval(ScmEvaluator *ev, ScmObj exp)
   args = scm_api_cons(exp, SCM_NIL_OBJ);
   if (scm_obj_null_p(args)) return SCM_OBJ_NULL;
 
-  val = scm_vm_apply(scm_vm_current_vm(), eval, args);
+  val = scm_fcd_vm_apply(scm_fcd_current_vm(), eval, args);
   if (scm_obj_null_p(val)) return SCM_OBJ_NULL;
 
   return scm_capi_vector_ref(val, 0);
@@ -59,5 +59,5 @@ scm_capi_ut_eval(ScmEvaluator *ev, ScmObj exp)
 void
 scm_capi_ut_disposal_unhandled_exc(ScmEvaluator *ev)
 {
-  scm_vm_disposal_unhandled_exc(ev->vm);
+  scm_fcd_vm_disposal_unhandled_exc(ev->vm);
 }

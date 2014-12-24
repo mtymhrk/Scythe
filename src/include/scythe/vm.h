@@ -22,50 +22,6 @@ typedef struct ScmVMRec ScmVM;
 #include "scythe/vmstack.h"
 
 
-/* vm.c の外部が scm__current_XXX を直接参照するのは禁止。
-   scm_vm_current_XXX() 経由で取得すること。 */
-extern ScmBedrock *scm__current_br;
-extern ScmObj scm__current_vm;
-extern ScmObj scm__current_ref_stack;
-
-
-static inline ScmBedrock *
-scm_vm_current_br(void)
-{
-  return scm__current_br;
-}
-
-static inline ScmObj
-scm_vm_current_vm(void)
-{
-  return scm__current_vm;
-}
-
-static inline ScmObj
-scm_vm_current_ref_stack(void)
-{
-  return scm__current_ref_stack;
-}
-
-static inline void
-scm_vm_chg_current_br(ScmBedrock *br)
-{
-  scm__current_br = br;
-}
-
-static inline void
-scm_vm_chg_current_vm(ScmObj vm)
-{
-  scm__current_vm = vm;
-}
-
-static inline void
-scm_vm_chg_current_ref_stack(ScmObj stack)
-{
-  scm__current_ref_stack = stack;
-}
-
-
 /***************************************************************************/
 /*  ScmBedrock                                                             */
 /***************************************************************************/

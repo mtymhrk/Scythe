@@ -9,6 +9,7 @@
 #include "scythe/encoding.h"
 #include "scythe/vminst.h"
 #include "scythe/api_type.h"
+#include "scythe/fcd.h"
 
 
 /*******************************************************************/
@@ -18,53 +19,6 @@
 void scm_capi_fatal(const char *msg);
 void scm_capi_fatalf(const char *fmt, ...);
 bool scm_capi_fatal_p(void);
-
-
-/*******************************************************************/
-/*  C Stack                                                        */
-/*******************************************************************/
-
-#define SCM_REFSTK_INIT                                                 \
-  __attribute__((__cleanup__(scm_capi_ref_stack_restore)))              \
-  ScmRefStackInfo SCM_CONCAT_SYMBOL__(scm_ref_stack_info__, __LINE__) = { .stack = NULL }; \
-  scm_capi_ref_stack_save(&SCM_CONCAT_SYMBOL__(scm_ref_stack_info__, __LINE__));
-
-#define SCM_REFSTK_BLK_INIT(name, ...)                  \
-  ScmRefStackBlock name = {                             \
-    .next = NULL,                                       \
-    .type = SCM_REFSTACK_RARY,                          \
-    .ref = { .rary = (ScmObj *[]){__VA_ARGS__, NULL} }  \
-  }
-
-#define SCM_REFSTK_BLK_INIT_ARY(name, a, l)       \
-  ScmRefStackBlock name = {                       \
-    .next = NULL,                                 \
-    .type = SCM_REFSTACK_ARY,                     \
-    .ref = { .ary = { .head = (a), .n = (l)} }    \
-  }
-
-#define SCM_REFSTK_PUSH(name) scm_capi_ref_stack_push(&(name));
-
-#define SCM_REFSTK_REG(...)                                             \
-  scm_capi_ref_stack_push(&(ScmRefStackBlock){                          \
-      .next = NULL,                                                     \
-      .type = SCM_REFSTACK_RARY,                                        \
-      .ref = { .rary = (ScmObj *[]){__VA_ARGS__, NULL} }                \
-    })
-
-#define SCM_REFSTK_REG_ARY(a, l)                                        \
-  scm_capi_ref_stack_push(&(ScmRefStackBlock){                          \
-      .next = NULL,                                                     \
-      .type = SCM_REFSTACK_ARY,                                         \
-      .ref = { .ary = { .head = (a), .n = (l) } }                       \
-    })
-
-#define SCM_REFSTK_INIT_REG(...)                \
-  SCM_REFSTK_INIT; SCM_REFSTK_REG(__VA_ARGS__);
-
-void scm_capi_ref_stack_push(ScmRefStackBlock *block);
-void scm_capi_ref_stack_save(ScmRefStackInfo *info);
-void scm_capi_ref_stack_restore(ScmRefStackInfo *info);
 
 
 /*******************************************************************/
@@ -107,13 +61,6 @@ void scm_capi_gc_disable(void);
 
 
 /*******************************************************************/
-/*  NULL Value                                                     */
-/*******************************************************************/
-
-bool scm_capi_null_value_p(ScmObj obj);
-
-
-/*******************************************************************/
 /*  Equivalence predicates                                         */
 /*******************************************************************/
 
@@ -134,8 +81,6 @@ ScmObj scm_api_nil(void);
 bool scm_capi_nil_p(ScmObj obj);
 ScmObj scm_api_nil_P(ScmObj obj);
 
-#define SCM_NIL_OBJ scm_api_nil()
-
 
 /*******************************************************************/
 /*  Booleans                                                       */
@@ -151,9 +96,6 @@ bool scm_capi_true_p(ScmObj obj);
 bool scm_capi_false_p(ScmObj obj);
 ScmObj scm_api_not(ScmObj obj);
 
-#define SCM_TRUE_OBJ scm_api_true()
-#define SCM_FALSE_OBJ scm_api_false()
-
 
 /*******************************************************************/
 /*  eof                                                           */
@@ -162,8 +104,6 @@ ScmObj scm_api_not(ScmObj obj);
 ScmObj scm_api_eof(void);
 bool scm_capi_eof_object_p(ScmObj obj);
 
-#define SCM_EOF_OBJ scm_api_eof()
-
 
 /*******************************************************************/
 /*  undef                                                          */
@@ -171,8 +111,6 @@ bool scm_capi_eof_object_p(ScmObj obj);
 
 ScmObj scm_api_undef(void);
 bool scm_capi_undef_object_p(ScmObj obj);
-
-#define SCM_UNDEF_OBJ scm_api_undef()
 
 
 /*******************************************************************/
@@ -259,8 +197,7 @@ ScmObj scm_api_infinite_P(ScmObj obj);
 bool scm_capi_nan_p(ScmObj obj);
 ScmObj scm_api_nan_P(ScmObj obj);
 
-ScmObj scm_capi_make_number_from_literal(const void *literal, size_t size,
-                                         ScmEncoding *enc);
+ScmObj scm_capi_make_number_from_literal(const void *literal, ScmEncoding *enc);
 ScmObj scm_capi_make_number_from_sword(scm_sword_t num);
 ScmObj scm_capi_make_number_from_size_t(size_t num);
 
@@ -490,9 +427,6 @@ ScmObj scm_api_raised_obj(void);
 void scm_api_discard_raised_obj(void);
 int scm_capi_push_exception_handler(ScmObj handler);
 int scm_capi_pop_exception_handler(void);
-int scm_capi_error(const char *msg, size_t n, ...);
-int scm_capi_read_error(const char *msg, size_t n, ...);
-int scm_capi_file_error(const char *msg, size_t n, ...);
 ScmObj scm_api_error_lst(ScmObj msg, ScmObj irris);
 bool scm_capi_error_object_p(ScmObj obj);
 ScmObj scm_api_error_object_P(ScmObj obj);
@@ -500,6 +434,10 @@ ScmObj scm_api_error_object_message(ScmObj obj);
 ScmObj scm_api_error_object_irritants(ScmObj obj);
 ScmObj scm_api_read_error_P(ScmObj obj);
 ScmObj scm_api_file_error_P(ScmObj obj);
+
+#define scm_capi_error scm_fcd_error
+#define scm_capi_read_error scm_fcd_read_error
+#define scm_capi_file_error scm_fcd_file_error
 
 
 /*******************************************************************/

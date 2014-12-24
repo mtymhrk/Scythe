@@ -8,7 +8,13 @@ set(scythe_lib_src memory.c object.c pair.c string.c symbol.c vector.c
                    procedure.c reference.c core_subr.c iseq.c chashtbl.c api.c
                    port.c parser.c assembler.c exception.c syntax.c compiler.c
                    module.c core_modules.c fixnum.c bignum.c number_parser.c
-                   marshal.c compiler_data.c repl_data.c)
+                   marshal.c compiler_data.c repl_data.c earray.c
+                   fcd_assembler.c fcd_char.c fcd_compiler.c fcd_equivalence.c
+                   fcd_exception.c fcd_format.c fcd_iseq.c fcd_marshal.c
+                   fcd_memory.c fcd_miscobjects.c fcd_module.c fcd_number.c
+                   fcd_pair.c fcd_port.c fcd_procedure.c fcd_reference.c
+                   fcd_string.c fcd_symbol.c fcd_syntax.c fcd_vector.c fcd_vm.c
+                   )
 
 
 ##===============================================================

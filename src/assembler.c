@@ -224,7 +224,7 @@ scm_asm_sym2opcode(ScmObj op)
 {
   SCM_REFSTK_INIT_REG(&op);
 
-  scm_assert(!scm_capi_null_value_p(op));
+  scm_assert(!scm_obj_null_p(op));
 
   if (scm_capi_integer_p(op)) {
     scm_sword_t cd;

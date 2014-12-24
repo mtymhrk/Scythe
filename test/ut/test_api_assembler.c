@@ -11,12 +11,12 @@ TEST_SETUP(api_assembler)
 {
   ev = scm_capi_evaluator();
   scm_capi_evaluator_make_vm(ev);
-  scm_capi_ref_stack_save(&rsi);
+  scm_fcd_ref_stack_save(&rsi);
 }
 
 TEST_TEAR_DOWN(api_assembler)
 {
-  scm_capi_ref_stack_restore(&rsi);
+  scm_fcd_ref_stack_restore(&rsi);
   scm_capi_evaluator_end(ev);
 }
 

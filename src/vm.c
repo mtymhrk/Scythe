@@ -20,10 +20,6 @@
 #include "scythe/impl_utils.h"
 
 
-ScmBedrock *scm__current_br = NULL;
-ScmObj scm__current_vm = SCM_OBJ_INIT;
-ScmObj scm__current_ref_stack = SCM_OBJ_INIT;
-
 
 /***************************************************************************/
 /*  ScmBedrock                                                             */
@@ -238,7 +234,7 @@ scm_bedrock_new(void)
     return NULL;
   }
 
-  scm_vm_chg_current_br(br);
+  scm_fcd_chg_current_br(br);
 
   return br;
 }
@@ -248,7 +244,7 @@ scm_bedrock_end(ScmBedrock *br)
 {
   scm_assert(br != NULL);
 
-  scm_vm_chg_current_br(NULL);
+  scm_fcd_chg_current_br(NULL);
   scm_bedrock_finalize(br);
   free(br);
 }
@@ -264,8 +260,8 @@ scm_bedrock_fatal(ScmBedrock *br, const char *msg)
   if (msg != NULL)
     scm_bedrock_print_msg(br, msg);
 
-  if (scm_obj_not_null_p(scm_vm_current_vm()))
-    scm_vm_setup_stat_halt(scm_vm_current_vm());
+  if (scm_obj_not_null_p(scm_fcd_current_vm()))
+    scm_vm_setup_stat_halt(scm_fcd_current_vm());
 }
 
 void
@@ -1477,7 +1473,7 @@ scm_vm_make_trampolining_code(ScmObj vm, ScmObj proc,
     rslt = scm_capi_iseq_push_inst(iseq, SCM_OPCODE_MVPUSH);
     if (rslt < 0) return SCM_OBJ_NULL;
 
-    apply = scm_bedrock_trmp_apply(scm_vm_current_br());
+    apply = scm_bedrock_trmp_apply(scm_fcd_current_br());
     rslt = scm_capi_iseq_push_inst(iseq, SCM_OPCODE_IMMVAL, apply);
     if (rslt < 0) return SCM_OBJ_NULL;
 
@@ -1800,7 +1796,7 @@ scm_vm_do_op_uninit(ScmObj vm, scm_opcode_t op)
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
-  val = scm_bedrock_landmine(scm_vm_current_br());
+  val = scm_bedrock_landmine(scm_fcd_current_br());
 
   SCM_SLOT_SETQ(ScmVM, vm, reg.val[0], val);
   SCM_VM(vm)->reg.vc = 1;
@@ -2824,7 +2820,7 @@ scm_vm_bootup(void)
   stack = scm_ref_stack_new(SCM_MEM_ROOT);
   if (scm_obj_null_p(stack)) return -1;
 
-  scm_vm_chg_current_ref_stack(stack);
+  scm_fcd_chg_current_ref_stack(stack);
 
   r = scm_bedrock_setup(bedrock);
   if (r < 0) return -1;
@@ -2835,13 +2831,13 @@ scm_vm_bootup(void)
 void
 scm_vm_shutdown(void)
 {
-  scm_bedrock_cleanup(scm_vm_current_br());
+  scm_bedrock_cleanup(scm_fcd_current_br());
 
-  scm_mem_free_root(scm_bedrock_mem(scm_vm_current_br()),
-                    scm_vm_current_ref_stack());
-  scm_vm_chg_current_ref_stack(SCM_OBJ_NULL);
+  scm_mem_free_root(scm_bedrock_mem(scm_fcd_current_br()),
+                    scm_fcd_current_ref_stack());
+  scm_fcd_chg_current_ref_stack(SCM_OBJ_NULL);
 
-  scm_bedrock_end(scm_vm_current_br());
+  scm_bedrock_end(scm_fcd_current_br());
 }
 
 int
@@ -2926,7 +2922,7 @@ scm_vm_new(void)
     return SCM_OBJ_NULL;
   }
 
-  scm_vm_chg_current_vm(vm);
+  scm_fcd_chg_current_vm(vm);
 
   return vm;
 }
@@ -2965,7 +2961,7 @@ scm_vm_end(ScmObj vm)
 
   if (main_vm) {
     scm_capi_gc_start();
-    scm_vm_chg_current_vm(SCM_OBJ_NULL);
+    scm_fcd_chg_current_vm(SCM_OBJ_NULL);
   }
 
   scm_capi_mem_free_root(vm);
@@ -3197,9 +3193,9 @@ scm_vm_run_cloned(ScmObj vm, ScmObj iseq)
   cloned = scm_vm_clone(vm);
   if (scm_obj_null_p(cloned)) return SCM_OBJ_NULL;
 
-  scm_vm_chg_current_vm(cloned);
+  scm_fcd_chg_current_vm(cloned);
   scm_vm_run(cloned, iseq);
-  scm_vm_chg_current_vm(vm);
+  scm_fcd_chg_current_vm(vm);
 
   if (scm_vm_raised_p(cloned)) {
     raised = scm_vm_raised_obj(cloned);
@@ -3468,7 +3464,7 @@ scm_vm_setup_stat_call_exc_hndlr(ScmObj vm)
   scm_vm_discard_raised_obj(vm);
 
   return scm_vm_setup_stat_trmp(vm,
-                                scm_bedrock_exc_hndlr_caller(scm_vm_current_br()),
+                                scm_bedrock_exc_hndlr_caller(scm_fcd_current_br()),
                                 args, SCM_OBJ_NULL, SCM_OBJ_NULL, false);
 }
 
@@ -3493,7 +3489,7 @@ scm_vm_setup_stat_call_exc_hndlr_cont(ScmObj vm)
   scm_vm_discard_raised_obj(vm);
 
   return scm_vm_setup_stat_trmp(vm,
-                                scm_bedrock_exc_hndlr_caller_cont(scm_vm_current_br()),
+                                scm_bedrock_exc_hndlr_caller_cont(scm_fcd_current_br()),
                                 args, SCM_OBJ_NULL, SCM_OBJ_NULL, true);
 
   return 0;
@@ -3570,7 +3566,7 @@ scm_vm_subr_exc_hndlr_caller(ScmObj subr, int argc, const ScmObj *argv)
                       &vm, &hndlr, &hndlr_arg,
                       &val);
 
-  vm = scm_vm_current_vm();
+  vm = scm_fcd_current_vm();
 
   scm_vm_ctrl_flg_set(vm, SCM_VM_CTRL_FLG_RAISE);
 
@@ -3609,7 +3605,7 @@ scm_vm_subr_exc_hndlr_caller_cont(ScmObj subr, int argc, const ScmObj *argv)
                       &vm, &hndlr, &hndlr_arg,
                       &val);
 
-  vm = scm_vm_current_vm();
+  vm = scm_fcd_current_vm();
 
   scm_vm_ctrl_flg_set(vm, SCM_VM_CTRL_FLG_RAISE);
 
@@ -3631,7 +3627,7 @@ scm_vm_subr_exc_hndlr_caller_cont(ScmObj subr, int argc, const ScmObj *argv)
   if (scm_obj_null_p(hndlr_arg)) return -1;
 
   ret = scm_vm_setup_stat_trmp(vm, hndlr, hndlr_arg,
-                               scm_bedrock_exc_hndlr_caller_post(scm_vm_current_br()),
+                               scm_bedrock_exc_hndlr_caller_post(scm_fcd_current_br()),
                                hndlr, true);
 
  end:
@@ -3648,7 +3644,7 @@ scm_vm_subr_exc_hndlr_caller_post(ScmObj subr, int argc, const ScmObj *argv)
   SCM_REFSTK_INIT_REG(&subr,
                       &vm, &hndlr, &val)
 
-    vm = scm_vm_current_vm();
+    vm = scm_fcd_current_vm();
 
   scm_vm_ctrl_flg_set(vm, SCM_VM_CTRL_FLG_RAISE);
 
@@ -3695,7 +3691,7 @@ scm_vm_disposal_unhandled_exc(ScmObj vm)
   p = scm_capi_string_to_cstr(str, msg, sizeof(msg));
   if (p == NULL) return;
 
-  scm_bedrock_error(scm_vm_current_br(), msg);
+  scm_bedrock_error(scm_fcd_current_br(), msg);
 }
 
 void

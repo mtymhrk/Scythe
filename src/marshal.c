@@ -1651,7 +1651,7 @@ scm_unmarshal_obj_number_str(ScmUnmarshalObjStat *stat, ScmObj unmarshal)
   r = scm_skip_padding_for_alignment(input);
   if (r < 0) return -1;
 
-  stat->obj = scm_capi_make_number_from_literal(ext, ext_sz - 1, enc);
+  stat->obj = scm_capi_make_number_from_literal(ext, enc);
   if (scm_obj_null_p(stat->obj)) return -1;
 
   return 0;

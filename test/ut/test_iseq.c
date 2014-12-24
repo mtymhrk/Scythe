@@ -15,7 +15,7 @@ TEST_SETUP(iseq)
 {
   ev = scm_capi_evaluator();
   scm_capi_evaluator_make_vm(ev);
-  scm_capi_ref_stack_save(&rsi);
+  scm_fcd_ref_stack_save(&rsi);
 
   iseq = SCM_OBJ_NULL;
   scm_capi_mem_register_extra_rfrn(SCM_REF_MAKE(iseq));
@@ -28,7 +28,7 @@ TEST_SETUP(iseq)
 
 TEST_TEAR_DOWN(iseq)
 {
-  scm_capi_ref_stack_restore(&rsi);
+  scm_fcd_ref_stack_restore(&rsi);
   scm_capi_evaluator_end(ev);
 }
 

@@ -10,6 +10,7 @@ typedef struct ScmISeqRec ScmISeq;
 
 #include "scythe/object.h"
 #include "scythe/api_type.h"
+#include "scythe/vminst.h"
 #include "scythe/earray.h"
 
 #define SCM_ISEQ_DEFAULT_SEQ_SIZE 32

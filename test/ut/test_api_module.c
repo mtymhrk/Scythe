@@ -20,7 +20,7 @@ TEST_SETUP(api_module)
   ev = scm_capi_evaluator();
   scm_capi_evaluator_make_vm(ev);
   scm_capi_evaluator_load_core(ev);
-  scm_capi_ref_stack_save(&rsi);
+  scm_fcd_ref_stack_save(&rsi);
 
   undef = scm_api_undef();
   assert(scm_obj_not_null_p(undef));
@@ -35,7 +35,7 @@ TEST_SETUP(api_module)
 
 TEST_TEAR_DOWN(api_module)
 {
-  scm_capi_ref_stack_restore(&rsi);
+  scm_fcd_ref_stack_restore(&rsi);
   scm_capi_evaluator_end(ev);
 }
 
