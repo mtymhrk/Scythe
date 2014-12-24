@@ -147,51 +147,6 @@ scm_error_finalize(ScmObj exc)
 }
 
 ScmObj
-scm_error_new_cv(SCM_MEM_TYPE_T mtype, ScmObj msg,
-                 ScmObj type, ScmObj *irris, size_t n)
-{
-  ScmObj exc = SCM_OBJ_INIT;
-  int rslt;
-
-  SCM_REFSTK_INIT_REG(&msg, &type,
-                      &exc);
-
-  scm_assert(scm_obj_null_p(type) || scm_fcd_symbol_p(type));
-  scm_assert(n <= SCM_ERROR_IRRITANTS_MAX);
-
-  exc = scm_fcd_mem_alloc(&SCM_ERROR_TYPE_INFO, 0, mtype);
-  if (scm_obj_null_p(exc)) return SCM_OBJ_NULL;
-
-  rslt = scm_error_initialize_cv(exc, msg, type, irris, n);
-
-  if (rslt < 0) return SCM_OBJ_NULL;
-
-  return exc;
-}
-
-ScmObj
-scm_error_new_lst(SCM_MEM_TYPE_T mtype, ScmObj msg, ScmObj type, ScmObj irris)
-{
-  ScmObj exc = SCM_OBJ_INIT;
-  int rslt;
-
-  SCM_REFSTK_INIT_REG(&msg, &type, &irris,
-                      &exc);
-
-  scm_assert(scm_obj_null_p(type) || scm_fcd_symbol_p(type));
-  scm_assert(scm_obj_not_null_p(irris));
-
-  exc = scm_fcd_mem_alloc(&SCM_ERROR_TYPE_INFO, 0, mtype);
-  if (scm_obj_null_p(exc)) return SCM_OBJ_NULL;
-
-  rslt = scm_error_initialize_lst(exc, msg, type, irris);
-
-  if (rslt < 0) return SCM_OBJ_NULL;
-
-  return exc;
-}
-
-ScmObj
 scm_error_irris_to_list(ScmObj exc)
 {
   scm_assert_obj_type(exc, &SCM_ERROR_TYPE_INFO);

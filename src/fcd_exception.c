@@ -55,6 +55,51 @@ scm_fcd_disposal_unhandled_exec(void)
   scm_vm_disposal_unhandled_exc(scm_fcd_current_vm());
 }
 
+ScmObj
+scm_fcd_error_new_cv(SCM_MEM_TYPE_T mtype, ScmObj msg,
+                     ScmObj type, ScmObj *irris, size_t n)
+{
+  ScmObj exc = SCM_OBJ_INIT;
+  int rslt;
+
+  SCM_REFSTK_INIT_REG(&msg, &type,
+                      &exc);
+
+  scm_assert(scm_obj_null_p(type) || scm_fcd_symbol_p(type));
+  scm_assert(n <= SCM_ERROR_IRRITANTS_MAX);
+
+  exc = scm_fcd_mem_alloc(&SCM_ERROR_TYPE_INFO, 0, mtype);
+  if (scm_obj_null_p(exc)) return SCM_OBJ_NULL;
+
+  rslt = scm_error_initialize_cv(exc, msg, type, irris, n);
+
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  return exc;
+}
+
+ScmObj
+scm_fcd_error_new_lst(SCM_MEM_TYPE_T mtype, ScmObj msg, ScmObj type, ScmObj irris)
+{
+  ScmObj exc = SCM_OBJ_INIT;
+  int rslt;
+
+  SCM_REFSTK_INIT_REG(&msg, &type, &irris,
+                      &exc);
+
+  scm_assert(scm_obj_null_p(type) || scm_fcd_symbol_p(type));
+  scm_assert(scm_obj_not_null_p(irris));
+
+  exc = scm_fcd_mem_alloc(&SCM_ERROR_TYPE_INFO, 0, mtype);
+  if (scm_obj_null_p(exc)) return SCM_OBJ_NULL;
+
+  rslt = scm_error_initialize_lst(exc, msg, type, irris);
+
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  return exc;
+}
+
 static int
 terror_aux(const char *type, const char *msg, size_t n, va_list arg)
 {
@@ -83,7 +128,7 @@ terror_aux(const char *type, const char *msg, size_t n, va_list arg)
   str = scm_fcd_make_string_from_cstr((msg == NULL) ? "" : msg, SCM_ENC_SRC);
   if (scm_obj_null_p(str)) return -1;
 
-  exc = scm_error_new_cv(SCM_MEM_HEAP, str, sym, irris, n);
+  exc = scm_fcd_error_new_cv(SCM_MEM_HEAP, str, sym, irris, n);
   if (scm_obj_null_p(exc)) return -1;
 
   rslt = scm_fcd_raise(exc);
@@ -145,7 +190,7 @@ scm_fcd_error_lst(ScmObj msg, ScmObj irris)
     return SCM_OBJ_NULL;
   }
 
-  exc = scm_error_new_lst(SCM_MEM_HEAP, msg, SCM_OBJ_NULL, irris);
+  exc = scm_fcd_error_new_lst(SCM_MEM_HEAP, msg, SCM_OBJ_NULL, irris);
   if (scm_obj_null_p(exc)) return SCM_OBJ_NULL;
 
   r = scm_fcd_raise(exc);

@@ -57,10 +57,6 @@ int scm_error_initialize_cv(ScmObj exc, ScmObj msg,
                             ScmObj type, ScmObj *irris, size_t n);
 int scm_error_initialize_lst(ScmObj exc, ScmObj msg, ScmObj type, ScmObj irris);
 void scm_error_finalize(ScmObj exc);
-ScmObj scm_error_new_cv(SCM_MEM_TYPE_T mtype,
-                        ScmObj msg, ScmObj type, ScmObj *irris, size_t n);
-ScmObj scm_error_new_lst(SCM_MEM_TYPE_T mtype,
-                         ScmObj msg, ScmObj type, ScmObj irris);
 ScmObj scm_error_irris_to_list(ScmObj exc);
 int scm_error_obj_print(ScmObj obj, ScmObj port, bool ext_rep);
 void scm_error_gc_initialize(ScmObj obj, ScmObj mem);
