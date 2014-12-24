@@ -21,6 +21,9 @@ bool scm_fcd_procedure_flg_set_p(ScmObj proc, SCM_PROC_FLG_T flg);
 /*******************************************************************/
 
 bool scm_fcd_subrutine_p(ScmObj obj);
+ScmObj scm_fcd_subrutine_new(SCM_MEM_TYPE_T mtype,
+                             ScmSubrFunc func, ScmObj name, int arity,
+                             unsigned int flags, ScmObj module);
 ScmObj scm_fcd_make_subrutine(ScmSubrFunc func, int arity, unsigned int flags,
                               ScmObj module);
 int scm_fcd_call_subrutine(ScmObj subr, int argc, const ScmObj *argv);

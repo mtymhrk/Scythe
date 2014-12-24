@@ -49,13 +49,36 @@ scm_fcd_subrutine_p(ScmObj obj)
 }
 
 ScmObj
+scm_fcd_subrutine_new(SCM_MEM_TYPE_T mtype,
+                      ScmSubrFunc func, ScmObj name, int arity, unsigned int flags,
+                      ScmObj module)
+{
+  ScmObj subr = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&name,
+                      &subr, &module);
+
+  scm_assert(func != NULL);
+  scm_assert(scm_obj_null_p(name) || scm_fcd_string_p(name));
+  scm_assert(scm_obj_null_p(module) || scm_fcd_module_p(module));
+
+  subr = scm_fcd_mem_alloc(&SCM_SUBRUTINE_TYPE_INFO, 0, mtype);
+  if (scm_obj_null_p(subr)) return SCM_OBJ_NULL;
+
+  if (scm_subrutine_initialize(subr, func, name, arity, flags, module))
+    return SCM_OBJ_NULL;
+
+  return subr;
+}
+
+ScmObj
 scm_fcd_make_subrutine(ScmSubrFunc func, int arity, unsigned int flags,
                        ScmObj module)
 {
   scm_assert(func != NULL);
   scm_assert(scm_obj_null_p(module) || scm_fcd_module_p(module));
-  return scm_subrutine_new(SCM_MEM_HEAP, func,
-                           SCM_OBJ_NULL, arity, flags, module);
+  return scm_fcd_subrutine_new(SCM_MEM_HEAP, func,
+                               SCM_OBJ_NULL, arity, flags, module);
 }
 
 int
