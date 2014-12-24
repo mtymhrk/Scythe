@@ -12,7 +12,6 @@
 extern ScmTypeInfo SCM_REFSTACK_TYPE_INFO;
 
 int scm_ref_stack_initialize(ScmObj stack);
-ScmObj scm_ref_stack_new(SCM_MEM_TYPE_T mtype);
 void scm_ref_stack_gc_initialize(ScmObj obj, ScmObj mem);
 int scm_ref_stack_gc_accept(ScmObj obj, ScmObj mem,
                             ScmGCRefHandlerFunc handler);

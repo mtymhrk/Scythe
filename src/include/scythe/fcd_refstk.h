@@ -41,6 +41,9 @@
 #define SCM_REFSTK_INIT_REG(...)                \
   SCM_REFSTK_INIT; SCM_REFSTK_REG(__VA_ARGS__);
 
+
+ScmObj scm_fcd_ref_stack_new(SCM_MEM_TYPE_T mtype);
+
 static inline void
 scm_fcd_ref_stack_push(ScmRefStackBlock *block)
 {

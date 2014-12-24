@@ -9,7 +9,6 @@
 #include "scythe/vmstack.h"
 #include "scythe/vminst.h"
 #include "scythe/object.h"
-#include "scythe/refstk.h"
 #include "scythe/fcd.h"
 #include "scythe/impl_utils.h"
 
@@ -2778,7 +2777,7 @@ scm_vm_bootup(void)
   bedrock = scm_bedrock_new();
   if (bedrock == NULL) return -1;
 
-  stack = scm_ref_stack_new(SCM_MEM_ROOT);
+  stack = scm_fcd_ref_stack_new(SCM_MEM_ROOT);
   if (scm_obj_null_p(stack)) return -1;
 
   scm_fcd_chg_current_ref_stack(stack);
