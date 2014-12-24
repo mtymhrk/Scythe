@@ -70,7 +70,6 @@ scm_gloc_export(ScmObj gloc)
 }
 
 int scm_gloc_initialize(ScmObj gloc, ScmObj sym, ScmObj val);
-ScmObj scm_gloc_new(SCM_MEM_TYPE_T mtype, ScmObj sym);
 
 void scm_gloc_gc_initialize(ScmObj obj, ScmObj mem);
 int scm_gloc_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);

@@ -36,22 +36,6 @@ scm_gloc_initialize(ScmObj gloc, ScmObj sym, ScmObj val)
   return 0;
 }
 
-ScmObj
-scm_gloc_new(SCM_MEM_TYPE_T mtype, ScmObj sym)
-{
-  ScmObj gloc = SCM_OBJ_INIT;
-
-  SCM_REFSTK_INIT_REG(&gloc, &sym);
-
-  gloc = scm_fcd_mem_alloc(&SCM_GLOC_TYPE_INFO, 0, mtype);
-  if (scm_obj_null_p(gloc)) return SCM_OBJ_NULL;
-
-  if (scm_gloc_initialize(gloc, sym, SCM_OBJ_NULL) < 0)
-    return SCM_OBJ_NULL;
-
-  return gloc;
-}
-
 void
 scm_gloc_gc_initialize(ScmObj obj, ScmObj mem)
 {
@@ -157,7 +141,7 @@ scm_module_gloc(ScmObj mod, ScmObj sym, int type)
 
   if (found) return gloc;
 
-  gloc = scm_gloc_new(SCM_MEM_HEAP, sym);
+  gloc = scm_fcd_gloc_new(SCM_MEM_HEAP, sym);
   if (scm_obj_null_p(gloc)) return SCM_OBJ_NULL;
 
   if (type == SCM_MODULE_EVAL)

@@ -3,9 +3,11 @@
 
 #include <stdbool.h>
 
-#include <scythe/object.h>
+#include "scythe/object.h"
+#include "scythe/fcd_type.h"
 
 bool scm_fcd_gloc_p(ScmObj obj);
+ScmObj scm_fcd_gloc_new(SCM_MEM_TYPE_T mtype, ScmObj sym);
 ScmObj scm_fcd_gloc_value(ScmObj gloc);
 ScmObj scm_fcd_gloc_symbol(ScmObj gloc);
 void scm_fcd_gloc_bind(ScmObj gloc, ScmObj val);
