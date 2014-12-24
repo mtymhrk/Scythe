@@ -82,8 +82,8 @@ scm_string_copy_and_expand(ScmObj src, size_t size)
   scm_assert_obj_type(src, &SCM_STRING_TYPE_INFO);
   scm_assert(size <= SSIZE_MAX);
 
-  str = scm_string_new(SCM_MEM_HEAP,
-                       NULL, size, SCM_STRING_ENC(src));
+  str = scm_fcd_string_new(SCM_MEM_HEAP,
+                           NULL, size, SCM_STRING_ENC(src));
   if (scm_obj_null_p(str)) return SCM_OBJ_NULL;
 
   SCM_STRING_BYTESIZE(str) =
@@ -135,7 +135,7 @@ scm_string_change_case(ScmObj str, int dir)
   scm_assert_obj_type(str, &SCM_STRING_TYPE_INFO);
   scm_assert(dir == DOWNCASE || dir == UPCASE);
 
-  s = scm_string_new(SCM_MEM_HEAP, NULL, 0, SCM_STRING_ENC(str));
+  s = scm_fcd_string_new(SCM_MEM_HEAP, NULL, 0, SCM_STRING_ENC(str));
   if (scm_obj_null_p(s)) return SCM_OBJ_NULL;
 
   scm_str_itr_begin(SCM_STRING_HEAD(str),
@@ -192,7 +192,7 @@ scm_string_change_encoding(ScmObj src, ScmEncoding *to)
   scm_assert_obj_type(src, &SCM_STRING_TYPE_INFO);
   scm_assert(to != NULL);
 
-  str = scm_string_new(SCM_MEM_HEAP, NULL, 0, to);
+  str = scm_fcd_string_new(SCM_MEM_HEAP, NULL, 0, to);
   if (scm_obj_null_p(str)) return SCM_OBJ_NULL;
 
   cd = iconv_open(scm_enc_name(to),
@@ -404,33 +404,14 @@ scm_string_initialize(ScmObj str,
 }
 
 ScmObj
-scm_string_new(SCM_MEM_TYPE_T mtype,
-               const void *src, size_t size, ScmEncoding *enc)
-{
-  ScmObj str = SCM_OBJ_INIT;
-
-  SCM_REFSTK_INIT_REG(&str);
-  scm_assert(size <= SSIZE_MAX);
-  scm_assert(enc != NULL);
-
-  str = scm_fcd_mem_alloc(&SCM_STRING_TYPE_INFO, 0, mtype);
-  if (scm_obj_null_p(str)) return SCM_OBJ_NULL;
-
-  if (scm_string_initialize(str, src, size, enc) < 0)
-    return SCM_OBJ_NULL;
-
-  return str;
-}
-
-ScmObj
 scm_string_copy(ScmObj src)
 {
   scm_assert_obj_type(src, &SCM_STRING_TYPE_INFO);
 
-  return scm_string_new(SCM_MEM_HEAP,
-                        SCM_STRING_HEAD(src),
-                        SCM_STRING_BYTESIZE(src),
-                        SCM_STRING_ENC(src));
+  return scm_fcd_string_new(SCM_MEM_HEAP,
+                            SCM_STRING_HEAD(src),
+                            SCM_STRING_BYTESIZE(src),
+                            SCM_STRING_ENC(src));
 }
 
 ScmObj

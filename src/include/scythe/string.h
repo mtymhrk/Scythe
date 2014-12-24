@@ -39,8 +39,6 @@ struct ScmStringRec {
 
 int scm_string_initialize(ScmObj str,
                           const void *src, size_t size, ScmEncoding *enc);
-ScmObj scm_string_new(SCM_MEM_TYPE_T mtype,
-                            const void *src, size_t size, ScmEncoding *enc);
 ScmObj scm_string_copy(ScmObj src);
 ScmObj scm_string_dup(ScmObj src);
 size_t scm_string_length(ScmObj str);

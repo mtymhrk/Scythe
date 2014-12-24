@@ -20,13 +20,31 @@ scm_fcd_string_P(ScmObj obj)
 }
 
 ScmObj
-scm_fcd_make_string_from_cstr(const char *str, ScmEncoding *enc)
+scm_fcd_string_new(SCM_MEM_TYPE_T mtype,
+                   const void *src, size_t size, ScmEncoding *enc)
 {
+  ScmObj str = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&str);
+  scm_assert(size <= SSIZE_MAX);
+
   if (enc == NULL)
     enc = scm_fcd_system_encoding();
 
+  str = scm_fcd_mem_alloc(&SCM_STRING_TYPE_INFO, 0, mtype);
+  if (scm_obj_null_p(str)) return SCM_OBJ_NULL;
+
+  if (scm_string_initialize(str, src, size, enc) < 0)
+    return SCM_OBJ_NULL;
+
+  return str;
+}
+
+ScmObj
+scm_fcd_make_string_from_cstr(const char *str, ScmEncoding *enc)
+{
   if (str == NULL) {
-    return scm_string_new(SCM_MEM_HEAP, "", 0, enc);
+    return scm_fcd_string_new(SCM_MEM_HEAP, "", 0, enc);
   }
   else {
     size_t sz = strlen(str);
@@ -34,7 +52,7 @@ scm_fcd_make_string_from_cstr(const char *str, ScmEncoding *enc)
       scm_fcd_error("failed to make string object: too long", 0);
       return SCM_OBJ_NULL;
     }
-    return scm_string_new(SCM_MEM_HEAP, str, sz, enc);
+    return scm_fcd_string_new(SCM_MEM_HEAP, str, sz, enc);
   }
 }
 
@@ -42,18 +60,15 @@ scm_fcd_make_string_from_cstr(const char *str, ScmEncoding *enc)
 ScmObj
 scm_fcd_make_string_from_bin(const void *data, size_t size, ScmEncoding *enc)
 {
-  if (enc == NULL)
-    enc = scm_fcd_system_encoding();
-
   if (data == NULL) {
-    return scm_string_new(SCM_MEM_HEAP, "", 0, enc);
+    return scm_fcd_string_new(SCM_MEM_HEAP, "", 0, enc);
   }
   else {
     if (size > SSIZE_MAX) {
       scm_fcd_error("failed to make string object: too long", 0);
       return SCM_OBJ_NULL;
     }
-    return scm_string_new(SCM_MEM_HEAP, data, size, enc);
+    return scm_fcd_string_new(SCM_MEM_HEAP, data, size, enc);
   }
 }
 
@@ -72,7 +87,7 @@ scm_fcd_string_cv(const ScmObj *chr, size_t n)
   SCM_REFSTK_INIT_REG(&str);
 
   if (chr == NULL || n == 0)
-    return scm_string_new(SCM_MEM_HEAP, NULL, 0, scm_fcd_system_encoding());
+    return scm_fcd_string_new(SCM_MEM_HEAP, NULL, 0, NULL);
 
   enc = 0;
   for (size_t i = 0; i < n; i++) {
@@ -88,7 +103,7 @@ scm_fcd_string_cv(const ScmObj *chr, size_t n)
 
     if (i == 0) {
       enc = scm_char_encoding(chr[i]);
-      str = scm_string_new(SCM_MEM_HEAP, NULL, 0, enc);
+      str = scm_fcd_string_new(SCM_MEM_HEAP, NULL, 0, enc);
       if (scm_obj_null_p(str)) return SCM_OBJ_NULL;
     }
 
