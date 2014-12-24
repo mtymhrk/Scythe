@@ -59,16 +59,46 @@ scm_fcd_vm_p(ScmObj obj)
 }
 
 ScmObj
-scm_fcd_vm_new()
+scm_fcd_vm_new(void)
 {
-  return scm_vm_new();
+  ScmObj vm = SCM_OBJ_INIT;
+  int rslt;
+
+  rslt = scm_vm_bootup();
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  vm = scm_fcd_mem_alloc_root(&SCM_VM_TYPE_INFO, 0);
+  if (scm_obj_null_p(vm)) return SCM_OBJ_NULL;
+
+  rslt = scm_vm_initialize(vm, vm);
+  if (rslt < 0) {
+    scm_fcd_mem_free_root(vm);
+    return SCM_OBJ_NULL;
+  }
+
+  scm_fcd_chg_current_vm(vm);
+
+  return vm;
 }
 
 void
 scm_fcd_vm_end(ScmObj vm)
 {
-  scm_assert(scm_fcd_vm_p(vm));
-  scm_vm_end(vm);
+  bool main_vm;
+
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  main_vm = scm_obj_same_instance_p(vm, SCM_VM(vm)->main);
+
+  if (main_vm) {
+    scm_fcd_gc_start();
+    scm_fcd_chg_current_vm(SCM_OBJ_NULL);
+  }
+
+  scm_fcd_mem_free_root(vm);
+
+  if (main_vm)
+    scm_vm_shutdown();
 }
 
 ScmObj
