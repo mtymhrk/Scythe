@@ -17,12 +17,6 @@ typedef struct ScmMemRootBlockRec ScmMemRootBlock;
 
 #define SCM_MEM(obj) ((ScmMem *)(obj))
 
-typedef enum {
-  SCM_MEM_ALLOC_HEAP,
-  SCM_MEM_ALLOC_ROOT,
-} SCM_MEM_ALLOC_TYPE_T;
-
-enum { SCM_MEM_NR_ALLOC_TYPE = SCM_MEM_ALLOC_ROOT + 1 };
 
 #include "scythe/object.h"
 #include "scythe/api_type.h"
@@ -155,8 +149,6 @@ ScmObj scm_mem_alloc_heap(ScmMem *mem, ScmTypeInfo *type, size_t add_size);
 ScmObj scm_mem_alloc_root(ScmMem *mem, ScmTypeInfo *type, size_t add_size);
 ScmObj scm_mem_free_root(ScmMem *mem, ScmObj obj);
 ScmRef scm_mem_register_extra_rfrn(ScmMem *mem, ScmRef ref);
-ScmObj scm_mem_alloc(ScmMem *mem, ScmTypeInfo *type, size_t add_size,
-                     SCM_MEM_ALLOC_TYPE_T alloc);
 int scm_mem_gc_start(ScmMem *mem);
 
 #endif /* INCLUDED_MEMORY_H__ */

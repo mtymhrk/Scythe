@@ -1288,29 +1288,6 @@ scm_mem_register_extra_rfrn(ScmMem *mem, ScmRef ref)
   return ref;
 }
 
-ScmObj
-scm_mem_alloc(ScmMem *mem, ScmTypeInfo *type, size_t add_size,
-              SCM_MEM_ALLOC_TYPE_T alloc)
-{
-  scm_assert(mem != NULL);
-  scm_assert(type != NULL);
-  /* scm_assert(alloc <  SCM_MEM_NR_ALLOC_TYPE); */
-
-  switch(alloc) {
-  case SCM_MEM_ALLOC_HEAP:
-    return scm_mem_alloc_heap(mem, type, add_size);
-    break;
-  case SCM_MEM_ALLOC_ROOT:
-    return scm_mem_alloc_root(mem, type, add_size);
-    break;
-  default:
-    scm_assert(true);
-    return SCM_OBJ_NULL;
-  }
-
-  return SCM_OBJ_NULL;
-}
-
 int
 scm_mem_gc_start(ScmMem *mem)
 {
