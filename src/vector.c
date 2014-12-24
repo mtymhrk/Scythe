@@ -2,7 +2,6 @@
 #include <assert.h>
 
 #include "scythe/object.h"
-#include "scythe/reference.h"
 #include "scythe/fcd.h"
 #include "scythe/vector.h"
 

@@ -16,7 +16,7 @@
 #include "scythe/fcd_pair.h"
 #include "scythe/fcd_port.h"
 #include "scythe/fcd_procedure.h"
-#include "scythe/fcd_reference.h"
+#include "scythe/fcd_refstk.h"
 #include "scythe/fcd_string.h"
 #include "scythe/fcd_symbol.h"
 #include "scythe/fcd_syntax.h"

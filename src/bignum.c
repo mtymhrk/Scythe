@@ -3,7 +3,6 @@
 #include <limits.h>
 
 #include "scythe/object.h"
-#include "scythe/reference.h"
 #include "scythe/fcd.h"
 #include "scythe/earray.h"
 #include "scythe/impl_utils.h"

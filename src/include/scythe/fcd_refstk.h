@@ -1,5 +1,5 @@
-#ifndef INCLUDE_FCD_REFERENCE_H__
-#define INCLUDE_FCD_REFERENCE_H__
+#ifndef INCLUDE_FCD_REFSTK_H__
+#define INCLUDE_FCD_REFSTK_H__
 
 #include "scythe/fcd_type.h"
 
@@ -67,4 +67,4 @@ scm_fcd_ref_stack_restore(ScmRefStackInfo *info)
 }
 
 
-#endif /* INCLUDE_FCD_REFERENCE_H__ */
+#endif /* INCLUDE_FCD_REFSTK_H__ */

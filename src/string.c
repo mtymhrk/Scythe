@@ -8,7 +8,6 @@
 #include <assert.h>
 
 #include "scythe/object.h"
-#include "scythe/reference.h"
 #include "scythe/fcd.h"
 #include "scythe/encoding.h"
 #include "scythe/string.h"

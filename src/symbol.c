@@ -5,7 +5,6 @@
 
 
 #include "scythe/object.h"
-#include "scythe/reference.h"
 #include "scythe/fcd.h"
 #include "scythe/chashtbl.h"
 #include "scythe/string.h"

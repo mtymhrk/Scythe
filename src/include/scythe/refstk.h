@@ -1,5 +1,5 @@
-#ifndef INCLUDE_REFERENCE_H__
-#define INCLUDE_REFERENCE_H__
+#ifndef INCLUDE_REFSTK_H__
+#define INCLUDE_REFSTK_H__
 
 #include <stdint.h>
 #include <stdarg.h>
@@ -17,4 +17,4 @@ void scm_ref_stack_gc_initialize(ScmObj obj, ScmObj mem);
 int scm_ref_stack_gc_accept(ScmObj obj, ScmObj mem,
                             ScmGCRefHandlerFunc handler);
 
-#endif /* INCLUDE_REFERENCE_H__ */
+#endif /* INCLUDE_REFSTK_H__ */

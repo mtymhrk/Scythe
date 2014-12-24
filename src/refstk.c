@@ -4,7 +4,7 @@
 
 #include "scythe/object.h"
 #include "scythe/fcd.h"
-#include "scythe/reference.h"
+#include "scythe/refstk.h"
 
 ScmTypeInfo SCM_REFSTACK_TYPE_INFO = {
   .name                            = "refstack",
