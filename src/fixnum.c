@@ -2,7 +2,6 @@
 #include "scythe/fcd.h"
 #include "scythe/impl_utils.h"
 #include "scythe/number_common.h"
-#include "scythe/bignum.h"
 #include "scythe/fixnum.h"
 
 ScmNumFunc SCM_FIXNUM_FUNC = {
@@ -334,24 +333,19 @@ scm_fixnum_mul(ScmObj mud, ScmObj mur)
   if (scm_fcd_fixnum_p(mur)) {
     v2 = scm_fcd_fixnum_value(mur);
 
-    if (scm_fixnum_multi(v1, v2, &v) == -1) {
+    if (scm_fixnum_multi(v1, v2, &v) == 0)
+      return scm_fcd_fixnum_new(v);
+
+    if (scm_fixnum_multi(v1, v2, &v) == -1)
       mud = scm_fcd_bignum_new_fixnum(SCM_MEM_HEAP, mud);
-      if (scm_obj_null_p(mud)) return SCM_OBJ_NULL;
-
-      mur = scm_fcd_bignum_new_fixnum(SCM_MEM_HEAP, mur);
-      if (scm_obj_null_p(mud)) return SCM_OBJ_NULL;
-
-      return scm_bignum_mul(mud, mur);
-    }
-
-    return scm_fcd_fixnum_new(v);
   }
   else {
     mud = SCM_NUM_CALL_FUNC(mur, coerce, mud);
-    if (scm_obj_null_p(mud)) return SCM_OBJ_NULL;
-
-    return SCM_NUM_CALL_FUNC(mud, mul, mur);
   }
+
+  if (scm_obj_null_p(mud)) return SCM_OBJ_NULL;
+  return SCM_NUM_CALL_FUNC(mud, mul, mur);
+
 }
 
 int
