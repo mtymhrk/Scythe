@@ -23,6 +23,28 @@ static int nr_stub_obj = 0;
 
 #define STUB_OBJ(obj) ((StubObj *)(obj))
 
+static ScmMem *
+scm_mem_new(void)
+{
+  ScmMem *mem = NULL;
+
+  mem = scm_fcd_malloc(sizeof(*mem));
+  if (mem == NULL) return NULL;
+
+  return scm_mem_initialize(mem);
+}
+
+static ScmMem *
+scm_mem_end(ScmMem *mem)
+{
+  if (mem == NULL) return NULL;
+
+  scm_mem_finalize(mem);
+  scm_fcd_free(mem);
+
+  return NULL;
+}
+
 void
 stub_obj_gc_init_func(ScmObj obj, ScmObj mem)
 {

@@ -179,7 +179,7 @@ scm_bedrock_initialize(ScmBedrock *br)
   br->err_type = SCM_BEDROCK_ERR_NONE;
   br->exit_stat = 0;
 
-  br->mem = scm_mem_new();
+  br->mem = scm_fcd_mem_new();
   if (br->mem == NULL) return -1;
 
   br->cnsts.nil = SCM_OBJ_NULL;
@@ -213,7 +213,7 @@ scm_bedrock_finalize(ScmBedrock *br)
   scm_assert(br != NULL);
 
   if (br->mem != NULL) {
-    scm_mem_end(br->mem);
+    scm_fcd_mem_end(br->mem);
     br->mem = NULL;
   }
 }

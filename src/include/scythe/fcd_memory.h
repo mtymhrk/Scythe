@@ -7,6 +7,8 @@
 #include "scythe/fcd_type.h"
 #include "scythe/fcd_vm.h"
 
+ScmMem *scm_fcd_mem_new(void);
+ScmMem *scm_fcd_mem_end(ScmMem *mem);
 ScmObj scm_fcd_mem_alloc_heap(ScmTypeInfo *type, size_t add_size);
 ScmObj scm_fcd_mem_alloc_root(ScmTypeInfo *type, size_t add_size);
 ScmObj scm_fcd_mem_alloc(ScmTypeInfo *otype, size_t add_size,

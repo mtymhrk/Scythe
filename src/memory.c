@@ -1157,7 +1157,7 @@ scm_mem_need_to_exec_gc_p(ScmMem *mem)
     return true;
 }
 
-static ScmMem *
+ScmMem *
 scm_mem_initialize(ScmMem *mem)
 {
   scm_assert(mem != NULL);
@@ -1192,7 +1192,7 @@ scm_mem_initialize(ScmMem *mem)
   return NULL;
 }
 
-static ScmMem *
+ScmMem *
 scm_mem_finalize(ScmMem *mem)
 {
   scm_assert(mem != NULL);
@@ -1203,29 +1203,6 @@ scm_mem_finalize(ScmMem *mem)
   if (mem->to_heap != NULL) mem->to_heap = scm_mem_heap_delete_heap(mem->to_heap);
   if (mem->from_heap != NULL) mem->from_heap = scm_mem_heap_delete_heap(mem->from_heap);
   if (mem->extra_rfrn != NULL) scm_fcd_free(mem->extra_rfrn);
-
-  return NULL;
-}
-
-
-ScmMem *
-scm_mem_new(void)
-{
-  ScmMem *mem = NULL;
-
-  mem = scm_fcd_malloc(sizeof(*mem));
-  if (mem == NULL) return NULL;
-
-  return scm_mem_initialize(mem);
-}
-
-ScmMem *
-scm_mem_end(ScmMem *mem)
-{
-  if (mem == NULL) return NULL;
-
-  scm_mem_finalize(mem);
-  scm_fcd_free(mem);
 
   return NULL;
 }

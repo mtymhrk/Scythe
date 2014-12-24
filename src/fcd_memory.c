@@ -5,6 +5,28 @@
 #include "scythe/memory.h"
 #include "scythe/vm.h"
 
+ScmMem *
+scm_fcd_mem_new(void)
+{
+  ScmMem *mem = NULL;
+
+  mem = scm_fcd_malloc(sizeof(*mem));
+  if (mem == NULL) return NULL;
+
+  return scm_mem_initialize(mem);
+}
+
+ScmMem *
+scm_fcd_mem_end(ScmMem *mem)
+{
+  if (mem == NULL) return NULL;
+
+  scm_mem_finalize(mem);
+  scm_fcd_free(mem);
+
+  return NULL;
+}
+
 ScmObj
 scm_fcd_mem_alloc_heap(ScmTypeInfo *type, size_t add_size)
 {

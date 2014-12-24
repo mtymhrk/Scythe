@@ -148,8 +148,8 @@ scm_mem_gc_enabled_p(ScmMem *mem)
   return mem->gc_enabled;
 }
 
-ScmMem *scm_mem_new(void);
-ScmMem *scm_mem_end(ScmMem *mem);
+ScmMem *scm_mem_initialize(ScmMem *mem);
+ScmMem *scm_mem_finalize(ScmMem *mem);
 ScmMem *scm_mem_clean(ScmMem *mem);
 ScmObj scm_mem_alloc_heap(ScmMem *mem, ScmTypeInfo *type, size_t add_size);
 ScmObj scm_mem_alloc_root(ScmMem *mem, ScmTypeInfo *type, size_t add_size);
