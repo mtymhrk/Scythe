@@ -19,7 +19,7 @@ typedef struct ScmMemRootBlockRec ScmMemRootBlock;
 
 
 #include "scythe/object.h"
-#include "scythe/api_type.h"
+#include "scythe/fcd_type.h"
 #include "scythe/impl_utils.h"
 
 

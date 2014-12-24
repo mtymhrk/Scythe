@@ -11,7 +11,6 @@ typedef struct ScmErrorRec ScmError;
 #define SCM_ERROR(obj) ((ScmError *)(obj))
 
 #include "scythe/object.h"
-#include "scythe/api_type.h"
 
 
 /*******************************************************************/

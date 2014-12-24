@@ -19,7 +19,7 @@ typedef struct ScmVMStckRcRec ScmVMStckRc;
 
 
 #include "scythe/object.h"
-#include "scythe/api_type.h"
+#include "scythe/fcd_type.h"
 
 
 /*******************************************************************/

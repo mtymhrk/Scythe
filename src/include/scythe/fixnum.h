@@ -2,7 +2,6 @@
 #define INCLUDE_FIXNUM_H__
 
 #include "scythe/object.h"
-#include "scythe/api_type.h"
 #include "scythe/impl_utils.h"
 
 extern ScmTypeInfo SCM_FIXNUM_TYPE_INFO;

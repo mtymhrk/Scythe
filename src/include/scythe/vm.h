@@ -16,7 +16,6 @@ typedef struct ScmVMRec ScmVM;
 
 #include "scythe/object.h"
 #include "scythe/encoding.h"
-#include "scythe/api_type.h"
 #include "scythe/vmstack.h"
 
 

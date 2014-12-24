@@ -10,7 +10,6 @@ typedef struct ScmStringRec ScmString;
 #define SCM_STRING(obj) ((ScmString *)(obj))
 
 #include "scythe/object.h"
-#include "scythe/api_type.h"
 #include "scythe/encoding.h"
 
 extern ScmTypeInfo SCM_STRING_TYPE_INFO;

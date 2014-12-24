@@ -6,7 +6,6 @@
 
 
 #include "scythe/object.h"
-#include "scythe/api_type.h"
 #include "scythe/impl_utils.h"
 
 extern ScmTypeInfo SCM_REFSTACK_TYPE_INFO;

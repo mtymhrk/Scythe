@@ -16,7 +16,7 @@ typedef struct ScmPortRec ScmPort;
 
 #include "scythe/object.h"
 #include "scythe/encoding.h"
-#include "scythe/api_type.h"
+#include "scythe/fcd_type.h"
 
 
 /***************************************************************************/

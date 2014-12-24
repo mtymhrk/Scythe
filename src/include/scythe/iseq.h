@@ -9,7 +9,6 @@ typedef struct ScmISeqRec ScmISeq;
 #define SCM_ISEQ(obj) ((ScmISeq *)(obj))
 
 #include "scythe/object.h"
-#include "scythe/api_type.h"
 #include "scythe/vminst.h"
 #include "scythe/earray.h"
 

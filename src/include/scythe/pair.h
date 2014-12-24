@@ -8,7 +8,6 @@ typedef struct ScmPairRec ScmPair;
 #define SCM_PAIR(obj) ((ScmPair *)(obj))
 
 #include "scythe/object.h"
-#include "scythe/api_type.h"
 
 extern ScmTypeInfo SCM_PAIR_TYPE_INFO;
 

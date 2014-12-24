@@ -8,7 +8,6 @@
 #include "scythe/object.h"
 #include "scythe/encoding.h"
 #include "scythe/vminst.h"
-#include "scythe/api_type.h"
 #include "scythe/fcd.h"
 
 

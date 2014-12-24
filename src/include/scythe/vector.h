@@ -12,7 +12,7 @@ typedef struct ScmByteVectorRec ScmByteVector;
 #define SCM_BYTEVECTOR(obj) ((ScmByteVector *)(obj))
 
 #include "scythe/object.h"
-#include "scythe/api_type.h"
+#include "scythe/fcd_type.h"
 
 
 /*******************************************************************/

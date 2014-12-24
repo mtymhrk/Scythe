@@ -14,7 +14,6 @@ typedef struct ScmLandmineRec ScmLandmine;
 #define SCM_LANDMINE(obj) ((ScmLandmine *)(obj))
 
 #include "scythe/object.h"
-#include "scythe/api_type.h"
 
 
 /*******************************************************/
