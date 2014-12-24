@@ -292,25 +292,6 @@ scm_parameter_initialize(ScmObj prm, ScmObj name, ScmObj conv)
   return 0;
 }
 
-ScmObj
-scm_parameter_new(SCM_MEM_TYPE_T mtype, ScmObj name, ScmObj conv)
-{
-  ScmObj prm = SCM_OBJ_INIT;
-
-  SCM_REFSTK_INIT_REG(&prm, &conv);
-
-  scm_assert(scm_obj_null_p(name) || scm_fcd_string_p(name));
-  scm_assert(scm_obj_null_p(conv) || scm_fcd_procedure_p(conv));
-
-  prm = scm_fcd_mem_alloc(&SCM_PARAMETER_TYPE_INFO, 0, mtype);
-  if (scm_obj_null_p(prm)) return SCM_OBJ_NULL;
-
-  if (scm_parameter_initialize(prm, name,conv) < 0)
-    return SCM_OBJ_NULL;
-
-  return prm;
-}
-
 void
 scm_parameter_gc_initialize(ScmObj obj, ScmObj mem)
 {

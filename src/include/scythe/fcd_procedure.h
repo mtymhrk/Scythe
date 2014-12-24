@@ -48,6 +48,7 @@ ScmObj scm_fcd_closure_env(ScmObj clsr);
 /*******************************************************************/
 
 bool scm_fcd_parameter_p(ScmObj obj);
+ScmObj scm_fcd_parameter_new(SCM_MEM_TYPE_T mtype, ScmObj name, ScmObj conv);
 ScmObj scm_fcd_make_parameter(ScmObj conv);
 ScmObj scm_fcd_parameter_init_val(ScmObj prm);
 ScmObj scm_fcd_parameter_converter(ScmObj prm);

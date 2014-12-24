@@ -161,7 +161,6 @@ struct ScmParameterRec {
 };
 
 int scm_parameter_initialize(ScmObj prm, ScmObj name, ScmObj conv);
-ScmObj scm_parameter_new(SCM_MEM_TYPE_T mtype, ScmObj name, ScmObj conv);
 
 void scm_parameter_gc_initialize(ScmObj obj, ScmObj mem);
 int scm_parameter_gc_accept(ScmObj obj, ScmObj mem,
