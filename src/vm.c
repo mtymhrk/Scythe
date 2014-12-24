@@ -12,7 +12,6 @@
 #include "scythe/refstk.h"
 #include "scythe/string.h"
 #include "scythe/symbol.h"
-#include "scythe/module.h"
 #include "scythe/procedure.h"
 #include "scythe/fcd.h"
 #include "scythe/impl_utils.h"
@@ -2333,7 +2332,7 @@ scm_vm_op_gref(ScmObj vm, scm_opcode_t op)
 
     sym = arg;
   }
-  else if (scm_obj_type_p(arg, &SCM_GLOC_TYPE_INFO)) {
+  else if (scm_fcd_gloc_p(arg)) {
     gloc = arg;
     sym = scm_fcd_gloc_symbol(gloc);
   }
@@ -2383,7 +2382,7 @@ scm_vm_op_gdef(ScmObj vm, scm_opcode_t op)
     rslt = scm_fcd_inst_update_oprand_obj(prv_ip, SCM_VM(vm)->reg.cp, gloc);
     if (rslt < 0) return -1;
   }
-  else if (!scm_obj_type_p(arg, &SCM_GLOC_TYPE_INFO)) {
+  else if (scm_fcd_gloc_p(arg)) {
     gloc = arg;
   }
   else {
@@ -2438,7 +2437,7 @@ scm_vm_op_gset(ScmObj vm, scm_opcode_t op)
     rslt = scm_fcd_inst_update_oprand_obj(prv_ip, SCM_VM(vm)->reg.cp, gloc);
     if (rslt < 0) return -1;
   }
-  else if (scm_obj_type_p(arg, &SCM_GLOC_TYPE_INFO)) {
+  else if (scm_fcd_gloc_p(arg)) {
     gloc = arg;
   }
   else {
