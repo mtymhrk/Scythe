@@ -4,9 +4,11 @@
 #include <stdbool.h>
 
 #include "scythe/object.h"
+#include "scythe/fcd_type.h"
 
 bool scm_fcd_pair_p(ScmObj pair);
 ScmObj scm_fcd_pair_P(ScmObj pair);
+ScmObj scm_fcd_pair_new(SCM_MEM_TYPE_T mtype, ScmObj car, ScmObj cdr);
 ScmObj scm_fcd_cons(ScmObj car, ScmObj cdr);
 ScmObj scm_fcd_car(ScmObj pair);
 ScmObj scm_fcd_cdr(ScmObj pair);

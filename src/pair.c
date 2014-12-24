@@ -32,25 +32,6 @@ scm_pair_initialize(ScmObj pair, ScmObj car, ScmObj cdr)
   return 0;
 }
 
-ScmObj
-scm_pair_new(SCM_MEM_TYPE_T mtype, ScmObj car, ScmObj cdr)
-{
-  ScmObj pair = SCM_OBJ_INIT;
-
-  SCM_REFSTK_INIT_REG(&pair, &car, &cdr);
-
-  scm_assert(scm_obj_not_null_p(car));
-  scm_assert(scm_obj_not_null_p(cdr));
-
-  pair = scm_fcd_mem_alloc(&SCM_PAIR_TYPE_INFO, 0, mtype);
-  if (scm_obj_null_p(pair)) return SCM_OBJ_NULL;
-
-  if (scm_pair_initialize(pair, car, cdr) < 0)
-    return SCM_OBJ_NULL;
-
-  return pair;
-}
-
 int
 scm_pair_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
 {

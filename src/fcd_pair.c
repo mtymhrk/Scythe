@@ -18,21 +18,40 @@ scm_fcd_pair_P(ScmObj pair)
 }
 
 ScmObj
+scm_fcd_pair_new(SCM_MEM_TYPE_T mtype, ScmObj car, ScmObj cdr)
+{
+  ScmObj pair = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&pair, &car, &cdr);
+
+  scm_assert(scm_obj_not_null_p(car));
+  scm_assert(scm_obj_not_null_p(cdr));
+
+  pair = scm_fcd_mem_alloc(&SCM_PAIR_TYPE_INFO, 0, mtype);
+  if (scm_obj_null_p(pair)) return SCM_OBJ_NULL;
+
+  if (scm_pair_initialize(pair, car, cdr) < 0)
+    return SCM_OBJ_NULL;
+
+  return pair;
+}
+
+extern inline ScmObj
 scm_fcd_cons(ScmObj car, ScmObj cdr)
 {
   scm_assert(scm_obj_not_null_p(car));
   scm_assert(scm_obj_not_null_p(cdr));
-  return scm_pair_new(SCM_MEM_HEAP, car, cdr);
+  return scm_fcd_pair_new(SCM_MEM_HEAP, car, cdr);
 }
 
-ScmObj
+extern inline ScmObj
 scm_fcd_car(ScmObj pair)
 {
   scm_assert(scm_fcd_pair_p(pair));
   return scm_pair_car(pair);
 }
 
-ScmObj
+extern inline ScmObj
 scm_fcd_cdr(ScmObj pair)
 {
   scm_assert(scm_fcd_pair_p(pair));
