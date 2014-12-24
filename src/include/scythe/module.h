@@ -93,7 +93,6 @@ struct ScmModuleRec {
 
 int scm_module_initialize(ScmObj mod, ScmObj name);
 void scm_module_finalize(ScmObj mod);
-ScmObj scm_module_new(SCM_MEM_TYPE_T mtype, ScmObj name);
 int scm_module_import(ScmObj mod, ScmObj imp, bool restrictive);
 int scm_module_define_eval(ScmObj mod, ScmObj sym, ScmObj val, bool export);
 int scm_module_define_cmpl(ScmObj mod, ScmObj sym, ScmObj val, bool export);

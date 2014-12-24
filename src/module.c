@@ -356,25 +356,6 @@ scm_module_finalize(ScmObj mod)
   }
 }
 
-ScmObj
-scm_module_new(SCM_MEM_TYPE_T mtype, ScmObj name)
-{
-  ScmObj mod = SCM_OBJ_INIT;
-
-  SCM_REFSTK_INIT_REG(&name,
-                      &mod);
-
-  scm_assert(scm_fcd_pair_p(name));
-
-  mod = scm_fcd_mem_alloc(&SCM_MODULE_TYPE_INFO, 0, mtype);
-  if (scm_obj_null_p(mod)) return SCM_OBJ_NULL;
-
-  if (scm_module_initialize(mod, name) < 0)
-    return SCM_OBJ_NULL;
-
-  return mod;
-}
-
 int
 scm_module_import(ScmObj mod, ScmObj imp, bool res)
 {
@@ -761,7 +742,7 @@ scm_moduletree_module(ScmObj tree, ScmObj name)
       if (scm_obj_null_p(path)) return SCM_OBJ_NULL;
     }
 
-    node->module = scm_module_new(SCM_MEM_HEAP, path);
+    node->module = scm_fcd_module_new(SCM_MEM_HEAP, path);
     if (scm_obj_null_p(node->module)) return SCM_OBJ_NULL;
   }
 

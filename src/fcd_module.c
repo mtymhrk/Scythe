@@ -70,6 +70,25 @@ scm_fcd_module_specifier_p(ScmObj obj)
 }
 
 ScmObj
+scm_fcd_module_new(SCM_MEM_TYPE_T mtype, ScmObj name)
+{
+  ScmObj mod = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&name,
+                      &mod);
+
+  scm_assert(scm_fcd_pair_p(name));
+
+  mod = scm_fcd_mem_alloc(&SCM_MODULE_TYPE_INFO, 0, mtype);
+  if (scm_obj_null_p(mod)) return SCM_OBJ_NULL;
+
+  if (scm_module_initialize(mod, name) < 0)
+    return SCM_OBJ_NULL;
+
+  return mod;
+}
+
+ScmObj
 scm_fcd_make_module(ScmObj name)
 {
   ScmObj mod = SCM_OBJ_INIT;
