@@ -18,7 +18,6 @@ struct ScmCompilerRec {
 extern ScmTypeInfo SCM_COMPILER_TYPE_INFO;
 
 int scm_cmpl_initialize(ScmObj cmpl, ScmObj module);
-ScmObj scm_cmpl_new(SCM_MEM_TYPE_T mtype, ScmObj module);
 void scm_cmpl_set_module(ScmObj cmpl, ScmObj module);
 void scm_cmpl_set_expr(ScmObj cmpl, ScmObj expr);
 int scm_cmpl_assign_label_id(ScmObj cmpl);

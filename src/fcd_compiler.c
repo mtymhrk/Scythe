@@ -59,12 +59,29 @@ scm_fcd_compiler_P(ScmObj obj)
 }
 
 ScmObj
+scm_fcd_compiler_new(SCM_MEM_TYPE_T mtype, ScmObj module)
+{
+  ScmObj cmpl = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&module,
+                      &cmpl);
+
+  module = norm_cmpl_arg_mod(module);
+  if (scm_obj_null_p(module)) return SCM_OBJ_NULL;
+
+  cmpl = scm_fcd_mem_alloc(&SCM_COMPILER_TYPE_INFO, 0, mtype);
+  if (scm_obj_null_p(cmpl)) return SCM_OBJ_NULL;
+
+  if (scm_cmpl_initialize(cmpl, module) < 0)
+    return SCM_OBJ_NULL;
+
+  return cmpl;
+}
+
+ScmObj
 scm_fcd_make_compiler(ScmObj mod)
 {
-  mod = norm_cmpl_arg_mod(mod);
-  if (scm_obj_null_p(mod)) return SCM_OBJ_NULL;
-
-  return scm_cmpl_new(SCM_MEM_HEAP, mod);
+  return scm_fcd_compiler_new(SCM_MEM_HEAP, mod);
 }
 
 ScmObj

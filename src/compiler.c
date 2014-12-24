@@ -31,25 +31,6 @@ scm_cmpl_initialize(ScmObj cmpl, ScmObj module)
   return 0;
 }
 
-ScmObj
-scm_cmpl_new(SCM_MEM_TYPE_T mtype, ScmObj module)
-{
-  ScmObj cmpl = SCM_OBJ_INIT;
-
-  SCM_REFSTK_INIT_REG(&module,
-                      &cmpl);
-
-  scm_assert(scm_fcd_module_p(module));
-
-  cmpl = scm_fcd_mem_alloc(&SCM_COMPILER_TYPE_INFO, 0, mtype);
-  if (scm_obj_null_p(cmpl)) return SCM_OBJ_NULL;
-
-  if (scm_cmpl_initialize(cmpl, module) < 0)
-    return SCM_OBJ_NULL;
-
-  return cmpl;
-}
-
 void
 scm_cmpl_set_module(ScmObj cmpl, ScmObj module)
 {
