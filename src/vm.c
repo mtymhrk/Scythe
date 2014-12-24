@@ -61,7 +61,7 @@ scm_bedrock_setup(ScmBedrock *br)
   br->cnsts.landmine = scm_fcd_landmine_new(SCM_MEM_ROOT);
   if (scm_obj_null_p(br->cnsts.landmine)) return -1;
 
-  br->symtbl = scm_symtbl_new(SCM_MEM_ROOT);
+  br->symtbl = scm_fcd_symtbl_new(SCM_MEM_ROOT);
   if (scm_obj_null_p(br->symtbl)) return -1;
 
   br->modtree = scm_fcd_moduletree_new(SCM_MEM_ROOT);

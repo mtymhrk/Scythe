@@ -37,6 +37,22 @@ scm_fcd_symbol_new(SCM_MEM_TYPE_T mtype, ScmObj str)
   return sym;
 }
 
+ScmObj
+scm_fcd_symtbl_new(SCM_MEM_TYPE_T mtype)
+{
+  ScmObj tbl = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&tbl);
+
+  tbl = scm_fcd_mem_alloc(&SCM_SYMTBL_TYPE_INFO, 0, mtype);
+  if (scm_obj_null_p(tbl)) return SCM_OBJ_NULL;
+
+  if (scm_symtbl_initialize(tbl) < 0)
+    return SCM_OBJ_NULL;
+
+  return tbl;
+}
+
 bool
 scm_fcd_symbol_eq_p(ScmObj sym1, ScmObj sym2)
 {
