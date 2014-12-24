@@ -41,9 +41,30 @@
 #define SCM_REFSTK_INIT_REG(...)                \
   SCM_REFSTK_INIT; SCM_REFSTK_REG(__VA_ARGS__);
 
-void scm_fcd_ref_stack_push(ScmRefStackBlock *block);
-void scm_fcd_ref_stack_save(ScmRefStackInfo *info);
-void scm_fcd_ref_stack_restore(ScmRefStackInfo *info);
+static inline void
+scm_fcd_ref_stack_push(ScmRefStackBlock *block)
+{
+  ScmObj stack = scm_fcd_current_ref_stack();
+  scm_assert(block != NULL);
+  block->next = SCM_REFSTACK(stack)->stack;
+  SCM_REFSTACK(stack)->stack = block;
+}
+
+static inline void
+scm_fcd_ref_stack_save(ScmRefStackInfo *info)
+{
+  ScmObj stack = scm_fcd_current_ref_stack();
+  scm_assert(info != NULL);
+  info->stack = SCM_REFSTACK(stack)->stack;
+}
+
+static inline void
+scm_fcd_ref_stack_restore(ScmRefStackInfo *info)
+{
+  ScmObj stack = scm_fcd_current_ref_stack();
+  scm_assert(info != NULL);
+  SCM_REFSTACK(stack)->stack = info->stack;
+}
 
 
 #endif /* INCLUDE_FCD_REFERENCE_H__ */

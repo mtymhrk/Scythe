@@ -6,9 +6,6 @@
 
 typedef struct ScmForwardRec ScmForward;
 
-typedef struct ScmRefStackBlockRec ScmRefStackBlock;
-typedef struct ScmRefStackInfoRec ScmRefStackInfo;
-
 typedef struct ScmEvaluatorRec ScmEvaluator;
 
 #include "scythe/object.h"
@@ -79,6 +76,7 @@ typedef struct ScmMemRec ScmMem;
 
 enum { SCM_REFSTACK_RARY, SCM_REFSTACK_ARY };
 
+typedef struct ScmRefStackBlockRec ScmRefStackBlock;
 struct ScmRefStackBlockRec {
   ScmRefStackBlock *next;
   int type;
@@ -91,9 +89,18 @@ struct ScmRefStackBlockRec {
   } ref;
 };
 
+typedef struct ScmRefStackInfoRec ScmRefStackInfo;
 struct ScmRefStackInfoRec {
   ScmRefStackBlock *stack;
 };
+
+typedef struct ScmRefStackRec ScmRefStack;
+struct ScmRefStackRec {
+  ScmObjHeader *header;
+  ScmRefStackBlock *stack;
+};
+
+#define SCM_REFSTACK(obj) ((ScmRefStack *)(obj))
 
 
 /*******************************************************************/
