@@ -11,76 +11,8 @@
 
 
 /*******************************************************************/
-/*  Equivalence predicates                                         */
-/*******************************************************************/
-
-ScmObj
-scm_api_eq_P(ScmObj obj1, ScmObj obj2)
-{
-  return scm_fcd_eq_P(obj1, obj2);
-}
-
-ScmObj
-scm_api_eqv_P(ScmObj obj1, ScmObj obj2)
-{
-  return scm_fcd_eqv_P(obj1, obj2);
-}
-
-ScmObj
-scm_api_equal_P(ScmObj obj1, ScmObj obj2)
-{
-  return scm_fcd_equal_P(obj1, obj2);
-}
-
-
-/*******************************************************************/
-/*  nil                                                            */
-/*******************************************************************/
-
-ScmObj
-scm_api_nil_P(ScmObj obj)
-{
-  return scm_fcd_nil_P(obj);
-}
-
-
-/*******************************************************************/
-/*  Booleans                                                       */
-/*******************************************************************/
-
-ScmObj
-scm_api_boolean_P(ScmObj obj)
-{
-  return scm_fcd_boolean_P(obj);
-}
-
-ScmObj
-scm_api_not(ScmObj obj)
-{
-  return scm_fcd_not(obj);
-}
-
-
-/*******************************************************************/
-/*  eof                                                           */
-/*******************************************************************/
-
-extern inline ScmObj
-scm_api_eof_object_P(ScmObj obj)
-{
-  return scm_fcd_eof_object_P(obj);
-}
-
-
-/*******************************************************************/
 /*  Pair and Lists                                                 */
 /*******************************************************************/
-
-ScmObj
-scm_api_pair_P(ScmObj pair)
-{
-  return scm_fcd_pair_P(pair);
-}
 
 ScmObj
 scm_api_cons(ScmObj car, ScmObj cdr)
@@ -151,12 +83,6 @@ scm_api_set_cdr_i(ScmObj pair, ScmObj elm)
   scm_fcd_set_cdr_i(pair, elm);
 
   return SCM_UNDEF_OBJ;
-}
-
-ScmObj
-scm_api_list_P(ScmObj lst)
-{
-  return scm_fcd_list_P(lst);
 }
 
 ScmObj
@@ -274,106 +200,10 @@ scm_api_list_set_i(ScmObj lst, ScmObj n, ScmObj obj)
   return SCM_UNDEF_OBJ;
 }
 
-ScmObj
-scm_api_memq(ScmObj obj, ScmObj lst)
-{
-  return scm_fcd_memq(obj, lst);
-}
-
-ScmObj
-scm_api_memv(ScmObj obj, ScmObj lst)
-{
-  return scm_fcd_memv(obj, lst);
-}
-
-ScmObj
-scm_api_assq(ScmObj obj, ScmObj alist)
-{
-  return scm_fcd_assq(obj, alist);
-}
-
-ScmObj
-scm_api_assv(ScmObj obj, ScmObj alist)
-{
-  return scm_fcd_assv(obj, alist);
-}
-
-ScmObj
-scm_api_list_copy(ScmObj lst)
-{
-  return scm_fcd_list_copy(lst);
-}
-
 
 /*******************************************************************/
 /*  Numbers                                                        */
 /*******************************************************************/
-
-ScmObj
-scm_api_number_P(ScmObj obj)
-{
-  return scm_fcd_number_P(obj);
-}
-
-ScmObj
-scm_api_complex_P(ScmObj obj)
-{
-  return scm_fcd_complex_P(obj);
-}
-
-ScmObj
-scm_api_real_P(ScmObj obj)
-{
-  return scm_fcd_real_P(obj);
-}
-
-ScmObj
-scm_api_rational_P(ScmObj obj)
-{
-  return scm_fcd_rational_P(obj);
-}
-
-ScmObj
-scm_api_integer_P(ScmObj obj)
-{
-  return scm_fcd_integer_P(obj);
-}
-
-ScmObj
-scm_api_exact_P(ScmObj obj)
-{
-  return scm_fcd_exact_P(obj);
-}
-
-ScmObj
-scm_api_inexact_P(ScmObj obj)
-{
-  return scm_fcd_inexact_P(obj);
-}
-
-ScmObj
-scm_api_exact_integer_P(ScmObj obj)
-{
-  return scm_fcd_exact_integer_P(obj);
-}
-
-ScmObj
-scm_api_finite_P(ScmObj obj)
-{
-  return scm_fcd_finite_P(obj);
-}
-
-ScmObj
-scm_api_infinite_P(ScmObj obj)
-{
-  return scm_fcd_infinite_P(obj);
-}
-
-ScmObj
-scm_api_nan_P(ScmObj obj)
-{
-  return scm_fcd_nan_P(obj);
-}
 
 ScmObj
 scm_api_num_eq_P_lst(ScmObj lst)
@@ -642,12 +472,6 @@ scm_api_truncate_rem(ScmObj x, ScmObj y)
 /*******************************************************************/
 
 ScmObj
-scm_api_symbol_P(ScmObj obj)
-{
-  return scm_fcd_symbol_P(obj);
-}
-
-ScmObj
 scm_api_symbol_eq_P_lst(ScmObj lst)
 {
   if (scm_obj_null_p(lst)) {
@@ -684,12 +508,6 @@ scm_api_string_to_symbol(ScmObj str)
 /*******************************************************************/
 /*  Characters                                                     */
 /*******************************************************************/
-
-ScmObj
-scm_api_char_P(ScmObj obj)
-{
-  return scm_fcd_char_P(obj);
-}
 
 ScmObj
 scm_api_char_eq_P_lst(ScmObj lst)
@@ -772,12 +590,6 @@ scm_capi_integer_to_char(ScmObj num, ScmEncoding *enc)
 /*******************************************************************/
 /*  Strings                                                        */
 /*******************************************************************/
-
-ScmObj
-scm_api_string_P(ScmObj obj)
-{
-  return scm_fcd_string_P(obj);
-}
 
 ScmObj
 scm_api_string_lst(ScmObj lst)
@@ -968,12 +780,6 @@ scm_api_substring(ScmObj str, ScmObj start, ScmObj end)
   return scm_fcd_substring(str, ss, se);
 }
 
-ScmObj
-scm_api_string_append_lst(ScmObj lst)
-{
-  return scm_fcd_string_append_lst(lst);
-}
-
 static ScmObj
 string_to_list_aux(ScmObj str, ssize_t start, ssize_t end)
 {
@@ -1044,12 +850,6 @@ scm_api_string_to_list(ScmObj str, ScmObj start, ScmObj end)
   }
 
   return string_to_list_aux(str, sss, sse);
-}
-
-ScmObj
-scm_api_list_to_string(ScmObj lst)
-{
-  return scm_fcd_list_to_string(lst);
 }
 
 static ScmObj
@@ -1303,12 +1103,6 @@ scm_api_string_fill_i(ScmObj str, ScmObj fill, ScmObj start, ScmObj end)
 /*******************************************************************/
 
 ScmObj
-scm_api_vector_P(ScmObj obj)
-{
-  return scm_fcd_vector_P(obj);
-}
-
-ScmObj
 scm_api_make_vector(ScmObj len, ScmObj fill)
 {
   size_t sz;
@@ -1477,12 +1271,6 @@ scm_api_vector_to_list(ScmObj vec, ScmObj start, ScmObj end)
   if (r < 0) return SCM_OBJ_NULL;
 
   return vector_to_list_aux(vec, s, e);
-}
-
-ScmObj
-scm_api_list_to_vector(ScmObj lst)
-{
-  return scm_fcd_list_to_vector(lst);
 }
 
 static ScmObj
@@ -1662,12 +1450,6 @@ scm_api_vector_copy_i(ScmObj to, ScmObj at,
   return vector_copy_i_aux(to, a, from, s, e);
 }
 
-ScmObj
-scm_api_vector_append_lst(ScmObj lst)
-{
-  return scm_fcd_vector_append_lst(lst);
-}
-
 static ScmObj
 vector_fill_i_aux(ScmObj vec, ScmObj fill, ssize_t start, ssize_t end)
 {
@@ -1715,17 +1497,6 @@ scm_api_vector_fill_i(ScmObj vec, ScmObj fill, ScmObj start, ScmObj end)
 
 
 /*******************************************************************/
-/*  Bytevectors                                                    */
-/*******************************************************************/
-
-ScmObj
-scm_api_bytevector_P(ScmObj obj)
-{
-  return scm_fcd_bytevector_P(obj);
-}
-
-
-/*******************************************************************/
 /*  Exceptions                                                     */
 /*******************************************************************/
 
@@ -1763,12 +1534,6 @@ scm_capi_push_exception_handler(ScmObj handler)
   return scm_fcd_push_exception_handler(handler);
 }
 
-int
-scm_capi_pop_exception_handler(void)
-{
-  return scm_fcd_pop_exception_handler();
-}
-
 ScmObj
 scm_api_error_lst(ScmObj msg, ScmObj irris)
 {
@@ -1783,12 +1548,6 @@ scm_api_error_lst(ScmObj msg, ScmObj irris)
   }
 
   return scm_fcd_error_lst(msg, irris);
-}
-
-ScmObj
-scm_api_error_object_P(ScmObj obj)
-{
-  return scm_fcd_error_object_P(obj);
 }
 
 ScmObj
@@ -1815,18 +1574,6 @@ scm_api_error_object_irritants(ScmObj obj)
   return scm_fcd_error_object_irritants(obj);
 }
 
-ScmObj
-scm_api_read_error_P(ScmObj obj)
-{
-  return scm_fcd_read_error_P(obj);
-}
-
-ScmObj
-scm_api_file_error_P(ScmObj obj)
-{
-  return scm_fcd_file_error_P(obj);
-}
-
 
 /*******************************************************************/
 /*  Ports                                                          */
@@ -1850,48 +1597,6 @@ scm_port_path_str_to_cstr(ScmObj path, char *cstr)
   if (p == NULL) return -1;
 
   return (ssize_t)s;
-}
-
-ScmObj
-scm_api_port_P(ScmObj obj)
-{
-  return scm_fcd_port_P(obj);
-}
-
-ScmObj
-scm_api_input_port_P(ScmObj obj)
-{
-  return scm_fcd_input_port_P(obj);
-}
-
-ScmObj
-scm_api_output_port_P(ScmObj obj)
-{
-  return scm_fcd_output_port_P(obj);
-}
-
-ScmObj
-scm_api_textual_port_P(ScmObj obj)
-{
-  return scm_fcd_textual_port_P(obj);
-}
-
-ScmObj
-scm_api_binary_port_P(ScmObj obj)
-{
-  return scm_fcd_binary_port_P(obj);
-}
-
-ScmObj
-scm_api_input_port_open_P(ScmObj port)
-{
-  return scm_fcd_input_port_open_P(port);
-}
-
-ScmObj
-scm_api_output_port_open_P(ScmObj port)
-{
-  return scm_fcd_output_port_open_P(port);
 }
 
 ScmObj
@@ -2023,12 +1728,6 @@ scm_api_open_input_string(ScmObj str)
 }
 
 ScmObj
-scm_api_open_output_string(void)
-{
-  return scm_fcd_open_output_string();
-}
-
-ScmObj
 scm_api_get_output_string(ScmObj port)
 {
   if (!scm_fcd_output_port_p(port)) {
@@ -2057,12 +1756,6 @@ scm_api_open_input_bytevector(ScmObj vec)
   }
 
   return scm_fcd_open_input_bytevector(vec);
-}
-
-ScmObj
-scm_api_open_output_bytevector(void)
-{
-  return scm_fcd_open_output_bytevector();
 }
 
 ScmObj
@@ -2437,17 +2130,6 @@ scm_api_flush_output_port(ScmObj port)
 
 
 /*******************************************************************/
-/*  Procedure                                                      */
-/*******************************************************************/
-
-ScmObj
-scm_api_procedure_P(ScmObj proc)
-{
-  return scm_fcd_procedure_P(proc);
-}
-
-
-/*******************************************************************/
 /*  Parameter                                                      */
 /*******************************************************************/
 
@@ -2467,12 +2149,6 @@ scm_api_make_parameter(ScmObj conv)
 /*******************************************************************/
 /*  Syntax                                                         */
 /*******************************************************************/
-
-ScmObj
-scm_api_syntax_P(ScmObj obj)
-{
-  return scm_fcd_syntax_P(obj);
-}
 
 ScmObj
 scm_api_make_syntax(ScmObj keyword, ScmObj handler)
@@ -2538,18 +2214,6 @@ scm_api_assemble(ScmObj lst, ScmObj iseq)
 /*******************************************************************/
 /*  Compiler                                                       */
 /*******************************************************************/
-
-ScmObj
-scm_api_compiler_P(ScmObj obj)
-{
-  return scm_fcd_compiler_P(obj);
-}
-
-ScmObj
-scm_api_make_compiler(ScmObj mod)
-{
-  return scm_fcd_make_compiler(mod);
-}
 
 ScmObj
 scm_api_compiler_current_module(ScmObj cmpl)
@@ -2671,17 +2335,6 @@ scm_capi_global_syx_ref(ScmObj module, ScmObj sym, scm_csetter_t *syx)
   }
 
   return scm_fcd_global_syx_ref(module, sym, syx);
-}
-
-
-/*******************************************************************/
-/*  Continuation                                                   */
-/*******************************************************************/
-
-ScmObj
-scm_api_capture_cont(void)
-{
-  return scm_fcd_capture_cont();
 }
 
 
