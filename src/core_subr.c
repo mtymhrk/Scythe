@@ -2195,7 +2195,7 @@ scm_subr_func_eof_object_P(ScmObj subr, int argc, const ScmObj *argv)
   SCM_REFSTK_INIT_REG(&subr,
                       &val);
 
-  val = scm_capi_eof_object_p(argv[0]) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+  val = scm_api_eof_object_P(argv[0]);
 
   return scm_fcd_return_val(&val, 1);
 }

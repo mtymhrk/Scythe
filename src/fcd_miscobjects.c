@@ -109,6 +109,11 @@ scm_fcd_eof_object_p(ScmObj obj)
   return scm_fcd_eq_p(obj, SCM_EOF_OBJ);
 }
 
+extern inline ScmObj
+scm_fcd_eof_object_P(ScmObj obj)
+{
+  return scm_fcd_eof_object_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+}
 
 
 /* Memo:

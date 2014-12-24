@@ -65,10 +65,10 @@ scm_api_not(ScmObj obj)
 /*  eof                                                           */
 /*******************************************************************/
 
-extern inline bool
-scm_capi_eof_object_p(ScmObj obj)
+extern inline ScmObj
+scm_api_eof_object_P(ScmObj obj)
 {
-  return scm_fcd_eof_object_p(obj);
+  return scm_fcd_eof_object_P(obj);
 }
 
 

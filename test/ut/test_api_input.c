@@ -85,7 +85,7 @@ test_capi_read__return_EOF(ScmObj port)
   for (int i = 0; i < TEST_FILE_NR_S_EXPR; i++)
     scm_api_read(port);
 
-  TEST_ASSERT_TRUE(scm_capi_eof_object_p(scm_api_read(port)));
+  TEST_ASSERT_SCM_TRUE(scm_api_eof_object_P(scm_api_read(port)));
 }
 
 static void
@@ -121,7 +121,7 @@ test_api_read_char__return_EOF(ScmObj port)
   for (size_t i = 0; i < strlen(TEST_FILE_CONTENTS); i++)
     scm_api_read_char(port);
 
-  TEST_ASSERT_TRUE(scm_capi_eof_object_p(scm_api_read_char(port)));
+  TEST_ASSERT_SCM_TRUE(scm_api_eof_object_P(scm_api_read_char(port)));
 }
 
 static void
@@ -184,7 +184,7 @@ test_api_peek_char__return_EOF(ScmObj port)
   for (size_t i = 0; i < strlen(TEST_FILE_CONTENTS); i++)
     scm_api_read_char(port);
 
-  TEST_ASSERT_TRUE(scm_capi_eof_object_p(scm_api_peek_char(port)));
+  TEST_ASSERT_SCM_TRUE(scm_api_eof_object_P(scm_api_peek_char(port)));
 }
 
 static void
@@ -235,7 +235,7 @@ test_api_read_line__return_EOF(ScmObj port)
   for (int i = 0; i < TEST_FILE_NR_LINE; i++)
     scm_api_read_line(port);
 
-  TEST_ASSERT_TRUE(scm_capi_eof_object_p(scm_api_read_line(port)));
+  TEST_ASSERT_SCM_TRUE(scm_api_eof_object_P(scm_api_read_line(port)));
 }
 
 static void
@@ -310,7 +310,7 @@ test_api_read_string__return_EOF(ScmObj port)
   n = scm_fcd_make_number_from_size_t(strlen(TEST_FILE_CONTENTS));
   scm_api_read_string(n, port);
 
-  TEST_ASSERT_TRUE(scm_capi_eof_object_p(scm_api_read_string(n, port)));
+  TEST_ASSERT_SCM_TRUE(scm_api_eof_object_P(scm_api_read_string(n, port)));
 }
 
 static void
@@ -480,12 +480,12 @@ TEST(api_input, string_port__api_read_line__specify_closed_port__return_ERROR)
 
 TEST(api_input, capi_eof_object_p__return_TRUE)
 {
-  TEST_ASSERT_TRUE(scm_capi_eof_object_p(SCM_EOF_OBJ));
+  TEST_ASSERT_SCM_TRUE(scm_api_eof_object_P(SCM_EOF_OBJ));
 }
 
 TEST(api_input, capi_eof_object_p__return_FALSE)
 {
-  TEST_ASSERT_FALSE(scm_capi_eof_object_p(SCM_NIL_OBJ));
+  TEST_ASSERT_SCM_FALSE(scm_api_eof_object_P(SCM_NIL_OBJ));
 }
 
 IGNORE_TEST(api_input, api_eof_object_P)

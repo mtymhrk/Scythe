@@ -28,6 +28,7 @@ ScmObj scm_fcd_not(ScmObj obj);
 
 ScmObj scm_fcd_eof(void);
 bool scm_fcd_eof_object_p(ScmObj obj);
+ScmObj scm_fcd_eof_object_P(ScmObj obj);
 
 #define SCM_EOF_OBJ scm_fcd_eof()
 

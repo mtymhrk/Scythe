@@ -40,7 +40,7 @@ ScmObj scm_api_not(ScmObj obj);
 /*  eof                                                           */
 /*******************************************************************/
 
-bool scm_capi_eof_object_p(ScmObj obj);
+ScmObj scm_api_eof_object_P(ScmObj obj);
 
 
 /*******************************************************************/
