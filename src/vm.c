@@ -10,9 +10,6 @@
 #include "scythe/vminst.h"
 #include "scythe/object.h"
 #include "scythe/refstk.h"
-#include "scythe/string.h"
-#include "scythe/symbol.h"
-#include "scythe/procedure.h"
 #include "scythe/fcd.h"
 #include "scythe/impl_utils.h"
 
@@ -2310,7 +2307,7 @@ scm_vm_op_gref(ScmObj vm, scm_opcode_t op)
   prv_ip = SCM_VM(vm)->reg.ip;
   SCM_VMINST_FETCH_OPD_OBJ_OBJ(SCM_VM(vm)->reg.ip, arg, mod);
 
-  if (scm_obj_type_p(arg, &SCM_SYMBOL_TYPE_INFO)) {
+  if (scm_fcd_symbol_p(arg)) {
     r = scm_fcd_find_module(mod, SCM_CSETTER_L(module));
     if (r < 0) return -1;
 
@@ -2367,7 +2364,7 @@ scm_vm_op_gdef(ScmObj vm, scm_opcode_t op)
   prv_ip = SCM_VM(vm)->reg.ip;
   SCM_VMINST_FETCH_OPD_OBJ_OBJ(SCM_VM(vm)->reg.ip, arg, mod);
 
-  if (scm_obj_type_p(arg, &SCM_SYMBOL_TYPE_INFO)) {
+  if (scm_fcd_symbol_p(arg)) {
     int r = scm_fcd_find_module(mod, SCM_CSETTER_L(module));
     if (r < 0) return -1;
 
@@ -2409,7 +2406,7 @@ scm_vm_op_gset(ScmObj vm, scm_opcode_t op)
   prv_ip = SCM_VM(vm)->reg.ip;
   SCM_VMINST_FETCH_OPD_OBJ_OBJ(SCM_VM(vm)->reg.ip, arg, mod);
 
-  if (scm_obj_type_p(arg, &SCM_SYMBOL_TYPE_INFO)) {
+  if (scm_fcd_symbol_p(arg)) {
     r = scm_fcd_find_module(mod, SCM_CSETTER_L(module));
     if (r < 0) return -1;
 
