@@ -25,8 +25,6 @@ struct ScmSymbolRec {
 #define SCM_SYMBOL_STR(obj) (SCM_SYMBOL(obj)->str)
 
 int scm_symbol_initialize(ScmObj sym, ScmObj str);
-ScmObj scm_symbol_new(SCM_MEM_TYPE_T mtype, ScmObj str);
-ScmObj scm_symbol_instance(ScmObj str);
 size_t scm_symbol_length(ScmObj sym);
 ScmObj scm_symbol_string(ScmObj sym);
 size_t scm_symbol_hash_value(ScmObj sym);

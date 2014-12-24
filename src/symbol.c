@@ -353,24 +353,6 @@ scm_symbol_initialize(ScmObj sym, ScmObj str)
   return 0;
 }
 
-ScmObj
-scm_symbol_new(SCM_MEM_TYPE_T mtype, ScmObj str)
-{
-  ScmObj sym = SCM_OBJ_INIT;
-
-  SCM_REFSTK_INIT_REG(&str, &sym);
-
-  scm_assert_obj_type(str, &SCM_STRING_TYPE_INFO);
-
-  sym = scm_fcd_mem_alloc(&SCM_SYMBOL_TYPE_INFO, 0, mtype);
-  if (scm_obj_null_p(sym)) return SCM_OBJ_NULL;
-
-  if (scm_symbol_initialize(sym, str) < 0)
-    return SCM_OBJ_NULL;
-
-  return sym;
-}
-
 size_t
 scm_symbol_length(ScmObj sym)
 {
@@ -546,7 +528,7 @@ scm_symtbl_symbol(ScmObj tbl, ScmObj str)
 
   if (found) return sym;
 
-  sym = scm_symbol_new(SCM_MEM_HEAP, str);
+  sym = scm_fcd_symbol_new(SCM_MEM_HEAP, str);
   if (scm_obj_null_p(sym)) return SCM_OBJ_NULL;
 
   rslt = scm_chash_tbl_insert(SCM_SYMTBL(tbl)->tbl, str, sym);

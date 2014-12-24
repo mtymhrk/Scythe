@@ -19,6 +19,24 @@ scm_fcd_symbol_P(ScmObj obj)
   return scm_fcd_symbol_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
 }
 
+ScmObj
+scm_fcd_symbol_new(SCM_MEM_TYPE_T mtype, ScmObj str)
+{
+  ScmObj sym = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&str, &sym);
+
+  scm_assert_obj_type(str, &SCM_STRING_TYPE_INFO);
+
+  sym = scm_fcd_mem_alloc(&SCM_SYMBOL_TYPE_INFO, 0, mtype);
+  if (scm_obj_null_p(sym)) return SCM_OBJ_NULL;
+
+  if (scm_symbol_initialize(sym, str) < 0)
+    return SCM_OBJ_NULL;
+
+  return sym;
+}
+
 bool
 scm_fcd_symbol_eq_p(ScmObj sym1, ScmObj sym2)
 {
