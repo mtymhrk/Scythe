@@ -44,22 +44,6 @@ scm_iseq_initialize(ScmObj iseq)
   return 0;
 }
 
-ScmObj
-scm_iseq_new(SCM_MEM_TYPE_T mtype)
-{
-  ScmObj iseq = SCM_OBJ_INIT;
-
-  SCM_REFSTK_INIT_REG(&iseq);
-
-  iseq = scm_fcd_mem_alloc(&SCM_ISEQ_TYPE_INFO, 0, mtype);
-  if (scm_obj_null_p(iseq)) return SCM_OBJ_NULL;
-
-  if (scm_iseq_initialize(iseq) < 0)
-    return SCM_OBJ_NULL;
-
-  return iseq;
-}
-
 void
 scm_iseq_finalize(ScmObj obj)
 {

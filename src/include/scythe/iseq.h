@@ -41,7 +41,6 @@ struct ScmISeqRec {
 #define SCM_ISEQ_DSTS_LENGTH(obj) (EARY_SIZE(SCM_ISEQ_EARY_DSTS(obj)))
 
 int scm_iseq_initialize(ScmObj iseq);
-ScmObj scm_iseq_new(SCM_MEM_TYPE_T mtype);
 void scm_iseq_finalize(ScmObj obj);
 ssize_t scm_iseq_push_inst_noopd(ScmObj iseq, scm_opcode_t op);
 ssize_t scm_iseq_push_inst_obj(ScmObj iseq, scm_opcode_t op, ScmObj obj);

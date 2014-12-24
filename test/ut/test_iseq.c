@@ -19,11 +19,11 @@ TEST_SETUP(iseq)
 
   iseq = SCM_OBJ_NULL;
   scm_fcd_mem_register_extra_rfrn(SCM_REF_MAKE(iseq));
-  iseq = scm_iseq_new(SCM_MEM_HEAP);
+  iseq = scm_fcd_iseq_new(SCM_MEM_HEAP);
 
   iseq2 = SCM_OBJ_NULL;
   scm_fcd_mem_register_extra_rfrn(SCM_REF_MAKE(iseq2));
-  iseq2 = scm_iseq_new(SCM_MEM_HEAP);
+  iseq2 = scm_fcd_iseq_new(SCM_MEM_HEAP);
 }
 
 TEST_TEAR_DOWN(iseq)

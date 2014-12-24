@@ -6,8 +6,10 @@
 
 #include "scythe/object.h"
 #include "scythe/vminst.h"
+#include "scythe/fcd_type.h"
 
 bool scm_fcd_iseq_p(ScmObj obj);
+ScmObj scm_fcd_iseq_new(SCM_MEM_TYPE_T mtype);
 ScmObj scm_fcd_make_iseq(void);
 scm_byte_t *scm_fcd_iseq_to_ip(ScmObj iseq);
 size_t scm_fcd_iseq_length(ScmObj iseq);
