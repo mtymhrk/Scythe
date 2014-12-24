@@ -29,28 +29,6 @@ scm_syntax_initialize(ScmObj syx, ScmObj key, ScmObj handler)
   return 0;
 }
 
-ScmObj
-scm_syntax_new(SCM_MEM_TYPE_T mtype, ScmObj key, ScmObj handler)
-{
-  ScmObj syx = SCM_OBJ_INIT;
-  int rslt;
-
-  SCM_REFSTK_INIT_REG(&key, &handler,
-                      &syx);
-
-  scm_assert(scm_fcd_symbol_p(key));
-  scm_assert(scm_obj_not_null_p(handler));
-
-  syx = scm_fcd_mem_alloc(&SCM_SYNTAX_TYPE_INFO, 0, mtype);
-  if (scm_obj_null_p(syx)) return SCM_OBJ_NULL;
-
-  rslt = scm_syntax_initialize(syx, key, handler);
-  if (rslt < 0) return SCM_OBJ_NULL;
-
-  return syx;
-}
-
-
 int
 scm_syntax_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
 {

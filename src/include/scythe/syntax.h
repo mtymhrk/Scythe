@@ -21,7 +21,6 @@ struct ScmSyntaxRec {
 extern ScmTypeInfo SCM_SYNTAX_TYPE_INFO;
 
 int scm_syntax_initialize(ScmObj syx, ScmObj key, ScmObj handler);
-ScmObj scm_syntax_new(SCM_MEM_TYPE_T mtype, ScmObj key, ScmObj handler);
 
 int scm_syntax_obj_print(ScmObj obj, ScmObj port, bool ext_rep);
 void scm_syntax_gc_initialize(ScmObj obj, ScmObj mem);
