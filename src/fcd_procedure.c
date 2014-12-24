@@ -107,10 +107,31 @@ scm_fcd_closure_p(ScmObj obj)
 }
 
 ScmObj
+scm_fcd_closure_new(SCM_MEM_TYPE_T mtype,
+                    ScmObj iseq, ScmObj env, ScmObj name, int arity)
+{
+  ScmObj clsr = SCM_OBJ_INIT;
+  int rslt;
+
+  SCM_REFSTK_INIT_REG(&iseq, &env, &name,
+                      &clsr);
+
+  scm_assert(scm_fcd_iseq_p(iseq));
+
+  clsr = scm_fcd_mem_alloc(&SCM_CLOSURE_TYPE_INFO, 0, mtype);
+  if (scm_obj_null_p(clsr)) return SCM_OBJ_NULL;
+
+  rslt = scm_closure_initialize(clsr, iseq, env, name, arity);
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  return clsr;
+}
+
+ScmObj
 scm_fcd_make_closure(ScmObj iseq, ScmObj env, int arity)
 {
   scm_assert(scm_fcd_iseq_p(iseq));
-  return scm_closure_new(SCM_MEM_HEAP, iseq, env, SCM_OBJ_NULL, arity);
+  return scm_fcd_closure_new(SCM_MEM_HEAP, iseq, env, SCM_OBJ_NULL, arity);
 }
 
 ScmObj

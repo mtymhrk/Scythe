@@ -35,6 +35,8 @@ ScmObj scm_fcd_subrutine_module(ScmObj subr);
 /*******************************************************************/
 
 bool scm_fcd_closure_p(ScmObj obj);
+ScmObj scm_fcd_closure_new(SCM_MEM_TYPE_T mtype,
+                           ScmObj iseq, ScmObj env, ScmObj name, int arity);
 ScmObj scm_fcd_make_closure(ScmObj iseq, ScmObj env, int arity);
 ScmObj scm_fcd_closure_to_iseq(ScmObj clsr);
 scm_byte_t *scm_fcd_closure_to_ip(ScmObj clsr);

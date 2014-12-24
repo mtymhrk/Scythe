@@ -104,8 +104,6 @@ struct ScmClosureRec {
 
 int scm_closure_initialize(ScmObj clsr,
                            ScmObj iseq, ScmObj env, ScmObj name, int arity);
-ScmObj scm_closure_new(SCM_MEM_TYPE_T mtype,
-                       ScmObj iseq, ScmObj env, ScmObj name, int arity);
 void scm_closure_gc_initialize(ScmObj obj, ScmObj mem);
 int scm_closure_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
 

@@ -161,27 +161,6 @@ scm_closure_initialize(ScmObj clsr,
   return 0;
 }
 
-ScmObj
-scm_closure_new(SCM_MEM_TYPE_T mtype,
-                ScmObj iseq, ScmObj env, ScmObj name, int arity)
-{
-  ScmObj clsr = SCM_OBJ_INIT;
-  int rslt;
-
-  SCM_REFSTK_INIT_REG(&iseq, &env, &name,
-                      &clsr);
-
-  scm_assert(scm_fcd_iseq_p(iseq));
-
-  clsr = scm_fcd_mem_alloc(&SCM_CLOSURE_TYPE_INFO, 0, mtype);
-  if (scm_obj_null_p(clsr)) return SCM_OBJ_NULL;
-
-  rslt = scm_closure_initialize(clsr, iseq, env, name, arity);
-  if (rslt < 0) return SCM_OBJ_NULL;
-
-  return clsr;
-}
-
 void
 scm_closure_gc_initialize(ScmObj obj, ScmObj mem)
 {
