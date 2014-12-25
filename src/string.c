@@ -671,6 +671,13 @@ scm_string_set(ScmObj str, size_t pos, const scm_char_t *c)
     return 0;
   }
   else {
+    if (cw > iw &&
+        SCM_STRING_BYTESIZE(str) > SSIZE_MAX - (size_t)(cw - iw)) {
+      scm_fcd_error("failed to set a character into string: string too long",
+                    0);
+      return -1;
+    }
+
     front = scm_string_substr(str, 0, pos);
     rear = scm_string_substr(str, pos + 1, SCM_STRING_LENGTH(str) - pos - 1);
 
