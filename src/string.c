@@ -529,11 +529,17 @@ scm_string_push(ScmObj str, const scm_char_t *c)
 
   width = scm_enc_char_width(SCM_STRING_ENC(str), c, sizeof(*c));
   if (width < 0) {
-    scm_fcd_error("can not push character to string: invalid byte sequence", 0);
+    scm_fcd_error("failed to push a character into string: "
+                  "invalid byte sequence", 0);
     return -1;
   }
 
   if ((*SCM_STRING_REF_CNT(str) > 1) || ROOM_FOR_APPEND(str) < (size_t)width) {
+    if (SCM_STRING_BYTESIZE(str) > SSIZE_MAX - (size_t)width) {
+      scm_fcd_error("failed to push a character into string: string too long",
+                    0);
+      return -1;
+    }
     tmp = scm_string_copy_and_expand(str,
                                      SCM_STRING_BYTESIZE(str) + (size_t)width);
     if (scm_obj_null_p(tmp)) return -1;
