@@ -390,17 +390,7 @@ nth_pair(ScmObj lst, size_t n)
 {
   ScmObj l = SCM_OBJ_NULL;
 
-  SCM_REFSTK_INIT_REG(&l);
-
-  l = lst;
-  for (size_t i = 0; i < n; i++) {
-    if (!scm_fcd_pair_p(l)){
-      scm_fcd_error("failed to get Nth pair: out of range", 1, lst);
-      return SCM_OBJ_NULL;
-    }
-    l = scm_fcd_cdr(l);
-  }
-
+  l = scm_fcd_list_tail(lst, n);
   if (!scm_fcd_pair_p(l)) {
     scm_fcd_error("failed to get Nth pair: out of range", 1, lst);
     return SCM_OBJ_NULL;
