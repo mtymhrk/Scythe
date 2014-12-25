@@ -2,6 +2,7 @@
 
 #include "scythe/impl_utils.h"
 
+int scm_debug_print_flag = 0;
 
 void
 scm_assert_fail(const char *assertion,

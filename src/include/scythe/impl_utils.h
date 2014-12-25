@@ -31,12 +31,16 @@
 
 #include <stdio.h>
 
-#define scm_debug(...)                                           \
-  do {                                                           \
-    fprintf(stderr, "%s:%u:%s: ", __FILE__, __LINE__, __func__); \
-    fprintf(stderr, __VA_ARGS__);                                \
-    fputc('\n', stderr);                                         \
-    fflush(stderr);                                              \
+extern int scm_debug_print_flag;
+
+#define scm_debug(...)                                                  \
+  do {                                                                  \
+    if (scm_debug_print_flag) {                                         \
+      fprintf(stderr, "%s:%u:%s: ", __FILE__, __LINE__, __func__);      \
+      fprintf(stderr, __VA_ARGS__);                                     \
+      fputc('\n', stderr);                                              \
+      fflush(stderr);                                                   \
+    }                                                                   \
   } while (0)
 
 static inline void
