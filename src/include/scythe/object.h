@@ -508,34 +508,16 @@ scm_obj_type_extra(ScmObj obj)
 }
 
 
-#ifdef SCM_DEBUG
-
-#define scm_assert(...) assert(__VA_ARGS__)
-
-static inline void
-scm_assert_obj_type(ScmObj obj, ScmTypeInfo *type)
-{
-  scm_assert(scm_obj_not_null_p(obj));
-  scm_assert(scm_obj_type_p(obj, type));
-}
-
-static inline void
-scm_assert_obj_type_accept_null(ScmObj obj, ScmTypeInfo *type)
-{
-  scm_assert(scm_obj_null_p(obj) || scm_obj_type_p(obj, type));
-}
-
-#else  /* !SCM_DEBUG */
-
-#define scm_assert(...)
-#define scm_assert_obj_type(x, y)
-#define scm_assert_obj_type_accept_null(x, y)
-
-#endif  /* SCM_DEBUG */
+#define scm_assert_obj_type(obj, type)          \
+  do {                                          \
+    scm_assert(scm_obj_not_null_p(obj));        \
+    scm_assert(scm_obj_type_p(obj, type));      \
+  } while(0)
 
 
-/* #define scm_assert_obj_type_accept_null(obj, type) \ */
-/*   scm_assert(scm_obj_null_p(obj) || scm_obj_type_p(obj, type)) */
+#define scm_assert_obj_type_accept_null(obj, type)      \
+  scm_assert(scm_obj_null_p(obj) || scm_obj_type_p(obj, type))
+
 
 static inline void
 scm_obj_init(ScmObj obj, ScmTypeInfo *type)

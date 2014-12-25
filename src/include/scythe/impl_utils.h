@@ -2,7 +2,6 @@
 #define INCLUDE_IMPL_UTILS_H__
 
 #include <limits.h>
-#include <assert.h>
 #include <stdlib.h>
 #include <errno.h>
 
@@ -65,5 +64,22 @@ scm_log_ul(unsigned long b, unsigned long x)
     z /= b;
   return i;
 }
+
+void scm_assert_fail(const char *assertion,
+                     const char *file, unsigned int line, const char *function)
+  __attribute__((noreturn));
+
+#ifdef SCM_DEBUG
+
+#define scm_assert(expr)                                        \
+  ((expr)                                                       \
+   ? (void)(0)                                                  \
+   : scm_assert_fail(#expr, __FILE__, __LINE__, __func__))
+
+#else  /* !SCM_DEBUG */
+
+#define scm_assert(...)
+
+#endif  /* SCM_DEBUG */
 
 #endif /* INCLUDE_IMPL_UTILS_H__ */
