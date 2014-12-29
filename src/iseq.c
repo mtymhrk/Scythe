@@ -385,6 +385,7 @@ scm_iseq_gc_initialize(ScmObj obj, ScmObj mem)
 
   eary_init(SCM_ISEQ_EARY_SEQ(obj), 0, 0);
   eary_init(SCM_ISEQ_EARY_OBJS(obj), 0, 0);
+  eary_init(SCM_ISEQ_EARY_DSTS(obj), 0, 0);
 }
 
 void
