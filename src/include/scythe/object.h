@@ -214,6 +214,7 @@ typedef struct ScmObjPrintHandlerBodyRec ScmObjPrintHandlerBody;
 typedef ScmObjPrintHandlerBody *ScmObjPrintHandler;
 
 struct ScmObjPrintHandlerBodyRec {
+  bool (*interesting_p)(ScmObj obj);
   int (*print_obj)(ScmObjPrintHandler handler,
                    ScmObj obj, ScmObj port, int kind);
   int (*print_list)(ScmObjPrintHandler handler,

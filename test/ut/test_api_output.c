@@ -186,6 +186,28 @@ test_api_display(ScmObj port, int type)
 }
 
 static void
+test_api_display__write_shared_structure(ScmObj port, int type)
+{
+  const char *expected = "#0=(#t . #0#)";
+  ScmObj o = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&port,
+                      &o);
+
+  o = scm_fcd_cons(SCM_TRUE_OBJ, SCM_FALSE_OBJ);
+  scm_fcd_set_cdr_i(o, o);
+
+  TEST_ASSERT_SCM_EQ(SCM_UNDEF_OBJ, scm_api_display(o, port));
+
+  scm_api_close_port(port);
+
+  if (type == FILEPORT)
+    chk_file_contents(expected);
+  else if (type == STRINGPORT)
+    chk_string_port_contents(port, expected);
+}
+
+static void
 test_api_display__specify_closed_port__return_ERROR(ScmObj port, int type)
 {
   ScmObj o = SCM_OBJ_INIT;
@@ -425,6 +447,16 @@ TEST(api_output, file_port__api_display)
 TEST(api_output, string_port__api_display)
 {
   test_api_display(string_port, STRINGPORT);
+}
+
+TEST(api_output, file_port__api_display__write_shared_structure)
+{
+  test_api_display__write_shared_structure(file_port, FILEPORT);
+}
+
+TEST(api_output, string_port__api_display__write_shared_structure)
+{
+  test_api_display__write_shared_structure(string_port, STRINGPORT);
 }
 
 TEST(api_output, file_port__api_display__specify_closed_port__return_ERROR)

@@ -739,15 +739,6 @@ default_output_port(bool textual, bool binary)
   return val;
 }
 
-static bool
-ws_interesting_p(ScmObj obj)
-{
-  return (scm_fcd_pair_p(obj)
-          || scm_fcd_string_p(obj)
-          || scm_fcd_vector_p(obj)
-          || scm_fcd_bytevector_p(obj));
-}
-
 static ScmObj
 ws_acons(ScmObj car, ScmObj cdr, ScmObj alist)
 {
@@ -767,16 +758,17 @@ ws_acons(ScmObj car, ScmObj cdr, ScmObj alist)
 }
 
 static ScmObj
-ws_scan_internal(ScmObj obj, ScmObj alist)
+ws_scan_internal(ScmObj obj, bool (*interesting_p)(ScmObj), ScmObj alist)
 {
   ScmObj pair = SCM_OBJ_INIT, elm = SCM_OBJ_INIT;
 
+  scm_assert(interesting_p != NULL);
   scm_assert(scm_fcd_pair_p(alist) || scm_fcd_nil_p(alist));
 
   SCM_REFSTK_INIT_REG(&obj, &alist,
                       &pair, &elm);
 
-  if (!ws_interesting_p(obj))
+  if (!interesting_p(obj))
     return alist;
 
   pair = scm_fcd_assq(obj, alist);
@@ -792,17 +784,17 @@ ws_scan_internal(ScmObj obj, ScmObj alist)
 
   if (scm_fcd_pair_p(obj)) {
     elm = scm_fcd_cdr(obj);
-    alist = ws_scan_internal(elm, alist);
+    alist = ws_scan_internal(elm, interesting_p, alist);
     if (scm_obj_null_p(alist)) return SCM_OBJ_NULL;
 
     elm = scm_fcd_car(obj);
-    return ws_scan_internal(elm, alist);
+    return ws_scan_internal(elm, interesting_p, alist);
   }
   else if (scm_fcd_vector_p(obj)) {
     size_t len = scm_fcd_vector_length(obj);
     for (size_t i = 0; i < len; i++) {
       elm = scm_fcd_vector_ref(obj, i);
-      alist = ws_scan_internal(elm, alist);
+      alist = ws_scan_internal(elm, interesting_p, alist);
       if (scm_obj_null_p(alist)) return SCM_OBJ_NULL;
     }
     return alist;
@@ -813,11 +805,11 @@ ws_scan_internal(ScmObj obj, ScmObj alist)
 }
 
 static ScmObj
-ws_scan(ScmObj obj)
+ws_scan(ScmObj obj, bool (*interesting_p)(ScmObj))
 {
   ScmObj alist = SCM_OBJ_INIT;
 
-  alist = ws_scan_internal(obj, SCM_NIL_OBJ);
+  alist = ws_scan_internal(obj, interesting_p, SCM_NIL_OBJ);
   if (scm_obj_null_p(alist)) return SCM_OBJ_NULL;
 
   return ws_acons(SCM_EOF_OBJ, SCM_FIXNUM_NN_1, alist);
@@ -893,14 +885,32 @@ ws_print_shared_use(ScmObj num, ScmObj port)
   return 0;
 }
 
+static bool
+obj_print_handler_interesting_p_shared(ScmObj obj)
+{
+  return (scm_fcd_pair_p(obj)
+          || scm_fcd_string_p(obj)
+          || scm_fcd_vector_p(obj)
+          || scm_fcd_bytevector_p(obj));
+}
+
+static bool
+obj_print_handler_interesting_p_display(ScmObj obj)
+{
+  return (scm_fcd_pair_p(obj)
+          || scm_fcd_vector_p(obj));
+}
+
 static int
 obj_print_handler_print_obj_shared(ScmObjPrintHandler handler,
                                    ScmObj obj, ScmObj port, int kind)
 {
   ScmObj alist = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
+  bool (*interesting_p)(ScmObj);
 
   alist = SCM_OBJ_PRINT_HANDLER_BODY(handler)->val;
-  if (ws_interesting_p(obj)) {
+  interesting_p = SCM_OBJ_PRINT_HANDLER_BODY(handler)->interesting_p;
+  if (interesting_p(obj)) {
     val = scm_fcd_cdr(scm_fcd_assq(obj, alist));
     if (scm_fcd_number_p(val))
       return ws_print_shared_use(val, port);
@@ -918,12 +928,7 @@ obj_print_handler_print_obj_simple(ScmObjPrintHandler handler,
   return scm_obj_call_print_func(obj, port, kind, handler);
 }
 
-static int
-obj_print_handler_print_obj_display(ScmObjPrintHandler handler,
-                                    ScmObj obj, ScmObj port, int kind)
-{
-  return scm_obj_call_print_func(obj, port, kind, handler);
-}
+#define obj_print_handler_print_obj_display obj_print_handler_print_obj_shared
 
 static int
 obj_print_handler_print_list(ScmObjPrintHandler handler,
@@ -931,6 +936,7 @@ obj_print_handler_print_list(ScmObjPrintHandler handler,
 {
   ScmObj lst = SCM_OBJ_INIT, car = SCM_OBJ_INIT, cdr = SCM_OBJ_INIT;
   ScmObj alist = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
+  bool (*interesting_p)(ScmObj);
   int rslt;
 
   SCM_REFSTK_INIT_REG(&obj, &port,
@@ -938,6 +944,9 @@ obj_print_handler_print_list(ScmObjPrintHandler handler,
                       &alist, &val);
 
   scm_assert(scm_fcd_pair_p(obj));
+
+  alist = SCM_OBJ_PRINT_HANDLER_BODY(handler)->val;
+  interesting_p = SCM_OBJ_PRINT_HANDLER_BODY(handler)->interesting_p;
 
   rslt = scm_fcd_write_cstr("(", SCM_ENC_SRC, port);
   if (rslt < 0) return -1;
@@ -961,7 +970,7 @@ obj_print_handler_print_list(ScmObjPrintHandler handler,
       if (rslt < 0) return -1;
       break;
     }
-    else if (kind == SCM_OBJ_PRINT_SHARED && ws_interesting_p(cdr)) {
+    else if (kind != SCM_OBJ_PRINT_SIMPLE && interesting_p(cdr)) {
       alist = SCM_OBJ_PRINT_HANDLER_BODY(handler)->val;
       val = scm_fcd_cdr(scm_fcd_assq(cdr, alist));
       if (scm_fcd_true_p(val)) {
@@ -994,6 +1003,7 @@ int
 scm_fcd_write_shared(ScmObj obj, ScmObj port)
 {
   ScmObjPrintHandlerBody handler = {
+    .interesting_p = obj_print_handler_interesting_p_shared,
     .print_obj = obj_print_handler_print_obj_shared,
     .print_list = obj_print_handler_print_list,
     .val = SCM_OBJ_NULL
@@ -1017,7 +1027,7 @@ scm_fcd_write_shared(ScmObj obj, ScmObj port)
     return -1;
   }
 
-  handler.val = ws_scan(obj);
+  handler.val = ws_scan(obj, handler.interesting_p);
   if (scm_obj_null_p(handler.val)) return -1;
 
   rslt = SCM_OBJ_PRINT_HANDLER_PRINT_OBJ(SCM_OBJ_PRINT_MAKE_HANDLER(handler),
@@ -1031,6 +1041,7 @@ int
 scm_fcd_write_simple(ScmObj obj, ScmObj port)
 {
   ScmObjPrintHandlerBody handler = {
+    .interesting_p = NULL,
     .print_obj = obj_print_handler_print_obj_simple,
     .print_list = obj_print_handler_print_list,
     .val = SCM_OBJ_NULL
@@ -1071,13 +1082,12 @@ int
 scm_fcd_display(ScmObj obj, ScmObj port)
 {
   ScmObjPrintHandlerBody handler = {
+    .interesting_p = obj_print_handler_interesting_p_display,
     .print_obj = obj_print_handler_print_obj_display,
     .print_list = obj_print_handler_print_list,
     .val = SCM_OBJ_NULL
   };
   int rslt;
-
-  /* TODO: obj の構造が循環していても無限ループにならないようにする */
 
   SCM_REFSTK_INIT_REG(&obj, &port);
 
@@ -1094,6 +1104,9 @@ scm_fcd_display(ScmObj obj, ScmObj port)
     scm_fcd_error("failed to write a object: output-port closed", 1, port);
     return -1;
   }
+
+  handler.val = ws_scan(obj, handler.interesting_p);
+  if (scm_obj_null_p(handler.val)) return -1;
 
   rslt = SCM_OBJ_PRINT_HANDLER_PRINT_OBJ(SCM_OBJ_PRINT_MAKE_HANDLER(handler),
                                          obj, port, SCM_OBJ_PRINT_DISPLAY);
