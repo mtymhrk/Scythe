@@ -528,6 +528,7 @@ int scm_subr_func_open_input_file(ScmObj subr, int argc, const ScmObj *argv);
 #define SCM_SUBR_ARITY_READ -1
 #define SCM_SUBR_ARITY_WRITE -2
 #define SCM_SUBR_ARITY_WRITE_SHARED -2
+#define SCM_SUBR_ARITY_WRITE_SIMPLE -2
 #define SCM_SUBR_ARITY_DISPLAY -2
 #define SCM_SUBR_ARITY_NEWLINE -1
 #define SCM_SUBR_ARITY_FLUSH_OUTPUT_PORT -1
@@ -536,6 +537,7 @@ int scm_subr_func_open_input_file(ScmObj subr, int argc, const ScmObj *argv);
 #define SCM_SUBR_FLAG_READ 0
 #define SCM_SUBR_FLAG_WRITE 0
 #define SCM_SUBR_FLAG_WRITE_SHARED 0
+#define SCM_SUBR_FLAG_WRITE_SIMPLE 0
 #define SCM_SUBR_FLAG_DISPLAY 0
 #define SCM_SUBR_FLAG_NEWLINE 0
 #define SCM_SUBR_FLAG_FLUSH_OUTPUT_PORT 0
@@ -544,6 +546,7 @@ int scm_subr_func_open_input_file(ScmObj subr, int argc, const ScmObj *argv);
 int scm_subr_func_read(ScmObj subr, int argc, const ScmObj *argv);
 int scm_subr_func_write(ScmObj subr, int argc, const ScmObj *argv);
 int scm_subr_func_write_shared(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_write_simple(ScmObj subr, int argc, const ScmObj *argv);
 int scm_subr_func_display(ScmObj subr, int argc, const ScmObj *argv);
 int scm_subr_func_newline(ScmObj subr, int argc, const ScmObj *argv);
 int scm_subr_func_flush_output_port(ScmObj subr, int argc, const ScmObj *argv);

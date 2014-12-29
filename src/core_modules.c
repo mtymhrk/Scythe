@@ -284,6 +284,7 @@ scm_define_scheme_base_subr(ScmObj module)
     { "read", SCM_SUBR_ARITY_READ, SCM_SUBR_FLAG_READ, scm_subr_func_read, true },
     { "write", SCM_SUBR_ARITY_WRITE, SCM_SUBR_FLAG_WRITE, scm_subr_func_write, true },
     { "write-shared", SCM_SUBR_ARITY_WRITE_SHARED, SCM_SUBR_FLAG_WRITE_SHARED, scm_subr_func_write_shared, true },
+    { "write-simple", SCM_SUBR_ARITY_WRITE_SIMPLE, SCM_SUBR_FLAG_WRITE_SIMPLE, scm_subr_func_write_simple, true },
     { "display", SCM_SUBR_ARITY_DISPLAY, SCM_SUBR_FLAG_DISPLAY, scm_subr_func_display, true },
     { "newline", SCM_SUBR_ARITY_NEWLINE, SCM_SUBR_FLAG_NEWLINE, scm_subr_func_newline, true },
     { "flush-output-port", SCM_SUBR_ARITY_FLUSH_OUTPUT_PORT, SCM_SUBR_FLAG_FLUSH_OUTPUT_PORT, scm_subr_func_flush_output_port, true },
