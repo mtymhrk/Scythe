@@ -737,7 +737,7 @@ scm_fcd_mul_lst(ScmObj lst)
   scm_assert(scm_fcd_nil_p(lst) || scm_fcd_pair_p(lst));
 
   if (scm_fcd_nil_p(lst))
-    return SCM_FIXNUM_ONE;
+    return SCM_FIXNUM_PN_1;
   else
     return num_bop_fold(lst, scm_fcd_mul);
 }
