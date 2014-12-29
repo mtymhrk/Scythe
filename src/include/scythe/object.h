@@ -214,11 +214,21 @@ typedef struct ScmObjPrintHandlerBodyRec ScmObjPrintHandlerBody;
 typedef ScmObjPrintHandlerBody *ScmObjPrintHandler;
 
 struct ScmObjPrintHandlerBodyRec {
-  int (*print)(ScmObjPrintHandler handler, ScmObj obj, ScmObj port, int kind);
+  int (*print_obj)(ScmObjPrintHandler handler,
+                   ScmObj obj, ScmObj port, int kind);
+  int (*print_list)(ScmObjPrintHandler handler,
+                    ScmObj obj, ScmObj port, int kind);
   ScmObj val;
 };
 
 #define SCM_OBJ_PRINT_MAKE_HANDLER(body) (&(body))
+
+#define SCM_OBJ_PRINT_HANDLER_PRINT_OBJ(handler, obj, port, kind) \
+  ((handler)->print_obj(handler, obj, port, kind))
+
+#define SCM_OBJ_PRINT_HANDLER_PRINT_LIST(handler, obj, port, kind) \
+  ((handler)->print_list(handler, obj, port, kind))
+
 
 typedef int (*ScmObjPrintFunc)(ScmObj obj, ScmObj port, int kind,
                                ScmObjPrintHandler handler);
@@ -227,10 +237,6 @@ int scm_obj_print_func_nameonly(ScmObj obj, ScmObj port, int kind,
                                 ScmObjPrintHandler handker);
 int scm_obj_default_print_func(ScmObj obj, ScmObj port, int kind,
                                ScmObjPrintHandler handler);
-
-
-#define SCM_OBJ_PRINT_HANDLER_PRINT(handler, obj, port, kind) \
-  ((handler)->print(handler, obj, port, kind))
 
 
 /** definition for GC ********************************************************/

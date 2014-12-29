@@ -213,7 +213,7 @@ scm_vector_obj_print(ScmObj obj, ScmObj port, int kind,
 
   if (SCM_VECTOR_LENGTH(obj) > 0) {
     for (idx = 0; idx < SCM_VECTOR_LENGTH(obj) - 1; idx++) {
-      rslt = SCM_OBJ_PRINT_HANDLER_PRINT(handler,
+      rslt = SCM_OBJ_PRINT_HANDLER_PRINT_OBJ(handler,
                                         SCM_VECTOR_ARRAY(obj)[idx], port, kind);
       if (rslt < 0) return -1;
 
@@ -221,7 +221,7 @@ scm_vector_obj_print(ScmObj obj, ScmObj port, int kind,
       if (rslt < 0) return -1;
     }
 
-    rslt = SCM_OBJ_PRINT_HANDLER_PRINT(handler,
+    rslt = SCM_OBJ_PRINT_HANDLER_PRINT_OBJ(handler,
                                       SCM_VECTOR_ARRAY(obj)[idx], port, kind);
     if (rslt < 0) return -1;
   }

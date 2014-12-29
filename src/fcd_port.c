@@ -740,25 +740,78 @@ default_output_port(bool textual, bool binary)
 }
 
 static int
-obj_print_handler_simple(ScmObjPrintHandler handler,
-                         ScmObj obj, ScmObj port, int kind)
+obj_print_handler_print_obj_simple(ScmObjPrintHandler handler,
+                                   ScmObj obj, ScmObj port, int kind)
 {
   return scm_obj_call_print_func(obj, port, kind, handler);
 }
 
 static int
-obj_print_handler_display(ScmObjPrintHandler handler,
-                          ScmObj obj, ScmObj port, int kind)
+obj_print_handler_print_obj_display(ScmObjPrintHandler handler,
+                                    ScmObj obj, ScmObj port, int kind)
 {
   return scm_obj_call_print_func(obj, port, kind, handler);
 }
 
+static int
+obj_print_handler_print_list(ScmObjPrintHandler handler,
+                             ScmObj obj, ScmObj port, int kind)
+{
+  ScmObj lst = SCM_OBJ_INIT, car = SCM_OBJ_INIT, cdr = SCM_OBJ_INIT;
+  int rslt;
+
+  SCM_REFSTK_INIT_REG(&obj, &port, &lst, &car, &cdr);
+
+  scm_assert(scm_fcd_pair_p(obj));
+
+  rslt = scm_fcd_write_cstr("(", SCM_ENC_SRC, port);
+  if (rslt < 0) return -1;
+
+  lst = obj;
+  while (1) {
+    car = scm_fcd_car(lst);
+    cdr = scm_fcd_cdr(lst);
+
+    if (scm_fcd_nil_p(cdr)) {
+      rslt = SCM_OBJ_PRINT_HANDLER_PRINT_OBJ(handler, car, port, kind);
+      if (rslt < 0) return -1;
+      break;
+    }
+    else if (!scm_fcd_pair_p(cdr)) {
+      rslt = SCM_OBJ_PRINT_HANDLER_PRINT_OBJ(handler, car, port, kind);
+      if (rslt < 0) return -1;
+
+      rslt = scm_fcd_write_cstr(" . ", SCM_ENC_SRC, port);
+      if (rslt < 0) return -1;
+
+      rslt = SCM_OBJ_PRINT_HANDLER_PRINT_OBJ(handler, cdr, port, kind);
+      if (rslt < 0) return -1;
+      break;
+    }
+
+    rslt = SCM_OBJ_PRINT_HANDLER_PRINT_OBJ(handler, car, port, kind);
+    if (rslt < 0) return -1;
+
+    rslt = scm_fcd_write_cstr(" ", SCM_ENC_SRC, port);
+    if (rslt < 0) return -1;
+
+    lst = cdr;
+  }
+
+  rslt = scm_fcd_write_cstr(")", SCM_ENC_SRC, port);
+  if (rslt < 0) return -1;
+
+  return 0;
+}
 
 int
 scm_fcd_write_simple(ScmObj obj, ScmObj port)
 {
-  ScmObjPrintHandlerBody handler = { .print = obj_print_handler_simple,
-                                     .val = SCM_OBJ_NULL };
+  ScmObjPrintHandlerBody handler = {
+    .print_obj = obj_print_handler_print_obj_simple,
+    .print_list = obj_print_handler_print_list,
+    .val = SCM_OBJ_NULL
+  };
   int rslt;
 
   SCM_REFSTK_INIT_REG(&obj, &port);
@@ -777,8 +830,8 @@ scm_fcd_write_simple(ScmObj obj, ScmObj port)
     return -1;
   }
 
-  rslt = SCM_OBJ_PRINT_HANDLER_PRINT(SCM_OBJ_PRINT_MAKE_HANDLER(handler),
-                                     obj, port, SCM_OBJ_PRINT_SIMPLE);
+  rslt = SCM_OBJ_PRINT_HANDLER_PRINT_OBJ(SCM_OBJ_PRINT_MAKE_HANDLER(handler),
+                                         obj, port, SCM_OBJ_PRINT_SIMPLE);
   if (rslt < 0) return -1;
 
   return 0;
@@ -794,8 +847,11 @@ scm_fcd_write(ScmObj obj, ScmObj port)
 int
 scm_fcd_display(ScmObj obj, ScmObj port)
 {
-  ScmObjPrintHandlerBody handler = { .print = obj_print_handler_display,
-                                     .val = SCM_OBJ_NULL };
+  ScmObjPrintHandlerBody handler = {
+    .print_obj = obj_print_handler_print_obj_display,
+    .print_list = obj_print_handler_print_list,
+    .val = SCM_OBJ_NULL
+  };
   int rslt;
 
   /* TODO: obj の構造が循環していても無限ループにならないようにする */
@@ -816,8 +872,8 @@ scm_fcd_display(ScmObj obj, ScmObj port)
     return -1;
   }
 
-  rslt = SCM_OBJ_PRINT_HANDLER_PRINT(SCM_OBJ_PRINT_MAKE_HANDLER(handler),
-                                     obj, port, SCM_OBJ_PRINT_DISPLAY);
+  rslt = SCM_OBJ_PRINT_HANDLER_PRINT_OBJ(SCM_OBJ_PRINT_MAKE_HANDLER(handler),
+                                         obj, port, SCM_OBJ_PRINT_DISPLAY);
   if (rslt < 0) return -1;
 
   return 0;
