@@ -2156,8 +2156,8 @@ scm_subr_func_display(ScmObj subr, int argc, const ScmObj *argv)
                       &port, &val);
 
   port = SCM_OBJ_NULL;
-  if (scm_fcd_pair_p(argv[0])) {
-    port = scm_fcd_car(argv[0]);
+  if (scm_fcd_pair_p(argv[1])) {
+    port = scm_fcd_car(argv[1]);
     if (scm_obj_null_p(port)) return -1;
   }
 
