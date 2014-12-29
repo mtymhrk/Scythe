@@ -1916,6 +1916,33 @@ scm_api_read_string(ScmObj n, ScmObj port)
 /*******************************************************************/
 
 ScmObj
+scm_api_write_shared(ScmObj obj, ScmObj port)
+{
+  int rslt;
+
+  if (scm_obj_null_p(obj)) {
+    scm_capi_error("write-shared: invalid argument", 1, obj);
+    return SCM_OBJ_NULL;
+  }
+
+  if (scm_obj_not_null_p(port)) {
+    if (!scm_fcd_output_port_p(port)) {
+      scm_capi_error("write-shared: output-port required, but got", 1, port);
+      return SCM_OBJ_NULL;
+    }
+    else if (!scm_fcd_textual_port_p(port)) {
+      scm_capi_error("write-shared: textual-port required, but got", 1, port);
+      return SCM_OBJ_NULL;
+    }
+  }
+
+  rslt = scm_fcd_write_shared(obj, port);
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  return SCM_UNDEF_OBJ;
+}
+
+ScmObj
 scm_api_write(ScmObj obj, ScmObj port)
 {
   /* TODO: write me */

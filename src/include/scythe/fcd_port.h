@@ -72,6 +72,7 @@ ssize_t scm_fcd_read_cbytes(void *buf, size_t size, ScmObj port);
 /*  Output                                                         */
 /*******************************************************************/
 
+int scm_fcd_write_shared(ScmObj obj, ScmObj port);
 int scm_fcd_write_simple(ScmObj obj, ScmObj port);
 int scm_fcd_write(ScmObj obj, ScmObj port);
 int scm_fcd_display(ScmObj obj, ScmObj port);

@@ -739,6 +739,178 @@ default_output_port(bool textual, bool binary)
   return val;
 }
 
+static bool
+ws_interesting_p(ScmObj obj)
+{
+  return (scm_fcd_pair_p(obj)
+          || scm_fcd_string_p(obj)
+          || scm_fcd_vector_p(obj)
+          || scm_fcd_bytevector_p(obj));
+}
+
+static ScmObj
+ws_acons(ScmObj car, ScmObj cdr, ScmObj alist)
+{
+  ScmObj pair = SCM_OBJ_INIT;
+
+  scm_assert(scm_obj_not_null_p(car));
+  scm_assert(scm_obj_not_null_p(cdr));
+  scm_assert(scm_fcd_pair_p(alist) || scm_fcd_nil_p(alist));
+
+  SCM_REFSTK_INIT_REG(&car, &cdr, &alist,
+                      &pair);
+
+  pair = scm_fcd_cons(car, cdr);
+  if (scm_obj_null_p(pair)) return SCM_OBJ_NULL;
+
+  return scm_fcd_cons(pair, alist);
+}
+
+static ScmObj
+ws_scan_internal(ScmObj obj, ScmObj alist)
+{
+  ScmObj pair = SCM_OBJ_INIT, elm = SCM_OBJ_INIT;
+
+  scm_assert(scm_fcd_pair_p(alist) || scm_fcd_nil_p(alist));
+
+  SCM_REFSTK_INIT_REG(&obj, &alist,
+                      &pair, &elm);
+
+  if (!ws_interesting_p(obj))
+    return alist;
+
+  pair = scm_fcd_assq(obj, alist);
+  if (scm_fcd_true_p(pair)) {
+    if (scm_fcd_true_p(scm_fcd_cdr(pair)))
+      return alist;
+    else
+      return ws_acons(obj, SCM_TRUE_OBJ, alist);
+  }
+
+  alist = ws_acons(obj, SCM_FALSE_OBJ, alist);
+  if (scm_obj_null_p(alist)) return SCM_OBJ_NULL;
+
+  if (scm_fcd_pair_p(obj)) {
+    elm = scm_fcd_cdr(obj);
+    alist = ws_scan_internal(elm, alist);
+    if (scm_obj_null_p(alist)) return SCM_OBJ_NULL;
+
+    elm = scm_fcd_car(obj);
+    return ws_scan_internal(elm, alist);
+  }
+  else if (scm_fcd_vector_p(obj)) {
+    size_t len = scm_fcd_vector_length(obj);
+    for (size_t i = 0; i < len; i++) {
+      elm = scm_fcd_vector_ref(obj, i);
+      alist = ws_scan_internal(elm, alist);
+      if (scm_obj_null_p(alist)) return SCM_OBJ_NULL;
+    }
+    return alist;
+  }
+  else {
+    return alist;
+  }
+}
+
+static ScmObj
+ws_scan(ScmObj obj)
+{
+  ScmObj alist = SCM_OBJ_INIT;
+
+  alist = ws_scan_internal(obj, SCM_NIL_OBJ);
+  if (scm_obj_null_p(alist)) return SCM_OBJ_NULL;
+
+  return ws_acons(SCM_EOF_OBJ, SCM_FIXNUM_NN_1, alist);
+}
+
+static int
+ws_extract_counter(ScmObj alist, scm_sword_t *n)
+{
+  ScmObj num = SCM_OBJ_INIT;
+
+  scm_assert(scm_fcd_pair_p(alist) || scm_fcd_nil_p(alist));
+  scm_assert(n != NULL);
+
+  num = scm_fcd_cxr(alist, "da");
+  return scm_fcd_integer_to_sword(num, n);
+}
+
+static int
+ws_print_shared_dec(ScmObj obj, ScmObj port, int kind,
+                    ScmObjPrintHandler handler)
+{
+  ScmObj alist = SCM_OBJ_INIT, num = SCM_OBJ_INIT;
+  char str[64];
+  scm_sword_t n;
+  int r;
+
+  SCM_REFSTK_INIT_REG(&obj, &port,
+                      &alist);
+
+  alist = SCM_OBJ_PRINT_HANDLER_BODY(handler)->val;
+  scm_assert(scm_fcd_pair_p(alist) || scm_fcd_nil_p(alist));
+
+  r = ws_extract_counter(alist, &n);
+  if (r < 0) return -1;
+
+  if (n >= SCM_SWORD_MAX) {
+    scm_fcd_error("failed to print shared structure object: "
+                  "too many shared object", 0);
+    return -1;
+  }
+
+  snprintf(str, sizeof(str), "#%lu=", ++n);
+  r = scm_fcd_write_cstr(str, SCM_ENC_SRC, port);
+  if (r < 0) return -1;
+
+  num = scm_fcd_make_number_from_sword(n);
+  if (scm_obj_null_p(num)) return -1;
+
+  alist = ws_acons(obj, num, alist);
+  if (scm_obj_null_p(alist)) return -1;
+
+  SCM_OBJ_PRINT_HANDLER_BODY(handler)->val = alist;
+
+  return scm_obj_call_print_func(obj, port, kind, handler);
+}
+
+static int
+ws_print_shared_use(ScmObj num, ScmObj port)
+{
+  char str[64];
+  size_t n;
+  int r;
+
+  scm_assert(scm_fcd_integer_p(num));
+
+  r = scm_fcd_integer_to_size_t(num, &n);
+  if (r < 0) return -1;
+
+  snprintf(str, sizeof(str), "#%lu#", n);
+  r = scm_fcd_write_cstr(str, SCM_ENC_SRC, port);
+  if (r < 0) return -1;
+
+  return 0;
+}
+
+static int
+obj_print_handler_print_obj_shared(ScmObjPrintHandler handler,
+                                   ScmObj obj, ScmObj port, int kind)
+{
+  ScmObj alist = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
+
+  alist = SCM_OBJ_PRINT_HANDLER_BODY(handler)->val;
+  if (ws_interesting_p(obj)) {
+    val = scm_fcd_cdr(scm_fcd_assq(obj, alist));
+    if (scm_fcd_number_p(val))
+      return ws_print_shared_use(val, port);
+    else if (scm_fcd_true_p(val))
+      return ws_print_shared_dec(obj, port, kind, handler);
+  }
+
+  return scm_obj_call_print_func(obj, port, kind, handler);
+}
+
 static int
 obj_print_handler_print_obj_simple(ScmObjPrintHandler handler,
                                    ScmObj obj, ScmObj port, int kind)
@@ -758,9 +930,12 @@ obj_print_handler_print_list(ScmObjPrintHandler handler,
                              ScmObj obj, ScmObj port, int kind)
 {
   ScmObj lst = SCM_OBJ_INIT, car = SCM_OBJ_INIT, cdr = SCM_OBJ_INIT;
+  ScmObj alist = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
   int rslt;
 
-  SCM_REFSTK_INIT_REG(&obj, &port, &lst, &car, &cdr);
+  SCM_REFSTK_INIT_REG(&obj, &port,
+                      &lst, &car, &cdr,
+                      &alist, &val);
 
   scm_assert(scm_fcd_pair_p(obj));
 
@@ -772,15 +947,13 @@ obj_print_handler_print_list(ScmObjPrintHandler handler,
     car = scm_fcd_car(lst);
     cdr = scm_fcd_cdr(lst);
 
+    rslt = SCM_OBJ_PRINT_HANDLER_PRINT_OBJ(handler, car, port, kind);
+    if (rslt < 0) return -1;
+
     if (scm_fcd_nil_p(cdr)) {
-      rslt = SCM_OBJ_PRINT_HANDLER_PRINT_OBJ(handler, car, port, kind);
-      if (rslt < 0) return -1;
       break;
     }
     else if (!scm_fcd_pair_p(cdr)) {
-      rslt = SCM_OBJ_PRINT_HANDLER_PRINT_OBJ(handler, car, port, kind);
-      if (rslt < 0) return -1;
-
       rslt = scm_fcd_write_cstr(" . ", SCM_ENC_SRC, port);
       if (rslt < 0) return -1;
 
@@ -788,9 +961,22 @@ obj_print_handler_print_list(ScmObjPrintHandler handler,
       if (rslt < 0) return -1;
       break;
     }
+    else if (kind == SCM_OBJ_PRINT_SHARED && ws_interesting_p(cdr)) {
+      alist = SCM_OBJ_PRINT_HANDLER_BODY(handler)->val;
+      val = scm_fcd_cdr(scm_fcd_assq(cdr, alist));
+      if (scm_fcd_true_p(val)) {
+        rslt = scm_fcd_write_cstr(" . ", SCM_ENC_SRC, port);
+        if (rslt < 0) return -1;
 
-    rslt = SCM_OBJ_PRINT_HANDLER_PRINT_OBJ(handler, car, port, kind);
-    if (rslt < 0) return -1;
+        if (scm_fcd_number_p(val))
+          rslt = ws_print_shared_use(val, port);
+        else
+          rslt = ws_print_shared_dec(cdr, port, kind, handler);
+
+        if (rslt < 0) return -1;
+        break;
+      }
+    }
 
     rslt = scm_fcd_write_cstr(" ", SCM_ENC_SRC, port);
     if (rslt < 0) return -1;
@@ -799,6 +985,43 @@ obj_print_handler_print_list(ScmObjPrintHandler handler,
   }
 
   rslt = scm_fcd_write_cstr(")", SCM_ENC_SRC, port);
+  if (rslt < 0) return -1;
+
+  return 0;
+}
+
+int
+scm_fcd_write_shared(ScmObj obj, ScmObj port)
+{
+  ScmObjPrintHandlerBody handler = {
+    .print_obj = obj_print_handler_print_obj_shared,
+    .print_list = obj_print_handler_print_list,
+    .val = SCM_OBJ_NULL
+  };
+  int rslt;
+
+  SCM_REFSTK_INIT_REG(&obj, &port,
+                      &handler.val);
+
+  if (scm_obj_null_p(port)) {
+    port = default_output_port(true, false);
+    if (scm_obj_null_p(port)) return -1;
+  }
+
+  scm_assert(scm_obj_not_null_p(obj));
+  scm_assert(scm_fcd_output_port_p(port));
+  scm_assert(scm_fcd_textual_port_p(port));
+
+  if (scm_port_closed_p(port)) {
+    scm_fcd_error("failed to write a object: output-port closed", 1, port);
+    return -1;
+  }
+
+  handler.val = ws_scan(obj);
+  if (scm_obj_null_p(handler.val)) return -1;
+
+  rslt = SCM_OBJ_PRINT_HANDLER_PRINT_OBJ(SCM_OBJ_PRINT_MAKE_HANDLER(handler),
+                                         obj, port, SCM_OBJ_PRINT_SHARED);
   if (rslt < 0) return -1;
 
   return 0;

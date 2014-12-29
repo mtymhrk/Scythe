@@ -2128,6 +2128,26 @@ scm_subr_func_write(ScmObj subr, int argc, const ScmObj *argv)
 }
 
 int
+scm_subr_func_write_shared(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj port = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&subr,
+                      &port, &val);
+
+  port = SCM_OBJ_NULL;
+  if (scm_fcd_pair_p(argv[1])) {
+    port = scm_fcd_car(argv[1]);
+    if (scm_obj_null_p(port)) return -1;
+  }
+
+  val = scm_api_write_shared(argv[0], port);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_fcd_return_val(&val, 1);
+}
+
+int
 scm_subr_func_display(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj port = SCM_OBJ_INIT, val = SCM_OBJ_NULL;

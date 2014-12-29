@@ -222,6 +222,7 @@ struct ScmObjPrintHandlerBodyRec {
 };
 
 #define SCM_OBJ_PRINT_MAKE_HANDLER(body) (&(body))
+#define SCM_OBJ_PRINT_HANDLER_BODY(handler) (handler)
 
 #define SCM_OBJ_PRINT_HANDLER_PRINT_OBJ(handler, obj, port, kind) \
   ((handler)->print_obj(handler, obj, port, kind))
