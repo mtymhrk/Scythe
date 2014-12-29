@@ -155,7 +155,8 @@ scm_error_irris_to_list(ScmObj exc)
 }
 
 int
-scm_error_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
+scm_error_obj_print(ScmObj obj, ScmObj port, int kind,
+                    ScmObjPrintHandler handler)
 {
   ScmObj msg = SCM_OBJ_INIT;
   const char *dlm;
@@ -166,22 +167,7 @@ scm_error_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
 
   scm_assert_obj_type(obj, &SCM_ERROR_TYPE_INFO);
 
-  if (ext_rep) {
-    char cstr[32];
-
-    snprintf(cstr, sizeof(cstr), " 0x%llx>", (unsigned long long)obj);
-
-    rslt = scm_fcd_write_cstr("#<exception ", SCM_ENC_SRC, port);
-    if (rslt < 0) return -1;
-
-    rslt = scm_fcd_write_string(SCM_EXCEPTION(obj)->msg, port,
-                              SCM_OBJ_NULL, SCM_OBJ_NULL);
-    if (rslt < 0) return -1;
-
-    rslt = scm_fcd_write_cstr(cstr, SCM_ENC_SRC, port);
-    if (rslt < 0) return -1;
-  }
-  else {
+  if (kind == SCM_OBJ_PRINT_DISPLAY) {
     msg = scm_exception_msg(obj);
 
     if (scm_obj_not_null_p(SCM_ERROR(obj)->type)) {
@@ -207,6 +193,21 @@ scm_error_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
 
       dlm = ", ";
     }
+  }
+  else {
+    char cstr[32];
+
+    snprintf(cstr, sizeof(cstr), " 0x%llx>", (unsigned long long)obj);
+
+    rslt = scm_fcd_write_cstr("#<exception ", SCM_ENC_SRC, port);
+    if (rslt < 0) return -1;
+
+    rslt = scm_fcd_write_string(SCM_EXCEPTION(obj)->msg, port,
+                              SCM_OBJ_NULL, SCM_OBJ_NULL);
+    if (rslt < 0) return -1;
+
+    rslt = scm_fcd_write_cstr(cstr, SCM_ENC_SRC, port);
+    if (rslt < 0) return -1;
   }
 
   return 0;

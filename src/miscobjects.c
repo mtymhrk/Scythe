@@ -13,7 +13,7 @@
 ScmTypeInfo SCM_EOF_TYPE_INFO = {
   .name                = "eof",
   .flags               = SCM_TYPE_FLG_MMO,
-  .obj_print_func      = scm_eof_obj_print,
+  .obj_print_func      = scm_obj_print_func_nameonly,
   .obj_size            = sizeof(ScmEOF),
   .gc_ini_func         = NULL,
   .gc_fin_func         = NULL,
@@ -32,13 +32,6 @@ void
 scm_eof_finalize(ScmObj eof)
 {
   return;                       /* nothing to do */
-}
-
-int
-scm_eof_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
-{
-  scm_assert_obj_type(obj, &SCM_EOF_TYPE_INFO);
-  return scm_fcd_write_cstr("#<eof>", SCM_ENC_SRC, port);
 }
 
 
@@ -81,7 +74,8 @@ scm_bool_value(ScmObj bl)
 }
 
 int
-scm_bool_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
+scm_bool_obj_print(ScmObj obj, ScmObj port, int kind,
+                   ScmObjPrintHandler handler)
 {
   int rslt;
 
@@ -127,7 +121,7 @@ scm_nil_finalize(ScmObj nil)
 }
 
 int
-scm_nil_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
+scm_nil_obj_print(ScmObj obj, ScmObj port, int kind, ScmObjPrintHandler handler)
 {
   int rslt;
 
@@ -147,7 +141,7 @@ scm_nil_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
 ScmTypeInfo SCM_UNDEF_TYPE_INFO = {
   .name                = "undef",
   .flags               = SCM_TYPE_FLG_MMO,
-  .obj_print_func      = scm_undef_obj_print,
+  .obj_print_func      = scm_obj_print_func_nameonly,
   .obj_size            = sizeof(ScmUndef),
   .gc_ini_func         = NULL,
   .gc_fin_func         = NULL,
@@ -168,13 +162,6 @@ scm_udef_finalize(ScmObj undef)
   return;                       /* nothing to do */
 }
 
-int
-scm_undef_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
-{
-  scm_assert_obj_type(obj, &SCM_UNDEF_TYPE_INFO);
-  return scm_fcd_write_cstr("#<undef>", SCM_ENC_SRC, port);
-}
-
 
 /*******************************************************/
 /*  ScmLandmine                                        */
@@ -183,7 +170,7 @@ scm_undef_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
 ScmTypeInfo SCM_LANDMINE_TYPE_INFO = {
   .name                = "landmine",
   .flags               = SCM_TYPE_FLG_MMO,
-  .obj_print_func      = scm_landmine_obj_print,
+  .obj_print_func      = scm_obj_print_func_nameonly,
   .obj_size            = sizeof(ScmLandmine),
   .gc_ini_func         = NULL,
   .gc_fin_func         = NULL,
@@ -202,11 +189,4 @@ void
 scm_landmine_finalize(ScmObj mine)
 {
   return;                       /* nothing to do */
-}
-
-int
-scm_landmine_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
-{
-  scm_assert_obj_type(obj, &SCM_LANDMINE_TYPE_INFO);
-  return scm_fcd_write_cstr("#<landmine>", SCM_ENC_SRC, port);
 }

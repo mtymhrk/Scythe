@@ -40,7 +40,8 @@ int scm_vector_set(ScmObj vector, size_t index, ScmObj obj);
 void scm_vector_fill(ScmObj vector, ScmObj fill);
 int scm_vector_push(ScmObj vector, ScmObj obj);
 const ScmObj *scm_vector_content(ScmObj vector);
-int scm_vector_obj_print(ScmObj obj, ScmObj port, bool ext_rep);
+int scm_vector_obj_print(ScmObj obj, ScmObj port, int kind,
+                         ScmObjPrintHandler handler);
 void scm_vector_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_vector_gc_finalize(ScmObj obj);
 int scm_vector_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
@@ -70,7 +71,8 @@ ScmObj scm_bytevector_new_cbyte(SCM_MEM_TYPE_T mtype,
                                 const void *bytes, size_t length);
 int scm_bytevector_u8_set(ScmObj vec, size_t idx, int val);
 int scm_bytevector_cmp(ScmObj v1, ScmObj v2);
-int scm_bytevector_obj_print(ScmObj obj, ScmObj port, bool ext_rep);
+int scm_bytevector_obj_print(ScmObj obj, ScmObj port, int kind,
+                             ScmObjPrintHandler handler);
 void scm_bytevector_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_bytevector_gc_finalize(ScmObj obj);
 

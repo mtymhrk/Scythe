@@ -198,7 +198,8 @@ scm_vector_content(ScmObj vector)
 }
 
 int
-scm_vector_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
+scm_vector_obj_print(ScmObj obj, ScmObj port, int kind,
+                     ScmObjPrintHandler handler)
 {
   size_t idx;
   int rslt;
@@ -212,14 +213,16 @@ scm_vector_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
 
   if (SCM_VECTOR_LENGTH(obj) > 0) {
     for (idx = 0; idx < SCM_VECTOR_LENGTH(obj) - 1; idx++) {
-      rslt = scm_obj_call_print_func(SCM_VECTOR_ARRAY(obj)[idx], port, ext_rep);
+      rslt = SCM_OBJ_PRINT_HANDLER_PRINT(handler,
+                                        SCM_VECTOR_ARRAY(obj)[idx], port, kind);
       if (rslt < 0) return -1;
 
       rslt = scm_fcd_write_cstr(" ", SCM_ENC_SRC, port);
       if (rslt < 0) return -1;
     }
 
-    rslt = scm_obj_call_print_func(SCM_VECTOR_ARRAY(obj)[idx], port, ext_rep);
+    rslt = SCM_OBJ_PRINT_HANDLER_PRINT(handler,
+                                      SCM_VECTOR_ARRAY(obj)[idx], port, kind);
     if (rslt < 0) return -1;
   }
 
@@ -413,7 +416,8 @@ scm_bytevector_cmp(ScmObj v1, ScmObj v2)
 }
 
 int
-scm_bytevector_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
+scm_bytevector_obj_print(ScmObj obj, ScmObj port, int kind,
+                         ScmObjPrintHandler handler)
 {
   int r;
 

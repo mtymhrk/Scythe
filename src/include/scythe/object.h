@@ -204,9 +204,33 @@ scm_csetter_val(scm_csetter_t *st)
 
 /** definition for function to print object **********************************/
 
-typedef int (*ScmObjPrintFunc)(ScmObj obj, ScmObj port, bool ext_rep);
+enum {
+  SCM_OBJ_PRINT_SIMPLE,
+  SCM_OBJ_PRINT_SHARED,
+  SCM_OBJ_PRINT_DISPLAY,
+};
 
-int scm_obj_default_print_func(ScmObj obj, ScmObj port, bool ext_rep);
+typedef struct ScmObjPrintHandlerBodyRec ScmObjPrintHandlerBody;
+typedef ScmObjPrintHandlerBody *ScmObjPrintHandler;
+
+struct ScmObjPrintHandlerBodyRec {
+  int (*print)(ScmObjPrintHandler handler, ScmObj obj, ScmObj port, int kind);
+  ScmObj val;
+};
+
+#define SCM_OBJ_PRINT_MAKE_HANDLER(body) (&(body))
+
+typedef int (*ScmObjPrintFunc)(ScmObj obj, ScmObj port, int kind,
+                               ScmObjPrintHandler handler);
+
+int scm_obj_print_func_nameonly(ScmObj obj, ScmObj port, int kind,
+                                ScmObjPrintHandler handker);
+int scm_obj_default_print_func(ScmObj obj, ScmObj port, int kind,
+                               ScmObjPrintHandler handler);
+
+
+#define SCM_OBJ_PRINT_HANDLER_PRINT(handler, obj, port, kind) \
+  ((handler)->print(handler, obj, port, kind))
 
 
 /** definition for GC ********************************************************/
@@ -283,12 +307,13 @@ scm_type_info_has_print_func_p(ScmTypeInfo *type)
 
 static inline int
 scm_type_info_call_print_func(ScmTypeInfo *type,
-                           ScmObj obj, ScmObj port, bool ext_rep)
+                              ScmObj obj, ScmObj port, int kind,
+                              ScmObjPrintHandler handler)
 {
   if (scm_type_info_has_print_func_p(type))
-    return type->obj_print_func(obj, port, ext_rep);
+    return type->obj_print_func(obj, port, kind, handler);
   else
-    return scm_obj_default_print_func(obj, port, ext_rep);
+    return scm_obj_default_print_func(obj, port, kind, handler);
 }
 
 static inline bool
@@ -449,9 +474,11 @@ scm_obj_has_print_func_p(ScmObj obj)
 }
 
 static inline int
-scm_obj_call_print_func(ScmObj obj, ScmObj port, bool ext_rep)
+scm_obj_call_print_func(ScmObj obj, ScmObj port, int kind,
+                        ScmObjPrintHandler handler)
 {
-  return scm_type_info_call_print_func(scm_obj_type(obj), obj, port, ext_rep);
+  return scm_type_info_call_print_func(scm_obj_type(obj),
+                                       obj, port, kind, handler);
 }
 
 static inline bool

@@ -1421,7 +1421,8 @@ scm_bignum_coerce(ScmObj bn, ScmObj num)
 
 
 int
-scm_bignum_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
+scm_bignum_obj_print(ScmObj obj, ScmObj port, int kind,
+                     ScmObjPrintHandler handler)
 {
   scm_bignum_c_t base;
   scm_bignum_d_t val;

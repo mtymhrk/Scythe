@@ -240,20 +240,19 @@ scm_char_cmp(ScmObj chr1, ScmObj chr2, int *rslt)
 }
 
 int
-scm_char_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
+scm_char_obj_print(ScmObj obj, ScmObj port, int kind,
+                   ScmObjPrintHandler handler)
 {
   int rslt;
 
   scm_assert_obj_type(obj, &SCM_CHAR_TYPE_INFO);
 
-  if (ext_rep) {
-    rslt = scm_char_write_ext_rep(obj, port);
-    if (rslt < 0) return -1;
-  }
-  else {
+  if (kind == SCM_OBJ_PRINT_DISPLAY)
     rslt = scm_fcd_write_char(obj, port);
-    if (rslt < 0) return -1;
-  }
+  else
+    rslt = scm_char_write_ext_rep(obj, port);
+
+  if (rslt < 0) return -1;
 
   return 0;
 }

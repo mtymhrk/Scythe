@@ -80,7 +80,8 @@ scm_subrutine_initialize(ScmObj subr, ScmSubrFunc func,
 }
 
 int
-scm_subrutine_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
+scm_subrutine_obj_print(ScmObj obj, ScmObj port, int kind,
+                        ScmObjPrintHandler handler)
 {
   ScmObj name = SCM_OBJ_INIT;
 
@@ -92,7 +93,7 @@ scm_subrutine_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
   name = scm_proc_name(obj);
 
   if (scm_obj_null_p(name))
-    return scm_obj_default_print_func(obj, port, ext_rep);
+    return scm_obj_default_print_func(obj, port, kind, handler);
 
   return scm_fcd_pformat_cstr(port,"#<subr ~a>", name, SCM_OBJ_NULL);
 }

@@ -480,7 +480,8 @@ scm_fixnum_coerce(ScmObj fn, ScmObj num)
 }
 
 int
-scm_fixnum_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
+scm_fixnum_obj_print(ScmObj obj, ScmObj port, int kind,
+                     ScmObjPrintHandler handler)
 {
   char cstr[32];
   int rslt;

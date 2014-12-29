@@ -28,6 +28,7 @@ long long scm_char_scalar(ScmObj chr);
 ScmEncoding *scm_char_encoding(ScmObj chr);
 ScmObj scm_char_encode(ScmObj chr, ScmEncoding *enc);
 int scm_char_cmp(ScmObj chr1, ScmObj chr2, int *rslt);
-int scm_char_obj_print(ScmObj obj, ScmObj port, bool ext_rep);
+int scm_char_obj_print(ScmObj obj, ScmObj port, int kind,
+                       ScmObjPrintHandler handler);
 
 #endif /* INCLUDE_CHAR_H__ */

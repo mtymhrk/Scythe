@@ -21,7 +21,8 @@ extern ScmTypeInfo SCM_SYNTAX_TYPE_INFO;
 
 int scm_syntax_initialize(ScmObj syx, ScmObj key, ScmObj handler);
 
-int scm_syntax_obj_print(ScmObj obj, ScmObj port, bool ext_rep);
+int scm_syntax_obj_print(ScmObj obj, ScmObj port, int kind,
+                         ScmObjPrintHandler handler);
 void scm_syntax_gc_initialize(ScmObj obj, ScmObj mem);
 int scm_syntax_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
 

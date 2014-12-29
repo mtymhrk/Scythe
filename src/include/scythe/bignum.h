@@ -65,7 +65,8 @@ int scm_bignum_truncate_div(ScmObj dvd, ScmObj dvr,
 
 ScmObj scm_bignum_coerce(ScmObj bn, ScmObj num);
 
-int scm_bignum_obj_print(ScmObj obj, ScmObj port, bool ext_rep);
+int scm_bignum_obj_print(ScmObj obj, ScmObj port, int kind,
+                         ScmObjPrintHandler handler);
 void scm_bignum_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_bignum_gc_finalize(ScmObj obj);
 

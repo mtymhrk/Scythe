@@ -35,7 +35,8 @@ int scm_fixnum_truncate_div(ScmObj dvd, ScmObj dvr,
 
 ScmObj scm_fixnum_coerce(ScmObj fn, ScmObj num);
 
-int scm_fixnum_obj_print(ScmObj obj, ScmObj port, bool ext_rep);
+int scm_fixnum_obj_print(ScmObj obj, ScmObj port, int kind,
+                         ScmObjPrintHandler handler);
 
 
 #endif  /*  INCLUDE_FIXNUM_H__ */

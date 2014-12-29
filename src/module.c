@@ -427,7 +427,8 @@ scm_module_find_sym_cmpl(ScmObj mod, ScmObj sym, scm_csetter_t *setter)
 }
 
 int
-scm_module_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
+scm_module_obj_print(ScmObj obj, ScmObj port, int kind,
+                     ScmObjPrintHandler handler)
 {
   scm_assert_obj_type(obj, &SCM_MODULE_TYPE_INFO);
 

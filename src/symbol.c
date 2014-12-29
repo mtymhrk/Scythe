@@ -398,16 +398,17 @@ scm_symbol_cmp(ScmObj s1, ScmObj s2, int *rslt)
 }
 
 int
-scm_symbol_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
+scm_symbol_obj_print(ScmObj obj, ScmObj port, int kind,
+                     ScmObjPrintHandler handler)
 {
   scm_assert_obj_type(obj, &SCM_SYMBOL_TYPE_INFO);
 
-  if (ext_rep) {
-    int r = scm_symbol_write_ext_rep(obj, port);
+  if (kind == SCM_OBJ_PRINT_DISPLAY) {
+    int r = scm_fcd_write_string(SCM_SYMBOL_STR(obj), port, -1, -1);
     if (r < 0) return -1;
   }
   else {
-    int r = scm_fcd_write_string(SCM_SYMBOL_STR(obj), port, -1, -1);
+    int r = scm_symbol_write_ext_rep(obj, port);
     if (r < 0) return -1;
   }
 

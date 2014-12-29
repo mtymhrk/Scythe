@@ -739,9 +739,26 @@ default_output_port(bool textual, bool binary)
   return val;
 }
 
+static int
+obj_print_handler_simple(ScmObjPrintHandler handler,
+                         ScmObj obj, ScmObj port, int kind)
+{
+  return scm_obj_call_print_func(obj, port, kind, handler);
+}
+
+static int
+obj_print_handler_display(ScmObjPrintHandler handler,
+                          ScmObj obj, ScmObj port, int kind)
+{
+  return scm_obj_call_print_func(obj, port, kind, handler);
+}
+
+
 int
 scm_fcd_write_simple(ScmObj obj, ScmObj port)
 {
+  ScmObjPrintHandlerBody handler = { .print = obj_print_handler_simple,
+                                     .val = SCM_OBJ_NULL };
   int rslt;
 
   SCM_REFSTK_INIT_REG(&obj, &port);
@@ -760,7 +777,8 @@ scm_fcd_write_simple(ScmObj obj, ScmObj port)
     return -1;
   }
 
-  rslt = scm_obj_call_print_func(obj, port, true);
+  rslt = SCM_OBJ_PRINT_HANDLER_PRINT(SCM_OBJ_PRINT_MAKE_HANDLER(handler),
+                                     obj, port, SCM_OBJ_PRINT_SIMPLE);
   if (rslt < 0) return -1;
 
   return 0;
@@ -776,6 +794,8 @@ scm_fcd_write(ScmObj obj, ScmObj port)
 int
 scm_fcd_display(ScmObj obj, ScmObj port)
 {
+  ScmObjPrintHandlerBody handler = { .print = obj_print_handler_display,
+                                     .val = SCM_OBJ_NULL };
   int rslt;
 
   /* TODO: obj の構造が循環していても無限ループにならないようにする */
@@ -796,7 +816,8 @@ scm_fcd_display(ScmObj obj, ScmObj port)
     return -1;
   }
 
-  rslt = scm_obj_call_print_func(obj, port, false);
+  rslt = SCM_OBJ_PRINT_HANDLER_PRINT(SCM_OBJ_PRINT_MAKE_HANDLER(handler),
+                                     obj, port, SCM_OBJ_PRINT_DISPLAY);
   if (rslt < 0) return -1;
 
   return 0;

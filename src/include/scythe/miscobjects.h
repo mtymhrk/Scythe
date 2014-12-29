@@ -28,7 +28,8 @@ extern ScmTypeInfo SCM_EOF_TYPE_INFO;
 
 void scm_eof_initialize(ScmObj eof);
 void scm_eof_finalize(ScmObj eof);
-int scm_eof_obj_print(ScmObj obj, ScmObj port, bool ext_rep);
+int scm_eof_obj_print(ScmObj obj, ScmObj port, int kind,
+                      ScmObjPrintHandler handler);
 
 
 /*******************************************************/
@@ -47,7 +48,8 @@ extern ScmTypeInfo SCM_BOOL_TYPE_INFO;
 void scm_bool_initialize(ScmObj obj, bool value);
 void scm_bool_finalize(ScmObj obj);
 bool scm_bool_value(ScmObj bl);
-int scm_bool_obj_print(ScmObj obj, ScmObj port, bool ext_rep);
+int scm_bool_obj_print(ScmObj obj, ScmObj port, int kind,
+                       ScmObjPrintHandler handler);
 
 
 /*******************************************************/
@@ -62,7 +64,8 @@ extern ScmTypeInfo SCM_NIL_TYPE_INFO;
 
 void scm_nil_initialize(ScmObj nil);
 void scm_nil_finalize(ScmObj nil);
-int scm_nil_obj_print(ScmObj obj, ScmObj port, bool ext_rep);
+int scm_nil_obj_print(ScmObj obj, ScmObj port, int kind,
+                      ScmObjPrintHandler handler);
 
 
 /*******************************************************/
@@ -77,7 +80,6 @@ extern ScmTypeInfo SCM_UNDEF_TYPE_INFO;
 
 void scm_undef_initialize(ScmObj undef);
 void scm_udef_finalize(ScmObj undef);
-int scm_undef_obj_print(ScmObj obj, ScmObj port, bool ext_rep);
 
 
 /*******************************************************/
@@ -92,7 +94,6 @@ extern ScmTypeInfo SCM_LANDMINE_TYPE_INFO;
 
 void scm_landmine_initialize(ScmObj mine);
 void scm_landmine_finalize(ScmObj mine);
-int scm_landmine_obj_print(ScmObj obj, ScmObj port, bool ext_rep);
 
 
 #endif /*  INCLUDE_MISCOBJECTS_H__ */

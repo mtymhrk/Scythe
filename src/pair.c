@@ -33,7 +33,8 @@ scm_pair_initialize(ScmObj pair, ScmObj car, ScmObj cdr)
 }
 
 int
-scm_pair_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
+scm_pair_obj_print(ScmObj obj, ScmObj port, int kind,
+                   ScmObjPrintHandler handler)
 {
   ScmObj lst = SCM_OBJ_INIT, car = SCM_OBJ_INIT, cdr = SCM_OBJ_INIT;
   int rslt;
@@ -51,23 +52,23 @@ scm_pair_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
     cdr = scm_pair_cdr(lst);
 
     if (scm_fcd_nil_p(cdr)) {
-      rslt = scm_obj_call_print_func(car, port, ext_rep);
+      rslt = SCM_OBJ_PRINT_HANDLER_PRINT(handler, car, port, kind);
       if (rslt < 0) return -1;
       break;
     }
     else if (!scm_fcd_pair_p(cdr)) {
-      rslt = scm_obj_call_print_func(car, port, ext_rep);
+      rslt = SCM_OBJ_PRINT_HANDLER_PRINT(handler, car, port, kind);
       if (rslt < 0) return -1;
 
       rslt = scm_fcd_write_cstr(" . ", SCM_ENC_SRC, port);
       if (rslt < 0) return -1;
 
-      rslt = scm_obj_call_print_func(cdr, port, ext_rep);
+      rslt = SCM_OBJ_PRINT_HANDLER_PRINT(handler, cdr, port, kind);
       if (rslt < 0) return -1;
       break;
     }
 
-    rslt = scm_obj_call_print_func(car, port, ext_rep);
+    rslt = SCM_OBJ_PRINT_HANDLER_PRINT(handler, car, port, kind);
     if (rslt < 0) return -1;
 
     rslt = scm_fcd_write_cstr(" ", SCM_ENC_SRC, port);

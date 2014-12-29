@@ -102,7 +102,8 @@ ScmObj scm_module_gloc_cmpl(ScmObj mod, ScmObj sym);
 int scm_module_find_sym_eval(ScmObj mod, ScmObj sym, scm_csetter_t *setter);
 int scm_module_find_sym_cmpl(ScmObj mod, ScmObj sym, scm_csetter_t *setter);
 
-int scm_module_obj_print(ScmObj obj, ScmObj port, bool ext_rep);
+int scm_module_obj_print(ScmObj obj, ScmObj port, int kind,
+                         ScmObjPrintHandler handler);
 void scm_module_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_module_gc_finalize(ScmObj obj);
 int scm_module_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);

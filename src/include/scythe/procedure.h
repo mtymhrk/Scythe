@@ -68,7 +68,8 @@ struct ScmSubrutineRec {
 int scm_subrutine_initialize(ScmObj subr,  ScmSubrFunc func,
                              ScmObj name, int arity, unsigned int flags,
                              ScmObj module);
-int scm_subrutine_obj_print(ScmObj obj, ScmObj port, bool ext_rep);
+int scm_subrutine_obj_print(ScmObj obj, ScmObj port, int kind,
+                            ScmObjPrintHandler handler);
 void scm_subrutine_gc_initialize(ScmObj obj, ScmObj mem);
 int scm_subrutine_gc_accept(ScmObj obj,
                             ScmObj mem, ScmGCRefHandlerFunc handler);

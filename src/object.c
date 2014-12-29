@@ -26,7 +26,17 @@ ScmTypeInfo *SCM_OBJ_TAG2TYPE_TBL[SCM_OBJ_TAG_NR_KIND] = {
 };
 
 int
-scm_obj_default_print_func(ScmObj obj, ScmObj port, bool ext_rep)
+scm_obj_print_func_nameonly(ScmObj obj, ScmObj port, int kind,
+                            ScmObjPrintHandler handker)
+{
+  char str[256];
+  snprintf(str, sizeof(str), "#<%s>", scm_obj_type_name(obj));
+  return scm_fcd_write_cstr(str, SCM_ENC_SRC, port);
+}
+
+int
+scm_obj_default_print_func(ScmObj obj, ScmObj port, int kind,
+                           ScmObjPrintHandler handker)
 {
   char str[256];
 

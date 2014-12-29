@@ -819,16 +819,17 @@ scm_string_to_char_ary(ScmObj str, size_t pos, ssize_t len, scm_char_t *ary)
 }
 
 int
-scm_string_obj_print(ScmObj obj, ScmObj port, bool ext_rep)
+scm_string_obj_print(ScmObj obj, ScmObj port, int kind,
+                     ScmObjPrintHandler handler)
 {
   scm_assert_obj_type(obj, &SCM_STRING_TYPE_INFO);
 
-  if (ext_rep) {
-    int r = scm_string_write_ext_rep(obj, port);
+  if (kind == SCM_OBJ_PRINT_DISPLAY) {
+    int r = scm_fcd_write_string(obj, port, -1, -1);
     if (r < 0) return -1;
   }
   else {
-    int r = scm_fcd_write_string(obj, port, -1, -1);
+    int r = scm_string_write_ext_rep(obj, port);
     if (r < 0) return -1;
   }
 

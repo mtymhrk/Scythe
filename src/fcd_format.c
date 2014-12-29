@@ -22,7 +22,7 @@ format_mod(ScmObj port, scm_char_t chr, ScmEncoding *enc, ScmObj obj)
       return -1;
     }
 
-    r = scm_obj_call_print_func(obj, port, false);
+    r = scm_fcd_display(obj, port);
     if (r < 0) return -1;
 
     return 1;
@@ -35,7 +35,7 @@ format_mod(ScmObj port, scm_char_t chr, ScmEncoding *enc, ScmObj obj)
       return -1;
     }
 
-    r = scm_obj_call_print_func(obj, port, true);
+    r = scm_fcd_write(obj, port);
     if (r < 0) return -1;
 
     return 1;
