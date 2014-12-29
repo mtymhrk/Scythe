@@ -257,8 +257,8 @@ ScmObj scm_api_read_string(ScmObj n, ScmObj port);
 /*  Output                                                         */
 /*******************************************************************/
 
-ScmObj scm_api_write_shared(ScmObj obj, ScmObj port);
 ScmObj scm_api_write(ScmObj obj, ScmObj port);
+ScmObj scm_api_write_shared(ScmObj obj, ScmObj port);
 ScmObj scm_api_write_simple(ScmObj obj, ScmObj port);
 ScmObj scm_api_display(ScmObj obj, ScmObj port);
 ScmObj scm_api_newline(ScmObj port);

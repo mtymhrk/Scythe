@@ -1916,6 +1916,12 @@ scm_api_read_string(ScmObj n, ScmObj port)
 /*******************************************************************/
 
 ScmObj
+scm_api_write(ScmObj obj, ScmObj port)
+{
+  return scm_api_write_shared(obj, port);
+}
+
+ScmObj
 scm_api_write_shared(ScmObj obj, ScmObj port)
 {
   int rslt;
@@ -1940,13 +1946,6 @@ scm_api_write_shared(ScmObj obj, ScmObj port)
   if (rslt < 0) return SCM_OBJ_NULL;
 
   return SCM_UNDEF_OBJ;
-}
-
-ScmObj
-scm_api_write(ScmObj obj, ScmObj port)
-{
-  /* TODO: write me */
-  return scm_api_write_simple(obj, port);
 }
 
 ScmObj

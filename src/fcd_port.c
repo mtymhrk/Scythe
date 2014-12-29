@@ -1000,6 +1000,12 @@ obj_print_handler_print_list(ScmObjPrintHandler handler,
 }
 
 int
+scm_fcd_write(ScmObj obj, ScmObj port)
+{
+  return scm_fcd_write_shared(obj, port);
+}
+
+int
 scm_fcd_write_shared(ScmObj obj, ScmObj port)
 {
   ScmObjPrintHandlerBody handler = {
@@ -1069,13 +1075,6 @@ scm_fcd_write_simple(ScmObj obj, ScmObj port)
   if (rslt < 0) return -1;
 
   return 0;
-}
-
-int
-scm_fcd_write(ScmObj obj, ScmObj port)
-{
-  /* TODO: write me */
-  return scm_fcd_write_simple(obj, port);
 }
 
 int
