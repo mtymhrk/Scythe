@@ -487,6 +487,14 @@ scm_fcd_vector_push(ScmObj vec, ScmObj obj)
   return scm_vector_push(vec, obj);
 }
 
+int
+scm_fcd_vector_contract_redundant_space(ScmObj vec)
+{
+  scm_assert(scm_fcd_vector_p(vec));
+
+  return scm_vector_contract_redundant_space(vec);
+}
+
 
 /*******************************************************************/
 /*  Bytevectors                                                    */

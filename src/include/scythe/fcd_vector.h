@@ -37,6 +37,7 @@ ScmObj scm_fcd_vector_append_cv(ScmObj *ary, size_t n);
 ScmObj scm_fcd_vector_append(size_t n, ...);
 void scm_fcd_vector_fill_i(ScmObj vec, ScmObj fill, ssize_t start, ssize_t end);
 int scm_fcd_vector_push(ScmObj vec, ScmObj obj);
+int scm_fcd_vector_contract_redundant_space(ScmObj vec);
 
 
 /*******************************************************************/

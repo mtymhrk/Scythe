@@ -12,6 +12,7 @@ typedef struct ScmByteVectorRec ScmByteVector;
 #define SCM_BYTEVECTOR(obj) ((ScmByteVector *)(obj))
 
 #include "scythe/object.h"
+#include "scythe/earray.h"
 #include "scythe/fcd_type.h"
 
 
@@ -23,12 +24,12 @@ extern ScmTypeInfo SCM_VECTOR_TYPE_INFO;
 
 struct ScmVectorRec {
   ScmObjHeader header;
-  ScmObj *array;
-  size_t length;
+  EArray array;
 };
 
-#define SCM_VECTOR_ARRAY(obj) (SCM_VECTOR(obj)->array)
-#define SCM_VECTOR_LENGTH(obj) (SCM_VECTOR(obj)->length)
+#define SCM_VECTOR_EARRAY(obj) (&SCM_VECTOR(obj)->array)
+#define SCM_VECTOR_ARRAY(obj) ((ScmObj *)EARY_HEAD(SCM_VECTOR_EARRAY(obj)))
+#define SCM_VECTOR_LENGTH(obj) (EARY_SIZE(SCM_VECTOR_EARRAY(obj)))
 
 int scm_vector_initialize(ScmObj vector, size_t length, ScmObj fill);
 int scm_vector_initialize_ary(ScmObj vector, const ScmObj *elms, size_t length);
@@ -39,6 +40,7 @@ ScmObj scm_vector_ref(ScmObj vector, size_t index);
 int scm_vector_set(ScmObj vector, size_t index, ScmObj obj);
 void scm_vector_fill(ScmObj vector, ScmObj fill);
 int scm_vector_push(ScmObj vector, ScmObj obj);
+int scm_vector_contract_redundant_space(ScmObj vector);
 const ScmObj *scm_vector_content(ScmObj vector);
 int scm_vector_obj_print(ScmObj obj, ScmObj port, int kind,
                          ScmObjPrintHandler handler);

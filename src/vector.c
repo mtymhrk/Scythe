@@ -26,25 +26,19 @@ int
 scm_vector_initialize(ScmObj vector, size_t length, ScmObj fill)
 {
   size_t i;
+  int r;
 
   scm_assert_obj_type(vector, &SCM_VECTOR_TYPE_INFO);
   scm_assert(length <= SSIZE_MAX);
 
-  if (length > 0) {
-    SCM_VECTOR_ARRAY(vector) = scm_fcd_malloc(sizeof(ScmObj) * length);
-    if (SCM_VECTOR_ARRAY(vector) == NULL) return -1;
-  }
-  else {
-    SCM_VECTOR_ARRAY(vector) = NULL;
-  }
-
-  SCM_VECTOR_LENGTH(vector) = length;
+  r = eary_init(SCM_VECTOR_EARRAY(vector), sizeof(ScmObj), length);
+  if (r < 0) return -1;
 
   if (scm_obj_null_p(fill))
     fill = SCM_UNDEF_OBJ;
 
   for (i = 0; i < length; i++)
-    SCM_SLOT_SETQ(ScmVector, vector, array[i], fill);
+    EARY_SET_SCMOBJ(SCM_VECTOR_EARRAY(vector), i, fill, vector, r);
 
   return 0;
 }
@@ -53,27 +47,21 @@ int
 scm_vector_initialize_ary(ScmObj vector, const ScmObj *elms, size_t length)
 {
   size_t i;
+  int r;
 
   scm_assert_obj_type(vector, &SCM_VECTOR_TYPE_INFO);
   scm_assert(length == 0 || (length > 0 && elms != NULL));
   scm_assert(length <= SSIZE_MAX);
 
-  if (length > 0) {
-    SCM_VECTOR_ARRAY(vector) = scm_fcd_malloc(sizeof(ScmObj) * length);
-    if (SCM_VECTOR_ARRAY(vector) == NULL) return -1;
-  }
-  else {
-    SCM_VECTOR_ARRAY(vector) = NULL;
-  }
-
-  SCM_VECTOR_LENGTH(vector) = length;
+  r = eary_init(SCM_VECTOR_EARRAY(vector), sizeof(ScmObj), length);
+  if (r < 0) return -1;
 
   for (i = 0; i < length; i++) {
     if (scm_obj_null_p(elms[i])) {
       scm_fcd_error("failed to make vector: invalid element", 0);
       return -1;
     }
-    SCM_SLOT_SETQ(ScmVector, vector, array[i], elms[i]);
+    EARY_SET_SCMOBJ(SCM_VECTOR_EARRAY(vector), i, elms[i], vector, r);
   }
 
   return 0;
@@ -84,6 +72,7 @@ scm_vector_initialize_lst(ScmObj vector, size_t length, ScmObj lst)
 {
   ScmObj l = SCM_OBJ_INIT, e = SCM_OBJ_INIT;
   size_t i;
+  int r;
 
   SCM_REFSTK_INIT_REG(&vector, &lst,
                       &l, &e);
@@ -92,27 +81,18 @@ scm_vector_initialize_lst(ScmObj vector, size_t length, ScmObj lst)
   scm_assert(length <= SSIZE_MAX);
   scm_assert(scm_obj_not_null_p(lst));
 
-  if (length > 0) {
-    SCM_VECTOR_ARRAY(vector) = scm_fcd_malloc(sizeof(ScmObj) * length);
-    if (SCM_VECTOR_ARRAY(vector) == NULL) return -1;
-  }
-  else {
-    SCM_VECTOR_ARRAY(vector) = NULL;
-  }
-
-  SCM_VECTOR_LENGTH(vector) = length;
+  r = eary_init(SCM_VECTOR_EARRAY(vector), sizeof(ScmObj), length);
+  if (r < 0) return -1;
 
   for (l = lst, i = 0;
        scm_fcd_pair_p(l) && i < length;
        l = scm_fcd_cdr(l), i++) {
     e = scm_fcd_car(l);
-    SCM_SLOT_SETQ(ScmVector, vector, array[i], e);
+    EARY_SET_SCMOBJ(SCM_VECTOR_EARRAY(vector), i, e, vector, r);
   }
 
-  if (scm_obj_null_p(l)) return -1;
-
   while (i < length)
-    SCM_SLOT_SETQ(ScmVector, vector, array[i++], SCM_UNDEF_OBJ);
+    EARY_SET_SCMOBJ(SCM_VECTOR_EARRAY(vector), i, SCM_UNDEF_OBJ, vector, r);
 
   return 0;
 }
@@ -122,8 +102,7 @@ scm_vector_finalize(ScmObj vector)
 {
   scm_assert_obj_type(vector, &SCM_VECTOR_TYPE_INFO);
 
-  if (SCM_VECTOR_ARRAY(vector) != NULL)
-    scm_fcd_free(SCM_VECTOR_ARRAY(vector));
+  eary_fin(SCM_VECTOR_EARRAY(vector));
 }
 
 size_t
@@ -146,11 +125,13 @@ scm_vector_ref(ScmObj vector, size_t index)
 int
 scm_vector_set(ScmObj vector, size_t index, ScmObj obj)
 {
+  int err __attribute((unused));
+
   scm_assert_obj_type(vector, &SCM_VECTOR_TYPE_INFO);
   scm_assert(index < SCM_VECTOR_LENGTH(vector));
   scm_assert(scm_obj_not_null_p(obj));
 
-  SCM_SLOT_SETQ(ScmVector, vector, array[index], obj);
+  EARY_SET_SCMOBJ(SCM_VECTOR_EARRAY(vector), index, obj, vector, err);
 
   return 0;
 }
@@ -158,17 +139,19 @@ scm_vector_set(ScmObj vector, size_t index, ScmObj obj)
 void
 scm_vector_fill(ScmObj vector, ScmObj fill)
 {
+  int err __attribute((unused));
+
   scm_assert_obj_type(vector, &SCM_VECTOR_TYPE_INFO);
   scm_assert(scm_obj_not_null_p(fill));
 
   for (size_t i = 0; i < SCM_VECTOR_LENGTH(vector); i++)
-    SCM_SLOT_SETQ(ScmVector, vector, array[i], fill);
+    EARY_SET_SCMOBJ(SCM_VECTOR_EARRAY(vector), i, fill, vector, err);
 }
 
 int
 scm_vector_push(ScmObj vector, ScmObj obj)
 {
-  ScmObj *p;
+  int err;
 
   scm_assert_obj_type(vector, &SCM_VECTOR_TYPE_INFO);
   scm_assert(scm_obj_not_null_p(obj));
@@ -178,13 +161,21 @@ scm_vector_push(ScmObj vector, ScmObj obj)
     return -1;
   }
 
-  p = scm_fcd_realloc(SCM_VECTOR_ARRAY(vector),
-                       sizeof(ScmObj) * (SCM_VECTOR_LENGTH(vector) + 1));
-  if (p == NULL) return -1;
+  EARY_PUSH_SCMOBJ(SCM_VECTOR_EARRAY(vector), obj, vector, err);
+  if (err < 0) return -1;
 
-  SCM_VECTOR_ARRAY(vector) = p;
-  SCM_VECTOR_ARRAY(vector)[SCM_VECTOR_LENGTH(vector)] = obj;
-  SCM_VECTOR_LENGTH(vector)++;
+  return 0;
+}
+
+int
+scm_vector_contract_redundant_space(ScmObj vector)
+{
+  int r;
+
+  scm_assert_obj_type(vector, &SCM_VECTOR_TYPE_INFO);
+
+  r = eary_contract(SCM_VECTOR_EARRAY(vector));
+  if (r < 0) return -1;
 
   return 0;
 }
@@ -237,8 +228,7 @@ scm_vector_gc_initialize(ScmObj obj, ScmObj mem)
 {
   scm_assert_obj_type(obj, &SCM_VECTOR_TYPE_INFO);
 
-  SCM_VECTOR_ARRAY(obj) = NULL;
-  SCM_VECTOR_LENGTH(obj) = 0;
+  eary_init(SCM_VECTOR_EARRAY(obj), 0, 0);
 }
 
 void
