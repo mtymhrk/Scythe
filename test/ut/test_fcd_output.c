@@ -117,6 +117,23 @@ test_fcd_write_shared__write_shared_structure(ScmObj port, int type)
 }
 
 static void
+test_fcd_write_shared__write_NULL(ScmObj port, int type)
+{
+  const char *expected = "#<INTERNAL-NULL-VALUE 0>";
+
+  SCM_REFSTK_INIT_REG(&port);
+
+  TEST_ASSERT_EQUAL_INT(0, scm_fcd_write_shared(SCM_OBJ_NULL, port));
+
+  scm_fcd_close_port(port);
+
+  if (type == FILEPORT)
+    chk_file_contents(expected);
+  else if (type == STRINGPORT)
+    chk_string_port_contents(port, expected);
+}
+
+static void
 test_fcd_write_shared__specify_closed_port__return_ERROR(ScmObj port, int type)
 {
   ScmObj o = SCM_OBJ_INIT;
@@ -142,6 +159,23 @@ test_fcd_write_simple(ScmObj port, int type)
   o = scm_fcd_make_string_from_cstr("hello", SCM_ENC_SRC);
 
   TEST_ASSERT_EQUAL_INT(0, scm_fcd_write_simple(o, port));
+
+  scm_fcd_close_port(port);
+
+  if (type == FILEPORT)
+    chk_file_contents(expected);
+  else if (type == STRINGPORT)
+    chk_string_port_contents(port, expected);
+}
+
+static void
+test_fcd_write_simple__write_NULL(ScmObj port, int type)
+{
+  const char *expected = "#<INTERNAL-NULL-VALUE 0>";
+
+  SCM_REFSTK_INIT_REG(&port);
+
+  TEST_ASSERT_EQUAL_INT(0, scm_fcd_write_simple(SCM_OBJ_NULL, port));
 
   scm_fcd_close_port(port);
 
@@ -199,6 +233,23 @@ test_fcd_display__write_shared_structure(ScmObj port, int type)
   scm_fcd_set_cdr_i(o, o);
 
   TEST_ASSERT_EQUAL_INT(0, scm_fcd_display(o, port));
+
+  scm_fcd_close_port(port);
+
+  if (type == FILEPORT)
+    chk_file_contents(expected);
+  else if (type == STRINGPORT)
+    chk_string_port_contents(port, expected);
+}
+
+static void
+test_fcd_display__write_NULL(ScmObj port, int type)
+{
+  const char *expected = "#<INTERNAL-NULL-VALUE 0>";
+
+  SCM_REFSTK_INIT_REG(&port);
+
+  TEST_ASSERT_EQUAL_INT(0, scm_fcd_display(SCM_OBJ_NULL, port));
 
   scm_fcd_close_port(port);
 
@@ -447,6 +498,16 @@ TEST(fcd_output, string_port__fcd_write_shared__write_shared_structure)
   test_fcd_write_shared__write_shared_structure(string_port, STRINGPORT);
 }
 
+TEST(fcd_output, file_port__fcd_write_shared__write_NULL)
+{
+  test_fcd_write_shared__write_NULL(file_port, FILEPORT);
+}
+
+TEST(fcd_output, string_port__fcd_write_shared__write_NULL)
+{
+  test_fcd_write_shared__write_NULL(string_port, STRINGPORT);
+}
+
 TEST(fcd_output, file_port__fcd_write_shared__specify_closed_port__return_ERROR)
 {
   test_fcd_write_shared__specify_closed_port__return_ERROR(file_port, FILEPORT);
@@ -465,6 +526,16 @@ TEST(fcd_output, file_port__fcd_write_simple)
 TEST(fcd_output, string_port__fcd_write_simple)
 {
   test_fcd_write_simple(string_port, STRINGPORT);
+}
+
+TEST(fcd_output, file_port__fcd_write_simple__write_NULL)
+{
+  test_fcd_write_simple__write_NULL(file_port, FILEPORT);
+}
+
+TEST(fcd_output, string_port__fcd_write_simple__write_NULL)
+{
+  test_fcd_write_simple__write_NULL(string_port, STRINGPORT);
 }
 
 TEST(fcd_output, file_port__fcd_write_simple__specify_closed_port__return_ERROR)
@@ -495,6 +566,16 @@ TEST(fcd_output, file_port__fcd_display__write_shared_structure)
 TEST(fcd_output, string_port__fcd_display__write_shared_structure)
 {
   test_fcd_display__write_shared_structure(string_port, STRINGPORT);
+}
+
+TEST(fcd_output, file_port__fcd_display__write_NULL)
+{
+  test_fcd_display__write_NULL(file_port, FILEPORT);
+}
+
+TEST(fcd_output, string_port__fcd_display__write_NULL)
+{
+  test_fcd_display__write_NULL(string_port, STRINGPORT);
 }
 
 TEST(fcd_output, file_port__fcd_display__specify_closed_port__return_ERROR)

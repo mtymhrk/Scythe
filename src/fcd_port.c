@@ -1019,7 +1019,6 @@ scm_fcd_write_shared(ScmObj obj, ScmObj port)
     if (scm_obj_null_p(port)) return -1;
   }
 
-  scm_assert(scm_obj_not_null_p(obj));
   scm_assert(scm_fcd_output_port_p(port));
   scm_assert(scm_fcd_textual_port_p(port));
 
@@ -1056,7 +1055,6 @@ scm_fcd_write_simple(ScmObj obj, ScmObj port)
     if (scm_obj_null_p(port)) return -1;
   }
 
-  scm_assert(scm_obj_not_null_p(obj));
   scm_assert(scm_fcd_output_port_p(port));
   scm_assert(scm_fcd_textual_port_p(port));
 
@@ -1090,7 +1088,6 @@ scm_fcd_display(ScmObj obj, ScmObj port)
     if (scm_obj_null_p(port)) return -1;
   }
 
-  scm_assert(scm_obj_not_null_p(obj));
   scm_assert(scm_fcd_output_port_p(port));
   scm_assert(scm_fcd_textual_port_p(port));
 
