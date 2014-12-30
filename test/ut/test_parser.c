@@ -170,12 +170,16 @@ TEST(parser, tokenize_identifier_3dots)
                 " ... ");
 }
 
-IGNORE_TEST(parser, tokenize_reference_decl)
+TEST(parser, tokenize_reference_decl)
 {
+  test_tokenize(SCM_TOKEN_TYPE_REFERENCE_DECL, "#123=",
+                " #123= ");
 }
 
-IGNORE_TEST(parser, tokenize_reference_use)
+TEST(parser, tokenize_reference_use)
 {
+  test_tokenize(SCM_TOKEN_TYPE_REFERENCE_USE, "#123#",
+                " #123# ");
 }
 
 TEST(parser, tokenize_numeric_int)
