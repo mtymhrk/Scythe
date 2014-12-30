@@ -1594,50 +1594,65 @@ scm_parser_parse_bool(ScmParser *parser, ScmObj port, ScmEncoding *enc)
     return SCM_FALSE_OBJ;
 }
 
-static ScmObj
-scm_parser_parse_vector_aux(ScmParser *parser,
-                            ScmObj port, ScmEncoding *enc, size_t *len)
+static int
+scm_parser_parse_vector_aux(ScmParser *parser, ScmObj port, ScmEncoding *enc,
+                            ScmObj vec, int (*push_func)(ScmObj, ScmObj))
 {
   ScmToken *token;
-  ScmObj car = SCM_OBJ_INIT, cdr = SCM_OBJ_INIT;
+  ScmObj elm = SCM_OBJ_INIT;
+  size_t count;
+  int r;
 
-  SCM_REFSTK_INIT_REG(&port, &car, &cdr);
+  SCM_REFSTK_INIT_REG(&port, &elm,
+                      &vec);
 
   scm_assert(parser != NULL);
   scm_assert(scm_fcd_input_port_p(port));
   scm_assert(enc != NULL);
-  scm_assert(len != NULL);
+  scm_assert(scm_fcd_vector_p(vec) || scm_fcd_bytevector_p(vec));
+  scm_assert(push_func != NULL);
 
-  token = scm_lexer_head_token(parser->lexer, port, enc);
-  if (token == NULL)  return SCM_OBJ_NULL;
+  count = 0;
+  while (1) {
+    token = scm_lexer_head_token(parser->lexer, port, enc);
+    if (token == NULL) return -1;
 
-  if (token->type == SCM_TOKEN_TYPE_RPAREN) {
-    scm_lexer_shift_token(parser->lexer);
-    return SCM_NIL_OBJ;
+    if (token->type == SCM_TOKEN_TYPE_RPAREN) {
+      scm_lexer_shift_token(parser->lexer);
+      break;
+    }
+
+    if (count >= SSIZE_MAX) {
+      if (scm_fcd_vector_p(vec))
+        scm_fcd_error("Parser: vector too big", 0);
+      else
+        scm_fcd_error("Parser: bytevector too big", 0);
+      return -1;
+    }
+
+    elm = scm_parser_parse_expression(parser, port);
+    if (scm_obj_null_p(elm)) return SCM_OBJ_NULL;
+    if (scm_fcd_eof_object_p(elm)) {
+      scm_fcd_read_error("Parser: unexpected eof", 0);
+      return -1;
+    }
+
+    r = push_func(vec, elm);
+    if (r < 0) return -1;
+
+    count++;
   }
 
-  car = scm_parser_parse_expression(parser, port);
-  if (scm_obj_null_p(car)) return SCM_OBJ_NULL;
-  if (scm_fcd_eof_object_p(car)) {
-    scm_fcd_read_error("Parser: unexpected eof", 0);
-    return SCM_OBJ_NULL;
-  }
-
-  *len += 1;
-
-  cdr = scm_parser_parse_vector_aux(parser, port, enc, len);
-  if (scm_obj_null_p(cdr)) return SCM_OBJ_NULL;
-
-  return scm_fcd_cons(car, cdr);
+  return 0;
 }
 
 static ScmObj
 scm_parser_parse_vector(ScmParser *parser, ScmObj port, ScmEncoding *enc)
 {
-  ScmObj vec = SCM_OBJ_INIT, elms = SCM_OBJ_INIT, elm = SCM_OBJ_INIT;
-  size_t len, idx;
+  ScmObj vec = SCM_OBJ_INIT;
+  int r;
 
-  SCM_REFSTK_INIT_REG(&port, &vec, &elms, &elm);
+  SCM_REFSTK_INIT_REG(&port, &vec);
 
   scm_assert(parser != NULL);
   scm_assert(scm_fcd_input_port_p(port));
@@ -1645,68 +1660,62 @@ scm_parser_parse_vector(ScmParser *parser, ScmObj port, ScmEncoding *enc)
 
   scm_lexer_shift_token(parser->lexer);
 
-  len = 0;
-  elms = scm_parser_parse_vector_aux(parser, port, enc, &len);
-  if (scm_obj_null_p(elms)) return SCM_OBJ_NULL;
-
-  if (len > SSIZE_MAX) {
-    scm_fcd_error("Parser: vector too big", 0);
-    return SCM_OBJ_NULL;
-  }
-
-  vec = scm_fcd_make_vector(len, SCM_OBJ_NULL);
+  vec = scm_fcd_make_vector(0, SCM_OBJ_NULL);
   if (scm_obj_null_p(vec)) return SCM_OBJ_NULL;
 
-  for (idx = 0; idx < len; idx++) {
-    elm = scm_fcd_car(elms);
-    scm_fcd_vector_set_i(vec, idx, elm);
-    elms = scm_fcd_cdr(elms);
-  }
+  r = scm_parser_parse_vector_aux(parser, port, enc, vec, scm_fcd_vector_push);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  r = scm_fcd_vector_contract_redundant_space(vec);
+  if (r < 0) return SCM_OBJ_NULL;
 
   return vec;
 }
 
 static int
-scm_parser_check_bv_element(ScmParser *parser, ScmObj elm,
-                            ScmObj min, ScmObj max)
+scm_parser_check_bv_element(ScmObj elm)
 {
-  bool cmp;
+  scm_sword_t v;
   int r;
-  SCM_REFSTK_INIT_REG(&elm, &min, &max);
-
-  scm_assert(parser != NULL);
 
   if (!scm_fcd_exact_integer_p(elm))
     goto invalid;
 
-  r = scm_fcd_num_le(min, elm, &cmp);
+  r = scm_fcd_integer_to_sword(elm, &v);
   if (r < 0) return -1;
 
-  if (!cmp)
+  if (v < 0 || 255 < v)
     goto invalid;
 
-  r = scm_fcd_num_le(elm, max, &cmp);
-  if (r < 0) return -1;
-
-  if (!cmp)
-    goto invalid;
-
-  return 0;
+  return (int)v;
 
  invalid:
   scm_fcd_error("Parser: invalid bytevector element", elm);
   return -1;
 }
 
+static int
+scm_parser_push_bv_element(ScmObj vec, ScmObj elm)
+{
+  int v;
+
+  scm_assert(scm_fcd_bytevector_p(vec));
+  scm_assert(scm_obj_not_null_p(elm));
+
+  v = scm_parser_check_bv_element(elm);
+  if (v < 0) return -1;
+
+  return scm_fcd_bytevector_push(vec, v);
+}
+
 static ScmObj
 scm_parser_parse_bytevector(ScmParser *parser, ScmObj port, ScmEncoding *enc)
 {
-  ScmObj vec = SCM_OBJ_INIT, elms = SCM_OBJ_INIT, elm = SCM_OBJ_INIT;
-  ScmObj min = SCM_OBJ_INIT, max = SCM_OBJ_INIT;
-  size_t len, idx;
-  int rslt;
+  ScmObj vec = SCM_OBJ_INIT;
+  int r;
 
-  SCM_REFSTK_INIT_REG(&port, &vec, &elms, &elm);
+  SCM_REFSTK_INIT_REG(&port,
+                      &vec);
 
   scm_assert(parser != NULL);
   scm_assert(scm_fcd_input_port_p(port));
@@ -1714,33 +1723,15 @@ scm_parser_parse_bytevector(ScmParser *parser, ScmObj port, ScmEncoding *enc)
 
   scm_lexer_shift_token(parser->lexer);
 
-  len = 0;
-  elms = scm_parser_parse_vector_aux(parser, port, enc, &len);
-  if (scm_obj_null_p(elms)) return SCM_OBJ_NULL;
-
-  if (len > SSIZE_MAX) {
-    scm_fcd_error("Parser: bytevector too big", 0);
-    return SCM_OBJ_NULL;
-  }
-
-  vec = scm_fcd_make_bytevector(len, 0);
+  vec = scm_fcd_make_bytevector(0, 0);
   if (scm_obj_null_p(vec)) return SCM_OBJ_NULL;
 
-  min = scm_fcd_make_number_from_sword(0);
-  if (scm_obj_null_p(min)) return SCM_OBJ_NULL;
+  r = scm_parser_parse_vector_aux(parser, port, enc,
+                                  vec, scm_parser_push_bv_element);
+  if (r < 0) return SCM_OBJ_NULL;
 
-  max = scm_fcd_make_number_from_sword(255);
-  if (scm_obj_null_p(max)) return SCM_OBJ_NULL;
-
-  for (idx = 0; idx < len; idx++) {
-    scm_sword_t v;
-    elm = scm_fcd_car(elms);
-    rslt = scm_parser_check_bv_element(parser, elm, min, max);
-    if (rslt < 0) return SCM_OBJ_NULL;
-    scm_fcd_integer_to_sword(elm, &v);
-    scm_fcd_bytevector_u8_set_i(vec, idx, (int)v);
-    elms = scm_fcd_cdr(elms);
-  }
+  r = scm_fcd_bytevector_contract_redundant_space(vec);
+  if (r < 0) return SCM_OBJ_NULL;
 
   return vec;
 }
