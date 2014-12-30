@@ -190,3 +190,49 @@ scm_landmine_finalize(ScmObj mine)
 {
   return;                       /* nothing to do */
 }
+
+
+/*******************************************************/
+/*  ScmBox                                             */
+/*******************************************************/
+
+ScmTypeInfo SCM_BOX_TYPE_INFO = {
+  .name                = "box",
+  .flags               = SCM_TYPE_FLG_MMO,
+  .obj_print_func      = NULL,
+  .obj_size            = sizeof(ScmBox),
+  .gc_ini_func         = scm_box_gc_initialize,
+  .gc_fin_func         = NULL,
+  .gc_accept_func      = scm_box_gc_accept,
+  .gc_accept_func_weak = NULL,
+  .extra               = NULL,
+};
+
+int
+scm_box_initialize(ScmObj box, ScmObj obj)
+{
+  scm_assert_obj_type(box, &SCM_BOX_TYPE_INFO);
+  scm_assert(scm_obj_not_null_p(obj));
+
+  SCM_SLOT_SETQ(ScmBox, box, obj, obj);
+
+  return 0;
+}
+
+void
+scm_box_gc_initialize(ScmObj obj, ScmObj mem)
+{
+  scm_assert_obj_type(obj, &SCM_BOX_TYPE_INFO);
+  scm_assert(scm_obj_not_null_p(mem));
+
+  SCM_BOX(obj)->obj = SCM_OBJ_NULL;
+}
+
+int
+scm_box_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
+{
+  scm_assert_obj_type(obj, &SCM_BOX_TYPE_INFO);
+  scm_assert(scm_obj_not_null_p(mem));
+
+  return SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_BOX(obj)->obj, mem);
+}

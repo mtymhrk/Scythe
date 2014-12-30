@@ -394,69 +394,6 @@ scm_bedrock_cached_gv(ScmBedrock *br, int kind, scm_csetter_t *gloc)
   }
 }
 
-/***************************************************************************/
-/*  ScmBox                                                                 */
-/***************************************************************************/
-
-ScmTypeInfo SCM_BOX_TYPE_INFO = {
-  .name                = "box",
-  .flags               = SCM_TYPE_FLG_MMO,
-  .obj_print_func      = NULL,
-  .obj_size            = sizeof(ScmBox),
-  .gc_ini_func         = scm_box_gc_initialize,
-  .gc_fin_func         = NULL,
-  .gc_accept_func      = scm_box_gc_accept,
-  .gc_accept_func_weak = NULL,
-  .extra               = NULL,
-};
-
-int
-scm_box_initialize(ScmObj box, ScmObj obj)
-{
-  scm_assert_obj_type(box, &SCM_BOX_TYPE_INFO);
-  scm_assert(scm_obj_not_null_p(obj));
-
-  SCM_SLOT_SETQ(ScmBox, box, obj, obj);
-
-  return 0;
-}
-
-ScmObj
-scm_box_new(SCM_MEM_TYPE_T mtype, ScmObj obj)
-{
-  ScmObj box = SCM_OBJ_INIT;
-
-  SCM_REFSTK_INIT_REG(&obj, &box);
-
-  scm_assert(scm_obj_not_null_p(obj));
-
-  box = scm_fcd_mem_alloc(&SCM_BOX_TYPE_INFO, 0, mtype);
-  if (scm_obj_null_p(box)) return SCM_OBJ_NULL;
-
-  if (scm_box_initialize(box, obj) < 0)
-    return SCM_OBJ_NULL;
-
-  return box;
-}
-
-void
-scm_box_gc_initialize(ScmObj obj, ScmObj mem)
-{
-  scm_assert_obj_type(obj, &SCM_BOX_TYPE_INFO);
-  scm_assert(scm_obj_not_null_p(mem));
-
-  SCM_BOX(obj)->obj = SCM_OBJ_NULL;
-}
-
-int
-scm_box_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
-{
-  scm_assert_obj_type(obj, &SCM_BOX_TYPE_INFO);
-  scm_assert(scm_obj_not_null_p(mem));
-
-  return SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_BOX(obj)->obj, mem);
-}
-
 
 /*******************************************************************/
 /*  VM Continuation Capture                                        */
@@ -1996,8 +1933,8 @@ scm_vm_do_op_sref(ScmObj vm, scm_opcode_t op, int idx, int layer)
                               (size_t)idx, (size_t)layer, NULL);
   if (scm_obj_null_p(val)) return -1;
 
-  if (scm_obj_type_p(val, &SCM_BOX_TYPE_INFO)) {
-    val = scm_box_unbox(val);
+  if (scm_fcd_box_object_p(val)) {
+    val = scm_fcd_box_unbox(val);
     if (scm_obj_null_p(val)) return -1;
   }
 
@@ -2045,7 +1982,7 @@ scm_vm_do_op_box(ScmObj vm, scm_opcode_t op, int idx, int layer)
     return -1;
   }
 
-  box = scm_box_new(SCM_MEM_HEAP, scm_vm_ef_values(efp)[idx]);
+  box = scm_fcd_box_new(SCM_MEM_HEAP, scm_vm_ef_values(efp)[idx]);
   if (scm_obj_null_p(box)) return -1;
 
   SCM_WB_EXP(vm, scm_vm_ef_values(efp)[idx] = box);
@@ -2072,12 +2009,12 @@ scm_vm_do_op_demine(ScmObj vm, scm_opcode_t op, int idx, int layer)
                               (size_t)idx, (size_t)layer, NULL);
   if (scm_obj_null_p(val)) return -1;
 
-  if (!scm_obj_type_p(val, &SCM_BOX_TYPE_INFO)) {
+  if (!scm_fcd_box_object_p(val)) {
     scm_fcd_error("update to variable bound by unboxed object", 0);
     return -1;
   }
 
-  scm_box_update(val, SCM_VM(vm)->reg.val[0]);
+  scm_fcd_box_update(val, SCM_VM(vm)->reg.val[0]);
 
   return 0;
 }
@@ -2483,18 +2420,18 @@ scm_vm_op_sset(ScmObj vm, scm_opcode_t op)
                               (size_t)idx, (size_t)layer, NULL);
   if (scm_obj_null_p(val)) return -1;
 
-  if (!scm_obj_type_p(val, &SCM_BOX_TYPE_INFO)) {
+  if (!scm_fcd_box_object_p(val)) {
     scm_fcd_error("update to variable bound by unboxed object", 0);
     return -1;
   }
 
-  o = scm_box_unbox(val);
+  o = scm_fcd_box_unbox(val);
   if (scm_fcd_landmine_object_p(o)) {
     scm_fcd_error("refarence to uninitialized variable", 0);
     return -1;
   }
 
-  scm_box_update(val, SCM_VM(vm)->reg.val[0]);
+  scm_fcd_box_update(val, SCM_VM(vm)->reg.val[0]);
 
   return 0;
 }

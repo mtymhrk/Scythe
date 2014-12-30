@@ -5,6 +5,11 @@
 #include "scythe/miscobjects.h"
 #include "scythe/vm.h"
 
+
+/*******************************************************/
+/*  Nil (empty list)                                   */
+/*******************************************************/
+
 ScmObj
 scm_fcd_nil_new(SCM_MEM_TYPE_T mtype)
 {
@@ -43,6 +48,9 @@ scm_fcd_nil_P(ScmObj obj)
 }
 
 
+/*******************************************************/
+/*  Booleans                                           */
+/*******************************************************/
 
 extern inline bool
 scm_fcd_boolean_p(ScmObj obj)
@@ -122,6 +130,9 @@ scm_fcd_not(ScmObj obj)
 }
 
 
+/*******************************************************/
+/*  EOF                                                */
+/*******************************************************/
 
 ScmObj
 scm_fcd_eof_new(SCM_MEM_TYPE_T mtype)
@@ -159,6 +170,10 @@ scm_fcd_eof_object_P(ScmObj obj)
 }
 
 
+/*******************************************************/
+/*  Undef                                              */
+/*******************************************************/
+
 ScmObj
 scm_fcd_undef_new(SCM_MEM_TYPE_T mtype)
 {
@@ -191,6 +206,9 @@ scm_fcd_undef_object_p(ScmObj obj)
 }
 
 
+/*******************************************************/
+/*  Landmine (uninitialized)                           */
+/*******************************************************/
 
 ScmObj
 scm_fcd_landmine_new(SCM_MEM_TYPE_T mtype)
@@ -211,4 +229,33 @@ extern inline bool
 scm_fcd_landmine_object_p(ScmObj obj)
 {
   return scm_fcd_eq_p(obj, scm_bedrock_landmine(scm_fcd_current_br()));
+}
+
+
+/*******************************************************/
+/*  Boxing                                             */
+/*******************************************************/
+
+extern inline bool
+scm_fcd_box_object_p(ScmObj obj)
+{
+  return scm_obj_type_p(obj, &SCM_BOX_TYPE_INFO);
+}
+
+ScmObj
+scm_fcd_box_new(SCM_MEM_TYPE_T mtype, ScmObj obj)
+{
+  ScmObj box = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&obj, &box);
+
+  scm_assert(scm_obj_not_null_p(obj));
+
+  box = scm_fcd_mem_alloc(&SCM_BOX_TYPE_INFO, 0, mtype);
+  if (scm_obj_null_p(box)) return SCM_OBJ_NULL;
+
+  if (scm_box_initialize(box, obj) < 0)
+    return SCM_OBJ_NULL;
+
+  return box;
 }

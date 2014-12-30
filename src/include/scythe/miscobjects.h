@@ -7,6 +7,7 @@ typedef struct ScmNilRec ScmNil;
 typedef struct ScmUndefRec ScmUndef;
 typedef struct ScmLandmineRec ScmLandmine;
 
+
 #define SCM_EOF(obj) ((ScmEof *)(obj))
 #define SCM_BOOL(obj) ((ScmBool *)(obj))
 #define SCM_NIL(obj) ((ScmNil *)(obj))
@@ -94,6 +95,17 @@ extern ScmTypeInfo SCM_LANDMINE_TYPE_INFO;
 
 void scm_landmine_initialize(ScmObj mine);
 void scm_landmine_finalize(ScmObj mine);
+
+
+/*******************************************************/
+/*  ScmBox                                             */
+/*******************************************************/
+
+extern ScmTypeInfo SCM_BOX_TYPE_INFO;
+
+int scm_box_initialize(ScmObj box, ScmObj obj);
+void scm_box_gc_initialize(ScmObj obj, ScmObj mem);
+int scm_box_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
 
 
 #endif /*  INCLUDE_MISCOBJECTS_H__ */
