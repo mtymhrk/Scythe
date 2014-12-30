@@ -450,11 +450,10 @@ default_input_port(bool textual, bool binary)
 ScmObj
 scm_fcd_read(ScmObj port)
 {
-  ScmObj obj = SCM_OBJ_INIT;
-  ScmParser *parser;
+  ScmObj parser = SCM_OBJ_INIT, obj = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&port,
-                      &obj);
+                      &parser, &obj);
 
   if (scm_obj_null_p(port)) {
     port = default_input_port(true, false);
@@ -469,14 +468,10 @@ scm_fcd_read(ScmObj port)
     return SCM_OBJ_NULL;
   }
 
-  parser = scm_parser_new();
-  if (parser == NULL) return SCM_OBJ_NULL;
+  parser = scm_parser_new(SCM_MEM_HEAP);
+  if (scm_obj_null_p(parser)) return SCM_OBJ_NULL;
 
-  obj = scm_parser_parse_expression(parser, port);
-
-  scm_parser_end(parser);
-
-  return obj;
+  return scm_parser_parse(parser, port);
 }
 
 ssize_t

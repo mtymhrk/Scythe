@@ -260,18 +260,6 @@ TEST(parser, tokenize_eof)
                 "");
 }
 
-static ScmParser *parser;
-
-static void
-parser_tear_down_func(void)
-{
-  if (parser != NULL) {
-    scm_parser_end(parser);
-    parser = NULL;
-  }
-  tear_down_func = NULL;
-}
-
 static ScmObj
 make_list_of_symbol(bool proper, size_t n, ...)
 {
@@ -331,15 +319,14 @@ make_vector_of_symbol(size_t n, ...)
 static void
 test_parse(ScmObj expected, const char *data)
 {
-  ScmObj port = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
+  ScmObj parser = SCM_OBJ_INIT, port = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
 
-  SCM_REFSTK_INIT_REG(&port, &actual);
+  SCM_REFSTK_INIT_REG(&parser, &port, &actual);
 
   port = scm_fcd_open_input_string_cstr(data, SCM_ENC_NAME_SRC);
-  parser = scm_parser_new();
-  tear_down_func = parser_tear_down_func;
+  parser = scm_parser_new(SCM_MEM_HEAP);
 
-  actual = scm_parser_parse_expression(parser, port);
+  actual = scm_parser_parse(parser, port);
 
   TEST_ASSERT_SCM_EQUAL(expected, actual);
 }
@@ -397,6 +384,47 @@ TEST(parser, parse_symbol_vline_escape)
   expected = scm_fcd_make_symbol_from_cstr("foo\nbar\tbaz", SCM_ENC_SRC);
 
   test_parse(expected, "|foo\\nbar\\tb\\x61;z|");
+}
+
+TEST(parser, parse_datum_label__in_pair)
+{
+  ScmObj expected = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&expected);
+
+  expected = scm_fcd_cons(scm_fcd_make_number_from_sword(2), SCM_NIL_OBJ);
+  expected = scm_fcd_cons(scm_fcd_make_number_from_sword(1), expected);
+  scm_fcd_set_cdr_i(scm_fcd_cdr(expected), expected);
+
+  test_parse(expected, "#0=(1 2 . #0#)");
+}
+
+TEST(parser, parse_datum_label__in_vector)
+{
+  ScmObj expected = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&expected);
+
+  expected = scm_fcd_make_vector(3, SCM_FALSE_OBJ);
+  scm_fcd_vector_set_i(expected, 1, expected);
+
+  test_parse(expected, "#0=#(#f #0# #f)");
+}
+
+TEST(parser, parse_datum_label__after_quotation)
+{
+  ScmObj expected = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&expected);
+
+  expected = scm_fcd_cons(scm_fcd_make_number_from_sword(1), SCM_NIL_OBJ);
+  scm_fcd_set_cdr_i(expected,
+                    scm_fcd_list(2,
+                                 scm_fcd_make_symbol_from_cstr("quote",
+                                                               SCM_ENC_SRC),
+                                 expected));
+
+  test_parse(expected, "#0=(1 . '#0#)");
 }
 
 TEST(parser, parse_number_int)

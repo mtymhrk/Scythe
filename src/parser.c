@@ -1031,51 +1031,296 @@ scm_lexer_error_type(ScmLexer *lexer)
   return lexer->error_type;
 }
 
-static ScmObj
-scm_parser_parse_list(ScmParser *parser, ScmObj port, ScmEncoding *enc)
+ScmTypeInfo SCM_DATUM_LABEL_USE_TYPE_INFO = {
+  .name                = "datum-label-use",
+  .flags               = SCM_TYPE_FLG_MMO,
+  .obj_print_func      = NULL,
+  .obj_size            = sizeof(ScmDatumLabelUse),
+  .gc_ini_func         = scm_datum_label_use_gc_initialize,
+  .gc_fin_func         = NULL,
+  .gc_accept_func      = scm_datum_label_use_gc_accept,
+  .gc_accept_func_weak = NULL,
+  .extra               = NULL
+};
+
+#define DATUM_LABEL_INIT_OBJ SCM_UNDEF_OBJ
+
+int
+scm_datum_label_use_initialize(ScmObj use, ScmParserRef *ref)
 {
+  scm_assert_obj_type(use, &SCM_DATUM_LABEL_USE_TYPE_INFO);
+  scm_assert(ref != NULL);
+
+  SCM_SLOT_SETQ(ScmDatumLabelUse, use, ref.referrer, ref->referrer);
+  SCM_DATUM_LABEL_USE(use)->ref.pos = ref->pos;
+
+  return 0;
+}
+
+ScmObj
+scm_datum_label_use_new(SCM_MEM_TYPE_T mtype, ScmParserRef *ref)
+{
+  ScmObj use = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&use);
+
+  scm_assert(ref != NULL);
+
+  use = scm_fcd_mem_alloc(&SCM_DATUM_LABEL_USE_TYPE_INFO, 0, mtype);
+  if (scm_obj_null_p(use)) return SCM_OBJ_NULL;
+
+  if (scm_datum_label_use_initialize(use, ref) < 0)
+    return SCM_OBJ_NULL;
+
+  return use;
+}
+
+static ScmObj
+datum_label_get_box(ScmParserRef *ref)
+{
+  scm_assert(ref != NULL);
+
+  if (scm_fcd_pair_p(ref->referrer)) {
+    if (ref->pos == 0)
+      return scm_fcd_car(ref->referrer);
+    else
+      return scm_fcd_cdr(ref->referrer);
+  }
+  else if (scm_fcd_vector_p(ref->referrer)) {
+    scm_assert(ref->pos < scm_fcd_vector_length(ref->referrer));
+    return scm_fcd_vector_ref(ref->referrer, ref->pos);
+  }
+  else {
+    scm_fcd_error("Parser: invlaid datum label reference", 0);
+    return SCM_OBJ_NULL;
+  }
+}
+
+static int
+datum_label_set(ScmParserRef *ref, ScmObj datum)
+{
+  scm_assert(ref != NULL);
+  scm_assert(scm_obj_not_null_p(datum));
+
+  if (scm_fcd_pair_p(ref->referrer)) {
+    if (ref->pos == 0)
+      scm_fcd_set_car_i(ref->referrer, datum);
+    else
+      scm_fcd_set_cdr_i(ref->referrer, datum);
+    return 0;
+  }
+  else if (scm_fcd_vector_p(ref->referrer)) {
+    scm_assert(ref->pos < scm_fcd_vector_length(ref->referrer));
+    scm_fcd_vector_set_i(ref->referrer, ref->pos, datum);
+    return 0;
+  }
+  else {
+    scm_fcd_error("Parser: invlaid datum label reference", 0);
+    return -1;
+  }
+}
+
+int
+scm_datum_label_use_resolve(ScmObj use)
+{
+  ScmObj box = SCM_OBJ_INIT, datum = SCM_OBJ_INIT;
+  int r;
+
+  scm_assert_obj_type(use, &SCM_DATUM_LABEL_USE_TYPE_INFO);
+
+  box = datum_label_get_box(&SCM_DATUM_LABEL_USE(use)->ref);
+  if (!scm_fcd_box_object_p(box))
+    return 0;
+
+  datum = scm_fcd_box_unbox(box);
+  if (scm_fcd_eq_p(datum, DATUM_LABEL_INIT_OBJ)) {
+    scm_fcd_error("Parser: datum label not declared", 0);
+    return -1;
+  }
+
+  r = datum_label_set(&SCM_DATUM_LABEL_USE(use)->ref, datum);
+  if (r < 0) return -1;
+
+  return 0;
+}
+
+void
+scm_datum_label_use_gc_initialize(ScmObj obj, ScmObj mem)
+{
+  scm_assert_obj_type(obj, &SCM_DATUM_LABEL_USE_TYPE_INFO);
+  scm_assert(scm_obj_not_null_p(mem));
+
+  SCM_DATUM_LABEL_USE(obj)->ref.referrer = SCM_OBJ_NULL;
+}
+
+int
+scm_datum_label_use_gc_accept(ScmObj obj, ScmObj mem,
+                              ScmGCRefHandlerFunc handler)
+{
+  scm_assert_obj_type(obj, &SCM_DATUM_LABEL_USE_TYPE_INFO);
+  scm_assert(scm_obj_not_null_p(mem));
+
+  return SCM_GC_CALL_REF_HANDLER(handler,
+                                 obj, SCM_DATUM_LABEL_USE(obj)->ref.referrer,
+                                 mem);
+}
+
+ScmTypeInfo SCM_PARSER_TYPE_INFO = {
+  .name                = "parser",
+  .flags               = SCM_TYPE_FLG_MMO,
+  .obj_print_func      = NULL,
+  .obj_size            = sizeof(ScmParser),
+  .gc_ini_func         = scm_parser_gc_initialize,
+  .gc_fin_func         = scm_parser_gc_finalize,
+  .gc_accept_func      = scm_parser_gc_accept,
+  .gc_accept_func_weak = NULL,
+  .extra               = NULL
+};
+
+static ScmObj scm_parser_parse_expression(ScmObj parser,
+                                          ScmObj port, ScmParserRef *ref);
+
+static int
+scm_parser_reg_dl_use(ScmObj parser, ScmParserRef *ref)
+{
+  ScmObj dlu = SCM_OBJ_INIT;
+  int err;
+
+  SCM_REFSTK_INIT_REG(&parser,
+                      &dlu);
+
+  scm_assert_obj_type(parser, &SCM_PARSER_TYPE_INFO);
+  scm_assert(ref != NULL);
+
+  dlu = scm_datum_label_use_new(SCM_MEM_HEAP, ref);
+  if (scm_obj_null_p(dlu)) return -1;
+
+  EARY_PUSH_SCMOBJ(&SCM_PARSER(parser)->label_use, dlu, parser, err);
+  if(err < 0) return -1;
+
+  return 0;
+}
+
+static ScmObj
+scm_parser_reg_dl_decl(ScmObj parser, size_t label)
+{
+  ScmObj box = SCM_OBJ_INIT;
+  int err;
+
+  SCM_REFSTK_INIT_REG(&parser,
+                      &box);
+
+  scm_assert_obj_type(parser, &SCM_PARSER_TYPE_INFO);
+
+  if (label < EARY_SIZE(&SCM_PARSER(parser)->label_decl)) {
+    EARY_GET(&SCM_PARSER(parser)->label_decl, ScmObj, label, box);
+    if (scm_obj_not_null_p(box)) {
+      scm_fcd_error("Parser: datum label duplicated", 0);
+      return SCM_OBJ_NULL;
+    }
+  }
+
+  box = scm_fcd_box_new(SCM_MEM_HEAP, DATUM_LABEL_INIT_OBJ);
+  if (scm_obj_null_p(box)) return SCM_OBJ_NULL;
+
+  EARY_SET_SCMOBJ(&SCM_PARSER(parser)->label_decl, label, box, parser, err);
+  if (err < 0) return SCM_OBJ_NULL;
+
+  return box;
+}
+
+static int
+scm_parser_resolve_dl_use(ScmObj parser)
+{
+  ScmObj *use;
+  size_t i;
+  int r;
+
+  scm_assert_obj_type(parser, &SCM_PARSER_TYPE_INFO);
+
+  EARY_FOR_EACH(&SCM_PARSER(parser)->label_use, i, use) {
+    scm_assert_obj_type(*use, &SCM_DATUM_LABEL_USE_TYPE_INFO);
+    r = scm_datum_label_use_resolve(*use);
+    if (r < 0) return -1;
+  }
+
+  return 0;
+}
+
+static ScmObj
+scm_parser_labeled_datum(ScmObj parser, size_t label)
+{
+  ScmObj box = SCM_OBJ_INIT;
+
+  scm_assert_obj_type(parser, &SCM_PARSER_TYPE_INFO);
+
+  if (label >= EARY_SIZE(&SCM_PARSER(parser)->label_decl))
+    goto err;
+
+  EARY_GET(&SCM_PARSER(parser)->label_decl, ScmObj, label, box);
+  if (scm_obj_null_p(box)) goto err;
+
+  return box;
+
+ err:
+  scm_fcd_error("Parser: undeclared datum label referenced", 0);
+  return SCM_OBJ_NULL;
+}
+
+static ScmObj
+scm_parser_parse_list(ScmObj parser, ScmObj port, ScmEncoding *enc)
+{
+  ScmParserRef ref = SCM_PARSER_REF_INIT;
   ScmToken *token;
-  ScmObj car = SCM_OBJ_INIT, cdr = SCM_OBJ_INIT;
+  ScmObj pair = SCM_OBJ_INIT, car = SCM_OBJ_INIT, cdr = SCM_OBJ_INIT;
 
-  SCM_REFSTK_INIT_REG(&port, &car, &cdr);
+  SCM_REFSTK_INIT_REG(&parser, &port,
+                      &ref.referrer, &pair, &car, &cdr);
 
-  scm_assert(parser != NULL);
+  scm_assert_obj_type(parser, &SCM_PARSER_TYPE_INFO);
   scm_assert(scm_fcd_input_port_p(port));
   scm_assert(enc != NULL);
 
-  token = scm_lexer_head_token(parser->lexer, port, enc);
+  token = scm_lexer_head_token(SCM_PARSER(parser)->lexer, port, enc);
   if (token == NULL)  return SCM_OBJ_NULL;
 
   if (token->type == SCM_TOKEN_TYPE_RPAREN) {
-    scm_lexer_shift_token(parser->lexer);
+    scm_lexer_shift_token(SCM_PARSER(parser)->lexer);
     return SCM_NIL_OBJ;
   }
 
-  car = scm_parser_parse_expression(parser, port);
+  pair = scm_fcd_cons(SCM_UNDEF_OBJ, SCM_UNDEF_OBJ);
+  if (scm_obj_null_p(pair)) return SCM_OBJ_NULL;
+
+  ref.referrer = pair;
+  ref.pos = 0;
+
+  car = scm_parser_parse_expression(parser, port, &ref);
   if (scm_obj_null_p(car)) return SCM_OBJ_NULL;
   if (scm_fcd_eof_object_p(car)) {
     scm_fcd_read_error("Parser: unexpected eof", 0);
     return SCM_OBJ_NULL;
   }
 
-  token = scm_lexer_head_token(parser->lexer, port, enc);
+  token = scm_lexer_head_token(SCM_PARSER(parser)->lexer, port, enc);
   if (token == NULL) return SCM_OBJ_NULL;
 
   if (token->type == SCM_TOKEN_TYPE_DOT) {
-    scm_lexer_shift_token(parser->lexer);
+    scm_lexer_shift_token(SCM_PARSER(parser)->lexer);
 
-    cdr = scm_parser_parse_expression(parser, port);
+    ref.pos = 1;
+    cdr = scm_parser_parse_expression(parser, port, &ref);
     if (scm_obj_null_p(cdr)) return SCM_OBJ_NULL;
     if (scm_fcd_eof_object_p(car)) {
       scm_fcd_read_error("Parser: unexpected eof", 0);
       return SCM_OBJ_NULL;
     }
 
-    token = scm_lexer_head_token(parser->lexer, port, enc);
+    token = scm_lexer_head_token(SCM_PARSER(parser)->lexer, port, enc);
     if (token == NULL) return SCM_OBJ_NULL;
 
     if (token->type == SCM_TOKEN_TYPE_TOKENIZE_ERR) {
-      if (scm_lexer_error_type(parser->lexer)
+      if (scm_lexer_error_type(SCM_PARSER(parser)->lexer)
           == SCM_LEXER_ERR_TYPE_UNEXPECTED_CHAR) {
         scm_fcd_error("unexpected character", 0);
       }
@@ -1090,49 +1335,52 @@ scm_parser_parse_list(ScmParser *parser, ScmObj port, ScmEncoding *enc)
       return SCM_OBJ_NULL;
     }
 
-    scm_lexer_shift_token(parser->lexer);
+    scm_lexer_shift_token(SCM_PARSER(parser)->lexer);
   }
   else {
     cdr = scm_parser_parse_list(parser, port, enc);
     if (scm_obj_null_p(cdr)) return SCM_OBJ_NULL;
   }
 
-  return scm_fcd_cons(car, cdr);
+  scm_fcd_set_car_i(pair, car);
+  scm_fcd_set_cdr_i(pair, cdr);
+  return pair;
 }
 
 static ScmObj
-scm_parser_parse_quote(ScmParser *parser, ScmObj port, ScmEncoding *enc)
+scm_parser_parse_quote(ScmObj parser, ScmObj port, ScmEncoding *enc)
 {
   const char *quote_str = "quote";
   const char *quasiquote_str = "quasiquote";
   const char *unquote_str = "unquote";
   const char *unquote_splicing_str = "unquote-splicing";
 
-  ScmObj quote = SCM_OBJ_INIT;
-  ScmObj quoted = SCM_OBJ_INIT;
+  ScmParserRef ref = SCM_PARSER_REF_INIT;
+  ScmObj sym = SCM_OBJ_INIT, quote = SCM_OBJ_INIT, quoted = SCM_OBJ_INIT;
   ScmToken *token;
 
-  SCM_REFSTK_INIT_REG(&port, &quote, &quoted);
+  SCM_REFSTK_INIT_REG(&parser, &port,
+                      &ref.referrer, &sym, &quote, &quoted);
 
-  scm_assert(parser != NULL);
+  scm_assert_obj_type(parser, &SCM_PARSER_TYPE_INFO);
   scm_assert(scm_fcd_input_port_p(port));
   scm_assert(enc != NULL);
 
-  token = scm_lexer_head_token(parser->lexer, port, enc);
+  token = scm_lexer_head_token(SCM_PARSER(parser)->lexer, port, enc);
   if (token == NULL) return SCM_OBJ_NULL;
 
   switch (token->type) {
   case SCM_TOKEN_TYPE_QUOTE:
-    quote = scm_fcd_make_symbol_from_cstr(quote_str, SCM_ENC_SRC);
+    sym = scm_fcd_make_symbol_from_cstr(quote_str, SCM_ENC_SRC);
     break;
   case SCM_TOKEN_TYPE_QUASIQUOTE:
-    quote = scm_fcd_make_symbol_from_cstr(quasiquote_str, SCM_ENC_SRC);
+    sym = scm_fcd_make_symbol_from_cstr(quasiquote_str, SCM_ENC_SRC);
     break;
   case SCM_TOKEN_TYPE_UNQUOTE:
-    quote = scm_fcd_make_symbol_from_cstr(unquote_str, SCM_ENC_SRC);
+    sym = scm_fcd_make_symbol_from_cstr(unquote_str, SCM_ENC_SRC);
     break;
   case SCM_TOKEN_TYPE_UNQUOTE_SPLICING:
-    quote = scm_fcd_make_symbol_from_cstr(unquote_splicing_str, SCM_ENC_SRC);
+    sym = scm_fcd_make_symbol_from_cstr(unquote_splicing_str, SCM_ENC_SRC);
     break;
   case SCM_TOKEN_TYPE_NONE:               /* fall through */
   case SCM_TOKEN_TYPE_LPAREN:             /* fall through */
@@ -1156,21 +1404,26 @@ scm_parser_parse_quote(ScmParser *parser, ScmObj port, ScmEncoding *enc)
     break;
   }
 
+  if (scm_obj_null_p(sym)) return SCM_OBJ_NULL;
+
+  quote = scm_fcd_cons(SCM_UNDEF_OBJ, SCM_NIL_OBJ);
   if (scm_obj_null_p(quote)) return SCM_OBJ_NULL;
 
-  scm_lexer_shift_token(parser->lexer);
+  ref.referrer = quote;
+  ref.pos = 0;
 
-  quoted = scm_parser_parse_expression(parser, port);
+  scm_lexer_shift_token(SCM_PARSER(parser)->lexer);
+
+  quoted = scm_parser_parse_expression(parser, port, &ref);
   if (scm_obj_null_p(quoted)) return SCM_OBJ_NULL;
   if (scm_fcd_eof_object_p(quoted)) {
     scm_fcd_read_error("Parser: unexpected eof", 0);
     return SCM_OBJ_NULL;
   }
 
-  quoted = scm_fcd_cons(quoted, SCM_NIL_OBJ);
-  if (scm_obj_null_p(quoted)) return SCM_OBJ_NULL;
+  scm_fcd_set_car_i(quote, quoted);
 
-  return scm_fcd_cons(quote, quoted);
+  return scm_fcd_cons(sym, quote);
 }
 
 static int
@@ -1411,19 +1664,20 @@ scm_parser_unescape_string(ScmToken *token, ScmObj str, ScmEncoding *enc)
 }
 
 static ScmObj
-scm_parser_parse_string(ScmParser *parser, ScmObj port, ScmEncoding *enc)
+scm_parser_parse_string(ScmObj parser, ScmObj port, ScmEncoding *enc)
 {
   ScmObj str = SCM_OBJ_INIT;
   ScmToken *token;
   int rslt;
 
-  SCM_REFSTK_INIT_REG(&port, &str);
+  SCM_REFSTK_INIT_REG(&parser, &port,
+                      &str);
 
-  scm_assert(parser != NULL);
+  scm_assert_obj_type(parser, &SCM_PARSER_TYPE_INFO);
   scm_assert(scm_fcd_input_port_p(port));
   scm_assert(enc != NULL);
 
-  token = scm_lexer_head_token(parser->lexer, port, enc);
+  token = scm_lexer_head_token(SCM_PARSER(parser)->lexer, port, enc);
   if (token == NULL) return SCM_OBJ_NULL;
 
   str = scm_fcd_make_string_from_cstr(NULL, enc);
@@ -1433,7 +1687,7 @@ scm_parser_parse_string(ScmParser *parser, ScmObj port, ScmEncoding *enc)
     if (rslt < 0) return SCM_OBJ_NULL;
   }
 
-  scm_lexer_shift_token(parser->lexer);
+  scm_lexer_shift_token(SCM_PARSER(parser)->lexer);
 
   return str;
 }
@@ -1520,22 +1774,23 @@ scm_parser_unescape_ident(ScmToken *token, ScmObj str, ScmEncoding *enc)
 }
 
 static ScmObj
-scm_parser_parse_identifier(ScmParser *parser, ScmObj port, ScmEncoding *enc)
+scm_parser_parse_identifier(ScmObj parser, ScmObj port, ScmEncoding *enc)
 {
   ScmToken *token;
   ScmObj str = SCM_OBJ_INIT, sym = SCM_OBJ_INIT;
   int rslt;
 
-  SCM_REFSTK_INIT_REG(&port, &str, &sym);
+  SCM_REFSTK_INIT_REG(&parser, &port,
+                      &str, &sym);
 
-  scm_assert(parser != NULL);
+  scm_assert_obj_type(parser, &SCM_PARSER_TYPE_INFO);
   scm_assert(scm_fcd_input_port_p(port));
   scm_assert(enc != NULL);
 
   str = scm_fcd_make_string_from_cstr(NULL, enc);
   if (scm_obj_null_p(str)) return SCM_OBJ_NULL;
 
-  token = scm_lexer_head_token(parser->lexer, port, enc);
+  token = scm_lexer_head_token(SCM_PARSER(parser)->lexer, port, enc);
   if (token == NULL)  return SCM_OBJ_NULL;
 
   if (token->str != NULL) {
@@ -1546,47 +1801,151 @@ scm_parser_parse_identifier(ScmParser *parser, ScmObj port, ScmEncoding *enc)
   sym = scm_fcd_string_to_symbol(str);
   if (scm_obj_null_p(sym)) return SCM_OBJ_NULL;
 
-  scm_lexer_shift_token(parser->lexer);
+  scm_lexer_shift_token(SCM_PARSER(parser)->lexer);
 
   return sym;
 }
 
+static int
+scm_parser_extract_datum_label(ScmToken *token, ScmEncoding *enc, size_t *label)
+{
+  scm_assert(token != NULL);
+  scm_assert(token->type == SCM_TOKEN_TYPE_REFERENCE_DECL
+             || token->type == SCM_TOKEN_TYPE_REFERENCE_USE);
+  scm_assert(enc != NULL);
+  scm_assert(label != NULL);
+
+  *label = 0;
+  for (size_t i = 1; i < token->len - 1; i++) {
+    int c = scm_enc_cnv_to_ascii(enc, &token->str[i]);
+    size_t n;
+
+    scm_assert('0' <= c && c <= '9');
+
+    n = (size_t)(c - '0');
+    if (*label > (SIZE_MAX - n) / 10) {
+      scm_fcd_error("Parser: too big datum label number", 0);
+      return -1;
+    }
+
+    *label = *label * 10 + n;
+  }
+
+  return 0;
+}
+
 static ScmObj
-scm_parser_parse_numeric(ScmParser *parser, ScmObj port, ScmEncoding *enc)
+scm_parser_parse_reference_decl(ScmObj parser, ScmObj port, ScmEncoding *enc,
+                                ScmParserRef *ref)
+{
+  ScmObj box = SCM_OBJ_INIT, datum = SCM_OBJ_INIT;
+  ScmToken *token;
+  size_t label;
+  int r;
+
+  SCM_REFSTK_INIT_REG(&parser, &port,
+                      &box, &datum);
+
+  scm_assert_obj_type(parser, &SCM_PARSER_TYPE_INFO);
+  scm_assert(scm_fcd_input_port_p(port));
+  scm_assert(enc != NULL);
+
+  token = scm_lexer_head_token(SCM_PARSER(parser)->lexer, port, enc);
+  if (token == NULL) return SCM_OBJ_NULL;
+
+  r = scm_parser_extract_datum_label(token, enc, &label);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  box = scm_parser_reg_dl_decl(parser, label);
+  if (scm_obj_null_p(box)) return SCM_OBJ_NULL;
+
+  scm_lexer_shift_token(SCM_PARSER(parser)->lexer);
+
+  datum = scm_parser_parse_expression(parser, port, ref);
+  if (scm_obj_null_p(datum)) return SCM_OBJ_NULL;
+
+  scm_fcd_box_update(box, datum);
+  return datum;
+}
+
+static ScmObj
+scm_parser_parse_reference_use(ScmObj parser, ScmObj port, ScmEncoding *enc,
+                               ScmParserRef *ref)
+{
+  ScmObj box = SCM_OBJ_INIT, datum = SCM_OBJ_INIT;
+  ScmToken *token;
+  size_t label;
+  int r;
+
+  SCM_REFSTK_INIT_REG(&parser, &port,
+                      &box, &datum);
+
+  scm_assert_obj_type(parser, &SCM_PARSER_TYPE_INFO);
+  scm_assert(scm_fcd_input_port_p(port));
+  scm_assert(enc != NULL);
+
+  if (ref == NULL) {
+    scm_fcd_error("Parser: invalid datum label reference", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  token = scm_lexer_head_token(SCM_PARSER(parser)->lexer, port, enc);
+  if (token == NULL) return SCM_OBJ_NULL;
+
+  r = scm_parser_extract_datum_label(token, enc, &label);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  box = scm_parser_labeled_datum(parser, label);
+  if (scm_obj_null_p(box)) return SCM_OBJ_NULL;
+
+  datum = scm_fcd_box_unbox(box);
+  if (scm_fcd_eq_p(datum, DATUM_LABEL_INIT_OBJ)) {
+    r = scm_parser_reg_dl_use(parser, ref);
+    if (r < 0) return SCM_OBJ_NULL;
+    datum = box;
+  }
+
+  scm_lexer_shift_token(SCM_PARSER(parser)->lexer);
+
+  return datum;
+}
+
+static ScmObj
+scm_parser_parse_numeric(ScmObj parser, ScmObj port, ScmEncoding *enc)
 {
   ScmObj num = SCM_OBJ_INIT;
   ScmToken *token;
 
-  scm_assert(parser != NULL);
+  scm_assert_obj_type(parser, &SCM_PARSER_TYPE_INFO);
   scm_assert(scm_fcd_input_port_p(port));
   scm_assert(enc != NULL);
 
-  token = scm_lexer_head_token(parser->lexer, port, enc);
+  token = scm_lexer_head_token(SCM_PARSER(parser)->lexer, port, enc);
   if (token == NULL) return SCM_OBJ_NULL;
 
   num = scm_num_make_from_parsedata(token->str, enc, &token->npd);
   if (scm_obj_null_p(num)) return SCM_OBJ_NULL;
 
-  scm_lexer_shift_token(parser->lexer);
+  scm_lexer_shift_token(SCM_PARSER(parser)->lexer);
 
   return num;
 }
 
 static ScmObj
-scm_parser_parse_bool(ScmParser *parser, ScmObj port, ScmEncoding *enc)
+scm_parser_parse_bool(ScmObj parser, ScmObj port, ScmEncoding *enc)
 {
   ScmToken *token;
   SCM_TOKEN_TYPE_T type;
 
-  scm_assert(parser != NULL);
+  scm_assert_obj_type(parser, &SCM_PARSER_TYPE_INFO);
   scm_assert(scm_fcd_input_port_p(port));
   scm_assert(enc != NULL);
 
-  token = scm_lexer_head_token(parser->lexer, port, enc);
+  token = scm_lexer_head_token(SCM_PARSER(parser)->lexer, port, enc);
   if (token == NULL) return SCM_OBJ_NULL;
 
   type = token->type;
-  scm_lexer_shift_token(parser->lexer);
+  scm_lexer_shift_token(SCM_PARSER(parser)->lexer);
 
   if (type == SCM_TOKEN_TYPE_BOOL_TRUE)
     return SCM_TRUE_OBJ;
@@ -1595,18 +1954,19 @@ scm_parser_parse_bool(ScmParser *parser, ScmObj port, ScmEncoding *enc)
 }
 
 static int
-scm_parser_parse_vector_aux(ScmParser *parser, ScmObj port, ScmEncoding *enc,
+scm_parser_parse_vector_aux(ScmObj parser, ScmObj port, ScmEncoding *enc,
                             ScmObj vec, int (*push_func)(ScmObj, ScmObj))
 {
-  ScmToken *token;
+  ScmParserRef ref = SCM_PARSER_REF_INIT;
   ScmObj elm = SCM_OBJ_INIT;
+  ScmToken *token;
   size_t count;
   int r;
 
-  SCM_REFSTK_INIT_REG(&port, &elm,
-                      &vec);
+  SCM_REFSTK_INIT_REG(&parser, &port, &vec,
+                      &elm);
 
-  scm_assert(parser != NULL);
+  scm_assert_obj_type(parser, &SCM_PARSER_TYPE_INFO);
   scm_assert(scm_fcd_input_port_p(port));
   scm_assert(enc != NULL);
   scm_assert(scm_fcd_vector_p(vec) || scm_fcd_bytevector_p(vec));
@@ -1614,11 +1974,11 @@ scm_parser_parse_vector_aux(ScmParser *parser, ScmObj port, ScmEncoding *enc,
 
   count = 0;
   while (1) {
-    token = scm_lexer_head_token(parser->lexer, port, enc);
+    token = scm_lexer_head_token(SCM_PARSER(parser)->lexer, port, enc);
     if (token == NULL) return -1;
 
     if (token->type == SCM_TOKEN_TYPE_RPAREN) {
-      scm_lexer_shift_token(parser->lexer);
+      scm_lexer_shift_token(SCM_PARSER(parser)->lexer);
       break;
     }
 
@@ -1630,7 +1990,12 @@ scm_parser_parse_vector_aux(ScmParser *parser, ScmObj port, ScmEncoding *enc,
       return -1;
     }
 
-    elm = scm_parser_parse_expression(parser, port);
+
+    ref.referrer = vec;
+    ref.pos = count;
+
+    elm = scm_parser_parse_expression(parser, port,
+                                      scm_fcd_vector_p(vec) ? &ref : NULL);
     if (scm_obj_null_p(elm)) return SCM_OBJ_NULL;
     if (scm_fcd_eof_object_p(elm)) {
       scm_fcd_read_error("Parser: unexpected eof", 0);
@@ -1647,18 +2012,19 @@ scm_parser_parse_vector_aux(ScmParser *parser, ScmObj port, ScmEncoding *enc,
 }
 
 static ScmObj
-scm_parser_parse_vector(ScmParser *parser, ScmObj port, ScmEncoding *enc)
+scm_parser_parse_vector(ScmObj parser, ScmObj port, ScmEncoding *enc)
 {
   ScmObj vec = SCM_OBJ_INIT;
   int r;
 
-  SCM_REFSTK_INIT_REG(&port, &vec);
+  SCM_REFSTK_INIT_REG(&parser, &port,
+                      &vec);
 
-  scm_assert(parser != NULL);
+  scm_assert_obj_type(parser, &SCM_PARSER_TYPE_INFO);
   scm_assert(scm_fcd_input_port_p(port));
   scm_assert(enc != NULL);
 
-  scm_lexer_shift_token(parser->lexer);
+  scm_lexer_shift_token(SCM_PARSER(parser)->lexer);
 
   vec = scm_fcd_make_vector(0, SCM_OBJ_NULL);
   if (scm_obj_null_p(vec)) return SCM_OBJ_NULL;
@@ -1709,7 +2075,7 @@ scm_parser_push_bv_element(ScmObj vec, ScmObj elm)
 }
 
 static ScmObj
-scm_parser_parse_bytevector(ScmParser *parser, ScmObj port, ScmEncoding *enc)
+scm_parser_parse_bytevector(ScmObj parser, ScmObj port, ScmEncoding *enc)
 {
   ScmObj vec = SCM_OBJ_INIT;
   int r;
@@ -1717,11 +2083,11 @@ scm_parser_parse_bytevector(ScmParser *parser, ScmObj port, ScmEncoding *enc)
   SCM_REFSTK_INIT_REG(&port,
                       &vec);
 
-  scm_assert(parser != NULL);
+  scm_assert_obj_type(parser, &SCM_PARSER_TYPE_INFO);
   scm_assert(scm_fcd_input_port_p(port));
   scm_assert(enc != NULL);
 
-  scm_lexer_shift_token(parser->lexer);
+  scm_lexer_shift_token(SCM_PARSER(parser)->lexer);
 
   vec = scm_fcd_make_bytevector(0, 0);
   if (scm_obj_null_p(vec)) return SCM_OBJ_NULL;
@@ -1762,7 +2128,7 @@ scm_parser_parse_char_hex_scalar(const scm_char_t *str, size_t size,
 }
 
 static ScmObj
-scm_parser_parse_char(ScmParser *parser, ScmObj port, ScmEncoding *enc)
+scm_parser_parse_char(ScmObj parser, ScmObj port, ScmEncoding *enc)
 {
   static const struct { const char *name; char chr; } chr_names[] = {
     { .name = "alarm",     .chr = '\a' },
@@ -1779,11 +2145,11 @@ scm_parser_parse_char(ScmParser *parser, ScmObj port, ScmEncoding *enc)
   ScmToken *token;
   ScmObj chr = SCM_OBJ_INIT;
 
-  scm_assert(parser != NULL);
+  scm_assert_obj_type(parser, &SCM_PARSER_TYPE_INFO);
   scm_assert(scm_fcd_input_port_p(port));
   scm_assert(enc != NULL);
 
-  token = scm_lexer_head_token(parser->lexer, port, enc);
+  token = scm_lexer_head_token(SCM_PARSER(parser)->lexer, port, enc);
   if (token == NULL) return SCM_OBJ_NULL;
 
   if (token->len == 3) {
@@ -1805,85 +2171,59 @@ scm_parser_parse_char(ScmParser *parser, ScmObj port, ScmEncoding *enc)
     }
 
     if (chr_names[i].name == NULL) {
-      scm_lexer_shift_token(parser->lexer);
+      scm_lexer_shift_token(SCM_PARSER(parser)->lexer);
       scm_fcd_error("Parser: unknown character name", 0);
       return SCM_OBJ_NULL;
     }
   }
 
-  scm_lexer_shift_token(parser->lexer);
+  scm_lexer_shift_token(SCM_PARSER(parser)->lexer);
 
   return chr;
 }
 
 static ScmObj
-scm_parser_parse_eof(ScmParser *parser, ScmObj port, ScmEncoding *enc)
+scm_parser_parse_eof(ScmObj parser, ScmObj port, ScmEncoding *enc)
 {
-  scm_assert(parser != NULL);
+  scm_assert_obj_type(parser, &SCM_PARSER_TYPE_INFO);
   scm_assert(scm_fcd_input_port_p(port));
   scm_assert(enc != NULL);
 
-  scm_lexer_shift_token(parser->lexer);
+  scm_lexer_shift_token(SCM_PARSER(parser)->lexer);
   return SCM_EOF_OBJ;
 }
 
-ScmParser *
-scm_parser_new(void)
-{
-  ScmParser *parser;
-
-  parser = scm_fcd_malloc(sizeof(ScmParser));
-  if (parser == NULL) return NULL;
-
-  parser->lexer = scm_lexer_new();
-  if (parser->lexer == NULL) {
-    scm_fcd_free(parser);
-    return NULL;
-  }
-
-  return parser;
-}
-
-void
-scm_parser_end(ScmParser *parser)
-{
-  scm_assert(parser != NULL);
-
-  if (parser->lexer != NULL)
-    scm_lexer_end(parser->lexer);
-  scm_fcd_free(parser);
-}
-
-ScmObj
-scm_parser_parse_expression(ScmParser *parser, ScmObj port)
+static ScmObj
+scm_parser_parse_expression(ScmObj parser, ScmObj port, ScmParserRef *ref)
 {
   ScmObj rslt = SCM_OBJ_INIT;
   ScmToken *token;
   ScmEncoding *enc;
 
-  SCM_REFSTK_INIT_REG(&port, &rslt);
+  SCM_REFSTK_INIT_REG(&parser, &port,
+                      &rslt);
 
-  scm_assert(parser != NULL);
+  scm_assert_obj_type(parser, &SCM_PARSER_TYPE_INFO);
   scm_assert(scm_fcd_input_port_p(port));
 
   enc = scm_fcd_port_internal_encoding(port);
   if (enc == NULL) return SCM_OBJ_NULL;
 
-  token = scm_lexer_head_token(parser->lexer, port, enc);
+  token = scm_lexer_head_token(SCM_PARSER(parser)->lexer, port, enc);
   if (token == NULL) return SCM_OBJ_NULL;
 
   switch (token->type) {
   case SCM_TOKEN_TYPE_LPAREN:
-    scm_lexer_shift_token(parser->lexer);
+    scm_lexer_shift_token(SCM_PARSER(parser)->lexer);
     rslt = scm_parser_parse_list(parser, port, enc);
     break;
   case SCM_TOKEN_TYPE_RPAREN:
-    scm_lexer_shift_token(parser->lexer);
+    scm_lexer_shift_token(SCM_PARSER(parser)->lexer);
     scm_fcd_error("Parser: unexpeted right paren", 0);
     return SCM_OBJ_NULL;
     break;
   case SCM_TOKEN_TYPE_DOT:
-    scm_lexer_shift_token(parser->lexer);
+    scm_lexer_shift_token(SCM_PARSER(parser)->lexer);
     scm_fcd_error("Parser: unexpeted dot", 0);
     return SCM_OBJ_NULL;
     break;
@@ -1907,14 +2247,10 @@ scm_parser_parse_expression(ScmParser *parser, ScmObj port)
     rslt = scm_parser_parse_identifier(parser, port, enc);
     break;
   case SCM_TOKEN_TYPE_REFERENCE_DECL:
-    /* do not supported */
-    scm_fcd_error("Parser: reference not supported", 0);
-    return SCM_OBJ_NULL;
+    rslt = scm_parser_parse_reference_decl(parser, port, enc, ref);
     break;
   case SCM_TOKEN_TYPE_REFERENCE_USE:
-    /* do not supported */
-    scm_fcd_error("Parser: reference not supported", 0);
-    return SCM_OBJ_NULL;
+    rslt = scm_parser_parse_reference_use(parser, port, enc, ref);
     break;
   case SCM_TOKEN_TYPE_NUMERIC:
     rslt = scm_parser_parse_numeric(parser, port, enc);
@@ -1936,7 +2272,7 @@ scm_parser_parse_expression(ScmParser *parser, ScmObj port)
     rslt = scm_parser_parse_eof(parser, port, enc);
     break;
   case SCM_TOKEN_TYPE_TOKENIZE_ERR:
-    if (scm_lexer_error_type(parser->lexer)
+    if (scm_lexer_error_type(SCM_PARSER(parser)->lexer)
         == SCM_LEXER_ERR_TYPE_UNEXPECTED_CHAR) {
       scm_fcd_error("Parser: unexpected char", 0);
     }
@@ -1949,6 +2285,128 @@ scm_parser_parse_expression(ScmParser *parser, ScmObj port)
   default:
     scm_assert(false); /* must not happen */
     break;
+  }
+
+  return rslt;
+}
+
+static int
+scm_parser_init_parse_expr(ScmObj parser)
+{
+  int r;
+
+  scm_assert_obj_type(parser, &SCM_PARSER_TYPE_INFO);
+
+  eary_fin(&SCM_PARSER(parser)->label_decl);
+  eary_fin(&SCM_PARSER(parser)->label_use);
+
+  r = eary_init(&SCM_PARSER(parser)->label_decl, sizeof(ScmObj), 0);
+  if (r < 0) return -1;
+
+  r = eary_init(&SCM_PARSER(parser)->label_use, sizeof(ScmObj), 0);
+  if (r < 0) return -1;
+
+  return 0;
+}
+
+int
+scm_parser_initialize(ScmObj parser)
+{
+  scm_assert_obj_type(parser, &SCM_PARSER_TYPE_INFO);
+
+  SCM_PARSER(parser)->lexer = scm_lexer_new();
+  if (SCM_PARSER(parser)->lexer == NULL) return -1;
+
+  return 0;
+}
+
+void
+scm_parser_finalize(ScmObj parser)
+{
+  scm_assert_obj_type(parser, &SCM_PARSER_TYPE_INFO);
+
+  if (SCM_PARSER(parser)->lexer != NULL) {
+    scm_lexer_end(SCM_PARSER(parser)->lexer);
+    SCM_PARSER(parser)->lexer = NULL;
+  }
+
+  eary_fin(&SCM_PARSER(parser)->label_decl);
+  eary_fin(&SCM_PARSER(parser)->label_use);
+}
+
+ScmObj
+scm_parser_new(SCM_MEM_TYPE_T mtype)
+{
+  ScmObj parser;
+
+  parser = scm_fcd_mem_alloc(&SCM_PARSER_TYPE_INFO, 0, mtype);
+  if (scm_obj_null_p(parser)) return SCM_OBJ_NULL;
+
+  if (scm_parser_initialize(parser) < 0)
+    return SCM_OBJ_NULL;
+
+  return parser;
+}
+
+ScmObj
+scm_parser_parse(ScmObj parser, ScmObj port)
+{
+  ScmObj obj = SCM_OBJ_INIT;
+  int r;
+
+  SCM_REFSTK_INIT_REG(&parser, &port,
+                      &obj);
+
+  scm_assert_obj_type(parser, &SCM_PARSER_TYPE_INFO);
+  scm_assert(scm_fcd_input_port_p(port));
+
+  r = scm_parser_init_parse_expr(parser);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  obj = scm_parser_parse_expression(parser, port, NULL);
+  if (scm_obj_null_p(obj)) return SCM_OBJ_NULL;
+
+  r = scm_parser_resolve_dl_use(parser);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return obj;
+}
+
+void
+scm_parser_gc_initialize(ScmObj obj, ScmObj mem)
+{
+  scm_assert_obj_type(obj, &SCM_PARSER_TYPE_INFO);
+
+  SCM_PARSER(obj)->lexer = NULL;
+  eary_init(&SCM_PARSER(obj)->label_decl, 0, 0);
+  eary_init(&SCM_PARSER(obj)->label_use, 0, 0);
+}
+
+void
+scm_parser_gc_finalize(ScmObj obj)
+{
+  scm_parser_finalize(obj);
+}
+
+int
+scm_parser_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
+{
+  ScmObj *itr;
+  size_t idx;
+  int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
+
+  scm_assert_obj_type(obj, &SCM_PARSER_TYPE_INFO);
+  scm_assert(scm_obj_not_null_p(mem));
+  scm_assert(handler != NULL);
+
+  EARY_FOR_EACH(&SCM_PARSER(obj)->label_decl, idx, itr) {
+    rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, *itr, mem);
+    if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
+  }
+
+  EARY_FOR_EACH(&SCM_PARSER(obj)->label_use, idx, itr) {
+    rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, *itr, mem);
+    if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
   }
 
   return rslt;
