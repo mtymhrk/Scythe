@@ -564,3 +564,20 @@ scm_fcd_bytevector_to_cv(ScmObj vec, void *buf, size_t size)
 
   return buf;
 }
+
+int
+scm_fcd_bytevector_push(ScmObj vec, int val)
+{
+  scm_assert(scm_fcd_bytevector_p(vec));
+  scm_assert(0 <= val && val <= 255);
+
+  return scm_bytevector_push(vec, val);
+}
+
+int
+scm_fcd_bytevector_contract_redundant_space(ScmObj vec)
+{
+  scm_assert(scm_fcd_bytevector_p(vec));
+
+  return scm_bytevector_contract_redundant_space(vec);
+}

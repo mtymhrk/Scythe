@@ -51,5 +51,8 @@ ScmObj scm_fcd_make_bytevector_from_cv(const void *bytes, size_t length);
 size_t scm_fcd_bytevector_length(ScmObj vec);
 void scm_fcd_bytevector_u8_set_i(ScmObj vec, size_t idx, int val);
 void *scm_fcd_bytevector_to_cv(ScmObj vec, void *buf, size_t size);
+int scm_fcd_bytevector_push(ScmObj vec, int val);
+int scm_fcd_bytevector_contract_redundant_space(ScmObj vec);
+
 
 #endif /* INCLUDE_FCD_VECTOR_H__ */

@@ -276,24 +276,23 @@ ScmTypeInfo SCM_BYTEVECTOR_TYPE_INFO = {
 int
 scm_bytevector_initialize(ScmObj vec, size_t length, int fill)
 {
+  int r;
+
   scm_assert_obj_type(vec, &SCM_BYTEVECTOR_TYPE_INFO);
   scm_assert(length <= SSIZE_MAX);
   scm_assert(fill < 256);
 
-  if (length > 0) {
-    SCM_BYTEVECTOR_ARRAY(vec) = scm_fcd_malloc(length);
-    if (SCM_BYTEVECTOR_ARRAY(vec) == NULL) return -1;
-  }
-  else {
-    SCM_BYTEVECTOR_ARRAY(vec) = NULL;
-  }
+  r = eary_init(SCM_BYTEVECTOR_EARRAY(vec), sizeof(uint8_t), length);
+  if (r < 0) return -1;
 
-  SCM_BYTEVECTOR_LENGTH(vec) = length;
+  if (length == 0)
+    return 0;
 
   if (fill < 0)
     fill = 0;
 
-  for (size_t i = 0; i < length; i++)
+  EARY_SET(SCM_BYTEVECTOR_EARRAY(vec), uint8_t, length - 1, fill, r);
+  for (size_t i = 0; i < length - 1; i++)
     SCM_BYTEVECTOR_ARRAY(vec)[i] = (uint8_t)fill;
 
   return 0;
@@ -302,22 +301,20 @@ scm_bytevector_initialize(ScmObj vec, size_t length, int fill)
 int
 scm_bytevector_initialize_cbytes(ScmObj vec, const void *bytes, size_t length)
 {
+  int r;
+
   scm_assert_obj_type(vec, &SCM_BYTEVECTOR_TYPE_INFO);
   scm_assert(length == 0 || bytes != NULL);
   scm_assert(length <= SSIZE_MAX);
 
-  if (length > 0) {
-    SCM_BYTEVECTOR_ARRAY(vec) = scm_fcd_malloc(length);
-    if (SCM_BYTEVECTOR_ARRAY(vec) == NULL) return -1;
+  r = eary_init(SCM_BYTEVECTOR_EARRAY(vec), sizeof(uint8_t), length);
+  if (r < 0) return -1;
 
-    memcpy(SCM_BYTEVECTOR_ARRAY(vec), bytes, length);
-  }
-  else {
-    SCM_BYTEVECTOR_ARRAY(vec) = NULL;
-  }
+  if (length == 0)
+    return 0;
 
-  SCM_BYTEVECTOR_LENGTH(vec) = length;
-
+  EARY_SET(SCM_BYTEVECTOR_EARRAY(vec), uint8_t, length - 1, 0, r);
+  memcpy(SCM_BYTEVECTOR_ARRAY(vec), bytes, length);
   return 0;
 }
 
@@ -326,12 +323,7 @@ scm_bytevector_finalize(ScmObj vec)
 {
   scm_assert_obj_type(vec, &SCM_BYTEVECTOR_TYPE_INFO);
 
-  if (SCM_BYTEVECTOR_ARRAY(vec) == NULL)
-    return;
-
-  scm_fcd_free(SCM_BYTEVECTOR_ARRAY(vec));
-  SCM_BYTEVECTOR_ARRAY(vec) = NULL;
-  SCM_BYTEVECTOR_LENGTH(vec) = 0;
+  eary_fin(SCM_BYTEVECTOR_EARRAY(vec));
 }
 
 ScmObj
@@ -380,6 +372,38 @@ scm_bytevector_u8_set(ScmObj vec, size_t idx, int val)
   scm_assert(0 <= val && val <= 255);
 
   SCM_BYTEVECTOR_ARRAY(vec)[idx] = (uint8_t)val;
+  return 0;
+}
+
+int
+scm_bytevector_push(ScmObj vec, int val)
+{
+  int err;
+
+  scm_assert_obj_type(vec, &SCM_BYTEVECTOR_TYPE_INFO);
+  scm_assert(0 <= val && val <= 255);
+
+  if (SCM_BYTEVECTOR_LENGTH(vec) >= SSIZE_MAX) {
+    scm_fcd_error("failed to expand bytevector: overflow", 0);
+    return -1;
+  }
+
+  EARY_PUSH(SCM_BYTEVECTOR_EARRAY(vec), uint8_t, val, err);
+  if (err < 0) return -1;
+
+  return 0;
+}
+
+int
+scm_bytevector_contract_redundant_space(ScmObj vec)
+{
+  int r;
+
+  scm_assert_obj_type(vec, &SCM_BYTEVECTOR_TYPE_INFO);
+
+  r = eary_contract(SCM_VECTOR_EARRAY(vec));
+  if (r < 0) return -1;
+
   return 0;
 }
 
@@ -442,8 +466,7 @@ scm_bytevector_gc_initialize(ScmObj obj, ScmObj mem)
 {
   scm_assert_obj_type(obj, &SCM_BYTEVECTOR_TYPE_INFO);
 
-  SCM_BYTEVECTOR_ARRAY(obj) = NULL;
-  SCM_BYTEVECTOR_LENGTH(obj) = 0;
+  eary_init(SCM_BYTEVECTOR_EARRAY(obj), 0, 0);
 }
 
 void

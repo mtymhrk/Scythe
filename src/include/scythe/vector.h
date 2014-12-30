@@ -57,12 +57,13 @@ extern ScmTypeInfo SCM_BYTEVECTOR_TYPE_INFO;
 
 struct ScmByteVectorRec {
   ScmObjHeader header;
-  uint8_t *array;
-  size_t length;
+  EArray array;
 };
 
-#define SCM_BYTEVECTOR_ARRAY(obj) (SCM_BYTEVECTOR(obj)->array)
-#define SCM_BYTEVECTOR_LENGTH(obj) (SCM_BYTEVECTOR(obj)->length)
+#define SCM_BYTEVECTOR_EARRAY(obj) (&SCM_BYTEVECTOR(obj)->array)
+#define SCM_BYTEVECTOR_ARRAY(obj) \
+  ((uint8_t *)EARY_HEAD(SCM_BYTEVECTOR_EARRAY(obj)))
+#define SCM_BYTEVECTOR_LENGTH(obj) (EARY_SIZE(SCM_BYTEVECTOR_EARRAY(obj)))
 
 int scm_bytevector_initialize(ScmObj vec, size_t length, int fill);
 int scm_bytevector_initialize_cbytes(ScmObj vec,
@@ -72,6 +73,8 @@ ScmObj scm_bytevector_new(SCM_MEM_TYPE_T mtype, size_t length, int fill);
 ScmObj scm_bytevector_new_cbyte(SCM_MEM_TYPE_T mtype,
                                 const void *bytes, size_t length);
 int scm_bytevector_u8_set(ScmObj vec, size_t idx, int val);
+int scm_bytevector_push(ScmObj vec, int val);
+int scm_bytevector_contract_redundant_space(ScmObj vec);
 int scm_bytevector_cmp(ScmObj v1, ScmObj v2);
 int scm_bytevector_obj_print(ScmObj obj, ScmObj port, int kind,
                              ScmObjPrintHandler handler);
