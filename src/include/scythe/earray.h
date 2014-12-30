@@ -27,6 +27,7 @@ struct EArrayRec {
 int eary_init(EArray *ary, size_t rs, size_t ns);
 void eary_fin(EArray *ary);
 int eary_expand(EArray *ary, size_t ndd);
+int eary_contract(EArray *ary);
 
 static inline int
 eary_expand_if_necessary(EArray *ary, size_t idx)

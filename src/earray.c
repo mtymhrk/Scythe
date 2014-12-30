@@ -51,3 +51,17 @@ eary_expand(EArray *ary, size_t ndd)
 
   return 0;
 }
+
+int
+eary_contract(EArray *ary)
+{
+  if (ary->used >= ary->cap)
+    return 0;
+
+  void *p = scm_fcd_realloc(ary->vec, ary->rs * ary->used);
+  if (p == NULL) return -1;
+
+  ary->vec = p;
+  ary->cap = ary->used;
+  return 0;
+}
