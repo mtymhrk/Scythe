@@ -3158,6 +3158,8 @@ scm_unmarshal_obj_iseq(ScmUnmarshalObjStat *stat, ScmObj unmarshal)
   scm_assert(stat != NULL);
   scm_assert_obj_type(unmarshal, &SCM_UNMARSHAL_TYPE_INFO);
 
+  SCM_REFSTK_INIT_REG(&unmarshal);
+
   stat->obj = scm_fcd_make_iseq();
   if (scm_obj_null_p(stat->obj)) return -1;
 
