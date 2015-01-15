@@ -89,39 +89,3 @@ scm_fcd_iseq_ip_in_range_p(ScmObj iseq, const scm_byte_t *ip)
   scm_assert(scm_fcd_iseq_p(iseq));
   return scm_iseq_ip_in_range_p(iseq, ip);
 }
-
-int
-scm_fcd_iseq_update_oprand_iof(ScmObj iseq, size_t offset, int iof)
-{
-  scm_assert(scm_fcd_iseq_p(iseq));
-  scm_assert(offset <= SSIZE_MAX);
-  scm_assert(scm_iseq_length(iseq) >= SCM_OPFMT_INST_SZ_IOF);
-  scm_assert(offset <= scm_iseq_length(iseq) - SCM_OPFMT_INST_SZ_IOF);
-  return scm_iseq_update_opd_iof(iseq, offset, iof);
-}
-
-int
-scm_fcd_inst_update_oprand_obj(scm_byte_t *ip, ScmObj clsr, ScmObj obj)
-{
-  ScmObj iseq = SCM_OBJ_INIT;
-  ssize_t idx;
-  int rslt;
-
-  SCM_REFSTK_INIT_REG(&clsr, &obj,
-                      &iseq);
-
-  scm_assert(ip != NULL);
-  scm_assert(scm_fcd_closure_p(clsr));
-  scm_assert(scm_obj_not_null_p(obj));
-
-  iseq = scm_fcd_closure_to_iseq(clsr);
-  if (scm_obj_null_p(iseq)) return -1;
-
-  idx = scm_iseq_ip_to_offset(iseq, ip);
-  if (idx < 0) return -1;
-
-  rslt = scm_iseq_update_opd_obj(iseq, (size_t)idx, obj);
-  if (rslt < 0) return -1;
-
-  return 0;
-}

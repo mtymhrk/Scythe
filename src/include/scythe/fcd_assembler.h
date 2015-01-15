@@ -52,5 +52,8 @@ int scm_fcd_disassembler_cnv_to_printable(ScmObj disasm);
 ScmObj scm_fcd_assemble(ScmObj lst, ScmObj acc);
 ScmObj scm_fcd_disassemble(ScmObj obj);
 
+void scm_fcd_update_vminst_opd_iof(ScmObj iseq, scm_byte_t *ip, int iof);
+int scm_fcd_update_vminst_opd_obj_obj_1(ScmObj iseq,
+                                        scm_byte_t *ip, ScmObj obj);
 
 #endif  /* INCLUDE_FCD_ASSEMBLER_H__ */

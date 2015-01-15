@@ -18,7 +18,5 @@ int scm_fcd_iseq_eq(ScmObj iseq1, ScmObj iseq2, bool *rslt);
 ssize_t scm_fcd_iseq_push_inst(ScmObj iseq, const void *inst, size_t sz,
                                const size_t *objs, size_t n);
 bool scm_fcd_iseq_ip_in_range_p(ScmObj iseq, const scm_byte_t *ip);
-int scm_fcd_iseq_update_oprand_iof(ScmObj iseq, size_t offset, int iof);
-int scm_fcd_inst_update_oprand_obj(scm_byte_t *ip, ScmObj clsr, ScmObj obj);
 
 #endif /* INCLUDE_FCD_ISEQ_H__ */

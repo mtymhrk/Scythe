@@ -309,3 +309,40 @@ scm_fcd_disassemble(ScmObj obj)
 
   return scm_asm_disassemble(obj);
 }
+
+void
+scm_fcd_update_vminst_opd_iof(ScmObj iseq, scm_byte_t *ip, int iof)
+{
+  scm_assert(scm_fcd_iseq_p(iseq));
+  scm_assert(scm_fcd_iseq_to_ip(iseq) <= ip
+             && ip < (scm_fcd_iseq_to_ip(iseq)
+                      + (ptrdiff_t)scm_fcd_iseq_length(iseq)
+                      - SCM_OPFMT_INST_SZ_IOF));
+
+  scm_vminst_update_opd_iof(ip, iof, SCM_VMINST_UPD_FLG_OPD1);
+}
+
+int
+scm_fcd_update_vminst_opd_obj_obj_1(ScmObj clsr, scm_byte_t *ip, ScmObj obj)
+{
+  ScmObj iseq = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&clsr, &obj,
+                      &iseq);
+
+  scm_assert(scm_fcd_closure_p(clsr));
+  scm_assert(scm_obj_not_null_p(obj));
+
+  iseq = scm_fcd_closure_to_iseq(clsr);
+  if (scm_obj_null_p(iseq)) return -1;
+
+  scm_assert(scm_fcd_iseq_to_ip(iseq) <= ip
+             && ip < (scm_fcd_iseq_to_ip(iseq)
+                      + (ptrdiff_t)scm_fcd_iseq_length(iseq)
+                      - SCM_OPFMT_INST_SZ_OBJ_OBJ));
+
+  SCM_WB_EXP(iseq, scm_vminst_update_opd_obj_obj(ip, obj, SCM_OBJ_NULL,
+                                                 SCM_VMINST_UPD_FLG_OPD1));
+
+  return 0;
+}

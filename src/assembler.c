@@ -362,9 +362,11 @@ scm_asm_resolve_label_ref(ScmObj asmb)
     decl = eary_idx_to_ptr(SCM_ASSEMBLER_LABEL_DECL(asmb), ref->label_id);
     r = scm_asm_calc_iof(ref, decl, &iof);
     if (r < 0) return -1;
-    r = scm_fcd_iseq_update_oprand_iof(SCM_ASSEMBLER_ISEQ(asmb),
-                                       ref->offset, iof);
-    if (r < 0) return -1;
+
+    scm_fcd_update_vminst_opd_iof(SCM_ASSEMBLER_ISEQ(asmb),
+                                  scm_fcd_iseq_to_ip(SCM_ASSEMBLER_ISEQ(asmb))
+                                  + ref->offset,
+                                  iof);
   }
 
   eary_truncate(SCM_ASSEMBLER_LABEL_REF(asmb));

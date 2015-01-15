@@ -115,34 +115,6 @@ scm_iseq_push_inst(ScmObj iseq, const void *inst, size_t sz,
 }
 
 int
-scm_iseq_update_opd_iof(ScmObj iseq, size_t offset, int iof)
-{
-  scm_byte_t *ip;
-
-  scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
-  scm_assert(offset <= SCM_ISEQ_SEQ_LENGTH(iseq) - SCM_OPFMT_INST_SZ_IOF);
-
-  ip = scm_iseq_to_ip(iseq) + offset;
-  SCM_WB_EXP(iseq, scm_vminst_update_opd_iof(ip, iof, SCM_VMINST_UPD_FLG_OPD1));
-
-  return 0;
-}
-
-int
-scm_iseq_update_opd_obj(ScmObj iseq, size_t offset, ScmObj obj)
-{
-  scm_byte_t *ip;
-
-  scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
-  scm_assert(offset <= SCM_ISEQ_SEQ_LENGTH(iseq) - SCM_OPFMT_INST_SZ_OBJ);
-
-  ip = scm_iseq_to_ip(iseq) + offset;
-  scm_vminst_update_opd_obj(ip, obj, SCM_VMINST_UPD_FLG_OPD1);
-
-  return 0;
-}
-
-int
 scm_iseq_eq(ScmObj iseq1, ScmObj iseq2, bool *rslt)
 {
   ScmObj opd_obj11 = SCM_OBJ_INIT, opd_obj12 = SCM_OBJ_INIT;

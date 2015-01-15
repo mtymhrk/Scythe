@@ -2233,7 +2233,6 @@ scm_vm_op_gref(ScmObj vm, scm_opcode_t op)
 {
   ScmObj gloc = SCM_OBJ_INIT, arg = SCM_OBJ_INIT, mod = SCM_OBJ_INIT;
   ScmObj val = SCM_OBJ_INIT, module = SCM_OBJ_INIT, sym = SCM_OBJ_INIT;
-  ssize_t rslt;
   int r;
   scm_byte_t *prv_ip;
 
@@ -2261,8 +2260,8 @@ scm_vm_op_gref(ScmObj vm, scm_opcode_t op)
       return -1;
     }
 
-    rslt = scm_fcd_inst_update_oprand_obj(prv_ip, SCM_VM(vm)->reg.cp, gloc);
-    if (rslt < 0) return -1;
+    r = scm_fcd_update_vminst_opd_obj_obj_1(SCM_VM(vm)->reg.cp, prv_ip, gloc);
+    if (r < 0) return -1;
 
     sym = arg;
   }
@@ -2291,7 +2290,6 @@ scm_vm_op_gdef(ScmObj vm, scm_opcode_t op)
 {
   ScmObj gloc = SCM_OBJ_INIT, arg = SCM_OBJ_INIT, mod = SCM_OBJ_INIT;
   ScmObj module = SCM_OBJ_INIT;
-  ssize_t rslt;
   scm_byte_t *prv_ip;
 
   SCM_REFSTK_INIT_REG(&vm, &gloc, &arg, &mod, &module);
@@ -2313,8 +2311,8 @@ scm_vm_op_gdef(ScmObj vm, scm_opcode_t op)
     gloc = scm_fcd_get_gloc(module, arg);
     if (scm_obj_null_p(gloc)) return -1;
 
-    rslt = scm_fcd_inst_update_oprand_obj(prv_ip, SCM_VM(vm)->reg.cp, gloc);
-    if (rslt < 0) return -1;
+    r = scm_fcd_update_vminst_opd_obj_obj_1(SCM_VM(vm)->reg.cp, prv_ip, gloc);
+    if (r < 0) return -1;
   }
   else if (scm_fcd_gloc_p(arg)) {
     gloc = arg;
@@ -2332,7 +2330,6 @@ scm_vm_op_gset(ScmObj vm, scm_opcode_t op)
 {
   ScmObj gloc = SCM_OBJ_INIT, arg = SCM_OBJ_INIT, mod = SCM_OBJ_INIT;
   ScmObj module = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
-  ssize_t rslt;
   scm_byte_t *prv_ip;
   int r;
 
@@ -2368,8 +2365,8 @@ scm_vm_op_gset(ScmObj vm, scm_opcode_t op)
       return -1;
     }
 
-    rslt = scm_fcd_inst_update_oprand_obj(prv_ip, SCM_VM(vm)->reg.cp, gloc);
-    if (rslt < 0) return -1;
+    r = scm_fcd_update_vminst_opd_obj_obj_1(SCM_VM(vm)->reg.cp, prv_ip, gloc);
+    if (r < 0) return -1;
   }
   else if (scm_fcd_gloc_p(arg)) {
     gloc = arg;
