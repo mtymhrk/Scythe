@@ -296,7 +296,7 @@ ScmObj scm_api_syntax_handler(ScmObj syx);
 /*  Assembler                                                      */
 /*******************************************************************/
 
-ScmObj scm_api_assemble(ScmObj lst, ScmObj iseq);
+ScmObj scm_api_assemble(ScmObj lst, ScmObj acc);
 
 
 /*******************************************************************/

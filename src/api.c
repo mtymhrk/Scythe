@@ -2221,19 +2221,20 @@ scm_api_syntax_handler(ScmObj syx)
 /*******************************************************************/
 
 ScmObj
-scm_api_assemble(ScmObj lst, ScmObj iseq)
+scm_api_assemble(ScmObj lst, ScmObj acc)
 {
   if (!(scm_fcd_pair_p(lst) || scm_fcd_nil_p(lst))) {
     scm_capi_error("asm: pair required, but got", 1, lst);
     return SCM_OBJ_NULL;
   }
 
-  if (scm_obj_not_null_p(iseq) && !scm_fcd_iseq_p(iseq)) {
-    scm_capi_error("asm: iseq required, but got", 1, iseq);
+  if (scm_obj_not_null_p(acc)
+      && !scm_fcd_iseq_p(acc) && !scm_fcd_assembler_p(acc)) {
+    scm_capi_error("asm: iseq or assembler required, but got", 1, acc);
     return SCM_OBJ_NULL;
   }
 
-  return scm_fcd_assemble(lst, iseq);
+  return scm_fcd_assemble(lst, acc);
 }
 
 
