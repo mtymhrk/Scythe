@@ -1121,9 +1121,14 @@ scm_asm_asm_inst_si_si_obj(ScmObj asmb,
   if (rslt < 0) return -1;
 
   opd3 = inst[3];
-  if (!scm_fcd_iseq_p(opd3)) {
-    opd3 = scm_fcd_assemble(inst[3], SCM_OBJ_NULL);
-    if (scm_obj_null_p(opd3)) return -1;
+  if (opcode == SCM_OPCODE_CLOSE) {
+    if (scm_fcd_assembler_p(opd3)) {
+      opd3 = scm_asm_iseq(opd3);
+    }
+    else if (!scm_fcd_iseq_p(opd3)) {
+      opd3 = scm_fcd_assemble(inst[3], SCM_OBJ_NULL);
+      if (scm_obj_null_p(opd3)) return -1;
+    }
   }
 
   rslt = scm_asm_push_inst_si_si_obj(asmb, opcode, val1, val2, opd3);
