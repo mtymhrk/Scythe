@@ -316,6 +316,16 @@ ScmObj scm_api_compiler_select_module_i(ScmObj cmpl, ScmObj mod);
 ScmObj scm_api_compiler_select_expr_i(ScmObj cmpl, ScmObj expr);
 
 
+/********************************************************************/
+/* Quasiquotation                                                   */
+/********************************************************************/
+
+ScmObj scm_api_compile_qq_template(ScmObj tmpl);
+ScmObj scm_api_substitute_qq_template_lst(ScmObj tmpl, ScmObj values);
+ScmObj scm_api_qq_template_num_of_unquoted(ScmObj tmpl);
+ScmObj scm_api_qq_template_unquoted(ScmObj tmpl, ScmObj idx);
+
+
 /*******************************************************************/
 /*  Module                                                         */
 /*******************************************************************/

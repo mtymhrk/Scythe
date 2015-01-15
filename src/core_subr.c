@@ -2742,6 +2742,63 @@ scm_subr_func_global_syntax_ref(ScmObj subr, int argc, const ScmObj *argv)
   return scm_fcd_return_val(&val, 1);
 }
 
+int
+scm_subr_func_compile_qq_template(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&subr,
+                      &val);
+
+  val = scm_api_compile_qq_template(argv[0]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_fcd_return_val(&val, 1);
+}
+
+int
+scm_subr_func_substitute_qq_template(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&subr,
+                      &val);
+
+  val = scm_api_substitute_qq_template_lst(argv[0], argv[1]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_fcd_return_val(&val, 1);
+}
+
+int
+scm_subr_func_qq_template_num_of_unquoted(ScmObj subr,
+                                          int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&subr,
+                      &val);
+
+  val = scm_api_qq_template_num_of_unquoted(argv[0]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_fcd_return_val(&val, 1);
+}
+
+int
+scm_subr_func_qq_template_unquoted(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&subr,
+                      &val);
+
+  val = scm_api_qq_template_unquoted(argv[0], argv[1]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_fcd_return_val(&val, 1);
+}
+
 
 /*******************************************************************/
 /*  Internals                                                      */

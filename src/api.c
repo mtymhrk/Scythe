@@ -2375,6 +2375,80 @@ scm_api_compiler_select_expr_i(ScmObj cmpl, ScmObj expr)
 
 
 /*******************************************************************/
+/* Quasiquotation                                                  */
+/*******************************************************************/
+
+ScmObj
+scm_api_compile_qq_template(ScmObj tmpl)
+{
+  if (scm_obj_null_p(tmpl)) {
+    scm_capi_error("failed to compile quasiquotation: invalid argument",
+                   1, tmpl);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_fcd_compile_qq_template(tmpl);
+}
+
+ScmObj
+scm_api_substitute_qq_template_lst(ScmObj tmpl, ScmObj values)
+{
+  if (!scm_fcd_qqtmpl_p(tmpl)) {
+    scm_capi_error("failed to substitute quasiquotation: "
+                   "compiled <qq template> required, but got", 1, tmpl);
+    return SCM_OBJ_NULL;
+  }
+  else if (scm_obj_null_p(values)) {
+    scm_capi_error("failed to substitute quasiquotation: invalid argument",
+                   1, values);
+  }
+
+  return scm_fcd_substitute_qq_template(tmpl, values);
+}
+
+ScmObj
+scm_api_qq_template_num_of_unquoted(ScmObj tmpl)
+{
+  if (!scm_fcd_qqtmpl_p(tmpl)) {
+    scm_capi_error("failed to access number of unquoted expressions: "
+                   "compiled <qq template> required, but got", 1, tmpl);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_fcd_make_number_from_size_t(scm_fcd_qqtmpl_nr_unquoted_expr(tmpl));
+}
+
+ScmObj
+scm_api_qq_template_unquoted(ScmObj tmpl, ScmObj idx)
+{
+  size_t i;
+  int r;
+
+  if (!scm_fcd_qqtmpl_p(tmpl)) {
+    scm_capi_error("failed to access unquoted expressions: "
+                   "compiled <qq template> required, but got", 1, tmpl);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_fcd_exact_integer_p(idx)) {
+    scm_capi_error("failed to access unquoted expressions: invalid argument",
+                   1, tmpl);
+    return SCM_OBJ_NULL;
+  }
+
+  r = scm_fcd_integer_to_size_t(idx, &i);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  if (i >= scm_fcd_qqtmpl_nr_unquoted_expr(tmpl)) {
+    scm_capi_error("failed to access unquoted expressions: "
+                   "argument out of range", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_fcd_qqtmpl_unquoted_expr(tmpl, i);
+}
+
+
+/*******************************************************************/
 /*  Module                                                         */
 /*******************************************************************/
 
