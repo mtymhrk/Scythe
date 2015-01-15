@@ -2048,3 +2048,25 @@ TEST(exec_compiler, let_a_values_9)
                "    (sref 0 0)"
                "    (tcall 0))))");
 }
+
+TEST(exec_compiler, quasiquote)
+{
+  test_compile("`(a ,x c)",
+               "(  (cframe (label 0))"
+               "   (qqtemplate (a ,x c))"
+               "   (push)"
+               "   (gref x (main))"
+               "   (push)"
+               "   (gref substitute-qq-template (scythe internal compile))"
+               "   (call 2)"
+               "   (nop)"
+               " (label 0)"
+               ")");
+}
+
+TEST(exec_compiler, quasiquote__no_unquoted)
+{
+  test_compile("`(a b c)",
+               "((immval (a b c)))");
+}
+

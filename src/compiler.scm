@@ -1336,6 +1336,33 @@
                       b
                       (vector-length vars-vec))))))))
 
+(define (p1-decons-quasiquote cmpl exp)
+  (let ((qq (cdr exp)))
+    (unless (null? (cdr qq))
+      (compile-error cmpl "malformed quasiquote"))
+    (car qq)))
+
+(define (p1-syntax-handler-quasiquote cmpl exp env toplevel-p rdepth)
+  (let* ((tmpl (p1-decons-quasiquote cmpl exp))
+         (qq (compile-qq-template tmpl))
+         (n (qq-template-num-of-unquoted qq)))
+    (if (= n 0)
+        (vector p2-syntax-id-self tmpl)
+        (let ((vec (make-vector (+ n 3))))
+          (vector-set! vec 0 p2-syntax-id-call)
+          (vector-set! vec 1 (vector p2-syntax-id-gref
+                                     'substitute-qq-template
+                                     '(scythe internal compile)))
+          (vector-set! vec 2 (vector p2-syntax-id-self qq))
+          (let loop ((i 0))
+            (when (< i n)
+              (vector-set! vec (+ i 3)
+                           (p1-compile-exp cmpl
+                                           (qq-template-unquoted qq i)
+                                           env toplevel-p rdepth))
+              (loop (+ i 1))))
+          vec))))
+
 (define (p1-decons-with-module cmpl exp)
   (let ((x (cdr exp)))
     (unless (pair? x)
@@ -1417,6 +1444,9 @@
 (define compiler-syntax-let*-values
   (make-syntax 'let*-values p1-syntax-handler-let*-values))
 
+(define compiler-syntax-quasiquote
+  (make-syntax 'quasiquote p1-syntax-handler-quasiquote))
+
 (define compiler-syntax-with-module
   (make-syntax 'with-module p1-syntax-handler-with-module))
 
@@ -1441,6 +1471,7 @@
 (p1-register-syntax '(scheme base) compiler-syntax-do #t)
 (p1-register-syntax '(scheme base) compiler-syntax-let-values #t)
 (p1-register-syntax '(scheme base) compiler-syntax-let*-values #t)
+(p1-register-syntax '(scheme base) compiler-syntax-quasiquote #t)
 (p1-register-syntax '(scheme base) compiler-syntax-with-module #t)
 (p1-register-syntax '(scheme base) compiler-syntax-select-module #t)
 
