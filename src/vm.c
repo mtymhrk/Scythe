@@ -1202,18 +1202,17 @@ scm_vm_pop_dynamic_bindings(ScmObj vm)
 }
 
 static int
-scm_vm_make_proc_call_code(ScmObj iseq, ScmObj proc, ScmObj args, bool tail)
+scm_vm_make_proc_call_code(ScmObj asmb, ScmObj proc, ScmObj args, bool tail)
 {
   ScmObj cur = SCM_OBJ_INIT, arg = SCM_OBJ_INIT;
-  ssize_t r, len, after;
-  size_t cframe;
-  int i, rslt, arity, nr_decons;
+  ssize_t len, label_call;
+  int i, r, arity, nr_decons;
   bool unwished;
 
-  SCM_REFSTK_INIT_REG(&iseq, &proc, &args,
+  SCM_REFSTK_INIT_REG(&asmb, &proc, &args,
                       &cur, &arg);
 
-  scm_assert(scm_fcd_iseq_p(iseq));
+  scm_assert(scm_fcd_assembler_p(asmb));
   scm_assert(scm_fcd_procedure_p(proc));
   scm_assert(scm_fcd_nil_p(args) || scm_fcd_pair_p(args));
 
@@ -1238,13 +1237,15 @@ scm_vm_make_proc_call_code(ScmObj iseq, ScmObj proc, ScmObj args, bool tail)
     nr_decons = unwished ? (int)len : -arity - 1;
   }
 
-  after = 0;
-  cframe = 0;
+  label_call = 0;
 
   if (!tail) {
-    cframe = scm_fcd_iseq_length(iseq);
-    after = scm_fcd_iseq_push_inst(iseq, SCM_OPCODE_CFRAME, 0);
-    if (after < 0) return SCM_OBJ_NULL;
+    label_call = scm_fcd_assembler_assign_label_id(asmb);
+    if (label_call < 0) return -1;
+
+    r = scm_fcd_assembler_push(asmb,
+                               SCM_OPCODE_CFRAME, true, label_call);
+    if (r < 0) return -1;
   }
 
   if (nr_decons > 0 || arity < 0) {
@@ -1252,10 +1253,10 @@ scm_vm_make_proc_call_code(ScmObj iseq, ScmObj proc, ScmObj args, bool tail)
          scm_fcd_pair_p(cur) && i < nr_decons;
          cur = scm_fcd_cdr(cur), i++) {
       arg = scm_fcd_car(cur);
-      r = scm_fcd_iseq_push_inst(iseq, SCM_OPCODE_IMMVAL, arg);
+      r = scm_fcd_assembler_push(asmb, SCM_OPCODE_IMMVAL, arg);
       if (r < 0) return -1;
 
-      r = scm_fcd_iseq_push_inst(iseq, SCM_OPCODE_PUSH);
+      r = scm_fcd_assembler_push(asmb, SCM_OPCODE_PUSH);
       if (r < 0) return -1;
     }
 
@@ -1265,33 +1266,32 @@ scm_vm_make_proc_call_code(ScmObj iseq, ScmObj proc, ScmObj args, bool tail)
       cur = scm_fcd_list_copy(cur);
       if (scm_obj_null_p(cur)) return SCM_OBJ_NULL;
 
-      r = scm_fcd_iseq_push_inst(iseq, SCM_OPCODE_IMMVAL, cur);
+      r = scm_fcd_assembler_push(asmb, SCM_OPCODE_IMMVAL, cur);
       if (r < 0) return -1;
 
-      r = scm_fcd_iseq_push_inst(iseq, SCM_OPCODE_PUSH);
+      r = scm_fcd_assembler_push(asmb, SCM_OPCODE_PUSH);
       if (r < 0) return -1;
     }
   }
 
-  r = scm_fcd_iseq_push_inst(iseq, SCM_OPCODE_IMMVAL, proc);
+  r = scm_fcd_assembler_push(asmb, SCM_OPCODE_IMMVAL, proc);
   if (r < 0) return -1;
 
   if (tail) {
-    r = scm_fcd_iseq_push_inst(iseq, SCM_OPCODE_TAIL_CALL,
-                                unwished ? (int)len : arity);
+    r = scm_fcd_assembler_push(asmb, SCM_OPCODE_TAIL_CALL,
+                               unwished ? (int)len : arity);
     if (r < 0) return -1;
   }
   else {
-    r = scm_fcd_iseq_push_inst(iseq, SCM_OPCODE_CALL,
-                                unwished ? (int)len : arity);
+    r = scm_fcd_assembler_push(asmb, SCM_OPCODE_CALL,
+                               unwished ? (int)len : arity);
     if (r < 0) return -1;
 
-    r = scm_fcd_iseq_push_inst(iseq, SCM_OPCODE_NOP);
+    r = scm_fcd_assembler_push(asmb, SCM_OPCODE_NOP);
     if (r < 0) return -1;
 
-    rslt = scm_fcd_iseq_update_oprand_iof(iseq,
-                                          cframe, (int)(r - after));
-    if (rslt < 0) return -1;
+    r = scm_fcd_assembler_push(asmb, SCM_ASM_PI_LABEL, (size_t)label_call);
+    if (r < 0) return -1;
   }
 
   return 0;
@@ -1323,13 +1323,12 @@ scm_vm_make_trampolining_code(ScmObj vm, ScmObj proc,
                               ScmObj args, ScmObj postproc, ScmObj handover,
                               bool tail)
 {
-  ScmObj iseq = SCM_OBJ_INIT, apply = SCM_OBJ_INIT;
-  ssize_t rslt, after;
-  size_t cframe;
+  ScmObj asmb = SCM_OBJ_INIT, apply = SCM_OBJ_INIT;
+  ssize_t label_call;
   int apply_argc, r;
 
   SCM_REFSTK_INIT_REG(&vm, &proc, &args, &postproc, &handover,
-                      &iseq, &apply);
+                      &asmb, &apply);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
   scm_assert(scm_obj_null_p(postproc) || scm_fcd_procedure_p(postproc));
@@ -1344,77 +1343,79 @@ scm_vm_make_trampolining_code(ScmObj vm, ScmObj proc,
    */
 
   apply_argc = 2;
-  after = 0;
-  cframe = 0;
+  label_call = 0;
 
-  iseq = scm_fcd_make_iseq();
-  if (scm_obj_null_p(iseq)) return SCM_OBJ_NULL;
+  asmb = scm_fcd_make_assembler(SCM_OBJ_NULL);
+  if (scm_obj_null_p(asmb)) return SCM_OBJ_NULL;
 
-  rslt = scm_fcd_iseq_push_inst(iseq, SCM_OPCODE_NOP);
-  if (rslt < 0) return SCM_OBJ_NULL;
+  r = scm_fcd_assembler_push(asmb, SCM_OPCODE_NOP);
+  if (r < 0) return SCM_OBJ_NULL;
 
   if (!scm_obj_null_p(postproc)) {
     if (!tail) {
-      cframe = scm_fcd_iseq_length(iseq);
-      after = scm_fcd_iseq_push_inst(iseq, SCM_OPCODE_CFRAME);
-      if (after < 0) return SCM_OBJ_NULL;
+      label_call = scm_fcd_assembler_assign_label_id(asmb);
+      if (label_call < 0) return SCM_OBJ_NULL;
+
+      r = scm_fcd_assembler_push(asmb,
+                                 SCM_OPCODE_CFRAME, true, label_call);
+      if (r < 0) return SCM_OBJ_NULL;
     }
 
-    rslt = scm_fcd_iseq_push_inst(iseq, SCM_OPCODE_IMMVAL, postproc);
-    if (rslt < 0) return SCM_OBJ_NULL;
+    r = scm_fcd_assembler_push(asmb, SCM_OPCODE_IMMVAL, postproc);
+    if (r < 0) return SCM_OBJ_NULL;
 
-    rslt = scm_fcd_iseq_push_inst(iseq, SCM_OPCODE_PUSH);
-    if (rslt < 0) return SCM_OBJ_NULL;
+    r = scm_fcd_assembler_push(asmb, SCM_OPCODE_PUSH);
+    if (r < 0) return SCM_OBJ_NULL;
 
     if (scm_obj_not_null_p(handover)) {
-      rslt = scm_fcd_iseq_push_inst(iseq, SCM_OPCODE_IMMVAL, handover);
-      if (rslt < 0) return SCM_OBJ_NULL;
+      r = scm_fcd_assembler_push(asmb, SCM_OPCODE_IMMVAL, handover);
+      if (r < 0) return SCM_OBJ_NULL;
 
-      rslt = scm_fcd_iseq_push_inst(iseq, SCM_OPCODE_PUSH);
-      if (rslt < 0) return SCM_OBJ_NULL;
+      r = scm_fcd_assembler_push(asmb, SCM_OPCODE_PUSH);
+      if (r < 0) return SCM_OBJ_NULL;
 
       apply_argc = 3;
     }
   }
 
-  rslt = scm_vm_make_proc_call_code(iseq, proc, args,
-                                    (tail && scm_obj_null_p(postproc)));
-  if (rslt < 0) return SCM_OBJ_NULL;
+  r = scm_vm_make_proc_call_code(asmb, proc, args,
+                                 (tail && scm_obj_null_p(postproc)));
+  if (r < 0) return SCM_OBJ_NULL;
 
   if (!scm_obj_null_p(postproc)) {
+    r = scm_fcd_assembler_push(asmb, SCM_OPCODE_MRVC, -1);
+    if (r < 0) return SCM_OBJ_NULL;
 
-    rslt = scm_fcd_iseq_push_inst(iseq, SCM_OPCODE_MRVC, -1);
-    if (rslt < 0) return SCM_OBJ_NULL;
-
-    rslt = scm_fcd_iseq_push_inst(iseq, SCM_OPCODE_MVPUSH);
-    if (rslt < 0) return SCM_OBJ_NULL;
+    r = scm_fcd_assembler_push(asmb, SCM_OPCODE_MVPUSH);
+    if (r < 0) return SCM_OBJ_NULL;
 
     apply = scm_bedrock_trmp_apply(scm_fcd_current_br());
-    rslt = scm_fcd_iseq_push_inst(iseq, SCM_OPCODE_IMMVAL, apply);
-    if (rslt < 0) return SCM_OBJ_NULL;
+    r = scm_fcd_assembler_push(asmb, SCM_OPCODE_IMMVAL, apply);
+    if (r < 0) return SCM_OBJ_NULL;
 
     if (tail) {
-      rslt = scm_fcd_iseq_push_inst(iseq,
-                                     SCM_OPCODE_TAIL_CALL, apply_argc);
-      if (rslt < 0) return SCM_OBJ_NULL;
+      r = scm_fcd_assembler_push(asmb, SCM_OPCODE_TAIL_CALL, apply_argc);
+      if (r < 0) return SCM_OBJ_NULL;
     }
     else {
-      rslt = scm_fcd_iseq_push_inst(iseq, SCM_OPCODE_CALL, apply_argc);
-      if (rslt < 0) return SCM_OBJ_NULL;
-
-      rslt = scm_fcd_iseq_push_inst(iseq, SCM_OPCODE_NOP);
-      if (rslt < 0) return SCM_OBJ_NULL;
-
-      r = scm_fcd_iseq_update_oprand_iof(iseq,
-                                         cframe, (int)(rslt - after));
+      r = scm_fcd_assembler_push(asmb, SCM_OPCODE_CALL, apply_argc);
       if (r < 0) return SCM_OBJ_NULL;
 
-      rslt = scm_fcd_iseq_push_inst(iseq, SCM_OPCODE_HALT);
-      if (rslt < 0) return SCM_OBJ_NULL;
+      r = scm_fcd_assembler_push(asmb, SCM_OPCODE_NOP);
+      if (r < 0) return SCM_OBJ_NULL;
+
+      r = scm_fcd_assembler_push(asmb, SCM_ASM_PI_LABEL, label_call);
+      if (r < 0) return SCM_OBJ_NULL;
+
+      r = scm_fcd_assembler_push(asmb, SCM_OPCODE_HALT);
+      if (r < 0) return SCM_OBJ_NULL;
     }
   }
 
-  return iseq;
+  r = scm_fcd_assembler_commit(asmb);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return scm_fcd_assembler_iseq(asmb);
 }
 
 static inline bool
@@ -3006,27 +3007,29 @@ scm_vm_val_reg_to_vector(ScmObj vm)
 ScmObj
 scm_vm_apply(ScmObj vm, ScmObj proc, ScmObj args)
 {
-  ScmObj iseq = SCM_OBJ_INIT;
-  ssize_t s;
+  ScmObj asmb = SCM_OBJ_INIT;
   int r;
 
   SCM_REFSTK_INIT_REG(&vm, &proc, &args,
-                      &iseq);
+                      &asmb);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
   scm_assert(scm_fcd_procedure_p(proc));
   scm_assert(scm_fcd_nil_p(args) || scm_fcd_pair_p(args));
 
-  iseq = scm_fcd_make_iseq();
-  if (scm_obj_null_p(iseq)) return SCM_OBJ_NULL;
+  asmb = scm_fcd_make_assembler(SCM_OBJ_NULL);
+  if (scm_obj_null_p(asmb)) return SCM_OBJ_NULL;
 
-  r = scm_vm_make_proc_call_code(iseq, proc, args, false);
+  r = scm_vm_make_proc_call_code(asmb, proc, args, false);
   if (r < 0) return SCM_OBJ_NULL;
 
-  s = scm_fcd_iseq_push_inst(iseq, SCM_OPCODE_HALT);
-  if (s < 0) return SCM_OBJ_NULL;
+  r = scm_fcd_assembler_push(asmb, SCM_OPCODE_HALT);
+  if (r < 0) return SCM_OBJ_NULL;
 
-  scm_vm_run(vm, iseq);
+  r = scm_fcd_assembler_commit(asmb);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  scm_vm_run(vm, scm_fcd_assembler_iseq(asmb));
 
   if (scm_vm_raised_p(vm))
     return SCM_OBJ_NULL;

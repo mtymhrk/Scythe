@@ -26,20 +26,21 @@ TEST_TEAR_DOWN(vm)
 
 TEST(vm, vm_run__op_immval)
 {
-  ScmObj iseq = SCM_OBJ_INIT;
+  ScmObj asmb = SCM_OBJ_INIT;
   ScmObj sym = SCM_OBJ_INIT;
 
-  SCM_REFSTK_INIT_REG(&iseq, &sym);
+  SCM_REFSTK_INIT_REG(&asmb, &sym);
 
   /* preprocess */
-  iseq = scm_fcd_make_iseq();
+  asmb = scm_fcd_make_assembler(SCM_OBJ_NULL);
   sym = scm_fcd_make_symbol_from_cstr("abc", SCM_ENC_SRC);
 
-  scm_fcd_iseq_push_inst(iseq, SCM_OPCODE_IMMVAL, sym);
-  scm_fcd_iseq_push_inst(iseq, SCM_OPCODE_HALT);
+  scm_fcd_assembler_push(asmb, SCM_OPCODE_IMMVAL, sym);
+  scm_fcd_assembler_push(asmb, SCM_OPCODE_HALT);
+  scm_fcd_assembler_commit(asmb);
 
   /* action */
-  scm_vm_run(vm, iseq);
+  scm_vm_run(vm, scm_fcd_assembler_iseq(asmb));
 
   /* postconditin check */
   TEST_ASSERT_EQUAL_INT(1, SCM_VM(vm)->reg.vc);

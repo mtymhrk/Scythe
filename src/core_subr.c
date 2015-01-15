@@ -2293,7 +2293,7 @@ int
 scm_subr_func_eval_asm(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj code = SCM_OBJ_INIT, args = SCM_OBJ_INIT;
-  ssize_t i;
+  int r;
 
   SCM_REFSTK_INIT_REG(&subr,
                       &code, &args);
@@ -2305,21 +2305,28 @@ scm_subr_func_eval_asm(ScmObj subr, int argc, const ScmObj *argv)
   }
 
   if (scm_fcd_pair_p(argv[0])) {
-    code = scm_api_assemble(argv[0], SCM_OBJ_NULL);
+    code = scm_fcd_make_assembler(SCM_OBJ_NULL);
+    if (scm_obj_null_p(code)) return -1;
+
+    code = scm_api_assemble(argv[0], code);
     if (scm_obj_null_p(code)) return -1;
   }
   else if (scm_fcd_iseq_p(argv[0])) {
-    code = argv[0];
+    code = scm_fcd_make_assembler(argv[0]);
+    if (scm_obj_null_p(code)) return -1;
   }
   else {
     scm_capi_error("eval-asm: argument is not pair or iseq", 1, argv[0]);
     return -1;
   }
 
-  i = scm_fcd_iseq_push_inst(code, SCM_OPCODE_RETURN);
-  if (i < 0) return -1;
+  r = scm_fcd_assembler_push(code, SCM_OPCODE_RETURN);
+  if (r < 0) return -1;
 
-  code = scm_fcd_make_closure(code, SCM_OBJ_NULL, 0);
+  r = scm_fcd_assembler_commit(code);
+  if (r < 0) return -1;
+
+  code = scm_fcd_make_closure(scm_fcd_assembler_iseq(code), SCM_OBJ_NULL, 0);
   if (scm_obj_null_p(code)) return -1;
 
   args = SCM_NIL_OBJ;
@@ -2330,19 +2337,25 @@ scm_subr_func_eval_asm(ScmObj subr, int argc, const ScmObj *argv)
 static int
 scm_subr_func_eval__post_compile(ScmObj subr, int argc, const ScmObj *argv)
 {
-  ScmObj iseq = SCM_OBJ_INIT, proc = SCM_OBJ_INIT;
-  ssize_t i;
+  ScmObj asmb = SCM_OBJ_INIT, proc = SCM_OBJ_INIT;
+  int r;
 
   SCM_REFSTK_INIT_REG(&subr,
-                      &iseq, &proc);
+                      &asmb, &proc);
 
-  iseq = scm_api_assemble(argv[0], SCM_OBJ_NULL);
-  if (scm_obj_null_p(iseq)) return -1;
+  asmb = scm_fcd_make_assembler(SCM_OBJ_NULL);
+  if (scm_obj_null_p(asmb)) return -1;
 
-  i = scm_fcd_iseq_push_inst(iseq, SCM_OPCODE_RETURN);
-  if (i < 0) return -1;
+  asmb = scm_api_assemble(argv[0], asmb);
+  if (scm_obj_null_p(asmb)) return -1;
 
-  proc = scm_fcd_make_closure(iseq, SCM_OBJ_NULL, 0);
+  r = scm_fcd_assembler_push(asmb, SCM_OPCODE_RETURN);
+  if (r < 0) return -1;
+
+  r = scm_fcd_assembler_commit(asmb);
+  if (r < 0) return -1;
+
+  proc = scm_fcd_make_closure(scm_fcd_assembler_iseq(asmb), SCM_OBJ_NULL, 0);
   if (scm_obj_null_p(proc)) return -1;
 
   return scm_fcd_trampolining(proc, SCM_NIL_OBJ, SCM_OBJ_NULL, SCM_OBJ_NULL);
