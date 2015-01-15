@@ -92,6 +92,9 @@ scm_bedrock_setup(ScmBedrock *br)
   for (size_t i = 0; i < SCM_CACHED_GV_NR; i++)
     scm_fcd_mem_register_extra_rfrn(SCM_REF_MAKE(br->gv[i]));
 
+  for (size_t i = 0; i < SCM_CACHED_SYM_NR; i++)
+    scm_fcd_mem_register_extra_rfrn(SCM_REF_MAKE(br->sym[i]));
+
   return 0;
 }
 
@@ -99,6 +102,9 @@ int
 scm_bedrock_cleanup(ScmBedrock *br)
 {
   scm_assert(br != NULL);
+
+  for (size_t i = 0; i < SCM_CACHED_SYM_NR; i++)
+    br->sym[i] = SCM_OBJ_NULL;
 
   for (size_t i = 0; i < SCM_CACHED_GV_NR; i++)
     br->gv[i] = SCM_OBJ_NULL;
@@ -188,6 +194,9 @@ scm_bedrock_initialize(ScmBedrock *br)
 
   for (size_t i = 0; i < SCM_CACHED_GV_NR; i++)
     br->gv[i] = SCM_OBJ_NULL;
+
+  for (size_t i = 0; i < SCM_CACHED_SYM_NR; i++)
+    br->sym[i] = SCM_OBJ_NULL;
 
   br->encoding = SCM_ENC_UTF8;
 
@@ -366,6 +375,23 @@ scm_bedrock_cached_gv(ScmBedrock *br, int kind, scm_csetter_t *gloc)
                                    tbl[kind].mod_name,
                                    tbl[kind].n,
                                    gloc);
+}
+
+ScmObj
+scm_bedrock_cached_sym(ScmBedrock *br, int kind)
+{
+  static const char *tbl[] = {
+    "quote", "quasiquote", "unquote", "unquote-splicing",
+  };
+
+  scm_assert(br != NULL);
+  scm_assert(kind < SCM_CACHED_SYM_NR);
+
+  if (scm_obj_not_null_p(br->sym[kind]))
+    return br->sym[kind];
+
+  br->sym[kind] = scm_fcd_make_symbol_from_cstr(tbl[kind], SCM_ENC_SRC);
+  return br->sym[kind];
 }
 
 

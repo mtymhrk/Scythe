@@ -11,6 +11,7 @@ void scm_fcd_fatalf(const char *fmt, ...);
 bool scm_fcd_fatal_p(void);
 
 int scm_fcd_cached_global_var_ref(int kind, scm_csetter_t *val);
+ScmObj scm_fcd_cached_symbol(int kind);
 
 bool scm_fcd_vm_p(ScmObj obj);
 ScmObj scm_fcd_vm_new();

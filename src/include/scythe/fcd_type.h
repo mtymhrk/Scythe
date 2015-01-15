@@ -144,6 +144,21 @@ enum {
 
 #define SCM_CACHED_GV_NR 4
 
+
+/*******************************************************************/
+/*  Cached Symbols                                                 */
+/*******************************************************************/
+
+enum {
+  SCM_CACHED_SYM_QUOTE = 0,
+  SCM_CACHED_SYM_QUASIQUOTE,
+  SCM_CACHED_SYM_UNQUOTE,
+  SCM_CACHED_SYM_UNQUOTE_SPLICING,
+};
+
+#define SCM_CACHED_SYM_NR 4
+
+
 /*******************************************************************/
 /*  Bignum                                                         */
 /*******************************************************************/

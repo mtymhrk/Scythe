@@ -52,6 +52,13 @@ scm_fcd_cached_global_var_ref(int kind, scm_csetter_t *val)
   return 0;
 }
 
+ScmObj
+scm_fcd_cached_symbol(int kind)
+{
+  return scm_bedrock_cached_sym(scm_fcd_current_br(), kind);
+}
+
+
 extern inline bool
 scm_fcd_vm_p(ScmObj obj)
 {

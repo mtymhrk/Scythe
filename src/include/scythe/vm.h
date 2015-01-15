@@ -68,6 +68,9 @@ struct ScmBedrockRec {
   /*** Global Variables  ***/
   ScmObj gv[SCM_CACHED_GV_NR];
 
+  /*** Symbols  ***/
+  ScmObj sym[SCM_CACHED_SYM_NR];
+
   /*** Configurations ***/
   ScmEncoding *encoding;
 };
@@ -84,6 +87,7 @@ void scm_bedrock_error(ScmBedrock *br, const char *msg);
 bool scm_bedrock_fatal_p(ScmBedrock *br);
 bool scm_bedrock_error_p(ScmBedrock *br);
 int scm_bedrock_cached_gv(ScmBedrock *br, int kind, scm_csetter_t *gloc);
+ScmObj scm_bedrock_cached_sym(ScmBedrock *br, int kind);
 
 static inline ScmObj
 scm_bedrock_nil(ScmBedrock *br)
