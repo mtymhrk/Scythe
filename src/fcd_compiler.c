@@ -4,6 +4,11 @@
 #include "scythe/fcd.h"
 #include "scythe/compiler.h"
 
+
+/*************************************************************************/
+/* Compiler                                                              */
+/*************************************************************************/
+
 static ScmObj
 norm_cmpl_arg_mod(ScmObj mod)
 {
@@ -119,4 +124,115 @@ scm_fcd_compiler_select_expr_i(ScmObj cmpl, ScmObj expr)
   scm_assert(scm_obj_not_null_p(expr));
 
   scm_cmpl_set_expr(cmpl, expr);
+}
+
+
+/*************************************************************************/
+/* Quasiquotation                                                        */
+/*************************************************************************/
+
+bool
+scm_fcd_qqtmplnode_p(ScmObj obj)
+{
+  return scm_obj_type_p(obj, &SCM_QQTMPLNODE_TYPE_INFO);
+}
+
+ScmObj
+scm_fcd_qqtmplnode_new(SCM_MEM_TYPE_T mtype, int kind, ScmObj obj)
+{
+  ScmObj node = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&obj,
+                      &node);
+
+  node = scm_fcd_mem_alloc(&SCM_QQTMPLNODE_TYPE_INFO, 0, mtype);
+  if (scm_obj_null_p(node)) return SCM_OBJ_NULL;
+
+  if (scm_qqtn_initialize(node, kind, obj) < 0)
+    return SCM_OBJ_NULL;
+
+  return node;
+}
+
+bool
+scm_fcd_qqtmpl_p(ScmObj obj)
+{
+  return scm_obj_type_p(obj, &SCM_QQTMPL_TYPE_INFO);
+}
+
+ScmObj
+scm_fcd_qqtmpl_new(SCM_MEM_TYPE_T mtype, ScmObj tmpl)
+{
+  ScmObj qq = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&tmpl,
+                      &qq);
+
+  scm_assert(scm_obj_not_null_p(tmpl));
+
+  qq = scm_fcd_mem_alloc(&SCM_QQTMPL_TYPE_INFO, 0, mtype);
+  if (scm_obj_null_p(qq)) return SCM_OBJ_NULL;
+
+  if (scm_qqtmpl_initialize(qq, tmpl) < 0)
+    return SCM_OBJ_NULL;
+
+  return qq;
+}
+
+ScmObj
+scm_fcd_qqtmpl_template(ScmObj qq)
+{
+  scm_assert(scm_fcd_qqtmpl_p(qq));
+
+  return scm_qqtmpl_template(qq);
+}
+
+size_t
+scm_fcd_qqtmpl_nr_unquoted_expr(ScmObj qq)
+{
+  scm_assert(scm_fcd_qqtmpl_p(qq));
+
+  return scm_qqtmpl_nr_unquoted_expr(qq);
+}
+
+ScmObj
+scm_fcd_qqtmpl_unquoted_expr(ScmObj qq, size_t n)
+{
+  scm_assert(scm_fcd_qqtmpl_p(qq));
+  scm_assert(n < scm_qqtmpl_nr_unquoted_expr(qq));
+
+  return scm_qqtmpl_unquoted_expr(qq, n);
+}
+
+ScmObj
+scm_fcd_compile_qq_template(ScmObj tmpl)
+{
+  ScmObj qq = SCM_OBJ_NULL, compiled = SCM_OBJ_INIT;
+  int r;
+
+  SCM_REFSTK_INIT_REG(&tmpl,
+                      &qq, &compiled);
+
+  scm_assert(scm_obj_not_null_p(tmpl));
+
+  qq = scm_fcd_qqtmpl_new(SCM_MEM_HEAP, tmpl);
+  if (scm_obj_null_p(qq)) return SCM_OBJ_NULL;
+
+  compiled = scm_cmpl_compile_qq_tmpl(qq, tmpl, 0);
+  if (scm_obj_null_p(compiled)) return SCM_OBJ_NULL;
+
+  r = scm_qqtmpl_compiled(qq, compiled);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return qq;
+}
+
+ScmObj
+scm_fcd_substitute_qq_template(ScmObj qq, ScmObj values)
+{
+  scm_assert(scm_fcd_qqtmpl_p(qq));
+  scm_assert(scm_obj_not_null_p(values));
+
+  return scm_cmpl_substitute_qq_tmpl(qq, scm_qqtmpl_compiled_template(qq),
+                                     SCM_CSETTER_L(values));
 }
