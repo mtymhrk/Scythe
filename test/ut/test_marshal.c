@@ -185,7 +185,7 @@ TEST(marshal, test_marshal_unmarshal__iseq__si_si)
 
 TEST(marshal, test_marshal_unmarshal__iseq__si_si_obj)
 {
-  test_marshal_unmarshal_iseq("((close 10 20 abc))");
+  test_marshal_unmarshal_iseq("((close 10 20 ((nop))))");
 }
 
 TEST(marshal, test_marshal_unmarshal__iseq__iof)

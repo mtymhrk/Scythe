@@ -110,6 +110,8 @@
   (push-inst (cons-inst 'jmpf (list typ lbl)) cseq))
 (define (push-inst-box idx layer cseq)
   (push-inst (cons-inst 'box idx layer) cseq))
+(define (push-inst-close nr-free arity code cseq)
+  (push-inst (cons-inst 'close nr-free arity code) cseq))
 (define (push-inst-demine idx layer cseq)
   (push-inst (cons-inst 'demine idx layer) cseq))
 (define (push-inst-emine narg cseq)
@@ -122,8 +124,6 @@
   (push-inst (cons-inst 'mrve) cseq))
 (define (push-inst-label lbl cseq)
   (push-inst (cons-inst 'label lbl) cseq))
-(define (push-inst-asm-close nr-free arity code cseq)
-  (push-inst (cons-inst 'asm-close nr-free arity code) cseq))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (define (new-env)
@@ -337,10 +337,10 @@
           (push-inst-box idx 0 bcseq))
         (loop (+ idx 1))))
     (p2-compile-exp cmpl (vector-ref exp 4) -1 #t bcseq)
-    (push-inst-asm-close (vector-ref exp 3)
-                         (if (vector-ref exp 2) (- len) len)
-                         (cseq-code bcseq)
-                         cseq)
+    (push-inst-close (vector-ref exp 3)
+                     (if (vector-ref exp 2) (- len) len)
+                     (cseq-code bcseq)
+                     cseq)
     (when tail-p
       (push-inst-return cseq))))
 

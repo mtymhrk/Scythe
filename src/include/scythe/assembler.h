@@ -13,10 +13,6 @@
 
 enum {
   SCM_ASM_PI_LABEL = SCM_ASM_PI_START,  /* define a label */
-  SCM_ASM_PI_ASM,                       /* make ScmISeq object
-                                           and set it to VAL register */
-  SCM_ASM_PI_ASM_CLOSE,                 /* assemble, make a closure,
-                                           and set it to VAL register */
 };
 
 typedef struct {

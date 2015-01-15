@@ -157,31 +157,6 @@ test_assemble_si_si(const char *asmbl, uint8_t code, int si1, int si2)
 }
 
 static void
-test_assemble_si_si_obj(const char *asmbl,
-                        uint8_t code, int si1, int si2, ScmObj obj)
-{
-  ScmObj iseq = SCM_OBJ_INIT, actual_immv = SCM_OBJ_INIT;
-  scm_byte_t *ip;
-  int actual_op, actual_si1, actual_si2;
-
-  SCM_REFSTK_INIT_REG(&obj,
-                      &iseq, &actual_immv);
-
-  iseq = make_iseq(asmbl);
-  ip = scm_fcd_iseq_to_ip(iseq);
-
-  actual_op = SCM_VMINST_GET_OP(ip);
-  SCM_VMINST_FETCH_OPD_SI_SI_OBJ(ip, actual_si1, actual_si2, actual_immv);
-
-  TEST_ASSERT_EQUAL_INT(code, actual_op);
-  TEST_ASSERT_EQUAL_INT(si1, actual_si1);
-  TEST_ASSERT_EQUAL_INT(si2, actual_si2);
-  TEST_ASSERT_SCM_EQUAL(obj, actual_immv);
-
-  check_following(ip);
-}
-
-static void
 test_assemble_iof(const char *asmbl, uint8_t code, int si, size_t dst)
 {
   ScmObj iseq = SCM_OBJ_INIT;
@@ -358,26 +333,6 @@ TEST(fcd_assembler, label_jmpf)
                     0);
 }
 
-TEST(fcd_assembler, asm)
-{
-  ScmObj iseq = SCM_OBJ_INIT, actual_immv = SCM_OBJ_INIT;
-  scm_byte_t *ip;
-  int actual_op;
-
-  SCM_REFSTK_INIT_REG(&iseq, &actual_immv);
-
-  iseq = make_iseq("((asm ((nop)))(nop))");
-  ip = scm_fcd_iseq_to_ip(iseq);
-
-  actual_op = SCM_VMINST_GET_OP(ip);
-  SCM_VMINST_FETCH_OPD_OBJ(ip, actual_immv);
-
-  TEST_ASSERT_EQUAL_INT(SCM_OPCODE_IMMVAL, actual_op);
-  TEST_ASSERT_TRUE(scm_fcd_iseq_p(actual_immv));
-
-  check_following(ip);
-}
-
 TEST(fcd_assembler, box)
 {
   test_assemble_si_si("((box -8 14)(nop))", SCM_OPCODE_BOX, -8, 14);
@@ -385,25 +340,13 @@ TEST(fcd_assembler, box)
 
 TEST(fcd_assembler, close)
 {
-  ScmObj obj = SCM_OBJ_INIT;
-
-  SCM_REFSTK_INIT_REG(&obj);
-
-  obj = read_cstr("foo");
-
-  test_assemble_si_si_obj("((close 10 20 foo)(nop))",
-                          SCM_OPCODE_CLOSE, 10, 20, obj);
-}
-
-TEST(fcd_assembler, asm_close)
-{
   ScmObj iseq = SCM_OBJ_INIT, actual_immv = SCM_OBJ_INIT;
   scm_byte_t *ip;
   int actual_op, actual_si1, actual_si2;
 
   SCM_REFSTK_INIT_REG(&iseq, &actual_immv);
 
-  iseq = make_iseq("((asm-close 11 21 ((nop)))(nop))");
+  iseq = make_iseq("((close 11 21 ((nop)))(nop))");
   ip = scm_fcd_iseq_to_ip(iseq);
 
   actual_op = SCM_VMINST_GET_OP(ip);

@@ -64,7 +64,7 @@ TEST(exec_compiler, define_global_variable_1)
 TEST(exec_compiler, define_global_variable_2)
 {
   test_compile("(define (func x) x)",
-               "((asm-close 0 1"
+               "((close 0 1"
                "   ((sref 0 0)(return)))(gdef func (main)))");
 }
 
@@ -77,8 +77,8 @@ TEST(exec_compiler, refer_global_variable_1)
 TEST(exec_compiler, refer_global_variable_2)
 {
   test_compile("(lambda (f1 f2) (lambda (b1 b2) global_var))",
-               "((asm-close 0 2"
-               "   ((asm-close 0 2"
+               "((close 0 2"
+               "   ((close 0 2"
                "      ((gref global_var (main))(return)))"
                "    (return))))");
 }
@@ -122,7 +122,7 @@ TEST(exec_compiler, application_3)
   test_compile("((lambda (x) x) 1)",
                "(  (cframe (label 0))"
                "   (immval 1)(push)"
-               "   (asm-close 0 1"
+               "   (close 0 1"
                "     ((sref 0 0)(return)))"
                "   (call 1)"
                "   (nop)"
@@ -134,8 +134,8 @@ TEST(exec_compiler, application_4)
   test_compile("((lambda (x) (lambda (y) (cons x y))) 1)",
                "(  (cframe (label 0))"
                "   (immval 1)(push)"
-               "   (asm-close 0 1"
-               "     ((asm-close 1 1"
+               "   (close 0 1"
+               "     ((close 1 1"
                "        ((sref 0 1)(push)"
                "         (sref 0 0)(push)"
                "         (gref cons (main))"
@@ -149,45 +149,45 @@ TEST(exec_compiler, application_4)
 TEST(exec_compiler, application_5)
 {
   test_compile("(lambda () ((lambda () 1)))",
-               "((asm-close 0 0"
-               "   ((asm-close 0 0 ((immval 1)(return)))"
+               "((close 0 0"
+               "   ((close 0 0 ((immval 1)(return)))"
                "    (tcall 0))))");
 }
 
 TEST(exec_compiler, lambda_1)
 {
   test_compile("(lambda () 'a)",
-               "((asm-close 0 0 ((immval a)(return))))");
+               "((close 0 0 ((immval a)(return))))");
 }
 
 TEST(exec_compiler, lambda_2)
 {
   test_compile("(lambda (v1 v2) 'a)",
-               "((asm-close 0 2 ((immval a)(return))))");
+               "((close 0 2 ((immval a)(return))))");
 }
 
 TEST(exec_compiler, lambda_3)
 {
   test_compile("(lambda (v1 v2 . v3) 'a)",
-               "((asm-close 0 -3 ((immval a)(return))))");
+               "((close 0 -3 ((immval a)(return))))");
 }
 
 TEST(exec_compiler, lambda_4)
 {
   test_compile("(lambda v 'a)",
-               "((asm-close 0 -1 ((immval a)(return))))");
+               "((close 0 -1 ((immval a)(return))))");
 }
 
 TEST(exec_compiler, lambda_5)
 {
   test_compile("(lambda ())",
-               "((asm-close 0 0 ((undef)(return))))");
+               "((close 0 0 ((undef)(return))))");
 }
 
 TEST(exec_compiler, lambda_6)
 {
   test_compile("(lambda () (cons 'a 'b) (cons 'c 'd))",
-               "((asm-close 0 0"
+               "((close 0 0"
                "   (  (cframe (label 0))"
                "      (immval a)(push)"
                "      (immval b)(push)"
@@ -223,7 +223,7 @@ TEST(exec_compiler, let_3)
                "((immval 1)(push)"
                " (immval 2)(push)"
                " (eframe 2)"
-               " (asm-close 1 0"
+               " (close 1 0"
                "   ((sref 0 0)(push)"
                "    (sref 1 0)(push)"
                "    (gref cons (main))"
@@ -246,7 +246,7 @@ TEST(exec_compiler, let_4)
 TEST(exec_compiler, let_5)
 {
   test_compile("(lambda () (let ((x 1)(y 2)) x))",
-               "((asm-close 0 0"
+               "((close 0 0"
                "   ((immval 1)(push)"
                "    (immval 2)(push)"
                "    (eframe 2)"
@@ -283,7 +283,7 @@ TEST(exec_compiler, named_let_1)
                "   (immval 2)(push)"
                "   (eframe 2)"
                "   (emine 1)"
-               "   (asm-close 1 2"
+               "   (close 1 2"
                "     ((sref 0 0)(push)"
                "      (sref 1 0)(push)"
                "      (sref 0 1)"
@@ -304,7 +304,7 @@ TEST(exec_compiler, named_let_2)
 {
   test_compile("(let loop ())",
                "(  (emine 1)"
-               "   (asm-close 0 0 ((undef)(return)))"
+               "   (close 0 0 ((undef)(return)))"
                "   (demine 0 0)"
                "   (cframe (label 0))"
                "   (sref 0 0)"
@@ -317,12 +317,12 @@ TEST(exec_compiler, named_let_2)
 TEST(exec_compiler, named_let_3)
 {
   test_compile("(lambda () (let loop ((x 1)(y 2)) (loop 3 4)))",
-               "((asm-close 0 0"
+               "((close 0 0"
                "   ((immval 1)(push)"
                "    (immval 2)(push)"
                "    (eframe 2)"
                "    (emine 1)"
-               "    (asm-close 1 2"
+               "    (close 1 2"
                "      ((immval 3)(push)"
                "       (immval 4)(push)"
                "       (sref 0 1)"
@@ -359,7 +359,7 @@ TEST(exec_compiler, let_a_3)
                " (eframe 1)"
                " (immval 2)(push)"
                " (eframe 1)"
-               " (asm-close 2 0"
+               " (close 2 0"
                "   ((sref 0 1)(push)"
                "    (sref 0 0)(push)"
                "    (gref cons (main))"
@@ -385,7 +385,7 @@ TEST(exec_compiler, let_a_4)
 TEST(exec_compiler, let_a_5)
 {
   test_compile("(lambda () (let* ((x 1)(y 2)) x))",
-               "((asm-close 0 0"
+               "((close 0 0"
                "   ((immval 1)(push)"
                "    (eframe 1)"
                "    (immval 2)(push)"
@@ -446,7 +446,7 @@ TEST(exec_compiler, letrec_2)
 {
   test_compile("(letrec ((x (lambda () y))(y 100)) x)",
                "((emine 2)"
-               " (asm-close 1 0 ((sref 1 0)(return)))(push)"
+               " (close 1 0 ((sref 1 0)(return)))(push)"
                " (immval 100)(push)"
                " (edemine 2 0)"
                " (sref 0 0)"
@@ -469,7 +469,7 @@ TEST(exec_compiler, letrec_3)
 TEST(exec_compiler, letrec_4)
 {
   test_compile("(lambda () (letrec ((x 1)(y 2)) x))",
-               "((asm-close 0 0"
+               "((close 0 0"
                "   ((emine 2)"
                "    (immval 1)(push)"
                "    (immval 2)(push)"
@@ -522,7 +522,7 @@ TEST(exec_compiler, letrec_a_2)
 {
   test_compile("(letrec* ((x (lambda () y))(y 100)) x)",
                "((emine 2)"
-               " (asm-close 1 0 ((sref 1 0)(return)))(demine 0 0)"
+               " (close 1 0 ((sref 1 0)(return)))(demine 0 0)"
                " (immval 100)(demine 1 0)"
                " (sref 0 0)"
                " (epop))");
@@ -543,7 +543,7 @@ TEST(exec_compiler, letrec_a_3)
 TEST(exec_compiler, letrec_a_4)
 {
   test_compile("(lambda () (letrec* ((x 1)(y 2)) x))",
-               "((asm-close 0 0"
+               "((close 0 0"
                "   ((emine 2)"
                "    (immval 1)(demine 0 0)"
                "    (immval 2)(demine 1 0)"
@@ -583,7 +583,7 @@ TEST(exec_compiler, letrec_a_6)
 TEST(exec_compiler, internal_definition_1)
 {
   test_compile("(lambda () (define x 1) (define y 2) x)",
-               "((asm-close 0 0"
+               "((close 0 0"
                "  ((emine 2)"
                "   (immval 1)(demine 0 0)"
                "   (immval 2)(demine 1 0)"
@@ -594,9 +594,9 @@ TEST(exec_compiler, internal_definition_1)
 TEST(exec_compiler, internal_definition_2)
 {
   test_compile("(lambda () (define x (lambda () y)) (define y 100) x)",
-               "((asm-close 0 0"
+               "((close 0 0"
                "  ((emine 2)"
-               "   (asm-close 1 0 ((sref 1 0)(return)))(demine 0 0)"
+               "   (close 1 0 ((sref 1 0)(return)))(demine 0 0)"
                "   (immval 100)(demine 1 0)"
                "   (sref 0 0)"
                "   (return))))");
@@ -605,7 +605,7 @@ TEST(exec_compiler, internal_definition_2)
 TEST(exec_compiler, internal_definition_3)
 {
   test_compile("(lambda () (define x 1) (define y 2) (set! y 10) y)",
-               "((asm-close 0 0"
+               "((close 0 0"
                "  ((emine 2)"
                "   (immval 1)(demine 0 0)"
                "   (immval 2)(demine 1 0)"
@@ -622,7 +622,7 @@ TEST(exec_compiler, internal_definition_4)
                "  (begin"
                "    (define y 2)"
                "    x))",
-               "((asm-close 0 0"
+               "((close 0 0"
                "  ((emine 2)"
                "   (immval 1)(demine 0 0)"
                "   (immval 2)(demine 1 0)"
@@ -637,7 +637,7 @@ TEST(exec_compiler, internal_definition_5)
                "  (begin"
                "    (define y 2))"
                "  x)",
-               "((asm-close 0 0"
+               "((close 0 0"
                "  ((emine 2)"
                "   (immval 1)(demine 0 0)"
                "   (immval 2)(demine 1 0)"
@@ -681,7 +681,7 @@ TEST(exec_compiler, begin_4)
 {
   test_compile("(lambda ()"
                "  (begin (cons 'a 'b)))",
-               "((asm-close 0 0"
+               "((close 0 0"
                "   ((immval a)(push)"
                "    (immval b)(push)"
                "    (gref cons (main))"
@@ -691,8 +691,8 @@ TEST(exec_compiler, begin_4)
 TEST(exec_compiler, refer_bound_variable_1)
 {
   test_compile("(lambda (f1 f2) (lambda (b1 b2) b2))",
-               "((asm-close 0 2"
-               "   ((asm-close 0 2"
+               "((close 0 2"
+               "   ((close 0 2"
                "      ((sref 1 0)(return)))"
                "    (return))))");
 }
@@ -700,8 +700,8 @@ TEST(exec_compiler, refer_bound_variable_1)
 TEST(exec_compiler, refer_bound_variable_2)
 {
   test_compile("(lambda (f1 b2) (lambda (b1 b2) b2))",
-               "((asm-close 0 2"
-               "   ((asm-close 0 2"
+               "((close 0 2"
+               "   ((close 0 2"
                "      ((sref 1 0)(return)))"
                "    (return))))");
 }
@@ -709,8 +709,8 @@ TEST(exec_compiler, refer_bound_variable_2)
 TEST(exec_compiler, refer_bound_variable_3)
 {
   test_compile("(lambda (f1 b2) (lambda (b1 b2) (set! b2 'a) b2))",
-               "((asm-close 0 2"
-               "   ((asm-close 0 2"
+               "((close 0 2"
+               "   ((close 0 2"
                "      ((box 1 0)"
                "       (immval a)(sset 1 0)"
                "       (sref 1 0)"
@@ -721,8 +721,8 @@ TEST(exec_compiler, refer_bound_variable_3)
 TEST(exec_compiler, set_bound_variable_1)
 {
   test_compile("(lambda (f1 f2) (lambda (b1 b2) (set! b2 'a)))",
-               "((asm-close 0 2"
-               "   ((asm-close 0 2"
+               "((close 0 2"
+               "   ((close 0 2"
                "      ((box 1 0)(immval a)(sset 1 0)(return)))"
                "    (return))))");
 }
@@ -730,8 +730,8 @@ TEST(exec_compiler, set_bound_variable_1)
 TEST(exec_compiler, set_bound_variable_2)
 {
   test_compile("(lambda (f1 b2) (lambda (b1 b2) (set! b2 'a)))",
-               "((asm-close 0 2"
-               "   ((asm-close 0 2"
+               "((close 0 2"
+               "   ((close 0 2"
                "      ((box 1 0)(immval a)(sset 1 0)(return)))"
                "    (return))))");
 }
@@ -739,8 +739,8 @@ TEST(exec_compiler, set_bound_variable_2)
 TEST(exec_compiler, refer_free_variable_1)
 {
   test_compile("(lambda (f1 f2) (lambda (b1 b2) f2))",
-               "((asm-close 0 2"
-               "   ((asm-close 1 2"
+               "((close 0 2"
+               "   ((close 1 2"
                "      ((sref 1 1)(return)))"
                "    (return))))");
 }
@@ -748,9 +748,9 @@ TEST(exec_compiler, refer_free_variable_1)
 TEST(exec_compiler, refer_free_variable_2)
 {
   test_compile("(lambda (f1 f2) (lambda (b1 b2) (set! f2 'a) f2))",
-               "((asm-close 0 2"
+               "((close 0 2"
                "   ((box 1 0)"
-               "    (asm-close 1 2"
+               "    (close 1 2"
                "      ((immval a)(sset 1 1)"
                "       (sref 1 1)"
                "       (return)))"
@@ -760,9 +760,9 @@ TEST(exec_compiler, refer_free_variable_2)
 TEST(exec_compiler, set_free_variable_1)
 {
   test_compile("(lambda (f1 f2) (lambda (b1 b2) (set! f2 'a)))",
-               "((asm-close 0 2"
+               "((close 0 2"
                "   ((box 1 0)"
-               "    (asm-close 1 2"
+               "    (close 1 2"
                "      ((immval a)(sset 1 1)(return)))"
                "    (return))))");
 }
@@ -796,7 +796,7 @@ TEST(exec_compiler, if_2)
 TEST(exec_compiler, if_3)
 {
   test_compile("(lambda () (if 'a 'b 'c))",
-               "((asm-close 0 0"
+               "((close 0 0"
                "   (  (immval a)"
                "      (jmpf (label 0))"
                "      (immval b)"
@@ -811,7 +811,7 @@ TEST(exec_compiler, if_3)
 TEST(exec_compiler, if_4)
 {
   test_compile("(lambda () (if 'a 'b))",
-               "((asm-close 0 0"
+               "((close 0 0"
                "   (  (immval a)"
                "      (jmpf (label 0))"
                "      (immval b)"
@@ -956,21 +956,21 @@ TEST(exec_compiler, cond_010)
 TEST(exec_compiler, cond_011)
 {
   test_compile("(lambda () (cond))",
-               "((asm-close 0 0"
+               "((close 0 0"
                "   ((undef)(return))))");
 }
 
 TEST(exec_compiler, cond_012)
 {
   test_compile("(lambda () (cond (else)))",
-               "((asm-close 0 0"
+               "((close 0 0"
                "   ((undef)(return))))");
 }
 
 TEST(exec_compiler, cond_013)
 {
   test_compile("(lambda () (cond (else 'a)))",
-               "((asm-close 0 0"
+               "((close 0 0"
                "   ((immval a)"
                "    (return))))");
 }
@@ -978,7 +978,7 @@ TEST(exec_compiler, cond_013)
 TEST(exec_compiler, cond_014)
 {
   test_compile("(lambda () (cond ('a 'b)))",
-               "((asm-close 0 0"
+               "((close 0 0"
                "   (   (immval a)"
                "       (jmpt (label 0))"
                "       (undef)"
@@ -991,7 +991,7 @@ TEST(exec_compiler, cond_014)
 TEST(exec_compiler, cond_015)
 {
   test_compile("(lambda () (cond ('a)))",
-               "((asm-close 0 0"
+               "((close 0 0"
                "   (   (immval a)"
                "       (jmpt (label 0))"
                "       (undef)"
@@ -1003,7 +1003,7 @@ TEST(exec_compiler, cond_015)
 TEST(exec_compiler, cond_016)
 {
   test_compile("(lambda () (cond ('a)('b 'c)))",
-               "((asm-close 0 0"
+               "((close 0 0"
                "   (   (immval a)"
                "       (jmpt (label 0))"
                "       (immval b)"
@@ -1020,7 +1020,7 @@ TEST(exec_compiler, cond_016)
 TEST(exec_compiler, cond_017)
 {
   test_compile("(lambda () (cond ('a 'b)('c)))",
-               "((asm-close 0 0"
+               "((close 0 0"
                "   (   (immval a)"
                "       (jmpt (label 0))"
                "       (immval c)"
@@ -1037,7 +1037,7 @@ TEST(exec_compiler, cond_017)
 TEST(exec_compiler, cond_018)
 {
   test_compile("(lambda () (cond ('a => write)))",
-               "((asm-close 0 0"
+               "((close 0 0"
                "   (   (immval a)"
                "       (jmpt (label 0))"
                "       (undef)"
@@ -1093,21 +1093,21 @@ TEST(exec_compiler, and_004)
 TEST(exec_compiler, and_005)
 {
   test_compile("(lambda () (and))",
-               "((asm-close 0 0"
+               "((close 0 0"
                "   ((immval #t)(return))))");
 }
 
 TEST(exec_compiler, and_006)
 {
   test_compile("(lambda () (and 'a))",
-               "((asm-close 0 0"
+               "((close 0 0"
                "   ((immval a)(return))))");
 }
 
 TEST(exec_compiler, and_007)
 {
   test_compile("(lambda () (and 'a 'b))",
-               "((asm-close 0 0"
+               "((close 0 0"
                "   (   (immval a)"
                "       (jmpf (label 0))"
                "       (immval b)"
@@ -1119,7 +1119,7 @@ TEST(exec_compiler, and_007)
 TEST(exec_compiler, and_008)
 {
   test_compile("(lambda () (and (null? 'a) (null? 'b)))",
-               "((asm-close 0 0"
+               "((close 0 0"
                "   (   (cframe (label 1))"
                "       (immval a)"
                "       (push)"
@@ -1181,21 +1181,21 @@ TEST(exec_compiler, or_004)
 TEST(exec_compiler, or_005)
 {
   test_compile("(lambda () (or))",
-               "((asm-close 0 0"
+               "((close 0 0"
                "   ((immval #f)(return))))");
 }
 
 TEST(exec_compiler, or_006)
 {
   test_compile("(lambda () (or 'a))",
-               "((asm-close 0 0"
+               "((close 0 0"
                "   ((immval a)(return))))");
 }
 
 TEST(exec_compiler, or_007)
 {
   test_compile("(lambda () (or 'a 'b))",
-               "((asm-close 0 0"
+               "((close 0 0"
                "   (   (immval a)"
                "       (jmpt (label 0))"
                "       (immval b)"
@@ -1208,7 +1208,7 @@ TEST(exec_compiler, or_007)
 TEST(exec_compiler, or_008)
 {
   test_compile("(lambda () (or (null? 'a) (null? 'b)))",
-               "((asm-close 0 0"
+               "((close 0 0"
                "   (   (cframe (label 1))"
                "       (immval a)"
                "       (push)"
@@ -1252,7 +1252,7 @@ TEST(exec_compiler, when_002)
 TEST(exec_compiler, when_003)
 {
   test_compile("(lambda () (when 'a))",
-               "((asm-close 0 0"
+               "((close 0 0"
                "   (   (immval a)"
                "       (jmpf (label 0))"
                "       (undef)"
@@ -1266,7 +1266,7 @@ TEST(exec_compiler, when_004)
 {
 
   test_compile("(lambda () (when 'a 'b))",
-               "((asm-close 0 0"
+               "((close 0 0"
                "   (   (immval a)"
                "       (jmpf (label 0))"
                "       (immval b)"
@@ -1305,7 +1305,7 @@ TEST(exec_compiler, when_005)
 TEST(exec_compiler, when_006)
 {
   test_compile("(lambda () (when (null? '()) (cons 'a 'b)))",
-               "((asm-close 0 0"
+               "((close 0 0"
                "   (   (cframe (label 1))"
                "       (immval ())"
                "       (push)"
@@ -1377,7 +1377,7 @@ TEST(exec_compiler, unless_002)
 TEST(exec_compiler, unless_003)
 {
   test_compile("(lambda () (unless 'a))",
-               "((asm-close 0 0"
+               "((close 0 0"
                "   (   (immval a)"
                "       (jmpf (label 0))"
                "       (undef)"
@@ -1390,7 +1390,7 @@ TEST(exec_compiler, unless_003)
 TEST(exec_compiler, unless_004)
 {
   test_compile("(lambda () (unless 'a 'b))",
-               "((asm-close 0 0"
+               "((close 0 0"
                "   (   (immval a)"
                "       (jmpf (label 0))"
                "       (undef)"
@@ -1429,7 +1429,7 @@ TEST(exec_compiler, unless_005)
 TEST(exec_compiler, unless_006)
 {
   test_compile("(lambda () (unless (null? '()) (cons 'a 'b)))",
-               "((asm-close 0 0"
+               "((close 0 0"
                "   (   (cframe (label 1))"
                "       (immval ())"
                "       (push)"
@@ -1577,7 +1577,7 @@ TEST(exec_compiler, do_005)
                "       (y 'iy 'sy))"
                "      ('t 'e)"
                "    'c))",
-               "((asm-close 0 0"
+               "((close 0 0"
                "   (  (immval ix)"
                "      (push)"
                "      (immval iy)"
@@ -1606,7 +1606,7 @@ TEST(exec_compiler, do_006)
                "       (y 'iy 'sy))"
                "      ('t (cons 'a 'b))"
                "    'c))",
-               "((asm-close 0 0"
+               "((close 0 0"
                "   (  (immval ix)"
                "      (push)"
                "      (immval iy)"
@@ -1638,7 +1638,7 @@ TEST(exec_compiler, do_007)
                "  (do ()"
                "      ('t)"
                "    ))",
-               "((asm-close 0 0"
+               "((close 0 0"
                "   ((label 1)"
                "       (immval t)"
                "       (jmpt (label 0))"
@@ -1847,7 +1847,7 @@ TEST(exec_compiler, let_values_8)
 TEST(exec_compiler, let_values_9)
 {
   test_compile("(lambda () (let-values (((a) 1)) (a)))",
-               "((asm-close 0 0"
+               "((close 0 0"
                "   ((immval 1)"
                "    (mvpush)"
                "    (eframe 1)"
@@ -2035,7 +2035,7 @@ TEST(exec_compiler, let_a_values_8)
 TEST(exec_compiler, let_a_values_9)
 {
   test_compile("(lambda () (let*-values (((a) 1)) (a)))",
-               "((asm-close 0 0"
+               "((close 0 0"
                "   ((immval 1)"
                "    (mvpush)"
                "    (eframe 1)"
