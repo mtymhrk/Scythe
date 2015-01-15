@@ -223,10 +223,6 @@ equal_aux(ScmObj obj1, ScmObj obj2, ScmObj stack1, ScmObj stack2, bool *rslt)
         }
       }
     }
-    else if (scm_fcd_iseq_p(obj1)) {
-      r = scm_iseq_eq(obj1, obj2, &cmp);
-      if (r < 0) return -1;
-    }
     else {
       cmp = false;
     }

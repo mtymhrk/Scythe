@@ -26,12 +26,10 @@ static void
 test_marshal_unmarshal(ScmObj obj)
 {
   ScmObj marshal = SCM_OBJ_INIT, unmarshal = SCM_OBJ_INIT;
-  ScmObj actual = SCM_OBJ_INIT;
   void *data;
 
   SCM_REFSTK_INIT_REG(&obj,
-                      &marshal, &unmarshal,
-                      &actual);
+                      &marshal, &unmarshal);
 
   marshal = scm_fcd_marshal_new(SCM_MEM_HEAP);
 
@@ -149,13 +147,36 @@ TEST(marshal, test_marshal_unmarshal__bytevector)
   test_marshal_unmarshal(vec);
 }
 
+
+static void
+test_marshal_unmarshal_iseq_internal(ScmObj obj)
+{
+  ScmObj marshal = SCM_OBJ_INIT, unmarshal = SCM_OBJ_INIT;
+  void *data;
+  bool cmp;
+
+  SCM_REFSTK_INIT_REG(&obj,
+                      &marshal, &unmarshal);
+
+  marshal = scm_fcd_marshal_new(SCM_MEM_HEAP);
+
+  TEST_ASSERT_EQUAL_INT(0, scm_marshal_push_obj(marshal, obj));
+
+  data = scm_marshal_terminate(marshal, NULL);
+  TEST_ASSERT(data != NULL);
+
+  unmarshal = scm_fcd_unmarshal_new(SCM_MEM_HEAP, data);
+  scm_fcd_iseq_eq(obj, scm_unmarshal_ref(unmarshal, 0), &cmp);
+  TEST_ASSERT_TRUE(cmp);
+}
+
 static void
 test_marshal_unmarshal_iseq(const char *asmbl)
 {
   ScmObj lst, iseq;
   lst = read_cstr(asmbl);
   iseq = scm_api_assemble(lst, SCM_OBJ_NULL);
-  test_marshal_unmarshal(iseq);
+  test_marshal_unmarshal_iseq_internal(iseq);
 }
 
 TEST(marshal, test_marshal_unmarshal__iseq__noopd)

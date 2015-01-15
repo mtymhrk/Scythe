@@ -188,8 +188,16 @@ scm_iseq_eq(ScmObj iseq1, ScmObj iseq2, bool *rslt)
       if (tk1->inst.i.si_si_obj.opd1 != tk2->inst.i.si_si_obj.opd1
           || tk1->inst.i.si_si_obj.opd2 != tk2->inst.i.si_si_obj.opd2)
         goto not_equal;
-      r = scm_fcd_equal(tk1->inst.i.si_si_obj.opd3, tk2->inst.i.si_si_obj.opd3,
+      if(scm_obj_type_p(tk1->inst.i.si_si_obj.opd3, &SCM_ISEQ_TYPE_INFO)
+         && scm_obj_type_p(tk2->inst.i.si_si_obj.opd3, &SCM_ISEQ_TYPE_INFO)) {
+        r = scm_iseq_eq(tk1->inst.i.si_si_obj.opd3, tk2->inst.i.si_si_obj.opd3,
                         rslt);
+      }
+      else {
+        r = scm_fcd_equal(tk1->inst.i.si_si_obj.opd3,
+                          tk2->inst.i.si_si_obj.opd3,
+                        rslt);
+      }
       if (r < 0) return -1;
       if (!*rslt) return 0;
       break;
