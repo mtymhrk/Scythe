@@ -73,116 +73,14 @@ scm_fcd_iseq_eq(ScmObj iseq1, ScmObj iseq2, bool *rslt)
 }
 
 ssize_t
-scm_fcd_iseq_push_inst_va(ScmObj iseq, scm_opcode_t op, va_list ap)
-{
-  ScmObj opd_obj1 = SCM_OBJ_INIT, opd_obj2 = SCM_OBJ_INIT;
-  int opd_si1, opd_si2;
-
-  SCM_REFSTK_INIT_REG(&iseq,
-                      &opd_obj1, &opd_obj2);
-
-  scm_assert(scm_fcd_iseq_p(iseq));
-  scm_assert(0 <= op && op < SCM_VMINST_NR_OP);
-
-  switch (scm_opfmt_table[op]) {
-  case SCM_OPFMT_NOOPD:
-    return scm_iseq_push_inst_noopd(iseq, op);
-    break;
-  case SCM_OPFMT_OBJ:
-    opd_obj1 = va_arg(ap, ScmObj);
-    if (scm_obj_null_p(opd_obj1)) {
-      scm_fcd_error("failed to push a instruction to ISeq: Invalid argument",
-                    1, opd_obj1);
-      break;
-    }
-    return scm_iseq_push_inst_obj(iseq, op, opd_obj1);
-    break;
-  case SCM_OPFMT_OBJ_OBJ:
-    opd_obj1 = va_arg(ap, ScmObj);
-    opd_obj2 = va_arg(ap, ScmObj);
-
-    if (scm_obj_null_p(opd_obj1)) {
-      scm_fcd_error("failed to push a instruction to ISeq: Invalid argument",
-                    1, opd_obj1);
-      break;
-    }
-    else if (scm_obj_null_p(opd_obj2)) {
-      scm_fcd_error("failed to push a instruction to ISeq: Invalid argument",
-                    1, opd_obj2);
-      break;
-    }
-
-    return scm_iseq_push_inst_obj_obj(iseq, op, opd_obj1, opd_obj2);
-    break;
-  case SCM_OPFMT_SI:
-    opd_si1 = va_arg(ap, int);
-    return scm_iseq_push_inst_si(iseq, op, opd_si1);
-    break;
-  case SCM_OPFMT_SI_SI:
-    opd_si1 = va_arg(ap, int);
-    opd_si2 = va_arg(ap, int);
-    return scm_iseq_push_inst_si_si(iseq, op, opd_si1, opd_si2);
-    break;
-  case SCM_OPFMT_SI_SI_OBJ:
-    opd_si1 = va_arg(ap, int);
-    opd_si2 = va_arg(ap, int);
-    opd_obj1 = va_arg(ap, ScmObj);
-
-    if (scm_obj_null_p(opd_obj1)) {
-      scm_fcd_error("failed to push a instruction to ISeq: Invalid argument",
-                    1, opd_obj1);
-      break;
-    }
-
-    return scm_iseq_push_inst_si_si_obj(iseq, op, opd_si1, opd_si2, opd_obj1);
-    break;
-  case SCM_OPFMT_IOF:
-    opd_si1 = va_arg(ap, int);
-    return scm_iseq_push_inst_iof(iseq, op, opd_si1);
-    break;
-  default:
-    scm_assert(false);          /* must not happen */
-    break;
-  }
-
-  return -1;
-}
-
-ssize_t
-scm_fcd_iseq_push_inst(ScmObj iseq, scm_opcode_t op, ...)
-{
-  ssize_t ret;
-  va_list ap;
-
-  scm_assert(scm_fcd_iseq_p(iseq));
-  scm_assert(0 <= op && op < SCM_VMINST_NR_OP);
-
-  va_start(ap, op);
-  ret = scm_fcd_iseq_push_inst_va(iseq, op, ap);
-  va_end(ap);
-
-  return ret;
-}
-
-int
-scm_fcd_iseq_push_br_dst(ScmObj iseq, size_t offset)
+scm_fcd_iseq_push_inst(ScmObj iseq, const void *inst, size_t sz,
+                       const size_t *objs, size_t n)
 {
   scm_assert(scm_fcd_iseq_p(iseq));
-  return scm_iseq_push_dst(iseq, offset);
-}
+  scm_assert(inst != NULL);
+  scm_assert(n == 0 || objs != NULL);
 
-size_t
-scm_fcd_iseq_nr_br_dst(ScmObj iseq)
-{
-  scm_assert(scm_fcd_iseq_p(iseq));
-  return scm_iseq_nr_dst(iseq);
-}
-
-const size_t *
-scm_fcd_iseq_br_dsts(ScmObj iseq)
-{
-  scm_assert(scm_fcd_iseq_p(iseq));
-  return scm_iseq_dsts(iseq);
+  return scm_iseq_push_inst(iseq, inst, sz, objs, n);
 }
 
 bool

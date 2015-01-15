@@ -143,6 +143,17 @@ enum {
 
 extern const int scm_opfmt_table[SCM_VMINST_NR_OP];
 
+#define SCM_INST_OPD_OFFSET_OBJ_1 (offsetof(struct scm_vm_inst_obj, opd1))
+#define SCM_INST_OPD_OFFSET_OBJ_OBJ_1 (offsetof(struct scm_vm_inst_obj_obj, opd1))
+#define SCM_INST_OPD_OFFSET_OBJ_OBJ_2 (offsetof(struct scm_vm_inst_obj_obj, opd2))
+#define SCM_INST_OPD_OFFSET_SI_1 (offsetof(struct scm_vm_inst_si, opd1))
+#define SCM_INST_OPD_OFFSET_SI_SI_1 (offsetof(struct scm_vm_inst_si_si, opd1))
+#define SCM_INST_OPD_OFFSET_SI_SI_2 (offsetof(struct scm_vm_inst_si_si, opd2))
+#define SCM_INST_OPD_OFFSET_SI_SI_OBJ_1 (offsetof(struct scm_vm_inst_si_si_obj, opd1))
+#define SCM_INST_OPD_OFFSET_SI_SI_OBJ_2 (offsetof(struct scm_vm_inst_si_si_obj, opd2))
+#define SCM_INST_OPD_OFFSET_SI_SI_OBJ_3 (offsetof(struct scm_vm_inst_si_si_obj, opd3))
+#define SCM_INST_OPD_OFFSET_IOF_1 (offsetof(struct scm_vm_inst_iof, opd1))
+
 
 #define SCM_VMINST_GET_OP(ip) *(scm_opcode_t *)(ip)
 

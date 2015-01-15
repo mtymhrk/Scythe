@@ -157,11 +157,10 @@ test_assemble_si_si(const char *asmbl, uint8_t code, int si1, int si2)
 }
 
 static void
-test_assemble_iof(const char *asmbl, uint8_t code, int si, size_t dst)
+test_assemble_iof(const char *asmbl, uint8_t code, int si)
 {
   ScmObj iseq = SCM_OBJ_INIT;
   scm_byte_t *ip;
-  const size_t *dsts;
   int actual_op, actual_si;
 
   SCM_REFSTK_INIT_REG(&iseq);
@@ -174,9 +173,6 @@ test_assemble_iof(const char *asmbl, uint8_t code, int si, size_t dst)
 
   TEST_ASSERT_EQUAL_INT(code, actual_op);
   TEST_ASSERT_EQUAL_INT(si, actual_si);
-
-  dsts = scm_fcd_iseq_br_dsts(iseq);
-  TEST_ASSERT_EQUAL_INT(dst, dsts[0]);
 
   check_following(ip);
 }
@@ -315,22 +311,19 @@ TEST(fcd_assembler, immval)
 TEST(fcd_assembler, label_jmp)
 {
   test_assemble_iof("((label 0)(jmp (label 0))(nop))",
-                    SCM_OPCODE_JMP, -(int)SCM_INST_SZ_JMP,
-                    0);
+                    SCM_OPCODE_JMP, -(int)SCM_INST_SZ_JMP);
 }
 
 TEST(fcd_assembler, label_jmpt)
 {
   test_assemble_iof("((label 0)(jmpt (label 0))(nop))",
-                    SCM_OPCODE_JMPT, -(int)SCM_INST_SZ_JMPT,
-                    0);
+                    SCM_OPCODE_JMPT, -(int)SCM_INST_SZ_JMPT);
 }
 
 TEST(fcd_assembler, label_jmpf)
 {
   test_assemble_iof("((label 0)(jmpf (label 0))(nop))",
-                    SCM_OPCODE_JMPF, -(int)SCM_INST_SZ_JMPF,
-                    0);
+                    SCM_OPCODE_JMPF, -(int)SCM_INST_SZ_JMPF);
 }
 
 TEST(fcd_assembler, box)

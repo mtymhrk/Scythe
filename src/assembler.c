@@ -152,11 +152,14 @@ scm_asm_register_label_id(ScmObj asmb, size_t id)
 int
 scm_asm_push_inst_noopd(ScmObj asmb, scm_opcode_t op)
 {
+  scm_byte_t inst[SCM_OPFMT_INST_SZ_NOOPD];
   ssize_t r;
 
   scm_assert_obj_type(asmb, &SCM_ASSEMBLER_TYPE_INFO);
 
-  r = scm_fcd_iseq_push_inst(SCM_ASSEMBLER_ISEQ(asmb), op);
+  scm_vminst_set_inst_noopd(inst, op);
+  r = scm_fcd_iseq_push_inst(SCM_ASSEMBLER_ISEQ(asmb),
+                             &inst, sizeof(inst), NULL, 0);
   if (r < 0) return -1;
 
   return 0;
@@ -165,12 +168,16 @@ scm_asm_push_inst_noopd(ScmObj asmb, scm_opcode_t op)
 int
 scm_asm_push_inst_obj(ScmObj asmb, scm_opcode_t op, ScmObj obj)
 {
+  static const size_t objs[1] = { SCM_INST_OPD_OFFSET_OBJ_1 };
+  scm_byte_t inst[SCM_OPFMT_INST_SZ_OBJ];
   ssize_t r;
 
   scm_assert_obj_type(asmb, &SCM_ASSEMBLER_TYPE_INFO);
   scm_assert(scm_obj_not_null_p(obj));
 
-  r = scm_fcd_iseq_push_inst(SCM_ASSEMBLER_ISEQ(asmb), op, obj);
+  scm_vminst_set_inst_obj(inst, op, obj);
+  r = scm_fcd_iseq_push_inst(SCM_ASSEMBLER_ISEQ(asmb),
+                             &inst, sizeof(inst), objs, 1);
   if (r < 0) return -1;
 
   return 0;
@@ -180,13 +187,19 @@ int
 scm_asm_push_inst_obj_obj(ScmObj asmb,
                           scm_opcode_t op, ScmObj obj1, ScmObj obj2)
 {
+  static const size_t objs[2] = {
+    SCM_INST_OPD_OFFSET_OBJ_OBJ_1, SCM_INST_OPD_OFFSET_OBJ_OBJ_2
+  };
+  scm_byte_t inst[SCM_OPFMT_INST_SZ_OBJ_OBJ];
   ssize_t r;
 
   scm_assert_obj_type(asmb, &SCM_ASSEMBLER_TYPE_INFO);
   scm_assert(scm_obj_not_null_p(obj1));
   scm_assert(scm_obj_not_null_p(obj2));
 
-  r = scm_fcd_iseq_push_inst(SCM_ASSEMBLER_ISEQ(asmb), op, obj1, obj2);
+  scm_vminst_set_inst_obj_obj(inst, op, obj1, obj2);
+  r = scm_fcd_iseq_push_inst(SCM_ASSEMBLER_ISEQ(asmb),
+                             &inst, sizeof(inst), objs, 2);
   if (r < 0) return -1;
 
   return 0;
@@ -195,11 +208,14 @@ scm_asm_push_inst_obj_obj(ScmObj asmb,
 int
 scm_asm_push_inst_si(ScmObj asmb, scm_opcode_t op, int si)
 {
+  scm_byte_t inst[SCM_OPFMT_INST_SZ_SI];
   ssize_t r;
 
   scm_assert_obj_type(asmb, &SCM_ASSEMBLER_TYPE_INFO);
 
-  r = scm_fcd_iseq_push_inst(SCM_ASSEMBLER_ISEQ(asmb), op, si);
+  scm_vminst_set_inst_si(inst, op, si);
+  r = scm_fcd_iseq_push_inst(SCM_ASSEMBLER_ISEQ(asmb),
+                             &inst, sizeof(inst), NULL, 0);
   if (r < 0) return -1;
 
   return 0;
@@ -208,11 +224,14 @@ scm_asm_push_inst_si(ScmObj asmb, scm_opcode_t op, int si)
 int
 scm_asm_push_inst_si_si(ScmObj asmb, scm_opcode_t op, int si1, int si2)
 {
+  scm_byte_t inst[SCM_OPFMT_INST_SZ_SI_SI];
   ssize_t r;
 
   scm_assert_obj_type(asmb, &SCM_ASSEMBLER_TYPE_INFO);
 
-  r = scm_fcd_iseq_push_inst(SCM_ASSEMBLER_ISEQ(asmb), op, si1, si2);
+  scm_vminst_set_inst_si_si(inst, op, si1, si2);
+  r = scm_fcd_iseq_push_inst(SCM_ASSEMBLER_ISEQ(asmb),
+                             &inst, sizeof(inst), NULL, 0);
   if (r < 0) return -1;
 
   return 0;
@@ -222,11 +241,15 @@ int
 scm_asm_push_inst_si_si_obj(ScmObj asmb,
                             scm_opcode_t op, int si1, int si2, ScmObj obj)
 {
+  static const size_t objs[1] = { SCM_INST_OPD_OFFSET_SI_SI_OBJ_3 };
+  scm_byte_t inst[SCM_OPFMT_INST_SZ_SI_SI_OBJ];
   ssize_t r;
 
   scm_assert_obj_type(asmb, &SCM_ASSEMBLER_TYPE_INFO);
 
-  r = scm_fcd_iseq_push_inst(SCM_ASSEMBLER_ISEQ(asmb), op, si1, si2, obj);
+  scm_vminst_set_inst_si_si_obj(inst, op, si1, si2, obj);
+  r = scm_fcd_iseq_push_inst(SCM_ASSEMBLER_ISEQ(asmb),
+                             &inst, sizeof(inst), objs, 1);
   if (r < 0) return -1;
 
   return 0;
@@ -245,8 +268,10 @@ scm_asm_push_inst_iof(ScmObj asmb, scm_opcode_t op, bool label, ...)
     ret = scm_asm_push_inst_rlid(asmb, op, va_arg(arg, size_t));
   }
   else {
+    scm_byte_t inst[SCM_OPFMT_INST_SZ_IOF];
+    scm_vminst_set_inst_iof(inst, op, va_arg(arg, int));
     ssize_t r = scm_fcd_iseq_push_inst(SCM_ASSEMBLER_ISEQ(asmb),
-                                       op, va_arg(arg, int));
+                                       &inst, sizeof(inst), NULL, 0);
     if (r < 0) ret = -1;
     else       ret = 0;
   }
@@ -295,7 +320,6 @@ scm_asm_push_pinst_label(ScmObj asmb, scm_opcode_t op, size_t id)
 {
   ScmAsmLabelDecl *decl;
   size_t cur;
-  int r;
 
   scm_assert_obj_type(asmb, &SCM_ASSEMBLER_TYPE_INFO);
 
@@ -318,9 +342,6 @@ scm_asm_push_pinst_label(ScmObj asmb, scm_opcode_t op, size_t id)
                   "instructin sequence too big", 0);
     return -1;
   }
-
-  r = scm_fcd_iseq_push_br_dst(SCM_ASSEMBLER_ISEQ(asmb), cur);
-  if (r < 0) return -1;
 
   decl->offset = (ssize_t)cur;
 
