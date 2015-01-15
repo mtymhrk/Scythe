@@ -97,6 +97,18 @@ eary_prepare_to_set_scmobj(EArray *ary, size_t idx)
   return p;
 }
 
+static inline void
+eary_sort(EArray *ary,
+          int (*compar)(const void *, const void *))
+{
+  qsort(EARY_HEAD(ary), EARY_SIZE(ary), ary->rs, compar);
+}
+
+static inline void *
+eary_bsearch(EArray *ary, void *key, int (*compar)(const void *, const void *))
+{
+  return bsearch(key, EARY_HEAD(ary), EARY_SIZE(ary), ary->rs, compar);
+}
 
 #define EARY_GET(ary, typ, idx, val)                    \
   do {                                                  \
