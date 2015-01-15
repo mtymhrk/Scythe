@@ -161,7 +161,11 @@ scm_iseq_eq(ScmObj iseq1, ScmObj iseq2, bool *rslt)
     case SCM_OPFMT_NOOPD:
       break;
     case SCM_OPFMT_OBJ:
-      r = scm_fcd_equal(tk1->inst.i.obj.opd1, tk2->inst.i.obj.opd1, rslt);
+      if (scm_fcd_qqtmpl_p(tk1->inst.i.obj.opd1)
+          && scm_fcd_qqtmpl_p(tk2->inst.i.obj.opd1))
+        r = scm_fcd_qqtmpl_eq(tk1->inst.i.obj.opd1, tk2->inst.i.obj.opd1, rslt);
+      else
+        r = scm_fcd_equal(tk1->inst.i.obj.opd1, tk2->inst.i.obj.opd1, rslt);
       if (r < 0) return -1;
       if (!*rslt) return 0;
       break;

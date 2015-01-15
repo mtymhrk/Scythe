@@ -56,6 +56,9 @@ scm_fcd_iseq_length(ScmObj iseq)
   return scm_iseq_length(iseq);
 }
 
+/* XXX: Marshal/Unmarshal の動作確認に使用する目的で作成した等価性評価関数な
+ *      ので、テスト目的以外には使用しない
+ */
 int
 scm_fcd_iseq_eq(ScmObj iseq1, ScmObj iseq2, bool *rslt)
 {

@@ -96,16 +96,8 @@ ScmTypeInfo SCM_QQTMPLNODE_TYPE_INFO = {
   .extra               = NULL,
 };
 
-static bool
-scm_qqtn_valid_kind_p(int kind)
-{
-  return (kind == SCM_QQ_TMPL_NODE_LITERAL
-          || kind == SCM_QQ_TMPL_NODE_UNQUOTE
-          || kind == SCM_QQ_TMPL_NODE_UNQ_SPL);
-}
-
-int
-scm_qqtn_initialize(ScmObj node, int kind, ScmObj obj)
+static inline void
+scm_qqtn_update(ScmObj node, int kind, ScmObj obj)
 {
   scm_assert_obj_type(node, &SCM_QQTMPLNODE_TYPE_INFO);
   scm_assert(scm_qqtn_valid_kind_p(kind));
@@ -116,8 +108,19 @@ scm_qqtn_initialize(ScmObj node, int kind, ScmObj obj)
     SCM_SLOT_SETQ(ScmQQTmplNode, node, obj, obj);
   else
     SCM_QQTMPLNODE(node)->obj = SCM_OBJ_NULL;
+}
 
+int
+scm_qqtn_initialize(ScmObj node, int kind, ScmObj obj)
+{
+  scm_qqtn_update(node, kind, obj);
   return 0;
+}
+
+void
+scm_qqtn_update_contents(ScmObj node, int kind, ScmObj obj)
+{
+  scm_qqtn_update(node, kind, obj);
 }
 
 void
@@ -219,6 +222,129 @@ scm_qqtmpl_compiled(ScmObj qqtmpl, ScmObj compiled)
   return 0;
 }
 
+void
+scm_qqtmpl_chg_orig_template(ScmObj qqtmpl, ScmObj tmpl)
+{
+  scm_assert_obj_type(qqtmpl, &SCM_QQTMPL_TYPE_INFO);
+  scm_assert(scm_obj_not_null_p(tmpl));
+
+  SCM_SLOT_SETQ(ScmQQTmpl, qqtmpl, orig, tmpl);
+}
+
+static int scm_qqtmpl_compiled_eq(ScmObj c1, ScmObj c2, bool *rslt);
+
+static int
+scm_qqtmpl_compiled_eq__list(ScmObj c1, ScmObj c2, bool *rslt)
+{
+  int r;
+
+  scm_assert(scm_fcd_pair_p(c1));
+  scm_assert(scm_fcd_pair_p(c2));
+  scm_assert(rslt != NULL);
+
+  r = scm_qqtmpl_compiled_eq(scm_fcd_car(c1), scm_fcd_car(c2), rslt);
+  if (r < 0) return -1;
+  else if (!*rslt) return 0;
+
+  return scm_qqtmpl_compiled_eq(scm_fcd_cdr(c1), scm_fcd_cdr(c2), rslt);
+}
+
+static int
+scm_qqtmpl_compiled_eq__vector(ScmObj c1, ScmObj c2, bool *rslt)
+{
+  size_t n;
+
+  scm_assert(scm_fcd_vector_p(c1));
+  scm_assert(scm_fcd_vector_p(c2));
+  scm_assert(rslt != NULL);
+
+  n = scm_fcd_vector_length(c1);
+  if (n != scm_fcd_vector_length(c2)) {
+    *rslt = false;
+    return 0;
+  }
+
+  for (size_t i = 0; i < n; i++) {
+    int r = scm_qqtmpl_compiled_eq(scm_fcd_vector_ref(c1, i),
+                                   scm_fcd_vector_ref(c2, i),
+                                   rslt);
+    if (r < 0) return -1;
+    else if (!*rslt) return 0;
+  }
+
+  return 0;
+}
+
+static int
+scm_qqtmpl_compiled_eq(ScmObj c1, ScmObj c2, bool *rslt)
+{
+  scm_assert(scm_obj_not_null_p(c1));
+  scm_assert(scm_obj_not_null_p(c2));
+  scm_assert(rslt != NULL);
+
+  if (scm_fcd_eq_p(c1, c2))
+    goto equal;
+
+  if (!scm_type_info_same_p(scm_obj_type(c1), scm_obj_type(c2)))
+    goto not_equal;
+
+  if (scm_fcd_pair_p(c1)) {
+    return scm_qqtmpl_compiled_eq__list(c1, c2, rslt);
+  }
+  else if (scm_fcd_vector_p(c1)) {
+    return scm_qqtmpl_compiled_eq__vector(c1, c2, rslt);
+  }
+  else if (scm_fcd_qqtmplnode_p(c1)) {
+    if (scm_qqtn_kind(c1) != scm_qqtn_kind(c2))
+      goto not_equal;
+    if (scm_qqtn_kind(c1) == SCM_QQ_TMPL_NODE_LITERAL)
+      return scm_fcd_equal(scm_qqtn_object(c1), scm_qqtn_object(c2), rslt);
+    else
+      goto equal;
+  }
+  else
+    return scm_fcd_equal(c1, c2, rslt);
+
+ equal:
+  *rslt = true;
+  return 0;
+
+ not_equal:
+  *rslt = false;
+  return 0;
+}
+
+int
+scm_qqtmpl_eq(ScmObj qqtmpl1, ScmObj qqtmpl2, bool *rslt)
+{
+  int r;
+
+  scm_assert_obj_type(qqtmpl1, &SCM_QQTMPL_TYPE_INFO);
+  scm_assert_obj_type(qqtmpl2, &SCM_QQTMPL_TYPE_INFO);
+  scm_assert(rslt != NULL);
+
+  if (scm_fcd_eq_p(qqtmpl1, qqtmpl2)) {
+    *rslt = true;
+    return 0;
+  }
+
+  r = scm_fcd_equal(SCM_QQTMPL(qqtmpl1)->orig, SCM_QQTMPL(qqtmpl2)->orig, rslt);
+  if (r < 0) return -1;
+  else if (!*rslt) return 0;
+
+  r = scm_fcd_equal(SCM_QQTMPL(qqtmpl1)->expr, SCM_QQTMPL(qqtmpl2)->expr, rslt);
+  if (r < 0) return -1;
+  else if (!*rslt) return 0;
+
+  if (scm_obj_null_p(SCM_QQTMPL(qqtmpl1)->compiled)) {
+    *rslt = scm_obj_null_p(SCM_QQTMPL(qqtmpl2)->compiled);
+    return 0;
+  }
+
+  return scm_qqtmpl_compiled_eq(SCM_QQTMPL(qqtmpl1)->compiled,
+                                SCM_QQTMPL(qqtmpl2)->compiled,
+                                rslt);
+}
 
 void
 scm_qqtmpl_gc_initialize(ScmObj obj, ScmObj mem)

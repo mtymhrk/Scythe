@@ -230,3 +230,127 @@ TEST(fcd_compiler, quasiquote_unquoted_expr__unquote_splicing)
   test_quasiquote_unquoted_expr("#('(b) (list 1 2))",
                                 "(a ,@'(b) ,@(list 1 2) c)");
 }
+
+static void
+test_qqtmpl_eq__equal__internal(ScmObj qq1, ScmObj qq2)
+{
+  bool actual;
+
+  TEST_ASSERT_EQUAL_INT(0, scm_fcd_qqtmpl_eq(qq1, qq2, &actual));
+  TEST_ASSERT_TRUE(actual);
+}
+
+static void
+test_qqtmpl_eq__not_equal__internal(ScmObj qq1, ScmObj qq2)
+{
+  bool actual;
+
+  TEST_ASSERT_EQUAL_INT(0, scm_fcd_qqtmpl_eq(qq1, qq2, &actual));
+  TEST_ASSERT_FALSE(actual);
+}
+
+static void
+test_qqtmpl_eq__internal(const char *tmpl1, const char *tmpl2,
+                         void (*test)(ScmObj, ScmObj))
+{
+  ScmObj t1 = SCM_OBJ_INIT, t2 = SCM_OBJ_INIT;
+  ScmObj q1 = SCM_OBJ_INIT, q2 = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&t1, &t2, &q1, &q2);
+
+  t1 = read_cstr(tmpl1);
+  t2 = read_cstr(tmpl2);
+  q1 = scm_fcd_compile_qq_template(t1);
+  q2 = scm_fcd_compile_qq_template(t2);
+
+  test(q1, q2);
+}
+
+static void
+test_qqtmpl_eq__equal(const char *tmpl)
+{
+  test_qqtmpl_eq__internal(tmpl, tmpl,
+                           test_qqtmpl_eq__equal__internal);
+}
+
+static void
+test_qqtmpl_eq__not_equal(const char *tmpl1, const char *tmpl2)
+{
+  test_qqtmpl_eq__internal(tmpl1, tmpl2,
+                           test_qqtmpl_eq__not_equal__internal);
+}
+
+TEST(fcd_compiler, qqtmpl_eq__equal__literal)
+{
+  test_qqtmpl_eq__equal("(a b c)");
+}
+
+TEST(fcd_compiler, qqtmpl_eq__not_equal__literal)
+{
+  test_qqtmpl_eq__not_equal("(a b c)", "(a b 1)");
+}
+
+TEST(fcd_compiler, qqtmpl_eq__equal__unquote)
+{
+  test_qqtmpl_eq__equal(",expr");
+}
+
+TEST(fcd_compiler, qqtmpl_eq__not_equal__unquote)
+{
+  test_qqtmpl_eq__not_equal(",expr", ",1");
+}
+
+TEST(fcd_compiler, qqtmpl_eq__equal__unquote__list)
+{
+  test_qqtmpl_eq__equal("(a ,expr c)");
+}
+
+TEST(fcd_compiler, qqtmpl_eq__not_equal__unquote__list)
+{
+  test_qqtmpl_eq__not_equal("(a ,expr c)", "(a b ,expr)");
+}
+
+TEST(fcd_compiler, qqtmpl_eq__equal__unquote__vector)
+{
+  test_qqtmpl_eq__equal("#(a ,expr c)");
+}
+
+TEST(fcd_compiler, qqtmpl_eq__not_equal__unquote__vector)
+{
+  test_qqtmpl_eq__not_equal("#(a ,expr c)", "#(a b ,expr)");
+}
+
+TEST(fcd_compiler, qqtmpl_eq__equal__unquote_splicing__list)
+{
+  test_qqtmpl_eq__equal("(a ,@expr c)");
+}
+
+TEST(fcd_compiler, qqtmpl_eq__not_equal__unquote_splicing__list)
+{
+  test_qqtmpl_eq__not_equal("(a ,@expr c)", "(a b ,@expr)");
+}
+
+TEST(fcd_compiler, qqtmpl_eq__equal__unquote_splicing__vector)
+{
+  test_qqtmpl_eq__equal("#(a ,@expr c)");
+}
+
+TEST(fcd_compiler, qqtmpl_eq__not_equal__unquote_splicing__vector)
+{
+  test_qqtmpl_eq__not_equal("#(a ,@expr c)", "#(a b ,@expr)");
+}
+
+TEST(fcd_compiler, qqtmpl_eq__not_equal__literal_unquote)
+{
+  test_qqtmpl_eq__not_equal("(a (x y z) ,expr)", "(a ,expr c)");
+}
+
+TEST(fcd_compiler, qqtmpl_eq__not_equal__literal_unquote_splicing)
+{
+  test_qqtmpl_eq__not_equal("(a (x y z) ,@expr)", "(a ,@expr c)");
+}
+
+TEST(fcd_compiler, qqtmpl_eq__not_equal__unquote_unquote_splicing)
+{
+  test_qqtmpl_eq__not_equal("(a ,expr c)", "(a ,@expr c)");
+}

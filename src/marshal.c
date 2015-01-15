@@ -2256,6 +2256,255 @@ scm_unmarshal_obj_bytevector(ScmUnmarshalObjStat *stat, ScmObj unmarshal)
   return 0;
 }
 
+static int
+scm_marshal_obj_qqtmplnode(ScmMarshalObjStat *stat, ScmObj marshal)
+{
+  ScmObj qqtn_obj = SCM_OBJ_INIT;
+  ScmMarshalBuffer *output;
+  ScmMarshalObjHeader header;
+  ssize_t pos_obj;
+  size_t end, cont;
+  char *p;
+  int r, qqtn_kind;
+
+  SCM_REFSTK_INIT_REG(&marshal,
+                      &qqtn_obj);
+
+  scm_assert(stat != NULL);
+  scm_assert(scm_fcd_qqtmplnode_p(stat->obj));
+  scm_assert_obj_type(marshal, &SCM_MARSHAL_TYPE_INFO);
+
+  output = scm_marshal_output(marshal);
+  stat->pos = scm_marshal_buffer_pos(output);
+
+  header.size = 0;
+  header.flags = 0;
+  header.info = scm_obj_type(stat->obj);
+  r = scm_push_obj_header(output, &header);
+  if (r < 0) return -1;
+
+  scm_fcd_qqtmplnode_get_contents_for_marshal(stat->obj,
+                                              &qqtn_kind,
+                                              SCM_CSETTER_L(qqtn_obj));
+
+#if INT_MIN < INT32_MIN || INT32_MAX < INT_MAX
+  if (qqtn_kind < INT32_MIN || INT32_MAX < qqtn_kind) {
+    scm_marshal_error(marshal,
+                      "failed to write: qq template node: kind: overflow");
+    return -1;
+  }
+#endif  /* INT_MIN < INT32_MIN || INT32_MAX < INT_MAX */
+
+  r = scm_push_uint32(output, (uint32_t)qqtn_kind);
+  if (r < 0) return -1;
+
+  r = scm_push_padding_for_alignment(output);
+  if (r < 0) return -1;
+
+  cont = scm_marshal_buffer_pos(output);
+  p = scm_alloc_space(output, SCM_MARSHAL_OFFSET_SIZE);
+  if (p == NULL) return -1;
+
+  r = scm_push_padding_for_alignment(output);
+  if (r < 0) return -1;
+
+  end = scm_marshal_buffer_pos(output);
+
+  r = scm_write_obj_header_size(output, stat->pos, end - stat->pos);
+
+  pos_obj = scm_marshal_obj(qqtn_obj, stat, marshal);
+  if (pos_obj < 0) return -1;
+
+  r = scm_write_offset(output, cont, (size_t)pos_obj);
+  if (r < 0) return -1;
+
+  return 0;
+}
+
+static int
+scm_unmarshal_obj_qqtmplnode(ScmUnmarshalObjStat *stat, ScmObj unmarshal)
+{
+  ScmObj qqtn_obj = SCM_OBJ_INIT;
+  ScmMarshalBuffer *input;
+  uint32_t qqtn_kind;
+  size_t pos_obj;
+  int r;
+
+  SCM_REFSTK_INIT_REG(&unmarshal,
+                      &qqtn_obj);
+
+  scm_assert(stat != NULL);
+  scm_assert_obj_type(unmarshal, &SCM_UNMARSHAL_TYPE_INFO);
+
+  input = scm_unmarshal_input(unmarshal);
+
+  r = scm_read_uint32(input, &qqtn_kind);
+  if (r < 0) return -1;
+
+  r = scm_skip_padding_for_alignment(input);
+  if (r < 0) return -1;
+
+  r = scm_read_offset(input, &pos_obj);
+  if (r < 0) return -1;
+
+  r = scm_skip_padding_for_alignment(input);
+  if (r < 0) return -1;
+
+  if (pos_obj > scm_marshal_buffer_size(input)) {
+    scm_marshal_error(unmarshal, "qq template node: invalid offset value");
+    return -1;
+  }
+
+  stat->obj = scm_fcd_make_qqtmplnode_for_unmarshal();
+  if (scm_obj_null_p(stat->obj)) return -1;
+
+  scm_marshal_buffer_seek(input, pos_obj);
+  qqtn_obj = scm_unmarshal_obj(stat, unmarshal);
+  if (scm_obj_null_p(qqtn_obj)) return -1;
+
+  r = scm_fcd_qqtmplnode_setup_for_unmarshal(stat->obj,
+                                             (int)qqtn_kind, qqtn_obj);
+  if (r < 0) return -1;
+
+  return 0;
+}
+
+static int
+scm_marshal_obj_qqtmpl(ScmMarshalObjStat *stat, ScmObj marshal)
+{
+  ScmObj tmpl = SCM_OBJ_INIT, compiled = SCM_OBJ_INIT, expr = SCM_OBJ_INIT;
+  ScmMarshalBuffer *output;
+  ScmMarshalObjHeader header;
+  ssize_t pos_tmpl, pos_compiled, pos_expr;
+  size_t end, cont;
+  char *p;
+  int r;
+
+  SCM_REFSTK_INIT_REG(&marshal,
+                      &tmpl, &compiled, &expr);
+
+  scm_assert(stat != NULL);
+  scm_assert(scm_fcd_qqtmpl_p(stat->obj));
+  scm_assert_obj_type(marshal, &SCM_MARSHAL_TYPE_INFO);
+
+  output = scm_marshal_output(marshal);
+  stat->pos = scm_marshal_buffer_pos(output);
+
+  header.size = 0;
+  header.flags = 0;
+  header.info = scm_obj_type(stat->obj);
+  r = scm_push_obj_header(output, &header);
+  if (r < 0) return -1;
+
+  cont = scm_marshal_buffer_pos(output);
+  p = scm_alloc_space(output, SCM_MARSHAL_OFFSET_SIZE * 3);
+  if (p == NULL) return -1;
+
+  r = scm_push_padding_for_alignment(output);
+  if (r < 0) return -1;
+
+  end = scm_marshal_buffer_pos(output);
+
+  r = scm_write_obj_header_size(output, stat->pos, end - stat->pos);
+  if (r < 0) return -1;
+
+  r = scm_fcd_qqtmpl_get_contents_for_marshal(stat->obj,
+                                              SCM_CSETTER_L(tmpl),
+                                              SCM_CSETTER_L(compiled),
+                                              SCM_CSETTER_L(expr));
+  if (r < 0) return -1;
+
+  pos_tmpl = scm_marshal_obj(tmpl, stat, marshal);
+  if (pos_tmpl < 0) return -1;
+
+  pos_compiled = scm_marshal_obj(compiled, stat, marshal);
+  if (pos_compiled < 0) return -1;
+
+  pos_expr = scm_marshal_obj(expr, stat, marshal);
+  if (pos_expr < 0) return -1;
+
+  r = scm_write_offset(output, cont, (size_t)pos_tmpl);
+  if (r < 0) return -1;
+  cont += SCM_MARSHAL_OFFSET_SIZE;
+
+  r = scm_write_offset(output, cont, (size_t)pos_compiled);
+  if (r < 0) return -1;
+  cont += SCM_MARSHAL_OFFSET_SIZE;
+
+  r = scm_write_offset(output, cont, (size_t)pos_expr);
+  if (r < 0) return -1;
+  cont += SCM_MARSHAL_OFFSET_SIZE;
+
+  return 0;
+}
+
+static int
+scm_unmarshal_obj_qqtmpl(ScmUnmarshalObjStat *stat, ScmObj unmarshal)
+{
+  ScmObj tmpl = SCM_OBJ_INIT, compiled = SCM_OBJ_INIT, expr = SCM_OBJ_INIT;
+  ScmMarshalBuffer *input;
+  size_t pos_tmpl, pos_compiled, pos_expr;
+  int r;
+
+  SCM_REFSTK_INIT_REG(&unmarshal,
+                      &tmpl, &compiled, &expr);
+
+  scm_assert(stat != NULL);
+  scm_assert_obj_type(unmarshal, &SCM_UNMARSHAL_TYPE_INFO);
+
+  input = scm_unmarshal_input(unmarshal);
+
+  r = scm_read_offset(input, &pos_tmpl);
+  if (r < 0) return -1;
+
+  r = scm_read_offset(input, &pos_compiled);
+  if (r < 0) return -1;
+
+  r = scm_read_offset(input, &pos_expr);
+  if (r < 0) return -1;
+
+  r = scm_skip_padding_for_alignment(input);
+  if (r < 0) return -1;
+
+  if (pos_tmpl > scm_marshal_buffer_size(input)) {
+    scm_marshal_error(unmarshal,
+                      "qq template: template: invalid offset values");
+    return -1;
+  }
+
+  if (pos_compiled > scm_marshal_buffer_size(input)) {
+    scm_marshal_error(unmarshal,
+                      "qq template: compiled template: invalid offset values");
+    return -1;
+  }
+
+  if (pos_expr > scm_marshal_buffer_size(input)) {
+    scm_marshal_error(unmarshal,
+                      "qq template: unqouted expressions: invalid offset values");
+    return -1;
+  }
+
+  stat->obj = scm_fcd_make_qqtmpl_for_unmarshal();
+  if (scm_obj_null_p(stat->obj)) return -1;
+
+  scm_marshal_buffer_seek(input, pos_tmpl);
+  tmpl = scm_unmarshal_obj(stat, unmarshal);
+  if (scm_obj_null_p(tmpl)) return -1;
+
+  scm_marshal_buffer_seek(input, pos_compiled);
+  compiled = scm_unmarshal_obj(stat, unmarshal);
+  if (scm_obj_null_p(compiled)) return -1;
+
+  scm_marshal_buffer_seek(input, pos_expr);
+  expr = scm_unmarshal_obj(stat, unmarshal);
+  if (scm_obj_null_p(expr)) return -1;
+
+  r = scm_fcd_qqtmpl_setup_for_unmarshal(stat->obj, tmpl, compiled, expr);
+  if (r < 0) return -1;
+
+  return 0;
+}
+
 #define SCM_MARSHAL_ISEQ_OP_SIZE sizeof(uint32_t)
 #define SCM_MARSHAL_ISEQ_OPD_SI_SIZE sizeof(uint32_t)
 #define SCM_MARSHAL_ISEQ_INST_SIZE_NOOPD        \
@@ -3200,6 +3449,8 @@ scm_marshal_handler(const char *name)
     { "string", scm_marshal_obj_string, scm_unmarshal_obj_string },
     { "vector", scm_marshal_obj_vector, scm_unmarshal_obj_vector },
     { "bytevector", scm_marshal_obj_bytevector, scm_unmarshal_obj_bytevector },
+    { "qq-tmpl-node", scm_marshal_obj_qqtmplnode, scm_unmarshal_obj_qqtmplnode },
+    { "qq-template", scm_marshal_obj_qqtmpl, scm_unmarshal_obj_qqtmpl },
     { "iseq", scm_marshal_obj_iseq, scm_unmarshal_obj_iseq },
   };
 

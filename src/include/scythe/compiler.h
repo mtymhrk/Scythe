@@ -68,8 +68,17 @@ struct ScmQQTmplNodeRec {
 extern ScmTypeInfo SCM_QQTMPLNODE_TYPE_INFO;
 
 int scm_qqtn_initialize(ScmObj node, int kind, ScmObj obj);
+void scm_qqtn_update_contents(ScmObj node, int kind, ScmObj obj);
 void scm_qqtn_gc_initialize(ScmObj obj, ScmObj mem);
 int scm_qqtn_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
+
+static inline bool
+scm_qqtn_valid_kind_p(int kind)
+{
+  return (kind == SCM_QQ_TMPL_NODE_LITERAL
+          || kind == SCM_QQ_TMPL_NODE_UNQUOTE
+          || kind == SCM_QQ_TMPL_NODE_UNQ_SPL);
+}
 
 static inline int
 scm_qqtn_kind(ScmObj node)
@@ -99,6 +108,8 @@ size_t scm_qqtmpl_nr_unquoted_expr(ScmObj qqtmpl);
 ScmObj scm_qqtmpl_unquoted_expr(ScmObj qqtmpl, size_t n);
 ssize_t scm_qqtmpl_push_unquoted_expr(ScmObj qqtmpl, ScmObj expr);
 int scm_qqtmpl_compiled(ScmObj qqtmpl, ScmObj compiled);
+void scm_qqtmpl_chg_orig_template(ScmObj qqtmpl, ScmObj tmpl);
+int scm_qqtmpl_eq(ScmObj qqtmpl1, ScmObj qqtmpl2, bool *rslt);
 void scm_qqtmpl_gc_initialize(ScmObj obj, ScmObj mem);
 int scm_qqtmpl_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
 
