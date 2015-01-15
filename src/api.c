@@ -2814,7 +2814,7 @@ scm_capi_compile_file(const char *path, ScmEvaluator *ev)
     val = scm_fcd_vector_ref(val, 0);
     if (scm_obj_null_p(val)) goto end;
 
-    val = scm_api_assemble(val, SCM_OBJ_NULL);
+    val = scm_fcd_assembler_iseq(val);
     if (scm_obj_null_p(val)) goto end;
 
     marshal = scm_fcd_marshal(&size, val, SCM_OBJ_NULL);

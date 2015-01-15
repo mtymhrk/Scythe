@@ -2337,25 +2337,19 @@ scm_subr_func_eval_asm(ScmObj subr, int argc, const ScmObj *argv)
 static int
 scm_subr_func_eval__post_compile(ScmObj subr, int argc, const ScmObj *argv)
 {
-  ScmObj asmb = SCM_OBJ_INIT, proc = SCM_OBJ_INIT;
+  ScmObj proc = SCM_OBJ_INIT;
   int r;
 
   SCM_REFSTK_INIT_REG(&subr,
-                      &asmb, &proc);
+                      &proc);
 
-  asmb = scm_fcd_make_assembler(SCM_OBJ_NULL);
-  if (scm_obj_null_p(asmb)) return -1;
-
-  asmb = scm_api_assemble(argv[0], asmb);
-  if (scm_obj_null_p(asmb)) return -1;
-
-  r = scm_fcd_assembler_push(asmb, SCM_OPCODE_RETURN);
+  r = scm_fcd_assembler_push(argv[0], SCM_OPCODE_RETURN);
   if (r < 0) return -1;
 
-  r = scm_fcd_assembler_commit(asmb);
+  r = scm_fcd_assembler_commit(argv[0]);
   if (r < 0) return -1;
 
-  proc = scm_fcd_make_closure(scm_fcd_assembler_iseq(asmb), SCM_OBJ_NULL, 0);
+  proc = scm_fcd_make_closure(scm_fcd_assembler_iseq(argv[0]), SCM_OBJ_NULL, 0);
   if (scm_obj_null_p(proc)) return -1;
 
   return scm_fcd_trampolining(proc, SCM_NIL_OBJ, SCM_OBJ_NULL, SCM_OBJ_NULL);

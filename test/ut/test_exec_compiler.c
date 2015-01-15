@@ -24,7 +24,13 @@ TEST_TEAR_DOWN(exec_compiler)
 static ScmObj
 compile(ScmObj exp)
 {
-  return scm_capi_ut_compile(ev, exp);
+  ScmObj asmb = SCM_OBJ_INIT, iseq = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&exp,
+                      &asmb, &iseq);
+
+  asmb = scm_capi_ut_compile(ev, exp);
+  return scm_fcd_assembler_iseq(asmb);
 }
 
 static ScmObj
@@ -37,16 +43,16 @@ static void
 test_compile(const char *expr, const char *asmbl)
 {
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+  bool cmp;
 
   SCM_REFSTK_INIT_REG(&actual, &expected);
 
-  expected = read_cstr(asmbl);
+  expected = scm_fcd_assemble(read_cstr(asmbl), SCM_OBJ_NULL);
   actual = compile_cstr(expr);
 
-  /* scm_api_write(expected, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
-  /* scm_api_write(actual, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL); */
-
-  TEST_ASSERT_SCM_EQUAL(expected, actual);
+  cmp = false;
+  scm_fcd_iseq_eq(expected, actual, &cmp);
+  TEST_ASSERT_TRUE(cmp);
 }
 
 TEST(exec_compiler, self_eval_1)
