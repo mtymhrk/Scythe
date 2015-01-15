@@ -225,6 +225,16 @@ scm_fcd_landmine_new(SCM_MEM_TYPE_T mtype)
   return mine;
 }
 
+/* Memo:
+ *  scm_fcd_landmine() の関数の実行では GC が発生するのは NG。
+ *  (マクロ SCM_LANDMINE_OBJ を定義して定数的に使うため)
+ */
+extern inline ScmObj
+scm_fcd_landmine(void)
+{
+  return scm_bedrock_landmine(scm_fcd_current_br());
+}
+
 extern inline bool
 scm_fcd_landmine_object_p(ScmObj obj)
 {

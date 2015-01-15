@@ -66,7 +66,11 @@ bool scm_fcd_undef_object_p(ScmObj obj);
 /*******************************************************/
 
 ScmObj scm_fcd_landmine_new(SCM_MEM_TYPE_T mtype);
+ScmObj scm_fcd_landmine(void);
 bool scm_fcd_landmine_object_p(ScmObj obj);
+
+#define SCM_LANDMINE_OBJ scm_fcd_landmine()
+#define SCM_UNINIT_OBJ scm_fcd_landmine()
 
 
 /*******************************************************/
