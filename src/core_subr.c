@@ -2576,25 +2576,6 @@ scm_subr_func_make_compiler(ScmObj subr, int argc, const ScmObj *argv)
 }
 
 int
-scm_subr_func_compiler_assign_label_id_i(ScmObj subr,
-                                         int argc, const ScmObj *argv)
-{
-  ScmObj val = SCM_OBJ_INIT;
-  int id;
-
-  SCM_REFSTK_INIT_REG(&subr,
-                      &val);
-
-  id = scm_capi_compiler_assign_label_id_i(argv[0]);
-  if (id < 0) return -1;
-
-  val = scm_fcd_make_number_from_sword(id);
-  if (scm_obj_null_p(val)) return -1;
-
-  return scm_fcd_return_val(&val, 1);
-}
-
-int
 scm_subr_func_compiler_current_module(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;

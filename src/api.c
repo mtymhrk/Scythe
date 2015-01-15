@@ -2373,17 +2373,6 @@ scm_api_compiler_select_expr_i(ScmObj cmpl, ScmObj expr)
   return SCM_UNDEF_OBJ;
 }
 
-int
-scm_capi_compiler_assign_label_id_i(ScmObj cmpl)
-{
-  if (!scm_fcd_compiler_p(cmpl)) {
-    scm_capi_error("failed to assign label id: invalid argument", 1, cmpl);
-    return -1;
-  }
-
-  return scm_fcd_compiler_assign_label_id_i(cmpl);
-}
-
 
 /*******************************************************************/
 /*  Module                                                         */

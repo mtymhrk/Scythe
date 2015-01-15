@@ -314,7 +314,6 @@ ScmObj scm_api_compiler_current_module(ScmObj cmpl);
 ScmObj scm_api_compiler_current_expr(ScmObj cmpl);
 ScmObj scm_api_compiler_select_module_i(ScmObj cmpl, ScmObj mod);
 ScmObj scm_api_compiler_select_expr_i(ScmObj cmpl, ScmObj expr);
-int scm_capi_compiler_assign_label_id_i(ScmObj cmpl);
 
 
 /*******************************************************************/

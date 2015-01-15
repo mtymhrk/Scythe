@@ -24,7 +24,6 @@ scm_cmpl_initialize(ScmObj cmpl, ScmObj module)
   scm_assert_obj_type(cmpl, &SCM_COMPILER_TYPE_INFO);
   scm_assert(scm_fcd_module_p(module));
 
-  SCM_COMPILER(cmpl)->label_id = 0;
   SCM_SLOT_SETQ(ScmCompiler, cmpl, module, module);
   SCM_SLOT_SETQ(ScmCompiler, cmpl, expr, SCM_NIL_OBJ);
 
@@ -49,14 +48,6 @@ scm_cmpl_set_expr(ScmObj cmpl, ScmObj expr)
     SCM_SLOT_SETQ(ScmCompiler, cmpl, expr, SCM_NIL_OBJ);
   else
     SCM_SLOT_SETQ(ScmCompiler, cmpl, expr, expr);
-}
-
-int
-scm_cmpl_assign_label_id(ScmObj cmpl)
-{
-  scm_assert_obj_type(cmpl, &SCM_COMPILER_TYPE_INFO);
-
-  return SCM_COMPILER(cmpl)->label_id++;
 }
 
 void

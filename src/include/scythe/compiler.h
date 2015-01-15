@@ -10,7 +10,6 @@ typedef struct ScmCompilerRec ScmCompiler;
 
 struct ScmCompilerRec {
   ScmObjHeader header;
-  int label_id;
   ScmObj module;
   ScmObj expr;
 };
@@ -20,7 +19,6 @@ extern ScmTypeInfo SCM_COMPILER_TYPE_INFO;
 int scm_cmpl_initialize(ScmObj cmpl, ScmObj module);
 void scm_cmpl_set_module(ScmObj cmpl, ScmObj module);
 void scm_cmpl_set_expr(ScmObj cmpl, ScmObj expr);
-int scm_cmpl_assign_label_id(ScmObj cmpl);
 
 void scm_cmpl_gc_initialize(ScmObj obj, ScmObj mem);
 int scm_cmpl_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);

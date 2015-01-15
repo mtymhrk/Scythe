@@ -120,10 +120,3 @@ scm_fcd_compiler_select_expr_i(ScmObj cmpl, ScmObj expr)
 
   scm_cmpl_set_expr(cmpl, expr);
 }
-
-int
-scm_fcd_compiler_assign_label_id_i(ScmObj cmpl)
-{
-  scm_assert(scm_fcd_compiler_p(cmpl));
-  return scm_cmpl_assign_label_id(cmpl);
-}
