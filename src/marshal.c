@@ -2683,7 +2683,7 @@ scm_marshal_iseq_br_bsearch_cmp(const void *x, const void *y)
 
 static ssize_t
 scm_marshal_obj_iseq_inst(ScmMarshalObjStat *stat, ScmObj marshal,
-                          ScmObj disasm, EArray *label_pos, size_t *nr_iof)
+                          ScmObj disasm, EArray *label_pos)
 {
   ScmMarshalBuffer *output;
   const ScmDisasmToken *tk;
@@ -2697,12 +2697,10 @@ scm_marshal_obj_iseq_inst(ScmMarshalObjStat *stat, ScmObj marshal,
   scm_assert_obj_type(marshal, &SCM_MARSHAL_TYPE_INFO);
   scm_assert(scm_fcd_disassembler_p(disasm));
   scm_assert(label_pos != NULL);
-  scm_assert(nr_iof != NULL);
 
   output = scm_marshal_output(marshal);
 
   cnt = 0;
-  *nr_iof = 0;
   while ((tk = scm_fcd_disassembler_token(disasm)) != NULL
          && tk->type != SCM_DISASM_TK_END) {
     switch (tk->type) {
@@ -2736,7 +2734,6 @@ scm_marshal_obj_iseq_inst(ScmMarshalObjStat *stat, ScmObj marshal,
           scm_marshal_error(marshal, "iseq: too many branch destination");
           return -1;
         }
-        (*nr_iof)++;
         r = scm_push_inst_iof(output, tk->inst.i.iof.op, (int)tk->label_id);
         break;
       default:
@@ -2772,7 +2769,7 @@ scm_marshal_obj_iseq_body(ScmMarshalObjStat *stat, ScmObj marshal,
 {
   ScmMarshalBuffer *output;
   EArray label_pos;
-  size_t pos, cont, nr_iof, idx, *itr;
+  size_t pos, cont, idx, *itr;
   ssize_t nr_inst;
   int r;
 
@@ -2799,15 +2796,11 @@ scm_marshal_obj_iseq_body(ScmMarshalObjStat *stat, ScmObj marshal,
   r = scm_push_offset(output, 0);
   if (r < 0) goto err;
 
-  r = scm_push_size(output, 0);
-  if (r < 0) goto err;
-
   r = scm_push_padding_for_alignment(output);
   if (r < 0) goto err;
 
   *inst_start = scm_marshal_buffer_pos(output);
-  nr_inst = scm_marshal_obj_iseq_inst(stat, marshal, disasm,
-                                      &label_pos, &nr_iof);
+  nr_inst = scm_marshal_obj_iseq_inst(stat, marshal, disasm, &label_pos);
   if (nr_inst < 0) goto err;
 
   pos = scm_marshal_buffer_pos(output);
@@ -2828,10 +2821,6 @@ scm_marshal_obj_iseq_body(ScmMarshalObjStat *stat, ScmObj marshal,
 
   cont += SCM_MARSHAL_SIZE_SIZE;
   r = scm_write_offset(output, cont, pos);
-  if (r < 0) goto err;
-
-  cont += SCM_MARSHAL_OFFSET_SIZE;
-  r = scm_write_size(output, cont, nr_iof);
   if (r < 0) goto err;
 
   r = scm_push_padding_for_alignment(output);
@@ -2970,16 +2959,16 @@ scm_marshal_obj_iseq(ScmMarshalObjStat *stat, ScmObj marshal)
 }
 
 static int
-scm_unmarshal_obj_iseq_branch_pos(ScmUnmarshalObjStat *stat, ScmObj unmarshal,
-                                  size_t pos, size_t *branch_pos,
-                                  size_t nr_branch)
+scm_unmarshal_obj_iseq_label_pos(ScmUnmarshalObjStat *stat,
+                                 ScmObj unmarshal, size_t pos,
+                                 size_t *label_pos, size_t nr_labels)
 {
   ScmMarshalBuffer *input;
   size_t cur;
 
   scm_assert(stat != NULL);
   scm_assert_obj_type(unmarshal, &SCM_UNMARSHAL_TYPE_INFO);
-  scm_assert(nr_branch == 0 || branch_pos != NULL);
+  scm_assert(nr_labels == 0 || label_pos != NULL);
 
   input = scm_unmarshal_input(unmarshal);
 
@@ -2991,8 +2980,8 @@ scm_unmarshal_obj_iseq_branch_pos(ScmUnmarshalObjStat *stat, ScmObj unmarshal,
   cur = scm_marshal_buffer_pos(input);
   scm_marshal_buffer_seek(input, pos);
 
-  for (size_t i = 0; i < nr_branch; i++) {
-    int r = scm_read_offset(input, branch_pos + i);
+  for (size_t i = 0; i < nr_labels; i++) {
+    int r = scm_read_offset(input, label_pos + i);
     if (r < 0) return -1;
   }
 
@@ -3027,48 +3016,45 @@ scm_unmarshal_obj_iseq_opd(ScmUnmarshalObjStat *stat, ScmObj unmarshal,
 }
 
 static int
-scm_unmarshal_obj_iseq_internal(ScmUnmarshalObjStat *stat, ScmObj unmarshal,
-                                size_t nr_inst, size_t nr_branch, size_t br_pos,
-                                size_t nr_iof)
+scm_unmarshal_obj_iseq_internal(ScmUnmarshalObjStat *stat,
+                                ScmObj unmarshal, ScmObj asmb,
+                                size_t nr_inst, size_t nr_labels, size_t br_pos)
 {
   ScmObj opd1 = SCM_OBJ_INIT, opd2 = SCM_OBJ_INIT;
   ScmMarshalBuffer *input;
-  ssize_t iseq_offset;
-  const size_t *branches;
-  size_t branch_pos[nr_branch], br_idx;
-  size_t iof_offset[nr_iof], iof_idx;
-  int iof_br_idx[nr_iof];
+  size_t label_pos[nr_labels], label_id;
   int r;
 
-  SCM_REFSTK_INIT_REG(&unmarshal,
+  SCM_REFSTK_INIT_REG(&unmarshal, &asmb,
                       &opd1, &opd2);
 
   scm_assert(stat != NULL);
   scm_assert(scm_fcd_iseq_p(stat->obj));
   scm_assert_obj_type(unmarshal, &SCM_UNMARSHAL_TYPE_INFO);
+  scm_assert(scm_fcd_assembler_p(asmb));
 
   input = scm_unmarshal_input(unmarshal);
 
-  r = scm_unmarshal_obj_iseq_branch_pos(stat, unmarshal,
-                                        br_pos, branch_pos, nr_branch);
+  r = scm_unmarshal_obj_iseq_label_pos(stat, unmarshal,
+                                       br_pos, label_pos, nr_labels);
   if (r < 0) return -1;
 
-  iseq_offset = (ssize_t)scm_fcd_iseq_length(stat->obj);
+  for (size_t id = 0; id < nr_labels; id++) {
+    r = scm_fcd_assembler_register_label_id(asmb, id);
+    if (r < 0) return -1;
+  }
 
-  br_idx = 0;
-  iof_idx = 0;
+  label_id = 0;
   for (size_t i = 0; i < nr_inst; i++) {
     scm_opcode_t op;
     size_t pos1, pos2;
     int si1, si2;
 
-    scm_assert(iof_idx <= nr_iof);
-
-    if (br_idx < nr_branch &&
-        scm_marshal_buffer_pos(input) == branch_pos[br_idx]) {
-      r = scm_fcd_iseq_push_br_dst(stat->obj, (size_t)iseq_offset);
+    if (label_id < nr_labels &&
+        scm_marshal_buffer_pos(input) == label_pos[label_id]) {
+      r = scm_fcd_assembler_push(asmb, SCM_ASM_PI_LABEL, label_id);
       if (r < 0) return -1;
-      br_idx++;
+      label_id++;
     }
 
     r = scm_read_inst_op(input, &op);
@@ -3078,14 +3064,16 @@ scm_unmarshal_obj_iseq_internal(ScmUnmarshalObjStat *stat, ScmObj unmarshal,
     case SCM_OPFMT_NOOPD:
       r = scm_read_inst_opd_noopd(input);
       if (r < 0) return -1;
-      iseq_offset = scm_fcd_iseq_push_inst(stat->obj, op);
+      r = scm_fcd_assembler_push(asmb, op);
+      if (r < 0) return -1;
       break;
     case SCM_OPFMT_OBJ:
       r = scm_read_inst_opd_obj(input, &pos1);
       if (r < 0) return -1;
       opd1 = scm_unmarshal_obj_iseq_opd(stat, unmarshal, pos1);
       if (scm_obj_null_p(opd1)) return -1;
-      iseq_offset = scm_fcd_iseq_push_inst(stat->obj, op, opd1);
+      r = scm_fcd_assembler_push(asmb, op, opd1);
+      if (r < 0) return -1;
       break;
     case SCM_OPFMT_OBJ_OBJ:
       r = scm_read_inst_opd_obj_obj(input, &pos1, &pos2);
@@ -3094,64 +3082,50 @@ scm_unmarshal_obj_iseq_internal(ScmUnmarshalObjStat *stat, ScmObj unmarshal,
       if (scm_obj_null_p(opd1)) return -1;
       opd2 = scm_unmarshal_obj_iseq_opd(stat, unmarshal, pos2);
       if (scm_obj_null_p(opd2)) return -1;
-      iseq_offset = scm_fcd_iseq_push_inst(stat->obj, op, opd1, opd2);
+      r = scm_fcd_assembler_push(asmb, op, opd1, opd2);
+      if (r < 0) return -1;
       break;
     case SCM_OPFMT_SI:
       r = scm_read_inst_opd_si(input, &si1);
       if (r < 0) return -1;
-      iseq_offset = scm_fcd_iseq_push_inst(stat->obj, op, si1);
+      r = scm_fcd_assembler_push(asmb, op, si1);
+      if (r < 0) return -1;
       break;
     case SCM_OPFMT_SI_SI:
       r = scm_read_inst_opd_si_si(input, &si1, &si2);
       if (r < 0) return -1;
-      iseq_offset = scm_fcd_iseq_push_inst(stat->obj, op, si1, si2);
+      r = scm_fcd_assembler_push(asmb, op, si1, si2);
+      if (r < 0) return -1;
       break;
     case SCM_OPFMT_SI_SI_OBJ:
       r = scm_read_inst_opd_si_si_obj(input, &si1, &si2, &pos1);
       if (r < 0) return -1;
       opd1 = scm_unmarshal_obj_iseq_opd(stat, unmarshal, pos1);
       if (scm_obj_null_p(opd1)) return -1;
-      iseq_offset = scm_fcd_iseq_push_inst(stat->obj, op, si1, si2, opd1);
+      r = scm_fcd_assembler_push(asmb, op, si1, si2, opd1);
+      if (r < 0) return -1;
       break;
     case SCM_OPFMT_IOF:
       r = scm_read_inst_opd_iof(input, &si1);
       if (r < 0) return -1;
-      iof_offset[iof_idx] = (size_t)iseq_offset;
-      iof_br_idx[iof_idx] = si1;
-      iof_idx++;
-      iseq_offset = scm_fcd_iseq_push_inst(stat->obj, op, (int)0);
+      r = scm_fcd_assembler_push(asmb, op, true, (size_t)si1);
+      if (r < 0) return -1;
       break;
     default:
-      scm_marshal_error(unmarshal, "iseq: invalid operation: %d", op);
+      scm_marshal_error(unmarshal, "iseq: unknown instruction format");
       return -1;
       break;
     }
-
-    if (iseq_offset < 0) return -1;
   }
 
-  if (br_idx < nr_branch &&
-      scm_marshal_buffer_pos(input) == branch_pos[br_idx]) {
-    r = scm_fcd_iseq_push_br_dst(stat->obj, (size_t)iseq_offset);
+  if (label_id < nr_labels &&
+      scm_marshal_buffer_pos(input) == label_pos[label_id]) {
+    r = scm_fcd_assembler_push(asmb, SCM_ASM_PI_LABEL, label_id);
     if (r < 0) return -1;
-    br_idx++;
+    label_id++;
   }
 
-  scm_assert(br_idx == nr_branch);
-  scm_assert(iof_idx == nr_iof);
-
-  r = scm_skip_padding_for_alignment(input);
-  if (r < 0) return -1;
-
-  branches = scm_fcd_iseq_br_dsts(stat->obj);
-  for (size_t i = 0; i < nr_iof; i++) {
-    r = scm_fcd_iseq_update_oprand_iof(stat->obj,
-                                       iof_offset[i],
-                                       (int)((ssize_t)branches[iof_br_idx[i]]
-                                             - ((ssize_t)iof_offset[i]
-                                                + (ssize_t)SCM_OPFMT_INST_SZ_IOF)));
-    if (r < 0) return -1;
-  }
+  scm_assert(label_id == nr_labels);
 
   return 0;
 }
@@ -3160,16 +3134,21 @@ static int
 scm_unmarshal_obj_iseq(ScmUnmarshalObjStat *stat, ScmObj unmarshal)
 {
   ScmMarshalBuffer *input;
-  size_t nr_branch, nr_inst, br_pos, nr_iof;
+  ScmObj asmb = SCM_OBJ_INIT;
+  size_t nr_branch, nr_inst, br_pos;
   int r;
 
   scm_assert(stat != NULL);
   scm_assert_obj_type(unmarshal, &SCM_UNMARSHAL_TYPE_INFO);
 
-  SCM_REFSTK_INIT_REG(&unmarshal);
+  SCM_REFSTK_INIT_REG(&unmarshal,
+                      &asmb);
 
   stat->obj = scm_fcd_make_iseq();
   if (scm_obj_null_p(stat->obj)) return -1;
+
+  asmb = scm_fcd_make_assembler(stat->obj);
+  if (scm_obj_null_p(asmb)) return -1;
 
   input = scm_unmarshal_input(unmarshal);
 
@@ -3182,14 +3161,14 @@ scm_unmarshal_obj_iseq(ScmUnmarshalObjStat *stat, ScmObj unmarshal)
   r = scm_read_offset(input, &br_pos);
   if (r < 0) return -1;
 
-  r = scm_read_size(input, &nr_iof);
-  if (r < 0) return -1;
-
   r = scm_skip_padding_for_alignment(input);
   if (r < 0) return -1;
 
-  r = scm_unmarshal_obj_iseq_internal(stat, unmarshal,
-                                      nr_inst, nr_branch, br_pos, nr_iof);
+  r = scm_unmarshal_obj_iseq_internal(stat, unmarshal, asmb,
+                                      nr_inst, nr_branch, br_pos);
+  if (r < 0) return -1;
+
+  r = scm_fcd_assembler_commit(asmb);
   if (r < 0) return -1;
 
   return 0;

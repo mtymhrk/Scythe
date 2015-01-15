@@ -123,13 +123,6 @@ int scm_disasm_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
 /* Assemble/Disassemble                                                   */
 /**************************************************************************/
 
-#define SCM_ASM_PI_START 0x10000
-
-enum {
-  SCM_ASM_PI_LABEL = SCM_ASM_PI_START,  /* define a label */
-};
-
-
 int scm_asm_assemble(ScmObj asmb, ScmObj lst);
 ScmObj scm_asm_disassemble(ScmObj asmb);
 
