@@ -2683,240 +2683,245 @@ scm_marshal_iseq_br_bsearch_cmp(const void *x, const void *y)
 
 static ssize_t
 scm_marshal_obj_iseq_inst(ScmMarshalObjStat *stat, ScmObj marshal,
-                          const size_t *branches, size_t *branch_pos,
-                          size_t nr_branch, size_t *nr_iof)
+                          ScmObj disasm, EArray *label_pos, size_t *nr_iof)
 {
   ScmMarshalBuffer *output;
-  scm_byte_t *ip, *head;
-  scm_opcode_t op;
-  size_t idx, cnt, seq_len;
+  const ScmDisasmToken *tk;
+  size_t cnt;
   int r;
+
+  SCM_REFSTK_INIT_REG(&marshal, &disasm);
 
   scm_assert(stat != NULL);
   scm_assert(scm_fcd_iseq_p(stat->obj));
   scm_assert_obj_type(marshal, &SCM_MARSHAL_TYPE_INFO);
-  scm_assert(branches != NULL);
-  scm_assert(branch_pos != NULL);
+  scm_assert(scm_fcd_disassembler_p(disasm));
+  scm_assert(label_pos != NULL);
   scm_assert(nr_iof != NULL);
 
   output = scm_marshal_output(marshal);
 
-  seq_len = scm_fcd_iseq_length(stat->obj);
-  head = ip = scm_fcd_iseq_to_ip(stat->obj);
-
-  cnt = idx = 0;
+  cnt = 0;
   *nr_iof = 0;
-  while ((size_t)(ip - head) < seq_len) {
-    size_t key, *p;
-    ScmObj opd __attribute((unused));
-    int si1, si2;
+  while ((tk = scm_fcd_disassembler_token(disasm)) != NULL
+         && tk->type != SCM_DISASM_TK_END) {
+    switch (tk->type) {
+    case SCM_DISASM_TK_INST:
 
-    if (idx < nr_branch && (size_t)(ip - head) == branches[idx])
-      branch_pos[idx++] = scm_marshal_buffer_pos(output);
+      switch (tk->inst.fmt) {
+      case SCM_OPFMT_NOOPD:
+        r = scm_push_inst_noopd(output, tk->inst.i.noopd.op);
+        break;
+      case SCM_OPFMT_OBJ:
+        r = scm_push_inst_obj(output, tk->inst.i.obj.op, 0);
+        break;
+      case SCM_OPFMT_OBJ_OBJ:
+        r = scm_push_inst_obj_obj(output, tk->inst.i.obj_obj.op, 0, 0);
+        break;
+      case SCM_OPFMT_SI:
+        r = scm_push_inst_si(output, tk->inst.i.si.op, tk->inst.i.si.opd1);
+        break;
+      case SCM_OPFMT_SI_SI:
+        r = scm_push_inst_si_si(output, tk->inst.i.si_si.op,
+                                tk->inst.i.si_si.opd1, tk->inst.i.si_si.opd2);
+        break;
+      case SCM_OPFMT_SI_SI_OBJ:
+        r = scm_push_inst_si_si_obj(output, tk->inst.i.si_si_obj.op,
+                                    tk->inst.i.si_si_obj.opd1,
+                                    tk->inst.i.si_si_obj.opd2,
+                                    0);
+        break;
+      case SCM_OPFMT_IOF:
+        if (tk->label_id > INT_MAX) {
+          scm_marshal_error(marshal, "iseq: too many branch destination");
+          return -1;
+        }
+        (*nr_iof)++;
+        r = scm_push_inst_iof(output, tk->inst.i.iof.op, (int)tk->label_id);
+        break;
+      default:
+        scm_marshal_error(marshal, "iseq: unknown instruction format");
+        return -1;
+        break;
+      }
 
-    op = SCM_VMINST_GET_OP(ip);
-    switch (scm_opfmt_table[op]) {
-    case SCM_OPFMT_NOOPD:
-      SCM_VMINST_FETCH_OPD_NOOPD(ip);
-      r = scm_push_inst_noopd(output, op);
+      if (r < 0) return -1;
+      cnt++;
       break;
-    case SCM_OPFMT_OBJ:
-      SCM_VMINST_FETCH_OPD_OBJ(ip, opd);
-      r = scm_push_inst_obj(output, op, 0);
-      break;
-    case SCM_OPFMT_OBJ_OBJ:
-      SCM_VMINST_FETCH_OPD_OBJ_OBJ(ip, opd, opd);
-      r = scm_push_inst_obj_obj(output, op, 0, 0);
-      break;
-    case SCM_OPFMT_SI:
-      SCM_VMINST_FETCH_OPD_SI(ip, si1);
-      r = scm_push_inst_si(output, op, si1);
-      break;
-    case SCM_OPFMT_SI_SI:
-      SCM_VMINST_FETCH_OPD_SI_SI(ip, si1, si2);
-      r = scm_push_inst_si_si(output, op, si1, si2);
-      break;
-    case SCM_OPFMT_SI_SI_OBJ:
-      SCM_VMINST_FETCH_OPD_SI_SI_OBJ(ip, si1, si2, opd);
-      r = scm_push_inst_si_si_obj(output, op, si1, si2, 0);
-      break;
-    case SCM_OPFMT_IOF:
-      (*nr_iof)++;
-      SCM_VMINST_FETCH_OPD_IOF(ip, si1);
-      key = (size_t)(ip - head + si1);
-      p = bsearch(&key, branches, nr_branch, sizeof(size_t),
-                  scm_marshal_iseq_br_bsearch_cmp);
-      if (p == NULL) {
-        scm_marshal_error(marshal, "iseq: invalid iseq");
-        return -1;
-      }
-      else if (p - branches > INT_MAX) {
-        scm_marshal_error(marshal, "iseq: too many branch destination");
-        return -1;
-      }
-      r = scm_push_inst_iof(output, op, (int)(p - branches));
+    case SCM_DISASM_TK_LABEL:
+      EARY_PUSH(label_pos, size_t, scm_marshal_buffer_pos(output), r);
+      if (r < 0) return -1;
       break;
     default:
-      scm_assert(false);        /* must not happen */
       r = -1;
       break;
     }
 
+    r = scm_fcd_disassembler_next(disasm);
     if (r < 0) return -1;
-    cnt++;
   }
 
-  if (idx < nr_branch && (size_t)(ip - head) == branches[idx])
-    branch_pos[idx++] = scm_marshal_buffer_pos(output);
+  if (tk == NULL) return -1;
 
-  scm_assert(idx == nr_branch);
   return (ssize_t)cnt;
 }
 
 static int
 scm_marshal_obj_iseq_body(ScmMarshalObjStat *stat, ScmObj marshal,
-                          const size_t *branches, size_t nr_branch,
-                          size_t *inst_start)
+                          ScmObj disasm, size_t *inst_start)
 {
   ScmMarshalBuffer *output;
-  size_t branch_pos[nr_branch], pos, cont, nr_iof;
+  EArray label_pos;
+  size_t pos, cont, nr_iof, idx, *itr;
   ssize_t nr_inst;
   int r;
 
-  SCM_REFSTK_INIT_REG(&marshal);
+  SCM_REFSTK_INIT_REG(&marshal, &disasm);
 
   scm_assert(stat != NULL);
   scm_assert(scm_fcd_iseq_p(stat->obj));
   scm_assert_obj_type(marshal, &SCM_MARSHAL_TYPE_INFO);
-  scm_assert(branches != NULL);
+  scm_assert(scm_fcd_disassembler_p(disasm));
   scm_assert(inst_start != NULL);
 
-  output = scm_marshal_output(marshal);
-  r = scm_push_size(output, nr_branch);
+  r = eary_init(&label_pos, sizeof(size_t), 0);
   if (r < 0) return -1;
 
+  output = scm_marshal_output(marshal);
   cont = scm_marshal_buffer_pos(output);
+
   r = scm_push_size(output, 0);
-  if (r < 0) return -1;
+  if (r < 0) goto err;
+
+  r = scm_push_size(output, 0);
+  if (r < 0) goto err;
 
   r = scm_push_offset(output, 0);
-  if (r < 0) return -1;
+  if (r < 0) goto err;
 
   r = scm_push_size(output, 0);
-  if (r < 0) return -1;
+  if (r < 0) goto err;
 
   r = scm_push_padding_for_alignment(output);
-  if (r < 0) return -1;
+  if (r < 0) goto err;
 
   *inst_start = scm_marshal_buffer_pos(output);
-  nr_inst = scm_marshal_obj_iseq_inst(stat, marshal,
-                                      branches, branch_pos, nr_branch, &nr_iof);
-  if (nr_inst < 0) return -1;
+  nr_inst = scm_marshal_obj_iseq_inst(stat, marshal, disasm,
+                                      &label_pos, &nr_iof);
+  if (nr_inst < 0) goto err;
 
   pos = scm_marshal_buffer_pos(output);
-  for (size_t i = 0; i < nr_branch; i++) {
-    r = scm_push_offset(output, branch_pos[i]);
-    if (r < 0) return -1;
+  EARY_FOR_EACH(&label_pos, idx, itr) {
+    r = scm_push_offset(output, *itr);
+    if (r < 0) goto err;
   }
 
   r = scm_push_padding_for_alignment(output);
-  if (r < 0) return -1;
+  if (r < 0) goto err;
 
+  r = scm_write_size(output, cont, EARY_SIZE(&label_pos));
+  if (r < 0) goto err;
+
+  cont += SCM_MARSHAL_SIZE_SIZE;
   r = scm_write_size(output, cont, (size_t)nr_inst);
-  if (r < 0) return -1;
+  if (r < 0) goto err;
 
   cont += SCM_MARSHAL_SIZE_SIZE;
   r = scm_write_offset(output, cont, pos);
-  if (r < 0) return -1;
+  if (r < 0) goto err;
 
   cont += SCM_MARSHAL_OFFSET_SIZE;
   r = scm_write_size(output, cont, nr_iof);
-  if (r < 0) return -1;
+  if (r < 0) goto err;
 
   r = scm_push_padding_for_alignment(output);
-  if (r < 0) return -1;
+  if (r < 0) goto err;
 
+  eary_fin(&label_pos);
   return 0;
+
+ err:
+  eary_fin(&label_pos);
+  return -1;
 }
 
 static int
-scm_marshal_obj_iseq_opd(ScmMarshalObjStat *stat, ScmObj marshal,
+scm_marshal_obj_iseq_opd(ScmMarshalObjStat *stat, ScmObj marshal, ScmObj disasm,
                          size_t inst_start)
 {
-  ScmObj obj1 = SCM_OBJ_INIT, obj2 = SCM_OBJ_INIT, tmp = SCM_OBJ_INIT;
   ScmMarshalBuffer *output;
-  size_t pos, seq_len;
-  scm_byte_t *head, *ip;
+  const ScmDisasmToken *tk;
+  size_t pos;
 
-  SCM_REFSTK_INIT_REG(&marshal,
-                      &obj1, &obj2, &tmp);
+  SCM_REFSTK_INIT_REG(&marshal, &disasm);
 
   scm_assert(stat != NULL);
   scm_assert(scm_fcd_iseq_p(stat->obj));
   scm_assert_obj_type(marshal, &SCM_MARSHAL_TYPE_INFO);
+  scm_assert(scm_fcd_disassembler_p(disasm));
 
   output = scm_marshal_output(marshal);
 
-  seq_len = scm_fcd_iseq_length(stat->obj);
-  head = ip = scm_fcd_iseq_to_ip(stat->obj);
-
   pos = inst_start;
-  while ((size_t)(ip - head) < seq_len) {
-    scm_opcode_t op;
+  while ((tk = scm_fcd_disassembler_token(disasm)) != NULL
+         && tk->type != SCM_DISASM_TK_END) {
     ssize_t oft1, oft2;
-    int si1, si2, r;
+    int r;
 
-    op = SCM_VMINST_GET_OP(ip);
-    switch (scm_opfmt_table[op]) {
-    case SCM_OPFMT_NOOPD:
-      SCM_VMINST_FETCH_OPD_NOOPD(ip);
-      pos += SCM_MARSHAL_ISEQ_INST_SIZE_NOOPD;
-      break;
-    case SCM_OPFMT_OBJ:
-      SCM_VMINST_FETCH_OPD_OBJ(ip, obj1);
-      oft1 = scm_marshal_obj(obj1, stat, marshal);
-      if (oft1 < 0) return -1;
-      r = scm_write_inst_opd_obj(output, pos, (size_t)oft1);
+    if (tk->type == SCM_DISASM_TK_INST) {
+      r = scm_fcd_disassembler_cnv_to_marshalable(disasm);
       if (r < 0) return -1;
-      pos += SCM_MARSHAL_ISEQ_INST_SIZE_OBJ;
-      break;
-    case SCM_OPFMT_OBJ_OBJ:
-      SCM_VMINST_FETCH_OPD_OBJ_OBJ(ip, obj1, obj2);
-      if (scm_fcd_gloc_p(obj1))
-        obj1 = scm_fcd_gloc_symbol(obj1);
-      oft1 = scm_marshal_obj(obj1, stat, marshal);
-      if (oft1 < 0) return -1;
-      oft2 = scm_marshal_obj(obj2, stat, marshal);
-      if (oft2 < 0) return -1;
-      r = scm_write_inst_opd_obj_obj(output, pos, (size_t)oft1, (size_t)oft2);
-      if (r < 0) return -1;
-      pos += SCM_MARSHAL_ISEQ_INST_SIZE_OBJ_OBJ;
-      break;
-    case SCM_OPFMT_SI:
-      SCM_VMINST_FETCH_OPD_SI(ip, si1);
-      pos += SCM_MARSHAL_ISEQ_INST_SIZE_SI;
-      break;
-    case SCM_OPFMT_SI_SI:
-      SCM_VMINST_FETCH_OPD_SI_SI(ip, si1, si2);
-      pos += SCM_MARSHAL_ISEQ_INST_SIZE_SI_SI;
-      break;
-    case SCM_OPFMT_SI_SI_OBJ:
-      SCM_VMINST_FETCH_OPD_SI_SI_OBJ(ip, si1, si2, obj1);
-      oft1 = scm_marshal_obj(obj1, stat, marshal);
-      if (oft1 < 0) return -1;
-      r = scm_write_inst_opd_si_si_obj(output, pos, si1, si2, (size_t)oft1);
-      if (r < 0) return -1;
-      pos += SCM_MARSHAL_ISEQ_INST_SIZE_SI_SI_OBJ;
-      break;
-    case SCM_OPFMT_IOF:
-      SCM_VMINST_FETCH_OPD_IOF(ip, si1);
-      pos += SCM_MARSHAL_ISEQ_INST_SIZE_IOF;
-      break;
-    default:
-      scm_assert(false);        /* must not happen */
-      break;
+
+      switch (tk->inst.fmt) {
+      case SCM_OPFMT_NOOPD:
+        pos += SCM_MARSHAL_ISEQ_INST_SIZE_NOOPD;
+        break;
+      case SCM_OPFMT_OBJ:
+        oft1 = scm_marshal_obj(tk->inst.i.obj.opd1, stat, marshal);
+        if (oft1 < 0) return -1;
+        r = scm_write_inst_opd_obj(output, pos, (size_t)oft1);
+        if (r < 0) return -1;
+        pos += SCM_MARSHAL_ISEQ_INST_SIZE_OBJ;
+        break;
+      case SCM_OPFMT_OBJ_OBJ:
+        oft1 = scm_marshal_obj(tk->inst.i.obj_obj.opd1, stat, marshal);
+        if (oft1 < 0) return -1;
+        oft2 = scm_marshal_obj(tk->inst.i.obj_obj.opd2, stat, marshal);
+        if (oft2 < 0) return -1;
+        r = scm_write_inst_opd_obj_obj(output, pos, (size_t)oft1, (size_t)oft2);
+        if (r < 0) return -1;
+        pos += SCM_MARSHAL_ISEQ_INST_SIZE_OBJ_OBJ;
+        break;
+      case SCM_OPFMT_SI:
+        pos += SCM_MARSHAL_ISEQ_INST_SIZE_SI;
+        break;
+      case SCM_OPFMT_SI_SI:
+        pos += SCM_MARSHAL_ISEQ_INST_SIZE_SI_SI;
+        break;
+      case SCM_OPFMT_SI_SI_OBJ:
+        oft1 = scm_marshal_obj(tk->inst.i.si_si_obj.opd3, stat, marshal);
+        if (oft1 < 0) return -1;
+        r = scm_write_inst_opd_si_si_obj(output, pos,
+                                         tk->inst.i.si_si_obj.opd1,
+                                         tk->inst.i.si_si_obj.opd2,
+                                         (size_t)oft1);
+        if (r < 0) return -1;
+        pos += SCM_MARSHAL_ISEQ_INST_SIZE_SI_SI_OBJ;
+        break;
+      case SCM_OPFMT_IOF:
+        pos += SCM_MARSHAL_ISEQ_INST_SIZE_IOF;
+        break;
+      default:
+        scm_marshal_error(marshal, "iseq: unknown instruction format");
+        break;
+      }
     }
+
+    r = scm_fcd_disassembler_next(disasm);
+    if (r < 0) return -1;
   }
+
+  if (tk == NULL) return -1;
 
   return 0;
 }
@@ -2924,18 +2929,21 @@ scm_marshal_obj_iseq_opd(ScmMarshalObjStat *stat, ScmObj marshal,
 static int
 scm_marshal_obj_iseq(ScmMarshalObjStat *stat, ScmObj marshal)
 {
+  ScmObj disasm = SCM_OBJ_INIT;
   ScmMarshalBuffer *output;
   ScmMarshalObjHeader header;
-  const size_t *branches;
-  size_t inst_start, end, nr_branch;
+  size_t inst_start, end;
   int r;
+
+  SCM_REFSTK_INIT_REG(&marshal,
+                      &disasm);
 
   scm_assert(stat != NULL);
   scm_assert(scm_fcd_iseq_p(stat->obj));
   scm_assert_obj_type(marshal, &SCM_MARSHAL_TYPE_INFO);
 
-  nr_branch = scm_fcd_iseq_nr_br_dst(stat->obj);
-  branches = scm_fcd_iseq_br_dsts(stat->obj);
+  disasm = scm_fcd_make_disassembler(stat->obj);
+  if (scm_obj_null_p(disasm)) return -1;
 
   output = scm_marshal_output(marshal);
   stat->pos = scm_marshal_buffer_pos(output);
@@ -2946,8 +2954,7 @@ scm_marshal_obj_iseq(ScmMarshalObjStat *stat, ScmObj marshal)
   r = scm_push_obj_header(output, &header);
   if (r < 0) return -1;
 
-  r = scm_marshal_obj_iseq_body(stat, marshal,
-                                branches, (size_t)nr_branch, &inst_start);
+  r = scm_marshal_obj_iseq_body(stat, marshal, disasm, &inst_start);
   if (r < 0) return -1;
 
   end = scm_marshal_buffer_pos(output);
@@ -2955,7 +2962,8 @@ scm_marshal_obj_iseq(ScmMarshalObjStat *stat, ScmObj marshal)
   r = scm_write_obj_header_size(output, stat->pos, end - stat->pos);
   if (r < 0) return -1;
 
-  r = scm_marshal_obj_iseq_opd(stat, marshal, inst_start);
+  scm_fcd_disassembler_rewind(disasm);
+  r = scm_marshal_obj_iseq_opd(stat, marshal, disasm, inst_start);
   if (r < 0) return -1;
 
   return 0;

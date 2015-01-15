@@ -190,5 +190,14 @@ TEST(marshal, test_marshal_unmarshal__iseq__si_si_obj)
 
 TEST(marshal, test_marshal_unmarshal__iseq__iof)
 {
-  test_marshal_unmarshal_iseq("((label 0)(jmp (label 0)))");
+  test_marshal_unmarshal_iseq("((label 0)"
+                              "   (nop)"
+                              "   (jmp (label 0)))");
+}
+
+TEST(marshal, test_marshal_unmarshal__iseq__iof_2)
+{
+  test_marshal_unmarshal_iseq("(  (jmp (label 0))"
+                              "   (nop)"
+                              " (label 0))");
 }
