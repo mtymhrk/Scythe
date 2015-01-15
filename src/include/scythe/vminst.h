@@ -52,39 +52,35 @@ enum {
   SCM_OPCODE_NOP = 0x0000,        /*  0: no operation */
   SCM_OPCODE_HALT,                /*  1: stop calculation */
   SCM_OPCODE_INT,                 /*  2: interrupt */
-  SCM_OPCODE_UNDEF,               /*  3: update val register to undefined */
-                                  /*     value */
-  SCM_OPCODE_UNINIT,              /*  4: update val register to uninitialized */
-                                  /*     value */
-  SCM_OPCODE_CFRAME,              /*  5; create a continuation frame */
-  SCM_OPCODE_EFRAME,              /*  6; create a environment frame */
-  SCM_OPCODE_EPOP,                /*  7; pop a environment frame */
-  SCM_OPCODE_ESHIFT,              /*  8; shift environment frames */
-  SCM_OPCODE_IMMVAL,              /*  9: copy immediate value to val register */
-  SCM_OPCODE_PUSH,                /* 10: push value of val register */
-  SCM_OPCODE_MVPUSH,              /* 11: push value of val register */
-  SCM_OPCODE_RETURN,              /* 12: return from function */
-  SCM_OPCODE_PCALL,               /* 13: primitive function call */
-  SCM_OPCODE_CALL,                /* 14: function call */
-  SCM_OPCODE_TAIL_CALL,           /* 15: function tail call */
-  SCM_OPCODE_GREF,                /* 16: refere global variable */
-  SCM_OPCODE_GDEF,                /* 17: define global variable */
-  SCM_OPCODE_GSET,                /* 18: update global variable */
-  SCM_OPCODE_SREF,                /* 19: refere value in stack */
-  SCM_OPCODE_SSET,                /* 20: update value in stack */
-  SCM_OPCODE_JMP,                 /* 21: jump */
-  SCM_OPCODE_JMPT,                /* 22: jump if true */
-  SCM_OPCODE_JMPF,                /* 23: jump if false */
-  SCM_OPCODE_BOX,                 /* 24: boxing */
-  SCM_OPCODE_CLOSE,               /* 25: make closure */
-  SCM_OPCODE_DEMINE,              /* 26: demine variable */
-  SCM_OPCODE_EMINE,               /* 27: make enviroment frame */
+  SCM_OPCODE_CFRAME,              /*  3; create a continuation frame */
+  SCM_OPCODE_EFRAME,              /*  4; create a environment frame */
+  SCM_OPCODE_EPOP,                /*  5; pop a environment frame */
+  SCM_OPCODE_ESHIFT,              /*  6; shift environment frames */
+  SCM_OPCODE_IMMVAL,              /*  7: copy immediate value to val register */
+  SCM_OPCODE_PUSH,                /*  8: push value of val register */
+  SCM_OPCODE_MVPUSH,              /*  9: push value of val register */
+  SCM_OPCODE_RETURN,              /* 10: return from function */
+  SCM_OPCODE_PCALL,               /* 11: primitive function call */
+  SCM_OPCODE_CALL,                /* 12: function call */
+  SCM_OPCODE_TAIL_CALL,           /* 13: function tail call */
+  SCM_OPCODE_GREF,                /* 14: refere global variable */
+  SCM_OPCODE_GDEF,                /* 15: define global variable */
+  SCM_OPCODE_GSET,                /* 16: update global variable */
+  SCM_OPCODE_SREF,                /* 17: refere value in stack */
+  SCM_OPCODE_SSET,                /* 18: update value in stack */
+  SCM_OPCODE_JMP,                 /* 19: jump */
+  SCM_OPCODE_JMPT,                /* 20: jump if true */
+  SCM_OPCODE_JMPF,                /* 21: jump if false */
+  SCM_OPCODE_BOX,                 /* 22: boxing */
+  SCM_OPCODE_CLOSE,               /* 23: make closure */
+  SCM_OPCODE_DEMINE,              /* 24: demine variable */
+  SCM_OPCODE_EMINE,               /* 25: make enviroment frame */
                                   /*     and make it mine field */
-  SCM_OPCODE_EDEMINE,             /* 28: demine enviromnet frame with */
+  SCM_OPCODE_EDEMINE,             /* 26: demine enviromnet frame with */
                                   /*     incomplete enviromnet frame as */
                                   /*     initial value */
-  SCM_OPCODE_MRVC,                /* 29: Multiple-Return-Value Check */
-  SCM_OPCODE_MRVE,                /* 30: Multiple-Return-Value Error */
+  SCM_OPCODE_MRVC,                /* 27: Multiple-Return-Value Check */
+  SCM_OPCODE_MRVE,                /* 28: Multiple-Return-Value Error */
 
   SCM_VMINST_NR_OP,
 };

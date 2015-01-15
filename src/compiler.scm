@@ -39,8 +39,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (define (push-inst-nop asmb)
   (assembler-push! asmb +asm-inst-nop+))
-(define (push-inst-undef asmb)
-  (assembler-push! asmb +asm-inst-undef+))
 (define (push-inst-cframe typ lbl asmb)
   (assembler-push! asmb +asm-inst-cframe+ #t lbl))
 (define (push-inst-eframe narg asmb)
@@ -97,6 +95,8 @@
   (assembler-push! asmb +asm-inst-mrve+))
 (define (push-inst-label lbl asmb)
   (assembler-push! asmb +asm-inst-label+ lbl))
+(define (push-inst-undef asmb)
+  (assembler-push! asmb +asm-inst-undef+))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (define (new-env)

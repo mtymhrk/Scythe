@@ -1699,21 +1699,6 @@ scm_vm_adjust_arg_to_arity(ScmObj vm, int argc, ScmObj proc, int *adjusted)
 }
 
 static int
-scm_vm_do_op_uninit(ScmObj vm, scm_opcode_t op)
-{
-  ScmObj val = SCM_OBJ_INIT;
-
-  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-
-  val = scm_bedrock_landmine(scm_fcd_current_br());
-
-  SCM_SLOT_SETQ(ScmVM, vm, reg.val[0], val);
-  SCM_VM(vm)->reg.vc = 1;
-
-  return 0;
-}
-
-static int
 scm_vm_do_op_eframe(ScmObj vm, scm_opcode_t op, int argc)
 {
   int rslt;
@@ -1757,6 +1742,17 @@ scm_vm_do_op_eshift(ScmObj vm, scm_opcode_t op, int e, int n)
 
   rslt = scm_vm_shift_eframe(vm, e, n);
   if (rslt < 0) return -1;
+
+  return 0;
+}
+
+static int
+scm_vm_do_op_immval(ScmObj vm, scm_opcode_t op, ScmObj val)
+{
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  SCM_SLOT_SETQ(ScmVM, vm, reg.val[0], val);
+  SCM_VM(vm)->reg.vc = 1;
 
   return 0;
 }
@@ -2037,28 +2033,6 @@ scm_vm_op_int(ScmObj vm, scm_opcode_t op)
 }
 
 static int
-scm_vm_op_undef(ScmObj vm, scm_opcode_t op)
-{
-  SCM_VMINST_FETCH_OPD_NOOPD(SCM_VM(vm)->reg.ip);
-  SCM_SLOT_SETQ(ScmVM, vm, reg.val[0], SCM_UNDEF_OBJ);
-  SCM_VM(vm)->reg.vc = 1;
-  return 0;
-}
-
-static int
-scm_vm_op_uninit(ScmObj vm, scm_opcode_t op)
-{
-  int rslt;
-
-  SCM_VMINST_FETCH_OPD_NOOPD(SCM_VM(vm)->reg.ip);
-
-  rslt = scm_vm_do_op_uninit(vm, op);
-  if (rslt < 0) return -1;
-
-  return 0;
-}
-
-static int
 scm_vm_op_cframe(ScmObj vm, scm_opcode_t op)
 {
   int rslt, dst;
@@ -2124,15 +2098,14 @@ static int
 scm_vm_op_immval(ScmObj vm, scm_opcode_t op)
 {
   ScmObj val = SCM_OBJ_INIT;
-
-  SCM_REFSTK_INIT_REG(&vm, &val);
+  int rslt;
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
   SCM_VMINST_FETCH_OPD_OBJ(SCM_VM(vm)->reg.ip, val);
 
-  SCM_SLOT_SETQ(ScmVM, vm, reg.val[0], val);
-  SCM_VM(vm)->reg.vc = 1;
+  rslt = scm_vm_do_op_immval(vm, op, val);
+  if (rslt < 0) return -1;
 
   return 0;
 }
@@ -2563,7 +2536,7 @@ scm_vm_op_emine(ScmObj vm, scm_opcode_t op)
   SCM_VMINST_FETCH_OPD_SI(SCM_VM(vm)->reg.ip, len);
 
   for (int i = 0; i < len; i++) {
-    rslt = scm_vm_do_op_uninit(vm, op);
+    rslt = scm_vm_do_op_immval(vm, op, SCM_LANDMINE_OBJ);
     if (rslt < 0) return -1;
 
     rslt = scm_vm_do_op_push(vm, op);
@@ -2869,12 +2842,6 @@ scm_vm_run(ScmObj vm, ScmObj iseq)
       break;
     case SCM_OPCODE_INT:
       scm_vm_op_int(vm, op);
-      break;
-    case SCM_OPCODE_UNDEF:
-      scm_vm_op_undef(vm, op);
-      break;
-    case SCM_OPCODE_UNINIT:
-      scm_vm_op_uninit(vm, op);
       break;
     case SCM_OPCODE_CFRAME:
       scm_vm_op_cframe(vm, op);
