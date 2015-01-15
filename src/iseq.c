@@ -55,6 +55,34 @@ scm_iseq_finalize(ScmObj obj)
 }
 
 ssize_t
+scm_iseq_ip_to_offset(ScmObj iseq, scm_byte_t *ip)
+{
+  size_t offset;
+
+  scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
+
+  if (ip < SCM_ISEQ_SEQ_VEC(iseq)) {
+    scm_fcd_error("failed to calculate offset of VM instruction: out of range",
+                  0);
+    return -1;
+  }
+
+  offset = (size_t)(ip - SCM_ISEQ_SEQ_VEC(iseq));
+  if (offset > SCM_ISEQ_SEQ_LENGTH(iseq)) {
+    scm_fcd_error("failed to calculate offset of VM instruction: out of range",
+                  0);
+    return -1;
+  }
+  else if (offset > SSIZE_MAX) {
+    scm_fcd_error("failed to calculate offset of VM instruction: "
+                  "offset value too big", 0);
+    return -1;
+  }
+
+  return (ssize_t)offset;
+}
+
+ssize_t
 scm_iseq_push_inst_noopd(ScmObj iseq, scm_opcode_t op)
 {
   const size_t inst_size = SCM_OPFMT_INST_SZ_NOOPD;

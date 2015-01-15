@@ -41,6 +41,7 @@ struct ScmISeqRec {
 
 int scm_iseq_initialize(ScmObj iseq);
 void scm_iseq_finalize(ScmObj obj);
+ssize_t scm_iseq_ip_to_offset(ScmObj iseq, scm_byte_t *ip);
 ssize_t scm_iseq_push_inst_noopd(ScmObj iseq, scm_opcode_t op);
 ssize_t scm_iseq_push_inst_obj(ScmObj iseq, scm_opcode_t op, ScmObj obj);
 ssize_t scm_iseq_push_inst_obj_obj(ScmObj iseq,
@@ -74,20 +75,6 @@ scm_iseq_to_ip(ScmObj iseq)
   return SCM_ISEQ_SEQ_VEC(iseq);
 }
 
-static inline ssize_t
-scm_iseq_ip_to_idx(ScmObj iseq, scm_byte_t *ip)
-{
-  ptrdiff_t idx;
-
-  scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
-
-  idx = ip - SCM_ISEQ_SEQ_VEC(iseq);
-  if (idx < 0 || idx >= (ssize_t)SCM_ISEQ_SEQ_LENGTH(iseq))
-    return -1;
-  else
-    return (ssize_t)idx;
-}
-
 static inline size_t
 scm_iseq_nr_dst(ScmObj iseq)
 {
@@ -117,5 +104,15 @@ scm_iseq_dsts(ScmObj iseq)
 
   return SCM_ISEQ_DSTS_VEC(iseq);
 }
+
+static inline bool
+scm_iseq_ip_in_range_p(ScmObj iseq, const scm_byte_t *ip)
+{
+  scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
+
+  return (SCM_ISEQ_SEQ_VEC(iseq) <= ip
+          && ip < (SCM_ISEQ_SEQ_VEC(iseq) + SCM_ISEQ_SEQ_LENGTH(iseq)));
+}
+
 
 #endif /* INCLUDE_ISEQ_H__ */

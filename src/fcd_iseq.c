@@ -42,6 +42,13 @@ scm_fcd_iseq_to_ip(ScmObj iseq)
   return scm_iseq_to_ip(iseq);
 }
 
+ssize_t
+scm_fcd_iseq_ip_to_offset(ScmObj iseq, scm_byte_t *ip)
+{
+  scm_assert(scm_fcd_iseq_p(iseq));
+  return scm_iseq_ip_to_offset(iseq, ip);
+}
+
 size_t
 scm_fcd_iseq_length(ScmObj iseq)
 {
@@ -178,6 +185,13 @@ scm_fcd_iseq_br_dsts(ScmObj iseq)
   return scm_iseq_dsts(iseq);
 }
 
+bool
+scm_fcd_iseq_ip_in_range_p(ScmObj iseq, const scm_byte_t *ip)
+{
+  scm_assert(scm_fcd_iseq_p(iseq));
+  return scm_iseq_ip_in_range_p(iseq, ip);
+}
+
 int
 scm_fcd_iseq_update_oprand_iof(ScmObj iseq, size_t offset, int iof)
 {
@@ -205,11 +219,8 @@ scm_fcd_inst_update_oprand_obj(scm_byte_t *ip, ScmObj clsr, ScmObj obj)
   iseq = scm_fcd_closure_to_iseq(clsr);
   if (scm_obj_null_p(iseq)) return -1;
 
-  idx = scm_iseq_ip_to_idx(iseq, ip);
-  if (idx < 0) {
-    scm_fcd_error("can not updated operands: invalid ip", 0);
-    return -1;
-  }
+  idx = scm_iseq_ip_to_offset(iseq, ip);
+  if (idx < 0) return -1;
 
   rslt = scm_iseq_update_opd_obj(iseq, (size_t)idx, obj);
   if (rslt < 0) return -1;
