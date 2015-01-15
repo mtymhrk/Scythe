@@ -147,6 +147,12 @@ scm_fcd_assembler_push_va(ScmObj asmb, scm_opcode_t op, va_list operands)
     case SCM_ASM_PI_UNINIT:
       return scm_asm_push_pinst_uninit(asmb, op);
       break;
+    case SCM_ASM_PI_QQTEMPLATE:
+      opd_obj1 = va_arg(operands, ScmObj);
+      r = chk_operand_obj(opd_obj1);
+      if (r < 0) return -1;
+      return scm_asm_push_pinst_qqtemplate(asmb, op, opd_obj1);
+      break;
     default:
       scm_fcd_error("failed to assemble: unknown operator code", 0);
       return -1;

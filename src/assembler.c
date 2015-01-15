@@ -384,6 +384,28 @@ scm_asm_push_pinst_uninit(ScmObj asmb, scm_opcode_t op)
 }
 
 int
+scm_asm_push_pinst_qqtemplate(ScmObj asmb, scm_opcode_t op, ScmObj obj)
+{
+  ScmObj qq = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&asmb, &obj,
+                      &qq);
+
+  scm_assert_obj_type(asmb, &SCM_ASSEMBLER_TYPE_INFO);
+  scm_assert(scm_obj_not_null_p(obj));
+
+  if (scm_fcd_qqtmpl_p(obj)) {
+    qq = obj;
+  }
+  else {
+    qq = scm_fcd_compile_qq_template(obj);
+    if (scm_obj_null_p(qq)) return -1;
+  }
+
+  return scm_asm_push_inst_obj(asmb, SCM_OPCODE_IMMVAL, qq);
+}
+
+int
 scm_asm_resolve_label_ref(ScmObj asmb)
 {
   const ScmAsmLabelDecl *decl;
@@ -827,6 +849,12 @@ scm_disasm_cnv_to_printable(ScmObj disasm)
       tk->inst.fmt = SCM_OPFMT_NOOPD;
       tk->inst.i.noopd.op = SCM_ASM_PI_UNINIT;
     }
+    else if (scm_fcd_qqtmpl_p(tk->inst.i.obj.opd1)) {
+      tk->inst.i.obj.op = SCM_ASM_PI_QQTEMPLATE;
+      obj = scm_fcd_qqtmpl_template(tk->inst.i.obj.opd1);
+      if (scm_obj_null_p(obj)) return -1;
+      SCM_WB_SETQ(disasm, tk->inst.i.obj.opd1, obj);
+    }
     break;
   case SCM_OPCODE_CLOSE:
     if (scm_fcd_iseq_p(tk->inst.i.si_si_obj.opd3)) {
@@ -948,6 +976,7 @@ static struct {
   { SCM_ASM_PI_LABEL,       "label" },
   { SCM_ASM_PI_UNDEF,       "undef" },
   { SCM_ASM_PI_UNINIT,      "uninit" },
+  { SCM_ASM_PI_QQTEMPLATE,  "qqtemplate" },
 };
 
 static int
@@ -1293,6 +1322,28 @@ scm_asm_asm_inst_label(ScmObj asmb, int opcode, const ScmObj *inst, size_t n)
   return 0;
 }
 
+static int
+scm_asm_asm_inst_qqtemplate(ScmObj asmb, int opcode,
+                            const ScmObj *inst, size_t n)
+
+{
+  int rslt;
+
+  SCM_REFSTK_INIT_REG(&asmb);
+
+  scm_assert(scm_fcd_assembler_p(asmb));
+  scm_assert(opcode >= SCM_ASM_PI_START);
+  scm_assert(n == 0 || inst != NULL);
+
+  rslt = scm_asm_chk_nr_operand(inst, n, 1, 1);
+  if (rslt < 0) return -1;
+
+  rslt = scm_asm_push_pinst_qqtemplate(asmb, opcode, inst[1]);
+  if (rslt < 0) return -1;
+
+  return 0;
+}
+
 int
 scm_asm_assemble_1inst_cv(ScmObj asmb, const ScmObj *inst, size_t n)
 {
@@ -1344,6 +1395,9 @@ scm_asm_assemble_1inst_cv(ScmObj asmb, const ScmObj *inst, size_t n)
       break;
     case SCM_ASM_PI_UNINIT:
       return scm_asm_asm_inst_noopd(asmb, opcode, inst, n);
+      break;
+    case SCM_ASM_PI_QQTEMPLATE:
+      return scm_asm_asm_inst_qqtemplate(asmb, opcode, inst, n);
       break;
     default:
       scm_assert(false);

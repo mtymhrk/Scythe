@@ -177,6 +177,33 @@ test_assemble_iof(const char *asmbl, uint8_t code, int si)
   check_following(ip);
 }
 
+static void
+test_assemble_pinst_qqtemplate(const char *asmbl,
+                               uint8_t code, const char *tmpl)
+{
+  ScmObj iseq = SCM_OBJ_INIT, t = SCM_OBJ_INIT, qq = SCM_OBJ_INIT;
+  ScmObj actual_immv = SCM_OBJ_INIT;
+  scm_byte_t *ip;
+  int actual_op;
+  bool cmp;
+
+  SCM_REFSTK_INIT_REG(&iseq, &t, &qq, &actual_immv);
+
+  t = read_cstr(tmpl);
+  qq = scm_fcd_compile_qq_template(t);
+  iseq = make_iseq(asmbl);
+  ip = scm_fcd_iseq_to_ip(iseq);
+
+  actual_op = SCM_VMINST_GET_OP(ip);
+  SCM_VMINST_FETCH_OPD_OBJ(ip, actual_immv);
+
+  TEST_ASSERT_EQUAL_INT(code, actual_op);
+  TEST_ASSERT_EQUAL_INT(0, scm_fcd_qqtmpl_eq(qq, actual_immv, &cmp));
+  TEST_ASSERT_TRUE(cmp);
+
+  check_following(ip);
+}
+
 TEST(fcd_assembler, nop)
 {
   test_assemble_noopd("((nop)(nop))", SCM_OPCODE_NOP);
@@ -383,6 +410,13 @@ TEST(fcd_assembler, pi_uninit)
   test_assemble_obj("((uninit)(nop))", SCM_OPCODE_IMMVAL, SCM_UNINIT_OBJ);
 }
 
+TEST(fcd_assembler, pi_qqtemplate)
+{
+  test_assemble_pinst_qqtemplate("((qqtemplate (a ,expr c))(nop))",
+                                 SCM_OPCODE_IMMVAL,
+                                 "(a ,expr c)");
+}
+
 static void
 test_disassemble(const char *expected, const char *assembler)
 {
@@ -479,3 +513,8 @@ TEST(fcd_assembler, disasm_uninit)
   test_disassemble("((uninit))", "((uninit))");
 }
 
+TEST(fcd_assembler, disasm_qqtemplate)
+{
+  test_disassemble("((qqtemplate (a ,expr c)))",
+                   "((qqtemplate (a ,expr c)))");
+}

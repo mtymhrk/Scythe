@@ -59,6 +59,7 @@ int scm_asm_push_inst_rlid(ScmObj asmb, scm_opcode_t op, size_t id);
 int scm_asm_push_pinst_label(ScmObj asmb, scm_opcode_t op, size_t id);
 int scm_asm_push_pinst_undef(ScmObj asmb, scm_opcode_t op);
 int scm_asm_push_pinst_uninit(ScmObj asmb, scm_opcode_t op);
+int scm_asm_push_pinst_qqtemplate(ScmObj asmb, scm_opcode_t op, ScmObj obj);
 int scm_asm_resolve_label_ref(ScmObj asmb);
 void scm_asm_clear_labels(ScmObj asmb);
 void scm_asm_gc_initialize(ScmObj obj, ScmObj mem);
