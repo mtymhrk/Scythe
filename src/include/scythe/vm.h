@@ -66,12 +66,7 @@ struct ScmBedrockRec {
   } subr;
 
   /*** Global Variables  ***/
-  struct {
-    ScmObj compile;
-    ScmObj eval;
-    ScmObj current_input_port;
-    ScmObj current_output_port;
-  } gv;
+  ScmObj gv[SCM_CACHED_GV_NR];
 
   /*** Configurations ***/
   ScmEncoding *encoding;

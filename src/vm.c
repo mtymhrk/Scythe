@@ -89,10 +89,8 @@ scm_bedrock_setup(ScmBedrock *br)
     scm_fcd_make_subrutine(scm_vm_subr_trmp_apply, -3, 0, SCM_OBJ_NULL);
   if (scm_obj_null_p(br->subr.trmp_apply)) return -1;
 
-  scm_fcd_mem_register_extra_rfrn(SCM_REF_MAKE(br->gv.compile));
-  scm_fcd_mem_register_extra_rfrn(SCM_REF_MAKE(br->gv.eval));
-  scm_fcd_mem_register_extra_rfrn(SCM_REF_MAKE(br->gv.current_input_port));
-  scm_fcd_mem_register_extra_rfrn(SCM_REF_MAKE(br->gv.current_output_port));
+  for (size_t i = 0; i < SCM_CACHED_GV_NR; i++)
+    scm_fcd_mem_register_extra_rfrn(SCM_REF_MAKE(br->gv[i]));
 
   return 0;
 }
@@ -102,10 +100,8 @@ scm_bedrock_cleanup(ScmBedrock *br)
 {
   scm_assert(br != NULL);
 
-  br->gv.current_input_port = SCM_OBJ_NULL;
-  br->gv.current_output_port = SCM_OBJ_NULL;
-  br->gv.eval = SCM_OBJ_NULL;
-  br->gv.compile = SCM_OBJ_NULL;
+  for (size_t i = 0; i < SCM_CACHED_GV_NR; i++)
+    br->gv[i] = SCM_OBJ_NULL;
 
   br->subr.trmp_apply = SCM_OBJ_NULL;
   br->subr.exc_hndlr_caller_post = SCM_OBJ_NULL;
@@ -190,10 +186,8 @@ scm_bedrock_initialize(ScmBedrock *br)
   br->subr.exc_hndlr_caller_post = SCM_OBJ_NULL;
   br->subr.trmp_apply = SCM_OBJ_NULL;
 
-  br->gv.compile = SCM_OBJ_NULL;
-  br->gv.eval = SCM_OBJ_NULL;
-  br->gv.current_input_port = SCM_OBJ_NULL;
-  br->gv.current_output_port = SCM_OBJ_NULL;
+  for (size_t i = 0; i < SCM_CACHED_GV_NR; i++)
+    br->gv[i] = SCM_OBJ_NULL;
 
   br->encoding = SCM_ENC_UTF8;
 
@@ -354,44 +348,24 @@ scm_bedrock_cached_gv_aux(ScmRef holder,
 int
 scm_bedrock_cached_gv(ScmBedrock *br, int kind, scm_csetter_t *gloc)
 {
+  static const struct {
+    const char *sym_name;    const char *mod_name[3]; size_t n;
+  } tbl[] = {
+    { "compile",             { "scythe", "internal", "compile" }, 3 },
+    { "eval",                { "scythe", "base" }, 2 },
+    { "current-input-port",  { "scythe", "base" }, 2 },
+    { "current-output-port", { "scythe", "base" }, 2 },
+  };
+
   scm_assert(br != NULL);
   scm_assert(gloc != NULL);
+  scm_assert(kind < SCM_CACHED_GV_NR);
 
-  switch (kind) {
-  case SCM_CACHED_GV_COMPILE:
-    return scm_bedrock_cached_gv_aux(SCM_REF_MAKE(br->gv.compile),
-                                     "compile",
-                                     (const char *[]){"scythe", "internal", "compile"},
-                                     3,
-                                     gloc);
-    break;
-  case SCM_CACHED_GV_EVAL:
-    return scm_bedrock_cached_gv_aux(SCM_REF_MAKE(br->gv.eval),
-                                     "eval",
-                                     (const char *[]){"scythe", "base"},
-                                     2,
-                                     gloc);
-    break;
-  case SCM_CACHED_GV_CURRENT_INPUT_PORT:
-    return scm_bedrock_cached_gv_aux(SCM_REF_MAKE(br->gv.current_input_port),
-                                     "current-input-port",
-                                     (const char *[]){"scheme", "base"},
-                                     2,
-                                     gloc);
-    break;
-  case SCM_CACHED_GV_CURRENT_OUTPUT_PORT:
-    return scm_bedrock_cached_gv_aux(SCM_REF_MAKE(br->gv.current_output_port),
-                                     "current-output-port",
-                                     (const char *[]){"scheme", "base"},
-                                     2,
-                                     gloc);
-
-    break;
-  default:
-    scm_fcd_error("failed to refer global variable: invalid argument", 0);
-    return -1;
-    break;
-  }
+  return scm_bedrock_cached_gv_aux(SCM_REF_MAKE(br->gv[kind]),
+                                   tbl[kind].sym_name,
+                                   tbl[kind].mod_name,
+                                   tbl[kind].n,
+                                   gloc);
 }
 
 

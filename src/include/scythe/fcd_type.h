@@ -136,12 +136,13 @@ typedef int (*ScmSubrFunc)(ScmObj subr, int argc, const ScmObj *argv);
 /*******************************************************************/
 
 enum {
-  SCM_CACHED_GV_COMPILE,
+  SCM_CACHED_GV_COMPILE = 0,
   SCM_CACHED_GV_EVAL,
   SCM_CACHED_GV_CURRENT_INPUT_PORT,
   SCM_CACHED_GV_CURRENT_OUTPUT_PORT,
 };
 
+#define SCM_CACHED_GV_NR 4
 
 /*******************************************************************/
 /*  Bignum                                                         */
