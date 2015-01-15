@@ -245,7 +245,19 @@ scm_asm_push_inst_si_si_obj(ScmObj asmb,
   scm_byte_t inst[SCM_OPFMT_INST_SZ_SI_SI_OBJ];
   ssize_t r;
 
+  SCM_REFSTK_INIT_REG(&asmb, &obj);
+
   scm_assert_obj_type(asmb, &SCM_ASSEMBLER_TYPE_INFO);
+
+  if (op == SCM_OPCODE_CLOSE) {
+    if (scm_fcd_assembler_p(obj)) {
+      obj = scm_asm_iseq(obj);
+    }
+    else if (!scm_fcd_iseq_p(obj)) {
+      obj = scm_fcd_assemble(obj, SCM_OBJ_NULL);
+      if (scm_obj_null_p(obj)) return -1;
+    }
+  }
 
   scm_vminst_set_inst_si_si_obj(inst, op, si1, si2, obj);
   r = scm_fcd_iseq_push_inst(SCM_ASSEMBLER_ISEQ(asmb),
@@ -1102,11 +1114,9 @@ static int
 scm_asm_asm_inst_si_si_obj(ScmObj asmb,
                            int opcode, const ScmObj *inst, size_t n)
 {
-  ScmObj opd3 = SCM_OBJ_INIT;
   int rslt, val1, val2;
 
-  SCM_REFSTK_INIT_REG(&asmb,
-                      &opd3);
+  SCM_REFSTK_INIT_REG(&asmb);
 
   scm_assert(scm_fcd_assembler_p(asmb));
   scm_assert(n == 0 || inst != NULL);
@@ -1120,18 +1130,7 @@ scm_asm_asm_inst_si_si_obj(ScmObj asmb,
   rslt = scm_asm_cnv_operand_to_si(inst[2], inst[0], &val2);
   if (rslt < 0) return -1;
 
-  opd3 = inst[3];
-  if (opcode == SCM_OPCODE_CLOSE) {
-    if (scm_fcd_assembler_p(opd3)) {
-      opd3 = scm_asm_iseq(opd3);
-    }
-    else if (!scm_fcd_iseq_p(opd3)) {
-      opd3 = scm_fcd_assemble(inst[3], SCM_OBJ_NULL);
-      if (scm_obj_null_p(opd3)) return -1;
-    }
-  }
-
-  rslt = scm_asm_push_inst_si_si_obj(asmb, opcode, val1, val2, opd3);
+  rslt = scm_asm_push_inst_si_si_obj(asmb, opcode, val1, val2, inst[3]);
   if (rslt < 0) return -1;
 
   return 0;
