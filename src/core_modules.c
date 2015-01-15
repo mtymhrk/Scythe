@@ -577,8 +577,6 @@ scm_define_scythe_internal_compile_constant_number(ScmObj module)
     const_num_asm_inst_record(nop, NOP),
     const_num_asm_inst_record(halt, HALT),
     const_num_asm_inst_record(int, INT),
-    const_num_asm_inst_record(undef, UNDEF),
-    const_num_asm_inst_record(uninit, UNINIT),
     const_num_asm_inst_record(cframe, CFRAME),
     const_num_asm_inst_record(eframe, EFRAME),
     const_num_asm_inst_record(epop, EPOP),
@@ -607,6 +605,8 @@ scm_define_scythe_internal_compile_constant_number(ScmObj module)
     const_num_asm_inst_record(mrve, MRVE),
 
     const_num_asm_pinst_record(label, LABEL),
+    const_num_asm_pinst_record(undef, UNDEF),
+    const_num_asm_pinst_record(uninit, UNINIT),
   };
 
   int rslt;

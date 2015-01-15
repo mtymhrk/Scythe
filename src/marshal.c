@@ -2703,6 +2703,10 @@ scm_marshal_obj_iseq_inst(ScmMarshalObjStat *stat, ScmObj marshal,
   cnt = 0;
   while ((tk = scm_fcd_disassembler_token(disasm)) != NULL
          && tk->type != SCM_DISASM_TK_END) {
+
+    r = scm_fcd_disassembler_cnv_to_marshalable(disasm);
+    if (r < 0) return -1;
+
     switch (tk->type) {
     case SCM_DISASM_TK_INST:
 
@@ -2857,10 +2861,10 @@ scm_marshal_obj_iseq_opd(ScmMarshalObjStat *stat, ScmObj marshal, ScmObj disasm,
     ssize_t oft1, oft2;
     int r;
 
-    if (tk->type == SCM_DISASM_TK_INST) {
-      r = scm_fcd_disassembler_cnv_to_marshalable(disasm);
-      if (r < 0) return -1;
+    r = scm_fcd_disassembler_cnv_to_marshalable(disasm);
+    if (r < 0) return -1;
 
+    if (tk->type == SCM_DISASM_TK_INST) {
       switch (tk->inst.fmt) {
       case SCM_OPFMT_NOOPD:
         pos += SCM_MARSHAL_ISEQ_INST_SIZE_NOOPD;

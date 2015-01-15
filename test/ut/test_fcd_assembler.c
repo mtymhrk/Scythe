@@ -187,16 +187,6 @@ TEST(fcd_assembler, halt)
   test_assemble_noopd("((halt)(nop))", SCM_OPCODE_HALT);
 }
 
-TEST(fcd_assembler, undef)
-{
-  test_assemble_noopd("((undef)(nop))", SCM_OPCODE_UNDEF);
-}
-
-TEST(fcd_assembler, uninit)
-{
-  test_assemble_noopd("((uninit)(nop))", SCM_OPCODE_UNINIT);
-}
-
 TEST(fcd_assembler, cframe)
 {
   test_assemble_si("((cframe (label 0))(nop)(label 0))",
@@ -383,6 +373,16 @@ TEST(fcd_assembler, mrve_size)
   TEST_ASSERT_EQUAL_INT(SCM_INST_SZ_NOP, SCM_INST_SZ_MRVE);
 }
 
+TEST(fcd_assembler, pi_undef)
+{
+  test_assemble_obj("((undef)(nop))", SCM_OPCODE_IMMVAL, SCM_UNDEF_OBJ);
+}
+
+TEST(fcd_assembler, pi_uninit)
+{
+  test_assemble_obj("((uninit)(nop))", SCM_OPCODE_IMMVAL, SCM_UNINIT_OBJ);
+}
+
 static void
 test_disassemble(const char *expected, const char *assembler)
 {
@@ -468,3 +468,14 @@ TEST(fcd_assembler, disasm_iof__3)
                    "   (nop)"
                    " (label 0))");
 }
+
+TEST(fcd_assembler, disasm_undef)
+{
+  test_disassemble("((undef))", "((undef))");
+}
+
+TEST(fcd_assembler, disasm_uninit)
+{
+  test_disassemble("((uninit))", "((uninit))");
+}
+

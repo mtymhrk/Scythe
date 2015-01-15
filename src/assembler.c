@@ -157,6 +157,17 @@ scm_asm_push_inst_noopd(ScmObj asmb, scm_opcode_t op)
 
   scm_assert_obj_type(asmb, &SCM_ASSEMBLER_TYPE_INFO);
 
+  switch (op) {
+  case SCM_ASM_PI_UNDEF:
+    return scm_asm_push_pinst_undef(asmb, op);
+    break;
+  case SCM_ASM_PI_UNINIT:
+    return scm_asm_push_pinst_uninit(asmb, op);
+    break;
+  default:
+    break;
+  }
+
   scm_vminst_set_inst_noopd(inst, op);
   r = scm_fcd_iseq_push_inst(SCM_ASSEMBLER_ISEQ(asmb),
                              &inst, sizeof(inst), NULL, 0);
@@ -358,6 +369,18 @@ scm_asm_push_pinst_label(ScmObj asmb, scm_opcode_t op, size_t id)
   decl->offset = (ssize_t)cur;
 
   return 0;
+}
+
+int
+scm_asm_push_pinst_undef(ScmObj asmb, scm_opcode_t op)
+{
+  return scm_asm_push_inst_obj(asmb, SCM_OPCODE_IMMVAL, SCM_UNDEF_OBJ);
+}
+
+int
+scm_asm_push_pinst_uninit(ScmObj asmb, scm_opcode_t op)
+{
+  return scm_asm_push_inst_obj(asmb, SCM_OPCODE_IMMVAL, SCM_UNINIT_OBJ);
 }
 
 int
@@ -779,6 +802,7 @@ int
 scm_disasm_cnv_to_printable(ScmObj disasm)
 {
   ScmObj obj = SCM_OBJ_INIT;
+  ScmDisasmToken *tk;
   int r;
 
   SCM_REFSTK_INIT_REG(&disasm,
@@ -789,13 +813,30 @@ scm_disasm_cnv_to_printable(ScmObj disasm)
   r = scm_disasm_cnv_to_marshalable(disasm);
   if (r < 0) return -1;
 
-  if (SCM_DISASSEMBLER_TOKEN(disasm)->inst.i.op == SCM_OPCODE_CLOSE
-      && scm_fcd_iseq_p(SCM_DISASSEMBLER_TOKEN(disasm)->inst.i.si_si_obj.opd3)) {
-    obj = scm_fcd_disassemble(SCM_DISASSEMBLER_TOKEN(disasm)->inst.i.si_si_obj.opd3);
-    if (scm_obj_null_p(obj)) return -1;
-    SCM_WB_SETQ(disasm,
-                SCM_DISASSEMBLER_TOKEN(disasm)->inst.i.si_si_obj.opd3,
-                obj);
+  if (SCM_DISASSEMBLER_TOKEN(disasm)->type != SCM_DISASM_TK_INST)
+    return 0;
+
+  tk = SCM_DISASSEMBLER_TOKEN(disasm);
+  switch (tk->inst.i.op) {
+  case SCM_OPCODE_IMMVAL:
+    if (scm_fcd_undef_object_p(tk->inst.i.obj.opd1)) {
+      tk->inst.fmt = SCM_OPFMT_NOOPD;
+      tk->inst.i.noopd.op = SCM_ASM_PI_UNDEF;
+    }
+    else if (scm_fcd_landmine_object_p(tk->inst.i.obj.opd1)) {
+      tk->inst.fmt = SCM_OPFMT_NOOPD;
+      tk->inst.i.noopd.op = SCM_ASM_PI_UNINIT;
+    }
+    break;
+  case SCM_OPCODE_CLOSE:
+    if (scm_fcd_iseq_p(tk->inst.i.si_si_obj.opd3)) {
+      obj = scm_fcd_disassemble(tk->inst.i.si_si_obj.opd3);
+      if (scm_obj_null_p(obj)) return -1;
+      SCM_WB_SETQ(disasm, tk->inst.i.si_si_obj.opd3, obj);
+    }
+    break;
+  default:
+    break;
   }
 
   return 0;
@@ -878,8 +919,6 @@ static struct {
   { SCM_OPCODE_NOP,         "nop" },
   { SCM_OPCODE_HALT,        "halt" },
   { SCM_OPCODE_INT,         "int" },
-  { SCM_OPCODE_UNDEF,       "undef" },
-  { SCM_OPCODE_UNINIT,      "uninit" },
   { SCM_OPCODE_CFRAME,      "cframe" },
   { SCM_OPCODE_EFRAME,      "eframe" },
   { SCM_OPCODE_EPOP,        "epop" },
@@ -907,6 +946,8 @@ static struct {
   { SCM_OPCODE_MRVC,        "mrvc" },
   { SCM_OPCODE_MRVE,        "mrve" },
   { SCM_ASM_PI_LABEL,       "label" },
+  { SCM_ASM_PI_UNDEF,       "undef" },
+  { SCM_ASM_PI_UNINIT,      "uninit" },
 };
 
 static int
@@ -921,7 +962,8 @@ scm_asm_sym2opcode(ScmObj op)
     int r = scm_fcd_integer_to_sword(op, &cd);
     if (r < 0) return -1;
 
-    if (0 <= cd && cd < SCM_VMINST_NR_OP) {
+    if ((0 <= cd && cd < SCM_VMINST_NR_OP)
+        || (SCM_ASM_PI_START <= cd && cd < SCM_ASM_PI_START + SCM_ASM_NR_PI)) {
       return (int)cd;
     }
     else if (cd == SCM_ASM_PI_LABEL) {
@@ -1297,6 +1339,12 @@ scm_asm_assemble_1inst_cv(ScmObj asmb, const ScmObj *inst, size_t n)
     case SCM_ASM_PI_LABEL:
       return scm_asm_asm_inst_label(asmb, opcode, inst, n);
       break;
+    case SCM_ASM_PI_UNDEF:
+      return scm_asm_asm_inst_noopd(asmb, opcode, inst, n);
+      break;
+    case SCM_ASM_PI_UNINIT:
+      return scm_asm_asm_inst_noopd(asmb, opcode, inst, n);
+      break;
     default:
       scm_assert(false);
       break;
@@ -1550,13 +1598,14 @@ scm_asm_disassemble(ScmObj disasm)
 
   while ((tk = scm_disasm_token(disasm)) != NULL
          && tk->type != SCM_DISASM_TK_END) {
+    r = scm_disasm_cnv_to_printable(disasm);
+    if (r < 0) return SCM_OBJ_NULL;
+
     mne = scm_asm_mnemonic(tk->inst.i.op);
     if (scm_obj_null_p(mne)) return SCM_OBJ_NULL;
 
     switch (tk->type) {
     case SCM_DISASM_TK_INST:
-      r = scm_disasm_cnv_to_printable(disasm);
-      if (r < 0) return SCM_OBJ_NULL;
       inst = scm_asm_disasm_inst(tk, mne);
       break;
     case SCM_DISASM_TK_LABEL:
