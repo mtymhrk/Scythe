@@ -262,6 +262,73 @@ scm_fcd_disassembler_cnv_to_printable(ScmObj disasm)
 /* Assemble/Disassemble                                                   */
 /**************************************************************************/
 
+static ScmObj
+asm_get_asmb(ScmObj acc)
+{
+  if (scm_fcd_assembler_p(acc))
+    return acc;
+  else
+    return scm_fcd_make_assembler(acc);
+}
+
+static ScmObj
+asm_return_result(ScmObj asmb, ScmObj acc)
+{
+  if (scm_fcd_assembler_p(acc)) {
+    return acc;
+  }
+  else {
+    int r = scm_fcd_assembler_commit(asmb);
+    if (r < 0) return SCM_OBJ_NULL;
+
+    return scm_asm_iseq(asmb);
+  }
+}
+
+ScmObj
+scm_fcd_assemble_1inst_cv(const ScmObj *inst, size_t n, ScmObj acc)
+{
+  ScmObj asmb = SCM_OBJ_INIT;
+  int r;
+
+  SCM_REFSTK_INIT_REG(&acc,
+                      &asmb);
+
+  scm_assert(n == 0 || inst != NULL);
+  scm_assert(scm_obj_null_p(acc)
+             || scm_fcd_iseq_p(acc) || scm_fcd_assembler_p(acc));
+
+  asmb = asm_get_asmb(acc);
+  if (scm_obj_null_p(asmb)) return SCM_OBJ_NULL;
+
+  r = scm_asm_assemble_1inst_cv(asmb, inst, n);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return asm_return_result(asmb, acc);
+}
+
+ScmObj
+scm_fcd_assemble_1inst(ScmObj inst, ScmObj acc)
+{
+  ScmObj asmb = SCM_OBJ_INIT;
+  int r;
+
+  SCM_REFSTK_INIT_REG(&inst, &acc,
+                      &asmb);
+
+  scm_assert(scm_fcd_pair_p(inst) || scm_fcd_nil_p(inst));
+  scm_assert(scm_obj_null_p(acc)
+             || scm_fcd_iseq_p(acc) || scm_fcd_assembler_p(acc));
+
+  asmb = asm_get_asmb(acc);
+  if (scm_obj_null_p(asmb)) return SCM_OBJ_NULL;
+
+  r = scm_asm_assemble_1inst(asmb, inst);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return asm_return_result(asmb, acc);
+}
+
 ScmObj
 scm_fcd_assemble(ScmObj lst, ScmObj acc)
 {
@@ -275,26 +342,13 @@ scm_fcd_assemble(ScmObj lst, ScmObj acc)
   scm_assert(scm_obj_null_p(acc)
              || scm_fcd_iseq_p(acc) || scm_fcd_assembler_p(acc));
 
-  if (scm_fcd_assembler_p(acc)) {
-    asmb = acc;
-  }
-  else {
-    asmb = scm_fcd_make_assembler(acc);
-    if (scm_obj_null_p(asmb)) return SCM_OBJ_NULL;
-  }
+  asmb = asm_get_asmb(acc);
+  if (scm_obj_null_p(asmb)) return SCM_OBJ_NULL;
 
   r = scm_asm_assemble(asmb, lst);
   if (r < 0) return SCM_OBJ_NULL;
 
-  if (scm_fcd_assembler_p(acc)) {
-    return acc;
-  }
-  else {
-    r = scm_fcd_assembler_commit(asmb);
-    if (r < 0) return SCM_OBJ_NULL;
-
-    return scm_asm_iseq(asmb);
-  }
+  return asm_return_result(asmb, acc);
 }
 
 ScmObj

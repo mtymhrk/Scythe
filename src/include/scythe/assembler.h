@@ -123,6 +123,8 @@ int scm_disasm_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
 /* Assemble/Disassemble                                                   */
 /**************************************************************************/
 
+int scm_asm_assemble_1inst_cv(ScmObj asmb, const ScmObj *inst, size_t n);
+int scm_asm_assemble_1inst(ScmObj asmb, ScmObj inst);
 int scm_asm_assemble(ScmObj asmb, ScmObj lst);
 ScmObj scm_asm_disassemble(ScmObj asmb);
 

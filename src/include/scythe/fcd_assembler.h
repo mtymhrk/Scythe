@@ -15,6 +15,8 @@ enum {
   SCM_ASM_PI_LABEL = SCM_ASM_PI_START,  /* define a label */
 };
 
+#define SCM_ASM_NR_OPD_MAX 3
+
 
 /**************************************************************************/
 /* Assembler                                                              */
@@ -49,6 +51,8 @@ int scm_fcd_disassembler_cnv_to_printable(ScmObj disasm);
 /* Assemble/Disassemble                                                   */
 /**************************************************************************/
 
+ScmObj scm_fcd_assemble_1inst_cv(const ScmObj *inst, size_t n, ScmObj acc);
+ScmObj scm_fcd_assemble_1inst(ScmObj inst, ScmObj acc);
 ScmObj scm_fcd_assemble(ScmObj lst, ScmObj acc);
 ScmObj scm_fcd_disassemble(ScmObj obj);
 

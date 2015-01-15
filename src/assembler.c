@@ -909,11 +909,16 @@ scm_asm_sym2opcode(ScmObj op)
     int r = scm_fcd_integer_to_sword(op, &cd);
     if (r < 0) return -1;
 
-    if (cd > SCM_BYTE_MAX) {
+    if (0 <= cd && cd < SCM_VMINST_NR_OP) {
+      return (int)cd;
+    }
+    else if (cd == SCM_ASM_PI_LABEL) {
+      return (int)cd;
+    }
+    else {
       scm_fcd_error("assembler: invalid opcode", 1, op);
       return -1;
     }
-    return (int)cd;
   }
   else if (scm_fcd_symbol_p(op)) {
     ssize_t rslt;
@@ -936,20 +941,22 @@ scm_asm_sym2opcode(ScmObj op)
 }
 
 static int
-scm_asm_chk_nr_operand(ScmObj operator, ScmObj operands,
-                       size_t min, size_t max)
+scm_asm_chk_nr_operand(const ScmObj *inst, size_t n, size_t min, size_t max)
 {
-  ssize_t n;
+  ScmObj lst = SCM_OBJ_INIT;
 
-  n = scm_fcd_length(operands);
-  if (n < 0) return 0;
+  scm_assert(n == 0 || inst != NULL);
 
-  if ((size_t)n < min) {
-    scm_fcd_error("assembler: too few operands", 2, operator, operands);
+  if (n == 0 || (n - 1) < min) {
+    lst = scm_fcd_list_cv(inst, n);
+    if (scm_obj_not_null_p(lst))
+      scm_fcd_error("assembler: too few operands", 1, lst);
     return -1;
   }
-  else if ((size_t)n > max) {
-    scm_fcd_error("assembler: too many operands", 2, operator, operands);
+  else if ((n - 1) > max) {
+    lst = scm_fcd_list_cv(inst, n);
+    if (scm_obj_not_null_p(lst))
+      scm_fcd_error("assembler: too many operands", 1, lst);
     return -1;
   }
 
@@ -963,7 +970,7 @@ scm_asm_cnv_operand_to_si(ScmObj operand, ScmObj operator, int *si)
   int r;
 
   scm_assert(scm_obj_not_null_p(operand));
-  scm_assert(scm_fcd_symbol_p(operator));
+  scm_assert(scm_obj_not_null_p(operator));
   scm_assert(si != NULL);
 
   if (!scm_fcd_integer_p(operand)) {
@@ -986,18 +993,16 @@ scm_asm_cnv_operand_to_si(ScmObj operand, ScmObj operator, int *si)
 }
 
 static int
-scm_asm_asm_inst_noopd(ScmObj asmb,
-                       int opcode, ScmObj operator, ScmObj operands)
+scm_asm_asm_inst_noopd(ScmObj asmb, int opcode, const ScmObj *inst, size_t n)
 {
   int rslt;
 
-  SCM_REFSTK_INIT_REG(&asmb, &operator, &operands);
+  SCM_REFSTK_INIT_REG(&asmb);
 
   scm_assert(scm_fcd_assembler_p(asmb));
-  scm_assert(scm_fcd_symbol_p(operator));
-  scm_assert(scm_fcd_nil_p(operands) || scm_fcd_pair_p(operands));
+  scm_assert(n == 0 || inst != NULL);
 
-  rslt = scm_asm_chk_nr_operand(operator, operands, 0, 0);
+  rslt = scm_asm_chk_nr_operand(inst, n, 0, 0);
   if (rslt < 0) return -1;
 
   rslt = scm_asm_push_inst_noopd(asmb, opcode);
@@ -1007,69 +1012,59 @@ scm_asm_asm_inst_noopd(ScmObj asmb,
 }
 
 static int
-scm_asm_asm_inst_obj(ScmObj asmb, int opcode, ScmObj operator, ScmObj operands)
+scm_asm_asm_inst_obj(ScmObj asmb, int opcode, const ScmObj *inst, size_t n)
 {
   int rslt;
 
-  SCM_REFSTK_INIT_REG(&asmb, &operator, &operands);
+  SCM_REFSTK_INIT_REG(&asmb);
 
   scm_assert(scm_fcd_assembler_p(asmb));
-  scm_assert(scm_fcd_symbol_p(operator));
-  scm_assert(scm_fcd_nil_p(operands) || scm_fcd_pair_p(operands));
+  scm_assert(n == 0 || inst != NULL);
 
-  rslt = scm_asm_chk_nr_operand(operator, operands, 1, 1);
+  rslt = scm_asm_chk_nr_operand(inst, n, 1, 1);
   if (rslt < 0) return -1;
 
-  rslt = scm_asm_push_inst_obj(asmb, opcode, scm_fcd_car(operands));
+  rslt = scm_asm_push_inst_obj(asmb, opcode, inst[1]);
   if (rslt < 0) return -1;
 
   return 0;
 }
 
 static int
-scm_asm_asm_inst_obj_obj(ScmObj asmb,
-                         int opcode, ScmObj operator, ScmObj operands)
+scm_asm_asm_inst_obj_obj(ScmObj asmb, int opcode, const ScmObj *inst, size_t n)
 {
   ScmObj arg1 = SCM_OBJ_INIT, arg2 = SCM_OBJ_INIT;
   int rslt;
 
-  SCM_REFSTK_INIT_REG(&asmb, &operator, &operands,
+  SCM_REFSTK_INIT_REG(&asmb,
                       &arg1, &arg2);
 
   scm_assert(scm_fcd_assembler_p(asmb));
-  scm_assert(scm_fcd_symbol_p(operator));
-  scm_assert(scm_fcd_nil_p(operands) || scm_fcd_pair_p(operands));
+  scm_assert(n == 0 || inst != NULL);
 
-  rslt = scm_asm_chk_nr_operand(operator, operands, 2, 2);
+  rslt = scm_asm_chk_nr_operand(inst, n, 2, 2);
   if (rslt < 0) return -1;
 
-  arg1 = scm_fcd_list_ref(operands, 0);
-  if (scm_obj_null_p(arg1)) return -1;
-
-  arg2 = scm_fcd_list_ref(operands, 1);
-  if (scm_obj_null_p(arg2)) return -1;
-
-  rslt = scm_asm_push_inst_obj_obj(asmb, opcode, arg1, arg2);
+  rslt = scm_asm_push_inst_obj_obj(asmb, opcode, inst[1], inst[2]);
   if (rslt < 0) return -1;
 
   return 0;
 }
 
 static int
-scm_asm_asm_inst_si(ScmObj asmb, int opcode, ScmObj operator, ScmObj operands)
+scm_asm_asm_inst_si(ScmObj asmb, int opcode, const ScmObj *inst, size_t n)
 {
   int rslt, val;
 
-  SCM_REFSTK_INIT_REG(&asmb, &operator, &operands);
+  SCM_REFSTK_INIT_REG(&asmb);
 
   scm_assert(scm_fcd_assembler_p(asmb));
-  scm_assert(scm_fcd_symbol_p(operator));
-  scm_assert(scm_fcd_nil_p(operands) || scm_fcd_pair_p(operands));
+  scm_assert(n == 0 || inst != NULL);
 
-  rslt = scm_asm_chk_nr_operand(operator, operands, 1, 1);
+  rslt = scm_asm_chk_nr_operand(inst, n, 1, 1);
   if (rslt < 0) return -1;
 
-  rslt = scm_asm_cnv_operand_to_si(scm_fcd_car(operands), operator, &val);
+  rslt = scm_asm_cnv_operand_to_si(inst[1], inst[0], &val);
   if (rslt < 0) return -1;
 
   rslt = scm_asm_push_inst_si(asmb, opcode, val);
@@ -1079,32 +1074,22 @@ scm_asm_asm_inst_si(ScmObj asmb, int opcode, ScmObj operator, ScmObj operands)
 }
 
 static int
-scm_asm_asm_inst_si_si(ScmObj asmb,
-                       int opcode, ScmObj operator, ScmObj operands)
+scm_asm_asm_inst_si_si(ScmObj asmb, int opcode, const ScmObj *inst, size_t n)
 {
-  ScmObj arg1 = SCM_OBJ_INIT, arg2 = SCM_OBJ_INIT;
   int rslt, val1, val2;
 
-  SCM_REFSTK_INIT_REG(&asmb, &operator, &operands,
-                      &arg1, &arg2);
+  SCM_REFSTK_INIT_REG(&asmb);
 
   scm_assert(scm_fcd_assembler_p(asmb));
-  scm_assert(scm_fcd_symbol_p(operator));
-  scm_assert(scm_fcd_nil_p(operands) || scm_fcd_pair_p(operands));
+  scm_assert(n == 0 || inst != NULL);
 
-  rslt = scm_asm_chk_nr_operand(operator, operands, 2, 2);
+  rslt = scm_asm_chk_nr_operand(inst, n, 2, 2);
   if (rslt < 0) return -1;
 
-  arg1 = scm_fcd_list_ref(operands, 0);
-  if (scm_obj_null_p(arg1)) return -1;
-
-  arg2 = scm_fcd_list_ref(operands, 1);
-  if (scm_obj_null_p(arg2)) return -1;
-
-  rslt = scm_asm_cnv_operand_to_si(arg1, operator, &val1);
+  rslt = scm_asm_cnv_operand_to_si(inst[1], inst[0], &val1);
   if (rslt < 0) return -1;
 
-  rslt = scm_asm_cnv_operand_to_si(arg2, operator, &val2);
+  rslt = scm_asm_cnv_operand_to_si(inst[2], inst[0], &val2);
   if (rslt < 0) return -1;
 
   rslt = scm_asm_push_inst_si_si(asmb, opcode, val1, val2);
@@ -1115,77 +1100,61 @@ scm_asm_asm_inst_si_si(ScmObj asmb,
 
 static int
 scm_asm_asm_inst_si_si_obj(ScmObj asmb,
-                           int opcode, ScmObj operator, ScmObj operands)
+                           int opcode, const ScmObj *inst, size_t n)
 {
-  ScmObj arg1 = SCM_OBJ_INIT, arg2 = SCM_OBJ_INIT, arg3 = SCM_OBJ_INIT;
+  ScmObj opd3 = SCM_OBJ_INIT;
   int rslt, val1, val2;
 
-  SCM_REFSTK_INIT_REG(&asmb, &operator, &operands,
-                      &arg1, &arg2, &arg3);
+  SCM_REFSTK_INIT_REG(&asmb,
+                      &opd3);
 
   scm_assert(scm_fcd_assembler_p(asmb));
-  scm_assert(scm_fcd_symbol_p(operator));
-  scm_assert(scm_fcd_nil_p(operands) || scm_fcd_pair_p(operands));
+  scm_assert(n == 0 || inst != NULL);
 
-  rslt = scm_asm_chk_nr_operand(operator, operands, 3, 3);
+  rslt = scm_asm_chk_nr_operand(inst, n, 3, 3);
   if (rslt < 0) return -1;
 
-  arg1 = scm_fcd_list_ref(operands, 0);
-  if (scm_obj_null_p(arg1)) return -1;
-
-  arg2 = scm_fcd_list_ref(operands, 1);
-  if (scm_obj_null_p(arg2)) return -1;
-
-  arg3 = scm_fcd_list_ref(operands, 2);
-  if (scm_obj_null_p(arg3)) return -1;
-
-  rslt = scm_asm_cnv_operand_to_si(arg1, operator, &val1);
+  rslt = scm_asm_cnv_operand_to_si(inst[1], inst[0], &val1);
   if (rslt < 0) return -1;
 
-  rslt = scm_asm_cnv_operand_to_si(arg2, operator, &val2);
+  rslt = scm_asm_cnv_operand_to_si(inst[2], inst[0], &val2);
   if (rslt < 0) return -1;
 
-  if (!scm_fcd_iseq_p(arg3)) {
-    arg3 = scm_fcd_assemble(arg3, SCM_OBJ_NULL);
-    if (scm_obj_null_p(arg3)) return -1;
+  opd3 = inst[3];
+  if (!scm_fcd_iseq_p(opd3)) {
+    opd3 = scm_fcd_assemble(inst[3], SCM_OBJ_NULL);
+    if (scm_obj_null_p(opd3)) return -1;
   }
 
-  rslt = scm_asm_push_inst_si_si_obj(asmb, opcode, val1, val2, arg3);
+  rslt = scm_asm_push_inst_si_si_obj(asmb, opcode, val1, val2, opd3);
   if (rslt < 0) return -1;
 
   return 0;
 }
 
 static int
-scm_asm_asm_inst_iof(ScmObj asmb, int opcode, ScmObj operator, ScmObj operands)
+scm_asm_asm_inst_iof_raw(ScmObj asmb, int opcode, const ScmObj *inst, size_t n)
 {
-  ScmObj arg = SCM_OBJ_INIT, label = SCM_OBJ_INIT;
   int rslt;
 
-  SCM_REFSTK_INIT_REG(&asmb, &operator, &operands,
-                      &arg, &label);
+  SCM_REFSTK_INIT_REG(&asmb);
 
   scm_assert(scm_fcd_assembler_p(asmb));
-  scm_assert(scm_fcd_symbol_p(operator));
-  scm_assert(scm_fcd_nil_p(operands) || scm_fcd_pair_p(operands));
+  scm_assert(n == 0 || inst != NULL);
 
-  rslt = scm_asm_chk_nr_operand(operator, operands, 1, 1);
+  rslt = scm_asm_chk_nr_operand(inst, n, 2, 2);
   if (rslt < 0) return -1;
 
-  arg = scm_fcd_car(operands);
-  if (scm_fcd_pair_p(arg)) {
+  if (scm_fcd_true_p(inst[1])) {
     size_t id;
 
-    label = scm_fcd_list_ref(arg, 1);
-    if (scm_obj_null_p(label)) return -1;
-
-    if (!scm_fcd_integer_p(label) || !scm_fcd_positive_p(label)) {
+    if (!scm_fcd_integer_p(inst[2]) || !scm_fcd_positive_p(inst[2])) {
       scm_fcd_error("assembler: label id: positive integer required",
-                    2, operator, arg);
+                    2, inst[0], inst[1]);
       return -1;
     }
 
-    rslt = scm_fcd_integer_to_size_t(label, &id);
+    rslt = scm_fcd_integer_to_size_t(inst[2], &id);
     if (rslt < 0) return -1;
 
     rslt = scm_asm_register_label_id(asmb, id);
@@ -1194,17 +1163,50 @@ scm_asm_asm_inst_iof(ScmObj asmb, int opcode, ScmObj operator, ScmObj operands)
     rslt = scm_asm_push_inst_iof(asmb, opcode, true, id);
     if (rslt < 0) return -1;
   }
-  else if (scm_fcd_integer_p(arg)) {
+  else {
     int iof;
 
-    rslt = scm_asm_cnv_operand_to_si(arg, operator, &iof);
+    rslt = scm_asm_cnv_operand_to_si(inst[2], inst[0], &iof);
     if (rslt < 0) return -1;
 
     rslt = scm_asm_push_inst_iof(asmb, opcode, false, iof);
     if (rslt < 0) return -1;
   }
+
+  return 0;
+}
+
+static int
+scm_asm_asm_inst_iof(ScmObj asmb, int opcode, const ScmObj *inst, size_t n)
+{
+  ScmObj new_inst[3] = { SCM_OBJ_INIT, SCM_OBJ_INIT, SCM_OBJ_INIT };
+  int rslt;
+
+  SCM_REFSTK_INIT_REG(&asmb);
+  SCM_REFSTK_REG_ARY(new_inst, 3);
+
+  scm_assert(scm_fcd_assembler_p(asmb));
+  scm_assert(n == 0 || inst != NULL);
+
+  rslt = scm_asm_chk_nr_operand(inst, n, 1, 2);
+  if (rslt < 0) return -1;
+
+  if (scm_fcd_boolean_p(inst[1]))
+    return scm_asm_asm_inst_iof_raw(asmb, opcode, inst, n);
+
+  new_inst[0] = inst[0];
+  if (scm_fcd_pair_p(inst[1])) {
+    new_inst[1] = SCM_TRUE_OBJ;
+    new_inst[2] = scm_fcd_list_ref(inst[1], 1);
+    return scm_asm_asm_inst_iof_raw(asmb, opcode, new_inst, 3);
+  }
+  else if (scm_fcd_integer_p(inst[1])) {
+    new_inst[1] = SCM_FALSE_OBJ;
+    new_inst[2] = inst[1];
+    return scm_asm_asm_inst_iof_raw(asmb, opcode, new_inst, 3);
+  }
   else {
-    scm_fcd_error("assembler: invalid operands", 2, operator, operands);
+    scm_fcd_error("assembler: invalid operands", 2, inst[0], inst[1]);
     return -1;
   }
 
@@ -1212,33 +1214,28 @@ scm_asm_asm_inst_iof(ScmObj asmb, int opcode, ScmObj operator, ScmObj operands)
 }
 
 static int
-scm_asm_asm_inst_label(ScmObj asmb,
-                       int opcode, ScmObj operator, ScmObj operands)
+scm_asm_asm_inst_label(ScmObj asmb, int opcode, const ScmObj *inst, size_t n)
 
 {
-  ScmObj arg = SCM_OBJ_INIT;
   size_t id;
   int rslt;
 
-  SCM_REFSTK_INIT_REG(&asmb, &operator, &operands,
-                      &arg);
+  SCM_REFSTK_INIT_REG(&asmb);
 
   scm_assert(scm_fcd_assembler_p(asmb));
   scm_assert(opcode >= SCM_ASM_PI_START);
-  scm_assert(scm_fcd_symbol_p(operator));
-  scm_assert(scm_fcd_nil_p(operands) || scm_fcd_pair_p(operands));
+  scm_assert(n == 0 || inst != NULL);
 
-  rslt = scm_asm_chk_nr_operand(operator, operands, 1, 1);
+  rslt = scm_asm_chk_nr_operand(inst, n, 1, 1);
   if (rslt < 0) return -1;
 
-  arg = scm_fcd_car(operands);
-  if (!scm_fcd_integer_p(arg) || !scm_fcd_positive_p(arg)) {
+  if (!scm_fcd_integer_p(inst[1]) || !scm_fcd_positive_p(inst[1])) {
     scm_fcd_error("assembler: label id: positive integer requried",
-                  2, operator, arg);
+                  2, inst[0], inst[1]);
     return -1;
   }
 
-  rslt = scm_fcd_integer_to_size_t(arg, &id);
+  rslt = scm_fcd_integer_to_size_t(inst[1], &id);
   if (rslt < 0) return -1;
 
   rslt = scm_asm_register_label_id(asmb, id);
@@ -1250,52 +1247,41 @@ scm_asm_asm_inst_label(ScmObj asmb,
   return 0;
 }
 
-static int
-scm_asm_asm_inst(ScmObj asmb, ScmObj inst)
+int
+scm_asm_assemble_1inst_cv(ScmObj asmb, const ScmObj *inst, size_t n)
 {
-  ScmObj operator = SCM_OBJ_INIT, operands = SCM_OBJ_INIT;
   int opcode;
 
-  SCM_REFSTK_INIT_REG(&asmb, &inst,
-                      &operator, &operands);
+  SCM_REFSTK_INIT_REG(&asmb);
 
   scm_assert(scm_fcd_assembler_p(asmb));
-  scm_assert(scm_obj_not_null_p(inst));
+  scm_assert(n == 0 || inst != NULL);
 
-  if (scm_fcd_pair_p(inst)) {
-    operator = scm_fcd_car(inst);
-    operands = scm_fcd_cdr(inst);
-  }
-  else {
-    operator = inst;
-    operands = SCM_NIL_OBJ;
-  }
-
-  opcode = scm_asm_sym2opcode(operator);
+  opcode = scm_asm_sym2opcode(inst[0]);
   if (opcode < 0) return -1;
 
   if (opcode < SCM_ASM_PI_START) {
     switch (scm_opfmt_table[opcode]) {
     case SCM_OPFMT_NOOPD:
-      return scm_asm_asm_inst_noopd(asmb, opcode, operator, operands);
+      return scm_asm_asm_inst_noopd(asmb, opcode, inst, n);
       break;
     case SCM_OPFMT_OBJ:
-      return scm_asm_asm_inst_obj(asmb, opcode, operator, operands);
+      return scm_asm_asm_inst_obj(asmb, opcode, inst, n);
       break;
     case SCM_OPFMT_OBJ_OBJ:
-      return scm_asm_asm_inst_obj_obj(asmb, opcode, operator, operands);
+      return scm_asm_asm_inst_obj_obj(asmb, opcode, inst, n);
       break;
     case SCM_OPFMT_SI:
-      return scm_asm_asm_inst_si(asmb, opcode, operator, operands);
+      return scm_asm_asm_inst_si(asmb, opcode, inst, n);
       break;
     case SCM_OPFMT_SI_SI:
-      return scm_asm_asm_inst_si_si(asmb, opcode, operator, operands);
+      return scm_asm_asm_inst_si_si(asmb, opcode, inst, n);
       break;
     case SCM_OPFMT_SI_SI_OBJ:
-      return scm_asm_asm_inst_si_si_obj(asmb, opcode, operator, operands);
+      return scm_asm_asm_inst_si_si_obj(asmb, opcode, inst, n);
       break;
     case SCM_OPFMT_IOF:
-      return scm_asm_asm_inst_iof(asmb, opcode, operator, operands);
+      return scm_asm_asm_inst_iof(asmb, opcode, inst, n);
       break;
     default:
       scm_assert(false);
@@ -1305,7 +1291,7 @@ scm_asm_asm_inst(ScmObj asmb, ScmObj inst)
   else {
     switch (opcode) {
     case SCM_ASM_PI_LABEL:
-      return scm_asm_asm_inst_label(asmb, opcode, operator, operands);
+      return scm_asm_asm_inst_label(asmb, opcode, inst, n);
       break;
     default:
       scm_assert(false);
@@ -1316,22 +1302,67 @@ scm_asm_asm_inst(ScmObj asmb, ScmObj inst)
   return -1;
 }
 
+static ssize_t
+scm_asm_asm_inst_list_to_cv(ScmObj lst, ScmObj *cv, size_t n)
+{
+  ScmObj x = SCM_OBJ_INIT;
+  size_t cnt;
+
+  scm_assert(scm_fcd_nil_p(lst) || scm_fcd_pair_p(lst));
+  scm_assert(cv != NULL);
+
+  for (x = lst, cnt = 0;
+       scm_fcd_pair_p(x) && cnt < n;
+       x = scm_fcd_cdr(x), cnt++)
+    cv[cnt] = scm_fcd_car(x);
+
+  if (scm_fcd_pair_p(x)) {
+    scm_fcd_error("assembler: too many operands", 1, lst);
+    return -1;
+  }
+  else if (cnt == 0) {
+    scm_fcd_error("assembler: invalid assembler format", 1, lst);
+    return -1;
+  }
+
+  scm_assert(cnt <= SSIZE_MAX);
+  return (ssize_t)cnt;
+}
+
+int
+scm_asm_assemble_1inst(ScmObj asmb, ScmObj inst)
+{
+  ScmObj cv[SCM_ASM_NR_OPD_MAX + 1];  /* + 1 はオペレータ分 */
+  ssize_t n;
+
+  SCM_REFSTK_INIT_REG(&asmb, &inst);
+
+  for (int i = 0; i < SCM_ASM_NR_OPD_MAX + 1; i++) cv[i] = SCM_OBJ_NULL;
+  SCM_REFSTK_REG_ARY(cv, SCM_ASM_NR_OPD_MAX + 1);
+
+  scm_assert(scm_fcd_assembler_p(asmb));
+  scm_assert(scm_fcd_pair_p(inst) || scm_fcd_nil_p(inst));
+
+  n = scm_asm_asm_inst_list_to_cv(inst, cv, SCM_ASM_NR_OPD_MAX + 1);
+  if (n < 0) return -1;
+
+  return scm_asm_assemble_1inst_cv(asmb, cv, (size_t)n);
+}
+
 int
 scm_asm_assemble(ScmObj asmb, ScmObj lst)
 {
-  ScmObj cur = SCM_OBJ_INIT, inst = SCM_OBJ_INIT;
-  int rslt;
+  ScmObj cur = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&asmb, &lst,
-                      &cur, &inst);
+                      &cur);
 
   scm_assert(scm_fcd_assembler_p(asmb));
   scm_assert(scm_fcd_pair_p(lst) || scm_fcd_nil_p(lst));
 
   for (cur = lst; scm_fcd_pair_p(cur); cur = scm_fcd_cdr(cur)) {
-    inst = scm_fcd_car(cur);
-    rslt = scm_asm_asm_inst(asmb, inst);
-    if (rslt < 0) return -1;
+    int r = scm_asm_assemble_1inst(asmb, scm_fcd_car(cur));
+    if (r < 0) return -1;
   }
 
   return 0;
