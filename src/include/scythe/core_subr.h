@@ -629,6 +629,10 @@ int scm_subr_func_module_name(ScmObj subr, int argc, const ScmObj *argv);
 /*  Internals (Compiler)                                           */
 /*******************************************************************/
 
+#define SCM_SUBR_ARITY_MAKE_ASSEMBLER -1
+#define SCM_SUBR_ARITY_ASSEMBLER_ASSIGN_LABEL_ID_I 1
+#define SCM_SUBR_ARITY_ASSEMBLER_PUSH_I -3
+#define SCM_SUBR_ARITY_ASSEMBLER_COMMIT_I 1
 #define SCM_SUBR_ARITY_COMPILER_P 1
 #define SCM_SUBR_ARITY_MAKE_COMPILER -1
 #define SCM_SUBR_ARITY_COMPILER_ASSIGN_LABEL_ID_I 1
@@ -643,6 +647,10 @@ int scm_subr_func_module_name(ScmObj subr, int argc, const ScmObj *argv);
 #define SCM_SUBR_ARITY_GLOBAL_SYNTAX_BIND -4
 #define SCM_SUBR_ARITY_GLOBAL_SYNTAX_REF -3
 
+#define SCM_SUBR_FLAG_MAKE_ASSEMBLER 0
+#define SCM_SUBR_FLAG_ASSEMBLER_ASSIGN_LABEL_ID_I 0
+#define SCM_SUBR_FLAG_ASSEMBLER_PUSH_I SCM_PROC_ADJ_UNWISHED
+#define SCM_SUBR_FLAG_ASSEMBLER_COMMIT_I 0
 #define SCM_SUBR_FLAG_COMPILER_P 0
 #define SCM_SUBR_FLAG_MAKE_COMPILER 0
 #define SCM_SUBR_FLAG_COMPILER_ASSIGN_LABEL_ID_I 0
@@ -657,6 +665,11 @@ int scm_subr_func_module_name(ScmObj subr, int argc, const ScmObj *argv);
 #define SCM_SUBR_FLAG_GLOBAL_SYNTAX_BIND 0
 #define SCM_SUBR_FLAG_GLOBAL_SYNTAX_REF 0
 
+int scm_subr_func_make_assembler(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_assembler_assign_label_id_i(ScmObj subr,
+                                              int argc, const ScmObj *argv);
+int scm_subr_func_assembler_push_i(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_assembler_commit_i(ScmObj subr, int argc, const ScmObj *argv);
 int scm_subr_func_compiler_P(ScmObj subr, int argc, const ScmObj *argv);
 int scm_subr_func_make_compiler(ScmObj subr, int argc, const ScmObj *argv);
 int scm_subr_func_compiler_assign_label_id_i(ScmObj subr,

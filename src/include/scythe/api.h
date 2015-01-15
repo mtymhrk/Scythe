@@ -297,6 +297,10 @@ ScmObj scm_api_syntax_handler(ScmObj syx);
 /*******************************************************************/
 
 ScmObj scm_api_assemble(ScmObj lst, ScmObj acc);
+ScmObj scm_api_make_assebmler(ScmObj iseq);
+ScmObj scm_api_assembler_assgin_label_id_i(ScmObj asmb);
+ScmObj scm_api_assembler_push_i_cv(ScmObj asmb, const ScmObj *cv, size_t n);
+ScmObj scm_api_assembler_commit_i(ScmObj asmb);
 
 
 /*******************************************************************/

@@ -2237,6 +2237,78 @@ scm_api_assemble(ScmObj lst, ScmObj acc)
   return scm_fcd_assemble(lst, acc);
 }
 
+ScmObj
+scm_api_make_assebmler(ScmObj iseq)
+{
+  if (scm_obj_not_null_p(iseq) && !scm_fcd_iseq_p(iseq)) {
+    scm_capi_error("make-assembler: <iseq> required, but got", 1, iseq);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_fcd_make_assembler(iseq);
+}
+
+ScmObj
+scm_api_assembler_assgin_label_id_i(ScmObj asmb)
+{
+  ssize_t i;
+
+  if (!scm_fcd_assembler_p(asmb)) {
+    scm_capi_error("assembler-assgin-label-id!: <assmbler> required, but got",
+                   1, asmb);
+    return SCM_OBJ_NULL;
+  }
+
+  i = scm_fcd_assembler_assign_label_id(asmb);
+  if (i < 0) return SCM_OBJ_NULL;
+
+  return scm_fcd_make_number_from_size_t((size_t)i);
+}
+
+ScmObj
+scm_api_assembler_push_i_cv(ScmObj asmb, const ScmObj *cv, size_t n)
+{
+  ScmObj r = SCM_OBJ_INIT;
+
+  if (!scm_fcd_assembler_p(asmb)) {
+    scm_capi_error("assembler-push!: <assmbler> required, but got", 1, asmb);
+    return SCM_OBJ_NULL;
+  }
+  else if (n > 0 && cv == NULL) {
+    scm_capi_error("assembler-push!: invalid argument", 0);
+    return SCM_OBJ_NULL;
+  }
+
+  for (size_t i = 0; i < n; i++) {
+    if (scm_obj_null_p(cv[i])) {
+      scm_capi_error("assembler-push!: invalid-argument", 0);
+      return SCM_OBJ_NULL;
+    }
+  }
+
+  r = scm_fcd_assemble_1inst_cv(cv, n, asmb);
+  if (scm_obj_null_p(r)) return SCM_OBJ_NULL;
+
+  return SCM_UNDEF_OBJ;
+}
+
+ScmObj
+scm_api_assembler_commit_i(ScmObj asmb)
+{
+  int r;
+
+  if (!scm_fcd_assembler_p(asmb)) {
+    scm_capi_error("assembler-assgin-label-id!: <assmbler> required, but got",
+                   asmb);
+    return SCM_OBJ_NULL;
+  }
+
+  r = scm_fcd_assembler_commit(asmb);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return SCM_UNDEF_OBJ;
+}
+
 
 /*******************************************************************/
 /*  Compiler                                                       */

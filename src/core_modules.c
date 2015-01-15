@@ -16,6 +16,12 @@ struct subr_data {
   bool export;
 };
 
+struct const_num_data {
+  const char *name;
+  scm_sword_t val;
+  bool export;
+};
+
 #define STRARY(...) (const char *[]){__VA_ARGS__}
 
 
@@ -66,6 +72,29 @@ scm_define_subr(ScmObj module, const struct subr_data *data, size_t n)
 
     rslt = scm_fcd_define_global_var(module, sym, subr, data[i].export);
     if (rslt < 0) return -1;
+  }
+
+  return 0;
+}
+
+static int
+scm_define_const_num(ScmObj module, const struct const_num_data *data, size_t n)
+{
+  ScmObj sym = SCM_OBJ_INIT, num = SCM_OBJ_INIT;
+  int r;
+
+  SCM_REFSTK_INIT_REG(&module,
+                      &sym, &num);
+
+  for (size_t i = 0; i < n; i++) {
+    sym = scm_fcd_make_symbol_from_cstr(data[i].name, SCM_ENC_SRC);
+    if (scm_obj_null_p(sym)) return -1;
+
+    num = scm_fcd_make_number_from_sword(data[i].val);
+    if (scm_obj_null_p(num)) return -1;
+
+    r = scm_fcd_define_global_var(module, sym, num, data[i].export);
+    if (r < 0) return -1;
   }
 
   return 0;
@@ -470,6 +499,14 @@ scm_define_scythe_internal_compile_subr(ScmObj module)
 {
   static const struct subr_data data[] = {
     /*******************************************************************/
+    /*  Assembler                                                      */
+    /*******************************************************************/
+    { "make-assembler", SCM_SUBR_ARITY_MAKE_ASSEMBLER, SCM_SUBR_FLAG_MAKE_ASSEMBLER, scm_subr_func_make_assembler, false },
+    { "assembler-assign-label-id!", SCM_SUBR_ARITY_ASSEMBLER_ASSIGN_LABEL_ID_I, SCM_SUBR_FLAG_ASSEMBLER_ASSIGN_LABEL_ID_I, scm_subr_func_assembler_assign_label_id_i, false },
+    { "assembler-push!", SCM_SUBR_ARITY_ASSEMBLER_PUSH_I, SCM_SUBR_FLAG_ASSEMBLER_PUSH_I, scm_subr_func_assembler_push_i, false },
+    { "assembler-commit!", SCM_SUBR_ARITY_ASSEMBLER_COMMIT_I, SCM_SUBR_FLAG_ASSEMBLER_COMMIT_I, scm_subr_func_assembler_commit_i, false },
+
+    /*******************************************************************/
     /*  Compiler                                                       */
     /*******************************************************************/
     { "compiler?", SCM_SUBR_ARITY_COMPILER_P, SCM_SUBR_FLAG_COMPILER_P, scm_subr_func_compiler_P, false },
@@ -529,6 +566,60 @@ scm_define_scythe_internal_compile_closure(ScmObj mod)
   return 0;
 }
 
+#define const_num_asm_inst_record(x, y) \
+  { "+asm-inst-" #x "+", SCM_OPCODE_##y, false }
+#define const_num_asm_pinst_record(x, y) \
+  { "+asm-inst-" #x "+", SCM_ASM_PI_##y, false }
+
+static int
+scm_define_scythe_internal_compile_constant_number(ScmObj module)
+{
+  static const struct const_num_data data[] = {
+    const_num_asm_inst_record(nop, NOP),
+    const_num_asm_inst_record(halt, HALT),
+    const_num_asm_inst_record(int, INT),
+    const_num_asm_inst_record(undef, UNDEF),
+    const_num_asm_inst_record(uninit, UNINIT),
+    const_num_asm_inst_record(cframe, CFRAME),
+    const_num_asm_inst_record(eframe, EFRAME),
+    const_num_asm_inst_record(epop, EPOP),
+    const_num_asm_inst_record(eshift, ESHIFT),
+    const_num_asm_inst_record(immval, IMMVAL),
+    const_num_asm_inst_record(push, PUSH),
+    const_num_asm_inst_record(mvpush, MVPUSH),
+    const_num_asm_inst_record(return, RETURN),
+    const_num_asm_inst_record(pcall, PCALL),
+    const_num_asm_inst_record(call, CALL),
+    const_num_asm_inst_record(tcall, TAIL_CALL),
+    const_num_asm_inst_record(gref, GREF),
+    const_num_asm_inst_record(gdef, GDEF),
+    const_num_asm_inst_record(gset, GSET),
+    const_num_asm_inst_record(sref, SREF),
+    const_num_asm_inst_record(sset, SSET),
+    const_num_asm_inst_record(jmp, JMP),
+    const_num_asm_inst_record(jmpt, JMPT),
+    const_num_asm_inst_record(jmpf, JMPF),
+    const_num_asm_inst_record(box, BOX),
+    const_num_asm_inst_record(close, CLOSE),
+    const_num_asm_inst_record(demine, DEMINE),
+    const_num_asm_inst_record(emine, EMINE),
+    const_num_asm_inst_record(edemine, EDEMINE),
+    const_num_asm_inst_record(mrvc, MRVC),
+    const_num_asm_inst_record(mrve, MRVE),
+
+    const_num_asm_pinst_record(label, LABEL),
+  };
+
+  int rslt;
+
+  SCM_REFSTK_INIT_REG(&module);
+
+  rslt = scm_define_const_num(module, data, sizeof(data)/sizeof(data[0]));
+  if (rslt < 0) return -1;
+
+  return 0;
+}
+
 static int
 scm_load_module_func_scythe_internal_compile(ScmObj mod)
 {
@@ -556,6 +647,9 @@ scm_load_module_func_scythe_internal_compile(ScmObj mod)
    */
 
   rslt = scm_define_scythe_internal_compile_subr(mod);
+  if (rslt < 0) return -1;
+
+  rslt = scm_define_scythe_internal_compile_constant_number(mod);
   if (rslt < 0) return -1;
 
   rslt = scm_define_scythe_internal_compile_closure(mod);

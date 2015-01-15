@@ -2484,6 +2484,70 @@ scm_subr_func_module_name(ScmObj subr, int argc, const ScmObj *argv)
 /*******************************************************************/
 
 int
+scm_subr_func_make_assembler(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT, iseq = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&subr,
+                      &val, &iseq);
+
+  iseq = SCM_OBJ_NULL;
+  if (scm_fcd_pair_p(argv[0])) {
+    iseq = scm_fcd_car(argv[0]);
+    if (scm_obj_null_p(iseq)) return -1;
+  }
+
+  val = scm_api_make_assebmler(iseq);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_fcd_return_val(&val, 1);
+}
+
+int
+scm_subr_func_assembler_assign_label_id_i(ScmObj subr,
+                                          int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&subr,
+                      &val);
+
+  val = scm_api_assembler_assgin_label_id_i(argv[0]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_fcd_return_val(&val, 1);
+}
+
+int
+scm_subr_func_assembler_push_i(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&subr,
+                      &val);
+
+  val = scm_api_assembler_push_i_cv(argv[0], argv + 1, (size_t)(argc - 1));
+  if (scm_obj_null_p(val)) return -1;
+
+  val = SCM_UNDEF_OBJ;
+  return scm_fcd_return_val(&val, 1);
+}
+
+int
+scm_subr_func_assembler_commit_i(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&subr,
+                      &val);
+
+  val = scm_api_assembler_commit_i(argv[0]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_fcd_return_val(&val, 1);
+}
+
+int
 scm_subr_func_compiler_P(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
