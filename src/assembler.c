@@ -545,7 +545,15 @@ scm_asm_inst_iof(ScmObj iseq, int opcode, ScmObj operator, ScmObj operands,
   }
 
   label = scm_fcd_car(operands);
-  if (!scm_fcd_symbol_p(label)) {
+  if (scm_fcd_pair_p(label)) {
+    label = scm_fcd_list_ref(label, 1);
+    if (scm_obj_null_p(label)) return -1;
+    label = scm_fcd_format_cstr("~s", label);
+    if (scm_obj_null_p(label)) return -1;
+    label = scm_fcd_string_to_symbol(label);
+    if (scm_obj_null_p(label)) return -1;
+  }
+  else if (!scm_fcd_symbol_p(label)) {
     scm_fcd_error("Assembler: operands is not symbol", 2, operator, label);
     return -1;
   }
@@ -588,7 +596,13 @@ scm_asm_inst_label(ScmObj iseq, int opcode, ScmObj operator, ScmObj operands,
   }
 
   arg = scm_fcd_car(operands);
-  if (!scm_fcd_symbol_p(arg)) {
+  if (scm_fcd_number_p(arg)) {
+    arg = scm_fcd_format_cstr("~s", arg);
+    if (scm_obj_null_p(arg)) return -1;
+    arg = scm_fcd_string_to_symbol(arg);
+    if (scm_obj_null_p(arg)) return -1;
+  }
+  else if (!scm_fcd_symbol_p(arg)) {
     scm_fcd_error("Assembler: operand is not symbol", 2, operator, arg);
     return -1;
   }

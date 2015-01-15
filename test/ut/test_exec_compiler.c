@@ -98,41 +98,41 @@ TEST(exec_compiler, quote)
 TEST(exec_compiler, application_1)
 {
   test_compile("(func)",
-               "(  (cframe lbl_call-cont_0)"
+               "(  (cframe (label 0))"
                "   (gref func (main))"
                "   (call 0)"
                "   (nop)"
-               " (label lbl_call-cont_0))");
+               " (label 0))");
 }
 
 TEST(exec_compiler, application_2)
 {
   test_compile("(func 'a 'b)",
-               "(  (cframe lbl_call-cont_0)"
+               "(  (cframe (label 0))"
                "   (immval a)(push)"
                "   (immval b)(push)"
                "   (gref func (main))"
                "   (call 2)"
                "   (nop)"
-               " (label lbl_call-cont_0))");
+               " (label 0))");
 }
 
 TEST(exec_compiler, application_3)
 {
   test_compile("((lambda (x) x) 1)",
-               "(  (cframe lbl_call-cont_0)"
+               "(  (cframe (label 0))"
                "   (immval 1)(push)"
                "   (asm-close 0 1"
                "     ((sref 0 0)(return)))"
                "   (call 1)"
                "   (nop)"
-               " (label lbl_call-cont_0))");
+               " (label 0))");
 }
 
 TEST(exec_compiler, application_4)
 {
   test_compile("((lambda (x) (lambda (y) (cons x y))) 1)",
-               "(  (cframe lbl_call-cont_0)"
+               "(  (cframe (label 0))"
                "   (immval 1)(push)"
                "   (asm-close 0 1"
                "     ((asm-close 1 1"
@@ -143,7 +143,7 @@ TEST(exec_compiler, application_4)
                "      (return)))"
                "   (call 1)"
                "   (nop)"
-               " (label lbl_call-cont_0))");
+               " (label 0))");
 }
 
 TEST(exec_compiler, application_5)
@@ -188,13 +188,13 @@ TEST(exec_compiler, lambda_6)
 {
   test_compile("(lambda () (cons 'a 'b) (cons 'c 'd))",
                "((asm-close 0 0"
-               "   (  (cframe lbl_call-cont_0)"
+               "   (  (cframe (label 0))"
                "      (immval a)(push)"
                "      (immval b)(push)"
                "      (gref cons (main))"
                "      (call 2)"
                "      (nop)"
-               "    (label lbl_call-cont_0)"
+               "    (label 0)"
                "      (immval c)(push)"
                "      (immval d)(push)"
                "      (gref cons (main))"
@@ -259,20 +259,20 @@ TEST(exec_compiler, let_6)
   test_compile("(let ((x 1)) (cons 'a 'b) (cons 'c 'd))",
                "(  (immval 1)(push)"
                "   (eframe 1)"
-               "   (cframe lbl_call-cont_0)"
+               "   (cframe (label 0))"
                "   (immval a)(push)"
                "   (immval b)(push)"
                "   (gref cons (main))"
                "   (call 2)"
                "   (nop)"
-               " (label lbl_call-cont_0)"
-               "   (cframe lbl_call-cont_1)"
+               " (label 0)"
+               "   (cframe (label 1))"
                "   (immval c)(push)"
                "   (immval d)(push)"
                "   (gref cons (main))"
                "   (call 2)"
                "   (nop)"
-               " (label lbl_call-cont_1)"
+               " (label 1)"
                "   (epop))");
 }
 
@@ -289,13 +289,13 @@ TEST(exec_compiler, named_let_1)
                "      (sref 0 1)"
                "      (tcall 2)))"
                "   (demine 0 0)"
-               "   (cframe lbl_call-cont_0)"
+               "   (cframe (label 0))"
                "   (sref 0 1)(push)"
                "   (sref 1 1)(push)"
                "   (sref 0 0)"
                "   (call 2)"
                "   (nop)"
-               " (label lbl_call-cont_0)"
+               " (label 0)"
                "   (epop)"
                "   (epop))");
 }
@@ -306,11 +306,11 @@ TEST(exec_compiler, named_let_2)
                "(  (emine 1)"
                "   (asm-close 0 0 ((undef)(return)))"
                "   (demine 0 0)"
-               "   (cframe lbl_call-cont_0)"
+               "   (cframe (label 0))"
                "   (sref 0 0)"
                "   (call 0)"
                "   (nop)"
-               " (label lbl_call-cont_0)"
+               " (label 0)"
                "   (epop))");
 }
 
@@ -413,20 +413,20 @@ TEST(exec_compiler, let_a_7)
                "   (eframe 1)"
                "   (immval 2)(push)"
                "   (eframe 1)"
-               "   (cframe lbl_call-cont_0)"
+               "   (cframe (label 0))"
                "   (sref 0 1)(push)"
                "   (sref 0 0)(push)"
                "   (gref cons (main))"
                "   (call 2)"
                "   (nop)"
-               " (label lbl_call-cont_0)"
-               "   (cframe lbl_call-cont_1)"
+               " (label 0)"
+               "   (cframe (label 1))"
                "   (sref 0 0)(push)"
                "   (sref 0 1)(push)"
                "   (gref cons (main))"
                "   (call 2)"
                "   (nop)"
-               " (label lbl_call-cont_1)"
+               " (label 1)"
                "   (epop)"
                "   (epop))");
 }
@@ -491,20 +491,20 @@ TEST(exec_compiler, letrec_6)
                "   (immval 1)(push)"
                "   (immval 2)(push)"
                "   (edemine 2 0)"
-               "   (cframe lbl_call-cont_0)"
+               "   (cframe (label 0))"
                "   (sref 0 0)(push)"
                "   (sref 1 0)(push)"
                "   (gref cons (main))"
                "   (call 2)"
                "   (nop)"
-               " (label lbl_call-cont_0)"
-               "   (cframe lbl_call-cont_1)"
+               " (label 0)"
+               "   (cframe (label 1))"
                "   (sref 1 0)(push)"
                "   (sref 0 0)(push)"
                "   (gref cons (main))"
                "   (call 2)"
                "   (nop)"
-               " (label lbl_call-cont_1)"
+               " (label 1)"
                "   (epop))");
 }
 
@@ -563,20 +563,20 @@ TEST(exec_compiler, letrec_a_6)
                "(  (emine 2)"
                "   (immval 1)(demine 0 0)"
                "   (immval 2)(demine 1 0)"
-               "   (cframe lbl_call-cont_0)"
+               "   (cframe (label 0))"
                "   (sref 0 0)(push)"
                "   (sref 1 0)(push)"
                "   (gref cons (main))"
                "   (call 2)"
                "   (nop)"
-               " (label lbl_call-cont_0)"
-               "   (cframe lbl_call-cont_1)"
+               " (label 0)"
+               "   (cframe (label 1))"
                "   (sref 1 0)(push)"
                "   (sref 0 0)(push)"
                "   (gref cons (main))"
                "   (call 2)"
                "   (nop)"
-               " (label lbl_call-cont_1)"
+               " (label 1)"
                "   (epop))");
 }
 
@@ -648,20 +648,20 @@ TEST(exec_compiler, internal_definition_5)
 TEST(exec_compiler, begin_1)
 {
   test_compile("(begin (cons 'a 'b) (cons 'x 'y))",
-               "(  (cframe lbl_call-cont_0)"
+               "(  (cframe (label 0))"
                "   (immval a)(push)"
                "   (immval b)(push)"
                "   (gref cons (main))"
                "   (call 2)"
                "   (nop)"
-               " (label lbl_call-cont_0)"
-               "   (cframe lbl_call-cont_1)"
+               " (label 0)"
+               "   (cframe (label 1))"
                "   (immval x)(push)"
                "   (immval y)(push)"
                "   (gref cons (main))"
                "   (call 2)"
                "   (nop)"
-               " (label lbl_call-cont_1))");
+               " (label 1))");
 }
 
 TEST(exec_compiler, begin_2)
@@ -771,12 +771,12 @@ TEST(exec_compiler, if_1)
 {
   test_compile("(if 'a 'b 'c)",
                "(  (immval a)"
-               "   (jmpf lbl_if-a_1)"
+               "   (jmpf (label 1))"
                "   (immval b)"
-               "   (jmp lbl_if-j_0)"
-               " (label lbl_if-a_1)"
+               "   (jmp (label 0))"
+               " (label 1)"
                "   (immval c)"
-               " (label lbl_if-j_0)"
+               " (label 0)"
                ")");
 }
 
@@ -784,12 +784,12 @@ TEST(exec_compiler, if_2)
 {
   test_compile("(if 'a 'b)",
                "(  (immval a)"
-               "   (jmpf lbl_if-a_1)"
+               "   (jmpf (label 1))"
                "   (immval b)"
-               "   (jmp lbl_if-j_0)"
-               " (label lbl_if-a_1)"
+               "   (jmp (label 0))"
+               " (label 1)"
                "   (undef)"
-               " (label lbl_if-j_0)"
+               " (label 0)"
                ")");
 }
 
@@ -798,10 +798,10 @@ TEST(exec_compiler, if_3)
   test_compile("(lambda () (if 'a 'b 'c))",
                "((asm-close 0 0"
                "   (  (immval a)"
-               "      (jmpf lbl_if-a_0)"
+               "      (jmpf (label 0))"
                "      (immval b)"
                "      (return)"
-               "    (label lbl_if-a_0)"
+               "    (label 0)"
                "      (immval c)"
                "      (return)"
                "   )"
@@ -813,10 +813,10 @@ TEST(exec_compiler, if_4)
   test_compile("(lambda () (if 'a 'b))",
                "((asm-close 0 0"
                "   (  (immval a)"
-               "      (jmpf lbl_if-a_0)"
+               "      (jmpf (label 0))"
                "      (immval b)"
                "      (return)"
-               "    (label lbl_if-a_0)"
+               "    (label 0)"
                "      (undef)"
                "      (return)"
                "   )"
@@ -827,130 +827,130 @@ TEST(exec_compiler, cond_001)
 {
   test_compile("(cond)",
                "((undef)"
-               " (label lbl_cond-j_0))");
+               " (label 0))");
 }
 
 TEST(exec_compiler, cond_002)
 {
   test_compile("(cond (else))",
-               "((undef)(label lbl_cond-j_0))");
+               "((undef)(label 0))");
 }
 
 TEST(exec_compiler, cond_003)
 {
   test_compile("(cond (else 'a))",
                "(   (immval a)"
-               " (label lbl_cond-j_0))");
+               " (label 0))");
 }
 
 TEST(exec_compiler, cond_004)
 {
   test_compile("(cond ('a 'b))",
                "(   (immval a)"
-               "    (jmpt lbl_cond-c_1)"
+               "    (jmpt (label 1))"
                "    (undef)"
-               "    (jmp lbl_cond-j_0)"
-               " (label lbl_cond-c_1)"
+               "    (jmp (label 0))"
+               " (label 1)"
                "    (immval b)"
-               " (label lbl_cond-j_0))");
+               " (label 0))");
 }
 
 TEST(exec_compiler, cond_005)
 {
   test_compile("(cond ('a 'b)('c 'd))",
                "(   (immval a)"
-               "    (jmpt lbl_cond-c_1)"
+               "    (jmpt (label 1))"
                "    (immval c)"
-               "    (jmpt lbl_cond-c_2)"
+               "    (jmpt (label 2))"
                "    (undef)"
-               "    (jmp lbl_cond-j_0)"
-               " (label lbl_cond-c_2)"
+               "    (jmp (label 0))"
+               " (label 2)"
                "    (immval d)"
-               "    (jmp lbl_cond-j_0)"
-               " (label lbl_cond-c_1)"
+               "    (jmp (label 0))"
+               " (label 1)"
                "    (immval b)"
-               " (label lbl_cond-j_0))");
+               " (label 0))");
 }
 
 TEST(exec_compiler, cond_006)
 {
   test_compile("(cond ('a => write))",
                "(   (immval a)"
-               "    (jmpt lbl_cond-c_1)"
+               "    (jmpt (label 1))"
                "    (undef)"
-               "    (jmp lbl_cond-j_0)"
-               " (label lbl_cond-c_1)"
-               "    (cframe lbl_call-cont_2)"
+               "    (jmp (label 0))"
+               " (label 1)"
+               "    (cframe (label 2))"
                "    (push)"
                "    (gref write (main))"
                "    (call 1)"
                "    (nop)"
-               " (label lbl_call-cont_2)"
-               " (label lbl_cond-j_0))");
+               " (label 2)"
+               " (label 0))");
 }
 
 TEST(exec_compiler, cond_007)
 {
   test_compile("(cond ('a => write)('b => write))",
                "(   (immval a)"
-               "    (jmpt lbl_cond-c_1)"
+               "    (jmpt (label 1))"
                "    (immval b)"
-               "    (jmpt lbl_cond-c_2)"
+               "    (jmpt (label 2))"
                "    (undef)"
-               "    (jmp lbl_cond-j_0)"
-               " (label lbl_cond-c_2)"
-               "    (cframe lbl_call-cont_3)"
+               "    (jmp (label 0))"
+               " (label 2)"
+               "    (cframe (label 3))"
                "    (push)"
                "    (gref write (main))"
                "    (call 1)"
                "    (nop)"
-               " (label lbl_call-cont_3)"
-               "    (jmp lbl_cond-j_0)"
-               " (label lbl_cond-c_1)"
-               "    (cframe lbl_call-cont_4)"
+               " (label 3)"
+               "    (jmp (label 0))"
+               " (label 1)"
+               "    (cframe (label 4))"
                "    (push)"
                "    (gref write (main))"
                "    (call 1)"
                "    (nop)"
-               " (label lbl_call-cont_4)"
-               " (label lbl_cond-j_0))");
+               " (label 4)"
+               " (label 0))");
 }
 
 TEST(exec_compiler, cond_008)
 {
   test_compile("(cond ('a))",
                "(   (immval a)"
-               "    (jmpt lbl_cond-j_0)"
+               "    (jmpt (label 0))"
                "    (undef)"
-               " (label lbl_cond-j_0))");
+               " (label 0))");
 }
 
 TEST(exec_compiler, cond_009)
 {
   test_compile("(cond ('a)('b 'c))",
                "(   (immval a)"
-               "    (jmpt lbl_cond-j_0)"
+               "    (jmpt (label 0))"
                "    (immval b)"
-               "    (jmpt lbl_cond-c_1)"
+               "    (jmpt (label 1))"
                "    (undef)"
-               "    (jmp lbl_cond-j_0)"
-               " (label lbl_cond-c_1)"
+               "    (jmp (label 0))"
+               " (label 1)"
                "    (immval c)"
-               " (label lbl_cond-j_0))");
+               " (label 0))");
 }
 
 TEST(exec_compiler, cond_010)
 {
   test_compile("(cond ('a 'b)('c))",
                "(   (immval a)"
-               "    (jmpt lbl_cond-c_1)"
+               "    (jmpt (label 1))"
                "    (immval c)"
-               "    (jmpt lbl_cond-j_0)"
+               "    (jmpt (label 0))"
                "    (undef)"
-               "    (jmp lbl_cond-j_0)"
-               " (label lbl_cond-c_1)"
+               "    (jmp (label 0))"
+               " (label 1)"
                "    (immval b)"
-               " (label lbl_cond-j_0))");
+               " (label 0))");
 }
 
 TEST(exec_compiler, cond_011)
@@ -980,10 +980,10 @@ TEST(exec_compiler, cond_014)
   test_compile("(lambda () (cond ('a 'b)))",
                "((asm-close 0 0"
                "   (   (immval a)"
-               "       (jmpt lbl_cond-c_0)"
+               "       (jmpt (label 0))"
                "       (undef)"
                "       (return)"
-               "    (label lbl_cond-c_0)"
+               "    (label 0)"
                "       (immval b)"
                "       (return))))");
 }
@@ -993,10 +993,10 @@ TEST(exec_compiler, cond_015)
   test_compile("(lambda () (cond ('a)))",
                "((asm-close 0 0"
                "   (   (immval a)"
-               "       (jmpt lbl_cond-c_0)"
+               "       (jmpt (label 0))"
                "       (undef)"
                "       (return)"
-               "    (label lbl_cond-c_0)"
+               "    (label 0)"
                "       (return))))");
 }
 
@@ -1005,15 +1005,15 @@ TEST(exec_compiler, cond_016)
   test_compile("(lambda () (cond ('a)('b 'c)))",
                "((asm-close 0 0"
                "   (   (immval a)"
-               "       (jmpt lbl_cond-c_0)"
+               "       (jmpt (label 0))"
                "       (immval b)"
-               "       (jmpt lbl_cond-c_1)"
+               "       (jmpt (label 1))"
                "       (undef)"
                "       (return)"
-               "    (label lbl_cond-c_1)"
+               "    (label 1)"
                "       (immval c)"
                "       (return)"
-               "    (label lbl_cond-c_0)"
+               "    (label 0)"
                "       (return))))");
 }
 
@@ -1022,14 +1022,14 @@ TEST(exec_compiler, cond_017)
   test_compile("(lambda () (cond ('a 'b)('c)))",
                "((asm-close 0 0"
                "   (   (immval a)"
-               "       (jmpt lbl_cond-c_0)"
+               "       (jmpt (label 0))"
                "       (immval c)"
-               "       (jmpt lbl_cond-c_1)"
+               "       (jmpt (label 1))"
                "       (undef)"
                "       (return)"
-               "    (label lbl_cond-c_1)"
+               "    (label 1)"
                "       (return)"
-               "    (label lbl_cond-c_0)"
+               "    (label 0)"
                "       (immval b)"
                "       (return))))");
 }
@@ -1039,10 +1039,10 @@ TEST(exec_compiler, cond_018)
   test_compile("(lambda () (cond ('a => write)))",
                "((asm-close 0 0"
                "   (   (immval a)"
-               "       (jmpt lbl_cond-c_0)"
+               "       (jmpt (label 0))"
                "       (undef)"
                "       (return)"
-               "    (label lbl_cond-c_0)"
+               "    (label 0)"
                "       (push)"
                "       (gref write (main))"
                "       (tcall 1))))");
@@ -1064,30 +1064,30 @@ TEST(exec_compiler, and_003)
 {
   test_compile("(and 'a 'b)",
                "(  (immval a)"
-               "   (jmpf lbl_and-j_0)"
+               "   (jmpf (label 0))"
                "   (immval b)"
-               " (label lbl_and-j_0))");
+               " (label 0))");
 }
 
 TEST(exec_compiler, and_004)
 {
   test_compile("(and (null? 'a) (null? 'b))",
-               "(  (cframe lbl_call-cont_1)"
+               "(  (cframe (label 1))"
                "   (immval a)"
                "   (push)"
                "   (gref null? (main))"
                "   (call 1)"
                "   (mrve)"
-               " (label lbl_call-cont_1)"
-               "   (jmpf lbl_and-j_0)"
-               "   (cframe lbl_call-cont_2)"
+               " (label 1)"
+               "   (jmpf (label 0))"
+               "   (cframe (label 2))"
                "   (immval b)"
                "   (push)"
                "   (gref null? (main))"
                "   (call 1)"
                "   (mrve)"
-               " (label lbl_call-cont_2)"
-               " (label lbl_and-j_0))");
+               " (label 2)"
+               " (label 0))");
 }
 
 TEST(exec_compiler, and_005)
@@ -1109,10 +1109,10 @@ TEST(exec_compiler, and_007)
   test_compile("(lambda () (and 'a 'b))",
                "((asm-close 0 0"
                "   (   (immval a)"
-               "       (jmpf lbl_and-j_0)"
+               "       (jmpf (label 0))"
                "       (immval b)"
                "       (return)"
-               "    (label lbl_and-j_0)"
+               "    (label 0)"
                "    (return))))");
 }
 
@@ -1120,19 +1120,19 @@ TEST(exec_compiler, and_008)
 {
   test_compile("(lambda () (and (null? 'a) (null? 'b)))",
                "((asm-close 0 0"
-               "   (   (cframe lbl_call-cont_1)"
+               "   (   (cframe (label 1))"
                "       (immval a)"
                "       (push)"
                "       (gref null? (main))"
                "       (call 1)"
                "       (mrve)"
-               "    (label lbl_call-cont_1)"
-               "       (jmpf lbl_and-j_0)"
+               "    (label 1)"
+               "       (jmpf (label 0))"
                "       (immval b)"
                "       (push)"
                "       (gref null? (main))"
                "       (tcall 1)"
-               "    (label lbl_and-j_0)"
+               "    (label 0)"
                "       (return))))");
 }
 
@@ -1152,30 +1152,30 @@ TEST(exec_compiler, or_003)
 {
   test_compile("(or 'a 'b)",
                "(  (immval a)"
-               "   (jmpt lbl_or-j_0)"
+               "   (jmpt (label 0))"
                "   (immval b)"
-               " (label lbl_or-j_0))");
+               " (label 0))");
 }
 
 TEST(exec_compiler, or_004)
 {
   test_compile("(or (null? 'a) (null? 'b))",
-               "(  (cframe lbl_call-cont_1)"
+               "(  (cframe (label 1))"
                "   (immval a)"
                "   (push)"
                "   (gref null? (main))"
                "   (call 1)"
                "   (mrve)"
-               " (label lbl_call-cont_1)"
-               "   (jmpt lbl_or-j_0)"
-               "   (cframe lbl_call-cont_2)"
+               " (label 1)"
+               "   (jmpt (label 0))"
+               "   (cframe (label 2))"
                "   (immval b)"
                "   (push)"
                "   (gref null? (main))"
                "   (call 1)"
                "   (mrve)"
-               " (label lbl_call-cont_2)"
-               " (label lbl_or-j_0))");
+               " (label 2)"
+               " (label 0))");
 }
 
 TEST(exec_compiler, or_005)
@@ -1197,10 +1197,10 @@ TEST(exec_compiler, or_007)
   test_compile("(lambda () (or 'a 'b))",
                "((asm-close 0 0"
                "   (   (immval a)"
-               "       (jmpt lbl_or-j_0)"
+               "       (jmpt (label 0))"
                "       (immval b)"
                "       (return)"
-               "    (label lbl_or-j_0)"
+               "    (label 0)"
                "    (return))))");
 }
 
@@ -1209,19 +1209,19 @@ TEST(exec_compiler, or_008)
 {
   test_compile("(lambda () (or (null? 'a) (null? 'b)))",
                "((asm-close 0 0"
-               "   (   (cframe lbl_call-cont_1)"
+               "   (   (cframe (label 1))"
                "       (immval a)"
                "       (push)"
                "       (gref null? (main))"
                "       (call 1)"
                "       (mrve)"
-               "    (label lbl_call-cont_1)"
-               "       (jmpt lbl_or-j_0)"
+               "    (label 1)"
+               "       (jmpt (label 0))"
                "       (immval b)"
                "       (push)"
                "       (gref null? (main))"
                "       (tcall 1)"
-               "    (label lbl_or-j_0)"
+               "    (label 0)"
                "       (return))))");
 }
 
@@ -1229,24 +1229,24 @@ TEST(exec_compiler, when_001)
 {
   test_compile("(when 'a)",
                "(   (immval a)"
-               "    (jmpf lbl_if-a_1)"
+               "    (jmpf (label 1))"
                "    (undef)"
-               "    (jmp lbl_if-j_0)"
-               " (label lbl_if-a_1)"
+               "    (jmp (label 0))"
+               " (label 1)"
                "    (undef)"
-               " (label lbl_if-j_0))");
+               " (label 0))");
 }
 
 TEST(exec_compiler, when_002)
 {
   test_compile("(when 'a 'b)",
                "(   (immval a)"
-               "    (jmpf lbl_if-a_1)"
+               "    (jmpf (label 1))"
                "    (immval b)"
-               "    (jmp lbl_if-j_0)"
-               " (label lbl_if-a_1)"
+               "    (jmp (label 0))"
+               " (label 1)"
                "    (undef)"
-               " (label lbl_if-j_0))");
+               " (label 0))");
 }
 
 TEST(exec_compiler, when_003)
@@ -1254,10 +1254,10 @@ TEST(exec_compiler, when_003)
   test_compile("(lambda () (when 'a))",
                "((asm-close 0 0"
                "   (   (immval a)"
-               "       (jmpf lbl_if-a_0)"
+               "       (jmpf (label 0))"
                "       (undef)"
                "       (return)"
-               "    (label lbl_if-a_0)"
+               "    (label 0)"
                "       (undef)"
                "       (return))))");
 }
@@ -1268,10 +1268,10 @@ TEST(exec_compiler, when_004)
   test_compile("(lambda () (when 'a 'b))",
                "((asm-close 0 0"
                "   (   (immval a)"
-               "       (jmpf lbl_if-a_0)"
+               "       (jmpf (label 0))"
                "       (immval b)"
                "       (return)"
-               "    (label lbl_if-a_0)"
+               "    (label 0)"
                "       (undef)"
                "       (return))))");
 }
@@ -1279,15 +1279,15 @@ TEST(exec_compiler, when_004)
 TEST(exec_compiler, when_005)
 {
   test_compile("(when (null? '()) (cons 'a 'b))",
-               "(   (cframe lbl_call-cont_2)"
+               "(   (cframe (label 2))"
                "    (immval ())"
                "    (push)"
                "    (gref null? (main))"
                "    (call 1)"
                "    (mrve)"
-               " (label lbl_call-cont_2)"
-               "    (jmpf lbl_if-a_1)"
-               "    (cframe lbl_call-cont_3)"
+               " (label 2)"
+               "    (jmpf (label 1))"
+               "    (cframe (label 3))"
                "    (immval a)"
                "    (push)"
                "    (immval b)"
@@ -1295,32 +1295,32 @@ TEST(exec_compiler, when_005)
                "    (gref cons (main))"
                "    (call 2)"
                "    (nop)"
-               " (label lbl_call-cont_3)"
-               "    (jmp lbl_if-j_0)"
-               " (label lbl_if-a_1)"
+               " (label 3)"
+               "    (jmp (label 0))"
+               " (label 1)"
                "    (undef)"
-               " (label lbl_if-j_0))");
+               " (label 0))");
 }
 
 TEST(exec_compiler, when_006)
 {
   test_compile("(lambda () (when (null? '()) (cons 'a 'b)))",
                "((asm-close 0 0"
-               "   (   (cframe lbl_call-cont_1)"
+               "   (   (cframe (label 1))"
                "       (immval ())"
                "       (push)"
                "       (gref null? (main))"
                "       (call 1)"
                "       (mrve)"
-               "    (label lbl_call-cont_1)"
-               "       (jmpf lbl_if-a_0)"
+               "    (label 1)"
+               "       (jmpf (label 0))"
                "       (immval a)"
                "       (push)"
                "       (immval b)"
                "       (push)"
                "       (gref cons (main))"
                "       (tcall 2)"
-               "    (label lbl_if-a_0)"
+               "    (label 0)"
                "       (undef)"
                "       (return))))");
 }
@@ -1329,49 +1329,49 @@ TEST(exec_compiler, when_007)
 {
   test_compile("(when 'z (cons 'a 'b) (cons 'c 'd))",
                "(   (immval z)"
-               "    (jmpf lbl_if-a_1)"
-               "    (cframe lbl_call-cont_2)"
+               "    (jmpf (label 1))"
+               "    (cframe (label 2))"
                "    (immval a)(push)"
                "    (immval b)(push)"
                "    (gref cons (main))"
                "    (call 2)"
                "    (nop)"
-               " (label lbl_call-cont_2)"
-               "    (cframe lbl_call-cont_3)"
+               " (label 2)"
+               "    (cframe (label 3))"
                "    (immval c)(push)"
                "    (immval d)(push)"
                "    (gref cons (main))"
                "    (call 2)"
                "    (nop)"
-               " (label lbl_call-cont_3)"
-               "    (jmp lbl_if-j_0)"
-               " (label lbl_if-a_1)"
+               " (label 3)"
+               "    (jmp (label 0))"
+               " (label 1)"
                "    (undef)"
-               " (label lbl_if-j_0))");
+               " (label 0))");
 }
 
 TEST(exec_compiler, unless_001)
 {
   test_compile("(unless 'a)",
                "(   (immval a)"
-               "    (jmpf lbl_if-a_1)"
+               "    (jmpf (label 1))"
                "    (undef)"
-               "    (jmp lbl_if-j_0)"
-               " (label lbl_if-a_1)"
+               "    (jmp (label 0))"
+               " (label 1)"
                "    (undef)"
-               " (label lbl_if-j_0))");
+               " (label 0))");
 }
 
 TEST(exec_compiler, unless_002)
 {
   test_compile("(unless 'a 'b)",
                "(   (immval a)"
-               "    (jmpf lbl_if-a_1)"
+               "    (jmpf (label 1))"
                "    (undef)"
-               "    (jmp lbl_if-j_0)"
-               " (label lbl_if-a_1)"
+               "    (jmp (label 0))"
+               " (label 1)"
                "    (immval b)"
-               " (label lbl_if-j_0))");
+               " (label 0))");
 }
 
 TEST(exec_compiler, unless_003)
@@ -1379,10 +1379,10 @@ TEST(exec_compiler, unless_003)
   test_compile("(lambda () (unless 'a))",
                "((asm-close 0 0"
                "   (   (immval a)"
-               "       (jmpf lbl_if-a_0)"
+               "       (jmpf (label 0))"
                "       (undef)"
                "       (return)"
-               "    (label lbl_if-a_0)"
+               "    (label 0)"
                "       (undef)"
                "       (return))))");
 }
@@ -1392,10 +1392,10 @@ TEST(exec_compiler, unless_004)
   test_compile("(lambda () (unless 'a 'b))",
                "((asm-close 0 0"
                "   (   (immval a)"
-               "       (jmpf lbl_if-a_0)"
+               "       (jmpf (label 0))"
                "       (undef)"
                "       (return)"
-               "    (label lbl_if-a_0)"
+               "    (label 0)"
                "       (immval b)"
                "       (return))))");
 }
@@ -1403,18 +1403,18 @@ TEST(exec_compiler, unless_004)
 TEST(exec_compiler, unless_005)
 {
   test_compile("(unless (null? '()) (cons 'a 'b))",
-               "(   (cframe lbl_call-cont_2)"
+               "(   (cframe (label 2))"
                "    (immval ())"
                "    (push)"
                "    (gref null? (main))"
                "    (call 1)"
                "    (mrve)"
-               " (label lbl_call-cont_2)"
-               "    (jmpf lbl_if-a_1)"
+               " (label 2)"
+               "    (jmpf (label 1))"
                "    (undef)"
-               "    (jmp lbl_if-j_0)"
-               " (label lbl_if-a_1)"
-               "    (cframe lbl_call-cont_3)"
+               "    (jmp (label 0))"
+               " (label 1)"
+               "    (cframe (label 3))"
                "    (immval a)"
                "    (push)"
                "    (immval b)"
@@ -1422,25 +1422,25 @@ TEST(exec_compiler, unless_005)
                "    (gref cons (main))"
                "    (call 2)"
                "    (nop)"
-               " (label lbl_call-cont_3)"
-               " (label lbl_if-j_0))");
+               " (label 3)"
+               " (label 0))");
 }
 
 TEST(exec_compiler, unless_006)
 {
   test_compile("(lambda () (unless (null? '()) (cons 'a 'b)))",
                "((asm-close 0 0"
-               "   (   (cframe lbl_call-cont_1)"
+               "   (   (cframe (label 1))"
                "       (immval ())"
                "       (push)"
                "       (gref null? (main))"
                "       (call 1)"
                "       (mrve)"
-               "    (label lbl_call-cont_1)"
-               "       (jmpf lbl_if-a_0)"
+               "    (label 1)"
+               "       (jmpf (label 0))"
                "       (undef)"
                "       (return)"
-               "    (label lbl_if-a_0)"
+               "    (label 0)"
                "       (immval a)"
                "       (push)"
                "       (immval b)"
@@ -1453,25 +1453,25 @@ TEST(exec_compiler, unless_007)
 {
   test_compile("(unless 'z (cons 'a 'b) (cons 'c 'd))",
                "(   (immval z)"
-               "    (jmpf lbl_if-a_1)"
+               "    (jmpf (label 1))"
                "    (undef)"
-               "    (jmp lbl_if-j_0)"
-               " (label lbl_if-a_1)"
-               "    (cframe lbl_call-cont_2)"
+               "    (jmp (label 0))"
+               " (label 1)"
+               "    (cframe (label 2))"
                "    (immval a)(push)"
                "    (immval b)(push)"
                "    (gref cons (main))"
                "    (call 2)"
                "    (nop)"
-               " (label lbl_call-cont_2)"
-               "    (cframe lbl_call-cont_3)"
+               " (label 2)"
+               "    (cframe (label 3))"
                "    (immval c)(push)"
                "    (immval d)(push)"
                "    (gref cons (main))"
                "    (call 2)"
                "    (nop)"
-               " (label lbl_call-cont_3)"
-               " (label lbl_if-j_0))");
+               " (label 3)"
+               " (label 0))");
 }
 
 TEST(exec_compiler, do_001)
@@ -1485,9 +1485,9 @@ TEST(exec_compiler, do_001)
                "    (immval iy)"
                "    (push)"
                "    (eframe 2)"
-               " (label lbl_do-s_1)"
+               " (label 1)"
                "    (immval t)"
-               "    (jmpt lbl_do-e_0)"
+               "    (jmpt (label 0))"
                "    (immval c)"
                "    (immval sx)"
                "    (push)"
@@ -1495,8 +1495,8 @@ TEST(exec_compiler, do_001)
                "    (push)"
                "    (eframe 2)"
                "    (eshift 1)"
-               "    (jmp lbl_do-s_1)"
-               " (label lbl_do-e_0)"
+               "    (jmp (label 1))"
+               " (label 0)"
                "    (immval e)"
                "    (epop))");
 }
@@ -1512,9 +1512,9 @@ TEST(exec_compiler, do_002)
                "    (immval iy)"
                "    (push)"
                "    (eframe 2)"
-               " (label lbl_do-s_1)"
+               " (label 1)"
                "    (immval t)"
-               "    (jmpt lbl_do-e_0)"
+               "    (jmpt (label 0))"
                "    (immval c)"
                "    (sref 0 0)"
                "    (push)"
@@ -1522,8 +1522,8 @@ TEST(exec_compiler, do_002)
                "    (push)"
                "    (eframe 2)"
                "    (eshift 1)"
-               "    (jmp lbl_do-s_1)"
-               " (label lbl_do-e_0)"
+               "    (jmp (label 1))"
+               " (label 0)"
                "    (immval e)"
                "    (epop))");
 }
@@ -1539,10 +1539,10 @@ TEST(exec_compiler, do_003)
                "    (immval iy)"
                "    (push)"
                "    (eframe 2)"
-               " (label lbl_do-s_1)"
+               " (label 1)"
                "    (box 1 0)"
                "    (immval t)"
-               "    (jmpt lbl_do-e_0)"
+               "    (jmpt (label 0))"
                "    (immval 1)"
                "    (sset 1 0)"
                "    (immval sx)"
@@ -1551,8 +1551,8 @@ TEST(exec_compiler, do_003)
                "    (push)"
                "    (eframe 2)"
                "    (eshift 1)"
-               "    (jmp lbl_do-s_1)"
-               " (label lbl_do-e_0)"
+               "    (jmp (label 1))"
+               " (label 0)"
                "    (immval e)"
                "    (epop))");
 }
@@ -1562,11 +1562,11 @@ TEST(exec_compiler, do_004)
   test_compile("(do ()"
                "    ('t)"
                "  )",
-               "((label lbl_do-s_1)"
+               "((label 1)"
                "    (immval t)"
-               "    (jmpt lbl_do-e_0)"
-               "    (jmp lbl_do-s_1)"
-               " (label lbl_do-e_0)"
+               "    (jmpt (label 0))"
+               "    (jmp (label 1))"
+               " (label 0)"
                "    (undef))");
 }
 
@@ -1583,9 +1583,9 @@ TEST(exec_compiler, do_005)
                "      (immval iy)"
                "      (push)"
                "      (eframe 2)"
-               "   (label lbl_do-s_1)"
+               "   (label 1)"
                "      (immval t)"
-               "      (jmpt lbl_do-e_0)"
+               "      (jmpt (label 0))"
                "      (immval c)"
                "      (immval sx)"
                "      (push)"
@@ -1593,8 +1593,8 @@ TEST(exec_compiler, do_005)
                "      (push)"
                "      (eframe 2)"
                "      (eshift 1)"
-               "      (jmp lbl_do-s_1)"
-               "   (label lbl_do-e_0)"
+               "      (jmp (label 1))"
+               "   (label 0)"
                "      (immval e)"
                "      (return))))");
 }
@@ -1612,9 +1612,9 @@ TEST(exec_compiler, do_006)
                "      (immval iy)"
                "      (push)"
                "      (eframe 2)"
-               "   (label lbl_do-s_1)"
+               "   (label 1)"
                "      (immval t)"
-               "      (jmpt lbl_do-e_0)"
+               "      (jmpt (label 0))"
                "      (immval c)"
                "      (immval sx)"
                "      (push)"
@@ -1622,8 +1622,8 @@ TEST(exec_compiler, do_006)
                "      (push)"
                "      (eframe 2)"
                "      (eshift 1)"
-               "      (jmp lbl_do-s_1)"
-               "   (label lbl_do-e_0)"
+               "      (jmp (label 1))"
+               "   (label 0)"
                "      (immval a)"
                "      (push)"
                "      (immval b)"
@@ -1639,11 +1639,11 @@ TEST(exec_compiler, do_007)
                "      ('t)"
                "    ))",
                "((asm-close 0 0"
-               "   ((label lbl_do-s_1)"
+               "   ((label 1)"
                "       (immval t)"
-               "       (jmpt lbl_do-e_0)"
-               "       (jmp lbl_do-s_1)"
-               "    (label lbl_do-e_0)"
+               "       (jmpt (label 0))"
+               "       (jmp (label 1))"
+               "    (label 0)"
                "       (undef)"
                "       (return))))");
 }
@@ -1660,45 +1660,45 @@ TEST(exec_compiler, do_008)
                "    (immval iy)"
                "    (push)"
                "    (eframe 2)"
-               " (label lbl_do-s_1)"
+               " (label 1)"
                "    (immval t)"
-               "    (jmpt lbl_do-e_0)"
-               "    (cframe lbl_call-cont_2)"
+               "    (jmpt (label 0))"
+               "    (cframe (label 2))"
                "    (immval e)(push)"
                "    (immval f)(push)"
                "    (gref cons (main))"
                "    (call 2)"
                "    (nop)"
-               " (label lbl_call-cont_2)"
-               "    (cframe lbl_call-cont_3)"
+               " (label 2)"
+               "    (cframe (label 3))"
                "    (immval g)(push)"
                "    (immval h)(push)"
                "    (gref cons (main))"
                "    (call 2)"
                "    (nop)"
-               " (label lbl_call-cont_3)"
+               " (label 3)"
                "    (immval sx)"
                "    (push)"
                "    (immval sy)"
                "    (push)"
                "    (eframe 2)"
                "    (eshift 1)"
-               "    (jmp lbl_do-s_1)"
-               " (label lbl_do-e_0)"
-               "    (cframe lbl_call-cont_4)"
+               "    (jmp (label 1))"
+               " (label 0)"
+               "    (cframe (label 4))"
                "    (immval a)(push)"
                "    (immval b)(push)"
                "    (gref cons (main))"
                "    (call 2)"
                "    (nop)"
-               " (label lbl_call-cont_4)"
-               "    (cframe lbl_call-cont_5)"
+               " (label 4)"
+               "    (cframe (label 5))"
                "    (immval c)(push)"
                "    (immval d)(push)"
                "    (gref cons (main))"
                "    (call 2)"
                "    (nop)"
-               " (label lbl_call-cont_5)"
+               " (label 5)"
                "    (epop))");
 }
 
@@ -1726,13 +1726,13 @@ TEST(exec_compiler, let_values_2)
 TEST(exec_compiler, let_values_3)
 {
   test_compile("(let-values (((a b) (values 1 2))) b)",
-               "(  (cframe lbl_call-cont_0)"
+               "(  (cframe (label 0))"
                "   (immval 1) (push)"
                "   (immval 2) (push)"
                "   (gref values (main))"
                "   (call 2)"
                "   (nop)"
-               " (label lbl_call-cont_0)"
+               " (label 0)"
                "   (mrvc 2)"
                "   (mvpush)"
                "   (eframe 2)"
@@ -1743,7 +1743,7 @@ TEST(exec_compiler, let_values_3)
 TEST(exec_compiler, let_values_4)
 {
   test_compile("(let-values (((a b . c) (values 1 2 3 4))) c)",
-               "(  (cframe lbl_call-cont_0)"
+               "(  (cframe (label 0))"
                "   (immval 1) (push)"
                "   (immval 2) (push)"
                "   (immval 3) (push)"
@@ -1751,7 +1751,7 @@ TEST(exec_compiler, let_values_4)
                "   (gref values (main))"
                "   (call 4)"
                "   (nop)"
-               " (label lbl_call-cont_0)"
+               " (label 0)"
                "   (mrvc -3)"
                "   (mvpush)"
                "   (eframe 3)"
@@ -1762,11 +1762,11 @@ TEST(exec_compiler, let_values_4)
 TEST(exec_compiler, let_values_5)
 {
   test_compile("(let-values ((() (values))))",
-               "(  (cframe lbl_call-cont_0)"
+               "(  (cframe (label 0))"
                "   (gref values (main))"
                "   (call 0)"
                "   (nop)"
-               " (label lbl_call-cont_0)"
+               " (label 0)"
                "   (mrvc 0)"
                "   (undef))");
 }
@@ -1776,22 +1776,22 @@ TEST(exec_compiler, let_values_6)
   test_compile("(let-values (((a b) (values 1 2))"
                "             ((c d) (values 3 4)))"
                "  c)",
-               "(  (cframe lbl_call-cont_0)"
+               "(  (cframe (label 0))"
                "   (immval 1) (push)"
                "   (immval 2) (push)"
                "   (gref values (main))"
                "   (call 2)"
                "   (nop)"
-               " (label lbl_call-cont_0)"
+               " (label 0)"
                "   (mrvc 2)"
                "   (mvpush)"
-               "   (cframe lbl_call-cont_1)"
+               "   (cframe (label 1))"
                "   (immval 3) (push)"
                "   (immval 4) (push)"
                "   (gref values (main))"
                "   (call 2)"
                "   (nop)"
-               " (label lbl_call-cont_1)"
+               " (label 1)"
                "   (mrvc 2)"
                "   (mvpush)"
                "   (eframe 4)"
@@ -1804,20 +1804,20 @@ TEST(exec_compiler, let_values_7)
   test_compile("(let-values (((a b) (values 1 2))"
                "             (() (values)))"
                "  a)",
-               "(  (cframe lbl_call-cont_0)"
+               "(  (cframe (label 0))"
                "   (immval 1) (push)"
                "   (immval 2) (push)"
                "   (gref values (main))"
                "   (call 2)"
                "   (nop)"
-               " (label lbl_call-cont_0)"
+               " (label 0)"
                "   (mrvc 2)"
                "   (mvpush)"
-               "   (cframe lbl_call-cont_1)"
+               "   (cframe (label 1))"
                "   (gref values (main))"
                "   (call 0)"
                "   (nop)"
-               " (label lbl_call-cont_1)"
+               " (label 1)"
                "   (mrvc 0)"
                "   (eframe 2)"
                "   (sref 0 0)"
@@ -1828,13 +1828,13 @@ TEST(exec_compiler, let_values_8)
 {
   test_compile("(let-values (((a b) (values 1 2)))"
                "  (set! a 100))",
-               "(  (cframe lbl_call-cont_0)"
+               "(  (cframe (label 0))"
                "   (immval 1) (push)"
                "   (immval 2) (push)"
                "   (gref values (main))"
                "   (call 2)"
                "   (nop)"
-               " (label lbl_call-cont_0)"
+               " (label 0)"
                "   (mrvc 2)"
                "   (mvpush)"
                "   (eframe 2)"
@@ -1879,13 +1879,13 @@ TEST(exec_compiler, let_a_values_2)
 TEST(exec_compiler, let_a_values_3)
 {
   test_compile("(let*-values (((a b) (values 1 2))) b)",
-               "(  (cframe lbl_call-cont_0)"
+               "(  (cframe (label 0))"
                "   (immval 1) (push)"
                "   (immval 2) (push)"
                "   (gref values (main))"
                "   (call 2)"
                "   (nop)"
-               " (label lbl_call-cont_0)"
+               " (label 0)"
                "   (mrvc 2)"
                "   (mvpush)"
                "   (eframe 2)"
@@ -1896,7 +1896,7 @@ TEST(exec_compiler, let_a_values_3)
 TEST(exec_compiler, let_a_values_4)
 {
   test_compile("(let*-values (((a b . c) (values 1 2 3 4))) c)",
-               "(  (cframe lbl_call-cont_0)"
+               "(  (cframe (label 0))"
                "   (immval 1) (push)"
                "   (immval 2) (push)"
                "   (immval 3) (push)"
@@ -1904,7 +1904,7 @@ TEST(exec_compiler, let_a_values_4)
                "   (gref values (main))"
                "   (call 4)"
                "   (nop)"
-               " (label lbl_call-cont_0)"
+               " (label 0)"
                "   (mrvc -3)"
                "   (mvpush)"
                "   (eframe 3)"
@@ -1915,11 +1915,11 @@ TEST(exec_compiler, let_a_values_4)
 TEST(exec_compiler, let_a_values_5)
 {
   test_compile("(let*-values ((() (values))))",
-               "(  (cframe lbl_call-cont_0)"
+               "(  (cframe (label 0))"
                "   (gref values (main))"
                "   (call 0)"
                "   (nop)"
-               "   (label lbl_call-cont_0)"
+               "   (label 0)"
                "   (mrvc 0)"
                "   (undef))");
 }
@@ -1929,27 +1929,27 @@ TEST(exec_compiler, let_a_values_6)
   test_compile("(let*-values (((a b) (values 1 2))"
                "              ((c d) (values 3 4)))"
                "  (list a b c d))",
-               "(  (cframe lbl_call-cont_0)"
+               "(  (cframe (label 0))"
                "   (immval 1) (push)"
                "   (immval 2) (push)"
                "   (gref values (main))"
                "   (call 2)"
                "   (nop)"
-               " (label lbl_call-cont_0)"
+               " (label 0)"
                "   (mrvc 2)"
                "   (mvpush)"
                "   (eframe 2)"
-               "   (cframe lbl_call-cont_1)"
+               "   (cframe (label 1))"
                "   (immval 3) (push)"
                "   (immval 4) (push)"
                "   (gref values (main))"
                "   (call 2)"
                "   (nop)"
-               " (label lbl_call-cont_1)"
+               " (label 1)"
                "   (mrvc 2)"
                "   (mvpush)"
                "   (eframe 2)"
-               "   (cframe lbl_call-cont_2)"
+               "   (cframe (label 2))"
                "   (sref 0 1) (push)"
                "   (sref 1 1) (push)"
                "   (sref 0 0) (push)"
@@ -1957,7 +1957,7 @@ TEST(exec_compiler, let_a_values_6)
                "   (gref list (main))"
                "   (call 4)"
                "   (nop)"
-               " (label lbl_call-cont_2)"
+               " (label 2)"
                "   (epop)"
                "   (epop))");
 }
@@ -1967,27 +1967,27 @@ TEST(exec_compiler, let_a_values_7)
   test_compile("(let*-values (((a b) (values 1 2))"
                "              ((c d) (values a 4)))"
                "  (list a b c d))",
-               "(  (cframe lbl_call-cont_0)"
+               "(  (cframe (label 0))"
                "   (immval 1) (push)"
                "   (immval 2) (push)"
                "   (gref values (main))"
                "   (call 2)"
                "   (nop)"
-               " (label lbl_call-cont_0)"
+               " (label 0)"
                "   (mrvc 2)"
                "   (mvpush)"
                "   (eframe 2)"
-               "   (cframe lbl_call-cont_1)"
+               "   (cframe (label 1))"
                "   (sref 0 0) (push)"
                "   (immval 4) (push)"
                "   (gref values (main))"
                "   (call 2)"
                "   (nop)"
-               " (label lbl_call-cont_1)"
+               " (label 1)"
                "   (mrvc 2)"
                "   (mvpush)"
                "   (eframe 2)"
-               "   (cframe lbl_call-cont_2)"
+               "   (cframe (label 2))"
                "   (sref 0 1) (push)"
                "   (sref 1 1) (push)"
                "   (sref 0 0) (push)"
@@ -1995,7 +1995,7 @@ TEST(exec_compiler, let_a_values_7)
                "   (gref list (main))"
                "   (call 4)"
                "   (nop)"
-               " (label lbl_call-cont_2)"
+               " (label 2)"
                "   (epop)"
                "   (epop))");
 }
@@ -2005,24 +2005,24 @@ TEST(exec_compiler, let_a_values_8)
   test_compile("(let*-values (((a b) (values 1 2))"
                "              ((c d) (values 3 4)))"
                "  (set! b 100))",
-               "(  (cframe lbl_call-cont_0)"
+               "(  (cframe (label 0))"
                "   (immval 1) (push)"
                "   (immval 2) (push)"
                "   (gref values (main))"
                "   (call 2)"
                "   (nop)"
-               " (label lbl_call-cont_0)"
+               " (label 0)"
                "   (mrvc 2)"
                "   (mvpush)"
                "   (eframe 2)"
                "   (box 1 0)"
-               "   (cframe lbl_call-cont_1)"
+               "   (cframe (label 1))"
                "   (immval 3) (push)"
                "   (immval 4) (push)"
                "   (gref values (main))"
                "   (call 2)"
                "   (nop)"
-               " (label lbl_call-cont_1)"
+               " (label 1)"
                "   (mrvc 2)"
                "   (mvpush)"
                "   (eframe 2)"

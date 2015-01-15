@@ -228,7 +228,7 @@ TEST(fcd_assembler, uninit)
 
 TEST(fcd_assembler, cframe)
 {
-  test_assemble_si("((cframe lbl)(nop)(label lbl))",
+  test_assemble_si("((cframe (label 0))(nop)(label 0))",
                    SCM_OPCODE_CFRAME, SCM_INST_SZ_NOP);
 }
 
@@ -339,21 +339,21 @@ TEST(fcd_assembler, immval)
 
 TEST(fcd_assembler, label_jmp)
 {
-  test_assemble_iof("((label lbl)(jmp lbl)(nop))",
+  test_assemble_iof("((label 0)(jmp (label 0))(nop))",
                     SCM_OPCODE_JMP, -(int)SCM_INST_SZ_JMP,
                     0);
 }
 
 TEST(fcd_assembler, label_jmpt)
 {
-  test_assemble_iof("((label lbl)(jmpt lbl)(nop))",
+  test_assemble_iof("((label 0)(jmpt (label 0))(nop))",
                     SCM_OPCODE_JMPT, -(int)SCM_INST_SZ_JMPT,
                     0);
 }
 
 TEST(fcd_assembler, label_jmpf)
 {
-  test_assemble_iof("((label lbl)(jmpf lbl)(nop))",
+  test_assemble_iof("((label 0)(jmpf (label 0))(nop))",
                     SCM_OPCODE_JMPF, -(int)SCM_INST_SZ_JMPF,
                     0);
 }
