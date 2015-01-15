@@ -389,3 +389,89 @@ TEST(fcd_assembler, mrve_size)
 {
   TEST_ASSERT_EQUAL_INT(SCM_INST_SZ_NOP, SCM_INST_SZ_MRVE);
 }
+
+static void
+test_disassemble(const char *expected, const char *assembler)
+{
+  ScmObj iseq = SCM_OBJ_INIT, e = SCM_OBJ_INIT, a = SCM_OBJ_INIT;
+  ScmObj actual = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&iseq, &e, &a, &actual);
+
+  e = read_cstr(expected);
+  a = read_cstr(assembler);
+
+  iseq = scm_fcd_assemble(a, SCM_OBJ_NULL);
+  actual = scm_fcd_disassemble(iseq);
+
+  TEST_ASSERT_SCM_EQUAL(e, actual);
+}
+
+TEST(fcd_assembler, disasm_noopd)
+{
+  test_disassemble("((halt))", "((halt))");
+}
+
+TEST(fcd_assembler, disasm_obj)
+{
+  test_disassemble("((immval a))", "((immval a))");
+}
+
+TEST(fcd_assembler, disasm_obj_obj)
+{
+  test_disassemble("((gref abc def))", "((gref abc def))");
+}
+
+TEST(fcd_assembler, disasm_si)
+{
+  test_disassemble("((int 0))", "((int 0))");
+}
+
+TEST(fcd_assembler, disasm_si_si)
+{
+  test_disassemble("((sref 123 456))", "((sref 123 456))");
+}
+
+TEST(fcd_assembler, disasm_si_si_obj)
+{
+  test_disassemble("((close 1 1 ((nop))))", "((close 1 1 ((nop))))");
+}
+
+TEST(fcd_assembler, disasm_iof__1)
+{
+  test_disassemble("((label 0)"
+                   "   (nop)"
+                   "   (jmp (label 0)))",
+                   "((label 0)"
+                   "   (nop)"
+                   "   (jmp (label 0)))");
+}
+
+TEST(fcd_assembler, disasm_iof__2)
+{
+  test_disassemble("(  (jmp (label 0))"
+                   "   (nop)"
+                   " (label 0))",
+                   "(  (jmp (label 0))"
+                   "   (nop)"
+                   " (label 0))");
+
+}
+
+TEST(fcd_assembler, disasm_iof__3)
+{
+  test_disassemble("(  (jmp (label 1))"
+                   "   (nop)"
+                   "   (jmp (label 0))"
+                   "   (nop)"
+                   " (label 0)"
+                   "   (nop)"
+                   " (label 1))",
+                   "(  (jmp (label 0))"
+                   "   (nop)"
+                   "   (jmp (label 1))"
+                   "   (nop)"
+                   " (label 1)"
+                   "   (nop)"
+                   " (label 0))");
+}

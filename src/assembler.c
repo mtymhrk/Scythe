@@ -391,6 +391,448 @@ scm_asm_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
 
 
 /**************************************************************************/
+/* Disassembler                                                           */
+/**************************************************************************/
+
+ScmTypeInfo SCM_DISASSEMBLER_TYPE_INFO = {
+  .name                = "disassembler",
+  .flags               = SCM_TYPE_FLG_MMO,
+  .obj_print_func      = NULL,
+  .obj_size            = sizeof(ScmDisassembler),
+  .gc_ini_func         = scm_disasm_gc_initialize,
+  .gc_fin_func         = scm_disasm_gc_finalize,
+  .gc_accept_func      = scm_disasm_gc_accept,
+  .gc_accept_func_weak = NULL,
+  .extra               = NULL,
+};
+
+static scm_byte_t *
+scm_disasm_ip_proceed(scm_byte_t *ip)
+{
+  scm_opcode_t op = SCM_VMINST_GET_OP(ip);
+  switch (scm_opfmt_table[op]) {
+  case SCM_OPFMT_NOOPD:
+    ip += SCM_OPFMT_INST_SZ_NOOPD;
+    break;
+  case SCM_OPFMT_OBJ:
+    ip += SCM_OPFMT_INST_SZ_OBJ;
+    break;
+  case SCM_OPFMT_OBJ_OBJ:
+    ip += SCM_OPFMT_INST_SZ_OBJ_OBJ;
+    break;
+  case SCM_OPFMT_SI:
+    ip += SCM_OPFMT_INST_SZ_SI;
+    break;
+  case SCM_OPFMT_SI_SI:
+    ip += SCM_OPFMT_INST_SZ_SI_SI;
+    break;
+  case SCM_OPFMT_SI_SI_OBJ:
+    ip += SCM_OPFMT_INST_SZ_SI_SI_OBJ;
+    break;
+  case SCM_OPFMT_IOF:
+    ip += SCM_OPFMT_INST_SZ_IOF;
+    break;
+  default:
+    scm_fcd_error("failed to disassemble: unknown instruction format", 0);
+    return NULL;
+    break;
+  }
+
+  return ip;
+}
+
+static int
+scm_disasm_push_label_decl(ScmObj disasm, size_t offset)
+{
+  ScmAsmLabelDecl d = { .offset = (ssize_t)offset };
+  ScmAsmLabelDecl *ary;
+  size_t idx;
+  int r;
+
+  scm_assert_obj_type(disasm, &SCM_DISASSEMBLER_TYPE_INFO);
+  scm_assert(offset <= SSIZE_MAX);
+
+  EARY_PUSH(SCM_DISASSEMBLER_LABEL_DECL(disasm), ScmAsmLabelDecl, d, r);
+  if (r < 0) return -1;
+
+  idx = EARY_SIZE(SCM_DISASSEMBLER_LABEL_DECL(disasm)) - 1;
+  ary = EARY_HEAD(SCM_DISASSEMBLER_LABEL_DECL(disasm));
+  while (idx > 0 && d.offset < ary[idx - 1].offset)
+    idx--;
+
+  if (idx > 0 && d.offset == ary[idx - 1].offset) {
+    EARY_POP(SCM_DISASSEMBLER_LABEL_DECL(disasm), ScmAsmLabelDecl, d);
+    return 0;
+  }
+
+  for (size_t i = EARY_SIZE(SCM_DISASSEMBLER_LABEL_DECL(disasm)); i > idx; i--)
+    ary[i] = ary[i - 1];
+  ary[idx] = d;
+
+  return 0;
+}
+
+static int
+scm_disasm_acc_labels(ScmObj disasm)
+{
+  scm_byte_t *ip;
+
+  scm_assert_obj_type(disasm, &SCM_DISASSEMBLER_TYPE_INFO);
+
+  ip = scm_fcd_iseq_to_ip(SCM_DISASSEMBLER_ISEQ(disasm));
+  while (scm_fcd_iseq_ip_in_range_p(SCM_DISASSEMBLER_ISEQ(disasm), ip)) {
+    scm_opcode_t op = SCM_VMINST_GET_OP(ip);
+    if (scm_opfmt_table[op] == SCM_OPFMT_IOF) {
+      ssize_t offset;
+      int r, iof;
+
+      SCM_VMINST_FETCH_OPD_IOF(ip, iof);
+      offset = scm_fcd_iseq_ip_to_offset(SCM_DISASSEMBLER_ISEQ(disasm),
+                                         ip + iof);
+      if (offset < 0) return -1;
+      r = scm_disasm_push_label_decl(disasm, (size_t)offset);
+      if (r < 0) return -1;
+    }
+    else {
+      ip = scm_disasm_ip_proceed(ip);
+    }
+  }
+
+  return 0;
+}
+
+int
+scm_disasm_initialize(ScmObj disasm, ScmObj iseq)
+{
+  int r;
+
+  scm_assert_obj_type(disasm, &SCM_DISASSEMBLER_TYPE_INFO);
+  scm_assert(scm_fcd_iseq_p(iseq));
+
+  r = eary_init(SCM_DISASSEMBLER_LABEL_DECL(disasm),
+                sizeof(ScmAsmLabelDecl), 0);
+  if (r < 0) return -1;
+
+  SCM_DISASSEMBLER_SET_TOKEN(disasm, scm_fcd_malloc(sizeof(ScmDisasmToken)));
+  if (SCM_DISASSEMBLER_TOKEN(disasm) == NULL) return -1;
+
+  SCM_DISASSEMBLER_TOKEN(disasm)->type = SCM_DISASM_TK_LABEL;
+
+  SCM_SLOT_SETQ(ScmDisassembler, disasm, iseq, iseq);
+  SCM_DISASSEMBLER_SET_IP(disasm, NULL);
+  SCM_DISASSEMBLER_SET_DECL_IDX(disasm, 0);
+
+  return scm_disasm_acc_labels(disasm);
+}
+
+void
+scm_disasm_finalize(ScmObj disasm)
+{
+  scm_assert_obj_type(disasm, &SCM_DISASSEMBLER_TYPE_INFO);
+
+  eary_fin(SCM_DISASSEMBLER_LABEL_DECL(disasm));
+  if (SCM_DISASSEMBLER_TOKEN(disasm) != NULL) {
+    scm_fcd_free(SCM_DISASSEMBLER_TOKEN(disasm));
+    SCM_DISASSEMBLER_SET_TOKEN(disasm, NULL);
+  }
+}
+
+static int
+label_decl_cmp(const void *x, const void *y)
+{
+  const ScmAsmLabelDecl *a = x, *b = y;
+
+  if (a->offset < b->offset)
+    return -1;
+  else if (a->offset == b->offset)
+    return 0;
+  else
+    return 1;
+}
+
+static int
+scm_disasm_setup_token_inst(ScmObj disasm)
+{
+  ScmAsmLabelDecl key, *p;
+  scm_opcode_t op;
+  int iof;
+
+  scm_assert_obj_type(disasm, &SCM_DISASSEMBLER_TYPE_INFO);
+  scm_assert(scm_fcd_iseq_ip_in_range_p(SCM_DISASSEMBLER_ISEQ(disasm),
+                                        SCM_DISASSEMBLER_IP(disasm)));
+
+  SCM_DISASSEMBLER_TOKEN(disasm)->type = SCM_DISASM_TK_INST;
+
+  op = SCM_VMINST_GET_OP(SCM_DISASSEMBLER_IP(disasm));
+  SCM_DISASSEMBLER_TOKEN(disasm)->inst.fmt = scm_opfmt_table[op];
+
+  switch (scm_opfmt_table[op]) {
+  case SCM_OPFMT_NOOPD:
+    memcpy(&SCM_DISASSEMBLER_TOKEN(disasm)->inst.i.noopd,
+           SCM_DISASSEMBLER_IP(disasm), SCM_OPFMT_INST_SZ_NOOPD);
+    SCM_DISASSEMBLER_ADD_IP(disasm, SCM_OPFMT_INST_SZ_NOOPD);
+    break;
+  case SCM_OPFMT_OBJ:
+    SCM_WB_EXP(disasm,
+               memcpy(&SCM_DISASSEMBLER_TOKEN(disasm)->inst.i.obj,
+                      SCM_DISASSEMBLER_IP(disasm), SCM_OPFMT_INST_SZ_OBJ));
+    SCM_DISASSEMBLER_ADD_IP(disasm, SCM_OPFMT_INST_SZ_OBJ);
+    break;
+  case SCM_OPFMT_OBJ_OBJ:
+    SCM_WB_EXP(disasm,
+               memcpy(&SCM_DISASSEMBLER_TOKEN(disasm)->inst.i.obj_obj,
+                      SCM_DISASSEMBLER_IP(disasm), SCM_OPFMT_INST_SZ_OBJ_OBJ));
+    SCM_DISASSEMBLER_ADD_IP(disasm, SCM_OPFMT_INST_SZ_OBJ_OBJ);
+    break;
+  case SCM_OPFMT_SI:
+    memcpy(&SCM_DISASSEMBLER_TOKEN(disasm)->inst.i.si,
+           SCM_DISASSEMBLER_IP(disasm), SCM_OPFMT_INST_SZ_SI);
+    SCM_DISASSEMBLER_ADD_IP(disasm, SCM_OPFMT_INST_SZ_SI);
+    break;
+  case SCM_OPFMT_SI_SI:
+    memcpy(&SCM_DISASSEMBLER_TOKEN(disasm)->inst.i.si_si,
+           SCM_DISASSEMBLER_IP(disasm), SCM_OPFMT_INST_SZ_SI_SI);
+    SCM_DISASSEMBLER_ADD_IP(disasm, SCM_OPFMT_INST_SZ_SI_SI);
+    break;
+  case SCM_OPFMT_SI_SI_OBJ:
+    SCM_WB_EXP(disasm,
+               memcpy(&SCM_DISASSEMBLER_TOKEN(disasm)->inst.i.si_si_obj,
+                      SCM_DISASSEMBLER_IP(disasm),
+                      SCM_OPFMT_INST_SZ_SI_SI_OBJ));
+    SCM_DISASSEMBLER_ADD_IP(disasm, SCM_OPFMT_INST_SZ_SI_SI_OBJ);
+    break;
+  case SCM_OPFMT_IOF:
+    memcpy(&SCM_DISASSEMBLER_TOKEN(disasm)->inst.i.iof,
+           SCM_DISASSEMBLER_IP(disasm), SCM_OPFMT_INST_SZ_IOF);
+    SCM_DISASSEMBLER_ADD_IP(disasm, SCM_OPFMT_INST_SZ_IOF);
+    iof = SCM_DISASSEMBLER_TOKEN(disasm)->inst.i.iof.opd1;
+    key.offset = scm_fcd_iseq_ip_to_offset(SCM_DISASSEMBLER_ISEQ(disasm),
+                                           SCM_DISASSEMBLER_IP(disasm) + iof);
+    if (key.offset < 0) return -1;
+    p = eary_bsearch(SCM_DISASSEMBLER_LABEL_DECL(disasm),
+                     &key, label_decl_cmp);
+    scm_assert(p != NULL);      /* must not happen */
+    SCM_DISASSEMBLER_TOKEN(disasm)->label_id =
+      (size_t)(p - (ScmAsmLabelDecl *)EARY_HEAD(SCM_DISASSEMBLER_LABEL_DECL(disasm)));
+    break;
+  default:
+    scm_fcd_error("failed to disassemble: unknown instruction format", 0);
+    return -1;
+    break;
+  }
+
+  return 0;
+}
+
+static int
+scm_disasm_setup_token(ScmObj disasm)
+{
+  scm_assert_obj_type(disasm, &SCM_DISASSEMBLER_TYPE_INFO);
+  scm_assert(SCM_DISASSEMBLER_IP(disasm) != NULL);
+
+  if (SCM_DISASSEMBLER_TOKEN(disasm)->type == SCM_DISASM_TK_END)
+    return 0;
+
+  if (SCM_DISASSEMBLER_DECL_IDX(disasm)
+      < EARY_SIZE(SCM_DISASSEMBLER_LABEL_DECL(disasm))) {
+    ScmAsmLabelDecl *p = eary_idx_to_ptr(SCM_DISASSEMBLER_LABEL_DECL(disasm),
+                                         SCM_DISASSEMBLER_DECL_IDX(disasm));
+    if (p->offset == scm_fcd_iseq_ip_to_offset(SCM_DISASSEMBLER_ISEQ(disasm),
+                                               SCM_DISASSEMBLER_IP(disasm))) {
+      SCM_DISASSEMBLER_TOKEN(disasm)->type = SCM_DISASM_TK_LABEL;
+      SCM_DISASSEMBLER_TOKEN(disasm)->inst.fmt = SCM_OPFMT_NOOPD;
+      SCM_DISASSEMBLER_TOKEN(disasm)->inst.i.op = SCM_ASM_PI_LABEL;
+      SCM_DISASSEMBLER_TOKEN(disasm)->label_id = SCM_DISASSEMBLER_DECL_IDX(disasm);
+      SCM_DISASSEMBLER_INC_DECL_IDX(disasm);
+      return 0;
+    }
+  }
+
+  if (scm_fcd_iseq_ip_in_range_p(SCM_DISASSEMBLER_ISEQ(disasm),
+                                 SCM_DISASSEMBLER_IP(disasm))) {
+    return scm_disasm_setup_token_inst(disasm);
+  }
+  else {
+    SCM_DISASSEMBLER_TOKEN(disasm)->type = SCM_DISASM_TK_END;
+    return 0;
+  }
+}
+
+static inline int
+scm_disasm_init_token_if_needed(ScmObj disasm)
+{
+  scm_assert_obj_type(disasm, &SCM_DISASSEMBLER_TYPE_INFO);
+
+  if (SCM_DISASSEMBLER_IP(disasm) != NULL)
+    return 0;
+
+  SCM_DISASSEMBLER_SET_IP(disasm,
+                          scm_fcd_iseq_to_ip(SCM_DISASSEMBLER_ISEQ(disasm)));
+  return scm_disasm_setup_token(disasm);
+}
+
+const ScmDisasmToken *
+scm_disasm_token(ScmObj disasm)
+{
+  int r;
+
+  scm_assert_obj_type(disasm, &SCM_DISASSEMBLER_TYPE_INFO);
+
+  r = scm_disasm_init_token_if_needed(disasm);
+  if (r < 0) return NULL;
+
+  return SCM_DISASSEMBLER_TOKEN(disasm);
+}
+
+int
+scm_disasm_next(ScmObj disasm)
+{
+  int r;
+
+  scm_assert_obj_type(disasm, &SCM_DISASSEMBLER_TYPE_INFO);
+
+  r = scm_disasm_init_token_if_needed(disasm);
+  if (r < 0) return -1;
+
+  return scm_disasm_setup_token(disasm);
+}
+
+void
+scm_disasm_rewind(ScmObj disasm)
+{
+  scm_assert_obj_type(disasm, &SCM_DISASSEMBLER_TYPE_INFO);
+
+  SCM_DISASSEMBLER_SET_IP(disasm, NULL);
+  SCM_DISASSEMBLER_SET_DECL_IDX(disasm, 0);
+  SCM_DISASSEMBLER_TOKEN(disasm)->type = SCM_DISASM_TK_LABEL;
+}
+
+int
+scm_disasm_cnv_to_marshalable(ScmObj disasm)
+{
+  SCM_REFSTK_INIT_REG(&disasm);
+
+  scm_assert_obj_type(disasm, &SCM_DISASSEMBLER_TYPE_INFO);
+
+  if (scm_disasm_token(disasm) == NULL)
+    return -1;
+
+  if (SCM_DISASSEMBLER_TOKEN(disasm)->type != SCM_DISASM_TK_INST)
+    return 0;
+
+  switch (SCM_DISASSEMBLER_TOKEN(disasm)->inst.i.op) {
+  case SCM_OPCODE_GREF:         /* fall through */
+  case SCM_OPCODE_GDEF:         /* fall through */
+  case SCM_OPCODE_GSET:
+    if (scm_fcd_gloc_p(SCM_DISASSEMBLER_TOKEN(disasm)->inst.i.obj_obj.opd1))
+      SCM_WB_SETQ(disasm,
+                  SCM_DISASSEMBLER_TOKEN(disasm)->inst.i.obj_obj.opd1,
+                  scm_fcd_gloc_symbol(SCM_DISASSEMBLER_TOKEN(disasm)->inst.i.obj_obj.opd1));
+    if (scm_fcd_module_p(SCM_DISASSEMBLER_TOKEN(disasm)->inst.i.obj_obj.opd2))
+      SCM_WB_SETQ(disasm,
+                  SCM_DISASSEMBLER_TOKEN(disasm)->inst.i.obj_obj.opd2,
+                  scm_fcd_module_name(SCM_DISASSEMBLER_TOKEN(disasm)->inst.i.obj_obj.opd2));
+    break;
+  default:
+    break;
+  }
+
+  return 0;
+}
+
+int
+scm_disasm_cnv_to_printable(ScmObj disasm)
+{
+  ScmObj obj = SCM_OBJ_INIT;
+  int r;
+
+  SCM_REFSTK_INIT_REG(&disasm,
+                      &obj);
+
+  scm_assert_obj_type(disasm, &SCM_DISASSEMBLER_TYPE_INFO);
+
+  r = scm_disasm_cnv_to_marshalable(disasm);
+  if (r < 0) return -1;
+
+  if (SCM_DISASSEMBLER_TOKEN(disasm)->inst.i.op == SCM_OPCODE_CLOSE
+      && scm_fcd_iseq_p(SCM_DISASSEMBLER_TOKEN(disasm)->inst.i.si_si_obj.opd3)) {
+    obj = scm_fcd_disassemble(SCM_DISASSEMBLER_TOKEN(disasm)->inst.i.si_si_obj.opd3);
+    if (scm_obj_null_p(obj)) return -1;
+    SCM_WB_SETQ(disasm,
+                SCM_DISASSEMBLER_TOKEN(disasm)->inst.i.si_si_obj.opd3,
+                obj);
+  }
+
+  return 0;
+}
+
+void
+scm_disasm_gc_initialize(ScmObj obj, ScmObj mem)
+{
+  scm_assert_obj_type(obj, &SCM_DISASSEMBLER_TYPE_INFO);
+
+  SCM_DISASSEMBLER(obj)->iseq = SCM_OBJ_NULL;
+  eary_init(SCM_DISASSEMBLER_LABEL_DECL(obj), 0, 0);
+  SCM_DISASSEMBLER_SET_TOKEN(obj, NULL);
+}
+
+void
+scm_disasm_gc_finalize(ScmObj obj)
+{
+  scm_disasm_finalize(obj);
+}
+
+int
+scm_disasm_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
+{
+  int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
+
+  scm_assert_obj_type(obj, &SCM_DISASSEMBLER_TYPE_INFO);
+  scm_assert(scm_obj_not_null_p(mem));
+  scm_assert(handler != NULL);
+
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_DISASSEMBLER_ISEQ(obj), mem);
+  if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
+
+  if (SCM_DISASSEMBLER_TOKEN(obj) != NULL
+      && SCM_DISASSEMBLER_TOKEN(obj)->type == SCM_DISASM_TK_INST) {
+    switch (SCM_DISASSEMBLER_TOKEN(obj)->inst.fmt) {
+    case SCM_OPFMT_OBJ:
+      rslt = SCM_GC_CALL_REF_HANDLER(handler,
+                                     obj,
+                                     SCM_DISASSEMBLER_TOKEN(obj)->inst.i.obj.opd1,
+                                     mem);
+      if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
+      break;
+    case SCM_OPFMT_OBJ_OBJ:
+      rslt = SCM_GC_CALL_REF_HANDLER(handler,
+                                     obj,
+                                     SCM_DISASSEMBLER_TOKEN(obj)->inst.i.obj_obj.opd1,
+                                     mem);
+      if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
+      rslt = SCM_GC_CALL_REF_HANDLER(handler,
+                                     obj,
+                                     SCM_DISASSEMBLER_TOKEN(obj)->inst.i.obj_obj.opd2,
+                                     mem);
+      if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
+      break;
+    case SCM_OPFMT_SI_SI_OBJ:
+      rslt = SCM_GC_CALL_REF_HANDLER(handler,
+                                     obj,
+                                     SCM_DISASSEMBLER_TOKEN(obj)->inst.i.si_si_obj.opd3,
+                                     mem);
+      if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
+      break;
+    default:
+      break;
+    }
+  }
+
+  return rslt;
+}
+
+
+/**************************************************************************/
 /* Assemble/Disassemble                                                   */
 /**************************************************************************/
 
@@ -870,6 +1312,219 @@ scm_asm_assemble(ScmObj asmb, ScmObj lst)
   }
 
   return 0;
+}
+
+static ScmObj
+scm_asm_disasm_inst_noopd(const ScmDisasmToken *tk, ScmObj mne)
+{
+  scm_assert(tk != NULL);
+  scm_assert(scm_fcd_symbol_p(mne));
+
+  return scm_fcd_cons(mne, SCM_NIL_OBJ);
+}
+
+static ScmObj
+scm_asm_disasm_inst_obj(const ScmDisasmToken *tk, ScmObj mne)
+{
+  scm_assert(tk != NULL);
+  scm_assert(scm_fcd_symbol_p(mne));
+
+  return scm_fcd_list(2, mne, tk->inst.i.obj.opd1);
+}
+
+static ScmObj
+scm_asm_disasm_inst_obj_obj(const ScmDisasmToken *tk, ScmObj mne)
+{
+  scm_assert(tk != NULL);
+  scm_assert(scm_fcd_symbol_p(mne));
+
+  return scm_fcd_list(3, mne, tk->inst.i.obj_obj.opd1, tk->inst.i.obj_obj.opd2);
+}
+
+static ScmObj
+scm_asm_disasm_inst_si(const ScmDisasmToken *tk, ScmObj mne)
+{
+  ScmObj num1 = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&mne,
+                      &num1);
+
+  scm_assert(tk != NULL);
+  scm_assert(scm_fcd_symbol_p(mne));
+
+  num1 = scm_fcd_make_number_from_sword(tk->inst.i.si.opd1);
+  if (scm_obj_null_p(num1)) return SCM_OBJ_NULL;
+
+  return scm_fcd_list(2, mne, num1);
+}
+
+static ScmObj
+scm_asm_disasm_inst_si_si(const ScmDisasmToken *tk, ScmObj mne)
+{
+  ScmObj num1 = SCM_OBJ_INIT, num2 = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&mne,
+                      &num1, &num2);
+
+  scm_assert(tk != NULL);
+  scm_assert(scm_fcd_symbol_p(mne));
+
+  num1 = scm_fcd_make_number_from_sword(tk->inst.i.si_si.opd1);
+  if (scm_obj_null_p(num1)) return SCM_OBJ_NULL;
+
+  num2 = scm_fcd_make_number_from_sword(tk->inst.i.si_si.opd2);
+  if (scm_obj_null_p(num2)) return SCM_OBJ_NULL;
+
+  return scm_fcd_list(3, mne, num1, num2);
+}
+
+static ScmObj
+scm_asm_disasm_inst_si_si_obj(const ScmDisasmToken *tk, ScmObj mne)
+{
+  ScmObj num1 = SCM_OBJ_INIT, num2 = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&mne,
+                      &num1, &num2);
+
+  scm_assert(tk != NULL);
+  scm_assert(scm_fcd_symbol_p(mne));
+
+  num1 = scm_fcd_make_number_from_sword(tk->inst.i.si_si_obj.opd1);
+  if (scm_obj_null_p(num1)) return SCM_OBJ_NULL;
+
+  num2 = scm_fcd_make_number_from_sword(tk->inst.i.si_si_obj.opd2);
+  if (scm_obj_null_p(num2)) return SCM_OBJ_NULL;
+
+  return scm_fcd_list(4, mne, num1, num2, tk->inst.i.si_si_obj.opd3);
+}
+
+static ScmObj
+scm_asm_disasm_inst_iof(const ScmDisasmToken *tk, ScmObj mne)
+{
+  ScmObj sym = SCM_OBJ_INIT, inst = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&mne,
+                      &sym, &inst);
+
+  scm_assert(tk != NULL);
+  scm_assert(scm_fcd_symbol_p(mne));
+
+  sym = scm_fcd_make_symbol_from_cstr("label", SCM_ENC_SRC);
+  if (scm_obj_null_p(sym)) return SCM_OBJ_NULL;
+
+  inst = scm_fcd_make_number_from_size_t(tk->label_id);
+  if (scm_obj_null_p(inst)) return SCM_OBJ_NULL;
+
+  inst = scm_fcd_list(2, sym, inst);
+  if (scm_obj_null_p(inst)) return SCM_OBJ_NULL;
+
+  return scm_fcd_list(2, mne, inst);
+}
+
+static ScmObj
+scm_asm_disasm_inst(const ScmDisasmToken *tk, ScmObj mne)
+{
+  scm_assert(tk != NULL);
+  scm_assert(scm_fcd_symbol_p(mne));
+
+  switch (tk->inst.fmt) {
+  case SCM_OPFMT_NOOPD:
+    return scm_asm_disasm_inst_noopd(tk, mne);
+    break;
+  case SCM_OPFMT_OBJ:
+    return scm_asm_disasm_inst_obj(tk, mne);
+    break;
+  case SCM_OPFMT_OBJ_OBJ:
+    return scm_asm_disasm_inst_obj_obj(tk, mne);
+    break;
+  case SCM_OPFMT_SI:
+    return scm_asm_disasm_inst_si(tk, mne);
+    break;
+  case SCM_OPFMT_SI_SI:
+    return scm_asm_disasm_inst_si_si(tk, mne);
+    break;
+  case SCM_OPFMT_SI_SI_OBJ:
+    return scm_asm_disasm_inst_si_si_obj(tk, mne);
+    break;
+  case SCM_OPFMT_IOF:
+    return scm_asm_disasm_inst_iof(tk, mne);
+    break;
+  default:
+    scm_fcd_error("failed to disassemble: unknown instructin format", 0);
+    break;
+  }
+
+  return SCM_OBJ_NULL;
+}
+
+static ScmObj
+scm_asm_disasm_label(const ScmDisasmToken *tk, ScmObj mne)
+{
+  ScmObj num = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&mne,
+                      &num);
+
+  scm_assert(tk != NULL);
+  scm_assert(scm_fcd_symbol_p(mne));
+
+  num = scm_fcd_make_number_from_size_t(tk->label_id);
+  if (scm_obj_null_p(num)) return SCM_OBJ_NULL;
+
+  return scm_fcd_list(2, mne, num);
+}
+
+ScmObj
+scm_asm_disassemble(ScmObj disasm)
+{
+  ScmObj list = SCM_OBJ_INIT, tail = SCM_OBJ_INIT, inst = SCM_OBJ_INIT;
+  ScmObj mne = SCM_OBJ_INIT;
+  const ScmDisasmToken *tk;
+  int r;
+
+  SCM_REFSTK_INIT_REG(&disasm,
+                      &list, &tail, &inst);
+
+  scm_assert(scm_fcd_disassembler_p(disasm));
+
+  list = tail = scm_fcd_cons(SCM_UNDEF_OBJ, SCM_NIL_OBJ);
+  if (scm_obj_null_p(list)) return SCM_OBJ_NULL;
+
+  while ((tk = scm_disasm_token(disasm)) != NULL
+         && tk->type != SCM_DISASM_TK_END) {
+    mne = scm_asm_mnemonic(tk->inst.i.op);
+    if (scm_obj_null_p(mne)) return SCM_OBJ_NULL;
+
+    switch (tk->type) {
+    case SCM_DISASM_TK_INST:
+      r = scm_disasm_cnv_to_printable(disasm);
+      if (r < 0) return SCM_OBJ_NULL;
+      inst = scm_asm_disasm_inst(tk, mne);
+      break;
+    case SCM_DISASM_TK_LABEL:
+      inst = scm_asm_disasm_label(tk, mne);
+      break;
+    default:
+      scm_assert(false);
+      return SCM_OBJ_NULL;
+      break;
+    }
+
+    if (scm_obj_null_p(inst)) return SCM_OBJ_NULL;
+
+    inst = scm_fcd_cons(inst, SCM_NIL_OBJ);
+    if (scm_obj_null_p(inst)) return SCM_OBJ_NULL;
+
+    scm_fcd_set_cdr_i(tail, inst);
+    tail = inst;
+
+    r = scm_disasm_next(disasm);
+    if (r < 0) return SCM_OBJ_NULL;
+  }
+
+  if (tk == NULL) return SCM_OBJ_NULL;
+
+  return scm_fcd_cdr(list);
 }
 
 int

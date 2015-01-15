@@ -4,6 +4,11 @@
 #include "scythe/fcd.h"
 #include "scythe/assembler.h"
 
+
+/**************************************************************************/
+/* Assembler                                                              */
+/**************************************************************************/
+
 extern inline bool
 scm_fcd_assembler_p(ScmObj obj)
 {
@@ -50,6 +55,82 @@ scm_fcd_assembler_commit(ScmObj asmb)
   return 0;
 }
 
+
+/**************************************************************************/
+/* Disassembler                                                           */
+/**************************************************************************/
+
+extern inline bool
+scm_fcd_disassembler_p(ScmObj obj)
+{
+  return scm_obj_type_p(obj, &SCM_DISASSEMBLER_TYPE_INFO);
+}
+
+ScmObj
+scm_fcd_disassembler_new(SCM_MEM_TYPE_T mtype, ScmObj iseq)
+{
+  ScmObj disasm;
+
+  SCM_REFSTK_INIT_REG(&iseq,
+                      &disasm);
+
+  scm_assert(scm_fcd_iseq_p(iseq));
+
+  disasm = scm_fcd_mem_alloc(&SCM_DISASSEMBLER_TYPE_INFO, 0, mtype);
+  if (scm_obj_null_p(disasm)) return SCM_OBJ_NULL;
+
+  if (scm_disasm_initialize(disasm, iseq) < 0)
+    return SCM_OBJ_NULL;
+
+  return disasm;
+}
+
+ScmObj
+scm_fcd_make_disassembler(ScmObj iseq)
+{
+  return scm_fcd_disassembler_new(SCM_MEM_HEAP, iseq);
+}
+
+const ScmDisasmToken *
+scm_fcd_disassembler_token(ScmObj disasm)
+{
+  scm_assert(scm_fcd_disassembler_p(disasm));
+  return scm_disasm_token(disasm);
+}
+
+int
+scm_fcd_disassembler_next(ScmObj disasm)
+{
+  scm_assert(scm_fcd_disassembler_p(disasm));
+  return scm_disasm_next(disasm);
+}
+
+void
+scm_fcd_disassembler_rewind(ScmObj disasm)
+{
+  scm_assert(scm_fcd_disassembler_p(disasm));
+  return scm_disasm_rewind(disasm);
+}
+
+int
+scm_fcd_disassembler_cnv_to_marshalable(ScmObj disasm)
+{
+  scm_assert(scm_fcd_disassembler_p(disasm));
+  return scm_disasm_cnv_to_marshalable(disasm);
+}
+
+int
+scm_fcd_disassembler_cnv_to_printable(ScmObj disasm)
+{
+  scm_assert(scm_fcd_disassembler_p(disasm));
+  return scm_disasm_cnv_to_printable(disasm);
+}
+
+
+/**************************************************************************/
+/* Assemble/Disassemble                                                   */
+/**************************************************************************/
+
 ScmObj
 scm_fcd_assemble(ScmObj lst, ScmObj acc)
 {
@@ -83,4 +164,17 @@ scm_fcd_assemble(ScmObj lst, ScmObj acc)
 
     return scm_asm_iseq(asmb);
   }
+}
+
+ScmObj
+scm_fcd_disassemble(ScmObj obj)
+{
+  scm_assert(scm_fcd_iseq_p(obj) || scm_fcd_disassembler_p(obj));
+
+  if (scm_fcd_iseq_p(obj)) {
+    obj = scm_fcd_make_disassembler(obj);
+    if (scm_obj_null_p(obj)) return SCM_OBJ_NULL;
+  }
+
+  return scm_asm_disassemble(obj);
 }

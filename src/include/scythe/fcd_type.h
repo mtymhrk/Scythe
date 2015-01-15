@@ -9,6 +9,7 @@ typedef struct ScmForwardRec ScmForward;
 typedef struct ScmEvaluatorRec ScmEvaluator;
 
 #include "scythe/object.h"
+#include "scythe/vminst.h"
 
 
 /*******************************************************************/
@@ -179,6 +180,37 @@ typedef long scm_bignum_sc_t;
 #define SCM_BIGNUM_BASE;
 
 #endif
+
+
+/*******************************************************************/
+/* Assemble/Disassemble                                            */
+/*******************************************************************/
+
+enum {
+  SCM_DISASM_TK_INST,
+  SCM_DISASM_TK_LABEL,
+  SCM_DISASM_TK_END,
+};
+
+typedef struct ScmDisasmTokenRec ScmDisasmToken;
+
+struct ScmDisasmTokenRec {
+  int type;
+  struct {
+    int fmt;
+    union {
+      scm_opcode_t op;
+      struct scm_vm_inst_noopd     noopd;
+      struct scm_vm_inst_obj       obj;
+      struct scm_vm_inst_obj_obj   obj_obj;
+      struct scm_vm_inst_si        si;
+      struct scm_vm_inst_si_si     si_si;
+      struct scm_vm_inst_si_si_obj si_si_obj;
+      struct scm_vm_inst_iof       iof;
+    } i;
+  } inst;
+  size_t label_id;
+};
 
 
 /*******************************************************************/

@@ -5,12 +5,15 @@
 #include <stdbool.h>
 
 typedef struct ScmAssemblerRec ScmAssembler;
+typedef struct ScmDisassemblerRec ScmDisassembler;
 
 #define SCM_ASSEMBLER(obj) ((ScmAssembler *)(obj))
+#define SCM_DISASSEMBLER(obj) ((ScmDisassembler *)(obj))
 
 #include "scythe/object.h"
 #include "scythe/vminst.h"
 #include "scythe/earray.h"
+#include "scythe/fcd_type.h"
 
 
 /**************************************************************************/
@@ -60,12 +63,60 @@ void scm_asm_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_asm_gc_finalize(ScmObj obj);
 int scm_asm_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
 
+static inline bool
+scm_asm_uncommited_p(ScmObj asmb)
+{
+  scm_assert_obj_type(asmb, &SCM_ASSEMBLER_TYPE_INFO);
+  return (EARY_SIZE(SCM_ASSEMBLER_LABEL_DECL(asmb)) > 0
+          || EARY_SIZE(SCM_ASSEMBLER_LABEL_REF(asmb)) > 0);
+}
+
 static inline ScmObj
 scm_asm_iseq(ScmObj asmb)
 {
   scm_assert_obj_type(asmb, &SCM_ASSEMBLER_TYPE_INFO);
   return SCM_ASSEMBLER_ISEQ(asmb);
 }
+
+
+/**************************************************************************/
+/* Disassembler                                                           */
+/**************************************************************************/
+
+extern ScmTypeInfo SCM_DISASSEMBLER_TYPE_INFO;
+
+struct ScmDisassemblerRec {
+  ScmObjHeader header;
+  ScmObj iseq;
+  EArray label_decl;
+  scm_byte_t *ip;
+  size_t decl_idx;
+  ScmDisasmToken *token;
+};
+
+#define SCM_DISASSEMBLER_ISEQ(d) (SCM_DISASSEMBLER(d)->iseq)
+#define SCM_DISASSEMBLER_LABEL_DECL(d) (&SCM_DISASSEMBLER(d)->label_decl)
+#define SCM_DISASSEMBLER_IP(d) (SCM_DISASSEMBLER(d)->ip)
+#define SCM_DISASSEMBLER_DECL_IDX(d) (SCM_DISASSEMBLER(d)->decl_idx)
+#define SCM_DISASSEMBLER_TOKEN(d) (SCM_DISASSEMBLER(d)->token)
+
+#define SCM_DISASSEMBLER_SET_IP(d, v) (SCM_DISASSEMBLER(d)->ip = (v))
+#define SCM_DISASSEMBLER_ADD_IP(d, a) (SCM_DISASSEMBLER(d)->ip += (a))
+#define SCM_DISASSEMBLER_SET_DECL_IDX(d, v) (SCM_DISASSEMBLER(d)->decl_idx = (v))
+#define SCM_DISASSEMBLER_INC_DECL_IDX(d) (SCM_DISASSEMBLER(d)->decl_idx++)
+#define SCM_DISASSEMBLER_SET_TOKEN(d, v) (SCM_DISASSEMBLER(d)->token = (v))
+
+
+int scm_disasm_initialize(ScmObj disasm, ScmObj iseq);
+void scm_disasm_finalize(ScmObj disasm);
+const ScmDisasmToken *scm_disasm_token(ScmObj disasm);
+int scm_disasm_next(ScmObj disasm);
+void scm_disasm_rewind(ScmObj disasm);
+int scm_disasm_cnv_to_marshalable(ScmObj disasm);
+int scm_disasm_cnv_to_printable(ScmObj disasm);
+void scm_disasm_gc_initialize(ScmObj obj, ScmObj mem);
+void scm_disasm_gc_finalize(ScmObj obj);
+int scm_disasm_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
 
 
 /**************************************************************************/
@@ -78,7 +129,9 @@ enum {
   SCM_ASM_PI_LABEL = SCM_ASM_PI_START,  /* define a label */
 };
 
+
 int scm_asm_assemble(ScmObj asmb, ScmObj lst);
+ScmObj scm_asm_disassemble(ScmObj asmb);
 
 int scm_asm_mnemonic2opcode(const char *mne);
 const char *scm_asm_opcode2mnemonic(scm_opcode_t code);
