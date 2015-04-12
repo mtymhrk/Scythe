@@ -194,64 +194,21 @@ scm_closure_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
 /*  Continuation                                                   */
 /*******************************************************************/
 
-ScmTypeInfo SCM_CONTINUATION_TYPE_INFO = {
-  .name                = "continuation",
-  .flags               = SCM_TYPE_FLG_PROC | SCM_TYPE_FLG_MMO,
-  .obj_print_func      = NULL,
-  .obj_size            = sizeof(ScmContinuation),
-  .gc_ini_func         = scm_cont_gc_initialize,
-  .gc_fin_func         = NULL,
-  .gc_accept_func      = scm_cont_gc_accept,
-  .gc_accept_func_weak = NULL,
-  .extra               = NULL,
-};
-
 int
-scm_cont_initialize(ScmObj cont, ScmObj contcap)
+scm_subr_func_continuation(ScmObj subr, int argc, const ScmObj *argv)
 {
-  ScmObj name = SCM_OBJ_INIT;
-  int rslt;
+  ScmObj cap = SCM_OBJ_INIT;
+  int r;
 
-  SCM_REFSTK_INIT_REG(&cont, &contcap,
-                      &name);
+  scm_assert(scm_fcd_continuation_p(subr));
+  scm_assert(argc >= 0);
 
-  scm_assert_obj_type(cont, &SCM_CONTINUATION_TYPE_INFO);
+  cap = scm_proc_env(subr);
 
-  name = scm_fcd_make_string_from_cstr("continuation", SCM_ENC_SRC);
-  if (scm_obj_null_p(name)) return -1;
+  r = scm_fcd_reinstantemnet_continuation(cap, NULL, 0);
+  if (r < 0) return -1;
 
-  rslt = scm_proc_initialize(cont, name,
-                             -1, SCM_PROC_ADJ_UNWISHED, SCM_OBJ_NULL);
-  if (rslt < 0) return -1;
-
-  SCM_SLOT_SETQ(ScmContinuation, cont, contcap, contcap);
-
-  return 0;
-}
-
-void
-scm_cont_gc_initialize(ScmObj obj, ScmObj mem)
-{
-  scm_assert_obj_type(obj, &SCM_CONTINUATION_TYPE_INFO);
-
-  scm_proc_gc_initialize(obj, mem);
-
-  SCM_CONT(obj)->contcap = SCM_OBJ_NULL;
-}
-
-int
-scm_cont_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
-{
-  int rslt;
-
-  scm_assert_obj_type(obj, &SCM_CONTINUATION_TYPE_INFO);
-  scm_assert(scm_obj_not_null_p(mem));
-  scm_assert(handler != NULL);
-
-  rslt = scm_proc_gc_accept(obj, mem, handler);
-  if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
-
-  return SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_CONT(obj)->contcap, mem);
+  return scm_fcd_return_val(argv, argc);
 }
 
 

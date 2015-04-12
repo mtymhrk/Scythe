@@ -1882,28 +1882,6 @@ scm_vm_do_op_pcall(ScmObj vm, scm_opcode_t op, int argc)
     SCM_SLOT_SETQ(ScmVM, vm, reg.cp, SCM_VM(vm)->reg.val[0]);
     SCM_VM(vm)->reg.ip = scm_fcd_closure_to_ip(SCM_VM(vm)->reg.val[0]);
   }
-  else if (scm_fcd_continuation_p(SCM_VM(vm)->reg.val[0])) {
-    scm_assert(argc >= 0);      /* continuation への引数の可変部分はリスト化 */
-                                /* されないことが前提                        */
-
-    contcap = scm_fcd_cont_capture_obj(SCM_VM(vm)->reg.val[0]);
-    if (scm_obj_null_p(contcap)) return -1;
-
-    if (nr_bind > 0)
-      rslt = scm_vm_reinstatement_cont(vm, contcap,
-                                       scm_vm_ef_values(SCM_VM(vm)->reg.efp),
-                                       argc);
-    else
-      rslt = scm_vm_reinstatement_cont(vm, contcap, NULL, 0);
-
-    if (rslt < 0) return -1;
-
-    if (scm_vm_interrupt_act_any_p(vm))
-      rslt = scm_vm_setup_stat_return(vm);
-    else
-      rslt = scm_vm_do_op_return(vm, op);
-    if (rslt < 0) return -1;
-  }
   else {
     scm_assert(false);          /* must not happen */
   }

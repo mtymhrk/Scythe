@@ -61,9 +61,8 @@ ScmObj scm_fcd_parameter_value(ScmObj prm);
 /*******************************************************************/
 
 bool scm_fcd_continuation_p(ScmObj obj);
-ScmObj scm_fcd_cont_new(SCM_MEM_TYPE_T mtype, ScmObj contcap);
-ScmObj scm_fcd_capture_cont(void);
-ScmObj scm_fcd_cont_capture_obj(ScmObj cont);
+ScmObj scm_fcd_continuation_new(SCM_MEM_TYPE_T mtype, ScmObj contcap);
+ScmObj scm_fcd_make_continuation(void);
 
 
 #endif /* INCLUDE_FCD_PROCEDURE_H__ */

@@ -2258,7 +2258,7 @@ scm_subr_func_callcc(ScmObj subr, int argc, const ScmObj *argv)
     return -1;
   }
 
-  cont = scm_api_capture_cont();
+  cont = scm_fcd_make_continuation();
   if (scm_obj_null_p(cont)) return -1;
 
   args = scm_fcd_list(1, cont);

@@ -4,13 +4,11 @@
 typedef struct ScmProcedureRec ScmProcedure;
 typedef struct ScmSubrutineRec ScmSubrutine;
 typedef struct ScmClosureRec ScmClosure;
-typedef struct ScmContinuationRec ScmContinuation;
 typedef struct ScmParameterRec ScmParameter;
 
 #define SCM_PROCEDURE(obj) ((ScmProcedure *)(obj))
 #define SCM_SUBRUTINE(obj) ((ScmSubrutine *)(obj))
 #define SCM_CLOSURE(obj) ((ScmClosure *)(obj))
-#define SCM_CONT(obj) ((ScmContinuation *)(obj))
 #define SCM_PARAMETER(obj) ((ScmParameter *)(obj))
 
 
@@ -80,6 +78,14 @@ void scm_subrutine_gc_initialize(ScmObj obj, ScmObj mem);
 int scm_subrutine_gc_accept(ScmObj obj,
                             ScmObj mem, ScmGCRefHandlerFunc handler);
 
+static inline ScmSubrFunc
+scm_subrutine_func(ScmObj subr)
+{
+  scm_assert_obj_type(subr, &SCM_SUBRUTINE_TYPE_INFO);
+
+  return SCM_SUBRUTINE(subr)->subr_func;
+}
+
 static inline int
 scm_subrutine_call(ScmObj subr, int argc, const ScmObj *argv)
 {
@@ -126,24 +132,7 @@ scm_closure_env(ScmObj clsr)
 /*  Continuation                                                   */
 /*******************************************************************/
 
-extern ScmTypeInfo SCM_CONTINUATION_TYPE_INFO;
-
-struct ScmContinuationRec {
-  ScmProcedure proc;
-  ScmObj contcap;
-};
-
-int scm_cont_initialize(ScmObj cont, ScmObj contcap);
-void scm_cont_gc_initialize(ScmObj obj, ScmObj mem);
-int scm_cont_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
-
-static inline ScmObj
-scm_cont_content(ScmObj cont)
-{
-  scm_assert_obj_type(cont, &SCM_CONTINUATION_TYPE_INFO);
-
-  return SCM_CONT(cont)->contcap;
-}
+int scm_subr_func_continuation(ScmObj subr, int argc, const ScmObj *argv);
 
 
 /*******************************************************************/

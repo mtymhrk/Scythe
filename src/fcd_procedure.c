@@ -232,43 +232,31 @@ scm_fcd_parameter_value(ScmObj prm)
 bool
 scm_fcd_continuation_p(ScmObj obj)
 {
-  return scm_obj_type_p(obj, &SCM_CONTINUATION_TYPE_INFO);
+  return (scm_fcd_subrutine_p(obj)
+          && scm_subrutine_func(obj) == scm_subr_func_continuation);
 }
 
 ScmObj
-scm_fcd_cont_new(SCM_MEM_TYPE_T mtype, ScmObj contcap)
+scm_fcd_continuation_new(SCM_MEM_TYPE_T mtype, ScmObj contcap)
 {
-  ScmObj cont = SCM_OBJ_INIT;
+  ScmObj name = SCM_OBJ_INIT;
 
-  SCM_REFSTK_INIT_REG(&contcap,
-                      &cont);
+  name = scm_fcd_make_symbol_from_cstr("continuation", SCM_ENC_SRC);
+  if (scm_obj_null_p(name)) return SCM_OBJ_NULL;
 
-  cont = scm_fcd_mem_alloc(&SCM_CONTINUATION_TYPE_INFO, 0, mtype);
-  if (scm_obj_null_p(cont)) return SCM_OBJ_NULL;
-
-  if (scm_cont_initialize(cont, contcap) < 0)
-    return SCM_OBJ_NULL;
-
-  return cont;
+  return scm_fcd_subrutine_new(mtype, scm_subr_func_continuation,
+                               name, -1, SCM_PROC_ADJ_UNWISHED, contcap);
 }
 
 ScmObj
-scm_fcd_capture_cont(void)
+scm_fcd_make_continuation(void)
 {
   ScmObj cap = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&cap);
 
-  cap = scm_vm_capture_cont(scm_fcd_current_vm());
+  cap = scm_fcd_capture_continuation();
   if (scm_obj_null_p(cap)) return SCM_OBJ_NULL;
 
-  return scm_fcd_cont_new(SCM_MEM_HEAP, cap);
+  return scm_fcd_continuation_new(SCM_MEM_HEAP, cap);
 }
-
-ScmObj
-scm_fcd_cont_capture_obj(ScmObj cont)
-{
-  scm_assert(scm_fcd_continuation_p(cont));
-  return scm_cont_content(cont);
-}
-
