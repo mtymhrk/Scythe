@@ -213,10 +213,64 @@ scm_subr_func_continuation(ScmObj subr, int argc, const ScmObj *argv)
 /*  Parameter                                                      */
 /*******************************************************************/
 
+static int
+scm_subr_func_parameter__postproc_init(ScmObj subr,
+                                       int argc, const ScmObj *argv)
+{
+  scm_fcd_parameter_set_init_val(argv[0], argv[1]);
+  return scm_fcd_return_val(argv, 1);
+}
+
+static int
+scm_subr_func_parameter__postproc_cons(ScmObj subr,
+                                       int argc, const ScmObj *argv)
+{
+   ScmObj val = SCM_OBJ_INIT;
+
+   SCM_REFSTK_INIT_REG(&subr,
+                       &val);
+
+   val = scm_fcd_cons(argv[0], argv[1]);
+   if (scm_obj_null_p(val)) return -1;
+
+   return scm_fcd_return_val(&val, 1);
+}
+
+/*
+ * 引数無しでの parameter オブジェクトの呼び出し
+ *   (<parameter object>)
+ *      ;=> parameter オブジェクトを(動的に)束縛している値を返す
+ *
+ * 引数を 1 つ指定した parameter オブジェクトの呼び出し
+ *   (<parameter object> arg1)
+ *      ;=> 何もせずただ #<undef> を返す
+ *
+ * 引数を 2 つ指定し、第 2 引数が #t である場合の parameter オブジェクトの呼び
+ * 出し
+ *   (<parameter object> arg1 #t)
+ *      ;=> (<converter> arg1) の結果を parameter オブジェクの初期値に設定し、
+ *          parameter オブジェクトを返す
+ *
+ * 引数を 2 つ指定し、第 2 引数が #f である場合の parameter オブジェクトの呼び
+ * 出し
+ *   (<parameter object> arg1 #f)
+ *      ;=> (<parameter object> . {(<converter> arg1) の結果}) を返す
+ *
+ * 引数を 2 つ指定し、第 2 引数が真偽値でない場合の parameter オブジェクトの呼
+ * び出し
+ *   (<parameter object> arg1 arg2)
+ *      ;=> 何もせずただ #<undef> を返す
+ *
+ */
 int
 scm_subr_func_parameter(ScmObj subr, int argc, const ScmObj *argv)
 {
-  ScmObj val = SCM_OBJ_INIT, proc = SCM_OBJ_INIT;
+  ScmObj val = SCM_OBJ_INIT, conv = SCM_OBJ_INIT, postproc = SCM_OBJ_INIT;
+  ScmObj arg1 = SCM_OBJ_INIT, arg2 = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&subr,
+                      &val, &conv, &postproc,
+                      &arg1, &arg2);
 
   scm_assert(scm_fcd_parameter_p(subr));
 
@@ -226,14 +280,54 @@ scm_subr_func_parameter(ScmObj subr, int argc, const ScmObj *argv)
 
     return scm_fcd_return_val(&val, 1);
   }
-  else {
-    proc = scm_fcd_parameter_converter(subr);
-    if (scm_fcd_procedure_p(proc)) {
-      return scm_fcd_trampolining(proc, argv[0], SCM_OBJ_NULL, SCM_OBJ_NULL);
+
+  arg1 = scm_fcd_car(argv[0]);
+  if (scm_fcd_nil_p(scm_fcd_cdr(argv[0])))
+    arg2 = SCM_OBJ_NULL;
+  else
+    arg2 = scm_fcd_list_ref(argv[0], 1);
+
+  if (scm_obj_null_p(arg2)) {
+    val = SCM_UNDEF_OBJ;
+    return scm_fcd_return_val(&val, 1);
+  }
+  else if (scm_fcd_true_object_p(arg2)) {
+    conv = scm_fcd_parameter_converter(subr);
+    if (scm_fcd_procedure_p(conv)) {
+      arg1 = scm_fcd_cons(arg1, SCM_NIL_OBJ);
+      if (scm_obj_null_p(arg1)) return -1;
+
+      postproc = scm_fcd_make_subrutine(scm_subr_func_parameter__postproc_init,
+                                        2, 0, SCM_OBJ_NULL);
+      if (scm_obj_null_p(postproc)) return -1;
+
+      return scm_fcd_trampolining(conv, arg1, postproc, subr);
     }
     else {
-      val = scm_fcd_car(argv[0]);
+      scm_fcd_parameter_set_init_val(subr, arg1);
+      return scm_fcd_return_val(&subr, 1);
+    }
+  }
+  else if (scm_fcd_false_object_p(arg2)){
+    conv = scm_fcd_parameter_converter(subr);
+    if (scm_fcd_procedure_p(conv)) {
+      arg1 = scm_fcd_cons(arg1, SCM_NIL_OBJ);
+      if (scm_obj_null_p(arg1)) return -1;
+
+      postproc = scm_fcd_make_subrutine(scm_subr_func_parameter__postproc_cons,
+                                        2, 0, SCM_OBJ_NULL);
+      if (scm_obj_null_p(postproc)) return -1;
+
+      return scm_fcd_trampolining(conv, arg1, postproc, subr);
+    }
+    else {
+      val = scm_fcd_cons(subr, arg1);
+      if (scm_obj_null_p(val)) return -1;
       return scm_fcd_return_val(&val, 1);
     }
+  }
+  else {
+    val = SCM_UNDEF_OBJ;
+    return scm_fcd_return_val(&val, 1);
   }
 }
