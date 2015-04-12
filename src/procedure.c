@@ -197,15 +197,12 @@ scm_closure_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
 int
 scm_subr_func_continuation(ScmObj subr, int argc, const ScmObj *argv)
 {
-  ScmObj cap = SCM_OBJ_INIT;
   int r;
 
   scm_assert(scm_fcd_continuation_p(subr));
   scm_assert(argc >= 0);
 
-  cap = scm_proc_env(subr);
-
-  r = scm_fcd_reinstantemnet_continuation(cap, NULL, 0);
+  r = scm_fcd_reinstantemnet_continuation(scm_proc_env(subr));
   if (r < 0) return -1;
 
   return scm_fcd_return_val(argv, argc);

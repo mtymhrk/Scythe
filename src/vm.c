@@ -3076,7 +3076,7 @@ scm_vm_capture_cont(ScmObj vm)
 }
 
 int
-scm_vm_reinstatement_cont(ScmObj vm, ScmObj cc, const ScmObj *val, int vc)
+scm_vm_reinstatement_cont(ScmObj vm, ScmObj cc)
 {
   const ScmObj *v;
   int n, rslt;
@@ -3086,19 +3086,12 @@ scm_vm_reinstatement_cont(ScmObj vm, ScmObj cc, const ScmObj *val, int vc)
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
   scm_assert_obj_type(cc, &SCM_CONTCAP_TYPE_INFO);
 
-  if (vc >= 0) {
-    rslt = scm_vm_set_val_reg(vm, val, vc);
-    if (rslt < 0) return -1;
-  }
-  else {
-    SCM_VM(vm)->reg.vc = scm_contcap_vc(cc);
-
-    n = ((SCM_VM(vm)->reg.vc <= SCM_VM_NR_VAL_REG) ?
-         SCM_VM(vm)->reg.vc : SCM_VM_NR_VAL_REG);
-    v = scm_contcap_val(cc);
-    for (int i = 0; i < n; i++)
-      SCM_SLOT_SETQ(ScmVM, vm, reg.val[i], v[0]);
-  }
+  SCM_VM(vm)->reg.vc = scm_contcap_vc(cc);
+  n = ((SCM_VM(vm)->reg.vc <= SCM_VM_NR_VAL_REG) ?
+       SCM_VM(vm)->reg.vc : SCM_VM_NR_VAL_REG);
+  v = scm_contcap_val(cc);
+  for (int i = 0; i < n; i++)
+    SCM_SLOT_SETQ(ScmVM, vm, reg.val[i], v[0]);
 
   rslt = scm_vm_restore_stack(vm, scm_contcap_stack(cc));
   if (rslt < 0) return -1;

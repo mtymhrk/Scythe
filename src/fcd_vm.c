@@ -139,9 +139,9 @@ scm_fcd_capture_continuation(void)
 }
 
 int
-scm_fcd_reinstantemnet_continuation(ScmObj cc, const ScmObj *val, int vc)
+scm_fcd_reinstantemnet_continuation(ScmObj cc)
 {
-  return scm_vm_reinstatement_cont(scm_fcd_current_vm(), cc, val, vc);
+  return scm_vm_reinstatement_cont(scm_fcd_current_vm(), cc);
 }
 
 int

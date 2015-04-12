@@ -378,7 +378,7 @@ ScmObj scm_vm_run_cloned(ScmObj vm, ScmObj iseq);
 int scm_vm_set_val_reg(ScmObj vm, const ScmObj *val, int vc);
 
 ScmObj scm_vm_capture_cont(ScmObj vm);
-int scm_vm_reinstatement_cont(ScmObj vm, ScmObj cc, const ScmObj *val, int vc);
+int scm_vm_reinstatement_cont(ScmObj vm, ScmObj cc);
 ScmObj scm_vm_parameter_value(ScmObj vm, ScmObj var);
 int scm_vm_setup_stat_trmp(ScmObj vm, ScmObj proc, ScmObj args,
                            ScmObj postproc, ScmObj handover, bool tail);
