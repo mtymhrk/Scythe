@@ -2156,23 +2156,6 @@ scm_api_flush_output_port(ScmObj port)
 
 
 /*******************************************************************/
-/*  Parameter                                                      */
-/*******************************************************************/
-
-ScmObj
-scm_api_make_parameter(ScmObj conv)
-{
-  if (scm_obj_not_null_p(conv) && !scm_fcd_procedure_p(conv)) {
-    scm_capi_error("failed to make parameter object: "
-                   "invalid argument", 1, conv);
-    return SCM_OBJ_NULL;
-  }
-
-  return scm_fcd_make_parameter(conv);
-}
-
-
-/*******************************************************************/
 /*  Syntax                                                         */
 /*******************************************************************/
 

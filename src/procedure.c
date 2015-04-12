@@ -213,62 +213,27 @@ scm_subr_func_continuation(ScmObj subr, int argc, const ScmObj *argv)
 /*  Parameter                                                      */
 /*******************************************************************/
 
-ScmTypeInfo SCM_PARAMETER_TYPE_INFO = {
-  .name                = "parameter",
-  .flags               = SCM_TYPE_FLG_PROC | SCM_TYPE_FLG_MMO,
-  .obj_print_func      = NULL,
-  .obj_size            = sizeof(ScmParameter),
-  .gc_ini_func         = scm_parameter_gc_initialize,
-  .gc_fin_func         = NULL,
-  .gc_accept_func      = scm_parameter_gc_accept,
-  .gc_accept_func_weak = NULL,
-  .extra               = NULL,
-};
-
 int
-scm_parameter_initialize(ScmObj prm, ScmObj name, ScmObj conv)
+scm_subr_func_parameter(ScmObj subr, int argc, const ScmObj *argv)
 {
-  int rslt;
+  ScmObj val = SCM_OBJ_INIT, proc = SCM_OBJ_INIT;
 
-  scm_assert_obj_type(prm, &SCM_PARAMETER_TYPE_INFO);
-  scm_assert(scm_obj_null_p(name) || scm_fcd_string_p(name));
-  scm_assert(scm_obj_null_p(conv) || scm_fcd_procedure_p(conv));
+  scm_assert(scm_fcd_parameter_p(subr));
 
-  rslt = scm_proc_initialize(prm, name, SCM_OBJ_NULL, 0, 0);
-  if (rslt < 0) return -1;
+  if (scm_fcd_nil_p(argv[0])) {
+    val = scm_fcd_parameter_value(subr);
+    if (scm_obj_null_p(val)) return -1;
 
-  SCM_PARAMETER(prm)->init = SCM_OBJ_NULL;
-  SCM_SLOT_SETQ(ScmParameter, prm, conv, conv);
-
-  return 0;
-}
-
-void
-scm_parameter_gc_initialize(ScmObj obj, ScmObj mem)
-{
-  scm_assert_obj_type(obj, &SCM_PARAMETER_TYPE_INFO);
-
-  scm_proc_gc_initialize(obj, mem);
-
-  SCM_PARAMETER(obj)->init = SCM_OBJ_NULL;
-  SCM_PARAMETER(obj)->conv = SCM_OBJ_NULL;
-}
-
-int
-scm_parameter_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
-{
-  int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
-
-  scm_assert_obj_type(obj, &SCM_PARAMETER_TYPE_INFO);
-
-  rslt = scm_proc_gc_accept(obj, mem, handler);
-  if (scm_gc_ref_handler_failure_p(rslt)) return -1;
-
-  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_PARAMETER(obj)->init, mem);
-  if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
-
-  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_PARAMETER(obj)->conv, mem);
-  if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
-
-  return rslt;
+    return scm_fcd_return_val(&val, 1);
+  }
+  else {
+    proc = scm_fcd_parameter_converter(subr);
+    if (scm_fcd_procedure_p(proc)) {
+      return scm_fcd_trampolining(proc, argv[0], SCM_OBJ_NULL, SCM_OBJ_NULL);
+    }
+    else {
+      val = scm_fcd_car(argv[0]);
+      return scm_fcd_return_val(&val, 1);
+    }
+  }
 }

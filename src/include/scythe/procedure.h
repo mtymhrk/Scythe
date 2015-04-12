@@ -4,12 +4,10 @@
 typedef struct ScmProcedureRec ScmProcedure;
 typedef struct ScmSubrutineRec ScmSubrutine;
 typedef struct ScmClosureRec ScmClosure;
-typedef struct ScmParameterRec ScmParameter;
 
 #define SCM_PROCEDURE(obj) ((ScmProcedure *)(obj))
 #define SCM_SUBRUTINE(obj) ((ScmSubrutine *)(obj))
 #define SCM_CLOSURE(obj) ((ScmClosure *)(obj))
-#define SCM_PARAMETER(obj) ((ScmParameter *)(obj))
 
 
 #include "scythe/object.h"
@@ -139,44 +137,7 @@ int scm_subr_func_continuation(ScmObj subr, int argc, const ScmObj *argv);
 /*  Parameter                                                      */
 /*******************************************************************/
 
-extern ScmTypeInfo SCM_PARAMETER_TYPE_INFO;
+int scm_subr_func_parameter(ScmObj subr, int argc, const ScmObj *argv);
 
-struct ScmParameterRec {
-  ScmProcedure proc;
-  ScmObj init;
-  ScmObj conv;
-};
-
-int scm_parameter_initialize(ScmObj prm, ScmObj name, ScmObj conv);
-
-void scm_parameter_gc_initialize(ScmObj obj, ScmObj mem);
-int scm_parameter_gc_accept(ScmObj obj, ScmObj mem,
-                            ScmGCRefHandlerFunc handler);
-
-
-static inline ScmObj
-scm_parameter_init_val(ScmObj prm)
-{
-  scm_assert_obj_type(prm, &SCM_PARAMETER_TYPE_INFO);
-
-  return SCM_PARAMETER(prm)->init;
-}
-
-static inline ScmObj
-scm_parameter_converter(ScmObj prm)
-{
-  scm_assert_obj_type(prm, &SCM_PARAMETER_TYPE_INFO);
-
-  return SCM_PARAMETER(prm)->conv;
-}
-
-static inline void
-scm_parameter_set_init_val(ScmObj prm, ScmObj val)
-{
-  scm_assert_obj_type(prm, &SCM_PARAMETER_TYPE_INFO);
-  scm_assert(scm_obj_not_null_p(val));
-
-  SCM_SLOT_SETQ(ScmParameter, prm, init, val);
-}
 
 #endif /* INCLUDE_PROCEDURE_H__ */

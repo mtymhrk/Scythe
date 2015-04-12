@@ -166,47 +166,50 @@ scm_fcd_closure_env(ScmObj clsr)
 extern inline bool
 scm_fcd_parameter_p(ScmObj obj)
 {
-  return scm_obj_type_p(obj, &SCM_PARAMETER_TYPE_INFO);
+  return (scm_fcd_subrutine_p(obj)
+          && scm_subrutine_func(obj) == scm_subr_func_parameter);
 }
 
 ScmObj
-scm_fcd_parameter_new(SCM_MEM_TYPE_T mtype, ScmObj name, ScmObj conv)
+scm_fcd_parameter_new(SCM_MEM_TYPE_T mtype, ScmObj init, ScmObj conv)
 {
-  ScmObj prm = SCM_OBJ_INIT;
+  ScmObj name = SCM_OBJ_INIT, env = SCM_OBJ_INIT;
 
-  SCM_REFSTK_INIT_REG(&prm, &conv);
+  SCM_REFSTK_INIT_REG(&init, &conv,
+                      &name, &env);
 
-  scm_assert(scm_obj_null_p(name) || scm_fcd_string_p(name));
   scm_assert(scm_obj_null_p(conv) || scm_fcd_procedure_p(conv));
 
-  prm = scm_fcd_mem_alloc(&SCM_PARAMETER_TYPE_INFO, 0, mtype);
-  if (scm_obj_null_p(prm)) return SCM_OBJ_NULL;
+  name = scm_fcd_make_symbol_from_cstr("parameter", SCM_ENC_SRC);
+  if (scm_obj_null_p(name)) return SCM_OBJ_NULL;
 
-  if (scm_parameter_initialize(prm, name,conv) < 0)
-    return SCM_OBJ_NULL;
+  env = scm_fcd_cons(scm_obj_null_p(init) ? SCM_UNDEF_OBJ : init,
+                     scm_obj_null_p(conv) ? SCM_UNDEF_OBJ : conv);
+  if (scm_obj_null_p(env)) return SCM_OBJ_NULL;
 
-  return prm;
+  return scm_fcd_subrutine_new(mtype, scm_subr_func_parameter,
+                               name, -1, 0, env);
 }
 
 ScmObj
-scm_fcd_make_parameter(ScmObj conv)
+scm_fcd_make_parameter(ScmObj init, ScmObj conv)
 {
   scm_assert(scm_obj_null_p(conv) || scm_fcd_procedure_p(conv));
-  return scm_fcd_parameter_new(SCM_MEM_HEAP, SCM_OBJ_NULL, conv);
+  return scm_fcd_parameter_new(SCM_MEM_HEAP, init, conv);
 }
 
 ScmObj
 scm_fcd_parameter_init_val(ScmObj prm)
 {
   scm_assert(scm_fcd_parameter_p(prm));
-  return scm_parameter_init_val(prm);
+  return scm_fcd_car(scm_proc_env(prm));
 }
 
 ScmObj
 scm_fcd_parameter_converter(ScmObj prm)
 {
   scm_assert(scm_fcd_parameter_p(prm));
-  return scm_parameter_converter(prm);
+  return scm_fcd_cdr(scm_proc_env(prm));
 }
 
 void
@@ -214,7 +217,7 @@ scm_fcd_parameter_set_init_val(ScmObj prm, ScmObj val)
 {
   scm_assert(scm_fcd_parameter_p(prm));
   scm_assert(scm_obj_not_null_p(val));
-  scm_parameter_set_init_val(prm, val);
+  scm_fcd_set_car_i(scm_proc_env(prm), val);
 }
 
 

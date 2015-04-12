@@ -362,9 +362,6 @@ scm_define_scheme_base_current_port(ScmObj module)
     sym = scm_fcd_make_symbol_from_cstr(data[i].name, SCM_ENC_SRC);
     if (scm_obj_null_p(sym)) return -1;
 
-    prm = scm_fcd_make_parameter(SCM_OBJ_NULL);
-    if (scm_obj_null_p(prm)) return -1;
-
     SCM_SYSCALL(fd, dup(data[i].fd));
     if (fd < 0) {
       scm_fcd_error("system call error: dup", 0);
@@ -377,7 +374,9 @@ scm_define_scheme_base_current_port(ScmObj module)
       return -1;
     }
 
-    scm_fcd_parameter_set_init_val(prm, port);
+    prm = scm_fcd_make_parameter(port, SCM_OBJ_NULL);
+    if (scm_obj_null_p(prm)) return -1;
+
     rslt = scm_fcd_define_global_var(module, sym, prm, true);
     if (rslt < 0) return -1;
   }
