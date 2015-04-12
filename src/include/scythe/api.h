@@ -320,6 +320,14 @@ ScmObj scm_api_qq_template_unquoted(ScmObj tmpl, ScmObj idx);
 
 
 /*******************************************************************/
+/* Dynamic Bindings                                                */
+/*******************************************************************/
+
+ScmObj scm_api_push_dynamic_bindings(ScmObj alist);
+ScmObj scm_api_pop_dynamic_bindings(void);
+
+
+/*******************************************************************/
 /*  Module                                                         */
 /*******************************************************************/
 

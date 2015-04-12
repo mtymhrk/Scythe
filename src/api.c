@@ -2432,6 +2432,45 @@ scm_api_qq_template_unquoted(ScmObj tmpl, ScmObj idx)
 
 
 /*******************************************************************/
+/* Dynamic Bindings                                                */
+/*******************************************************************/
+
+ScmObj
+scm_api_push_dynamic_bindings(ScmObj alist)
+{
+  ScmObj x = SCM_OBJ_INIT;
+  int r;
+
+  if (!scm_fcd_nil_p(alist) && !scm_fcd_pair_p(alist)) {
+    scm_capi_error("failed to contsruct dynamic bindins: "
+                   "alist required, but got", 1, alist);
+    return SCM_OBJ_NULL;
+  }
+
+  for (x = alist; scm_fcd_pair_p(x); x = scm_fcd_cdr(x)) {
+    if (!scm_fcd_parameter_p(scm_fcd_cxr(x, "aa"))) {
+      scm_capi_error("failed to contsruct dynamic bindins: "
+                     "parameter object required, but got",
+                     1, scm_fcd_cxr(x, "aa"));
+      return SCM_OBJ_NULL;
+    }
+  }
+
+  r = scm_fcd_push_dynamic_bindings(alist);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return SCM_UNDEF_OBJ;
+}
+
+ScmObj
+scm_api_pop_dynamic_bindings(void)
+{
+  scm_fcd_pop_dynamic_bindings();
+  return SCM_UNDEF_OBJ;
+}
+
+
+/*******************************************************************/
 /*  Module                                                         */
 /*******************************************************************/
 

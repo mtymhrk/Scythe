@@ -541,6 +541,13 @@ scm_define_scythe_internal_compile_subr(ScmObj module)
     { "substitute-qq-template", SCM_SUBR_ARITY_SUBSTITUTE_QQ_TEMPLATE, SCM_SUBR_FLAG_SUBSTITUTE_QQ_TEMPLATE, scm_subr_func_substitute_qq_template, false },
     { "qq-template-num-of-unquoted", SCM_SUBR_ARITY_QQ_TEMPLATE_NUM_OF_UNQUOTED, SCM_SUBR_FLAG_QQ_TEMPLATE_NUM_OF_UNQUOTED, scm_subr_func_qq_template_num_of_unquoted, false },
     { "qq-template-unquoted", SCM_SUBR_ARITY_QQ_TEMPLATE_UNQUOTED, SCM_SUBR_FLAG_QQ_TEMPLATE_UNQUOTED, scm_subr_func_qq_template_unquoted, false },
+
+    /*******************************************************************/
+    /*  Dynamic bindings                                               */
+    /*******************************************************************/
+    { "push-dynamic-bindings", SCM_SUBR_ARITY_PUSH_DYNAMIC_BINDINGS, SCM_SUBR_FLAG_PUSH_DYNAMIC_BINDINGS, scm_subr_func_push_dynamic_bindings, false },
+    { "pop-dynamic-bindings", SCM_SUBR_ARITY_POP_DYNAMIC_BINDINGS, SCM_SUBR_FLAG_POP_DYNAMIC_BINDINGS, scm_subr_func_pop_dynamic_bindings, false },
+
   };
 
   int rslt;

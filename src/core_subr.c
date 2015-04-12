@@ -2836,6 +2836,34 @@ scm_subr_func_qq_template_unquoted(ScmObj subr, int argc, const ScmObj *argv)
   return scm_fcd_return_val(&val, 1);
 }
 
+int
+scm_subr_func_push_dynamic_bindings(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&subr,
+                      &val);
+
+  val = scm_api_push_dynamic_bindings(argv[0]);
+  if (scm_obj_null_p(val)) return SCM_OBJ_NULL;
+
+  return scm_fcd_return_val(&val, 1);
+}
+
+int
+scm_subr_func_pop_dynamic_bindings(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&subr,
+                      &val);
+
+  val = scm_api_pop_dynamic_bindings();
+  if (scm_obj_null_p(val)) return SCM_OBJ_NULL;
+
+  return scm_fcd_return_val(&val, 1);
+}
+
 
 /*******************************************************************/
 /*  Internals                                                      */
