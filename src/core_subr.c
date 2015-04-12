@@ -1914,7 +1914,7 @@ scm_subr_func_apply(ScmObj subr, int argc, const ScmObj *argv)
       if (scm_obj_null_p(cur)) return -1;
     }
     else {
-      if (!scm_fcd_pair_p(obj)) {
+      if (!scm_fcd_pair_p(obj) && !scm_fcd_nil_p(obj)) {
         scm_capi_error("apply: list required, but got", 1, obj);
         return -1;
       }
