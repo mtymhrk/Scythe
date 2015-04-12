@@ -144,6 +144,13 @@ scm_fcd_reinstantemnet_continuation(ScmObj cc)
   return scm_vm_reinstatement_cont(scm_fcd_current_vm(), cc);
 }
 
+ScmObj
+scm_fcd_parameter_value(ScmObj var)
+{
+  scm_assert(scm_obj_not_null_p(var));
+  return scm_vm_parameter_value(scm_fcd_current_vm(), var);
+}
+
 int
 scm_fcd_return_val(const ScmObj *val, int vc)
 {

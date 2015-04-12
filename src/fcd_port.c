@@ -7,9 +7,9 @@
 #include "scythe/port.h"
 #include "scythe/string.h"
 #include "scythe/vector.h"
-#include "scythe/vm.h"
 #include "scythe/parser.h"
 #include "scythe/char.h"
+
 
 /*******************************************************************/
 /*  Port                                                           */
@@ -421,7 +421,7 @@ default_input_port(bool textual, bool binary)
   }
 
   if (scm_fcd_parameter_p(val)) {
-    val = scm_vm_parameter_value(scm_fcd_current_vm(), val);
+    val = scm_fcd_parameter_value(val);
     if (scm_obj_null_p(val)) return SCM_OBJ_NULL;
   }
 
@@ -709,7 +709,7 @@ default_output_port(bool textual, bool binary)
   }
 
   if (scm_fcd_parameter_p(val)) {
-    val = scm_vm_parameter_value(scm_fcd_current_vm(), val);
+    val = scm_fcd_parameter_value(val);
     if (scm_obj_null_p(val)) return SCM_OBJ_NULL;
   }
 

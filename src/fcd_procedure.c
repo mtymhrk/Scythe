@@ -217,13 +217,6 @@ scm_fcd_parameter_set_init_val(ScmObj prm, ScmObj val)
   scm_parameter_set_init_val(prm, val);
 }
 
-ScmObj
-scm_fcd_parameter_value(ScmObj prm)
-{
-  scm_assert(scm_obj_not_null_p(prm));
-  return scm_vm_parameter_value(scm_fcd_current_vm(), prm);
-}
-
 
 /*******************************************************************/
 /*  Continuation                                                   */

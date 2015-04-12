@@ -53,7 +53,6 @@ ScmObj scm_fcd_make_parameter(ScmObj conv);
 ScmObj scm_fcd_parameter_init_val(ScmObj prm);
 ScmObj scm_fcd_parameter_converter(ScmObj prm);
 void scm_fcd_parameter_set_init_val(ScmObj prm, ScmObj val);
-ScmObj scm_fcd_parameter_value(ScmObj prm);
 
 
 /*******************************************************************/

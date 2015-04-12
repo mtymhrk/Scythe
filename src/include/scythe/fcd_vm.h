@@ -24,6 +24,7 @@ int scm_fcd_return_val(const ScmObj *val, int vc);
 
 ScmObj scm_fcd_capture_continuation(void);
 int scm_fcd_reinstantemnet_continuation(ScmObj cc);
+ScmObj scm_fcd_parameter_value(ScmObj var);
 
 int scm_fcd_trampolining(ScmObj proc, ScmObj args,
                          ScmObj postproc, ScmObj handover);
