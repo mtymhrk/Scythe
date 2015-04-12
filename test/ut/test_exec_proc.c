@@ -219,7 +219,7 @@ TEST(exec_proc, with_exception_handler__raise_continuable_2)
                                "101");
 }
 
-TEST(exec_proc, test_eval__with_exception_handler__error)
+TEST(exec_proc, with_exception_handler__error)
 {
   test_eval__comp_val_with_obj("(call/cc"
                                "   (lambda (k)"
