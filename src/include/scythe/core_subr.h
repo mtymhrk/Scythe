@@ -7,6 +7,17 @@
 
 
 /*******************************************************************/
+/*  Dynamic bindings                                               */
+/*******************************************************************/
+
+#define SCM_SUBR_ARITY_MAKE_PARAMETER -2
+
+#define SCM_SUBR_FLAG_MAKE_PARAMETER 0
+
+int scm_subr_func_make_parameter(ScmObj subr, int argc, const ScmObj *argv);
+
+
+/*******************************************************************/
 /*  Equivalence predicates                                         */
 /*******************************************************************/
 

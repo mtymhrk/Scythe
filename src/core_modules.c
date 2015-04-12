@@ -143,6 +143,11 @@ scm_define_scheme_base_subr(ScmObj module)
 {
   static const struct subr_data data[] = {
     /*******************************************************************/
+    /*  Dynamic bindings                                               */
+    /*******************************************************************/
+    { "make-parameter", SCM_SUBR_ARITY_MAKE_PARAMETER, SCM_SUBR_FLAG_MAKE_PARAMETER, scm_subr_func_make_parameter, true },
+
+    /*******************************************************************/
     /*  Equivalence predicates                                         */
     /*******************************************************************/
     { "eq?", SCM_SUBR_ARITY_EQ_P, SCM_SUBR_FLAG_EQ_P, scm_subr_func_eq_P, true },

@@ -228,3 +228,15 @@ TEST(exec_proc, with_exception_handler__error)
                                "         (lambda () (error \"an-error\" 'foo)))))",
                                "100");
 }
+
+TEST(exec_proc, parameter__make_parameter)
+{
+  test_eval__comp_val_with_obj("((make-parameter 100))",
+                               "100");
+}
+
+TEST(exec_proc, parameter__make_parameter__specify_converter)
+{
+  test_eval__comp_val_with_obj("((make-parameter 100 (lambda (x) (+ x 1))))",
+                               "101");
+}

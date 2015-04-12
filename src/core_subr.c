@@ -27,6 +27,43 @@ scm_subr_list_to_cv(ScmObj lst, ScmObj *ary, size_t n)
   return len;
 }
 
+
+/*******************************************************************/
+/*  Dynamic bindings                                               */
+/*******************************************************************/
+
+int
+scm_subr_func_make_parameter(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj prm = SCM_OBJ_INIT, conv = SCM_OBJ_INIT;
+  ScmObj postproc = SCM_OBJ_INIT, arg = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&subr,
+                      &prm, &conv,
+                      &postproc, &arg);
+
+  conv = SCM_OBJ_NULL;
+  if (scm_fcd_pair_p(argv[1])) {
+    conv = scm_fcd_car(argv[1]);
+    if (!scm_fcd_procedure_p(conv)) {
+      scm_fcd_error("make-parameter: procedure required, but got", 1, conv);
+      return -1;
+    }
+  }
+
+  prm = scm_fcd_make_parameter(argv[0], conv);
+  if (scm_obj_null_p(prm)) return -1;
+
+  if (scm_obj_null_p(conv))
+    return scm_fcd_return_val(&prm, 1);
+
+  arg = scm_fcd_list(2, argv[0], SCM_TRUE_OBJ);
+  if (scm_obj_null_p(arg)) return -1;
+
+  return scm_capi_trampolining(prm, arg, SCM_OBJ_NULL, SCM_OBJ_NULL);
+}
+
+
 /*******************************************************************/
 /*  Equivalence predicates                                         */
 /*******************************************************************/
