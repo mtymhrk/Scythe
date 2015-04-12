@@ -426,8 +426,8 @@ default_input_port(bool textual, bool binary)
   }
 
   if (!scm_fcd_input_port_p(val)) {
-    scm_fcd_error("failed to get default input-port"
-                  "inuput-port required, but got", 1, val);
+    scm_fcd_error("failed to get default input-port: "
+                  "input-port required, but got", 1, val);
     return SCM_OBJ_NULL;
   }
 
@@ -714,21 +714,21 @@ default_output_port(bool textual, bool binary)
   }
 
   if (!scm_fcd_output_port_p(val)) {
-    scm_fcd_error("failed to get default output-port"
-                  "outuput-port required, but got", 1, val);
+    scm_fcd_error("failed to get default output-port: "
+                  "output-port required, but got", 1, val);
     return SCM_OBJ_NULL;
   }
 
   if (binary && !scm_fcd_binary_port_p(val)) {
-      scm_fcd_error("failed to get default output-port: "
-                    "binary-port required, but got", 1, val);
-      return SCM_OBJ_NULL;
+    scm_fcd_error("failed to get default output-port: "
+                  "binary-port required, but got", 1, val);
+    return SCM_OBJ_NULL;
   }
 
   if (textual && !scm_fcd_textual_port_p(val)) {
-      scm_fcd_error("failed to get default output-port: "
-                    "textual-port required, but got", 1, val);
-      return SCM_OBJ_NULL;
+    scm_fcd_error("failed to get default output-port: "
+                  "textual-port required, but got", 1, val);
+    return SCM_OBJ_NULL;
   }
 
   return val;
