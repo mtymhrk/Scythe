@@ -24,6 +24,8 @@ int scm_fcd_return_val(const ScmObj *val, int vc);
 
 ScmObj scm_fcd_capture_continuation(void);
 int scm_fcd_reinstantemnet_continuation(ScmObj cc);
+int scm_fcd_push_dynamic_bindings(ScmObj alist);
+void scm_fcd_pop_dynamic_bindings(void);
 ScmObj scm_fcd_parameter_value(ScmObj var);
 
 int scm_fcd_trampolining(ScmObj proc, ScmObj args,

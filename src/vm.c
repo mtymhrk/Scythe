@@ -1151,57 +1151,6 @@ scm_vm_shift_eframe(ScmObj vm, int e, int n)
 }
 
 static int
-scm_vm_push_dynamic_bindings(ScmObj vm, ScmObj *param, size_t n)
-{
-  ScmObj rib = SCM_OBJ_INIT, x = SCM_OBJ_INIT;
-
-  SCM_REFSTK_INIT_REG(&vm,
-                      &rib, &x);
-
-  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-  scm_assert(param != NULL);
-  scm_assert(n > 0);
-
-  if (n > SSIZE_MAX / 2) {
-    scm_fcd_error("failed to extend dynamic bindings: too many parameters", 0);
-    return -1;
-  }
-
-  rib = scm_fcd_make_vector(n * 2, SCM_OBJ_NULL);
-  if (scm_obj_null_p(rib)) return -1;
-
-  for (size_t i = 0; i < n * 2; i += 2) {
-    scm_fcd_vector_set_i(rib, i, param[i]);
-    scm_fcd_vector_set_i(rib, i + 1, param[i + 1]);
-  }
-
-  x = scm_fcd_cons(rib, SCM_VM(vm)->reg.prm);
-  if (scm_obj_null_p(x)) return -1;
-
-  SCM_SLOT_SETQ(ScmVM, vm, reg.prm, x);
-
-  return 0;
-}
-
-static int
-scm_vm_pop_dynamic_bindings(ScmObj vm)
-{
-  ScmObj x = SCM_OBJ_INIT;
-
-  SCM_REFSTK_INIT_REG(&vm);
-
-  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-
-  if (scm_fcd_nil_p(SCM_VM(vm)->reg.prm))
-    return 0;
-
-  x = scm_fcd_cdr(SCM_VM(vm)->reg.prm);
-  SCM_SLOT_SETQ(ScmVM, vm, reg.prm, x);
-
-  return 0;
-}
-
-static int
 scm_vm_make_proc_call_code(ScmObj asmb, ScmObj proc, ScmObj args, bool tail)
 {
   ScmObj cur = SCM_OBJ_INIT, arg = SCM_OBJ_INIT;
@@ -3106,45 +3055,73 @@ scm_vm_reinstatement_cont(ScmObj vm, ScmObj cc)
   return 0;
 }
 
+int
+scm_vm_push_dynamic_bindings(ScmObj vm, ScmObj alist)
+{
+  ScmObj x = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&vm,
+                      &x);
+
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+  scm_assert(scm_fcd_nil_p(alist) || scm_fcd_pair_p(alist));
+
+  x = scm_fcd_cons(alist, SCM_VM(vm)->reg.prm);
+  if (scm_obj_null_p(x)) return -1;
+
+  SCM_SLOT_SETQ(ScmVM, vm, reg.prm, x);
+
+  return 0;
+}
+
+void
+scm_vm_pop_dynamic_bindings(ScmObj vm)
+{
+  ScmObj x = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&vm);
+
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  if (scm_fcd_nil_p(SCM_VM(vm)->reg.prm))
+    return;
+
+  x = scm_fcd_cdr(SCM_VM(vm)->reg.prm);
+  SCM_SLOT_SETQ(ScmVM, vm, reg.prm, x);
+}
+
 ScmObj
 scm_vm_parameter_value(ScmObj vm, ScmObj var)
 {
-  ScmObj rib = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
-  ScmObj x = SCM_OBJ_INIT, p = SCM_OBJ_INIT;
-  size_t n;
+  ScmObj v = SCM_OBJ_INIT, x = SCM_OBJ_INIT, p = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&vm, &var,
-                      &rib, &val,
-                      &x, &p);
+                      &v, &x, &p);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
   scm_assert(scm_obj_not_null_p(var));
 
   for (x = SCM_VM(vm)->reg.prm; scm_fcd_pair_p(x); x = scm_fcd_cdr(x)) {
-    rib = scm_fcd_car(x);
-    n = scm_fcd_vector_length(rib);
-    for (size_t i = 0; i < n; i += 2) {
-      p = scm_fcd_vector_ref(rib, i);
-      if (scm_fcd_eq_p(p, var))
-        return scm_fcd_vector_ref(rib, i + 1);
-    }
+    p = scm_fcd_assq(var, scm_fcd_car(x));
+    if (scm_obj_null_p(p)) return SCM_OBJ_NULL;
   }
 
-  if (scm_obj_null_p(x)) return SCM_OBJ_NULL;
+  if (scm_fcd_pair_p(p))
+    return scm_fcd_cdr(p);
 
   if (!scm_fcd_parameter_p(var)) {
     scm_fcd_error("failed to get bound value: unbound variable", 1, var);
     return SCM_OBJ_NULL;
   }
 
-  val = scm_fcd_parameter_init_val(var);
-  if (scm_obj_null_p(val)) {
+  v = scm_fcd_parameter_init_val(var);
+  if (scm_obj_null_p(v)) {
     scm_fcd_error("failed to get bound value: "
                    "parameter does not have initial value", 1, var);
     return SCM_OBJ_NULL;
   }
 
-  return val;
+  return v;
 }
 
 int

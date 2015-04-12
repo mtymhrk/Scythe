@@ -144,6 +144,18 @@ scm_fcd_reinstantemnet_continuation(ScmObj cc)
   return scm_vm_reinstatement_cont(scm_fcd_current_vm(), cc);
 }
 
+int
+scm_fcd_push_dynamic_bindings(ScmObj alist)
+{
+  return scm_vm_push_dynamic_bindings(scm_fcd_current_vm(), alist);
+}
+
+void
+scm_fcd_pop_dynamic_bindings(void)
+{
+  scm_vm_pop_dynamic_bindings(scm_fcd_current_vm());
+}
+
 ScmObj
 scm_fcd_parameter_value(ScmObj var)
 {
