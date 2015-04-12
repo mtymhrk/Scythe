@@ -1960,7 +1960,7 @@ scm_subr_func_with_exception_handler(ScmObj subr, int argc, const ScmObj *argv)
   SCM_REFSTK_INIT_REG(&subr,
                       &module, &postproc);
 
-  module = scm_fcd_subrutine_module(subr);
+  module = scm_fcd_subrutine_env(subr);
   postproc = scm_fcd_make_subrutine(scm_subr_func_with_exception_handler_post,
                                     -1, SCM_PROC_ADJ_UNWISHED, module);
   if (scm_obj_null_p(postproc)) return -1;
@@ -2370,7 +2370,7 @@ scm_subr_func_eval(ScmObj subr, int argc, const ScmObj *argv)
                       &cmpl);
 
 
-  subr_mod  = scm_fcd_subrutine_module(subr);
+  subr_mod  = scm_fcd_subrutine_env(subr);
   r = scm_fcd_cached_global_var_ref(SCM_CACHED_GV_COMPILE,
                                     SCM_CSETTER_L(compile));
   if (r < 0) return -1;
@@ -2856,7 +2856,7 @@ scm_subr_func_eval_file(ScmObj subr, int argc, const ScmObj *argv)
   cmpl = scm_fcd_make_compiler(SCM_OBJ_NULL);
   if (scm_obj_null_p(cmpl)) return -1;
 
-  mod = scm_fcd_subrutine_module(subr);
+  mod = scm_fcd_subrutine_env(subr);
   args = scm_fcd_cons(port, cmpl);
   if (scm_obj_null_p(args)) return -1;
 

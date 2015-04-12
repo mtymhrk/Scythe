@@ -25,12 +25,13 @@ typedef struct ScmParameterRec ScmParameter;
 struct ScmProcedureRec {
   ScmObjHeader header;
   ScmObj name;
+  ScmObj env;
   int arity;
   unsigned int flags;
 };
 
-int scm_proc_initialize(ScmObj proc,
-                        ScmObj name, int arity, unsigned int flags);
+int scm_proc_initialize(ScmObj proc, ScmObj name,
+                        int arity, unsigned int flags, ScmObj env);
 void scm_proc_gc_initialize(ScmObj obj, ScmObj mem);
 int scm_proc_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
 
@@ -44,6 +45,12 @@ static inline ScmObj
 scm_proc_name(ScmObj proc)
 {
   return SCM_PROCEDURE(proc)->name;
+}
+
+static inline ScmObj
+scm_proc_env(ScmObj proc)
+{
+  return SCM_PROCEDURE(proc)->env;
 }
 
 static inline ScmObj
@@ -62,12 +69,11 @@ extern ScmTypeInfo SCM_SUBRUTINE_TYPE_INFO;
 struct ScmSubrutineRec {
   ScmProcedure proc;
   ScmSubrFunc subr_func;
-  ScmObj module;
 };
 
 int scm_subrutine_initialize(ScmObj subr,  ScmSubrFunc func,
                              ScmObj name, int arity, unsigned int flags,
-                             ScmObj module);
+                             ScmObj env);
 int scm_subrutine_obj_print(ScmObj obj, ScmObj port, int kind,
                             ScmObjPrintHandler handler);
 void scm_subrutine_gc_initialize(ScmObj obj, ScmObj mem);
@@ -82,14 +88,6 @@ scm_subrutine_call(ScmObj subr, int argc, const ScmObj *argv)
   return SCM_SUBRUTINE(subr)->subr_func(subr, argc, argv);
 }
 
-static inline ScmObj
-scm_subrutine_module(ScmObj subr)
-{
-  scm_assert_obj_type(subr, &SCM_SUBRUTINE_TYPE_INFO);
-
-  return SCM_SUBRUTINE(subr)->module;
-}
-
 
 /*******************************************************************/
 /*  Closure                                                        */
@@ -100,7 +98,6 @@ extern ScmTypeInfo SCM_CLOSURE_TYPE_INFO;
 struct ScmClosureRec {
   ScmProcedure proc;
   ScmObj iseq;
-  ScmObj env;
 };
 
 int scm_closure_initialize(ScmObj clsr,
@@ -121,7 +118,7 @@ scm_closure_env(ScmObj clsr)
 {
   scm_assert_obj_type(clsr, &SCM_CLOSURE_TYPE_INFO);
 
-  return SCM_CLOSURE(clsr)->env;
+  return scm_proc_env(clsr);
 }
 
 

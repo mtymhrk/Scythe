@@ -9,12 +9,15 @@
 /*******************************************************************/
 
 int
-scm_proc_initialize(ScmObj proc, ScmObj name, int arity, unsigned int flags)
+scm_proc_initialize(ScmObj proc, ScmObj name,
+                    int arity, unsigned int flags, ScmObj env)
 {
   scm_assert(scm_obj_type_flag_set_p(proc, SCM_TYPE_FLG_PROC));
-  scm_assert(scm_obj_null_p(name) || scm_fcd_string_p(name));
+  scm_assert(scm_obj_null_p(name)
+             || scm_fcd_string_p(name) || scm_fcd_symbol_p(name));
 
   SCM_SLOT_SETQ(ScmProcedure, proc, name, name);
+  SCM_SLOT_SETQ(ScmProcedure, proc, env, env);
   SCM_PROCEDURE(proc)->arity = arity;
   SCM_PROCEDURE(proc)->flags = flags;
 
@@ -27,14 +30,23 @@ scm_proc_gc_initialize(ScmObj obj, ScmObj mem)
   scm_assert(scm_obj_type_flag_set_p(obj, SCM_TYPE_FLG_PROC));
 
   SCM_PROCEDURE(obj)->name = SCM_OBJ_NULL;
+  SCM_PROCEDURE(obj)->env = SCM_OBJ_NULL;
 }
 
 int
 scm_proc_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
 {
+  int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
+
   scm_assert(scm_obj_type_flag_set_p(obj, SCM_TYPE_FLG_PROC));
 
-  return SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_PROCEDURE(obj)->name, mem);
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_PROCEDURE(obj)->name, mem);
+  if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
+
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_PROCEDURE(obj)->env, mem);
+  if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
+
+  return rslt;
 }
 
 
@@ -56,23 +68,20 @@ ScmTypeInfo SCM_SUBRUTINE_TYPE_INFO = {
 
 int
 scm_subrutine_initialize(ScmObj subr, ScmSubrFunc func,
-                         ScmObj name, int arity, unsigned int flags,
-                         ScmObj module)
+                         ScmObj name, int arity, unsigned int flags, ScmObj env)
 {
   int rslt;
 
   SCM_REFSTK_INIT_REG(&name,
-                      &subr, &module);
+                      &subr, &env);
 
   scm_assert_obj_type(subr, &SCM_SUBRUTINE_TYPE_INFO);
   scm_assert(func != NULL);
-  scm_assert(scm_obj_null_p(name) || scm_fcd_string_p(name));
-  scm_assert(scm_obj_null_p(module) || scm_fcd_module_p(module));
+  scm_assert(scm_obj_null_p(name)
+             || scm_fcd_string_p(name) || scm_fcd_symbol_p(name));
 
-  rslt = scm_proc_initialize(subr, name, arity, flags);
+  rslt = scm_proc_initialize(subr, name, arity, flags, env);
   if (rslt < 0) return -1;
-
-  SCM_SLOT_SETQ(ScmSubrutine, subr, module, module);
 
   SCM_SUBRUTINE(subr)->subr_func = func;
 
@@ -104,26 +113,16 @@ scm_subrutine_gc_initialize(ScmObj obj, ScmObj mem)
   scm_assert_obj_type(obj, &SCM_SUBRUTINE_TYPE_INFO);
 
   scm_proc_gc_initialize(obj, mem);
-
-  SCM_SUBRUTINE(obj)->module = SCM_OBJ_NULL;
 }
 
 int
 scm_subrutine_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
 {
-  int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
-
   scm_assert_obj_type(obj, &SCM_SUBRUTINE_TYPE_INFO);
   scm_assert(scm_obj_not_null_p(mem));
   scm_assert(handler != NULL);
 
-  rslt = scm_proc_gc_accept(obj, mem, handler);
-  if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
-
-  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_SUBRUTINE(obj)->module, mem);
-  if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
-
-  return rslt;
+  return scm_proc_gc_accept(obj, mem, handler);
 }
 
 
@@ -151,13 +150,13 @@ scm_closure_initialize(ScmObj clsr,
 
   scm_assert_obj_type(clsr, &SCM_CLOSURE_TYPE_INFO);
   scm_assert(scm_fcd_iseq_p(iseq));
-  scm_assert(scm_obj_null_p(name) || scm_fcd_string_p(name));
+  scm_assert(scm_obj_null_p(name)
+             || scm_fcd_string_p(name) || scm_fcd_symbol_p(name));
 
-  rslt = scm_proc_initialize(clsr, name, arity, 0);
+  rslt = scm_proc_initialize(clsr, name, arity, 0, env);
   if (rslt < 0) return -1;
 
   SCM_SLOT_SETQ(ScmClosure, clsr, iseq, iseq);
-  SCM_SLOT_SETQ(ScmClosure, clsr, env, env);
 
   return 0;
 }
@@ -170,7 +169,6 @@ scm_closure_gc_initialize(ScmObj obj, ScmObj mem)
   scm_proc_gc_initialize(obj, mem);
 
   SCM_CLOSURE(obj)->iseq = SCM_OBJ_NULL;
-  SCM_CLOSURE(obj)->env = SCM_OBJ_NULL;
 }
 
 int
@@ -186,9 +184,6 @@ scm_closure_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
   rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_CLOSURE(obj)->iseq, mem);
-  if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
-
-  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_CLOSURE(obj)->env, mem);
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
   return rslt;
@@ -225,7 +220,8 @@ scm_cont_initialize(ScmObj cont, ScmObj contcap)
   name = scm_fcd_make_string_from_cstr("continuation", SCM_ENC_SRC);
   if (scm_obj_null_p(name)) return -1;
 
-  rslt = scm_proc_initialize(cont, name, -1, SCM_PROC_ADJ_UNWISHED);
+  rslt = scm_proc_initialize(cont, name,
+                             -1, SCM_PROC_ADJ_UNWISHED, SCM_OBJ_NULL);
   if (rslt < 0) return -1;
 
   SCM_SLOT_SETQ(ScmContinuation, cont, contcap, contcap);
@@ -284,7 +280,7 @@ scm_parameter_initialize(ScmObj prm, ScmObj name, ScmObj conv)
   scm_assert(scm_obj_null_p(name) || scm_fcd_string_p(name));
   scm_assert(scm_obj_null_p(conv) || scm_fcd_procedure_p(conv));
 
-  rslt = scm_proc_initialize(prm, name, 0, 0);
+  rslt = scm_proc_initialize(prm, name, SCM_OBJ_NULL, 0, 0);
   if (rslt < 0) return -1;
 
   SCM_PARAMETER(prm)->init = SCM_OBJ_NULL;

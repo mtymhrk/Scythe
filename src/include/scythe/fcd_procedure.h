@@ -23,11 +23,11 @@ bool scm_fcd_procedure_flg_set_p(ScmObj proc, SCM_PROC_FLG_T flg);
 bool scm_fcd_subrutine_p(ScmObj obj);
 ScmObj scm_fcd_subrutine_new(SCM_MEM_TYPE_T mtype,
                              ScmSubrFunc func, ScmObj name, int arity,
-                             unsigned int flags, ScmObj module);
+                             unsigned int flags, ScmObj env);
 ScmObj scm_fcd_make_subrutine(ScmSubrFunc func, int arity, unsigned int flags,
-                              ScmObj module);
+                              ScmObj env);
 int scm_fcd_call_subrutine(ScmObj subr, int argc, const ScmObj *argv);
-ScmObj scm_fcd_subrutine_module(ScmObj subr);
+ScmObj scm_fcd_subrutine_env(ScmObj subr);
 
 
 /*******************************************************************/
