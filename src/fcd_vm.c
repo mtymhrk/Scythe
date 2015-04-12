@@ -132,6 +132,18 @@ scm_fcd_vm_disposal_unhandled_exc(ScmObj vm)
   return scm_vm_disposal_unhandled_exc(vm);
 }
 
+ScmObj
+scm_fcd_capture_continuation(void)
+{
+  return scm_vm_capture_cont(scm_fcd_current_vm());
+}
+
+int
+scm_fcd_reinstantemnet_continuation(ScmObj cc, const ScmObj *val, int vc)
+{
+  return scm_vm_reinstatement_cont(scm_fcd_current_vm(), cc, val, vc);
+}
+
 int
 scm_fcd_return_val(const ScmObj *val, int vc)
 {
