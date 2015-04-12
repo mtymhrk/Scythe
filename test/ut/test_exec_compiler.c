@@ -2049,6 +2049,91 @@ TEST(exec_compiler, let_a_values_9)
                "    (tcall 0))))");
 }
 
+TEST(exec_compiler, parameterize_empty_bindings_and_body)
+{
+  test_compile("(parameterize ())",
+               "(  (cframe (label 0))"
+               "   (cframe (label 1))"
+               "   (gref list (scheme base))"
+               "   (call 0)"
+               "   (mrve)"
+               " (label 1)"
+               "   (push)"
+               "   (close 0 0 ((undef) (return)))"
+               "   (push)"
+               "   (gref with-dynamic-bindings (scythe internal compile))"
+               "   (call 2)"
+               "   (nop)"
+               " (label 0))");
+}
+
+TEST(exec_compiler, parameterize_empty_body)
+{
+  test_compile("(parameterize ((prm 1)))",
+               "(  (cframe (label 0))"
+               "   (cframe (label 1))"
+               "   (cframe (label 2))"
+               "   (immval 1)"
+               "   (push)"
+               "   (immval #f)"
+               "   (push)"
+               "   (gref prm (main))"
+               "   (call 2)"
+               "   (mrve)"
+               " (label 2)"
+               "   (push)"
+               "   (gref list (scheme base))"
+               "   (call 1)"
+               "   (mrve)"
+               " (label 1)"
+               "   (push)"
+               "   (close 0 0 ((undef) (return)))"
+               "   (push)"
+               "   (gref with-dynamic-bindings (scythe internal compile))"
+               "   (call 2)"
+               "   (nop)"
+               " (label 0))");
+}
+
+TEST(exec_compiler, parameterize)
+{
+  test_compile("(let ((prm (make-parameter 1)))"
+               "  (parameterize ((prm 2)) (prm)))",
+               "(  (cframe (label 0))"
+               "   (immval 1)"
+               "   (push)"
+               "   (gref make-parameter (main))"
+               "   (call 1)"
+               "   (mrve)"
+               " (label 0)"
+               "   (push)"
+               "   (eframe 1)"
+               "   (cframe (label 1))"
+               "   (cframe (label 2))"
+               "   (cframe (label 3))"
+               "   (immval 2)"
+               "   (push)"
+               "   (immval #f)"
+               "   (push)"
+               "   (sref 0 0)"
+               "   (call 2)"
+               "   (mrve)"
+               " (label 3)"
+               "   (push)"
+               "   (gref list (scheme base))"
+               "   (call 1)"
+               "   (mrve)"
+               " (label 2)"
+               "   (push)"
+               "   (close 1 0 ((sref 0 0) (tcall 0)))"
+               "   (push)"
+               "   (gref with-dynamic-bindings (scythe internal compile))"
+               "   (call 2)"
+               "   (nop)"
+               " (label 1)"
+               "   (epop))");
+}
+
 TEST(exec_compiler, quasiquote)
 {
   test_compile("`(a ,x c)",

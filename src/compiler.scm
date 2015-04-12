@@ -1336,6 +1336,62 @@
                       b
                       (vector-length vars-vec))))))))
 
+(define (with-dynamic-bindings bindings thunk)
+  (apply push-dynamic-bindings bindings)
+  (let ((val (thunk)))
+    (pop-dynamic-bindings)
+    val))
+
+(define (p1-decons-parameterize cmpl exp)
+  (let ((x (cdr exp))
+        (bind #f)
+        (body #f))
+    (unless (pair? x)
+      (compile-error cmpl "malformed parameterize"))
+    (set! bind (car x))
+    (set! body (cdr x))
+    (let loop ((bind bind) (prm '()) (val '()) (n 0))
+      (if (null? bind)
+          (values (reverse prm) (reverse val) n body)
+          (begin
+            (unless (pair? bind)
+              (compile-error cmpl "malformed parameterize"))
+            (let ((x (car bind)) (p #f) (v #f))
+              (unless (pair? x)
+                (compile-error cmpl "mailformed parameterize"))
+              (set! p (car x))
+              (set! x (cdr x))
+              (unless (pair? x)
+                (compile-error cmpl "malformed parameterize"))
+              (set! v (car x))
+              (unless (null? (cdr x))
+                (compile-error cmpl "malformed parameterize"))
+              (loop (cdr bind) (cons p prm) (cons v val) (+ n 1))))))))
+
+(define (p1-syntax-handler-parameterize cmpl exp env toplevel-p rdepth)
+  (let-values (((param value nr body) (p1-decons-parameterize cmpl exp)))
+    (vector p2-syntax-id-call
+            (vector p2-syntax-id-gref
+                    'with-dynamic-bindings
+                    '(scythe internal compile))
+            (let ((vec (make-vector (+ nr 2))))
+              (vector-set! vec 0 p2-syntax-id-call)
+              (vector-set! vec 1 (vector p2-syntax-id-gref
+                                         'list
+                                         '(scheme base)))
+              (let loop ((idx 2)
+                         (param param)
+                         (value value))
+                (if (null? param) vec
+                    (let ((p (car param)) (v (car value)))
+                      (vector-set! vec idx
+                                   (vector p2-syntax-id-call
+                                           (p1-compile-exp cmpl p env #f rdepth)
+                                           (p1-compile-exp cmpl v env #f rdepth)
+                                           (vector p2-syntax-id-self #f)))
+                      (loop (+ idx 1) (cdr param) (cdr value))))))
+            (p1-cmpl-lambda cmpl () () body env toplevel-p rdepth))))
+
 (define (p1-decons-quasiquote cmpl exp)
   (let ((qq (cdr exp)))
     (unless (null? (cdr qq))
@@ -1444,6 +1500,9 @@
 (define compiler-syntax-let*-values
   (make-syntax 'let*-values p1-syntax-handler-let*-values))
 
+(define compiler-syntax-parameterize
+  (make-syntax 'parameterize p1-syntax-handler-parameterize))
+
 (define compiler-syntax-quasiquote
   (make-syntax 'quasiquote p1-syntax-handler-quasiquote))
 
@@ -1471,6 +1530,7 @@
 (p1-register-syntax '(scheme base) compiler-syntax-do #t)
 (p1-register-syntax '(scheme base) compiler-syntax-let-values #t)
 (p1-register-syntax '(scheme base) compiler-syntax-let*-values #t)
+(p1-register-syntax '(scheme base) compiler-syntax-parameterize #t)
 (p1-register-syntax '(scheme base) compiler-syntax-quasiquote #t)
 (p1-register-syntax '(scheme base) compiler-syntax-with-module #t)
 (p1-register-syntax '(scheme base) compiler-syntax-select-module #t)
