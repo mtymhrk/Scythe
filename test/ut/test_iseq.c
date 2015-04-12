@@ -275,7 +275,6 @@ TEST(iseq, iseq_eq__si_si_obj__not_equal)
 
 TEST(iseq, iseq_eq__iof__equal)
 {
-  scm_debug_print_flag = 1;
   push_inst_iof(iseq, SCM_OPCODE_JMP, -(int)SCM_OPFMT_INST_SZ_IOF);
   push_inst_iof(iseq2, SCM_OPCODE_JMP, -(int)SCM_OPFMT_INST_SZ_IOF);
   test_iseq_eq__equal(iseq, iseq2);
