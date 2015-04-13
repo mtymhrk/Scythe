@@ -336,16 +336,15 @@ scm_fixnum_mul(ScmObj mud, ScmObj mur)
     if (scm_fixnum_multi(v1, v2, &v) == 0)
       return scm_fcd_fixnum_new(v);
 
-    if (scm_fixnum_multi(v1, v2, &v) == -1)
-      mud = scm_fcd_bignum_new_fixnum(SCM_MEM_HEAP, mud);
+    mud = scm_fcd_bignum_new_fixnum(SCM_MEM_HEAP, mud);
   }
   else {
     mud = SCM_NUM_CALL_FUNC(mur, coerce, mud);
   }
 
   if (scm_obj_null_p(mud)) return SCM_OBJ_NULL;
-  return SCM_NUM_CALL_FUNC(mud, mul, mur);
 
+  return SCM_NUM_CALL_FUNC(mud, mul, mur);
 }
 
 int
