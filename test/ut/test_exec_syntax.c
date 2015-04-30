@@ -1171,3 +1171,25 @@ TEST(exec_syntax, let_a_values_9)
                                "       (list a))))",
                                "(1)");
 }
+
+TEST(exec_syntax, parameterize__empty)
+{
+  test_eval__comp_val_with_obj("(parameterize () 1)",
+                               "1");
+}
+
+TEST(exec_syntax, parameterize__no_converter)
+{
+  test_eval__comp_val_with_obj("(let ((prm (make-parameter 1)))"
+                               "  (parameterize ((prm 2)) (prm)))",
+                               "2");
+}
+
+TEST(exec_syntax, parameterize__specify_converter)
+{
+  test_eval__comp_val_with_obj("(let ((prm (make-parameter 1"
+                               "                          (lambda (x)"
+                               "                            (+ x 1)))))"
+                               "  (parameterize ((prm (prm))) (prm)))",
+                               "3");
+}
