@@ -691,8 +691,11 @@
   (let ((ce (compiler-current-expr cmpl)))
     (compiler-select-expr! cmpl exp)
     (rdepth-expand! rdepth)
-    (let ((x ((syntax-handler (p1-get-syntax cmpl exp env toplevel-p))
-              cmpl exp env toplevel-p rdepth)))
+    (let* ((syx (p1-get-syntax cmpl exp env toplevel-p))
+           (x (if (macro? syx)
+                  (p1-compile-exp cmpl (macro-exec-expansion syx exp env)
+                                  env toplevel-p rdepth)
+                  ((syntax-handler syx) cmpl exp env toplevel-p rdepth))))
       (rdepth-contract! rdepth)
       (compiler-select-expr! cmpl ce)
       x)))
@@ -739,7 +742,7 @@
                              (p1-compile-exp cmpl e env toplevel-p rdepth))
                            (cdr exp)))))
 
-(define (p1-decons-body-aux cmpl body env toplevel-p vars inits exps)
+(define (p1-decons-body-internal cmpl body env toplevel-p vars inits exps)
   (cond ((null? body)
          (values vars inits exps))
         ((not (pair? body))
@@ -748,16 +751,22 @@
          (let* ((exp (car body))
                 (syx (p1-get-syntax cmpl exp env toplevel-p)))
            (cond
+            ((macro? syx)
+             (p1-decons-body-internal cmpl
+                                      (cons (macro-exec-expansion syx exp env)
+                                            (cdr body))
+                                      env toplevel-p vars inits exps))
             ((eq? syx compiler-syntax-definition)
              (let-values (((v i) (p1-decons-definition cmpl exp)))
-               (p1-decons-body-aux cmpl (cdr body) env toplevel-p
-                                   (cons v vars) (cons i inits) exps)))
+               (p1-decons-body-internal cmpl (cdr body) env toplevel-p
+                                        (cons v vars) (cons i inits) exps)))
             ((eq? syx compiler-syntax-begin)
-             (let-values (((v i e) (p1-decons-body-aux cmpl (cdr exp) env
-                                                       toplevel-p
-                                                       vars inits exps)))
+             (let-values (((v i e) (p1-decons-body-internal cmpl (cdr exp) env
+                                                            toplevel-p
+                                                            vars inits exps)))
                (if (eq? e exps)
-                   (p1-decons-body-aux cmpl (cdr body) env toplevel-p v i exps)
+                   (p1-decons-body-internal cmpl (cdr body) env toplevel-p
+                                            v i exps)
                    (values v i (if (null? (cdr body))
                                    e
                                    (cons (cdr body) e))))))
@@ -766,7 +775,7 @@
 
 
 (define (p1-decons-body cmpl body env toplevel-p)
-  (let-values (((v i e) (p1-decons-body-aux cmpl body env toplevel-p
+  (let-values (((v i e) (p1-decons-body-internal cmpl body env toplevel-p
                                             '() '() '())))
     (values (reverse v)
             (reverse i)
@@ -1454,6 +1463,77 @@
   (compiler-select-module! cmpl (p1-decons-select-module cmpl exp))
   (vector p2-syntax-id-begin))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Macro
+
+(define current-macro-env-def (make-parameter ()))
+(define current-macro-env-use (make-parameter ()))
+
+(define (macro-exec-expansion macro form use-env)
+  (parameterize ((current-macro-env-def (macro-env macro))
+                 (current-macro-env-use use-env))
+    (macro-yield-transformer macro form)))
+
+(define (p1-decons-syntax-definition cmpl exp)
+  (let ((x (cdr exp)) (key #f) (trans #f))
+    (unless (pair? x)
+      (compile-error cmpl "malformed define-syntax"))
+    (set! key (car x))
+    (set! x (cdr x))
+    (unless (symbol? key)
+      (compile-error cmpl "malformed define-syntax"))
+    (unless (pair? x)
+      (compile-error cmpl "malformed define-syntax"))
+    (set! trans (car x))
+    (unless (null? (cdr x))
+      (compile-error cmpl "malformed define-syntax"))
+    (values key trans)))
+
+(define (p1-syntax-handler-syntax-definition cmpl exp env toplevel-p rdepth)
+  (when (not toplevel-p)
+    (compile-error cmpl "syntax definition can apper in the toplevel or beginning of a <body>"))
+  (let-values (((key trans) (p1-decons-syntax-definition cmpl exp)))
+    (let-values (((s i l e) (env-find-ident env key)))
+      (unless (env-outmost? e)
+        (compile-error cmpl "malformed define-syntax"))
+      (let ((mac (make-macro (eval trans (compiler-base-env cmpl)) env)))
+        (global-syntax-bind e s mac #f)))
+    (vector p2-syntax-id-begin)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Explicit Renaming
+
+(define (er-macro-make-rename-proc def-env)
+  (let ((memo '()))
+    (lambda (x)
+      (cond ((symbol? x)
+             (let* ((m (assq x memo))
+                    (i (if m (cdr m) (make-identifier x def-env))))
+               (unless m
+                 (set! memo (cons (cons x i) memo)))
+               i))
+            ((identifier? x)
+             x)
+            (else
+             (error "macro: rename: invalid argument" x))))))
+
+(define (er-macro-make-compare-proc use-env)
+  (lambda (x y)
+    (let-values (((xs xi xl xe) (env-find-ident use-env x))
+                 ((ys yi yl ye) (env-find-ident use-env y)))
+      (and (eq? xs ys)
+           (or (eq? xe ye)
+               (and (env-outmost? xe) (env-outmost? ye)))))))
+
+(define (er-macro-transformer expander)
+  (lambda (form)
+    (expander form
+              (er-macro-make-rename-proc (current-macro-env-def))
+              (er-macro-make-compare-proc (current-macro-env-use)))))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (define compiler-syntax-definition
   (make-syntax 'define p1-syntax-handler-definition))
 
@@ -1520,6 +1600,9 @@
 (define compiler-syntax-select-module
   (make-syntax 'select-module p1-syntax-handler-select-module))
 
+(define compiler-syntax-syntax-definition
+  (make-syntax 'define-syntax p1-syntax-handler-syntax-definition))
+
 (p1-register-syntax '(scheme base) compiler-syntax-definition #t)
 (p1-register-syntax '(scheme base) compiler-syntax-begin #t)
 (p1-register-syntax '(scheme base) compiler-syntax-quote #t)
@@ -1542,6 +1625,9 @@
 (p1-register-syntax '(scheme base) compiler-syntax-quasiquote #t)
 (p1-register-syntax '(scheme base) compiler-syntax-with-module #t)
 (p1-register-syntax '(scheme base) compiler-syntax-select-module #t)
+(p1-register-syntax '(scheme base) compiler-syntax-syntax-definition #t)
+
+(global-variable-bind '(scheme base) 'er-macro-transformer er-macro-transformer #t)
 
 
 ;; (define *test-nr-test-total* 0)

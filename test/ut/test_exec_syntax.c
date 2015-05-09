@@ -1202,3 +1202,52 @@ TEST(exec_syntax, parameterize__nested)
                                "      (prm))))",
                                "100");
 }
+
+TEST(exec_syntax, define_global_syntax)
+{
+  eval_cstr("(define-syntax foo"
+            "  (er-macro-transformer"
+            "     (lambda (f r c) '(cons 'a 'b))))");
+
+  test_eval__comp_val_with_obj("(foo)",
+                               "(a . b)");
+}
+
+TEST(exec_syntax, define_global_syntax__dont_shadow_variable_references__macro)
+{
+  eval_cstr("(define-syntax foo"
+            "  (er-macro-transformer"
+            "    (lambda (f r c) `(,(r 'cons) 'a 'b))))");
+
+  test_eval__comp_val_with_obj("(let ((cons list)) (foo))",
+                               "(a . b)");
+}
+
+TEST(exec_syntax, define_global_syntax__dont_shadow_keyword_references__macro)
+{
+  eval_cstr("(define-syntax foo"
+            "  (er-macro-transformer"
+            "    (lambda (f r c) `(,(r 'define) x 123))))");
+
+  test_eval__comp_val_with_obj("(let ((define list))"
+                               "  (foo)"
+                               "  x)",
+                               "123");
+}
+
+TEST(exec_syntax, define_global_syntax__dont_shadow_variable_references__user_form)
+{
+  eval_cstr("(define-syntax swap!"
+            "  (er-macro-transformer"
+            "    (lambda (f r c)"
+            "       (let ((a (list-ref f 1))"
+            "             (b (list-ref f 2)))"
+            "          `(,(r 'let) ((,(r 'tmp) ,a))"
+            "              (,(r 'set!) ,a ,b)"
+            "              (,(r 'set!) ,b ,(r 'tmp)))))))");
+
+  test_eval__comp_val_with_obj("(let ((tmp 1) (x 2))"
+                               "  (swap! tmp x)"
+                               "  (cons tmp x))",
+                               "(2 . 1)");
+}
