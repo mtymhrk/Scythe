@@ -823,6 +823,7 @@ scm_define_scythe_base_subr(ScmObj module)
     /*******************************************************************/
     /*  Modules                                                        */
     /*******************************************************************/
+    { "module?", SCM_SUBR_ARITY_MODULE_P, SCM_SUBR_FLAG_MODULE_P, scm_subr_func_module_P, true },
     { "module-name", SCM_SUBR_ARITY_MODULE_NAME, SCM_SUBR_FLAG_MODULE_NAME, scm_subr_func_module_name, true },
   };
 

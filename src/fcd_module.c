@@ -55,6 +55,12 @@ scm_fcd_module_p(ScmObj obj)
   return scm_obj_type_p(obj, &SCM_MODULE_TYPE_INFO);
 }
 
+ScmObj
+scm_fcd_module_P(ScmObj obj)
+{
+  return (scm_fcd_module_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ);
+}
+
 extern inline bool
 scm_fcd_module_name_p(ScmObj obj)
 {

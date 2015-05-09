@@ -12,6 +12,7 @@ ScmObj scm_fcd_gloc_value(ScmObj gloc);
 ScmObj scm_fcd_gloc_symbol(ScmObj gloc);
 void scm_fcd_gloc_bind(ScmObj gloc, ScmObj val);
 bool scm_fcd_module_p(ScmObj obj);
+ScmObj scm_fcd_module_P(ScmObj obj);
 bool scm_fcd_module_name_p(ScmObj obj);
 bool scm_fcd_module_specifier_p(ScmObj obj);
 ScmObj scm_fcd_module_new(SCM_MEM_TYPE_T mtype, ScmObj name);

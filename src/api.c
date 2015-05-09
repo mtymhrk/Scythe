@@ -2570,6 +2570,12 @@ scm_api_pop_dynamic_bindings(void)
 /*******************************************************************/
 
 ScmObj
+scm_api_module_P(ScmObj module)
+{
+  return scm_fcd_module_P(module);
+}
+
+ScmObj
 scm_api_module_name(ScmObj module)
 {
   if (!scm_fcd_module_p(module)) {
