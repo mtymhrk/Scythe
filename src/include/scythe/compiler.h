@@ -4,10 +4,12 @@
 typedef struct ScmCompilerRec ScmCompiler;
 typedef struct ScmQQTmplNodeRec ScmQQTmplNode;
 typedef struct ScmQQTmplRec ScmQQTmpl;
+typedef struct ScmIdentifierRec ScmIdentifier;
 
 #define SCM_COMPILER(obj) ((ScmCompiler *)(obj))
 #define SCM_QQTMPLNODE(obj) ((ScmQQTmplNode *)(obj))
 #define SCM_QQTMPL(obj) ((ScmQQTmpl *)(obj))
+#define SCM_IDENTIFIER(obj) ((ScmIdentifier *)(obj))
 
 #include "scythe/object.h"
 #include "scythe/fcd_type.h"
@@ -132,5 +134,45 @@ scm_qqtmpl_compiled_template(ScmObj qqtmpl)
 ScmObj scm_cmpl_compile_qq_tmpl(ScmObj qqtmpl, ScmObj tmpl, size_t depth);
 ScmObj scm_cmpl_substitute_qq_tmpl(ScmObj qqtmpl, ScmObj tmpl,
                                    scm_csetter_t *values);
+
+
+/*************************************************************************/
+/* Identifier                                                            */
+/*************************************************************************/
+
+struct ScmIdentifierRec {
+  ScmObjHeader header;
+  ScmObj name;
+  ScmObj env;
+};
+
+extern ScmTypeInfo SCM_IDENTIFIER_TYPE_INFO;
+
+#define SCM_IDENT_NAME(ident) (SCM_IDENTIFIER(ident)->name)
+#define SCM_IDENT_ENV(ident) (SCM_IDENTIFIER(ident)->env)
+#define SCM_IDENT_SET_NAME(ident, n) \
+  SCM_SLOT_SETQ(ScmIdentifier, ident, name, n)
+#define SCM_IDENT_SET_ENV(ident, e) \
+  SCM_SLOT_SETQ(ScmIdentifier, ident, env, e)
+
+int scm_ident_initialize(ScmObj ident, ScmObj name, ScmObj env);
+int scm_ident_obj_print(ScmObj obj, ScmObj port, int kind, ScmObjPrintHandler handler);
+void scm_ident_gc_initialize(ScmObj obj, ScmObj mem);
+int scm_ident_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
+
+static inline ScmObj
+scm_ident_name(ScmObj ident)
+{
+  scm_assert_obj_type(ident, &SCM_IDENTIFIER_TYPE_INFO);
+  return SCM_IDENT_NAME(ident);
+}
+
+static inline ScmObj
+scm_ident_env(ScmObj ident)
+{
+  scm_assert_obj_type(ident, &SCM_IDENTIFIER_TYPE_INFO);
+  return SCM_IDENT_ENV(ident);
+}
+
 
 #endif /* INCLUDE_COMPILER_H__ */

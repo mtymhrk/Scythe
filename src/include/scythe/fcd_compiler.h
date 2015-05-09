@@ -51,4 +51,16 @@ ScmObj scm_fcd_compile_qq_template(ScmObj tmpl);
 ScmObj scm_fcd_substitute_qq_template(ScmObj qq, ScmObj values);
 
 
+/*************************************************************************/
+/* Identifier                                                            */
+/*************************************************************************/
+
+bool scm_fcd_identifier_p(ScmObj obj);
+ScmObj scm_fcd_identifier_P(ScmObj obj);
+ScmObj scm_fcd_identifier_new(SCM_MEM_TYPE_T mtype, ScmObj name, ScmObj env);
+ScmObj scm_fcd_make_identifier(ScmObj name, ScmObj env);
+ScmObj scm_fcd_identifier_name(ScmObj ident);
+ScmObj scm_fcd_identifier_env(ScmObj ident);
+
+
 #endif /* INCLUDE_FCD_COMPILER_H__ */

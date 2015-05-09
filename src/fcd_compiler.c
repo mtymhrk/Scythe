@@ -361,3 +361,58 @@ scm_fcd_substitute_qq_template(ScmObj qq, ScmObj values)
   return scm_cmpl_substitute_qq_tmpl(qq, scm_qqtmpl_compiled_template(qq),
                                      SCM_CSETTER_L(values));
 }
+
+
+/*************************************************************************/
+/* Identifier                                                            */
+/*************************************************************************/
+
+bool
+scm_fcd_identifier_p(ScmObj obj)
+{
+  return scm_obj_type_p(obj, &SCM_IDENTIFIER_TYPE_INFO);
+}
+
+ScmObj
+scm_fcd_identifier_P(ScmObj obj)
+{
+  return (scm_fcd_identifier_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ);
+}
+
+ScmObj
+scm_fcd_identifier_new(SCM_MEM_TYPE_T mtype, ScmObj name, ScmObj env)
+{
+  ScmObj ident = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&name, &env,
+                      &ident);
+
+  scm_assert(scm_fcd_symbol_p(name));
+  scm_assert(scm_obj_not_null_p(env));
+
+  ident = scm_fcd_mem_alloc(&SCM_IDENTIFIER_TYPE_INFO, 0, mtype);
+  if (scm_obj_null_p(ident)) return SCM_OBJ_NULL;
+
+  if (scm_ident_initialize(ident, name, env) < 0)
+    return SCM_OBJ_NULL;
+
+  return ident;
+}
+
+ScmObj
+scm_fcd_make_identifier(ScmObj name, ScmObj env)
+{
+  return scm_fcd_identifier_new(SCM_MEM_HEAP, name, env);
+}
+
+ScmObj
+scm_fcd_identifier_name(ScmObj ident)
+{
+  return scm_ident_name(ident);
+}
+
+ScmObj
+scm_fcd_identifier_env(ScmObj ident)
+{
+  return scm_ident_env(ident);
+}

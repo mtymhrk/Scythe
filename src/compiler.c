@@ -818,3 +818,70 @@ scm_cmpl_substitute_qq_tmpl(ScmObj qqtmpl, ScmObj tmpl, scm_csetter_t *values)
 
   return obj;
 }
+
+
+/*************************************************************************/
+/* Identifier                                                            */
+/*************************************************************************/
+
+ScmTypeInfo SCM_IDENTIFIER_TYPE_INFO = {
+  .name                = "identifier",
+  .flags               = SCM_TYPE_FLG_MMO,
+  .obj_print_func      = scm_ident_obj_print,
+  .obj_size            = sizeof(ScmIdentifier),
+  .gc_ini_func         = scm_ident_gc_initialize,
+  .gc_fin_func         = NULL,
+  .gc_accept_func      = scm_ident_gc_accept,
+  .gc_accept_func_weak = NULL,
+  .extra               = NULL,
+};
+
+
+int
+scm_ident_initialize(ScmObj ident, ScmObj name, ScmObj env)
+{
+  scm_assert_obj_type(ident, &SCM_IDENTIFIER_TYPE_INFO);
+  scm_assert(scm_fcd_symbol_p(name));
+  scm_assert(scm_obj_not_null_p(env));
+
+  SCM_IDENT_SET_NAME(ident, name);
+  SCM_IDENT_SET_ENV(ident, env);
+
+  return 0;
+}
+
+int
+scm_ident_obj_print(ScmObj obj, ScmObj port, int kind, ScmObjPrintHandler handler)
+{
+  char fmt[64];
+
+  snprintf(fmt, sizeof(fmt), "#<ident ~a %lx>", SCM_IDENT_ENV(obj));
+  return scm_fcd_pformat_cstr(port, fmt, SCM_IDENT_NAME(obj), SCM_OBJ_NULL);
+}
+
+void
+scm_ident_gc_initialize(ScmObj obj, ScmObj mem)
+{
+  scm_assert_obj_type(obj, &SCM_IDENTIFIER_TYPE_INFO);
+
+  SCM_IDENT_SET_NAME(obj, SCM_OBJ_NULL);
+  SCM_IDENT_SET_ENV(obj, SCM_OBJ_NULL);
+}
+
+int
+scm_ident_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
+{
+  int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
+
+  scm_assert_obj_type(obj, &SCM_IDENTIFIER_TYPE_INFO);
+  scm_assert(scm_obj_not_null_p(mem));
+  scm_assert(handler != NULL);
+
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_IDENT_NAME(obj), mem);
+  if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
+
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_IDENT_ENV(obj), mem);
+  if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
+
+  return 0;
+}

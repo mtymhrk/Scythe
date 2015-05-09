@@ -549,6 +549,14 @@ scm_define_scythe_internal_compile_subr(ScmObj module)
     { "push-dynamic-bindings", SCM_SUBR_ARITY_PUSH_DYNAMIC_BINDINGS, SCM_SUBR_FLAG_PUSH_DYNAMIC_BINDINGS, scm_subr_func_push_dynamic_bindings, false },
     { "pop-dynamic-bindings", SCM_SUBR_ARITY_POP_DYNAMIC_BINDINGS, SCM_SUBR_FLAG_POP_DYNAMIC_BINDINGS, scm_subr_func_pop_dynamic_bindings, false },
 
+    /*******************************************************************/
+    /*  Identifier                                                     */
+    /*******************************************************************/
+    { "identifier?", SCM_SUBR_ARITY_IDENTIFIER_P, SCM_SUBR_FLAG_IDENTIFIER_P, scm_subr_func_identifier_P, false },
+    { "make-identifier", SCM_SUBR_ARITY_MAKE_IDENTIFIER, SCM_SUBR_FLAG_MAKE_IDENTIFIER, scm_subr_func_make_identifier, false },
+    { "identifier-name", SCM_SUBR_ARITY_IDENTIFIER_NAME, SCM_SUBR_FLAG_IDENTIFIER_NAME, scm_subr_func_identifier_name, false },
+    { "identifier-env", SCM_SUBR_ARITY_IDENTIFIER_ENV, SCM_SUBR_FLAG_IDENTIFIER_ENV, scm_subr_func_identifier_env, false },
+
   };
 
   int rslt;

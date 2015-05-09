@@ -2432,6 +2432,53 @@ scm_api_qq_template_unquoted(ScmObj tmpl, ScmObj idx)
 
 
 /*******************************************************************/
+/* Identifier                                                      */
+/*******************************************************************/
+
+ScmObj
+scm_api_make_identifier(ScmObj name, ScmObj env)
+{
+  if (!scm_fcd_symbol_p(name)) {
+    scm_capi_error("failed to make a identifier object: symbol required, but got",
+                   1, name);
+    return SCM_OBJ_NULL;
+  }
+  else if (scm_obj_null_p(env)) {
+    scm_capi_error("failed to make a identifier object: invalid argument",
+                   1, env);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_fcd_make_identifier(name, env);
+}
+
+ScmObj
+scm_api_identifier_name(ScmObj ident)
+{
+  if (!scm_fcd_identifier_p(ident)) {
+    scm_capi_error("failed to get the identifier name: "
+                   "identifier required, but got", 1, ident);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_fcd_identifier_name(ident);
+}
+
+ScmObj
+scm_api_identifier_env(ScmObj ident)
+{
+  if (!scm_fcd_identifier_p(ident)) {
+    scm_capi_error("failed to get the syntactic environmanet "
+                   "associated with the identifier: "
+                   "identifier required, but got", 1, ident);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_fcd_identifier_env(ident);
+}
+
+
+/*******************************************************************/
 /* Dynamic Bindings                                                */
 /*******************************************************************/
 
