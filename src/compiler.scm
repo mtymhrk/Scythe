@@ -99,54 +99,62 @@
   (assembler-push! asmb +asm-inst-immval+ (begin)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(define (new-env)
-  '())
+(define (make-env module)
+  module)
 
-(define (empty-env? env)
-  (null? env))
+(define (env-outmost? env)
+  (module? env))
 
-(define (cons-env vars varg env)
+(define (env-cons vars varg env)
   (let* ((vars (if (vector? vars) vars (list->vector vars)))
          (len (vector-length vars))
          (assigned (make-vector len #f)))
     (cons (vector vars assigned varg) env)))
 
-(define (outer-env env)
-  (if (null? env) env (cdr env)))
+(define (env-outer env)
+  (if (env-outmost? env) env (cdr env)))
+
+(define (env-module env)
+  (if (module? env)
+      env
+      (env-module (env-outer env))))
 
 (define (variable-length-argument? env layer)
   (if (<= layer 0)
       (vector-ref (car env) 2)
-      (variable-length-argument? (outer-env env) (- layer 1))))
+      (variable-length-argument? (env-outer env) (- layer 1))))
 
 (define (assigned-variable? env idx layer)
   (if (<= layer 0)
       (vector-ref (vector-ref (car env) 1) idx)
-      (assigned-variable? (outer-env env) idx (- layer 1))))
+      (assigned-variable? (env-outer env) idx (- layer 1))))
 
-(define (resolve-reference-aux env sym assigned rdepth layer)
-  (if (empty-env? env)
-      #f
+(define (env-find-ident-internal env ident limit layer)
+  (if (or (env-outmost? env) (eq? env limit))
+      (values ident #f layer env)
       (let* ((vars (vector-ref (car env) 0))
-             (assi (vector-ref (car env) 1))
              (len (vector-length vars)))
         (let rec ((idx 0))
           (if (>= idx len)
-              (resolve-reference-aux (outer-env env)
-                                     sym
-                                     assigned
-                                     rdepth
-                                     (+ layer 1))
-              (if (eq? sym (vector-ref vars idx))
-                  (begin
-                    (when assigned
-                      (vector-set! assi idx assigned))
-                    (rdepth-set! rdepth layer)
-                    (cons idx layer))
+              (env-find-ident-internal (env-outer env) ident limit (+ layer 1))
+              (if (eq? ident (vector-ref vars idx))
+                  (values ident idx layer env)
                   (rec (+ idx 1))))))))
 
-(define (resolve-reference env sym assigned rdepth)
-  (resolve-reference-aux env sym assigned rdepth 0))
+(define (env-find-ident env ident)
+  (let ((limit (if (identifier? ident) (identifier-env ident) #f)))
+    (let-values (((s i l e) (env-find-ident-internal env ident limit 0)))
+      (if (and (identifier? ident) (eq? e limit))
+          (env-find-ident-internal limit (identifier-name s) #f l)
+          (values s i l e)))))
+
+(define (resolve-reference env ident assigned rdepth)
+  (let-values (((s i l e) (env-find-ident env ident)))
+    (unless (env-outmost? e)
+      (rdepth-set! rdepth l)
+      (when assigned
+        (vector-set! (vector-ref (car e) 1) i assigned)))
+    (values s i l e)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (define (generate-label asmb)
@@ -164,7 +172,9 @@
   (let ((cmpl (get-compiler-from-arg arg))
         (asmb (make-assembler)))
     (p2-compile-exp cmpl
-                    (p1-compile-exp cmpl exp (new-env) #t (new-rdepth))
+                    (p1-compile-exp cmpl exp
+                                    (make-env (compiler-current-module cmpl))
+                                    #t (new-rdepth))
                     -1 #f asmb)
     (assembler-commit! asmb)
     asmb))
@@ -176,7 +186,9 @@
     (let loop ((exp (read port)))
       (unless (eof-object? exp)
         (p2-compile-exp cmpl
-                        (p1-compile-exp cmpl exp (new-env) #t (new-rdepth))
+                        (p1-compile-exp cmpl exp
+                                        (make-env (compiler-current-module cmpl))
+                                        #t (new-rdepth))
                         -1 #f asmb)
         (loop (read port))))
     (assembler-commit! asmb)
@@ -624,10 +636,10 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define (p1-syntax-handler-reference cmpl exp env toplevel-p rdepth)
-  (let ((rslv (resolve-reference env exp #f rdepth)))
-    (if rslv
-        (vector p2-syntax-id-lref exp (car rslv) (cdr rslv))
-        (vector p2-syntax-id-gref exp (compiler-current-module cmpl)))))
+  (let-values (((s i l e) (resolve-reference env exp #f rdepth)))
+    (if (env-outmost? e)
+        (vector p2-syntax-id-gref s e)
+        (vector p2-syntax-id-lref s i l))))
 
 (define (p1-syntax-handler-self-eval cmpl exp env toplevel-p rdepth)
   (vector p2-syntax-id-self exp))
@@ -663,16 +675,15 @@
             (loop (cdr lst))))))
 
 (define (p1-get-syntax cmpl exp env toplevel-p)
-  (cond ((symbol? exp)
+  (cond ((or (symbol? exp) (identifier? exp))
          p1-compiler-syntax-reference)
         ((pair? exp)
          (let ((key (car exp)))
-           (if (symbol? key)
-               (let ((syx (global-syntax-ref (compiler-current-module cmpl)
-                                             key
-                                             #f)))
-                 (if syx
-                     syx
+           (if (or (symbol? key) (identifier? key))
+               (let-values (((s i l e) (env-find-ident env key)))
+                 (if (env-outmost? e)
+                     (let ((syx (global-syntax-ref e s #f)))
+                       (if syx syx p1-compiler-syntax-application))
                      p1-compiler-syntax-application))
                p1-compiler-syntax-application)))
         (else
@@ -704,24 +715,25 @@
           (cons key (cons x y))))))
 
 (define (p1-decons-definition cmpl exp)
-  (when (not (= (length exp) 3))
+  (unless (= (length exp) 3)
     (compile-error cmpl "malformed define"))
   (let ((var (car (cdr exp)))
         (val (car (cdr (cdr exp)))))
-    (when (not (symbol? var))
+    (unless (or (symbol? var) (identifier? var))
       (compile-error cmpl "malformed define"))
     (values var val)))
 
 (define (p1-syntax-handler-definition cmpl exp env toplevel-p rdepth)
-  (when (not toplevel-p)
+  (unless toplevel-p
     (compile-error cmpl "definition can apper in the toplevel or beginning of a <body>"))
   (let-values (((var val)
                 (p1-decons-definition cmpl
                                       (p1-normalize-definition cmpl exp))))
-    (vector p2-syntax-id-gdef
-            var
-            (compiler-current-module cmpl)
-            (p1-compile-exp cmpl val env toplevel-p rdepth))))
+    (let-values (((s i l e) (env-find-ident env var)))
+      (unless (env-outmost? e)
+        (compile-error cmpl "malformed define"))
+      (vector p2-syntax-id-gdef s e
+              (p1-compile-exp cmpl val env toplevel-p rdepth)))))
 
 (define (p1-syntax-handler-begin cmpl exp env toplevel-p rdepth)
   (list->vector (cons p2-syntax-id-begin
@@ -767,7 +779,7 @@
     (let* ((vv (list->vector vars))
            (env (if (null? vars)
                     env
-                    (cons-env vv #f env)))
+                    (env-cons vv #f env)))
            (vi (list->vector (map
                               (lambda (e)
                                 (p1-compile-exp cmpl e env toplevel-p rdepth))
@@ -833,7 +845,7 @@
   (rdepth-expand! rdepth)
   (let* ((env (if (null? params)
                   env
-                  (cons-env (list->vector params) vparam env)))
+                  (env-cons (list->vector params) vparam env)))
          (bo (p1-cmpl-body cmpl body env #f rdepth)))
     (unless (null? params)
       (rdepth-add! rdepth -1))
@@ -856,17 +868,17 @@
     (compile-error cmpl "malformed assignment"))
   (let ((var (list-ref exp 1))
         (val (list-ref exp 2)))
-    (unless (symbol? var)
+    (unless (or (symbol? var) (identifier? var))
       (compile-error cmpl "malformed assignment"))
     (values var val)))
 
 (define (p1-syntax-handler-assignment cmpl exp env toplevel-p rdepth)
   (let-values (((var val) (p1-decons-assignment cmpl exp)))
-    (let ((rslv (resolve-reference env var #t rdepth))
-          (x (p1-compile-exp cmpl val env toplevel-p rdepth)))
-      (if rslv
-          (vector p2-syntax-id-lset var (car rslv) (cdr rslv) x)
-          (vector p2-syntax-id-gset var (compiler-current-module cmpl) x)))))
+    (let-values (((s i l e) (resolve-reference env var #t rdepth)))
+      (let ((x (p1-compile-exp cmpl val env toplevel-p rdepth)))
+        (if (env-outmost? e)
+            (vector p2-syntax-id-gset s e x)
+            (vector p2-syntax-id-lset s i l x))))))
 
 (define (p1-decons-if cmpl exp)
   (unless (list? exp)
@@ -1078,7 +1090,7 @@
 ;;;        (<name> <v> ...)))
 
 (define (p1-cmpl-named-let-body cmpl name vars body env toplevel-p rdepth)
-  (let ((new-env (cons-env (vector name) #f env)))
+  (let ((new-env (env-cons (vector name) #f env)))
     (let ((lmd (p1-cmpl-lambda cmpl vars #f body new-env #f rdepth))
           (cal (cons (vector p2-syntax-id-lref name 0 0)
                      (let rec ((idx 0) (v vars))
@@ -1096,7 +1108,7 @@
   (let-values (((name vars inits body) (p1-decons-let cmpl exp)))
     (let* ((new-env (if (null? vars)
                         env
-                        (cons-env (list->vector vars) #f env)))
+                        (env-cons (list->vector vars) #f env)))
            (cb (if name
                    (p1-cmpl-named-let-body cmpl name vars body new-env
                                            #f rdepth)
@@ -1117,7 +1129,7 @@
     (let rec ((v vars) (i inits) (e env))
       (if (null? v)
           (p1-cmpl-body cmpl body e #f rdepth)
-          (let* ((new-env (cons-env (vector (car v)) #f e))
+          (let* ((new-env (env-cons (vector (car v)) #f e))
                  (b (rec (cdr v) (cdr i) new-env)))
             (rdepth-add! rdepth -1)
             (vector p2-syntax-id-let
@@ -1131,7 +1143,7 @@
       (error "malformed letrec" exp))
     (let* ((new-env (if (null? vars)
                         env
-                        (cons-env (list->vector vars) #f env)))
+                        (env-cons (list->vector vars) #f env)))
            (cb (p1-cmpl-body cmpl body new-env #f rdepth))
            (ci (list->vector (map (lambda (e)
                                     (p1-compile-exp cmpl e new-env #f rdepth))
@@ -1149,7 +1161,7 @@
       (error "malformed letrec*" exp))
     (let* ((new-env (if (null? vars)
                         env
-                        (cons-env (list->vector vars) #f env)))
+                        (env-cons (list->vector vars) #f env)))
            (cb (p1-cmpl-body cmpl body new-env #f rdepth))
            (ci (list->vector (map (lambda (e)
                                     (p1-compile-exp cmpl e new-env #f rdepth))
@@ -1216,7 +1228,7 @@
   (let-values (((vars inits steps test exps cmds) (p1-decons-do cmpl exp)))
     (let* ((new-env (if (null? vars)
                         env
-                        (cons-env (list->vector vars) #f env)))
+                        (env-cons (list->vector vars) #f env)))
            (cmpl/ne (lambda (e)
                       (p1-compile-exp cmpl e new-env #f rdepth))))
       (let ((ce (list->vector (cons p2-syntax-id-begin (map cmpl/ne exps))))
@@ -1278,7 +1290,7 @@
            (all-vars-vec (list->vector all-vars))
            (new-env (if (null? all-vars)
                         env
-                        (cons-env all-vars-vec #f env)))
+                        (env-cons all-vars-vec #f env)))
            (cb (p1-cmpl-body cmpl body new-env #f rdepth))
            (mv (let ((cnt 0))
                  (map (lambda (f)
@@ -1315,7 +1327,7 @@
             (let* ((vars-vec (list->vector vars))
                    (new-env (if (null? vars)
                                 e
-                                (cons-env vars-vec vv e)))
+                                (env-cons vars-vec vv e)))
                    (b (rec (cdr fo) (cdr in) new-env)))
               (unless (null? vars)
                 (rdepth-add! rdepth -1))
