@@ -165,6 +165,14 @@
               idx
               (rec (+ idx 1)))))))
 
+(define (env-copy-keyword env)
+  (cond ((env-outmost? env)
+         env)
+        ((env-keyword-layer? env)
+         (cons (car env) (env-copy-keyword (env-outer env))))
+        (else
+         (env-copy-keyword (env-outer env)))))
+
 (define (env-search-internal env ident limit layer vlayer find-proc)
   (if (or (env-outmost? env) (eq? env limit))
       (values ident #f layer vlayer env)
@@ -1551,6 +1559,42 @@
         (global-syntax-bind e v mac #f)))
     (vector p2-syntax-id-begin)))
 
+(define (p1-decons-let-syntax cmpl exp syntax)
+  (let ((x (cdr exp))
+        (body #f))
+    (unless (pair? x)
+      (compile-error cmpl (format "malformed ~a" syntax)))
+    (set! body (cdr x))
+    (let loop ((binds (car x))
+               (keywords ())
+               (transformers ()))
+      (if (null? binds)
+          (values (reverse keywords) (reverse transformers) body)
+          (begin
+            (unless (pair? binds)
+              (compile-error cmpl (format "malformed ~a" syntax)))
+            (let ((x (car binds)) (k #f) (t #f))
+              (unless (pair? x)
+                (compile-error cmpl (format "malformed ~a" syntax)))
+              (set! k (car x))
+              (set! x (cdr x))
+              (unless (pair? x)
+                (compile-error cmpl (format "malformed ~a" syntax)))
+              (set! t (car x))
+              (unless (null? (cdr x))
+                (compile-error cmpl (format "malformed ~a" syntax)))
+              (loop (cdr binds) (cons k keywords) (cons t transformers))))))))
+
+(define (p1-syntax-handler-let-syntax cmpl exp env toplevel-p rdepth)
+  (let-values (((keywords transformers body)
+                (p1-decons-let-syntax cmpl exp 'let-syntax)))
+    (let* ((tenv (env-copy-keyword env))
+           (macros (map (lambda (t)
+                          (make-macro (eval t tenv) env))
+                        transformers)))
+      (p1-cmpl-body cmpl body (env-extend-syntax keywords macros env)
+                    #f rdepth))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Explicit Renaming
 
@@ -1654,6 +1698,9 @@
 (define compiler-syntax-syntax-definition
   (make-syntax 'define-syntax p1-syntax-handler-syntax-definition))
 
+(define compiler-syntax-let-syntax
+  (make-syntax 'let-syntax p1-syntax-handler-let-syntax))
+
 (p1-register-syntax '(scheme base) compiler-syntax-definition #t)
 (p1-register-syntax '(scheme base) compiler-syntax-begin #t)
 (p1-register-syntax '(scheme base) compiler-syntax-quote #t)
@@ -1677,6 +1724,7 @@
 (p1-register-syntax '(scheme base) compiler-syntax-with-module #t)
 (p1-register-syntax '(scheme base) compiler-syntax-select-module #t)
 (p1-register-syntax '(scheme base) compiler-syntax-syntax-definition #t)
+(p1-register-syntax '(scheme base) compiler-syntax-let-syntax #t)
 
 (global-variable-bind '(scheme base) 'er-macro-transformer er-macro-transformer #t)
 

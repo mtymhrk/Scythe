@@ -1251,3 +1251,40 @@ TEST(exec_syntax, define_global_syntax__dont_shadow_variable_references__user_fo
                                "  (cons tmp x))",
                                "(2 . 1)");
 }
+
+TEST(exec_syntax, let_syntax)
+{
+  test_eval__comp_val_with_obj("(let ((foo cons))"
+                               "  (let-syntax ((bar (er-macro-transformer"
+                               "                      (lambda (f r c)"
+                               "                         `(,(r 'foo) 1 2)))))"
+                               "    (bar)))",
+                               "(1 . 2)");
+}
+
+TEST(exec_syntax, let_syntax__dont_shadow_variable_references__macro)
+{
+  test_eval__comp_val_with_obj("(let ((foo cons))"
+                               "  (let-syntax ((bar (er-macro-transformer"
+                               "                      (lambda (f r c)"
+                               "                         `(,(r 'foo) 1 2)))))"
+                               "    (let ((foo list))"
+                               "      (bar))))",
+                               "(1 . 2)");
+}
+
+TEST(exec_syntax, let_syntax__dont_shadow_keyword_references__macro)
+{
+  test_eval__comp_val_with_obj("(let-syntax ((foo (er-macro-transformer"
+                               "                    (lambda (f r c)"
+                               "                      `(,(r 'cons) 1 2)))))"
+                               "  (let-syntax ((bar (er-macro-transformer"
+                               "                      (lambda (f r c)"
+                               "                         `(,(r 'foo))))))"
+                               "    (let-syntax ((foo (er-macro-transformer"
+                               "                        (lambda (f r c)"
+                               "                           `(,(r 'list) 1 2)))))"
+                               "      (bar))))",
+                               "(1 . 2)");
+}
+
