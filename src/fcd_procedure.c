@@ -237,6 +237,9 @@ scm_fcd_continuation_new(SCM_MEM_TYPE_T mtype, ScmObj contcap)
 {
   ScmObj name = SCM_OBJ_INIT;
 
+  SCM_REFSTK_INIT_REG(&contcap,
+                      &name);
+
   name = scm_fcd_make_symbol_from_cstr("continuation", SCM_ENC_SRC);
   if (scm_obj_null_p(name)) return SCM_OBJ_NULL;
 
