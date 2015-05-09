@@ -2725,6 +2725,54 @@ scm_subr_func_syntax_handler(ScmObj subr, int argc, const ScmObj *argv)
 }
 
 int
+scm_subr_func_macro_P(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&subr,
+                      &val);
+
+  val = scm_api_macro_P(argv[0]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_fcd_return_val(&val, 1);
+}
+
+int
+scm_subr_func_make_macro(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&subr,
+                      &val);
+
+  val = scm_api_make_macro(argv[0], argv[1]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_fcd_return_val(&val, 1);
+}
+
+int
+scm_subr_func_macro_env(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&subr,
+                      &val);
+
+  val = scm_api_macro_env(argv[0]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_fcd_return_val(&val, 1);
+}
+
+int
+scm_subr_func_macro_yield_transformer(ScmObj subr, int argc, const ScmObj *argv)
+{
+  return scm_api_trmp_macro_transformer(argv[0], argv[1]);
+}
+
+int
 scm_subr_func_global_variable_bind(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj obj = SCM_OBJ_INIT;

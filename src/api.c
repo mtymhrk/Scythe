@@ -2200,6 +2200,54 @@ scm_api_syntax_handler(ScmObj syx)
 
 
 /*******************************************************************/
+/*  Macro                                                          */
+/*******************************************************************/
+
+ScmObj
+scm_api_make_macro(ScmObj transformer, ScmObj env)
+{
+  if (!scm_fcd_procedure_p(transformer)) {
+    scm_capi_error("failed to make a macro object: procedure required, but got",
+                   1, transformer);
+    return SCM_OBJ_NULL;
+  }
+  else if (scm_obj_null_p(env)) {
+    scm_capi_error("failed to make a macro object: invalid argument", 1, env);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_fcd_make_macro(transformer, env);
+}
+
+ScmObj
+scm_api_macro_env(ScmObj macro)
+{
+  if (!scm_fcd_macro_p(macro)) {
+    scm_capi_error("failed to get syntactic environment of the macro: "
+                   "macro required, but got", 1, macro);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_fcd_macro_env(macro);
+}
+
+int
+scm_api_trmp_macro_transformer(ScmObj macro, ScmObj form)
+{
+  if (!scm_fcd_macro_p(macro)) {
+    scm_capi_error("failed to call transformer: macro requird, but got", 1, macro);
+    return -1;
+  }
+  else if (scm_obj_null_p(form)) {
+    scm_capi_error("failed to call transformer: invalid argument", 1, form);
+    return -1;
+  }
+
+  return scm_fcd_trmp_macro_transformer(macro, form);
+}
+
+
+/*******************************************************************/
 /*  Assembler                                                      */
 /*******************************************************************/
 

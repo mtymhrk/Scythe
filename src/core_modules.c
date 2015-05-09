@@ -529,6 +529,14 @@ scm_define_scythe_internal_compile_subr(ScmObj module)
     { "syntax-handler", SCM_SUBR_ARITY_SYNTAX_HANDLER, SCM_SUBR_FLAG_SYNTAX_HANDLER, scm_subr_func_syntax_handler, false },
 
     /*******************************************************************/
+    /*  Macro                                                          */
+    /*******************************************************************/
+    { "macro?", SCM_SUBR_ARITY_MACRO_P, SCM_SUBR_FLAG_MACRO_P, scm_subr_func_macro_P, false },
+    { "make-macro", SCM_SUBR_ARITY_MAKE_MACRO, SCM_SUBR_FLAG_MAKE_MACRO, scm_subr_func_make_macro, false },
+    { "macro-env", SCM_SUBR_ARITY_MACRO_ENV, SCM_SUBR_FLAG_MACRO_ENV, scm_subr_func_macro_env, false },
+    { "macro-yield-transformer", SCM_SUBR_ARITY_MACRO_YIELD_TRANSFORMER, SCM_SUBR_FLAG_MACRO_YIELD_TRANSFORMER, scm_subr_func_macro_yield_transformer, false },
+
+    /*******************************************************************/
     /*  Global Variables                                               */
     /*******************************************************************/
     { "global-variable-bind", SCM_SUBR_ARITY_GLOBAL_VARIABLE_BIND, SCM_SUBR_FLAG_GLOBAL_VARIABLE_BIND, scm_subr_func_global_variable_bind, false },
