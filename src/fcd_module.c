@@ -221,7 +221,7 @@ scm_fcd_define_global_syx(ScmObj module, ScmObj sym, ScmObj syx, bool export)
 
   scm_assert(scm_fcd_module_specifier_p(module));
   scm_assert(scm_fcd_symbol_p(sym));
-  scm_assert(scm_fcd_syntax_p(syx));
+  scm_assert(scm_fcd_syntax_p(syx) || scm_fcd_macro_p(syx));
 
   module = get_module(module);
   if (scm_obj_null_p(module)) return -1;

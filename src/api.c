@@ -2611,7 +2611,7 @@ scm_capi_define_global_syx(ScmObj module, ScmObj sym, ScmObj syx, bool export)
     scm_capi_error("failed to define syntax: invalid argument", 1, sym);
     return -1;
   }
-  else if (!scm_fcd_syntax_p(syx)) {
+  else if (!scm_fcd_syntax_p(syx) && !scm_fcd_macro_p(syx)) {
     scm_capi_error("failed to define syntax: invalid argument", 1, syx);
     return -1;
   }
