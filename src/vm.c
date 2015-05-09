@@ -3104,10 +3104,10 @@ scm_vm_parameter_value(ScmObj vm, ScmObj var)
   for (x = SCM_VM(vm)->reg.prm; scm_fcd_pair_p(x); x = scm_fcd_cdr(x)) {
     p = scm_fcd_assq(var, scm_fcd_car(x));
     if (scm_obj_null_p(p)) return SCM_OBJ_NULL;
-  }
 
-  if (scm_fcd_pair_p(p))
-    return scm_fcd_cdr(p);
+    if (scm_fcd_pair_p(p))
+      return scm_fcd_cdr(p);
+  }
 
   if (!scm_fcd_parameter_p(var)) {
     scm_fcd_error("failed to get bound value: unbound variable", 1, var);

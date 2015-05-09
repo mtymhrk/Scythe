@@ -1193,3 +1193,12 @@ TEST(exec_syntax, parameterize__specify_converter)
                                "  (parameterize ((prm (prm))) (prm)))",
                                "3");
 }
+
+TEST(exec_syntax, parameterize__nested)
+{
+  test_eval__comp_val_with_obj("(let ((prm (make-parameter 1)))"
+                               "  (parameterize ((prm 10))"
+                               "    (parameterize ((prm 100))"
+                               "      (prm))))",
+                               "100");
+}
