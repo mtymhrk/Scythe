@@ -1647,6 +1647,29 @@ scm_vm_adjust_arg_to_arity(ScmObj vm, int argc, ScmObj proc, int *adjusted)
   return nr_bind;
 }
 
+static ScmObj
+scm_vm_get_module_specified_by_opd(ScmObj spec)
+{
+  ScmObj mod = SCM_OBJ_INIT;
+  int r;
+
+  SCM_REFSTK_INIT_REG(&spec,
+                      &mod);
+
+  if (scm_fcd_module_p(spec))
+    return spec;
+
+  r = scm_fcd_find_module(spec, SCM_CSETTER_L(mod));
+  if (r < 0) return SCM_OBJ_NULL;
+
+  if (scm_obj_null_p(mod)) {
+    scm_fcd_error("unknown module", 1, spec);
+    return SCM_OBJ_NULL;
+  }
+
+  return mod;
+}
+
 static int
 scm_vm_do_op_eframe(ScmObj vm, scm_opcode_t op, int argc)
 {
@@ -2144,13 +2167,8 @@ scm_vm_op_gref(ScmObj vm, scm_opcode_t op)
   SCM_VMINST_FETCH_OPD_OBJ_OBJ(SCM_VM(vm)->reg.ip, arg, mod);
 
   if (scm_fcd_symbol_p(arg)) {
-    r = scm_fcd_find_module(mod, SCM_CSETTER_L(module));
-    if (r < 0) return -1;
-
-    if (scm_obj_null_p(module)) {
-      scm_fcd_error("unknown module", 1, mod);
-      return -1;
-    }
+    module = scm_vm_get_module_specified_by_opd(mod);
+    if (scm_obj_null_p(module)) return -1;
 
     r = scm_fcd_find_gloc(module, arg, SCM_CSETTER_L(gloc));
     if (r < 0) return -1;
@@ -2191,6 +2209,7 @@ scm_vm_op_gdef(ScmObj vm, scm_opcode_t op)
   ScmObj gloc = SCM_OBJ_INIT, arg = SCM_OBJ_INIT, mod = SCM_OBJ_INIT;
   ScmObj module = SCM_OBJ_INIT;
   scm_byte_t *prv_ip;
+  int r;
 
   SCM_REFSTK_INIT_REG(&vm, &gloc, &arg, &mod, &module);
 
@@ -2200,13 +2219,8 @@ scm_vm_op_gdef(ScmObj vm, scm_opcode_t op)
   SCM_VMINST_FETCH_OPD_OBJ_OBJ(SCM_VM(vm)->reg.ip, arg, mod);
 
   if (scm_fcd_symbol_p(arg)) {
-    int r = scm_fcd_find_module(mod, SCM_CSETTER_L(module));
-    if (r < 0) return -1;
-
-    if (scm_obj_null_p(module)) {
-      scm_fcd_error("unknown module", 1, mod);
-      return -1;
-    }
+    module = scm_vm_get_module_specified_by_opd(mod);
+    if (scm_obj_null_p(module)) return -1;
 
     gloc = scm_fcd_get_gloc(module, arg);
     if (scm_obj_null_p(gloc)) return -1;
@@ -2241,13 +2255,8 @@ scm_vm_op_gset(ScmObj vm, scm_opcode_t op)
   SCM_VMINST_FETCH_OPD_OBJ_OBJ(SCM_VM(vm)->reg.ip, arg, mod);
 
   if (scm_fcd_symbol_p(arg)) {
-    r = scm_fcd_find_module(mod, SCM_CSETTER_L(module));
-    if (r < 0) return -1;
-
-    if (scm_obj_null_p(module)) {
-      scm_fcd_error("unknown module", 1,mod);
-      return -1;
-    }
+    module = scm_vm_get_module_specified_by_opd(mod);
+    if (scm_obj_null_p(module)) return -1;
 
     r = scm_fcd_find_gloc(module, arg, SCM_CSETTER_L(gloc));
     if (r < 0) return -1;
