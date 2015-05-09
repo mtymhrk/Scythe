@@ -1595,6 +1595,20 @@
       (p1-cmpl-body cmpl body (env-extend-syntax keywords macros env)
                     #f rdepth))))
 
+(define (p1-syntax-handler-letrec-syntax cmpl exp env toplevel-p rdepth)
+  (let-values (((keywords transformers body)
+                (p1-decons-let-syntax cmpl exp 'letrec-syntax)))
+    (let* ((tenv (env-copy-keyword env))
+           (benv (env-extend-syntax keywords #f env))
+           (macros (map (lambda (t)
+                          (make-macro (eval t tenv) benv))
+                        transformers)))
+      (let loop ((mac macros) (idx 0))
+        (unless (null? mac)
+          (env-set-syntax! benv idx (car mac))
+          (loop (cdr mac) (+ idx 1))))
+      (p1-cmpl-body cmpl body benv #f rdepth))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Explicit Renaming
 
@@ -1701,6 +1715,9 @@
 (define compiler-syntax-let-syntax
   (make-syntax 'let-syntax p1-syntax-handler-let-syntax))
 
+(define compiler-syntax-letrec-syntax
+  (make-syntax 'letrec-syntax p1-syntax-handler-letrec-syntax))
+
 (p1-register-syntax '(scheme base) compiler-syntax-definition #t)
 (p1-register-syntax '(scheme base) compiler-syntax-begin #t)
 (p1-register-syntax '(scheme base) compiler-syntax-quote #t)
@@ -1725,6 +1742,7 @@
 (p1-register-syntax '(scheme base) compiler-syntax-select-module #t)
 (p1-register-syntax '(scheme base) compiler-syntax-syntax-definition #t)
 (p1-register-syntax '(scheme base) compiler-syntax-let-syntax #t)
+(p1-register-syntax '(scheme base) compiler-syntax-letrec-syntax #t)
 
 (global-variable-bind '(scheme base) 'er-macro-transformer er-macro-transformer #t)
 

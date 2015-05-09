@@ -1273,6 +1273,20 @@ TEST(exec_syntax, let_syntax__dont_shadow_variable_references__macro)
                                "(1 . 2)");
 }
 
+TEST(exec_syntax, letrec_syntax)
+{
+  test_eval__comp_val_with_obj("(let-syntax ((foo (er-macro-transformer"
+                               "                    (lambda (f r c)"
+                               "                      `(,(r 'cons) 1 2)))))"
+                               "  (letrec-syntax ((foo (er-macro-transformer"
+                               "                         (lambda (f r c)"
+                               "                            `(,(r 'list) 1 2))))"
+                               "                  (bar (er-macro-transformer"
+                               "                         (lambda (f r c)"
+                               "                            `(,(r 'foo))))))"
+                               "    (bar)))",
+                               "(1 2)");
+}
 TEST(exec_syntax, let_syntax__dont_shadow_keyword_references__macro)
 {
   test_eval__comp_val_with_obj("(let-syntax ((foo (er-macro-transformer"
