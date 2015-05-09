@@ -332,6 +332,7 @@ ScmObj scm_api_pop_dynamic_bindings(void);
 /*******************************************************************/
 
 ScmObj scm_api_module_name(ScmObj module);
+int scm_capi_define_global_var(ScmObj module, ScmObj sym, ScmObj val, bool export);
 int scm_capi_define_global_syx(ScmObj module,
                                ScmObj sym, ScmObj syx, bool export);
 int scm_capi_global_syx_ref(ScmObj module, ScmObj sym, scm_csetter_t *syx);

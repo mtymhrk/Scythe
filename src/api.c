@@ -2487,6 +2487,25 @@ scm_api_module_name(ScmObj module)
 }
 
 int
+scm_capi_define_global_var(ScmObj module, ScmObj sym, ScmObj val, bool export)
+{
+  if (!scm_fcd_module_specifier_p(module)) {
+    scm_capi_error("failed to define variable: invalid argument", 1, module);
+    return -1;
+  }
+  else if (!scm_fcd_symbol_p(sym)) {
+    scm_capi_error("failed to define variable: invalid argument", 1, sym);
+    return -1;
+  }
+  else if (scm_obj_null_p(val)) {
+    scm_capi_error("failed to define variable: invalid argument", 1, val);
+    return -1;
+  }
+
+  return scm_fcd_define_global_var(module, sym, val, export);
+}
+
+int
 scm_capi_define_global_syx(ScmObj module, ScmObj sym, ScmObj syx, bool export)
 {
   if (!scm_fcd_module_specifier_p(module)) {

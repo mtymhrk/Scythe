@@ -654,6 +654,7 @@ int scm_subr_func_module_name(ScmObj subr, int argc, const ScmObj *argv);
 #define SCM_SUBR_ARITY_SYNTAX_P 1
 #define SCM_SUBR_ARITY_SYNTAX_KEYWORD 1
 #define SCM_SUBR_ARITY_SYNTAX_HANDLER 1
+#define SCM_SUBR_ARITY_GLOBAL_VARIABLE_BIND -4
 #define SCM_SUBR_ARITY_GLOBAL_SYNTAX_BIND -4
 #define SCM_SUBR_ARITY_GLOBAL_SYNTAX_REF -3
 #define SCM_SUBR_ARITY_COMPILE_QQ_TEMPLATE 1
@@ -677,6 +678,7 @@ int scm_subr_func_module_name(ScmObj subr, int argc, const ScmObj *argv);
 #define SCM_SUBR_FLAG_SYNTAX_P 0
 #define SCM_SUBR_FLAG_SYNTAX_KEYWORD 0
 #define SCM_SUBR_FLAG_SYNTAX_HANDLER 0
+#define SCM_SUBR_FLAG_GLOBAL_VARIABLE_BIND 0
 #define SCM_SUBR_FLAG_GLOBAL_SYNTAX_BIND 0
 #define SCM_SUBR_FLAG_GLOBAL_SYNTAX_REF 0
 #define SCM_SUBR_FLAG_COMPILE_QQ_TEMPLATE 0
@@ -706,6 +708,8 @@ int scm_subr_func_syntax_P(ScmObj subr, int argc, const ScmObj *argv);
 int scm_subr_func_make_syntax(ScmObj subr, int argc, const ScmObj *argv);
 int scm_subr_func_syntax_keyword(ScmObj subr, int argc, const ScmObj *argv);
 int scm_subr_func_syntax_handler(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_global_variable_bind(ScmObj subr,
+                                       int argc, const ScmObj *argv);
 int scm_subr_func_global_syntax_bind(ScmObj subr, int argc, const ScmObj *argv);
 int scm_subr_func_global_syntax_ref(ScmObj subr, int argc, const ScmObj *argv);
 int scm_subr_func_compile_qq_template(ScmObj subr,

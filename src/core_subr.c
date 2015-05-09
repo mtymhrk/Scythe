@@ -2725,6 +2725,36 @@ scm_subr_func_syntax_handler(ScmObj subr, int argc, const ScmObj *argv)
 }
 
 int
+scm_subr_func_global_variable_bind(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj obj = SCM_OBJ_INIT;
+  bool export;
+  int r;
+
+  SCM_REFSTK_INIT_REG(&subr,
+                      &obj);
+
+  export = false;
+  if (scm_fcd_pair_p(argv[3])) {
+    obj = scm_fcd_car(argv[3]);
+    if (scm_obj_null_p(obj)) return -1;
+
+    if (!scm_fcd_boolean_p(obj)) {
+      scm_capi_error("global-variable-bind: invalid argument", 1, obj);
+      return -1;
+    }
+
+    export = scm_fcd_true_object_p(obj);
+  }
+
+  r = scm_capi_define_global_var(argv[0], argv[1], argv[2], export);
+  if (r < 0) return -1;
+
+  obj = SCM_NIL_OBJ;
+  return scm_fcd_return_val(&obj, 1);
+}
+
+int
 scm_subr_func_global_syntax_bind(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj obj = SCM_OBJ_INIT;
