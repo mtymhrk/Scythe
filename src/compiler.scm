@@ -152,9 +152,6 @@
 (define (generate-label asmb)
   (assembler-assign-label-id! asmb))
 
-(define (current-module-name cmpl)
-  (module-name (compiler-current-module cmpl)))
-
 (define (compile-error cmpl msg)
   (error (format "failed to compile: ~a" msg) (compiler-current-expr cmpl)))
 
@@ -630,7 +627,7 @@
   (let ((rslv (resolve-reference env exp #f rdepth)))
     (if rslv
         (vector p2-syntax-id-lref exp (car rslv) (cdr rslv))
-        (vector p2-syntax-id-gref exp (current-module-name cmpl)))))
+        (vector p2-syntax-id-gref exp (compiler-current-module cmpl)))))
 
 (define (p1-syntax-handler-self-eval cmpl exp env toplevel-p rdepth)
   (vector p2-syntax-id-self exp))
@@ -723,7 +720,7 @@
                                       (p1-normalize-definition cmpl exp))))
     (vector p2-syntax-id-gdef
             var
-            (current-module-name cmpl)
+            (compiler-current-module cmpl)
             (p1-compile-exp cmpl val env toplevel-p rdepth))))
 
 (define (p1-syntax-handler-begin cmpl exp env toplevel-p rdepth)
@@ -869,7 +866,7 @@
           (x (p1-compile-exp cmpl val env toplevel-p rdepth)))
       (if rslv
           (vector p2-syntax-id-lset var (car rslv) (cdr rslv) x)
-          (vector p2-syntax-id-gset var (current-module-name cmpl) x)))))
+          (vector p2-syntax-id-gset var (compiler-current-module cmpl) x)))))
 
 (define (p1-decons-if cmpl exp)
   (unless (list? exp)
@@ -1429,7 +1426,7 @@
   (let* ((x (p1-decons-with-module cmpl exp))
          (name (car x))
          (exps (cdr x))
-         (mod (current-module-name cmpl)))
+         (mod (compiler-current-module cmpl)))
     (compiler-select-module! cmpl name)
     (list->vector (cons p2-syntax-id-begin
                         (map (lambda (e)
