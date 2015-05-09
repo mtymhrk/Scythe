@@ -129,6 +129,8 @@ TEST(fcd_module, import)
 {
   ScmObj main_mod = SCM_OBJ_INIT;
 
+  SCM_REFSTK_INIT_REG(&main_mod);
+
   find_module("main");
 
   main_mod = module;
