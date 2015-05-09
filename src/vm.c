@@ -2191,7 +2191,7 @@ scm_vm_op_gref(ScmObj vm, scm_opcode_t op)
     scm_assert(0);
   }
 
-  val = scm_fcd_gloc_value(gloc);
+  val = scm_fcd_gloc_variable_value(gloc);
   if (scm_fcd_landmine_object_p(val)) {
     scm_fcd_error("unbound variable", 1, sym);
     return -1;
@@ -2235,7 +2235,7 @@ scm_vm_op_gdef(ScmObj vm, scm_opcode_t op)
     scm_assert(0);
   }
 
-  scm_fcd_gloc_bind(gloc, SCM_VM(vm)->reg.val[0]);
+  scm_fcd_gloc_bind_variable(gloc, SCM_VM(vm)->reg.val[0]);
   return 0;
 }
 
@@ -2266,7 +2266,7 @@ scm_vm_op_gset(ScmObj vm, scm_opcode_t op)
       return -1;
     }
 
-    val = scm_fcd_gloc_value(gloc);
+    val = scm_fcd_gloc_variable_value(gloc);
     if (r < 0) return -1;
 
     if (scm_fcd_landmine_object_p(val)) {
@@ -2284,7 +2284,7 @@ scm_vm_op_gset(ScmObj vm, scm_opcode_t op)
     scm_assert(0);
   }
 
-  scm_fcd_gloc_bind(gloc, SCM_VM(vm)->reg.val[0]);
+  scm_fcd_gloc_bind_variable(gloc, SCM_VM(vm)->reg.val[0]);
   return 0;
 }
 

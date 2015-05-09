@@ -32,18 +32,37 @@ scm_gloc_initialize(ScmObj gloc, ScmObj sym, ScmObj val)
 
   SCM_SLOT_SETQ(ScmGLoc, gloc, sym, sym);
   SCM_SLOT_SETQ(ScmGLoc, gloc, val, val);
-  SCM_GLOC(gloc)->exported = false;
+  SCM_GLOC(gloc)->flags = 0;
 
   return 0;
 }
 
 void
-scm_gloc_bind(ScmObj gloc, ScmObj val)
+scm_gloc_bind_variable(ScmObj gloc, ScmObj val)
 {
   scm_assert_obj_type(gloc, &SCM_GLOC_TYPE_INFO);
   scm_assert(scm_obj_not_null_p(val) && !scm_fcd_landmine_object_p(val));
 
+  SCM_GLOC(gloc)->flags &= ~(unsigned int)SCM_GLOC_FLG_KEYWORD;
   SCM_SLOT_SETQ(ScmGLoc, gloc, val, val);
+}
+
+void
+scm_gloc_bind_keyword(ScmObj gloc, ScmObj val)
+{
+  scm_assert_obj_type(gloc, &SCM_GLOC_TYPE_INFO);
+  scm_assert(scm_obj_not_null_p(val) && !scm_fcd_landmine_object_p(val));
+
+  SCM_GLOC(gloc)->flags |= SCM_GLOC_FLG_KEYWORD;
+  SCM_SLOT_SETQ(ScmGLoc, gloc, val, val);
+}
+
+void
+scm_gloc_export(ScmObj gloc)
+{
+  scm_assert_obj_type(gloc, &SCM_GLOC_TYPE_INFO);
+
+  SCM_GLOC(gloc)->flags |= SCM_GLOC_FLG_EXPORT;
 }
 
 void
@@ -99,10 +118,8 @@ scm_module_cmp_func(ScmCHashTblKey key1, ScmCHashTblKey key2)
   return scm_fcd_eq_p(SCM_OBJ(key1), SCM_OBJ(key2));
 }
 
-enum { SCM_MODULE_EVAL, SCM_MODULE_CMPL };
-
 static int
-scm_module_search_gloc(ScmObj mod, ScmObj sym, int type, scm_csetter_t *setter)
+scm_module_search_gloc(ScmObj mod, ScmObj sym, scm_csetter_t *setter)
 {
   bool found;
   int rslt;
@@ -111,14 +128,9 @@ scm_module_search_gloc(ScmObj mod, ScmObj sym, int type, scm_csetter_t *setter)
 
   scm_assert_obj_type(mod, &SCM_MODULE_TYPE_INFO);
   scm_assert(scm_fcd_symbol_p(sym));
-  scm_assert(type == SCM_MODULE_EVAL || type == SCM_MODULE_CMPL);
 
-  if (type == SCM_MODULE_EVAL)
-    rslt = scm_chash_tbl_get(SCM_MODULE(mod)->eval_gloctbl,
-                             sym, (ScmCHashTblVal *)setter, &found);
-  else
-    rslt = scm_chash_tbl_get(SCM_MODULE(mod)->cmpl_gloctbl,
-                             sym, (ScmCHashTblVal *)setter, &found);
+  rslt = scm_chash_tbl_get(SCM_MODULE(mod)->gloctbl,
+                           sym, (ScmCHashTblVal *)setter, &found);
   if (rslt != 0) return -1;
 
   if (!found) scm_csetter_setq(setter, SCM_OBJ_NULL);
@@ -126,47 +138,8 @@ scm_module_search_gloc(ScmObj mod, ScmObj sym, int type, scm_csetter_t *setter)
   return 0;
 }
 
-static ScmObj
-scm_module_gloc(ScmObj mod, ScmObj sym, int type)
-{
-  ScmObj gloc = SCM_OBJ_INIT;
-  bool found;
-  int rslt;
-
-  SCM_REFSTK_INIT_REG(&mod, &sym,
-                      &gloc);
-
-  scm_assert_obj_type(mod, &SCM_MODULE_TYPE_INFO);
-  scm_assert(scm_fcd_symbol_p(sym));
-  scm_assert(type == SCM_MODULE_EVAL || type == SCM_MODULE_CMPL);
-
-  if (type == SCM_MODULE_EVAL)
-    rslt = scm_chash_tbl_get(SCM_MODULE(mod)->eval_gloctbl, sym,
-                             (ScmCHashTblVal *)SCM_CSETTER_L(gloc), &found);
-  else
-    rslt = scm_chash_tbl_get(SCM_MODULE(mod)->cmpl_gloctbl, sym,
-                             (ScmCHashTblVal *)SCM_CSETTER_L(gloc), &found);
-
-  if (rslt != 0) return SCM_OBJ_NULL;
-
-  if (found) return gloc;
-
-  gloc = scm_fcd_gloc_new(SCM_MEM_HEAP, sym);
-  if (scm_obj_null_p(gloc)) return SCM_OBJ_NULL;
-
-  if (type == SCM_MODULE_EVAL)
-    rslt = scm_chash_tbl_insert(SCM_MODULE(mod)->eval_gloctbl, sym, gloc);
-  else
-    rslt = scm_chash_tbl_insert(SCM_MODULE(mod)->cmpl_gloctbl, sym, gloc);
-
-  if (rslt != 0) return SCM_OBJ_NULL;
-
-  return gloc;
-}
-
-
 static int
-scm_module_define(ScmObj mod, ScmObj sym, ScmObj val, bool export, int type)
+scm_module_define(ScmObj mod, ScmObj sym, ScmObj val, bool export, bool keyword)
 {
   ScmObj gloc = SCM_OBJ_INIT;
 
@@ -176,12 +149,14 @@ scm_module_define(ScmObj mod, ScmObj sym, ScmObj val, bool export, int type)
   scm_assert_obj_type(mod, &SCM_MODULE_TYPE_INFO);
   scm_assert(scm_fcd_symbol_p(sym));
   scm_assert(scm_obj_not_null_p(val) && !scm_fcd_landmine_object_p(val));
-  scm_assert(type == SCM_MODULE_EVAL || type == SCM_MODULE_CMPL);
 
-  gloc = scm_module_gloc(mod, sym, type);
+  gloc = scm_module_gloc(mod, sym);
   if (scm_obj_null_p(gloc)) return -1;
 
-  scm_gloc_bind(gloc, val);
+  if (keyword)
+    scm_gloc_bind_keyword(gloc, val);
+  else
+    scm_gloc_bind_variable(gloc, val);
 
   if (export)
     scm_gloc_export(gloc);
@@ -190,28 +165,7 @@ scm_module_define(ScmObj mod, ScmObj sym, ScmObj val, bool export, int type)
 }
 
 static int
-scm_module_export(ScmObj mod, ScmObj sym, int type)
-{
-  ScmObj gloc = SCM_OBJ_INIT;
-
-  SCM_REFSTK_INIT_REG(&mod, &sym,
-                      &gloc);
-
-  scm_assert_obj_type(mod, &SCM_MODULE_TYPE_INFO);
-  scm_assert(scm_fcd_symbol_p(sym));
-  scm_assert(type == SCM_MODULE_EVAL || type == SCM_MODULE_CMPL);
-
-  gloc = scm_module_gloc(mod, sym, type);
-  if (scm_obj_null_p(gloc)) return -1;
-
-  scm_gloc_export(gloc);
-
-  return 0;
-}
-
-static int
-scm_module_find_exported_sym(ScmObj mod,
-                             ScmObj sym, int type, scm_csetter_t *setter)
+scm_module_find_exported_sym(ScmObj mod, ScmObj sym, scm_csetter_t *setter)
 {
   ScmObj lst = SCM_OBJ_INIT, elm = SCM_OBJ_INIT, imp = SCM_OBJ_INIT;
   ScmObj res = SCM_OBJ_INIT, gloc = SCM_OBJ_INIT;
@@ -223,7 +177,6 @@ scm_module_find_exported_sym(ScmObj mod,
 
   scm_assert_obj_type(mod, &SCM_MODULE_TYPE_INFO);
   scm_assert(scm_fcd_symbol_p(sym));
-  scm_assert(type == SCM_MODULE_EVAL || type == SCM_MODULE_CMPL);
   scm_assert(setter != NULL);
 
   if (SCM_MODULE(mod)->in_searching)
@@ -231,7 +184,7 @@ scm_module_find_exported_sym(ScmObj mod,
 
   SCM_MODULE(mod)->in_searching = true;
 
-  rslt = scm_module_search_gloc(mod, sym, type, setter);
+  rslt = scm_module_search_gloc(mod, sym, setter);
   if (rslt < 0) goto err;
 
   gloc = scm_csetter_val(setter);
@@ -249,54 +202,8 @@ scm_module_find_exported_sym(ScmObj mod,
     if (scm_fcd_true_p(res))
       continue;
 
-    rslt = scm_module_find_exported_sym(imp, sym, type, setter);
+    rslt = scm_module_find_exported_sym(imp, sym, setter);
     if (rslt < 0) goto err;
-
-    if (scm_obj_not_null_p(scm_csetter_val(setter)))
-      goto done;
-  }
-
- done:
-  SCM_MODULE(mod)->in_searching = false;
-  return 0;
-
- err:
-  SCM_MODULE(mod)->in_searching = false;
-  return -1;
-}
-
-static int
-scm_module_find_sym(ScmObj mod, ScmObj sym, int type, scm_csetter_t *setter)
-{
-  ScmObj lst = SCM_OBJ_INIT, elm = SCM_OBJ_INIT, imp = SCM_OBJ_INIT;
-  int rslt;
-
-  SCM_REFSTK_INIT_REG(&mod, &sym,
-                      &lst, &elm, &imp);
-
-  scm_assert_obj_type(mod, &SCM_MODULE_TYPE_INFO);
-  scm_assert(scm_fcd_symbol_p(sym));
-  scm_assert(type == SCM_MODULE_EVAL || type == SCM_MODULE_CMPL);
-  scm_assert(setter != NULL);
-
-  if (SCM_MODULE(mod)->in_searching)
-    return 0;
-
-  SCM_MODULE(mod)->in_searching = true;
-
-  rslt = scm_module_search_gloc(mod, sym, type, setter);
-  if (rslt < 0) goto err;
-
-  if (scm_obj_not_null_p(scm_csetter_val(setter)))
-    goto done;
-
-  for (lst = SCM_MODULE(mod)->imports;
-       scm_fcd_pair_p(lst);
-       lst = scm_fcd_cdr(lst)) {
-    elm = scm_fcd_car(lst);
-    imp = scm_fcd_car(elm);
-    rslt = scm_module_find_exported_sym(imp, sym, type, setter);
-    if (rslt < 0) goto err;;
 
     if (scm_obj_not_null_p(scm_csetter_val(setter)))
       goto done;
@@ -321,21 +228,13 @@ scm_module_initialize(ScmObj mod, ScmObj name)
 
   SCM_SLOT_SETQ(ScmModule, mod, name, name);
 
-  SCM_MODULE(mod)->eval_gloctbl =
-    scm_chash_tbl_new(mod, SCM_MODULE_GLOCTBL_SIZE,
-                      SCM_CHASH_TBL_SCMOBJ, SCM_CHASH_TBL_SCMOBJ,
-                      scm_module_hash_func, scm_module_cmp_func);
-  if (SCM_MODULE(mod)->eval_gloctbl == NULL) return -1;
-
-  SCM_MODULE(mod)->cmpl_gloctbl =
-    scm_chash_tbl_new(mod, SCM_MODULE_GLOCTBL_SIZE,
-                      SCM_CHASH_TBL_SCMOBJ, SCM_CHASH_TBL_SCMOBJ,
-                      scm_module_hash_func, scm_module_cmp_func);
-  if (SCM_MODULE(mod)->cmpl_gloctbl == NULL) {
-    scm_chash_tbl_end(SCM_MODULE(mod)->eval_gloctbl);
-    SCM_MODULE(mod)->eval_gloctbl = NULL;
-    return -1;
-  }
+  SCM_MODULE(mod)->gloctbl = scm_chash_tbl_new(mod,
+                                               SCM_MODULE_GLOCTBL_SIZE,
+                                               SCM_CHASH_TBL_SCMOBJ,
+                                               SCM_CHASH_TBL_SCMOBJ,
+                                               scm_module_hash_func,
+                                               scm_module_cmp_func);
+  if (SCM_MODULE(mod)->gloctbl == NULL) return -1;
 
   SCM_MODULE(mod)->imports = SCM_NIL_OBJ;
   SCM_MODULE(mod)->in_searching = false;
@@ -348,14 +247,9 @@ scm_module_finalize(ScmObj mod)
 {
   scm_assert_obj_type(mod, &SCM_MODULE_TYPE_INFO);
 
-  if (SCM_MODULE(mod)->eval_gloctbl != NULL) {
-    scm_chash_tbl_end(SCM_MODULE(mod)->eval_gloctbl);
-    SCM_MODULE(mod)->eval_gloctbl = NULL;
-  }
-
-  if (SCM_MODULE(mod)->cmpl_gloctbl != NULL) {
-    scm_chash_tbl_end(SCM_MODULE(mod)->cmpl_gloctbl);
-    SCM_MODULE(mod)->cmpl_gloctbl = NULL;
+  if (SCM_MODULE(mod)->gloctbl != NULL) {
+    scm_chash_tbl_end(SCM_MODULE(mod)->gloctbl);
+    SCM_MODULE(mod)->gloctbl = NULL;
   }
 }
 
@@ -382,51 +276,108 @@ scm_module_import(ScmObj mod, ScmObj imp, bool res)
 }
 
 int
-scm_module_define_eval(ScmObj mod, ScmObj sym, ScmObj val, bool export)
+scm_module_define_variable(ScmObj mod, ScmObj sym, ScmObj val, bool export)
 {
-  return scm_module_define(mod, sym, val, export, SCM_MODULE_EVAL);
+  return scm_module_define(mod, sym, val, export, false);
 }
 
 int
-scm_module_define_cmpl(ScmObj mod, ScmObj sym, ScmObj val, bool export)
+scm_module_define_keyword(ScmObj mod, ScmObj sym, ScmObj val, bool export)
 {
-  return scm_module_define(mod, sym, val, export, SCM_MODULE_CMPL);
+  return scm_module_define(mod, sym, val, export, true);
 }
 
 int
-scm_module_export_eval(ScmObj mod, ScmObj sym)
+scm_module_export(ScmObj mod, ScmObj sym)
 {
-  return scm_module_export(mod, sym, SCM_MODULE_EVAL);
-}
+  ScmObj gloc = SCM_OBJ_INIT;
 
-int
-scm_module_export_cmpl(ScmObj mod, ScmObj sym)
-{
-  return scm_module_export(mod, sym, SCM_MODULE_CMPL);
+  SCM_REFSTK_INIT_REG(&mod, &sym,
+                      &gloc);
+
+  scm_assert_obj_type(mod, &SCM_MODULE_TYPE_INFO);
+  scm_assert(scm_fcd_symbol_p(sym));
+
+  gloc = scm_module_gloc(mod, sym);
+  if (scm_obj_null_p(gloc)) return -1;
+
+  scm_gloc_export(gloc);
+
+  return 0;
 }
 
 ScmObj
-scm_module_gloc_eval(ScmObj mod, ScmObj sym)
+scm_module_gloc(ScmObj mod, ScmObj sym)
 {
-  return scm_module_gloc(mod, sym, SCM_MODULE_EVAL);
-}
+  ScmObj gloc = SCM_OBJ_INIT;
+  bool found;
+  int rslt;
 
-ScmObj
-scm_module_gloc_cmpl(ScmObj mod, ScmObj sym)
-{
-  return scm_module_gloc(mod, sym, SCM_MODULE_CMPL);
+  SCM_REFSTK_INIT_REG(&mod, &sym,
+                      &gloc);
+
+  scm_assert_obj_type(mod, &SCM_MODULE_TYPE_INFO);
+  scm_assert(scm_fcd_symbol_p(sym));
+
+  rslt = scm_chash_tbl_get(SCM_MODULE(mod)->gloctbl, sym,
+                           (ScmCHashTblVal *)SCM_CSETTER_L(gloc), &found);
+
+  if (rslt != 0) return SCM_OBJ_NULL;
+
+  if (found) return gloc;
+
+  gloc = scm_fcd_gloc_new(SCM_MEM_HEAP, sym);
+  if (scm_obj_null_p(gloc)) return SCM_OBJ_NULL;
+
+  rslt = scm_chash_tbl_insert(SCM_MODULE(mod)->gloctbl, sym, gloc);
+  if (rslt != 0) return SCM_OBJ_NULL;
+
+  return gloc;
 }
 
 int
-scm_module_find_sym_eval(ScmObj mod, ScmObj sym, scm_csetter_t *setter)
+scm_module_find_sym(ScmObj mod, ScmObj sym, scm_csetter_t *setter)
 {
-  return scm_module_find_sym(mod, sym, SCM_MODULE_EVAL, setter);
-}
+  ScmObj lst = SCM_OBJ_INIT, elm = SCM_OBJ_INIT, imp = SCM_OBJ_INIT;
+  int rslt;
 
-int
-scm_module_find_sym_cmpl(ScmObj mod, ScmObj sym, scm_csetter_t *setter)
-{
-  return scm_module_find_sym(mod, sym, SCM_MODULE_CMPL, setter);
+  SCM_REFSTK_INIT_REG(&mod, &sym,
+                      &lst, &elm, &imp);
+
+  scm_assert_obj_type(mod, &SCM_MODULE_TYPE_INFO);
+  scm_assert(scm_fcd_symbol_p(sym));
+  scm_assert(setter != NULL);
+
+  if (SCM_MODULE(mod)->in_searching)
+    return 0;
+
+  SCM_MODULE(mod)->in_searching = true;
+
+  rslt = scm_module_search_gloc(mod, sym, setter);
+  if (rslt < 0) goto err;
+
+  if (scm_obj_not_null_p(scm_csetter_val(setter)))
+    goto done;
+
+  for (lst = SCM_MODULE(mod)->imports;
+       scm_fcd_pair_p(lst);
+       lst = scm_fcd_cdr(lst)) {
+    elm = scm_fcd_car(lst);
+    imp = scm_fcd_car(elm);
+    rslt = scm_module_find_exported_sym(imp, sym, setter);
+    if (rslt < 0) goto err;;
+
+    if (scm_obj_not_null_p(scm_csetter_val(setter)))
+      goto done;
+  }
+
+ done:
+  SCM_MODULE(mod)->in_searching = false;
+  return 0;
+
+ err:
+  SCM_MODULE(mod)->in_searching = false;
+  return -1;
 }
 
 int
@@ -446,8 +397,7 @@ scm_module_gc_initialize(ScmObj obj, ScmObj mem)
 
   SCM_MODULE(obj)->name = SCM_OBJ_NULL;
   SCM_MODULE(obj)->imports = SCM_OBJ_NULL;
-  SCM_MODULE(obj)->eval_gloctbl = NULL;
-  SCM_MODULE(obj)->cmpl_gloctbl = NULL;
+  SCM_MODULE(obj)->gloctbl = NULL;
 }
 
 void
@@ -471,14 +421,8 @@ scm_module_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
   rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_MODULE(obj)->imports, mem);
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
-  if (SCM_MODULE(obj)->eval_gloctbl != NULL) {
-    rslt = scm_chash_tbl_gc_accept(SCM_MODULE(obj)->eval_gloctbl,
-                                   obj, mem, handler, false);
-    if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
-  }
-
-  if (SCM_MODULE(obj)->cmpl_gloctbl != NULL) {
-    rslt = scm_chash_tbl_gc_accept(SCM_MODULE(obj)->cmpl_gloctbl,
+  if (SCM_MODULE(obj)->gloctbl != NULL) {
+    rslt = scm_chash_tbl_gc_accept(SCM_MODULE(obj)->gloctbl,
                                    obj, mem, handler, false);
     if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
   }

@@ -171,7 +171,8 @@ TEST(fcd_module, make_gloc)
 
   TEST_ASSERT_TRUE(scm_fcd_gloc_p(gloc));
   TEST_ASSERT_SCM_EQ(symbol, scm_fcd_gloc_symbol(gloc));
-  TEST_ASSERT_SCM_EQ(SCM_UNINIT_OBJ, scm_fcd_gloc_value(gloc));
+  TEST_ASSERT_SCM_EQ(SCM_UNINIT_OBJ, scm_fcd_gloc_variable_value(gloc));
+  TEST_ASSERT_SCM_EQ(SCM_UNINIT_OBJ, scm_fcd_gloc_keyword_value(gloc));
 }
 
 TEST(fcd_module, make_gloc__already_exist)
@@ -210,7 +211,7 @@ TEST(fcd_module, find_gloc__not_exist)
   TEST_ASSERT_SCM_NULL(gloc);
 }
 
-TEST(fcd_module, gloc_bind)
+TEST(fcd_module, gloc_bind_variable)
 {
   ScmObj expected = SCM_OBJ_INIT;
 
@@ -221,8 +222,23 @@ TEST(fcd_module, gloc_bind)
 
   expected = scm_fcd_eof();
 
-  scm_fcd_gloc_bind(gloc, expected);
-  TEST_ASSERT_SCM_EQ(expected, scm_fcd_gloc_value(gloc));
+  scm_fcd_gloc_bind_variable(gloc, expected);
+  TEST_ASSERT_SCM_EQ(expected, scm_fcd_gloc_variable_value(gloc));
+}
+
+TEST(fcd_module, gloc_bind_keyword)
+{
+  ScmObj expected = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&expected);
+
+  make_module("test");
+  get_gloc("var");
+
+  expected = scm_fcd_eof();
+
+  scm_fcd_gloc_bind_keyword(gloc, expected);
+  TEST_ASSERT_SCM_EQ(expected, scm_fcd_gloc_keyword_value(gloc));
 }
 
 TEST(fcd_module, define_global_var)

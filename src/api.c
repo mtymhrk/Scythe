@@ -2617,7 +2617,7 @@ scm_capi_define_global_var(ScmObj module, ScmObj sym, ScmObj val, bool export)
     scm_capi_error("failed to define variable: invalid argument", 1, sym);
     return -1;
   }
-  else if (scm_obj_null_p(val)) {
+  else if (scm_obj_null_p(val) || scm_fcd_landmine_object_p(val)) {
     scm_capi_error("failed to define variable: invalid argument", 1, val);
     return -1;
   }
@@ -2636,7 +2636,7 @@ scm_capi_define_global_syx(ScmObj module, ScmObj sym, ScmObj syx, bool export)
     scm_capi_error("failed to define syntax: invalid argument", 1, sym);
     return -1;
   }
-  else if (!scm_fcd_syntax_p(syx) && !scm_fcd_macro_p(syx)) {
+  else if (scm_obj_null_p(syx) || scm_fcd_landmine_object_p(syx)) {
     scm_capi_error("failed to define syntax: invalid argument", 1, syx);
     return -1;
   }

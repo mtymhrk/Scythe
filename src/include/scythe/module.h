@@ -18,13 +18,15 @@ typedef struct ScmModuleTreeRec ScmModuleTree;
 /*  GLoc                                                                    */
 /****************************************************************************/
 
+enum { SCM_GLOC_FLG_KEYWORD = 0x01, SCM_GLOC_FLG_EXPORT = 0x02 };
+
 extern ScmTypeInfo SCM_GLOC_TYPE_INFO;
 
 struct ScmGLocRec {
   ScmObjHeader header;
   ScmObj sym;
   ScmObj val;
-  bool exported;
+  unsigned int flags;
 };
 
 static inline ScmObj
@@ -44,23 +46,32 @@ scm_gloc_value(ScmObj gloc)
 }
 
 static inline bool
+scm_gloc_keyword_p(ScmObj gloc)
+{
+  scm_assert_obj_type(gloc, &SCM_GLOC_TYPE_INFO);
+
+  return ((SCM_GLOC(gloc)->flags & SCM_GLOC_FLG_KEYWORD) ? true : false);
+}
+
+static inline bool
+scm_gloc_variable_p(ScmObj gloc)
+{
+  return (!scm_gloc_keyword_p(gloc));
+}
+
+static inline bool
 scm_gloc_exported_p(ScmObj gloc)
 {
   scm_assert_obj_type(gloc, &SCM_GLOC_TYPE_INFO);
 
-  return SCM_GLOC(gloc)->exported;
+  return ((SCM_GLOC(gloc)->flags & SCM_GLOC_FLG_EXPORT) ? true : false);
 }
 
-static inline void
-scm_gloc_export(ScmObj gloc)
-{
-  scm_assert_obj_type(gloc, &SCM_GLOC_TYPE_INFO);
-
-  SCM_GLOC(gloc)->exported = true;
-}
 
 int scm_gloc_initialize(ScmObj gloc, ScmObj sym, ScmObj val);
-void scm_gloc_bind(ScmObj gloc, ScmObj val);
+void scm_gloc_bind_variable(ScmObj gloc, ScmObj val);
+void scm_gloc_bind_keyword(ScmObj gloc, ScmObj val);
+void scm_gloc_export(ScmObj gloc);
 
 void scm_gloc_gc_initialize(ScmObj obj, ScmObj mem);
 int scm_gloc_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
@@ -76,8 +87,7 @@ struct ScmModuleRec {
   ScmObjHeader header;
   ScmObj name;
   ScmObj imports;
-  ScmCHashTbl *eval_gloctbl;
-  ScmCHashTbl *cmpl_gloctbl;
+  ScmCHashTbl *gloctbl;
   bool in_searching;
 };
 
@@ -85,14 +95,11 @@ struct ScmModuleRec {
 int scm_module_initialize(ScmObj mod, ScmObj name);
 void scm_module_finalize(ScmObj mod);
 int scm_module_import(ScmObj mod, ScmObj imp, bool restrictive);
-int scm_module_define_eval(ScmObj mod, ScmObj sym, ScmObj val, bool export);
-int scm_module_define_cmpl(ScmObj mod, ScmObj sym, ScmObj val, bool export);
-int scm_module_export_eval(ScmObj mod, ScmObj sym);
-int scm_module_export_cmpl(ScmObj mod, ScmObj sym);
-ScmObj scm_module_gloc_eval(ScmObj mod, ScmObj sym);
-ScmObj scm_module_gloc_cmpl(ScmObj mod, ScmObj sym);
-int scm_module_find_sym_eval(ScmObj mod, ScmObj sym, scm_csetter_t *setter);
-int scm_module_find_sym_cmpl(ScmObj mod, ScmObj sym, scm_csetter_t *setter);
+int scm_module_define_variable(ScmObj mod, ScmObj sym, ScmObj val, bool export);
+int scm_module_define_keyword(ScmObj mod, ScmObj sym, ScmObj val, bool export);
+int scm_module_export(ScmObj mod, ScmObj sym);
+ScmObj scm_module_gloc(ScmObj mod, ScmObj sym);
+int scm_module_find_sym(ScmObj mod, ScmObj sym, scm_csetter_t *setter);
 
 int scm_module_obj_print(ScmObj obj, ScmObj port, int kind,
                          ScmObjPrintHandler handler);

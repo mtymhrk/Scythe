@@ -28,10 +28,25 @@ scm_fcd_gloc_new(SCM_MEM_TYPE_T mtype, ScmObj sym)
 }
 
 extern inline ScmObj
-scm_fcd_gloc_value(ScmObj gloc)
+scm_fcd_gloc_variable_value(ScmObj gloc)
 {
   scm_assert(scm_fcd_gloc_p(gloc));
-  return scm_gloc_value(gloc);
+
+  if (scm_gloc_variable_p(gloc))
+    return scm_gloc_value(gloc);
+  else
+    return SCM_UNINIT_OBJ;
+}
+
+extern inline ScmObj
+scm_fcd_gloc_keyword_value(ScmObj gloc)
+{
+  scm_assert(scm_fcd_gloc_p(gloc));
+
+  if (scm_gloc_keyword_p(gloc))
+    return scm_gloc_value(gloc);
+  else
+    return SCM_UNINIT_OBJ;
 }
 
 extern inline ScmObj
@@ -42,11 +57,21 @@ scm_fcd_gloc_symbol(ScmObj gloc)
 }
 
 void
-scm_fcd_gloc_bind(ScmObj gloc, ScmObj val)
+scm_fcd_gloc_bind_variable(ScmObj gloc, ScmObj val)
 {
   scm_assert(scm_fcd_gloc_p(gloc));
   scm_assert(scm_obj_not_null_p(val) && !scm_fcd_landmine_object_p(val));
-  scm_gloc_bind(gloc, val);
+
+  scm_gloc_bind_variable(gloc, val);
+}
+
+void
+scm_fcd_gloc_bind_keyword(ScmObj gloc, ScmObj val)
+{
+  scm_assert(scm_fcd_gloc_p(gloc));
+  scm_assert(scm_obj_not_null_p(val) && !scm_fcd_landmine_object_p(val));
+
+  scm_gloc_bind_keyword(gloc, val);
 }
 
 extern inline bool
@@ -185,12 +210,24 @@ scm_fcd_import(ScmObj module, ScmObj imported, bool restrictive)
   return scm_module_import(module, imported, restrictive);
 }
 
+int
+scm_fcd_export(ScmObj module, ScmObj sym)
+{
+  scm_assert(scm_fcd_module_specifier_p(module));
+  scm_assert(scm_fcd_symbol_p(sym));
+
+  module = get_module(module);
+  if (scm_obj_null_p(module)) return -1;
+
+  return scm_module_export(module, sym);
+}
+
 ScmObj
 scm_fcd_get_gloc(ScmObj module, ScmObj sym)
 {
   scm_assert(scm_fcd_module_p(module));
   scm_assert(scm_fcd_symbol_p(sym));
-  return scm_module_gloc_eval(module, sym);
+  return scm_module_gloc(module, sym);
 }
 
 int
@@ -200,7 +237,7 @@ scm_fcd_find_gloc(ScmObj module, ScmObj sym, scm_csetter_t *gloc)
   scm_assert(scm_fcd_symbol_p(sym));
 
   if (gloc != NULL)
-    return scm_module_find_sym_eval(module, sym, gloc);
+    return scm_module_find_sym(module, sym, gloc);
   else
     return 0;
 }
@@ -212,12 +249,12 @@ scm_fcd_define_global_var(ScmObj module, ScmObj sym, ScmObj val, bool export)
 
   scm_assert(scm_fcd_module_specifier_p(module));
   scm_assert(scm_fcd_symbol_p(sym));
-  scm_assert(scm_obj_not_null_p(val));
+  scm_assert(scm_obj_not_null_p(val) && !scm_fcd_landmine_object_p(val));
 
   module = get_module(module);
   if (scm_obj_null_p(module)) return -1;
 
-  return scm_module_define_eval(module, sym, val, export);
+  return scm_module_define_variable(module, sym, val, export);
 }
 
 int
@@ -227,12 +264,12 @@ scm_fcd_define_global_syx(ScmObj module, ScmObj sym, ScmObj syx, bool export)
 
   scm_assert(scm_fcd_module_specifier_p(module));
   scm_assert(scm_fcd_symbol_p(sym));
-  scm_assert(scm_fcd_syntax_p(syx) || scm_fcd_macro_p(syx));
+  scm_assert(scm_obj_not_null_p(syx) && !scm_fcd_landmine_object_p(syx));
 
   module = get_module(module);
   if (scm_obj_null_p(module)) return -1;
 
-  return scm_module_define_cmpl(module, sym, syx, export);
+  return scm_module_define_keyword(module, sym, syx, export);
 }
 
 int
@@ -250,11 +287,11 @@ scm_fcd_global_var_ref(ScmObj module, ScmObj sym, scm_csetter_t *val)
   module = get_module(module);
   if (scm_obj_null_p(module)) return -1;
 
-  rslt = scm_module_find_sym_eval(module, sym, SCM_CSETTER_L(gloc));
+  rslt = scm_module_find_sym(module, sym, SCM_CSETTER_L(gloc));
   if (rslt < 0) return -1;
 
   if (scm_obj_not_null_p(gloc)) {
-    v = scm_gloc_value(gloc);
+    v = scm_fcd_gloc_variable_value(gloc);
     if (scm_fcd_landmine_object_p(v))
       v = SCM_OBJ_NULL;
   }
@@ -284,11 +321,11 @@ scm_fcd_global_syx_ref(ScmObj module, ScmObj sym, scm_csetter_t *syx)
   module = get_module(module);
   if (scm_obj_null_p(module)) return -1;
 
-  rslt = scm_module_find_sym_cmpl(module, sym, SCM_CSETTER_L(gloc));
+  rslt = scm_module_find_sym(module, sym, SCM_CSETTER_L(gloc));
   if (rslt < 0) return -1;
 
   if (scm_obj_not_null_p(gloc)) {
-    v = scm_gloc_value(gloc);
+    v = scm_fcd_gloc_keyword_value(gloc);
     if (scm_fcd_landmine_object_p(v))
       v = SCM_OBJ_NULL;
   }
@@ -300,28 +337,3 @@ scm_fcd_global_syx_ref(ScmObj module, ScmObj sym, scm_csetter_t *syx)
 
   return 0;
 }
-
-int
-scm_fcd_export_global_var(ScmObj module, ScmObj sym)
-{
-  scm_assert(scm_fcd_module_specifier_p(module));
-  scm_assert(scm_fcd_symbol_p(sym));
-
-  module = get_module(module);
-  if (scm_obj_null_p(module)) return -1;
-
-  return scm_module_export_eval(module, sym);
-}
-
-int
-scm_fcd_export_global_syx(ScmObj module, ScmObj sym)
-{
-  scm_assert(scm_fcd_module_specifier_p(module));
-  scm_assert(scm_fcd_symbol_p(sym));
-
-  module = get_module(module);
-  if (scm_obj_null_p(module)) return -1;
-
-  return scm_module_export_cmpl(module, sym);
-}
-
