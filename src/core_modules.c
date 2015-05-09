@@ -624,8 +624,6 @@ scm_define_scythe_internal_compile_constant_number(ScmObj module)
     const_num_asm_inst_record(mrve, MRVE),
 
     const_num_asm_pinst_record(label, LABEL),
-    const_num_asm_pinst_record(undef, UNDEF),
-    const_num_asm_pinst_record(uninit, UNINIT),
   };
 
   int rslt;

@@ -157,17 +157,6 @@ scm_asm_push_inst_noopd(ScmObj asmb, scm_opcode_t op)
 
   scm_assert_obj_type(asmb, &SCM_ASSEMBLER_TYPE_INFO);
 
-  switch (op) {
-  case SCM_ASM_PI_UNDEF:
-    return scm_asm_push_pinst_undef(asmb, op);
-    break;
-  case SCM_ASM_PI_UNINIT:
-    return scm_asm_push_pinst_uninit(asmb, op);
-    break;
-  default:
-    break;
-  }
-
   scm_vminst_set_inst_noopd(inst, op);
   r = scm_fcd_iseq_push_inst(SCM_ASSEMBLER_ISEQ(asmb),
                              &inst, sizeof(inst), NULL, 0);
@@ -260,15 +249,8 @@ scm_asm_push_inst_si_si_obj(ScmObj asmb,
 
   scm_assert_obj_type(asmb, &SCM_ASSEMBLER_TYPE_INFO);
 
-  if (op == SCM_OPCODE_CLOSE) {
-    if (scm_fcd_assembler_p(obj)) {
-      obj = scm_asm_iseq(obj);
-    }
-    else if (!scm_fcd_iseq_p(obj)) {
-      obj = scm_fcd_assemble(obj, SCM_OBJ_NULL);
-      if (scm_obj_null_p(obj)) return -1;
-    }
-  }
+  if (op == SCM_OPCODE_CLOSE && scm_fcd_assembler_p(obj))
+    obj = scm_asm_iseq(obj);
 
   scm_vminst_set_inst_si_si_obj(inst, op, si1, si2, obj);
   r = scm_fcd_iseq_push_inst(SCM_ASSEMBLER_ISEQ(asmb),
@@ -369,40 +351,6 @@ scm_asm_push_pinst_label(ScmObj asmb, scm_opcode_t op, size_t id)
   decl->offset = (ssize_t)cur;
 
   return 0;
-}
-
-int
-scm_asm_push_pinst_undef(ScmObj asmb, scm_opcode_t op)
-{
-  return scm_asm_push_inst_obj(asmb, SCM_OPCODE_IMMVAL, SCM_UNDEF_OBJ);
-}
-
-int
-scm_asm_push_pinst_uninit(ScmObj asmb, scm_opcode_t op)
-{
-  return scm_asm_push_inst_obj(asmb, SCM_OPCODE_IMMVAL, SCM_UNINIT_OBJ);
-}
-
-int
-scm_asm_push_pinst_qqtemplate(ScmObj asmb, scm_opcode_t op, ScmObj obj)
-{
-  ScmObj qq = SCM_OBJ_INIT;
-
-  SCM_REFSTK_INIT_REG(&asmb, &obj,
-                      &qq);
-
-  scm_assert_obj_type(asmb, &SCM_ASSEMBLER_TYPE_INFO);
-  scm_assert(scm_obj_not_null_p(obj));
-
-  if (scm_fcd_qqtmpl_p(obj)) {
-    qq = obj;
-  }
-  else {
-    qq = scm_fcd_compile_qq_template(obj);
-    if (scm_obj_null_p(qq)) return -1;
-  }
-
-  return scm_asm_push_inst_obj(asmb, SCM_OPCODE_IMMVAL, qq);
 }
 
 int
@@ -924,9 +872,6 @@ static struct {
   { SCM_OPCODE_MRVC,        "mrvc" },
   { SCM_OPCODE_MRVE,        "mrve" },
   { SCM_ASM_PI_LABEL,       "label" },
-  { SCM_ASM_PI_UNDEF,       "undef" },
-  { SCM_ASM_PI_UNINIT,      "uninit" },
-  { SCM_ASM_PI_QQTEMPLATE,  "qqtemplate" },
 };
 
 static int
@@ -1272,28 +1217,6 @@ scm_asm_asm_inst_label(ScmObj asmb, int opcode, const ScmObj *inst, size_t n)
   return 0;
 }
 
-static int
-scm_asm_asm_inst_qqtemplate(ScmObj asmb, int opcode,
-                            const ScmObj *inst, size_t n)
-
-{
-  int rslt;
-
-  SCM_REFSTK_INIT_REG(&asmb);
-
-  scm_assert(scm_fcd_assembler_p(asmb));
-  scm_assert(opcode >= SCM_ASM_PI_START);
-  scm_assert(n == 0 || inst != NULL);
-
-  rslt = scm_asm_chk_nr_operand(inst, n, 1, 1);
-  if (rslt < 0) return -1;
-
-  rslt = scm_asm_push_pinst_qqtemplate(asmb, opcode, inst[1]);
-  if (rslt < 0) return -1;
-
-  return 0;
-}
-
 int
 scm_asm_assemble_1inst_cv(ScmObj asmb, const ScmObj *inst, size_t n)
 {
@@ -1339,15 +1262,6 @@ scm_asm_assemble_1inst_cv(ScmObj asmb, const ScmObj *inst, size_t n)
     switch (opcode) {
     case SCM_ASM_PI_LABEL:
       return scm_asm_asm_inst_label(asmb, opcode, inst, n);
-      break;
-    case SCM_ASM_PI_UNDEF:
-      return scm_asm_asm_inst_noopd(asmb, opcode, inst, n);
-      break;
-    case SCM_ASM_PI_UNINIT:
-      return scm_asm_asm_inst_noopd(asmb, opcode, inst, n);
-      break;
-    case SCM_ASM_PI_QQTEMPLATE:
-      return scm_asm_asm_inst_qqtemplate(asmb, opcode, inst, n);
       break;
     default:
       scm_assert(false);
@@ -1635,6 +1549,11 @@ scm_asm_disassemble(ScmObj disasm)
   return scm_fcd_cdr(list);
 }
 
+
+#define SCM_ASM_PRINTABLE_MNE_UNDEF      "undef"
+#define SCM_ASM_PRINTABLE_MNE_UNINIT     "uninit"
+#define SCM_ASM_PRINTABLE_MNE_QQTEMPLATE "qqtemplate"
+
 static ScmObj
 scm_asm_unprintable_inst_undef(ScmObj inst)
 {
@@ -1729,23 +1648,20 @@ scm_asm_printable_inst_immval(ScmObj inst)
   if (scm_obj_null_p(val)) return SCM_OBJ_NULL;
 
   if (scm_fcd_undef_object_p(val)) {
-    op =
-      scm_fcd_make_symbol_from_cstr(scm_asm_opcode2mnemonic(SCM_ASM_PI_UNDEF),
-                                    SCM_ENC_SRC);
+    op = scm_fcd_make_symbol_from_cstr(SCM_ASM_PRINTABLE_MNE_UNDEF,
+                                       SCM_ENC_SRC);
     if (scm_obj_null_p(op)) return SCM_OBJ_NULL;
     return scm_fcd_list(1, op);
   }
   else if (scm_fcd_landmine_object_p(val)) {
-    op =
-      scm_fcd_make_symbol_from_cstr(scm_asm_opcode2mnemonic(SCM_ASM_PI_UNINIT),
-                                    SCM_ENC_SRC);
+    op = scm_fcd_make_symbol_from_cstr(SCM_ASM_PRINTABLE_MNE_UNINIT,
+                                       SCM_ENC_SRC);
     if (scm_obj_null_p(op)) return SCM_OBJ_NULL;
     return scm_fcd_list(1, op);
   }
   else if (scm_fcd_qqtmpl_p(val)) {
-    op =
-      scm_fcd_make_symbol_from_cstr(scm_asm_opcode2mnemonic(SCM_ASM_PI_QQTEMPLATE),
-                                    SCM_ENC_SRC);
+    op = scm_fcd_make_symbol_from_cstr(SCM_ASM_PRINTABLE_MNE_QQTEMPLATE,
+                                       SCM_ENC_SRC);
     if (scm_obj_null_p(op)) return SCM_OBJ_NULL;
 
     val = scm_fcd_qqtmpl_template(val);
@@ -1846,11 +1762,16 @@ ScmObj
 scm_asm_unprintable_inst(ScmObj inst)
 {
   static const struct scm_asm_cnv tbl[] = {
-    { .op = "undef",      .func = scm_asm_unprintable_inst_undef },
-    { .op = "uninit",     .func = scm_asm_unprintable_inst_uninit },
-    { .op = "qqtemplate", .func = scm_asm_unprintable_inst_qqtemplate },
-    { .op = "close",      .func = scm_asm_unprintable_inst_close },
-    { .op = NULL,         .func = NULL },
+    { .op   = SCM_ASM_PRINTABLE_MNE_UNDEF,
+      .func = scm_asm_unprintable_inst_undef },
+    { .op   = SCM_ASM_PRINTABLE_MNE_UNINIT,
+      .func = scm_asm_unprintable_inst_uninit },
+    { .op   = SCM_ASM_PRINTABLE_MNE_QQTEMPLATE,
+      .func = scm_asm_unprintable_inst_qqtemplate },
+    { .op   = "close",
+      .func = scm_asm_unprintable_inst_close },
+    { .op   = NULL,
+      .func = NULL },
   };
 
   scm_assert(scm_fcd_pair_p(inst));

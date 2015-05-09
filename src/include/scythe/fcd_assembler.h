@@ -13,12 +13,9 @@
 
 enum {
   SCM_ASM_PI_LABEL = SCM_ASM_PI_START,  /* define a label */
-  SCM_ASM_PI_UNDEF,                     /* (immval #<undef>) */
-  SCM_ASM_PI_UNINIT,                    /* (immval #<landmine>) */
-  SCM_ASM_PI_QQTEMPLATE,                /* (immval #<qq-template>) */
 };
 
-#define SCM_ASM_NR_PI 3
+#define SCM_ASM_NR_PI 1
 
 #define SCM_ASM_NR_OPD_MAX 3
 
