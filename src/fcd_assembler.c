@@ -262,13 +262,6 @@ scm_fcd_disassembler_cnv_to_marshalable(ScmObj disasm)
   return scm_disasm_cnv_to_marshalable(disasm);
 }
 
-int
-scm_fcd_disassembler_cnv_to_printable(ScmObj disasm)
-{
-  scm_assert(scm_fcd_disassembler_p(disasm));
-  return scm_disasm_cnv_to_printable(disasm);
-}
-
 
 /**************************************************************************/
 /* Assemble/Disassemble                                                   */
@@ -374,6 +367,32 @@ scm_fcd_disassemble(ScmObj obj)
   }
 
   return scm_asm_disassemble(obj);
+}
+
+ScmObj
+scm_fcd_unprintable_assembler_1inst(ScmObj inst)
+{
+  scm_assert(scm_fcd_pair_p(inst));
+  return scm_asm_unprintable_inst(inst);
+}
+
+ScmObj
+scm_fcd_printable_assembler_1inst(ScmObj inst)
+{
+  scm_assert(scm_fcd_pair_p(inst));
+  return scm_asm_printable_inst(inst);
+}
+
+ScmObj
+scm_fcd_unprintable_assembler(ScmObj lst)
+{
+  return scm_asm_unprintable(lst);
+}
+
+ScmObj
+scm_fcd_printable_assembler(ScmObj lst)
+{
+  return scm_asm_printable(lst);
 }
 
 void

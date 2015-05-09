@@ -32,7 +32,7 @@ make_iseq(const char *asmbl)
 
   lst = read_cstr(asmbl);
 
-  iseq = scm_fcd_assemble(lst, SCM_OBJ_NULL);
+  iseq = scm_fcd_assemble(scm_fcd_unprintable_assembler(lst), SCM_OBJ_NULL);
   TEST_ASSERT_TRUE(scm_fcd_iseq_p(iseq));
 
   return iseq;
@@ -428,8 +428,8 @@ test_disassemble(const char *expected, const char *assembler)
   e = read_cstr(expected);
   a = read_cstr(assembler);
 
-  iseq = scm_fcd_assemble(a, SCM_OBJ_NULL);
-  actual = scm_fcd_disassemble(iseq);
+  iseq = scm_fcd_assemble(scm_fcd_unprintable_assembler(a), SCM_OBJ_NULL);
+  actual = scm_fcd_printable_assembler(scm_fcd_disassemble(iseq));
 
   TEST_ASSERT_SCM_EQUAL(e, actual);
 }

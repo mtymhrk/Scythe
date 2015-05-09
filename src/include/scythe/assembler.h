@@ -116,7 +116,6 @@ const ScmDisasmToken *scm_disasm_token(ScmObj disasm);
 int scm_disasm_next(ScmObj disasm);
 void scm_disasm_rewind(ScmObj disasm);
 int scm_disasm_cnv_to_marshalable(ScmObj disasm);
-int scm_disasm_cnv_to_printable(ScmObj disasm);
 void scm_disasm_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_disasm_gc_finalize(ScmObj obj);
 int scm_disasm_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
@@ -130,6 +129,11 @@ int scm_asm_assemble_1inst_cv(ScmObj asmb, const ScmObj *inst, size_t n);
 int scm_asm_assemble_1inst(ScmObj asmb, ScmObj inst);
 int scm_asm_assemble(ScmObj asmb, ScmObj lst);
 ScmObj scm_asm_disassemble(ScmObj asmb);
+
+ScmObj scm_asm_unprintable_inst(ScmObj inst);
+ScmObj scm_asm_printable_inst(ScmObj inst);
+ScmObj scm_asm_unprintable(ScmObj lst);
+ScmObj scm_asm_printable(ScmObj lst);
 
 int scm_asm_mnemonic2opcode(const char *mne);
 const char *scm_asm_opcode2mnemonic(scm_opcode_t code);

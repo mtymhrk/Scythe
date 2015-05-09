@@ -47,7 +47,8 @@ test_compile(const char *expr, const char *asmbl)
 
   SCM_REFSTK_INIT_REG(&actual, &expected);
 
-  expected = scm_fcd_assemble(read_cstr(asmbl), SCM_OBJ_NULL);
+  expected = scm_fcd_assemble(scm_fcd_unprintable_assembler(read_cstr(asmbl)),
+                              SCM_OBJ_NULL);
   actual = compile_cstr(expr);
 
   cmp = false;

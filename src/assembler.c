@@ -820,56 +820,6 @@ scm_disasm_cnv_to_marshalable(ScmObj disasm)
   return 0;
 }
 
-int
-scm_disasm_cnv_to_printable(ScmObj disasm)
-{
-  ScmObj obj = SCM_OBJ_INIT;
-  ScmDisasmToken *tk;
-  int r;
-
-  SCM_REFSTK_INIT_REG(&disasm,
-                      &obj);
-
-  scm_assert_obj_type(disasm, &SCM_DISASSEMBLER_TYPE_INFO);
-
-  r = scm_disasm_cnv_to_marshalable(disasm);
-  if (r < 0) return -1;
-
-  if (SCM_DISASSEMBLER_TOKEN(disasm)->type != SCM_DISASM_TK_INST)
-    return 0;
-
-  tk = SCM_DISASSEMBLER_TOKEN(disasm);
-  switch (tk->inst.i.op) {
-  case SCM_OPCODE_IMMVAL:
-    if (scm_fcd_undef_object_p(tk->inst.i.obj.opd1)) {
-      tk->inst.fmt = SCM_OPFMT_NOOPD;
-      tk->inst.i.noopd.op = SCM_ASM_PI_UNDEF;
-    }
-    else if (scm_fcd_landmine_object_p(tk->inst.i.obj.opd1)) {
-      tk->inst.fmt = SCM_OPFMT_NOOPD;
-      tk->inst.i.noopd.op = SCM_ASM_PI_UNINIT;
-    }
-    else if (scm_fcd_qqtmpl_p(tk->inst.i.obj.opd1)) {
-      tk->inst.i.obj.op = SCM_ASM_PI_QQTEMPLATE;
-      obj = scm_fcd_qqtmpl_template(tk->inst.i.obj.opd1);
-      if (scm_obj_null_p(obj)) return -1;
-      SCM_WB_SETQ(disasm, tk->inst.i.obj.opd1, obj);
-    }
-    break;
-  case SCM_OPCODE_CLOSE:
-    if (scm_fcd_iseq_p(tk->inst.i.si_si_obj.opd3)) {
-      obj = scm_fcd_disassemble(tk->inst.i.si_si_obj.opd3);
-      if (scm_obj_null_p(obj)) return -1;
-      SCM_WB_SETQ(disasm, tk->inst.i.si_si_obj.opd3, obj);
-    }
-    break;
-  default:
-    break;
-  }
-
-  return 0;
-}
-
 void
 scm_disasm_gc_initialize(ScmObj obj, ScmObj mem)
 {
@@ -1652,9 +1602,6 @@ scm_asm_disassemble(ScmObj disasm)
 
   while ((tk = scm_disasm_token(disasm)) != NULL
          && tk->type != SCM_DISASM_TK_END) {
-    r = scm_disasm_cnv_to_printable(disasm);
-    if (r < 0) return SCM_OBJ_NULL;
-
     mne = scm_asm_mnemonic(tk->inst.i.op);
     if (scm_obj_null_p(mne)) return SCM_OBJ_NULL;
 
@@ -1686,6 +1633,284 @@ scm_asm_disassemble(ScmObj disasm)
   if (tk == NULL) return SCM_OBJ_NULL;
 
   return scm_fcd_cdr(list);
+}
+
+static ScmObj
+scm_asm_unprintable_inst_undef(ScmObj inst)
+{
+  ScmObj op = SCM_OBJ_INIT;
+
+  op = scm_fcd_make_symbol_from_cstr(scm_asm_opcode2mnemonic(SCM_OPCODE_IMMVAL),
+                                     SCM_ENC_SRC);
+  if (scm_obj_null_p(op)) return SCM_OBJ_NULL;
+
+  return scm_fcd_list(2, op, SCM_UNDEF_OBJ);
+}
+
+static ScmObj
+scm_asm_unprintable_inst_uninit(ScmObj inst)
+{
+  ScmObj op = SCM_OBJ_INIT;
+
+  op = scm_fcd_make_symbol_from_cstr(scm_asm_opcode2mnemonic(SCM_OPCODE_IMMVAL),
+                                     SCM_ENC_SRC);
+  if (scm_obj_null_p(op)) return SCM_OBJ_NULL;
+
+  return scm_fcd_list(2, op, SCM_UNINIT_OBJ);
+}
+
+static ScmObj
+scm_asm_unprintable_inst_qqtemplate(ScmObj inst)
+{
+  ScmObj op = SCM_OBJ_INIT, qq = SCM_OBJ_NULL;
+
+  SCM_REFSTK_INIT_REG(&inst,
+                      &op, &qq);
+
+  op = scm_fcd_make_symbol_from_cstr(scm_asm_opcode2mnemonic(SCM_OPCODE_IMMVAL),
+                                     SCM_ENC_SRC);
+  if (scm_obj_null_p(op)) return SCM_OBJ_NULL;
+
+  qq = scm_fcd_list_ref(inst, 1);
+  if (scm_obj_null_p(qq)) return SCM_OBJ_NULL;
+
+  if (!scm_fcd_qqtmpl_p(qq)) {
+    qq = scm_fcd_compile_qq_template(qq);
+    if (scm_obj_null_p(qq)) return SCM_OBJ_NULL;
+  }
+
+  return scm_fcd_list(2, op, qq);
+}
+
+static ScmObj
+scm_asm_unprintable_inst_close(ScmObj inst)
+{
+  ScmObj new = SCM_OBJ_INIT, body = SCM_OBJ_NULL;
+  int r;
+
+  SCM_REFSTK_INIT_REG(&inst,
+                      &new, &body);
+
+  body = scm_fcd_list_ref(inst, 3);
+  if (scm_obj_null_p(body)) return SCM_OBJ_NULL;
+
+  if (scm_fcd_assembler_p(body)) {
+    body = scm_asm_iseq(body);
+  }
+  else if (!scm_fcd_iseq_p(body)) {
+    body = scm_asm_unprintable(body);
+    if (scm_obj_null_p(body)) return SCM_OBJ_NULL;
+
+    body = scm_fcd_assemble(body, SCM_OBJ_NULL);
+    if (scm_obj_null_p(body)) return SCM_OBJ_NULL;
+  }
+  else {
+    return inst;
+  }
+
+  new = scm_fcd_list_copy(inst);
+  if (scm_obj_null_p(new)) return SCM_OBJ_NULL;
+
+  r = scm_fcd_list_set_i(new, 3, body);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return new;
+}
+
+static ScmObj
+scm_asm_printable_inst_immval(ScmObj inst)
+{
+  ScmObj val = SCM_OBJ_INIT, op = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&inst,
+                      &val, &op);
+
+  val = scm_fcd_list_ref(inst, 1);
+  if (scm_obj_null_p(val)) return SCM_OBJ_NULL;
+
+  if (scm_fcd_undef_object_p(val)) {
+    op =
+      scm_fcd_make_symbol_from_cstr(scm_asm_opcode2mnemonic(SCM_ASM_PI_UNDEF),
+                                    SCM_ENC_SRC);
+    if (scm_obj_null_p(op)) return SCM_OBJ_NULL;
+    return scm_fcd_list(1, op);
+  }
+  else if (scm_fcd_landmine_object_p(val)) {
+    op =
+      scm_fcd_make_symbol_from_cstr(scm_asm_opcode2mnemonic(SCM_ASM_PI_UNINIT),
+                                    SCM_ENC_SRC);
+    if (scm_obj_null_p(op)) return SCM_OBJ_NULL;
+    return scm_fcd_list(1, op);
+  }
+  else if (scm_fcd_qqtmpl_p(val)) {
+    op =
+      scm_fcd_make_symbol_from_cstr(scm_asm_opcode2mnemonic(SCM_ASM_PI_QQTEMPLATE),
+                                    SCM_ENC_SRC);
+    if (scm_obj_null_p(op)) return SCM_OBJ_NULL;
+
+    val = scm_fcd_qqtmpl_template(val);
+    if (scm_obj_null_p(val)) return SCM_OBJ_NULL;
+
+    return scm_fcd_list(2, op, val);
+  }
+  else {
+    return inst;
+  }
+}
+
+static ScmObj
+scm_asm_printable_inst_close(ScmObj inst)
+{
+  ScmObj body = SCM_OBJ_INIT, printable = SCM_OBJ_INIT;
+  int r;
+
+  SCM_REFSTK_INIT_REG(&inst,
+                      &body, &printable);
+
+  body = scm_fcd_list_ref(inst, 3);
+  if (scm_obj_null_p(body)) return SCM_OBJ_NULL;
+
+  if (scm_fcd_iseq_p(body)) {
+    body = scm_fcd_disassemble(body);
+    if (scm_obj_null_p(body)) return SCM_OBJ_NULL;
+
+    body = scm_asm_printable(body);
+    if (scm_obj_null_p(body)) return SCM_OBJ_NULL;
+  }
+
+  body = scm_asm_printable(body);
+  if (scm_obj_null_p(body)) return SCM_OBJ_NULL;
+
+  printable = scm_fcd_list_copy(inst);
+  if (scm_obj_null_p(printable)) return SCM_OBJ_NULL;
+
+  r = scm_fcd_list_set_i(printable, 3, body);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return printable;
+}
+
+static ScmObj
+scm_asm_printable_inst_global_var(ScmObj inst)
+{
+  ScmObj module = SCM_OBJ_INIT, var = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&inst,
+                      &module, &var);
+
+  var = scm_fcd_list_ref(inst, 1);
+  if (scm_obj_null_p(var)) return SCM_OBJ_NULL;
+
+  module = scm_fcd_list_ref(inst, 2);
+  if (scm_obj_null_p(module)) return SCM_OBJ_NULL;
+
+  if (scm_fcd_gloc_p(var))
+    var = scm_fcd_gloc_symbol(var);
+
+  if (scm_fcd_module_p(module))
+    module = scm_fcd_module_name(module);
+
+  return scm_fcd_list(3, scm_fcd_car(inst), var, module);
+}
+
+struct scm_asm_cnv {
+  const char *op;
+  ScmObj (*func)(ScmObj);
+};
+
+static ScmObj
+scm_asm_convert_inst(ScmObj inst, const struct scm_asm_cnv *cnv)
+{
+  ScmObj op = SCM_OBJ_INIT;
+  bool cmp;
+  int r;
+
+  SCM_REFSTK_INIT_REG(&inst,
+                      &op);
+
+  scm_assert(scm_fcd_pair_p(inst));
+
+  op = scm_fcd_car(inst);
+  for (size_t i = 0; cnv[i].op != NULL; i++) {
+    r = scm_fcd_symbol_eq_cstr(op, cnv[i].op, SCM_ENC_SRC, &cmp);
+    if (r < 0) return SCM_OBJ_NULL;
+
+    if (cmp)
+      return cnv[i].func(inst);
+  }
+
+  return inst;
+}
+
+ScmObj
+scm_asm_unprintable_inst(ScmObj inst)
+{
+  static const struct scm_asm_cnv tbl[] = {
+    { .op = "undef",      .func = scm_asm_unprintable_inst_undef },
+    { .op = "uninit",     .func = scm_asm_unprintable_inst_uninit },
+    { .op = "qqtemplate", .func = scm_asm_unprintable_inst_qqtemplate },
+    { .op = "close",      .func = scm_asm_unprintable_inst_close },
+    { .op = NULL,         .func = NULL },
+  };
+
+  scm_assert(scm_fcd_pair_p(inst));
+  return scm_asm_convert_inst(inst, tbl);
+}
+
+ScmObj
+scm_asm_printable_inst(ScmObj inst)
+{
+  static const struct scm_asm_cnv tbl[] = {
+    { .op = "immval", .func = scm_asm_printable_inst_immval, },
+    { .op = "gdef",   .func = scm_asm_printable_inst_global_var },
+    { .op = "gref",   .func = scm_asm_printable_inst_global_var },
+    { .op = "gset",   .func = scm_asm_printable_inst_global_var },
+    { .op = "close",  .func = scm_asm_printable_inst_close },
+    { .op = NULL,     .func = NULL },
+  };
+
+  scm_assert(scm_fcd_pair_p(inst));
+  return scm_asm_convert_inst(inst, tbl);
+}
+
+ScmObj
+scm_asm_unprintable(ScmObj lst)
+{
+  ScmObj inst = SCM_OBJ_INIT, rest = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&lst,
+                      &inst);
+
+  if (!scm_fcd_pair_p(lst))
+    return lst;
+
+  inst = scm_asm_unprintable_inst(scm_fcd_car(lst));
+  if (scm_obj_null_p(inst)) return SCM_OBJ_NULL;
+
+  rest = scm_asm_unprintable(scm_fcd_cdr(lst));
+  if (scm_obj_null_p(rest)) return SCM_OBJ_NULL;
+
+  return scm_fcd_cons(inst, rest);
+}
+
+ScmObj
+scm_asm_printable(ScmObj lst)
+{
+  ScmObj inst = SCM_OBJ_INIT, rest = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&lst,
+                      &inst);
+
+  if (!scm_fcd_pair_p(lst))
+    return lst;
+
+  inst = scm_asm_printable_inst(scm_fcd_car(lst));
+  if (scm_obj_null_p(inst)) return SCM_OBJ_NULL;
+
+  rest = scm_asm_printable(scm_fcd_cdr(lst));
+  if (scm_obj_null_p(rest)) return SCM_OBJ_NULL;
+
+  return scm_fcd_cons(inst, rest);
 }
 
 int

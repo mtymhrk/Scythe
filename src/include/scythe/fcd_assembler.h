@@ -49,7 +49,6 @@ const ScmDisasmToken *scm_fcd_disassembler_token(ScmObj disasm);
 int scm_fcd_disassembler_next(ScmObj disasm);
 void scm_fcd_disassembler_rewind(ScmObj disasm);
 int scm_fcd_disassembler_cnv_to_marshalable(ScmObj disasm);
-int scm_fcd_disassembler_cnv_to_printable(ScmObj disasm);
 
 
 /**************************************************************************/
@@ -60,6 +59,11 @@ ScmObj scm_fcd_assemble_1inst_cv(const ScmObj *inst, size_t n, ScmObj acc);
 ScmObj scm_fcd_assemble_1inst(ScmObj inst, ScmObj acc);
 ScmObj scm_fcd_assemble(ScmObj lst, ScmObj acc);
 ScmObj scm_fcd_disassemble(ScmObj obj);
+
+ScmObj scm_fcd_unprintable_assembler_1inst(ScmObj inst);
+ScmObj scm_fcd_printable_assembler_1inst(ScmObj inst);
+ScmObj scm_fcd_unprintable_assembler(ScmObj lst);
+ScmObj scm_fcd_printable_assembler(ScmObj lst);
 
 void scm_fcd_update_vminst_opd_iof(ScmObj iseq, scm_byte_t *ip, int iof);
 int scm_fcd_update_vminst_opd_obj_obj_1(ScmObj iseq,
