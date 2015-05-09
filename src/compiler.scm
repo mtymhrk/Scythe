@@ -105,11 +105,24 @@
 (define (env-outmost? env)
   (module? env))
 
-(define (env-cons vars varg env)
+(define (env-extend vars varg env)
   (let* ((vars (if (vector? vars) vars (list->vector vars)))
          (len (vector-length vars))
          (assigned (make-vector len #f)))
-    (cons (vector vars assigned varg) env)))
+    (cons (vector 'variable vars assigned varg) env)))
+
+(define (env-extend-syntax keys syxs env)
+  (let* ((keys (if (vector? keys) keys (list->vector keys)))
+         (syxs (cond ((vector? syxs) syxs)
+                     ((pair? syxs) (list->vector syxs))
+                     (else (make-vector (vector-length keys) #f)))))
+    (cons (vector 'keyword keys syxs) env)))
+
+(define (env-variable-layer? env)
+  (eq? (vector-ref (car env) 0) 'variable))
+
+(define (env-keyword-layer? env)
+  (eq? (vector-ref (car env) 0) 'keyword))
 
 (define (env-outer env)
   (if (env-outmost? env) env (cdr env)))
@@ -119,42 +132,84 @@
       env
       (env-module (env-outer env))))
 
-(define (variable-length-argument? env layer)
-  (if (<= layer 0)
-      (vector-ref (car env) 2)
-      (variable-length-argument? (env-outer env) (- layer 1))))
+(define (env-assigned-variable? env idx)
+  (unless (env-variable-layer? env)
+    (error "failed to access compiler environment"))
+  (vector-ref (vector-ref (car env) 2) idx))
 
-(define (assigned-variable? env idx layer)
-  (if (<= layer 0)
-      (vector-ref (vector-ref (car env) 1) idx)
-      (assigned-variable? (env-outer env) idx (- layer 1))))
+(define (env-set-assigned! env idx)
+  (unless (env-variable-layer? env)
+    (error "failed to access compiler environment"))
+  (vector-set! (vector-ref (car env) 2) idx #t))
 
-(define (env-find-ident-internal env ident limit layer)
+(define (env-syntax env idx)
+  (unless (env-keyword-layer? env)
+    (error "failed to access compiler environment"))
+  (let ((syx (vector-ref (vector-ref (car env) 2) idx)))
+    (unless syx
+      (error "reference to uninitialized keyword"))
+    syx))
+
+(define (env-set-syntax! env idx syx)
+  (unless (env-keyword-layer? env)
+    (error "failed to access compiler envrionment"))
+  (vector-set! (vector-ref (car env) 2) idx syx))
+
+(define (env-var-idx env var)
+  (let* ((vars (vector-ref (car env) 1))
+         (len (vector-length vars)))
+    (let rec ((idx 0))
+      (if (>= idx len)
+          #f
+          (if (eq? var (vector-ref vars idx))
+              idx
+              (rec (+ idx 1)))))))
+
+(define (env-search-internal env ident limit layer vlayer find-proc)
   (if (or (env-outmost? env) (eq? env limit))
-      (values ident #f layer env)
-      (let* ((vars (vector-ref (car env) 0))
-             (len (vector-length vars)))
-        (let rec ((idx 0))
-          (if (>= idx len)
-              (env-find-ident-internal (env-outer env) ident limit (+ layer 1))
-              (if (eq? ident (vector-ref vars idx))
-                  (values ident idx layer env)
-                  (rec (+ idx 1))))))))
+      (values ident #f layer vlayer env)
+      (let ((idx (find-proc env ident)))
+        (if idx
+            (values ident idx layer vlayer env)
+            (env-search-internal (env-outer env) ident limit
+                                 (+ layer 1)
+                                 (if (env-variable-layer? env)
+                                     (+ vlayer 1)
+                                     vlayer)
+                                 find-proc)))))
 
-(define (env-find-ident env ident)
+(define (env-search env ident find-proc)
   (let ((limit (if (identifier? ident) (identifier-env ident) #f)))
-    (let-values (((s i l e) (env-find-ident-internal env ident limit 0)))
+    (let-values (((v i l y e) (env-search-internal env ident limit
+                                                   0 0 find-proc)))
       (if (and (identifier? ident) (eq? e limit))
-          (env-find-ident-internal limit (identifier-name s) #f l)
-          (values s i l e)))))
+          (env-search-internal limit (identifier-name v) #f l y find-proc)
+          (values v i l y e)))))
 
-(define (resolve-reference env ident assigned rdepth)
-  (let-values (((s i l e) (env-find-ident env ident)))
+(define (env-rvr-find-proc env ident)
+  (if (env-keyword-layer? env)
+      #f
+      (env-var-idx env ident)))
+
+(define (env-resolve-variable-reference! env ident assigned rdepth)
+  (let-values (((v i l y e) (env-search env ident env-rvr-find-proc)))
     (unless (env-outmost? e)
-      (rdepth-set! rdepth l)
-      (when assigned
-        (vector-set! (vector-ref (car e) 1) i assigned)))
-    (values s i l e)))
+      (when rdepth (rdepth-set! rdepth y))
+      (when assigned (env-set-assigned! e i)))
+    (values v i y e)))
+
+(define (env-find-keyword env ident)
+  (let-values (((v i l y e) (env-search env ident env-var-idx)))
+    (cond ((env-outmost? e)
+           (global-syntax-ref e v #f))
+          ((env-keyword-layer? e)
+           (env-syntax e i))
+          (else
+           #f))))
+
+(define (env-find-identifier env ident)
+  (let-values (((v i l y e) (env-search env ident env-var-idx)))
+    (values v i l e)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (define (generate-label asmb)
@@ -634,10 +689,10 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define (p1-syntax-handler-reference cmpl exp env toplevel-p rdepth)
-  (let-values (((s i l e) (resolve-reference env exp #f rdepth)))
+  (let-values (((v i l e) (env-resolve-variable-reference! env exp #f rdepth)))
     (if (env-outmost? e)
-        (vector p2-syntax-id-gref s e)
-        (vector p2-syntax-id-lref s i l))))
+        (vector p2-syntax-id-gref v e)
+        (vector p2-syntax-id-lref v i l))))
 
 (define (p1-syntax-handler-self-eval cmpl exp env toplevel-p rdepth)
   (vector p2-syntax-id-self exp))
@@ -678,11 +733,8 @@
         ((pair? exp)
          (let ((key (car exp)))
            (if (or (symbol? key) (identifier? key))
-               (let-values (((s i l e) (env-find-ident env key)))
-                 (if (env-outmost? e)
-                     (let ((syx (global-syntax-ref e s #f)))
-                       (if syx syx p1-compiler-syntax-application))
-                     p1-compiler-syntax-application))
+               (let ((syx (env-find-keyword env key)))
+                 (if syx syx p1-compiler-syntax-application))
                p1-compiler-syntax-application)))
         (else
          p1-compiler-syntax-self-eval)))
@@ -730,10 +782,10 @@
   (let-values (((var val)
                 (p1-decons-definition cmpl
                                       (p1-normalize-definition cmpl exp))))
-    (let-values (((s i l e) (env-find-ident env var)))
+    (let-values (((v i l e) (env-resolve-variable-reference! env var #f #f)))
       (unless (env-outmost? e)
         (compile-error cmpl "malformed define"))
-      (vector p2-syntax-id-gdef s e
+      (vector p2-syntax-id-gdef v e
               (p1-compile-exp cmpl val env toplevel-p rdepth)))))
 
 (define (p1-syntax-handler-begin cmpl exp env toplevel-p rdepth)
@@ -786,7 +838,7 @@
     (let* ((vv (list->vector vars))
            (env (if (null? vars)
                     env
-                    (env-cons vv #f env)))
+                    (env-extend vv #f env)))
            (vi (list->vector (map
                               (lambda (e)
                                 (p1-compile-exp cmpl e env toplevel-p rdepth))
@@ -840,26 +892,26 @@
   (let-values (((params vparam) (p1-decons-formals cmpl (car (cdr exp)))))
     (values params vparam (cdr (cdr exp)))))
 
-(define (p1-insert-assign-flg params env layer)
+(define (p1-insert-assign-flg params env)
   (let rec ((idx 0) (par params))
     (if (null? par)
         '()
         (cons (cons (car par)
-                    (assigned-variable? env idx layer))
+                    (env-assigned-variable? env idx))
               (rec (+ idx 1) (cdr par))))))
 
 (define (p1-cmpl-lambda cmpl params vparam body env toplevel-p rdepth)
   (rdepth-expand! rdepth)
   (let* ((env (if (null? params)
                   env
-                  (env-cons (list->vector params) vparam env)))
+                  (env-extend (list->vector params) vparam env)))
          (bo (p1-cmpl-body cmpl body env #f rdepth)))
     (unless (null? params)
       (rdepth-add! rdepth -1))
     (let ((rd (rdepth-ref rdepth)))
       (rdepth-contract! rdepth)
       (vector p2-syntax-id-lambda
-              (list->vector (p1-insert-assign-flg params env 0))
+              (list->vector (p1-insert-assign-flg params env))
               vparam
               (if (>= rd 0) (+ rd 1) 0)
               bo))))
@@ -881,11 +933,11 @@
 
 (define (p1-syntax-handler-assignment cmpl exp env toplevel-p rdepth)
   (let-values (((var val) (p1-decons-assignment cmpl exp)))
-    (let-values (((s i l e) (resolve-reference env var #t rdepth)))
+    (let-values (((v i l e) (env-resolve-variable-reference! env var #t rdepth)))
       (let ((x (p1-compile-exp cmpl val env toplevel-p rdepth)))
         (if (env-outmost? e)
-            (vector p2-syntax-id-gset s e x)
-            (vector p2-syntax-id-lset s i l x))))))
+            (vector p2-syntax-id-gset v e x)
+            (vector p2-syntax-id-lset v i l x))))))
 
 (define (p1-decons-if cmpl exp)
   (unless (list? exp)
@@ -1097,7 +1149,7 @@
 ;;;        (<name> <v> ...)))
 
 (define (p1-cmpl-named-let-body cmpl name vars body env toplevel-p rdepth)
-  (let ((new-env (env-cons (vector name) #f env)))
+  (let ((new-env (env-extend (vector name) #f env)))
     (let ((lmd (p1-cmpl-lambda cmpl vars #f body new-env #f rdepth))
           (cal (cons (vector p2-syntax-id-lref name 0 0)
                      (let rec ((idx 0) (v vars))
@@ -1107,7 +1159,7 @@
                                  (rec (+ idx 1) (cdr v))))))))
       (rdepth-add! rdepth -1)
       (vector p2-syntax-id-letrec*
-              (vector (cons name (assigned-variable? new-env 0 0)))
+              (vector (cons name (env-assigned-variable? new-env 0)))
               (vector lmd)
               (list->vector (cons p2-syntax-id-call cal))))))
 
@@ -1115,7 +1167,7 @@
   (let-values (((name vars inits body) (p1-decons-let cmpl exp)))
     (let* ((new-env (if (null? vars)
                         env
-                        (env-cons (list->vector vars) #f env)))
+                        (env-extend (list->vector vars) #f env)))
            (cb (if name
                    (p1-cmpl-named-let-body cmpl name vars body new-env
                                            #f rdepth)
@@ -1123,7 +1175,7 @@
       (unless (null? vars)
         (rdepth-add! rdepth -1))
       (vector p2-syntax-id-let
-              (list->vector (p1-insert-assign-flg vars new-env 0))
+              (list->vector (p1-insert-assign-flg vars new-env))
               (list->vector (map (lambda (e)
                                    (p1-compile-exp cmpl e env #f rdepth))
                                  inits))
@@ -1136,11 +1188,11 @@
     (let rec ((v vars) (i inits) (e env))
       (if (null? v)
           (p1-cmpl-body cmpl body e #f rdepth)
-          (let* ((new-env (env-cons (vector (car v)) #f e))
+          (let* ((new-env (env-extend (vector (car v)) #f e))
                  (b (rec (cdr v) (cdr i) new-env)))
             (rdepth-add! rdepth -1)
             (vector p2-syntax-id-let
-                    (vector (cons (car v) (assigned-variable? new-env 0 0)))
+                    (vector (cons (car v) (env-assigned-variable? new-env 0)))
                     (vector (p1-compile-exp cmpl (car i) e #f rdepth))
                     b))))))
 
@@ -1150,7 +1202,7 @@
       (error "malformed letrec" exp))
     (let* ((new-env (if (null? vars)
                         env
-                        (env-cons (list->vector vars) #f env)))
+                        (env-extend (list->vector vars) #f env)))
            (cb (p1-cmpl-body cmpl body new-env #f rdepth))
            (ci (list->vector (map (lambda (e)
                                     (p1-compile-exp cmpl e new-env #f rdepth))
@@ -1158,7 +1210,7 @@
       (unless (null? vars)
         (rdepth-add! rdepth -1))
       (vector p2-syntax-id-letrec
-              (list->vector (p1-insert-assign-flg vars new-env 0))
+              (list->vector (p1-insert-assign-flg vars new-env))
               ci
               cb))))
 
@@ -1168,7 +1220,7 @@
       (error "malformed letrec*" exp))
     (let* ((new-env (if (null? vars)
                         env
-                        (env-cons (list->vector vars) #f env)))
+                        (env-extend (list->vector vars) #f env)))
            (cb (p1-cmpl-body cmpl body new-env #f rdepth))
            (ci (list->vector (map (lambda (e)
                                     (p1-compile-exp cmpl e new-env #f rdepth))
@@ -1176,7 +1228,7 @@
       (unless (null? vars)
         (rdepth-add! rdepth -1))
       (vector p2-syntax-id-letrec*
-              (list->vector (p1-insert-assign-flg vars new-env 0))
+              (list->vector (p1-insert-assign-flg vars new-env))
               ci
               cb))))
 
@@ -1235,7 +1287,7 @@
   (let-values (((vars inits steps test exps cmds) (p1-decons-do cmpl exp)))
     (let* ((new-env (if (null? vars)
                         env
-                        (env-cons (list->vector vars) #f env)))
+                        (env-extend (list->vector vars) #f env)))
            (cmpl/ne (lambda (e)
                       (p1-compile-exp cmpl e new-env #f rdepth))))
       (let ((ce (list->vector (cons p2-syntax-id-begin (map cmpl/ne exps))))
@@ -1248,7 +1300,7 @@
         (unless (null? vars)
           (rdepth-add! rdepth -1))
         (vector p2-syntax-id-do
-                (list->vector (p1-insert-assign-flg vars new-env 0))
+                (list->vector (p1-insert-assign-flg vars new-env))
                 (list->vector (map (lambda (e)
                                      (p1-compile-exp cmpl e env #f rdepth))
                                    inits))
@@ -1297,7 +1349,7 @@
            (all-vars-vec (list->vector all-vars))
            (new-env (if (null? all-vars)
                         env
-                        (env-cons all-vars-vec #f env)))
+                        (env-extend all-vars-vec #f env)))
            (cb (p1-cmpl-body cmpl body new-env #f rdepth))
            (mv (let ((cnt 0))
                  (map (lambda (f)
@@ -1305,8 +1357,7 @@
                          (let rec ((vars (car f)))
                            (if (null? vars)
                                '()
-                               (let ((flg (assigned-variable? new-env
-                                                              cnt 0)))
+                               (let ((flg (env-assigned-variable? new-env cnt)))
                                  (set! cnt (+ cnt 1))
                                  (cons (cons (car vars) flg)
                                        (rec (cdr vars))))))))
@@ -1334,7 +1385,7 @@
             (let* ((vars-vec (list->vector vars))
                    (new-env (if (null? vars)
                                 e
-                                (env-cons vars-vec vv e)))
+                                (env-extend vars-vec vv e)))
                    (b (rec (cdr fo) (cdr in) new-env)))
               (unless (null? vars)
                 (rdepth-add! rdepth -1))
@@ -1345,7 +1396,7 @@
                           (if (null? v)
                               '()
                               (cons (cons (car v)
-                                          (assigned-variable? new-env idx 0))
+                                          (env-assigned-variable? new-env idx))
                                     (rec (+ idx 1) (cdr v)))))))
                       (vector vv)
                       (vector (p1-compile-exp cmpl (car in) e #f rdepth))
@@ -1493,11 +1544,11 @@
   (when (not toplevel-p)
     (compile-error cmpl "syntax definition can apper in the toplevel or beginning of a <body>"))
   (let-values (((key trans) (p1-decons-syntax-definition cmpl exp)))
-    (let-values (((s i l e) (env-find-ident env key)))
+    (let-values (((v i l e) (env-find-identifier env key)))
       (unless (env-outmost? e)
         (compile-error cmpl "malformed define-syntax"))
       (let ((mac (make-macro (eval trans (compiler-base-env cmpl)) env)))
-        (global-syntax-bind e s mac #f)))
+        (global-syntax-bind e v mac #f)))
     (vector p2-syntax-id-begin)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1519,9 +1570,9 @@
 
 (define (er-macro-make-compare-proc use-env)
   (lambda (x y)
-    (let-values (((xs xi xl xe) (env-find-ident use-env x))
-                 ((ys yi yl ye) (env-find-ident use-env y)))
-      (and (eq? xs ys)
+    (let-values (((xv xi xl xe) (env-find-identifier use-env x))
+                 ((yv yi yl ye) (env-find-identifier use-env y)))
+      (and (eq? xv yv)
            (or (eq? xe ye)
                (and (env-outmost? xe) (env-outmost? ye)))))))
 
