@@ -140,28 +140,41 @@ scm_fcd_module_name(ScmObj module)
   return scm_module_name(module);
 }
 
+static ScmObj
+get_module(ScmObj spec)
+{
+  ScmObj mod = SCM_OBJ_INIT;
+  int r;
+
+  SCM_REFSTK_INIT_REG(&spec,
+                      &mod);
+
+  scm_assert(scm_fcd_module_specifier_p(spec));
+
+  if (scm_fcd_module_p(spec))
+    return spec;
+
+  r = scm_fcd_find_module(spec, SCM_CSETTER_L(mod));
+  if (r < 0) return SCM_OBJ_NULL;
+
+  if (scm_obj_null_p(mod)) {
+    scm_fcd_error("failed to find loaded module: no such a module", 1, spec);
+    return SCM_OBJ_NULL;
+  }
+
+  return mod;
+}
+
 int
 scm_fcd_import(ScmObj module, ScmObj imported, bool restrictive)
 {
-  ScmObj imp = SCM_OBJ_INIT;
-
-  SCM_REFSTK_INIT_REG(&module, &imported,
-                      &imp);
+  SCM_REFSTK_INIT_REG(&module, &imported);
 
   scm_assert(scm_fcd_module_p(module));
   scm_assert(scm_fcd_module_specifier_p(imported));
 
-  if (!scm_fcd_module_p(imported)) {
-    int r = scm_fcd_find_module(imported, SCM_CSETTER_L(imp));
-    if (r < 0) return -1;
-
-    if (scm_obj_null_p(imp)) {
-      scm_fcd_error("failed to import a module: not found", 1, imported);
-      return -1;
-    }
-
-    imported = imp;
-  }
+  imported = get_module(imported);
+  if (scm_obj_null_p(imported)) return -1;
 
   return scm_module_import(module, imported, restrictive);
 }
@@ -189,27 +202,14 @@ scm_fcd_find_gloc(ScmObj module, ScmObj sym, scm_csetter_t *gloc)
 int
 scm_fcd_define_global_var(ScmObj module, ScmObj sym, ScmObj val, bool export)
 {
-  ScmObj mod = SCM_OBJ_INIT;
-
-  SCM_REFSTK_INIT_REG(&module, &sym, &val,
-                      &mod);
+  SCM_REFSTK_INIT_REG(&module, &sym, &val);
 
   scm_assert(scm_fcd_module_specifier_p(module));
   scm_assert(scm_fcd_symbol_p(sym));
   scm_assert(scm_obj_not_null_p(val));
 
-  if (!scm_fcd_module_p(module)) {
-    int r = scm_fcd_find_module(module, SCM_CSETTER_L(mod));
-    if (r < 0) return -1;
-
-    if (scm_obj_null_p(mod)) {
-      scm_fcd_error("failed to define global variable: no such a module",
-                     1, module);
-      return -1;
-    }
-
-    module = mod;
-  }
+  module = get_module(module);
+  if (scm_obj_null_p(module)) return -1;
 
   return scm_module_define_eval(module, sym, val, export);
 }
@@ -217,26 +217,14 @@ scm_fcd_define_global_var(ScmObj module, ScmObj sym, ScmObj val, bool export)
 int
 scm_fcd_define_global_syx(ScmObj module, ScmObj sym, ScmObj syx, bool export)
 {
-  ScmObj mod = SCM_OBJ_INIT;
-
   SCM_REFSTK_INIT_REG(&module, &sym, &syx);
 
   scm_assert(scm_fcd_module_specifier_p(module));
   scm_assert(scm_fcd_symbol_p(sym));
   scm_assert(scm_fcd_syntax_p(syx));
 
-  if (!scm_fcd_module_p(module)) {
-    int r = scm_fcd_find_module(module, SCM_CSETTER_L(mod));
-    if (r < 0) return -1;
-
-    if (scm_obj_null_p(mod)) {
-      scm_fcd_error("failed to define global syntax: no such a module",
-                     1, module);
-      return -1;
-    }
-
-    module = mod;
-  }
+  module = get_module(module);
+  if (scm_obj_null_p(module)) return -1;
 
   return scm_module_define_cmpl(module, sym, syx, export);
 }
@@ -244,31 +232,20 @@ scm_fcd_define_global_syx(ScmObj module, ScmObj sym, ScmObj syx, bool export)
 int
 scm_fcd_global_var_ref(ScmObj module, ScmObj sym, scm_csetter_t *val)
 {
-  ScmObj mod = SCM_OBJ_INIT, gloc = SCM_OBJ_INIT, v = SCM_OBJ_INIT;
+  ScmObj gloc = SCM_OBJ_INIT, v = SCM_OBJ_INIT;
   int rslt;
 
   SCM_REFSTK_INIT_REG(&module, &sym,
-                      &mod, &gloc, &v);
+                      &gloc, &v);
 
   scm_assert(scm_fcd_module_specifier_p(module));
   scm_assert(scm_fcd_symbol_p(sym));
 
-  if (!scm_fcd_module_p(module)) {
-    int r = scm_fcd_find_module(module, SCM_CSETTER_L(mod));
-    if (r < 0) return -1;
-
-    if (scm_obj_null_p(mod)) {
-      scm_fcd_error("failed to get a global variable value: "
-                    "no such a module", 1, module);
-      return -1;
-    }
-
-    module = mod;
-  }
+  module = get_module(module);
+  if (scm_obj_null_p(module)) return -1;
 
   rslt = scm_module_find_sym_eval(module, sym, SCM_CSETTER_L(gloc));
   if (rslt < 0) return -1;
-
 
   if (scm_obj_not_null_p(gloc)) {
     v = scm_gloc_value(gloc);
@@ -288,28 +265,18 @@ scm_fcd_global_var_ref(ScmObj module, ScmObj sym, scm_csetter_t *val)
 int
 scm_fcd_global_syx_ref(ScmObj module, ScmObj sym, scm_csetter_t *syx)
 {
-  ScmObj mod = SCM_OBJ_INIT, gloc = SCM_OBJ_INIT, v = SCM_OBJ_INIT;
+  ScmObj gloc = SCM_OBJ_INIT, v = SCM_OBJ_INIT;
   int rslt;
 
   SCM_REFSTK_INIT_REG(&module, &sym,
-                      &mod, &gloc, &v);
+                      &gloc, &v);
 
 
   scm_assert(scm_fcd_module_specifier_p(module));
   scm_assert(scm_fcd_symbol_p(sym));
 
-  if (!scm_fcd_module_p(module)) {
-    int r = scm_fcd_find_module(module, SCM_CSETTER_L(mod));
-    if (r < 0) return -1;
-
-    if (scm_obj_null_p(mod)) {
-      scm_fcd_error("failed to get a global syntax: no such a module",
-                    1, module);
-      return -1;
-    }
-
-    module = mod;
-  }
+  module = get_module(module);
+  if (scm_obj_null_p(module)) return -1;
 
   rslt = scm_module_find_sym_cmpl(module, sym, SCM_CSETTER_L(gloc));
   if (rslt < 0) return -1;
@@ -327,3 +294,28 @@ scm_fcd_global_syx_ref(ScmObj module, ScmObj sym, scm_csetter_t *syx)
 
   return 0;
 }
+
+int
+scm_fcd_export_global_var(ScmObj module, ScmObj sym)
+{
+  scm_assert(scm_fcd_module_specifier_p(module));
+  scm_assert(scm_fcd_symbol_p(sym));
+
+  module = get_module(module);
+  if (scm_obj_null_p(module)) return -1;
+
+  return scm_module_export_eval(module, sym);
+}
+
+int
+scm_fcd_export_global_syx(ScmObj module, ScmObj sym)
+{
+  scm_assert(scm_fcd_module_specifier_p(module));
+  scm_assert(scm_fcd_symbol_p(sym));
+
+  module = get_module(module);
+  if (scm_obj_null_p(module)) return -1;
+
+  return scm_module_export_cmpl(module, sym);
+}
+

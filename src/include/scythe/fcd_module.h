@@ -28,6 +28,8 @@ int scm_fcd_define_global_syx(ScmObj module, ScmObj sym, ScmObj syx,
                               bool export);
 int scm_fcd_global_var_ref(ScmObj module, ScmObj sym, scm_csetter_t *val);
 int scm_fcd_global_syx_ref(ScmObj module, ScmObj sym, scm_csetter_t *syx);
+int scm_fcd_export_global_var(ScmObj module, ScmObj sym);
+int scm_fcd_export_global_syx(ScmObj module, ScmObj sym);
 
 
 #endif /* INCLUDE_FCD_MODULE_H__ */
