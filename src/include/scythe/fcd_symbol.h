@@ -22,5 +22,6 @@ ScmObj scm_fcd_make_symbol_from_bin(const void *data, size_t size,
 size_t scm_fcd_symbol_bytesize(ScmObj sym);
 char *scm_fcd_symbol_to_cstr(ScmObj sym, char *cstr, size_t size);
 size_t scm_fcd_symbol_hash_value(ScmObj sym);
+int scm_fcd_symbol_eq_cstr(ScmObj sym, const char *str, ScmEncoding *enc, bool *cmp);
 
 #endif /* INCLUDE_FCD_SYMBOL_H__ */

@@ -204,3 +204,19 @@ scm_fcd_symbol_hash_value(ScmObj sym)
   return scm_symbol_hash_value(sym);
 }
 
+int
+scm_fcd_symbol_eq_cstr(ScmObj sym, const char *str, ScmEncoding *enc, bool *cmp)
+{
+  ScmObj x = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&sym,
+                      &x);
+
+  x = scm_fcd_make_symbol_from_cstr(str, enc);
+  if (scm_obj_null_p(x)) return -1;
+
+  if (cmp != NULL)
+    *cmp = scm_fcd_symbol_eq_p(sym, x);
+
+  return 0;
+}
