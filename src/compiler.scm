@@ -96,7 +96,7 @@
 (define (push-inst-label lbl asmb)
   (assembler-push! asmb +asm-inst-label+ lbl))
 (define (push-inst-undef asmb)
-  (assembler-push! asmb +asm-inst-undef+))
+  (assembler-push! asmb +asm-inst-immval+ (begin)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (define (new-env)
