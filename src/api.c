@@ -2346,14 +2346,14 @@ scm_api_assembler_commit_i(ScmObj asmb)
 /*******************************************************************/
 
 ScmObj
-scm_api_compiler_current_module(ScmObj cmpl)
+scm_api_compiler_base_env(ScmObj cmpl)
 {
   if (!scm_fcd_compiler_p(cmpl)) {
     scm_capi_error("failed to get current module: invalid argument", 1, cmpl);
     return SCM_OBJ_NULL;
   }
 
-  return scm_fcd_compiler_current_module(cmpl);
+  return scm_fcd_compiler_base_env(cmpl);
 }
 
 ScmObj
@@ -2366,6 +2366,25 @@ scm_api_compiler_current_expr(ScmObj cmpl)
   }
 
   return scm_fcd_compiler_current_expr(cmpl);
+}
+
+ScmObj
+scm_api_compiler_select_base_env_i(ScmObj cmpl, ScmObj env)
+{
+  SCM_REFSTK_INIT_REG(&cmpl, &env);
+
+  if (!scm_fcd_compiler_p(cmpl)) {
+    scm_capi_error("failed to change current module: "
+                   "invalid argument", 1, cmpl);
+    return SCM_OBJ_NULL;
+  }
+  else if (scm_obj_null_p(env)) {
+    scm_capi_error("failed to change current module: "
+                   "invalid argument", 1, env);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_fcd_compiler_select_base_env_i(cmpl, env);
 }
 
 ScmObj
@@ -2974,7 +2993,8 @@ dump_marshal(const char *path, const char *ext,
 int
 scm_capi_compile_file(const char *path, ScmEvaluator *ev)
 {
-  ScmObj port = SCM_OBJ_INIT, str = SCM_OBJ_INIT, mod = SCM_OBJ_INIT;
+  ScmObj port = SCM_OBJ_INIT, str = SCM_OBJ_INIT;
+  ScmObj name = SCM_OBJ_INIT, mod = SCM_OBJ_INIT;
   ScmObj proc = SCM_OBJ_INIT, args = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
   void *marshal;
   size_t size;
@@ -2989,7 +3009,8 @@ scm_capi_compile_file(const char *path, ScmEvaluator *ev)
   if (rslt < 0) goto end;
 
   {
-    SCM_REFSTK_INIT_REG(&port, &str, &mod,
+    SCM_REFSTK_INIT_REG(&port, &str,
+                        &name, &mod,
                         &proc, &args, &val);
 
     port = scm_fcd_open_input_string_cstr(path, NULL);
@@ -3003,8 +3024,11 @@ scm_capi_compile_file(const char *path, ScmEvaluator *ev)
     port = scm_fcd_open_input_string_cstr("(main)", SCM_ENC_NAME_SRC);
     if (scm_obj_null_p(port)) goto end;
 
-    mod = scm_api_read(port);
-    if (scm_obj_null_p(str)) goto end;
+    name = scm_api_read(port);
+    if (scm_obj_null_p(name)) goto end;
+
+    rslt = scm_fcd_find_module(name, SCM_CSETTER_L(mod));
+    if (rslt < 0) goto end;
 
     proc = scm_get_proc("compile-file",
                         (const char *[]){"scythe", "internal", "compile"}, 3);

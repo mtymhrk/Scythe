@@ -172,8 +172,7 @@
   (let ((cmpl (get-compiler-from-arg arg))
         (asmb (make-assembler)))
     (p2-compile-exp cmpl
-                    (p1-compile-exp cmpl exp
-                                    (make-env (compiler-current-module cmpl))
+                    (p1-compile-exp cmpl exp (compiler-base-env cmpl)
                                     #t (new-rdepth))
                     -1 #f asmb)
     (assembler-commit! asmb)
@@ -186,8 +185,7 @@
     (let loop ((exp (read port)))
       (unless (eof-object? exp)
         (p2-compile-exp cmpl
-                        (p1-compile-exp cmpl exp
-                                        (make-env (compiler-current-module cmpl))
+                        (p1-compile-exp cmpl exp (compiler-base-env cmpl)
                                         #t (new-rdepth))
                         -1 #f asmb)
         (loop (read port))))
@@ -1438,12 +1436,13 @@
   (let* ((x (p1-decons-with-module cmpl exp))
          (name (car x))
          (exps (cdr x))
-         (mod (compiler-current-module cmpl)))
+         (benv (compiler-base-env cmpl)))
     (compiler-select-module! cmpl name)
     (list->vector (cons p2-syntax-id-begin
                         (map (lambda (e)
-                               (p1-compile-exp cmpl e env toplevel-p rdepth)))))
-    (compiler-select-module! cmpl mod)))
+                               (p1-compile-exp cmpl e env toplevel-p rdepth))
+                             exps)))
+    (compiler-select-base-env! cmpl benv)))
 
 (define (p1-decons-select-module cmpl exp)
   (let ((x (cdr exp)))

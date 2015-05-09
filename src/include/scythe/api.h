@@ -314,8 +314,9 @@ ScmObj scm_api_assembler_commit_i(ScmObj asmb);
 #define scm_api_compiler_P scm_fcd_compiler_P
 #define scm_api_make_compiler scm_fcd_make_compiler
 
-ScmObj scm_api_compiler_current_module(ScmObj cmpl);
+ScmObj scm_api_compiler_base_env(ScmObj cmpl);
 ScmObj scm_api_compiler_current_expr(ScmObj cmpl);
+ScmObj scm_api_compiler_select_base_env_i(ScmObj cmpl, ScmObj env);
 ScmObj scm_api_compiler_select_module_i(ScmObj cmpl, ScmObj mod);
 ScmObj scm_api_compiler_select_expr_i(ScmObj cmpl, ScmObj expr);
 

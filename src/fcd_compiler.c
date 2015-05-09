@@ -64,36 +64,38 @@ scm_fcd_compiler_P(ScmObj obj)
 }
 
 ScmObj
-scm_fcd_compiler_new(SCM_MEM_TYPE_T mtype, ScmObj module)
+scm_fcd_compiler_new(SCM_MEM_TYPE_T mtype, ScmObj env)
 {
   ScmObj cmpl = SCM_OBJ_INIT;
 
-  SCM_REFSTK_INIT_REG(&module,
+  SCM_REFSTK_INIT_REG(&env,
                       &cmpl);
 
-  module = norm_cmpl_arg_mod(module);
-  if (scm_obj_null_p(module)) return SCM_OBJ_NULL;
+  if (scm_obj_null_p(env)) {
+    env = norm_cmpl_arg_mod(env);
+    if (scm_obj_null_p(env)) return SCM_OBJ_NULL;
+  }
 
   cmpl = scm_fcd_mem_alloc(&SCM_COMPILER_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(cmpl)) return SCM_OBJ_NULL;
 
-  if (scm_cmpl_initialize(cmpl, module) < 0)
+  if (scm_cmpl_initialize(cmpl, env) < 0)
     return SCM_OBJ_NULL;
 
   return cmpl;
 }
 
 ScmObj
-scm_fcd_make_compiler(ScmObj mod)
+scm_fcd_make_compiler(ScmObj env)
 {
-  return scm_fcd_compiler_new(SCM_MEM_HEAP, mod);
+  return scm_fcd_compiler_new(SCM_MEM_HEAP, env);
 }
 
 ScmObj
-scm_fcd_compiler_current_module(ScmObj cmpl)
+scm_fcd_compiler_base_env(ScmObj cmpl)
 {
   scm_assert(scm_fcd_compiler_p(cmpl));
-  return scm_cmpl_module(cmpl);
+  return scm_cmpl_env(cmpl);
 }
 
 ScmObj
@@ -101,6 +103,18 @@ scm_fcd_compiler_current_expr(ScmObj cmpl)
 {
   scm_assert(scm_fcd_compiler_p(cmpl));
   return scm_cmpl_expr(cmpl);
+}
+
+ScmObj
+scm_fcd_compiler_select_base_env_i(ScmObj cmpl, ScmObj env)
+{
+  SCM_REFSTK_INIT_REG(&cmpl, &env);
+
+  scm_assert(scm_fcd_compiler_p(cmpl));
+  scm_assert(scm_obj_not_null_p(env));
+
+  scm_cmpl_set_env(cmpl, env);
+  return SCM_UNDEF_OBJ;
 }
 
 ScmObj
@@ -113,7 +127,7 @@ scm_fcd_compiler_select_module_i(ScmObj cmpl, ScmObj mod)
   mod = norm_cmpl_arg_mod(mod);
   if (scm_obj_null_p(mod)) return SCM_OBJ_NULL;
 
-  scm_cmpl_set_module(cmpl, mod);
+  scm_cmpl_set_env(cmpl, mod);
   return SCM_UNDEF_OBJ;
 }
 

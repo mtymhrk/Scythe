@@ -515,10 +515,12 @@ scm_define_scythe_internal_compile_subr(ScmObj module)
     /*******************************************************************/
     { "compiler?", SCM_SUBR_ARITY_COMPILER_P, SCM_SUBR_FLAG_COMPILER_P, scm_subr_func_compiler_P, false },
     { "make-compiler", SCM_SUBR_ARITY_MAKE_COMPILER, SCM_SUBR_FLAG_MAKE_COMPILER, scm_subr_func_make_compiler, false },
-    { "compiler-current-module", SCM_SUBR_ARITY_COMPILER_CURRENT_MODULE, SCM_SUBR_FLAG_COMPILER_CURRENT_MODULE, scm_subr_func_compiler_current_module, false },
+    { "compiler-base-env", SCM_SUBR_ARITY_COMPILER_BASE_ENV, SCM_SUBR_FLAG_COMPILER_BASE_ENV, scm_subr_func_compiler_base_env, false },
+    { "compiler-select-base-env!", SCM_SUBR_ARITY_COMPILER_SELECT_BASE_ENV_I, SCM_SUBR_FLAG_COMPILER_SELECT_BASE_ENV_I, scm_subr_func_compiler_select_base_env_i, false },
     { "compiler-select-module!", SCM_SUBR_ARITY_COMPILER_SELECT_MODULE_I, SCM_SUBR_FLAG_COMPILER_SELECT_MODULE_I, scm_subr_func_compiler_select_module_i, false },
     { "compiler-current-expr", SCM_SUBR_ARITY_COMPILER_CURRENT_EXPR, SCM_SUBR_FLAG_COMPILER_CURRENT_EXPR, scm_subr_func_compiler_current_expr, false },
     { "compiler-select-expr!", SCM_SUBR_ARITY_COMPILER_SELECT_EXPR_I, SCM_SUBR_FLAG_COMPILER_SELECT_EXPR_I, scm_subr_func_compiler_select_expr_i, false },
+
 
     /*******************************************************************/
     /*  Syntax                                                         */

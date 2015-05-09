@@ -21,25 +21,25 @@ typedef struct ScmIdentifierRec ScmIdentifier;
 
 struct ScmCompilerRec {
   ScmObjHeader header;
-  ScmObj module;
+  ScmObj env;
   ScmObj expr;
 };
 
 extern ScmTypeInfo SCM_COMPILER_TYPE_INFO;
 
 int scm_cmpl_initialize(ScmObj cmpl, ScmObj module);
-void scm_cmpl_set_module(ScmObj cmpl, ScmObj module);
+void scm_cmpl_set_env(ScmObj cmpl, ScmObj env);
 void scm_cmpl_set_expr(ScmObj cmpl, ScmObj expr);
 
 void scm_cmpl_gc_initialize(ScmObj obj, ScmObj mem);
 int scm_cmpl_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
 
 static inline ScmObj
-scm_cmpl_module(ScmObj cmpl)
+scm_cmpl_env(ScmObj cmpl)
 {
   scm_assert_obj_type(cmpl, &SCM_COMPILER_TYPE_INFO);
 
-  return SCM_COMPILER(cmpl)->module;
+  return SCM_COMPILER(cmpl)->env;
 }
 
 static inline ScmObj

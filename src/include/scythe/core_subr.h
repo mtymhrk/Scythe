@@ -649,7 +649,8 @@ int scm_subr_func_module_name(ScmObj subr, int argc, const ScmObj *argv);
 #define SCM_SUBR_ARITY_ASSEMBLER_COMMIT_I 1
 #define SCM_SUBR_ARITY_COMPILER_P 1
 #define SCM_SUBR_ARITY_MAKE_COMPILER -1
-#define SCM_SUBR_ARITY_COMPILER_CURRENT_MODULE 1
+#define SCM_SUBR_ARITY_COMPILER_BASE_ENV 1
+#define SCM_SUBR_ARITY_COMPILER_SELECT_BASE_ENV_I 2
 #define SCM_SUBR_ARITY_COMPILER_SELECT_MODULE_I 2
 #define SCM_SUBR_ARITY_COMPILER_CURRENT_EXPR 1
 #define SCM_SUBR_ARITY_COMPILER_SELECT_EXPR_I 2
@@ -681,7 +682,8 @@ int scm_subr_func_module_name(ScmObj subr, int argc, const ScmObj *argv);
 #define SCM_SUBR_FLAG_ASSEMBLER_COMMIT_I 0
 #define SCM_SUBR_FLAG_COMPILER_P 0
 #define SCM_SUBR_FLAG_MAKE_COMPILER 0
-#define SCM_SUBR_FLAG_COMPILER_CURRENT_MODULE 0
+#define SCM_SUBR_FLAG_COMPILER_BASE_ENV 0
+#define SCM_SUBR_FLAG_COMPILER_SELECT_BASE_ENV_I 0
 #define SCM_SUBR_FLAG_COMPILER_SELECT_MODULE_I 0
 #define SCM_SUBR_FLAG_COMPILER_CURRENT_EXPR 0
 #define SCM_SUBR_FLAG_COMPILER_SELECT_EXPR_I 0
@@ -714,10 +716,12 @@ int scm_subr_func_assembler_push_i(ScmObj subr, int argc, const ScmObj *argv);
 int scm_subr_func_assembler_commit_i(ScmObj subr, int argc, const ScmObj *argv);
 int scm_subr_func_compiler_P(ScmObj subr, int argc, const ScmObj *argv);
 int scm_subr_func_make_compiler(ScmObj subr, int argc, const ScmObj *argv);
-int scm_subr_func_compiler_current_module(ScmObj subr,
-                                          int argc, const ScmObj *argv);
+int scm_subr_func_compiler_base_env(ScmObj subr,
+                                    int argc, const ScmObj *argv);
+int scm_subr_func_compiler_select_base_env_i(ScmObj subr,
+                                             int argc, const ScmObj *argv);
 int scm_subr_func_compiler_select_module_i(ScmObj subr,
-                                        int argc, const ScmObj *argv);
+                                           int argc, const ScmObj *argv);
 int scm_subr_func_compiler_current_expr(ScmObj subr,
                                         int argc, const ScmObj *argv);
 int scm_subr_func_compiler_select_expr_i(ScmObj subr,

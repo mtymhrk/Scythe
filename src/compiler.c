@@ -24,24 +24,24 @@ ScmTypeInfo SCM_COMPILER_TYPE_INFO = {
 };
 
 int
-scm_cmpl_initialize(ScmObj cmpl, ScmObj module)
+scm_cmpl_initialize(ScmObj cmpl, ScmObj env)
 {
   scm_assert_obj_type(cmpl, &SCM_COMPILER_TYPE_INFO);
-  scm_assert(scm_fcd_module_p(module));
+  scm_assert(scm_obj_not_null_p(env));
 
-  SCM_SLOT_SETQ(ScmCompiler, cmpl, module, module);
+  SCM_SLOT_SETQ(ScmCompiler, cmpl, env, env);
   SCM_SLOT_SETQ(ScmCompiler, cmpl, expr, SCM_NIL_OBJ);
 
   return 0;
 }
 
 void
-scm_cmpl_set_module(ScmObj cmpl, ScmObj module)
+scm_cmpl_set_env(ScmObj cmpl, ScmObj env)
 {
   scm_assert_obj_type(cmpl, &SCM_COMPILER_TYPE_INFO);
-  scm_assert(scm_fcd_module_p(module));
+  scm_assert(scm_obj_not_null_p(env));
 
-  SCM_SLOT_SETQ(ScmCompiler, cmpl, module, module);
+  SCM_SLOT_SETQ(ScmCompiler, cmpl, env, env);
 }
 
 void
@@ -60,7 +60,7 @@ scm_cmpl_gc_initialize(ScmObj obj, ScmObj mem)
 {
   scm_assert_obj_type(obj, &SCM_COMPILER_TYPE_INFO);
 
-  SCM_COMPILER(obj)->module = SCM_OBJ_NULL;
+  SCM_COMPILER(obj)->env = SCM_OBJ_NULL;
   SCM_COMPILER(obj)->expr = SCM_OBJ_NULL;
 }
 
@@ -73,7 +73,7 @@ scm_cmpl_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
   scm_assert(scm_obj_not_null_p(mem));
   scm_assert(handler != NULL);
 
-  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_COMPILER(obj)->module, mem);
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_COMPILER(obj)->env, mem);
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
   return SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_COMPILER(obj)->expr, mem);
