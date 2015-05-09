@@ -171,7 +171,7 @@ TEST(fcd_module, make_gloc)
 
   TEST_ASSERT_TRUE(scm_fcd_gloc_p(gloc));
   TEST_ASSERT_SCM_EQ(symbol, scm_fcd_gloc_symbol(gloc));
-  TEST_ASSERT_SCM_NULL(scm_fcd_gloc_value(gloc));
+  TEST_ASSERT_SCM_EQ(SCM_UNINIT_OBJ, scm_fcd_gloc_value(gloc));
 }
 
 TEST(fcd_module, make_gloc__already_exist)

@@ -21,7 +21,7 @@ scm_fcd_gloc_new(SCM_MEM_TYPE_T mtype, ScmObj sym)
   gloc = scm_fcd_mem_alloc(&SCM_GLOC_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(gloc)) return SCM_OBJ_NULL;
 
-  if (scm_gloc_initialize(gloc, sym, SCM_OBJ_NULL) < 0)
+  if (scm_gloc_initialize(gloc, sym, SCM_UNINIT_OBJ) < 0)
     return SCM_OBJ_NULL;
 
   return gloc;
@@ -45,7 +45,7 @@ void
 scm_fcd_gloc_bind(ScmObj gloc, ScmObj val)
 {
   scm_assert(scm_fcd_gloc_p(gloc));
-  scm_assert(scm_obj_not_null_p(val));
+  scm_assert(scm_obj_not_null_p(val) && !scm_fcd_landmine_object_p(val));
   scm_gloc_bind(gloc, val);
 }
 
@@ -270,10 +270,14 @@ scm_fcd_global_var_ref(ScmObj module, ScmObj sym, scm_csetter_t *val)
   if (rslt < 0) return -1;
 
 
-  if (scm_obj_not_null_p(gloc))
+  if (scm_obj_not_null_p(gloc)) {
     v = scm_gloc_value(gloc);
-  else
+    if (scm_fcd_landmine_object_p(v))
+      v = SCM_OBJ_NULL;
+  }
+  else {
     v = SCM_OBJ_NULL;
+  }
 
   if (val != NULL)
     scm_csetter_setq(val, v);
@@ -310,8 +314,11 @@ scm_fcd_global_syx_ref(ScmObj module, ScmObj sym, scm_csetter_t *syx)
   rslt = scm_module_find_sym_cmpl(module, sym, SCM_CSETTER_L(gloc));
   if (rslt < 0) return -1;
 
-  if (scm_obj_not_null_p(gloc))
+  if (scm_obj_not_null_p(gloc)) {
     v = scm_gloc_value(gloc);
+    if (scm_fcd_landmine_object_p(v))
+      v = SCM_OBJ_NULL;
+  }
   else
     v = SCM_OBJ_NULL;
 

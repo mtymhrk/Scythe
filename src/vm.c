@@ -2192,7 +2192,7 @@ scm_vm_op_gref(ScmObj vm, scm_opcode_t op)
   }
 
   val = scm_fcd_gloc_value(gloc);
-  if (scm_obj_null_p(val)) {
+  if (scm_fcd_landmine_object_p(val)) {
     scm_fcd_error("unbound variable", 1, sym);
     return -1;
   }
@@ -2269,7 +2269,7 @@ scm_vm_op_gset(ScmObj vm, scm_opcode_t op)
     val = scm_fcd_gloc_value(gloc);
     if (r < 0) return -1;
 
-    if (scm_obj_null_p(val)) {
+    if (scm_fcd_landmine_object_p(val)) {
       scm_fcd_error("unbound variable", 1, arg);
       return -1;
     }

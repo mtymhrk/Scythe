@@ -27,15 +27,6 @@ struct ScmGLocRec {
   bool exported;
 };
 
-static inline void
-scm_gloc_bind(ScmObj gloc, ScmObj val)
-{
-  scm_assert_obj_type(gloc, &SCM_GLOC_TYPE_INFO);
-  scm_assert(scm_obj_not_null_p(val));
-
-  SCM_SLOT_SETQ(ScmGLoc, gloc, val, val);
-}
-
 static inline ScmObj
 scm_gloc_symbol(ScmObj gloc)
 {
@@ -69,6 +60,7 @@ scm_gloc_export(ScmObj gloc)
 }
 
 int scm_gloc_initialize(ScmObj gloc, ScmObj sym, ScmObj val);
+void scm_gloc_bind(ScmObj gloc, ScmObj val);
 
 void scm_gloc_gc_initialize(ScmObj obj, ScmObj mem);
 int scm_gloc_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
