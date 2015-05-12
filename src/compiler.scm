@@ -189,11 +189,16 @@
                                  find-proc)))))
 
 (define (env-search env ident find-proc)
-  (let ((limit (if (identifier? ident) (identifier-env ident) #f)))
-    (let-values (((v i l y e) (env-search-internal env ident limit
+  (let ((ienv (if (identifier? ident) (identifier-env ident) #f)))
+    (let-values (((v i l y e) (env-search-internal env ident ienv
                                                    0 0 find-proc)))
-      (if (and (identifier? ident) (eq? e limit))
-          (env-search-internal limit (identifier-name v) #f l y find-proc)
+      (if (identifier? v)
+          (cond ((env-outmost? e)
+                 (values (identifier-name v) #f l y (env-module ienv)))
+                ((eq? e ienv)
+                 (env-search-internal ienv (identifier-name v) #f l y find-proc))
+                (else
+                 (values v i l y e)))
           (values v i l y e)))))
 
 (define (env-rvr-find-proc env ident)
