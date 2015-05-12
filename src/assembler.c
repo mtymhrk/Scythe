@@ -761,6 +761,12 @@ scm_disasm_cnv_to_marshalable(ScmObj disasm)
                   SCM_DISASSEMBLER_TOKEN(disasm)->inst.i.obj_obj.opd2,
                   scm_fcd_module_name(SCM_DISASSEMBLER_TOKEN(disasm)->inst.i.obj_obj.opd2));
     break;
+  case SCM_OPCODE_MODULE:
+    if (scm_fcd_module_p(SCM_DISASSEMBLER_TOKEN(disasm)->inst.i.obj.opd1))
+      SCM_WB_SETQ(disasm,
+                  SCM_DISASSEMBLER_TOKEN(disasm)->inst.i.obj.opd1,
+                  scm_fcd_module_name(SCM_DISASSEMBLER_TOKEN(disasm)->inst.i.obj.opd1));
+    break;
   default:
     break;
   }
@@ -871,6 +877,7 @@ static struct {
   { SCM_OPCODE_EDEMINE,     "edemine" },
   { SCM_OPCODE_MRVC,        "mrvc" },
   { SCM_OPCODE_MRVE,        "mrve" },
+  { SCM_OPCODE_MODULE,      "module" },
   { SCM_ASM_PI_LABEL,       "label" },
 };
 
@@ -1735,6 +1742,23 @@ struct scm_asm_cnv {
 };
 
 static ScmObj
+scm_asm_printable_inst_module(ScmObj inst)
+{
+  ScmObj module = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&inst,
+                      &module);
+
+  module = scm_fcd_list_ref(inst, 1);
+  if (scm_obj_null_p(module)) return SCM_OBJ_NULL;
+
+  if (scm_fcd_module_p(module))
+    module = scm_fcd_module_name(module);
+
+  return scm_fcd_list(2, scm_fcd_car(inst), module);
+}
+
+static ScmObj
 scm_asm_convert_inst(ScmObj inst, const struct scm_asm_cnv *cnv)
 {
   ScmObj op = SCM_OBJ_INIT;
@@ -1787,6 +1811,7 @@ scm_asm_printable_inst(ScmObj inst)
     { .op = "gref",   .func = scm_asm_printable_inst_global_var },
     { .op = "gset",   .func = scm_asm_printable_inst_global_var },
     { .op = "close",  .func = scm_asm_printable_inst_close },
+    { .op = "module", .func = scm_asm_printable_inst_module },
     { .op = NULL,     .func = NULL },
   };
 

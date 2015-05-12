@@ -30,4 +30,5 @@ const int scm_opfmt_table[SCM_VMINST_NR_OP] = {
     SCM_OPFMT_SI_SI,            /* SCM_OPCODE_EDEMINE */
     SCM_OPFMT_SI,               /* SCM_OPCODE_MRVC */
     SCM_OPFMT_NOOPD,            /* SCM_OPCODE_MRVE */
+    SCM_OPFMT_OBJ               /* SCM_OPCODE_MODULE */
 };

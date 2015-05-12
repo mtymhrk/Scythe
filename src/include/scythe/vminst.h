@@ -81,6 +81,7 @@ enum {
                                   /*     initial value */
   SCM_OPCODE_MRVC,                /* 27: Multiple-Return-Value Check */
   SCM_OPCODE_MRVE,                /* 28: Multiple-Return-Value Error */
+  SCM_OPCODE_MODULE,              /* 29: find a module  */
 
   SCM_VMINST_NR_OP,
 };
@@ -136,6 +137,7 @@ enum {
 #define SCM_INST_SZ_EDEMINE     SCM_OPFMT_INST_SZ_SI_SI
 #define SCM_INST_SZ_MRVC        SCM_OPFMT_INST_SZ_SI
 #define SCM_INST_SZ_MRVE        SCM_OPFMT_INST_SZ_NOOPD
+#define SCM_INST_SZ_MODULE      SCM_OPFMT_INST_SZ_OBJ
 
 extern const int scm_opfmt_table[SCM_VMINST_NR_OP];
 

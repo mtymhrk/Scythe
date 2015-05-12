@@ -400,6 +400,13 @@ TEST(fcd_assembler, mrve_size)
   TEST_ASSERT_EQUAL_INT(SCM_INST_SZ_NOP, SCM_INST_SZ_MRVE);
 }
 
+TEST(fcd_assembler, module)
+{
+  test_assemble_obj("((module (main))(nop))",
+                    SCM_OPCODE_MODULE,
+                    read_cstr("(main)"));
+}
+
 TEST(fcd_assembler, pi_undef)
 {
   test_assemble_obj("((undef)(nop))", SCM_OPCODE_IMMVAL, SCM_UNDEF_OBJ);

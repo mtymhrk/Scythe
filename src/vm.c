@@ -2544,6 +2544,22 @@ scm_vm_op_mrve(ScmObj vm, scm_opcode_t op)
 }
 
 static int
+scm_vm_op_module(ScmObj vm, scm_opcode_t op)
+{
+  ScmObj mod = SCM_OBJ_INIT;
+
+  SCM_VMINST_FETCH_OPD_OBJ(SCM_VM(vm)->reg.ip, mod);
+
+  mod = scm_vm_get_module_specified_by_opd(mod);
+  if (scm_obj_null_p(mod)) return -1;
+
+  SCM_SLOT_SETQ(ScmVM, vm, reg.val[0], mod);
+  SCM_VM(vm)->reg.vc = 1;
+
+  return 0;
+}
+
+static int
 scm_vm_interrupt_func_run_gc(ScmObj vm)
 {
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
@@ -2856,6 +2872,9 @@ scm_vm_run(ScmObj vm, ScmObj iseq)
       break;
     case SCM_OPCODE_MRVE:
       scm_vm_op_mrve(vm, op);
+      break;
+    case SCM_OPCODE_MODULE:
+      scm_vm_op_module(vm, op);
       break;
     default:
       scm_fcd_error("invalid instruction code", 0);
