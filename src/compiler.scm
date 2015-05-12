@@ -236,10 +236,11 @@
 (define (compile exp arg)
   (let ((cmpl (get-compiler-from-arg arg))
         (asmb (make-assembler)))
-    (p2-compile-exp cmpl
-                    (p1-compile-exp cmpl exp (compiler-base-env cmpl)
-                                    #t (new-rdepth))
-                    -1 #f asmb)
+    (let ((env (compiler-base-env cmpl)))
+      (p2-compile-exp cmpl
+                      (p1-compile-exp cmpl exp env
+                                      (env-outmost? env) (new-rdepth))
+                      -1 #f asmb))
     (assembler-commit! asmb)
     asmb))
 
