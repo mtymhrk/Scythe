@@ -495,6 +495,105 @@ scm_load_module_scheme_char(void)
 
 
 /*******************************************************************/
+/*  (scythe internal base)                                         */
+/*******************************************************************/
+
+static int
+scm_load_module_func_scythe_internal_base(ScmObj mod)
+{
+  ScmObj name = SCM_OBJ_INIT;
+  int rslt;
+
+  SCM_REFSTK_INIT_REG(&mod,
+                      &name);
+
+  /*
+   * load (scheme base) module and import it
+   */
+
+  rslt = scm_load_module_scheme_base();
+  if (rslt < 0) return -1;
+
+  name = scm_make_module_name(STRARY("scheme", "base"), 2);
+  if (scm_obj_null_p(name)) return -1;
+
+  rslt = scm_fcd_import(mod, name, false);
+  if (rslt < 0) return -1;
+
+
+  /*
+   * load (scheme char) module and import it
+   */
+
+  rslt = scm_load_module_scheme_char();
+  if (rslt < 0) return -1;
+
+  name = scm_make_module_name(STRARY("scheme", "char"), 2);
+  if (scm_obj_null_p(name)) return -1;
+
+  rslt = scm_fcd_import(mod, name, false);
+  if (rslt < 0) return -1;
+
+  return 0;
+}
+
+static int
+scm_load_module_scythe_internal_base(void)
+{
+  return scm_load_module(STRARY("scythe", "internal", "base"), 3,
+                         scm_load_module_func_scythe_internal_base);
+}
+
+
+/*******************************************************************/
+/*  (scythe internal misc)                                         */
+/*******************************************************************/
+
+static int
+scm_define_scythe_internal_misc_subr(ScmObj module)
+{
+  static const struct subr_data data[] = {
+    /*******************************************************************/
+    /*  format                                                         */
+    /*******************************************************************/
+    { "format", SCM_SUBR_ARITY_FORMAT, SCM_SUBR_FLAG_FORMAT, scm_subr_func_format, true },
+
+  };
+
+  int rslt;
+
+  SCM_REFSTK_INIT_REG(&module);
+
+  rslt = scm_define_subr(module, data, sizeof(data)/sizeof(data[0]));
+  if (rslt < 0) return -1;
+
+  return 0;
+}
+
+static int
+scm_load_module_func_scythe_internal_misc(ScmObj mod)
+{
+  int rslt;
+
+  /*
+   * define global variables
+   */
+
+  rslt = scm_define_scythe_internal_misc_subr(mod);
+  if (rslt < 0) return -1;
+
+  return 0;
+}
+
+static int
+scm_load_module_scythe_internal_misc(void)
+{
+  return scm_load_module(STRARY("scythe", "internal", "misc"), 3,
+                         scm_load_module_func_scythe_internal_misc);
+}
+
+
+/*******************************************************************/
 /*  (scythe internal compile)                                      */
 /*******************************************************************/
 
@@ -567,6 +666,11 @@ scm_define_scythe_internal_compile_subr(ScmObj module)
     { "identifier-name", SCM_SUBR_ARITY_IDENTIFIER_NAME, SCM_SUBR_FLAG_IDENTIFIER_NAME, scm_subr_func_identifier_name, false },
     { "identifier-env", SCM_SUBR_ARITY_IDENTIFIER_ENV, SCM_SUBR_FLAG_IDENTIFIER_ENV, scm_subr_func_identifier_env, false },
 
+    /*******************************************************************/
+    /*  Modules                                                        */
+    /*******************************************************************/
+    { "module?", SCM_SUBR_ARITY_MODULE_P, SCM_SUBR_FLAG_MODULE_P, scm_subr_func_module_P, true },
+    { "module-name", SCM_SUBR_ARITY_MODULE_NAME, SCM_SUBR_FLAG_MODULE_NAME, scm_subr_func_module_name, true },
   };
 
   int rslt;
@@ -664,13 +768,26 @@ scm_load_module_func_scythe_internal_compile(ScmObj mod)
   SCM_REFSTK_INIT_REG(&name, &mod);
 
   /*
-   * load (scythe base) module and import it
+   * load (scythe internal base) module and import it
    */
 
-  rslt = scm_load_module_scythe_base();
+  rslt = scm_load_module_scythe_internal_base();
   if (rslt < 0) return -1;
 
-  name = scm_make_module_name(STRARY("scythe", "base"), 2);
+  name = scm_make_module_name(STRARY("scythe", "internal", "base"), 3);
+  if (scm_obj_null_p(name)) return -1;
+
+  rslt = scm_fcd_import(mod, name, true);
+  if (rslt < 0) return -1;
+
+  /*
+   * load (scythe internal misc) module and import it
+   */
+
+  rslt = scm_load_module_scythe_internal_misc();
+  if (rslt < 0) return -1;
+
+  name = scm_make_module_name(STRARY("scythe", "internal", "misc"), 3);
   if (scm_obj_null_p(name)) return -1;
 
   rslt = scm_fcd_import(mod, name, true);
@@ -738,13 +855,13 @@ scm_load_module_func_scythe_internal_repl(ScmObj mod)
   SCM_REFSTK_INIT_REG(&name, &mod);
 
   /*
-   * load (scythe base) module and import it
+   * load (scythe internal base) module and import it
    */
 
   rslt = scm_load_module_scythe_base();
   if (rslt < 0) return -1;
 
-  name = scm_make_module_name(STRARY("scythe", "base"), 2);
+  name = scm_make_module_name(STRARY("scythe", "internal", "base"), 3);
   if (scm_obj_null_p(name)) return -1;
 
   rslt = scm_fcd_import(mod, name, true);
@@ -814,33 +931,6 @@ scm_load_module_scythe_internal_command(void)
 /*******************************************************************/
 
 static int
-scm_define_scythe_base_subr(ScmObj module)
-{
-  static const struct subr_data data[] = {
-    /*******************************************************************/
-    /*  format                                                         */
-    /*******************************************************************/
-    { "format", SCM_SUBR_ARITY_FORMAT, SCM_SUBR_FLAG_FORMAT, scm_subr_func_format, true },
-
-    /*******************************************************************/
-    /*  Modules                                                        */
-    /*******************************************************************/
-    { "module?", SCM_SUBR_ARITY_MODULE_P, SCM_SUBR_FLAG_MODULE_P, scm_subr_func_module_P, true },
-    { "module-name", SCM_SUBR_ARITY_MODULE_NAME, SCM_SUBR_FLAG_MODULE_NAME, scm_subr_func_module_name, true },
-  };
-
-  int rslt;
-
-  SCM_REFSTK_INIT_REG(&module);
-
-  rslt = scm_define_subr(module, data, sizeof(data)/sizeof(data[0]));
-  if (rslt < 0) return -1;
-
-  return 0;
-}
-
-
-static int
 scm_load_module_func_scythe_base(ScmObj mod)
 {
   ScmObj name = SCM_OBJ_INIT;
@@ -850,13 +940,13 @@ scm_load_module_func_scythe_base(ScmObj mod)
                       &name);
 
   /*
-   * load (scheme base) module and import it
+   * load (scythe internal base) module and import it
    */
 
-  rslt = scm_load_module_scheme_base();
+  rslt = scm_load_module_scythe_internal_base();
   if (rslt < 0) return -1;
 
-  name = scm_make_module_name(STRARY("scheme", "base"), 2);
+  name = scm_make_module_name(STRARY("scythe", "internal", "base"), 3);
   if (scm_obj_null_p(name)) return -1;
 
   rslt = scm_fcd_import(mod, name, false);
@@ -864,24 +954,16 @@ scm_load_module_func_scythe_base(ScmObj mod)
 
 
   /*
-   * load (scheme char) module and import it
+   * load (scythe internal misc) module and import it
    */
 
-  rslt = scm_load_module_scheme_char();
+  rslt = scm_load_module_scythe_internal_misc();
   if (rslt < 0) return -1;
 
-  name = scm_make_module_name(STRARY("scheme", "char"), 2);
+  name = scm_make_module_name(STRARY("scythe", "internal", "misc"), 3);
   if (scm_obj_null_p(name)) return -1;
 
   rslt = scm_fcd_import(mod, name, false);
-  if (rslt < 0) return -1;
-
-
-  /*
-   * define global variables
-   */
-
-  rslt = scm_define_scythe_base_subr(mod);
   if (rslt < 0) return -1;
 
   return 0;
@@ -938,9 +1020,11 @@ scm_load_core_modules(void)
   int (*func[])(void) = {
     scm_load_module_scheme_base,
     scm_load_module_scheme_char,
+    scm_load_module_scythe_internal_base,
     scm_load_module_scythe_internal_compile,
     scm_load_module_scythe_internal_repl,
     scm_load_module_scythe_internal_command,
+    scm_load_module_scythe_internal_misc,
     scm_load_module_scythe_base,
     scm_load_module_main,
   };
