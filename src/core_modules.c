@@ -101,6 +101,26 @@ scm_define_const_num(ScmObj module, const struct const_num_data *data, size_t n)
 }
 
 static int
+scm_export_sym(ScmObj module, const char **data, size_t n)
+{
+  ScmObj sym = SCM_OBJ_INIT;
+  int r;
+
+  SCM_REFSTK_INIT_REG(&module,
+                      &sym);
+
+  for (size_t i = 0; i < n; i++) {
+    sym = scm_fcd_make_symbol_from_cstr(data[i], SCM_ENC_SRC);
+    if (scm_obj_null_p(sym)) return -1;
+
+    r = scm_fcd_export(module, sym);
+    if (r < 0) return -1;
+  }
+
+  return 0;
+}
+
+static int
 scm_load_module(const char * const *name_str, size_t n,
                 int (*load_func)(ScmObj mod))
 {
@@ -661,16 +681,16 @@ scm_define_scythe_internal_compile_subr(ScmObj module)
     /*******************************************************************/
     /*  Identifier                                                     */
     /*******************************************************************/
-    { "identifier?", SCM_SUBR_ARITY_IDENTIFIER_P, SCM_SUBR_FLAG_IDENTIFIER_P, scm_subr_func_identifier_P, false },
-    { "make-identifier", SCM_SUBR_ARITY_MAKE_IDENTIFIER, SCM_SUBR_FLAG_MAKE_IDENTIFIER, scm_subr_func_make_identifier, false },
-    { "identifier-name", SCM_SUBR_ARITY_IDENTIFIER_NAME, SCM_SUBR_FLAG_IDENTIFIER_NAME, scm_subr_func_identifier_name, false },
-    { "identifier-env", SCM_SUBR_ARITY_IDENTIFIER_ENV, SCM_SUBR_FLAG_IDENTIFIER_ENV, scm_subr_func_identifier_env, false },
+    { "identifier?", SCM_SUBR_ARITY_IDENTIFIER_P, SCM_SUBR_FLAG_IDENTIFIER_P, scm_subr_func_identifier_P, true },
+    { "make-identifier", SCM_SUBR_ARITY_MAKE_IDENTIFIER, SCM_SUBR_FLAG_MAKE_IDENTIFIER, scm_subr_func_make_identifier, true },
+    { "identifier-name", SCM_SUBR_ARITY_IDENTIFIER_NAME, SCM_SUBR_FLAG_IDENTIFIER_NAME, scm_subr_func_identifier_name, true },
+    { "identifier-env", SCM_SUBR_ARITY_IDENTIFIER_ENV, SCM_SUBR_FLAG_IDENTIFIER_ENV, scm_subr_func_identifier_env, true },
 
     /*******************************************************************/
     /*  Modules                                                        */
     /*******************************************************************/
-    { "module?", SCM_SUBR_ARITY_MODULE_P, SCM_SUBR_FLAG_MODULE_P, scm_subr_func_module_P, true },
-    { "module-name", SCM_SUBR_ARITY_MODULE_NAME, SCM_SUBR_FLAG_MODULE_NAME, scm_subr_func_module_name, true },
+    { "module?", SCM_SUBR_ARITY_MODULE_P, SCM_SUBR_FLAG_MODULE_P, scm_subr_func_module_P, false },
+    { "module-name", SCM_SUBR_ARITY_MODULE_NAME, SCM_SUBR_FLAG_MODULE_NAME, scm_subr_func_module_name, false },
   };
 
   int rslt;
@@ -688,6 +708,24 @@ extern const unsigned char scm_compiler_data[];
 static int
 scm_define_scythe_internal_compile_closure(ScmObj mod)
 {
+  static const char *export[] = {
+    "make-env", "env-outmost?", "env-extend", "env-extend-syntax",
+    "env-variable-layer?", "env-keyword-leyer?", "env-outer",
+    "env-module", "env-assigned-variable?", "env-set-assigned!",
+    "env-syntax", "env-set-syntax!", "env-var-idx", "env-copy-keyword",
+    "env-resolve-variable-reference!", "env-find-keyword",
+    "env-find-identifier",
+    "compile",
+    "p2-syntax-id-ref", "p2-syntax-id-gref", "p2-syntax-id-self",
+    "p2-syntax-id-call", "p2-syntax-id-gdef", "p2-syntax-id-begin",
+    "p2-syntax-id-body", "p2-syntax-id-lambda", "p2-syntax-id-lset",
+    "p2-syntax-id-gset", "p2-syntax-id-if", "p2-syntax-id-cond",
+    "p2-syntax-id-and", "p2-syntax-id-or", "p2-syntax-id-let",
+    "p2-syntax-id-letrec", "p2-syntax-id-letrec*", "p2-syntax-id-do",
+    "p2-syntax-id-let-values",
+    "current-macro-env-def", "current-macro-env-use",
+  };
+
   ScmObj unmarshal = SCM_OBJ_INIT, iseq = SCM_OBJ_INIT;
   int rslt;
 
@@ -702,6 +740,9 @@ scm_define_scythe_internal_compile_closure(ScmObj mod)
   scm_assert(scm_fcd_iseq_p(iseq));
 
   rslt = scm_fcd_load_iseq(iseq);
+  if (rslt < 0) return -1;
+
+  rslt = scm_export_sym(mod, export, sizeof(export)/sizeof(export[0]));
   if (rslt < 0) return -1;
 
   return 0;
