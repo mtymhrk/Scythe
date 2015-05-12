@@ -1506,11 +1506,14 @@
          (exps (cdr x))
          (benv (compiler-base-env cmpl)))
     (compiler-select-module! cmpl name)
-    (list->vector (cons p2-syntax-id-begin
-                        (map (lambda (e)
-                               (p1-compile-exp cmpl e env toplevel-p rdepth))
-                             exps)))
-    (compiler-select-base-env! cmpl benv)))
+    (let ((x (list->vector (cons p2-syntax-id-begin
+                                 (map (lambda (e)
+                                        (p1-compile-exp cmpl e
+                                                        (compiler-base-env cmpl)
+                                                        toplevel-p rdepth))
+                                      exps)))))
+      (compiler-select-base-env! cmpl benv)
+      x)))
 
 (define (p1-decons-select-module cmpl exp)
   (let ((x (cdr exp)))
