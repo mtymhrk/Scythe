@@ -93,6 +93,8 @@
   (assembler-push! asmb +asm-inst-mrvc+ arity))
 (define (push-inst-mrve asmb)
   (assembler-push! asmb +asm-inst-mrve+))
+(define (push-inst-module mod asmb)
+  (assembler-push! asmb +asm-inst-module+ mod))
 (define (push-inst-label lbl asmb)
   (assembler-push! asmb +asm-inst-label+ lbl))
 (define (push-inst-undef asmb)
@@ -308,7 +310,10 @@
 
 ;;; #(self <object>)
 (define (p2-syntax-handler-self cmpl exp arity tail-p asmb)
-  (push-inst-immval (vector-ref exp 1) asmb)
+  (let ((o (vector-ref exp 1)))
+    (if (module? o)
+        (push-inst-module o asmb)
+        (push-inst-immval o asmb)))
   (when tail-p (push-inst-return asmb)))
 
 ;;; #(call <procedure> <arg> ...)

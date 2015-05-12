@@ -786,6 +786,7 @@ scm_define_scythe_internal_compile_constant_number(ScmObj module)
     const_num_asm_inst_record(edemine, EDEMINE),
     const_num_asm_inst_record(mrvc, MRVC),
     const_num_asm_inst_record(mrve, MRVE),
+    const_num_asm_inst_record(module, MODULE),
 
     const_num_asm_pinst_record(label, LABEL),
   };
