@@ -222,6 +222,8 @@
     (values v i l e)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(define precompile? (make-parameter #f))
+
 (define (generate-label asmb)
   (assembler-assign-label-id! asmb))
 
@@ -233,28 +235,37 @@
    ((compiler? arg) arg)
    (else (make-compiler arg))))
 
-(define (compile exp arg)
+(define (compile-exp cmpl exp env toplevel-p rdepth arity tail-p asmb)
+  (p2-compile-exp cmpl
+                  (p1-compile-exp cmpl exp env toplevel-p rdepth)
+                  arity tail-p asmb))
+
+
+(define (compile-internal exp arg precompile-p)
   (let ((cmpl (get-compiler-from-arg arg))
         (asmb (make-assembler)))
     (let ((env (compiler-base-env cmpl)))
-      (p2-compile-exp cmpl
-                      (p1-compile-exp cmpl exp env
-                                      (env-outmost? env) (new-rdepth))
-                      -1 #f asmb))
+      (parameterize ((precompile? precompile-p))
+        (compile-exp cmpl exp env (env-outmost? env) (new-rdepth) -1 #f asmb)))
     (assembler-commit! asmb)
     asmb))
+
+(define (compile exp arg)
+  (compile-internal exp arg #f))
+
+(define (precompile exp arg)
+  (compile-internal exp arg #t))
 
 (define (compile-file file arg)
   (let ((cmpl (get-compiler-from-arg arg))
         (port (open-input-file file))
         (asmb (make-assembler)))
-    (let loop ((exp (read port)))
-      (unless (eof-object? exp)
-        (p2-compile-exp cmpl
-                        (p1-compile-exp cmpl exp (compiler-base-env cmpl)
-                                        #t (new-rdepth))
-                        -1 #f asmb)
-        (loop (read port))))
+    (parameterize ((precompile? #t))
+      (let loop ((exp (read port)))
+        (unless (eof-object? exp)
+          (compile-exp cmpl exp (compiler-base-env cmpl) #t (new-rdepth)
+                       -1 #f asmb)
+          (loop (read port)))))
     (assembler-commit! asmb)
     asmb))
 
@@ -1563,9 +1574,23 @@
     (let-values (((v i l e) (env-find-identifier env key)))
       (unless (env-outmost? e)
         (compile-error cmpl "malformed define-syntax"))
-      (let ((mac (make-macro (eval trans (compiler-base-env cmpl)) env)))
-        (global-syntax-bind e v mac #f)))
-    (vector p2-syntax-id-begin)))
+      (let ((tenv (compiler-base-env cmpl)))
+        (let ((texp (p1-compile-exp cmpl trans tenv #f (new-rdepth)))
+              (mac (make-macro (eval trans tenv) env)))
+          (global-syntax-bind e v mac #f)
+          (if (precompile?)
+              (vector p2-syntax-id-call
+                      (vector p2-syntax-id-gref
+                              'global-syntax-bind '(scythe internal compile))
+                      (vector p2-syntax-id-self e)
+                      (vector p2-syntax-id-self v)
+                      (vector p2-syntax-id-call
+                              (vector p2-syntax-id-gref
+                                      'make-macro '(scythe internal compile))
+                              texp
+                              (vector p2-syntax-id-self env))
+                      (vector p2-syntax-id-self #f))
+              (vector p2-syntax-id-begin)))))))
 
 (define (p1-decons-let-syntax cmpl exp syntax)
   (let ((x (cdr exp))

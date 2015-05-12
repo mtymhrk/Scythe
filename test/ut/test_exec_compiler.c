@@ -22,25 +22,28 @@ TEST_TEAR_DOWN(exec_compiler)
 }
 
 static ScmObj
-compile(ScmObj exp)
+compile(ScmObj exp, bool precompile)
 {
   ScmObj asmb = SCM_OBJ_INIT, iseq = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&exp,
                       &asmb, &iseq);
+  if (precompile)
+    asmb = scm_capi_ut_precompile(ev, exp);
+  else
+    asmb = scm_capi_ut_compile(ev, exp);
 
-  asmb = scm_capi_ut_compile(ev, exp);
   return scm_fcd_assembler_iseq(asmb);
 }
 
 static ScmObj
-compile_cstr(const char *str)
+compile_cstr(const char *str, bool precompile)
 {
-  return compile(read_cstr(str));
+  return compile(read_cstr(str), precompile);
 }
 
 static void
-test_compile(const char *expr, const char *asmbl)
+test_compile_internal(const char *expr, const char *asmbl, bool precompile)
 {
   ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
   bool cmp;
@@ -49,11 +52,23 @@ test_compile(const char *expr, const char *asmbl)
 
   expected = scm_fcd_assemble(scm_fcd_unprintable_assembler(read_cstr(asmbl)),
                               SCM_OBJ_NULL);
-  actual = compile_cstr(expr);
+  actual = compile_cstr(expr, precompile);
 
   cmp = false;
   scm_fcd_iseq_eq(expected, actual, &cmp);
   TEST_ASSERT_TRUE(cmp);
+}
+
+static void
+test_compile(const char *expr, const char *asmbl)
+{
+  test_compile_internal(expr, asmbl, false);
+}
+
+static void
+test_precompile(const char *expr, const char *asmbl)
+{
+  test_compile_internal(expr, asmbl, true);
 }
 
 TEST(exec_compiler, self_eval_1)
@@ -2156,3 +2171,35 @@ TEST(exec_compiler, quasiquote__no_unquoted)
                "((immval (a b c)))");
 }
 
+TEST(exec_compiler, syntax_definition__compile)
+{
+  test_compile("(define-syntax foo (lambda (x) 1))",
+               "((undef))");
+}
+
+TEST(exec_compiler, syntax_definition__precompile)
+{
+  test_precompile("(define-syntax foo (lambda (x) 1))",
+                  "(  (cframe (label 0))"
+                  "   (module (main))"
+                  "   (push)"
+                  "   (immval foo)"
+                  "   (push)"
+                  "   (cframe (label 1))"
+                  "   (close 0 1 ((immval 1) (return)))"
+                  "   (push)"
+                  "   (module (main))"
+                  "   (push)"
+                  "   (gref make-macro (scythe internal compile))"
+                  "   (call 2)"
+                  "   (mrve)"
+                  " (label 1)"
+                  "   (push)"
+                  "   (immval #f)"
+                  "   (push)"
+                  "   (gref global-syntax-bind (scythe internal compile))"
+                  "   (call 4)"
+                  "   (nop)"
+                  " (label 0)"
+                  ")");
+}

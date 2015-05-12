@@ -31,6 +31,31 @@ scm_capi_ut_compile(ScmEvaluator *ev, ScmObj exp)
 }
 
 ScmObj
+scm_capi_ut_precompile(ScmEvaluator *ev, ScmObj exp)
+{
+  ScmObj precompile = SCM_OBJ_INIT, args = SCM_OBJ_NULL, val = SCM_OBJ_NULL;
+
+  SCM_REFSTK_INIT_REG(&exp,
+                      &precompile, &args, &val);
+
+  precompile = scm_get_proc("precompile",
+                            (const char *[]){"scythe", "internal", "compile"},
+                            3);
+  if(scm_obj_null_p(precompile)) return SCM_OBJ_NULL;
+
+  args = scm_api_make_compiler(SCM_OBJ_NULL);
+  if (scm_obj_null_p(args)) return SCM_OBJ_NULL;
+
+  args = scm_fcd_list(2, exp, args);
+  if (scm_obj_null_p(args)) return SCM_OBJ_NULL;
+
+  val = scm_fcd_vm_apply(scm_fcd_current_vm(), precompile, args);
+  if (scm_obj_null_p(val)) return SCM_OBJ_NULL;
+
+  return scm_fcd_vector_ref(val, 0);
+}
+
+ScmObj
 scm_capi_ut_eval(ScmEvaluator *ev, ScmObj exp)
 {
   ScmObj eval = SCM_OBJ_INIT, args = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
