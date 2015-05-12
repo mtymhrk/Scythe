@@ -860,6 +860,104 @@ scm_load_module_scythe_internal_compile(void)
 
 
 /*******************************************************************/
+/*  (scythe internal macro)                                        */
+/*******************************************************************/
+
+extern const unsigned char scm_macro_data[];
+
+static int
+scm_define_scythe_internal_macro_closure(ScmObj mod)
+{
+  static const char *export[] = { "er-macro-transformer" };
+  ScmObj unmarshal = SCM_OBJ_INIT, iseq = SCM_OBJ_INIT;
+  int rslt;
+
+  SCM_REFSTK_INIT_REG(&mod,
+                      &unmarshal, &iseq);
+
+  unmarshal = scm_fcd_make_unmarshal(scm_macro_data);
+  if (scm_obj_null_p(unmarshal)) return -1;
+
+  iseq = scm_fcd_unmarshal_ref(unmarshal, 0);
+  if (scm_obj_null_p(iseq)) return -1;
+  scm_assert(scm_fcd_iseq_p(iseq));
+
+  rslt = scm_fcd_load_iseq(iseq);
+  if (rslt < 0) return -1;
+
+  rslt = scm_export_sym(mod, export, sizeof(export)/sizeof(export[0]));
+  if (rslt < 0) return -1;
+
+  return 0;
+}
+
+static int
+scm_load_module_func_scythe_internal_macro(ScmObj mod)
+{
+  ScmObj name = SCM_OBJ_INIT;
+  int rslt;
+
+  SCM_REFSTK_INIT_REG(&name, &mod);
+
+  /*
+   * load (scythe internal base) module and import it
+   */
+
+  rslt = scm_load_module_scythe_internal_base();
+  if (rslt < 0) return -1;
+
+  name = scm_make_module_name(STRARY("scythe", "internal", "base"), 3);
+  if (scm_obj_null_p(name)) return -1;
+
+  rslt = scm_fcd_import(mod, name, true);
+  if (rslt < 0) return -1;
+
+  /*
+   * load (scythe internal misc) module and import it
+   */
+
+  rslt = scm_load_module_scythe_internal_misc();
+  if (rslt < 0) return -1;
+
+  name = scm_make_module_name(STRARY("scythe", "internal", "misc"), 3);
+  if (scm_obj_null_p(name)) return -1;
+
+  rslt = scm_fcd_import(mod, name, true);
+  if (rslt < 0) return -1;
+
+  /*
+   * load (scythe internal compile) module and import it
+   */
+
+  rslt = scm_load_module_scythe_internal_compile();
+  if (rslt < 0) return -1;
+
+  name = scm_make_module_name(STRARY("scythe", "internal", "compile"), 3);
+  if (scm_obj_null_p(name)) return -1;
+
+  rslt = scm_fcd_import(mod, name, true);
+  if (rslt < 0) return -1;
+
+  /*
+   * define global variables
+   */
+
+  rslt = scm_define_scythe_internal_macro_closure(mod);
+  if (rslt < 0) return -1;
+
+  return 0;
+}
+
+static int
+scm_load_module_scythe_internal_macro(void)
+{
+  return scm_load_module(STRARY("scythe", "internal", "macro"), 3,
+                         scm_load_module_func_scythe_internal_macro);
+
+}
+
+
+/*******************************************************************/
 /*  (scythe internal repl)                                         */
 /*******************************************************************/
 
@@ -1007,6 +1105,20 @@ scm_load_module_func_scythe_base(ScmObj mod)
   rslt = scm_fcd_import(mod, name, false);
   if (rslt < 0) return -1;
 
+
+  /*
+   * load (scythe internal macro) module and import it
+   */
+
+  rslt = scm_load_module_scythe_internal_macro();
+  if (rslt < 0) return -1;
+
+  name = scm_make_module_name(STRARY("scythe", "internal", "macro"), 3);
+  if (scm_obj_null_p(name)) return -1;
+
+  rslt = scm_fcd_import(mod, name, false);
+  if (rslt < 0) return -1;
+
   return 0;
 }
 
@@ -1063,6 +1175,7 @@ scm_load_core_modules(void)
     scm_load_module_scheme_char,
     scm_load_module_scythe_internal_base,
     scm_load_module_scythe_internal_compile,
+    scm_load_module_scythe_internal_macro,
     scm_load_module_scythe_internal_repl,
     scm_load_module_scythe_internal_command,
     scm_load_module_scythe_internal_misc,
