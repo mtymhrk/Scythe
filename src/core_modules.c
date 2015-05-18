@@ -101,26 +101,6 @@ scm_define_const_num(ScmObj module, const struct const_num_data *data, size_t n)
 }
 
 static int
-scm_export_sym(ScmObj module, const char **data, size_t n)
-{
-  ScmObj sym = SCM_OBJ_INIT;
-  int r;
-
-  SCM_REFSTK_INIT_REG(&module,
-                      &sym);
-
-  for (size_t i = 0; i < n; i++) {
-    sym = scm_fcd_make_symbol_from_cstr(data[i], SCM_ENC_SRC);
-    if (scm_obj_null_p(sym)) return -1;
-
-    r = scm_fcd_module_export(module, sym);
-    if (r < 0) return -1;
-  }
-
-  return 0;
-}
-
-static int
 scm_load_module(const char * const *name_str, size_t n,
                 int (*load_func)(ScmObj mod))
 {
@@ -708,24 +688,6 @@ extern const unsigned char scm_compiler_data[];
 static int
 scm_define_scythe_internal_compile_closure(ScmObj mod)
 {
-  static const char *export[] = {
-    "make-env", "env-outmost?", "env-extend", "env-extend-syntax",
-    "env-variable-layer?", "env-keyword-leyer?", "env-outer",
-    "env-module", "env-assigned-variable?", "env-set-assigned!",
-    "env-syntax", "env-set-syntax!", "env-var-idx", "env-copy-keyword",
-    "env-resolve-variable-reference!", "env-find-keyword",
-    "env-find-identifier",
-    "compile",
-    "p2-syntax-id-ref", "p2-syntax-id-gref", "p2-syntax-id-self",
-    "p2-syntax-id-call", "p2-syntax-id-gdef", "p2-syntax-id-begin",
-    "p2-syntax-id-body", "p2-syntax-id-lambda", "p2-syntax-id-lset",
-    "p2-syntax-id-gset", "p2-syntax-id-if", "p2-syntax-id-cond",
-    "p2-syntax-id-and", "p2-syntax-id-or", "p2-syntax-id-let",
-    "p2-syntax-id-letrec", "p2-syntax-id-letrec*", "p2-syntax-id-do",
-    "p2-syntax-id-let-values",
-    "current-macro-env-def", "current-macro-env-use",
-  };
-
   ScmObj unmarshal = SCM_OBJ_INIT, iseq = SCM_OBJ_INIT;
   int rslt;
 
@@ -740,9 +702,6 @@ scm_define_scythe_internal_compile_closure(ScmObj mod)
   scm_assert(scm_fcd_iseq_p(iseq));
 
   rslt = scm_fcd_load_iseq(iseq);
-  if (rslt < 0) return -1;
-
-  rslt = scm_export_sym(mod, export, sizeof(export)/sizeof(export[0]));
   if (rslt < 0) return -1;
 
   return 0;
@@ -869,7 +828,6 @@ extern const unsigned char scm_macro_data[];
 static int
 scm_define_scythe_internal_macro_closure(ScmObj mod)
 {
-  static const char *export[] = { "er-macro-transformer" };
   ScmObj unmarshal = SCM_OBJ_INIT, iseq = SCM_OBJ_INIT;
   int rslt;
 
@@ -884,9 +842,6 @@ scm_define_scythe_internal_macro_closure(ScmObj mod)
   scm_assert(scm_fcd_iseq_p(iseq));
 
   rslt = scm_fcd_load_iseq(iseq);
-  if (rslt < 0) return -1;
-
-  rslt = scm_export_sym(mod, export, sizeof(export)/sizeof(export[0]));
   if (rslt < 0) return -1;
 
   return 0;

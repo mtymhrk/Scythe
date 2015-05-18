@@ -101,18 +101,23 @@
   (assembler-push! asmb +asm-inst-immval+ (begin)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(module-export (current-module) 'make-env)
 (define (make-env module)
   module)
 
+(module-export (current-module) 'env-outmost?)
 (define (env-outmost? env)
   (module? env))
 
+(module-export (current-module) 'env-extend)
 (define (env-extend vars varg env)
   (let* ((vars (if (vector? vars) vars (list->vector vars)))
          (len (vector-length vars))
          (assigned (make-vector len #f)))
     (cons (vector 'variable vars assigned varg) env)))
 
+(module-export (current-module) 'env-extend-syntax)
 (define (env-extend-syntax keys syxs env)
   (let* ((keys (if (vector? keys) keys (list->vector keys)))
          (syxs (cond ((vector? syxs) syxs)
@@ -120,30 +125,37 @@
                      (else (make-vector (vector-length keys) #f)))))
     (cons (vector 'keyword keys syxs) env)))
 
+(module-export (current-module) 'env-variable-layer?)
 (define (env-variable-layer? env)
   (eq? (vector-ref (car env) 0) 'variable))
 
+(module-export (current-module) 'env-keyword-layer?)
 (define (env-keyword-layer? env)
   (eq? (vector-ref (car env) 0) 'keyword))
 
+(module-export (current-module) 'env-outer)
 (define (env-outer env)
   (if (env-outmost? env) env (cdr env)))
 
+(module-export (current-module) 'env-module)
 (define (env-module env)
   (if (module? env)
       env
       (env-module (env-outer env))))
 
+(module-export (current-module) 'env-assigned-variable?)
 (define (env-assigned-variable? env idx)
   (unless (env-variable-layer? env)
     (error "failed to access compiler environment"))
   (vector-ref (vector-ref (car env) 2) idx))
 
+(module-export (current-module) 'env-set-assigned!)
 (define (env-set-assigned! env idx)
   (unless (env-variable-layer? env)
     (error "failed to access compiler environment"))
   (vector-set! (vector-ref (car env) 2) idx #t))
 
+(module-export (current-module) 'env-syntax)
 (define (env-syntax env idx)
   (unless (env-keyword-layer? env)
     (error "failed to access compiler environment"))
@@ -152,11 +164,13 @@
       (error "reference to uninitialized keyword"))
     syx))
 
+(module-export (current-module) 'env-set-syntax!)
 (define (env-set-syntax! env idx syx)
   (unless (env-keyword-layer? env)
     (error "failed to access compiler envrionment"))
   (vector-set! (vector-ref (car env) 2) idx syx))
 
+(module-export (current-module) 'env-var-idx)
 (define (env-var-idx env var)
   (let* ((vars (vector-ref (car env) 1))
          (len (vector-length vars)))
@@ -167,6 +181,7 @@
               idx
               (rec (+ idx 1)))))))
 
+(module-export (current-module) 'env-copy-keyword)
 (define (env-copy-keyword env)
   (cond ((env-outmost? env)
          env)
@@ -206,6 +221,7 @@
       #f
       (env-var-idx env ident)))
 
+(module-export (current-module) 'env-resolve-variable-reference!)
 (define (env-resolve-variable-reference! env ident assigned rdepth)
   (let-values (((v i l y e) (env-search env ident env-rvr-find-proc)))
     (unless (env-outmost? e)
@@ -213,6 +229,7 @@
       (when assigned (env-set-assigned! e i)))
     (values v i y e)))
 
+(module-export (current-module) 'env-find-keyword)
 (define (env-find-keyword env ident)
   (let-values (((v i l y e) (env-search env ident env-var-idx)))
     (cond ((env-outmost? e)
@@ -222,6 +239,7 @@
           (else
            #f))))
 
+(module-export (current-module) 'env-find-identifier)
 (define (env-find-identifier env ident)
   (let-values (((v i l y e) (env-search env ident env-var-idx)))
     (values v i l e)))
@@ -255,6 +273,7 @@
     (assembler-commit! asmb)
     asmb))
 
+(module-export (current-module) 'compile)
 (define (compile exp arg)
   (compile-internal exp arg #f))
 
@@ -275,6 +294,26 @@
     asmb))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(module-export (current-module) 'p2-syntax-id-lref)
+(module-export (current-module) 'p2-syntax-id-gref)
+(module-export (current-module) 'p2-syntax-id-self)
+(module-export (current-module) 'p2-syntax-id-call)
+(module-export (current-module) 'p2-syntax-id-gdef)
+(module-export (current-module) 'p2-syntax-id-begin)
+(module-export (current-module) 'p2-syntax-id-body)
+(module-export (current-module) 'p2-syntax-id-lambda)
+(module-export (current-module) 'p2-syntax-id-lset)
+(module-export (current-module) 'p2-syntax-id-gset)
+(module-export (current-module) 'p2-syntax-id-if)
+(module-export (current-module) 'p2-syntax-id-cond)
+(module-export (current-module) 'p2-syntax-id-and)
+(module-export (current-module) 'p2-syntax-id-or)
+(module-export (current-module) 'p2-syntax-id-let)
+(module-export (current-module) 'p2-syntax-id-letrec)
+(module-export (current-module) 'p2-syntax-id-letrec*)
+(module-export (current-module) 'p2-syntax-id-do)
+(module-export (current-module) 'p2-syntax-id-let-values)
 
 (define p2-syntax-id-lref 0)
 (define p2-syntax-id-gref 1)
@@ -1553,6 +1592,9 @@
   (vector p2-syntax-id-self (env-module (compiler-base-env cmpl))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(module-export (current-module) 'current-macro-env-def)
+(module-export (current-module) 'current-macro-env-use)
 
 (define current-macro-env-def (make-parameter ()))
 (define current-macro-env-use (make-parameter ()))

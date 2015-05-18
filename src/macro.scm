@@ -26,6 +26,7 @@
            (or (eq? xe ye)
                (and (env-outmost? xe) (env-outmost? ye)))))))
 
+(module-export (current-module) 'er-macro-transformer)
 (define (er-macro-transformer expander)
   (lambda (form)
     (expander form
