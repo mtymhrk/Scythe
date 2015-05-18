@@ -578,6 +578,12 @@ scm_define_scythe_internal_misc_subr(ScmObj module)
     /*******************************************************************/
     { "format", SCM_SUBR_ARITY_FORMAT, SCM_SUBR_FLAG_FORMAT, scm_subr_func_format, true },
 
+    /*******************************************************************/
+    /*  Modules                                                        */
+    /*******************************************************************/
+    { "module?", SCM_SUBR_ARITY_MODULE_P, SCM_SUBR_FLAG_MODULE_P, scm_subr_func_module_P, true },
+    { "module-name", SCM_SUBR_ARITY_MODULE_NAME, SCM_SUBR_FLAG_MODULE_NAME, scm_subr_func_module_name, true },
+    { "module-export", SCM_SUBR_ARITY_MODULE_EXPORT, SCM_SUBR_FLAG_MODULE_EXPORT, scm_subr_func_module_export, true },
   };
 
   int rslt;
@@ -685,13 +691,6 @@ scm_define_scythe_internal_compile_subr(ScmObj module)
     { "make-identifier", SCM_SUBR_ARITY_MAKE_IDENTIFIER, SCM_SUBR_FLAG_MAKE_IDENTIFIER, scm_subr_func_make_identifier, true },
     { "identifier-name", SCM_SUBR_ARITY_IDENTIFIER_NAME, SCM_SUBR_FLAG_IDENTIFIER_NAME, scm_subr_func_identifier_name, true },
     { "identifier-env", SCM_SUBR_ARITY_IDENTIFIER_ENV, SCM_SUBR_FLAG_IDENTIFIER_ENV, scm_subr_func_identifier_env, true },
-
-    /*******************************************************************/
-    /*  Modules                                                        */
-    /*******************************************************************/
-    { "module?", SCM_SUBR_ARITY_MODULE_P, SCM_SUBR_FLAG_MODULE_P, scm_subr_func_module_P, false },
-    { "module-name", SCM_SUBR_ARITY_MODULE_NAME, SCM_SUBR_FLAG_MODULE_NAME, scm_subr_func_module_name, false },
-    { "module-export", SCM_SUBR_ARITY_MODULE_EXPORT, SCM_SUBR_FLAG_MODULE_EXPORT, scm_subr_func_module_export, false },
   };
 
   int rslt;
