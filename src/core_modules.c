@@ -962,6 +962,23 @@ scm_load_module_func_scythe_internal_repl(ScmObj mod)
   rslt = scm_fcd_module_import(mod, name, true);
   if (rslt < 0) return -1;
 
+  /*
+   * load (scythe internal misc) module and import it
+   */
+
+  rslt = scm_load_module_scythe_internal_misc();
+  if (rslt < 0) return -1;
+
+  name = scm_make_module_name(STRARY("scythe", "internal", "misc"), 3);
+  if (scm_obj_null_p(name)) return -1;
+
+  rslt = scm_fcd_module_import(mod, name, true);
+  if (rslt < 0) return -1;
+
+  /*
+   * define global variables
+   */
+
   rslt = scm_define_scythe_internal_repl_closure(mod);
   if (rslt < 0) return -1;
 

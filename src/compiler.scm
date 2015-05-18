@@ -1555,42 +1555,6 @@
               (loop (+ i 1))))
           vec))))
 
-(define (p1-decons-with-module cmpl exp)
-  (let ((x (cdr exp)))
-    (unless (pair? x)
-      (compile-error cmpl "malformed with-module"))
-    x))
-
-(define (p1-syntax-handler-with-module cmpl exp env toplevel-p rdepth)
-  (let* ((x (p1-decons-with-module cmpl exp))
-         (name (car x))
-         (exps (cdr x))
-         (benv (compiler-base-env cmpl)))
-    (compiler-select-module! cmpl name)
-    (let ((x (list->vector (cons p2-syntax-id-begin
-                                 (map (lambda (e)
-                                        (p1-compile-exp cmpl e
-                                                        (compiler-base-env cmpl)
-                                                        toplevel-p rdepth))
-                                      exps)))))
-      (compiler-select-base-env! cmpl benv)
-      x)))
-
-(define (p1-decons-select-module cmpl exp)
-  (let ((x (cdr exp)))
-    (unless (and (pair? x) (null? (cdr x)))
-      (compile-error cmpl "malformed select-module"))
-    (car x)))
-
-(define (p1-syntax-handler-select-module cmpl exp env toplevel-p rdepth)
-  (compiler-select-module! cmpl (p1-decons-select-module cmpl exp))
-  (vector p2-syntax-id-begin))
-
-(define (p1-syntax-handler-current-module cmpl exp env toplevel-p rdepth)
-  (unless (= (length exp) 1)
-    (compile-error cmpl "malformed current-module"))
-  (vector p2-syntax-id-self (env-module (compiler-base-env cmpl))))
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (module-export (current-module) 'current-macro-env-def)
@@ -1696,6 +1660,44 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(define (p1-decons-with-module cmpl exp)
+  (let ((x (cdr exp)))
+    (unless (pair? x)
+      (compile-error cmpl "malformed with-module"))
+    x))
+
+(define (p1-syntax-handler-with-module cmpl exp env toplevel-p rdepth)
+  (let* ((x (p1-decons-with-module cmpl exp))
+         (name (car x))
+         (exps (cdr x))
+         (benv (compiler-base-env cmpl)))
+    (compiler-select-module! cmpl name)
+    (let ((x (list->vector (cons p2-syntax-id-begin
+                                 (map (lambda (e)
+                                        (p1-compile-exp cmpl e
+                                                        (compiler-base-env cmpl)
+                                                        toplevel-p rdepth))
+                                      exps)))))
+      (compiler-select-base-env! cmpl benv)
+      x)))
+
+(define (p1-decons-select-module cmpl exp)
+  (let ((x (cdr exp)))
+    (unless (and (pair? x) (null? (cdr x)))
+      (compile-error cmpl "malformed select-module"))
+    (car x)))
+
+(define (p1-syntax-handler-select-module cmpl exp env toplevel-p rdepth)
+  (compiler-select-module! cmpl (p1-decons-select-module cmpl exp))
+  (vector p2-syntax-id-begin))
+
+(define (p1-syntax-handler-current-module cmpl exp env toplevel-p rdepth)
+  (unless (= (length exp) 1)
+    (compile-error cmpl "malformed current-module"))
+  (vector p2-syntax-id-self (env-module (compiler-base-env cmpl))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (define compiler-syntax-definition
   (make-syntax 'define p1-syntax-handler-definition))
 
@@ -1756,15 +1758,6 @@
 (define compiler-syntax-quasiquote
   (make-syntax 'quasiquote p1-syntax-handler-quasiquote))
 
-(define compiler-syntax-with-module
-  (make-syntax 'with-module p1-syntax-handler-with-module))
-
-(define compiler-syntax-select-module
-  (make-syntax 'select-module p1-syntax-handler-select-module))
-
-(define compiler-syntax-current-module
-  (make-syntax 'current-module p1-syntax-handler-current-module))
-
 (define compiler-syntax-syntax-definition
   (make-syntax 'define-syntax p1-syntax-handler-syntax-definition))
 
@@ -1774,32 +1767,44 @@
 (define compiler-syntax-letrec-syntax
   (make-syntax 'letrec-syntax p1-syntax-handler-letrec-syntax))
 
-(p1-register-syntax '(scheme base) compiler-syntax-definition #t)
-(p1-register-syntax '(scheme base) compiler-syntax-begin #t)
-(p1-register-syntax '(scheme base) compiler-syntax-quote #t)
-(p1-register-syntax '(scheme base) compiler-syntax-lambda #t)
-(p1-register-syntax '(scheme base) compiler-syntax-assignment #t)
-(p1-register-syntax '(scheme base) compiler-syntax-if #t)
-(p1-register-syntax '(scheme base) compiler-syntax-cond #t)
-(p1-register-syntax '(scheme base) compiler-syntax-and #t)
-(p1-register-syntax '(scheme base) compiler-syntax-or #t)
-(p1-register-syntax '(scheme base) compiler-syntax-when #t)
-(p1-register-syntax '(scheme base) compiler-syntax-unless #t)
-(p1-register-syntax '(scheme base) compiler-syntax-let #t)
-(p1-register-syntax '(scheme base) compiler-syntax-let* #t)
-(p1-register-syntax '(scheme base) compiler-syntax-letrec #t)
-(p1-register-syntax '(scheme base) compiler-syntax-letrec* #t)
-(p1-register-syntax '(scheme base) compiler-syntax-do #t)
-(p1-register-syntax '(scheme base) compiler-syntax-let-values #t)
-(p1-register-syntax '(scheme base) compiler-syntax-let*-values #t)
-(p1-register-syntax '(scheme base) compiler-syntax-parameterize #t)
-(p1-register-syntax '(scheme base) compiler-syntax-quasiquote #t)
-(p1-register-syntax '(scheme base) compiler-syntax-with-module #t)
-(p1-register-syntax '(scheme base) compiler-syntax-select-module #t)
-(p1-register-syntax '(scheme base) compiler-syntax-current-module #t)
-(p1-register-syntax '(scheme base) compiler-syntax-syntax-definition #t)
-(p1-register-syntax '(scheme base) compiler-syntax-let-syntax #t)
-(p1-register-syntax '(scheme base) compiler-syntax-letrec-syntax #t)
+(define compiler-syntax-with-module
+  (make-syntax 'with-module p1-syntax-handler-with-module))
+
+(define compiler-syntax-select-module
+  (make-syntax 'select-module p1-syntax-handler-select-module))
+
+(define compiler-syntax-current-module
+  (make-syntax 'current-module p1-syntax-handler-current-module))
+
+(let ((name '(scheme base)))
+  (p1-register-syntax name compiler-syntax-definition #t)
+  (p1-register-syntax name compiler-syntax-begin #t)
+  (p1-register-syntax name compiler-syntax-quote #t)
+  (p1-register-syntax name compiler-syntax-lambda #t)
+  (p1-register-syntax name compiler-syntax-assignment #t)
+  (p1-register-syntax name compiler-syntax-if #t)
+  (p1-register-syntax name compiler-syntax-cond #t)
+  (p1-register-syntax name compiler-syntax-and #t)
+  (p1-register-syntax name compiler-syntax-or #t)
+  (p1-register-syntax name compiler-syntax-when #t)
+  (p1-register-syntax name compiler-syntax-unless #t)
+  (p1-register-syntax name compiler-syntax-let #t)
+  (p1-register-syntax name compiler-syntax-let* #t)
+  (p1-register-syntax name compiler-syntax-letrec #t)
+  (p1-register-syntax name compiler-syntax-letrec* #t)
+  (p1-register-syntax name compiler-syntax-do #t)
+  (p1-register-syntax name compiler-syntax-let-values #t)
+  (p1-register-syntax name compiler-syntax-let*-values #t)
+  (p1-register-syntax name compiler-syntax-parameterize #t)
+  (p1-register-syntax name compiler-syntax-quasiquote #t)
+  (p1-register-syntax name compiler-syntax-syntax-definition #t)
+  (p1-register-syntax name compiler-syntax-let-syntax #t)
+  (p1-register-syntax name compiler-syntax-letrec-syntax #t))
+
+(let ((name '(scythe internal misc)))
+  (p1-register-syntax name compiler-syntax-with-module #t)
+  (p1-register-syntax name compiler-syntax-select-module #t)
+  (p1-register-syntax name compiler-syntax-current-module #t))
 
 
 ;; (define *test-nr-test-total* 0)
