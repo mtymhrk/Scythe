@@ -683,7 +683,7 @@ scm_define_scythe_internal_compile_subr(ScmObj module)
   return 0;
 }
 
-extern const unsigned char scm_compiler_data[];
+extern const unsigned char scm_compile_data[];
 
 static int
 scm_define_scythe_internal_compile_closure(ScmObj mod)
@@ -694,7 +694,7 @@ scm_define_scythe_internal_compile_closure(ScmObj mod)
   SCM_REFSTK_INIT_REG(&mod,
                       &unmarshal, &iseq);
 
-  unmarshal = scm_fcd_make_unmarshal(scm_compiler_data);
+  unmarshal = scm_fcd_make_unmarshal(scm_compile_data);
   if (scm_obj_null_p(unmarshal)) return -1;
 
   iseq = scm_fcd_unmarshal_ref(unmarshal, 0);

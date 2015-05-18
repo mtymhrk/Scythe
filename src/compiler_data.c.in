@@ -1,4 +1,0 @@
-
-const unsigned char scm_compiler_data[] = {
-<%= code %>
-};
