@@ -631,12 +631,15 @@ int scm_subr_func_format(ScmObj subr, int argc, const ScmObj *argv);
 
 #define SCM_SUBR_ARITY_MODULE_P 1
 #define SCM_SUBR_ARITY_MODULE_NAME 1
+#define SCM_SUBR_ARITY_MODULE_EXPORT 2
 
 #define SCM_SUBR_FLAG_MODULE_P 0
 #define SCM_SUBR_FLAG_MODULE_NAME 0
+#define SCM_SUBR_FLAG_MODULE_EXPORT 0
 
 int scm_subr_func_module_P(ScmObj subr, int argc, const ScmObj *argv);
 int scm_subr_func_module_name(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_module_export(ScmObj subr, int argc, const ScmObj *argv);
 
 
 /*******************************************************************/

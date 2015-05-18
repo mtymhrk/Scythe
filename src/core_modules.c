@@ -691,6 +691,7 @@ scm_define_scythe_internal_compile_subr(ScmObj module)
     /*******************************************************************/
     { "module?", SCM_SUBR_ARITY_MODULE_P, SCM_SUBR_FLAG_MODULE_P, scm_subr_func_module_P, false },
     { "module-name", SCM_SUBR_ARITY_MODULE_NAME, SCM_SUBR_FLAG_MODULE_NAME, scm_subr_func_module_name, false },
+    { "module-export", SCM_SUBR_ARITY_MODULE_EXPORT, SCM_SUBR_FLAG_MODULE_EXPORT, scm_subr_func_module_export, false },
   };
 
   int rslt;

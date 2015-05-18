@@ -2606,6 +2606,26 @@ scm_api_module_name(ScmObj module)
   return scm_fcd_module_name(module);
 }
 
+ScmObj
+scm_api_module_export(ScmObj module, ScmObj sym)
+{
+  int r;
+
+  if (!scm_fcd_module_p(module)) {
+    scm_capi_error("failed to export identifier: invalid argument", module);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_fcd_symbol_p(sym)) {
+    scm_capi_error("failed to export identifier: invalid argument", sym);
+    return SCM_OBJ_NULL;
+  }
+
+  r = scm_fcd_module_export(module, sym);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return SCM_UNDEF_OBJ;
+}
+
 int
 scm_capi_define_global_var(ScmObj module, ScmObj sym, ScmObj val, bool export)
 {
