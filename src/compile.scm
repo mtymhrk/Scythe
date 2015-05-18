@@ -1211,42 +1211,37 @@
   (p1-decons-let-like-syntax cmpl exp #t 'let))
 
 ;;; (let <name> ((<v> <i>) ...) <expr> ...)
-;;; -> (let ((<v> <i>) ...)
-;;;      (letrec* ((<name> (lambda (<v> ...) <expr> ...)))
-;;;        (<name> <v> ...)))
+;;; -> ((letrec ((<name> (lambda (<v> ...) <expr> ...)))
+;;;     <i> ...))
 
-(define (p1-cmpl-named-let-body cmpl name vars body env toplevel-p rdepth)
-  (let ((new-env (env-extend (vector name) #f env)))
-    (let ((lmd (p1-cmpl-lambda cmpl vars #f body new-env #f rdepth))
-          (cal (cons (vector p2-syntax-id-lref name 0 0)
-                     (let rec ((idx 0) (v vars))
-                       (if (null? v)
-                           '()
-                           (cons (vector p2-syntax-id-lref (car v) idx 1)
-                                 (rec (+ idx 1) (cdr v))))))))
-      (rdepth-add! rdepth -1)
-      (vector p2-syntax-id-letrec*
-              (vector (cons name (env-assigned-variable? new-env 0)))
-              (vector lmd)
-              (list->vector (cons p2-syntax-id-call cal))))))
+(define (p1-cmpl-named-let cmpl name vars inits body env toplevel-p rdepth)
+  (let* ((new-env (env-extend (vector name) #f env))
+         (lmd (p1-cmpl-lambda cmpl vars #f body new-env #f rdepth)))
+    (rdepth-add! rdepth -1)
+    `#(,p2-syntax-id-call
+       ,`#(,p2-syntax-id-letrec
+           ,`#(,(cons name (env-assigned-variable? new-env 0)))
+           ,`#(,lmd)
+           ,`#(,p2-syntax-id-lref name 0 0))
+       ,@(map (lambda (i) (p1-compile-exp cmpl i env #f rdepth))
+              inits))))
+
+(define (p1-cmpl-let cmpl vars inits body env toplevel-p rdepth)
+  (let* ((new-env (if (null? vars) env (env-extend vars #f env)))
+         (cb (p1-cmpl-body cmpl body new-env #f rdepth)))
+    (unless (null? vars)
+      (rdepth-add! rdepth -1))
+    `#(,p2-syntax-id-let
+       ,(list->vector (p1-insert-assign-flg vars new-env))
+       ,(list->vector (map (lambda (i) (p1-compile-exp cmpl i env #f rdepth))
+                           inits))
+       ,cb)))
 
 (define (p1-syntax-handler-let cmpl exp env toplevel-p rdepth)
   (let-values (((name vars inits body) (p1-decons-let cmpl exp)))
-    (let* ((new-env (if (null? vars)
-                        env
-                        (env-extend (list->vector vars) #f env)))
-           (cb (if name
-                   (p1-cmpl-named-let-body cmpl name vars body new-env
-                                           #f rdepth)
-                   (p1-cmpl-body cmpl body new-env #f rdepth))))
-      (unless (null? vars)
-        (rdepth-add! rdepth -1))
-      (vector p2-syntax-id-let
-              (list->vector (p1-insert-assign-flg vars new-env))
-              (list->vector (map (lambda (e)
-                                   (p1-compile-exp cmpl e env #f rdepth))
-                                 inits))
-              cb))))
+    (if name
+        (p1-cmpl-named-let cmpl name vars inits body env toplevel-p rdepth)
+        (p1-cmpl-let cmpl vars inits body env toplevel-p rdepth))))
 
 (define (p1-decons-let* cmpl exp)
   (let-values (((name vars inits body)

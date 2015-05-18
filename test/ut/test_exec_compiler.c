@@ -301,39 +301,37 @@ TEST(exec_compiler, let_6)
 TEST(exec_compiler, named_let_1)
 {
   test_compile("(let loop ((x 1)(y 2)) (loop x y))",
-               "(  (immval 1)(push)"
+               "(  (cframe (label 0))"
+               "   (immval 1)(push)"
                "   (immval 2)(push)"
-               "   (eframe 2)"
                "   (emine 1)"
                "   (close 1 2"
                "     ((sref 0 0)(push)"
                "      (sref 1 0)(push)"
                "      (sref 0 1)"
                "      (tcall 2)))"
-               "   (demine 0 0)"
-               "   (cframe (label 0))"
-               "   (sref 0 1)(push)"
-               "   (sref 1 1)(push)"
+               "   (push)"
+               "   (edemine 1 0)"
                "   (sref 0 0)"
+               "   (epop)"
                "   (call 2)"
                "   (nop)"
-               " (label 0)"
-               "   (epop)"
-               "   (epop))");
+               " (label 0))");
 }
 
 TEST(exec_compiler, named_let_2)
 {
   test_compile("(let loop ())",
-               "(  (emine 1)"
+               "(  (cframe (label 0))"
+               "   (emine 1)"
                "   (close 0 0 ((undef)(return)))"
-               "   (demine 0 0)"
-               "   (cframe (label 0))"
+               "   (push)"
+               "   (edemine 1 0)"
                "   (sref 0 0)"
+               "   (epop)"
                "   (call 0)"
                "   (nop)"
-               " (label 0)"
-               "   (epop))");
+               " (label 0))");
 }
 
 TEST(exec_compiler, named_let_3)
@@ -342,17 +340,16 @@ TEST(exec_compiler, named_let_3)
                "((close 0 0"
                "   ((immval 1)(push)"
                "    (immval 2)(push)"
-               "    (eframe 2)"
                "    (emine 1)"
                "    (close 1 2"
                "      ((immval 3)(push)"
                "       (immval 4)(push)"
                "       (sref 0 1)"
                "       (tcall 2)))"
-               "    (demine 0 0)"
-               "    (sref 0 1)(push)"
-               "    (sref 1 1)(push)"
+               "    (push)"
+               "    (edemine 1 0)"
                "    (sref 0 0)"
+               "    (epop)"
                "    (tcall 2))))");
 }
 
