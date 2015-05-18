@@ -820,6 +820,8 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(define p1-lambda-id (make-identifier 'lambda (current-module)))
+
 (define (p1-normalize-definition cmpl exp)
   (let ((key (car exp))
         (rest (cdr exp)))
@@ -830,7 +832,7 @@
       (if (pair? x)
           (let ((name (car x))
                 (formals (cdr x)))
-            (loop name (cons (cons 'lambda (cons formals y)) '())))
+            (loop name (cons (cons p1-lambda-id (cons formals y)) '())))
           (cons key (cons x y))))))
 
 (define (p1-decons-definition cmpl exp)
