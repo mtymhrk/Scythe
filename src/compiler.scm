@@ -247,9 +247,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (define precompile? (make-parameter #f))
 
-(define (generate-label asmb)
-  (assembler-assign-label-id! asmb))
-
 (define (compile-error cmpl msg)
   (error (format "failed to compile: ~a" msg) (compiler-current-expr cmpl)))
 
@@ -379,7 +376,7 @@
   (let ((len (vector-length exp))
         (lbl #f))
     (unless tail-p
-      (set! lbl (generate-label asmb))
+      (set! lbl (assembler-assign-label-id! asmb))
       (push-inst-cframe 'label lbl asmb))
     (let loop ((idx 2))
       (when (< idx len)
@@ -473,8 +470,8 @@
 ;;;    <conse> : <expr>
 ;;;    <alter> : <expr>
 (define (p2-syntax-handler-if cmpl exp arity tail-p asmb)
-  (let ((lbl-j (if tail-p #f (generate-label asmb)))
-        (lbl-a (generate-label asmb)))
+  (let ((lbl-j (if tail-p #f (assembler-assign-label-id! asmb)))
+        (lbl-a (assembler-assign-label-id! asmb)))
     (p2-compile-exp cmpl (vector-ref exp 1) 1 #f asmb)
     (push-inst-jmpf 'label lbl-a asmb)
     (p2-compile-exp cmpl (vector-ref exp 2) arity tail-p asmb)
@@ -496,14 +493,14 @@
          (nr-clauses (vector-length clauses))
          (nr-tests (- nr-clauses 1))
          (lbl-c (make-vector nr-clauses #f))
-         (lbl-j (if tail-p #f (generate-label asmb))))
+         (lbl-j (if tail-p #f (assembler-assign-label-id! asmb))))
     (let loop ((idx 0))
       (when (< idx nr-tests)
         (let ((cls (vector-ref clauses idx))
               (lbl lbl-j))
           (p2-compile-exp cmpl (vector-ref cls 0) 1 #f asmb)
           (when (or (not (eq? (vector-ref cls 1) '<>)) tail-p)
-            (set! lbl (generate-label asmb))
+            (set! lbl (assembler-assign-label-id! asmb))
             (vector-set! lbl-c idx lbl))
           (push-inst-jmpt 'label lbl asmb))
         (loop (+ idx 1))))
@@ -522,7 +519,7 @@
                    (when lbl (push-inst-jmp 'label lbl asmb))
                    (push-inst-label (vector-ref lbl-c idx) asmb)
                    (unless tail-p
-                     (set! lbl-call (generate-label asmb))
+                     (set! lbl-call (assembler-assign-label-id! asmb))
                      (push-inst-cframe 'label lbl-call asmb))
                    (push-inst-push asmb)
                    (p2-compile-exp cmpl (vector-ref cls 2) 1 #f asmb)
@@ -550,7 +547,7 @@
 ;;; #(and <expr> ...)
 (define (p2-syntax-handler-and cmpl exp arity tail-p asmb)
   (let ((nr-tests (- (vector-length exp) 1))
-        (lbl-j (generate-label asmb)))
+        (lbl-j (assembler-assign-label-id! asmb)))
     (cond ((= nr-tests 0)
            (push-inst-immval #t asmb)
            (when tail-p
@@ -570,7 +567,7 @@
 ;;; #(or <expr> ...)
 (define (p2-syntax-handler-or cmpl exp arity tail-p asmb)
   (let ((nr-tests (- (vector-length exp) 1))
-        (lbl-j (generate-label asmb)))
+        (lbl-j (assembler-assign-label-id! asmb)))
     (cond ((= nr-tests 0)
            (push-inst-immval #f asmb)
            (when tail-p
@@ -662,8 +659,8 @@
         (steps (vector-ref exp 3))
         (cmds (vector-ref exp 6)))
     (let ((nr-vars (vector-length vars))
-          (lbl-e (generate-label asmb))
-          (lbl-s (generate-label asmb)))
+          (lbl-e (assembler-assign-label-id! asmb))
+          (lbl-s (assembler-assign-label-id! asmb)))
       (when (> nr-vars 0)
         (let loop ((idx 0))
           (when (< idx nr-vars)
