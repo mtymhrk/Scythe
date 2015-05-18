@@ -197,7 +197,7 @@ get_module(ScmObj spec)
 }
 
 int
-scm_fcd_import(ScmObj module, ScmObj imported, bool restrictive)
+scm_fcd_module_import(ScmObj module, ScmObj imported, bool restrictive)
 {
   SCM_REFSTK_INIT_REG(&module, &imported);
 
@@ -211,13 +211,10 @@ scm_fcd_import(ScmObj module, ScmObj imported, bool restrictive)
 }
 
 int
-scm_fcd_export(ScmObj module, ScmObj sym)
+scm_fcd_module_export(ScmObj module, ScmObj sym)
 {
-  scm_assert(scm_fcd_module_specifier_p(module));
+  scm_assert(scm_fcd_module_p(module));
   scm_assert(scm_fcd_symbol_p(sym));
-
-  module = get_module(module);
-  if (scm_obj_null_p(module)) return -1;
 
   return scm_module_export(module, sym);
 }

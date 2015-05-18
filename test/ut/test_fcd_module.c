@@ -85,7 +85,7 @@ import_module(const char *n, bool res)
 
   find_module(n);
 
-  scm_fcd_import(mod, module, res);
+  scm_fcd_module_import(mod, module, res);
 
   name = nam;
   module = mod;
@@ -139,7 +139,7 @@ TEST(fcd_module, import)
 
   make_module("test");
 
-  TEST_ASSERT_EQUAL_INT(0, scm_fcd_import(module, main_mod, false));
+  TEST_ASSERT_EQUAL_INT(0, scm_fcd_module_import(module, main_mod, false));
 }
 
 TEST(fcd_module, find_module)

@@ -82,7 +82,7 @@ import_module(const char *n, bool res)
 
   find_module(n);
 
-  scm_fcd_import(mod, module, res);
+  scm_fcd_module_import(mod, module, res);
 
   name = nam;
   module = mod;

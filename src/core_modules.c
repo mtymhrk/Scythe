@@ -113,7 +113,7 @@ scm_export_sym(ScmObj module, const char **data, size_t n)
     sym = scm_fcd_make_symbol_from_cstr(data[i], SCM_ENC_SRC);
     if (scm_obj_null_p(sym)) return -1;
 
-    r = scm_fcd_export(module, sym);
+    r = scm_fcd_module_export(module, sym);
     if (r < 0) return -1;
   }
 
@@ -537,7 +537,7 @@ scm_load_module_func_scythe_internal_base(ScmObj mod)
   name = scm_make_module_name(STRARY("scheme", "base"), 2);
   if (scm_obj_null_p(name)) return -1;
 
-  rslt = scm_fcd_import(mod, name, false);
+  rslt = scm_fcd_module_import(mod, name, false);
   if (rslt < 0) return -1;
 
 
@@ -551,7 +551,7 @@ scm_load_module_func_scythe_internal_base(ScmObj mod)
   name = scm_make_module_name(STRARY("scheme", "char"), 2);
   if (scm_obj_null_p(name)) return -1;
 
-  rslt = scm_fcd_import(mod, name, false);
+  rslt = scm_fcd_module_import(mod, name, false);
   if (rslt < 0) return -1;
 
   return 0;
@@ -819,7 +819,7 @@ scm_load_module_func_scythe_internal_compile(ScmObj mod)
   name = scm_make_module_name(STRARY("scythe", "internal", "base"), 3);
   if (scm_obj_null_p(name)) return -1;
 
-  rslt = scm_fcd_import(mod, name, true);
+  rslt = scm_fcd_module_import(mod, name, true);
   if (rslt < 0) return -1;
 
   /*
@@ -832,7 +832,7 @@ scm_load_module_func_scythe_internal_compile(ScmObj mod)
   name = scm_make_module_name(STRARY("scythe", "internal", "misc"), 3);
   if (scm_obj_null_p(name)) return -1;
 
-  rslt = scm_fcd_import(mod, name, true);
+  rslt = scm_fcd_module_import(mod, name, true);
   if (rslt < 0) return -1;
 
 
@@ -910,7 +910,7 @@ scm_load_module_func_scythe_internal_macro(ScmObj mod)
   name = scm_make_module_name(STRARY("scythe", "internal", "base"), 3);
   if (scm_obj_null_p(name)) return -1;
 
-  rslt = scm_fcd_import(mod, name, true);
+  rslt = scm_fcd_module_import(mod, name, true);
   if (rslt < 0) return -1;
 
   /*
@@ -923,7 +923,7 @@ scm_load_module_func_scythe_internal_macro(ScmObj mod)
   name = scm_make_module_name(STRARY("scythe", "internal", "misc"), 3);
   if (scm_obj_null_p(name)) return -1;
 
-  rslt = scm_fcd_import(mod, name, true);
+  rslt = scm_fcd_module_import(mod, name, true);
   if (rslt < 0) return -1;
 
   /*
@@ -936,7 +936,7 @@ scm_load_module_func_scythe_internal_macro(ScmObj mod)
   name = scm_make_module_name(STRARY("scythe", "internal", "compile"), 3);
   if (scm_obj_null_p(name)) return -1;
 
-  rslt = scm_fcd_import(mod, name, true);
+  rslt = scm_fcd_module_import(mod, name, true);
   if (rslt < 0) return -1;
 
   /*
@@ -1004,7 +1004,7 @@ scm_load_module_func_scythe_internal_repl(ScmObj mod)
   name = scm_make_module_name(STRARY("scythe", "internal", "base"), 3);
   if (scm_obj_null_p(name)) return -1;
 
-  rslt = scm_fcd_import(mod, name, true);
+  rslt = scm_fcd_module_import(mod, name, true);
   if (rslt < 0) return -1;
 
   rslt = scm_define_scythe_internal_repl_closure(mod);
@@ -1089,7 +1089,7 @@ scm_load_module_func_scythe_base(ScmObj mod)
   name = scm_make_module_name(STRARY("scythe", "internal", "base"), 3);
   if (scm_obj_null_p(name)) return -1;
 
-  rslt = scm_fcd_import(mod, name, false);
+  rslt = scm_fcd_module_import(mod, name, false);
   if (rslt < 0) return -1;
 
 
@@ -1103,7 +1103,7 @@ scm_load_module_func_scythe_base(ScmObj mod)
   name = scm_make_module_name(STRARY("scythe", "internal", "misc"), 3);
   if (scm_obj_null_p(name)) return -1;
 
-  rslt = scm_fcd_import(mod, name, false);
+  rslt = scm_fcd_module_import(mod, name, false);
   if (rslt < 0) return -1;
 
 
@@ -1117,7 +1117,7 @@ scm_load_module_func_scythe_base(ScmObj mod)
   name = scm_make_module_name(STRARY("scythe", "internal", "macro"), 3);
   if (scm_obj_null_p(name)) return -1;
 
-  rslt = scm_fcd_import(mod, name, false);
+  rslt = scm_fcd_module_import(mod, name, false);
   if (rslt < 0) return -1;
 
   return 0;
@@ -1154,7 +1154,7 @@ scm_load_module_func_main(ScmObj mod)
   name = scm_make_module_name(STRARY("scythe", "base"), 2);
   if (scm_obj_null_p(name)) return -1;
 
-  rslt = scm_fcd_import(mod, name, false);
+  rslt = scm_fcd_module_import(mod, name, false);
   if (rslt < 0) return -1;
 
   return 0;
