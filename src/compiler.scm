@@ -1547,6 +1547,11 @@
   (compiler-select-module! cmpl (p1-decons-select-module cmpl exp))
   (vector p2-syntax-id-begin))
 
+(define (p1-syntax-handler-current-module cmpl exp env toplevel-p rdepth)
+  (unless (= (length exp) 1)
+    (compile-error cmpl "malformed current-module"))
+  (vector p2-syntax-id-self (env-module (compiler-base-env cmpl))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define current-macro-env-def (make-parameter ()))
@@ -1715,6 +1720,9 @@
 (define compiler-syntax-select-module
   (make-syntax 'select-module p1-syntax-handler-select-module))
 
+(define compiler-syntax-current-module
+  (make-syntax 'current-module p1-syntax-handler-current-module))
+
 (define compiler-syntax-syntax-definition
   (make-syntax 'define-syntax p1-syntax-handler-syntax-definition))
 
@@ -1746,6 +1754,7 @@
 (p1-register-syntax '(scheme base) compiler-syntax-quasiquote #t)
 (p1-register-syntax '(scheme base) compiler-syntax-with-module #t)
 (p1-register-syntax '(scheme base) compiler-syntax-select-module #t)
+(p1-register-syntax '(scheme base) compiler-syntax-current-module #t)
 (p1-register-syntax '(scheme base) compiler-syntax-syntax-definition #t)
 (p1-register-syntax '(scheme base) compiler-syntax-let-syntax #t)
 (p1-register-syntax '(scheme base) compiler-syntax-letrec-syntax #t)
