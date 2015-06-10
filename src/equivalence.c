@@ -6,7 +6,12 @@
 #include "scythe/vector.h"
 #include "scythe/iseq.h"
 
-extern inline bool
+
+/***************************************************************************/
+/*  Equivalence (interface)                                                */
+/***************************************************************************/
+
+bool
 scm_fcd_eq_p(ScmObj obj1, ScmObj obj2)
 {
   return scm_obj_same_instance_p(obj1, obj2);

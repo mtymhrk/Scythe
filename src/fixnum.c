@@ -1,7 +1,7 @@
 #include "scythe/object.h"
 #include "scythe/fcd.h"
 #include "scythe/impl_utils.h"
-#include "scythe/number_common.h"
+#include "scythe/number.h"
 #include "scythe/fixnum.h"
 
 ScmNumFunc SCM_FIXNUM_FUNC = {

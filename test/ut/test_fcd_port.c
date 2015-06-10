@@ -1,5 +1,3 @@
-#include "fcd_port.c"
-
 #include <stdio.h>
 
 #include "scythe/object.h"

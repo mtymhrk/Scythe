@@ -6,7 +6,7 @@
 #include "scythe/fcd.h"
 #include "scythe/earray.h"
 #include "scythe/impl_utils.h"
-#include "scythe/number_common.h"
+#include "scythe/number.h"
 #include "scythe/bignum.h"
 
 ScmNumFunc SCM_BIGNUM_FUNC = {

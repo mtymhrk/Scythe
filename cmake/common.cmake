@@ -9,12 +9,7 @@ set(scythe_lib_src memory.c object.c pair.c string.c symbol.c vector.c
                    port.c parser.c assembler.c exception.c syntax.c compiler.c
                    module.c core_modules.c fixnum.c bignum.c number_parser.c
                    marshal.c compile_data.c repl_data.c earray.c impl_utils.c
-                   macro_data.c
-                   fcd_assembler.c fcd_char.c fcd_compiler.c fcd_equivalence.c
-                   fcd_exception.c fcd_format.c fcd_iseq.c fcd_marshal.c
-                   fcd_memory.c fcd_miscobjects.c fcd_module.c fcd_number.c
-                   fcd_pair.c fcd_port.c fcd_procedure.c fcd_string.c
-                   fcd_symbol.c fcd_syntax.c fcd_vector.c fcd_vm.c
+                   macro_data.c equivalence.c format.c number.c
                    )
 
 

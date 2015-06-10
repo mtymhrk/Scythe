@@ -1,4 +1,3 @@
-#include "fcd_format.c"
 
 #include "scythe/object.h"
 #include "scythe/fcd.h"

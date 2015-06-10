@@ -31,7 +31,9 @@ ScmObj scm_fcd_char_ge_P_lst(ScmObj lst);
 ScmObj scm_fcd_char_to_integer(ScmObj chr);
 ScmObj scm_fcd_integer_to_char(ScmObj num, ScmEncoding *enc);
 
+scm_char_t scm_fcd_char_value(ScmObj chr);
 ssize_t scm_fcd_char_to_cchr(ScmObj chr, scm_char_t *cp);
 ScmEncoding *scm_fcd_char_encoding(ScmObj chr);
+ScmObj scm_fcd_char_encode(ScmObj chr, ScmEncoding *enc);
 
 #endif /* INCLUDE_FCD_CHAR_H__ */

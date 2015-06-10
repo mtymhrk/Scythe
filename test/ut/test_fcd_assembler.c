@@ -1,4 +1,3 @@
-#include "fcd_assembler.c"
 
 #include "scythe/object.h"
 #include "scythe/fcd.h"

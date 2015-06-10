@@ -12,11 +12,9 @@
 /*******************************************************/
 
 ScmObj scm_fcd_nil_new(SCM_MEM_TYPE_T mtype);
-ScmObj scm_fcd_nil(void);
 bool scm_fcd_nil_p(ScmObj obj);
 ScmObj scm_fcd_nil_P(ScmObj obj);
-
-#define SCM_NIL_OBJ scm_fcd_nil()
+bool scm_fcd_nil_object_p(ScmObj obj);
 
 
 /*******************************************************/
@@ -26,16 +24,11 @@ ScmObj scm_fcd_nil_P(ScmObj obj);
 bool scm_fcd_boolean_p(ScmObj obj);
 ScmObj scm_fcd_boolean_P(ScmObj obj);
 ScmObj scm_fcd_bool_new(SCM_MEM_TYPE_T mtype, bool value);
-ScmObj scm_fcd_true(void);
-ScmObj scm_fcd_false(void);
 bool scm_fcd_true_object_p(ScmObj obj);
 bool scm_fcd_false_object_p(ScmObj obj);
 bool scm_fcd_true_p(ScmObj obj);
 bool scm_fcd_false_p(ScmObj obj);
 ScmObj scm_fcd_not(ScmObj obj);
-
-#define SCM_TRUE_OBJ scm_fcd_true()
-#define SCM_FALSE_OBJ scm_fcd_false()
 
 
 /*******************************************************/
@@ -43,11 +36,9 @@ ScmObj scm_fcd_not(ScmObj obj);
 /*******************************************************/
 
 ScmObj scm_fcd_eof_new(SCM_MEM_TYPE_T mtype);
-ScmObj scm_fcd_eof(void);
+bool scm_fcd_eof_p(ScmObj obj);
 bool scm_fcd_eof_object_p(ScmObj obj);
 ScmObj scm_fcd_eof_object_P(ScmObj obj);
-
-#define SCM_EOF_OBJ scm_fcd_eof()
 
 
 /*******************************************************/
@@ -55,10 +46,8 @@ ScmObj scm_fcd_eof_object_P(ScmObj obj);
 /*******************************************************/
 
 ScmObj scm_fcd_undef_new(SCM_MEM_TYPE_T mtype);
-ScmObj scm_fcd_undef(void);
+bool scm_fcd_undef_p(ScmObj obj);
 bool scm_fcd_undef_object_p(ScmObj obj);
-
-#define SCM_UNDEF_OBJ scm_fcd_undef()
 
 
 /*******************************************************/
@@ -66,11 +55,8 @@ bool scm_fcd_undef_object_p(ScmObj obj);
 /*******************************************************/
 
 ScmObj scm_fcd_landmine_new(SCM_MEM_TYPE_T mtype);
-ScmObj scm_fcd_landmine(void);
+bool scm_fcd_landmine_p(ScmObj obj);
 bool scm_fcd_landmine_object_p(ScmObj obj);
-
-#define SCM_LANDMINE_OBJ scm_fcd_landmine()
-#define SCM_UNINIT_OBJ scm_fcd_landmine()
 
 
 /*******************************************************/
@@ -85,8 +71,10 @@ struct ScmBoxRec {
   ScmObj obj;
 };
 
-bool scm_fcd_box_object_p(ScmObj obj);
+bool scm_fcd_box_p(ScmObj obj);
 ScmObj scm_fcd_box_new(SCM_MEM_TYPE_T mtype, ScmObj obj);
+
+#define scm_fcd_box_object_p scm_fcd_box_p
 
 static inline ScmObj
 scm_fcd_box_unbox(ScmObj box)

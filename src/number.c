@@ -3,30 +3,35 @@
 #include "scythe/object.h"
 #include "scythe/encoding.h"
 #include "scythe/fcd.h"
-#include "scythe/number_common.h"
+#include "scythe/number.h"
 #include "scythe/fixnum.h"
 #include "scythe/bignum.h"
 #include "scythe/number_parser.h"
 
-extern inline bool
+
+/****************************************************************************/
+/*  Number (interface)                                                      */
+/****************************************************************************/
+
+bool
 scm_fcd_fixnum_p(ScmObj obj)
 {
   return scm_obj_type_p(obj, &SCM_FIXNUM_TYPE_INFO);
 }
 
-extern inline ScmObj
+ScmObj
 scm_fcd_fixnum_P(ScmObj obj)
 {
   return scm_fcd_fixnum_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
 }
 
-extern inline bool
+bool
 scm_fcd_bignum_p(ScmObj obj)
 {
   return scm_obj_type_p(obj, &SCM_BIGNUM_TYPE_INFO);
 }
 
-extern inline ScmObj
+ScmObj
 scm_fcd_bignum_P(ScmObj obj)
 {
   return scm_fcd_bignum_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
@@ -93,97 +98,97 @@ scm_fcd_bignum_new_fixnum(SCM_MEM_TYPE_T mtype, ScmObj fn)
   return bn;
 }
 
-extern inline bool
+bool
 scm_fcd_number_p(ScmObj obj)
 {
   return scm_obj_type_flag_set_p(obj, SCM_TYPE_FLG_NUM);
 }
 
-extern inline ScmObj
+ScmObj
 scm_fcd_number_P(ScmObj obj)
 {
   return scm_fcd_number_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
 }
 
-extern inline bool
+bool
 scm_fcd_complex_p(ScmObj obj)
 {
   if (!scm_fcd_number_p(obj)) return false;
   return SCM_NUM_CALL_FUNC(obj, complex_p);
 }
 
-extern inline ScmObj
+ScmObj
 scm_fcd_complex_P(ScmObj obj)
 {
   return scm_fcd_complex_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
 }
 
-extern inline bool
+bool
 scm_fcd_real_p(ScmObj obj)
 {
   if (!scm_fcd_number_p(obj)) return false;
   return SCM_NUM_CALL_FUNC(obj, real_p);
 }
 
-extern inline ScmObj
+ScmObj
 scm_fcd_real_P(ScmObj obj)
 {
   return scm_fcd_real_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
 }
 
-extern inline bool
+bool
 scm_fcd_rational_p(ScmObj obj)
 {
   if (!scm_fcd_number_p(obj)) return false;
   return SCM_NUM_CALL_FUNC(obj, rational_p);
 }
 
-extern inline ScmObj
+ScmObj
 scm_fcd_rational_P(ScmObj obj)
 {
   return scm_fcd_rational_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
 }
 
-extern inline bool
+bool
 scm_fcd_integer_p(ScmObj obj)
 {
   if (!scm_fcd_number_p(obj)) return false;
   return SCM_NUM_CALL_FUNC(obj, integer_p);
 }
 
-extern inline ScmObj
+ScmObj
 scm_fcd_integer_P(ScmObj obj)
 {
   return scm_fcd_integer_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
 }
 
-extern inline bool
+bool
 scm_fcd_exact_p(ScmObj obj)
 {
   if (!scm_fcd_number_p(obj)) return false;
   return SCM_NUM_CALL_FUNC(obj, exact_p);
 }
 
-extern inline ScmObj
+ScmObj
 scm_fcd_exact_P(ScmObj obj)
 {
   return scm_fcd_exact_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
 }
 
-extern inline bool
+bool
 scm_fcd_inexact_p(ScmObj obj)
 {
   if (!scm_fcd_number_p(obj)) return false;
   return SCM_NUM_CALL_FUNC(obj, inexact_p);
 }
 
-extern inline ScmObj
+ScmObj
 scm_fcd_inexact_P(ScmObj obj)
 {
   return scm_fcd_inexact_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
 }
 
-extern inline bool
+bool
 scm_fcd_exact_integer_p(ScmObj obj)
 {
   if (scm_fcd_integer_p(obj) && scm_fcd_exact_p(obj))
@@ -192,46 +197,46 @@ scm_fcd_exact_integer_p(ScmObj obj)
     return false;
 }
 
-extern inline ScmObj
+ScmObj
 scm_fcd_exact_integer_P(ScmObj obj)
 {
   return scm_fcd_exact_integer_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
 }
 
-extern inline bool
+bool
 scm_fcd_finite_p(ScmObj obj)
 {
   if (!scm_fcd_number_p(obj)) return false;
   return SCM_NUM_CALL_FUNC(obj, finite_p);
 }
 
-extern inline ScmObj
+ScmObj
 scm_fcd_finite_P(ScmObj obj)
 {
   return scm_fcd_finite_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
 }
 
-extern inline bool
+bool
 scm_fcd_infinite_p(ScmObj obj)
 {
   if (!scm_fcd_number_p(obj)) return false;
   return SCM_NUM_CALL_FUNC(obj, infinite_p);
 }
 
-extern inline ScmObj
+ScmObj
 scm_fcd_infinite_P(ScmObj obj)
 {
   return scm_fcd_infinite_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
 }
 
-extern inline bool
+bool
 scm_fcd_nan_p(ScmObj obj)
 {
   if (!scm_fcd_number_p(obj)) return false;
   return SCM_NUM_CALL_FUNC(obj, nan_p);
 }
 
-extern inline ScmObj
+ScmObj
 scm_fcd_nan_P(ScmObj obj)
 {
   return scm_fcd_nan_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;

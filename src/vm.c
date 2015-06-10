@@ -3566,3 +3566,357 @@ scm_vm_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
 
   return rslt;
 }
+
+
+/***************************************************************************/
+/*  VM (interface)                                                         */
+/***************************************************************************/
+
+ScmBedrock *scm_fcd__current_br = NULL;
+ScmObj scm_fcd__current_vm = SCM_OBJ_INIT;
+ScmObj scm_fcd__current_ref_stack = SCM_OBJ_INIT;
+
+/* Memo:
+ *  scm_fcd_nil() の関数の実行では GC が発生するのは NG。
+ *  (マクロ SCM_NIL_OBJ を定義して定数的に使うため)
+ */
+ScmObj
+scm_fcd_nil(void)
+{
+  return scm_bedrock_nil(scm_fcd_current_br());
+}
+
+/* Memo:
+ *  scm_fcd_true() の関数の実行では GC が発生するのは NG。
+ *  (マクロ SCM_TRUE_OBJ を定義して定数的に使うため)
+ */
+ScmObj
+scm_fcd_true(void)
+{
+  return scm_bedrock_true(scm_fcd_current_br());
+}
+
+/* Memo:
+ *  scm_fcd_false() の関数の実行では GC が発生するのは NG。
+ *  (マクロ SCM_FALSE_OBJ を定義して定数的に使うため)
+ */
+ScmObj
+scm_fcd_false(void)
+{
+  return scm_bedrock_false(scm_fcd_current_br());
+}
+
+/* Memo:
+ *  scm_fcd_eof() の関数の実行では GC が発生するのは NG。
+ *  (マクロ SCM_EOF_OBJ を定義して定数的に使うため)
+ */
+ScmObj
+scm_fcd_eof(void)
+{
+  return scm_bedrock_eof(scm_fcd_current_br());
+}
+
+/* Memo:
+ *  scm_fcd_undef() の関数の実行では GC が発生するのは NG。
+ *  (マクロ SCM_UNDEF_OBJ を定義して定数的に使うため)
+ */
+ScmObj
+scm_fcd_undef(void)
+{
+  return scm_bedrock_undef(scm_fcd_current_br());
+}
+
+/* Memo:
+ *  scm_fcd_landmine() の関数の実行では GC が発生するのは NG。
+ *  (マクロ SCM_LANDMINE_OBJ を定義して定数的に使うため)
+ */
+ScmObj
+scm_fcd_landmine(void)
+{
+  return scm_bedrock_landmine(scm_fcd_current_br());
+}
+
+void
+scm_fcd_fatal(const char *msg)
+{
+  scm_bedrock_fatal(scm_fcd_current_br(), msg);
+}
+
+extern inline void
+scm_fcd_fatalf(const char *fmt, ...)
+{
+}
+
+extern inline bool
+scm_fcd_fatal_p(void)
+{
+  return scm_bedrock_fatal_p(scm_fcd_current_br());
+}
+
+int
+scm_fcd_halt(void)
+{
+  return scm_vm_setup_stat_halt(scm_fcd_current_vm());
+}
+
+int
+scm_fcd_cached_global_var_ref(int kind, scm_csetter_t *val)
+{
+  ScmObj gloc = SCM_OBJ_INIT, v = SCM_OBJ_INIT;
+  int r;
+
+  SCM_REFSTK_INIT_REG(&gloc, &v);
+
+  r = scm_bedrock_cached_gv(scm_fcd_current_br(), kind, SCM_CSETTER_L(gloc));
+  if (r < 0) return -1;
+
+  if (scm_obj_not_null_p(gloc)) {
+    v = scm_fcd_gloc_variable_value(gloc);
+    if (scm_fcd_landmine_object_p(v))
+      v = SCM_OBJ_NULL;
+  }
+  else
+    v = SCM_OBJ_NULL;
+
+  if (val != NULL)
+    scm_csetter_setq(val, v);
+
+  return 0;
+}
+
+ScmObj
+scm_fcd_cached_symbol(int kind)
+{
+  return scm_bedrock_cached_sym(scm_fcd_current_br(), kind);
+}
+
+ScmEncoding *
+scm_fcd_system_encoding(void)
+{
+  return scm_bedrock_encoding(scm_fcd_current_br());
+}
+
+void *
+scm_fcd_current_memory_manager(void)
+{
+  return scm_bedrock_mem(scm_fcd_current_br());
+}
+
+ScmObj
+scm_fcd_current_symbol_table(void)
+{
+  return scm_bedrock_symtbl(scm_fcd_current_br());
+}
+
+ScmObj
+scm_fcd_current_module_tree(void)
+{
+  return scm_bedrock_modtree(scm_fcd_current_br());
+}
+
+bool
+scm_fcd_vm_p(ScmObj obj)
+{
+  return scm_obj_type_p(obj, &SCM_VM_TYPE_INFO);
+}
+
+ScmObj
+scm_fcd_vm_new(void)
+{
+  ScmObj vm = SCM_OBJ_INIT;
+  int rslt;
+
+  rslt = scm_vm_bootup();
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  vm = scm_fcd_mem_alloc_root(&SCM_VM_TYPE_INFO, 0);
+  if (scm_obj_null_p(vm)) return SCM_OBJ_NULL;
+
+  rslt = scm_vm_initialize(vm, vm);
+  if (rslt < 0) {
+    scm_fcd_mem_free_root(vm);
+    return SCM_OBJ_NULL;
+  }
+
+  scm_fcd_chg_current_vm(vm);
+
+  return vm;
+}
+
+void
+scm_fcd_vm_end(ScmObj vm)
+{
+  bool main_vm;
+
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  main_vm = scm_obj_same_instance_p(vm, SCM_VM(vm)->main);
+
+  if (main_vm) {
+    scm_fcd_gc_start();
+    scm_fcd_chg_current_vm(SCM_OBJ_NULL);
+  }
+
+  scm_fcd_mem_free_root(vm);
+
+  if (main_vm)
+    scm_vm_shutdown();
+}
+
+ScmObj
+scm_fcd_vm_apply(ScmObj vm, ScmObj proc, ScmObj args)
+{
+  scm_assert(scm_fcd_vm_p(vm));
+  scm_assert(scm_fcd_procedure_p(proc));
+  scm_assert(scm_fcd_nil_p(args) || scm_fcd_pair_p(args));
+  return scm_vm_apply(vm, proc, args);
+}
+
+ScmObj
+scm_fcd_vm_run_cloned(ScmObj vm, ScmObj iseq)
+{
+  scm_assert(scm_fcd_vm_p(vm));
+  scm_assert(scm_fcd_iseq_p(iseq));
+  return scm_vm_run_cloned(vm, iseq);
+}
+
+void
+scm_fcd_vm_disposal_unhandled_exc(ScmObj vm)
+{
+  scm_assert(scm_fcd_vm_p(vm));
+  return scm_vm_disposal_unhandled_exc(vm);
+}
+
+int
+scm_fcd_return_val(const ScmObj *val, int vc)
+{
+  scm_assert(vc >= 0);
+  scm_assert(vc == 0 || val != NULL);
+  return scm_vm_set_val_reg(scm_fcd_current_vm(), val, vc);
+}
+
+ScmObj
+scm_fcd_capture_continuation(void)
+{
+  return scm_vm_capture_cont(scm_fcd_current_vm());
+}
+
+int
+scm_fcd_reinstantemnet_continuation(ScmObj cc)
+{
+  return scm_vm_reinstatement_cont(scm_fcd_current_vm(), cc);
+}
+
+int
+scm_fcd_push_dynamic_bindings(ScmObj alist)
+{
+  return scm_vm_push_dynamic_bindings(scm_fcd_current_vm(), alist);
+}
+
+void
+scm_fcd_pop_dynamic_bindings(void)
+{
+  scm_vm_pop_dynamic_bindings(scm_fcd_current_vm());
+}
+
+ScmObj
+scm_fcd_parameter_value(ScmObj var)
+{
+  scm_assert(scm_obj_not_null_p(var));
+  return scm_vm_parameter_value(scm_fcd_current_vm(), var);
+}
+
+int
+scm_fcd_trampolining(ScmObj proc, ScmObj args,
+                     ScmObj postproc, ScmObj handover)
+{
+  scm_assert(scm_fcd_procedure_p(proc));
+  scm_assert(scm_fcd_nil_p(args) || scm_fcd_pair_p(args));
+  scm_assert(scm_obj_null_p(postproc) || scm_fcd_procedure_p(postproc));
+
+  return scm_vm_setup_stat_trmp(scm_fcd_current_vm(), proc, args,
+                                postproc, handover, true);
+}
+
+void
+scm_fcd_exit(ScmObj obj)
+{
+  /* TODO: obj の内容に応じた VM の終了ステータスの設定*/
+
+  scm_vm_setup_stat_halt(scm_fcd_current_vm());
+}
+
+int
+scm_fcd_raise(ScmObj obj)
+{
+  return scm_vm_setup_stat_raise(scm_fcd_current_vm(), obj, false);
+}
+
+int
+scm_fcd_raise_continuable(ScmObj obj)
+{
+  return scm_vm_setup_stat_raise(scm_fcd_current_vm(), obj, true);
+}
+
+bool
+scm_fcd_raised_p(void)
+{
+  return scm_vm_raised_p(scm_fcd_current_vm());
+}
+
+ScmObj
+scm_fcd_raised_obj(void)
+{
+  return scm_vm_raised_obj(scm_fcd_current_vm());
+}
+
+void
+scm_fcd_discard_raised_obj(void)
+{
+  scm_vm_discard_raised_obj(scm_fcd_current_vm());
+}
+
+int
+scm_fcd_push_exception_handler(ScmObj handler)
+{
+  return scm_vm_push_exc_handler(scm_fcd_current_vm(), handler);
+}
+
+int
+scm_fcd_pop_exception_handler(void)
+{
+  return scm_vm_pop_exc_handler(scm_fcd_current_vm());
+}
+
+void
+scm_fcd_disposal_unhandled_exec(void)
+{
+  scm_vm_disposal_unhandled_exc(scm_fcd_current_vm());
+}
+
+
+int
+scm_fcd_load_iseq(ScmObj iseq)
+{
+  ScmObj o = SCM_OBJ_INIT;
+  int r;
+
+  SCM_REFSTK_INIT_REG(&iseq,
+                      &o);
+
+  scm_assert(scm_fcd_iseq_p(iseq));
+
+  o = scm_fcd_make_assembler(iseq);
+  if (scm_obj_null_p(o)) return -1;
+
+  r = scm_fcd_assembler_push(o, SCM_OPCODE_HALT);
+  if (r < 0) return -1;
+
+  r = scm_fcd_assembler_commit(o);
+  if (r < 0) return -1;
+
+  o = scm_fcd_vm_run_cloned(scm_fcd_current_vm(), scm_fcd_assembler_iseq(o));
+  if (scm_obj_null_p(o)) return -1;
+
+  return 0;
+}

@@ -17,6 +17,7 @@ ScmObj scm_fcd_make_string_from_bin(const void *data, size_t size,
 ScmObj scm_fcd_string_lst(ScmObj lst);
 ScmObj scm_fcd_string_cv(const ScmObj *chr, size_t n);
 size_t scm_fcd_string(size_t n, ...);
+const void *scm_fcd_string_content(ScmObj str);
 size_t scm_fcd_string_length(ScmObj str);
 size_t scm_fcd_string_bytesize(ScmObj str);
 ScmObj scm_fcd_string_ref(ScmObj str, size_t pos);
@@ -52,5 +53,8 @@ int scm_fcd_string_fill_i(ScmObj str, ScmObj fill, ssize_t start, ssize_t end);
 ScmEncoding *scm_fcd_string_encoding(ScmObj str);
 char *scm_fcd_string_to_cstr(ScmObj str, char *cstr, size_t size);
 int scm_fcd_string_push(ScmObj str, scm_char_t chr, ScmEncoding *enc);
+ScmObj scm_fcd_string_encode(ScmObj str, ScmEncoding *enc);
+scm_char_t *scm_fcd_string_to_cchr_ary(ScmObj str, size_t pos, ssize_t len,
+                                       scm_char_t *ary);
 
 #endif /* INCLUDE_FCD_STRING_H__ */

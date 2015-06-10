@@ -1,4 +1,3 @@
-#include "fcd_string.c"
 
 #include "scythe/object.h"
 #include "scythe/api.h"

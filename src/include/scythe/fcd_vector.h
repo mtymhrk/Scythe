@@ -48,6 +48,7 @@ bool scm_fcd_bytevector_p(ScmObj obj);
 ScmObj scm_fcd_bytevector_P(ScmObj obj);
 ScmObj scm_fcd_make_bytevector(size_t len, int fill);
 ScmObj scm_fcd_make_bytevector_from_cv(const void *bytes, size_t length);
+const void *scm_fcd_bytevector_content(ScmObj vec);
 size_t scm_fcd_bytevector_length(ScmObj vec);
 void scm_fcd_bytevector_u8_set_i(ScmObj vec, size_t idx, int val);
 void *scm_fcd_bytevector_to_cv(ScmObj vec, void *buf, size_t size);
