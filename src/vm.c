@@ -1468,6 +1468,9 @@ scm_vm_interrupt_activate(ScmObj vm, int num)
     SCM_VM(vm)->reg.ip = (scm_byte_t *)&scm_vm_int_inst[num];
   }
 
+  /* TODO: opcode を変換しているのは非効率なので改善する */
+  scm_vm_int_inst[num].op = (scm_opcode_t)scm_vm_opcode2ptr(SCM_OPCODE_INT);
+
   scm_vm_interrupt_act_flg_set(vm, num);
 
   return 0;
@@ -2559,7 +2562,7 @@ scm_vm_op_module(ScmObj vm)
   return 0;
 }
 
-static void
+static const void **
 scm_vm_run_loop(ScmObj vm)
 {
   static const void *tbl[] = {
@@ -2568,134 +2571,137 @@ scm_vm_run_loop(ScmObj vm)
     &&inst_return, &&inst_pcall, &&inst_call, &&inst_tail_call, &&inst_gref,
     &&inst_gdef, &&inst_gset, &&inst_sref, &&inst_sset, &&inst_jmp, &&inst_jmpt,
     &&inst_jmpf, &&inst_box, &&inst_close, &&inst_demine, &&inst_emine,
-    &&inst_edemine, &&inst_mrvc, &&inst_mrve, &&inst_module,
+    &&inst_edemine, &&inst_mrvc, &&inst_mrve, &&inst_module, NULL,
   };
 
   SCM_REFSTK_INIT_REG(&vm);
 
-  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+  scm_assert_obj_type_accept_null(vm, &SCM_VM_TYPE_INFO);
 
-  goto *tbl[SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip)];
+  if (scm_obj_null_p(vm))
+    return tbl;
+
+  goto *(void *)SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip);
 
  inst_nop:
   SCM_VMINST_FETCH_OPD_NOOPD(SCM_VM(vm)->reg.ip);
-  goto *tbl[SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip)];
+  goto *(void *)SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip);
 
  inst_halt:
   SCM_VMINST_FETCH_OPD_NOOPD(SCM_VM(vm)->reg.ip);
-  return;
+  return tbl;
 
  inst_int:
   scm_vm_op_int(vm);
-  goto *tbl[SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip)];
+  goto *(void *)SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip);
 
  inst_cframe:
   scm_vm_op_cframe(vm);
-  goto *tbl[SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip)];
+  goto *(void *)SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip);
 
  inst_eframe:
   scm_vm_op_eframe(vm);
-  goto *tbl[SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip)];
+  goto *(void *)SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip);
 
  inst_epop:
   scm_vm_op_epop(vm);
-  goto *tbl[SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip)];
+  goto *(void *)SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip);
 
  inst_eshift:
   scm_vm_op_eshift(vm);
-  goto *tbl[SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip)];
+  goto *(void *)SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip);
 
  inst_immval:
   scm_vm_op_immval(vm);
-  goto *tbl[SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip)];
+  goto *(void *)SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip);
 
  inst_push:
   scm_vm_op_push(vm);
-  goto *tbl[SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip)];
+  goto *(void *)SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip);
 
  inst_mvpush:
   scm_vm_op_mvpush(vm);
-  goto *tbl[SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip)];
+  goto *(void *)SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip);
 
  inst_return:
   scm_vm_op_return(vm);
-  goto *tbl[SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip)];
+  goto *(void *)SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip);
 
  inst_pcall:
   scm_vm_op_pcall(vm);
-  goto *tbl[SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip)];
+  goto *(void *)SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip);
 
  inst_call:
   scm_vm_op_call(vm);
-  goto *tbl[SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip)];
+  goto *(void *)SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip);
 
  inst_tail_call:
   scm_vm_op_tail_call(vm);
-  goto *tbl[SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip)];
+  goto *(void *)SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip);
 
  inst_gref:
   scm_vm_op_gref(vm);
-  goto *tbl[SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip)];
+  goto *(void *)SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip);
 
  inst_gdef:
   scm_vm_op_gdef(vm);
-  goto *tbl[SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip)];
+  goto *(void *)SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip);
 
  inst_gset:
   scm_vm_op_gset(vm);
-  goto *tbl[SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip)];
+  goto *(void *)SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip);
 
  inst_sref:
   scm_vm_op_sref(vm);
-  goto *tbl[SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip)];
+  goto *(void *)SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip);
 
  inst_sset:
   scm_vm_op_sset(vm);
-  goto *tbl[SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip)];
+  goto *(void *)SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip);
 
  inst_jmp:
   scm_vm_op_jmp(vm);
-  goto *tbl[SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip)];
+  goto *(void *)SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip);
 
  inst_jmpt:
   scm_vm_op_jmpt(vm);
-  goto *tbl[SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip)];
+  goto *(void *)SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip);
 
  inst_jmpf:
   scm_vm_op_jmpf(vm);
-  goto *tbl[SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip)];
+  goto *(void *)SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip);
 
  inst_box:
   scm_vm_op_box(vm);
-  goto *tbl[SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip)];
+  goto *(void *)SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip);
 
  inst_close:
   scm_vm_op_close(vm);
-  goto *tbl[SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip)];
+  goto *(void *)SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip);
 
  inst_demine:
   scm_vm_op_demine(vm);
-  goto *tbl[SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip)];
+  goto *(void *)SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip);
 
  inst_emine:
   scm_vm_op_emine(vm);
-  goto *tbl[SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip)];
+  goto *(void *)SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip);
 
  inst_edemine:
   scm_vm_op_edemine(vm);
-  goto *tbl[SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip)];
+  goto *(void *)SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip);
 
  inst_mrvc:
   scm_vm_op_mrvc(vm);
-  goto *tbl[SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip)];
+  goto *(void *)SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip);
 
  inst_mrve:
   scm_vm_op_mrve(vm);
-  goto *tbl[SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip)];
+  goto *(void *)SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip);
 
  inst_module:
   scm_vm_op_module(vm);
-  goto *tbl[SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip)];
+  goto *(void *)SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip);
 }
 
 static int
@@ -2711,7 +2717,11 @@ scm_vm_interrupt_func_halt(ScmObj vm)
 {
   static struct scm_vm_inst_noopd inst = { .op = SCM_OPCODE_HALT };
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  /* TODO: opcode を変換しているのは非効率なので改善する */
+  inst.op = (scm_opcode_t)scm_vm_opcode2ptr(SCM_OPCODE_HALT);
   SCM_VM(vm)->reg.ip = (scm_byte_t *)&inst;
+
   return 0;
 }
 
@@ -3509,6 +3519,24 @@ scm_vm_disposal_unhandled_exc(ScmObj vm)
   scm_bedrock_error(scm_fcd_current_br(), msg);
 }
 
+const void *
+scm_vm_opcode2ptr(scm_opcode_t op)
+{
+  return scm_vm_run_loop(SCM_OBJ_NULL)[op];
+}
+
+scm_opcode_t
+scm_vm_ptr2opcode(const void *ptr)
+{
+  for (const void **p = scm_vm_run_loop(SCM_OBJ_NULL); *p != NULL; p++) {
+    if (*p == ptr)
+      return (scm_opcode_t)(p - scm_vm_run_loop(SCM_OBJ_NULL));
+  }
+
+  scm_assert(false);
+  return 0;
+}
+
 void
 scm_vm_gc_initialize(ScmObj obj, ScmObj mem)
 {
@@ -3929,6 +3957,18 @@ void
 scm_fcd_disposal_unhandled_exec(void)
 {
   scm_vm_disposal_unhandled_exc(scm_fcd_current_vm());
+}
+
+scm_opcode_t
+scm_fcd_internal_opcode(scm_opcode_t op)
+{
+  return (scm_opcode_t)scm_vm_opcode2ptr(op);
+}
+
+scm_opcode_t
+scm_fcd_external_opcode(scm_opcode_t op)
+{
+  return scm_vm_ptr2opcode((const void *)op);
 }
 
 

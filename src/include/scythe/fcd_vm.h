@@ -65,6 +65,9 @@ int scm_fcd_push_exception_handler(ScmObj handler);
 int scm_fcd_pop_exception_handler(void);
 void scm_fcd_disposal_unhandled_exec(void);
 
+scm_opcode_t scm_fcd_internal_opcode(scm_opcode_t op);
+scm_opcode_t scm_fcd_external_opcode(scm_opcode_t op);
+
 int scm_fcd_load_iseq(ScmObj iseq);
 
 #endif  /* INCLUDE_FCD_VM_H__ */

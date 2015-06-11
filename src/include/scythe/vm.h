@@ -398,6 +398,10 @@ int scm_vm_subr_exc_hndlr_caller_cont(ScmObj subr,
 int scm_vm_subr_exc_hndlr_caller_post(ScmObj subr,
                                       int argc, const ScmObj *argv);
 void scm_vm_disposal_unhandled_exc(ScmObj vm);
+
+const void *scm_vm_opcode2ptr(scm_opcode_t op);
+scm_opcode_t scm_vm_ptr2opcode(const void *ptr);
+
 void scm_vm_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_vm_gc_finalize(ScmObj obj);
 int scm_vm_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);

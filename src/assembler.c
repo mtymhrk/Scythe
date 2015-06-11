@@ -157,6 +157,7 @@ scm_asm_push_inst_noopd(ScmObj asmb, scm_opcode_t op)
 
   scm_assert_obj_type(asmb, &SCM_ASSEMBLER_TYPE_INFO);
 
+  op = scm_fcd_internal_opcode(op);
   scm_vminst_set_inst_noopd(inst, op);
   r = scm_fcd_iseq_push_inst(SCM_ASSEMBLER_ISEQ(asmb),
                              &inst, sizeof(inst), NULL, 0);
@@ -175,6 +176,7 @@ scm_asm_push_inst_obj(ScmObj asmb, scm_opcode_t op, ScmObj obj)
   scm_assert_obj_type(asmb, &SCM_ASSEMBLER_TYPE_INFO);
   scm_assert(scm_obj_not_null_p(obj));
 
+  op = scm_fcd_internal_opcode(op);
   scm_vminst_set_inst_obj(inst, op, obj);
   r = scm_fcd_iseq_push_inst(SCM_ASSEMBLER_ISEQ(asmb),
                              &inst, sizeof(inst), objs, 1);
@@ -197,6 +199,7 @@ scm_asm_push_inst_obj_obj(ScmObj asmb,
   scm_assert(scm_obj_not_null_p(obj1));
   scm_assert(scm_obj_not_null_p(obj2));
 
+  op = scm_fcd_internal_opcode(op);
   scm_vminst_set_inst_obj_obj(inst, op, obj1, obj2);
   r = scm_fcd_iseq_push_inst(SCM_ASSEMBLER_ISEQ(asmb),
                              &inst, sizeof(inst), objs, 2);
@@ -213,6 +216,7 @@ scm_asm_push_inst_si(ScmObj asmb, scm_opcode_t op, int si)
 
   scm_assert_obj_type(asmb, &SCM_ASSEMBLER_TYPE_INFO);
 
+  op = scm_fcd_internal_opcode(op);
   scm_vminst_set_inst_si(inst, op, si);
   r = scm_fcd_iseq_push_inst(SCM_ASSEMBLER_ISEQ(asmb),
                              &inst, sizeof(inst), NULL, 0);
@@ -229,6 +233,7 @@ scm_asm_push_inst_si_si(ScmObj asmb, scm_opcode_t op, int si1, int si2)
 
   scm_assert_obj_type(asmb, &SCM_ASSEMBLER_TYPE_INFO);
 
+  op = scm_fcd_internal_opcode(op);
   scm_vminst_set_inst_si_si(inst, op, si1, si2);
   r = scm_fcd_iseq_push_inst(SCM_ASSEMBLER_ISEQ(asmb),
                              &inst, sizeof(inst), NULL, 0);
@@ -252,6 +257,7 @@ scm_asm_push_inst_si_si_obj(ScmObj asmb,
   if (op == SCM_OPCODE_CLOSE && scm_fcd_assembler_p(obj))
     obj = scm_asm_iseq(obj);
 
+  op = scm_fcd_internal_opcode(op);
   scm_vminst_set_inst_si_si_obj(inst, op, si1, si2, obj);
   r = scm_fcd_iseq_push_inst(SCM_ASSEMBLER_ISEQ(asmb),
                              &inst, sizeof(inst), objs, 1);
@@ -274,6 +280,7 @@ scm_asm_push_inst_iof(ScmObj asmb, scm_opcode_t op, bool label, ...)
   }
   else {
     scm_byte_t inst[SCM_OPFMT_INST_SZ_IOF];
+    op = scm_fcd_internal_opcode(op);
     scm_vminst_set_inst_iof(inst, op, va_arg(arg, int));
     ssize_t r = scm_fcd_iseq_push_inst(SCM_ASSEMBLER_ISEQ(asmb),
                                        &inst, sizeof(inst), NULL, 0);
@@ -619,7 +626,7 @@ ScmTypeInfo SCM_DISASSEMBLER_TYPE_INFO = {
 static scm_byte_t *
 scm_disasm_ip_proceed(scm_byte_t *ip)
 {
-  scm_opcode_t op = SCM_VMINST_GET_OP(ip);
+  scm_opcode_t op = scm_fcd_external_opcode(SCM_VMINST_GET_OP(ip));
   switch (scm_opfmt_table[op]) {
   case SCM_OPFMT_NOOPD:
     ip += SCM_OPFMT_INST_SZ_NOOPD;
@@ -691,7 +698,7 @@ scm_disasm_acc_labels(ScmObj disasm)
 
   ip = scm_fcd_iseq_to_ip(SCM_DISASSEMBLER_ISEQ(disasm));
   while (scm_fcd_iseq_ip_in_range_p(SCM_DISASSEMBLER_ISEQ(disasm), ip)) {
-    scm_opcode_t op = SCM_VMINST_GET_OP(ip);
+    scm_opcode_t op = scm_fcd_external_opcode(SCM_VMINST_GET_OP(ip));
     if (scm_opfmt_table[op] == SCM_OPFMT_IOF) {
       ssize_t offset;
       int r, iof;
@@ -774,6 +781,7 @@ scm_disasm_setup_token_inst(ScmObj disasm)
   SCM_DISASSEMBLER_TOKEN(disasm)->type = SCM_DISASM_TK_INST;
 
   op = SCM_VMINST_GET_OP(SCM_DISASSEMBLER_IP(disasm));
+  op = scm_fcd_external_opcode(op);
   SCM_DISASSEMBLER_TOKEN(disasm)->inst.fmt = scm_opfmt_table[op];
 
   switch (scm_opfmt_table[op]) {
@@ -830,6 +838,8 @@ scm_disasm_setup_token_inst(ScmObj disasm)
     return -1;
     break;
   }
+
+  SCM_DISASSEMBLER_TOKEN(disasm)->inst.i.op = op;
 
   return 0;
 }
