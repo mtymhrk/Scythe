@@ -40,7 +40,7 @@ make_iseq(const char *asmbl)
 static void
 check_following(scm_byte_t *ip)
 {
-  int op;
+  scm_opcode_t op;
 
   op = SCM_VMINST_GET_OP(ip);
   TEST_ASSERT_EQUAL_INT(SCM_OPCODE_NOP, op);
@@ -51,7 +51,7 @@ test_assemble_noopd(const char *asmbl, uint8_t code)
 {
   ScmObj iseq;
   scm_byte_t *ip;
-  int actual_op;
+  scm_opcode_t actual_op;
 
   SCM_REFSTK_INIT_REG(&iseq);
 
@@ -71,7 +71,7 @@ test_assemble_obj(const char *asmbl, uint8_t code, ScmObj obj)
 {
   ScmObj iseq = SCM_OBJ_INIT, actual_immv = SCM_OBJ_INIT;
   scm_byte_t *ip;
-  int actual_op;
+  scm_opcode_t actual_op;
 
   SCM_REFSTK_INIT_REG(&obj,
                       &iseq, &actual_immv);
@@ -94,7 +94,7 @@ test_assemble_obj_obj(const char *asmbl, uint8_t code, ScmObj obj1, ScmObj obj2)
   ScmObj iseq = SCM_OBJ_INIT;
   ScmObj actual_immv1 = SCM_OBJ_INIT, actual_immv2 = SCM_OBJ_INIT;
   scm_byte_t *ip;
-  int actual_op;
+  scm_opcode_t actual_op;
 
   SCM_REFSTK_INIT_REG(&obj1, &obj2,
                       &iseq, &actual_immv1, &actual_immv2);
@@ -117,7 +117,8 @@ test_assemble_si(const char *asmbl, uint8_t code, int si)
 {
   ScmObj iseq = SCM_OBJ_INIT;
   scm_byte_t *ip;
-  int actual_op, actual_si;
+  scm_opcode_t actual_op;
+  int actual_si;
 
   SCM_REFSTK_INIT_REG(&iseq);
 
@@ -138,7 +139,8 @@ test_assemble_si_si(const char *asmbl, uint8_t code, int si1, int si2)
 {
   ScmObj iseq = SCM_OBJ_INIT;
   scm_byte_t *ip;
-  int actual_op, actual_si1, actual_si2;
+  scm_opcode_t actual_op;
+  int actual_si1, actual_si2;
 
   SCM_REFSTK_INIT_REG(&iseq);
 
@@ -160,7 +162,8 @@ test_assemble_iof(const char *asmbl, uint8_t code, int si)
 {
   ScmObj iseq = SCM_OBJ_INIT;
   scm_byte_t *ip;
-  int actual_op, actual_si;
+  scm_opcode_t actual_op;
+  int actual_si;
 
   SCM_REFSTK_INIT_REG(&iseq);
 
@@ -183,7 +186,7 @@ test_assemble_pinst_qqtemplate(const char *asmbl,
   ScmObj iseq = SCM_OBJ_INIT, t = SCM_OBJ_INIT, qq = SCM_OBJ_INIT;
   ScmObj actual_immv = SCM_OBJ_INIT;
   scm_byte_t *ip;
-  int actual_op;
+  scm_opcode_t actual_op;
   bool cmp;
 
   SCM_REFSTK_INIT_REG(&iseq, &t, &qq, &actual_immv);
@@ -351,7 +354,8 @@ TEST(fcd_assembler, close)
 {
   ScmObj iseq = SCM_OBJ_INIT, actual_immv = SCM_OBJ_INIT;
   scm_byte_t *ip;
-  int actual_op, actual_si1, actual_si2;
+  scm_opcode_t actual_op;
+  int actual_si1, actual_si2;
 
   SCM_REFSTK_INIT_REG(&iseq, &actual_immv);
 

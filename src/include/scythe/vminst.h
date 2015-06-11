@@ -1,13 +1,15 @@
 #ifndef INCLUDE_VMINST_H__
 #define INCLUDE_VMINST_H__
 
+#include <stdint.h>
+
 #include "scythe/object.h"
 #include "scythe/config.h"
 #include "scythe/impl_utils.h"
 
 #define SCM_VMINST_INST_ALIGN SIZEOF_SCM_WORD_T
 
-typedef int scm_opcode_t;
+typedef uintptr_t scm_opcode_t;
 
 struct scm_vm_inst_noopd {
   scm_opcode_t op;

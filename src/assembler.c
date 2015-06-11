@@ -492,7 +492,7 @@ scm_fcd_assembler_push_va(ScmObj asmb, scm_opcode_t op, va_list operands)
                       &opd_obj1, &opd_obj2);
 
   scm_assert(scm_fcd_assembler_p(asmb));
-  scm_assert(op >= 0);
+  /* scm_assert(op >= 0); */
 
   if (op < SCM_VMINST_NR_OP) {
     switch (scm_opfmt_table[op]) {
@@ -569,7 +569,7 @@ scm_fcd_assembler_push(ScmObj asmb, scm_opcode_t op, ...)
   int r;
 
   scm_assert(scm_fcd_assembler_p(asmb));
-  scm_assert(op >= 0);
+  /* scm_assert(op >= 0); */
 
   va_start(operands, op);
   r = scm_fcd_assembler_push_va(asmb, op, operands);
@@ -1494,25 +1494,25 @@ scm_asm_assemble_1inst_cv(ScmObj asmb, const ScmObj *inst, size_t n)
   if (opcode < SCM_ASM_PI_START) {
     switch (scm_opfmt_table[opcode]) {
     case SCM_OPFMT_NOOPD:
-      return scm_asm_asm_inst_noopd(asmb, opcode, inst, n);
+      return scm_asm_asm_inst_noopd(asmb, (scm_opcode_t)opcode, inst, n);
       break;
     case SCM_OPFMT_OBJ:
-      return scm_asm_asm_inst_obj(asmb, opcode, inst, n);
+      return scm_asm_asm_inst_obj(asmb, (scm_opcode_t)opcode, inst, n);
       break;
     case SCM_OPFMT_OBJ_OBJ:
-      return scm_asm_asm_inst_obj_obj(asmb, opcode, inst, n);
+      return scm_asm_asm_inst_obj_obj(asmb, (scm_opcode_t)opcode, inst, n);
       break;
     case SCM_OPFMT_SI:
-      return scm_asm_asm_inst_si(asmb, opcode, inst, n);
+      return scm_asm_asm_inst_si(asmb, (scm_opcode_t)opcode, inst, n);
       break;
     case SCM_OPFMT_SI_SI:
-      return scm_asm_asm_inst_si_si(asmb, opcode, inst, n);
+      return scm_asm_asm_inst_si_si(asmb, (scm_opcode_t)opcode, inst, n);
       break;
     case SCM_OPFMT_SI_SI_OBJ:
-      return scm_asm_asm_inst_si_si_obj(asmb, opcode, inst, n);
+      return scm_asm_asm_inst_si_si_obj(asmb, (scm_opcode_t)opcode, inst, n);
       break;
     case SCM_OPFMT_IOF:
-      return scm_asm_asm_inst_iof(asmb, opcode, inst, n);
+      return scm_asm_asm_inst_iof(asmb, (scm_opcode_t)opcode, inst, n);
       break;
     default:
       scm_assert(false);
@@ -1522,7 +1522,7 @@ scm_asm_assemble_1inst_cv(ScmObj asmb, const ScmObj *inst, size_t n)
   else {
     switch (opcode) {
     case SCM_ASM_PI_LABEL:
-      return scm_asm_asm_inst_label(asmb, opcode, inst, n);
+      return scm_asm_asm_inst_label(asmb, (scm_opcode_t)opcode, inst, n);
       break;
     default:
       scm_assert(false);
@@ -2122,7 +2122,7 @@ scm_asm_mnemonic2opcode(const char *mne)
        i < sizeof(opcode2mnemonic_tbl)/sizeof(opcode2mnemonic_tbl[0]);
        i++) {
     if (strcmp(opcode2mnemonic_tbl[i].mne, mne) == 0)
-      return opcode2mnemonic_tbl[i].code;
+      return (int)opcode2mnemonic_tbl[i].code;
   }
 
   return -1;

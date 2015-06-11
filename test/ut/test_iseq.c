@@ -103,7 +103,8 @@ push_inst_iof(ScmObj iseq, scm_opcode_t op, int opd1)
 TEST(iseq, iseq_push_inst2__push)
 {
   scm_byte_t *ip;
-  int actual_op, actual_opd;
+  scm_opcode_t actual_op;
+  int actual_opd;
 
    TEST_ASSERT_EQUAL_INT(SCM_INST_SZ_EFRAME,
                         push_inst_si(iseq, SCM_OPCODE_EFRAME, 123));
@@ -121,7 +122,7 @@ TEST(iseq, iseq_push_inst2__push_obj)
   scm_byte_t *ip;
   ScmObj actual_opd1 = SCM_OBJ_INIT, actual_opd2 = SCM_OBJ_INIT;
   ScmRef ref;
-  int actual_op;
+  scm_opcode_t actual_op;
 
   TEST_ASSERT_EQUAL_INT(SCM_INST_SZ_GREF,
                         push_inst_obj_obj(iseq, SCM_OPCODE_GREF,
