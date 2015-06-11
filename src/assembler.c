@@ -1091,7 +1091,7 @@ scm_fcd_disassembler_cnv_to_marshalable(ScmObj disasm)
 /**************************************************************************/
 
 static struct {
-  int code;
+  scm_opcode_t code;
   const char *mne;
 } opcode2mnemonic_tbl[] = {
   { SCM_OPCODE_NOP,         "nop" },
@@ -1224,7 +1224,8 @@ scm_asm_cnv_operand_to_si(ScmObj operand, ScmObj operator, int *si)
 }
 
 static int
-scm_asm_asm_inst_noopd(ScmObj asmb, int opcode, const ScmObj *inst, size_t n)
+scm_asm_asm_inst_noopd(ScmObj asmb,
+                       scm_opcode_t opcode, const ScmObj *inst, size_t n)
 {
   int rslt;
 
@@ -1243,7 +1244,8 @@ scm_asm_asm_inst_noopd(ScmObj asmb, int opcode, const ScmObj *inst, size_t n)
 }
 
 static int
-scm_asm_asm_inst_obj(ScmObj asmb, int opcode, const ScmObj *inst, size_t n)
+scm_asm_asm_inst_obj(ScmObj asmb,
+                     scm_opcode_t opcode, const ScmObj *inst, size_t n)
 {
   int rslt;
 
@@ -1262,7 +1264,8 @@ scm_asm_asm_inst_obj(ScmObj asmb, int opcode, const ScmObj *inst, size_t n)
 }
 
 static int
-scm_asm_asm_inst_obj_obj(ScmObj asmb, int opcode, const ScmObj *inst, size_t n)
+scm_asm_asm_inst_obj_obj(ScmObj asmb,
+                         scm_opcode_t opcode, const ScmObj *inst, size_t n)
 {
   ScmObj arg1 = SCM_OBJ_INIT, arg2 = SCM_OBJ_INIT;
   int rslt;
@@ -1283,7 +1286,8 @@ scm_asm_asm_inst_obj_obj(ScmObj asmb, int opcode, const ScmObj *inst, size_t n)
 }
 
 static int
-scm_asm_asm_inst_si(ScmObj asmb, int opcode, const ScmObj *inst, size_t n)
+scm_asm_asm_inst_si(ScmObj asmb,
+                    scm_opcode_t opcode, const ScmObj *inst, size_t n)
 {
   int rslt, val;
 
@@ -1305,7 +1309,8 @@ scm_asm_asm_inst_si(ScmObj asmb, int opcode, const ScmObj *inst, size_t n)
 }
 
 static int
-scm_asm_asm_inst_si_si(ScmObj asmb, int opcode, const ScmObj *inst, size_t n)
+scm_asm_asm_inst_si_si(ScmObj asmb,
+                       scm_opcode_t opcode, const ScmObj *inst, size_t n)
 {
   int rslt, val1, val2;
 
@@ -1331,7 +1336,7 @@ scm_asm_asm_inst_si_si(ScmObj asmb, int opcode, const ScmObj *inst, size_t n)
 
 static int
 scm_asm_asm_inst_si_si_obj(ScmObj asmb,
-                           int opcode, const ScmObj *inst, size_t n)
+                           scm_opcode_t opcode, const ScmObj *inst, size_t n)
 {
   int rslt, val1, val2;
 
@@ -1356,7 +1361,8 @@ scm_asm_asm_inst_si_si_obj(ScmObj asmb,
 }
 
 static int
-scm_asm_asm_inst_iof_raw(ScmObj asmb, int opcode, const ScmObj *inst, size_t n)
+scm_asm_asm_inst_iof_raw(ScmObj asmb,
+                         scm_opcode_t opcode, const ScmObj *inst, size_t n)
 {
   int rslt;
 
@@ -1400,7 +1406,8 @@ scm_asm_asm_inst_iof_raw(ScmObj asmb, int opcode, const ScmObj *inst, size_t n)
 }
 
 static int
-scm_asm_asm_inst_iof(ScmObj asmb, int opcode, const ScmObj *inst, size_t n)
+scm_asm_asm_inst_iof(ScmObj asmb,
+                     scm_opcode_t opcode, const ScmObj *inst, size_t n)
 {
   ScmObj new_inst[3] = { SCM_OBJ_INIT, SCM_OBJ_INIT, SCM_OBJ_INIT };
   int rslt;
@@ -1437,7 +1444,8 @@ scm_asm_asm_inst_iof(ScmObj asmb, int opcode, const ScmObj *inst, size_t n)
 }
 
 static int
-scm_asm_asm_inst_label(ScmObj asmb, int opcode, const ScmObj *inst, size_t n)
+scm_asm_asm_inst_label(ScmObj asmb,
+                       scm_opcode_t opcode, const ScmObj *inst, size_t n)
 
 {
   size_t id;
@@ -2121,7 +2129,7 @@ scm_asm_mnemonic2opcode(const char *mne)
 }
 
 const char *
-scm_asm_opcode2mnemonic(int code)
+scm_asm_opcode2mnemonic(scm_opcode_t code)
 {
   for (size_t i = 0;
        i < sizeof(opcode2mnemonic_tbl)/sizeof(opcode2mnemonic_tbl[0]);
@@ -2134,7 +2142,7 @@ scm_asm_opcode2mnemonic(int code)
 }
 
 ScmObj
-scm_asm_mnemonic(int opcode)
+scm_asm_mnemonic(scm_opcode_t opcode)
 {
   const char *p;
 
