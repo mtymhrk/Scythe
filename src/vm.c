@@ -2562,108 +2562,140 @@ scm_vm_op_module(ScmObj vm)
 static void
 scm_vm_run_loop(ScmObj vm)
 {
+  static const void *tbl[] = {
+    &&inst_nop, &&inst_halt, &&inst_int, &&inst_cframe, &&inst_eframe,
+    &&inst_epop, &&inst_eshift, &&inst_immval, &&inst_push, &&inst_mvpush,
+    &&inst_return, &&inst_pcall, &&inst_call, &&inst_tail_call, &&inst_gref,
+    &&inst_gdef, &&inst_gset, &&inst_sref, &&inst_sset, &&inst_jmp, &&inst_jmpt,
+    &&inst_jmpf, &&inst_box, &&inst_close, &&inst_demine, &&inst_emine,
+    &&inst_edemine, &&inst_mrvc, &&inst_mrve, &&inst_module,
+  };
+
   SCM_REFSTK_INIT_REG(&vm);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
-  while (true) {
-    switch(SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip)) {
-    case SCM_OPCODE_NOP:
-      SCM_VMINST_FETCH_OPD_NOOPD(SCM_VM(vm)->reg.ip);
-      break;
-    case SCM_OPCODE_HALT:
-      SCM_VMINST_FETCH_OPD_NOOPD(SCM_VM(vm)->reg.ip);
-      return;
-      break;
-    case SCM_OPCODE_INT:
-      scm_vm_op_int(vm);
-      break;
-    case SCM_OPCODE_CFRAME:
-      scm_vm_op_cframe(vm);
-      break;
-    case SCM_OPCODE_EFRAME:
-      scm_vm_op_eframe(vm);
-      break;
-    case SCM_OPCODE_EPOP:
-      scm_vm_op_epop(vm);
-      break;
-    case SCM_OPCODE_ESHIFT:
-      scm_vm_op_eshift(vm);
-      break;
-    case SCM_OPCODE_IMMVAL:
-      scm_vm_op_immval(vm);
-      break;
-    case SCM_OPCODE_PUSH:
-      scm_vm_op_push(vm);
-      break;
-    case SCM_OPCODE_MVPUSH:
-      scm_vm_op_mvpush(vm);
-      break;
-    case SCM_OPCODE_RETURN:
-      scm_vm_op_return(vm);
-      break;
-    case SCM_OPCODE_PCALL:
-      scm_vm_op_pcall(vm);
-      break;
-    case SCM_OPCODE_CALL:
-      scm_vm_op_call(vm);
-      break;
-    case SCM_OPCODE_TAIL_CALL:
-      scm_vm_op_tail_call(vm);
-      break;
-    case SCM_OPCODE_GREF:
-      scm_vm_op_gref(vm);
-      break;
-    case SCM_OPCODE_GDEF:
-      scm_vm_op_gdef(vm);
-      break;
-    case SCM_OPCODE_GSET:
-      scm_vm_op_gset(vm);
-      break;
-    case SCM_OPCODE_SREF:
-      scm_vm_op_sref(vm);
-      break;
-    case SCM_OPCODE_SSET:
-      scm_vm_op_sset(vm);
-      break;
-    case SCM_OPCODE_JMP:
-      scm_vm_op_jmp(vm);
-      break;
-    case SCM_OPCODE_JMPT:
-      scm_vm_op_jmpt(vm);
-      break;
-    case SCM_OPCODE_JMPF:
-      scm_vm_op_jmpf(vm);
-      break;
-    case SCM_OPCODE_BOX:
-      scm_vm_op_box(vm);
-      break;
-    case SCM_OPCODE_CLOSE:
-      scm_vm_op_close(vm);
-      break;
-    case SCM_OPCODE_DEMINE:
-      scm_vm_op_demine(vm);
-      break;
-    case SCM_OPCODE_EMINE:
-      scm_vm_op_emine(vm);
-      break;
-    case SCM_OPCODE_EDEMINE:
-      scm_vm_op_edemine(vm);
-      break;
-    case SCM_OPCODE_MRVC:
-      scm_vm_op_mrvc(vm);
-      break;
-    case SCM_OPCODE_MRVE:
-      scm_vm_op_mrve(vm);
-      break;
-    case SCM_OPCODE_MODULE:
-      scm_vm_op_module(vm);
-      break;
-    default:
-      scm_fcd_error("invalid instruction code", 0);
-      break;
-    }
-  }
+  goto *tbl[SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip)];
+
+ inst_nop:
+  SCM_VMINST_FETCH_OPD_NOOPD(SCM_VM(vm)->reg.ip);
+  goto *tbl[SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip)];
+
+ inst_halt:
+  SCM_VMINST_FETCH_OPD_NOOPD(SCM_VM(vm)->reg.ip);
+  return;
+
+ inst_int:
+  scm_vm_op_int(vm);
+  goto *tbl[SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip)];
+
+ inst_cframe:
+  scm_vm_op_cframe(vm);
+  goto *tbl[SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip)];
+
+ inst_eframe:
+  scm_vm_op_eframe(vm);
+  goto *tbl[SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip)];
+
+ inst_epop:
+  scm_vm_op_epop(vm);
+  goto *tbl[SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip)];
+
+ inst_eshift:
+  scm_vm_op_eshift(vm);
+  goto *tbl[SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip)];
+
+ inst_immval:
+  scm_vm_op_immval(vm);
+  goto *tbl[SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip)];
+
+ inst_push:
+  scm_vm_op_push(vm);
+  goto *tbl[SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip)];
+
+ inst_mvpush:
+  scm_vm_op_mvpush(vm);
+  goto *tbl[SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip)];
+
+ inst_return:
+  scm_vm_op_return(vm);
+  goto *tbl[SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip)];
+
+ inst_pcall:
+  scm_vm_op_pcall(vm);
+  goto *tbl[SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip)];
+
+ inst_call:
+  scm_vm_op_call(vm);
+  goto *tbl[SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip)];
+
+ inst_tail_call:
+  scm_vm_op_tail_call(vm);
+  goto *tbl[SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip)];
+
+ inst_gref:
+  scm_vm_op_gref(vm);
+  goto *tbl[SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip)];
+
+ inst_gdef:
+  scm_vm_op_gdef(vm);
+  goto *tbl[SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip)];
+
+ inst_gset:
+  scm_vm_op_gset(vm);
+  goto *tbl[SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip)];
+
+ inst_sref:
+  scm_vm_op_sref(vm);
+  goto *tbl[SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip)];
+
+ inst_sset:
+  scm_vm_op_sset(vm);
+  goto *tbl[SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip)];
+
+ inst_jmp:
+  scm_vm_op_jmp(vm);
+  goto *tbl[SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip)];
+
+ inst_jmpt:
+  scm_vm_op_jmpt(vm);
+  goto *tbl[SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip)];
+
+ inst_jmpf:
+  scm_vm_op_jmpf(vm);
+  goto *tbl[SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip)];
+
+ inst_box:
+  scm_vm_op_box(vm);
+  goto *tbl[SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip)];
+
+ inst_close:
+  scm_vm_op_close(vm);
+  goto *tbl[SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip)];
+
+ inst_demine:
+  scm_vm_op_demine(vm);
+  goto *tbl[SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip)];
+
+ inst_emine:
+  scm_vm_op_emine(vm);
+  goto *tbl[SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip)];
+
+ inst_edemine:
+  scm_vm_op_edemine(vm);
+  goto *tbl[SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip)];
+
+ inst_mrvc:
+  scm_vm_op_mrvc(vm);
+  goto *tbl[SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip)];
+
+ inst_mrve:
+  scm_vm_op_mrve(vm);
+  goto *tbl[SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip)];
+
+ inst_module:
+  scm_vm_op_module(vm);
+  goto *tbl[SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip)];
 }
 
 static int
