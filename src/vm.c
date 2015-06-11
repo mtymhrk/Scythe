@@ -2559,6 +2559,113 @@ scm_vm_op_module(ScmObj vm)
   return 0;
 }
 
+static void
+scm_vm_run_loop(ScmObj vm)
+{
+  SCM_REFSTK_INIT_REG(&vm);
+
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  while (true) {
+    switch(SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip)) {
+    case SCM_OPCODE_NOP:
+      SCM_VMINST_FETCH_OPD_NOOPD(SCM_VM(vm)->reg.ip);
+      break;
+    case SCM_OPCODE_HALT:
+      SCM_VMINST_FETCH_OPD_NOOPD(SCM_VM(vm)->reg.ip);
+      return;
+      break;
+    case SCM_OPCODE_INT:
+      scm_vm_op_int(vm);
+      break;
+    case SCM_OPCODE_CFRAME:
+      scm_vm_op_cframe(vm);
+      break;
+    case SCM_OPCODE_EFRAME:
+      scm_vm_op_eframe(vm);
+      break;
+    case SCM_OPCODE_EPOP:
+      scm_vm_op_epop(vm);
+      break;
+    case SCM_OPCODE_ESHIFT:
+      scm_vm_op_eshift(vm);
+      break;
+    case SCM_OPCODE_IMMVAL:
+      scm_vm_op_immval(vm);
+      break;
+    case SCM_OPCODE_PUSH:
+      scm_vm_op_push(vm);
+      break;
+    case SCM_OPCODE_MVPUSH:
+      scm_vm_op_mvpush(vm);
+      break;
+    case SCM_OPCODE_RETURN:
+      scm_vm_op_return(vm);
+      break;
+    case SCM_OPCODE_PCALL:
+      scm_vm_op_pcall(vm);
+      break;
+    case SCM_OPCODE_CALL:
+      scm_vm_op_call(vm);
+      break;
+    case SCM_OPCODE_TAIL_CALL:
+      scm_vm_op_tail_call(vm);
+      break;
+    case SCM_OPCODE_GREF:
+      scm_vm_op_gref(vm);
+      break;
+    case SCM_OPCODE_GDEF:
+      scm_vm_op_gdef(vm);
+      break;
+    case SCM_OPCODE_GSET:
+      scm_vm_op_gset(vm);
+      break;
+    case SCM_OPCODE_SREF:
+      scm_vm_op_sref(vm);
+      break;
+    case SCM_OPCODE_SSET:
+      scm_vm_op_sset(vm);
+      break;
+    case SCM_OPCODE_JMP:
+      scm_vm_op_jmp(vm);
+      break;
+    case SCM_OPCODE_JMPT:
+      scm_vm_op_jmpt(vm);
+      break;
+    case SCM_OPCODE_JMPF:
+      scm_vm_op_jmpf(vm);
+      break;
+    case SCM_OPCODE_BOX:
+      scm_vm_op_box(vm);
+      break;
+    case SCM_OPCODE_CLOSE:
+      scm_vm_op_close(vm);
+      break;
+    case SCM_OPCODE_DEMINE:
+      scm_vm_op_demine(vm);
+      break;
+    case SCM_OPCODE_EMINE:
+      scm_vm_op_emine(vm);
+      break;
+    case SCM_OPCODE_EDEMINE:
+      scm_vm_op_edemine(vm);
+      break;
+    case SCM_OPCODE_MRVC:
+      scm_vm_op_mrvc(vm);
+      break;
+    case SCM_OPCODE_MRVE:
+      scm_vm_op_mrve(vm);
+      break;
+    case SCM_OPCODE_MODULE:
+      scm_vm_op_module(vm);
+      break;
+    default:
+      scm_fcd_error("invalid instruction code", 0);
+      break;
+    }
+  }
+}
+
 static int
 scm_vm_interrupt_func_run_gc(ScmObj vm)
 {
@@ -2779,106 +2886,8 @@ scm_vm_run(ScmObj vm, ScmObj iseq)
                 scm_fcd_make_closure(iseq, SCM_OBJ_NULL, 0));
   SCM_VM(vm)->reg.ip = scm_fcd_iseq_to_ip(iseq);
 
-  while (true) {
-    switch(SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip)) {
-    case SCM_OPCODE_NOP:
-      SCM_VMINST_FETCH_OPD_NOOPD(SCM_VM(vm)->reg.ip);
-      break;
-    case SCM_OPCODE_HALT:
-      SCM_VMINST_FETCH_OPD_NOOPD(SCM_VM(vm)->reg.ip);
-      goto end;
-      break;
-    case SCM_OPCODE_INT:
-      scm_vm_op_int(vm);
-      break;
-    case SCM_OPCODE_CFRAME:
-      scm_vm_op_cframe(vm);
-      break;
-    case SCM_OPCODE_EFRAME:
-      scm_vm_op_eframe(vm);
-      break;
-    case SCM_OPCODE_EPOP:
-      scm_vm_op_epop(vm);
-      break;
-    case SCM_OPCODE_ESHIFT:
-      scm_vm_op_eshift(vm);
-      break;
-    case SCM_OPCODE_IMMVAL:
-      scm_vm_op_immval(vm);
-      break;
-    case SCM_OPCODE_PUSH:
-      scm_vm_op_push(vm);
-      break;
-    case SCM_OPCODE_MVPUSH:
-      scm_vm_op_mvpush(vm);
-      break;
-    case SCM_OPCODE_RETURN:
-      scm_vm_op_return(vm);
-      break;
-    case SCM_OPCODE_PCALL:
-      scm_vm_op_pcall(vm);
-      break;
-    case SCM_OPCODE_CALL:
-      scm_vm_op_call(vm);
-      break;
-    case SCM_OPCODE_TAIL_CALL:
-      scm_vm_op_tail_call(vm);
-      break;
-    case SCM_OPCODE_GREF:
-      scm_vm_op_gref(vm);
-      break;
-    case SCM_OPCODE_GDEF:
-      scm_vm_op_gdef(vm);
-      break;
-    case SCM_OPCODE_GSET:
-      scm_vm_op_gset(vm);
-      break;
-    case SCM_OPCODE_SREF:
-      scm_vm_op_sref(vm);
-      break;
-    case SCM_OPCODE_SSET:
-      scm_vm_op_sset(vm);
-      break;
-    case SCM_OPCODE_JMP:
-      scm_vm_op_jmp(vm);
-      break;
-    case SCM_OPCODE_JMPT:
-      scm_vm_op_jmpt(vm);
-      break;
-    case SCM_OPCODE_JMPF:
-      scm_vm_op_jmpf(vm);
-      break;
-    case SCM_OPCODE_BOX:
-      scm_vm_op_box(vm);
-      break;
-    case SCM_OPCODE_CLOSE:
-      scm_vm_op_close(vm);
-      break;
-    case SCM_OPCODE_DEMINE:
-      scm_vm_op_demine(vm);
-      break;
-    case SCM_OPCODE_EMINE:
-      scm_vm_op_emine(vm);
-      break;
-    case SCM_OPCODE_EDEMINE:
-      scm_vm_op_edemine(vm);
-      break;
-    case SCM_OPCODE_MRVC:
-      scm_vm_op_mrvc(vm);
-      break;
-    case SCM_OPCODE_MRVE:
-      scm_vm_op_mrve(vm);
-      break;
-    case SCM_OPCODE_MODULE:
-      scm_vm_op_module(vm);
-      break;
-    default:
-      scm_fcd_error("invalid instruction code", 0);
-      break;
-    }
-  }
+  scm_vm_run_loop(vm);
 
- end:
   scm_vm_ctrl_flg_clr(vm, SCM_VM_CTRL_FLG_RAISE);
 }
 
