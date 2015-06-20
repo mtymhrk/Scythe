@@ -2585,6 +2585,40 @@ scm_api_pop_dynamic_bindings(void)
 
 
 /*******************************************************************/
+/* Dynamic Wind                                                    */
+/*******************************************************************/
+
+ScmObj
+scm_api_push_dynamic_wind_handler(ScmObj before, ScmObj after)
+{
+  int r;
+
+  if (!scm_fcd_procedure_p(before)) {
+    scm_capi_error("failed to push the dynaimc-wind handler: "
+                   "precedure required, but got", 1, before);
+    return SCM_OBJ_NULL;
+  }
+  else if (!scm_fcd_procedure_p(after)) {
+    scm_capi_error("failed to push the dynaimc-wind handler: "
+                   "precedure required, but got", 1, after);
+    return SCM_OBJ_NULL;
+  }
+
+  r = scm_fcd_push_dynamic_wind_handler(before, after);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return SCM_UNDEF_OBJ;
+}
+
+ScmObj
+scm_api_pop_dynamic_wind_handler(void)
+{
+  scm_fcd_pop_dynamic_wind_handler();
+  return SCM_UNDEF_OBJ;
+}
+
+
+/*******************************************************************/
 /*  Module                                                         */
 /*******************************************************************/
 

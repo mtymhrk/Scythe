@@ -351,6 +351,14 @@ ScmObj scm_api_pop_dynamic_bindings(void);
 
 
 /*******************************************************************/
+/* Dynamic Wind                                                    */
+/*******************************************************************/
+
+ScmObj scm_api_push_dynamic_wind_handler(ScmObj before, ScmObj after);
+ScmObj scm_api_pop_dynamic_wind_handler(void);
+
+
+/*******************************************************************/
 /*  Module                                                         */
 /*******************************************************************/
 

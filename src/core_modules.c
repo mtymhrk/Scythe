@@ -616,6 +616,13 @@ scm_define_scythe_internal_dynamicenv_subr(ScmObj module)
     /*******************************************************************/
     { "push-dynamic-bindings", SCM_SUBR_ARITY_PUSH_DYNAMIC_BINDINGS, SCM_SUBR_FLAG_PUSH_DYNAMIC_BINDINGS, scm_subr_func_push_dynamic_bindings, true },
     { "pop-dynamic-bindings", SCM_SUBR_ARITY_POP_DYNAMIC_BINDINGS, SCM_SUBR_FLAG_POP_DYNAMIC_BINDINGS, scm_subr_func_pop_dynamic_bindings, true },
+
+    /*******************************************************************/
+    /*  Dynamic Wind                                                   */
+    /*******************************************************************/
+    { "push-dynamic-wind-handler", SCM_SUBR_ARITY_PUSH_DYNAMIC_WIND_HANDLER, SCM_SUBR_FLAG_PUSH_DYNAMIC_WIND_HANDLER, scm_subr_func_push_dynamic_wind_handler, true },
+    { "pop-dynamic-wind-handler", SCM_SUBR_ARITY_POP_DYNAMIC_WIND_HANDLER, SCM_SUBR_FLAG_POP_DYNAMIC_WIND_HANDLER, scm_subr_func_pop_dynamic_wind_handler, true },
+
   };
 
   int rslt;

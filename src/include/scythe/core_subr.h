@@ -757,14 +757,22 @@ int scm_subr_func_identifier_env(ScmObj subr, int argc, const ScmObj *argv);
 
 #define SCM_SUBR_ARITY_PUSH_DYNAMIC_BINDINGS -1
 #define SCM_SUBR_ARITY_POP_DYNAMIC_BINDINGS 0
+#define SCM_SUBR_ARITY_PUSH_DYNAMIC_WIND_HANDLER 2
+#define SCM_SUBR_ARITY_POP_DYNAMIC_WIND_HANDLER 0
 
 #define SCM_SUBR_FLAG_PUSH_DYNAMIC_BINDINGS 0
 #define SCM_SUBR_FLAG_POP_DYNAMIC_BINDINGS 0
+#define SCM_SUBR_FLAG_PUSH_DYNAMIC_WIND_HANDLER 0
+#define SCM_SUBR_FLAG_POP_DYNAMIC_WIND_HANDLER 0
 
 int scm_subr_func_push_dynamic_bindings(ScmObj subr,
                                         int argc, const ScmObj *argv);
 int scm_subr_func_pop_dynamic_bindings(ScmObj subr,
                                        int argc, const ScmObj *argv);
+int scm_subr_func_push_dynamic_wind_handler(ScmObj subr,
+                                            int argc, const ScmObj *argv);
+int scm_subr_func_pop_dynamic_wind_handler(ScmObj subr,
+                                           int argc, const ScmObj *argv);
 
 
 /*******************************************************************/

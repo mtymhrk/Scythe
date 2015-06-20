@@ -3045,6 +3045,34 @@ scm_subr_func_pop_dynamic_bindings(ScmObj subr, int argc, const ScmObj *argv)
   return scm_fcd_return_val(&val, 1);
 }
 
+int
+scm_subr_func_push_dynamic_wind_handler(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&subr,
+                      &val);
+
+  val = scm_api_push_dynamic_wind_handler(argv[0], argv[1]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_fcd_return_val(&val, 1);
+}
+
+int
+scm_subr_func_pop_dynamic_wind_handler(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&subr,
+                      &val);
+
+  val = scm_api_pop_dynamic_wind_handler();
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_fcd_return_val(&val, 1);
+}
+
 
 /*******************************************************************/
 /*  Internals                                                      */
