@@ -127,7 +127,11 @@ scm_load_module(const char * const *name_str, size_t n,
 
 static int scm_load_module_scheme_base(void);
 static int scm_load_module_scheme_char(void);
+static int scm_load_module_scythe_internal_base(void);
+static int scm_load_module_scythe_internal_misc(void);
+static int scm_load_module_scythe_internal_dynamicenv(void);
 static int scm_load_module_scythe_internal_compile(void);
+static int scm_load_module_scythe_internal_macro(void);
 static int scm_load_module_scythe_internal_repl(void);
 static int scm_load_module_scythe_internal_command(void);
 static int scm_load_module_scythe_base(void);
@@ -600,6 +604,54 @@ scm_load_module_scythe_internal_misc(void)
 
 
 /*******************************************************************/
+/*  (scythe internal dynamic-env)                                  */
+/*******************************************************************/
+
+static int
+scm_define_scythe_internal_dynamicenv_subr(ScmObj module)
+{
+  static const struct subr_data data[] = {
+    /*******************************************************************/
+    /*  Dynamic bindings                                               */
+    /*******************************************************************/
+    { "push-dynamic-bindings", SCM_SUBR_ARITY_PUSH_DYNAMIC_BINDINGS, SCM_SUBR_FLAG_PUSH_DYNAMIC_BINDINGS, scm_subr_func_push_dynamic_bindings, true },
+    { "pop-dynamic-bindings", SCM_SUBR_ARITY_POP_DYNAMIC_BINDINGS, SCM_SUBR_FLAG_POP_DYNAMIC_BINDINGS, scm_subr_func_pop_dynamic_bindings, true },
+  };
+
+  int rslt;
+
+  SCM_REFSTK_INIT_REG(&module);
+
+  rslt = scm_define_subr(module, data, sizeof(data)/sizeof(data[0]));
+  if (rslt < 0) return -1;
+
+  return 0;
+}
+
+static int
+scm_load_module_func_scythe_internal_dynamicenv(ScmObj mod)
+{
+  int rslt;
+
+  /*
+   * define global variables
+   */
+
+  rslt = scm_define_scythe_internal_dynamicenv_subr(mod);
+  if (rslt < 0) return -1;
+
+  return 0;
+}
+
+static int
+scm_load_module_scythe_internal_dynamicenv(void)
+{
+  return scm_load_module(STRARY("scythe", "internal", "dynamic-env"), 3,
+                         scm_load_module_func_scythe_internal_dynamicenv);
+}
+
+
+/*******************************************************************/
 /*  (scythe internal compile)                                      */
 /*******************************************************************/
 
@@ -657,12 +709,6 @@ scm_define_scythe_internal_compile_subr(ScmObj module)
     { "substitute-qq-template", SCM_SUBR_ARITY_SUBSTITUTE_QQ_TEMPLATE, SCM_SUBR_FLAG_SUBSTITUTE_QQ_TEMPLATE, scm_subr_func_substitute_qq_template, false },
     { "qq-template-num-of-unquoted", SCM_SUBR_ARITY_QQ_TEMPLATE_NUM_OF_UNQUOTED, SCM_SUBR_FLAG_QQ_TEMPLATE_NUM_OF_UNQUOTED, scm_subr_func_qq_template_num_of_unquoted, false },
     { "qq-template-unquoted", SCM_SUBR_ARITY_QQ_TEMPLATE_UNQUOTED, SCM_SUBR_FLAG_QQ_TEMPLATE_UNQUOTED, scm_subr_func_qq_template_unquoted, false },
-
-    /*******************************************************************/
-    /*  Dynamic bindings                                               */
-    /*******************************************************************/
-    { "push-dynamic-bindings", SCM_SUBR_ARITY_PUSH_DYNAMIC_BINDINGS, SCM_SUBR_FLAG_PUSH_DYNAMIC_BINDINGS, scm_subr_func_push_dynamic_bindings, false },
-    { "pop-dynamic-bindings", SCM_SUBR_ARITY_POP_DYNAMIC_BINDINGS, SCM_SUBR_FLAG_POP_DYNAMIC_BINDINGS, scm_subr_func_pop_dynamic_bindings, false },
 
     /*******************************************************************/
     /*  Identifier                                                     */
@@ -789,6 +835,19 @@ scm_load_module_func_scythe_internal_compile(ScmObj mod)
   if (rslt < 0) return -1;
 
   name = scm_make_module_name(STRARY("scythe", "internal", "misc"), 3);
+  if (scm_obj_null_p(name)) return -1;
+
+  rslt = scm_fcd_module_import(mod, name, true);
+  if (rslt < 0) return -1;
+
+  /*
+   * load (scythe internal dynamic-env) module and import it
+   */
+
+  rslt = scm_load_module_scythe_internal_dynamicenv();
+  if (rslt < 0) return -1;
+
+  name = scm_make_module_name(STRARY("scythe", "internal", "dynamic-env"), 3);
   if (scm_obj_null_p(name)) return -1;
 
   rslt = scm_fcd_module_import(mod, name, true);
@@ -1144,14 +1203,15 @@ int
 scm_load_core_modules(void)
 {
   int (*func[])(void) = {
+    scm_load_module_scythe_internal_misc,
+    scm_load_module_scythe_internal_dynamicenv,
+    scm_load_module_scythe_internal_command,
     scm_load_module_scheme_base,
     scm_load_module_scheme_char,
     scm_load_module_scythe_internal_base,
-    scm_load_module_scythe_internal_compile,
     scm_load_module_scythe_internal_macro,
     scm_load_module_scythe_internal_repl,
-    scm_load_module_scythe_internal_command,
-    scm_load_module_scythe_internal_misc,
+    scm_load_module_scythe_internal_compile,
     scm_load_module_scythe_base,
     scm_load_module_main,
   };

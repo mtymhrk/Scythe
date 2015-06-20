@@ -672,8 +672,6 @@ int scm_subr_func_module_export(ScmObj subr, int argc, const ScmObj *argv);
 #define SCM_SUBR_ARITY_SUBSTITUTE_QQ_TEMPLATE -2
 #define SCM_SUBR_ARITY_QQ_TEMPLATE_NUM_OF_UNQUOTED 1
 #define SCM_SUBR_ARITY_QQ_TEMPLATE_UNQUOTED 2
-#define SCM_SUBR_ARITY_PUSH_DYNAMIC_BINDINGS -1
-#define SCM_SUBR_ARITY_POP_DYNAMIC_BINDINGS 0
 #define SCM_SUBR_ARITY_IDENTIFIER_P 1
 #define SCM_SUBR_ARITY_MAKE_IDENTIFIER 2
 #define SCM_SUBR_ARITY_IDENTIFIER_NAME 1
@@ -705,8 +703,6 @@ int scm_subr_func_module_export(ScmObj subr, int argc, const ScmObj *argv);
 #define SCM_SUBR_FLAG_SUBSTITUTE_QQ_TEMPLATE 0
 #define SCM_SUBR_FLAG_QQ_TEMPLATE_NUM_OF_UNQUOTED 0
 #define SCM_SUBR_FLAG_QQ_TEMPLATE_UNQUOTED 0
-#define SCM_SUBR_FLAG_PUSH_DYNAMIC_BINDINGS 0
-#define SCM_SUBR_FLAG_POP_DYNAMIC_BINDINGS 0
 #define SCM_SUBR_FLAG_IDENTIFIER_P 0
 #define SCM_SUBR_FLAG_MAKE_IDENTIFIER 0
 #define SCM_SUBR_FLAG_IDENTIFIER_NAME 0
@@ -749,14 +745,26 @@ int scm_subr_func_qq_template_num_of_unquoted(ScmObj subr,
                                               int argc, const ScmObj *argv);
 int scm_subr_func_qq_template_unquoted(ScmObj subr,
                                        int argc, const ScmObj *argv);
-int scm_subr_func_push_dynamic_bindings(ScmObj subr,
-                                        int argc, const ScmObj *argv);
-int scm_subr_func_pop_dynamic_bindings(ScmObj subr,
-                                       int argc, const ScmObj *argv);
 int scm_subr_func_identifier_P(ScmObj subr, int argc, const ScmObj *argv);
 int scm_subr_func_make_identifier(ScmObj subr, int argc, const ScmObj *argv);
 int scm_subr_func_identifier_name(ScmObj subr, int argc, const ScmObj *argv);
 int scm_subr_func_identifier_env(ScmObj subr, int argc, const ScmObj *argv);
+
+
+/*******************************************************************/
+/*  Internals (dynamic environment)                                */
+/*******************************************************************/
+
+#define SCM_SUBR_ARITY_PUSH_DYNAMIC_BINDINGS -1
+#define SCM_SUBR_ARITY_POP_DYNAMIC_BINDINGS 0
+
+#define SCM_SUBR_FLAG_PUSH_DYNAMIC_BINDINGS 0
+#define SCM_SUBR_FLAG_POP_DYNAMIC_BINDINGS 0
+
+int scm_subr_func_push_dynamic_bindings(ScmObj subr,
+                                        int argc, const ScmObj *argv);
+int scm_subr_func_pop_dynamic_bindings(ScmObj subr,
+                                       int argc, const ScmObj *argv);
 
 
 /*******************************************************************/
