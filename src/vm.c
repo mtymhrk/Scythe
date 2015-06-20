@@ -440,8 +440,10 @@ scm_contcap_cap(ScmObj cc,  ScmObj stack, const ScmVMReg *regs)
     SCM_SLOT_SETQ(ScmContCap, cc, reg.val[i], regs->val[i]);
   SCM_CONTCAP(cc)->reg.vc = regs->vc;
   SCM_SLOT_SETQ(ScmContCap, cc, reg.prm, regs->prm);
-  SCM_SLOT_SETQ(ScmContCap, cc, reg.exc, regs->exc);
-  SCM_SLOT_SETQ(ScmContCap, cc, reg.hndlr, regs->hndlr);
+  SCM_SLOT_SETQ(ScmContCap, cc, reg.exc.obj, regs->exc.obj);
+  SCM_SLOT_SETQ(ScmContCap, cc, reg.exc.hndlr, regs->exc.hndlr);
+  SCM_SLOT_SETQ(ScmContCap, cc, reg.dw.hndlr, regs->dw.hndlr);
+  SCM_CONTCAP(cc)->reg.dw.n = regs->dw.n;
   SCM_CONTCAP(cc)->reg.flags = regs->flags;
 }
 
@@ -477,8 +479,10 @@ scm_contcap_gc_initialize(ScmObj obj, ScmObj mem)
   SCM_CONTCAP(obj)->reg.ip = NULL;
   SCM_CONTCAP(obj)->reg.vc = 0;
   SCM_CONTCAP(obj)->reg.prm = SCM_OBJ_NULL;
-  SCM_CONTCAP(obj)->reg.exc = SCM_OBJ_NULL;
-  SCM_CONTCAP(obj)->reg.hndlr = SCM_OBJ_NULL;
+  SCM_CONTCAP(obj)->reg.exc.obj = SCM_OBJ_NULL;
+  SCM_CONTCAP(obj)->reg.exc.hndlr = SCM_OBJ_NULL;
+  SCM_CONTCAP(obj)->reg.dw.hndlr = SCM_OBJ_NULL;
+  SCM_CONTCAP(obj)->reg.dw.n = 0;
 }
 
 int
@@ -509,11 +513,15 @@ scm_contcap_gc_accepct(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
   rslt = SCM_GC_CALL_REF_HANDLER(handler, obj,
-                                 SCM_CONTCAP(obj)->reg.exc, mem);
+                                 SCM_CONTCAP(obj)->reg.exc.obj, mem);
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
   rslt = SCM_GC_CALL_REF_HANDLER(handler, obj,
-                                 SCM_CONTCAP(obj)->reg.hndlr, mem);
+                                 SCM_CONTCAP(obj)->reg.exc.hndlr, mem);
+  if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
+
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj,
+                                 SCM_CONTCAP(obj)->reg.dw.hndlr, mem);
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
   return rslt;
@@ -2838,8 +2846,10 @@ scm_vm_initialize(ScmObj vm, ScmObj main_vm)
   SCM_SLOT_SETQ(ScmVM, vm, reg.val[0], SCM_UNDEF_OBJ);
   SCM_VM(vm)->reg.vc = 1;
   SCM_SLOT_SETQ(ScmVM, vm, reg.prm, SCM_NIL_OBJ);
-  SCM_VM(vm)->reg.exc = SCM_OBJ_NULL;
-  SCM_SLOT_SETQ(ScmVM, vm, reg.hndlr, SCM_NIL_OBJ);
+  SCM_VM(vm)->reg.exc.obj = SCM_OBJ_NULL;
+  SCM_SLOT_SETQ(ScmVM, vm, reg.exc.hndlr, SCM_NIL_OBJ);
+  SCM_SLOT_SETQ(ScmVM, vm, reg.dw.hndlr, SCM_NIL_OBJ);
+  SCM_VM(vm)->reg.dw.n = 0;
   SCM_VM(vm)->reg.flags = 0;
 
   SCM_VM(vm)->inttbl.table[SCM_VM_INT_GC].func = scm_vm_interrupt_func_run_gc;
@@ -2867,8 +2877,10 @@ scm_vm_finalize(ScmObj vm)
   SCM_VM(vm)->reg.cp = SCM_OBJ_NULL;
   SCM_VM(vm)->reg.vc = 0;
   SCM_SLOT_SETQ(ScmVM, vm, reg.prm, SCM_OBJ_NULL);
-  SCM_VM(vm)->reg.exc = SCM_OBJ_NULL;
-  SCM_SLOT_SETQ(ScmVM, vm, reg.hndlr, SCM_OBJ_NULL);
+  SCM_VM(vm)->reg.exc.obj = SCM_OBJ_NULL;
+  SCM_SLOT_SETQ(ScmVM, vm, reg.exc.hndlr, SCM_OBJ_NULL);
+  SCM_SLOT_SETQ(ScmVM, vm, reg.dw.hndlr, SCM_OBJ_NULL);
+  SCM_VM(vm)->reg.dw.n = 0;
   SCM_VM(vm)->reg.flags = 0;
 }
 
@@ -3123,8 +3135,10 @@ scm_vm_reinstatement_cont(ScmObj vm, ScmObj cc)
   SCM_SLOT_SETQ(ScmVM, vm, reg.cp, scm_contcap_cp(cc));
   SCM_VM(vm)->reg.ip = scm_contcap_ip(cc);
   SCM_SLOT_SETQ(ScmVM, vm, reg.prm, scm_contcap_prm(cc));
-  SCM_SLOT_SETQ(ScmVM, vm, reg.exc, scm_contcap_exc(cc));
-  SCM_SLOT_SETQ(ScmVM, vm, reg.hndlr, scm_contcap_hndlr(cc));
+  SCM_SLOT_SETQ(ScmVM, vm, reg.exc.obj, scm_contcap_exc_obj(cc));
+  SCM_SLOT_SETQ(ScmVM, vm, reg.exc.hndlr, scm_contcap_exc_hndlr(cc));
+  SCM_SLOT_SETQ(ScmVM, vm, reg.dw.hndlr, scm_contcap_dw_hndlr(cc));
+  SCM_VM(vm)->reg.dw.n = scm_contcap_dw_num(cc);
   SCM_VM(vm)->reg.flags = scm_contcap_flags(cc);
 
   return 0;
@@ -3261,7 +3275,7 @@ scm_vm_setup_stat_raise(ScmObj vm, ScmObj obj, bool continuable)
     return -1;
   }
 
-  SCM_SLOT_SETQ(ScmVM, vm, reg.exc, obj);
+  SCM_SLOT_SETQ(ScmVM, vm, reg.exc.obj, obj);
   if (continuable)
     return scm_vm_interrupt_activate(vm, SCM_VM_INT_RAISE_CONT);
   else
@@ -3290,7 +3304,7 @@ scm_vm_setup_stat_call_exc_hndlr(ScmObj vm)
 
   scm_vm_ctrl_flg_set(vm, SCM_VM_CTRL_FLG_RAISE);
 
-  args = scm_fcd_cons(SCM_VM(vm)->reg.exc, SCM_NIL_OBJ);
+  args = scm_fcd_cons(SCM_VM(vm)->reg.exc.obj, SCM_NIL_OBJ);
   if (scm_obj_null_p(args)) return -1;
 
   scm_vm_discard_raised_obj(vm);
@@ -3315,7 +3329,7 @@ scm_vm_setup_stat_call_exc_hndlr_cont(ScmObj vm)
 
   scm_vm_ctrl_flg_set(vm, SCM_VM_CTRL_FLG_RAISE);
 
-  args = scm_fcd_cons(SCM_VM(vm)->reg.exc, SCM_NIL_OBJ);
+  args = scm_fcd_cons(SCM_VM(vm)->reg.exc.obj, SCM_NIL_OBJ);
   if (scm_obj_null_p(args)) return -1;
 
   scm_vm_discard_raised_obj(vm);
@@ -3337,10 +3351,10 @@ scm_vm_push_exc_handler(ScmObj vm, ScmObj hndlr)
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
   scm_assert(scm_fcd_procedure_p(hndlr));
 
-  lst = scm_fcd_cons(hndlr, SCM_VM(vm)->reg.hndlr);
+  lst = scm_fcd_cons(hndlr, SCM_VM(vm)->reg.exc.hndlr);
   if (scm_obj_null_p(lst)) return -1;
 
-  SCM_SLOT_SETQ(ScmVM, vm, reg.hndlr, lst);
+  SCM_SLOT_SETQ(ScmVM, vm, reg.exc.hndlr, lst);
 
   return 0;
 }
@@ -3355,11 +3369,11 @@ scm_vm_pop_exc_handler(ScmObj vm)
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
-  if (!scm_fcd_pair_p(SCM_VM(vm)->reg.hndlr))
+  if (!scm_fcd_pair_p(SCM_VM(vm)->reg.exc.hndlr))
     return 0;
 
-  rest = scm_fcd_cdr(SCM_VM(vm)->reg.hndlr);
-  SCM_SLOT_SETQ(ScmVM, vm, reg.hndlr, rest);
+  rest = scm_fcd_cdr(SCM_VM(vm)->reg.exc.hndlr);
+  SCM_SLOT_SETQ(ScmVM, vm, reg.exc.hndlr, rest);
 
   return 0;
 }
@@ -3372,8 +3386,8 @@ scm_vm_exc_handler(ScmObj vm, scm_csetter_t *hndlr)
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
   scm_assert(hndlr != NULL);
 
-  if (scm_fcd_pair_p(SCM_VM(vm)->reg.hndlr))
-    val = scm_fcd_car(SCM_VM(vm)->reg.hndlr);
+  if (scm_fcd_pair_p(SCM_VM(vm)->reg.exc.hndlr))
+    val = scm_fcd_car(SCM_VM(vm)->reg.exc.hndlr);
   else
     val = SCM_OBJ_NULL;
 
@@ -3401,7 +3415,7 @@ scm_vm_subr_exc_hndlr_caller(ScmObj subr, int argc, const ScmObj *argv)
   if (rslt < 0) return -1;
 
   if (scm_obj_null_p(hndlr)) {
-    SCM_SLOT_SETQ(ScmVM, vm, reg.exc, argv[0]);
+    SCM_SLOT_SETQ(ScmVM, vm, reg.exc.obj, argv[0]);
     scm_vm_setup_stat_halt(vm);
     val = SCM_UNDEF_OBJ;
     ret = scm_vm_set_val_reg(vm, &val, 1);
@@ -3440,7 +3454,7 @@ scm_vm_subr_exc_hndlr_caller_cont(ScmObj subr, int argc, const ScmObj *argv)
   if (rslt < 0) return -1;
 
   if (scm_obj_null_p(hndlr)) {
-    SCM_SLOT_SETQ(ScmVM, vm, reg.exc, argv[0]);
+    SCM_SLOT_SETQ(ScmVM, vm, reg.exc.obj, argv[0]);
     scm_vm_setup_stat_halt(vm);
     val = SCM_UNDEF_OBJ;
     ret = scm_vm_set_val_reg(vm, &val, 1);
@@ -3495,7 +3509,7 @@ scm_vm_disposal_unhandled_exc(ScmObj vm)
   SCM_REFSTK_INIT_REG(&vm,
                       &raised, &port, &str);
 
-  if (scm_obj_null_p(SCM_VM(vm)->reg.exc))
+  if (scm_obj_null_p(SCM_VM(vm)->reg.exc.obj))
     return;
 
   port = scm_fcd_open_output_string();
@@ -3504,7 +3518,7 @@ scm_vm_disposal_unhandled_exc(ScmObj vm)
   rslt = scm_fcd_write_cstr("Unhandled Exception: ", SCM_ENC_SRC, port);
   if (rslt < 0) return;
 
-  rslt = scm_fcd_display(SCM_VM(vm)->reg.exc, port);
+  rslt = scm_fcd_display(SCM_VM(vm)->reg.exc.obj, port);
   if (rslt < 0) return;
 
   rslt = scm_fcd_newline(port);
@@ -3553,8 +3567,10 @@ scm_vm_gc_initialize(ScmObj obj, ScmObj mem)
   SCM_VM(obj)->reg.cp = SCM_OBJ_NULL;
   SCM_VM(obj)->reg.vc = 0;
   SCM_VM(obj)->reg.prm = SCM_OBJ_NULL;
-  SCM_VM(obj)->reg.exc = SCM_OBJ_NULL;
-  SCM_VM(obj)->reg.hndlr = SCM_OBJ_NULL;
+  SCM_VM(obj)->reg.exc.obj = SCM_OBJ_NULL;
+  SCM_VM(obj)->reg.exc.hndlr = SCM_OBJ_NULL;
+  SCM_VM(obj)->reg.dw.hndlr = SCM_OBJ_NULL;
+  SCM_VM(obj)->reg.dw.n = 0;
   SCM_VM(obj)->reg.flags = 0;
 }
 
@@ -3620,10 +3636,13 @@ scm_vm_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
   rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_VM(obj)->reg.prm, mem);
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
-  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_VM(obj)->reg.exc, mem);
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_VM(obj)->reg.exc.obj, mem);
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
-  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_VM(obj)->reg.hndlr, mem);
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_VM(obj)->reg.exc.hndlr, mem);
+  if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
+
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_VM(obj)->reg.dw.hndlr, mem);
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
   rslt = scm_vm_gc_accept_stack(obj, mem, handler);

@@ -229,8 +229,14 @@ struct ScmVMRegRec {
   ScmObj val[SCM_VM_NR_VAL_REG];  /* value register */
   int vc;                         /* value count */
   ScmObj prm;                     /* dynamic bindings */
-  ScmObj exc;                     /* raised object */
-  ScmObj hndlr;                   /* exception handler */
+  struct {
+    ScmObj obj;                     /* raised object */
+    ScmObj hndlr;                   /* exception handler */
+  } exc;
+  struct {
+    ScmObj hndlr;                    /* dynamic wind handler*/
+    size_t n;                        /* number of handlers */
+  } dw;
   unsigned int flags;
 };
 
@@ -251,8 +257,14 @@ struct ScmContCapRec {
     ScmObj val[SCM_VM_NR_VAL_REG];
     int vc;
     ScmObj prm;
-    ScmObj exc;
-    ScmObj hndlr;
+    struct {
+      ScmObj obj;
+      ScmObj hndlr;
+    } exc;
+    struct {
+      ScmObj hndlr;
+      size_t n;
+    } dw;
     unsigned int flags;
   } reg;
 };
@@ -313,19 +325,35 @@ scm_contcap_prm(ScmObj cc)
 }
 
 static inline ScmObj
-scm_contcap_exc(ScmObj cc)
+scm_contcap_exc_obj(ScmObj cc)
 {
   scm_assert_obj_type(cc, &SCM_CONTCAP_TYPE_INFO);
 
-  return SCM_CONTCAP(cc)->reg.exc;
+  return SCM_CONTCAP(cc)->reg.exc.obj;
 }
 
 static inline ScmObj
-scm_contcap_hndlr(ScmObj cc)
+scm_contcap_exc_hndlr(ScmObj cc)
 {
   scm_assert_obj_type(cc, &SCM_CONTCAP_TYPE_INFO);
 
-  return SCM_CONTCAP(cc)->reg.hndlr;
+  return SCM_CONTCAP(cc)->reg.exc.hndlr;
+}
+
+static inline ScmObj
+scm_contcap_dw_hndlr(ScmObj cc)
+{
+  scm_assert_obj_type(cc, &SCM_CONTCAP_TYPE_INFO);
+
+  return SCM_CONTCAP(cc)->reg.dw.hndlr;
+}
+
+static inline size_t
+scm_contcap_dw_num(ScmObj cc)
+{
+  scm_assert_obj_type(cc, &SCM_CONTCAP_TYPE_INFO);
+
+  return SCM_CONTCAP(cc)->reg.dw.n;
 }
 
 static inline uint
@@ -410,21 +438,21 @@ static inline ScmObj
 scm_vm_raised_obj(ScmObj vm)
 {
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-  return SCM_VM(vm)->reg.exc;
+  return SCM_VM(vm)->reg.exc.obj;
 }
 
 static inline bool
 scm_vm_raised_p(ScmObj vm)
 {
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-  return scm_obj_not_null_p(SCM_VM(vm)->reg.exc);
+  return scm_obj_not_null_p(SCM_VM(vm)->reg.exc.obj);
 }
 
 static inline void
 scm_vm_discard_raised_obj(ScmObj vm)
 {
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-  SCM_VM(vm)->reg.exc = SCM_OBJ_NULL;
+  SCM_VM(vm)->reg.exc.obj = SCM_OBJ_NULL;
 }
 
 
