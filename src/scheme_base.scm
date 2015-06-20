@@ -1,0 +1,15 @@
+
+(select-module (scheme base))
+
+(module-export (current-module) 'dynamic-wind)
+(define (dynamic-wind before thunk after)
+  (letrec ((b (lambda ()
+                (before)
+                (push-dynamic-wind-handler b a)))
+           (a (lambda ()
+                (pop-dynamic-wind-handler)
+                (after))))
+    (b)
+    (let-values ((x (thunk)))
+      (a)
+      (apply values x))))

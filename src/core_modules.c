@@ -393,6 +393,30 @@ scm_define_scheme_base_current_port(ScmObj module)
   return 0;
 }
 
+extern const unsigned char scm_scheme_base_data[];
+
+static int
+scm_define_scheme_base_closure(ScmObj mod)
+{
+  ScmObj unmarshal = SCM_OBJ_INIT, iseq = SCM_OBJ_INIT;
+  int rslt;
+
+  SCM_REFSTK_INIT_REG(&mod,
+                      &unmarshal, &iseq);
+
+  unmarshal = scm_fcd_make_unmarshal(scm_scheme_base_data);
+  if (scm_obj_null_p(unmarshal)) return -1;
+
+  iseq = scm_fcd_unmarshal_ref(unmarshal, 0);
+  if (scm_obj_null_p(iseq)) return -1;
+  scm_assert(scm_fcd_iseq_p(iseq));
+
+  rslt = scm_fcd_load_iseq(iseq);
+  if (rslt < 0) return -1;
+
+  return 0;
+}
+
 static int
 scm_load_module_func_scheme_base(ScmObj mod)
 {
@@ -404,6 +428,33 @@ scm_load_module_func_scheme_base(ScmObj mod)
 
 
   /*
+   * load (scythe internal misc) module and import it
+   */
+
+  rslt = scm_load_module_scythe_internal_misc();
+  if (rslt < 0) return -1;
+
+  name = scm_make_module_name(STRARY("scythe", "internal", "misc"), 3);
+  if (scm_obj_null_p(name)) return -1;
+
+  rslt = scm_fcd_module_import(mod, name, true);
+  if (rslt < 0) return -1;
+
+  /*
+   * load (scythe internal dynamic-env) module and import it
+   */
+
+  rslt = scm_load_module_scythe_internal_dynamicenv();
+  if (rslt < 0) return -1;
+
+  name = scm_make_module_name(STRARY("scythe", "internal", "dynamic-env"), 3);
+  if (scm_obj_null_p(name)) return -1;
+
+  rslt = scm_fcd_module_import(mod, name, true);
+  if (rslt < 0) return -1;
+
+
+  /*
    * define global variables
    */
 
@@ -411,6 +462,9 @@ scm_load_module_func_scheme_base(ScmObj mod)
   if (rslt < 0) return -1;
 
   rslt = scm_define_scheme_base_current_port(mod);
+  if (rslt < 0) return -1;
+
+  rslt = scm_define_scheme_base_closure(mod);
   if (rslt < 0) return -1;
 
   return 0;

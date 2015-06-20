@@ -5,7 +5,8 @@ CONVERTER = scmcompile.rb
 SRC_PATH = ..
 HEADER_PATH = ../include/scythe
 
-all: ${SRC_PATH}/repl_data.c ${SRC_PATH}/compile_data.c ${SRC_PATH}/macro_data.c
+all: ${SRC_PATH}/repl_data.c ${SRC_PATH}/compile_data.c ${SRC_PATH}/macro_data.c \
+     ${SRC_PATH}/scheme_base_data.c
 
 ${SRC_PATH}/repl_data.c: ${SRC_PATH}/repl.scm ${SRC_PATH}/repl_data.c.in
 	${RUBY} ${CONVERTER} ${COMPILER} $^ $@
@@ -14,4 +15,7 @@ ${SRC_PATH}/compile_data.c: ${SRC_PATH}/compile.scm ${SRC_PATH}/compile_data.c.i
 	${RUBY} ${CONVERTER} ${COMPILER} $^ $@
 
 ${SRC_PATH}/macro_data.c: ${SRC_PATH}/macro.scm ${SRC_PATH}/macro_data.c.in
+	${RUBY} ${CONVERTER} ${COMPILER} $^ $@
+
+${SRC_PATH}/scheme_base_data.c: ${SRC_PATH}/scheme_base.scm ${SRC_PATH}/scheme_base_data.c.in
 	${RUBY} ${CONVERTER} ${COMPILER} $^ $@

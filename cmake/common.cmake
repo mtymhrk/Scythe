@@ -10,6 +10,7 @@ set(scythe_lib_src memory.c object.c pair.c string.c symbol.c vector.c
                    module.c core_modules.c fixnum.c bignum.c number_parser.c
                    marshal.c compile_data.c repl_data.c earray.c impl_utils.c
                    macro_data.c equivalence.c format.c number.c
+                   scheme_base_data.c
                    )
 
 

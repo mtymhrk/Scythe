@@ -240,3 +240,23 @@ TEST(exec_proc, parameter__make_parameter__specify_converter)
   test_eval__comp_val_with_obj("((make-parameter 100 (lambda (x) (+ x 1))))",
                                "101");
 }
+
+TEST(exec_proc, dynamic_wind__order)
+{
+  test_eval__comp_val_with_obj("(let ((x ()))"
+                               "  (dynamic-wind"
+                               "    (lambda () (set! x (cons 'a x)))"
+                               "    (lambda () (set! x (cons 'b x)))"
+                               "    (lambda () (set! x (cons 'c x))))"
+                               "  x)",
+                               "(c b a)");
+}
+
+TEST(exec_proc, dynamic_wind__return_value)
+{
+  test_eval__comp_val_with_obj("(dynamic-wind"
+                               "  (lambda () 1)"
+                               "  (lambda () 2)"
+                               "  (lambda () 3))",
+                               "2");
+}
