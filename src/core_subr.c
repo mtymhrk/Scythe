@@ -1977,41 +1977,6 @@ scm_subr_func_apply(ScmObj subr, int argc, const ScmObj *argv)
 /*******************************************************************/
 
 int
-scm_subr_func_with_exception_handler_post(ScmObj subr,
-                                          int argc, const ScmObj *argv)
-{
-  int rslt;
-
-  rslt = scm_capi_pop_exception_handler();
-  if (rslt < 0) return -1;
-
-  return scm_fcd_return_val(argv, argc);
-}
-
-int
-scm_subr_func_with_exception_handler(ScmObj subr, int argc, const ScmObj *argv)
-{
-  ScmObj module = SCM_OBJ_INIT, postproc = SCM_OBJ_INIT;
-  int rslt;
-
-  SCM_REFSTK_INIT_REG(&subr,
-                      &module, &postproc);
-
-  module = scm_fcd_subrutine_env(subr);
-  postproc = scm_fcd_make_subrutine(scm_subr_func_with_exception_handler_post,
-                                    -1, SCM_PROC_ADJ_UNWISHED, module);
-  if (scm_obj_null_p(postproc)) return -1;
-
-  rslt = scm_capi_trampolining(argv[1], SCM_NIL_OBJ, postproc, SCM_OBJ_NULL);
-  if (rslt < 0) return -1;
-
-  rslt = scm_capi_push_exception_handler(argv[0]);
-  if (rslt < 0) return -1;
-
-  return 0;
-}
-
-int
 scm_subr_func_raise(ScmObj subr, int argc, const ScmObj *argv)
 {
   return scm_capi_raise(argv[0]);
@@ -3016,6 +2981,34 @@ scm_subr_func_identifier_env(ScmObj subr, int argc, const ScmObj *argv)
 /*******************************************************************/
 /*  Internals (dynamic environment)                                */
 /*******************************************************************/
+
+int
+scm_subr_func_push_exception_handler(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val;
+
+  SCM_REFSTK_INIT_REG(&subr,
+                      &val);
+
+  val = scm_api_push_exception_handler(argv[0]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_fcd_return_val(&val, 1);
+}
+
+int
+scm_subr_func_pop_exception_handler(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val;
+
+  SCM_REFSTK_INIT_REG(&subr,
+                      &val);
+
+  val = scm_api_pop_exception_handler();
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_fcd_return_val(&val, 1);
+}
 
 int
 scm_subr_func_push_dynamic_bindings(ScmObj subr, int argc, const ScmObj *argv)

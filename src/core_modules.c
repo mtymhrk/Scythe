@@ -301,7 +301,6 @@ scm_define_scheme_base_subr(ScmObj module)
     /*******************************************************************/
     /*  Exceptions                                                     */
     /*******************************************************************/
-    { "with-exception-handler", SCM_SUBR_ARITY_WITH_EXCEPTION_HANDLER, SCM_SUBR_FLAG_WITH_EXCEPTION_HANDLER, scm_subr_func_with_exception_handler, true },
     { "raise", SCM_SUBR_ARITY_RAISE, SCM_SUBR_FLAG_RAISE, scm_subr_func_raise, true },
     { "raise-continuable", SCM_SUBR_ARITY_RAISE_CONTINUABLE, SCM_SUBR_FLAG_RAISE_CONTINUABLE, scm_subr_func_raise_continuable, true },
     { "error", SCM_SUBR_ARITY_ERROR, SCM_SUBR_FLAG_ERROR, scm_subr_func_error, true },
@@ -665,6 +664,12 @@ static int
 scm_define_scythe_internal_dynamicenv_subr(ScmObj module)
 {
   static const struct subr_data data[] = {
+    /*******************************************************************/
+    /*  Exception Handler                                              */
+    /*******************************************************************/
+    { "push-exception-handler", SCM_SUBR_ARITY_PUSH_EXCEPTION_HANDLER, SCM_SUBR_FLAG_PUSH_EXCEPTION_HANDLER, scm_subr_func_push_exception_handler, true },
+    { "pop-exception-handler", SCM_SUBR_ARITY_POP_EXCEPTION_HANDLER, SCM_SUBR_FLAG_POP_EXCEPTION_HANDLER, scm_subr_func_pop_exception_handler, true },
+
     /*******************************************************************/
     /*  Dynamic bindings                                               */
     /*******************************************************************/

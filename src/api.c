@@ -1522,16 +1522,32 @@ scm_capi_raise_continuable(ScmObj obj)
   return scm_fcd_raise_continuable(obj);
 }
 
-int
-scm_capi_push_exception_handler(ScmObj handler)
+ScmObj
+scm_api_push_exception_handler(ScmObj handler)
 {
+  int r;
+
   if (!scm_fcd_procedure_p(handler)) {
     scm_capi_error("failed to install exception handler: "
                    "invalid argument", 1, handler);
-    return -1;
+    return SCM_OBJ_NULL;
   }
 
-  return scm_fcd_push_exception_handler(handler);
+  r = scm_fcd_push_exception_handler(handler);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return SCM_UNDEF_OBJ;
+}
+
+ScmObj
+scm_api_pop_exception_handler(void)
+{
+  int r;
+
+  r = scm_fcd_pop_exception_handler();
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return SCM_UNDEF_OBJ;
 }
 
 ScmObj

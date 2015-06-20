@@ -487,7 +487,6 @@ int scm_subr_func_apply(ScmObj subr, int argc, const ScmObj *argv);
 /*  Exceptions                                                     */
 /*******************************************************************/
 
-#define SCM_SUBR_ARITY_WITH_EXCEPTION_HANDLER 2
 #define SCM_SUBR_ARITY_RAISE 1
 #define SCM_SUBR_ARITY_RAISE_CONTINUABLE 1
 #define SCM_SUBR_ARITY_ERROR -2
@@ -497,7 +496,6 @@ int scm_subr_func_apply(ScmObj subr, int argc, const ScmObj *argv);
 #define SCM_SUBR_ARITY_READ_ERROR_P 1
 #define SCM_SUBR_ARITY_FILE_ERROR_P 1
 
-#define SCM_SUBR_FLAG_WITH_EXCEPTION_HANDLER 0
 #define SCM_SUBR_FLAG_RAISE 0
 #define SCM_SUBR_FLAG_RAISE_CONTINUABLE 0
 #define SCM_SUBR_FLAG_ERROR 0
@@ -507,8 +505,6 @@ int scm_subr_func_apply(ScmObj subr, int argc, const ScmObj *argv);
 #define SCM_SUBR_FLAG_READ_ERROR_P 0
 #define SCM_SUBR_FLAG_FILE_ERROR_P 0
 
-int scm_subr_func_with_exception_handler(ScmObj subr,
-                                           int argc, const ScmObj *argv);
 int scm_subr_func_raise(ScmObj subr, int argc, const ScmObj *argv);
 int scm_subr_func_raise_continuable(ScmObj subr, int argc, const ScmObj *argv);
 int scm_subr_func_error(ScmObj subr, int argc, const ScmObj *argv);
@@ -759,12 +755,20 @@ int scm_subr_func_identifier_env(ScmObj subr, int argc, const ScmObj *argv);
 #define SCM_SUBR_ARITY_POP_DYNAMIC_BINDINGS 0
 #define SCM_SUBR_ARITY_PUSH_DYNAMIC_WIND_HANDLER 2
 #define SCM_SUBR_ARITY_POP_DYNAMIC_WIND_HANDLER 0
+#define SCM_SUBR_ARITY_PUSH_EXCEPTION_HANDLER 1
+#define SCM_SUBR_ARITY_POP_EXCEPTION_HANDLER 0
 
 #define SCM_SUBR_FLAG_PUSH_DYNAMIC_BINDINGS 0
 #define SCM_SUBR_FLAG_POP_DYNAMIC_BINDINGS 0
 #define SCM_SUBR_FLAG_PUSH_DYNAMIC_WIND_HANDLER 0
 #define SCM_SUBR_FLAG_POP_DYNAMIC_WIND_HANDLER 0
+#define SCM_SUBR_FLAG_PUSH_EXCEPTION_HANDLER 0
+#define SCM_SUBR_FLAG_POP_EXCEPTION_HANDLER 0
 
+int scm_subr_func_push_exception_handler(ScmObj subr,
+                                         int argc, const ScmObj *argv);
+int scm_subr_func_pop_exception_handler(ScmObj subr,
+                                        int argc, const ScmObj *argv);
 int scm_subr_func_push_dynamic_bindings(ScmObj subr,
                                         int argc, const ScmObj *argv);
 int scm_subr_func_pop_dynamic_bindings(ScmObj subr,

@@ -13,3 +13,11 @@
     (let-values ((x (thunk)))
       (a)
       (apply values x))))
+
+(module-export (current-module) 'with-exception-handler)
+(define (with-exception-handler handler thunk)
+  (dynamic-wind
+      (lambda () (push-exception-handler handler))
+      thunk
+      pop-exception-handler))
+

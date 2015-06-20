@@ -198,7 +198,6 @@ ScmObj scm_api_vector_fill_i(ScmObj vec, ScmObj fill, ScmObj start, ScmObj end);
 /*  Exception                                                      */
 /*******************************************************************/
 
-#define scm_capi_pop_exception_handler scm_fcd_pop_exception_handler
 #define scm_api_error_object_P scm_fcd_error_object_P
 #define scm_api_read_error_P scm_fcd_read_error_P
 #define scm_api_file_error_P scm_fcd_file_error_P
@@ -209,7 +208,8 @@ ScmObj scm_api_vector_fill_i(ScmObj vec, ScmObj fill, ScmObj start, ScmObj end);
 
 int scm_capi_raise(ScmObj obj);
 int scm_capi_raise_continuable(ScmObj obj);
-int scm_capi_push_exception_handler(ScmObj handler);
+ScmObj scm_api_push_exception_handler(ScmObj handler);
+ScmObj scm_api_pop_exception_handler(void);
 ScmObj scm_api_error_lst(ScmObj msg, ScmObj irris);
 ScmObj scm_api_error_object_message(ScmObj obj);
 ScmObj scm_api_error_object_irritants(ScmObj obj);
