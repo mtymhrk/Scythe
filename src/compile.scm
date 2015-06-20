@@ -1478,10 +1478,10 @@
                       (vector-length vars-vec))))))))
 
 (define (with-dynamic-bindings bindings thunk)
-  (apply push-dynamic-bindings bindings)
-  (let ((val (thunk)))
-    (pop-dynamic-bindings)
-    val))
+  (dynamic-wind
+      (lambda () (apply push-dynamic-bindings bindings))
+      thunk
+      pop-dynamic-bindings))
 
 (define (p1-decons-parameterize cmpl exp)
   (let-values (((name params vals body)
