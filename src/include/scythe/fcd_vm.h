@@ -66,6 +66,7 @@ int scm_fcd_pop_exception_handler(void);
 void scm_fcd_disposal_unhandled_exec(void);
 int scm_fcd_push_dynamic_wind_handler(ScmObj before, ScmObj after);
 int scm_fcd_pop_dynamic_wind_handler(void);
+ScmObj scm_fcd_collect_dynamic_wind_handler(ScmObj contcap);
 
 scm_opcode_t scm_fcd_internal_opcode(scm_opcode_t op);
 scm_opcode_t scm_fcd_external_opcode(scm_opcode_t op);

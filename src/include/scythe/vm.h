@@ -428,6 +428,7 @@ int scm_vm_subr_exc_hndlr_caller_post(ScmObj subr,
 void scm_vm_disposal_unhandled_exc(ScmObj vm);
 int scm_vm_push_dw_handler(ScmObj vm, ScmObj before, ScmObj after);
 int scm_vm_pop_dw_handler(ScmObj vm);
+ScmObj scm_vm_collect_dw_handler(ScmObj vm, ScmObj contcap);
 
 const void *scm_vm_opcode2ptr(scm_opcode_t op);
 scm_opcode_t scm_vm_ptr2opcode(const void *ptr);

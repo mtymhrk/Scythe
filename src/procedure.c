@@ -346,18 +346,176 @@ scm_fcd_closure_env(ScmObj clsr)
 /*  Continuation                                                   */
 /*******************************************************************/
 
+ScmTypeInfo SCM_DWHCALLERENV_TYPE_INFO = {
+  .name                = "dwhcallerenv",
+  .flags               = SCM_TYPE_FLG_MMO,
+  .obj_print_func      = NULL,
+  .obj_size            = sizeof(ScmDWHCallerEnv),
+  .gc_ini_func         = scm_dwhcallerenv_gc_initialize,
+  .gc_fin_func         = scm_dwhcallerenv_gc_finalize,
+  .gc_accept_func      = scm_dwhcallerenv_gc_accept,
+  .gc_accept_func_weak = NULL,
+  .extra               = NULL,
+};
+
+int
+scm_dwhcallerenv_initialize(ScmObj dwhce,
+                            ScmObj cont, const ScmObj *val, size_t vc)
+{
+  scm_assert_obj_type(dwhce, &SCM_DWHCALLERENV_TYPE_INFO);
+  scm_assert(scm_obj_not_null_p(cont));
+  scm_assert(vc == 0 || val != NULL);
+
+  SCM_SLOT_SETQ(ScmDWHCallerEnv, dwhce, cont, cont);
+
+  if (vc == 0) {
+    SCM_DWHCALLERENV(dwhce)->val = NULL;
+  }
+  else {
+    SCM_DWHCALLERENV(dwhce)->val = scm_fcd_malloc(sizeof(ScmObj) * vc);
+    if (SCM_DWHCALLERENV(dwhce)->val == NULL)
+      return -1;
+    SCM_DWHCALLERENV(dwhce)->vc = vc;
+  }
+
+  for (size_t i = 0; i < vc; i++)
+    SCM_SLOT_SETQ(ScmDWHCallerEnv, dwhce, val[i], val[i]);
+
+  return 0;
+}
+
+void
+scm_dwhcallerenv_finalize(ScmObj dwhce)
+{
+  scm_assert_obj_type(dwhce, &SCM_DWHCALLERENV_TYPE_INFO);
+
+  if (SCM_DWHCALLERENV(dwhce)->vc == 0)
+    return ;
+
+  scm_fcd_free(SCM_DWHCALLERENV(dwhce)->val);
+  SCM_DWHCALLERENV(dwhce)->val = NULL;
+  SCM_DWHCALLERENV(dwhce)->vc = 0;
+}
+
+ScmObj
+scm_dwhcallerenv_new(SCM_MEM_TYPE_T mtype,
+                     ScmObj cont, const ScmObj *val, size_t vc)
+{
+  ScmObj dwhce = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&cont,
+                      &dwhce);
+
+  scm_assert(scm_obj_not_null_p(cont));
+  scm_assert(vc == 0 || val != NULL);
+
+  dwhce = scm_fcd_mem_alloc(&SCM_DWHCALLERENV_TYPE_INFO, 0, mtype);
+  if (scm_obj_null_p(dwhce)) return SCM_OBJ_NULL;
+
+  if (scm_dwhcallerenv_initialize(dwhce, cont, val, vc) < 0)
+    return SCM_OBJ_NULL;
+
+  return dwhce;
+}
+
+void
+scm_dwhcallerenv_gc_initialize(ScmObj obj, ScmObj mem)
+{
+  scm_assert_obj_type(obj, &SCM_DWHCALLERENV_TYPE_INFO);
+
+  SCM_DWHCALLERENV(obj)->cont = SCM_OBJ_NULL;
+  SCM_DWHCALLERENV(obj)->vc = 0;
+}
+
+void
+scm_dwhcallerenv_gc_finalize(ScmObj obj)
+{
+  scm_dwhcallerenv_finalize(obj);
+}
+
+int
+scm_dwhcallerenv_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
+{
+  int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
+
+  rslt = SCM_GC_CALL_REF_HANDLER(handler,
+                                 obj, SCM_DWHCALLERENV(obj)->cont, mem);
+  if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
+
+  for (size_t i = 0; i < SCM_DWHCALLERENV(obj)->vc; i++) {
+    rslt = SCM_GC_CALL_REF_HANDLER(handler,
+                                   obj, SCM_DWHCALLERENV(obj)->val[i], mem);
+    if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
+  }
+
+  return rslt;
+}
+
+static int
+call_dw_handler(ScmObj caller, ScmObj handlers)
+{
+  scm_assert(scm_fcd_procedure_p(caller));
+  scm_assert(scm_fcd_pair_p(handlers));
+
+  return scm_fcd_trampolining(scm_fcd_car(handlers), SCM_NIL_OBJ,
+                              caller, scm_fcd_cdr(handlers));
+}
+
+static int
+scm_subr_func_dw_handler_calller(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj env = SCM_OBJ_INIT;
+  int r;
+
+  SCM_REFSTK_INIT_REG(&subr,
+                      &env);
+
+  if (!scm_fcd_pair_p(argv[0])) {
+    env = scm_proc_env(subr);
+    scm_assert_obj_type(env, &SCM_DWHCALLERENV_TYPE_INFO);
+
+    r = scm_fcd_reinstantemnet_continuation(scm_dwhcallerenv_cont(env));
+    if (r < 0) return -1;
+
+    return scm_fcd_return_val(scm_dwhcallerenv_val(env),
+                              (int)scm_dwhcallerenv_vc(env));
+  }
+  else {
+    return call_dw_handler(subr, argv[0]);
+  }
+}
+
 int
 scm_subr_func_continuation(ScmObj subr, int argc, const ScmObj *argv)
 {
-  int r;
+  ScmObj handlers = SCM_OBJ_INIT, caller = SCM_OBJ_INIT, env = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&subr,
+                      &handlers, &caller);
 
   scm_assert(scm_fcd_continuation_p(subr));
   scm_assert(argc >= 0);
 
-  r = scm_fcd_reinstantemnet_continuation(scm_proc_env(subr));
-  if (r < 0) return -1;
+  handlers = scm_fcd_collect_dynamic_wind_handler(scm_proc_env(subr));
+  if (scm_obj_null_p(handlers)) return -1;
 
-  return scm_fcd_return_val(argv, argc);
+  if (!scm_fcd_pair_p(handlers)) {
+    int r = scm_fcd_reinstantemnet_continuation(scm_proc_env(subr));
+    if (r < 0) return -1;
+
+    return scm_fcd_return_val(argv, argc);
+  }
+  else {
+    env = scm_dwhcallerenv_new(SCM_MEM_HEAP,
+                               scm_proc_env(subr), argv, (size_t)argc);
+    if (scm_obj_null_p(env)) return -1;
+
+    caller = scm_fcd_make_subrutine(scm_subr_func_dw_handler_calller,
+                                    -2, SCM_PROC_ADJ_UNWISHED, env);
+    if (scm_obj_null_p(caller)) return -1;
+
+    return call_dw_handler(caller, handlers);
+  }
 }
 
 

@@ -260,3 +260,177 @@ TEST(exec_proc, dynamic_wind__return_value)
                                "  (lambda () 3))",
                                "2");
 }
+
+TEST(exec_proc, dynamic_wind__continuation__exit_from_dw)
+{
+  test_eval__comp_val_with_obj("(let ((x ()))"
+                               "  (call/cc"
+                               "    (lambda (k)"
+                               "      (dynamic-wind"
+                               "        (lambda () (set! x (cons 'B-1 x)))"
+                               "        (lambda ()"
+                               "          (dynamic-wind"
+                               "            (lambda () (set! x (cons 'B-2 x)))"
+                               "            (lambda () (k #f))"
+                               "            (lambda () (set! x (cons 'A-2 x)))))"
+                               "        (lambda () (set! x (cons 'A-1 x))))))"
+                               "  x)",
+                               "(A-1 A-2 B-2 B-1)");
+}
+
+TEST(exec_proc, dynamic_wind__continuation__enter_dw)
+{
+  test_eval__comp_val_with_obj("(let ((x ()) (k #f))"
+                               "  (dynamic-wind"
+                               "    (lambda () (set! x (cons 'B-1 x)))"
+                               "    (lambda ()"
+                               "      (dynamic-wind"
+                               "        (lambda () (set! x (cons 'B-2 x)))"
+                               "        (lambda ()"
+                               "          (set! k (call/cc (lambda (kk) kk))))"
+                               "        (lambda () (set! x (cons 'A-2 x)))))"
+                               "    (lambda () (set! x (cons 'A-1 x))))"
+                               "  (when k (k #f))"
+                               "  x)",
+                               "(A-1 A-2 B-2 B-1 "
+                               " A-1 A-2 B-2 B-1)");
+}
+
+TEST(exec_proc, dynamic_wind__continuation__exit_and_enter)
+{
+  test_eval__comp_val_with_obj("(let ((x ()) (k #f))"
+                               "  (dynamic-wind"
+                               "    (lambda () (set! x (cons 'B-1 x)))"
+                               "    (lambda ()"
+                               "      (dynamic-wind"
+                               "        (lambda () (set! x (cons 'B-2-1 x)))"
+                               "        (lambda ()"
+                               "          (set! k (call/cc (lambda (kk) kk))))"
+                               "        (lambda () (set! x (cons 'A-2-1 x))))"
+                               "      (dynamic-wind"
+                               "        (lambda () (set! x (cons 'B-2-2 x)))"
+                               "        (lambda () (when k (k #f)))"
+                               "        (lambda () (set! x (cons 'A-2-2 x)))))"
+                               "    (lambda () (set! x (cons 'A-1 x))))"
+                               "  x)",
+                               "(A-1 A-2-2 B-2-2 A-2-1 B-2-1"
+                               "     A-2-2 B-2-2 A-2-1 B-2-1 B-1)");
+}
+
+/* 継続の呼び出しにより実行される After thunk の動的環境 (Dynamic Wind) が
+   dynamic-wind の呼び出しと同じかを確認する */
+TEST(exec_proc, dynamic_wind__continuation__exit_from_dw_AFTER_while_exiting_from_dw_thunk)
+{
+  test_eval__comp_val_with_obj("(let ((x ()))"
+                               "  (call/cc"
+                               "    (lambda (k)"
+                               "      (dynamic-wind"
+                               "        (lambda () (set! x (cons 'B-1 x)))"
+                               "        (lambda ()"
+                               "          (dynamic-wind"
+                               "            (lambda () (set! x (cons 'B-2 x)))"
+                               "            (lambda () (k #f))"
+                               "            (lambda () "
+                               "              (set! x (cons 'A-2 x))"
+                               "              (k #f))))"
+                               "        (lambda () (set! x (cons 'A-1 x))))))"
+                               "  x)",
+                               "(A-1 A-2 B-2 B-1)");
+}
+
+/* 継続の呼び出しにより実行される Before thunk の動的環境 (Dynamic Wind) が
+   dynamic-wind の呼び出しと同じかを確認する */
+TEST(exec_proc, dynamic_wind__continuation__exit_from_dw_BEFORE_while_entering_dw)
+{
+  test_eval__comp_val_with_obj("(let ((x ()) (in #f) (out #f))"
+                               "   (when (call/cc"
+                               "          (lambda (k)"
+                               "            (dynamic-wind"
+                               "              (lambda () (set! x (cons 'B-1 x)))"
+                               "              (lambda ()"
+                               "                (dynamic-wind"
+                               "                  (lambda ()"
+                               "                    (set! x (cons 'B-2 x))"
+                               "                    (when out (out #f)))"
+                               "                  (lambda ()"
+                               "                    (set! out k)"
+                               "                    (set! in (call/cc (lambda (k) k))))"
+                               "                  (lambda () (set! x (cons 'A-2 x)))))"
+                               "              (lambda () (set! x (cons 'A-1 x))))))"
+                               "     (in #f))"
+                               "   x)",
+                               "(A-1 B-2 B-1 A-1 A-2 B-2 B-1)");
+}
+
+/* 継続の呼び出しにより実行される After thunk の動的環境 (Dynamic Bindings)
+   が dynamic-wind の呼び出しと同じかを確認する */
+TEST(exec_proc, dynamic_wind__continuation__exit_from_parameterize)
+{
+  test_eval__comp_val_with_obj("(let ((x ()) (prm (make-parameter 1)))"
+                               "  (call/cc"
+                               "   (lambda (k)"
+                               "     (dynamic-wind"
+                               "       (lambda () (set! x (cons (prm) x)))"
+                               "       (lambda ()"
+                               "         (parameterize ((prm 10))"
+                               "           (set! x (cons (prm) x))"
+                               "           (k #f)))"
+                               "       (lambda () (set! x (cons (prm) x))))))"
+                               "  x))",
+                               "(1 10 1)");
+}
+
+/* 継続の呼び出しにより実行される Before thunk の動的環境 (Dynamic Bindings)
+   が dynamic-wind の呼び出しと同じかを確認する */
+TEST(exec_proc, dynamic_wind__continuation__enter_parameterize)
+{
+  test_eval__comp_val_with_obj("(let ((x ()) (k #f) (prm (make-parameter 1)))"
+                               "  (parameterize ((prm 10))"
+                               "    (dynamic-wind"
+                               "      (lambda () (set! x (cons (prm) x)))"
+                               "      (lambda ()"
+                               "        (set! k (call/cc (lambda (k) k)))"
+                               "        (set! x (cons (prm) x)))"
+                               "      (lambda () (set! x (cons (prm) x)))))"
+                               "  (when k (k #f))"
+                               "  x)",
+                               "(10 10 10 10 10 10)");
+}
+
+/* 継続の呼び出しにより実行される After thunk の動的環境 (Exception Handler)
+   が dynamic-wind の呼び出しと同じかを確認する */
+TEST(exec_proc, dynamic_wind__continuation__exit_from_with_exception_handler)
+{
+  test_eval__comp_val_with_obj("(call/cc"
+                               " (lambda (break)"
+                               "   (with-exception-handler"
+                               "    (lambda (e) (break (cons 'out e)))"
+                               "    (lambda ()"
+                               "      (dynamic-wind"
+                               "        (lambda ())"
+                               "        (lambda ()"
+                               "          (with-exception-handler"
+                               "           (lambda (e) (break (cons 'inn e)))"
+                               "           (lambda () (break #f))))"
+                               "        (lambda ()"
+                               "          (raise 10)))))))",
+                               "(out . 10)");
+}
+
+/* 継続の呼び出しにより実行される Before thunk の動的環境 (Exception
+   Handler) が dynamic-wind の呼び出しと同じかを確認する */
+TEST(exec_proc, dynamic_wind__continuation__enter_with_exception_handler)
+{
+  test_eval__comp_val_with_obj("(call/cc"
+                               " (lambda (break)"
+                               "   (let ((k #f))"
+                               "     (with-exception-handler"
+                               "      (lambda (e) (break (cons 'exc e)))"
+                               "      (lambda ()"
+                               "        (dynamic-wind"
+                               "          (lambda () (when k (raise 10)))"
+                               "          (lambda () (set! k (call/cc (lambda (k) k))))"
+                               "          (lambda ()))))"
+                               "     (when k (k #f)))))",
+                               "(exc . 10)");
+}

@@ -3577,6 +3577,82 @@ scm_vm_pop_dw_handler(ScmObj vm)
   return 0;
 }
 
+static int
+scm_vm_collect_dw_handler_internal(ScmObj from, size_t nf, ScmObj to, size_t nt,
+                                   scm_csetter_t *acc)
+{
+  ScmObj ff = SCM_OBJ_INIT, tt = SCM_OBJ_INIT, hndlr = SCM_OBJ_INIT;
+  ScmObj ac = SCM_OBJ_INIT;
+  size_t f, t;
+  int r;
+
+  SCM_REFSTK_INIT_REG(&from, &to,
+                      &ff, &tt, &hndlr);
+
+  scm_assert(scm_fcd_pair_p(from) || scm_fcd_nil_p(from));
+  scm_assert(scm_fcd_pair_p(to) || scm_fcd_nil_p(to));
+
+  if (scm_fcd_eq_p(from, to))
+    return 0;
+
+  ff = from; f = nf;
+  tt = to; t = nt;
+  if (nf >= nt) {
+    ff = scm_fcd_cdr(from);
+    f = nf - 1;
+  }
+
+  if (nt >= nf) {
+    hndlr = scm_fcd_cxr(to, "aa");
+    scm_assert(scm_fcd_procedure_p(hndlr));
+
+    ac = scm_fcd_cons(hndlr, scm_csetter_val(acc));
+    if (scm_obj_null_p(ac)) return -1;
+
+    scm_csetter_setq(acc, ac);
+    tt = scm_fcd_cdr(to);
+    t = nt - 1;
+  }
+
+  r = scm_vm_collect_dw_handler_internal(ff, f, tt, t, acc);
+  if (r < 0) return -1;
+
+  if (nf >= nt) {
+    hndlr = scm_fcd_cxr(from, "da");
+    scm_assert(scm_fcd_procedure_p(hndlr));
+
+    ac = scm_fcd_cons(hndlr, scm_csetter_val(acc));
+    if (scm_obj_null_p(ac)) return -1;
+
+    scm_csetter_setq(acc, ac);
+  }
+
+  return 0;
+}
+
+ScmObj
+scm_vm_collect_dw_handler(ScmObj vm, ScmObj contcap)
+{
+  ScmObj acc = SCM_OBJ_NULL;
+  int r;
+
+  SCM_REFSTK_INIT_REG(&vm, &contcap,
+                      &acc);
+
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+  scm_assert_obj_type(contcap, &SCM_CONTCAP_TYPE_INFO);
+
+  acc = SCM_NIL_OBJ;
+  r = scm_vm_collect_dw_handler_internal(SCM_VM(vm)->reg.dw.hndlr,
+                                         SCM_VM(vm)->reg.dw.n,
+                                         scm_contcap_dw_hndlr(contcap),
+                                         scm_contcap_dw_num(contcap),
+                                         SCM_CSETTER_L(acc));
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return acc;
+}
+
 const void *
 scm_vm_opcode2ptr(scm_opcode_t op)
 {
@@ -4026,6 +4102,12 @@ int
 scm_fcd_pop_dynamic_wind_handler(void)
 {
   return scm_vm_pop_dw_handler(scm_fcd_current_vm());
+}
+
+ScmObj
+scm_fcd_collect_dynamic_wind_handler(ScmObj contcap)
+{
+  return scm_vm_collect_dw_handler(scm_fcd_current_vm(), contcap);
 }
 
 void

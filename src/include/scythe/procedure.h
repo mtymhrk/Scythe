@@ -4,10 +4,12 @@
 typedef struct ScmProcedureRec ScmProcedure;
 typedef struct ScmSubrutineRec ScmSubrutine;
 typedef struct ScmClosureRec ScmClosure;
+typedef struct ScmDWHCallerEnvRec ScmDWHCallerEnv;
 
 #define SCM_PROCEDURE(obj) ((ScmProcedure *)(obj))
 #define SCM_SUBRUTINE(obj) ((ScmSubrutine *)(obj))
 #define SCM_CLOSURE(obj) ((ScmClosure *)(obj))
+#define SCM_DWHCALLERENV(obj) ((ScmDWHCallerEnv *)(obj))
 
 
 #include "scythe/object.h"
@@ -129,6 +131,50 @@ scm_closure_env(ScmObj clsr)
 /*******************************************************************/
 /*  Continuation                                                   */
 /*******************************************************************/
+
+extern ScmTypeInfo SCM_DWHCALLERENV_TYPE_INFO;
+
+struct ScmDWHCallerEnvRec {
+  ScmObjHeader header;
+  ScmObj cont;
+  size_t vc;
+  ScmObj *val;
+};
+
+int scm_dwhcallerenv_initialize(ScmObj dwhce,
+                                ScmObj cont, const ScmObj *val, size_t vc);
+void scm_dwhcallerenv_finalize(ScmObj dwhce);
+ScmObj scm_dwhcallerenv_new(SCM_MEM_TYPE_T mtype,
+                            ScmObj cont, const ScmObj *val, size_t vc);
+void scm_dwhcallerenv_gc_initialize(ScmObj obj, ScmObj mem);
+void scm_dwhcallerenv_gc_finalize(ScmObj obj);
+int scm_dwhcallerenv_gc_accept(ScmObj obj,
+                               ScmObj mem, ScmGCRefHandlerFunc handler);
+
+static inline ScmObj
+scm_dwhcallerenv_cont(ScmObj dwhce)
+{
+  scm_assert_obj_type(dwhce, &SCM_DWHCALLERENV_TYPE_INFO);
+
+  return SCM_DWHCALLERENV(dwhce)->cont;
+}
+
+static inline size_t
+scm_dwhcallerenv_vc(ScmObj dwhce)
+{
+  scm_assert_obj_type(dwhce, &SCM_DWHCALLERENV_TYPE_INFO);
+
+  return SCM_DWHCALLERENV(dwhce)->vc;
+}
+
+static inline const ScmObj *
+scm_dwhcallerenv_val(ScmObj dwhce)
+{
+  scm_assert_obj_type(dwhce, &SCM_DWHCALLERENV_TYPE_INFO);
+
+  return SCM_DWHCALLERENV(dwhce)->val;
+}
+
 
 int scm_subr_func_continuation(ScmObj subr, int argc, const ScmObj *argv);
 
