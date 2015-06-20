@@ -3533,6 +3533,50 @@ scm_vm_disposal_unhandled_exc(ScmObj vm)
   scm_bedrock_error(scm_fcd_current_br(), msg);
 }
 
+int
+scm_vm_push_dw_handler(ScmObj vm, ScmObj before, ScmObj after)
+{
+  ScmObj lst = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&vm, &before, &after, &lst);
+
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+  scm_assert(scm_fcd_procedure_p(before));
+  scm_assert(scm_fcd_procedure_p(after));
+  scm_assert(SCM_VM(vm)->reg.dw.n < SIZE_MAX);
+
+  lst = scm_fcd_cons(before, after);
+  if (scm_obj_null_p(lst)) return -1;
+
+  lst = scm_fcd_cons(lst, SCM_VM(vm)->reg.dw.hndlr);
+  if (scm_obj_null_p(lst)) return -1;
+
+  SCM_SLOT_SETQ(ScmVM, vm, reg.dw.hndlr, lst);
+  SCM_VM(vm)->reg.dw.n++;
+
+  return 0;
+}
+
+int
+scm_vm_pop_dw_handler(ScmObj vm)
+{
+  ScmObj rest = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&vm,
+                      &rest);
+
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  if (!scm_fcd_pair_p(SCM_VM(vm)->reg.dw.hndlr))
+    return 0;
+
+  rest = scm_fcd_cdr(SCM_VM(vm)->reg.dw.hndlr);
+  SCM_SLOT_SETQ(ScmVM, vm, reg.dw.hndlr, rest);
+  SCM_VM(vm)->reg.dw.n--;
+
+  return 0;
+}
+
 const void *
 scm_vm_opcode2ptr(scm_opcode_t op)
 {
@@ -3970,6 +4014,18 @@ int
 scm_fcd_pop_exception_handler(void)
 {
   return scm_vm_pop_exc_handler(scm_fcd_current_vm());
+}
+
+int
+scm_fcd_push_dynamic_wind_handler(ScmObj before, ScmObj after)
+{
+  return scm_vm_push_dw_handler(scm_fcd_current_vm(), before, after);
+}
+
+int
+scm_fcd_pop_dynamic_wind_handler(void)
+{
+  return scm_vm_pop_dw_handler(scm_fcd_current_vm());
 }
 
 void
