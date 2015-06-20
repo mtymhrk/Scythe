@@ -1184,6 +1184,8 @@ scm_fcd_compile_qq_template(ScmObj tmpl)
 ScmObj
 scm_fcd_substitute_qq_template(ScmObj qq, ScmObj values)
 {
+  SCM_REFSTK_INIT_REG(&qq, &values);
+
   scm_assert(scm_fcd_qqtmpl_p(qq));
   scm_assert(scm_obj_not_null_p(values));
 
