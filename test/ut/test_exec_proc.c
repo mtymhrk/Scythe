@@ -229,6 +229,40 @@ TEST(exec_proc, with_exception_handler__error)
                                "100");
 }
 
+TEST(exec_proc, with_exception_handler__continuation__exit_from_with_exception_handler)
+{
+  test_eval__comp_val_with_obj("(call/cc"
+                               " (lambda (break1)"
+                               "   (with-exception-handler"
+                               "    (lambda (e) (break1 (cons 'out e)))"
+                               "    (lambda ()"
+                               "      (call/cc"
+                               "       (lambda (break2)"
+                               "         (with-exception-handler"
+                               "          (lambda (e) (break1 (cons 'inn e)))"
+                               "          (lambda ()"
+                               "            (break2)))))"
+                               "      (raise 100)))))",
+                               "(out . 100)");
+}
+
+TEST(exec_proc, with_exception_handler__continuation__enter_with_exception_handler)
+{
+  test_eval__comp_val_with_obj("(call/cc"
+                               " (lambda (break)"
+                               "   (let ((k #f))"
+                               "     (with-exception-handler"
+                               "      (lambda (e) (break (cons 'out e)))"
+                               "      (lambda ()"
+                               "        (with-exception-handler"
+                               "         (lambda (e) (break (cons 'inn e)))"
+                               "         (lambda ()"
+                               "           (set! k (call/cc (lambda (k) k)))"
+                               "           (unless k (raise 100))))))"
+                               "     (when k (k #f)))))",
+                               "(inn . 100)");
+}
+
 TEST(exec_proc, parameter__make_parameter)
 {
   test_eval__comp_val_with_obj("((make-parameter 100))",

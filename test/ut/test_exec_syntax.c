@@ -1203,6 +1203,30 @@ TEST(exec_syntax, parameterize__nested)
                                "100");
 }
 
+TEST(exec_syntax, parameterize__continuation__exit_from_parameterize)
+{
+  test_eval__comp_val_with_obj("(let ((prm (make-parameter 1)))"
+                               "  (parameterize ((prm 10))"
+                               "    (call/cc"
+                               "     (lambda (k)"
+                               "       (parameterize ((prm 100))"
+                               "         (k #f))))"
+                               "    (prm)))",
+                               "10");
+}
+
+TEST(exec_syntax, parameterize__continuation__enter_parameterize)
+{
+  test_eval__comp_val_with_obj("(let ((prm (make-parameter 1)) (k #f))"
+                               "  (let ((x (parameterize ((prm 10))"
+                               "             (parameterize ((prm 100))"
+                               "               (set! k (call/cc (lambda (k) k)))"
+                               "               (prm)))))"
+                               "    (when k (k #f))"
+                               "    x))",
+                               "100");
+}
+
 TEST(exec_syntax, define_global_syntax)
 {
   eval_cstr("(define-syntax foo"
