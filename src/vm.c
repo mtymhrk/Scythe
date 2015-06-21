@@ -448,28 +448,6 @@ scm_contcap_cap(ScmObj cc,  ScmObj stack, const ScmVMReg *regs)
 }
 
 void
-scm_contcap_replace_val(ScmObj cc, const ScmObj *val, int vc)
-{
-  int n;
-
-  scm_assert_obj_type(cc, &SCM_CONTCAP_TYPE_INFO);
-
-  n = (vc <= SCM_VM_NR_VAL_REG) ? vc : SCM_VM_NR_VAL_REG;
-  for (int i = 0; i < n; i++)
-    SCM_SLOT_SETQ(ScmContCap, cc, reg.val[i], val[i]);
-  SCM_CONTCAP(cc)->reg.vc = vc;
-}
-
-void
-scm_contcap_replace_ip(ScmObj cc, scm_byte_t *ip, ScmObj cp)
-{
-  scm_assert_obj_type(cc, &SCM_CONTCAP_TYPE_INFO);
-
-  SCM_SLOT_SETQ(ScmContCap, cc, reg.cp, cp);
-  SCM_CONTCAP(cc)->reg.ip = ip;
-}
-
-void
 scm_contcap_gc_initialize(ScmObj obj, ScmObj mem)
 {
   scm_assert_obj_type(obj, &SCM_CONTCAP_TYPE_INFO);

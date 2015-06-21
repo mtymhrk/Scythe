@@ -271,8 +271,6 @@ struct ScmContCapRec {
 
 ScmObj scm_contcap_new(SCM_MEM_TYPE_T mtype);
 void scm_contcap_cap(ScmObj cc,  ScmObj stack, const ScmVMReg *regs);
-void scm_contcap_replace_val(ScmObj cc, const ScmObj *val, int vc);
-void scm_contcap_replace_ip(ScmObj cc, scm_byte_t *ip, ScmObj cp);
 void scm_contcap_gc_initialize(ScmObj obj, ScmObj mem);
 int scm_contcap_gc_accepct(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
 
