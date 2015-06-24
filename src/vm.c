@@ -2227,6 +2227,24 @@ scm_vm_do_op_mrve(ScmObj vm)
 }
 
 static int
+scm_vm_do_op_module(ScmObj vm, ScmObj mod)
+{
+  SCM_REFSTK_INIT_REG(&vm,
+                      &mod);
+
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+  scm_assert(scm_fcd_module_specifier_p(mod));
+
+  mod = scm_vm_get_module_specified_by_opd(mod);
+  if (scm_obj_null_p(mod)) return -1;
+
+  SCM_SLOT_SETQ(ScmVM, vm, reg.val[0], mod);
+  SCM_VM(vm)->reg.vc = 1;
+
+  return 0;
+}
+
+static int
 scm_vm_op_int(ScmObj vm)
 {
   int rslt, num;
@@ -2682,14 +2700,15 @@ static int
 scm_vm_op_module(ScmObj vm)
 {
   ScmObj mod = SCM_OBJ_INIT;
+  int rslt;
+
+  SCM_REFSTK_INIT_REG(&vm,
+                      &mod);
 
   SCM_VMINST_FETCH_OPD_OBJ(SCM_VM(vm)->reg.ip, mod);
 
-  mod = scm_vm_get_module_specified_by_opd(mod);
-  if (scm_obj_null_p(mod)) return -1;
-
-  SCM_SLOT_SETQ(ScmVM, vm, reg.val[0], mod);
-  SCM_VM(vm)->reg.vc = 1;
+  rslt = scm_vm_do_op_module(vm, mod);
+  if (rslt < 0) return -1;
 
   return 0;
 }
