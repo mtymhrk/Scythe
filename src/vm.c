@@ -2147,6 +2147,35 @@ scm_vm_do_op_box(ScmObj vm, int idx, int layer)
 }
 
 static int
+scm_vm_do_op_close(ScmObj vm, int nr_env, int arity, ScmObj iseq)
+{
+  ScmObj clsr = SCM_OBJ_INIT,  env = SCM_OBJ_INIT;
+  int rslt;
+
+  SCM_REFSTK_INIT_REG(&vm, &iseq,
+                      &clsr, &env);
+
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  if (nr_env < 0) {
+    scm_fcd_error("invalid access to VM Stack: out of range", 0);
+    return -1;
+  }
+
+  rslt = scm_vm_box_eframe(vm, SCM_VM(vm)->reg.efp,
+                           (size_t)nr_env, SCM_CSETTER_L(env));
+  if (rslt < 0) return -1;
+
+  clsr = scm_fcd_make_closure(iseq, env, arity);
+  if (scm_obj_null_p(clsr)) return -1;
+
+  SCM_SLOT_SETQ(ScmVM, vm, reg.val[0], clsr);
+  SCM_VM(vm)->reg.vc = 1;
+
+  return 0;
+}
+
+static int
 scm_vm_do_op_demine(ScmObj vm, int idx, int layer)
 {
   ScmObj val = SCM_OBJ_INIT;
@@ -2510,30 +2539,18 @@ scm_vm_op_box(ScmObj vm)
 static int
 scm_vm_op_close(ScmObj vm)
 {
-  ScmObj clsr = SCM_OBJ_INIT, iseq = SCM_OBJ_INIT, env = SCM_OBJ_INIT;
+  ScmObj iseq = SCM_OBJ_INIT;
   int nr_env, arity, rslt;
 
   SCM_REFSTK_INIT_REG(&vm,
-                      &clsr, &iseq, &env);
+                      &iseq);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
   SCM_VMINST_FETCH_OPD_SI_SI_OBJ(SCM_VM(vm)->reg.ip, nr_env, arity, iseq);
 
-  if (nr_env < 0) {
-    scm_fcd_error("invalid access to VM Stack: out of range", 0);
-    return -1;
-  }
-
-  rslt = scm_vm_box_eframe(vm, SCM_VM(vm)->reg.efp,
-                           (size_t)nr_env, SCM_CSETTER_L(env));
+  rslt = scm_vm_do_op_close(vm, nr_env, arity, iseq);
   if (rslt < 0) return -1;
-
-  clsr = scm_fcd_make_closure(iseq, env, arity);
-  if (scm_obj_null_p(clsr)) return -1;
-
-  SCM_SLOT_SETQ(ScmVM, vm, reg.val[0], clsr);
-  SCM_VM(vm)->reg.vc = 1;
 
   return 0;
 }
