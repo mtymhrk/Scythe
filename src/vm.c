@@ -1879,6 +1879,55 @@ scm_vm_do_op_pcall(ScmObj vm, int argc)
 }
 
 static int
+scm_vm_do_op_gref(ScmObj vm, scm_byte_t *ip, ScmObj var, ScmObj mod)
+{
+  ScmObj gloc = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
+  int r;
+
+  SCM_REFSTK_INIT_REG(&vm, &var, &mod,
+                      &gloc, &val);
+
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+  scm_assert(scm_fcd_symbol_p(var) || scm_fcd_gloc_p(var));
+  scm_assert(scm_fcd_module_specifier_p(mod));
+
+  if (scm_fcd_symbol_p(var)) {
+    mod = scm_vm_get_module_specified_by_opd(mod);
+    if (scm_obj_null_p(mod)) return -1;
+
+    r = scm_fcd_find_gloc(mod, var, SCM_CSETTER_L(gloc));
+    if (r < 0) return -1;
+
+    if (scm_obj_null_p(gloc)) {
+      scm_fcd_error("unbound variable", 1, var);
+      return -1;
+    }
+
+    if (ip != NULL) {
+      r = scm_fcd_update_vminst_opd_obj_obj_1(SCM_VM(vm)->reg.cp, ip, gloc);
+      if (r < 0) return -1;
+    }
+  }
+  else if (scm_fcd_gloc_p(var)) {
+    gloc = var;
+  }
+  else {
+    scm_assert(0);
+  }
+
+  val = scm_fcd_gloc_variable_value(gloc);
+  if (scm_fcd_landmine_object_p(val)) {
+    scm_fcd_error("unbound variable", 1, scm_fcd_gloc_symbol(gloc));
+    return -1;
+  }
+
+  SCM_SLOT_SETQ(ScmVM, vm, reg.val[0], val);
+  SCM_VM(vm)->reg.vc = 1;
+
+  return 0;
+}
+
+static int
 scm_vm_do_op_sref(ScmObj vm, int idx, int layer)
 {
   ScmObj val = SCM_OBJ_INIT;
@@ -2165,53 +2214,18 @@ scm_vm_op_tail_call(ScmObj vm)
 static int
 scm_vm_op_gref(ScmObj vm)
 {
-  ScmObj gloc = SCM_OBJ_INIT, arg = SCM_OBJ_INIT, mod = SCM_OBJ_INIT;
-  ScmObj val = SCM_OBJ_INIT, module = SCM_OBJ_INIT, sym = SCM_OBJ_INIT;
-  int r;
-  scm_byte_t *prv_ip;
+  ScmObj var = SCM_OBJ_INIT, mod = SCM_OBJ_INIT;
+  scm_byte_t *ip;
 
-  SCM_REFSTK_INIT_REG(&vm, &gloc, &arg, &mod, &val, &module, &sym);
+  SCM_REFSTK_INIT_REG(&vm,
+                      &var, &mod);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
-  prv_ip = SCM_VM(vm)->reg.ip;
-  SCM_VMINST_FETCH_OPD_OBJ_OBJ(SCM_VM(vm)->reg.ip, arg, mod);
+  ip = SCM_VM(vm)->reg.ip;
+  SCM_VMINST_FETCH_OPD_OBJ_OBJ(SCM_VM(vm)->reg.ip, var, mod);
 
-  if (scm_fcd_symbol_p(arg)) {
-    module = scm_vm_get_module_specified_by_opd(mod);
-    if (scm_obj_null_p(module)) return -1;
-
-    r = scm_fcd_find_gloc(module, arg, SCM_CSETTER_L(gloc));
-    if (r < 0) return -1;
-
-    if (scm_obj_null_p(gloc)) {
-      scm_fcd_error("unbound variable", 1, arg);
-      return -1;
-    }
-
-    r = scm_fcd_update_vminst_opd_obj_obj_1(SCM_VM(vm)->reg.cp, prv_ip, gloc);
-    if (r < 0) return -1;
-
-    sym = arg;
-  }
-  else if (scm_fcd_gloc_p(arg)) {
-    gloc = arg;
-    sym = scm_fcd_gloc_symbol(gloc);
-  }
-  else {
-    scm_assert(0);
-  }
-
-  val = scm_fcd_gloc_variable_value(gloc);
-  if (scm_fcd_landmine_object_p(val)) {
-    scm_fcd_error("unbound variable", 1, sym);
-    return -1;
-  }
-
-  SCM_SLOT_SETQ(ScmVM, vm, reg.val[0], val);
-  SCM_VM(vm)->reg.vc = 1;
-
-  return 0;
+  return scm_vm_do_op_gref(vm, ip, var, mod);
 }
 
 static int
