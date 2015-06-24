@@ -2048,6 +2048,41 @@ scm_vm_do_op_sref(ScmObj vm, int idx, int layer)
 }
 
 static int
+scm_vm_do_op_sset(ScmObj vm, int idx, int layer)
+{
+  ScmObj val = SCM_OBJ_INIT, o = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&vm,
+                      &val, &o);
+
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  if (idx < 0 || layer < 0) {
+    scm_fcd_error("invalid access to envrionment frame: out of range", 0);
+    return -1;
+  }
+
+  val = scm_vm_eframe_arg_ref(SCM_VM(vm)->reg.efp,
+                              (size_t)idx, (size_t)layer, NULL);
+  if (scm_obj_null_p(val)) return -1;
+
+  if (!scm_fcd_box_object_p(val)) {
+    scm_fcd_error("update to variable bound by unboxed object", 0);
+    return -1;
+  }
+
+  o = scm_fcd_box_unbox(val);
+  if (scm_fcd_landmine_object_p(o)) {
+    scm_fcd_error("refarence to uninitialized variable", 0);
+    return -1;
+  }
+
+  scm_fcd_box_update(val, SCM_VM(vm)->reg.val[0]);
+
+  return 0;
+}
+
+static int
 scm_vm_do_op_box(ScmObj vm, int idx, int layer)
 {
   ScmObj box = SCM_OBJ_INIT;
@@ -2367,37 +2402,16 @@ scm_vm_op_sref(ScmObj vm)
 static int
 scm_vm_op_sset(ScmObj vm)
 {
-  ScmObj val = SCM_OBJ_INIT, o = SCM_OBJ_INIT;
-  int idx, layer;
+  int rslt, idx, layer;
 
-  SCM_REFSTK_INIT_REG(&vm,
-                      &val, &o);
+  SCM_REFSTK_INIT_REG(&vm);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
   SCM_VMINST_FETCH_OPD_SI_SI(SCM_VM(vm)->reg.ip, idx, layer);
 
-  if (idx < 0 || layer < 0) {
-    scm_fcd_error("invalid access to envrionment frame: out of range", 0);
-    return -1;
-  }
-
-  val = scm_vm_eframe_arg_ref(SCM_VM(vm)->reg.efp,
-                              (size_t)idx, (size_t)layer, NULL);
-  if (scm_obj_null_p(val)) return -1;
-
-  if (!scm_fcd_box_object_p(val)) {
-    scm_fcd_error("update to variable bound by unboxed object", 0);
-    return -1;
-  }
-
-  o = scm_fcd_box_unbox(val);
-  if (scm_fcd_landmine_object_p(o)) {
-    scm_fcd_error("refarence to uninitialized variable", 0);
-    return -1;
-  }
-
-  scm_fcd_box_update(val, SCM_VM(vm)->reg.val[0]);
+  rslt =  scm_vm_do_op_sset(vm, idx, layer);
+  if (rslt < 0) return -1;
 
   return 0;
 }
