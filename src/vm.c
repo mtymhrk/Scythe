@@ -2090,6 +2090,14 @@ scm_vm_do_op_jmp(ScmObj vm, int dst)
 }
 
 static int
+scm_vm_do_op_jmpt(ScmObj vm, int dst)
+{
+  if (scm_fcd_true_p(SCM_VM(vm)->reg.val[0]))
+    SCM_VM(vm)->reg.ip +=  dst;
+  return 0;
+}
+
+static int
 scm_vm_do_op_box(ScmObj vm, int idx, int layer)
 {
   ScmObj box = SCM_OBJ_INIT;
@@ -2443,7 +2451,7 @@ scm_vm_op_jmp(ScmObj vm)
 static int
 scm_vm_op_jmpt(ScmObj vm)
 {
-  int dst;
+  int rslt, dst;
 
   SCM_REFSTK_INIT_REG(&vm);
 
@@ -2451,8 +2459,8 @@ scm_vm_op_jmpt(ScmObj vm)
 
   SCM_VMINST_FETCH_OPD_IOF(SCM_VM(vm)->reg.ip, dst);
 
-  if (scm_fcd_true_p(SCM_VM(vm)->reg.val[0]))
-    SCM_VM(vm)->reg.ip +=  dst;
+  rslt = scm_vm_do_op_jmpt(vm, dst);
+  if (rslt < 0) return -1;
 
   return 0;
 }
