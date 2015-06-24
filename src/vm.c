@@ -2220,6 +2220,13 @@ scm_vm_do_op_mrvc(ScmObj vm, int arity)
 }
 
 static int
+scm_vm_do_op_mrve(ScmObj vm)
+{
+  scm_fcd_error("multiple-return-value error", 0);
+  return -1;
+}
+
+static int
 scm_vm_op_int(ScmObj vm)
 {
   int rslt, num;
@@ -2668,8 +2675,7 @@ static int
 scm_vm_op_mrve(ScmObj vm)
 {
   SCM_VMINST_FETCH_OPD_NOOPD(SCM_VM(vm)->reg.ip);
-  scm_fcd_error("multiple-return-value error", 0);
-  return -1;
+  return scm_vm_do_op_mrve(vm);
 }
 
 static int
