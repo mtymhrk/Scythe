@@ -1660,6 +1660,18 @@ scm_vm_get_module_specified_by_opd(ScmObj spec)
 }
 
 static int
+scm_vm_do_op_int(ScmObj vm, int num)
+{
+  if (num < 0 || SCM_VM_NR_INTERRUPTIONS <= num) {
+    scm_fcd_error("unsupported interruption number", 0);
+    return -1;
+  }
+
+  scm_vm_interrupt_restore(vm, num);
+  return SCM_VM(vm)->inttbl.table[num].func(vm);
+}
+
+static int
 scm_vm_do_op_eframe(ScmObj vm, int argc)
 {
   int rslt;
@@ -1958,17 +1970,14 @@ scm_vm_do_op_demine(ScmObj vm, int idx, int layer)
 static int
 scm_vm_op_int(ScmObj vm)
 {
-  int num;
+  int rslt, num;
 
   SCM_VMINST_FETCH_OPD_SI(SCM_VM(vm)->reg.ip, num);
 
-  if (num < 0 || SCM_VM_NR_INTERRUPTIONS <= num) {
-    scm_fcd_error("unsupported interruption number", 0);
-    return -1;
-  }
+  rslt = scm_vm_do_op_int(vm, num);
+  if (rslt < 0) return -1;
 
-  scm_vm_interrupt_restore(vm, num);
-  return SCM_VM(vm)->inttbl.table[num].func(vm);
+  return 0;
 }
 
 static int
