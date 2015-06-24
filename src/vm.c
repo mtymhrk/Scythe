@@ -1672,6 +1672,22 @@ scm_vm_do_op_int(ScmObj vm, int num)
 }
 
 static int
+scm_vm_do_op_cframe(ScmObj vm, int dst)
+{
+  int rslt;
+
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  rslt = scm_vm_make_cframe(vm,
+                            SCM_VM(vm)->reg.efp,
+                            SCM_VM(vm)->reg.cp,
+                            SCM_VM(vm)->reg.ip + dst);
+  if (rslt < 0) return -1;
+
+  return 0;
+}
+
+static int
 scm_vm_do_op_eframe(ScmObj vm, int argc)
 {
   int rslt;
@@ -1989,10 +2005,7 @@ scm_vm_op_cframe(ScmObj vm)
 
   SCM_VMINST_FETCH_OPD_IOF(SCM_VM(vm)->reg.ip, dst);
 
-  rslt = scm_vm_make_cframe(vm,
-                            SCM_VM(vm)->reg.efp,
-                            SCM_VM(vm)->reg.cp,
-                            SCM_VM(vm)->reg.ip + dst);
+  rslt = scm_vm_do_op_cframe(vm, dst);
   if (rslt < 0) return -1;
 
   return 0;
