@@ -2205,6 +2205,21 @@ scm_vm_do_op_demine(ScmObj vm, int idx, int layer)
 }
 
 static int
+scm_vm_do_op_mrvc(ScmObj vm, int arity)
+{
+  int rslt;
+
+  SCM_REFSTK_INIT_REG(&vm);
+
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+
+  rslt = scm_vm_adjust_val_to_arity(vm, arity);
+  if (rslt < 0) return -1;
+
+  return 0;
+}
+
+static int
 scm_vm_op_int(ScmObj vm)
 {
   int rslt, num;
@@ -2643,7 +2658,7 @@ scm_vm_op_mrvc(ScmObj vm)
 
   SCM_VMINST_FETCH_OPD_SI(SCM_VM(vm)->reg.ip, arity);
 
-  rslt = scm_vm_adjust_val_to_arity(vm, arity);
+  rslt = scm_vm_do_op_mrvc(vm, arity);
   if (rslt < 0) return -1;
 
   return 0;
