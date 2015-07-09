@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <errno.h>
 
-#include <execinfo.h>
+#include "scythe/config.h"
 
 #define SCM_SHRT_BIT (sizeof(short) * CHAR_BIT)
 #define SCM_INT_BIT  (sizeof(int) * CHAR_BIT)
@@ -43,6 +43,10 @@ extern int scm_debug_print_flag;
     }                                                                   \
   } while (0)
 
+#ifdef HAVE_EXECINFO_H
+
+#include <execinfo.h>
+
 static inline void
 scm_print_backtrace(int fd)
 {
@@ -50,6 +54,20 @@ scm_print_backtrace(int fd)
   int n = backtrace(trace, sizeof(trace) / sizeof(trace[0]));
   backtrace_symbols_fd(trace, n, fd);
 }
+
+#else  /* !HAVE_EXECINFO_H */
+
+#include <unistd.h>
+
+static inline void
+scm_print_backtrace(int fd)
+{
+  static const char msg[] =
+    "failed to print the backtrace: backtrace() is not provided\n";
+  write(fd, msg, sizeof(msg) - 1);
+}
+
+#endif  /* HAVE_EXECINFO_H */
 
 static inline unsigned long
 scm_pow_ul(unsigned long x, unsigned long y)

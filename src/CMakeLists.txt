@@ -12,6 +12,14 @@ check_type_size("intptr_t" SIZEOF_INTPTR_T)
 
 
 ##===============================================================
+## ヘッダーファイルの確認
+
+include(CheckIncludeFile)
+
+check_include_file(execinfo.h HAVE_EXECINFO_H)
+
+
+##===============================================================
 ## config.h の生成
 
 configure_file(include/scythe/config.h.in include/scythe/config.h)

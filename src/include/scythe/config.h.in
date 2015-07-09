@@ -7,4 +7,6 @@
 #define SIZEOF_LLONG     ${SIZEOF_LLONG}
 #define SIZEOF_INTPTR_T  ${SIZEOF_INTPTR_T}
 
+#cmakedefine HAVE_EXECINFO_H
+
 #endif  /*  INCLUDE_CONFIGURE_H__ */
