@@ -891,7 +891,7 @@ scm_bignum_to_sword(ScmObj bn, scm_sword_t *w)
 
   num = 0;
   for (size_t i = SCM_BIGNUM(bn)->nr_digits; i > 0; i--) {
-    EARY_GET(&SCM_BIGNUM(bn)->digits, scm_bignum_d_t, i, n);
+    EARY_GET(&SCM_BIGNUM(bn)->digits, scm_bignum_d_t, i - 1, n);
     if (num > (abs_max - n) / SCM_BIGNUM_BASE) return -1;
     num = num * SCM_BIGNUM_BASE + n;
   }
