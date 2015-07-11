@@ -3443,7 +3443,7 @@ scm_marshal_handler(const char *name)
     { "undef", scm_marshal_obj_undef, scm_unmarshal_obj_undef },
     { "pair", scm_marshal_obj_pair, scm_unmarshal_obj_pair },
     { "fixnum", scm_marshal_obj_integer, scm_unmarshal_obj_integer },
-    { "bixnum", scm_marshal_obj_integer, scm_unmarshal_obj_integer },
+    { "bignum", scm_marshal_obj_integer, scm_unmarshal_obj_integer },
     { "symbol", scm_marshal_obj_symbol, scm_unmarshal_obj_symbol },
     { "char", scm_marshal_obj_char, scm_unmarshal_obj_char },
     { "string", scm_marshal_obj_string, scm_unmarshal_obj_string },
