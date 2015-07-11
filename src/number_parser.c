@@ -734,7 +734,7 @@ scm_num_chr_to_int(scm_char_t chr, ScmEncoding *enc)
   }
 
   v = (int)(p - digits);
-  if (v > 15) return v -= 6;
+  if (v > 15) v -= 6;
 
   return v;
 }
