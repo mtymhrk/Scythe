@@ -48,6 +48,25 @@ ScmTypeInfo SCM_BIGNUM_TYPE_INFO = {
   .extra               = &SCM_BIGNUM_FUNC,
 };
 
+
+static inline scm_bignum_c_t
+pow__bignum_c_t(scm_bignum_c_t x, scm_bignum_c_t y)
+{
+  scm_bignum_c_t z = 1;
+  for (scm_bignum_c_t i = 0; i < y; i++)
+    z *= x;
+  return z;
+}
+
+static inline scm_bignum_c_t
+log__bignum_c_t(scm_bignum_c_t b, scm_bignum_c_t x)
+{
+  scm_bignum_c_t i, z = x;
+  for (i = 0; z > b; i++)
+    z /= b;
+  return i;
+}
+
 static inline scm_bignum_c_t
 scm_bignum_extract_2d(ScmObj bn, size_t d)
 {
@@ -751,9 +770,9 @@ scm_bignum_calc_base_and_place_for_ary_of_digits(int radix,
     *base = base_tab[radix - 1];
   }
   else {
-    *place = (int)scm_log_ul((unsigned long)radix, SCM_BIGNUM_BASE);
-    *base = (scm_bignum_c_t)scm_pow_ul((unsigned long)radix,
-                                       (unsigned long)*place);
+    *place = (int)log__bignum_c_t((scm_bignum_c_t)radix, SCM_BIGNUM_BASE);
+    *base = (scm_bignum_c_t)pow__bignum_c_t((scm_bignum_c_t)radix,
+                                            (scm_bignum_c_t)*place);
     place_tab[radix - 1] = *place;
     base_tab[radix - 1] = *base;
   }
