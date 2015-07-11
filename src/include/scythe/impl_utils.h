@@ -69,24 +69,6 @@ scm_print_backtrace(int fd)
 
 #endif  /* HAVE_EXECINFO_H */
 
-static inline unsigned long
-scm_pow_ul(unsigned long x, unsigned long y)
-{
-  unsigned long z = 1;
-  for (unsigned long i = 0; i < y; i++)
-    z *= x;
-  return z;
-}
-
-static inline unsigned long
-scm_log_ul(unsigned long b, unsigned long x)
-{
-  unsigned long i, z = x;
-  for (i = 0; z > b; i++)
-    z /= b;
-  return i;
-}
-
 void scm_assert_fail(const char *assertion,
                      const char *file, unsigned int line, const char *function)
   __attribute__((noreturn));
