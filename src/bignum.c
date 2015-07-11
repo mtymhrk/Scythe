@@ -784,7 +784,7 @@ ScmObj
 scm_bignum_make_int_from_ary(char sign, scm_bignum_d_t *ary, size_t size,
                              scm_bignum_c_t base)
 {
-  scm_sword_t num, abs_max;
+  scm_bignum_c_t num, abs_max;
 
   scm_assert(ary != NULL);
   scm_assert(size <= SSIZE_MAX);
@@ -797,18 +797,18 @@ scm_bignum_make_int_from_ary(char sign, scm_bignum_d_t *ary, size_t size,
 
   num = 0;
   for (ssize_t i = (ssize_t)size - 1; i >= 0; i--) {
-    if (num > (abs_max - (scm_sword_t)ary[i]) / (scm_sword_t)base) {
+    if (ary[i] > abs_max || num > (abs_max - (scm_bignum_c_t)ary[i]) / base) {
       return scm_fcd_bignum_new_cv(SCM_MEM_HEAP,
                                    (char)((sign == '\0') ? '+' : sign),
                                    ary, size, base);
     }
-    num = num * (scm_sword_t)base + (scm_sword_t)ary[i];
+    num = num * base + (scm_bignum_c_t)ary[i];
   }
 
   if (sign == '+' || sign == '\0')
-    return scm_fcd_fixnum_new(num);
+    return scm_fcd_fixnum_new((scm_sword_t)num);
   else
-    return scm_fcd_fixnum_new(-num);
+    return scm_fcd_fixnum_new(-(scm_sword_t)num);
 }
 
 int
