@@ -850,15 +850,14 @@ scm_bignum_initialize_uword(ScmObj bignum, scm_uword_t val)
   dg = val % SCM_BIGNUM_BASE;
   EARY_SET(&SCM_BIGNUM(bignum)->digits, scm_bignum_d_t, 0, dg, err);
   if (err < 0) return -1;
+  SCM_BIGNUM(bignum)->nr_digits = 1;
 
-  dg = val / SCM_BIGNUM_BASE;
-  if (dg > 0) {
-    EARY_SET(&SCM_BIGNUM(bignum)->digits, scm_bignum_d_t, 1, dg, err);
+  while ((val /= SCM_BIGNUM_BASE) > 0) {
+    dg = val % SCM_BIGNUM_BASE;
+    EARY_SET(&SCM_BIGNUM(bignum)->digits,
+             scm_bignum_d_t, SCM_BIGNUM(bignum)->nr_digits, dg, err);
     if (err < 0) return -1;
-    SCM_BIGNUM(bignum)->nr_digits = 2;
-  }
-  else {
-    SCM_BIGNUM(bignum)->nr_digits = 1;
+    SCM_BIGNUM(bignum)->nr_digits++;
   }
 
   return 0;
