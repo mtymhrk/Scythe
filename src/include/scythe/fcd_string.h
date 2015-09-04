@@ -57,5 +57,6 @@ ScmObj scm_fcd_string_encode(ScmObj str, ScmEncoding *enc);
 ScmObj scm_fcd_string_convert(ScmObj str, const char *enc);
 scm_char_t *scm_fcd_string_to_cchr_ary(ScmObj str, size_t pos, ssize_t len,
                                        scm_char_t *ary);
+ssize_t scm_fcd_string_to_path_cstr(ScmObj str, char *cstr, size_t sz);
 
 #endif /* INCLUDE_FCD_STRING_H__ */

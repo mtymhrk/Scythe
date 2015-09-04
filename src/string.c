@@ -1779,3 +1779,48 @@ scm_fcd_string_to_cchr_ary(ScmObj str, size_t pos, ssize_t len, scm_char_t *ary)
 {
   return scm_string_to_char_ary(str, pos, len, ary);
 }
+
+ssize_t
+scm_fcd_string_to_path_cstr(ScmObj str, char *cstr, size_t sz)
+{
+  ScmObj o = SCM_OBJ_INIT;
+  char encname[256];
+  ssize_t r;
+  size_t s;
+  void *p;
+
+  SCM_REFSTK_INIT_REG(&str,
+                      &o);
+
+  scm_assert(scm_fcd_string_p(str));
+  scm_assert(cstr != NULL);
+
+  r = scm_enc_locale_to_enc_name(encname, sizeof(encname));
+  scm_assert(r > 0);
+  if (scm_enc_find_enc(encname) == scm_string_encoding(str)) {
+    s = scm_string_bytesize(str);
+    if (s > sz - 1) {
+      scm_fcd_error("too long path name", 1, str);
+      return -1;
+    }
+
+    p = scm_fcd_string_to_cstr(str, cstr, sz);
+    if (p == NULL) return -1;
+  }
+  else {
+    o = scm_fcd_string_convert(str, encname);
+    if (scm_obj_null_p(o)) return -1;
+
+    s = scm_fcd_bytevector_length(o);
+    if (s > sz - 1) {
+      scm_fcd_error("too long path name", 1, str);
+      return -1;
+    }
+
+    p = scm_fcd_bytevector_to_cv(o, cstr, sz - 1);
+    if (p == NULL) return -1;
+    cstr[s] = '\0';
+  }
+
+  return (ssize_t)(s + 1);
+}
