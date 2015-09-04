@@ -2615,6 +2615,44 @@ scm_api_pop_dynamic_wind_handler(void)
 
 
 /*******************************************************************/
+/* System interface                                                */
+/*******************************************************************/
+
+ScmObj
+scm_api_file_exists_P(ScmObj path)
+{
+  bool exists;
+  int r;
+
+  if (!scm_fcd_string_p(path)) {
+    scm_capi_error("file-exists?: string required but got", 1, path);
+    return SCM_OBJ_NULL;
+  }
+
+  r = scm_fcd_file_exists(path, &exists);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return (exists ? SCM_TRUE_OBJ : SCM_FALSE_OBJ);
+}
+
+ScmObj
+scm_api_delete_file(ScmObj path)
+{
+  int r;
+
+  if (!scm_fcd_string_p(path)) {
+    scm_capi_error("delete-file: string required but got", 1, path);
+    return SCM_OBJ_NULL;
+  }
+
+  r = scm_fcd_delete_file(path);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return SCM_UNDEF_OBJ;
+}
+
+
+/*******************************************************************/
 /*  Module                                                         */
 /*******************************************************************/
 

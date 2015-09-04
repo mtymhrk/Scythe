@@ -4,6 +4,7 @@
 #include "scythe/fcd_assembler.h"
 #include "scythe/fcd_char.h"
 #include "scythe/fcd_equivalence.h"
+#include "scythe/fcd_file.h"
 #include "scythe/fcd_format.h"
 #include "scythe/fcd_number.h"
 #include "scythe/fcd_compiler.h"

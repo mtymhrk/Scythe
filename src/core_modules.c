@@ -601,6 +601,8 @@ static int
 scm_define_scheme_file_subr(ScmObj module)
 {
   static const struct subr_data data[] = {
+    { "delete-file", SCM_SUBR_ARITY_DELETE_FILE, SCM_SUBR_FLAG_DELETE_FILE, scm_subr_func_delete_file, true },
+    { "file-exists?", SCM_SUBR_ARITY_FILE_EXISTS_P, SCM_SUBR_FLAG_FILE_EXISTS_P, scm_subr_func_file_exists_P, true },
     { "open-input-file", SCM_SUBR_ARITY_OPEN_INPUT_FILE, SCM_SUBR_FLAG_OPEN_INPUT_FILE, scm_subr_func_open_input_file, true },
   };
 

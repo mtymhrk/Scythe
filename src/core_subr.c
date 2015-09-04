@@ -2403,8 +2403,36 @@ scm_subr_func_eval(ScmObj subr, int argc, const ScmObj *argv)
 
 
 /*******************************************************************/
-/*  Process-Context Library Procedure                              */
+/*  System interface                                               */
 /*******************************************************************/
+
+int
+scm_subr_func_file_exists_P(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&subr,
+                      &val);
+
+  val = scm_api_file_exists_P(argv[0]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_fcd_return_val(&val, 1);
+}
+
+int
+scm_subr_func_delete_file(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&subr,
+                      &val);
+
+  val = scm_api_delete_file(argv[0]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_fcd_return_val(&val, 1);
+}
 
 int
 scm_subr_func_exit(ScmObj subr, int argc, const ScmObj *argv)
