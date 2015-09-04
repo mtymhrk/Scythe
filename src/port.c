@@ -22,7 +22,7 @@
 
 #define SCM_STRINGIO_INIT_BUF_SIZE 64
 #define SCM_CHARCONVIO_UC_BUF_SIZE 64
-#define SCM_CHARCONVIO_CO_BUF_SIZE 8
+#define SCM_CHARCONVIO_SV_BUF_SIZE 8
 #define SCM_PORT_DEFAULT_BUF_SIZE 256
 
 
@@ -986,198 +986,267 @@ scm_bufferedio_lower(ScmBufferedIO *bufio)
   return bufio->io;
 }
 
+/* XXX :
+ *  CharConvIO は Read/Write の同時利用不可。Seek 不可
+ */
+
 static int
-scm_charconvio_init(ScmCharConvIO *ccio,
+scm_charconvio_init(ScmCharConvIO *ccio, SCM_IO_MODE_T mode,
                     const char *incode, const char *extcode)
 {
   scm_assert(ccio != NULL);
   scm_assert(incode != NULL);
   scm_assert(extcode != NULL);
 
-  ccio->rcd = iconv_open(incode, extcode);
-  if (ccio->rcd == (void *)-1) return -1;
-
-  ccio->wcd = iconv_open(extcode, incode);
-  if (ccio->wcd == (void *)-1) {
-    iconv_close(ccio->rcd);
-    return -1;
-  }
-
   ccio->unconverted = scm_fcd_malloc(SCM_CHARCONVIO_UC_BUF_SIZE);
-  if (ccio->unconverted == NULL) {
-    iconv_close(ccio->rcd);
-    iconv_close(ccio->wcd);
+  if (ccio->unconverted == NULL)
     return -1;
-  }
 
-  ccio->converted = scm_fcd_malloc(SCM_CHARCONVIO_CO_BUF_SIZE);
-  if (ccio->converted == NULL) {
-    iconv_close(ccio->rcd);
-    iconv_close(ccio->wcd);
+  ccio->save = scm_fcd_malloc(SCM_CHARCONVIO_SV_BUF_SIZE);
+  if (ccio->save == NULL) {
     scm_fcd_free(ccio->unconverted);
     return -1;
   }
 
-  ccio->uc_used = 0;
-  ccio->uc_pos = 0;
+  if (mode == SCM_IO_MODE_READ)
+    scm_enc_cnv_init(&ccio->cnv, extcode, incode, ccio->unconverted, 0);
+  else
+    scm_enc_cnv_init(&ccio->cnv, incode, extcode, NULL, 0);
+
+  if (scm_enc_cnv_err_p(&ccio->cnv)) {
+    scm_fcd_free(ccio->unconverted);
+    scm_fcd_free(ccio->save);
+    /* TODO: write the error message */
+    scm_fcd_error("", 0);
+    return -1;
+  }
+
+  ccio->im = mode;
   ccio->uc_incomplete_p = false;
-  ccio->co_used = 0;
-  ccio->co_pos = 0;
-  ccio->co_ucsize = 0;
+  ccio->sv_pos = 0;
+  ccio->sv_size = 0;
   ccio->eof_received_p = false;
 
   return 0;
 }
 
 static ssize_t
-scm_charconvio_read_from_io(ScmCharConvIO *ccio)
+scm_charconvio_read_from_io(ScmCharConvIO *ccio, size_t limit)
 {
   ssize_t rslt;
+  size_t used, rsize;
 
   scm_assert(ccio != NULL);
 
   if (ccio->eof_received_p)
     return 0;
 
-  rslt = scm_io_read(ccio->io,
-                     ccio->unconverted + ccio->uc_used,
-                     SCM_CHARCONVIO_UC_BUF_SIZE - ccio->uc_used);
+  used = ((size_t)(scm_enc_cnv_ptr(&ccio->cnv) - ccio->unconverted)
+          + scm_enc_cnv_rest(&ccio->cnv));
+  rsize = SCM_CHARCONVIO_UC_BUF_SIZE - used;
+  if (limit > 0 && rsize > limit)
+    rsize = limit;
+
+  rslt = scm_io_read(ccio->io, ccio->unconverted + used, rsize);
   if (rslt < 0) return -1;
 
-  if (rslt == 0) {
-    ccio->eof_received_p = true;
-    if (ccio->uc_incomplete_p) return -1;
-       /* 文字コードシーケンスが不完全なまま EOF を read */
-  }
-  else {
-    ccio->uc_used += (size_t)rslt;
-    ccio->uc_incomplete_p = false;
+  ccio->eof_received_p = (rslt == 0) ? true : false;
+  if (scm_enc_cnv_incomplete_p(&ccio->cnv)) {
+    if (rslt == 0) {
+      /* 文字コードシーケンスが不完全なまま EOF を read */
+      /* TODO: write a error message */
+      scm_fcd_error("character encoding conversion error: unexpected EOF", 0);
+      return -1;
+    }
+    scm_enc_cnv_clear_cnv_err(&ccio->cnv);
   }
 
+  scm_enc_cnv_appended(&ccio->cnv, (size_t)rslt);
   return rslt;
 }
 
 static ssize_t
-scm_charconvio_conv_read(ScmCharConvIO *ccio, void *buf, size_t size,
-                         size_t *cnsm, int *err)
+scm_charconvio_conv_read(ScmCharConvIO *ccio, void *buf, size_t size)
 {
-  char *inb, *outb;
-  size_t ins, outs;
   size_t rslt;
 
   scm_assert(ccio != NULL);
   scm_assert(buf != NULL);
 
-  inb = ccio->unconverted + ccio->uc_pos;
-  ins = ccio->uc_used - ccio->uc_pos;
-
-  outb = buf;
-  outs = size;
-
-  rslt = iconv(ccio->rcd, &inb, &ins, &outb, &outs);
-  if (rslt == (size_t)-1) {
-    if (err != NULL) *err = errno;
-
-    if (errno != EINVAL && errno != E2BIG)
+  rslt = scm_enc_cnv_convert(&ccio->cnv, buf, size, ccio->eof_received_p);
+  if (scm_enc_cnv_err_p(&ccio->cnv)) {
+    if (scm_enc_cnv_incomplete_p(&ccio->cnv)
+        && ccio->unconverted != scm_enc_cnv_ptr(&ccio->cnv)) {
+      size_t s = scm_enc_cnv_rest(&ccio->cnv);
+      memmove(ccio->unconverted, scm_enc_cnv_ptr(&ccio->cnv), s);
+      scm_enc_cnv_next(&ccio->cnv, ccio->unconverted, s);
+    }
+    else {
+      /* TODO: write a error message */
+      scm_fcd_error("character encoding conversion error", 0);
       return -1;
-
-    if (cnsm != NULL) *cnsm = ccio->uc_used - ccio->uc_pos - ins;
-
-    ccio->uc_pos += ccio->uc_used - ccio->uc_pos - ins;
-    if (errno == EINVAL) {
-      size_t new_used = ccio->uc_used - ccio->uc_pos;
-      memmove(ccio->unconverted, ccio->unconverted + ccio->uc_pos, new_used);
-      ccio->uc_pos = 0;
-      ccio->uc_used = new_used;
-      ccio->uc_incomplete_p = true;
     }
   }
-  else {
-    if (err != NULL) *err = 0;
-    if (cnsm != NULL) *cnsm = ccio->uc_used - ccio->uc_pos;
-    ccio->uc_pos = ccio->uc_used = 0;
-  }
 
-  return (ssize_t)(size - outs);
+  if (scm_enc_cnv_end_p(&ccio->cnv))
+    scm_enc_cnv_next(&ccio->cnv, ccio->unconverted, 0);
+
+  return (ssize_t)rslt;
 }
 
-static int
-scm_charconvio_read_into_cnvd(ScmCharConvIO *ccio)
+static ssize_t
+scm_charconvio_read_into_converted(ScmCharConvIO *ccio)
 {
-  size_t cnsm;
   ssize_t rslt;
-  int err;
 
   scm_assert(ccio != NULL);
 
-  rslt = scm_charconvio_conv_read(ccio,
-                                  ccio->converted, SCM_CHARCONVIO_CO_BUF_SIZE,
-                                  &cnsm, &err);
+  scm_assert(ccio->sv_pos == 0);
+  scm_assert(ccio->sv_size == 0);
+
+  rslt = scm_charconvio_conv_read(ccio, ccio->save, SCM_CHARCONVIO_SV_BUF_SIZE);
+  if (rslt == 0) return 0;
   if (rslt < 0) return -1;
 
-  /* 変換誤の 1 文字のサイズが ccio->convereted のサイズを越えるケースは想
-     定外 */
-  scm_assert(rslt > 0);
+  ccio->sv_size = (size_t)rslt;
+  return rslt;
+}
 
-  ccio->co_used = (size_t)rslt;
-  ccio->co_pos = 0;
-  ccio->co_ucsize = cnsm;
+static ssize_t
+scm_charconvio_read_from_converted(ScmCharConvIO *ccio, void *buf, size_t size)
+{
+  size_t s;
+
+  scm_assert(ccio != NULL);
+  scm_assert(size <= SSIZE_MAX);
+
+  s = (size < ccio->sv_size) ? size : ccio->sv_size;
+  memcpy(buf, ccio->save + ccio->sv_pos, s);
+  ccio->sv_size -= s;
+  if (ccio->sv_size == 0)
+    ccio->sv_pos = 0;
+  else
+    ccio->sv_pos += s;
+
+  return (ssize_t)s;
+}
+
+static int
+scm_charconvio_try_to_peek_1char(ScmCharConvIO *ccio)
+{
+  ssize_t rslt;
+
+  scm_assert(ccio != NULL);
+
+  scm_assert(ccio->sv_pos == 0);
+  scm_assert(ccio->sv_size == 0);
+
+  if (!scm_enc_cnv_insufficient_buf_p(&ccio->cnv)) {
+    rslt = scm_charconvio_read_from_io(ccio, 1);
+    if (rslt == 0) return 0;
+    else if (rslt < 0) return -1;
+  }
+
+  rslt = scm_charconvio_read_into_converted(ccio);
+  if (rslt == 0) return 0;
+  if (rslt < 0) return -1;
+
+  return 1;
+}
+
+static ssize_t
+scm_charconvio_conv_write(ScmCharConvIO *ccio, const void *buf, size_t size)
+{
+  char outbuf[256];
+  ssize_t nw;
+  size_t nc;
+
+  scm_assert(ccio != NULL);
+  scm_assert(buf != NULL);
+  scm_assert(size <= SSIZE_MAX);
+
+  scm_enc_cnv_next(&ccio->cnv, buf, size);
+  while (!scm_enc_cnv_end_p(&ccio->cnv)
+         && !scm_enc_cnv_incomplete_p(&ccio->cnv)) {
+    nc = scm_enc_cnv_convert(&ccio->cnv, outbuf, sizeof(outbuf), false);
+    if (scm_enc_cnv_err_p(&ccio->cnv)
+        && !scm_enc_cnv_incomplete_p(&ccio->cnv)) {
+      /* TODO: write a error message */
+      scm_fcd_error("character encoding conversion error", 0);
+      return -1;
+    }
+
+    nw = scm_io_write(ccio->io, outbuf, nc);
+    if (nw < 0) return -1;
+  }
+
+  return (ssize_t)(size - scm_enc_cnv_rest(&ccio->cnv));
+}
+
+static ssize_t
+scm_charconvio_write_incomplete(ScmCharConvIO *ccio, const void *buf, size_t size)
+{
+  ssize_t r;
+  size_t cnt;
+
+  scm_assert(ccio != NULL);
+  scm_assert(buf != NULL);
+  scm_assert(size <= SSIZE_MAX);
+
+  if (ccio->sv_size == 0)
+    return 0;
+
+  for (cnt = 0; cnt < size; cnt++) {
+    scm_assert(ccio->sv_pos + ccio->sv_size < SCM_CHARCONVIO_SV_BUF_SIZE);
+
+    if (!scm_enc_cnv_incomplete_p(&ccio->cnv)) {
+      ccio->sv_pos = ccio->sv_size = 0;
+      break;
+    }
+
+    scm_enc_cnv_clear_cnv_err(&ccio->cnv);
+    ccio->save[ccio->sv_pos + ccio->sv_size++] = ((const char *)buf)[cnt];
+    r = scm_charconvio_conv_write(ccio,
+                                  ccio->save + ccio->sv_pos, ccio->sv_size);
+    if (r < 0) return -1;
+  }
+
+  return (ssize_t)cnt;
+}
+
+static int
+scm_charconvio_write_terminate(ScmCharConvIO *ccio)
+{
+  char outbuf[256];
+  ssize_t nw;
+  size_t nc;
+
+  scm_assert(ccio != NULL);
+
+  if (scm_enc_cnv_err_p(&ccio->cnv)) {
+    /* TODO: write a error message */
+    scm_fcd_error("character encoding conversion error", 0);
+    return -1;
+  }
+
+  nc = scm_enc_cnv_convert(&ccio->cnv, outbuf, sizeof(outbuf), true);
+  if (scm_enc_cnv_err_p(&ccio->cnv)) {
+    /* TODO: write a error message */
+    scm_fcd_error("character encoding conversion error", 0);
+    return -1;
+  }
+
+  if (nc > 0) {
+    nw = scm_io_write(ccio->io, outbuf, nc);
+    if (nw < 0) return -1;
+  }
 
   return 0;
 }
 
-static ssize_t
-scm_charconvio_write_aux(ScmCharConvIO *ccio, const void *buf, size_t size)
-{
-  char outbuf[256];
-  size_t rslt, ins, outs;
-  ssize_t nw;
-  const char *inb;
-  char *outb;
-  bool cont;
-
-  scm_assert(ccio != NULL);
-  scm_assert(buf != NULL);
-
-  inb = buf;
-  ins = size;
-
-  cont = true;
-
-  while (cont) {
-    outb = outbuf;
-    outs = sizeof(outbuf);
-
-    rslt = iconv(ccio->wcd, &inb, &ins, &outb, &outs);
-    if (rslt == (size_t)-1) {
-      if (errno == EILSEQ) {
-        return -1;                /* illegal sequence */
-      }
-      else if (errno == EINVAL) {
-        cont = false;
-      }
-      else if (errno == E2BIG) {
-        /* 変換後 1 文字のバイト数が outbuf のサイズを越えるケースは想定外 */
-        scm_assert(outb != outbuf);
-        ;                       /* nothing to do */
-      }
-      else {
-        return -1;              /* must not happen */
-      }
-    }
-    else {
-      cont = false;
-    }
-
-    nw = scm_io_write(ccio->io, outbuf, (size_t)(outb - outbuf));
-    if (nw < 0) return -1;
-  }
-
-  return (ssize_t)(size - ins);
-}
-
 ScmCharConvIO *
-scm_charconvio_new(ScmIO *io, const char *incode, const char *extcode)
+scm_charconvio_new(ScmIO *io, SCM_IO_MODE_T mode,
+                   const char *incode, const char *extcode)
 {
   ScmCharConvIO *ccio;
   int rslt;
@@ -1201,7 +1270,7 @@ scm_charconvio_new(ScmIO *io, const char *incode, const char *extcode)
 
   ccio->io = io;
 
-  rslt = scm_charconvio_init(ccio, incode, extcode);
+  rslt = scm_charconvio_init(ccio, mode, incode, extcode);
   if (rslt < 0) {
     scm_fcd_free(ccio);
     return NULL;
@@ -1215,8 +1284,9 @@ scm_charconvio_end(ScmCharConvIO *ccio)
 {
   scm_assert(ccio != NULL);
 
+  scm_enc_cnv_fin(&ccio->cnv);
   scm_fcd_free(ccio->unconverted);
-  scm_fcd_free(ccio->converted);
+  scm_fcd_free(ccio->save);
   scm_fcd_free(ccio);
 }
 
@@ -1225,7 +1295,6 @@ scm_charconvio_read(ScmCharConvIO *ccio, void *buf, size_t size)
 {
   size_t nread;
   ssize_t rslt;
-  int err;
 
   scm_assert(ccio != NULL);
   scm_assert(buf != NULL);
@@ -1233,53 +1302,36 @@ scm_charconvio_read(ScmCharConvIO *ccio, void *buf, size_t size)
   if (size == 0)
     return 0;
 
-  if ((ccio->eof_received_p && ccio->co_used == 0 && ccio->uc_used == 0)
-      || size == 0) {
-    ccio->eof_received_p = false;
-    return 0;
-  }
+  rslt = scm_charconvio_read_from_converted(ccio, buf, size);
+  if (rslt < 0) return -1;
 
-  nread = 0;
-
-  if (ccio->co_used != 0) {
-    size_t s = size;
-    if (size > ccio->co_used - ccio->co_pos)
-      s = ccio->co_used - ccio->co_pos;
-    memcpy(buf, ccio->converted + ccio->co_pos, s);
-    nread += s;
-
-    ccio->co_pos += s;
-    if (ccio->co_pos >= ccio->co_used)
-      ccio->co_pos = ccio->co_used = ccio->co_ucsize = 0;
-  }
-
-  err = 0;
+  nread = (size_t)rslt;
 
   while (nread < size) {
-    if (ccio->uc_used == 0 || ccio->uc_incomplete_p) {
-      rslt = scm_charconvio_read_from_io(ccio);
+    if (scm_enc_cnv_end_p(&ccio->cnv)
+        || scm_enc_cnv_incomplete_p(&ccio->cnv)) {
+      rslt = scm_charconvio_read_from_io(ccio, 0);
       if (rslt < 0) return -1;
       if (rslt == 0) break;
     }
 
-    rslt = scm_charconvio_conv_read(ccio, (char *)buf + nread, size - nread,
-                                    NULL, &err);
+    rslt = scm_charconvio_conv_read(ccio, (char *)buf + nread, size - nread);
     if (rslt < 0) return -1;
-
     nread += (size_t)rslt;
 
-    if (err == E2BIG) break;
+    if (scm_enc_cnv_insufficient_buf_p(&ccio->cnv))
+      break;
   }
 
-  if (err == E2BIG && nread < size) {
-    size_t s;
-    int r = scm_charconvio_read_into_cnvd(ccio);
-    if (r < 0) return -1;
-
-    s = size - nread;
-    memcpy((char *)buf + nread, ccio->converted, s);
-    ccio->co_pos += s;
-    nread += s;
+  if (nread < size && scm_enc_cnv_insufficient_buf_p(&ccio->cnv)) {
+    rslt = scm_charconvio_read_into_converted(ccio);
+    if (rslt < 0) return -1;
+    scm_assert(rslt > 0);
+    rslt = scm_charconvio_read_from_converted(ccio,
+                                              (char *)buf + nread,
+                                              size - nread);
+    if (rslt < 0) return -1;
+    nread += (size_t)rslt;
   }
 
   if (nread == 0)
@@ -1291,28 +1343,34 @@ scm_charconvio_read(ScmCharConvIO *ccio, void *buf, size_t size)
 ssize_t
 scm_charconvio_write(ScmCharConvIO *ccio, const void *buf, size_t size)
 {
-  ssize_t nwrite;
+  ssize_t nw;
 
   scm_assert(ccio != NULL);
   scm_assert(buf != NULL);
+  scm_assert(size <= SSIZE_MAX);
 
-  if (ccio->uc_used > 0 || ccio->co_ucsize > 0) {
-    off_t r = scm_io_seek(ccio->io,
-                          -(off_t)(ccio->co_ucsize
-                                   + (ccio->uc_used - ccio->uc_pos)),
-                          SEEK_CUR);
-    if (r < 0) return -1;
+  nw = scm_charconvio_write_incomplete(ccio, buf, size);
+  if (nw < 0) return -1;
 
-    ccio->uc_pos = ccio->uc_used = 0;
-    ccio->uc_incomplete_p = false;
-    ccio->co_pos = ccio->co_used = ccio->co_ucsize = 0;
-    ccio->eof_received_p  = false;
+  if ((size_t)nw >= size)
+    return nw;
+
+  nw = scm_charconvio_conv_write(ccio,
+                                 (const char *)buf + nw, size - (size_t)nw);
+  if (nw < 0) return -1;
+
+  scm_assert(scm_enc_cnv_rest(&ccio->cnv) == 0
+             || scm_enc_cnv_incomplete_p(&ccio->cnv));
+
+  if (scm_enc_cnv_incomplete_p(&ccio->cnv)) {
+    scm_assert(SCM_CHARCONVIO_SV_BUF_SIZE <= scm_enc_cnv_rest(&ccio->cnv));
+    memcpy(ccio->save,
+           scm_enc_cnv_ptr(&ccio->cnv), scm_enc_cnv_rest(&ccio->cnv));
+    ccio->sv_pos = 0;
+    ccio->sv_size = scm_enc_cnv_rest(&ccio->cnv);
   }
 
-  nwrite = scm_charconvio_write_aux(ccio, buf, size);
-  if (nwrite < 0) return -1;
-
-  return nwrite;
+  return (ssize_t)size;
 }
 
 int
@@ -1320,18 +1378,22 @@ scm_charconvio_ready_p(ScmCharConvIO *ccio)
 {
   scm_assert(ccio != NULL);
 
-  if (ccio->co_used > 0)
+  if (ccio->sv_size > 0)
     return 1;
-  else if (ccio->uc_incomplete_p)
-    /* BUG:
-       完全に 1 文字読み込むには 2 byte 必要で、l byte だけ読み込めるような
-       ケースだと、嘘を返す(ready_p では 1 を返すが read で停止する)ことにな
-       る */
-    return scm_io_ready_p(ccio->io);
-  else if (ccio->uc_used > 0 || ccio->eof_received_p)
+  else if (scm_enc_cnv_insufficient_buf_p(&ccio->cnv))
     return 1;
-  else
-    return scm_io_ready_p(ccio->io);
+
+  while (scm_io_ready_p(ccio->io)) {
+    int r = scm_charconvio_try_to_peek_1char(ccio);
+    if (r < 0)
+      return -1;
+    else if (r > 0)
+      return 1;
+    else if (ccio->eof_received_p)
+      return 1;
+  }
+
+  return 0;
 }
 
 int
@@ -1343,14 +1405,13 @@ scm_charconvio_close(ScmCharConvIO *ccio)
 
   ret = 0;
 
-  r = iconv_close(ccio->rcd);
-  if (r < 0 && ret == 0) return ret = -1;
-
-  r = iconv_close(ccio->wcd);
-  if (r < 0 && ret == 0) return ret = -1;
+  if (ccio->im == SCM_IO_MODE_WRITE) {
+    r = scm_charconvio_write_terminate(ccio);
+    if (r < 0) ret = -1;;
+  }
 
   r = scm_io_close(ccio->io);
-  if (r < 0 && ret == 0) return ret = -1;
+  if (r < 0) ret = -1;
 
   return ret;
 }
@@ -1376,19 +1437,14 @@ scm_charconvio_flush(ScmCharConvIO *ccio)
 int
 scm_charconvio_clear(ScmCharConvIO *ccio)
 {
-  size_t r;
-
   scm_assert(ccio != NULL);
 
-  r = iconv(ccio->rcd, NULL, NULL, NULL, NULL);
-  if (r == (size_t)-1) return -1;
+  scm_enc_cnv_clear_cnv_stat(&ccio->cnv);
+  scm_enc_cnv_next(&ccio->cnv, ccio->unconverted, 0);
 
-  r = iconv(ccio->wcd, NULL, NULL, NULL, NULL);
-  if (r == (size_t)-1) return -1;
-
-  ccio->uc_pos = ccio->uc_used = 0;
   ccio->uc_incomplete_p = false;
-  ccio->co_pos = ccio->co_used = ccio->co_ucsize = 0;
+  ccio->sv_pos = 0;
+  ccio->sv_size = 0;
   ccio->eof_received_p  = false;
 
   return 0;
@@ -1435,6 +1491,7 @@ scm_port_init_buffer(ScmObj port, SCM_PORT_BUF_T buf_mode)
 static int
 scm_port_init_encode(ScmObj port)
 {
+  SCM_IO_MODE_T im;
   ScmEncoding *enc;
   const char *icode, *ecode;
   ScmIO *io;
@@ -1454,7 +1511,9 @@ scm_port_init_encode(ScmObj port)
   if (icode == NULL || ecode == NULL)
     return -1;
 
-  io = (ScmIO *)scm_charconvio_new(SCM_PORT(port)->io, icode, ecode);
+  im = (BIT_IS_SET(SCM_PORT(port)->attr, SCM_PORT_ATTR_INPUT) ?
+        SCM_IO_MODE_READ : SCM_IO_MODE_WRITE);
+  io = (ScmIO *)scm_charconvio_new(SCM_PORT(port)->io, im, icode, ecode);
   if (io == NULL) return -1;
 
   SCM_PORT(port)->io = io;

@@ -88,16 +88,13 @@ struct ScmBufferedIORec {
 struct ScmCharConvIORec {
   ScmIO io_base;
   ScmIO *io;
-  iconv_t rcd;
-  iconv_t wcd;
+  SCM_IO_MODE_T im;
+  ScmEncCnv cnv;
   char *unconverted;
-  size_t uc_used;
-  size_t uc_pos;
   bool uc_incomplete_p;
-  char *converted;
-  size_t co_used;
-  size_t co_pos;
-  size_t co_ucsize;
+  char *save;
+  size_t sv_pos;
+  size_t sv_size;
   bool eof_received_p;
 };
 
@@ -170,7 +167,7 @@ int scm_bufferedio_flush(ScmBufferedIO *bufio);
 int scm_bufferedio_clear(ScmBufferedIO *bufio);
 ScmIO *scm_bufferedio_lower(ScmBufferedIO *bufio);
 
-ScmCharConvIO *scm_charconvio_new(ScmIO *io,
+ScmCharConvIO *scm_charconvio_new(ScmIO *io, SCM_IO_MODE_T mode,
                                   const char *incode, const char *extcode);
 void scm_charconvio_end(ScmCharConvIO *ccio);
 ssize_t scm_charconvio_read(ScmCharConvIO *ccio, void *buf, size_t size);
