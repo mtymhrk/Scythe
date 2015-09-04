@@ -1,6 +1,8 @@
 #include <limits.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <iconv.h>
+#include <errno.h>
 
 #include "scythe/encoding.h"
 
@@ -1247,4 +1249,142 @@ scm_enc_locale_to_enc_name(char *name, size_t size)
   memcpy(name, default_name, sizeof(default_name));
 
   return sizeof(default_name);
+}
+
+
+/***********************************************************************/
+/*  Encoding Converter                                                 */
+/***********************************************************************/
+
+void
+scm_enc_cnv_init(ScmEncCnv *cnv, const char *from , const char *to,
+                 const char *str, size_t size)
+{
+  assert(cnv != NULL);
+
+  cnv->cd = iconv_open(to, from);
+  if (cnv->cd == (iconv_t)-1) {
+    cnv->stat = SCM_ENC_CNV_S_INVALID_ENC;
+    return;
+  }
+
+  cnv->str = str;
+  cnv->size = size;
+  if (str == NULL)
+    cnv->stat = SCM_ENC_CNV_S_NONE;
+  else if (size == 0)
+    cnv->stat = SCM_ENC_CNV_S_COMPLETE;
+  else
+    cnv->stat = SCM_ENC_CNV_S_CONVERTING;
+}
+
+void
+scm_enc_cnv_next(ScmEncCnv *cnv, const char *str, size_t size)
+{
+  assert(cnv != NULL);
+  assert(str != NULL);
+
+  if (scm_enc_cnv_init_err_p(cnv))
+    return;
+
+  cnv->str = str;
+  cnv->size = size;
+  if (cnv->stat == SCM_ENC_CNV_S_NONE || cnv->stat == SCM_ENC_CNV_S_COMPLETE)
+    cnv->stat = (size == 0 ? SCM_ENC_CNV_S_COMPLETE : SCM_ENC_CNV_S_CONVERTING);
+}
+
+void
+scm_enc_cnv_fin(ScmEncCnv *cnv)
+{
+  assert(cnv != NULL);
+
+  if (!scm_enc_cnv_init_err_p(cnv))
+    iconv_close(cnv->cd);
+}
+
+size_t
+scm_enc_cnv_convert(ScmEncCnv *cnv, void *buf, size_t sz, bool term)
+{
+  const char **inp;
+  size_t s, r, *ins;
+  int next;
+
+  assert(cnv != NULL);
+
+  if (scm_enc_cnv_err_p(cnv) || cnv->stat == SCM_ENC_CNV_S_NONE)
+    return 0;
+
+  inp = &cnv->str;
+  ins = &cnv->size;
+  next = term ? SCM_ENC_CNV_S_CONVERTING : SCM_ENC_CNV_S_COMPLETE;
+
+  cnv->stat = SCM_ENC_CNV_S_CONVERTING;
+  s = sz;
+  while (cnv->stat == SCM_ENC_CNV_S_CONVERTING) {
+    if (term && cnv->size == 0) {
+      inp = NULL;
+      ins = NULL;
+      next = SCM_ENC_CNV_S_COMPLETE;
+    }
+
+    r = iconv(cnv->cd, inp, ins, &buf, &s);
+    if (r == (size_t)-1) {
+      if (errno == E2BIG)
+        cnv->stat = SCM_ENC_CNV_S_INSUFFICIENT;
+      else if (errno == EILSEQ)
+        cnv->stat = SCM_ENC_CNV_S_ILLEGAL;
+      else if (errno == EINVAL)
+        cnv->stat = SCM_ENC_CNV_S_INCOMPLETE;
+      else
+        cnv->stat = SCM_ENC_CNV_S_UNKNOWN_ERR;
+    }
+    else {
+      cnv->stat = next;
+    }
+  }
+
+  return sz - s;
+}
+
+void
+scm_enc_cnv_skip(ScmEncCnv *cnv, size_t skip)
+{
+  assert(cnv != NULL);
+
+  if (skip < cnv->size) {
+    cnv->str += skip;
+    cnv->size -= skip;
+  }
+  else {
+    cnv->str += cnv->size;
+    cnv->size = 0;
+  }
+}
+
+void
+scm_enc_cnv_clear_cnv_stat(ScmEncCnv *cnv)
+{
+  if (scm_enc_cnv_init_err_p(cnv))
+    return;
+
+  iconv(cnv->cd, NULL, NULL, NULL, NULL);
+}
+
+void
+scm_enc_cnv_clear_cnv_err(ScmEncCnv *cnv)
+{
+  assert(cnv != NULL);
+
+  if (scm_enc_cnv_cnv_err_p(cnv))
+    cnv->stat = SCM_ENC_CNV_S_CONVERTING;
+}
+
+void
+scm_enc_cnv_appended(ScmEncCnv *cnv, size_t size)
+{
+  assert(cnv != NULL);
+
+  cnv->size += size;
+  if (cnv->size > 0 && cnv->stat == SCM_ENC_CNV_S_COMPLETE)
+    cnv->stat = SCM_ENC_CNV_S_CONVERTING;
 }

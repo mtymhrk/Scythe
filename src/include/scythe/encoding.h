@@ -6,9 +6,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <iconv.h>
 
 typedef struct ScmEncodingRec ScmEncoding;
 typedef struct ScmStrItrRec ScmStrItr;
+typedef struct ScmEncCnvRec ScmEncCnv;
 
 
 /***********************************************************************/
@@ -349,5 +351,103 @@ void scm_str_itr_next(ScmStrItr *iter);
 ScmEncoding *scm_enc_find_enc(const char *name);
 ssize_t scm_enc_locale_to_enc_name(char *name, size_t size);
 
+
+/***********************************************************************/
+/*  Encoding Converter                                                 */
+/***********************************************************************/
+
+enum {
+  SCM_ENC_CNV_S_NONE = 0,
+  SCM_ENC_CNV_S_CONVERTING = 1,
+  SCM_ENC_CNV_S_COMPLETE = 2,
+  SCM_ENC_CNV_S_INSUFFICIENT = 3,
+
+  /* initialization error */
+  SCM_ENC_CNV_S_INVALID_ENC = -1,
+
+  /* conversion error */
+  SCM_ENC_CNV_S_ILLEGAL = -11,
+  SCM_ENC_CNV_S_INCOMPLETE = -12,
+  SCM_ENC_CNV_S_UNKNOWN_ERR = -13,
+};
+
+struct ScmEncCnvRec {
+  const char *str;
+  size_t size;
+  iconv_t cd;
+  int stat;
+};
+
+void scm_enc_cnv_init(ScmEncCnv *cnv, const char *from , const char *to,
+                      const char *str, size_t size);
+void scm_enc_cnv_next(ScmEncCnv *cnv, const char *str, size_t size);
+void scm_enc_cnv_fin(ScmEncCnv *cnv);
+size_t scm_enc_cnv_convert(ScmEncCnv *cnv, void *buf, size_t sz, bool term);
+void scm_enc_cnv_skip(ScmEncCnv *cnv, size_t skip);
+void scm_enc_cnv_clear_cnv_stat(ScmEncCnv *cnv);
+void scm_enc_cnv_clear_cnv_err(ScmEncCnv *cnv);
+void scm_enc_cnv_appended(ScmEncCnv *cnv, size_t size);
+
+static inline const char *
+scm_enc_cnv_ptr(const ScmEncCnv *cnv)
+{
+  assert(cnv != NULL);
+  return cnv->str;
+}
+
+static inline size_t
+scm_enc_cnv_rest(const ScmEncCnv *cnv)
+{
+  assert(cnv != NULL);
+  return cnv->size;
+}
+
+static inline bool
+scm_enc_cnv_end_p(const ScmEncCnv *cnv)
+{
+  assert(cnv != NULL);
+  return ((cnv->stat == SCM_ENC_CNV_S_COMPLETE) ? true : false);
+}
+
+static inline bool
+scm_enc_cnv_insufficient_buf_p(const ScmEncCnv *cnv)
+{
+  assert(cnv != NULL);
+  return ((cnv->stat == SCM_ENC_CNV_S_INSUFFICIENT) ? true : false);
+}
+
+static inline bool
+scm_enc_cnv_err_p(const ScmEncCnv *cnv)
+{
+  assert(cnv != NULL);
+  return ((cnv->stat < 0) ? true : false);
+}
+
+static inline bool
+scm_enc_cnv_init_err_p(const ScmEncCnv *cnv) {
+  assert(cnv != NULL);
+  return ((-10 < cnv->stat && cnv->stat < 0) ? true : false);
+}
+
+static inline bool
+scm_enc_cnv_cnv_err_p(const ScmEncCnv *cnv)
+{
+  assert(cnv != NULL);
+  return ((cnv->stat <= -10) ? true : false);
+}
+
+static inline bool
+scm_enc_cnv_illegal_p(const ScmEncCnv *cnv)
+{
+  assert(cnv != NULL);
+  return ((cnv->stat == SCM_ENC_CNV_S_ILLEGAL) ? true : false);
+}
+
+static inline bool
+scm_enc_cnv_incomplete_p(const ScmEncCnv *cnv)
+{
+  assert(cnv != NULL);
+  return ((cnv->stat == SCM_ENC_CNV_S_INCOMPLETE) ? true : false);
+}
 
 #endif /* INCLUDED_ENCODING_H__ */
