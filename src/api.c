@@ -1595,26 +1595,6 @@ scm_api_error_object_irritants(ScmObj obj)
 /*  Ports                                                          */
 /*******************************************************************/
 
-static ssize_t
-scm_port_path_str_to_cstr(ScmObj path, char *cstr)
-{
-  size_t s;
-  char *p;
-
-  /* TODO: `path' を外部エンーディングへ変換する */
-
-  s = scm_fcd_string_bytesize(path);
-  if (s >= PATH_MAX) {
-    scm_capi_error("too long pathname", 1, path);
-    return -1;
-  }
-
-  p = scm_fcd_string_to_cstr(path, cstr, PATH_MAX);
-  if (p == NULL) return -1;
-
-  return (ssize_t)s;
-}
-
 ScmObj
 scm_api_open_input_file(ScmObj path)
 {
@@ -1626,7 +1606,7 @@ scm_api_open_input_file(ScmObj path)
     return SCM_OBJ_NULL;
   }
 
-  r = scm_port_path_str_to_cstr(path, path_str);
+  r = scm_fcd_string_to_path_cstr(path, path_str, sizeof(path_str));
   if (r < 0) return SCM_OBJ_NULL;
 
   return scm_fcd_open_input_file(path_str, NULL);
@@ -1643,7 +1623,7 @@ scm_api_open_binary_input_file(ScmObj path)
     return SCM_OBJ_NULL;
   }
 
-  r = scm_port_path_str_to_cstr(path, path_str);
+  r = scm_fcd_string_to_path_cstr(path, path_str, sizeof(path_str));
   if (r < 0) return SCM_OBJ_NULL;
 
   return scm_fcd_open_binary_input_file(path_str);
@@ -1660,7 +1640,7 @@ scm_api_open_output_file(ScmObj path)
     return SCM_OBJ_NULL;
   }
 
-  r = scm_port_path_str_to_cstr(path, path_str);
+  r = scm_fcd_string_to_path_cstr(path, path_str, sizeof(path_str));
   if (r < 0) return SCM_OBJ_NULL;
 
   return scm_fcd_open_output_file(path_str, NULL);
@@ -1678,7 +1658,7 @@ scm_api_open_binary_output_file(ScmObj path)
     return SCM_OBJ_NULL;
   }
 
-  r = scm_port_path_str_to_cstr(path, path_str);
+  r = scm_fcd_string_to_path_cstr(path, path_str, sizeof(path_str));
   if (r < 0) return SCM_OBJ_NULL;
 
   return scm_fcd_open_binary_output_file(path_str);
