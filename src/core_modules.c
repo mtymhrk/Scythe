@@ -128,6 +128,7 @@ scm_load_module(const char * const *name_str, size_t n,
 static int scm_load_module_scheme_base(void);
 static int scm_load_module_scheme_char(void);
 static int scm_load_module_scheme_eval(void);
+static int scm_load_module_scheme_file(void);
 static int scm_load_module_scythe_internal_base(void);
 static int scm_load_module_scythe_internal_misc(void);
 static int scm_load_module_scythe_internal_dynamicenv(void);
@@ -310,11 +311,6 @@ scm_define_scheme_base_subr(ScmObj module)
     { "error-object-irritants", SCM_SUBR_ARITY_ERROR_OBJECT_IRRITANTS, SCM_SUBR_FLAG_ERROR_OBJECT_IRRITANTS, scm_subr_func_error_object_irritants, true },
     { "read-error?", SCM_SUBR_ARITY_READ_ERROR_P, SCM_SUBR_FLAG_READ_ERROR_P, scm_subr_func_read_error_P, true },
     { "file-error?", SCM_SUBR_ARITY_FILE_ERROR_P, SCM_SUBR_FLAG_FILE_ERROR_P, scm_subr_func_file_error_P, true },
-
-    /*******************************************************************/
-    /*  Ports                                                          */
-    /*******************************************************************/
-    { "open-input-file", SCM_SUBR_ARITY_OPEN_INPUT_FILE, SCM_SUBR_FLAG_OPEN_INPUT_FILE, scm_subr_func_open_input_file, true },
 
     /*******************************************************************/
     /*  Input Output                                                   */
@@ -601,6 +597,55 @@ scm_load_module_scheme_eval(void)
 
 
 /*******************************************************************/
+/*  (scheme file)                                                  */
+/*******************************************************************/
+
+static int
+scm_define_scheme_file_subr(ScmObj module)
+{
+  static const struct subr_data data[] = {
+    { "open-input-file", SCM_SUBR_ARITY_OPEN_INPUT_FILE, SCM_SUBR_FLAG_OPEN_INPUT_FILE, scm_subr_func_open_input_file, true },
+  };
+
+  int rslt;
+
+  SCM_REFSTK_INIT_REG(&module);
+
+  rslt = scm_define_subr(module, data, sizeof(data)/sizeof(data[0]));
+  if (rslt < 0) return -1;
+
+  return 0;
+}
+
+static int
+scm_load_module_func_scheme_file(ScmObj mod)
+{
+  ScmObj name = SCM_OBJ_INIT;
+  int rslt;
+
+  SCM_REFSTK_INIT_REG(&mod,
+                      &name);
+
+
+  /*
+   * define global variables
+   */
+
+  rslt = scm_define_scheme_file_subr(mod);
+  if (rslt < 0) return -1;
+
+  return 0;
+}
+
+static int
+scm_load_module_scheme_file(void)
+{
+  return scm_load_module(STRARY("scheme", "file"), 2,
+                         scm_load_module_func_scheme_file);
+}
+
+
+/*******************************************************************/
 /*  (scythe internal base)                                         */
 /*******************************************************************/
 
@@ -649,6 +694,20 @@ scm_load_module_func_scythe_internal_base(ScmObj mod)
   if (rslt < 0) return -1;
 
   name = scm_make_module_name(STRARY("scheme", "eval"), 2);
+  if (scm_obj_null_p(name)) return -1;
+
+  rslt = scm_fcd_module_import(mod, name, false);
+  if (rslt < 0) return -1;
+
+
+  /*
+   * load (scheme file) module and import it
+   */
+
+  rslt = scm_load_module_scheme_file();
+  if (rslt < 0) return -1;
+
+  name = scm_make_module_name(STRARY("scheme", "file"), 2);
   if (scm_obj_null_p(name)) return -1;
 
   rslt = scm_fcd_module_import(mod, name, false);
@@ -1338,6 +1397,7 @@ scm_load_core_modules(void)
     scm_load_module_scheme_base,
     scm_load_module_scheme_char,
     scm_load_module_scheme_eval,
+    scm_load_module_scheme_file,
     scm_load_module_scythe_internal_base,
     scm_load_module_scythe_internal_macro,
     scm_load_module_scythe_internal_repl,
