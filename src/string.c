@@ -4,7 +4,6 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <limits.h>
-#include <iconv.h>
 #include <assert.h>
 
 #include "scythe/object.h"
@@ -177,86 +176,73 @@ scm_string_change_case(ScmObj str, int dir)
   return s;
 }
 
-static ScmObj
-scm_string_change_encoding(ScmObj src, ScmEncoding *to)
+static char *
+scm_string_change_encoding(const char *src, size_t ssz,
+                           const char *from, const char *to,
+                           size_t *dsz)
 {
-  ScmObj str = SCM_OBJ_INIT;
-  char *in;
-  char *out;
-  iconv_t cd;
-  size_t ins, outs, rslt;
+  ScmEncCnv cnv;
+  char *buf;
+  size_t cap, sum;
 
-  SCM_REFSTK_INIT_REG(&src,
-                      &str);
-
-  scm_assert_obj_type(src, &SCM_STRING_TYPE_INFO);
+  scm_assert(src != NULL);
+  scm_assert(from != NULL);
   scm_assert(to != NULL);
 
-  str = scm_fcd_string_new(SCM_MEM_HEAP, NULL, 0, to);
-  if (scm_obj_null_p(str)) return SCM_OBJ_NULL;
-
-  cd = iconv_open(scm_enc_name(to),
-                  scm_enc_name(SCM_STRING_ENC(src)));
-  if (cd == (iconv_t)-1) {
-    scm_fcd_error("failed to call 'iconv_open'", 0);
-    return SCM_OBJ_NULL;
+  if (ssz == 0) {
+    if (dsz != NULL) *dsz = 0;
+    return scm_fcd_malloc(1);
   }
 
-  in = (char *)SCM_STRING_HEAD(src);
-  ins = SCM_STRING_BYTESIZE(src);
-  out = (char *)SCM_STRING_HEAD(str);
-  outs = SCM_STRING_CAPACITY(str);
+  scm_enc_cnv_init(&cnv, from, to, src, ssz);
+  if (scm_enc_cnv_err_p(&cnv)) {
+    scm_fcd_error("failed to convert encoding: invalid encoding name", 0);
+    return NULL;
+  }
 
-  do {
-    rslt = iconv(cd, &in, &ins, &out, &outs);
-    if (rslt == (size_t)-1) {
-      if (errno == EILSEQ) {
-        scm_fcd_error("fiald to call 'iconv': illegal multibyte sequence", 0);
-        goto err;
-      }
-      else if (errno == EINVAL) {
-        scm_fcd_error("failed to call 'iconv': imcomplete multibyte sequence", 0);
-        goto err;
-      }
-      else if (errno == E2BIG) {
-        size_t cap = SCM_STRING_CAPACITY(str);
-        uint8_t *p;
-        ssize_t s;
+  cap = ssz;
+  buf = scm_fcd_malloc(cap);
+  if (buf == NULL) goto err;
 
-        if (cap == SIZE_MAX) {
-          scm_fcd_error("failed to encode string: too big string", 0);
-          goto err;
-        }
+  sum = 0;
+  while (!scm_enc_cnv_end_p(&cnv)) {
+    size_t s = scm_enc_cnv_convert(&cnv, buf + sum, cap - sum, true);
+    if (scm_enc_cnv_err_p(&cnv)) {
+      if (scm_enc_cnv_illegal_p(&cnv))
+        scm_fcd_error("fiald to convert encoding: illegal multibyte sequence", 0);
+      else if (scm_enc_cnv_incomplete_p(&cnv))
+        scm_fcd_error("fiald to convert encoding: "
+                      "incomplete multibyte sequence", 0);
+      else
+        scm_fcd_error("fiald to convert encoding: unknown error has occurred", 0);
 
-        cap =  (SIZE_MAX / 2 < cap) ? SIZE_MAX : cap * 2;
-        p = scm_fcd_realloc(SCM_STRING_BUFFER(str), cap);
-        if (p != NULL) goto err;
-
-        s = out - (char *)SCM_STRING_HEAD(str);
-
-        SCM_STRING_BUFFER(str) = p;
-        SCM_STRING_HEAD(str) = p;
-        SCM_STRING_CAPACITY(str) = cap;
-
-        out = (char *)p + s;
-        outs = cap - (size_t)s;
-      }
-      else {
-        scm_fcd_error("failed to call 'iconv': unknown error has occurred", 0);
-        goto err;
-      }
+      goto err;
     }
-  } while (ins > 0);
+    else if (scm_enc_cnv_insufficient_buf_p(&cnv)) {
+      char *p;
+      if (cap == SIZE_MAX) {
+        scm_fcd_error("failed to convert encoding: too big string", 0);
+        goto err;
+      }
 
-  SCM_STRING_BYTESIZE(str) = (size_t)((uint8_t *)out - SCM_STRING_HEAD(str));
-  SCM_STRING_LENGTH(str) = SCM_STRING_LENGTH(src);
+      cap =  (SIZE_MAX / 2 < cap) ? SIZE_MAX : cap * 2;
+      p = scm_fcd_realloc(buf, cap);
+      if (p != NULL) goto err;
 
-  iconv_close(cd);
-  return str;
+      buf = p;
+    }
+
+    sum += s;
+  }
+
+  scm_enc_cnv_fin(&cnv);
+  if (dsz != NULL) *dsz = sum;
+  return buf;
 
  err:
-  iconv_close(cd);
-  return SCM_OBJ_NULL;
+  if (buf != NULL) scm_fcd_free(buf);
+  scm_enc_cnv_fin(&cnv);
+  return NULL;
 }
 
 static int
@@ -472,15 +458,29 @@ scm_string_is_equal(ScmObj str1, ScmObj str2)
 ScmObj
 scm_string_encode(ScmObj str, ScmEncoding *enc)
 {
+  ScmObj out = SCM_OBJ_INIT;
+  char *buf;
+  size_t sz;
+
   scm_assert_obj_type(str, &SCM_STRING_TYPE_INFO);
   scm_assert(enc != NULL);
 
-  SCM_REFSTK_INIT_REG(&str);
+  SCM_REFSTK_INIT_REG(&str,
+                      &out);
 
   if (SCM_STRING_ENC(str) == enc)
     return scm_string_dup(str);
 
-  return scm_string_change_encoding(str, enc);
+  buf = scm_string_change_encoding((char *)SCM_STRING_HEAD(str),
+                                   SCM_STRING_BYTESIZE(str),
+                                   scm_enc_name(SCM_STRING_ENC(str)),
+                                   scm_enc_name(enc),
+                                   &sz);
+  if (buf == NULL) return SCM_OBJ_NULL;
+
+  out = scm_fcd_string_new(SCM_MEM_HEAP, buf, sz, enc);
+  scm_fcd_free(buf);
+  return out;
 }
 
 ScmObj
