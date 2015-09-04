@@ -131,6 +131,7 @@ static int scm_load_module_scheme_eval(void);
 static int scm_load_module_scheme_file(void);
 static int scm_load_module_scheme_processcontext(void);
 static int scm_load_module_scheme_read(void);
+static int scm_load_module_scheme_write(void);
 static int scm_load_module_scythe_internal_base(void);
 static int scm_load_module_scythe_internal_misc(void);
 static int scm_load_module_scythe_internal_dynamicenv(void);
@@ -317,10 +318,6 @@ scm_define_scheme_base_subr(ScmObj module)
     /*******************************************************************/
     /*  Input Output                                                   */
     /*******************************************************************/
-    { "write", SCM_SUBR_ARITY_WRITE, SCM_SUBR_FLAG_WRITE, scm_subr_func_write, true },
-    { "write-shared", SCM_SUBR_ARITY_WRITE_SHARED, SCM_SUBR_FLAG_WRITE_SHARED, scm_subr_func_write_shared, true },
-    { "write-simple", SCM_SUBR_ARITY_WRITE_SIMPLE, SCM_SUBR_FLAG_WRITE_SIMPLE, scm_subr_func_write_simple, true },
-    { "display", SCM_SUBR_ARITY_DISPLAY, SCM_SUBR_FLAG_DISPLAY, scm_subr_func_display, true },
     { "newline", SCM_SUBR_ARITY_NEWLINE, SCM_SUBR_FLAG_NEWLINE, scm_subr_func_newline, true },
     { "flush-output-port", SCM_SUBR_ARITY_FLUSH_OUTPUT_PORT, SCM_SUBR_FLAG_FLUSH_OUTPUT_PORT, scm_subr_func_flush_output_port, true },
     { "eof-object?", SCM_SUBR_ARITY_EOF_OBJECT_P, SCM_SUBR_FLAG_EOF_OBJECT_P, scm_subr_func_eof_object_P, true },
@@ -742,6 +739,57 @@ scm_load_module_scheme_read(void)
                          scm_load_module_func_scheme_read);
 }
 
+/*******************************************************************/
+/*  (scheme write)                                                  */
+/*******************************************************************/
+
+static int
+scm_define_scheme_write_subr(ScmObj module)
+{
+  static const struct subr_data data[] = {
+    { "display", SCM_SUBR_ARITY_DISPLAY, SCM_SUBR_FLAG_DISPLAY, scm_subr_func_display, true },
+    { "write", SCM_SUBR_ARITY_WRITE, SCM_SUBR_FLAG_WRITE, scm_subr_func_write, true },
+    { "write-shared", SCM_SUBR_ARITY_WRITE_SHARED, SCM_SUBR_FLAG_WRITE_SHARED, scm_subr_func_write_shared, true },
+    { "write-simple", SCM_SUBR_ARITY_WRITE_SIMPLE, SCM_SUBR_FLAG_WRITE_SIMPLE, scm_subr_func_write_simple, true },
+  };
+
+  int rslt;
+
+  SCM_REFSTK_INIT_REG(&module);
+
+  rslt = scm_define_subr(module, data, sizeof(data)/sizeof(data[0]));
+  if (rslt < 0) return -1;
+
+  return 0;
+}
+
+static int
+scm_load_module_func_scheme_write(ScmObj mod)
+{
+  ScmObj name = SCM_OBJ_INIT;
+  int rslt;
+
+  SCM_REFSTK_INIT_REG(&mod,
+                      &name);
+
+
+  /*
+   * define global variables
+   */
+
+  rslt = scm_define_scheme_write_subr(mod);
+  if (rslt < 0) return -1;
+
+  return 0;
+}
+
+static int
+scm_load_module_scheme_write(void)
+{
+  return scm_load_module(STRARY("scheme", "write"), 2,
+                         scm_load_module_func_scheme_write);
+}
+
 
 /*******************************************************************/
 /*  (scythe internal base)                                         */
@@ -834,6 +882,20 @@ scm_load_module_func_scythe_internal_base(ScmObj mod)
   if (rslt < 0) return -1;
 
   name = scm_make_module_name(STRARY("scheme", "read"), 2);
+  if (scm_obj_null_p(name)) return -1;
+
+  rslt = scm_fcd_module_import(mod, name, false);
+  if (rslt < 0) return -1;
+
+
+  /*
+   * load (scheme write) module and import it
+   */
+
+  rslt = scm_load_module_scheme_write();
+  if (rslt < 0) return -1;
+
+  name = scm_make_module_name(STRARY("scheme", "write"), 2);
   if (scm_obj_null_p(name)) return -1;
 
   rslt = scm_fcd_module_import(mod, name, false);
@@ -1526,6 +1588,7 @@ scm_load_core_modules(void)
     scm_load_module_scheme_file,
     scm_load_module_scheme_processcontext,
     scm_load_module_scheme_read,
+    scm_load_module_scheme_write,
     scm_load_module_scythe_internal_base,
     scm_load_module_scythe_internal_macro,
     scm_load_module_scythe_internal_repl,
