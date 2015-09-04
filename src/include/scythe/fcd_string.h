@@ -54,6 +54,7 @@ ScmEncoding *scm_fcd_string_encoding(ScmObj str);
 char *scm_fcd_string_to_cstr(ScmObj str, char *cstr, size_t size);
 int scm_fcd_string_push(ScmObj str, scm_char_t chr, ScmEncoding *enc);
 ScmObj scm_fcd_string_encode(ScmObj str, ScmEncoding *enc);
+ScmObj scm_fcd_string_convert(ScmObj str, const char *enc);
 scm_char_t *scm_fcd_string_to_cchr_ary(ScmObj str, size_t pos, ssize_t len,
                                        scm_char_t *ary);
 

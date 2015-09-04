@@ -484,6 +484,31 @@ scm_string_encode(ScmObj str, ScmEncoding *enc)
 }
 
 ScmObj
+scm_string_convert(ScmObj str, const char *enc)
+{
+  ScmObj out = SCM_OBJ_INIT;
+  char *buf;
+  size_t sz;
+
+  scm_assert_obj_type(str, &SCM_STRING_TYPE_INFO);
+  scm_assert(enc != NULL);
+
+  SCM_REFSTK_INIT_REG(&str,
+                      &out);
+
+  buf = scm_string_change_encoding((char *)SCM_STRING_HEAD(str),
+                                   SCM_STRING_BYTESIZE(str),
+                                   scm_enc_name(SCM_STRING_ENC(str)),
+                                   enc,
+                                   &sz);
+  if (buf == NULL) return SCM_OBJ_NULL;
+
+  out = scm_fcd_make_bytevector_from_cv(buf, sz);
+  scm_fcd_free(buf);
+  return out;
+}
+
+ScmObj
 scm_string_substr(ScmObj str, size_t pos, size_t len)
 {
   ScmObj substr = SCM_OBJ_INIT;
@@ -1738,6 +1763,15 @@ scm_fcd_string_encode(ScmObj str, ScmEncoding *enc)
   scm_assert(enc != NULL);
 
   return scm_string_encode(str, enc);
+}
+
+ScmObj
+scm_fcd_string_convert(ScmObj str, const char *enc)
+{
+  scm_assert(scm_fcd_string_p(str));
+  scm_assert(enc != NULL);
+
+  return scm_string_convert(str, enc);
 }
 
 scm_char_t *
