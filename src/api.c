@@ -2919,8 +2919,7 @@ scm_capi_run_repl(ScmEvaluator *ev)
 int
 scm_capi_exec_file(const char *path, ScmEvaluator *ev)
 {
-  ScmObj port = SCM_OBJ_INIT, str = SCM_OBJ_INIT;
-  ScmObj proc = SCM_OBJ_INIT, args = SCM_OBJ_INIT;
+  ScmObj str = SCM_OBJ_INIT, proc = SCM_OBJ_INIT, args = SCM_OBJ_INIT;
   int rslt;
 
   if (ev == NULL) return -1;
@@ -2932,15 +2931,9 @@ scm_capi_exec_file(const char *path, ScmEvaluator *ev)
   if (rslt < 0) goto end;
 
   {
-    SCM_REFSTK_INIT_REG(&port, &str,
-                        &proc, &args);
+    SCM_REFSTK_INIT_REG(&str, &proc, &args);
 
-    port = scm_fcd_open_input_string_cstr(path, NULL);
-    if (scm_obj_null_p(port)) goto end;
-
-    /* TODO: read_line ではなく port から全て読みよっとものを 1 つの文字列に
-     *       する */
-    str = scm_api_read_line(port);
+    str = scm_fcd_make_string_from_external(path, strlen(path), NULL);
     if (scm_obj_null_p(str)) goto end;
 
     proc = scm_get_proc("eval-file",
@@ -2964,8 +2957,7 @@ scm_capi_exec_file(const char *path, ScmEvaluator *ev)
 int
 scm_capi_exec_cstr(const char *expr, ScmEvaluator *ev)
 {
-  ScmObj port = SCM_OBJ_INIT, str = SCM_OBJ_INIT;
-  ScmObj proc = SCM_OBJ_INIT, args = SCM_OBJ_INIT;
+  ScmObj str = SCM_OBJ_INIT, proc = SCM_OBJ_INIT, args = SCM_OBJ_INIT;
   int rslt;
 
   if (ev == NULL) return -1;
@@ -2977,15 +2969,9 @@ scm_capi_exec_cstr(const char *expr, ScmEvaluator *ev)
   if (rslt < 0) goto end;
 
   {
-    SCM_REFSTK_INIT_REG(&port, &str,
-                        &proc, &args);
+    SCM_REFSTK_INIT_REG( &str, &proc, &args);
 
-    port = scm_fcd_open_input_string_cstr(expr, NULL);
-    if (scm_obj_null_p(port)) goto end;
-
-    /* TODO: read_line ではなく port から全て読みよっとものを 1 つの文字列に
-     *       する */
-    str = scm_api_read_line(port);
+    str = scm_fcd_make_string_from_external(expr, strlen(expr), NULL);
     if (scm_obj_null_p(str)) goto end;
 
     proc = scm_get_proc("eval-string",
@@ -3063,12 +3049,7 @@ scm_capi_compile_file(const char *path, ScmEvaluator *ev)
                         &name, &mod,
                         &proc, &args, &val);
 
-    port = scm_fcd_open_input_string_cstr(path, NULL);
-    if (scm_obj_null_p(port)) goto end;
-
-    /* TODO: read_line ではなく port から全て読みよっとものを 1 つの文字列に
-     *       する */
-    str = scm_api_read_line(port);
+    str = scm_fcd_make_string_from_external(path, strlen(path), NULL);
     if (scm_obj_null_p(str)) goto end;
 
     port = scm_fcd_open_input_string_cstr("(main)", SCM_ENC_NAME_SRC);
