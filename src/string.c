@@ -979,6 +979,37 @@ scm_fcd_make_string_from_bin(const void *data, size_t size, ScmEncoding *enc)
 }
 
 ScmObj
+scm_fcd_make_string_from_external(const void *data,
+                                  size_t size, const char *enc)
+{
+  ScmObj obj = SCM_OBJ_INIT;
+  char encname[256];
+  char *buf;
+  size_t sz;
+
+  if (data == NULL)
+    return scm_fcd_make_string_from_bin(data, size, NULL);
+
+  if (enc == NULL) {
+    ssize_t r = scm_enc_locale_to_enc_name(encname, sizeof(encname));
+    scm_assert(r > 0);
+    enc = encname;
+  }
+
+  if (scm_enc_find_enc(enc) == scm_fcd_system_encoding())
+    return scm_fcd_make_string_from_bin(data, size, NULL);
+
+  buf = scm_string_change_encoding(data, size,
+                                   enc, scm_enc_name(scm_fcd_system_encoding()),
+                                   &sz);
+  if (buf == NULL) return SCM_OBJ_NULL;
+
+  obj = scm_fcd_make_string_from_bin(buf, sz, NULL);
+  scm_fcd_free(buf);
+  return obj;
+}
+
+ScmObj
 scm_fcd_string_lst(ScmObj lst)
 {
   return scm_fcd_list_to_string(lst);
