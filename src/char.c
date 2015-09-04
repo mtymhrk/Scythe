@@ -2,7 +2,6 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdio.h>
-#include <iconv.h>
 #include <assert.h>
 
 #include "scythe/object.h"
@@ -96,6 +95,52 @@ scm_char_write_ext_rep(ScmObj obj, ScmObj port)
   return 0;
 }
 
+static ssize_t
+scm_char_change_encode(scm_char_t *chr, size_t width,
+                       const char *from, const char *to,
+                       scm_char_t *out)
+{
+  ScmEncCnv cnv;
+  size_t w;
+
+  scm_assert(chr != NULL);
+  scm_assert(from != NULL);
+  scm_assert(to != NULL);
+  scm_assert(out != NULL);
+
+  scm_enc_cnv_init(&cnv, from, to, (char *)chr->bytes, width);
+  if (scm_enc_cnv_err_p(&cnv)) {
+    scm_fcd_error("failed to convert encoding: invalid encoding name", 0);
+    return -1;
+  }
+
+  w = scm_enc_cnv_convert(&cnv, out->bytes, sizeof(*out), false);
+  if (scm_enc_cnv_err_p(&cnv)) {
+    if (scm_enc_cnv_illegal_p(&cnv))
+      scm_fcd_error("failed to cconvert encoding: "
+                    "illegal multibyte sequence", 0);
+    else if (scm_enc_cnv_incomplete_p(&cnv))
+      scm_fcd_error("failed to convert encoding: "
+                    "incomplete  multibyte sequence", 0);
+    else
+      scm_fcd_error("failed to convert encoding: "
+                    "unknown error has occurred", 0);
+
+    goto err;
+  }
+  else if (scm_enc_cnv_insufficient_buf_p(&cnv)) {
+    scm_fcd_error("failed to convert encoding: too big multibyte sequence", 0);
+    goto err;
+  }
+
+  scm_enc_cnv_fin(&cnv);
+  return (ssize_t)w;
+
+ err:
+  scm_enc_cnv_fin(&cnv);
+  return -1;
+}
+
 int
 scm_char_initialize(ScmObj chr, const scm_char_t *value, ScmEncoding *enc)
 {
@@ -149,10 +194,7 @@ ScmObj
 scm_char_encode(ScmObj chr, ScmEncoding *enc)
 {
   scm_char_t c;
-  iconv_t cd;
-  char *in, *out;
-  size_t ins, outs, rslt;
-  int w;
+  ssize_t w;
 
   scm_assert_obj_type(chr, &SCM_CHAR_TYPE_INFO);
   scm_assert(enc != NULL);
@@ -160,48 +202,15 @@ scm_char_encode(ScmObj chr, ScmEncoding *enc)
   if (SCM_CHAR(chr)->enc == enc)
     return scm_fcd_char_new(SCM_MEM_HEAP, &SCM_CHAR(chr)->value, enc);
 
-  cd = iconv_open(scm_enc_name(enc),
-                  scm_enc_name(SCM_CHAR(chr)->enc));
-  if (cd == (iconv_t)-1) {
-    scm_fcd_error("failed to call 'iconv_open'", 0);
-    return SCM_OBJ_NULL;
-  }
+  w = scm_enc_char_width(scm_char_encoding(chr), c.bytes, sizeof(c));
+  scm_assert(w > 0);
+  w = scm_char_change_encode(&SCM_CHAR(chr)->value, (size_t)w,
+                             scm_enc_name(scm_char_encoding(chr)),
+                             scm_enc_name(enc),
+                             &c);
+  if (w < 0) return SCM_OBJ_NULL;
 
-  w = scm_enc_char_width(SCM_CHAR(chr)->enc,
-                         SCM_CHAR(chr)->value.bytes, sizeof(scm_char_t));
-  scm_assert(w < 0);
-
-  in = (char *)SCM_CHAR(chr)->value.bytes;
-  out = (char *)c.bytes;
-  ins = (size_t)w;
-  outs = sizeof(c);
-
-  rslt = iconv(cd, &in, &ins, &out, &outs);
-  if (rslt == (size_t)-1) {
-    switch (errno) {
-    case EILSEQ:
-      scm_fcd_error("failed to call 'iconv': illegal multibyte sequence", 0);
-      break;
-    case EINVAL:
-      scm_fcd_error("failed to call 'iconv': imcomplete  multibyte sequence", 0);
-      break;
-    case E2BIG:
-      scm_fcd_error("failed to call 'iconv': too big multibyte sequence", 0);
-      break;
-    default:
-      scm_fcd_error("failed to call 'iconv': unknown error has occurred", 0);
-      break;
-    }
-
-    goto err;
-  }
-
-  iconv_close(cd);
   return scm_fcd_char_new(SCM_MEM_HEAP, &c, enc);
-
- err:
-  iconv_close(cd);
-  return SCM_OBJ_NULL;
 }
 
 int
