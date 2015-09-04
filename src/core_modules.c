@@ -130,6 +130,7 @@ static int scm_load_module_scheme_char(void);
 static int scm_load_module_scheme_eval(void);
 static int scm_load_module_scheme_file(void);
 static int scm_load_module_scheme_processcontext(void);
+static int scm_load_module_scheme_read(void);
 static int scm_load_module_scythe_internal_base(void);
 static int scm_load_module_scythe_internal_misc(void);
 static int scm_load_module_scythe_internal_dynamicenv(void);
@@ -316,7 +317,6 @@ scm_define_scheme_base_subr(ScmObj module)
     /*******************************************************************/
     /*  Input Output                                                   */
     /*******************************************************************/
-    { "read", SCM_SUBR_ARITY_READ, SCM_SUBR_FLAG_READ, scm_subr_func_read, true },
     { "write", SCM_SUBR_ARITY_WRITE, SCM_SUBR_FLAG_WRITE, scm_subr_func_write, true },
     { "write-shared", SCM_SUBR_ARITY_WRITE_SHARED, SCM_SUBR_FLAG_WRITE_SHARED, scm_subr_func_write_shared, true },
     { "write-simple", SCM_SUBR_ARITY_WRITE_SIMPLE, SCM_SUBR_FLAG_WRITE_SIMPLE, scm_subr_func_write_simple, true },
@@ -695,6 +695,55 @@ scm_load_module_scheme_processcontext(void)
 
 
 /*******************************************************************/
+/*  (scheme read)                                                  */
+/*******************************************************************/
+
+static int
+scm_define_scheme_read_subr(ScmObj module)
+{
+  static const struct subr_data data[] = {
+    { "read", SCM_SUBR_ARITY_READ, SCM_SUBR_FLAG_READ, scm_subr_func_read, true },
+  };
+
+  int rslt;
+
+  SCM_REFSTK_INIT_REG(&module);
+
+  rslt = scm_define_subr(module, data, sizeof(data)/sizeof(data[0]));
+  if (rslt < 0) return -1;
+
+  return 0;
+}
+
+static int
+scm_load_module_func_scheme_read(ScmObj mod)
+{
+  ScmObj name = SCM_OBJ_INIT;
+  int rslt;
+
+  SCM_REFSTK_INIT_REG(&mod,
+                      &name);
+
+
+  /*
+   * define global variables
+   */
+
+  rslt = scm_define_scheme_read_subr(mod);
+  if (rslt < 0) return -1;
+
+  return 0;
+}
+
+static int
+scm_load_module_scheme_read(void)
+{
+  return scm_load_module(STRARY("scheme", "read"), 2,
+                         scm_load_module_func_scheme_read);
+}
+
+
+/*******************************************************************/
 /*  (scythe internal base)                                         */
 /*******************************************************************/
 
@@ -771,6 +820,20 @@ scm_load_module_func_scythe_internal_base(ScmObj mod)
   if (rslt < 0) return -1;
 
   name = scm_make_module_name(STRARY("scheme", "process-context"), 2);
+  if (scm_obj_null_p(name)) return -1;
+
+  rslt = scm_fcd_module_import(mod, name, false);
+  if (rslt < 0) return -1;
+
+
+  /*
+   * load (scheme read) module and import it
+   */
+
+  rslt = scm_load_module_scheme_read();
+  if (rslt < 0) return -1;
+
+  name = scm_make_module_name(STRARY("scheme", "read"), 2);
   if (scm_obj_null_p(name)) return -1;
 
   rslt = scm_fcd_module_import(mod, name, false);
@@ -1462,6 +1525,7 @@ scm_load_core_modules(void)
     scm_load_module_scheme_eval,
     scm_load_module_scheme_file,
     scm_load_module_scheme_processcontext,
+    scm_load_module_scheme_read,
     scm_load_module_scythe_internal_base,
     scm_load_module_scythe_internal_macro,
     scm_load_module_scythe_internal_repl,
