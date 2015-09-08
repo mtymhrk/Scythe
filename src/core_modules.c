@@ -54,24 +54,38 @@ scm_make_module_name(const char * const *name_str, size_t n)
 }
 
 static int
+scm_define_var(ScmObj module, const char *var, ScmObj val, bool export)
+{
+  ScmObj sym = SCM_OBJ_INIT;
+  int r;
+
+  SCM_REFSTK_INIT_REG(&module, &val);
+
+  sym = scm_fcd_make_symbol_from_cstr(var, SCM_ENC_SRC);
+  if (scm_obj_null_p(sym)) return -1;
+
+  r = scm_fcd_define_global_var(module, sym, val, export);
+  if (r < 0) return -1;
+
+  return 0;
+}
+
+static int
 scm_define_subr(ScmObj module, const struct subr_data *data, size_t n)
 {
-  ScmObj sym  = SCM_OBJ_INIT, subr = SCM_OBJ_INIT;
-  int rslt;
+  ScmObj subr = SCM_OBJ_INIT;
+  int r;
 
   SCM_REFSTK_INIT_REG(&module,
-                      &sym, &subr);
+                      &subr);
 
   for (size_t i = 0; i < n; i++) {
-    sym = scm_fcd_make_symbol_from_cstr(data[i].name, SCM_ENC_SRC);
-    if (scm_obj_null_p(sym)) return -1;
-
     subr = scm_fcd_make_subrutine(data[i].func, data[i].arity, data[i].flag,
                                    module);
     if (scm_obj_null_p(subr)) return -1;
 
-    rslt = scm_fcd_define_global_var(module, sym, subr, data[i].export);
-    if (rslt < 0) return -1;
+    r = scm_define_var(module, data[i].name, subr, data[i].export);
+    if (r < 0) return -1;
   }
 
   return 0;
@@ -80,20 +94,17 @@ scm_define_subr(ScmObj module, const struct subr_data *data, size_t n)
 static int
 scm_define_const_num(ScmObj module, const struct const_num_data *data, size_t n)
 {
-  ScmObj sym = SCM_OBJ_INIT, num = SCM_OBJ_INIT;
+  ScmObj num = SCM_OBJ_INIT;
   int r;
 
   SCM_REFSTK_INIT_REG(&module,
-                      &sym, &num);
+                      &num);
 
   for (size_t i = 0; i < n; i++) {
-    sym = scm_fcd_make_symbol_from_cstr(data[i].name, SCM_ENC_SRC);
-    if (scm_obj_null_p(sym)) return -1;
-
     num = scm_fcd_make_number_from_sword(data[i].val);
     if (scm_obj_null_p(num)) return -1;
 
-    r = scm_fcd_define_global_var(module, sym, num, data[i].export);
+    r = scm_define_var(module, data[i].name, num, data[i].export);
     if (r < 0) return -1;
   }
 
