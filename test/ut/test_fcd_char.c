@@ -6,20 +6,19 @@
 
 TEST_GROUP(fcd_characters);
 
-static ScmEvaluator *ev;
+static ScmScythe *scy;
 static ScmRefStackInfo rsi;
 
 TEST_SETUP(fcd_characters)
 {
-  ev = scm_capi_evaluator();
-  scm_capi_evaluator_make_vm(ev);
+  scy = ut_scythe_setup(false);
   scm_fcd_ref_stack_save(&rsi);
 }
 
 TEST_TEAR_DOWN(fcd_characters)
 {
   scm_fcd_ref_stack_restore(&rsi);
-  scm_capi_evaluator_end(ev);
+  ut_scythe_tear_down(scy);
 }
 
 TEST(fcd_characters, fcd_char_p__return_true)
@@ -28,7 +27,7 @@ TEST(fcd_characters, fcd_char_p__return_true)
 
   SCM_REFSTK_INIT_REG(&chr);
 
-  chr = read_cstr("#\\a");
+  chr = ut_read_cstr("#\\a");
 
   TEST_ASSERT_TRUE(scm_fcd_char_p(chr));
 }
@@ -44,7 +43,7 @@ TEST(fcd_characters, fcd_char_P__return_true)
 
   SCM_REFSTK_INIT_REG(&chr);
 
-  chr = read_cstr("#\\a");
+  chr = ut_read_cstr("#\\a");
 
   TEST_ASSERT_SCM_TRUE(scm_fcd_char_P(chr));
 }
@@ -61,8 +60,8 @@ TEST(fcd_characters, fcd_char_eq__equal)
 
   SCM_REFSTK_INIT_REG(&c1, &c2);
 
-  c1 = read_cstr("#\\a");
-  c2 = read_cstr("#\\a");
+  c1 = ut_read_cstr("#\\a");
+  c2 = ut_read_cstr("#\\a");
 
   TEST_ASSERT_EQUAL_INT(0, scm_fcd_char_eq(c1, c2, &cmp));
   TEST_ASSERT_TRUE(cmp);
@@ -75,8 +74,8 @@ TEST(fcd_characters, fcd_char_eq__not_equal)
 
   SCM_REFSTK_INIT_REG(&c1, &c2);
 
-  c1 = read_cstr("#\\a");
-  c2 = read_cstr("#\\b");
+  c1 = ut_read_cstr("#\\a");
+  c2 = ut_read_cstr("#\\b");
 
   TEST_ASSERT_EQUAL_INT(0, scm_fcd_char_eq(c1, c2, &cmp));
   TEST_ASSERT_FALSE(cmp);
@@ -88,7 +87,7 @@ TEST(fcd_characters, fcd_char_eq_P_lst__equal)
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(#\\a #\\a #\\a)");
+  lst = ut_read_cstr("(#\\a #\\a #\\a)");
 
   TEST_ASSERT_SCM_TRUE(scm_fcd_char_eq_P_lst(lst));
 }
@@ -99,7 +98,7 @@ TEST(fcd_characters, fcd_har_eq_P_lst__not_equal)
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(#\\a #\\a #\\z)");
+  lst = ut_read_cstr("(#\\a #\\a #\\z)");
 
   TEST_ASSERT_SCM_FALSE(scm_fcd_char_eq_P_lst(lst));
 }
@@ -115,8 +114,8 @@ TEST(fcd_characters, fcd_char_eq_P__equal)
 
   SCM_REFSTK_INIT_REG(&c1, &c2);
 
-  c1 = read_cstr("#\\a");
-  c2 = read_cstr("#\\a");
+  c1 = ut_read_cstr("#\\a");
+  c2 = ut_read_cstr("#\\a");
 
   TEST_ASSERT_SCM_TRUE(scm_fcd_char_eq_P(c1, c2));
 }
@@ -127,8 +126,8 @@ TEST(fcd_characters, fcd_char_eq_P__not_equal)
 
   SCM_REFSTK_INIT_REG(&c1, &c2);
 
-  c1 = read_cstr("#\\a");
-  c2 = read_cstr("#\\b");
+  c1 = ut_read_cstr("#\\a");
+  c2 = ut_read_cstr("#\\b");
 
   TEST_ASSERT_SCM_FALSE(scm_fcd_char_eq_P(c1, c2));
 }
@@ -140,8 +139,8 @@ TEST(fcd_characters, fcd_char_lt__less)
 
   SCM_REFSTK_INIT_REG(&c1, &c2);
 
-  c1 = read_cstr("#\\a");
-  c2 = read_cstr("#\\b");
+  c1 = ut_read_cstr("#\\a");
+  c2 = ut_read_cstr("#\\b");
 
   TEST_ASSERT_EQUAL_INT(0, scm_fcd_char_lt(c1, c2, &actual));
   TEST_ASSERT_TRUE(actual);
@@ -154,8 +153,8 @@ TEST(fcd_characters, fcd_char_lt__greater)
 
   SCM_REFSTK_INIT_REG(&c1, &c2);
 
-  c1 = read_cstr("#\\b");
-  c2 = read_cstr("#\\a");
+  c1 = ut_read_cstr("#\\b");
+  c2 = ut_read_cstr("#\\a");
 
   TEST_ASSERT_EQUAL_INT(0, scm_fcd_char_lt(c1, c2, &actual));
   TEST_ASSERT_FALSE(actual);
@@ -168,8 +167,8 @@ TEST(fcd_characters, fcd_char_lt__equal)
 
   SCM_REFSTK_INIT_REG(&c1, &c2);
 
-  c1 = read_cstr("#\\a");
-  c2 = read_cstr("#\\a");
+  c1 = ut_read_cstr("#\\a");
+  c2 = ut_read_cstr("#\\a");
 
   TEST_ASSERT_EQUAL_INT(0, scm_fcd_char_lt(c1, c2, &actual));
   TEST_ASSERT_FALSE(actual);
@@ -182,9 +181,9 @@ TEST(fcd_characters, fcd_char_lt__transitive)
 
   SCM_REFSTK_INIT_REG(&c1, &c2, &c3);
 
-  c1 = read_cstr("#\\a");
-  c2 = read_cstr("#\\b");
-  c3 = read_cstr("#\\c");
+  c1 = ut_read_cstr("#\\a");
+  c2 = ut_read_cstr("#\\b");
+  c3 = ut_read_cstr("#\\c");
 
   TEST_ASSERT_EQUAL_INT(0, scm_fcd_char_lt(c1, c2, &actual));
   TEST_ASSERT_TRUE(actual);
@@ -202,7 +201,7 @@ TEST(fcd_characters, fcd_char_lt_P_lst__less)
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(#\\a #\\b #\\c)");
+  lst = ut_read_cstr("(#\\a #\\b #\\c)");
 
   TEST_ASSERT_SCM_TRUE(scm_fcd_char_lt_P_lst(lst));
 }
@@ -213,7 +212,7 @@ TEST(fcd_characters, fcd_char_lt_P_lst__equal)
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(#\\a #\\b #\\b)");
+  lst = ut_read_cstr("(#\\a #\\b #\\b)");
 
   TEST_ASSERT_SCM_FALSE(scm_fcd_char_lt_P_lst(lst));
 }
@@ -224,7 +223,7 @@ TEST(fcd_characters, fcd_char_lt_P_lst__greater)
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(#\\b #\\c #\\a)");
+  lst = ut_read_cstr("(#\\b #\\c #\\a)");
 
   TEST_ASSERT_SCM_FALSE(scm_fcd_char_lt_P_lst(lst));
 }
@@ -240,8 +239,8 @@ TEST(fcd_characters, fcd_char_lt_P__less)
 
   SCM_REFSTK_INIT_REG(&c1, &c2);
 
-  c1 = read_cstr("#\\a");
-  c2 = read_cstr("#\\b");
+  c1 = ut_read_cstr("#\\a");
+  c2 = ut_read_cstr("#\\b");
 
   TEST_ASSERT_SCM_TRUE(scm_fcd_char_lt_P(c1, c2));
 }
@@ -252,8 +251,8 @@ TEST(fcd_characters, fcd_char_lt_P__greater)
 
   SCM_REFSTK_INIT_REG(&c1, &c2);
 
-  c1 = read_cstr("#\\b");
-  c2 = read_cstr("#\\a");
+  c1 = ut_read_cstr("#\\b");
+  c2 = ut_read_cstr("#\\a");
 
   TEST_ASSERT_SCM_FALSE(scm_fcd_char_lt_P(c1, c2));
 }
@@ -264,8 +263,8 @@ TEST(fcd_characters, fcd_char_lt_P__equal)
 
   SCM_REFSTK_INIT_REG(&c1, &c2);
 
-  c1 = read_cstr("#\\a");
-  c2 = read_cstr("#\\a");
+  c1 = ut_read_cstr("#\\a");
+  c2 = ut_read_cstr("#\\a");
 
   TEST_ASSERT_SCM_FALSE(scm_fcd_char_lt_P(c1, c2));
 }
@@ -276,9 +275,9 @@ TEST(fcd_characters, fcd_char_lt_P__transitive)
 
   SCM_REFSTK_INIT_REG(&c1, &c2, &c3);
 
-  c1 = read_cstr("#\\a");
-  c2 = read_cstr("#\\b");
-  c3 = read_cstr("#\\c");
+  c1 = ut_read_cstr("#\\a");
+  c2 = ut_read_cstr("#\\b");
+  c3 = ut_read_cstr("#\\c");
 
   TEST_ASSERT_SCM_TRUE(scm_fcd_char_lt_P(c1, c2));
   TEST_ASSERT_SCM_TRUE(scm_fcd_char_lt_P(c2, c3));
@@ -292,8 +291,8 @@ TEST(fcd_characters, fcd_char_gt__less)
 
   SCM_REFSTK_INIT_REG(&c1, &c2);
 
-  c1 = read_cstr("#\\a");
-  c2 = read_cstr("#\\b");
+  c1 = ut_read_cstr("#\\a");
+  c2 = ut_read_cstr("#\\b");
 
   TEST_ASSERT_EQUAL_INT(0, scm_fcd_char_gt(c1, c2, &actual));
   TEST_ASSERT_FALSE(actual);
@@ -306,8 +305,8 @@ TEST(fcd_characters, fcd_char_gt__greater)
 
   SCM_REFSTK_INIT_REG(&c1, &c2);
 
-  c1 = read_cstr("#\\b");
-  c2 = read_cstr("#\\a");
+  c1 = ut_read_cstr("#\\b");
+  c2 = ut_read_cstr("#\\a");
 
   TEST_ASSERT_EQUAL_INT(0, scm_fcd_char_gt(c1, c2, &actual));
   TEST_ASSERT_TRUE(actual);
@@ -320,8 +319,8 @@ TEST(fcd_characters, fcd_char_gt__equal)
 
   SCM_REFSTK_INIT_REG(&c1, &c2);
 
-  c1 = read_cstr("#\\a");
-  c2 = read_cstr("#\\a");
+  c1 = ut_read_cstr("#\\a");
+  c2 = ut_read_cstr("#\\a");
 
   TEST_ASSERT_EQUAL_INT(0, scm_fcd_char_gt(c1, c2, &actual));
   TEST_ASSERT_FALSE(actual);
@@ -334,9 +333,9 @@ TEST(fcd_characters, fcd_char_gt__transitive)
 
   SCM_REFSTK_INIT_REG(&c1, &c2, &c3);
 
-  c1 = read_cstr("#\\c");
-  c2 = read_cstr("#\\b");
-  c3 = read_cstr("#\\a");
+  c1 = ut_read_cstr("#\\c");
+  c2 = ut_read_cstr("#\\b");
+  c3 = ut_read_cstr("#\\a");
 
   TEST_ASSERT_EQUAL_INT(0, scm_fcd_char_gt(c1, c2, &actual));
   TEST_ASSERT_TRUE(actual);
@@ -354,7 +353,7 @@ TEST(fcd_characters, fcd_char_gt_P_lst__less)
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(#\\b #\\a #\\c)");
+  lst = ut_read_cstr("(#\\b #\\a #\\c)");
 
   TEST_ASSERT_SCM_FALSE(scm_fcd_char_gt_P_lst(lst));
 }
@@ -365,7 +364,7 @@ TEST(fcd_characters, fcd_char_gt_P_lst__equal)
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(#\\c #\\b #\\b)");
+  lst = ut_read_cstr("(#\\c #\\b #\\b)");
 
   TEST_ASSERT_SCM_FALSE(scm_fcd_char_gt_P_lst(lst));
 }
@@ -376,7 +375,7 @@ TEST(fcd_characters, fcd_char_gt_P_lst__greater)
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(#\\c #\\b #\\a)");
+  lst = ut_read_cstr("(#\\c #\\b #\\a)");
 
   TEST_ASSERT_SCM_TRUE(scm_fcd_char_gt_P_lst(lst));
 }
@@ -392,8 +391,8 @@ TEST(fcd_characters, fcd_char_gt_P__less)
 
   SCM_REFSTK_INIT_REG(&c1, &c2);
 
-  c1 = read_cstr("#\\a");
-  c2 = read_cstr("#\\b");
+  c1 = ut_read_cstr("#\\a");
+  c2 = ut_read_cstr("#\\b");
 
   TEST_ASSERT_SCM_FALSE(scm_fcd_char_gt_P(c1, c2));
 }
@@ -404,8 +403,8 @@ TEST(fcd_characters, fcd_char_gt_P__greater)
 
   SCM_REFSTK_INIT_REG(&c1, &c2);
 
-  c1 = read_cstr("#\\b");
-  c2 = read_cstr("#\\a");
+  c1 = ut_read_cstr("#\\b");
+  c2 = ut_read_cstr("#\\a");
 
   TEST_ASSERT_SCM_TRUE(scm_fcd_char_gt_P(c1, c2));
 }
@@ -416,8 +415,8 @@ TEST(fcd_characters, fcd_char_gt_P__equal)
 
   SCM_REFSTK_INIT_REG(&c1, &c2);
 
-  c1 = read_cstr("#\\a");
-  c2 = read_cstr("#\\a");
+  c1 = ut_read_cstr("#\\a");
+  c2 = ut_read_cstr("#\\a");
 
   TEST_ASSERT_SCM_FALSE(scm_fcd_char_gt_P(c1, c2));
 }
@@ -428,9 +427,9 @@ TEST(fcd_characters, fcd_char_gt_P__transitive)
 
   SCM_REFSTK_INIT_REG(&c1, &c2, &c3);
 
-  c1 = read_cstr("#\\c");
-  c2 = read_cstr("#\\b");
-  c3 = read_cstr("#\\a");
+  c1 = ut_read_cstr("#\\c");
+  c2 = ut_read_cstr("#\\b");
+  c3 = ut_read_cstr("#\\a");
 
   TEST_ASSERT_SCM_TRUE(scm_fcd_char_gt_P(c1, c2));
   TEST_ASSERT_SCM_TRUE(scm_fcd_char_gt_P(c2, c3));
@@ -444,8 +443,8 @@ TEST(fcd_characters, fcd_char_le__less)
 
   SCM_REFSTK_INIT_REG(&c1, &c2);
 
-  c1 = read_cstr("#\\a");
-  c2 = read_cstr("#\\b");
+  c1 = ut_read_cstr("#\\a");
+  c2 = ut_read_cstr("#\\b");
 
   TEST_ASSERT_EQUAL_INT(0, scm_fcd_char_le(c1, c2, &actual));
   TEST_ASSERT_TRUE(actual);
@@ -458,8 +457,8 @@ TEST(fcd_characters, fcd_char_le__greater)
 
   SCM_REFSTK_INIT_REG(&c1, &c2);
 
-  c1 = read_cstr("#\\b");
-  c2 = read_cstr("#\\a");
+  c1 = ut_read_cstr("#\\b");
+  c2 = ut_read_cstr("#\\a");
 
   TEST_ASSERT_EQUAL_INT(0, scm_fcd_char_le(c1, c2, &actual));
   TEST_ASSERT_FALSE(actual);
@@ -472,8 +471,8 @@ TEST(fcd_characters, fcd_char_le__equal)
 
   SCM_REFSTK_INIT_REG(&c1, &c2);
 
-  c1 = read_cstr("#\\a");
-  c2 = read_cstr("#\\a");
+  c1 = ut_read_cstr("#\\a");
+  c2 = ut_read_cstr("#\\a");
 
   TEST_ASSERT_EQUAL_INT(0, scm_fcd_char_le(c1, c2, &actual));
   TEST_ASSERT_TRUE(actual);
@@ -486,9 +485,9 @@ TEST(fcd_characters, fcd_char_le__transitive)
 
   SCM_REFSTK_INIT_REG(&c1, &c2, &c3);
 
-  c1 = read_cstr("#\\a");
-  c2 = read_cstr("#\\b");
-  c3 = read_cstr("#\\c");
+  c1 = ut_read_cstr("#\\a");
+  c2 = ut_read_cstr("#\\b");
+  c3 = ut_read_cstr("#\\c");
 
   TEST_ASSERT_EQUAL_INT(0, scm_fcd_char_le(c1, c2, &actual));
   TEST_ASSERT_TRUE(actual);
@@ -506,7 +505,7 @@ TEST(fcd_characters, fcd_char_le_P_lst__less)
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(#\\a #\\b #\\c)");
+  lst = ut_read_cstr("(#\\a #\\b #\\c)");
 
   TEST_ASSERT_SCM_TRUE(scm_fcd_char_le_P_lst(lst));
 }
@@ -517,7 +516,7 @@ TEST(fcd_characters, fcd_char_le_P_lst__equal)
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(#\\a #\\b #\\b)");
+  lst = ut_read_cstr("(#\\a #\\b #\\b)");
 
   TEST_ASSERT_SCM_TRUE(scm_fcd_char_le_P_lst(lst));
 }
@@ -528,7 +527,7 @@ TEST(fcd_characters, fcd_char_le_P_lst__greater)
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(#\\b #\\c #\\a)");
+  lst = ut_read_cstr("(#\\b #\\c #\\a)");
 
   TEST_ASSERT_SCM_FALSE(scm_fcd_char_le_P_lst(lst));
 }
@@ -544,8 +543,8 @@ TEST(fcd_characters, fcd_char_le_P__less)
 
   SCM_REFSTK_INIT_REG(&c1, &c2);
 
-  c1 = read_cstr("#\\a");
-  c2 = read_cstr("#\\b");
+  c1 = ut_read_cstr("#\\a");
+  c2 = ut_read_cstr("#\\b");
 
   TEST_ASSERT_SCM_TRUE(scm_fcd_char_le_P(c1, c2));
 }
@@ -556,8 +555,8 @@ TEST(fcd_characters, fcd_char_le_P__greater)
 
   SCM_REFSTK_INIT_REG(&c1, &c2);
 
-  c1 = read_cstr("#\\b");
-  c2 = read_cstr("#\\a");
+  c1 = ut_read_cstr("#\\b");
+  c2 = ut_read_cstr("#\\a");
 
   TEST_ASSERT_SCM_FALSE(scm_fcd_char_le_P(c1, c2));
 }
@@ -568,8 +567,8 @@ TEST(fcd_characters, fcd_char_le_P__equal)
 
   SCM_REFSTK_INIT_REG(&c1, &c2);
 
-  c1 = read_cstr("#\\a");
-  c2 = read_cstr("#\\a");
+  c1 = ut_read_cstr("#\\a");
+  c2 = ut_read_cstr("#\\a");
 
   TEST_ASSERT_SCM_TRUE(scm_fcd_char_le_P(c1, c2));
 }
@@ -580,9 +579,9 @@ TEST(fcd_characters, fcd_char_le_P__transitive)
 
   SCM_REFSTK_INIT_REG(&c1, &c2, &c3);
 
-  c1 = read_cstr("#\\a");
-  c2 = read_cstr("#\\b");
-  c3 = read_cstr("#\\c");
+  c1 = ut_read_cstr("#\\a");
+  c2 = ut_read_cstr("#\\b");
+  c3 = ut_read_cstr("#\\c");
 
   TEST_ASSERT_SCM_TRUE(scm_fcd_char_le_P(c1, c2));
   TEST_ASSERT_SCM_TRUE(scm_fcd_char_le_P(c2, c3));
@@ -596,8 +595,8 @@ TEST(fcd_characters, fcd_char_ge__less)
 
   SCM_REFSTK_INIT_REG(&c1, &c2);
 
-  c1 = read_cstr("#\\a");
-  c2 = read_cstr("#\\b");
+  c1 = ut_read_cstr("#\\a");
+  c2 = ut_read_cstr("#\\b");
 
   TEST_ASSERT_EQUAL_INT(0, scm_fcd_char_ge(c1, c2, &actual));
   TEST_ASSERT_FALSE(actual);
@@ -610,8 +609,8 @@ TEST(fcd_characters, fcd_char_ge__greater)
 
   SCM_REFSTK_INIT_REG(&c1, &c2);
 
-  c1 = read_cstr("#\\b");
-  c2 = read_cstr("#\\a");
+  c1 = ut_read_cstr("#\\b");
+  c2 = ut_read_cstr("#\\a");
 
   TEST_ASSERT_EQUAL_INT(0, scm_fcd_char_ge(c1, c2, &actual));
   TEST_ASSERT_TRUE(actual);
@@ -624,8 +623,8 @@ TEST(fcd_characters, fcd_char_ge__equal)
 
   SCM_REFSTK_INIT_REG(&c1, &c2);
 
-  c1 = read_cstr("#\\a");
-  c2 = read_cstr("#\\a");
+  c1 = ut_read_cstr("#\\a");
+  c2 = ut_read_cstr("#\\a");
 
   TEST_ASSERT_EQUAL_INT(0, scm_fcd_char_ge(c1, c2, &actual));
   TEST_ASSERT_TRUE(actual);
@@ -638,9 +637,9 @@ TEST(fcd_characters, fcd_char_ge__transitive)
 
   SCM_REFSTK_INIT_REG(&c1, &c2, &c3);
 
-  c1 = read_cstr("#\\c");
-  c2 = read_cstr("#\\b");
-  c3 = read_cstr("#\\a");
+  c1 = ut_read_cstr("#\\c");
+  c2 = ut_read_cstr("#\\b");
+  c3 = ut_read_cstr("#\\a");
 
   TEST_ASSERT_EQUAL_INT(0, scm_fcd_char_ge(c1, c2, &actual));
   TEST_ASSERT_TRUE(actual);
@@ -658,7 +657,7 @@ TEST(fcd_characters, fcd_char_ge_P_lst__less)
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(#\\b #\\a #\\c)");
+  lst = ut_read_cstr("(#\\b #\\a #\\c)");
 
   TEST_ASSERT_SCM_FALSE(scm_fcd_char_ge_P_lst(lst));
 }
@@ -669,7 +668,7 @@ TEST(fcd_characters, fcd_char_ge_P_lst__equal)
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(#\\c #\\b #\\b)");
+  lst = ut_read_cstr("(#\\c #\\b #\\b)");
 
   TEST_ASSERT_SCM_TRUE(scm_fcd_char_ge_P_lst(lst));
 }
@@ -680,7 +679,7 @@ TEST(fcd_characters, fcd_char_ge_P_lst__greater)
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(#\\c #\\b #\\a)");
+  lst = ut_read_cstr("(#\\c #\\b #\\a)");
 
   TEST_ASSERT_SCM_TRUE(scm_fcd_char_ge_P_lst(lst));
 }
@@ -696,8 +695,8 @@ TEST(fcd_characters, fcd_char_ge_P__less)
 
   SCM_REFSTK_INIT_REG(&c1, &c2);
 
-  c1 = read_cstr("#\\a");
-  c2 = read_cstr("#\\b");
+  c1 = ut_read_cstr("#\\a");
+  c2 = ut_read_cstr("#\\b");
 
   TEST_ASSERT_SCM_FALSE(scm_fcd_char_ge_P(c1, c2));
 }
@@ -708,8 +707,8 @@ TEST(fcd_characters, fcd_char_ge_P__greater)
 
   SCM_REFSTK_INIT_REG(&c1, &c2);
 
-  c1 = read_cstr("#\\b");
-  c2 = read_cstr("#\\a");
+  c1 = ut_read_cstr("#\\b");
+  c2 = ut_read_cstr("#\\a");
 
   TEST_ASSERT_SCM_TRUE(scm_fcd_char_ge_P(c1, c2));
 }
@@ -720,8 +719,8 @@ TEST(fcd_characters, fcd_char_ge_P__equal)
 
   SCM_REFSTK_INIT_REG(&c1, &c2);
 
-  c1 = read_cstr("#\\a");
-  c2 = read_cstr("#\\a");
+  c1 = ut_read_cstr("#\\a");
+  c2 = ut_read_cstr("#\\a");
 
   TEST_ASSERT_SCM_TRUE(scm_fcd_char_ge_P(c1, c2));
 }
@@ -732,9 +731,9 @@ TEST(fcd_characters, fcd_char_ge_P__transitive)
 
   SCM_REFSTK_INIT_REG(&c1, &c2, &c3);
 
-  c1 = read_cstr("#\\c");
-  c2 = read_cstr("#\\b");
-  c3 = read_cstr("#\\a");
+  c1 = ut_read_cstr("#\\c");
+  c2 = ut_read_cstr("#\\b");
+  c3 = ut_read_cstr("#\\a");
 
   TEST_ASSERT_SCM_TRUE(scm_fcd_char_ge_P(c1, c2));
   TEST_ASSERT_SCM_TRUE(scm_fcd_char_ge_P(c2, c3));
@@ -747,8 +746,8 @@ TEST(fcd_characters, fcd_char_to_integer)
 
   SCM_REFSTK_INIT_REG(&chr, &actual, &expected);
 
-  chr = read_cstr("#\\a");
-  expected = read_cstr("97");
+  chr = ut_read_cstr("#\\a");
+  expected = ut_read_cstr("97");
 
   actual = scm_fcd_char_to_integer(chr);
 
@@ -761,8 +760,8 @@ TEST(fcd_characters, fcd_integer_to_char)
 
   SCM_REFSTK_INIT_REG(&num, &actual, &expected);
 
-  num = read_cstr("97");
-  expected = read_cstr("#\\a");
+  num = ut_read_cstr("97");
+  expected = ut_read_cstr("#\\a");
 
   actual = scm_fcd_integer_to_char(num, NULL);
 
@@ -775,7 +774,7 @@ TEST(fcd_characters, fcd_integer_to_char__not_unicode_scalar__return_false)
 
   SCM_REFSTK_INIT_REG(&num, &actual, &expected);
 
-  num = read_cstr("55296");  /* 55295 = 0xd800  */
+  num = ut_read_cstr("55296");  /* 55295 = 0xd800  */
 
   TEST_ASSERT_SCM_FALSE(scm_fcd_integer_to_char(num, NULL));
 }

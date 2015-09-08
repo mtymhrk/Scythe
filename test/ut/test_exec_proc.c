@@ -4,27 +4,25 @@
 
 TEST_GROUP(exec_proc);
 
-static ScmEvaluator *ev;
+static ScmScythe *scy;
 static ScmRefStackInfo rsi;
 
 TEST_SETUP(exec_proc)
 {
-  ev = scm_capi_evaluator();
-  scm_capi_evaluator_make_vm(ev);
-  scm_capi_evaluator_load_core(ev);
+  scy = ut_scythe_setup(true);
   scm_fcd_ref_stack_save(&rsi);
 }
 
 TEST_TEAR_DOWN(exec_proc)
 {
   scm_fcd_ref_stack_restore(&rsi);
-  scm_capi_evaluator_end(ev);
+  ut_scythe_tear_down(scy);
 }
 
 static ScmObj
 eval_cstr(const char *str)
 {
-  return scm_capi_ut_eval(ev, read_cstr(str));
+  return ut_eval(ut_read_cstr(str));
 }
 
 static void
@@ -34,7 +32,7 @@ test_eval__comp_val_with_obj(const char *expr, const char *expc)
 
   SCM_REFSTK_INIT_REG(&actual, &expected);
 
-  expected = read_cstr(expc);
+  expected = ut_read_cstr(expc);
   actual = eval_cstr(expr);
 
   TEST_ASSERT_SCM_EQUAL(expected, actual);

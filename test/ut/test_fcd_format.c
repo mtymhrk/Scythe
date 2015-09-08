@@ -6,20 +6,19 @@
 
 TEST_GROUP(fcd_format);
 
-static ScmEvaluator *ev;
+static ScmScythe *scy;
 static ScmRefStackInfo rsi;
 
 TEST_SETUP(fcd_format)
 {
-  ev = scm_capi_evaluator();
-  scm_capi_evaluator_make_vm(ev);
+  scy = ut_scythe_setup(false);
   scm_fcd_ref_stack_save(&rsi);
 }
 
 TEST_TEAR_DOWN(fcd_format)
 {
   scm_fcd_ref_stack_restore(&rsi);
-  scm_capi_evaluator_end(ev);
+  ut_scythe_tear_down(scy);
 }
 
 TEST(fcd_format, fcd_format_lst)
@@ -29,9 +28,9 @@ TEST(fcd_format, fcd_format_lst)
 
   SCM_REFSTK_INIT_REG(&actual, &expected, &format, &arg);
 
-  format = read_cstr("\"[~a] [~s] [~~] [~%]\"");
-  arg = read_cstr("(\"foo\" \"bar\")");
-  expected = read_cstr("\"[foo] [\\\"bar\\\"] [~] [\\n]\"");
+  format = ut_read_cstr("\"[~a] [~s] [~~] [~%]\"");
+  arg = ut_read_cstr("(\"foo\" \"bar\")");
+  expected = ut_read_cstr("\"[foo] [\\\"bar\\\"] [~] [\\n]\"");
 
   actual = scm_fcd_format_lst(format, arg);
 
@@ -45,9 +44,9 @@ TEST(fcd_format, fcd_format_lst__too_many_arguments)
 
   SCM_REFSTK_INIT_REG(&actual, &expected, &format, &arg);
 
-  format = read_cstr("\"[~a] [~s] [~~] [~%]\"");
-  arg = read_cstr("(\"foo\" \"bar\" \"baz\")");
-  expected = read_cstr("\"[foo] [\\\"bar\\\"] [~] [\\n]\"");
+  format = ut_read_cstr("\"[~a] [~s] [~~] [~%]\"");
+  arg = ut_read_cstr("(\"foo\" \"bar\" \"baz\")");
+  expected = ut_read_cstr("\"[foo] [\\\"bar\\\"] [~] [\\n]\"");
 
   actual = scm_fcd_format_lst(format, arg);
 
@@ -60,8 +59,8 @@ TEST(fcd_format, fcd_format_lst__error_too_few_arguments)
 
   SCM_REFSTK_INIT_REG(&actual, &format, &arg);
 
-  format = read_cstr("\"[~a] [~s] [~~] [~%]\"");
-  arg = read_cstr("(\"foo\")");
+  format = ut_read_cstr("\"[~a] [~s] [~~] [~%]\"");
+  arg = ut_read_cstr("(\"foo\")");
 
   actual = scm_fcd_format_lst(format, arg);
 
@@ -76,9 +75,9 @@ TEST(fcd_format, fcd_format_cv)
   SCM_REFSTK_INIT_REG(&actual, &expected, &format);
   SCM_REFSTK_REG_ARY(arg, 2);
 
-  format = read_cstr("\"[~a] [~s] [~~] [~%]\"");
-  arg[0] = arg[1] = read_cstr("\"foo\"");
-  expected = read_cstr("\"[foo] [\\\"foo\\\"] [~] [\\n]\"");
+  format = ut_read_cstr("\"[~a] [~s] [~~] [~%]\"");
+  arg[0] = arg[1] = ut_read_cstr("\"foo\"");
+  expected = ut_read_cstr("\"[foo] [\\\"foo\\\"] [~] [\\n]\"");
 
   actual = scm_fcd_format_cv(format, arg, 2);
 
@@ -94,9 +93,9 @@ TEST(fcd_format, fcd_format_cv__too_many_arguments)
   SCM_REFSTK_INIT_REG(&actual, &expected, &format);
   SCM_REFSTK_REG_ARY(arg, 3);
 
-  format = read_cstr("\"[~a] [~s] [~~] [~%]\"");
-  arg[0] = arg[1] = arg[2] = read_cstr("\"foo\"");
-  expected = read_cstr("\"[foo] [\\\"foo\\\"] [~] [\\n]\"");
+  format = ut_read_cstr("\"[~a] [~s] [~~] [~%]\"");
+  arg[0] = arg[1] = arg[2] = ut_read_cstr("\"foo\"");
+  expected = ut_read_cstr("\"[foo] [\\\"foo\\\"] [~] [\\n]\"");
 
   actual = scm_fcd_format_cv(format, arg, 3);
 
@@ -111,8 +110,8 @@ TEST(fcd_format, fcd_format_cv__error_too_few_arguments)
   SCM_REFSTK_INIT_REG(&actual, &format);
   SCM_REFSTK_REG_ARY(arg, 1);
 
-  format = read_cstr("\"[~a] [~s] [~~] [~%]\"");
-  arg[0] = read_cstr("\"foo\"");
+  format = ut_read_cstr("\"[~a] [~s] [~~] [~%]\"");
+  arg[0] = ut_read_cstr("\"foo\"");
 
   actual = scm_fcd_format_cv(format, arg, 1);
 
@@ -127,9 +126,9 @@ TEST(fcd_format, fcd_format)
   SCM_REFSTK_INIT_REG(&actual, &expected, &format);
   SCM_REFSTK_REG_ARY(arg, 2);
 
-  format = read_cstr("\"[~a] [~s] [~~] [~%]\"");
-  arg[0] = arg[1] = read_cstr("\"foo\"");
-  expected = read_cstr("\"[foo] [\\\"foo\\\"] [~] [\\n]\"");
+  format = ut_read_cstr("\"[~a] [~s] [~~] [~%]\"");
+  arg[0] = arg[1] = ut_read_cstr("\"foo\"");
+  expected = ut_read_cstr("\"[foo] [\\\"foo\\\"] [~] [\\n]\"");
 
   actual = scm_fcd_format(format, arg[0], arg[1], SCM_OBJ_NULL);
 
@@ -145,8 +144,8 @@ TEST(fcd_format, fcd_format_cstr)
   SCM_REFSTK_INIT_REG(&actual, &expected);
   SCM_REFSTK_REG_ARY(arg, 2);
 
-  arg[0] = arg[1] = read_cstr("\"foo\"");
-  expected = read_cstr("\"[foo] [\\\"foo\\\"] [~] [\\n]\"");
+  arg[0] = arg[1] = ut_read_cstr("\"foo\"");
+  expected = ut_read_cstr("\"[foo] [\\\"foo\\\"] [~] [\\n]\"");
 
   actual = scm_fcd_format_cstr(format, arg[0], arg[1], SCM_OBJ_NULL);
 

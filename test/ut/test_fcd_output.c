@@ -7,7 +7,7 @@ TEST_GROUP(fcd_output);
 
 #define TEST_FILE_PATH "test_api_output_test_file"
 
-static ScmEvaluator *ev;
+static ScmScythe *scy;
 static ScmRefStackInfo rsi;
 static ScmObj file_port = SCM_OBJ_INIT;
 static ScmObj string_port = SCM_OBJ_INIT;
@@ -20,8 +20,7 @@ delete_test_file(void)
 
 TEST_SETUP(fcd_output)
 {
-  ev = scm_capi_evaluator();
-  scm_capi_evaluator_make_vm(ev);
+  scy = ut_scythe_setup(false);
   scm_fcd_ref_stack_save(&rsi);
 
   file_port = string_port = SCM_OBJ_NULL;
@@ -36,7 +35,7 @@ TEST_TEAR_DOWN(fcd_output)
   delete_test_file();
 
   scm_fcd_ref_stack_restore(&rsi);
-  scm_capi_evaluator_end(ev);
+  ut_scythe_tear_down(scy);
 }
 
 enum { FILEPORT, STRINGPORT };

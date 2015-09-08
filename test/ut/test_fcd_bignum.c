@@ -7,20 +7,19 @@
 
 TEST_GROUP(fcd_bignum);
 
-static ScmEvaluator *ev;
+static ScmScythe *scy;
 static ScmRefStackInfo rsi;
 
 TEST_SETUP(fcd_bignum)
 {
-  ev = scm_capi_evaluator();
-  scm_capi_evaluator_make_vm(ev);
+  scy = ut_scythe_setup(false);
   scm_fcd_ref_stack_save(&rsi);
 }
 
 TEST_TEAR_DOWN(fcd_bignum)
 {
   scm_fcd_ref_stack_restore(&rsi);
-  scm_capi_evaluator_end(ev);
+  ut_scythe_tear_down(scy);
 }
 
 static void
@@ -398,7 +397,7 @@ TEST(fcd_bignum, fcd_num_eq_P_lst__return_true)
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(4611686018427387904 4611686018427387904 4611686018427387904)");
+  lst = ut_read_cstr("(4611686018427387904 4611686018427387904 4611686018427387904)");
   check_list_elements(lst, scm_fcd_bignum_p);
 
   TEST_ASSERT_SCM_TRUE(scm_fcd_num_eq_P_lst(lst));
@@ -410,7 +409,7 @@ TEST(fcd_bignum, fcd_num_eq_P__return_false)
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(4611686018427387904 4611686018427387904 4611686018427387905)");
+  lst = ut_read_cstr("(4611686018427387904 4611686018427387904 4611686018427387905)");
   check_list_elements(lst, scm_fcd_bignum_p);
 
   TEST_ASSERT_SCM_FALSE(scm_fcd_num_eq_P_lst(lst));
@@ -494,7 +493,7 @@ TEST(fcd_bignum, fcd_num_lt_P_lst__ltss)
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(-4611686018427387905 4611686018427387904 9223372036854775807)");
+  lst = ut_read_cstr("(-4611686018427387905 4611686018427387904 9223372036854775807)");
   check_list_elements(lst, scm_fcd_bignum_p);
 
   TEST_ASSERT_SCM_TRUE(scm_fcd_num_lt_P_lst(lst));
@@ -506,7 +505,7 @@ TEST(fcd_bignum, fcd_num_lt_P_lst__equal)
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(-4611686018427387905 4611686018427387904 4611686018427387904)");
+  lst = ut_read_cstr("(-4611686018427387905 4611686018427387904 4611686018427387904)");
   check_list_elements(lst, scm_fcd_bignum_p);
 
   TEST_ASSERT_SCM_FALSE(scm_fcd_num_lt_P_lst(lst));
@@ -518,7 +517,7 @@ TEST(fcd_bignum, fcd_num_lt_P_lst__greater)
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(4611686018427387904 9223372036854775807 -4611686018427387905)");
+  lst = ut_read_cstr("(4611686018427387904 9223372036854775807 -4611686018427387905)");
   check_list_elements(lst, scm_fcd_bignum_p);
 
   TEST_ASSERT_SCM_FALSE(scm_fcd_num_lt_P_lst(lst));
@@ -602,7 +601,7 @@ TEST(fcd_bignum, fcd_num_gt_P_lst__less)
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(4611686018427387904 -4611686018427387905 9223372036854775807)");
+  lst = ut_read_cstr("(4611686018427387904 -4611686018427387905 9223372036854775807)");
   check_list_elements(lst, scm_fcd_bignum_p);
 
   TEST_ASSERT_SCM_FALSE(scm_fcd_num_gt_P_lst(lst));
@@ -614,7 +613,7 @@ TEST(fcd_bignum, fcd_num_gt_P_lst__equal)
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(9223372036854775807 4611686018427387904 4611686018427387904)");
+  lst = ut_read_cstr("(9223372036854775807 4611686018427387904 4611686018427387904)");
   check_list_elements(lst, scm_fcd_bignum_p);
 
   TEST_ASSERT_SCM_FALSE(scm_fcd_num_gt_P_lst(lst));
@@ -626,7 +625,7 @@ TEST(fcd_bignum, fcd_num_gt_P_lst__greater)
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(9223372036854775807 4611686018427387904 -4611686018427387905)");
+  lst = ut_read_cstr("(9223372036854775807 4611686018427387904 -4611686018427387905)");
   check_list_elements(lst, scm_fcd_bignum_p);
 
   TEST_ASSERT_SCM_TRUE(scm_fcd_num_gt_P_lst(lst));
@@ -710,7 +709,7 @@ TEST(fcd_bignum, fcd_num_le_P_lst__less)
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(-4611686018427387905 4611686018427387904 9223372036854775807)");
+  lst = ut_read_cstr("(-4611686018427387905 4611686018427387904 9223372036854775807)");
   check_list_elements(lst, scm_fcd_bignum_p);
 
   TEST_ASSERT_SCM_TRUE(scm_fcd_num_le_P_lst(lst));
@@ -722,7 +721,7 @@ TEST(fcd_bignum, fcd_num_le_P_lst__equal)
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(-4611686018427387905 4611686018427387904 4611686018427387904)");
+  lst = ut_read_cstr("(-4611686018427387905 4611686018427387904 4611686018427387904)");
   check_list_elements(lst, scm_fcd_bignum_p);
 
   TEST_ASSERT_SCM_TRUE(scm_fcd_num_le_P_lst(lst));
@@ -734,7 +733,7 @@ TEST(fcd_bignum, fcd_num_le_P_lst__greater)
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(4611686018427387904 9223372036854775807 -4611686018427387905)");
+  lst = ut_read_cstr("(4611686018427387904 9223372036854775807 -4611686018427387905)");
   check_list_elements(lst, scm_fcd_bignum_p);
 
   TEST_ASSERT_SCM_FALSE(scm_fcd_num_le_P_lst(lst));
@@ -818,7 +817,7 @@ TEST(fcd_bignum, fcd_num_ge_P_lst__less)
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(4611686018427387904 -4611686018427387905 9223372036854775807)");
+  lst = ut_read_cstr("(4611686018427387904 -4611686018427387905 9223372036854775807)");
   check_list_elements(lst, scm_fcd_bignum_p);
 
   TEST_ASSERT_SCM_FALSE(scm_fcd_num_ge_P_lst(lst));
@@ -830,7 +829,7 @@ TEST(fcd_bignum, fcd_num_ge_P_lst__equal)
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(9223372036854775807 4611686018427387904 4611686018427387904)");
+  lst = ut_read_cstr("(9223372036854775807 4611686018427387904 4611686018427387904)");
   check_list_elements(lst, scm_fcd_bignum_p);
 
   TEST_ASSERT_SCM_TRUE(scm_fcd_num_ge_P_lst(lst));
@@ -842,7 +841,7 @@ TEST(fcd_bignum, fcd_num_ge_P_lst__greater)
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(9223372036854775807 4611686018427387904 -4611686018427387905)");
+  lst = ut_read_cstr("(9223372036854775807 4611686018427387904 -4611686018427387905)");
   check_list_elements(lst, scm_fcd_bignum_p);
 
   TEST_ASSERT_SCM_TRUE(scm_fcd_num_ge_P_lst(lst));
@@ -854,7 +853,7 @@ IGNORE_TEST(fcd_bignum, fcd_zero_p__return_true)
 
   SCM_REFSTK_INIT_REG(&bn);
 
-  bn = read_cstr("0");
+  bn = ut_read_cstr("0");
   TEST_ASSERT_TRUE(scm_fcd_bignum_p(bn));
 
   TEST_ASSERT_TRUE(scm_fcd_zero_p(bn));
@@ -866,7 +865,7 @@ IGNORE_TEST(fcd_bignum, fcd_zero_p__return_false)
 
   SCM_REFSTK_INIT_REG(&bn);
 
-  bn = read_cstr("1");
+  bn = ut_read_cstr("1");
   TEST_ASSERT_TRUE(scm_fcd_bignum_p(bn));
 
   TEST_ASSERT_FALSE(scm_fcd_zero_p(bn));
@@ -878,7 +877,7 @@ IGNORE_TEST(fcd_bignum, fcd_zero_P__return_true)
 
   SCM_REFSTK_INIT_REG(&bn);
 
-  bn = read_cstr("0");
+  bn = ut_read_cstr("0");
   TEST_ASSERT_TRUE(scm_fcd_bignum_p(bn));
 
   TEST_ASSERT_SCM_TRUE(scm_fcd_zero_P(bn));
@@ -890,7 +889,7 @@ IGNORE_TEST(fcd_bignum, fcd_zero_P__return_false)
 
   SCM_REFSTK_INIT_REG(&bn);
 
-  bn = read_cstr("-1");
+  bn = ut_read_cstr("-1");
   TEST_ASSERT_TRUE(scm_fcd_bignum_p(bn));
 
   TEST_ASSERT_SCM_FALSE(scm_fcd_zero_P(bn));
@@ -1145,9 +1144,9 @@ TEST(fcd_bignum, fcd_max_lst)
 
   SCM_REFSTK_INIT_REG(&lst, &expected, &actual);
 
-  lst = read_cstr("(4611686018427387904 -4611686018427387905 4611686018427388160 4611686022722355200 -4611686022722355200)");
+  lst = ut_read_cstr("(4611686018427387904 -4611686018427387905 4611686018427388160 4611686022722355200 -4611686022722355200)");
   check_list_elements(lst, scm_fcd_bignum_p);
-  expected = read_cstr("4611686022722355200");
+  expected = ut_read_cstr("4611686022722355200");
 
   actual = scm_fcd_max_lst(lst);
 
@@ -1208,9 +1207,9 @@ TEST(fcd_bignum, fcd_min_lst)
 
   SCM_REFSTK_INIT_REG(&lst, &expected, &actual);
 
-  lst = read_cstr("(4611686018427387904 -4611686018427387905 4611686018427388160 4611686022722355200 -4611686022722355200)");
+  lst = ut_read_cstr("(4611686018427387904 -4611686018427387905 4611686018427388160 4611686022722355200 -4611686022722355200)");
   check_list_elements(lst, scm_fcd_bignum_p);
-  expected = read_cstr("-4611686022722355200");
+  expected = ut_read_cstr("-4611686022722355200");
 
   actual = scm_fcd_min_lst(lst);
 
@@ -1228,7 +1227,7 @@ TEST(fcd_bignum, fcd_plus__1)
   bn2 = scm_fcd_make_number_from_sword(SCM_FIXNUM_MAX + 2);
   TEST_ASSERT_TRUE(scm_fcd_bignum_p(bn1));
   TEST_ASSERT_TRUE(scm_fcd_bignum_p(bn2));
-  expected = read_cstr("9223372036854775809");
+  expected = ut_read_cstr("9223372036854775809");
 
   actual = scm_fcd_plus(bn1, bn2);
 
@@ -1246,7 +1245,7 @@ TEST(fcd_bignum, fcd_plus__2)
   bn2 = scm_fcd_make_number_from_sword(SCM_FIXNUM_MAX + 1);
   TEST_ASSERT_TRUE(scm_fcd_bignum_p(bn1));
   TEST_ASSERT_TRUE(scm_fcd_bignum_p(bn2));
-  expected = read_cstr("-1");
+  expected = ut_read_cstr("-1");
 
   actual = scm_fcd_plus(bn1, bn2);
 
@@ -1264,7 +1263,7 @@ TEST(fcd_bignum, fcd_plus__3)
   bn2 = scm_fcd_make_number_from_sword(SCM_FIXNUM_MIN - 1);
   TEST_ASSERT_TRUE(scm_fcd_bignum_p(bn1));
   TEST_ASSERT_TRUE(scm_fcd_bignum_p(bn2));
-  expected = read_cstr("-1");
+  expected = ut_read_cstr("-1");
 
   actual = scm_fcd_plus(bn1, bn2);
 
@@ -1282,7 +1281,7 @@ TEST(fcd_bignum, fcd_plus__4)
   bn2 = scm_fcd_make_number_from_sword(SCM_FIXNUM_MIN - 2);
   TEST_ASSERT_TRUE(scm_fcd_bignum_p(bn1));
   TEST_ASSERT_TRUE(scm_fcd_bignum_p(bn2));
-  expected = read_cstr("-9223372036854775811");
+  expected = ut_read_cstr("-9223372036854775811");
 
   actual = scm_fcd_plus(bn1, bn2);
 
@@ -1295,9 +1294,9 @@ TEST(fcd_bignum, fcd_plus_lst)
 
   SCM_REFSTK_INIT_REG(&lst, &expected, &actual);
 
-  lst = read_cstr("(4611686018427387904 4611686022722355200 9223372036854775808)");
+  lst = ut_read_cstr("(4611686018427387904 4611686022722355200 9223372036854775808)");
   check_list_elements(lst, scm_fcd_bignum_p);
-  expected = read_cstr("18446744078004518912");
+  expected = ut_read_cstr("18446744078004518912");
 
   actual = scm_fcd_plus_lst(lst);
 
@@ -1315,7 +1314,7 @@ TEST(fcd_bignum, fcd_mul__1)
   bn2 = scm_fcd_make_number_from_sword(SCM_FIXNUM_MAX + 2);
   TEST_ASSERT_TRUE(scm_fcd_bignum_p(bn1));
   TEST_ASSERT_TRUE(scm_fcd_bignum_p(bn2));
-  expected = read_cstr("21267647932558653971072598982912901120");
+  expected = ut_read_cstr("21267647932558653971072598982912901120");
 
   actual = scm_fcd_mul(bn1, bn2);
 
@@ -1333,7 +1332,7 @@ TEST(fcd_bignum, fcd_mul__2)
   bn2 = scm_fcd_make_number_from_sword(SCM_FIXNUM_MAX + 1);
   TEST_ASSERT_TRUE(scm_fcd_bignum_p(bn1));
   TEST_ASSERT_TRUE(scm_fcd_bignum_p(bn2));
-  expected = read_cstr("-21267647932558653971072598982912901120");
+  expected = ut_read_cstr("-21267647932558653971072598982912901120");
 
   actual = scm_fcd_mul(bn1, bn2);
 
@@ -1351,7 +1350,7 @@ TEST(fcd_bignum, fcd_mul__3)
   bn2 = scm_fcd_make_number_from_sword(SCM_FIXNUM_MIN - 2);;
   TEST_ASSERT_TRUE(scm_fcd_bignum_p(bn1));
   TEST_ASSERT_TRUE(scm_fcd_bignum_p(bn2));
-  expected = read_cstr("-21267647932558653980295971019767676930");
+  expected = ut_read_cstr("-21267647932558653980295971019767676930");
 
   actual = scm_fcd_mul(bn1, bn2);
 
@@ -1369,7 +1368,7 @@ TEST(fcd_bignum, fcd_mul__4)
   bn2 = scm_fcd_make_number_from_sword(SCM_FIXNUM_MIN - 2);;
   TEST_ASSERT_TRUE(scm_fcd_bignum_p(bn1));
   TEST_ASSERT_TRUE(scm_fcd_bignum_p(bn2));
-  expected = read_cstr("21267647932558653980295971019767676930");
+  expected = ut_read_cstr("21267647932558653980295971019767676930");
 
   actual = scm_fcd_mul(bn1, bn2);
 
@@ -1382,9 +1381,9 @@ TEST(fcd_bignum, fcd_mul_lst)
 
   SCM_REFSTK_INIT_REG(&lst, &expected, &actual);
 
-  lst = read_cstr("(4611686018427387904 4611686022722355200 9223372036854775808)");
+  lst = ut_read_cstr("(4611686018427387904 4611686022722355200 9223372036854775808)");
   check_list_elements(lst, scm_fcd_bignum_p);
-  expected = read_cstr("196159429413521478536231284250700179592733985096492646400");
+  expected = ut_read_cstr("196159429413521478536231284250700179592733985096492646400");
 
   actual = scm_fcd_mul_lst(lst);
 
@@ -1402,7 +1401,7 @@ TEST(fcd_bignum, fcd_minus__1)
   bn2 = scm_fcd_make_number_from_sword(SCM_FIXNUM_MAX + 2);
   TEST_ASSERT_TRUE(scm_fcd_bignum_p(bn1));
   TEST_ASSERT_TRUE(scm_fcd_bignum_p(bn2));
-  expected = read_cstr("-1");
+  expected = ut_read_cstr("-1");
 
   actual = scm_fcd_minus(bn1, bn2);
 
@@ -1420,7 +1419,7 @@ TEST(fcd_bignum, fcd_minus__2)
   bn2 = scm_fcd_make_number_from_sword(SCM_FIXNUM_MAX + 2);
   TEST_ASSERT_TRUE(scm_fcd_bignum_p(bn1));
   TEST_ASSERT_TRUE(scm_fcd_bignum_p(bn2));
-  expected = read_cstr("-9223372036854775810");
+  expected = ut_read_cstr("-9223372036854775810");
 
   actual = scm_fcd_minus(bn1, bn2);
 
@@ -1438,7 +1437,7 @@ TEST(fcd_bignum, fcd_minus__3)
   bn2 = scm_fcd_make_number_from_sword(SCM_FIXNUM_MIN - 2);
   TEST_ASSERT_TRUE(scm_fcd_bignum_p(bn1));
   TEST_ASSERT_TRUE(scm_fcd_bignum_p(bn2));
-  expected = read_cstr("9223372036854775810");
+  expected = ut_read_cstr("9223372036854775810");
 
   actual = scm_fcd_minus(bn1, bn2);
 
@@ -1456,7 +1455,7 @@ TEST(fcd_bignum, fcd_minus__4)
   bn2 = scm_fcd_make_number_from_sword(SCM_FIXNUM_MIN - 2);
   TEST_ASSERT_TRUE(scm_fcd_bignum_p(bn1));
   TEST_ASSERT_TRUE(scm_fcd_bignum_p(bn2));
-  expected = read_cstr("1");
+  expected = ut_read_cstr("1");
 
   actual = scm_fcd_minus(bn1, bn2);
 
@@ -1469,9 +1468,9 @@ TEST(fcd_bignum, fcd_minus_lst)
 
   SCM_REFSTK_INIT_REG(&lst, &expected, &actual);
 
-  lst = read_cstr("(4611686018427387904 4611686022722355200 9223372036854775808)");
+  lst = ut_read_cstr("(4611686018427387904 4611686022722355200 9223372036854775808)");
   check_list_elements(lst, scm_fcd_bignum_p);
-  expected = read_cstr("-9223372041149743104");
+  expected = ut_read_cstr("-9223372041149743104");
 
   actual = scm_fcd_minus_lst(lst);
 
@@ -1484,7 +1483,7 @@ TEST(fcd_bignum, fcd_abs__positive)
 
   SCM_REFSTK_INIT_REG(&bn, &actual);
 
-  bn = read_cstr("4611686018427387904");
+  bn = ut_read_cstr("4611686018427387904");
   TEST_ASSERT_TRUE(scm_fcd_bignum_p(bn));
 
   actual = scm_fcd_abs(bn);
@@ -1498,9 +1497,9 @@ TEST(fcd_bignum, fcd_abs__negative)
 
   SCM_REFSTK_INIT_REG(&bn, &expected, &actual);
 
-  bn = read_cstr("-4611686018427387905");
+  bn = ut_read_cstr("-4611686018427387905");
   TEST_ASSERT_TRUE(scm_fcd_bignum_p(bn));
-  expected = read_cstr("4611686018427387905");
+  expected = ut_read_cstr("4611686018427387905");
 
   actual = scm_fcd_abs(bn);
 
@@ -1516,13 +1515,13 @@ TEST(fcd_bignum, fcd_floor_div__1)
   SCM_REFSTK_INIT_REG(&bn1, &bn2, &quo, &rem,
                       &expected_quo, &expected_rem);
 
-  bn1 = read_cstr("23058430092136939520");
-  bn2 = read_cstr("9223372036854775808");
+  bn1 = ut_read_cstr("23058430092136939520");
+  bn2 = ut_read_cstr("9223372036854775808");
   TEST_ASSERT_TRUE(scm_fcd_bignum_p(bn1));
   TEST_ASSERT_TRUE(scm_fcd_bignum_p(bn2));
 
-  expected_quo = read_cstr("2");
-  expected_rem = read_cstr("4611686018427387904");
+  expected_quo = ut_read_cstr("2");
+  expected_rem = ut_read_cstr("4611686018427387904");
 
   TEST_ASSERT_EQUAL_INT(0, scm_fcd_floor_div(bn1, bn2,
                                              SCM_CSETTER_L(quo),
@@ -1541,13 +1540,13 @@ TEST(fcd_bignum, fcd_floor_div__2)
   SCM_REFSTK_INIT_REG(&bn1, &bn2, &quo, &rem,
                       &expected_quo, &expected_rem);
 
-  bn1 = read_cstr("-23058430092136939520");
-  bn2 = read_cstr("9223372036854775808");
+  bn1 = ut_read_cstr("-23058430092136939520");
+  bn2 = ut_read_cstr("9223372036854775808");
   TEST_ASSERT_TRUE(scm_fcd_bignum_p(bn1));
   TEST_ASSERT_TRUE(scm_fcd_bignum_p(bn2));
 
-  expected_quo = read_cstr("-3");
-  expected_rem = read_cstr("4611686018427387904");
+  expected_quo = ut_read_cstr("-3");
+  expected_rem = ut_read_cstr("4611686018427387904");
 
   TEST_ASSERT_EQUAL_INT(0, scm_fcd_floor_div(bn1, bn2,
                                              SCM_CSETTER_L(quo),
@@ -1566,13 +1565,13 @@ TEST(fcd_bignum, fcd_floor_div__3)
   SCM_REFSTK_INIT_REG(&bn1, &bn2, &quo, &rem,
                       &expected_quo, &expected_rem);
 
-  bn1 = read_cstr("23058430092136939520");
-  bn2 = read_cstr("-9223372036854775808");
+  bn1 = ut_read_cstr("23058430092136939520");
+  bn2 = ut_read_cstr("-9223372036854775808");
   TEST_ASSERT_TRUE(scm_fcd_bignum_p(bn1));
   TEST_ASSERT_TRUE(scm_fcd_bignum_p(bn2));
 
-  expected_quo = read_cstr("-3");
-  expected_rem = read_cstr("-4611686018427387904");
+  expected_quo = ut_read_cstr("-3");
+  expected_rem = ut_read_cstr("-4611686018427387904");
 
   TEST_ASSERT_EQUAL_INT(0, scm_fcd_floor_div(bn1, bn2,
                                              SCM_CSETTER_L(quo),
@@ -1591,13 +1590,13 @@ TEST(fcd_bignum, fcd_floor_div__4)
   SCM_REFSTK_INIT_REG(&bn1, &bn2, &quo, &rem,
                       &expected_quo, &expected_rem);
 
-  bn1 = read_cstr("-23058430092136939520");
-  bn2 = read_cstr("-9223372036854775808");
+  bn1 = ut_read_cstr("-23058430092136939520");
+  bn2 = ut_read_cstr("-9223372036854775808");
   TEST_ASSERT_TRUE(scm_fcd_bignum_p(bn1));
   TEST_ASSERT_TRUE(scm_fcd_bignum_p(bn2));
 
-  expected_quo = read_cstr("2");
-  expected_rem = read_cstr("-4611686018427387904");
+  expected_quo = ut_read_cstr("2");
+  expected_rem = ut_read_cstr("-4611686018427387904");
 
   TEST_ASSERT_EQUAL_INT(0, scm_fcd_floor_div(bn1, bn2,
                                              SCM_CSETTER_L(quo),
@@ -1614,8 +1613,8 @@ TEST(fcd_bignum, fcd_floor_div__division_by_zero)
 
   SCM_REFSTK_INIT_REG(&bn, &bn, &quo, &rem);
 
-  bn = read_cstr("23058430092136939520");
-  fn = read_cstr("0");
+  bn = ut_read_cstr("23058430092136939520");
+  fn = ut_read_cstr("0");
   TEST_ASSERT_TRUE(scm_fcd_bignum_p(bn));
 
   TEST_ASSERT_EQUAL_INT(-1, scm_fcd_floor_div(bn, fn,
@@ -1632,13 +1631,13 @@ TEST(fcd_bignum, fcd_truncate_div__1)
   SCM_REFSTK_INIT_REG(&bn1, &bn2, &quo, &rem,
                       &expected_quo, &expected_rem);
 
-  bn1 = read_cstr("23058430092136939520");
-  bn2 = read_cstr("9223372036854775808");
+  bn1 = ut_read_cstr("23058430092136939520");
+  bn2 = ut_read_cstr("9223372036854775808");
   TEST_ASSERT_TRUE(scm_fcd_bignum_p(bn1));
   TEST_ASSERT_TRUE(scm_fcd_bignum_p(bn2));
 
-  expected_quo = read_cstr("2");
-  expected_rem = read_cstr("4611686018427387904");
+  expected_quo = ut_read_cstr("2");
+  expected_rem = ut_read_cstr("4611686018427387904");
 
   TEST_ASSERT_EQUAL_INT(0, scm_fcd_truncate_div(bn1, bn2,
                                                 SCM_CSETTER_L(quo),
@@ -1657,13 +1656,13 @@ TEST(fcd_bignum, fcd_truncate_div__2)
   SCM_REFSTK_INIT_REG(&bn1, &bn2, &quo, &rem,
                       &expected_quo, &expected_rem);
 
-  bn1 = read_cstr("-23058430092136939520");
-  bn2 = read_cstr("9223372036854775808");
+  bn1 = ut_read_cstr("-23058430092136939520");
+  bn2 = ut_read_cstr("9223372036854775808");
   TEST_ASSERT_TRUE(scm_fcd_bignum_p(bn1));
   TEST_ASSERT_TRUE(scm_fcd_bignum_p(bn2));
 
-  expected_quo = read_cstr("-2");
-  expected_rem = read_cstr("-4611686018427387904");
+  expected_quo = ut_read_cstr("-2");
+  expected_rem = ut_read_cstr("-4611686018427387904");
 
   TEST_ASSERT_EQUAL_INT(0, scm_fcd_truncate_div(bn1, bn2,
                                                 SCM_CSETTER_L(quo),
@@ -1682,13 +1681,13 @@ TEST(fcd_bignum, fcd_truncate_div__3)
   SCM_REFSTK_INIT_REG(&bn1, &bn2, &quo, &rem,
                       &expected_quo, &expected_rem);
 
-  bn1 = read_cstr("23058430092136939520");
-  bn2 = read_cstr("-9223372036854775808");
+  bn1 = ut_read_cstr("23058430092136939520");
+  bn2 = ut_read_cstr("-9223372036854775808");
   TEST_ASSERT_TRUE(scm_fcd_bignum_p(bn1));
   TEST_ASSERT_TRUE(scm_fcd_bignum_p(bn2));
 
-  expected_quo = read_cstr("-2");
-  expected_rem = read_cstr("4611686018427387904");
+  expected_quo = ut_read_cstr("-2");
+  expected_rem = ut_read_cstr("4611686018427387904");
 
   TEST_ASSERT_EQUAL_INT(0, scm_fcd_truncate_div(bn1, bn2,
                                                 SCM_CSETTER_L(quo),
@@ -1707,13 +1706,13 @@ TEST(fcd_bignum, fcd_truncate_div__4)
   SCM_REFSTK_INIT_REG(&bn1, &bn2, &quo, &rem,
                       &expected_quo, &expected_rem);
 
-  bn1 = read_cstr("-23058430092136939520");
-  bn2 = read_cstr("-9223372036854775808");
+  bn1 = ut_read_cstr("-23058430092136939520");
+  bn2 = ut_read_cstr("-9223372036854775808");
   TEST_ASSERT_TRUE(scm_fcd_bignum_p(bn1));
   TEST_ASSERT_TRUE(scm_fcd_bignum_p(bn2));
 
-  expected_quo = read_cstr("2");
-  expected_rem = read_cstr("-4611686018427387904");
+  expected_quo = ut_read_cstr("2");
+  expected_rem = ut_read_cstr("-4611686018427387904");
 
   TEST_ASSERT_EQUAL_INT(0, scm_fcd_truncate_div(bn1, bn2,
                                                 SCM_CSETTER_L(quo),
@@ -1730,8 +1729,8 @@ TEST(fcd_bignum, fcd_truncate_div__division_by_zero)
 
   SCM_REFSTK_INIT_REG(&bn, &bn, &quo, &rem);
 
-  bn = read_cstr("23058430092136939520");
-  fn = read_cstr("0");
+  bn = ut_read_cstr("23058430092136939520");
+  fn = ut_read_cstr("0");
   TEST_ASSERT_TRUE(scm_fcd_bignum_p(bn));
 
   TEST_ASSERT_EQUAL_INT(-1, scm_fcd_truncate_div(bn, fn,

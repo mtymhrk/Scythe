@@ -6,20 +6,19 @@
 
 TEST_GROUP(fcd_fixnum);
 
-static ScmEvaluator *ev;
+static ScmScythe *scy;
 static ScmRefStackInfo rsi;
 
 TEST_SETUP(fcd_fixnum)
 {
-  ev = scm_capi_evaluator();
-  scm_capi_evaluator_make_vm(ev);
+  scy = ut_scythe_setup(false);
   scm_fcd_ref_stack_save(&rsi);
 }
 
 TEST_TEAR_DOWN(fcd_fixnum)
 {
   scm_fcd_ref_stack_restore(&rsi);
-  scm_capi_evaluator_end(ev);
+  ut_scythe_tear_down(scy);
 }
 
 static void
@@ -40,7 +39,7 @@ TEST(fcd_fixnum, fcd_fixnum_p__return_true)
 
   SCM_REFSTK_INIT_REG(&fn);
 
-  fn = read_cstr("1");
+  fn = ut_read_cstr("1");
 
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn));
 }
@@ -61,7 +60,7 @@ TEST(fcd_fixnum, fcd_fixnum_P__return_true)
 
   SCM_REFSTK_INIT_REG(&fn);
 
-  fn = read_cstr("1");
+  fn = ut_read_cstr("1");
 
   TEST_ASSERT_SCM_TRUE(scm_fcd_fixnum_P(fn));
 }
@@ -77,7 +76,7 @@ TEST(fcd_fixnum, fcd_number_p__return_true)
 
   SCM_REFSTK_INIT_REG(&fn);
 
-  fn = read_cstr("1");
+  fn = ut_read_cstr("1");
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn));
 
   TEST_ASSERT_TRUE(scm_fcd_number_p(fn));
@@ -89,7 +88,7 @@ TEST(fcd_fixnum, fcd_number_P__return_true)
 
   SCM_REFSTK_INIT_REG(&fn);
 
-  fn = read_cstr("1");
+  fn = ut_read_cstr("1");
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn));
 
   TEST_ASSERT_SCM_TRUE(scm_fcd_number_P(fn));
@@ -101,7 +100,7 @@ TEST(fcd_fixnum, fcd_complex_p__return_true)
 
   SCM_REFSTK_INIT_REG(&fn);
 
-  fn = read_cstr("1");
+  fn = ut_read_cstr("1");
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn));
 
   TEST_ASSERT_TRUE(scm_fcd_complex_p(fn));
@@ -113,7 +112,7 @@ TEST(fcd_fixnum, fcd_complex_P__return_true)
 
   SCM_REFSTK_INIT_REG(&fn);
 
-  fn = read_cstr("1");
+  fn = ut_read_cstr("1");
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn));
 
   TEST_ASSERT_SCM_TRUE(scm_fcd_complex_P(fn));
@@ -125,7 +124,7 @@ TEST(fcd_fixnum, fcd_real_p__return_true)
 
   SCM_REFSTK_INIT_REG(&fn);
 
-  fn = read_cstr("1");
+  fn = ut_read_cstr("1");
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn));
 
   TEST_ASSERT_TRUE(scm_fcd_real_p(fn));
@@ -137,7 +136,7 @@ TEST(fcd_fixnum, fcd_real_P__return_true)
 
   SCM_REFSTK_INIT_REG(&fn);
 
-  fn = read_cstr("1");
+  fn = ut_read_cstr("1");
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn));
 
   TEST_ASSERT_SCM_TRUE(scm_fcd_real_P(fn));
@@ -149,7 +148,7 @@ TEST(fcd_fixnum, fcd_rational_p__return_true)
 
   SCM_REFSTK_INIT_REG(&fn);
 
-  fn = read_cstr("1");
+  fn = ut_read_cstr("1");
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn));
 
   TEST_ASSERT_TRUE(scm_fcd_rational_p(fn));
@@ -161,7 +160,7 @@ TEST(fcd_fixnum, fcd_rational_P__return_true)
 
   SCM_REFSTK_INIT_REG(&fn);
 
-  fn = read_cstr("1");
+  fn = ut_read_cstr("1");
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn));
 
   TEST_ASSERT_SCM_TRUE(scm_fcd_rational_P(fn));
@@ -173,7 +172,7 @@ TEST(fcd_fixnum, fcd_integer_p__return_true)
 
   SCM_REFSTK_INIT_REG(&fn);
 
-  fn = read_cstr("1");
+  fn = ut_read_cstr("1");
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn));
 
   TEST_ASSERT_TRUE(scm_fcd_integer_p(fn));
@@ -185,7 +184,7 @@ TEST(fcd_fixnum, fcd_integer_P__return_true)
 
   SCM_REFSTK_INIT_REG(&fn);
 
-  fn = read_cstr("1");
+  fn = ut_read_cstr("1");
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn));
 
   TEST_ASSERT_SCM_TRUE(scm_fcd_integer_P(fn));
@@ -197,7 +196,7 @@ TEST(fcd_fixnum, fcd_exact_p__return_true)
 
   SCM_REFSTK_INIT_REG(&fn);
 
-  fn = read_cstr("1");
+  fn = ut_read_cstr("1");
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn));
 
   TEST_ASSERT_TRUE(scm_fcd_exact_p(fn));
@@ -209,7 +208,7 @@ TEST(fcd_fixnum, fcd_exact_P__return_true)
 
   SCM_REFSTK_INIT_REG(&fn);
 
-  fn = read_cstr("1");
+  fn = ut_read_cstr("1");
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn));
 
   TEST_ASSERT_SCM_TRUE(scm_fcd_exact_P(fn));
@@ -221,7 +220,7 @@ TEST(fcd_fixnum, fcd_inexact_p__return_false)
 
   SCM_REFSTK_INIT_REG(&fn);
 
-  fn = read_cstr("1");
+  fn = ut_read_cstr("1");
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn));
 
   TEST_ASSERT_FALSE(scm_fcd_inexact_p(fn));
@@ -233,7 +232,7 @@ TEST(fcd_fixnum, fcd_inexact_P__return_false)
 
   SCM_REFSTK_INIT_REG(&fn);
 
-  fn = read_cstr("1");
+  fn = ut_read_cstr("1");
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn));
 
   TEST_ASSERT_SCM_FALSE(scm_fcd_inexact_P(fn));
@@ -245,7 +244,7 @@ TEST(fcd_fixnum, fcd_exact_integer_p__return_true)
 
   SCM_REFSTK_INIT_REG(&fn);
 
-  fn = read_cstr("1");
+  fn = ut_read_cstr("1");
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn));
 
   TEST_ASSERT_TRUE(scm_fcd_exact_integer_p(fn));
@@ -257,7 +256,7 @@ TEST(fcd_fixnum, fcd_exact_integer_P__return_true)
 
   SCM_REFSTK_INIT_REG(&fn);
 
-  fn = read_cstr("1");
+  fn = ut_read_cstr("1");
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn));
 
   TEST_ASSERT_SCM_TRUE(scm_fcd_exact_integer_P(fn));
@@ -269,7 +268,7 @@ TEST(fcd_fixnum, fcd_finite_p__return_true)
 
   SCM_REFSTK_INIT_REG(&fn);
 
-  fn = read_cstr("1");
+  fn = ut_read_cstr("1");
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn));
 
   TEST_ASSERT_TRUE(scm_fcd_finite_p(fn));
@@ -281,7 +280,7 @@ TEST(fcd_fixnum, fcd_finite_P__return_true)
 
   SCM_REFSTK_INIT_REG(&fn);
 
-  fn = read_cstr("1");
+  fn = ut_read_cstr("1");
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn));
 
   TEST_ASSERT_SCM_TRUE(scm_fcd_finite_P(fn));
@@ -293,7 +292,7 @@ TEST(fcd_fixnum, fcd_infinite_p__return_true)
 
   SCM_REFSTK_INIT_REG(&fn);
 
-  fn = read_cstr("1");
+  fn = ut_read_cstr("1");
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn));
 
   TEST_ASSERT_FALSE(scm_fcd_infinite_p(fn));
@@ -305,7 +304,7 @@ TEST(fcd_fixnum, fcd_infinite_P__return_true)
 
   SCM_REFSTK_INIT_REG(&fn);
 
-  fn = read_cstr("1");
+  fn = ut_read_cstr("1");
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn));
 
   TEST_ASSERT_SCM_FALSE(scm_fcd_infinite_P(fn));
@@ -317,7 +316,7 @@ TEST(fcd_fixnum, fcd_nan_p__return_true)
 
   SCM_REFSTK_INIT_REG(&fn);
 
-  fn = read_cstr("1");
+  fn = ut_read_cstr("1");
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn));
 
   TEST_ASSERT_FALSE(scm_fcd_nan_p(fn));
@@ -329,7 +328,7 @@ TEST(fcd_fixnum, fcd_nan_P__return_true)
 
   SCM_REFSTK_INIT_REG(&fn);
 
-  fn = read_cstr("1");
+  fn = ut_read_cstr("1");
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn));
 
   TEST_ASSERT_SCM_FALSE(scm_fcd_nan_P(fn));
@@ -397,7 +396,7 @@ TEST(fcd_fixnum, fcd_num_eq_P_lst__return_true)
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(123 123 123)");
+  lst = ut_read_cstr("(123 123 123)");
   check_list_elements(lst, scm_fcd_fixnum_p);
 
   TEST_ASSERT_SCM_TRUE(scm_fcd_num_eq_P_lst(lst));
@@ -409,7 +408,7 @@ TEST(fcd_fixnum, fcd_num_eq_P_lst__return_false)
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(123 123 124)");
+  lst = ut_read_cstr("(123 123 124)");
   check_list_elements(lst, scm_fcd_fixnum_p);
 
   TEST_ASSERT_SCM_FALSE(scm_fcd_num_eq_P_lst(lst));
@@ -493,7 +492,7 @@ TEST(fcd_fixnum, fcd_num_lt_P_lst__less)
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(123 231 312)");
+  lst = ut_read_cstr("(123 231 312)");
   check_list_elements(lst, scm_fcd_fixnum_p);
 
   TEST_ASSERT_SCM_TRUE(scm_fcd_num_lt_P_lst(lst));
@@ -505,7 +504,7 @@ TEST(fcd_fixnum, fcd_num_lt_P_lst__equal)
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(123 231 231)");
+  lst = ut_read_cstr("(123 231 231)");
   check_list_elements(lst, scm_fcd_fixnum_p);
 
   TEST_ASSERT_SCM_FALSE(scm_fcd_num_lt_P_lst(lst));
@@ -517,7 +516,7 @@ TEST(fcd_fixnum, fcd_num_lt_P_lst__greater)
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(231 312 123)");
+  lst = ut_read_cstr("(231 312 123)");
   check_list_elements(lst, scm_fcd_fixnum_p);
 
   TEST_ASSERT_SCM_FALSE(scm_fcd_num_lt_P_lst(lst));
@@ -601,7 +600,7 @@ TEST(fcd_fixnum, fcd_num_gt_P_lst__less)
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(231 123 312)");
+  lst = ut_read_cstr("(231 123 312)");
   check_list_elements(lst, scm_fcd_fixnum_p);
 
   TEST_ASSERT_SCM_FALSE(scm_fcd_num_gt_P_lst(lst));
@@ -613,7 +612,7 @@ TEST(fcd_fixnum, fcd_num_gt_P_lst__equal)
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(312 231 231)");
+  lst = ut_read_cstr("(312 231 231)");
   check_list_elements(lst, scm_fcd_fixnum_p);
 
   TEST_ASSERT_SCM_FALSE(scm_fcd_num_gt_P_lst(lst));
@@ -625,7 +624,7 @@ TEST(fcd_fixnum, fcd_num_gt_P_lst__greater)
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(312 231 123)");
+  lst = ut_read_cstr("(312 231 123)");
   check_list_elements(lst, scm_fcd_fixnum_p);
 
   TEST_ASSERT_SCM_TRUE(scm_fcd_num_gt_P_lst(lst));
@@ -712,7 +711,7 @@ TEST(fcd_fixnum, fcd_num_le_P_lst__less)
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(123 231 312)");
+  lst = ut_read_cstr("(123 231 312)");
   check_list_elements(lst, scm_fcd_fixnum_p);
 
   TEST_ASSERT_SCM_TRUE(scm_fcd_num_le_P_lst(lst));
@@ -724,7 +723,7 @@ TEST(fcd_fixnum, fcd_num_le_P_lst__equal)
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(123 231 231)");
+  lst = ut_read_cstr("(123 231 231)");
   check_list_elements(lst, scm_fcd_fixnum_p);
 
   TEST_ASSERT_SCM_TRUE(scm_fcd_num_le_P_lst(lst));
@@ -736,7 +735,7 @@ TEST(fcd_fixnum, fcd_num_le_P_lst__greater)
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(231 312 123)");
+  lst = ut_read_cstr("(231 312 123)");
   check_list_elements(lst, scm_fcd_fixnum_p);
 
   TEST_ASSERT_SCM_FALSE(scm_fcd_num_le_P_lst(lst));
@@ -820,7 +819,7 @@ TEST(fcd_fixnum, fcd_num_ge_P_lst__less)
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(231 123 312)");
+  lst = ut_read_cstr("(231 123 312)");
   check_list_elements(lst, scm_fcd_fixnum_p);
 
   TEST_ASSERT_SCM_FALSE(scm_fcd_num_ge_P_lst(lst));
@@ -832,7 +831,7 @@ TEST(fcd_fixnum, fcd_num_ge_P_lst__equal)
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(312 231 231)");
+  lst = ut_read_cstr("(312 231 231)");
   check_list_elements(lst, scm_fcd_fixnum_p);
 
   TEST_ASSERT_SCM_TRUE(scm_fcd_num_ge_P_lst(lst));
@@ -844,7 +843,7 @@ TEST(fcd_fixnum, fcd_num_ge_P_lst__greater)
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(312 231 123)");
+  lst = ut_read_cstr("(312 231 123)");
   check_list_elements(lst, scm_fcd_fixnum_p);
 
   TEST_ASSERT_SCM_TRUE(scm_fcd_num_ge_P_lst(lst));
@@ -856,7 +855,7 @@ TEST(fcd_fixnum, fcd_zero_p__return_true)
 
   SCM_REFSTK_INIT_REG(&fn);
 
-  fn = read_cstr("0");
+  fn = ut_read_cstr("0");
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn));
 
   TEST_ASSERT_TRUE(scm_fcd_zero_p(fn));
@@ -868,7 +867,7 @@ TEST(fcd_fixnum, fcd_zero_p__return_false)
 
   SCM_REFSTK_INIT_REG(&fn);
 
-  fn = read_cstr("1");
+  fn = ut_read_cstr("1");
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn));
 
   TEST_ASSERT_FALSE(scm_fcd_zero_p(fn));
@@ -880,7 +879,7 @@ TEST(fcd_fixnum, fcd_zero_P__return_true)
 
   SCM_REFSTK_INIT_REG(&fn);
 
-  fn = read_cstr("0");
+  fn = ut_read_cstr("0");
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn));
 
   TEST_ASSERT_SCM_TRUE(scm_fcd_zero_P(fn));
@@ -892,7 +891,7 @@ TEST(fcd_fixnum, fcd_zero_P__return_false)
 
   SCM_REFSTK_INIT_REG(&fn);
 
-  fn = read_cstr("-1");
+  fn = ut_read_cstr("-1");
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn));
 
   TEST_ASSERT_SCM_FALSE(scm_fcd_zero_P(fn));
@@ -904,7 +903,7 @@ TEST(fcd_fixnum, fcd_positive_p__return_true)
 
   SCM_REFSTK_INIT_REG(&fn);
 
-  fn = read_cstr("0");
+  fn = ut_read_cstr("0");
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn));
 
   TEST_ASSERT_TRUE(scm_fcd_positive_p(fn));
@@ -916,7 +915,7 @@ TEST(fcd_fixnum, fcd_positive_p__return_false)
 
   SCM_REFSTK_INIT_REG(&fn);
 
-  fn = read_cstr("-1");
+  fn = ut_read_cstr("-1");
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn));
 
   TEST_ASSERT_FALSE(scm_fcd_positive_p(fn));
@@ -952,7 +951,7 @@ TEST(fcd_fixnum, fcd_negative_p__return_true)
 
   SCM_REFSTK_INIT_REG(&fn);
 
-  fn = read_cstr("-1");
+  fn = ut_read_cstr("-1");
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn));
 
   TEST_ASSERT_TRUE(scm_fcd_negative_p(fn));
@@ -964,7 +963,7 @@ TEST(fcd_fixnum, fcd_negative_p__return_false)
 
   SCM_REFSTK_INIT_REG(&fn);
 
-  fn = read_cstr("0");
+  fn = ut_read_cstr("0");
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn));
 
   TEST_ASSERT_FALSE(scm_fcd_negative_p(fn));
@@ -1000,7 +999,7 @@ TEST(fcd_fixnum, fcd_odd_p__return_true)
 
   SCM_REFSTK_INIT_REG(&fn);
 
-  fn = read_cstr("1");
+  fn = ut_read_cstr("1");
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn));
 
   TEST_ASSERT_TRUE(scm_fcd_odd_p(fn));
@@ -1012,7 +1011,7 @@ TEST(fcd_fixnum, fcd_odd_p__return_false)
 
   SCM_REFSTK_INIT_REG(&fn);
 
-  fn = read_cstr("0");
+  fn = ut_read_cstr("0");
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn));
 
   TEST_ASSERT_FALSE(scm_fcd_odd_p(fn));
@@ -1024,7 +1023,7 @@ TEST(fcd_fixnum, fcd_odd_P__return_true)
 
   SCM_REFSTK_INIT_REG(&fn);
 
-  fn = read_cstr("-1");
+  fn = ut_read_cstr("-1");
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn));
 
   TEST_ASSERT_SCM_TRUE(scm_fcd_odd_P(fn));
@@ -1036,7 +1035,7 @@ TEST(fcd_fixnum, fcd_odd_P__return_false)
 
   SCM_REFSTK_INIT_REG(&fn);
 
-  fn = read_cstr("2");
+  fn = ut_read_cstr("2");
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn));
 
   TEST_ASSERT_SCM_FALSE(scm_fcd_odd_P(fn));
@@ -1048,7 +1047,7 @@ TEST(fcd_fixnum, fcd_even_p__return_true)
 
   SCM_REFSTK_INIT_REG(&fn);
 
-  fn = read_cstr("0");
+  fn = ut_read_cstr("0");
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn));
 
   TEST_ASSERT_TRUE(scm_fcd_even_p(fn));
@@ -1060,7 +1059,7 @@ TEST(fcd_fixnum, fcd_even_p__return_false)
 
   SCM_REFSTK_INIT_REG(&fn);
 
-  fn = read_cstr("1");
+  fn = ut_read_cstr("1");
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn));
 
   TEST_ASSERT_FALSE(scm_fcd_even_p(fn));
@@ -1072,7 +1071,7 @@ TEST(fcd_fixnum, fcd_even_P__return_true)
 
   SCM_REFSTK_INIT_REG(&fn);
 
-  fn = read_cstr("2");
+  fn = ut_read_cstr("2");
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn));
 
   TEST_ASSERT_SCM_TRUE(scm_fcd_even_P(fn));
@@ -1084,7 +1083,7 @@ TEST(fcd_fixnum, fcd_even_P__return_false)
 
   SCM_REFSTK_INIT_REG(&fn);
 
-  fn = read_cstr("-1");
+  fn = ut_read_cstr("-1");
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn));
 
   TEST_ASSERT_SCM_FALSE(scm_fcd_even_P(fn));
@@ -1096,8 +1095,8 @@ TEST(fcd_fixnum, fcd_max__first)
 
   SCM_REFSTK_INIT_REG(&fn1, &fn2, &actual);
 
-  fn1 = read_cstr("1");
-  fn2 = read_cstr("-1");
+  fn1 = ut_read_cstr("1");
+  fn2 = ut_read_cstr("-1");
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn1));
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn2));
 
@@ -1144,9 +1143,9 @@ TEST(fcd_fixnum, fcd_max_lst)
 
   SCM_REFSTK_INIT_REG(&lst, &expected, &actual);
 
-  lst = read_cstr("(-51 23 0 46 -21)");
+  lst = ut_read_cstr("(-51 23 0 46 -21)");
   check_list_elements(lst, scm_fcd_fixnum_p);
-  expected = read_cstr("46");
+  expected = ut_read_cstr("46");
 
   actual = scm_fcd_max_lst(lst);
 
@@ -1159,8 +1158,8 @@ TEST(fcd_fixnum, fcd_min__first)
 
   SCM_REFSTK_INIT_REG(&fn1, &fn2, &actual);
 
-  fn1 = read_cstr("-1");
-  fn2 = read_cstr("1");
+  fn1 = ut_read_cstr("-1");
+  fn2 = ut_read_cstr("1");
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn1));
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn2));
 
@@ -1207,9 +1206,9 @@ TEST(fcd_fixnum, fcd_min_lst)
 
   SCM_REFSTK_INIT_REG(&lst, &expected, &actual);
 
-  lst = read_cstr("(-51 23 0 46 -21)");
+  lst = ut_read_cstr("(-51 23 0 46 -21)");
   check_list_elements(lst, scm_fcd_fixnum_p);
-  expected = read_cstr("-51");
+  expected = ut_read_cstr("-51");
 
   actual = scm_fcd_min_lst(lst);
 
@@ -1223,11 +1222,11 @@ TEST(fcd_fixnum, fcd_plus__1)
 
   SCM_REFSTK_INIT_REG(&fn1, &fn2, &expected, &actual);
 
-  fn1 = read_cstr("123");
-  fn2 = read_cstr("765");
+  fn1 = ut_read_cstr("123");
+  fn2 = ut_read_cstr("765");
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn1));
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn2));
-  expected = read_cstr("888");
+  expected = ut_read_cstr("888");
 
   actual = scm_fcd_plus(fn1, fn2);
 
@@ -1241,11 +1240,11 @@ TEST(fcd_fixnum, fcd_plus__2)
 
   SCM_REFSTK_INIT_REG(&fn1, &fn2, &expected, &actual);
 
-  fn1 = read_cstr("-123");
-  fn2 = read_cstr("765");
+  fn1 = ut_read_cstr("-123");
+  fn2 = ut_read_cstr("765");
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn1));
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn2));
-  expected = read_cstr("642");
+  expected = ut_read_cstr("642");
 
   actual = scm_fcd_plus(fn1, fn2);
 
@@ -1259,11 +1258,11 @@ TEST(fcd_fixnum, fcd_plus__3)
 
   SCM_REFSTK_INIT_REG(&fn1, &fn2, &expected, &actual);
 
-  fn1 = read_cstr("123");
-  fn2 = read_cstr("-765");
+  fn1 = ut_read_cstr("123");
+  fn2 = ut_read_cstr("-765");
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn1));
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn2));
-  expected = read_cstr("-642");
+  expected = ut_read_cstr("-642");
 
   actual = scm_fcd_plus(fn1, fn2);
 
@@ -1296,7 +1295,7 @@ TEST(fcd_fixnum, fcd_plus__5)
   SCM_REFSTK_INIT_REG(&fn1, &fn2, &expected, &actual);
 
   fn1 = scm_fcd_make_number_from_sword(SCM_FIXNUM_MAX);
-  fn2 = read_cstr("1");
+  fn2 = ut_read_cstr("1");
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn1));
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn2));
   expected = scm_fcd_make_number_from_sword(SCM_FIXNUM_MAX + 1);
@@ -1314,7 +1313,7 @@ TEST(fcd_fixnum, fcd_plus__6)
   SCM_REFSTK_INIT_REG(&fn1, &fn2, &expected, &actual);
 
   fn1 = scm_fcd_make_number_from_sword(SCM_FIXNUM_MIN);
-  fn2 = read_cstr("-1");
+  fn2 = ut_read_cstr("-1");
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn1));
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn2));
   expected = scm_fcd_make_number_from_sword(SCM_FIXNUM_MIN - 1);
@@ -1330,8 +1329,8 @@ TEST(fcd_fixnum, fcd_plus_lst__arg_0)
 
   SCM_REFSTK_INIT_REG(&lst, &expected, &actual);
 
-  lst = read_cstr("()");
-  expected = read_cstr("0");
+  lst = ut_read_cstr("()");
+  expected = ut_read_cstr("0");
 
   actual = scm_fcd_plus_lst(lst);
 
@@ -1344,8 +1343,8 @@ TEST(fcd_fixnum, fcd_plus_lst__arg_1)
 
   SCM_REFSTK_INIT_REG(&lst, &expected, &actual);
 
-  lst = read_cstr("(123)");
-  expected = read_cstr("123");
+  lst = ut_read_cstr("(123)");
+  expected = ut_read_cstr("123");
 
   actual = scm_fcd_plus_lst(lst);
 
@@ -1358,8 +1357,8 @@ TEST(fcd_fixnum, fcd_plus_lst)
 
   SCM_REFSTK_INIT_REG(&lst, &expected, &actual);
 
-  lst = read_cstr("(123 456 789)");
-  expected = read_cstr("1368");
+  lst = ut_read_cstr("(123 456 789)");
+  expected = ut_read_cstr("1368");
 
   actual = scm_fcd_plus_lst(lst);
 
@@ -1373,11 +1372,11 @@ TEST(fcd_fixnum, fcd_mul__1)
 
   SCM_REFSTK_INIT_REG(&fn1, &fn2, &expected, &actual);
 
-  fn1 = read_cstr("51");
-  fn2 = read_cstr("25");
+  fn1 = ut_read_cstr("51");
+  fn2 = ut_read_cstr("25");
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn1));
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn2));
-  expected = read_cstr("1275");
+  expected = ut_read_cstr("1275");
 
   actual = scm_fcd_mul(fn1, fn2);
 
@@ -1391,11 +1390,11 @@ TEST(fcd_fixnum, fcd_mul__2)
 
   SCM_REFSTK_INIT_REG(&fn1, &fn2, &expected, &actual);
 
-  fn1 = read_cstr("-51");
-  fn2 = read_cstr("25");
+  fn1 = ut_read_cstr("-51");
+  fn2 = ut_read_cstr("25");
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn1));
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn2));
-  expected = read_cstr("-1275");
+  expected = ut_read_cstr("-1275");
 
   actual = scm_fcd_mul(fn1, fn2);
 
@@ -1413,7 +1412,7 @@ TEST(fcd_fixnum, fcd_mul__3)
   fn2 = scm_fcd_make_number_from_sword(SCM_FIXNUM_MIN);
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn1));
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn2));
-  expected = read_cstr("-21267647932558653961849226946058125312");
+  expected = ut_read_cstr("-21267647932558653961849226946058125312");
 
   actual = scm_fcd_mul(fn1, fn2);
 
@@ -1501,7 +1500,7 @@ TEST(fcd_fixnum, fcd_mul__7)
   fn2 = scm_fcd_make_number_from_sword(v2);
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn1));
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn2));
-  expected = read_cstr("9223372039002259453");
+  expected = ut_read_cstr("9223372039002259453");
 
   actual = scm_fcd_mul(fn1, fn2);
 
@@ -1514,8 +1513,8 @@ TEST(fcd_fixnum, fcd_mul_lst__arg_0)
 
   SCM_REFSTK_INIT_REG(&lst, &expected, &actual);
 
-  lst = read_cstr("()");
-  expected = read_cstr("1");
+  lst = ut_read_cstr("()");
+  expected = ut_read_cstr("1");
 
   actual = scm_fcd_mul_lst(lst);
 
@@ -1528,8 +1527,8 @@ TEST(fcd_fixnum, fcd_mul_lst__arg_1)
 
   SCM_REFSTK_INIT_REG(&lst, &expected, &actual);
 
-  lst = read_cstr("(123)");
-  expected = read_cstr("123");
+  lst = ut_read_cstr("(123)");
+  expected = ut_read_cstr("123");
 
   actual = scm_fcd_mul_lst(lst);
 
@@ -1542,8 +1541,8 @@ TEST(fcd_fixnum, fcd_mul_lst)
 
   SCM_REFSTK_INIT_REG(&lst, &expected, &actual);
 
-  lst = read_cstr("(123 456 789)");
-  expected = read_cstr("44253432");
+  lst = ut_read_cstr("(123 456 789)");
+  expected = ut_read_cstr("44253432");
 
   actual = scm_fcd_mul_lst(lst);
 
@@ -1557,11 +1556,11 @@ TEST(fcd_fixnum, fcd_minus__1)
 
   SCM_REFSTK_INIT_REG(&fn1, &fn2, &expected, &actual);
 
-  fn1 = read_cstr("765");
-  fn2 = read_cstr("123");
+  fn1 = ut_read_cstr("765");
+  fn2 = ut_read_cstr("123");
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn1));
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn2));
-  expected = read_cstr("642");
+  expected = ut_read_cstr("642");
 
   actual = scm_fcd_minus(fn1, fn2);
 
@@ -1575,11 +1574,11 @@ TEST(fcd_fixnum, fcd_minus__2)
 
   SCM_REFSTK_INIT_REG(&fn1, &fn2, &expected, &actual);
 
-  fn1 = read_cstr("-123");
-  fn2 = read_cstr("765");
+  fn1 = ut_read_cstr("-123");
+  fn2 = ut_read_cstr("765");
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn1));
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn2));
-  expected = read_cstr("-888");
+  expected = ut_read_cstr("-888");
 
   actual = scm_fcd_minus(fn1, fn2);
 
@@ -1593,11 +1592,11 @@ TEST(fcd_fixnum, fcd_minus__3)
 
   SCM_REFSTK_INIT_REG(&fn1, &fn2, &expected, &actual);
 
-  fn1 = read_cstr("123");
-  fn2 = read_cstr("-765");
+  fn1 = ut_read_cstr("123");
+  fn2 = ut_read_cstr("-765");
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn1));
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn2));
-  expected = read_cstr("888");
+  expected = ut_read_cstr("888");
 
   actual = scm_fcd_minus(fn1, fn2);
 
@@ -1630,7 +1629,7 @@ TEST(fcd_fixnum, fcd_minus__5)
   SCM_REFSTK_INIT_REG(&fn1, &fn2, &expected, &actual);
 
   fn1 = scm_fcd_make_number_from_sword(SCM_FIXNUM_MAX);
-  fn2 = read_cstr("-1");
+  fn2 = ut_read_cstr("-1");
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn1));
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn2));
   expected = scm_fcd_make_number_from_sword(SCM_FIXNUM_MAX + 1);
@@ -1648,7 +1647,7 @@ TEST(fcd_fixnum, fcd_minus__6)
   SCM_REFSTK_INIT_REG(&fn1, &fn2, &expected, &actual);
 
   fn1 = scm_fcd_make_number_from_sword(SCM_FIXNUM_MIN);
-  fn2 = read_cstr("1");
+  fn2 = ut_read_cstr("1");
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn1));
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn2));
   expected = scm_fcd_make_number_from_sword(SCM_FIXNUM_MIN - 1);
@@ -1664,8 +1663,8 @@ TEST(fcd_fixnum, fcd_minus_lst__arg_1)
 
   SCM_REFSTK_INIT_REG(&lst, &expected, &actual);
 
-  lst = read_cstr("(1)");
-  expected = read_cstr("-1");
+  lst = ut_read_cstr("(1)");
+  expected = ut_read_cstr("-1");
 
   actual = scm_fcd_minus_lst(lst);
 
@@ -1678,8 +1677,8 @@ TEST(fcd_fixnum, fcd_minus_lst)
 
   SCM_REFSTK_INIT_REG(&lst, &expected, &actual);
 
-  lst = read_cstr("(987 654 321)");
-  expected = read_cstr("12");
+  lst = ut_read_cstr("(987 654 321)");
+  expected = ut_read_cstr("12");
 
   actual = scm_fcd_minus_lst(lst);
 
@@ -1692,7 +1691,7 @@ TEST(fcd_fixnum, fcd_abs__positive)
 
   SCM_REFSTK_INIT_REG(&fn, &actual);
 
-  fn = read_cstr("123");
+  fn = ut_read_cstr("123");
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn));
 
   actual = scm_fcd_abs(fn);
@@ -1706,9 +1705,9 @@ TEST(fcd_fixnum, fcd_abs__negative_1)
 
   SCM_REFSTK_INIT_REG(&fn, &expected, &actual);
 
-  fn = read_cstr("-123");
+  fn = ut_read_cstr("-123");
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn));
-  expected = read_cstr("123");
+  expected = ut_read_cstr("123");
 
   actual = scm_fcd_abs(fn);
 
@@ -1739,13 +1738,13 @@ TEST(fcd_fixnum, fcd_floor_div__1)
   SCM_REFSTK_INIT_REG(&fn1, &fn2, &quo, &rem,
                       &expected_quo, &expected_rem);
 
-  fn1 = read_cstr("5");
-  fn2 = read_cstr("2");
+  fn1 = ut_read_cstr("5");
+  fn2 = ut_read_cstr("2");
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn1));
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn2));
 
-  expected_quo = read_cstr("2");
-  expected_rem = read_cstr("1");
+  expected_quo = ut_read_cstr("2");
+  expected_rem = ut_read_cstr("1");
 
   TEST_ASSERT_EQUAL_INT(0, scm_fcd_floor_div(fn1, fn2,
                                              SCM_CSETTER_L(quo),
@@ -1764,13 +1763,13 @@ TEST(fcd_fixnum, fcd_floor_div__2)
   SCM_REFSTK_INIT_REG(&fn1, &fn2, &quo, &rem,
                       &expected_quo, &expected_rem);
 
-  fn1 = read_cstr("-5");
-  fn2 = read_cstr("2");
+  fn1 = ut_read_cstr("-5");
+  fn2 = ut_read_cstr("2");
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn1));
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn2));
 
-  expected_quo = read_cstr("-3");
-  expected_rem = read_cstr("1");
+  expected_quo = ut_read_cstr("-3");
+  expected_rem = ut_read_cstr("1");
 
   TEST_ASSERT_EQUAL_INT(0, scm_fcd_floor_div(fn1, fn2,
                                              SCM_CSETTER_L(quo),
@@ -1789,13 +1788,13 @@ TEST(fcd_fixnum, fcd_floor_div__3)
   SCM_REFSTK_INIT_REG(&fn1, &fn2, &quo, &rem,
                       &expected_quo, &expected_rem);
 
-  fn1 = read_cstr("5");
-  fn2 = read_cstr("-2");
+  fn1 = ut_read_cstr("5");
+  fn2 = ut_read_cstr("-2");
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn1));
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn2));
 
-  expected_quo = read_cstr("-3");
-  expected_rem = read_cstr("-1");
+  expected_quo = ut_read_cstr("-3");
+  expected_rem = ut_read_cstr("-1");
 
   TEST_ASSERT_EQUAL_INT(0, scm_fcd_floor_div(fn1, fn2,
                                              SCM_CSETTER_L(quo),
@@ -1814,13 +1813,13 @@ TEST(fcd_fixnum, fcd_floor_div__4)
   SCM_REFSTK_INIT_REG(&fn1, &fn2, &quo, &rem,
                       &expected_quo, &expected_rem);
 
-  fn1 = read_cstr("-5");
-  fn2 = read_cstr("-2");
+  fn1 = ut_read_cstr("-5");
+  fn2 = ut_read_cstr("-2");
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn1));
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn2));
 
-  expected_quo = read_cstr("2");
-  expected_rem = read_cstr("-1");
+  expected_quo = ut_read_cstr("2");
+  expected_rem = ut_read_cstr("-1");
 
   TEST_ASSERT_EQUAL_INT(0, scm_fcd_floor_div(fn1, fn2,
                                              SCM_CSETTER_L(quo),
@@ -1837,8 +1836,8 @@ TEST(fcd_fixnum, fcd_floor_div__division_by_zero)
 
   SCM_REFSTK_INIT_REG(&fn1, &fn2, &quo, &rem);
 
-  fn1 = read_cstr("5");
-  fn2 = read_cstr("0");
+  fn1 = ut_read_cstr("5");
+  fn2 = ut_read_cstr("0");
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn1));
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn2));
 
@@ -1856,13 +1855,13 @@ TEST(fcd_fixnum, fcd_truncate_div__1)
   SCM_REFSTK_INIT_REG(&fn1, &fn2, &quo, &rem,
                       &expected_quo, &expected_rem);
 
-  fn1 = read_cstr("5");
-  fn2 = read_cstr("2");
+  fn1 = ut_read_cstr("5");
+  fn2 = ut_read_cstr("2");
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn1));
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn2));
 
-  expected_quo = read_cstr("2");
-  expected_rem = read_cstr("1");
+  expected_quo = ut_read_cstr("2");
+  expected_rem = ut_read_cstr("1");
 
   TEST_ASSERT_EQUAL_INT(0, scm_fcd_truncate_div(fn1, fn2,
                                                 SCM_CSETTER_L(quo),
@@ -1881,13 +1880,13 @@ TEST(fcd_fixnum, fcd_truncate_div__2)
   SCM_REFSTK_INIT_REG(&fn1, &fn2, &quo, &rem,
                       &expected_quo, &expected_rem);
 
-  fn1 = read_cstr("-5");
-  fn2 = read_cstr("2");
+  fn1 = ut_read_cstr("-5");
+  fn2 = ut_read_cstr("2");
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn1));
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn2));
 
-  expected_quo = read_cstr("-2");
-  expected_rem = read_cstr("-1");
+  expected_quo = ut_read_cstr("-2");
+  expected_rem = ut_read_cstr("-1");
 
   TEST_ASSERT_EQUAL_INT(0, scm_fcd_truncate_div(fn1, fn2,
                                                 SCM_CSETTER_L(quo),
@@ -1906,13 +1905,13 @@ TEST(fcd_fixnum, fcd_truncate_div__3)
   SCM_REFSTK_INIT_REG(&fn1, &fn2, &quo, &rem,
                       &expected_quo, &expected_rem);
 
-  fn1 = read_cstr("5");
-  fn2 = read_cstr("-2");
+  fn1 = ut_read_cstr("5");
+  fn2 = ut_read_cstr("-2");
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn1));
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn2));
 
-  expected_quo = read_cstr("-2");
-  expected_rem = read_cstr("1");
+  expected_quo = ut_read_cstr("-2");
+  expected_rem = ut_read_cstr("1");
 
   TEST_ASSERT_EQUAL_INT(0, scm_fcd_truncate_div(fn1, fn2,
                                                 SCM_CSETTER_L(quo),
@@ -1931,13 +1930,13 @@ TEST(fcd_fixnum, fcd_truncate_div__4)
   SCM_REFSTK_INIT_REG(&fn1, &fn2, &quo, &rem,
                       &expected_quo, &expected_rem);
 
-  fn1 = read_cstr("-5");
-  fn2 = read_cstr("-2");
+  fn1 = ut_read_cstr("-5");
+  fn2 = ut_read_cstr("-2");
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn1));
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn2));
 
-  expected_quo = read_cstr("2");
-  expected_rem = read_cstr("-1");
+  expected_quo = ut_read_cstr("2");
+  expected_rem = ut_read_cstr("-1");
 
   TEST_ASSERT_EQUAL_INT(0, scm_fcd_truncate_div(fn1, fn2,
                                                 SCM_CSETTER_L(quo),
@@ -1954,8 +1953,8 @@ TEST(fcd_fixnum, fcd_truncate_div__division_by_zero)
 
   SCM_REFSTK_INIT_REG(&fn1, &fn2, &quo, &rem);
 
-  fn1 = read_cstr("5");
-  fn2 = read_cstr("0");
+  fn1 = ut_read_cstr("5");
+  fn2 = ut_read_cstr("0");
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn1));
   TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn2));
 

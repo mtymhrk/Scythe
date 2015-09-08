@@ -15,7 +15,7 @@ TEST_GROUP(fcd_input);
 #define TEST_FILE_NR_LINE 2
 #define TEST_FILE_NR_S_EXPR 2
 
-static ScmEvaluator *ev;
+static ScmScythe *scy;
 static ScmRefStackInfo rsi;
 static ScmObj file_port = SCM_OBJ_INIT;
 static ScmObj string_port = SCM_OBJ_INIT;
@@ -36,8 +36,7 @@ delete_test_file(void)
 
 TEST_SETUP(fcd_input)
 {
-  ev = scm_capi_evaluator();
-  scm_capi_evaluator_make_vm(ev);
+  scy = ut_scythe_setup(false);
   scm_fcd_ref_stack_save(&rsi);
 
   make_test_file();
@@ -55,7 +54,7 @@ TEST_TEAR_DOWN(fcd_input)
   delete_test_file();
 
   scm_fcd_ref_stack_restore(&rsi);
-  scm_capi_evaluator_end(ev);
+  ut_scythe_tear_down(scy);
 }
 
 static void

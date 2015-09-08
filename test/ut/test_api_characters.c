@@ -5,20 +5,19 @@
 
 TEST_GROUP(api_characters);
 
-static ScmEvaluator *ev;
+static ScmScythe *scy;
 static ScmRefStackInfo rsi;
 
 TEST_SETUP(api_characters)
 {
-  ev = scm_capi_evaluator();
-  scm_capi_evaluator_make_vm(ev);
+  scy = ut_scythe_setup(false);
   scm_fcd_ref_stack_save(&rsi);
 }
 
 TEST_TEAR_DOWN(api_characters)
 {
   scm_fcd_ref_stack_restore(&rsi);
-  scm_capi_evaluator_end(ev);
+  ut_scythe_tear_down(scy);
 }
 
 TEST(api_characters, api_char_P__return_true)
@@ -27,7 +26,7 @@ TEST(api_characters, api_char_P__return_true)
 
   SCM_REFSTK_INIT_REG(&chr);
 
-  chr = read_cstr("#\\a");
+  chr = ut_read_cstr("#\\a");
 
   TEST_ASSERT_SCM_TRUE(scm_api_char_P(chr));
 }
@@ -43,7 +42,7 @@ TEST(api_characters, api_char_eq_P_lst__equal)
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(#\\a #\\a #\\a)");
+  lst = ut_read_cstr("(#\\a #\\a #\\a)");
 
   TEST_ASSERT_SCM_TRUE(scm_api_char_eq_P_lst(lst));
 }
@@ -54,7 +53,7 @@ TEST(api_characters, capi_har_eq_P_lst__not_equal)
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(#\\a #\\a #\\z)");
+  lst = ut_read_cstr("(#\\a #\\a #\\z)");
 
   TEST_ASSERT_SCM_FALSE(scm_api_char_eq_P_lst(lst));
 }
@@ -70,7 +69,7 @@ TEST(api_characters, api_char_eq_P__list_has_item_is_not_character__return_ERROR
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(#\\a a #\\a)");
+  lst = ut_read_cstr("(#\\a a #\\a)");
 
   TEST_ASSERT_SCM_NULL(scm_api_char_eq_P_lst(lst));
 }
@@ -81,7 +80,7 @@ TEST(api_characters, api_char_lt_P_lst__less)
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(#\\a #\\b #\\c)");
+  lst = ut_read_cstr("(#\\a #\\b #\\c)");
 
   TEST_ASSERT_SCM_TRUE(scm_api_char_lt_P_lst(lst));
 }
@@ -92,7 +91,7 @@ TEST(api_characters, api_char_lt_P_lst__equal)
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(#\\a #\\b #\\b)");
+  lst = ut_read_cstr("(#\\a #\\b #\\b)");
 
   TEST_ASSERT_SCM_FALSE(scm_api_char_lt_P_lst(lst));
 }
@@ -103,7 +102,7 @@ TEST(api_characters, api_char_lt_P_lst__greater)
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(#\\b #\\c #\\a)");
+  lst = ut_read_cstr("(#\\b #\\c #\\a)");
 
   TEST_ASSERT_SCM_FALSE(scm_api_char_lt_P_lst(lst));
 }
@@ -119,7 +118,7 @@ TEST(api_characters, api_char_lt_P_lst__list_has_item_is_not_character__return_E
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(#\\a b #\\c)");
+  lst = ut_read_cstr("(#\\a b #\\c)");
 
   TEST_ASSERT_SCM_NULL(scm_api_char_lt_P_lst(lst));
 }
@@ -130,7 +129,7 @@ TEST(api_characters, api_char_gt_P_lst__less)
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(#\\b #\\a #\\c)");
+  lst = ut_read_cstr("(#\\b #\\a #\\c)");
 
   TEST_ASSERT_SCM_FALSE(scm_api_char_gt_P_lst(lst));
 }
@@ -141,7 +140,7 @@ TEST(api_characters, api_char_gt_P_lst__equal)
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(#\\c #\\b #\\b)");
+  lst = ut_read_cstr("(#\\c #\\b #\\b)");
 
   TEST_ASSERT_SCM_FALSE(scm_api_char_gt_P_lst(lst));
 }
@@ -152,7 +151,7 @@ TEST(api_characters, api_char_gt_P_lst__greater)
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(#\\c #\\b #\\a)");
+  lst = ut_read_cstr("(#\\c #\\b #\\a)");
 
   TEST_ASSERT_SCM_TRUE(scm_api_char_gt_P_lst(lst));
 }
@@ -168,7 +167,7 @@ TEST(api_characters, api_char_gt_P_lst__list_has_item_is_not_character__return_E
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(#\\c b #\\a)");
+  lst = ut_read_cstr("(#\\c b #\\a)");
 
   TEST_ASSERT_SCM_NULL(scm_api_char_gt_P_lst(lst));
 }
@@ -179,7 +178,7 @@ TEST(api_characters, api_char_le_P_lst__less)
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(#\\a #\\b #\\c)");
+  lst = ut_read_cstr("(#\\a #\\b #\\c)");
 
   TEST_ASSERT_SCM_TRUE(scm_api_char_le_P_lst(lst));
 }
@@ -190,7 +189,7 @@ TEST(api_characters, api_char_le_P_lst__equal)
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(#\\a #\\b #\\b)");
+  lst = ut_read_cstr("(#\\a #\\b #\\b)");
 
   TEST_ASSERT_SCM_TRUE(scm_api_char_le_P_lst(lst));
 }
@@ -201,7 +200,7 @@ TEST(api_characters, api_char_le_P_lst__greater)
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(#\\b #\\c #\\a)");
+  lst = ut_read_cstr("(#\\b #\\c #\\a)");
 
   TEST_ASSERT_SCM_FALSE(scm_api_char_le_P_lst(lst));
 }
@@ -217,7 +216,7 @@ TEST(api_characters, api_char_le_P_lst__list_has_item_is_not_character__return_E
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(#\\a b #\\c)");
+  lst = ut_read_cstr("(#\\a b #\\c)");
 
   TEST_ASSERT_SCM_NULL(scm_api_char_le_P_lst(lst));
 }
@@ -228,7 +227,7 @@ TEST(api_characters, api_char_ge_P_lst__less)
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(#\\b #\\a #\\c)");
+  lst = ut_read_cstr("(#\\b #\\a #\\c)");
 
   TEST_ASSERT_SCM_FALSE(scm_api_char_ge_P_lst(lst));
 }
@@ -239,7 +238,7 @@ TEST(api_characters, api_char_ge_P_lst__equal)
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(#\\c #\\b #\\b)");
+  lst = ut_read_cstr("(#\\c #\\b #\\b)");
 
   TEST_ASSERT_SCM_TRUE(scm_api_char_ge_P_lst(lst));
 }
@@ -250,7 +249,7 @@ TEST(api_characters, api_char_ge_P_lst__greater)
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(#\\c #\\b #\\a)");
+  lst = ut_read_cstr("(#\\c #\\b #\\a)");
 
   TEST_ASSERT_SCM_TRUE(scm_api_char_ge_P_lst(lst));
 }
@@ -266,7 +265,7 @@ TEST(api_characters, api_char_ge_P_lst__list_has_item_is_not_character__return_E
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(#\\c b #\\a)");
+  lst = ut_read_cstr("(#\\c b #\\a)");
 
   TEST_ASSERT_SCM_NULL(scm_api_char_ge_P_lst(lst));
 }
@@ -277,8 +276,8 @@ TEST(api_characters, api_char_to_integer)
 
   SCM_REFSTK_INIT_REG(&chr, &actual, &expected);
 
-  chr = read_cstr("#\\a");
-  expected = read_cstr("97");
+  chr = ut_read_cstr("#\\a");
+  expected = ut_read_cstr("97");
 
   actual = scm_api_char_to_integer(chr);
 
@@ -296,8 +295,8 @@ TEST(api_characters, capi_integer_to_char)
 
   SCM_REFSTK_INIT_REG(&num, &actual, &expected);
 
-  num = read_cstr("97");
-  expected = read_cstr("#\\a");
+  num = ut_read_cstr("97");
+  expected = ut_read_cstr("#\\a");
 
   actual = scm_capi_integer_to_char(num, NULL);
 
@@ -310,7 +309,7 @@ TEST(api_characters, capi_integer_to_char__not_unicode_scalar__return_false)
 
   SCM_REFSTK_INIT_REG(&num, &actual, &expected);
 
-  num = read_cstr("55296");  /* 55295 = 0xd800  */
+  num = ut_read_cstr("55296");  /* 55295 = 0xd800  */
 
   TEST_ASSERT_SCM_FALSE(scm_capi_integer_to_char(num, NULL));
 }

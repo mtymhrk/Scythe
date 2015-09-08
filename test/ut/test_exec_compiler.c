@@ -4,21 +4,19 @@
 
 TEST_GROUP(exec_compiler);
 
-static ScmEvaluator *ev;
+static ScmScythe *scy;
 static ScmRefStackInfo rsi;
 
 TEST_SETUP(exec_compiler)
 {
-  ev = scm_capi_evaluator();
-  scm_capi_evaluator_make_vm(ev);
-  scm_capi_evaluator_load_core(ev);
+  scy = ut_scythe_setup(true);
   scm_fcd_ref_stack_save(&rsi);
 }
 
 TEST_TEAR_DOWN(exec_compiler)
 {
   scm_fcd_ref_stack_restore(&rsi);
-  scm_capi_evaluator_end(ev);
+  ut_scythe_tear_down(scy);
 }
 
 static ScmObj
@@ -29,9 +27,9 @@ compile(ScmObj exp, bool precompile)
   SCM_REFSTK_INIT_REG(&exp,
                       &asmb, &iseq);
   if (precompile)
-    asmb = scm_capi_ut_precompile(ev, exp);
+    asmb = ut_precompile(exp);
   else
-    asmb = scm_capi_ut_compile(ev, exp);
+    asmb = ut_compile(exp);
 
   return scm_fcd_assembler_iseq(asmb);
 }
@@ -39,7 +37,7 @@ compile(ScmObj exp, bool precompile)
 static ScmObj
 compile_cstr(const char *str, bool precompile)
 {
-  return compile(read_cstr(str), precompile);
+  return compile(ut_read_cstr(str), precompile);
 }
 
 static void
@@ -50,7 +48,7 @@ test_compile_internal(const char *expr, const char *asmbl, bool precompile)
 
   SCM_REFSTK_INIT_REG(&actual, &expected);
 
-  expected = scm_fcd_assemble(scm_fcd_unprintable_assembler(read_cstr(asmbl)),
+  expected = scm_fcd_assemble(scm_fcd_unprintable_assembler(ut_read_cstr(asmbl)),
                               SCM_OBJ_NULL);
   actual = compile_cstr(expr, precompile);
 

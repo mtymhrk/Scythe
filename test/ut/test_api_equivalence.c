@@ -5,20 +5,19 @@
 
 TEST_GROUP(api_equivalence);
 
-static ScmEvaluator *ev;
+static ScmScythe *scy;
 static ScmRefStackInfo rsi;
 
 TEST_SETUP(api_equivalence)
 {
-  ev = scm_capi_evaluator();
-  scm_capi_evaluator_make_vm(ev);
+  scy = ut_scythe_setup(false);
   scm_fcd_ref_stack_save(&rsi);
 }
 
 TEST_TEAR_DOWN(api_equivalence)
 {
   scm_fcd_ref_stack_restore(&rsi);
-  scm_capi_evaluator_end(ev);
+  ut_scythe_tear_down(scy);
 }
 
 TEST(api_equivalence, api_eq_P__return_true)
@@ -27,8 +26,8 @@ TEST(api_equivalence, api_eq_P__return_true)
 
   SCM_REFSTK_INIT_REG(&sym1, &sym2);
 
-  sym1 = read_cstr("aaa");
-  sym2 = read_cstr("aaa");
+  sym1 = ut_read_cstr("aaa");
+  sym2 = ut_read_cstr("aaa");
 
   TEST_ASSERT_SCM_TRUE(scm_api_eq_P(sym1, sym2));
 }
@@ -39,8 +38,8 @@ TEST(api_equivalence, api_eq_P__return_false)
 
   SCM_REFSTK_INIT_REG(&sym1, &sym2);
 
-  sym1 = read_cstr("aaa");
-  sym2 = read_cstr("bbb");
+  sym1 = ut_read_cstr("aaa");
+  sym2 = ut_read_cstr("bbb");
 
   TEST_ASSERT_SCM_FALSE(scm_api_eq_P(sym1, sym2));
 }
@@ -51,8 +50,8 @@ TEST(api_equivalence, api_eqv_P__return_true)
 
   SCM_REFSTK_INIT_REG(&sym1, &sym2);
 
-  sym1 = read_cstr("aaa");
-  sym2 = read_cstr("aaa");
+  sym1 = ut_read_cstr("aaa");
+  sym2 = ut_read_cstr("aaa");
 
   TEST_ASSERT_SCM_TRUE(scm_api_eqv_P(sym1, sym2));
 }
@@ -63,8 +62,8 @@ TEST(api_equivalence, api_eqv_P__return_false)
 
   SCM_REFSTK_INIT_REG(&sym1, &sym2);
 
-  sym1 = read_cstr("aaa");
-  sym2 = read_cstr("bbb");
+  sym1 = ut_read_cstr("aaa");
+  sym2 = ut_read_cstr("bbb");
 
   TEST_ASSERT_SCM_FALSE(scm_api_eqv_P(sym1, sym2));
 }
@@ -75,8 +74,8 @@ TEST(api_equivalence, api_equal_P__return_true)
 
   SCM_REFSTK_INIT_REG(&sym1, &sym2);
 
-  sym1 = read_cstr("aaa");
-  sym2 = read_cstr("aaa");
+  sym1 = ut_read_cstr("aaa");
+  sym2 = ut_read_cstr("aaa");
 
   TEST_ASSERT_SCM_EQUAL(sym1, sym2);
 }
@@ -87,8 +86,8 @@ TEST(api_equivalence, api_equal_P__return_false)
 
   SCM_REFSTK_INIT_REG(&sym1, &sym2);
 
-  sym1 = read_cstr("aaa");
-  sym2 = read_cstr("bbb");
+  sym1 = ut_read_cstr("aaa");
+  sym2 = ut_read_cstr("bbb");
 
   TEST_ASSERT_SCM_FALSE(scm_api_equal_P(sym1, sym2));
 }

@@ -5,6 +5,12 @@
 #include "scythe/encoding.h"
 #include "scythe/fcd_type.h"
 
+ScmBedrock *scm_fcd_bedrock_new(void);
+void scm_fcd_bedrock_end(ScmBedrock *br);
+int scm_fcd_bedrock_create_mem(ScmBedrock *br);
+void scm_fcd_bedrock_delete_mem(ScmBedrock *br);
+int scm_fcd_bedrock_setup(ScmBedrock *br);
+void scm_fcd_bedrock_cleanup(ScmBedrock *br);
 
 ScmObj scm_fcd_nil(void);
 ScmObj scm_fcd_true(void);

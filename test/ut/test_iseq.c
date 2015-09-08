@@ -6,15 +6,14 @@
 
 TEST_GROUP(iseq);
 
-static ScmEvaluator *ev;
+static ScmScythe *scy;
 static ScmRefStackInfo rsi;
 static ScmObj iseq;
 static ScmObj iseq2;
 
 TEST_SETUP(iseq)
 {
-  ev = scm_capi_evaluator();
-  scm_capi_evaluator_make_vm(ev);
+  scy = ut_scythe_setup(false);
   scm_fcd_ref_stack_save(&rsi);
 
   iseq = SCM_OBJ_NULL;
@@ -30,7 +29,7 @@ TEST_TEAR_DOWN(iseq)
 {
   scm_debug_print_flag = 0;
   scm_fcd_ref_stack_restore(&rsi);
-  scm_capi_evaluator_end(ev);
+  ut_scythe_tear_down(scy);
 }
 
 TEST(iseq, iseq_new)

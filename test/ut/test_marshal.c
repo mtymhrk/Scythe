@@ -6,20 +6,19 @@
 
 TEST_GROUP(marshal);
 
-static ScmEvaluator *ev;
+static ScmScythe *scy;
 static ScmRefStackInfo rsi;
 
 TEST_SETUP(marshal)
 {
-  ev = scm_capi_evaluator();
-  scm_capi_evaluator_make_vm(ev);
+  scy = ut_scythe_setup(false);
   scm_fcd_ref_stack_save(&rsi);
 }
 
 TEST_TEAR_DOWN(marshal)
 {
   scm_fcd_ref_stack_restore(&rsi);
-  scm_capi_evaluator_end(ev);
+  ut_scythe_tear_down(scy);
 }
 
 static void
@@ -127,14 +126,14 @@ TEST(marshal, test_marshal_unmarshal__string)
 TEST(marshal, test_marshal_unmarshal__vector)
 {
   ScmObj vec = SCM_OBJ_INIT;
-  vec = read_cstr("#(a b c d e)");
+  vec = ut_read_cstr("#(a b c d e)");
   test_marshal_unmarshal(vec);
 }
 
 TEST(marshal, test_marshal_unmarshal__vector__cycle)
 {
   ScmObj vec = SCM_OBJ_INIT;
-  vec = read_cstr("#(a b c d e)");
+  vec = ut_read_cstr("#(a b c d e)");
   scm_fcd_vector_set_i(vec, 4, vec);
   test_marshal_unmarshal(vec);
 }
@@ -173,7 +172,7 @@ static void
 test_marshal_unmarshal_qqtmpl(const char *tmpl)
 {
   ScmObj qqtmpl = SCM_OBJ_INIT, t = SCM_OBJ_INIT;
-  t = read_cstr(tmpl);
+  t = ut_read_cstr(tmpl);
   qqtmpl = scm_fcd_compile_qq_template(t);
   test_marshal_unmarshal_qqtmpl_internal(qqtmpl);
 }
@@ -229,7 +228,7 @@ static void
 test_marshal_unmarshal_iseq(const char *asmbl)
 {
   ScmObj lst, iseq;
-  lst = read_cstr(asmbl);
+  lst = ut_read_cstr(asmbl);
   iseq = scm_api_assemble(lst, SCM_OBJ_NULL);
   test_marshal_unmarshal_iseq_internal(iseq);
 }

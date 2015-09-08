@@ -11,7 +11,7 @@ TEST_GROUP(api_ports);
 
 #define TEST_INEXISTENT_FILE_PATH "inexistent_file"
 
-static ScmEvaluator *ev;
+static ScmScythe *scy;
 static ScmRefStackInfo rsi;
 
 static void
@@ -31,8 +31,7 @@ delete_test_file(void)
 
 TEST_SETUP(api_ports)
 {
-  ev = scm_capi_evaluator();
-  scm_capi_evaluator_make_vm(ev);
+  scy = ut_scythe_setup(false);
   scm_fcd_ref_stack_save(&rsi);
 
   make_test_file();
@@ -43,7 +42,7 @@ TEST_TEAR_DOWN(api_ports)
   delete_test_file();
 
   scm_fcd_ref_stack_restore(&rsi);
-  scm_capi_evaluator_end(ev);
+  ut_scythe_tear_down(scy);
 }
 
 TEST(api_ports, api_port_P__return_true)

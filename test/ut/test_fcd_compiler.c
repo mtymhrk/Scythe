@@ -6,20 +6,19 @@
 
 TEST_GROUP(fcd_compiler);
 
-static ScmEvaluator *ev;
+static ScmScythe *scy;
 static ScmRefStackInfo rsi;
 
 TEST_SETUP(fcd_compiler)
 {
-  ev = scm_capi_evaluator();
-  scm_capi_evaluator_make_vm(ev);
+  scy = ut_scythe_setup(false);
   scm_fcd_ref_stack_save(&rsi);
 }
 
 TEST_TEAR_DOWN(fcd_compiler)
 {
   scm_fcd_ref_stack_restore(&rsi);
-  scm_capi_evaluator_end(ev);
+  ut_scythe_tear_down(scy);
 }
 
 static void
@@ -42,9 +41,9 @@ test_quasiquote(const char *expected, const char *template, const char *values)
 
   SCM_REFSTK_INIT_REG(&e, &t, &v);
 
-  e = read_cstr(expected);
-  t = read_cstr(template);
-  v = read_cstr(values);
+  e = ut_read_cstr(expected);
+  t = ut_read_cstr(template);
+  v = ut_read_cstr(values);
 
   test_quasiquote_internal(e, t, v);
 }
@@ -56,7 +55,7 @@ test_quasiquote_compile_error(const char *template)
 
   SCM_REFSTK_INIT_REG(&t);
 
-  t = read_cstr(template);
+  t = ut_read_cstr(template);
 
   TEST_ASSERT_SCM_NULL(scm_fcd_compile_qq_template(t));
 }
@@ -81,8 +80,8 @@ test_quasiquote_substitute_error(const char *template, const char *values)
 
   SCM_REFSTK_INIT_REG(&t, &v);
 
-  t = read_cstr(template);
-  v = read_cstr(values);
+  t = ut_read_cstr(template);
+  v = ut_read_cstr(values);
 
   test_quasiquote_substitute_error_internal(t, v);
 }
@@ -95,8 +94,8 @@ test_quasiquote_unquoted_expr(const char *expected, const char *template)
 
   SCM_REFSTK_INIT_REG(&qq, &e, &t);
 
-  e = read_cstr(expected);
-  t = read_cstr(template);
+  e = ut_read_cstr(expected);
+  t = ut_read_cstr(template);
 
   qq = scm_fcd_compile_qq_template(t);
   TEST_ASSERT(scm_fcd_qqtmpl_p(qq));
@@ -119,7 +118,7 @@ test_quasiquote_original_template(const char *template)
 
   SCM_REFSTK_INIT_REG(&qq, &t);
 
-  t = read_cstr(template);
+  t = ut_read_cstr(template);
 
   qq = scm_fcd_compile_qq_template(t);
   TEST_ASSERT(scm_fcd_qqtmpl_p(qq));
@@ -257,8 +256,8 @@ test_qqtmpl_eq__internal(const char *tmpl1, const char *tmpl2,
 
   SCM_REFSTK_INIT_REG(&t1, &t2, &q1, &q2);
 
-  t1 = read_cstr(tmpl1);
-  t2 = read_cstr(tmpl2);
+  t1 = ut_read_cstr(tmpl1);
+  t2 = ut_read_cstr(tmpl2);
   q1 = scm_fcd_compile_qq_template(t1);
   q2 = scm_fcd_compile_qq_template(t2);
 

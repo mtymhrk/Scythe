@@ -6,14 +6,13 @@
 
 TEST_GROUP(vm);
 
-static ScmEvaluator *ev;
+static ScmScythe *scy;
 static ScmRefStackInfo rsi;
 static ScmObj vm;
 
 TEST_SETUP(vm)
 {
-  ev = scm_capi_evaluator();
-  scm_capi_evaluator_make_vm(ev);
+  scy = ut_scythe_setup(false);
   vm = scm_fcd_current_vm();
   scm_fcd_ref_stack_save(&rsi);
 }
@@ -21,7 +20,7 @@ TEST_SETUP(vm)
 TEST_TEAR_DOWN(vm)
 {
   scm_fcd_ref_stack_restore(&rsi);
-  scm_capi_evaluator_end(ev);
+  ut_scythe_tear_down(scy);
 }
 
 TEST(vm, vm_run__op_immval)
@@ -80,8 +79,8 @@ test_adjust_val_to_arity(const char *val, int arity, const char *expected)
 
   SCM_REFSTK_INIT_REG(&v, &e);
 
-  v = read_cstr(val);
-  e = read_cstr(expected);
+  v = ut_read_cstr(val);
+  e = ut_read_cstr(expected);
 
   vl = scm_fcd_vector_length(v);
   el = scm_fcd_vector_length(e);

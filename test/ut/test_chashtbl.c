@@ -6,7 +6,7 @@
 
 TEST_GROUP(chashtbl);
 
-static ScmEvaluator *ev;
+static ScmScythe *scy;
 static ScmRefStackInfo rsi;
 
 static size_t
@@ -23,15 +23,14 @@ cmp_func(ScmCHashTblKey key1, ScmCHashTblKey key2)
 
 TEST_SETUP(chashtbl)
 {
-  ev = scm_capi_evaluator();
-  scm_capi_evaluator_make_vm(ev);
+  scy = ut_scythe_setup(false);
   scm_fcd_ref_stack_save(&rsi);
 }
 
 TEST_TEAR_DOWN(chashtbl)
 {
   scm_fcd_ref_stack_restore(&rsi);
-  scm_capi_evaluator_end(ev);
+  ut_scythe_tear_down(scy);
 }
 
 TEST(chashtbl, chash_tbl_new)

@@ -6,7 +6,7 @@
 
 TEST_GROUP(fcd_exceptions);
 
-static ScmEvaluator *ev;
+static ScmScythe *scy;
 static ScmRefStackInfo rsi;
 
 static void
@@ -21,7 +21,7 @@ check_exception(ScmObj exc, const char *msg, const char *irris)
   msg_str = scm_fcd_make_string_from_cstr((msg == NULL) ? "" : msg,
                                           SCM_ENC_UTF8);
 
-  ir_lst = read_cstr(irris);
+  ir_lst = ut_read_cstr(irris);
 
   TEST_ASSERT_SCM_EQUAL(msg_str, scm_api_error_object_message(exc));
   TEST_ASSERT_SCM_EQUAL(ir_lst, scm_api_error_object_irritants(exc));
@@ -29,15 +29,14 @@ check_exception(ScmObj exc, const char *msg, const char *irris)
 
 TEST_SETUP(fcd_exceptions)
 {
-  ev = scm_capi_evaluator();
-  scm_capi_evaluator_make_vm(ev);
+  scy = ut_scythe_setup(false);
   scm_fcd_ref_stack_save(&rsi);
 }
 
 TEST_TEAR_DOWN(fcd_exceptions)
 {
   scm_fcd_ref_stack_restore(&rsi);
-  scm_capi_evaluator_end(ev);
+  ut_scythe_tear_down(scy);
 }
 
 TEST(fcd_exceptions, fcd_raise)

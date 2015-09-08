@@ -98,7 +98,7 @@ scm_bedrock_setup(ScmBedrock *br)
   return 0;
 }
 
-int
+void
 scm_bedrock_cleanup(ScmBedrock *br)
 {
   scm_assert(br != NULL);
@@ -153,16 +153,34 @@ scm_bedrock_cleanup(ScmBedrock *br)
     scm_fcd_mem_free_root(br->cnsts.nil);
     br->cnsts.nil = SCM_OBJ_NULL;
   }
+}
+
+int
+scm_bedrock_create_mem(ScmBedrock *br)
+{
+  scm_assert(br != NULL);
+
+  if (br->mem != NULL)
+    return 0;
+
+  br->mem = scm_fcd_mem_new();
+  if (br->mem == NULL) return -1;
 
   return 0;
 }
 
 void
-scm_bedrock_set_mem(ScmBedrock *br, ScmMem *mem)
+scm_bedrock_delete_mem(ScmBedrock *br)
 {
   scm_assert(br != NULL);
 
-  br->mem = mem;
+  if (br->mem == NULL)
+    return;
+
+  scm_fcd_mem_end(br->mem);
+  br->mem = NULL;
+
+  return;
 }
 
 int
@@ -174,8 +192,7 @@ scm_bedrock_initialize(ScmBedrock *br)
   br->err_type = SCM_BEDROCK_ERR_NONE;
   br->exit_stat = 0;
 
-  br->mem = scm_fcd_mem_new();
-  if (br->mem == NULL) return -1;
+  br->mem = NULL;
 
   br->cnsts.nil = SCM_OBJ_NULL;
   br->cnsts.eof = SCM_OBJ_NULL;
@@ -208,10 +225,8 @@ scm_bedrock_finalize(ScmBedrock *br)
 {
   scm_assert(br != NULL);
 
-  if (br->mem != NULL) {
-    scm_fcd_mem_end(br->mem);
-    br->mem = NULL;
-  }
+  if (br->mem != NULL)
+    scm_bedrock_delete_mem(br);
 }
 
 ScmBedrock *
@@ -229,8 +244,6 @@ scm_bedrock_new(void)
     return NULL;
   }
 
-  scm_fcd_chg_current_br(br);
-
   return br;
 }
 
@@ -239,7 +252,6 @@ scm_bedrock_end(ScmBedrock *br)
 {
   scm_assert(br != NULL);
 
-  scm_fcd_chg_current_br(NULL);
   scm_bedrock_finalize(br);
   free(br);
 }
@@ -2666,38 +2678,6 @@ scm_vm_interrupt_func_return(ScmObj vm)
 }
 
 int
-scm_vm_bootup(void)
-{
-  ScmObj stack = SCM_OBJ_INIT;
-  ScmBedrock *bedrock;
-  int r;
-
-  bedrock = scm_bedrock_new();
-  if (bedrock == NULL) return -1;
-
-  stack = scm_fcd_ref_stack_new(SCM_MEM_ROOT);
-  if (scm_obj_null_p(stack)) return -1;
-
-  scm_fcd_chg_current_ref_stack(stack);
-
-  r = scm_bedrock_setup(bedrock);
-  if (r < 0) return -1;
-
-  return 0;
-}
-
-void
-scm_vm_shutdown(void)
-{
-  scm_bedrock_cleanup(scm_fcd_current_br());
-
-  scm_fcd_mem_free_root(scm_fcd_current_ref_stack());
-  scm_fcd_chg_current_ref_stack(SCM_OBJ_NULL);
-
-  scm_bedrock_end(scm_fcd_current_br());
-}
-
-int
 scm_vm_initialize(ScmObj vm, ScmObj main_vm)
 {
   ScmObj vmss = SCM_OBJ_INIT, vmsr = SCM_OBJ_INIT;
@@ -3657,6 +3637,52 @@ scm_vm_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
 /*  VM (interface)                                                         */
 /***************************************************************************/
 
+ScmBedrock *
+scm_fcd_bedrock_new(void)
+{
+  return scm_bedrock_new();
+}
+
+void
+scm_fcd_bedrock_end(ScmBedrock *br)
+{
+  scm_assert(br != NULL);
+
+  scm_bedrock_end(br);
+}
+
+int
+scm_fcd_bedrock_create_mem(ScmBedrock *br)
+{
+  scm_assert(br != NULL);
+
+  return scm_bedrock_create_mem(br);
+}
+
+void
+scm_fcd_bedrock_delete_mem(ScmBedrock *br)
+{
+  scm_assert(br != NULL);
+
+  scm_bedrock_delete_mem(br);
+}
+
+int
+scm_fcd_bedrock_setup(ScmBedrock *br)
+{
+  scm_assert(br != NULL);
+
+  return scm_bedrock_setup(br);
+}
+
+void
+scm_fcd_bedrock_cleanup(ScmBedrock *br)
+{
+  scm_assert(br != NULL);
+
+  scm_bedrock_cleanup(br);
+}
+
 ScmBedrock *scm_fcd__current_br = NULL;
 ScmObj scm_fcd__current_vm = SCM_OBJ_INIT;
 ScmObj scm_fcd__current_ref_stack = SCM_OBJ_INIT;
@@ -3834,9 +3860,6 @@ scm_fcd_vm_new(void)
   ScmObj vm = SCM_OBJ_INIT;
   int rslt;
 
-  rslt = scm_vm_bootup();
-  if (rslt < 0) return SCM_OBJ_NULL;
-
   vm = scm_fcd_mem_alloc_root(&SCM_VM_TYPE_INFO, 0);
   if (scm_obj_null_p(vm)) return SCM_OBJ_NULL;
 
@@ -3846,29 +3869,15 @@ scm_fcd_vm_new(void)
     return SCM_OBJ_NULL;
   }
 
-  scm_fcd_chg_current_vm(vm);
-
   return vm;
 }
 
 void
 scm_fcd_vm_end(ScmObj vm)
 {
-  bool main_vm;
-
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
-  main_vm = scm_obj_same_instance_p(vm, SCM_VM(vm)->main);
-
-  if (main_vm) {
-    scm_fcd_gc_start();
-    scm_fcd_chg_current_vm(SCM_OBJ_NULL);
-  }
-
   scm_fcd_mem_free_root(vm);
-
-  if (main_vm)
-    scm_vm_shutdown();
 }
 
 ScmObj

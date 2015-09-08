@@ -91,69 +91,83 @@ parse_arguments(int argc, char **argv)
 }
 
 static int
-execute_opt_expr(void)
+execute_opt_expr(ScmScythe *scy)
 {
-  ScmEvaluator *ev;
-  int rslt;
+  int r;
 
-  ev = scm_capi_evaluator();
-  if (ev == NULL) return -1;
+  r = scm_capi_scythe_exec_cstr(scy, opt_expr);
+  if (r < 0) return -1;
 
-  rslt = scm_capi_exec_cstr(opt_expr, ev);
-
-  scm_capi_evaluator_end(ev);
-
-  return (rslt < 0) ? -1 : 0;
+  return 0;
 }
 
 static int
-execute_file(void)
+execute_file(ScmScythe *scy)
 {
-  ScmEvaluator *ev;
-  int rslt;
+  int r;
 
-  ev = scm_capi_evaluator();
-  if (ev == NULL) return -1;
+  r = scm_capi_scythe_exec_file(scy, scheme_argv[0]);
+  if (r < 0) return -1;
 
-  rslt = scm_capi_exec_file(scheme_argv[0], ev);
-
-  scm_capi_evaluator_end(ev);
-
-  return (rslt < 0) ? -1 : 0;
+  return 0;
 }
 
 static int
-execute_repl(void)
+execute_repl(ScmScythe *scy)
 {
-  ScmEvaluator *ev;
-  int rslt;
+  int r;
 
-  ev = scm_capi_evaluator();
-  if (ev == NULL) return -1;
+  r = scm_capi_scythe_run_repl(scy);
+  if (r < 0) return -1;
 
-  rslt = scm_capi_run_repl(ev);
+  return 0;
+}
 
-  scm_capi_evaluator_end(ev);
+static ScmScythe *
+setup_scythe(void)
+{
+  ScmScythe *scy;
+  int r;
 
-  return (rslt < 0) ? -1 : 0;
+  scy = scm_capi_scythe_new();
+  if (scy == NULL) return NULL;
+
+  r = scm_capi_scythe_bootup(scy);
+  if (r < 0) goto err;
+
+  r = scm_capi_scythe_load_core(scy);
+  if (r < 0) goto err;
+
+  return scy;
+
+ err:
+  scm_capi_scythe_end(scy);
+  return NULL;
 }
 
 int
 main(int argc, char **argv)
 {
-  int rslt;
+  ScmScythe *scy;
+  int r, retval;
 
-  rslt = parse_arguments(argc, argv);
-  if (rslt < 0) return -1;
+  r = parse_arguments(argc, argv);
+  if (r < 0) return -1;
+
+  scy = setup_scythe();
+  if (scy == NULL) return -1;
 
   if (opt_expr != NULL)
-    return execute_opt_expr();
+    retval = execute_opt_expr(scy);
   else if (scheme_argc > 0)
-    return execute_file();
+    retval = execute_file(scy);
   else if (interactive_flag)
-    return execute_repl();
+    retval = execute_repl(scy);
   else {
     /* TODO: 標準入力から S 式を読み取って実行する */
-    return -1;
+    retval = -1;
   }
+
+  scm_capi_scythe_end(scy);
+  return retval;
 }

@@ -2803,331 +2803,104 @@ scm_api_exit(ScmObj obj)
 
 
 /*******************************************************************/
-/*  Facade                                                         */
+/*  Scythe                                                         */
 /*******************************************************************/
 
-ScmEvaluator *
-scm_capi_evaluator(void)
+ScmScythe *
+scm_capi_scythe_new(void)
 {
-  ScmEvaluator *ev;
-
-  ev = malloc(sizeof(*ev));
-  if (ev == NULL) return NULL;
-
-  ev->vm = SCM_OBJ_NULL;
-
-  return ev;
+  return scm_fcd_scythe_new();
 }
 
 void
-scm_capi_evaluator_end(ScmEvaluator *ev)
+scm_capi_scythe_end(ScmScythe *scy)
 {
-  if (ev == NULL) return;
+  if (scy == NULL)
+    return;
 
-  if (scm_obj_not_null_p(ev->vm))
-    scm_capi_evaluator_delete_vm(ev);
-
-  free(ev);
+  return scm_fcd_scythe_end(scy);
 }
 
 int
-scm_capi_evaluator_make_vm(ScmEvaluator *ev)
+scm_capi_scythe_bootup(ScmScythe *scy)
 {
-  if (ev == NULL) return -1;
+  if (scy == NULL)
+    return -1;
 
-  scm_fcd_chg_current_br(NULL);
-  scm_fcd_chg_current_vm(SCM_OBJ_NULL);
-  scm_fcd_chg_current_ref_stack(SCM_OBJ_NULL);
+  return scm_fcd_scythe_bootup(scy);
+}
 
-  ev->vm = scm_fcd_vm_new();
-  if (scm_obj_null_p(ev->vm)) return -1;
+void
+scm_capi_scythe_shutdown(ScmScythe *scy)
+{
+  if (scy == NULL)
+    return;
 
-  ev->bedrock = scm_fcd_current_br();
-  ev->stack = scm_fcd_current_ref_stack();
+  scm_fcd_scythe_shutdown(scy);
+}
 
+int
+scm_capi_scythe_load_core(ScmScythe *scy)
+{
+  if (scy == NULL)
+    return -1;
+
+  return scm_fcd_scythe_load_core(scy);
+}
+
+int
+scm_capi_scythe_add_load_path(ScmScythe *scy, const char *path)
+{
+  if (scy == NULL || path == NULL)
+    return -1;
+
+  return scm_fcd_scythe_add_load_path(scy, path);
+}
+
+int
+scm_capi_scythe_clear_load_path(ScmScythe *scy)
+{
+  if (scy == NULL)
+    return -1;
+
+  scm_fcd_scythe_clear_load_path(scy);
   return 0;
 }
 
 int
-scm_capi_evaluator_load_core(ScmEvaluator *ev)
+scm_capi_scythe_run_repl(ScmScythe *scy)
 {
-  if (ev == NULL) return -1;
-  scm_fcd_chg_current_br(ev->bedrock);
-  scm_fcd_chg_current_vm(ev->vm);
-  scm_fcd_chg_current_ref_stack(ev->stack);
-  return scm_load_core_modules();
+  if (scy == NULL)
+    return -1;
+
+  return scm_fcd_scythe_run_repl(scy);
 }
 
 int
-scm_capi_evaluator_delete_vm(ScmEvaluator *ev)
+scm_capi_scythe_exec_file(ScmScythe *scy, const char *path)
 {
-  if (ev == NULL) return -1;
+  if (scy == NULL || path == NULL)
+    return -1;
 
-  if (scm_obj_null_p(ev->vm)) return 0;
-
-  scm_fcd_chg_current_br(ev->bedrock);
-  scm_fcd_chg_current_vm(ev->vm);
-  scm_fcd_chg_current_ref_stack(ev->stack);
-
-  ev->bedrock = scm_fcd_current_br();
-  ev->stack = scm_fcd_current_ref_stack();
-
-  scm_fcd_vm_end(ev->vm);
-
-  ev->vm = SCM_OBJ_NULL;
-  ev->bedrock = NULL;
-  ev->stack = SCM_OBJ_NULL;
-
-  return 0;
-}
-
-static ScmObj
-scm_get_proc(const char *name, const char * const *module, size_t n)
-{
-  ScmObj sym = SCM_OBJ_INIT, mod = SCM_OBJ_INIT, mod_name = SCM_OBJ_INIT;
-  ScmObj proc = SCM_OBJ_INIT, o = SCM_OBJ_INIT;
-  int r;
-
-  SCM_REFSTK_INIT_REG(&sym, &mod, &mod_name,
-                      &proc, &o);
-
-  mod_name = SCM_NIL_OBJ;
-  for (size_t i = n; i > 0; i--) {
-    o = scm_fcd_make_symbol_from_cstr(module[i - 1], SCM_ENC_SRC);
-    if (scm_obj_null_p(o)) return SCM_OBJ_NULL;
-
-    mod_name = scm_api_cons(o, mod_name);
-    if (scm_obj_null_p(mod_name)) return SCM_OBJ_NULL;
-  }
-
-  sym = scm_fcd_make_symbol_from_cstr(name, SCM_ENC_SRC);
-  if (scm_obj_null_p(sym)) return SCM_OBJ_NULL;
-
-  r = scm_fcd_find_module(mod_name, SCM_CSETTER_L(mod));
-  if (r < 0) return SCM_OBJ_NULL;
-
-  if (scm_obj_null_p(mod)) {
-    scm_capi_error("failed to find module", 1, mod_name);
-    return SCM_OBJ_NULL;
-  }
-
-  r = scm_fcd_global_var_ref(mod, sym, SCM_CSETTER_L(proc));
-  if (r < 0) return SCM_OBJ_NULL;
-
-  if (scm_obj_null_p(proc)) {
-    scm_capi_error("unbund variable", 1, sym);
-    return SCM_OBJ_NULL;
-  }
-
-  return proc;
+  return scm_fcd_scythe_exec_file(scy, path);
 }
 
 int
-scm_capi_run_repl(ScmEvaluator *ev)
+scm_capi_scythe_exec_cstr(ScmScythe *scy, const char *expr)
 {
-  ScmObj proc = SCM_OBJ_INIT;
-  int rslt;
+  if (scy == NULL || expr == NULL)
+    return -1;
 
-  if (ev == NULL) return -1;
-
-  rslt = scm_capi_evaluator_make_vm(ev);
-  if (rslt < 0) return -1;
-
-  rslt = scm_capi_evaluator_load_core(ev);
-  if (rslt < 0) goto end;
-
-  {
-    SCM_REFSTK_INIT_REG(&proc);
-
-    proc = scm_get_proc("read-eval-print-loop",
-                        (const char *[]){"scythe", "internal", "repl"}, 3);
-    if(scm_obj_null_p(proc)) goto end;
-
-    scm_fcd_vm_apply(scm_fcd_current_vm(), proc, SCM_NIL_OBJ);
-  }
-
- end:
-  scm_fcd_vm_disposal_unhandled_exc(ev->vm);
-
-  scm_capi_evaluator_delete_vm(ev);
-
-  return 0;
+  return scm_fcd_scythe_exec_cstr(scy, expr);
 }
 
 int
-scm_capi_exec_file(const char *path, ScmEvaluator *ev)
+scm_capi_scythe_compile_file(ScmScythe *scy, const char *path)
 {
-  ScmObj str = SCM_OBJ_INIT, proc = SCM_OBJ_INIT, args = SCM_OBJ_INIT;
-  int rslt;
+  if (scy == NULL || path == NULL)
+    return -1;
 
-  if (ev == NULL) return -1;
-
-  rslt = scm_capi_evaluator_make_vm(ev);
-  if (rslt < 0) return -1;
-
-  rslt = scm_capi_evaluator_load_core(ev);
-  if (rslt < 0) goto end;
-
-  {
-    SCM_REFSTK_INIT_REG(&str, &proc, &args);
-
-    str = scm_fcd_make_string_from_external(path, strlen(path), NULL);
-    if (scm_obj_null_p(str)) goto end;
-
-    proc = scm_get_proc("eval-file",
-                        (const char *[]){"scythe", "internal", "command"}, 3);
-    if(scm_obj_null_p(proc)) goto end;
-
-    args = scm_api_cons(str, SCM_NIL_OBJ);
-    if (scm_obj_null_p(args)) goto end;
-
-    scm_fcd_vm_apply(scm_fcd_current_vm(), proc, args);
-  }
-
- end:
-  scm_fcd_vm_disposal_unhandled_exc(ev->vm);
-
-  scm_capi_evaluator_delete_vm(ev);
-
-  return 0;
-}
-
-int
-scm_capi_exec_cstr(const char *expr, ScmEvaluator *ev)
-{
-  ScmObj str = SCM_OBJ_INIT, proc = SCM_OBJ_INIT, args = SCM_OBJ_INIT;
-  int rslt;
-
-  if (ev == NULL) return -1;
-
-  rslt = scm_capi_evaluator_make_vm(ev);
-  if (rslt < 0) return -1;
-
-  rslt = scm_capi_evaluator_load_core(ev);
-  if (rslt < 0) goto end;
-
-  {
-    SCM_REFSTK_INIT_REG( &str, &proc, &args);
-
-    str = scm_fcd_make_string_from_external(expr, strlen(expr), NULL);
-    if (scm_obj_null_p(str)) goto end;
-
-    proc = scm_get_proc("eval-string",
-                        (const char *[]){"scythe", "internal", "command"}, 3);
-    if(scm_obj_null_p(proc)) goto end;
-
-    args = scm_api_cons(str, SCM_NIL_OBJ);
-    if (scm_obj_null_p(args)) goto end;
-
-    scm_fcd_vm_apply(scm_fcd_current_vm(), proc, args);
-  }
-
- end:
-  scm_fcd_vm_disposal_unhandled_exc(ev->vm);
-
-  scm_capi_evaluator_delete_vm(ev);
-
-  return 0;
-}
-
-static int
-dump_marshal(const char *path, const char *ext,
-             const void *marshal, size_t size)
-{
-  FILE *fp = NULL;
-  char *str = NULL;
-  size_t path_len, ext_len, n;
-
-  path_len = strlen(path);
-  ext_len = (ext != NULL) ? strlen(ext) : 0;
-  str = scm_fcd_malloc(path_len + ext_len + 1);
-  if (str == NULL) goto err;
-
-  memcpy(str, path, path_len);
-  memcpy(str + path_len, ext, ext_len);
-  str[path_len + ext_len] = '\0';
-
-  fp = fopen(str, "wb");
-  if (fp == NULL) goto err;
-
-  n = fwrite(marshal, 1, size, fp);
-  if (n < size) goto err;
-
-  fclose(fp);
-  scm_fcd_free(str);
-  return 0;
-
- err:
-  scm_capi_error("failed to dump marshale data", 0);
-  if (fp != NULL) fclose(fp);
-  if (str != NULL) scm_fcd_free(str);
-  return -1;
-}
-
-int
-scm_capi_compile_file(const char *path, ScmEvaluator *ev)
-{
-  ScmObj port = SCM_OBJ_INIT, str = SCM_OBJ_INIT;
-  ScmObj name = SCM_OBJ_INIT, mod = SCM_OBJ_INIT;
-  ScmObj proc = SCM_OBJ_INIT, args = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
-  void *marshal;
-  size_t size;
-  int rslt;
-
-  if (ev == NULL) return -1;
-
-  rslt = scm_capi_evaluator_make_vm(ev);
-  if (rslt < 0) return -1;
-
-  rslt = scm_capi_evaluator_load_core(ev);
-  if (rslt < 0) goto end;
-
-  {
-    SCM_REFSTK_INIT_REG(&port, &str,
-                        &name, &mod,
-                        &proc, &args, &val);
-
-    str = scm_fcd_make_string_from_external(path, strlen(path), NULL);
-    if (scm_obj_null_p(str)) goto end;
-
-    port = scm_fcd_open_input_string_cstr("(main)", SCM_ENC_NAME_SRC);
-    if (scm_obj_null_p(port)) goto end;
-
-    name = scm_api_read(port);
-    if (scm_obj_null_p(name)) goto end;
-
-    rslt = scm_fcd_find_module(name, SCM_CSETTER_L(mod));
-    if (rslt < 0) goto end;
-
-    proc = scm_get_proc("compile-file",
-                        (const char *[]){"scythe", "internal", "compile"}, 3);
-    if(scm_obj_null_p(proc)) goto end;
-
-    args = scm_fcd_list(2, str, mod);
-    if (scm_obj_null_p(args)) goto end;
-
-    val = scm_fcd_vm_apply(scm_fcd_current_vm(), proc, args);
-    if (scm_obj_null_p(val)) goto end;
-
-    val = scm_fcd_vector_ref(val, 0);
-    if (scm_obj_null_p(val)) goto end;
-
-    val = scm_fcd_assembler_iseq(val);
-    if (scm_obj_null_p(val)) goto end;
-
-    marshal = scm_fcd_marshal(&size, val, SCM_OBJ_NULL);
-    if (marshal == NULL) goto end;
-
-    dump_marshal("marshal.out", NULL, marshal, size);
-    scm_fcd_free(marshal);
-  }
-
- end:
-  scm_fcd_vm_disposal_unhandled_exc(ev->vm);
-
-  scm_capi_evaluator_delete_vm(ev);
-
-  return 0;
+  return scm_fcd_scythe_compile_file(scy, path);
 }
 
 

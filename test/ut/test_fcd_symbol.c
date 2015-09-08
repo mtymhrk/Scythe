@@ -6,20 +6,19 @@
 
 TEST_GROUP(fcd_symbol);
 
-static ScmEvaluator *ev;
+static ScmScythe *scy;
 static ScmRefStackInfo rsi;
 
 TEST_SETUP(fcd_symbol)
 {
-  ev = scm_capi_evaluator();
-  scm_capi_evaluator_make_vm(ev);
+  scy = ut_scythe_setup(false);
   scm_fcd_ref_stack_save(&rsi);
 }
 
 TEST_TEAR_DOWN(fcd_symbol)
 {
   scm_fcd_ref_stack_restore(&rsi);
-  scm_capi_evaluator_end(ev);
+  ut_scythe_tear_down(scy);
 }
 
 TEST(fcd_symbol, fcd_symbol_p__return_true)
@@ -28,7 +27,7 @@ TEST(fcd_symbol, fcd_symbol_p__return_true)
 
   SCM_REFSTK_INIT_REG(&sym);
 
-  sym = read_cstr("aaa");
+  sym = ut_read_cstr("aaa");
 
   TEST_ASSERT_TRUE(scm_fcd_symbol_p(sym));
 }
@@ -44,7 +43,7 @@ TEST(fcd_symbol, fcd_symbol_P__return_true)
 
   SCM_REFSTK_INIT_REG(&sym);
 
-  sym = read_cstr("aaa");
+  sym = ut_read_cstr("aaa");
 
   TEST_ASSERT_SCM_TRUE(scm_fcd_symbol_P(sym));
 }
@@ -60,8 +59,8 @@ TEST(fcd_symbol, fcd_symbol_eq_p__equal)
 
   SCM_REFSTK_INIT_REG(&sym1, &sym2);
 
-  sym1 = read_cstr("aaa");
-  sym2 = read_cstr("aaa");
+  sym1 = ut_read_cstr("aaa");
+  sym2 = ut_read_cstr("aaa");
 
   TEST_ASSERT_TRUE(scm_fcd_symbol_eq_p(sym1, sym2));
 }
@@ -72,8 +71,8 @@ TEST(fcd_symbol, fcd_symbol_eq_p__not_equal)
 
   SCM_REFSTK_INIT_REG(&sym1, &sym2);
 
-  sym1 = read_cstr("aaa");
-  sym2 = read_cstr("bbb");
+  sym1 = ut_read_cstr("aaa");
+  sym2 = ut_read_cstr("bbb");
 
   TEST_ASSERT_FALSE(scm_fcd_symbol_eq_p(sym1, sym2));
 }
@@ -84,7 +83,7 @@ TEST(fcd_symbol, fcd_symbol_eq_P_lst__equal)
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(aaa aaa aaa)");
+  lst = ut_read_cstr("(aaa aaa aaa)");
 
   TEST_ASSERT_SCM_TRUE(scm_fcd_symbol_eq_P_lst(lst));
 }
@@ -95,7 +94,7 @@ TEST(fcd_symbol, fcd_symbol_eq_P_lst__not_equal)
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(aaa aaa zzz)");
+  lst = ut_read_cstr("(aaa aaa zzz)");
 
   TEST_ASSERT_SCM_FALSE(scm_fcd_symbol_eq_P_lst(lst));
 }
@@ -117,7 +116,7 @@ TEST(fcd_symbol, fcd_symbol_eq_P_lst__list_has_item_is_not_symbol__return_ERROR)
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(aaa \"aaa\" aaa)");
+  lst = ut_read_cstr("(aaa \"aaa\" aaa)");
 
   TEST_ASSERT_SCM_NULL(scm_fcd_symbol_eq_P_lst(lst));
 }
@@ -128,8 +127,8 @@ TEST(fcd_symbol, fcd_symbol_eq_P__equal)
 
   SCM_REFSTK_INIT_REG(&sym1, &sym2);
 
-  sym1 = read_cstr("aaa");
-  sym2 = read_cstr("aaa");
+  sym1 = ut_read_cstr("aaa");
+  sym2 = ut_read_cstr("aaa");
 
   TEST_ASSERT_SCM_TRUE(scm_fcd_symbol_eq_P(sym1, sym2));
 }
@@ -140,8 +139,8 @@ TEST(fcd_symbol, fcd_symbol_eq_P__not_equal)
 
   SCM_REFSTK_INIT_REG(&sym1, &sym2);
 
-  sym1 = read_cstr("aaa");
-  sym2 = read_cstr("bbb");
+  sym1 = ut_read_cstr("aaa");
+  sym2 = ut_read_cstr("bbb");
 
   TEST_ASSERT_SCM_FALSE(scm_fcd_symbol_eq_P(sym1, sym2));
 }
@@ -152,8 +151,8 @@ TEST(fcd_symbol, fcd_symbol_to_string)
 
   SCM_REFSTK_INIT_REG(&sym, &actual, &expected);
 
-  sym = read_cstr("aaa");
-  expected = read_cstr("\"aaa\"");
+  sym = ut_read_cstr("aaa");
+  expected = ut_read_cstr("\"aaa\"");
 
   actual = scm_fcd_symbol_to_string(sym);
 
@@ -168,8 +167,8 @@ TEST(fcd_symbol, fcd_string_to_symbol)
 
   SCM_REFSTK_INIT_REG(&str, &actual, &expected);
 
-  str = read_cstr("\"aaa\"");
-  expected = read_cstr("aaa");
+  str = ut_read_cstr("\"aaa\"");
+  expected = ut_read_cstr("aaa");
 
   actual = scm_fcd_string_to_symbol(str);
 

@@ -402,18 +402,20 @@ ScmObj scm_api_exit(ScmObj obj);
 
 
 /*******************************************************************/
-/*  Facade                                                         */
+/*  Scythe                                                         */
 /*******************************************************************/
 
-ScmEvaluator *scm_capi_evaluator(void);
-void scm_capi_evaluator_end(ScmEvaluator *ev);
-int scm_capi_evaluator_make_vm(ScmEvaluator *ev);
-int scm_capi_evaluator_load_core(ScmEvaluator *ev);
-int scm_capi_evaluator_delete_vm(ScmEvaluator *ev);
-int scm_capi_run_repl(ScmEvaluator *ev);
-int scm_capi_exec_file(const char *path, ScmEvaluator *ev);
-int scm_capi_exec_cstr(const char *expr, ScmEvaluator *ev);
-int scm_capi_compile_file(const char *path, ScmEvaluator *ev);
+ScmScythe *scm_capi_scythe_new(void);
+void scm_capi_scythe_end(ScmScythe *scy);
+int scm_capi_scythe_bootup(ScmScythe *scy);
+void scm_capi_scythe_shutdown(ScmScythe *scy);
+int scm_capi_scythe_load_core(ScmScythe *scy);
+int scm_capi_scythe_add_load_path(ScmScythe *scy, const char *path);
+int scm_capi_scythe_clear_load_path(ScmScythe *scy);
+int scm_capi_scythe_run_repl(ScmScythe *scy);
+int scm_capi_scythe_exec_file(ScmScythe *scy, const char *path);
+int scm_capi_scythe_exec_cstr(ScmScythe *scy, const char *expr);
+int scm_capi_scythe_compile_file(ScmScythe *scy, const char *path);
 
 
 /*******************************************************************/

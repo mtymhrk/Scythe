@@ -6,8 +6,6 @@
 
 typedef struct ScmForwardRec ScmForward;
 
-typedef struct ScmEvaluatorRec ScmEvaluator;
-
 #include "scythe/object.h"
 #include "scythe/vminst.h"
 
@@ -231,14 +229,9 @@ struct ScmDisasmTokenRec {
 
 
 /*******************************************************************/
-/*  Facade                                                         */
+/*  Scythe                                                         */
 /*******************************************************************/
 
-struct ScmEvaluatorRec {
-  void *bedrock;
-  ScmObj vm;
-  ScmObj stack;
-};
-
+typedef struct ScmScytheRec ScmScythe;
 
 #endif /* INCLUDE_FCD_TYPE_H__ */

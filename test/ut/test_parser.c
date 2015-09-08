@@ -8,15 +8,14 @@
 
 TEST_GROUP(parser);
 
-static ScmEvaluator *ev;
+static ScmScythe *scy;
 static ScmRefStackInfo rsi;
 
 static void (*tear_down_func)(void);
 
 TEST_SETUP(parser)
 {
-  ev = scm_capi_evaluator();
-  scm_capi_evaluator_make_vm(ev);
+  scy = ut_scythe_setup(false);
   scm_fcd_ref_stack_save(&rsi);
 }
 
@@ -27,7 +26,7 @@ TEST_TEAR_DOWN(parser)
   if (tear_down_func != NULL)
     tear_down_func();
 
-  scm_capi_evaluator_end(ev);
+  ut_scythe_tear_down(scy);
 }
 
 static ScmLexer *lexer;

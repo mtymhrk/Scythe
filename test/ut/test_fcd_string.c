@@ -6,20 +6,19 @@
 
 TEST_GROUP(fcd_string);
 
-static ScmEvaluator *ev;
+static ScmScythe *scy;
 static ScmRefStackInfo rsi;
 
 TEST_SETUP(fcd_string)
 {
-  ev = scm_capi_evaluator();
-  scm_capi_evaluator_make_vm(ev);
+  scy = ut_scythe_setup(false);
   scm_fcd_ref_stack_save(&rsi);
 }
 
 TEST_TEAR_DOWN(fcd_string)
 {
   scm_fcd_ref_stack_restore(&rsi);
-  scm_capi_evaluator_end(ev);
+  ut_scythe_tear_down(scy);
 }
 
 TEST(fcd_string, fcd_string_p__return_true)
@@ -61,7 +60,7 @@ TEST(fcd_string, fcd_string_lst)
 
   SCM_REFSTK_INIT_REG(&lst, &actual, &expected);
 
-  lst = read_cstr("(#\\a #\\b #\\c)");
+  lst = ut_read_cstr("(#\\a #\\b #\\c)");
   expected = scm_fcd_make_string_from_cstr("abc", SCM_ENC_UTF8);
 
   actual = scm_fcd_string_lst(lst);
@@ -102,7 +101,7 @@ TEST(fcd_string, fcd_string_lst__improper_list)
 
   SCM_REFSTK_INIT_REG(&lst, &actual, &expected);
 
-  lst = read_cstr("(#\\a #\\b . #\\c)");
+  lst = ut_read_cstr("(#\\a #\\b . #\\c)");
   expected = scm_fcd_make_string_from_cstr("ab", SCM_ENC_UTF8);
 
   actual = scm_fcd_string_lst(lst);
@@ -116,7 +115,7 @@ TEST(fcd_string, fcd_string_lst__list_has_a_object_is_not_string__return_ERROR)
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(#\\a () #\\c)");
+  lst = ut_read_cstr("(#\\a () #\\c)");
 
   TEST_ASSERT_SCM_NULL(scm_fcd_string_lst(lst));
 }
@@ -129,9 +128,9 @@ TEST(fcd_string, fcd_string_cv)
   SCM_REFSTK_INIT_REG(&actual, &expected);
   SCM_REFSTK_REG_ARY(chr, sizeof(chr)/sizeof(chr[0]));
 
-  chr[0] = read_cstr("#\\a");
-  chr[1] = read_cstr("#\\b");
-  chr[2] = read_cstr("#\\c");
+  chr[0] = ut_read_cstr("#\\a");
+  chr[1] = ut_read_cstr("#\\b");
+  chr[2] = ut_read_cstr("#\\c");
   expected = scm_fcd_make_string_from_cstr("abc", SCM_ENC_UTF8);
 
   actual = scm_fcd_string_cv(chr, sizeof(chr)/sizeof(chr[0]));
@@ -159,9 +158,9 @@ TEST(fcd_string, fcd_string_cv__ary_has_item_is_not_character__return_ERROR)
   SCM_REFSTK_INIT;
   SCM_REFSTK_REG_ARY(chr, sizeof(chr)/sizeof(chr[0]));
 
-  chr[0] = read_cstr("#\\a");
+  chr[0] = ut_read_cstr("#\\a");
   chr[1] = SCM_FALSE_OBJ;
-  chr[2] = read_cstr("#\\c");
+  chr[2] = ut_read_cstr("#\\c");
 
   TEST_ASSERT_SCM_NULL(scm_fcd_string_cv(chr, sizeof(chr)/sizeof(chr[0])));
 }
@@ -174,9 +173,9 @@ TEST(fcd_string, fcd_string)
   SCM_REFSTK_INIT_REG(&actual, &expected);
   SCM_REFSTK_REG_ARY(chr, sizeof(chr)/sizeof(chr[0]));
 
-  chr[0] = read_cstr("#\\a");
-  chr[1] = read_cstr("#\\b");
-  chr[2] = read_cstr("#\\c");
+  chr[0] = ut_read_cstr("#\\a");
+  chr[1] = ut_read_cstr("#\\b");
+  chr[2] = ut_read_cstr("#\\c");
   expected = scm_fcd_make_string_from_cstr("abc", SCM_ENC_UTF8);
 
   actual = scm_fcd_string(3, chr[0], chr[1], chr[2]);
@@ -204,9 +203,9 @@ TEST(fcd_string, fcd_string__not_character)
   SCM_REFSTK_INIT;
   SCM_REFSTK_REG_ARY(chr, sizeof(chr)/sizeof(chr[0]));
 
-  chr[0] = read_cstr("#\\a");
+  chr[0] = ut_read_cstr("#\\a");
   chr[1] = SCM_FALSE_OBJ;
-  chr[2] = read_cstr("#\\c");
+  chr[2] = ut_read_cstr("#\\c");
 
   TEST_ASSERT_SCM_NULL(scm_fcd_string(3, chr[0], chr[1], chr[2]));
 }
@@ -266,7 +265,7 @@ TEST(fcd_string, fcd_string_ref)
                       &actual, &expected);
 
   str = scm_fcd_make_string_from_cstr("abc", SCM_ENC_UTF8);
-  expected = read_cstr("#\\b");
+  expected = ut_read_cstr("#\\b");
 
   actual = scm_fcd_string_ref(str, 1);
 
@@ -282,7 +281,7 @@ TEST(fcd_string, fcd_string_set_i)
 
   str = scm_fcd_make_string_from_cstr("abc", SCM_ENC_UTF8);
   expected = scm_fcd_make_string_from_cstr("azc", SCM_ENC_UTF8);
-  chr = read_cstr("#\\z");
+  chr = ut_read_cstr("#\\z");
 
   TEST_ASSERT_EQUAL_INT(0, scm_fcd_string_set_i(str, 1, chr));
   TEST_ASSERT_SCM_TRUE(scm_fcd_string_eq_P(expected, str));
@@ -320,7 +319,7 @@ TEST(fcd_string, fcd_string_eq_P_lst__equal)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
-  lst = read_cstr("(\"abc\" \"abc\" \"abc\")");
+  lst = ut_read_cstr("(\"abc\" \"abc\" \"abc\")");
 
   TEST_ASSERT_SCM_TRUE(scm_fcd_string_eq_P_lst(lst));
 }
@@ -329,7 +328,7 @@ TEST(fcd_string, fcd_string_eq_P_lst__not_equal)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
-  lst = read_cstr("(\"abc\" \"abc\" \"def\")");
+  lst = ut_read_cstr("(\"abc\" \"abc\" \"def\")");
 
   TEST_ASSERT_SCM_FALSE(scm_fcd_string_eq_P_lst(lst));
 }
@@ -343,7 +342,7 @@ TEST(fcd_string, fcd_string_eq_P_lst__list_has_item_is_not_string__return_ERROR)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
-  lst = read_cstr("(\"abc\" abc \"def\")");
+  lst = ut_read_cstr("(\"abc\" abc \"def\")");
 
   TEST_ASSERT_SCM_NULL(scm_fcd_string_eq_P_lst(lst));
 }
@@ -439,7 +438,7 @@ TEST(fcd_string, fcd_string_lt_P_lst__less)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
-  lst = read_cstr("(\"abc\" \"def\" \"ghi\")");
+  lst = ut_read_cstr("(\"abc\" \"def\" \"ghi\")");
 
   TEST_ASSERT_SCM_TRUE(scm_fcd_string_lt_P_lst(lst));
 }
@@ -448,7 +447,7 @@ TEST(fcd_string, fcd_string_lt_P_lst__equal)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
-  lst = read_cstr("(\"abc\" \"def\" \"def\")");
+  lst = ut_read_cstr("(\"abc\" \"def\" \"def\")");
 
   TEST_ASSERT_SCM_FALSE(scm_fcd_string_lt_P_lst(lst));
 }
@@ -457,7 +456,7 @@ TEST(fcd_string, fcd_string_lt_P_lst__greater)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
-  lst = read_cstr("(\"def\" \"ghi\" \"abc\")");
+  lst = ut_read_cstr("(\"def\" \"ghi\" \"abc\")");
 
   TEST_ASSERT_SCM_FALSE(scm_fcd_string_lt_P_lst(lst));
 }
@@ -471,7 +470,7 @@ TEST(fcd_string, fcd_string_lt_P_lst__list_has_item_is_not_string__return_ERROR)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
-  lst = read_cstr("(\"abc\" def \"ghi\")");
+  lst = ut_read_cstr("(\"abc\" def \"ghi\")");
 
   TEST_ASSERT_SCM_NULL(scm_fcd_string_lt_P_lst(lst));
 }
@@ -594,7 +593,7 @@ TEST(fcd_string, fcd_string_gt_P_lst__less)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
-  lst = read_cstr("(\"def\" \"abc\" \"ghi\")");
+  lst = ut_read_cstr("(\"def\" \"abc\" \"ghi\")");
 
   TEST_ASSERT_SCM_FALSE(scm_fcd_string_gt_P_lst(lst));
 }
@@ -603,7 +602,7 @@ TEST(fcd_string, fcd_string_gt_P_lst__equal)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
-  lst = read_cstr("(\"ghi\" \"def\" \"def\")");
+  lst = ut_read_cstr("(\"ghi\" \"def\" \"def\")");
 
   TEST_ASSERT_SCM_FALSE(scm_fcd_string_gt_P_lst(lst));
 }
@@ -612,7 +611,7 @@ TEST(fcd_string, fcd_string_gt_P_lst__greater)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
-  lst = read_cstr("(\"ghi\" \"def\" \"abc\")");
+  lst = ut_read_cstr("(\"ghi\" \"def\" \"abc\")");
 
   TEST_ASSERT_SCM_TRUE(scm_fcd_string_gt_P_lst(lst));
 }
@@ -626,7 +625,7 @@ TEST(fcd_string, fcd_string_gt_P_lst__list_has_item_is_not_string__return_ERROR)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
-  lst = read_cstr("(\"ghi\" def \"abc\")");
+  lst = ut_read_cstr("(\"ghi\" def \"abc\")");
 
   TEST_ASSERT_SCM_NULL(scm_fcd_string_gt_P_lst(lst));
 }
@@ -749,7 +748,7 @@ TEST(fcd_string, fcd_string_le_P_lst__less)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
-  lst = read_cstr("(\"abc\" \"def\" \"ghi\")");
+  lst = ut_read_cstr("(\"abc\" \"def\" \"ghi\")");
 
   TEST_ASSERT_SCM_TRUE(scm_fcd_string_le_P_lst(lst));
 }
@@ -758,7 +757,7 @@ TEST(fcd_string, fcd_string_le_P_lst__equal)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
-  lst = read_cstr("(\"abc\" \"def\" \"def\")");
+  lst = ut_read_cstr("(\"abc\" \"def\" \"def\")");
 
   TEST_ASSERT_SCM_TRUE(scm_fcd_string_le_P_lst(lst));
 }
@@ -767,7 +766,7 @@ TEST(fcd_string, fcd_string_le_P_lst__greater)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
-  lst = read_cstr("(\"ghi\" \"def\" \"abc\")");
+  lst = ut_read_cstr("(\"ghi\" \"def\" \"abc\")");
 
   TEST_ASSERT_SCM_FALSE(scm_fcd_string_le_P_lst(lst));
 }
@@ -781,7 +780,7 @@ TEST(fcd_string, fcd_string_le_P_lst__list_has_item_is_not_string__return_ERROR)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
-  lst = read_cstr("(\"abc\" def \"ghi\")");
+  lst = ut_read_cstr("(\"abc\" def \"ghi\")");
 
   TEST_ASSERT_SCM_NULL(scm_fcd_string_le_P_lst(lst));
 }
@@ -904,7 +903,7 @@ TEST(fcd_string, fcd_string_ge_P_lst__less)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
-  lst = read_cstr("(\"def\" \"abc\" \"ghi\")");
+  lst = ut_read_cstr("(\"def\" \"abc\" \"ghi\")");
 
   TEST_ASSERT_SCM_FALSE(scm_fcd_string_ge_P_lst(lst));
 }
@@ -913,7 +912,7 @@ TEST(fcd_string, fcd_string_ge_P_lst__equal)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
-  lst = read_cstr("(\"ghi\" \"def\" \"def\")");
+  lst = ut_read_cstr("(\"ghi\" \"def\" \"def\")");
 
   TEST_ASSERT_SCM_TRUE(scm_fcd_string_ge_P_lst(lst));
 }
@@ -922,7 +921,7 @@ TEST(fcd_string, fcd_string_ge_P_lst__greater)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
-  lst = read_cstr("(\"ghi\" \"def\" \"abc\")");
+  lst = ut_read_cstr("(\"ghi\" \"def\" \"abc\")");
 
   TEST_ASSERT_SCM_TRUE(scm_fcd_string_ge_P_lst(lst));
 }
@@ -936,7 +935,7 @@ TEST(fcd_string, fcd_string_ge_P_lst__list_has_item_is_not_string__return_ERROR)
 {
   ScmObj lst = SCM_OBJ_INIT;
 
-  lst = read_cstr("(\"ghi\" def \"abc\")");
+  lst = ut_read_cstr("(\"ghi\" def \"abc\")");
 
   TEST_ASSERT_SCM_NULL(scm_fcd_string_ge_P_lst(lst));
 }
@@ -1044,7 +1043,7 @@ TEST(fcd_string, fcd_string_append_lst)
 
   SCM_REFSTK_INIT_REG(&lst, &actual, &expected);
 
-  lst = read_cstr("(\"abc\" \"def\" \"ghi\")");
+  lst = ut_read_cstr("(\"abc\" \"def\" \"ghi\")");
   expected = scm_fcd_make_string_from_cstr("abcdefghi", SCM_ENC_UTF8);
 
   actual = scm_fcd_string_append_lst(lst);
@@ -1071,7 +1070,7 @@ TEST(fcd_string, fcd_string_append_lst__list_has_item_is_not_string)
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(\"abc\" def \"ghi\")");
+  lst = ut_read_cstr("(\"abc\" def \"ghi\")");
 
   TEST_ASSERT_SCM_NULL(scm_fcd_string_append_lst(lst));
 }
@@ -1174,7 +1173,7 @@ TEST(fcd_string, fcd_string_to_list__unspecify_start_end)
   SCM_REFSTK_INIT_REG(&str, &actual, &expected);
 
   str = scm_fcd_make_string_from_cstr("abcde", SCM_ENC_UTF8);
-  expected = read_cstr("(#\\a #\\b #\\c #\\d #\\e)");
+  expected = ut_read_cstr("(#\\a #\\b #\\c #\\d #\\e)");
 
   actual = scm_fcd_string_to_list(str, -1, -1);
 
@@ -1189,7 +1188,7 @@ TEST(fcd_string, fcd_string_to_list__specify_start)
   SCM_REFSTK_INIT_REG(&str, &actual, &expected);
 
   str = scm_fcd_make_string_from_cstr("abcde", SCM_ENC_UTF8);
-  expected = read_cstr("(#\\b #\\c #\\d #\\e)");
+  expected = ut_read_cstr("(#\\b #\\c #\\d #\\e)");
 
   actual = scm_fcd_string_to_list(str, 1, -1);
 
@@ -1204,7 +1203,7 @@ TEST(fcd_string, fcd_string_to_list__specify_start_end)
   SCM_REFSTK_INIT_REG(&str, &actual, &expected);
 
   str = scm_fcd_make_string_from_cstr("abcde", SCM_ENC_UTF8);
-  expected = read_cstr("(#\\b #\\c #\\d)");
+  expected = ut_read_cstr("(#\\b #\\c #\\d)");
 
   actual = scm_fcd_string_to_list(str, 1, 4);
 
@@ -1233,7 +1232,7 @@ TEST(fcd_string, fcd_list_to_string)
 
   SCM_REFSTK_INIT_REG(&lst, &actual, &expected);
 
-  lst = read_cstr("(#\\a #\\b #\\c)");
+  lst = ut_read_cstr("(#\\a #\\b #\\c)");
   expected = scm_fcd_make_string_from_cstr("abc", SCM_ENC_UTF8);
 
   actual = scm_fcd_list_to_string(lst);
@@ -1274,7 +1273,7 @@ TEST(fcd_string, fcd_list_to_string__improper_list)
 
   SCM_REFSTK_INIT_REG(&lst, &actual, &expected);
 
-  lst = read_cstr("(#\\a #\\b . #\\c)");
+  lst = ut_read_cstr("(#\\a #\\b . #\\c)");
   expected = scm_fcd_make_string_from_cstr("ab", SCM_ENC_UTF8);
 
   actual = scm_fcd_list_to_string(lst);
@@ -1288,7 +1287,7 @@ TEST(fcd_string, fcd_list_to_string__list_has_a_object_is_not_string__return_ERR
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(#\\a () #\\c)");
+  lst = ut_read_cstr("(#\\a () #\\c)");
 
   TEST_ASSERT_SCM_NULL(scm_fcd_list_to_string(lst));
 }
@@ -1466,7 +1465,7 @@ TEST(fcd_string, fcd_string_fill_i__unspecify_start_end)
   SCM_REFSTK_INIT_REG(&str, &chr, &expected);
 
   str = scm_fcd_make_string_from_cstr("abcde", SCM_ENC_UTF8);
-  chr = read_cstr("#\\z");
+  chr = ut_read_cstr("#\\z");
   expected = scm_fcd_make_string_from_cstr("zzzzz", SCM_ENC_UTF8);
 
   TEST_ASSERT_EQUAL_INT(0, scm_fcd_string_fill_i(str, chr, -1, -1));
@@ -1481,7 +1480,7 @@ TEST(fcd_string, fcd_string_fill_i__specify_start)
   SCM_REFSTK_INIT_REG(&str, &chr, &expected);
 
   str = scm_fcd_make_string_from_cstr("abcde", SCM_ENC_UTF8);
-  chr = read_cstr("#\\z");
+  chr = ut_read_cstr("#\\z");
   expected = scm_fcd_make_string_from_cstr("azzzz", SCM_ENC_UTF8);
 
   TEST_ASSERT_EQUAL_INT(0, scm_fcd_string_fill_i(str, chr, 1, -1));
@@ -1496,7 +1495,7 @@ TEST(fcd_string, fcd_string_fill_i__specify_start_end)
   SCM_REFSTK_INIT_REG(&str, &chr, &expected);
 
   str = scm_fcd_make_string_from_cstr("abcde", SCM_ENC_UTF8);
-  chr = read_cstr("#\\z");
+  chr = ut_read_cstr("#\\z");
   expected = scm_fcd_make_string_from_cstr("azzze", SCM_ENC_UTF8);
 
   TEST_ASSERT_EQUAL_INT(0, scm_fcd_string_fill_i(str, chr, 1, 4));
@@ -1511,7 +1510,7 @@ TEST(fcd_string, fcd_string_fill_i__same_idx)
   SCM_REFSTK_INIT_REG(&str, &chr, &expected);
 
   str = scm_fcd_make_string_from_cstr("abcde", SCM_ENC_UTF8);
-  chr = read_cstr("#\\z");
+  chr = ut_read_cstr("#\\z");
   expected = scm_fcd_make_string_from_cstr("abcde", SCM_ENC_UTF8);
 
   TEST_ASSERT_EQUAL_INT(0, scm_fcd_string_fill_i(str, chr, 1, 1));

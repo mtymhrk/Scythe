@@ -76,8 +76,9 @@ struct ScmBedrockRec {
 };
 
 int scm_bedrock_setup(ScmBedrock *br);
-int scm_bedrock_cleanup(ScmBedrock *br);
-void scm_bedrock_set_mem(ScmBedrock *br, ScmMem *mem);
+void scm_bedrock_cleanup(ScmBedrock *br);
+int scm_bedrock_create_mem(ScmBedrock *br);
+void scm_bedrock_delete_mem(ScmBedrock *br);
 int scm_bedrock_initialize(ScmBedrock *br);
 void scm_bedrock_finalize(ScmBedrock *br);
 ScmBedrock *scm_bedrock_new(void);
@@ -390,8 +391,6 @@ struct ScmVMRec {
 
 int scm_vm_subr_trmp_apply(ScmObj subr, int argc, const ScmObj *argv);
 
-int scm_vm_bootup(void);
-void scm_vm_shutdown(void);
 int scm_vm_initialize(ScmObj vm, ScmObj main_vm);
 int scm_vm_init_scmobjs(ScmObj vm);
 void scm_vm_finalize(ScmObj vm);

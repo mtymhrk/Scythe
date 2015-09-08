@@ -7,7 +7,7 @@
 
 TEST_GROUP(fcd_module);
 
-static ScmEvaluator *ev;
+static ScmScythe *scy;
 static ScmRefStackInfo rsi;
 
 static ScmObj undef;
@@ -19,9 +19,7 @@ static ScmObj syntax;
 
 TEST_SETUP(fcd_module)
 {
-  ev = scm_capi_evaluator();
-  scm_capi_evaluator_make_vm(ev);
-  scm_capi_evaluator_load_core(ev);
+  scy = ut_scythe_setup(true);
   scm_fcd_ref_stack_save(&rsi);
 
   undef = SCM_UNDEF_OBJ;
@@ -38,7 +36,7 @@ TEST_SETUP(fcd_module)
 TEST_TEAR_DOWN(fcd_module)
 {
   scm_fcd_ref_stack_restore(&rsi);
-  scm_capi_evaluator_end(ev);
+  ut_scythe_tear_down(scy);
 }
 
 static void

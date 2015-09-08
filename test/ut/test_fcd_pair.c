@@ -6,20 +6,19 @@
 
 TEST_GROUP(fcd_pair);
 
-static ScmEvaluator *ev;
+static ScmScythe *scy;
 static ScmRefStackInfo rsi;
 
 TEST_SETUP(fcd_pair)
 {
-  ev = scm_capi_evaluator();
-  scm_capi_evaluator_make_vm(ev);
+  scy = ut_scythe_setup(false);
   scm_fcd_ref_stack_save(&rsi);
 }
 
 TEST_TEAR_DOWN(fcd_pair)
 {
   scm_fcd_ref_stack_restore(&rsi);
-  scm_capi_evaluator_end(ev);
+  ut_scythe_tear_down(scy);
 }
 
 TEST(fcd_pair, fcd_pair_p__return_true)
@@ -233,7 +232,7 @@ TEST(fcd_pair, fcd_make_list__specifying_fill)
 
   SCM_REFSTK_INIT_REG(&lst, &expected);
 
-  expected = read_cstr("(#t #t #t)");
+  expected = ut_read_cstr("(#t #t #t)");
 
   lst = scm_fcd_make_list(3, SCM_TRUE_OBJ);
 
@@ -263,7 +262,7 @@ TEST(fcd_pair, fcd_list_cv)
   SCM_REFSTK_INIT_REG(&lst, &expected);
   SCM_REFSTK_REG_ARY(objs, 2);
 
-  expected = read_cstr("(#t #f)");
+  expected = ut_read_cstr("(#t #f)");
 
   lst = scm_fcd_list_cv(objs, 2);
 
@@ -297,7 +296,7 @@ TEST(fcd_pair, fcd_list)
 
   SCM_REFSTK_INIT_REG(&lst, &expected);
 
-  expected = read_cstr("(#t #f)");
+  expected = ut_read_cstr("(#t #f)");
 
   lst = scm_fcd_list(2, SCM_TRUE_OBJ, SCM_FALSE_OBJ);
 
@@ -326,7 +325,7 @@ TEST(fcd_pair, fcd_length)
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(a (b c) d)");
+  lst = ut_read_cstr("(a (b c) d)");
 
   TEST_ASSERT_EQUAL_INT(3, scm_fcd_length(lst));
 }
@@ -342,7 +341,7 @@ TEST(fcd_pair, fcd_length__improper_list__return_ERROR)
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(a b . c)");
+  lst = ut_read_cstr("(a b . c)");
 
   TEST_ASSERT_EQUAL_INT(-1, scm_fcd_length(lst));
 }
@@ -354,8 +353,8 @@ TEST(fcd_pair, fcd_append_lst)
 
   SCM_REFSTK_INIT_REG(&lists, &actual, &expected);
 
-  lists = read_cstr("((a b) (c d) (e f))");
-  expected = read_cstr("(a b c d e f)");
+  lists = ut_read_cstr("((a b) (c d) (e f))");
+  expected = ut_read_cstr("(a b c d e f)");
 
   actual = scm_fcd_append_lst(lists);
 
@@ -369,8 +368,8 @@ TEST(fcd_pair, fcd_append_lst__list_has_item_is_empty_list)
 
   SCM_REFSTK_INIT_REG(&lists, &actual, &expected);
 
-  lists = read_cstr("((a b) () (c d))");
-  expected = read_cstr("(a b c d)");
+  lists = ut_read_cstr("((a b) () (c d))");
+  expected = ut_read_cstr("(a b c d)");
 
   actual = scm_fcd_append_lst(lists);
 
@@ -396,7 +395,7 @@ TEST(fcd_pair, fcd_append_lst__list_has_item_is_not_list__return_ERROR)
 
   SCM_REFSTK_INIT_REG(&lists);
 
-  lists = read_cstr("((a b) foo (c d))");
+  lists = ut_read_cstr("((a b) foo (c d))");
 
   TEST_ASSERT_SCM_NULL(scm_fcd_append_lst(lists));
 }
@@ -409,10 +408,10 @@ TEST(fcd_pair, fcd_append_cv)
   SCM_REFSTK_INIT_REG(&lst, &expected);
   SCM_REFSTK_REG_ARY(lists, 2);
 
-  expected = read_cstr("(a b c d)");
+  expected = ut_read_cstr("(a b c d)");
 
-  lists[0] = read_cstr("(a b)");
-  lists[1] = read_cstr("(c d)");
+  lists[0] = ut_read_cstr("(a b)");
+  lists[1] = ut_read_cstr("(c d)");
 
   lst = scm_fcd_append_cv(lists, 2);
 
@@ -427,10 +426,10 @@ TEST(fcd_pair, fcd_append_cv__passing_empty_list)
   SCM_REFSTK_INIT_REG(&lst, &expected);
   SCM_REFSTK_REG_ARY(lists, 2);
 
-  expected = read_cstr("a");
+  expected = ut_read_cstr("a");
 
-  lists[0] = read_cstr("()");
-  lists[1] = read_cstr("a");
+  lists[0] = ut_read_cstr("()");
+  lists[1] = ut_read_cstr("a");
 
   lst = scm_fcd_append_cv(lists, 2);
 
@@ -450,8 +449,8 @@ TEST(fcd_pair, fcd_append_cv__passing_not_list__return_ERROR)
   SCM_REFSTK_INIT_REG(&lst, &expected);
   SCM_REFSTK_REG_ARY(lists, 2);
 
-  lists[0] = read_cstr("foo");
-  lists[1] = read_cstr("a");
+  lists[0] = ut_read_cstr("foo");
+  lists[1] = ut_read_cstr("a");
 
   TEST_ASSERT_SCM_NULL(scm_fcd_append_cv(lists, 2));
 }
@@ -464,8 +463,8 @@ TEST(fcd_pair, fcd_append_cv__return_ERROR)
   SCM_REFSTK_INIT_REG(&lst);
   SCM_REFSTK_REG_ARY(lists, 2);
 
-  lists[0] = read_cstr("a");
-  lists[1] = read_cstr("(b c)");
+  lists[0] = ut_read_cstr("a");
+  lists[1] = ut_read_cstr("(b c)");
 
   TEST_ASSERT_SCM_NULL(scm_fcd_append_cv(lists, 2));
 }
@@ -478,10 +477,10 @@ TEST(fcd_pair, fcd_append)
   SCM_REFSTK_INIT_REG(&lst, &expected);
   SCM_REFSTK_REG_ARY(lists, 2);
 
-  expected = read_cstr("(a b c d)");
+  expected = ut_read_cstr("(a b c d)");
 
-  lists[0] = read_cstr("(a b)");
-  lists[1] = read_cstr("(c d)");
+  lists[0] = ut_read_cstr("(a b)");
+  lists[1] = ut_read_cstr("(c d)");
 
   lst = scm_fcd_append(2, lists[0], lists[1]);
 
@@ -496,10 +495,10 @@ TEST(fcd_pair, fcd_append__passing_empty_list)
   SCM_REFSTK_INIT_REG(&lst, &expected);
   SCM_REFSTK_REG_ARY(lists, 2);
 
-  expected = read_cstr("a");
+  expected = ut_read_cstr("a");
 
-  lists[0] = read_cstr("()");
-  lists[1] = read_cstr("a");
+  lists[0] = ut_read_cstr("()");
+  lists[1] = ut_read_cstr("a");
 
   lst = scm_fcd_append(2, lists[0], lists[1]);
 
@@ -519,8 +518,8 @@ TEST(fcd_pair, fcd_append__return_ERROR)
   SCM_REFSTK_INIT_REG(&lst);
   SCM_REFSTK_REG_ARY(lists, 2);
 
-  lists[0] = read_cstr("a");
-  lists[1] = read_cstr("(b c)");
+  lists[0] = ut_read_cstr("a");
+  lists[1] = ut_read_cstr("(b c)");
 
   TEST_ASSERT_SCM_NULL(scm_fcd_append(2, lists[0], lists[1]));
 }
@@ -531,8 +530,8 @@ TEST(fcd_pair, fcd_reverse)
 
   SCM_REFSTK_INIT_REG(&lst, &actual, &expected);
 
-  expected = read_cstr("(c b a)");
-  lst = read_cstr("(a b c)");
+  expected = ut_read_cstr("(c b a)");
+  lst = ut_read_cstr("(a b c)");
 
   actual = scm_fcd_reverse(lst);
 
@@ -545,8 +544,8 @@ TEST(fcd_pair, fcd_reverse__improper_list)
 
   SCM_REFSTK_INIT_REG(&lst, &actual, &expected);
 
-  expected = read_cstr("(b a)");
-  lst = read_cstr("(a b . c)");
+  expected = ut_read_cstr("(b a)");
+  lst = ut_read_cstr("(a b . c)");
 
   actual = scm_fcd_reverse(lst);
 
@@ -564,7 +563,7 @@ TEST(fcd_pair, fcd_list_tail)
 
   SCM_REFSTK_INIT_REG(&lst, &actual, &expected);
 
-  lst = read_cstr("(a b c)");
+  lst = ut_read_cstr("(a b c)");
   expected = scm_fcd_cdr(lst);
 
   actual = scm_fcd_list_tail(lst, 1);
@@ -578,7 +577,7 @@ TEST(fcd_pair, fcd_list_tail__return_ERROR)
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(a b c)");
+  lst = ut_read_cstr("(a b c)");
 
   TEST_ASSERT_SCM_NULL(scm_fcd_list_tail(lst, 4));
 }
@@ -594,7 +593,7 @@ TEST(fcd_pair, fcd_list_ref)
 
   SCM_REFSTK_INIT_REG(&lst, &actual, &expected);
 
-  lst = read_cstr("(a (b) c)");
+  lst = ut_read_cstr("(a (b) c)");
   expected = scm_fcd_cxr(lst, "ad");
 
   actual = scm_fcd_list_ref(lst, 1);
@@ -608,7 +607,7 @@ TEST(fcd_pair, fcd_list_ref__return_ERROR)
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(a b c)");
+  lst = ut_read_cstr("(a b c)");
 
   TEST_ASSERT_SCM_NULL(scm_fcd_list_ref(lst, 3));
 }
@@ -624,8 +623,8 @@ TEST(fcd_pair, fcd_list_set_i)
 
   SCM_REFSTK_INIT_REG(&lst, &expected);
 
-  expected = read_cstr("(a #t c)");
-  lst = read_cstr("(a b c)");
+  expected = ut_read_cstr("(a #t c)");
+  lst = ut_read_cstr("(a b c)");
 
   TEST_ASSERT_EQUAL_INT(0, scm_fcd_list_set_i(lst, 1, SCM_TRUE_OBJ));
   TEST_ASSERT_SCM_EQUAL(expected, lst);
@@ -637,7 +636,7 @@ TEST(fcd_pair, fcd_list_set_i__return_ERROR_1)
 
   SCM_REFSTK_INIT_REG(&lst);
 
-  lst = read_cstr("(a b c)");
+  lst = ut_read_cstr("(a b c)");
 
   TEST_ASSERT_EQUAL_INT(-1, scm_fcd_list_set_i(lst, 3, SCM_TRUE_OBJ));
 }
@@ -655,8 +654,8 @@ TEST(fcd_pair, fcd_memq__matched)
   SCM_REFSTK_INIT_REG(&lst, &o,
                       &actual, &expected);
 
-  lst = read_cstr("(a b c)");
-  o = read_cstr("b");
+  lst = ut_read_cstr("(a b c)");
+  o = ut_read_cstr("b");
   expected = scm_fcd_list_tail(lst, 1);
 
   actual = scm_fcd_memq(o, lst);
@@ -670,8 +669,8 @@ TEST(fcd_pair, fcd_memq__unmatched)
 
   SCM_REFSTK_INIT_REG(&lst, &o);
 
-  lst = read_cstr("(a (b) c)");
-  o = read_cstr("(b)");
+  lst = ut_read_cstr("(a (b) c)");
+  o = ut_read_cstr("(b)");
 
   TEST_ASSERT_SCM_FALSE(scm_fcd_memq(o, lst));
 }
@@ -683,7 +682,7 @@ TEST(fcd_pair, fcd_memq__not_list)
   SCM_REFSTK_INIT_REG(&lst, &o);
 
   lst = SCM_TRUE_OBJ;
-  o = read_cstr("(b)");
+  o = ut_read_cstr("(b)");
 
   TEST_ASSERT_SCM_FALSE(scm_fcd_memq(o, lst));
 }
@@ -696,8 +695,8 @@ TEST(fcd_pair, fcd_memv__matched)
   SCM_REFSTK_INIT_REG(&lst, &o,
                       &actual, &expected);
 
-  lst = read_cstr("(a #\\b c)");
-  o = read_cstr("#\\b");
+  lst = ut_read_cstr("(a #\\b c)");
+  o = ut_read_cstr("#\\b");
   expected = scm_fcd_list_tail(lst, 1);
 
   actual = scm_fcd_memv(o, lst);
@@ -711,8 +710,8 @@ TEST(fcd_pair, fcd_memv__unmatched)
 
   SCM_REFSTK_INIT_REG(&lst, &o);
 
-  lst = read_cstr("(a (b) c)");
-  o = read_cstr("(b)");
+  lst = ut_read_cstr("(a (b) c)");
+  o = ut_read_cstr("(b)");
 
   TEST_ASSERT_SCM_FALSE(scm_fcd_memv(o, lst));
 }
@@ -724,7 +723,7 @@ TEST(fcd_pair, fcd_memv__not_list)
   SCM_REFSTK_INIT_REG(&lst, &o);
 
   lst = SCM_TRUE_OBJ;
-  o = read_cstr("#\\b");
+  o = ut_read_cstr("#\\b");
 
   TEST_ASSERT_SCM_FALSE(scm_fcd_memv(o, lst));
 }
@@ -737,8 +736,8 @@ TEST(fcd_pair, fcd_member__matched)
   SCM_REFSTK_INIT_REG(&lst, &o,
                       &actual, &expected);
 
-  lst = read_cstr("(a (b) c)");
-  o = read_cstr("(b)");
+  lst = ut_read_cstr("(a (b) c)");
+  o = ut_read_cstr("(b)");
   expected = scm_fcd_list_tail(lst, 1);
 
   actual = scm_fcd_member(o, lst, NULL);
@@ -752,8 +751,8 @@ TEST(fcd_pair, fcd_member__unmatched)
 
   SCM_REFSTK_INIT_REG(&lst, &o);
 
-  lst = read_cstr("(a (b) c)");
-  o = read_cstr("z");
+  lst = ut_read_cstr("(a (b) c)");
+  o = ut_read_cstr("z");
 
   TEST_ASSERT_SCM_FALSE(scm_fcd_member(o, lst, NULL));
 }
@@ -766,8 +765,8 @@ TEST(fcd_pair, fcd_member__specify_compare__matched)
   SCM_REFSTK_INIT_REG(&lst, &o,
                       &actual, &expected);
 
-  lst = read_cstr("(a b c)");
-  o = read_cstr("b");
+  lst = ut_read_cstr("(a b c)");
+  o = ut_read_cstr("b");
   expected = scm_fcd_list_tail(lst, 1);
 
   actual = scm_fcd_member(o, lst, scm_fcd_eq_P);
@@ -781,8 +780,8 @@ TEST(fcd_pair, fcd_member__specify_compare__unmatched)
 
   SCM_REFSTK_INIT_REG(&lst, &o);
 
-  lst = read_cstr("(a (b) c)");
-  o = read_cstr("(b)");
+  lst = ut_read_cstr("(a (b) c)");
+  o = ut_read_cstr("(b)");
 
   TEST_ASSERT_SCM_FALSE(scm_fcd_member(o, lst, scm_fcd_eq_P));
 }
@@ -794,7 +793,7 @@ TEST(fcd_pair, fcd_member__not_list)
   SCM_REFSTK_INIT_REG(&lst, &o);
 
   lst = SCM_TRUE_OBJ;
-  o = read_cstr("(b)");
+  o = ut_read_cstr("(b)");
 
   TEST_ASSERT_SCM_FALSE(scm_fcd_member(o, lst, NULL));
 }
@@ -807,8 +806,8 @@ TEST(fcd_pair, fcd_assq__matched)
   SCM_REFSTK_INIT_REG(&alist, &k,
                       &actual, &expected);
 
-  alist = read_cstr("((a 1) (b 2) (c 2))");
-  k = read_cstr("b");
+  alist = ut_read_cstr("((a 1) (b 2) (c 2))");
+  k = ut_read_cstr("b");
   expected = scm_fcd_cxr(alist, "ad");
 
   actual = scm_fcd_assq(k, alist);
@@ -822,8 +821,8 @@ TEST(fcd_pair, fcd_assq__unmatched)
 
   SCM_REFSTK_INIT_REG(&alist, &k);
 
-  alist = read_cstr("((a 1) (#\\b 2) (c 2))");
-  k = read_cstr("#\\b");
+  alist = ut_read_cstr("((a 1) (#\\b 2) (c 2))");
+  k = ut_read_cstr("#\\b");
 
   TEST_ASSERT_SCM_FALSE(scm_fcd_assq(k, alist));
 }
@@ -835,7 +834,7 @@ TEST(fcd_pair, fcd_assq__not_list)
   SCM_REFSTK_INIT_REG(&alist, &k);
 
   alist = SCM_TRUE_OBJ;
-  k = read_cstr("b");
+  k = ut_read_cstr("b");
 
   TEST_ASSERT_SCM_FALSE(scm_fcd_assq(k, alist));
 }
@@ -848,8 +847,8 @@ TEST(fcd_pair, fcd_assv__matched)
   SCM_REFSTK_INIT_REG(&alist, &k,
                       &actual, &expected);
 
-  alist = read_cstr("((a 1) (#\\b 2) (c 2))");
-  k = read_cstr("#\\b");
+  alist = ut_read_cstr("((a 1) (#\\b 2) (c 2))");
+  k = ut_read_cstr("#\\b");
   expected = scm_fcd_cxr(alist, "ad");
 
   actual = scm_fcd_assv(k, alist);
@@ -863,8 +862,8 @@ TEST(fcd_pair, fcd_assv__unmatched)
 
   SCM_REFSTK_INIT_REG(&alist, &k);
 
-  alist = read_cstr("((a 1) ((b) 2) (c 2))");
-  k = read_cstr("(b)");
+  alist = ut_read_cstr("((a 1) ((b) 2) (c 2))");
+  k = ut_read_cstr("(b)");
 
   TEST_ASSERT_SCM_FALSE(scm_fcd_assv(k, alist));
 }
@@ -876,7 +875,7 @@ TEST(fcd_pair, fcd_assv__not_list)
   SCM_REFSTK_INIT_REG(&alist, &k);
 
   alist = SCM_TRUE_OBJ;
-  k = read_cstr("#\\b");
+  k = ut_read_cstr("#\\b");
 
   TEST_ASSERT_SCM_FALSE(scm_fcd_assv(k, alist));
 }
@@ -889,8 +888,8 @@ TEST(fcd_pair, fcd_assoc__matched)
   SCM_REFSTK_INIT_REG(&alist, &k,
                       &actual, &expected);
 
-  alist = read_cstr("((a 1) ((b) 2) (c 2))");
-  k = read_cstr("(b)");
+  alist = ut_read_cstr("((a 1) ((b) 2) (c 2))");
+  k = ut_read_cstr("(b)");
   expected = scm_fcd_cxr(alist, "ad");
 
   actual = scm_fcd_assoc(k, alist, NULL);
@@ -904,8 +903,8 @@ TEST(fcd_pair, fcd_assoc__unmatched)
 
   SCM_REFSTK_INIT_REG(&alist, &k);
 
-  alist = read_cstr("((a 1) ((b) 2) (c 2))");
-  k = read_cstr("z");
+  alist = ut_read_cstr("((a 1) ((b) 2) (c 2))");
+  k = ut_read_cstr("z");
 
   TEST_ASSERT_SCM_FALSE(scm_fcd_assoc(k, alist, NULL));
 }
@@ -918,8 +917,8 @@ TEST(fcd_pair, fcd_assoc__specify_compare__matched)
   SCM_REFSTK_INIT_REG(&alist, &k,
                       &actual, &expected);
 
-  alist = read_cstr("((a 1) (b 2) (c 2))");
-  k = read_cstr("b");
+  alist = ut_read_cstr("((a 1) (b 2) (c 2))");
+  k = ut_read_cstr("b");
   expected = scm_fcd_cxr(alist, "ad");
 
   actual = scm_fcd_assoc(k, alist, scm_fcd_eq_P);
@@ -933,8 +932,8 @@ TEST(fcd_pair, fcd_assoc__specify_compare__unmatched)
 
   SCM_REFSTK_INIT_REG(&alist, &k);
 
-  alist = read_cstr("((a 1) ((b) 2) (c 2))");
-  k = read_cstr("(b)");
+  alist = ut_read_cstr("((a 1) ((b) 2) (c 2))");
+  k = ut_read_cstr("(b)");
 
   TEST_ASSERT_SCM_FALSE(scm_fcd_assoc(k, alist, scm_fcd_eq_P));
 }
@@ -946,7 +945,7 @@ TEST(fcd_pair, fcd_assoc__not_list)
   SCM_REFSTK_INIT_REG(&alist, &k);
 
   alist = SCM_TRUE_OBJ;
-  k = read_cstr("(b)");
+  k = ut_read_cstr("(b)");
 
   TEST_ASSERT_SCM_FALSE(scm_fcd_assoc(k, alist, NULL));
 }
@@ -957,7 +956,7 @@ TEST(fcd_pair, fcd_list_copy)
 
   SCM_REFSTK_INIT_REG(&lst, &replica);
 
-  lst = read_cstr("(a b c)");
+  lst = ut_read_cstr("(a b c)");
 
   replica = scm_fcd_list_copy(lst);
 

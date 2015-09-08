@@ -5,20 +5,19 @@
 
 TEST_GROUP(api_format);
 
-static ScmEvaluator *ev;
+static ScmScythe *scy;
 static ScmRefStackInfo rsi;
 
 TEST_SETUP(api_format)
 {
-  ev = scm_capi_evaluator();
-  scm_capi_evaluator_make_vm(ev);
+  scy = ut_scythe_setup(false);
   scm_fcd_ref_stack_save(&rsi);
 }
 
 TEST_TEAR_DOWN(api_format)
 {
   scm_fcd_ref_stack_restore(&rsi);
-  scm_capi_evaluator_end(ev);
+  ut_scythe_tear_down(scy);
 }
 
 TEST(api_format, api_format_lst)
@@ -28,9 +27,9 @@ TEST(api_format, api_format_lst)
 
   SCM_REFSTK_INIT_REG(&actual, &expected, &format, &arg);
 
-  format = read_cstr("\"[~a] [~s] [~~] [~%]\"");
-  arg = read_cstr("(\"foo\" \"bar\")");
-  expected = read_cstr("\"[foo] [\\\"bar\\\"] [~] [\\n]\"");
+  format = ut_read_cstr("\"[~a] [~s] [~~] [~%]\"");
+  arg = ut_read_cstr("(\"foo\" \"bar\")");
+  expected = ut_read_cstr("\"[foo] [\\\"bar\\\"] [~] [\\n]\"");
 
   actual = scm_api_format_lst(format, arg);
 
@@ -44,9 +43,9 @@ TEST(api_format, api_format_lst__too_many_arguments)
 
   SCM_REFSTK_INIT_REG(&actual, &expected, &format, &arg);
 
-  format = read_cstr("\"[~a] [~s] [~~] [~%]\"");
-  arg = read_cstr("(\"foo\" \"bar\" \"baz\")");
-  expected = read_cstr("\"[foo] [\\\"bar\\\"] [~] [\\n]\"");
+  format = ut_read_cstr("\"[~a] [~s] [~~] [~%]\"");
+  arg = ut_read_cstr("(\"foo\" \"bar\" \"baz\")");
+  expected = ut_read_cstr("\"[foo] [\\\"bar\\\"] [~] [\\n]\"");
 
   actual = scm_api_format_lst(format, arg);
 
@@ -59,8 +58,8 @@ TEST(api_format, api_format_lst__error_too_few_arguments)
 
   SCM_REFSTK_INIT_REG(&actual, &format, &arg);
 
-  format = read_cstr("\"[~a] [~s] [~~] [~%]\"");
-  arg = read_cstr("(\"foo\")");
+  format = ut_read_cstr("\"[~a] [~s] [~~] [~%]\"");
+  arg = ut_read_cstr("(\"foo\")");
 
   actual = scm_api_format_lst(format, arg);
 

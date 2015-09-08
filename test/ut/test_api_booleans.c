@@ -5,20 +5,19 @@
 
 TEST_GROUP(api_booleans);
 
-static ScmEvaluator *ev;
+static ScmScythe *scy;
 static ScmRefStackInfo rsi;
 
 TEST_SETUP(api_booleans)
 {
-  ev = scm_capi_evaluator();
-  scm_capi_evaluator_make_vm(ev);
+  scy = ut_scythe_setup(false);
   scm_fcd_ref_stack_save(&rsi);
 }
 
 TEST_TEAR_DOWN(api_booleans)
 {
   scm_fcd_ref_stack_restore(&rsi);
-  scm_capi_evaluator_end(ev);
+  ut_scythe_tear_down(scy);
 }
 
 TEST(api_booleans, api_boolean_P__return_true_1)
@@ -57,7 +56,7 @@ TEST(api_booleans, api_not__return_false_3)
 
   SCM_REFSTK_INIT_REG(&num);
 
-  num = read_cstr("1");
+  num = ut_read_cstr("1");
 
   TEST_ASSERT_SCM_FALSE(scm_api_not(num));
 }

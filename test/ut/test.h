@@ -31,12 +31,14 @@
   TEST_ASSERT_SCM_TRUE(scm_fcd_equal_P(expected, actual))
 
 
-ScmObj read_cstr(const char *str);
+ScmObj ut_read_cstr(const char *str);
 
-ScmObj scm_capi_ut_compile(ScmEvaluator *ev, ScmObj exp);
-ScmObj scm_capi_ut_precompile(ScmEvaluator *ev, ScmObj exp);
-ScmObj scm_capi_ut_eval(ScmEvaluator *ev, ScmObj exp);
-void scm_capi_ut_disposal_unhandled_exc(ScmEvaluator *ev);
+ScmScythe *ut_scythe_setup(bool load);
+void ut_scythe_tear_down(ScmScythe *scy);
+ScmObj ut_compile(ScmObj exp);
+ScmObj ut_precompile(ScmObj exp);
+ScmObj ut_eval(ScmObj exp);
+void ut_disposal_unhandled_exc(void);
 
 
 #endif  /* INCLUDE_TEST_HELPER_H__ */

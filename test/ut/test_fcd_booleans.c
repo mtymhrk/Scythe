@@ -5,20 +5,19 @@
 
 TEST_GROUP(fcd_booleans);
 
-static ScmEvaluator *ev;
+static ScmScythe *scy;
 static ScmRefStackInfo rsi;
 
 TEST_SETUP(fcd_booleans)
 {
-  ev = scm_capi_evaluator();
-  scm_capi_evaluator_make_vm(ev);
+  scy = ut_scythe_setup(false);
   scm_fcd_ref_stack_save(&rsi);
 }
 
 TEST_TEAR_DOWN(fcd_booleans)
 {
   scm_fcd_ref_stack_restore(&rsi);
-  scm_capi_evaluator_end(ev);
+  ut_scythe_tear_down(scy);
 }
 
 TEST(fcd_booleans, fcd_boolean_p__return_true_1)
@@ -102,7 +101,7 @@ TEST(fcd_booleans, fcd_true_p__return_true_3)
 
   SCM_REFSTK_INIT_REG(&num);
 
-  num = read_cstr("1");
+  num = ut_read_cstr("1");
 
   TEST_ASSERT_TRUE(scm_fcd_true_p(num));
 }
@@ -133,7 +132,7 @@ TEST(fcd_booleans, fcd_false_p__return_false_3)
 
   SCM_REFSTK_INIT_REG(&num);
 
-  num = read_cstr("1");
+  num = ut_read_cstr("1");
 
   TEST_ASSERT_FALSE(scm_fcd_false_p(num));
 }
@@ -159,7 +158,7 @@ TEST(fcd_booleans, fcd_not__return_false_3)
 
   SCM_REFSTK_INIT_REG(&num);
 
-  num = read_cstr("1");
+  num = ut_read_cstr("1");
 
   TEST_ASSERT_SCM_FALSE(scm_fcd_not(num));
 }

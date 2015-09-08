@@ -6,20 +6,19 @@
 
 TEST_GROUP(fcd_assembler);
 
-static ScmEvaluator *ev;
+static ScmScythe *scy;
 static ScmRefStackInfo rsi;
 
 TEST_SETUP(fcd_assembler)
 {
-  ev = scm_capi_evaluator();
-  scm_capi_evaluator_make_vm(ev);
+  scy = ut_scythe_setup(false);
   scm_fcd_ref_stack_save(&rsi);
 }
 
 TEST_TEAR_DOWN(fcd_assembler)
 {
   scm_fcd_ref_stack_restore(&rsi);
-  scm_capi_evaluator_end(ev);
+  ut_scythe_tear_down(scy);
 }
 
 static ScmObj
@@ -29,7 +28,7 @@ make_iseq(const char *asmbl)
 
   SCM_REFSTK_INIT_REG(&iseq, &lst);
 
-  lst = read_cstr(asmbl);
+  lst = ut_read_cstr(asmbl);
 
   iseq = scm_fcd_assemble(scm_fcd_unprintable_assembler(lst), SCM_OBJ_NULL);
   TEST_ASSERT_TRUE(scm_fcd_iseq_p(iseq));
@@ -191,7 +190,7 @@ test_assemble_pinst_qqtemplate(const char *asmbl,
 
   SCM_REFSTK_INIT_REG(&iseq, &t, &qq, &actual_immv);
 
-  t = read_cstr(tmpl);
+  t = ut_read_cstr(tmpl);
   qq = scm_fcd_compile_qq_template(t);
   iseq = make_iseq(asmbl);
   ip = scm_fcd_iseq_to_ip(iseq);
@@ -273,8 +272,8 @@ TEST(fcd_assembler, gref)
 
   SCM_REFSTK_INIT_REG(&obj1, &obj2);
 
-  obj1 = read_cstr("vvv");
-  obj2 = read_cstr("xxx");
+  obj1 = ut_read_cstr("vvv");
+  obj2 = ut_read_cstr("xxx");
 
   test_assemble_obj_obj("((gref vvv xxx)(nop))",
                         SCM_OPCODE_GREF, obj1, obj2);
@@ -286,8 +285,8 @@ TEST(fcd_assembler, gdef)
 
   SCM_REFSTK_INIT_REG(&obj1, &obj2);
 
-  obj1 = read_cstr("vvv");
-  obj2 = read_cstr("xxx");
+  obj1 = ut_read_cstr("vvv");
+  obj2 = ut_read_cstr("xxx");
 
   test_assemble_obj_obj("((gdef vvv xxx)(nop))",
                         SCM_OPCODE_GDEF, obj1, obj2);
@@ -299,8 +298,8 @@ TEST(fcd_assembler, gset)
 
   SCM_REFSTK_INIT_REG(&obj1, &obj2);
 
-  obj1 = read_cstr("vvv");
-  obj2 = read_cstr("xxx");
+  obj1 = ut_read_cstr("vvv");
+  obj2 = ut_read_cstr("xxx");
 
   test_assemble_obj_obj("((gset vvv xxx)(nop))",
                         SCM_OPCODE_GSET, obj1, obj2);
@@ -322,7 +321,7 @@ TEST(fcd_assembler, immval)
 
   SCM_REFSTK_INIT_REG(&obj);
 
-  obj = read_cstr("aaa");
+  obj = ut_read_cstr("aaa");
 
   test_assemble_obj("((immval aaa)(nop))", SCM_OPCODE_IMMVAL, obj) ;
 }
@@ -407,7 +406,7 @@ TEST(fcd_assembler, module)
 {
   test_assemble_obj("((module (main))(nop))",
                     SCM_OPCODE_MODULE,
-                    read_cstr("(main)"));
+                    ut_read_cstr("(main)"));
 }
 
 TEST(fcd_assembler, pi_undef)
@@ -435,8 +434,8 @@ test_disassemble(const char *expected, const char *assembler)
 
   SCM_REFSTK_INIT_REG(&iseq, &e, &a, &actual);
 
-  e = read_cstr(expected);
-  a = read_cstr(assembler);
+  e = ut_read_cstr(expected);
+  a = ut_read_cstr(assembler);
 
   iseq = scm_fcd_assemble(scm_fcd_unprintable_assembler(a), SCM_OBJ_NULL);
   actual = scm_fcd_printable_assembler(scm_fcd_disassemble(iseq));

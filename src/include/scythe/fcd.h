@@ -19,6 +19,7 @@
 #include "scythe/fcd_procedure.h"
 #include "scythe/fcd_refstk.h"
 #include "scythe/fcd_string.h"
+#include "scythe/fcd_scythe.h"
 #include "scythe/fcd_symbol.h"
 #include "scythe/fcd_syntax.h"
 #include "scythe/fcd_type.h"
@@ -26,3 +27,6 @@
 #include "scythe/fcd_vm.h"
 
 #endif /* INCLUDE_FCD_H__ */
+
+
+

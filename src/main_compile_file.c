@@ -5,8 +5,8 @@
 int
 main(int argc, char **argv)
 {
-  ScmEvaluator *ev;
-  int rslt;
+  ScmScythe *scy;
+  int r, retval;
 
   if (argc < 2) {
     fprintf(stderr, "%s: too few arguments\n", argv[0]);
@@ -14,12 +14,24 @@ main(int argc, char **argv)
     return -1;
   }
 
-  ev = scm_capi_evaluator();
-  if (ev == NULL) return -1;
+  retval = -1;
 
-  rslt = scm_capi_compile_file(argv[1], ev);
+  scy = scm_capi_scythe_new();
+  if (scy == NULL) return -1;
 
-  scm_capi_evaluator_end(ev);
+  r = scm_capi_scythe_bootup(scy);
+  if (r < 0) goto end;
 
-  return (rslt < 0) ? -1 : 0;
+  r = scm_capi_scythe_load_core(scy);
+  if (r < 0) goto end;
+
+  r = scm_capi_scythe_compile_file(scy, argv[1]);
+  if (r < 0) goto end;
+
+  retval = 0;
+
+ end:
+  scm_capi_scythe_end(scy);
+
+  return retval;
 }
