@@ -3769,6 +3769,29 @@ scm_fcd_cached_global_var_ref(int kind, scm_csetter_t *val)
   return 0;
 }
 
+int
+scm_fcd_cached_global_var_set(int kind, ScmObj val)
+{
+  ScmObj gloc = SCM_OBJ_INIT, v = SCM_OBJ_INIT;
+  int r;
+
+  SCM_REFSTK_INIT_REG(&gloc, &v);
+
+  scm_assert(scm_obj_not_null_p(val) && !scm_fcd_landmine_object_p(val));
+
+  r = scm_bedrock_cached_gv(scm_fcd_current_br(), kind, SCM_CSETTER_L(gloc));
+  if (r < 0) return -1;
+
+  if (scm_obj_null_p(gloc)
+      || scm_fcd_landmine_p(scm_fcd_gloc_variable_value(gloc))) {
+    scm_fcd_error("failed to update cached global variable value", 0);
+    return -1;
+  }
+
+  scm_fcd_gloc_bind_variable(gloc, val);
+  return 0;
+}
+
 ScmObj
 scm_fcd_cached_symbol(int kind)
 {

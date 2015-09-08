@@ -28,6 +28,7 @@ bool scm_fcd_fatal_p(void);
 int scm_fcd_halt(void);
 
 int scm_fcd_cached_global_var_ref(int kind, scm_csetter_t *val);
+int scm_fcd_cached_global_var_set(int kind, ScmObj val);
 ScmObj scm_fcd_cached_symbol(int kind);
 
 ScmEncoding *scm_fcd_system_encoding(void);
