@@ -190,7 +190,7 @@ scm_fcd_search_load_file(ScmObj name)
   if (r < 0) return SCM_OBJ_NULL;
 
   if (scm_obj_null_p(paths)) {
-    scm_fcd_error("unbound variable: *load-path*", 0);
+    scm_fcd_error("unbound variable: " SCM_LOAD_PATH_VARIABLE_NAME, 0);
     return SCM_OBJ_NULL;
   }
 

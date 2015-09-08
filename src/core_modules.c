@@ -694,7 +694,7 @@ scm_load_module_func_scheme_load(ScmObj mod)
   rslt = scm_define_scheme_load_subr(mod);
   if (rslt < 0) return -1;
 
-  rslt = scm_define_var(mod, "*load-path*", SCM_NIL_OBJ, true);
+  rslt = scm_define_var(mod, SCM_LOAD_PATH_VARIABLE_NAME, SCM_NIL_OBJ, true);
   if (rslt < 0) return -1;
 
   return 0;

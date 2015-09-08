@@ -364,7 +364,7 @@ scm_bedrock_cached_gv(ScmBedrock *br, int kind, scm_csetter_t *gloc)
     { "eval",                { "scythe", "base" }, 2 },
     { "current-input-port",  { "scythe", "base" }, 2 },
     { "current-output-port", { "scythe", "base" }, 2 },
-    { "*load-path*",         { "scheme", "load" }, 2 },
+    { SCM_LOAD_PATH_VARIABLE_NAME, { "scheme", "load" }, 2 },
   };
 
   scm_assert(br != NULL);
