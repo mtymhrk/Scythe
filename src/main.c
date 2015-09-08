@@ -41,25 +41,30 @@ usage()
   message("Usage: %s [options] [--] [file] [arumgnets]", command_name);
   message("Options:\n"
           "  -e <expr>   Evaluate Scheme expression <expr>. Omit [file].\n"
-          "  -i          Interactive mode.");
+          "  -i          Interactive mode.\n"
+          "  -I <path>   Add <path> to the load path list.");
 }
 
 static int
-parse_arguments(int argc, char **argv)
+parse_arguments(int argc, char **argv, ScmScythe *scy)
 {
-  int c;
+  int c, r;
 
   opterr = 0;
 
   command_name = argv[0];
 
-  while ((c = getopt(argc, argv, "+:e:i")) != -1) {
+  while ((c = getopt(argc, argv, "+:e:iI:")) != -1) {
     switch (c) {
     case 'e':
       opt_expr = optarg;
       break;
     case 'i':
       interactive_flag = true;
+      break;
+    case 'I':
+      r = scm_capi_scythe_add_load_path(scy, optarg);
+      if (r < 0) return -1;
       break;
     case ':':
       emessage("option requires an argument  -%c", (char)optopt);
@@ -178,7 +183,7 @@ main(int argc, char **argv)
   scy = make_scythe();
   if (scy == NULL) return -1;
 
-  r = parse_arguments(argc, argv);
+  r = parse_arguments(argc, argv, scy);
   if (r < 0) goto end;
 
   r = setup_scythe(scy);
