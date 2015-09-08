@@ -165,11 +165,53 @@ scm_use_load_path_P(ScmObj name)
   return SCM_TRUE_OBJ;
 }
 
+static ScmObj
+scm_get_load_path(void)
+{
+  ScmObj paths = SCM_OBJ_INIT;
+  int r;
+
+  SCM_REFSTK_INIT_REG(&paths);
+
+  r = scm_fcd_cached_global_var_ref(SCM_CACHED_GV_LOAD_PATH,
+                                    SCM_CSETTER_L(paths));
+  if (r < 0) return SCM_OBJ_NULL;
+
+  if (scm_obj_null_p(paths)) {
+    scm_fcd_error("unbound variable: " SCM_LOAD_PATH_VARIABLE_NAME, 0);
+    return SCM_OBJ_NULL;
+  }
+
+  return paths;
+}
+
+int
+scm_fcd_add_load_path(ScmObj dir)
+{
+  ScmObj paths = SCM_OBJ_INIT;
+  int r;
+
+  SCM_REFSTK_INIT_REG(&dir,
+                      &paths);
+
+  scm_assert(scm_fcd_string_p(dir));
+
+  paths = scm_get_load_path();
+  if (scm_obj_null_p(paths)) return -1;
+
+  paths = scm_fcd_cons(dir, paths);
+  if (scm_obj_null_p(paths)) return -1;
+
+  r = scm_fcd_cached_global_var_set(SCM_CACHED_GV_LOAD_PATH, paths);
+  if (r < 0) return -1;
+
+  return 0;
+}
+
 ScmObj
 scm_fcd_search_load_file(ScmObj name)
 {
   ScmObj paths = SCM_OBJ_INIT, b = SCM_OBJ_INIT;
-  int r;
 
   SCM_REFSTK_INIT_REG(&name,
                       &paths, &b);
@@ -185,14 +227,8 @@ scm_fcd_search_load_file(ScmObj name)
   if (scm_fcd_false_p(b))
     return scm_make_file_path_if_exists(SCM_OBJ_NULL, name);
 
-  r = scm_fcd_cached_global_var_ref(SCM_CACHED_GV_LOAD_PATH,
-                                    SCM_CSETTER_L(paths));
-  if (r < 0) return SCM_OBJ_NULL;
-
-  if (scm_obj_null_p(paths)) {
-    scm_fcd_error("unbound variable: " SCM_LOAD_PATH_VARIABLE_NAME, 0);
-    return SCM_OBJ_NULL;
-  }
+  paths = scm_get_load_path();
+  if (scm_obj_null_p(paths)) return SCM_OBJ_NULL;
 
   return scm_search_load_file(name, paths);
 }
