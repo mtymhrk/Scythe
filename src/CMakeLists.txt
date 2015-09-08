@@ -20,6 +20,12 @@ check_include_file(execinfo.h HAVE_EXECINFO_H)
 
 
 ##===============================================================
+## インストールディレクトリ
+
+set(SCYTHE_LIB_DIR "${CMAKE_INSTALL_PREFIX}/scythe/lib")
+
+
+##===============================================================
 ## config.h の生成
 
 configure_file(include/scythe/config.h.in include/scythe/config.h)
@@ -57,6 +63,15 @@ set(scythe_compiler "${CMAKE_CURRENT_BINARY_DIR}/scythe-compile-file")
 add_custom_target(
   src_tools
   COMMAND make -C ${CMAKE_CURRENT_SOURCE_DIR}/tools RUBY=${ruby_bin_path} COMPILER=${scythe_compiler} all
+)
+
+
+##===============================================================
+## install 設定
+
+install(
+  TARGETS scythe scythe-compile-file
+  DESTINATION bin
 )
 
 

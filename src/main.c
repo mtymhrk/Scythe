@@ -123,8 +123,19 @@ execute_repl(ScmScythe *scy)
   return 0;
 }
 
+static int
+setup_load_path(ScmScythe *scy)
+{
+  int r;
+
+  r = scm_capi_scythe_add_load_path(scy, SCYTHE_LIB_DIR);
+  if (r < 0) return -1;
+
+  return 0;
+}
+
 static ScmScythe *
-setup_scythe(void)
+make_scythe(void)
 {
   ScmScythe *scy;
   int r;
@@ -132,10 +143,7 @@ setup_scythe(void)
   scy = scm_capi_scythe_new();
   if (scy == NULL) return NULL;
 
-  r = scm_capi_scythe_bootup(scy);
-  if (r < 0) goto err;
-
-  r = scm_capi_scythe_load_core(scy);
+  r = setup_load_path(scy);
   if (r < 0) goto err;
 
   return scy;
@@ -145,17 +153,36 @@ setup_scythe(void)
   return NULL;
 }
 
+static int
+setup_scythe(ScmScythe *scy)
+{
+  int r;
+
+  r = scm_capi_scythe_bootup(scy);
+  if (r < 0) return -1;
+
+  r = scm_capi_scythe_load_core(scy);
+  if (r < 0) return -1;
+
+  return 0;
+}
+
 int
 main(int argc, char **argv)
 {
   ScmScythe *scy;
   int r, retval;
 
-  r = parse_arguments(argc, argv);
-  if (r < 0) return -1;
+  retval = -1;
 
-  scy = setup_scythe();
+  scy = make_scythe();
   if (scy == NULL) return -1;
+
+  r = parse_arguments(argc, argv);
+  if (r < 0) goto end;
+
+  r = setup_scythe(scy);
+  if (r < 0) goto end;
 
   if (opt_expr != NULL)
     retval = execute_opt_expr(scy);
@@ -168,6 +195,7 @@ main(int argc, char **argv)
     retval = -1;
   }
 
+ end:
   scm_capi_scythe_end(scy);
   return retval;
 }

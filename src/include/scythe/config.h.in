@@ -9,4 +9,6 @@
 
 #cmakedefine HAVE_EXECINFO_H
 
+#define SCYTHE_LIB_DIR "${SCYTHE_LIB_DIR}"
+
 #endif  /*  INCLUDE_CONFIGURE_H__ */
