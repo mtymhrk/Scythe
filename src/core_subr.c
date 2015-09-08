@@ -2406,6 +2406,84 @@ scm_subr_func_eval(ScmObj subr, int argc, const ScmObj *argv)
 /*  System interface                                               */
 /*******************************************************************/
 
+static int
+scm_subr_func_load__loop(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj port = SCM_OBJ_INIT, cmpl = SCM_OBJ_INIT, eval = SCM_OBJ_INIT;
+  ScmObj exp = SCM_OBJ_INIT, args = SCM_OBJ_INIT, ret = SCM_OBJ_INIT;
+  int r;
+
+  SCM_REFSTK_INIT_REG(&subr,
+                      &port, &cmpl, &eval,
+                      &exp, &args, &ret);
+
+  port = scm_fcd_car(argv[0]);
+  if (scm_obj_null_p(port)) return -1;
+
+  cmpl = scm_fcd_cdr(argv[0]);
+  if (scm_obj_null_p(cmpl)) return -1;
+
+  exp = scm_api_read(port);
+  if (scm_obj_null_p(exp)) return -1;
+
+  if (scm_fcd_eof_object_p(exp)) {
+    ret = SCM_UNDEF_OBJ;
+    return scm_fcd_return_val(&ret, 1);
+  }
+
+  r = scm_fcd_cached_global_var_ref(SCM_CACHED_GV_EVAL, SCM_CSETTER_L(eval));
+  if (r < 0) return -1;
+
+  if (scm_obj_null_p(eval)) {
+    scm_capi_error("unbound variable: eval", 0);
+    return -1;
+  }
+
+  args = scm_fcd_list(2, exp, cmpl);
+
+  return scm_capi_trampolining(eval, args, subr, argv[0]);
+}
+
+int
+scm_subr_func_load(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj path = SCM_OBJ_INIT, port = SCM_OBJ_INIT, cmpl = SCM_OBJ_INIT;
+  ScmObj mod = SCM_OBJ_INIT, loop = SCM_OBJ_INIT, args = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&subr,
+                      &path, &port, &cmpl,
+                      &mod, &loop, &args);
+
+  /* XXX: 現状、load の第 2 引数は無視する */
+
+  path = scm_fcd_search_load_file(argv[0]);
+  if (scm_obj_null_p(path)) return -1;
+
+  if (scm_fcd_false_p(path)) {
+    scm_capi_error("load: failed to find file", 1, argv[0]);
+    return -1;
+  }
+
+  port = scm_api_open_input_file(path);
+  if (scm_obj_null_p(port)) return -1;
+
+  cmpl = scm_fcd_make_compiler(SCM_OBJ_NULL);
+  if (scm_obj_null_p(cmpl)) return -1;
+
+  mod = scm_fcd_subrutine_env(subr);
+  args = scm_fcd_cons(port, cmpl);
+  if (scm_obj_null_p(args)) return -1;
+
+  args = scm_fcd_list(2, args, SCM_UNDEF_OBJ);
+  if (scm_obj_null_p(args)) return -1;
+
+  loop = scm_fcd_make_subrutine(scm_subr_func_load__loop,
+                                -2, SCM_PROC_ADJ_UNWISHED, mod);
+  if (scm_obj_null_p(loop)) return -1;
+
+  return scm_fcd_trampolining(loop, args, SCM_OBJ_NULL, SCM_OBJ_NULL);
+}
+
 int
 scm_subr_func_file_exists_P(ScmObj subr, int argc, const ScmObj *argv)
 {

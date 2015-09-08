@@ -140,6 +140,7 @@ static int scm_load_module_scheme_base(void);
 static int scm_load_module_scheme_char(void);
 static int scm_load_module_scheme_eval(void);
 static int scm_load_module_scheme_file(void);
+static int scm_load_module_scheme_load(void);
 static int scm_load_module_scheme_processcontext(void);
 static int scm_load_module_scheme_read(void);
 static int scm_load_module_scheme_write(void);
@@ -656,6 +657,58 @@ scm_load_module_scheme_file(void)
 
 
 /*******************************************************************/
+/*  (scheme load)                                                  */
+/*******************************************************************/
+
+static int
+scm_define_scheme_load_subr(ScmObj module)
+{
+  static const struct subr_data data[] = {
+    { "load", SCM_SUBR_ARITY_LOAD, SCM_SUBR_FLAG_LOAD, scm_subr_func_load, true },
+  };
+
+  int rslt;
+
+  SCM_REFSTK_INIT_REG(&module);
+
+  rslt = scm_define_subr(module, data, sizeof(data)/sizeof(data[0]));
+  if (rslt < 0) return -1;
+
+  return 0;
+}
+
+static int
+scm_load_module_func_scheme_load(ScmObj mod)
+{
+  ScmObj name = SCM_OBJ_INIT;
+  int rslt;
+
+  SCM_REFSTK_INIT_REG(&mod,
+                      &name);
+
+
+  /*
+   * define global variables
+   */
+
+  rslt = scm_define_scheme_load_subr(mod);
+  if (rslt < 0) return -1;
+
+  rslt = scm_define_var(mod, "*load-path*", SCM_NIL_OBJ, true);
+  if (rslt < 0) return -1;
+
+  return 0;
+}
+
+static int
+scm_load_module_scheme_load(void)
+{
+  return scm_load_module(STRARY("scheme", "load"), 2,
+                         scm_load_module_func_scheme_load);
+}
+
+
+/*******************************************************************/
 /*  (scheme process-context)                                       */
 /*******************************************************************/
 
@@ -867,6 +920,20 @@ scm_load_module_func_scythe_internal_base(ScmObj mod)
   if (rslt < 0) return -1;
 
   name = scm_make_module_name(STRARY("scheme", "file"), 2);
+  if (scm_obj_null_p(name)) return -1;
+
+  rslt = scm_fcd_module_import(mod, name, false);
+  if (rslt < 0) return -1;
+
+
+  /*
+   * load (scheme load) module and import it
+   */
+
+  rslt = scm_load_module_scheme_load();
+  if (rslt < 0) return -1;
+
+  name = scm_make_module_name(STRARY("scheme", "load"), 2);
   if (scm_obj_null_p(name)) return -1;
 
   rslt = scm_fcd_module_import(mod, name, false);
@@ -1599,6 +1666,7 @@ scm_load_core_modules(void)
     scm_load_module_scheme_char,
     scm_load_module_scheme_eval,
     scm_load_module_scheme_file,
+    scm_load_module_scheme_load,
     scm_load_module_scheme_processcontext,
     scm_load_module_scheme_read,
     scm_load_module_scheme_write,
