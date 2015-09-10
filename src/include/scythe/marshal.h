@@ -15,7 +15,6 @@ typedef struct ScmUnmarshalRec ScmUnmarshal;
 #include "scythe/object.h"
 #include "scythe/encoding.h"
 #include "scythe/chashtbl.h"
-#include "scythe/fcd_type.h"
 #include "earray.h"
 
 struct ScmMarshalHeaderRec {

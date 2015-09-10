@@ -4,7 +4,7 @@
 #include <stdbool.h>
 
 #include "scythe/object.h"
-#include "scythe/fcd_type.h"
+#include "scythe/fcd_syntax.h"
 
 /*************************************************************************/
 /* Syntax                                                                */

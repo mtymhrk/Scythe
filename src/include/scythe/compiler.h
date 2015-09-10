@@ -12,7 +12,6 @@ typedef struct ScmIdentifierRec ScmIdentifier;
 #define SCM_IDENTIFIER(obj) ((ScmIdentifier *)(obj))
 
 #include "scythe/object.h"
-#include "scythe/fcd_type.h"
 
 
 /*************************************************************************/

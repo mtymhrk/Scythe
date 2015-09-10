@@ -13,7 +13,6 @@ typedef struct ScmDWHCallerEnvRec ScmDWHCallerEnv;
 
 
 #include "scythe/object.h"
-#include "scythe/fcd_type.h"
 
 
 /*******************************************************************/

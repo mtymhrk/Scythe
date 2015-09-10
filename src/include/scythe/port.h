@@ -16,7 +16,17 @@ typedef struct ScmPortRec ScmPort;
 
 #include "scythe/object.h"
 #include "scythe/encoding.h"
-#include "scythe/fcd_type.h"
+
+
+typedef enum {
+  SCM_PORT_BUF_FULL,
+  SCM_PORT_BUF_LINE,
+  SCM_PORT_BUF_MODEST,
+  SCM_PORT_BUF_NONE,
+  SCM_PORT_BUF_DEFAULT,
+} SCM_PORT_BUF_T;
+
+#define SCM_PORT_NR_BUF_MODE (SCM_PORT_BUF_DEFAULT + 1)
 
 
 /***************************************************************************/

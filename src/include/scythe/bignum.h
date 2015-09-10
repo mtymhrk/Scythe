@@ -9,7 +9,6 @@ typedef struct ScmBignumRec ScmBignum;
 #define SCM_BIGNUM(obj) ((ScmBignum *)(obj))
 
 #include "scythe/object.h"
-#include "scythe/fcd_type.h"
 #include "scythe/earray.h"
 #include "scythe/impl_utils.h"
 

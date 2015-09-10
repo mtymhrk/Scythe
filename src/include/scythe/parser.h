@@ -15,7 +15,6 @@ typedef struct ScmParserRec ScmParser;
 #include "scythe/object.h"
 #include "scythe/encoding.h"
 #include "scythe/earray.h"
-#include "scythe/fcd_type.h"
 #include "scythe/number_parser.h"
 
 

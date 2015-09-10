@@ -5,7 +5,7 @@
 
 #include "scythe/object.h"
 #include "scythe/encoding.h"
-#include "scythe/fcd_type.h"
+#include "scythe/fcd_memory.h"
 
 #define SCM_FIXNUM_SHIFT_BIT 1
 #define SCM_FIXNUM_MAX (SCM_SWORD_MAX >> SCM_FIXNUM_SHIFT_BIT)
@@ -39,6 +39,41 @@ scm_fcd_fixnum_value(ScmObj num)
 
   return SCM_RSHIFT_ARITH((scm_sword_t)num, SCM_FIXNUM_SHIFT_BIT);
 }
+
+#if SIZEOF_LONG > SIZEOF_INT
+
+typedef unsigned int scm_bignum_d_t;
+typedef unsigned long scm_bignum_c_t;
+typedef long scm_bignum_sc_t;
+
+#define SCM_BIGNUM_BASE ((scm_bignum_c_t)UINT_MAX + 1)
+
+#elif SIZEOF_LLONG > SIZEOF_INT
+
+typedef unsigned int scm_bignum_d_t;
+typedef unsigned long long scm_bignum_c_t;
+typedef long long scm_bignum_sc_t;
+
+#define SCM_BIGNUM_BASE ((scm_bignum_c_t)UINT_MAX + 1)
+
+#elif SIZEOF_LONG > SIZEOF_SHORT
+
+typedef unsigned short scm_bignum_d_t;
+typedef unsigned long scm_bignum_c_t;
+typedef long scm_bignum_sc_t;
+
+#define SCM_BIGNUM_BASE ((scm_bignum_c_t)USHORT_MAX + 1)
+
+#else
+
+typedef unsigned char scm_bignum_d_t;
+typedef unsigned long scm_bignum_c_t;
+typedef long scm_bignum_sc_t;
+
+#define SCM_BIGNUM_BASE ((scm_bignum_c_t)UCHAR_MAX + 1)
+
+#endif
+
 
 bool scm_fcd_bignum_p(ScmObj obj);
 ScmObj scm_fcd_bignum_P(ScmObj obj);

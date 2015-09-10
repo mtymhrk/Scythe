@@ -22,7 +22,6 @@
 #include "scythe/fcd_scythe.h"
 #include "scythe/fcd_symbol.h"
 #include "scythe/fcd_syntax.h"
-#include "scythe/fcd_type.h"
 #include "scythe/fcd_vector.h"
 #include "scythe/fcd_vm.h"
 

@@ -13,7 +13,6 @@ typedef struct ScmDisassemblerRec ScmDisassembler;
 #include "scythe/object.h"
 #include "scythe/vminst.h"
 #include "scythe/earray.h"
-#include "scythe/fcd_type.h"
 
 
 /**************************************************************************/

@@ -4,7 +4,7 @@
 #include <stdbool.h>
 
 #include "scythe/object.h"
-#include "scythe/fcd_type.h"
+#include "scythe/fcd_memory.h"
 
 bool scm_fcd_pair_p(ScmObj pair);
 ScmObj scm_fcd_pair_P(ScmObj pair);

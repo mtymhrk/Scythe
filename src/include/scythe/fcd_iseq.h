@@ -6,7 +6,7 @@
 
 #include "scythe/object.h"
 #include "scythe/vminst.h"
-#include "scythe/fcd_type.h"
+#include "scythe/fcd_memory.h"
 
 bool scm_fcd_iseq_p(ScmObj obj);
 ScmObj scm_fcd_iseq_new(SCM_MEM_TYPE_T mtype);

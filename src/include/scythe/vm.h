@@ -15,7 +15,8 @@ typedef struct ScmVMRec ScmVM;
 #include "scythe/object.h"
 #include "scythe/encoding.h"
 #include "scythe/vmstack.h"
-
+#include "scythe/fcd_memory.h"
+#include "scythe/fcd_vm.h"
 
 /***************************************************************************/
 /*  ScmBedrock                                                             */

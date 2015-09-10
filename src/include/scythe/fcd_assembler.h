@@ -6,7 +6,7 @@
 
 #include "scythe/object.h"
 #include "scythe/vminst.h"
-#include "scythe/fcd_type.h"
+#include "scythe/fcd_memory.h"
 
 
 #define SCM_ASM_PI_START ((INT_MAX >> 1) + 1)
@@ -38,6 +38,32 @@ ScmObj scm_fcd_assembler_iseq(ScmObj asmb);
 /**************************************************************************/
 /* Disassembler                                                           */
 /**************************************************************************/
+
+enum {
+  SCM_DISASM_TK_INST,
+  SCM_DISASM_TK_LABEL,
+  SCM_DISASM_TK_END,
+};
+
+typedef struct ScmDisasmTokenRec ScmDisasmToken;
+
+struct ScmDisasmTokenRec {
+  int type;
+  struct {
+    int fmt;
+    union {
+      scm_opcode_t op;
+      struct scm_vm_inst_noopd     noopd;
+      struct scm_vm_inst_obj       obj;
+      struct scm_vm_inst_obj_obj   obj_obj;
+      struct scm_vm_inst_si        si;
+      struct scm_vm_inst_si_si     si_si;
+      struct scm_vm_inst_si_si_obj si_si_obj;
+      struct scm_vm_inst_iof       iof;
+    } i;
+  } inst;
+  size_t label_id;
+};
 
 bool scm_fcd_disassembler_p(ScmObj obj);
 ScmObj scm_fcd_disassembler_new(SCM_MEM_TYPE_T mtype, ScmObj iseq);

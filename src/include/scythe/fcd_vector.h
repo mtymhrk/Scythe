@@ -5,7 +5,7 @@
 #include <stddef.h>
 
 #include "scythe/object.h"
-#include "scythe/fcd_type.h"
+#include "scythe/fcd_memory.h"
 
 
 /*******************************************************************/

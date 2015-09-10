@@ -13,7 +13,6 @@ typedef struct ScmByteVectorRec ScmByteVector;
 
 #include "scythe/object.h"
 #include "scythe/earray.h"
-#include "scythe/fcd_type.h"
 
 
 /*******************************************************************/

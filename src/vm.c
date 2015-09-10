@@ -3637,6 +3637,10 @@ scm_vm_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
 /*  VM (interface)                                                         */
 /***************************************************************************/
 
+ScmBedrock *scm_fcd__current_br = NULL;
+ScmObj scm_fcd__current_vm = SCM_OBJ_INIT;
+ScmObj scm_fcd__current_ref_stack = SCM_OBJ_INIT;
+
 ScmBedrock *
 scm_fcd_bedrock_new(void)
 {
@@ -3682,10 +3686,6 @@ scm_fcd_bedrock_cleanup(ScmBedrock *br)
 
   scm_bedrock_cleanup(br);
 }
-
-ScmBedrock *scm_fcd__current_br = NULL;
-ScmObj scm_fcd__current_vm = SCM_OBJ_INIT;
-ScmObj scm_fcd__current_ref_stack = SCM_OBJ_INIT;
 
 /* Memo:
  *  scm_fcd_nil() の関数の実行では GC が発生するのは NG。

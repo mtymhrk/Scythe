@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+typedef struct ScmForwardRec ScmForward;
 typedef struct ScmMemHeapCellFinInfoRec ScmMemHeapCellFinInfo;
 typedef struct ScmMemHeapCellWRefInfoRec ScmMemHeapCellWRefInfo;
 typedef struct ScmMemHeapCellTSortInfoRec ScmMemHeapCellTSortInfoRec;
@@ -19,8 +20,8 @@ typedef struct ScmMemRootBlockRec ScmMemRootBlock;
 
 
 #include "scythe/object.h"
-#include "scythe/fcd_type.h"
 #include "scythe/impl_utils.h"
+#include "scythe/fcd_memory.h"
 
 
 /****************************************************************************/

@@ -4,7 +4,6 @@
 #include <stdbool.h>
 
 #include "scythe/object.h"
-#include "scythe/fcd_type.h"
 #include "scythe/earray.h"
 
 enum { SCM_SCYTHE_S_DOWN, SCM_SCYTHE_S_UP };

@@ -4,11 +4,15 @@
 #include <stdbool.h>
 
 #include "scythe/object.h"
-#include "scythe/fcd_type.h"
+#include "scythe/fcd_memory.h"
 
 /*******************************************************************/
 /*  Procedure                                                      */
 /*******************************************************************/
+
+typedef enum {
+  SCM_PROC_ADJ_UNWISHED = 0x0001,
+} SCM_PROC_FLG_T;
 
 bool scm_fcd_procedure_p(ScmObj proc);
 ScmObj scm_fcd_procedure_P(ScmObj proc);
@@ -19,6 +23,8 @@ bool scm_fcd_procedure_flg_set_p(ScmObj proc, SCM_PROC_FLG_T flg);
 /*******************************************************************/
 /*  Subrutine                                                      */
 /*******************************************************************/
+
+typedef int (*ScmSubrFunc)(ScmObj subr, int argc, const ScmObj *argv);
 
 bool scm_fcd_subrutine_p(ScmObj obj);
 ScmObj scm_fcd_subrutine_new(SCM_MEM_TYPE_T mtype,

@@ -6,7 +6,7 @@
 
 #include "scythe/object.h"
 #include "scythe/encoding.h"
-#include "scythe/fcd_type.h"
+#include "scythe/fcd_memory.h"
 
 bool scm_fcd_char_p(ScmObj obj);
 ScmObj scm_fcd_char_P(ScmObj obj);

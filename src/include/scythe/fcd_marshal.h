@@ -6,7 +6,7 @@
 #include <stdarg.h>
 
 #include "scythe/object.h"
-#include "scythe/fcd_type.h"
+#include "scythe/fcd_memory.h"
 
 bool scm_fcd_marshal_p(ScmObj obj);
 ScmObj scm_fcd_marshal_new(SCM_MEM_TYPE_T mtype);

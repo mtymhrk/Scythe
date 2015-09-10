@@ -5,7 +5,7 @@
 #include <stddef.h>
 
 #include "scythe/object.h"
-#include "scythe/fcd_type.h"
+#include "scythe/fcd_memory.h"
 
 ScmObj scm_fcd_error_new_cv(SCM_MEM_TYPE_T mtype, ScmObj msg,
                             ScmObj type, ScmObj *irris, size_t n);

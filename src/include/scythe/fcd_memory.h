@@ -4,7 +4,15 @@
 #include <stddef.h>
 
 #include "scythe/object.h"
-#include "scythe/fcd_type.h"
+
+typedef struct ScmMemRec ScmMem;
+
+typedef enum {
+  SCM_MEM_HEAP,
+  SCM_MEM_ROOT,
+} SCM_MEM_TYPE_T;
+
+
 #include "scythe/fcd_vm.h"
 
 ScmMem *scm_fcd_mem_new(void);

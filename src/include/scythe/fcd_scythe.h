@@ -1,7 +1,7 @@
 #ifndef INCLUDE_FCD_SCYTHE_H__
 #define INCLUDE_FCD_SCYTHE_H__
 
-#include "scythe/fcd_type.h"
+typedef struct ScmScytheRec ScmScythe;
 
 ScmScythe *scm_fcd_scythe_new();
 void scm_fcd_scythe_end(ScmScythe *scy);

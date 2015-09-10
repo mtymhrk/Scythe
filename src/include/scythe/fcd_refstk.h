@@ -1,7 +1,37 @@
 #ifndef INCLUDE_FCD_REFSTK_H__
 #define INCLUDE_FCD_REFSTK_H__
 
-#include "scythe/fcd_type.h"
+
+#include "scythe/fcd_memory.h"
+
+enum { SCM_REFSTACK_RARY, SCM_REFSTACK_ARY };
+
+typedef struct ScmRefStackBlockRec ScmRefStackBlock;
+struct ScmRefStackBlockRec {
+  ScmRefStackBlock *next;
+  int type;
+  union {
+    ScmObj **rary;
+    struct {
+      ScmObj *head;
+      size_t n;
+    } ary;
+  } ref;
+};
+
+typedef struct ScmRefStackInfoRec ScmRefStackInfo;
+struct ScmRefStackInfoRec {
+  ScmRefStackBlock *stack;
+};
+
+typedef struct ScmRefStackRec ScmRefStack;
+struct ScmRefStackRec {
+  ScmObjHeader *header;
+  ScmRefStackBlock *stack;
+};
+
+#define SCM_REFSTACK(obj) ((ScmRefStack *)(obj))
+
 
 #define SCM_REFSTK_INIT                                                 \
   __attribute__((__cleanup__(scm_fcd_ref_stack_restore)))               \

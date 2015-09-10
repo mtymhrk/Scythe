@@ -5,7 +5,7 @@
 
 #include "scythe/object.h"
 #include "scythe/encoding.h"
-#include "scythe/fcd_type.h"
+#include "scythe/fcd_memory.h"
 
 bool scm_fcd_symbol_p(ScmObj obj);
 ScmObj scm_fcd_symbol_P(ScmObj obj);
