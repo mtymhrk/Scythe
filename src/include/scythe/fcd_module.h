@@ -7,7 +7,7 @@
 #include "scythe/fcd_memory.h"
 
 bool scm_fcd_gloc_p(ScmObj obj);
-ScmObj scm_fcd_gloc_new(SCM_MEM_TYPE_T mtype, ScmObj sym);
+ScmObj scm_fcd_gloc_new(scm_mem_type_t mtype, ScmObj sym);
 ScmObj scm_fcd_gloc_variable_value(ScmObj gloc);
 ScmObj scm_fcd_gloc_keyword_value(ScmObj gloc);
 ScmObj scm_fcd_gloc_symbol(ScmObj gloc);
@@ -17,8 +17,8 @@ bool scm_fcd_module_p(ScmObj obj);
 ScmObj scm_fcd_module_P(ScmObj obj);
 bool scm_fcd_module_name_p(ScmObj obj);
 bool scm_fcd_module_specifier_p(ScmObj obj);
-ScmObj scm_fcd_module_new(SCM_MEM_TYPE_T mtype, ScmObj name);
-ScmObj scm_fcd_moduletree_new(SCM_MEM_TYPE_T mtype);
+ScmObj scm_fcd_module_new(scm_mem_type_t mtype, ScmObj name);
+ScmObj scm_fcd_moduletree_new(scm_mem_type_t mtype);
 ScmObj scm_fcd_make_module(ScmObj name);
 int scm_fcd_find_module(ScmObj name, scm_csetter_t *mod);
 ScmObj scm_fcd_module_name(ScmObj module);

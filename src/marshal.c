@@ -3582,7 +3582,7 @@ scm_fcd_marshal_p(ScmObj obj)
 }
 
 ScmObj
-scm_fcd_marshal_new(SCM_MEM_TYPE_T mtype)
+scm_fcd_marshal_new(scm_mem_type_t mtype)
 {
   ScmObj marshal = SCM_OBJ_INIT;
   int r;
@@ -3635,7 +3635,7 @@ scm_fcd_unmarshal_p(ScmObj obj)
 }
 
 ScmObj
-scm_fcd_unmarshal_new(SCM_MEM_TYPE_T mtype, const void *data)
+scm_fcd_unmarshal_new(scm_mem_type_t mtype, const void *data)
 {
   ScmObj unmarshal = SCM_OBJ_INIT;
   int r;

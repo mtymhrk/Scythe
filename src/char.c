@@ -284,7 +284,7 @@ scm_fcd_char_P(ScmObj obj)
 }
 
 ScmObj
-scm_fcd_char_new(SCM_MEM_TYPE_T mtype,
+scm_fcd_char_new(scm_mem_type_t mtype,
                  const scm_char_t *value, ScmEncoding *enc)
 {
   ScmObj chr = SCM_OBJ_INIT;

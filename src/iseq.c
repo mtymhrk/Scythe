@@ -290,7 +290,7 @@ scm_fcd_iseq_p(ScmObj obj)
 }
 
 ScmObj
-scm_fcd_iseq_new(SCM_MEM_TYPE_T mtype)
+scm_fcd_iseq_new(scm_mem_type_t mtype)
 {
   ScmObj iseq = SCM_OBJ_INIT;
 

@@ -51,7 +51,7 @@ scm_proc_env(ScmObj proc)
 }
 
 static inline ScmObj
-scm_proc_flg_set_p(ScmObj proc, SCM_PROC_FLG_T flg)
+scm_proc_flg_set_p(ScmObj proc, unsigned int flg)
 {
   return (SCM_PROCEDURE(proc)->flags & flg) ? true : false;
 }
@@ -143,7 +143,7 @@ struct ScmDWHCallerEnvRec {
 int scm_dwhcallerenv_initialize(ScmObj dwhce,
                                 ScmObj cont, const ScmObj *val, size_t vc);
 void scm_dwhcallerenv_finalize(ScmObj dwhce);
-ScmObj scm_dwhcallerenv_new(SCM_MEM_TYPE_T mtype,
+ScmObj scm_dwhcallerenv_new(scm_mem_type_t mtype,
                             ScmObj cont, const ScmObj *val, size_t vc);
 void scm_dwhcallerenv_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_dwhcallerenv_gc_finalize(ScmObj obj);

@@ -11,7 +11,7 @@
 /*  Nil (empty list)                                   */
 /*******************************************************/
 
-ScmObj scm_fcd_nil_new(SCM_MEM_TYPE_T mtype);
+ScmObj scm_fcd_nil_new(scm_mem_type_t mtype);
 bool scm_fcd_nil_p(ScmObj obj);
 ScmObj scm_fcd_nil_P(ScmObj obj);
 bool scm_fcd_nil_object_p(ScmObj obj);
@@ -23,7 +23,7 @@ bool scm_fcd_nil_object_p(ScmObj obj);
 
 bool scm_fcd_boolean_p(ScmObj obj);
 ScmObj scm_fcd_boolean_P(ScmObj obj);
-ScmObj scm_fcd_bool_new(SCM_MEM_TYPE_T mtype, bool value);
+ScmObj scm_fcd_bool_new(scm_mem_type_t mtype, bool value);
 bool scm_fcd_true_object_p(ScmObj obj);
 bool scm_fcd_false_object_p(ScmObj obj);
 bool scm_fcd_true_p(ScmObj obj);
@@ -35,7 +35,7 @@ ScmObj scm_fcd_not(ScmObj obj);
 /*  EOF                                                */
 /*******************************************************/
 
-ScmObj scm_fcd_eof_new(SCM_MEM_TYPE_T mtype);
+ScmObj scm_fcd_eof_new(scm_mem_type_t mtype);
 bool scm_fcd_eof_p(ScmObj obj);
 bool scm_fcd_eof_object_p(ScmObj obj);
 ScmObj scm_fcd_eof_object_P(ScmObj obj);
@@ -45,7 +45,7 @@ ScmObj scm_fcd_eof_object_P(ScmObj obj);
 /*  Undef                                              */
 /*******************************************************/
 
-ScmObj scm_fcd_undef_new(SCM_MEM_TYPE_T mtype);
+ScmObj scm_fcd_undef_new(scm_mem_type_t mtype);
 bool scm_fcd_undef_p(ScmObj obj);
 bool scm_fcd_undef_object_p(ScmObj obj);
 
@@ -54,7 +54,7 @@ bool scm_fcd_undef_object_p(ScmObj obj);
 /*  Landmine (uninitialized)                           */
 /*******************************************************/
 
-ScmObj scm_fcd_landmine_new(SCM_MEM_TYPE_T mtype);
+ScmObj scm_fcd_landmine_new(scm_mem_type_t mtype);
 bool scm_fcd_landmine_p(ScmObj obj);
 bool scm_fcd_landmine_object_p(ScmObj obj);
 
@@ -72,7 +72,7 @@ struct ScmBoxRec {
 };
 
 bool scm_fcd_box_p(ScmObj obj);
-ScmObj scm_fcd_box_new(SCM_MEM_TYPE_T mtype, ScmObj obj);
+ScmObj scm_fcd_box_new(scm_mem_type_t mtype, ScmObj obj);
 
 #define scm_fcd_box_object_p scm_fcd_box_p
 

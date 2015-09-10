@@ -1362,7 +1362,7 @@ scm_fcd_mem_alloc_root(ScmTypeInfo *type, size_t add_size)
 }
 
 ScmObj
-scm_fcd_mem_alloc(ScmTypeInfo *otype, size_t add_size, SCM_MEM_TYPE_T mtype)
+scm_fcd_mem_alloc(ScmTypeInfo *otype, size_t add_size, scm_mem_type_t mtype)
 {
   switch(mtype) {
   case SCM_MEM_HEAP:

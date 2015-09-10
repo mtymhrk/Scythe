@@ -9,6 +9,9 @@ typedef struct ScmParserRefRec ScmParserRef;
 typedef struct ScmDatumLabelUseRec ScmDatumLabelUse;
 typedef struct ScmParserRec ScmParser;
 
+typedef enum scm_token_type scm_token_type_t;
+typedef enum scm_lexer_err_type scm_lexer_err_type_t;
+
 #define SCM_DATUM_LABEL_USE(obj) ((ScmDatumLabelUse *)(obj))
 #define SCM_PARSER(obj) ((ScmParser *)(obj))
 
@@ -22,7 +25,7 @@ typedef struct ScmParserRec ScmParser;
 /*  ScmToken                                                                */
 /****************************************************************************/
 
-typedef enum {
+enum scm_token_type {
   SCM_TOKEN_TYPE_NONE,
   SCM_TOKEN_TYPE_LPAREN,
   SCM_TOKEN_TYPE_RPAREN,
@@ -44,10 +47,10 @@ typedef enum {
   SCM_TOKEN_TYPE_CHAR,
   SCM_TOKEN_TYPE_EOF,
   SCM_TOKEN_TYPE_TOKENIZE_ERR
-} SCM_TOKEN_TYPE_T;
+};
 
 struct ScmTokenRec {
-  SCM_TOKEN_TYPE_T type;
+  scm_token_type_t type;
   scm_char_t *str;
   size_t len;
   ScmNumParseData npd;
@@ -59,19 +62,19 @@ struct ScmTokenRec {
 /*  ScmLexer                                                                */
 /****************************************************************************/
 
-typedef enum {
+enum scm_lexer_err_type {
   SCM_LEXER_ERR_TYPE_NONE,
   SCM_LEXER_ERR_TYPE_UNEXPECTED_CHAR,
   SCM_LEXER_ERR_TYPE_UNEXPECTED_EOF,
-} SCM_LEXER_ERR_TYPE_T;
+};
 
 struct ScmLexerRec {
-  SCM_TOKEN_TYPE_T token_type;
+  scm_token_type_t token_type;
   EArray str;
   ScmNumParseData npd;
   ScmToken *tokens_head;
   ScmToken *tokens_tail;
-  SCM_LEXER_ERR_TYPE_T error_type;
+  scm_lexer_err_type_t error_type;
 };
 
 ScmLexer *scm_lexer_new(void);
@@ -80,7 +83,7 @@ ScmToken *scm_lexer_head_token(ScmLexer *lexer, ScmObj port, ScmEncoding *enc);
 void scm_lexer_shift_token(ScmLexer *lexer);
 void scm_lexer_clear_error_state(ScmLexer *lexer);
 bool scm_lexer_error_p(ScmLexer *lexer);
-SCM_LEXER_ERR_TYPE_T scm_lexer_error_type(ScmLexer *lexer);
+scm_lexer_err_type_t scm_lexer_error_type(ScmLexer *lexer);
 
 
 /****************************************************************************/
@@ -102,7 +105,7 @@ struct ScmDatumLabelUseRec {
 };
 
 int scm_datum_label_use_initialize(ScmObj use, ScmParserRef *ref);
-ScmObj scm_datum_label_use_new(SCM_MEM_TYPE_T mtype, ScmParserRef *ref);
+ScmObj scm_datum_label_use_new(scm_mem_type_t mtype, ScmParserRef *ref);
 int scm_datum_label_use_resolve(ScmObj use);
 void scm_datum_label_use_gc_initialize(ScmObj obj, ScmObj mem);
 int scm_datum_label_use_gc_accept(ScmObj obj, ScmObj mem,
@@ -124,7 +127,7 @@ struct ScmParserRec {
 
 int scm_parser_initialize(ScmObj parser);
 void scm_parser_finalize(ScmObj parser);
-ScmObj scm_parser_new(SCM_MEM_TYPE_T mtype);
+ScmObj scm_parser_new(scm_mem_type_t mtype);
 ScmObj scm_parser_parse(ScmObj parser, ScmObj port);
 void scm_parser_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_parser_gc_finalize(ScmObj obj);

@@ -426,7 +426,7 @@ ScmTypeInfo SCM_CONTCAP_TYPE_INFO = {
 };
 
 ScmObj
-scm_contcap_new(SCM_MEM_TYPE_T mtype)
+scm_contcap_new(scm_mem_type_t mtype)
 {
   ScmObj cc = SCM_OBJ_INIT;
 
@@ -542,7 +542,7 @@ ScmTypeInfo SCM_VM_TYPE_INFO = {
 
 
 static inline void
-scm_vm_ctrl_flg_set(ScmObj vm, SCM_VM_CTRL_FLG_T flg)
+scm_vm_ctrl_flg_set(ScmObj vm, scm_vm_ctrl_flg_t flg)
 {
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
@@ -550,7 +550,7 @@ scm_vm_ctrl_flg_set(ScmObj vm, SCM_VM_CTRL_FLG_T flg)
 }
 
 static inline void
-scm_vm_ctrl_flg_clr(ScmObj vm, SCM_VM_CTRL_FLG_T flg)
+scm_vm_ctrl_flg_clr(ScmObj vm, scm_vm_ctrl_flg_t flg)
 {
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
@@ -558,7 +558,7 @@ scm_vm_ctrl_flg_clr(ScmObj vm, SCM_VM_CTRL_FLG_T flg)
 }
 
 static inline bool
-scm_vm_ctrl_flg_set_p(ScmObj vm, SCM_VM_CTRL_FLG_T flg)
+scm_vm_ctrl_flg_set_p(ScmObj vm, scm_vm_ctrl_flg_t flg)
 {
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 

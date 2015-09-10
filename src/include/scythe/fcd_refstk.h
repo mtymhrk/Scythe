@@ -72,7 +72,7 @@ struct ScmRefStackRec {
   SCM_REFSTK_INIT; SCM_REFSTK_REG(__VA_ARGS__);
 
 
-ScmObj scm_fcd_ref_stack_new(SCM_MEM_TYPE_T mtype);
+ScmObj scm_fcd_ref_stack_new(scm_mem_type_t mtype);
 
 static inline void
 scm_fcd_ref_stack_push(ScmRefStackBlock *block)

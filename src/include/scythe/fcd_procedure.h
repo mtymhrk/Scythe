@@ -10,14 +10,14 @@
 /*  Procedure                                                      */
 /*******************************************************************/
 
-typedef enum {
+enum {
   SCM_PROC_ADJ_UNWISHED = 0x0001,
-} SCM_PROC_FLG_T;
+};
 
 bool scm_fcd_procedure_p(ScmObj proc);
 ScmObj scm_fcd_procedure_P(ScmObj proc);
 int scm_fcd_arity(ScmObj proc);
-bool scm_fcd_procedure_flg_set_p(ScmObj proc, SCM_PROC_FLG_T flg);
+bool scm_fcd_procedure_flg_set_p(ScmObj proc, unsigned int flg);
 
 
 /*******************************************************************/
@@ -27,7 +27,7 @@ bool scm_fcd_procedure_flg_set_p(ScmObj proc, SCM_PROC_FLG_T flg);
 typedef int (*ScmSubrFunc)(ScmObj subr, int argc, const ScmObj *argv);
 
 bool scm_fcd_subrutine_p(ScmObj obj);
-ScmObj scm_fcd_subrutine_new(SCM_MEM_TYPE_T mtype,
+ScmObj scm_fcd_subrutine_new(scm_mem_type_t mtype,
                              ScmSubrFunc func, ScmObj name, int arity,
                              unsigned int flags, ScmObj env);
 ScmObj scm_fcd_make_subrutine(ScmSubrFunc func, int arity, unsigned int flags,
@@ -41,7 +41,7 @@ ScmObj scm_fcd_subrutine_env(ScmObj subr);
 /*******************************************************************/
 
 bool scm_fcd_closure_p(ScmObj obj);
-ScmObj scm_fcd_closure_new(SCM_MEM_TYPE_T mtype,
+ScmObj scm_fcd_closure_new(scm_mem_type_t mtype,
                            ScmObj iseq, ScmObj env, ScmObj name, int arity);
 ScmObj scm_fcd_make_closure(ScmObj iseq, ScmObj env, int arity);
 ScmObj scm_fcd_closure_to_iseq(ScmObj clsr);
@@ -54,7 +54,7 @@ ScmObj scm_fcd_closure_env(ScmObj clsr);
 /*******************************************************************/
 
 bool scm_fcd_parameter_p(ScmObj obj);
-ScmObj scm_fcd_parameter_new(SCM_MEM_TYPE_T mtype, ScmObj init, ScmObj conv);
+ScmObj scm_fcd_parameter_new(scm_mem_type_t mtype, ScmObj init, ScmObj conv);
 ScmObj scm_fcd_make_parameter(ScmObj init, ScmObj conv);
 ScmObj scm_fcd_parameter_init_val(ScmObj prm);
 ScmObj scm_fcd_parameter_converter(ScmObj prm);
@@ -66,7 +66,7 @@ void scm_fcd_parameter_set_init_val(ScmObj prm, ScmObj val);
 /*******************************************************************/
 
 bool scm_fcd_continuation_p(ScmObj obj);
-ScmObj scm_fcd_continuation_new(SCM_MEM_TYPE_T mtype, ScmObj contcap);
+ScmObj scm_fcd_continuation_new(scm_mem_type_t mtype, ScmObj contcap);
 ScmObj scm_fcd_make_continuation(void);
 
 

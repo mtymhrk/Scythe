@@ -12,19 +12,22 @@ typedef struct ScmBufferedIORec ScmBufferedIO;
 typedef struct ScmCharConvIORec ScmCharConvIO;
 typedef struct ScmPortRec ScmPort;
 
+typedef enum scm_port_buf scm_port_buf_t;
+typedef enum scm_io_mode scm_io_mode_t;
+
 #define SCM_PORT(obj) ((ScmPort *)(obj))
 
 #include "scythe/object.h"
 #include "scythe/encoding.h"
 
 
-typedef enum {
+enum scm_port_buf {
   SCM_PORT_BUF_FULL,
   SCM_PORT_BUF_LINE,
   SCM_PORT_BUF_MODEST,
   SCM_PORT_BUF_NONE,
   SCM_PORT_BUF_DEFAULT,
-} SCM_PORT_BUF_T;
+};
 
 #define SCM_PORT_NR_BUF_MODE (SCM_PORT_BUF_DEFAULT + 1)
 
@@ -33,10 +36,10 @@ typedef enum {
 /*  ScmIO                                                                  */
 /***************************************************************************/
 
-typedef enum {
+enum scm_io_mode {
   SCM_IO_MODE_READ,
   SCM_IO_MODE_WRITE
-} SCM_IO_MODE_T;
+};
 
 typedef void (*ScmIOFinFunc)(ScmIO *io);
 typedef ssize_t (*ScmIOReadFunc)(ScmIO *io, void *buf, size_t size);
@@ -45,8 +48,8 @@ typedef off_t (*ScmIOSeekFunc)(ScmIO *io, off_t offset, int whence);
 typedef off_t (*ScmIOPosFunc)(ScmIO *io);
 typedef int (*ScmIOCloseFunc)(ScmIO *io);
 typedef int (*ScmIOReadyPFunc)(ScmIO *io);
-typedef int (*ScmIOBuffModeFunc)(ScmIO *io, SCM_IO_MODE_T im,
-                                 SCM_PORT_BUF_T *mode);
+typedef int (*ScmIOBuffModeFunc)(ScmIO *io, scm_io_mode_t im,
+                                 scm_port_buf_t *mode);
 typedef ssize_t (*ScmIOBlkSizeFunc)(ScmIO *io);
 typedef int (*ScmIOFlushFunc)(ScmIO *io);
 typedef int (*ScmIOClearFunc)(ScmIO *io);
@@ -98,7 +101,7 @@ struct ScmBufferedIORec {
 struct ScmCharConvIORec {
   ScmIO io_base;
   ScmIO *io;
-  SCM_IO_MODE_T im;
+  scm_io_mode_t im;
   ScmEncCnv cnv;
   char *unconverted;
   bool uc_incomplete_p;
@@ -129,7 +132,7 @@ off_t scm_io_seek(ScmIO *io, off_t offset, int whence);
 off_t scm_io_pos(ScmIO *io);
 int scm_io_close(ScmIO *io);
 int scm_io_ready_p(ScmIO *io);
-int scm_io_buffer_mode(ScmIO *io, SCM_IO_MODE_T im, SCM_PORT_BUF_T *mode);
+int scm_io_buffer_mode(ScmIO *io, scm_io_mode_t im, scm_port_buf_t *mode);
 ssize_t scm_io_block_size(ScmIO *io);
 int scm_io_flush(ScmIO *io);
 int scm_io_clear(ScmIO *io);
@@ -144,8 +147,8 @@ int scm_fileio_ready_p(ScmFileIO *fileio);
 off_t scm_fileio_seek(ScmFileIO *fileio, off_t offset, int whence);
 off_t scm_fileio_pos(ScmFileIO *fileio);
 int scm_fileio_close(ScmFileIO *fileio);
-int scm_fileio_buffer_mode(ScmFileIO *fileio, SCM_IO_MODE_T im,
-                           SCM_PORT_BUF_T *mode);
+int scm_fileio_buffer_mode(ScmFileIO *fileio, scm_io_mode_t im,
+                           scm_port_buf_t *mode);
 ssize_t scm_fileio_block_size(ScmFileIO *fileio);
 
 ScmStringIO *scm_stringio_new(const char *str, size_t len);
@@ -156,8 +159,8 @@ int scm_stringio_ready_p(ScmStringIO *strio);
 off_t scm_stringio_seek(ScmStringIO *strio, off_t offset, int whence);
 off_t scm_stringio_pos(ScmStringIO *strio);
 int scm_stringio_close(ScmStringIO *strio);
-int scm_stringio_buffer_mode(ScmStringIO *strio, SCM_IO_MODE_T im,
-                             SCM_PORT_BUF_T *mode);
+int scm_stringio_buffer_mode(ScmStringIO *strio, scm_io_mode_t im,
+                             scm_port_buf_t *mode);
 char *scm_stringio_buffer(ScmStringIO *strio);
 size_t scm_stringio_length(ScmStringIO *strio);
 char *scm_stringio_chuck_buffer(ScmStringIO *strio);
@@ -171,13 +174,13 @@ off_t scm_bufferedio_seek(ScmBufferedIO *bufio, off_t offset, int whence);
 off_t scm_bufferedio_pos(ScmBufferedIO *bufio);
 int scm_bufferedio_close(ScmBufferedIO *bufio);
 int scm_bufferedio_buffer_mode(ScmBufferedIO *bufio,
-                               SCM_IO_MODE_T im, SCM_PORT_BUF_T *mode);
+                               scm_io_mode_t im, scm_port_buf_t *mode);
 ssize_t scm_bufferedio_block_size(ScmBufferedIO *bufio);
 int scm_bufferedio_flush(ScmBufferedIO *bufio);
 int scm_bufferedio_clear(ScmBufferedIO *bufio);
 ScmIO *scm_bufferedio_lower(ScmBufferedIO *bufio);
 
-ScmCharConvIO *scm_charconvio_new(ScmIO *io, SCM_IO_MODE_T mode,
+ScmCharConvIO *scm_charconvio_new(ScmIO *io, scm_io_mode_t mode,
                                   const char *incode, const char *extcode);
 void scm_charconvio_end(ScmCharConvIO *ccio);
 ssize_t scm_charconvio_read(ScmCharConvIO *ccio, void *buf, size_t size);
@@ -185,7 +188,7 @@ ssize_t scm_charconvio_write(ScmCharConvIO *ccio, const void *buf, size_t size);
 int scm_charconvio_ready_p(ScmCharConvIO *ccio);
 int scm_charconvio_close(ScmCharConvIO *ccio);
 int scm_charconvio_buffer_mode(ScmCharConvIO *ccio,
-                               SCM_IO_MODE_T im, SCM_PORT_BUF_T *mode);
+                               scm_io_mode_t im, scm_port_buf_t *mode);
 int scm_charconvio_flush(ScmCharConvIO *ccio);
 int scm_charconvio_clear(ScmCharConvIO *ccio);
 ScmIO *scm_charconvio_lower(ScmCharConvIO *ccio);
@@ -198,7 +201,7 @@ ScmIO *scm_charconvio_lower(ScmCharConvIO *ccio);
 #define SCM_PORT_PUSHBACK_BUFF_SIZE 32 /* かなりテキトーな値 */
 #define SCM_PORT_ENCODING_NAME_SIZE 64
 
-typedef enum {
+enum {
   SCM_PORT_ATTR_INPUT       = 0x0001,
   SCM_PORT_ATTR_OUTPUT      = 0x0002,
   SCM_PORT_ATTR_BINARY      = 0x0004,
@@ -207,20 +210,20 @@ typedef enum {
   SCM_PORT_ATTR_STRING      = 0x0020,
   SCM_PORT_ATTR_BUFFERED    = 0x0040,
   SCM_PORT_ATTR_CHARCONV    = 0x0080,
-} SCM_PORT_ATTR;
+};
 
-typedef enum {
+enum {
   SCM_PORT_OFLG_TRUNC  = 0x0001,
   SCM_PORT_OFLG_APPEND = 0x0002,
   SCM_PORT_OFLG_CREATE = 0x0004,
   SCM_PORT_OFLG_EXCL   = 0x0008,
-} SCM_PORT_OFLG;
+};
 
 struct ScmPortRec {
   ScmObjHeader header;
   ScmIO *io;
-  SCM_PORT_BUF_T buf_mode;
-  SCM_PORT_ATTR attr;
+  scm_port_buf_t buf_mode;
+  unsigned int attr;
   bool closed_p;
   bool eof_received_p;
   uint8_t pushback[SCM_PORT_PUSHBACK_BUFF_SIZE];
@@ -233,23 +236,23 @@ extern ScmTypeInfo SCM_PORT_TYPE_INFO;
 
 
 int scm_port_initialize(ScmObj port, ScmIO *io,
-                        SCM_PORT_ATTR attr, SCM_PORT_BUF_T buf_mode,
+                        unsigned int attr, scm_port_buf_t buf_mode,
                         ScmEncoding *inn_enc, const char *enc);
 void scm_port_finalize(ScmObj port);
-ScmObj scm_port_new(SCM_MEM_TYPE_T mtype,
-                    ScmIO *io, SCM_PORT_ATTR attr, SCM_PORT_BUF_T buf_mode,
+ScmObj scm_port_new(scm_mem_type_t mtype,
+                    ScmIO *io, unsigned int attr, scm_port_buf_t buf_mode,
                     ScmEncoding *inn_enc, const char *enc);
-ScmObj scm_port_open_fd_inter(int fd, SCM_PORT_ATTR attr,
-                              SCM_PORT_BUF_T buf_mode,
+ScmObj scm_port_open_fd_inter(int fd, unsigned int attr,
+                              scm_port_buf_t buf_mode,
                               ScmEncoding *inn_enc, const char *enc);
-ScmObj scm_port_open_fd(int fd, const char *mode, SCM_PORT_BUF_T buf_mode,
+ScmObj scm_port_open_fd(int fd, const char *mode, scm_port_buf_t buf_mode,
                         ScmEncoding *inn_enc, const char *enc);
-ScmObj scm_port_open_file_inter(const char *path, SCM_PORT_ATTR attr,
-                                SCM_PORT_OFLG oflg, SCM_PORT_BUF_T buf_mode,
+ScmObj scm_port_open_file_inter(const char *path, unsigned int attr,
+                                unsigned int oflg, scm_port_buf_t buf_mode,
                                 mode_t perm,
                                 ScmEncoding *inn_enc, const char *enc);
 ScmObj scm_port_open_file(const char *path, const char *mode,
-                          SCM_PORT_BUF_T buf_mode, mode_t perm,
+                          scm_port_buf_t buf_mode, mode_t perm,
                           ScmEncoding *inn_enc, const char *enc);
 ScmObj scm_port_open_string(const void *string, size_t size, const char *mode,
                             ScmEncoding *inn_enc, const char *enc);

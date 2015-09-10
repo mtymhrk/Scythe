@@ -3,24 +3,23 @@
 
 #include <stddef.h>
 
-#include "scythe/object.h"
-
 typedef struct ScmMemRec ScmMem;
+typedef enum scm_mem_type scm_mem_type_t;
 
-typedef enum {
+#include "scythe/object.h"
+#include "scythe/fcd_vm.h"
+
+enum scm_mem_type {
   SCM_MEM_HEAP,
   SCM_MEM_ROOT,
-} SCM_MEM_TYPE_T;
-
-
-#include "scythe/fcd_vm.h"
+};
 
 ScmMem *scm_fcd_mem_new(void);
 ScmMem *scm_fcd_mem_end(ScmMem *mem);
 ScmObj scm_fcd_mem_alloc_heap(ScmTypeInfo *type, size_t add_size);
 ScmObj scm_fcd_mem_alloc_root(ScmTypeInfo *type, size_t add_size);
 ScmObj scm_fcd_mem_alloc(ScmTypeInfo *otype, size_t add_size,
-                         SCM_MEM_TYPE_T mtype);
+                         scm_mem_type_t mtype);
 ScmObj scm_fcd_mem_free_root(ScmObj obj);
 ScmRef scm_fcd_mem_register_extra_rfrn(ScmRef ref);
 void scm_fcd_gc_start(void);

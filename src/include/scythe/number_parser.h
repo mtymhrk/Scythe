@@ -6,16 +6,18 @@
 #include "scythe/encoding.h"
 #include "scythe/earray.h"
 
-typedef enum {
-  SCM_NUM_PARSE_SUCCESS,
-  SCM_NUM_PARSE_INVALID,
-  SCM_NUM_PARSE_INTERNAL_ERR,
-} SCM_NUM_PARSE_RSLT_T;
-
 typedef struct ScmNumParseIntDecDataRec ScmNumParseIntDecData;
 typedef struct ScmNumParseRatDataRec ScmNumParseRatData;
 typedef struct ScmNumParseRealDataRec ScmNumParseRealData;
 typedef struct ScmNumParseDataRec ScmNumParseData;
+
+typedef enum scm_num_parse_rslt scm_num_parse_rslt_t;
+
+enum scm_num_parse_rslt {
+  SCM_NUM_PARSE_SUCCESS,
+  SCM_NUM_PARSE_INVALID,
+  SCM_NUM_PARSE_INTERNAL_ERR,
+};
 
 struct ScmNumParseIntDecDataRec {
   size_t head;                  /* 先頭数字 index                           */
@@ -43,7 +45,7 @@ struct ScmNumParseRealDataRec {
 };
 
 struct ScmNumParseDataRec {
-  SCM_NUM_PARSE_RSLT_T rslt;
+  scm_num_parse_rslt_t rslt;
   char radix;                   /* b: 2 進数, o: 8進数, d: 10進数, x: 16 進数 */
   char exact;                   /* i: inexact, e: exact, \0: 指定無し */
   char complex;                 /* @: 極形式,

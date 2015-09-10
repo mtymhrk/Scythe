@@ -585,7 +585,7 @@ scm_fcd_symbol_P(ScmObj obj)
 }
 
 ScmObj
-scm_fcd_symbol_new(SCM_MEM_TYPE_T mtype, ScmObj str)
+scm_fcd_symbol_new(scm_mem_type_t mtype, ScmObj str)
 {
   ScmObj sym = SCM_OBJ_INIT;
 
@@ -776,7 +776,7 @@ scm_fcd_symbol_eq_cstr(ScmObj sym, const char *str, ScmEncoding *enc, bool *cmp)
 /*******************************************************************/
 
 ScmObj
-scm_fcd_symtbl_new(SCM_MEM_TYPE_T mtype)
+scm_fcd_symtbl_new(scm_mem_type_t mtype)
 {
   ScmObj tbl = SCM_OBJ_INIT;
 

@@ -83,7 +83,7 @@ scm_fcd_pair_P(ScmObj pair)
 }
 
 ScmObj
-scm_fcd_pair_new(SCM_MEM_TYPE_T mtype, ScmObj car, ScmObj cdr)
+scm_fcd_pair_new(scm_mem_type_t mtype, ScmObj car, ScmObj cdr)
 {
   ScmObj pair = SCM_OBJ_INIT;
 

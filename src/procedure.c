@@ -74,7 +74,7 @@ scm_fcd_arity(ScmObj proc)
 }
 
 bool
-scm_fcd_procedure_flg_set_p(ScmObj proc, SCM_PROC_FLG_T flg)
+scm_fcd_procedure_flg_set_p(ScmObj proc, unsigned int flg)
 {
   scm_assert(scm_fcd_procedure_p(proc));
   return scm_proc_flg_set_p(proc, flg);
@@ -168,7 +168,7 @@ scm_fcd_subrutine_p(ScmObj obj)
 }
 
 ScmObj
-scm_fcd_subrutine_new(SCM_MEM_TYPE_T mtype,
+scm_fcd_subrutine_new(scm_mem_type_t mtype,
                       ScmSubrFunc func, ScmObj name, int arity, unsigned int flags,
                       ScmObj env)
 {
@@ -290,7 +290,7 @@ scm_fcd_closure_p(ScmObj obj)
 }
 
 ScmObj
-scm_fcd_closure_new(SCM_MEM_TYPE_T mtype,
+scm_fcd_closure_new(scm_mem_type_t mtype,
                     ScmObj iseq, ScmObj env, ScmObj name, int arity)
 {
   ScmObj clsr = SCM_OBJ_INIT;
@@ -398,7 +398,7 @@ scm_dwhcallerenv_finalize(ScmObj dwhce)
 }
 
 ScmObj
-scm_dwhcallerenv_new(SCM_MEM_TYPE_T mtype,
+scm_dwhcallerenv_new(scm_mem_type_t mtype,
                      ScmObj cont, const ScmObj *val, size_t vc)
 {
   ScmObj dwhce = SCM_OBJ_INIT;
@@ -531,7 +531,7 @@ scm_fcd_continuation_p(ScmObj obj)
 }
 
 ScmObj
-scm_fcd_continuation_new(SCM_MEM_TYPE_T mtype, ScmObj contcap)
+scm_fcd_continuation_new(scm_mem_type_t mtype, ScmObj contcap)
 {
   ScmObj name = SCM_OBJ_INIT;
 
@@ -695,7 +695,7 @@ scm_fcd_parameter_p(ScmObj obj)
 }
 
 ScmObj
-scm_fcd_parameter_new(SCM_MEM_TYPE_T mtype, ScmObj init, ScmObj conv)
+scm_fcd_parameter_new(scm_mem_type_t mtype, ScmObj init, ScmObj conv)
 {
   ScmObj name = SCM_OBJ_INIT, env = SCM_OBJ_INIT;
 

@@ -25,7 +25,7 @@ enum {
 /**************************************************************************/
 
 bool scm_fcd_assembler_p(ScmObj obj);
-ScmObj scm_fcd_assembler_new(SCM_MEM_TYPE_T mtype, ScmObj iseq);
+ScmObj scm_fcd_assembler_new(scm_mem_type_t mtype, ScmObj iseq);
 ScmObj scm_fcd_make_assembler(ScmObj iseq);
 ssize_t scm_fcd_assembler_assign_label_id(ScmObj asmb);
 int scm_fcd_assembler_register_label_id(ScmObj asmb, size_t id);
@@ -66,7 +66,7 @@ struct ScmDisasmTokenRec {
 };
 
 bool scm_fcd_disassembler_p(ScmObj obj);
-ScmObj scm_fcd_disassembler_new(SCM_MEM_TYPE_T mtype, ScmObj iseq);
+ScmObj scm_fcd_disassembler_new(scm_mem_type_t mtype, ScmObj iseq);
 ScmObj scm_fcd_make_disassembler(ScmObj iseq);
 const ScmDisasmToken *scm_fcd_disassembler_token(ScmObj disasm);
 int scm_fcd_disassembler_next(ScmObj disasm);

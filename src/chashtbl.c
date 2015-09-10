@@ -7,8 +7,8 @@ enum { ADD, UPDATE, DELETE, FIND };
 void
 scm_chash_tbl_initialize(ScmCHashTbl *tbl, ScmObj owner,
                          size_t size,
-                         SCM_CHASH_TBL_VAL_KIND_T key_kind,
-                         SCM_CHASH_TBL_VAL_KIND_T val_kind,
+                         scm_chash_tbl_val_kind_t key_kind,
+                         scm_chash_tbl_val_kind_t val_kind,
                          ScmCHashFunc hash_func,
                          ScmCHashTblKeyCmpFunc cmp_func)
 {
@@ -57,8 +57,8 @@ scm_chash_tbl_finalize(ScmCHashTbl *tbl)
 
 ScmCHashTbl *
 scm_chash_tbl_new(ScmObj owner, size_t size,
-                  SCM_CHASH_TBL_VAL_KIND_T key_kind,
-                  SCM_CHASH_TBL_VAL_KIND_T val_kind,
+                  scm_chash_tbl_val_kind_t key_kind,
+                  scm_chash_tbl_val_kind_t val_kind,
                   ScmCHashFunc hash_func,
                   ScmCHashTblKeyCmpFunc cmp_func)
 {

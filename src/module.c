@@ -99,7 +99,7 @@ scm_fcd_gloc_p(ScmObj obj)
 }
 
 ScmObj
-scm_fcd_gloc_new(SCM_MEM_TYPE_T mtype, ScmObj sym)
+scm_fcd_gloc_new(scm_mem_type_t mtype, ScmObj sym)
 {
   ScmObj gloc = SCM_OBJ_INIT;
 
@@ -536,7 +536,7 @@ scm_fcd_module_specifier_p(ScmObj obj)
 }
 
 ScmObj
-scm_fcd_module_new(SCM_MEM_TYPE_T mtype, ScmObj name)
+scm_fcd_module_new(scm_mem_type_t mtype, ScmObj name)
 {
   ScmObj mod = SCM_OBJ_INIT;
 
@@ -981,7 +981,7 @@ scm_moduletree_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
 /****************************************************************************/
 
 ScmObj
-scm_fcd_moduletree_new(SCM_MEM_TYPE_T mtype)
+scm_fcd_moduletree_new(scm_mem_type_t mtype)
 {
   ScmObj tree = SCM_OBJ_INIT;
 

@@ -86,7 +86,7 @@ scm_fcd_syntax_P(ScmObj obj)
 }
 
 ScmObj
-scm_fcd_syntax_new(SCM_MEM_TYPE_T mtype, ScmObj key, ScmObj handler)
+scm_fcd_syntax_new(scm_mem_type_t mtype, ScmObj key, ScmObj handler)
 {
   ScmObj syx = SCM_OBJ_INIT;
   int rslt;
@@ -221,7 +221,7 @@ scm_fcd_macro_P(ScmObj obj)
 }
 
 ScmObj
-scm_fcd_macro_new(SCM_MEM_TYPE_T mtype, ScmObj transformer, ScmObj env)
+scm_fcd_macro_new(scm_mem_type_t mtype, ScmObj transformer, ScmObj env)
 {
   ScmObj macro = SCM_OBJ_INIT;
 

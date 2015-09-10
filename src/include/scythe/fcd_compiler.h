@@ -13,7 +13,7 @@
 
 bool scm_fcd_compiler_p(ScmObj obj);
 ScmObj scm_fcd_compiler_P(ScmObj obj);
-ScmObj scm_fcd_compiler_new(SCM_MEM_TYPE_T mtype, ScmObj env);
+ScmObj scm_fcd_compiler_new(scm_mem_type_t mtype, ScmObj env);
 ScmObj scm_fcd_make_compiler(ScmObj env);
 ScmObj scm_fcd_compiler_base_env(ScmObj cmpl);
 ScmObj scm_fcd_compiler_current_expr(ScmObj cmpl);
@@ -27,14 +27,14 @@ void scm_fcd_compiler_select_expr_i(ScmObj cmpl, ScmObj expr);
 /*************************************************************************/
 
 bool scm_fcd_qqtmplnode_p(ScmObj obj);
-ScmObj scm_fcd_qqtmplnode_new(SCM_MEM_TYPE_T mtype, int kind, ScmObj obj);
+ScmObj scm_fcd_qqtmplnode_new(scm_mem_type_t mtype, int kind, ScmObj obj);
 ScmObj scm_fcd_make_qqtmplnode_for_unmarshal(void);
 void scm_fcd_qqtmplnode_get_contents_for_marshal(ScmObj node,
                                                  int *kind, scm_csetter_t *obj);
 int scm_fcd_qqtmplnode_setup_for_unmarshal(ScmObj node, int kind, ScmObj obj);
 
 bool scm_fcd_qqtmpl_p(ScmObj obj);
-ScmObj scm_fcd_qqtmpl_new(SCM_MEM_TYPE_T mtype, ScmObj tmpl);
+ScmObj scm_fcd_qqtmpl_new(scm_mem_type_t mtype, ScmObj tmpl);
 ScmObj scm_fcd_make_qqtmpl_for_unmarshal(void);
 int scm_fcd_qqtmpl_get_contents_for_marshal(ScmObj qq,
                                             scm_csetter_t *tmpl,
@@ -58,7 +58,7 @@ ScmObj scm_fcd_substitute_qq_template(ScmObj qq, ScmObj values);
 
 bool scm_fcd_identifier_p(ScmObj obj);
 ScmObj scm_fcd_identifier_P(ScmObj obj);
-ScmObj scm_fcd_identifier_new(SCM_MEM_TYPE_T mtype, ScmObj name, ScmObj env);
+ScmObj scm_fcd_identifier_new(scm_mem_type_t mtype, ScmObj name, ScmObj env);
 ScmObj scm_fcd_make_identifier(ScmObj name, ScmObj env);
 ScmObj scm_fcd_identifier_name(ScmObj ident);
 ScmObj scm_fcd_identifier_env(ScmObj ident);

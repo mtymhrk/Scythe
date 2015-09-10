@@ -926,7 +926,7 @@ scm_fcd_string_P(ScmObj obj)
 }
 
 ScmObj
-scm_fcd_string_new(SCM_MEM_TYPE_T mtype,
+scm_fcd_string_new(scm_mem_type_t mtype,
                    const void *src, size_t size, ScmEncoding *enc)
 {
   ScmObj str = SCM_OBJ_INIT;

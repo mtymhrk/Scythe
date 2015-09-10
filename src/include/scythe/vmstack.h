@@ -249,7 +249,7 @@ struct ScmEFBoxRec {
 };
 
 int scm_efbox_initialize(ScmObj efb, ScmEnvFrame *efp, size_t depth);
-ScmObj scm_efbox_new(SCM_MEM_TYPE_T mtype, ScmEnvFrame *efp, size_t depth);
+ScmObj scm_efbox_new(scm_mem_type_t mtype, ScmEnvFrame *efp, size_t depth);
 void scm_efbox_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_efbox_gc_finalize(ScmObj obj);
 int scm_efbox_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
@@ -319,12 +319,12 @@ struct ScmVMStckRcRec {
 };
 
 int scm_vmss_initialize(ScmObj vmss, size_t size);
-ScmObj scm_vmss_new(SCM_MEM_TYPE_T mtype, size_t size);
+ScmObj scm_vmss_new(scm_mem_type_t mtype, size_t size);
 void scm_vmss_gc_finalize(ScmObj obj);
 
 int scm_vmsr_initialize(ScmObj vmsr, ScmObj segment,
                         scm_byte_t *base, ScmObj next);
-ScmObj scm_vmsr_new(SCM_MEM_TYPE_T mtype,
+ScmObj scm_vmsr_new(scm_mem_type_t mtype,
                     ScmObj segment, scm_byte_t *base, ScmObj next);
 void scm_vmsr_rec(ScmObj vmsr, scm_byte_t *ceil,
                   ScmCntFrame *cfp, ScmEnvFrame *efp,

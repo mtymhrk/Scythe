@@ -7,9 +7,9 @@
 #include "scythe/object.h"
 #include "scythe/fcd_memory.h"
 
-ScmObj scm_fcd_error_new_cv(SCM_MEM_TYPE_T mtype, ScmObj msg,
+ScmObj scm_fcd_error_new_cv(scm_mem_type_t mtype, ScmObj msg,
                             ScmObj type, ScmObj *irris, size_t n);
-ScmObj scm_fcd_error_new_lst(SCM_MEM_TYPE_T mtype, ScmObj msg,
+ScmObj scm_fcd_error_new_lst(scm_mem_type_t mtype, ScmObj msg,
                              ScmObj type, ScmObj irris);
 int scm_fcd_error(const char *msg, size_t n, ...);
 int scm_fcd_read_error(const char *msg, size_t n, ...);

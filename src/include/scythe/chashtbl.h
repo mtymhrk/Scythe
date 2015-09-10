@@ -14,13 +14,16 @@ typedef size_t (*ScmCHashFunc)(ScmCHashTblKey key);
 typedef bool (*ScmCHashTblKeyCmpFunc)(ScmCHashTblKey key1,
                                       ScmCHashTblKey key2);
 
-typedef enum {
+
+typedef enum scm_chash_tbl_val_kind scm_chash_tbl_val_kind_t;
+
+#include "scythe/object.h"
+
+enum  scm_chash_tbl_val_kind {
   SCM_CHASH_TBL_CVAL,
   SCM_CHASH_TBL_SCMOBJ,
   SCM_CHASH_TBL_SCMOBJ_W
-} SCM_CHASH_TBL_VAL_KIND_T;
-
-#include "scythe/object.h"
+};
 
 struct ScmCHashTblRec {
   ScmObj owner;
@@ -28,8 +31,8 @@ struct ScmCHashTblRec {
   size_t tbl_size;
   ScmCHashFunc hash_func;
   ScmCHashTblKeyCmpFunc cmp_func;
-  SCM_CHASH_TBL_VAL_KIND_T key_kind;
-  SCM_CHASH_TBL_VAL_KIND_T val_kind;
+  scm_chash_tbl_val_kind_t key_kind;
+  scm_chash_tbl_val_kind_t val_kind;
 };
 
 struct ScmCHashTblEntryRec {
@@ -48,14 +51,14 @@ struct ScmCHashTblEntryRec {
 
 void scm_chash_tbl_initialize(ScmCHashTbl *tbl, ScmObj owner,
                               size_t size,
-                              SCM_CHASH_TBL_VAL_KIND_T key_kind,
-                              SCM_CHASH_TBL_VAL_KIND_T val_kind,
+                              scm_chash_tbl_val_kind_t key_kind,
+                              scm_chash_tbl_val_kind_t val_kind,
                               ScmCHashFunc hash_func,
                               ScmCHashTblKeyCmpFunc cmp_func);
 void scm_chash_tbl_finalize(ScmCHashTbl *tbl);
 ScmCHashTbl *scm_chash_tbl_new(ScmObj owner, size_t size,
-                               SCM_CHASH_TBL_VAL_KIND_T key_kind,
-                               SCM_CHASH_TBL_VAL_KIND_T val_kind,
+                               scm_chash_tbl_val_kind_t key_kind,
+                               scm_chash_tbl_val_kind_t val_kind,
                                ScmCHashFunc hash_func,
                                ScmCHashTblKeyCmpFunc cmp_func);
 void scm_chash_tbl_end(ScmCHashTbl *tbl);

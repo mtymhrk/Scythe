@@ -8,7 +8,7 @@
 
 bool scm_fcd_pair_p(ScmObj pair);
 ScmObj scm_fcd_pair_P(ScmObj pair);
-ScmObj scm_fcd_pair_new(SCM_MEM_TYPE_T mtype, ScmObj car, ScmObj cdr);
+ScmObj scm_fcd_pair_new(scm_mem_type_t mtype, ScmObj car, ScmObj cdr);
 ScmObj scm_fcd_cons(ScmObj car, ScmObj cdr);
 ScmObj scm_fcd_car(ScmObj pair);
 ScmObj scm_fcd_cdr(ScmObj pair);

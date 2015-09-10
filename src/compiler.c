@@ -139,7 +139,7 @@ scm_fcd_compiler_P(ScmObj obj)
 }
 
 ScmObj
-scm_fcd_compiler_new(SCM_MEM_TYPE_T mtype, ScmObj env)
+scm_fcd_compiler_new(scm_mem_type_t mtype, ScmObj env)
 {
   ScmObj cmpl = SCM_OBJ_INIT;
 
@@ -967,7 +967,7 @@ scm_fcd_qqtmplnode_p(ScmObj obj)
 }
 
 ScmObj
-scm_fcd_qqtmplnode_new(SCM_MEM_TYPE_T mtype, int kind, ScmObj obj)
+scm_fcd_qqtmplnode_new(scm_mem_type_t mtype, int kind, ScmObj obj)
 {
   ScmObj node = SCM_OBJ_INIT;
 
@@ -1025,7 +1025,7 @@ scm_fcd_qqtmpl_p(ScmObj obj)
 }
 
 ScmObj
-scm_fcd_qqtmpl_new(SCM_MEM_TYPE_T mtype, ScmObj tmpl)
+scm_fcd_qqtmpl_new(scm_mem_type_t mtype, ScmObj tmpl)
 {
   ScmObj qq = SCM_OBJ_INIT;
 
@@ -1278,7 +1278,7 @@ scm_fcd_identifier_P(ScmObj obj)
 }
 
 ScmObj
-scm_fcd_identifier_new(SCM_MEM_TYPE_T mtype, ScmObj name, ScmObj env)
+scm_fcd_identifier_new(scm_mem_type_t mtype, ScmObj name, ScmObj env)
 {
   ScmObj ident = SCM_OBJ_INIT;
 

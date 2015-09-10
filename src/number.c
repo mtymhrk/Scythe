@@ -38,7 +38,7 @@ scm_fcd_bignum_P(ScmObj obj)
 }
 
 ScmObj
-scm_fcd_bignum_new_cv(SCM_MEM_TYPE_T mtype, char sign,
+scm_fcd_bignum_new_cv(scm_mem_type_t mtype, char sign,
                       scm_bignum_d_t *digits, size_t len, scm_bignum_c_t base)
 {
   ScmObj bn = SCM_OBJ_INIT;
@@ -53,7 +53,7 @@ scm_fcd_bignum_new_cv(SCM_MEM_TYPE_T mtype, char sign,
 }
 
 ScmObj
-scm_fcd_bignum_new_sword(SCM_MEM_TYPE_T mtype, scm_sword_t val)
+scm_fcd_bignum_new_sword(scm_mem_type_t mtype, scm_sword_t val)
 {
   ScmObj bn = SCM_OBJ_INIT;
 
@@ -67,7 +67,7 @@ scm_fcd_bignum_new_sword(SCM_MEM_TYPE_T mtype, scm_sword_t val)
 }
 
 ScmObj
-scm_fcd_bignum_new_uword(SCM_MEM_TYPE_T mtype, scm_uword_t val)
+scm_fcd_bignum_new_uword(scm_mem_type_t mtype, scm_uword_t val)
 {
   ScmObj bn = SCM_OBJ_INIT;
 
@@ -81,7 +81,7 @@ scm_fcd_bignum_new_uword(SCM_MEM_TYPE_T mtype, scm_uword_t val)
 }
 
 ScmObj
-scm_fcd_bignum_new_fixnum(SCM_MEM_TYPE_T mtype, ScmObj fn)
+scm_fcd_bignum_new_fixnum(scm_mem_type_t mtype, ScmObj fn)
 {
   ScmObj bn = SCM_OBJ_INIT;
   scm_sword_t sword;

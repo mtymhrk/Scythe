@@ -58,7 +58,7 @@ scm_fcd_eof_object_P(ScmObj obj)
 }
 
 ScmObj
-scm_fcd_eof_new(SCM_MEM_TYPE_T mtype)
+scm_fcd_eof_new(scm_mem_type_t mtype)
 {
   ScmObj eof = SCM_OBJ_INIT;
 
@@ -145,7 +145,7 @@ scm_fcd_boolean_P(ScmObj obj)
 }
 
 ScmObj
-scm_fcd_bool_new(SCM_MEM_TYPE_T mtype, bool value)
+scm_fcd_bool_new(scm_mem_type_t mtype, bool value)
 {
   ScmObj bl = SCM_OBJ_INIT;;
 
@@ -255,7 +255,7 @@ scm_fcd_nil_object_p(ScmObj obj)
 }
 
 ScmObj
-scm_fcd_nil_new(SCM_MEM_TYPE_T mtype)
+scm_fcd_nil_new(scm_mem_type_t mtype)
 {
   ScmObj nil = SCM_OBJ_INIT;
 
@@ -316,7 +316,7 @@ scm_fcd_undef_object_p(ScmObj obj)
 }
 
 ScmObj
-scm_fcd_undef_new(SCM_MEM_TYPE_T mtype)
+scm_fcd_undef_new(scm_mem_type_t mtype)
 {
   ScmObj undef = SCM_OBJ_INIT;
 
@@ -377,7 +377,7 @@ scm_fcd_landmine_object_p(ScmObj obj)
 }
 
 ScmObj
-scm_fcd_landmine_new(SCM_MEM_TYPE_T mtype)
+scm_fcd_landmine_new(scm_mem_type_t mtype)
 {
   ScmObj mine = SCM_OBJ_INIT;
 
@@ -449,7 +449,7 @@ scm_fcd_box_p(ScmObj obj)
 }
 
 ScmObj
-scm_fcd_box_new(SCM_MEM_TYPE_T mtype, ScmObj obj)
+scm_fcd_box_new(scm_mem_type_t mtype, ScmObj obj)
 {
   ScmObj box = SCM_OBJ_INIT;
 

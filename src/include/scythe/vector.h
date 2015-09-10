@@ -68,8 +68,8 @@ int scm_bytevector_initialize(ScmObj vec, size_t length, int fill);
 int scm_bytevector_initialize_cbytes(ScmObj vec,
                                      const void *bytes, size_t length);
 void scm_bytevector_finalize(ScmObj vec);
-ScmObj scm_bytevector_new(SCM_MEM_TYPE_T mtype, size_t length, int fill);
-ScmObj scm_bytevector_new_cbyte(SCM_MEM_TYPE_T mtype,
+ScmObj scm_bytevector_new(scm_mem_type_t mtype, size_t length, int fill);
+ScmObj scm_bytevector_new_cbyte(scm_mem_type_t mtype,
                                 const void *bytes, size_t length);
 int scm_bytevector_u8_set(ScmObj vec, size_t idx, int val);
 int scm_bytevector_push(ScmObj vec, int val);

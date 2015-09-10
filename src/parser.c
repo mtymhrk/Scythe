@@ -103,7 +103,7 @@ str_same_p(const scm_char_t *ca, size_t l,
 }
 
 
-typedef enum {
+typedef enum lexer_state {
   LEXER_STATE_DONE,
   LEXER_STATE_INIT,
   LEXER_STATE_DISREGARD,
@@ -121,11 +121,11 @@ typedef enum {
   LEXER_STATE_NUMERIC,
   LEXER_STATE_BYTEVECTOR_START,
   LEXER_STATE_ERROR
-} LEXER_STATE_T;
+} lexer_state_t;
 
 
 static ScmToken *
-scm_token_new(SCM_TOKEN_TYPE_T type, scm_char_t *str, size_t len,
+scm_token_new(scm_token_type_t type, scm_char_t *str, size_t len,
               ScmNumParseData *npd)
 {
   ScmToken *token;
@@ -156,14 +156,14 @@ scm_token_end(ScmToken *token)
 }
 
 static void
-scm_lexer_set_token_type(ScmLexer *lexer, SCM_TOKEN_TYPE_T type)
+scm_lexer_set_token_type(ScmLexer *lexer, scm_token_type_t type)
 {
   scm_assert(lexer != NULL);
   lexer->token_type = type;
 }
 
 static void
-scm_lexer_setup_error_state(ScmLexer *lexer, SCM_LEXER_ERR_TYPE_T error)
+scm_lexer_setup_error_state(ScmLexer *lexer, scm_lexer_err_type_t error)
 {
   scm_assert(lexer != NULL);
 
@@ -212,11 +212,11 @@ scm_lexer_new_token(ScmLexer *lexer)
   return token;
 }
 
-static int
+static lexer_state_t
 scm_lexer_tokenize_init(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
 {
   const char *one_char_token_chars = "()[]'`";
-  const SCM_TOKEN_TYPE_T one_char_token_types[] =
+  const scm_token_type_t one_char_token_types[] =
     { SCM_TOKEN_TYPE_LPAREN, SCM_TOKEN_TYPE_RPAREN,
       SCM_TOKEN_TYPE_LPAREN, SCM_TOKEN_TYPE_RPAREN,
       SCM_TOKEN_TYPE_QUOTE, SCM_TOKEN_TYPE_QUASIQUOTE };
@@ -290,7 +290,7 @@ scm_lexer_tokenize_init(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
   }
 }
 
-static int
+static lexer_state_t
 scm_lexer_tokenize_identifier(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
 {
   scm_char_t current;
@@ -321,7 +321,7 @@ scm_lexer_tokenize_identifier(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
   return LEXER_STATE_DONE;
 }
 
-static int
+static lexer_state_t
 scm_lexer_tokenize_ident_vline(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
 {
   scm_char_t current;
@@ -367,7 +367,7 @@ scm_lexer_tokenize_ident_vline(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
   return 0;
 }
 
-static int
+static lexer_state_t
 scm_lexer_tokenize_dot(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
 {
   scm_char_t current;
@@ -395,7 +395,7 @@ scm_lexer_tokenize_dot(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
   }
 }
 
-static int
+static lexer_state_t
 scm_lexer_tokenize_comment(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
 {
   scm_char_t current;
@@ -419,7 +419,7 @@ scm_lexer_tokenize_comment(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
   }
 }
 
-static int
+static lexer_state_t
 scm_lexer_tokenize_unquote(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
 {
   scm_char_t current;
@@ -452,7 +452,7 @@ scm_lexer_tokenize_unquote(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
   }
 }
 
-static int
+static lexer_state_t
 scm_lexer_tokenize_number_sign(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
 {
   scm_char_t current;
@@ -503,10 +503,10 @@ scm_lexer_tokenize_number_sign(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
   return state;
 }
 
-static int
+static lexer_state_t
 scm_lexer_tokenize_bool_true_or_false(ScmLexer *lexer, ScmObj port,
                                       ScmEncoding *enc, const char *str,
-                                      SCM_TOKEN_TYPE_T ttype)
+                                      scm_token_type_t ttype)
 {
   scm_char_t current;
   ssize_t width;
@@ -587,7 +587,7 @@ scm_lexer_tokenize_bool_true_or_false(ScmLexer *lexer, ScmObj port,
   }
 }
 
-static int
+static lexer_state_t
 scm_lexer_tokenize_bool_true(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
 {
   return scm_lexer_tokenize_bool_true_or_false(lexer, port, enc,
@@ -595,7 +595,7 @@ scm_lexer_tokenize_bool_true(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
                                                SCM_TOKEN_TYPE_BOOL_TRUE);
 }
 
-static int
+static lexer_state_t
 scm_lexer_tokenize_bool_false(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
 {
   return scm_lexer_tokenize_bool_true_or_false(lexer, port, enc,
@@ -603,7 +603,7 @@ scm_lexer_tokenize_bool_false(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
                                                SCM_TOKEN_TYPE_BOOL_FALSE);
 }
 
-static int
+static lexer_state_t
 scm_lexer_tokenize_string(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
 {
   scm_char_t current;
@@ -647,7 +647,7 @@ scm_lexer_tokenize_string(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
   }
 }
 
-static int
+static lexer_state_t
 scm_lexer_tokenize_char_hex_scalar(ScmLexer *lexer, ScmObj port,
                                    ScmEncoding *enc)
 {
@@ -688,7 +688,7 @@ scm_lexer_tokenize_char_hex_scalar(ScmLexer *lexer, ScmObj port,
   return LEXER_STATE_DONE;
 }
 
-static int
+static lexer_state_t
 scm_lexer_tokenize_char(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
 {
   scm_char_t current;
@@ -734,7 +734,7 @@ scm_lexer_tokenize_char(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
   }
 }
 
-static int
+static lexer_state_t
 scm_lexer_tokenize_reference(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
 {
   scm_char_t current;
@@ -776,7 +776,7 @@ scm_lexer_tokenize_reference(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
   }
 }
 
-static int
+static lexer_state_t
 scm_lexer_tokenize_numeric(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
 {
   ScmNumParseData *p;
@@ -812,7 +812,7 @@ scm_lexer_tokenize_numeric(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
     return LEXER_STATE_IDENTIFIER;
 }
 
-static int
+static lexer_state_t
 scm_lexer_tokenize_bv_start(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
 {
   scm_char_t current;
@@ -866,7 +866,7 @@ scm_lexer_push_token(ScmLexer *lexer, ScmToken *token)
 static int
 scm_lexer_tokenize(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
 {
-  LEXER_STATE_T state;
+  lexer_state_t state;
   ScmToken *token;
 
   scm_assert(lexer != NULL);
@@ -1023,7 +1023,7 @@ scm_lexer_error_p(ScmLexer *lexer)
   return (lexer->error_type != SCM_LEXER_ERR_TYPE_NONE);
 }
 
-SCM_LEXER_ERR_TYPE_T
+scm_lexer_err_type_t
 scm_lexer_error_type(ScmLexer *lexer)
 {
   scm_assert(lexer != NULL);
@@ -1058,7 +1058,7 @@ scm_datum_label_use_initialize(ScmObj use, ScmParserRef *ref)
 }
 
 ScmObj
-scm_datum_label_use_new(SCM_MEM_TYPE_T mtype, ScmParserRef *ref)
+scm_datum_label_use_new(scm_mem_type_t mtype, ScmParserRef *ref)
 {
   ScmObj use = SCM_OBJ_INIT;
 
@@ -1935,7 +1935,7 @@ static ScmObj
 scm_parser_parse_bool(ScmObj parser, ScmObj port, ScmEncoding *enc)
 {
   ScmToken *token;
-  SCM_TOKEN_TYPE_T type;
+  scm_token_type_t type;
 
   scm_assert_obj_type(parser, &SCM_PARSER_TYPE_INFO);
   scm_assert(scm_fcd_input_port_p(port));
@@ -2335,7 +2335,7 @@ scm_parser_finalize(ScmObj parser)
 }
 
 ScmObj
-scm_parser_new(SCM_MEM_TYPE_T mtype)
+scm_parser_new(scm_mem_type_t mtype)
 {
   ScmObj parser;
 

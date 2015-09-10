@@ -131,7 +131,7 @@ scm_io_ready_p(ScmIO *io)
 }
 
 int
-scm_io_buffer_mode(ScmIO *io, SCM_IO_MODE_T im, SCM_PORT_BUF_T *mode)
+scm_io_buffer_mode(ScmIO *io, scm_io_mode_t im, scm_port_buf_t *mode)
 {
   scm_assert(io != NULL);
 
@@ -345,8 +345,8 @@ scm_fileio_close(ScmFileIO *fileio)
 }
 
 int
-scm_fileio_buffer_mode(ScmFileIO *fileio, SCM_IO_MODE_T im,
-                       SCM_PORT_BUF_T *mode)
+scm_fileio_buffer_mode(ScmFileIO *fileio, scm_io_mode_t im,
+                       scm_port_buf_t *mode)
 {
   struct stat st;
   int ret;
@@ -600,8 +600,8 @@ scm_stringio_close(ScmStringIO *strio)
 }
 
 int
-scm_stringio_buffer_mode(ScmStringIO *strio, SCM_IO_MODE_T im,
-                         SCM_PORT_BUF_T *mode)
+scm_stringio_buffer_mode(ScmStringIO *strio, scm_io_mode_t im,
+                         scm_port_buf_t *mode)
 {
   scm_assert(strio != NULL);
   scm_assert(mode != NULL);
@@ -933,7 +933,7 @@ scm_bufferedio_close(ScmBufferedIO *bufio)
 
 int
 scm_bufferedio_buffer_mode(ScmBufferedIO *bufio,
-                           SCM_IO_MODE_T im, SCM_PORT_BUF_T *mode)
+                           scm_io_mode_t im, scm_port_buf_t *mode)
 {
   scm_assert(bufio != NULL);
   scm_assert(mode != NULL);
@@ -991,7 +991,7 @@ scm_bufferedio_lower(ScmBufferedIO *bufio)
  */
 
 static int
-scm_charconvio_init(ScmCharConvIO *ccio, SCM_IO_MODE_T mode,
+scm_charconvio_init(ScmCharConvIO *ccio, scm_io_mode_t mode,
                     const char *incode, const char *extcode)
 {
   scm_assert(ccio != NULL);
@@ -1245,7 +1245,7 @@ scm_charconvio_write_terminate(ScmCharConvIO *ccio)
 }
 
 ScmCharConvIO *
-scm_charconvio_new(ScmIO *io, SCM_IO_MODE_T mode,
+scm_charconvio_new(ScmIO *io, scm_io_mode_t mode,
                    const char *incode, const char *extcode)
 {
   ScmCharConvIO *ccio;
@@ -1418,7 +1418,7 @@ scm_charconvio_close(ScmCharConvIO *ccio)
 
 int
 scm_charconvio_buffer_mode(ScmCharConvIO *ccio,
-                           SCM_IO_MODE_T im, SCM_PORT_BUF_T *mode)
+                           scm_io_mode_t im, scm_port_buf_t *mode)
 {
   scm_assert(ccio != NULL);
   scm_assert(mode != NULL);
@@ -1459,10 +1459,10 @@ scm_charconvio_lower(ScmCharConvIO *ccio)
 }
 
 static int
-scm_port_init_buffer(ScmObj port, SCM_PORT_BUF_T buf_mode)
+scm_port_init_buffer(ScmObj port, scm_port_buf_t buf_mode)
 {
   int rslt;
-  SCM_IO_MODE_T im;
+  scm_io_mode_t im;
   ScmIO *bufio;
 
   scm_assert_obj_type(port, &SCM_PORT_TYPE_INFO);
@@ -1491,7 +1491,7 @@ scm_port_init_buffer(ScmObj port, SCM_PORT_BUF_T buf_mode)
 static int
 scm_port_init_encode(ScmObj port)
 {
-  SCM_IO_MODE_T im;
+  scm_io_mode_t im;
   ScmEncoding *enc;
   const char *icode, *ecode;
   ScmIO *io;
@@ -1805,10 +1805,9 @@ scm_port_write(ScmObj port, const void *buf, size_t size)
 
 static int
 scm_port_analy_modestr(const char *mode,
-                       SCM_PORT_ATTR *attr, SCM_PORT_OFLG *oflg)
+                       unsigned int *attr, unsigned int *oflg)
 {
-  SCM_PORT_ATTR a;
-  SCM_PORT_OFLG o;
+  unsigned int a, o;
   int i;
 
   switch (mode[0]) {
@@ -1857,7 +1856,7 @@ scm_port_analy_modestr(const char *mode,
 
 int
 scm_port_initialize(ScmObj port, ScmIO *io,
-                    SCM_PORT_ATTR attr, SCM_PORT_BUF_T buf_mode,
+                    unsigned int attr, scm_port_buf_t buf_mode,
                     ScmEncoding *inn_enc, const char *enc)
 {
   int rslt;
@@ -1915,8 +1914,8 @@ scm_port_finalize(ScmObj port)
 }
 
 ScmObj
-scm_port_new(SCM_MEM_TYPE_T mtype,
-             ScmIO *io, SCM_PORT_ATTR attr, SCM_PORT_BUF_T buf_mode,
+scm_port_new(scm_mem_type_t mtype,
+             ScmIO *io, unsigned int attr, scm_port_buf_t buf_mode,
              ScmEncoding *inn_enc, const char *enc)
 {
   ScmObj port = SCM_OBJ_INIT;
@@ -1936,7 +1935,7 @@ scm_port_new(SCM_MEM_TYPE_T mtype,
 }
 
 ScmObj
-scm_port_open_fd_inter(int fd, SCM_PORT_ATTR attr, SCM_PORT_BUF_T buf_mode,
+scm_port_open_fd_inter(int fd, unsigned int attr, scm_port_buf_t buf_mode,
                        ScmEncoding *inn_enc, const char *enc)
 {
   ScmObj port = SCM_OBJ_INIT;
@@ -1963,10 +1962,10 @@ scm_port_open_fd_inter(int fd, SCM_PORT_ATTR attr, SCM_PORT_BUF_T buf_mode,
 }
 
 ScmObj
-scm_port_open_fd(int fd, const char *mode, SCM_PORT_BUF_T buf_mode,
+scm_port_open_fd(int fd, const char *mode, scm_port_buf_t buf_mode,
                  ScmEncoding *inn_enc, const char *enc)
 {
-  SCM_PORT_ATTR attr;
+  unsigned int attr;
   int rslt;
 
   scm_assert(fd >= 0);
@@ -1983,13 +1982,13 @@ scm_port_open_fd(int fd, const char *mode, SCM_PORT_BUF_T buf_mode,
 
 ScmObj
 scm_port_open_file_inter(const char *path,
-                         SCM_PORT_ATTR attr, SCM_PORT_OFLG oflg,
-                         SCM_PORT_BUF_T buf_mode, mode_t perm,
+                         unsigned int attr, unsigned int oflg,
+                         scm_port_buf_t buf_mode, mode_t perm,
                          ScmEncoding *inn_enc, const char *enc)
 {
   ScmObj port = SCM_OBJ_INIT;
   ScmIO *io;
-  SCM_PORT_ATTR a;
+  unsigned int a;
   int flags;
 
   scm_assert(path != NULL);
@@ -2027,11 +2026,10 @@ scm_port_open_file_inter(const char *path,
 
 ScmObj
 scm_port_open_file(const char *path, const char *mode,
-                   SCM_PORT_BUF_T buf_mode, mode_t perm,
+                   scm_port_buf_t buf_mode, mode_t perm,
                    ScmEncoding *inn_enc, const char *enc)
 {
-  SCM_PORT_ATTR attr;
-  SCM_PORT_OFLG oflg;
+  unsigned int attr, oflg;
   int rslt;
 
   scm_assert(path != NULL);
@@ -2054,7 +2052,7 @@ scm_port_open_string(const void *string, size_t size,
 {
   ScmObj port = SCM_OBJ_INIT;
   ScmIO *io;
-  SCM_PORT_ATTR attr;
+  unsigned int attr;
   int rslt;
 
   scm_assert(mode != NULL);

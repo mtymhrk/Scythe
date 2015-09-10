@@ -222,7 +222,7 @@ scm_efbox_finalize(ScmObj efb)
 }
 
 ScmObj
-scm_efbox_new(SCM_MEM_TYPE_T mtype, ScmEnvFrame *efp, size_t depth)
+scm_efbox_new(scm_mem_type_t mtype, ScmEnvFrame *efp, size_t depth)
 {
   ScmObj efb = SCM_OBJ_INIT;
   int rslt;
@@ -314,7 +314,7 @@ scm_vmss_initialize(ScmObj vmss, size_t size)
 }
 
 ScmObj
-scm_vmss_new(SCM_MEM_TYPE_T mtype, size_t size)
+scm_vmss_new(scm_mem_type_t mtype, size_t size)
 {
   ScmObj vmss = SCM_OBJ_INIT;
 
@@ -363,7 +363,7 @@ scm_vmsr_initialize(ScmObj vmsr, ScmObj segment, scm_byte_t *base, ScmObj next)
 }
 
 ScmObj
-scm_vmsr_new(SCM_MEM_TYPE_T mtype, ScmObj stack, scm_byte_t *base, ScmObj next)
+scm_vmsr_new(scm_mem_type_t mtype, ScmObj stack, scm_byte_t *base, ScmObj next)
 {
   ScmObj vmsr = SCM_OBJ_INIT;
 

@@ -436,7 +436,7 @@ scm_fcd_assembler_p(ScmObj obj)
 }
 
 ScmObj
-scm_fcd_assembler_new(SCM_MEM_TYPE_T mtype, ScmObj iseq)
+scm_fcd_assembler_new(scm_mem_type_t mtype, ScmObj iseq)
 {
   ScmObj asmb = SCM_OBJ_INIT;
 
@@ -1043,7 +1043,7 @@ scm_fcd_disassembler_p(ScmObj obj)
 }
 
 ScmObj
-scm_fcd_disassembler_new(SCM_MEM_TYPE_T mtype, ScmObj iseq)
+scm_fcd_disassembler_new(scm_mem_type_t mtype, ScmObj iseq)
 {
   ScmObj disasm;
 

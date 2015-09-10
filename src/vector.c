@@ -295,7 +295,7 @@ scm_fcd_vector_P(ScmObj obj)
 }
 
 ScmObj
-scm_fcd_vector_new(SCM_MEM_TYPE_T mtype, size_t length, ScmObj fill)
+scm_fcd_vector_new(scm_mem_type_t mtype, size_t length, ScmObj fill)
 {
   ScmObj vector = SCM_OBJ_INIT;
 
@@ -315,7 +315,7 @@ scm_fcd_vector_new(SCM_MEM_TYPE_T mtype, size_t length, ScmObj fill)
 }
 
 ScmObj
-scm_fcd_vector_new_cv(SCM_MEM_TYPE_T mtype, const ScmObj *elms, size_t length)
+scm_fcd_vector_new_cv(scm_mem_type_t mtype, const ScmObj *elms, size_t length)
 {
   ScmObj vector = SCM_OBJ_INIT;
 
@@ -334,7 +334,7 @@ scm_fcd_vector_new_cv(SCM_MEM_TYPE_T mtype, const ScmObj *elms, size_t length)
 }
 
 ScmObj
-scm_fcd_vector_new_lst(SCM_MEM_TYPE_T mtype, ScmObj lst)
+scm_fcd_vector_new_lst(scm_mem_type_t mtype, ScmObj lst)
 {
   ScmObj vector = SCM_OBJ_INIT;
   ssize_t len;
@@ -813,7 +813,7 @@ scm_bytevector_finalize(ScmObj vec)
 }
 
 ScmObj
-scm_bytevector_new(SCM_MEM_TYPE_T mtype, size_t length, int fill)
+scm_bytevector_new(scm_mem_type_t mtype, size_t length, int fill)
 {
   ScmObj vec = SCM_OBJ_INIT;
 
@@ -832,7 +832,7 @@ scm_bytevector_new(SCM_MEM_TYPE_T mtype, size_t length, int fill)
 }
 
 ScmObj
-scm_bytevector_new_cbyte(SCM_MEM_TYPE_T mtype, const void *bytes, size_t length)
+scm_bytevector_new_cbyte(scm_mem_type_t mtype, const void *bytes, size_t length)
 {
   ScmObj vec = SCM_OBJ_INIT;
 

@@ -10,7 +10,7 @@
 
 bool scm_fcd_char_p(ScmObj obj);
 ScmObj scm_fcd_char_P(ScmObj obj);
-ScmObj scm_fcd_char_new(SCM_MEM_TYPE_T mtype,
+ScmObj scm_fcd_char_new(scm_mem_type_t mtype,
                         const scm_char_t *value, ScmEncoding *enc);
 ScmObj scm_fcd_make_char(const scm_char_t *chr, ScmEncoding *enc);
 int scm_fcd_char_eq(ScmObj chr1, ScmObj chr2, bool *rslt);

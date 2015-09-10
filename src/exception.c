@@ -262,7 +262,7 @@ scm_error_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
 /*******************************************************************/
 
 ScmObj
-scm_fcd_error_new_cv(SCM_MEM_TYPE_T mtype, ScmObj msg,
+scm_fcd_error_new_cv(scm_mem_type_t mtype, ScmObj msg,
                      ScmObj type, ScmObj *irris, size_t n)
 {
   ScmObj exc = SCM_OBJ_INIT;
@@ -285,7 +285,7 @@ scm_fcd_error_new_cv(SCM_MEM_TYPE_T mtype, ScmObj msg,
 }
 
 ScmObj
-scm_fcd_error_new_lst(SCM_MEM_TYPE_T mtype, ScmObj msg, ScmObj type, ScmObj irris)
+scm_fcd_error_new_lst(scm_mem_type_t mtype, ScmObj msg, ScmObj type, ScmObj irris)
 {
   ScmObj exc = SCM_OBJ_INIT;
   int rslt;

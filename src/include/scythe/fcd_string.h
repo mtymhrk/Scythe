@@ -9,7 +9,7 @@
 
 bool scm_fcd_string_p(ScmObj obj);
 ScmObj scm_fcd_string_P(ScmObj obj);
-ScmObj scm_fcd_string_new(SCM_MEM_TYPE_T mtype,
+ScmObj scm_fcd_string_new(scm_mem_type_t mtype,
                           const void *src, size_t size, ScmEncoding *enc);
 ScmObj scm_fcd_make_string_from_cstr(const char *str, ScmEncoding *enc);
 ScmObj scm_fcd_make_string_from_bin(const void *data, size_t size,

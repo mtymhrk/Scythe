@@ -9,6 +9,9 @@ typedef struct ScmVMRegRec ScmVMReg;
 typedef struct ScmContCapRec ScmContCap;
 typedef struct ScmVMRec ScmVM;
 
+typedef enum scm_bedrock_err_type scm_bedrock_err_type_t;
+typedef enum scm_vm_ctrl_flg scm_vm_ctrl_flg_t;
+
 #define SCM_CONTCAP(obj) ((ScmContCap *)(obj))
 #define SCM_VM(obj) ((ScmVM *)(obj))
 
@@ -22,19 +25,17 @@ typedef struct ScmVMRec ScmVM;
 /*  ScmBedrock                                                             */
 /***************************************************************************/
 
-typedef enum {
+enum scm_bedrock_err_type {
   SCM_BEDROCK_ERR_NONE,
   SCM_BEDROCK_ERR_FATAL,
   SCM_BEDROCK_ERR_ERROR,
-} SCM_BEDROCK_ERROR_TYPE_T;
-
-
+};
 
 struct ScmBedrockRec {
   FILE *output;
 
   /*** Error Status ***/
-  SCM_BEDROCK_ERROR_TYPE_T err_type;
+  scm_bedrock_err_type_t err_type;
 
   /* Exit Status */
   int exit_stat;
@@ -271,7 +272,7 @@ struct ScmContCapRec {
   } reg;
 };
 
-ScmObj scm_contcap_new(SCM_MEM_TYPE_T mtype);
+ScmObj scm_contcap_new(scm_mem_type_t mtype);
 void scm_contcap_cap(ScmObj cc,  ScmObj stack, const ScmVMReg *regs);
 void scm_contcap_gc_initialize(ScmObj obj, ScmObj mem);
 int scm_contcap_gc_accepct(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
@@ -371,7 +372,7 @@ scm_contcap_flags(ScmObj cc)
 
 extern ScmTypeInfo SCM_VM_TYPE_INFO;
 
-typedef enum {
+enum scm_vm_ctrl_flg {
   SCM_VM_CTRL_FLG_RAISE = 0x00000001,
   SCM_VM_CTRL_FLG_UCF   = 0x00000002, /* cfp レジスタが、対応する call 令を実
                                          行していないフレームを指している場合
@@ -379,7 +380,7 @@ typedef enum {
   SCM_VM_CTRL_FLG_CCF   = 0x00000004, /* cfp レジスタがキャプチャされたスタッ
                                          クセグメント上のフレームを指している
                                          場合セットする */
-} SCM_VM_CTRL_FLG_T;
+};
 
 
 struct ScmVMRec {

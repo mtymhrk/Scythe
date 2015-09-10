@@ -51,7 +51,7 @@ check_token_string(const char *expected, ScmToken *token)
 }
 
 static void
-test_tokenize(SCM_TOKEN_TYPE_T expe_type, const char *expe_str,
+test_tokenize(scm_token_type_t expe_type, const char *expe_str,
               const char *data)
 {
   ScmObj port = SCM_OBJ_INIT;

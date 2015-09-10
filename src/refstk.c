@@ -28,7 +28,7 @@ scm_ref_stack_initialize(ScmObj stack)
 }
 
 ScmObj
-scm_fcd_ref_stack_new(SCM_MEM_TYPE_T mtype)
+scm_fcd_ref_stack_new(scm_mem_type_t mtype)
 {
   ScmObj stack = SCM_OBJ_INIT;
 

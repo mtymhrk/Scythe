@@ -9,8 +9,8 @@
 
 bool scm_fcd_symbol_p(ScmObj obj);
 ScmObj scm_fcd_symbol_P(ScmObj obj);
-ScmObj scm_fcd_symbol_new(SCM_MEM_TYPE_T mtype, ScmObj str);
-ScmObj scm_fcd_symtbl_new(SCM_MEM_TYPE_T mtype);
+ScmObj scm_fcd_symbol_new(scm_mem_type_t mtype, ScmObj str);
+ScmObj scm_fcd_symtbl_new(scm_mem_type_t mtype);
 bool scm_fcd_symbol_eq_p(ScmObj sym1, ScmObj sym2);
 ScmObj scm_fcd_symbol_eq_P(ScmObj sym1, ScmObj sym2);
 ScmObj scm_fcd_symbol_eq_P_lst(ScmObj lst);
