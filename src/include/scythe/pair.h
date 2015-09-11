@@ -23,7 +23,7 @@ struct ScmPairRec {
 int scm_pair_initialize(ScmObj pair, ScmObj car, ScmObj cdr);
 int scm_pair_obj_print(ScmObj obj, ScmObj port, int kind,
                        ScmObjPrintHandler handler);
-void scm_pair_gc_initialize(ScmObj obj, ScmObj mem);
+void scm_pair_gc_initialize(ScmObj obj);
 int scm_pair_gc_accept(ScmObj obj, ScmGCRefHandler handler);
 
 static inline ScmObj

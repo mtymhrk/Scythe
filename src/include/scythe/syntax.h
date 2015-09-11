@@ -29,7 +29,7 @@ int scm_syntax_initialize(ScmObj syx, ScmObj key, ScmObj handler);
 
 int scm_syntax_obj_print(ScmObj obj, ScmObj port, int kind,
                          ScmObjPrintHandler handler);
-void scm_syntax_gc_initialize(ScmObj obj, ScmObj mem);
+void scm_syntax_gc_initialize(ScmObj obj);
 int scm_syntax_gc_accept(ScmObj obj, ScmGCRefHandler handler);
 
 static inline ScmObj
@@ -70,7 +70,7 @@ extern ScmTypeInfo SCM_MACRO_TYPE_INFO;
 
 int scm_macro_initialize(ScmObj macro, ScmObj transformer, ScmObj env);
 int scm_macro_trmp_transformer(ScmObj macro, ScmObj form);
-void scm_macro_gc_initialize(ScmObj obj, ScmObj mem);
+void scm_macro_gc_initialize(ScmObj obj);
 int scm_macro_gc_accept(ScmObj obj, ScmGCRefHandler handler);
 
 static inline ScmObj

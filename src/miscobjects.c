@@ -420,10 +420,9 @@ scm_box_initialize(ScmObj box, ScmObj obj)
 }
 
 void
-scm_box_gc_initialize(ScmObj obj, ScmObj mem)
+scm_box_gc_initialize(ScmObj obj)
 {
   scm_assert_obj_type(obj, &SCM_BOX_TYPE_INFO);
-  scm_assert(scm_obj_not_null_p(mem));
 
   SCM_BOX(obj)->obj = SCM_OBJ_NULL;
 }

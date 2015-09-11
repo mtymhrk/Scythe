@@ -234,7 +234,7 @@ scm_efbox_new(scm_mem_type_t mtype, ScmEnvFrame *efp, size_t depth)
 }
 
 void
-scm_efbox_gc_initialize(ScmObj obj, ScmObj mem)
+scm_efbox_gc_initialize(ScmObj obj)
 {
   scm_assert_obj_type(obj, &SCM_EFBOX_TYPE_INFO);
 
@@ -430,7 +430,7 @@ scm_vmsr_relink_cf(ScmObj vmsr, ScmCntFrame *cfp, bool ucf)
 }
 
 void
-scm_vmsr_gc_initialize(ScmObj obj, ScmObj mem)
+scm_vmsr_gc_initialize(ScmObj obj)
 {
   scm_assert_obj_type(obj, &SCM_VMSTCKRC_TYPE_INFO);
 

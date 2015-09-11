@@ -243,7 +243,7 @@ scm_iseq_eq(ScmObj iseq1, ScmObj iseq2, bool *rslt)
 }
 
 void
-scm_iseq_gc_initialize(ScmObj obj, ScmObj mem)
+scm_iseq_gc_initialize(ScmObj obj)
 {
   scm_assert_obj_type(obj, &SCM_ISEQ_TYPE_INFO);
 

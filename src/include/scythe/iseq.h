@@ -40,7 +40,7 @@ ssize_t scm_iseq_ip_to_offset(ScmObj iseq, scm_byte_t *ip);
 ssize_t scm_iseq_push_inst(ScmObj iseq, const void *inst, size_t sz,
                            const size_t *objs, size_t n);
 int scm_iseq_eq(ScmObj iseq1, ScmObj iseq2, bool *rslt);
-void scm_iseq_gc_initialize(ScmObj obj, ScmObj mem);
+void scm_iseq_gc_initialize(ScmObj obj);
 void scm_iseq_gc_finalize(ScmObj obj);
 int scm_iseq_gc_accept(ScmObj obj, ScmGCRefHandler handler);
 

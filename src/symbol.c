@@ -420,7 +420,7 @@ scm_symbol_obj_print(ScmObj obj, ScmObj port, int kind,
 }
 
 void
-scm_symbol_gc_initialize(ScmObj obj, ScmObj mem)
+scm_symbol_gc_initialize(ScmObj obj)
 {
   scm_assert_obj_type(obj, &SCM_SYMBOL_TYPE_INFO);
 
@@ -535,7 +535,7 @@ scm_symtbl_clean(ScmObj tbl)
 }
 
 void
-scm_symtbl_gc_initialize(ScmObj obj, ScmObj mem)
+scm_symtbl_gc_initialize(ScmObj obj)
 {
   scm_assert_obj_type(obj, &SCM_SYMTBL_TYPE_INFO);
 

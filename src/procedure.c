@@ -25,7 +25,7 @@ scm_proc_initialize(ScmObj proc, ScmObj name,
 }
 
 void
-scm_proc_gc_initialize(ScmObj obj, ScmObj mem)
+scm_proc_gc_initialize(ScmObj obj)
 {
   scm_assert(scm_obj_type_flag_set_p(obj, SCM_TYPE_FLG_PROC));
 
@@ -139,11 +139,11 @@ scm_subrutine_obj_print(ScmObj obj, ScmObj port, int kind,
 }
 
 void
-scm_subrutine_gc_initialize(ScmObj obj, ScmObj mem)
+scm_subrutine_gc_initialize(ScmObj obj)
 {
   scm_assert_obj_type(obj, &SCM_SUBRUTINE_TYPE_INFO);
 
-  scm_proc_gc_initialize(obj, mem);
+  scm_proc_gc_initialize(obj);
 }
 
 int
@@ -249,11 +249,11 @@ scm_closure_initialize(ScmObj clsr,
 }
 
 void
-scm_closure_gc_initialize(ScmObj obj, ScmObj mem)
+scm_closure_gc_initialize(ScmObj obj)
 {
   scm_assert_obj_type(obj, &SCM_CLOSURE_TYPE_INFO);
 
-  scm_proc_gc_initialize(obj, mem);
+  scm_proc_gc_initialize(obj);
 
   SCM_CLOSURE(obj)->iseq = SCM_OBJ_NULL;
 }
@@ -415,7 +415,7 @@ scm_dwhcallerenv_new(scm_mem_type_t mtype,
 }
 
 void
-scm_dwhcallerenv_gc_initialize(ScmObj obj, ScmObj mem)
+scm_dwhcallerenv_gc_initialize(ScmObj obj)
 {
   scm_assert_obj_type(obj, &SCM_DWHCALLERENV_TYPE_INFO);
 

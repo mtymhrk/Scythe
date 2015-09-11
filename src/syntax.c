@@ -44,7 +44,7 @@ scm_syntax_obj_print(ScmObj obj, ScmObj port, int kind,
 }
 
 void
-scm_syntax_gc_initialize(ScmObj obj, ScmObj mem)
+scm_syntax_gc_initialize(ScmObj obj)
 {
   scm_assert_obj_type(obj, &SCM_SYNTAX_TYPE_INFO);
 
@@ -175,7 +175,7 @@ scm_macro_trmp_transformer(ScmObj macro, ScmObj form)
 }
 
 void
-scm_macro_gc_initialize(ScmObj obj, ScmObj mem)
+scm_macro_gc_initialize(ScmObj obj)
 {
   scm_assert_obj_type(obj, &SCM_MACRO_TYPE_INFO);
 

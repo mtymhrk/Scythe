@@ -66,7 +66,7 @@ scm_gloc_export(ScmObj gloc)
 }
 
 void
-scm_gloc_gc_initialize(ScmObj obj, ScmObj mem)
+scm_gloc_gc_initialize(ScmObj obj)
 {
   scm_assert_obj_type(obj, &SCM_GLOC_TYPE_INFO);
 
@@ -465,7 +465,7 @@ scm_module_obj_print(ScmObj obj, ScmObj port, int kind,
 }
 
 void
-scm_module_gc_initialize(ScmObj obj, ScmObj mem)
+scm_module_gc_initialize(ScmObj obj)
 {
   scm_assert_obj_type(obj, &SCM_MODULE_TYPE_INFO);
 
@@ -949,7 +949,7 @@ scm_moduletree_clean(ScmObj tree)
 }
 
 void
-scm_moduletree_gc_initialize(ScmObj obj, ScmObj mem)
+scm_moduletree_gc_initialize(ScmObj obj)
 {
   scm_assert_obj_type(obj, &SCM_MODULETREE_TYPE_INFO);
 

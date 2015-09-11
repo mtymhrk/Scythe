@@ -394,7 +394,7 @@ scm_asm_clear_labels(ScmObj asmb)
 }
 
 void
-scm_asm_gc_initialize(ScmObj obj, ScmObj mem)
+scm_asm_gc_initialize(ScmObj obj)
 {
   scm_assert_obj_type(obj, &SCM_ASSEMBLER_TYPE_INFO);
 
@@ -965,7 +965,7 @@ scm_disasm_cnv_to_marshalable(ScmObj disasm)
 }
 
 void
-scm_disasm_gc_initialize(ScmObj obj, ScmObj mem)
+scm_disasm_gc_initialize(ScmObj obj)
 {
   scm_assert_obj_type(obj, &SCM_DISASSEMBLER_TYPE_INFO);
 

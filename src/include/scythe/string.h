@@ -59,7 +59,7 @@ scm_char_t *scm_string_to_char_ary(ScmObj str, size_t pos, ssize_t len,
                                    scm_char_t *ary);
 int scm_string_obj_print(ScmObj obj, ScmObj port, int kind,
                          ScmObjPrintHandler handler);
-void scm_string_gc_initialize(ScmObj obj, ScmObj mem);
+void scm_string_gc_initialize(ScmObj obj);
 void scm_string_gc_finalize(ScmObj obj);
 size_t scm_string_hash_value(ScmObj str);
 int scm_string_inline_hex_escape(scm_char_t chr, ScmEncoding *enc, ScmObj port);

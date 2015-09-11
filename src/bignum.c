@@ -1487,7 +1487,7 @@ scm_bignum_obj_print(ScmObj obj, ScmObj port, int kind,
 }
 
 void
-scm_bignum_gc_initialize(ScmObj obj, ScmObj mem)
+scm_bignum_gc_initialize(ScmObj obj)
 {
   scm_assert_obj_type(obj, &SCM_BIGNUM_TYPE_INFO);
 

@@ -250,7 +250,7 @@ struct ScmEFBoxRec {
 
 int scm_efbox_initialize(ScmObj efb, ScmEnvFrame *efp, size_t depth);
 ScmObj scm_efbox_new(scm_mem_type_t mtype, ScmEnvFrame *efp, size_t depth);
-void scm_efbox_gc_initialize(ScmObj obj, ScmObj mem);
+void scm_efbox_gc_initialize(ScmObj obj);
 void scm_efbox_gc_finalize(ScmObj obj);
 int scm_efbox_gc_accept(ScmObj obj, ScmGCRefHandler handler);
 
@@ -332,7 +332,7 @@ void scm_vmsr_rec(ScmObj vmsr, scm_byte_t *ceil,
 void scm_vmsr_clear(ScmObj vmsr);
 void scm_vmsr_relink(ScmObj vmsr, ScmObj next, ScmCntFrame *cfp, bool ucf);
 void scm_vmsr_relink_cf(ScmObj vmsr, ScmCntFrame *cfp, bool ucf);
-void scm_vmsr_gc_initialize(ScmObj obj, ScmObj mem);
+void scm_vmsr_gc_initialize(ScmObj obj);
 int scm_vmsr_gc_accept(ScmObj obj, ScmGCRefHandler handler);
 
 static inline scm_byte_t *

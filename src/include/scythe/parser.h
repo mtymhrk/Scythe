@@ -107,7 +107,7 @@ struct ScmDatumLabelUseRec {
 int scm_datum_label_use_initialize(ScmObj use, ScmParserRef *ref);
 ScmObj scm_datum_label_use_new(scm_mem_type_t mtype, ScmParserRef *ref);
 int scm_datum_label_use_resolve(ScmObj use);
-void scm_datum_label_use_gc_initialize(ScmObj obj, ScmObj mem);
+void scm_datum_label_use_gc_initialize(ScmObj obj);
 int scm_datum_label_use_gc_accept(ScmObj obj, ScmGCRefHandler handler);
 
 
@@ -128,7 +128,7 @@ int scm_parser_initialize(ScmObj parser);
 void scm_parser_finalize(ScmObj parser);
 ScmObj scm_parser_new(scm_mem_type_t mtype);
 ScmObj scm_parser_parse(ScmObj parser, ScmObj port);
-void scm_parser_gc_initialize(ScmObj obj, ScmObj mem);
+void scm_parser_gc_initialize(ScmObj obj);
 void scm_parser_gc_finalize(ScmObj obj);
 int scm_parser_gc_accept(ScmObj obj, ScmGCRefHandler handler);
 

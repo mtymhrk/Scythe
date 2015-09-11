@@ -1054,7 +1054,7 @@ scm_marshal_terminate(ScmObj marshal, size_t *size)
 }
 
 void
-scm_marshal_gc_initialize(ScmObj obj, ScmObj mem)
+scm_marshal_gc_initialize(ScmObj obj)
 {
   scm_assert_obj_type(obj, &SCM_MARSHAL_TYPE_INFO);
 
@@ -1331,7 +1331,7 @@ scm_unmarshal_ref(ScmObj unmarshal, size_t idx)
 }
 
 void
-scm_unmarshal_gc_initialize(ScmObj obj, ScmObj mem)
+scm_unmarshal_gc_initialize(ScmObj obj)
 {
   scm_assert_obj_type(obj, &SCM_UNMARSHAL_TYPE_INFO);
 

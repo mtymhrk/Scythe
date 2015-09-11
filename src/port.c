@@ -2761,7 +2761,7 @@ scm_port_string_buffer_length(ScmObj port)
 }
 
 void
-scm_port_gc_initialize(ScmObj obj, ScmObj mem)
+scm_port_gc_initialize(ScmObj obj)
 {
   SCM_PORT(obj)->io = NULL;
 }

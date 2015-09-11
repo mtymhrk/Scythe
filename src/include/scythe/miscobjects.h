@@ -104,7 +104,7 @@ void scm_landmine_finalize(ScmObj mine);
 extern ScmTypeInfo SCM_BOX_TYPE_INFO;
 
 int scm_box_initialize(ScmObj box, ScmObj obj);
-void scm_box_gc_initialize(ScmObj obj, ScmObj mem);
+void scm_box_gc_initialize(ScmObj obj);
 int scm_box_gc_accept(ScmObj obj, ScmGCRefHandler handler);
 
 

@@ -43,7 +43,7 @@ int scm_vector_contract_redundant_space(ScmObj vector);
 const ScmObj *scm_vector_content(ScmObj vector);
 int scm_vector_obj_print(ScmObj obj, ScmObj port, int kind,
                          ScmObjPrintHandler handler);
-void scm_vector_gc_initialize(ScmObj obj, ScmObj mem);
+void scm_vector_gc_initialize(ScmObj obj);
 void scm_vector_gc_finalize(ScmObj obj);
 int scm_vector_gc_accept(ScmObj obj, ScmGCRefHandler handler);
 
@@ -77,7 +77,7 @@ int scm_bytevector_contract_redundant_space(ScmObj vec);
 int scm_bytevector_cmp(ScmObj v1, ScmObj v2);
 int scm_bytevector_obj_print(ScmObj obj, ScmObj port, int kind,
                              ScmObjPrintHandler handler);
-void scm_bytevector_gc_initialize(ScmObj obj, ScmObj mem);
+void scm_bytevector_gc_initialize(ScmObj obj);
 void scm_bytevector_gc_finalize(ScmObj obj);
 
 static inline const void *

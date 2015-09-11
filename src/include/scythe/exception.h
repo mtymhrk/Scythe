@@ -24,7 +24,7 @@ struct ScmExceptionRec {
 
 int scm_exception_initialize(ScmObj exc, ScmObj msg);
 void scm_exception_finalize(ScmObj exc);
-void scm_exception_gc_initialize(ScmObj obj, ScmObj mem);
+void scm_exception_gc_initialize(ScmObj obj);
 int scm_exception_gc_accept(ScmObj obj, ScmGCRefHandler handler);
 
 static inline ScmObj
@@ -58,7 +58,7 @@ void scm_error_finalize(ScmObj exc);
 ScmObj scm_error_irris_to_list(ScmObj exc);
 int scm_error_obj_print(ScmObj obj, ScmObj port, int kind,
                         ScmObjPrintHandler handler);
-void scm_error_gc_initialize(ScmObj obj, ScmObj mem);
+void scm_error_gc_initialize(ScmObj obj);
 void scm_error_gc_fianlize(ScmObj obj);
 int scm_error_gc_accept(ScmObj obj, ScmGCRefHandler handler);
 

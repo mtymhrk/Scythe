@@ -224,7 +224,7 @@ scm_vector_obj_print(ScmObj obj, ScmObj port, int kind,
 }
 
 void
-scm_vector_gc_initialize(ScmObj obj, ScmObj mem)
+scm_vector_gc_initialize(ScmObj obj)
 {
   scm_assert_obj_type(obj, &SCM_VECTOR_TYPE_INFO);
 
@@ -946,7 +946,7 @@ scm_bytevector_obj_print(ScmObj obj, ScmObj port, int kind,
 }
 
 void
-scm_bytevector_gc_initialize(ScmObj obj, ScmObj mem)
+scm_bytevector_gc_initialize(ScmObj obj)
 {
   scm_assert_obj_type(obj, &SCM_BYTEVECTOR_TYPE_INFO);
 

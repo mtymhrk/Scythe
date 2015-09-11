@@ -40,7 +40,7 @@ scm_pair_obj_print(ScmObj obj, ScmObj port, int kind,
 }
 
 void
-scm_pair_gc_initialize(ScmObj obj, ScmObj mem)
+scm_pair_gc_initialize(ScmObj obj)
 {
   scm_assert_obj_type(obj, &SCM_PAIR_TYPE_INFO);
 

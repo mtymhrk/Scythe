@@ -253,7 +253,7 @@ struct ScmGCRefHandlerBodyRec {
 
 #define SCM_GC_REF_HANDLER_MAKE(body) (&(body))
 
-typedef void (*ScmGCInitializeFunc)(ScmObj obj, ScmObj mem);
+typedef void (*ScmGCInitializeFunc)(ScmObj obj);
 typedef void (*ScmGCFinalizeFunc)(ScmObj obj);
 typedef int (*ScmGCAcceptFunc)(ScmObj obj, ScmGCRefHandler handler);
 
@@ -339,10 +339,10 @@ scm_type_info_has_gc_ini_func_p(ScmTypeInfo *type)
 }
 
 static inline void
-scm_type_info_call_gc_ini_func(ScmTypeInfo *type, ScmObj obj, ScmObj mem)
+scm_type_info_call_gc_ini_func(ScmTypeInfo *type, ScmObj obj)
 {
   if (scm_type_info_has_gc_ini_func_p(type))
-    type->gc_ini_func(obj, mem);
+    type->gc_ini_func(obj);
 }
 
 static inline bool

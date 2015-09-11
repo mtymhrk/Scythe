@@ -46,12 +46,11 @@ scm_mem_end(ScmMem *mem)
 }
 
 void
-stub_obj_gc_init_func(ScmObj obj, ScmObj mem)
+stub_obj_gc_init_func(ScmObj obj)
 {
   StubObj *so = (StubObj *)obj;
 
   assert(scm_obj_not_null_p(obj));
-  assert(scm_obj_not_null_p(mem));
 
   so->obj = SCM_OBJ_NULL;
   so->weak_obj = SCM_OBJ_NULL;

@@ -461,7 +461,7 @@ scm_contcap_cap(ScmObj cc,  ScmObj stack, const ScmVMReg *regs)
 }
 
 void
-scm_contcap_gc_initialize(ScmObj obj, ScmObj mem)
+scm_contcap_gc_initialize(ScmObj obj)
 {
   scm_assert_obj_type(obj, &SCM_CONTCAP_TYPE_INFO);
 
@@ -3531,10 +3531,9 @@ scm_vm_ptr2opcode(const void *ptr)
 }
 
 void
-scm_vm_gc_initialize(ScmObj obj, ScmObj mem)
+scm_vm_gc_initialize(ScmObj obj)
 {
   scm_assert_obj_type(obj, &SCM_VM_TYPE_INFO);
-  scm_assert(scm_obj_not_null_p(mem));
 
   SCM_VM(obj)->main = SCM_OBJ_NULL;
   SCM_VM(obj)->stack = SCM_OBJ_NULL;

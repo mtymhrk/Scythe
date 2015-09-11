@@ -56,7 +56,7 @@ scm_cmpl_set_expr(ScmObj cmpl, ScmObj expr)
 }
 
 void
-scm_cmpl_gc_initialize(ScmObj obj, ScmObj mem)
+scm_cmpl_gc_initialize(ScmObj obj)
 {
   scm_assert_obj_type(obj, &SCM_COMPILER_TYPE_INFO);
 
@@ -258,7 +258,7 @@ scm_qqtn_update_contents(ScmObj node, int kind, ScmObj obj)
 }
 
 void
-scm_qqtn_gc_initialize(ScmObj obj, ScmObj mem)
+scm_qqtn_gc_initialize(ScmObj obj)
 {
   scm_assert_obj_type(obj, &SCM_QQTMPLNODE_TYPE_INFO);
 
@@ -478,10 +478,9 @@ scm_qqtmpl_eq(ScmObj qqtmpl1, ScmObj qqtmpl2, bool *rslt)
 }
 
 void
-scm_qqtmpl_gc_initialize(ScmObj obj, ScmObj mem)
+scm_qqtmpl_gc_initialize(ScmObj obj)
 {
   scm_assert_obj_type(obj, &SCM_QQTMPL_TYPE_INFO);
-  scm_assert(scm_obj_not_null_p(mem));
 
   SCM_QQTMPL(obj)->orig = SCM_OBJ_NULL;
   SCM_QQTMPL(obj)->compiled = SCM_OBJ_NULL;
@@ -1227,7 +1226,7 @@ scm_ident_obj_print(ScmObj obj, ScmObj port, int kind, ScmObjPrintHandler handle
 }
 
 void
-scm_ident_gc_initialize(ScmObj obj, ScmObj mem)
+scm_ident_gc_initialize(ScmObj obj)
 {
   scm_assert_obj_type(obj, &SCM_IDENTIFIER_TYPE_INFO);
 

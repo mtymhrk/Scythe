@@ -852,7 +852,7 @@ scm_mem_obj_init(ScmMem *mem, ScmObj obj, ScmTypeInfo *type)
   scm_assert(type != NULL);
 
   scm_obj_init(obj, type);
-  scm_type_info_call_gc_ini_func(type, obj, SCM_OBJ(mem));
+  scm_type_info_call_gc_ini_func(type, obj);
 }
 
 static ScmObj

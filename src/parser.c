@@ -1145,10 +1145,9 @@ scm_datum_label_use_resolve(ScmObj use)
 }
 
 void
-scm_datum_label_use_gc_initialize(ScmObj obj, ScmObj mem)
+scm_datum_label_use_gc_initialize(ScmObj obj)
 {
   scm_assert_obj_type(obj, &SCM_DATUM_LABEL_USE_TYPE_INFO);
-  scm_assert(scm_obj_not_null_p(mem));
 
   SCM_DATUM_LABEL_USE(obj)->ref.referrer = SCM_OBJ_NULL;
 }
@@ -2370,7 +2369,7 @@ scm_parser_parse(ScmObj parser, ScmObj port)
 }
 
 void
-scm_parser_gc_initialize(ScmObj obj, ScmObj mem)
+scm_parser_gc_initialize(ScmObj obj)
 {
   scm_assert_obj_type(obj, &SCM_PARSER_TYPE_INFO);
 

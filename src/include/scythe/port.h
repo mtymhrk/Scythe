@@ -285,7 +285,7 @@ off_t scm_port_seek(ScmObj port, off_t offset, int whence);
 off_t scm_port_pos(ScmObj port);
 const void *scm_port_string_buffer(ScmObj port);
 ssize_t scm_port_string_buffer_length(ScmObj port);
-void scm_port_gc_initialize(ScmObj obj, ScmObj mem);
+void scm_port_gc_initialize(ScmObj obj);
 void scm_port_gc_finalize(ScmObj obj);
 
 #endif /*  INCLUDE_PORT_H__ */

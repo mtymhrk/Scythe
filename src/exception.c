@@ -28,7 +28,7 @@ scm_exception_finalize(ScmObj exc)
 }
 
 void
-scm_exception_gc_initialize(ScmObj obj, ScmObj mem)
+scm_exception_gc_initialize(ScmObj obj)
 {
   scm_assert(scm_obj_type_flag_set_p(obj, SCM_TYPE_FLG_EXC));
 
@@ -214,12 +214,11 @@ scm_error_obj_print(ScmObj obj, ScmObj port, int kind,
 }
 
 void
-scm_error_gc_initialize(ScmObj obj, ScmObj mem)
+scm_error_gc_initialize(ScmObj obj)
 {
   scm_assert_obj_type(obj, &SCM_ERROR_TYPE_INFO);
-  scm_assert(scm_obj_not_null_p(mem));
 
-  scm_exception_gc_initialize(obj, mem);
+  scm_exception_gc_initialize(obj);
 
   SCM_ERROR(obj)->type = SCM_OBJ_NULL;
   SCM_ERROR(obj)->irritants = NULL;

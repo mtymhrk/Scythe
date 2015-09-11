@@ -43,7 +43,7 @@ scm_fcd_ref_stack_new(scm_mem_type_t mtype)
 
 
 void
-scm_ref_stack_gc_initialize(ScmObj obj, ScmObj mem)
+scm_ref_stack_gc_initialize(ScmObj obj)
 {
   scm_assert_obj_type(obj, &SCM_REFSTACK_TYPE_INFO);
 
