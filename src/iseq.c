@@ -258,7 +258,7 @@ scm_iseq_gc_finalize(ScmObj obj)
 }
 
 int
-scm_iseq_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
+scm_iseq_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler)
 {
   size_t idx, *offset;
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;

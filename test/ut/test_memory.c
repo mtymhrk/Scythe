@@ -78,7 +78,7 @@ stub_obj_gc_fin_func(ScmObj obj)
 }
 
 int
-stub_obj_gc_accept_func(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
+stub_obj_gc_accept_func(ScmObj obj, ScmObj mem, ScmGCRefHandler handler)
 {
   StubObj *so = (StubObj *)obj;
   int rslt;
@@ -94,7 +94,7 @@ stub_obj_gc_accept_func(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
 
 int
 stub_obj_gc_accept_func_weak(ScmObj obj, ScmObj mem,
-                             ScmGCRefHandlerFunc handler)
+                             ScmGCRefHandler handler)
 {
   StubObj *so = (StubObj *)obj;
   int rslt;

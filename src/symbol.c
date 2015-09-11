@@ -428,7 +428,7 @@ scm_symbol_gc_initialize(ScmObj obj, ScmObj mem)
 }
 
 int
-scm_symbol_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
+scm_symbol_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler)
 {
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
 
@@ -551,7 +551,7 @@ scm_symtbl_gc_finalize(ScmObj obj)
 }
 
 int
-scm_symtbl_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
+scm_symtbl_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler)
 {
   scm_assert_obj_type(obj, &SCM_SYMTBL_TYPE_INFO);
 
@@ -560,7 +560,7 @@ scm_symtbl_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
 }
 
 int
-scm_symtbl_gc_accept_weak(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
+scm_symtbl_gc_accept_weak(ScmObj obj, ScmObj mem, ScmGCRefHandler handler)
 {
   scm_assert_obj_type(obj, &SCM_SYMTBL_TYPE_INFO);
 

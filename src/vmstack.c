@@ -13,7 +13,7 @@
 
 int
 scm_vm_ef_gc_accept(ScmObj owner, ScmEnvFrame *efp,
-                    ScmObj mem, ScmGCRefHandlerFunc handler)
+                    ScmObj mem, ScmGCRefHandler handler)
 {
   ScmObj *partial, *values;
   ScmEnvFrame *ef;
@@ -55,7 +55,7 @@ scm_vm_ef_gc_accept(ScmObj owner, ScmEnvFrame *efp,
 
 int
 scm_vm_cf_gc_accept(ScmObj owner, ScmCntFrame *cfp,
-                    ScmObj mem, ScmGCRefHandlerFunc handler)
+                    ScmObj mem, ScmGCRefHandler handler)
 {
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
 
@@ -256,7 +256,7 @@ scm_efbox_gc_finalize(ScmObj obj)
 }
 
 int
-scm_efbox_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
+scm_efbox_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler)
 {
   scm_assert_obj_type(obj, &SCM_EFBOX_TYPE_INFO);
   scm_assert(scm_obj_not_null_p(mem));
@@ -449,7 +449,7 @@ scm_vmsr_gc_initialize(ScmObj obj, ScmObj mem)
 }
 
 int
-scm_vmsr_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
+scm_vmsr_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler)
 {
   ScmObj *partial;
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;

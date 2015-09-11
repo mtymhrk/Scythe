@@ -45,7 +45,7 @@ int scm_vector_obj_print(ScmObj obj, ScmObj port, int kind,
                          ScmObjPrintHandler handler);
 void scm_vector_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_vector_gc_finalize(ScmObj obj);
-int scm_vector_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
+int scm_vector_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler);
 
 
 /*******************************************************************/

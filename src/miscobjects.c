@@ -429,7 +429,7 @@ scm_box_gc_initialize(ScmObj obj, ScmObj mem)
 }
 
 int
-scm_box_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
+scm_box_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler)
 {
   scm_assert_obj_type(obj, &SCM_BOX_TYPE_INFO);
   scm_assert(scm_obj_not_null_p(mem));

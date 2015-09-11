@@ -75,9 +75,9 @@ int scm_chash_tbl_update(ScmCHashTbl *tbl,
 void scm_chash_tbl_clean(ScmCHashTbl *tbl);
 
 int scm_chash_tbl_gc_accept(ScmCHashTbl *tbl, ScmObj owner,
-                            ScmObj mem, ScmGCRefHandlerFunc handler,
+                            ScmObj mem, ScmGCRefHandler handler,
                             bool rehash);
 int scm_chash_tbl_gc_accept_weak(ScmCHashTbl *tbl, ScmObj owner,
-                                 ScmObj mem, ScmGCRefHandlerFunc handler);
+                                 ScmObj mem, ScmGCRefHandler handler);
 
 #endif /* INCLUDE_CHASHTBL_H__ */

@@ -34,7 +34,7 @@ scm_proc_gc_initialize(ScmObj obj, ScmObj mem)
 }
 
 int
-scm_proc_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
+scm_proc_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler)
 {
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
 
@@ -147,7 +147,7 @@ scm_subrutine_gc_initialize(ScmObj obj, ScmObj mem)
 }
 
 int
-scm_subrutine_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
+scm_subrutine_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler)
 {
   scm_assert_obj_type(obj, &SCM_SUBRUTINE_TYPE_INFO);
   scm_assert(scm_obj_not_null_p(mem));
@@ -261,7 +261,7 @@ scm_closure_gc_initialize(ScmObj obj, ScmObj mem)
 }
 
 int
-scm_closure_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
+scm_closure_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler)
 {
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
 
@@ -434,7 +434,7 @@ scm_dwhcallerenv_gc_finalize(ScmObj obj)
 }
 
 int
-scm_dwhcallerenv_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
+scm_dwhcallerenv_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler)
 {
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
 

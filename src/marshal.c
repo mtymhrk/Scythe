@@ -1071,7 +1071,7 @@ scm_marshal_gc_finalize(ScmObj obj)
 }
 
 int
-scm_marshal_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
+scm_marshal_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler)
 {
   scm_assert_obj_type(obj, &SCM_MARSHAL_TYPE_INFO);
   scm_assert(scm_obj_not_null_p(mem));
@@ -1351,7 +1351,7 @@ scm_unmarshal_gc_finalize(ScmObj obj)
 }
 
 int
-scm_unmarshal_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
+scm_unmarshal_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler)
 {
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
 

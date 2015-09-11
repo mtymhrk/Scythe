@@ -51,7 +51,7 @@ scm_ref_stack_gc_initialize(ScmObj obj, ScmObj mem)
 }
 
 int
-scm_ref_stack_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
+scm_ref_stack_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler)
 {
   ScmRefStackBlock *block;
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;

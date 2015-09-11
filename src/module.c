@@ -75,7 +75,7 @@ scm_gloc_gc_initialize(ScmObj obj, ScmObj mem)
 }
 
 int
-scm_gloc_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
+scm_gloc_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler)
 {
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
 
@@ -481,7 +481,7 @@ scm_module_gc_finalize(ScmObj obj)
 }
 
 int
-scm_module_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
+scm_module_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler)
 {
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
 
@@ -733,7 +733,7 @@ scm_moduletree_free_tree(ScmModuleTreeNode *root)
 
 static int
 scm_moduletree_node_gc_accept(ScmObj tree, ScmModuleTreeNode *node,
-                              ScmObj mem, ScmGCRefHandlerFunc handler)
+                              ScmObj mem, ScmGCRefHandler handler)
 {
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
 
@@ -965,7 +965,7 @@ scm_moduletree_gc_finalize(ScmObj obj)
 }
 
 int
-scm_moduletree_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
+scm_moduletree_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler)
 {
   scm_assert_obj_type(obj, &SCM_MODULETREE_TYPE_INFO);
   scm_assert(scm_obj_not_null_p(mem));

@@ -53,7 +53,7 @@ scm_syntax_gc_initialize(ScmObj obj, ScmObj mem)
 }
 
 int
-scm_syntax_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
+scm_syntax_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler)
 {
   int rslt;
 
@@ -186,7 +186,7 @@ scm_macro_gc_initialize(ScmObj obj, ScmObj mem)
 }
 
 int
-scm_macro_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
+scm_macro_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler)
 {
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
 

@@ -36,7 +36,7 @@ scm_exception_gc_initialize(ScmObj obj, ScmObj mem)
 }
 
 int
-scm_exception_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
+scm_exception_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler)
 {
   scm_assert(scm_obj_type_flag_set_p(obj, SCM_TYPE_FLG_EXC));
 
@@ -233,7 +233,7 @@ scm_error_gc_fianlize(ScmObj obj)
 }
 
 int
-scm_error_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
+scm_error_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler)
 {
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
 

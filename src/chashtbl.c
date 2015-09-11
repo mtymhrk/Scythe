@@ -292,7 +292,7 @@ scm_chash_tbl_clean(ScmCHashTbl *tbl)
 
 int
 scm_chash_tbl_gc_accept(ScmCHashTbl *tbl, ScmObj owner,
-                        ScmObj mem, ScmGCRefHandlerFunc handler, bool rehash)
+                        ScmObj mem, ScmGCRefHandler handler, bool rehash)
 {
   ScmCHashTblEntry *buckets[tbl->tbl_size];
   ScmCHashTblEntry *next;
@@ -344,7 +344,7 @@ scm_chash_tbl_gc_accept(ScmCHashTbl *tbl, ScmObj owner,
 
 int
 scm_chash_tbl_gc_accept_weak(ScmCHashTbl *tbl, ScmObj owner,
-                             ScmObj mem, ScmGCRefHandlerFunc handler)
+                             ScmObj mem, ScmGCRefHandler handler)
 {
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
 

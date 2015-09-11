@@ -30,7 +30,7 @@ struct ScmProcedureRec {
 int scm_proc_initialize(ScmObj proc, ScmObj name,
                         int arity, unsigned int flags, ScmObj env);
 void scm_proc_gc_initialize(ScmObj obj, ScmObj mem);
-int scm_proc_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
+int scm_proc_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler);
 
 static inline int
 scm_proc_arity(ScmObj proc)
@@ -75,7 +75,7 @@ int scm_subrutine_obj_print(ScmObj obj, ScmObj port, int kind,
                             ScmObjPrintHandler handler);
 void scm_subrutine_gc_initialize(ScmObj obj, ScmObj mem);
 int scm_subrutine_gc_accept(ScmObj obj,
-                            ScmObj mem, ScmGCRefHandlerFunc handler);
+                            ScmObj mem, ScmGCRefHandler handler);
 
 static inline ScmSubrFunc
 scm_subrutine_func(ScmObj subr)
@@ -108,7 +108,7 @@ struct ScmClosureRec {
 int scm_closure_initialize(ScmObj clsr,
                            ScmObj iseq, ScmObj env, ScmObj name, int arity);
 void scm_closure_gc_initialize(ScmObj obj, ScmObj mem);
-int scm_closure_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
+int scm_closure_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler);
 
 static inline ScmObj
 scm_closure_body(ScmObj clsr)
@@ -148,7 +148,7 @@ ScmObj scm_dwhcallerenv_new(scm_mem_type_t mtype,
 void scm_dwhcallerenv_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_dwhcallerenv_gc_finalize(ScmObj obj);
 int scm_dwhcallerenv_gc_accept(ScmObj obj,
-                               ScmObj mem, ScmGCRefHandlerFunc handler);
+                               ScmObj mem, ScmGCRefHandler handler);
 
 static inline ScmObj
 scm_dwhcallerenv_cont(ScmObj dwhce)

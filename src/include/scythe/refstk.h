@@ -13,6 +13,6 @@ extern ScmTypeInfo SCM_REFSTACK_TYPE_INFO;
 int scm_ref_stack_initialize(ScmObj stack);
 void scm_ref_stack_gc_initialize(ScmObj obj, ScmObj mem);
 int scm_ref_stack_gc_accept(ScmObj obj, ScmObj mem,
-                            ScmGCRefHandlerFunc handler);
+                            ScmGCRefHandler handler);
 
 #endif /* INCLUDE_REFSTK_H__ */

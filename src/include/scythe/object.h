@@ -245,9 +245,9 @@ int scm_obj_default_print_func(ScmObj obj, ScmObj port, int kind,
 
 typedef void (*ScmGCInitializeFunc)(ScmObj obj, ScmObj mem);
 typedef void (*ScmGCFinalizeFunc)(ScmObj obj);
-typedef int (*ScmGCRefHandlerFunc)(ScmObj mem, ScmObj obj, ScmRef child);
+typedef int (*ScmGCRefHandler)(ScmObj mem, ScmObj obj, ScmRef child);
 typedef int (*ScmGCAcceptFunc)(ScmObj obj,
-                               ScmObj mem, ScmGCRefHandlerFunc handler);
+                               ScmObj mem, ScmGCRefHandler handler);
 
 #define SCM_GC_REF_HANDLER_VAL_INIT 0
 #define SCM_GC_CALL_REF_HANDLER(handler, obj, child, mem)       \
@@ -358,7 +358,7 @@ scm_type_info_has_gc_accept_func_p(ScmTypeInfo *type)
 
 static inline int
 scm_type_info_call_gc_accept_func(ScmTypeInfo *type, ScmObj obj,
-                                  ScmObj mem, ScmGCRefHandlerFunc handler)
+                                  ScmObj mem, ScmGCRefHandler handler)
 {
   if (scm_type_info_has_gc_accept_func_p(type))
     return type->gc_accept_func(obj, mem, handler);
@@ -374,7 +374,7 @@ scm_type_info_has_instance_weak_ref_p(ScmTypeInfo *type)
 
 static inline int
 scm_type_info_call_gc_accept_func_weak(ScmTypeInfo *type, ScmObj obj,
-                                       ScmObj mem, ScmGCRefHandlerFunc handler)
+                                       ScmObj mem, ScmGCRefHandler handler)
 {
   if (scm_type_info_has_instance_weak_ref_p(type))
     return type->gc_accept_func_weak(obj, mem, handler);
@@ -509,7 +509,7 @@ scm_obj_has_gc_fin_func_p(ScmObj obj)
 
 static inline int
 scm_obj_call_gc_accept_func(ScmObj obj,
-                            ScmObj mem, ScmGCRefHandlerFunc handler)
+                            ScmObj mem, ScmGCRefHandler handler)
 {
   return scm_type_info_call_gc_accept_func(scm_obj_type(obj),
                                            obj, mem, handler);
@@ -524,7 +524,7 @@ scm_obj_has_gc_accpet_func_p(ScmObj obj)
 
 static inline int
 scm_obj_call_gc_accept_func_weak(ScmObj obj,
-                            ScmObj mem, ScmGCRefHandlerFunc handler)
+                            ScmObj mem, ScmGCRefHandler handler)
 {
   return scm_type_info_call_gc_accept_func_weak(scm_obj_type(obj),
                                                 obj, mem, handler);

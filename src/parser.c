@@ -1155,7 +1155,7 @@ scm_datum_label_use_gc_initialize(ScmObj obj, ScmObj mem)
 
 int
 scm_datum_label_use_gc_accept(ScmObj obj, ScmObj mem,
-                              ScmGCRefHandlerFunc handler)
+                              ScmGCRefHandler handler)
 {
   scm_assert_obj_type(obj, &SCM_DATUM_LABEL_USE_TYPE_INFO);
   scm_assert(scm_obj_not_null_p(mem));
@@ -2389,7 +2389,7 @@ scm_parser_gc_finalize(ScmObj obj)
 }
 
 int
-scm_parser_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
+scm_parser_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler)
 {
   ScmObj *itr;
   size_t idx;

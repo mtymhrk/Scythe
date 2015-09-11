@@ -477,7 +477,7 @@ scm_contcap_gc_initialize(ScmObj obj, ScmObj mem)
 }
 
 int
-scm_contcap_gc_accepct(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
+scm_contcap_gc_accepct(ScmObj obj, ScmObj mem, ScmGCRefHandler handler)
 {
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
   int n;
@@ -3562,7 +3562,7 @@ scm_vm_gc_finalize(ScmObj obj)
 }
 
 static int
-scm_vm_gc_accept_stack(ScmObj vm, ScmObj mem, ScmGCRefHandlerFunc handler)
+scm_vm_gc_accept_stack(ScmObj vm, ScmObj mem, ScmGCRefHandler handler)
 {
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
 
@@ -3593,7 +3593,7 @@ scm_vm_gc_accept_stack(ScmObj vm, ScmObj mem, ScmGCRefHandlerFunc handler)
 }
 
 int
-scm_vm_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
+scm_vm_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler)
 {
   int n, rslt = SCM_GC_REF_HANDLER_VAL_INIT;
 

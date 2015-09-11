@@ -65,7 +65,7 @@ scm_cmpl_gc_initialize(ScmObj obj, ScmObj mem)
 }
 
 int
-scm_cmpl_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
+scm_cmpl_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler)
 {
   int rslt;
 
@@ -269,7 +269,7 @@ scm_qqtn_gc_initialize(ScmObj obj, ScmObj mem)
 }
 
 int
-scm_qqtn_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
+scm_qqtn_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler)
 {
   scm_assert_obj_type(obj, &SCM_QQTMPLNODE_TYPE_INFO);
   scm_assert(scm_obj_not_null_p(mem));
@@ -494,7 +494,7 @@ scm_qqtmpl_gc_initialize(ScmObj obj, ScmObj mem)
 }
 
 int
-scm_qqtmpl_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
+scm_qqtmpl_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler)
 {
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
 
@@ -1243,7 +1243,7 @@ scm_ident_gc_initialize(ScmObj obj, ScmObj mem)
 }
 
 int
-scm_ident_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
+scm_ident_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler)
 {
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
 

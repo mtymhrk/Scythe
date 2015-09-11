@@ -50,7 +50,7 @@ scm_pair_gc_initialize(ScmObj obj, ScmObj mem)
 
 
 int
-scm_pair_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
+scm_pair_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler)
 {
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
 

@@ -238,7 +238,7 @@ scm_vector_gc_finalize(ScmObj obj)
 }
 
 int
-scm_vector_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler)
+scm_vector_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler)
 {
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
   size_t i;

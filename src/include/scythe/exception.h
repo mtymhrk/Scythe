@@ -26,7 +26,7 @@ int scm_exception_initialize(ScmObj exc, ScmObj msg);
 void scm_exception_finalize(ScmObj exc);
 void scm_exception_gc_initialize(ScmObj obj, ScmObj mem);
 int scm_exception_gc_accept(ScmObj obj,
-                            ScmObj mem, ScmGCRefHandlerFunc handler);
+                            ScmObj mem, ScmGCRefHandler handler);
 
 static inline ScmObj
 scm_exception_msg(ScmObj exc)
@@ -61,7 +61,7 @@ int scm_error_obj_print(ScmObj obj, ScmObj port, int kind,
                         ScmObjPrintHandler handler);
 void scm_error_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_error_gc_fianlize(ScmObj obj);
-int scm_error_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandlerFunc handler);
+int scm_error_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler);
 
 static inline ScmObj
 scm_error_type(ScmObj exc)
