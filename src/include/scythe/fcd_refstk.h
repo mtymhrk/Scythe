@@ -3,6 +3,7 @@
 
 
 #include "scythe/fcd_memory.h"
+#include "scythe/fcd_vm.h"
 
 enum { SCM_REFSTACK_RARY, SCM_REFSTACK_ARY };
 

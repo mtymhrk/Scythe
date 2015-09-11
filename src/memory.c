@@ -1401,3 +1401,31 @@ scm_fcd_gc_disable(void)
 {
   scm_mem_disable_gc(scm_fcd_current_memory_manager());
 }
+
+
+/****************************************************************************/
+/* Wrapper                                                                  */
+/****************************************************************************/
+
+void *
+scm_fcd_malloc(size_t size)
+{
+  void *p = malloc(size);
+  if (p == NULL) scm_fcd_fatal("memory allocation error");
+  return p;
+}
+
+void *
+scm_fcd_free(void *ptr)
+{
+  free(ptr);
+  return NULL;
+}
+
+void *
+scm_fcd_realloc(void *ptr, size_t size)
+{
+  void *p = realloc(ptr, size);
+  if (p == NULL) scm_fcd_fatal("memory allocation error");
+  return p;
+}

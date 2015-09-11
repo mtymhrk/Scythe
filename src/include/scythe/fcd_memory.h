@@ -7,7 +7,6 @@ typedef struct ScmMemRec ScmMem;
 typedef enum scm_mem_type scm_mem_type_t;
 
 #include "scythe/object.h"
-#include "scythe/fcd_vm.h"
 
 enum scm_mem_type {
   SCM_MEM_HEAP,
@@ -26,27 +25,8 @@ void scm_fcd_gc_start(void);
 void scm_fcd_gc_enable(void);
 void scm_fcd_gc_disable(void);
 
-static inline void *
-scm_fcd_malloc(size_t size)
-{
-  void *p = malloc(size);
-  if (p == NULL) scm_fcd_fatal("memory allocation error");
-  return p;
-}
-
-static inline void *
-scm_fcd_free(void *ptr)
-{
-  free(ptr);
-  return NULL;
-}
-
-static inline void *
-scm_fcd_realloc(void *ptr, size_t size)
-{
-  void *p = realloc(ptr, size);
-  if (p == NULL) scm_fcd_fatal("memory allocation error");
-  return p;
-}
+void *scm_fcd_malloc(size_t size);
+void *scm_fcd_free(void *ptr);
+void *scm_fcd_realloc(void *ptr, size_t size);
 
 #endif /* INCLUDE_FCD_MEMORY_H__ */
