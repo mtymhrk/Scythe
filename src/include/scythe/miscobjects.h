@@ -105,7 +105,7 @@ extern ScmTypeInfo SCM_BOX_TYPE_INFO;
 
 int scm_box_initialize(ScmObj box, ScmObj obj);
 void scm_box_gc_initialize(ScmObj obj, ScmObj mem);
-int scm_box_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler);
+int scm_box_gc_accept(ScmObj obj, ScmGCRefHandler handler);
 
 
 #endif /*  INCLUDE_MISCOBJECTS_H__ */

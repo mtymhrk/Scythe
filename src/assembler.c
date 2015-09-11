@@ -410,15 +410,13 @@ scm_asm_gc_finalize(ScmObj obj)
 }
 
 int
-scm_asm_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler)
+scm_asm_gc_accept(ScmObj obj, ScmGCRefHandler handler)
 {
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
 
   scm_assert_obj_type(obj, &SCM_ASSEMBLER_TYPE_INFO);
-  scm_assert(scm_obj_not_null_p(mem));
-  scm_assert(handler != NULL);
 
-  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_ASSEMBLER_ISEQ(obj), mem);
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_ASSEMBLER_ISEQ(obj));
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
   return rslt;
@@ -983,15 +981,13 @@ scm_disasm_gc_finalize(ScmObj obj)
 }
 
 int
-scm_disasm_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler)
+scm_disasm_gc_accept(ScmObj obj, ScmGCRefHandler handler)
 {
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
 
   scm_assert_obj_type(obj, &SCM_DISASSEMBLER_TYPE_INFO);
-  scm_assert(scm_obj_not_null_p(mem));
-  scm_assert(handler != NULL);
 
-  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_DISASSEMBLER_ISEQ(obj), mem);
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_DISASSEMBLER_ISEQ(obj));
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
   if (SCM_DISASSEMBLER_TOKEN(obj) != NULL
@@ -1000,28 +996,24 @@ scm_disasm_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler)
     case SCM_OPFMT_OBJ:
       rslt = SCM_GC_CALL_REF_HANDLER(handler,
                                      obj,
-                                     SCM_DISASSEMBLER_TOKEN(obj)->inst.i.obj.opd1,
-                                     mem);
+                                     SCM_DISASSEMBLER_TOKEN(obj)->inst.i.obj.opd1);
       if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
       break;
     case SCM_OPFMT_OBJ_OBJ:
       rslt = SCM_GC_CALL_REF_HANDLER(handler,
                                      obj,
-                                     SCM_DISASSEMBLER_TOKEN(obj)->inst.i.obj_obj.opd1,
-                                     mem);
+                                     SCM_DISASSEMBLER_TOKEN(obj)->inst.i.obj_obj.opd1);
       if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
       rslt = SCM_GC_CALL_REF_HANDLER(handler,
                                      obj,
-                                     SCM_DISASSEMBLER_TOKEN(obj)->inst.i.obj_obj.opd2,
-                                     mem);
+                                     SCM_DISASSEMBLER_TOKEN(obj)->inst.i.obj_obj.opd2);
       if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
       break;
     case SCM_OPFMT_SI_SI_OBJ:
       rslt = SCM_GC_CALL_REF_HANDLER(handler,
                                      obj,
-                                     SCM_DISASSEMBLER_TOKEN(obj)->inst.i.si_si_obj.opd3,
-                                     mem);
-      if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
+                                     SCM_DISASSEMBLER_TOKEN(obj)->inst.i.si_si_obj.opd3);
+       if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
       break;
     default:
       break;

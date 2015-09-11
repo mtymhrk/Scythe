@@ -1071,15 +1071,13 @@ scm_marshal_gc_finalize(ScmObj obj)
 }
 
 int
-scm_marshal_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler)
+scm_marshal_gc_accept(ScmObj obj, ScmGCRefHandler handler)
 {
   scm_assert_obj_type(obj, &SCM_MARSHAL_TYPE_INFO);
-  scm_assert(scm_obj_not_null_p(mem));
-  scm_assert(handler != NULL);
 
   if (SCM_MARSHAL(obj)->obj2pos != NULL)
     return scm_chash_tbl_gc_accept(SCM_MARSHAL(obj)->obj2pos,
-                                   obj, mem, handler, true);
+                                   obj, handler, true);
   else
     return SCM_GC_REF_HANDLER_VAL_INIT;
 }
@@ -1351,18 +1349,16 @@ scm_unmarshal_gc_finalize(ScmObj obj)
 }
 
 int
-scm_unmarshal_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler)
+scm_unmarshal_gc_accept(ScmObj obj, ScmGCRefHandler handler)
 {
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
 
   scm_assert_obj_type(obj, &SCM_UNMARSHAL_TYPE_INFO);
-  scm_assert(scm_obj_not_null_p(mem));
-  scm_assert(handler != NULL);
 
   if (SCM_UNMARSHAL(obj)->shared_obj != NULL) {
     for (size_t i = 0; i < SCM_UNMARSHAL(obj)->mh.nr_shared; i++) {
       rslt = SCM_GC_CALL_REF_HANDLER(handler, obj,
-                                     SCM_UNMARSHAL(obj)->shared_obj[i], mem);
+                                     SCM_UNMARSHAL(obj)->shared_obj[i]);
       if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
     }
   }
@@ -1370,7 +1366,7 @@ scm_unmarshal_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler)
   if (SCM_UNMARSHAL(obj)->unmarshaled != NULL) {
     for (size_t i = 0; i < SCM_UNMARSHAL(obj)->mh.nr_obj; i++) {
       rslt = SCM_GC_CALL_REF_HANDLER(handler, obj,
-                                     SCM_UNMARSHAL(obj)->unmarshaled[i], mem);
+                                     SCM_UNMARSHAL(obj)->unmarshaled[i]);
       if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
     }
   }

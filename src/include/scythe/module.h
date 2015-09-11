@@ -74,7 +74,7 @@ void scm_gloc_bind_keyword(ScmObj gloc, ScmObj val);
 void scm_gloc_export(ScmObj gloc);
 
 void scm_gloc_gc_initialize(ScmObj obj, ScmObj mem);
-int scm_gloc_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler);
+int scm_gloc_gc_accept(ScmObj obj, ScmGCRefHandler handler);
 
 
 /****************************************************************************/
@@ -105,7 +105,7 @@ int scm_module_obj_print(ScmObj obj, ScmObj port, int kind,
                          ScmObjPrintHandler handler);
 void scm_module_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_module_gc_finalize(ScmObj obj);
-int scm_module_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler);
+int scm_module_gc_accept(ScmObj obj, ScmGCRefHandler handler);
 
 static inline ScmObj
 scm_module_name(ScmObj mod)
@@ -146,8 +146,7 @@ int scm_moduletree_clean(ScmObj tree);
 
 void scm_moduletree_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_moduletree_gc_finalize(ScmObj obj);
-int scm_moduletree_gc_accept(ScmObj obj, ScmObj mem,
-                               ScmGCRefHandler handler);
+int scm_moduletree_gc_accept(ScmObj obj, ScmGCRefHandler handler);
 
 
 #endif  /* INCLUDE_MODULE_H__ */

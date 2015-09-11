@@ -34,16 +34,16 @@ scm_proc_gc_initialize(ScmObj obj, ScmObj mem)
 }
 
 int
-scm_proc_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler)
+scm_proc_gc_accept(ScmObj obj, ScmGCRefHandler handler)
 {
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
 
   scm_assert(scm_obj_type_flag_set_p(obj, SCM_TYPE_FLG_PROC));
 
-  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_PROCEDURE(obj)->name, mem);
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_PROCEDURE(obj)->name);
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
-  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_PROCEDURE(obj)->env, mem);
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_PROCEDURE(obj)->env);
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
   return rslt;
@@ -147,13 +147,11 @@ scm_subrutine_gc_initialize(ScmObj obj, ScmObj mem)
 }
 
 int
-scm_subrutine_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler)
+scm_subrutine_gc_accept(ScmObj obj, ScmGCRefHandler handler)
 {
   scm_assert_obj_type(obj, &SCM_SUBRUTINE_TYPE_INFO);
-  scm_assert(scm_obj_not_null_p(mem));
-  scm_assert(handler != NULL);
 
-  return scm_proc_gc_accept(obj, mem, handler);
+  return scm_proc_gc_accept(obj, handler);
 }
 
 
@@ -261,18 +259,16 @@ scm_closure_gc_initialize(ScmObj obj, ScmObj mem)
 }
 
 int
-scm_closure_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler)
+scm_closure_gc_accept(ScmObj obj, ScmGCRefHandler handler)
 {
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
 
   scm_assert_obj_type(obj, &SCM_CLOSURE_TYPE_INFO);
-  scm_assert(scm_obj_not_null_p(mem));
-  scm_assert(handler != NULL);
 
-  rslt = scm_proc_gc_accept(obj, mem, handler);
+  rslt = scm_proc_gc_accept(obj, handler);
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
-  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_CLOSURE(obj)->iseq, mem);
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_CLOSURE(obj)->iseq);
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
   return rslt;
@@ -434,17 +430,17 @@ scm_dwhcallerenv_gc_finalize(ScmObj obj)
 }
 
 int
-scm_dwhcallerenv_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler)
+scm_dwhcallerenv_gc_accept(ScmObj obj, ScmGCRefHandler handler)
 {
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
 
   rslt = SCM_GC_CALL_REF_HANDLER(handler,
-                                 obj, SCM_DWHCALLERENV(obj)->cont, mem);
+                                 obj, SCM_DWHCALLERENV(obj)->cont);
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
   for (size_t i = 0; i < SCM_DWHCALLERENV(obj)->vc; i++) {
     rslt = SCM_GC_CALL_REF_HANDLER(handler,
-                                   obj, SCM_DWHCALLERENV(obj)->val[i], mem);
+                                   obj, SCM_DWHCALLERENV(obj)->val[i]);
     if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
   }
 

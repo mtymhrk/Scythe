@@ -258,19 +258,17 @@ scm_iseq_gc_finalize(ScmObj obj)
 }
 
 int
-scm_iseq_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler)
+scm_iseq_gc_accept(ScmObj obj, ScmGCRefHandler handler)
 {
   size_t idx, *offset;
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
 
   scm_assert_obj_type(obj, &SCM_ISEQ_TYPE_INFO);
-  scm_assert(scm_obj_not_null_p(mem));
-  scm_assert(handler != NULL);
 
   EARY_FOR_EACH(SCM_ISEQ_EARY_OBJS(obj), idx, offset) {
     ScmRef chld = SCM_REF_MAKE_FROM_PTR(scm_iseq_to_ip(obj) + *offset);
 
-    rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_REF_DEREF(chld), mem);
+    rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_REF_DEREF(chld));
     if (scm_gc_ref_handler_failure_p(rslt))
       return rslt;
   }

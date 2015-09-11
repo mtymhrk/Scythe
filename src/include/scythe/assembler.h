@@ -60,7 +60,7 @@ int scm_asm_resolve_label_ref(ScmObj asmb);
 void scm_asm_clear_labels(ScmObj asmb);
 void scm_asm_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_asm_gc_finalize(ScmObj obj);
-int scm_asm_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler);
+int scm_asm_gc_accept(ScmObj obj, ScmGCRefHandler handler);
 
 static inline bool
 scm_asm_uncommited_p(ScmObj asmb)
@@ -114,7 +114,7 @@ void scm_disasm_rewind(ScmObj disasm);
 int scm_disasm_cnv_to_marshalable(ScmObj disasm);
 void scm_disasm_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_disasm_gc_finalize(ScmObj obj);
-int scm_disasm_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler);
+int scm_disasm_gc_accept(ScmObj obj, ScmGCRefHandler handler);
 
 
 /**************************************************************************/

@@ -67,15 +67,14 @@ int scm_marshal_push_obj(ScmObj marshal, ScmObj obj);
 void *scm_marshal_terminate(ScmObj marshal, size_t *size);
 void scm_marshal_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_marshal_gc_finalize(ScmObj obj);
-int scm_marshal_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler);
+int scm_marshal_gc_accept(ScmObj obj, ScmGCRefHandler handler);
 
 int scm_unmarshal_initialize(ScmObj unmarshal, const void *data);
 void scm_unmarshal_finalize(ScmObj unmarshal);
 ScmObj scm_unmarshal_ref(ScmObj unmarshal, size_t idx);
 void scm_unmarshal_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_unmarshal_gc_finalize(ScmObj obj);
-int scm_unmarshal_gc_accept(ScmObj obj, ScmObj mem,
-                            ScmGCRefHandler handler);
+int scm_unmarshal_gc_accept(ScmObj obj, ScmGCRefHandler handler);
 
 static inline bool
 scm_marshal_terminated_p(ScmObj marshal)

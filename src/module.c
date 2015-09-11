@@ -75,16 +75,16 @@ scm_gloc_gc_initialize(ScmObj obj, ScmObj mem)
 }
 
 int
-scm_gloc_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler)
+scm_gloc_gc_accept(ScmObj obj, ScmGCRefHandler handler)
 {
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
 
   scm_assert_obj_type(obj, &SCM_GLOC_TYPE_INFO);
 
-  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_GLOC(obj)->sym, mem);
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_GLOC(obj)->sym);
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
-  return SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_GLOC(obj)->val, mem);
+  return SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_GLOC(obj)->val);
 }
 
 
@@ -481,23 +481,21 @@ scm_module_gc_finalize(ScmObj obj)
 }
 
 int
-scm_module_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler)
+scm_module_gc_accept(ScmObj obj, ScmGCRefHandler handler)
 {
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
 
   scm_assert_obj_type(obj, &SCM_MODULE_TYPE_INFO);
-  scm_assert(scm_obj_not_null_p(mem));
-  scm_assert(handler != NULL);
 
-  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_MODULE(obj)->name, mem);
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_MODULE(obj)->name);
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
-  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_MODULE(obj)->imports, mem);
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_MODULE(obj)->imports);
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
   if (SCM_MODULE(obj)->gloctbl != NULL) {
     rslt = scm_chash_tbl_gc_accept(SCM_MODULE(obj)->gloctbl,
-                                   obj, mem, handler, false);
+                                   obj, handler, false);
     if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
   }
 
@@ -733,20 +731,20 @@ scm_moduletree_free_tree(ScmModuleTreeNode *root)
 
 static int
 scm_moduletree_node_gc_accept(ScmObj tree, ScmModuleTreeNode *node,
-                              ScmObj mem, ScmGCRefHandler handler)
+                              ScmGCRefHandler handler)
 {
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
 
   if (node == NULL) return rslt;
 
-  rslt = SCM_GC_CALL_REF_HANDLER(handler, tree, node->name, mem);
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, tree, node->name);
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
-  rslt = SCM_GC_CALL_REF_HANDLER(handler, tree, node->module, mem);
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, tree, node->module);
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
   for (size_t i = 0; i < node->used; i++) {
-    rslt = scm_moduletree_node_gc_accept(tree, node->branches[i], mem, handler);
+    rslt = scm_moduletree_node_gc_accept(tree, node->branches[i], handler);
     if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
   }
 
@@ -965,14 +963,12 @@ scm_moduletree_gc_finalize(ScmObj obj)
 }
 
 int
-scm_moduletree_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler)
+scm_moduletree_gc_accept(ScmObj obj, ScmGCRefHandler handler)
 {
   scm_assert_obj_type(obj, &SCM_MODULETREE_TYPE_INFO);
-  scm_assert(scm_obj_not_null_p(mem));
-  scm_assert(handler != NULL);
 
   return scm_moduletree_node_gc_accept(obj, SCM_MODULETREE(obj)->root,
-                                       mem, handler);
+                                       handler);
 }
 
 

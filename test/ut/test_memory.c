@@ -78,14 +78,14 @@ stub_obj_gc_fin_func(ScmObj obj)
 }
 
 int
-stub_obj_gc_accept_func(ScmObj obj, ScmObj mem, ScmGCRefHandler handler)
+stub_obj_gc_accept_func(ScmObj obj, ScmGCRefHandler handler)
 {
   StubObj *so = (StubObj *)obj;
   int rslt;
 
   so->nr_call_accept_func++;
 
-  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, so->obj, mem);
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, so->obj);
 
   memcpy(stub_obj_table + so->obj_num, so, sizeof(StubObj));
 
@@ -93,15 +93,14 @@ stub_obj_gc_accept_func(ScmObj obj, ScmObj mem, ScmGCRefHandler handler)
 }
 
 int
-stub_obj_gc_accept_func_weak(ScmObj obj, ScmObj mem,
-                             ScmGCRefHandler handler)
+stub_obj_gc_accept_func_weak(ScmObj obj, ScmGCRefHandler handler)
 {
   StubObj *so = (StubObj *)obj;
   int rslt;
 
   so->nr_call_accept_func_weak++;
 
-  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, so->weak_obj, mem);
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, so->weak_obj);
 
   memcpy(stub_obj_table + so->obj_num, so, sizeof(StubObj));
 

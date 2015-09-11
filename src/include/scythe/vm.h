@@ -275,7 +275,7 @@ struct ScmContCapRec {
 ScmObj scm_contcap_new(scm_mem_type_t mtype);
 void scm_contcap_cap(ScmObj cc,  ScmObj stack, const ScmVMReg *regs);
 void scm_contcap_gc_initialize(ScmObj obj, ScmObj mem);
-int scm_contcap_gc_accepct(ScmObj obj, ScmObj mem, ScmGCRefHandler handler);
+int scm_contcap_gc_accept(ScmObj obj, ScmGCRefHandler handler);
 
 static inline ScmObj
 scm_contcap_stack(ScmObj cc)
@@ -434,7 +434,7 @@ scm_opcode_t scm_vm_ptr2opcode(const void *ptr);
 
 void scm_vm_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_vm_gc_finalize(ScmObj obj);
-int scm_vm_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler);
+int scm_vm_gc_accept(ScmObj obj, ScmGCRefHandler handler);
 
 static inline ScmObj
 scm_vm_raised_obj(ScmObj vm)

@@ -50,18 +50,16 @@ scm_pair_gc_initialize(ScmObj obj, ScmObj mem)
 
 
 int
-scm_pair_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler)
+scm_pair_gc_accept(ScmObj obj, ScmGCRefHandler handler)
 {
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
 
   scm_assert_obj_type(obj, &SCM_PAIR_TYPE_INFO);
-  scm_assert(scm_obj_not_null_p(mem));
-  scm_assert(handler != NULL);
 
-  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_PAIR_CAR(obj), mem);
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_PAIR_CAR(obj));
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
-  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_PAIR_CDR(obj), mem);
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_PAIR_CDR(obj));
   return rslt;
 }
 

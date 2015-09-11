@@ -31,7 +31,7 @@ void scm_cmpl_set_env(ScmObj cmpl, ScmObj env);
 void scm_cmpl_set_expr(ScmObj cmpl, ScmObj expr);
 
 void scm_cmpl_gc_initialize(ScmObj obj, ScmObj mem);
-int scm_cmpl_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler);
+int scm_cmpl_gc_accept(ScmObj obj, ScmGCRefHandler handler);
 
 static inline ScmObj
 scm_cmpl_env(ScmObj cmpl)
@@ -71,7 +71,7 @@ extern ScmTypeInfo SCM_QQTMPLNODE_TYPE_INFO;
 int scm_qqtn_initialize(ScmObj node, int kind, ScmObj obj);
 void scm_qqtn_update_contents(ScmObj node, int kind, ScmObj obj);
 void scm_qqtn_gc_initialize(ScmObj obj, ScmObj mem);
-int scm_qqtn_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler);
+int scm_qqtn_gc_accept(ScmObj obj, ScmGCRefHandler handler);
 
 static inline bool
 scm_qqtn_valid_kind_p(int kind)
@@ -112,7 +112,7 @@ int scm_qqtmpl_compiled(ScmObj qqtmpl, ScmObj compiled);
 void scm_qqtmpl_chg_orig_template(ScmObj qqtmpl, ScmObj tmpl);
 int scm_qqtmpl_eq(ScmObj qqtmpl1, ScmObj qqtmpl2, bool *rslt);
 void scm_qqtmpl_gc_initialize(ScmObj obj, ScmObj mem);
-int scm_qqtmpl_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler);
+int scm_qqtmpl_gc_accept(ScmObj obj, ScmGCRefHandler handler);
 
 
 static inline ScmObj
@@ -157,7 +157,7 @@ extern ScmTypeInfo SCM_IDENTIFIER_TYPE_INFO;
 int scm_ident_initialize(ScmObj ident, ScmObj name, ScmObj env);
 int scm_ident_obj_print(ScmObj obj, ScmObj port, int kind, ScmObjPrintHandler handler);
 void scm_ident_gc_initialize(ScmObj obj, ScmObj mem);
-int scm_ident_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler);
+int scm_ident_gc_accept(ScmObj obj, ScmGCRefHandler handler);
 
 static inline ScmObj
 scm_ident_name(ScmObj ident)

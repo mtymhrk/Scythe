@@ -1154,15 +1154,12 @@ scm_datum_label_use_gc_initialize(ScmObj obj, ScmObj mem)
 }
 
 int
-scm_datum_label_use_gc_accept(ScmObj obj, ScmObj mem,
-                              ScmGCRefHandler handler)
+scm_datum_label_use_gc_accept(ScmObj obj, ScmGCRefHandler handler)
 {
   scm_assert_obj_type(obj, &SCM_DATUM_LABEL_USE_TYPE_INFO);
-  scm_assert(scm_obj_not_null_p(mem));
 
   return SCM_GC_CALL_REF_HANDLER(handler,
-                                 obj, SCM_DATUM_LABEL_USE(obj)->ref.referrer,
-                                 mem);
+                                 obj, SCM_DATUM_LABEL_USE(obj)->ref.referrer);
 }
 
 ScmTypeInfo SCM_PARSER_TYPE_INFO = {
@@ -2389,23 +2386,22 @@ scm_parser_gc_finalize(ScmObj obj)
 }
 
 int
-scm_parser_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler)
+scm_parser_gc_accept(ScmObj obj, ScmGCRefHandler handler)
 {
   ScmObj *itr;
   size_t idx;
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
 
   scm_assert_obj_type(obj, &SCM_PARSER_TYPE_INFO);
-  scm_assert(scm_obj_not_null_p(mem));
   scm_assert(handler != NULL);
 
   EARY_FOR_EACH(&SCM_PARSER(obj)->label_decl, idx, itr) {
-    rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, *itr, mem);
+    rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, *itr);
     if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
   }
 
   EARY_FOR_EACH(&SCM_PARSER(obj)->label_use, idx, itr) {
-    rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, *itr, mem);
+    rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, *itr);
     if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
   }
 

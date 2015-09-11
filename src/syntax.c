@@ -53,18 +53,16 @@ scm_syntax_gc_initialize(ScmObj obj, ScmObj mem)
 }
 
 int
-scm_syntax_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler)
+scm_syntax_gc_accept(ScmObj obj, ScmGCRefHandler handler)
 {
   int rslt;
 
   scm_assert_obj_type(obj, &SCM_SYNTAX_TYPE_INFO);
-  scm_assert(scm_obj_not_null_p(mem));
-  scm_assert(handler != NULL);
 
-  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_SYNTAX(obj)->keyword, mem);
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_SYNTAX(obj)->keyword);
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
-  return SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_SYNTAX(obj)->handler, mem);
+  return SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_SYNTAX(obj)->handler);
 }
 
 
@@ -186,18 +184,16 @@ scm_macro_gc_initialize(ScmObj obj, ScmObj mem)
 }
 
 int
-scm_macro_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler)
+scm_macro_gc_accept(ScmObj obj, ScmGCRefHandler handler)
 {
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
 
   scm_assert_obj_type(obj, &SCM_MACRO_TYPE_INFO);
-  scm_assert(scm_obj_not_null_p(mem));
-  scm_assert(handler != NULL);
 
-  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_MACRO_TRANSFORMER(obj), mem);
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_MACRO_TRANSFORMER(obj));
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
-  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_MACRO_ENV(obj), mem);
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_MACRO_ENV(obj));
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
   return 0;

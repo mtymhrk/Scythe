@@ -51,7 +51,7 @@ scm_ref_stack_gc_initialize(ScmObj obj, ScmObj mem)
 }
 
 int
-scm_ref_stack_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler)
+scm_ref_stack_gc_accept(ScmObj obj, ScmGCRefHandler handler)
 {
   ScmRefStackBlock *block;
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
@@ -60,15 +60,14 @@ scm_ref_stack_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler)
     switch (block->type) {
     case SCM_REFSTACK_RARY:
       for (ScmObj **p = block->ref.rary; *p != NULL; p++) {
-        rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_REF_DEREF(*p), mem);
+        rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_REF_DEREF(*p));
         if (scm_gc_ref_handler_failure_p(rslt))
           return rslt;
       }
       break;
     case SCM_REFSTACK_ARY:
       for (size_t i = 0; i < block->ref.ary.n; i++) {
-        rslt = SCM_GC_CALL_REF_HANDLER(handler,
-                                       obj, block->ref.ary.head[i], mem);
+        rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, block->ref.ary.head[i]);
         if (scm_gc_ref_handler_failure_p(rslt))
           return rslt;
       }

@@ -12,16 +12,13 @@
 /*******************************************************************/
 
 int
-scm_vm_ef_gc_accept(ScmObj owner, ScmEnvFrame *efp,
-                    ScmObj mem, ScmGCRefHandler handler)
+scm_vm_ef_gc_accept(ScmObj owner, ScmEnvFrame *efp, ScmGCRefHandler handler)
 {
   ScmObj *partial, *values;
   ScmEnvFrame *ef;
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
 
   scm_assert(scm_obj_not_null_p(owner));
-  scm_assert(scm_obj_not_null_p(mem));
-  scm_assert(handler != NULL);
 
   for (ef = efp; ef != NULL; ef = scm_vm_ef_outer(ef)) {
     if (scm_obj_type_p(owner, &SCM_EFBOX_TYPE_INFO)) {
@@ -34,47 +31,44 @@ scm_vm_ef_gc_accept(ScmObj owner, ScmEnvFrame *efp,
 
     partial = scm_vm_ef_partial_base(ef);
     for (int i = 0; i < ef->partial; i++) {
-      rslt = SCM_GC_CALL_REF_HANDLER(handler, owner, partial[i], mem);
+      rslt = SCM_GC_CALL_REF_HANDLER(handler, owner, partial[i]);
       if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
     }
 
     values = scm_vm_ef_values(ef);
     for (int i = 0; i < ef->len; i++) {
-      rslt = SCM_GC_CALL_REF_HANDLER(handler, owner, values[i], mem);
+      rslt = SCM_GC_CALL_REF_HANDLER(handler, owner, values[i]);
       if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
     }
   }
 
   if (ef != NULL && scm_vm_ef_boxed_p(ef)) {
     ScmObj efb = scm_efbox_efp_to_owner(ef);
-    rslt = SCM_GC_CALL_REF_HANDLER(handler, owner, efb, mem);
+    rslt = SCM_GC_CALL_REF_HANDLER(handler, owner, efb);
   }
 
   return rslt;
 }
 
 int
-scm_vm_cf_gc_accept(ScmObj owner, ScmCntFrame *cfp,
-                    ScmObj mem, ScmGCRefHandler handler)
+scm_vm_cf_gc_accept(ScmObj owner, ScmCntFrame *cfp, ScmGCRefHandler handler)
 {
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
 
   scm_assert(scm_obj_not_null_p(owner));
-  scm_assert(scm_obj_not_null_p(mem));
-  scm_assert(handler != NULL);
 
   while (cfp != NULL) {
     ScmObj *partial = scm_vm_cf_partial_base(cfp);
 
     for (int i = 0; i < cfp->partial; i++) {
-      rslt = SCM_GC_CALL_REF_HANDLER(handler, owner, partial[i], mem);
+      rslt = SCM_GC_CALL_REF_HANDLER(handler, owner, partial[i]);
       if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
     }
 
-    rslt = scm_vm_ef_gc_accept(owner, cfp->efp, mem, handler);
+    rslt = scm_vm_ef_gc_accept(owner, cfp->efp, handler);
     if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
-    rslt = SCM_GC_CALL_REF_HANDLER(handler, owner, cfp->cp, mem);
+    rslt = SCM_GC_CALL_REF_HANDLER(handler, owner, cfp->cp);
     if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
     cfp = scm_vm_cf_next(cfp);
@@ -256,18 +250,16 @@ scm_efbox_gc_finalize(ScmObj obj)
 }
 
 int
-scm_efbox_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler)
+scm_efbox_gc_accept(ScmObj obj, ScmGCRefHandler handler)
 {
   scm_assert_obj_type(obj, &SCM_EFBOX_TYPE_INFO);
-  scm_assert(scm_obj_not_null_p(mem));
-  scm_assert(handler != NULL);
 
   if (SCM_EFBOX(obj)->data != NULL) {
-    return scm_vm_ef_gc_accept(obj, SCM_EFBOX(obj)->efp, mem, handler);
+    return scm_vm_ef_gc_accept(obj, SCM_EFBOX(obj)->efp, handler);
   }
   else {
     ScmObj holder = scm_efbox_efp_to_owner(SCM_EFBOX(obj)->efp);
-    return SCM_GC_CALL_REF_HANDLER(handler, obj, holder, mem);
+    return SCM_GC_CALL_REF_HANDLER(handler, obj, holder);
   }
 }
 
@@ -449,31 +441,29 @@ scm_vmsr_gc_initialize(ScmObj obj, ScmObj mem)
 }
 
 int
-scm_vmsr_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler)
+scm_vmsr_gc_accept(ScmObj obj, ScmGCRefHandler handler)
 {
   ScmObj *partial;
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
 
   scm_assert_obj_type(obj, &SCM_VMSTCKRC_TYPE_INFO);
-  scm_assert(scm_obj_not_null_p(mem));
-  scm_assert(handler != NULL);
 
-  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_VMSTCKRC(obj)->segment, mem);
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_VMSTCKRC(obj)->segment);
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
-  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_VMSTCKRC(obj)->next, mem);
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_VMSTCKRC(obj)->next);
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
   partial = scm_vmsr_partial_base(obj);
   for (int i = 0; i < SCM_VMSTCKRC(obj)->reg.partial; i++) {
-    rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, partial[i], mem);
+    rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, partial[i]);
     if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
   }
 
-  rslt = scm_vm_cf_gc_accept(obj, SCM_VMSTCKRC(obj)->reg.cfp, mem, handler);
+  rslt = scm_vm_cf_gc_accept(obj, SCM_VMSTCKRC(obj)->reg.cfp, handler);
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
-  rslt = scm_vm_ef_gc_accept(obj, SCM_VMSTCKRC(obj)->reg.efp, mem, handler);
+  rslt = scm_vm_ef_gc_accept(obj, SCM_VMSTCKRC(obj)->reg.efp, handler);
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
   return rslt;

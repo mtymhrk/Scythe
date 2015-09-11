@@ -921,14 +921,18 @@ scm_mem_copy_children_func(ScmObj mem, ScmObj obj, ScmRef child)
 static int
 scm_mem_copy_children(ScmMem *mem, ScmObj obj)
 {
+  ScmGCRefHandlerBody handler = {
+    .mem = SCM_OBJ(mem),
+    .func = scm_mem_copy_children_func
+  };
+
   scm_assert(mem != NULL);
 
- int rslt = scm_obj_call_gc_accept_func(obj, SCM_OBJ(mem),
-                                        scm_mem_copy_children_func);
- if (scm_gc_ref_handler_failure_p(rslt))
-   return -1;
+  int rslt = scm_obj_call_gc_accept_func(obj, SCM_GC_REF_HANDLER_MAKE(handler));
+  if (scm_gc_ref_handler_failure_p(rslt))
+    return -1;
 
- return 0;
+  return 0;
 }
 
 static int
@@ -1032,11 +1036,15 @@ scm_mem_adjust_weak_ref_of_obj_func(ScmObj mem, ScmObj obj, ScmRef child)
 static int
 scm_mem_adjust_weak_ref_of_obj(ScmMem *mem, ScmObj obj)
 {
+  ScmGCRefHandlerBody handler = {
+    .mem = SCM_OBJ(mem),
+    .func = scm_mem_adjust_weak_ref_of_obj_func
+  };
+
   scm_assert(mem != NULL);
 
   int rslt =
-    scm_obj_call_gc_accept_func_weak(obj, SCM_OBJ(mem),
-                                     scm_mem_adjust_weak_ref_of_obj_func);
+    scm_obj_call_gc_accept_func_weak(obj, SCM_GC_REF_HANDLER_MAKE(handler));
   if (scm_gc_ref_handler_failure_p(rslt))
     return -1;
 

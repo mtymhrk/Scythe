@@ -238,18 +238,16 @@ scm_vector_gc_finalize(ScmObj obj)
 }
 
 int
-scm_vector_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler)
+scm_vector_gc_accept(ScmObj obj, ScmGCRefHandler handler)
 {
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
   size_t i;
 
   scm_assert_obj_type(obj, &SCM_VECTOR_TYPE_INFO);
-  scm_assert(scm_obj_not_null_p(mem));
   scm_assert(handler != NULL);
 
   for (i = 0; i < SCM_VECTOR_LENGTH(obj); i++) {
-    rslt = SCM_GC_CALL_REF_HANDLER(handler, obj,
-                                   SCM_VECTOR_ARRAY(obj)[i], mem);
+    rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_VECTOR_ARRAY(obj)[i]);
     if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
   }
 

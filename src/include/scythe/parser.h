@@ -108,8 +108,7 @@ int scm_datum_label_use_initialize(ScmObj use, ScmParserRef *ref);
 ScmObj scm_datum_label_use_new(scm_mem_type_t mtype, ScmParserRef *ref);
 int scm_datum_label_use_resolve(ScmObj use);
 void scm_datum_label_use_gc_initialize(ScmObj obj, ScmObj mem);
-int scm_datum_label_use_gc_accept(ScmObj obj, ScmObj mem,
-                                  ScmGCRefHandler handler);
+int scm_datum_label_use_gc_accept(ScmObj obj, ScmGCRefHandler handler);
 
 
 /****************************************************************************/
@@ -131,6 +130,6 @@ ScmObj scm_parser_new(scm_mem_type_t mtype);
 ScmObj scm_parser_parse(ScmObj parser, ScmObj port);
 void scm_parser_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_parser_gc_finalize(ScmObj obj);
-int scm_parser_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler);
+int scm_parser_gc_accept(ScmObj obj, ScmGCRefHandler handler);
 
 #endif /* INCLUDE_PARSER_H__ */

@@ -36,11 +36,11 @@ scm_exception_gc_initialize(ScmObj obj, ScmObj mem)
 }
 
 int
-scm_exception_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler)
+scm_exception_gc_accept(ScmObj obj, ScmGCRefHandler handler)
 {
   scm_assert(scm_obj_type_flag_set_p(obj, SCM_TYPE_FLG_EXC));
 
-  return SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_EXCEPTION(obj)->msg, mem);
+  return SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_EXCEPTION(obj)->msg);
 }
 
 
@@ -233,23 +233,21 @@ scm_error_gc_fianlize(ScmObj obj)
 }
 
 int
-scm_error_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler)
+scm_error_gc_accept(ScmObj obj, ScmGCRefHandler handler)
 {
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
 
   scm_assert_obj_type(obj, &SCM_ERROR_TYPE_INFO);
-  scm_assert(scm_obj_not_null_p(mem));
-  scm_assert(handler != NULL);
 
-  rslt = scm_exception_gc_accept(obj, mem, handler);
+  rslt = scm_exception_gc_accept(obj, handler);
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
-  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_ERROR(obj)->type, mem);
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_ERROR(obj)->type);
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
   for (size_t i = 0; i < SCM_ERROR(obj)->nr_irris; i++) {
     rslt = SCM_GC_CALL_REF_HANDLER(handler, obj,
-                                   SCM_ERROR(obj)->irritants[i], mem);
+                                   SCM_ERROR(obj)->irritants[i]);
     if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
   }
 

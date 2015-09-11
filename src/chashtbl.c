@@ -292,7 +292,7 @@ scm_chash_tbl_clean(ScmCHashTbl *tbl)
 
 int
 scm_chash_tbl_gc_accept(ScmCHashTbl *tbl, ScmObj owner,
-                        ScmObj mem, ScmGCRefHandler handler, bool rehash)
+                        ScmGCRefHandler handler, bool rehash)
 {
   ScmCHashTblEntry *buckets[tbl->tbl_size];
   ScmCHashTblEntry *next;
@@ -300,14 +300,12 @@ scm_chash_tbl_gc_accept(ScmCHashTbl *tbl, ScmObj owner,
 
   scm_assert(tbl != NULL);
   scm_assert(scm_obj_not_null_p(owner));
-  scm_assert(scm_obj_not_null_p(mem));
-  scm_assert(handler != NULL);
 
   if (tbl->key_kind != SCM_CHASH_TBL_SCMOBJ
       && tbl->val_kind != SCM_CHASH_TBL_SCMOBJ)
     return rslt;
 
-  rslt = SCM_GC_CALL_REF_HANDLER(handler, owner, tbl->owner, mem);
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, owner, tbl->owner);
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
   if (rehash)
@@ -320,7 +318,7 @@ scm_chash_tbl_gc_accept(ScmCHashTbl *tbl, ScmObj owner,
       next = entry->next;
 
       if (tbl->key_kind == SCM_CHASH_TBL_SCMOBJ) {
-        rslt = SCM_GC_CALL_REF_HANDLER(handler, owner, entry->key, mem);
+        rslt = SCM_GC_CALL_REF_HANDLER(handler, owner, entry->key);
         if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
         if (rehash) {
@@ -330,7 +328,7 @@ scm_chash_tbl_gc_accept(ScmCHashTbl *tbl, ScmObj owner,
         }
       }
       if (tbl->val_kind == SCM_CHASH_TBL_SCMOBJ) {
-        rslt = SCM_GC_CALL_REF_HANDLER(handler, owner, entry->val, mem);
+        rslt = SCM_GC_CALL_REF_HANDLER(handler, owner, entry->val);
         if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
       }
     }
@@ -344,14 +342,12 @@ scm_chash_tbl_gc_accept(ScmCHashTbl *tbl, ScmObj owner,
 
 int
 scm_chash_tbl_gc_accept_weak(ScmCHashTbl *tbl, ScmObj owner,
-                             ScmObj mem, ScmGCRefHandler handler)
+                             ScmGCRefHandler handler)
 {
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
 
   scm_assert(tbl != NULL);
   scm_assert(scm_obj_not_null_p(owner));
-  scm_assert(scm_obj_not_null_p(mem));
-  scm_assert(handler != NULL);
 
   if (tbl->key_kind != SCM_CHASH_TBL_SCMOBJ_W
       && tbl->val_kind != SCM_CHASH_TBL_SCMOBJ_W)
@@ -365,12 +361,12 @@ scm_chash_tbl_gc_accept_weak(ScmCHashTbl *tbl, ScmObj owner,
       bool delete_p = false;
 
       if (tbl->key_kind == SCM_CHASH_TBL_SCMOBJ_W) {
-        rslt = SCM_GC_CALL_REF_HANDLER(handler, owner, entry->key, mem);
+        rslt = SCM_GC_CALL_REF_HANDLER(handler, owner, entry->key);
         if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
         if (scm_obj_null_p(entry->key)) delete_p = true;
       }
       if (tbl->val_kind == SCM_CHASH_TBL_SCMOBJ_W) {
-        rslt = SCM_GC_CALL_REF_HANDLER(handler, owner, entry->val, mem);
+        rslt = SCM_GC_CALL_REF_HANDLER(handler, owner, entry->val);
         if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
         if (scm_obj_null_p(entry->val)) delete_p = true;
       }

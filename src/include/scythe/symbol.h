@@ -31,7 +31,7 @@ int scm_symbol_cmp(ScmObj s1, ScmObj s2, int *rslt);
 int scm_symbol_obj_print(ScmObj obj, ScmObj port, int kind,
                          ScmObjPrintHandler handler);
 void scm_symbol_gc_initialize(ScmObj obj, ScmObj mem);
-int scm_symbol_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler);
+int scm_symbol_gc_accept(ScmObj obj, ScmGCRefHandler handler);
 
 
 extern ScmTypeInfo SCM_SYMTBL_TYPE_INFO;
@@ -47,8 +47,7 @@ ScmObj scm_symtbl_symbol(ScmObj tbl, ScmObj str);
 void scm_symtbl_clean(ScmObj tbl);
 void scm_symtbl_gc_initialize(ScmObj obj, ScmObj mem);
 void scm_symtbl_gc_finalize(ScmObj obj);
-int scm_symtbl_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler);
-int scm_symtbl_gc_accept_weak(ScmObj obj, ScmObj mem,
-                              ScmGCRefHandler handler);
+int scm_symtbl_gc_accept(ScmObj obj, ScmGCRefHandler handler);
+int scm_symtbl_gc_accept_weak(ScmObj obj, ScmGCRefHandler handler);
 
 #endif /* INCLUDE_SYMBOL_H__ */

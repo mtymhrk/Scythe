@@ -65,18 +65,16 @@ scm_cmpl_gc_initialize(ScmObj obj, ScmObj mem)
 }
 
 int
-scm_cmpl_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler)
+scm_cmpl_gc_accept(ScmObj obj, ScmGCRefHandler handler)
 {
   int rslt;
 
   scm_assert_obj_type(obj, &SCM_COMPILER_TYPE_INFO);
-  scm_assert(scm_obj_not_null_p(mem));
-  scm_assert(handler != NULL);
 
-  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_COMPILER(obj)->env, mem);
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_COMPILER(obj)->env);
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
-  return SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_COMPILER(obj)->expr, mem);
+  return SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_COMPILER(obj)->expr);
 }
 
 
@@ -269,15 +267,12 @@ scm_qqtn_gc_initialize(ScmObj obj, ScmObj mem)
 }
 
 int
-scm_qqtn_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler)
+scm_qqtn_gc_accept(ScmObj obj, ScmGCRefHandler handler)
 {
   scm_assert_obj_type(obj, &SCM_QQTMPLNODE_TYPE_INFO);
-  scm_assert(scm_obj_not_null_p(mem));
-  scm_assert(handler != NULL);
 
   if (SCM_QQTMPLNODE(obj)->kind == SCM_QQ_TMPL_NODE_LITERAL)
-    return SCM_GC_CALL_REF_HANDLER(handler,
-                                   obj, SCM_QQTMPLNODE(obj)->obj, mem);
+    return SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_QQTMPLNODE(obj)->obj);
   else
     return SCM_GC_REF_HANDLER_VAL_INIT;
 }
@@ -494,21 +489,19 @@ scm_qqtmpl_gc_initialize(ScmObj obj, ScmObj mem)
 }
 
 int
-scm_qqtmpl_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler)
+scm_qqtmpl_gc_accept(ScmObj obj, ScmGCRefHandler handler)
 {
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
 
   scm_assert_obj_type(obj, &SCM_QQTMPL_TYPE_INFO);
-  scm_assert(scm_obj_not_null_p(mem));
-  scm_assert(handler != NULL);
 
-  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_QQTMPL(obj)->orig, mem);
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_QQTMPL(obj)->orig);
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
-  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_QQTMPL(obj)->compiled, mem);
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_QQTMPL(obj)->compiled);
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
-  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_QQTMPL(obj)->expr, mem);
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_QQTMPL(obj)->expr);
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
   return rslt;
@@ -1243,18 +1236,16 @@ scm_ident_gc_initialize(ScmObj obj, ScmObj mem)
 }
 
 int
-scm_ident_gc_accept(ScmObj obj, ScmObj mem, ScmGCRefHandler handler)
+scm_ident_gc_accept(ScmObj obj, ScmGCRefHandler handler)
 {
   int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
 
   scm_assert_obj_type(obj, &SCM_IDENTIFIER_TYPE_INFO);
-  scm_assert(scm_obj_not_null_p(mem));
-  scm_assert(handler != NULL);
 
-  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_IDENT_NAME(obj), mem);
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_IDENT_NAME(obj));
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
-  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_IDENT_ENV(obj), mem);
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_IDENT_ENV(obj));
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
   return 0;
