@@ -49,19 +49,6 @@ scm_forward_initialize(ScmObj obj, ScmObj fwd)
 
 enum { TO_HEAP, FROM_HEAP };
 
-static ScmTypeInfo SCM_MEM_TYPE_INFO = {
-  .name                = "mm",
-  .flags               = 0,
-  .obj_print_func      = NULL,
-  .obj_size            = 0,
-  .gc_ini_func         = NULL,
-  .gc_fin_func         = NULL,
-  .gc_accept_func      = NULL,
-  .gc_accept_func_weak = NULL,
-  .extra               = NULL,
-};
-
-
 /** alignment ***************************************************************/
 
 static inline size_t
@@ -902,10 +889,9 @@ scm_mem_copy_obj(ScmMem *mem, ScmObj obj)
 }
 
 static int
-scm_mem_copy_children_func(ScmObj mem, ScmObj obj, ScmRef child)
+scm_mem_copy_children_func(void *mem, ScmObj obj, ScmRef child)
 {
-  scm_assert(scm_obj_not_null_p(mem));
-  scm_assert(scm_obj_type_p(mem, &SCM_MEM_TYPE_INFO));
+  scm_assert(mem != NULL);
   scm_assert(scm_obj_not_null_p(obj));
   scm_assert(child != SCM_REF_NULL);
 
@@ -922,7 +908,7 @@ static int
 scm_mem_copy_children(ScmMem *mem, ScmObj obj)
 {
   ScmGCRefHandlerBody handler = {
-    .mem = SCM_OBJ(mem),
+    .mem = mem,
     .func = scm_mem_copy_children_func
   };
 
@@ -1010,12 +996,11 @@ scm_mem_scan_obj(ScmMem *mem)
 }
 
 static int
-scm_mem_adjust_weak_ref_of_obj_func(ScmObj mem, ScmObj obj, ScmRef child)
+scm_mem_adjust_weak_ref_of_obj_func(void *mem, ScmObj obj, ScmRef child)
 {
   ScmObj co;
 
-  scm_assert(scm_obj_not_null_p(mem));
-  scm_assert(scm_obj_type_p(mem, &SCM_MEM_TYPE_INFO));
+  scm_assert(mem != NULL);
   scm_assert(scm_obj_not_null_p(obj));
   scm_assert(child != SCM_REF_NULL);
 
@@ -1037,7 +1022,7 @@ static int
 scm_mem_adjust_weak_ref_of_obj(ScmMem *mem, ScmObj obj)
 {
   ScmGCRefHandlerBody handler = {
-    .mem = SCM_OBJ(mem),
+    .mem = mem,
     .func = scm_mem_adjust_weak_ref_of_obj_func
   };
 
@@ -1170,7 +1155,6 @@ scm_mem_initialize(ScmMem *mem)
 {
   scm_assert(mem != NULL);
 
-  scm_obj_init(SCM_OBJ(mem), &SCM_MEM_TYPE_INFO);
   mem->to_heap = NULL;
   mem->from_heap = NULL;
   mem->roots = NULL;

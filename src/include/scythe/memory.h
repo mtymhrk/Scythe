@@ -94,11 +94,7 @@ struct ScmMemRootBlockRec {
   scm_byte_t body[0] __attribute((aligned(SCM_MEM_ALIGN_BYTE)));
 };
 
-/* ScmMem を ScmObj の一種(kind of) として定義する。                         */
-/* これは object.h が ScmMem シンボルへの依存するのを避けるため。            */
-/* ScmMem を GC で管理することはしない (scm_mem_alloc で生成することは不可)  */
 struct ScmMemRec {
-  ScmObjHeader header;
   ScmMemHeap *to_heap;
   ScmMemHeap *from_heap;
   ScmMemRootBlock *roots;

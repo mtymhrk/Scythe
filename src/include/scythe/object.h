@@ -247,8 +247,8 @@ typedef struct ScmGCRefHandlerBodyRec ScmGCRefHandlerBody;
 typedef ScmGCRefHandlerBody *ScmGCRefHandler;
 
 struct ScmGCRefHandlerBodyRec {
-  ScmObj mem;
-  int (*func)(ScmObj mem, ScmObj obj, ScmRef child);
+  void *mem;
+  int (*func)(void *mem, ScmObj obj, ScmRef child);
 };
 
 #define SCM_GC_REF_HANDLER_MAKE(body) (&(body))
