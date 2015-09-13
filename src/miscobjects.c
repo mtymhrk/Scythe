@@ -2,7 +2,10 @@
 #include <assert.h>
 
 #include "scythe/object.h"
-#include "scythe/fcd.h"
+#include "scythe/vm.h"
+#include "scythe/memory.h"
+#include "scythe/refstk.h"
+#include "scythe/port.h"
 #include "scythe/miscobjects.h"
 
 
@@ -22,52 +25,16 @@ ScmTypeInfo SCM_EOF_TYPE_INFO = {
   .extra               = NULL,
 };
 
-void
-scm_eof_initialize(ScmObj eof)
+ScmObj
+scm_eof_object_P(ScmObj obj)
 {
-  return;                       /* nothing to do */
-}
-
-void
-scm_eof_finalize(ScmObj eof)
-{
-  return;                       /* nothing to do */
-}
-
-
-/*******************************************************/
-/*  ScmEOF (interface)                                 */
-/*******************************************************/
-
-bool
-scm_fcd_eof_p(ScmObj obj)
-{
-  return scm_obj_type_p(obj, &SCM_EOF_TYPE_INFO);
-}
-
-bool
-scm_fcd_eof_object_p(ScmObj obj)
-{
-  return scm_obj_same_instance_p(obj, SCM_EOF_OBJ);
+  return scm_eof_object_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
 }
 
 ScmObj
-scm_fcd_eof_object_P(ScmObj obj)
+scm_eof_new(scm_mem_type_t mtype)
 {
-  return scm_fcd_eof_object_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
-}
-
-ScmObj
-scm_fcd_eof_new(scm_mem_type_t mtype)
-{
-  ScmObj eof = SCM_OBJ_INIT;
-
-  eof = scm_fcd_mem_alloc(&SCM_EOF_TYPE_INFO, 0, mtype);
-  if (scm_obj_null_p(eof)) return SCM_OBJ_NULL;
-
-  scm_eof_initialize(eof);
-
-  return eof;
+  return scm_alloc_mem(&SCM_EOF_TYPE_INFO, 0, mtype);
 }
 
 
@@ -87,6 +54,12 @@ ScmTypeInfo SCM_BOOL_TYPE_INFO = {
   .extra               = NULL,
 };
 
+ScmObj
+scm_boolean_P(ScmObj obj)
+{
+  return scm_boolean_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+}
+
 void
 scm_bool_initialize(ScmObj obj, bool value)
 {
@@ -101,12 +74,19 @@ scm_bool_finalize(ScmObj obj)
   return;                       /* nothing to do */
 }
 
-bool
-scm_bool_value(ScmObj bl)
+ScmObj
+scm_bool_new(scm_mem_type_t mtype, bool value)
 {
-  scm_assert_obj_type(bl, &SCM_BOOL_TYPE_INFO);
+  ScmObj bl = SCM_OBJ_INIT;;
 
-  return SCM_BOOL_VALUE(bl);
+  SCM_REFSTK_INIT_REG(&bl);
+
+  bl = scm_alloc_mem(&SCM_BOOL_TYPE_INFO, 0, mtype);
+  if (scm_obj_null_p(bl)) return SCM_OBJ_NULL;
+
+  scm_bool_initialize(bl, value);
+
+  return bl;
 }
 
 int
@@ -118,75 +98,19 @@ scm_bool_obj_print(ScmObj obj, ScmObj port, int kind,
   scm_assert_obj_type(obj, &SCM_BOOL_TYPE_INFO);
 
   if (SCM_BOOL(obj)->value == true)
-    rslt = scm_fcd_write_cstr("#t", SCM_ENC_SRC, port);
+    rslt = scm_write_cstr("#t", SCM_ENC_SRC, port);
   else
-    rslt = scm_fcd_write_cstr("#f", SCM_ENC_SRC, port);
+    rslt = scm_write_cstr("#f", SCM_ENC_SRC, port);
 
   if (rslt < 0) return -1;
 
   return 0;
 }
 
-
-/*******************************************************/
-/*  ScmBool (interface)                                */
-/*******************************************************/
-
-bool
-scm_fcd_boolean_p(ScmObj obj)
-{
-  return scm_obj_type_p(obj, &SCM_BOOL_TYPE_INFO);
-}
-
 ScmObj
-scm_fcd_boolean_P(ScmObj obj)
+scm_not(ScmObj obj)
 {
-  return scm_fcd_boolean_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
-}
-
-ScmObj
-scm_fcd_bool_new(scm_mem_type_t mtype, bool value)
-{
-  ScmObj bl = SCM_OBJ_INIT;;
-
-  SCM_REFSTK_INIT_REG(&bl);
-
-  bl = scm_fcd_mem_alloc(&SCM_BOOL_TYPE_INFO, 0, mtype);
-  if (scm_obj_null_p(bl)) return SCM_OBJ_NULL;
-
-  scm_bool_initialize(bl, value);
-
-  return bl;
-}
-
-bool
-scm_fcd_true_object_p(ScmObj obj)
-{
-  return scm_obj_same_instance_p(obj, SCM_TRUE_OBJ);
-}
-
-bool
-scm_fcd_false_object_p(ScmObj obj)
-{
-  return scm_obj_same_instance_p(obj, SCM_FALSE_OBJ);
-}
-
-bool
-scm_fcd_true_p(ScmObj obj)
-{
-  return !scm_fcd_false_object_p(obj);
-}
-
-bool
-scm_fcd_false_p(ScmObj obj)
-{
-  return scm_fcd_false_object_p(obj);
-}
-
-ScmObj
-scm_fcd_not(ScmObj obj)
-{
-  return scm_fcd_false_object_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+  return scm_false_object_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
 }
 
 
@@ -206,16 +130,16 @@ ScmTypeInfo SCM_NIL_TYPE_INFO = {
   .extra               = NULL,
 };
 
-void
-scm_nil_initialize(ScmObj nil)
+ScmObj
+scm_nil_P(ScmObj obj)
 {
-  return;                       /* nothing to do */
+  return scm_nil_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
 }
 
-void
-scm_nil_finalize(ScmObj nil)
+ScmObj
+scm_nil_new(scm_mem_type_t mtype)
 {
-  return;                       /* nothing to do */
+  return scm_alloc_mem(&SCM_NIL_TYPE_INFO, 0, mtype);
 }
 
 int
@@ -225,48 +149,10 @@ scm_nil_obj_print(ScmObj obj, ScmObj port, int kind, ScmObjPrintHandler handler)
 
   scm_assert_obj_type(obj, &SCM_NIL_TYPE_INFO);
 
-  rslt = scm_fcd_write_cstr("()", SCM_ENC_SRC, port);
+  rslt = scm_write_cstr("()", SCM_ENC_SRC, port);
   if (rslt < 0) return -1;
 
   return 0;
-}
-
-
-/*******************************************************/
-/*  ScmNil (interface)                                 */
-/*******************************************************/
-
-bool
-scm_fcd_nil_p(ScmObj obj)
-{
-  return scm_obj_type_p(obj, &SCM_NIL_TYPE_INFO);
-}
-
-ScmObj
-scm_fcd_nil_P(ScmObj obj)
-{
-  return scm_fcd_nil_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
-}
-
-bool
-scm_fcd_nil_object_p(ScmObj obj)
-{
-  return scm_obj_same_instance_p(obj, SCM_NIL_OBJ);
-}
-
-ScmObj
-scm_fcd_nil_new(scm_mem_type_t mtype)
-{
-  ScmObj nil = SCM_OBJ_INIT;
-
-  SCM_REFSTK_INIT_REG(&nil);
-
-  nil = scm_fcd_mem_alloc(&SCM_NIL_TYPE_INFO, 0, mtype);
-  if (scm_obj_null_p(nil)) return SCM_OBJ_NULL;
-
-  scm_nil_initialize(nil);
-
-  return nil;
 }
 
 
@@ -286,48 +172,10 @@ ScmTypeInfo SCM_UNDEF_TYPE_INFO = {
   .extra               = NULL,
 };
 
-void
-scm_undef_initialize(ScmObj undef)
-{
-  return;                       /* nothing to do */
-}
-
-void
-scm_udef_finalize(ScmObj undef)
-{
-  return;                       /* nothing to do */
-}
-
-
-/*******************************************************/
-/*  ScmUndef (interface)                               */
-/*******************************************************/
-
-bool
-scm_fcd_undef_p(ScmObj obj)
-{
-  return scm_obj_type_p(obj, &SCM_UNDEF_TYPE_INFO);
-}
-
-bool
-scm_fcd_undef_object_p(ScmObj obj)
-{
-  return scm_obj_same_instance_p(obj, SCM_UNDEF_OBJ);
-}
-
 ScmObj
-scm_fcd_undef_new(scm_mem_type_t mtype)
+scm_undef_new(scm_mem_type_t mtype)
 {
-  ScmObj undef = SCM_OBJ_INIT;
-
-  SCM_REFSTK_INIT_REG(&undef);
-
-  undef = scm_fcd_mem_alloc(&SCM_UNDEF_TYPE_INFO, 0, mtype);
-  if (scm_obj_null_p(undef)) return SCM_OBJ_NULL;
-
-  scm_undef_initialize(undef);
-
-  return undef;
+  return scm_alloc_mem(&SCM_UNDEF_TYPE_INFO, 0, mtype);
 }
 
 
@@ -347,48 +195,10 @@ ScmTypeInfo SCM_LANDMINE_TYPE_INFO = {
   .extra               = NULL,
 };
 
-void
-scm_landmine_initialize(ScmObj mine)
-{
-  return;                       /* nothing to do */
-}
-
-void
-scm_landmine_finalize(ScmObj mine)
-{
-  return;                       /* nothing to do */
-}
-
-
-/*******************************************************/
-/*  ScmLandmine (interface)                            */
-/*******************************************************/
-
-bool
-scm_fcd_landmine_p(ScmObj obj)
-{
-  return scm_obj_type_p(obj, &SCM_LANDMINE_TYPE_INFO);
-}
-
-bool
-scm_fcd_landmine_object_p(ScmObj obj)
-{
-  return scm_obj_same_instance_p(obj, SCM_LANDMINE_OBJ);
-}
-
 ScmObj
-scm_fcd_landmine_new(scm_mem_type_t mtype)
+scm_landmine_new(scm_mem_type_t mtype)
 {
-  ScmObj mine = SCM_OBJ_INIT;
-
-  SCM_REFSTK_INIT_REG(&mine);
-
-  mine = scm_fcd_mem_alloc(&SCM_LANDMINE_TYPE_INFO, 0, mtype);
-  if (scm_obj_null_p(mine)) return SCM_OBJ_NULL;
-
-  scm_landmine_initialize(mine);
-
-  return mine;
+  return scm_alloc_mem(&SCM_LANDMINE_TYPE_INFO, 0, mtype);
 }
 
 
@@ -419,6 +229,24 @@ scm_box_initialize(ScmObj box, ScmObj obj)
   return 0;
 }
 
+ScmObj
+scm_box_new(scm_mem_type_t mtype, ScmObj obj)
+{
+  ScmObj box = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&obj, &box);
+
+  scm_assert(scm_obj_not_null_p(obj));
+
+  box = scm_alloc_mem(&SCM_BOX_TYPE_INFO, 0, mtype);
+  if (scm_obj_null_p(box)) return SCM_OBJ_NULL;
+
+  if (scm_box_initialize(box, obj) < 0)
+    return SCM_OBJ_NULL;
+
+  return box;
+}
+
 void
 scm_box_gc_initialize(ScmObj obj)
 {
@@ -433,33 +261,4 @@ scm_box_gc_accept(ScmObj obj, ScmGCRefHandler handler)
   scm_assert_obj_type(obj, &SCM_BOX_TYPE_INFO);
 
   return SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_BOX(obj)->obj);
-}
-
-
-/*******************************************************/
-/*  ScmBox (interface)                                 */
-/*******************************************************/
-
-bool
-scm_fcd_box_p(ScmObj obj)
-{
-  return scm_obj_type_p(obj, &SCM_BOX_TYPE_INFO);
-}
-
-ScmObj
-scm_fcd_box_new(scm_mem_type_t mtype, ScmObj obj)
-{
-  ScmObj box = SCM_OBJ_INIT;
-
-  SCM_REFSTK_INIT_REG(&obj, &box);
-
-  scm_assert(scm_obj_not_null_p(obj));
-
-  box = scm_fcd_mem_alloc(&SCM_BOX_TYPE_INFO, 0, mtype);
-  if (scm_obj_null_p(box)) return SCM_OBJ_NULL;
-
-  if (scm_box_initialize(box, obj) < 0)
-    return SCM_OBJ_NULL;
-
-  return box;
 }

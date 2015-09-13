@@ -5,6 +5,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include "scythe/object.h"
+
 typedef struct ScmCHashTblRec ScmCHashTbl;
 typedef struct ScmCHashTblEntryRec ScmCHashTblEntry;
 typedef uintptr_t ScmCHashTblKey;
@@ -14,12 +16,9 @@ typedef size_t (*ScmCHashFunc)(ScmCHashTblKey key);
 typedef bool (*ScmCHashTblKeyCmpFunc)(ScmCHashTblKey key1,
                                       ScmCHashTblKey key2);
 
-
 typedef enum scm_chash_tbl_val_kind scm_chash_tbl_val_kind_t;
 
-#include "scythe/object.h"
-
-enum  scm_chash_tbl_val_kind {
+enum scm_chash_tbl_val_kind {
   SCM_CHASH_TBL_CVAL,
   SCM_CHASH_TBL_SCMOBJ,
   SCM_CHASH_TBL_SCMOBJ_W
@@ -46,8 +45,6 @@ struct ScmCHashTblEntryRec {
 
 #define SCM_CHASH_TBL_ENTRY_KEY(entry)
 #define SCM_CHASH_TBL_ENTRY_VAL(entry)
-
-
 
 void scm_chash_tbl_initialize(ScmCHashTbl *tbl, ScmObj owner,
                               size_t size,

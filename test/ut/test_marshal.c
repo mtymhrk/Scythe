@@ -1,6 +1,13 @@
 #include "marshal.c"
 
-#include "scythe/api.h"
+#include "scythe/refstk.h"
+#include "scythe/char.h"
+#include "scythe/number.h"
+#include "scythe/compiler.h"
+#include "scythe/iseq.h"
+#include "scythe/string.h"
+#include "scythe/symbol.h"
+#include "scythe/vector.h"
 
 #include "test.h"
 
@@ -12,12 +19,12 @@ static ScmRefStackInfo rsi;
 TEST_SETUP(marshal)
 {
   scy = ut_scythe_setup(false);
-  scm_fcd_ref_stack_save(&rsi);
+  scm_ref_stack_save(&rsi);
 }
 
 TEST_TEAR_DOWN(marshal)
 {
-  scm_fcd_ref_stack_restore(&rsi);
+  scm_ref_stack_restore(&rsi);
   ut_scythe_tear_down(scy);
 }
 
@@ -30,14 +37,14 @@ test_marshal_unmarshal(ScmObj obj)
   SCM_REFSTK_INIT_REG(&obj,
                       &marshal, &unmarshal);
 
-  marshal = scm_fcd_marshal_new(SCM_MEM_HEAP);
+  marshal = scm_marshal_new(SCM_MEM_HEAP);
 
-  TEST_ASSERT_EQUAL_INT(0, scm_marshal_push_obj(marshal, obj));
+  TEST_ASSERT_EQUAL_INT(0, scm_marshal_push(marshal, obj));
 
   data = scm_marshal_terminate(marshal, NULL);
   TEST_ASSERT(data != NULL);
 
-  unmarshal = scm_fcd_unmarshal_new(SCM_MEM_HEAP, data);
+  unmarshal = scm_unmarshal_new(SCM_MEM_HEAP, data);
   TEST_ASSERT_SCM_EQUAL(obj, scm_unmarshal_ref(unmarshal, 0));
 }
 
@@ -84,42 +91,42 @@ TEST(marshal, test_marshal_unmarshal__pair__cycle)
 TEST(marshal, test_marshal_unmarshal__integer_positive)
 {
   ScmObj num = SCM_OBJ_INIT;
-  num = scm_fcd_make_number_from_sword(INT32_MAX);
+  num = scm_make_number_from_sword(INT32_MAX);
   test_marshal_unmarshal(num);
 }
 
 TEST(marshal, test_marshal_unmarshal__integer_negative)
 {
   ScmObj num = SCM_OBJ_INIT;
-  num = scm_fcd_make_number_from_sword(INT32_MIN);
+  num = scm_make_number_from_sword(INT32_MIN);
   test_marshal_unmarshal(num);
 }
 
 TEST(marshal, test_marshal_unmarshal__integer_string)
 {
   ScmObj num = SCM_OBJ_INIT;
-  num = scm_fcd_make_number_from_sword((scm_sword_t)INT32_MAX + 1);
+  num = scm_make_number_from_sword((scm_sword_t)INT32_MAX + 1);
   test_marshal_unmarshal(num);
 }
 
 TEST(marshal, test_marshal_unmarshal__symbol)
 {
   ScmObj sym = SCM_OBJ_INIT;
-  sym = scm_fcd_make_symbol_from_cstr("abcdef", SCM_ENC_SRC);
+  sym = scm_make_symbol_from_cstr("abcdef", SCM_ENC_SRC);
   test_marshal_unmarshal(sym);
 }
 
 TEST(marshal, test_marshal_unmarshal__char)
 {
   ScmObj chr = SCM_OBJ_INIT;
-  chr = scm_fcd_make_char(&(scm_char_t){ .bytes = { 'a' }}, SCM_ENC_SRC);
+  chr = scm_make_char(&(scm_char_t){ .bytes = { 'a' }}, SCM_ENC_SRC);
   test_marshal_unmarshal(chr);
 }
 
 TEST(marshal, test_marshal_unmarshal__string)
 {
   ScmObj str = SCM_OBJ_INIT;
-  str = scm_fcd_make_string_from_cstr("foobarbaz", SCM_ENC_SRC);
+  str = scm_make_string_from_cstr("foobarbaz", SCM_ENC_SRC);
   test_marshal_unmarshal(str);
 }
 
@@ -134,7 +141,7 @@ TEST(marshal, test_marshal_unmarshal__vector__cycle)
 {
   ScmObj vec = SCM_OBJ_INIT;
   vec = ut_read_cstr("#(a b c d e)");
-  scm_fcd_vector_set_i(vec, 4, vec);
+  scm_vector_set(vec, 4, vec);
   test_marshal_unmarshal(vec);
 }
 
@@ -142,7 +149,7 @@ TEST(marshal, test_marshal_unmarshal__bytevector)
 {
   ScmObj vec = SCM_OBJ_INIT;
   unsigned char b[] = { 1, 2, 3, 4, 5 };
-  vec = scm_fcd_make_bytevector_from_cv(b, sizeof(b));
+  vec = scm_make_bytevector_from_cv(b, sizeof(b));
   test_marshal_unmarshal(vec);
 }
 
@@ -156,15 +163,15 @@ test_marshal_unmarshal_qqtmpl_internal(ScmObj obj)
   SCM_REFSTK_INIT_REG(&obj,
                       &marshal, &unmarshal);
 
-  marshal = scm_fcd_marshal_new(SCM_MEM_HEAP);
+  marshal = scm_marshal_new(SCM_MEM_HEAP);
 
-  TEST_ASSERT_EQUAL_INT(0, scm_marshal_push_obj(marshal, obj));
+  TEST_ASSERT_EQUAL_INT(0, scm_marshal_push(marshal, obj));
 
   data = scm_marshal_terminate(marshal, NULL);
   TEST_ASSERT(data != NULL);
 
-  unmarshal = scm_fcd_unmarshal_new(SCM_MEM_HEAP, data);
-  scm_fcd_qqtmpl_eq(obj, scm_unmarshal_ref(unmarshal, 0), &cmp);
+  unmarshal = scm_unmarshal_new(SCM_MEM_HEAP, data);
+  scm_qqtmpl_eq(obj, scm_unmarshal_ref(unmarshal, 0), &cmp);
   TEST_ASSERT_TRUE(cmp);
 }
 
@@ -173,7 +180,7 @@ test_marshal_unmarshal_qqtmpl(const char *tmpl)
 {
   ScmObj qqtmpl = SCM_OBJ_INIT, t = SCM_OBJ_INIT;
   t = ut_read_cstr(tmpl);
-  qqtmpl = scm_fcd_compile_qq_template(t);
+  qqtmpl = scm_compile_qq_template(t);
   test_marshal_unmarshal_qqtmpl_internal(qqtmpl);
 }
 
@@ -212,15 +219,15 @@ test_marshal_unmarshal_iseq_internal(ScmObj obj)
   SCM_REFSTK_INIT_REG(&obj,
                       &marshal, &unmarshal);
 
-  marshal = scm_fcd_marshal_new(SCM_MEM_HEAP);
+  marshal = scm_marshal_new(SCM_MEM_HEAP);
 
-  TEST_ASSERT_EQUAL_INT(0, scm_marshal_push_obj(marshal, obj));
+  TEST_ASSERT_EQUAL_INT(0, scm_marshal_push(marshal, obj));
 
   data = scm_marshal_terminate(marshal, NULL);
   TEST_ASSERT(data != NULL);
 
-  unmarshal = scm_fcd_unmarshal_new(SCM_MEM_HEAP, data);
-  scm_fcd_iseq_eq(obj, scm_unmarshal_ref(unmarshal, 0), &cmp);
+  unmarshal = scm_unmarshal_new(SCM_MEM_HEAP, data);
+  scm_iseq_eq(obj, scm_unmarshal_ref(unmarshal, 0), &cmp);
   TEST_ASSERT_TRUE(cmp);
 }
 

@@ -1,4 +1,7 @@
 #include "scythe/object.h"
+#include "scythe/refstk.h"
+#include "scythe/number.h"
+#include "scythe/pair.h"
 #include "scythe/api.h"
 
 #include "test.h"
@@ -11,12 +14,12 @@ static ScmRefStackInfo rsi;
 TEST_SETUP(api_pair_and_lists)
 {
   scy = ut_scythe_setup(false);
-  scm_fcd_ref_stack_save(&rsi);
+  scm_ref_stack_save(&rsi);
 }
 
 TEST_TEAR_DOWN(api_pair_and_lists)
 {
-  scm_fcd_ref_stack_restore(&rsi);
+  scm_ref_stack_restore(&rsi);
   ut_scythe_tear_down(scy);
 }
 
@@ -276,13 +279,13 @@ TEST(api_pair_and_lists, api_length)
 
   SCM_REFSTK_INIT_REG(&lst, &len, &expected);
 
-  expected = scm_fcd_make_number_from_sword(3);
+  expected = scm_make_number_from_sword(3);
 
   lst = ut_read_cstr("(a (b c) d)");
 
   len = scm_api_length(lst);
 
-  TEST_ASSERT_SCM_TRUE(scm_fcd_num_eq_P(expected, len));
+  TEST_ASSERT_SCM_TRUE(scm_num_eq_P(expected, len));
 }
 
 TEST(api_pair_and_lists, api_length__empty_list)
@@ -291,11 +294,11 @@ TEST(api_pair_and_lists, api_length__empty_list)
 
   SCM_REFSTK_INIT_REG(&len, &expected);
 
-  expected = scm_fcd_make_number_from_sword(0);
+  expected = scm_make_number_from_sword(0);
 
   len = scm_api_length(SCM_NIL_OBJ);
 
-  TEST_ASSERT_SCM_TRUE(scm_fcd_num_eq_P(expected, len));
+  TEST_ASSERT_SCM_TRUE(scm_num_eq_P(expected, len));
 }
 
 TEST(api_pair_and_lists, api_length__not_piar__return_ERROR)
@@ -463,7 +466,7 @@ TEST(api_pair_and_lists, api_list_ref)
                       &actual, &expected);
 
   lst = ut_read_cstr("(a (b) c)");
-  expected = scm_fcd_cxr(lst, "ad");
+  expected = scm_cxr(lst, "ad");
   n = ut_read_cstr("1");
 
   actual = scm_api_list_ref(lst, n);
@@ -565,7 +568,7 @@ TEST(api_pair_and_lists, api_memq__matched)
 
   lst = ut_read_cstr("(a b c)");
   o = ut_read_cstr("b");
-  expected = scm_fcd_list_tail(lst, 1);
+  expected = scm_list_tail(lst, 1);
 
   actual = scm_api_memq(o, lst);
 
@@ -606,7 +609,7 @@ TEST(api_pair_and_lists, api_memv__matched)
 
   lst = ut_read_cstr("(a #\\b c)");
   o = ut_read_cstr("#\\b");
-  expected = scm_fcd_list_tail(lst, 1);
+  expected = scm_list_tail(lst, 1);
 
   actual = scm_api_memv(o, lst);
 
@@ -647,7 +650,7 @@ TEST(api_pair_and_lists, api_assq__matched)
 
   alist = ut_read_cstr("((a 1) (b 2) (c 2))");
   k = ut_read_cstr("b");
-  expected = scm_fcd_cxr(alist, "ad");
+  expected = scm_cxr(alist, "ad");
 
   actual = scm_api_assq(k, alist);
 
@@ -688,7 +691,7 @@ TEST(api_pair_and_lists, api_assv__matched)
 
   alist = ut_read_cstr("((a 1) (#\\b 2) (c 2))");
   k = ut_read_cstr("#\\b");
-  expected = scm_fcd_cxr(alist, "ad");
+  expected = scm_cxr(alist, "ad");
 
   actual = scm_api_assv(k, alist);
 

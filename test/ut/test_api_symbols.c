@@ -1,4 +1,6 @@
 #include "scythe/object.h"
+#include "scythe/refstk.h"
+#include "scythe/string.h"
 #include "scythe/api.h"
 
 #include "test.h"
@@ -11,12 +13,12 @@ static ScmRefStackInfo rsi;
 TEST_SETUP(api_symbols)
 {
   scy = ut_scythe_setup(false);
-  scm_fcd_ref_stack_save(&rsi);
+  scm_ref_stack_save(&rsi);
 }
 
 TEST_TEAR_DOWN(api_symbols)
 {
-  scm_fcd_ref_stack_restore(&rsi);
+  scm_ref_stack_restore(&rsi);
   ut_scythe_tear_down(scy);
 }
 
@@ -91,7 +93,7 @@ TEST(api_symbols, api_symbol_to_string)
 
   actual = scm_api_symbol_to_string(sym);
 
-  TEST_ASSERT_SCM_TRUE(scm_fcd_string_eq_P(expected, actual));
+  TEST_ASSERT_SCM_TRUE(scm_string_eq_P(expected, actual));
 
   /* TODO: actual が immutable かチェック */
 }

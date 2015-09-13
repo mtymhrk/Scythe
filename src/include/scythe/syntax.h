@@ -3,13 +3,9 @@
 
 #include <stdbool.h>
 
-typedef struct ScmSyntaxRec ScmSyntax;
-typedef struct ScmMacroRec ScmMacro;
-
-#define SCM_SYNTAX(obj) ((ScmSyntax *)(obj))
-#define SCM_MACRO(obj) ((ScmMacro *)(obj))
-
 #include "scythe/object.h"
+#include "scythe/memory.h"
+
 
 /*************************************************************************/
 /* Syntax                                                                */
@@ -17,20 +13,37 @@ typedef struct ScmMacroRec ScmMacro;
 
 #define SCM_SYNTAX_KEYWORD_LEN_MAX 64
 
+typedef struct ScmSyntaxRec ScmSyntax;
+
 struct ScmSyntaxRec {
   ScmObjHeader header;
   ScmObj keyword;
   ScmObj handler;
 };
 
+#define SCM_SYNTAX(obj) ((ScmSyntax *)(obj))
+
 extern ScmTypeInfo SCM_SYNTAX_TYPE_INFO;
 
+ScmObj scm_syntax_P(ScmObj obj);
 int scm_syntax_initialize(ScmObj syx, ScmObj key, ScmObj handler);
-
+ScmObj scm_syntax_new(scm_mem_type_t mtype, ScmObj key, ScmObj handler);
 int scm_syntax_obj_print(ScmObj obj, ScmObj port, int kind,
                          ScmObjPrintHandler handler);
 void scm_syntax_gc_initialize(ScmObj obj);
 int scm_syntax_gc_accept(ScmObj obj, ScmGCRefHandler handler);
+
+static inline bool
+scm_syntax_p(ScmObj obj)
+{
+  return (scm_obj_type_p(obj, &SCM_SYNTAX_TYPE_INFO) ? true : false);
+}
+
+static inline ScmObj
+scm_make_syntax(ScmObj keyword, ScmObj handler)
+{
+  return scm_syntax_new(SCM_MEM_HEAP, keyword, handler);
+}
 
 static inline ScmObj
 scm_syntax_keyword(ScmObj syx)
@@ -53,11 +66,15 @@ scm_syntax_handler(ScmObj syx)
 /* Macro                                                                 */
 /*************************************************************************/
 
+typedef struct ScmMacroRec ScmMacro;
+
 struct ScmMacroRec {
   ScmObjHeader header;
   ScmObj transformer;
   ScmObj env;
 };
+
+#define SCM_MACRO(obj) ((ScmMacro *)(obj))
 
 extern ScmTypeInfo SCM_MACRO_TYPE_INFO;
 
@@ -68,10 +85,24 @@ extern ScmTypeInfo SCM_MACRO_TYPE_INFO;
 #define SCM_MACRO_SET_ENV(macro, e) \
   SCM_SLOT_SETQ(ScmMacro, macro, env, e)
 
+ScmObj scm_macro_P(ScmObj obj);
 int scm_macro_initialize(ScmObj macro, ScmObj transformer, ScmObj env);
+ScmObj scm_macro_new(scm_mem_type_t mtype, ScmObj transformer, ScmObj env);
 int scm_macro_trmp_transformer(ScmObj macro, ScmObj form);
 void scm_macro_gc_initialize(ScmObj obj);
 int scm_macro_gc_accept(ScmObj obj, ScmGCRefHandler handler);
+
+static inline bool
+scm_macro_p(ScmObj obj)
+{
+  return scm_obj_type_p(obj, &SCM_MACRO_TYPE_INFO);
+}
+
+static inline ScmObj
+scm_make_macro(ScmObj transformer, ScmObj env)
+{
+  return scm_macro_new(SCM_MEM_HEAP, transformer, env);
+}
 
 static inline ScmObj
 scm_macro_env(ScmObj macro)

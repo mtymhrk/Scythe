@@ -5,6 +5,9 @@
 
 #include "scythe/object.h"
 #include "scythe/earray.h"
+#include "scythe/vm.h"
+
+typedef struct ScmScytheRec ScmScythe;
 
 enum { SCM_SCYTHE_S_DOWN, SCM_SCYTHE_S_UP };
 
@@ -25,6 +28,8 @@ struct ScmScytheRec {
 
 int scm_scythe_initialize(ScmScythe *scy);
 void scm_scythe_finalize(ScmScythe *scy);
+ScmScythe *scm_scythe_new();
+void scm_scythe_end(ScmScythe *scy);
 void scm_scythe_switch(ScmScythe *scy);
 int scm_scythe_bootup(ScmScythe *scy);
 void scm_scythe_shutdown(ScmScythe *scy);
@@ -37,6 +42,25 @@ void scm_scythe_clear_load_path(ScmScythe *scy);
 /* int scm_scythe_set_arguments(ScmScythe *scy, int argc, const char **argv); */
 /* void scm_scythe_clear_arguments(ScmScythe *scy); */
 int scm_scythe_update_load_path_variable(ScmScythe *scy);
+int scm_scythe_load_core(ScmScythe *scy);
+int scm_scythe_run_repl(ScmScythe *scy);
+int scm_scythe_exec_file(ScmScythe *scy, const char *path);
+int scm_scythe_exec_cstr(ScmScythe *scy, const char *expr);
+int scm_scythe_compile_file(ScmScythe *scy, const char *path);
+
+static inline void
+scm_scythe_enable(ScmScythe *scy)
+{
+  scm_assert(scy != NULL);
+
+  scm_scythe_switch(scy);
+}
+
+static inline void
+scm_scythe_disable(ScmScythe *scy)
+{
+  scm_scythe_switch(NULL);
+}
 
 static inline bool
 scm_scythe_conf_modifiable_p(ScmScythe *scy)
@@ -45,5 +69,7 @@ scm_scythe_conf_modifiable_p(ScmScythe *scy)
 
   return ((scy->stat == SCM_SCYTHE_S_DOWN) ? true : false);
 }
+
+
 
 #endif  /* INCLUDE_SCYTHE_H__ */

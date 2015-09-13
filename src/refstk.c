@@ -3,7 +3,6 @@
 #include <assert.h>
 
 #include "scythe/object.h"
-#include "scythe/fcd.h"
 #include "scythe/refstk.h"
 
 ScmTypeInfo SCM_REFSTACK_TYPE_INFO = {
@@ -28,11 +27,11 @@ scm_ref_stack_initialize(ScmObj stack)
 }
 
 ScmObj
-scm_fcd_ref_stack_new(scm_mem_type_t mtype)
+scm_ref_stack_new(scm_mem_type_t mtype)
 {
   ScmObj stack = SCM_OBJ_INIT;
 
-  stack = scm_fcd_mem_alloc(&SCM_REFSTACK_TYPE_INFO, 0, mtype);
+  stack = scm_alloc_mem(&SCM_REFSTACK_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(stack)) return SCM_OBJ_NULL;
 
   if (scm_ref_stack_initialize(stack) < 0)

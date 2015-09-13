@@ -3,7 +3,19 @@
 
 #include "scythe/object.h"
 #include "scythe/impl_utils.h"
-#include "scythe/fcd.h"
+#include "scythe/vm.h"
+#include "scythe/memory.h"
+#include "scythe/refstk.h"
+#include "scythe/assembler.h"
+#include "scythe/file.h"
+#include "scythe/exception.h"
+#include "scythe/marshal.h"
+#include "scythe/module.h"
+#include "scythe/pair.h"
+#include "scythe/port.h"
+#include "scythe/string.h"
+#include "scythe/symbol.h"
+#include "scythe/vector.h"
 #include "scythe/core_modules.h"
 #include "scythe/earray.h"
 #include "scythe/scythe.h"
@@ -46,34 +58,58 @@ scm_scythe_finalize(ScmScythe *scy)
   /* scm_scythe_clear_arguments(scy); */
 }
 
+ScmScythe *
+scm_scythe_new()
+{
+  ScmScythe *scy;
+  int r;
+
+  scy = malloc(sizeof(ScmScythe));
+  if (scy == NULL) return NULL;
+
+  r = scm_scythe_initialize(scy);
+  if (r < 0) return NULL;
+
+  return scy;
+}
+
+void
+scm_scythe_end(ScmScythe *scy)
+{
+  scm_assert(scy != NULL);
+
+  scm_scythe_finalize(scy);
+  free(scy);
+}
+
 void
 scm_scythe_switch(ScmScythe *scy)
 {
   if (scy == NULL) {
-    scm_fcd_chg_current_vm(SCM_OBJ_NULL);
-    scm_fcd_chg_current_ref_stack(SCM_OBJ_NULL);
-    scm_fcd_chg_current_br(NULL);
+    scm_chg_current_vm(SCM_OBJ_NULL);
+    scm_chg_current_ref_stack(SCM_OBJ_NULL);
+    scm_chg_current_br(NULL);
   }
   else {
-    scm_fcd_chg_current_vm(scy->vm);
-    scm_fcd_chg_current_ref_stack(scy->refstack);
-    scm_fcd_chg_current_br(scy->bedrock);
+    scm_chg_current_vm(scy->vm);
+    scm_chg_current_ref_stack(scy->refstack);
+    scm_chg_current_br(scy->bedrock);
   }
 }
 
 #define WITH_SCYTHE(scy)                                              \
   do {                                                                \
-    ScmObj save_current__v = scm_fcd_current_vm();                    \
-    ScmObj save_current__s = scm_fcd_current_ref_stack();             \
-    ScmBedrock *save_current__b = scm_fcd_current_br();               \
+    ScmObj save_current__v = scm_current_vm();                        \
+    ScmObj save_current__s = scm_current_ref_stack();                 \
+    ScmBedrock *save_current__b = scm_current_br();                   \
     scm_scythe_switch(scy);                                           \
     do
 
 #define WITH_SCYTHE_END                                         \
     while(0);                                                   \
-    scm_fcd_chg_current_vm(save_current__v);                    \
-    scm_fcd_chg_current_ref_stack(save_current__s);             \
-    scm_fcd_chg_current_br(save_current__b);                    \
+    scm_chg_current_vm(save_current__v);                        \
+    scm_chg_current_ref_stack(save_current__s);                 \
+    scm_chg_current_br(save_current__b);                        \
   } while(0)
 
 int
@@ -90,23 +126,23 @@ scm_scythe_bootup(ScmScythe *scy)
   WITH_SCYTHE(NULL) {
     scy->stat = SCM_SCYTHE_S_UP;
 
-    scy->bedrock = scm_fcd_bedrock_new();
+    scy->bedrock = scm_bedrock_new();
     if (scy->bedrock == NULL) break;
 
-    scm_fcd_chg_current_br(scy->bedrock);
+    scm_chg_current_br(scy->bedrock);
 
-    r = scm_fcd_bedrock_create_mem(scy->bedrock);
+    r = scm_bedrock_create_mem(scy->bedrock);
     if (r < 0) break;
 
-    scy->refstack = scm_fcd_ref_stack_new(SCM_MEM_ROOT);
+    scy->refstack = scm_ref_stack_new(SCM_MEM_ROOT);
     if (scm_obj_null_p(scy->refstack)) break;
 
-    scm_fcd_chg_current_ref_stack(scy->refstack);
+    scm_chg_current_ref_stack(scy->refstack);
 
-    r = scm_fcd_bedrock_setup(scy->bedrock);
+    r = scm_bedrock_setup(scy->bedrock);
     if (r < 0) break;
 
-    scy->vm = scm_fcd_vm_new();
+    scy->vm = scm_vm_new();
     if (scm_obj_null_p(scy->vm)) break;
 
     retval = 0;
@@ -124,28 +160,28 @@ scm_scythe_shutdown(ScmScythe *scy)
     return;
 
   WITH_SCYTHE(scy) {
-    scm_fcd_gc_start();
+    scm_gc_start();
 
     if (scm_obj_not_null_p(scy->vm)) {
-      scm_fcd_chg_current_vm(SCM_OBJ_NULL);
-      scm_fcd_vm_end(scy->vm);
+      scm_chg_current_vm(SCM_OBJ_NULL);
+      scm_vm_end(scy->vm);
       scy->vm = SCM_OBJ_NULL;
     }
 
     if (scy->bedrock != NULL)
-      scm_fcd_bedrock_cleanup(scy->bedrock);
+      scm_bedrock_cleanup(scy->bedrock);
 
     if (scm_obj_not_null_p(scy->refstack)) {
-      scm_fcd_chg_current_ref_stack(SCM_OBJ_NULL);
-      scm_fcd_mem_free_root(scy->refstack);
+      scm_chg_current_ref_stack(SCM_OBJ_NULL);
+      scm_free_root(scy->refstack);
       scy->refstack = SCM_OBJ_NULL;
     }
 
     if (scy->bedrock != NULL) {
-      scm_fcd_bedrock_delete_mem(scy->bedrock);
+      scm_bedrock_delete_mem(scy->bedrock);
 
-      scm_fcd_chg_current_br(NULL);
-      scm_fcd_bedrock_end(scy->bedrock);
+      scm_chg_current_br(NULL);
+      scm_bedrock_end(scy->bedrock);
       scy->bedrock = NULL;
     }
 
@@ -314,10 +350,10 @@ scm_scythe_update_load_path_variable(ScmScythe *scy)
   retval = -1;
   WITH_SCYTHE(scy) {
     EARY_FOR_EACH(&scy->conf.load_path, idx, ptr) {
-      o = scm_fcd_make_string_from_external(*ptr, strlen(*ptr), NULL);
+      o = scm_make_string_from_external(*ptr, strlen(*ptr), NULL);
       if (scm_obj_null_p(o)) goto err_break;
 
-      r = scm_fcd_add_load_path(o);
+      r = scm_add_load_path(o);
       if (r < 0) goto err_break;
     }
 
@@ -331,62 +367,8 @@ scm_scythe_update_load_path_variable(ScmScythe *scy)
   return retval;
 }
 
-ScmScythe *
-scm_fcd_scythe_new()
-{
-  ScmScythe *scy;
-  int r;
-
-  scy = malloc(sizeof(ScmScythe));
-  if (scy == NULL) return NULL;
-
-  r = scm_scythe_initialize(scy);
-  if (r < 0) return NULL;
-
-  return scy;
-}
-
-void
-scm_fcd_scythe_end(ScmScythe *scy)
-{
-  scm_assert(scy != NULL);
-
-  scm_scythe_finalize(scy);
-  free(scy);
-}
-
-void
-scm_fcd_scythe_enable(ScmScythe *scy)
-{
-  scm_assert(scy != NULL);
-
-  scm_scythe_switch(scy);
-}
-
-void
-scm_fcd_scythe_disable(ScmScythe *scy)
-{
-  scm_scythe_switch(NULL);
-}
-
 int
-scm_fcd_scythe_bootup(ScmScythe *scy)
-{
-  scm_assert(scy != NULL);
-
-  return scm_scythe_bootup(scy);
-}
-
-void
-scm_fcd_scythe_shutdown(ScmScythe *scy)
-{
-  scm_assert(scy != NULL);
-
-  scm_scythe_shutdown(scy);
-}
-
-int
-scm_fcd_scythe_load_core(ScmScythe *scy)
+scm_scythe_load_core(ScmScythe *scy)
 {
   int r, retval;
 
@@ -406,22 +388,6 @@ scm_fcd_scythe_load_core(ScmScythe *scy)
   return retval;
 }
 
-int
-scm_fcd_scythe_add_load_path(ScmScythe *scy, const char *path)
-{
-  scm_assert(scy != NULL);
-
-  return scm_scythe_add_load_path(scy, path);
-}
-
-void
-scm_fcd_scythe_clear_load_path(ScmScythe *scy)
-{
-  scm_assert(scy != NULL);
-
-  scm_scythe_clear_load_path(scy);
-}
-
 static ScmObj
 get_proc(const char *name, const char * const *module, size_t n)
 {
@@ -434,29 +400,29 @@ get_proc(const char *name, const char * const *module, size_t n)
 
   mod_name = SCM_NIL_OBJ;
   for (size_t i = n; i > 0; i--) {
-    o = scm_fcd_make_symbol_from_cstr(module[i - 1], SCM_ENC_SRC);
+    o = scm_make_symbol_from_cstr(module[i - 1], SCM_ENC_SRC);
     if (scm_obj_null_p(o)) return SCM_OBJ_NULL;
 
-    mod_name = scm_fcd_cons(o, mod_name);
+    mod_name = scm_cons(o, mod_name);
     if (scm_obj_null_p(mod_name)) return SCM_OBJ_NULL;
   }
 
-  sym = scm_fcd_make_symbol_from_cstr(name, SCM_ENC_SRC);
+  sym = scm_make_symbol_from_cstr(name, SCM_ENC_SRC);
   if (scm_obj_null_p(sym)) return SCM_OBJ_NULL;
 
-  r = scm_fcd_find_module(mod_name, SCM_CSETTER_L(mod));
+  r = scm_find_module(mod_name, SCM_CSETTER_L(mod));
   if (r < 0) return SCM_OBJ_NULL;
 
   if (scm_obj_null_p(mod)) {
-    scm_fcd_error("failed to find module", 1, mod_name);
+    scm_error("failed to find module", 1, mod_name);
     return SCM_OBJ_NULL;
   }
 
-  r = scm_fcd_global_var_ref(mod, sym, SCM_CSETTER_L(proc));
+  r = scm_refer_global_var(mod, sym, SCM_CSETTER_L(proc));
   if (r < 0) return SCM_OBJ_NULL;
 
   if (scm_obj_null_p(proc)) {
-    scm_fcd_error("unbund variable", 1, sym);
+    scm_error("unbund variable", 1, sym);
     return SCM_OBJ_NULL;
   }
 
@@ -464,7 +430,7 @@ get_proc(const char *name, const char * const *module, size_t n)
 }
 
 int
-scm_fcd_scythe_run_repl(ScmScythe *scy)
+scm_scythe_run_repl(ScmScythe *scy)
 {
   ScmObj proc = SCM_OBJ_INIT;
 
@@ -477,10 +443,10 @@ scm_fcd_scythe_run_repl(ScmScythe *scy)
                     (const char *[]){"scythe", "internal", "repl"}, 3);
     if(scm_obj_null_p(proc)) goto dsp;
 
-    scm_fcd_vm_apply(scy->vm, proc, SCM_NIL_OBJ);
+    scm_vm_apply(scy->vm, proc, SCM_NIL_OBJ);
 
   dsp:
-    scm_fcd_vm_disposal_unhandled_exc(scy->vm);
+    scm_vm_disposal_unhandled_exc(scy->vm);
 
   } WITH_SCYTHE_END;
 
@@ -488,7 +454,7 @@ scm_fcd_scythe_run_repl(ScmScythe *scy)
 }
 
 int
-scm_fcd_scythe_exec_file(ScmScythe *scy, const char *path)
+scm_scythe_exec_file(ScmScythe *scy, const char *path)
 {
   ScmObj str = SCM_OBJ_INIT, proc = SCM_OBJ_INIT, args = SCM_OBJ_INIT;
 
@@ -498,20 +464,20 @@ scm_fcd_scythe_exec_file(ScmScythe *scy, const char *path)
   WITH_SCYTHE(scy) {
     SCM_REFSTK_INIT_REG(&str, &proc, &args);
 
-    str = scm_fcd_make_string_from_external(path, strlen(path), NULL);
+    str = scm_make_string_from_external(path, strlen(path), NULL);
     if (scm_obj_null_p(str)) goto dsp;
 
     proc = get_proc("eval-file",
                     (const char *[]){"scythe", "internal", "command"}, 3);
     if(scm_obj_null_p(proc)) goto dsp;
 
-    args = scm_fcd_cons(str, SCM_NIL_OBJ);
+    args = scm_cons(str, SCM_NIL_OBJ);
     if (scm_obj_null_p(args)) goto dsp;
 
-    scm_fcd_vm_apply(scy->vm, proc, args);
+    scm_vm_apply(scy->vm, proc, args);
 
   dsp:
-    scm_fcd_vm_disposal_unhandled_exc(scy->vm);
+    scm_vm_disposal_unhandled_exc(scy->vm);
 
   } WITH_SCYTHE_END;
 
@@ -519,7 +485,7 @@ scm_fcd_scythe_exec_file(ScmScythe *scy, const char *path)
 }
 
 int
-scm_fcd_scythe_exec_cstr(ScmScythe *scy, const char *expr)
+scm_scythe_exec_cstr(ScmScythe *scy, const char *expr)
 {
   ScmObj str = SCM_OBJ_INIT, proc = SCM_OBJ_INIT, args = SCM_OBJ_INIT;
 
@@ -529,20 +495,20 @@ scm_fcd_scythe_exec_cstr(ScmScythe *scy, const char *expr)
   WITH_SCYTHE(scy) {
     SCM_REFSTK_INIT_REG( &str, &proc, &args);
 
-    str = scm_fcd_make_string_from_external(expr, strlen(expr), NULL);
+    str = scm_make_string_from_external(expr, strlen(expr), NULL);
     if (scm_obj_null_p(str)) goto dsp;
 
     proc = get_proc("eval-string",
                     (const char *[]){"scythe", "internal", "command"}, 3);
     if(scm_obj_null_p(proc)) goto dsp;
 
-    args = scm_fcd_cons(str, SCM_NIL_OBJ);
+    args = scm_cons(str, SCM_NIL_OBJ);
     if (scm_obj_null_p(args)) goto dsp;
 
-    scm_fcd_vm_apply(scy->vm, proc, args);
+    scm_vm_apply(scy->vm, proc, args);
 
   dsp:
-    scm_fcd_vm_disposal_unhandled_exc(scy->vm);
+    scm_vm_disposal_unhandled_exc(scy->vm);
 
   } WITH_SCYTHE_END;
 
@@ -559,7 +525,7 @@ dump_marshal(const char *path, const char *ext,
 
   path_len = strlen(path);
   ext_len = (ext != NULL) ? strlen(ext) : 0;
-  str = scm_fcd_malloc(path_len + ext_len + 1);
+  str = scm_malloc(path_len + ext_len + 1);
   if (str == NULL) goto err;
 
   memcpy(str, path, path_len);
@@ -573,18 +539,18 @@ dump_marshal(const char *path, const char *ext,
   if (n < size) goto err;
 
   fclose(fp);
-  scm_fcd_free(str);
+  scm_free(str);
   return 0;
 
  err:
-  scm_fcd_error("failed to dump marshale data", 0);
+  scm_error("failed to dump marshale data", 0);
   if (fp != NULL) fclose(fp);
-  if (str != NULL) scm_fcd_free(str);
+  if (str != NULL) scm_free(str);
   return -1;
 }
 
 int
-scm_fcd_scythe_compile_file(ScmScythe *scy, const char *path)
+scm_scythe_compile_file(ScmScythe *scy, const char *path)
 {
   ScmObj port = SCM_OBJ_INIT, str = SCM_OBJ_INIT;
   ScmObj name = SCM_OBJ_INIT, mod = SCM_OBJ_INIT;
@@ -601,42 +567,42 @@ scm_fcd_scythe_compile_file(ScmScythe *scy, const char *path)
                         &name, &mod,
                         &proc, &args, &val);
 
-    str = scm_fcd_make_string_from_external(path, strlen(path), NULL);
+    str = scm_make_string_from_external(path, strlen(path), NULL);
     if (scm_obj_null_p(str)) goto dsp;
 
-    port = scm_fcd_open_input_string_cstr("(main)", SCM_ENC_NAME_SRC);
+    port = scm_open_input_string_cstr("(main)", SCM_ENC_NAME_SRC);
     if (scm_obj_null_p(port)) goto dsp;
 
-    name = scm_fcd_read(port);
+    name = scm_read(port);
     if (scm_obj_null_p(name)) goto dsp;
 
-    rslt = scm_fcd_find_module(name, SCM_CSETTER_L(mod));
+    rslt = scm_find_module(name, SCM_CSETTER_L(mod));
     if (rslt < 0) goto dsp;
 
     proc = get_proc("compile-file",
                     (const char *[]){"scythe", "internal", "compile"}, 3);
     if(scm_obj_null_p(proc)) goto dsp;
 
-    args = scm_fcd_list(2, str, mod);
+    args = scm_list(2, str, mod);
     if (scm_obj_null_p(args)) goto dsp;
 
-    val = scm_fcd_vm_apply(scy->vm, proc, args);
+    val = scm_vm_apply(scy->vm, proc, args);
     if (scm_obj_null_p(val)) goto dsp;
 
-    val = scm_fcd_vector_ref(val, 0);
+    val = scm_vector_ref(val, 0);
     if (scm_obj_null_p(val)) goto dsp;
 
-    val = scm_fcd_assembler_iseq(val);
+    val = scm_asm_iseq(val);
     if (scm_obj_null_p(val)) goto dsp;
 
-    marshal = scm_fcd_marshal(&size, val, SCM_OBJ_NULL);
+    marshal = scm_marshal(&size, val, SCM_OBJ_NULL);
     if (marshal == NULL) goto dsp;
 
     dump_marshal("marshal.out", NULL, marshal, size);
-    scm_fcd_free(marshal);
+    scm_free(marshal);
 
   dsp:
-    scm_fcd_vm_disposal_unhandled_exc(scy->vm);
+    scm_vm_disposal_unhandled_exc(scy->vm);
 
   } WITH_SCYTHE_END;
 

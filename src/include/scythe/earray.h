@@ -5,13 +5,13 @@
 #include <stdlib.h>
 #include <assert.h>
 
-typedef struct EArrayRec EArray;
-
 #include "scythe/object.h"
 #include "scythe/impl_utils.h"
 
 #define EARY_MAG 2
 #define EARY_DEFAULT_CAP 2
+
+typedef struct EArrayRec EArray;
 
 struct EArrayRec {
   size_t cap;

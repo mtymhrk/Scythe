@@ -1,4 +1,7 @@
 #include "scythe/object.h"
+#include "scythe/refstk.h"
+#include "scythe/char.h"
+#include "scythe/number.h"
 #include "scythe/api.h"
 
 #include "test.h"
@@ -11,12 +14,12 @@ static ScmRefStackInfo rsi;
 TEST_SETUP(api_characters)
 {
   scy = ut_scythe_setup(false);
-  scm_fcd_ref_stack_save(&rsi);
+  scm_ref_stack_save(&rsi);
 }
 
 TEST_TEAR_DOWN(api_characters)
 {
-  scm_fcd_ref_stack_restore(&rsi);
+  scm_ref_stack_restore(&rsi);
   ut_scythe_tear_down(scy);
 }
 
@@ -281,7 +284,7 @@ TEST(api_characters, api_char_to_integer)
 
   actual = scm_api_char_to_integer(chr);
 
-  TEST_ASSERT_SCM_TRUE(scm_fcd_num_eq_P(expected, actual));
+  TEST_ASSERT_SCM_TRUE(scm_num_eq_P(expected, actual));
 }
 
 TEST(api_characters, api_char_to_integer__return_ERROR)
@@ -300,7 +303,7 @@ TEST(api_characters, capi_integer_to_char)
 
   actual = scm_capi_integer_to_char(num, NULL);
 
-  TEST_ASSERT_SCM_TRUE(scm_fcd_char_eq_P(expected, actual));
+  TEST_ASSERT_SCM_TRUE(scm_char_eq_P(expected, actual));
 }
 
 TEST(api_characters, capi_integer_to_char__not_unicode_scalar__return_false)

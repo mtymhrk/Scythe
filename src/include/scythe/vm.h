@@ -3,33 +3,85 @@
 
 #include <stdint.h>
 
-typedef struct ScmVMIntTblEntryRec ScmVMIntTblEntry;
-typedef struct ScmVMIntTableRec ScmVMIntTable;
-typedef struct ScmVMRegRec ScmVMReg;
-typedef struct ScmContCapRec ScmContCap;
-typedef struct ScmVMRec ScmVM;
-
-typedef enum scm_bedrock_err_type scm_bedrock_err_type_t;
-typedef enum scm_vm_ctrl_flg scm_vm_ctrl_flg_t;
-
-#define SCM_CONTCAP(obj) ((ScmContCap *)(obj))
-#define SCM_VM(obj) ((ScmVM *)(obj))
-
 #include "scythe/object.h"
 #include "scythe/encoding.h"
+#include "scythe/vminst.h"
 #include "scythe/vmstack.h"
-#include "scythe/fcd_memory.h"
-#include "scythe/fcd_vm.h"
+#include "scythe/memory.h"
+
+typedef struct ScmBedrockRec ScmBedrock;
+
+extern ScmBedrock *scm__current_br;
+extern ScmObj scm__current_vm;
+extern ScmObj scm__current_ref_stack;
+
+static inline ScmBedrock *
+scm_current_br(void)
+{
+  return scm__current_br;
+}
+
+static inline ScmObj
+scm_current_vm(void)
+{
+  return scm__current_vm;
+}
+
+static inline ScmObj
+scm_current_ref_stack(void)
+{
+  return scm__current_ref_stack;
+}
+
+static inline void
+scm_chg_current_br(ScmBedrock *br)
+{
+  scm__current_br = br;
+}
+
+static inline void
+scm_chg_current_vm(ScmObj vm)
+{
+  scm__current_vm = vm;
+}
+
+static inline void
+scm_chg_current_ref_stack(ScmObj stack)
+{
+  scm__current_ref_stack = stack;
+}
+
 
 /***************************************************************************/
 /*  ScmBedrock                                                             */
 /***************************************************************************/
+
+typedef enum scm_bedrock_err_type scm_bedrock_err_type_t;
 
 enum scm_bedrock_err_type {
   SCM_BEDROCK_ERR_NONE,
   SCM_BEDROCK_ERR_FATAL,
   SCM_BEDROCK_ERR_ERROR,
 };
+
+enum {
+  SCM_CACHED_GV_COMPILE = 0,
+  SCM_CACHED_GV_EVAL,
+  SCM_CACHED_GV_CURRENT_INPUT_PORT,
+  SCM_CACHED_GV_CURRENT_OUTPUT_PORT,
+  SCM_CACHED_GV_LOAD_PATH,
+};
+
+#define SCM_CACHED_GV_NR 5
+
+enum {
+  SCM_CACHED_SYM_QUOTE = 0,
+  SCM_CACHED_SYM_QUASIQUOTE,
+  SCM_CACHED_SYM_UNQUOTE,
+  SCM_CACHED_SYM_UNQUOTE_SPLICING,
+};
+
+#define SCM_CACHED_SYM_NR 4
 
 struct ScmBedrockRec {
   FILE *output;
@@ -195,6 +247,9 @@ scm_bedrock_encoding(ScmBedrock *br)
 /*  VM Interruptions                                               */
 /*******************************************************************/
 
+typedef struct ScmVMIntTblEntryRec ScmVMIntTblEntry;
+typedef struct ScmVMIntTableRec ScmVMIntTable;
+
 enum {
   SCM_VM_INT_GC = 0,
   SCM_VM_INT_HALT,
@@ -222,6 +277,8 @@ struct ScmVMIntTableRec {
 
 #define SCM_VM_NR_VAL_REG 10
 
+typedef struct ScmVMRegRec ScmVMReg;
+
 struct ScmVMRegRec {
   scm_byte_t *sp;                 /* stack pointer */
   ScmCntFrame *cfp;               /* continuation frame pointer */
@@ -248,8 +305,7 @@ struct ScmVMRegRec {
 /*  VM Continuation Capture                                        */
 /*******************************************************************/
 
-
-extern ScmTypeInfo SCM_CONTCAP_TYPE_INFO;
+typedef struct ScmContCapRec ScmContCap;
 
 struct ScmContCapRec {
   ScmObjHeader header;
@@ -271,6 +327,10 @@ struct ScmContCapRec {
     unsigned int flags;
   } reg;
 };
+
+#define SCM_CONTCAP(obj) ((ScmContCap *)(obj))
+
+extern ScmTypeInfo SCM_CONTCAP_TYPE_INFO;
 
 ScmObj scm_contcap_new(scm_mem_type_t mtype);
 void scm_contcap_cap(ScmObj cc,  ScmObj stack, const ScmVMReg *regs);
@@ -370,7 +430,8 @@ scm_contcap_flags(ScmObj cc)
 /*  ScmVM                                                                  */
 /***************************************************************************/
 
-extern ScmTypeInfo SCM_VM_TYPE_INFO;
+typedef struct ScmVMRec ScmVM;
+typedef enum scm_vm_ctrl_flg scm_vm_ctrl_flg_t;
 
 enum scm_vm_ctrl_flg {
   SCM_VM_CTRL_FLG_RAISE = 0x00000001,
@@ -382,7 +443,6 @@ enum scm_vm_ctrl_flg {
                                          場合セットする */
 };
 
-
 struct ScmVMRec {
   ScmObjHeader header;
   ScmObj main;
@@ -391,11 +451,16 @@ struct ScmVMRec {
   ScmVMIntTable inttbl;
 };
 
+#define SCM_VM(obj) ((ScmVM *)(obj))
+
+extern ScmTypeInfo SCM_VM_TYPE_INFO;
+
 int scm_vm_subr_trmp_apply(ScmObj subr, int argc, const ScmObj *argv);
 
 int scm_vm_initialize(ScmObj vm, ScmObj main_vm);
-int scm_vm_init_scmobjs(ScmObj vm);
 void scm_vm_finalize(ScmObj vm);
+ScmObj scm_vm_new(void);
+void scm_vm_end(ScmObj vm);
 ScmObj scm_vm_clone(ScmObj parent);
 
 void scm_vm_run(ScmObj vm, ScmObj iseq);
@@ -436,6 +501,12 @@ void scm_vm_gc_initialize(ScmObj obj);
 void scm_vm_gc_finalize(ScmObj obj);
 int scm_vm_gc_accept(ScmObj obj, ScmGCRefHandler handler);
 
+static inline bool
+scm_vm_p(ScmObj obj)
+{
+  return scm_obj_type_p(obj, &SCM_VM_TYPE_INFO);
+}
+
 static inline ScmObj
 scm_vm_raised_obj(ScmObj vm)
 {
@@ -455,6 +526,195 @@ scm_vm_discard_raised_obj(ScmObj vm)
 {
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
   SCM_VM(vm)->reg.exc.obj = SCM_OBJ_NULL;
+}
+
+
+/***************************************************************************/
+/*  Facade                                                                 */
+/***************************************************************************/
+
+#define SCM_NIL_OBJ (scm_bedrock_nil(scm_current_br()))
+#define SCM_TRUE_OBJ (scm_bedrock_true(scm_current_br()))
+#define SCM_FALSE_OBJ (scm_bedrock_false(scm_current_br()))
+#define SCM_EOF_OBJ (scm_bedrock_eof(scm_current_br()))
+#define SCM_UNDEF_OBJ (scm_bedrock_undef(scm_current_br()))
+#define SCM_LANDMINE_OBJ (scm_bedrock_landmine(scm_current_br()))
+#define SCM_UNINIT_OBJ SCM_LANDMINE_OBJ
+
+int scm_cached_global_var_ref(int kind, scm_csetter_t *val);
+int scm_cached_global_var_set(int kind, ScmObj val);
+
+int scm_load_iseq(ScmObj iseq);
+
+static inline int
+scm_halt(void)
+{
+  return scm_vm_setup_stat_halt(scm_current_vm());
+}
+
+static inline void
+scm_fatal(const char *msg)
+{
+  scm_bedrock_fatal(scm_current_br(), msg);
+}
+
+static inline ScmObj
+scm_cached_symbol(int kind)
+{
+  return scm_bedrock_cached_sym(scm_current_br(), kind);
+}
+
+static inline ScmEncoding *
+scm_system_encoding(void)
+{
+  return scm_bedrock_encoding(scm_current_br());
+}
+
+static inline void *
+scm_current_memory_manager(void)
+{
+  return scm_bedrock_mem(scm_current_br());
+}
+
+static inline ScmObj
+scm_current_symbol_table(void)
+{
+  return scm_bedrock_symtbl(scm_current_br());
+}
+
+static inline ScmObj
+scm_current_module_tree(void)
+{
+  return scm_bedrock_modtree(scm_current_br());
+}
+
+static inline int
+scm_return_val(const ScmObj *val, int vc)
+{
+  return scm_vm_set_val_reg(scm_current_vm(), val, vc);
+}
+
+static inline ScmObj
+scm_capture_continuation(void)
+{
+  return scm_vm_capture_cont(scm_current_vm());
+}
+
+static inline int
+scm_reinstantemnet_continuation(ScmObj cc)
+{
+  return scm_vm_reinstatement_cont(scm_current_vm(), cc);
+}
+
+static inline int
+scm_push_dynamic_bindings(ScmObj alist)
+{
+  return scm_vm_push_dynamic_bindings(scm_current_vm(), alist);
+}
+
+static inline void
+scm_pop_dynamic_bindings(void)
+{
+  scm_vm_pop_dynamic_bindings(scm_current_vm());
+}
+
+static inline ScmObj
+scm_parameter_value(ScmObj var)
+{
+  return scm_vm_parameter_value(scm_current_vm(), var);
+}
+
+static inline int
+scm_trampolining(ScmObj proc, ScmObj args, ScmObj postproc, ScmObj handover)
+{
+  return scm_vm_setup_stat_trmp(scm_current_vm(), proc, args,
+                                postproc, handover, true);
+}
+
+static inline void
+scm_exit(ScmObj obj)
+{
+  /* TODO: obj の内容に応じた VM の終了ステータスの設定*/
+
+  scm_vm_setup_stat_halt(scm_current_vm());
+}
+
+static inline int
+scm_raise(ScmObj obj)
+{
+  return scm_vm_setup_stat_raise(scm_current_vm(), obj, false);
+}
+
+static inline int
+scm_raise_continuable(ScmObj obj)
+{
+  return scm_vm_setup_stat_raise(scm_current_vm(), obj, true);
+}
+
+static inline bool
+scm_raised_p(void)
+{
+  return scm_vm_raised_p(scm_current_vm());
+}
+
+static inline ScmObj
+scm_raised_obj(void)
+{
+  return scm_vm_raised_obj(scm_current_vm());
+}
+
+static inline void
+scm_discard_raised_obj(void)
+{
+  scm_vm_discard_raised_obj(scm_current_vm());
+}
+
+static inline int
+scm_push_exception_handler(ScmObj handler)
+{
+  return scm_vm_push_exc_handler(scm_current_vm(), handler);
+}
+
+static inline int
+scm_pop_exception_handler(void)
+{
+  return scm_vm_pop_exc_handler(scm_current_vm());
+}
+
+static inline int
+scm_push_dynamic_wind_handler(ScmObj before, ScmObj after)
+{
+  return scm_vm_push_dw_handler(scm_current_vm(), before, after);
+}
+
+static inline int
+scm_pop_dynamic_wind_handler(void)
+{
+  return scm_vm_pop_dw_handler(scm_current_vm());
+}
+
+static inline ScmObj
+scm_collect_dynamic_wind_handler(ScmObj contcap)
+{
+  return scm_vm_collect_dw_handler(scm_current_vm(), contcap);
+}
+
+static inline void
+scm_disposal_unhandled_exec(void)
+{
+  scm_vm_disposal_unhandled_exc(scm_current_vm());
+}
+
+static inline scm_opcode_t
+scm_internal_opcode(scm_opcode_t op)
+{
+  return (scm_opcode_t)scm_vm_opcode2ptr(op);
+}
+
+static inline scm_opcode_t
+scm_external_opcode(scm_opcode_t op)
+{
+  return scm_vm_ptr2opcode((const void *)op);
 }
 
 

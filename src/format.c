@@ -4,25 +4,29 @@
 
 #include "scythe/object.h"
 #include "scythe/encoding.h"
-#include "scythe/fcd.h"
+#include "scythe/refstk.h"
+#include "scythe/string.h"
+#include "scythe/exception.h"
+#include "scythe/pair.h"
+#include "scythe/port.h"
 #include "scythe/string.h"
 
 static int
 format_mod(ScmObj port, scm_char_t chr, ScmEncoding *enc, ScmObj obj)
 {
-  scm_assert(scm_fcd_output_port_p(port));
-  scm_assert(scm_fcd_textual_port_p(port));
+  scm_assert(scm_output_port_p(port));
+  scm_assert(scm_textual_port_p(port));
   scm_assert(enc != NULL);
 
   if (scm_enc_same_char_p(enc, chr.bytes, sizeof(chr), 'a')) {
     int r;
 
     if (scm_obj_null_p(obj)) {
-      scm_fcd_error("format: too few arguments", 0);
+      scm_error("format: too few arguments", 0);
       return -1;
     }
 
-    r = scm_fcd_display(obj, port);
+    r = scm_display(obj, port);
     if (r < 0) return -1;
 
     return 1;
@@ -31,29 +35,29 @@ format_mod(ScmObj port, scm_char_t chr, ScmEncoding *enc, ScmObj obj)
     int r;
 
     if (scm_obj_null_p(obj)) {
-      scm_fcd_error("format: too few arugmnets", 0);
+      scm_error("format: too few arugmnets", 0);
       return -1;
     }
 
-    r = scm_fcd_write(obj, port);
+    r = scm_write(obj, port);
     if (r < 0) return -1;
 
     return 1;
   }
   else if (scm_enc_same_char_p(enc, chr.bytes, sizeof(chr), '%')) {
-    int r = scm_fcd_newline(port);
+    int r = scm_newline(port);
     if (r < 0) return -1;
 
     return 0;
   }
   else if (scm_enc_same_char_p(enc, chr.bytes, sizeof(chr), '~')) {
-    int r = scm_fcd_write_cchr(chr, enc, port);
+    int r = scm_write_cchr(chr, enc, port);
     if (r < 0) return -1;
 
     return 0;
   }
   else {
-    scm_fcd_error("format: unknown specifier", 0);
+    scm_error("format: unknown specifier", 0);
     return -1;
   }
 }
@@ -62,8 +66,8 @@ static int
 format_aux(ScmObj port, bool *escaped,
            scm_char_t chr, ScmEncoding *enc, ScmObj obj)
 {
-  scm_assert(scm_fcd_output_port_p(port));
-  scm_assert(scm_fcd_textual_port_p(port));
+  scm_assert(scm_output_port_p(port));
+  scm_assert(scm_textual_port_p(port));
   scm_assert(escaped != NULL);
   scm_assert(enc != NULL);
 
@@ -78,7 +82,7 @@ format_aux(ScmObj port, bool *escaped,
       return 0;
     }
     else {
-      return scm_fcd_write_cchr(chr, enc, port);
+      return scm_write_cchr(chr, enc, port);
     }
   }
 }
@@ -94,11 +98,11 @@ pformat_lst_aux(ScmObj port, ScmObj fmt, size_t len, ScmObj lst)
   SCM_REFSTK_INIT_REG(&port, &fmt, &lst,
                       &o);
 
-  scm_assert(scm_fcd_output_port_p(port));
-  scm_assert(scm_fcd_textual_port_p(port));
-  scm_assert(scm_fcd_string_p(fmt));
+  scm_assert(scm_output_port_p(port));
+  scm_assert(scm_textual_port_p(port));
+  scm_assert(scm_string_p(fmt));
 
-  p = scm_string_to_char_ary(fmt, 0, (ssize_t)len, chr);
+  p = scm_string_to_cchr_ary(fmt, 0, (ssize_t)len, chr);
   if (p == NULL) return -1;
 
   enc = scm_string_encoding(fmt);
@@ -107,9 +111,9 @@ pformat_lst_aux(ScmObj port, ScmObj fmt, size_t len, ScmObj lst)
   escaped = false;
 
   o = SCM_OBJ_NULL;
-  if (scm_fcd_pair_p(lst)) {
-    o = scm_fcd_car(lst);
-    lst = scm_fcd_cdr(lst);
+  if (scm_pair_p(lst)) {
+    o = scm_car(lst);
+    lst = scm_cdr(lst);
   }
 
   for (size_t chr_idx = 0; chr_idx < len; chr_idx++) {
@@ -118,9 +122,9 @@ pformat_lst_aux(ScmObj port, ScmObj fmt, size_t len, ScmObj lst)
 
     if (r > 0) {
       o = SCM_OBJ_NULL;
-      if (scm_fcd_pair_p(lst)) {
-        o = scm_fcd_car(lst);
-        lst = scm_fcd_cdr(lst);
+      if (scm_pair_p(lst)) {
+        o = scm_car(lst);
+        lst = scm_cdr(lst);
       }
     }
   }
@@ -129,20 +133,20 @@ pformat_lst_aux(ScmObj port, ScmObj fmt, size_t len, ScmObj lst)
 }
 
 int
-scm_fcd_pformat_lst(ScmObj port, ScmObj fmt, ScmObj lst)
+scm_pformat_lst(ScmObj port, ScmObj fmt, ScmObj lst)
 {
   size_t len;
 
-  scm_assert(scm_fcd_output_port_p(port));
-  scm_assert(scm_fcd_textual_port_p(port));
-  scm_assert(scm_fcd_string_p(fmt));
+  scm_assert(scm_output_port_p(port));
+  scm_assert(scm_textual_port_p(port));
+  scm_assert(scm_string_p(fmt));
 
   len = scm_string_length(fmt);
   return pformat_lst_aux(port, fmt, len, lst);
 }
 
 ScmObj
-scm_fcd_format_lst(ScmObj fmt, ScmObj lst)
+scm_format_lst(ScmObj fmt, ScmObj lst)
 {
   ScmObj port = SCM_OBJ_INIT, str = SCM_OBJ_INIT;
   ScmEncoding *fenc, *senc;
@@ -151,15 +155,15 @@ scm_fcd_format_lst(ScmObj fmt, ScmObj lst)
   SCM_REFSTK_INIT_REG(&fmt, &lst,
                       &port, &str);
 
-  scm_assert(scm_fcd_string_p(fmt));
+  scm_assert(scm_string_p(fmt));
 
-  port = scm_fcd_open_output_string();
+  port = scm_open_output_string();
   if (scm_obj_null_p(port)) return SCM_OBJ_NULL;
 
-  r = scm_fcd_pformat_lst(port, fmt, lst);
+  r = scm_pformat_lst(port, fmt, lst);
   if (r < 0) return SCM_OBJ_NULL;
 
-  str = scm_fcd_get_output_string(port);
+  str = scm_get_output_string(port);
   if (scm_obj_null_p(str)) return SCM_OBJ_NULL;
 
   fenc = scm_string_encoding(fmt);
@@ -184,12 +188,12 @@ pformat_cv_aux(ScmObj port,
   SCM_REFSTK_INIT_REG(&port, &fmt,
                       &o);
 
-  scm_assert(scm_fcd_output_port_p(port));
-  scm_assert(scm_fcd_textual_port_p(port));
-  scm_assert(scm_fcd_string_p(fmt));
+  scm_assert(scm_output_port_p(port));
+  scm_assert(scm_textual_port_p(port));
+  scm_assert(scm_string_p(fmt));
   scm_assert(obj != NULL);
 
-  p = scm_string_to_char_ary(fmt, 0, (ssize_t)len, chr);
+  p = scm_string_to_cchr_ary(fmt, 0, (ssize_t)len, chr);
   if (p == NULL) return -1;
 
   enc = scm_string_encoding(fmt);
@@ -207,7 +211,7 @@ pformat_cv_aux(ScmObj port,
       o = SCM_OBJ_NULL;
       if (obj_idx < n) {
         if (scm_obj_null_p(obj[obj_idx])) {
-          scm_fcd_error("format: invalid argument", 0);
+          scm_error("format: invalid argument", 0);
           return -1;
         }
         o = obj[obj_idx++];
@@ -219,13 +223,13 @@ pformat_cv_aux(ScmObj port,
 }
 
 int
-scm_fcd_pformat_cv(ScmObj port, ScmObj fmt, ScmObj *obj, size_t n)
+scm_pformat_cv(ScmObj port, ScmObj fmt, ScmObj *obj, size_t n)
 {
   size_t len;
 
-  scm_assert(scm_fcd_output_port_p(port));
-  scm_assert(scm_fcd_textual_port_p(port));
-  scm_assert(scm_fcd_string_p(fmt));
+  scm_assert(scm_output_port_p(port));
+  scm_assert(scm_textual_port_p(port));
+  scm_assert(scm_string_p(fmt));
   scm_assert(n == 0 || obj != NULL);
 
   len = scm_string_length(fmt);
@@ -233,7 +237,7 @@ scm_fcd_pformat_cv(ScmObj port, ScmObj fmt, ScmObj *obj, size_t n)
 }
 
 ScmObj
-scm_fcd_format_cv(ScmObj fmt, ScmObj *obj, size_t n)
+scm_format_cv(ScmObj fmt, ScmObj *obj, size_t n)
 {
   ScmObj port = SCM_OBJ_INIT, str = SCM_OBJ_INIT;
   ScmEncoding *fenc, *senc;
@@ -242,16 +246,16 @@ scm_fcd_format_cv(ScmObj fmt, ScmObj *obj, size_t n)
   SCM_REFSTK_INIT_REG(&fmt,
                       &port, &str);
 
-  scm_assert(scm_fcd_string_p(fmt));
+  scm_assert(scm_string_p(fmt));
   scm_assert(n == 0 || obj != NULL);
 
-  port = scm_fcd_open_output_string();
+  port = scm_open_output_string();
   if (scm_obj_null_p(port)) return SCM_OBJ_NULL;
 
-  r = scm_fcd_pformat_cv(port, fmt, obj, n);
+  r = scm_pformat_cv(port, fmt, obj, n);
   if (r < 0) return SCM_OBJ_NULL;
 
-  str = scm_fcd_get_output_string(port);
+  str = scm_get_output_string(port);
   if (scm_obj_null_p(str)) return SCM_OBJ_NULL;
 
   fenc = scm_string_encoding(fmt);
@@ -277,16 +281,16 @@ pformat_aux_inner(ScmObj port, ScmObj fmt, const char *cfmt,
   SCM_REFSTK_REG_ARY(obj, n);
 
   if (scm_obj_null_p(fmt)) {
-    fmt = scm_fcd_make_string_from_cstr(cfmt, SCM_ENC_SRC);
+    fmt = scm_make_string_from_cstr(cfmt, SCM_ENC_SRC);
     if (scm_obj_null_p(fmt)) return SCM_OBJ_NULL;
   }
 
   if (scm_obj_not_null_p(port)) {
-    int r = scm_fcd_pformat_cv(port, fmt, obj, n);
+    int r = scm_pformat_cv(port, fmt, obj, n);
     return (r < 0) ? SCM_OBJ_NULL : SCM_UNDEF_OBJ;
   }
   else {
-    return scm_fcd_format_cv(fmt, obj, n);
+    return scm_format_cv(fmt, obj, n);
   }
 }
 
@@ -311,99 +315,99 @@ pformat_aux(ScmObj port, ScmObj fmt, const char *cfmt, va_list arg)
 }
 
 int
-scm_fcd_pformat_va(ScmObj port, ScmObj fmt, va_list arg)
+scm_pformat_va(ScmObj port, ScmObj fmt, va_list arg)
 {
   ScmObj r = SCM_OBJ_INIT;
 
-  scm_assert(scm_fcd_output_port_p(port));
-  scm_assert(scm_fcd_textual_port_p(port));
-  scm_assert(scm_fcd_string_p(fmt));
+  scm_assert(scm_output_port_p(port));
+  scm_assert(scm_textual_port_p(port));
+  scm_assert(scm_string_p(fmt));
 
   r = pformat_aux(port, fmt, NULL, arg);
   return (scm_obj_null_p(r) ? -1 : 0);
 }
 
 int
-scm_fcd_pformat(ScmObj port, ScmObj fmt, ...)
+scm_pformat(ScmObj port, ScmObj fmt, ...)
 {
   va_list arg;
   int ret;
 
-  scm_assert(scm_fcd_output_port_p(port));
-  scm_assert(scm_fcd_textual_port_p(port));
-  scm_assert(scm_fcd_string_p(port));
+  scm_assert(scm_output_port_p(port));
+  scm_assert(scm_textual_port_p(port));
+  scm_assert(scm_string_p(port));
 
   va_start(arg, fmt);
-  ret = scm_fcd_pformat_va(port, fmt, arg);
+  ret = scm_pformat_va(port, fmt, arg);
   va_end(arg);
 
   return ret;
 }
 
 ScmObj
-scm_fcd_format_va(ScmObj fmt, va_list arg)
+scm_format_va(ScmObj fmt, va_list arg)
 {
-  scm_assert(scm_fcd_string_p(fmt));
+  scm_assert(scm_string_p(fmt));
   return pformat_aux(SCM_OBJ_NULL, fmt, NULL, arg);
 }
 
 ScmObj
-scm_fcd_format(ScmObj fmt, ...)
+scm_format(ScmObj fmt, ...)
 {
   ScmObj ret = SCM_OBJ_INIT;
   va_list arg;
 
-  scm_assert(scm_fcd_string_p(fmt));
+  scm_assert(scm_string_p(fmt));
 
   va_start(arg, fmt);
-  ret = scm_fcd_format_va(fmt, arg);
+  ret = scm_format_va(fmt, arg);
   va_end(arg);
 
   return ret;
 }
 
 int
-scm_fcd_pformat_cstr_va(ScmObj port, const char *fmt, va_list arg)
+scm_pformat_cstr_va(ScmObj port, const char *fmt, va_list arg)
 {
   ScmObj r = SCM_OBJ_INIT;
 
-  scm_assert(scm_fcd_output_port_p(port));
-  scm_assert(scm_fcd_textual_port_p(port));
+  scm_assert(scm_output_port_p(port));
+  scm_assert(scm_textual_port_p(port));
 
   r = pformat_aux(port, SCM_OBJ_NULL, fmt, arg);
   return (scm_obj_null_p(r) ? -1 : 0);
 }
 
 int
-scm_fcd_pformat_cstr(ScmObj port, const char *fmt, ...)
+scm_pformat_cstr(ScmObj port, const char *fmt, ...)
 {
   va_list arg;
   int r;
 
-  scm_assert(scm_fcd_output_port_p(port));
-  scm_assert(scm_fcd_textual_port_p(port));
+  scm_assert(scm_output_port_p(port));
+  scm_assert(scm_textual_port_p(port));
 
   va_start(arg, fmt);
-  r = scm_fcd_pformat_cstr_va(port, fmt, arg);
+  r = scm_pformat_cstr_va(port, fmt, arg);
   va_end(arg);
 
   return r;
 }
 
 ScmObj
-scm_fcd_format_cstr_va(const char *fmt, va_list arg)
+scm_format_cstr_va(const char *fmt, va_list arg)
 {
   return pformat_aux(SCM_OBJ_NULL, SCM_OBJ_NULL, fmt, arg);
 }
 
 ScmObj
-scm_fcd_format_cstr(const char *fmt, ...)
+scm_format_cstr(const char *fmt, ...)
 {
   ScmObj ret = SCM_OBJ_INIT;
   va_list arg;
 
   va_start(arg, fmt);
-  ret = scm_fcd_format_cstr_va(fmt, arg);
+  ret = scm_format_cstr_va(fmt, arg);
   va_end(arg);
 
   return ret;

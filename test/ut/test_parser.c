@@ -2,7 +2,14 @@
 
 #include <stdarg.h>
 
-#include "scythe/api.h"
+#include "scythe/refstk.h"
+#include "scythe/char.h"
+#include "scythe/number.h"
+#include "scythe/pair.h"
+#include "scythe/port.h"
+#include "scythe/string.h"
+#include "scythe/symbol.h"
+#include "scythe/vector.h"
 
 #include "test.h"
 
@@ -16,12 +23,12 @@ static void (*tear_down_func)(void);
 TEST_SETUP(parser)
 {
   scy = ut_scythe_setup(false);
-  scm_fcd_ref_stack_save(&rsi);
+  scm_ref_stack_save(&rsi);
 }
 
 TEST_TEAR_DOWN(parser)
 {
-  scm_fcd_ref_stack_restore(&rsi);
+  scm_ref_stack_restore(&rsi);
 
   if (tear_down_func != NULL)
     tear_down_func();
@@ -60,8 +67,8 @@ test_tokenize(scm_token_type_t expe_type, const char *expe_str,
 
   SCM_REFSTK_INIT_REG(&port);
 
-  port = scm_fcd_open_input_string_cstr(data, SCM_ENC_NAME_SRC);
-  enc = scm_fcd_port_internal_encoding(port);
+  port = scm_open_input_string_cstr(data, SCM_ENC_NAME_SRC);
+  enc = scm_port_internal_enc(port);
   lexer = scm_lexer_new();
   tear_down_func = lexer_tear_down_func;
 
@@ -274,7 +281,7 @@ make_list_of_symbol(bool proper, size_t n, ...)
   va_start(ap, n);
   for (size_t i = 0; i < n; i++) {
     const char *p = va_arg(ap, const char *);
-    s[i] = scm_fcd_make_symbol_from_cstr(p, SCM_ENC_SRC);
+    s[i] = scm_make_symbol_from_cstr(p, SCM_ENC_SRC);
   }
   va_end(ap);
 
@@ -307,12 +314,12 @@ make_vector_of_symbol(size_t n, ...)
   va_start(ap, n);
   for (size_t i = 0; i < n; i++) {
     const char *p = va_arg(ap, const char *);
-    s[i] = scm_fcd_make_symbol_from_cstr(p, SCM_ENC_SRC);
+    s[i] = scm_make_symbol_from_cstr(p, SCM_ENC_SRC);
     SCM_REFSTK_REG(&s[i]);
   }
   va_end(ap);
 
-  return scm_fcd_vector_cv(s, n);
+  return scm_vector_cv(s, n);
 }
 
 static void
@@ -322,7 +329,7 @@ test_parse(ScmObj expected, const char *data)
 
   SCM_REFSTK_INIT_REG(&parser, &port, &actual);
 
-  port = scm_fcd_open_input_string_cstr(data, SCM_ENC_NAME_SRC);
+  port = scm_open_input_string_cstr(data, SCM_ENC_NAME_SRC);
   parser = scm_parser_new(SCM_MEM_HEAP);
 
   actual = scm_parser_parse(parser, port);
@@ -336,7 +343,7 @@ TEST(parser, parse_string)
 
   SCM_REFSTK_INIT_REG(&expected);
 
-  expected = scm_fcd_make_string_from_cstr("this is a string", SCM_ENC_SRC);
+  expected = scm_make_string_from_cstr("this is a string", SCM_ENC_SRC);
 
   test_parse(expected, "\"this is a string\"");
 }
@@ -347,7 +354,7 @@ TEST(parser, parse_string_escape)
 
   SCM_REFSTK_INIT_REG(&expected);
 
-  expected = scm_fcd_make_string_from_cstr("abc\ndef", SCM_ENC_SRC);
+  expected = scm_make_string_from_cstr("abc\ndef", SCM_ENC_SRC);
 
   test_parse(expected, "\"abc\\nde\\x66;\"");
 }
@@ -358,7 +365,7 @@ TEST(parser, parse_symbol)
 
   SCM_REFSTK_INIT_REG(&expected);
 
-  expected = scm_fcd_make_symbol_from_cstr("symbol", SCM_ENC_SRC);
+  expected = scm_make_symbol_from_cstr("symbol", SCM_ENC_SRC);
 
   test_parse(expected, "symbol");
 }
@@ -369,7 +376,7 @@ TEST(parser, parse_symbol_vline)
 
   SCM_REFSTK_INIT_REG(&expected);
 
-  expected = scm_fcd_make_symbol_from_cstr("symbol", SCM_ENC_SRC);
+  expected = scm_make_symbol_from_cstr("symbol", SCM_ENC_SRC);
 
   test_parse(expected, "|symbol|");
 }
@@ -380,7 +387,7 @@ TEST(parser, parse_symbol_vline_escape)
 
   SCM_REFSTK_INIT_REG(&expected);
 
-  expected = scm_fcd_make_symbol_from_cstr("foo\nbar\tbaz", SCM_ENC_SRC);
+  expected = scm_make_symbol_from_cstr("foo\nbar\tbaz", SCM_ENC_SRC);
 
   test_parse(expected, "|foo\\nbar\\tb\\x61;z|");
 }
@@ -391,9 +398,9 @@ TEST(parser, parse_datum_label__in_pair)
 
   SCM_REFSTK_INIT_REG(&expected);
 
-  expected = scm_fcd_cons(scm_fcd_make_number_from_sword(2), SCM_NIL_OBJ);
-  expected = scm_fcd_cons(scm_fcd_make_number_from_sword(1), expected);
-  scm_fcd_set_cdr_i(scm_fcd_cdr(expected), expected);
+  expected = scm_cons(scm_make_number_from_sword(2), SCM_NIL_OBJ);
+  expected = scm_cons(scm_make_number_from_sword(1), expected);
+  scm_set_cdr(scm_cdr(expected), expected);
 
   test_parse(expected, "#0=(1 2 . #0#)");
 }
@@ -404,8 +411,8 @@ TEST(parser, parse_datum_label__in_vector)
 
   SCM_REFSTK_INIT_REG(&expected);
 
-  expected = scm_fcd_make_vector(3, SCM_FALSE_OBJ);
-  scm_fcd_vector_set_i(expected, 1, expected);
+  expected = scm_make_vector(3, SCM_FALSE_OBJ);
+  scm_vector_set(expected, 1, expected);
 
   test_parse(expected, "#0=#(#f #0# #f)");
 }
@@ -416,12 +423,11 @@ TEST(parser, parse_datum_label__after_quotation)
 
   SCM_REFSTK_INIT_REG(&expected);
 
-  expected = scm_fcd_cons(scm_fcd_make_number_from_sword(1), SCM_NIL_OBJ);
-  scm_fcd_set_cdr_i(expected,
-                    scm_fcd_list(2,
-                                 scm_fcd_make_symbol_from_cstr("quote",
-                                                               SCM_ENC_SRC),
-                                 expected));
+  expected = scm_cons(scm_make_number_from_sword(1), SCM_NIL_OBJ);
+  scm_set_cdr(expected,
+              scm_list(2,
+                       scm_make_symbol_from_cstr("quote", SCM_ENC_SRC),
+                       expected));
 
   test_parse(expected, "#0=(1 . '#0#)");
 }
@@ -432,7 +438,7 @@ TEST(parser, parse_number_int)
 
   SCM_REFSTK_INIT_REG(&expected);
 
-  expected = scm_fcd_make_number_from_sword(123);
+  expected = scm_make_number_from_sword(123);
 
   test_parse(expected, "123");
 }
@@ -443,7 +449,7 @@ TEST(parser, parse_number_int_plus)
 
   SCM_REFSTK_INIT_REG(&expected);
 
-  expected = scm_fcd_make_number_from_sword(123);
+  expected = scm_make_number_from_sword(123);
 
   test_parse(expected, "+123");
 }
@@ -454,7 +460,7 @@ TEST(parser, parse_number_int_minus)
 
   SCM_REFSTK_INIT_REG(&expected);
 
-  expected = scm_fcd_make_number_from_sword(-123);
+  expected = scm_make_number_from_sword(-123);
 
   test_parse(expected, "-123");
 }
@@ -485,7 +491,7 @@ TEST(parser, parse_char)
 
   SCM_REFSTK_INIT_REG(&expected);
 
-  expected = scm_fcd_make_char(&(scm_char_t){ .ascii = 'a' }, SCM_ENC_SRC);
+  expected = scm_make_char(&(scm_char_t){ .ascii = 'a' }, SCM_ENC_SRC);
 
   test_parse(expected, "#\\a");
 }
@@ -496,7 +502,7 @@ TEST(parser, parse_char_name_alarm)
 
   SCM_REFSTK_INIT_REG(&expected);
 
-  expected = scm_fcd_make_char(&(scm_char_t){ .ascii = '\a' }, SCM_ENC_SRC);
+  expected = scm_make_char(&(scm_char_t){ .ascii = '\a' }, SCM_ENC_SRC);
 
   test_parse(expected, "#\\alarm");
 }
@@ -507,7 +513,7 @@ TEST(parser, parse_char_name_backspace)
 
   SCM_REFSTK_INIT_REG(&expected);
 
-  expected = scm_fcd_make_char(&(scm_char_t){ .ascii = '\b' }, SCM_ENC_SRC);
+  expected = scm_make_char(&(scm_char_t){ .ascii = '\b' }, SCM_ENC_SRC);
 
   test_parse(expected, "#\\backspace");
 }
@@ -518,7 +524,7 @@ TEST(parser, parse_char_name_delete)
 
   SCM_REFSTK_INIT_REG(&expected);
 
-  expected = scm_fcd_make_char(&(scm_char_t){ .ascii = 0x7f }, SCM_ENC_SRC);
+  expected = scm_make_char(&(scm_char_t){ .ascii = 0x7f }, SCM_ENC_SRC);
 
   test_parse(expected, "#\\delete");
 }
@@ -529,7 +535,7 @@ TEST(parser, parse_char_name_escape)
 
   SCM_REFSTK_INIT_REG(&expected);
 
-  expected = scm_fcd_make_char(&(scm_char_t){ .ascii = 0x1b }, SCM_ENC_SRC);
+  expected = scm_make_char(&(scm_char_t){ .ascii = 0x1b }, SCM_ENC_SRC);
 
   test_parse(expected, "#\\escape");
 }
@@ -540,7 +546,7 @@ TEST(parser, parse_char_name_newline)
 
   SCM_REFSTK_INIT_REG(&expected);
 
-  expected = scm_fcd_make_char(&(scm_char_t){ .ascii = '\n' }, SCM_ENC_SRC);
+  expected = scm_make_char(&(scm_char_t){ .ascii = '\n' }, SCM_ENC_SRC);
 
   test_parse(expected, "#\\newline");
 }
@@ -551,7 +557,7 @@ TEST(parser, parse_char_name_null)
 
   SCM_REFSTK_INIT_REG(&expected);
 
-  expected = scm_fcd_make_char(&(scm_char_t){ .ascii = '\0' }, SCM_ENC_SRC);
+  expected = scm_make_char(&(scm_char_t){ .ascii = '\0' }, SCM_ENC_SRC);
 
   test_parse(expected, "#\\null");
 }
@@ -562,7 +568,7 @@ TEST(parser, parse_char_name_return)
 
   SCM_REFSTK_INIT_REG(&expected);
 
-  expected = scm_fcd_make_char(&(scm_char_t){ .ascii = '\r' }, SCM_ENC_SRC);
+  expected = scm_make_char(&(scm_char_t){ .ascii = '\r' }, SCM_ENC_SRC);
 
   test_parse(expected, "#\\return");
 }
@@ -573,7 +579,7 @@ TEST(parser, parse_char_name_space)
 
   SCM_REFSTK_INIT_REG(&expected);
 
-  expected = scm_fcd_make_char(&(scm_char_t){ .ascii = ' ' }, SCM_ENC_SRC);
+  expected = scm_make_char(&(scm_char_t){ .ascii = ' ' }, SCM_ENC_SRC);
 
   test_parse(expected, "#\\space");
 }
@@ -584,7 +590,7 @@ TEST(parser, parse_char_name_tab)
 
   SCM_REFSTK_INIT_REG(&expected);
 
-  expected = scm_fcd_make_char(&(scm_char_t){ .ascii = '\t' }, SCM_ENC_SRC);
+  expected = scm_make_char(&(scm_char_t){ .ascii = '\t' }, SCM_ENC_SRC);
 
   test_parse(expected, "#\\tab");
 }
@@ -595,7 +601,7 @@ TEST(parser, parse_char_name_hex_scalar_value)
 
   SCM_REFSTK_INIT_REG(&expected);
 
-  expected = scm_fcd_make_char(&(scm_char_t){ .ascii = 'b' }, SCM_ENC_SRC);
+  expected = scm_make_char(&(scm_char_t){ .ascii = 'b' }, SCM_ENC_SRC);
 
   test_parse(expected, "#\\x62;");
 }
@@ -606,7 +612,7 @@ TEST(parser, parse_char_x)
 
   SCM_REFSTK_INIT_REG(&expected);
 
-  expected = scm_fcd_make_char(&(scm_char_t){ .ascii = 'x' }, SCM_ENC_SRC);
+  expected = scm_make_char(&(scm_char_t){ .ascii = 'x' }, SCM_ENC_SRC);
 
   test_parse(expected, "#\\x");
 }
@@ -735,7 +741,7 @@ TEST(parser, parse_empty_bytevector)
 
   SCM_REFSTK_INIT_REG(&expected);
 
-  expected = scm_fcd_make_bytevector(0, -1);
+  expected = scm_make_bytevector(0, -1);
   scm_api_write(expected, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL);
   test_parse(expected, "#u8()");
 }
@@ -747,8 +753,8 @@ TEST(parser, parse_bytevector)
 
   SCM_REFSTK_INIT_REG(&expected);
 
-  expected = scm_fcd_make_bytevector_from_cv(contents,
-                                             sizeof(contents)/sizeof(contents[0]));
+  expected = scm_make_bytevector_from_cv(contents,
+                                         sizeof(contents)/sizeof(contents[0]));
   scm_api_write(expected, SCM_OBJ_NULL); scm_api_newline(SCM_OBJ_NULL);
   test_parse(expected, "#u8(0 #e#x7f 255)");
 }

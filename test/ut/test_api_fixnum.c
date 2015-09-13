@@ -1,4 +1,6 @@
 #include "scythe/object.h"
+#include "scythe/refstk.h"
+#include "scythe/pair.h"
 #include "scythe/api.h"
 #include "scythe/fixnum.h"
 
@@ -12,12 +14,12 @@ static ScmRefStackInfo rsi;
 TEST_SETUP(api_fixnum)
 {
   scy = ut_scythe_setup(false);
-  scm_fcd_ref_stack_save(&rsi);
+  scm_ref_stack_save(&rsi);
 }
 
 TEST_TEAR_DOWN(api_fixnum)
 {
-  scm_fcd_ref_stack_restore(&rsi);
+  scm_ref_stack_restore(&rsi);
   ut_scythe_tear_down(scy);
 }
 
@@ -29,8 +31,8 @@ check_list_elements(ScmObj lst, bool (*check)(ScmObj elm))
   SCM_REFSTK_INIT_REG(&lst,
                       &l);
 
-  for (l = lst; scm_fcd_pair_p(l); l = scm_fcd_cdr(l))
-    TEST_ASSERT_TRUE(check(scm_fcd_car(l)));
+  for (l = lst; scm_pair_p(l); l = scm_cdr(l))
+    TEST_ASSERT_TRUE(check(scm_car(l)));
 }
 
 TEST(api_fixnum, api_number_P__return_true)
@@ -40,7 +42,7 @@ TEST(api_fixnum, api_number_P__return_true)
   SCM_REFSTK_INIT_REG(&fn);
 
   fn = ut_read_cstr("1");
-  TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn));
+  TEST_ASSERT_TRUE(scm_fixnum_p(fn));
 
   TEST_ASSERT_SCM_TRUE(scm_api_number_P(fn));
 }
@@ -52,7 +54,7 @@ TEST(api_fixnum, api_complex_P__return_true)
   SCM_REFSTK_INIT_REG(&fn);
 
   fn = ut_read_cstr("1");
-  TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn));
+  TEST_ASSERT_TRUE(scm_fixnum_p(fn));
 
   TEST_ASSERT_SCM_TRUE(scm_api_complex_P(fn));
 }
@@ -64,7 +66,7 @@ TEST(api_fixnum, api_real_P__return_true)
   SCM_REFSTK_INIT_REG(&fn);
 
   fn = ut_read_cstr("1");
-  TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn));
+  TEST_ASSERT_TRUE(scm_fixnum_p(fn));
 
   TEST_ASSERT_SCM_TRUE(scm_api_real_P(fn));
 }
@@ -76,7 +78,7 @@ TEST(api_fixnum, api_rational_P__return_true)
   SCM_REFSTK_INIT_REG(&fn);
 
   fn = ut_read_cstr("1");
-  TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn));
+  TEST_ASSERT_TRUE(scm_fixnum_p(fn));
 
   TEST_ASSERT_SCM_TRUE(scm_api_rational_P(fn));
 }
@@ -88,7 +90,7 @@ TEST(api_fixnum, api_integer_P__return_true)
   SCM_REFSTK_INIT_REG(&fn);
 
   fn = ut_read_cstr("1");
-  TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn));
+  TEST_ASSERT_TRUE(scm_fixnum_p(fn));
 
   TEST_ASSERT_SCM_TRUE(scm_api_integer_P(fn));
 }
@@ -100,7 +102,7 @@ TEST(api_fixnum, api_exact_P__return_true)
   SCM_REFSTK_INIT_REG(&fn);
 
   fn = ut_read_cstr("1");
-  TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn));
+  TEST_ASSERT_TRUE(scm_fixnum_p(fn));
 
   TEST_ASSERT_SCM_TRUE(scm_api_exact_P(fn));
 }
@@ -112,7 +114,7 @@ TEST(api_fixnum, api_inexact_P__return_false)
   SCM_REFSTK_INIT_REG(&fn);
 
   fn = ut_read_cstr("1");
-  TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn));
+  TEST_ASSERT_TRUE(scm_fixnum_p(fn));
 
   TEST_ASSERT_SCM_FALSE(scm_api_inexact_P(fn));
 }
@@ -124,7 +126,7 @@ TEST(api_fixnum, api_exact_integer_P__return_true)
   SCM_REFSTK_INIT_REG(&fn);
 
   fn = ut_read_cstr("1");
-  TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn));
+  TEST_ASSERT_TRUE(scm_fixnum_p(fn));
 
   TEST_ASSERT_SCM_TRUE(scm_api_exact_integer_P(fn));
 }
@@ -136,7 +138,7 @@ TEST(api_fixnum, api_finite_P__return_true)
   SCM_REFSTK_INIT_REG(&fn);
 
   fn = ut_read_cstr("1");
-  TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn));
+  TEST_ASSERT_TRUE(scm_fixnum_p(fn));
 
   TEST_ASSERT_SCM_TRUE(scm_api_finite_P(fn));
 }
@@ -148,7 +150,7 @@ TEST(api_fixnum, api_infinite_P__return_true)
   SCM_REFSTK_INIT_REG(&fn);
 
   fn = ut_read_cstr("1");
-  TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn));
+  TEST_ASSERT_TRUE(scm_fixnum_p(fn));
 
   TEST_ASSERT_SCM_FALSE(scm_api_infinite_P(fn));
 }
@@ -160,7 +162,7 @@ TEST(api_fixnum, api_nan_P__return_true)
   SCM_REFSTK_INIT_REG(&fn);
 
   fn = ut_read_cstr("1");
-  TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn));
+  TEST_ASSERT_TRUE(scm_fixnum_p(fn));
 
   TEST_ASSERT_SCM_FALSE(scm_api_nan_P(fn));
 }
@@ -172,7 +174,7 @@ TEST(api_fixnum, api_num_eq_P_lst__return_true)
   SCM_REFSTK_INIT_REG(&lst);
 
   lst = ut_read_cstr("(123 123 123)");
-  check_list_elements(lst, scm_fcd_fixnum_p);
+  check_list_elements(lst, scm_fixnum_p);
 
   TEST_ASSERT_SCM_TRUE(scm_api_num_eq_P_lst(lst));
 }
@@ -184,7 +186,7 @@ TEST(api_fixnum, api_num_eq_P_lst__return_false)
   SCM_REFSTK_INIT_REG(&lst);
 
   lst = ut_read_cstr("(123 123 124)");
-  check_list_elements(lst, scm_fcd_fixnum_p);
+  check_list_elements(lst, scm_fixnum_p);
 
   TEST_ASSERT_SCM_FALSE(scm_api_num_eq_P_lst(lst));
 }
@@ -196,7 +198,7 @@ TEST(api_fixnum, api_num_lt_P_lst__less)
   SCM_REFSTK_INIT_REG(&lst);
 
   lst = ut_read_cstr("(123 231 312)");
-  check_list_elements(lst, scm_fcd_fixnum_p);
+  check_list_elements(lst, scm_fixnum_p);
 
   TEST_ASSERT_SCM_TRUE(scm_api_num_lt_P_lst(lst));
 }
@@ -208,7 +210,7 @@ TEST(api_fixnum, api_num_lt_P_lst__equal)
   SCM_REFSTK_INIT_REG(&lst);
 
   lst = ut_read_cstr("(123 231 231)");
-  check_list_elements(lst, scm_fcd_fixnum_p);
+  check_list_elements(lst, scm_fixnum_p);
 
   TEST_ASSERT_SCM_FALSE(scm_api_num_lt_P_lst(lst));
 }
@@ -220,7 +222,7 @@ TEST(api_fixnum, api_num_lt_P_lst__greater)
   SCM_REFSTK_INIT_REG(&lst);
 
   lst = ut_read_cstr("(231 312 123)");
-  check_list_elements(lst, scm_fcd_fixnum_p);
+  check_list_elements(lst, scm_fixnum_p);
 
   TEST_ASSERT_SCM_FALSE(scm_api_num_lt_P_lst(lst));
 }
@@ -232,7 +234,7 @@ TEST(api_fixnum, api_num_gt_P_lst__less)
   SCM_REFSTK_INIT_REG(&lst);
 
   lst = ut_read_cstr("(231 123 312)");
-  check_list_elements(lst, scm_fcd_fixnum_p);
+  check_list_elements(lst, scm_fixnum_p);
 
   TEST_ASSERT_SCM_FALSE(scm_api_num_gt_P_lst(lst));
 }
@@ -244,7 +246,7 @@ TEST(api_fixnum, api_num_gt_P_lst__equal)
   SCM_REFSTK_INIT_REG(&lst);
 
   lst = ut_read_cstr("(312 231 231)");
-  check_list_elements(lst, scm_fcd_fixnum_p);
+  check_list_elements(lst, scm_fixnum_p);
 
   TEST_ASSERT_SCM_FALSE(scm_api_num_gt_P_lst(lst));
 }
@@ -256,7 +258,7 @@ TEST(api_fixnum, api_num_gt_P_lst__greater)
   SCM_REFSTK_INIT_REG(&lst);
 
   lst = ut_read_cstr("(312 231 123)");
-  check_list_elements(lst, scm_fcd_fixnum_p);
+  check_list_elements(lst, scm_fixnum_p);
 
   TEST_ASSERT_SCM_TRUE(scm_api_num_gt_P_lst(lst));
 }
@@ -268,7 +270,7 @@ TEST(api_fixnum, api_num_le_P_lst__less)
   SCM_REFSTK_INIT_REG(&lst);
 
   lst = ut_read_cstr("(123 231 312)");
-  check_list_elements(lst, scm_fcd_fixnum_p);
+  check_list_elements(lst, scm_fixnum_p);
 
   TEST_ASSERT_SCM_TRUE(scm_api_num_le_P_lst(lst));
 }
@@ -280,7 +282,7 @@ TEST(api_fixnum, api_num_le_P_lst__equal)
   SCM_REFSTK_INIT_REG(&lst);
 
   lst = ut_read_cstr("(123 231 231)");
-  check_list_elements(lst, scm_fcd_fixnum_p);
+  check_list_elements(lst, scm_fixnum_p);
 
   TEST_ASSERT_SCM_TRUE(scm_api_num_le_P_lst(lst));
 }
@@ -292,7 +294,7 @@ TEST(api_fixnum, api_num_le_P_lst__greater)
   SCM_REFSTK_INIT_REG(&lst);
 
   lst = ut_read_cstr("(231 312 123)");
-  check_list_elements(lst, scm_fcd_fixnum_p);
+  check_list_elements(lst, scm_fixnum_p);
 
   TEST_ASSERT_SCM_FALSE(scm_api_num_le_P_lst(lst));
 }
@@ -304,7 +306,7 @@ TEST(api_fixnum, api_num_ge_P_lst__less)
   SCM_REFSTK_INIT_REG(&lst);
 
   lst = ut_read_cstr("(231 123 312)");
-  check_list_elements(lst, scm_fcd_fixnum_p);
+  check_list_elements(lst, scm_fixnum_p);
 
   TEST_ASSERT_SCM_FALSE(scm_api_num_ge_P_lst(lst));
 }
@@ -316,7 +318,7 @@ TEST(api_fixnum, api_num_ge_P_lst__equal)
   SCM_REFSTK_INIT_REG(&lst);
 
   lst = ut_read_cstr("(312 231 231)");
-  check_list_elements(lst, scm_fcd_fixnum_p);
+  check_list_elements(lst, scm_fixnum_p);
 
   TEST_ASSERT_SCM_TRUE(scm_api_num_ge_P_lst(lst));
 }
@@ -328,7 +330,7 @@ TEST(api_fixnum, api_num_ge_P_lst__greater)
   SCM_REFSTK_INIT_REG(&lst);
 
   lst = ut_read_cstr("(312 231 123)");
-  check_list_elements(lst, scm_fcd_fixnum_p);
+  check_list_elements(lst, scm_fixnum_p);
 
   TEST_ASSERT_SCM_TRUE(scm_api_num_ge_P_lst(lst));
 }
@@ -340,7 +342,7 @@ TEST(api_fixnum, api_zero_P__return_true)
   SCM_REFSTK_INIT_REG(&fn);
 
   fn = ut_read_cstr("0");
-  TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn));
+  TEST_ASSERT_TRUE(scm_fixnum_p(fn));
 
   TEST_ASSERT_SCM_TRUE(scm_api_zero_P(fn));
 }
@@ -352,7 +354,7 @@ TEST(api_fixnum, api_zero_P__return_false)
   SCM_REFSTK_INIT_REG(&fn);
 
   fn = ut_read_cstr("-1");
-  TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn));
+  TEST_ASSERT_TRUE(scm_fixnum_p(fn));
 
   TEST_ASSERT_SCM_FALSE(scm_api_zero_P(fn));
 }
@@ -363,8 +365,8 @@ TEST(api_fixnum, api_positive_P__return_true)
 
   SCM_REFSTK_INIT_REG(&fn);
 
-  fn = scm_fcd_make_number_from_sword(SCM_FIXNUM_MAX);
-  TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn));
+  fn = scm_make_number_from_sword(SCM_FIXNUM_MAX);
+  TEST_ASSERT_TRUE(scm_fixnum_p(fn));
 
   TEST_ASSERT_SCM_TRUE(scm_api_positive_P(fn));
 }
@@ -375,8 +377,8 @@ TEST(api_fixnum, api_positive_P__return_false)
 
   SCM_REFSTK_INIT_REG(&fn);
 
-  fn = scm_fcd_make_number_from_sword(SCM_FIXNUM_MIN);
-  TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn));
+  fn = scm_make_number_from_sword(SCM_FIXNUM_MIN);
+  TEST_ASSERT_TRUE(scm_fixnum_p(fn));
 
   TEST_ASSERT_SCM_FALSE(scm_api_positive_P(fn));
 }
@@ -387,8 +389,8 @@ TEST(api_fixnum, api_negative_P__return_true)
 
   SCM_REFSTK_INIT_REG(&fn);
 
-  fn = scm_fcd_make_number_from_sword(SCM_FIXNUM_MIN);
-  TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn));
+  fn = scm_make_number_from_sword(SCM_FIXNUM_MIN);
+  TEST_ASSERT_TRUE(scm_fixnum_p(fn));
 
   TEST_ASSERT_SCM_TRUE(scm_api_negative_P(fn));
 }
@@ -399,8 +401,8 @@ TEST(api_fixnum, api_negative_P__return_false)
 
   SCM_REFSTK_INIT_REG(&fn);
 
-  fn = scm_fcd_make_number_from_sword(SCM_FIXNUM_MAX);
-  TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn));
+  fn = scm_make_number_from_sword(SCM_FIXNUM_MAX);
+  TEST_ASSERT_TRUE(scm_fixnum_p(fn));
 
   TEST_ASSERT_SCM_FALSE(scm_api_negative_P(fn));
 }
@@ -412,7 +414,7 @@ TEST(api_fixnum, api_odd_P__return_true)
   SCM_REFSTK_INIT_REG(&fn);
 
   fn = ut_read_cstr("-1");
-  TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn));
+  TEST_ASSERT_TRUE(scm_fixnum_p(fn));
 
   TEST_ASSERT_SCM_TRUE(scm_api_odd_P(fn));
 }
@@ -424,7 +426,7 @@ TEST(api_fixnum, api_odd_P__return_false)
   SCM_REFSTK_INIT_REG(&fn);
 
   fn = ut_read_cstr("2");
-  TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn));
+  TEST_ASSERT_TRUE(scm_fixnum_p(fn));
 
   TEST_ASSERT_SCM_FALSE(scm_api_odd_P(fn));
 }
@@ -436,7 +438,7 @@ TEST(api_fixnum, api_even_P__return_true)
   SCM_REFSTK_INIT_REG(&fn);
 
   fn = ut_read_cstr("2");
-  TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn));
+  TEST_ASSERT_TRUE(scm_fixnum_p(fn));
 
   TEST_ASSERT_SCM_TRUE(scm_api_even_P(fn));
 }
@@ -448,7 +450,7 @@ TEST(api_fixnum, api_even_P__return_false)
   SCM_REFSTK_INIT_REG(&fn);
 
   fn = ut_read_cstr("-1");
-  TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn));
+  TEST_ASSERT_TRUE(scm_fixnum_p(fn));
 
   TEST_ASSERT_SCM_FALSE(scm_api_even_P(fn));
 }
@@ -460,12 +462,12 @@ TEST(api_fixnum, api_max_lst)
   SCM_REFSTK_INIT_REG(&lst, &expected, &actual);
 
   lst = ut_read_cstr("(-51 23 0 46 -21)");
-  check_list_elements(lst, scm_fcd_fixnum_p);
+  check_list_elements(lst, scm_fixnum_p);
   expected = ut_read_cstr("46");
 
   actual = scm_api_max_lst(lst);
 
-  TEST_ASSERT_SCM_TRUE(scm_fcd_num_eq_P(expected, actual));
+  TEST_ASSERT_SCM_TRUE(scm_num_eq_P(expected, actual));
 }
 
 TEST(api_fixnum, api_min_lst)
@@ -475,12 +477,12 @@ TEST(api_fixnum, api_min_lst)
   SCM_REFSTK_INIT_REG(&lst, &expected, &actual);
 
   lst = ut_read_cstr("(-51 23 0 46 -21)");
-  check_list_elements(lst, scm_fcd_fixnum_p);
+  check_list_elements(lst, scm_fixnum_p);
   expected = ut_read_cstr("-51");
 
   actual = scm_api_min_lst(lst);
 
-  TEST_ASSERT_SCM_TRUE(scm_fcd_num_eq_P(expected, actual));
+  TEST_ASSERT_SCM_TRUE(scm_num_eq_P(expected, actual));
 }
 
 TEST(api_fixnum, api_plus_lst__arg_0)
@@ -494,7 +496,7 @@ TEST(api_fixnum, api_plus_lst__arg_0)
 
   actual = scm_api_plus_lst(lst);
 
-  TEST_ASSERT_SCM_TRUE(scm_fcd_num_eq_P(expected, actual));
+  TEST_ASSERT_SCM_TRUE(scm_num_eq_P(expected, actual));
 }
 
 TEST(api_fixnum, api_plus_lst__arg_1)
@@ -508,7 +510,7 @@ TEST(api_fixnum, api_plus_lst__arg_1)
 
   actual = scm_api_plus_lst(lst);
 
-  TEST_ASSERT_SCM_TRUE(scm_fcd_num_eq_P(expected, actual));
+  TEST_ASSERT_SCM_TRUE(scm_num_eq_P(expected, actual));
 }
 
 TEST(api_fixnum, api_plus_lst)
@@ -522,7 +524,7 @@ TEST(api_fixnum, api_plus_lst)
 
   actual = scm_api_plus_lst(lst);
 
-  TEST_ASSERT_SCM_TRUE(scm_fcd_num_eq_P(expected, actual));
+  TEST_ASSERT_SCM_TRUE(scm_num_eq_P(expected, actual));
 }
 
 TEST(api_fixnum, api_mul_lst__arg_0)
@@ -536,7 +538,7 @@ TEST(api_fixnum, api_mul_lst__arg_0)
 
   actual = scm_api_mul_lst(lst);
 
-  TEST_ASSERT_SCM_TRUE(scm_fcd_num_eq_P(expected, actual));
+  TEST_ASSERT_SCM_TRUE(scm_num_eq_P(expected, actual));
 }
 
 TEST(api_fixnum, api_mul_lst__arg_1)
@@ -550,7 +552,7 @@ TEST(api_fixnum, api_mul_lst__arg_1)
 
   actual = scm_api_mul_lst(lst);
 
-  TEST_ASSERT_SCM_TRUE(scm_fcd_num_eq_P(expected, actual));
+  TEST_ASSERT_SCM_TRUE(scm_num_eq_P(expected, actual));
 }
 
 TEST(api_fixnum, api_mul_lst)
@@ -564,7 +566,7 @@ TEST(api_fixnum, api_mul_lst)
 
   actual = scm_api_mul_lst(lst);
 
-  TEST_ASSERT_SCM_TRUE(scm_fcd_num_eq_P(expected, actual));
+  TEST_ASSERT_SCM_TRUE(scm_num_eq_P(expected, actual));
 }
 
 TEST(api_fixnum, api_minus_lst__arg_1)
@@ -578,7 +580,7 @@ TEST(api_fixnum, api_minus_lst__arg_1)
 
   actual = scm_api_minus_lst(lst);
 
-  TEST_ASSERT_SCM_TRUE(scm_fcd_num_eq_P(expected, actual));
+  TEST_ASSERT_SCM_TRUE(scm_num_eq_P(expected, actual));
 }
 
 TEST(api_fixnum, api_minus_lst)
@@ -592,7 +594,7 @@ TEST(api_fixnum, api_minus_lst)
 
   actual = scm_api_minus_lst(lst);
 
-  TEST_ASSERT_SCM_TRUE(scm_fcd_num_eq_P(expected, actual));
+  TEST_ASSERT_SCM_TRUE(scm_num_eq_P(expected, actual));
 }
 
 TEST(api_fixnum, capi_floor_div__1)
@@ -606,8 +608,8 @@ TEST(api_fixnum, capi_floor_div__1)
 
   fn1 = ut_read_cstr("5");
   fn2 = ut_read_cstr("2");
-  TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn1));
-  TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn2));
+  TEST_ASSERT_TRUE(scm_fixnum_p(fn1));
+  TEST_ASSERT_TRUE(scm_fixnum_p(fn2));
 
   expected_quo = ut_read_cstr("2");
   expected_rem = ut_read_cstr("1");
@@ -616,8 +618,8 @@ TEST(api_fixnum, capi_floor_div__1)
                                               SCM_CSETTER_L(quo),
                                               SCM_CSETTER_L(rem)));
 
-  TEST_ASSERT_SCM_TRUE(scm_fcd_num_eq_P(expected_quo, quo));
-  TEST_ASSERT_SCM_TRUE(scm_fcd_num_eq_P(expected_rem, rem));
+  TEST_ASSERT_SCM_TRUE(scm_num_eq_P(expected_quo, quo));
+  TEST_ASSERT_SCM_TRUE(scm_num_eq_P(expected_rem, rem));
 }
 
 TEST(api_fixnum, capi_floor_div__2)
@@ -631,8 +633,8 @@ TEST(api_fixnum, capi_floor_div__2)
 
   fn1 = ut_read_cstr("-5");
   fn2 = ut_read_cstr("2");
-  TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn1));
-  TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn2));
+  TEST_ASSERT_TRUE(scm_fixnum_p(fn1));
+  TEST_ASSERT_TRUE(scm_fixnum_p(fn2));
 
   expected_quo = ut_read_cstr("-3");
   expected_rem = ut_read_cstr("1");
@@ -641,8 +643,8 @@ TEST(api_fixnum, capi_floor_div__2)
                                               SCM_CSETTER_L(quo),
                                               SCM_CSETTER_L(rem)));
 
-  TEST_ASSERT_SCM_TRUE(scm_fcd_num_eq_P(expected_quo, quo));
-  TEST_ASSERT_SCM_TRUE(scm_fcd_num_eq_P(expected_rem, rem));
+  TEST_ASSERT_SCM_TRUE(scm_num_eq_P(expected_quo, quo));
+  TEST_ASSERT_SCM_TRUE(scm_num_eq_P(expected_rem, rem));
 }
 
 TEST(api_fixnum, capi_floor_div__3)
@@ -656,8 +658,8 @@ TEST(api_fixnum, capi_floor_div__3)
 
   fn1 = ut_read_cstr("5");
   fn2 = ut_read_cstr("-2");
-  TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn1));
-  TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn2));
+  TEST_ASSERT_TRUE(scm_fixnum_p(fn1));
+  TEST_ASSERT_TRUE(scm_fixnum_p(fn2));
 
   expected_quo = ut_read_cstr("-3");
   expected_rem = ut_read_cstr("-1");
@@ -666,8 +668,8 @@ TEST(api_fixnum, capi_floor_div__3)
                                               SCM_CSETTER_L(quo),
                                               SCM_CSETTER_L(rem)));
 
-  TEST_ASSERT_SCM_TRUE(scm_fcd_num_eq_P(expected_quo, quo));
-  TEST_ASSERT_SCM_TRUE(scm_fcd_num_eq_P(expected_rem, rem));
+  TEST_ASSERT_SCM_TRUE(scm_num_eq_P(expected_quo, quo));
+  TEST_ASSERT_SCM_TRUE(scm_num_eq_P(expected_rem, rem));
 }
 
 TEST(api_fixnum, capi_floor_div__4)
@@ -681,8 +683,8 @@ TEST(api_fixnum, capi_floor_div__4)
 
   fn1 = ut_read_cstr("-5");
   fn2 = ut_read_cstr("-2");
-  TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn1));
-  TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn2));
+  TEST_ASSERT_TRUE(scm_fixnum_p(fn1));
+  TEST_ASSERT_TRUE(scm_fixnum_p(fn2));
 
   expected_quo = ut_read_cstr("2");
   expected_rem = ut_read_cstr("-1");
@@ -691,8 +693,8 @@ TEST(api_fixnum, capi_floor_div__4)
                                               SCM_CSETTER_L(quo),
                                               SCM_CSETTER_L(rem)));
 
-  TEST_ASSERT_SCM_TRUE(scm_fcd_num_eq_P(expected_quo, quo));
-  TEST_ASSERT_SCM_TRUE(scm_fcd_num_eq_P(expected_rem, rem));
+  TEST_ASSERT_SCM_TRUE(scm_num_eq_P(expected_quo, quo));
+  TEST_ASSERT_SCM_TRUE(scm_num_eq_P(expected_rem, rem));
 }
 
 TEST(api_fixnum, capi_floor_div__division_by_zero)
@@ -704,8 +706,8 @@ TEST(api_fixnum, capi_floor_div__division_by_zero)
 
   fn1 = ut_read_cstr("5");
   fn2 = ut_read_cstr("0");
-  TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn1));
-  TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn2));
+  TEST_ASSERT_TRUE(scm_fixnum_p(fn1));
+  TEST_ASSERT_TRUE(scm_fixnum_p(fn2));
 
   TEST_ASSERT_EQUAL_INT(-1, scm_capi_floor_div(fn1, fn2,
                                                SCM_CSETTER_L(quo),
@@ -723,8 +725,8 @@ TEST(api_fixnum, capi_truncate_div__1)
 
   fn1 = ut_read_cstr("5");
   fn2 = ut_read_cstr("2");
-  TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn1));
-  TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn2));
+  TEST_ASSERT_TRUE(scm_fixnum_p(fn1));
+  TEST_ASSERT_TRUE(scm_fixnum_p(fn2));
 
   expected_quo = ut_read_cstr("2");
   expected_rem = ut_read_cstr("1");
@@ -733,8 +735,8 @@ TEST(api_fixnum, capi_truncate_div__1)
                                                  SCM_CSETTER_L(quo),
                                                  SCM_CSETTER_L(rem)));
 
-  TEST_ASSERT_SCM_TRUE(scm_fcd_num_eq_P(expected_quo, quo));
-  TEST_ASSERT_SCM_TRUE(scm_fcd_num_eq_P(expected_rem, rem));
+  TEST_ASSERT_SCM_TRUE(scm_num_eq_P(expected_quo, quo));
+  TEST_ASSERT_SCM_TRUE(scm_num_eq_P(expected_rem, rem));
 }
 
 TEST(api_fixnum, capi_truncate_div__2)
@@ -748,8 +750,8 @@ TEST(api_fixnum, capi_truncate_div__2)
 
   fn1 = ut_read_cstr("-5");
   fn2 = ut_read_cstr("2");
-  TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn1));
-  TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn2));
+  TEST_ASSERT_TRUE(scm_fixnum_p(fn1));
+  TEST_ASSERT_TRUE(scm_fixnum_p(fn2));
 
   expected_quo = ut_read_cstr("-2");
   expected_rem = ut_read_cstr("-1");
@@ -758,8 +760,8 @@ TEST(api_fixnum, capi_truncate_div__2)
                                                  SCM_CSETTER_L(quo),
                                                  SCM_CSETTER_L(rem)));
 
-  TEST_ASSERT_SCM_TRUE(scm_fcd_num_eq_P(expected_quo, quo));
-  TEST_ASSERT_SCM_TRUE(scm_fcd_num_eq_P(expected_rem, rem));
+  TEST_ASSERT_SCM_TRUE(scm_num_eq_P(expected_quo, quo));
+  TEST_ASSERT_SCM_TRUE(scm_num_eq_P(expected_rem, rem));
 }
 
 TEST(api_fixnum, capi_truncate_div__3)
@@ -773,8 +775,8 @@ TEST(api_fixnum, capi_truncate_div__3)
 
   fn1 = ut_read_cstr("5");
   fn2 = ut_read_cstr("-2");
-  TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn1));
-  TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn2));
+  TEST_ASSERT_TRUE(scm_fixnum_p(fn1));
+  TEST_ASSERT_TRUE(scm_fixnum_p(fn2));
 
   expected_quo = ut_read_cstr("-2");
   expected_rem = ut_read_cstr("1");
@@ -783,8 +785,8 @@ TEST(api_fixnum, capi_truncate_div__3)
                                                  SCM_CSETTER_L(quo),
                                                  SCM_CSETTER_L(rem)));
 
-  TEST_ASSERT_SCM_TRUE(scm_fcd_num_eq_P(expected_quo, quo));
-  TEST_ASSERT_SCM_TRUE(scm_fcd_num_eq_P(expected_rem, rem));
+  TEST_ASSERT_SCM_TRUE(scm_num_eq_P(expected_quo, quo));
+  TEST_ASSERT_SCM_TRUE(scm_num_eq_P(expected_rem, rem));
 }
 
 TEST(api_fixnum, capi_truncate_div__4)
@@ -798,8 +800,8 @@ TEST(api_fixnum, capi_truncate_div__4)
 
   fn1 = ut_read_cstr("-5");
   fn2 = ut_read_cstr("-2");
-  TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn1));
-  TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn2));
+  TEST_ASSERT_TRUE(scm_fixnum_p(fn1));
+  TEST_ASSERT_TRUE(scm_fixnum_p(fn2));
 
   expected_quo = ut_read_cstr("2");
   expected_rem = ut_read_cstr("-1");
@@ -808,8 +810,8 @@ TEST(api_fixnum, capi_truncate_div__4)
                                                  SCM_CSETTER_L(quo),
                                                  SCM_CSETTER_L(rem)));
 
-  TEST_ASSERT_SCM_TRUE(scm_fcd_num_eq_P(expected_quo, quo));
-  TEST_ASSERT_SCM_TRUE(scm_fcd_num_eq_P(expected_rem, rem));
+  TEST_ASSERT_SCM_TRUE(scm_num_eq_P(expected_quo, quo));
+  TEST_ASSERT_SCM_TRUE(scm_num_eq_P(expected_rem, rem));
 }
 
 TEST(api_fixnum, capi_truncate_div__division_by_zero)
@@ -821,8 +823,8 @@ TEST(api_fixnum, capi_truncate_div__division_by_zero)
 
   fn1 = ut_read_cstr("5");
   fn2 = ut_read_cstr("0");
-  TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn1));
-  TEST_ASSERT_TRUE(scm_fcd_fixnum_p(fn2));
+  TEST_ASSERT_TRUE(scm_fixnum_p(fn1));
+  TEST_ASSERT_TRUE(scm_fixnum_p(fn2));
 
   TEST_ASSERT_EQUAL_INT(-1, scm_capi_truncate_div(fn1, fn2,
                                                   SCM_CSETTER_L(quo),

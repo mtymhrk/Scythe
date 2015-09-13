@@ -1,3 +1,6 @@
+#include "scythe/refstk.h"
+#include "scythe/assembler.h"
+#include "scythe/iseq.h"
 #include "scythe/api.h"
 
 #include "test.h"
@@ -10,12 +13,12 @@ static ScmRefStackInfo rsi;
 TEST_SETUP(exec_compiler)
 {
   scy = ut_scythe_setup(true);
-  scm_fcd_ref_stack_save(&rsi);
+  scm_ref_stack_save(&rsi);
 }
 
 TEST_TEAR_DOWN(exec_compiler)
 {
-  scm_fcd_ref_stack_restore(&rsi);
+  scm_ref_stack_restore(&rsi);
   ut_scythe_tear_down(scy);
 }
 
@@ -31,7 +34,7 @@ compile(ScmObj exp, bool precompile)
   else
     asmb = ut_compile(exp);
 
-  return scm_fcd_assembler_iseq(asmb);
+  return scm_asm_iseq(asmb);
 }
 
 static ScmObj
@@ -48,12 +51,12 @@ test_compile_internal(const char *expr, const char *asmbl, bool precompile)
 
   SCM_REFSTK_INIT_REG(&actual, &expected);
 
-  expected = scm_fcd_assemble(scm_fcd_unprintable_assembler(ut_read_cstr(asmbl)),
-                              SCM_OBJ_NULL);
+  expected = scm_assemble(scm_unprintable_asm(ut_read_cstr(asmbl)),
+                          SCM_OBJ_NULL);
   actual = compile_cstr(expr, precompile);
 
   cmp = false;
-  scm_fcd_iseq_eq(expected, actual, &cmp);
+  scm_iseq_eq(expected, actual, &cmp);
   TEST_ASSERT_TRUE(cmp);
 }
 

@@ -1,20 +1,34 @@
 #include <stdio.h>
 
 #include "scythe/object.h"
-#include "scythe/fcd.h"
+#include "scythe/vm.h"
+#include "scythe/memory.h"
+#include "scythe/refstk.h"
+#include "scythe/format.h"
+#include "scythe/iseq.h"
+#include "scythe/miscobjects.h"
+#include "scythe/pair.h"
+#include "scythe/string.h"
+#include "scythe/symbol.h"
 #include "scythe/procedure.h"
+
 
 /*******************************************************************/
 /*  Proc                                                           */
 /*******************************************************************/
+
+ScmObj
+scm_procedure_P(ScmObj proc)
+{
+  return (scm_procedure_p(proc) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ);
+}
 
 int
 scm_proc_initialize(ScmObj proc, ScmObj name,
                     int arity, unsigned int flags, ScmObj env)
 {
   scm_assert(scm_obj_type_flag_set_p(proc, SCM_TYPE_FLG_PROC));
-  scm_assert(scm_obj_null_p(name)
-             || scm_fcd_string_p(name) || scm_fcd_symbol_p(name));
+  scm_assert(scm_obj_null_p(name) || scm_string_p(name) || scm_symbol_p(name));
 
   SCM_SLOT_SETQ(ScmProcedure, proc, name, name);
   SCM_SLOT_SETQ(ScmProcedure, proc, env, env);
@@ -51,37 +65,6 @@ scm_proc_gc_accept(ScmObj obj, ScmGCRefHandler handler)
 
 
 /*******************************************************************/
-/*  Procedure (interface)                                          */
-/*******************************************************************/
-
- bool
-scm_fcd_procedure_p(ScmObj proc)
-{
-  return scm_obj_type_flag_set_p(proc, SCM_TYPE_FLG_PROC);
-}
-
-ScmObj
-scm_fcd_procedure_P(ScmObj proc)
-{
-  return (scm_fcd_procedure_p(proc) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ);
-}
-
-int
-scm_fcd_arity(ScmObj proc)
-{
-  scm_assert(scm_fcd_procedure_p(proc));
-  return scm_proc_arity(proc);
-}
-
-bool
-scm_fcd_procedure_flg_set_p(ScmObj proc, unsigned int flg)
-{
-  scm_assert(scm_fcd_procedure_p(proc));
-  return scm_proc_flg_set_p(proc, flg);
-}
-
-
-/*******************************************************************/
 /*  Subrutine                                                      */
 /*******************************************************************/
 
@@ -108,8 +91,7 @@ scm_subrutine_initialize(ScmObj subr, ScmSubrFunc func,
 
   scm_assert_obj_type(subr, &SCM_SUBRUTINE_TYPE_INFO);
   scm_assert(func != NULL);
-  scm_assert(scm_obj_null_p(name)
-             || scm_fcd_string_p(name) || scm_fcd_symbol_p(name));
+  scm_assert(scm_obj_null_p(name) || scm_string_p(name) || scm_symbol_p(name));
 
   rslt = scm_proc_initialize(subr, name, arity, flags, env);
   if (rslt < 0) return -1;
@@ -117,6 +99,28 @@ scm_subrutine_initialize(ScmObj subr, ScmSubrFunc func,
   SCM_SUBRUTINE(subr)->subr_func = func;
 
   return 0;
+}
+
+ScmObj
+scm_subrutine_new(scm_mem_type_t mtype,
+                  ScmSubrFunc func, ScmObj name, int arity, unsigned int flags,
+                  ScmObj env)
+{
+  ScmObj subr = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&name,
+                      &subr, &env);
+
+  scm_assert(func != NULL);
+  scm_assert(scm_obj_null_p(name) || scm_string_p(name) || scm_symbol_p(name));
+
+  subr = scm_alloc_mem(&SCM_SUBRUTINE_TYPE_INFO, 0, mtype);
+  if (scm_obj_null_p(subr)) return SCM_OBJ_NULL;
+
+  if (scm_subrutine_initialize(subr, func, name, arity, flags, env))
+    return SCM_OBJ_NULL;
+
+  return subr;
 }
 
 int
@@ -135,7 +139,7 @@ scm_subrutine_obj_print(ScmObj obj, ScmObj port, int kind,
   if (scm_obj_null_p(name))
     return scm_obj_default_print_func(obj, port, kind, handler);
 
-  return scm_fcd_pformat_cstr(port,"#<subr ~a>", name, SCM_OBJ_NULL);
+  return scm_pformat_cstr(port,"#<subr ~a>", name, SCM_OBJ_NULL);
 }
 
 void
@@ -152,64 +156,6 @@ scm_subrutine_gc_accept(ScmObj obj, ScmGCRefHandler handler)
   scm_assert_obj_type(obj, &SCM_SUBRUTINE_TYPE_INFO);
 
   return scm_proc_gc_accept(obj, handler);
-}
-
-
-/*******************************************************************/
-/*  Subrutine (interface)                                          */
-/*******************************************************************/
-
-bool
-scm_fcd_subrutine_p(ScmObj obj)
-{
-  return (scm_obj_type_p(obj, &SCM_SUBRUTINE_TYPE_INFO) ? true : false);
-}
-
-ScmObj
-scm_fcd_subrutine_new(scm_mem_type_t mtype,
-                      ScmSubrFunc func, ScmObj name, int arity, unsigned int flags,
-                      ScmObj env)
-{
-  ScmObj subr = SCM_OBJ_INIT;
-
-  SCM_REFSTK_INIT_REG(&name,
-                      &subr, &env);
-
-  scm_assert(func != NULL);
-  scm_assert(scm_obj_null_p(name)
-             || scm_fcd_string_p(name) || scm_fcd_symbol_p(name));
-
-  subr = scm_fcd_mem_alloc(&SCM_SUBRUTINE_TYPE_INFO, 0, mtype);
-  if (scm_obj_null_p(subr)) return SCM_OBJ_NULL;
-
-  if (scm_subrutine_initialize(subr, func, name, arity, flags, env))
-    return SCM_OBJ_NULL;
-
-  return subr;
-}
-
-ScmObj
-scm_fcd_make_subrutine(ScmSubrFunc func, int arity, unsigned int flags,
-                       ScmObj env)
-{
-  scm_assert(func != NULL);
-
-  return scm_fcd_subrutine_new(SCM_MEM_HEAP, func,
-                               SCM_OBJ_NULL, arity, flags, env);
-}
-
-int
-scm_fcd_call_subrutine(ScmObj subr, int argc, const ScmObj *argv)
-{
-  scm_assert(scm_fcd_subrutine_p(subr));
-  return scm_subrutine_call(subr, argc, argv);
-}
-
-ScmObj
-scm_fcd_subrutine_env(ScmObj subr)
-{
-  scm_assert(scm_fcd_subrutine_p(subr));
-  return scm_proc_env(subr);
 }
 
 
@@ -236,9 +182,8 @@ scm_closure_initialize(ScmObj clsr,
   int rslt;
 
   scm_assert_obj_type(clsr, &SCM_CLOSURE_TYPE_INFO);
-  scm_assert(scm_fcd_iseq_p(iseq));
-  scm_assert(scm_obj_null_p(name)
-             || scm_fcd_string_p(name) || scm_fcd_symbol_p(name));
+  scm_assert(scm_iseq_p(iseq));
+  scm_assert(scm_obj_null_p(name) || scm_string_p(name) || scm_symbol_p(name));
 
   rslt = scm_proc_initialize(clsr, name, arity, 0, env);
   if (rslt < 0) return -1;
@@ -246,6 +191,34 @@ scm_closure_initialize(ScmObj clsr,
   SCM_SLOT_SETQ(ScmClosure, clsr, iseq, iseq);
 
   return 0;
+}
+
+ScmObj
+scm_closure_new(scm_mem_type_t mtype,
+                ScmObj iseq, ScmObj env, ScmObj name, int arity)
+{
+  ScmObj clsr = SCM_OBJ_INIT;
+  int rslt;
+
+  SCM_REFSTK_INIT_REG(&iseq, &env, &name,
+                      &clsr);
+
+  scm_assert(scm_iseq_p(iseq));
+
+  clsr = scm_alloc_mem(&SCM_CLOSURE_TYPE_INFO, 0, mtype);
+  if (scm_obj_null_p(clsr)) return SCM_OBJ_NULL;
+
+  rslt = scm_closure_initialize(clsr, iseq, env, name, arity);
+  if (rslt < 0) return SCM_OBJ_NULL;
+
+  return clsr;
+}
+
+scm_byte_t *
+scm_closure_to_ip(ScmObj clsr)
+{
+  scm_assert(scm_closure_p(clsr));
+  return scm_iseq_to_ip(scm_closure_iseq(clsr));
 }
 
 void
@@ -272,69 +245,6 @@ scm_closure_gc_accept(ScmObj obj, ScmGCRefHandler handler)
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
   return rslt;
-}
-
-
-/*******************************************************************/
-/*  Closure (interface)                                           */
-/*******************************************************************/
-
-extern inline bool
-scm_fcd_closure_p(ScmObj obj)
-{
-  return (scm_obj_type_p(obj, &SCM_CLOSURE_TYPE_INFO) ? true : false);
-}
-
-ScmObj
-scm_fcd_closure_new(scm_mem_type_t mtype,
-                    ScmObj iseq, ScmObj env, ScmObj name, int arity)
-{
-  ScmObj clsr = SCM_OBJ_INIT;
-  int rslt;
-
-  SCM_REFSTK_INIT_REG(&iseq, &env, &name,
-                      &clsr);
-
-  scm_assert(scm_fcd_iseq_p(iseq));
-
-  clsr = scm_fcd_mem_alloc(&SCM_CLOSURE_TYPE_INFO, 0, mtype);
-  if (scm_obj_null_p(clsr)) return SCM_OBJ_NULL;
-
-  rslt = scm_closure_initialize(clsr, iseq, env, name, arity);
-  if (rslt < 0) return SCM_OBJ_NULL;
-
-  return clsr;
-}
-
-ScmObj
-scm_fcd_make_closure(ScmObj iseq, ScmObj env, int arity)
-{
-  scm_assert(scm_fcd_iseq_p(iseq));
-  return scm_fcd_closure_new(SCM_MEM_HEAP, iseq, env, SCM_OBJ_NULL, arity);
-}
-
-ScmObj
-scm_fcd_closure_to_iseq(ScmObj clsr)
-{
-  scm_assert(scm_fcd_closure_p(clsr));
-  return scm_closure_body(clsr);
-}
-
-scm_byte_t *
-scm_fcd_closure_to_ip(ScmObj clsr)
-{
-  ScmObj iseq = SCM_OBJ_INIT;
-
-  scm_assert(scm_fcd_closure_p(clsr));
-  iseq = scm_closure_body(clsr);
-  return scm_fcd_iseq_to_ip(iseq);
-}
-
-ScmObj
-scm_fcd_closure_env(ScmObj clsr)
-{
-  scm_assert(scm_fcd_closure_p(clsr));
-  return scm_closure_env(clsr);
 }
 
 
@@ -368,7 +278,7 @@ scm_dwhcallerenv_initialize(ScmObj dwhce,
     SCM_DWHCALLERENV(dwhce)->val = NULL;
   }
   else {
-    SCM_DWHCALLERENV(dwhce)->val = scm_fcd_malloc(sizeof(ScmObj) * vc);
+    SCM_DWHCALLERENV(dwhce)->val = scm_malloc(sizeof(ScmObj) * vc);
     if (SCM_DWHCALLERENV(dwhce)->val == NULL)
       return -1;
     SCM_DWHCALLERENV(dwhce)->vc = vc;
@@ -388,7 +298,7 @@ scm_dwhcallerenv_finalize(ScmObj dwhce)
   if (SCM_DWHCALLERENV(dwhce)->vc == 0)
     return ;
 
-  scm_fcd_free(SCM_DWHCALLERENV(dwhce)->val);
+  scm_free(SCM_DWHCALLERENV(dwhce)->val);
   SCM_DWHCALLERENV(dwhce)->val = NULL;
   SCM_DWHCALLERENV(dwhce)->vc = 0;
 }
@@ -405,7 +315,7 @@ scm_dwhcallerenv_new(scm_mem_type_t mtype,
   scm_assert(scm_obj_not_null_p(cont));
   scm_assert(vc == 0 || val != NULL);
 
-  dwhce = scm_fcd_mem_alloc(&SCM_DWHCALLERENV_TYPE_INFO, 0, mtype);
+  dwhce = scm_alloc_mem(&SCM_DWHCALLERENV_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(dwhce)) return SCM_OBJ_NULL;
 
   if (scm_dwhcallerenv_initialize(dwhce, cont, val, vc) < 0)
@@ -450,11 +360,11 @@ scm_dwhcallerenv_gc_accept(ScmObj obj, ScmGCRefHandler handler)
 static int
 call_dw_handler(ScmObj caller, ScmObj handlers)
 {
-  scm_assert(scm_fcd_procedure_p(caller));
-  scm_assert(scm_fcd_pair_p(handlers));
+  scm_assert(scm_procedure_p(caller));
+  scm_assert(scm_pair_p(handlers));
 
-  return scm_fcd_trampolining(scm_fcd_car(handlers), SCM_NIL_OBJ,
-                              caller, scm_fcd_cdr(handlers));
+  return scm_trampolining(scm_car(handlers), SCM_NIL_OBJ,
+                          caller, scm_cdr(handlers));
 }
 
 static int
@@ -466,15 +376,15 @@ scm_subr_func_dw_handler_calller(ScmObj subr, int argc, const ScmObj *argv)
   SCM_REFSTK_INIT_REG(&subr,
                       &env);
 
-  if (!scm_fcd_pair_p(argv[0])) {
+  if (!scm_pair_p(argv[0])) {
     env = scm_proc_env(subr);
     scm_assert_obj_type(env, &SCM_DWHCALLERENV_TYPE_INFO);
 
-    r = scm_fcd_reinstantemnet_continuation(scm_dwhcallerenv_cont(env));
+    r = scm_reinstantemnet_continuation(scm_dwhcallerenv_cont(env));
     if (r < 0) return -1;
 
-    return scm_fcd_return_val(scm_dwhcallerenv_val(env),
-                              (int)scm_dwhcallerenv_vc(env));
+    return scm_return_val(scm_dwhcallerenv_val(env),
+                          (int)scm_dwhcallerenv_vc(env));
   }
   else {
     return call_dw_handler(subr, argv[0]);
@@ -489,69 +399,57 @@ scm_subr_func_continuation(ScmObj subr, int argc, const ScmObj *argv)
   SCM_REFSTK_INIT_REG(&subr,
                       &handlers, &caller);
 
-  scm_assert(scm_fcd_continuation_p(subr));
+  scm_assert(scm_continuation_p(subr));
   scm_assert(argc >= 0);
 
-  handlers = scm_fcd_collect_dynamic_wind_handler(scm_proc_env(subr));
+  handlers = scm_collect_dynamic_wind_handler(scm_proc_env(subr));
   if (scm_obj_null_p(handlers)) return -1;
 
-  if (!scm_fcd_pair_p(handlers)) {
-    int r = scm_fcd_reinstantemnet_continuation(scm_proc_env(subr));
+  if (!scm_pair_p(handlers)) {
+    int r = scm_reinstantemnet_continuation(scm_proc_env(subr));
     if (r < 0) return -1;
 
-    return scm_fcd_return_val(argv, argc);
+    return scm_return_val(argv, argc);
   }
   else {
     env = scm_dwhcallerenv_new(SCM_MEM_HEAP,
                                scm_proc_env(subr), argv, (size_t)argc);
     if (scm_obj_null_p(env)) return -1;
 
-    caller = scm_fcd_make_subrutine(scm_subr_func_dw_handler_calller,
-                                    -2, SCM_PROC_ADJ_UNWISHED, env);
+    caller = scm_make_subrutine(scm_subr_func_dw_handler_calller,
+                                -2, SCM_PROC_ADJ_UNWISHED, env);
     if (scm_obj_null_p(caller)) return -1;
 
     return call_dw_handler(caller, handlers);
   }
 }
 
-
-/*******************************************************************/
-/*  Continuation (interface)                                       */
-/*******************************************************************/
-
-bool
-scm_fcd_continuation_p(ScmObj obj)
-{
-  return (scm_fcd_subrutine_p(obj)
-          && scm_subrutine_func(obj) == scm_subr_func_continuation);
-}
-
 ScmObj
-scm_fcd_continuation_new(scm_mem_type_t mtype, ScmObj contcap)
+scm_continuation_new(scm_mem_type_t mtype, ScmObj contcap)
 {
   ScmObj name = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&contcap,
                       &name);
 
-  name = scm_fcd_make_symbol_from_cstr("continuation", SCM_ENC_SRC);
+  name = scm_make_symbol_from_cstr("continuation", SCM_ENC_SRC);
   if (scm_obj_null_p(name)) return SCM_OBJ_NULL;
 
-  return scm_fcd_subrutine_new(mtype, scm_subr_func_continuation,
-                               name, -1, SCM_PROC_ADJ_UNWISHED, contcap);
+  return scm_subrutine_new(mtype, scm_subr_func_continuation,
+                           name, -1, SCM_PROC_ADJ_UNWISHED, contcap);
 }
 
 ScmObj
-scm_fcd_make_continuation(void)
+scm_make_continuation(void)
 {
   ScmObj cap = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&cap);
 
-  cap = scm_fcd_capture_continuation();
+  cap = scm_capture_continuation();
   if (scm_obj_null_p(cap)) return SCM_OBJ_NULL;
 
-  return scm_fcd_continuation_new(SCM_MEM_HEAP, cap);
+  return scm_continuation_new(SCM_MEM_HEAP, cap);
 }
 
 
@@ -563,23 +461,23 @@ static int
 scm_subr_func_parameter__postproc_init(ScmObj subr,
                                        int argc, const ScmObj *argv)
 {
-  scm_fcd_parameter_set_init_val(argv[0], argv[1]);
-  return scm_fcd_return_val(argv, 1);
+  scm_parameter_set_init_val(argv[0], argv[1]);
+  return scm_return_val(argv, 1);
 }
 
 static int
 scm_subr_func_parameter__postproc_cons(ScmObj subr,
                                        int argc, const ScmObj *argv)
 {
-   ScmObj val = SCM_OBJ_INIT;
+  ScmObj val = SCM_OBJ_INIT;
 
-   SCM_REFSTK_INIT_REG(&subr,
-                       &val);
+  SCM_REFSTK_INIT_REG(&subr,
+                      &val);
 
-   val = scm_fcd_cons(argv[0], argv[1]);
-   if (scm_obj_null_p(val)) return -1;
+  val = scm_cons(argv[0], argv[1]);
+  if (scm_obj_null_p(val)) return -1;
 
-   return scm_fcd_return_val(&val, 1);
+  return scm_return_val(&val, 1);
 }
 
 /*
@@ -618,124 +516,105 @@ scm_subr_func_parameter(ScmObj subr, int argc, const ScmObj *argv)
                       &val, &conv, &postproc,
                       &arg1, &arg2);
 
-  scm_assert(scm_fcd_parameter_p(subr));
+  scm_assert(scm_parameter_p(subr));
 
-  if (scm_fcd_nil_p(argv[0])) {
-    val = scm_fcd_parameter_value(subr);
+  if (scm_nil_p(argv[0])) {
+    val = scm_parameter_value(subr);
     if (scm_obj_null_p(val)) return -1;
 
-    return scm_fcd_return_val(&val, 1);
+    return scm_return_val(&val, 1);
   }
 
-  arg1 = scm_fcd_car(argv[0]);
-  if (scm_fcd_nil_p(scm_fcd_cdr(argv[0])))
+  arg1 = scm_car(argv[0]);
+  if (scm_nil_p(scm_cdr(argv[0])))
     arg2 = SCM_OBJ_NULL;
   else
-    arg2 = scm_fcd_list_ref(argv[0], 1);
+    arg2 = scm_list_ref(argv[0], 1);
 
   if (scm_obj_null_p(arg2)) {
     val = SCM_UNDEF_OBJ;
-    return scm_fcd_return_val(&val, 1);
+    return scm_return_val(&val, 1);
   }
-  else if (scm_fcd_true_object_p(arg2)) {
-    conv = scm_fcd_parameter_converter(subr);
-    if (scm_fcd_procedure_p(conv)) {
-      arg1 = scm_fcd_cons(arg1, SCM_NIL_OBJ);
+  else if (scm_true_object_p(arg2)) {
+    conv = scm_parameter_converter(subr);
+    if (scm_procedure_p(conv)) {
+      arg1 = scm_cons(arg1, SCM_NIL_OBJ);
       if (scm_obj_null_p(arg1)) return -1;
 
-      postproc = scm_fcd_make_subrutine(scm_subr_func_parameter__postproc_init,
+      postproc = scm_make_subrutine(scm_subr_func_parameter__postproc_init,
                                         2, 0, SCM_OBJ_NULL);
       if (scm_obj_null_p(postproc)) return -1;
 
-      return scm_fcd_trampolining(conv, arg1, postproc, subr);
+      return scm_trampolining(conv, arg1, postproc, subr);
     }
     else {
-      scm_fcd_parameter_set_init_val(subr, arg1);
-      return scm_fcd_return_val(&subr, 1);
+      scm_parameter_set_init_val(subr, arg1);
+      return scm_return_val(&subr, 1);
     }
   }
-  else if (scm_fcd_false_object_p(arg2)){
-    conv = scm_fcd_parameter_converter(subr);
-    if (scm_fcd_procedure_p(conv)) {
-      arg1 = scm_fcd_cons(arg1, SCM_NIL_OBJ);
+  else if (scm_false_object_p(arg2)){
+    conv = scm_parameter_converter(subr);
+    if (scm_procedure_p(conv)) {
+      arg1 = scm_cons(arg1, SCM_NIL_OBJ);
       if (scm_obj_null_p(arg1)) return -1;
 
-      postproc = scm_fcd_make_subrutine(scm_subr_func_parameter__postproc_cons,
-                                        2, 0, SCM_OBJ_NULL);
+      postproc = scm_make_subrutine(scm_subr_func_parameter__postproc_cons,
+                                    2, 0, SCM_OBJ_NULL);
       if (scm_obj_null_p(postproc)) return -1;
 
-      return scm_fcd_trampolining(conv, arg1, postproc, subr);
+      return scm_trampolining(conv, arg1, postproc, subr);
     }
     else {
-      val = scm_fcd_cons(subr, arg1);
+      val = scm_cons(subr, arg1);
       if (scm_obj_null_p(val)) return -1;
-      return scm_fcd_return_val(&val, 1);
+      return scm_return_val(&val, 1);
     }
   }
   else {
     val = SCM_UNDEF_OBJ;
-    return scm_fcd_return_val(&val, 1);
+    return scm_return_val(&val, 1);
   }
 }
 
-
-/*******************************************************************/
-/*  Parameter (interface)                                          */
-/*******************************************************************/
-
-bool
-scm_fcd_parameter_p(ScmObj obj)
-{
-  return (scm_fcd_subrutine_p(obj)
-          && scm_subrutine_func(obj) == scm_subr_func_parameter);
-}
-
 ScmObj
-scm_fcd_parameter_new(scm_mem_type_t mtype, ScmObj init, ScmObj conv)
+scm_parameter_new(scm_mem_type_t mtype, ScmObj init, ScmObj conv)
 {
   ScmObj name = SCM_OBJ_INIT, env = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&init, &conv,
                       &name, &env);
 
-  scm_assert(scm_obj_null_p(conv) || scm_fcd_procedure_p(conv));
+  scm_assert(scm_obj_null_p(conv) || scm_procedure_p(conv));
 
-  name = scm_fcd_make_symbol_from_cstr("parameter", SCM_ENC_SRC);
+  name = scm_make_symbol_from_cstr("parameter", SCM_ENC_SRC);
   if (scm_obj_null_p(name)) return SCM_OBJ_NULL;
 
-  env = scm_fcd_cons(scm_obj_null_p(init) ? SCM_UNDEF_OBJ : init,
-                     scm_obj_null_p(conv) ? SCM_UNDEF_OBJ : conv);
+  env = scm_cons(scm_obj_null_p(init) ? SCM_UNDEF_OBJ : init,
+                 scm_obj_null_p(conv) ? SCM_UNDEF_OBJ : conv);
   if (scm_obj_null_p(env)) return SCM_OBJ_NULL;
 
-  return scm_fcd_subrutine_new(mtype, scm_subr_func_parameter,
-                               name, -1, 0, env);
+  return scm_subrutine_new(mtype, scm_subr_func_parameter,
+                           name, -1, 0, env);
 }
 
 ScmObj
-scm_fcd_make_parameter(ScmObj init, ScmObj conv)
+scm_parameter_init_val(ScmObj prm)
 {
-  scm_assert(scm_obj_null_p(conv) || scm_fcd_procedure_p(conv));
-  return scm_fcd_parameter_new(SCM_MEM_HEAP, init, conv);
+  scm_assert(scm_parameter_p(prm));
+  return scm_car(scm_proc_env(prm));
 }
 
 ScmObj
-scm_fcd_parameter_init_val(ScmObj prm)
+scm_parameter_converter(ScmObj prm)
 {
-  scm_assert(scm_fcd_parameter_p(prm));
-  return scm_fcd_car(scm_proc_env(prm));
-}
-
-ScmObj
-scm_fcd_parameter_converter(ScmObj prm)
-{
-  scm_assert(scm_fcd_parameter_p(prm));
-  return scm_fcd_cdr(scm_proc_env(prm));
+  scm_assert(scm_parameter_p(prm));
+  return scm_cdr(scm_proc_env(prm));
 }
 
 void
-scm_fcd_parameter_set_init_val(ScmObj prm, ScmObj val)
+scm_parameter_set_init_val(ScmObj prm, ScmObj val)
 {
-  scm_assert(scm_fcd_parameter_p(prm));
+  scm_assert(scm_parameter_p(prm));
   scm_assert(scm_obj_not_null_p(val));
-  scm_fcd_set_car_i(scm_proc_env(prm), val);
+  scm_set_car(scm_proc_env(prm), val);
 }

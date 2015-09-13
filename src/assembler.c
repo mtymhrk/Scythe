@@ -1,7 +1,18 @@
 #include "scythe/object.h"
-#include "scythe/fcd.h"
 #include "scythe/earray.h"
 #include "scythe/vminst.h"
+#include "scythe/vm.h"
+#include "scythe/memory.h"
+#include "scythe/refstk.h"
+#include "scythe/number.h"
+#include "scythe/compiler.h"
+#include "scythe/exception.h"
+#include "scythe/iseq.h"
+#include "scythe/miscobjects.h"
+#include "scythe/module.h"
+#include "scythe/pair.h"
+#include "scythe/procedure.h"
+#include "scythe/symbol.h"
 #include "scythe/assembler.h"
 
 
@@ -29,10 +40,10 @@ scm_asm_initialize(ScmObj asmb, ScmObj iseq)
   SCM_REFSTK_INIT_REG(&asmb, &iseq);
 
   scm_assert_obj_type(asmb, &SCM_ASSEMBLER_TYPE_INFO);
-  scm_assert(scm_obj_null_p(iseq) || scm_fcd_iseq_p(iseq));
+  scm_assert(scm_obj_null_p(iseq) || scm_iseq_p(iseq));
 
   if (scm_obj_null_p(iseq)) {
-    iseq = scm_fcd_make_iseq();
+    iseq = scm_make_iseq();
     if (scm_obj_null_p(iseq)) return -1;
   }
 
@@ -55,6 +66,25 @@ scm_asm_finalize(ScmObj obj)
   SCM_ASSEMBLER(obj)->iseq = SCM_OBJ_NULL;
   eary_fin(SCM_ASSEMBLER_LABEL_DECL(obj));
   eary_fin(SCM_ASSEMBLER_LABEL_REF(obj));
+}
+
+ScmObj
+scm_asm_new(scm_mem_type_t mtype, ScmObj iseq)
+{
+  ScmObj asmb = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&iseq,
+                      &asmb);
+
+  scm_assert(scm_obj_null_p(iseq) || scm_iseq_p(iseq));
+
+  asmb = scm_alloc_mem(&SCM_ASSEMBLER_TYPE_INFO, 0, mtype);
+  if (scm_obj_null_p(asmb)) return SCM_OBJ_NULL;
+
+  if (scm_asm_initialize(asmb, iseq) < 0)
+    return SCM_OBJ_NULL;
+
+  return asmb;
 }
 
 static inline bool
@@ -89,8 +119,8 @@ scm_asm_calc_iof(const ScmAsmLabelRef *ref, const ScmAsmLabelDecl *decl,
   scm_assert(iof != NULL);
 
   if (decl->offset < 0) {
-    scm_fcd_error("failed to resolve reference to assembler labels: "
-                  "specified label has not undeclared", 0);
+    scm_error("failed to resolve reference to assembler labels: "
+              "specified label has not undeclared", 0);
     return -1;
   }
 
@@ -98,8 +128,8 @@ scm_asm_calc_iof(const ScmAsmLabelRef *ref, const ScmAsmLabelDecl *decl,
        - (ptrdiff_t)(ref->offset + SCM_OPFMT_INST_SZ_IOF));
   if ((ref->offset > PTRDIFF_MAX - SCM_OPFMT_INST_SZ_IOF)
       || (x < INT_MIN || INT_MAX < x)) {
-    scm_fcd_error("failed to resolve reference to assembler labels: "
-                  "arithmetic overflow", 0);
+    scm_error("failed to resolve reference to assembler labels: "
+              "arithmetic overflow", 0);
     return -1;
   }
 
@@ -118,7 +148,7 @@ scm_asm_assign_label_id(ScmObj asmb)
 
   i = EARY_SIZE(SCM_ASSEMBLER_LABEL_DECL(asmb));
   if (i >= SSIZE_MAX) {
-    scm_fcd_error("failed to assign assembler label id: too many lables", 0);
+    scm_error("failed to assign assembler label id: too many lables", 0);
     return -1;
   }
 
@@ -137,7 +167,7 @@ scm_asm_register_label_id(ScmObj asmb, size_t id)
   scm_assert_obj_type(asmb, &SCM_ASSEMBLER_TYPE_INFO);
 
   if (id >= SSIZE_MAX) {
-    scm_fcd_error("failed to register assembler label id: too big", 0);
+    scm_error("failed to register assembler label id: too big", 0);
     return -1;
   }
 
@@ -157,10 +187,10 @@ scm_asm_push_inst_noopd(ScmObj asmb, scm_opcode_t op)
 
   scm_assert_obj_type(asmb, &SCM_ASSEMBLER_TYPE_INFO);
 
-  op = scm_fcd_internal_opcode(op);
+  op = scm_internal_opcode(op);
   scm_vminst_set_inst_noopd(inst, op);
-  r = scm_fcd_iseq_push_inst(SCM_ASSEMBLER_ISEQ(asmb),
-                             &inst, sizeof(inst), NULL, 0);
+  r = scm_iseq_push_inst(SCM_ASSEMBLER_ISEQ(asmb),
+                         &inst, sizeof(inst), NULL, 0);
   if (r < 0) return -1;
 
   return 0;
@@ -176,10 +206,10 @@ scm_asm_push_inst_obj(ScmObj asmb, scm_opcode_t op, ScmObj obj)
   scm_assert_obj_type(asmb, &SCM_ASSEMBLER_TYPE_INFO);
   scm_assert(scm_obj_not_null_p(obj));
 
-  op = scm_fcd_internal_opcode(op);
+  op = scm_internal_opcode(op);
   scm_vminst_set_inst_obj(inst, op, obj);
-  r = scm_fcd_iseq_push_inst(SCM_ASSEMBLER_ISEQ(asmb),
-                             &inst, sizeof(inst), objs, 1);
+  r = scm_iseq_push_inst(SCM_ASSEMBLER_ISEQ(asmb),
+                         &inst, sizeof(inst), objs, 1);
   if (r < 0) return -1;
 
   return 0;
@@ -199,10 +229,10 @@ scm_asm_push_inst_obj_obj(ScmObj asmb,
   scm_assert(scm_obj_not_null_p(obj1));
   scm_assert(scm_obj_not_null_p(obj2));
 
-  op = scm_fcd_internal_opcode(op);
+  op = scm_internal_opcode(op);
   scm_vminst_set_inst_obj_obj(inst, op, obj1, obj2);
-  r = scm_fcd_iseq_push_inst(SCM_ASSEMBLER_ISEQ(asmb),
-                             &inst, sizeof(inst), objs, 2);
+  r = scm_iseq_push_inst(SCM_ASSEMBLER_ISEQ(asmb),
+                         &inst, sizeof(inst), objs, 2);
   if (r < 0) return -1;
 
   return 0;
@@ -216,10 +246,10 @@ scm_asm_push_inst_si(ScmObj asmb, scm_opcode_t op, int si)
 
   scm_assert_obj_type(asmb, &SCM_ASSEMBLER_TYPE_INFO);
 
-  op = scm_fcd_internal_opcode(op);
+  op = scm_internal_opcode(op);
   scm_vminst_set_inst_si(inst, op, si);
-  r = scm_fcd_iseq_push_inst(SCM_ASSEMBLER_ISEQ(asmb),
-                             &inst, sizeof(inst), NULL, 0);
+  r = scm_iseq_push_inst(SCM_ASSEMBLER_ISEQ(asmb),
+                         &inst, sizeof(inst), NULL, 0);
   if (r < 0) return -1;
 
   return 0;
@@ -233,10 +263,10 @@ scm_asm_push_inst_si_si(ScmObj asmb, scm_opcode_t op, int si1, int si2)
 
   scm_assert_obj_type(asmb, &SCM_ASSEMBLER_TYPE_INFO);
 
-  op = scm_fcd_internal_opcode(op);
+  op = scm_internal_opcode(op);
   scm_vminst_set_inst_si_si(inst, op, si1, si2);
-  r = scm_fcd_iseq_push_inst(SCM_ASSEMBLER_ISEQ(asmb),
-                             &inst, sizeof(inst), NULL, 0);
+  r = scm_iseq_push_inst(SCM_ASSEMBLER_ISEQ(asmb),
+                         &inst, sizeof(inst), NULL, 0);
   if (r < 0) return -1;
 
   return 0;
@@ -254,13 +284,13 @@ scm_asm_push_inst_si_si_obj(ScmObj asmb,
 
   scm_assert_obj_type(asmb, &SCM_ASSEMBLER_TYPE_INFO);
 
-  if (op == SCM_OPCODE_CLOSE && scm_fcd_assembler_p(obj))
+  if (op == SCM_OPCODE_CLOSE && scm_assembler_p(obj))
     obj = scm_asm_iseq(obj);
 
-  op = scm_fcd_internal_opcode(op);
+  op = scm_internal_opcode(op);
   scm_vminst_set_inst_si_si_obj(inst, op, si1, si2, obj);
-  r = scm_fcd_iseq_push_inst(SCM_ASSEMBLER_ISEQ(asmb),
-                             &inst, sizeof(inst), objs, 1);
+  r = scm_iseq_push_inst(SCM_ASSEMBLER_ISEQ(asmb),
+                         &inst, sizeof(inst), objs, 1);
   if (r < 0) return -1;
 
   return 0;
@@ -280,10 +310,10 @@ scm_asm_push_inst_iof(ScmObj asmb, scm_opcode_t op, bool label, ...)
   }
   else {
     scm_byte_t inst[SCM_OPFMT_INST_SZ_IOF];
-    op = scm_fcd_internal_opcode(op);
+    op = scm_internal_opcode(op);
     scm_vminst_set_inst_iof(inst, op, va_arg(arg, int));
-    ssize_t r = scm_fcd_iseq_push_inst(SCM_ASSEMBLER_ISEQ(asmb),
-                                       &inst, sizeof(inst), NULL, 0);
+    ssize_t r = scm_iseq_push_inst(SCM_ASSEMBLER_ISEQ(asmb),
+                                   &inst, sizeof(inst), NULL, 0);
     if (r < 0) ret = -1;
     else       ret = 0;
   }
@@ -302,12 +332,12 @@ scm_asm_push_inst_rlid(ScmObj asmb, scm_opcode_t op, size_t id)
   scm_assert_obj_type(asmb, &SCM_ASSEMBLER_TYPE_INFO);
 
   if (!scm_asm_label_id_assigned_p(asmb, id)) {
-    scm_fcd_error("failed to assemble pseudo instruction: "
-                  "specified label has not undeclared", 0);
+    scm_error("failed to assemble pseudo instruction: "
+              "specified label has not undeclared", 0);
     return -1;
   }
 
-  cur = scm_fcd_iseq_length(SCM_ASSEMBLER_ISEQ(asmb));
+  cur = scm_iseq_length(SCM_ASSEMBLER_ISEQ(asmb));
 
   decl = eary_idx_to_ptr(SCM_ASSEMBLER_LABEL_DECL(asmb), id);
   if (decl->offset < 0) {
@@ -336,22 +366,22 @@ scm_asm_push_pinst_label(ScmObj asmb, scm_opcode_t op, size_t id)
   scm_assert_obj_type(asmb, &SCM_ASSEMBLER_TYPE_INFO);
 
   if (id >= EARY_SIZE(SCM_ASSEMBLER_LABEL_DECL(asmb))) {
-    scm_fcd_error("failed to assemble pseudo instruction: "
-                  "specified label has not assigned", 0);
+    scm_error("failed to assemble pseudo instruction: "
+              "specified label has not assigned", 0);
     return -1;
   }
 
   decl = eary_idx_to_ptr(SCM_ASSEMBLER_LABEL_DECL(asmb), id);
   if (decl->offset >= 0) {
-    scm_fcd_error("failed to assemble pseudo instruction: "
-                  "specified lable has already declared", 0);
+    scm_error("failed to assemble pseudo instruction: "
+              "specified lable has already declared", 0);
     return -1;
   }
 
-  cur = scm_fcd_iseq_length(SCM_ASSEMBLER_ISEQ(asmb));
+  cur = scm_iseq_length(SCM_ASSEMBLER_ISEQ(asmb));
   if (cur > SSIZE_MAX) {
-    scm_fcd_error("failed to assemble pseudo instruction: "
-                  "instructin sequence too big", 0);
+    scm_error("failed to assemble pseudo instruction: "
+              "instructin sequence too big", 0);
     return -1;
   }
 
@@ -360,125 +390,12 @@ scm_asm_push_pinst_label(ScmObj asmb, scm_opcode_t op, size_t id)
   return 0;
 }
 
-int
-scm_asm_resolve_label_ref(ScmObj asmb)
-{
-  const ScmAsmLabelDecl *decl;
-  const ScmAsmLabelRef *ref;
-  size_t idx;
-  int r, iof;
-
-  scm_assert_obj_type(asmb, &SCM_ASSEMBLER_TYPE_INFO);
-
-  EARY_FOR_EACH(SCM_ASSEMBLER_LABEL_REF(asmb), idx, ref) {
-    decl = eary_idx_to_ptr(SCM_ASSEMBLER_LABEL_DECL(asmb), ref->label_id);
-    r = scm_asm_calc_iof(ref, decl, &iof);
-    if (r < 0) return -1;
-
-    scm_fcd_update_vminst_opd_iof(SCM_ASSEMBLER_ISEQ(asmb),
-                                  scm_fcd_iseq_to_ip(SCM_ASSEMBLER_ISEQ(asmb))
-                                  + ref->offset,
-                                  iof);
-  }
-
-  eary_truncate(SCM_ASSEMBLER_LABEL_REF(asmb));
-  return 0;
-}
-
-void
-scm_asm_clear_labels(ScmObj asmb)
-{
-  scm_assert_obj_type(asmb, &SCM_ASSEMBLER_TYPE_INFO);
-  if (EARY_SIZE(SCM_ASSEMBLER_LABEL_REF(asmb)) == 0)
-    eary_truncate(SCM_ASSEMBLER_LABEL_DECL(asmb));
-}
-
-void
-scm_asm_gc_initialize(ScmObj obj)
-{
-  scm_assert_obj_type(obj, &SCM_ASSEMBLER_TYPE_INFO);
-
-  SCM_ASSEMBLER(obj)->iseq = SCM_OBJ_NULL;
-  eary_init(SCM_ASSEMBLER_LABEL_DECL(obj), 0, 0);
-  eary_init(SCM_ASSEMBLER_LABEL_REF(obj), 0, 0);
-}
-
-void
-scm_asm_gc_finalize(ScmObj obj)
-{
-  scm_asm_finalize(obj);
-}
-
-int
-scm_asm_gc_accept(ScmObj obj, ScmGCRefHandler handler)
-{
-  int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
-
-  scm_assert_obj_type(obj, &SCM_ASSEMBLER_TYPE_INFO);
-
-  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_ASSEMBLER_ISEQ(obj));
-  if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
-
-  return rslt;
-}
-
-
-/**************************************************************************/
-/* Assembler (interface)                                                  */
-/**************************************************************************/
-
-bool
-scm_fcd_assembler_p(ScmObj obj)
-{
-  return scm_obj_type_p(obj, &SCM_ASSEMBLER_TYPE_INFO);
-}
-
-ScmObj
-scm_fcd_assembler_new(scm_mem_type_t mtype, ScmObj iseq)
-{
-  ScmObj asmb = SCM_OBJ_INIT;
-
-  SCM_REFSTK_INIT_REG(&iseq,
-                      &asmb);
-
-  scm_assert(scm_obj_null_p(iseq) || scm_fcd_iseq_p(iseq));
-
-  asmb = scm_fcd_mem_alloc(&SCM_ASSEMBLER_TYPE_INFO, 0, mtype);
-  if (scm_obj_null_p(asmb)) return SCM_OBJ_NULL;
-
-  if (scm_asm_initialize(asmb, iseq) < 0)
-    return SCM_OBJ_NULL;
-
-  return asmb;
-}
-
-ScmObj
-scm_fcd_make_assembler(ScmObj iseq)
-{
-  scm_assert(scm_obj_null_p(iseq) || scm_fcd_iseq_p(iseq));
-  return scm_fcd_assembler_new(SCM_MEM_HEAP, iseq);
-}
-
-ssize_t
-scm_fcd_assembler_assign_label_id(ScmObj asmb)
-{
-  scm_assert(scm_fcd_assembler_p(asmb));
-  return scm_asm_assign_label_id(asmb);
-}
-
-int
-scm_fcd_assembler_register_label_id(ScmObj asmb, size_t id)
-{
-  scm_assert(scm_fcd_assembler_p(asmb));
-  return scm_asm_register_label_id(asmb, id);
-}
-
 static inline int
 chk_operand_obj(ScmObj obj)
 {
   if (scm_obj_null_p(obj)) {
-    scm_fcd_error("failed to push a instruction to ISeq: invalid operand",
-                  1, obj);
+    scm_error("failed to push a instruction to ISeq: invalid operand",
+              1, obj);
     return -1;
   }
 
@@ -486,7 +403,7 @@ chk_operand_obj(ScmObj obj)
 }
 
 int
-scm_fcd_assembler_push_va(ScmObj asmb, scm_opcode_t op, va_list operands)
+scm_asm_push_va(ScmObj asmb, scm_opcode_t op, va_list operands)
 {
   ScmObj opd_obj1 = SCM_OBJ_INIT, opd_obj2 = SCM_OBJ_INIT;
   size_t opd_label_id;
@@ -496,7 +413,7 @@ scm_fcd_assembler_push_va(ScmObj asmb, scm_opcode_t op, va_list operands)
   SCM_REFSTK_INIT_REG(&asmb,
                       &opd_obj1, &opd_obj2);
 
-  scm_assert(scm_fcd_assembler_p(asmb));
+  scm_assert(scm_assembler_p(asmb));
   /* scm_assert(op >= 0); */
 
   if (op < SCM_VMINST_NR_OP) {
@@ -548,7 +465,7 @@ scm_fcd_assembler_push_va(ScmObj asmb, scm_opcode_t op, va_list operands)
       }
       break;
     default:
-      scm_fcd_error("failed to assemble: unknown instruction format", 0);
+      scm_error("failed to assemble: unknown instruction format", 0);
       return -1;
       break;
     }
@@ -560,7 +477,7 @@ scm_fcd_assembler_push_va(ScmObj asmb, scm_opcode_t op, va_list operands)
       return scm_asm_push_pinst_label(asmb, op, opd_label_id);
       break;
     default:
-      scm_fcd_error("failed to assemble: unknown operator code", 0);
+      scm_error("failed to assemble: unknown operator code", 0);
       return -1;
       break;
     }
@@ -568,27 +485,60 @@ scm_fcd_assembler_push_va(ScmObj asmb, scm_opcode_t op, va_list operands)
 }
 
 int
-scm_fcd_assembler_push(ScmObj asmb, scm_opcode_t op, ...)
+scm_asm_push(ScmObj asmb, scm_opcode_t op, ...)
 {
   va_list operands;
   int r;
 
-  scm_assert(scm_fcd_assembler_p(asmb));
+  scm_assert(scm_assembler_p(asmb));
   /* scm_assert(op >= 0); */
 
   va_start(operands, op);
-  r = scm_fcd_assembler_push_va(asmb, op, operands);
+  r = scm_asm_push_va(asmb, op, operands);
   va_end(operands);
 
   return r;
 }
 
 int
-scm_fcd_assembler_commit(ScmObj asmb)
+scm_asm_resolve_label_ref(ScmObj asmb)
+{
+  const ScmAsmLabelDecl *decl;
+  const ScmAsmLabelRef *ref;
+  size_t idx;
+  int r, iof;
+
+  scm_assert_obj_type(asmb, &SCM_ASSEMBLER_TYPE_INFO);
+
+  EARY_FOR_EACH(SCM_ASSEMBLER_LABEL_REF(asmb), idx, ref) {
+    decl = eary_idx_to_ptr(SCM_ASSEMBLER_LABEL_DECL(asmb), ref->label_id);
+    r = scm_asm_calc_iof(ref, decl, &iof);
+    if (r < 0) return -1;
+
+    scm_update_vminst_opd_iof(SCM_ASSEMBLER_ISEQ(asmb),
+                              scm_iseq_to_ip(SCM_ASSEMBLER_ISEQ(asmb))
+                              + ref->offset,
+                              iof);
+  }
+
+  eary_truncate(SCM_ASSEMBLER_LABEL_REF(asmb));
+  return 0;
+}
+
+void
+scm_asm_clear_labels(ScmObj asmb)
+{
+  scm_assert_obj_type(asmb, &SCM_ASSEMBLER_TYPE_INFO);
+  if (EARY_SIZE(SCM_ASSEMBLER_LABEL_REF(asmb)) == 0)
+    eary_truncate(SCM_ASSEMBLER_LABEL_DECL(asmb));
+}
+
+int
+scm_asm_commit(ScmObj asmb)
 {
   int r;
 
-  scm_assert(scm_fcd_assembler_p(asmb));
+  scm_assert(scm_assembler_p(asmb));
 
   r = scm_asm_resolve_label_ref(asmb);
   if (r < 0) return -1;
@@ -597,11 +547,33 @@ scm_fcd_assembler_commit(ScmObj asmb)
   return 0;
 }
 
-ScmObj
-scm_fcd_assembler_iseq(ScmObj asmb)
+void
+scm_asm_gc_initialize(ScmObj obj)
 {
-  scm_assert(scm_fcd_assembler_p(asmb));
-  return scm_asm_iseq(asmb);
+  scm_assert_obj_type(obj, &SCM_ASSEMBLER_TYPE_INFO);
+
+  SCM_ASSEMBLER(obj)->iseq = SCM_OBJ_NULL;
+  eary_init(SCM_ASSEMBLER_LABEL_DECL(obj), 0, 0);
+  eary_init(SCM_ASSEMBLER_LABEL_REF(obj), 0, 0);
+}
+
+void
+scm_asm_gc_finalize(ScmObj obj)
+{
+  scm_asm_finalize(obj);
+}
+
+int
+scm_asm_gc_accept(ScmObj obj, ScmGCRefHandler handler)
+{
+  int rslt = SCM_GC_REF_HANDLER_VAL_INIT;
+
+  scm_assert_obj_type(obj, &SCM_ASSEMBLER_TYPE_INFO);
+
+  rslt = SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_ASSEMBLER_ISEQ(obj));
+  if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
+
+  return rslt;
 }
 
 
@@ -624,7 +596,7 @@ ScmTypeInfo SCM_DISASSEMBLER_TYPE_INFO = {
 static scm_byte_t *
 scm_disasm_ip_proceed(scm_byte_t *ip)
 {
-  scm_opcode_t op = scm_fcd_external_opcode(SCM_VMINST_GET_OP(ip));
+  scm_opcode_t op = scm_external_opcode(SCM_VMINST_GET_OP(ip));
   switch (scm_opfmt_table[op]) {
   case SCM_OPFMT_NOOPD:
     ip += SCM_OPFMT_INST_SZ_NOOPD;
@@ -648,7 +620,7 @@ scm_disasm_ip_proceed(scm_byte_t *ip)
     ip += SCM_OPFMT_INST_SZ_IOF;
     break;
   default:
-    scm_fcd_error("failed to disassemble: unknown instruction format", 0);
+    scm_error("failed to disassemble: unknown instruction format", 0);
     return NULL;
     break;
   }
@@ -694,16 +666,16 @@ scm_disasm_acc_labels(ScmObj disasm)
 
   scm_assert_obj_type(disasm, &SCM_DISASSEMBLER_TYPE_INFO);
 
-  ip = scm_fcd_iseq_to_ip(SCM_DISASSEMBLER_ISEQ(disasm));
-  while (scm_fcd_iseq_ip_in_range_p(SCM_DISASSEMBLER_ISEQ(disasm), ip)) {
-    scm_opcode_t op = scm_fcd_external_opcode(SCM_VMINST_GET_OP(ip));
+  ip = scm_iseq_to_ip(SCM_DISASSEMBLER_ISEQ(disasm));
+  while (scm_iseq_ip_in_range_p(SCM_DISASSEMBLER_ISEQ(disasm), ip)) {
+    scm_opcode_t op = scm_external_opcode(SCM_VMINST_GET_OP(ip));
     if (scm_opfmt_table[op] == SCM_OPFMT_IOF) {
       ssize_t offset;
       int r, iof;
 
       SCM_VMINST_FETCH_OPD_IOF(ip, iof);
-      offset = scm_fcd_iseq_ip_to_offset(SCM_DISASSEMBLER_ISEQ(disasm),
-                                         ip + iof);
+      offset = scm_iseq_ip_to_offset(SCM_DISASSEMBLER_ISEQ(disasm),
+                                     ip + iof);
       if (offset < 0) return -1;
       r = scm_disasm_push_label_decl(disasm, (size_t)offset);
       if (r < 0) return -1;
@@ -722,13 +694,13 @@ scm_disasm_initialize(ScmObj disasm, ScmObj iseq)
   int r;
 
   scm_assert_obj_type(disasm, &SCM_DISASSEMBLER_TYPE_INFO);
-  scm_assert(scm_fcd_iseq_p(iseq));
+  scm_assert(scm_iseq_p(iseq));
 
   r = eary_init(SCM_DISASSEMBLER_LABEL_DECL(disasm),
                 sizeof(ScmAsmLabelDecl), 0);
   if (r < 0) return -1;
 
-  SCM_DISASSEMBLER_SET_TOKEN(disasm, scm_fcd_malloc(sizeof(ScmDisasmToken)));
+  SCM_DISASSEMBLER_SET_TOKEN(disasm, scm_malloc(sizeof(ScmDisasmToken)));
   if (SCM_DISASSEMBLER_TOKEN(disasm) == NULL) return -1;
 
   SCM_DISASSEMBLER_TOKEN(disasm)->type = SCM_DISASM_TK_LABEL;
@@ -747,9 +719,28 @@ scm_disasm_finalize(ScmObj disasm)
 
   eary_fin(SCM_DISASSEMBLER_LABEL_DECL(disasm));
   if (SCM_DISASSEMBLER_TOKEN(disasm) != NULL) {
-    scm_fcd_free(SCM_DISASSEMBLER_TOKEN(disasm));
+    scm_free(SCM_DISASSEMBLER_TOKEN(disasm));
     SCM_DISASSEMBLER_SET_TOKEN(disasm, NULL);
   }
+}
+
+ScmObj
+scm_disasm_new(scm_mem_type_t mtype, ScmObj iseq)
+{
+  ScmObj disasm;
+
+  SCM_REFSTK_INIT_REG(&iseq,
+                      &disasm);
+
+  scm_assert(scm_iseq_p(iseq));
+
+  disasm = scm_alloc_mem(&SCM_DISASSEMBLER_TYPE_INFO, 0, mtype);
+  if (scm_obj_null_p(disasm)) return SCM_OBJ_NULL;
+
+  if (scm_disasm_initialize(disasm, iseq) < 0)
+    return SCM_OBJ_NULL;
+
+  return disasm;
 }
 
 static int
@@ -773,13 +764,13 @@ scm_disasm_setup_token_inst(ScmObj disasm)
   int iof;
 
   scm_assert_obj_type(disasm, &SCM_DISASSEMBLER_TYPE_INFO);
-  scm_assert(scm_fcd_iseq_ip_in_range_p(SCM_DISASSEMBLER_ISEQ(disasm),
-                                        SCM_DISASSEMBLER_IP(disasm)));
+  scm_assert(scm_iseq_ip_in_range_p(SCM_DISASSEMBLER_ISEQ(disasm),
+                                    SCM_DISASSEMBLER_IP(disasm)));
 
   SCM_DISASSEMBLER_TOKEN(disasm)->type = SCM_DISASM_TK_INST;
 
   op = SCM_VMINST_GET_OP(SCM_DISASSEMBLER_IP(disasm));
-  op = scm_fcd_external_opcode(op);
+  op = scm_external_opcode(op);
   SCM_DISASSEMBLER_TOKEN(disasm)->inst.fmt = scm_opfmt_table[op];
 
   switch (scm_opfmt_table[op]) {
@@ -822,8 +813,8 @@ scm_disasm_setup_token_inst(ScmObj disasm)
            SCM_DISASSEMBLER_IP(disasm), SCM_OPFMT_INST_SZ_IOF);
     SCM_DISASSEMBLER_ADD_IP(disasm, SCM_OPFMT_INST_SZ_IOF);
     iof = SCM_DISASSEMBLER_TOKEN(disasm)->inst.i.iof.opd1;
-    key.offset = scm_fcd_iseq_ip_to_offset(SCM_DISASSEMBLER_ISEQ(disasm),
-                                           SCM_DISASSEMBLER_IP(disasm) + iof);
+    key.offset = scm_iseq_ip_to_offset(SCM_DISASSEMBLER_ISEQ(disasm),
+                                       SCM_DISASSEMBLER_IP(disasm) + iof);
     if (key.offset < 0) return -1;
     p = eary_bsearch(SCM_DISASSEMBLER_LABEL_DECL(disasm),
                      &key, label_decl_cmp);
@@ -832,7 +823,7 @@ scm_disasm_setup_token_inst(ScmObj disasm)
       (size_t)(p - (ScmAsmLabelDecl *)EARY_HEAD(SCM_DISASSEMBLER_LABEL_DECL(disasm)));
     break;
   default:
-    scm_fcd_error("failed to disassemble: unknown instruction format", 0);
+    scm_error("failed to disassemble: unknown instruction format", 0);
     return -1;
     break;
   }
@@ -855,8 +846,8 @@ scm_disasm_setup_token(ScmObj disasm)
       < EARY_SIZE(SCM_DISASSEMBLER_LABEL_DECL(disasm))) {
     ScmAsmLabelDecl *p = eary_idx_to_ptr(SCM_DISASSEMBLER_LABEL_DECL(disasm),
                                          SCM_DISASSEMBLER_DECL_IDX(disasm));
-    if (p->offset == scm_fcd_iseq_ip_to_offset(SCM_DISASSEMBLER_ISEQ(disasm),
-                                               SCM_DISASSEMBLER_IP(disasm))) {
+    if (p->offset == scm_iseq_ip_to_offset(SCM_DISASSEMBLER_ISEQ(disasm),
+                                           SCM_DISASSEMBLER_IP(disasm))) {
       SCM_DISASSEMBLER_TOKEN(disasm)->type = SCM_DISASM_TK_LABEL;
       SCM_DISASSEMBLER_TOKEN(disasm)->inst.fmt = SCM_OPFMT_NOOPD;
       SCM_DISASSEMBLER_TOKEN(disasm)->inst.i.op = SCM_ASM_PI_LABEL;
@@ -866,8 +857,8 @@ scm_disasm_setup_token(ScmObj disasm)
     }
   }
 
-  if (scm_fcd_iseq_ip_in_range_p(SCM_DISASSEMBLER_ISEQ(disasm),
-                                 SCM_DISASSEMBLER_IP(disasm))) {
+  if (scm_iseq_ip_in_range_p(SCM_DISASSEMBLER_ISEQ(disasm),
+                             SCM_DISASSEMBLER_IP(disasm))) {
     return scm_disasm_setup_token_inst(disasm);
   }
   else {
@@ -885,7 +876,7 @@ scm_disasm_init_token_if_needed(ScmObj disasm)
     return 0;
 
   SCM_DISASSEMBLER_SET_IP(disasm,
-                          scm_fcd_iseq_to_ip(SCM_DISASSEMBLER_ISEQ(disasm)));
+                          scm_iseq_to_ip(SCM_DISASSEMBLER_ISEQ(disasm)));
   return scm_disasm_setup_token(disasm);
 }
 
@@ -942,20 +933,20 @@ scm_disasm_cnv_to_marshalable(ScmObj disasm)
   case SCM_OPCODE_GREF:         /* fall through */
   case SCM_OPCODE_GDEF:         /* fall through */
   case SCM_OPCODE_GSET:
-    if (scm_fcd_gloc_p(SCM_DISASSEMBLER_TOKEN(disasm)->inst.i.obj_obj.opd1))
+    if (scm_gloc_p(SCM_DISASSEMBLER_TOKEN(disasm)->inst.i.obj_obj.opd1))
       SCM_WB_SETQ(disasm,
                   SCM_DISASSEMBLER_TOKEN(disasm)->inst.i.obj_obj.opd1,
-                  scm_fcd_gloc_symbol(SCM_DISASSEMBLER_TOKEN(disasm)->inst.i.obj_obj.opd1));
-    if (scm_fcd_module_p(SCM_DISASSEMBLER_TOKEN(disasm)->inst.i.obj_obj.opd2))
+                  scm_gloc_symbol(SCM_DISASSEMBLER_TOKEN(disasm)->inst.i.obj_obj.opd1));
+    if (scm_module_p(SCM_DISASSEMBLER_TOKEN(disasm)->inst.i.obj_obj.opd2))
       SCM_WB_SETQ(disasm,
                   SCM_DISASSEMBLER_TOKEN(disasm)->inst.i.obj_obj.opd2,
-                  scm_fcd_module_name(SCM_DISASSEMBLER_TOKEN(disasm)->inst.i.obj_obj.opd2));
+                  scm_module_name(SCM_DISASSEMBLER_TOKEN(disasm)->inst.i.obj_obj.opd2));
     break;
   case SCM_OPCODE_MODULE:
-    if (scm_fcd_module_p(SCM_DISASSEMBLER_TOKEN(disasm)->inst.i.obj.opd1))
+    if (scm_module_p(SCM_DISASSEMBLER_TOKEN(disasm)->inst.i.obj.opd1))
       SCM_WB_SETQ(disasm,
                   SCM_DISASSEMBLER_TOKEN(disasm)->inst.i.obj.opd1,
-                  scm_fcd_module_name(SCM_DISASSEMBLER_TOKEN(disasm)->inst.i.obj.opd1));
+                  scm_module_name(SCM_DISASSEMBLER_TOKEN(disasm)->inst.i.obj.opd1));
     break;
   default:
     break;
@@ -1013,7 +1004,7 @@ scm_disasm_gc_accept(ScmObj obj, ScmGCRefHandler handler)
       rslt = SCM_GC_CALL_REF_HANDLER(handler,
                                      obj,
                                      SCM_DISASSEMBLER_TOKEN(obj)->inst.i.si_si_obj.opd3);
-       if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
+      if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
       break;
     default:
       break;
@@ -1021,70 +1012,6 @@ scm_disasm_gc_accept(ScmObj obj, ScmGCRefHandler handler)
   }
 
   return rslt;
-}
-
-
-/**************************************************************************/
-/* Disassembler (interface)                                               */
-/**************************************************************************/
-
-bool
-scm_fcd_disassembler_p(ScmObj obj)
-{
-  return scm_obj_type_p(obj, &SCM_DISASSEMBLER_TYPE_INFO);
-}
-
-ScmObj
-scm_fcd_disassembler_new(scm_mem_type_t mtype, ScmObj iseq)
-{
-  ScmObj disasm;
-
-  SCM_REFSTK_INIT_REG(&iseq,
-                      &disasm);
-
-  scm_assert(scm_fcd_iseq_p(iseq));
-
-  disasm = scm_fcd_mem_alloc(&SCM_DISASSEMBLER_TYPE_INFO, 0, mtype);
-  if (scm_obj_null_p(disasm)) return SCM_OBJ_NULL;
-
-  if (scm_disasm_initialize(disasm, iseq) < 0)
-    return SCM_OBJ_NULL;
-
-  return disasm;
-}
-
-ScmObj
-scm_fcd_make_disassembler(ScmObj iseq)
-{
-  return scm_fcd_disassembler_new(SCM_MEM_HEAP, iseq);
-}
-
-const ScmDisasmToken *
-scm_fcd_disassembler_token(ScmObj disasm)
-{
-  scm_assert(scm_fcd_disassembler_p(disasm));
-  return scm_disasm_token(disasm);
-}
-
-int
-scm_fcd_disassembler_next(ScmObj disasm)
-{
-  scm_assert(scm_fcd_disassembler_p(disasm));
-  return scm_disasm_next(disasm);
-}
-
-void
-scm_fcd_disassembler_rewind(ScmObj disasm)
-{
-  scm_assert(scm_fcd_disassembler_p(disasm));
-  return scm_disasm_rewind(disasm);
-}
-
-int
-scm_fcd_disassembler_cnv_to_marshalable(ScmObj disasm)
-{
-  scm_assert(scm_fcd_disassembler_p(disasm));
-  return scm_disasm_cnv_to_marshalable(disasm);
 }
 
 
@@ -1136,9 +1063,9 @@ scm_asm_sym2opcode(ScmObj op)
 
   scm_assert(!scm_obj_null_p(op));
 
-  if (scm_fcd_integer_p(op)) {
+  if (scm_num_integer_p(op)) {
     scm_sword_t cd;
-    int r = scm_fcd_integer_to_sword(op, &cd);
+    int r = scm_integer_to_sword(op, &cd);
     if (r < 0) return -1;
 
     if ((0 <= cd && cd < SCM_VMINST_NR_OP)
@@ -1149,26 +1076,26 @@ scm_asm_sym2opcode(ScmObj op)
       return (int)cd;
     }
     else {
-      scm_fcd_error("assembler: invalid opcode", 1, op);
+      scm_error("assembler: invalid opcode", 1, op);
       return -1;
     }
   }
-  else if (scm_fcd_symbol_p(op)) {
+  else if (scm_symbol_p(op)) {
     ssize_t rslt;
     char mne[32];
-    char *p = scm_fcd_symbol_to_cstr(op, mne, sizeof(mne));
+    char *p = scm_symbol_to_cstr(op, mne, sizeof(mne));
     if (p == NULL) return -1;
 
     rslt = scm_asm_mnemonic2opcode(mne);
     if (rslt < 0) {
-      scm_fcd_error("assembler: unknown mnemonic", 1, op);
+      scm_error("assembler: unknown mnemonic", 1, op);
       return -1;
     }
 
     return (int)rslt;
   }
   else {
-    scm_fcd_error("assembler: invalid opcode", 1, op);
+    scm_error("assembler: invalid opcode", 1, op);
     return -1;
   }
 }
@@ -1181,15 +1108,15 @@ scm_asm_chk_nr_operand(const ScmObj *inst, size_t n, size_t min, size_t max)
   scm_assert(n == 0 || inst != NULL);
 
   if (n == 0 || (n - 1) < min) {
-    lst = scm_fcd_list_cv(inst, n);
+    lst = scm_list_cv(inst, n);
     if (scm_obj_not_null_p(lst))
-      scm_fcd_error("assembler: too few operands", 1, lst);
+      scm_error("assembler: too few operands", 1, lst);
     return -1;
   }
   else if ((n - 1) > max) {
-    lst = scm_fcd_list_cv(inst, n);
+    lst = scm_list_cv(inst, n);
     if (scm_obj_not_null_p(lst))
-      scm_fcd_error("assembler: too many operands", 1, lst);
+      scm_error("assembler: too many operands", 1, lst);
     return -1;
   }
 
@@ -1206,18 +1133,18 @@ scm_asm_cnv_operand_to_si(ScmObj operand, ScmObj operator, int *si)
   scm_assert(scm_obj_not_null_p(operator));
   scm_assert(si != NULL);
 
-  if (!scm_fcd_integer_p(operand)) {
-    scm_fcd_error("assembler: invalid operands: integer requried",
-                  2, operator, operand);
+  if (!scm_num_integer_p(operand)) {
+    scm_error("assembler: invalid operands: integer requried",
+              2, operator, operand);
     return -1;
   }
 
-  r = scm_fcd_integer_to_sword(operand, &val);
+  r = scm_integer_to_sword(operand, &val);
   if (r < 0) return -1;
 
   if (val < INT_MIN || INT_MAX < val) {
-    scm_fcd_error("assembler: invalid operands: out of range",
-                  2, operator, operand);
+    scm_error("assembler: invalid operands: out of range",
+              2, operator, operand);
     return -1;
   }
 
@@ -1233,7 +1160,7 @@ scm_asm_asm_inst_noopd(ScmObj asmb,
 
   SCM_REFSTK_INIT_REG(&asmb);
 
-  scm_assert(scm_fcd_assembler_p(asmb));
+  scm_assert(scm_assembler_p(asmb));
   scm_assert(n == 0 || inst != NULL);
 
   rslt = scm_asm_chk_nr_operand(inst, n, 0, 0);
@@ -1253,7 +1180,7 @@ scm_asm_asm_inst_obj(ScmObj asmb,
 
   SCM_REFSTK_INIT_REG(&asmb);
 
-  scm_assert(scm_fcd_assembler_p(asmb));
+  scm_assert(scm_assembler_p(asmb));
   scm_assert(n == 0 || inst != NULL);
 
   rslt = scm_asm_chk_nr_operand(inst, n, 1, 1);
@@ -1275,7 +1202,7 @@ scm_asm_asm_inst_obj_obj(ScmObj asmb,
   SCM_REFSTK_INIT_REG(&asmb,
                       &arg1, &arg2);
 
-  scm_assert(scm_fcd_assembler_p(asmb));
+  scm_assert(scm_assembler_p(asmb));
   scm_assert(n == 0 || inst != NULL);
 
   rslt = scm_asm_chk_nr_operand(inst, n, 2, 2);
@@ -1295,7 +1222,7 @@ scm_asm_asm_inst_si(ScmObj asmb,
 
   SCM_REFSTK_INIT_REG(&asmb);
 
-  scm_assert(scm_fcd_assembler_p(asmb));
+  scm_assert(scm_assembler_p(asmb));
   scm_assert(n == 0 || inst != NULL);
 
   rslt = scm_asm_chk_nr_operand(inst, n, 1, 1);
@@ -1318,7 +1245,7 @@ scm_asm_asm_inst_si_si(ScmObj asmb,
 
   SCM_REFSTK_INIT_REG(&asmb);
 
-  scm_assert(scm_fcd_assembler_p(asmb));
+  scm_assert(scm_assembler_p(asmb));
   scm_assert(n == 0 || inst != NULL);
 
   rslt = scm_asm_chk_nr_operand(inst, n, 2, 2);
@@ -1344,7 +1271,7 @@ scm_asm_asm_inst_si_si_obj(ScmObj asmb,
 
   SCM_REFSTK_INIT_REG(&asmb);
 
-  scm_assert(scm_fcd_assembler_p(asmb));
+  scm_assert(scm_assembler_p(asmb));
   scm_assert(n == 0 || inst != NULL);
 
   rslt = scm_asm_chk_nr_operand(inst, n, 3, 3);
@@ -1370,22 +1297,22 @@ scm_asm_asm_inst_iof_raw(ScmObj asmb,
 
   SCM_REFSTK_INIT_REG(&asmb);
 
-  scm_assert(scm_fcd_assembler_p(asmb));
+  scm_assert(scm_assembler_p(asmb));
   scm_assert(n == 0 || inst != NULL);
 
   rslt = scm_asm_chk_nr_operand(inst, n, 2, 2);
   if (rslt < 0) return -1;
 
-  if (scm_fcd_true_p(inst[1])) {
+  if (scm_true_p(inst[1])) {
     size_t id;
 
-    if (!scm_fcd_integer_p(inst[2]) || !scm_fcd_positive_p(inst[2])) {
-      scm_fcd_error("assembler: label id: positive integer required",
-                    2, inst[0], inst[1]);
+    if (!scm_num_integer_p(inst[2]) || !scm_num_positive_p(inst[2])) {
+      scm_error("assembler: label id: positive integer required",
+                2, inst[0], inst[1]);
       return -1;
     }
 
-    rslt = scm_fcd_integer_to_size_t(inst[2], &id);
+    rslt = scm_integer_to_size_t(inst[2], &id);
     if (rslt < 0) return -1;
 
     rslt = scm_asm_register_label_id(asmb, id);
@@ -1417,28 +1344,28 @@ scm_asm_asm_inst_iof(ScmObj asmb,
   SCM_REFSTK_INIT_REG(&asmb);
   SCM_REFSTK_REG_ARY(new_inst, 3);
 
-  scm_assert(scm_fcd_assembler_p(asmb));
+  scm_assert(scm_assembler_p(asmb));
   scm_assert(n == 0 || inst != NULL);
 
   rslt = scm_asm_chk_nr_operand(inst, n, 1, 2);
   if (rslt < 0) return -1;
 
-  if (scm_fcd_boolean_p(inst[1]))
+  if (scm_boolean_p(inst[1]))
     return scm_asm_asm_inst_iof_raw(asmb, opcode, inst, n);
 
   new_inst[0] = inst[0];
-  if (scm_fcd_pair_p(inst[1])) {
+  if (scm_pair_p(inst[1])) {
     new_inst[1] = SCM_TRUE_OBJ;
-    new_inst[2] = scm_fcd_list_ref(inst[1], 1);
+    new_inst[2] = scm_list_ref(inst[1], 1);
     return scm_asm_asm_inst_iof_raw(asmb, opcode, new_inst, 3);
   }
-  else if (scm_fcd_integer_p(inst[1])) {
+  else if (scm_num_integer_p(inst[1])) {
     new_inst[1] = SCM_FALSE_OBJ;
     new_inst[2] = inst[1];
     return scm_asm_asm_inst_iof_raw(asmb, opcode, new_inst, 3);
   }
   else {
-    scm_fcd_error("assembler: invalid operands", 2, inst[0], inst[1]);
+    scm_error("assembler: invalid operands", 2, inst[0], inst[1]);
     return -1;
   }
 
@@ -1455,20 +1382,20 @@ scm_asm_asm_inst_label(ScmObj asmb,
 
   SCM_REFSTK_INIT_REG(&asmb);
 
-  scm_assert(scm_fcd_assembler_p(asmb));
+  scm_assert(scm_assembler_p(asmb));
   scm_assert(opcode >= SCM_ASM_PI_START);
   scm_assert(n == 0 || inst != NULL);
 
   rslt = scm_asm_chk_nr_operand(inst, n, 1, 1);
   if (rslt < 0) return -1;
 
-  if (!scm_fcd_integer_p(inst[1]) || !scm_fcd_positive_p(inst[1])) {
-    scm_fcd_error("assembler: label id: positive integer requried",
-                  2, inst[0], inst[1]);
+  if (!scm_num_integer_p(inst[1]) || !scm_num_positive_p(inst[1])) {
+    scm_error("assembler: label id: positive integer requried",
+              2, inst[0], inst[1]);
     return -1;
   }
 
-  rslt = scm_fcd_integer_to_size_t(inst[1], &id);
+  rslt = scm_integer_to_size_t(inst[1], &id);
   if (rslt < 0) return -1;
 
   rslt = scm_asm_register_label_id(asmb, id);
@@ -1487,7 +1414,7 @@ scm_asm_assemble_1inst_cv(ScmObj asmb, const ScmObj *inst, size_t n)
 
   SCM_REFSTK_INIT_REG(&asmb);
 
-  scm_assert(scm_fcd_assembler_p(asmb));
+  scm_assert(scm_assembler_p(asmb));
   scm_assert(n == 0 || inst != NULL);
 
   opcode = scm_asm_sym2opcode(inst[0]);
@@ -1541,20 +1468,18 @@ scm_asm_asm_inst_list_to_cv(ScmObj lst, ScmObj *cv, size_t n)
   ScmObj x = SCM_OBJ_INIT;
   size_t cnt;
 
-  scm_assert(scm_fcd_nil_p(lst) || scm_fcd_pair_p(lst));
+  scm_assert(scm_nil_p(lst) || scm_pair_p(lst));
   scm_assert(cv != NULL);
 
-  for (x = lst, cnt = 0;
-       scm_fcd_pair_p(x) && cnt < n;
-       x = scm_fcd_cdr(x), cnt++)
-    cv[cnt] = scm_fcd_car(x);
+  for (x = lst, cnt = 0; scm_pair_p(x) && cnt < n; x = scm_cdr(x), cnt++)
+    cv[cnt] = scm_car(x);
 
-  if (scm_fcd_pair_p(x)) {
-    scm_fcd_error("assembler: too many operands", 1, lst);
+  if (scm_pair_p(x)) {
+    scm_error("assembler: too many operands", 1, lst);
     return -1;
   }
   else if (cnt == 0) {
-    scm_fcd_error("assembler: invalid assembler format", 1, lst);
+    scm_error("assembler: invalid assembler format", 1, lst);
     return -1;
   }
 
@@ -1573,8 +1498,8 @@ scm_asm_assemble_1inst(ScmObj asmb, ScmObj inst)
   for (int i = 0; i < SCM_ASM_NR_OPD_MAX + 1; i++) cv[i] = SCM_OBJ_NULL;
   SCM_REFSTK_REG_ARY(cv, SCM_ASM_NR_OPD_MAX + 1);
 
-  scm_assert(scm_fcd_assembler_p(asmb));
-  scm_assert(scm_fcd_pair_p(inst) || scm_fcd_nil_p(inst));
+  scm_assert(scm_assembler_p(asmb));
+  scm_assert(scm_pair_p(inst) || scm_nil_p(inst));
 
   n = scm_asm_asm_inst_list_to_cv(inst, cv, SCM_ASM_NR_OPD_MAX + 1);
   if (n < 0) return -1;
@@ -1590,11 +1515,11 @@ scm_asm_assemble(ScmObj asmb, ScmObj lst)
   SCM_REFSTK_INIT_REG(&asmb, &lst,
                       &cur);
 
-  scm_assert(scm_fcd_assembler_p(asmb));
-  scm_assert(scm_fcd_pair_p(lst) || scm_fcd_nil_p(lst));
+  scm_assert(scm_assembler_p(asmb));
+  scm_assert(scm_pair_p(lst) || scm_nil_p(lst));
 
-  for (cur = lst; scm_fcd_pair_p(cur); cur = scm_fcd_cdr(cur)) {
-    int r = scm_asm_assemble_1inst(asmb, scm_fcd_car(cur));
+  for (cur = lst; scm_pair_p(cur); cur = scm_cdr(cur)) {
+    int r = scm_asm_assemble_1inst(asmb, scm_car(cur));
     if (r < 0) return -1;
   }
 
@@ -1602,34 +1527,34 @@ scm_asm_assemble(ScmObj asmb, ScmObj lst)
 }
 
 static ScmObj
-scm_asm_disasm_inst_noopd(const ScmDisasmToken *tk, ScmObj mne)
+scm_disasm_inst_noopd(const ScmDisasmToken *tk, ScmObj mne)
 {
   scm_assert(tk != NULL);
-  scm_assert(scm_fcd_symbol_p(mne));
+  scm_assert(scm_symbol_p(mne));
 
-  return scm_fcd_cons(mne, SCM_NIL_OBJ);
+  return scm_cons(mne, SCM_NIL_OBJ);
 }
 
 static ScmObj
-scm_asm_disasm_inst_obj(const ScmDisasmToken *tk, ScmObj mne)
+scm_disasm_inst_obj(const ScmDisasmToken *tk, ScmObj mne)
 {
   scm_assert(tk != NULL);
-  scm_assert(scm_fcd_symbol_p(mne));
+  scm_assert(scm_symbol_p(mne));
 
-  return scm_fcd_list(2, mne, tk->inst.i.obj.opd1);
+  return scm_list(2, mne, tk->inst.i.obj.opd1);
 }
 
 static ScmObj
-scm_asm_disasm_inst_obj_obj(const ScmDisasmToken *tk, ScmObj mne)
+scm_disasm_inst_obj_obj(const ScmDisasmToken *tk, ScmObj mne)
 {
   scm_assert(tk != NULL);
-  scm_assert(scm_fcd_symbol_p(mne));
+  scm_assert(scm_symbol_p(mne));
 
-  return scm_fcd_list(3, mne, tk->inst.i.obj_obj.opd1, tk->inst.i.obj_obj.opd2);
+  return scm_list(3, mne, tk->inst.i.obj_obj.opd1, tk->inst.i.obj_obj.opd2);
 }
 
 static ScmObj
-scm_asm_disasm_inst_si(const ScmDisasmToken *tk, ScmObj mne)
+scm_disasm_inst_si(const ScmDisasmToken *tk, ScmObj mne)
 {
   ScmObj num1 = SCM_OBJ_INIT;
 
@@ -1637,16 +1562,16 @@ scm_asm_disasm_inst_si(const ScmDisasmToken *tk, ScmObj mne)
                       &num1);
 
   scm_assert(tk != NULL);
-  scm_assert(scm_fcd_symbol_p(mne));
+  scm_assert(scm_symbol_p(mne));
 
-  num1 = scm_fcd_make_number_from_sword(tk->inst.i.si.opd1);
+  num1 = scm_make_number_from_sword(tk->inst.i.si.opd1);
   if (scm_obj_null_p(num1)) return SCM_OBJ_NULL;
 
-  return scm_fcd_list(2, mne, num1);
+  return scm_list(2, mne, num1);
 }
 
 static ScmObj
-scm_asm_disasm_inst_si_si(const ScmDisasmToken *tk, ScmObj mne)
+scm_disasm_inst_si_si(const ScmDisasmToken *tk, ScmObj mne)
 {
   ScmObj num1 = SCM_OBJ_INIT, num2 = SCM_OBJ_INIT;
 
@@ -1654,19 +1579,19 @@ scm_asm_disasm_inst_si_si(const ScmDisasmToken *tk, ScmObj mne)
                       &num1, &num2);
 
   scm_assert(tk != NULL);
-  scm_assert(scm_fcd_symbol_p(mne));
+  scm_assert(scm_symbol_p(mne));
 
-  num1 = scm_fcd_make_number_from_sword(tk->inst.i.si_si.opd1);
+  num1 = scm_make_number_from_sword(tk->inst.i.si_si.opd1);
   if (scm_obj_null_p(num1)) return SCM_OBJ_NULL;
 
-  num2 = scm_fcd_make_number_from_sword(tk->inst.i.si_si.opd2);
+  num2 = scm_make_number_from_sword(tk->inst.i.si_si.opd2);
   if (scm_obj_null_p(num2)) return SCM_OBJ_NULL;
 
-  return scm_fcd_list(3, mne, num1, num2);
+  return scm_list(3, mne, num1, num2);
 }
 
 static ScmObj
-scm_asm_disasm_inst_si_si_obj(const ScmDisasmToken *tk, ScmObj mne)
+scm_disasm_inst_si_si_obj(const ScmDisasmToken *tk, ScmObj mne)
 {
   ScmObj num1 = SCM_OBJ_INIT, num2 = SCM_OBJ_INIT;
 
@@ -1674,19 +1599,19 @@ scm_asm_disasm_inst_si_si_obj(const ScmDisasmToken *tk, ScmObj mne)
                       &num1, &num2);
 
   scm_assert(tk != NULL);
-  scm_assert(scm_fcd_symbol_p(mne));
+  scm_assert(scm_symbol_p(mne));
 
-  num1 = scm_fcd_make_number_from_sword(tk->inst.i.si_si_obj.opd1);
+  num1 = scm_make_number_from_sword(tk->inst.i.si_si_obj.opd1);
   if (scm_obj_null_p(num1)) return SCM_OBJ_NULL;
 
-  num2 = scm_fcd_make_number_from_sword(tk->inst.i.si_si_obj.opd2);
+  num2 = scm_make_number_from_sword(tk->inst.i.si_si_obj.opd2);
   if (scm_obj_null_p(num2)) return SCM_OBJ_NULL;
 
-  return scm_fcd_list(4, mne, num1, num2, tk->inst.i.si_si_obj.opd3);
+  return scm_list(4, mne, num1, num2, tk->inst.i.si_si_obj.opd3);
 }
 
 static ScmObj
-scm_asm_disasm_inst_iof(const ScmDisasmToken *tk, ScmObj mne)
+scm_disasm_inst_iof(const ScmDisasmToken *tk, ScmObj mne)
 {
   ScmObj sym = SCM_OBJ_INIT, inst = SCM_OBJ_INIT;
 
@@ -1694,50 +1619,50 @@ scm_asm_disasm_inst_iof(const ScmDisasmToken *tk, ScmObj mne)
                       &sym, &inst);
 
   scm_assert(tk != NULL);
-  scm_assert(scm_fcd_symbol_p(mne));
+  scm_assert(scm_symbol_p(mne));
 
-  sym = scm_fcd_make_symbol_from_cstr("label", SCM_ENC_SRC);
+  sym = scm_make_symbol_from_cstr("label", SCM_ENC_SRC);
   if (scm_obj_null_p(sym)) return SCM_OBJ_NULL;
 
-  inst = scm_fcd_make_number_from_size_t(tk->label_id);
+  inst = scm_make_number_from_size_t(tk->label_id);
   if (scm_obj_null_p(inst)) return SCM_OBJ_NULL;
 
-  inst = scm_fcd_list(2, sym, inst);
+  inst = scm_list(2, sym, inst);
   if (scm_obj_null_p(inst)) return SCM_OBJ_NULL;
 
-  return scm_fcd_list(2, mne, inst);
+  return scm_list(2, mne, inst);
 }
 
 static ScmObj
-scm_asm_disasm_inst(const ScmDisasmToken *tk, ScmObj mne)
+scm_disasm_inst(const ScmDisasmToken *tk, ScmObj mne)
 {
   scm_assert(tk != NULL);
-  scm_assert(scm_fcd_symbol_p(mne));
+  scm_assert(scm_symbol_p(mne));
 
   switch (tk->inst.fmt) {
   case SCM_OPFMT_NOOPD:
-    return scm_asm_disasm_inst_noopd(tk, mne);
+    return scm_disasm_inst_noopd(tk, mne);
     break;
   case SCM_OPFMT_OBJ:
-    return scm_asm_disasm_inst_obj(tk, mne);
+    return scm_disasm_inst_obj(tk, mne);
     break;
   case SCM_OPFMT_OBJ_OBJ:
-    return scm_asm_disasm_inst_obj_obj(tk, mne);
+    return scm_disasm_inst_obj_obj(tk, mne);
     break;
   case SCM_OPFMT_SI:
-    return scm_asm_disasm_inst_si(tk, mne);
+    return scm_disasm_inst_si(tk, mne);
     break;
   case SCM_OPFMT_SI_SI:
-    return scm_asm_disasm_inst_si_si(tk, mne);
+    return scm_disasm_inst_si_si(tk, mne);
     break;
   case SCM_OPFMT_SI_SI_OBJ:
-    return scm_asm_disasm_inst_si_si_obj(tk, mne);
+    return scm_disasm_inst_si_si_obj(tk, mne);
     break;
   case SCM_OPFMT_IOF:
-    return scm_asm_disasm_inst_iof(tk, mne);
+    return scm_disasm_inst_iof(tk, mne);
     break;
   default:
-    scm_fcd_error("failed to disassemble: unknown instructin format", 0);
+    scm_error("failed to disassemble: unknown instructin format", 0);
     break;
   }
 
@@ -1745,7 +1670,7 @@ scm_asm_disasm_inst(const ScmDisasmToken *tk, ScmObj mne)
 }
 
 static ScmObj
-scm_asm_disasm_label(const ScmDisasmToken *tk, ScmObj mne)
+scm_disasm_label(const ScmDisasmToken *tk, ScmObj mne)
 {
   ScmObj num = SCM_OBJ_INIT;
 
@@ -1753,16 +1678,16 @@ scm_asm_disasm_label(const ScmDisasmToken *tk, ScmObj mne)
                       &num);
 
   scm_assert(tk != NULL);
-  scm_assert(scm_fcd_symbol_p(mne));
+  scm_assert(scm_symbol_p(mne));
 
-  num = scm_fcd_make_number_from_size_t(tk->label_id);
+  num = scm_make_number_from_size_t(tk->label_id);
   if (scm_obj_null_p(num)) return SCM_OBJ_NULL;
 
-  return scm_fcd_list(2, mne, num);
+  return scm_list(2, mne, num);
 }
 
 ScmObj
-scm_asm_disassemble(ScmObj disasm)
+scm_disasm_disassemble(ScmObj disasm)
 {
   ScmObj list = SCM_OBJ_INIT, tail = SCM_OBJ_INIT, inst = SCM_OBJ_INIT;
   ScmObj mne = SCM_OBJ_INIT;
@@ -1772,9 +1697,9 @@ scm_asm_disassemble(ScmObj disasm)
   SCM_REFSTK_INIT_REG(&disasm,
                       &list, &tail, &inst);
 
-  scm_assert(scm_fcd_disassembler_p(disasm));
+  scm_assert(scm_disassembler_p(disasm));
 
-  list = tail = scm_fcd_cons(SCM_UNDEF_OBJ, SCM_NIL_OBJ);
+  list = tail = scm_cons(SCM_UNDEF_OBJ, SCM_NIL_OBJ);
   if (scm_obj_null_p(list)) return SCM_OBJ_NULL;
 
   while ((tk = scm_disasm_token(disasm)) != NULL
@@ -1784,10 +1709,10 @@ scm_asm_disassemble(ScmObj disasm)
 
     switch (tk->type) {
     case SCM_DISASM_TK_INST:
-      inst = scm_asm_disasm_inst(tk, mne);
+      inst = scm_disasm_inst(tk, mne);
       break;
     case SCM_DISASM_TK_LABEL:
-      inst = scm_asm_disasm_label(tk, mne);
+      inst = scm_disasm_label(tk, mne);
       break;
     default:
       scm_assert(false);
@@ -1797,10 +1722,10 @@ scm_asm_disassemble(ScmObj disasm)
 
     if (scm_obj_null_p(inst)) return SCM_OBJ_NULL;
 
-    inst = scm_fcd_cons(inst, SCM_NIL_OBJ);
+    inst = scm_cons(inst, SCM_NIL_OBJ);
     if (scm_obj_null_p(inst)) return SCM_OBJ_NULL;
 
-    scm_fcd_set_cdr_i(tail, inst);
+    scm_set_cdr(tail, inst);
     tail = inst;
 
     r = scm_disasm_next(disasm);
@@ -1809,9 +1734,115 @@ scm_asm_disassemble(ScmObj disasm)
 
   if (tk == NULL) return SCM_OBJ_NULL;
 
-  return scm_fcd_cdr(list);
+  return scm_cdr(list);
 }
 
+static ScmObj
+asm_get_asmb(ScmObj acc)
+{
+  if (scm_assembler_p(acc))
+    return acc;
+  else
+    return scm_make_assembler(acc);
+}
+
+static ScmObj
+asm_return_result(ScmObj asmb, ScmObj acc)
+{
+  if (scm_assembler_p(acc)) {
+    return acc;
+  }
+  else {
+    int r = scm_asm_commit(asmb);
+    if (r < 0) return SCM_OBJ_NULL;
+
+    return scm_asm_iseq(asmb);
+  }
+}
+
+ScmObj
+scm_assemble_1inst_cv(const ScmObj *inst, size_t n, ScmObj acc)
+{
+  ScmObj asmb = SCM_OBJ_INIT;
+  int r;
+
+  SCM_REFSTK_INIT_REG(&acc,
+                      &asmb);
+
+  scm_assert(n == 0 || inst != NULL);
+  scm_assert(scm_obj_null_p(acc)
+             || scm_iseq_p(acc) || scm_assembler_p(acc));
+
+  asmb = asm_get_asmb(acc);
+  if (scm_obj_null_p(asmb)) return SCM_OBJ_NULL;
+
+  r = scm_asm_assemble_1inst_cv(asmb, inst, n);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return asm_return_result(asmb, acc);
+}
+
+ScmObj
+scm_assemble_1inst(ScmObj inst, ScmObj acc)
+{
+  ScmObj asmb = SCM_OBJ_INIT;
+  int r;
+
+  SCM_REFSTK_INIT_REG(&inst, &acc,
+                      &asmb);
+
+  scm_assert(scm_pair_p(inst) || scm_nil_p(inst));
+  scm_assert(scm_obj_null_p(acc)
+             || scm_iseq_p(acc) || scm_assembler_p(acc));
+
+  asmb = asm_get_asmb(acc);
+  if (scm_obj_null_p(asmb)) return SCM_OBJ_NULL;
+
+  r = scm_asm_assemble_1inst(asmb, inst);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return asm_return_result(asmb, acc);
+}
+
+ScmObj
+scm_assemble(ScmObj lst, ScmObj acc)
+{
+  ScmObj asmb = SCM_OBJ_INIT;
+  int r;
+
+  SCM_REFSTK_INIT_REG(&lst, &acc,
+                      &asmb);
+
+  scm_assert(scm_pair_p(lst) || scm_nil_p(lst));
+  scm_assert(scm_obj_null_p(acc)
+             || scm_iseq_p(acc) || scm_assembler_p(acc));
+
+  asmb = asm_get_asmb(acc);
+  if (scm_obj_null_p(asmb)) return SCM_OBJ_NULL;
+
+  r = scm_asm_assemble(asmb, lst);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return asm_return_result(asmb, acc);
+}
+
+ScmObj
+scm_disassemble(ScmObj obj)
+{
+  scm_assert(scm_iseq_p(obj) || scm_disassembler_p(obj));
+
+  if (scm_iseq_p(obj)) {
+    obj = scm_make_disassembler(obj);
+    if (scm_obj_null_p(obj)) return SCM_OBJ_NULL;
+  }
+
+  return scm_disasm_disassemble(obj);
+}
+
+
+/**************************************************************************/
+/* Printable/Unprintable                                                  */
+/**************************************************************************/
 
 #define SCM_ASM_PRINTABLE_MNE_UNDEF      "undef"
 #define SCM_ASM_PRINTABLE_MNE_UNINIT     "uninit"
@@ -1822,11 +1853,11 @@ scm_asm_unprintable_inst_undef(ScmObj inst)
 {
   ScmObj op = SCM_OBJ_INIT;
 
-  op = scm_fcd_make_symbol_from_cstr(scm_asm_opcode2mnemonic(SCM_OPCODE_IMMVAL),
-                                     SCM_ENC_SRC);
+  op = scm_make_symbol_from_cstr(scm_asm_opcode2mnemonic(SCM_OPCODE_IMMVAL),
+                                 SCM_ENC_SRC);
   if (scm_obj_null_p(op)) return SCM_OBJ_NULL;
 
-  return scm_fcd_list(2, op, SCM_UNDEF_OBJ);
+  return scm_list(2, op, SCM_UNDEF_OBJ);
 }
 
 static ScmObj
@@ -1834,11 +1865,11 @@ scm_asm_unprintable_inst_uninit(ScmObj inst)
 {
   ScmObj op = SCM_OBJ_INIT;
 
-  op = scm_fcd_make_symbol_from_cstr(scm_asm_opcode2mnemonic(SCM_OPCODE_IMMVAL),
-                                     SCM_ENC_SRC);
+  op = scm_make_symbol_from_cstr(scm_asm_opcode2mnemonic(SCM_OPCODE_IMMVAL),
+                                 SCM_ENC_SRC);
   if (scm_obj_null_p(op)) return SCM_OBJ_NULL;
 
-  return scm_fcd_list(2, op, SCM_UNINIT_OBJ);
+  return scm_list(2, op, SCM_UNINIT_OBJ);
 }
 
 static ScmObj
@@ -1849,19 +1880,19 @@ scm_asm_unprintable_inst_qqtemplate(ScmObj inst)
   SCM_REFSTK_INIT_REG(&inst,
                       &op, &qq);
 
-  op = scm_fcd_make_symbol_from_cstr(scm_asm_opcode2mnemonic(SCM_OPCODE_IMMVAL),
-                                     SCM_ENC_SRC);
+  op = scm_make_symbol_from_cstr(scm_asm_opcode2mnemonic(SCM_OPCODE_IMMVAL),
+                                 SCM_ENC_SRC);
   if (scm_obj_null_p(op)) return SCM_OBJ_NULL;
 
-  qq = scm_fcd_list_ref(inst, 1);
+  qq = scm_list_ref(inst, 1);
   if (scm_obj_null_p(qq)) return SCM_OBJ_NULL;
 
-  if (!scm_fcd_qqtmpl_p(qq)) {
-    qq = scm_fcd_compile_qq_template(qq);
+  if (!scm_qqtmpl_p(qq)) {
+    qq = scm_compile_qq_template(qq);
     if (scm_obj_null_p(qq)) return SCM_OBJ_NULL;
   }
 
-  return scm_fcd_list(2, op, qq);
+  return scm_list(2, op, qq);
 }
 
 static ScmObj
@@ -1873,27 +1904,27 @@ scm_asm_unprintable_inst_close(ScmObj inst)
   SCM_REFSTK_INIT_REG(&inst,
                       &new, &body);
 
-  body = scm_fcd_list_ref(inst, 3);
+  body = scm_list_ref(inst, 3);
   if (scm_obj_null_p(body)) return SCM_OBJ_NULL;
 
-  if (scm_fcd_assembler_p(body)) {
+  if (scm_assembler_p(body)) {
     body = scm_asm_iseq(body);
   }
-  else if (!scm_fcd_iseq_p(body)) {
-    body = scm_asm_unprintable(body);
+  else if (!scm_iseq_p(body)) {
+    body = scm_unprintable_asm(body);
     if (scm_obj_null_p(body)) return SCM_OBJ_NULL;
 
-    body = scm_fcd_assemble(body, SCM_OBJ_NULL);
+    body = scm_assemble(body, SCM_OBJ_NULL);
     if (scm_obj_null_p(body)) return SCM_OBJ_NULL;
   }
   else {
     return inst;
   }
 
-  new = scm_fcd_list_copy(inst);
+  new = scm_list_copy(inst);
   if (scm_obj_null_p(new)) return SCM_OBJ_NULL;
 
-  r = scm_fcd_list_set_i(new, 3, body);
+  r = scm_list_set(new, 3, body);
   if (r < 0) return SCM_OBJ_NULL;
 
   return new;
@@ -1907,30 +1938,28 @@ scm_asm_printable_inst_immval(ScmObj inst)
   SCM_REFSTK_INIT_REG(&inst,
                       &val, &op);
 
-  val = scm_fcd_list_ref(inst, 1);
+  val = scm_list_ref(inst, 1);
   if (scm_obj_null_p(val)) return SCM_OBJ_NULL;
 
-  if (scm_fcd_undef_object_p(val)) {
-    op = scm_fcd_make_symbol_from_cstr(SCM_ASM_PRINTABLE_MNE_UNDEF,
-                                       SCM_ENC_SRC);
+  if (scm_undef_object_p(val)) {
+    op = scm_make_symbol_from_cstr(SCM_ASM_PRINTABLE_MNE_UNDEF, SCM_ENC_SRC);
     if (scm_obj_null_p(op)) return SCM_OBJ_NULL;
-    return scm_fcd_list(1, op);
+    return scm_list(1, op);
   }
-  else if (scm_fcd_landmine_object_p(val)) {
-    op = scm_fcd_make_symbol_from_cstr(SCM_ASM_PRINTABLE_MNE_UNINIT,
-                                       SCM_ENC_SRC);
+  else if (scm_landmine_object_p(val)) {
+    op = scm_make_symbol_from_cstr(SCM_ASM_PRINTABLE_MNE_UNINIT, SCM_ENC_SRC);
     if (scm_obj_null_p(op)) return SCM_OBJ_NULL;
-    return scm_fcd_list(1, op);
+    return scm_list(1, op);
   }
-  else if (scm_fcd_qqtmpl_p(val)) {
-    op = scm_fcd_make_symbol_from_cstr(SCM_ASM_PRINTABLE_MNE_QQTEMPLATE,
-                                       SCM_ENC_SRC);
+  else if (scm_qqtmpl_p(val)) {
+    op = scm_make_symbol_from_cstr(SCM_ASM_PRINTABLE_MNE_QQTEMPLATE,
+                                   SCM_ENC_SRC);
     if (scm_obj_null_p(op)) return SCM_OBJ_NULL;
 
-    val = scm_fcd_qqtmpl_template(val);
+    val = scm_qqtmpl_template(val);
     if (scm_obj_null_p(val)) return SCM_OBJ_NULL;
 
-    return scm_fcd_list(2, op, val);
+    return scm_list(2, op, val);
   }
   else {
     return inst;
@@ -1946,24 +1975,24 @@ scm_asm_printable_inst_close(ScmObj inst)
   SCM_REFSTK_INIT_REG(&inst,
                       &body, &printable);
 
-  body = scm_fcd_list_ref(inst, 3);
+  body = scm_list_ref(inst, 3);
   if (scm_obj_null_p(body)) return SCM_OBJ_NULL;
 
-  if (scm_fcd_iseq_p(body)) {
-    body = scm_fcd_disassemble(body);
+  if (scm_iseq_p(body)) {
+    body = scm_disassemble(body);
     if (scm_obj_null_p(body)) return SCM_OBJ_NULL;
 
-    body = scm_asm_printable(body);
+    body = scm_printable_asm(body);
     if (scm_obj_null_p(body)) return SCM_OBJ_NULL;
   }
 
-  body = scm_asm_printable(body);
+  body = scm_printable_asm(body);
   if (scm_obj_null_p(body)) return SCM_OBJ_NULL;
 
-  printable = scm_fcd_list_copy(inst);
+  printable = scm_list_copy(inst);
   if (scm_obj_null_p(printable)) return SCM_OBJ_NULL;
 
-  r = scm_fcd_list_set_i(printable, 3, body);
+  r = scm_list_set(printable, 3, body);
   if (r < 0) return SCM_OBJ_NULL;
 
   return printable;
@@ -1977,19 +2006,19 @@ scm_asm_printable_inst_global_var(ScmObj inst)
   SCM_REFSTK_INIT_REG(&inst,
                       &module, &var);
 
-  var = scm_fcd_list_ref(inst, 1);
+  var = scm_list_ref(inst, 1);
   if (scm_obj_null_p(var)) return SCM_OBJ_NULL;
 
-  module = scm_fcd_list_ref(inst, 2);
+  module = scm_list_ref(inst, 2);
   if (scm_obj_null_p(module)) return SCM_OBJ_NULL;
 
-  if (scm_fcd_gloc_p(var))
-    var = scm_fcd_gloc_symbol(var);
+  if (scm_gloc_p(var))
+    var = scm_gloc_symbol(var);
 
-  if (scm_fcd_module_p(module))
-    module = scm_fcd_module_name(module);
+  if (scm_module_p(module))
+    module = scm_module_name(module);
 
-  return scm_fcd_list(3, scm_fcd_car(inst), var, module);
+  return scm_list(3, scm_car(inst), var, module);
 }
 
 struct scm_asm_cnv {
@@ -2005,13 +2034,13 @@ scm_asm_printable_inst_module(ScmObj inst)
   SCM_REFSTK_INIT_REG(&inst,
                       &module);
 
-  module = scm_fcd_list_ref(inst, 1);
+  module = scm_list_ref(inst, 1);
   if (scm_obj_null_p(module)) return SCM_OBJ_NULL;
 
-  if (scm_fcd_module_p(module))
-    module = scm_fcd_module_name(module);
+  if (scm_module_p(module))
+    module = scm_module_name(module);
 
-  return scm_fcd_list(2, scm_fcd_car(inst), module);
+  return scm_list(2, scm_car(inst), module);
 }
 
 static ScmObj
@@ -2024,11 +2053,11 @@ scm_asm_convert_inst(ScmObj inst, const struct scm_asm_cnv *cnv)
   SCM_REFSTK_INIT_REG(&inst,
                       &op);
 
-  scm_assert(scm_fcd_pair_p(inst));
+  scm_assert(scm_pair_p(inst));
 
-  op = scm_fcd_car(inst);
+  op = scm_car(inst);
   for (size_t i = 0; cnv[i].op != NULL; i++) {
-    r = scm_fcd_symbol_eq_cstr(op, cnv[i].op, SCM_ENC_SRC, &cmp);
+    r = scm_symbol_eq_cstr(op, cnv[i].op, SCM_ENC_SRC, &cmp);
     if (r < 0) return SCM_OBJ_NULL;
 
     if (cmp)
@@ -2039,7 +2068,7 @@ scm_asm_convert_inst(ScmObj inst, const struct scm_asm_cnv *cnv)
 }
 
 ScmObj
-scm_asm_unprintable_inst(ScmObj inst)
+scm_unprintable_asm_inst(ScmObj inst)
 {
   static const struct scm_asm_cnv tbl[] = {
     { .op   = SCM_ASM_PRINTABLE_MNE_UNDEF,
@@ -2054,12 +2083,12 @@ scm_asm_unprintable_inst(ScmObj inst)
       .func = NULL },
   };
 
-  scm_assert(scm_fcd_pair_p(inst));
+  scm_assert(scm_pair_p(inst));
   return scm_asm_convert_inst(inst, tbl);
 }
 
 ScmObj
-scm_asm_printable_inst(ScmObj inst)
+scm_printable_asm_inst(ScmObj inst)
 {
   static const struct scm_asm_cnv tbl[] = {
     { .op = "immval", .func = scm_asm_printable_inst_immval, },
@@ -2071,49 +2100,54 @@ scm_asm_printable_inst(ScmObj inst)
     { .op = NULL,     .func = NULL },
   };
 
-  scm_assert(scm_fcd_pair_p(inst));
+  scm_assert(scm_pair_p(inst));
   return scm_asm_convert_inst(inst, tbl);
 }
 
 ScmObj
-scm_asm_unprintable(ScmObj lst)
+scm_unprintable_asm(ScmObj lst)
 {
   ScmObj inst = SCM_OBJ_INIT, rest = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&lst,
                       &inst);
 
-  if (!scm_fcd_pair_p(lst))
+  if (!scm_pair_p(lst))
     return lst;
 
-  inst = scm_asm_unprintable_inst(scm_fcd_car(lst));
+  inst = scm_unprintable_asm_inst(scm_car(lst));
   if (scm_obj_null_p(inst)) return SCM_OBJ_NULL;
 
-  rest = scm_asm_unprintable(scm_fcd_cdr(lst));
+  rest = scm_unprintable_asm(scm_cdr(lst));
   if (scm_obj_null_p(rest)) return SCM_OBJ_NULL;
 
-  return scm_fcd_cons(inst, rest);
+  return scm_cons(inst, rest);
 }
 
 ScmObj
-scm_asm_printable(ScmObj lst)
+scm_printable_asm(ScmObj lst)
 {
   ScmObj inst = SCM_OBJ_INIT, rest = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&lst,
                       &inst);
 
-  if (!scm_fcd_pair_p(lst))
+  if (!scm_pair_p(lst))
     return lst;
 
-  inst = scm_asm_printable_inst(scm_fcd_car(lst));
+  inst = scm_printable_asm_inst(scm_car(lst));
   if (scm_obj_null_p(inst)) return SCM_OBJ_NULL;
 
-  rest = scm_asm_printable(scm_fcd_cdr(lst));
+  rest = scm_printable_asm(scm_cdr(lst));
   if (scm_obj_null_p(rest)) return SCM_OBJ_NULL;
 
-  return scm_fcd_cons(inst, rest);
+  return scm_cons(inst, rest);
 }
+
+
+/**************************************************************************/
+/* etc                                                                    */
+/**************************************************************************/
 
 int
 scm_asm_mnemonic2opcode(const char *mne)
@@ -2150,175 +2184,42 @@ scm_asm_mnemonic(scm_opcode_t opcode)
 
   p = scm_asm_opcode2mnemonic(opcode);
   if (p == NULL) {
-    scm_fcd_error("assembler: unknown opcode", 0);
+    scm_error("assembler: unknown opcode", 0);
     return SCM_OBJ_NULL;
   }
 
-  return  scm_fcd_make_symbol_from_cstr(p, SCM_ENC_SRC);
-}
-
-
-/**************************************************************************/
-/* Assemble/Disassemble (interface)                                       */
-/**************************************************************************/
-
-static ScmObj
-asm_get_asmb(ScmObj acc)
-{
-  if (scm_fcd_assembler_p(acc))
-    return acc;
-  else
-    return scm_fcd_make_assembler(acc);
-}
-
-static ScmObj
-asm_return_result(ScmObj asmb, ScmObj acc)
-{
-  if (scm_fcd_assembler_p(acc)) {
-    return acc;
-  }
-  else {
-    int r = scm_fcd_assembler_commit(asmb);
-    if (r < 0) return SCM_OBJ_NULL;
-
-    return scm_asm_iseq(asmb);
-  }
-}
-
-ScmObj
-scm_fcd_assemble_1inst_cv(const ScmObj *inst, size_t n, ScmObj acc)
-{
-  ScmObj asmb = SCM_OBJ_INIT;
-  int r;
-
-  SCM_REFSTK_INIT_REG(&acc,
-                      &asmb);
-
-  scm_assert(n == 0 || inst != NULL);
-  scm_assert(scm_obj_null_p(acc)
-             || scm_fcd_iseq_p(acc) || scm_fcd_assembler_p(acc));
-
-  asmb = asm_get_asmb(acc);
-  if (scm_obj_null_p(asmb)) return SCM_OBJ_NULL;
-
-  r = scm_asm_assemble_1inst_cv(asmb, inst, n);
-  if (r < 0) return SCM_OBJ_NULL;
-
-  return asm_return_result(asmb, acc);
-}
-
-ScmObj
-scm_fcd_assemble_1inst(ScmObj inst, ScmObj acc)
-{
-  ScmObj asmb = SCM_OBJ_INIT;
-  int r;
-
-  SCM_REFSTK_INIT_REG(&inst, &acc,
-                      &asmb);
-
-  scm_assert(scm_fcd_pair_p(inst) || scm_fcd_nil_p(inst));
-  scm_assert(scm_obj_null_p(acc)
-             || scm_fcd_iseq_p(acc) || scm_fcd_assembler_p(acc));
-
-  asmb = asm_get_asmb(acc);
-  if (scm_obj_null_p(asmb)) return SCM_OBJ_NULL;
-
-  r = scm_asm_assemble_1inst(asmb, inst);
-  if (r < 0) return SCM_OBJ_NULL;
-
-  return asm_return_result(asmb, acc);
-}
-
-ScmObj
-scm_fcd_assemble(ScmObj lst, ScmObj acc)
-{
-  ScmObj asmb = SCM_OBJ_INIT;
-  int r;
-
-  SCM_REFSTK_INIT_REG(&lst, &acc,
-                      &asmb);
-
-  scm_assert(scm_fcd_pair_p(lst) || scm_fcd_nil_p(lst));
-  scm_assert(scm_obj_null_p(acc)
-             || scm_fcd_iseq_p(acc) || scm_fcd_assembler_p(acc));
-
-  asmb = asm_get_asmb(acc);
-  if (scm_obj_null_p(asmb)) return SCM_OBJ_NULL;
-
-  r = scm_asm_assemble(asmb, lst);
-  if (r < 0) return SCM_OBJ_NULL;
-
-  return asm_return_result(asmb, acc);
-}
-
-ScmObj
-scm_fcd_disassemble(ScmObj obj)
-{
-  scm_assert(scm_fcd_iseq_p(obj) || scm_fcd_disassembler_p(obj));
-
-  if (scm_fcd_iseq_p(obj)) {
-    obj = scm_fcd_make_disassembler(obj);
-    if (scm_obj_null_p(obj)) return SCM_OBJ_NULL;
-  }
-
-  return scm_asm_disassemble(obj);
-}
-
-ScmObj
-scm_fcd_unprintable_assembler_1inst(ScmObj inst)
-{
-  scm_assert(scm_fcd_pair_p(inst));
-  return scm_asm_unprintable_inst(inst);
-}
-
-ScmObj
-scm_fcd_printable_assembler_1inst(ScmObj inst)
-{
-  scm_assert(scm_fcd_pair_p(inst));
-  return scm_asm_printable_inst(inst);
-}
-
-ScmObj
-scm_fcd_unprintable_assembler(ScmObj lst)
-{
-  return scm_asm_unprintable(lst);
-}
-
-ScmObj
-scm_fcd_printable_assembler(ScmObj lst)
-{
-  return scm_asm_printable(lst);
+  return  scm_make_symbol_from_cstr(p, SCM_ENC_SRC);
 }
 
 void
-scm_fcd_update_vminst_opd_iof(ScmObj iseq, scm_byte_t *ip, int iof)
+scm_update_vminst_opd_iof(ScmObj iseq, scm_byte_t *ip, int iof)
 {
-  scm_assert(scm_fcd_iseq_p(iseq));
-  scm_assert(scm_fcd_iseq_to_ip(iseq) <= ip
-             && ip < (scm_fcd_iseq_to_ip(iseq)
-                      + (ptrdiff_t)scm_fcd_iseq_length(iseq)
+  scm_assert(scm_iseq_p(iseq));
+  scm_assert(scm_iseq_to_ip(iseq) <= ip
+             && ip < (scm_iseq_to_ip(iseq)
+                      + (ptrdiff_t)scm_iseq_length(iseq)
                       - SCM_OPFMT_INST_SZ_IOF));
 
   scm_vminst_update_opd_iof(ip, iof, SCM_VMINST_UPD_FLG_OPD1);
 }
 
 int
-scm_fcd_update_vminst_opd_obj_obj_1(ScmObj clsr, scm_byte_t *ip, ScmObj obj)
+scm_update_vminst_opd_obj_obj_1(ScmObj clsr, scm_byte_t *ip, ScmObj obj)
 {
   ScmObj iseq = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&clsr, &obj,
                       &iseq);
 
-  scm_assert(scm_fcd_closure_p(clsr));
+  scm_assert(scm_closure_p(clsr));
   scm_assert(scm_obj_not_null_p(obj));
 
-  iseq = scm_fcd_closure_to_iseq(clsr);
+  iseq = scm_closure_iseq(clsr);
   if (scm_obj_null_p(iseq)) return -1;
 
-  scm_assert(scm_fcd_iseq_to_ip(iseq) <= ip
-             && ip < (scm_fcd_iseq_to_ip(iseq)
-                      + (ptrdiff_t)scm_fcd_iseq_length(iseq)
+  scm_assert(scm_iseq_to_ip(iseq) <= ip
+             && ip < (scm_iseq_to_ip(iseq)
+                      + (ptrdiff_t)scm_iseq_length(iseq)
                       - SCM_OPFMT_INST_SZ_OBJ_OBJ));
 
   SCM_WB_EXP(iseq, scm_vminst_update_opd_obj_obj(ip, obj, SCM_OBJ_NULL,

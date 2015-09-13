@@ -1,6 +1,6 @@
-#include "scythe/earray.h"
+#include "scythe/memory.h"
 #include "scythe/impl_utils.h"
-#include "scythe/fcd.h"
+#include "scythe/earray.h"
 
 int
 eary_init(EArray *ary, size_t rs, size_t ns)
@@ -12,7 +12,7 @@ eary_init(EArray *ary, size_t rs, size_t ns)
     ary->vec = NULL;
   }
   else {
-    ary->vec = scm_fcd_malloc(rs * ns);
+    ary->vec = scm_malloc(rs * ns);
     if (ary->vec == NULL) return -1;
   }
 
@@ -22,7 +22,7 @@ eary_init(EArray *ary, size_t rs, size_t ns)
 void
 eary_fin(EArray *ary)
 {
-  scm_fcd_free(ary->vec);
+  scm_free(ary->vec);
   ary->vec = NULL;
 }
 
@@ -42,7 +42,7 @@ eary_expand(EArray *ary, size_t ndd)
     ns *= EARY_MAG;
   }
 
-  void *p = scm_fcd_realloc(ary->vec, ary->rs * ns);
+  void *p = scm_realloc(ary->vec, ary->rs * ns);
   if (p == NULL)
     return -1;
 
@@ -58,7 +58,7 @@ eary_contract(EArray *ary)
   if (ary->used >= ary->cap)
     return 0;
 
-  void *p = scm_fcd_realloc(ary->vec, ary->rs * ary->used);
+  void *p = scm_realloc(ary->vec, ary->rs * ary->used);
   if (p == NULL) return -1;
 
   ary->vec = p;

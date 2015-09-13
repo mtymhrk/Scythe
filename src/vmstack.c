@@ -2,7 +2,9 @@
 #include <string.h>
 
 #include "scythe/object.h"
-#include "scythe/fcd.h"
+#include "scythe/memory.h"
+#include "scythe/refstk.h"
+#include "scythe/exception.h"
 #include "scythe/impl_utils.h"
 #include "scythe/vmstack.h"
 
@@ -108,7 +110,7 @@ scm_efbox_calc_data_size(ScmEnvFrame *efp, size_t depth)
 
   for (size_t i = 0; i < depth; i++) {
     if (e == NULL) {
-      scm_fcd_error("invalid access to environment frame: out of range", 0);
+      scm_error("invalid access to environment frame: out of range", 0);
       return -1;
     }
 
@@ -194,7 +196,7 @@ scm_efbox_initialize(ScmObj efb, ScmEnvFrame *efp, size_t depth)
   }
 
   SCM_EFBOX(efb)->size = (size_t)data_size;
-  SCM_EFBOX(efb)->data = scm_fcd_malloc((size_t)data_size);
+  SCM_EFBOX(efb)->data = scm_malloc((size_t)data_size);
   if (SCM_EFBOX(efb)->data == NULL) return -1;
 
   SCM_EFBOX(efb)->efp = scm_efbox_copy_ef(efb, efp, depth);
@@ -211,7 +213,7 @@ scm_efbox_finalize(ScmObj efb)
   if (SCM_EFBOX(efb)->data == NULL)
     return;
 
-  scm_fcd_free(SCM_EFBOX(efb)->data);
+  scm_free(SCM_EFBOX(efb)->data);
   SCM_EFBOX(efb)->data = NULL;
 }
 
@@ -224,7 +226,7 @@ scm_efbox_new(scm_mem_type_t mtype, ScmEnvFrame *efp, size_t depth)
   scm_assert(efp != NULL);
   scm_assert(depth > 0);
 
-  efb = scm_fcd_mem_alloc(&SCM_EFBOX_TYPE_INFO, 0, mtype);
+  efb = scm_alloc_mem(&SCM_EFBOX_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(efb)) return SCM_OBJ_NULL;
 
   rslt = scm_efbox_initialize(efb, efp, depth);
@@ -297,7 +299,7 @@ scm_vmss_initialize(ScmObj vmss, size_t size)
 {
   scm_assert_obj_type(vmss, &SCM_VMSTCKSG_TYPE_INFO);
 
-  SCM_VMSTCKSG(vmss)->stack = scm_fcd_malloc(size);
+  SCM_VMSTCKSG(vmss)->stack = scm_malloc(size);
   if (SCM_VMSTCKSG(vmss)->stack == NULL) return -1;
 
   SCM_VMSTCKSG(vmss)->capacity = size;
@@ -310,7 +312,7 @@ scm_vmss_new(scm_mem_type_t mtype, size_t size)
 {
   ScmObj vmss = SCM_OBJ_INIT;
 
-  vmss = scm_fcd_mem_alloc(&SCM_VMSTCKSG_TYPE_INFO, 0, mtype);
+  vmss = scm_alloc_mem(&SCM_VMSTCKSG_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(vmss)) return SCM_OBJ_NULL;
 
   if (scm_vmss_initialize(vmss, size) < 0)
@@ -322,7 +324,7 @@ scm_vmss_new(scm_mem_type_t mtype, size_t size)
 void
 scm_vmss_gc_finalize(ScmObj obj)
 {
-  scm_fcd_free(SCM_VMSTCKSG(obj)->stack);
+  scm_free(SCM_VMSTCKSG(obj)->stack);
 }
 
 int
@@ -366,7 +368,7 @@ scm_vmsr_new(scm_mem_type_t mtype, ScmObj stack, scm_byte_t *base, ScmObj next)
   scm_assert(base != NULL);
   scm_assert_obj_type_accept_null(next, &SCM_VMSTCKRC_TYPE_INFO);
 
-  vmsr = scm_fcd_mem_alloc(&SCM_VMSTCKRC_TYPE_INFO, 0, mtype);
+  vmsr = scm_alloc_mem(&SCM_VMSTCKRC_TYPE_INFO, 0, mtype);
   if (scm_obj_null_p(vmsr)) return SCM_OBJ_NULL;
 
   if (scm_vmsr_initialize(vmsr, stack, base, next) < 0)

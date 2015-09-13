@@ -5,7 +5,12 @@
 
 #include "scythe/object.h"
 #include "scythe/chashtbl.h"
-#include "scythe/fcd.h"
+#include "scythe/memory.h"
+#include "scythe/refstk.h"
+#include "scythe/assembler.h"
+#include "scythe/equivalence.h"
+#include "scythe/compiler.h"
+#include "scythe/exception.h"
 #include "scythe/earray.h"
 #include "scythe/impl_utils.h"
 #include "scythe/iseq.h"
@@ -54,6 +59,22 @@ scm_iseq_finalize(ScmObj obj)
   eary_fin(SCM_ISEQ_EARY_OBJS(obj));
 }
 
+ScmObj
+scm_iseq_new(scm_mem_type_t mtype)
+{
+  ScmObj iseq = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&iseq);
+
+  iseq = scm_alloc_mem(&SCM_ISEQ_TYPE_INFO, 0, mtype);
+  if (scm_obj_null_p(iseq)) return SCM_OBJ_NULL;
+
+  if (scm_iseq_initialize(iseq) < 0)
+    return SCM_OBJ_NULL;
+
+  return iseq;
+}
+
 ssize_t
 scm_iseq_ip_to_offset(ScmObj iseq, scm_byte_t *ip)
 {
@@ -62,19 +83,19 @@ scm_iseq_ip_to_offset(ScmObj iseq, scm_byte_t *ip)
   scm_assert_obj_type(iseq, &SCM_ISEQ_TYPE_INFO);
 
   if (ip < SCM_ISEQ_SEQ_VEC(iseq)) {
-    scm_fcd_error("failed to calculate offset of VM instruction: out of range",
+    scm_error("failed to calculate offset of VM instruction: out of range",
                   0);
     return -1;
   }
 
   offset = (size_t)(ip - SCM_ISEQ_SEQ_VEC(iseq));
   if (offset > SCM_ISEQ_SEQ_LENGTH(iseq)) {
-    scm_fcd_error("failed to calculate offset of VM instruction: out of range",
+    scm_error("failed to calculate offset of VM instruction: out of range",
                   0);
     return -1;
   }
   else if (offset > SSIZE_MAX) {
-    scm_fcd_error("failed to calculate offset of VM instruction: "
+    scm_error("failed to calculate offset of VM instruction: "
                   "offset value too big", 0);
     return -1;
   }
@@ -95,7 +116,7 @@ scm_iseq_push_inst(ScmObj iseq, const void *inst, size_t sz,
   scm_assert(n == 0 || objs != NULL);
 
   if (SCM_ISEQ_SEQ_LENGTH(iseq) > SSIZE_MAX - sz) {
-    scm_fcd_error("failed to expand ISeq: overflow", 0);
+    scm_error("failed to expand ISeq: overflow", 0);
     return -1;
   }
 
@@ -119,6 +140,9 @@ scm_iseq_push_inst(ScmObj iseq, const void *inst, size_t sz,
   return (ssize_t)(offset + sz);
 }
 
+/* XXX: Marshal/Unmarshal の動作確認に使用する目的で作成した等価性評価関数な
+ *      ので、テスト目的以外には使用しない
+ */
 int
 scm_iseq_eq(ScmObj iseq1, ScmObj iseq2, bool *rslt)
 {
@@ -131,20 +155,19 @@ scm_iseq_eq(ScmObj iseq1, ScmObj iseq2, bool *rslt)
 
   scm_assert_obj_type(iseq1, &SCM_ISEQ_TYPE_INFO);
   scm_assert_obj_type(iseq2, &SCM_ISEQ_TYPE_INFO);
-  scm_assert(rslt != NULL);
 
   if (SCM_ISEQ_SEQ_LENGTH(iseq1) != SCM_ISEQ_SEQ_LENGTH(iseq2))
     goto not_equal;
 
-  disasm1 = scm_fcd_make_disassembler(iseq1);
+  disasm1 = scm_make_disassembler(iseq1);
   if (scm_obj_null_p(disasm1)) return -1;
 
-  disasm2 = scm_fcd_make_disassembler(iseq2);
+  disasm2 = scm_make_disassembler(iseq2);
   if (scm_obj_null_p(disasm2)) return -1;
 
-  while ((tk1 = scm_fcd_disassembler_token(disasm1)) != NULL
+  while ((tk1 = scm_disasm_token(disasm1)) != NULL
          && tk1->type != SCM_DISASM_TK_END) {
-    tk2 = scm_fcd_disassembler_token(disasm2);
+    tk2 = scm_disasm_token(disasm2);
     if (tk2 == NULL) return -1;
 
     if (tk1->type != tk2->type)
@@ -156,31 +179,29 @@ scm_iseq_eq(ScmObj iseq1, ScmObj iseq2, bool *rslt)
     if (tk1->inst.fmt != tk2->inst.fmt || tk1->inst.i.op != tk2->inst.i.op)
         goto not_equal;
 
-    r = scm_fcd_disassembler_cnv_to_marshalable(disasm1);
+    r = scm_disasm_cnv_to_marshalable(disasm1);
     if (r < 0) return -1;
 
-    r = scm_fcd_disassembler_cnv_to_marshalable(disasm2);
+    r = scm_disasm_cnv_to_marshalable(disasm2);
     if (r < 0) return -1;
 
     switch (tk1->inst.fmt) {
     case SCM_OPFMT_NOOPD:
       break;
     case SCM_OPFMT_OBJ:
-      if (scm_fcd_qqtmpl_p(tk1->inst.i.obj.opd1)
-          && scm_fcd_qqtmpl_p(tk2->inst.i.obj.opd1))
-        r = scm_fcd_qqtmpl_eq(tk1->inst.i.obj.opd1, tk2->inst.i.obj.opd1, rslt);
+      if (scm_qqtmpl_p(tk1->inst.i.obj.opd1)
+          && scm_qqtmpl_p(tk2->inst.i.obj.opd1))
+        r = scm_qqtmpl_eq(tk1->inst.i.obj.opd1, tk2->inst.i.obj.opd1, rslt);
       else
-        r = scm_fcd_equal(tk1->inst.i.obj.opd1, tk2->inst.i.obj.opd1, rslt);
+        r = scm_equal(tk1->inst.i.obj.opd1, tk2->inst.i.obj.opd1, rslt);
       if (r < 0) return -1;
       if (!*rslt) return 0;
       break;
     case SCM_OPFMT_OBJ_OBJ:
-      r = scm_fcd_equal(tk1->inst.i.obj_obj.opd1, tk2->inst.i.obj_obj.opd1,
-                        rslt);
+      r = scm_equal(tk1->inst.i.obj_obj.opd1, tk2->inst.i.obj_obj.opd1, rslt);
       if (r < 0) return -1;
       if (!*rslt) return 0;
-      r = scm_fcd_equal(tk1->inst.i.obj_obj.opd2, tk2->inst.i.obj_obj.opd2,
-                        rslt);
+      r = scm_equal(tk1->inst.i.obj_obj.opd2, tk2->inst.i.obj_obj.opd2, rslt);
       if (r < 0) return -1;
       if (!*rslt) return 0;
       break;
@@ -203,9 +224,8 @@ scm_iseq_eq(ScmObj iseq1, ScmObj iseq2, bool *rslt)
                         rslt);
       }
       else {
-        r = scm_fcd_equal(tk1->inst.i.si_si_obj.opd3,
-                          tk2->inst.i.si_si_obj.opd3,
-                        rslt);
+        r = scm_equal(tk1->inst.i.si_si_obj.opd3, tk2->inst.i.si_si_obj.opd3,
+                      rslt);
       }
       if (r < 0) return -1;
       if (!*rslt) return 0;
@@ -215,30 +235,30 @@ scm_iseq_eq(ScmObj iseq1, ScmObj iseq2, bool *rslt)
         goto not_equal;
       break;
     default:
-      scm_fcd_error("failed to compare ISeq objects", 0);
+      scm_error("failed to compare ISeq objects", 0);
       return -1;
     }
 
   next:
-    r = scm_fcd_disassembler_next(disasm1);
+    r = scm_disasm_next(disasm1);
     if (r < 0) return -1;
 
-    r = scm_fcd_disassembler_next(disasm2);
+    r = scm_disasm_next(disasm2);
     if (r < 0) return -1;
   }
 
-  if (scm_fcd_disassembler_token(disasm1) == NULL
-      || scm_fcd_disassembler_token(disasm2) == NULL)
+  if (scm_disasm_token(disasm1) == NULL
+      || scm_disasm_token(disasm2) == NULL)
     return -1;
 
-  if (scm_fcd_disassembler_token(disasm2)->type != SCM_DISASM_TK_END)
+  if (scm_disasm_token(disasm2)->type != SCM_DISASM_TK_END)
     goto not_equal;
 
-  *rslt = true;
+  if (rslt != NULL) *rslt = true;
   return 0;
 
  not_equal:
-  *rslt = false;
+  if (rslt != NULL) *rslt = false;
   return 0;
 }
 
@@ -275,95 +295,3 @@ scm_iseq_gc_accept(ScmObj obj, ScmGCRefHandler handler)
 
   return rslt;
 }
-
-
-/***************************************************************************/
-/*  ISeq (interface)                                                       */
-/***************************************************************************/
-
-bool
-scm_fcd_iseq_p(ScmObj obj)
-{
-  return (scm_obj_type_p(obj, &SCM_ISEQ_TYPE_INFO) ? true : false);
-}
-
-ScmObj
-scm_fcd_iseq_new(scm_mem_type_t mtype)
-{
-  ScmObj iseq = SCM_OBJ_INIT;
-
-  SCM_REFSTK_INIT_REG(&iseq);
-
-  iseq = scm_fcd_mem_alloc(&SCM_ISEQ_TYPE_INFO, 0, mtype);
-  if (scm_obj_null_p(iseq)) return SCM_OBJ_NULL;
-
-  if (scm_iseq_initialize(iseq) < 0)
-    return SCM_OBJ_NULL;
-
-  return iseq;
-}
-
-ScmObj
-scm_fcd_make_iseq(void)
-{
-  return scm_fcd_iseq_new(SCM_MEM_HEAP);
-}
-
-scm_byte_t *
-scm_fcd_iseq_to_ip(ScmObj iseq)
-{
-  scm_assert(scm_fcd_iseq_p(iseq));
-  return scm_iseq_to_ip(iseq);
-}
-
-ssize_t
-scm_fcd_iseq_ip_to_offset(ScmObj iseq, scm_byte_t *ip)
-{
-  scm_assert(scm_fcd_iseq_p(iseq));
-  return scm_iseq_ip_to_offset(iseq, ip);
-}
-
-size_t
-scm_fcd_iseq_length(ScmObj iseq)
-{
-  scm_assert(scm_fcd_iseq_p(iseq));
-  return scm_iseq_length(iseq);
-}
-
-/* XXX: Marshal/Unmarshal の動作確認に使用する目的で作成した等価性評価関数な
- *      ので、テスト目的以外には使用しない
- */
-int
-scm_fcd_iseq_eq(ScmObj iseq1, ScmObj iseq2, bool *rslt)
-{
-  bool cmp;
-  int r;
-
-  scm_assert(scm_fcd_iseq_p(iseq1));
-  scm_assert(scm_fcd_iseq_p(iseq2));
-
-  r = scm_iseq_eq(iseq1, iseq2, &cmp);
-  if (r < 0) return 0;
-
-  if (rslt != NULL) *rslt = cmp;
-  return 0;
-}
-
-ssize_t
-scm_fcd_iseq_push_inst(ScmObj iseq, const void *inst, size_t sz,
-                       const size_t *objs, size_t n)
-{
-  scm_assert(scm_fcd_iseq_p(iseq));
-  scm_assert(inst != NULL);
-  scm_assert(n == 0 || objs != NULL);
-
-  return scm_iseq_push_inst(iseq, inst, sz, objs, n);
-}
-
-bool
-scm_fcd_iseq_ip_in_range_p(ScmObj iseq, const scm_byte_t *ip)
-{
-  scm_assert(scm_fcd_iseq_p(iseq));
-  return scm_iseq_ip_in_range_p(iseq, ip);
-}
-

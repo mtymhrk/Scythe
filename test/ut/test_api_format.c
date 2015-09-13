@@ -1,4 +1,6 @@
 #include "scythe/object.h"
+#include "scythe/refstk.h"
+#include "scythe/string.h"
 #include "scythe/api.h"
 
 #include "test.h"
@@ -11,12 +13,12 @@ static ScmRefStackInfo rsi;
 TEST_SETUP(api_format)
 {
   scy = ut_scythe_setup(false);
-  scm_fcd_ref_stack_save(&rsi);
+  scm_ref_stack_save(&rsi);
 }
 
 TEST_TEAR_DOWN(api_format)
 {
-  scm_fcd_ref_stack_restore(&rsi);
+  scm_ref_stack_restore(&rsi);
   ut_scythe_tear_down(scy);
 }
 
@@ -33,7 +35,7 @@ TEST(api_format, api_format_lst)
 
   actual = scm_api_format_lst(format, arg);
 
-  TEST_ASSERT_SCM_TRUE(scm_fcd_string_eq_P(expected, actual));
+  TEST_ASSERT_SCM_TRUE(scm_string_eq_P(expected, actual));
 }
 
 TEST(api_format, api_format_lst__too_many_arguments)
@@ -49,7 +51,7 @@ TEST(api_format, api_format_lst__too_many_arguments)
 
   actual = scm_api_format_lst(format, arg);
 
-  TEST_ASSERT_SCM_TRUE(scm_fcd_string_eq_P(expected, actual));
+  TEST_ASSERT_SCM_TRUE(scm_string_eq_P(expected, actual));
 }
 
 TEST(api_format, api_format_lst__error_too_few_arguments)

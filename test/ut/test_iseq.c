@@ -1,6 +1,7 @@
 #include "iseq.c"
 
-#include "scythe/api.h"
+#include "scythe/vm.h"
+#include "scythe/refstk.h"
 
 #include "test.h"
 
@@ -14,21 +15,21 @@ static ScmObj iseq2;
 TEST_SETUP(iseq)
 {
   scy = ut_scythe_setup(false);
-  scm_fcd_ref_stack_save(&rsi);
+  scm_ref_stack_save(&rsi);
 
   iseq = SCM_OBJ_NULL;
-  scm_fcd_mem_register_extra_rfrn(SCM_REF_MAKE(iseq));
-  iseq = scm_fcd_iseq_new(SCM_MEM_HEAP);
+  scm_register_extra_rfrn(SCM_REF_MAKE(iseq));
+  iseq = scm_iseq_new(SCM_MEM_HEAP);
 
   iseq2 = SCM_OBJ_NULL;
-  scm_fcd_mem_register_extra_rfrn(SCM_REF_MAKE(iseq2));
-  iseq2 = scm_fcd_iseq_new(SCM_MEM_HEAP);
+  scm_register_extra_rfrn(SCM_REF_MAKE(iseq2));
+  iseq2 = scm_iseq_new(SCM_MEM_HEAP);
 }
 
 TEST_TEAR_DOWN(iseq)
 {
   scm_debug_print_flag = 0;
-  scm_fcd_ref_stack_restore(&rsi);
+  scm_ref_stack_restore(&rsi);
   ut_scythe_tear_down(scy);
 }
 
@@ -48,7 +49,7 @@ TEST(iseq, iseq_new)
 static ssize_t
 push_inst_noopd(ScmObj iseq, scm_opcode_t op)
 {
-  struct scm_vm_inst_noopd inst = { .op = scm_fcd_internal_opcode(op) };
+  struct scm_vm_inst_noopd inst = { .op = scm_internal_opcode(op) };
   return scm_iseq_push_inst(iseq, &inst, sizeof(inst), NULL, 0);
 }
 
@@ -56,7 +57,7 @@ static ssize_t
 push_inst_obj(ScmObj iseq, scm_opcode_t op, ScmObj opd1)
 {
   struct scm_vm_inst_obj inst = {
-    .op = scm_fcd_internal_opcode(op), .opd1 = opd1
+    .op = scm_internal_opcode(op), .opd1 = opd1
   };
   size_t objs[1] = { SCM_INST_OPD_OFFSET_OBJ_1 };
   return scm_iseq_push_inst(iseq, &inst, sizeof(inst), objs, 1);
@@ -66,7 +67,7 @@ static ssize_t
 push_inst_obj_obj(ScmObj iseq, scm_opcode_t op, ScmObj opd1, ScmObj opd2)
 {
   struct scm_vm_inst_obj_obj inst = {
-    .op = scm_fcd_internal_opcode(op), .opd1 = opd1, .opd2 = opd2
+    .op = scm_internal_opcode(op), .opd1 = opd1, .opd2 = opd2
   };
   size_t objs[2] = {
     SCM_INST_OPD_OFFSET_OBJ_OBJ_1, SCM_INST_OPD_OFFSET_OBJ_OBJ_2
@@ -78,7 +79,7 @@ static ssize_t
 push_inst_si(ScmObj iseq, scm_opcode_t op, int opd1)
 {
   struct scm_vm_inst_si inst = {
-    .op = scm_fcd_internal_opcode(op), .opd1 = opd1
+    .op = scm_internal_opcode(op), .opd1 = opd1
   };
   return scm_iseq_push_inst(iseq, &inst, sizeof(inst), NULL, 0);
 }
@@ -87,7 +88,7 @@ static ssize_t
 push_inst_si_si(ScmObj iseq, scm_opcode_t op, int opd1, int opd2)
 {
   struct scm_vm_inst_si_si inst = {
-    .op = scm_fcd_internal_opcode(op), .opd1 = opd1, .opd2 = opd2
+    .op = scm_internal_opcode(op), .opd1 = opd1, .opd2 = opd2
   };
   return scm_iseq_push_inst(iseq, &inst, sizeof(inst), NULL, 0);
 }
@@ -96,7 +97,7 @@ static ssize_t
 push_inst_si_si_obj(ScmObj iseq, scm_opcode_t op, int opd1, int opd2, ScmObj opd3)
 {
   struct scm_vm_inst_si_si_obj inst = {
-    .op = scm_fcd_internal_opcode(op), .opd1 = opd1, .opd2 = opd2, .opd3 = opd3
+    .op = scm_internal_opcode(op), .opd1 = opd1, .opd2 = opd2, .opd3 = opd3
   };
   size_t objs[1] = { SCM_INST_OPD_OFFSET_SI_SI_OBJ_3 };
   return scm_iseq_push_inst(iseq, &inst, sizeof(inst), objs, 1);
@@ -106,7 +107,7 @@ static ssize_t
 push_inst_iof(ScmObj iseq, scm_opcode_t op, int opd1)
 {
   struct scm_vm_inst_iof inst = {
-    .op = scm_fcd_internal_opcode(op), .opd1 = opd1
+    .op = scm_internal_opcode(op), .opd1 = opd1
   };
   return scm_iseq_push_inst(iseq, &inst, sizeof(inst), NULL, 0);
 }
@@ -121,7 +122,7 @@ TEST(iseq, iseq_push_inst2__push)
                         push_inst_si(iseq, SCM_OPCODE_EFRAME, 123));
 
   ip = scm_iseq_to_ip(iseq);
-  actual_op = scm_fcd_external_opcode(SCM_VMINST_GET_OP(ip));
+  actual_op = scm_external_opcode(SCM_VMINST_GET_OP(ip));
   SCM_VMINST_FETCH_OPD_SI(ip, actual_opd);
 
   TEST_ASSERT_EQUAL_INT(SCM_OPCODE_EFRAME, actual_op);
@@ -140,7 +141,7 @@ TEST(iseq, iseq_push_inst2__push_obj)
                                           SCM_TRUE_OBJ, SCM_FALSE_OBJ));
 
   ip = scm_iseq_to_ip(iseq);
-  actual_op = scm_fcd_external_opcode(SCM_VMINST_GET_OP(ip));
+  actual_op = scm_external_opcode(SCM_VMINST_GET_OP(ip));
   SCM_VMINST_FETCH_OPD_OBJ_OBJ(ip, actual_opd1, actual_opd2);
 
   TEST_ASSERT_EQUAL_INT(SCM_OPCODE_GREF, actual_op);

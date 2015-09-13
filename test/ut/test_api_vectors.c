@@ -1,4 +1,7 @@
 #include "scythe/object.h"
+#include "scythe/refstk.h"
+#include "scythe/number.h"
+#include "scythe/vector.h"
 #include "scythe/api.h"
 
 #include "test.h"
@@ -11,12 +14,12 @@ static ScmRefStackInfo rsi;
 TEST_SETUP(api_vectors)
 {
   scy = ut_scythe_setup(false);
-  scm_fcd_ref_stack_save(&rsi);
+  scm_ref_stack_save(&rsi);
 }
 
 TEST_TEAR_DOWN(api_vectors)
 {
-  scm_fcd_ref_stack_restore(&rsi);
+  scm_ref_stack_restore(&rsi);
   ut_scythe_tear_down(scy);
 }
 
@@ -45,11 +48,11 @@ TEST(api_vectors, api_make_vector__dont_specify_fill)
   len = ut_read_cstr("3");
   vec = scm_api_make_vector(len, SCM_OBJ_NULL);
 
-  TEST_ASSERT_TRUE(scm_fcd_vector_p(vec));
-  TEST_ASSERT_EQUAL_INT(3, scm_fcd_vector_length(vec));
+  TEST_ASSERT_TRUE(scm_vector_p(vec));
+  TEST_ASSERT_EQUAL_INT(3, scm_vector_length(vec));
 
   for (size_t i = 0; i < 3; i++) {
-    elm = scm_fcd_vector_ref(vec, i);
+    elm = scm_vector_ref(vec, i);
     TEST_ASSERT_SCM_UNDEF(elm);
   }
 }
@@ -65,11 +68,11 @@ TEST(api_vectors, api_make_vector__specify_fill)
   fill = ut_read_cstr("abc");
   vec = scm_api_make_vector(len, fill);
 
-  TEST_ASSERT_TRUE(scm_fcd_vector_p(vec));
-  TEST_ASSERT_EQUAL_INT(3, scm_fcd_vector_length(vec));
+  TEST_ASSERT_TRUE(scm_vector_p(vec));
+  TEST_ASSERT_EQUAL_INT(3, scm_vector_length(vec));
 
   for (size_t i = 0; i < 3; i++) {
-    elm = scm_fcd_vector_ref(vec, i);
+    elm = scm_vector_ref(vec, i);
     TEST_ASSERT_SCM_EQ(fill, elm);
   }
 }
@@ -104,7 +107,7 @@ TEST(api_vectors, api_vector_length)
 
   actual = scm_api_vector_length(vec);
 
-  TEST_ASSERT_SCM_TRUE(scm_fcd_num_eq_P(expected, actual));
+  TEST_ASSERT_SCM_TRUE(scm_num_eq_P(expected, actual));
 }
 
 TEST(api_vectors, vector_length__return_ERROR)

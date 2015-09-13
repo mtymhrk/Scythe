@@ -1,5 +1,8 @@
 #include <stdio.h>
 
+#include "scythe/refstk.h"
+#include "scythe/port.h"
+#include "scythe/string.h"
 #include "scythe/api.h"
 
 #include "test.h"
@@ -32,7 +35,7 @@ delete_test_file(void)
 TEST_SETUP(api_ports)
 {
   scy = ut_scythe_setup(false);
-  scm_fcd_ref_stack_save(&rsi);
+  scm_ref_stack_save(&rsi);
 
   make_test_file();
 }
@@ -41,7 +44,7 @@ TEST_TEAR_DOWN(api_ports)
 {
   delete_test_file();
 
-  scm_fcd_ref_stack_restore(&rsi);
+  scm_ref_stack_restore(&rsi);
   ut_scythe_tear_down(scy);
 }
 
@@ -51,7 +54,7 @@ TEST(api_ports, api_port_P__return_true)
 
   SCM_REFSTK_INIT_REG(&port);
 
-  port = scm_fcd_open_input_file(TEST_FILE_PATH, NULL);
+  port = scm_open_input_file(TEST_FILE_PATH, NULL);
 
   TEST_ASSERT_SCM_TRUE(scm_api_port_P(port));
 }
@@ -67,7 +70,7 @@ TEST(api_ports, api_input_port_P__return_true)
 
   SCM_REFSTK_INIT_REG(&port);
 
-  port = scm_fcd_open_input_file(TEST_FILE_PATH, NULL);
+  port = scm_open_input_file(TEST_FILE_PATH, NULL);
 
   TEST_ASSERT_SCM_TRUE(scm_api_input_port_P(port));
 }
@@ -78,7 +81,7 @@ TEST(api_ports, api_input_port_P__return_false)
 
   SCM_REFSTK_INIT_REG(&port);
 
-  port = scm_fcd_open_output_file(TEST_FILE_PATH, NULL);
+  port = scm_open_output_file(TEST_FILE_PATH, NULL);
 
   TEST_ASSERT_SCM_FALSE(scm_api_input_port_P(port));
 }
@@ -89,7 +92,7 @@ TEST(api_ports, api_output_port_P__return_true)
 
   SCM_REFSTK_INIT_REG(&port);
 
-  port = scm_fcd_open_output_file(TEST_FILE_PATH, NULL);
+  port = scm_open_output_file(TEST_FILE_PATH, NULL);
 
   TEST_ASSERT_SCM_TRUE(scm_api_output_port_P(port));
 }
@@ -100,7 +103,7 @@ TEST(api_ports, api_output_port_P__return_false)
 
   SCM_REFSTK_INIT_REG(&port);
 
-  port = scm_fcd_open_input_file(TEST_FILE_PATH, NULL);
+  port = scm_open_input_file(TEST_FILE_PATH, NULL);
 
   TEST_ASSERT_SCM_FALSE(scm_api_output_port_P(port));
 }
@@ -111,7 +114,7 @@ TEST(api_ports, api_textual_port_P__return_true)
 
   SCM_REFSTK_INIT_REG(&port);
 
-  port = scm_fcd_open_input_file(TEST_FILE_PATH, NULL);
+  port = scm_open_input_file(TEST_FILE_PATH, NULL);
 
   TEST_ASSERT_SCM_TRUE(scm_api_textual_port_P(port));
 }
@@ -123,7 +126,7 @@ IGNORE_TEST(api_ports, api_textual_port_P__return_false)
 
   SCM_REFSTK_INIT_REG(&port);
 
-  port = scm_fcd_open_input_file(TEST_FILE_PATH, NULL);
+  port = scm_open_input_file(TEST_FILE_PATH, NULL);
 
   TEST_ASSERT_SCM_FALSE(scm_api_textual_port_P(port));
 }
@@ -134,7 +137,7 @@ TEST(api_ports, api_binary_port_P__return_false)
 
   SCM_REFSTK_INIT_REG(&port);
 
-  port = scm_fcd_open_input_file(TEST_FILE_PATH, NULL);
+  port = scm_open_input_file(TEST_FILE_PATH, NULL);
 
   TEST_ASSERT_SCM_FALSE(scm_api_binary_port_P(port));
 }
@@ -145,7 +148,7 @@ TEST(api_ports, api_input_port_open_P__return_true)
 
   SCM_REFSTK_INIT_REG(&port);
 
-  port = scm_fcd_open_input_file(TEST_FILE_PATH, NULL);
+  port = scm_open_input_file(TEST_FILE_PATH, NULL);
 
   TEST_ASSERT_SCM_TRUE(scm_api_input_port_open_P(port));
 }
@@ -156,7 +159,7 @@ TEST(api_ports, api_input_port_open_P__return_false)
 
   SCM_REFSTK_INIT_REG(&port);
 
-  port = scm_fcd_open_input_file(TEST_FILE_PATH, NULL);
+  port = scm_open_input_file(TEST_FILE_PATH, NULL);
   scm_api_close_port(port);
 
   TEST_ASSERT_SCM_FALSE(scm_api_input_port_open_P(port));
@@ -168,7 +171,7 @@ TEST(api_ports, api_output_port_open_P__return_true)
 
   SCM_REFSTK_INIT_REG(&port);
 
-  port = scm_fcd_open_output_file(TEST_FILE_PATH, NULL);
+  port = scm_open_output_file(TEST_FILE_PATH, NULL);
 
   TEST_ASSERT_SCM_TRUE(scm_api_output_port_open_P(port));
 }
@@ -179,7 +182,7 @@ TEST(api_ports, api_output_port_open_P__return_false)
 
   SCM_REFSTK_INIT_REG(&port);
 
-  port = scm_fcd_open_output_file(TEST_FILE_PATH, NULL);
+  port = scm_open_output_file(TEST_FILE_PATH, NULL);
   scm_api_close_port(port);
 
   TEST_ASSERT_SCM_FALSE(scm_api_output_port_open_P(port));
@@ -199,7 +202,7 @@ TEST(api_ports, api_open_input_file)
 
   SCM_REFSTK_INIT_REG(&port, &path);
 
-  path = scm_fcd_make_string_from_cstr(TEST_FILE_PATH, SCM_ENC_SRC);
+  path = scm_make_string_from_cstr(TEST_FILE_PATH, SCM_ENC_SRC);
   port = scm_api_open_input_file(path);
 
   TEST_ASSERT_SCM_TRUE(scm_api_input_port_open_P(port));
@@ -211,7 +214,7 @@ TEST(api_ports, api_open_input_file__specify_inexistent_file__return_ERROR)
 
   SCM_REFSTK_INIT_REG(&path);
 
-  path = scm_fcd_make_string_from_cstr(TEST_INEXISTENT_FILE_PATH, SCM_ENC_SRC);
+  path = scm_make_string_from_cstr(TEST_INEXISTENT_FILE_PATH, SCM_ENC_SRC);
 
   TEST_ASSERT_SCM_NULL(scm_api_open_input_file(path));
 }
@@ -222,7 +225,7 @@ TEST(api_ports, api_open_output_file)
 
   SCM_REFSTK_INIT_REG(&port, &path);
 
-  path = scm_fcd_make_string_from_cstr(TEST_FILE_PATH, SCM_ENC_SRC);
+  path = scm_make_string_from_cstr(TEST_FILE_PATH, SCM_ENC_SRC);
   port = scm_api_open_output_file(path);
 
   TEST_ASSERT_SCM_TRUE(scm_api_output_port_open_P(port));
@@ -234,7 +237,7 @@ TEST(api_ports, api_open_output_file__specify_inexistent_file__create_new_file)
 
   SCM_REFSTK_INIT_REG(&port, &path);
 
-  path = scm_fcd_make_string_from_cstr(TEST_INEXISTENT_FILE_PATH, SCM_ENC_SRC);
+  path = scm_make_string_from_cstr(TEST_INEXISTENT_FILE_PATH, SCM_ENC_SRC);
   port = scm_api_open_output_file(path);
 
   TEST_ASSERT_SCM_TRUE(scm_api_output_port_open_P(port));
@@ -246,7 +249,7 @@ TEST(api_ports, api_close_port__close_input_port)
 
   SCM_REFSTK_INIT_REG(&port);
 
-  port = scm_fcd_open_input_file(TEST_FILE_PATH, NULL);
+  port = scm_open_input_file(TEST_FILE_PATH, NULL);
 
   TEST_ASSERT_SCM_EQ(SCM_UNDEF_OBJ, scm_api_close_port(port));
   TEST_ASSERT_SCM_FALSE(scm_api_input_port_open_P(port));
@@ -258,7 +261,7 @@ TEST(api_ports, api_close_port__close_output_port)
 
   SCM_REFSTK_INIT_REG(&port);
 
-  port = scm_fcd_open_output_file(TEST_FILE_PATH, NULL);
+  port = scm_open_output_file(TEST_FILE_PATH, NULL);
 
   TEST_ASSERT_SCM_EQ(SCM_UNDEF_OBJ, scm_api_close_port(port));
   TEST_ASSERT_SCM_FALSE(scm_api_output_port_open_P(port));
@@ -270,7 +273,7 @@ TEST(api_ports, api_close_input_port__close_input_port)
 
   SCM_REFSTK_INIT_REG(&port);
 
-  port = scm_fcd_open_input_file(TEST_FILE_PATH, NULL);
+  port = scm_open_input_file(TEST_FILE_PATH, NULL);
 
   TEST_ASSERT_SCM_EQ(SCM_UNDEF_OBJ, scm_api_close_input_port(port));
   TEST_ASSERT_SCM_FALSE(scm_api_input_port_open_P(port));
@@ -282,7 +285,7 @@ TEST(api_ports, api_close_input_port__close_output_port__return_ERROR)
 
   SCM_REFSTK_INIT_REG(&port);
 
-  port = scm_fcd_open_output_file(TEST_FILE_PATH, NULL);
+  port = scm_open_output_file(TEST_FILE_PATH, NULL);
 
   TEST_ASSERT_SCM_NULL(scm_api_close_input_port(port));
 }
@@ -293,7 +296,7 @@ TEST(api_ports, api_close_output_port__close_input_port__return_ERROR)
 
   SCM_REFSTK_INIT_REG(&port);
 
-  port = scm_fcd_open_input_file(TEST_FILE_PATH, NULL);
+  port = scm_open_input_file(TEST_FILE_PATH, NULL);
 
   TEST_ASSERT_SCM_NULL(scm_api_close_output_port(port));
 }
@@ -304,7 +307,7 @@ TEST(api_ports, api_close_output_port__close_output_port)
 
   SCM_REFSTK_INIT_REG(&port);
 
-  port = scm_fcd_open_output_file(TEST_FILE_PATH, NULL);
+  port = scm_open_output_file(TEST_FILE_PATH, NULL);
 
   TEST_ASSERT_SCM_EQ(SCM_UNDEF_OBJ, scm_api_close_output_port(port));
   TEST_ASSERT_SCM_FALSE(scm_api_output_port_open_P(port));
@@ -316,7 +319,7 @@ TEST(api_ports, capi_open_input_string_cstr)
 
   SCM_REFSTK_INIT_REG(&port);
 
-  port = scm_fcd_open_input_string_cstr("foo", SCM_ENC_NAME_SRC);
+  port = scm_open_input_string_cstr("foo", SCM_ENC_NAME_SRC);
 
   TEST_ASSERT_SCM_TRUE(scm_api_input_port_P(port));
   TEST_ASSERT_SCM_TRUE(scm_api_textual_port_P(port));
@@ -328,7 +331,7 @@ TEST(api_ports, api_open_input_string)
 
   SCM_REFSTK_INIT_REG(&port, &str);
 
-  str = scm_fcd_make_string_from_cstr("foo", SCM_ENC_SRC);
+  str = scm_make_string_from_cstr("foo", SCM_ENC_SRC);
   port = scm_api_open_input_string(str);
 
   TEST_ASSERT_SCM_TRUE(scm_api_input_port_P(port));
@@ -353,8 +356,8 @@ TEST(api_ports, api_get_output_string)
 
   SCM_REFSTK_INIT_REG(&port, &expected, &actual);
 
-  expected = scm_fcd_make_string_from_cstr("hello, world", SCM_ENC_SRC);
-  actual = scm_fcd_make_string_from_cstr("hello, world", SCM_ENC_SRC);
+  expected = scm_make_string_from_cstr("hello, world", SCM_ENC_SRC);
+  actual = scm_make_string_from_cstr("hello, world", SCM_ENC_SRC);
 
   port = scm_api_open_output_string();
 
@@ -371,7 +374,7 @@ TEST(api_ports, api_get_output_string__specify_port_dose_not_created_with_open_o
 
   SCM_REFSTK_INIT_REG(&port, &str);
 
-  str = scm_fcd_make_string_from_cstr("foo", SCM_ENC_SRC);
+  str = scm_make_string_from_cstr("foo", SCM_ENC_SRC);
   port = scm_api_open_input_string(str);
 
   TEST_ASSERT_SCM_NULL(scm_api_get_output_string(port));

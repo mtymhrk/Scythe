@@ -4,22 +4,8 @@
 #include <stdint.h>
 #include <stddef.h>
 
-typedef struct ScmEnvFrameRec ScmEnvFrame;
-typedef struct ScmCntFrameRec ScmCntFrame;
-
-typedef struct ScmEFBoxRec ScmEFBox;
-
-typedef struct ScmVMStckSgRec ScmVMStckSg;
-typedef struct ScmVMStckRcRec ScmVMStckRc;
-
-#define SCM_EFBOX(obj) ((ScmEFBox *)(obj))
-
-#define SCM_VMSTCKSG(obj) ((ScmVMStckSg*)(obj))
-#define SCM_VMSTCKRC(obj) ((ScmVMStckRc*)(obj))
-
-
 #include "scythe/object.h"
-#include "scythe/fcd_memory.h"
+#include "scythe/memory.h"
 
 
 /*******************************************************************/
@@ -51,6 +37,9 @@ typedef struct ScmVMStckRcRec ScmVMStckRc;
 #define SCM_VM_FRAME_ALIGN_SIZE SIZEOF_SCM_WORD_T
 
 #endif /* SCM_VM_FRAME_MIN_ALIGN_SIZE > SIZEOF_SCM_WORD_T */
+
+typedef struct ScmEnvFrameRec ScmEnvFrame;
+typedef struct ScmCntFrameRec ScmCntFrame;
 
 /* out メンバの下位 2bit をフラグとして使用する
  *   0 bit: 未使用
@@ -234,7 +223,7 @@ scm_vm_ef_boxed(ScmEnvFrame *efp)
 /*  ScmEnvFrameBox                                                         */
 /***************************************************************************/
 
-extern ScmTypeInfo SCM_EFBOX_TYPE_INFO;
+typedef struct ScmEFBoxRec ScmEFBox;
 
 /* 環境フレーム本体は data メンバが指す領域に保持し、先頭の環境フレームへの
  * ポインタを efp メンバに保持する。boxing された環境フレームは partial メン
@@ -247,6 +236,10 @@ struct ScmEFBoxRec {
   size_t size;
   scm_byte_t *data;
 };
+
+#define SCM_EFBOX(obj) ((ScmEFBox *)(obj))
+
+extern ScmTypeInfo SCM_EFBOX_TYPE_INFO;
 
 int scm_efbox_initialize(ScmObj efb, ScmEnvFrame *efp, size_t depth);
 ScmObj scm_efbox_new(scm_mem_type_t mtype, ScmEnvFrame *efp, size_t depth);
@@ -293,8 +286,8 @@ scm_efbox_include_p(ScmObj efb, ScmEnvFrame *efp)
 /*  ScmVMStckSg ScmVMStckRc                                                */
 /***************************************************************************/
 
-extern ScmTypeInfo SCM_VMSTCKSG_TYPE_INFO;
-extern ScmTypeInfo SCM_VMSTCKRC_TYPE_INFO;
+typedef struct ScmVMStckSgRec ScmVMStckSg;
+typedef struct ScmVMStckRcRec ScmVMStckRc;
 
 struct ScmVMStckSgRec {
   ScmObjHeader header;
@@ -317,6 +310,12 @@ struct ScmVMStckRcRec {
   ScmCntFrame *next_cf;
   bool next_cf_ucf;
 };
+
+#define SCM_VMSTCKSG(obj) ((ScmVMStckSg*)(obj))
+#define SCM_VMSTCKRC(obj) ((ScmVMStckRc*)(obj))
+
+extern ScmTypeInfo SCM_VMSTCKSG_TYPE_INFO;
+extern ScmTypeInfo SCM_VMSTCKRC_TYPE_INFO;
 
 int scm_vmss_initialize(ScmObj vmss, size_t size);
 ScmObj scm_vmss_new(scm_mem_type_t mtype, size_t size);

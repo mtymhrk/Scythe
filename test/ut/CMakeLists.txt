@@ -1,20 +1,32 @@
 
 set(unit_test_aux_src test.c)
-set(unit_test_src_apnd test_api_module.c test_api_pair_and_lists.c
-                       test_api_strings.c test_api_characters.c
-                       test_api_symbols.c test_api_equivalence.c
-                       test_api_booleans.c test_api_fixnum.c test_api_bignum.c
-                       test_api_vectors.c test_api_format.c
-                       test_api_exceptions.c test_api_ports.c test_api_input.c
-                       test_api_output.c test_api_nil.c
-                       test_fcd_assembler.c test_fcd_bignum.c
-                       test_fcd_booleans.c test_fcd_char.c test_fcd_compiler.c
-                       test_fcd_equivalence.c test_fcd_exception.c
-                       test_fcd_fixnum.c test_fcd_format.c test_fcd_input.c
-                       test_fcd_nil.c test_fcd_module.c test_fcd_output.c
-                       test_fcd_pair.c test_fcd_port.c test_fcd_string.c
-                       test_fcd_symbol.c test_fcd_vector.c test_fcd_undef.c
-                       test_exec_compiler.c test_exec_syntax.c test_exec_proc.c)
+set(unit_test_src_apnd test_eof.c
+                       test_nil.c
+                       test_port_input.c
+                       test_port_output.c
+                       test_undef.c
+
+                       test_api_bignum.c
+                       test_api_booleans.c
+                       test_api_characters.c
+                       test_api_equivalence.c
+                       test_api_exceptions.c
+                       test_api_fixnum.c
+                       test_api_format.c
+                       test_api_input.c
+                       test_api_module.c
+                       test_api_nil.c
+                       test_api_output.c
+                       test_api_pair_and_lists.c
+                       test_api_ports.c
+                       test_api_strings.c
+                       test_api_symbols.c
+                       test_api_vectors.c
+
+                       test_exec_compiler.c
+                       test_exec_proc.c
+                       test_exec_syntax.c)
+
 set(unit_test_src "")
 
 foreach(file ${scythe_lib_src})

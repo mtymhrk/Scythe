@@ -1,4 +1,8 @@
 #include "scythe/object.h"
+#include "scythe/refstk.h"
+#include "scythe/module.h"
+#include "scythe/pair.h"
+#include "scythe/symbol.h"
 #include "scythe/api.h"
 
 #include "test.h"
@@ -18,22 +22,22 @@ static ScmObj syntax;
 TEST_SETUP(api_module)
 {
   scy = ut_scythe_setup(true);
-  scm_fcd_ref_stack_save(&rsi);
+  scm_ref_stack_save(&rsi);
 
   undef = SCM_UNDEF_OBJ;
   assert(scm_obj_not_null_p(undef));
 
   module = name = gloc = symbol = syntax = undef;
-  scm_fcd_mem_register_extra_rfrn(SCM_REF_MAKE(module));
-  scm_fcd_mem_register_extra_rfrn(SCM_REF_MAKE(name));
-  scm_fcd_mem_register_extra_rfrn(SCM_REF_MAKE(gloc));
-  scm_fcd_mem_register_extra_rfrn(SCM_REF_MAKE(symbol));
-  scm_fcd_mem_register_extra_rfrn(SCM_REF_MAKE(syntax));
+  scm_register_extra_rfrn(SCM_REF_MAKE(module));
+  scm_register_extra_rfrn(SCM_REF_MAKE(name));
+  scm_register_extra_rfrn(SCM_REF_MAKE(gloc));
+  scm_register_extra_rfrn(SCM_REF_MAKE(symbol));
+  scm_register_extra_rfrn(SCM_REF_MAKE(syntax));
 }
 
 TEST_TEAR_DOWN(api_module)
 {
-  scm_fcd_ref_stack_restore(&rsi);
+  scm_ref_stack_restore(&rsi);
   ut_scythe_tear_down(scy);
 }
 
@@ -44,7 +48,7 @@ make_syntax(const char *k)
 
   syntax = undef;
 
-  key = scm_fcd_make_symbol_from_cstr(k, SCM_ENC_ASCII);
+  key = scm_make_symbol_from_cstr(k, SCM_ENC_ASCII);
   syntax = scm_api_make_syntax(key, SCM_NIL_OBJ);
 }
 
@@ -53,9 +57,9 @@ find_module(const char *n)
 {
   module = name = undef;
 
-  name = scm_fcd_make_symbol_from_cstr(n, SCM_ENC_ASCII);
-  name = scm_fcd_list(1, name);
-  TEST_ASSERT_EQUAL_INT(0, scm_fcd_find_module(name, SCM_CSETTER_L(module)));
+  name = scm_make_symbol_from_cstr(n, SCM_ENC_ASCII);
+  name = scm_list(1, name);
+  TEST_ASSERT_EQUAL_INT(0, scm_find_module(name, SCM_CSETTER_L(module)));
 }
 
 static void
@@ -63,9 +67,9 @@ make_module(const char *n)
 {
   module = name = undef;
 
-  name = scm_fcd_make_symbol_from_cstr(n, SCM_ENC_ASCII);
-  name = scm_fcd_list(1, name);
-  module = scm_fcd_make_module(name);
+  name = scm_make_symbol_from_cstr(n, SCM_ENC_ASCII);
+  name = scm_list(1, name);
+  module = scm_make_module(name);
 }
 
 static void
@@ -80,7 +84,7 @@ import_module(const char *n, bool res)
 
   find_module(n);
 
-  scm_fcd_module_import(mod, module, res);
+  scm_module_import(mod, module, res);
 
   name = nam;
   module = mod;
@@ -92,7 +96,7 @@ TEST(api_module, define_global_syx)
 
   SCM_REFSTK_INIT_REG(&sym, &syx, &actual);
 
-  sym = scm_fcd_make_symbol_from_cstr("var", SCM_ENC_ASCII);
+  sym = scm_make_symbol_from_cstr("var", SCM_ENC_ASCII);
 
   make_syntax("foo");
   syx = syntax;
@@ -100,8 +104,8 @@ TEST(api_module, define_global_syx)
   make_module("test");
 
   TEST_ASSERT_EQUAL_INT(0, scm_capi_define_global_syx(module, sym, syx, false));
-  TEST_ASSERT_EQUAL_INT(0, scm_capi_global_syx_ref(module,
-                                                   sym, SCM_CSETTER_L(actual)));
+  TEST_ASSERT_EQUAL_INT(0, scm_capi_refer_global_syx(module,
+                                                     sym, SCM_CSETTER_L(actual)));
   TEST_ASSERT_SCM_EQ(syx, actual);
 }
 
@@ -112,7 +116,7 @@ TEST(api_module, define_global_syx__already_bound)
 
   SCM_REFSTK_INIT_REG(&sym, &syx1, &syx2, &actual);
 
-  sym = scm_fcd_make_symbol_from_cstr("var", SCM_ENC_ASCII);
+  sym = scm_make_symbol_from_cstr("var", SCM_ENC_ASCII);
 
   make_syntax("foo");
   syx1 = syntax;
@@ -125,8 +129,8 @@ TEST(api_module, define_global_syx__already_bound)
   TEST_ASSERT_EQUAL_INT(0, scm_capi_define_global_syx(module, sym, syx1, false));
 
   TEST_ASSERT_EQUAL_INT(0, scm_capi_define_global_syx(module, sym, syx2, false));
-  TEST_ASSERT_EQUAL_INT(0, scm_capi_global_syx_ref(module,
-                                                   sym, SCM_CSETTER_L(actual)));
+  TEST_ASSERT_EQUAL_INT(0, scm_capi_refer_global_syx(module,
+                                                     sym, SCM_CSETTER_L(actual)));
   TEST_ASSERT_SCM_EQ(syx2, actual);
 }
 
@@ -136,12 +140,12 @@ TEST(api_module, global_syx_ref__unbound)
 
   SCM_REFSTK_INIT_REG(&sym, &actual);
 
-  sym = scm_fcd_make_symbol_from_cstr("var", SCM_ENC_ASCII);
+  sym = scm_make_symbol_from_cstr("var", SCM_ENC_ASCII);
 
   make_module("test");
 
-  TEST_ASSERT_EQUAL_INT(0, scm_capi_global_syx_ref(module,
-                                                   sym, SCM_CSETTER_L(actual)));
+  TEST_ASSERT_EQUAL_INT(0, scm_capi_refer_global_syx(module,
+                                                     sym, SCM_CSETTER_L(actual)));
   TEST_ASSERT_SCM_NULL(actual);
 }
 
@@ -151,7 +155,7 @@ TEST(api_module, global_syx_ref__refer_exported_symbol_of_imported_module)
 
   SCM_REFSTK_INIT_REG(&sym, &syx, &actual);
 
-  sym = scm_fcd_make_symbol_from_cstr("var", SCM_ENC_ASCII);
+  sym = scm_make_symbol_from_cstr("var", SCM_ENC_ASCII);
 
   make_syntax("foo");
   syx = syntax;
@@ -165,8 +169,8 @@ TEST(api_module, global_syx_ref__refer_exported_symbol_of_imported_module)
 
   find_module("test");
 
-  TEST_ASSERT_EQUAL_INT(0, scm_capi_global_syx_ref(module,
-                                                   sym, SCM_CSETTER_L(actual)));
+  TEST_ASSERT_EQUAL_INT(0, scm_capi_refer_global_syx(module,
+                                                     sym, SCM_CSETTER_L(actual)));
   TEST_ASSERT_SCM_EQ(syx, actual);
 }
 
@@ -176,7 +180,7 @@ TEST(api_module, global_syx_ref__refer_unexported_symbol_of_imported_module)
 
   SCM_REFSTK_INIT_REG(&sym, &syx, &actual);
 
-  sym = scm_fcd_make_symbol_from_cstr("var", SCM_ENC_ASCII);
+  sym = scm_make_symbol_from_cstr("var", SCM_ENC_ASCII);
 
   make_syntax("foo");
   syx = syntax;
@@ -190,8 +194,8 @@ TEST(api_module, global_syx_ref__refer_unexported_symbol_of_imported_module)
 
   find_module("test");
 
-  TEST_ASSERT_EQUAL_INT(0, scm_capi_global_syx_ref(module,
-                                                   sym, SCM_CSETTER_L(actual)));
+  TEST_ASSERT_EQUAL_INT(0, scm_capi_refer_global_syx(module,
+                                                     sym, SCM_CSETTER_L(actual)));
   TEST_ASSERT_SCM_NULL(actual);
 }
 
@@ -201,7 +205,7 @@ TEST(api_module, global_syx_ref__refer_exported_symbol_of_imported_module__restr
 
   SCM_REFSTK_INIT_REG(&sym, &syx, &actual);
 
-  sym = scm_fcd_make_symbol_from_cstr("var", SCM_ENC_ASCII);
+  sym = scm_make_symbol_from_cstr("var", SCM_ENC_ASCII);
 
   make_syntax("foo");
   syx = syntax;
@@ -215,8 +219,8 @@ TEST(api_module, global_syx_ref__refer_exported_symbol_of_imported_module__restr
 
   find_module("test");
 
-  TEST_ASSERT_EQUAL_INT(0, scm_capi_global_syx_ref(module,
-                                                   sym, SCM_CSETTER_L(actual)));
+  TEST_ASSERT_EQUAL_INT(0, scm_capi_refer_global_syx(module,
+                                                     sym, SCM_CSETTER_L(actual)));
   TEST_ASSERT_SCM_EQ(syx, actual);
 }
 
@@ -226,7 +230,7 @@ TEST(api_module, global_syx_ref__refer_exported_symbol_of_imported_module__restr
 
   SCM_REFSTK_INIT_REG(&sym, &syx, &actual);
 
-  sym = scm_fcd_make_symbol_from_cstr("var", SCM_ENC_ASCII);
+  sym = scm_make_symbol_from_cstr("var", SCM_ENC_ASCII);
 
   make_syntax("foo");
   syx = syntax;
@@ -242,7 +246,7 @@ TEST(api_module, global_syx_ref__refer_exported_symbol_of_imported_module__restr
 
   find_module("test");
 
-  TEST_ASSERT_EQUAL_INT(0, scm_capi_global_syx_ref(module,
-                                                   sym, SCM_CSETTER_L(actual)));
+  TEST_ASSERT_EQUAL_INT(0, scm_capi_refer_global_syx(module,
+                                                     sym, SCM_CSETTER_L(actual)));
   TEST_ASSERT_SCM_NULL(actual);
 }

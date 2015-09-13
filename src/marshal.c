@@ -4,11 +4,27 @@
 #include <string.h>
 
 #include "scythe/object.h"
-#include "scythe/fcd.h"
 #include "scythe/earray.h"
-#include "scythe/marshal.h"
 #include "scythe/chashtbl.h"
 #include "scythe/vminst.h"
+#include "scythe/vm.h"
+#include "scythe/memory.h"
+#include "scythe/refstk.h"
+#include "scythe/assembler.h"
+#include "scythe/char.h"
+#include "scythe/equivalence.h"
+#include "scythe/fixnum.h"
+#include "scythe/number.h"
+#include "scythe/compiler.h"
+#include "scythe/exception.h"
+#include "scythe/iseq.h"
+#include "scythe/miscobjects.h"
+#include "scythe/pair.h"
+#include "scythe/port.h"
+#include "scythe/string.h"
+#include "scythe/symbol.h"
+#include "scythe/vector.h"
+#include "scythe/marshal.h"
 
 #define SCM_MARSHAL_ALIGN 4
 #define SCM_MARSHAL_BUFFER_INIT_SIZE 256
@@ -78,7 +94,7 @@ scm_marshal_error(ScmObj obj, const char *fmt, ...)
   va_end(arg);
   msg[sizeof(msg) - 1] = '\0';
 
-  scm_fcd_error(msg, 0);
+  scm_error(msg, 0);
 }
 
 
@@ -838,7 +854,7 @@ static size_t
 scm_marshal_hash_func(ScmCHashTblKey key)
 {
   ScmObj obj = (ScmObj)key;
-  if (scm_fcd_fixnum_p(obj))
+  if (scm_fixnum_p(obj))
     return (size_t)obj >> 1;
   else
     return (size_t)obj >> 2;
@@ -858,7 +874,7 @@ scm_marshal_initialize(ScmObj marshal)
   r = eary_init(&SCM_MARSHAL(marshal)->top, sizeof(size_t), 8);
   if (r < 0) return -1;
 
-  SCM_MARSHAL(marshal)->output = scm_fcd_malloc(sizeof(ScmMarshalBuffer));
+  SCM_MARSHAL(marshal)->output = scm_malloc(sizeof(ScmMarshalBuffer));
   if (SCM_MARSHAL(marshal)->output == NULL) return -1;
 
   r = scm_marshal_buffer_init(SCM_MARSHAL(marshal)->output,
@@ -869,7 +885,7 @@ scm_marshal_initialize(ScmObj marshal)
                                                     SCM_CHASH_TBL_SCMOBJ,
                                                     SCM_CHASH_TBL_CVAL,
                                                     scm_marshal_hash_func,
-                                                    scm_fcd_eq_p);
+                                                    scm_eq_p);
   if (SCM_MARSHAL(marshal)->obj2pos == NULL)
     return -1;
 
@@ -878,7 +894,7 @@ scm_marshal_initialize(ScmObj marshal)
   header.nr_shared = 0;
   header.obj_pos = 0;
   header.shared_pos = 0;
-  header.enc = scm_fcd_system_encoding();
+  header.enc = scm_system_encoding();
   r = scm_push_header(SCM_MARSHAL(marshal)->output, &header);
   if (r < 0) return -1;
 
@@ -897,12 +913,29 @@ scm_marshal_finalize(ScmObj marshal)
 
   if (SCM_MARSHAL(marshal)->output != NULL) {
     scm_marshal_buffer_fin(SCM_MARSHAL(marshal)->output);
-    scm_fcd_free(SCM_MARSHAL(marshal)->output);
+    scm_free(SCM_MARSHAL(marshal)->output);
     SCM_MARSHAL(marshal)->output = NULL;
   }
 
   eary_fin(&SCM_MARSHAL(marshal)->top);
   eary_fin(&SCM_MARSHAL(marshal)->shared);
+}
+
+ScmObj
+scm_marshal_new(scm_mem_type_t mtype)
+{
+  ScmObj marshal = SCM_OBJ_INIT;
+  int r;
+
+  SCM_REFSTK_INIT_REG(&marshal);
+
+  marshal = scm_alloc_mem(&SCM_MARSHAL_TYPE_INFO, 0, mtype);
+  if (scm_obj_null_p(marshal)) return SCM_OBJ_NULL;
+
+  r = scm_marshal_initialize(marshal);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return marshal;
 }
 
 static inline ScmMarshalBuffer *
@@ -993,7 +1026,7 @@ scm_marshal_push_shared_pos(ScmObj marshal)
 }
 
 int
-scm_marshal_push_obj(ScmObj marshal, ScmObj obj)
+scm_marshal_push(ScmObj marshal, ScmObj obj)
 {
   ssize_t pos;
   int r;
@@ -1001,6 +1034,7 @@ scm_marshal_push_obj(ScmObj marshal, ScmObj obj)
   SCM_REFSTK_INIT_REG(&marshal, &obj);
 
   scm_assert_obj_type(marshal, &SCM_MARSHAL_TYPE_INFO);
+  scm_assert(!scm_marshal_terminated_p(marshal));
   scm_assert(scm_obj_not_null_p(obj));
 
   pos = scm_marshal_obj(obj, NULL, marshal);
@@ -1047,7 +1081,7 @@ scm_marshal_terminate(ScmObj marshal, size_t *size)
   data = scm_marshal_buffer_chuck(SCM_MARSHAL(marshal)->output);
 
   scm_marshal_buffer_fin(SCM_MARSHAL(marshal)->output);
-  scm_fcd_free(SCM_MARSHAL(marshal)->output);
+  scm_free(SCM_MARSHAL(marshal)->output);
   SCM_MARSHAL(marshal)->output = NULL;
 
   return data;
@@ -1142,7 +1176,7 @@ scm_unmarshal_initialize(ScmObj unmarshal, const void *data)
 
   size = scm_unmarshal_extract_size(data);
 
-  SCM_UNMARSHAL(unmarshal)->input = scm_fcd_malloc(sizeof(ScmMarshalBuffer));
+  SCM_UNMARSHAL(unmarshal)->input = scm_malloc(sizeof(ScmMarshalBuffer));
   if (SCM_UNMARSHAL(unmarshal)->input == NULL) return -1;
 
   r = scm_marshal_buffer_init(SCM_UNMARSHAL(unmarshal)->input, data, size);
@@ -1159,7 +1193,7 @@ scm_unmarshal_initialize(ScmObj unmarshal, const void *data)
     }
 
     SCM_UNMARSHAL(unmarshal)->obj_pos
-      = scm_fcd_malloc(sizeof(size_t) * SCM_UNMARSHAL(unmarshal)->mh.nr_obj);
+      = scm_malloc(sizeof(size_t) * SCM_UNMARSHAL(unmarshal)->mh.nr_obj);
     if (SCM_UNMARSHAL(unmarshal)->obj_pos == NULL) return -1;
   }
 
@@ -1171,11 +1205,11 @@ scm_unmarshal_initialize(ScmObj unmarshal, const void *data)
     }
 
     SCM_UNMARSHAL(unmarshal)->shared_pos
-      = scm_fcd_malloc(sizeof(size_t) * SCM_UNMARSHAL(unmarshal)->mh.nr_shared);
+      = scm_malloc(sizeof(size_t) * SCM_UNMARSHAL(unmarshal)->mh.nr_shared);
     if (SCM_UNMARSHAL(unmarshal)->shared_pos == NULL) return -1;
 
     SCM_UNMARSHAL(unmarshal)->shared_obj
-      = scm_fcd_malloc(sizeof(ScmObj) * SCM_UNMARSHAL(unmarshal)->mh.nr_shared);
+      = scm_malloc(sizeof(ScmObj) * SCM_UNMARSHAL(unmarshal)->mh.nr_shared);
     if (SCM_UNMARSHAL(unmarshal)->shared_obj == NULL) return -1;
 
     for (size_t i = 0; i < SCM_UNMARSHAL(unmarshal)->mh.nr_shared; i++)
@@ -1192,7 +1226,7 @@ scm_unmarshal_initialize(ScmObj unmarshal, const void *data)
     }
 
     SCM_UNMARSHAL(unmarshal)->unmarshaled
-      = scm_fcd_malloc(sizeof(ScmObj) * SCM_UNMARSHAL(unmarshal)->mh.nr_obj);
+      = scm_malloc(sizeof(ScmObj) * SCM_UNMARSHAL(unmarshal)->mh.nr_obj);
 
     if (SCM_UNMARSHAL(unmarshal)->unmarshaled == NULL) return -1;
 
@@ -1209,30 +1243,47 @@ scm_unmarshal_finalize(ScmObj unmarshal)
   scm_assert_obj_type(unmarshal, &SCM_UNMARSHAL_TYPE_INFO);
 
   if (SCM_UNMARSHAL(unmarshal)->unmarshaled != NULL) {
-    scm_fcd_free(SCM_UNMARSHAL(unmarshal)->unmarshaled);
+    scm_free(SCM_UNMARSHAL(unmarshal)->unmarshaled);
     SCM_UNMARSHAL(unmarshal)->unmarshaled = NULL;
   }
 
   if (SCM_UNMARSHAL(unmarshal)->shared_obj != NULL) {
-    scm_fcd_free(SCM_UNMARSHAL(unmarshal)->shared_obj);
+    scm_free(SCM_UNMARSHAL(unmarshal)->shared_obj);
     SCM_UNMARSHAL(unmarshal)->shared_obj = NULL;
   }
 
   if (SCM_UNMARSHAL(unmarshal)->shared_pos != NULL) {
-    scm_fcd_free(SCM_UNMARSHAL(unmarshal)->shared_pos);
+    scm_free(SCM_UNMARSHAL(unmarshal)->shared_pos);
     SCM_UNMARSHAL(unmarshal)->shared_pos = NULL;
   }
 
   if (SCM_UNMARSHAL(unmarshal)->obj_pos != NULL) {
-    scm_fcd_free(SCM_UNMARSHAL(unmarshal)->obj_pos);
+    scm_free(SCM_UNMARSHAL(unmarshal)->obj_pos);
     SCM_UNMARSHAL(unmarshal)->obj_pos = NULL;
   }
 
   if (SCM_UNMARSHAL(unmarshal)->input != NULL) {
     scm_marshal_buffer_fin(SCM_UNMARSHAL(unmarshal)->input);
-    scm_fcd_free(SCM_UNMARSHAL(unmarshal)->input);
+    scm_free(SCM_UNMARSHAL(unmarshal)->input);
     SCM_UNMARSHAL(unmarshal)->input = NULL;
   }
+}
+
+ScmObj
+scm_unmarshal_new(scm_mem_type_t mtype, const void *data)
+{
+  ScmObj unmarshal = SCM_OBJ_INIT;
+  int r;
+
+  scm_assert(data != NULL);
+
+  unmarshal = scm_alloc_mem(&SCM_UNMARSHAL_TYPE_INFO, 0, mtype);
+  if (scm_obj_null_p(unmarshal)) return SCM_OBJ_NULL;
+
+  r = scm_unmarshal_initialize(unmarshal, data);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return unmarshal;
 }
 
 static inline ScmMarshalBuffer *
@@ -1419,7 +1470,7 @@ static int
 scm_marshal_obj_eof(ScmMarshalObjStat *stat, ScmObj marshal)
 {
   scm_assert(stat != NULL);
-  scm_assert(scm_fcd_eof_object_p(stat->obj));
+  scm_assert(scm_eof_object_p(stat->obj));
   scm_assert_obj_type(marshal, &SCM_MARSHAL_TYPE_INFO);
   return scm_marshal_obj_atom(stat, marshal, NULL);
 }
@@ -1440,11 +1491,11 @@ scm_marshal_obj_bool_internal(ScmMarshalObjStat *stat, ScmObj marshal)
   int r;
 
   scm_assert(stat != NULL);
-  scm_assert(scm_fcd_boolean_p(stat->obj));
+  scm_assert(scm_boolean_p(stat->obj));
   scm_assert_obj_type(marshal, &SCM_MARSHAL_TYPE_INFO);
 
   output = scm_marshal_output(marshal);
-  r = scm_push_uint8(output, scm_fcd_true_object_p(stat->obj) ? 1 : 0);
+  r = scm_push_uint8(output, scm_true_object_p(stat->obj) ? 1 : 0);
   if (r < 0) return -1;
 
   r = scm_push_padding_for_alignment(output);
@@ -1457,7 +1508,7 @@ static int
 scm_marshal_obj_bool(ScmMarshalObjStat *stat, ScmObj marshal)
 {
   scm_assert(stat != NULL);
-  scm_assert(scm_fcd_boolean_p(stat->obj));
+  scm_assert(scm_boolean_p(stat->obj));
   scm_assert_obj_type(marshal, &SCM_MARSHAL_TYPE_INFO);
   return scm_marshal_obj_atom(stat, marshal, scm_marshal_obj_bool_internal);
 }
@@ -1488,7 +1539,7 @@ static int
 scm_marshal_obj_nil(ScmMarshalObjStat *stat, ScmObj marshal)
 {
   scm_assert(stat != NULL);
-  scm_assert(scm_fcd_nil_p(stat->obj));
+  scm_assert(scm_nil_p(stat->obj));
   scm_assert_obj_type(marshal, &SCM_MARSHAL_TYPE_INFO);
   return scm_marshal_obj_atom(stat, marshal, NULL);
 }
@@ -1506,7 +1557,7 @@ static int
 scm_marshal_obj_undef(ScmMarshalObjStat *stat, ScmObj marshal)
 {
   scm_assert(stat != NULL);
-  scm_assert(scm_fcd_undef_object_p(stat->obj));
+  scm_assert(scm_undef_object_p(stat->obj));
   scm_assert_obj_type(marshal, &SCM_MARSHAL_TYPE_INFO);
   return scm_marshal_obj_atom(stat, marshal, NULL);
 }
@@ -1531,13 +1582,13 @@ scm_external_representation(ScmObj obj)
 
   scm_assert(scm_obj_not_null_p(obj));
 
-  port = scm_fcd_open_output_string();
+  port = scm_open_output_string();
   if (scm_obj_null_p(port)) return SCM_OBJ_NULL;
 
-  r = scm_fcd_write(obj, port);
+  r = scm_write(obj, port);
   if (r < 0) return SCM_OBJ_NULL;
 
-  return scm_fcd_get_output_string(port);
+  return scm_get_output_string(port);
 }
 
 static int
@@ -1550,7 +1601,7 @@ scm_marshal_obj_number_str(ScmMarshalObjStat *stat, ScmObj marshal)
   int r;
 
   scm_assert(stat != NULL);
-  scm_assert(scm_fcd_number_p(stat->obj));
+  scm_assert(scm_number_p(stat->obj));
   scm_assert_obj_type(marshal, &SCM_MARSHAL_TYPE_INFO);
 
   SCM_REFSTK_INIT_REG(&marshal,
@@ -1561,7 +1612,7 @@ scm_marshal_obj_number_str(ScmMarshalObjStat *stat, ScmObj marshal)
   str = scm_external_representation(stat->obj);
   if (scm_obj_null_p(str)) return -1;
 
-  ext_sz = scm_fcd_string_bytesize(str);
+  ext_sz = scm_string_bytesize(str);
   ext_sz++;
 
   r = scm_push_uint8(output, SCM_MARSHAL_NUM_TYPE_STR);
@@ -1576,7 +1627,7 @@ scm_marshal_obj_number_str(ScmMarshalObjStat *stat, ScmObj marshal)
   p = scm_alloc_space(output, ext_sz);
   if (p == NULL) return -1;
 
-  p = scm_fcd_string_to_cstr(str, p, ext_sz);
+  p = scm_string_to_cstr(str, p, ext_sz);
   if (p == NULL) return -1;
 
   r = scm_push_padding_for_alignment(output);
@@ -1612,7 +1663,7 @@ scm_unmarshal_obj_number_str(ScmUnmarshalObjStat *stat, ScmObj unmarshal)
   r = scm_skip_padding_for_alignment(input);
   if (r < 0) return -1;
 
-  stat->obj = scm_fcd_make_number_from_literal(ext, enc);
+  stat->obj = scm_make_number_from_literal(ext, enc);
   if (scm_obj_null_p(stat->obj)) return -1;
 
   return 0;
@@ -1626,16 +1677,16 @@ scm_marshal_obj_integer_internal(ScmMarshalObjStat *stat, ScmObj marshal)
   int r;
 
   scm_assert(stat != NULL);
-  scm_assert(scm_fcd_integer_p(stat->obj));
+  scm_assert(scm_num_integer_p(stat->obj));
   scm_assert_obj_type(marshal, &SCM_MARSHAL_TYPE_INFO);
 
   output = scm_marshal_output(marshal);
 
-  r = scm_fcd_integer_to_sword(stat->obj, &num);
+  r = scm_integer_to_sword(stat->obj, &num);
   if (r < 0) {
-    scm_fcd_discard_raised_obj(); /* overflow/underflow エラーを握り潰す
-                                   * XXX: エラー原因が overflow/underflow のみ前
-                                   *      提の実装 */
+    scm_discard_raised_obj(); /* overflow/underflow エラーを握り潰す
+                               * XXX: エラー原因が overflow/underflow のみ前
+                               *      提の実装 */
     return scm_marshal_obj_number_str(stat, marshal);
   }
 
@@ -1661,7 +1712,7 @@ static int
 scm_marshal_obj_integer(ScmMarshalObjStat *stat, ScmObj marshal)
 {
   scm_assert(stat != NULL);
-  scm_assert(scm_fcd_integer_p(stat->obj));
+  scm_assert(scm_num_integer_p(stat->obj));
   scm_assert_obj_type(marshal, &SCM_MARSHAL_TYPE_INFO);
   return scm_marshal_obj_atom(stat, marshal, scm_marshal_obj_integer_internal);
 }
@@ -1696,19 +1747,19 @@ scm_unmarshal_obj_integer(ScmUnmarshalObjStat *stat, ScmObj unmarshal)
 
 #if SIZEOF_SCM_WORD_T >= 4
 
-  stat->obj = scm_fcd_make_number_from_sword(num);
+  stat->obj = scm_make_number_from_sword(num);
   if (scm_obj_null_p(stat->obj)) return -1;
   return 0;
 
 #else  /* SIZEOF_SCM_WORD_T < 4 */
 
   if (SCM_SWORD_MIN <= num && num <= SCM_SWORD_MAX) {
-    stat->obj = scm_fcd_make_number_from_sword(num);
+    stat->obj = scm_make_number_from_sword(num);
   }
   else {
     char str[16];
     int l = snprintf(str, sizeof(str), "%ld", (long)num);
-    stat->obj = scm_fcd_make_number_from_literal(str, (size_t)l);
+    stat->obj = scm_make_number_from_literal(str, (size_t)l);
   }
 
   if (scm_obj_null_p(stat->obj)) return -1;
@@ -1733,7 +1784,7 @@ scm_marshal_obj_pair(ScmMarshalObjStat *stat, ScmObj marshal)
                       &car, &cdr);
 
   scm_assert(stat != NULL);
-  scm_assert(scm_fcd_pair_p(stat->obj));
+  scm_assert(scm_pair_p(stat->obj));
   scm_assert_obj_type(marshal, &SCM_MARSHAL_TYPE_INFO);
 
   output = scm_marshal_output(marshal);
@@ -1757,11 +1808,11 @@ scm_marshal_obj_pair(ScmMarshalObjStat *stat, ScmObj marshal)
   r = scm_write_obj_header_size(output, stat->pos, end - stat->pos);
   if (r < 0) return -1;
 
-  car = scm_fcd_car(stat->obj);
+  car = scm_car(stat->obj);
   pos_car = scm_marshal_obj(car, stat, marshal);
   if (pos_car < 0) return -1;
 
-  cdr = scm_fcd_cdr(stat->obj);
+  cdr = scm_cdr(stat->obj);
   pos_cdr = scm_marshal_obj(cdr, stat, marshal);
   if (pos_cdr < 0) return -1;
 
@@ -1809,7 +1860,7 @@ scm_unmarshal_obj_pair(ScmUnmarshalObjStat *stat, ScmObj unmarshal)
     return -1;
   }
 
-  stat->obj = scm_fcd_cons(SCM_EOF_OBJ, SCM_EOF_OBJ);
+  stat->obj = scm_cons(SCM_EOF_OBJ, SCM_EOF_OBJ);
   if (scm_obj_null_p(stat->obj)) return -1;
 
   scm_marshal_buffer_seek(input, pos_car);
@@ -1820,8 +1871,8 @@ scm_unmarshal_obj_pair(ScmUnmarshalObjStat *stat, ScmObj unmarshal)
   cdr = scm_unmarshal_obj(stat, unmarshal);
   if (scm_obj_null_p(cdr)) return -1;
 
-  scm_fcd_set_car_i(stat->obj, car);
-  scm_fcd_set_cdr_i(stat->obj, cdr);
+  scm_set_car(stat->obj, car);
+  scm_set_cdr(stat->obj, cdr);
 
   return 0;
 }
@@ -1836,7 +1887,7 @@ scm_marshal_obj_symbol_internal(ScmMarshalObjStat *stat, ScmObj marshal)
   int r;
 
   scm_assert(stat != NULL);
-  scm_assert(scm_fcd_symbol_p(stat->obj));
+  scm_assert(scm_symbol_p(stat->obj));
   scm_assert_obj_type(marshal, &SCM_MARSHAL_TYPE_INFO);
 
   SCM_REFSTK_INIT_REG(&marshal,
@@ -1845,10 +1896,10 @@ scm_marshal_obj_symbol_internal(ScmMarshalObjStat *stat, ScmObj marshal)
 
   output = scm_marshal_output(marshal);
 
-  str = scm_fcd_symbol_to_string(stat->obj);
+  str = scm_symbol_to_string(stat->obj);
   if (scm_obj_null_p(str)) return -1;
 
-  size = scm_fcd_string_bytesize(str);
+  size = scm_string_bytesize(str);
   size++;
 
   r = scm_push_size(output, size);
@@ -1857,7 +1908,7 @@ scm_marshal_obj_symbol_internal(ScmMarshalObjStat *stat, ScmObj marshal)
   p = scm_alloc_space(output, size);
   if (p == NULL) return -1;
 
-  p = scm_fcd_string_to_cstr(str, p, size);
+  p = scm_string_to_cstr(str, p, size);
   if (p == NULL) return -1;
 
   r = scm_push_padding_for_alignment(output);
@@ -1870,7 +1921,7 @@ static int
 scm_marshal_obj_symbol(ScmMarshalObjStat *stat, ScmObj marshal)
 {
   scm_assert(stat != NULL);
-  scm_assert(scm_fcd_symbol_p(stat->obj));
+  scm_assert(scm_symbol_p(stat->obj));
   scm_assert_obj_type(marshal, &SCM_MARSHAL_TYPE_INFO);
   return scm_marshal_obj_atom(stat, marshal, scm_marshal_obj_symbol_internal);
 }
@@ -1899,7 +1950,7 @@ scm_unmarshal_obj_symbol(ScmUnmarshalObjStat *stat, ScmObj unmarshal)
   r = scm_skip_padding_for_alignment(input);
   if (r < 0) return -1;
 
-  stat->obj = scm_fcd_make_symbol_from_bin(p, size - 1, enc);
+  stat->obj = scm_make_symbol_from_bin(p, size - 1, enc);
   if (scm_obj_null_p(stat->obj)) return -1;
 
   return 0;
@@ -1915,15 +1966,15 @@ scm_marshal_obj_char_internal(ScmMarshalObjStat *stat, ScmObj marshal)
   int r;
 
   scm_assert(stat != NULL);
-  scm_assert(scm_fcd_char_p(stat->obj));
+  scm_assert(scm_char_p(stat->obj));
   scm_assert_obj_type(marshal, &SCM_MARSHAL_TYPE_INFO);
 
   SCM_REFSTK_INIT_REG(&marshal);
 
   output = scm_marshal_output(marshal);
 
-  w = scm_fcd_char_to_cchr(stat->obj, &chr);
-  enc = scm_fcd_char_encoding(stat->obj);
+  w = scm_char_to_cchr(stat->obj, &chr);
+  enc = scm_char_encoding(stat->obj);
 
   r = scm_push_encoding(output, enc);
   if (r < 0) return -1;
@@ -1944,7 +1995,7 @@ static int
 scm_marshal_obj_char(ScmMarshalObjStat *stat, ScmObj marshal)
 {
   scm_assert(stat != NULL);
-  scm_assert(scm_fcd_char_p(stat->obj));
+  scm_assert(scm_char_p(stat->obj));
   scm_assert_obj_type(marshal, &SCM_MARSHAL_TYPE_INFO);
   return scm_marshal_obj_atom(stat, marshal, scm_marshal_obj_char_internal);
 }
@@ -1983,7 +2034,7 @@ scm_unmarshal_obj_char(ScmUnmarshalObjStat *stat, ScmObj unmarshal)
 
   memcpy(chr.bytes, p, w);
 
-  stat->obj = scm_fcd_make_char(&chr, enc);
+  stat->obj = scm_make_char(&chr, enc);
   if (scm_obj_null_p(stat->obj)) return -1;
 
   return 0;
@@ -1999,15 +2050,15 @@ scm_marshal_obj_string_internal(ScmMarshalObjStat *stat, ScmObj marshal)
   int r;
 
   scm_assert(stat != NULL);
-  scm_assert(scm_fcd_string_p(stat->obj));
+  scm_assert(scm_string_p(stat->obj));
   scm_assert_obj_type(marshal, &SCM_MARSHAL_TYPE_INFO);
 
   SCM_REFSTK_INIT_REG(&marshal);
 
   output = scm_marshal_output(marshal);
 
-  enc = scm_fcd_string_encoding(stat->obj);
-  size = scm_fcd_string_bytesize(stat->obj);
+  enc = scm_string_encoding(stat->obj);
+  size = scm_string_bytesize(stat->obj);
   size++;
 
   r = scm_push_encoding(output, enc);
@@ -2022,7 +2073,7 @@ scm_marshal_obj_string_internal(ScmMarshalObjStat *stat, ScmObj marshal)
   p = scm_alloc_space(output, (size_t)size);
   if (p == NULL) return -1;
 
-  p = scm_fcd_string_to_cstr(stat->obj, p, (size_t)size);
+  p = scm_string_to_cstr(stat->obj, p, (size_t)size);
   if (p == NULL) return -1;
 
   r = scm_push_padding_for_alignment(output);
@@ -2035,7 +2086,7 @@ static int
 scm_marshal_obj_string(ScmMarshalObjStat *stat, ScmObj marshal)
 {
   scm_assert(stat != NULL);
-  scm_assert(scm_fcd_string_p(stat->obj));
+  scm_assert(scm_string_p(stat->obj));
   scm_assert_obj_type(marshal, &SCM_MARSHAL_TYPE_INFO);
   return scm_marshal_obj_atom(stat, marshal, scm_marshal_obj_string_internal);
 }
@@ -2069,7 +2120,7 @@ scm_unmarshal_obj_string(ScmUnmarshalObjStat *stat, ScmObj unmarshal)
   r = scm_skip_padding_for_alignment(input);
   if (r < 0) return -1;
 
-  stat->obj = scm_fcd_make_string_from_bin(p, size - 1, enc);
+  stat->obj = scm_make_string_from_bin(p, size - 1, enc);
   if (scm_obj_null_p(stat->obj)) return -1;
 
   return 0;
@@ -2089,11 +2140,11 @@ scm_marshal_obj_vector(ScmMarshalObjStat *stat, ScmObj marshal)
                       &elm);
 
   scm_assert(stat != NULL);
-  scm_assert(scm_fcd_vector_p(stat->obj));
+  scm_assert(scm_vector_p(stat->obj));
   scm_assert_obj_type(marshal, &SCM_MARSHAL_TYPE_INFO);
 
   output = scm_marshal_output(marshal);
-  len = scm_fcd_vector_length(stat->obj);
+  len = scm_vector_length(stat->obj);
   stat->pos = scm_marshal_buffer_pos(output);
 
   header.size = 0;
@@ -2125,7 +2176,7 @@ scm_marshal_obj_vector(ScmMarshalObjStat *stat, ScmObj marshal)
 
   for (size_t i = 0; i < len; i++) {
     ssize_t pos;
-    elm = scm_fcd_vector_ref(stat->obj, i);
+    elm = scm_vector_ref(stat->obj, i);
     pos = scm_marshal_obj(elm, stat, marshal);
     if (pos < 0) return -1;
 
@@ -2155,7 +2206,7 @@ scm_unmarshal_obj_vector(ScmUnmarshalObjStat *stat, ScmObj unmarshal)
   r = scm_read_size(input, &len);
   if (r < 0) return -1;
 
-  stat->obj = scm_fcd_make_vector(len, SCM_OBJ_NULL);
+  stat->obj = scm_make_vector(len, SCM_OBJ_NULL);
   if (scm_obj_null_p(stat->obj)) return -1;
 
   for (size_t i = 0; i < len; i++) {
@@ -2176,7 +2227,7 @@ scm_unmarshal_obj_vector(ScmUnmarshalObjStat *stat, ScmObj unmarshal)
     elm = scm_unmarshal_obj(stat, unmarshal);
     if (scm_obj_null_p(elm)) return -1;
 
-    scm_fcd_vector_set_i(stat->obj, i, elm);
+    scm_vector_set(stat->obj, i, elm);
     scm_marshal_buffer_seek(input, cur);
   }
 
@@ -2194,12 +2245,12 @@ scm_marshal_obj_bytevector_internal(ScmMarshalObjStat *stat, ScmObj marshal)
   SCM_REFSTK_INIT_REG(&marshal);
 
   scm_assert(stat != NULL);
-  scm_assert(scm_fcd_bytevector_p(stat->obj));
+  scm_assert(scm_bytevector_p(stat->obj));
   scm_assert_obj_type(marshal, &SCM_MARSHAL_TYPE_INFO);
 
   output = scm_marshal_output(marshal);
 
-  len = scm_fcd_bytevector_length(stat->obj);
+  len = scm_bytevector_length(stat->obj);
   r = scm_push_size(output, len);
   if (r < 0) return -1;
 
@@ -2209,7 +2260,7 @@ scm_marshal_obj_bytevector_internal(ScmMarshalObjStat *stat, ScmObj marshal)
   r = scm_push_padding_for_alignment(output);
   if (r < 0) return -1;
 
-  p = scm_fcd_bytevector_to_cv(stat->obj, p, len);
+  p = scm_bytevector_to_cv(stat->obj, p, len);
   if (p == NULL) return -1;
 
   return 0;
@@ -2219,7 +2270,7 @@ static int
 scm_marshal_obj_bytevector(ScmMarshalObjStat *stat, ScmObj marshal)
 {
   scm_assert(stat != NULL);
-  scm_assert(scm_fcd_bytevector_p(stat->obj));
+  scm_assert(scm_bytevector_p(stat->obj));
   scm_assert_obj_type(marshal, &SCM_MARSHAL_TYPE_INFO);
   return scm_marshal_obj_atom(stat, marshal, scm_marshal_obj_bytevector_internal);
 }
@@ -2246,7 +2297,7 @@ scm_unmarshal_obj_bytevector(ScmUnmarshalObjStat *stat, ScmObj unmarshal)
   r = scm_skip_padding_for_alignment(input);
   if (r < 0) return -1;
 
-  stat->obj = scm_fcd_make_bytevector_from_cv(p, len);
+  stat->obj = scm_make_bytevector_from_cv(p, len);
   if (scm_obj_null_p(stat->obj)) return -1;
 
   return 0;
@@ -2267,7 +2318,7 @@ scm_marshal_obj_qqtmplnode(ScmMarshalObjStat *stat, ScmObj marshal)
                       &qqtn_obj);
 
   scm_assert(stat != NULL);
-  scm_assert(scm_fcd_qqtmplnode_p(stat->obj));
+  scm_assert(scm_qqtmplnode_p(stat->obj));
   scm_assert_obj_type(marshal, &SCM_MARSHAL_TYPE_INFO);
 
   output = scm_marshal_output(marshal);
@@ -2279,9 +2330,8 @@ scm_marshal_obj_qqtmplnode(ScmMarshalObjStat *stat, ScmObj marshal)
   r = scm_push_obj_header(output, &header);
   if (r < 0) return -1;
 
-  scm_fcd_qqtmplnode_get_contents_for_marshal(stat->obj,
-                                              &qqtn_kind,
-                                              SCM_CSETTER_L(qqtn_obj));
+  scm_qqtn_get_contents_for_marshal(stat->obj,
+                                    &qqtn_kind, SCM_CSETTER_L(qqtn_obj));
 
 #if INT_MIN < INT32_MIN || INT32_MAX < INT_MAX
   if (qqtn_kind < INT32_MIN || INT32_MAX < qqtn_kind) {
@@ -2351,15 +2401,14 @@ scm_unmarshal_obj_qqtmplnode(ScmUnmarshalObjStat *stat, ScmObj unmarshal)
     return -1;
   }
 
-  stat->obj = scm_fcd_make_qqtmplnode_for_unmarshal();
+  stat->obj = scm_make_qqtmplnode_for_unmarshal();
   if (scm_obj_null_p(stat->obj)) return -1;
 
   scm_marshal_buffer_seek(input, pos_obj);
   qqtn_obj = scm_unmarshal_obj(stat, unmarshal);
   if (scm_obj_null_p(qqtn_obj)) return -1;
 
-  r = scm_fcd_qqtmplnode_setup_for_unmarshal(stat->obj,
-                                             (int)qqtn_kind, qqtn_obj);
+  r = scm_qqtn_setup_for_unmarshal(stat->obj, (int)qqtn_kind, qqtn_obj);
   if (r < 0) return -1;
 
   return 0;
@@ -2380,7 +2429,7 @@ scm_marshal_obj_qqtmpl(ScmMarshalObjStat *stat, ScmObj marshal)
                       &tmpl, &compiled, &expr);
 
   scm_assert(stat != NULL);
-  scm_assert(scm_fcd_qqtmpl_p(stat->obj));
+  scm_assert(scm_qqtmpl_p(stat->obj));
   scm_assert_obj_type(marshal, &SCM_MARSHAL_TYPE_INFO);
 
   output = scm_marshal_output(marshal);
@@ -2404,10 +2453,10 @@ scm_marshal_obj_qqtmpl(ScmMarshalObjStat *stat, ScmObj marshal)
   r = scm_write_obj_header_size(output, stat->pos, end - stat->pos);
   if (r < 0) return -1;
 
-  r = scm_fcd_qqtmpl_get_contents_for_marshal(stat->obj,
-                                              SCM_CSETTER_L(tmpl),
-                                              SCM_CSETTER_L(compiled),
-                                              SCM_CSETTER_L(expr));
+  r = scm_qqtmpl_get_contents_for_marshal(stat->obj,
+                                          SCM_CSETTER_L(tmpl),
+                                          SCM_CSETTER_L(compiled),
+                                          SCM_CSETTER_L(expr));
   if (r < 0) return -1;
 
   pos_tmpl = scm_marshal_obj(tmpl, stat, marshal);
@@ -2480,7 +2529,7 @@ scm_unmarshal_obj_qqtmpl(ScmUnmarshalObjStat *stat, ScmObj unmarshal)
     return -1;
   }
 
-  stat->obj = scm_fcd_make_qqtmpl_for_unmarshal();
+  stat->obj = scm_make_qqtmpl_for_unmarshal();
   if (scm_obj_null_p(stat->obj)) return -1;
 
   scm_marshal_buffer_seek(input, pos_tmpl);
@@ -2495,7 +2544,7 @@ scm_unmarshal_obj_qqtmpl(ScmUnmarshalObjStat *stat, ScmObj unmarshal)
   expr = scm_unmarshal_obj(stat, unmarshal);
   if (scm_obj_null_p(expr)) return -1;
 
-  r = scm_fcd_qqtmpl_setup_for_unmarshal(stat->obj, tmpl, compiled, expr);
+  r = scm_qqtmpl_setup_for_unmarshal(stat->obj, tmpl, compiled, expr);
   if (r < 0) return -1;
 
   return 0;
@@ -2938,18 +2987,18 @@ scm_marshal_obj_iseq_inst(ScmMarshalObjStat *stat, ScmObj marshal,
   SCM_REFSTK_INIT_REG(&marshal, &disasm);
 
   scm_assert(stat != NULL);
-  scm_assert(scm_fcd_iseq_p(stat->obj));
+  scm_assert(scm_iseq_p(stat->obj));
   scm_assert_obj_type(marshal, &SCM_MARSHAL_TYPE_INFO);
-  scm_assert(scm_fcd_disassembler_p(disasm));
+  scm_assert(scm_disassembler_p(disasm));
   scm_assert(label_pos != NULL);
 
   output = scm_marshal_output(marshal);
 
   cnt = 0;
-  while ((tk = scm_fcd_disassembler_token(disasm)) != NULL
+  while ((tk = scm_disasm_token(disasm)) != NULL
          && tk->type != SCM_DISASM_TK_END) {
 
-    r = scm_fcd_disassembler_cnv_to_marshalable(disasm);
+    r = scm_disasm_cnv_to_marshalable(disasm);
     if (r < 0) return -1;
 
     switch (tk->type) {
@@ -3003,7 +3052,7 @@ scm_marshal_obj_iseq_inst(ScmMarshalObjStat *stat, ScmObj marshal,
       break;
     }
 
-    r = scm_fcd_disassembler_next(disasm);
+    r = scm_disasm_next(disasm);
     if (r < 0) return -1;
   }
 
@@ -3025,9 +3074,9 @@ scm_marshal_obj_iseq_body(ScmMarshalObjStat *stat, ScmObj marshal,
   SCM_REFSTK_INIT_REG(&marshal, &disasm);
 
   scm_assert(stat != NULL);
-  scm_assert(scm_fcd_iseq_p(stat->obj));
+  scm_assert(scm_iseq_p(stat->obj));
   scm_assert_obj_type(marshal, &SCM_MARSHAL_TYPE_INFO);
-  scm_assert(scm_fcd_disassembler_p(disasm));
+  scm_assert(scm_disassembler_p(disasm));
   scm_assert(inst_start != NULL);
 
   r = eary_init(&label_pos, sizeof(size_t), 0);
@@ -3094,19 +3143,19 @@ scm_marshal_obj_iseq_opd(ScmMarshalObjStat *stat, ScmObj marshal, ScmObj disasm,
   SCM_REFSTK_INIT_REG(&marshal, &disasm);
 
   scm_assert(stat != NULL);
-  scm_assert(scm_fcd_iseq_p(stat->obj));
+  scm_assert(scm_iseq_p(stat->obj));
   scm_assert_obj_type(marshal, &SCM_MARSHAL_TYPE_INFO);
-  scm_assert(scm_fcd_disassembler_p(disasm));
+  scm_assert(scm_disassembler_p(disasm));
 
   output = scm_marshal_output(marshal);
 
   pos = inst_start;
-  while ((tk = scm_fcd_disassembler_token(disasm)) != NULL
+  while ((tk = scm_disasm_token(disasm)) != NULL
          && tk->type != SCM_DISASM_TK_END) {
     ssize_t oft1, oft2;
     int r;
 
-    r = scm_fcd_disassembler_cnv_to_marshalable(disasm);
+    r = scm_disasm_cnv_to_marshalable(disasm);
     if (r < 0) return -1;
 
     if (tk->type == SCM_DISASM_TK_INST) {
@@ -3155,7 +3204,7 @@ scm_marshal_obj_iseq_opd(ScmMarshalObjStat *stat, ScmObj marshal, ScmObj disasm,
       }
     }
 
-    r = scm_fcd_disassembler_next(disasm);
+    r = scm_disasm_next(disasm);
     if (r < 0) return -1;
   }
 
@@ -3177,10 +3226,10 @@ scm_marshal_obj_iseq(ScmMarshalObjStat *stat, ScmObj marshal)
                       &disasm);
 
   scm_assert(stat != NULL);
-  scm_assert(scm_fcd_iseq_p(stat->obj));
+  scm_assert(scm_iseq_p(stat->obj));
   scm_assert_obj_type(marshal, &SCM_MARSHAL_TYPE_INFO);
 
-  disasm = scm_fcd_make_disassembler(stat->obj);
+  disasm = scm_make_disassembler(stat->obj);
   if (scm_obj_null_p(disasm)) return -1;
 
   output = scm_marshal_output(marshal);
@@ -3200,7 +3249,7 @@ scm_marshal_obj_iseq(ScmMarshalObjStat *stat, ScmObj marshal)
   r = scm_write_obj_header_size(output, stat->pos, end - stat->pos);
   if (r < 0) return -1;
 
-  scm_fcd_disassembler_rewind(disasm);
+  scm_disasm_rewind(disasm);
   r = scm_marshal_obj_iseq_opd(stat, marshal, disasm, inst_start);
   if (r < 0) return -1;
 
@@ -3247,7 +3296,7 @@ scm_unmarshal_obj_iseq_opd(ScmUnmarshalObjStat *stat, ScmObj unmarshal,
   size_t pos;
 
   scm_assert(stat != NULL);
-  scm_assert(scm_fcd_iseq_p(stat->obj));
+  scm_assert(scm_iseq_p(stat->obj));
   scm_assert_obj_type(unmarshal, &SCM_UNMARSHAL_TYPE_INFO);
 
   input = scm_unmarshal_input(unmarshal);
@@ -3278,9 +3327,9 @@ scm_unmarshal_obj_iseq_internal(ScmUnmarshalObjStat *stat,
                       &opd1, &opd2);
 
   scm_assert(stat != NULL);
-  scm_assert(scm_fcd_iseq_p(stat->obj));
+  scm_assert(scm_iseq_p(stat->obj));
   scm_assert_obj_type(unmarshal, &SCM_UNMARSHAL_TYPE_INFO);
-  scm_assert(scm_fcd_assembler_p(asmb));
+  scm_assert(scm_assembler_p(asmb));
 
   input = scm_unmarshal_input(unmarshal);
 
@@ -3289,7 +3338,7 @@ scm_unmarshal_obj_iseq_internal(ScmUnmarshalObjStat *stat,
   if (r < 0) return -1;
 
   for (size_t id = 0; id < nr_labels; id++) {
-    r = scm_fcd_assembler_register_label_id(asmb, id);
+    r = scm_asm_register_label_id(asmb, id);
     if (r < 0) return -1;
   }
 
@@ -3301,7 +3350,7 @@ scm_unmarshal_obj_iseq_internal(ScmUnmarshalObjStat *stat,
 
     if (label_id < nr_labels &&
         scm_marshal_buffer_pos(input) == label_pos[label_id]) {
-      r = scm_fcd_assembler_push(asmb, SCM_ASM_PI_LABEL, label_id);
+      r = scm_asm_push(asmb, SCM_ASM_PI_LABEL, label_id);
       if (r < 0) return -1;
       label_id++;
     }
@@ -3313,7 +3362,7 @@ scm_unmarshal_obj_iseq_internal(ScmUnmarshalObjStat *stat,
     case SCM_OPFMT_NOOPD:
       r = scm_read_inst_opd_noopd(input);
       if (r < 0) return -1;
-      r = scm_fcd_assembler_push(asmb, op);
+      r = scm_asm_push(asmb, op);
       if (r < 0) return -1;
       break;
     case SCM_OPFMT_OBJ:
@@ -3321,7 +3370,7 @@ scm_unmarshal_obj_iseq_internal(ScmUnmarshalObjStat *stat,
       if (r < 0) return -1;
       opd1 = scm_unmarshal_obj_iseq_opd(stat, unmarshal, pos1);
       if (scm_obj_null_p(opd1)) return -1;
-      r = scm_fcd_assembler_push(asmb, op, opd1);
+      r = scm_asm_push(asmb, op, opd1);
       if (r < 0) return -1;
       break;
     case SCM_OPFMT_OBJ_OBJ:
@@ -3331,19 +3380,19 @@ scm_unmarshal_obj_iseq_internal(ScmUnmarshalObjStat *stat,
       if (scm_obj_null_p(opd1)) return -1;
       opd2 = scm_unmarshal_obj_iseq_opd(stat, unmarshal, pos2);
       if (scm_obj_null_p(opd2)) return -1;
-      r = scm_fcd_assembler_push(asmb, op, opd1, opd2);
+      r = scm_asm_push(asmb, op, opd1, opd2);
       if (r < 0) return -1;
       break;
     case SCM_OPFMT_SI:
       r = scm_read_inst_opd_si(input, &si1);
       if (r < 0) return -1;
-      r = scm_fcd_assembler_push(asmb, op, si1);
+      r = scm_asm_push(asmb, op, si1);
       if (r < 0) return -1;
       break;
     case SCM_OPFMT_SI_SI:
       r = scm_read_inst_opd_si_si(input, &si1, &si2);
       if (r < 0) return -1;
-      r = scm_fcd_assembler_push(asmb, op, si1, si2);
+      r = scm_asm_push(asmb, op, si1, si2);
       if (r < 0) return -1;
       break;
     case SCM_OPFMT_SI_SI_OBJ:
@@ -3351,13 +3400,13 @@ scm_unmarshal_obj_iseq_internal(ScmUnmarshalObjStat *stat,
       if (r < 0) return -1;
       opd1 = scm_unmarshal_obj_iseq_opd(stat, unmarshal, pos1);
       if (scm_obj_null_p(opd1)) return -1;
-      r = scm_fcd_assembler_push(asmb, op, si1, si2, opd1);
+      r = scm_asm_push(asmb, op, si1, si2, opd1);
       if (r < 0) return -1;
       break;
     case SCM_OPFMT_IOF:
       r = scm_read_inst_opd_iof(input, &si1);
       if (r < 0) return -1;
-      r = scm_fcd_assembler_push(asmb, op, true, (size_t)si1);
+      r = scm_asm_push(asmb, op, true, (size_t)si1);
       if (r < 0) return -1;
       break;
     default:
@@ -3369,7 +3418,7 @@ scm_unmarshal_obj_iseq_internal(ScmUnmarshalObjStat *stat,
 
   if (label_id < nr_labels &&
       scm_marshal_buffer_pos(input) == label_pos[label_id]) {
-    r = scm_fcd_assembler_push(asmb, SCM_ASM_PI_LABEL, label_id);
+    r = scm_asm_push(asmb, SCM_ASM_PI_LABEL, label_id);
     if (r < 0) return -1;
     label_id++;
   }
@@ -3393,10 +3442,10 @@ scm_unmarshal_obj_iseq(ScmUnmarshalObjStat *stat, ScmObj unmarshal)
   SCM_REFSTK_INIT_REG(&unmarshal,
                       &asmb);
 
-  stat->obj = scm_fcd_make_iseq();
+  stat->obj = scm_make_iseq();
   if (scm_obj_null_p(stat->obj)) return -1;
 
-  asmb = scm_fcd_make_assembler(stat->obj);
+  asmb = scm_make_assembler(stat->obj);
   if (scm_obj_null_p(asmb)) return -1;
 
   input = scm_unmarshal_input(unmarshal);
@@ -3417,7 +3466,7 @@ scm_unmarshal_obj_iseq(ScmUnmarshalObjStat *stat, ScmObj unmarshal)
                                       nr_inst, nr_branch, br_pos);
   if (r < 0) return -1;
 
-  r = scm_fcd_assembler_commit(asmb);
+  r = scm_asm_commit(asmb);
   if (r < 0) return -1;
 
   return 0;
@@ -3568,106 +3617,8 @@ scm_unmarshal_obj(ScmUnmarshalObjStat *container, ScmObj unmarshal)
 
 
 /****************************************************************************/
-/* Marshal/Unmarshal (interface)                                            */
+/* Facade                                                                   */
 /****************************************************************************/
-
-bool
-scm_fcd_marshal_p(ScmObj obj)
-{
-  return scm_obj_type_p(obj, &SCM_MARSHAL_TYPE_INFO);
-}
-
-ScmObj
-scm_fcd_marshal_new(scm_mem_type_t mtype)
-{
-  ScmObj marshal = SCM_OBJ_INIT;
-  int r;
-
-  SCM_REFSTK_INIT_REG(&marshal);
-
-  marshal = scm_fcd_mem_alloc(&SCM_MARSHAL_TYPE_INFO, 0, mtype);
-  if (scm_obj_null_p(marshal)) return SCM_OBJ_NULL;
-
-  r = scm_marshal_initialize(marshal);
-  if (r < 0) return SCM_OBJ_NULL;
-
-  return marshal;
-}
-
-ScmObj
-scm_fcd_make_marshal(void)
-{
-  return scm_fcd_marshal_new(SCM_MEM_HEAP);
-}
-
-bool
-scm_fcd_marshal_terminated_p(ScmObj marshal)
-{
-  scm_assert(scm_fcd_marshal_p(marshal));
-  return scm_marshal_terminated_p(marshal);
-}
-
-int
-scm_fcd_marshal_push(ScmObj marshal, ScmObj obj)
-{
-  scm_assert(scm_fcd_marshal_p(marshal));
-  scm_assert(scm_marshal_terminated_p(marshal));
-  scm_assert(scm_obj_not_null_p(obj));
-  return scm_marshal_push_obj(marshal, obj);
-}
-
-void *
-scm_fcd_marshal_terminate(ScmObj marshal, size_t *size)
-{
-  scm_assert(scm_fcd_marshal_p(marshal));
-  scm_assert(scm_marshal_terminated_p(marshal));
-  return scm_marshal_terminate(marshal, size);
-}
-
-bool
-scm_fcd_unmarshal_p(ScmObj obj)
-{
-  return scm_obj_type_p(obj, &SCM_UNMARSHAL_TYPE_INFO);
-}
-
-ScmObj
-scm_fcd_unmarshal_new(scm_mem_type_t mtype, const void *data)
-{
-  ScmObj unmarshal = SCM_OBJ_INIT;
-  int r;
-
-  scm_assert(data != NULL);
-
-  unmarshal = scm_fcd_mem_alloc(&SCM_UNMARSHAL_TYPE_INFO, 0, mtype);
-  if (scm_obj_null_p(unmarshal)) return SCM_OBJ_NULL;
-
-  r = scm_unmarshal_initialize(unmarshal, data);
-  if (r < 0) return SCM_OBJ_NULL;
-
-  return unmarshal;
-}
-
-ScmObj
-scm_fcd_make_unmarshal(const void *data)
-{
-  scm_assert(data != NULL);
-  return scm_fcd_unmarshal_new(SCM_MEM_HEAP, data);
-}
-
-size_t
-scm_fcd_unmarshal_num(ScmObj unmarshal)
-{
-  scm_assert(scm_fcd_unmarshal_p(unmarshal));
-  return scm_unmarshal_num_of_objs(unmarshal);
-}
-
-ScmObj
-scm_fcd_unmarshal_ref(ScmObj unmarshal, size_t idx)
-{
-  scm_assert(scm_fcd_unmarshal_p(unmarshal));
-  scm_assert(idx < scm_unmarshal_num_of_objs(unmarshal));
-  return scm_unmarshal_ref(unmarshal, idx);
-}
 
 static void *
 marshal_va_internal(size_t *size, size_t nr_obj, va_list args)
@@ -3679,11 +3630,11 @@ marshal_va_internal(size_t *size, size_t nr_obj, va_list args)
   SCM_REFSTK_INIT_REG(&marshal);
   SCM_REFSTK_REG_ARY(obj, nr_obj);
 
-  marshal = scm_fcd_marshal_new(SCM_MEM_HEAP);
+  marshal = scm_marshal_new(SCM_MEM_HEAP);
   if (scm_obj_null_p(marshal)) return NULL;
 
   for (size_t i = 0; i < nr_obj; i++) {
-    int r = scm_marshal_push_obj(marshal, obj[i]);
+    int r = scm_marshal_push(marshal, obj[i]);
     if (r < 0) return NULL;
   }
 
@@ -3691,7 +3642,7 @@ marshal_va_internal(size_t *size, size_t nr_obj, va_list args)
 }
 
 void *
-scm_fcd_marshal_va(size_t *size, va_list args)
+scm_marshal_va(size_t *size, va_list args)
 {
   ScmObj o = SCM_OBJ_INIT;
   size_t n;
@@ -3714,13 +3665,13 @@ scm_fcd_marshal_va(size_t *size, va_list args)
 }
 
 void *
-scm_fcd_marshal(size_t *size, ...)
+scm_marshal(size_t *size, ...)
 {
   void *data;
   va_list args;
 
   va_start(args, size);
-  data = scm_fcd_marshal_va(size, args);
+  data = scm_marshal_va(size, args);
   va_end(args);
 
   return data;

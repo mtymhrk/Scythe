@@ -2,8 +2,18 @@
 #include <stdbool.h>
 
 #include "scythe/object.h"
-#include "scythe/fcd.h"
+#include "scythe/vm.h"
+#include "scythe/memory.h"
+#include "scythe/refstk.h"
 #include "scythe/assembler.h"
+#include "scythe/equivalence.h"
+#include "scythe/format.h"
+#include "scythe/exception.h"
+#include "scythe/miscobjects.h"
+#include "scythe/module.h"
+#include "scythe/pair.h"
+#include "scythe/symbol.h"
+#include "scythe/vector.h"
 #include "scythe/compiler.h"
 
 
@@ -23,6 +33,12 @@ ScmTypeInfo SCM_COMPILER_TYPE_INFO = {
   .extra                           = NULL,
 };
 
+ScmObj
+scm_compiler_P(ScmObj obj)
+{
+  return scm_compiler_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
+}
+
 int
 scm_cmpl_initialize(ScmObj cmpl, ScmObj env)
 {
@@ -35,8 +51,72 @@ scm_cmpl_initialize(ScmObj cmpl, ScmObj env)
   return 0;
 }
 
+static ScmObj
+norm_cmpl_arg_mod(ScmObj mod)
+{
+  ScmObj name = SCM_OBJ_INIT;
+  int r;
+
+  SCM_REFSTK_INIT_REG(&mod,
+                      &name);
+
+  if (scm_module_p(mod))
+    return mod;
+
+  if (scm_obj_null_p(mod)) {
+    name = scm_make_symbol_from_cstr("main", SCM_ENC_SRC);
+    if (scm_obj_null_p(name)) return SCM_OBJ_NULL;
+
+    name = scm_cons(name, SCM_NIL_OBJ);
+    if (scm_obj_null_p(name)) return SCM_OBJ_NULL;
+  }
+  else if (scm_symbol_p(mod)) {
+    name = scm_cons(mod, SCM_NIL_OBJ);
+    if (scm_obj_null_p(name)) return SCM_OBJ_NULL;
+  }
+  else if (scm_pair_p(mod)) {
+    name = mod;
+  }
+  else {
+    scm_error("no such a module", 1, mod);
+    return SCM_OBJ_NULL;
+  }
+
+  r = scm_find_module(name, SCM_CSETTER_L(mod));
+  if (r < 0) return SCM_OBJ_NULL;
+
+  if (scm_obj_null_p(mod)) {
+    scm_error("no such a module", 1, mod);
+    return SCM_OBJ_NULL;
+  }
+
+  return mod;
+}
+
+ScmObj
+scm_compiler_new(scm_mem_type_t mtype, ScmObj env)
+{
+  ScmObj cmpl = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&env,
+                      &cmpl);
+
+  if (scm_obj_null_p(env)) {
+    env = norm_cmpl_arg_mod(env);
+    if (scm_obj_null_p(env)) return SCM_OBJ_NULL;
+  }
+
+  cmpl = scm_alloc_mem(&SCM_COMPILER_TYPE_INFO, 0, mtype);
+  if (scm_obj_null_p(cmpl)) return SCM_OBJ_NULL;
+
+  if (scm_cmpl_initialize(cmpl, env) < 0)
+    return SCM_OBJ_NULL;
+
+  return cmpl;
+}
+
 void
-scm_cmpl_set_env(ScmObj cmpl, ScmObj env)
+scm_cmpl_select_base_env(ScmObj cmpl, ScmObj env)
 {
   scm_assert_obj_type(cmpl, &SCM_COMPILER_TYPE_INFO);
   scm_assert(scm_obj_not_null_p(env));
@@ -44,8 +124,22 @@ scm_cmpl_set_env(ScmObj cmpl, ScmObj env)
   SCM_SLOT_SETQ(ScmCompiler, cmpl, env, env);
 }
 
+int
+scm_cmpl_select_module(ScmObj cmpl, ScmObj mod)
+{
+  SCM_REFSTK_INIT_REG(&cmpl, &mod);
+
+  scm_assert(scm_compiler_p(cmpl));
+
+  mod = norm_cmpl_arg_mod(mod);
+  if (scm_obj_null_p(mod)) return -1;
+
+  scm_cmpl_select_base_env(cmpl, mod);
+  return 0;
+}
+
 void
-scm_cmpl_set_expr(ScmObj cmpl, ScmObj expr)
+scm_cmpl_select_expr(ScmObj cmpl, ScmObj expr)
 {
   scm_assert_obj_type(cmpl, &SCM_COMPILER_TYPE_INFO);
 
@@ -75,142 +169,6 @@ scm_cmpl_gc_accept(ScmObj obj, ScmGCRefHandler handler)
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
   return SCM_GC_CALL_REF_HANDLER(handler, obj, SCM_COMPILER(obj)->expr);
-}
-
-
-/*************************************************************************/
-/* Compiler (interface)                                                  */
-/*************************************************************************/
-
-static ScmObj
-norm_cmpl_arg_mod(ScmObj mod)
-{
-  ScmObj name = SCM_OBJ_INIT;
-  int r;
-
-  SCM_REFSTK_INIT_REG(&mod,
-                      &name);
-
-  if (scm_fcd_module_p(mod))
-    return mod;
-
-  if (scm_obj_null_p(mod)) {
-    name = scm_fcd_make_symbol_from_cstr("main", SCM_ENC_SRC);
-    if (scm_obj_null_p(name)) return SCM_OBJ_NULL;
-
-    name = scm_fcd_cons(name, SCM_NIL_OBJ);
-    if (scm_obj_null_p(name)) return SCM_OBJ_NULL;
-  }
-  else if (scm_fcd_symbol_p(mod)) {
-    name = scm_fcd_cons(mod, SCM_NIL_OBJ);
-    if (scm_obj_null_p(name)) return SCM_OBJ_NULL;
-  }
-  else if (scm_fcd_pair_p(mod)) {
-    name = mod;
-  }
-  else {
-    scm_fcd_error("no such a module", 1, mod);
-    return SCM_OBJ_NULL;
-  }
-
-  r = scm_fcd_find_module(name, SCM_CSETTER_L(mod));
-  if (r < 0) return SCM_OBJ_NULL;
-
-  if (scm_obj_null_p(mod)) {
-    scm_fcd_error("no such a module", 1, mod);
-    return SCM_OBJ_NULL;
-  }
-
-  return mod;
-}
-
-extern inline bool
-scm_fcd_compiler_p(ScmObj obj)
-{
-  return scm_obj_type_p(obj, &SCM_COMPILER_TYPE_INFO);
-}
-
-extern inline ScmObj
-scm_fcd_compiler_P(ScmObj obj)
-{
-  return scm_fcd_compiler_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ;
-}
-
-ScmObj
-scm_fcd_compiler_new(scm_mem_type_t mtype, ScmObj env)
-{
-  ScmObj cmpl = SCM_OBJ_INIT;
-
-  SCM_REFSTK_INIT_REG(&env,
-                      &cmpl);
-
-  if (scm_obj_null_p(env)) {
-    env = norm_cmpl_arg_mod(env);
-    if (scm_obj_null_p(env)) return SCM_OBJ_NULL;
-  }
-
-  cmpl = scm_fcd_mem_alloc(&SCM_COMPILER_TYPE_INFO, 0, mtype);
-  if (scm_obj_null_p(cmpl)) return SCM_OBJ_NULL;
-
-  if (scm_cmpl_initialize(cmpl, env) < 0)
-    return SCM_OBJ_NULL;
-
-  return cmpl;
-}
-
-ScmObj
-scm_fcd_make_compiler(ScmObj env)
-{
-  return scm_fcd_compiler_new(SCM_MEM_HEAP, env);
-}
-
-ScmObj
-scm_fcd_compiler_base_env(ScmObj cmpl)
-{
-  scm_assert(scm_fcd_compiler_p(cmpl));
-  return scm_cmpl_env(cmpl);
-}
-
-ScmObj
-scm_fcd_compiler_current_expr(ScmObj cmpl)
-{
-  scm_assert(scm_fcd_compiler_p(cmpl));
-  return scm_cmpl_expr(cmpl);
-}
-
-ScmObj
-scm_fcd_compiler_select_base_env_i(ScmObj cmpl, ScmObj env)
-{
-  SCM_REFSTK_INIT_REG(&cmpl, &env);
-
-  scm_assert(scm_fcd_compiler_p(cmpl));
-  scm_assert(scm_obj_not_null_p(env));
-
-  scm_cmpl_set_env(cmpl, env);
-  return SCM_UNDEF_OBJ;
-}
-
-ScmObj
-scm_fcd_compiler_select_module_i(ScmObj cmpl, ScmObj mod)
-{
-  SCM_REFSTK_INIT_REG(&cmpl, &mod);
-
-  scm_assert(scm_fcd_compiler_p(cmpl));
-
-  mod = norm_cmpl_arg_mod(mod);
-  if (scm_obj_null_p(mod)) return SCM_OBJ_NULL;
-
-  scm_cmpl_set_env(cmpl, mod);
-  return SCM_UNDEF_OBJ;
-}
-
-void
-scm_fcd_compiler_select_expr_i(ScmObj cmpl, ScmObj expr)
-{
-  scm_assert(scm_fcd_compiler_p(cmpl));
-  scm_assert(scm_obj_not_null_p(expr));
-
-  scm_cmpl_set_expr(cmpl, expr);
 }
 
 
@@ -251,10 +209,54 @@ scm_qqtn_initialize(ScmObj node, int kind, ScmObj obj)
   return 0;
 }
 
+ScmObj
+scm_qqtn_new(scm_mem_type_t mtype, int kind, ScmObj obj)
+{
+  ScmObj node = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&obj,
+                      &node);
+
+  node = scm_alloc_mem(&SCM_QQTMPLNODE_TYPE_INFO, 0, mtype);
+  if (scm_obj_null_p(node)) return SCM_OBJ_NULL;
+
+  if (scm_qqtn_initialize(node, kind, obj) < 0)
+    return SCM_OBJ_NULL;
+
+  return node;
+}
+
 void
 scm_qqtn_update_contents(ScmObj node, int kind, ScmObj obj)
 {
   scm_qqtn_update(node, kind, obj);
+}
+
+void
+scm_qqtn_get_contents_for_marshal(ScmObj node, int *kind, scm_csetter_t *obj)
+{
+  scm_assert(scm_qqtmplnode_p(node));
+  scm_assert(kind != NULL);
+  scm_assert(obj != NULL);
+
+  *kind = scm_qqtn_kind(node);
+  if (scm_obj_null_p(scm_qqtn_object(node)))
+    scm_csetter_setq(obj, SCM_UNDEF_OBJ);
+  else
+    scm_csetter_setq(obj, scm_qqtn_object(node));
+}
+
+int
+scm_qqtn_setup_for_unmarshal(ScmObj node, int kind, ScmObj obj)
+{
+  if (!scm_qqtn_valid_kind_p(kind)) {
+    scm_error("failed to setup qq template node: invalid kind value", 0);
+    return -1;
+  }
+
+  scm_qqtn_update_contents(node, kind,
+                           scm_undef_object_p(obj) ? SCM_OBJ_NULL : obj);
+  return 0;
 }
 
 void
@@ -300,26 +302,51 @@ scm_qqtmpl_initialize(ScmObj qqtmpl, ScmObj tmpl)
 
   SCM_SLOT_SETQ(ScmQQTmpl, qqtmpl, orig, tmpl);
   SCM_QQTMPL(qqtmpl)->compiled = SCM_OBJ_NULL;
-  SCM_SLOT_SETQ(ScmQQTmpl, qqtmpl, expr, scm_fcd_make_vector(0, SCM_OBJ_NULL));
+  SCM_SLOT_SETQ(ScmQQTmpl, qqtmpl, expr, scm_make_vector(0, SCM_OBJ_NULL));
   if (scm_obj_null_p(SCM_QQTMPL(qqtmpl)->expr)) return -1;
 
   return 0;
+}
+
+ScmObj
+scm_qqtmpl_new(scm_mem_type_t mtype, ScmObj tmpl)
+{
+  ScmObj qq = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&tmpl,
+                      &qq);
+
+  scm_assert(scm_obj_not_null_p(tmpl));
+
+  qq = scm_alloc_mem(&SCM_QQTMPL_TYPE_INFO, 0, mtype);
+  if (scm_obj_null_p(qq)) return SCM_OBJ_NULL;
+
+  if (scm_qqtmpl_initialize(qq, tmpl) < 0)
+    return SCM_OBJ_NULL;
+
+  return qq;
+}
+
+ScmObj
+scm_make_qqtmpl_for_unmarshal(void)
+{
+  return scm_qqtmpl_new(SCM_MEM_HEAP, SCM_NIL_OBJ);
 }
 
 size_t
 scm_qqtmpl_nr_unquoted_expr(ScmObj qqtmpl)
 {
   scm_assert_obj_type(qqtmpl, &SCM_QQTMPL_TYPE_INFO);
-  return scm_fcd_vector_length(SCM_QQTMPL(qqtmpl)->expr);
+  return scm_vector_length(SCM_QQTMPL(qqtmpl)->expr);
 }
 
 ScmObj
 scm_qqtmpl_unquoted_expr(ScmObj qqtmpl, size_t n)
 {
   scm_assert_obj_type(qqtmpl, &SCM_QQTMPL_TYPE_INFO);
-  scm_assert(n < scm_fcd_vector_length(SCM_QQTMPL(qqtmpl)->expr));
+  scm_assert(n < scm_vector_length(SCM_QQTMPL(qqtmpl)->expr));
 
-  return scm_fcd_vector_ref(SCM_QQTMPL(qqtmpl)->expr, n);
+  return scm_vector_ref(SCM_QQTMPL(qqtmpl)->expr, n);
 }
 
 ssize_t
@@ -331,8 +358,8 @@ scm_qqtmpl_push_unquoted_expr(ScmObj qqtmpl, ScmObj expr)
   scm_assert_obj_type(qqtmpl, &SCM_QQTMPL_TYPE_INFO);
   scm_assert(scm_obj_not_null_p(expr));
 
-  n = scm_fcd_vector_length(SCM_QQTMPL(qqtmpl)->expr);
-  r = scm_fcd_vector_push(SCM_QQTMPL(qqtmpl)->expr, expr);
+  n = scm_vector_length(SCM_QQTMPL(qqtmpl)->expr);
+  r = scm_vector_push(SCM_QQTMPL(qqtmpl)->expr, expr);
   if (r < 0) return -1;
 
   return (ssize_t)n;
@@ -347,7 +374,7 @@ scm_qqtmpl_compiled(ScmObj qqtmpl, ScmObj compiled)
   scm_assert(scm_obj_not_null_p(compiled));
 
   SCM_SLOT_SETQ(ScmQQTmpl, qqtmpl, compiled, compiled);
-  r = scm_fcd_vector_contract_redundant_space(SCM_QQTMPL(qqtmpl)->expr);
+  r = scm_vector_contract_redundant_space(SCM_QQTMPL(qqtmpl)->expr);
   if (r < 0) return -1;
 
   return 0;
@@ -362,6 +389,76 @@ scm_qqtmpl_chg_orig_template(ScmObj qqtmpl, ScmObj tmpl)
   SCM_SLOT_SETQ(ScmQQTmpl, qqtmpl, orig, tmpl);
 }
 
+int
+scm_qqtmpl_get_contents_for_marshal(ScmObj qq,
+                                    scm_csetter_t *tmpl,
+                                    scm_csetter_t *compiled,
+                                    scm_csetter_t *expr)
+{
+  ScmObj vec = SCM_OBJ_INIT, e = SCM_OBJ_INIT;
+  size_t n;
+
+  SCM_REFSTK_INIT_REG(&qq,
+                      &vec, &e);
+
+  scm_assert(scm_qqtmpl_p(qq));
+  scm_assert(tmpl != NULL);
+  scm_assert(compiled != NULL);
+  scm_assert(expr != NULL);
+
+  scm_csetter_setq(tmpl, scm_qqtmpl_template(qq));
+
+  e = scm_qqtmpl_compiled_template(qq);
+  if (scm_obj_null_p(e))
+    scm_csetter_setq(compiled, SCM_UNDEF_OBJ);
+  else
+    scm_csetter_setq(compiled, e);
+
+  n = scm_qqtmpl_nr_unquoted_expr(qq);
+  vec = scm_make_vector(n, SCM_OBJ_NULL);
+  if (scm_obj_null_p(vec)) return -1;
+
+  for (size_t i = 0; i < n; i++) {
+    e = scm_qqtmpl_unquoted_expr(qq, i);
+    scm_vector_set(vec, i , e);
+  }
+
+  scm_csetter_setq(expr, vec);
+
+  return 0;
+}
+
+int
+scm_qqtmpl_setup_for_unmarshal(ScmObj qq, ScmObj tmpl, ScmObj compiled, ScmObj expr)
+{
+  ScmObj e = SCM_OBJ_INIT;
+  size_t n;
+
+  SCM_REFSTK_INIT_REG(&qq, &tmpl, &compiled, &expr,
+                      &e);
+
+  scm_assert(scm_qqtmpl_p(qq));
+  scm_assert(scm_obj_not_null_p(tmpl));
+  scm_assert(scm_obj_not_null_p(tmpl));
+  scm_assert(scm_vector_p(expr));
+
+  scm_qqtmpl_chg_orig_template(qq, tmpl);
+
+  n = scm_vector_length(expr);
+  for (size_t i = 0; i < n; i++) {
+    ssize_t r;
+
+    e = scm_vector_ref(expr, i);
+    r = scm_qqtmpl_push_unquoted_expr(qq, e);
+    if (r < 0) return -1;
+  }
+
+  if (scm_obj_not_null_p(compiled) && !scm_undef_object_p(compiled))
+    scm_qqtmpl_compiled(qq, compiled);
+
+  return 0;
+}
+
 static int scm_qqtmpl_compiled_eq(ScmObj c1, ScmObj c2, bool *rslt);
 
 static int
@@ -369,15 +466,15 @@ scm_qqtmpl_compiled_eq__list(ScmObj c1, ScmObj c2, bool *rslt)
 {
   int r;
 
-  scm_assert(scm_fcd_pair_p(c1));
-  scm_assert(scm_fcd_pair_p(c2));
+  scm_assert(scm_pair_p(c1));
+  scm_assert(scm_pair_p(c2));
   scm_assert(rslt != NULL);
 
-  r = scm_qqtmpl_compiled_eq(scm_fcd_car(c1), scm_fcd_car(c2), rslt);
+  r = scm_qqtmpl_compiled_eq(scm_car(c1), scm_car(c2), rslt);
   if (r < 0) return -1;
   else if (!*rslt) return 0;
 
-  return scm_qqtmpl_compiled_eq(scm_fcd_cdr(c1), scm_fcd_cdr(c2), rslt);
+  return scm_qqtmpl_compiled_eq(scm_cdr(c1), scm_cdr(c2), rslt);
 }
 
 static int
@@ -385,19 +482,19 @@ scm_qqtmpl_compiled_eq__vector(ScmObj c1, ScmObj c2, bool *rslt)
 {
   size_t n;
 
-  scm_assert(scm_fcd_vector_p(c1));
-  scm_assert(scm_fcd_vector_p(c2));
+  scm_assert(scm_vector_p(c1));
+  scm_assert(scm_vector_p(c2));
   scm_assert(rslt != NULL);
 
-  n = scm_fcd_vector_length(c1);
-  if (n != scm_fcd_vector_length(c2)) {
+  n = scm_vector_length(c1);
+  if (n != scm_vector_length(c2)) {
     *rslt = false;
     return 0;
   }
 
   for (size_t i = 0; i < n; i++) {
-    int r = scm_qqtmpl_compiled_eq(scm_fcd_vector_ref(c1, i),
-                                   scm_fcd_vector_ref(c2, i),
+    int r = scm_qqtmpl_compiled_eq(scm_vector_ref(c1, i),
+                                   scm_vector_ref(c2, i),
                                    rslt);
     if (r < 0) return -1;
     else if (!*rslt) return 0;
@@ -413,28 +510,28 @@ scm_qqtmpl_compiled_eq(ScmObj c1, ScmObj c2, bool *rslt)
   scm_assert(scm_obj_not_null_p(c2));
   scm_assert(rslt != NULL);
 
-  if (scm_fcd_eq_p(c1, c2))
+  if (scm_eq_p(c1, c2))
     goto equal;
 
   if (!scm_type_info_same_p(scm_obj_type(c1), scm_obj_type(c2)))
     goto not_equal;
 
-  if (scm_fcd_pair_p(c1)) {
+  if (scm_pair_p(c1)) {
     return scm_qqtmpl_compiled_eq__list(c1, c2, rslt);
   }
-  else if (scm_fcd_vector_p(c1)) {
+  else if (scm_vector_p(c1)) {
     return scm_qqtmpl_compiled_eq__vector(c1, c2, rslt);
   }
-  else if (scm_fcd_qqtmplnode_p(c1)) {
+  else if (scm_qqtmplnode_p(c1)) {
     if (scm_qqtn_kind(c1) != scm_qqtn_kind(c2))
       goto not_equal;
     if (scm_qqtn_kind(c1) == SCM_QQ_TMPL_NODE_LITERAL)
-      return scm_fcd_equal(scm_qqtn_object(c1), scm_qqtn_object(c2), rslt);
+      return scm_equal(scm_qqtn_object(c1), scm_qqtn_object(c2), rslt);
     else
       goto equal;
   }
   else
-    return scm_fcd_equal(c1, c2, rslt);
+    return scm_equal(c1, c2, rslt);
 
  equal:
   *rslt = true;
@@ -445,6 +542,9 @@ scm_qqtmpl_compiled_eq(ScmObj c1, ScmObj c2, bool *rslt)
   return 0;
 }
 
+/* XXX: Marshal/Unmarshal の動作確認に使用する目的で作成した等価性評価関数な
+ *      ので、テスト目的以外には使用しない
+ */
 int
 scm_qqtmpl_eq(ScmObj qqtmpl1, ScmObj qqtmpl2, bool *rslt)
 {
@@ -454,16 +554,16 @@ scm_qqtmpl_eq(ScmObj qqtmpl1, ScmObj qqtmpl2, bool *rslt)
   scm_assert_obj_type(qqtmpl2, &SCM_QQTMPL_TYPE_INFO);
   scm_assert(rslt != NULL);
 
-  if (scm_fcd_eq_p(qqtmpl1, qqtmpl2)) {
+  if (scm_eq_p(qqtmpl1, qqtmpl2)) {
     *rslt = true;
     return 0;
   }
 
-  r = scm_fcd_equal(SCM_QQTMPL(qqtmpl1)->orig, SCM_QQTMPL(qqtmpl2)->orig, rslt);
+  r = scm_equal(SCM_QQTMPL(qqtmpl1)->orig, SCM_QQTMPL(qqtmpl2)->orig, rslt);
   if (r < 0) return -1;
   else if (!*rslt) return 0;
 
-  r = scm_fcd_equal(SCM_QQTMPL(qqtmpl1)->expr, SCM_QQTMPL(qqtmpl2)->expr, rslt);
+  r = scm_equal(SCM_QQTMPL(qqtmpl1)->expr, SCM_QQTMPL(qqtmpl2)->expr, rslt);
   if (r < 0) return -1;
   else if (!*rslt) return 0;
 
@@ -506,8 +606,15 @@ scm_qqtmpl_gc_accept(ScmObj obj, ScmGCRefHandler handler)
   return rslt;
 }
 
+
+/*************************************************************************/
+/* Compile/Substitue qq-template                                         */
+/*************************************************************************/
+
 static ScmObj scm_cmpl_compile_qq_tmpl_or_spl(ScmObj qqtmpl, ScmObj tmpl,
                                               size_t depth);
+static ScmObj scm_cmpl_compile_qq_tmpl(ScmObj qqtmpl, ScmObj tmpl,
+                                       size_t depth);
 
 static ScmObj
 scm_cmpl_compile_qq_tmpl_quasi(ScmObj qqtmpl, ScmObj tmpl, size_t depth)
@@ -515,21 +622,21 @@ scm_cmpl_compile_qq_tmpl_quasi(ScmObj qqtmpl, ScmObj tmpl, size_t depth)
   ScmObj cdr = SCM_OBJ_INIT, x = SCM_OBJ_INIT;
 
   scm_assert_obj_type(qqtmpl, &SCM_QQTMPL_TYPE_INFO);
-  scm_assert(scm_fcd_pair_p(tmpl));
+  scm_assert(scm_pair_p(tmpl));
 
   SCM_REFSTK_INIT_REG(&qqtmpl, &tmpl,
                       &cdr, &x);
 
-  cdr = scm_fcd_cdr(tmpl);
-  if (!scm_fcd_pair_p(cdr) || !scm_fcd_nil_p(scm_fcd_cdr(cdr))) {
-    scm_fcd_error("failed to compile <qq template>: malformed quasiquote", 0);
+  cdr = scm_cdr(tmpl);
+  if (!scm_pair_p(cdr) || !scm_nil_p(scm_cdr(cdr))) {
+    scm_error("failed to compile <qq template>: malformed quasiquote", 0);
     return SCM_OBJ_NULL;
   }
 
-  x = scm_cmpl_compile_qq_tmpl(qqtmpl, scm_fcd_car(cdr), depth + 1);
+  x = scm_cmpl_compile_qq_tmpl(qqtmpl, scm_car(cdr), depth + 1);
   if (scm_obj_null_p(x)) return SCM_OBJ_NULL;
 
-  return scm_fcd_list(2, scm_fcd_car(tmpl), x);
+  return scm_list(2, scm_car(tmpl), x);
 }
 
 static ScmObj
@@ -542,31 +649,31 @@ scm_cmpl_compile_qq_tmpl_unquote_internal(ScmObj qqtmpl, ScmObj tmpl,
                       &cdr, &x);
 
   scm_assert_obj_type(qqtmpl, &SCM_QQTMPL_TYPE_INFO);
-  scm_assert(scm_fcd_pair_p(tmpl));
+  scm_assert(scm_pair_p(tmpl));
   scm_assert(kind == SCM_QQ_TMPL_NODE_UNQUOTE
              || kind == SCM_QQ_TMPL_NODE_UNQ_SPL);
 
-  cdr = scm_fcd_cdr(tmpl);
-  if (!scm_fcd_pair_p(cdr) || !scm_fcd_nil_p(scm_fcd_cdr(cdr))) {
+  cdr = scm_cdr(tmpl);
+  if (!scm_pair_p(cdr) || !scm_nil_p(scm_cdr(cdr))) {
     if (kind == SCM_QQ_TMPL_NODE_UNQUOTE)
-      scm_fcd_error("failed to compile <qq template>: malformed unquote", 0);
+      scm_error("failed to compile <qq template>: malformed unquote", 0);
     else
-      scm_fcd_error("failed to compile <qq template>: "
+      scm_error("failed to compile <qq template>: "
                     "malformed unquote-splicing", 0);
     return SCM_OBJ_NULL;
   }
 
   if (depth > 0) {
-    x = scm_cmpl_compile_qq_tmpl(qqtmpl, scm_fcd_car(cdr), depth - 1);
+    x = scm_cmpl_compile_qq_tmpl(qqtmpl, scm_car(cdr), depth - 1);
     if (scm_obj_null_p(x)) return SCM_OBJ_NULL;
 
-    return scm_fcd_list(2, scm_fcd_car(tmpl), x);
+    return scm_list(2, scm_car(tmpl), x);
   }
   else {
-    ssize_t n = scm_qqtmpl_push_unquoted_expr(qqtmpl, scm_fcd_car(cdr));
+    ssize_t n = scm_qqtmpl_push_unquoted_expr(qqtmpl, scm_car(cdr));
     if (n < 0) return SCM_OBJ_NULL;
 
-    return scm_fcd_qqtmplnode_new(SCM_MEM_HEAP, kind, SCM_OBJ_NULL);
+    return scm_qqtn_new(SCM_MEM_HEAP, kind, SCM_OBJ_NULL);
   }
 }
 
@@ -590,7 +697,7 @@ scm_cmpl_qqtn_literal_p(ScmObj obj)
   if (scm_obj_type_p(obj, &SCM_QQTMPLNODE_TYPE_INFO))
     return (scm_qqtn_kind(obj) == SCM_QQ_TMPL_NODE_LITERAL);
   else
-    return !scm_fcd_pair_p(obj) && !scm_fcd_vector_p(obj);
+    return !scm_pair_p(obj) && !scm_vector_p(obj);
 }
 
 static int
@@ -598,14 +705,14 @@ scm_cmpl_qq_tmpl_syntax(ScmObj obj, ScmObj *syms, int n)
 {
   ScmObj car = SCM_OBJ_INIT;
 
-  scm_assert(scm_fcd_pair_p(obj));
+  scm_assert(scm_pair_p(obj));
   scm_assert(syms != NULL);
 
-  car = scm_fcd_car(obj);
+  car = scm_car(obj);
   for (int i = 0; i < n; i++) {
-    if (scm_fcd_eq_p(car, syms[i])) {
-      ScmObj cdr = scm_fcd_cdr(obj);
-      if (scm_fcd_pair_p(cdr) && scm_fcd_nil_p(scm_fcd_cdr(cdr)))
+    if (scm_eq_p(car, syms[i])) {
+      ScmObj cdr = scm_cdr(obj);
+      if (scm_pair_p(cdr) && scm_nil_p(scm_cdr(cdr)))
         return i;
       else
         return -1;
@@ -638,58 +745,58 @@ scm_cmpl_compile_qq_tmpl_list(ScmObj qqtmpl, ScmObj tmpl, size_t depth)
   SCM_REFSTK_REG_ARY(syntax_sym, NR_SYNTAX);
 
   scm_assert_obj_type(qqtmpl, &SCM_QQTMPL_TYPE_INFO);
-  scm_assert(scm_fcd_pair_p(tmpl));
+  scm_assert(scm_pair_p(tmpl));
 
   for (int i = 0; i < NR_SYNTAX; i++) {
-    syntax_sym[i] = scm_fcd_cached_symbol(syntax_tbl[i].kind);
+    syntax_sym[i] = scm_cached_symbol(syntax_tbl[i].kind);
     if (scm_obj_null_p(syntax_sym[i])) return SCM_OBJ_NULL;
   }
 
   if ((idx = scm_cmpl_qq_tmpl_syntax(tmpl, syntax_sym, NR_SYNTAX)) >= 0)
     return syntax_tbl[idx].func(qqtmpl, tmpl, depth);
 
-  head = tail = scm_fcd_cons(SCM_UNDEF_OBJ, SCM_NIL_OBJ);
+  head = tail = scm_cons(SCM_UNDEF_OBJ, SCM_NIL_OBJ);
   if (scm_obj_null_p(tail)) return SCM_OBJ_NULL;
 
   lst = tmpl;
   literal_only = true;
-  while (scm_fcd_pair_p(lst)) {
+  while (scm_pair_p(lst)) {
     if ((idx = scm_cmpl_qq_tmpl_syntax(lst, syntax_sym, NR_SYNTAX)) >= 0) {
       if (syntax_tbl[idx].kind == SCM_CACHED_SYM_UNQUOTE_SPLICING) {
-        scm_fcd_error("failed to compile <qq template>: "
+        scm_error("failed to compile <qq template>: "
                       "invalid unquote-splicing", 0);
         return SCM_OBJ_NULL;
       }
       x = syntax_tbl[idx].func(qqtmpl, lst, depth);
       if (scm_obj_null_p(x)) return SCM_OBJ_NULL;
       literal_only = (literal_only && scm_cmpl_qqtn_literal_p(x));
-      scm_fcd_set_cdr_i(tail, x);
+      scm_set_cdr(tail, x);
       break;
     }
 
-    x = scm_cmpl_compile_qq_tmpl_or_spl(qqtmpl, scm_fcd_car(lst), depth);
+    x = scm_cmpl_compile_qq_tmpl_or_spl(qqtmpl, scm_car(lst), depth);
     if (scm_obj_null_p(x)) return SCM_OBJ_NULL;
     literal_only = (literal_only && scm_cmpl_qqtn_literal_p(x));
 
-    x = scm_fcd_cons(x, SCM_NIL_OBJ);
+    x = scm_cons(x, SCM_NIL_OBJ);
     if (scm_obj_null_p(x)) return SCM_OBJ_NULL;
 
-    scm_fcd_set_cdr_i(tail, x);
+    scm_set_cdr(tail, x);
     tail = x;
-    lst = scm_fcd_cdr(lst);
+    lst = scm_cdr(lst);
   }
 
-  if (!scm_fcd_nil_p(lst)) {
+  if (!scm_nil_p(lst)) {
     x = scm_cmpl_compile_qq_tmpl(qqtmpl, lst, depth);
     if (scm_obj_null_p(x)) return SCM_OBJ_NULL;
     literal_only = (literal_only && scm_cmpl_qqtn_literal_p(x));
-    scm_fcd_set_cdr_i(tail, x);
+    scm_set_cdr(tail, x);
   }
 
   if (literal_only)
-    return scm_fcd_qqtmplnode_new(SCM_MEM_HEAP, SCM_QQ_TMPL_NODE_LITERAL, tmpl);
+    return scm_qqtn_new(SCM_MEM_HEAP, SCM_QQ_TMPL_NODE_LITERAL, tmpl);
   else
-    return scm_fcd_cdr(head);
+    return scm_cdr(head);
 }
 
 static ScmObj
@@ -703,24 +810,24 @@ scm_cmpl_compile_qq_tmpl_vector(ScmObj qqtmpl, ScmObj tmpl, size_t depth)
                       &new_vec, &x);
 
   scm_assert_obj_type(qqtmpl, &SCM_QQTMPL_TYPE_INFO);
-  scm_assert(scm_fcd_vector_p(tmpl));
+  scm_assert(scm_vector_p(tmpl));
 
-  n = scm_fcd_vector_length(tmpl);
-  new_vec = scm_fcd_make_vector(n, SCM_OBJ_NULL);
+  n = scm_vector_length(tmpl);
+  new_vec = scm_make_vector(n, SCM_OBJ_NULL);
   if (scm_obj_null_p(new_vec)) return SCM_OBJ_NULL;
 
   literal_only = true;
 
   for (size_t i = 0; i < n; i++) {
-    x = scm_fcd_vector_ref(tmpl, i);
+    x = scm_vector_ref(tmpl, i);
     x = scm_cmpl_compile_qq_tmpl_or_spl(qqtmpl, x, depth);
     if (scm_obj_null_p(x)) return SCM_OBJ_NULL;
-    scm_fcd_vector_set_i(new_vec, i, x);
+    scm_vector_set(new_vec, i, x);
     literal_only = (literal_only && scm_cmpl_qqtn_literal_p(x));
   }
 
   if (literal_only)
-    return scm_fcd_qqtmplnode_new(SCM_MEM_HEAP, SCM_QQ_TMPL_NODE_LITERAL, tmpl);
+    return scm_qqtn_new(SCM_MEM_HEAP, SCM_QQ_TMPL_NODE_LITERAL, tmpl);
   else
     return new_vec;
 }
@@ -731,10 +838,10 @@ scm_cmpl_compile_qq_tmpl_or_spl(ScmObj qqtmpl, ScmObj tmpl, size_t depth)
   scm_assert_obj_type(qqtmpl, &SCM_QQTMPL_TYPE_INFO);
   scm_assert(scm_obj_not_null_p(tmpl));
 
-  if (scm_fcd_pair_p(tmpl)) {
+  if (scm_pair_p(tmpl)) {
     return scm_cmpl_compile_qq_tmpl_list(qqtmpl, tmpl, depth);
   }
-  else if (scm_fcd_vector_p(tmpl)) {
+  else if (scm_vector_p(tmpl)) {
     return scm_cmpl_compile_qq_tmpl_vector(qqtmpl, tmpl, depth);
   }
   else {
@@ -742,7 +849,7 @@ scm_cmpl_compile_qq_tmpl_or_spl(ScmObj qqtmpl, ScmObj tmpl, size_t depth)
   }
 }
 
-ScmObj
+static ScmObj
 scm_cmpl_compile_qq_tmpl(ScmObj qqtmpl, ScmObj tmpl, size_t depth)
 {
   ScmObj obj = SCM_OBJ_INIT;
@@ -755,7 +862,7 @@ scm_cmpl_compile_qq_tmpl(ScmObj qqtmpl, ScmObj tmpl, size_t depth)
 
   if (scm_obj_type_p(obj, &SCM_QQTMPLNODE_TYPE_INFO)
       && scm_qqtn_kind(obj) == SCM_QQ_TMPL_NODE_UNQ_SPL) {
-    scm_fcd_error("failed to compile <qq template>: invalid unquote-splicing",
+    scm_error("failed to compile <qq template>: invalid unquote-splicing",
                   0);
     return SCM_OBJ_NULL;
   }
@@ -763,9 +870,36 @@ scm_cmpl_compile_qq_tmpl(ScmObj qqtmpl, ScmObj tmpl, size_t depth)
   return obj;
 }
 
+ScmObj
+scm_compile_qq_template(ScmObj tmpl)
+{
+  ScmObj qq = SCM_OBJ_NULL, compiled = SCM_OBJ_INIT;
+  int r;
+
+  SCM_REFSTK_INIT_REG(&tmpl,
+                      &qq, &compiled);
+
+  scm_assert(scm_obj_not_null_p(tmpl));
+
+  qq = scm_qqtmpl_new(SCM_MEM_HEAP, tmpl);
+  if (scm_obj_null_p(qq)) return SCM_OBJ_NULL;
+
+  compiled = scm_cmpl_compile_qq_tmpl(qq, tmpl, 0);
+  if (scm_obj_null_p(compiled)) return SCM_OBJ_NULL;
+
+  r = scm_qqtmpl_compiled(qq, compiled);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return qq;
+}
+
+
 static ScmObj scm_cmpl_substitute_qq_tmpl_or_spl(ScmObj qqtmpl, ScmObj tmpl,
                                                  scm_csetter_t *values,
                                                  bool *spl);
+static ScmObj scm_cmpl_substitute_qq_tmpl(ScmObj qqtmpl, ScmObj tmpl,
+                                          scm_csetter_t *values);
+
 
 static ScmObj
 scm_cmpl_sub_qq_tmpl_node(ScmObj qqtmpl, ScmObj tmpl,
@@ -789,10 +923,10 @@ scm_cmpl_sub_qq_tmpl_node(ScmObj qqtmpl, ScmObj tmpl,
     if (values == NULL)
       goto too_few_values;
     v = scm_csetter_val(values);
-    if (!scm_fcd_pair_p(v))
+    if (!scm_pair_p(v))
       goto too_few_values;
-    obj = scm_fcd_car(v);
-    scm_csetter_setq(values, scm_fcd_cdr(v));
+    obj = scm_car(v);
+    scm_csetter_setq(values, scm_cdr(v));
     break;
   default:
     scm_assert(false);        /* must not happen */
@@ -804,7 +938,7 @@ scm_cmpl_sub_qq_tmpl_node(ScmObj qqtmpl, ScmObj tmpl,
   return obj;
 
  too_few_values:
-  scm_fcd_error("failed to substitute <qq template>: too few values", 0);
+  scm_error("failed to substitute <qq template>: too few values", 0);
   return SCM_OBJ_NULL;
 }
 
@@ -820,44 +954,44 @@ scm_cmpl_substitute_qq_tmpl_list(ScmObj qqtmpl, ScmObj tmpl,
                       &lst, &x, &head, &tail);
 
   scm_assert_obj_type(qqtmpl, &SCM_QQTMPL_TYPE_INFO);
-  scm_assert(scm_fcd_pair_p(tmpl));
+  scm_assert(scm_pair_p(tmpl));
 
-  head = tail = scm_fcd_cons(SCM_UNDEF_OBJ, SCM_NIL_OBJ);
+  head = tail = scm_cons(SCM_UNDEF_OBJ, SCM_NIL_OBJ);
   if (scm_obj_null_p(tail)) return SCM_OBJ_NULL;
 
   lst = tmpl;
-  while (scm_fcd_pair_p(lst)) {
-    x = scm_cmpl_substitute_qq_tmpl_or_spl(qqtmpl, scm_fcd_car(lst),
+  while (scm_pair_p(lst)) {
+    x = scm_cmpl_substitute_qq_tmpl_or_spl(qqtmpl, scm_car(lst),
                                            values, &spl);
     if (scm_obj_null_p(x)) return SCM_OBJ_NULL;
 
     if (spl) {
-      scm_fcd_set_cdr_i(tail, x);
-      for (; scm_fcd_pair_p(scm_fcd_cdr(tail)); tail = scm_fcd_cdr(tail))
+      scm_set_cdr(tail, x);
+      for (; scm_pair_p(scm_cdr(tail)); tail = scm_cdr(tail))
         ;
-      if (!scm_fcd_nil_p(scm_fcd_cdr(tail))) {
-        scm_fcd_error("failed to substitute <qq template>: "
+      if (!scm_nil_p(scm_cdr(tail))) {
+        scm_error("failed to substitute <qq template>: "
                       "unquoted expression does not evaluated to list", 0);
         return SCM_OBJ_NULL;
       }
     }
     else {
-      x = scm_fcd_cons(x, SCM_NIL_OBJ);
+      x = scm_cons(x, SCM_NIL_OBJ);
       if (scm_obj_null_p(x)) return SCM_OBJ_NULL;
-      scm_fcd_set_cdr_i(tail, x);
+      scm_set_cdr(tail, x);
       tail = x;
     }
 
-    lst = scm_fcd_cdr(lst);
+    lst = scm_cdr(lst);
   }
 
-  if (!scm_fcd_nil_p(lst)) {
+  if (!scm_nil_p(lst)) {
     x = scm_cmpl_substitute_qq_tmpl(qqtmpl, lst, values);
     if (scm_obj_null_p(x)) return SCM_OBJ_NULL;
-    scm_fcd_set_cdr_i(tail, x);
+    scm_set_cdr(tail, x);
   }
 
-  return scm_fcd_cdr(head);
+  return scm_cdr(head);
 }
 
 static ScmObj
@@ -873,35 +1007,35 @@ scm_cmpl_substitute_qq_tmpl_vector(ScmObj qqtmpl, ScmObj tmpl,
                       &vec, &t, &x);
 
   scm_assert_obj_type(qqtmpl, &SCM_QQTMPL_TYPE_INFO);
-  scm_assert(scm_fcd_vector_p(tmpl));
+  scm_assert(scm_vector_p(tmpl));
 
-  vec = scm_fcd_make_vector(0, SCM_OBJ_NULL);
+  vec = scm_make_vector(0, SCM_OBJ_NULL);
   if (scm_obj_null_p(vec)) return SCM_OBJ_NULL;
 
-  n = scm_fcd_vector_length(tmpl);
+  n = scm_vector_length(tmpl);
   for (size_t i = 0; i < n; i++) {
-    t = scm_fcd_vector_ref(tmpl, i);
+    t = scm_vector_ref(tmpl, i);
     x = scm_cmpl_substitute_qq_tmpl_or_spl(qqtmpl, t, values, &spl);
     if (scm_obj_null_p(x)) return SCM_OBJ_NULL;
 
     if (spl) {
-      for (; scm_fcd_pair_p(x); x = scm_fcd_cdr(x)) {
-        r = scm_fcd_vector_push(vec, scm_fcd_car(x));
+      for (; scm_pair_p(x); x = scm_cdr(x)) {
+        r = scm_vector_push(vec, scm_car(x));
         if (r < 0) return SCM_OBJ_NULL;
       }
-      if (!scm_fcd_nil_p(x)) {
-        scm_fcd_error("failed to substitute <qq template>: "
+      if (!scm_nil_p(x)) {
+        scm_error("failed to substitute <qq template>: "
                       "unquoted expression does not evaluated to list", 0);
         return SCM_OBJ_NULL;
       }
     }
     else {
-      r = scm_fcd_vector_push(vec, x);
+      r = scm_vector_push(vec, x);
       if (r < 0) return SCM_OBJ_NULL;
     }
   }
 
-  r = scm_fcd_vector_contract_redundant_space(vec);
+  r = scm_vector_contract_redundant_space(vec);
   if (r < 0) return SCM_OBJ_NULL;
 
   return vec;
@@ -918,15 +1052,15 @@ scm_cmpl_substitute_qq_tmpl_or_spl(ScmObj qqtmpl, ScmObj tmpl,
   *spl = false;
   if (scm_obj_type_p(tmpl, &SCM_QQTMPLNODE_TYPE_INFO))
     return scm_cmpl_sub_qq_tmpl_node(qqtmpl, tmpl, values, spl);
-  else if (scm_fcd_pair_p(tmpl))
+  else if (scm_pair_p(tmpl))
     return scm_cmpl_substitute_qq_tmpl_list(qqtmpl, tmpl, values);
-  else if (scm_fcd_vector_p(tmpl))
+  else if (scm_vector_p(tmpl))
     return scm_cmpl_substitute_qq_tmpl_vector(qqtmpl, tmpl, values);
   else
     return tmpl;
 }
 
-ScmObj
+static ScmObj
 scm_cmpl_substitute_qq_tmpl(ScmObj qqtmpl, ScmObj tmpl, scm_csetter_t *values)
 {
   ScmObj obj = SCM_OBJ_INIT;
@@ -939,7 +1073,7 @@ scm_cmpl_substitute_qq_tmpl(ScmObj qqtmpl, ScmObj tmpl, scm_csetter_t *values)
   if (scm_obj_null_p(obj)) return SCM_OBJ_NULL;
 
   if (spl) {
-    scm_fcd_error("failed to substitue <qq template>: "
+    scm_error("failed to substitue <qq template>: "
                   "invalid unquote-splicing", 0);
     return SCM_OBJ_NULL;
   }
@@ -947,238 +1081,12 @@ scm_cmpl_substitute_qq_tmpl(ScmObj qqtmpl, ScmObj tmpl, scm_csetter_t *values)
   return obj;
 }
 
-
-/*************************************************************************/
-/* Quasiquotation (interface)                                            */
-/*************************************************************************/
-
-bool
-scm_fcd_qqtmplnode_p(ScmObj obj)
-{
-  return scm_obj_type_p(obj, &SCM_QQTMPLNODE_TYPE_INFO);
-}
-
 ScmObj
-scm_fcd_qqtmplnode_new(scm_mem_type_t mtype, int kind, ScmObj obj)
-{
-  ScmObj node = SCM_OBJ_INIT;
-
-  SCM_REFSTK_INIT_REG(&obj,
-                      &node);
-
-  node = scm_fcd_mem_alloc(&SCM_QQTMPLNODE_TYPE_INFO, 0, mtype);
-  if (scm_obj_null_p(node)) return SCM_OBJ_NULL;
-
-  if (scm_qqtn_initialize(node, kind, obj) < 0)
-    return SCM_OBJ_NULL;
-
-  return node;
-}
-
-ScmObj
-scm_fcd_make_qqtmplnode_for_unmarshal(void)
-{
-  return scm_fcd_qqtmplnode_new(SCM_MEM_HEAP,
-                                SCM_QQ_TMPL_NODE_UNQUOTE, SCM_OBJ_NULL);
-}
-
-void
-scm_fcd_qqtmplnode_get_contents_for_marshal(ScmObj node,
-                                            int *kind, scm_csetter_t *obj)
-{
-  scm_assert(scm_fcd_qqtmplnode_p(node));
-  scm_assert(kind != NULL);
-  scm_assert(obj != NULL);
-
-  *kind = scm_qqtn_kind(node);
-  if (scm_obj_null_p(scm_qqtn_object(node)))
-    scm_csetter_setq(obj, SCM_UNDEF_OBJ);
-  else
-    scm_csetter_setq(obj, scm_qqtn_object(node));
-}
-
-int
-scm_fcd_qqtmplnode_setup_for_unmarshal(ScmObj node, int kind, ScmObj obj)
-{
-  if (!scm_qqtn_valid_kind_p(kind)) {
-    scm_fcd_error("failed to setup qq template node: invalid kind value", 0);
-    return -1;
-  }
-
-  scm_qqtn_update_contents(node, kind,
-                           scm_fcd_undef_object_p(obj) ? SCM_OBJ_NULL : obj);
-  return 0;
-}
-
-bool
-scm_fcd_qqtmpl_p(ScmObj obj)
-{
-  return scm_obj_type_p(obj, &SCM_QQTMPL_TYPE_INFO);
-}
-
-ScmObj
-scm_fcd_qqtmpl_new(scm_mem_type_t mtype, ScmObj tmpl)
-{
-  ScmObj qq = SCM_OBJ_INIT;
-
-  SCM_REFSTK_INIT_REG(&tmpl,
-                      &qq);
-
-  scm_assert(scm_obj_not_null_p(tmpl));
-
-  qq = scm_fcd_mem_alloc(&SCM_QQTMPL_TYPE_INFO, 0, mtype);
-  if (scm_obj_null_p(qq)) return SCM_OBJ_NULL;
-
-  if (scm_qqtmpl_initialize(qq, tmpl) < 0)
-    return SCM_OBJ_NULL;
-
-  return qq;
-}
-
-ScmObj
-scm_fcd_make_qqtmpl_for_unmarshal(void)
-{
-  return scm_fcd_qqtmpl_new(SCM_MEM_HEAP, SCM_NIL_OBJ);
-}
-
-int
-scm_fcd_qqtmpl_get_contents_for_marshal(ScmObj qq,
-                                        scm_csetter_t *tmpl,
-                                        scm_csetter_t *compiled,
-                                        scm_csetter_t *expr)
-{
-  ScmObj vec = SCM_OBJ_INIT, e = SCM_OBJ_INIT;
-  size_t n;
-
-  SCM_REFSTK_INIT_REG(&qq,
-                      &vec, &e);
-
-  scm_assert(scm_fcd_qqtmpl_p(qq));
-  scm_assert(tmpl != NULL);
-  scm_assert(compiled != NULL);
-  scm_assert(expr != NULL);
-
-  scm_csetter_setq(tmpl, scm_qqtmpl_template(qq));
-
-  e = scm_qqtmpl_compiled_template(qq);
-  if (scm_obj_null_p(e))
-    scm_csetter_setq(compiled, SCM_UNDEF_OBJ);
-  else
-    scm_csetter_setq(compiled, e);
-
-  n = scm_fcd_qqtmpl_nr_unquoted_expr(qq);
-  vec = scm_fcd_make_vector(n, SCM_OBJ_NULL);
-  if (scm_obj_null_p(vec)) return -1;
-
-  for (size_t i = 0; i < n; i++) {
-    e = scm_qqtmpl_unquoted_expr(qq, i);
-    scm_fcd_vector_set_i(vec, i , e);
-  }
-
-  scm_csetter_setq(expr, vec);
-
-  return 0;
-}
-
-int
-scm_fcd_qqtmpl_setup_for_unmarshal(ScmObj qq,
-                                   ScmObj tmpl, ScmObj compiled, ScmObj expr)
-{
-  ScmObj e = SCM_OBJ_INIT;
-  size_t n;
-
-  SCM_REFSTK_INIT_REG(&qq, &tmpl, &compiled, &expr,
-                      &e);
-
-  scm_assert(scm_fcd_qqtmpl_p(qq));
-  scm_assert(scm_obj_not_null_p(tmpl));
-  scm_assert(scm_obj_not_null_p(tmpl));
-  scm_assert(scm_fcd_vector_p(expr));
-
-  scm_qqtmpl_chg_orig_template(qq, tmpl);
-
-  n = scm_fcd_vector_length(expr);
-  for (size_t i = 0; i < n; i++) {
-    ssize_t r;
-
-    e = scm_fcd_vector_ref(expr, i);
-    r = scm_qqtmpl_push_unquoted_expr(qq, e);
-    if (r < 0) return -1;
-  }
-
-  if (scm_obj_not_null_p(compiled) && !scm_fcd_undef_object_p(compiled))
-    scm_qqtmpl_compiled(qq, compiled);
-
-  return 0;
-}
-
-ScmObj
-scm_fcd_qqtmpl_template(ScmObj qq)
-{
-  scm_assert(scm_fcd_qqtmpl_p(qq));
-
-  return scm_qqtmpl_template(qq);
-}
-
-size_t
-scm_fcd_qqtmpl_nr_unquoted_expr(ScmObj qq)
-{
-  scm_assert(scm_fcd_qqtmpl_p(qq));
-
-  return scm_qqtmpl_nr_unquoted_expr(qq);
-}
-
-ScmObj
-scm_fcd_qqtmpl_unquoted_expr(ScmObj qq, size_t n)
-{
-  scm_assert(scm_fcd_qqtmpl_p(qq));
-  scm_assert(n < scm_qqtmpl_nr_unquoted_expr(qq));
-
-  return scm_qqtmpl_unquoted_expr(qq, n);
-}
-
-/* XXX: Marshal/Unmarshal の動作確認に使用する目的で作成した等価性評価関数な
- *      ので、テスト目的以外には使用しない
- */
-int
-scm_fcd_qqtmpl_eq(ScmObj qq1, ScmObj qq2, bool *rslt)
-{
-  scm_assert(scm_fcd_qqtmpl_p(qq1));
-  scm_assert(scm_fcd_qqtmpl_p(qq2));
-  scm_assert(rslt != NULL);
-
-  return scm_qqtmpl_eq(qq1, qq2, rslt);
-}
-
-ScmObj
-scm_fcd_compile_qq_template(ScmObj tmpl)
-{
-  ScmObj qq = SCM_OBJ_NULL, compiled = SCM_OBJ_INIT;
-  int r;
-
-  SCM_REFSTK_INIT_REG(&tmpl,
-                      &qq, &compiled);
-
-  scm_assert(scm_obj_not_null_p(tmpl));
-
-  qq = scm_fcd_qqtmpl_new(SCM_MEM_HEAP, tmpl);
-  if (scm_obj_null_p(qq)) return SCM_OBJ_NULL;
-
-  compiled = scm_cmpl_compile_qq_tmpl(qq, tmpl, 0);
-  if (scm_obj_null_p(compiled)) return SCM_OBJ_NULL;
-
-  r = scm_qqtmpl_compiled(qq, compiled);
-  if (r < 0) return SCM_OBJ_NULL;
-
-  return qq;
-}
-
-ScmObj
-scm_fcd_substitute_qq_template(ScmObj qq, ScmObj values)
+scm_substitute_qq_template(ScmObj qq, ScmObj values)
 {
   SCM_REFSTK_INIT_REG(&qq, &values);
 
-  scm_assert(scm_fcd_qqtmpl_p(qq));
+  scm_assert(scm_qqtmpl_p(qq));
   scm_assert(scm_obj_not_null_p(values));
 
   return scm_cmpl_substitute_qq_tmpl(qq, scm_qqtmpl_compiled_template(qq),
@@ -1203,11 +1111,17 @@ ScmTypeInfo SCM_IDENTIFIER_TYPE_INFO = {
 };
 
 
+ScmObj
+scm_identifier_P(ScmObj obj)
+{
+  return (scm_identifier_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ);
+}
+
 int
 scm_ident_initialize(ScmObj ident, ScmObj name, ScmObj env)
 {
   scm_assert_obj_type(ident, &SCM_IDENTIFIER_TYPE_INFO);
-  scm_assert(scm_fcd_symbol_p(name));
+  scm_assert(scm_symbol_p(name));
   scm_assert(scm_obj_not_null_p(env));
 
   SCM_IDENT_SET_NAME(ident, name);
@@ -1216,13 +1130,33 @@ scm_ident_initialize(ScmObj ident, ScmObj name, ScmObj env)
   return 0;
 }
 
+ScmObj
+scm_ident_new(scm_mem_type_t mtype, ScmObj name, ScmObj env)
+{
+  ScmObj ident = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&name, &env,
+                      &ident);
+
+  scm_assert(scm_symbol_p(name));
+  scm_assert(scm_obj_not_null_p(env));
+
+  ident = scm_alloc_mem(&SCM_IDENTIFIER_TYPE_INFO, 0, mtype);
+  if (scm_obj_null_p(ident)) return SCM_OBJ_NULL;
+
+  if (scm_ident_initialize(ident, name, env) < 0)
+    return SCM_OBJ_NULL;
+
+  return ident;
+}
+
 int
 scm_ident_obj_print(ScmObj obj, ScmObj port, int kind, ScmObjPrintHandler handler)
 {
   char fmt[64];
 
   snprintf(fmt, sizeof(fmt), "#<ident ~a %lx>", SCM_IDENT_ENV(obj));
-  return scm_fcd_pformat_cstr(port, fmt, SCM_IDENT_NAME(obj), SCM_OBJ_NULL);
+  return scm_pformat_cstr(port, fmt, SCM_IDENT_NAME(obj), SCM_OBJ_NULL);
 }
 
 void
@@ -1248,59 +1182,4 @@ scm_ident_gc_accept(ScmObj obj, ScmGCRefHandler handler)
   if (scm_gc_ref_handler_failure_p(rslt)) return rslt;
 
   return 0;
-}
-
-
-/*************************************************************************/
-/* Identifier (interface)                                                */
-/*************************************************************************/
-
-bool
-scm_fcd_identifier_p(ScmObj obj)
-{
-  return scm_obj_type_p(obj, &SCM_IDENTIFIER_TYPE_INFO);
-}
-
-ScmObj
-scm_fcd_identifier_P(ScmObj obj)
-{
-  return (scm_fcd_identifier_p(obj) ? SCM_TRUE_OBJ : SCM_FALSE_OBJ);
-}
-
-ScmObj
-scm_fcd_identifier_new(scm_mem_type_t mtype, ScmObj name, ScmObj env)
-{
-  ScmObj ident = SCM_OBJ_INIT;
-
-  SCM_REFSTK_INIT_REG(&name, &env,
-                      &ident);
-
-  scm_assert(scm_fcd_symbol_p(name));
-  scm_assert(scm_obj_not_null_p(env));
-
-  ident = scm_fcd_mem_alloc(&SCM_IDENTIFIER_TYPE_INFO, 0, mtype);
-  if (scm_obj_null_p(ident)) return SCM_OBJ_NULL;
-
-  if (scm_ident_initialize(ident, name, env) < 0)
-    return SCM_OBJ_NULL;
-
-  return ident;
-}
-
-ScmObj
-scm_fcd_make_identifier(ScmObj name, ScmObj env)
-{
-  return scm_fcd_identifier_new(SCM_MEM_HEAP, name, env);
-}
-
-ScmObj
-scm_fcd_identifier_name(ScmObj ident)
-{
-  return scm_ident_name(ident);
-}
-
-ScmObj
-scm_fcd_identifier_env(ScmObj ident)
-{
-  return scm_ident_env(ident);
 }

@@ -5,38 +5,37 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-typedef struct ScmForwardRec ScmForward;
-typedef struct ScmMemHeapCellFinInfoRec ScmMemHeapCellFinInfo;
-typedef struct ScmMemHeapCellWRefInfoRec ScmMemHeapCellWRefInfo;
-typedef struct ScmMemHeapCellTSortInfoRec ScmMemHeapCellTSortInfoRec;
-typedef struct ScmMemHeapCellRec ScmMemHeapCell;
-typedef struct ScmMemHeapBlockRec ScmMemHeapBlock;
-typedef struct ScmMemHeapRec ScmMemHeap;
-typedef struct ScmMemRootBlockRec ScmMemRootBlock;
-
-#define SCM_FORWARD(obj) ((ScmForward *)(obj))
-
-#define SCM_MEM(obj) ((ScmMem *)(obj))
-
-
 #include "scythe/object.h"
 #include "scythe/impl_utils.h"
-#include "scythe/fcd_memory.h"
 
 
 /****************************************************************************/
 /* Forward Object                                                           */
 /****************************************************************************/
 
+typedef struct ScmForwardRec ScmForward;
+
 struct ScmForwardRec {
   ScmObjHeader header;
   ScmObj forward;
 };
 
+#define SCM_FORWARD(obj) ((ScmForward *)(obj))
+
 extern ScmTypeInfo SCM_FORWARD_TYPE_INFO;
 
-ScmObj scm_forward_forward(ScmObj obj);
-void scm_forward_initialize(ScmObj obj, ScmObj fwd);
+static inline ScmObj
+scm_forward_forward(ScmObj obj)
+{
+  return SCM_FORWARD(obj)->forward;
+}
+
+static inline void
+scm_forward_initialize(ScmObj obj, ScmObj fwd)
+{
+  scm_obj_init(obj, &SCM_FORWARD_TYPE_INFO);
+  SCM_FORWARD(obj)->forward = fwd;
+}
 
 
 /****************************************************************************/
@@ -49,6 +48,22 @@ void scm_forward_initialize(ScmObj obj, ScmObj fwd);
 #define SCM_MEM_HEAP_INIT_BLOCK_SIZE 4096
 #define SCM_MEM_OBJ_TBL_HASH_SIZE 1024
 #define SCM_MEM_EXTRA_ROOT_SET_SIZE 256
+
+typedef struct ScmMemRec ScmMem;
+typedef struct ScmMemHeapCellFinInfoRec ScmMemHeapCellFinInfo;
+typedef struct ScmMemHeapCellWRefInfoRec ScmMemHeapCellWRefInfo;
+typedef struct ScmMemHeapCellTSortInfoRec ScmMemHeapCellTSortInfoRec;
+typedef struct ScmMemHeapCellRec ScmMemHeapCell;
+typedef struct ScmMemHeapBlockRec ScmMemHeapBlock;
+typedef struct ScmMemHeapRec ScmMemHeap;
+typedef struct ScmMemRootBlockRec ScmMemRootBlock;
+
+typedef enum scm_mem_type scm_mem_type_t;
+
+enum scm_mem_type {
+  SCM_MEM_HEAP,
+  SCM_MEM_ROOT,
+};
 
 struct ScmMemHeapCellFinInfoRec {
   ScmObj next;
@@ -104,6 +119,8 @@ struct ScmMemRec {
   size_t alloc_cnt;
 };
 
+#define SCM_MEM(obj) ((ScmMem *)(obj))
+
 #define SCM_MEM_HEAP_BLOCK_FOR_EACH_CELL(block, cell)                 \
   for ((cell) = (ScmMemHeapCell *)scm_mem_heap_block_head(block);     \
        scm_mem_heap_block_ptr_allocated_p(block, (cell));             \
@@ -141,11 +158,53 @@ scm_mem_gc_enabled_p(ScmMem *mem)
 
 ScmMem *scm_mem_initialize(ScmMem *mem);
 ScmMem *scm_mem_finalize(ScmMem *mem);
+ScmMem *scm_mem_new(void);
+ScmMem *scm_mem_end(ScmMem *mem);
 ScmMem *scm_mem_clean(ScmMem *mem);
 ScmObj scm_mem_alloc_heap(ScmMem *mem, ScmTypeInfo *type, size_t add_size);
 ScmObj scm_mem_alloc_root(ScmMem *mem, ScmTypeInfo *type, size_t add_size);
 ScmObj scm_mem_free_root(ScmMem *mem, ScmObj obj);
 ScmRef scm_mem_register_extra_rfrn(ScmMem *mem, ScmRef ref);
 int scm_mem_gc_start(ScmMem *mem);
+
+
+/****************************************************************************/
+/* Facade                                                                   */
+/****************************************************************************/
+
+ScmObj scm_alloc_heap(ScmTypeInfo *type, size_t add_size);
+ScmObj scm_alloc_root(ScmTypeInfo *type, size_t add_size);
+ScmObj scm_free_root(ScmObj obj);
+ScmRef scm_register_extra_rfrn(ScmRef ref);
+void scm_gc_start(void);
+void scm_gc_enable(void);
+void scm_gc_disable(void);
+
+static inline ScmObj
+scm_alloc_mem(ScmTypeInfo *otype, size_t add_size, scm_mem_type_t mtype)
+{
+  switch(mtype) {
+  case SCM_MEM_HEAP:
+    return scm_alloc_heap(otype, add_size);
+    break;
+  case SCM_MEM_ROOT:
+    return scm_alloc_root(otype, add_size);
+    break;
+  default:
+    scm_assert(false);
+    return SCM_OBJ_NULL;
+    break;
+  };
+}
+
+
+/****************************************************************************/
+/* Wrapper                                                                  */
+/****************************************************************************/
+
+void *scm_malloc(size_t size);
+void *scm_free(void *ptr);
+void *scm_realloc(void *ptr, size_t size);
+
 
 #endif /* INCLUDED_MEMORY_H__ */

@@ -3,10 +3,14 @@
 
 #include "scythe/object.h"
 #include "scythe/encoding.h"
-#include "scythe/fcd.h"
+#include "scythe/memory.h"
+#include "scythe/refstk.h"
 #include "scythe/earray.h"
 #include "scythe/impl_utils.h"
 #include "scythe/bignum.h"
+#include "scythe/number.h"
+#include "scythe/exception.h"
+#include "scythe/port.h"
 #include "scythe/number_parser.h"
 
 #define PARSE_RET_INVALID   -1
@@ -55,13 +59,13 @@ peek_chr(ScmNumParseItr *itr, scm_char_t *chr)
   if (scm_obj_null_p(itr->port)) {
     w = scm_str_itr_chr(&itr->itr, chr);
     if (w < 0) {
-      scm_fcd_error("failed to parse number literal: "
+      scm_error("failed to parse number literal: "
                      "invalid byte sequence", 0);
       return PARSE_RET_INTERNAL_ERR;
     }
   }
   else {
-    w = (int)scm_fcd_peek_cchr(chr, itr->port);
+    w = (int)scm_peek_cchr(chr, itr->port);
   }
 
   return w;
@@ -74,13 +78,13 @@ shift_chr(ScmNumParseItr *itr, scm_char_t *chr, EArray *str)
   if (scm_obj_null_p(itr->port)) {
     scm_str_itr_next(&itr->itr);
     if (scm_str_itr_err_p(&itr->itr)) {
-      scm_fcd_error("failed to parse number literal: "
+      scm_error("failed to parse number literal: "
                      "invalid byte sequence", 0);
       return -1;
     }
   }
   else {
-    ssize_t w = scm_fcd_read_cchr(chr, itr->port);
+    ssize_t w = scm_read_cchr(chr, itr->port);
     if (w < 0) return -1;
   }
   EARY_PUSH(str, scm_char_t, *chr, e);
@@ -674,7 +678,7 @@ scm_num_parse_internal(ScmNumParseItr *itr, EArray *str, ScmNumParseData *data)
 
   dat = data;
   if (data == NULL) {
-    dat = scm_fcd_malloc(sizeof(*data));
+    dat = scm_malloc(sizeof(*data));
     if (dat == NULL) return NULL;
   }
 
@@ -711,9 +715,9 @@ scm_num_parse(ScmObj port, EArray *str, ScmNumParseData *data)
   SCM_REFSTK_INIT_REG(&port,
                       &itr.port);
 
-  scm_assert(scm_fcd_input_port_p(port));
+  scm_assert(scm_input_port_p(port));
 
-  enc = scm_fcd_port_internal_encoding(port);
+  enc = scm_port_internal_enc(port);
   scm_num_itr_init(&itr, port, NULL, enc);
   return scm_num_parse_internal(&itr, str, data);
 }
@@ -729,7 +733,7 @@ scm_num_chr_to_int(scm_char_t chr, ScmEncoding *enc)
 
   p = chr_find(digits, chr, enc);
   if (p == NULL) {
-    scm_fcd_error("failed to parse number literal: invalid format", 0);
+    scm_error("failed to parse number literal: invalid format", 0);
     return -1;
   }
 
@@ -790,14 +794,14 @@ scm_num_str_to_ary_of_sword(int radix, const scm_char_t *str, size_t len,
 static ScmObj
 scm_num_make_inf(char sing)
 {
-  scm_fcd_error("failed to parse number literal: unsupported format", 0);
+  scm_error("failed to parse number literal: unsupported format", 0);
   return SCM_OBJ_NULL;
 }
 
 static ScmObj
 scm_num_make_nan(char sing)
 {
-  scm_fcd_error("failed to parse number literal: unsupported format", 0);
+  scm_error("failed to parse number literal: unsupported format", 0);
   return SCM_OBJ_NULL;
 }
 
@@ -825,7 +829,7 @@ scm_num_make_integer(const scm_char_t *str, ScmEncoding *enc,
   case 'd': radix = 10; break;
   case 'x': radix = 16; break;
   default:
-    scm_fcd_error("invalid parsing data", 0);
+    scm_error("invalid parsing data", 0);
     return SCM_OBJ_NULL;
   }
 
@@ -845,7 +849,7 @@ scm_num_make_integer(const scm_char_t *str, ScmEncoding *enc,
   }
 
   if (idata->s_sign != '\0') {
-    scm_fcd_error("failed to parse number literal: unsupported format", 0);
+    scm_error("failed to parse number literal: unsupported format", 0);
     return SCM_OBJ_NULL;
   }
 
@@ -857,7 +861,7 @@ scm_num_make_float(const scm_char_t *str, ScmEncoding *enc,
                    const ScmNumParseData *data, char sign,
                    const ScmNumParseIntDecData *idata)
 {
-  scm_fcd_error("failed to parse number literal: unsupported format", 0);
+  scm_error("failed to parse number literal: unsupported format", 0);
   return SCM_OBJ_NULL;
 }
 
@@ -866,7 +870,7 @@ scm_num_make_float_from_rat(const scm_char_t *str, ScmEncoding *enc,
                             const ScmNumParseData *data, char sign,
                             const ScmNumParseRatData *rdata)
 {
-  scm_fcd_error("failed to parse number literal: unsupported format", 0);
+  scm_error("failed to parse number literal: unsupported format", 0);
   return SCM_OBJ_NULL;
 }
 
@@ -885,7 +889,7 @@ scm_num_make_rational(const scm_char_t *str, ScmEncoding *enc,
   scm_assert(sign == '+' || sign == '-');
   scm_assert(rdata != NULL);
 
-  scm_fcd_error("failed to parse number literal: unsupported format", 0);
+  scm_error("failed to parse number literal: unsupported format", 0);
   return SCM_OBJ_NULL;
 
   num = scm_num_make_integer(str, enc, data, '+', &rdata->num);
@@ -902,7 +906,7 @@ scm_num_make_rational_from_dec(const scm_char_t *str, ScmEncoding *enc,
                                const ScmNumParseData *data, char sign,
                                const ScmNumParseIntDecData *idata)
 {
-  scm_fcd_error("failed to parse number literal: unsupported format", 0);
+  scm_error("failed to parse number literal: unsupported format", 0);
   return SCM_OBJ_NULL;
 }
 
@@ -954,7 +958,7 @@ scm_num_make_real(const scm_char_t *str, ScmEncoding *enc,
       return scm_num_make_float_from_rat(str, enc, data, sign, &rdata->rat);
     break;
   default:
-    scm_fcd_error("invalid parsing data", 0);
+    scm_error("invalid parsing data", 0);
     return SCM_OBJ_NULL;
   }
 }
@@ -962,14 +966,14 @@ scm_num_make_real(const scm_char_t *str, ScmEncoding *enc,
 static ScmObj
 scm_num_make_complex_polar(const ScmNumParseData *data, ScmObj rad, ScmObj arg)
 {
-  scm_fcd_error("failed to parse number literal: unsupported format", 0);
+  scm_error("failed to parse number literal: unsupported format", 0);
   return SCM_OBJ_NULL;
 }
 
 static ScmObj
 scm_num_make_complex_orth(const ScmNumParseData *data, ScmObj real, ScmObj img)
 {
-  scm_fcd_error("failed to parse number literal: unsupported format", 0);
+  scm_error("failed to parse number literal: unsupported format", 0);
   return SCM_OBJ_NULL;
 }
 
@@ -989,14 +993,14 @@ scm_num_make_from_parsedata(const scm_char_t *str, ScmEncoding *enc,
   if (data->fir.type != '\0')
     real1 = scm_num_make_real(str, enc, data, &data->fir);
   else
-    real1 = scm_fcd_make_number_from_sword(0);
+    real1 = scm_make_number_from_sword(0);
 
   if (scm_obj_null_p(real1)) return SCM_OBJ_NULL;
 
   if (data->sec.type != '\0')
     real2 = scm_num_make_real(str, enc, data, &data->sec);
   else if (data->complex == 'O')
-    real2 = scm_fcd_make_number_from_sword((data->sec.sign == '+') ? 1 : -1);
+    real2 = scm_make_number_from_sword((data->sec.sign == '+') ? 1 : -1);
   else
     return real1;
 
@@ -1033,7 +1037,7 @@ scm_num_make_from_literal(const char *literal, ScmEncoding *enc)
   if (p == NULL) goto ret;
 
   if (data.rslt != SCM_NUM_PARSE_SUCCESS) {
-    scm_fcd_error("failed to parse number literal: invalid format", 0);
+    scm_error("failed to parse number literal: invalid format", 0);
     goto ret;
   }
 

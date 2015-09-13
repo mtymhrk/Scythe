@@ -1,6 +1,9 @@
 #include "vm.c"
 
-#include "scythe/api.h"
+#include "scythe/refstk.h"
+#include "scythe/assembler.h"
+#include "scythe/symbol.h"
+#include "scythe/vector.h"
 
 #include "test.h"
 
@@ -13,13 +16,13 @@ static ScmObj vm;
 TEST_SETUP(vm)
 {
   scy = ut_scythe_setup(false);
-  vm = scm_fcd_current_vm();
-  scm_fcd_ref_stack_save(&rsi);
+  vm = scm_current_vm();
+  scm_ref_stack_save(&rsi);
 }
 
 TEST_TEAR_DOWN(vm)
 {
-  scm_fcd_ref_stack_restore(&rsi);
+  scm_ref_stack_restore(&rsi);
   ut_scythe_tear_down(scy);
 }
 
@@ -31,15 +34,15 @@ TEST(vm, vm_run__op_immval)
   SCM_REFSTK_INIT_REG(&asmb, &sym);
 
   /* preprocess */
-  asmb = scm_fcd_make_assembler(SCM_OBJ_NULL);
-  sym = scm_fcd_make_symbol_from_cstr("abc", SCM_ENC_SRC);
+  asmb = scm_make_assembler(SCM_OBJ_NULL);
+  sym = scm_make_symbol_from_cstr("abc", SCM_ENC_SRC);
 
-  scm_fcd_assembler_push(asmb, SCM_OPCODE_IMMVAL, sym);
-  scm_fcd_assembler_push(asmb, SCM_OPCODE_HALT);
-  scm_fcd_assembler_commit(asmb);
+  scm_asm_push(asmb, SCM_OPCODE_IMMVAL, sym);
+  scm_asm_push(asmb, SCM_OPCODE_HALT);
+  scm_asm_commit(asmb);
 
   /* action */
-  scm_vm_run(vm, scm_fcd_assembler_iseq(asmb));
+  scm_vm_run(vm, scm_asm_iseq(asmb));
 
   /* postconditin check */
   TEST_ASSERT_EQUAL_INT(1, SCM_VM(vm)->reg.vc);
@@ -57,10 +60,10 @@ test_adjust_val_to_arity_aux(ScmObj val, size_t vl, int arity,
   SCM_REFSTK_REG_ARY(e, el);
 
   for (size_t i = 0; i < vl; i++)
-    v[i] = scm_fcd_vector_ref(val, i);
+    v[i] = scm_vector_ref(val, i);
 
   for (size_t i = 0; i < el; i++)
-    e[i] = scm_fcd_vector_ref(expected, i);
+    e[i] = scm_vector_ref(expected, i);
 
   scm_vm_set_val_reg(vm, v, (int)vl);
 
@@ -82,8 +85,8 @@ test_adjust_val_to_arity(const char *val, int arity, const char *expected)
   v = ut_read_cstr(val);
   e = ut_read_cstr(expected);
 
-  vl = scm_fcd_vector_length(v);
-  el = scm_fcd_vector_length(e);
+  vl = scm_vector_length(v);
+  el = scm_vector_length(e);
 
   test_adjust_val_to_arity_aux(v, (size_t)vl, arity, e, (size_t)el);
 }

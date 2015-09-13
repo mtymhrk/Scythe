@@ -1,6 +1,8 @@
 #include "chashtbl.c"
 
+#include "scythe/refstk.h"
 #include "scythe/string.h"
+#include "scythe/symbol.h"
 
 #include "test.h"
 
@@ -18,18 +20,18 @@ hash_func(ScmCHashTblKey key)
 static bool
 cmp_func(ScmCHashTblKey key1, ScmCHashTblKey key2)
 {
-  return scm_string_is_equal(SCM_OBJ(key1), SCM_OBJ(key2));
+  return scm_string_equal_p(SCM_OBJ(key1), SCM_OBJ(key2));
 }
 
 TEST_SETUP(chashtbl)
 {
   scy = ut_scythe_setup(false);
-  scm_fcd_ref_stack_save(&rsi);
+  scm_ref_stack_save(&rsi);
 }
 
 TEST_TEAR_DOWN(chashtbl)
 {
-  scm_fcd_ref_stack_restore(&rsi);
+  scm_ref_stack_restore(&rsi);
   ut_scythe_tear_down(scy);
 }
 
@@ -65,7 +67,7 @@ TEST(chashtbl, scm_chash_tbl_insert__insert_new_entry)
                            SCM_CHASH_TBL_SCMOBJ, SCM_CHASH_TBL_SCMOBJ,
                            hash_func, scm_chash_tbl_cmp_func_eq);
 
-  key1 = scm_fcd_make_string_from_cstr("foo", SCM_ENC_SRC);
+  key1 = scm_make_string_from_cstr("foo", SCM_ENC_SRC);
   val1 = scm_api_string_to_symbol(key1);
 
   /* action */
@@ -99,7 +101,7 @@ TEST(chashtbl, scm_chash_tbl_insert__insert_an_entry_already_registered)
                           SCM_CHASH_TBL_SCMOBJ, SCM_CHASH_TBL_SCMOBJ,
                           hash_func, scm_chash_tbl_cmp_func_eq);
 
-  key1 = scm_fcd_make_string_from_cstr("foo", SCM_ENC_SRC);
+  key1 = scm_make_string_from_cstr("foo", SCM_ENC_SRC);
   val1 = scm_api_string_to_symbol(key1);
   val2 = SCM_NIL_OBJ;
 
@@ -134,7 +136,7 @@ TEST(chashtbl, scm_chash_tbl_update__update_new_entry)
                            SCM_CHASH_TBL_SCMOBJ, SCM_CHASH_TBL_SCMOBJ,
                            hash_func, scm_chash_tbl_cmp_func_eq);
 
-  key1 = scm_fcd_make_string_from_cstr("foo", SCM_ENC_SRC);
+  key1 = scm_make_string_from_cstr("foo", SCM_ENC_SRC);
   val1 = scm_api_string_to_symbol(key1);
 
   /* action */
@@ -168,9 +170,9 @@ TEST(chashtbl, scm_chash_tbl_update__update_an_entry_already_registered)
                           SCM_CHASH_TBL_SCMOBJ, SCM_CHASH_TBL_SCMOBJ,
                           hash_func, scm_chash_tbl_cmp_func_eq);
 
-  key1 = scm_fcd_make_string_from_cstr("foo", SCM_ENC_SRC);
+  key1 = scm_make_string_from_cstr("foo", SCM_ENC_SRC);
   val1 = scm_api_string_to_symbol(key1);
-  val2 = scm_fcd_make_symbol_from_cstr("bar", SCM_ENC_SRC);
+  val2 = scm_make_symbol_from_cstr("bar", SCM_ENC_SRC);
 
   TEST_ASSERT_EQUAL_INT(0, scm_chash_tbl_insert(tbl, key1, val1));
 
@@ -203,7 +205,7 @@ TEST(chashtbl, scm_chash_tbl_delete__delete_an_entry_not_registered)
                           SCM_CHASH_TBL_SCMOBJ, SCM_CHASH_TBL_SCMOBJ,
                           hash_func, scm_chash_tbl_cmp_func_eq);
 
-  key1 = scm_fcd_make_string_from_cstr("foo", SCM_ENC_SRC);
+  key1 = scm_make_string_from_cstr("foo", SCM_ENC_SRC);
   val1 = scm_api_string_to_symbol(key1);
 
   /* action */
@@ -234,7 +236,7 @@ TEST(chashtbl, scm_chash_tbl_delete__delete_an_entry_already_registered)
                            SCM_CHASH_TBL_SCMOBJ, SCM_CHASH_TBL_SCMOBJ,
                            hash_func, scm_chash_tbl_cmp_func_eq);
 
-  key1 = scm_fcd_make_string_from_cstr("foo", SCM_ENC_SRC);
+  key1 = scm_make_string_from_cstr("foo", SCM_ENC_SRC);
   val1 = scm_api_string_to_symbol(key1);
 
   TEST_ASSERT_EQUAL_INT(0, scm_chash_tbl_insert(tbl, key1, val1));

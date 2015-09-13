@@ -1,3 +1,9 @@
+#include "scythe/refstk.h"
+#include "scythe/char.h"
+#include "scythe/number.h"
+#include "scythe/pair.h"
+#include "scythe/port.h"
+#include "scythe/string.h"
 #include "scythe/api.h"
 
 #include "test.h"
@@ -20,12 +26,12 @@ delete_test_file(void)
 TEST_SETUP(api_output)
 {
   scy = ut_scythe_setup(false);
-  scm_fcd_ref_stack_save(&rsi);
+  scm_ref_stack_save(&rsi);
 
   file_port = string_port = SCM_OBJ_NULL;
-  scm_fcd_mem_register_extra_rfrn(SCM_REF_MAKE(file_port));
-  scm_fcd_mem_register_extra_rfrn(SCM_REF_MAKE(string_port));
-  file_port = scm_fcd_open_output_file(TEST_FILE_PATH, NULL);
+  scm_register_extra_rfrn(SCM_REF_MAKE(file_port));
+  scm_register_extra_rfrn(SCM_REF_MAKE(string_port));
+  file_port = scm_open_output_file(TEST_FILE_PATH, NULL);
   string_port = scm_api_open_output_string();
 }
 
@@ -33,7 +39,7 @@ TEST_TEAR_DOWN(api_output)
 {
   delete_test_file();
 
-  scm_fcd_ref_stack_restore(&rsi);
+  scm_ref_stack_restore(&rsi);
   ut_scythe_tear_down(scy);
 }
 
@@ -65,7 +71,7 @@ chk_string_port_contents(ScmObj port, const char *expected)
   SCM_REFSTK_INIT_REG(&port,
                       &actual, &expe);
 
-  expe = scm_fcd_make_string_from_cstr(expected, SCM_ENC_SRC);
+  expe = scm_make_string_from_cstr(expected, SCM_ENC_SRC);
   actual = scm_api_get_output_string(port);
 
   TEST_ASSERT_SCM_EQUAL(expe, actual);
@@ -80,7 +86,7 @@ test_api_write_shared(ScmObj port, int type)
   SCM_REFSTK_INIT_REG(&port,
                       &o);
 
-  o = scm_fcd_make_string_from_cstr("hello", SCM_ENC_SRC);
+  o = scm_make_string_from_cstr("hello", SCM_ENC_SRC);
 
   TEST_ASSERT_SCM_EQ(SCM_UNDEF_OBJ, scm_api_write_shared(o, port));
 
@@ -101,8 +107,8 @@ test_api_write_shared__write_shared_structure(ScmObj port, int type)
   SCM_REFSTK_INIT_REG(&port,
                       &o);
 
-  o = scm_fcd_cons(SCM_TRUE_OBJ, SCM_FALSE_OBJ);
-  scm_fcd_set_cdr_i(o, o);
+  o = scm_cons(SCM_TRUE_OBJ, SCM_FALSE_OBJ);
+  scm_set_cdr(o, o);
 
   TEST_ASSERT_SCM_EQ(SCM_UNDEF_OBJ, scm_api_write_shared(o, port));
 
@@ -122,7 +128,7 @@ test_api_write_shared__specify_closed_port__return_ERROR(ScmObj port, int type)
   SCM_REFSTK_INIT_REG(&port,
                       &o);
 
-  o = scm_fcd_make_string_from_cstr("hello", SCM_ENC_SRC);
+  o = scm_make_string_from_cstr("hello", SCM_ENC_SRC);
 
   scm_api_close_port(port);
   TEST_ASSERT_SCM_NULL(scm_api_write_shared(o, port));
@@ -137,7 +143,7 @@ test_api_write_simple(ScmObj port, int type)
   SCM_REFSTK_INIT_REG(&port,
                       &o);
 
-  o = scm_fcd_make_string_from_cstr("hello", SCM_ENC_SRC);
+  o = scm_make_string_from_cstr("hello", SCM_ENC_SRC);
 
   TEST_ASSERT_SCM_EQ(SCM_UNDEF_OBJ, scm_api_write_simple(o, port));
 
@@ -157,7 +163,7 @@ test_api_write_simple__specify_closed_port__return_ERROR(ScmObj port, int type)
   SCM_REFSTK_INIT_REG(&port,
                       &o);
 
-  o = scm_fcd_make_string_from_cstr("hello", SCM_ENC_SRC);
+  o = scm_make_string_from_cstr("hello", SCM_ENC_SRC);
 
   scm_api_close_port(port);
   TEST_ASSERT_SCM_NULL(scm_api_write_simple(o, port));
@@ -172,7 +178,7 @@ test_api_display(ScmObj port, int type)
   SCM_REFSTK_INIT_REG(&port,
                       &o);
 
-  o = scm_fcd_make_string_from_cstr("hello", SCM_ENC_SRC);
+  o = scm_make_string_from_cstr("hello", SCM_ENC_SRC);
 
   TEST_ASSERT_SCM_EQ(SCM_UNDEF_OBJ, scm_api_display(o, port));
 
@@ -193,8 +199,8 @@ test_api_display__write_shared_structure(ScmObj port, int type)
   SCM_REFSTK_INIT_REG(&port,
                       &o);
 
-  o = scm_fcd_cons(SCM_TRUE_OBJ, SCM_FALSE_OBJ);
-  scm_fcd_set_cdr_i(o, o);
+  o = scm_cons(SCM_TRUE_OBJ, SCM_FALSE_OBJ);
+  scm_set_cdr(o, o);
 
   TEST_ASSERT_SCM_EQ(SCM_UNDEF_OBJ, scm_api_display(o, port));
 
@@ -214,7 +220,7 @@ test_api_display__specify_closed_port__return_ERROR(ScmObj port, int type)
   SCM_REFSTK_INIT_REG(&port,
                       &o);
 
-  o = scm_fcd_make_string_from_cstr("hello", SCM_ENC_SRC);
+  o = scm_make_string_from_cstr("hello", SCM_ENC_SRC);
 
   scm_api_close_port(port);
   TEST_ASSERT_SCM_NULL(scm_api_display(o, port));
@@ -255,7 +261,7 @@ test_api_write_char(ScmObj port, int type)
   SCM_REFSTK_INIT_REG(&port,
                       &c);
 
-  c = scm_fcd_make_char(&(scm_char_t){ .ascii = '?' }, SCM_ENC_SRC);
+  c = scm_make_char(&(scm_char_t){ .ascii = '?' }, SCM_ENC_SRC);
   TEST_ASSERT_SCM_EQ(SCM_UNDEF_OBJ, scm_api_write_char(c, port));
 
   scm_api_close_port(port);
@@ -274,7 +280,7 @@ test_api_write_char__specify_closed_port__return_ERROR(ScmObj port, int type)
   SCM_REFSTK_INIT_REG(&port,
                       &c);
 
-  c = scm_fcd_make_char(&(scm_char_t){ .ascii = '?' }, SCM_ENC_SRC);
+  c = scm_make_char(&(scm_char_t){ .ascii = '?' }, SCM_ENC_SRC);
   scm_api_close_port(port);
   TEST_ASSERT_SCM_NULL(scm_api_write_char(c, port));
 }
@@ -288,7 +294,7 @@ test_api_write_string(ScmObj port, int type)
   SCM_REFSTK_INIT_REG(&port,
                       &s);
 
-  s = scm_fcd_make_string_from_cstr(expected, SCM_ENC_SRC);
+  s = scm_make_string_from_cstr(expected, SCM_ENC_SRC);
   TEST_ASSERT_SCM_EQ(SCM_UNDEF_OBJ,
                      scm_api_write_string(s, port, SCM_OBJ_NULL, SCM_OBJ_NULL));
 
@@ -309,8 +315,8 @@ test_api_write_string__specify_start(ScmObj port, int type)
   SCM_REFSTK_INIT_REG(&port,
                       &s, &n1);
 
-  s = scm_fcd_make_string_from_cstr("hello", SCM_ENC_SRC);
-  n1 = scm_fcd_make_number_from_sword(2);
+  s = scm_make_string_from_cstr("hello", SCM_ENC_SRC);
+  n1 = scm_make_number_from_sword(2);
   TEST_ASSERT_SCM_EQ(SCM_UNDEF_OBJ,
                      scm_api_write_string(s, port, n1, SCM_OBJ_NULL));
 
@@ -331,9 +337,9 @@ test_api_write_string__specify_start_end(ScmObj port, int type)
   SCM_REFSTK_INIT_REG(&port,
                       &s, &n1, &n2);
 
-  s = scm_fcd_make_string_from_cstr("hello", SCM_ENC_SRC);
-  n1 = scm_fcd_make_number_from_sword(2);
-  n2 = scm_fcd_make_number_from_sword(3);
+  s = scm_make_string_from_cstr("hello", SCM_ENC_SRC);
+  n1 = scm_make_number_from_sword(2);
+  n2 = scm_make_number_from_sword(3);
   TEST_ASSERT_SCM_EQ(SCM_UNDEF_OBJ, scm_api_write_string(s, port, n1, n2));
 
   scm_api_close_port(port);
@@ -352,9 +358,9 @@ test_api_write_string__specify_invalid_start_end__return_ERROR(ScmObj port, int 
   SCM_REFSTK_INIT_REG(&port,
                       &s, &n1, &n2);
 
-  s = scm_fcd_make_string_from_cstr("hello", SCM_ENC_SRC);
-  n1 = scm_fcd_make_number_from_sword(3);
-  n2 = scm_fcd_make_number_from_sword(1);
+  s = scm_make_string_from_cstr("hello", SCM_ENC_SRC);
+  n1 = scm_make_number_from_sword(3);
+  n2 = scm_make_number_from_sword(1);
   TEST_ASSERT_SCM_NULL(scm_api_write_string(s, port, n1, n2));
 }
 
@@ -365,7 +371,7 @@ test_api_flush_output_port(ScmObj port, int type)
 
   SCM_REFSTK_INIT_REG(&port);
 
-  scm_fcd_write_cstr(expected, SCM_ENC_SRC, port);
+  scm_write_cstr(expected, SCM_ENC_SRC, port);
   TEST_ASSERT_SCM_EQ(SCM_UNDEF_OBJ, scm_api_flush_output_port(port));
 
   if (type == FILEPORT)

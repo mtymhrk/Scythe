@@ -3,15 +3,48 @@
 ## ビルドやテストに必要となるソースファイルのパス
 
 set(scythe_src_path src)
-set(scythe_lib_src memory.c object.c pair.c string.c symbol.c vector.c
-                   miscobjects.c char.c encoding.c vm.c vmstack.c vminst.c
-                   procedure.c refstk.c core_subr.c iseq.c chashtbl.c api.c
-                   port.c parser.c assembler.c exception.c syntax.c compiler.c
-                   module.c core_modules.c fixnum.c bignum.c number_parser.c
-                   marshal.c compile_data.c repl_data.c earray.c impl_utils.c
-                   macro_data.c equivalence.c format.c number.c file.c
-                   scheme_base_data.c scythe.c
-                   )
+set(scythe_lib_src api.c
+                   assembler.c
+                   bignum.c
+                   char.c
+                   chashtbl.c
+                   compiler.c
+                   core_modules.c
+                   core_subr.c
+                   earray.c
+                   encoding.c
+                   equivalence.c
+                   exception.c
+                   file.c
+                   fixnum.c
+                   format.c
+                   impl_utils.c
+                   iseq.c
+                   marshal.c
+                   memory.c
+                   miscobjects.c
+                   module.c
+                   number.c
+                   number_parser.c
+                   object.c
+                   pair.c
+                   parser.c
+                   port.c
+                   procedure.c
+                   refstk.c
+                   scythe.c
+                   string.c
+                   symbol.c
+                   syntax.c
+                   vector.c
+                   vm.c
+                   vminst.c
+                   vmstack.c
+
+                   compile_data.c
+                   macro_data.c
+                   repl_data.c
+                   scheme_base_data.c)
 
 
 ##===============================================================

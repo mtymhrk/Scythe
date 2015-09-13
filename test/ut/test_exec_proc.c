@@ -1,3 +1,4 @@
+#include "scythe/refstk.h"
 #include "scythe/api.h"
 
 #include "test.h"
@@ -10,12 +11,12 @@ static ScmRefStackInfo rsi;
 TEST_SETUP(exec_proc)
 {
   scy = ut_scythe_setup(true);
-  scm_fcd_ref_stack_save(&rsi);
+  scm_ref_stack_save(&rsi);
 }
 
 TEST_TEAR_DOWN(exec_proc)
 {
-  scm_fcd_ref_stack_restore(&rsi);
+  scm_ref_stack_restore(&rsi);
   ut_scythe_tear_down(scy);
 }
 

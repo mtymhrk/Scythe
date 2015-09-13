@@ -7,9 +7,10 @@
 #include <assert.h>
 
 #include "scythe/object.h"
-#include "scythe/fcd.h"
 #include "scythe/impl_utils.h"
+#include "scythe/vm.h"
 #include "scythe/memory.h"
+
 
 /****************************************************************************/
 /* Forward Object                                                           */
@@ -26,19 +27,6 @@ ScmTypeInfo SCM_FORWARD_TYPE_INFO = {
   .gc_accept_func_weak = NULL,
   .extra               = NULL,
 };
-
-extern inline ScmObj
-scm_forward_forward(ScmObj obj)
-{
-  return SCM_FORWARD(obj)->forward;
-}
-
-extern inline void
-scm_forward_initialize(ScmObj obj, ScmObj fwd)
-{
-  scm_obj_init(obj, &SCM_FORWARD_TYPE_INFO);
-  SCM_FORWARD(obj)->forward = fwd;
-}
 
 
 /****************************************************************************/
@@ -136,7 +124,7 @@ scm_mem_heap_cell_tail(ScmMemHeapCell *cell)
 static ScmMemHeapBlock *
 scm_mem_heap_new_block(size_t sz)
 {
-  ScmMemHeapBlock *block = scm_fcd_malloc(sizeof(ScmMemHeapBlock) + (sz));
+  ScmMemHeapBlock *block = scm_malloc(sizeof(ScmMemHeapBlock) + (sz));
   if (block != NULL) {
     scm_byte_t *p;
     block->next = NULL;
@@ -152,7 +140,7 @@ scm_mem_heap_new_block(size_t sz)
 static inline void *
 scm_mem_heap_delete_block(ScmMemHeapBlock *block)
 {
-  scm_fcd_free(block);
+  scm_free(block);
   return NULL;
 }
 
@@ -348,7 +336,7 @@ static ScmMemHeap *
 scm_mem_heap_delete_heap(ScmMemHeap *heap)
 {
   scm_mem_heap_release_blocks(heap, 0);
-  scm_fcd_free(heap);
+  scm_free(heap);
   return heap;
 }
 
@@ -358,7 +346,7 @@ scm_mem_heap_new_heap(int nr_blk, size_t sz)
   ScmMemHeap *heap;
   int i;
 
-  heap = scm_fcd_malloc(sizeof(*heap));
+  heap = scm_malloc(sizeof(*heap));
   if (heap == NULL) return NULL;
 
   heap->head = NULL;
@@ -501,7 +489,7 @@ scm_mem_root_block_new(size_t sz)
 {
   ScmMemRootBlock *block;
 
-  block = scm_fcd_malloc(sz);
+  block = scm_malloc(sz);
   if (block == NULL) return NULL;
 
   block->hdr.next = NULL;
@@ -513,7 +501,7 @@ scm_mem_root_block_new(size_t sz)
 static inline void
 scm_mem_root_block_free(ScmMemRootBlock *block)
 {
-  scm_fcd_free(block);
+  scm_free(block);
 }
 
 static inline bool
@@ -647,8 +635,8 @@ scm_mem_expand_heap(ScmMem *mem, int inc_block)
   return i;
 
  err:
-  if (to_block != NULL) scm_fcd_free(to_block);
-  if (from_block != NULL) scm_fcd_free(from_block);
+  if (to_block != NULL) scm_free(to_block);
+  if (from_block != NULL) scm_free(from_block);
   return i;
 }
 
@@ -876,7 +864,7 @@ scm_mem_copy_obj(ScmMem *mem, ScmObj obj)
     if (rslt < 0) return SCM_OBJ_NULL;
 
     if (scm_obj_null_p(box)) {
-      scm_fcd_fatal("Memory Manager Heap Accesss Error");
+      scm_fatal("Memory Manager Heap Accesss Error");
       return SCM_OBJ_NULL;
     }
   }
@@ -1168,7 +1156,7 @@ scm_mem_initialize(ScmMem *mem)
   mem->from_heap = scm_mem_heap_new_heap(1, SCM_MEM_HEAP_INIT_BLOCK_SIZE);
   if (mem->from_heap == NULL) goto err;
 
-  mem->extra_rfrn = scm_fcd_malloc(sizeof(ScmRef) * SCM_MEM_EXTRA_RFRN_SIZE);
+  mem->extra_rfrn = scm_malloc(sizeof(ScmRef) * SCM_MEM_EXTRA_RFRN_SIZE);
   if (mem->extra_rfrn == NULL) goto err;
   mem->nr_extra = 0;
 
@@ -1177,9 +1165,9 @@ scm_mem_initialize(ScmMem *mem)
  err:
   if (mem->to_heap != NULL) mem->to_heap = scm_mem_heap_delete_heap(mem->to_heap);
   if (mem->from_heap != NULL) mem->from_heap = scm_mem_heap_delete_heap(mem->from_heap);
-  if (mem->extra_rfrn != NULL) scm_fcd_free(mem->extra_rfrn);
+  if (mem->extra_rfrn != NULL) scm_free(mem->extra_rfrn);
 
-  scm_fcd_fatal("Memory Manager Initialization Error");
+  scm_fatal("Memory Manager Initialization Error");
 
   return NULL;
 }
@@ -1194,7 +1182,29 @@ scm_mem_finalize(ScmMem *mem)
 
   if (mem->to_heap != NULL) mem->to_heap = scm_mem_heap_delete_heap(mem->to_heap);
   if (mem->from_heap != NULL) mem->from_heap = scm_mem_heap_delete_heap(mem->from_heap);
-  if (mem->extra_rfrn != NULL) scm_fcd_free(mem->extra_rfrn);
+  if (mem->extra_rfrn != NULL) scm_free(mem->extra_rfrn);
+
+  return NULL;
+}
+
+ScmMem *
+scm_mem_new(void)
+{
+  ScmMem *mem = NULL;
+
+  mem = scm_malloc(sizeof(*mem));
+  if (mem == NULL) return NULL;
+
+  return scm_mem_initialize(mem);
+}
+
+ScmMem *
+scm_mem_end(ScmMem *mem)
+{
+  if (mem == NULL) return NULL;
+
+  scm_mem_finalize(mem);
+  scm_free(mem);
 
   return NULL;
 }
@@ -1239,7 +1249,7 @@ scm_mem_alloc_heap(ScmMem *mem, ScmTypeInfo *type, size_t add_size)
 
   if (scm_obj_not_null_p(obj)) goto success;
 
-  scm_fcd_fatal("Memory Manager Memory Allocation Error");
+  scm_fatal("Memory Manager Memory Allocation Error");
   return SCM_OBJ_NULL;
 
  success:
@@ -1312,94 +1322,53 @@ scm_mem_gc_start(ScmMem *mem)
 
 
 /****************************************************************************/
-/* Memory Manager (interface)                                               */
+/* Facade                                                                   */
 /****************************************************************************/
 
-ScmMem *
-scm_fcd_mem_new(void)
-{
-  ScmMem *mem = NULL;
-
-  mem = scm_fcd_malloc(sizeof(*mem));
-  if (mem == NULL) return NULL;
-
-  return scm_mem_initialize(mem);
-}
-
-ScmMem *
-scm_fcd_mem_end(ScmMem *mem)
-{
-  if (mem == NULL) return NULL;
-
-  scm_mem_finalize(mem);
-  scm_fcd_free(mem);
-
-  return NULL;
-}
-
 ScmObj
-scm_fcd_mem_alloc_heap(ScmTypeInfo *type, size_t add_size)
+scm_alloc_heap(ScmTypeInfo *type, size_t add_size)
 {
   scm_assert(type != NULL);
-  return scm_mem_alloc_heap(scm_fcd_current_memory_manager(),
-                            type, add_size);
+  return scm_mem_alloc_heap(scm_current_memory_manager(), type, add_size);
 }
 
 ScmObj
-scm_fcd_mem_alloc_root(ScmTypeInfo *type, size_t add_size)
+scm_alloc_root(ScmTypeInfo *type, size_t add_size)
 {
   scm_assert(type != NULL);
-  return scm_mem_alloc_root(scm_fcd_current_memory_manager(),
-                            type, add_size);
+  return scm_mem_alloc_root(scm_current_memory_manager(), type, add_size);
 }
 
 ScmObj
-scm_fcd_mem_alloc(ScmTypeInfo *otype, size_t add_size, scm_mem_type_t mtype)
-{
-  switch(mtype) {
-  case SCM_MEM_HEAP:
-    return scm_fcd_mem_alloc_heap(otype, add_size);
-    break;
-  case SCM_MEM_ROOT:
-    return scm_fcd_mem_alloc_root(otype, add_size);
-    break;
-  default:
-    scm_assert(false);
-    return SCM_OBJ_NULL;
-    break;
-  };
-}
-
-ScmObj
-scm_fcd_mem_free_root(ScmObj obj)
+scm_free_root(ScmObj obj)
 {
   if (obj == SCM_OBJ_NULL) return SCM_OBJ_NULL;
-  return scm_mem_free_root(scm_fcd_current_memory_manager(), obj);
+  return scm_mem_free_root(scm_current_memory_manager(), obj);
 }
 
 ScmRef
-scm_fcd_mem_register_extra_rfrn(ScmRef ref)
+scm_register_extra_rfrn(ScmRef ref)
 {
   if (ref == SCM_REF_NULL) return ref;
-  return scm_mem_register_extra_rfrn(scm_fcd_current_memory_manager(), ref);
+  return scm_mem_register_extra_rfrn(scm_current_memory_manager(), ref);
 }
 
 void
-scm_fcd_gc_start(void)
+scm_gc_start(void)
 {
-  scm_mem_gc_start(scm_fcd_current_memory_manager());
+  scm_mem_gc_start(scm_current_memory_manager());
 }
 
 void
-scm_fcd_gc_enable(void)
+scm_gc_enable(void)
 {
-  scm_mem_enable_gc(scm_fcd_current_memory_manager());
+  scm_mem_enable_gc(scm_current_memory_manager());
 }
 
 void
-scm_fcd_gc_disable(void)
+scm_gc_disable(void)
 {
-  scm_mem_disable_gc(scm_fcd_current_memory_manager());
+  scm_mem_disable_gc(scm_current_memory_manager());
 }
 
 
@@ -1408,24 +1377,24 @@ scm_fcd_gc_disable(void)
 /****************************************************************************/
 
 void *
-scm_fcd_malloc(size_t size)
+scm_malloc(size_t size)
 {
   void *p = malloc(size);
-  if (p == NULL) scm_fcd_fatal("memory allocation error");
+  if (p == NULL) scm_fatal("memory allocation error");
   return p;
 }
 
 void *
-scm_fcd_free(void *ptr)
+scm_free(void *ptr)
 {
   free(ptr);
   return NULL;
 }
 
 void *
-scm_fcd_realloc(void *ptr, size_t size)
+scm_realloc(void *ptr, size_t size)
 {
   void *p = realloc(ptr, size);
-  if (p == NULL) scm_fcd_fatal("memory allocation error");
+  if (p == NULL) scm_fatal("memory allocation error");
   return p;
 }

@@ -1,5 +1,11 @@
 #include <string.h>
 
+#include "scythe/refstk.h"
+#include "scythe/char.h"
+#include "scythe/number.h"
+#include "scythe/port.h"
+#include "scythe/string.h"
+#include "scythe/symbol.h"
 #include "scythe/api.h"
 
 #include "test.h"
@@ -36,23 +42,23 @@ delete_test_file(void)
 TEST_SETUP(api_input)
 {
   scy = ut_scythe_setup(false);
-  scm_fcd_ref_stack_save(&rsi);
+  scm_ref_stack_save(&rsi);
 
   make_test_file();
 
   file_port = string_port = SCM_OBJ_NULL;
-  scm_fcd_mem_register_extra_rfrn(SCM_REF_MAKE(file_port));
-  scm_fcd_mem_register_extra_rfrn(SCM_REF_MAKE(string_port));
-  file_port = scm_fcd_open_input_file(TEST_FILE_PATH, NULL);
-  string_port = scm_fcd_open_input_string_cstr(TEST_FILE_CONTENTS,
-                                               SCM_ENC_NAME_SRC);
+  scm_register_extra_rfrn(SCM_REF_MAKE(file_port));
+  scm_register_extra_rfrn(SCM_REF_MAKE(string_port));
+  file_port = scm_open_input_file(TEST_FILE_PATH, NULL);
+  string_port = scm_open_input_string_cstr(TEST_FILE_CONTENTS,
+                                           SCM_ENC_NAME_SRC);
 }
 
 TEST_TEAR_DOWN(api_input)
 {
   delete_test_file();
 
-  scm_fcd_ref_stack_restore(&rsi);
+  scm_ref_stack_restore(&rsi);
   ut_scythe_tear_down(scy);
 }
 
@@ -67,7 +73,7 @@ test_capi_read(ScmObj port)
 
   expected = SCM_NIL_OBJ;
   for (const char **p = str; *p != NULL; p++) {
-    sym = scm_fcd_make_symbol_from_cstr(*p, SCM_ENC_SRC);
+    sym = scm_make_symbol_from_cstr(*p, SCM_ENC_SRC);
     expected = scm_api_cons(sym, expected);
   }
 
@@ -104,8 +110,8 @@ test_api_read_char(ScmObj port)
   SCM_REFSTK_INIT_REG(&port,
                       &actual, &expected);
 
-  expected = scm_fcd_make_char(&(scm_char_t){ .ascii = TEST_FILE_CONTENTS[0] },
-                               SCM_ENC_SRC);
+  expected = scm_make_char(&(scm_char_t){ .ascii = TEST_FILE_CONTENTS[0] },
+                           SCM_ENC_SRC);
 
   actual = scm_api_read_char(port);
 
@@ -140,7 +146,7 @@ test_api_peek_char(ScmObj port)
   SCM_REFSTK_INIT_REG(&port,
                       &actual, &expected);
 
-  expected = scm_fcd_make_char(&(scm_char_t){ .ascii = '(' }, SCM_ENC_SRC);
+  expected = scm_make_char(&(scm_char_t){ .ascii = '(' }, SCM_ENC_SRC);
 
   actual = scm_api_peek_char(port);
 
@@ -203,7 +209,7 @@ test_api_read_line__upt_to_EOL(ScmObj port)
   SCM_REFSTK_INIT_REG(&port,
                       &actual, &expected);
 
-  expected = scm_fcd_make_string_from_cstr(TEST_FILE_CONTENTS_1ST_LINE,
+  expected = scm_make_string_from_cstr(TEST_FILE_CONTENTS_1ST_LINE,
                                             SCM_ENC_SRC);
   actual = scm_api_read_line(port);
 
@@ -218,7 +224,7 @@ test_api_read_line__upt_to_EOF(ScmObj port)
   SCM_REFSTK_INIT_REG(&port,
                       &actual, &expected);
 
-  expected = scm_fcd_make_string_from_cstr(TEST_FILE_CONTENTS_2ND_LINE,
+  expected = scm_make_string_from_cstr(TEST_FILE_CONTENTS_2ND_LINE,
                                             SCM_ENC_SRC);
   scm_api_read_line(port);
   actual = scm_api_read_line(port);
@@ -275,8 +281,8 @@ test_api_read_string(ScmObj port)
   strncpy(str, TEST_FILE_CONTENTS, len);
   str[len] = '\0';
 
-  n = scm_fcd_make_number_from_size_t(len);
-  expected = scm_fcd_make_string_from_cstr(str, SCM_ENC_SRC);
+  n = scm_make_number_from_size_t(len);
+  expected = scm_make_string_from_cstr(str, SCM_ENC_SRC);
   actual = scm_api_read_string(n, port);
 
   TEST_ASSERT_SCM_EQUAL(expected, actual);
@@ -291,8 +297,8 @@ test_api_read_string__read_up_to_EOF(ScmObj port)
   SCM_REFSTK_INIT_REG(&port,
                       &actual, &expected, &n);
 
-  n = scm_fcd_make_number_from_size_t(len);
-  expected = scm_fcd_make_string_from_cstr(TEST_FILE_CONTENTS, SCM_ENC_SRC);
+  n = scm_make_number_from_size_t(len);
+  expected = scm_make_string_from_cstr(TEST_FILE_CONTENTS, SCM_ENC_SRC);
   actual = scm_api_read_string(n, port);
 
   TEST_ASSERT_SCM_EQUAL(expected, actual);
@@ -306,7 +312,7 @@ test_api_read_string__return_EOF(ScmObj port)
   SCM_REFSTK_INIT_REG(&port,
                       &n);
 
-  n = scm_fcd_make_number_from_size_t(strlen(TEST_FILE_CONTENTS));
+  n = scm_make_number_from_size_t(strlen(TEST_FILE_CONTENTS));
   scm_api_read_string(n, port);
 
   TEST_ASSERT_SCM_TRUE(scm_api_eof_object_P(scm_api_read_string(n, port)));
@@ -320,7 +326,7 @@ test_api_read_string__specify_closed_port__return_ERROR(ScmObj port)
   SCM_REFSTK_INIT_REG(&port,
                       &n);
 
-  n = scm_fcd_make_number_from_size_t(strlen(TEST_FILE_CONTENTS));
+  n = scm_make_number_from_size_t(strlen(TEST_FILE_CONTENTS));
 
   scm_api_close_port(port);
 
