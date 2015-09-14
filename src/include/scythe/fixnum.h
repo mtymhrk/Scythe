@@ -1,6 +1,8 @@
 #ifndef INCLUDE_FIXNUM_H__
 #define INCLUDE_FIXNUM_H__
 
+#include <stdbool.h>
+
 #include "scythe/object.h"
 #include "scythe/impl_utils.h"
 

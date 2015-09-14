@@ -2,6 +2,7 @@
 #ifndef INCLUDE_EARRAY_H__
 #define INCLUDE_EARRAY_H__
 
+#include <stddef.h>
 #include <stdlib.h>
 #include <assert.h>
 

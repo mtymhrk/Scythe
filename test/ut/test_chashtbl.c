@@ -1,5 +1,8 @@
 #include "chashtbl.c"
 
+#include <stddef.h>
+#include <stdbool.h>
+
 #include "scythe/refstk.h"
 #include "scythe/string.h"
 #include "scythe/symbol.h"

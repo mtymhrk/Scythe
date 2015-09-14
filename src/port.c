@@ -3,6 +3,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <errno.h>
+#include <stddef.h>
 #include <stdbool.h>
 #include <string.h>
 #include <iconv.h>

@@ -1,3 +1,6 @@
+#include <stddef.h>
+#include <stdbool.h>
+
 #include "scythe/vm.h"
 #include "scythe/refstk.h"
 #include "scythe/compiler.h"

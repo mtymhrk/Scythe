@@ -1,5 +1,8 @@
 #include "memory.c"
 
+#include <stddef.h>
+#include <stdbool.h>
+
 #include "scythe/object.h"
 
 #include "test.h"

@@ -1,3 +1,4 @@
+#include <sys/types.h>
 #include <stdbool.h>
 #include <stdarg.h>
 #include <stddef.h>

@@ -1,6 +1,9 @@
 #ifndef INCLUDE_ISEQ_H__
 #define INCLUDE_ISEQ_H__
 
+#include <sys/types.h>
+#include <stddef.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
 

@@ -1,3 +1,6 @@
+#include <sys/types.h>
+#include <stddef.h>
+#include <stdbool.h>
 #include <limits.h>
 #include <stdlib.h>
 #include <assert.h>

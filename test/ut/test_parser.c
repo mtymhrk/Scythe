@@ -1,5 +1,6 @@
 #include "parser.c"
 
+#include <stddef.h>
 #include <stdarg.h>
 
 #include "scythe/refstk.h"

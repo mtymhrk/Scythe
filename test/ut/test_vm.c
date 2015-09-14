@@ -1,5 +1,7 @@
 #include "vm.c"
 
+#include <stddef.h>
+
 #include "scythe/refstk.h"
 #include "scythe/assembler.h"
 #include "scythe/symbol.h"

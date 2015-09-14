@@ -1,4 +1,7 @@
+#include <sys/types.h>
 #include <unistd.h>
+#include <stddef.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <limits.h>

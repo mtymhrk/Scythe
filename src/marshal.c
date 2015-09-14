@@ -1,6 +1,8 @@
+#include <sys/types.h>
 #include <arpa/inet.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdbool.h>
 #include <string.h>
 
 #include "scythe/object.h"

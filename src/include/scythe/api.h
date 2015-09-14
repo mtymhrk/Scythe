@@ -1,6 +1,7 @@
 #ifndef INCLUDE_API_H__
 #define INCLUDE_API_H__
 
+#include <sys/types.h>
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>

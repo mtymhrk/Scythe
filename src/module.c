@@ -1,3 +1,5 @@
+#include <stddef.h>
+#include <stdbool.h>
 #include <limits.h>
 
 #include "scythe/object.h"

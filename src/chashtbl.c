@@ -1,3 +1,7 @@
+#include <stddef.h>
+#include <stdbool.h>
+#include <string.h>
+
 #include "scythe/object.h"
 #include "scythe/memory.h"
 #include "scythe/refstk.h"

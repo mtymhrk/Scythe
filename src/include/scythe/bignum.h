@@ -2,6 +2,7 @@
 #define INCLUDE_BIGNUM_H__
 
 #include <stddef.h>
+#include <stdbool.h>
 #include <limits.h>
 
 #include "scythe/object.h"

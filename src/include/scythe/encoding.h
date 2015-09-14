@@ -1,6 +1,8 @@
 #ifndef INCLUDED_ENCODING_H__
 #define INCLUDED_ENCODING_H__
 
+#include <sys/types.h>
+#include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdlib.h>

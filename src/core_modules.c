@@ -1,5 +1,7 @@
 #include <unistd.h>
 #include <stdint.h>
+#include <stddef.h>
+#include <stdbool.h>
 
 #include "scythe/object.h"
 #include "scythe/core_subr.h"

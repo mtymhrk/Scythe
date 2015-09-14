@@ -1,3 +1,5 @@
+#include <stddef.h>
+
 #include "scythe/refstk.h"
 #include "scythe/char.h"
 #include "scythe/number.h"

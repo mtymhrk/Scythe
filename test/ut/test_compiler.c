@@ -1,5 +1,8 @@
 #include "compiler.c"
 
+#include <stddef.h>
+#include <stdbool.h>
+
 #include "scythe/object.h"
 #include "scythe/refstk.h"
 #include "scythe/vector.h"

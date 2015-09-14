@@ -1,3 +1,7 @@
+#include <sys/types.h>
+#include <stddef.h>
+#include <stdbool.h>
+
 #include "scythe/object.h"
 #include "scythe/earray.h"
 #include "scythe/vminst.h"

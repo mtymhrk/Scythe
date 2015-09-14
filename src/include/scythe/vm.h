@@ -2,6 +2,7 @@
 #define INCLUDE_VM_H__
 
 #include <stdint.h>
+#include <stdbool.h>
 
 #include "scythe/object.h"
 #include "scythe/encoding.h"

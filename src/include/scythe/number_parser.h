@@ -1,6 +1,7 @@
 #ifndef INCLUDE_NUMBER_PARSER_H__
 #define INCLUDE_NUMBER_PARSER_H__
 
+#include <sys/types.h>
 #include <stddef.h>
 
 #include "scythe/encoding.h"

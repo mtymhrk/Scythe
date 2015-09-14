@@ -1,3 +1,5 @@
+#include <sys/types.h>
+#include <stddef.h>
 #include <stdbool.h>
 #include <assert.h>
 

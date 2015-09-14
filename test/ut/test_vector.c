@@ -1,5 +1,7 @@
 #include "vector.c"
 
+#include <stddef.h>
+
 #include "scythe/object.h"
 #include "scythe/refstk.h"
 #include "scythe/vector.h"

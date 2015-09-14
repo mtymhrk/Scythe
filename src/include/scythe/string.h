@@ -1,7 +1,9 @@
 #ifndef INCLUDE_STRING_H__
 #define INCLUDE_STRING_H__
 
+#include <sys/types.h>
 #include <unistd.h>
+#include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <limits.h>

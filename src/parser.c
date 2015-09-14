@@ -1,3 +1,5 @@
+#include <sys/types.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>

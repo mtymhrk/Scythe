@@ -1,3 +1,5 @@
+#include <stddef.h>
+
 #include "scythe/memory.h"
 #include "scythe/impl_utils.h"
 #include "scythe/earray.h"

@@ -1,6 +1,8 @@
 #ifndef INCLUDE_CHAR_H__
 #define INCLUDE_CHAR_H__
 
+#include <sys/types.h>
+#include <stddef.h>
 #include <stdbool.h>
 
 #include "scythe/object.h"

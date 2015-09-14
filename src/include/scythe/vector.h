@@ -1,6 +1,8 @@
 #ifndef INCLUDE_VECTOR_H__
 #define INCLUDE_VECTOR_H__
 
+#include <sys/types.h>
+#include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>

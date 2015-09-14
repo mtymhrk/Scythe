@@ -1,6 +1,8 @@
 #ifndef INCLUDE_PAIR_H__
 #define INCLUDE_PAIR_H__
 
+#include <sys/types.h>
+#include <stddef.h>
 #include <stdbool.h>
 
 #include "scythe/object.h"

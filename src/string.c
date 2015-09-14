@@ -1,4 +1,6 @@
+#include <sys/types.h>
 #include <unistd.h>
+#include <stddef.h>
 #include <string.h>
 #include <stdint.h>
 #include <stdbool.h>

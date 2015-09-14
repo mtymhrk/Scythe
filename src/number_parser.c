@@ -1,4 +1,6 @@
+#include <sys/types.h>
 #include <stddef.h>
+#include <stdbool.h>
 #include <ctype.h>
 
 #include "scythe/object.h"
