@@ -953,7 +953,7 @@ scm_vm_make_trampolining_code(ScmObj vm, ScmObj proc,
     r = scm_asm_push(asmb, SCM_OPCODE_MVPUSH);
     if (r < 0) return SCM_OBJ_NULL;
 
-    apply = scm_bedrock_trmp_apply(scm_current_br());
+    apply = scm_premade_procedure(SCM_PREMADE_PROC_TRMP_APPLY);
     r = scm_asm_push(asmb, SCM_OPCODE_IMMVAL, apply);
     if (r < 0) return SCM_OBJ_NULL;
 
@@ -2762,12 +2762,12 @@ scm_vm_setup_stat_return(ScmObj vm)
 int
 scm_vm_setup_stat_call_exc_hndlr(ScmObj vm)
 {
-  ScmObj args = SCM_OBJ_INIT;
+  ScmObj proc = SCM_OBJ_INIT, args = SCM_OBJ_INIT;
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
   SCM_REFSTK_INIT_REG(&vm,
-                      &args);
+                      &proc, &args);
 
   if (!scm_vm_raised_p(vm))
     return 0;
@@ -2779,20 +2779,20 @@ scm_vm_setup_stat_call_exc_hndlr(ScmObj vm)
 
   scm_vm_discard_raised_obj(vm);
 
-  return scm_vm_setup_stat_trmp(vm,
-                                scm_bedrock_exc_hndlr_caller(scm_current_br()),
-                                args, SCM_OBJ_NULL, SCM_OBJ_NULL, false);
+  proc = scm_premade_procedure(SCM_PREMADE_PROC_EXC_HANDLER_CALLER);
+  return scm_vm_setup_stat_trmp(vm, proc, args,
+                                SCM_OBJ_NULL, SCM_OBJ_NULL, false);
 }
 
 int
 scm_vm_setup_stat_call_exc_hndlr_cont(ScmObj vm)
 {
-  ScmObj args = SCM_OBJ_INIT;
+  ScmObj proc = SCM_OBJ_INIT,  args = SCM_OBJ_INIT;
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
 
   SCM_REFSTK_INIT_REG(&vm,
-                      &args);
+                      &proc, &args);
 
   if (!scm_vm_raised_p(vm))
     return 0;
@@ -2804,9 +2804,9 @@ scm_vm_setup_stat_call_exc_hndlr_cont(ScmObj vm)
 
   scm_vm_discard_raised_obj(vm);
 
-  return scm_vm_setup_stat_trmp(vm,
-                                scm_bedrock_exc_hndlr_caller_cont(scm_current_br()),
-                                args, SCM_OBJ_NULL, SCM_OBJ_NULL, true);
+  proc = scm_premade_procedure(SCM_PREMADE_PROC_EXC_HANDLER_CALLER_CONT);
+  return scm_vm_setup_stat_trmp(vm, proc, args,
+                                SCM_OBJ_NULL, SCM_OBJ_NULL, true);
 
   return 0;
 }
@@ -2909,12 +2909,12 @@ int
 scm_vm_subr_exc_hndlr_caller_cont(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj vm = SCM_OBJ_INIT, hndlr = SCM_OBJ_INIT, hndlr_arg = SCM_OBJ_INIT;
-  ScmObj val = SCM_OBJ_INIT;
+  ScmObj val = SCM_OBJ_INIT, proc = SCM_OBJ_INIT;
   int rslt, ret;
 
   SCM_REFSTK_INIT_REG(&subr,
                       &vm, &hndlr, &hndlr_arg,
-                      &val);
+                      &val, &proc);
 
   vm = scm_current_vm();
 
@@ -2937,9 +2937,8 @@ scm_vm_subr_exc_hndlr_caller_cont(ScmObj subr, int argc, const ScmObj *argv)
   hndlr_arg = scm_cons(argv[0], SCM_NIL_OBJ);
   if (scm_obj_null_p(hndlr_arg)) return -1;
 
-  ret = scm_vm_setup_stat_trmp(vm, hndlr, hndlr_arg,
-                               scm_bedrock_exc_hndlr_caller_post(scm_current_br()),
-                               hndlr, true);
+  proc = scm_premade_procedure(SCM_PREMADE_PROC_EXC_HANDLER_CALLER_POST);
+  ret = scm_vm_setup_stat_trmp(vm, hndlr, hndlr_arg, proc, hndlr, true);
 
  end:
   scm_vm_ctrl_flg_clr(vm, SCM_VM_CTRL_FLG_RAISE);

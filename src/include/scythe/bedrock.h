@@ -17,23 +17,32 @@ enum scm_bedrock_err_type {
 };
 
 enum {
+  SCM_PREMADE_PROC_EXC_HANDLER_CALLER = 0,
+  SCM_PREMADE_PROC_EXC_HANDLER_CALLER_CONT,
+  SCM_PREMADE_PROC_EXC_HANDLER_CALLER_POST,
+  SCM_PREMADE_PROC_TRMP_APPLY,
+
+  SCM_PREMADE_PROC_NR
+};
+
+enum {
   SCM_CACHED_GV_COMPILE = 0,
   SCM_CACHED_GV_EVAL,
   SCM_CACHED_GV_CURRENT_INPUT_PORT,
   SCM_CACHED_GV_CURRENT_OUTPUT_PORT,
   SCM_CACHED_GV_LOAD_PATH,
-};
 
-#define SCM_CACHED_GV_NR 5
+  SCM_CACHED_GV_NR
+};
 
 enum {
   SCM_CACHED_SYM_QUOTE = 0,
   SCM_CACHED_SYM_QUASIQUOTE,
   SCM_CACHED_SYM_UNQUOTE,
   SCM_CACHED_SYM_UNQUOTE_SPLICING,
-};
 
-#define SCM_CACHED_SYM_NR 4
+  SCM_CACHED_SYM_NR
+};
 
 struct ScmBedrockRec {
   FILE *output;
@@ -54,27 +63,11 @@ struct ScmBedrockRec {
     ScmObj landmine;
   } cnsts;
 
-  /*** Memory Manager ***/
   ScmMem *mem;
-
-  /*** Symbol Table ***/
   ScmObj symtbl;
-
-  /*** Module Table ***/
   ScmObj modtree;
-
-  /*** Subrutines ***/
-  struct {
-    ScmObj exc_hndlr_caller;
-    ScmObj exc_hndlr_caller_cont;
-    ScmObj exc_hndlr_caller_post;
-    ScmObj trmp_apply;
-  } subr;
-
-  /*** Global Variables  ***/
+  ScmObj proc[SCM_PREMADE_PROC_NR];
   ScmObj gv[SCM_CACHED_GV_NR];
-
-  /*** Symbols  ***/
   ScmObj sym[SCM_CACHED_SYM_NR];
 
   /*** Configurations ***/
@@ -160,31 +153,11 @@ scm_bedrock_modtree(ScmBedrock *br)
 }
 
 static inline ScmObj
-scm_bedrock_exc_hndlr_caller(ScmBedrock *br)
+scm_bedrock_premade_proc(ScmBedrock *br, int kind)
 {
   scm_assert(br != NULL);
-  return br->subr.exc_hndlr_caller;
-}
-
-static inline ScmObj
-scm_bedrock_exc_hndlr_caller_cont(ScmBedrock *br)
-{
-  scm_assert(br != NULL);
-  return br->subr.exc_hndlr_caller_cont;
-}
-
-static inline ScmObj
-scm_bedrock_exc_hndlr_caller_post(ScmBedrock *br)
-{
-  scm_assert(br != NULL);
-  return br->subr.exc_hndlr_caller_post;
-}
-
-static inline ScmObj
-scm_bedrock_trmp_apply(ScmBedrock *br)
-{
-  scm_assert(br != NULL);
-  return br->subr.trmp_apply;
+  scm_assert(0 <= kind && kind < SCM_PREMADE_PROC_NR);
+  return br->proc[kind];
 }
 
 static inline ScmEncoding *
@@ -258,6 +231,12 @@ static inline ScmObj
 scm_current_module_tree(void)
 {
   return scm_bedrock_modtree(scm_current_br());
+}
+
+static inline ScmObj
+scm_premade_procedure(int kind)
+{
+  return scm_bedrock_premade_proc(scm_current_br(), kind);
 }
 
 

@@ -31,9 +31,37 @@ scm_bedrock_print_msg(ScmBedrock *br, const char *msg)
     fputc('\n', br->output);
 }
 
+static int
+scm_bedrock_make_premade_proc(ScmBedrock *br)
+{
+  static const struct {
+    ScmSubrFunc func;
+    int arity;
+    unsigned int flags;
+  } tbl[] = {
+    { scm_vm_subr_exc_hndlr_caller, -2, 0 },
+    { scm_vm_subr_exc_hndlr_caller_cont, 1, 0 },
+    { scm_vm_subr_exc_hndlr_caller_post, -2, SCM_PROC_ADJ_UNWISHED },
+    { scm_vm_subr_trmp_apply, -3 , 0 }
+  };
+
+  scm_assert(br != NULL);
+
+  for (size_t i = 0; i < SCM_PREMADE_PROC_NR; i++) {
+    br->proc[i] = scm_subrutine_new (SCM_MEM_ROOT,
+                                     tbl[i].func, SCM_OBJ_NULL,
+                                     tbl[i].arity, tbl[i].flags, SCM_OBJ_NULL);
+    if (scm_obj_null_p(br->proc[i])) return -1;
+  }
+
+  return 0;
+}
+
 int
 scm_bedrock_setup(ScmBedrock *br)
 {
+  int r;
+
   scm_assert(br != NULL);
 
   br->cnsts.nil = scm_nil_new(SCM_MEM_ROOT);
@@ -60,36 +88,14 @@ scm_bedrock_setup(ScmBedrock *br)
   br->modtree = scm_moduletree_new(SCM_MEM_ROOT);
   if (scm_obj_null_p(br->modtree)) return -1;
 
-  scm_register_extra_rfrn(SCM_REF_MAKE(br->subr.exc_hndlr_caller));
-
-  br->subr.exc_hndlr_caller =
-    scm_make_subrutine(scm_vm_subr_exc_hndlr_caller, -2, 0, SCM_OBJ_NULL);
-  if (scm_obj_null_p(br->subr.exc_hndlr_caller)) return -1;
-
-  scm_register_extra_rfrn(SCM_REF_MAKE(br->subr.exc_hndlr_caller_cont));
-
-  br->subr.exc_hndlr_caller_cont =
-    scm_make_subrutine(scm_vm_subr_exc_hndlr_caller_cont, 1, 0, SCM_OBJ_NULL);
-  if (scm_obj_null_p(br->subr.exc_hndlr_caller_cont)) return -1;
-
-  scm_register_extra_rfrn(SCM_REF_MAKE(br->subr.exc_hndlr_caller_post));
-
-  br->subr.exc_hndlr_caller_post =
-    scm_make_subrutine(scm_vm_subr_exc_hndlr_caller_post,
-                       -2, SCM_PROC_ADJ_UNWISHED, SCM_OBJ_NULL);
-  if (scm_obj_null_p(br->subr.exc_hndlr_caller_post)) return -1;
-
-  scm_register_extra_rfrn(SCM_REF_MAKE(br->subr.trmp_apply));
-
-  br->subr.trmp_apply =
-    scm_make_subrutine(scm_vm_subr_trmp_apply, -3, 0, SCM_OBJ_NULL);
-  if (scm_obj_null_p(br->subr.trmp_apply)) return -1;
-
   for (size_t i = 0; i < SCM_CACHED_GV_NR; i++)
     scm_register_extra_rfrn(SCM_REF_MAKE(br->gv[i]));
 
   for (size_t i = 0; i < SCM_CACHED_SYM_NR; i++)
     scm_register_extra_rfrn(SCM_REF_MAKE(br->sym[i]));
+
+  r = scm_bedrock_make_premade_proc(br);
+  if (r < 0) return -1;
 
   return 0;
 }
@@ -105,10 +111,12 @@ scm_bedrock_cleanup(ScmBedrock *br)
   for (size_t i = 0; i < SCM_CACHED_GV_NR; i++)
     br->gv[i] = SCM_OBJ_NULL;
 
-  br->subr.trmp_apply = SCM_OBJ_NULL;
-  br->subr.exc_hndlr_caller_post = SCM_OBJ_NULL;
-  br->subr.exc_hndlr_caller_cont = SCM_OBJ_NULL;
-  br->subr.exc_hndlr_caller = SCM_OBJ_NULL;
+  for (size_t i = 0; i < SCM_PREMADE_PROC_NR; i++) {
+    if (scm_obj_not_null_p(br->proc[i])) {
+      scm_free_root(br->proc[i]);
+      br->proc[i] = SCM_OBJ_NULL;
+    }
+  }
 
   if (scm_obj_not_null_p(br->modtree)) {
     scm_free_root(br->modtree);
@@ -200,10 +208,8 @@ scm_bedrock_initialize(ScmBedrock *br)
   br->symtbl = SCM_OBJ_NULL;
   br->modtree = SCM_OBJ_NULL;
 
-  br->subr.exc_hndlr_caller = SCM_OBJ_NULL;
-  br->subr.exc_hndlr_caller_cont = SCM_OBJ_NULL;
-  br->subr.exc_hndlr_caller_post = SCM_OBJ_NULL;
-  br->subr.trmp_apply = SCM_OBJ_NULL;
+  for (size_t i = 0; i < SCM_PREMADE_PROC_NR; i++)
+    br->proc[i] = SCM_OBJ_NULL;
 
   for (size_t i = 0; i < SCM_CACHED_GV_NR; i++)
     br->gv[i] = SCM_OBJ_NULL;
