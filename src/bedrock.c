@@ -4,6 +4,7 @@
 
 #include "scythe/object.h"
 #include "scythe/refstk.h"
+#include "scythe/core_subr.h"
 #include "scythe/exception.h"
 #include "scythe/file.h"
 #include "scythe/miscobjects.h"
@@ -42,7 +43,9 @@ scm_bedrock_make_premade_proc(ScmBedrock *br)
     { scm_vm_subr_exc_hndlr_caller, -2, 0 },
     { scm_vm_subr_exc_hndlr_caller_cont, 1, 0 },
     { scm_vm_subr_exc_hndlr_caller_post, -2, SCM_PROC_ADJ_UNWISHED },
-    { scm_vm_subr_trmp_apply, -3 , 0 }
+    { scm_vm_subr_trmp_apply, -3 , 0 },
+    { scm_subr_func_eval__post_compile,
+      SCM_SUBR_ARITY_EVAL__POST_COMPILE, SCM_SUBR_FLAG_EVAL__POST_COMPILE },
   };
 
   scm_assert(br != NULL);

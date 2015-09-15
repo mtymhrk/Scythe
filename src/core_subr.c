@@ -2350,7 +2350,7 @@ scm_subr_func_eval_asm(ScmObj subr, int argc, const ScmObj *argv)
   return scm_trampolining(code, args, SCM_OBJ_NULL, SCM_OBJ_NULL);
 }
 
-static int
+int
 scm_subr_func_eval__post_compile(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj proc = SCM_OBJ_INIT;
@@ -2375,18 +2375,13 @@ int
 scm_subr_func_eval(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj compile = SCM_OBJ_INIT, postproc = SCM_OBJ_INIT;
-  ScmObj subr_mod = SCM_OBJ_INIT, args = SCM_OBJ_INIT;
-  ScmObj cmpl = SCM_OBJ_INIT;
+  ScmObj args = SCM_OBJ_INIT, cmpl = SCM_OBJ_INIT;
   int r;
-
 
   SCM_REFSTK_INIT_REG(&subr,
                       &compile, &postproc,
-                      &subr_mod, &args,
-                      &cmpl);
+                      &args, &cmpl);
 
-
-  subr_mod  = scm_subrutine_env(subr);
   r = scm_cached_global_var_ref(SCM_CACHED_GV_COMPILE, SCM_CSETTER_L(compile));
   if (r < 0) return -1;
 
@@ -2394,10 +2389,6 @@ scm_subr_func_eval(ScmObj subr, int argc, const ScmObj *argv)
     scm_capi_error("unbound variable: compile", 0);
     return -1;
   }
-
-  postproc = scm_make_subrutine(scm_subr_func_eval__post_compile,
-                                1, 0, subr_mod);
-  if (scm_obj_null_p(postproc)) return -1;
 
   if (scm_nil_p(argv[1])) {
     cmpl = scm_make_compiler(SCM_OBJ_NULL);
@@ -2411,6 +2402,7 @@ scm_subr_func_eval(ScmObj subr, int argc, const ScmObj *argv)
 
   if (scm_obj_null_p(args)) return -1;
 
+  postproc = scm_premade_procedure(SCM_PREMADE_PROC_EVAL__POST_COMPILE);
   return scm_capi_trampolining(compile, args, postproc, SCM_OBJ_NULL);
 }
 

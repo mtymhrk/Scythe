@@ -590,12 +590,15 @@ int scm_subr_func_call_with_values(ScmObj subr, int argc, const ScmObj *argv);
 /*******************************************************************/
 
 #define SCM_SUBR_ARITY_EVAL_ASM 1
+#define SCM_SUBR_ARITY_EVAL__POST_COMPILE 1
 #define SCM_SUBR_ARITY_EVAL -2
 
 #define SCM_SUBR_FLAG_EVAL_ASM 0
+#define SCM_SUBR_FLAG_EVAL__POST_COMPILE 0
 #define SCM_SUBR_FLAG_EVAL 0
 
 int scm_subr_func_eval_asm(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_eval__post_compile(ScmObj subr, int argc, const ScmObj *argv);
 int scm_subr_func_eval(ScmObj subr, int argc, const ScmObj *argv);
 
 
