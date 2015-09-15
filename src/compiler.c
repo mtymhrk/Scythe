@@ -468,6 +468,8 @@ scm_qqtmpl_compiled_eq__list(ScmObj c1, ScmObj c2, bool *rslt)
 {
   int r;
 
+  SCM_REFSTK_INIT_REG(&c1, &c2);
+
   scm_assert(scm_pair_p(c1));
   scm_assert(scm_pair_p(c2));
   scm_assert(rslt != NULL);
@@ -483,6 +485,8 @@ static int
 scm_qqtmpl_compiled_eq__vector(ScmObj c1, ScmObj c2, bool *rslt)
 {
   size_t n;
+
+  SCM_REFSTK_INIT_REG(&c1, &c2);
 
   scm_assert(scm_vector_p(c1));
   scm_assert(scm_vector_p(c2));
@@ -551,6 +555,8 @@ int
 scm_qqtmpl_eq(ScmObj qqtmpl1, ScmObj qqtmpl2, bool *rslt)
 {
   int r;
+
+  SCM_REFSTK_INIT_REG(&qqtmpl1, &qqtmpl2);
 
   scm_assert_obj_type(qqtmpl1, &SCM_QQTMPL_TYPE_INFO);
   scm_assert_obj_type(qqtmpl2, &SCM_QQTMPL_TYPE_INFO);
