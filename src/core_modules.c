@@ -6,6 +6,7 @@
 #include "scythe/object.h"
 #include "scythe/core_subr.h"
 #include "scythe/impl_utils.h"
+#include "scythe/bedrock.h"
 #include "scythe/vm.h"
 #include "scythe/refstk.h"
 #include "scythe/assembler.h"

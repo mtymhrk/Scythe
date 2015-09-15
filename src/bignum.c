@@ -6,6 +6,7 @@
 #include <limits.h>
 
 #include "scythe/object.h"
+#include "scythe/bedrock.h"
 #include "scythe/refstk.h"
 #include "scythe/earray.h"
 #include "scythe/impl_utils.h"

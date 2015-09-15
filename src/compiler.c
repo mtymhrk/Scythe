@@ -4,7 +4,7 @@
 #include <stdbool.h>
 
 #include "scythe/object.h"
-#include "scythe/vm.h"
+#include "scythe/bedrock.h"
 #include "scythe/memory.h"
 #include "scythe/refstk.h"
 #include "scythe/assembler.h"

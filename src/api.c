@@ -5,6 +5,7 @@
 
 #include "scythe/object.h"
 #include "scythe/encoding.h"
+#include "scythe/bedrock.h"
 #include "scythe/vm.h"
 #include "scythe/refstk.h"
 #include "scythe/assembler.h"

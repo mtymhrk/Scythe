@@ -2,7 +2,7 @@
 #include <stddef.h>
 
 #include "scythe/object.h"
-#include "scythe/vm.h"
+#include "scythe/bedrock.h"
 #include "scythe/refstk.h"
 #include "scythe/char.h"
 #include "scythe/number.h"

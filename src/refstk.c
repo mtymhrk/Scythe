@@ -79,3 +79,10 @@ scm_ref_stack_gc_accept(ScmObj obj, ScmGCRefHandler handler)
 
   return rslt;
 }
+
+
+/***************************************************************************/
+/*  Facade                                                                 */
+/***************************************************************************/
+
+ScmObj scm__current_ref_stack;

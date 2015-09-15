@@ -3,8 +3,9 @@
 #include <stdbool.h>
 
 #include "scythe/object.h"
-#include "scythe/vm.h"
+#include "scythe/bedrock.h"
 #include "scythe/refstk.h"
+#include "scythe/vm.h"
 #include "scythe/assembler.h"
 #include "scythe/equivalence.h"
 #include "scythe/file.h"

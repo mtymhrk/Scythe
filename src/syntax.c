@@ -1,6 +1,7 @@
 #include <string.h>
 
 #include "scythe/object.h"
+#include "scythe/bedrock.h"
 #include "scythe/vm.h"
 #include "scythe/memory.h"
 #include "scythe/refstk.h"

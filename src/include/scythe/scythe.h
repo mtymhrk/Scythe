@@ -5,7 +5,7 @@
 
 #include "scythe/object.h"
 #include "scythe/earray.h"
-#include "scythe/vm.h"
+#include "scythe/bedrock.h"
 
 typedef struct ScmScytheRec ScmScythe;
 

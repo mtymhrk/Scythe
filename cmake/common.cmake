@@ -5,6 +5,7 @@
 set(scythe_src_path src)
 set(scythe_lib_src api.c
                    assembler.c
+                   bedrock.c
                    bignum.c
                    char.c
                    chashtbl.c

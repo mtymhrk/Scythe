@@ -8,6 +8,7 @@
 
 #include "scythe/object.h"
 #include "scythe/chashtbl.h"
+#include "scythe/bedrock.h"
 #include "scythe/memory.h"
 #include "scythe/refstk.h"
 #include "scythe/assembler.h"

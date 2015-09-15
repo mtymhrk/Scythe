@@ -5,7 +5,7 @@
 
 #include "scythe/object.h"
 #include "scythe/impl_utils.h"
-#include "scythe/vm.h"
+#include "scythe/bedrock.h"
 #include "scythe/refstk.h"
 #include "scythe/equivalence.h"
 #include "scythe/exception.h"

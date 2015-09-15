@@ -9,7 +9,6 @@
 #include "scythe/object.h"
 #include "scythe/encoding.h"
 #include "scythe/vminst.h"
-#include "scythe/vm.h"
 #include "scythe/memory.h"
 #include "scythe/refstk.h"
 #include "scythe/char.h"

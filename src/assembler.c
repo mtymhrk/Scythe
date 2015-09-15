@@ -4,6 +4,7 @@
 
 #include "scythe/object.h"
 #include "scythe/earray.h"
+#include "scythe/bedrock.h"
 #include "scythe/vminst.h"
 #include "scythe/vm.h"
 #include "scythe/memory.h"

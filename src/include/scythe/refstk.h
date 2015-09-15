@@ -7,7 +7,6 @@
 #include "scythe/object.h"
 #include "scythe/impl_utils.h"
 #include "scythe/memory.h"
-#include "scythe/vm.h"
 
 typedef struct ScmRefStackBlockRec ScmRefStackBlock;
 typedef struct ScmRefStackRec ScmRefStack;
@@ -44,6 +43,20 @@ int scm_ref_stack_gc_accept(ScmObj obj, ScmGCRefHandler handler);
 /***************************************************************************/
 /*  Facade                                                                 */
 /***************************************************************************/
+
+extern ScmObj scm__current_ref_stack;
+
+static inline ScmObj
+scm_current_ref_stack(void)
+{
+  return scm__current_ref_stack;
+}
+
+static inline void
+scm_chg_current_ref_stack(ScmObj stack)
+{
+  scm__current_ref_stack = stack;
+}
 
 typedef struct ScmRefStackInfoRec ScmRefStackInfo;
 

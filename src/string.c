@@ -10,7 +10,7 @@
 
 #include "scythe/object.h"
 #include "scythe/encoding.h"
-#include "scythe/vm.h"
+#include "scythe/bedrock.h"
 #include "scythe/refstk.h"
 #include "scythe/char.h"
 #include "scythe/exception.h"
