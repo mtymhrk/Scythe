@@ -369,7 +369,7 @@ call_dw_handler(ScmObj caller, ScmObj handlers)
 }
 
 static int
-scm_subr_func_dw_handler_calller(ScmObj subr, int argc, const ScmObj *argv)
+scm_cont_subr_func_dw_handler_calller(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj env = SCM_OBJ_INIT;
   int r;
@@ -393,7 +393,7 @@ scm_subr_func_dw_handler_calller(ScmObj subr, int argc, const ScmObj *argv)
 }
 
 int
-scm_subr_func_continuation(ScmObj subr, int argc, const ScmObj *argv)
+scm_cont_subr_func_continuation(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj handlers = SCM_OBJ_INIT, caller = SCM_OBJ_INIT, env = SCM_OBJ_INIT;
 
@@ -417,7 +417,7 @@ scm_subr_func_continuation(ScmObj subr, int argc, const ScmObj *argv)
                                scm_proc_env(subr), argv, (size_t)argc);
     if (scm_obj_null_p(env)) return -1;
 
-    caller = scm_make_subrutine(scm_subr_func_dw_handler_calller,
+    caller = scm_make_subrutine(scm_cont_subr_func_dw_handler_calller,
                                 -2, SCM_PROC_ADJ_UNWISHED, env);
     if (scm_obj_null_p(caller)) return -1;
 
@@ -436,7 +436,7 @@ scm_continuation_new(scm_mem_type_t mtype, ScmObj contcap)
   name = scm_make_symbol_from_cstr("continuation", SCM_ENC_SRC);
   if (scm_obj_null_p(name)) return SCM_OBJ_NULL;
 
-  return scm_subrutine_new(mtype, scm_subr_func_continuation,
+  return scm_subrutine_new(mtype, scm_cont_subr_func_continuation,
                            name, -1, SCM_PROC_ADJ_UNWISHED, contcap);
 }
 
@@ -458,17 +458,15 @@ scm_make_continuation(void)
 /*  Parameter                                                      */
 /*******************************************************************/
 
-static int
-scm_subr_func_parameter__postproc_init(ScmObj subr,
-                                       int argc, const ScmObj *argv)
+int
+scm_prm_subr_func_parameter__init(ScmObj subr, int argc, const ScmObj *argv)
 {
   scm_parameter_set_init_val(argv[0], argv[1]);
   return scm_return_val(argv, 1);
 }
 
-static int
-scm_subr_func_parameter__postproc_cons(ScmObj subr,
-                                       int argc, const ScmObj *argv)
+int
+scm_prm_subr_func_parameter__cons(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT;
 
@@ -508,7 +506,7 @@ scm_subr_func_parameter__postproc_cons(ScmObj subr,
  *
  */
 int
-scm_subr_func_parameter(ScmObj subr, int argc, const ScmObj *argv)
+scm_prm_subr_func_parameter(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj val = SCM_OBJ_INIT, conv = SCM_OBJ_INIT, postproc = SCM_OBJ_INIT;
   ScmObj arg1 = SCM_OBJ_INIT, arg2 = SCM_OBJ_INIT;
@@ -542,10 +540,7 @@ scm_subr_func_parameter(ScmObj subr, int argc, const ScmObj *argv)
       arg1 = scm_cons(arg1, SCM_NIL_OBJ);
       if (scm_obj_null_p(arg1)) return -1;
 
-      postproc = scm_make_subrutine(scm_subr_func_parameter__postproc_init,
-                                        2, 0, SCM_OBJ_NULL);
-      if (scm_obj_null_p(postproc)) return -1;
-
+      postproc = scm_premade_procedure(SCM_PREMADE_PROC_PARAMETER__INIT);
       return scm_trampolining(conv, arg1, postproc, subr);
     }
     else {
@@ -559,10 +554,7 @@ scm_subr_func_parameter(ScmObj subr, int argc, const ScmObj *argv)
       arg1 = scm_cons(arg1, SCM_NIL_OBJ);
       if (scm_obj_null_p(arg1)) return -1;
 
-      postproc = scm_make_subrutine(scm_subr_func_parameter__postproc_cons,
-                                    2, 0, SCM_OBJ_NULL);
-      if (scm_obj_null_p(postproc)) return -1;
-
+      postproc = scm_premade_procedure(SCM_PREMADE_PROC_PARAMETER__CONS);
       return scm_trampolining(conv, arg1, postproc, subr);
     }
     else {
@@ -594,7 +586,7 @@ scm_parameter_new(scm_mem_type_t mtype, ScmObj init, ScmObj conv)
                  scm_obj_null_p(conv) ? SCM_UNDEF_OBJ : conv);
   if (scm_obj_null_p(env)) return SCM_OBJ_NULL;
 
-  return scm_subrutine_new(mtype, scm_subr_func_parameter,
+  return scm_subrutine_new(mtype, scm_prm_subr_func_parameter,
                            name, -1, 0, env);
 }
 

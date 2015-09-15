@@ -48,6 +48,8 @@ scm_bedrock_make_premade_proc(ScmBedrock *br)
       SCM_SUBR_ARITY_EVAL__POST_COMPILE, SCM_SUBR_FLAG_EVAL__POST_COMPILE },
     { scm_subr_func_eval_file__loop,
       SCM_SUBR_ARITY_EVAL_FILE__LOOP, SCM_SUBR_FLAG_EVAL_FILE__LOOP },
+    { scm_prm_subr_func_parameter__init, 2, 0 },
+    { scm_prm_subr_func_parameter__cons, 2, 0 },
   };
 
   scm_assert(br != NULL);

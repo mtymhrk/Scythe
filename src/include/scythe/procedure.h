@@ -227,7 +227,7 @@ scm_dwhcallerenv_val(ScmObj dwhce)
   return SCM_DWHCALLERENV(dwhce)->val;
 }
 
-int scm_subr_func_continuation(ScmObj subr, int argc, const ScmObj *argv);
+int scm_cont_subr_func_continuation(ScmObj subr, int argc, const ScmObj *argv);
 ScmObj scm_continuation_new(scm_mem_type_t mtype, ScmObj contcap);
 ScmObj scm_make_continuation(void);
 
@@ -235,7 +235,7 @@ static inline bool
 scm_continuation_p(ScmObj obj)
 {
   return (scm_subrutine_p(obj)
-          && scm_subrutine_func(obj) == scm_subr_func_continuation);
+          && scm_subrutine_func(obj) == scm_cont_subr_func_continuation);
 }
 
 
@@ -243,7 +243,9 @@ scm_continuation_p(ScmObj obj)
 /*  Parameter                                                      */
 /*******************************************************************/
 
-int scm_subr_func_parameter(ScmObj subr, int argc, const ScmObj *argv);
+int scm_prm_subr_func_parameter__init(ScmObj subr, int argc, const ScmObj *argv);
+int scm_prm_subr_func_parameter__cons(ScmObj subr, int argc, const ScmObj *argv);
+int scm_prm_subr_func_parameter(ScmObj subr, int argc, const ScmObj *argv);
 ScmObj scm_parameter_new(scm_mem_type_t mtype, ScmObj init, ScmObj conv);
 ScmObj scm_parameter_init_val(ScmObj prm);
 ScmObj scm_parameter_converter(ScmObj prm);
@@ -253,7 +255,7 @@ static inline bool
 scm_parameter_p(ScmObj obj)
 {
   return (scm_subrutine_p(obj)
-          && scm_subrutine_func(obj) == scm_subr_func_parameter);
+          && scm_subrutine_func(obj) == scm_prm_subr_func_parameter);
 }
 
 static inline ScmObj
