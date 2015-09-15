@@ -435,11 +435,4 @@ int scm_capi_scythe_exec_cstr(ScmScythe *scy, const char *expr);
 int scm_capi_scythe_compile_file(ScmScythe *scy, const char *path);
 
 
-/*******************************************************************/
-/*  XXX                                                            */
-/*******************************************************************/
-
-int scm_capi_load_iseq(ScmObj iseq);
-
-
 #endif /* INCLUDE_API_H__ */

@@ -2926,19 +2926,3 @@ scm_capi_scythe_compile_file(ScmScythe *scy, const char *path)
 
   return scm_scythe_compile_file(scy, path);
 }
-
-
-/*******************************************************************/
-/*  XXX                                                            */
-/*******************************************************************/
-
-int
-scm_capi_load_iseq(ScmObj iseq)
-{
-  if (!scm_iseq_p(iseq)) {
-    scm_capi_error("load: invalid argument", 1, iseq);
-    return -1;
-  }
-
-  return scm_load_iseq(iseq);
-}
