@@ -46,6 +46,8 @@ scm_bedrock_make_premade_proc(ScmBedrock *br)
     { scm_vm_subr_trmp_apply, -3 , 0 },
     { scm_subr_func_eval__post_compile,
       SCM_SUBR_ARITY_EVAL__POST_COMPILE, SCM_SUBR_FLAG_EVAL__POST_COMPILE },
+    { scm_subr_func_eval_file__loop,
+      SCM_SUBR_ARITY_EVAL_FILE__LOOP, SCM_SUBR_FLAG_EVAL_FILE__LOOP },
   };
 
   scm_assert(br != NULL);

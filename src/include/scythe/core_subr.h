@@ -606,16 +606,19 @@ int scm_subr_func_eval(ScmObj subr, int argc, const ScmObj *argv);
 /*  System interface                                               */
 /*******************************************************************/
 
+#define SCM_SUBR_ARITY_EVAL_FILE__LOOP -2
 #define SCM_SUBR_ARITY_LOAD -2
 #define SCM_SUBR_ARITY_FILE_EXISTS_P 1
 #define SCM_SUBR_ARITY_DELETE_FILE 1
 #define SCM_SUBR_ARITY_EXIT -1
 
+#define SCM_SUBR_FLAG_EVAL_FILE__LOOP SCM_PROC_ADJ_UNWISHED
 #define SCM_SUBR_FLAG_LOAD 0
 #define SCM_SUBR_FLAG_FILE_EXISTS_P 0
 #define SCM_SUBR_FLAG_DELETE_FILE 0
 #define SCM_SUBR_FLAG_EXIT 0
 
+int scm_subr_func_eval_file__loop(ScmObj subr, int argc, const ScmObj *argv);
 int scm_subr_func_load(ScmObj subr, int argc, const ScmObj *argv);
 int scm_subr_func_file_exists_P(ScmObj subr, int argc, const ScmObj *argv);
 int scm_subr_func_delete_file(ScmObj subr, int argc, const ScmObj *argv);

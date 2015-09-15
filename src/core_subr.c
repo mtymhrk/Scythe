@@ -2411,8 +2411,8 @@ scm_subr_func_eval(ScmObj subr, int argc, const ScmObj *argv)
 /*  System interface                                               */
 /*******************************************************************/
 
-static int
-scm_subr_func_eval_file_loop(ScmObj subr, int argc, const ScmObj *argv)
+int
+scm_subr_func_eval_file__loop(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj port = SCM_OBJ_INIT, cmpl = SCM_OBJ_INIT, eval = SCM_OBJ_INIT;
   ScmObj exp = SCM_OBJ_INIT, args = SCM_OBJ_INIT, ret = SCM_OBJ_INIT;
@@ -2452,11 +2452,11 @@ scm_subr_func_eval_file_loop(ScmObj subr, int argc, const ScmObj *argv)
 static int
 scm_eval_file(ScmObj subr, ScmObj path, ScmObj env)
 {
-  ScmObj port = SCM_OBJ_INIT, cmpl = SCM_OBJ_INIT, mod = SCM_OBJ_INIT;
+  ScmObj port = SCM_OBJ_INIT, cmpl = SCM_OBJ_INIT;
   ScmObj loop = SCM_OBJ_INIT, args = SCM_OBJ_INIT;
 
   SCM_REFSTK_INIT_REG(&subr, &path, &env,
-                      &port, &cmpl, &mod,
+                      &port, &cmpl,
                       &loop, &args);
 
 
@@ -2466,17 +2466,13 @@ scm_eval_file(ScmObj subr, ScmObj path, ScmObj env)
   cmpl = scm_make_compiler(env);
   if (scm_obj_null_p(cmpl)) return -1;
 
-  mod = scm_subrutine_env(subr);
   args = scm_cons(port, cmpl);
   if (scm_obj_null_p(args)) return -1;
 
   args = scm_list(2, args, SCM_UNDEF_OBJ);
   if (scm_obj_null_p(args)) return -1;
 
-  loop = scm_make_subrutine(scm_subr_func_eval_file_loop,
-                            -2, SCM_PROC_ADJ_UNWISHED, mod);
-  if (scm_obj_null_p(loop)) return -1;
-
+  loop = scm_premade_procedure(SCM_PREMADE_PROC_EVAL_FILE__LOOP);
   return scm_trampolining(loop, args, SCM_OBJ_NULL, SCM_OBJ_NULL);
 }
 
