@@ -2914,37 +2914,6 @@ scm_vm_apply(ScmObj vm, ScmObj proc, ScmObj args)
     return scm_vm_val_reg_to_vector(vm);
 }
 
-ScmObj
-scm_vm_run_cloned(ScmObj vm, ScmObj iseq)
-{
-  ScmObj cloned = SCM_OBJ_INIT, raised = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
-
-  SCM_REFSTK_INIT_REG(&vm, &iseq,
-                      &cloned, &raised, &val);
-
-  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-  scm_assert(scm_iseq_p(iseq));
-
-  cloned = scm_vm_clone(vm);
-  if (scm_obj_null_p(cloned)) return SCM_OBJ_NULL;
-
-  scm_chg_current_vm(cloned);
-  scm_vm_run(cloned, iseq);
-  scm_chg_current_vm(vm);
-
-  if (scm_vm_raised_p(cloned)) {
-    raised = scm_vm_raised_obj(cloned);
-    scm_vm_end(cloned);
-    scm_vm_setup_stat_raise(vm, raised, false);
-    return SCM_OBJ_NULL;
-  }
-
-  val = scm_vm_val_reg_to_vector(cloned);
-  scm_vm_end(cloned);
-
-  return val;
-}
-
 int
 scm_vm_set_val_reg(ScmObj vm, const ScmObj *val, int vc)
 {
@@ -3738,8 +3707,9 @@ scm_load_iseq(ScmObj iseq)
   r = scm_asm_commit(o);
   if (r < 0) return -1;
 
-  o = scm_vm_run_cloned(scm_current_vm(), scm_asm_iseq(o));
-  if (scm_obj_null_p(o)) return -1;
+  scm_vm_run(scm_current_vm(), scm_asm_iseq(o));
+  if (scm_vm_raised_p(scm_current_vm()))
+    return -1;
 
   return 0;
 }

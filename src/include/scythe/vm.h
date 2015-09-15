@@ -466,7 +466,6 @@ ScmObj scm_vm_clone(ScmObj parent);
 
 void scm_vm_run(ScmObj vm, ScmObj iseq);
 ScmObj scm_vm_apply(ScmObj vm, ScmObj proc, ScmObj args);
-ScmObj scm_vm_run_cloned(ScmObj vm, ScmObj iseq);
 
 int scm_vm_set_val_reg(ScmObj vm, const ScmObj *val, int vc);
 
