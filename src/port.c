@@ -2668,22 +2668,9 @@ scm_output_port_open_P(ScmObj port)
 ScmObj
 scm_open_input_fd(int fd, const char *enc)
 {
-  char ext_enc_name[64];
-
   scm_assert(fd >= 0);
-
-  if (enc == NULL) {
-    ssize_t r = scm_enc_locale_to_enc_name(ext_enc_name, sizeof(ext_enc_name));
-    if (r < 0) {
-      scm_error("failed to open input-port: "
-                "failed to get external encoding name", 0);
-      return SCM_OBJ_NULL;
-    }
-    enc = ext_enc_name;;
-  }
-
   return scm_port_open_fd(fd, "r", SCM_PORT_BUF_DEFAULT,
-                          scm_system_encoding(), enc);
+                          scm_system_encoding(), scm_external_encoding());
 }
 
 ScmObj
@@ -2697,22 +2684,9 @@ scm_open_binary_input_fd(int fd)
 ScmObj
 scm_open_output_fd(int fd, const char *enc)
 {
-  char ext_enc_name[64];
-
   scm_assert(fd >= 0);
-
-  if (enc == NULL) {
-    ssize_t r = scm_enc_locale_to_enc_name(ext_enc_name, sizeof(ext_enc_name));
-    if (r < 0) {
-      scm_error("failed to open output-port: "
-                "failed to get external encoding name", 0);
-      return SCM_OBJ_NULL;
-    }
-    enc = ext_enc_name;;
-  }
-
   return scm_port_open_fd(fd, "w", SCM_PORT_BUF_DEFAULT,
-                          scm_system_encoding(), enc);
+                          scm_system_encoding(), scm_external_encoding());
 }
 
 ScmObj
@@ -2726,22 +2700,9 @@ scm_open_binary_output_fd(int fd)
 ScmObj
 scm_open_input_file(const char *path, const char *enc)
 {
-  char ext_enc_name[64];
-
   scm_assert(path != NULL);
-
-  if (enc == NULL) {
-    ssize_t r = scm_enc_locale_to_enc_name(ext_enc_name, sizeof(ext_enc_name));
-    if (r < 0) {
-      scm_error("failed to open input-file-port: "
-                "failed to get external encoding name", 0);
-      return SCM_OBJ_NULL;
-    }
-    enc = ext_enc_name;;
-  }
-
   return scm_port_open_file(path, "r", SCM_PORT_BUF_DEFAULT,
-                            0, scm_system_encoding(), enc);
+                            0, scm_system_encoding(), scm_external_encoding());
 }
 
 ScmObj
@@ -2755,22 +2716,9 @@ scm_open_binary_input_file(const char *path)
 ScmObj
 scm_open_output_file(const char *path, const char *enc)
 {
-  char ext_enc_name[64];
-
   scm_assert(path != NULL);
-
-  if (enc == NULL) {
-    ssize_t r = scm_enc_locale_to_enc_name(ext_enc_name, sizeof(ext_enc_name));
-    if (r < 0) {
-      scm_error("failed to open output-file-port: "
-                "failed to get external encoding name", 0);
-      return SCM_OBJ_NULL;
-    }
-    enc = ext_enc_name;;
-  }
-
-  return scm_port_open_file(path, "w", SCM_PORT_BUF_DEFAULT,
-                            0644, scm_system_encoding(), enc);
+  return scm_port_open_file(path, "w", SCM_PORT_BUF_DEFAULT, 0644,
+                            scm_system_encoding(), scm_external_encoding());
 }
 
 ScmObj
@@ -2784,20 +2732,8 @@ scm_open_binary_output_file(const char *path)
 ScmObj
 scm_open_input_string_cstr(const char *str, const char *enc)
 {
-  char ext_enc_name[64];
-
-  if (enc == NULL) {
-    ssize_t r = scm_enc_locale_to_enc_name(ext_enc_name, sizeof(ext_enc_name));
-    if (r < 0) {
-      scm_error("failed to open input-string-port: "
-                "failed to get external encoding name", 0);
-      return SCM_OBJ_NULL;
-    }
-    enc = ext_enc_name;;
-  }
-
-  return scm_port_open_string(str, (str == NULL)? 0 : strlen(str),
-                              "r", scm_system_encoding(), enc);
+  return scm_port_open_string(str, (str == NULL)? 0 : strlen(str), "r",
+                              scm_system_encoding(), scm_external_encoding());
 }
 
 ScmObj

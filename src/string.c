@@ -585,18 +585,14 @@ ScmObj
 scm_make_string_from_external(const void *data, size_t size, const char *enc)
 {
   ScmObj obj = SCM_OBJ_INIT;
-  char encname[256];
   char *buf;
   size_t sz;
 
   if (data == NULL)
     return scm_make_string_from_bin(data, size, NULL);
 
-  if (enc == NULL) {
-    ssize_t r = scm_enc_locale_to_enc_name(encname, sizeof(encname));
-    scm_assert(r > 0);
-    enc = encname;
-  }
+  if (enc == NULL)
+    enc = scm_external_encoding();
 
   if (scm_enc_find_enc(enc) == scm_system_encoding())
     return scm_make_string_from_bin(data, size, NULL);
@@ -1602,8 +1598,6 @@ ssize_t
 scm_string_to_path_cstr(ScmObj str, char *cstr, size_t sz)
 {
   ScmObj o = SCM_OBJ_INIT;
-  char encname[256];
-  ssize_t r;
   size_t s;
   void *p;
 
@@ -1613,9 +1607,7 @@ scm_string_to_path_cstr(ScmObj str, char *cstr, size_t sz)
   scm_assert(scm_string_p(str));
   scm_assert(cstr != NULL);
 
-  r = scm_enc_locale_to_enc_name(encname, sizeof(encname));
-  scm_assert(r > 0);
-  if (scm_enc_find_enc(encname) == scm_string_encoding(str)) {
+  if (scm_enc_find_enc(scm_external_encoding()) == scm_string_encoding(str)) {
     s = scm_string_bytesize(str);
     if (s > sz - 1) {
       scm_error("too long path name", 1, str);
@@ -1626,7 +1618,7 @@ scm_string_to_path_cstr(ScmObj str, char *cstr, size_t sz)
     if (p == NULL) return -1;
   }
   else {
-    o = scm_string_convert(str, encname);
+    o = scm_string_convert(str, scm_external_encoding());
     if (scm_obj_null_p(o)) return -1;
 
     s = scm_bytevector_length(o);
