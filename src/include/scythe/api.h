@@ -421,6 +421,7 @@ ScmObj scm_api_exit(ScmObj obj);
 /*  Scythe                                                         */
 /*******************************************************************/
 
+int scm_capi_scythe_init(void);
 ScmScythe *scm_capi_scythe_new(void);
 void scm_capi_scythe_end(ScmScythe *scy);
 int scm_capi_scythe_bootup(ScmScythe *scy);

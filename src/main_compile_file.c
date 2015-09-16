@@ -16,6 +16,9 @@ main(int argc, char **argv)
 
   retval = -1;
 
+  r = scm_capi_scythe_init();
+  if (r < 0) return -1;
+
   scy = scm_capi_scythe_new();
   if (scy == NULL) return -1;
 

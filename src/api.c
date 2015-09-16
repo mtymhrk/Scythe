@@ -2831,6 +2831,12 @@ scm_api_exit(ScmObj obj)
 /*  Scythe                                                         */
 /*******************************************************************/
 
+int
+scm_capi_scythe_init(void)
+{
+  return scm_prepare_scythe();
+}
+
 ScmScythe *
 scm_capi_scythe_new(void)
 {

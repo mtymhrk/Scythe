@@ -70,20 +70,27 @@ ut_scythe_setup(bool load)
   ScmScythe *scy;
   int r;
 
+  r = scm_prepare_scythe();
+  if (r < 0) return NULL;
+
   scy = scm_scythe_new();
   if (scy == NULL) return NULL;
 
   r = scm_scythe_bootup(scy);
-  if (r < 0) return NULL;
+  if (r < 0) goto err;
 
   if (load) {
     r = scm_scythe_load_core(scy);
-    if (r < 0) return NULL;
+    if (r < 0) goto err;
   }
 
   scm_scythe_enable(scy);
 
   return scy;
+
+ err:
+  scm_scythe_end(scy);
+  return NULL;
 }
 
 void

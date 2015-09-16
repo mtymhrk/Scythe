@@ -26,25 +26,6 @@
 
 static char default_ext_enc[64] = "";
 
-static int
-setup_conf_to_default(ScmScythe *scy)
-{
-  ssize_t s;
-
-  scy->conf.gconf.system_encoding = DEFAULT_SYS_ENC;
-
-  /* TODO: この処理は、Scythe オブジェクト生成時に行うのではなくシステム全体
-   *       の初期化処理の中で行うようにする */
-  if (default_ext_enc[0] == '\0') {
-    s = scm_enc_locale_to_enc_name(default_ext_enc, sizeof(default_ext_enc));
-    if (s < 0) return -1;
-  }
-
-  scy->conf.gconf.external_encoding = default_ext_enc;
-
-  return 0;
-}
-
 int
 scm_scythe_initialize(ScmScythe *scy)
 {
@@ -60,13 +41,10 @@ scm_scythe_initialize(ScmScythe *scy)
   r = eary_init(&scy->conf.load_path, sizeof(char *), 0);
   if (r < 0) return -1;
 
-  scy->conf.gconf.system_encoding = NULL;
-  scy->conf.gconf.external_encoding = NULL;
+  scy->conf.gconf.system_encoding = DEFAULT_SYS_ENC;
+  scy->conf.gconf.external_encoding = default_ext_enc;
   /* scy->conf.argc = 0; */
   /* scy->conf.argv = NULL; */
-
-  r = setup_conf_to_default(scy);
-  if (r < 0) return -1;
 
   return 0;
 }
@@ -631,6 +609,20 @@ scm_scythe_compile_file(ScmScythe *scy, const char *path)
     scm_vm_disposal_unhandled_exc(scy->vm);
 
   } WITH_SCYTHE_END;
+
+  return 0;
+}
+
+int
+scm_prepare_scythe(void)
+{
+  static bool prepared = false;
+
+  if (prepared)
+    return 0;
+
+  prepared = true;
+  scm_enc_locale_to_enc_name(default_ext_enc, sizeof(default_ext_enc));
 
   return 0;
 }

@@ -145,6 +145,9 @@ make_scythe(void)
   ScmScythe *scy;
   int r;
 
+  r = scm_capi_scythe_init();
+  if (r < 0) return NULL;
+
   scy = scm_capi_scythe_new();
   if (scy == NULL) return NULL;
 
