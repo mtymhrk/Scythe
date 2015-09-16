@@ -623,6 +623,7 @@ scm_prepare_scythe(void)
 
   prepared = true;
   scm_enc_locale_to_enc_name(default_ext_enc, sizeof(default_ext_enc));
+  scm_prepare_vm();
 
   return 0;
 }

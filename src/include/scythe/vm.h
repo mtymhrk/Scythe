@@ -268,6 +268,8 @@ void scm_vm_gc_initialize(ScmObj obj);
 void scm_vm_gc_finalize(ScmObj obj);
 int scm_vm_gc_accept(ScmObj obj, ScmGCRefHandler handler);
 
+void scm_prepare_vm(void);
+
 static inline bool
 scm_vm_p(ScmObj obj)
 {
