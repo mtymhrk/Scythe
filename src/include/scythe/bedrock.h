@@ -7,6 +7,23 @@
 #include <scythe/memory.h>
 #include <scythe/encoding.h>
 
+
+/*******************************************************************/
+/*  GlobalConf                                                     */
+/*******************************************************************/
+
+typedef struct ScmGlobalConfRec ScmGlobalConf;
+
+struct ScmGlobalConfRec {
+  ScmEncoding *system_encoding;
+  char *external_encoding;
+};
+
+
+/*******************************************************************/
+/*  Bedrock                                                        */
+/*******************************************************************/
+
 typedef struct ScmBedrockRec ScmBedrock;
 typedef enum scm_bedrock_err_type scm_bedrock_err_type_t;
 
@@ -75,16 +92,16 @@ struct ScmBedrockRec {
   ScmObj sym[SCM_CACHED_SYM_NR];
 
   /*** Configurations ***/
-  ScmEncoding *encoding;
+  const ScmGlobalConf *conf;
 };
 
 int scm_bedrock_setup(ScmBedrock *br);
 void scm_bedrock_cleanup(ScmBedrock *br);
 int scm_bedrock_create_mem(ScmBedrock *br);
 void scm_bedrock_delete_mem(ScmBedrock *br);
-int scm_bedrock_initialize(ScmBedrock *br);
+int scm_bedrock_initialize(ScmBedrock *br, FILE *out, const ScmGlobalConf *conf);
 void scm_bedrock_finalize(ScmBedrock *br);
-ScmBedrock *scm_bedrock_new(void);
+ScmBedrock *scm_bedrock_new(FILE *out, const ScmGlobalConf *conf);
 void scm_bedrock_end(ScmBedrock *br);
 void scm_bedrock_fatal(ScmBedrock *br, const char *msg);
 void scm_bedrock_error(ScmBedrock *br, const char *msg);
@@ -164,11 +181,11 @@ scm_bedrock_premade_proc(ScmBedrock *br, int kind)
   return br->proc[kind];
 }
 
-static inline ScmEncoding *
-scm_bedrock_encoding(ScmBedrock *br)
+static inline const ScmGlobalConf *
+scm_bedrock_global_conf(ScmBedrock *br)
 {
   scm_assert(br != NULL);
-  return br->encoding;
+  return br->conf;
 }
 
 
@@ -213,12 +230,6 @@ scm_cached_symbol(int kind)
   return scm_bedrock_cached_sym(scm_current_br(), kind);
 }
 
-static inline ScmEncoding *
-scm_system_encoding(void)
-{
-  return scm_bedrock_encoding(scm_current_br());
-}
-
 static inline void *
 scm_current_memory_manager(void)
 {
@@ -241,6 +252,18 @@ static inline ScmObj
 scm_premade_procedure(int kind)
 {
   return scm_bedrock_premade_proc(scm_current_br(), kind);
+}
+
+static inline ScmEncoding *
+scm_system_encoding(void)
+{
+  return scm_bedrock_global_conf(scm_current_br())->system_encoding;
+}
+
+static inline const char *
+scm_external_encoding(void)
+{
+  return scm_bedrock_global_conf(scm_current_br())->external_encoding;
 }
 
 

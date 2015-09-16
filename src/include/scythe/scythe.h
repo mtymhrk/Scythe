@@ -19,8 +19,7 @@ struct ScmScytheRec {
 
   struct {
     EArray load_path;
-    /* char *system_encoding; */
-    /* char *external_encoding; */
+    ScmGlobalConf gconf;
     /* int argc; */
     /* char **argv; */
   } conf;
@@ -35,10 +34,10 @@ int scm_scythe_bootup(ScmScythe *scy);
 void scm_scythe_shutdown(ScmScythe *scy);
 int scm_scythe_add_load_path(ScmScythe *scy, const char *path);
 void scm_scythe_clear_load_path(ScmScythe *scy);
-/* int scm_scythe_set_system_encoding(ScmScythe *scy, const char *enc); */
-/* void scm_scythe_clear_system_encoding(ScmScythe *scy); */
-/* int scm_scythe_set_external_encoding(ScmScythe *scy, const char *enc); */
-/* void scm_scythe_clear_external_encoding(ScmScythe *scy); */
+int scm_scythe_set_system_encoding(ScmScythe *scy, const char *enc);
+void scm_scythe_clear_system_encoding(ScmScythe *scy);
+int scm_scythe_set_external_encoding(ScmScythe *scy, const char *enc);
+void scm_scythe_clear_external_encoding(ScmScythe *scy);
 /* int scm_scythe_set_arguments(ScmScythe *scy, int argc, const char **argv); */
 /* void scm_scythe_clear_arguments(ScmScythe *scy); */
 int scm_scythe_update_load_path_variable(ScmScythe *scy);

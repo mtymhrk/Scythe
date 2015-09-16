@@ -25,6 +25,9 @@ scm_bedrock_print_msg(ScmBedrock *br, const char *msg)
   scm_assert(br != NULL);
   scm_assert(msg != NULL);
 
+  if (br->output == NULL)
+    return;
+
   fputs(msg, br->output);
 
   len = strlen(msg);
@@ -195,11 +198,12 @@ scm_bedrock_delete_mem(ScmBedrock *br)
 }
 
 int
-scm_bedrock_initialize(ScmBedrock *br)
+scm_bedrock_initialize(ScmBedrock *br, FILE *out, const ScmGlobalConf *conf)
 {
   scm_assert(br != NULL);
+  scm_assert(conf != NULL);
 
-  br->output = stderr;
+  br->output = out;
   br->err_type = SCM_BEDROCK_ERR_NONE;
   br->exit_stat = 0;
 
@@ -224,7 +228,7 @@ scm_bedrock_initialize(ScmBedrock *br)
   for (size_t i = 0; i < SCM_CACHED_SYM_NR; i++)
     br->sym[i] = SCM_OBJ_NULL;
 
-  br->encoding = SCM_ENC_UTF8;
+  br->conf = conf;
 
   return 0;
 }
@@ -239,7 +243,7 @@ scm_bedrock_finalize(ScmBedrock *br)
 }
 
 ScmBedrock *
-scm_bedrock_new(void)
+scm_bedrock_new(FILE *out, const ScmGlobalConf *conf)
 {
   int rslt;
   ScmBedrock *br;
@@ -247,7 +251,7 @@ scm_bedrock_new(void)
   br = malloc(sizeof(*br));
   if (br == NULL) return NULL;
 
-  rslt = scm_bedrock_initialize(br);
+  rslt = scm_bedrock_initialize(br, out, conf);
   if (rslt < 0) {
     free(br);
     return NULL;
