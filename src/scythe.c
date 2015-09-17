@@ -441,8 +441,8 @@ scm_scythe_run_repl(ScmScythe *scy)
   WITH_SCYTHE(scy) {
     SCM_REFSTK_INIT_REG(&proc);
 
-    proc = get_proc("read-eval-print-loop",
-                    (const char *[]){"scythe", "internal", "repl"}, 3);
+    proc = get_proc("repl",
+                    (const char *[]){"scythe", "internal", "command"}, 3);
     if(scm_obj_null_p(proc)) goto dsp;
 
     scm_vm_apply(scy->vm, proc, SCM_NIL_OBJ);
