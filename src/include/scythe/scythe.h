@@ -75,9 +75,9 @@ scm_scythe_run_repl(ScmScythe *scy)
 }
 
 static inline int
-scm_scythe_exec_file(ScmScythe *scy, const char *path)
+scm_scythe_exec_file(ScmScythe *scy, const char * const *argv, size_t n)
 {
-  return scm_scythe_apply(scy, "eval-file", &path, 1);
+  return scm_scythe_apply(scy, "exec-file", argv, n);
 }
 
 static inline int

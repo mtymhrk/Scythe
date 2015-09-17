@@ -3215,8 +3215,18 @@ scm_subr_func_repl(ScmObj subr, int argc, const ScmObj *argv)
 }
 
 int
-scm_subr_func_eval_file(ScmObj subr, int argc, const ScmObj *argv)
+scm_subr_func_exec_file(ScmObj subr, int argc, const ScmObj *argv)
 {
+  /* TODO:
+   *
+   * argv[0] で指定されているファイル名が - (ハイフン) の場合、標準入力から
+   * S 式よ読み取って実行する。
+   *
+   * ファイルの内容を実行した後、(main) モジュールにグローバル変数 main がプ
+   * ロシージャに束縛されている場合、そのプロシージャを呼び出す。そして、そ
+   * のの戻り値はプロセスの exit status にする。
+   */
+
   return scm_eval_file(subr, argv[0], SCM_OBJ_NULL);
 }
 

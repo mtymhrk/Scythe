@@ -799,17 +799,17 @@ int scm_subr_func_pop_dynamic_wind_handler(ScmObj subr,
 /*******************************************************************/
 
 #define SCM_SUBR_ARITY_REPL 0
-#define SCM_SUBR_ARITY_EVAL_FILE 1
+#define SCM_SUBR_ARITY_EXEC_FILE -2
 #define SCM_SUBR_ARITY_EVAL_STRING 1
 #define SCM_SUBR_ARITY_COMPILE_FILE -2
 
 #define SCM_SUBR_FLAG_REPL 0
-#define SCM_SUBR_FLAG_EVAL_FILE 0
+#define SCM_SUBR_FLAG_EXEC_FILE 0
 #define SCM_SUBR_FLAG_EVAL_STRING 0
 #define SCM_SUBR_FLAG_COMPILE_FILE 0
 
 int scm_subr_func_repl(ScmObj subr, int argc, const ScmObj *argv);
-int scm_subr_func_eval_file(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_exec_file(ScmObj subr, int argc, const ScmObj *argv);
 int scm_subr_func_eval_string(ScmObj subr, int argc, const ScmObj *argv);
 int scm_subr_func_compile_file(ScmObj subr, int argc, const ScmObj *argv);
 

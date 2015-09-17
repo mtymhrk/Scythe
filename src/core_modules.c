@@ -1530,7 +1530,7 @@ scm_define_scythe_internal_command_subr(ScmObj module)
 {
   static const struct subr_data data[] = {
     { "repl", SCM_SUBR_ARITY_REPL, SCM_SUBR_FLAG_REPL, scm_subr_func_repl, false },
-    { "eval-file", SCM_SUBR_ARITY_EVAL_FILE, SCM_SUBR_FLAG_EVAL_FILE, scm_subr_func_eval_file, false },
+    { "exec-file", SCM_SUBR_ARITY_EXEC_FILE, SCM_SUBR_FLAG_EXEC_FILE, scm_subr_func_exec_file, false },
     { "eval-string", SCM_SUBR_ARITY_EVAL_STRING, SCM_SUBR_FLAG_EVAL_STRING, scm_subr_func_eval_string, false },
     { "compile-file", SCM_SUBR_ARITY_COMPILE_FILE, SCM_SUBR_FLAG_COMPILE_FILE, scm_subr_func_compile_file, false },
   };

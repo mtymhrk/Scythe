@@ -111,7 +111,7 @@ execute_file(ScmScythe *scy)
 {
   int r;
 
-  r = scm_capi_scythe_exec_file(scy, scheme_argv[0]);
+  r = scm_capi_scythe_exec_file(scy, scheme_argv, (size_t)scheme_argc);
   if (r < 0) return -1;
 
   return 0;

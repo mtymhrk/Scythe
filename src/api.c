@@ -2908,12 +2908,12 @@ scm_capi_scythe_run_repl(ScmScythe *scy)
 }
 
 int
-scm_capi_scythe_exec_file(ScmScythe *scy, const char *path)
+scm_capi_scythe_exec_file(ScmScythe *scy, const char * const *argv, size_t n)
 {
-  if (scy == NULL || path == NULL)
+  if (scy == NULL || argv == NULL)
     return -1;
 
-  return scm_scythe_exec_file(scy, path);
+  return scm_scythe_exec_file(scy, argv, n);
 }
 
 int
