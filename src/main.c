@@ -5,8 +5,11 @@
 
 #include "scythe/api.h"
 
+#define OPT_LOWERCASE_E_MAX 64
+
 static const char *command_name = NULL;
-static const char *opt_expr = NULL;
+static const char *opt_expr[OPT_LOWERCASE_E_MAX];
+static int nr_opt_expr = 0;
 static int scheme_argc = 0;
 static char **scheme_argv = NULL;
 static bool interactive_flag = false;
@@ -40,7 +43,7 @@ usage()
 {
   message("Usage: %s [options] [--] [file] [arumgnets]", command_name);
   message("Options:\n"
-          "  -e <expr>   Evaluate Scheme expression <expr>. Omit [file].\n"
+          "  -e <expr>   Evaluate Scheme expression <expr> before executing [file].\n"
           "  -i          Interactive mode.\n"
           "  -I <path>   Add <path> to the load path list.");
 }
@@ -57,7 +60,11 @@ parse_arguments(int argc, char **argv, ScmScythe *scy)
   while ((c = getopt(argc, argv, "+:e:iI:")) != -1) {
     switch (c) {
     case 'e':
-      opt_expr = optarg;
+      if (nr_opt_expr >= OPT_LOWERCASE_E_MAX) {
+        emessage("too many ``-e <expr>'' options");
+        return -1;
+      }
+      opt_expr[nr_opt_expr++] = optarg;
       break;
     case 'i':
       interactive_flag = true;
@@ -100,8 +107,10 @@ execute_opt_expr(ScmScythe *scy)
 {
   int r;
 
-  r = scm_capi_scythe_eval_str(scy, opt_expr);
-  if (r < 0) return -1;
+  for (int i = 0; i < nr_opt_expr; i++) {
+    r = scm_capi_scythe_eval_str(scy, opt_expr[i]);
+    if (r < 0) return -1;
+  }
 
   return 0;
 }
@@ -192,16 +201,16 @@ main(int argc, char **argv)
   r = setup_scythe(scy);
   if (r < 0) goto end;
 
-  if (opt_expr != NULL)
-    retval = execute_opt_expr(scy);
-  else if (scheme_argc > 0)
+  r = execute_opt_expr(scy);
+  if (r < 0) goto end;
+
+  if (scheme_argc > 0)
     retval = execute_file(scy);
   else if (interactive_flag)
     retval = execute_repl(scy);
-  else {
-    /* TODO: 標準入力から S 式を読み取って実行する */
-    retval = -1;
-  }
+  else
+    retval = 0;  /* [-e <expr>], [-i], [file] いずれの指定も無い場合、なにも
+                    せず終了する */
 
  end:
   scm_capi_scythe_end(scy);
