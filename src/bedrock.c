@@ -317,45 +317,6 @@ scm_bedrock_error_p(ScmBedrock *br)
 }
 
 static int
-scm_bedrock_search_gv(const char *sym_str, const char * const *name_str, size_t n,
-                      scm_csetter_t *gloc)
-{
-  ScmObj sym = SCM_OBJ_INIT, mod = SCM_OBJ_INIT, name = SCM_OBJ_INIT;
-  ScmObj name_sym[n];
-  int r;
-
-  for (size_t i = 0; i < n; i++) name_sym[i] = SCM_OBJ_NULL;
-
-  SCM_REFSTK_INIT_REG(&sym, &mod, &name);
-  SCM_REFSTK_REG_ARY(name_sym, n);
-
-  scm_assert(sym_str != NULL);
-  scm_assert(name_str != NULL);
-  scm_assert(gloc != NULL);
-
-  for (size_t i = 0; i < n; i++) {
-    name_sym[i] = scm_make_symbol_from_cstr(name_str[i], SCM_ENC_SRC);
-    if (scm_obj_null_p(name_sym[i])) return -1;
-  }
-
-  sym = scm_make_symbol_from_cstr(sym_str, SCM_ENC_SRC);
-  if (scm_obj_null_p(sym)) return -1;
-
-  name = scm_list_cv(name_sym, n);
-  if (scm_obj_null_p(name)) return -1;
-
-  r = scm_find_module(name, SCM_CSETTER_L(mod));
-  if (r < 0) return -1;
-
-  if (scm_obj_null_p(mod)) {
-    scm_csetter_setq(gloc, SCM_OBJ_NULL);
-    return 0;
-  }
-
-  return scm_module_find_gloc(mod, sym, gloc);
-}
-
-static int
 scm_bedrock_cached_gv_aux(ScmRef holder,
                           const char *sym, const char * const *name, size_t n,
                           scm_csetter_t *gloc)
@@ -372,7 +333,7 @@ scm_bedrock_cached_gv_aux(ScmRef holder,
     return 0;
   }
 
-  r = scm_bedrock_search_gv(sym, name, n, gloc);
+  r = scm_module_find_gloc_cstr(name, n, sym, gloc);
   if (r < 0) return -1;
 
   SCM_REF_UPDATE(holder, scm_csetter_val(gloc));

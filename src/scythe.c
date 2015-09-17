@@ -422,7 +422,7 @@ get_proc(const char *name, const char * const *module, size_t n)
     return SCM_OBJ_NULL;
   }
 
-  r = scm_refer_global_var(mod, sym, SCM_CSETTER_L(proc));
+  r = scm_refer_global_var_cstr(module, n, name, SCM_CSETTER_L(proc));
   if (r < 0) return SCM_OBJ_NULL;
 
   if (scm_obj_null_p(proc)) {
