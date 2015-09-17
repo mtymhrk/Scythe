@@ -248,6 +248,7 @@ ScmObj scm_api_error_object_irritants(ScmObj obj);
 ScmObj scm_api_open_input_file(ScmObj path);
 ScmObj scm_api_open_binary_input_file(ScmObj path);
 ScmObj scm_api_open_output_file(ScmObj path);
+ScmObj scm_api_open_binary_output_file(ScmObj path);
 ScmObj scm_api_close_port(ScmObj port);
 ScmObj scm_api_close_input_port(ScmObj port);
 ScmObj scm_api_close_output_port(ScmObj port);
