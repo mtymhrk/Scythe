@@ -183,5 +183,11 @@ int scm_define_global_syx(ScmObj module, ScmObj sym, ScmObj syx, bool export);
 int scm_refer_global_var(ScmObj module, ScmObj sym, scm_csetter_t *val);
 int scm_refer_global_syx(ScmObj module, ScmObj sym, scm_csetter_t *syx);
 
+int scm_find_module_cstr(const char * const *name, size_t n,
+                         scm_csetter_t *mod);
+int scm_module_find_gloc_cstr(const char * const *name, size_t n,
+                              const char *var, scm_csetter_t *gloc);
+int scm_refer_global_var_cstr(const char * const *name, size_t n,
+                              const char *var, scm_csetter_t *val);
 
 #endif  /* INCLUDE_MODULE_H__ */

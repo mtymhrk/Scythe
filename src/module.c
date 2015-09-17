@@ -999,3 +999,85 @@ scm_refer_global_syx(ScmObj module, ScmObj sym, scm_csetter_t *syx)
 
   return 0;
 }
+
+int
+scm_find_module_cstr(const char * const *name, size_t n,
+                     scm_csetter_t *mod)
+{
+  ScmObj spec = SCM_OBJ_INIT;
+  ScmObj name_syms[n];
+
+  for (size_t i = 0; i < n; i++) name_syms[i] = SCM_OBJ_NULL;
+
+  SCM_REFSTK_INIT_REG(&spec);
+  SCM_REFSTK_REG_ARY(name_syms, n);
+
+  scm_assert(name != NULL);
+  scm_assert(mod != NULL);
+
+  for (size_t i = 0; i < n; i++) {
+    name_syms[i] = scm_make_symbol_from_cstr(name[i], SCM_ENC_SRC);
+    if (scm_obj_null_p(name_syms[i])) return -1;
+  }
+
+  spec = scm_list_cv(name_syms, n);
+  if (scm_obj_null_p(spec)) return -1;
+
+  return scm_find_module(spec, mod);
+}
+
+int
+scm_module_find_gloc_cstr(const char * const *name, size_t n,
+                          const char *var, scm_csetter_t *gloc)
+{
+  ScmObj sym = SCM_OBJ_INIT, mod = SCM_OBJ_INIT;
+  int r;
+
+  SCM_REFSTK_INIT_REG(&sym, &mod);
+
+  scm_assert(name != NULL);
+  scm_assert(var != NULL);
+  scm_assert(gloc != NULL);
+
+  r = scm_find_module_cstr(name, n, SCM_CSETTER_L(mod));
+  if (r < 0) return -1;
+
+  if (scm_obj_null_p(mod)) {
+    scm_csetter_setq(gloc, SCM_OBJ_NULL);
+    return 0;
+  }
+
+  sym = scm_make_symbol_from_cstr(var, SCM_ENC_SRC);
+  if (scm_obj_null_p(sym)) return -1;
+
+  return scm_module_find_gloc(mod, sym, gloc);
+}
+
+int
+scm_refer_global_var_cstr(const char * const *name, size_t n,
+                          const char *var, scm_csetter_t *val)
+{
+  ScmObj gloc = SCM_OBJ_INIT, v = SCM_OBJ_INIT;
+  int r;
+
+  SCM_REFSTK_INIT_REG(&gloc, &v);
+
+  scm_assert(name != NULL);
+  scm_assert(var != NULL);
+  scm_assert(val != NULL);
+
+  r = scm_module_find_gloc_cstr(name, n, var, SCM_CSETTER_L(gloc));
+  if (r < 0) return -1;
+
+  if (scm_obj_not_null_p(gloc)) {
+    v = scm_gloc_variable_value(gloc);
+    if (scm_landmine_object_p(v))
+      v = SCM_OBJ_NULL;
+  }
+  else {
+    v = SCM_OBJ_NULL;
+  }
+
+  scm_csetter_setq(val, v);
+  return 0;
+}
