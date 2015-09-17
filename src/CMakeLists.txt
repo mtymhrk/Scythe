@@ -50,9 +50,7 @@ endif(CMAKE_BUILD_TYPE STREQUAL "Release")
 add_library(scythe-lib OBJECT ${scythe_lib_src})
 
 add_executable(scythe
-               main.c $<TARGET_OBJECTS:scythe-lib>)
-add_executable(scythe-compile-file
-               main_compile_file.c $<TARGET_OBJECTS:scythe-lib>)
+               main.c compile_file.c $<TARGET_OBJECTS:scythe-lib>)
 
 
 ##===============================================================
@@ -60,9 +58,16 @@ add_executable(scythe-compile-file
 
 set(scythe_compiler "${CMAKE_CURRENT_BINARY_DIR}/scythe-compile-file")
 
+add_custom_command(
+  OUTPUT ${scythe_compiler}
+  COMMAND cp ${CMAKE_CURRENT_BINARY_DIR}/scythe ${scythe_compiler}
+  DEPENDS scythe
+)
+
 add_custom_target(
   src_tools
   COMMAND make -C ${CMAKE_CURRENT_SOURCE_DIR}/tools RUBY=${ruby_bin_path} COMPILER=${scythe_compiler} all
+  DEPENDS ${scythe_compiler}
 )
 
 
@@ -70,7 +75,7 @@ add_custom_target(
 ## install 設定
 
 install(
-  TARGETS scythe scythe-compile-file
+  TARGETS scythe
   DESTINATION bin
 )
 

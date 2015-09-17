@@ -59,7 +59,7 @@ parse_arguments(int argc, char **argv)
 
 
 int
-main(int argc, char **argv)
+compile_file(int argc, char **argv)
 {
   ScmScythe *scy;
   int r, retval;
