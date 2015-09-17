@@ -81,7 +81,7 @@ scm_scythe_exec_file(ScmScythe *scy, const char * const *argv, size_t n)
 }
 
 static inline int
-scm_scythe_exec_str(ScmScythe *scy, const char *expr)
+scm_scythe_eval_str(ScmScythe *scy, const char *expr)
 {
   return scm_scythe_apply(scy, "eval-string", &expr, 1);
 }

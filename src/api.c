@@ -2917,12 +2917,12 @@ scm_capi_scythe_exec_file(ScmScythe *scy, const char * const *argv, size_t n)
 }
 
 int
-scm_capi_scythe_exec_str(ScmScythe *scy, const char *expr)
+scm_capi_scythe_eval_str(ScmScythe *scy, const char *expr)
 {
   if (scy == NULL || expr == NULL)
     return -1;
 
-  return scm_scythe_exec_str(scy, expr);
+  return scm_scythe_eval_str(scy, expr);
 }
 
 int
