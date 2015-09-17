@@ -28,7 +28,7 @@ main(int argc, char **argv)
   r = scm_capi_scythe_load_core(scy);
   if (r < 0) goto end;
 
-  r = scm_capi_scythe_compile_file(scy, argv[1]);
+  r = scm_capi_scythe_compile_file(scy, argv[1], "marshal.out");
   if (r < 0) goto end;
 
   retval = 0;

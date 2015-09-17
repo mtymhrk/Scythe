@@ -11,8 +11,11 @@
 #include "scythe/file.h"
 #include "scythe/compiler.h"
 #include "scythe/exception.h"
+#include "scythe/format.h"
 #include "scythe/iseq.h"
+#include "scythe/marshal.h"
 #include "scythe/miscobjects.h"
+#include "scythe/module.h"
 #include "scythe/pair.h"
 #include "scythe/procedure.h"
 #include "scythe/core_subr.h"
@@ -3226,4 +3229,79 @@ scm_subr_func_eval_string(ScmObj subr, int argc, const ScmObj *argv)
   if (scm_obj_null_p(args)) return -1;
 
   return scm_capi_trampolining(eval, args, SCM_OBJ_NULL, SCM_OBJ_NULL);
+}
+
+static int
+scm_subr_func_compile_file__postproc(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj iseq = SCM_OBJ_INIT, port = SCM_OBJ_INIT;
+  void *marshaled = NULL;
+  size_t size;
+  int r, retval;
+
+  SCM_REFSTK_INIT_REG(&subr,
+                      &iseq, &port);
+
+  retval = -1;
+
+  iseq = scm_asm_iseq(argv[1]);
+  if (scm_obj_null_p(iseq)) goto end;
+
+  marshaled = scm_marshal(&size, iseq, SCM_OBJ_NULL);
+  if (marshaled == NULL) goto end;
+
+  port = scm_api_open_binary_output_file(argv[0]);
+  if (scm_obj_null_p(port)) goto end;
+
+  r = scm_write_cbytes(marshaled, size, port);
+  if (r < 0) goto end;
+
+  retval = 0;
+
+ end:
+  if (marshaled != NULL) scm_free(marshaled);
+  if (scm_obj_not_null_p(port)) scm_close_port(port);
+  return retval;
+}
+
+int
+scm_subr_func_compile_file(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj proc = SCM_OBJ_INIT, mod = SCM_OBJ_INIT, args = SCM_OBJ_INIT;
+  ScmObj out = SCM_OBJ_INIT, postproc = SCM_OBJ_INIT;
+  int r;
+
+  SCM_REFSTK_INIT_REG(&subr,
+                      &proc, &mod, &args,
+                      &out, &postproc);
+
+  out = (scm_pair_p(argv[1]) ?
+         scm_car(argv[1]) : scm_format_cstr("~a.out", argv[0]));
+  if (scm_obj_null_p(out)) return -1;
+
+  r = scm_find_module_cstr((const char *[]){"main"}, 1, SCM_CSETTER_L(mod));
+  if (r < 0) return -1;
+
+  if (scm_obj_null_p(mod)) {
+    scm_error("failed to compile file: inexistent module: (main)", 0);
+    return -1;
+  }
+
+  r = scm_refer_global_var_cstr((const char *[]){ "scythe", "internal", "compile"},
+                                3, "compile-file", SCM_CSETTER_L(proc));
+  if (r < 0) return -1;
+
+  if (scm_obj_null_p(proc)) {
+    scm_error("failed to compile file: unbound variable: compile-file", 0);
+    return -1;
+  }
+
+  args = scm_list(2, argv[0], mod);
+  if (scm_obj_null_p(args)) return -1;
+
+  postproc = scm_make_subrutine(scm_subr_func_compile_file__postproc,
+                                2, 0, SCM_OBJ_NULL);
+  if (scm_obj_null_p(postproc)) return -1;
+
+  return scm_capi_trampolining(proc, args, postproc, out);
 }

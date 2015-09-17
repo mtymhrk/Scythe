@@ -433,7 +433,8 @@ int scm_capi_scythe_clear_load_path(ScmScythe *scy);
 int scm_capi_scythe_run_repl(ScmScythe *scy);
 int scm_capi_scythe_exec_file(ScmScythe *scy, const char *path);
 int scm_capi_scythe_exec_cstr(ScmScythe *scy, const char *expr);
-int scm_capi_scythe_compile_file(ScmScythe *scy, const char *path);
+int scm_capi_scythe_compile_file(ScmScythe *scy,
+                                 const char *path, const char *output);
 
 
 #endif /* INCLUDE_API_H__ */

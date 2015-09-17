@@ -10,10 +10,8 @@
 #include "scythe/assembler.h"
 #include "scythe/file.h"
 #include "scythe/exception.h"
-#include "scythe/marshal.h"
 #include "scythe/module.h"
 #include "scythe/pair.h"
-#include "scythe/port.h"
 #include "scythe/string.h"
 #include "scythe/encoding.h"
 #include "scythe/symbol.h"
@@ -519,91 +517,37 @@ scm_scythe_exec_cstr(ScmScythe *scy, const char *expr)
   return 0;
 }
 
-static int
-dump_marshal(const char *path, const char *ext,
-             const void *marshal, size_t size)
-{
-  FILE *fp = NULL;
-  char *str = NULL;
-  size_t path_len, ext_len, n;
-
-  path_len = strlen(path);
-  ext_len = (ext != NULL) ? strlen(ext) : 0;
-  str = scm_malloc(path_len + ext_len + 1);
-  if (str == NULL) goto err;
-
-  memcpy(str, path, path_len);
-  memcpy(str + path_len, ext, ext_len);
-  str[path_len + ext_len] = '\0';
-
-  fp = fopen(str, "wb");
-  if (fp == NULL) goto err;
-
-  n = fwrite(marshal, 1, size, fp);
-  if (n < size) goto err;
-
-  fclose(fp);
-  scm_free(str);
-  return 0;
-
- err:
-  scm_error("failed to dump marshale data", 0);
-  if (fp != NULL) fclose(fp);
-  if (str != NULL) scm_free(str);
-  return -1;
-}
-
 int
-scm_scythe_compile_file(ScmScythe *scy, const char *path)
+scm_scythe_compile_file(ScmScythe *scy, const char *path, const char *output)
 {
-  ScmObj port = SCM_OBJ_INIT, str = SCM_OBJ_INIT;
-  ScmObj name = SCM_OBJ_INIT, mod = SCM_OBJ_INIT;
-  ScmObj proc = SCM_OBJ_INIT, args = SCM_OBJ_INIT, val = SCM_OBJ_INIT;
-  void *marshal;
-  size_t size;
-  int rslt;
+  ScmObj in = SCM_OBJ_INIT, out = SCM_OBJ_INIT;
+  ScmObj proc = SCM_OBJ_INIT, args = SCM_OBJ_INIT;
 
   scm_assert(scy != NULL);
   scm_assert(path != NULL);
 
   WITH_SCYTHE(scy) {
-    SCM_REFSTK_INIT_REG(&port, &str,
-                        &name, &mod,
-                        &proc, &args, &val);
+    SCM_REFSTK_INIT_REG(&in, &out,
+                        &proc, &args);
 
-    str = scm_make_string_from_external(path, strlen(path), NULL);
-    if (scm_obj_null_p(str)) goto dsp;
+    in = scm_make_string_from_external(path, strlen(path), NULL);
+    if (scm_obj_null_p(in)) goto dsp;
 
-    port = scm_open_input_string_cstr("(main)", SCM_ENC_NAME_SRC);
-    if (scm_obj_null_p(port)) goto dsp;
-
-    name = scm_read(port);
-    if (scm_obj_null_p(name)) goto dsp;
-
-    rslt = scm_find_module(name, SCM_CSETTER_L(mod));
-    if (rslt < 0) goto dsp;
+    out = SCM_OBJ_NULL;
+    if (output != NULL) {
+      out = scm_make_string_from_external(output, strlen(output), NULL);
+      if (scm_obj_null_p(out)) goto dsp;
+    }
 
     proc = get_proc("compile-file",
-                    (const char *[]){"scythe", "internal", "compile"}, 3);
+                    (const char *[]){"scythe", "internal", "command"}, 3);
     if(scm_obj_null_p(proc)) goto dsp;
 
-    args = scm_list(2, str, mod);
+    args = (scm_obj_null_p(out) ?
+            scm_cons(in, SCM_NIL_OBJ) : scm_list(2, in, out));
     if (scm_obj_null_p(args)) goto dsp;
 
-    val = scm_vm_apply(scy->vm, proc, args);
-    if (scm_obj_null_p(val)) goto dsp;
-
-    val = scm_vector_ref(val, 0);
-    if (scm_obj_null_p(val)) goto dsp;
-
-    val = scm_asm_iseq(val);
-    if (scm_obj_null_p(val)) goto dsp;
-
-    marshal = scm_marshal(&size, val, SCM_OBJ_NULL);
-    if (marshal == NULL) goto dsp;
-
-    dump_marshal("marshal.out", NULL, marshal, size);
-    scm_free(marshal);
+    scm_vm_apply(scy->vm, proc, args);
 
   dsp:
     scm_vm_disposal_unhandled_exc(scy->vm);

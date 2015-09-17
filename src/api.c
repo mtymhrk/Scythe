@@ -2926,10 +2926,11 @@ scm_capi_scythe_exec_cstr(ScmScythe *scy, const char *expr)
 }
 
 int
-scm_capi_scythe_compile_file(ScmScythe *scy, const char *path)
+scm_capi_scythe_compile_file(ScmScythe *scy,
+                             const char *path, const char *output)
 {
   if (scy == NULL || path == NULL)
     return -1;
 
-  return scm_scythe_compile_file(scy, path);
+  return scm_scythe_compile_file(scy, path, output);
 }

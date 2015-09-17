@@ -45,7 +45,8 @@ int scm_scythe_load_core(ScmScythe *scy);
 int scm_scythe_run_repl(ScmScythe *scy);
 int scm_scythe_exec_file(ScmScythe *scy, const char *path);
 int scm_scythe_exec_cstr(ScmScythe *scy, const char *expr);
-int scm_scythe_compile_file(ScmScythe *scy, const char *path);
+int scm_scythe_compile_file(ScmScythe *scy,
+                            const char *path, const char *output);
 int scm_prepare_scythe(void);
 
 static inline void
