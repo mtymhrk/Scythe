@@ -3204,6 +3204,10 @@ scm_subr_func_eval_string(ScmObj subr, int argc, const ScmObj *argv)
   ScmObj args = SCM_OBJ_INIT;
   int r;
 
+  SCM_REFSTK_INIT_REG(&subr,
+                      &port, &exp, &eval,
+                      &args);
+
   port = scm_api_open_input_string(argv[0]);
   if (scm_obj_null_p(port)) return -1;
 
