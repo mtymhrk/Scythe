@@ -432,122 +432,32 @@ get_proc(const char *name, const char * const *module, size_t n)
 }
 
 int
-scm_scythe_run_repl(ScmScythe *scy)
+scm_scythe_apply(ScmScythe *scy,
+                 const char *cmd, const char * const *args, size_t n)
 {
-  ScmObj proc = SCM_OBJ_INIT;
+  ScmObj proc = SCM_OBJ_INIT, lst = SCM_OBJ_INIT, str = SCM_OBJ_INIT;
 
   scm_assert(scy != NULL);
+  scm_assert(cmd != NULL);
+  scm_assert(n == 0 || args != NULL);
 
   WITH_SCYTHE(scy) {
-    SCM_REFSTK_INIT_REG(&proc);
+    SCM_REFSTK_INIT_REG(&proc, &lst, &str);
 
-    proc = get_proc("repl",
-                    (const char *[]){"scythe", "internal", "command"}, 3);
-    if(scm_obj_null_p(proc)) goto dsp;
+    lst = SCM_NIL_OBJ;
+    for (size_t i = n; i > 0; i--) {
+      str = scm_make_string_from_external(args[i - 1],
+                                          strlen(args[i - 1]), NULL);
+      if (scm_obj_null_p(str)) goto dsp;
 
-    scm_vm_apply(scy->vm, proc, SCM_NIL_OBJ);
-
-  dsp:
-    scm_vm_disposal_unhandled_exc(scy->vm);
-
-  } WITH_SCYTHE_END;
-
-  return 0;
-}
-
-int
-scm_scythe_exec_file(ScmScythe *scy, const char *path)
-{
-  ScmObj str = SCM_OBJ_INIT, proc = SCM_OBJ_INIT, args = SCM_OBJ_INIT;
-
-  scm_assert(scy != NULL);
-  scm_assert(path != NULL);
-
-  WITH_SCYTHE(scy) {
-    SCM_REFSTK_INIT_REG(&str, &proc, &args);
-
-    str = scm_make_string_from_external(path, strlen(path), NULL);
-    if (scm_obj_null_p(str)) goto dsp;
-
-    proc = get_proc("eval-file",
-                    (const char *[]){"scythe", "internal", "command"}, 3);
-    if(scm_obj_null_p(proc)) goto dsp;
-
-    args = scm_cons(str, SCM_NIL_OBJ);
-    if (scm_obj_null_p(args)) goto dsp;
-
-    scm_vm_apply(scy->vm, proc, args);
-
-  dsp:
-    scm_vm_disposal_unhandled_exc(scy->vm);
-
-  } WITH_SCYTHE_END;
-
-  return 0;
-}
-
-int
-scm_scythe_exec_cstr(ScmScythe *scy, const char *expr)
-{
-  ScmObj str = SCM_OBJ_INIT, proc = SCM_OBJ_INIT, args = SCM_OBJ_INIT;
-
-  scm_assert(scy != NULL);
-  scm_assert(expr != NULL);
-
-  WITH_SCYTHE(scy) {
-    SCM_REFSTK_INIT_REG( &str, &proc, &args);
-
-    str = scm_make_string_from_external(expr, strlen(expr), NULL);
-    if (scm_obj_null_p(str)) goto dsp;
-
-    proc = get_proc("eval-string",
-                    (const char *[]){"scythe", "internal", "command"}, 3);
-    if(scm_obj_null_p(proc)) goto dsp;
-
-    args = scm_cons(str, SCM_NIL_OBJ);
-    if (scm_obj_null_p(args)) goto dsp;
-
-    scm_vm_apply(scy->vm, proc, args);
-
-  dsp:
-    scm_vm_disposal_unhandled_exc(scy->vm);
-
-  } WITH_SCYTHE_END;
-
-  return 0;
-}
-
-int
-scm_scythe_compile_file(ScmScythe *scy, const char *path, const char *output)
-{
-  ScmObj in = SCM_OBJ_INIT, out = SCM_OBJ_INIT;
-  ScmObj proc = SCM_OBJ_INIT, args = SCM_OBJ_INIT;
-
-  scm_assert(scy != NULL);
-  scm_assert(path != NULL);
-
-  WITH_SCYTHE(scy) {
-    SCM_REFSTK_INIT_REG(&in, &out,
-                        &proc, &args);
-
-    in = scm_make_string_from_external(path, strlen(path), NULL);
-    if (scm_obj_null_p(in)) goto dsp;
-
-    out = SCM_OBJ_NULL;
-    if (output != NULL) {
-      out = scm_make_string_from_external(output, strlen(output), NULL);
-      if (scm_obj_null_p(out)) goto dsp;
+      lst = scm_cons(str, lst);
+      if (scm_obj_null_p(str)) goto dsp;
     }
 
-    proc = get_proc("compile-file",
-                    (const char *[]){"scythe", "internal", "command"}, 3);
+    proc = get_proc(cmd, (const char *[]){"scythe", "internal", "command"}, 3);
     if(scm_obj_null_p(proc)) goto dsp;
 
-    args = (scm_obj_null_p(out) ?
-            scm_cons(in, SCM_NIL_OBJ) : scm_list(2, in, out));
-    if (scm_obj_null_p(args)) goto dsp;
-
-    scm_vm_apply(scy->vm, proc, args);
+    scm_vm_apply(scy->vm, proc, lst);
 
   dsp:
     scm_vm_disposal_unhandled_exc(scy->vm);

@@ -100,7 +100,7 @@ execute_opt_expr(ScmScythe *scy)
 {
   int r;
 
-  r = scm_capi_scythe_exec_cstr(scy, opt_expr);
+  r = scm_capi_scythe_exec_str(scy, opt_expr);
   if (r < 0) return -1;
 
   return 0;
