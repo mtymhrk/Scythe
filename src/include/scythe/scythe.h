@@ -20,8 +20,6 @@ struct ScmScytheRec {
   struct {
     EArray load_path;
     ScmGlobalConf gconf;
-    /* int argc; */
-    /* char **argv; */
   } conf;
 };
 
@@ -38,8 +36,6 @@ int scm_scythe_set_system_encoding(ScmScythe *scy, const char *enc);
 void scm_scythe_clear_system_encoding(ScmScythe *scy);
 int scm_scythe_set_external_encoding(ScmScythe *scy, const char *enc);
 void scm_scythe_clear_external_encoding(ScmScythe *scy);
-/* int scm_scythe_set_arguments(ScmScythe *scy, int argc, const char **argv); */
-/* void scm_scythe_clear_arguments(ScmScythe *scy); */
 int scm_scythe_update_load_path_variable(ScmScythe *scy);
 int scm_scythe_load_core(ScmScythe *scy);
 int scm_scythe_apply(ScmScythe *scy,

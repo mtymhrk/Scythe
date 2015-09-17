@@ -41,8 +41,6 @@ scm_scythe_initialize(ScmScythe *scy)
 
   scy->conf.gconf.system_encoding = DEFAULT_SYS_ENC;
   scy->conf.gconf.external_encoding = default_ext_enc;
-  /* scy->conf.argc = 0; */
-  /* scy->conf.argv = NULL; */
 
   return 0;
 }
@@ -59,7 +57,6 @@ scm_scythe_finalize(ScmScythe *scy)
 
   scm_scythe_clear_system_encoding(scy);
   scm_scythe_clear_external_encoding(scy);
-  /* scm_scythe_clear_arguments(scy); */
 }
 
 ScmScythe *
@@ -289,55 +286,6 @@ scm_scythe_clear_external_encoding(ScmScythe *scy)
   free(scy->conf.gconf.external_encoding);
   scy->conf.gconf.external_encoding = default_ext_enc;
 }
-
-/* int */
-/* scm_scythe_set_arguments(ScmScythe *scy, int argc, const char **argv) */
-/* { */
-/*   scm_assert(scy != NULL); */
-/*   scm_assert(argc == 0 || (argc > 0 && argv != NULL)); */
-
-/*   if (!scm_scythe_conf_modifiable_p(scy)) */
-/*     return 0; */
-
-/*   scm_scythe_clear_arguments(scy); */
-
-/*   if (argc == 0) */
-/*     return 0; */
-
-/*   scy->conf.argv = malloc(sizeof(char *) * (size_t)argc); */
-/*   if (scy->conf.argv == NULL) */
-/*     return -1; */
-
-/*   for (int i = 0; i < argc; i++) { */
-/*     scy->conf.argv[i] = strdup(argv[i]); */
-/*     if (scy->conf.argv[i] == NULL) { */
-/*       scm_scythe_clear_arguments(scy); */
-/*       return -1; */
-/*     } */
-/*     scy->conf.argc++; */
-/*   } */
-
-/*   return 0; */
-/* } */
-
-/* void */
-/* scm_scythe_clear_arguments(ScmScythe *scy) */
-/* { */
-/*   scm_assert(scy != NULL); */
-
-/*   if (!scm_scythe_conf_modifiable_p(scy)) */
-/*     return; */
-
-/*   if (scy->conf.argc == 0) */
-/*     return; */
-
-/*   for (int i = 0; i < scy->conf.argc; i++) */
-/*     free(scy->conf.argv[i]); */
-
-/*   free(scy->conf.argv); */
-/*   scy->conf.argv = NULL; */
-/*   scy->conf.argc = 0; */
-/* } */
 
 int
 scm_scythe_update_load_path_variable(ScmScythe *scy)
