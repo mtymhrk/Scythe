@@ -1541,16 +1541,8 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(module-export (current-module) 'current-macro-env-def)
-(module-export (current-module) 'current-macro-env-use)
-
-(define current-macro-env-def (make-parameter ()))
-(define current-macro-env-use (make-parameter ()))
-
 (define (macro-exec-expansion macro form use-env)
-  (parameterize ((current-macro-env-def (macro-env macro))
-                 (current-macro-env-use use-env))
-    (macro-yield-transformer macro form)))
+  (macro-yield-transformer macro form use-env))
 
 (define (p1-decons-syntax-definition cmpl exp)
   (let ((x (cdr exp)) (key #f) (trans #f))

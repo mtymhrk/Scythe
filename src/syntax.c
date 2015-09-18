@@ -158,7 +158,7 @@ scm_macro_new(scm_mem_type_t mtype, ScmObj transformer, ScmObj env)
 }
 
 int
-scm_macro_trmp_transformer(ScmObj macro, ScmObj form)
+scm_macro_trmp_transformer(ScmObj macro, ScmObj form, ScmObj use_env)
 {
   ScmObj args = SCM_OBJ_INIT;
 
@@ -168,7 +168,7 @@ scm_macro_trmp_transformer(ScmObj macro, ScmObj form)
   scm_assert_obj_type(macro, &SCM_MACRO_TYPE_INFO);
   scm_assert(scm_obj_not_null_p(form));
 
-  args = scm_cons(form, SCM_NIL_OBJ);
+  args = scm_list(3, form, use_env, SCM_MACRO_ENV(macro));
   if (scm_obj_null_p(args)) return -1;
 
   return scm_trampolining(SCM_MACRO_TRANSFORMER(macro), args,

@@ -88,7 +88,7 @@ extern ScmTypeInfo SCM_MACRO_TYPE_INFO;
 ScmObj scm_macro_P(ScmObj obj);
 int scm_macro_initialize(ScmObj macro, ScmObj transformer, ScmObj env);
 ScmObj scm_macro_new(scm_mem_type_t mtype, ScmObj transformer, ScmObj env);
-int scm_macro_trmp_transformer(ScmObj macro, ScmObj form);
+int scm_macro_trmp_transformer(ScmObj macro, ScmObj form, ScmObj use_env);
 void scm_macro_gc_initialize(ScmObj obj);
 int scm_macro_gc_accept(ScmObj obj, ScmGCRefHandler handler);
 

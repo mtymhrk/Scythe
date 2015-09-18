@@ -310,7 +310,7 @@ ScmObj scm_api_syntax_handler(ScmObj syx);
 
 ScmObj scm_api_make_macro(ScmObj transformer, ScmObj env);
 ScmObj scm_api_macro_env(ScmObj macro);
-int scm_api_trmp_macro_transformer(ScmObj macro, ScmObj form);
+int scm_api_trmp_macro_transformer(ScmObj macro, ScmObj form, ScmObj use_env);
 
 
 /*******************************************************************/

@@ -28,8 +28,8 @@
 
 (module-export (current-module) 'er-macro-transformer)
 (define (er-macro-transformer expander)
-  (lambda (form)
+  (lambda (form use-env def-env)
     (expander form
-              (er-macro-make-rename-proc (current-macro-env-def))
-              (er-macro-make-compare-proc (current-macro-env-use)))))
+              (er-macro-make-rename-proc def-env)
+              (er-macro-make-compare-proc use-env))))
 

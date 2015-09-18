@@ -2898,7 +2898,7 @@ scm_subr_func_macro_env(ScmObj subr, int argc, const ScmObj *argv)
 int
 scm_subr_func_macro_yield_transformer(ScmObj subr, int argc, const ScmObj *argv)
 {
-  return scm_api_trmp_macro_transformer(argv[0], argv[1]);
+  return scm_api_trmp_macro_transformer(argv[0], argv[1], argv[2]);
 }
 
 int

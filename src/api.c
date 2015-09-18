@@ -2248,7 +2248,7 @@ scm_api_macro_env(ScmObj macro)
 }
 
 int
-scm_api_trmp_macro_transformer(ScmObj macro, ScmObj form)
+scm_api_trmp_macro_transformer(ScmObj macro, ScmObj form, ScmObj use_env)
 {
   if (!scm_macro_p(macro)) {
     scm_capi_error("failed to call transformer: macro requird, but got", 1, macro);
@@ -2258,8 +2258,11 @@ scm_api_trmp_macro_transformer(ScmObj macro, ScmObj form)
     scm_capi_error("failed to call transformer: invalid argument", 1, form);
     return -1;
   }
+  else if (scm_obj_null_p(use_env)) {
+    scm_capi_error("failed to call transformer: invalid argument", 1, use_env);
+  }
 
-  return scm_macro_trmp_transformer(macro, form);
+  return scm_macro_trmp_transformer(macro, form, use_env);
 }
 
 
