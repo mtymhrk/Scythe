@@ -255,18 +255,20 @@
    ((compiler? arg) arg)
    (else (make-compiler arg))))
 
-(define (compile-exp cmpl exp env toplevel-p rdepth arity tail-p asmb)
+(define (compile-exp cmpl exp env pos rdepth arity tail-p asmb)
   (p2-compile-exp cmpl
-                  (p1-compile-exp cmpl exp env toplevel-p rdepth)
+                  (p1-compile-exp cmpl exp env pos rdepth)
                   arity tail-p asmb))
 
+(define (judge-pos env)
+  (if (env-outmost? env) 'top #f))
 
 (define (compile-internal exp arg precompile-p)
   (let ((cmpl (get-compiler-from-arg arg))
         (asmb (make-assembler)))
     (let ((env (compiler-base-env cmpl)))
       (parameterize ((precompile? precompile-p))
-        (compile-exp cmpl exp env (env-outmost? env) (new-rdepth) -1 #f asmb)))
+        (compile-exp cmpl exp env (judge-pos env) (new-rdepth) -1 #f asmb)))
     (assembler-commit! asmb)
     asmb))
 
@@ -282,11 +284,10 @@
         (port (open-input-file file))
         (asmb (make-assembler)))
     (parameterize ((precompile? #t))
-      (let loop ((exp (read port)))
+      (let loop ((exp (read port)) (env (compiler-base-env cmpl)))
         (unless (eof-object? exp)
-          (compile-exp cmpl exp (compiler-base-env cmpl) #t (new-rdepth)
-                       -1 #f asmb)
-          (loop (read port)))))
+          (compile-exp cmpl exp env (judge-pos env) (new-rdepth) -1 #f asmb)
+          (loop (read port) (compiler-base-env cmpl)))))
     (assembler-commit! asmb)
     asmb))
 
@@ -754,20 +755,20 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(define (p1-syntax-handler-reference cmpl exp env toplevel-p rdepth)
+(define (p1-syntax-handler-reference cmpl exp env pos rdepth)
   (let-values (((v i l e) (env-resolve-variable-reference! env exp #f rdepth)))
     (if (env-outmost? e)
         (vector p2-syntax-id-gref v e)
         (vector p2-syntax-id-lref v i l))))
 
-(define (p1-syntax-handler-self-eval cmpl exp env toplevel-p rdepth)
+(define (p1-syntax-handler-self-eval cmpl exp env pos rdepth)
   (vector p2-syntax-id-self exp))
 
 
-(define (p1-syntax-handler-application cmpl exp env toplevel-p rdepth)
+(define (p1-syntax-handler-application cmpl exp env pos rdepth)
   (list->vector (cons p2-syntax-id-call
                       (map (lambda (e)
-                             (p1-compile-exp cmpl e env toplevel-p rdepth))
+                             (p1-compile-exp cmpl e env pos rdepth))
                            exp))))
 
 
@@ -793,7 +794,7 @@
             (car lst)
             (loop (cdr lst))))))
 
-(define (p1-get-syntax cmpl exp env toplevel-p)
+(define (p1-get-syntax cmpl exp env pos)
   (cond ((or (symbol? exp) (identifier? exp))
          p1-compiler-syntax-reference)
         ((pair? exp)
@@ -805,15 +806,15 @@
         (else
          p1-compiler-syntax-self-eval)))
 
-(define (p1-compile-exp cmpl exp env toplevel-p rdepth)
+(define (p1-compile-exp cmpl exp env pos rdepth)
   (let ((ce (compiler-current-expr cmpl)))
     (compiler-select-expr! cmpl exp)
     (rdepth-expand! rdepth)
-    (let* ((syx (p1-get-syntax cmpl exp env toplevel-p))
+    (let* ((syx (p1-get-syntax cmpl exp env pos))
            (x (if (macro? syx)
                   (p1-compile-exp cmpl (macro-exec-expansion syx exp env)
-                                  env toplevel-p rdepth)
-                  ((syntax-handler syx) cmpl exp env toplevel-p rdepth))))
+                                  env pos rdepth)
+                  ((syntax-handler syx) cmpl exp env pos rdepth))))
       (rdepth-contract! rdepth)
       (compiler-select-expr! cmpl ce)
       x)))
@@ -844,8 +845,8 @@
       (compile-error cmpl "malformed define"))
     (values var val)))
 
-(define (p1-syntax-handler-definition cmpl exp env toplevel-p rdepth)
-  (unless toplevel-p
+(define (p1-syntax-handler-definition cmpl exp env pos rdepth)
+  (unless (eq? pos 'top)
     (compile-error cmpl "definition can apper in the toplevel or beginning of a <body>"))
   (let-values (((var val)
                 (p1-decons-definition cmpl
@@ -854,38 +855,38 @@
       (unless (env-outmost? e)
         (compile-error cmpl "malformed define"))
       (vector p2-syntax-id-gdef v e
-              (p1-compile-exp cmpl val env toplevel-p rdepth)))))
+              (p1-compile-exp cmpl val env pos rdepth)))))
 
-(define (p1-syntax-handler-begin cmpl exp env toplevel-p rdepth)
+(define (p1-syntax-handler-begin cmpl exp env pos rdepth)
   (list->vector (cons p2-syntax-id-begin
                       (map (lambda (e)
-                             (p1-compile-exp cmpl e env toplevel-p rdepth))
+                             (p1-compile-exp cmpl e env pos rdepth))
                            (cdr exp)))))
 
-(define (p1-decons-body-internal cmpl body env toplevel-p vars inits exps)
+(define (p1-decons-body-internal cmpl body env pos vars inits exps)
   (cond ((null? body)
          (values vars inits exps))
         ((not (pair? body))
          (compile-error cmpl "malformed <body>"))
         (else
          (let* ((exp (car body))
-                (syx (p1-get-syntax cmpl exp env toplevel-p)))
+                (syx (p1-get-syntax cmpl exp env pos)))
            (cond
             ((macro? syx)
              (p1-decons-body-internal cmpl
                                       (cons (macro-exec-expansion syx exp env)
                                             (cdr body))
-                                      env toplevel-p vars inits exps))
+                                      env pos vars inits exps))
             ((eq? syx compiler-syntax-definition)
              (let-values (((v i) (p1-decons-definition cmpl exp)))
-               (p1-decons-body-internal cmpl (cdr body) env toplevel-p
+               (p1-decons-body-internal cmpl (cdr body) env pos
                                         (cons v vars) (cons i inits) exps)))
             ((eq? syx compiler-syntax-begin)
              (let-values (((v i e) (p1-decons-body-internal cmpl (cdr exp) env
-                                                            toplevel-p
+                                                            pos
                                                             vars inits exps)))
                (if (eq? e exps)
-                   (p1-decons-body-internal cmpl (cdr body) env toplevel-p
+                   (p1-decons-body-internal cmpl (cdr body) env pos
                                             v i exps)
                    (values v i (if (null? (cdr body))
                                    e
@@ -894,27 +895,27 @@
              (values vars inits (cons body exps))))))))
 
 
-(define (p1-decons-body cmpl body env toplevel-p)
-  (let-values (((v i e) (p1-decons-body-internal cmpl body env toplevel-p
+(define (p1-decons-body cmpl body env pos)
+  (let-values (((v i e) (p1-decons-body-internal cmpl body env pos
                                             '() '() '())))
     (values (reverse v)
             (reverse i)
             (if (null? e) '(()) (reverse e)))))
 
-(define (p1-cmpl-body cmpl body env toplevel-p rdepth)
-  (let-values (((vars inits exps) (p1-decons-body cmpl body env toplevel-p)))
+(define (p1-cmpl-body cmpl body env pos rdepth)
+  (let-values (((vars inits exps) (p1-decons-body cmpl body env pos)))
     (let* ((vv (list->vector vars))
            (env (if (null? vars)
                     env
                     (env-extend vv #f env)))
            (vi (list->vector (map
                               (lambda (e)
-                                (p1-compile-exp cmpl e env toplevel-p rdepth))
+                                (p1-compile-exp cmpl e env pos rdepth))
                               inits)))
            (ve (list->vector (cons p2-syntax-id-begin
                                    (map(lambda (e)
                                          (p1-compile-exp cmpl e env
-                                                         toplevel-p rdepth))
+                                                         pos rdepth))
                                        (let rec ((exps exps))
                                          (if (null? exps) '()
                                              (append (car exps)
@@ -932,7 +933,7 @@
       (error "faild to compile: malformed quote" exp))
     (car lst)))
 
-(define (p1-syntax-handler-quote cmpl exp env toplevel-p rdepth)
+(define (p1-syntax-handler-quote cmpl exp env pos rdepth)
   (vector p2-syntax-id-self (p1-decons-quote cmpl exp)))
 
 (define (p1-decons-formals cmpl formals)
@@ -968,7 +969,7 @@
                     (env-assigned-variable? env idx))
               (rec (+ idx 1) (cdr par))))))
 
-(define (p1-cmpl-lambda cmpl params vparam body env toplevel-p rdepth)
+(define (p1-cmpl-lambda cmpl params vparam body env pos rdepth)
   (rdepth-expand! rdepth)
   (let* ((env (if (null? params)
                   env
@@ -984,9 +985,9 @@
               (if (>= rd 0) (+ rd 1) 0)
               bo))))
 
-(define (p1-syntax-handler-lambda cmpl exp env toplevel-p rdepth)
+(define (p1-syntax-handler-lambda cmpl exp env pos rdepth)
   (let-values (((params vparam body) (p1-decons-lambda cmpl exp)))
-    (p1-cmpl-lambda cmpl params vparam body env toplevel-p rdepth)))
+    (p1-cmpl-lambda cmpl params vparam body env pos rdepth)))
 
 (define (p1-decons-assignment cmpl exp)
   (unless (list? exp)
@@ -999,10 +1000,10 @@
       (compile-error cmpl "malformed assignment"))
     (values var val)))
 
-(define (p1-syntax-handler-assignment cmpl exp env toplevel-p rdepth)
+(define (p1-syntax-handler-assignment cmpl exp env pos rdepth)
   (let-values (((var val) (p1-decons-assignment cmpl exp)))
     (let-values (((v i l e) (env-resolve-variable-reference! env var #t rdepth)))
-      (let ((x (p1-compile-exp cmpl val env toplevel-p rdepth)))
+      (let ((x (p1-compile-exp cmpl val env pos rdepth)))
         (if (env-outmost? e)
             (vector p2-syntax-id-gset v e x)
             (vector p2-syntax-id-lset v i l x))))))
@@ -1018,13 +1019,13 @@
           (else
            (compile-error cmpl "malformed if")))))
 
-(define (p1-syntax-handler-if cmpl exp env toplevel-p rdepth)
+(define (p1-syntax-handler-if cmpl exp env pos rdepth)
   (let-values (((condi conse alter exist) (p1-decons-if cmpl exp)))
     (vector p2-syntax-id-if
-            (p1-compile-exp cmpl condi env toplevel-p rdepth)
-            (p1-compile-exp cmpl conse env toplevel-p rdepth)
+            (p1-compile-exp cmpl condi env pos rdepth)
+            (p1-compile-exp cmpl conse env pos rdepth)
             (if exist
-                (p1-compile-exp cmpl alter env toplevel-p rdepth)
+                (p1-compile-exp cmpl alter env pos rdepth)
                 (vector p2-syntax-id-begin)))))
 
 (define (p1-decons-cond cmpl exp)
@@ -1074,7 +1075,7 @@
                 (else
                  (compile-error cmpl "malformed cond")))))))
 
-(define (p1-syntax-handler-cond cmpl exp env toplevel-p rdepth)
+(define (p1-syntax-handler-cond cmpl exp env pos rdepth)
   (let-values (((test-lst type-lst expr-lst) (p1-decons-cond cmpl exp)))
     (let loop ((test-lst test-lst) (type-lst type-lst) (expr-lst expr-lst)
                (rslt '()))
@@ -1086,26 +1087,26 @@
             (cond ((eq? typ '>>)
                    (loop (cdr test-lst) (cdr type-lst) (cdr expr-lst)
                          (let ((ct (p1-compile-exp cmpl tst env
-                                                   toplevel-p rdepth))
+                                                   pos rdepth))
                                (ce (list->vector
                                     (cons p2-syntax-id-begin
                                           (map (lambda (e)
                                                  (p1-compile-exp cmpl e env
-                                                                 toplevel-p
+                                                                 pos
                                                                  rdepth))
                                                exp)))))
                            (cons (vector ct '>> ce) rslt))))
                   ((eq? typ '=>)
                    (loop (cdr test-lst) (cdr type-lst) (cdr expr-lst)
                          (let ((ct (p1-compile-exp cmpl tst env
-                                                   toplevel-p rdepth))
+                                                   pos rdepth))
                                (ce (p1-compile-exp cmpl exp env
-                                                   toplevel-p rdepth)))
+                                                   pos rdepth)))
                            (cons (vector ct '=> ce) rslt))))
                   ((eq? typ '<>)
                    (loop (cdr test-lst) (cdr type-lst) (cdr expr-lst)
                          (cons (vector (p1-compile-exp cmpl tst env
-                                                       toplevel-p rdepth)
+                                                       pos rdepth)
                                        '<>)
                                rslt)))
                   ((eq? typ '--)
@@ -1114,7 +1115,7 @@
                                     (cons p2-syntax-id-begin
                                           (map (lambda (e)
                                                  (p1-compile-exp cmpl e env
-                                                                 toplevel-p
+                                                                 pos
                                                                  rdepth))
                                                exp)))))
                            (cons (vector 'else '-- ce) rslt))))))))))
@@ -1124,11 +1125,11 @@
     (compile-error cmpl "malformed and"))
   (cdr exp))
 
-(define (p1-syntax-handler-and cmpl exp env toplevel-p rdepth)
+(define (p1-syntax-handler-and cmpl exp env pos rdepth)
   (let ((tests (p1-decons-and cmpl exp)))
     (list->vector (cons p2-syntax-id-and
                         (map (lambda (e)
-                               (p1-compile-exp cmpl e env toplevel-p rdepth))
+                               (p1-compile-exp cmpl e env pos rdepth))
                              tests)))))
 
 (define (p1-decons-or cmpl exp)
@@ -1136,11 +1137,11 @@
     (compile-error cmpl "malformed or"))
   (cdr exp))
 
-(define (p1-syntax-handler-or cmpl exp env toplevel-p rdepth)
+(define (p1-syntax-handler-or cmpl exp env pos rdepth)
   (let* ((tests (p1-decons-or cmpl exp)))
     (list->vector (cons p2-syntax-id-or
                         (map (lambda (e)
-                               (p1-compile-exp cmpl e env toplevel-p rdepth))
+                               (p1-compile-exp cmpl e env pos rdepth))
                              tests)))))
 
 (define (p1-decons-when cmpl exp)
@@ -1149,14 +1150,14 @@
       (compile-error cmpl "malformed when"))
     (values (car x) (cdr x))))
 
-(define (p1-syntax-handler-when cmpl exp env toplevel-p rdepth)
+(define (p1-syntax-handler-when cmpl exp env pos rdepth)
   (let-values (((test exps) (p1-decons-when cmpl exp)))
     (vector p2-syntax-id-if
-            (p1-compile-exp cmpl test env toplevel-p rdepth)
+            (p1-compile-exp cmpl test env pos rdepth)
             (list->vector (cons p2-syntax-id-begin
                                 (map (lambda (e)
                                        (p1-compile-exp cmpl e env
-                                                       toplevel-p rdepth))
+                                                       pos rdepth))
                                      exps)))
             (vector p2-syntax-id-begin))))
 
@@ -1166,15 +1167,15 @@
       (compile-error cmpl "malformed unless"))
     (values (car x) (cdr x))))
 
-(define (p1-syntax-handler-unless cmpl exp env toplevel-p rdepth)
+(define (p1-syntax-handler-unless cmpl exp env pos rdepth)
   (let-values (((test exps) (p1-decons-unless cmpl exp)))
     (vector p2-syntax-id-if
-            (p1-compile-exp cmpl test env toplevel-p rdepth)
+            (p1-compile-exp cmpl test env pos rdepth)
             (vector p2-syntax-id-begin)
             (list->vector (cons p2-syntax-id-begin
                                 (map (lambda (e)
                                        (p1-compile-exp cmpl e env
-                                                       toplevel-p rdepth))
+                                                       pos rdepth))
                                      exps))))))
 
 (define (p1-decons-let-like-syntax cmpl exp name-p keyword)
@@ -1216,7 +1217,7 @@
 ;;; -> ((letrec ((<name> (lambda (<v> ...) <expr> ...)))
 ;;;     <i> ...))
 
-(define (p1-cmpl-named-let cmpl name vars inits body env toplevel-p rdepth)
+(define (p1-cmpl-named-let cmpl name vars inits body env pos rdepth)
   (let* ((new-env (env-extend (vector name) #f env))
          (lmd (p1-cmpl-lambda cmpl vars #f body new-env #f rdepth)))
     (rdepth-add! rdepth -1)
@@ -1228,7 +1229,7 @@
        ,@(map (lambda (i) (p1-compile-exp cmpl i env #f rdepth))
               inits))))
 
-(define (p1-cmpl-let cmpl vars inits body env toplevel-p rdepth)
+(define (p1-cmpl-let cmpl vars inits body env pos rdepth)
   (let* ((new-env (if (null? vars) env (env-extend vars #f env)))
          (cb (p1-cmpl-body cmpl body new-env #f rdepth)))
     (unless (null? vars)
@@ -1239,18 +1240,18 @@
                            inits))
        ,cb)))
 
-(define (p1-syntax-handler-let cmpl exp env toplevel-p rdepth)
+(define (p1-syntax-handler-let cmpl exp env pos rdepth)
   (let-values (((name vars inits body) (p1-decons-let cmpl exp)))
     (if name
-        (p1-cmpl-named-let cmpl name vars inits body env toplevel-p rdepth)
-        (p1-cmpl-let cmpl vars inits body env toplevel-p rdepth))))
+        (p1-cmpl-named-let cmpl name vars inits body env pos rdepth)
+        (p1-cmpl-let cmpl vars inits body env pos rdepth))))
 
 (define (p1-decons-let* cmpl exp)
   (let-values (((name vars inits body)
                 (p1-decons-let-like-syntax cmpl exp #f 'let*)))
     (values vars inits body)))
 
-(define (p1-syntax-handler-let* cmpl exp env toplevel-p rdepth)
+(define (p1-syntax-handler-let* cmpl exp env pos rdepth)
   (let-values (((vars inits body) (p1-decons-let* cmpl exp)))
     (let rec ((v vars) (i inits) (e env))
       (if (null? v)
@@ -1269,7 +1270,7 @@
                 (p1-decons-let-like-syntax cmpl exp #f 'letrec)))
     (values vars inits body)))
 
-(define (p1-syntax-handler-letrec cmpl exp env toplevel-p rdepth)
+(define (p1-syntax-handler-letrec cmpl exp env pos rdepth)
   (let-values (((vars inits body) (p1-decons-letrec cmpl exp)))
     (let* ((new-env (if (null? vars)
                         env
@@ -1290,7 +1291,7 @@
                 (p1-decons-let-like-syntax cmpl exp #f 'letrec*)))
     (values vars inits body)))
 
-(define (p1-syntax-handler-letrec* cmpl exp env toplevel-p rdepth)
+(define (p1-syntax-handler-letrec* cmpl exp env pos rdepth)
   (let-values (((vars inits body) (p1-decons-letrec* cmpl exp)))
     (let* ((new-env (if (null? vars)
                         env
@@ -1357,7 +1358,7 @@
              (compile-error cmpl "malformed do"))))
     (values vars inits steps test exps cmd-cls)))
 
-(define (p1-syntax-handler-do cmpl exp env toplevel-p rdepth)
+(define (p1-syntax-handler-do cmpl exp env pos rdepth)
   (let-values (((vars inits steps test exps cmds) (p1-decons-do cmpl exp)))
     (let* ((new-env (if (null? vars)
                         env
@@ -1414,7 +1415,7 @@
     (let-values (((formals init) (p1-decons-mv-binding-spec cmpl (car x))))
       (values formals init (cdr x)))))
 
-(define (p1-syntax-handler-let-values cmpl exp env toplevel-p rdepth)
+(define (p1-syntax-handler-let-values cmpl exp env pos rdepth)
   (let-values (((formals inits body) (p1-decons-let-values cmpl exp)))
     (let* ((all-vars (let rec ((f formals))
                        (if (null? f)
@@ -1449,7 +1450,7 @@
               cb
               (vector-length all-vars-vec)))))
 
-(define (p1-syntax-handler-let*-values cmpl exp env toplevel-p rdepth)
+(define (p1-syntax-handler-let*-values cmpl exp env pos rdepth)
   (let-values (((formals inits body) (p1-decons-let-values cmpl exp)))
     (let rec ((fo formals) (in inits) (e env))
       (if (null? fo)
@@ -1488,7 +1489,7 @@
                 (p1-decons-let-like-syntax cmpl exp #f 'parameterize)))
     (values params vals (length params) body)))
 
-(define (p1-syntax-handler-parameterize cmpl exp env toplevel-p rdepth)
+(define (p1-syntax-handler-parameterize cmpl exp env pos rdepth)
   (let-values (((params vals nr body) (p1-decons-parameterize cmpl exp)))
     (vector p2-syntax-id-call
             (vector p2-syntax-id-gref
@@ -1510,7 +1511,7 @@
                                            (p1-compile-exp cmpl v env #f rdepth)
                                            (vector p2-syntax-id-self #f)))
                       (loop (+ idx 1) (cdr params) (cdr vals))))))
-            (p1-cmpl-lambda cmpl () () body env toplevel-p rdepth))))
+            (p1-cmpl-lambda cmpl () () body env pos rdepth))))
 
 (define (p1-decons-quasiquote cmpl exp)
   (let ((qq (cdr exp)))
@@ -1518,7 +1519,7 @@
       (compile-error cmpl "malformed quasiquote"))
     (car qq)))
 
-(define (p1-syntax-handler-quasiquote cmpl exp env toplevel-p rdepth)
+(define (p1-syntax-handler-quasiquote cmpl exp env pos rdepth)
   (let* ((tmpl (p1-decons-quasiquote cmpl exp))
          (qq (compile-qq-template tmpl))
          (n (qq-template-num-of-unquoted qq)))
@@ -1535,7 +1536,7 @@
               (vector-set! vec (+ i 3)
                            (p1-compile-exp cmpl
                                            (qq-template-unquoted qq i)
-                                           env toplevel-p rdepth))
+                                           env pos rdepth))
               (loop (+ i 1))))
           vec))))
 
@@ -1559,8 +1560,8 @@
       (compile-error cmpl "malformed define-syntax"))
     (values key trans)))
 
-(define (p1-syntax-handler-syntax-definition cmpl exp env toplevel-p rdepth)
-  (when (not toplevel-p)
+(define (p1-syntax-handler-syntax-definition cmpl exp env pos rdepth)
+  (unless (eq? pos 'top)
     (compile-error cmpl "syntax definition can apper in the toplevel or beginning of a <body>"))
   (let-values (((key trans) (p1-decons-syntax-definition cmpl exp)))
     (let-values (((v i l e) (env-find-identifier env key)))
@@ -1589,7 +1590,7 @@
                 (p1-decons-let-like-syntax cmpl exp #f 'let-syntax)))
     (values keys transs body)))
 
-(define (p1-syntax-handler-let-syntax cmpl exp env toplevel-p rdepth)
+(define (p1-syntax-handler-let-syntax cmpl exp env pos rdepth)
   (let-values (((keywords transformers body) (p1-decons-let-syntax cmpl exp)))
     (let* ((tenv (env-copy-keyword env))
            (macros (map (lambda (t)
@@ -1603,7 +1604,7 @@
                 (p1-decons-let-like-syntax cmpl exp #f 'letrec-syntax)))
     (values keys transs body)))
 
-(define (p1-syntax-handler-letrec-syntax cmpl exp env toplevel-p rdepth)
+(define (p1-syntax-handler-letrec-syntax cmpl exp env pos rdepth)
   (let-values (((keywords transformers body)
                 (p1-decons-letrec-syntax cmpl exp)))
     (let* ((tenv (env-copy-keyword env))
@@ -1625,7 +1626,7 @@
       (compile-error cmpl "malformed with-module"))
     x))
 
-(define (p1-syntax-handler-with-module cmpl exp env toplevel-p rdepth)
+(define (p1-syntax-handler-with-module cmpl exp env pos rdepth)
   (let* ((x (p1-decons-with-module cmpl exp))
          (name (car x))
          (exps (cdr x))
@@ -1635,7 +1636,7 @@
                                  (map (lambda (e)
                                         (p1-compile-exp cmpl e
                                                         (compiler-base-env cmpl)
-                                                        toplevel-p rdepth))
+                                                        pos rdepth))
                                       exps)))))
       (compiler-select-base-env! cmpl benv)
       x)))
@@ -1646,11 +1647,11 @@
       (compile-error cmpl "malformed select-module"))
     (car x)))
 
-(define (p1-syntax-handler-select-module cmpl exp env toplevel-p rdepth)
+(define (p1-syntax-handler-select-module cmpl exp env pos rdepth)
   (compiler-select-module! cmpl (p1-decons-select-module cmpl exp))
   (vector p2-syntax-id-begin))
 
-(define (p1-syntax-handler-current-module cmpl exp env toplevel-p rdepth)
+(define (p1-syntax-handler-current-module cmpl exp env pos rdepth)
   (unless (= (length exp) 1)
     (compile-error cmpl "malformed current-module"))
   (vector p2-syntax-id-self (env-module (compiler-base-env cmpl))))
