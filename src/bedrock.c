@@ -344,13 +344,13 @@ int
 scm_bedrock_cached_gv(ScmBedrock *br, int kind, scm_csetter_t *gloc)
 {
   static const struct {
-    const char *sym_name;    const char *mod_name[3]; size_t n;
+    const char *sym_name; const char *mod_name[4]; size_t n;
   } tbl[] = {
     { "compile",             { "scythe", "internal", "compile" }, 3 },
-    { "eval",                { "scythe", "base" }, 2 },
-    { "current-input-port",  { "scythe", "base" }, 2 },
-    { "current-output-port", { "scythe", "base" }, 2 },
-    { SCM_LOAD_PATH_VARIABLE_NAME, { "scheme", "load" }, 2 },
+    { "eval",                { "scythe", "internal", "core", "public" }, 4 },
+    { "current-input-port",  { "scythe", "internal", "core", "public" }, 4 },
+    { "current-output-port", { "scythe", "internal", "core", "public" }, 4 },
+    { SCM_LOAD_PATH_VARIABLE_NAME, { "scythe", "internal", "core", "public" }, 4 },
   };
 
   scm_assert(br != NULL);

@@ -1499,7 +1499,7 @@
               (vector-set! vec 0 p2-syntax-id-call)
               (vector-set! vec 1 (vector p2-syntax-id-gref
                                          'list
-                                         '(scheme base)))
+                                         '(scythe internal compile)))
               (let loop ((idx 2)
                          (params params)
                          (vals vals))
@@ -1736,7 +1736,7 @@
 (define compiler-syntax-current-module
   (make-syntax 'current-module p1-syntax-handler-current-module))
 
-(let ((name '(scheme base)))
+(let ((name '(scythe internal core public)))
   (p1-register-syntax name compiler-syntax-definition #t)
   (p1-register-syntax name compiler-syntax-begin #t)
   (p1-register-syntax name compiler-syntax-quote #t)
@@ -1759,9 +1759,7 @@
   (p1-register-syntax name compiler-syntax-quasiquote #t)
   (p1-register-syntax name compiler-syntax-syntax-definition #t)
   (p1-register-syntax name compiler-syntax-let-syntax #t)
-  (p1-register-syntax name compiler-syntax-letrec-syntax #t))
-
-(let ((name '(scythe internal misc)))
+  (p1-register-syntax name compiler-syntax-letrec-syntax #t)
   (p1-register-syntax name compiler-syntax-with-module #t)
   (p1-register-syntax name compiler-syntax-select-module #t)
   (p1-register-syntax name compiler-syntax-current-module #t))

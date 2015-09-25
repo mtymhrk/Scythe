@@ -1,6 +1,6 @@
 
 
-(select-module (scythe internal repl))
+(select-module (scythe repl))
 
 (define (read-eval-print-loop)
   (when (call/cc

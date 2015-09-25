@@ -1,5 +1,5 @@
 
-(select-module (scheme base))
+(select-module (scythe internal dynamic-env))
 
 (module-export (current-module) 'dynamic-wind)
 (define (dynamic-wind before thunk after)

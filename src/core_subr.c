@@ -3202,8 +3202,8 @@ scm_subr_func_repl(ScmObj subr, int argc, const ScmObj *argv)
   SCM_REFSTK_INIT_REG(&subr,
                       &proc);
 
-  r = scm_refer_global_var_cstr((const char *[]){ "scythe", "internal", "repl"},
-                                3, "read-eval-print-loop", SCM_CSETTER_L(proc));
+  r = scm_refer_global_var_cstr((const char *[]){ "scythe", "repl"}, 2,
+                                "read-eval-print-loop", SCM_CSETTER_L(proc));
   if (r < 0) return -1;
 
   if (scm_obj_null_p(proc)) {

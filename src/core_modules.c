@@ -35,8 +35,25 @@ struct const_num_data {
   bool export;
 };
 
-#define STRARY(...) (const char *[]){__VA_ARGS__}
+struct alias_data {
+  const char *alias;
+  const char *src;
+  bool export;
+};
 
+struct import_data {
+  const char *name[10];
+  size_t n;
+  int (*load_func)(void);
+  bool restrictive;
+};
+
+#define STRARY(...) (const char *[]){__VA_ARGS__}
+#define SUBR_DATA_TERMINATE { NULL, 0, 0, NULL, false }
+#define CONST_NUM_DATA_TERMINATE { NULL, 0, false }
+#define ALIAS_SAME_VAR(var, exp) { var, var, exp }
+#define ALIAS_DATA_TERMINATE { NULL, NULL, false }
+#define IMPORT_DATA_TERMINATE { {}, 0, NULL, false }
 
 static ScmObj
 scm_make_module_name(const char * const *name_str, size_t n)
@@ -84,7 +101,7 @@ scm_define_var(ScmObj module, const char *var, ScmObj val, bool export)
 }
 
 static int
-scm_define_subr(ScmObj module, const struct subr_data *data, size_t n)
+scm_define_subr(ScmObj module, const struct subr_data *data)
 {
   ScmObj subr = SCM_OBJ_INIT;
   int r;
@@ -92,12 +109,12 @@ scm_define_subr(ScmObj module, const struct subr_data *data, size_t n)
   SCM_REFSTK_INIT_REG(&module,
                       &subr);
 
-  for (size_t i = 0; i < n; i++) {
-    subr = scm_make_subrutine(data[i].func, data[i].arity, data[i].flag,
+  for (const struct subr_data *p = data; p->name != NULL; p++) {
+    subr = scm_make_subrutine(p->func, p->arity, p->flag,
                               module);
     if (scm_obj_null_p(subr)) return -1;
 
-    r = scm_define_var(module, data[i].name, subr, data[i].export);
+    r = scm_define_var(module, p->name, subr, p->export);
     if (r < 0) return -1;
   }
 
@@ -105,7 +122,7 @@ scm_define_subr(ScmObj module, const struct subr_data *data, size_t n)
 }
 
 static int
-scm_define_const_num(ScmObj module, const struct const_num_data *data, size_t n)
+scm_define_const_num(ScmObj module, const struct const_num_data *data)
 {
   ScmObj num = SCM_OBJ_INIT;
   int r;
@@ -113,11 +130,57 @@ scm_define_const_num(ScmObj module, const struct const_num_data *data, size_t n)
   SCM_REFSTK_INIT_REG(&module,
                       &num);
 
-  for (size_t i = 0; i < n; i++) {
-    num = scm_make_number_from_sword(data[i].val);
+  for (const struct const_num_data *p = data; p->name != NULL; p++) {
+    num = scm_make_number_from_sword(p->val);
     if (scm_obj_null_p(num)) return -1;
 
-    r = scm_define_var(module, data[i].name, num, data[i].export);
+    r = scm_define_var(module, p->name, num, p->export);
+    if (r < 0) return -1;
+  }
+
+  return 0;
+}
+
+static int
+scm_define_alias(ScmObj module, const struct alias_data *data)
+{
+  ScmObj sym = SCM_OBJ_INIT, ali = SCM_OBJ_INIT;
+  int r;
+
+  SCM_REFSTK_INIT_REG(&module,
+                      &sym, &ali);
+
+  for (const struct alias_data *p = data; p->alias != NULL; p++) {
+    ali = scm_make_symbol_from_cstr(p->alias, SCM_ENC_SRC);
+    if (scm_obj_null_p(ali)) return -1;
+
+    sym = scm_make_symbol_from_cstr(p->src, SCM_ENC_SRC);
+    if (scm_obj_null_p(sym)) return -1;
+
+    r = scm_define_global_alias(module, ali, sym, p->export);
+    if (r < 0) return -1;
+  }
+
+  return 0;
+}
+
+static int
+scm_load_modules_and_import_them(ScmObj module, const struct import_data *data)
+{
+  ScmObj name = SCM_OBJ_INIT;
+  int r;
+
+  SCM_REFSTK_INIT_REG(&module,
+                      &name);
+
+  for (const struct import_data *p = data; p->load_func != NULL; p++) {
+    r = p->load_func();
+    if (r < 0) return -1;
+
+    name = scm_make_module_name(p->name, p->n);
+    if (scm_obj_null_p(name)) return -1;
+
+    r = scm_module_import(module, name, p->restrictive);
     if (r < 0) return -1;
   }
 
@@ -149,6 +212,15 @@ scm_load_module(const char * const *name_str, size_t n,
 }
 
 
+static int scm_load_module_scythe_internal_core_public(void);
+static int scm_load_module_scythe_internal_core_private(void);
+static int scm_load_module_scythe_internal_dynamicenv(void);
+static int scm_load_module_scythe_internal_compile(void);
+static int scm_load_module_scythe_internal_macro(void);
+static int scm_load_module_scythe_base(void);
+static int scm_load_module_scythe_repl(void);
+static int scm_load_module_scythe_internal_command(void);
+static int scm_load_module_main(void);
 static int scm_load_module_scheme_base(void);
 static int scm_load_module_scheme_char(void);
 static int scm_load_module_scheme_eval(void);
@@ -157,23 +229,14 @@ static int scm_load_module_scheme_load(void);
 static int scm_load_module_scheme_processcontext(void);
 static int scm_load_module_scheme_read(void);
 static int scm_load_module_scheme_write(void);
-static int scm_load_module_scythe_internal_base(void);
-static int scm_load_module_scythe_internal_misc(void);
-static int scm_load_module_scythe_internal_dynamicenv(void);
-static int scm_load_module_scythe_internal_compile(void);
-static int scm_load_module_scythe_internal_macro(void);
-static int scm_load_module_scythe_internal_repl(void);
-static int scm_load_module_scythe_internal_command(void);
-static int scm_load_module_scythe_base(void);
-static int scm_load_module_main(void);
 
 
 /*******************************************************************/
-/*  (scheme base)                                                  */
+/*  (scythe internal core public)                                  */
 /*******************************************************************/
 
 static int
-scm_define_scheme_base_subr(ScmObj module)
+scm_define_scythe_internal_core_public_subr(ScmObj module)
 {
   static const struct subr_data data[] = {
     /*******************************************************************/
@@ -327,6 +390,10 @@ scm_define_scheme_base_subr(ScmObj module)
     /*******************************************************************/
     { "procedure?", SCM_SUBR_ARITY_PROCEDURE_P, SCM_SUBR_FLAG_PROCEDURE_P, scm_subr_func_procedure_P, true },
     { "apply", SCM_SUBR_ARITY_APPLY, SCM_SUBR_FLAG_APPLY, scm_subr_func_apply, true },
+   { "call/cc", SCM_SUBR_ARITY_CALLCC, SCM_SUBR_FLAG_CALLCC, scm_subr_func_callcc, true },
+    { "values", SCM_SUBR_ARITY_VALUES, SCM_SUBR_FLAG_VALUES, scm_subr_func_values, true },
+    { "call-with-values", SCM_SUBR_ARITY_CALL_WITH_VALUES, SCM_SUBR_FLAG_CALL_WITH_VALUES, scm_subr_func_call_with_values, true },
+    { "eval-asm", SCM_SUBR_ARITY_EVAL_ASM, SCM_SUBR_FLAG_EVAL_ASM, scm_subr_func_eval_asm, true },
 
     /*******************************************************************/
     /*  Exceptions                                                     */
@@ -347,26 +414,94 @@ scm_define_scheme_base_subr(ScmObj module)
     { "flush-output-port", SCM_SUBR_ARITY_FLUSH_OUTPUT_PORT, SCM_SUBR_FLAG_FLUSH_OUTPUT_PORT, scm_subr_func_flush_output_port, true },
     { "eof-object?", SCM_SUBR_ARITY_EOF_OBJECT_P, SCM_SUBR_FLAG_EOF_OBJECT_P, scm_subr_func_eof_object_P, true },
 
-    { "call/cc", SCM_SUBR_ARITY_CALLCC, SCM_SUBR_FLAG_CALLCC, scm_subr_func_callcc, true },
-    { "values", SCM_SUBR_ARITY_VALUES, SCM_SUBR_FLAG_VALUES, scm_subr_func_values, true },
-    { "call-with-values", SCM_SUBR_ARITY_CALL_WITH_VALUES, SCM_SUBR_FLAG_CALL_WITH_VALUES, scm_subr_func_call_with_values, true },
-    { "eval-asm", SCM_SUBR_ARITY_EVAL_ASM, SCM_SUBR_FLAG_EVAL_ASM, scm_subr_func_eval_asm, true },
+    /*******************************************************************/
+    /*  Char (characters)                                              */
+    /*******************************************************************/
+    { "char-ci=?", SCM_SUBR_ARITY_CHAR_CI_EQ_P, SCM_SUBR_FLAG_CHAR_CI_EQ_P, scm_subr_func_char_ci_eq_P, true },
+    { "char-ci<?", SCM_SUBR_ARITY_CHAR_CI_LT_P, SCM_SUBR_FLAG_CHAR_CI_LT_P, scm_subr_func_char_ci_lt_P, true },
+    { "char-ci>?", SCM_SUBR_ARITY_CHAR_CI_GT_P, SCM_SUBR_FLAG_CHAR_CI_GT_P, scm_subr_func_char_ci_gt_P, true },
+    { "char-ci<=?", SCM_SUBR_ARITY_CHAR_CI_LE_P, SCM_SUBR_FLAG_CHAR_CI_LE_P, scm_subr_func_char_ci_le_P, true },
+    { "char-ci>=?", SCM_SUBR_ARITY_CHAR_CI_GE_P, SCM_SUBR_FLAG_CHAR_CI_GE_P, scm_subr_func_char_ci_ge_P, true },
+    { "char-alphabetic?", SCM_SUBR_ARITY_CHAR_ALPHABETIC_P, SCM_SUBR_FLAG_CHAR_ALPHABETIC_P, scm_subr_func_char_alphabetic_P, true },
+    { "char-numeric?", SCM_SUBR_ARITY_CHAR_NUMERIC_P, SCM_SUBR_FLAG_CHAR_NUMERIC_P, scm_subr_func_char_numeric_P, true },
+    { "char-whitespace?", SCM_SUBR_ARITY_CHAR_WHITESPACE_P, SCM_SUBR_FLAG_CHAR_WHITESPACE_P, scm_subr_func_char_whitespace_P, true },
+    { "char-upper-case?", SCM_SUBR_ARITY_CHAR_UPPER_CASE_P, SCM_SUBR_FLAG_CHAR_UPPER_CASE_P, scm_subr_func_char_upper_case_P, true },
+    { "char-lower-case?", SCM_SUBR_ARITY_CHAR_LOWER_CASE_P, SCM_SUBR_FLAG_CHAR_LOWER_CASE_P, scm_subr_func_char_lower_case_P, true },
+    { "digit_value", SCM_SUBR_ARITY_DIGIT_VALUE, SCM_SUBR_FLAG_DIGIT_VALUE, scm_subr_func_digit_value, true },
+    { "char-upcase", SCM_SUBR_ARITY_CHAR_UPCASE, SCM_SUBR_FLAG_CHAR_UPCASE, scm_subr_func_char_upcase, true },
+    { "char-downcase", SCM_SUBR_ARITY_CHAR_DOWNCASE, SCM_SUBR_FLAG_CHAR_DOWNCASE, scm_subr_func_char_downcase, true },
+    { "char-foldcase", SCM_SUBR_ARITY_CHAR_FOLDCASE, SCM_SUBR_FLAG_CHAR_FOLDCASE, scm_subr_func_char_foldcase, true },
+
+    /*******************************************************************/
+    /*  Char (strings)                                                 */
+    /*******************************************************************/
+    { "string-ci=?", SCM_SUBR_ARITY_STRING_CI_EQ_P, SCM_SUBR_FLAG_STRING_CI_EQ_P, scm_subr_func_string_ci_eq_P, true },
+    { "string-ci<?", SCM_SUBR_ARITY_STRING_CI_LT_P, SCM_SUBR_FLAG_STRING_CI_LT_P, scm_subr_func_string_ci_lt_P, true },
+    { "string-ci>?", SCM_SUBR_ARITY_STRING_CI_GT_P, SCM_SUBR_FLAG_STRING_CI_GT_P, scm_subr_func_string_ci_gt_P, true },
+    { "string-ci<=?", SCM_SUBR_ARITY_STRING_CI_LE_P, SCM_SUBR_FLAG_STRING_CI_LE_P, scm_subr_func_string_ci_le_P, true },
+    { "string-ci>=?", SCM_SUBR_ARITY_STRING_CI_GE_P, SCM_SUBR_FLAG_STRING_CI_GE_P, scm_subr_func_string_ci_ge_P, true },
+
+    /*******************************************************************/
+    /*  Eval                                                           */
+    /*******************************************************************/
+    { "eval", SCM_SUBR_ARITY_EVAL, SCM_SUBR_FLAG_EVAL, scm_subr_func_eval, true },
+
+    /*******************************************************************/
+    /*  File                                                           */
+    /*******************************************************************/
+    { "delete-file", SCM_SUBR_ARITY_DELETE_FILE, SCM_SUBR_FLAG_DELETE_FILE, scm_subr_func_delete_file, true },
+    { "file-exists?", SCM_SUBR_ARITY_FILE_EXISTS_P, SCM_SUBR_FLAG_FILE_EXISTS_P, scm_subr_func_file_exists_P, true },
+    { "open-input-file", SCM_SUBR_ARITY_OPEN_INPUT_FILE, SCM_SUBR_FLAG_OPEN_INPUT_FILE, scm_subr_func_open_input_file, true },
+
+    /*******************************************************************/
+    /*  Load                                                           */
+    /*******************************************************************/
+    { "load", SCM_SUBR_ARITY_LOAD, SCM_SUBR_FLAG_LOAD, scm_subr_func_load, true },
+
+    /*******************************************************************/
+    /*  Process Context                                                */
+    /*******************************************************************/
+    { "exit", SCM_SUBR_ARITY_EXIT, SCM_SUBR_FLAG_EXIT, scm_subr_func_exit, true },
+
+    /*******************************************************************/
+    /*  Read                                                           */
+    /*******************************************************************/
+    { "read", SCM_SUBR_ARITY_READ, SCM_SUBR_FLAG_READ, scm_subr_func_read, true },
+
+    /*******************************************************************/
+    /*  Write                                                           */
+    /*******************************************************************/
+    { "display", SCM_SUBR_ARITY_DISPLAY, SCM_SUBR_FLAG_DISPLAY, scm_subr_func_display, true },
+    { "write", SCM_SUBR_ARITY_WRITE, SCM_SUBR_FLAG_WRITE, scm_subr_func_write, true },
+    { "write-shared", SCM_SUBR_ARITY_WRITE_SHARED, SCM_SUBR_FLAG_WRITE_SHARED, scm_subr_func_write_shared, true },
+    { "write-simple", SCM_SUBR_ARITY_WRITE_SIMPLE, SCM_SUBR_FLAG_WRITE_SIMPLE, scm_subr_func_write_simple, true },
+
+    /*******************************************************************/
+    /*  Format                                                         */
+    /*******************************************************************/
+    { "format", SCM_SUBR_ARITY_FORMAT, SCM_SUBR_FLAG_FORMAT, scm_subr_func_format, true },
+
+    /*******************************************************************/
+    /*  Modules                                                        */
+    /*******************************************************************/
+    { "module?", SCM_SUBR_ARITY_MODULE_P, SCM_SUBR_FLAG_MODULE_P, scm_subr_func_module_P, true },
+    { "module-name", SCM_SUBR_ARITY_MODULE_NAME, SCM_SUBR_FLAG_MODULE_NAME, scm_subr_func_module_name, true },
+    { "module-export", SCM_SUBR_ARITY_MODULE_EXPORT, SCM_SUBR_FLAG_MODULE_EXPORT, scm_subr_func_module_export, true },
+
+    SUBR_DATA_TERMINATE
   };
+  int r;
 
-  ScmObj sym  = SCM_OBJ_INIT, subr = SCM_OBJ_INIT;
-  int rslt;
+  SCM_REFSTK_INIT_REG(&module);
 
-  SCM_REFSTK_INIT_REG(&module,
-                      &sym, &subr);
-
-  rslt = scm_define_subr(module, data, sizeof(data)/sizeof(data[0]));
-  if (rslt < 0) return -1;
+  r = scm_define_subr(module, data);
+  if (r < 0) return -1;
 
   return 0;
 }
 
 static int
-scm_define_scheme_base_current_port(ScmObj module)
+scm_define_scythe_internal_core_public_current_port(ScmObj module)
 {
   struct {
     const char *name;
@@ -410,661 +545,40 @@ scm_define_scheme_base_current_port(ScmObj module)
   return 0;
 }
 
-extern const unsigned char scm_scheme_base_data[];
-
 static int
-scm_define_scheme_base_closure(ScmObj mod)
+scm_load_module_func_scythe_internal_core_public(ScmObj mod)
 {
-  ScmObj unmarshal = SCM_OBJ_INIT, iseq = SCM_OBJ_INIT;
-  int rslt;
+  int r;
 
-  SCM_REFSTK_INIT_REG(&mod,
-                      &unmarshal, &iseq);
+  SCM_REFSTK_INIT_REG(&mod);
 
-  unmarshal = scm_make_unmarshal(scm_scheme_base_data);
-  if (scm_obj_null_p(unmarshal)) return -1;
+  r = scm_define_scythe_internal_core_public_subr(mod);
+  if (r < 0) return -1;
 
-  iseq = scm_unmarshal_ref(unmarshal, 0);
-  if (scm_obj_null_p(iseq)) return -1;
-  scm_assert(scm_iseq_p(iseq));
+  r = scm_define_scythe_internal_core_public_current_port(mod);
+  if (r < 0) return -1;
 
-  rslt = scm_load_iseq(iseq);
-  if (rslt < 0) return -1;
+  r = scm_define_var(mod, SCM_LOAD_PATH_VARIABLE_NAME, SCM_NIL_OBJ, true);
+  if (r < 0) return -1;
 
   return 0;
 }
 
 static int
-scm_load_module_func_scheme_base(ScmObj mod)
+scm_load_module_scythe_internal_core_public(void)
 {
-  ScmObj name = SCM_OBJ_INIT;
-  int rslt;
-
-  SCM_REFSTK_INIT_REG(&mod,
-                      &name);
-
-
-  /*
-   * load (scythe internal misc) module and import it
-   */
-
-  rslt = scm_load_module_scythe_internal_misc();
-  if (rslt < 0) return -1;
-
-  name = scm_make_module_name(STRARY("scythe", "internal", "misc"), 3);
-  if (scm_obj_null_p(name)) return -1;
-
-  rslt = scm_module_import(mod, name, true);
-  if (rslt < 0) return -1;
-
-  /*
-   * load (scythe internal dynamic-env) module and import it
-   */
-
-  rslt = scm_load_module_scythe_internal_dynamicenv();
-  if (rslt < 0) return -1;
-
-  name = scm_make_module_name(STRARY("scythe", "internal", "dynamic-env"), 3);
-  if (scm_obj_null_p(name)) return -1;
-
-  rslt = scm_module_import(mod, name, true);
-  if (rslt < 0) return -1;
-
-
-  /*
-   * define global variables
-   */
-
-  rslt = scm_define_scheme_base_subr(mod);
-  if (rslt < 0) return -1;
-
-  rslt = scm_define_scheme_base_current_port(mod);
-  if (rslt < 0) return -1;
-
-  rslt = scm_define_scheme_base_closure(mod);
-  if (rslt < 0) return -1;
-
-  return 0;
-}
-
-static int
-scm_load_module_scheme_base(void)
-{
-  return scm_load_module((const char *[]){"scheme", "base"}, 2,
-                         scm_load_module_func_scheme_base);
+  return scm_load_module((const char *[]){"scythe", "internal", "core", "public"},
+                         4,
+                         scm_load_module_func_scythe_internal_core_public);
 }
 
 
 /*******************************************************************/
-/*  (scheme char)                                                  */
+/*  (scythe internal core private)                                 */
 /*******************************************************************/
 
 static int
-scm_define_scheme_char_subr(ScmObj module)
-{
-  static const struct subr_data data[] = {
-    /*******************************************************************/
-    /*  Characters                                                     */
-    /*******************************************************************/
-    { "char-ci=?", SCM_SUBR_ARITY_CHAR_CI_EQ_P, SCM_SUBR_FLAG_CHAR_CI_EQ_P, scm_subr_func_char_ci_eq_P, true },
-    { "char-ci<?", SCM_SUBR_ARITY_CHAR_CI_LT_P, SCM_SUBR_FLAG_CHAR_CI_LT_P, scm_subr_func_char_ci_lt_P, true },
-    { "char-ci>?", SCM_SUBR_ARITY_CHAR_CI_GT_P, SCM_SUBR_FLAG_CHAR_CI_GT_P, scm_subr_func_char_ci_gt_P, true },
-    { "char-ci<=?", SCM_SUBR_ARITY_CHAR_CI_LE_P, SCM_SUBR_FLAG_CHAR_CI_LE_P, scm_subr_func_char_ci_le_P, true },
-    { "char-ci>=?", SCM_SUBR_ARITY_CHAR_CI_GE_P, SCM_SUBR_FLAG_CHAR_CI_GE_P, scm_subr_func_char_ci_ge_P, true },
-    { "char-alphabetic?", SCM_SUBR_ARITY_CHAR_ALPHABETIC_P, SCM_SUBR_FLAG_CHAR_ALPHABETIC_P, scm_subr_func_char_alphabetic_P, true },
-    { "char-numeric?", SCM_SUBR_ARITY_CHAR_NUMERIC_P, SCM_SUBR_FLAG_CHAR_NUMERIC_P, scm_subr_func_char_numeric_P, true },
-    { "char-whitespace?", SCM_SUBR_ARITY_CHAR_WHITESPACE_P, SCM_SUBR_FLAG_CHAR_WHITESPACE_P, scm_subr_func_char_whitespace_P, true },
-    { "char-upper-case?", SCM_SUBR_ARITY_CHAR_UPPER_CASE_P, SCM_SUBR_FLAG_CHAR_UPPER_CASE_P, scm_subr_func_char_upper_case_P, true },
-    { "char-lower-case?", SCM_SUBR_ARITY_CHAR_LOWER_CASE_P, SCM_SUBR_FLAG_CHAR_LOWER_CASE_P, scm_subr_func_char_lower_case_P, true },
-    { "digit_value", SCM_SUBR_ARITY_DIGIT_VALUE, SCM_SUBR_FLAG_DIGIT_VALUE, scm_subr_func_digit_value, true },
-    { "char-upcase", SCM_SUBR_ARITY_CHAR_UPCASE, SCM_SUBR_FLAG_CHAR_UPCASE, scm_subr_func_char_upcase, true },
-    { "char-downcase", SCM_SUBR_ARITY_CHAR_DOWNCASE, SCM_SUBR_FLAG_CHAR_DOWNCASE, scm_subr_func_char_downcase, true },
-    { "char-foldcase", SCM_SUBR_ARITY_CHAR_FOLDCASE, SCM_SUBR_FLAG_CHAR_FOLDCASE, scm_subr_func_char_foldcase, true },
-
-    /*******************************************************************/
-    /*  Strings                                                        */
-    /*******************************************************************/
-    { "string-ci=?", SCM_SUBR_ARITY_STRING_CI_EQ_P, SCM_SUBR_FLAG_STRING_CI_EQ_P, scm_subr_func_string_ci_eq_P, true },
-    { "string-ci<?", SCM_SUBR_ARITY_STRING_CI_LT_P, SCM_SUBR_FLAG_STRING_CI_LT_P, scm_subr_func_string_ci_lt_P, true },
-    { "string-ci>?", SCM_SUBR_ARITY_STRING_CI_GT_P, SCM_SUBR_FLAG_STRING_CI_GT_P, scm_subr_func_string_ci_gt_P, true },
-    { "string-ci<=?", SCM_SUBR_ARITY_STRING_CI_LE_P, SCM_SUBR_FLAG_STRING_CI_LE_P, scm_subr_func_string_ci_le_P, true },
-    { "string-ci>=?", SCM_SUBR_ARITY_STRING_CI_GE_P, SCM_SUBR_FLAG_STRING_CI_GE_P, scm_subr_func_string_ci_ge_P, true },
-  };
-
-  int rslt;
-
-  SCM_REFSTK_INIT_REG(&module);
-
-  rslt = scm_define_subr(module, data, sizeof(data)/sizeof(data[0]));
-  if (rslt < 0) return -1;
-
-  return 0;
-}
-
-static int
-scm_load_module_func_scheme_char(ScmObj mod)
-{
-  ScmObj name = SCM_OBJ_INIT;
-  int rslt;
-
-  SCM_REFSTK_INIT_REG(&mod,
-                      &name);
-
-
-  /*
-   * define global variables
-   */
-
-  rslt = scm_define_scheme_char_subr(mod);
-  if (rslt < 0) return -1;
-
-  return 0;
-}
-
-static int
-scm_load_module_scheme_char(void)
-{
-  return scm_load_module(STRARY("scheme", "char"), 2,
-                         scm_load_module_func_scheme_char);
-}
-
-
-/*******************************************************************/
-/*  (scheme eval)                                                  */
-/*******************************************************************/
-
-static int
-scm_define_scheme_eval_subr(ScmObj module)
-{
-  static const struct subr_data data[] = {
-    { "eval", SCM_SUBR_ARITY_EVAL, SCM_SUBR_FLAG_EVAL, scm_subr_func_eval, true },
-  };
-
-  int rslt;
-
-  SCM_REFSTK_INIT_REG(&module);
-
-  rslt = scm_define_subr(module, data, sizeof(data)/sizeof(data[0]));
-  if (rslt < 0) return -1;
-
-  return 0;
-}
-
-static int
-scm_load_module_func_scheme_eval(ScmObj mod)
-{
-  ScmObj name = SCM_OBJ_INIT;
-  int rslt;
-
-  SCM_REFSTK_INIT_REG(&mod,
-                      &name);
-
-
-  /*
-   * define global variables
-   */
-
-  rslt = scm_define_scheme_eval_subr(mod);
-  if (rslt < 0) return -1;
-
-  return 0;
-}
-
-static int
-scm_load_module_scheme_eval(void)
-{
-  return scm_load_module(STRARY("scheme", "eval"), 2,
-                         scm_load_module_func_scheme_eval);
-}
-
-
-/*******************************************************************/
-/*  (scheme file)                                                  */
-/*******************************************************************/
-
-static int
-scm_define_scheme_file_subr(ScmObj module)
-{
-  static const struct subr_data data[] = {
-    { "delete-file", SCM_SUBR_ARITY_DELETE_FILE, SCM_SUBR_FLAG_DELETE_FILE, scm_subr_func_delete_file, true },
-    { "file-exists?", SCM_SUBR_ARITY_FILE_EXISTS_P, SCM_SUBR_FLAG_FILE_EXISTS_P, scm_subr_func_file_exists_P, true },
-    { "open-input-file", SCM_SUBR_ARITY_OPEN_INPUT_FILE, SCM_SUBR_FLAG_OPEN_INPUT_FILE, scm_subr_func_open_input_file, true },
-  };
-
-  int rslt;
-
-  SCM_REFSTK_INIT_REG(&module);
-
-  rslt = scm_define_subr(module, data, sizeof(data)/sizeof(data[0]));
-  if (rslt < 0) return -1;
-
-  return 0;
-}
-
-static int
-scm_load_module_func_scheme_file(ScmObj mod)
-{
-  ScmObj name = SCM_OBJ_INIT;
-  int rslt;
-
-  SCM_REFSTK_INIT_REG(&mod,
-                      &name);
-
-
-  /*
-   * define global variables
-   */
-
-  rslt = scm_define_scheme_file_subr(mod);
-  if (rslt < 0) return -1;
-
-  return 0;
-}
-
-static int
-scm_load_module_scheme_file(void)
-{
-  return scm_load_module(STRARY("scheme", "file"), 2,
-                         scm_load_module_func_scheme_file);
-}
-
-
-/*******************************************************************/
-/*  (scheme load)                                                  */
-/*******************************************************************/
-
-static int
-scm_define_scheme_load_subr(ScmObj module)
-{
-  static const struct subr_data data[] = {
-    { "load", SCM_SUBR_ARITY_LOAD, SCM_SUBR_FLAG_LOAD, scm_subr_func_load, true },
-  };
-
-  int rslt;
-
-  SCM_REFSTK_INIT_REG(&module);
-
-  rslt = scm_define_subr(module, data, sizeof(data)/sizeof(data[0]));
-  if (rslt < 0) return -1;
-
-  return 0;
-}
-
-static int
-scm_load_module_func_scheme_load(ScmObj mod)
-{
-  ScmObj name = SCM_OBJ_INIT;
-  int rslt;
-
-  SCM_REFSTK_INIT_REG(&mod,
-                      &name);
-
-
-  /*
-   * define global variables
-   */
-
-  rslt = scm_define_scheme_load_subr(mod);
-  if (rslt < 0) return -1;
-
-  rslt = scm_define_var(mod, SCM_LOAD_PATH_VARIABLE_NAME, SCM_NIL_OBJ, true);
-  if (rslt < 0) return -1;
-
-  return 0;
-}
-
-static int
-scm_load_module_scheme_load(void)
-{
-  return scm_load_module(STRARY("scheme", "load"), 2,
-                         scm_load_module_func_scheme_load);
-}
-
-
-/*******************************************************************/
-/*  (scheme process-context)                                       */
-/*******************************************************************/
-
-static int
-scm_define_scheme_processcontext_subr(ScmObj module)
-{
-  static const struct subr_data data[] = {
-    { "exit", SCM_SUBR_ARITY_EXIT, SCM_SUBR_FLAG_EXIT, scm_subr_func_exit, true },
-  };
-
-  int rslt;
-
-  SCM_REFSTK_INIT_REG(&module);
-
-  rslt = scm_define_subr(module, data, sizeof(data)/sizeof(data[0]));
-  if (rslt < 0) return -1;
-
-  return 0;
-}
-
-static int
-scm_load_module_func_scheme_processcontext(ScmObj mod)
-{
-  ScmObj name = SCM_OBJ_INIT;
-  int rslt;
-
-  SCM_REFSTK_INIT_REG(&mod,
-                      &name);
-
-
-  /*
-   * define global variables
-   */
-
-  rslt = scm_define_scheme_processcontext_subr(mod);
-  if (rslt < 0) return -1;
-
-  return 0;
-}
-
-static int
-scm_load_module_scheme_processcontext(void)
-{
-  return scm_load_module(STRARY("scheme", "process-context"), 2,
-                         scm_load_module_func_scheme_processcontext);
-}
-
-
-/*******************************************************************/
-/*  (scheme read)                                                  */
-/*******************************************************************/
-
-static int
-scm_define_scheme_read_subr(ScmObj module)
-{
-  static const struct subr_data data[] = {
-    { "read", SCM_SUBR_ARITY_READ, SCM_SUBR_FLAG_READ, scm_subr_func_read, true },
-  };
-
-  int rslt;
-
-  SCM_REFSTK_INIT_REG(&module);
-
-  rslt = scm_define_subr(module, data, sizeof(data)/sizeof(data[0]));
-  if (rslt < 0) return -1;
-
-  return 0;
-}
-
-static int
-scm_load_module_func_scheme_read(ScmObj mod)
-{
-  ScmObj name = SCM_OBJ_INIT;
-  int rslt;
-
-  SCM_REFSTK_INIT_REG(&mod,
-                      &name);
-
-
-  /*
-   * define global variables
-   */
-
-  rslt = scm_define_scheme_read_subr(mod);
-  if (rslt < 0) return -1;
-
-  return 0;
-}
-
-static int
-scm_load_module_scheme_read(void)
-{
-  return scm_load_module(STRARY("scheme", "read"), 2,
-                         scm_load_module_func_scheme_read);
-}
-
-/*******************************************************************/
-/*  (scheme write)                                                  */
-/*******************************************************************/
-
-static int
-scm_define_scheme_write_subr(ScmObj module)
-{
-  static const struct subr_data data[] = {
-    { "display", SCM_SUBR_ARITY_DISPLAY, SCM_SUBR_FLAG_DISPLAY, scm_subr_func_display, true },
-    { "write", SCM_SUBR_ARITY_WRITE, SCM_SUBR_FLAG_WRITE, scm_subr_func_write, true },
-    { "write-shared", SCM_SUBR_ARITY_WRITE_SHARED, SCM_SUBR_FLAG_WRITE_SHARED, scm_subr_func_write_shared, true },
-    { "write-simple", SCM_SUBR_ARITY_WRITE_SIMPLE, SCM_SUBR_FLAG_WRITE_SIMPLE, scm_subr_func_write_simple, true },
-  };
-
-  int rslt;
-
-  SCM_REFSTK_INIT_REG(&module);
-
-  rslt = scm_define_subr(module, data, sizeof(data)/sizeof(data[0]));
-  if (rslt < 0) return -1;
-
-  return 0;
-}
-
-static int
-scm_load_module_func_scheme_write(ScmObj mod)
-{
-  ScmObj name = SCM_OBJ_INIT;
-  int rslt;
-
-  SCM_REFSTK_INIT_REG(&mod,
-                      &name);
-
-
-  /*
-   * define global variables
-   */
-
-  rslt = scm_define_scheme_write_subr(mod);
-  if (rslt < 0) return -1;
-
-  return 0;
-}
-
-static int
-scm_load_module_scheme_write(void)
-{
-  return scm_load_module(STRARY("scheme", "write"), 2,
-                         scm_load_module_func_scheme_write);
-}
-
-
-/*******************************************************************/
-/*  (scythe internal base)                                         */
-/*******************************************************************/
-
-static int
-scm_load_module_func_scythe_internal_base(ScmObj mod)
-{
-  ScmObj name = SCM_OBJ_INIT;
-  int rslt;
-
-  SCM_REFSTK_INIT_REG(&mod,
-                      &name);
-
-  /*
-   * load (scheme base) module and import it
-   */
-
-  rslt = scm_load_module_scheme_base();
-  if (rslt < 0) return -1;
-
-  name = scm_make_module_name(STRARY("scheme", "base"), 2);
-  if (scm_obj_null_p(name)) return -1;
-
-  rslt = scm_module_import(mod, name, false);
-  if (rslt < 0) return -1;
-
-
-  /*
-   * load (scheme char) module and import it
-   */
-
-  rslt = scm_load_module_scheme_char();
-  if (rslt < 0) return -1;
-
-  name = scm_make_module_name(STRARY("scheme", "char"), 2);
-  if (scm_obj_null_p(name)) return -1;
-
-  rslt = scm_module_import(mod, name, false);
-  if (rslt < 0) return -1;
-
-
-  /*
-   * load (scheme eval) module and import it
-   */
-
-  rslt = scm_load_module_scheme_eval();
-  if (rslt < 0) return -1;
-
-  name = scm_make_module_name(STRARY("scheme", "eval"), 2);
-  if (scm_obj_null_p(name)) return -1;
-
-  rslt = scm_module_import(mod, name, false);
-  if (rslt < 0) return -1;
-
-
-  /*
-   * load (scheme file) module and import it
-   */
-
-  rslt = scm_load_module_scheme_file();
-  if (rslt < 0) return -1;
-
-  name = scm_make_module_name(STRARY("scheme", "file"), 2);
-  if (scm_obj_null_p(name)) return -1;
-
-  rslt = scm_module_import(mod, name, false);
-  if (rslt < 0) return -1;
-
-
-  /*
-   * load (scheme load) module and import it
-   */
-
-  rslt = scm_load_module_scheme_load();
-  if (rslt < 0) return -1;
-
-  name = scm_make_module_name(STRARY("scheme", "load"), 2);
-  if (scm_obj_null_p(name)) return -1;
-
-  rslt = scm_module_import(mod, name, false);
-  if (rslt < 0) return -1;
-
-
-  /*
-   * load (scheme process-context) module and import it
-   */
-
-  rslt = scm_load_module_scheme_processcontext();
-  if (rslt < 0) return -1;
-
-  name = scm_make_module_name(STRARY("scheme", "process-context"), 2);
-  if (scm_obj_null_p(name)) return -1;
-
-  rslt = scm_module_import(mod, name, false);
-  if (rslt < 0) return -1;
-
-
-  /*
-   * load (scheme read) module and import it
-   */
-
-  rslt = scm_load_module_scheme_read();
-  if (rslt < 0) return -1;
-
-  name = scm_make_module_name(STRARY("scheme", "read"), 2);
-  if (scm_obj_null_p(name)) return -1;
-
-  rslt = scm_module_import(mod, name, false);
-  if (rslt < 0) return -1;
-
-
-  /*
-   * load (scheme write) module and import it
-   */
-
-  rslt = scm_load_module_scheme_write();
-  if (rslt < 0) return -1;
-
-  name = scm_make_module_name(STRARY("scheme", "write"), 2);
-  if (scm_obj_null_p(name)) return -1;
-
-  rslt = scm_module_import(mod, name, false);
-  if (rslt < 0) return -1;
-
-  return 0;
-}
-
-static int
-scm_load_module_scythe_internal_base(void)
-{
-  return scm_load_module(STRARY("scythe", "internal", "base"), 3,
-                         scm_load_module_func_scythe_internal_base);
-}
-
-
-/*******************************************************************/
-/*  (scythe internal misc)                                         */
-/*******************************************************************/
-
-static int
-scm_define_scythe_internal_misc_subr(ScmObj module)
-{
-  static const struct subr_data data[] = {
-    /*******************************************************************/
-    /*  format                                                         */
-    /*******************************************************************/
-    { "format", SCM_SUBR_ARITY_FORMAT, SCM_SUBR_FLAG_FORMAT, scm_subr_func_format, true },
-
-    /*******************************************************************/
-    /*  Modules                                                        */
-    /*******************************************************************/
-    { "module?", SCM_SUBR_ARITY_MODULE_P, SCM_SUBR_FLAG_MODULE_P, scm_subr_func_module_P, true },
-    { "module-name", SCM_SUBR_ARITY_MODULE_NAME, SCM_SUBR_FLAG_MODULE_NAME, scm_subr_func_module_name, true },
-    { "module-export", SCM_SUBR_ARITY_MODULE_EXPORT, SCM_SUBR_FLAG_MODULE_EXPORT, scm_subr_func_module_export, true },
-  };
-
-  int rslt;
-
-  SCM_REFSTK_INIT_REG(&module);
-
-  rslt = scm_define_subr(module, data, sizeof(data)/sizeof(data[0]));
-  if (rslt < 0) return -1;
-
-  return 0;
-}
-
-static int
-scm_load_module_func_scythe_internal_misc(ScmObj mod)
-{
-  int rslt;
-
-  /*
-   * define global variables
-   */
-
-  rslt = scm_define_scythe_internal_misc_subr(mod);
-  if (rslt < 0) return -1;
-
-  return 0;
-}
-
-static int
-scm_load_module_scythe_internal_misc(void)
-{
-  return scm_load_module(STRARY("scythe", "internal", "misc"), 3,
-                         scm_load_module_func_scythe_internal_misc);
-}
-
-
-/*******************************************************************/
-/*  (scythe internal dynamic-env)                                  */
-/*******************************************************************/
-
-static int
-scm_define_scythe_internal_dynamicenv_subr(ScmObj module)
+scm_define_scythe_internal_core_private_subr(ScmObj module)
 {
   static const struct subr_data data[] = {
     /*******************************************************************/
@@ -1085,99 +599,55 @@ scm_define_scythe_internal_dynamicenv_subr(ScmObj module)
     { "push-dynamic-wind-handler", SCM_SUBR_ARITY_PUSH_DYNAMIC_WIND_HANDLER, SCM_SUBR_FLAG_PUSH_DYNAMIC_WIND_HANDLER, scm_subr_func_push_dynamic_wind_handler, true },
     { "pop-dynamic-wind-handler", SCM_SUBR_ARITY_POP_DYNAMIC_WIND_HANDLER, SCM_SUBR_FLAG_POP_DYNAMIC_WIND_HANDLER, scm_subr_func_pop_dynamic_wind_handler, true },
 
-  };
+    /*******************************************************************/
+    /*  Global Variables                                               */
+    /*******************************************************************/
+    { "global-variable-bind", SCM_SUBR_ARITY_GLOBAL_VARIABLE_BIND, SCM_SUBR_FLAG_GLOBAL_VARIABLE_BIND, scm_subr_func_global_variable_bind, true },
+    { "global-syntax-bind", SCM_SUBR_ARITY_GLOBAL_SYNTAX_BIND, SCM_SUBR_FLAG_GLOBAL_SYNTAX_BIND, scm_subr_func_global_syntax_bind, true },
+    { "global-syntax-ref", SCM_SUBR_ARITY_GLOBAL_SYNTAX_REF, SCM_SUBR_FLAG_GLOBAL_SYNTAX_REF, scm_subr_func_global_syntax_ref, true },
 
-  int rslt;
-
-  SCM_REFSTK_INIT_REG(&module);
-
-  rslt = scm_define_subr(module, data, sizeof(data)/sizeof(data[0]));
-  if (rslt < 0) return -1;
-
-  return 0;
-}
-
-static int
-scm_load_module_func_scythe_internal_dynamicenv(ScmObj mod)
-{
-  int rslt;
-
-  /*
-   * define global variables
-   */
-
-  rslt = scm_define_scythe_internal_dynamicenv_subr(mod);
-  if (rslt < 0) return -1;
-
-  return 0;
-}
-
-static int
-scm_load_module_scythe_internal_dynamicenv(void)
-{
-  return scm_load_module(STRARY("scythe", "internal", "dynamic-env"), 3,
-                         scm_load_module_func_scythe_internal_dynamicenv);
-}
-
-
-/*******************************************************************/
-/*  (scythe internal compile)                                      */
-/*******************************************************************/
-
-static int
-scm_define_scythe_internal_compile_subr(ScmObj module)
-{
-  static const struct subr_data data[] = {
     /*******************************************************************/
     /*  Assembler                                                      */
     /*******************************************************************/
-    { "make-assembler", SCM_SUBR_ARITY_MAKE_ASSEMBLER, SCM_SUBR_FLAG_MAKE_ASSEMBLER, scm_subr_func_make_assembler, false },
-    { "assembler-assign-label-id!", SCM_SUBR_ARITY_ASSEMBLER_ASSIGN_LABEL_ID_I, SCM_SUBR_FLAG_ASSEMBLER_ASSIGN_LABEL_ID_I, scm_subr_func_assembler_assign_label_id_i, false },
-    { "assembler-push!", SCM_SUBR_ARITY_ASSEMBLER_PUSH_I, SCM_SUBR_FLAG_ASSEMBLER_PUSH_I, scm_subr_func_assembler_push_i, false },
-    { "assembler-commit!", SCM_SUBR_ARITY_ASSEMBLER_COMMIT_I, SCM_SUBR_FLAG_ASSEMBLER_COMMIT_I, scm_subr_func_assembler_commit_i, false },
+    { "make-assembler", SCM_SUBR_ARITY_MAKE_ASSEMBLER, SCM_SUBR_FLAG_MAKE_ASSEMBLER, scm_subr_func_make_assembler, true },
+    { "assembler-assign-label-id!", SCM_SUBR_ARITY_ASSEMBLER_ASSIGN_LABEL_ID_I, SCM_SUBR_FLAG_ASSEMBLER_ASSIGN_LABEL_ID_I, scm_subr_func_assembler_assign_label_id_i, true },
+    { "assembler-push!", SCM_SUBR_ARITY_ASSEMBLER_PUSH_I, SCM_SUBR_FLAG_ASSEMBLER_PUSH_I, scm_subr_func_assembler_push_i, true },
+    { "assembler-commit!", SCM_SUBR_ARITY_ASSEMBLER_COMMIT_I, SCM_SUBR_FLAG_ASSEMBLER_COMMIT_I, scm_subr_func_assembler_commit_i, true },
 
     /*******************************************************************/
     /*  Compiler                                                       */
     /*******************************************************************/
-    { "compiler?", SCM_SUBR_ARITY_COMPILER_P, SCM_SUBR_FLAG_COMPILER_P, scm_subr_func_compiler_P, false },
-    { "make-compiler", SCM_SUBR_ARITY_MAKE_COMPILER, SCM_SUBR_FLAG_MAKE_COMPILER, scm_subr_func_make_compiler, false },
-    { "compiler-base-env", SCM_SUBR_ARITY_COMPILER_BASE_ENV, SCM_SUBR_FLAG_COMPILER_BASE_ENV, scm_subr_func_compiler_base_env, false },
-    { "compiler-select-base-env!", SCM_SUBR_ARITY_COMPILER_SELECT_BASE_ENV_I, SCM_SUBR_FLAG_COMPILER_SELECT_BASE_ENV_I, scm_subr_func_compiler_select_base_env_i, false },
-    { "compiler-select-module!", SCM_SUBR_ARITY_COMPILER_SELECT_MODULE_I, SCM_SUBR_FLAG_COMPILER_SELECT_MODULE_I, scm_subr_func_compiler_select_module_i, false },
-    { "compiler-current-expr", SCM_SUBR_ARITY_COMPILER_CURRENT_EXPR, SCM_SUBR_FLAG_COMPILER_CURRENT_EXPR, scm_subr_func_compiler_current_expr, false },
-    { "compiler-select-expr!", SCM_SUBR_ARITY_COMPILER_SELECT_EXPR_I, SCM_SUBR_FLAG_COMPILER_SELECT_EXPR_I, scm_subr_func_compiler_select_expr_i, false },
-
+    { "compiler?", SCM_SUBR_ARITY_COMPILER_P, SCM_SUBR_FLAG_COMPILER_P, scm_subr_func_compiler_P, true },
+    { "make-compiler", SCM_SUBR_ARITY_MAKE_COMPILER, SCM_SUBR_FLAG_MAKE_COMPILER, scm_subr_func_make_compiler, true },
+    { "compiler-base-env", SCM_SUBR_ARITY_COMPILER_BASE_ENV, SCM_SUBR_FLAG_COMPILER_BASE_ENV, scm_subr_func_compiler_base_env, true },
+    { "compiler-select-base-env!", SCM_SUBR_ARITY_COMPILER_SELECT_BASE_ENV_I, SCM_SUBR_FLAG_COMPILER_SELECT_BASE_ENV_I, scm_subr_func_compiler_select_base_env_i, true },
+    { "compiler-select-module!", SCM_SUBR_ARITY_COMPILER_SELECT_MODULE_I, SCM_SUBR_FLAG_COMPILER_SELECT_MODULE_I, scm_subr_func_compiler_select_module_i, true },
+    { "compiler-current-expr", SCM_SUBR_ARITY_COMPILER_CURRENT_EXPR, SCM_SUBR_FLAG_COMPILER_CURRENT_EXPR, scm_subr_func_compiler_current_expr, true },
+    { "compiler-select-expr!", SCM_SUBR_ARITY_COMPILER_SELECT_EXPR_I, SCM_SUBR_FLAG_COMPILER_SELECT_EXPR_I, scm_subr_func_compiler_select_expr_i, true },
 
     /*******************************************************************/
     /*  Syntax                                                         */
     /*******************************************************************/
-    { "syntax?", SCM_SUBR_ARITY_SYNTAX_P, SCM_SUBR_FLAG_SYNTAX_P, scm_subr_func_syntax_P, false },
-    { "make-syntax", SCM_SUBR_ARITY_MAKE_SYNTAX, SCM_SUBR_FLAG_MAKE_SYNTAX, scm_subr_func_make_syntax, false },
-    { "syntax-keyword", SCM_SUBR_ARITY_SYNTAX_KEYWORD, SCM_SUBR_FLAG_SYNTAX_KEYWORD, scm_subr_func_syntax_keyword, false },
-    { "syntax-handler", SCM_SUBR_ARITY_SYNTAX_HANDLER, SCM_SUBR_FLAG_SYNTAX_HANDLER, scm_subr_func_syntax_handler, false },
+    { "syntax?", SCM_SUBR_ARITY_SYNTAX_P, SCM_SUBR_FLAG_SYNTAX_P, scm_subr_func_syntax_P, true },
+    { "make-syntax", SCM_SUBR_ARITY_MAKE_SYNTAX, SCM_SUBR_FLAG_MAKE_SYNTAX, scm_subr_func_make_syntax, true },
+    { "syntax-keyword", SCM_SUBR_ARITY_SYNTAX_KEYWORD, SCM_SUBR_FLAG_SYNTAX_KEYWORD, scm_subr_func_syntax_keyword, true },
+    { "syntax-handler", SCM_SUBR_ARITY_SYNTAX_HANDLER, SCM_SUBR_FLAG_SYNTAX_HANDLER, scm_subr_func_syntax_handler, true },
 
     /*******************************************************************/
     /*  Macro                                                          */
     /*******************************************************************/
-    { "macro?", SCM_SUBR_ARITY_MACRO_P, SCM_SUBR_FLAG_MACRO_P, scm_subr_func_macro_P, false },
-    { "make-macro", SCM_SUBR_ARITY_MAKE_MACRO, SCM_SUBR_FLAG_MAKE_MACRO, scm_subr_func_make_macro, false },
-    { "macro-env", SCM_SUBR_ARITY_MACRO_ENV, SCM_SUBR_FLAG_MACRO_ENV, scm_subr_func_macro_env, false },
-    { "macro-yield-transformer", SCM_SUBR_ARITY_MACRO_YIELD_TRANSFORMER, SCM_SUBR_FLAG_MACRO_YIELD_TRANSFORMER, scm_subr_func_macro_yield_transformer, false },
-
-    /*******************************************************************/
-    /*  Global Variables                                               */
-    /*******************************************************************/
-    { "global-variable-bind", SCM_SUBR_ARITY_GLOBAL_VARIABLE_BIND, SCM_SUBR_FLAG_GLOBAL_VARIABLE_BIND, scm_subr_func_global_variable_bind, false },
-    { "global-syntax-bind", SCM_SUBR_ARITY_GLOBAL_SYNTAX_BIND, SCM_SUBR_FLAG_GLOBAL_SYNTAX_BIND, scm_subr_func_global_syntax_bind, false },
-    { "global-syntax-ref", SCM_SUBR_ARITY_GLOBAL_SYNTAX_REF, SCM_SUBR_FLAG_GLOBAL_SYNTAX_REF, scm_subr_func_global_syntax_ref, false },
+    { "macro?", SCM_SUBR_ARITY_MACRO_P, SCM_SUBR_FLAG_MACRO_P, scm_subr_func_macro_P, true },
+    { "make-macro", SCM_SUBR_ARITY_MAKE_MACRO, SCM_SUBR_FLAG_MAKE_MACRO, scm_subr_func_make_macro, true },
+    { "macro-env", SCM_SUBR_ARITY_MACRO_ENV, SCM_SUBR_FLAG_MACRO_ENV, scm_subr_func_macro_env, true },
+    { "macro-yield-transformer", SCM_SUBR_ARITY_MACRO_YIELD_TRANSFORMER, SCM_SUBR_FLAG_MACRO_YIELD_TRANSFORMER, scm_subr_func_macro_yield_transformer, true },
 
     /*******************************************************************/
     /*  Quasiquatation                                                 */
     /*******************************************************************/
-    { "compile-qq-template", SCM_SUBR_ARITY_COMPILE_QQ_TEMPLATE, SCM_SUBR_FLAG_COMPILE_QQ_TEMPLATE, scm_subr_func_compile_qq_template, false },
-    { "substitute-qq-template", SCM_SUBR_ARITY_SUBSTITUTE_QQ_TEMPLATE, SCM_SUBR_FLAG_SUBSTITUTE_QQ_TEMPLATE, scm_subr_func_substitute_qq_template, false },
-    { "qq-template-num-of-unquoted", SCM_SUBR_ARITY_QQ_TEMPLATE_NUM_OF_UNQUOTED, SCM_SUBR_FLAG_QQ_TEMPLATE_NUM_OF_UNQUOTED, scm_subr_func_qq_template_num_of_unquoted, false },
-    { "qq-template-unquoted", SCM_SUBR_ARITY_QQ_TEMPLATE_UNQUOTED, SCM_SUBR_FLAG_QQ_TEMPLATE_UNQUOTED, scm_subr_func_qq_template_unquoted, false },
+    { "compile-qq-template", SCM_SUBR_ARITY_COMPILE_QQ_TEMPLATE, SCM_SUBR_FLAG_COMPILE_QQ_TEMPLATE, scm_subr_func_compile_qq_template, true },
+    { "substitute-qq-template", SCM_SUBR_ARITY_SUBSTITUTE_QQ_TEMPLATE, SCM_SUBR_FLAG_SUBSTITUTE_QQ_TEMPLATE, scm_subr_func_substitute_qq_template, true },
+    { "qq-template-num-of-unquoted", SCM_SUBR_ARITY_QQ_TEMPLATE_NUM_OF_UNQUOTED, SCM_SUBR_FLAG_QQ_TEMPLATE_NUM_OF_UNQUOTED, scm_subr_func_qq_template_num_of_unquoted, true },
+    { "qq-template-unquoted", SCM_SUBR_ARITY_QQ_TEMPLATE_UNQUOTED, SCM_SUBR_FLAG_QQ_TEMPLATE_UNQUOTED, scm_subr_func_qq_template_unquoted, true },
 
     /*******************************************************************/
     /*  Identifier                                                     */
@@ -1186,49 +656,26 @@ scm_define_scythe_internal_compile_subr(ScmObj module)
     { "make-identifier", SCM_SUBR_ARITY_MAKE_IDENTIFIER, SCM_SUBR_FLAG_MAKE_IDENTIFIER, scm_subr_func_make_identifier, true },
     { "identifier-name", SCM_SUBR_ARITY_IDENTIFIER_NAME, SCM_SUBR_FLAG_IDENTIFIER_NAME, scm_subr_func_identifier_name, true },
     { "identifier-env", SCM_SUBR_ARITY_IDENTIFIER_ENV, SCM_SUBR_FLAG_IDENTIFIER_ENV, scm_subr_func_identifier_env, true },
-  };
 
-  int rslt;
+    SUBR_DATA_TERMINATE
+  };
+  int r;
 
   SCM_REFSTK_INIT_REG(&module);
 
-  rslt = scm_define_subr(module, data, sizeof(data)/sizeof(data[0]));
-  if (rslt < 0) return -1;
-
-  return 0;
-}
-
-extern const unsigned char scm_compile_data[];
-
-static int
-scm_define_scythe_internal_compile_closure(ScmObj mod)
-{
-  ScmObj unmarshal = SCM_OBJ_INIT, iseq = SCM_OBJ_INIT;
-  int rslt;
-
-  SCM_REFSTK_INIT_REG(&mod,
-                      &unmarshal, &iseq);
-
-  unmarshal = scm_make_unmarshal(scm_compile_data);
-  if (scm_obj_null_p(unmarshal)) return -1;
-
-  iseq = scm_unmarshal_ref(unmarshal, 0);
-  if (scm_obj_null_p(iseq)) return -1;
-  scm_assert(scm_iseq_p(iseq));
-
-  rslt = scm_load_iseq(iseq);
-  if (rslt < 0) return -1;
+  r = scm_define_subr(module, data);
+  if (r < 0) return -1;
 
   return 0;
 }
 
 #define const_num_asm_inst_record(x, y) \
-  { "+asm-inst-" #x "+", SCM_OPCODE_##y, false }
+  { "+asm-inst-" #x "+", SCM_OPCODE_##y, true }
 #define const_num_asm_pinst_record(x, y) \
-  { "+asm-inst-" #x "+", SCM_ASM_PI_##y, false }
+  { "+asm-inst-" #x "+", SCM_ASM_PI_##y, true }
 
 static int
-scm_define_scythe_internal_compile_constant_number(ScmObj module)
+scm_define_scythe_internal_core_private_constant_number(ScmObj module)
 {
   static const struct const_num_data data[] = {
     const_num_asm_inst_record(nop, NOP),
@@ -1263,14 +710,127 @@ scm_define_scythe_internal_compile_constant_number(ScmObj module)
     const_num_asm_inst_record(module, MODULE),
 
     const_num_asm_pinst_record(label, LABEL),
-  };
 
-  int rslt;
+    CONST_NUM_DATA_TERMINATE
+  };
+  int r;
 
   SCM_REFSTK_INIT_REG(&module);
 
-  rslt = scm_define_const_num(module, data, sizeof(data)/sizeof(data[0]));
-  if (rslt < 0) return -1;
+  r = scm_define_const_num(module, data);
+  if (r < 0) return -1;
+
+  return 0;
+}
+
+static int
+scm_load_module_func_scythe_internal_core_private(ScmObj mod)
+{
+  int r;
+
+  SCM_REFSTK_INIT_REG(&mod);
+
+  r = scm_define_scythe_internal_core_private_subr(mod);
+  if (r < 0) return -1;
+
+  r = scm_define_scythe_internal_core_private_constant_number(mod);
+  if (r < 0) return -1;
+
+  return 0;
+}
+
+static int
+scm_load_module_scythe_internal_core_private(void)
+{
+  return scm_load_module((const char *[]){"scythe", "internal", "core", "private"},
+                         4,
+                         scm_load_module_func_scythe_internal_core_private);
+}
+
+
+/*******************************************************************/
+/*  (scythe internal dynamic-env)                                  */
+/*******************************************************************/
+
+extern const unsigned char scm_dynamicenv_data[];
+
+static int
+scm_define_scythe_internal_dynamicenv_closure(ScmObj mod)
+{
+  ScmObj unmarshal = SCM_OBJ_INIT, iseq = SCM_OBJ_INIT;
+  int r;
+
+  SCM_REFSTK_INIT_REG(&mod,
+                      &unmarshal, &iseq);
+
+  unmarshal = scm_make_unmarshal(scm_dynamicenv_data);
+  if (scm_obj_null_p(unmarshal)) return -1;
+
+  iseq = scm_unmarshal_ref(unmarshal, 0);
+  if (scm_obj_null_p(iseq)) return -1;
+  scm_assert(scm_iseq_p(iseq));
+
+  r = scm_load_iseq(iseq);
+  if (r < 0) return -1;
+
+  return 0;
+}
+
+static int
+scm_load_module_func_scythe_internal_dynamicenv(ScmObj mod)
+{
+  static const struct import_data data[] = {
+    { { "scythe", "internal", "core", "public" }, 4,
+      scm_load_module_scythe_internal_core_public, true },
+    { { "scythe", "internal", "core", "private" }, 4,
+      scm_load_module_scythe_internal_core_private, true },
+    IMPORT_DATA_TERMINATE
+  };
+  int r;
+
+  SCM_REFSTK_INIT_REG(&mod);
+
+  r = scm_load_modules_and_import_them(mod, data);
+  if (r < 0) return -1;
+
+  r = scm_define_scythe_internal_dynamicenv_closure(mod);
+  if (r < 0) return -1;
+
+  return 0;
+}
+
+static int
+scm_load_module_scythe_internal_dynamicenv(void)
+{
+  return scm_load_module(STRARY("scythe", "internal", "dynamic-env"), 3,
+                         scm_load_module_func_scythe_internal_dynamicenv);
+}
+
+
+/*******************************************************************/
+/*  (scythe internal compile)                                      */
+/*******************************************************************/
+
+extern const unsigned char scm_compile_data[];
+
+static int
+scm_define_scythe_internal_compile_closure(ScmObj mod)
+{
+  ScmObj unmarshal = SCM_OBJ_INIT, iseq = SCM_OBJ_INIT;
+  int r;
+
+  SCM_REFSTK_INIT_REG(&mod,
+                      &unmarshal, &iseq);
+
+  unmarshal = scm_make_unmarshal(scm_compile_data);
+  if (scm_obj_null_p(unmarshal)) return -1;
+
+  iseq = scm_unmarshal_ref(unmarshal, 0);
+  if (scm_obj_null_p(iseq)) return -1;
+  scm_assert(scm_iseq_p(iseq));
+
+  r = scm_load_iseq(iseq);
+  if (r < 0) return -1;
 
   return 0;
 }
@@ -1278,63 +838,24 @@ scm_define_scythe_internal_compile_constant_number(ScmObj module)
 static int
 scm_load_module_func_scythe_internal_compile(ScmObj mod)
 {
-  ScmObj name = SCM_OBJ_INIT;
-  int rslt;
+  static const struct import_data data[] = {
+    { { "scythe", "internal", "core", "public" }, 4,
+      scm_load_module_scythe_internal_core_public, true },
+    { { "scythe", "internal", "core", "private" }, 4,
+      scm_load_module_scythe_internal_core_private, true },
+    { { "scythe", "internal", "dynamic-env" }, 3,
+      scm_load_module_scythe_internal_dynamicenv, true },
+    IMPORT_DATA_TERMINATE
+  };
+  int r;
 
-  SCM_REFSTK_INIT_REG(&name, &mod);
+  SCM_REFSTK_INIT_REG(&mod);
 
-  /*
-   * load (scythe internal base) module and import it
-   */
+  r = scm_load_modules_and_import_them(mod, data);
+  if (r < 0) return -1;
 
-  rslt = scm_load_module_scythe_internal_base();
-  if (rslt < 0) return -1;
-
-  name = scm_make_module_name(STRARY("scythe", "internal", "base"), 3);
-  if (scm_obj_null_p(name)) return -1;
-
-  rslt = scm_module_import(mod, name, true);
-  if (rslt < 0) return -1;
-
-  /*
-   * load (scythe internal misc) module and import it
-   */
-
-  rslt = scm_load_module_scythe_internal_misc();
-  if (rslt < 0) return -1;
-
-  name = scm_make_module_name(STRARY("scythe", "internal", "misc"), 3);
-  if (scm_obj_null_p(name)) return -1;
-
-  rslt = scm_module_import(mod, name, true);
-  if (rslt < 0) return -1;
-
-  /*
-   * load (scythe internal dynamic-env) module and import it
-   */
-
-  rslt = scm_load_module_scythe_internal_dynamicenv();
-  if (rslt < 0) return -1;
-
-  name = scm_make_module_name(STRARY("scythe", "internal", "dynamic-env"), 3);
-  if (scm_obj_null_p(name)) return -1;
-
-  rslt = scm_module_import(mod, name, true);
-  if (rslt < 0) return -1;
-
-
-  /*
-   * define global variables
-   */
-
-  rslt = scm_define_scythe_internal_compile_subr(mod);
-  if (rslt < 0) return -1;
-
-  rslt = scm_define_scythe_internal_compile_constant_number(mod);
-  if (rslt < 0) return -1;
-
-  rslt = scm_define_scythe_internal_compile_closure(mod);
-  if (rslt < 0) return -1;
+  r = scm_define_scythe_internal_compile_closure(mod);
+  if (r < 0) return -1;
 
   return 0;
 }
@@ -1357,7 +878,7 @@ static int
 scm_define_scythe_internal_macro_closure(ScmObj mod)
 {
   ScmObj unmarshal = SCM_OBJ_INIT, iseq = SCM_OBJ_INIT;
-  int rslt;
+  int r;
 
   SCM_REFSTK_INIT_REG(&mod,
                       &unmarshal, &iseq);
@@ -1369,8 +890,8 @@ scm_define_scythe_internal_macro_closure(ScmObj mod)
   if (scm_obj_null_p(iseq)) return -1;
   scm_assert(scm_iseq_p(iseq));
 
-  rslt = scm_load_iseq(iseq);
-  if (rslt < 0) return -1;
+  r = scm_load_iseq(iseq);
+  if (r < 0) return -1;
 
   return 0;
 }
@@ -1378,56 +899,24 @@ scm_define_scythe_internal_macro_closure(ScmObj mod)
 static int
 scm_load_module_func_scythe_internal_macro(ScmObj mod)
 {
-  ScmObj name = SCM_OBJ_INIT;
-  int rslt;
+  static const struct import_data data[] = {
+    { { "scythe", "internal", "core", "public" }, 4,
+      scm_load_module_scythe_internal_core_public, true },
+    { { "scythe", "internal", "core", "private" }, 4,
+      scm_load_module_scythe_internal_core_private, true },
+    { { "scythe", "internal", "compile" }, 3,
+      scm_load_module_scythe_internal_compile, true },
+    IMPORT_DATA_TERMINATE
+  };
+  int r;
 
-  SCM_REFSTK_INIT_REG(&name, &mod);
+  SCM_REFSTK_INIT_REG(&mod);
 
-  /*
-   * load (scythe internal base) module and import it
-   */
+  r = scm_load_modules_and_import_them(mod, data);
+  if (r < 0) return -1;
 
-  rslt = scm_load_module_scythe_internal_base();
-  if (rslt < 0) return -1;
-
-  name = scm_make_module_name(STRARY("scythe", "internal", "base"), 3);
-  if (scm_obj_null_p(name)) return -1;
-
-  rslt = scm_module_import(mod, name, true);
-  if (rslt < 0) return -1;
-
-  /*
-   * load (scythe internal misc) module and import it
-   */
-
-  rslt = scm_load_module_scythe_internal_misc();
-  if (rslt < 0) return -1;
-
-  name = scm_make_module_name(STRARY("scythe", "internal", "misc"), 3);
-  if (scm_obj_null_p(name)) return -1;
-
-  rslt = scm_module_import(mod, name, true);
-  if (rslt < 0) return -1;
-
-  /*
-   * load (scythe internal compile) module and import it
-   */
-
-  rslt = scm_load_module_scythe_internal_compile();
-  if (rslt < 0) return -1;
-
-  name = scm_make_module_name(STRARY("scythe", "internal", "compile"), 3);
-  if (scm_obj_null_p(name)) return -1;
-
-  rslt = scm_module_import(mod, name, true);
-  if (rslt < 0) return -1;
-
-  /*
-   * define global variables
-   */
-
-  rslt = scm_define_scythe_internal_macro_closure(mod);
-  if (rslt < 0) return -1;
+  r = scm_define_scythe_internal_macro_closure(mod);
+  if (r < 0) return -1;
 
   return 0;
 }
@@ -1442,16 +931,50 @@ scm_load_module_scythe_internal_macro(void)
 
 
 /*******************************************************************/
-/*  (scythe internal repl)                                         */
+/*  (scythe base)                                                  */
+/*******************************************************************/
+
+static int
+scm_load_module_func_scythe_base(ScmObj mod)
+{
+  static const struct import_data data[] = {
+    { { "scythe", "internal", "core", "public" }, 4,
+      scm_load_module_scythe_internal_core_public, false },
+    { { "scythe", "internal", "dynamic-env" }, 3,
+      scm_load_module_scythe_internal_dynamicenv, false },
+    { { "scythe", "internal", "macro" }, 3,
+      scm_load_module_scythe_internal_macro, false },
+    IMPORT_DATA_TERMINATE
+  };
+  int r;
+
+  SCM_REFSTK_INIT_REG(&mod);
+
+  r = scm_load_modules_and_import_them(mod, data);
+  if (r < 0) return -1;
+
+  return 0;
+}
+
+static int
+scm_load_module_scythe_base(void)
+{
+  return scm_load_module(STRARY("scythe", "base"), 2,
+                         scm_load_module_func_scythe_base);
+}
+
+
+/*******************************************************************/
+/*  (scythe repl)                                                  */
 /*******************************************************************/
 
 extern const unsigned char scm_repl_data[];
 
 static int
-scm_define_scythe_internal_repl_closure(ScmObj mod)
+scm_define_scythe_repl_closure(ScmObj mod)
 {
   ScmObj unmarshal = SCM_OBJ_INIT, iseq = SCM_OBJ_INIT;
-  int rslt;
+  int r;
 
   SCM_REFSTK_INIT_REG(&mod,
                       &unmarshal, &iseq);
@@ -1463,61 +986,37 @@ scm_define_scythe_internal_repl_closure(ScmObj mod)
   if (scm_obj_null_p(iseq)) return -1;
   scm_assert(scm_iseq_p(iseq));
 
-  rslt = scm_load_iseq(iseq);
-  if (rslt < 0) return -1;
+  r = scm_load_iseq(iseq);
+  if (r < 0) return -1;
 
   return 0;
 }
 
 static int
-scm_load_module_func_scythe_internal_repl(ScmObj mod)
+scm_load_module_func_scythe_repl(ScmObj mod)
 {
-  ScmObj name = SCM_OBJ_INIT;
-  int rslt;
+  static const struct import_data data[] = {
+    { { "scythe", "base" }, 2, scm_load_module_scythe_base, true },
+    IMPORT_DATA_TERMINATE
+  };
+  int r;
 
-  SCM_REFSTK_INIT_REG(&name, &mod);
+  SCM_REFSTK_INIT_REG(&mod);
 
-  /*
-   * load (scythe internal base) module and import it
-   */
+  r = scm_load_modules_and_import_them(mod, data);
+  if (r < 0) return -1;
 
-  rslt = scm_load_module_scythe_base();
-  if (rslt < 0) return -1;
-
-  name = scm_make_module_name(STRARY("scythe", "internal", "base"), 3);
-  if (scm_obj_null_p(name)) return -1;
-
-  rslt = scm_module_import(mod, name, true);
-  if (rslt < 0) return -1;
-
-  /*
-   * load (scythe internal misc) module and import it
-   */
-
-  rslt = scm_load_module_scythe_internal_misc();
-  if (rslt < 0) return -1;
-
-  name = scm_make_module_name(STRARY("scythe", "internal", "misc"), 3);
-  if (scm_obj_null_p(name)) return -1;
-
-  rslt = scm_module_import(mod, name, true);
-  if (rslt < 0) return -1;
-
-  /*
-   * define global variables
-   */
-
-  rslt = scm_define_scythe_internal_repl_closure(mod);
-  if (rslt < 0) return -1;
+  r = scm_define_scythe_repl_closure(mod);
+  if (r < 0) return -1;
 
   return 0;
 }
 
 static int
-scm_load_module_scythe_internal_repl(void)
+scm_load_module_scythe_repl(void)
 {
-  return scm_load_module(STRARY("scythe", "internal", "repl"), 3,
-                         scm_load_module_func_scythe_internal_repl);
+  return scm_load_module(STRARY("scythe", "repl"), 2,
+                         scm_load_module_func_scythe_repl);
 }
 
 
@@ -1533,14 +1032,15 @@ scm_define_scythe_internal_command_subr(ScmObj module)
     { "exec-file", SCM_SUBR_ARITY_EXEC_FILE, SCM_SUBR_FLAG_EXEC_FILE, scm_subr_func_exec_file, false },
     { "eval-string", SCM_SUBR_ARITY_EVAL_STRING, SCM_SUBR_FLAG_EVAL_STRING, scm_subr_func_eval_string, false },
     { "compile-file", SCM_SUBR_ARITY_COMPILE_FILE, SCM_SUBR_FLAG_COMPILE_FILE, scm_subr_func_compile_file, false },
-  };
 
-  int rslt;
+    SUBR_DATA_TERMINATE
+  };
+  int r;
 
   SCM_REFSTK_INIT_REG(&module);
 
-  rslt = scm_define_subr(module, data, sizeof(data)/sizeof(data[0]));
-  if (rslt < 0) return -1;
+  r = scm_define_subr(module, data);
+  if (r < 0) return -1;
 
   return 0;
 }
@@ -1548,14 +1048,14 @@ scm_define_scythe_internal_command_subr(ScmObj module)
 static int
 scm_load_module_func_scythe_internal_command(ScmObj mod)
 {
-  int rslt;
+  int r;
 
   /*
    * define global variables
    */
 
-  rslt = scm_define_scythe_internal_command_subr(mod);
-  if (rslt < 0) return -1;
+  r = scm_define_scythe_internal_command_subr(mod);
+  if (r < 0) return -1;
 
   return 0;
 }
@@ -1569,95 +1069,22 @@ scm_load_module_scythe_internal_command(void)
 
 
 /*******************************************************************/
-/*  (scythe base)                                                  */
-/*******************************************************************/
-
-static int
-scm_load_module_func_scythe_base(ScmObj mod)
-{
-  ScmObj name = SCM_OBJ_INIT;
-  int rslt;
-
-  SCM_REFSTK_INIT_REG(&mod,
-                      &name);
-
-  /*
-   * load (scythe internal base) module and import it
-   */
-
-  rslt = scm_load_module_scythe_internal_base();
-  if (rslt < 0) return -1;
-
-  name = scm_make_module_name(STRARY("scythe", "internal", "base"), 3);
-  if (scm_obj_null_p(name)) return -1;
-
-  rslt = scm_module_import(mod, name, false);
-  if (rslt < 0) return -1;
-
-
-  /*
-   * load (scythe internal misc) module and import it
-   */
-
-  rslt = scm_load_module_scythe_internal_misc();
-  if (rslt < 0) return -1;
-
-  name = scm_make_module_name(STRARY("scythe", "internal", "misc"), 3);
-  if (scm_obj_null_p(name)) return -1;
-
-  rslt = scm_module_import(mod, name, false);
-  if (rslt < 0) return -1;
-
-
-  /*
-   * load (scythe internal macro) module and import it
-   */
-
-  rslt = scm_load_module_scythe_internal_macro();
-  if (rslt < 0) return -1;
-
-  name = scm_make_module_name(STRARY("scythe", "internal", "macro"), 3);
-  if (scm_obj_null_p(name)) return -1;
-
-  rslt = scm_module_import(mod, name, false);
-  if (rslt < 0) return -1;
-
-  return 0;
-}
-
-static int
-scm_load_module_scythe_base(void)
-{
-  return scm_load_module(STRARY("scythe", "base"), 2,
-                         scm_load_module_func_scythe_base);
-}
-
-
-/*******************************************************************/
 /*  (main)                                                         */
 /*******************************************************************/
 
 static int
 scm_load_module_func_main(ScmObj mod)
 {
-  ScmObj name = SCM_OBJ_INIT;
-  int rslt;
+  static const struct import_data data[] = {
+    { { "scythe", "base" }, 2, scm_load_module_scythe_base, true },
+    IMPORT_DATA_TERMINATE
+  };
+  int r;
 
-  SCM_REFSTK_INIT_REG(&mod,
-                      &name);
+  SCM_REFSTK_INIT_REG(&mod);
 
-  /*
-   * load (scythe base) module and import it
-   */
-
-  rslt = scm_load_module_scythe_base();
-  if (rslt < 0) return -1;
-
-  name = scm_make_module_name(STRARY("scythe", "base"), 2);
-  if (scm_obj_null_p(name)) return -1;
-
-  rslt = scm_module_import(mod, name, false);
-  if (rslt < 0) return -1;
+  r = scm_load_modules_and_import_them(mod, data);
+  if (r < 0) return -1;
 
   return 0;
 }
@@ -1670,13 +1097,665 @@ scm_load_module_main(void)
 }
 
 
+/*******************************************************************/
+/*  (scheme base)                                                  */
+/*******************************************************************/
+
+static int
+scm_define_scheme_base_alias(ScmObj module)
+{
+  static const struct alias_data data[] = {
+    /*******************************************************************/
+    /*  Dynamic bindings                                               */
+    /*******************************************************************/
+    ALIAS_SAME_VAR("make-parameter", true),
+
+    /*******************************************************************/
+    /*  Equivalence predicates                                         */
+    /*******************************************************************/
+    ALIAS_SAME_VAR("eq?", true),
+    ALIAS_SAME_VAR("eqv?", true),
+    ALIAS_SAME_VAR("equal?", true),
+
+    /*******************************************************************/
+    /*  Numbers                                                        */
+    /*******************************************************************/
+    ALIAS_SAME_VAR("number?", true),
+    ALIAS_SAME_VAR("complex?", true),
+    ALIAS_SAME_VAR("real?", true),
+    ALIAS_SAME_VAR("rational?", true),
+    ALIAS_SAME_VAR("integer?", true),
+    ALIAS_SAME_VAR("exact?", true),
+    ALIAS_SAME_VAR("inexact?", true),
+    ALIAS_SAME_VAR("exact-integer?", true),
+    ALIAS_SAME_VAR("finite?", true),
+    ALIAS_SAME_VAR("infinite?", true),
+    ALIAS_SAME_VAR("nan?", true),
+    ALIAS_SAME_VAR("=", true),
+    ALIAS_SAME_VAR("<", true),
+    ALIAS_SAME_VAR(">", true),
+    ALIAS_SAME_VAR("<=", true),
+    ALIAS_SAME_VAR(">=", true),
+    ALIAS_SAME_VAR("zero?", true),
+    ALIAS_SAME_VAR("positive?", true),
+    ALIAS_SAME_VAR("negative?", true),
+    ALIAS_SAME_VAR("odd?", true),
+    ALIAS_SAME_VAR("even?", true),
+    ALIAS_SAME_VAR("max", true),
+    ALIAS_SAME_VAR("min", true),
+    ALIAS_SAME_VAR("+", true),
+    ALIAS_SAME_VAR("*", true),
+    ALIAS_SAME_VAR("-", true),
+    ALIAS_SAME_VAR("/", true),
+    ALIAS_SAME_VAR("floor/", true),
+    ALIAS_SAME_VAR("floor-quotient", true),
+    ALIAS_SAME_VAR("floor-remainder", true),
+    ALIAS_SAME_VAR("truncate/", true),
+    ALIAS_SAME_VAR("truncate-quotient", true),
+    ALIAS_SAME_VAR("truncate-remainder", true),
+    ALIAS_SAME_VAR("quotient", true),
+    ALIAS_SAME_VAR("remainder", true),
+    ALIAS_SAME_VAR("modulo", true),
+
+    /*******************************************************************/
+    /*  Booleans                                                       */
+    /*******************************************************************/
+    ALIAS_SAME_VAR("not", true),
+    ALIAS_SAME_VAR("boolean?", true),
+
+    /*******************************************************************/
+    /*  Pair and Lists                                                 */
+    /*******************************************************************/
+    ALIAS_SAME_VAR("null?", true),
+    ALIAS_SAME_VAR("pair?", true),
+    ALIAS_SAME_VAR("cons", true),
+    ALIAS_SAME_VAR("car", true),
+    ALIAS_SAME_VAR("cdr", true),
+    ALIAS_SAME_VAR("set-car!", true),
+    ALIAS_SAME_VAR("set-cdr!", true),
+    ALIAS_SAME_VAR("list?", true),
+    ALIAS_SAME_VAR("make-list", true),
+    ALIAS_SAME_VAR("list", true),
+    ALIAS_SAME_VAR("length", true),
+    ALIAS_SAME_VAR("append", true),
+    ALIAS_SAME_VAR("reverse", true),
+    ALIAS_SAME_VAR("list-tail", true),
+    ALIAS_SAME_VAR("list-ref", true),
+    ALIAS_SAME_VAR("list-set!", true),
+    ALIAS_SAME_VAR("memq", true),
+    ALIAS_SAME_VAR("memv", true),
+    ALIAS_SAME_VAR("member", true),
+    ALIAS_SAME_VAR("assq", true),
+    ALIAS_SAME_VAR("assv", true),
+    ALIAS_SAME_VAR("assoc", true),
+    ALIAS_SAME_VAR("list-copy", true),
+
+    /*******************************************************************/
+    /*  Symbols                                                        */
+    /*******************************************************************/
+    ALIAS_SAME_VAR("symbol?", true),
+    ALIAS_SAME_VAR("symbol=?", true),
+    ALIAS_SAME_VAR("symbol->string", true),
+    ALIAS_SAME_VAR("string->symbol", true),
+
+    /*******************************************************************/
+    /*  Characters                                                     */
+    /*******************************************************************/
+    ALIAS_SAME_VAR("char?", true),
+    ALIAS_SAME_VAR("char=?", true),
+    ALIAS_SAME_VAR("char<?", true),
+    ALIAS_SAME_VAR("char>?", true),
+    ALIAS_SAME_VAR("char<=?", true),
+    ALIAS_SAME_VAR("char>=?", true),
+    ALIAS_SAME_VAR("char->integer", true),
+    ALIAS_SAME_VAR("integer->char", true),
+
+    /*******************************************************************/
+    /*  Strings                                                        */
+    /*******************************************************************/
+    ALIAS_SAME_VAR("string?", true),
+    ALIAS_SAME_VAR("make-string", true),
+    ALIAS_SAME_VAR("string", true),
+    ALIAS_SAME_VAR("string-length", true),
+    ALIAS_SAME_VAR("string-bytesize", true),
+    ALIAS_SAME_VAR("string-ref", true),
+    ALIAS_SAME_VAR("string-set!", true),
+    ALIAS_SAME_VAR("string=?", true),
+    ALIAS_SAME_VAR("string<?", true),
+    ALIAS_SAME_VAR("string>?", true),
+    ALIAS_SAME_VAR("string<=?", true),
+    ALIAS_SAME_VAR("string>=?", true),
+    ALIAS_SAME_VAR("substring", true),
+    ALIAS_SAME_VAR("string-append", true),
+    ALIAS_SAME_VAR("string->list", true),
+    ALIAS_SAME_VAR("list->string", true),
+    ALIAS_SAME_VAR("string-copy", true),
+    ALIAS_SAME_VAR("string-copy!", true),
+    ALIAS_SAME_VAR("string-fill!", true),
+
+    /*******************************************************************/
+    /*  Vectors                                                        */
+    /*******************************************************************/
+    ALIAS_SAME_VAR("vector?", true),
+    ALIAS_SAME_VAR("make-vector", true),
+    ALIAS_SAME_VAR("vector", true),
+    ALIAS_SAME_VAR("vector-length", true),
+    ALIAS_SAME_VAR("vector-ref", true),
+    ALIAS_SAME_VAR("vector-set!", true),
+    ALIAS_SAME_VAR("vector->list", true),
+    ALIAS_SAME_VAR("list->vector", true),
+    ALIAS_SAME_VAR("vector->string", true),
+    ALIAS_SAME_VAR("string->vector", true),
+    ALIAS_SAME_VAR("vector-copy", true),
+    ALIAS_SAME_VAR("vector-copy!", true),
+    ALIAS_SAME_VAR("vector-append", true),
+    ALIAS_SAME_VAR("vector-fill!", true),
+
+    /*******************************************************************/
+    /*  Control features                                               */
+    /*******************************************************************/
+    ALIAS_SAME_VAR("procedure?", true),
+    ALIAS_SAME_VAR("apply", true),
+    ALIAS_SAME_VAR("call/cc", true),
+    ALIAS_SAME_VAR("values", true),
+    ALIAS_SAME_VAR("call-with-values", true),
+    ALIAS_SAME_VAR("dynamic-wind", true),
+
+    /*******************************************************************/
+    /*  Exceptions                                                     */
+    /*******************************************************************/
+    ALIAS_SAME_VAR("with-exception-handler", true),
+    ALIAS_SAME_VAR("raise", true),
+    ALIAS_SAME_VAR("raise-continuable", true),
+    ALIAS_SAME_VAR("error", true),
+    ALIAS_SAME_VAR("error-object?", true),
+    ALIAS_SAME_VAR("error-object-message", true),
+    ALIAS_SAME_VAR("error-object-irritants", true),
+    ALIAS_SAME_VAR("read-error?", true),
+    ALIAS_SAME_VAR("file-error?", true),
+
+    /*******************************************************************/
+    /*  Input Output                                                   */
+    /*******************************************************************/
+    ALIAS_SAME_VAR("current-input-port", true),
+    ALIAS_SAME_VAR("current-output-port", true),
+    ALIAS_SAME_VAR("current-error-port", true),
+    ALIAS_SAME_VAR("newline", true),
+    ALIAS_SAME_VAR("flush-output-port", true),
+    ALIAS_SAME_VAR("eof-object?", true),
+
+    /*******************************************************************/
+    /*  Syntax                                                         */
+    /*******************************************************************/
+    ALIAS_SAME_VAR("define", true),
+    ALIAS_SAME_VAR("begin", true),
+    ALIAS_SAME_VAR("quote", true),
+    ALIAS_SAME_VAR("lambda", true),
+    ALIAS_SAME_VAR("set!", true),
+    ALIAS_SAME_VAR("if", true),
+    ALIAS_SAME_VAR("cond", true),
+    ALIAS_SAME_VAR("and", true),
+    ALIAS_SAME_VAR("or", true),
+    ALIAS_SAME_VAR("when", true),
+    ALIAS_SAME_VAR("unless", true),
+    ALIAS_SAME_VAR("let", true),
+    ALIAS_SAME_VAR("let*", true),
+    ALIAS_SAME_VAR("letrec", true),
+    ALIAS_SAME_VAR("letrec*", true),
+    ALIAS_SAME_VAR("do", true),
+    ALIAS_SAME_VAR("let-values", true),
+    ALIAS_SAME_VAR("let*-values", true),
+    ALIAS_SAME_VAR("parameterize", true),
+    ALIAS_SAME_VAR("quasiquote", true),
+    ALIAS_SAME_VAR("define-syntax", true),
+    ALIAS_SAME_VAR("let-syntax", true),
+    ALIAS_SAME_VAR("letrec-syntax", true),
+
+    ALIAS_DATA_TERMINATE
+  };
+  int r;
+
+  r = scm_define_alias(module, data);
+  if (r < 0) return -1;
+
+  return 0;
+}
+
+static int
+scm_load_module_func_scheme_base(ScmObj mod)
+{
+  static const struct import_data data[] = {
+    { { "scythe", "internal", "core", "public" }, 4,
+      scm_load_module_scythe_internal_core_public, true },
+    { { "scythe", "internal", "dynamic-env" }, 3,
+      scm_load_module_scythe_internal_dynamicenv, true },
+    IMPORT_DATA_TERMINATE
+  };
+  int r;
+
+  SCM_REFSTK_INIT_REG(&mod);
+
+  r = scm_load_modules_and_import_them(mod, data);
+  if (r < 0) return -1;
+
+  r = scm_define_scheme_base_alias(mod);
+  if (r < 0) return -1;
+
+  return 0;
+}
+
+static int
+scm_load_module_scheme_base(void)
+{
+  return scm_load_module((const char *[]){"scheme", "base"}, 2,
+                         scm_load_module_func_scheme_base);
+}
+
+
+/*******************************************************************/
+/*  (scheme char)                                                  */
+/*******************************************************************/
+
+static int
+scm_define_scheme_char_alias(ScmObj module)
+{
+  static const struct alias_data data[] = {
+    /*******************************************************************/
+    /*  Characters                                                     */
+    /*******************************************************************/
+    ALIAS_SAME_VAR("char-ci=?", true),
+    ALIAS_SAME_VAR("char-ci<?", true),
+    ALIAS_SAME_VAR("char-ci>?", true),
+    ALIAS_SAME_VAR("char-ci<=?", true),
+    ALIAS_SAME_VAR("char-ci>=?", true),
+    ALIAS_SAME_VAR("char-alphabetic?", true),
+    ALIAS_SAME_VAR("char-numeric?", true),
+    ALIAS_SAME_VAR("char-whitespace?", true),
+    ALIAS_SAME_VAR("char-upper-case?", true),
+    ALIAS_SAME_VAR("char-lower-case?", true),
+    ALIAS_SAME_VAR("digit_value", true),
+    ALIAS_SAME_VAR("char-upcase", true),
+    ALIAS_SAME_VAR("char-downcase", true),
+    ALIAS_SAME_VAR("char-foldcase", true),
+
+    /*******************************************************************/
+    /*  Strings                                                        */
+    /*******************************************************************/
+    ALIAS_SAME_VAR("string-ci=?", true),
+    ALIAS_SAME_VAR("string-ci<?", true),
+    ALIAS_SAME_VAR("string-ci>?", true),
+    ALIAS_SAME_VAR("string-ci<=?", true),
+    ALIAS_SAME_VAR("string-ci>=?", true),
+
+    ALIAS_DATA_TERMINATE
+  };
+  int r;
+
+  SCM_REFSTK_INIT_REG(&module);
+
+  r = scm_define_alias(module, data);
+  if (r < 0) return -1;
+
+  return 0;
+}
+
+static int
+scm_load_module_func_scheme_char(ScmObj mod)
+{
+  static const struct import_data data[] = {
+    { { "scythe", "internal", "core", "public" }, 4,
+      scm_load_module_scythe_internal_core_public, true },
+    IMPORT_DATA_TERMINATE
+  };
+  int r;
+
+  SCM_REFSTK_INIT_REG(&mod);
+
+  r = scm_load_modules_and_import_them(mod, data);
+  if (r < 0) return -1;
+
+  r = scm_define_scheme_char_alias(mod);
+  if (r < 0) return -1;
+
+  return 0;
+}
+
+static int
+scm_load_module_scheme_char(void)
+{
+  return scm_load_module(STRARY("scheme", "char"), 2,
+                         scm_load_module_func_scheme_char);
+}
+
+
+/*******************************************************************/
+/*  (scheme eval)                                                  */
+/*******************************************************************/
+
+static int
+scm_define_scheme_eval_alias(ScmObj module)
+{
+  static const struct alias_data data[] = {
+    ALIAS_SAME_VAR("eval", true),
+    ALIAS_DATA_TERMINATE
+  };
+  int r;
+
+  SCM_REFSTK_INIT_REG(&module);
+
+  r = scm_define_alias(module, data);
+  if (r < 0) return -1;
+
+  return 0;
+}
+
+static int
+scm_load_module_func_scheme_eval(ScmObj mod)
+{
+  static const struct import_data data[] = {
+    { { "scythe", "internal", "core", "public" }, 4,
+      scm_load_module_scythe_internal_core_public, true },
+    IMPORT_DATA_TERMINATE
+  };
+  int r;
+
+  SCM_REFSTK_INIT_REG(&mod);
+
+  r = scm_load_modules_and_import_them(mod, data);
+  if (r < 0) return -1;
+
+  r = scm_define_scheme_eval_alias(mod);
+  if (r < 0) return -1;
+
+  return 0;
+}
+
+static int
+scm_load_module_scheme_eval(void)
+{
+  return scm_load_module(STRARY("scheme", "eval"), 2,
+                         scm_load_module_func_scheme_eval);
+}
+
+
+/*******************************************************************/
+/*  (scheme file)                                                  */
+/*******************************************************************/
+
+static int
+scm_define_scheme_file_alias(ScmObj module)
+{
+  static const struct alias_data data[] = {
+    ALIAS_SAME_VAR("delete-file", true),
+    ALIAS_SAME_VAR("file-exists?", true),
+    ALIAS_SAME_VAR("open-input-file", true),
+    ALIAS_DATA_TERMINATE
+  };
+  int r;
+
+  SCM_REFSTK_INIT_REG(&module);
+
+  r = scm_define_alias(module, data);
+  if (r < 0) return -1;
+
+  return 0;
+}
+
+static int
+scm_load_module_func_scheme_file(ScmObj mod)
+{
+  static const struct import_data data[] = {
+    { { "scythe", "internal", "core", "public" }, 4,
+      scm_load_module_scythe_internal_core_public, true },
+    IMPORT_DATA_TERMINATE
+  };
+  int r;
+
+  SCM_REFSTK_INIT_REG(&mod);
+
+  r = scm_load_modules_and_import_them(mod, data);
+  if (r < 0) return -1;
+
+  r = scm_define_scheme_file_alias(mod);
+  if (r < 0) return -1;
+
+  return 0;
+}
+
+static int
+scm_load_module_scheme_file(void)
+{
+  return scm_load_module(STRARY("scheme", "file"), 2,
+                         scm_load_module_func_scheme_file);
+}
+
+
+/*******************************************************************/
+/*  (scheme load)                                                  */
+/*******************************************************************/
+
+static int
+scm_define_scheme_load_alias(ScmObj module)
+{
+  static const struct alias_data data[] = {
+    ALIAS_SAME_VAR("load", true),
+    ALIAS_SAME_VAR(SCM_LOAD_PATH_VARIABLE_NAME, true),
+    ALIAS_DATA_TERMINATE
+  };
+
+  int r;
+
+  SCM_REFSTK_INIT_REG(&module);
+
+  r = scm_define_alias(module, data);
+  if (r < 0) return -1;
+
+  return 0;
+}
+
+static int
+scm_load_module_func_scheme_load(ScmObj mod)
+{
+  static const struct import_data data[] = {
+    { { "scythe", "internal", "core", "public" }, 4,
+      scm_load_module_scythe_internal_core_public, true },
+    IMPORT_DATA_TERMINATE
+  };
+  int r;
+
+  SCM_REFSTK_INIT_REG(&mod);
+
+  r = scm_load_modules_and_import_them(mod, data);
+  if (r < 0) return -1;
+
+  r = scm_define_scheme_load_alias(mod);
+  if (r < 0) return -1;
+
+  return 0;
+}
+
+static int
+scm_load_module_scheme_load(void)
+{
+  return scm_load_module(STRARY("scheme", "load"), 2,
+                         scm_load_module_func_scheme_load);
+}
+
+
+/*******************************************************************/
+/*  (scheme process-context)                                       */
+/*******************************************************************/
+
+static int
+scm_define_scheme_processcontext_alias(ScmObj module)
+{
+  static const struct alias_data data[] = {
+    ALIAS_SAME_VAR("exit", true),
+    ALIAS_DATA_TERMINATE
+  };
+
+  int r;
+
+  SCM_REFSTK_INIT_REG(&module);
+
+  r = scm_define_alias(module, data);
+  if (r < 0) return -1;
+
+  return 0;
+}
+
+static int
+scm_load_module_func_scheme_processcontext(ScmObj mod)
+{
+  static const struct import_data data[] = {
+    { { "scythe", "internal", "core", "public" }, 4,
+      scm_load_module_scythe_internal_core_public, true },
+    IMPORT_DATA_TERMINATE
+  };
+  int r;
+
+  SCM_REFSTK_INIT_REG(&mod);
+
+  r = scm_load_modules_and_import_them(mod, data);
+  if (r < 0) return -1;
+
+  r = scm_define_scheme_processcontext_alias(mod);
+  if (r < 0) return -1;
+
+  return 0;
+}
+
+static int
+scm_load_module_scheme_processcontext(void)
+{
+  return scm_load_module(STRARY("scheme", "process-context"), 2,
+                         scm_load_module_func_scheme_processcontext);
+}
+
+
+/*******************************************************************/
+/*  (scheme read)                                                  */
+/*******************************************************************/
+
+static int
+scm_define_scheme_read_alias(ScmObj module)
+{
+  static const struct alias_data data[] = {
+    ALIAS_SAME_VAR("read", true),
+    ALIAS_DATA_TERMINATE
+  };
+
+  int r;
+
+  SCM_REFSTK_INIT_REG(&module);
+
+  r = scm_define_alias(module, data);
+  if (r < 0) return -1;
+
+  return 0;
+}
+
+static int
+scm_load_module_func_scheme_read(ScmObj mod)
+{
+  static const struct import_data data[] = {
+    { { "scythe", "internal", "core", "public" }, 4,
+      scm_load_module_scythe_internal_core_public, true },
+    IMPORT_DATA_TERMINATE
+  };
+  int r;
+
+  SCM_REFSTK_INIT_REG(&mod);
+
+  r = scm_load_modules_and_import_them(mod, data);
+  if (r < 0) return -1;
+
+  r = scm_define_scheme_read_alias(mod);
+  if (r < 0) return -1;
+
+  return 0;
+}
+
+static int
+scm_load_module_scheme_read(void)
+{
+  return scm_load_module(STRARY("scheme", "read"), 2,
+                         scm_load_module_func_scheme_read);
+}
+
+/*******************************************************************/
+/*  (scheme write)                                                  */
+/*******************************************************************/
+
+static int
+scm_define_scheme_write_alias(ScmObj module)
+{
+  static const struct alias_data data[] = {
+    ALIAS_SAME_VAR("display", true),
+    ALIAS_SAME_VAR("write", true),
+    ALIAS_SAME_VAR("write-shared", true),
+    ALIAS_SAME_VAR("write-simple", true),
+    ALIAS_DATA_TERMINATE
+  };
+
+  int r;
+
+  SCM_REFSTK_INIT_REG(&module);
+
+  r = scm_define_alias(module, data);
+  if (r < 0) return -1;
+
+  return 0;
+}
+
+static int
+scm_load_module_func_scheme_write(ScmObj mod)
+{
+  static const struct import_data data[] = {
+    { { "scythe", "internal", "core", "public" }, 4,
+      scm_load_module_scythe_internal_core_public, true },
+    IMPORT_DATA_TERMINATE
+  };
+  int r;
+
+  SCM_REFSTK_INIT_REG(&mod);
+
+  r = scm_load_modules_and_import_them(mod, data);
+  if (r < 0) return -1;
+
+  r = scm_define_scheme_write_alias(mod);
+  if (r < 0) return -1;
+
+  return 0;
+}
+
+static int
+scm_load_module_scheme_write(void)
+{
+  return scm_load_module(STRARY("scheme", "write"), 2,
+                         scm_load_module_func_scheme_write);
+}
+
 int
 scm_load_core_modules(void)
 {
   int (*func[])(void) = {
-    scm_load_module_scythe_internal_misc,
+    scm_load_module_scythe_internal_core_public,
+    scm_load_module_scythe_internal_core_private,
     scm_load_module_scythe_internal_dynamicenv,
+    scm_load_module_scythe_internal_compile,
+    scm_load_module_scythe_internal_macro,
+    scm_load_module_scythe_base,
+    scm_load_module_scythe_repl,
     scm_load_module_scythe_internal_command,
+    scm_load_module_main,
+    NULL,
+
+    /*
+     *  XXX: 現状、不要なので実行しない(Module を作成しない)。後々は Scheme
+     *       ファイルへ切り出し、必要になったタイミングでロードされるように
+     *       したい
+     */
     scm_load_module_scheme_base,
     scm_load_module_scheme_char,
     scm_load_module_scheme_eval,
@@ -1685,16 +1764,12 @@ scm_load_core_modules(void)
     scm_load_module_scheme_processcontext,
     scm_load_module_scheme_read,
     scm_load_module_scheme_write,
-    scm_load_module_scythe_internal_base,
-    scm_load_module_scythe_internal_macro,
-    scm_load_module_scythe_internal_repl,
-    scm_load_module_scythe_internal_compile,
-    scm_load_module_scythe_base,
-    scm_load_module_main,
+    NULL,
   };
+  int (**p)(void);
 
-  for (size_t i = 0; i < sizeof(func)/sizeof(func[0]); i++) {
-    int r = func[i]();
+  for (p = func; *p != NULL; p++) {
+    int r = ((int (*)(void))*p)();
     if (r < 0) return -1;
   }
 

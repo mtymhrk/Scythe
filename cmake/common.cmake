@@ -45,7 +45,7 @@ set(scythe_lib_src api.c
                    compile_data.c
                    macro_data.c
                    repl_data.c
-                   scheme_base_data.c)
+                   dynamic-env_data.c)
 
 
 ##===============================================================
