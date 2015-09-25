@@ -546,6 +546,21 @@ scm_define_scythe_internal_core_public_current_port(ScmObj module)
 }
 
 static int
+scm_define_scythe_internal_core_public_alias(ScmObj module)
+{
+  static const struct alias_data data[] = {
+    { "call-with-current-continuation", "call/cc", true },
+    ALIAS_DATA_TERMINATE
+  };
+  int r;
+
+  r = scm_define_alias(module, data);
+  if (r < 0) return -1;
+
+  return 0;
+}
+
+static int
 scm_load_module_func_scythe_internal_core_public(ScmObj mod)
 {
   int r;
@@ -556,6 +571,9 @@ scm_load_module_func_scythe_internal_core_public(ScmObj mod)
   if (r < 0) return -1;
 
   r = scm_define_scythe_internal_core_public_current_port(mod);
+  if (r < 0) return -1;
+
+  r = scm_define_scythe_internal_core_public_alias(mod);
   if (r < 0) return -1;
 
   r = scm_define_var(mod, SCM_LOAD_PATH_VARIABLE_NAME, SCM_NIL_OBJ, true);
@@ -1260,6 +1278,7 @@ scm_define_scheme_base_alias(ScmObj module)
     ALIAS_SAME_VAR("procedure?", true),
     ALIAS_SAME_VAR("apply", true),
     ALIAS_SAME_VAR("call/cc", true),
+    ALIAS_SAME_VAR("call-with-current-continuation", true),
     ALIAS_SAME_VAR("values", true),
     ALIAS_SAME_VAR("call-with-values", true),
     ALIAS_SAME_VAR("dynamic-wind", true),
