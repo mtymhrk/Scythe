@@ -62,6 +62,45 @@ scm_starts_with_pairent_dir_or_current_dir_P(ScmObj path)
 }
 
 static ScmObj
+scm_get_load_path(void)
+{
+  ScmObj paths = SCM_OBJ_INIT;
+  int r;
+
+  SCM_REFSTK_INIT_REG(&paths);
+
+  r = scm_cached_global_var_ref(SCM_CACHED_GV_LOAD_PATH, SCM_CSETTER_L(paths));
+  if (r < 0) return SCM_OBJ_NULL;
+
+  if (scm_obj_null_p(paths)) {
+    scm_error("unbound variable: " SCM_LOAD_PATH_VARIABLE_NAME, 0);
+    return SCM_OBJ_NULL;
+  }
+
+  return paths;
+}
+
+static ScmObj
+scm_get_load_suffixes(void)
+{
+  ScmObj suffixes = SCM_OBJ_INIT;
+  int r;
+
+  SCM_REFSTK_INIT_REG(&suffixes);
+
+  r = scm_cached_global_var_ref(SCM_CACHED_GV_LOAD_SUFFIXES,
+                                SCM_CSETTER_L(suffixes));
+  if (r < 0) return SCM_OBJ_NULL;
+
+  if (scm_obj_null_p(suffixes)) {
+    scm_error("unbound variable: " SCM_LOAD_SUFFIXES_VARIABLE_NAME, 0);
+    return SCM_OBJ_NULL;
+  }
+
+  return suffixes;
+}
+
+static ScmObj
 scm_file_path_join(ScmObj path1, ScmObj path2)
 {
   ScmObj b;
@@ -88,13 +127,12 @@ scm_file_path_join(ScmObj path1, ScmObj path2)
 static ScmObj
 scm_make_file_path_if_exists(ScmObj dir, ScmObj name)
 {
-  const char const * const tbl[] = { "~a.scm", NULL};
-  ScmObj base = SCM_OBJ_INIT, p = SCM_OBJ_INIT;
+  ScmObj base = SCM_OBJ_INIT, p = SCM_OBJ_INIT, s = SCM_OBJ_NULL;
   bool exists;
   int r;
 
   SCM_REFSTK_INIT_REG(&dir, &name,
-                      &base, &p);
+                      &base, &p, &s);
 
   scm_assert(scm_obj_null_p(dir) || scm_string_p(dir));
   scm_assert(scm_string_p(name));
@@ -107,8 +145,11 @@ scm_make_file_path_if_exists(ScmObj dir, ScmObj name)
     if (scm_obj_null_p(base)) return SCM_OBJ_NULL;
   }
 
-  for (size_t i = 0; tbl[i] != NULL; i++) {
-    p = scm_format_cstr(tbl[i], base);
+  s = scm_get_load_suffixes();
+  if (scm_obj_null_p(s)) return SCM_OBJ_NULL;
+
+  for (; scm_pair_p(s); s = scm_cdr(s)) {
+    p = scm_format_cstr("~a~a", base, scm_car(s));
     if (scm_obj_null_p(p)) return SCM_OBJ_NULL;
 
     r = scm_file_exists(p, &exists);
@@ -173,25 +214,6 @@ scm_use_load_path_P(ScmObj name)
   return SCM_TRUE_OBJ;
 }
 
-static ScmObj
-scm_get_load_path(void)
-{
-  ScmObj paths = SCM_OBJ_INIT;
-  int r;
-
-  SCM_REFSTK_INIT_REG(&paths);
-
-  r = scm_cached_global_var_ref(SCM_CACHED_GV_LOAD_PATH, SCM_CSETTER_L(paths));
-  if (r < 0) return SCM_OBJ_NULL;
-
-  if (scm_obj_null_p(paths)) {
-    scm_error("unbound variable: " SCM_LOAD_PATH_VARIABLE_NAME, 0);
-    return SCM_OBJ_NULL;
-  }
-
-  return paths;
-}
-
 int
 scm_add_load_path(ScmObj dir)
 {
@@ -210,6 +232,29 @@ scm_add_load_path(ScmObj dir)
   if (scm_obj_null_p(paths)) return -1;
 
   r = scm_cached_global_var_set(SCM_CACHED_GV_LOAD_PATH, paths);
+  if (r < 0) return -1;
+
+  return 0;
+}
+
+int
+scm_add_load_suffix(ScmObj sfx)
+{
+  ScmObj suffixes = SCM_OBJ_INIT;
+  int r;
+
+  SCM_REFSTK_INIT_REG(&sfx,
+                      &suffixes);
+
+  scm_assert(scm_string_p(sfx));
+
+  suffixes = scm_get_load_suffixes();
+  if (scm_obj_null_p(suffixes)) return -1;
+
+  suffixes = scm_cons(sfx, suffixes);
+  if (scm_obj_null_p(suffixes)) return -1;
+
+  r = scm_cached_global_var_set(SCM_CACHED_GV_LOAD_SUFFIXES, suffixes);
   if (r < 0) return -1;
 
   return 0;

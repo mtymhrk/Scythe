@@ -27,8 +27,6 @@ static char default_ext_enc[64] = "";
 int
 scm_scythe_initialize(ScmScythe *scy)
 {
-  int r;
-
   scm_assert(scy != NULL);
 
   scy->stat = SCM_SCYTHE_S_DOWN;
@@ -36,8 +34,8 @@ scm_scythe_initialize(ScmScythe *scy)
   scy->vm = SCM_OBJ_NULL;
   scy->refstack = SCM_OBJ_NULL;
 
-  r = eary_init(&scy->conf.load_path, sizeof(char *), 0);
-  if (r < 0) return -1;
+  eary_init(&scy->conf.load_path, sizeof(char *), 0);
+  eary_init(&scy->conf.load_suffixes, sizeof(char *), 0);
 
   scy->conf.gconf.system_encoding = DEFAULT_SYS_ENC;
   scy->conf.gconf.external_encoding = default_ext_enc;
@@ -54,6 +52,9 @@ scm_scythe_finalize(ScmScythe *scy)
 
   scm_scythe_clear_load_path(scy);
   eary_fin(&scy->conf.load_path);
+
+  scm_scythe_clear_load_suffix(scy);
+  eary_fin(&scy->conf.load_suffixes);
 
   scm_scythe_clear_system_encoding(scy);
   scm_scythe_clear_external_encoding(scy);
@@ -228,6 +229,43 @@ scm_scythe_clear_load_path(ScmScythe *scy)
 }
 
 int
+scm_scythe_add_load_suffix(ScmScythe *scy, const char *suffix)
+{
+  char *p;
+  int r;
+
+  scm_assert(scy != NULL);
+
+  if (!scm_scythe_conf_modifiable_p(scy))
+    return 0;
+
+  p = strdup(suffix);
+  if (p == NULL) return -1;
+
+  EARY_PUSH(&scy->conf.load_suffixes, char *, p, r);
+  if (r < 0) return -1;
+
+  return 0;
+}
+
+void
+scm_scythe_clear_load_suffix(ScmScythe *scy)
+{
+  size_t idx;
+  char **ptr;
+
+  scm_assert(scy != NULL);
+
+  if (!scm_scythe_conf_modifiable_p(scy))
+    return;
+
+  EARY_FOR_EACH(&scy->conf.load_suffixes, idx, ptr)
+    free(*ptr);
+
+  eary_truncate(&scy->conf.load_suffixes);
+}
+
+int
 scm_scythe_set_system_encoding(ScmScythe *scy, const char *enc)
 {
   ScmEncoding *e;
@@ -318,6 +356,36 @@ scm_scythe_update_load_path_variable(ScmScythe *scy)
 }
 
 int
+scm_scythe_update_load_suffixes_variable(ScmScythe *scy)
+{
+  ScmObj o = SCM_OBJ_INIT;
+  size_t idx;
+  char **ptr;
+  int r, retval;
+
+  scm_assert(scy != NULL);
+
+  retval = -1;
+  WITH_SCYTHE(scy) {
+    EARY_FOR_EACH(&scy->conf.load_suffixes, idx, ptr) {
+      o = scm_make_string_from_external(*ptr, strlen(*ptr), NULL);
+      if (scm_obj_null_p(o)) goto err_break;
+
+      r = scm_add_load_suffix(o);
+      if (r < 0) goto err_break;
+    }
+
+    retval = 0;
+
+  err_break:
+    break;
+
+  } WITH_SCYTHE_END;
+
+  return retval;
+}
+
+int
 scm_scythe_load_core(ScmScythe *scy)
 {
   int r, retval;
@@ -330,6 +398,9 @@ scm_scythe_load_core(ScmScythe *scy)
     if (r < 0) break;
 
     r = scm_scythe_update_load_path_variable(scy);
+    if (r < 0) break;
+
+    r = scm_scythe_update_load_suffixes_variable(scy);
     if (r < 0) break;
 
     retval = 0;

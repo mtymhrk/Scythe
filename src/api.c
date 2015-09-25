@@ -2902,6 +2902,25 @@ scm_capi_scythe_clear_load_path(ScmScythe *scy)
 }
 
 int
+scm_capi_scythe_add_load_suffix(ScmScythe *scy, const char *suffix)
+{
+  if (scy == NULL || suffix == NULL)
+    return -1;
+
+  return scm_scythe_add_load_suffix(scy, suffix);
+}
+
+int
+scm_capi_scythe_clear_load_suffix(ScmScythe *scy)
+{
+  if (scy == NULL)
+    return -1;
+
+  scm_scythe_clear_load_suffix(scy);
+  return 0;
+}
+
+int
 scm_capi_scythe_run_repl(ScmScythe *scy)
 {
   if (scy == NULL)

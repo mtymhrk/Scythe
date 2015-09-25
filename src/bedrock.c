@@ -351,6 +351,7 @@ scm_bedrock_cached_gv(ScmBedrock *br, int kind, scm_csetter_t *gloc)
     { "current-input-port",  { "scythe", "internal", "core", "public" }, 4 },
     { "current-output-port", { "scythe", "internal", "core", "public" }, 4 },
     { SCM_LOAD_PATH_VARIABLE_NAME, { "scythe", "internal", "core", "public" }, 4 },
+    { SCM_LOAD_SUFFIXES_VARIABLE_NAME, { "scythe", "internal", "core", "public" }, 4 },
   };
 
   scm_assert(br != NULL);

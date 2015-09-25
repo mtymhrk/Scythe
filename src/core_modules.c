@@ -561,6 +561,9 @@ scm_load_module_func_scythe_internal_core_public(ScmObj mod)
   r = scm_define_var(mod, SCM_LOAD_PATH_VARIABLE_NAME, SCM_NIL_OBJ, true);
   if (r < 0) return -1;
 
+  r = scm_define_var(mod, SCM_LOAD_SUFFIXES_VARIABLE_NAME, SCM_NIL_OBJ, true);
+  if (r < 0) return -1;
+
   return 0;
 }
 
