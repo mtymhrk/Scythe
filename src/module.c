@@ -59,6 +59,15 @@ ScmTypeInfo SCM_GLOC_TYPE_INFO = {
   .extra               = NULL,
 };
 
+static void
+scm_gloc_set_kind(ScmObj gloc, unsigned int kind)
+{
+  scm_assert_obj_type(gloc, &SCM_GLOC_TYPE_INFO);
+
+  SCM_GLOC(gloc)->flags &= ~(unsigned int)SCM_GLOC_FLG_KIND_MASK;
+  SCM_GLOC(gloc)->flags |= (kind & SCM_GLOC_FLG_KIND_MASK);
+}
+
 int
 scm_gloc_initialize(ScmObj gloc, ScmObj sym, ScmObj val)
 {
@@ -95,7 +104,7 @@ scm_gloc_bind_variable(ScmObj gloc, ScmObj val)
   scm_assert_obj_type(gloc, &SCM_GLOC_TYPE_INFO);
   scm_assert(scm_obj_not_null_p(val) && !scm_landmine_object_p(val));
 
-  SCM_GLOC(gloc)->flags &= ~(unsigned int)SCM_GLOC_FLG_KEYWORD;
+  scm_gloc_set_kind(gloc, SCM_GLOC_FLG_KIND_VARIABLE);
   SCM_SLOT_SETQ(ScmGLoc, gloc, val, val);
 }
 
@@ -105,8 +114,18 @@ scm_gloc_bind_keyword(ScmObj gloc, ScmObj val)
   scm_assert_obj_type(gloc, &SCM_GLOC_TYPE_INFO);
   scm_assert(scm_obj_not_null_p(val) && !scm_landmine_object_p(val));
 
-  SCM_GLOC(gloc)->flags |= SCM_GLOC_FLG_KEYWORD;
+  scm_gloc_set_kind(gloc, SCM_GLOC_FLG_KIND_KEYWORD);
   SCM_SLOT_SETQ(ScmGLoc, gloc, val, val);
+}
+
+void
+scm_gloc_forward(ScmObj gloc, ScmObj dst)
+{
+  scm_assert_obj_type(gloc, &SCM_GLOC_TYPE_INFO);
+  scm_assert_obj_type(dst, &SCM_GLOC_TYPE_INFO);
+
+  scm_gloc_set_kind(gloc, SCM_GLOC_FLG_KIND_DELEGATOR);
+  SCM_SLOT_SETQ(ScmGLoc, gloc, val, dst);
 }
 
 void
@@ -137,6 +156,30 @@ scm_gloc_keyword_value(ScmObj gloc)
     return scm_gloc_value(gloc);
   else
     return SCM_UNINIT_OBJ;
+}
+
+ScmObj
+scm_gloc_delegatee(ScmObj gloc)
+{
+  ScmObj t = SCM_OBJ_INIT, r = SCM_OBJ_INIT;
+
+  scm_assert(scm_gloc_p(gloc));
+
+  t = r = gloc;
+  do {
+    if (!scm_gloc_delegator_p(r))
+      return r;
+
+    r = scm_gloc_value(r);
+    if (!scm_gloc_delegator_p(r))
+      return r;
+
+    r = scm_gloc_value(r);
+    t = scm_gloc_value(t);
+  } while(!scm_eq_p(t, r));
+
+  /* forwarding が循環している場合、元の GLoc を返す */
+  return gloc;
 }
 
 void
@@ -212,8 +255,14 @@ scm_module_search_gloc(ScmObj mod, ScmObj sym, scm_csetter_t *setter)
   return 0;
 }
 
+enum {
+  SCM_MODULE_VARIABLE,
+  SCM_MODULE_KEYWORD,
+  SCM_MODULE_ALIAS,
+};
+
 static int
-scm_module_define(ScmObj mod, ScmObj sym, ScmObj val, bool export, bool keyword)
+scm_module_define(ScmObj mod, ScmObj sym, ScmObj val, bool export, int kind)
 {
   ScmObj gloc = SCM_OBJ_INIT;
 
@@ -223,14 +272,25 @@ scm_module_define(ScmObj mod, ScmObj sym, ScmObj val, bool export, bool keyword)
   scm_assert_obj_type(mod, &SCM_MODULE_TYPE_INFO);
   scm_assert(scm_symbol_p(sym));
   scm_assert(scm_obj_not_null_p(val) && !scm_landmine_object_p(val));
+  scm_assert(kind != SCM_MODULE_ALIAS || scm_gloc_p(val));
 
   gloc = scm_module_gloc(mod, sym);
   if (scm_obj_null_p(gloc)) return -1;
 
-  if (keyword)
-    scm_gloc_bind_keyword(gloc, val);
-  else
+  switch (kind) {
+  case SCM_MODULE_VARIABLE:
     scm_gloc_bind_variable(gloc, val);
+    break;
+  case SCM_MODULE_KEYWORD:
+    scm_gloc_bind_keyword(gloc, val);
+    break;
+  case SCM_MODULE_ALIAS:
+    scm_gloc_forward(gloc, val);
+    break;
+  default:
+    scm_assert(false);
+    break;
+  }
 
   if (export)
     scm_gloc_export(gloc);
@@ -401,13 +461,19 @@ scm_module_import(ScmObj mod, ScmObj imp, bool res)
 int
 scm_module_define_variable(ScmObj mod, ScmObj sym, ScmObj val, bool export)
 {
-  return scm_module_define(mod, sym, val, export, false);
+  return scm_module_define(mod, sym, val, export, SCM_MODULE_VARIABLE);
 }
 
 int
 scm_module_define_keyword(ScmObj mod, ScmObj sym, ScmObj val, bool export)
 {
-  return scm_module_define(mod, sym, val, export, true);
+  return scm_module_define(mod, sym, val, export, SCM_MODULE_KEYWORD);
+}
+
+int
+scm_module_define_alias(ScmObj mod, ScmObj sym, ScmObj src, bool export)
+{
+  return scm_module_define(mod, sym, src, export, SCM_MODULE_ALIAS);
 }
 
 int
@@ -462,6 +528,7 @@ int
 scm_module_find_gloc(ScmObj mod, ScmObj sym, scm_csetter_t *setter)
 {
   ScmObj lst = SCM_OBJ_INIT, elm = SCM_OBJ_INIT, imp = SCM_OBJ_INIT;
+  ScmObj gloc = SCM_OBJ_INIT;
   int rslt;
 
   SCM_REFSTK_INIT_REG(&mod, &sym,
@@ -476,10 +543,10 @@ scm_module_find_gloc(ScmObj mod, ScmObj sym, scm_csetter_t *setter)
 
   SCM_MODULE(mod)->in_searching = true;
 
-  rslt = scm_module_search_gloc(mod, sym, setter);
+  rslt = scm_module_search_gloc(mod, sym, SCM_CSETTER_L(gloc));
   if (rslt < 0) goto err;
 
-  if (scm_obj_not_null_p(scm_csetter_val(setter)))
+  if (scm_obj_not_null_p(gloc))
     goto done;
 
   for (lst = SCM_MODULE(mod)->imports;
@@ -487,14 +554,16 @@ scm_module_find_gloc(ScmObj mod, ScmObj sym, scm_csetter_t *setter)
        lst = scm_cdr(lst)) {
     elm = scm_car(lst);
     imp = scm_car(elm);
-    rslt = scm_module_find_exported_sym(imp, sym, setter);
+    rslt = scm_module_find_exported_sym(imp, sym, SCM_CSETTER_L(gloc));
     if (rslt < 0) goto err;;
 
-    if (scm_obj_not_null_p(scm_csetter_val(setter)))
+    if (scm_obj_not_null_p(gloc))
       goto done;
   }
 
  done:
+  scm_csetter_setq(setter, (scm_obj_null_p(gloc) ?
+                            SCM_OBJ_NULL : scm_gloc_delegatee(gloc)));
   SCM_MODULE(mod)->in_searching = false;
   return 0;
 
@@ -998,6 +1067,34 @@ scm_refer_global_syx(ScmObj module, ScmObj sym, scm_csetter_t *syx)
     scm_csetter_setq(syx, v);
 
   return 0;
+}
+
+int
+scm_define_global_alias(ScmObj module, ScmObj sym, ScmObj src, bool export)
+{
+  ScmObj gloc = SCM_OBJ_INIT;
+  int r;
+
+  SCM_REFSTK_INIT_REG(&module, &sym, &src,
+                      &gloc);
+
+  scm_assert(scm_module_specifier_p(module));
+  scm_assert(scm_symbol_p(sym));
+  scm_assert(scm_symbol_p(src));
+
+  module = get_module(module);
+  if (scm_obj_null_p(module)) return -1;
+
+  r = scm_module_find_gloc(module, src, SCM_CSETTER_L(gloc));
+  if (r < 0) return -1;
+
+  if (scm_obj_null_p(gloc)) {
+    scm_error("failed to define alias of global variable: unbound variable",
+              1, src);
+    return -1;
+  }
+
+  return scm_module_define_alias(module, sym, gloc, export);
 }
 
 int
