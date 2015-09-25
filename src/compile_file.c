@@ -10,18 +10,26 @@ static const char *output_file = "marshal.out";
 static void
 usage()
 {
-  fprintf(stderr, "Usage: %s [-o <file>] [--] <file>\n", command_name);
+  fprintf(stderr,
+          "Usage: %s [options] [--] <file>\n"
+          "Options:\n"
+          "  -I <path>   Add <path> to the load path list.\n"
+          "  -o <file>   Place the output into <file>.",
+          command_name);
 }
 
 static int
-parse_arguments(int argc, char **argv)
+parse_arguments(int argc, char **argv, ScmScythe *scy)
 {
-  int c;
+  int c, r;
 
   command_name = argv[0];
 
-  while ((c = getopt(argc, argv, "+:o:")) != -1) {
+  while ((c = getopt(argc, argv, "+:I:o:")) != -1) {
     switch (c) {
+    case 'I':
+      r = scm_capi_scythe_add_load_path(scy, optarg);
+      if (r < 0) return -1;
     case 'o':
       output_file = optarg;
       break;
@@ -64,9 +72,6 @@ compile_file(int argc, char **argv)
   ScmScythe *scy;
   int r, retval;
 
-  r = parse_arguments(argc, argv);
-  if (r < 0) return -1;
-
   retval = -1;
 
   r = scm_capi_scythe_init();
@@ -76,6 +81,9 @@ compile_file(int argc, char **argv)
   if (scy == NULL) return -1;
 
   r = scm_capi_scythe_default_setup(scy);
+  if (r < 0) goto end;
+
+  r = parse_arguments(argc, argv, scy);
   if (r < 0) goto end;
 
   r = scm_capi_scythe_bootup(scy);
