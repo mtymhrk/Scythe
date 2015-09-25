@@ -141,31 +141,6 @@ execute_repl(ScmScythe *scy)
   return 0;
 }
 
-static int
-setup_load_path(ScmScythe *scy)
-{
-  int r;
-
-  r = scm_capi_scythe_add_load_path(scy, SCYTHE_LIB_DIR);
-  if (r < 0) return -1;
-
-  return 0;
-}
-
-static int
-setup_load_suffixes(ScmScythe *scy)
-{
-  static const char *sfx[] = { ".scm", ".sld", NULL };
-  int r;
-
-  for (const char **p = sfx; *p != NULL; p++) {
-    r = scm_capi_scythe_add_load_suffix(scy, *p);
-    if (r < 0) return -1;
-  }
-
-  return 0;
-}
-
 static ScmScythe *
 make_scythe(void)
 {
@@ -178,10 +153,7 @@ make_scythe(void)
   scy = scm_capi_scythe_new();
   if (scy == NULL) return NULL;
 
-  r = setup_load_path(scy);
-  if (r < 0) goto err;
-
-  r = setup_load_suffixes(scy);
+  r = scm_capi_scythe_default_setup(scy);
   if (r < 0) goto err;
 
   return scy;

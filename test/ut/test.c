@@ -76,6 +76,9 @@ ut_scythe_setup(bool load)
   scy = scm_scythe_new();
   if (scy == NULL) return NULL;
 
+  r = scm_scythe_default_setup(scy);
+  if (r < 0) goto err;
+
   r = scm_scythe_bootup(scy);
   if (r < 0) goto err;
 

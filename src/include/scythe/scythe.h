@@ -41,6 +41,7 @@ int scm_scythe_set_external_encoding(ScmScythe *scy, const char *enc);
 void scm_scythe_clear_external_encoding(ScmScythe *scy);
 int scm_scythe_update_load_path_variable(ScmScythe *scy);
 int scm_scythe_update_load_suffixes_variable(ScmScythe *scy);
+int scm_scythe_default_setup(ScmScythe *scy);
 int scm_scythe_load_core(ScmScythe *scy);
 int scm_scythe_apply(ScmScythe *scy,
                      const char *cmd, const char * const *args, size_t n);

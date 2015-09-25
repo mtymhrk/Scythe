@@ -432,6 +432,7 @@ int scm_capi_scythe_add_load_path(ScmScythe *scy, const char *path);
 int scm_capi_scythe_clear_load_path(ScmScythe *scy);
 int scm_capi_scythe_add_load_suffix(ScmScythe *scy, const char *suffix);
 int scm_capi_scythe_clear_load_suffix(ScmScythe *scy);
+int scm_capi_scythe_default_setup(ScmScythe *scy);
 int scm_capi_scythe_run_repl(ScmScythe *scy);
 int scm_capi_scythe_exec_file(ScmScythe *scy,
                               const char * const *argv, size_t n);

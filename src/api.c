@@ -2921,6 +2921,15 @@ scm_capi_scythe_clear_load_suffix(ScmScythe *scy)
 }
 
 int
+scm_capi_scythe_default_setup(ScmScythe *scy)
+{
+  if (scy == NULL)
+    return -1;
+
+  return scm_scythe_default_setup(scy);
+}
+
+int
 scm_capi_scythe_run_repl(ScmScythe *scy)
 {
   if (scy == NULL)

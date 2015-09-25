@@ -18,6 +18,7 @@
 #include "scythe/vector.h"
 #include "scythe/core_modules.h"
 #include "scythe/earray.h"
+#include "scythe/config.h"
 #include "scythe/scythe.h"
 
 #define DEFAULT_SYS_ENC SCM_ENC_UTF8
@@ -383,6 +384,30 @@ scm_scythe_update_load_suffixes_variable(ScmScythe *scy)
   } WITH_SCYTHE_END;
 
   return retval;
+}
+
+int
+scm_scythe_default_setup(ScmScythe *scy)
+{
+  static const char *sfx[] = { ".scm", ".sld", NULL };
+  int r;
+
+  scm_assert(scy != NULL);
+
+  scm_scythe_clear_load_path(scy);
+  scm_scythe_clear_load_suffix(scy);
+  scm_scythe_clear_system_encoding(scy);
+  scm_scythe_clear_external_encoding(scy);
+
+  r = scm_scythe_add_load_path(scy, SCYTHE_LIB_DIR);
+  if (r < 0) return -1;
+
+  for (const char **p = sfx; *p != NULL; p++) {
+    r = scm_scythe_add_load_suffix(scy, *p);
+    if (r < 0) return -1;
+  }
+
+  return 0;
 }
 
 int

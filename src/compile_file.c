@@ -75,6 +75,9 @@ compile_file(int argc, char **argv)
   scy = scm_capi_scythe_new();
   if (scy == NULL) return -1;
 
+  r = scm_capi_scythe_default_setup(scy);
+  if (r < 0) goto end;
+
   r = scm_capi_scythe_bootup(scy);
   if (r < 0) goto end;
 
