@@ -1,4 +1,0 @@
-
-const unsigned char scm_dynamicenv_data[] = {
-<%= code %>
-};

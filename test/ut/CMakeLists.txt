@@ -38,7 +38,7 @@ foreach(file ${unit_test_src_apnd})
 endforeach(file)
 
 set(unity_dir test/unity)
-set(unity_src_path ${unity_dir}/src)
+set(unity_src_rpath ${unity_dir}/src)
 set(unity_src unity.c unity_fixture.c)
 
 set(test_runner_src test_runner.c)
@@ -53,10 +53,10 @@ set(summarize_script ${CMAKE_SOURCE_DIR}/${unity_dir}/auto/summarize_result.rb)
 ##===============================================================
 ## ヘッダの依存関係、コンパイルオプション設定
 
-include_directories(${CMAKE_SOURCE_DIR}/${unity_src_path})
-include_directories(${CMAKE_BINARY_DIR}/${scythe_src_path}/include)
-include_directories(${CMAKE_SOURCE_DIR}/${scythe_src_path}/include)
-include_directories(${CMAKE_SOURCE_DIR}/${scythe_src_path})
+include_directories(${CMAKE_SOURCE_DIR}/${unity_src_rpath})
+include_directories(${CMAKE_BINARY_DIR}/${scythe_src_rpath}/include)
+include_directories(${CMAKE_SOURCE_DIR}/${scythe_src_rpath}/include)
+include_directories(${CMAKE_SOURCE_DIR}/${scythe_src_rpath})
 
 add_definitions(${scythe_compile_definitions_debug})
 
@@ -67,7 +67,7 @@ add_definitions(${scythe_compile_definitions_debug})
 ## unity_src 変数の各ソースファイル名を絶対パスに変換
 set(unity_files "")
 foreach(file ${unity_src})
-  list(APPEND unity_files ${CMAKE_SOURCE_DIR}/${unity_src_path}/${file})
+  list(APPEND unity_files ${CMAKE_SOURCE_DIR}/${unity_src_rpath}/${file})
 endforeach(file)
 
 ## unit_test_src 変数の各ソースファイル名を絶対パスに変換

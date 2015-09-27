@@ -20,12 +20,6 @@ check_include_file(execinfo.h HAVE_EXECINFO_H)
 
 
 ##===============================================================
-## インストールディレクトリ
-
-set(SCYTHE_LIB_DIR "${CMAKE_INSTALL_PREFIX}/scythe/lib")
-
-
-##===============================================================
 ## config.h の生成
 
 configure_file(include/scythe/config.h.in include/scythe/config.h)
@@ -45,30 +39,56 @@ endif(CMAKE_BUILD_TYPE STREQUAL "Release")
 
 
 ##===============================================================
+## compile.c 生成
+
+if(preinstalled_scythe_bin_path)
+  set(scm_compiler ${CMAKE_CURRENT_BINARY_DIR}/scythe-compile-file)
+  set(scm_compiler_source ${preinstalled_scythe_bin_path})
+  set(scm_compiler_opt "")
+
+  set(compiler_scm_files "scythe/internal/compile.scm"
+                         "scythe/internal/dynamic-env.scm"
+                         "scythe/internal/macro.scm"
+                         "scythe/repl.scm")
+  set(compiler_scm_paths "")
+  foreach(file ${compiler_scm_files})
+    list(APPEND compiler_scm_paths "${CMAKE_SOURCE_DIR}/lib/${file}")
+  endforeach(file)
+
+  add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/compile.c
+    COMMAND ${ruby_bin_path} ${CMAKE_CURRENT_SOURCE_DIR}/tools/scmcompile.rb "${scm_compiler}${scm_compiler_opt}" ${CMAKE_SOURCE_DIR}/lib ${CMAKE_CURRENT_SOURCE_DIR}/compile.c.in ${CMAKE_CURRENT_SOURCE_DIR}/compile.c
+    DEPENDS compile.c.in ${scm_compiler} ${compiler_scm_paths}
+  )
+
+  add_custom_command(
+    OUTPUT ${scm_compiler}
+    COMMAND cp -a ${scm_compiler_source} ${scm_compiler}
+    DEPENDS ${scm_compiler_source}
+  )
+
+  add_custom_target(
+    prepare-src
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/compile.c
+  )
+
+  add_custom_target(
+    prepare
+    DEPENDS prepare-src
+  )
+endif(preinstalled_scythe_bin_path)
+
+## compile.c を make clean で削除しないようにするための設定
+set_directory_properties(PROPERTIES CLEAN_NO_CUSTOM TRUE)
+
+
+##===============================================================
 ## ターゲット設定
 
 add_library(scythe-lib OBJECT ${scythe_lib_src})
 
 add_executable(scythe
                main.c compile_file.c $<TARGET_OBJECTS:scythe-lib>)
-
-
-##===============================================================
-## src/tools 配下のツールを実行するための設定
-
-set(scythe_compiler "${CMAKE_CURRENT_BINARY_DIR}/scythe-compile-file")
-
-add_custom_command(
-  OUTPUT ${scythe_compiler}
-  COMMAND cp ${CMAKE_CURRENT_BINARY_DIR}/scythe ${scythe_compiler}
-  DEPENDS scythe
-)
-
-add_custom_target(
-  src_tools
-  COMMAND make -C ${CMAKE_CURRENT_SOURCE_DIR}/tools RUBY=${ruby_bin_path} COMPILER=${scythe_compiler} all
-  DEPENDS ${scythe_compiler}
-)
 
 
 ##===============================================================

@@ -12,6 +12,7 @@ else
   BUILD_BASE_DIR="${1}"
 fi
 
+cmake_options=""
 build_types="Debug RelWithDebInfo Release"
 post_hook_target="RelWithDebInfo"
 post_cmake_hooks=""
@@ -30,7 +31,7 @@ for type in ${build_types}; do
   fi
 
   echo "${0}: EXECUTE cmake"
-  (cd ${build_dir}; cmake -DCMAKE_BUILD_TYPE=${type} ${PRJ_DIR})
+  (cd ${build_dir}; cmake ${cmake_options} -DCMAKE_BUILD_TYPE=${type} ${PRJ_DIR})
 
   if [ "${type}" = "${post_hook_target}" ]; then
     for hook in ${post_cmake_hooks}; do

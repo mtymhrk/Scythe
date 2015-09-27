@@ -1,0 +1,16 @@
+
+const unsigned char scm_compiled_data_scythe_internal_compile[] = {
+<%= codes[:scythe_internal_compile] %>
+};
+
+const unsigned char scm_compiled_data_scythe_internal_dynamicenv[] = {
+<%= codes[:scythe_internal_dynamicenv] %>
+};
+
+const unsigned char scm_compiled_data_scythe_internal_macro[] = {
+<%= codes[:scythe_internal_macro] %>
+};
+
+const unsigned char scm_compiled_data_scythe_repl[] = {
+<%= codes[:scythe_repl] %>
+};

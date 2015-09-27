@@ -1,3 +1,4 @@
 syntax: glob
 
 cmake/run_cmake.conf
+src/compile.c

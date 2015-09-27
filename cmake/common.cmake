@@ -2,13 +2,14 @@
 ##===============================================================
 ## ビルドやテストに必要となるソースファイルのパス
 
-set(scythe_src_path src)
+set(scythe_src_rpath src)
 set(scythe_lib_src api.c
                    assembler.c
                    bedrock.c
                    bignum.c
                    char.c
                    chashtbl.c
+                   compile.c
                    compiler.c
                    core_modules.c
                    core_subr.c
@@ -40,12 +41,9 @@ set(scythe_lib_src api.c
                    vector.c
                    vm.c
                    vminst.c
-                   vmstack.c
+                   vmstack.c)
 
-                   compile_data.c
-                   macro_data.c
-                   repl_data.c
-                   dynamic-env_data.c)
+set(scythe_scm_lib_rpath lib)
 
 
 ##===============================================================
@@ -69,13 +67,27 @@ endif(gcc_bin_path)
 
 
 ##===============================================================
+## Scheme コンパイラのコンパイルに必要なツールの設定
+
+####################
+## インストール済み Scythe
+
+find_program(preinstalled_scythe_bin_path scythe
+             PATHS ${CMAKE_INSTALL_PREFIX}/bin ENV PATH)
+
+if(NOT preinstalled_scythe_bin_path)
+  message(WARNING "Preinstalled Scythe is not found.")
+endif(NOT preinstalled_scythe_bin_path)
+
+
+##===============================================================
 ## テスト等で必要になる外部ツールの設定
 
 ####################
 ## Ruby
 
 find_program(ruby_bin_path ruby
-             PATHS /usr/local/bin)
+             PATHS ENV PATH)
 
 if(NOT ruby_bin_path)
   message(WARNING "Ruby script language is not found.")
@@ -90,3 +102,10 @@ if(NOT CMAKE_BUILD_TYPE)
     "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel."
       FORCE)
 endif(NOT CMAKE_BUILD_TYPE)
+
+
+##===============================================================
+## インストールディレクトリ
+
+set(SCYTHE_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/scythe")
+set(SCYTHE_LIB_DIR "${SCYTHE_INSTALL_DIR}/lib")

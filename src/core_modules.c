@@ -166,6 +166,28 @@ scm_define_alias(ScmObj module, const struct alias_data *data)
 }
 
 static int
+scm_exec_compiled_data(ScmObj mod, const unsigned char *data)
+{
+  ScmObj unmarshal = SCM_OBJ_INIT, iseq = SCM_OBJ_INIT;
+  int r;
+
+  SCM_REFSTK_INIT_REG(&mod,
+                      &unmarshal, &iseq);
+
+  unmarshal = scm_make_unmarshal(data);
+  if (scm_obj_null_p(unmarshal)) return -1;
+
+  iseq = scm_unmarshal_ref(unmarshal, 0);
+  if (scm_obj_null_p(iseq)) return -1;
+  scm_assert(scm_iseq_p(iseq));
+
+  r = scm_exec_iseq(iseq);
+  if (r < 0) return -1;
+
+  return 0;
+}
+
+static int
 scm_load_modules_and_import_them(ScmObj module, const struct import_data *data)
 {
   ScmObj name = SCM_OBJ_INIT;
@@ -813,29 +835,7 @@ scm_load_module_scythe_internal_core_private(void)
 /*  (scythe internal dynamic-env)                                  */
 /*******************************************************************/
 
-extern const unsigned char scm_dynamicenv_data[];
-
-static int
-scm_define_scythe_internal_dynamicenv_closure(ScmObj mod)
-{
-  ScmObj unmarshal = SCM_OBJ_INIT, iseq = SCM_OBJ_INIT;
-  int r;
-
-  SCM_REFSTK_INIT_REG(&mod,
-                      &unmarshal, &iseq);
-
-  unmarshal = scm_make_unmarshal(scm_dynamicenv_data);
-  if (scm_obj_null_p(unmarshal)) return -1;
-
-  iseq = scm_unmarshal_ref(unmarshal, 0);
-  if (scm_obj_null_p(iseq)) return -1;
-  scm_assert(scm_iseq_p(iseq));
-
-  r = scm_exec_iseq(iseq);
-  if (r < 0) return -1;
-
-  return 0;
-}
+extern const unsigned char scm_compiled_data_scythe_internal_dynamicenv[];
 
 static int
 scm_load_module_func_scythe_internal_dynamicenv(ScmObj mod)
@@ -854,7 +854,7 @@ scm_load_module_func_scythe_internal_dynamicenv(ScmObj mod)
   r = scm_load_modules_and_import_them(mod, data);
   if (r < 0) return -1;
 
-  r = scm_define_scythe_internal_dynamicenv_closure(mod);
+  r = scm_exec_compiled_data(mod, scm_compiled_data_scythe_internal_dynamicenv);
   if (r < 0) return -1;
 
   return 0;
@@ -872,29 +872,7 @@ scm_load_module_scythe_internal_dynamicenv(void)
 /*  (scythe internal compile)                                      */
 /*******************************************************************/
 
-extern const unsigned char scm_compile_data[];
-
-static int
-scm_define_scythe_internal_compile_closure(ScmObj mod)
-{
-  ScmObj unmarshal = SCM_OBJ_INIT, iseq = SCM_OBJ_INIT;
-  int r;
-
-  SCM_REFSTK_INIT_REG(&mod,
-                      &unmarshal, &iseq);
-
-  unmarshal = scm_make_unmarshal(scm_compile_data);
-  if (scm_obj_null_p(unmarshal)) return -1;
-
-  iseq = scm_unmarshal_ref(unmarshal, 0);
-  if (scm_obj_null_p(iseq)) return -1;
-  scm_assert(scm_iseq_p(iseq));
-
-  r = scm_exec_iseq(iseq);
-  if (r < 0) return -1;
-
-  return 0;
-}
+extern const unsigned char scm_compiled_data_scythe_internal_compile[];
 
 static int
 scm_load_module_func_scythe_internal_compile(ScmObj mod)
@@ -915,7 +893,7 @@ scm_load_module_func_scythe_internal_compile(ScmObj mod)
   r = scm_load_modules_and_import_them(mod, data);
   if (r < 0) return -1;
 
-  r = scm_define_scythe_internal_compile_closure(mod);
+  r = scm_exec_compiled_data(mod, scm_compiled_data_scythe_internal_compile);
   if (r < 0) return -1;
 
   return 0;
@@ -933,29 +911,7 @@ scm_load_module_scythe_internal_compile(void)
 /*  (scythe internal macro)                                        */
 /*******************************************************************/
 
-extern const unsigned char scm_macro_data[];
-
-static int
-scm_define_scythe_internal_macro_closure(ScmObj mod)
-{
-  ScmObj unmarshal = SCM_OBJ_INIT, iseq = SCM_OBJ_INIT;
-  int r;
-
-  SCM_REFSTK_INIT_REG(&mod,
-                      &unmarshal, &iseq);
-
-  unmarshal = scm_make_unmarshal(scm_macro_data);
-  if (scm_obj_null_p(unmarshal)) return -1;
-
-  iseq = scm_unmarshal_ref(unmarshal, 0);
-  if (scm_obj_null_p(iseq)) return -1;
-  scm_assert(scm_iseq_p(iseq));
-
-  r = scm_exec_iseq(iseq);
-  if (r < 0) return -1;
-
-  return 0;
-}
+extern const unsigned char scm_compiled_data_scythe_internal_macro[];
 
 static int
 scm_load_module_func_scythe_internal_macro(ScmObj mod)
@@ -976,7 +932,7 @@ scm_load_module_func_scythe_internal_macro(ScmObj mod)
   r = scm_load_modules_and_import_them(mod, data);
   if (r < 0) return -1;
 
-  r = scm_define_scythe_internal_macro_closure(mod);
+  r = scm_exec_compiled_data(mod, scm_compiled_data_scythe_internal_macro);
   if (r < 0) return -1;
 
   return 0;
@@ -1029,29 +985,7 @@ scm_load_module_scythe_base(void)
 /*  (scythe repl)                                                  */
 /*******************************************************************/
 
-extern const unsigned char scm_repl_data[];
-
-static int
-scm_define_scythe_repl_closure(ScmObj mod)
-{
-  ScmObj unmarshal = SCM_OBJ_INIT, iseq = SCM_OBJ_INIT;
-  int r;
-
-  SCM_REFSTK_INIT_REG(&mod,
-                      &unmarshal, &iseq);
-
-  unmarshal = scm_make_unmarshal(scm_repl_data);
-  if (scm_obj_null_p(unmarshal)) return -1;
-
-  iseq = scm_unmarshal_ref(unmarshal, 0);
-  if (scm_obj_null_p(iseq)) return -1;
-  scm_assert(scm_iseq_p(iseq));
-
-  r = scm_exec_iseq(iseq);
-  if (r < 0) return -1;
-
-  return 0;
-}
+extern const unsigned char scm_compiled_data_scythe_repl[];
 
 static int
 scm_load_module_func_scythe_repl(ScmObj mod)
@@ -1067,7 +1001,7 @@ scm_load_module_func_scythe_repl(ScmObj mod)
   r = scm_load_modules_and_import_them(mod, data);
   if (r < 0) return -1;
 
-  r = scm_define_scythe_repl_closure(mod);
+  r = scm_exec_compiled_data(mod, scm_compiled_data_scythe_repl);
   if (r < 0) return -1;
 
   return 0;
