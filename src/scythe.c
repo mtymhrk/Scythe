@@ -35,8 +35,8 @@ scm_scythe_initialize(ScmScythe *scy)
   scy->vm = SCM_OBJ_NULL;
   scy->refstack = SCM_OBJ_NULL;
 
-  eary_init(&scy->conf.load_path, sizeof(char *), 0);
-  eary_init(&scy->conf.load_suffixes, sizeof(char *), 0);
+  eary_init(&scy->conf.gconf.load_path, sizeof(char *), 0);
+  eary_init(&scy->conf.gconf.load_suffixes, sizeof(char *), 0);
 
   scy->conf.gconf.system_encoding = DEFAULT_SYS_ENC;
   scy->conf.gconf.external_encoding = default_ext_enc;
@@ -52,10 +52,10 @@ scm_scythe_finalize(ScmScythe *scy)
   scm_scythe_shutdown(scy);
 
   scm_scythe_clear_load_path(scy);
-  eary_fin(&scy->conf.load_path);
+  eary_fin(&scy->conf.gconf.load_path);
 
   scm_scythe_clear_load_suffix(scy);
-  eary_fin(&scy->conf.load_suffixes);
+  eary_fin(&scy->conf.gconf.load_suffixes);
 
   scm_scythe_clear_system_encoding(scy);
   scm_scythe_clear_external_encoding(scy);
@@ -206,7 +206,7 @@ scm_scythe_add_load_path(ScmScythe *scy, const char *path)
   p = strdup(path);
   if (p == NULL) return -1;
 
-  EARY_PUSH(&scy->conf.load_path, char *, p, r);
+  EARY_PUSH(&scy->conf.gconf.load_path, char *, p, r);
   if (r < 0) return -1;
 
   return 0;
@@ -223,10 +223,10 @@ scm_scythe_clear_load_path(ScmScythe *scy)
   if (!scm_scythe_conf_modifiable_p(scy))
     return;
 
-  EARY_FOR_EACH(&scy->conf.load_path, idx, ptr)
+  EARY_FOR_EACH(&scy->conf.gconf.load_path, idx, ptr)
     free(*ptr);
 
-  eary_truncate(&scy->conf.load_path);
+  eary_truncate(&scy->conf.gconf.load_path);
 }
 
 int
@@ -243,7 +243,7 @@ scm_scythe_add_load_suffix(ScmScythe *scy, const char *suffix)
   p = strdup(suffix);
   if (p == NULL) return -1;
 
-  EARY_PUSH(&scy->conf.load_suffixes, char *, p, r);
+  EARY_PUSH(&scy->conf.gconf.load_suffixes, char *, p, r);
   if (r < 0) return -1;
 
   return 0;
@@ -260,10 +260,10 @@ scm_scythe_clear_load_suffix(ScmScythe *scy)
   if (!scm_scythe_conf_modifiable_p(scy))
     return;
 
-  EARY_FOR_EACH(&scy->conf.load_suffixes, idx, ptr)
+  EARY_FOR_EACH(&scy->conf.gconf.load_suffixes, idx, ptr)
     free(*ptr);
 
-  eary_truncate(&scy->conf.load_suffixes);
+  eary_truncate(&scy->conf.gconf.load_suffixes);
 }
 
 int
@@ -327,66 +327,6 @@ scm_scythe_clear_external_encoding(ScmScythe *scy)
 }
 
 int
-scm_scythe_update_load_path_variable(ScmScythe *scy)
-{
-  ScmObj o = SCM_OBJ_INIT;
-  size_t idx;
-  char **ptr;
-  int r, retval;
-
-  scm_assert(scy != NULL);
-
-  retval = -1;
-  WITH_SCYTHE(scy) {
-    EARY_FOR_EACH(&scy->conf.load_path, idx, ptr) {
-      o = scm_make_string_from_external(*ptr, strlen(*ptr), NULL);
-      if (scm_obj_null_p(o)) goto err_break;
-
-      r = scm_add_load_path(o);
-      if (r < 0) goto err_break;
-    }
-
-    retval = 0;
-
-  err_break:
-    break;
-
-  } WITH_SCYTHE_END;
-
-  return retval;
-}
-
-int
-scm_scythe_update_load_suffixes_variable(ScmScythe *scy)
-{
-  ScmObj o = SCM_OBJ_INIT;
-  size_t idx;
-  char **ptr;
-  int r, retval;
-
-  scm_assert(scy != NULL);
-
-  retval = -1;
-  WITH_SCYTHE(scy) {
-    EARY_FOR_EACH(&scy->conf.load_suffixes, idx, ptr) {
-      o = scm_make_string_from_external(*ptr, strlen(*ptr), NULL);
-      if (scm_obj_null_p(o)) goto err_break;
-
-      r = scm_add_load_suffix(o);
-      if (r < 0) goto err_break;
-    }
-
-    retval = 0;
-
-  err_break:
-    break;
-
-  } WITH_SCYTHE_END;
-
-  return retval;
-}
-
-int
 scm_scythe_default_setup(ScmScythe *scy)
 {
   static const char *sfx[] = { ".scm", ".sld", NULL };
@@ -420,12 +360,6 @@ scm_scythe_load_core(ScmScythe *scy)
   retval = -1;
   WITH_SCYTHE(scy) {
     r = scm_load_core_modules();
-    if (r < 0) break;
-
-    r = scm_scythe_update_load_path_variable(scy);
-    if (r < 0) break;
-
-    r = scm_scythe_update_load_suffixes_variable(scy);
     if (r < 0) break;
 
     retval = 0;

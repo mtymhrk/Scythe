@@ -19,6 +19,7 @@
 #include "scythe/pair.h"
 #include "scythe/port.h"
 #include "scythe/procedure.h"
+#include "scythe/string.h"
 #include "scythe/symbol.h"
 
 struct subr_data {
@@ -560,6 +561,48 @@ scm_define_scythe_internal_core_public_alias(ScmObj module)
   return 0;
 }
 
+static ScmObj
+eary_to_scheme_list(const EArray *ary)
+{
+  ScmObj lst = SCM_OBJ_INIT, s = SCM_OBJ_INIT;
+  size_t idx;
+  char **ptr;
+
+  SCM_REFSTK_INIT_REG(&lst, &s);
+
+  lst = SCM_NIL_OBJ;
+  EARY_FOR_EACH(ary, idx, ptr) {
+    s = scm_make_string_from_external(*ptr, strlen(*ptr), NULL);
+    if (scm_obj_null_p(s)) return SCM_OBJ_NULL;
+
+    lst = scm_cons(s, lst);
+    if (scm_obj_null_p(lst)) return SCM_OBJ_NULL;
+  }
+
+  return lst;
+}
+
+static int
+scm_define_load_path_and_suffixes(ScmObj mod)
+{
+  ScmObj val = SCM_OBJ_INIT;
+  int r;
+
+  val = eary_to_scheme_list(scm_initial_load_path());
+  if (scm_obj_null_p(val)) return -1;
+
+  r = scm_define_var(mod, SCM_LOAD_PATH_VARIABLE_NAME, val, true);
+  if (r < 0) return -1;
+
+  val = eary_to_scheme_list(scm_initial_load_suffixes());
+  if (scm_obj_null_p(val)) return -1;
+
+  r = scm_define_var(mod, SCM_LOAD_SUFFIXES_VARIABLE_NAME, val, true);
+  if (r < 0) return -1;
+
+  return 0;
+}
+
 static int
 scm_load_module_func_scythe_internal_core_public(ScmObj mod)
 {
@@ -576,10 +619,7 @@ scm_load_module_func_scythe_internal_core_public(ScmObj mod)
   r = scm_define_scythe_internal_core_public_alias(mod);
   if (r < 0) return -1;
 
-  r = scm_define_var(mod, SCM_LOAD_PATH_VARIABLE_NAME, SCM_NIL_OBJ, true);
-  if (r < 0) return -1;
-
-  r = scm_define_var(mod, SCM_LOAD_SUFFIXES_VARIABLE_NAME, SCM_NIL_OBJ, true);
+  r = scm_define_load_path_and_suffixes(mod);
   if (r < 0) return -1;
 
   return 0;

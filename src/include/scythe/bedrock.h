@@ -6,6 +6,7 @@
 #include <scythe/object.h>
 #include <scythe/memory.h>
 #include <scythe/encoding.h>
+#include <scythe/earray.h>
 
 
 /*******************************************************************/
@@ -17,6 +18,8 @@ typedef struct ScmGlobalConfRec ScmGlobalConf;
 struct ScmGlobalConfRec {
   ScmEncoding *system_encoding;
   char *external_encoding;
+  EArray load_path;
+  EArray load_suffixes;
 };
 
 
@@ -265,6 +268,18 @@ static inline const char *
 scm_external_encoding(void)
 {
   return scm_bedrock_global_conf(scm_current_br())->external_encoding;
+}
+
+static inline const EArray *
+scm_initial_load_path(void)
+{
+  return &scm_bedrock_global_conf(scm_current_br())->load_path;
+}
+
+static inline const EArray *
+scm_initial_load_suffixes(void)
+{
+  return &scm_bedrock_global_conf(scm_current_br())->load_suffixes;
 }
 
 
