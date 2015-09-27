@@ -316,7 +316,7 @@ scm_chg_current_vm(ScmObj vm)
   scm__current_vm = vm;
 }
 
-int scm_load_iseq(ScmObj iseq);
+int scm_exec_iseq(ScmObj iseq);
 
 static inline int
 scm_halt(void)

@@ -831,7 +831,7 @@ scm_define_scythe_internal_dynamicenv_closure(ScmObj mod)
   if (scm_obj_null_p(iseq)) return -1;
   scm_assert(scm_iseq_p(iseq));
 
-  r = scm_load_iseq(iseq);
+  r = scm_exec_iseq(iseq);
   if (r < 0) return -1;
 
   return 0;
@@ -890,7 +890,7 @@ scm_define_scythe_internal_compile_closure(ScmObj mod)
   if (scm_obj_null_p(iseq)) return -1;
   scm_assert(scm_iseq_p(iseq));
 
-  r = scm_load_iseq(iseq);
+  r = scm_exec_iseq(iseq);
   if (r < 0) return -1;
 
   return 0;
@@ -951,7 +951,7 @@ scm_define_scythe_internal_macro_closure(ScmObj mod)
   if (scm_obj_null_p(iseq)) return -1;
   scm_assert(scm_iseq_p(iseq));
 
-  r = scm_load_iseq(iseq);
+  r = scm_exec_iseq(iseq);
   if (r < 0) return -1;
 
   return 0;
@@ -1047,7 +1047,7 @@ scm_define_scythe_repl_closure(ScmObj mod)
   if (scm_obj_null_p(iseq)) return -1;
   scm_assert(scm_iseq_p(iseq));
 
-  r = scm_load_iseq(iseq);
+  r = scm_exec_iseq(iseq);
   if (r < 0) return -1;
 
   return 0;

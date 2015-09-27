@@ -3258,7 +3258,7 @@ scm_prepare_vm(void)
 ScmObj scm__current_vm = SCM_OBJ_INIT;
 
 int
-scm_load_iseq(ScmObj iseq)
+scm_exec_iseq(ScmObj iseq)
 {
   ScmObj o = SCM_OBJ_INIT;
   int r;
