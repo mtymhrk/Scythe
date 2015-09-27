@@ -54,45 +54,45 @@ scm_cmpl_initialize(ScmObj cmpl, ScmObj env)
 }
 
 static ScmObj
-norm_cmpl_arg_mod(ScmObj mod)
+norm_cmpl_arg_mod(ScmObj spec)
 {
-  ScmObj name = SCM_OBJ_INIT;
+  ScmObj name = SCM_OBJ_INIT, module = SCM_OBJ_INIT;
   int r;
 
-  SCM_REFSTK_INIT_REG(&mod,
-                      &name);
+  SCM_REFSTK_INIT_REG(&spec,
+                      &name, &module);
 
-  if (scm_module_p(mod))
-    return mod;
+  if (scm_module_p(spec))
+    return spec;
 
-  if (scm_obj_null_p(mod)) {
+  if (scm_obj_null_p(spec)) {
     name = scm_make_symbol_from_cstr("main", SCM_ENC_SRC);
     if (scm_obj_null_p(name)) return SCM_OBJ_NULL;
 
     name = scm_cons(name, SCM_NIL_OBJ);
     if (scm_obj_null_p(name)) return SCM_OBJ_NULL;
   }
-  else if (scm_symbol_p(mod)) {
-    name = scm_cons(mod, SCM_NIL_OBJ);
+  else if (scm_symbol_p(spec)) {
+    name = scm_cons(spec, SCM_NIL_OBJ);
     if (scm_obj_null_p(name)) return SCM_OBJ_NULL;
   }
-  else if (scm_pair_p(mod)) {
-    name = mod;
+  else if (scm_pair_p(spec)) {
+    name = spec;
   }
   else {
-    scm_error("no such a module", 1, mod);
+    scm_error("no such a module", 1, spec);
     return SCM_OBJ_NULL;
   }
 
-  r = scm_find_module(name, SCM_CSETTER_L(mod));
+  r = scm_find_module(name, SCM_CSETTER_L(module));
   if (r < 0) return SCM_OBJ_NULL;
 
-  if (scm_obj_null_p(mod)) {
-    scm_error("no such a module", 1, mod);
+  if (scm_obj_null_p(module)) {
+    scm_error("no such a module", 1, spec);
     return SCM_OBJ_NULL;
   }
 
-  return mod;
+  return module;
 }
 
 ScmObj
