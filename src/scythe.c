@@ -360,9 +360,13 @@ scm_scythe_load_core(ScmScythe *scy)
   retval = -1;
   WITH_SCYTHE(scy) {
     r = scm_load_core_modules();
-    if (r < 0) break;
+    if (r < 0) goto dsp;
 
     retval = 0;
+    break;
+
+  dsp:
+    scm_vm_disposal_unhandled_exc(scy->vm);
   } WITH_SCYTHE_END;
 
   return retval;
