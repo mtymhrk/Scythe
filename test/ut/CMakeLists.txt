@@ -81,7 +81,7 @@ endforeach(file)
 ##
 add_custom_target(
   unit_delete_result_file
-  COMMAND sh -c "if [ -f ${test_result_file} ]\;then rm ${test_result_file}\; fi"
+  COMMAND if [ -f ${test_result_file} ]\;then rm ${test_result_file}\; fi
 )
 
 ##
@@ -90,8 +90,13 @@ add_custom_target(
 ##
 add_custom_target(
   unit
+  DEPENDS unit_delete_result_file ${test_result_file}
+)
+
+add_custom_command(
+  OUTPUT ${test_result_file}
   COMMAND ${ruby_bin_path} ${run_script} ${test_result_file} ./${test_runner_exe}
-  DEPENDS ${test_runner_exe} unit_delete_result_file
+  DEPENDS ${test_runner_exe}
 )
 
 ##
@@ -99,7 +104,8 @@ add_custom_target(
 ##
 add_custom_target(
   unit_summary
-  COMMAND sh -c "${ruby_bin_path} ${summarize_script} ${test_result_file}"
+  COMMAND ${ruby_bin_path} ${summarize_script} ${test_result_file}
+  DEPENDS ${test_result_file}
 )
 
 ##
@@ -111,14 +117,10 @@ add_executable(${test_runner_exe} EXCLUDE_FROM_ALL
                                   ${unit_test_src}
                                   ${unity_files})
 
-## テストランナーのソースファイルがビルド中に生成されることを cmake に教える
-set_source_files_properties(${test_runner_src}
-                            PROPERTIES GENERATED TRUE)
-
 ## テストランナーのソースを生成するスクリプトの実行
 add_custom_command(
    OUTPUT ${test_runner_src}
-   COMMAND sh -c '${ruby_bin_path} ${runner_gen_script} ${unit_test_files} > ${test_runner_src}'
+   COMMAND ${ruby_bin_path} ${runner_gen_script} ${unit_test_files} > ${test_runner_src}
    DEPENDS ${runner_gen_script} ${unit_test_files}
 )
 
