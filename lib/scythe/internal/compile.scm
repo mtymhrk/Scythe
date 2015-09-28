@@ -755,6 +755,9 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(define (p1-id? obj)
+  (or (symbol? obj) (identifier? obj)))
+
 (define (p1-syntax-handler-reference cmpl exp env pos rdepth)
   (let-values (((v i l e) (env-resolve-variable-reference! env exp #f rdepth)))
     (if (env-outmost? e)
@@ -795,11 +798,11 @@
             (loop (cdr lst))))))
 
 (define (p1-get-syntax cmpl exp env pos)
-  (cond ((or (symbol? exp) (identifier? exp))
+  (cond ((p1-id? exp)
          p1-compiler-syntax-reference)
         ((pair? exp)
          (let ((key (car exp)))
-           (if (or (symbol? key) (identifier? key))
+           (if (p1-id? key)
                (let ((syx (env-find-keyword env key)))
                  (if syx syx p1-compiler-syntax-application))
                p1-compiler-syntax-application)))
@@ -841,7 +844,7 @@
     (compile-error cmpl "malformed define"))
   (let ((var (car (cdr exp)))
         (val (car (cdr (cdr exp)))))
-    (unless (or (symbol? var) (identifier? var))
+    (unless (p1-id? var)
       (compile-error cmpl "malformed define"))
     (values var val)))
 
@@ -941,13 +944,13 @@
              (params '())
              (vparam #f))
     (cond
-     ((symbol? fm)
+     ((p1-id? fm)
       (when (memq fm params)
         (compile-error cmpl "malformed formals"))
       (loop '() (cons fm params) #t))
      ((pair? fm)
       (let ((f (car fm)))
-        (when (or (not (symbol? f)) (memq f params))
+        (when (or (not (p1-id? f)) (memq f params))
           (compile-error cmpl "malformed formals"))
         (loop (cdr fm) (cons f params) vparam)))
      ((null? fm)
@@ -996,7 +999,7 @@
     (compile-error cmpl "malformed assignment"))
   (let ((var (list-ref exp 1))
         (val (list-ref exp 2)))
-    (unless (or (symbol? var) (identifier? var))
+    (unless (p1-id? var)
       (compile-error cmpl "malformed assignment"))
     (values var val)))
 
@@ -1184,7 +1187,7 @@
         (body #f))
     (unless (pair? x)
       (compile-error cmpl (format "malformed ~a" keyword)))
-    (when (and name-p (symbol? (car x)))
+    (when (and name-p (p1-id? (car x)))
       (set! name (car x))
       (set! x (cdr x))
       (unless (pair? x)
@@ -1551,7 +1554,7 @@
       (compile-error cmpl "malformed define-syntax"))
     (set! key (car x))
     (set! x (cdr x))
-    (unless (symbol? key)
+    (unless (p1-id? key)
       (compile-error cmpl "malformed define-syntax"))
     (unless (pair? x)
       (compile-error cmpl "malformed define-syntax"))
