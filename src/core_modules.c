@@ -985,8 +985,6 @@ scm_load_module_scythe_base(void)
 /*  (scythe repl)                                                  */
 /*******************************************************************/
 
-extern const unsigned char scm_compiled_data_scythe_repl[];
-
 static int
 scm_load_module_func_scythe_repl(ScmObj mod)
 {
@@ -999,9 +997,6 @@ scm_load_module_func_scythe_repl(ScmObj mod)
   SCM_REFSTK_INIT_REG(&mod);
 
   r = scm_load_modules_and_import_them(mod, data);
-  if (r < 0) return -1;
-
-  r = scm_exec_compiled_data(mod, scm_compiled_data_scythe_repl);
   if (r < 0) return -1;
 
   return 0;
