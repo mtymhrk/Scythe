@@ -18,9 +18,6 @@ static bool interactive_flag = false;
 static int opt_Z_count = 0;
 static bool subcommand_flag = false;
 
-/* 定義は compile_file.c */
-int compile_file(int argc, char **argv);
-
 static void
 message(const char *fmt, ...)
 {
@@ -206,34 +203,11 @@ setup_scythe(ScmScythe *scy)
   return 0;
 }
 
-bool
-compile_file_p(char **argv)
-{
-  const char *name = argv[0];
-  size_t len;
-
-  if (name == NULL)
-    return false;
-
-  len = strlen(name);
-  if (len < sizeof(COMPILE_FILE_EXEC_NAME) - 1)
-    return false;
-  else if ((len == sizeof(COMPILE_FILE_EXEC_NAME) - 1)
-           || name[len - (sizeof(COMPILE_FILE_EXEC_NAME) - 1) - 1] == '/')
-    return (strcmp(name + (len - (sizeof(COMPILE_FILE_EXEC_NAME) - 1)),
-                   COMPILE_FILE_EXEC_NAME) == 0);
-  else
-    return false;
-}
-
 int
 main(int argc, char **argv)
 {
   ScmScythe *scy;
   int r, retval;
-
-  if (compile_file_p(argv))
-    return compile_file(argc, argv);
 
   retval = -1;
 

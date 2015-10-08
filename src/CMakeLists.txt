@@ -81,7 +81,7 @@ set_directory_properties(PROPERTIES CLEAN_NO_CUSTOM TRUE)
 add_library(scythe-lib OBJECT ${scythe_lib_src})
 
 add_executable(scythe
-               main.c compile_file.c $<TARGET_OBJECTS:scythe-lib>)
+               main.c $<TARGET_OBJECTS:scythe-lib>)
 
 
 ##===============================================================
