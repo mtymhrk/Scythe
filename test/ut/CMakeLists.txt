@@ -58,7 +58,10 @@ include_directories(${CMAKE_BINARY_DIR}/${scythe_src_rpath}/include)
 include_directories(${CMAKE_SOURCE_DIR}/${scythe_src_rpath}/include)
 include_directories(${CMAKE_SOURCE_DIR}/${scythe_src_rpath})
 
-add_definitions(${scythe_compile_definitions_debug})
+add_definitions(
+  ${scythe_compile_definitions_debug}
+  -DUT_SCYTHE_LIB_DIR="${CMAKE_SOURCE_DIR}/${scythe_scm_lib_rpath}"
+  )
 
 
 ##===============================================================

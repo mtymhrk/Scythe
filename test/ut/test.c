@@ -14,6 +14,10 @@
 
 #include "test.h"
 
+#ifndef UT_SCYTHE_LIB_DIR
+  #define UT_SCYTHE_LIB_DIR "../../lib"
+#endif  /* UT_SCYTHE_LIB_DIR */
+
 ScmObj
 ut_read_cstr(const char *str)
 {
@@ -77,6 +81,9 @@ ut_scythe_setup(bool load)
   if (scy == NULL) return NULL;
 
   r = scm_scythe_default_setup(scy);
+  if (r < 0) goto err;
+
+  r = scm_scythe_add_load_path(scy, UT_SCYTHE_LIB_DIR);
   if (r < 0) goto err;
 
   r = scm_scythe_bootup(scy);
