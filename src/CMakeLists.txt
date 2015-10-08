@@ -42,8 +42,7 @@ endif(CMAKE_BUILD_TYPE STREQUAL "Release")
 ## compile.c 生成
 
 if(preinstalled_scythe_bin_path)
-  set(scm_compiler ${CMAKE_CURRENT_BINARY_DIR}/scythe-compile-file)
-  set(scm_compiler_source ${preinstalled_scythe_bin_path})
+  set(scm_compiler ${preinstalled_scythe_bin_path})
   set(scm_compiler_opt "")
 
   set(compiler_scm_files "scythe/internal/compile.scm"
@@ -59,12 +58,6 @@ if(preinstalled_scythe_bin_path)
     OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/compile.c
     COMMAND ${ruby_bin_path} ${CMAKE_CURRENT_SOURCE_DIR}/tools/scmcompile.rb "${scm_compiler}${scm_compiler_opt}" ${CMAKE_SOURCE_DIR}/lib ${CMAKE_CURRENT_SOURCE_DIR}/compile.c.in ${CMAKE_CURRENT_SOURCE_DIR}/compile.c
     DEPENDS compile.c.in ${scm_compiler} ${compiler_scm_paths}
-  )
-
-  add_custom_command(
-    OUTPUT ${scm_compiler}
-    COMMAND cp -a ${scm_compiler_source} ${scm_compiler}
-    DEPENDS ${scm_compiler_source}
   )
 
   add_custom_target(

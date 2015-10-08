@@ -5,7 +5,7 @@ NR_ELEMENTS = 16
 COMMAND_OUTPUT_FILE = './marshal.out'
 
 def exec_compile(cmd, file, output)
-  `#{cmd} -o #{output} #{file}`
+  `#{cmd} -ZZZ compile-file #{file} #{output}`
 end
 
 def compiled_data(cmd, file)
