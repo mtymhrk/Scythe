@@ -482,7 +482,6 @@ scm_lexer_tokenize_number_sign(ScmLexer *lexer, ScmObj port, ScmEncoding *enc)
     return LEXER_STATE_ERROR;
   }
   else if (width == 0) {
-    scm_read_cchr(&current, port);
     scm_lexer_setup_error_state(lexer, SCM_LEXER_ERR_TYPE_UNEXPECTED_EOF);
     return LEXER_STATE_ERROR;
   }
