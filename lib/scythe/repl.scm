@@ -2,6 +2,7 @@
 
 (select-module (scythe repl))
 
+(module-export (current-module) 'read-eval-print-loop)
 (define (read-eval-print-loop)
   (when (call/cc
          (lambda (k)
