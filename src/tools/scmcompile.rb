@@ -41,8 +41,7 @@ end
 
 targets = ['scythe/internal/compile.scm',
            'scythe/internal/dynamic-env.scm',
-           'scythe/internal/macro.scm',
-           'scythe/repl.scm']
+           'scythe/internal/macro.scm']
 
 command_path, source_base, template_file, output_file = ARGV[0..4]
 

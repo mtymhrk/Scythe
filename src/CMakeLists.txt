@@ -48,8 +48,8 @@ if(preinstalled_scythe_bin_path)
 
   set(compiler_scm_files "scythe/internal/compile.scm"
                          "scythe/internal/dynamic-env.scm"
-                         "scythe/internal/macro.scm"
-                         "scythe/repl.scm")
+                         "scythe/internal/macro.scm")
+
   set(compiler_scm_paths "")
   foreach(file ${compiler_scm_files})
     list(APPEND compiler_scm_paths "${CMAKE_SOURCE_DIR}/lib/${file}")
