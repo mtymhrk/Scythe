@@ -2930,6 +2930,20 @@ scm_capi_scythe_default_setup(ScmScythe *scy)
 }
 
 int
+scm_capi_scythe_apply(ScmScythe *scy, const char *cmd,
+                      const char * const *args, size_t n)
+{
+  if (scy == NULL)
+    return -1;
+  else if (cmd == NULL)
+    return -1;
+  else if (n > 0 && args == NULL)
+    return -1;
+
+  return scm_scythe_apply(scy, cmd, args, n);
+}
+
+int
 scm_capi_scythe_run_repl(ScmScythe *scy)
 {
   if (scy == NULL)

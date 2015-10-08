@@ -15,6 +15,8 @@ static int nr_opt_expr = 0;
 static int scheme_argc = 0;
 static char **scheme_argv = NULL;
 static bool interactive_flag = false;
+static int opt_Z_count = 0;
+static bool subcommand_flag = false;
 
 /* 定義は compile_file.c */
 int compile_file(int argc, char **argv);
@@ -61,7 +63,7 @@ parse_arguments(int argc, char **argv, ScmScythe *scy)
 
   command_name = argv[0];
 
-  while ((c = getopt(argc, argv, "+:e:iI:")) != -1) {
+  while ((c = getopt(argc, argv, "+:e:iI:Z")) != -1) {
     switch (c) {
     case 'e':
       if (nr_opt_expr >= OPT_LOWERCASE_E_MAX) {
@@ -77,6 +79,9 @@ parse_arguments(int argc, char **argv, ScmScythe *scy)
       r = scm_capi_scythe_add_load_path(scy, optarg);
       if (r < 0) return -1;
       break;
+    case 'Z':
+      opt_Z_count++;
+      break;
     case ':':
       emessage("option requires an argument  -%c", (char)optopt);
       usage();
@@ -91,6 +96,15 @@ parse_arguments(int argc, char **argv, ScmScythe *scy)
       return -1;
       break;
     }
+  }
+
+  if (opt_Z_count == 3) {
+    subcommand_flag = true;
+  }
+  else if (opt_Z_count > 0) {
+    emessage("invalid option -Z");
+    usage();
+    return -1;
   }
 
   if (optind >= argc)
@@ -115,6 +129,21 @@ execute_opt_expr(ScmScythe *scy)
     r = scm_capi_scythe_eval_str(scy, opt_expr[i]);
     if (r < 0) return -1;
   }
+
+  return 0;
+}
+
+static int
+execute_command(ScmScythe *scy)
+{
+  int r;
+
+  if (scheme_argc == 0)
+    return 0;
+
+  r = scm_capi_scythe_apply(scy, scheme_argv[0],
+                            scheme_argv + 1, (size_t)(scheme_argc - 1));
+  if (r < 0) return -1;
 
   return 0;
 }
@@ -220,7 +249,9 @@ main(int argc, char **argv)
   r = execute_opt_expr(scy);
   if (r < 0) goto end;
 
-  if (scheme_argc > 0)
+  if (subcommand_flag)
+    retval = execute_command(scy);
+  else if (scheme_argc > 0)
     retval = execute_file(scy);
   else if (interactive_flag)
     retval = execute_repl(scy);
