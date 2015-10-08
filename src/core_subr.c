@@ -3193,8 +3193,8 @@ scm_subr_func_pop_dynamic_wind_handler(ScmObj subr, int argc, const ScmObj *argv
 /*  Internals (commands)                                           */
 /*******************************************************************/
 
-int
-scm_subr_func_repl(ScmObj subr, int argc, const ScmObj *argv)
+static int
+scm_subr_func_repl__post_load(ScmObj subr, int argc, const ScmObj *argv)
 {
   ScmObj proc = SCM_OBJ_INIT;
   int r;
@@ -3212,6 +3212,42 @@ scm_subr_func_repl(ScmObj subr, int argc, const ScmObj *argv)
   }
 
   return scm_capi_trampolining(proc, SCM_NIL_OBJ, SCM_OBJ_NULL, SCM_OBJ_NULL);
+}
+
+int
+scm_subr_func_repl(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj proc = SCM_OBJ_INIT, arg = SCM_OBJ_INIT, post = SCM_OBJ_INIT;
+  int r;
+
+  SCM_REFSTK_INIT_REG(&subr,
+                      &proc, &arg, &post);
+
+  /* TODO:
+   *   load プロシージャを使っているため、repl の呼び出しの度にファイルがロー
+   *   ドされている。module のロード機能が実装し、一度だけファイルをロードす
+   *   るようにする
+   */
+  r = scm_refer_global_var_cstr((const char *[]){ "scythe", "base"}, 2,
+                                "load", SCM_CSETTER_L(proc));
+  if (r < 0) return -1;
+
+  if (scm_obj_null_p(proc)) {
+    scm_error("unbound variable: load", 0);
+    return -1;
+  }
+
+  arg = scm_make_string_from_cstr("scythe/repl", SCM_ENC_SRC);
+  if (scm_obj_null_p(arg)) return -1;
+
+  arg = scm_cons(arg, SCM_NIL_OBJ);
+  if (scm_obj_null_p(arg)) return -1;
+
+  post = scm_make_subrutine(scm_subr_func_repl__post_load, 1, 0,
+                           scm_proc_env(subr));
+  if (scm_obj_null_p(post)) return -1;
+
+  return scm_capi_trampolining(proc, arg, post, SCM_OBJ_NULL);
 }
 
 int
