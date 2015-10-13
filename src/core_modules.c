@@ -1002,6 +1002,8 @@ scm_load_module_scythe_internal_record(void)
 /*  (scythe internal multiple-val)                                 */
 /*******************************************************************/
 
+extern const unsigned char scm_compiled_data_scythe_internal_multipleval[];
+
 static int
 scm_load_module_func_scythe_internal_multipleval(ScmObj mod)
 {
@@ -1019,6 +1021,10 @@ scm_load_module_func_scythe_internal_multipleval(ScmObj mod)
   SCM_REFSTK_INIT_REG(&mod);
 
   r = scm_load_modules_and_import_them(mod, data);
+  if (r < 0) return -1;
+
+  r = scm_exec_compiled_data(mod,
+                             scm_compiled_data_scythe_internal_multipleval);
   if (r < 0) return -1;
 
   return 0;
@@ -1048,6 +1054,8 @@ scm_load_module_func_scythe_base(ScmObj mod)
       scm_load_module_scythe_internal_macro, false },
     { { "scythe", "internal", "record" }, 3,
       scm_load_module_scythe_internal_record, false },
+    { { "scythe", "internal", "multiple-val" }, 3,
+      scm_load_module_scythe_internal_multipleval, false },
     IMPORT_DATA_TERMINATE
   };
   int r;

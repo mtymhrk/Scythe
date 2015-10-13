@@ -1464,3 +1464,36 @@ TEST(exec_syntax, define_record_type__internal_definition_2)
                                "  (pare? (kons 1 2)))",
                                "#t");
 }
+
+TEST(exec_syntax, multiple_value_definitions__fix_num_of_val)
+{
+  test_eval__comp_val_with_obj("(begin"
+                               "  (define-values (a b c) (values 1 2 3))"
+                               "  (list a b c))",
+                               "(1 2 3)");
+}
+
+TEST(exec_syntax, multiple_value_definitions__var_num_of_val_1)
+{
+  test_eval__comp_val_with_obj("(begin"
+                               "  (define-values (a b . c) (values 1 2 3))"
+                               "  (list a b c))",
+                               "(1 2 (3))");
+}
+
+TEST(exec_syntax, multiple_value_definitions__var_num_of_val_2)
+{
+  test_eval__comp_val_with_obj("(begin"
+                               "  (define-values a (values 1 2 3))"
+                               "  a)",
+                               "(1 2 3)");
+}
+
+TEST(exec_syntax, multiple_value_definitions__internal_definition)
+{
+  test_eval__comp_val_with_obj("(let ((x 100))"
+                               "  (define-values (a b . c) (values 1 x 3))"
+                               "  (define y (list a b c))"
+                               "  y)",
+                               "(1 100 (3))");
+}
