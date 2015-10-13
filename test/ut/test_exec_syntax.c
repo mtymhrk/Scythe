@@ -2,6 +2,7 @@
 #include "scythe/miscobjects.h"
 #include "scythe/module.h"
 #include "scythe/procedure.h"
+#include "scythe/record.h"
 #include "scythe/symbol.h"
 #include "scythe/api.h"
 
@@ -1314,6 +1315,7 @@ TEST(exec_syntax, letrec_syntax)
                                "    (bar)))",
                                "(1 2)");
 }
+
 TEST(exec_syntax, let_syntax__dont_shadow_keyword_references__macro)
 {
   test_eval__comp_val_with_obj("(let-syntax ((foo (er-macro-transformer"
@@ -1329,3 +1331,136 @@ TEST(exec_syntax, let_syntax__dont_shadow_keyword_references__macro)
                                "(1 . 2)");
 }
 
+TEST(exec_syntax, define_record_type__type_name_is_bound_to_record_type_obj)
+{
+  test_eval__chk_val_type("(begin"
+                          "  (define-record-type <pare>"
+                          "     (kons x y)"
+                          "     pare?"
+                          "     (x kar set-kar!)"
+                          "     (y kdr))"
+                          "  <pare>)",
+                          scm_recordtype_p);
+}
+
+TEST(exec_syntax, define_record_type__constructor_and_predicate)
+{
+  test_eval__comp_val_with_obj("(begin"
+                               "  (define-record-type <pare>"
+                               "     (kons x y)"
+                               "     pare?"
+                               "     (x kar set-kar!)"
+                               "     (y kdr))"
+                               "  (pare? (kons 1 2)))",
+                               "#t");
+}
+
+TEST(exec_syntax, define_record_type__predicate__return_false)
+{
+  test_eval__comp_val_with_obj("(begin"
+                               "  (define-record-type <pare>"
+                               "     (kons x y)"
+                               "     pare?"
+                               "     (x kar set-kar!)"
+                               "     (y kdr))"
+                               "  (pare? (cons 1 2)))",
+                               "#f");
+}
+
+TEST(exec_syntax, define_record_type__accessor_1)
+{
+  test_eval__comp_val_with_obj("(begin"
+                               "  (define-record-type <pare>"
+                               "     (kons x y)"
+                               "     pare?"
+                               "     (x kar set-kar!)"
+                               "     (y kdr))"
+                               "  (kar (kons 1 2)))",
+                               "1");
+}
+
+TEST(exec_syntax, define_record_type__accessor_2)
+{
+  test_eval__comp_val_with_obj("(begin"
+                               "  (define-record-type <pare>"
+                               "     (kons x y)"
+                               "     pare?"
+                               "     (x kar set-kar!)"
+                               "     (y kdr))"
+                               "  (kdr (kons 1 2)))",
+                               "2");
+}
+
+TEST(exec_syntax, define_record_type__constuctor_arguments_1)
+{
+  test_eval__comp_val_with_obj("(begin"
+                               "  (define-record-type <pare>"
+                               "     (kons y x)"
+                               "     pare?"
+                               "     (x kar set-kar!)"
+                               "     (y kdr))"
+                               "  (kar (kons 1 2)))",
+                               "2");
+}
+
+TEST(exec_syntax, define_record_type__constuctor_arguments_2)
+{
+  test_eval__comp_val_with_obj("(begin"
+                               "  (define-record-type <pare>"
+                               "     (kons x)"
+                               "     pare?"
+                               "     (x kar set-kar!)"
+                               "     (y kdr))"
+                               "  (kar (kons 1)))",
+                               "1");
+}
+
+TEST(exec_syntax, define_record_type__constuctor_arguments_3)
+{
+  test_eval__chk_val_type("(begin"
+                          "  (define-record-type <pare>"
+                          "     (kons x)"
+                          "     pare?"
+                          "     (x kar set-kar!)"
+                          "     (y kdr))"
+                          "  (kdr (kons 1)))",
+                          scm_undef_p);
+}
+
+TEST(exec_syntax, define_record_type__modifier)
+{
+  test_eval__comp_val_with_obj("(begin"
+                               "  (define-record-type <pare>"
+                               "     (kons x y)"
+                               "     pare?"
+                               "     (x kar set-kar!)"
+                               "     (y kdr))"
+                               "  (let ((k (kons 1 2)))"
+                               "     (set-kar! k 3)"
+                               "     (kar k)))",
+                               "3");
+}
+
+TEST(exec_syntax, define_record_type__internal_definition_1)
+{
+  test_eval__chk_val_type("(let ()"
+                          "  (define-record-type <pare>"
+                          "     (kons x y)"
+                          "     pare?"
+                          "     (x kar set-kar!)"
+                          "     (y kdr))"
+                          "  <pare>)",
+                          scm_recordtype_p);
+}
+
+TEST(exec_syntax, define_record_type__internal_definition_2)
+{
+  test_eval__comp_val_with_obj("(let ()"
+                               "  (define-record-type <pare>"
+                               "     (kons x y)"
+                               "     pare?"
+                               "     (x kar set-kar!)"
+                               "     (y kdr))"
+                               "  (pare? (kons 1 2)))",
+                               "#t");
+}

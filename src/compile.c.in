@@ -10,3 +10,7 @@ const unsigned char scm_compiled_data_scythe_internal_dynamicenv[] = {
 const unsigned char scm_compiled_data_scythe_internal_macro[] = {
 <%= codes[:scythe_internal_macro] %>
 };
+
+const unsigned char scm_compiled_data_scythe_internal_record[] = {
+<%= codes[:scythe_internal_record] %>
+};

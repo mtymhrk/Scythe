@@ -1,0 +1,115 @@
+
+(select-module (scythe internal record))
+
+(define (map proc lst)
+  (if (null? lst)
+      lst
+      (cons (proc (car lst)) (map proc (cdr lst)))))
+
+(define undef (begin))
+
+(define (decons-record-type-definition exp)
+  (let ((x (cdr exp)) (name #f) (constructor #f) (pred #f) (fields #f)
+        (cname #f) (cargs #f) (fnames #f) (faccs #f) (fmods #f))
+    (unless (pair? x)
+      (error "malformed record-type definition" exp))
+    (set! name (car x))
+    (set! x (cdr x))
+    (unless (pair? x)
+      (error "malformed record-type definition" exp))
+    (set! constructor (car x))
+    (set! x (cdr x))
+    (unless (pair? x)
+      (error "malformed record-type definition" exp))
+    (set! pred (car x))
+    (set! x (cdr x))
+    (unless (or (null? x) (pair? x))
+      (error "malformed record-type definition" exp))
+    (set! fields x)
+    (set! x constructor)
+    (unless (pair? x)
+      (error "malformed record-type definition" exp))
+    (set! cname (car x))
+    (set! x (cdr x))
+    (unless (or (null? x) (pair? x))
+      (error "malformed record-type definition" exp))
+    (set! cargs x)
+    (let loop ((fields fields) (fn ()) (fa ()) (fm ()))
+      (if (null? fields)
+          (values name cname cargs pred (reverse fn) (reverse fa) (reverse fm))
+          (loop (cdr fields)
+                (cons (list-ref (car fields) 0) fn)
+                (cons (list-ref (car fields) 1) fa)
+                (cons (if (null? (list-tail (car fields) 2))
+                          #f
+                          (list-ref (car fields) 2))
+                      fm))))))
+
+;;;
+;;; define-record-type シンタックスを以下のような変換を行うマクロとして定義する
+;;;
+;;;   (define-record-type <name>
+;;;                       (<constructor-name> <field-name> ...)
+;;;                       <pred>
+;;;                       (<field-name> <accessor-name> <modifier name>) ...)
+;;;
+;;; [変換後]
+;;;
+;;;   (begin
+;;;     (define <name> (make-record-type '<name>))
+;;;     (define <constructor-name> (let ((type <name>))
+;;;                                  (lambda (<field-name> ...)
+;;;                                    (make-record type
+;;;                                                 <num-of-fields>
+;;;                                                 <field-name> ...))))
+;;;     (define <pred> (let ((type <name>))
+;;;                      (lambda (obj)
+;;;                        (and (record? obj)
+;;;                             (eq? (record-type obj) type)))))
+;;;     (define <accessor-name> (lambda (obj)
+;;;                                (record-ref obj <index-of-field>))) ...
+;;;     (define <modifier-name> (lambda (obj val)
+;;;                                (record-set! obj <index-of-field> val))) ...)
+;;;
+(module-export (current-module) 'define-record-type)
+(define-syntax define-record-type
+  (er-macro-transformer
+   (lambda (f r c)
+     (let-values (((name cname cargs pred fields accs mods)
+                   (decons-record-type-definition f)))
+       `(,(r 'begin)
+         (,(r 'define) ,name (,(r 'make-record-type) ',name))
+         (,(r 'define) ,cname (,(r 'let) ((,(r 'type) ,name))
+                               (,(r 'lambda) ,(map r cargs)
+                                (,(r 'make-record)
+                                 ,(r 'type)
+                                 ,(length fields)
+                                 ,@(map (lambda (fld)
+                                          (if (memq fld cargs)
+                                              (r fld) undef))
+                                        fields)))))
+         (,(r 'define) ,pred (,(r 'let) ((,(r 'type) ,name))
+                              (,(r 'lambda) (,(r 'rec))
+                               (,(r 'and) (,(r 'record?) ,(r 'rec))
+                                          (,(r 'eq?) (,(r 'record-type) ,(r 'rec))
+                                                     ,(r 'type))))))
+         ,@(let loop ((accs accs) (idx 0) (exp '()))
+             (if (null? accs)
+                 (reverse exp)
+                 (loop (cdr accs)
+                       (+ idx 1)
+                       (cons `(,(r 'define) ,(car accs)
+                               (,(r 'lambda) (,(r 'rec))
+                                (,(r 'record-ref) ,(r 'rec) ,idx)))
+                             exp))))
+         ,@(let loop ((mods mods) (idx 0) (exp '()))
+             (if (null? mods)
+                 (reverse exp)
+                 (loop (cdr mods)
+                       (+ idx 1)
+                       (if (car mods)
+                           (cons `(,(r 'define) ,(car mods)
+                                   (,(r 'lambda) (,(r 'rec) ,(r 'val))
+                                    (,(r 'record-set!) ,(r 'rec) ,idx ,(r 'val))))
+                                 exp)
+                           exp)))))))))
