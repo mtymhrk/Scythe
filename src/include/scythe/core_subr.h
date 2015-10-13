@@ -654,6 +654,32 @@ int scm_subr_func_module_export(ScmObj subr, int argc, const ScmObj *argv);
 
 
 /*******************************************************************/
+/*  Internals (Record)                                             */
+/*******************************************************************/
+
+#define SCM_SUBR_ARITY_RECORD_P 1
+#define SCM_SUBR_ARITY_MAKE_RECORD_TYPE 1
+#define SCM_SUBR_ARITY_MAKE_RECORD -3
+#define SCM_SUBR_ARITY_RECORD_TYPE 1
+#define SCM_SUBR_ARITY_RECORD_REF 2
+#define SCM_SUBR_ARITY_RECORD_SET_I 3
+
+#define SCM_SUBR_FLAG_RECORD_P 0
+#define SCM_SUBR_FLAG_MAKE_RECORD_TYPE 0
+#define SCM_SUBR_FLAG_MAKE_RECORD 0
+#define SCM_SUBR_FLAG_RECORD_TYPE_OF_P 0
+#define SCM_SUBR_FLAG_RECORD_REF 0
+#define SCM_SUBR_FLAG_RECORD_SET_I 0
+
+int scm_subr_func_record_P(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_make_record_type(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_make_record(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_record_type(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_record_ref(ScmObj subr, int argc, const ScmObj *argv);
+int scm_subr_func_record_set_i(ScmObj subr, int argc, const ScmObj *argv);
+
+
+/*******************************************************************/
 /*  Internals (Compiler)                                           */
 /*******************************************************************/
 

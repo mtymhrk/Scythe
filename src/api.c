@@ -21,6 +21,7 @@
 #include "scythe/pair.h"
 #include "scythe/port.h"
 #include "scythe/procedure.h"
+#include "scythe/record.h"
 #include "scythe/string.h"
 #include "scythe/scythe.h"
 #include "scythe/symbol.h"
@@ -2638,6 +2639,150 @@ ScmObj
 scm_api_pop_dynamic_wind_handler(void)
 {
   scm_pop_dynamic_wind_handler();
+  return SCM_UNDEF_OBJ;
+}
+
+
+/*******************************************************************/
+/* Record                                                          */
+/*******************************************************************/
+
+ScmObj
+scm_api_make_record_type(ScmObj name)
+{
+  if (!scm_symbol_p(name)) {
+    scm_capi_error("failed to make a record type: symbol required, but got",
+                   1, name);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_make_recordtype(name);
+}
+
+ScmObj
+scm_capi_make_record(ScmObj type, size_t n, ScmObj slots)
+{
+  if (!scm_recordtype_p(type)) {
+    scm_capi_error("failed to make a record: "
+                   "record-type required, but got", 1, type);
+    return SCM_OBJ_NULL;
+  }
+  else if (n > 0 && !scm_pair_p(slots)) {
+    scm_capi_error("failed to make a record: "
+                   "pair required, but got", 1, slots);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_make_record(type, n, slots);
+}
+
+ScmObj
+scm_api_make_record(ScmObj type, ScmObj n, ScmObj slots)
+{
+  size_t nr;
+  int r;
+
+  if (!scm_num_integer_p(n)) {
+    scm_capi_error("failed to make a record: integer required, but got", 1, n);
+    return SCM_OBJ_NULL;
+  }
+
+  r = scm_integer_to_size_t(n, &nr);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return scm_capi_make_record(type, nr, slots);
+}
+
+ScmObj
+scm_api_record_type(ScmObj rec)
+{
+  if (!scm_record_p(rec)) {
+    scm_capi_error("failed to refer record-type of a record: "
+                   "record required, but got", 1, rec);
+    return SCM_OBJ_NULL;
+  }
+
+  return scm_record_type(rec);
+}
+
+ScmObj
+scm_capi_record_ref(ScmObj rec, size_t i)
+{
+  if (!scm_record_p(rec)) {
+    scm_capi_error("failed to refer field value of a record: "
+                   "record required, but got", 1, rec);
+    return SCM_OBJ_NULL;
+  }
+  else if (i >= scm_record_nr_slots(rec)) {
+    scm_capi_error("failed to refer field value of a record: "
+                   "out of range", 0);
+    return SCM_OBJ_NULL;
+
+  }
+
+  return scm_record_slot_ref(rec, i);
+}
+
+ScmObj
+scm_api_record_ref(ScmObj rec, ScmObj i)
+{
+  size_t idx;
+  int r;
+
+  if (!scm_num_integer_p(i)) {
+    scm_capi_error("failed to refer field value of a record: "
+                   "integer required, but got", 1, i);
+    return SCM_OBJ_NULL;
+  }
+
+  r = scm_integer_to_size_t(i, &idx);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  return scm_capi_record_ref(rec, idx);
+}
+
+int
+scm_capi_record_set_i(ScmObj rec, size_t i, ScmObj val)
+{
+  if (!scm_record_p(rec)) {
+    scm_capi_error("failed to modify field value of a record: "
+                   "record required, but got", 1, rec);
+    return -1;
+  }
+  else if (i >= scm_record_nr_slots(rec)) {
+    scm_capi_error("failed to modify field value of a record: "
+                   "out of range", 0);
+    return -1;
+
+  }
+  else if (scm_obj_null_p(val)) {
+    scm_capi_error("failed to modify field value of a record: "
+                   "invalid argument", 1, val);
+    return -1;
+  }
+
+  scm_record_slot_set(rec, i, val);
+  return 0;
+}
+
+ScmObj
+scm_api_record_set_i(ScmObj rec, ScmObj i, ScmObj val)
+{
+  size_t idx;
+  int r;
+
+  if (!scm_num_integer_p(i)) {
+    scm_capi_error("failed to modify field value of a record: "
+                   "integer required, but got", 1, i);
+    return SCM_OBJ_NULL;
+  }
+
+  r = scm_integer_to_size_t(i, &idx);
+  if (r < 0) return SCM_OBJ_NULL;
+
+  r = scm_capi_record_set_i(rec, idx, val);
+  if (r < 0) return SCM_OBJ_NULL;
+
   return SCM_UNDEF_OBJ;
 }
 

@@ -240,6 +240,7 @@ static int scm_load_module_scythe_internal_core_private(void);
 static int scm_load_module_scythe_internal_dynamicenv(void);
 static int scm_load_module_scythe_internal_compile(void);
 static int scm_load_module_scythe_internal_macro(void);
+static int scm_load_module_scythe_internal_record(void);
 static int scm_load_module_scythe_base(void);
 static int scm_load_module_scythe_repl(void);
 static int scm_load_module_scythe_internal_command(void);
@@ -740,6 +741,16 @@ scm_define_scythe_internal_core_private_subr(ScmObj module)
     { "identifier-name", SCM_SUBR_ARITY_IDENTIFIER_NAME, SCM_SUBR_FLAG_IDENTIFIER_NAME, scm_subr_func_identifier_name, true },
     { "identifier-env", SCM_SUBR_ARITY_IDENTIFIER_ENV, SCM_SUBR_FLAG_IDENTIFIER_ENV, scm_subr_func_identifier_env, true },
 
+    /*******************************************************************/
+    /*  Record                                                         */
+    /*******************************************************************/
+    { "record?", SCM_SUBR_ARITY_RECORD_P, SCM_SUBR_FLAG_RECORD_P, scm_subr_func_record_P, true },
+    { "make-record-type", SCM_SUBR_ARITY_MAKE_RECORD_TYPE, SCM_SUBR_FLAG_MAKE_RECORD_TYPE, scm_subr_func_make_record_type, true },
+    { "make-record", SCM_SUBR_ARITY_MAKE_RECORD, SCM_SUBR_FLAG_MAKE_RECORD, scm_subr_func_make_record, true },
+    { "record-type", SCM_SUBR_ARITY_RECORD_TYPE, SCM_SUBR_FLAG_RECORD_TYPE_OF_P, scm_subr_func_record_type, true },
+    { "record-ref", SCM_SUBR_ARITY_RECORD_REF, SCM_SUBR_FLAG_RECORD_REF, scm_subr_func_record_ref, true },
+    { "record-set!", SCM_SUBR_ARITY_RECORD_SET_I, SCM_SUBR_FLAG_RECORD_SET_I, scm_subr_func_record_set_i, true },
+
     SUBR_DATA_TERMINATE
   };
   int r;
@@ -944,6 +955,40 @@ scm_load_module_scythe_internal_macro(void)
   return scm_load_module(STRARY("scythe", "internal", "macro"), 3,
                          scm_load_module_func_scythe_internal_macro);
 
+}
+
+
+/*******************************************************************/
+/*  (scythe internal record)                                       */
+/*******************************************************************/
+
+static int
+scm_load_module_func_scythe_internal_record(ScmObj mod)
+{
+  static const struct import_data data[] = {
+    { { "scythe", "internal", "core", "public" }, 4,
+      scm_load_module_scythe_internal_core_public, true },
+    { { "scythe", "internal", "core", "private" }, 4,
+      scm_load_module_scythe_internal_core_private, true },
+    { { "scythe", "internal", "macro" }, 3,
+      scm_load_module_scythe_internal_macro, true },
+    IMPORT_DATA_TERMINATE
+  };
+  int r;
+
+  SCM_REFSTK_INIT_REG(&mod);
+
+  r = scm_load_modules_and_import_them(mod, data);
+  if (r < 0) return -1;
+
+  return 0;
+}
+
+static int
+scm_load_module_scythe_internal_record(void)
+{
+  return scm_load_module(STRARY("scythe", "internal", "record"), 3,
+                         scm_load_module_func_scythe_internal_record);
 }
 
 
@@ -1736,6 +1781,7 @@ scm_load_core_modules(void)
     scm_load_module_scythe_internal_dynamicenv,
     scm_load_module_scythe_internal_compile,
     scm_load_module_scythe_internal_macro,
+    scm_load_module_scythe_internal_record,
     scm_load_module_scythe_base,
     scm_load_module_scythe_repl,
     scm_load_module_scythe_internal_command,

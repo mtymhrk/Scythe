@@ -33,6 +33,7 @@ set(scythe_lib_src api.c
                    parser.c
                    port.c
                    procedure.c
+                   record.c
                    refstk.c
                    scythe.c
                    string.c

@@ -20,6 +20,7 @@
 #include "scythe/pair.h"
 #include "scythe/port.h"
 #include "scythe/procedure.h"
+#include "scythe/record.h"
 #include "scythe/string.h"
 #include "scythe/scythe.h"
 #include "scythe/symbol.h"
@@ -373,6 +374,22 @@ ScmObj scm_api_pop_dynamic_bindings(void);
 
 ScmObj scm_api_push_dynamic_wind_handler(ScmObj before, ScmObj after);
 ScmObj scm_api_pop_dynamic_wind_handler(void);
+
+
+/*******************************************************************/
+/* Record                                                          */
+/*******************************************************************/
+
+#define scm_api_record_P scm_record_P
+
+ScmObj scm_api_make_record_type(ScmObj name);
+ScmObj scm_capi_make_record(ScmObj type, size_t n, ScmObj slots);
+ScmObj scm_api_make_record(ScmObj type, ScmObj n, ScmObj slots);
+ScmObj scm_api_record_type(ScmObj rec);
+ScmObj scm_capi_record_ref(ScmObj rec, size_t i);
+ScmObj scm_api_record_ref(ScmObj rec, ScmObj i);
+int scm_capi_record_set_i(ScmObj rec, size_t i, ScmObj val);
+ScmObj scm_api_record_set_i(ScmObj rec, ScmObj i, ScmObj val);
 
 
 /*******************************************************************/

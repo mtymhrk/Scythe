@@ -2626,6 +2626,95 @@ scm_subr_func_module_export(ScmObj subr, int argc, const ScmObj *argv)
 
 
 /*******************************************************************/
+/*  Internals (Record)                                             */
+/*******************************************************************/
+
+int
+scm_subr_func_record_P(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&subr,
+                      &val);
+
+  val = scm_api_record_P(argv[0]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_return_val(&val, 1);
+}
+
+int
+scm_subr_func_make_record_type(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&subr,
+                      &val);
+
+  val = scm_api_make_record_type(argv[0]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_return_val(&val, 1);
+}
+
+int
+scm_subr_func_make_record(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&subr,
+                      &val);
+
+  val = scm_api_make_record(argv[0], argv[1], argv[2]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_return_val(&val, 1);
+}
+
+int
+scm_subr_func_record_type(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&subr,
+                      &val);
+
+  val = scm_api_record_type(argv[0]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_return_val(&val, 1);
+}
+
+int
+scm_subr_func_record_ref(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&subr,
+                      &val);
+
+  val = scm_api_record_ref(argv[0], argv[1]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_return_val(&val, 1);
+}
+
+int
+scm_subr_func_record_set_i(ScmObj subr, int argc, const ScmObj *argv)
+{
+  ScmObj val = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&subr,
+                      &val);
+
+  val = scm_api_record_set_i(argv[0], argv[1], argv[2]);
+  if (scm_obj_null_p(val)) return -1;
+
+  return scm_return_val(&val, 1);
+}
+
+
+/*******************************************************************/
 /*  Internals (Compiler)                                           */
 /*******************************************************************/
 
