@@ -25,7 +25,6 @@
 #include "scythe/string.h"
 #include "scythe/scythe.h"
 #include "scythe/symbol.h"
-#include "scythe/syntax.h"
 #include "scythe/vector.h"
 #include "scythe/api.h"
 
@@ -2169,101 +2168,6 @@ scm_api_flush_output_port(ScmObj port)
   if (rslt < 0) return SCM_OBJ_NULL;
 
   return SCM_UNDEF_OBJ;
-}
-
-
-/*******************************************************************/
-/*  Syntax                                                         */
-/*******************************************************************/
-
-ScmObj
-scm_api_make_syntax(ScmObj keyword, ScmObj handler)
-{
-  if (!scm_symbol_p(keyword)) {
-    scm_capi_error("failed to make syntax object: "
-                   "invalid argument", 1, keyword);
-    return SCM_OBJ_NULL;
-  }
-  else if (scm_obj_null_p(handler)) {
-    scm_capi_error("failed to make syntax object: "
-                   "invalid argument", 1, handler);
-    return SCM_OBJ_NULL;
-  }
-
-  return scm_make_syntax(keyword, handler);
-}
-
-ScmObj
-scm_api_syntax_keyword(ScmObj syx)
-{
-  if (!scm_syntax_p(syx)) {
-    scm_capi_error("failed to get syntax keyword: invalid argument", 1, syx);
-    return SCM_OBJ_NULL;
-  }
-
-  return scm_syntax_keyword(syx);
-}
-
-ScmObj
-scm_api_syntax_handler(ScmObj syx)
-{
-  if (!scm_syntax_p(syx)) {
-    scm_capi_error("failed to get syntax handler: invalid argument", 1, syx);
-    return SCM_OBJ_NULL;
-  }
-
-  return scm_syntax_handler(syx);
-}
-
-
-/*******************************************************************/
-/*  Macro                                                          */
-/*******************************************************************/
-
-ScmObj
-scm_api_make_macro(ScmObj transformer, ScmObj env)
-{
-  if (!scm_procedure_p(transformer)) {
-    scm_capi_error("failed to make a macro object: procedure required, but got",
-                   1, transformer);
-    return SCM_OBJ_NULL;
-  }
-  else if (scm_obj_null_p(env)) {
-    scm_capi_error("failed to make a macro object: invalid argument", 1, env);
-    return SCM_OBJ_NULL;
-  }
-
-  return scm_make_macro(transformer, env);
-}
-
-ScmObj
-scm_api_macro_env(ScmObj macro)
-{
-  if (!scm_macro_p(macro)) {
-    scm_capi_error("failed to get syntactic environment of the macro: "
-                   "macro required, but got", 1, macro);
-    return SCM_OBJ_NULL;
-  }
-
-  return scm_macro_env(macro);
-}
-
-int
-scm_api_trmp_macro_transformer(ScmObj macro, ScmObj form, ScmObj use_env)
-{
-  if (!scm_macro_p(macro)) {
-    scm_capi_error("failed to call transformer: macro requird, but got", 1, macro);
-    return -1;
-  }
-  else if (scm_obj_null_p(form)) {
-    scm_capi_error("failed to call transformer: invalid argument", 1, form);
-    return -1;
-  }
-  else if (scm_obj_null_p(use_env)) {
-    scm_capi_error("failed to call transformer: invalid argument", 1, use_env);
-  }
-
-  return scm_macro_trmp_transformer(macro, form, use_env);
 }
 
 

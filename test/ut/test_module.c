@@ -5,7 +5,6 @@
 #include "scythe/refstk.h"
 #include "scythe/pair.h"
 #include "scythe/symbol.h"
-#include "scythe/syntax.h"
 #include "scythe/module.h"
 
 #include "test.h"
@@ -42,17 +41,6 @@ TEST_TEAR_DOWN(module)
 {
   scm_ref_stack_restore(&rsi);
   ut_scythe_tear_down(scy);
-}
-
-static void
-make_syntax(const char *k)
-{
-  ScmObj key = SCM_OBJ_INIT;
-
-  syntax = undef;
-
-  key = scm_make_symbol_from_cstr(k, SCM_ENC_ASCII);
-  syntax = scm_make_syntax(key, SCM_NIL_OBJ);
 }
 
 static void
@@ -395,9 +383,7 @@ TEST(module, define_global_syx)
   SCM_REFSTK_INIT_REG(&sym, &syx, &actual);
 
   sym = scm_make_symbol_from_cstr("var", SCM_ENC_ASCII);
-
-  make_syntax("foo");
-  syx = syntax;
+  syx = SCM_EOF_OBJ;
 
   make_module("test");
 
@@ -415,12 +401,8 @@ TEST(module, define_global_syx__already_bound)
   SCM_REFSTK_INIT_REG(&sym, &syx1, &syx2, &actual);
 
   sym = scm_make_symbol_from_cstr("var", SCM_ENC_ASCII);
-
-  make_syntax("foo");
-  syx1 = syntax;
-
-  make_syntax("bar");
-  syx2 = syntax;
+  syx1 = SCM_EOF_OBJ;
+  syx2 = SCM_UNDEF_OBJ;
 
   make_module("test");
 
@@ -454,9 +436,7 @@ TEST(module, global_syx_ref__refer_exported_symbol_of_imported_module)
   SCM_REFSTK_INIT_REG(&sym, &syx, &actual);
 
   sym = scm_make_symbol_from_cstr("var", SCM_ENC_ASCII);
-
-  make_syntax("foo");
-  syx = syntax;
+  syx = SCM_EOF_OBJ;
 
   make_module("imp");
   make_module("test");
@@ -479,9 +459,7 @@ TEST(module, global_syx_ref__refer_unexported_symbol_of_imported_module)
   SCM_REFSTK_INIT_REG(&sym, &syx, &actual);
 
   sym = scm_make_symbol_from_cstr("var", SCM_ENC_ASCII);
-
-  make_syntax("foo");
-  syx = syntax;
+  syx = SCM_EOF_OBJ;
 
   make_module("imp");
   make_module("test");
@@ -504,9 +482,7 @@ TEST(module, global_syx_ref__refer_exported_symbol_of_imported_module__restricti
   SCM_REFSTK_INIT_REG(&sym, &syx, &actual);
 
   sym = scm_make_symbol_from_cstr("var", SCM_ENC_ASCII);
-
-  make_syntax("foo");
-  syx = syntax;
+  syx = SCM_EOF_OBJ;
 
   make_module("imp");
   make_module("test");
@@ -529,9 +505,7 @@ TEST(module, global_syx_ref__refer_exported_symbol_of_imported_module__restricti
   SCM_REFSTK_INIT_REG(&sym, &syx, &actual);
 
   sym = scm_make_symbol_from_cstr("var", SCM_ENC_ASCII);
-
-  make_syntax("foo");
-  syx = syntax;
+  syx = SCM_EOF_OBJ;
 
   make_module("imp-a");
   make_module("imp-b");

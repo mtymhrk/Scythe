@@ -24,7 +24,6 @@
 #include "scythe/string.h"
 #include "scythe/scythe.h"
 #include "scythe/symbol.h"
-#include "scythe/syntax.h"
 #include "scythe/vector.h"
 
 
@@ -290,28 +289,6 @@ ScmObj scm_api_flush_output_port(ScmObj port);
 /*******************************************************************/
 
 #define scm_api_procedure_P scm_procedure_P
-
-
-/*******************************************************************/
-/*  Syntax                                                         */
-/*******************************************************************/
-
-#define scm_api_syntax_P scm_syntax_P
-
-ScmObj scm_api_make_syntax(ScmObj keyword, ScmObj handler);
-ScmObj scm_api_syntax_keyword(ScmObj syx);
-ScmObj scm_api_syntax_handler(ScmObj syx);
-
-
-/*******************************************************************/
-/*  Syntax                                                         */
-/*******************************************************************/
-
-#define scm_api_macro_P scm_macro_P
-
-ScmObj scm_api_make_macro(ScmObj transformer, ScmObj env);
-ScmObj scm_api_macro_env(ScmObj macro);
-int scm_api_trmp_macro_transformer(ScmObj macro, ScmObj form, ScmObj use_env);
 
 
 /*******************************************************************/

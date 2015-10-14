@@ -42,17 +42,6 @@ TEST_TEAR_DOWN(api_module)
 }
 
 static void
-make_syntax(const char *k)
-{
-  ScmObj key = SCM_OBJ_INIT;
-
-  syntax = undef;
-
-  key = scm_make_symbol_from_cstr(k, SCM_ENC_ASCII);
-  syntax = scm_api_make_syntax(key, SCM_NIL_OBJ);
-}
-
-static void
 find_module(const char *n)
 {
   module = name = undef;
@@ -97,9 +86,7 @@ TEST(api_module, define_global_syx)
   SCM_REFSTK_INIT_REG(&sym, &syx, &actual);
 
   sym = scm_make_symbol_from_cstr("var", SCM_ENC_ASCII);
-
-  make_syntax("foo");
-  syx = syntax;
+  syx = SCM_EOF_OBJ;
 
   make_module("test");
 
@@ -117,12 +104,8 @@ TEST(api_module, define_global_syx__already_bound)
   SCM_REFSTK_INIT_REG(&sym, &syx1, &syx2, &actual);
 
   sym = scm_make_symbol_from_cstr("var", SCM_ENC_ASCII);
-
-  make_syntax("foo");
-  syx1 = syntax;
-
-  make_syntax("bar");
-  syx2 = syntax;
+  syx1 = SCM_EOF_OBJ;
+  syx2 = SCM_UNDEF_OBJ;
 
   make_module("test");
 
@@ -156,9 +139,7 @@ TEST(api_module, global_syx_ref__refer_exported_symbol_of_imported_module)
   SCM_REFSTK_INIT_REG(&sym, &syx, &actual);
 
   sym = scm_make_symbol_from_cstr("var", SCM_ENC_ASCII);
-
-  make_syntax("foo");
-  syx = syntax;
+  syx = SCM_EOF_OBJ;
 
   make_module("imp");
   make_module("test");
@@ -181,9 +162,7 @@ TEST(api_module, global_syx_ref__refer_unexported_symbol_of_imported_module)
   SCM_REFSTK_INIT_REG(&sym, &syx, &actual);
 
   sym = scm_make_symbol_from_cstr("var", SCM_ENC_ASCII);
-
-  make_syntax("foo");
-  syx = syntax;
+  syx = SCM_EOF_OBJ;
 
   make_module("imp");
   make_module("test");
@@ -206,9 +185,7 @@ TEST(api_module, global_syx_ref__refer_exported_symbol_of_imported_module__restr
   SCM_REFSTK_INIT_REG(&sym, &syx, &actual);
 
   sym = scm_make_symbol_from_cstr("var", SCM_ENC_ASCII);
-
-  make_syntax("foo");
-  syx = syntax;
+  syx = SCM_EOF_OBJ;
 
   make_module("imp");
   make_module("test");
@@ -231,9 +208,7 @@ TEST(api_module, global_syx_ref__refer_exported_symbol_of_imported_module__restr
   SCM_REFSTK_INIT_REG(&sym, &syx, &actual);
 
   sym = scm_make_symbol_from_cstr("var", SCM_ENC_ASCII);
-
-  make_syntax("foo");
-  syx = syntax;
+  syx = SCM_EOF_OBJ;
 
   make_module("imp-a");
   make_module("imp-b");

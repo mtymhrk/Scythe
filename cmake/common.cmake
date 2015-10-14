@@ -38,7 +38,6 @@ set(scythe_lib_src api.c
                    scythe.c
                    string.c
                    symbol.c
-                   syntax.c
                    vector.c
                    vm.c
                    vminst.c
