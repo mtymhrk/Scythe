@@ -46,6 +46,7 @@ if(preinstalled_scythe_bin_path)
   set(scm_compiler_opt "")
 
   set(compiler_scm_files "scythe/internal/identifier.scm"
+                         "scythe/internal/cmpl-env.scm"
                          "scythe/internal/compile.scm"
                          "scythe/internal/dynamic-env.scm"
                          "scythe/internal/macro.scm"

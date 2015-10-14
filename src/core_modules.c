@@ -878,6 +878,8 @@ scm_load_module_scythe_internal_identifier(void)
 /*  (scythe internal cmpl-env)                                     */
 /*******************************************************************/
 
+extern const unsigned char scm_compiled_data_scythe_internal_cmplenv[];
+
 static int
 scm_load_module_func_scythe_internal_cmplenv(ScmObj mod)
 {
@@ -895,6 +897,9 @@ scm_load_module_func_scythe_internal_cmplenv(ScmObj mod)
   SCM_REFSTK_INIT_REG(&mod);
 
   r = scm_load_modules_and_import_them(mod, data);
+  if (r < 0) return -1;
+
+  r = scm_exec_compiled_data(mod, scm_compiled_data_scythe_internal_cmplenv);
   if (r < 0) return -1;
 
   return 0;
@@ -1006,8 +1011,6 @@ scm_load_module_func_scythe_internal_macro(ScmObj mod)
       scm_load_module_scythe_internal_identifier, true },
     { { "scythe", "internal", "cmpl-env" }, 3,
       scm_load_module_scythe_internal_cmplenv, true },
-    { { "scythe", "internal", "compile" }, 3,
-      scm_load_module_scythe_internal_compile, true },
     IMPORT_DATA_TERMINATE
   };
   int r;

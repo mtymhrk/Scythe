@@ -40,6 +40,7 @@ if ARGV.length < 4
 end
 
 targets = ['scythe/internal/identifier.scm',
+           'scythe/internal/cmpl-env.scm',
            'scythe/internal/compile.scm',
            'scythe/internal/dynamic-env.scm',
            'scythe/internal/macro.scm',
