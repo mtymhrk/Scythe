@@ -240,10 +240,10 @@ static int scm_load_module_scythe_internal_core_private(void);
 static int scm_load_module_scythe_internal_identifier(void);
 static int scm_load_module_scythe_internal_cmplenv(void);
 static int scm_load_module_scythe_internal_macro(void);
-static int scm_load_module_scythe_internal_dynamicenv(void);
-static int scm_load_module_scythe_internal_compile(void);
-static int scm_load_module_scythe_internal_record(void);
 static int scm_load_module_scythe_internal_multipleval(void);
+static int scm_load_module_scythe_internal_dynamicenv(void);
+static int scm_load_module_scythe_internal_record(void);
+static int scm_load_module_scythe_internal_compile(void);
 static int scm_load_module_scythe_base(void);
 static int scm_load_module_scythe_repl(void);
 static int scm_load_module_scythe_internal_command(void);
@@ -956,6 +956,46 @@ scm_load_module_scythe_internal_macro(void)
 
 
 /*******************************************************************/
+/*  (scythe internal multiple-val)                                 */
+/*******************************************************************/
+
+extern const unsigned char scm_compiled_data_scythe_internal_multipleval[];
+
+static int
+scm_load_module_func_scythe_internal_multipleval(ScmObj mod)
+{
+  static const struct import_data data[] = {
+    { { "scythe", "internal", "core", "public" }, 4,
+      scm_load_module_scythe_internal_core_public, true },
+    { { "scythe", "internal", "core", "private" }, 4,
+      scm_load_module_scythe_internal_core_private, true },
+    { { "scythe", "internal", "macro" }, 3,
+      scm_load_module_scythe_internal_macro, true },
+    IMPORT_DATA_TERMINATE
+  };
+  int r;
+
+  SCM_REFSTK_INIT_REG(&mod);
+
+  r = scm_load_modules_and_import_them(mod, data);
+  if (r < 0) return -1;
+
+  r = scm_exec_compiled_data(mod,
+                             scm_compiled_data_scythe_internal_multipleval);
+  if (r < 0) return -1;
+
+  return 0;
+}
+
+static int
+scm_load_module_scythe_internal_multipleval(void)
+{
+  return scm_load_module(STRARY("scythe", "internal", "multiple-val"), 3,
+                         scm_load_module_func_scythe_internal_multipleval);
+}
+
+
+/*******************************************************************/
 /*  (scythe internal dynamic-env)                                  */
 /*******************************************************************/
 
@@ -989,49 +1029,6 @@ scm_load_module_scythe_internal_dynamicenv(void)
 {
   return scm_load_module(STRARY("scythe", "internal", "dynamic-env"), 3,
                          scm_load_module_func_scythe_internal_dynamicenv);
-}
-
-
-/*******************************************************************/
-/*  (scythe internal compile)                                      */
-/*******************************************************************/
-
-extern const unsigned char scm_compiled_data_scythe_internal_compile[];
-
-static int
-scm_load_module_func_scythe_internal_compile(ScmObj mod)
-{
-  static const struct import_data data[] = {
-    { { "scythe", "internal", "core", "public" }, 4,
-      scm_load_module_scythe_internal_core_public, true },
-    { { "scythe", "internal", "core", "private" }, 4,
-      scm_load_module_scythe_internal_core_private, true },
-    { { "scythe", "internal", "identifier" }, 3,
-      scm_load_module_scythe_internal_identifier, true },
-    { { "scythe", "internal", "cmpl-env" }, 3,
-      scm_load_module_scythe_internal_cmplenv, true },
-    { { "scythe", "internal", "dynamic-env" }, 3,
-      scm_load_module_scythe_internal_dynamicenv, true },
-    IMPORT_DATA_TERMINATE
-  };
-  int r;
-
-  SCM_REFSTK_INIT_REG(&mod);
-
-  r = scm_load_modules_and_import_them(mod, data);
-  if (r < 0) return -1;
-
-  r = scm_exec_compiled_data(mod, scm_compiled_data_scythe_internal_compile);
-  if (r < 0) return -1;
-
-  return 0;
-}
-
-static int
-scm_load_module_scythe_internal_compile(void)
-{
-  return scm_load_module(STRARY("scythe", "internal", "compile"), 3,
-                         scm_load_module_func_scythe_internal_compile);
 }
 
 
@@ -1075,21 +1072,25 @@ scm_load_module_scythe_internal_record(void)
 
 
 /*******************************************************************/
-/*  (scythe internal multiple-val)                                 */
+/*  (scythe internal compile)                                      */
 /*******************************************************************/
 
-extern const unsigned char scm_compiled_data_scythe_internal_multipleval[];
+extern const unsigned char scm_compiled_data_scythe_internal_compile[];
 
 static int
-scm_load_module_func_scythe_internal_multipleval(ScmObj mod)
+scm_load_module_func_scythe_internal_compile(ScmObj mod)
 {
   static const struct import_data data[] = {
     { { "scythe", "internal", "core", "public" }, 4,
       scm_load_module_scythe_internal_core_public, true },
     { { "scythe", "internal", "core", "private" }, 4,
       scm_load_module_scythe_internal_core_private, true },
-    { { "scythe", "internal", "macro" }, 3,
-      scm_load_module_scythe_internal_macro, true },
+    { { "scythe", "internal", "identifier" }, 3,
+      scm_load_module_scythe_internal_identifier, true },
+    { { "scythe", "internal", "cmpl-env" }, 3,
+      scm_load_module_scythe_internal_cmplenv, true },
+    { { "scythe", "internal", "dynamic-env" }, 3,
+      scm_load_module_scythe_internal_dynamicenv, true },
     IMPORT_DATA_TERMINATE
   };
   int r;
@@ -1099,18 +1100,17 @@ scm_load_module_func_scythe_internal_multipleval(ScmObj mod)
   r = scm_load_modules_and_import_them(mod, data);
   if (r < 0) return -1;
 
-  r = scm_exec_compiled_data(mod,
-                             scm_compiled_data_scythe_internal_multipleval);
+  r = scm_exec_compiled_data(mod, scm_compiled_data_scythe_internal_compile);
   if (r < 0) return -1;
 
   return 0;
 }
 
 static int
-scm_load_module_scythe_internal_multipleval(void)
+scm_load_module_scythe_internal_compile(void)
 {
-  return scm_load_module(STRARY("scythe", "internal", "multiple-val"), 3,
-                         scm_load_module_func_scythe_internal_multipleval);
+  return scm_load_module(STRARY("scythe", "internal", "compile"), 3,
+                         scm_load_module_func_scythe_internal_compile);
 }
 
 
@@ -1907,10 +1907,10 @@ scm_load_core_modules(void)
     scm_load_module_scythe_internal_identifier,
     scm_load_module_scythe_internal_cmplenv,
     scm_load_module_scythe_internal_macro,
-    scm_load_module_scythe_internal_dynamicenv,
-    scm_load_module_scythe_internal_compile,
-    scm_load_module_scythe_internal_record,
     scm_load_module_scythe_internal_multipleval,
+    scm_load_module_scythe_internal_dynamicenv,
+    scm_load_module_scythe_internal_record,
+    scm_load_module_scythe_internal_compile,
     scm_load_module_scythe_base,
     scm_load_module_scythe_repl,
     scm_load_module_scythe_internal_command,
