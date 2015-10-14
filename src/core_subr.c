@@ -3132,62 +3132,6 @@ scm_subr_func_qq_template_unquoted(ScmObj subr, int argc, const ScmObj *argv)
   return scm_return_val(&val, 1);
 }
 
-int
-scm_subr_func_identifier_P(ScmObj subr, int argc, const ScmObj *argv)
-{
-  ScmObj val = SCM_OBJ_INIT;
-
-  SCM_REFSTK_INIT_REG(&subr,
-                      &val);
-
-  val = scm_api_identifier_P(argv[0]);
-  if (scm_obj_null_p(val)) return SCM_OBJ_NULL;
-
-  return scm_return_val(&val, 1);
-}
-
-int
-scm_subr_func_make_identifier(ScmObj subr, int argc, const ScmObj *argv)
-{
-  ScmObj val = SCM_OBJ_INIT;
-
-  SCM_REFSTK_INIT_REG(&subr,
-                      &val);
-
-  val = scm_api_make_identifier(argv[0], argv[1]);
-  if (scm_obj_null_p(val)) return SCM_OBJ_NULL;
-
-  return scm_return_val(&val, 1);
-}
-
-int
-scm_subr_func_identifier_name(ScmObj subr, int argc, const ScmObj *argv)
-{
-  ScmObj val = SCM_OBJ_INIT;
-
-  SCM_REFSTK_INIT_REG(&subr,
-                      &val);
-
-  val = scm_api_identifier_name(argv[0]);
-  if (scm_obj_null_p(val)) return SCM_OBJ_NULL;
-
-  return scm_return_val(&val, 1);
-}
-
-int
-scm_subr_func_identifier_env(ScmObj subr, int argc, const ScmObj *argv)
-{
-  ScmObj val = SCM_OBJ_INIT;
-
-  SCM_REFSTK_INIT_REG(&subr,
-                      &val);
-
-  val = scm_api_identifier_env(argv[0]);
-  if (scm_obj_null_p(val)) return SCM_OBJ_NULL;
-
-  return scm_return_val(&val, 1);
-}
-
 
 /*******************************************************************/
 /*  Internals (dynamic environment)                                */

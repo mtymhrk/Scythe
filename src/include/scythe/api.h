@@ -349,17 +349,6 @@ ScmObj scm_api_qq_template_num_of_unquoted(ScmObj tmpl);
 ScmObj scm_api_qq_template_unquoted(ScmObj tmpl, ScmObj idx);
 
 
-/*********************************************************************/
-/* Identifier                                                        */
-/*********************************************************************/
-
-#define scm_api_identifier_P scm_identifier_P
-
-ScmObj scm_api_make_identifier(ScmObj name, ScmObj env);
-ScmObj scm_api_identifier_name(ScmObj ident);
-ScmObj scm_api_identifier_env(ScmObj ident);
-
-
 /*******************************************************************/
 /* Dynamic Bindings                                                */
 /*******************************************************************/
