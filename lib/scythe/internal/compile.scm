@@ -1405,12 +1405,12 @@
           (if (precompile?)
               (vector p2-syntax-id-call
                       (vector p2-syntax-id-gref
-                              'global-syntax-bind '(scythe internal compile))
+                              'global-syntax-bind '(scythe internal macro))
                       (vector p2-syntax-id-self e)
                       (vector p2-syntax-id-self v)
                       (vector p2-syntax-id-call
                               (vector p2-syntax-id-gref
-                                      'make-macro '(scythe internal compile))
+                                      'make-macro '(scythe internal macro))
                               texp
                               (vector p2-syntax-id-self env))
                       (vector p2-syntax-id-self #f))
