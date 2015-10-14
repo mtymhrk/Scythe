@@ -237,6 +237,7 @@ scm_load_module(const char * const *name_str, size_t n,
 
 static int scm_load_module_scythe_internal_core_public(void);
 static int scm_load_module_scythe_internal_core_private(void);
+static int scm_load_module_scythe_internal_identifier(void);
 static int scm_load_module_scythe_internal_dynamicenv(void);
 static int scm_load_module_scythe_internal_compile(void);
 static int scm_load_module_scythe_internal_macro(void);
@@ -735,14 +736,6 @@ scm_define_scythe_internal_core_private_subr(ScmObj module)
     { "qq-template-unquoted", SCM_SUBR_ARITY_QQ_TEMPLATE_UNQUOTED, SCM_SUBR_FLAG_QQ_TEMPLATE_UNQUOTED, scm_subr_func_qq_template_unquoted, true },
 
     /*******************************************************************/
-    /*  Identifier                                                     */
-    /*******************************************************************/
-    { "identifier?", SCM_SUBR_ARITY_IDENTIFIER_P, SCM_SUBR_FLAG_IDENTIFIER_P, scm_subr_func_identifier_P, true },
-    { "make-identifier", SCM_SUBR_ARITY_MAKE_IDENTIFIER, SCM_SUBR_FLAG_MAKE_IDENTIFIER, scm_subr_func_make_identifier, true },
-    { "identifier-name", SCM_SUBR_ARITY_IDENTIFIER_NAME, SCM_SUBR_FLAG_IDENTIFIER_NAME, scm_subr_func_identifier_name, true },
-    { "identifier-env", SCM_SUBR_ARITY_IDENTIFIER_ENV, SCM_SUBR_FLAG_IDENTIFIER_ENV, scm_subr_func_identifier_env, true },
-
-    /*******************************************************************/
     /*  Record                                                         */
     /*******************************************************************/
     { "record?", SCM_SUBR_ARITY_RECORD_P, SCM_SUBR_FLAG_RECORD_P, scm_subr_func_record_P, true },
@@ -844,6 +837,65 @@ scm_load_module_scythe_internal_core_private(void)
 
 
 /*******************************************************************/
+/*  (scythe internal identifier)                                   */
+/*******************************************************************/
+
+static int
+scm_define_scythe_internal_identifier_subr(ScmObj module)
+{
+  static const struct subr_data data[] = {
+    /*******************************************************************/
+    /*  Identifier                                                     */
+    /*******************************************************************/
+    { "identifier?", SCM_SUBR_ARITY_IDENTIFIER_P, SCM_SUBR_FLAG_IDENTIFIER_P, scm_subr_func_identifier_P, true },
+    { "make-identifier", SCM_SUBR_ARITY_MAKE_IDENTIFIER, SCM_SUBR_FLAG_MAKE_IDENTIFIER, scm_subr_func_make_identifier, true },
+    { "identifier-name", SCM_SUBR_ARITY_IDENTIFIER_NAME, SCM_SUBR_FLAG_IDENTIFIER_NAME, scm_subr_func_identifier_name, true },
+    { "identifier-env", SCM_SUBR_ARITY_IDENTIFIER_ENV, SCM_SUBR_FLAG_IDENTIFIER_ENV, scm_subr_func_identifier_env, true },
+
+    SUBR_DATA_TERMINATE
+  };
+  int r;
+
+  SCM_REFSTK_INIT_REG(&module);
+
+  r = scm_define_subr(module, data);
+  if (r < 0) return -1;
+
+  return 0;
+}
+
+static int
+scm_load_module_func_scythe_internal_identifier(ScmObj mod)
+{
+  static const struct import_data data[] = {
+    { { "scythe", "internal", "core", "public" }, 4,
+      scm_load_module_scythe_internal_core_public, true },
+    { { "scythe", "internal", "core", "private" }, 4,
+      scm_load_module_scythe_internal_core_private, true },
+    IMPORT_DATA_TERMINATE
+  };
+  int r;
+
+  SCM_REFSTK_INIT_REG(&mod);
+
+  r = scm_load_modules_and_import_them(mod, data);
+  if (r < 0) return -1;
+
+  r = scm_define_scythe_internal_identifier_subr(mod);
+  if (r < 0) return -1;
+
+  return 0;
+}
+
+static int
+scm_load_module_scythe_internal_identifier(void)
+{
+  return scm_load_module(STRARY("scythe", "internal", "identifier"), 3,
+                         scm_load_module_func_scythe_internal_identifier);
+}
+
+
+/*******************************************************************/
 /*  (scythe internal dynamic-env)                                  */
 /*******************************************************************/
 
@@ -894,6 +946,8 @@ scm_load_module_func_scythe_internal_compile(ScmObj mod)
       scm_load_module_scythe_internal_core_public, true },
     { { "scythe", "internal", "core", "private" }, 4,
       scm_load_module_scythe_internal_core_private, true },
+    { { "scythe", "internal", "identifier" }, 3,
+      scm_load_module_scythe_internal_identifier, true },
     { { "scythe", "internal", "dynamic-env" }, 3,
       scm_load_module_scythe_internal_dynamicenv, true },
     IMPORT_DATA_TERMINATE
@@ -933,6 +987,8 @@ scm_load_module_func_scythe_internal_macro(ScmObj mod)
       scm_load_module_scythe_internal_core_public, true },
     { { "scythe", "internal", "core", "private" }, 4,
       scm_load_module_scythe_internal_core_private, true },
+    { { "scythe", "internal", "identifier" }, 3,
+      scm_load_module_scythe_internal_identifier, true },
     { { "scythe", "internal", "compile" }, 3,
       scm_load_module_scythe_internal_compile, true },
     IMPORT_DATA_TERMINATE
@@ -1828,6 +1884,7 @@ scm_load_core_modules(void)
   int (*func[])(void) = {
     scm_load_module_scythe_internal_core_public,
     scm_load_module_scythe_internal_core_private,
+    scm_load_module_scythe_internal_identifier,
     scm_load_module_scythe_internal_dynamicenv,
     scm_load_module_scythe_internal_compile,
     scm_load_module_scythe_internal_macro,
