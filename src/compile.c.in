@@ -1,4 +1,8 @@
 
+const unsigned char scm_compiled_data_scythe_internal_identifier[] = {
+<%= codes[:scythe_internal_identifier] %>
+};
+
 const unsigned char scm_compiled_data_scythe_internal_compile[] = {
 <%= codes[:scythe_internal_compile] %>
 };

@@ -45,7 +45,8 @@ if(preinstalled_scythe_bin_path)
   set(scm_compiler ${preinstalled_scythe_bin_path})
   set(scm_compiler_opt "")
 
-  set(compiler_scm_files "scythe/internal/compile.scm"
+  set(compiler_scm_files "scythe/internal/identifier.scm"
+                         "scythe/internal/compile.scm"
                          "scythe/internal/dynamic-env.scm"
                          "scythe/internal/macro.scm"
                          "scythe/internal/record.scm"
