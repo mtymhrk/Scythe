@@ -39,7 +39,8 @@ if ARGV.length < 4
   exit 1
 end
 
-targets = ['scythe/internal/identifier.scm',
+targets = ['scythe/internal/syntax.scm',
+           'scythe/internal/identifier.scm',
            'scythe/internal/cmpl-env.scm',
            'scythe/internal/compile.scm',
            'scythe/internal/dynamic-env.scm',

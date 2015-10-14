@@ -714,22 +714,6 @@ scm_define_scythe_internal_core_private_subr(ScmObj module)
     { "compiler-select-expr!", SCM_SUBR_ARITY_COMPILER_SELECT_EXPR_I, SCM_SUBR_FLAG_COMPILER_SELECT_EXPR_I, scm_subr_func_compiler_select_expr_i, true },
 
     /*******************************************************************/
-    /*  Syntax                                                         */
-    /*******************************************************************/
-    { "syntax?", SCM_SUBR_ARITY_SYNTAX_P, SCM_SUBR_FLAG_SYNTAX_P, scm_subr_func_syntax_P, true },
-    { "make-syntax", SCM_SUBR_ARITY_MAKE_SYNTAX, SCM_SUBR_FLAG_MAKE_SYNTAX, scm_subr_func_make_syntax, true },
-    { "syntax-keyword", SCM_SUBR_ARITY_SYNTAX_KEYWORD, SCM_SUBR_FLAG_SYNTAX_KEYWORD, scm_subr_func_syntax_keyword, true },
-    { "syntax-handler", SCM_SUBR_ARITY_SYNTAX_HANDLER, SCM_SUBR_FLAG_SYNTAX_HANDLER, scm_subr_func_syntax_handler, true },
-
-    /*******************************************************************/
-    /*  Macro                                                          */
-    /*******************************************************************/
-    { "macro?", SCM_SUBR_ARITY_MACRO_P, SCM_SUBR_FLAG_MACRO_P, scm_subr_func_macro_P, true },
-    { "make-macro", SCM_SUBR_ARITY_MAKE_MACRO, SCM_SUBR_FLAG_MAKE_MACRO, scm_subr_func_make_macro, true },
-    { "macro-env", SCM_SUBR_ARITY_MACRO_ENV, SCM_SUBR_FLAG_MACRO_ENV, scm_subr_func_macro_env, true },
-    { "macro-yield-transformer", SCM_SUBR_ARITY_MACRO_YIELD_TRANSFORMER, SCM_SUBR_FLAG_MACRO_YIELD_TRANSFORMER, scm_subr_func_macro_yield_transformer, true },
-
-    /*******************************************************************/
     /*  Quasiquatation                                                 */
     /*******************************************************************/
     { "compile-qq-template", SCM_SUBR_ARITY_COMPILE_QQ_TEMPLATE, SCM_SUBR_FLAG_COMPILE_QQ_TEMPLATE, scm_subr_func_compile_qq_template, true },
@@ -842,6 +826,8 @@ scm_load_module_scythe_internal_core_private(void)
 /*  (scythe internal syntax)                                       */
 /*******************************************************************/
 
+extern const unsigned char scm_compiled_data_scythe_internal_syntax[];
+
 static int
 scm_load_module_func_scythe_internal_syntax(ScmObj mod)
 {
@@ -857,6 +843,9 @@ scm_load_module_func_scythe_internal_syntax(ScmObj mod)
   SCM_REFSTK_INIT_REG(&mod);
 
   r = scm_load_modules_and_import_them(mod, data);
+  if (r < 0) return -1;
+
+  r = scm_exec_compiled_data(mod, scm_compiled_data_scythe_internal_syntax);
   if (r < 0) return -1;
 
   return 0;
