@@ -1586,7 +1586,7 @@
   (p1-register-syntax name compiler-syntax-do #t)
   (p1-register-syntax name compiler-syntax-let-values #t)
   (p1-register-syntax name compiler-syntax-let*-values #t)
-  (p1-register-syntax name compiler-syntax-parameterize #t)
+  ;; (p1-register-syntax name compiler-syntax-parameterize #t)
   (p1-register-syntax name compiler-syntax-quasiquote #t)
   (p1-register-syntax name compiler-syntax-syntax-definition #t)
   (p1-register-syntax name compiler-syntax-let-syntax #t)

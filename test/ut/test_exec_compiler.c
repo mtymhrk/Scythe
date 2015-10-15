@@ -2063,7 +2063,7 @@ TEST(exec_compiler, let_a_values_9)
                "    (tcall 0))))");
 }
 
-TEST(exec_compiler, parameterize_empty_bindings_and_body)
+IGNORE_TEST(exec_compiler, parameterize_empty_bindings_and_body)
 {
   test_compile("(parameterize ())",
                "(  (cframe (label 0))"
@@ -2081,7 +2081,7 @@ TEST(exec_compiler, parameterize_empty_bindings_and_body)
                " (label 0))");
 }
 
-TEST(exec_compiler, parameterize_empty_body)
+IGNORE_TEST(exec_compiler, parameterize_empty_body)
 {
   test_compile("(parameterize ((prm 1)))",
                "(  (cframe (label 0))"
@@ -2109,7 +2109,7 @@ TEST(exec_compiler, parameterize_empty_body)
                " (label 0))");
 }
 
-TEST(exec_compiler, parameterize)
+IGNORE_TEST(exec_compiler, parameterize)
 {
   test_compile("(let ((prm (make-parameter 1)))"
                "  (parameterize ((prm 2)) (prm)))",
