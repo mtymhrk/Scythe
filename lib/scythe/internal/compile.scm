@@ -1309,41 +1309,6 @@
                       b
                       (vector-length vars-vec))))))))
 
-(define (with-dynamic-bindings bindings thunk)
-  (dynamic-wind
-      (lambda () (apply push-dynamic-bindings bindings))
-      thunk
-      pop-dynamic-bindings))
-
-(define (p1-decons-parameterize cmpl exp)
-  (let-values (((name params vals body)
-                (p1-decons-let-like-syntax cmpl exp #f 'parameterize)))
-    (values params vals (length params) body)))
-
-(define (p1-syntax-handler-parameterize cmpl exp env pos rdepth)
-  (let-values (((params vals nr body) (p1-decons-parameterize cmpl exp)))
-    (vector p2-syntax-id-call
-            (vector p2-syntax-id-gref
-                    'with-dynamic-bindings
-                    '(scythe internal compile))
-            (let ((vec (make-vector (+ nr 2))))
-              (vector-set! vec 0 p2-syntax-id-call)
-              (vector-set! vec 1 (vector p2-syntax-id-gref
-                                         'list
-                                         '(scythe internal compile)))
-              (let loop ((idx 2)
-                         (params params)
-                         (vals vals))
-                (if (null? params) vec
-                    (let ((p (car params)) (v (car vals)))
-                      (vector-set! vec idx
-                                   (vector p2-syntax-id-call
-                                           (p1-compile-exp cmpl p env #f rdepth)
-                                           (p1-compile-exp cmpl v env #f rdepth)
-                                           (vector p2-syntax-id-self #f)))
-                      (loop (+ idx 1) (cdr params) (cdr vals))))))
-            (p1-cmpl-lambda cmpl () () body env pos rdepth))))
-
 (define (p1-decons-quasiquote cmpl exp)
   (let ((qq (cdr exp)))
     (unless (null? (cdr qq))
@@ -1543,9 +1508,6 @@
 (define compiler-syntax-let*-values
   (make-syntax 'let*-values p1-syntax-handler-let*-values))
 
-(define compiler-syntax-parameterize
-  (make-syntax 'parameterize p1-syntax-handler-parameterize))
-
 (define compiler-syntax-quasiquote
   (make-syntax 'quasiquote p1-syntax-handler-quasiquote))
 
@@ -1586,7 +1548,6 @@
   (p1-register-syntax name compiler-syntax-do #t)
   (p1-register-syntax name compiler-syntax-let-values #t)
   (p1-register-syntax name compiler-syntax-let*-values #t)
-  ;; (p1-register-syntax name compiler-syntax-parameterize #t)
   (p1-register-syntax name compiler-syntax-quasiquote #t)
   (p1-register-syntax name compiler-syntax-syntax-definition #t)
   (p1-register-syntax name compiler-syntax-let-syntax #t)
