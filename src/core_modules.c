@@ -1033,6 +1033,8 @@ scm_load_module_func_scythe_internal_dynamicenv(ScmObj mod)
       scm_load_module_scythe_internal_core_public, true },
     { { "scythe", "internal", "core", "private" }, 4,
       scm_load_module_scythe_internal_core_private, true },
+    { { "scythe", "internal", "macro" }, 3,
+      scm_load_module_scythe_internal_macro, true },
     IMPORT_DATA_TERMINATE
   };
   int r;
