@@ -1132,7 +1132,7 @@ scm_mem_need_to_exec_gc_p(ScmMem *mem)
 {
   if (!scm_mem_gc_enabled_p(mem))
     return false;
-  else if (mem->alloc_cnt < scm_mem_heap_total_size(mem->to_heap) / 2)
+  else if (mem->alloc_cnt < (scm_mem_heap_total_size(mem->to_heap) / 7) * 6)
     return false;
   else
     return true;
@@ -1312,7 +1312,7 @@ scm_mem_gc_start(ScmMem *mem)
   scm_mem_clean_heap(mem, FROM_HEAP);
 
   nr_free = scm_mem_heap_nr_free_block(mem->to_heap);
-  if (nr_free > 1)
+  if (nr_free > 2)
     scm_mem_release_redundancy_heap_blocks(mem, 1);
 
   mem->alloc_cnt = 0;
