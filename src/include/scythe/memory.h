@@ -46,7 +46,7 @@ scm_forward_initialize(ScmObj obj, ScmObj fwd)
 #define SCM_MEM_ALIGN_BYTE 8
 
 #define SCM_MEM_MIN_OBJ_SIZE sizeof(ScmForward)
-#define SCM_MEM_HEAP_INIT_BLOCK_SIZE 4096
+#define SCM_MEM_HEAP_INIT_BLOCK_SIZE 524288
 #define SCM_MEM_OBJ_TBL_HASH_SIZE 1024
 #define SCM_MEM_EXTRA_ROOT_SET_SIZE 256
 
