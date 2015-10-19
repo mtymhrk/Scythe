@@ -64,7 +64,7 @@
 
 
 ;;;
-;;; define-record-type シンタックスを以下のような変換を行うマクロとして定義する
+;;; define-values シンタックスを以下のような変換を行うマクロとして定義する
 ;;;
 ;;;   1. (define-values (<variable-name-1> ...) <expression>)
 ;;;   2. (define-values (<variable-name-1> <variable-naem-2> ... . <variable-name-N>)
