@@ -1291,10 +1291,8 @@ scm_vm_get_module_specified_by_opd(ScmObj spec)
 static int
 scm_vm_do_op_int(ScmObj vm, int num)
 {
-  if (num < 0 || SCM_VM_NR_INTERRUPTIONS <= num) {
-    scm_error("unsupported interruption number", 0);
-    return -1;
-  }
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+  scm_assert(0 <= num && num < SCM_VM_NR_INTERRUPTIONS);
 
   scm_vm_interrupt_restore(vm, num);
   return SCM_VM(vm)->inttbl.table[num].func(vm);
@@ -1322,11 +1320,7 @@ scm_vm_do_op_eframe(ScmObj vm, int argc)
   int rslt;
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-
-  if (argc < 0) {
-    scm_error("invalid operand", 0);
-    return -1;
-  }
+  scm_assert(argc >= 0);
 
   rslt = scm_vm_make_eframe(vm, argc);
   if (rslt < 0) return -1;
@@ -1649,11 +1643,8 @@ scm_vm_do_op_sref(ScmObj vm, int idx, int layer)
                       &val);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-
-  if (idx < 0 || layer < 0) {
-    scm_error("invalid access to envrionment frame: out of range", 0);
-    return -1;
-  }
+  scm_assert(idx >= 0);
+  scm_assert(layer >= 0);
 
   val = scm_vm_eframe_arg_ref(SCM_VM(vm)->reg.efp,
                               (size_t)idx, (size_t)layer, NULL);
@@ -1684,11 +1675,8 @@ scm_vm_do_op_sset(ScmObj vm, int idx, int layer)
                       &val, &o);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-
-  if (idx < 0 || layer < 0) {
-    scm_error("invalid access to envrionment frame: out of range", 0);
-    return -1;
-  }
+  scm_assert(idx >= 0);
+  scm_assert(layer >= 0);
 
   val = scm_vm_eframe_arg_ref(SCM_VM(vm)->reg.efp,
                               (size_t)idx, (size_t)layer, NULL);
@@ -1743,11 +1731,8 @@ scm_vm_do_op_box(ScmObj vm, int idx, int layer)
                       &box);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-
-  if (idx < 0 || layer < 0) {
-    scm_error("invalid access to envrionment frame: out of range", 0);
-    return -1;
-  }
+  scm_assert(idx >= 0);
+  scm_assert(layer >= 0);
 
   efp = scm_vm_eframe_list_ref(SCM_VM(vm)->reg.efp, (size_t)layer);
   if (efp == NULL) return -1;
@@ -1784,11 +1769,7 @@ scm_vm_do_op_close(ScmObj vm, int nr_env, int arity, ScmObj iseq)
                       &clsr, &env);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-
-  if (nr_env < 0) {
-    scm_error("invalid access to VM Stack: out of range", 0);
-    return -1;
-  }
+  scm_assert(nr_env >= 0);
 
   rslt = scm_vm_box_eframe(vm, SCM_VM(vm)->reg.efp,
                            (size_t)nr_env, SCM_CSETTER_L(env));
@@ -1812,11 +1793,8 @@ scm_vm_do_op_demine(ScmObj vm, int idx, int layer)
                       &val);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
-
-  if (idx < 0 || layer < 0) {
-    scm_error("invalid access to envrionment frame: out of range", 0);
-    return -1;
-  }
+  scm_assert(idx >= 0);
+  scm_assert(layer >= 0);
 
   val = scm_vm_eframe_arg_ref(SCM_VM(vm)->reg.efp,
                               (size_t)idx, (size_t)layer, NULL);
