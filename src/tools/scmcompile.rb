@@ -34,12 +34,7 @@ def source_name_to_symbol(name)
   name.gsub('/', '_').gsub('-', '').gsub('.scm', '').intern
 end
 
-if ARGV.length < 4
-  $stderr.puts 'too few arguments'
-  exit 1
-end
-
-targets = ['scythe/internal/syntax.scm',
+TARGETS = ['scythe/internal/syntax.scm',
            'scythe/internal/identifier.scm',
            'scythe/internal/cmpl-env.scm',
            'scythe/internal/compile.scm',
@@ -48,14 +43,16 @@ targets = ['scythe/internal/syntax.scm',
            'scythe/internal/record.scm',
            'scythe/internal/multiple-val.scm']
 
-command_path, source_base, template_file, output_file = ARGV[0..4]
-
-File.open(output_file, 'w') do |file|
-  codes = targets.each_with_object({}) do |source, tbl|
-    key = source_name_to_symbol(source)
-    path = File.join(source_base, source)
-    tbl[key] = format_data(compiled_data(command_path, path))
-  end
-  template = ERB.new(File.read(template_file))
-  file.write(template.result(binding))
+if ARGV.length < 4
+  $stderr.puts 'too few arguments'
+  exit 1
 end
+
+command_path, source_base, template_file, output_file = ARGV[0..4]
+codes = TARGETS.each_with_object({}) do |source, tbl|
+  key = source_name_to_symbol(source)
+  path = File.join(source_base, source)
+  tbl[key] = format_data(compiled_data(command_path, path))
+end
+template = ERB.new(File.read(template_file))
+File.write(output_file, template.result(binding))
