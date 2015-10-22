@@ -1669,31 +1669,28 @@ scm_vm_do_op_lref(ScmObj vm, int idx, int layer)
 static int
 scm_vm_do_op_lset(ScmObj vm, int idx, int layer)
 {
-  ScmObj val = SCM_OBJ_INIT, o = SCM_OBJ_INIT;
+  ScmEnvFrame *efp;
 
-  SCM_REFSTK_INIT_REG(&vm,
-                      &val, &o);
+  SCM_REFSTK_INIT_REG(&vm);
 
   scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
   scm_assert(idx >= 0);
   scm_assert(layer >= 0);
 
-  val = scm_vm_eframe_arg_ref(SCM_VM(vm)->reg.efp,
-                              (size_t)idx, (size_t)layer, NULL);
-  if (scm_obj_null_p(val)) return -1;
+  efp = scm_vm_eframe_list_ref(SCM_VM(vm)->reg.efp, (size_t)layer);
+  if (efp == NULL) return -1;
 
-  if (!scm_box_object_p(val)) {
-    scm_error("update to variable bound by unboxed object", 0);
+  if (idx >= efp->len) {
+    scm_error("invalid access to envrionment frame: out of range", 0);
     return -1;
   }
 
-  o = scm_box_unbox(val);
-  if (scm_landmine_object_p(o)) {
+  if (scm_landmine_object_p(scm_vm_ef_values(efp)[idx])) {
     scm_error("refarence to uninitialized variable", 0);
     return -1;
   }
 
-  scm_box_update(val, SCM_VM(vm)->reg.val[0]);
+  SCM_WB_EXP(vm, scm_vm_ef_values(efp)[idx] = SCM_VM(vm)->reg.val[0]);
 
   return 0;
 }
