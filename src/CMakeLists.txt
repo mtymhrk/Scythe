@@ -44,6 +44,7 @@ endif(CMAKE_BUILD_TYPE STREQUAL "Release")
 if(preinstalled_scythe_bin_path)
   set(scm_compiler ${preinstalled_scythe_bin_path})
   set(scm_compiler_opt "")
+  set(compiler_runner ${ruby_bin_path} ${CMAKE_SOURCE_DIR}/tools/scmcompile.rb)
 
   set(compiler_scm_files "scythe/internal/syntax.scm"
                          "scythe/internal/identifier.scm"
@@ -59,12 +60,12 @@ if(preinstalled_scythe_bin_path)
     list(APPEND compiler_scm_paths "${CMAKE_SOURCE_DIR}/lib/${file}")
   endforeach(file)
 
-  set(compiler_args "${scm_compiler}${scm_compiler_opt}" ${CMAKE_CURRENT_SOURCE_DIR}/compile.c.in ${CMAKE_CURRENT_SOURCE_DIR}/compile.c ${CMAKE_SOURCE_DIR}/lib)
-  list(APPEND compiler_args ${compiler_scm_files})
+  set(compiler_runner_args "${scm_compiler}${scm_compiler_opt}" ${CMAKE_CURRENT_SOURCE_DIR}/compile.c.in ${CMAKE_CURRENT_SOURCE_DIR}/compile.c ${CMAKE_SOURCE_DIR}/lib)
+  list(APPEND compiler_runner_args ${compiler_scm_files})
 
   add_custom_command(
     OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/compile.c
-    COMMAND ${ruby_bin_path} ${CMAKE_CURRENT_SOURCE_DIR}/tools/scmcompile.rb ${compiler_args}
+    COMMAND ${compiler_runner} ${compiler_runner_args}
     DEPENDS compile.c.in ${scm_compiler} ${compiler_scm_paths}
   )
 
