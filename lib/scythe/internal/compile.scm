@@ -1067,7 +1067,7 @@
        ,`#(,p2-syntax-id-letrec
            ,`#(,(cons name (env-assigned-variable? new-env 0)))
            ,`#(,lmd)
-           ,`#(,p2-syntax-id-lref name 0 0 ,new-env))
+           ,`#(,p2-syntax-id-lref ,name 0 0 ,new-env))
        ,@(map (lambda (i) (p1-compile-exp cmpl i env #f rdepth))
               inits))))
 
