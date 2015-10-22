@@ -676,27 +676,15 @@ scm_vm_eframe_list_ref(ScmEnvFrame *efp_list, size_t n)
 }
 
 static ScmObj
-scm_vm_eframe_arg_ref(ScmEnvFrame *efp_list, int idx, size_t layer,
-                      ScmEnvFrame **efp)
+scm_vm_eframe_arg_ref(ScmEnvFrame *efp_list, int idx, size_t layer)
 {
   ScmEnvFrame *e;
 
   scm_assert(idx >= 0);
 
   e = scm_vm_eframe_list_ref(efp_list, layer);
-
-  if (e == NULL) {
-    scm_error("invalid access to envrionment frame: out of range", 0);
-    return SCM_OBJ_NULL;
-  }
-
-  if (idx >= e->len) {
-    scm_error("invalid access to envrionment frame: out of range", 0);
-    return SCM_OBJ_NULL;
-  }
-
-  if (efp != NULL) *efp = e;
-
+  scm_assert(e != NULL);
+  scm_assert(idx < e->len);
   return scm_vm_ef_values(e)[idx];
 }
 
@@ -1646,10 +1634,7 @@ scm_vm_do_op_lref(ScmObj vm, int idx, int layer)
   scm_assert(idx >= 0);
   scm_assert(layer >= 0);
 
-  val = scm_vm_eframe_arg_ref(SCM_VM(vm)->reg.efp,
-                              (size_t)idx, (size_t)layer, NULL);
-  if (scm_obj_null_p(val)) return -1;
-
+  val = scm_vm_eframe_arg_ref(SCM_VM(vm)->reg.efp, (size_t)idx, (size_t)layer);
   if (scm_landmine_object_p(val)) {
     scm_error("refarence to uninitialized variable", 0);
     return -1;
@@ -1673,13 +1658,8 @@ scm_vm_do_op_lset(ScmObj vm, int idx, int layer)
   scm_assert(layer >= 0);
 
   efp = scm_vm_eframe_list_ref(SCM_VM(vm)->reg.efp, (size_t)layer);
-  if (efp == NULL) return -1;
-
-  if (idx >= efp->len) {
-    scm_error("invalid access to envrionment frame: out of range", 0);
-    return -1;
-  }
-
+  scm_assert(efp != NULL);
+  scm_assert(idx < efp->len);
   if (scm_landmine_object_p(scm_vm_ef_values(efp)[idx])) {
     scm_error("refarence to uninitialized variable", 0);
     return -1;
@@ -1727,18 +1707,14 @@ scm_vm_do_op_lbox(ScmObj vm, int idx, int layer)
   scm_assert(layer >= 0);
 
   efp = scm_vm_eframe_list_ref(SCM_VM(vm)->reg.efp, (size_t)layer);
-  if (efp == NULL) return -1;
+  scm_assert(efp != NULL);
+  scm_assert(idx < efp->len);
 
   /* box 化できるのは VM stack 上にある環境のみに限定する */
   /* XXX: 現在のスタックセグメント上にある環境のみに限定したほうがいいかも
    *      しれない。今の制限でも問題ないはずだが。
    */
   if (scm_vm_ef_boxed_p(efp)) {
-    scm_error("invalid access to envrionment frame: out of range", 0);
-    return -1;
-  }
-
-  if (idx >= efp->len) {
     scm_error("invalid access to envrionment frame: out of range", 0);
     return -1;
   }
@@ -1763,10 +1739,7 @@ scm_vm_do_op_lbref(ScmObj vm, int idx, int layer)
   scm_assert(idx >= 0);
   scm_assert(layer >= 0);
 
-  box = scm_vm_eframe_arg_ref(SCM_VM(vm)->reg.efp,
-                              (size_t)idx, (size_t)layer, NULL);
-  if (scm_obj_null_p(box)) return -1;
-
+  box = scm_vm_eframe_arg_ref(SCM_VM(vm)->reg.efp, (size_t)idx, (size_t)layer);
   scm_assert(scm_box_object_p(box));
   if (scm_landmine_object_p(scm_box_unbox(box))) {
     scm_error("refarence to uninitialized variable", 0);
@@ -1791,10 +1764,7 @@ scm_vm_do_op_lbset(ScmObj vm, int idx, int layer)
   scm_assert(idx >= 0);
   scm_assert(layer >= 0);
 
-  box = scm_vm_eframe_arg_ref(SCM_VM(vm)->reg.efp,
-                              (size_t)idx, (size_t)layer, NULL);
-  if (scm_obj_null_p(box)) return -1;
-
+  box = scm_vm_eframe_arg_ref(SCM_VM(vm)->reg.efp, (size_t)idx, (size_t)layer);
   scm_assert(scm_box_object_p(box));
   if (scm_landmine_object_p(scm_box_unbox(box))) {
     scm_error("refarence to uninitialized variable", 0);
@@ -1843,10 +1813,7 @@ scm_vm_do_op_demine(ScmObj vm, int idx, int layer)
   scm_assert(idx >= 0);
   scm_assert(layer >= 0);
 
-  val = scm_vm_eframe_arg_ref(SCM_VM(vm)->reg.efp,
-                              (size_t)idx, (size_t)layer, NULL);
-  if (scm_obj_null_p(val)) return -1;
-
+  val = scm_vm_eframe_arg_ref(SCM_VM(vm)->reg.efp, (size_t)idx, (size_t)layer);
   if (!scm_box_object_p(val)) {
     scm_error("update to variable bound by unboxed object", 0);
     return -1;
