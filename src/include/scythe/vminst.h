@@ -68,8 +68,8 @@ enum {
   SCM_OPCODE_GREF,                /* 14: refere global variable */
   SCM_OPCODE_GDEF,                /* 15: define global variable */
   SCM_OPCODE_GSET,                /* 16: update global variable */
-  SCM_OPCODE_SREF,                /* 17: refere value in stack */
-  SCM_OPCODE_SSET,                /* 18: update value in stack */
+  SCM_OPCODE_LREF,                /* 17: refere local variable */
+  SCM_OPCODE_LSET,                /* 18: update local variable */
   SCM_OPCODE_JMP,                 /* 19: jump */
   SCM_OPCODE_JMPT,                /* 20: jump if true */
   SCM_OPCODE_JMPF,                /* 21: jump if false */
@@ -127,8 +127,8 @@ enum {
 #define SCM_INST_SZ_GREF        SCM_OPFMT_INST_SZ_OBJ_OBJ
 #define SCM_INST_SZ_GDEF        SCM_OPFMT_INST_SZ_OBJ_OBJ
 #define SCM_INST_SZ_GSET        SCM_OPFMT_INST_SZ_OBJ_OBJ
-#define SCM_INST_SZ_SREF        SCM_OPFMT_INST_SZ_SI_SI
-#define SCM_INST_SZ_SSET        SCM_OPFMT_INST_SZ_SI_SI
+#define SCM_INST_SZ_LREF        SCM_OPFMT_INST_SZ_SI_SI
+#define SCM_INST_SZ_LSET        SCM_OPFMT_INST_SZ_SI_SI
 #define SCM_INST_SZ_JMP         SCM_OPFMT_INST_SZ_IOF
 #define SCM_INST_SZ_JMPT        SCM_OPFMT_INST_SZ_IOF
 #define SCM_INST_SZ_JMPF        SCM_OPFMT_INST_SZ_IOF

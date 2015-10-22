@@ -1635,7 +1635,7 @@ scm_vm_do_op_gset(ScmObj vm, scm_byte_t *ip, ScmObj var, ScmObj mod)
 }
 
 static int
-scm_vm_do_op_sref(ScmObj vm, int idx, int layer)
+scm_vm_do_op_lref(ScmObj vm, int idx, int layer)
 {
   ScmObj val = SCM_OBJ_INIT;
 
@@ -1667,7 +1667,7 @@ scm_vm_do_op_sref(ScmObj vm, int idx, int layer)
 }
 
 static int
-scm_vm_do_op_sset(ScmObj vm, int idx, int layer)
+scm_vm_do_op_lset(ScmObj vm, int idx, int layer)
 {
   ScmObj val = SCM_OBJ_INIT, o = SCM_OBJ_INIT;
 
@@ -1951,14 +1951,14 @@ scm_vm_do_op_module(ScmObj vm, ScmObj mod)
     scm_vm_do_op_gset(vm, ip, opd_obj1, opd_obj2);                      \
  } while (0)
 
-#define SCM_VM_OP_SREF() do {                                           \
+#define SCM_VM_OP_LREF() do {                                           \
     SCM_VMINST_FETCH_OPD_SI_SI(SCM_VM(vm)->reg.ip, opd_si1, opd_si2);   \
-    scm_vm_do_op_sref(vm, opd_si1, opd_si2);                            \
+    scm_vm_do_op_lref(vm, opd_si1, opd_si2);                            \
  } while (0)
 
-#define SCM_VM_OP_SSET() do {                                         \
+#define SCM_VM_OP_LSET() do {                                         \
     SCM_VMINST_FETCH_OPD_SI_SI(SCM_VM(vm)->reg.ip, opd_si1, opd_si2); \
-    scm_vm_do_op_sset(vm, opd_si1, opd_si2);                          \
+    scm_vm_do_op_lset(vm, opd_si1, opd_si2);                          \
   } while (0)
 
 #define SCM_VM_OP_JMP() do {                                    \
@@ -2023,7 +2023,7 @@ scm_vm_do_op_module(ScmObj vm, ScmObj mod)
       goto scm_vm_op_edemine__end;                                      \
                                                                         \
     for (int i = 0; i < opd_si1; i++) {                                 \
-      int r = scm_vm_do_op_sref(vm, i, 0);                              \
+      int r = scm_vm_do_op_lref(vm, i, 0);                              \
       if (r < 0) goto scm_vm_op_edemine__end;                           \
                                                                         \
       r = scm_vm_do_op_demine(vm, i, opd_si2 + 1);                      \
@@ -2060,7 +2060,7 @@ scm_vm_run_loop(ScmObj vm)
     &&inst_nop, &&inst_halt, &&inst_int, &&inst_cframe, &&inst_eframe,
     &&inst_epop, &&inst_eshift, &&inst_immval, &&inst_push, &&inst_mvpush,
     &&inst_return, &&inst_pcall, &&inst_call, &&inst_tail_call, &&inst_gref,
-    &&inst_gdef, &&inst_gset, &&inst_sref, &&inst_sset, &&inst_jmp, &&inst_jmpt,
+    &&inst_gdef, &&inst_gset, &&inst_lref, &&inst_lset, &&inst_jmp, &&inst_jmpt,
     &&inst_jmpf, &&inst_box, &&inst_close, &&inst_demine, &&inst_emine,
     &&inst_edemine, &&inst_mrvc, &&inst_mrve, &&inst_module, NULL,
   };
@@ -2147,12 +2147,12 @@ scm_vm_run_loop(ScmObj vm)
     SCM_VM_OP_GSET();
     goto *(void *)SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip);
 
-  inst_sref:
-    SCM_VM_OP_SREF();
+  inst_lref:
+    SCM_VM_OP_LREF();
     goto *(void *)SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip);
 
-  inst_sset:
-    SCM_VM_OP_SSET();
+  inst_lset:
+    SCM_VM_OP_LSET();
     goto *(void *)SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip);
 
   inst_jmp:

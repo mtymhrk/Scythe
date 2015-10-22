@@ -262,7 +262,7 @@ TEST(marshal, test_marshal_unmarshal__iseq__si)
 
 TEST(marshal, test_marshal_unmarshal__iseq__si_si)
 {
-  test_marshal_unmarshal_iseq("((sref 10 -20))");
+  test_marshal_unmarshal_iseq("((lref 10 -20))");
 }
 
 TEST(marshal, test_marshal_unmarshal__iseq__si_si_obj)

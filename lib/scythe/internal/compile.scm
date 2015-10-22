@@ -41,10 +41,10 @@
   (assembler-push! asmb +asm-inst-gdef+ sym mod))
 (define (push-inst-gset sym mod asmb)
   (assembler-push! asmb +asm-inst-gset+ sym mod))
-(define (push-inst-sref idx layer asmb)
-  (assembler-push! asmb +asm-inst-sref+ idx layer))
-(define (push-inst-sset idx layer asmb)
-  (assembler-push! asmb +asm-inst-sset+ idx layer))
+(define (push-inst-lref idx layer asmb)
+  (assembler-push! asmb +asm-inst-lref+ idx layer))
+(define (push-inst-lset idx layer asmb)
+  (assembler-push! asmb +asm-inst-lset+ idx layer))
 (define (push-inst-jmp typ lbl asmb)
   (assembler-push! asmb +asm-inst-jmp+ #t lbl))
 (define (push-inst-jmpt typ lbl asmb)
@@ -181,7 +181,7 @@
 ;;;    <idx>   : <integer>
 ;;;    <layer> : <integer>
 (define (p2-syntax-handler-lref cmpl exp arity tail-p asmb)
-  (push-inst-sref (vector-ref exp 2) (vector-ref exp 3) asmb)
+  (push-inst-lref (vector-ref exp 2) (vector-ref exp 3) asmb)
   (when tail-p (push-inst-return asmb)))
 
 ;;; #(gref <symbol> <module>)
@@ -282,7 +282,7 @@
 ;;;    <layer> : <integer>
 (define (p2-syntax-handler-lset cmpl exp arity tail-p asmb)
   (p2-compile-exp cmpl (vector-ref exp 4) 1 #f asmb)
-  (push-inst-sset (vector-ref exp 2) (vector-ref exp 3) asmb)
+  (push-inst-lset (vector-ref exp 2) (vector-ref exp 3) asmb)
   (when tail-p
     (push-inst-return asmb)))
 

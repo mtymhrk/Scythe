@@ -264,15 +264,15 @@ TEST(iseq, iseq_eq__si__not_equal)
 
 TEST(iseq, iseq_eq__si_si__equal)
 {
-  push_inst_si_si(iseq, SCM_OPCODE_SREF, 1, 1);
-  push_inst_si_si(iseq2, SCM_OPCODE_SREF, 1, 1);
+  push_inst_si_si(iseq, SCM_OPCODE_LREF, 1, 1);
+  push_inst_si_si(iseq2, SCM_OPCODE_LREF, 1, 1);
   test_iseq_eq__equal(iseq, iseq2);
 }
 
 TEST(iseq, iseq_eq__si_si__not_equal)
 {
-  push_inst_si_si(iseq, SCM_OPCODE_SREF, 1, 1);
-  push_inst_si_si(iseq2, SCM_OPCODE_SREF, 1, -20);
+  push_inst_si_si(iseq, SCM_OPCODE_LREF, 1, 1);
+  push_inst_si_si(iseq2, SCM_OPCODE_LREF, 1, -20);
   test_iseq_eq__not_equal(iseq, iseq2);
 }
 

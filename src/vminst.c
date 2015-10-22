@@ -18,8 +18,8 @@ const int scm_opfmt_table[SCM_VMINST_NR_OP] = {
     SCM_OPFMT_OBJ_OBJ,          /* SCM_OPCODE_GREF */
     SCM_OPFMT_OBJ_OBJ,          /* SCM_OPCODE_GDEF */
     SCM_OPFMT_OBJ_OBJ,          /* SCM_OPCODE_GSET */
-    SCM_OPFMT_SI_SI,            /* SCM_OPCODE_SREF */
-    SCM_OPFMT_SI_SI,            /* SCM_OPCODE_SSET */
+    SCM_OPFMT_SI_SI,            /* SCM_OPCODE_LREF */
+    SCM_OPFMT_SI_SI,            /* SCM_OPCODE_LSET */
     SCM_OPFMT_IOF,              /* SCM_OPCODE_JMP */
     SCM_OPFMT_IOF,              /* SCM_OPCODE_JMPT */
     SCM_OPFMT_IOF,              /* SCM_OPCODE_JMPF */

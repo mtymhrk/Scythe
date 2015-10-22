@@ -310,14 +310,14 @@ TEST(assembler, gset)
                         SCM_OPCODE_GSET, obj1, obj2);
 }
 
-TEST(assembler, sref)
+TEST(assembler, lref)
 {
-  test_assemble_si_si("((sref -4 12)(nop))", SCM_OPCODE_SREF, -4, 12);
+  test_assemble_si_si("((lref -4 12)(nop))", SCM_OPCODE_LREF, -4, 12);
 }
 
-TEST(assembler, sset)
+TEST(assembler, lset)
 {
-  test_assemble_si_si("((sset -6 13)(nop))", SCM_OPCODE_SSET, -6, 13);
+  test_assemble_si_si("((lset -6 13)(nop))", SCM_OPCODE_LSET, -6, 13);
 }
 
 TEST(assembler, immval)
@@ -470,7 +470,7 @@ TEST(assembler, disasm_si)
 
 TEST(assembler, disasm_si_si)
 {
-  test_disassemble("((sref 123 456))", "((sref 123 456))");
+  test_disassemble("((lref 123 456))", "((lref 123 456))");
 }
 
 TEST(assembler, disasm_si_si_obj)
