@@ -1928,8 +1928,6 @@ scm_load_module_scheme_write(void)
                          scm_load_module_func_scheme_write);
 }
 
-bool loding_core_modules_p = false;
-
 int
 scm_load_core_modules(void)
 {
@@ -1967,11 +1965,10 @@ scm_load_core_modules(void)
   };
   int (**p)(void);
 
-  loding_core_modules_p = true;
   for (p = func; *p != NULL; p++) {
     int r = ((int (*)(void))*p)();
     if (r < 0) return -1;
   }
-  loding_core_modules_p = false;
+
   return 0;
 }
