@@ -2527,6 +2527,20 @@ scm_vm_apply(ScmObj vm, ScmObj proc, ScmObj args)
 }
 
 int
+scm_vm_set_val_reg_1(ScmObj vm, ScmObj val)
+{
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+  if (scm_obj_null_p(val)) {
+    if (!scm_vm_raised_p(vm))
+      scm_error("invalid return value", 1, val);
+    return -1;
+  }
+  SCM_SLOT_SETQ(ScmVM, vm, reg.val[0], val);
+  SCM_VM(vm)->reg.vc = 1;
+  return 0;
+}
+
+int
 scm_vm_set_val_reg(ScmObj vm, const ScmObj *val, int vc)
 {
   ScmObj vec = SCM_OBJ_INIT;

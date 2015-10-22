@@ -468,15 +468,7 @@ scm_prm_subr_func_parameter__init(ScmObj subr, int argc, const ScmObj *argv)
 int
 scm_prm_subr_func_parameter__cons(ScmObj subr, int argc, const ScmObj *argv)
 {
-  ScmObj val = SCM_OBJ_INIT;
-
-  SCM_REFSTK_INIT_REG(&subr,
-                      &val);
-
-  val = scm_cons(argv[0], argv[1]);
-  if (scm_obj_null_p(val)) return -1;
-
-  return scm_return_val(&val, 1);
+  return scm_return_val_1(scm_cons(argv[0], argv[1]));
 }
 
 /*
@@ -517,12 +509,8 @@ scm_prm_subr_func_parameter(ScmObj subr, int argc, const ScmObj *argv)
 
   scm_assert(scm_parameter_p(subr));
 
-  if (scm_nil_p(argv[0])) {
-    val = scm_parameter_value(subr);
-    if (scm_obj_null_p(val)) return -1;
-
-    return scm_return_val(&val, 1);
-  }
+  if (scm_nil_p(argv[0]))
+    return scm_return_val_1(scm_parameter_value(subr));
 
   arg1 = scm_car(argv[0]);
   if (scm_nil_p(scm_cdr(argv[0])))
@@ -531,8 +519,7 @@ scm_prm_subr_func_parameter(ScmObj subr, int argc, const ScmObj *argv)
     arg2 = scm_list_ref(argv[0], 1);
 
   if (scm_obj_null_p(arg2)) {
-    val = SCM_UNDEF_OBJ;
-    return scm_return_val(&val, 1);
+    return scm_return_val_1(SCM_UNDEF_OBJ);
   }
   else if (scm_true_object_p(arg2)) {
     conv = scm_parameter_converter(subr);
@@ -545,7 +532,7 @@ scm_prm_subr_func_parameter(ScmObj subr, int argc, const ScmObj *argv)
     }
     else {
       scm_parameter_set_init_val(subr, arg1);
-      return scm_return_val(&subr, 1);
+      return scm_return_val_1(subr);
     }
   }
   else if (scm_false_object_p(arg2)){
@@ -558,14 +545,11 @@ scm_prm_subr_func_parameter(ScmObj subr, int argc, const ScmObj *argv)
       return scm_trampolining(conv, arg1, postproc, subr);
     }
     else {
-      val = scm_cons(subr, arg1);
-      if (scm_obj_null_p(val)) return -1;
-      return scm_return_val(&val, 1);
+      return scm_return_val_1(scm_cons(subr, arg1));
     }
   }
   else {
-    val = SCM_UNDEF_OBJ;
-    return scm_return_val(&val, 1);
+    return scm_return_val_1(SCM_UNDEF_OBJ);
   }
 }
 

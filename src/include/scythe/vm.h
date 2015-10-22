@@ -234,6 +234,7 @@ ScmObj scm_vm_clone(ScmObj parent);
 void scm_vm_run(ScmObj vm, ScmObj iseq);
 ScmObj scm_vm_apply(ScmObj vm, ScmObj proc, ScmObj args);
 
+int scm_vm_set_val_reg_1(ScmObj vm, ScmObj val);
 int scm_vm_set_val_reg(ScmObj vm, const ScmObj *val, int vc);
 
 ScmObj scm_vm_capture_cont(ScmObj vm);
@@ -322,6 +323,12 @@ static inline int
 scm_halt(void)
 {
   return scm_vm_setup_stat_halt(scm_current_vm());
+}
+
+static inline int
+scm_return_val_1(ScmObj val)
+{
+  return scm_vm_set_val_reg_1(scm_current_vm(), val);
 }
 
 static inline int
