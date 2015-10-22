@@ -34,22 +34,13 @@ def source_name_to_symbol(name)
   name.gsub('/', '_').gsub('-', '').gsub('.scm', '').intern
 end
 
-TARGETS = ['scythe/internal/syntax.scm',
-           'scythe/internal/identifier.scm',
-           'scythe/internal/cmpl-env.scm',
-           'scythe/internal/compile.scm',
-           'scythe/internal/dynamic-env.scm',
-           'scythe/internal/macro.scm',
-           'scythe/internal/record.scm',
-           'scythe/internal/multiple-val.scm']
-
 if ARGV.length < 4
-  $stderr.puts 'too few arguments'
+  $stderr.puts "#{$0}: too few arguments"
   exit 1
 end
 
-command_path, source_base, template_file, output_file = ARGV[0..4]
-codes = TARGETS.each_with_object({}) do |source, tbl|
+command_path, template_file, output_file, source_base = ARGV[0..4]
+codes = ARGV[4..-1].each_with_object({}) do |source, tbl|
   key = source_name_to_symbol(source)
   path = File.join(source_base, source)
   tbl[key] = format_data(compiled_data(command_path, path))
