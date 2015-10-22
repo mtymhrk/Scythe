@@ -262,7 +262,7 @@ TEST(exec_compiler, let_4)
                " (eframe 2)"
                " (lbox 1 0)"
                " (immval 100)"
-               " (lset 1 0)"
+               " (lbset 1 0)"
                " (epop))");
 }
 
@@ -397,7 +397,7 @@ TEST(exec_compiler, let_a_4)
                " (immval 2)(push)"
                " (eframe 1)"
                " (immval 100)"
-               " (lset 0 1)"
+               " (lbset 0 1)"
                " (epop)"
                " (epop))");
 }
@@ -481,7 +481,7 @@ TEST(exec_compiler, letrec_3)
                " (immval 2)(push)"
                " (edemine 2 0)"
                " (immval 10)"
-               " (lset 1 0)"
+               " (lbset 1 0)"
                " (lref 1 0)"
                " (epop))");
 }
@@ -555,7 +555,7 @@ TEST(exec_compiler, letrec_a_3)
                " (immval 1)(demine 0 0)"
                " (immval 2)(demine 1 0)"
                " (immval 10)"
-               " (lset 1 0)"
+               " (lbset 1 0)"
                " (lref 1 0)"
                " (epop))");
 }
@@ -630,7 +630,7 @@ TEST(exec_compiler, internal_definition_3)
                "   (immval 1)(demine 0 0)"
                "   (immval 2)(demine 1 0)"
                "   (immval 10)"
-               "   (lset 1 0)"
+               "   (lbset 1 0)"
                "   (lref 1 0)"
                "   (return))))");
 }
@@ -732,7 +732,7 @@ TEST(exec_compiler, refer_bound_variable_3)
                "((close 0 2"
                "   ((close 0 2"
                "      ((lbox 1 0)"
-               "       (immval a)(lset 1 0)"
+               "       (immval a)(lbset 1 0)"
                "       (lref 1 0)"
                "       (return)))"
                "    (return))))");
@@ -743,7 +743,7 @@ TEST(exec_compiler, set_bound_variable_1)
   test_compile("(lambda (f1 f2) (lambda (b1 b2) (set! b2 'a)))",
                "((close 0 2"
                "   ((close 0 2"
-               "      ((lbox 1 0)(immval a)(lset 1 0)(return)))"
+               "      ((lbox 1 0)(immval a)(lbset 1 0)(return)))"
                "    (return))))");
 }
 
@@ -752,7 +752,7 @@ TEST(exec_compiler, set_bound_variable_2)
   test_compile("(lambda (f1 b2) (lambda (b1 b2) (set! b2 'a)))",
                "((close 0 2"
                "   ((close 0 2"
-               "      ((lbox 1 0)(immval a)(lset 1 0)(return)))"
+               "      ((lbox 1 0)(immval a)(lbset 1 0)(return)))"
                "    (return))))");
 }
 
@@ -771,7 +771,7 @@ TEST(exec_compiler, refer_free_variable_2)
                "((close 0 2"
                "   ((lbox 1 0)"
                "    (close 1 2"
-               "      ((immval a)(lset 1 1)"
+               "      ((immval a)(lbset 1 1)"
                "       (lref 1 1)"
                "       (return)))"
                "    (return))))");
@@ -783,7 +783,7 @@ TEST(exec_compiler, set_free_variable_1)
                "((close 0 2"
                "   ((lbox 1 0)"
                "    (close 1 2"
-               "      ((immval a)(lset 1 1)(return)))"
+               "      ((immval a)(lbset 1 1)(return)))"
                "    (return))))");
 }
 
@@ -1564,7 +1564,7 @@ TEST(exec_compiler, do_003)
                "    (immval t)"
                "    (jmpt (label 0))"
                "    (immval 1)"
-               "    (lset 1 0)"
+               "    (lbset 1 0)"
                "    (immval sx)"
                "    (push)"
                "    (immval sy)"
@@ -1860,7 +1860,7 @@ TEST(exec_compiler, let_values_8)
                "   (eframe 2)"
                "   (lbox 0 0)"
                "   (immval 100)"
-               "   (lset 0 0)"
+               "   (lbset 0 0)"
                "   (epop))");
 }
 
@@ -2047,7 +2047,7 @@ TEST(exec_compiler, let_a_values_8)
                "   (mvpush)"
                "   (eframe 2)"
                "   (immval 100)"
-               "   (lset 1 1)"
+               "   (lbset 1 1)"
                "   (epop)"
                "   (epop))");
 }

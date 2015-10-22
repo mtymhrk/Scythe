@@ -53,6 +53,10 @@
   (assembler-push! asmb +asm-inst-jmpf+ #t lbl))
 (define (push-inst-lbox idx layer asmb)
   (assembler-push! asmb +asm-inst-lbox+ idx layer))
+(define (push-inst-lbref idx layer asmb)
+  (assembler-push! asmb +asm-inst-lbref+ idx layer))
+(define (push-inst-lbset idx layer asmb)
+  (assembler-push! asmb +asm-inst-lbset+ idx layer))
 (define (push-inst-close nr-free arity code asmb)
   (assembler-push! asmb +asm-inst-close+ nr-free arity code))
 (define (push-inst-demine idx layer asmb)
@@ -282,7 +286,7 @@
 ;;;    <layer> : <integer>
 (define (p2-syntax-handler-lset cmpl exp arity tail-p asmb)
   (p2-compile-exp cmpl (vector-ref exp 4) 1 #f asmb)
-  (push-inst-lset (vector-ref exp 2) (vector-ref exp 3) asmb)
+  (push-inst-lbset (vector-ref exp 2) (vector-ref exp 3) asmb)
   (when tail-p
     (push-inst-return asmb)))
 
