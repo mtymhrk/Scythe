@@ -349,9 +349,9 @@ TEST(assembler, label_jmpf)
                     SCM_OPCODE_JMPF, -(int)SCM_INST_SZ_JMPF);
 }
 
-TEST(assembler, box)
+TEST(assembler, lbox)
 {
-  test_assemble_si_si("((box -8 14)(nop))", SCM_OPCODE_BOX, -8, 14);
+  test_assemble_si_si("((lbox -8 14)(nop))", SCM_OPCODE_LBOX, -8, 14);
 }
 
 TEST(assembler, close)

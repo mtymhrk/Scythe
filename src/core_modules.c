@@ -774,7 +774,7 @@ scm_define_scythe_internal_core_private_constant_number(ScmObj module)
     const_num_asm_inst_record(jmp, JMP),
     const_num_asm_inst_record(jmpt, JMPT),
     const_num_asm_inst_record(jmpf, JMPF),
-    const_num_asm_inst_record(box, BOX),
+    const_num_asm_inst_record(lbox, LBOX),
     const_num_asm_inst_record(close, CLOSE),
     const_num_asm_inst_record(demine, DEMINE),
     const_num_asm_inst_record(emine, EMINE),

@@ -73,7 +73,7 @@ enum {
   SCM_OPCODE_JMP,                 /* 19: jump */
   SCM_OPCODE_JMPT,                /* 20: jump if true */
   SCM_OPCODE_JMPF,                /* 21: jump if false */
-  SCM_OPCODE_BOX,                 /* 22: boxing */
+  SCM_OPCODE_LBOX,                /* 22: box local variable */
   SCM_OPCODE_CLOSE,               /* 23: make closure */
   SCM_OPCODE_DEMINE,              /* 24: demine variable */
   SCM_OPCODE_EMINE,               /* 25: make enviroment frame */
@@ -132,7 +132,7 @@ enum {
 #define SCM_INST_SZ_JMP         SCM_OPFMT_INST_SZ_IOF
 #define SCM_INST_SZ_JMPT        SCM_OPFMT_INST_SZ_IOF
 #define SCM_INST_SZ_JMPF        SCM_OPFMT_INST_SZ_IOF
-#define SCM_INST_SZ_BOX         SCM_OPFMT_INST_SZ_SI_SI
+#define SCM_INST_SZ_LBOX        SCM_OPFMT_INST_SZ_SI_SI
 #define SCM_INST_SZ_CLOSE       SCM_OPFMT_INST_SZ_SI_SI_OBJ
 #define SCM_INST_SZ_DEMINE      SCM_OPFMT_INST_SZ_SI_SI
 #define SCM_INST_SZ_EMINE       SCM_OPFMT_INST_SZ_SI

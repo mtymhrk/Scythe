@@ -1722,7 +1722,7 @@ scm_vm_do_op_jmpf(ScmObj vm, int dst)
 }
 
 static int
-scm_vm_do_op_box(ScmObj vm, int idx, int layer)
+scm_vm_do_op_lbox(ScmObj vm, int idx, int layer)
 {
   ScmObj box = SCM_OBJ_INIT;
   ScmEnvFrame *efp;
@@ -1976,9 +1976,9 @@ scm_vm_do_op_module(ScmObj vm, ScmObj mod)
     scm_vm_do_op_jmpf(vm, opd_si1);                             \
   } while (0)
 
-#define SCM_VM_OP_BOX() do {                                            \
+#define SCM_VM_OP_LBOX() do {                                           \
     SCM_VMINST_FETCH_OPD_SI_SI(SCM_VM(vm)->reg.ip, opd_si1, opd_si2);   \
-    scm_vm_do_op_box(vm, opd_si1, opd_si2);                             \
+    scm_vm_do_op_lbox(vm, opd_si1, opd_si2);                            \
   } while (0)
 
 #define SCM_VM_OP_CLOSE() do {                                  \
@@ -2007,7 +2007,7 @@ scm_vm_do_op_module(ScmObj vm, ScmObj mod)
       goto scm_vm_op_emine__end;                                \
                                                                 \
     for (int i = 0; i < opd_si1; i++) {                         \
-      int r = scm_vm_do_op_box(vm, i, 0);                       \
+      int r = scm_vm_do_op_lbox(vm, i, 0);                      \
       if (r < 0) goto scm_vm_op_emine__end;                     \
     }                                                           \
                                                                 \
@@ -2061,7 +2061,7 @@ scm_vm_run_loop(ScmObj vm)
     &&inst_epop, &&inst_eshift, &&inst_immval, &&inst_push, &&inst_mvpush,
     &&inst_return, &&inst_pcall, &&inst_call, &&inst_tail_call, &&inst_gref,
     &&inst_gdef, &&inst_gset, &&inst_lref, &&inst_lset, &&inst_jmp, &&inst_jmpt,
-    &&inst_jmpf, &&inst_box, &&inst_close, &&inst_demine, &&inst_emine,
+    &&inst_jmpf, &&inst_lbox, &&inst_close, &&inst_demine, &&inst_emine,
     &&inst_edemine, &&inst_mrvc, &&inst_mrve, &&inst_module, NULL,
   };
 
@@ -2167,8 +2167,8 @@ scm_vm_run_loop(ScmObj vm)
     SCM_VM_OP_JMPF();
     goto *(void *)SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip);
 
-  inst_box:
-    SCM_VM_OP_BOX();
+  inst_lbox:
+    SCM_VM_OP_LBOX();
     goto *(void *)SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip);
 
   inst_close:

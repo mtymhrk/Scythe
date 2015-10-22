@@ -260,7 +260,7 @@ TEST(exec_compiler, let_4)
                "((immval 1)(push)"
                " (immval 2)(push)"
                " (eframe 2)"
-               " (box 1 0)"
+               " (lbox 1 0)"
                " (immval 100)"
                " (lset 1 0)"
                " (epop))");
@@ -393,7 +393,7 @@ TEST(exec_compiler, let_a_4)
   test_compile("(let* ((x 1)(y 2)) (set! x 100))",
                "((immval 1)(push)"
                " (eframe 1)"
-               " (box 0 0)"
+               " (lbox 0 0)"
                " (immval 2)(push)"
                " (eframe 1)"
                " (immval 100)"
@@ -731,7 +731,7 @@ TEST(exec_compiler, refer_bound_variable_3)
   test_compile("(lambda (f1 b2) (lambda (b1 b2) (set! b2 'a) b2))",
                "((close 0 2"
                "   ((close 0 2"
-               "      ((box 1 0)"
+               "      ((lbox 1 0)"
                "       (immval a)(lset 1 0)"
                "       (lref 1 0)"
                "       (return)))"
@@ -743,7 +743,7 @@ TEST(exec_compiler, set_bound_variable_1)
   test_compile("(lambda (f1 f2) (lambda (b1 b2) (set! b2 'a)))",
                "((close 0 2"
                "   ((close 0 2"
-               "      ((box 1 0)(immval a)(lset 1 0)(return)))"
+               "      ((lbox 1 0)(immval a)(lset 1 0)(return)))"
                "    (return))))");
 }
 
@@ -752,7 +752,7 @@ TEST(exec_compiler, set_bound_variable_2)
   test_compile("(lambda (f1 b2) (lambda (b1 b2) (set! b2 'a)))",
                "((close 0 2"
                "   ((close 0 2"
-               "      ((box 1 0)(immval a)(lset 1 0)(return)))"
+               "      ((lbox 1 0)(immval a)(lset 1 0)(return)))"
                "    (return))))");
 }
 
@@ -769,7 +769,7 @@ TEST(exec_compiler, refer_free_variable_2)
 {
   test_compile("(lambda (f1 f2) (lambda (b1 b2) (set! f2 'a) f2))",
                "((close 0 2"
-               "   ((box 1 0)"
+               "   ((lbox 1 0)"
                "    (close 1 2"
                "      ((immval a)(lset 1 1)"
                "       (lref 1 1)"
@@ -781,7 +781,7 @@ TEST(exec_compiler, set_free_variable_1)
 {
   test_compile("(lambda (f1 f2) (lambda (b1 b2) (set! f2 'a)))",
                "((close 0 2"
-               "   ((box 1 0)"
+               "   ((lbox 1 0)"
                "    (close 1 2"
                "      ((immval a)(lset 1 1)(return)))"
                "    (return))))");
@@ -1560,7 +1560,7 @@ TEST(exec_compiler, do_003)
                "    (push)"
                "    (eframe 2)"
                " (label 1)"
-               "    (box 1 0)"
+               "    (lbox 1 0)"
                "    (immval t)"
                "    (jmpt (label 0))"
                "    (immval 1)"
@@ -1858,7 +1858,7 @@ TEST(exec_compiler, let_values_8)
                "   (mrvc 2)"
                "   (mvpush)"
                "   (eframe 2)"
-               "   (box 0 0)"
+               "   (lbox 0 0)"
                "   (immval 100)"
                "   (lset 0 0)"
                "   (epop))");
@@ -2035,7 +2035,7 @@ TEST(exec_compiler, let_a_values_8)
                "   (mrvc 2)"
                "   (mvpush)"
                "   (eframe 2)"
-               "   (box 1 0)"
+               "   (lbox 1 0)"
                "   (cframe (label 1))"
                "   (immval 3) (push)"
                "   (immval 4) (push)"
