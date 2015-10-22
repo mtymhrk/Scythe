@@ -1650,11 +1650,6 @@ scm_vm_do_op_lref(ScmObj vm, int idx, int layer)
                               (size_t)idx, (size_t)layer, NULL);
   if (scm_obj_null_p(val)) return -1;
 
-  if (scm_box_object_p(val)) {
-    val = scm_box_unbox(val);
-    if (scm_obj_null_p(val)) return -1;
-  }
-
   if (scm_landmine_object_p(val)) {
     scm_error("refarence to uninitialized variable", 0);
     return -1;
