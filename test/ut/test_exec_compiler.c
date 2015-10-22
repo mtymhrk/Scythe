@@ -309,11 +309,11 @@ TEST(exec_compiler, named_let_1)
                "   (close 1 2"
                "     ((lref 0 0)(push)"
                "      (lref 1 0)(push)"
-               "      (lref 0 1)"
+               "      (lbref 0 1)"
                "      (tcall 2)))"
                "   (push)"
                "   (edemine 1 0)"
-               "   (lref 0 0)"
+               "   (lbref 0 0)"
                "   (epop)"
                "   (call 2)"
                "   (nop)"
@@ -328,7 +328,7 @@ TEST(exec_compiler, named_let_2)
                "   (close 0 0 ((undef)(return)))"
                "   (push)"
                "   (edemine 1 0)"
-               "   (lref 0 0)"
+               "   (lbref 0 0)"
                "   (epop)"
                "   (call 0)"
                "   (nop)"
@@ -345,11 +345,11 @@ TEST(exec_compiler, named_let_3)
                "    (close 1 2"
                "      ((immval 3)(push)"
                "       (immval 4)(push)"
-               "       (lref 0 1)"
+               "       (lbref 0 1)"
                "       (tcall 2)))"
                "    (push)"
                "    (edemine 1 0)"
-               "    (lref 0 0)"
+               "    (lbref 0 0)"
                "    (epop)"
                "    (tcall 2))))");
 }
@@ -458,7 +458,7 @@ TEST(exec_compiler, letrec_1)
                " (immval 1)(push)"
                " (immval 2)(push)"
                " (edemine 2 0)"
-               " (lref 0 0)"
+               " (lbref 0 0)"
                " (epop))");
 }
 
@@ -466,10 +466,10 @@ TEST(exec_compiler, letrec_2)
 {
   test_compile("(letrec ((x (lambda () y))(y 100)) x)",
                "((emine 2)"
-               " (close 1 0 ((lref 1 0)(return)))(push)"
+               " (close 1 0 ((lbref 1 0)(return)))(push)"
                " (immval 100)(push)"
                " (edemine 2 0)"
-               " (lref 0 0)"
+               " (lbref 0 0)"
                " (epop))");
 }
 
@@ -482,7 +482,7 @@ TEST(exec_compiler, letrec_3)
                " (edemine 2 0)"
                " (immval 10)"
                " (lbset 1 0)"
-               " (lref 1 0)"
+               " (lbref 1 0)"
                " (epop))");
 }
 
@@ -494,7 +494,7 @@ TEST(exec_compiler, letrec_4)
                "    (immval 1)(push)"
                "    (immval 2)(push)"
                "    (edemine 2 0)"
-               "    (lref 0 0)"
+               "    (lbref 0 0)"
                "    (return))))");
 }
 
@@ -512,15 +512,15 @@ TEST(exec_compiler, letrec_6)
                "   (immval 2)(push)"
                "   (edemine 2 0)"
                "   (cframe (label 0))"
-               "   (lref 0 0)(push)"
-               "   (lref 1 0)(push)"
+               "   (lbref 0 0)(push)"
+               "   (lbref 1 0)(push)"
                "   (gref cons (main))"
                "   (call 2)"
                "   (nop)"
                " (label 0)"
                "   (cframe (label 1))"
-               "   (lref 1 0)(push)"
-               "   (lref 0 0)(push)"
+               "   (lbref 1 0)(push)"
+               "   (lbref 0 0)(push)"
                "   (gref cons (main))"
                "   (call 2)"
                "   (nop)"
@@ -534,7 +534,7 @@ TEST(exec_compiler, letrec_a_1)
                "((emine 2)"
                " (immval 1)(demine 0 0)"
                " (immval 2)(demine 1 0)"
-               " (lref 0 0)"
+               " (lbref 0 0)"
                " (epop))");
 }
 
@@ -542,9 +542,9 @@ TEST(exec_compiler, letrec_a_2)
 {
   test_compile("(letrec* ((x (lambda () y))(y 100)) x)",
                "((emine 2)"
-               " (close 1 0 ((lref 1 0)(return)))(demine 0 0)"
+               " (close 1 0 ((lbref 1 0)(return)))(demine 0 0)"
                " (immval 100)(demine 1 0)"
-               " (lref 0 0)"
+               " (lbref 0 0)"
                " (epop))");
 }
 
@@ -556,7 +556,7 @@ TEST(exec_compiler, letrec_a_3)
                " (immval 2)(demine 1 0)"
                " (immval 10)"
                " (lbset 1 0)"
-               " (lref 1 0)"
+               " (lbref 1 0)"
                " (epop))");
 }
 
@@ -567,7 +567,7 @@ TEST(exec_compiler, letrec_a_4)
                "   ((emine 2)"
                "    (immval 1)(demine 0 0)"
                "    (immval 2)(demine 1 0)"
-               "    (lref 0 0)"
+               "    (lbref 0 0)"
                "    (return))))");
 }
 
@@ -584,15 +584,15 @@ TEST(exec_compiler, letrec_a_6)
                "   (immval 1)(demine 0 0)"
                "   (immval 2)(demine 1 0)"
                "   (cframe (label 0))"
-               "   (lref 0 0)(push)"
-               "   (lref 1 0)(push)"
+               "   (lbref 0 0)(push)"
+               "   (lbref 1 0)(push)"
                "   (gref cons (main))"
                "   (call 2)"
                "   (nop)"
                " (label 0)"
                "   (cframe (label 1))"
-               "   (lref 1 0)(push)"
-               "   (lref 0 0)(push)"
+               "   (lbref 1 0)(push)"
+               "   (lbref 0 0)(push)"
                "   (gref cons (main))"
                "   (call 2)"
                "   (nop)"
@@ -607,7 +607,7 @@ TEST(exec_compiler, internal_definition_1)
                "  ((emine 2)"
                "   (immval 1)(demine 0 0)"
                "   (immval 2)(demine 1 0)"
-               "   (lref 0 0)"
+               "   (lbref 0 0)"
                "   (return))))");
 }
 
@@ -616,9 +616,9 @@ TEST(exec_compiler, internal_definition_2)
   test_compile("(lambda () (define x (lambda () y)) (define y 100) x)",
                "((close 0 0"
                "  ((emine 2)"
-               "   (close 1 0 ((lref 1 0)(return)))(demine 0 0)"
+               "   (close 1 0 ((lbref 1 0)(return)))(demine 0 0)"
                "   (immval 100)(demine 1 0)"
-               "   (lref 0 0)"
+               "   (lbref 0 0)"
                "   (return))))");
 }
 
@@ -631,7 +631,7 @@ TEST(exec_compiler, internal_definition_3)
                "   (immval 2)(demine 1 0)"
                "   (immval 10)"
                "   (lbset 1 0)"
-               "   (lref 1 0)"
+               "   (lbref 1 0)"
                "   (return))))");
 }
 
@@ -646,7 +646,7 @@ TEST(exec_compiler, internal_definition_4)
                "  ((emine 2)"
                "   (immval 1)(demine 0 0)"
                "   (immval 2)(demine 1 0)"
-               "   (lref 0 0)"
+               "   (lbref 0 0)"
                "   (return))))");
 }
 
@@ -661,7 +661,7 @@ TEST(exec_compiler, internal_definition_5)
                "  ((emine 2)"
                "   (immval 1)(demine 0 0)"
                "   (immval 2)(demine 1 0)"
-               "   (lref 0 0)"
+               "   (lbref 0 0)"
                "   (return))))");
 }
 
@@ -733,7 +733,7 @@ TEST(exec_compiler, refer_bound_variable_3)
                "   ((close 0 2"
                "      ((lbox 1 0)"
                "       (immval a)(lbset 1 0)"
-               "       (lref 1 0)"
+               "       (lbref 1 0)"
                "       (return)))"
                "    (return))))");
 }
@@ -772,7 +772,7 @@ TEST(exec_compiler, refer_free_variable_2)
                "   ((lbox 1 0)"
                "    (close 1 2"
                "      ((immval a)(lbset 1 1)"
-               "       (lref 1 1)"
+               "       (lbref 1 1)"
                "       (return)))"
                "    (return))))");
 }

@@ -48,10 +48,10 @@
   (module? env))
 
 (module-export (current-module) 'env-extend)
-(define (env-extend vars varg env)
+(define (env-extend vars varg asg env)
   (let* ((vars (if (vector? vars) vars (list->vector vars)))
          (len (vector-length vars))
-         (assigned (make-vector len #f)))
+         (assigned (make-vector len asg)))
     (cons (vector 'variable vars assigned varg) env)))
 
 (module-export (current-module) 'env-extend-syntax)

@@ -181,11 +181,17 @@
     ((p2-get-syntax exp) cmpl exp arity tail-p asmb)
     (compiler-select-expr! cmpl ce)))
 
-;;; #(lref <symbol> <idx> <layer>)
+;;; #(lref <symbol> <idx> <layer> <env>)
 ;;;    <idx>   : <integer>
 ;;;    <layer> : <integer>
+;;;    <env>   : <compiler-environment>
 (define (p2-syntax-handler-lref cmpl exp arity tail-p asmb)
-  (push-inst-lref (vector-ref exp 2) (vector-ref exp 3) asmb)
+  (let ((idx (vector-ref exp 2))
+        (layer (vector-ref exp 3))
+        (env (vector-ref exp 4)))
+    (if (env-assigned-variable? env idx)
+        (push-inst-lbref idx layer asmb)
+        (push-inst-lref idx layer asmb)))
   (when tail-p (push-inst-return asmb)))
 
 ;;; #(gref <symbol> <module>)
@@ -281,11 +287,12 @@
     (when tail-p
       (push-inst-return asmb))))
 
-;;; #(lset <symbol> <idx> <layer> <expr>)
+;;; #(lset <symbol> <idx> <layer> <env> <expr>)
 ;;;    <idx>   : <integer>
 ;;;    <layer> : <integer>
+;;;    <env>   : <compiler-environment>
 (define (p2-syntax-handler-lset cmpl exp arity tail-p asmb)
-  (p2-compile-exp cmpl (vector-ref exp 4) 1 #f asmb)
+  (p2-compile-exp cmpl (vector-ref exp 5) 1 #f asmb)
   (push-inst-lbset (vector-ref exp 2) (vector-ref exp 3) asmb)
   (when tail-p
     (push-inst-return asmb)))
@@ -594,7 +601,7 @@
   (let-values (((v i l e) (env-resolve-variable-reference! env exp #f rdepth)))
     (if (env-outmost? e)
         (vector p2-syntax-id-gref v e)
-        (vector p2-syntax-id-lref v i l))))
+        (vector p2-syntax-id-lref v i l e))))
 
 (define (p1-syntax-handler-self-eval cmpl exp env pos rdepth)
   (vector p2-syntax-id-self exp))
@@ -742,7 +749,7 @@
     (let* ((vv (list->vector vars))
            (env (if (null? vars)
                     env
-                    (env-extend vv #f env)))
+                    (env-extend vv #f #t env)))
            (vi (list->vector (map
                               (lambda (e)
                                 (p1-compile-exp cmpl e env pos rdepth))
@@ -808,7 +815,7 @@
   (rdepth-expand! rdepth)
   (let* ((env (if (null? params)
                   env
-                  (env-extend (list->vector params) vparam env)))
+                  (env-extend (list->vector params) vparam #f env)))
          (bo (p1-cmpl-body cmpl body env #f rdepth)))
     (unless (null? params)
       (rdepth-add! rdepth -1))
@@ -841,7 +848,7 @@
       (let ((x (p1-compile-exp cmpl val env pos rdepth)))
         (if (env-outmost? e)
             (vector p2-syntax-id-gset v e x)
-            (vector p2-syntax-id-lset v i l x))))))
+            (vector p2-syntax-id-lset v i l e x))))))
 
 (define (p1-decons-if cmpl exp)
   (unless (list? exp)
@@ -1053,19 +1060,19 @@
 ;;;     <i> ...))
 
 (define (p1-cmpl-named-let cmpl name vars inits body env pos rdepth)
-  (let* ((new-env (env-extend (vector name) #f env))
+  (let* ((new-env (env-extend (vector name) #f #t env))
          (lmd (p1-cmpl-lambda cmpl vars #f body new-env #f rdepth)))
     (rdepth-add! rdepth -1)
     `#(,p2-syntax-id-call
        ,`#(,p2-syntax-id-letrec
            ,`#(,(cons name (env-assigned-variable? new-env 0)))
            ,`#(,lmd)
-           ,`#(,p2-syntax-id-lref name 0 0))
+           ,`#(,p2-syntax-id-lref name 0 0 ,new-env))
        ,@(map (lambda (i) (p1-compile-exp cmpl i env #f rdepth))
               inits))))
 
 (define (p1-cmpl-let cmpl vars inits body env pos rdepth)
-  (let* ((new-env (if (null? vars) env (env-extend vars #f env)))
+  (let* ((new-env (if (null? vars) env (env-extend vars #f #f env)))
          (cb (p1-cmpl-body cmpl body new-env #f rdepth)))
     (unless (null? vars)
       (rdepth-add! rdepth -1))
@@ -1091,7 +1098,7 @@
     (let rec ((v vars) (i inits) (e env))
       (if (null? v)
           (p1-cmpl-body cmpl body e #f rdepth)
-          (let* ((new-env (env-extend (vector (car v)) #f e))
+          (let* ((new-env (env-extend (vector (car v)) #f #f e))
                  (b (rec (cdr v) (cdr i) new-env)))
             (rdepth-add! rdepth -1)
             (vector p2-syntax-id-let
@@ -1109,7 +1116,7 @@
   (let-values (((vars inits body) (p1-decons-letrec cmpl exp)))
     (let* ((new-env (if (null? vars)
                         env
-                        (env-extend (list->vector vars) #f env)))
+                        (env-extend (list->vector vars) #f #t env)))
            (cb (p1-cmpl-body cmpl body new-env #f rdepth))
            (ci (list->vector (map (lambda (e)
                                     (p1-compile-exp cmpl e new-env #f rdepth))
@@ -1130,7 +1137,7 @@
   (let-values (((vars inits body) (p1-decons-letrec* cmpl exp)))
     (let* ((new-env (if (null? vars)
                         env
-                        (env-extend (list->vector vars) #f env)))
+                        (env-extend (list->vector vars) #f #t env)))
            (cb (p1-cmpl-body cmpl body new-env #f rdepth))
            (ci (list->vector (map (lambda (e)
                                     (p1-compile-exp cmpl e new-env #f rdepth))
@@ -1197,7 +1204,7 @@
   (let-values (((vars inits steps test exps cmds) (p1-decons-do cmpl exp)))
     (let* ((new-env (if (null? vars)
                         env
-                        (env-extend (list->vector vars) #f env)))
+                        (env-extend (list->vector vars) #f #f env)))
            (cmpl/ne (lambda (e)
                       (p1-compile-exp cmpl e new-env #f rdepth))))
       (let ((ce (list->vector (cons p2-syntax-id-begin (map cmpl/ne exps))))
@@ -1259,7 +1266,7 @@
            (all-vars-vec (list->vector all-vars))
            (new-env (if (null? all-vars)
                         env
-                        (env-extend all-vars-vec #f env)))
+                        (env-extend all-vars-vec #f #f env)))
            (cb (p1-cmpl-body cmpl body new-env #f rdepth))
            (mv (let ((cnt 0))
                  (map (lambda (f)
@@ -1295,7 +1302,7 @@
             (let* ((vars-vec (list->vector vars))
                    (new-env (if (null? vars)
                                 e
-                                (env-extend vars-vec vv e)))
+                                (env-extend vars-vec vv #f e)))
                    (b (rec (cdr fo) (cdr in) new-env)))
               (unless (null? vars)
                 (rdepth-add! rdepth -1))
