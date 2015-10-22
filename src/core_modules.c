@@ -775,6 +775,8 @@ scm_define_scythe_internal_core_private_constant_number(ScmObj module)
     const_num_asm_inst_record(jmpt, JMPT),
     const_num_asm_inst_record(jmpf, JMPF),
     const_num_asm_inst_record(lbox, LBOX),
+    const_num_asm_inst_record(lbref, LBREF),
+    const_num_asm_inst_record(lbset, LBSET),
     const_num_asm_inst_record(close, CLOSE),
     const_num_asm_inst_record(demine, DEMINE),
     const_num_asm_inst_record(emine, EMINE),
@@ -1926,6 +1928,8 @@ scm_load_module_scheme_write(void)
                          scm_load_module_func_scheme_write);
 }
 
+bool loding_core_modules_p = false;
+
 int
 scm_load_core_modules(void)
 {
@@ -1963,10 +1967,11 @@ scm_load_core_modules(void)
   };
   int (**p)(void);
 
+  loding_core_modules_p = true;
   for (p = func; *p != NULL; p++) {
     int r = ((int (*)(void))*p)();
     if (r < 0) return -1;
   }
-
+  loding_core_modules_p = false;
   return 0;
 }

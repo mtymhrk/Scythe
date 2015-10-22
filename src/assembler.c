@@ -1051,6 +1051,8 @@ static struct {
   { SCM_OPCODE_JMPT,        "jmpt" },
   { SCM_OPCODE_JMPF,        "jmpf" },
   { SCM_OPCODE_LBOX,        "lbox" },
+  { SCM_OPCODE_LBREF,       "lbref" },
+  { SCM_OPCODE_LBSET,       "lbset" },
   { SCM_OPCODE_CLOSE,       "close" },
   { SCM_OPCODE_DEMINE,      "demine" },
   { SCM_OPCODE_EMINE,       "emine" },

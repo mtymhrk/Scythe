@@ -1760,6 +1760,61 @@ scm_vm_do_op_lbox(ScmObj vm, int idx, int layer)
 }
 
 static int
+scm_vm_do_op_lbref(ScmObj vm, int idx, int layer)
+{
+  ScmObj box = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&vm,
+                      &box);
+
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+  scm_assert(idx >= 0);
+  scm_assert(layer >= 0);
+
+  box = scm_vm_eframe_arg_ref(SCM_VM(vm)->reg.efp,
+                              (size_t)idx, (size_t)layer, NULL);
+  if (scm_obj_null_p(box)) return -1;
+
+  scm_assert(scm_box_object_p(box));
+  if (scm_landmine_object_p(scm_box_unbox(box))) {
+    scm_error("refarence to uninitialized variable", 0);
+    return -1;
+  }
+
+  SCM_SLOT_SETQ(ScmVM, vm, reg.val[0], scm_box_unbox(box));
+  SCM_VM(vm)->reg.vc = 1;
+
+  return 0;
+}
+
+static int
+scm_vm_do_op_lbset(ScmObj vm, int idx, int layer)
+{
+  ScmObj box = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&vm,
+                      &box);
+
+  scm_assert_obj_type(vm, &SCM_VM_TYPE_INFO);
+  scm_assert(idx >= 0);
+  scm_assert(layer >= 0);
+
+  box = scm_vm_eframe_arg_ref(SCM_VM(vm)->reg.efp,
+                              (size_t)idx, (size_t)layer, NULL);
+  if (scm_obj_null_p(box)) return -1;
+
+  scm_assert(scm_box_object_p(box));
+  if (scm_landmine_object_p(scm_box_unbox(box))) {
+    scm_error("refarence to uninitialized variable", 0);
+    return -1;
+  }
+
+  scm_box_update(box, SCM_VM(vm)->reg.val[0]);
+
+  return 0;
+}
+
+static int
 scm_vm_do_op_close(ScmObj vm, int nr_env, int arity, ScmObj iseq)
 {
   ScmObj clsr = SCM_OBJ_INIT,  env = SCM_OBJ_INIT;
@@ -1981,6 +2036,16 @@ scm_vm_do_op_module(ScmObj vm, ScmObj mod)
     scm_vm_do_op_lbox(vm, opd_si1, opd_si2);                            \
   } while (0)
 
+#define SCM_VM_OP_LBREF() do {                                          \
+    SCM_VMINST_FETCH_OPD_SI_SI(SCM_VM(vm)->reg.ip, opd_si1, opd_si2);   \
+    scm_vm_do_op_lbref(vm, opd_si1, opd_si2);                           \
+  } while (0)
+
+#define SCM_VM_OP_LBSET() do {                                          \
+    SCM_VMINST_FETCH_OPD_SI_SI(SCM_VM(vm)->reg.ip, opd_si1, opd_si2);   \
+    scm_vm_do_op_lbset(vm, opd_si1, opd_si2);                           \
+  } while (0)
+
 #define SCM_VM_OP_CLOSE() do {                                  \
     SCM_VMINST_FETCH_OPD_SI_SI_OBJ(SCM_VM(vm)->reg.ip,          \
                                    opd_si1, opd_si2, opd_obj1); \
@@ -2061,8 +2126,9 @@ scm_vm_run_loop(ScmObj vm)
     &&inst_epop, &&inst_eshift, &&inst_immval, &&inst_push, &&inst_mvpush,
     &&inst_return, &&inst_pcall, &&inst_call, &&inst_tail_call, &&inst_gref,
     &&inst_gdef, &&inst_gset, &&inst_lref, &&inst_lset, &&inst_jmp, &&inst_jmpt,
-    &&inst_jmpf, &&inst_lbox, &&inst_close, &&inst_demine, &&inst_emine,
-    &&inst_edemine, &&inst_mrvc, &&inst_mrve, &&inst_module, NULL,
+    &&inst_jmpf, &&inst_lbox, &&inst_lbref, &&inst_lbset, &&inst_close,
+    &&inst_demine, &&inst_emine, &&inst_edemine, &&inst_mrvc, &&inst_mrve,
+    &&inst_module, NULL,
   };
 
   if (scm_obj_null_p(vm))
@@ -2169,6 +2235,14 @@ scm_vm_run_loop(ScmObj vm)
 
   inst_lbox:
     SCM_VM_OP_LBOX();
+    goto *(void *)SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip);
+
+  inst_lbref:
+    SCM_VM_OP_LBREF();
+    goto *(void *)SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip);
+
+  inst_lbset:
+    SCM_VM_OP_LBSET();
     goto *(void *)SCM_VMINST_GET_OP(SCM_VM(vm)->reg.ip);
 
   inst_close:

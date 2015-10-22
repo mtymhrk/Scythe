@@ -2574,6 +2574,8 @@ scm_unmarshal_obj_qqtmpl(ScmUnmarshalObjStat *stat, ScmObj unmarshal)
   (scm_marshal_align(SCM_MARSHAL_ISEQ_OP_SIZE + SCM_MARSHAL_ISEQ_OPD_SI_SIZE))
 
 
+extern bool loding_core_modules_p;
+
 static int
 scm_push_inst_op(ScmMarshalBuffer *output, scm_opcode_t op)
 {
@@ -2603,6 +2605,7 @@ scm_read_inst_op(ScmMarshalBuffer *input, scm_opcode_t *op)
   if (r < 0) return -1;
 
   *op = (scm_opcode_t)x;
+  if (loding_core_modules_p && *op > SCM_OPCODE_LBOX) *op += 2;
   return 0;
 }
 

@@ -74,16 +74,18 @@ enum {
   SCM_OPCODE_JMPT,                /* 20: jump if true */
   SCM_OPCODE_JMPF,                /* 21: jump if false */
   SCM_OPCODE_LBOX,                /* 22: box local variable */
-  SCM_OPCODE_CLOSE,               /* 23: make closure */
-  SCM_OPCODE_DEMINE,              /* 24: demine variable */
-  SCM_OPCODE_EMINE,               /* 25: make enviroment frame */
+  SCM_OPCODE_LBREF,               /* 23: refer boxed local variable */
+  SCM_OPCODE_LBSET,               /* 24: update boxed local variable */
+  SCM_OPCODE_CLOSE,               /* 25: make closure */
+  SCM_OPCODE_DEMINE,              /* 26: demine variable */
+  SCM_OPCODE_EMINE,               /* 27: make enviroment frame */
                                   /*     and make it mine field */
-  SCM_OPCODE_EDEMINE,             /* 26: demine enviromnet frame with */
+  SCM_OPCODE_EDEMINE,             /* 28: demine enviromnet frame with */
                                   /*     incomplete enviromnet frame as */
                                   /*     initial value */
-  SCM_OPCODE_MRVC,                /* 27: Multiple-Return-Value Check */
-  SCM_OPCODE_MRVE,                /* 28: Multiple-Return-Value Error */
-  SCM_OPCODE_MODULE,              /* 29: find a module  */
+  SCM_OPCODE_MRVC,                /* 29: Multiple-Return-Value Check */
+  SCM_OPCODE_MRVE,                /* 30: Multiple-Return-Value Error */
+  SCM_OPCODE_MODULE,              /* 31: find a module  */
 
   SCM_VMINST_NR_OP,
 };
