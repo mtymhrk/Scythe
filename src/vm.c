@@ -1864,65 +1864,68 @@ scm_vm_do_op_module(ScmObj vm, ScmObj mod)
   return 0;
 }
 
-#define SCM_VM_OP_NOP() do {                            \
-    SCM_VMINST_FETCH_OPD_NOOPD(SCM_VM(vm)->reg.ip);     \
-} while (0)
+#define SCM_VM_INST_BEGIN(op) do
+#define SCM_VM_INST_END while(0)
 
-#define SCM_VM_OP_HALT() do {                           \
-    SCM_VMINST_FETCH_OPD_NOOPD(SCM_VM(vm)->reg.ip);     \
-} while (0)
+#define SCM_VM_OP_NOP() SCM_VM_INST_BEGIN(SCM_OPCODE_NOP) {     \
+    SCM_VMINST_FETCH_OPD_NOOPD(SCM_VM(vm)->reg.ip);             \
+  } SCM_VM_INST_END
 
-#define SCM_VM_OP_INT() do {                                    \
+#define SCM_VM_OP_HALT() SCM_VM_INST_BEGIN(SCM_OPCODE_HALT) {   \
+    SCM_VMINST_FETCH_OPD_NOOPD(SCM_VM(vm)->reg.ip);             \
+  } SCM_VM_INST_END
+
+#define SCM_VM_OP_INT() SCM_VM_INST_BEGIN(SCM_OPCODE_INT) {     \
     SCM_VMINST_FETCH_OPD_SI(SCM_VM(vm)->reg.ip, opd_si1);       \
     scm_vm_do_op_int(vm, opd_si1);                              \
-  } while (0)
+  } SCM_VM_INST_END
 
-#define SCM_VM_OP_CFRAME() do {                                 \
-    SCM_VMINST_FETCH_OPD_IOF(SCM_VM(vm)->reg.ip, opd_iof);      \
-    scm_vm_do_op_cframe(vm, opd_iof);                           \
-  } while (0)
+#define SCM_VM_OP_CFRAME() SCM_VM_INST_BEGIN(SCM_OPCODE_CFRAME) {       \
+    SCM_VMINST_FETCH_OPD_IOF(SCM_VM(vm)->reg.ip, opd_iof);              \
+    scm_vm_do_op_cframe(vm, opd_iof);                                   \
+  } SCM_VM_INST_END
 
-#define SCM_VM_OP_EFRAME() do {                                 \
-    SCM_VMINST_FETCH_OPD_SI(SCM_VM(vm)->reg.ip, opd_si1);       \
-    scm_vm_do_op_eframe(vm, opd_si1);                           \
-  } while (0)
+#define SCM_VM_OP_EFRAME() SCM_VM_INST_BEGIN(SCM_OPCODE_EFRAME) {       \
+    SCM_VMINST_FETCH_OPD_SI(SCM_VM(vm)->reg.ip, opd_si1);               \
+    scm_vm_do_op_eframe(vm, opd_si1);                                   \
+  } SCM_VM_INST_END
 
-#define SCM_VM_OP_EPOP() do {                           \
-    SCM_VMINST_FETCH_OPD_NOOPD(SCM_VM(vm)->reg.ip);     \
-    scm_vm_do_op_epop(vm);                              \
-  } while (0)
+#define SCM_VM_OP_EPOP() SCM_VM_INST_BEGIN(SCM_OPCODE_EPOP) {   \
+    SCM_VMINST_FETCH_OPD_NOOPD(SCM_VM(vm)->reg.ip);             \
+    scm_vm_do_op_epop(vm);                                      \
+  } SCM_VM_INST_END
 
-#define SCM_VM_OP_ESHIFT() do {                           \
-    SCM_VMINST_FETCH_OPD_SI(SCM_VM(vm)->reg.ip, opd_si1); \
-    scm_vm_do_op_eshift(vm, 1, opd_si1);                  \
- } while (0)
+#define SCM_VM_OP_ESHIFT() SCM_VM_INST_BEGIN(SCM_OPCODE_ESHIFT) {       \
+    SCM_VMINST_FETCH_OPD_SI(SCM_VM(vm)->reg.ip, opd_si1);               \
+    scm_vm_do_op_eshift(vm, 1, opd_si1);                                \
+  } SCM_VM_INST_END
 
-#define SCM_VM_OP_IMMVAL() do {                                 \
-    SCM_VMINST_FETCH_OPD_OBJ(SCM_VM(vm)->reg.ip, opd_obj1);     \
-    scm_vm_do_op_immval(vm, opd_obj1);                          \
-  } while (0)
+#define SCM_VM_OP_IMMVAL() SCM_VM_INST_BEGIN(SCM_OPCODE_IMMVAL) {       \
+    SCM_VMINST_FETCH_OPD_OBJ(SCM_VM(vm)->reg.ip, opd_obj1);             \
+    scm_vm_do_op_immval(vm, opd_obj1);                                  \
+  } SCM_VM_INST_END
 
-#define SCM_VM_OP_PUSH() do {                           \
-    SCM_VMINST_FETCH_OPD_NOOPD(SCM_VM(vm)->reg.ip);     \
-    scm_vm_do_op_push(vm);                              \
-  } while (0)
+#define SCM_VM_OP_PUSH() SCM_VM_INST_BEGIN(SCM_OPCODE_PUSH) {   \
+    SCM_VMINST_FETCH_OPD_NOOPD(SCM_VM(vm)->reg.ip);             \
+    scm_vm_do_op_push(vm);                                      \
+  } SCM_VM_INST_END
 
-#define SCM_VM_OP_MVPUSH() do {                         \
-    SCM_VMINST_FETCH_OPD_NOOPD(SCM_VM(vm)->reg.ip);     \
-    scm_vm_do_op_mvpush(vm);                            \
- } while (0)
+#define SCM_VM_OP_MVPUSH() SCM_VM_INST_BEGIN(SCM_OPCODE_MVPUSH) {       \
+    SCM_VMINST_FETCH_OPD_NOOPD(SCM_VM(vm)->reg.ip);                     \
+    scm_vm_do_op_mvpush(vm);                                            \
+  } SCM_VM_INST_END
 
-#define SCM_VM_OP_RETURN() do {                         \
-    SCM_VMINST_FETCH_OPD_NOOPD(SCM_VM(vm)->reg.ip);     \
-    scm_vm_do_op_return(vm);                            \
-  } while (0)
+#define SCM_VM_OP_RETURN() SCM_VM_INST_BEGIN(SCM_OPCODE_RETURN) {       \
+    SCM_VMINST_FETCH_OPD_NOOPD(SCM_VM(vm)->reg.ip);                     \
+    scm_vm_do_op_return(vm);                                            \
+  } SCM_VM_INST_END
 
-#define SCM_VM_OP_PCALL() do {                                  \
+#define SCM_VM_OP_PCALL() SCM_VM_INST_BEGIN(SCM_OPCODE_PCALL) { \
     SCM_VMINST_FETCH_OPD_SI(SCM_VM(vm)->reg.ip, opd_si1);       \
     scm_vm_do_op_pcall(vm, opd_si1);                            \
-  } while (0)
+  } SCM_VM_INST_END
 
-#define SCM_VM_OP_CALL() do {                                   \
+#define SCM_VM_OP_CALL() SCM_VM_INST_BEGIN(SCM_OPCODE_CALL) {   \
     SCM_VMINST_FETCH_OPD_SI(SCM_VM(vm)->reg.ip, opd_si1);       \
                                                                 \
     if (opd_si1 != 0) {                                         \
@@ -1931,9 +1934,9 @@ scm_vm_do_op_module(ScmObj vm, ScmObj mod)
     }                                                           \
                                                                 \
     scm_vm_do_op_pcall(vm, opd_si1);                            \
-  } while (0)
+  } SCM_VM_INST_END
 
-#define SCM_VM_OP_TAIL_CALL() do {                                      \
+#define SCM_VM_OP_TAIL_CALL() SCM_VM_INST_BEGIN(SCM_OPCODE_TAIL_CALL) { \
     SCM_VMINST_FETCH_OPD_SI(SCM_VM(vm)->reg.ip, opd_si1);               \
                                                                         \
     if (opd_si1 != 0) {                                                 \
@@ -1945,78 +1948,78 @@ scm_vm_do_op_module(ScmObj vm, ScmObj mod)
       break;                                                            \
                                                                         \
     scm_vm_do_op_pcall(vm, opd_si1);                                    \
-  } while (0)
+  } SCM_VM_INST_END
 
-#define SCM_VM_OP_GREF() do {                                           \
+#define SCM_VM_OP_GREF() SCM_VM_INST_BEGIN(SCM_OPCODE_GREF) {           \
     scm_byte_t *ip = SCM_VM(vm)->reg.ip;                                \
     SCM_VMINST_FETCH_OPD_OBJ_OBJ(SCM_VM(vm)->reg.ip, opd_obj1, opd_obj2); \
     scm_vm_do_op_gref(vm, ip, opd_obj1, opd_obj2);                      \
-  } while (0)
+  } SCM_VM_INST_END
 
-#define SCM_VM_OP_GDEF() do {                                           \
+#define SCM_VM_OP_GDEF() SCM_VM_INST_BEGIN(SCM_OPCODE_GDEF) {           \
     scm_byte_t *ip = SCM_VM(vm)->reg.ip;                                \
     SCM_VMINST_FETCH_OPD_OBJ_OBJ(SCM_VM(vm)->reg.ip, opd_obj1, opd_obj2); \
     scm_vm_do_op_gdef(vm, ip, opd_obj1, opd_obj2);                      \
- } while (0)
+  } SCM_VM_INST_END
 
-#define SCM_VM_OP_GSET() do {                                           \
+#define SCM_VM_OP_GSET() SCM_VM_INST_BEGIN(SCM_OPCODE_GSET) {           \
     scm_byte_t *ip = SCM_VM(vm)->reg.ip;                                \
     SCM_VMINST_FETCH_OPD_OBJ_OBJ(SCM_VM(vm)->reg.ip, opd_obj1, opd_obj2); \
     scm_vm_do_op_gset(vm, ip, opd_obj1, opd_obj2);                      \
- } while (0)
+  } SCM_VM_INST_END
 
-#define SCM_VM_OP_LREF() do {                                           \
+#define SCM_VM_OP_LREF() SCM_VM_INST_BEGIN(SCM_OPCODE_LREF) {           \
     SCM_VMINST_FETCH_OPD_SI_SI(SCM_VM(vm)->reg.ip, opd_si1, opd_si2);   \
     scm_vm_do_op_lref(vm, opd_si1, opd_si2);                            \
- } while (0)
+  } SCM_VM_INST_END
 
-#define SCM_VM_OP_LSET() do {                                         \
-    SCM_VMINST_FETCH_OPD_SI_SI(SCM_VM(vm)->reg.ip, opd_si1, opd_si2); \
-    scm_vm_do_op_lset(vm, opd_si1, opd_si2);                          \
-  } while (0)
+#define SCM_VM_OP_LSET() SCM_VM_INST_BEGIN(SCM_OPCODE_LSET) {           \
+    SCM_VMINST_FETCH_OPD_SI_SI(SCM_VM(vm)->reg.ip, opd_si1, opd_si2);   \
+    scm_vm_do_op_lset(vm, opd_si1, opd_si2);                            \
+  } SCM_VM_INST_END
 
-#define SCM_VM_OP_JMP() do {                                    \
+#define SCM_VM_OP_JMP() SCM_VM_INST_BEGIN(SCM_OPCODE_JMP) {     \
     SCM_VMINST_FETCH_OPD_IOF(SCM_VM(vm)->reg.ip, opd_si1);      \
     scm_vm_do_op_jmp(vm, opd_si1);                              \
-  } while (0)
+  } SCM_VM_INST_END
 
-#define SCM_VM_OP_JMPT() do {                                   \
+#define SCM_VM_OP_JMPT() SCM_VM_INST_BEGIN(SCM_OPCODE_JMPT) {   \
     SCM_VMINST_FETCH_OPD_IOF(SCM_VM(vm)->reg.ip, opd_si1);      \
     scm_vm_do_op_jmpt(vm, opd_si1);                             \
-  } while (0)
+  } SCM_VM_INST_END
 
-#define SCM_VM_OP_JMPF() do {                                   \
+#define SCM_VM_OP_JMPF() SCM_VM_INST_BEGIN(SCM_OPCODE_JMPF) {   \
     SCM_VMINST_FETCH_OPD_IOF(SCM_VM(vm)->reg.ip, opd_si1);      \
     scm_vm_do_op_jmpf(vm, opd_si1);                             \
-  } while (0)
+  } SCM_VM_INST_END
 
-#define SCM_VM_OP_LBOX() do {                                           \
+#define SCM_VM_OP_LBOX() SCM_VM_INST_BEGIN(SCM_OPCODE_LBOX) {           \
     SCM_VMINST_FETCH_OPD_SI_SI(SCM_VM(vm)->reg.ip, opd_si1, opd_si2);   \
     scm_vm_do_op_lbox(vm, opd_si1, opd_si2);                            \
-  } while (0)
+  } SCM_VM_INST_END
 
-#define SCM_VM_OP_LBREF() do {                                          \
+#define SCM_VM_OP_LBREF() SCM_VM_INST_BEGIN(SCM_OPCODE_LBREF) {         \
     SCM_VMINST_FETCH_OPD_SI_SI(SCM_VM(vm)->reg.ip, opd_si1, opd_si2);   \
     scm_vm_do_op_lbref(vm, opd_si1, opd_si2);                           \
-  } while (0)
+  } SCM_VM_INST_END
 
-#define SCM_VM_OP_LBSET() do {                                          \
+#define SCM_VM_OP_LBSET() SCM_VM_INST_BEGIN(SCM_OPCODE_LBSET) {         \
     SCM_VMINST_FETCH_OPD_SI_SI(SCM_VM(vm)->reg.ip, opd_si1, opd_si2);   \
     scm_vm_do_op_lbset(vm, opd_si1, opd_si2);                           \
-  } while (0)
+  } SCM_VM_INST_END
 
-#define SCM_VM_OP_CLOSE() do {                                  \
+#define SCM_VM_OP_CLOSE() SCM_VM_INST_BEGIN(SCM_OPCODE_CLOSE) { \
     SCM_VMINST_FETCH_OPD_SI_SI_OBJ(SCM_VM(vm)->reg.ip,          \
                                    opd_si1, opd_si2, opd_obj1); \
     scm_vm_do_op_close(vm, opd_si1, opd_si2, opd_obj1);         \
-  } while (0)
+  } SCM_VM_INST_END
 
-#define SCM_VM_OP_DEMINE() do {                                         \
+#define SCM_VM_OP_DEMINE() SCM_VM_INST_BEGIN(SCM_OPCODE_DEMINE) {       \
     SCM_VMINST_FETCH_OPD_SI_SI(SCM_VM(vm)->reg.ip, opd_si1, opd_si2);   \
     scm_vm_do_op_demine(vm, opd_si1, opd_si2);                          \
-  } while (0)
+  } SCM_VM_INST_END
 
-#define SCM_VM_OP_EMINE() do {                                  \
+#define SCM_VM_OP_EMINE() SCM_VM_INST_BEGIN(SCM_OPCODE_EMINE) { \
     SCM_VMINST_FETCH_OPD_SI(SCM_VM(vm)->reg.ip, opd_si1);       \
                                                                 \
     for (int i = 0; i < opd_si1; i++) {                         \
@@ -2038,9 +2041,9 @@ scm_vm_do_op_module(ScmObj vm, ScmObj mod)
   scm_vm_op_emine__end:                                         \
     break;                                                      \
                                                                 \
-  } while (0)
+  } SCM_VM_INST_END
 
-#define SCM_VM_OP_EDEMINE() do {                                        \
+#define SCM_VM_OP_EDEMINE() SCM_VM_INST_BEGIN(SCM_OPCODE_EDEMINE) {     \
     SCM_VMINST_FETCH_OPD_SI_SI(SCM_VM(vm)->reg.ip, opd_si1, opd_si2);   \
                                                                         \
     if (scm_vm_do_op_eframe(vm, opd_si1) < 0)                           \
@@ -2060,22 +2063,22 @@ scm_vm_do_op_module(ScmObj vm, ScmObj mod)
   scm_vm_op_edemine__end:                                               \
     break;                                                              \
                                                                         \
-  } while (0)
+  } SCM_VM_INST_END
 
-#define SCM_VM_OP_MRVC() do {                                   \
+#define SCM_VM_OP_MRVC() SCM_VM_INST_BEGIN(SCM_OPCODE_MRVC) {   \
     SCM_VMINST_FETCH_OPD_SI(SCM_VM(vm)->reg.ip, opd_si1);       \
     scm_vm_do_op_mrvc(vm, opd_si1);                             \
-  } while (0)
+  } SCM_VM_INST_END
 
-#define SCM_VM_OP_MRVE() do {                           \
-    SCM_VMINST_FETCH_OPD_NOOPD(SCM_VM(vm)->reg.ip);     \
-    scm_vm_do_op_mrve(vm);                              \
-  } while (0)
+#define SCM_VM_OP_MRVE() SCM_VM_INST_BEGIN(SCM_OPCODE_MRVE) {   \
+    SCM_VMINST_FETCH_OPD_NOOPD(SCM_VM(vm)->reg.ip);             \
+    scm_vm_do_op_mrve(vm);                                      \
+  } SCM_VM_INST_END
 
-#define SCM_VM_OP_MODULE() do {                                 \
-    SCM_VMINST_FETCH_OPD_OBJ(SCM_VM(vm)->reg.ip, opd_obj1);     \
-    scm_vm_do_op_module(vm, opd_obj1);                          \
- } while (0)
+#define SCM_VM_OP_MODULE() SCM_VM_INST_BEGIN(SCM_OPCODE_MODULE) {       \
+    SCM_VMINST_FETCH_OPD_OBJ(SCM_VM(vm)->reg.ip, opd_obj1);             \
+    scm_vm_do_op_module(vm, opd_obj1);                                  \
+  } SCM_VM_INST_END
 
 static const void **
 scm_vm_run_loop(ScmObj vm)
