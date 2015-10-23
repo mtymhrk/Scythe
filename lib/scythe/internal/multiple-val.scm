@@ -6,8 +6,6 @@
       lst
       (cons (proc (car lst)) (map proc (cdr lst)))))
 
-(define undef (begin))
-
 (define (decons-formals exp)
   (let loop ((exp exp) (val ()))
     (cond ((pair? exp)
@@ -36,7 +34,7 @@
   (if (null? vals)
       acc
       (ctor-val-defs-inn (cdr vals) r
-                         (cons (list (r 'define) (car vals) undef)
+                         (cons (list (r 'define) (car vals) +undef+)
                                acc))))
 
 (define (ctor-val-defs vals r)

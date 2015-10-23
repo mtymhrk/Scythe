@@ -74,7 +74,7 @@
 (define (push-inst-label lbl asmb)
   (assembler-push! asmb +asm-inst-label+ lbl))
 (define (push-inst-undef asmb)
-  (assembler-push! asmb +asm-inst-immval+ (begin)))
+  (assembler-push! asmb +asm-inst-immval+ +undef+))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (define precompile? (make-parameter #f))

@@ -6,8 +6,6 @@
       lst
       (cons (proc (car lst)) (map proc (cdr lst)))))
 
-(define undef (begin))
-
 (define (decons-record-type-definition exp)
   (let ((x (cdr exp)) (name #f) (constructor #f) (pred #f) (fields #f)
         (cname #f) (cargs #f) (fnames #f) (faccs #f) (fmods #f))
@@ -86,7 +84,7 @@
                                  ,(length fields)
                                  ,@(map (lambda (fld)
                                           (if (memq fld cargs)
-                                              (r fld) undef))
+                                              (r fld) +undef+))
                                         fields)))))
          (,(r 'define) ,pred (,(r 'let) ((,(r 'type) ,name))
                               (,(r 'lambda) (,(r 'rec))

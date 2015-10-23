@@ -800,6 +800,17 @@ scm_define_scythe_internal_core_private_constant_number(ScmObj module)
 }
 
 static int
+scm_define_scythe_internal_core_private_constant_value(ScmObj module)
+{
+  int r;
+
+  r = scm_define_var(module, "+undef+", SCM_UNDEF_OBJ, true);
+  if (r < 0) return -1;
+
+  return 0;
+}
+
+static int
 scm_load_module_func_scythe_internal_core_private(ScmObj mod)
 {
   int r;
@@ -810,6 +821,9 @@ scm_load_module_func_scythe_internal_core_private(ScmObj mod)
   if (r < 0) return -1;
 
   r = scm_define_scythe_internal_core_private_constant_number(mod);
+  if (r < 0) return -1;
+
+  r = scm_define_scythe_internal_core_private_constant_value(mod);
   if (r < 0) return -1;
 
   return 0;
