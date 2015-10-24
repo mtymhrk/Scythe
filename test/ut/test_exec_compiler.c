@@ -665,6 +665,20 @@ TEST(exec_compiler, internal_definition_5)
                "   (return))))");
 }
 
+TEST(exec_compiler, internal_definition_6)
+{
+  test_compile("(lambda ()"
+               "  (define (func x) x)"
+               "  (func 1))",
+               "((close 0 0"
+               "  ((emine 1)"
+               "   (close 0 1 ((lref 0 0)(return)))"
+               "   (demine 0 0)"
+               "   (immval 1)(push)"
+               "   (lbref 0 0)"
+               "   (tcall 1))))");
+}
+
 TEST(exec_compiler, begin_1)
 {
   test_compile("(begin (cons 'a 'b) (cons 'x 'y))",

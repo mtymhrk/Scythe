@@ -514,6 +514,14 @@ TEST(exec_syntax, internal_definition_5)
                                "1");
 }
 
+TEST(exec_syntax, internal_definition_6)
+{
+  test_eval__comp_val_with_obj("((lambda ()"
+                               "   (define (func x) (cons 1 x))"
+                               "   (func 2))))",
+                               "(1 . 2)");
+}
+
 TEST(exec_syntax, begin_1)
 {
   test_eval__comp_val_with_obj("(begin (cons 'a 'b) (cons 'x 'y))",
