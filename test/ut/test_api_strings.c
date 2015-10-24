@@ -460,6 +460,74 @@ TEST(api_strings, api_substring)
   TEST_ASSERT_SCM_TRUE(scm_string_eq_P(expected, actual));
 }
 
+TEST(api_strings, api_substring__specify_min_start)
+{
+  ScmObj str = SCM_OBJ_INIT, start = SCM_OBJ_INIT, end = SCM_OBJ_INIT;
+  ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&str, &start, &end, &actual, &expected);
+
+  str = scm_make_string_from_cstr("abcdefg", SCM_ENC_UTF8);
+  start = ut_read_cstr("0");
+  end = ut_read_cstr("5");
+  expected = scm_make_string_from_cstr("abcde", SCM_ENC_UTF8);
+
+  actual = scm_api_substring(str, start, end);
+
+  TEST_ASSERT_SCM_TRUE(scm_string_eq_P(expected, actual));
+}
+
+TEST(api_strings, api_substring__specify_max_start)
+{
+  ScmObj str = SCM_OBJ_INIT, start = SCM_OBJ_INIT, end = SCM_OBJ_INIT;
+  ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&str, &start, &end, &actual, &expected);
+
+  str = scm_make_string_from_cstr("abcdefg", SCM_ENC_UTF8);
+  start = ut_read_cstr("7");
+  end = ut_read_cstr("7");
+  expected = scm_make_string_from_cstr("", SCM_ENC_UTF8);
+
+  actual = scm_api_substring(str, start, end);
+
+  TEST_ASSERT_SCM_TRUE(scm_string_eq_P(expected, actual));
+}
+
+TEST(api_strings, api_substring__specify_min_end)
+{
+  ScmObj str = SCM_OBJ_INIT, start = SCM_OBJ_INIT, end = SCM_OBJ_INIT;
+  ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&str, &start, &end, &actual, &expected);
+
+  str = scm_make_string_from_cstr("abcdefg", SCM_ENC_UTF8);
+  start = ut_read_cstr("0");
+  end = ut_read_cstr("0");
+  expected = scm_make_string_from_cstr("", SCM_ENC_UTF8);
+
+  actual = scm_api_substring(str, start, end);
+
+  TEST_ASSERT_SCM_TRUE(scm_string_eq_P(expected, actual));
+}
+
+TEST(api_strings, api_substring__specify_max_end)
+{
+  ScmObj str = SCM_OBJ_INIT, start = SCM_OBJ_INIT, end = SCM_OBJ_INIT;
+  ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&str, &start, &end, &actual, &expected);
+
+  str = scm_make_string_from_cstr("abcdefg", SCM_ENC_UTF8);
+  start = ut_read_cstr("1");
+  end = ut_read_cstr("7");
+  expected = scm_make_string_from_cstr("bcdefg", SCM_ENC_UTF8);
+
+  actual = scm_api_substring(str, start, end);
+
+  TEST_ASSERT_SCM_TRUE(scm_string_eq_P(expected, actual));
+}
+
 TEST(api_strings, api_substring__out_of_range__return_ERROR)
 {
   ScmObj str = SCM_OBJ_INIT, start = SCM_OBJ_INIT, end = SCM_OBJ_INIT;
@@ -565,6 +633,72 @@ TEST(api_strings, api_string_to_list__specify_start_end)
   TEST_ASSERT_SCM_EQUAL(expected, actual);
 }
 
+TEST(api_strings, api_string_to_list__specify_min_start)
+{
+  ScmObj str = SCM_OBJ_INIT, start = SCM_OBJ_INIT, end = SCM_OBJ_INIT;
+  ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&str, &start, &end, &actual, &expected);
+
+  str = scm_make_string_from_cstr("abcde", SCM_ENC_UTF8);
+  start = ut_read_cstr("0");
+  expected = ut_read_cstr("(#\\a #\\b #\\c #\\d #\\e)");
+
+  actual = scm_api_string_to_list(str, start, SCM_OBJ_NULL);
+
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
+}
+
+TEST(api_strings, api_string_to_list__specify_max_start)
+{
+  ScmObj str = SCM_OBJ_INIT, start = SCM_OBJ_INIT, end = SCM_OBJ_INIT;
+  ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&str, &start, &end, &actual, &expected);
+
+  str = scm_make_string_from_cstr("abcde", SCM_ENC_UTF8);
+  start = ut_read_cstr("5");
+  expected = SCM_NIL_OBJ;
+
+  actual = scm_api_string_to_list(str, start, SCM_OBJ_NULL);
+
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
+}
+
+TEST(api_strings, api_string_to_list__specify_min_end)
+{
+  ScmObj str = SCM_OBJ_INIT, start = SCM_OBJ_INIT, end = SCM_OBJ_INIT;
+  ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&str, &start, &end, &actual, &expected);
+
+  str = scm_make_string_from_cstr("abcde", SCM_ENC_UTF8);
+  start = ut_read_cstr("0");
+  end = ut_read_cstr("0");
+  expected = SCM_NIL_OBJ;
+
+  actual = scm_api_string_to_list(str, start, end);
+
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
+}
+
+TEST(api_strings, api_string_to_list__specify_max_end)
+{
+  ScmObj str = SCM_OBJ_INIT, start = SCM_OBJ_INIT, end = SCM_OBJ_INIT;
+  ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&str, &start, &end, &actual, &expected);
+
+  str = scm_make_string_from_cstr("abcde", SCM_ENC_UTF8);
+  start = ut_read_cstr("1");
+  end = ut_read_cstr("5");
+  expected = ut_read_cstr("(#\\b #\\c #\\d #\\e)");
+
+  actual = scm_api_string_to_list(str, start, end);
+
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
+}
+
 TEST(api_strings, api_string_to_list__same_index__return_empty_list)
 {
   ScmObj str = SCM_OBJ_INIT, start = SCM_OBJ_INIT, end = SCM_OBJ_INIT;
@@ -582,7 +716,19 @@ TEST(api_strings, api_string_to_list__same_index__return_empty_list)
   TEST_ASSERT_SCM_EQUAL(expected, actual);
 }
 
-TEST(api_strings, api_string_to_list__out_of_range__return_ERROR)
+TEST(api_strings, api_string_to_list__out_of_range__start__return_ERROR)
+{
+  ScmObj str = SCM_OBJ_INIT, start = SCM_OBJ_INIT, end = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&str, &start, &end);
+
+  str = scm_make_string_from_cstr("abcde", SCM_ENC_UTF8);
+  start = ut_read_cstr("6");
+
+  TEST_ASSERT_SCM_NULL(scm_api_string_to_list(str, start, SCM_OBJ_NULL));
+}
+
+TEST(api_strings, api_string_to_list__out_of_range__end__return_ERROR)
 {
   ScmObj str = SCM_OBJ_INIT, start = SCM_OBJ_INIT, end = SCM_OBJ_INIT;
 
@@ -745,6 +891,74 @@ TEST(api_strings, api_string_copy__same_index__return_empty_string)
   TEST_ASSERT_SCM_TRUE(scm_string_eq_P(expected, actual));
 }
 
+TEST(api_strings, api_string_copy__specify_min_stat)
+{
+  ScmObj str = SCM_OBJ_INIT, start = SCM_OBJ_INIT, end = SCM_OBJ_INIT;
+  ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&str, &start, &end, &actual, &expected);
+
+  str = scm_make_string_from_cstr("abcdef", SCM_ENC_UTF8);
+  start = ut_read_cstr("0");
+  end = SCM_OBJ_NULL;
+  expected = scm_make_string_from_cstr("abcdef", SCM_ENC_UTF8);
+
+  actual = scm_api_string_copy(str, start, end);
+
+  TEST_ASSERT_SCM_TRUE(scm_string_eq_P(expected, actual));
+}
+
+TEST(api_strings, api_string_copy__specify_max_stat)
+{
+  ScmObj str = SCM_OBJ_INIT, start = SCM_OBJ_INIT, end = SCM_OBJ_INIT;
+  ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&str, &start, &end, &actual, &expected);
+
+  str = scm_make_string_from_cstr("abcdef", SCM_ENC_UTF8);
+  start = ut_read_cstr("6");
+  end = SCM_OBJ_NULL;
+  expected = scm_make_string_from_cstr("", SCM_ENC_UTF8);
+
+  actual = scm_api_string_copy(str, start, end);
+
+  TEST_ASSERT_SCM_TRUE(scm_string_eq_P(expected, actual));
+}
+
+TEST(api_strings, api_string_copy__specify_min_end)
+{
+  ScmObj str = SCM_OBJ_INIT, start = SCM_OBJ_INIT, end = SCM_OBJ_INIT;
+  ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&str, &start, &end, &actual, &expected);
+
+  str = scm_make_string_from_cstr("abcdef", SCM_ENC_UTF8);
+  start = ut_read_cstr("0");
+  end = ut_read_cstr("0");;
+  expected = scm_make_string_from_cstr("", SCM_ENC_UTF8);
+
+  actual = scm_api_string_copy(str, start, end);
+
+  TEST_ASSERT_SCM_TRUE(scm_string_eq_P(expected, actual));
+}
+
+TEST(api_strings, api_string_copy__specify_max_end)
+{
+  ScmObj str = SCM_OBJ_INIT, start = SCM_OBJ_INIT, end = SCM_OBJ_INIT;
+  ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&str, &start, &end, &actual, &expected);
+
+  str = scm_make_string_from_cstr("abcdef", SCM_ENC_UTF8);
+  start = ut_read_cstr("1");
+  end = ut_read_cstr("6");
+  expected = scm_make_string_from_cstr("bcdef", SCM_ENC_UTF8);
+
+  actual = scm_api_string_copy(str, start, end);
+
+  TEST_ASSERT_SCM_TRUE(scm_string_eq_P(expected, actual));
+}
+
 TEST(api_strings, api_string_copy__out_of_range__return_ERROR)
 {
   ScmObj str = SCM_OBJ_INIT, start = SCM_OBJ_INIT, end = SCM_OBJ_INIT;
@@ -843,6 +1057,120 @@ TEST(api_strings, api_string_copy_i__same_idx)
   start = ut_read_cstr("2");
   end = ut_read_cstr("2");
   expected = scm_make_string_from_cstr("12345", SCM_ENC_UTF8);
+
+  TEST_ASSERT_SCM_UNDEF(scm_api_string_copy_i(to, at, from, start, end));
+  TEST_ASSERT_SCM_TRUE(scm_string_eq_P(expected, to));
+}
+
+TEST(api_strings, api_string_copy_i__specify_min_at)
+{
+  ScmObj to = SCM_OBJ_INIT, from = SCM_OBJ_INIT;
+  ScmObj at = SCM_OBJ_INIT, start = SCM_OBJ_INIT, end = SCM_OBJ_INIT;
+  ScmObj expected = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&to, &from, &at, &start, &end, &expected);
+
+  to = scm_make_string_from_cstr("12345", SCM_ENC_UTF8);
+  from = scm_make_string_from_cstr("abcde", SCM_ENC_UTF8);
+  at = ut_read_cstr("0");
+  start = ut_read_cstr("2");
+  end = ut_read_cstr("4");
+  expected = scm_make_string_from_cstr("cd345", SCM_ENC_UTF8);
+
+  TEST_ASSERT_SCM_UNDEF(scm_api_string_copy_i(to, at, from, start, end));
+  TEST_ASSERT_SCM_TRUE(scm_string_eq_P(expected, to));
+}
+
+TEST(api_strings, api_string_copy_i__specify_max_at)
+{
+  ScmObj to = SCM_OBJ_INIT, from = SCM_OBJ_INIT;
+  ScmObj at = SCM_OBJ_INIT, start = SCM_OBJ_INIT, end = SCM_OBJ_INIT;
+  ScmObj expected = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&to, &from, &at, &start, &end, &expected);
+
+  to = scm_make_string_from_cstr("12345", SCM_ENC_UTF8);
+  from = scm_make_string_from_cstr("abcde", SCM_ENC_UTF8);
+  at = ut_read_cstr("5");
+  start = SCM_OBJ_NULL;
+  end = SCM_OBJ_NULL;
+  expected = scm_make_string_from_cstr("12345", SCM_ENC_UTF8);
+
+  TEST_ASSERT_SCM_UNDEF(scm_api_string_copy_i(to, at, from, start, end));
+  TEST_ASSERT_SCM_TRUE(scm_string_eq_P(expected, to));
+}
+
+TEST(api_strings, api_string_copy_i__specify_min_start)
+{
+  ScmObj to = SCM_OBJ_INIT, from = SCM_OBJ_INIT;
+  ScmObj at = SCM_OBJ_INIT, start = SCM_OBJ_INIT, end = SCM_OBJ_INIT;
+  ScmObj expected = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&to, &from, &at, &start, &end, &expected);
+
+  to = scm_make_string_from_cstr("12345", SCM_ENC_UTF8);
+  from = scm_make_string_from_cstr("abcde", SCM_ENC_UTF8);
+  at = ut_read_cstr("1");
+  start = ut_read_cstr("0");
+  end = SCM_OBJ_NULL;
+  expected = scm_make_string_from_cstr("1abcd", SCM_ENC_UTF8);
+
+  TEST_ASSERT_SCM_UNDEF(scm_api_string_copy_i(to, at, from, start, end));
+  TEST_ASSERT_SCM_TRUE(scm_string_eq_P(expected, to));
+}
+
+TEST(api_strings, api_string_copy_i__specify_max_start)
+{
+  ScmObj to = SCM_OBJ_INIT, from = SCM_OBJ_INIT;
+  ScmObj at = SCM_OBJ_INIT, start = SCM_OBJ_INIT, end = SCM_OBJ_INIT;
+  ScmObj expected = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&to, &from, &at, &start, &end, &expected);
+
+  to = scm_make_string_from_cstr("12345", SCM_ENC_UTF8);
+  from = scm_make_string_from_cstr("abcde", SCM_ENC_UTF8);
+  at = ut_read_cstr("1");
+  start = ut_read_cstr("5");
+  end = SCM_OBJ_NULL;
+  expected = scm_make_string_from_cstr("12345", SCM_ENC_UTF8);
+
+  TEST_ASSERT_SCM_UNDEF(scm_api_string_copy_i(to, at, from, start, end));
+  TEST_ASSERT_SCM_TRUE(scm_string_eq_P(expected, to));
+}
+
+TEST(api_strings, api_string_copy_i__specify_min_end)
+{
+  ScmObj to = SCM_OBJ_INIT, from = SCM_OBJ_INIT;
+  ScmObj at = SCM_OBJ_INIT, start = SCM_OBJ_INIT, end = SCM_OBJ_INIT;
+  ScmObj expected = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&to, &from, &at, &start, &end, &expected);
+
+  to = scm_make_string_from_cstr("12345", SCM_ENC_UTF8);
+  from = scm_make_string_from_cstr("abcde", SCM_ENC_UTF8);
+  at = ut_read_cstr("1");
+  start = ut_read_cstr("0");
+  end = ut_read_cstr("0");
+  expected = scm_make_string_from_cstr("12345", SCM_ENC_UTF8);
+
+  TEST_ASSERT_SCM_UNDEF(scm_api_string_copy_i(to, at, from, start, end));
+  TEST_ASSERT_SCM_TRUE(scm_string_eq_P(expected, to));
+}
+
+TEST(api_strings, api_string_copy_i__specify_max_end)
+{
+  ScmObj to = SCM_OBJ_INIT, from = SCM_OBJ_INIT;
+  ScmObj at = SCM_OBJ_INIT, start = SCM_OBJ_INIT, end = SCM_OBJ_INIT;
+  ScmObj expected = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&to, &from, &at, &start, &end, &expected);
+
+  to = scm_make_string_from_cstr("12345", SCM_ENC_UTF8);
+  from = scm_make_string_from_cstr("abcde", SCM_ENC_UTF8);
+  at = ut_read_cstr("0");
+  start = ut_read_cstr("0");
+  end = ut_read_cstr("5");
+  expected = scm_make_string_from_cstr("abcde", SCM_ENC_UTF8);
 
   TEST_ASSERT_SCM_UNDEF(scm_api_string_copy_i(to, at, from, start, end));
   TEST_ASSERT_SCM_TRUE(scm_string_eq_P(expected, to));
@@ -950,7 +1278,7 @@ TEST(api_strings, api_string_copy_i__start_out_of_range__return_ERROR)
   to = scm_make_string_from_cstr("12345", SCM_ENC_UTF8);
   from = scm_make_string_from_cstr("abcde", SCM_ENC_UTF8);
   at = ut_read_cstr("1");
-  start = ut_read_cstr("5");
+  start = ut_read_cstr("6");
   expected = scm_make_string_from_cstr("12345", SCM_ENC_UTF8);
 
   TEST_ASSERT_SCM_NULL(scm_api_string_copy_i(to, at, from, start, SCM_OBJ_NULL));
@@ -1087,6 +1415,78 @@ TEST(api_strings, api_string_fill_i__same_idx)
   TEST_ASSERT_SCM_TRUE(scm_string_eq_P(expected, str));
 }
 
+TEST(api_strings, api_string_fill_i__specify_min_start)
+{
+  ScmObj str = SCM_OBJ_INIT, chr = SCM_OBJ_INIT;
+  ScmObj start = SCM_OBJ_INIT, end = SCM_OBJ_INIT;
+  ScmObj expected = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&str, &chr, &start, &end, &expected);
+
+  str = scm_make_string_from_cstr("abcde", SCM_ENC_UTF8);
+  chr = ut_read_cstr("#\\z");
+  start = ut_read_cstr("1");
+  end = SCM_OBJ_NULL;
+  expected = scm_make_string_from_cstr("azzzz", SCM_ENC_UTF8);
+
+  TEST_ASSERT_SCM_UNDEF(scm_api_string_fill_i(str, chr, start, end));
+  TEST_ASSERT_SCM_TRUE(scm_string_eq_P(expected, str));
+}
+
+TEST(api_strings, api_string_fill_i__specify_max_start)
+{
+  ScmObj str = SCM_OBJ_INIT, chr = SCM_OBJ_INIT;
+  ScmObj start = SCM_OBJ_INIT, end = SCM_OBJ_INIT;
+  ScmObj expected = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&str, &chr, &start, &end, &expected);
+
+  str = scm_make_string_from_cstr("abcde", SCM_ENC_UTF8);
+  chr = ut_read_cstr("#\\z");
+  start = ut_read_cstr("5");
+  end = SCM_OBJ_NULL;
+  expected = scm_make_string_from_cstr("abcde", SCM_ENC_UTF8);
+
+  TEST_ASSERT_SCM_UNDEF(scm_api_string_fill_i(str, chr, start, end));
+  TEST_ASSERT_SCM_TRUE(scm_string_eq_P(expected, str));
+}
+
+TEST(api_strings, api_string_fill_i__specify_min_end)
+{
+  ScmObj str = SCM_OBJ_INIT, chr = SCM_OBJ_INIT;
+  ScmObj start = SCM_OBJ_INIT, end = SCM_OBJ_INIT;
+  ScmObj expected = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&str, &chr, &start, &end, &expected);
+
+  str = scm_make_string_from_cstr("abcde", SCM_ENC_UTF8);
+  chr = ut_read_cstr("#\\z");
+  start = ut_read_cstr("0");
+  end = ut_read_cstr("0");
+  expected = scm_make_string_from_cstr("abcde", SCM_ENC_UTF8);
+
+  TEST_ASSERT_SCM_UNDEF(scm_api_string_fill_i(str, chr, start, end));
+  TEST_ASSERT_SCM_TRUE(scm_string_eq_P(expected, str));
+}
+
+TEST(api_strings, api_string_fill_i__specify_max_end)
+{
+  ScmObj str = SCM_OBJ_INIT, chr = SCM_OBJ_INIT;
+  ScmObj start = SCM_OBJ_INIT, end = SCM_OBJ_INIT;
+  ScmObj expected = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&str, &chr, &start, &end, &expected);
+
+  str = scm_make_string_from_cstr("abcde", SCM_ENC_UTF8);
+  chr = ut_read_cstr("#\\z");
+  start = ut_read_cstr("1");
+  end = ut_read_cstr("5");
+  expected = scm_make_string_from_cstr("azzzz", SCM_ENC_UTF8);
+
+  TEST_ASSERT_SCM_UNDEF(scm_api_string_fill_i(str, chr, start, end));
+  TEST_ASSERT_SCM_TRUE(scm_string_eq_P(expected, str));
+}
+
 TEST(api_strings, api_string_fill_i__start_greater_than_end__return_ERROR)
 {
   ScmObj str = SCM_OBJ_INIT, chr = SCM_OBJ_INIT;
@@ -1114,7 +1514,7 @@ TEST(api_strings, api_string_fill_i__start_out_of_range__return_ERROR)
 
   str = scm_make_string_from_cstr("abcde", SCM_ENC_UTF8);
   chr = ut_read_cstr("#\\z");
-  start = ut_read_cstr("5");
+  start = ut_read_cstr("6");
   expected = scm_make_string_from_cstr("abcde", SCM_ENC_UTF8);
 
   TEST_ASSERT_SCM_NULL(scm_api_string_fill_i(str, chr, start, SCM_OBJ_NULL));

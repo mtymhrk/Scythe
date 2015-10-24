@@ -1213,6 +1213,66 @@ TEST(string, string_to_list__same_index__return_empty_list)
   TEST_ASSERT_SCM_EQUAL(expected, actual);
 }
 
+TEST(string, string_to_list__specify_min_start)
+{
+  ScmObj str = SCM_OBJ_INIT;
+  ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&str, &actual, &expected);
+
+  str = scm_make_string_from_cstr("abcde", SCM_ENC_UTF8);
+  expected = ut_read_cstr("(#\\a #\\b #\\c #\\d #\\e)");;
+
+  actual = scm_string_to_list(str, 0, -1);
+
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
+}
+
+TEST(string, string_to_list__specify_max_start)
+{
+  ScmObj str = SCM_OBJ_INIT;
+  ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&str, &actual, &expected);
+
+  str = scm_make_string_from_cstr("abcde", SCM_ENC_UTF8);
+  expected = SCM_NIL_OBJ;
+
+  actual = scm_string_to_list(str, 5, -1);
+
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
+}
+
+TEST(string, string_to_list__specify__min_end)
+{
+  ScmObj str = SCM_OBJ_INIT;
+  ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&str, &actual, &expected);
+
+  str = scm_make_string_from_cstr("abcde", SCM_ENC_UTF8);
+  expected = SCM_NIL_OBJ;
+
+  actual = scm_string_to_list(str, 0, 0);
+
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
+}
+
+TEST(string, string_to_list__specify_max_end)
+{
+  ScmObj str = SCM_OBJ_INIT;
+  ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&str, &actual, &expected);
+
+  str = scm_make_string_from_cstr("abcde", SCM_ENC_UTF8);
+  expected = ut_read_cstr("(#\\a #\\b #\\c #\\d #\\e)");;
+
+  actual = scm_string_to_list(str, 0, 5);
+
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
+}
+
 TEST(string, list_to_string)
 {
   ScmObj lst = SCM_OBJ_INIT;
@@ -1340,6 +1400,66 @@ TEST(string, string_copy__same_index__return_empty_string)
   TEST_ASSERT_SCM_TRUE(scm_string_eq_P(expected, actual));
 }
 
+TEST(string, string_copy__specify_min_start)
+{
+  ScmObj str = SCM_OBJ_INIT;
+  ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&str, &actual, &expected);
+
+  str = scm_make_string_from_cstr("abcdef", SCM_ENC_UTF8);
+  expected = scm_make_string_from_cstr("abcdef", SCM_ENC_UTF8);
+
+  actual = scm_string_copy(str, 0, -1);
+
+  TEST_ASSERT_SCM_TRUE(scm_string_eq_P(expected, actual));
+}
+
+TEST(string, string_copy__specify_max_start)
+{
+  ScmObj str = SCM_OBJ_INIT;
+  ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&str, &actual, &expected);
+
+  str = scm_make_string_from_cstr("abcdef", SCM_ENC_UTF8);
+  expected = scm_make_string_from_cstr("", SCM_ENC_UTF8);
+
+  actual = scm_string_copy(str, 6, -1);
+
+  TEST_ASSERT_SCM_TRUE(scm_string_eq_P(expected, actual));
+}
+
+TEST(string, string_copy__specify_min_end)
+{
+  ScmObj str = SCM_OBJ_INIT;
+  ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&str, &actual, &expected);
+
+  str = scm_make_string_from_cstr("abcdef", SCM_ENC_UTF8);
+  expected = scm_make_string_from_cstr("", SCM_ENC_UTF8);
+
+  actual = scm_string_copy(str, 0, 0);
+
+  TEST_ASSERT_SCM_TRUE(scm_string_eq_P(expected, actual));
+}
+
+TEST(string, string_copy__specify_max_end)
+{
+  ScmObj str = SCM_OBJ_INIT;
+  ScmObj actual = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&str, &actual, &expected);
+
+  str = scm_make_string_from_cstr("abcdef", SCM_ENC_UTF8);
+  expected = scm_make_string_from_cstr("abcdef", SCM_ENC_UTF8);
+
+  actual = scm_string_copy(str, 0, 6);
+
+  TEST_ASSERT_SCM_TRUE(scm_string_eq_P(expected, actual));
+}
+
 TEST(string, string_copy_i__unspecify_start_end)
 {
   ScmObj to = SCM_OBJ_INIT, from = SCM_OBJ_INIT;
@@ -1397,6 +1517,96 @@ TEST(string, string_copy_i__same_idx)
   expected = scm_make_string_from_cstr("12345", SCM_ENC_UTF8);
 
   TEST_ASSERT_EQUAL_INT(0, scm_string_copy_i(to, 1, from, 2, 2));
+  TEST_ASSERT_SCM_TRUE(scm_string_eq_P(expected, to));
+}
+
+TEST(string, string_copy_i__specify_min_at)
+{
+  ScmObj to = SCM_OBJ_INIT, from = SCM_OBJ_INIT;
+  ScmObj expected = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&to, &from, &expected);
+
+  to = scm_make_string_from_cstr("12345", SCM_ENC_UTF8);
+  from = scm_make_string_from_cstr("abcde", SCM_ENC_UTF8);
+  expected = scm_make_string_from_cstr("cd345", SCM_ENC_UTF8);
+
+  TEST_ASSERT_EQUAL_INT(0, scm_string_copy_i(to, 0, from, 2, 4));
+  TEST_ASSERT_SCM_TRUE(scm_string_eq_P(expected, to));
+}
+
+TEST(string, string_copy_i__specify_max_at)
+{
+  ScmObj to = SCM_OBJ_INIT, from = SCM_OBJ_INIT;
+  ScmObj expected = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&to, &from, &expected);
+
+  to = scm_make_string_from_cstr("12345", SCM_ENC_UTF8);
+  from = scm_make_string_from_cstr("abcde", SCM_ENC_UTF8);
+  expected = scm_make_string_from_cstr("12345", SCM_ENC_UTF8);
+
+  TEST_ASSERT_EQUAL_INT(0, scm_string_copy_i(to, 5, from, -1, -1));
+  TEST_ASSERT_SCM_TRUE(scm_string_eq_P(expected, to));
+}
+
+TEST(string, string_copy_i__specify_min_start)
+{
+  ScmObj to = SCM_OBJ_INIT, from = SCM_OBJ_INIT;
+  ScmObj expected = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&to, &from, &expected);
+
+  to = scm_make_string_from_cstr("12345", SCM_ENC_UTF8);
+  from = scm_make_string_from_cstr("abcde", SCM_ENC_UTF8);
+  expected = scm_make_string_from_cstr("1abcd", SCM_ENC_UTF8);
+
+  TEST_ASSERT_EQUAL_INT(0, scm_string_copy_i(to, 1, from, 0, -1));
+  TEST_ASSERT_SCM_TRUE(scm_string_eq_P(expected, to));
+}
+
+TEST(string, string_copy_i__specify_max_start)
+{
+  ScmObj to = SCM_OBJ_INIT, from = SCM_OBJ_INIT;
+  ScmObj expected = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&to, &from, &expected);
+
+  to = scm_make_string_from_cstr("12345", SCM_ENC_UTF8);
+  from = scm_make_string_from_cstr("abcde", SCM_ENC_UTF8);
+  expected = scm_make_string_from_cstr("12345", SCM_ENC_UTF8);
+
+  TEST_ASSERT_EQUAL_INT(0, scm_string_copy_i(to, 1, from, 5, -1));
+  TEST_ASSERT_SCM_TRUE(scm_string_eq_P(expected, to));
+}
+
+TEST(string, string_copy_i__specify_min_end)
+{
+  ScmObj to = SCM_OBJ_INIT, from = SCM_OBJ_INIT;
+  ScmObj expected = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&to, &from, &expected);
+
+  to = scm_make_string_from_cstr("12345", SCM_ENC_UTF8);
+  from = scm_make_string_from_cstr("abcde", SCM_ENC_UTF8);
+  expected = scm_make_string_from_cstr("12345", SCM_ENC_UTF8);
+
+  TEST_ASSERT_EQUAL_INT(0, scm_string_copy_i(to, 1, from, 0, 0));
+  TEST_ASSERT_SCM_TRUE(scm_string_eq_P(expected, to));
+}
+
+TEST(string, string_copy_i__specify_max_end)
+{
+  ScmObj to = SCM_OBJ_INIT, from = SCM_OBJ_INIT;
+  ScmObj expected = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&to, &from, &expected);
+
+  to = scm_make_string_from_cstr("12345", SCM_ENC_UTF8);
+  from = scm_make_string_from_cstr("abcde", SCM_ENC_UTF8);
+  expected = scm_make_string_from_cstr("abcde", SCM_ENC_UTF8);
+
+  TEST_ASSERT_EQUAL_INT(0, scm_string_copy_i(to, 0, from, 0, 5));
   TEST_ASSERT_SCM_TRUE(scm_string_eq_P(expected, to));
 }
 
@@ -1502,6 +1712,66 @@ TEST(string, string_fill_i__same_idx)
   expected = scm_make_string_from_cstr("abcde", SCM_ENC_UTF8);
 
   TEST_ASSERT_EQUAL_INT(0, scm_string_fill_i(str, chr, 1, 1));
+  TEST_ASSERT_SCM_TRUE(scm_string_eq_P(expected, str));
+}
+
+TEST(string, string_fill_i__specify_min_start)
+{
+  ScmObj str = SCM_OBJ_INIT, chr = SCM_OBJ_INIT;
+  ScmObj expected = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&str, &chr, &expected);
+
+  str = scm_make_string_from_cstr("abcde", SCM_ENC_UTF8);
+  chr = ut_read_cstr("#\\z");
+  expected = scm_make_string_from_cstr("zzzzz", SCM_ENC_UTF8);
+
+  TEST_ASSERT_EQUAL_INT(0, scm_string_fill_i(str, chr, 0, -1));
+  TEST_ASSERT_SCM_TRUE(scm_string_eq_P(expected, str));
+}
+
+TEST(string, string_fill_i__specify_max_start)
+{
+  ScmObj str = SCM_OBJ_INIT, chr = SCM_OBJ_INIT;
+  ScmObj expected = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&str, &chr, &expected);
+
+  str = scm_make_string_from_cstr("abcde", SCM_ENC_UTF8);
+  chr = ut_read_cstr("#\\z");
+  expected = scm_make_string_from_cstr("abcde", SCM_ENC_UTF8);
+
+  TEST_ASSERT_EQUAL_INT(0, scm_string_fill_i(str, chr, 5, -1));
+  TEST_ASSERT_SCM_TRUE(scm_string_eq_P(expected, str));
+}
+
+TEST(string, string_fill_i__specify_min_end)
+{
+  ScmObj str = SCM_OBJ_INIT, chr = SCM_OBJ_INIT;
+  ScmObj expected = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&str, &chr, &expected);
+
+  str = scm_make_string_from_cstr("abcde", SCM_ENC_UTF8);
+  chr = ut_read_cstr("#\\z");
+  expected = scm_make_string_from_cstr("abcde", SCM_ENC_UTF8);
+
+  TEST_ASSERT_EQUAL_INT(0, scm_string_fill_i(str, chr, 0, 0));
+  TEST_ASSERT_SCM_TRUE(scm_string_eq_P(expected, str));
+}
+
+TEST(string, string_fill_i__specify_max_end)
+{
+  ScmObj str = SCM_OBJ_INIT, chr = SCM_OBJ_INIT;
+  ScmObj expected = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&str, &chr, &expected);
+
+  str = scm_make_string_from_cstr("abcde", SCM_ENC_UTF8);
+  chr = ut_read_cstr("#\\z");
+  expected = scm_make_string_from_cstr("azzzz", SCM_ENC_UTF8);
+
+  TEST_ASSERT_EQUAL_INT(0, scm_string_fill_i(str, chr, 1, 5));
   TEST_ASSERT_SCM_TRUE(scm_string_eq_P(expected, str));
 }
 

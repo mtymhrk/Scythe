@@ -252,7 +252,7 @@ ScmObj
 scm_vector_to_list(ScmObj vec, ssize_t start, ssize_t end)
 {
   scm_assert(scm_vector_p(vec));
-  scm_assert(start < 0 || (size_t)start < scm_vector_length(vec));
+  scm_assert(start < 0 || (size_t)start <= scm_vector_length(vec));
   scm_assert(end < 0 || (size_t)end <= scm_vector_length(vec));
   scm_assert(start < 0 || end < 0 || start <= end);
 
@@ -264,7 +264,7 @@ ScmObj
 scm_vector_to_string(ScmObj vec, ssize_t start, ssize_t end)
 {
   scm_assert(scm_vector_p(vec));
-  scm_assert(start < 0 || (size_t)start < scm_vector_length(vec));
+  scm_assert(start < 0 || (size_t)start <= scm_vector_length(vec));
   scm_assert(end < 0 || (size_t)end <= scm_vector_length(vec));
   scm_assert(start < 0 || end < 0 || start <= end);
 
@@ -301,7 +301,7 @@ ScmObj
 scm_string_to_vector(ScmObj str, ssize_t start, ssize_t end)
 {
   scm_assert(scm_string_p(str));
-  scm_assert(start < 0 || (size_t)start < scm_string_length(str));
+  scm_assert(start < 0 || (size_t)start <= scm_string_length(str));
   scm_assert(end < 0 || (size_t)end <= scm_string_length(str));
   scm_assert(start < 0 || end < 0 || start <= end);
 
@@ -322,7 +322,7 @@ scm_vector_copy(ScmObj vec, ssize_t start, ssize_t end)
                       &copy);
 
   scm_assert(scm_vector_p(vec));
-  scm_assert(start < 0 || (size_t)start < scm_vector_length(vec));
+  scm_assert(start < 0 || (size_t)start <= scm_vector_length(vec));
   scm_assert(end < 0 || (size_t)end <= scm_vector_length(vec));
   scm_assert(start < 0 || end < 0 || start <= end);
 
@@ -372,9 +372,9 @@ scm_vector_copy_i(ScmObj to, size_t at, ScmObj from, ssize_t start, ssize_t end)
   size_t len, dst_len, from_len;
 
   scm_assert(scm_vector_p(to));
-  scm_assert(at < scm_vector_length(to));
+  scm_assert(at <= scm_vector_length(to));
   scm_assert(scm_vector_p(from));
-  scm_assert(start < 0 || (size_t)start < scm_vector_length(from));
+  scm_assert(start < 0 || (size_t)start <= scm_vector_length(from));
   scm_assert(end < 0 || (size_t)end <= scm_vector_length(from));
   scm_assert(start < 0 || end < 0 || start <= end);
 
@@ -384,7 +384,7 @@ scm_vector_copy_i(ScmObj to, size_t at, ScmObj from, ssize_t start, ssize_t end)
   if (start < 0)
     start = 0;
 
-  if (end > 0) {
+  if (end >= 0) {
     len = (size_t)(end - start);
     if (len > dst_len) {
       scm_error("failed to copy vector: out of range", 0);
@@ -524,7 +524,7 @@ scm_vector_fill_i(ScmObj vec, ScmObj fill, ssize_t start, ssize_t end)
 {
   scm_assert(scm_vector_p(vec));
   scm_assert(scm_obj_not_null_p(fill));
-  scm_assert(start < 0 || (size_t)start < scm_vector_length(vec));
+  scm_assert(start < 0 || (size_t)start <= scm_vector_length(vec));
   scm_assert(end < 0 || (size_t)end <= scm_vector_length(vec));
   scm_assert(start < 0 || end < 0 || start <= end);
 

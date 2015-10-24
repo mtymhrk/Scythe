@@ -298,6 +298,62 @@ TEST(vector, vector_to_list__same_idx__return_empty_list)
   TEST_ASSERT_SCM_EQUAL(expected, actual);
 }
 
+TEST(vector, vector_to_list__specify_min_start)
+{
+  ScmObj vec = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&vec, &expected, &actual);
+
+  vec = ut_read_cstr("#(a b c d e)");
+  expected = ut_read_cstr("(a b c d e)");
+
+  actual = scm_vector_to_list(vec, 0, -1);
+
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
+}
+
+TEST(vector, vector_to_list__specify_max_start)
+{
+  ScmObj vec = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&vec, &expected, &actual);
+
+  vec = ut_read_cstr("#(a b c d e)");
+  expected = SCM_NIL_OBJ;
+
+  actual = scm_vector_to_list(vec, 5, -1);
+
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
+}
+
+TEST(vector, vector_to_list__specify_min_end)
+{
+  ScmObj vec = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&vec, &expected, &actual);
+
+  vec = ut_read_cstr("#(a b c d e)");
+  expected = SCM_NIL_OBJ;
+
+  actual = scm_vector_to_list(vec, 0, 0);
+
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
+}
+
+TEST(vector, vector_to_list__specify_max_end)
+{
+  ScmObj vec = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&vec, &expected, &actual);
+
+  vec = ut_read_cstr("#(a b c d e)");
+  expected = ut_read_cstr("(a b c d e)");
+
+  actual = scm_vector_to_list(vec, 0, 5);
+
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
+}
+
 TEST(vector, list_to_vector)
 {
   ScmObj lst = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
@@ -409,6 +465,62 @@ TEST(vector, vector_to_string__same_idx__return_empty_string)
   TEST_ASSERT_SCM_EQUAL(expected, actual);
 }
 
+TEST(vector, vector_to_string__specify_min_start)
+{
+  ScmObj vec = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&vec, &expected, &actual);
+
+  vec = ut_read_cstr("#(#\\a #\\b #\\c #\\d #\\e)");
+  expected = ut_read_cstr("\"abcde\"");
+
+  actual = scm_vector_to_string(vec, 0, -1);
+
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
+}
+
+TEST(vector, vector_to_string__specify_max_start)
+{
+  ScmObj vec = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&vec, &expected, &actual);
+
+  vec = ut_read_cstr("#(#\\a #\\b #\\c #\\d #\\e)");
+  expected = ut_read_cstr("\"\"");
+
+  actual = scm_vector_to_string(vec, 5, -1);
+
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
+}
+
+TEST(vector, vector_to_string__specify_min_end)
+{
+  ScmObj vec = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&vec, &expected, &actual);
+
+  vec = ut_read_cstr("#(#\\a #\\b #\\c #\\d #\\e)");
+  expected = ut_read_cstr("\"\"");
+
+  actual = scm_vector_to_string(vec, 0, 0);
+
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
+}
+
+TEST(vector, vector_to_string__specify_max_end)
+{
+  ScmObj vec = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&vec, &expected, &actual);
+
+  vec = ut_read_cstr("#(#\\a #\\b #\\c #\\d #\\e)");
+  expected = ut_read_cstr("\"abcde\"");
+
+  actual = scm_vector_to_string(vec, 0, 5);
+
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
+}
+
 TEST(vector, vector_to_string__vector_has_item_is_not_char__return_ERROR)
 {
   ScmObj vec = SCM_OBJ_INIT;
@@ -476,6 +588,62 @@ TEST(vector, string_to_vector__same_idx__return_empty_vector)
   TEST_ASSERT_SCM_EQUAL(expected, actual);
 }
 
+TEST(vector, string_to_vector__specify_min_start)
+{
+  ScmObj str = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&str, &expected, &actual);
+
+  str = ut_read_cstr("\"abcde\"");
+  expected = ut_read_cstr("#(#\\a #\\b #\\c #\\d #\\e)");
+
+  actual = scm_string_to_vector(str, 0, -1);
+
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
+}
+
+TEST(vector, string_to_vector__specify_max_start)
+{
+  ScmObj str = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&str, &expected, &actual);
+
+  str = ut_read_cstr("\"abcde\"");
+  expected = ut_read_cstr("#()");
+
+  actual = scm_string_to_vector(str, 5, -1);
+
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
+}
+
+TEST(vector, string_to_vector__specify_min_end)
+{
+  ScmObj str = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&str, &expected, &actual);
+
+  str = ut_read_cstr("\"abcde\"");
+  expected = ut_read_cstr("#()");
+
+  actual = scm_string_to_vector(str, 0, 0);
+
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
+}
+
+TEST(vector, string_to_vector__specify_max_end)
+{
+  ScmObj str = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&str, &expected, &actual);
+
+  str = ut_read_cstr("\"abcde\"");
+  expected = ut_read_cstr("#(#\\b #\\c #\\d #\\e)");
+
+  actual = scm_string_to_vector(str, 1, 5);
+
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
+}
+
 TEST(vector, vector_copy__unspecify_start_end)
 {
   ScmObj vec = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
@@ -528,6 +696,62 @@ TEST(vector, vector_copy__same_idx__return_empty_vector)
   expected = ut_read_cstr("#()");
 
   actual = scm_vector_copy(vec, 1, 1);
+
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
+}
+
+TEST(vector, vector_copy__specify_min_start)
+{
+  ScmObj vec = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&vec, &expected, &actual);
+
+  vec = ut_read_cstr("#(a b c d e)");
+  expected = ut_read_cstr("#(a b c d e)");
+
+  actual = scm_vector_copy(vec, 0, -1);
+
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
+}
+
+TEST(vector, vector_copy__specify_max_start)
+{
+  ScmObj vec = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&vec, &expected, &actual);
+
+  vec = ut_read_cstr("#(a b c d e)");
+  expected = ut_read_cstr("#()");
+
+  actual = scm_vector_copy(vec, 5, -1);
+
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
+}
+
+TEST(vector, vector_copy__specify_min_end)
+{
+  ScmObj vec = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&vec, &expected, &actual);
+
+  vec = ut_read_cstr("#(a b c d e)");
+  expected = ut_read_cstr("#()");
+
+  actual = scm_vector_copy(vec, 0, 0);
+
+  TEST_ASSERT_SCM_EQUAL(expected, actual);
+}
+
+TEST(vector, vector_copy__specify_max_end)
+{
+  ScmObj vec = SCM_OBJ_INIT, expected = SCM_OBJ_INIT, actual = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&vec, &expected, &actual);
+
+  vec = ut_read_cstr("#(a b c d e)");
+  expected = ut_read_cstr("#(a b c d e)");
+
+  actual = scm_vector_copy(vec, 0, 5);
 
   TEST_ASSERT_SCM_EQUAL(expected, actual);
 }
@@ -588,6 +812,94 @@ TEST(vector, vector_copy_i__same_idx)
   expected = ut_read_cstr("#(1 2 3 4 5)");
 
   TEST_ASSERT_EQUAL_INT(0, scm_vector_copy_i(to, 1, from, 2, 2));
+
+  TEST_ASSERT_SCM_EQUAL(expected, to);
+}
+
+TEST(vector, vector_copy_i__specify_min_at)
+{
+  ScmObj to = SCM_OBJ_INIT, from = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&to, &from, &expected);
+
+  to = ut_read_cstr("#(1 2 3 4 5)");
+  from = ut_read_cstr("#(a b c d e)");
+  expected = ut_read_cstr("#(a b c d e)");
+
+  TEST_ASSERT_EQUAL_INT(0, scm_vector_copy_i(to, 0, from, -1, -1));
+
+  TEST_ASSERT_SCM_EQUAL(expected, to);
+}
+
+TEST(vector, vector_copy_i__specify_max_at)
+{
+  ScmObj to = SCM_OBJ_INIT, from = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&to, &from, &expected);
+
+  to = ut_read_cstr("#(1 2 3 4 5)");
+  from = ut_read_cstr("#(a b c d e)");
+  expected = ut_read_cstr("#(1 2 3 4 5)");
+
+  TEST_ASSERT_EQUAL_INT(0, scm_vector_copy_i(to, 5, from, -1, -1));
+
+  TEST_ASSERT_SCM_EQUAL(expected, to);
+}
+
+TEST(vector, vector_copy_i__specify_min_start)
+{
+  ScmObj to = SCM_OBJ_INIT, from = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&to, &from, &expected);
+
+  to = ut_read_cstr("#(1 2 3 4 5)");
+  from = ut_read_cstr("#(a b c d e)");
+  expected = ut_read_cstr("#(1 a b c d)");
+
+  TEST_ASSERT_EQUAL_INT(0, scm_vector_copy_i(to, 1, from, 0, -1));
+
+  TEST_ASSERT_SCM_EQUAL(expected, to);
+}
+
+TEST(vector, vector_copy_i__specify_max_start)
+{
+  ScmObj to = SCM_OBJ_INIT, from = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&to, &from, &expected);
+
+  to = ut_read_cstr("#(1 2 3 4 5)");
+  from = ut_read_cstr("#(a b c d e)");
+  expected = ut_read_cstr("#(1 2 3 4 5)");
+  TEST_ASSERT_EQUAL_INT(0, scm_vector_copy_i(to, 1, from, 5, -1));
+
+  TEST_ASSERT_SCM_EQUAL(expected, to);
+}
+
+TEST(vector, vector_copy_i__specify_min_end)
+{
+  ScmObj to = SCM_OBJ_INIT, from = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&to, &from, &expected);
+
+  to = ut_read_cstr("#(1 2 3 4 5)");
+  from = ut_read_cstr("#(a b c d e)");
+  expected = ut_read_cstr("#(1 2 3 4 5)");
+  TEST_ASSERT_EQUAL_INT(0, scm_vector_copy_i(to, 1, from, 0, 0));
+
+  TEST_ASSERT_SCM_EQUAL(expected, to);
+}
+
+TEST(vector, vector_copy_i__specify_max_end)
+{
+  ScmObj to = SCM_OBJ_INIT, from = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&to, &from, &expected);
+
+  to = ut_read_cstr("#(1 2 3 4 5)");
+  from = ut_read_cstr("#(a b c d e)");
+  expected = ut_read_cstr("#(1 b c d e)");
+
+  TEST_ASSERT_EQUAL_INT(0, scm_vector_copy_i(to, 1, from, 1, 5));
 
   TEST_ASSERT_SCM_EQUAL(expected, to);
 }
@@ -836,6 +1148,66 @@ TEST(vector, vector_fill_i__same_idx)
   expected = ut_read_cstr("#(a b c d e)");
 
   scm_vector_fill_i(vec, fill, 1, 1);
+
+  TEST_ASSERT_SCM_EQUAL(expected, vec);
+}
+
+TEST(vector, vector_fill_i__specify_min_start)
+{
+  ScmObj vec = SCM_OBJ_INIT, fill = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&vec, &fill, &expected);
+
+  vec = ut_read_cstr("#(a b c d e)");
+  fill = ut_read_cstr("z");
+  expected = ut_read_cstr("#(z z z z z)");
+
+  scm_vector_fill_i(vec, fill, 0, -1);
+
+  TEST_ASSERT_SCM_EQUAL(expected, vec);
+}
+
+TEST(vector, vector_fill_i__specify_max_start)
+{
+  ScmObj vec = SCM_OBJ_INIT, fill = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&vec, &fill, &expected);
+
+  vec = ut_read_cstr("#(a b c d e)");
+  fill = ut_read_cstr("z");
+  expected = ut_read_cstr("#(a b c d e)");
+
+  scm_vector_fill_i(vec, fill, 5, -1);
+
+  TEST_ASSERT_SCM_EQUAL(expected, vec);
+}
+
+TEST(vector, vector_fill_i__specify_min_end)
+{
+  ScmObj vec = SCM_OBJ_INIT, fill = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&vec, &fill, &expected);
+
+  vec = ut_read_cstr("#(a b c d e)");
+  fill = ut_read_cstr("z");
+  expected = ut_read_cstr("#(a b c d e)");
+
+  scm_vector_fill_i(vec, fill, 0, 0);
+
+  TEST_ASSERT_SCM_EQUAL(expected, vec);
+}
+
+TEST(vector, vector_fill_i__specify_max_end)
+{
+  ScmObj vec = SCM_OBJ_INIT, fill = SCM_OBJ_INIT, expected = SCM_OBJ_INIT;
+
+  SCM_REFSTK_INIT_REG(&vec, &fill, &expected);
+
+  vec = ut_read_cstr("#(a b c d e)");
+  fill = ut_read_cstr("z");
+  expected = ut_read_cstr("#(a z z z z)");
+
+  scm_vector_fill_i(vec, fill, 1, 5);
 
   TEST_ASSERT_SCM_EQUAL(expected, vec);
 }

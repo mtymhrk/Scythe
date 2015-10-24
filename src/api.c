@@ -793,7 +793,7 @@ scm_api_substring(ScmObj str, ScmObj start, ScmObj end)
     scm_capi_error("substring: invalid argument", 0);
     return SCM_OBJ_NULL;
   }
-  else if (se > scm_string_length(str)) {
+  else if (ss > scm_string_length(str) || se > scm_string_length(str)) {
     scm_capi_error("substring: out of range", 0);
     return SCM_OBJ_NULL;
   }
@@ -810,7 +810,7 @@ string_to_list_aux(ScmObj str, ssize_t start, ssize_t end)
     scm_capi_error("string->list: string required, but got", 1, str);
     return SCM_OBJ_NULL;
   }
-  else if (start >= 0 && (size_t)start >= scm_string_length(str)) {
+  else if (start >= 0 && (size_t)start > scm_string_length(str)) {
     scm_capi_error("string->list: out of range", 0);
     return SCM_OBJ_NULL;
   }
@@ -882,7 +882,7 @@ string_copy_aux(ScmObj str, ssize_t start, ssize_t end)
     scm_capi_error("string-copy: string required, but got", 1, str);
     return SCM_OBJ_NULL;
   }
-  else if (start >= 0 && (size_t)start >= scm_string_length(str)) {
+  else if (start >= 0 && (size_t)start > scm_string_length(str)) {
     scm_capi_error("string-copy: out of range", 0);
     return SCM_OBJ_NULL;
   }
@@ -954,7 +954,7 @@ string_copy_i_aux(ScmObj to, size_t at, ScmObj from, ssize_t start, ssize_t end)
     scm_capi_error("string-copy!: string require, but got", 1, to);
     return SCM_OBJ_NULL;
   }
-  else if (at >= scm_string_length(to)) {
+  else if (at > scm_string_length(to)) {
     scm_capi_error("string-copy!: out of range", 0);
     return SCM_OBJ_NULL;
   }
@@ -962,7 +962,7 @@ string_copy_i_aux(ScmObj to, size_t at, ScmObj from, ssize_t start, ssize_t end)
     scm_capi_error("string-copy!: string require, but got", 1, from);
     return SCM_OBJ_NULL;
   }
-  else if (start >= 0 && (size_t)start >= scm_string_length(from)) {
+  else if (start >= 0 && (size_t)start > scm_string_length(from)) {
     scm_capi_error("string-copy!: out of range", 0);
     return SCM_OBJ_NULL;
   }
@@ -1051,7 +1051,7 @@ string_fill_i_aux(ScmObj str, ScmObj fill, ssize_t start, ssize_t end)
     scm_capi_error("string-fill!: character required, but got", 1, fill);
     return SCM_OBJ_NULL;
   }
-  else if (start >= 0 && (size_t)start >= scm_string_length(str)) {
+  else if (start >= 0 && (size_t)start > scm_string_length(str)) {
     scm_capi_error("string-fill!: out of range", 0);
     return SCM_OBJ_NULL;
   }
@@ -1233,7 +1233,7 @@ vector_to_list_aux(ScmObj vec, ssize_t start, ssize_t end)
     scm_capi_error("vector->list: vector required, but got", 1, vec);
     return SCM_OBJ_NULL;
   }
-  else if (start >= 0 && (size_t)start >= scm_vector_length(vec)) {
+  else if (start >= 0 && (size_t)start > scm_vector_length(vec)) {
     scm_capi_error("vector->list: out of range", 0);
     return SCM_OBJ_NULL;
   }
@@ -1301,7 +1301,7 @@ vector_to_string_aux(ScmObj vec, ssize_t start, ssize_t end)
     scm_capi_error("vector->string: vector required, but got", 1, vec);
     return SCM_OBJ_NULL;
   }
-  else if (start >= 0 && (size_t)start >= scm_vector_length(vec)) {
+  else if (start >= 0 && (size_t)start > scm_vector_length(vec)) {
     scm_capi_error("vector->string: out of range", 0);
     return SCM_OBJ_NULL;
   }
@@ -1339,7 +1339,7 @@ string_to_vector_aux(ScmObj str, ssize_t start, ssize_t end)
     scm_capi_error("string->vector: string required, but got", 1, str);
     return SCM_OBJ_NULL;
   }
-    else if (start >= 0 && (size_t)start >= scm_string_length(str)) {
+    else if (start >= 0 && (size_t)start > scm_string_length(str)) {
     scm_capi_error("string->vector: out of range", 0);
     return SCM_OBJ_NULL;
   }
@@ -1377,7 +1377,7 @@ vector_copy_aux(ScmObj vec, ssize_t start, ssize_t end)
     scm_capi_error("vector-copy: vector required, but got", 1, vec);
     return SCM_OBJ_NULL;
   }
-  else if (start >= 0 && (size_t)start >= scm_vector_length(vec)) {
+  else if (start >= 0 && (size_t)start > scm_vector_length(vec)) {
     scm_capi_error("vector->list: out of range", 0);
     return SCM_OBJ_NULL;
   }
@@ -1417,7 +1417,7 @@ vector_copy_i_aux(ScmObj to, size_t at, ScmObj from, ssize_t start, ssize_t end)
     scm_capi_error("vector-copy!: vector required, but got", 1, to);
     return SCM_OBJ_NULL;
   }
-  else if (at >= scm_vector_length(to)) {
+  else if (at > scm_vector_length(to)) {
     scm_capi_error("vector-copy!: out of range", 0);
     return SCM_OBJ_NULL;
   }
@@ -1425,7 +1425,7 @@ vector_copy_i_aux(ScmObj to, size_t at, ScmObj from, ssize_t start, ssize_t end)
     scm_capi_error("vector-copy!: vectore required, but got", 1, from);
     return SCM_OBJ_NULL;
   }
-  else if (start >= 0 && (size_t)start >= scm_vector_length(from)) {
+  else if (start >= 0 && (size_t)start > scm_vector_length(from)) {
     scm_capi_error("vector-copy!: out of range", 0);
     return SCM_OBJ_NULL;
   }
@@ -1478,7 +1478,7 @@ vector_fill_i_aux(ScmObj vec, ScmObj fill, ssize_t start, ssize_t end)
     scm_capi_error("vector-fill!: vectore required, but got", 1, vec);
     return SCM_OBJ_NULL;
   }
-    else if (start >= 0 && (size_t)start >= scm_vector_length(vec)) {
+    else if (start >= 0 && (size_t)start > scm_vector_length(vec)) {
     scm_capi_error("vector-fill!: out of range", 0);
     return SCM_OBJ_NULL;
   }

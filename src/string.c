@@ -1059,15 +1059,8 @@ scm_string_substr(ScmObj str, size_t pos, size_t len)
   ScmStrItr head, tail;
 
   SCM_REFSTK_INIT_REG(&str, &substr);
-  scm_assert(pos <= SSIZE_MAX);
-  scm_assert(len <= SSIZE_MAX);
-
-  if (pos >= SCM_STRING_LENGTH(str)
-      || (ssize_t)pos > (ssize_t)SCM_STRING_LENGTH(str) - (ssize_t)len) {
-    /* TODO: change error message */
-    scm_error("can not make substring: argument is out of range", 0);
-    return SCM_OBJ_NULL;
-  }
+  scm_assert(pos <= SCM_STRING_LENGTH(str));
+  scm_assert(len <= SCM_STRING_LENGTH(str) - pos);
 
   scm_enc_index2itr(SCM_STRING_ENC(str), SCM_STRING_HEAD(str),
                     SCM_STRING_BYTESIZE(str), pos, &head);
@@ -1321,7 +1314,7 @@ ScmObj
 scm_string_copy(ScmObj str, ssize_t start, ssize_t end)
 {
   scm_assert(scm_string_p(str));
-  scm_assert(start < 0 || (size_t)start < scm_string_length(str));
+  scm_assert(start < 0 || (size_t)start <= scm_string_length(str));
   scm_assert(end < 0 || (size_t)end <= scm_string_length(str));
   scm_assert(start < 0 || end < 0 || start <= end);
 
@@ -1360,9 +1353,9 @@ scm_string_copy_i(ScmObj to, size_t at, ScmObj from, ssize_t start, ssize_t end)
   SCM_REFSTK_INIT_REG(&to, &from);
 
   scm_assert(scm_string_p(to));
-  scm_assert(at < scm_string_length(to));
+  scm_assert(at <= scm_string_length(to));
   scm_assert(scm_string_p(from));
-  scm_assert(start < 0 || (size_t)start < scm_string_length(from));
+  scm_assert(start < 0 || (size_t)start <= scm_string_length(from));
   scm_assert(end < 0 || (size_t)end <= scm_string_length(from));
   scm_assert(start < 0 || end < 0 || start <= end);
 
@@ -1378,7 +1371,7 @@ scm_string_copy_i(ScmObj to, size_t at, ScmObj from, ssize_t start, ssize_t end)
   if (start < 0)
     start = 0;
 
-  if (end > 0) {
+  if (end >= 0) {
     len = (size_t)(end - start);
     if (len > sub_len) {
       scm_error("failed to copy string: out of range", 0);
@@ -1402,7 +1395,7 @@ scm_string_fill_i(ScmObj str, ScmObj fill, ssize_t start, ssize_t end)
 
   scm_assert(scm_string_p(str));
   scm_assert(scm_char_p(fill));
-  scm_assert(start < 0 || (size_t)start < scm_string_length(str));
+  scm_assert(start < 0 || (size_t)start <= scm_string_length(str));
   scm_assert(end < 0 || (size_t)end <= scm_string_length(str));
   scm_assert(start < 0 || end < 0 || start <= end);
 
@@ -1436,7 +1429,7 @@ scm_string_to_cchr_ary(ScmObj str, size_t pos, ssize_t len, scm_char_t *ary)
 
   scm_assert_obj_type(str, &SCM_STRING_TYPE_INFO);
 
-  if (pos >= SCM_STRING_LENGTH(str)) {
+  if (pos > SCM_STRING_LENGTH(str)) {
     scm_error("failed to make array of characters: invalid argument", 0);
     return NULL;
   }
@@ -1501,7 +1494,7 @@ scm_string_to_list(ScmObj str, ssize_t start, ssize_t end)
   size_t len;
 
   scm_assert(scm_string_p(str));
-  scm_assert(start < 0 || (size_t)start < scm_string_length(str));
+  scm_assert(start < 0 || (size_t)start <= scm_string_length(str));
   scm_assert(end < 0 || (size_t)end <= scm_string_length(str));
   scm_assert(start < 0 || end < 0 || start <= end);
 
