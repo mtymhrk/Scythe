@@ -2,13 +2,6 @@
 (select-module (scythe internal compile))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(define (map proc lst)
-  (if (null? lst)
-      lst
-      (cons (proc (car lst)) (map proc (cdr lst)))))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (define (push-inst-nop asmb)
   (assembler-push! asmb +asm-inst-nop+))
 (define (push-inst-cframe typ lbl asmb)

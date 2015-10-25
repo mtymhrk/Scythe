@@ -1,11 +1,6 @@
 
 (select-module (scythe internal record))
 
-(define (map proc lst)
-  (if (null? lst)
-      lst
-      (cons (proc (car lst)) (map proc (cdr lst)))))
-
 (define (decons-record-type-definition exp)
   (let ((x (cdr exp)) (name #f) (constructor #f) (pred #f) (fields #f)
         (cname #f) (cargs #f) (fnames #f) (faccs #f) (fmods #f))
