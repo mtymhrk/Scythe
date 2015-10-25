@@ -53,7 +53,8 @@ if(preinstalled_scythe_bin_path)
                          "scythe/internal/dynamic-env.scm"
                          "scythe/internal/macro.scm"
                          "scythe/internal/record.scm"
-                         "scythe/internal/multiple-val.scm")
+                         "scythe/internal/multiple-val.scm"
+                         "scythe/internal/misc.scm")
 
   set(compiler_scm_paths "")
   foreach(file ${compiler_scm_files})

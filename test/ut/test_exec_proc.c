@@ -467,3 +467,112 @@ TEST(exec_proc, dynamic_wind__continuation__enter_with_exception_handler)
                                "     (when k (k #f)))))",
                                "(exc . 10)");
 }
+
+TEST(exec_proc, map__single_list)
+{
+  test_eval__comp_val_with_obj("(map car '((a b) (c d) (e f)))",
+                               "(a c e)");
+}
+
+TEST(exec_proc, map__multiple_lists)
+{
+  test_eval__comp_val_with_obj("(map * '(2 3 5 7) '(11 13 17))",
+                               "(22 39 85)");
+}
+
+TEST(exec_proc, for_each__single_list)
+{
+  test_eval__comp_val_with_obj("(let ((acc '()))"
+                               "  (for-each (lambda (x) (set! acc (cons x acc)))"
+                               "            '(a b c))"
+                               "  acc)",
+                               "(c b a)");
+}
+
+TEST(exec_proc, for_each__multiple_lists)
+{
+  test_eval__comp_val_with_obj("(let ((acc '()))"
+                               "  (for-each (lambda (x y)"
+                               "              (set! acc (cons (* x y) acc)))"
+                               "            '(2 3 5 7)"
+                               "            '(11 13 17))"
+                               "  acc)",
+                               "(85 39 22)");
+}
+
+TEST(exec_proc, string_map__single_string)
+{
+  test_eval__comp_val_with_obj("(string-map (lambda (c)"
+                               "              (integer->char (+ (char->integer c) 1)))"
+                               "            \"abcde\")",
+                               "\"bcdef\"");
+}
+
+TEST(exec_proc, string_map__multiple_strings)
+{
+  test_eval__comp_val_with_obj("(string-map (lambda (c k)"
+                               "              (integer->char"
+                               "                (if (eqv? k #\\+)"
+                               "                     (+ (char->integer c) 1)"
+                               "                     (- (char->integer c) 1))))"
+                               "            \"abcde\""
+                               "            \"+-+-+-\")",
+                               "\"badcf\"");
+}
+
+TEST(exec_proc, string_for_each__single_string)
+{
+  test_eval__comp_val_with_obj("(let ((acc '()))"
+                               "  (string-for-each"
+                               "    (lambda (c)"
+                               "      (set! acc (cons c acc)))"
+                               "    \"abcde\")"
+                               "  acc)",
+                               "(#\\e #\\d #\\c #\\b #\\a)");
+}
+
+TEST(exec_proc, string_for_each__multiple_string)
+{
+  test_eval__comp_val_with_obj("(let ((acc '()))"
+                               "  (string-for-each"
+                               "    (lambda (c d)"
+                               "      (set! acc (cons (cons c d) acc)))"
+                               "    \"abc\""
+                               "    \"defg\")"
+                               "  acc)",
+                               "((#\\c . #\\f) (#\\b . #\\e) (#\\a . #\\d))");
+}
+
+TEST(exec_proc, vector_map__single_vector)
+{
+  test_eval__comp_val_with_obj("(vector-map car #((a b) (c d) (e f)))",
+                               "#(a c e)");
+}
+
+TEST(exec_proc, vector_map__multiple_vectors)
+{
+  test_eval__comp_val_with_obj("(vector-map * #(2 3 5 7) #(11 13 17))",
+                               "#(22 39 85)");
+}
+
+TEST(exec_proc, vector_for_each__single_vector)
+{
+  test_eval__comp_val_with_obj("(let ((acc '()))"
+                               "  (vector-for-each"
+                               "     (lambda (x) (set! acc (cons x acc)))"
+                               "     #(a b c))"
+                               "  acc)",
+                               "(c b a)");
+}
+
+TEST(exec_proc, vector_for_each__multiple_vectors)
+{
+  test_eval__comp_val_with_obj("(let ((acc '()))"
+                               "  (vector-for-each"
+                               "    (lambda (x y)"
+                               "      (set! acc (cons (* x y) acc)))"
+                               "    '#(2 3 5 7)"
+                               "    '#(11 13 17))"
+                               "  acc)",
+                               "(85 39 22)");
+}

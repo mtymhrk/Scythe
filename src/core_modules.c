@@ -1118,6 +1118,8 @@ scm_load_module_scythe_internal_record(void)
 /*  (scythe internal misc)                                         */
 /*******************************************************************/
 
+extern const unsigned char scm_compiled_data_scythe_internal_misc[];
+
 static int
 scm_load_module_func_scythe_internal_misc(ScmObj mod)
 {
@@ -1133,6 +1135,9 @@ scm_load_module_func_scythe_internal_misc(ScmObj mod)
   SCM_REFSTK_INIT_REG(&mod);
 
   r = scm_load_modules_and_import_them(mod, data);
+  if (r < 0) return -1;
+
+  r = scm_exec_compiled_data(mod, scm_compiled_data_scythe_internal_misc);
   if (r < 0) return -1;
 
   return 0;

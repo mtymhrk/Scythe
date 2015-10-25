@@ -31,3 +31,6 @@ const unsigned char scm_compiled_data_scythe_internal_multipleval[] = {
 <%= codes[:scythe_internal_multipleval] %>
 };
 
+const unsigned char scm_compiled_data_scythe_internal_misc[] = {
+<%= codes[:scythe_internal_misc] %>
+};
