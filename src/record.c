@@ -143,7 +143,7 @@ int
 scm_record_obj_print(ScmObj obj,
                         ScmObj port, int kind, ScmObjPrintHandler handler)
 {
-  scm_assert(scm_recordtype_p(obj));
+  scm_assert(scm_record_p(obj));
   return scm_pformat_cstr(port, "#<record ~a>",
                           scm_recordtype_name(SCM_RECORD_TYPE(obj)));
 }
